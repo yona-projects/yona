@@ -1,10 +1,14 @@
 package com.github.yonaprojects.yona.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpMethod
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
@@ -18,16 +22,29 @@ import jakarta.servlet.http.HttpServletResponse
 
 import com.github.yonaprojects.yona.config.git.GitAuthorizationFilter
 import com.github.yonaprojects.yona.config.oauth2.CustomOAuth2UserService
+import com.github.yonaprojects.yona.config.sso.EnterpriseOidcUserService
+import com.github.yonaprojects.yona.config.sso.EnterpriseSaml2ResponseAuthenticationConverter
 import com.github.yonaprojects.yona.config.svn.SvnAuthorizationFilter
+import com.github.yonaprojects.yona.domain.user.Saml2UserProvisioningService
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
     private val customOAuth2UserService: CustomOAuth2UserService,
+    // yona-wiki P3-06(엔터프라이즈 SSO) Step2 — google/github(소셜 로그인, link/merge 흐름)와
+    // 완전히 분리된 별도 OidcUserService. userInfoEndpoint()에 둘 다 등록해도 Spring Security가
+    // ClientRegistration의 scope에 "openid"가 있는지로 자동 분기한다(SecurityConfig 하단 참고).
+    private val enterpriseOidcUserService: EnterpriseOidcUserService,
+    // yona-wiki P3-06 Step3 — SAML2 JIT 프로비저닝.
+    private val saml2UserProvisioningService: Saml2UserProvisioningService,
     private val gitAuthorizationFilter: GitAuthorizationFilter,
     private val svnAuthorizationFilter: SvnAuthorizationFilter,
     private val apiTokenAuthenticationFilter: ApiTokenAuthenticationFilter,
-    private val accessLogFilter: AccessLogFilter
+    private val accessLogFilter: AccessLogFilter,
+    @Value("\${yona.sso.saml2.email-attribute:email}")
+    private val saml2EmailAttribute: String,
+    @Value("\${yona.sso.saml2.display-name-attribute:displayName}")
+    private val saml2DisplayNameAttribute: String
 ) {
 
     @Bean
@@ -81,9 +98,21 @@ class SecurityConfig(
                 oauth2
                     .loginPage("/users/loginform")
                     .userInfoEndpoint { userInfo ->
-                        userInfo.userService(customOAuth2UserService)
+                        userInfo
+                            .userService(customOAuth2UserService)
+                            // yona-wiki P3-06 Step2 — "openid" 스코프를 포함한 등록(엔터프라이즈 OIDC)만
+                            // 이 서비스로 라우팅된다. google/github는 scope=profile,email이라 영향 없음.
+                            .oidcUserService(enterpriseOidcUserService)
                     }
                     .defaultSuccessUrl("/")
+            }
+            // yona-wiki P3-06 Step3 — SAML2 SP 로그인. RelyingPartyRegistrationRepository는
+            // config/sso/YonaRelyingPartyRegistrationRepository(관리자 UI/설정 파일 기반, 비활성화면
+            // findByRegistrationId가 null을 반환)가 유일한 빈이라 자동으로 주입된다. 기본
+            // OpenSaml5AuthenticationProvider 대신 JIT 프로비저닝을 끼워 넣은 커스텀
+            // responseAuthenticationConverter를 쓰는 AuthenticationManager를 명시적으로 지정한다.
+            .saml2Login { saml2 ->
+                saml2.authenticationManager(saml2AuthenticationManager())
             }
             .logout { logout ->
                 logout
@@ -96,6 +125,16 @@ class SecurityConfig(
             .addFilterAfter(apiTokenAuthenticationFilter, BasicAuthenticationFilter::class.java)
             .addFilterAfter(accessLogFilter, BasicAuthenticationFilter::class.java)
         return http.build()
+    }
+
+    private fun saml2AuthenticationManager(): AuthenticationManager {
+        val provider = OpenSaml5AuthenticationProvider()
+        provider.setResponseAuthenticationConverter(
+            EnterpriseSaml2ResponseAuthenticationConverter(
+                saml2UserProvisioningService, saml2EmailAttribute, saml2DisplayNameAttribute
+            )
+        )
+        return ProviderManager(provider)
     }
 }
 

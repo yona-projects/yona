@@ -24,6 +24,11 @@ repositories {
 	maven {
 		url = uri("https://packages.scm-manager.org/repository/releases/")
 	}
+	// P3-06(엔터프라이즈 SSO) — spring-security-saml2-service-provider가 의존하는 OpenSAML은
+	// Maven Central에 미배포되어(Shibboleth 프로젝트가 자체 저장소에서만 배포) 이 저장소가 필요하다.
+	maven {
+		url = uri("https://build.shibboleth.net/nexus/content/repositories/releases/")
+	}
 }
 
 dependencies {
@@ -45,6 +50,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+	// P3-06(엔터프라이즈 SSO) — SAML2 SP 연동. spring-boot-starter-security의 BOM(Spring Security
+	// 7.1.1)이 버전을 관리하므로 별도 버전 고정 불필요.
+	implementation("org.springframework.security:spring-security-saml2-service-provider")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
