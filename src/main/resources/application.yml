@@ -68,6 +68,23 @@ yona:
     use-email-base-login: "${YONA_LDAP_USE_EMAIL_BASE_LOGIN:false}"
     fallback-to-local-login: "${YONA_LDAP_FALLBACK_TO_LOCAL_LOGIN:false}"
     guest-login-id-prefix: "${YONA_LDAP_GUEST_LOGIN_ID_PREFIX:}"
+  # yona-wiki P3-06(엔터프라이즈 SSO) — LDAP과 동일하게 "설정 파일만으로도 최소 동작"을 보장하는
+  # 초기값. 관리자 UI(/site/sso)로 저장하면 그 이후로는 DB 값이 우선한다(SsoSettingsService 참고).
+  sso:
+    oidc:
+      enabled: "${YONA_SSO_OIDC_ENABLED:false}"
+      registration-id: "${YONA_SSO_OIDC_REGISTRATION_ID:oidc}"
+      issuer-uri: "${YONA_SSO_OIDC_ISSUER_URI:}"
+      client-id: "${YONA_SSO_OIDC_CLIENT_ID:}"
+      client-secret: "${YONA_SSO_OIDC_CLIENT_SECRET:}"
+    saml2:
+      enabled: "${YONA_SSO_SAML2_ENABLED:false}"
+      registration-id: "${YONA_SSO_SAML2_REGISTRATION_ID:saml2}"
+      idp-sso-url: "${YONA_SSO_SAML2_IDP_SSO_URL:}"
+      idp-entity-id: "${YONA_SSO_SAML2_IDP_ENTITY_ID:}"
+      idp-certificate: "${YONA_SSO_SAML2_IDP_CERTIFICATE:}"
+      email-attribute: "${YONA_SSO_SAML2_EMAIL_ATTRIBUTE:email}"
+      display-name-attribute: "${YONA_SSO_SAML2_DISPLAY_NAME_ATTRIBUTE:displayName}"
   mailbox:
     imap:
       enabled: "${YONA_IMAP_ENABLED:false}"

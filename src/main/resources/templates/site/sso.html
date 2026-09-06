@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{${message}})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('sso')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10">
+          <div class="title_area">
+            <h2 class="pull-left">Enterprise SSO</h2>
+          </div>
+
+          <!-- OIDC 설정 — 임의의 OIDC IdP(Okta/Azure AD/Keycloak 등)를 붙이는 일반적인
+               엔터프라이즈 SaaS 설정 화면 관행: Issuer URL(OIDC Discovery)/Client ID/Client Secret. -->
+          <div class="site-sso-section">
+            <h3>OpenID Connect (OIDC)</h3>
+            <p class="description">범용 OIDC IdP를 연동합니다. Issuer URL은 IdP의 OpenID Connect Discovery 문서
+              (<code>/.well-known/openid-configuration</code>)를 제공하는 기준 URL입니다.</p>
+
+            <form id="oidcSsoForm" method="post" th:action="@{/sites/sso/oidc}" class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label span3">Enable OIDC single sign-on</label>
+                <div class="controls">
+                  <input type="checkbox" name="enabled" value="true" th:checked="${oidcSettings.enabled}">
+                  <input type="hidden" name="_enabled" value="on">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">Registration ID</label>
+                <div class="controls">
+                  <input type="text" name="registrationId" class="span4" th:value="${oidcSettings.registrationId}">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">Issuer URL</label>
+                <div class="controls">
+                  <input type="text" name="issuerUri" class="span6" placeholder="https://idp.example.com" th:value="${oidcSettings.issuerUri}">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">Client ID</label>
+                <div class="controls">
+                  <input type="text" name="clientId" class="span6" th:value="${oidcSettings.clientId}">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">Client Secret</label>
+                <div class="controls">
+                  <input type="password" name="clientSecret" class="span6" th:value="${oidcSettings.clientSecret}">
+                </div>
+              </div>
+              <div class="span12 mail-btn-wrap">
+                <button type="submit" class="ybtn ybtn-primary"><strong>저장</strong></button>
+              </div>
+            </form>
+          </div>
+
+          <!-- SAML2 설정 — 필드 구성/문구는 GitHub Enterprise 조직 설정 > Security > "SAML single
+               sign-on" 화면(Sign on URL/Issuer/Public Certificate)을 그대로 차용했다. -->
+          <div class="site-sso-section">
+            <h3>SAML 2.0</h3>
+            <p class="description">SAML 2.0 IdP를 연동합니다. 필드 구성은 GitHub Enterprise의 조직 SAML SSO 설정과 동일합니다.</p>
+
+            <form id="saml2SsoForm" method="post" th:action="@{/sites/sso/saml2}" class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label span3">Enable SAML authentication</label>
+                <div class="controls">
+                  <input type="checkbox" name="enabled" value="true" th:checked="${saml2Settings.enabled}">
+                  <input type="hidden" name="_enabled" value="on">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">Registration ID</label>
+                <div class="controls">
+                  <input type="text" name="registrationId" class="span4" th:value="${saml2Settings.registrationId}">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">Sign on URL</label>
+                <div class="controls">
+                  <input type="text" name="idpSsoUrl" class="span6" placeholder="https://idp.example.com/sso" th:value="${saml2Settings.idpSsoUrl}">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">Issuer</label>
+                <div class="controls">
+                  <input type="text" name="idpEntityId" class="span6" placeholder="https://idp.example.com/entity" th:value="${saml2Settings.idpEntityId}">
+                </div>
+              </div>
+              <div class="control-group mr10">
+                <label class="control-label span3">Public Certificate</label>
+                <div class="controls">
+                  <textarea name="idpCertificate" rows="8" class="span6" th:text="${saml2Settings.idpCertificate}"></textarea>
+                </div>
+              </div>
+              <div class="span12 mail-btn-wrap">
+                <button type="submit" class="ybtn ybtn-primary"><strong>저장</strong></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

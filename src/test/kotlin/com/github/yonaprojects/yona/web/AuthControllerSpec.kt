@@ -1,5 +1,8 @@
 package com.github.yonaprojects.yona.web
 
+import com.github.yonaprojects.yona.domain.sso.OidcSsoSettings
+import com.github.yonaprojects.yona.domain.sso.Saml2SsoSettings
+import com.github.yonaprojects.yona.domain.sso.SsoSettingsService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserService
 import io.kotest.core.spec.style.DescribeSpec
@@ -18,7 +21,8 @@ import com.github.yonaprojects.yona.domain.user.UserState
 
 class AuthControllerSpec : DescribeSpec({
     val userService = mockk<UserService>()
-    val authController = AuthController(userService, "", false)
+    val ssoSettingsService = mockk<SsoSettingsService>()
+    val authController = AuthController(userService, "", false, ssoSettingsService)
     val viewResolver = InternalResourceViewResolver().apply {
         setPrefix("/templates/")
         setSuffix(".html")
@@ -28,7 +32,9 @@ class AuthControllerSpec : DescribeSpec({
         .build()
 
     beforeTest {
-        clearMocks(userService)
+        clearMocks(userService, ssoSettingsService)
+        every { ssoSettingsService.getOidcSettings() } returns OidcSsoSettings()
+        every { ssoSettingsService.getSaml2Settings() } returns Saml2SsoSettings()
     }
 
     describe("AuthController") {
@@ -71,6 +77,20 @@ class AuthControllerSpec : DescribeSpec({
                     .andExpect(status().isOk)
                     .andExpect(model().attributeExists("logoutMessage"))
                     .andExpect(view().name("login"))
+            }
+
+            // yona-wiki P3-06(엔터프라이즈 SSO) — 로그인 화면이 OIDC/SAML2 활성화 여부와 등록 ID를
+            // 모델에 담아 로그인 버튼을 조건부로 노출할 수 있어야 한다.
+            it("엔터프라이즈 SSO 활성화 여부/등록 ID가 모델에 적재되어야 한다") {
+                every { ssoSettingsService.getOidcSettings() } returns OidcSsoSettings(enabled = true, registrationId = "my-oidc")
+                every { ssoSettingsService.getSaml2Settings() } returns Saml2SsoSettings(enabled = true, registrationId = "my-saml2")
+
+                mockMvc.perform(get("/users/loginform"))
+                    .andExpect(status().isOk)
+                    .andExpect(model().attribute("ssoOidcEnabled", true))
+                    .andExpect(model().attribute("ssoOidcRegistrationId", "my-oidc"))
+                    .andExpect(model().attribute("ssoSaml2Enabled", true))
+                    .andExpect(model().attribute("ssoSaml2RegistrationId", "my-saml2"))
             }
         }
 
@@ -122,7 +142,7 @@ class AuthControllerSpec : DescribeSpec({
 
             // yona UserApp.java:1218-1224 isUsingSignUpConfirm()/:1260-1275 createNewUser() 대응 (P1-77).
             it("관리자 승인 대기 설정이 켜져 있으면 신규 유저가 LOCKED 상태로 생성되고 승인 대기 안내로 리다이렉트되어야 한다") {
-                val confirmController = AuthController(userService, "", true)
+                val confirmController = AuthController(userService, "", true, ssoSettingsService)
                 val confirmViewResolver = InternalResourceViewResolver().apply {
                     setPrefix("/templates/")
                     setSuffix(".html")
@@ -189,7 +209,7 @@ class AuthControllerSpec : DescribeSpec({
             }
 
             it("허용된 이메일 도메인 설정이 있고 그 목록에 없는 도메인이면 가입이 거부되어야 한다") {
-                val restrictedController = AuthController(userService, "allowed.com", false)
+                val restrictedController = AuthController(userService, "allowed.com", false, ssoSettingsService)
                 val restrictedViewResolver = InternalResourceViewResolver().apply {
                     setPrefix("/templates/")
                     setSuffix(".html")

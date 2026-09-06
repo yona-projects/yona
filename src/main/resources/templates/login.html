@@ -57,6 +57,17 @@
                 <img src="/images/provider-logo/btn_google_light_normal_ios.svg" alt="login with Google"> Sign in with Google
               </span>
             </a>
+            <!-- yona-wiki P3-06(엔터프라이즈 SSO) — 관리자가 활성화한 경우에만 노출. -->
+            <a th:if="${ssoOidcEnabled}" th:href="@{/oauth2/authorization/{registrationId}(registrationId=${ssoOidcRegistrationId})}" class="ybtn oauth-login-btn">
+              <span class="auth-provider-logo">
+                <span class="provider-name">Sign in with SSO (OIDC)</span>
+              </span>
+            </a>
+            <a th:if="${ssoSaml2Enabled}" th:href="@{/saml2/authenticate/{registrationId}(registrationId=${ssoSaml2RegistrationId})}" class="ybtn oauth-login-btn">
+              <span class="auth-provider-logo">
+                <span class="provider-name">Sign in with SSO (SAML)</span>
+              </span>
+            </a>
           </div>
 
           <div class="act-row mt5" th:unless="${useSocialLoginOnly}">

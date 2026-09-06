@@ -520,6 +520,9 @@
       <li th:class="${activeMenu == 'massmail' ? 'active' : ''}">
         <a href="/sites/massmail" th:text="#{site.sidebar.massMail}">대량 메일 발송</a>
       </li>
+      <li th:class="${activeMenu == 'sso' ? 'active' : ''}">
+        <a href="/sites/sso" th:text="#{site.sidebar.sso}">엔터프라이즈 SSO</a>
+      </li>
       <li th:class="${activeMenu == 'update' ? 'active' : ''}">
         <a href="/sites/update"><span th:text="#{site.sidebar.update}">시스템 업데이트</span><span th:if="${yonaUpdateService.isUpdateRequired()}" class="notification-badge">1</span></a>
       </li>

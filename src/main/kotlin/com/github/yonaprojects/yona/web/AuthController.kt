@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.web
 
+import com.github.yonaprojects.yona.domain.sso.SsoSettingsService
 import com.github.yonaprojects.yona.domain.user.EmailDomainValidator
 import com.github.yonaprojects.yona.domain.user.LoginIdFormatValidator
 import com.github.yonaprojects.yona.domain.user.ReservedWordsValidator
@@ -26,7 +27,9 @@ class AuthController(
     private val allowedEmailDomains: String,
     // yona UserApp.java:1218-1224 isUsingSignUpConfirm()(signup.require.admin.confirm) 대응 (P1-77).
     @Value("\${yona.signup.require-admin-confirm:false}")
-    private val requireAdminConfirm: Boolean
+    private val requireAdminConfirm: Boolean,
+    // yona-wiki P3-06(엔터프라이즈 SSO) — 로그인 화면에 OIDC/SAML2 로그인 버튼을 조건부로 노출한다.
+    private val ssoSettingsService: SsoSettingsService
 ) {
 
     @GetMapping("/login")
@@ -56,6 +59,15 @@ class AuthController(
         if (logout != null) {
             model.addAttribute("logoutMessage", "성공적으로 로그아웃되었습니다.")
         }
+
+        val oidcSettings = ssoSettingsService.getOidcSettings()
+        model.addAttribute("ssoOidcEnabled", oidcSettings.enabled)
+        model.addAttribute("ssoOidcRegistrationId", oidcSettings.registrationId)
+
+        val saml2Settings = ssoSettingsService.getSaml2Settings()
+        model.addAttribute("ssoSaml2Enabled", saml2Settings.enabled)
+        model.addAttribute("ssoSaml2RegistrationId", saml2Settings.registrationId)
+
         return "login"
     }
 
