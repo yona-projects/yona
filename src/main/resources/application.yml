@@ -25,6 +25,18 @@ spring:
             client-id: dummy-client-id
             client-secret: dummy-client-secret
             scope: user:email,read:user
+  ai:
+    # yona-wiki P3-07(MCP 서버) Step3 — spring-ai-starter-mcp-server-webmvc 자동설정. Streamable
+    # HTTP(spring.ai.mcp.server.protocol=STREAMABLE)를 쓰면 기본 엔드포인트가 "/mcp"다 —
+    # ResourceServerConfig의 securityMatcher("/mcp/**")와 ApiTokenAuthenticationFilter의
+    # mcpPattern이 이 경로를 그대로 전제한다(엔드포인트를 바꾸면 두 곳도 같이 바꿔야 한다).
+    mcp:
+      server:
+        enabled: true
+        name: yona-mcp-server
+        version: "1.0.0"
+        protocol: STREAMABLE
+        instructions: "yona 저장소의 이슈/PR을 조회하고 만들고 코멘트/머지할 수 있는 MCP 서버입니다."
 
 application:
   noreferrer: "${YONA_NOREFERRER:false}"

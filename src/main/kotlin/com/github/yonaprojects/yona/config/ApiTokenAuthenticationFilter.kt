@@ -78,6 +78,14 @@ import java.util.regex.Pattern
  * 같이 내려주므로). `AccountLevelTarget.resourceType`을 `resourceTypes: List<ResourceType?>`로
  * 바꿔 여러 그룹을 AND로 요구할 수 있게 했다 — ISSUES:READ와 PULL_REQUESTS:READ 둘 다 있어야
  * 200, 하나라도 없으면 403.
+ *
+ * yona-wiki P3-07(MCP 서버) Step3 — `/mcp` 이하 요청(Streamable HTTP 단일 엔드포인트)은 이
+ * 필터가 스코프를 판정하지 않는다. 한 HTTP 요청(JSON-RPC POST) 안에 어떤 도구(list_issues vs
+ * merge_pull_request 등)가 들어있는지는 URL만 보고는 알 수 없고, 필요한 스코프도 도구마다
+ * 다르기(그룹도 권한도) 때문이다 — 대신 `authenticateScopedList()`와 동일하게 신원만 확인하고
+ * 인증에 쓰인 ApiToken을 request attribute로 넘겨, 실제 스코프 판정은
+ * `com.github.yonaprojects.yona.mcp.McpScopeGuard`가 각 @Tool 메서드 호출 직전에
+ * ApiTokenAuthorizer(이 클래스가 스코프 API에 쓰는 것과 동일한 순수 판정 로직)로 수행한다.
  */
 @Component
 class ApiTokenAuthenticationFilter(
@@ -113,6 +121,7 @@ class ApiTokenAuthenticationFilter(
                         }
                     }
                     isOwnerOnlyListRequest(requestUri) -> authenticateScopedList(token, request)
+                    isMcpRequest(requestUri) -> authenticateScopedList(token, request)
                     accountTarget != null -> {
                         if (!authenticateAccountLevel(token, accountTarget, request, response)) {
                             return
@@ -216,6 +225,9 @@ class ApiTokenAuthenticationFilter(
     // yona-wiki P3-02 Step6.5 — owner 전용 목록 경로(`/api/v1/projects/{owner}`)는 특정 프로젝트
     // 하나가 아니라 "owner 밑 전체"에 대한 요청이라 여기서 403을 내지 않는다. 어떤 프로젝트가
     // 보이는지는 컨트롤러가 request attribute로 넘겨받은 ApiToken을 보고 직접 필터링한다.
+    // yona-wiki P3-07 Step3 — `/mcp` 요청도 동일한 이유(이 필터 하나로는 어떤 스코프가 필요한지
+    // 알 수 없음)로 이 메서드를 재사용한다 — McpScopeGuard가 request attribute의 ApiToken을 꺼내
+    // 실제 판정을 한다.
     private fun authenticateScopedList(token: String, request: HttpServletRequest) {
         val apiToken = apiTokenRepository.findByTokenHash(hashApiToken(token)).orElse(null) ?: return
         val expiresAt = apiToken.expiresAt ?: return
@@ -265,6 +277,10 @@ class ApiTokenAuthenticationFilter(
         // yona-wiki P3-02 Step6.5 — owner만 있는 목록 경로(`/api/v1/projects/{owner}`, 정확히
         // 1세그먼트). 위 두 패턴과 세그먼트 수가 달라 겹치지 않는다.
         private val ownerOnlyPattern = Pattern.compile("^/api/v1/projects/([^/]+)/?$")
+
+        // yona-wiki P3-07(MCP 서버) Step3 — Spring AI MCP 서버 스타터의 Streamable HTTP 단일
+        // 엔드포인트(`/mcp`, 기본값). 스코프 판정은 이 필터가 하지 않는다(위 클래스 KDoc 참고).
+        private val mcpPattern = Pattern.compile("^/mcp(/.*)?$")
 
         // yona-wiki P3-02 10라운드 — owner 세그먼트조차 없는 프로젝트 "생성" 자체
         // (`POST /api/v1/projects`). 위 세 패턴 모두 최소 1개의 세그먼트(owner)를 요구하므로 겹치지
@@ -395,6 +411,11 @@ class ApiTokenAuthenticationFilter(
         private fun isOwnerOnlyListRequest(requestUri: String?): Boolean {
             if (requestUri == null) return false
             return ownerOnlyPattern.matcher(requestUri).matches()
+        }
+
+        private fun isMcpRequest(requestUri: String?): Boolean {
+            if (requestUri == null) return false
+            return mcpPattern.matcher(requestUri).matches()
         }
 
         private fun requiredPermissionFor(method: String): ApiTokenPermission {
