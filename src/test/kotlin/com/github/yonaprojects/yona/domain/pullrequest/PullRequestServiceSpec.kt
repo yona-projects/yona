@@ -3,6 +3,8 @@ package com.github.yonaprojects.yona.domain.pullrequest
 import com.github.yonaprojects.yona.AbstractIntegrationTest
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranch
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
+import com.github.yonaprojects.yona.domain.gpgkey.GpgKeyRepository
+import com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUser
@@ -10,6 +12,8 @@ import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.role.Role
 import com.github.yonaprojects.yona.domain.role.RoleRepository
 import com.github.yonaprojects.yona.domain.role.RoleType
+import com.github.yonaprojects.yona.domain.user.Email
+import com.github.yonaprojects.yona.domain.user.EmailRepository
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.enumeration.EventType
@@ -31,6 +35,7 @@ import com.github.yonaprojects.yona.domain.watch.Watch
 import com.github.yonaprojects.yona.domain.watch.WatchRepository
 import com.github.yonaprojects.yona.domain.issue.IssueEventRepository
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -64,7 +69,12 @@ class PullRequestServiceSpec @Autowired constructor(
     // yona-wiki P3-04(브랜치 보호) Step 4/5 — merge() 시 ProtectedBranch 체크 검증용.
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
-    private val roleRepository: RoleRepository
+    private val roleRepository: RoleRepository,
+    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — require_signed_commits가 merge()에서 실제로
+    // 검사되는지 실제 gpg 서명 커밋으로 검증하는 데 필요.
+    private val gpgKeyService: GpgKeyService,
+    private val gpgKeyRepository: GpgKeyRepository,
+    private val emailRepository: EmailRepository
 ) : AbstractIntegrationTest() {
 
     init {
@@ -88,6 +98,9 @@ class PullRequestServiceSpec @Autowired constructor(
                 protectedBranchRepository.deleteAll()
                 projectUserRepository.deleteAll()
                 projectRepository.deleteAll()
+                // yona-wiki P3-03/P3-04 연결 작업 — user FK가 걸려 있으므로 userRepository.deleteAll()보다 먼저 지운다.
+                gpgKeyRepository.deleteAll()
+                emailRepository.deleteAll()
                 userRepository.deleteAll()
 
                 val uniqueSuffix = System.currentTimeMillis().toString() + "-" + UUID.randomUUID().toString().take(6)
@@ -213,6 +226,121 @@ class PullRequestServiceSpec @Autowired constructor(
                         
                     git.repository.close()
                     git.close()
+                } finally {
+                    tempWorkingDir.deleteRecursively()
+                }
+            }
+
+            // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — require_signed_commits가 실제로
+            // merge()에서 검사되는지 검증하려면 진짜 gpg 서명 커밋이 필요하다(GpgSignatureVerifierSpec/
+            // YonaMinaSshServerIntegrationSpec과 동일한 방식 — 실제 `gpg`/`git commit -S` 바이너리
+            // 사용, 순수 mock으로는 의미있게 테스트할 수 없다).
+            fun gpgAvailable(): Boolean =
+                try {
+                    ProcessBuilder("gpg", "--version").start().waitFor() == 0
+                } catch (e: Exception) {
+                    false
+                }
+
+            data class GeneratedGpgKey(val gnupgHome: File, val keyId: String, val armoredPublicKey: String, val email: String)
+
+            fun generateGpgKey(emailLocalPart: String): GeneratedGpgKey {
+                val gnupgHome = Files.createTempDirectory("pr-it-gpg-home-").toFile()
+                val email = "$emailLocalPart@example.com"
+
+                val batchFile = File(gnupgHome, "gen-key.batch")
+                batchFile.writeText(
+                    """
+                    %no-protection
+                    Key-Type: EDDSA
+                    Key-Curve: ed25519
+                    Subkey-Type: EDDSA
+                    Subkey-Curve: ed25519
+                    Name-Real: PR Test Committer
+                    Name-Email: $email
+                    Expire-Date: 0
+                    %commit
+                    """.trimIndent()
+                )
+
+                fun run(vararg cmd: String): String {
+                    val process = ProcessBuilder(*cmd)
+                        .redirectErrorStream(true)
+                        .also { it.environment()["GNUPGHOME"] = gnupgHome.absolutePath }
+                        .start()
+                    val output = process.inputStream.bufferedReader().readText()
+                    withClue(output) { process.waitFor() shouldBe 0 }
+                    return output
+                }
+
+                run("gpg", "--batch", "--generate-key", batchFile.absolutePath)
+                val listing = run("gpg", "--list-secret-keys", "--keyid-format=long", "--with-colons")
+                val keyId = listing.lineSequence().first { it.startsWith("sec:") }.split(":")[4]
+
+                val exportProcess = ProcessBuilder("gpg", "--armor", "--export", keyId)
+                    .also { it.environment()["GNUPGHOME"] = gnupgHome.absolutePath }
+                    .start()
+                val armoredPublicKey = exportProcess.inputStream.bufferedReader().readText()
+                withClue(armoredPublicKey) { exportProcess.waitFor() shouldBe 0 }
+
+                return GeneratedGpgKey(gnupgHome, keyId, armoredPublicKey, email)
+            }
+
+            // createCommit()과 동일한 checkout 관례(baseBranch가 없으면 origin/master로 폴백)를
+            // 따르되, 실제 `git`/`gpg` 바이너리로 진짜 서명 커밋을 만든다(JGit의 CommitCommand는
+            // 이 환경의 실제 gpg 서명 검증을 그대로 재현하기 어려워 GpgSignatureVerifierSpec과
+            // 동일하게 git CLI를 그대로 사용한다).
+            fun createSignedCommit(
+                bareRepoDir: File,
+                branch: String,
+                filePath: String,
+                content: String,
+                commitMsg: String,
+                generatedKey: GeneratedGpgKey,
+                baseBranch: String = branch
+            ) {
+                val tempWorkingDir = Files.createTempDirectory("pr-it-signed-work-").toFile()
+                try {
+                    fun run(vararg cmd: String, env: Map<String, String> = emptyMap()) {
+                        val process = ProcessBuilder(*cmd)
+                            .directory(tempWorkingDir)
+                            .redirectErrorStream(true)
+                            .also { pb -> env.forEach { (k, v) -> pb.environment()[k] = v } }
+                            .start()
+                        val output = process.inputStream.bufferedReader().readText()
+                        withClue(output) { process.waitFor() shouldBe 0 }
+                    }
+
+                    run("git", "init", "-q", "-b", branch)
+                    run("git", "remote", "add", "origin", bareRepoDir.absolutePath)
+                    run("git", "fetch", "-q", "origin")
+
+                    val hasBaseBranch = ProcessBuilder("git", "rev-parse", "--verify", "refs/remotes/origin/$baseBranch")
+                        .directory(tempWorkingDir).redirectErrorStream(true).start().waitFor() == 0
+                    if (hasBaseBranch) {
+                        run("git", "checkout", "-q", "-B", branch, "origin/$baseBranch")
+                    } else {
+                        val hasOriginMaster = ProcessBuilder("git", "rev-parse", "--verify", "refs/remotes/origin/master")
+                            .directory(tempWorkingDir).redirectErrorStream(true).start().waitFor() == 0
+                        if (hasOriginMaster) {
+                            run("git", "checkout", "-q", "-B", branch, "origin/master")
+                        }
+                    }
+
+                    val file = File(tempWorkingDir, filePath)
+                    file.parentFile?.mkdirs()
+                    file.writeText(content)
+
+                    run("git", "add", filePath)
+                    run("git", "config", "user.name", "PR Signed Tester")
+                    run("git", "config", "user.email", generatedKey.email)
+                    run("git", "config", "user.signingkey", generatedKey.keyId)
+                    run("git", "config", "gpg.program", "gpg")
+                    run(
+                        "git", "commit", "-S", "-q", "-m", commitMsg,
+                        env = mapOf("GNUPGHOME" to generatedKey.gnupgHome.absolutePath)
+                    )
+                    run("git", "push", "-f", "origin", "HEAD:refs/heads/$branch")
                 } finally {
                     tempWorkingDir.deleteRecursively()
                 }
@@ -750,8 +878,10 @@ class PullRequestServiceSpec @Autowired constructor(
             // toBranch(toProject의 "master")에 ProtectedBranch 규칙이 걸려 있을 때
             // PullRequestServiceImpl.merge()가 그 규칙을 검사하는지 확인한다. require_pull_request는
             // merge()가 정의상 항상 PullRequest 객체를 통해서만 호출되므로(직접 push 경로가 아님)
-            // 병합 자체를 막을 대상이 없다 — Step1 스파이크 결론과 동일하게 require_approvals/
-            // require_signed_commits도 항상 통과 처리됨을 마지막 테스트로 고정한다.
+            // 병합 자체를 막을 대상이 없다 — Step1 스파이크 결론과 동일하게 require_approvals는
+            // 항상 통과 처리됨을 테스트로 고정한다. require_signed_commits는 더 이상 no-op이
+            // 아니다 — yona-wiki P3-03/P3-04 연결 작업(2026-09-07, P3-03 4부 완료 로그에 "후속
+            // 과제"로 명시적으로 남겨뒀던 항목)으로 실제 검사가 연결되었다(아래 별도 describe).
             describe("5-1. 브랜치 보호 정책(ProtectedBranch) 검증") {
                 fun makeOpenPrWithMergeableCommits(): PullRequest {
                     val toBareDir = repositoryService.getRepository(toProject).getDirectory()
@@ -852,18 +982,104 @@ class PullRequestServiceSpec @Autowired constructor(
                 }
 
                 // yona-wiki P3-04 Step1 스파이크 결론(계획 문서 참고) 회귀 고정 — CommentThread에
-                // 승인 개념이 없어 require_approvals는 실제 승인 개수를 검증하지 않고, GPG 서명
-                // 검증 파이프라인(P3-03)이 없어 require_signed_commits도 항상 통과한다.
+                // 승인 개념이 없어 require_approvals는 실제 승인 개수를 검증하지 않는다.
                 // require_pull_request 역시 merge()가 정의상 PullRequest를 통해서만 호출되므로
-                // 정상적인 PR 병합을 막지 않아야 한다.
-                it("require_pull_request/require_approvals/require_signed_commits가 켜져 있어도 정상 PR 병합은 항상 통과해야 한다") {
+                // 정상적인 PR 병합을 막지 않아야 한다. require_signed_commits는 이 테스트에서
+                // 제외한다 — 아래 별도 describe("5-2")에서 실제로 검사됨을 검증한다.
+                it("require_pull_request/require_approvals가 켜져 있어도 정상 PR 병합은 항상 통과해야 한다") {
                     protectedBranchRepository.save(
                         ProtectedBranch(
                             project = toProject, branchPattern = "master",
-                            requirePullRequest = true, requireApprovals = 5, requireSignedCommits = true
+                            requirePullRequest = true, requireApprovals = 5
                         )
                     )
                     val pr = makeOpenPrWithMergeableCommits()
+
+                    val mergeResult = pullRequestService.merge(pr.id!!, receiver)
+
+                    mergeResult.conflicts() shouldBe false
+                    pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+                }
+            }
+
+            // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — P3-03 4부 완료 로그에 "후속 과제"로
+            // 명시적으로 남겨뒀던 갭. require_signed_commits가 PullRequestServiceImpl.merge()에서
+            // 실제로 검사되는지 검증한다.
+            describe("5-2. require_signed_commits(GPG 서명 검증 연결) 검증") {
+                fun makeOpenPrWithMergeableCommits(): PullRequest {
+                    val toBareDir = repositoryService.getRepository(toProject).getDirectory()
+                    val fromBareDir = repositoryService.getRepository(fromProject).getDirectory()
+
+                    createCommit(toBareDir, "master", "test.txt", "hello common", "Initial commit")
+                    syncRepository(toBareDir, fromBareDir, "master")
+                    createCommit(fromBareDir, "feature", "test3.txt", "source modification", "Update source")
+
+                    return pullRequestRepository.save(
+                        PullRequest(
+                            title = "GPG 서명 검증 연결 검증 PR",
+                            body = "require_signed_commits 실제 검사 검증용",
+                            toProject = toProject,
+                            fromProject = fromProject,
+                            toBranch = "refs/heads/master",
+                            fromBranch = "refs/heads/feature",
+                            contributor = contributor,
+                            receiver = receiver,
+                            created = Instant.now(),
+                            state = State.OPEN
+                        )
+                    )
+                }
+
+                it("서명되지 않은 커밋이 있는 브랜치는 require_signed_commits가 켜져 있으면 병합이 거부되어야 한다") {
+                    protectedBranchRepository.save(
+                        ProtectedBranch(project = toProject, branchPattern = "master", requireSignedCommits = true, adminsCanBypass = false)
+                    )
+                    val pr = makeOpenPrWithMergeableCommits()
+
+                    shouldThrow<BranchProtectionException> {
+                        pullRequestService.merge(pr.id!!, receiver)
+                    }
+
+                    pullRequestRepository.findById(pr.id!!).get().state shouldBe State.OPEN
+                }
+
+                it("require_signed_commits가 켜져 있어도 실제로 서명되고 검증되는 커밋이면 병합이 성공해야 한다") {
+                    if (!gpgAvailable()) return@it
+
+                    val toBareDir = repositoryService.getRepository(toProject).getDirectory()
+                    val fromBareDir = repositoryService.getRepository(fromProject).getDirectory()
+
+                    createCommit(toBareDir, "master", "test.txt", "hello common", "Initial commit")
+                    syncRepository(toBareDir, fromBareDir, "master")
+
+                    val generatedKey = generateGpgKey("pr-sig-ok")
+                    // author 이메일이 GPG 키의 (계정 소유로 인증된) UID 이메일과 일치해야 VERIFIED로
+                    // 판정된다 — GpgSignatureVerifierSpec/YonaMinaSshServerIntegrationSpec과 동일한 정책.
+                    val signer = userRepository.save(
+                        User(loginId = "pr-sig-ok-signer-${System.currentTimeMillis()}", name = "PR서명유저", email = generatedKey.email)
+                    )
+                    gpgKeyService.create(signer, generatedKey.armoredPublicKey)
+
+                    createSignedCommit(fromBareDir, "feature", "test3.txt", "source modification", "Update source", generatedKey)
+
+                    protectedBranchRepository.save(
+                        ProtectedBranch(project = toProject, branchPattern = "master", requireSignedCommits = true, adminsCanBypass = false)
+                    )
+
+                    val pr = pullRequestRepository.save(
+                        PullRequest(
+                            title = "GPG 서명 검증 성공 PR",
+                            body = "실제 서명되고 검증되는 커밋 병합 성공 검증용",
+                            toProject = toProject,
+                            fromProject = fromProject,
+                            toBranch = "refs/heads/master",
+                            fromBranch = "refs/heads/feature",
+                            contributor = contributor,
+                            receiver = receiver,
+                            created = Instant.now(),
+                            state = State.OPEN
+                        )
+                    )
 
                     val mergeResult = pullRequestService.merge(pr.id!!, receiver)
 

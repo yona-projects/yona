@@ -350,8 +350,22 @@ setWritable(false/true, ...)`로 소유자 전용(0600 상당)으로 제한(Wind
 필요한 별도 크기의 작업이라 이 리뷰 라운드에 욱여넣지 않고 즉시 이어지는 별도 작업으로 착수한다
 (조용히 방치하지 않기 위해 여기 명시).
 
+### 5부 (2026-09-07) — `require_signed_commits` 연결 작업 완료 ([[p3-04-branch-protection]] 3라운드와 동일 작업)
+
+4부 완료 로그에서 "후속 과제로 명시적으로 남김"이라고 기록해뒀던 갭 — `ProtectedBranch.requireSignedCommits`
+플래그를 이 계획이 만든 `GpgSignatureVerifier`에 실제로 연결하는 작업을 완료했다. 두 계획을 가로지르는
+단일 작업이라 상세 내용은 [[p3-04-branch-protection]]의 3라운드 완료 로그에 기록했다 — 요약만 남긴다:
+`domain/vcs/GitPushHooks.kt`의 `BranchProtectionPreReceiveHook`(push 시점, `GitServletConfig`/
+`YonaSshGitCommand`/`YonaMinaSshServer` 양쪽에 배선)과 `PullRequestServiceImpl.checkBranchProtectionForMerge()`
+(PR 병합 시점)가 이제 `GpgSignatureVerifier.verify()`로 실제 암호학적 검증을 수행해 서명되지 않았거나
+검증에 실패한 커밋의 push/병합을 거부한다. `YonaMinaSshServerIntegrationSpec`/`PullRequestServiceSpec`에
+실제 `gpg`/`git commit -S` 바이너리로 서명한 커밋을 사용하는 통합테스트를 추가했다(순수 mock으로는
+실제 서명 검증을 의미있게 테스트할 수 없음). 이 계획의 DoD("GPG 서명된 커밋이 push 후 Verified
+배지로 표시됨")는 이미 3부에서 달성됐고, 이번 5부는 그 검증 결과를 실제 정책 집행(push/병합 거부)에
+소비하는 [[p3-04-branch-protection]] 쪽 갭을 메운 것이다.
+
 ## 관련
 
 - 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-03)
-- 관련 계획: [[p3-02-cli-and-rest-api]](스코프 체계 공유, yona-cli에 `internal ssh-auth`/`internal ssh-shell` 서브커맨드 추가), [[p3-04-branch-protection]](서명 검증 결과 소비 — `require_signed_commits`는 이 계획 완료 전까지 항상 통과하도록 구현돼 있었음, 이제 이 계획이 만든 `GpgSignatureVerifier`/`Commit.getGpgVerificationStatus()`를 연결하는 것이 P3-04 쪽의 후속 작업으로 남음 — 이번 라운드 범위 밖)
+- 관련 계획: [[p3-02-cli-and-rest-api]](스코프 체계 공유, yona-cli에 `internal ssh-auth`/`internal ssh-shell` 서브커맨드 추가), [[p3-04-branch-protection]](서명 검증 결과 소비 — `require_signed_commits`를 이 계획이 만든 `GpgSignatureVerifier`/`Commit.getGpgVerificationStatus()`에 실제로 연결하는 작업을 5부(2026-09-07)에서 완료함)
 - 관련 소스: `config/SecurityConfig.kt`, `config/git/GitAuthorizationFilter.kt`, `config/git/GitAccessPolicy.kt`, `config/git/DeployKeyAuthenticationProvider.kt`, `config/ssh/` 전체(`SshInternalController.kt`, `SshInternalSecretProvider.kt`, `YonaMinaSshServer.kt`, `YonaSshGitCommand.kt`), `domain/deploykey/`, `domain/sshkey/`, `domain/gpgkey/`, `domain/vcs/GitPushHooks.kt`, `domain/vcs/Commit.kt`/`GitCommit.kt`/`GitRepository.kt`, `domain/vcs/RepositoryService.kt`, `web/DeployKeyController.kt`, `web/UserViewController.kt`(SSH/GPG 키 탭), yona-cli의 `cmd/internal.go`/`internal/sshhelper/`

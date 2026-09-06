@@ -5,6 +5,8 @@ import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranch
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyRepository
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyService
+import com.github.yonaprojects.yona.domain.gpgkey.GpgKeyRepository
+import com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectScope
@@ -14,6 +16,7 @@ import com.github.yonaprojects.yona.domain.role.Role
 import com.github.yonaprojects.yona.domain.role.RoleRepository
 import com.github.yonaprojects.yona.domain.sshkey.SshKeyRepository
 import com.github.yonaprojects.yona.domain.sshkey.SshKeyService
+import com.github.yonaprojects.yona.domain.user.EmailRepository
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.vcs.BareCommit
@@ -47,7 +50,12 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
     private val sshKeyRepository: SshKeyRepository,
     private val deployKeyService: DeployKeyService,
     private val deployKeyRepository: DeployKeyRepository,
-    private val protectedBranchRepository: ProtectedBranchRepository
+    private val protectedBranchRepository: ProtectedBranchRepository,
+    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — require_signed_commits가 SSH 직접 push에도
+    // 실제로 적용되는지 실제 gpg/git 바이너리로 검증하는 데 필요.
+    private val gpgKeyService: GpgKeyService,
+    private val gpgKeyRepository: GpgKeyRepository,
+    private val emailRepository: EmailRepository
 ) : AbstractIntegrationTest() {
 
     override fun extensions() = listOf(SpringExtension)
@@ -92,12 +100,79 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
         return exitCode to output
     }
 
+    // yona-wiki P3-03/P3-04 연결 작업 — GpgSignatureVerifierSpec과 동일한 방식(실제 gpg 바이너리로
+    // 진짜 ed25519 키쌍을 생성)으로, require_signed_commits가 실제 SSH push 경로에도 적용되는지
+    // 검증한다. 순수 mock으로는 RevWalk/RevCommit이 실제 git 객체 저장소를 필요로 해 의미있게
+    // 테스트할 수 없다.
+    private fun gpgAvailable(): Boolean =
+        try {
+            ProcessBuilder("gpg", "--version").start().waitFor() == 0
+        } catch (e: Exception) {
+            false
+        }
+
+    private data class GeneratedGpgKey(val gnupgHome: File, val keyId: String, val armoredPublicKey: String, val email: String)
+
+    private fun generateGpgKey(emailLocalPart: String): GeneratedGpgKey {
+        val gnupgHome = Files.createTempDirectory("mina-ssh-it-gpg-home-").toFile()
+        val email = "$emailLocalPart@example.com"
+
+        val batchFile = File(gnupgHome, "gen-key.batch")
+        batchFile.writeText(
+            """
+            %no-protection
+            Key-Type: EDDSA
+            Key-Curve: ed25519
+            Subkey-Type: EDDSA
+            Subkey-Curve: ed25519
+            Name-Real: Mina SSH Test Committer
+            Name-Email: $email
+            Expire-Date: 0
+            %commit
+            """.trimIndent()
+        )
+
+        fun run(vararg cmd: String): String {
+            val process = ProcessBuilder(*cmd)
+                .redirectErrorStream(true)
+                .also { it.environment()["GNUPGHOME"] = gnupgHome.absolutePath }
+                .start()
+            val output = process.inputStream.bufferedReader().readText()
+            withClue(output) { process.waitFor() shouldBe 0 }
+            return output
+        }
+
+        run("gpg", "--batch", "--generate-key", batchFile.absolutePath)
+        val listing = run("gpg", "--list-secret-keys", "--keyid-format=long", "--with-colons")
+        val keyId = listing.lineSequence().first { it.startsWith("sec:") }.split(":")[4]
+
+        val exportProcess = ProcessBuilder("gpg", "--armor", "--export", keyId)
+            .also { it.environment()["GNUPGHOME"] = gnupgHome.absolutePath }
+            .start()
+        val armoredPublicKey = exportProcess.inputStream.bufferedReader().readText()
+        withClue(armoredPublicKey) { exportProcess.waitFor() shouldBe 0 }
+
+        return GeneratedGpgKey(gnupgHome, keyId, armoredPublicKey, email)
+    }
+
+    private fun runGitInDir(dir: File, env: Map<String, String> = emptyMap(), vararg args: String) {
+        val process = ProcessBuilder("git", *args)
+            .directory(dir)
+            .redirectErrorStream(true)
+            .also { pb -> env.forEach { (k, v) -> pb.environment()[k] = v } }
+            .start()
+        val output = process.inputStream.bufferedReader().readText()
+        withClue(output) { process.waitFor() shouldBe 0 }
+    }
+
     init {
         describe("Apache MINA SSHD 폴백 — 실제 SSH 클라이언트/git 바이너리 통합테스트") {
             beforeEach {
                 protectedBranchRepository.deleteAll()
                 sshKeyRepository.deleteAll()
                 deployKeyRepository.deleteAll()
+                gpgKeyRepository.deleteAll()
+                emailRepository.deleteAll()
                 projectUserRepository.deleteAll()
                 projectRepository.deleteAll()
                 userRepository.deleteAll()
@@ -108,6 +183,8 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
                 protectedBranchRepository.deleteAll()
                 sshKeyRepository.deleteAll()
                 deployKeyRepository.deleteAll()
+                gpgKeyRepository.deleteAll()
+                emailRepository.deleteAll()
                 projectUserRepository.deleteAll()
                 projectRepository.deleteAll()
                 userRepository.deleteAll()
@@ -313,6 +390,101 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
                     pushOutput.contains("require_pull_request") shouldBe true
                 } finally {
                     cloneDest.deleteRecursively()
+                }
+            }
+
+            // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — P3-03 4부 완료 로그에 "후속 과제"로
+            // 명시적으로 남겨뒀던 갭. require_signed_commits가 이제 실제로 BranchProtectionPreReceiveHook에
+            // 연결되었는지, GpgSignatureVerifier가 UNSIGNED로 판정하는 커밋의 직접 push를 실제로
+            // 거부하는지 검증한다(gpg 없이도 재현 가능 — 서명 자체를 하지 않으므로).
+            it("require_signed_commits가 켜진 브랜치는 서명되지 않은 커밋의 SSH 직접 push를 거부해야 한다") {
+                val owner = userRepository.save(User(loginId = "mina-sig-owner", name = "미나서명오너", email = "mina-sig-owner@example.com"))
+                val project = projectRepository.save(Project(name = "mina-sig-repo", owner = owner.loginId, vcs = "GIT"))
+                repositoryService.getRepository(project).create()
+                BareCommit(project, owner, gitBaseDirHolder.absolutePath).commitTextFile("README.md", "# sig", "초기 커밋")
+                protectedBranchRepository.save(
+                    ProtectedBranch(project = project, branchPattern = "main", requireSignedCommits = true, adminsCanBypass = false)
+                )
+
+                val (privateKeyFile, publicKey) = generateKeyPair("sig-owner")
+                sshKeyService.create(owner, "서명오너 키", publicKey)
+
+                val port = yonaMinaSshServer.boundPort
+                val cloneUrl = "ssh://mina-sig-owner@127.0.0.1:$port/${project.owner}/${project.name}.git"
+                val cloneDest = Files.createTempDirectory("mina-ssh-it-sig-clone-").toFile()
+
+                try {
+                    val (cloneExit, cloneOutput) = runGit("git", "clone", cloneUrl, cloneDest.absolutePath, privateKeyFile = privateKeyFile)
+                    withClue(cloneOutput) { cloneExit shouldBe 0 }
+
+                    File(cloneDest, "unsigned.txt").writeText("this commit is not signed")
+                    fun run(vararg cmd: String) {
+                        val (exit, out) = runGit(*cmd, dir = cloneDest, privateKeyFile = privateKeyFile)
+                        withClue(out) { exit shouldBe 0 }
+                    }
+                    run("git", "config", "user.email", "mina-sig-owner@example.com")
+                    run("git", "config", "user.name", "mina-sig-owner")
+                    run("git", "add", "unsigned.txt")
+                    run("git", "commit", "-m", "unsigned commit must be rejected")
+
+                    val (pushExit, pushOutput) = runGit("git", "push", cloneUrl, "main", dir = cloneDest, privateKeyFile = privateKeyFile)
+                    withClue(pushOutput) {
+                        (pushExit != 0) shouldBe true
+                        pushOutput.contains("require_signed_commits") shouldBe true
+                    }
+                } finally {
+                    cloneDest.deleteRecursively()
+                }
+            }
+
+            it("require_signed_commits가 켜져 있어도 실제로 서명되고 검증되는 커밋의 SSH push는 성공해야 한다") {
+                if (!gpgAvailable()) return@it
+
+                val generatedKey = generateGpgKey("mina-sig-ok")
+                // author 이메일이 GPG 키의 (계정 소유로 인증된) UID 이메일과 일치해야 VERIFIED로
+                // 판정된다. GpgKeyServiceImpl.ownedVerifiedEmailsOf()는 user.email(주 이메일
+                // 필드)을 우선 신뢰하므로, GpgSignatureVerifierSpec과 동일하게 User 생성 시점에
+                // 곧바로 이 이메일을 주 이메일로 지정한다 — Email(연관 엔티티)을 별도로 만들어
+                // user.emails(지연 로딩 컬렉션)에 의존하면 트랜잭션 경계 밖에서 지연 로딩 예외가
+                // 날 수 있다(실측: user.emails 경로로 시도했다가 실패해 이 방식으로 바꿨다).
+                val owner = userRepository.save(User(loginId = "mina-sig-ok-owner", name = "미나서명성공오너", email = generatedKey.email))
+                val project = projectRepository.save(Project(name = "mina-sig-ok-repo", owner = owner.loginId, vcs = "GIT"))
+                repositoryService.getRepository(project).create()
+                BareCommit(project, owner, gitBaseDirHolder.absolutePath).commitTextFile("README.md", "# sig-ok", "초기 커밋")
+                protectedBranchRepository.save(
+                    ProtectedBranch(project = project, branchPattern = "main", requireSignedCommits = true, adminsCanBypass = false)
+                )
+
+                gpgKeyService.create(owner, generatedKey.armoredPublicKey)
+
+                val (privateKeyFile, publicKey) = generateKeyPair("sig-ok-owner")
+                sshKeyService.create(owner, "서명성공오너 키", publicKey)
+
+                val port = yonaMinaSshServer.boundPort
+                val cloneUrl = "ssh://mina-sig-ok-owner@127.0.0.1:$port/${project.owner}/${project.name}.git"
+                val cloneDest = Files.createTempDirectory("mina-ssh-it-sig-ok-clone-").toFile()
+
+                try {
+                    val (cloneExit, cloneOutput) = runGit("git", "clone", cloneUrl, cloneDest.absolutePath, privateKeyFile = privateKeyFile)
+                    withClue(cloneOutput) { cloneExit shouldBe 0 }
+
+                    File(cloneDest, "signed.txt").writeText("this commit is signed")
+                    runGitInDir(cloneDest, args = arrayOf("config", "user.email", generatedKey.email))
+                    runGitInDir(cloneDest, args = arrayOf("config", "user.name", "mina-sig-ok-owner"))
+                    runGitInDir(cloneDest, args = arrayOf("config", "user.signingkey", generatedKey.keyId))
+                    runGitInDir(cloneDest, args = arrayOf("config", "gpg.program", "gpg"))
+                    runGitInDir(cloneDest, args = arrayOf("add", "signed.txt"))
+                    runGitInDir(
+                        cloneDest,
+                        env = mapOf("GNUPGHOME" to generatedKey.gnupgHome.absolutePath),
+                        args = arrayOf("commit", "-S", "-m", "signed commit should be accepted")
+                    )
+
+                    val (pushExit, pushOutput) = runGit("git", "push", cloneUrl, "main", dir = cloneDest, privateKeyFile = privateKeyFile)
+                    withClue(pushOutput) { pushExit shouldBe 0 }
+                } finally {
+                    cloneDest.deleteRecursively()
+                    generatedKey.gnupgHome.deleteRecursively()
                 }
             }
         }

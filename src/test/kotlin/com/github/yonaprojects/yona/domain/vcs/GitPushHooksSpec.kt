@@ -3,6 +3,7 @@ package com.github.yonaprojects.yona.domain.vcs
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranch
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.event.GitPostReceiveEvent
+import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
 import com.github.yonaprojects.yona.domain.event.RelatedPullRequestMergeEvent
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
@@ -70,11 +71,18 @@ class GitPushHooksSpec : DescribeSpec({
         val pusher = User(id = 9L, loginId = "gildong", name = "길동")
         val protectedBranchRepository = mockk<ProtectedBranchRepository>()
         val projectUserRepository = mockk<ProjectUserRepository>()
+        // yona-wiki P3-03/P3-04 연결 작업 — require_signed_commits가 꺼져 있는 기존 테스트들은
+        // findUnverifiedCommit()이 호출되지 않으므로 이 mock은 실질적으로 검증되지 않는다. 실제
+        // 서명 검증 동작은 순수 mock으로 의미있게 테스트할 수 없어(RevCommit/RevWalk가 실제 git
+        // 객체 저장소를 요구) YonaMinaSshServerIntegrationSpec의 실제 gpg/git 통합테스트로 검증한다.
+        val gpgSignatureVerifier = mockk<GpgSignatureVerifier>()
 
-        fun newHook() = BranchProtectionPreReceiveHook(project, pusher, protectedBranchRepository, projectUserRepository)
+        fun newHook() = BranchProtectionPreReceiveHook(
+            project, pusher, protectedBranchRepository, projectUserRepository, gpgSignatureVerifier
+        )
 
         beforeTest {
-            clearMocks(protectedBranchRepository, projectUserRepository)
+            clearMocks(protectedBranchRepository, projectUserRepository, gpgSignatureVerifier)
             // 기본값: 로그인 사용자는 매니저가 아니다(Step5 우회 테스트에서 개별적으로 override).
             every { projectUserRepository.findByProjectIdAndUserId(any(), any()) } returns Optional.empty()
         }

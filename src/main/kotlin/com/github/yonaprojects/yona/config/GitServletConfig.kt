@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.config
 
 import com.github.yonaprojects.yona.config.git.GitProjectVisitRecorder
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
+import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
@@ -53,7 +54,10 @@ class GitServletConfig(
     private val meterRegistry: MeterRegistry,
     // yona-wiki P3-04(브랜치 보호) Step 3 — BranchProtectionPreReceiveHook 구성에 필요.
     private val protectedBranchRepository: ProtectedBranchRepository,
-    private val projectUserRepository: ProjectUserRepository
+    private val projectUserRepository: ProjectUserRepository,
+    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — BranchProtectionPreReceiveHook이
+    // require_signed_commits를 실제로 검사하는 데 필요.
+    private val gpgSignatureVerifier: GpgSignatureVerifier
 ) {
     private val logger = LoggerFactory.getLogger(GitServletConfig::class.java)
 
@@ -100,7 +104,9 @@ class GitServletConfig(
                 val preReceiveHooks = mutableListOf<PreReceiveHook>(RejectPushToReservedRefsPreReceiveHook())
                 if (project != null) {
                     preReceiveHooks.add(
-                        BranchProtectionPreReceiveHook(project, pusher, protectedBranchRepository, projectUserRepository)
+                        BranchProtectionPreReceiveHook(
+                            project, pusher, protectedBranchRepository, projectUserRepository, gpgSignatureVerifier
+                        )
                     )
                 }
                 receivePack.setPreReceiveHook(PreReceiveHookChain.newChain(preReceiveHooks))

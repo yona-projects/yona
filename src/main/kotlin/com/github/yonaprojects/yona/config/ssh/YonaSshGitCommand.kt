@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.config.ssh
 
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
+import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthPrincipal
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthService
@@ -41,7 +42,10 @@ class YonaSshGitCommand(
     // SSH를 통하면 우회되는 실제 보안 결함이 있었다(YonaMinaSshServerIntegrationSpec의
     // 회귀 테스트로 고정).
     private val protectedBranchRepository: ProtectedBranchRepository,
-    private val projectUserRepository: ProjectUserRepository
+    private val projectUserRepository: ProjectUserRepository,
+    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — BranchProtectionPreReceiveHook이
+    // require_signed_commits를 실제로 검사하는 데 필요(HTTPS 경로 GitServletConfig와 동일).
+    private val gpgSignatureVerifier: GpgSignatureVerifier
 ) : Command, CommandDirectInputStreamAware, CommandDirectOutputStreamAware, CommandDirectErrorStreamAware {
 
     private val logger = LoggerFactory.getLogger(YonaSshGitCommand::class.java)
@@ -106,7 +110,8 @@ class YonaSshGitCommand(
                         if (authorization.project != null) {
                             preReceiveHooks.add(
                                 BranchProtectionPreReceiveHook(
-                                    authorization.project, authorization.pusher, protectedBranchRepository, projectUserRepository
+                                    authorization.project, authorization.pusher, protectedBranchRepository,
+                                    projectUserRepository, gpgSignatureVerifier
                                 )
                             )
                         }

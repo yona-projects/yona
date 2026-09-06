@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.config
 
 import com.github.yonaprojects.yona.config.git.GitProjectVisitRecorder
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
+import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
@@ -44,6 +45,8 @@ class GitServletConfigSpec : DescribeSpec({
     // 않는다 — 그래도 GitServletConfig 생성자에는 값을 전달해야 하므로 mock만 준비한다.
     val protectedBranchRepository = mockk<ProtectedBranchRepository>()
     val projectUserRepository = mockk<ProjectUserRepository>()
+    // yona-wiki P3-03/P3-04 연결 작업 — BranchProtectionPreReceiveHook 구성에 필요한 신규 의존성.
+    val gpgSignatureVerifier = mockk<GpgSignatureVerifier>()
 
     val tempBaseDir = File.createTempFile("git-temp", "").apply { delete(); mkdirs() }
     val tempLfsBaseDir = File.createTempFile("lfs-temp", "").apply { delete(); mkdirs() }
@@ -60,7 +63,8 @@ class GitServletConfigSpec : DescribeSpec({
         gitProjectVisitRecorder,
         SimpleMeterRegistry(),
         protectedBranchRepository,
-        projectUserRepository
+        projectUserRepository,
+        gpgSignatureVerifier
     )
 
     beforeTest {
@@ -168,7 +172,7 @@ class GitServletConfigSpec : DescribeSpec({
                 freshBaseDir.absolutePath, tempLfsBaseDir.absolutePath, "http://localhost:8080/git-lfs",
                 projectRepository, pullRequestRepository, userRepository, pushedBranchRepository,
                 eventPublisher, gitProjectVisitRecorder, SimpleMeterRegistry(),
-                protectedBranchRepository, projectUserRepository
+                protectedBranchRepository, projectUserRepository, gpgSignatureVerifier
             )
 
             freshBaseDir.exists() shouldBe false

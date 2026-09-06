@@ -8,7 +8,7 @@ depends_on: []
 blocks: []
 source: docs/PARITY_BACKLOG.md#P3-04
 created: 2026-08-28
-updated: 2026-09-06
+updated: 2026-09-07
 tags: [plan, p3, git, security]
 ---
 
@@ -82,7 +82,7 @@ tags: [plan, p3, git, security]
 - [x] 직접 push 차단(force-push, delete, restrict) 각각 테스트로 검증 (`GitPushHooksSpec.kt`의 `BranchProtectionPreReceiveHook` describe)
 - [x] PR 병합 체크가 `require_pull_request` 최소 시나리오에서 동작 (`PullRequestServiceSpec.kt` "5-1. 브랜치 보호 정책" describe — 아래 완료 로그 참고, 실제 의미는 위 Step4 설명 참고)
 - [x] `require_approvals` 착수 여부와 근거가 이 문서에 명시(스파이크 결과 반영) — Step1 참고
-- [x] `require_signed_commits`는 플래그만 존재하고 [[p3-03-ssh-gpg]] 완료 전까지 항상 통과 처리됨을 명시적으로 테스트/문서화 — Step4 완료 로그의 회귀 테스트 참고
+- [x] `require_signed_commits`는 플래그만 존재하고 [[p3-03-ssh-gpg]] 완료 전까지 항상 통과 처리됨을 명시적으로 테스트/문서화 — Step4 완료 로그의 회귀 테스트 참고. **갱신(2026-09-07, 3라운드)**: [[p3-03-ssh-gpg]]가 완료되어 이제 `GpgSignatureVerifier`에 실제로 연결됐다 — 아래 3라운드 완료 로그 참고
 - [x] 관리 UI(웹) — 프로젝트 매니저가 규칙을 DB 직접 조작 없이 실제로 생성/조회/수정/삭제할 수 있는
       화면 존재 (2라운드, 2026-09-06 — 아래 완료 로그 참고). 1라운드는 엔티티/훅/병합체크만 구현하고
       이 항목이 DoD에 없었다 — 2라운드 착수 시 발견된 갭이라 이번에 추가함.
@@ -285,6 +285,59 @@ tags: [plan, p3, git, security]
   test`) 단위의 최종 재검증은 P3-06의 버그 수정이 완료된 이후로 보류**한다 — 이 계획이 만든 코드
   자체에는 결함이 없다고 판단하지만(위 로그 참고), 공유 워크트리에서 무관한 진행 중인 작업 때문에
   현재는 매 실행이 재현 가능한 결과를 주지 못한다.
+
+### 3라운드 (2026-09-07) — P3-03/P3-04 연결 작업: `require_signed_commits` 실제 연결
+
+- **배경**: [[p3-03-ssh-gpg]] 4부 완료 로그(2026-09-07)에서 "후속 과제로 명시적으로 남김"이라고
+  기록해둔 갭 — `ProtectedBranch.requireSignedCommits`는 1라운드 완료 시점엔 GPG 검증 파이프라인
+  자체가 없어 값과 무관하게 항상 통과 처리됐다(위 Step4 완료 로그 참고). P3-03이 실제 검증기
+  (`GpgSignatureVerifier.verify(commit): GpgVerificationStatus`)를 완성해뒀으므로, 이번 라운드에서
+  이 검증기를 두 지점(push 훅, PR 병합)에 실제로 연결했다 — 새 정책 옵션은 만들지 않고 기존 필드에
+  실제 판정 로직만 추가했다.
+- **push 시점(`BranchProtectionPreReceiveHook`, `domain/vcs/GitPushHooks.kt`)**: 생성자에
+  `GpgSignatureVerifier`를 추가하고, `require_pull_request`/`disallow_delete`/`disallow_force_push`
+  검사 다음(= `restrict_push_to`보다 먼저) 위치에 `require_signed_commits` 검사를 추가했다. 이
+  커맨드가 새로 들여오는 커밋 범위(`oldId..newId`, `ReceivePack.getRevWalk()`로 워크)를 각각
+  `GpgSignatureVerifier.verify()`로 검사해 하나라도 `VERIFIED`가 아니면 거부한다. `require_pull_request`가
+  이미 켜진 브랜치는 DELETE 외 모든 직접 push가 그쪽에서 먼저 거부되므로, `require_signed_commits`는
+  `require_pull_request=false`인 브랜치에 직접 push할 때만 실질적인 의미를 가진다 — 두 플래그가
+  같이 켜져 있어도 기존 "첫 매칭 규칙에서 즉시 reject" 패턴을 그대로 유지해 순서와 무관하게
+  정상 동작한다.
+  - **실측 버그 1건**: `ReceivePack`의 `RevWalk`는 연결성 검사용이라 커밋 헤더만 유지하고 본문
+    (raw buffer)은 유지하지 않는다 — `RevCommit.getRawGpgSignature()`가 raw buffer null로
+    `NullPointerException`을 던지는 것을 실측으로 발견, 순회 중 `walk.parseBody(commit)`을 명시
+    호출해 해소했다.
+  - `GitServletConfig`(HTTPS)와 `YonaSshGitCommand`/`YonaMinaSshServer`(SSH, P3-03 4부에서 이미
+    `BranchProtectionPreReceiveHook`을 체이닝하도록 고쳐뒀던 지점)가 이미 Spring이 관리하는
+    `GpgSignatureVerifier` 빈을 생성자로 받아 그대로 전달하도록 갱신했다 — 두 경로 모두 동일한
+    보호를 받는다(P3-03 4부에서 SSH가 브랜치 보호 전체를 우회하던 실제 보안 결함을 고친 것과
+    동일한 이유로, 이번에도 두 경로를 함께 갱신).
+- **PR 병합 시점(`PullRequestServiceImpl.checkBranchProtectionForMerge()`)**: `requirePullRequest`/
+  `requireApprovals`는 기존 이유 그대로 no-op 유지(각각 "merge()는 정의상 PR을 통해서만 호출됨",
+  "P3-15 완료 전까지 승인 개념 없음"). `requireSignedCommits`만 갱신 — `leftParent`/`rightParent`가
+  확정된 직후(체크에 병합 커밋 범위가 필요해 fetch 이전엔 계산할 수 없다) 신규
+  `checkSignedCommitsForMerge()`를 호출해, `diffCommits()`와 동일한 범위(`Git(repo).log().addRange(
+  leftParent, rightParent)`)의 커밋을 `GpgSignatureVerifier`로 검사한다. 규칙 조회 로직은
+  `checkBranchProtectionForMerge()`와 공유하도록 `findMatchingProtectedBranchRule()`로 추출했다.
+  `admins_can_bypass`는 이 신규 검사에도 동일하게 적용된다(규칙 전체를 우회하는 기존 의미 유지).
+- **테스트(TDD, 실제 gpg/git 바이너리 사용 — 순수 mock으로는 실제 서명 검증을 의미있게 테스트할 수
+  없음)**:
+  - `YonaMinaSshServerIntegrationSpec`에 2개 추가(실 SSH 클라이언트+git 바이너리) — 서명되지 않은
+    커밋의 직접 push 거부(gpg 불필요), 실제 `gpg`/`git commit -S`로 만든 서명·검증되는 커밋의 push
+    성공(`gpg` 미설치 환경에서는 스킵).
+  - `PullRequestServiceSpec`에 "5-2. require_signed_commits(GPG 서명 검증 연결) 검증" describe
+    신설 — 서명 안 된 커밋의 병합 거부, 실제 서명·검증되는 커밋의 병합 성공(`gpg` 미설치 환경
+    스킵). 기존 "5-1"의 "require_pull_request/require_approvals/require_signed_commits가 켜져
+    있어도 정상 PR 병합은 항상 통과" 테스트는 `requireSignedCommits`가 더 이상 no-op이 아니므로
+    그 필드를 빼고 이름을 "require_pull_request/require_approvals가..."로 좁혔다(require_approvals
+    no-op 회귀는 그대로 유지).
+  - `GitPushHooksSpec`/`GitServletConfigSpec`은 생성자 시그니처 변경(신규 `gpgSignatureVerifier`
+    파라미터)에 맞춰 갱신 — `requireSignedCommits=false`인 기존 테스트들은 이 신규 검사 분기를
+    타지 않으므로 mock으로 채우기만 하면 됨을 확인.
+  - 최종 확인: `GitPushHooksSpec`(32) + `GitServletConfigSpec`(7) + `GpgSignatureVerifierSpec`(7,
+    회귀 없음 확인) + `YonaMinaSshServerIntegrationSpec`(9) + `PullRequestServiceSpec`(93) 총 148개
+    테스트를 한 배치로 실행해 전부 GREEN, `YonaApplicationTests`(전체 Spring 컨텍스트 기동)로
+    신규 생성자 파라미터의 DI 배선도 확인.
 
 ## 관련
 

@@ -2,6 +2,8 @@ package com.github.yonaprojects.yona.domain.pullrequest
 
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.comment.CommentService
+import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
+import com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.vcs.FileDiff
 import com.github.yonaprojects.yona.domain.vcs.GitCommit
@@ -59,6 +61,9 @@ class PullRequestServiceImpl(
     // yona-wiki P3-04(브랜치 보호) Step 4/5 — merge() 시 toBranch에 걸린 ProtectedBranch 규칙 검사용.
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
+    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — checkSignedCommitsForMerge()가
+    // require_signed_commits를 실제로 검사하는 데 필요.
+    private val gpgSignatureVerifier: GpgSignatureVerifier,
     @Value("\${yona.site-name:Yona}")
     private val siteName: String,
     // yona-wiki P3-01(Observability) 계측 지점 2 대응 — PullRequestEventRepository.recordWithDraftMerge()에 그대로 전달한다.
@@ -403,6 +408,13 @@ class PullRequestServiceImpl(
             val rightParent = repo.resolve(fetchSourceRef)
                 ?: throw IllegalArgumentException("Source head ref not found")
 
+            // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — toBranch에 걸린 규칙이
+            // require_signed_commits라면, 실제로 병합될 커밋(leftParent..rightParent 범위)을
+            // 여기서 검사한다. leftParent/rightParent가 확정된 시점에서만 그 범위를 계산할 수
+            // 있으므로 checkBranchProtectionForMerge()(fetch 전, restrict_push_to만 검사)보다
+            // 늦게 실행된다.
+            checkSignedCommitsForMerge(pullRequest, updater, repo, leftParent, rightParent)
+
             val success = merger.merge(leftParent, rightParent)
             val result = PullRequestMergeResult(pullRequest = pullRequest)
 
@@ -451,16 +463,21 @@ class PullRequestServiceImpl(
     // yona-wiki P3-04(브랜치 보호) Step 4/5 — legacy에 대응 로직이 전혀 없는 신규 인프라.
     // toBranch에 매칭되는 ProtectedBranch 규칙이 있으면 merge()를 거부할지 판정한다.
     //
-    // 이 계획의 Step1 스파이크 결론(계획 문서 참고)에 따라 requirePullRequest/requireApprovals/
-    // requireSignedCommits 세 필드는 이 메서드에서 어떤 검사도 하지 않는다 — 이유는 각각 다르다:
+    // 이 계획의 Step1 스파이크 결론(계획 문서 참고)에 따라 requirePullRequest/requireApprovals
+    // 두 필드는 이 메서드에서 어떤 검사도 하지 않는다 — 이유는 각각 다르다:
     //   - requirePullRequest: merge()는 정의상 PullRequestId를 통해서만 호출되는 PR 병합
     //     경로이므로(직접 push로 브랜치를 갱신하는 경로가 아님) 항상 이 조건을 만족한다. 직접
     //     push 차단은 BranchProtectionPreReceiveHook(GitPushHooks.kt)의 몫이다.
     //   - requireApprovals: CommentThread.ThreadState에 승인/변경요청 개념 자체가 없어(Step1
-    //     스파이크로 확인) 검증할 승인 데이터가 없다. 값이 0이 아니어도 항상 통과시킨다.
-    //   - requireSignedCommits: GPG 서명 검증 파이프라인은 P3-03 몫이라 이 계획의 비범위다.
-    //     파이프라인이 완성되기 전까지 값과 무관하게 항상 통과시킨다.
+    //     스파이크로 확인) 검증할 승인 데이터가 없다. 값이 0이 아니어도 항상 통과시킨다(P3-15가
+    //     끝나기 전까지는 이 필드에 손대지 않는다).
     // 두 필드 모두 나중에 실제 판정 로직이 생기면 이 메서드에 조건을 추가하기만 하면 된다.
+    //
+    // requireSignedCommits는 더 이상 no-op이 아니다 — yona-wiki P3-03/P3-04 연결 작업(2026-09-07,
+    // P3-03 4부 완료 로그에 "후속 과제"로 명시적으로 남겨뒀던 항목)으로 checkSignedCommitsForMerge()가
+    // 실제 검사를 수행한다. 이 메서드는 fetch 이전(leftParent/rightParent를 아직 모르는 시점)에
+    // 호출되므로 병합 대상 커밋 범위가 필요한 requireSignedCommits는 여기서 검사할 수 없다 —
+    // merge()가 leftParent/rightParent를 확정한 직후 별도로 호출한다.
     //
     // restrictPushTo만 실질적으로 검사한다 — merge()가 toBranch에 병합 커밋을 직접 기록하는
     // ref 갱신이라는 점에서 git push와 동등하게 취급한다(admins_can_bypass=true인 프로젝트
@@ -468,8 +485,7 @@ class PullRequestServiceImpl(
     private fun checkBranchProtectionForMerge(pullRequest: PullRequest, updater: User) {
         val toProjectId = pullRequest.toProject.id ?: return
         val branch = pullRequest.toBranch.removePrefix("refs/heads/")
-        val rule = protectedBranchRepository.findByProjectId(toProjectId).firstOrNull { it.matches(branch) }
-            ?: return
+        val rule = findMatchingProtectedBranchRule(toProjectId, branch) ?: return
 
         if (rule.adminsCanBypass && isProjectManager(toProjectId, updater)) return
 
@@ -480,6 +496,39 @@ class PullRequestServiceImpl(
             )
         }
     }
+
+    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — toBranch에 매칭되는 규칙의
+    // require_signed_commits가 켜져 있으면, 실제로 병합될 커밋(leftParent에는 없고 rightParent에는
+    // 있는 커밋, 즉 diffCommits()와 동일한 범위)을 GpgSignatureVerifier로 검사해 하나라도
+    // VERIFIED가 아니면 병합을 거부한다. admins_can_bypass 처리는 checkBranchProtectionForMerge()와
+    // 동일하게 이 규칙 전체에 대해 적용한다(BranchProtectionPreReceiveHook의 admins_can_bypass가
+    // 규칙 전체를 우회하는 것과 동일한 의미).
+    private fun checkSignedCommitsForMerge(
+        pullRequest: PullRequest,
+        updater: User,
+        repo: Repository,
+        leftParent: ObjectId,
+        rightParent: ObjectId
+    ) {
+        val toProjectId = pullRequest.toProject.id ?: return
+        val branch = pullRequest.toBranch.removePrefix("refs/heads/")
+        val rule = findMatchingProtectedBranchRule(toProjectId, branch) ?: return
+        if (!rule.requireSignedCommits) return
+        if (rule.adminsCanBypass && isProjectManager(toProjectId, updater)) return
+
+        val commitsBeingMerged = Git(repo).log().addRange(leftParent, rightParent).call()
+        for (commit in commitsBeingMerged) {
+            if (gpgSignatureVerifier.verify(commit) != GpgVerificationStatus.VERIFIED) {
+                throw BranchProtectionException(
+                    "브랜치 '$branch'는 서명된 커밋만 병합할 수 있습니다(require_signed_commits) — " +
+                        "커밋 ${commit.name.take(8)}가 서명되지 않았거나 서명 검증에 실패했습니다."
+                )
+            }
+        }
+    }
+
+    private fun findMatchingProtectedBranchRule(projectId: Long, branch: String) =
+        protectedBranchRepository.findByProjectId(projectId).firstOrNull { it.matches(branch) }
 
     private fun isProjectManager(projectId: Long, user: User): Boolean {
         val userId = user.id ?: return false
