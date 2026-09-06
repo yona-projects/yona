@@ -81,11 +81,20 @@ class OAuthRegisteredClient(
     var requireAuthorizationConsent: Boolean = true,
 
     @Column(name = "access_token_ttl_seconds", nullable = false)
-    var accessTokenTtlSeconds: Long = 3600,
+    var accessTokenTtlSeconds: Long = DEFAULT_ACCESS_TOKEN_TTL_SECONDS,
 
     @Column(name = "refresh_token_ttl_seconds", nullable = false)
-    var refreshTokenTtlSeconds: Long = 2_592_000, // 30일
+    var refreshTokenTtlSeconds: Long = DEFAULT_REFRESH_TOKEN_TTL_SECONDS,
 
     @Column(name = "reuse_refresh_tokens", nullable = false)
     var reuseRefreshTokens: Boolean = false
-)
+) {
+    companion object {
+        const val DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 3600L // 1시간
+        const val DEFAULT_REFRESH_TOKEN_TTL_SECONDS = 2_592_000L // 30일 — 이 앱의 클라이언트는
+        // 전부 공개(PKCE 전용) 클라이언트라 Spring Authorization Server가 리프레시 토큰을 아예
+        // 발급하지 않는다(OAuth2RefreshTokenGenerator.isPublicClientForAuthorizationCodeGrant 참고,
+        // 계획 문서 완료 로그 6라운드에서 실측 확인) — 현재는 사실상 쓰이지 않는 값이지만, 향후
+        // P3-14가 confidential 클라이언트를 지원하게 되면 그때 의미를 갖는다.
+    }
+}

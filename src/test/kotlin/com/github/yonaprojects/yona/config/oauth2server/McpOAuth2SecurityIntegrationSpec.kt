@@ -3,6 +3,7 @@ package com.github.yonaprojects.yona.config.oauth2server
 import com.github.yonaprojects.yona.AbstractIntegrationTest
 import com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizationConsentRepository
 import com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizationRepository
+import com.github.yonaprojects.yona.domain.oauth2server.OAuthRegisteredClient
 import com.github.yonaprojects.yona.domain.oauth2server.OAuthRegisteredClientRepository
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -15,6 +16,7 @@ import com.nimbusds.jwt.SignedJWT
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldBeIn
+import io.kotest.matchers.longs.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -313,6 +315,81 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
 
                 // 동의 기록이 "Authorized OAuth Apps" 화면의 데이터 소스에 실제로 남았는지 확인.
                 consentRepository.findByPrincipalName(owner.loginId).size shouldBe 1
+            }
+
+            // 사용자 지시 4번(보안 리뷰) 결과 발견된 검증 공백에서 출발했으나, 실제로 검증해보니
+            // 애초에 refresh_token 그랜트 자체가 이 앱의 클라이언트 population에는 성립하지 않는
+            // 시나리오임이 드러났다(코디네이터 push 전 리뷰, 2026-09-07 — 계획 문서 완료 로그
+            // 6라운드 참고). Spring Authorization Server의 `OAuth2RefreshTokenGenerator.
+            // isPublicClientForAuthorizationCodeGrant()`가 client_authentication_method=none인
+            // authorization_code 그랜트에는 리프레시 토큰을 아예 생성하지 않는다(공식 소스로 확인,
+            // 설정으로 끌 수 있는 옵션이 아니라 하드코딩된 동작) — 이 앱의 DCR 등록 클라이언트는
+            // `token_endpoint_auth_method: "none"`(PKCE 전용 공개 클라이언트)으로 강제되므로
+            // (`JpaRegisteredClientRepository`가 requireProofKey를 무조건 true로 강제하는 것과
+            // 동일한 설계), **refresh_token 그랜트를 테스트할 방법 자체가 없다** — 실제로 발급된
+            // 토큰 응답에 `refresh_token` 필드가 전혀 없음을 실측 확인했다(원래 이 테스트가 잘못된
+            // 가정 위에 작성돼 NullPointerException으로 실패하고 있었다).
+            //
+            // 대신 이 사실 자체를 회귀 가드로 고정한다 — 향후 라이브러리 업그레이드나 설정 변경으로
+            // 이 동작이 조용히 바뀌면(예: 실수로 confidential 클라이언트 인증 방식이 섞여 들어가는
+            // 경우) 이 테스트가 실패해 알려준다. 재인증 부담 완화는 리프레시 토큰이 아니라 액세스
+            // 토큰 TTL로 다룬다 — DCR 클라이언트가 Spring 내장 기본값(5분)이 아니라 이 앱의 정책값
+            // (1시간, `OAuthRegisteredClient.DEFAULT_ACCESS_TOKEN_TTL_SECONDS`)을 받도록
+            // `JpaRegisteredClientRepository.toEntity()`를 함께 수정했다(이 스펙의 다른 케이스들이
+            // 이미 `expires_in`을 통해 간접적으로 검증함).
+            it("공개(PKCE 전용) 클라이언트에는 refresh_token이 발급되지 않아야 한다(Spring Authorization Server의 의도된 동작)") {
+                val clientId = registerClient()
+                val codeVerifier = "verifier-" + UUID.randomUUID().toString().replace("-", "") + "-0123456789"
+                val codeChallenge = sha256Base64Url(codeVerifier)
+                val redirectUri = "http://127.0.0.1:0/callback"
+                val state = "no-refresh-state-" + UUID.randomUUID()
+
+                val authorizeResult = mockMvc.perform(
+                    get(
+                        authorizeGetUrl(
+                            "response_type" to "code",
+                            "client_id" to clientId,
+                            "redirect_uri" to redirectUri,
+                            "scope" to "issues:read",
+                            "state" to state,
+                            "code_challenge" to codeChallenge,
+                            "code_challenge_method" to "S256",
+                            "resource" to mcpResourceUri
+                        )
+                    ).with(user(userDetails()))
+                ).andReturn()
+                authorizeResult.response.status shouldBe 302
+                val consentState = extractQueryParam(authorizeResult.response.getHeader(HttpHeaders.LOCATION)!!, "state")
+
+                val consentPost = mockMvc.perform(
+                    post("/oauth2/authorize")
+                        .param("client_id", clientId)
+                        .param("state", consentState)
+                        .param("scope", "issues:read")
+                        .with(user(userDetails()))
+                ).andReturn()
+                consentPost.response.status shouldBe 302
+                val redirectLocation = consentPost.response.getHeader(HttpHeaders.LOCATION)!!
+                check(redirectLocation.contains("code=")) { "consent redirect had no code: $redirectLocation" }
+                val code = redirectLocation.substringAfter("code=").substringBefore("&")
+
+                val tokenResult = mockMvc.perform(
+                    post("/oauth2/token")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("grant_type", "authorization_code")
+                        .param("code", code)
+                        .param("redirect_uri", redirectUri)
+                        .param("client_id", clientId)
+                        .param("code_verifier", codeVerifier)
+                        .param("resource", mcpResourceUri)
+                ).andReturn()
+                tokenResult.response.status shouldBe 200
+                val tokenJson = objectMapper.readTree(tokenResult.response.contentAsString)
+                tokenJson.has("refresh_token") shouldBe false
+                // 액세스 토큰 TTL은 Spring 내장 기본값(5분=300)이 아니라 이 앱의 정책값(1시간=3600)이어야
+                // 한다 — 발급 시각 계산의 초 단위 반올림 오차(±1초)를 허용한다.
+                val expiresIn = tokenJson["expires_in"].asLong()
+                kotlin.math.abs(OAuthRegisteredClient.DEFAULT_ACCESS_TOKEN_TTL_SECONDS - expiresIn) shouldBeLessThanOrEqual 1L
             }
 
             it("resource 파라미터 없이 토큰을 교환하려 하면 invalid_target으로 거부해야 한다") {

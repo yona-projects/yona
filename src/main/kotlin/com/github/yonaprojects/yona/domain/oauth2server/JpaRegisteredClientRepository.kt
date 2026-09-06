@@ -58,8 +58,17 @@ class JpaRegisteredClientRepository(
                 // 않는 문제가 있어, 전달받은 설정값을 신뢰하지 않고 여기서 항상 재정의한다.
                 requireProofKey = true,
                 requireAuthorizationConsent = true,
-                accessTokenTtlSeconds = tokenSettings.accessTokenTimeToLive.seconds,
-                refreshTokenTtlSeconds = tokenSettings.refreshTokenTimeToLive.seconds,
+                // yona-wiki P3-07 6라운드(코디네이터 push 전 리뷰, 2026-09-07) — DCR로 등록되는
+                // RegisteredClient는 클라이언트가 TokenSettings를 지정할 방법이 없어(RFC7591 client
+                // metadata에 토큰 수명 필드가 없음) 항상 Spring Authorization Server의 내장 기본값
+                // (액세스 5분/리프레시 60분)을 그대로 받는다 — 실측(McpToolsEndToEndSpec 실제 발급
+                // JWT의 exp-iat)으로 5분임을 확인했다. 5분마다 MCP 클라이언트가 전체 인가 화면을
+                // 다시 띄워야 하는 건 이 계획의 "접속만으로 자동 인가" 목표와 맞지 않아, 전달받은
+                // tokenSettings를 신뢰하지 않고(위 requireProofKey와 동일한 이유로 이 리포지토리가
+                // 유일한 영속화 지점이라는 점을 이용) 이 앱의 정책값(OAuthRegisteredClient의 생성자
+                // 기본값과 동일한 1시간)을 항상 적용한다.
+                accessTokenTtlSeconds = OAuthRegisteredClient.DEFAULT_ACCESS_TOKEN_TTL_SECONDS,
+                refreshTokenTtlSeconds = OAuthRegisteredClient.DEFAULT_REFRESH_TOKEN_TTL_SECONDS,
                 reuseRefreshTokens = tokenSettings.isReuseRefreshTokens
             )
         }
