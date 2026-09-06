@@ -212,6 +212,15 @@ fun resolveDockerHost(): String? {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	// yona-wiki P3-03 — Gradle의 테스트 워커 기본 힙(512m)은 이 계획이 추가한 여러 신규
+	// @SpringBootTest 스펙(SshInternalControllerIntegrationSpec/YonaMinaSshServerIntegrationSpec/
+	// GpgKeyEditFormTemplateRenderingSpec 등, 각각 @DynamicPropertySource로 고유한 프로퍼티를 써서
+	// Spring TestContext 캐시가 재사용하지 못하는 별도 ApplicationContext를 만든다)가 기존의
+	// 수천 개 테스트 위에 더해지며 전체 스위트(`./gradlew test`, 포크 없이 전부) 실행 시 실제로
+	// OutOfMemoryError로 이어지는 것을 실측했다 — 개별/배치 실행에서는 전혀 재현되지 않다가
+	// 전체 스위트 단독 실행에서만 나타났다. gradle.properties의 데몬 힙(2048m)과 동일한 값으로
+	// 테스트 워커 힙을 올려 해소한다(운영 코드/성능에는 영향 없음, 테스트 실행 전용 설정).
+	maxHeapSize = "2048m"
 	systemProperty("spring.profiles.active", "test")
 	systemProperty("testcontainers.host", "127.0.0.1")
 	systemProperty("api.version", "1.44")
