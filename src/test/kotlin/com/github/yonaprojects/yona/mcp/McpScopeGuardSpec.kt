@@ -30,11 +30,16 @@ import java.time.temporal.ChronoUnit
 class McpScopeGuardSpec : DescribeSpec({
     val guard = McpScopeGuard()
 
-    fun jwtAuth(scope: String): JwtAuthenticationToken {
+    // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — Spring Authorization Server가 실제로 발급하는
+    // 액세스 토큰의 "scope" 클레임은 공백 구분 문자열이 아니라 JSON 배열이다(McpToolsEndToEndSpec에서
+    // 실제 발급된 토큰을 디코딩해 확인). 공백 구분 문자열을 넘기면 McpScopeGuard가 쓰는
+    // getClaimAsStringList()가 문자열 전체를 하나의 원소로 취급해(공백으로 쪼개지 않음) 실제 토큰과
+    // 다르게 동작하는 테스트가 된다 — 실제 발급 형식과 동일하게 리스트로 넘긴다.
+    fun jwtAuth(vararg scopes: String): JwtAuthenticationToken {
         val jwt = Jwt.withTokenValue("token")
             .header("alg", "RS256")
             .claim("sub", "tester")
-            .claim("scope", scope)
+            .claim("scope", scopes.toList())
             .issuedAt(Instant.now())
             .expiresAt(Instant.now().plusSeconds(3600))
             .build()
@@ -52,7 +57,7 @@ class McpScopeGuardSpec : DescribeSpec({
     describe("OAuth JWT 인증") {
         it("필요한 write 스코프가 있으면 통과해야 한다") {
             shouldNotThrowAny {
-                guard.require(jwtAuth("issues:read issues:write"), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.WRITE)
+                guard.require(jwtAuth("issues:read", "issues:write"), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.WRITE)
             }
         }
 

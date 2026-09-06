@@ -14,7 +14,10 @@ import org.springframework.security.config.annotation.web.configurers.oauth2.ser
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.AuthorizationFilter
+import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.util.UUID
@@ -69,8 +72,25 @@ class AuthorizationServerConfig(
                     .anyRequest().authenticated()
             }
             .exceptionHandling { exceptions ->
-                // 비로그인 상태로 /oauth2/authorize 등에 접근하면 기존 yona 로그인 화면으로 리다이렉트.
-                exceptions.authenticationEntryPoint(LoginUrlAuthenticationEntryPoint("/users/loginform"))
+                // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — 이전에는 이 체인이 담당하는 모든
+                // 경로(/oauth2/authorize, /oauth2/token, /oauth2/register, /oauth2/consent, /oauth2/jwks,
+                // /.well-known/** 등)에 로그인 리다이렉트를 무조건 적용했다. 이 때문에 PKCE
+                // code_verifier를 생략한 /oauth2/token 요청처럼 "브라우저가 아니라 기계가 호출하는"
+                // 엔드포인트에서 클라이언트 인증(PublicClientAuthenticationProvider)이 실패하면,
+                // 표준 OAuth2 JSON 오류 응답(400 + invalid_client 등) 대신 302로 HTML 로그인
+                // 페이지("/users/loginform")로 리다이렉트해버려 MCP 클라이언트가 오류를 해석할 수
+                // 없게 되는 문제가 실제 통합테스트로 발견됐다. 사람이 브라우저로 접근하는 두 엔드포인트
+                // (/oauth2/authorize, /oauth2/consent)만 로그인 화면으로 리다이렉트하고, 나머지
+                // 기계 대 기계 엔드포인트는 Spring의 기본 처리(403)로 남겨 OAuth2 관련 예외 변환
+                // 필터가 정상적으로 JSON 오류를 만들 수 있게 한다.
+                val browserFacingEntryPoint = LoginUrlAuthenticationEntryPoint("/users/loginform")
+                val entryPoints = linkedMapOf<org.springframework.security.web.util.matcher.RequestMatcher, org.springframework.security.web.AuthenticationEntryPoint>(
+                    PathPatternRequestMatcher.pathPattern("/oauth2/authorize") to browserFacingEntryPoint,
+                    PathPatternRequestMatcher.pathPattern(CONSENT_PAGE_URI) to browserFacingEntryPoint
+                )
+                val delegatingEntryPoint = DelegatingAuthenticationEntryPoint(entryPoints)
+                delegatingEntryPoint.setDefaultEntryPoint(Http403ForbiddenEntryPoint())
+                exceptions.authenticationEntryPoint(delegatingEntryPoint)
             }
             // OAuth2ClientRegistrationEndpointFilter는 Spring Security의 필터 순서 레지스트리에
             // 등록돼 있지 않아 addFilterBefore(..., OAuth2ClientRegistrationEndpointFilter::class.java)를

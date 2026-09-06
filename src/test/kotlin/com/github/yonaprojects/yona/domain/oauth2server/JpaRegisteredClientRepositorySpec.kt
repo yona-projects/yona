@@ -63,7 +63,14 @@ class JpaRegisteredClientRepositorySpec @Autowired constructor(
                     AuthorizationGrantType.REFRESH_TOKEN
                 )
                 found.redirectUris shouldBe setOf("http://localhost:12345/callback")
-                found.scopes shouldBe setOf("issues:read", "issues:write")
+                // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — 이 테스트는 원래 "요청한 스코프
+                // 그대로 보존"을 검증했지만, McpOAuthScopes.kt의 설계 결정(Spring이 DCR 시점의
+                // 명시적 scope 지정을 기본 정책상 거부하므로, 등록된 모든 클라이언트에 항상 전체
+                // 스코프 목록을 부여하고 실제 발급 스코프는 매 /oauth2/authorize 요청 + 동의 화면에서
+                // 결정하게 함)이 이 동작을 의도적으로 바꿨다 — JpaRegisteredClientRepository.toEntity()
+                // 참고. 이 테스트가 그 변경 이후 실제로 실행/검증되지 않은 채 남아있던 회귀였다
+                // (McpToolsEndToEndSpec을 작성하며 전체 스위트를 처음 함께 돌려보다가 발견).
+                found.scopes shouldBe McpOAuthScopes.ALL
                 found.clientSettings.isRequireProofKey shouldBe true
                 found.clientSecret shouldBe null
 

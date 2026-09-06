@@ -25,9 +25,12 @@ class OAuthAuthorizationConsent(
     @Column(name = "principal_name", nullable = false, length = 200)
     var principalName: String,
 
+    // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — OAuthAuthorization.kt/OAuthRegisteredClient.kt와
+    // 동일한 이유로 명시적 length를 지정한다(@Lob 단독이면 @Column.length 기본값 255가 적용돼
+    // MariaDB/MySQL에서 TINYTEXT로 축소됨).
     // 콤마 구분 문자열 — 예) "SCOPE_issues:read,SCOPE_issues:write"
     @Lob
-    @Column(name = "authorities", nullable = false)
+    @Column(name = "authorities", nullable = false, length = 1_000_000)
     var authorities: String
 ) {
     companion object {

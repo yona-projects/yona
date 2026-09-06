@@ -43,22 +43,27 @@ class OAuthRegisteredClient(
     @Column(name = "client_name", nullable = false, length = 200)
     var clientName: String,
 
+    // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — OAuthAuthorization.kt와 동일한 이유(@Lob
+    // 단독이면 @Column.length 기본값 255가 그대로 적용돼 MariaDB/MySQL에서 TINYTEXT로 축소됨)로
+    // 아래 콤마 구분 문자열 컬럼 전부에 명시적으로 넉넉한 length를 지정한다 — scopes(현재 16개
+    // 스코프 문자열을 콤마로 이어붙이면 이미 190자 안팎이라, 스코프 그룹이 하나만 늘어도 255자
+    // 한계에 부딪힐 수 있었다.
     // 콤마 구분 문자열: 예) "client_secret_basic,none"
     @Lob
-    @Column(name = "client_authentication_methods", nullable = false)
+    @Column(name = "client_authentication_methods", nullable = false, length = 1_000_000)
     var clientAuthenticationMethods: String,
 
     // 콤마 구분 문자열: 예) "authorization_code,refresh_token"
     @Lob
-    @Column(name = "authorization_grant_types", nullable = false)
+    @Column(name = "authorization_grant_types", nullable = false, length = 1_000_000)
     var authorizationGrantTypes: String,
 
     @Lob
-    @Column(name = "redirect_uris")
+    @Column(name = "redirect_uris", length = 1_000_000)
     var redirectUris: String? = null,
 
     @Lob
-    @Column(name = "scopes", nullable = false)
+    @Column(name = "scopes", nullable = false, length = 1_000_000)
     var scopes: String,
 
     // RFC7591 DCR로 등록된 클라이언트인지(사전등록 클라이언트와 구분 — "Authorized OAuth Apps" 화면에서

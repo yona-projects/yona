@@ -51,8 +51,13 @@ class McpScopeGuard {
     }
 
     private fun requireJwtScope(authentication: JwtAuthenticationToken, group: ApiTokenScopeGroup, permission: ApiTokenPermission) {
-        val scopes = authentication.token.getClaimAsString("scope")
-            ?.split(" ")
+        // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — Spring Authorization Server가 기본으로
+        // 발급하는 액세스 토큰의 "scope" 클레임은 공백으로 구분된 문자열이 아니라 JSON 배열이다
+        // (실측 확인: {"scope":["issues:read","issues:write"]}). getClaimAsString()은 배열 클레임에
+        // 대해 null을 반환해(타입 불일치) 이 메서드가 스코프를 하나도 못 읽고 항상 거부하는 회귀가
+        // McpToolsEndToEndSpec(실제 MCP 클라이언트로 발급받은 진짜 토큰을 쓰는 유일한 테스트)에서만
+        // 드러났다 — getClaimAsStringList()로 배열/문자열 두 표현을 모두 다루도록 고친다.
+        val scopes = authentication.token.getClaimAsStringList("scope")
             ?.filter { it.isNotBlank() }
             ?.toSet()
             ?: emptySet()

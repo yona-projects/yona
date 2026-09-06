@@ -14,7 +14,9 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldStartWith
 import jakarta.servlet.Filter
@@ -118,6 +120,20 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
             return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
         }
 
+        // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — /oauth2/authorize가 동의 화면으로 리다이렉트할
+        // 때 붙이는 "state" 쿼리 파라미터는 원래 인가 요청의 state 값이 아니라 Spring Authorization
+        // Server가 동의 단계 CSRF 방지를 위해 새로 발급하는 별도의 불투명한 값이다(McpToolsEndToEndSpec
+        // 작성 중 실측 확인 — 원래 state를 그대로 재사용해 동의 POST를 보내면 매번
+        // "invalid_request: state"로 거부된다, OAuth2AuthorizationConsentAuthenticationProvider가
+        // 이 값으로 OAuth2Authorization을 다시 조회하기 때문). 그래서 실제 브라우저 폼 제출과 동일하게
+        // 리다이렉트 URL에서 이 값을 그대로 꺼내 동의 POST에 되돌려줘야 한다.
+        fun extractQueryParam(uri: String, name: String): String {
+            val query = URI.create(uri).query
+            return query.split("&")
+                .map { it.substringBefore("=") to java.net.URLDecoder.decode(it.substringAfter("="), "UTF-8") }
+                .first { it.first == name }.second
+        }
+
         // yona-wiki P3-07 Step2 — MockMvc의 get("/x").param(...)는 파라미터를 request의
         // parameterMap에만 채우고 getQueryString()은 비워둔다(실측 확인). Spring Authorization
         // Server의 OAuth2EndpointUtils.getQueryParameters()는 GET 요청의 파라미터를
@@ -125,8 +141,14 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
         // .param()만 쓰면 모든 파라미터가 빈 것으로 취급돼 "response_type 없음" 오류가 난다 — 쿼리
         // 문자열을 URL에 직접 인코딩해 넘겨야 한다.
         fun authorizeGetUrl(vararg params: Pair<String, String>): URI {
+            // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — URLEncoder.encode()는 공백을 "+"로
+            // 인코딩하는데, McpToolsEndToEndSpec을 작성하며 실측 확인한 결과 이 필터 체인(Spring
+            // Authorization Server의 OAuth2EndpointUtils 쿼리 파싱)에서 스코프처럼 공백으로 구분된
+            // 다중 값 파라미터의 "+"가 공백으로 복원되지 않고 그대로 리터럴 문자로 남아
+            // invalid_scope로 거부되는 경우가 있어(스코프 문자열 하나에 공백이 여럿 섞인 경우에서
+            // 재현), 이식성이 더 확실한 %20으로 명시 치환한다.
             val query = params.joinToString("&") { (k, v) ->
-                "$k=" + java.net.URLEncoder.encode(v, "UTF-8")
+                "$k=" + java.net.URLEncoder.encode(v, "UTF-8").replace("+", "%20")
             }
             return URI.create("/oauth2/authorize?$query")
         }
@@ -202,6 +224,12 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
                 val codeVerifier = "verifier-" + UUID.randomUUID().toString().replace("-", "") + "-0123456789"
                 val codeChallenge = sha256Base64Url(codeVerifier)
                 val redirectUri = "http://127.0.0.1:0/callback"
+                // yona-wiki P3-07 Step6(회귀 수정, 2026-09-06) — state는 매 호출마다 유일해야 한다:
+                // OAuthAuthorizationRepository.findByState()가 client_id로 좁히지 않고 state 문자열
+                // 하나만으로 조회하므로, 고정 리터럴을 재사용하면 이 컨테이너가 재사용되는 로컬
+                // 반복 실행 중 이전(특히 비정상 종료된) 실행이 남긴 행과 충돌해 무작위로 실패할 수
+                // 있다(McpToolsEndToEndSpec 작성 중 실측 확인).
+                val state = "xyz-state-" + UUID.randomUUID()
 
                 // 1) /oauth2/authorize — 동의 화면으로 리다이렉트돼야 한다(requireAuthorizationConsent
                 //    강제 적용, JpaRegisteredClientRepository.toEntity() 참고).
@@ -212,7 +240,7 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
                             "client_id" to clientId,
                             "redirect_uri" to redirectUri,
                             "scope" to "issues:read issues:write",
-                            "state" to "xyz-state",
+                            "state" to state,
                             "code_challenge" to codeChallenge,
                             "code_challenge_method" to "S256",
                             "resource" to mcpResourceUri
@@ -220,18 +248,19 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
                     ).with(user(userDetails()))
                 ).andReturn()
 
-                println("DEBUG persisted client scopes=" + clientRepository.findByClientId(clientId).get().scopes)
                 authorizeResult.response.status shouldBe 302
                 val consentLocation = authorizeResult.response.getHeader(HttpHeaders.LOCATION)!!
-                println("DEBUG consentLocation=$consentLocation")
                 consentLocation.shouldContain("/oauth2/consent")
+                // 동의 단계 CSRF 토큰(위 extractQueryParam() 주석 참고) — 이후 동의 GET/POST 모두
+                // 이 값을 써야 한다(원래 인가 요청의 state가 아니다).
+                val consentState = extractQueryParam(consentLocation, "state")
 
                 // 2) 동의 화면이 실제로 렌더링되는지 확인(GitHub 방식 동의 화면, OAuthConsentController).
                 val consentUri = URI(consentLocation)
                 val consentGet = mockMvc.perform(
                     get(consentUri.path).queryParam(
                         "client_id", clientId
-                    ).queryParam("scope", "issues:read issues:write").queryParam("state", "xyz-state")
+                    ).queryParam("scope", "issues:read issues:write").queryParam("state", consentState)
                         .with(user(userDetails()))
                 ).andReturn()
                 consentGet.response.status shouldBe 200
@@ -242,7 +271,7 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
                 val consentPost = mockMvc.perform(
                     post("/oauth2/authorize")
                         .param("client_id", clientId)
-                        .param("state", "xyz-state")
+                        .param("state", consentState)
                         .param("scope", "issues:read")
                         .param("scope", "issues:write")
                         .with(user(userDetails()))
@@ -271,12 +300,16 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
                 val accessToken = tokenJson["access_token"].asText()
                 tokenJson["scope"].asText().shouldContain("issues:read")
 
-                // 5) 발급된 토큰으로 MCP 엔드포인트 호출 — 인증은 통과해야 한다(도구 자체는 Step3에서
-                //    추가되므로 404가 정상 — 401이 아니라는 것 자체가 인증 통과를 증명한다).
+                // 5) 발급된 토큰으로 MCP 엔드포인트 호출 — 인증은 통과해야 한다. 이 스펙은 인가
+                //    레이어만 검증하는 게 목적이라(실제 도구 호출 검증은 McpToolsEndToEndSpec
+                //    담당) 정확한 상태코드를 못박지 않고 401(인증 실패)이 아니라는 것만 확인한다 —
+                //    Step3에서 /mcp에 실제 Spring AI MCP 서버가 붙은 뒤로 GET에 대한 정확한
+                //    응답(200/404/405 등)은 Spring AI 라이브러리의 트랜스포트 구현 세부사항이라
+                //    이 스펙이 못박을 이유가 없다.
                 val mcpCallResult = mockMvc.perform(
                     get("/mcp/anything").header(HttpHeaders.AUTHORIZATION, "Bearer $accessToken")
                 ).andReturn()
-                mcpCallResult.response.status shouldBe 404
+                mcpCallResult.response.status shouldNotBe 401
 
                 // 동의 기록이 "Authorized OAuth Apps" 화면의 데이터 소스에 실제로 남았는지 확인.
                 consentRepository.findByPrincipalName(owner.loginId).size shouldBe 1
@@ -287,28 +320,32 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
                 val codeVerifier = "verifier-" + UUID.randomUUID().toString().replace("-", "") + "-0123456789"
                 val codeChallenge = sha256Base64Url(codeVerifier)
                 val redirectUri = "http://127.0.0.1:0/callback"
+                val state = "no-resource-state-" + UUID.randomUUID()
 
-                mockMvc.perform(
+                val authorizeResult = mockMvc.perform(
                     get(
                         authorizeGetUrl(
                             "response_type" to "code",
                             "client_id" to clientId,
                             "redirect_uri" to redirectUri,
                             "scope" to "issues:read",
-                            "state" to "no-resource-state",
+                            "state" to state,
                             "code_challenge" to codeChallenge,
                             "code_challenge_method" to "S256"
                         )
                     ).with(user(userDetails()))
                 ).andReturn()
+                authorizeResult.response.status shouldBe 302
+                val consentState = extractQueryParam(authorizeResult.response.getHeader(HttpHeaders.LOCATION)!!, "state")
 
                 val consentPost = mockMvc.perform(
                     post("/oauth2/authorize")
                         .param("client_id", clientId)
-                        .param("state", "no-resource-state")
+                        .param("state", consentState)
                         .param("scope", "issues:read")
                         .with(user(userDetails()))
                 ).andReturn()
+                consentPost.response.status shouldBe 302
                 val redirectLocation = consentPost.response.getHeader(HttpHeaders.LOCATION)!!
                 val code = redirectLocation.substringAfter("code=").substringBefore("&")
 
@@ -331,33 +368,42 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
                 val codeVerifier = "verifier-" + UUID.randomUUID().toString().replace("-", "") + "-0123456789"
                 val codeChallenge = sha256Base64Url(codeVerifier)
                 val redirectUri = "http://127.0.0.1:0/callback"
+                val state = "pkce-state-" + UUID.randomUUID()
 
-                mockMvc.perform(
+                val authorizeResult = mockMvc.perform(
                     get(
                         authorizeGetUrl(
                             "response_type" to "code",
                             "client_id" to clientId,
                             "redirect_uri" to redirectUri,
                             "scope" to "issues:read",
-                            "state" to "pkce-state",
+                            "state" to state,
                             "code_challenge" to codeChallenge,
                             "code_challenge_method" to "S256",
                             "resource" to mcpResourceUri
                         )
                     ).with(user(userDetails()))
                 ).andReturn()
+                authorizeResult.response.status shouldBe 302
+                val consentState = extractQueryParam(authorizeResult.response.getHeader(HttpHeaders.LOCATION)!!, "state")
 
                 val consentPost = mockMvc.perform(
                     post("/oauth2/authorize")
                         .param("client_id", clientId)
-                        .param("state", "pkce-state")
+                        .param("state", consentState)
                         .param("scope", "issues:read")
                         .with(user(userDetails()))
                 ).andReturn()
                 val redirectLocation = consentPost.response.getHeader(HttpHeaders.LOCATION)!!
+                check(redirectLocation.contains("code=")) { "consent redirect had no code: $redirectLocation" }
                 val code = redirectLocation.substringAfter("code=").substringBefore("&")
 
-                // code_verifier를 아예 생략 — PKCE가 실제로 강제된다면 거부돼야 한다.
+                // code_verifier를 아예 생략 — PKCE가 실제로 강제된다면 거부돼야 한다. "none" 인증
+                // 방식(공개 클라이언트)에서는 PKCE code_verifier가 사실상 클라이언트 인증 수단을
+                // 겸하므로(Spring의 PublicClientAuthenticationProvider가 이를 검증), 이걸 생략하면
+                // 토큰 발급 로직(400 invalid_grant)까지 가지도 못하고 그 앞 단계인 클라이언트 인증
+                // 자체가 실패해 403으로 거부된다(실측 확인) — 이 테스트가 검증해야 할 건 정확한
+                // 상태코드가 아니라 "액세스 토큰이 발급되지 않는다"는 사실이므로 400/403 둘 다 허용한다.
                 val tokenResult = mockMvc.perform(
                     post("/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -368,7 +414,7 @@ class McpOAuth2SecurityIntegrationSpec @Autowired constructor(
                         .param("resource", mcpResourceUri)
                 ).andReturn()
 
-                tokenResult.response.status shouldBe 400
+                tokenResult.response.status shouldBeIn listOf(400, 403)
             }
         }
 
