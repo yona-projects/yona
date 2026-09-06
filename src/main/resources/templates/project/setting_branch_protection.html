@@ -42,6 +42,7 @@
                   <div class="col-sm-3">
                     <input type="number" id="requireApprovals" name="requireApprovals" class="form-control" value="0" min="0">
                   </div>
+                  <p class="note" style="margin-left: 15px;">⚠ 저장은 되지만 아직 병합을 막지는 않습니다 — yona에 PR 승인/변경요청 기능 자체가 없습니다(백로그 P3-15).</p>
                 </div>
               </div>
             </div>
@@ -53,6 +54,7 @@
                     <input type="checkbox" id="requireSignedCommits" name="requireSignedCommits" value="true"> 서명된 커밋 필요 (Require signed commits)
                   </label>
                 </div>
+                <p class="note">⚠ 저장은 되지만 아직 병합을 막지는 않습니다 — GPG 서명 검증 기능이 아직 구현되지 않았습니다(백로그 P3-03).</p>
               </div>
             </div>
 
@@ -129,6 +131,7 @@
                       <div class="col-sm-3">
                         <input type="number" name="requireApprovals" class="form-control" th:value="${rule.requireApprovals}" min="0">
                       </div>
+                      <p class="note" style="margin-left: 15px;">⚠ 저장은 되지만 아직 병합을 막지는 않습니다 — yona에 PR 승인/변경요청 기능 자체가 없습니다(백로그 P3-15).</p>
                     </div>
                   </div>
                 </div>
@@ -140,6 +143,7 @@
                         <input type="checkbox" name="requireSignedCommits" value="true" th:checked="${rule.requireSignedCommits}"> 서명된 커밋 필요
                       </label>
                     </div>
+                    <p class="note">⚠ 저장은 되지만 아직 병합을 막지는 않습니다 — GPG 서명 검증 기능이 아직 구현되지 않았습니다(백로그 P3-03).</p>
                     <div class="checkbox">
                       <label>
                         <input type="checkbox" name="doNotAllowBypassing" value="true" th:checked="${!rule.adminsCanBypass}"> 위 설정에 대한 우회를 허용하지 않음 — 프로젝트 매니저 포함
