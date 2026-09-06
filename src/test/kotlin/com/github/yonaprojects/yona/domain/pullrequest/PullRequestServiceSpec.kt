@@ -1,8 +1,15 @@
 package com.github.yonaprojects.yona.domain.pullrequest
 
 import com.github.yonaprojects.yona.AbstractIntegrationTest
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranch
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUser
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
+import com.github.yonaprojects.yona.domain.role.Role
+import com.github.yonaprojects.yona.domain.role.RoleRepository
+import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.enumeration.EventType
@@ -53,7 +60,11 @@ class PullRequestServiceSpec @Autowired constructor(
     private val issueEventRepository: IssueEventRepository,
     // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — setAssignee/addLabel/removeLabel 검증용.
     private val issueLabelRepository: IssueLabelRepository,
-    private val issueLabelCategoryRepository: IssueLabelCategoryRepository
+    private val issueLabelCategoryRepository: IssueLabelCategoryRepository,
+    // yona-wiki P3-04(브랜치 보호) Step 4/5 — merge() 시 ProtectedBranch 체크 검증용.
+    private val protectedBranchRepository: ProtectedBranchRepository,
+    private val projectUserRepository: ProjectUserRepository,
+    private val roleRepository: RoleRepository
 ) : AbstractIntegrationTest() {
 
     init {
@@ -73,6 +84,9 @@ class PullRequestServiceSpec @Autowired constructor(
                 issueRepository.deleteAll()
                 issueLabelRepository.deleteAll()
                 issueLabelCategoryRepository.deleteAll()
+                // yona-wiki P3-04(브랜치 보호) — project FK가 걸려 있으므로 projectRepository.deleteAll()보다 먼저 지운다.
+                protectedBranchRepository.deleteAll()
+                projectUserRepository.deleteAll()
                 projectRepository.deleteAll()
                 userRepository.deleteAll()
 
@@ -730,6 +744,132 @@ class PullRequestServiceSpec @Autowired constructor(
 
                 val mergedPr = pullRequestRepository.findById(pr.id!!).get()
                 mergedPr.state shouldBe State.MERGED
+            }
+
+            // yona-wiki P3-04(브랜치 보호) Step 4/5 — legacy에 대응 로직이 전혀 없는 신규 인프라.
+            // toBranch(toProject의 "master")에 ProtectedBranch 규칙이 걸려 있을 때
+            // PullRequestServiceImpl.merge()가 그 규칙을 검사하는지 확인한다. require_pull_request는
+            // merge()가 정의상 항상 PullRequest 객체를 통해서만 호출되므로(직접 push 경로가 아님)
+            // 병합 자체를 막을 대상이 없다 — Step1 스파이크 결론과 동일하게 require_approvals/
+            // require_signed_commits도 항상 통과 처리됨을 마지막 테스트로 고정한다.
+            describe("5-1. 브랜치 보호 정책(ProtectedBranch) 검증") {
+                fun makeOpenPrWithMergeableCommits(): PullRequest {
+                    val toBareDir = repositoryService.getRepository(toProject).getDirectory()
+                    val fromBareDir = repositoryService.getRepository(fromProject).getDirectory()
+
+                    createCommit(toBareDir, "master", "test.txt", "hello common", "Initial commit")
+                    syncRepository(toBareDir, fromBareDir, "master")
+                    createCommit(fromBareDir, "feature", "test3.txt", "source modification", "Update source")
+
+                    return pullRequestRepository.save(
+                        PullRequest(
+                            title = "브랜치 보호 검증 PR",
+                            body = "ProtectedBranch 체크 검증용",
+                            toProject = toProject,
+                            fromProject = fromProject,
+                            toBranch = "refs/heads/master",
+                            fromBranch = "refs/heads/feature",
+                            contributor = contributor,
+                            receiver = receiver,
+                            created = Instant.now(),
+                            state = State.OPEN
+                        )
+                    )
+                }
+
+                fun makeManager(user: User) {
+                    val role = roleRepository.findById(RoleType.MANAGER.roleType).orElseGet {
+                        roleRepository.save(Role(id = RoleType.MANAGER.roleType, name = "MANAGER"))
+                    }
+                    projectUserRepository.save(ProjectUser(user = user, project = toProject, role = role))
+                }
+
+                it("restrict_push_to 목록에 없는 사용자가 병합하면 BranchProtectionException이 발생해야 한다") {
+                    protectedBranchRepository.save(
+                        ProtectedBranch(project = toProject, branchPattern = "master", restrictPushTo = "다른사람")
+                    )
+                    val pr = makeOpenPrWithMergeableCommits()
+
+                    io.kotest.assertions.throwables.shouldThrow<BranchProtectionException> {
+                        pullRequestService.merge(pr.id!!, receiver)
+                    }
+
+                    pullRequestRepository.findById(pr.id!!).get().state shouldBe State.OPEN
+                }
+
+                it("restrict_push_to 목록에 있는 사용자는 정상적으로 병합할 수 있어야 한다") {
+                    protectedBranchRepository.save(
+                        ProtectedBranch(project = toProject, branchPattern = "master", restrictPushTo = receiver.loginId)
+                    )
+                    val pr = makeOpenPrWithMergeableCommits()
+
+                    val mergeResult = pullRequestService.merge(pr.id!!, receiver)
+
+                    mergeResult.conflicts() shouldBe false
+                    pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+                }
+
+                it("branch_pattern이 매칭되지 않는 규칙은 적용되지 않아야 한다") {
+                    protectedBranchRepository.save(
+                        ProtectedBranch(project = toProject, branchPattern = "release/*", restrictPushTo = "다른사람")
+                    )
+                    val pr = makeOpenPrWithMergeableCommits()
+
+                    val mergeResult = pullRequestService.merge(pr.id!!, receiver)
+
+                    mergeResult.conflicts() shouldBe false
+                }
+
+                it("admins_can_bypass=true(기본값)이면 restrict_push_to에 없는 프로젝트 매니저도 병합할 수 있어야 한다") {
+                    makeManager(receiver)
+                    protectedBranchRepository.save(
+                        ProtectedBranch(
+                            project = toProject, branchPattern = "master",
+                            restrictPushTo = "다른사람", adminsCanBypass = true
+                        )
+                    )
+                    val pr = makeOpenPrWithMergeableCommits()
+
+                    val mergeResult = pullRequestService.merge(pr.id!!, receiver)
+
+                    mergeResult.conflicts() shouldBe false
+                    pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+                }
+
+                it("admins_can_bypass=false이면 프로젝트 매니저도 restrict_push_to 제한을 우회할 수 없어야 한다") {
+                    makeManager(receiver)
+                    protectedBranchRepository.save(
+                        ProtectedBranch(
+                            project = toProject, branchPattern = "master",
+                            restrictPushTo = "다른사람", adminsCanBypass = false
+                        )
+                    )
+                    val pr = makeOpenPrWithMergeableCommits()
+
+                    io.kotest.assertions.throwables.shouldThrow<BranchProtectionException> {
+                        pullRequestService.merge(pr.id!!, receiver)
+                    }
+                }
+
+                // yona-wiki P3-04 Step1 스파이크 결론(계획 문서 참고) 회귀 고정 — CommentThread에
+                // 승인 개념이 없어 require_approvals는 실제 승인 개수를 검증하지 않고, GPG 서명
+                // 검증 파이프라인(P3-03)이 없어 require_signed_commits도 항상 통과한다.
+                // require_pull_request 역시 merge()가 정의상 PullRequest를 통해서만 호출되므로
+                // 정상적인 PR 병합을 막지 않아야 한다.
+                it("require_pull_request/require_approvals/require_signed_commits가 켜져 있어도 정상 PR 병합은 항상 통과해야 한다") {
+                    protectedBranchRepository.save(
+                        ProtectedBranch(
+                            project = toProject, branchPattern = "master",
+                            requirePullRequest = true, requireApprovals = 5, requireSignedCommits = true
+                        )
+                    )
+                    val pr = makeOpenPrWithMergeableCommits()
+
+                    val mergeResult = pullRequestService.merge(pr.id!!, receiver)
+
+                    mergeResult.conflicts() shouldBe false
+                    pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+                }
             }
 
             it("6. 풀 리퀘스트 변경 사항(getDiff) 추출 기능 테스트") {

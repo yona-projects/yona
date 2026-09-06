@@ -130,3 +130,12 @@ class DuplicatedPullRequestException(message: String) : RuntimeException(message
 // 범용 IOException 대신 병합 실패임을 타입으로 구분할 수 있게 이식한다(실제 동작 차이는 없음 — legacy도
 // 호출부가 항상 catch(Exception)으로 뭉뚱그려 처리해 타입 기반 분기가 존재한 적이 없다).
 class PullRequestException(message: String) : RuntimeException(message)
+
+// yona-wiki P3-04(브랜치 보호) Step 4 — legacy에 대응 타입이 전혀 없는 신규 인프라. toBranch에
+// 걸린 ProtectedBranch.restrictPushTo 제한에 걸려 merge()가 거부될 때 던진다(계획 문서의
+// "PullRequestServiceImpl.merge()/processMergeCheck()에 체크 추가" 항목 참고). 403으로 응답하는
+// 이유: 대상 자체(toBranch)는 존재하고 요청도 형식상 올바르지만 "이 사용자는 이 동작을 할 권한이
+// 없다"는 의미가 LackingReviewerException(400, 요청 자체의 결함)보다 AccessControl 계열 거부에
+// 더 가깝기 때문이다.
+@ResponseStatus(value = HttpStatus.FORBIDDEN, reason = "브랜치 보호 정책에 의해 병합이 거부되었습니다.")
+class BranchProtectionException(message: String) : RuntimeException(message)

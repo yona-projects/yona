@@ -1,6 +1,8 @@
 package com.github.yonaprojects.yona.domain.pullrequest
 
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.comment.CommentService
+import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.vcs.FileDiff
 import com.github.yonaprojects.yona.domain.vcs.GitCommit
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
@@ -9,6 +11,7 @@ import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.enumeration.State
@@ -53,6 +56,9 @@ class PullRequestServiceImpl(
     private val commentService: CommentService,
     // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 라벨 추가/제거용(addLabel/removeLabel).
     private val issueLabelRepository: IssueLabelRepository,
+    // yona-wiki P3-04(브랜치 보호) Step 4/5 — merge() 시 toBranch에 걸린 ProtectedBranch 규칙 검사용.
+    private val protectedBranchRepository: ProtectedBranchRepository,
+    private val projectUserRepository: ProjectUserRepository,
     @Value("\${yona.site-name:Yona}")
     private val siteName: String,
     // yona-wiki P3-01(Observability) 계측 지점 2 대응 — PullRequestEventRepository.recordWithDraftMerge()에 그대로 전달한다.
@@ -356,6 +362,11 @@ class PullRequestServiceImpl(
             )
         }
 
+        // yona-wiki P3-04(브랜치 보호) Step 4/5 — toBranch에 걸린 ProtectedBranch 규칙 검사.
+        // LackingReviewerException(아래) 검사보다 먼저 두는 특별한 이유는 없다 — 둘 다 merge()를
+        // 조기에 거부하는 독립적인 가드일 뿐이라 순서는 임의다.
+        checkBranchProtectionForMerge(pullRequest, updater)
+
         // 최소 리뷰어 검증 조건 체크
         val project = pullRequest.toProject
         if (project.isUsingReviewerCount) {
@@ -435,6 +446,46 @@ class PullRequestServiceImpl(
 
             result
         }
+    }
+
+    // yona-wiki P3-04(브랜치 보호) Step 4/5 — legacy에 대응 로직이 전혀 없는 신규 인프라.
+    // toBranch에 매칭되는 ProtectedBranch 규칙이 있으면 merge()를 거부할지 판정한다.
+    //
+    // 이 계획의 Step1 스파이크 결론(계획 문서 참고)에 따라 requirePullRequest/requireApprovals/
+    // requireSignedCommits 세 필드는 이 메서드에서 어떤 검사도 하지 않는다 — 이유는 각각 다르다:
+    //   - requirePullRequest: merge()는 정의상 PullRequestId를 통해서만 호출되는 PR 병합
+    //     경로이므로(직접 push로 브랜치를 갱신하는 경로가 아님) 항상 이 조건을 만족한다. 직접
+    //     push 차단은 BranchProtectionPreReceiveHook(GitPushHooks.kt)의 몫이다.
+    //   - requireApprovals: CommentThread.ThreadState에 승인/변경요청 개념 자체가 없어(Step1
+    //     스파이크로 확인) 검증할 승인 데이터가 없다. 값이 0이 아니어도 항상 통과시킨다.
+    //   - requireSignedCommits: GPG 서명 검증 파이프라인은 P3-03 몫이라 이 계획의 비범위다.
+    //     파이프라인이 완성되기 전까지 값과 무관하게 항상 통과시킨다.
+    // 두 필드 모두 나중에 실제 판정 로직이 생기면 이 메서드에 조건을 추가하기만 하면 된다.
+    //
+    // restrictPushTo만 실질적으로 검사한다 — merge()가 toBranch에 병합 커밋을 직접 기록하는
+    // ref 갱신이라는 점에서 git push와 동등하게 취급한다(admins_can_bypass=true인 프로젝트
+    // 매니저는 우회 가능).
+    private fun checkBranchProtectionForMerge(pullRequest: PullRequest, updater: User) {
+        val toProjectId = pullRequest.toProject.id ?: return
+        val branch = pullRequest.toBranch.removePrefix("refs/heads/")
+        val rule = protectedBranchRepository.findByProjectId(toProjectId).firstOrNull { it.matches(branch) }
+            ?: return
+
+        if (rule.adminsCanBypass && isProjectManager(toProjectId, updater)) return
+
+        val allowedPushers = rule.restrictedLoginIds()
+        if (allowedPushers.isNotEmpty() && updater.loginId !in allowedPushers) {
+            throw BranchProtectionException(
+                "브랜치 '$branch'는 지정된 사용자만 병합할 수 있습니다(restrict_push_to)."
+            )
+        }
+    }
+
+    private fun isProjectManager(projectId: Long, user: User): Boolean {
+        val userId = user.id ?: return false
+        return projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+            .map { it.role.id == RoleType.MANAGER.roleType }
+            .orElse(false)
     }
 
     // yona PullRequest.Merger.Success.createCommit(PersonIdent)/MergeRefUpdate.updateRef() 대응.
