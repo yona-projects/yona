@@ -129,6 +129,36 @@
                     </ul>
                 </div>
 
+                <!-- yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub PR 페이지의 리뷰 판정
+                     (Approve/Request changes/Comment) 이력 + 제출 폼. addReviewer/removeReviewer
+                     (위 #reviewers 자기등록)와는 완전히 별개 액션이다(설계 결정 5번). -->
+                <div id="pr-reviews" class="board-comment-wrap" th:if="${reviews != null}">
+                    <h4 style="margin:15px 0 10px;" th:text="#{pullRequest.review.total}">전체 리뷰</h4>
+
+                    <div th:if="${reviews.isEmpty()}" class="alert alert-info" th:text="#{pullRequest.review.verdict.list.empty}">아직 리뷰가 없습니다</div>
+
+                    <div class="review-list-item" th:each="rv : ${reviews}">
+                        <a th:href="@{/user/{loginId}(loginId=${rv.reviewer.loginId})}" class="avatar-wrap smaller">
+                            <img th:src="${rv.reviewer.avatarUrl}">
+                        </a>
+                        <strong th:text="${rv.reviewer.name}">리뷰어</strong>
+                        <span class="review-verdict-label review-verdict-approve" th:if="${rv.state.name() == 'APPROVE'}" th:text="#{pullRequest.review.verdict.state.approve}">승인함</span>
+                        <span class="review-verdict-label review-verdict-request-changes" th:if="${rv.state.name() == 'REQUEST_CHANGES'}" th:text="#{pullRequest.review.verdict.state.requestChanges}">변경을 요청함</span>
+                        <span class="review-verdict-label" th:if="${rv.state.name() == 'COMMENT'}" th:text="#{pullRequest.review.verdict.state.comment}">코멘트를 남김</span>
+                        <span class="date" style="margin-left:8px;" th:title="${@templateHelper.getDateString(rv.createdDate)}" th:text="${@templateHelper.agoOrDateString(rv.createdDate)}">방금 전</span>
+                        <div class="content markdown-wrap" th:if="${rv.body != null and !rv.body.isEmpty()}" th:utext="${markdownService.render(rv.body, true, project)}" style="margin-top:6px;">리뷰 내용</div>
+                    </div>
+
+                    <div id="pr-review-submit" th:if="${currentUser != null and pr.state.name() == 'OPEN'}" style="margin-top:15px;">
+                        <textarea id="pr-review-body" class="span12" rows="3" th:placeholder="#{pullRequest.review.verdict.bodyPlaceholder}"></textarea>
+                        <div class="mt5">
+                            <button type="button" id="btn-review-approve" class="ybtn ybtn-success" th:if="${canApproveOrRequestChanges}" th:text="#{pullRequest.review.verdict.approve}">승인</button>
+                            <button type="button" id="btn-review-request-changes" class="ybtn ybtn-danger" th:if="${canApproveOrRequestChanges}" th:text="#{pullRequest.review.verdict.requestChanges}">변경 요청</button>
+                            <button type="button" id="btn-review-comment" class="ybtn ybtn-default" th:text="#{pullRequest.review.verdict.comment}">코멘트</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="right-txt">
                     <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" data-toggle="modal" th:text="#{title.help}">도움말</a>
                 </div>
@@ -311,6 +341,28 @@
       $("#btn-unreview").click(function() {
           $.post("[[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/unreview(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]]", function() { window.location.reload(); });
       });
+
+      // yona-wiki P3-15(PR 승인/변경요청 워크플로) — Approve/Request changes/Comment 판정 제출.
+      // 위 btn-review/btn-unreview(자기등록/취소)와는 완전히 별개 액션이다(설계 결정 5번). 서버가
+      // 자기 자신의 PR에 대한 APPROVE/REQUEST_CHANGES를 400 + {"error": "..."}로 거부하면
+      // (SelfReviewException) 그 메시지를 그대로 alert로 보여준다.
+      function submitPullRequestReview(state) {
+          var body = $('#pr-review-body').val();
+          $.ajax({
+              url: '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/reviews',
+              type: 'POST',
+              contentType: 'application/json',
+              data: JSON.stringify({ state: state, body: body })
+          })
+              .done(function() { window.location.reload(); })
+              .fail(function(xhr) {
+                  var message = (xhr.responseJSON && xhr.responseJSON.error) || '리뷰 등록에 실패했습니다.';
+                  alert(message);
+              });
+      }
+      $('#btn-review-approve').click(function() { submitPullRequestReview('APPROVE'); });
+      $('#btn-review-request-changes').click(function() { submitPullRequestReview('REQUEST_CHANGES'); });
+      $('#btn-review-comment').click(function() { submitPullRequestReview('COMMENT'); });
 
       // [data-request-method] 범용 처리(닫기/다시열기/브랜치 삭제·복구 등)
       $('[data-request-method]').not('#btnAccept').click(function(e) {

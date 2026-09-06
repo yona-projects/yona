@@ -77,6 +77,28 @@ interface PullRequestService {
     fun addReviewer(pullRequestId: Long, reviewer: User)
     fun removeReviewer(pullRequestId: Long, reviewer: User)
 
+    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub의 Approve/Request changes/Comment에
+    // 대응하는 PR 전체 판정을 새로 남긴다. addReviewer(자기등록, "리뷰에 참여한다"는 의사표시)와는
+    // 별개 개념이다 — 둘 다 동시에 쓰일 수 있다(설계 결정 5번, CLI `yona pr review` 참고). 같은
+    // 리뷰어가 재판정하면 매번 새 [PullRequestReview] 로우가 추가된다(이력 보존, 설계 결정 2번).
+    // 자기 자신의 PR에 APPROVE/REQUEST_CHANGES를 남기려 하면 [SelfReviewException]을 던진다
+    // (설계 결정 3번, GitHub 방식 기본값) — COMMENT는 자기 PR에도 허용한다.
+    fun submitReview(
+        pullRequestId: Long,
+        reviewer: User,
+        state: PullRequestReview.ReviewState,
+        body: String?
+    ): PullRequestReview
+
+    // 이 PR에 남겨진 모든 판정을 오래된 순으로 반환한다(타임라인 표시용, 전체 이력).
+    fun getReviews(pullRequestId: Long): List<PullRequestReview>
+
+    // 리뷰어별로 가장 최근에 남긴 APPROVE/REQUEST_CHANGES 판정만 남긴 맵(reviewerId -> state)을
+    // 반환한다. COMMENT 전용 판정은 제외한다(GitHub 방식 — Comment는 기존 승인/변경요청 상태를
+    // 바꾸지 않는다). require_approvals 정책 판단(checkApprovalsForMerge)과 PR 화면의 현재 승인
+    // 상태 표시(PullRequestViewController)가 동일한 알고리즘을 공유하도록 이 인터페이스에 노출한다.
+    fun getLatestReviewStates(pullRequestId: Long): Map<Long, PullRequestReview.ReviewState>
+
     // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 담당자 지정/해제. Issue의
     // assigneeId 갱신 로직(IssueServiceImpl.updateIssue())과 동일하게, 담당자를 바꿀 때마다 기존
     // Assignee 로우를 재사용하지 않고 새로 만든다(Assignee는 (user, project) 값 객체에 가까워
@@ -139,3 +161,10 @@ class PullRequestException(message: String) : RuntimeException(message)
 // 더 가깝기 때문이다.
 @ResponseStatus(value = HttpStatus.FORBIDDEN, reason = "브랜치 보호 정책에 의해 병합이 거부되었습니다.")
 class BranchProtectionException(message: String) : RuntimeException(message)
+
+// yona-wiki P3-15(PR 승인/변경요청 워크플로) — 설계 결정 3번(GitHub 방식 기본값): 자기 자신의
+// 풀 리퀘스트는 자기가 승인(APPROVE)하거나 변경을 요청(REQUEST_CHANGES)할 수 없다. 다른
+// LackingReviewerException 등 이 파일의 기존 판정 실패 예외들과 동일하게 400으로 응답한다 —
+// 요청 자체가 형식은 올바르지만 비즈니스 규칙에 어긋난다는 의미가 같기 때문이다.
+@ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "자기 자신의 풀 리퀘스트는 승인하거나 변경을 요청할 수 없습니다.")
+class SelfReviewException(message: String) : RuntimeException(message)

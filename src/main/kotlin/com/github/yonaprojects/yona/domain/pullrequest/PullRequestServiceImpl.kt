@@ -61,6 +61,9 @@ class PullRequestServiceImpl(
     // yona-wiki P3-04(브랜치 보호) Step 4/5 — merge() 시 toBranch에 걸린 ProtectedBranch 규칙 검사용.
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
+    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — submitReview()/getReviews() 및
+    // checkApprovalsForMerge()가 require_approvals를 실제 판정과 연결하는 데 사용한다.
+    private val pullRequestReviewRepository: PullRequestReviewRepository,
     // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — checkSignedCommitsForMerge()가
     // require_signed_commits를 실제로 검사하는 데 필요.
     private val gpgSignatureVerifier: GpgSignatureVerifier,
@@ -372,6 +375,11 @@ class PullRequestServiceImpl(
         // 조기에 거부하는 독립적인 가드일 뿐이라 순서는 임의다.
         checkBranchProtectionForMerge(pullRequest, updater)
 
+        // yona-wiki P3-15 연결 작업(2026-09-07) — P3-04가 "필드만 존재, 항상 통과"로 남겨뒀던
+        // require_approvals를 이제 실제 PullRequestReview 판정과 연결한다. fetch 이전(leftParent/
+        // rightParent가 필요 없는 검사)이라 checkBranchProtectionForMerge()와 같은 지점에서 호출한다.
+        checkApprovalsForMerge(pullRequest, updater)
+
         // 최소 리뷰어 검증 조건 체크
         val project = pullRequest.toProject
         if (project.isUsingReviewerCount) {
@@ -463,15 +471,14 @@ class PullRequestServiceImpl(
     // yona-wiki P3-04(브랜치 보호) Step 4/5 — legacy에 대응 로직이 전혀 없는 신규 인프라.
     // toBranch에 매칭되는 ProtectedBranch 규칙이 있으면 merge()를 거부할지 판정한다.
     //
-    // 이 계획의 Step1 스파이크 결론(계획 문서 참고)에 따라 requirePullRequest/requireApprovals
-    // 두 필드는 이 메서드에서 어떤 검사도 하지 않는다 — 이유는 각각 다르다:
-    //   - requirePullRequest: merge()는 정의상 PullRequestId를 통해서만 호출되는 PR 병합
-    //     경로이므로(직접 push로 브랜치를 갱신하는 경로가 아님) 항상 이 조건을 만족한다. 직접
-    //     push 차단은 BranchProtectionPreReceiveHook(GitPushHooks.kt)의 몫이다.
-    //   - requireApprovals: CommentThread.ThreadState에 승인/변경요청 개념 자체가 없어(Step1
-    //     스파이크로 확인) 검증할 승인 데이터가 없다. 값이 0이 아니어도 항상 통과시킨다(P3-15가
-    //     끝나기 전까지는 이 필드에 손대지 않는다).
-    // 두 필드 모두 나중에 실제 판정 로직이 생기면 이 메서드에 조건을 추가하기만 하면 된다.
+    // 이 계획의 Step1 스파이크 결론(계획 문서 참고)에 따라 requirePullRequest 필드는 이 메서드에서
+    // 어떤 검사도 하지 않는다 — merge()는 정의상 PullRequestId를 통해서만 호출되는 PR 병합
+    // 경로이므로(직접 push로 브랜치를 갱신하는 경로가 아님) 항상 이 조건을 만족한다. 직접
+    // push 차단은 BranchProtectionPreReceiveHook(GitPushHooks.kt)의 몫이다.
+    //
+    // requireApprovals는 더 이상 no-op이 아니다 — yona-wiki P3-15 연결 작업(2026-09-07, P3-15가
+    // 신설한 PullRequestReview로 실제 판정 데이터가 생겼다)으로 checkApprovalsForMerge()가 별도로
+    // 실제 검사를 수행한다(merge()에서 이 메서드 바로 다음에 호출).
     //
     // requireSignedCommits는 더 이상 no-op이 아니다 — yona-wiki P3-03/P3-04 연결 작업(2026-09-07,
     // P3-03 4부 완료 로그에 "후속 과제"로 명시적으로 남겨뒀던 항목)으로 checkSignedCommitsForMerge()가
@@ -495,6 +502,54 @@ class PullRequestServiceImpl(
                 "브랜치 '$branch'는 지정된 사용자만 병합할 수 있습니다(restrict_push_to)."
             )
         }
+    }
+
+    // yona-wiki P3-15 연결 작업(2026-09-07) — require_approvals를 실제 판정(PullRequestReview)과
+    // 연결한다. GitHub 방식 기본값에 따라 두 조건을 검사한다:
+    //   1. 최신 판정이 REQUEST_CHANGES인 리뷰어가 하나라도 있으면, 승인 개수와 무관하게 무조건
+    //      병합을 거부한다("변경 요청이 하나라도 살아있으면 차단").
+    //   2. 그렇지 않으면 최신 판정이 APPROVE인 리뷰어 수가 requireApprovals 이상이어야 한다.
+    // admins_can_bypass 처리는 checkBranchProtectionForMerge()/checkSignedCommitsForMerge()와
+    // 동일하게 이 규칙 전체에 적용한다.
+    private fun checkApprovalsForMerge(pullRequest: PullRequest, updater: User) {
+        val toProjectId = pullRequest.toProject.id ?: return
+        val branch = pullRequest.toBranch.removePrefix("refs/heads/")
+        val rule = findMatchingProtectedBranchRule(toProjectId, branch) ?: return
+        if (rule.requireApprovals <= 0) return
+        if (rule.adminsCanBypass && isProjectManager(toProjectId, updater)) return
+
+        val latestDecisions = latestDecisiveReviewByReviewer(pullRequest)
+
+        if (latestDecisions.containsValue(PullRequestReview.ReviewState.REQUEST_CHANGES)) {
+            throw BranchProtectionException(
+                "브랜치 '$branch'는 변경 요청(request changes)이 해소되기 전에는 병합할 수 없습니다" +
+                    "(require_approvals)."
+            )
+        }
+
+        val approvalCount = latestDecisions.values.count { it == PullRequestReview.ReviewState.APPROVE }
+        if (approvalCount < rule.requireApprovals) {
+            throw BranchProtectionException(
+                "브랜치 '$branch'는 승인이 ${rule.requireApprovals}건 이상 필요합니다(require_approvals) — " +
+                    "현재 $approvalCount 건."
+            )
+        }
+    }
+
+    // 리뷰어별로 가장 최근에 남긴 APPROVE/REQUEST_CHANGES 판정만 남긴다(설계 결정 2번 — 재판정 시
+    // 이전 판정은 정책 판단에서 더 이상 유효하지 않다). COMMENT는 정책 판단에서 완전히 제외한다 —
+    // GitHub도 Comment 전용 리뷰는 그 리뷰어의 기존 Approve/Request changes 상태를 바꾸지 않는다
+    // (판정 자체가 없는 리뷰이므로 "가장 최근 판정"의 후보가 될 수 없다). createdDate 오름차순으로
+    // 순회하며 덮어쓰므로 맵에 마지막까지 남는 값이 항상 그 리뷰어의 최신 판정이다.
+    private fun latestDecisiveReviewByReviewer(pullRequest: PullRequest): Map<Long, PullRequestReview.ReviewState> {
+        val reviews = pullRequestReviewRepository.findByPullRequestOrderByCreatedDateAsc(pullRequest)
+        val latest = linkedMapOf<Long, PullRequestReview.ReviewState>()
+        for (review in reviews) {
+            if (review.state == PullRequestReview.ReviewState.COMMENT) continue
+            val reviewerId = review.reviewer.id ?: continue
+            latest[reviewerId] = review.state
+        }
+        return latest
     }
 
     // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — toBranch에 매칭되는 규칙의
@@ -1035,6 +1090,78 @@ class PullRequestServiceImpl(
         }
     }
 
+
+    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub의 Approve/Request changes/Comment에
+    // 대응하는 PR 전체 판정을 새로 남긴다. addReviewer()(자기등록)와 달리 이미 등록된 리뷰어인지
+    // 여부와 무관하게 언제나 새 이력을 추가한다 — 등록 여부를 요구하면 review 흐름이 자기등록에
+    // 종속되어 설계 결정 5번("자기등록과 판정은 별개 개념")을 어기게 된다.
+    @Transactional
+    override fun submitReview(
+        pullRequestId: Long,
+        reviewer: User,
+        state: PullRequestReview.ReviewState,
+        body: String?
+    ): PullRequestReview {
+        val pr = pullRequestRepository.findById(pullRequestId)
+            .orElseThrow { IllegalArgumentException("PullRequest not found: $pullRequestId") }
+
+        // 설계 결정 3번(GitHub 방식 기본값) — 자기 자신의 PR은 자기가 승인/변경요청할 수 없다.
+        // Comment는 자기 PR에도 허용한다(GitHub도 코멘트 자체는 막지 않는다).
+        if (state != PullRequestReview.ReviewState.COMMENT && pr.contributor.id == reviewer.id) {
+            throw SelfReviewException("자기 자신의 풀 리퀘스트는 승인하거나 변경을 요청할 수 없습니다.")
+        }
+
+        val review = pullRequestReviewRepository.save(
+            PullRequestReview(
+                pullRequest = pr,
+                reviewer = reviewer,
+                state = state,
+                body = body,
+                createdDate = Instant.now()
+            )
+        )
+
+        notifyReviewed(pr, reviewer, state)
+
+        return review
+    }
+
+    @Transactional(readOnly = true)
+    override fun getReviews(pullRequestId: Long): List<PullRequestReview> {
+        return pullRequestReviewRepository.findByPullRequestIdOrderByCreatedDateAsc(pullRequestId)
+    }
+
+    @Transactional(readOnly = true)
+    override fun getLatestReviewStates(pullRequestId: Long): Map<Long, PullRequestReview.ReviewState> {
+        val pr = pullRequestRepository.findById(pullRequestId)
+            .orElseThrow { IllegalArgumentException("PullRequest not found: $pullRequestId") }
+        return latestDecisiveReviewByReviewer(pr)
+    }
+
+    // yona NotificationEvent.afterReviewed() 대응 패턴 — notifyReviewerChanged()(자기등록/취소)와
+    // 동일한 제목/수신자 규칙을 쓰되 eventType만 PULL_REQUEST_REVIEWED로 구분한다. body 전문은
+    // NotificationEvent/PullRequestEvent 둘 다에 담지 않는다(PullRequestReview 자체가 원본 이력을
+    // 이미 영속화하고 있고, 알림 문구에까지 자유 서식 본문을 그대로 노출하면 다른 PR 알림들의
+    // "짧은 요약 + newValue" 관례와 어긋난다) — state만 newValue로 남긴다.
+    private fun notifyReviewed(pullRequest: PullRequest, reviewer: User, state: PullRequestReview.ReviewState) {
+        val notificationEvent = NotificationEvent(
+            title = formatReplyTitle(pullRequest),
+            senderId = reviewer.id,
+            created = Instant.now(),
+            resourceType = ResourceType.PULL_REQUEST,
+            resourceId = pullRequest.id.toString(),
+            eventType = EventType.PULL_REQUEST_REVIEWED,
+            newValue = state.name
+        )
+        val receivers = mutableSetOf(pullRequest.contributor)
+        receivers.addAll(pullRequest.reviewers)
+        receivers.removeIf { it.id == reviewer.id }
+        notificationEvent.receivers = receivers
+
+        notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
+
+        recordPullRequestEvent(pullRequest, EventType.PULL_REQUEST_REVIEWED, reviewer.loginId, null, state.name)
+    }
 
     // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 담당자 지정/해제.
     // IssueServiceImpl.updateIssue()의 assigneeId 처리와 동일하게, 기존 Assignee 로우를 재사용하지

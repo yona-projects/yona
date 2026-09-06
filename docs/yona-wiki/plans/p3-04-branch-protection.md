@@ -81,7 +81,9 @@ tags: [plan, p3, git, security]
 - [x] `ProtectedBranch` 모델 및 패턴 매칭 테스트 존재 (`ProtectedBranchSpec.kt`)
 - [x] 직접 push 차단(force-push, delete, restrict) 각각 테스트로 검증 (`GitPushHooksSpec.kt`의 `BranchProtectionPreReceiveHook` describe)
 - [x] PR 병합 체크가 `require_pull_request` 최소 시나리오에서 동작 (`PullRequestServiceSpec.kt` "5-1. 브랜치 보호 정책" describe — 아래 완료 로그 참고, 실제 의미는 위 Step4 설명 참고)
-- [x] `require_approvals` 착수 여부와 근거가 이 문서에 명시(스파이크 결과 반영) — Step1 참고
+- [x] `require_approvals` 착수 여부와 근거가 이 문서에 명시(스파이크 결과 반영) — Step1 참고.
+      **갱신(2026-09-07, 4라운드)**: [[p3-15-pr-approval-workflow]]가 완료되어 이제 실제 승인/
+      변경요청 판정과 연결됐다 — 위 4라운드 완료 로그 참고
 - [x] `require_signed_commits`는 플래그만 존재하고 [[p3-03-ssh-gpg]] 완료 전까지 항상 통과 처리됨을 명시적으로 테스트/문서화 — Step4 완료 로그의 회귀 테스트 참고. **갱신(2026-09-07, 3라운드)**: [[p3-03-ssh-gpg]]가 완료되어 이제 `GpgSignatureVerifier`에 실제로 연결됐다 — 아래 3라운드 완료 로그 참고
 - [x] 관리 UI(웹) — 프로젝트 매니저가 규칙을 DB 직접 조작 없이 실제로 생성/조회/수정/삭제할 수 있는
       화면 존재 (2라운드, 2026-09-06 — 아래 완료 로그 참고). 1라운드는 엔티티/훅/병합체크만 구현하고
@@ -94,7 +96,7 @@ tags: [plan, p3, git, security]
 
 | 항목 | 내용 | 해소 방법 |
 |---|---|---|
-| `require_approvals` 실현 가능성 | `ThreadState`에 승인 개념이 있는지 미확인 상태로 백로그가 남겨짐 | **해소(2026-09-06)** — `ThreadState`는 OPEN/CLOSED뿐, 승인 개념 없음. `require_signed_commits`와 동일하게 "플래그만 존재, 항상 통과"로 구현(Step4 완료 로그 참고) |
+| `require_approvals` 실현 가능성 | `ThreadState`에 승인 개념이 있는지 미확인 상태로 백로그가 남겨짐 | **해소(2026-09-06)** — `ThreadState`는 OPEN/CLOSED뿐, 승인 개념 없음. `require_signed_commits`와 동일하게 "플래그만 존재, 항상 통과"로 구현(Step4 완료 로그 참고). **최종 해소(2026-09-07, 4라운드)** — [[p3-15-pr-approval-workflow]]가 `PullRequestReview` 엔티티를 신설, `checkApprovalsForMerge()`로 실제 연결 완료 |
 | `AccessControl`과의 레이어 순서 | 권한 확인 통과 후 추가 정책이라는 설계만 있고 구체적 체이닝 방식 미정 | Step 3/4 구현 시 기존 `AccessControl` 호출 지점 뒤에 체이닝하는 방식으로 확정 |
 
 ## 완료 로그
@@ -339,13 +341,30 @@ tags: [plan, p3, git, security]
     테스트를 한 배치로 실행해 전부 GREEN, `YonaApplicationTests`(전체 Spring 컨텍스트 기동)로
     신규 생성자 파라미터의 DI 배선도 확인.
 
+### 4라운드 (2026-09-07) — P3-15 연결 작업: `require_approvals` 실제 연결
+
+- **배경**: 1라운드 완료 시점엔 PR 승인/변경요청 판정 개념 자체가 yona에 전혀 없어(`CommentThread.
+  ThreadState`는 OPEN/CLOSED뿐) `require_approvals`를 "필드만 존재, 값과 무관하게 항상 통과"로
+  축소해서 구현했다(위 1라운드 완료 로그, `LackingReviewerException` 검사와는 별개로 이 필드
+  자체는 no-op이었음). [[p3-15-pr-approval-workflow]]가 신규 `PullRequestReview` 엔티티(Approve/
+  Request changes/Comment)를 도입하면서 이 갭이 해소됐다.
+- **연결 지점**: `PullRequestServiceImpl.merge()`에 `checkBranchProtectionForMerge()` 바로 다음
+  `checkApprovalsForMerge()`를 추가했다 — `rule.requireApprovals > 0`이면 리뷰어별 가장 최근
+  APPROVE/REQUEST_CHANGES 판정(`latestDecisiveReviewByReviewer()`, COMMENT 전용 판정은 제외)을
+  계산해, (1) REQUEST_CHANGES가 하나라도 남아있으면 승인 개수와 무관하게 무조건 거부, (2) 그렇지
+  않으면 APPROVE 개수가 `requireApprovals` 미만이면 거부한다. `admins_can_bypass`는 기존 두 검사와
+  동일하게 적용된다.
+- **상세**: 엔티티 설계/API/UI/테스트 전체는 [[p3-15-pr-approval-workflow]] 완료 로그 참고 — 이
+  문서는 `require_approvals` 연결 지점만 요약한다.
+
 ## 관련
 
 - 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-04)
-- 관련 계획: [[p3-03-ssh-gpg]](서명 검증 결과 소비)
+- 관련 계획: [[p3-03-ssh-gpg]](서명 검증 결과 소비), [[p3-15-pr-approval-workflow]](`require_approvals`가
+  소비하는 승인/변경요청 판정 데이터의 출처)
 - 관련 소스: `domain/branchprotection/ProtectedBranch.kt`, `domain/branchprotection/ProtectedBranchRepository.kt`,
   `domain/vcs/GitPushHooks.kt`(`BranchProtectionPreReceiveHook`), `domain/pullrequest/PullRequestServiceImpl.kt`
-  (`checkBranchProtectionForMerge()`), `domain/pullrequest/PullRequestService.kt`(`BranchProtectionException`),
-  `config/GitServletConfig.kt`(훅 배선), `web/BranchProtectionController.kt`(2라운드, 관리 UI),
-  `templates/project/setting_branch_protection.html`(2라운드), `templates/project/setting_menu.html`(2라운드,
-  메뉴 추가)
+  (`checkBranchProtectionForMerge()`, `checkApprovalsForMerge()`), `domain/pullrequest/PullRequestService.kt`
+  (`BranchProtectionException`), `config/GitServletConfig.kt`(훅 배선), `web/BranchProtectionController.kt`
+  (2라운드, 관리 UI), `templates/project/setting_branch_protection.html`(2라운드),
+  `templates/project/setting_menu.html`(2라운드, 메뉴 추가)

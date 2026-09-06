@@ -250,6 +250,35 @@ class PullRequestApiController(
         return pullRequestController.getDiff(found.id!!, number, authentication)
     }
 
+    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub의
+    // POST /repos/{owner}/{repo}/pulls/{number}/reviews 대응. submitReview()가 성공/실패(자기
+    // 승인 시도) 모두 이미 변환된 본문을 담은 ResponseEntity<Any>를 돌려주므로(merge()/changeState()와
+    // 동일한 이유) 그대로 위임한다.
+    @PostMapping("/{number}/reviews")
+    fun submitReview(
+        @PathVariable owner: String,
+        @PathVariable project: String,
+        @PathVariable number: Long,
+        @RequestBody request: PullRequestController.SubmitPullRequestReviewRequest,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+        return pullRequestController.submitReview(found.id!!, number, request, authentication)
+    }
+
+    @GetMapping("/{number}/reviews")
+    fun getReviews(
+        @PathVariable owner: String,
+        @PathVariable project: String,
+        @PathVariable number: Long,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+        return pullRequestController.getReviews(found.id!!, number, authentication)
+    }
+
     @PostMapping("/{number}/comments")
     fun addComment(
         @PathVariable owner: String,

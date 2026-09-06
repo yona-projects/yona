@@ -74,7 +74,10 @@ class PullRequestServiceSpec @Autowired constructor(
     // 검사되는지 실제 gpg 서명 커밋으로 검증하는 데 필요.
     private val gpgKeyService: GpgKeyService,
     private val gpgKeyRepository: GpgKeyRepository,
-    private val emailRepository: EmailRepository
+    private val emailRepository: EmailRepository,
+    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — submitReview/getReviews/getLatestReviewStates 및
+    // require_approvals 연결(checkApprovalsForMerge) 검증용.
+    private val pullRequestReviewRepository: PullRequestReviewRepository
 ) : AbstractIntegrationTest() {
 
     init {
@@ -89,6 +92,8 @@ class PullRequestServiceSpec @Autowired constructor(
                 pullRequestEventRepository.deleteAll()
                 notificationEventRepository.deleteAll()
                 pullRequestCommitRepository.deleteAll()
+                // yona-wiki P3-15 — pull_request FK가 걸려 있으므로 pullRequestRepository.deleteAll()보다 먼저 지운다.
+                pullRequestReviewRepository.deleteAll()
                 pullRequestRepository.deleteAll()
                 issueEventRepository.deleteAll()
                 issueRepository.deleteAll()
@@ -981,16 +986,17 @@ class PullRequestServiceSpec @Autowired constructor(
                     }
                 }
 
-                // yona-wiki P3-04 Step1 스파이크 결론(계획 문서 참고) 회귀 고정 — CommentThread에
-                // 승인 개념이 없어 require_approvals는 실제 승인 개수를 검증하지 않는다.
-                // require_pull_request 역시 merge()가 정의상 PullRequest를 통해서만 호출되므로
-                // 정상적인 PR 병합을 막지 않아야 한다. require_signed_commits는 이 테스트에서
-                // 제외한다 — 아래 별도 describe("5-2")에서 실제로 검사됨을 검증한다.
-                it("require_pull_request/require_approvals가 켜져 있어도 정상 PR 병합은 항상 통과해야 한다") {
+                // yona-wiki P3-04 Step1 스파이크 결론(계획 문서 참고) 회귀 고정 — require_pull_request는
+                // merge()가 정의상 PullRequest를 통해서만 호출되므로 정상적인 PR 병합을 막지 않아야
+                // 한다. require_signed_commits는 이 테스트에서 제외한다 — 아래 별도 describe("5-2")에서
+                // 실제로 검사됨을 검증한다. require_approvals는 P3-15 연결 작업(2026-09-07)으로 더 이상
+                // 항상 통과가 아니다 — 아래 별도 describe("5-3")에서 실제로 검사됨을 검증한다(이 테스트는
+                // requireApprovals=0인 채로 남겨 require_pull_request만 회귀 고정한다).
+                it("require_pull_request가 켜져 있어도 정상 PR 병합은 항상 통과해야 한다") {
                     protectedBranchRepository.save(
                         ProtectedBranch(
                             project = toProject, branchPattern = "master",
-                            requirePullRequest = true, requireApprovals = 5
+                            requirePullRequest = true
                         )
                     )
                     val pr = makeOpenPrWithMergeableCommits()
@@ -1085,6 +1091,195 @@ class PullRequestServiceSpec @Autowired constructor(
 
                     mergeResult.conflicts() shouldBe false
                     pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+                }
+            }
+
+            // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub의 Approve/Request changes/Comment에
+            // 대응하는 PullRequestReview 신규 도메인 로직 + require_approvals 연결 검증.
+            describe("5-3. PullRequestReview(승인/변경요청/코멘트 판정) 검증") {
+                fun makeOpenPr(): PullRequest {
+                    return pullRequestRepository.save(
+                        PullRequest(
+                            title = "리뷰 판정 검증 PR",
+                            body = "PullRequestReview 검증용",
+                            toProject = toProject,
+                            fromProject = fromProject,
+                            toBranch = "refs/heads/master",
+                            fromBranch = "refs/heads/feature",
+                            contributor = contributor,
+                            receiver = receiver,
+                            created = Instant.now(),
+                            state = State.OPEN
+                        )
+                    )
+                }
+
+                it("submitReview는 새 PullRequestReview를 저장하고 getReviews로 오래된 순 조회할 수 있어야 한다") {
+                    val pr = makeOpenPr()
+
+                    val review = pullRequestService.submitReview(
+                        pr.id!!, receiver, PullRequestReview.ReviewState.APPROVE, "LGTM"
+                    )
+
+                    review.id shouldNotBe null
+                    review.state shouldBe PullRequestReview.ReviewState.APPROVE
+                    review.body shouldBe "LGTM"
+
+                    val reviews = pullRequestService.getReviews(pr.id!!)
+                    reviews.size shouldBe 1
+                    reviews[0].reviewer.id shouldBe receiver.id
+                }
+
+                it("같은 리뷰어가 재판정하면 매 번 새 이력이 추가되어야 한다(update가 아니라 insert)") {
+                    val pr = makeOpenPr()
+
+                    pullRequestService.submitReview(pr.id!!, receiver, PullRequestReview.ReviewState.REQUEST_CHANGES, "고쳐주세요")
+                    pullRequestService.submitReview(pr.id!!, receiver, PullRequestReview.ReviewState.APPROVE, "이제 됐습니다")
+
+                    val reviews = pullRequestService.getReviews(pr.id!!)
+                    reviews.size shouldBe 2
+                    reviews.map { it.state } shouldBe listOf(
+                        PullRequestReview.ReviewState.REQUEST_CHANGES,
+                        PullRequestReview.ReviewState.APPROVE
+                    )
+                }
+
+                it("getLatestReviewStates는 리뷰어별 가장 최근 APPROVE/REQUEST_CHANGES만 반영해야 한다") {
+                    val pr = makeOpenPr()
+                    val anotherReviewer = userRepository.save(
+                        User(loginId = "another-${System.currentTimeMillis()}", name = "다른리뷰어", email = "another-${System.currentTimeMillis()}@yona.io")
+                    )
+
+                    pullRequestService.submitReview(pr.id!!, receiver, PullRequestReview.ReviewState.APPROVE, null)
+                    pullRequestService.submitReview(pr.id!!, receiver, PullRequestReview.ReviewState.REQUEST_CHANGES, null)
+                    pullRequestService.submitReview(pr.id!!, anotherReviewer, PullRequestReview.ReviewState.APPROVE, null)
+
+                    val latest = pullRequestService.getLatestReviewStates(pr.id!!)
+
+                    latest[receiver.id] shouldBe PullRequestReview.ReviewState.REQUEST_CHANGES
+                    latest[anotherReviewer.id!!] shouldBe PullRequestReview.ReviewState.APPROVE
+                }
+
+                it("COMMENT 전용 판정은 정책 판단(getLatestReviewStates)에서 제외되어야 한다") {
+                    val pr = makeOpenPr()
+
+                    pullRequestService.submitReview(pr.id!!, receiver, PullRequestReview.ReviewState.APPROVE, null)
+                    pullRequestService.submitReview(pr.id!!, receiver, PullRequestReview.ReviewState.COMMENT, "추가 의견")
+
+                    val latest = pullRequestService.getLatestReviewStates(pr.id!!)
+
+                    // 가장 최근 판정은 COMMENT이지만, COMMENT는 정책 판단에서 제외되므로 그 이전의
+                    // APPROVE가 여전히 유효해야 한다(GitHub 방식 — Comment는 기존 승인 상태를 바꾸지 않는다).
+                    latest[receiver.id] shouldBe PullRequestReview.ReviewState.APPROVE
+                }
+
+                it("자기 자신의 PR을 APPROVE하려 하면 SelfReviewException이 발생해야 한다") {
+                    val pr = makeOpenPr()
+
+                    shouldThrow<SelfReviewException> {
+                        pullRequestService.submitReview(pr.id!!, contributor, PullRequestReview.ReviewState.APPROVE, null)
+                    }
+                }
+
+                it("자기 자신의 PR을 REQUEST_CHANGES하려 해도 SelfReviewException이 발생해야 한다") {
+                    val pr = makeOpenPr()
+
+                    shouldThrow<SelfReviewException> {
+                        pullRequestService.submitReview(pr.id!!, contributor, PullRequestReview.ReviewState.REQUEST_CHANGES, null)
+                    }
+                }
+
+                it("자기 자신의 PR에는 COMMENT는 허용되어야 한다(GitHub도 코멘트 자체는 막지 않는다)") {
+                    val pr = makeOpenPr()
+
+                    val review = pullRequestService.submitReview(pr.id!!, contributor, PullRequestReview.ReviewState.COMMENT, "내 PR에 코멘트")
+
+                    review.id shouldNotBe null
+                }
+
+                describe("require_approvals 연결(checkApprovalsForMerge) 검증") {
+                    fun makeOpenPrWithMergeableCommits(): PullRequest {
+                        val toBareDir = repositoryService.getRepository(toProject).getDirectory()
+                        val fromBareDir = repositoryService.getRepository(fromProject).getDirectory()
+
+                        createCommit(toBareDir, "master", "test.txt", "hello common", "Initial commit")
+                        syncRepository(toBareDir, fromBareDir, "master")
+                        createCommit(fromBareDir, "feature", "test3.txt", "source modification", "Update source")
+
+                        return makeOpenPr()
+                    }
+
+                    it("승인이 부족하면 BranchProtectionException으로 병합이 거부되어야 한다") {
+                        protectedBranchRepository.save(
+                            ProtectedBranch(project = toProject, branchPattern = "master", requireApprovals = 1)
+                        )
+                        val pr = makeOpenPrWithMergeableCommits()
+
+                        shouldThrow<BranchProtectionException> {
+                            pullRequestService.merge(pr.id!!, receiver)
+                        }
+
+                        pullRequestRepository.findById(pr.id!!).get().state shouldBe State.OPEN
+                    }
+
+                    it("요구 승인 수를 채우면 병합이 성공해야 한다") {
+                        protectedBranchRepository.save(
+                            ProtectedBranch(project = toProject, branchPattern = "master", requireApprovals = 1)
+                        )
+                        val pr = makeOpenPrWithMergeableCommits()
+                        pullRequestService.submitReview(pr.id!!, receiver, PullRequestReview.ReviewState.APPROVE, "승인합니다")
+
+                        val mergeResult = pullRequestService.merge(pr.id!!, receiver)
+
+                        mergeResult.conflicts() shouldBe false
+                        pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+                    }
+
+                    it("승인 수를 채워도 최신 판정이 REQUEST_CHANGES인 리뷰어가 있으면 무조건 병합이 거부되어야 한다") {
+                        protectedBranchRepository.save(
+                            ProtectedBranch(project = toProject, branchPattern = "master", requireApprovals = 1)
+                        )
+                        val pr = makeOpenPrWithMergeableCommits()
+                        val anotherReviewer = userRepository.save(
+                            User(loginId = "reqchg-${System.currentTimeMillis()}", name = "변경요청자", email = "reqchg-${System.currentTimeMillis()}@yona.io")
+                        )
+                        pullRequestService.submitReview(pr.id!!, receiver, PullRequestReview.ReviewState.APPROVE, "승인합니다")
+                        pullRequestService.submitReview(pr.id!!, anotherReviewer, PullRequestReview.ReviewState.REQUEST_CHANGES, "고쳐주세요")
+
+                        shouldThrow<BranchProtectionException> {
+                            pullRequestService.merge(pr.id!!, receiver)
+                        }
+
+                        pullRequestRepository.findById(pr.id!!).get().state shouldBe State.OPEN
+                    }
+
+                    it("admins_can_bypass=true(기본값)이면 승인이 부족해도 프로젝트 매니저는 병합할 수 있어야 한다") {
+                        val role = roleRepository.findById(RoleType.MANAGER.roleType).orElseGet {
+                            roleRepository.save(Role(id = RoleType.MANAGER.roleType, name = "MANAGER"))
+                        }
+                        projectUserRepository.save(ProjectUser(user = receiver, project = toProject, role = role))
+                        protectedBranchRepository.save(
+                            ProtectedBranch(project = toProject, branchPattern = "master", requireApprovals = 1, adminsCanBypass = true)
+                        )
+                        val pr = makeOpenPrWithMergeableCommits()
+
+                        val mergeResult = pullRequestService.merge(pr.id!!, receiver)
+
+                        mergeResult.conflicts() shouldBe false
+                        pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+                    }
+
+                    it("requireApprovals=0(기본값)이면 승인 여부와 무관하게 병합이 통과해야 한다") {
+                        protectedBranchRepository.save(
+                            ProtectedBranch(project = toProject, branchPattern = "master", requireApprovals = 0)
+                        )
+                        val pr = makeOpenPrWithMergeableCommits()
+
+                        val mergeResult = pullRequestService.merge(pr.id!!, receiver)
+
+                        mergeResult.conflicts() shouldBe false
+                        pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+                    }
                 }
             }
 

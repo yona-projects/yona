@@ -19,6 +19,7 @@ import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestCommitRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestEventRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestService
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestTimelineItem
 import com.github.yonaprojects.yona.domain.role.RoleType
@@ -389,6 +390,21 @@ class PullRequestViewController(
         }
         model.addAttribute("canDeleteBranch", canDeleteBranch)
         model.addAttribute("canRestoreBranch", canRestoreBranch)
+
+        // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub PR 페이지의 리뷰 상태 표시(초록
+        // 체크=승인, 빨간 X=변경요청) 대응. 최신순으로 보여준다(활동 로그 성격 — GitHub의 Conversation
+        // 탭이 리뷰 이벤트를 시간순으로 나열하는 것과 동일). require_approvals 정책 판단과 동일한
+        // 알고리즘(getLatestReviewStates, 리뷰어별 최신 APPROVE/REQUEST_CHANGES만 유효)을 그대로
+        // 재사용해 화면에도 일관된 "현재 승인 상태"를 보여준다.
+        val reviews = pullRequestService.getReviews(pullRequest.id!!).sortedByDescending { it.createdDate }
+        model.addAttribute("reviews", reviews)
+        val latestReviewStates = pullRequestService.getLatestReviewStates(pullRequest.id!!)
+        model.addAttribute("approvalCount", latestReviewStates.values.count { it == PullRequestReview.ReviewState.APPROVE })
+        model.addAttribute("changesRequestedCount", latestReviewStates.values.count { it == PullRequestReview.ReviewState.REQUEST_CHANGES })
+        model.addAttribute("latestReviewStateByReviewerId", latestReviewStates)
+        // 설계 결정 3번(GitHub 방식) 회귀 대응 — 자기 자신의 PR에는 Approve/Request changes 버튼을
+        // 아예 감춘다(Comment는 자기 PR에도 허용하므로 그대로 노출).
+        model.addAttribute("canApproveOrRequestChanges", loginUser != null && loginUser.id != pullRequest.contributor.id)
     }
 
     private fun getReferredIssues(pullRequest: PullRequest): List<Issue> {

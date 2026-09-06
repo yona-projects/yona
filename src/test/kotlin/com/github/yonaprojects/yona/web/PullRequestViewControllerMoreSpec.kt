@@ -85,6 +85,10 @@ class PullRequestViewControllerMoreSpec : DescribeSpec({
             userRepository, commentThreadRepository, pullRequestEventRepository, pullRequestCommitRepository,
             issueRepository, accessControl, codeReviewService, pushedBranchRepository, watchService, messageSource, attachmentRepository
         )
+        // yona-wiki P3-15(PR 승인/변경요청 워크플로) — addCommonPrAttributes()가 항상 호출하므로
+        // 이 스펙의 기존 테스트에 영향을 주지 않도록 기본값(리뷰 없음)을 둔다.
+        every { pullRequestService.getReviews(any()) } returns emptyList()
+        every { pullRequestService.getLatestReviewStates(any()) } returns emptyMap()
     }
 
     describe("More PR controller tests") {

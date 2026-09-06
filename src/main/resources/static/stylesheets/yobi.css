@@ -3977,6 +3977,55 @@ label.inline-list:first-child {
 .badge.badge-issue-conflict {
   background-color: #C0392B;
 }
+/* yona-wiki P3-15(PR 승인/변경요청 워크플로) — PR 리뷰 판정(Approve/Request changes) 표시.
+   GitHub PR 페이지의 초록 체크(승인)/빨간 X(변경요청) 관례를 그대로 따른다. */
+.review-verdict-badge {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  color: #FFF;
+  border: 1px solid #FFF;
+}
+.review-verdict-badge.review-verdict-approve {
+  background-color: #2cbe4e;
+}
+.review-verdict-badge.review-verdict-request-changes {
+  background-color: #d73a49;
+}
+.review-verdict-summary {
+  margin-right: 8px;
+  padding: 3px 10px;
+  font-size: 12px;
+  line-height: 16px;
+}
+.review-verdict-summary.review-verdict-summary-approve {
+  background-color: #2cbe4e;
+}
+.review-verdict-summary.review-verdict-summary-request-changes {
+  background-color: #d73a49;
+}
+.review-list-item {
+  border-top: 1px solid #e5e5e5;
+  padding: 12px 0;
+}
+.review-list-item .review-verdict-label {
+  font-weight: bold;
+  margin-left: 6px;
+}
+.review-list-item .review-verdict-label.review-verdict-approve {
+  color: #2cbe4e;
+}
+.review-list-item .review-verdict-label.review-verdict-request-changes {
+  color: #d73a49;
+}
 .board-body .author-info {
   display: block;
   margin: 10px 20px;

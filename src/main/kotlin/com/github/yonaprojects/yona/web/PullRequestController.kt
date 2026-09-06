@@ -15,8 +15,10 @@ import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestEvent
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestEventRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestMergeResult
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestService
 import com.github.yonaprojects.yona.domain.pullrequest.ReviewComment
+import com.github.yonaprojects.yona.domain.pullrequest.SelfReviewException
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -466,6 +468,62 @@ class PullRequestController(
         pullRequestService.removeReviewer(pullRequest.id!!, user)
         return ResponseEntity.ok().build()
     }
+
+    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub의
+    // POST /repos/{owner}/{repo}/pulls/{number}/reviews 대응. 권한은 addReviewer/removeReviewer와
+    // 동일한 수준(checkWritePermission — 프로젝트 멤버 또는 그룹멤버)을 요구한다: 판정을 남기는
+    // 것도 "리뷰에 참여"하는 행위의 일종이라 기존 자기등록과 동일한 문턱을 그대로 재사용한다(이
+    // 계획이 새로 확정할 필요가 없는 부분 — 지시문의 "최소한 addReviewer와 동일한 수준" 원칙).
+    @PostMapping("/{number}/reviews")
+    fun submitReview(
+        @PathVariable projectId: Long,
+        @PathVariable number: Long,
+        @RequestBody request: SubmitPullRequestReviewRequest,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findById(projectId).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        if (!checkWritePermission(project, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val pullRequest = pullRequestService.getPullRequest(projectId, number)
+            ?: return ResponseEntity.notFound().build()
+
+        return try {
+            val review = pullRequestService.submitReview(pullRequest.id!!, user, request.state, request.body)
+            ResponseEntity.status(HttpStatus.CREATED).body(review.toResponse())
+        } catch (e: SelfReviewException) {
+            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+        }
+    }
+
+    @GetMapping("/{number}/reviews")
+    fun getReviews(
+        @PathVariable projectId: Long,
+        @PathVariable number: Long,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findById(projectId).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication)
+        if (!checkReadPermission(project, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val pullRequest = pullRequestService.getPullRequest(projectId, number)
+            ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(pullRequestService.getReviews(pullRequest.id!!).map { it.toResponse() })
+    }
+
+    data class SubmitPullRequestReviewRequest(
+        val state: PullRequestReview.ReviewState,
+        val body: String? = null
+    )
 
 
     // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 담당자 지정/해제.

@@ -151,6 +151,12 @@ class PullRequestViewControllerSpec : DescribeSpec({
             pullRequestRepository.count(any<Specification<PullRequest>>())
         } returns 0L
         every { pullRequestRepository.findDistinctContributorsByToProject(any()) } returns emptyList()
+        // yona-wiki P3-15(PR 승인/변경요청 워크플로) — addCommonPrAttributes()가 viewPullRequest/
+        // viewChangesInternal 양쪽에서 항상 호출하므로, 이 스펙의 기존 테스트 전부에 영향을 주지
+        // 않도록 기본값(리뷰 없음)을 여기 공통 beforeTest에 둔다. 개별 리뷰 표시를 검증하는 테스트만
+        // 아래에서 이 기본값을 덮어쓴다.
+        every { pullRequestService.getReviews(any()) } returns emptyList()
+        every { pullRequestService.getLatestReviewStates(any()) } returns emptyMap()
     }
 
     describe("PullRequestViewController 템플릿 연동 테스트") {

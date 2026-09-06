@@ -6,6 +6,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestMergeResult
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
 import com.github.yonaprojects.yona.domain.pullrequest.ReviewComment
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.vcs.FileDiff
@@ -142,6 +143,51 @@ class PullRequestApiControllerSpec : DescribeSpec({
                 .andExpect(status().isOk)
 
             verify(exactly = 1) { pullRequestController.removeReviewer(1L, 1L, any()) }
+        }
+    }
+
+    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub의
+    // POST /repos/{owner}/{repo}/pulls/{number}/reviews 대응 v1 어댑터.
+    describe("POST /api/v1/projects/{owner}/{project}/pull-requests/{number}/reviews") {
+        it("PullRequestController.submitReview에 위임한다") {
+            val review = PullRequestReview(
+                id = 5L, pullRequest = PullRequest(id = 3L, number = 1L, title = "PR", fromProject = project, toProject = project, contributor = contributor),
+                reviewer = contributor, state = PullRequestReview.ReviewState.APPROVE
+            )
+            every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
+            every { pullRequestController.submitReview(1L, 1L, any(), any()) } returns ResponseEntity.status(HttpStatus.CREATED).body(review.toResponse())
+
+            mockMvc.perform(
+                post("/api/v1/projects/yona/yona/pull-requests/1/reviews")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"state":"APPROVE"}""")
+            )
+                .andExpect(status().isCreated)
+
+            verify(exactly = 1) { pullRequestController.submitReview(1L, 1L, any(), any()) }
+        }
+
+        it("프로젝트가 없으면 404를 반환한다") {
+            every { projectRepository.findByOwnerAndName("yona", "unknown") } returns Optional.empty()
+
+            mockMvc.perform(
+                post("/api/v1/projects/yona/unknown/pull-requests/1/reviews")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"state":"APPROVE"}""")
+            )
+                .andExpect(status().isNotFound)
+        }
+    }
+
+    describe("GET /api/v1/projects/{owner}/{project}/pull-requests/{number}/reviews") {
+        it("PullRequestController.getReviews에 위임한다") {
+            every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
+            every { pullRequestController.getReviews(1L, 1L, any()) } returns ResponseEntity.ok(emptyList<Any>())
+
+            mockMvc.perform(get("/api/v1/projects/yona/yona/pull-requests/1/reviews"))
+                .andExpect(status().isOk)
+
+            verify(exactly = 1) { pullRequestController.getReviews(1L, 1L, any()) }
         }
     }
 

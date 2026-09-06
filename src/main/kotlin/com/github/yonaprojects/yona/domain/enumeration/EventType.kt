@@ -27,7 +27,13 @@ enum class EventType(val messageKey: String, val order: Int) {
     POSTING_BODY_CHANGED("notification.type.posting.body.changed", 25),
     RESOURCE_DELETED("notification.type.resource.deleted", 26),
     MEMBER_ENROLL_ACCEPT("notification.member.enroll.accept", 27),
-    ORGANIZATION_MEMBER_ENROLL_ACCEPT("notification.member.enroll.accept", 28);
+    ORGANIZATION_MEMBER_ENROLL_ACCEPT("notification.member.enroll.accept", 28),
+    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — PullRequestService.submitReview()가 APPROVE/
+    // REQUEST_CHANGES/COMMENT 판정을 남길 때마다 기록한다. PULL_REQUEST_REVIEW_STATE_CHANGED(14번,
+    // addReviewer/removeReviewer의 리뷰어 참여/취소 전용)와는 별개다 — 자기등록 여부와 실제 판정은
+    // 서로 다른 사건이다(설계 결정 5번). 메시지 키 "notification.type.pullrequest.reviewed"는
+    // messages*.properties에 이미 존재하던 미사용 키를 그대로 재사용한다(전 로케일 파일에 이미 있음).
+    PULL_REQUEST_REVIEWED("notification.type.pullrequest.reviewed", 29);
 
     fun isCreating(): Boolean {
         return when (this) {

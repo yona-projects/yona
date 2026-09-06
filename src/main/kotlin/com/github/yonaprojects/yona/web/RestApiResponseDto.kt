@@ -9,6 +9,7 @@ import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestCommit
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestMergeResult
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
 import com.github.yonaprojects.yona.domain.pullrequest.ReviewComment
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.vcs.DiffLineType
@@ -202,6 +203,29 @@ fun PullRequest.toResponse() = PullRequestResponse(
     assignee = assignee?.toResponse(),
     labels = labels.map { it.toResponse() },
     reviewers = reviewers.map { it.toRefResponse() }
+)
+
+// yona-wiki P3-15(PR 승인/변경요청 워크플로) — PullRequestReview는 reviewer(User)를 직접 참조하고
+// 있어 다른 엔티티들과 동일한 순환 직렬화 위험(User<->ProjectUser)이 있다 — 그대로 반환하지 않고
+// 이 DTO로 변환한다.
+data class PullRequestReviewResponse(
+    val id: Long?,
+    val state: PullRequestReview.ReviewState,
+    val body: String?,
+    val createdDate: Instant,
+    val reviewerId: Long?,
+    val reviewerLoginId: String?,
+    val reviewerName: String?
+)
+
+fun PullRequestReview.toResponse() = PullRequestReviewResponse(
+    id = id,
+    state = state,
+    body = body,
+    createdDate = createdDate,
+    reviewerId = reviewer.id,
+    reviewerLoginId = reviewer.loginId,
+    reviewerName = reviewer.name
 )
 
 data class ReviewCommentResponse(

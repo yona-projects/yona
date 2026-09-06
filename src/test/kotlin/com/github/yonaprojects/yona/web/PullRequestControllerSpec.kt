@@ -41,6 +41,8 @@ import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.pullrequest.DuplicatedPullRequestException
 import com.github.yonaprojects.yona.domain.pullrequest.LackingReviewerException
 import com.github.yonaprojects.yona.domain.pullrequest.CodeReviewService
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
+import com.github.yonaprojects.yona.domain.pullrequest.SelfReviewException
 
 class PullRequestControllerSpec : DescribeSpec({
     val pullRequestService = mockk<PullRequestService>()
@@ -782,6 +784,144 @@ class PullRequestControllerSpec : DescribeSpec({
                 every { pullRequestService.getPullRequest(1L, 999L) } returns null
 
                 mockMvc.perform(delete("/api/projects/1/pullrequests/999/reviewers").principal(userAuth))
+                    .andExpect(status().isNotFound)
+            }
+        }
+
+        // yona-wiki P3-15(PR 승인/변경요청 워크플로) — addReviewer/removeReviewer와 동일한 권한 체크
+        // (checkWritePermission) 패턴을 그대로 검증한다.
+        describe("POST /api/projects/{projectId}/pullrequests/{number}/reviews") {
+            it("로그인한 프로젝트 멤버가 APPROVE 판정을 제출하면 201 Created를 반환해야 한다") {
+                val review = PullRequestReview(
+                    id = 200L, pullRequest = pullRequest, reviewer = user,
+                    state = PullRequestReview.ReviewState.APPROVE, body = "LGTM"
+                )
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 1L) } returns pullRequest
+                every {
+                    pullRequestService.submitReview(50L, user, PullRequestReview.ReviewState.APPROVE, "LGTM")
+                } returns review
+
+                mockMvc.perform(
+                    post("/api/projects/1/pullrequests/1/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"state":"APPROVE","body":"LGTM"}""")
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isCreated)
+                    .andExpect(jsonPath("$.state").value("APPROVE"))
+            }
+
+            // 설계 결정 3번(GitHub 방식 기본값) — 자기 자신의 PR은 승인/변경요청할 수 없다.
+            it("자기 자신의 PR을 승인하려 하면 400 Bad Request를 반환해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 1L) } returns pullRequest
+                every {
+                    pullRequestService.submitReview(50L, user, PullRequestReview.ReviewState.APPROVE, null)
+                } throws SelfReviewException("자기 자신의 풀 리퀘스트는 승인하거나 변경을 요청할 수 없습니다.")
+
+                mockMvc.perform(
+                    post("/api/projects/1/pullrequests/1/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"state":"APPROVE"}""")
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isBadRequest)
+            }
+
+            it("PUBLIC 프로젝트여도 멤버가 아니면 판정을 남길 수 없어야 한다(인가 우회 방지)") {
+                val publicProject = Project(id = 2L, name = "PublicProject", projectScope = ProjectScope.PUBLIC)
+                val otherUser = User(id = 30L, loginId = "otheruser", name = "외부유저")
+                val otherAuth = UsernamePasswordAuthenticationToken("otheruser", "password")
+
+                every { projectRepository.findById(2L) } returns Optional.of(publicProject)
+                every { userRepository.findByLoginId("otheruser") } returns Optional.of(otherUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(2L, 30L) } returns false
+
+                mockMvc.perform(
+                    post("/api/projects/2/pullrequests/1/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"state":"COMMENT"}""")
+                        .principal(otherAuth)
+                )
+                    .andExpect(status().isForbidden)
+
+                verify(exactly = 0) { pullRequestService.submitReview(any(), any(), any(), any()) }
+            }
+
+            it("존재하지 않는 프로젝트에 판정을 남기면 404 Not Found를 반환해야 한다") {
+                every { projectRepository.findById(999L) } returns Optional.empty()
+
+                mockMvc.perform(
+                    post("/api/projects/999/pullrequests/1/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"state":"COMMENT"}""")
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isNotFound)
+            }
+
+            it("비로그인 사용자가 판정을 제출하면 401 Unauthorized를 반환해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+
+                mockMvc.perform(
+                    post("/api/projects/1/pullrequests/1/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"state":"COMMENT"}""")
+                )
+                    .andExpect(status().isUnauthorized)
+            }
+
+            it("존재하지 않는 PR 번호에 판정을 남기면 404 Not Found를 반환해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 999L) } returns null
+
+                mockMvc.perform(
+                    post("/api/projects/1/pullrequests/999/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"state":"COMMENT"}""")
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isNotFound)
+            }
+        }
+
+        describe("GET /api/projects/{projectId}/pullrequests/{number}/reviews") {
+            it("읽기 권한이 있으면 해당 PR의 리뷰 이력을 반환해야 한다") {
+                val review = PullRequestReview(
+                    id = 201L, pullRequest = pullRequest, reviewer = user,
+                    state = PullRequestReview.ReviewState.REQUEST_CHANGES, body = "고쳐주세요"
+                )
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { pullRequestService.getPullRequest(1L, 1L) } returns pullRequest
+                every { pullRequestService.getReviews(50L) } returns listOf(review)
+
+                mockMvc.perform(get("/api/projects/1/pullrequests/1/reviews").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$[0].state").value("REQUEST_CHANGES"))
+            }
+
+            it("비공개 프로젝트를 비멤버가 조회하면 403 Forbidden을 반환해야 한다") {
+                val otherUser = User(id = 30L, loginId = "otheruser", name = "외부유저")
+                val otherAuth = UsernamePasswordAuthenticationToken("otheruser", "password")
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("otheruser") } returns Optional.of(otherUser)
+
+                mockMvc.perform(get("/api/projects/1/pullrequests/1/reviews").principal(otherAuth))
+                    .andExpect(status().isForbidden)
+            }
+
+            it("존재하지 않는 프로젝트에서 리뷰 이력을 조회하면 404 Not Found를 반환해야 한다") {
+                every { projectRepository.findById(999L) } returns Optional.empty()
+
+                mockMvc.perform(get("/api/projects/999/pullrequests/1/reviews").principal(userAuth))
                     .andExpect(status().isNotFound)
             }
         }

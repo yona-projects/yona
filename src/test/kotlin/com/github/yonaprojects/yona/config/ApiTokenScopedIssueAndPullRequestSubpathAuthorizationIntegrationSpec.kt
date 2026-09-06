@@ -197,6 +197,52 @@ class ApiTokenScopedIssueAndPullRequestSubpathAuthorizationIntegrationSpec @Auto
             }
         }
 
+        // yona-wiki P3-15(PR 승인/변경요청 워크플로) — 신규 `/pull-requests/{number}/reviews` 하위
+        // 경로도 위 reviewers와 동일하게 scopedApiPattern에 매칭되어 PULL_REQUESTS 그룹으로
+        // 인가되는지 확인한다(별도 필터 배선 없이 기존 "pull-requests" 세그먼트 매핑을 그대로
+        // 재사용 — resourceSegmentToResourceType 참고).
+        describe("PR 하위 경로(reviews)의 스코프 기반 인가") {
+            it("pull-requests 쓰기 권한이 없는 토큰은 리뷰 판정 제출 요청을 403으로 거부해야 한다") {
+                val raw = "subpath-pr-reviews-readonly"
+                tokenWith(raw, ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    post("/api/v1/projects/${owner.loginId}/${project.name}/pull-requests/1/reviews")
+                        .header("Yona-Token", raw)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("""{"state":"COMMENT"}""")
+                ).andReturn()
+
+                result.response.status shouldBe 403
+            }
+
+            it("pull-requests 쓰기 권한이 있는 토큰은 리뷰 판정 제출 요청에서 필터를 통과해야 한다") {
+                val raw = "subpath-pr-reviews-write"
+                tokenWith(raw, ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.WRITE)
+
+                val result = mockMvc.perform(
+                    post("/api/v1/projects/${owner.loginId}/${project.name}/pull-requests/1/reviews")
+                        .header("Yona-Token", raw)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("""{"state":"COMMENT"}""")
+                ).andReturn()
+
+                result.response.status shouldNotBe 403
+            }
+
+            it("pull-requests 읽기 권한만 있는 토큰도 리뷰 이력 조회는 허용해야 한다") {
+                val raw = "subpath-pr-reviews-get-readonly"
+                tokenWith(raw, ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/projects/${owner.loginId}/${project.name}/pull-requests/1/reviews")
+                        .header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldNotBe 403
+            }
+        }
+
         // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — 이슈 reopen/transfer, PR edit/close/reopen/
         // diff/comment 하위 경로도 동일한 scopedApiPattern 접미부((?:/.*)?)로 매칭되는지 확인한다.
         describe("이슈 하위 경로(reopen/transfer)의 스코프 기반 인가") {
