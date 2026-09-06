@@ -1,11 +1,14 @@
 package com.github.yonaprojects.yona.config
 
 import com.github.yonaprojects.yona.config.git.GitProjectVisitRecorder
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.vcs.BranchProtectionPreReceiveHook
 import com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository
 import com.github.yonaprojects.yona.domain.vcs.RejectPushToReservedRefsPreReceiveHook
 import com.github.yonaprojects.yona.domain.vcs.YonaPostReceiveHook
@@ -15,6 +18,8 @@ import org.eclipse.jgit.lfs.server.LfsProtocolServlet
 import org.eclipse.jgit.lfs.server.LargeFileRepository
 import org.eclipse.jgit.lfs.server.fs.FileLfsRepository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.jgit.transport.PreReceiveHook
+import org.eclipse.jgit.transport.PreReceiveHookChain
 import org.eclipse.jgit.transport.ReceivePack
 import org.eclipse.jgit.transport.resolver.ReceivePackFactory
 import org.slf4j.LoggerFactory
@@ -45,7 +50,10 @@ class GitServletConfig(
     private val pushedBranchRepository: PushedBranchRepository,
     private val eventPublisher: ApplicationEventPublisher,
     private val gitProjectVisitRecorder: GitProjectVisitRecorder,
-    private val meterRegistry: MeterRegistry
+    private val meterRegistry: MeterRegistry,
+    // yona-wiki P3-04(브랜치 보호) Step 3 — BranchProtectionPreReceiveHook 구성에 필요.
+    private val protectedBranchRepository: ProtectedBranchRepository,
+    private val projectUserRepository: ProjectUserRepository
 ) {
     private val logger = LoggerFactory.getLogger(GitServletConfig::class.java)
 
@@ -80,10 +88,23 @@ class GitServletConfig(
             }
             setReceivePackFactory(ReceivePackFactory { req, repo ->
                 val receivePack = ReceivePack(repo)
-                receivePack.setPreReceiveHook(RejectPushToReservedRefsPreReceiveHook())
 
                 val project = resolveProject(req)
                 val pusher = resolveCurrentUser()
+
+                // yona-wiki P3-04(브랜치 보호) Step 3 — refs/yobi/* 예약 ref 거부(항상 적용)에 이어
+                // 브랜치 보호 규칙 검사를 체이닝한다. project를 못 찾으면(레포 해석 실패 등, 드묾)
+                // 브랜치 보호 규칙을 조회할 대상 자체가 없으므로 예약 ref 거부만 적용한다. pusher는
+                // null(익명 push)이어도 BranchProtectionPreReceiveHook 자체는 동작해야 한다 —
+                // restrict_push_to가 설정된 브랜치는 익명 push도 당연히 거부돼야 하기 때문이다.
+                val preReceiveHooks = mutableListOf<PreReceiveHook>(RejectPushToReservedRefsPreReceiveHook())
+                if (project != null) {
+                    preReceiveHooks.add(
+                        BranchProtectionPreReceiveHook(project, pusher, protectedBranchRepository, projectUserRepository)
+                    )
+                }
+                receivePack.setPreReceiveHook(PreReceiveHookChain.newChain(preReceiveHooks))
+
                 if (project != null && pusher != null) {
                     receivePack.setPostReceiveHook(
                         YonaPostReceiveHook(

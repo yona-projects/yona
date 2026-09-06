@@ -1,10 +1,13 @@
 package com.github.yonaprojects.yona.domain.vcs
 
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.event.GitPostReceiveEvent
 import com.github.yonaprojects.yona.domain.event.RelatedPullRequestMergeEvent
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
+import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.User
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
@@ -37,6 +40,72 @@ class RejectPushToReservedRefsPreReceiveHook : PreReceiveHook {
                 )
             }
         }
+    }
+}
+
+/**
+ * yona-wiki P3-04(브랜치 보호) — legacy에는 대응 로직이 전혀 없는 신규 인프라. `ProtectedBranch`
+ * (`domain/branchprotection/`)의 branch_pattern이 매칭되는 규칙을 찾아 직접 push를 정책대로
+ * 거부한다. 검사 순서: (1) admins_can_bypass가 켜져 있고 pusher가 프로젝트 매니저면 이 규칙 전체를
+ * 우회, (2) require_pull_request가 켜져 있으면 DELETE를 제외한 모든 직접 push(CREATE/UPDATE/
+ * UPDATE_NONFASTFORWARD)를 거부(=PR 병합 경로로만 갱신 가능), (3) disallow_delete가 켜져 있으면
+ * DELETE 거부, (4) disallow_force_push가 켜져 있으면 UPDATE_NONFASTFORWARD 거부, (5)
+ * restrict_push_to가 설정돼 있으면 그 목록에 없는 pusher의 모든 push 거부. 여러 규칙이 같은
+ * 브랜치에 매칭될 가능성(중복 patterns)은 이 계획의 DoD 범위 밖이라 첫 매칭 규칙만 적용한다.
+ *
+ * `RejectPushToReservedRefsPreReceiveHook`과 마찬가지로 `PreReceiveHookChain.newChain()`으로
+ * 체이닝된다(`GitServletConfig` 참고) — refs/yobi 예약 ref 거부가 먼저 실행되므로 이미 다른
+ * 이유로 거부된 커맨드는 건드리지 않는다(command.result가 NOT_ATTEMPTED일 때만 검사).
+ */
+class BranchProtectionPreReceiveHook(
+    private val project: Project,
+    private val pusher: User?,
+    private val protectedBranchRepository: ProtectedBranchRepository,
+    private val projectUserRepository: ProjectUserRepository
+) : PreReceiveHook {
+    override fun onPreReceive(rp: ReceivePack, commands: Collection<ReceiveCommand>) {
+        val projectId = project.id ?: return
+        val rules = protectedBranchRepository.findByProjectId(projectId)
+        if (rules.isEmpty()) return
+
+        for (command in commands) {
+            if (command.result != ReceiveCommand.Result.NOT_ATTEMPTED) continue
+            if (!command.refName.startsWith(BRANCH_PREFIX)) continue
+            val branch = command.refName.removePrefix(BRANCH_PREFIX)
+            val rule = rules.firstOrNull { it.matches(branch) } ?: continue
+
+            if (rule.adminsCanBypass && isProjectManager()) continue
+
+            if (rule.requirePullRequest && command.type != ReceiveCommand.Type.DELETE) {
+                reject(command, branch, "이 브랜치는 Pull Request를 통해서만 갱신할 수 있습니다(require_pull_request).")
+                continue
+            }
+            if (rule.disallowDelete && command.type == ReceiveCommand.Type.DELETE) {
+                reject(command, branch, "이 브랜치는 삭제할 수 없습니다(disallow_delete).")
+                continue
+            }
+            if (rule.disallowForcePush && command.type == ReceiveCommand.Type.UPDATE_NONFASTFORWARD) {
+                reject(command, branch, "이 브랜치는 강제 push할 수 없습니다(disallow_force_push).")
+                continue
+            }
+            val allowedPushers = rule.restrictedLoginIds()
+            if (allowedPushers.isNotEmpty() && pusher?.loginId !in allowedPushers) {
+                reject(command, branch, "이 브랜치는 지정된 사용자만 push할 수 있습니다(restrict_push_to).")
+                continue
+            }
+        }
+    }
+
+    private fun reject(command: ReceiveCommand, branch: String, reason: String) {
+        command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, "branch '$branch' protected: $reason")
+    }
+
+    private fun isProjectManager(): Boolean {
+        val userId = pusher?.id ?: return false
+        val projectId = project.id ?: return false
+        return projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+            .map { it.role.id == RoleType.MANAGER.roleType }
+            .orElse(false)
     }
 }
 

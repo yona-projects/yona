@@ -1,11 +1,17 @@
 package com.github.yonaprojects.yona.domain.vcs
 
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranch
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.event.GitPostReceiveEvent
 import com.github.yonaprojects.yona.domain.event.RelatedPullRequestMergeEvent
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUser
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
+import com.github.yonaprojects.yona.domain.role.Role
+import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.User
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -51,6 +57,179 @@ class GitPushHooksSpec : DescribeSpec({
             hook.onPreReceive(mockk(relaxed = true), listOf(command))
 
             command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+        }
+    }
+
+    // yona-wiki P3-04(브랜치 보호) Step 3/5 — 직접 push 차단. legacy에 대응 로직이 전무한 신규
+    // 인프라라 "yona XXX.java 대응" 주석이 없다. 적용 지점 설계: ProtectedBranchRepository에서
+    // project 소속 규칙을 전부 읽어와 branch_pattern이 매칭되는 첫 규칙을 찾고, 그 규칙의
+    // require_pull_request/disallow_force_push/disallow_delete/restrict_push_to를 순서대로 검사한다.
+    // admins_can_bypass(Step5)는 이 순서보다 먼저 검사해 매니저는 아예 아래 검사를 타지 않는다.
+    describe("BranchProtectionPreReceiveHook") {
+        val project = Project(id = 1L, name = "yona-project", owner = "gildong")
+        val pusher = User(id = 9L, loginId = "gildong", name = "길동")
+        val protectedBranchRepository = mockk<ProtectedBranchRepository>()
+        val projectUserRepository = mockk<ProjectUserRepository>()
+
+        fun newHook() = BranchProtectionPreReceiveHook(project, pusher, protectedBranchRepository, projectUserRepository)
+
+        beforeTest {
+            clearMocks(protectedBranchRepository, projectUserRepository)
+            // 기본값: 로그인 사용자는 매니저가 아니다(Step5 우회 테스트에서 개별적으로 override).
+            every { projectUserRepository.findByProjectIdAndUserId(any(), any()) } returns Optional.empty()
+        }
+
+        it("이 프로젝트에 브랜치 보호 규칙이 전혀 없으면 어떤 push도 거부하지 않아야 한다") {
+            every { protectedBranchRepository.findByProjectId(1L) } returns emptyList()
+            val command = ReceiveCommand(ObjectId.zeroId(), sha1, "refs/heads/main")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+        }
+
+        it("브랜치 이름이 branch_pattern에 매칭되지 않으면 규칙이 적용되지 않아야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "release/*", requirePullRequest = true)
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(ObjectId.zeroId(), sha1, "refs/heads/main")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+        }
+
+        it("require_pull_request가 켜진 브랜치로의 직접 push(UPDATE)는 거부돼야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "main", requirePullRequest = true)
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, sha2, "refs/heads/main")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.REJECTED_OTHER_REASON
+        }
+
+        it("require_pull_request가 꺼져 있으면 일반 push(UPDATE)는 허용돼야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "main", requirePullRequest = false)
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, sha2, "refs/heads/main")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+        }
+
+        it("disallow_force_push가 켜진 브랜치로의 강제 push(UPDATE_NONFASTFORWARD)는 거부돼야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "main", disallowForcePush = true)
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, sha2, "refs/heads/main", ReceiveCommand.Type.UPDATE_NONFASTFORWARD)
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.REJECTED_OTHER_REASON
+        }
+
+        it("disallow_force_push가 꺼져 있으면 강제 push도 허용돼야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "main", disallowForcePush = false)
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, sha2, "refs/heads/main", ReceiveCommand.Type.UPDATE_NONFASTFORWARD)
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+        }
+
+        it("disallow_delete가 켜진 브랜치의 삭제는 거부돼야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "main", disallowDelete = true)
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, ObjectId.zeroId(), "refs/heads/main")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.REJECTED_OTHER_REASON
+        }
+
+        it("disallow_delete가 꺼져 있으면 삭제도 허용돼야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "main", disallowDelete = false)
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, ObjectId.zeroId(), "refs/heads/main")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+        }
+
+        it("restrict_push_to 목록에 없는 사용자의 push는 거부돼야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "main", restrictPushTo = "alice, bob")
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, sha2, "refs/heads/main")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.REJECTED_OTHER_REASON
+        }
+
+        it("restrict_push_to 목록에 있는 사용자의 push는 허용돼야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "main", restrictPushTo = "alice, gildong")
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, sha2, "refs/heads/main")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+        }
+
+        it("refs/heads/* 가 아닌 ref(예: refs/tags/*)는 브랜치 보호 대상이 아니어야 한다") {
+            val rule = ProtectedBranch(project = project, branchPattern = "*", requirePullRequest = true)
+            every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+            val command = ReceiveCommand(sha1, sha2, "refs/tags/v1.0.0")
+
+            newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+            command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+        }
+
+        // yona-wiki P3-04 Step5 — admins_can_bypass. 프로젝트 매니저(RoleType.MANAGER)는 규칙의
+        // admins_can_bypass 값에 따라 위 모든 검사를 우회할 수 있거나(true, 기본값), 일반 사용자와
+        // 동일하게 차단될 수 있다(false).
+        describe("admins_can_bypass") {
+            fun makeManager() {
+                every { projectUserRepository.findByProjectIdAndUserId(1L, 9L) } returns
+                    Optional.of(ProjectUser(user = pusher, project = project, role = Role(id = RoleType.MANAGER.roleType)))
+            }
+
+            it("admins_can_bypass=true(기본값)이면 매니저는 disallow_delete를 우회해 삭제할 수 있어야 한다") {
+                makeManager()
+                val rule = ProtectedBranch(project = project, branchPattern = "main", disallowDelete = true, adminsCanBypass = true)
+                every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+                val command = ReceiveCommand(sha1, ObjectId.zeroId(), "refs/heads/main")
+
+                newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+                command.result shouldBe ReceiveCommand.Result.NOT_ATTEMPTED
+            }
+
+            it("admins_can_bypass=false이면 매니저도 disallow_delete를 우회할 수 없어야 한다") {
+                makeManager()
+                val rule = ProtectedBranch(project = project, branchPattern = "main", disallowDelete = true, adminsCanBypass = false)
+                every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+                val command = ReceiveCommand(sha1, ObjectId.zeroId(), "refs/heads/main")
+
+                newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+                command.result shouldBe ReceiveCommand.Result.REJECTED_OTHER_REASON
+            }
+
+            it("매니저가 아닌 일반 멤버는 admins_can_bypass=true여도 우회할 수 없어야 한다") {
+                every { projectUserRepository.findByProjectIdAndUserId(1L, 9L) } returns
+                    Optional.of(ProjectUser(user = pusher, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                val rule = ProtectedBranch(project = project, branchPattern = "main", disallowDelete = true, adminsCanBypass = true)
+                every { protectedBranchRepository.findByProjectId(1L) } returns listOf(rule)
+                val command = ReceiveCommand(sha1, ObjectId.zeroId(), "refs/heads/main")
+
+                newHook().onPreReceive(mockk(relaxed = true), listOf(command))
+
+                command.result shouldBe ReceiveCommand.Result.REJECTED_OTHER_REASON
+            }
         }
     }
 

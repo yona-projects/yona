@@ -1,8 +1,10 @@
 package com.github.yonaprojects.yona.config
 
 import com.github.yonaprojects.yona.config.git.GitProjectVisitRecorder
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -36,6 +38,12 @@ class GitServletConfigSpec : DescribeSpec({
     val pushedBranchRepository = mockk<PushedBranchRepository>()
     val eventPublisher = mockk<ApplicationEventPublisher>()
     val gitProjectVisitRecorder = mockk<GitProjectVisitRecorder>(relaxed = true)
+    // yona-wiki P3-04(브랜치 보호) — BranchProtectionPreReceiveHook 구성에 필요한 신규 의존성.
+    // 이 스펙의 project 목(mock)들은 id를 설정하지 않으므로(project.id == null)
+    // BranchProtectionPreReceiveHook.onPreReceive()가 조회 없이 즉시 반환해 실제로 호출되지
+    // 않는다 — 그래도 GitServletConfig 생성자에는 값을 전달해야 하므로 mock만 준비한다.
+    val protectedBranchRepository = mockk<ProtectedBranchRepository>()
+    val projectUserRepository = mockk<ProjectUserRepository>()
 
     val tempBaseDir = File.createTempFile("git-temp", "").apply { delete(); mkdirs() }
     val tempLfsBaseDir = File.createTempFile("lfs-temp", "").apply { delete(); mkdirs() }
@@ -50,7 +58,9 @@ class GitServletConfigSpec : DescribeSpec({
         pushedBranchRepository,
         eventPublisher,
         gitProjectVisitRecorder,
-        SimpleMeterRegistry()
+        SimpleMeterRegistry(),
+        protectedBranchRepository,
+        projectUserRepository
     )
 
     beforeTest {
@@ -157,7 +167,8 @@ class GitServletConfigSpec : DescribeSpec({
             val freshConfig = GitServletConfig(
                 freshBaseDir.absolutePath, tempLfsBaseDir.absolutePath, "http://localhost:8080/git-lfs",
                 projectRepository, pullRequestRepository, userRepository, pushedBranchRepository,
-                eventPublisher, gitProjectVisitRecorder, SimpleMeterRegistry()
+                eventPublisher, gitProjectVisitRecorder, SimpleMeterRegistry(),
+                protectedBranchRepository, projectUserRepository
             )
 
             freshBaseDir.exists() shouldBe false
