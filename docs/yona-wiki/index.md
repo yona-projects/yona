@@ -21,7 +21,7 @@
 | 2 | P3-01 | Observability(메트릭/로깅/트레이싱) | **완료(2026-08-28)** | 없음 | [[plans/p3-01-observability]] |
 | 3 | P3-02 | yona CLI + 범용 REST API + 토큰 스코프 모델 | **진행 중(1부 REST API·토큰모델 + 2부 Go CLI 전부 완료, Step8.5~8.7의 `gh` 명령 체계 정합화·백엔드 기능 보강·발견된 실버그 수정까지 완료, 2026-09-01) — 남은 건 Step11(배포, 보류 결정)과 실서버 골든패스 수동검증(보류 중)뿐** | 없음 | [[plans/p3-02-cli-and-rest-api]] |
 | 4 | P3-04 | 브랜치 보호 | **완료(2026-09-06)** | 없음(스파이크 1개, 해소됨) | [[plans/p3-04-branch-protection]] |
-| 5 | P3-06 | 엔터프라이즈 SSO(SAML2/OIDC) | planned | 없음 | [[plans/p3-06-enterprise-sso]] |
+| 5 | P3-06 | 엔터프라이즈 SSO(SAML2/OIDC) | **완료(2026-09-06)** | 없음 | [[plans/p3-06-enterprise-sso]] |
 | 6 | P3-07 | yona MCP 서버(OAuth 2.1 인가 서버 포함) | planned | P3-02 | [[plans/p3-07-mcp-server]] |
 | 7 | P3-03 | SSH git 인증 + GPG 서명 검증 | planned | P3-02 | [[plans/p3-03-ssh-gpg]] |
 | 8 | P3-05 | CI/Actions 러너 아키텍처 | planned | P3-01(약함) | [[plans/p3-05-ci-actions-runner]] |
