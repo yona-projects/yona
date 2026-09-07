@@ -105,9 +105,20 @@ class HgAuthorizationFilter(
         filterChain.doFilter(request, response)
     }
 
-    // hg wire protocol v1: `unbundle`(push)만 쓰기, 그 외(capabilities/batch/heads/known/
-    // branchmap/getbundle/lookup/pushkey/...)는 전부 읽기. v2: URL의 `/api/<namespace>/<ro|rw>/
-    // <command>` 세그먼트가 명시적으로 rw/ro를 알려준다(HgHttpWireServer.service() 참고).
+    // 코디네이터 리뷰(2026-09-08)에서 실측으로 발견/수정한 보안 결함 — 최초 구현은 v1의
+    // `unbundle`만 쓰기로 분류하고 `pushkey`를 읽기로 잘못 분류했다. 실제 hg 서버는 pushkey도
+    // push 권한이 필요한 명령이다(mercurial/hgweb/common.py의 checkauthz가 "push requires POST
+    // request"로 강제하는 대상이 unbundle과 pushkey 둘 다 — hg4j의 HgRemoteClient.java 934행
+    // 주석이 실제 hg 소스를 인용해 이 사실을 이미 확인해뒀다). pushkey는 서버 저장소 상태를
+    // 실제로 변경한다(Wire2Commands.applyPushkey()가 북마크 파일을 직접 덮어씀 — 북마크
+    // 생성/이동/삭제) — 읽기로 잘못 분류하면 PRIVATE 저장소의 비멤버나 익명 사용자가
+    // `GET /hg/{owner}/{project}?cmd=pushkey&namespace=bookmarks&key=<name>&old=&new=<hash>`
+    // 하나로 인가 검사를 완전히 우회해 북마크를 조작할 수 있었다(쓰기 인가 없이).
+    //
+    // hg wire protocol v1: `unbundle`/`pushkey`(둘 다 push)만 쓰기, 그 외(capabilities/batch/
+    // heads/known/branchmap/getbundle/lookup/...)는 읽기. v2: URL의
+    // `/api/<namespace>/<ro|rw>/<command>` 세그먼트가 명시적으로 rw/ro를 알려준다
+    // (HgHttpWireServer.service() 참고).
     private fun isWriteRequest(request: HttpServletRequest): Boolean {
         val uri = request.requestURI
         val apiIdx = uri.indexOf("/api/")
@@ -125,7 +136,7 @@ class HgAuthorizationFilter(
             val key = pair.substring(0, eq)
             val value = pair.substring(eq + 1)
             if (key == "cmd") {
-                return value == "unbundle"
+                return value == "unbundle" || value == "pushkey"
             }
         }
         return false

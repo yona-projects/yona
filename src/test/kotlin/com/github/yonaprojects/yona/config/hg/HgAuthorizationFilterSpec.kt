@@ -119,6 +119,23 @@ class HgAuthorizationFilterSpec : DescribeSpec({
             verify(exactly = 0) { filterChain.doFilter(any(), any()) }
         }
 
+        // 코디네이터 리뷰(2026-09-08)에서 발견한 실제 보안 결함 회귀 테스트 — pushkey도
+        // unbundle과 마찬가지로 서버 상태를 변경하는(북마크 이동/삭제) push 권한 명령인데,
+        // 최초 구현은 이걸 읽기로 잘못 분류해 PUBLIC 프로젝트에서 익명 사용자가 인가 없이
+        // 북마크를 조작할 수 있는 우회로가 있었다.
+        it("PUBLIC 프로젝트라도 v1 쓰기 명령(cmd=pushkey)은 익명 사용자에게 401을 응답해야 한다") {
+            val request = MockHttpServletRequest("POST", "/hg/gildong/public-repo")
+            request.queryString = "cmd=pushkey"
+            val response = MockHttpServletResponse()
+            val project = Project(owner = "gildong", name = "public-repo", vcs = "MERCURIAL", projectScope = ProjectScope.PUBLIC)
+            every { projectService.findByOwnerAndName("gildong", "public-repo") } returns project
+
+            filter.doFilter(request, response, filterChain)
+
+            response.status shouldBe HttpServletResponse.SC_UNAUTHORIZED
+            verify(exactly = 0) { filterChain.doFilter(any(), any()) }
+        }
+
         // wire protocol v2의 read/write는 URL의 "/api/<namespace>/<ro|rw>/<command>" 세그먼트로
         // 결정된다(cmd 쿼리파라미터가 아니라) — v1과 별개 경로로 판정되는지 확인한다.
         it("PUBLIC 프로젝트라도 v2 쓰기 명령(/api/.../rw/...)은 익명 사용자에게 401을 응답해야 한다") {
