@@ -2,13 +2,13 @@
 type: plan
 id: P3-12
 title: "Mercurial(hg4j) 저장소 지원 추가"
-status: planned
+status: in-progress
 priority: 9
 depends_on: []
 blocks: []
 source: docs/parity/tickets/p3-12.md
 created: 2026-08-31
-updated: 2026-08-31
+updated: 2026-09-07
 tags: [plan, p3, vcs, mercurial]
 ---
 
@@ -122,6 +122,50 @@ Mercurial의 wire protocol(HTTP 기반 `hg serve` 프로토콜)을 `search5/hg4j
 | 프로토콜 서빙 방식 | hg4j가 JGit의 `GitServlet` 같은 서버 컴포넌트를 제공하는지 불명 — 안 준다면 Mercurial wire protocol을 yona가 직접 구현해야 해 범위가 크게 늘어남 | Step 0에서 확인, 필요시 이 항목만 별도 하위 계획으로 분리 |
 | Git과 다른 브랜치 모델 | Mercurial의 named branch/bookmark/phase가 Git 브랜치와 1:1 대응하지 않음 — 코드브라우저 브랜치 셀렉터 UX 설계 필요 | 1차는 named branch만 Git 브랜치처럼 노출, bookmark/phase는 후속 범위 |
 | 인증 필터 3종 중복 | Git/SVN/Hg 세 인가 필터가 거의 동일한 로직을 반복하게 됨 | Step 4에서 공통 추상화 여부 검토(선택적) |
+
+## 완료 로그
+
+- **2026-09-07 1라운드(Step 0/1/2 일부/6, TDD로 완료)**: 사용자가 "gh:search5/hg4j에서 가져와서
+  등록"을 명시적으로 지시해 착수.
+  - **Step 0 해소**: `search5/hg4j`가 이미 형제 디렉터리(`~/yona-convert/hg4j`, origin=`search5/hg4j`,
+    클린 상태)로 로컬에 존재함을 확인. 저장소를 직접 읽어 이 계획의 최대 미확정 사항("프로토콜 서빙
+    컴포넌트 유무")을 해소 — `transport/HgHttpWireServer.java`(jakarta `HttpServlet`, JGit의
+    `GitServlet`에 정확히 대응)와 `transport/HgSshWireServer.java`(순수 프로토콜, SSH 채널
+    비종속)가 이미 존재한다. Maven Central/JitPack에는 미발행(태그/릴리즈 0개)이라 소스 참조가
+    유일한 실질 경로.
+  - **의존성 연결**: `settings.gradle.kts`에 `includeBuild("../hg4j")`, `build.gradle.kts`에
+    `implementation("io.github.search5.hg4j:hg4j")` 추가(hg4j의 `group`/`rootProject.name`이
+    이 좌표와 일치해 자동 소스 빌드 치환, `./gradlew dependencies`로 확인).
+  - **Step 1 + Step 2 일부**: `domain/vcs/HgRepository.kt`/`HgCommit.kt` 신설. `create`/`isEmpty`/
+    `getDefaultBranch`/`getMetaDataFromPath`(파일+폴더 JSON 트리, hg4j `tree()`가 평평한 매니페스트만
+    줘서 경로 접두어로 클라이언트 쪽 그룹핑)/`getRawFile`/`getHistory`/`getCommit`/
+    `getParentCommitOf`/`move`/`renameTo` 구현. `HgRepositorySpec.kt`(신규, `GitRepositorySpec`/
+    `SvnRepositorySpec`와 동일한 스타일 — 실제 로컬 hg 저장소로 end-to-end 검증) 14 tests GREEN.
+    **범위 밖으로 명시적으로 미룸(2라운드)**: 브랜치/태그 CRUD(`getBranches`/`getTags`/
+    `deleteBranch`/`createBranch`/`deleteTag`/`createTag` — 전부 `SvnRepository`의 선례를 따라 빈
+    값/no-op), `getDiff`/`getPatch`(`UnsupportedOperationException`), `getArchive`(no-op) — hg4j가
+    `BranchesCommand`/`TagsCommand`로 실제 branch/tag를 지원하는 것은 확인했으나, Mercurial의
+    "branch"는 git과 달리 커밋에 영구히 새겨지는 개념(삭제가 아니라 "close"만 가능)이라 잘못된
+    매핑을 이번 라운드에서 서둘러 확정하지 않기로 함.
+  - **Step 6 일부**: `RepositoryService.getRepository()`에 `MERCURIAL`/`HG` 3번째 분기 +
+    `yona.hg.base-dir` 설정값 추가. `project/create.html` VCS 선택지에 "Mercurial" 옵션 추가(6개
+    로케일 `messages*.properties`에 `project.new.vcsType.mercurial` 키 추가 — "Subversion"과
+    동일하게 번역 없이 고유명사 그대로). GIT↔SUBVERSION 2지선다였던 "VCS 전환" 토글
+    (`ProjectViewController`/`ProjectServiceImpl`)을 `domain/vcs/VcsType.kt`의
+    `nextVcsInCycle()`(GIT→SUBVERSION→MERCURIAL→GIT 순환) 공유 로직으로 3종 순환 확장.
+  - **부수적으로 발견한 기존 결함(범위 밖, 별도 확인 필요)**: `ProjectServiceImpl`의 프로젝트
+    이전(`acceptTransfer`)/포크(`forkProject`) 물리 디렉터리 이동 코드가 vcs 종류와 무관하게 항상
+    `.git` 접미사를 붙이는데, `SvnRepository`/`HgRepository`의 `getDirectory()`는 접미사 없는 경로를
+    쓴다 — SVN 프로젝트 이전/포크 시 물리 저장소가 조용히 이동되지 않는 기존 버그로 보임(Git만
+    실제로 동작). 이번 라운드에서 고치지 않고 코드에 주석으로만 남김 — 별도 티켓 등록 필요.
+  - **남은 것(2라운드 이후)**: `web/HgController.kt`(SVN처럼 프로젝트별 `HgHttpWireServer` 캐싱),
+    SSH(`YonaSshHgCommand`+`HgSshWireServer`), `config/hg/HgAuthorizationFilter.kt`, 브랜치/태그
+    CRUD 실제 매핑, diff/patch/archive, `ProjectRestApiController`/Import 화면 vcs 검증. 이 항목들
+    전까지는 실제 `hg clone`/`hg push`로 저장소를 만들 수 없다(도메인 계층 골격만 완성).
+  - 검증: `./gradlew test --tests "HgRepositorySpec" --tests "VcsTypeSpec" --tests
+    "ProjectServiceImplSpec" --tests "RepositoryServiceSpec" --tests "ProjectViewControllerSpec"
+    --tests "ProjectRestApiControllerSpec" --tests "YonaApplicationTests" -Dyona.it.db=h2` 전부
+    GREEN(이 세션 샌드박스는 Docker 미접근이라 Testcontainers 대신 h2 프로파일 사용).
 
 ## 관련
 

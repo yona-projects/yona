@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
+import com.github.yonaprojects.yona.domain.vcs.nextVcsInCycle
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.FavoriteProjectRepository
@@ -71,7 +72,10 @@ class ProjectServiceImpl(
     @Value("\${yona.git.base-dir:/tmp/yona/git}")
     private val gitBaseDir: String,
     @Value("\${yona.svn.base-dir:/tmp/yona/svn}")
-    private val svnBaseDir: String
+    private val svnBaseDir: String,
+    // yona-wiki P3-12(Mercurial 지원) 1라운드.
+    @Value("\${yona.hg.base-dir:/tmp/yona/hg}")
+    private val hgBaseDir: String
 ) : ProjectService {
 
     // yona Project.findByOwnerAndProjectName()의 예전 위치(previousOwnerLoginId/previousName) 폴백
@@ -384,10 +388,15 @@ class ProjectServiceImpl(
         recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom(project, originalOwner, originalName)
 
         // 물리 저장소 폴더명 이동
-        val baseDir = if (project.vcs?.uppercase() == "SUBVERSION" || project.vcs?.uppercase() == "SVN") {
-            svnBaseDir
-        } else {
-            gitBaseDir
+        // yona-wiki P3-12(Mercurial 지원) 1라운드 — MERCURIAL 분기 추가. **발견한 기존 결함(범위
+        // 밖, 새 티켓으로 등록)**: 아래 sourceDir/targetDir이 vcs 종류와 무관하게 항상 ".git"
+        // 접미사를 붙이는데, SvnRepository.getDirectory()/HgRepository.getDirectory()는 실제로는
+        // 접미사 없는 "$owner/$name" 경로를 쓴다 — 즉 SVN/Mercurial 프로젝트는 sourceDir.exists()가
+        // 거짓이 되어 이 물리 이동이 조용히 no-op된다(git만 실제로 이동됨).
+        val baseDir = when (project.vcs?.uppercase()) {
+            "SUBVERSION", "SVN" -> svnBaseDir
+            "MERCURIAL", "HG" -> hgBaseDir
+            else -> gitBaseDir
         }
         val sourceDir = File(baseDir, "$originalOwner/$originalName.git")
         val targetDir = File(baseDir, "$newOwner/$newName.git")
@@ -521,11 +530,13 @@ class ProjectServiceImpl(
         )
         projectUserRepository.save(projectUser)
 
-        // 물리 Bare 깃 저장소를 하드링크(Hard Link) 방식으로 무복사 복제
-        val baseDir = if (original.vcs?.uppercase() == "SUBVERSION" || original.vcs?.uppercase() == "SVN") {
-            svnBaseDir
-        } else {
-            gitBaseDir
+        // 물리 Bare 깃 저장소를 하드링크(Hard Link) 방식으로 무복사 복제 — SVN과 마찬가지로
+        // Mercurial도 이 하드링크 복제 자체가 git 전용 로직이라(아래 실제 복제 코드는 git 저장소
+        // 구조를 전제) 완전한 지원은 아니다(기존 SVN과 동일한 한계, 새 티켓으로 등록).
+        val baseDir = when (original.vcs?.uppercase()) {
+            "SUBVERSION", "SVN" -> svnBaseDir
+            "MERCURIAL", "HG" -> hgBaseDir
+            else -> gitBaseDir
         }
         val sourceDir = File(baseDir, "${original.owner}/${original.name}.git")
         val targetDir = File(baseDir, "$destOwner/$destName.git")
@@ -590,8 +601,8 @@ class ProjectServiceImpl(
             // ignore
         }
 
-        val currentVcs = project.vcs?.uppercase() ?: "GIT"
-        project.vcs = if (currentVcs == "GIT") "SUBVERSION" else "GIT"
+        // yona-wiki P3-12 1라운드 — GIT<->SUBVERSION 2지선다였던 토글을 3종 순환으로 확장.
+        project.vcs = nextVcsInCycle(project.vcs)
 
         repositoryService.getRepository(project).create()
 

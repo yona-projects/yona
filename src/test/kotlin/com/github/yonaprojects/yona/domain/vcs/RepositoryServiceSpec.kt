@@ -31,7 +31,9 @@ class RepositoryServiceSpec : DescribeSpec({
     val gitBaseDir = "/tmp/git"
     val svnBaseDir = "/tmp/svn"
 
-    val service = RepositoryService(userRepository, projectRepository, gpgSignatureVerifier, gitBaseDir, svnBaseDir, "main")
+    val hgBaseDir = "/tmp/hg"
+
+    val service = RepositoryService(userRepository, projectRepository, gpgSignatureVerifier, gitBaseDir, svnBaseDir, hgBaseDir, "main")
 
     val objectMapper = ObjectMapper()
 
@@ -118,7 +120,7 @@ class RepositoryServiceSpec : DescribeSpec({
 
         it("should proceed past the not-found check when project exists (real empty bare repo)") {
             val tempBase = tempdir()
-            val realService = RepositoryService(userRepository, projectRepository, gpgSignatureVerifier, tempBase.absolutePath, svnBaseDir, "main")
+            val realService = RepositoryService(userRepository, projectRepository, gpgSignatureVerifier, tempBase.absolutePath, svnBaseDir, hgBaseDir, "main")
             val proj = Project(id = 2L, owner = "realowner", name = "realproj", vcs = "GIT")
             every { projectRepository.findByOwnerAndName("realowner", "realproj") } returns Optional.of(proj)
 

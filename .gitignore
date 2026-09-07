@@ -49,3 +49,4 @@ data
 build/
 .serena/
 .gradle/
+.kotlin/

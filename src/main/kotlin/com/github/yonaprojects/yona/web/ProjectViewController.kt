@@ -11,6 +11,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectUser
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
+import com.github.yonaprojects.yona.domain.vcs.nextVcsInCycle
 import com.github.yonaprojects.yona.domain.organization.OrganizationUserRepository
 import com.github.yonaprojects.yona.domain.issue.IssueLabelService
 import com.github.yonaprojects.yona.domain.issue.DuplicateLabelCategoryNameException
@@ -382,7 +383,7 @@ class ProjectViewController(
             return "error/forbidden"
         }
 
-        val nextVcs = if ((project.vcs ?: "GIT").uppercase() == "GIT") "SUBVERSION" else "GIT"
+        val nextVcs = nextVcsInCycle(project.vcs)
 
         model.addAttribute("project", project)
         model.addAttribute("currentUser", loginUser)

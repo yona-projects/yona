@@ -105,7 +105,8 @@ class ProjectServiceImplSpec : DescribeSpec({
         favoriteProjectRepository,
         watchService,
         "/tmp/yona/git",
-        "/tmp/yona/svn"
+        "/tmp/yona/svn",
+        "/tmp/yona/hg"
     )
 
     describe("ProjectServiceImpl.acceptTransfer") {
@@ -1830,7 +1831,7 @@ class ProjectServiceImplSpec : DescribeSpec({
             assigneeRepository, webhookRepository, webhookThreadRepository, postingRepository, postingService,
             commentThreadRepository, pullRequestRepository, pullRequestEventRepository, pullRequestCommitRepository,
             favoriteProjectRepository, watchService,
-            customGitBase.absolutePath, customSvnBase.absolutePath
+            customGitBase.absolutePath, customSvnBase.absolutePath, "/tmp/yona/hg"
         )
 
         it("포크 시 하드코딩된 /tmp/yona/git이 아니라 주입된 gitBaseDir 설정을 따라야 한다") {
@@ -1897,8 +1898,9 @@ class ProjectServiceImplSpec : DescribeSpec({
         }
     }
 
-    // yona Project.java의 VCS 전환(Git<->SVN) 기능 대응 — 기존 저장소 삭제 후 반대 VCS로 재생성,
-    // fork 자식과의 연결은 모두 끊는다.
+    // yona Project.java의 VCS 전환(Git<->SVN) 기능 대응 — 기존 저장소 삭제 후 다음 VCS로 재생성,
+    // fork 자식과의 연결은 모두 끊는다. yona-wiki P3-12(Mercurial 지원) 1라운드로 2지선다 토글이
+    // GIT->SUBVERSION->MERCURIAL->GIT 3종 순환(nextVcsInCycle)으로 확장됨.
     describe("ProjectServiceImpl.changeVCS") {
         it("프로젝트를 찾을 수 없으면 예외가 발생해야 한다") {
             every { projectRepository.findById(9500L) } returns Optional.empty()
@@ -1950,7 +1952,7 @@ class ProjectServiceImplSpec : DescribeSpec({
             result.vcs shouldBe "SUBVERSION"
         }
 
-        it("SUBVERSION 프로젝트는 GIT으로 전환돼야 한다") {
+        it("SUBVERSION 프로젝트는 MERCURIAL로 전환돼야 한다") {
             val project = Project(id = 9564L, name = "vcs-svn", owner = "owner", vcs = "SUBVERSION")
             val vcsPlayRepository = mockk<PlayRepository>()
             every { projectRepository.findById(9564L) } returns Optional.of(project)
@@ -1960,6 +1962,20 @@ class ProjectServiceImplSpec : DescribeSpec({
             every { projectRepository.save(project) } returns project
 
             val result = projectService.changeVCS(9564L)
+
+            result.vcs shouldBe "MERCURIAL"
+        }
+
+        it("MERCURIAL 프로젝트는 다시 GIT으로 전환돼야 한다(순환)") {
+            val project = Project(id = 9566L, name = "vcs-hg", owner = "owner", vcs = "MERCURIAL")
+            val vcsPlayRepository = mockk<PlayRepository>()
+            every { projectRepository.findById(9566L) } returns Optional.of(project)
+            every { repositoryService.getRepository(project) } returns vcsPlayRepository
+            every { vcsPlayRepository.delete() } returns Unit
+            every { vcsPlayRepository.create() } returns Unit
+            every { projectRepository.save(project) } returns project
+
+            val result = projectService.changeVCS(9566L)
 
             result.vcs shouldBe "GIT"
         }
