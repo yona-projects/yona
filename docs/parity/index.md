@@ -288,7 +288,7 @@
 | P3-11 | [x] | 새 프로젝트 기본 브랜치를 "main"으로 결정론적 고정 (2026-08-31 사용자 요청, TDD로 완료) | 완료 | [[tickets/p3-11]] |
 | P3-12 | [~] | Mercurial(hg4j) 저장소 지원 추가 (2026-08-31 사용자 제안) | 1라운드 진행중 — hg4j 연결 + HgRepository 핵심 골격 완료 | [[tickets/p3-12]] |
 | P3-13 | [ ] | 프런트엔드 분리 (React/Vue3/Angular 등 SPA) (2026-08-31 사용자 제안, 계획서만 작성 — 코드 0줄) | 계획서: [`docs/yona-wiki/plans/p3-13-decoupled-spa-frontend.md`](yona-... | [[tickets/p3-13]] |
-| P3-14 | [~] | yona를 OAuth2 서버(Authorization Server)로 제공 — 제3자 앱의 "Sign in with yona"/위임 API 접근 지원 | 1라운드 완료 — 리소스 레지스트리 일반화, `/api/v1` OAuth 지원, 관리자 앱 등록 UI. OIDC는 2라운드 | [[tickets/p3-14]] |
+| P3-14 | [x] | yona를 OAuth2 서버(Authorization Server)로 제공 — 제3자 앱의 "Sign in with yona"/위임 API 접근 지원 | 완료(2라운드) — 1라운드: 리소스 레지스트리 일반화/`/api/v1` OAuth/앱 등록 UI. 2라운드: OIDC discovery/ID 토큰/`/userinfo`, identity 스코프(openid/profile/email) 선택형 부여, 스코프-클레임 게이팅 검증 | [[tickets/p3-14]] |
 | P3-15 | [x] | PR 승인/변경요청(리뷰 판정) 워크플로 추가 — GitHub의 Approve/Request changes에 대응 | **2026-09-06 사용자 제안, P3-04(브랜치 보호) 작업 중 스파이크로 발견된 갭 | [[tickets/p3-15]] |
 | P3-16 | [x] | Git 태그(tag) 지원 (2026-09-03 사용자 제안, 2026-09-07 TDD로 완료) | 완료 | [[tickets/p3-16]] |
 | P3-17 | [x] | OAuth2 앱 등록을 사이트 관리자 전용 → 사용자 셀프서비스로 전환 (2026-09-07 사용자 제안) | 완료 — `/user/editform/oauth-apps-owned` 셀프서비스 등록 신설, 관리자 화면(`/site/oauth-apps`)은 전체 조회/강제 삭제 감사(audit) 용도로 축소, IDOR 방지 검증 포함 | [[tickets/p3-17]] |

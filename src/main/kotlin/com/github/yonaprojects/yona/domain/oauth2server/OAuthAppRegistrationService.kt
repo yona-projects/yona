@@ -28,13 +28,24 @@ class OAuthAppRegistrationService(
 ) {
 
     // 스코프 선택지 — DCR(McpOAuthScopes.ALL)과 동일한 축(ApiTokenScopeGroup x READ/WRITE)을
-    // 재사용한다(신규 축 설계 없음, [[p3-02]]/[[p3-07]]과 일관성 유지).
+    // 재사용한다(신규 축 설계 없음, [[p3-02]]/[[p3-07]]과 일관성 유지). yona-wiki P3-14 2라운드부터는
+    // 여기에 identityScopes()(openid/profile/email)도 합쳐서 반환한다 — register()의 화이트리스트
+    // 필터(`scopes.filter { it in availableScopes() }`)가 이 목록 하나만 기준으로 삼으므로, identity
+    // 스코프도 API 스코프와 동일한 검증 경로를 타게 하려면 반드시 여기 포함돼야 한다.
     fun availableScopes(): List<String> =
         ApiTokenScopeGroup.entries.flatMap { group ->
             listOf(ApiTokenPermission.READ, ApiTokenPermission.WRITE).map {
                 "${group.name.lowercase()}:${it.name.lowercase()}"
             }
-        }
+        } + identityScopes()
+
+    // yona-wiki P3-14 2라운드(OIDC) — 2라운드 착수 전 사용자 결정사항("identity 스코프는 전
+    // 클라이언트 자동 포함이 아니라 앱 등록 시 사용자가 개별 선택")에 따라 API 스코프
+    // (ApiTokenScopeGroup 기반)와는 완전히 별개 축으로 둔다 — OIDC 표준 스코프 리터럴이라
+    // ApiTokenScopeGroup에서 파생할 수 없다(신규 그룹을 추가하는 게 아니라 별도 상수 목록).
+    // 등록 화면(edit_oauth_apps_owned_new.html)이 API 스코프와 시각적으로 구분해 보여주기 위해
+    // 별도 메서드로 노출한다.
+    fun identityScopes(): List<String> = listOf("openid", "profile", "email")
 
     // 사이트 전체 앱 목록(관리자 감사/오버사이트 화면용) — DCR로 자동등록된 것과 사전등록된 것
     // 전부 포함한다.

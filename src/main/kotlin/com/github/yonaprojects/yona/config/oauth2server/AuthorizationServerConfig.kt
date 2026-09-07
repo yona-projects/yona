@@ -5,12 +5,16 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
 import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.proc.SecurityContext
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer
+import org.springframework.security.oauth2.core.oidc.OidcScopes
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.AuthorizationFilter
@@ -38,7 +42,10 @@ class AuthorizationServerConfig(
 
     @Bean
     @Order(1)
-    fun authorizationServerSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    fun authorizationServerSecurityFilterChain(
+        http: HttpSecurity,
+        @Qualifier("userInfoJwtDecoder") userInfoJwtDecoder: JwtDecoder
+    ): SecurityFilterChain {
         val authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer()
 
         // 공식 "Getting Started" 예제는 앱 전체가 인가 서버뿐인 경우를 전제로 securityMatcher를
@@ -58,6 +65,35 @@ class AuthorizationServerConfig(
                     .clientRegistrationEndpoint { it.openRegistrationAllowed(true) }
                     // GitHub 방식 동의 화면(web/OAuthConsentController.kt) 재사용.
                     .authorizationEndpoint { it.consentPage(CONSENT_PAGE_URI) }
+                    // yona-wiki P3-14 2라운드 — OIDC("Sign in with yona") 활성화. 이 한 줄로
+                    // /.well-known/openid-configuration, /userinfo, `openid` 스코프 요청 시 ID
+                    // 토큰 발급이 전부 켜진다(공식 기본 동작, providerConfigurationEndpoint 커스텀
+                    // 부분만 아래에서 추가로 손봤다). ID 토큰의 identity 클레임(name/email/
+                    // email_verified/picture) 매핑은 ResourceIndicatorTokenCustomizer가 담당한다
+                    // (그 클래스 상단 주석 참고 — OAuth2TokenCustomizer<JwtEncodingContext> 빈은
+                    // 이 프로젝트 전체에서 하나여야만 해서 별도 클래스로 분리하지 않았다).
+                    .oidc { oidc ->
+                        oidc.providerConfigurationEndpoint { endpoint ->
+                            endpoint.providerConfigurationCustomizer { builder ->
+                                // 기본값은 scopes_supported=[openid] 하나뿐이라(공식 소스 확인),
+                                // 이 서버가 실제로 지원하는 profile/email 스코프와 그에 따른
+                                // 클레임을 discovery 문서에 명시적으로 광고한다 — claims_supported는
+                                // 프레임워크가 아예 채워주지 않는 필드라 직접 넣어야 한다.
+                                builder.scope(OidcScopes.PROFILE)
+                                builder.scope(OidcScopes.EMAIL)
+                                builder.claim(
+                                    "claims_supported",
+                                    listOf(
+                                        "sub",
+                                        StandardClaimNames.NAME,
+                                        StandardClaimNames.EMAIL,
+                                        StandardClaimNames.EMAIL_VERIFIED,
+                                        StandardClaimNames.PICTURE
+                                    )
+                                )
+                            }
+                        }
+                    }
             }
             .authorizeHttpRequests { authorize ->
                 authorize
@@ -92,6 +128,14 @@ class AuthorizationServerConfig(
                 delegatingEntryPoint.setDefaultEntryPoint(Http403ForbiddenEntryPoint())
                 exceptions.authenticationEntryPoint(delegatingEntryPoint)
             }
+            // yona-wiki P3-14 2라운드 — `/userinfo`는 이 체인이 담당하는 엔드포인트 중 유일하게
+            // 세션 쿠키가 아니라 Bearer 액세스 토큰으로 인증한다. OidcUserInfoEndpointConfigurer의
+            // 기본 AuthenticationConverter는 요청을 직접 파싱하지 않고
+            // SecurityContextHolder.getContext().getAuthentication()을 그대로 읽어가므로(공식 소스
+            // 확인), 이 체인에도 리소스 서버(JWT Bearer) 인증 필터가 있어야 그 시점에 이미
+            // 인증돼 있다. 오디언스 무관 디코더를 쓰는 이유는 ResourceServerConfig.userInfoJwtDecoder()
+            // 주석 참고.
+            .oauth2ResourceServer { rs -> rs.jwt { it.decoder(userInfoJwtDecoder) } }
             // OAuth2ClientRegistrationEndpointFilter는 Spring Security의 필터 순서 레지스트리에
             // 등록돼 있지 않아 addFilterBefore(..., OAuth2ClientRegistrationEndpointFilter::class.java)를
             // 직접 쓸 수 없다(IllegalArgumentException) — 대신 공식 소스로 확인한 사실

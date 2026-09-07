@@ -56,13 +56,43 @@
                 <div class="mt10">
                     <label th:text="#{oauthapp.field.scopes}">허용할 API 스코프</label>
                     <div>
-                        <label class="checkbox inline" th:each="scope : ${availableScopes}">
+                        <!--
+                         yona-wiki P3-14 2라운드 — availableScopes에는 API 스코프(예: issues:read)와
+                         identity 스코프(openid/profile/email, 콜론이 없다)가 함께 들어있다(register()의
+                         화이트리스트 검증이 이 목록 하나만 기준으로 삼기 때문, OAuthAppRegistrationService
+                         참고) — 여기서는 콜론이 있는 것만(API 스코프) 걸러서 보여주고, identity
+                         스코프는 아래 별도 섹션에서 사람이 읽을 수 있는 설명과 함께 보여준다.
+                        -->
+                        <label class="checkbox inline" th:each="scope : ${availableScopes}"
+                               th:if="${#strings.contains(scope, ':')}">
                             <input type="checkbox" name="scopes" th:value="${scope}"
                                    th:checked="${submittedScopes != null and submittedScopes.contains(scope)}">
                             <span th:text="${scope}">issues:read</span>
                         </label>
                     </div>
                     <p class="description" th:text="#{oauthapp.field.scopes.description}">설명</p>
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{oauthapp.field.identityScopes}">Sign in with yona (OpenID Connect)</label>
+                    <div>
+                        <label class="checkbox inline">
+                            <input type="checkbox" name="scopes" value="openid"
+                                   th:checked="${submittedScopes != null and submittedScopes.contains('openid')}">
+                            <span th:text="#{oauthapp.field.identityScopes.openid}">로그인 위임(openid) 허용</span>
+                        </label>
+                        <label class="checkbox inline ml10">
+                            <input type="checkbox" name="scopes" value="profile"
+                                   th:checked="${submittedScopes != null and submittedScopes.contains('profile')}">
+                            <span th:text="#{oauthapp.field.identityScopes.profile}">이름·아바타 제공(profile)</span>
+                        </label>
+                        <label class="checkbox inline ml10">
+                            <input type="checkbox" name="scopes" value="email"
+                                   th:checked="${submittedScopes != null and submittedScopes.contains('email')}">
+                            <span th:text="#{oauthapp.field.identityScopes.email}">이메일 주소 제공(email)</span>
+                        </label>
+                    </div>
+                    <p class="description" th:text="#{oauthapp.field.identityScopes.description}">설명</p>
                 </div>
 
                 <div class="mt10">

@@ -21,6 +21,20 @@ class OAuthConsentController(
     private val authorizationConsentService: JpaOAuth2AuthorizationConsentService
 ) {
 
+    companion object {
+        // yona-wiki P3-14 2라운드 — `issues:read`류 API 스코프는 원래부터 원문 스코프 문자열을
+        // 그대로 보여주는 것 말고는 아무 설명 메커니즘이 없었다(consent.html 1라운드 코드 확인) —
+        // 그 관례를 깨지 않으면서, GitHub이 OIDC identity 스코프에 한해서는 plain-language 설명을
+        // 보여주는 것과 동등하게 openid/profile/email 세 개만 메시지 키로 매핑해 사람이 읽을 수 있는
+        // 문구로 대체한다(GitHub 컨벤션 기본값 방침). 매핑에 없는 스코프(API 스코프 포함)는 계속
+        // 원문 그대로 보여준다 — 기존 동작 무변경.
+        val IDENTITY_SCOPE_DESCRIPTION_KEYS: Map<String, String> = mapOf(
+            "openid" to "oauth2.consent.scope.openid",
+            "profile" to "oauth2.consent.scope.profile",
+            "email" to "oauth2.consent.scope.email"
+        )
+    }
+
     @GetMapping("/oauth2/consent")
     fun consent(
         principal: Principal,
@@ -51,6 +65,7 @@ class OAuthConsentController(
         model.addAttribute("scopes", scopesToApprove)
         model.addAttribute("previouslyApprovedScopes", previouslyApprovedScopes)
         model.addAttribute("principalName", principal.name)
+        model.addAttribute("scopeDescriptionKeys", IDENTITY_SCOPE_DESCRIPTION_KEYS)
         return "oauth2/consent"
     }
 }

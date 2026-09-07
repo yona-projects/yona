@@ -68,6 +68,21 @@ class ResourceServerConfig(
     @Qualifier("apiJwtDecoder")
     fun apiJwtDecoder(): JwtDecoder = jwtDecoderFor(apiResourceUri)
 
+    // yona-wiki P3-14 2라운드(OIDC) — `/userinfo`(AuthorizationServerConfig 소속 체인, 리소스
+    // 서버 체인이 아님)를 위한 디코더. 위 두 디코더와 달리 오디언스(aud) 검증을 걸지 않는다 —
+    // "Sign in with yona"만 하려는 순수 identity 클라이언트가 MCP/API 리소스에는 관심이 없어도
+    // `/oauth2/token`은 여전히 resource 파라미터를 요구하므로(ResourceIndicatorTokenCustomizer가
+    // 리소스 종류 불문 강제) 액세스 토큰의 aud는 mcp/api 둘 중 하나로 고정된다 — `/userinfo`가
+    // 특정 aud만 받아준다면 반대쪽 리소스로 발급받은 identity 전용 클라이언트가 막히는 부작용이
+    // 생긴다. 대신 이 엔드포인트의 실제 보안 경계는 프레임워크 자신이 담당한다
+    // (OidcUserInfoAuthenticationProvider가 매 요청마다 OAuth2AuthorizationService.findByToken()으로
+    // "우리가 실제로 발급해 저장해둔 토큰인지" 재확인 + `openid` 스코프 보유 여부까지 확인, 공식
+    // 소스 확인) — 서명/만료만 검증하면 충분하다.
+    @Bean
+    @Qualifier("userInfoJwtDecoder")
+    fun userInfoJwtDecoder(): JwtDecoder =
+        NimbusJwtDecoder.withPublicKey(jwkKeyPairProvider.keyPair.public as RSAPublicKey).build()
+
     @Bean
     @Order(2)
     fun mcpResourceServerSecurityFilterChain(

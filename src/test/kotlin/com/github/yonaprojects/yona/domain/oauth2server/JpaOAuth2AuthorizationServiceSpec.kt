@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.core.OAuth2RefreshToken
+import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient
@@ -92,6 +93,47 @@ class JpaOAuth2AuthorizationServiceSpec @Autowired constructor(
 
             it("존재하지 않는 토큰 값으로 조회하면 null을 반환해야 한다") {
                 authorizationService.findByToken("no-such-token", OAuth2TokenType.ACCESS_TOKEN) shouldBe null
+            }
+
+            // yona-wiki P3-14 2라운드(OIDC) — OidcIdToken도 access/refresh 토큰과 동일하게
+            // 저장→재조회 왕복에서 클레임까지 그대로 보존돼야 한다(OAuthAuthorization.kt의
+            // oidcIdToken* 컬럼 주석 참고 — 1라운드에는 이 컬럼 자체가 없어 ID 토큰이 조용히
+            // 사라지는 회귀가 있었다).
+            it("OidcIdToken을 저장 후 조회하면 클레임까지 그대로 복원돼야 한다") {
+                val client = newClient()
+                val now = Instant.now()
+                val idToken = OidcIdToken(
+                    "idt-${UUID.randomUUID()}",
+                    now,
+                    now.plusSeconds(1800),
+                    mapOf(
+                        "sub" to "some-login-id",
+                        "name" to "Some User",
+                        "email" to "some-user@example.com",
+                        "email_verified" to true
+                    )
+                )
+
+                val authorization = OAuth2Authorization.withRegisteredClient(client)
+                    .id(UUID.randomUUID().toString())
+                    .principalName("some-login-id")
+                    .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                    .authorizedScopes(setOf("openid", "profile", "email"))
+                    .token(idToken) {
+                        it[OAuth2Authorization.Token.CLAIMS_METADATA_NAME] = idToken.claims
+                    }
+                    .build()
+
+                authorizationService.save(authorization)
+
+                val found = authorizationService.findById(authorization.id)
+                found.shouldNotBeNull()
+                val foundIdToken = found.getToken(OidcIdToken::class.java)
+                foundIdToken.shouldNotBeNull()
+                foundIdToken.token.tokenValue shouldBe idToken.tokenValue
+                foundIdToken.token.claims["name"] shouldBe "Some User"
+                foundIdToken.token.claims["email"] shouldBe "some-user@example.com"
+                foundIdToken.token.claims["email_verified"] shouldBe true
             }
         }
     }

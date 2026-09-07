@@ -2,7 +2,7 @@
 type: plan
 id: P3-14
 title: "yona를 OAuth2 서버(Authorization Server)로 제공"
-status: in-progress
+status: done
 priority: 11
 depends_on: [p3-07]
 blocks: []
@@ -127,16 +127,56 @@ PasswordEncoder를 쓰지 않는 것과 대비됨)로 인코딩해 저장, 평�
     `McpOAuth2SecurityIntegrationSpec`/`ApiTokenAuthenticationFilterSpec`/
     `OAuthAuthorizedAppsServiceSpec`도 회귀 없이 GREEN 재확인(-Dyona.it.db=h2,
     [[feedback_use_h2_profile_in_sandbox]] 참고).
-  - **남은 것(2라운드)**: OIDC("Sign in with yona"), 관리자 등록 UI에 identity 스코프(openid/
-    profile/email) 선택 추가.
+  - **남은 것(2라운드, 완료됨 — 아래 참고)**: OIDC("Sign in with yona"), 등록 UI에 identity
+    스코프(openid/profile/email) 선택 추가.
 
-- **2라운드 착수 전 사용자 결정사항(2026-09-07 확정, 아직 미착수)**:
+- **2라운드 착수 전 사용자 결정사항(2026-09-07 확정)**:
   1. **UserInfo 클레임 범위**: `profile`+`email` 스코프 전부 노출(GitHub OAuth App과 동등한
      수준 — 이름/아바타/이메일까지 제3자 앱에 제공). `sub`만 노출하는 최소 범위 안은 채택하지
      않음.
-  2. **identity 스코프 부여 방식**: 모든 confidential 클라이언트에 자동 포함하지 않고,
-     `OAuthAppsAdminController`의 앱 등록 폼에서 관리자가 `openid`/`profile`/`email`을 앱별로
-     개별 선택하는 체크박스를 추가한다.
+  2. **identity 스코프 부여 방식**: 모든 confidential 클라이언트에 자동 포함하지 않고, 앱 등록
+     폼에서 `openid`/`profile`/`email`을 앱별로 개별 선택하는 체크박스를 추가한다. (이 결정 당시
+     문서는 앱 등록 폼을 `OAuthAppsAdminController`로 적었으나, 이 결정 자체보다 나중인
+     [[p3-17]]에서 앱 등록이 사이트 관리자 전용에서 사용자 셀프서비스로 이미 옮겨졌다 — 실제
+     구현은 `OAuthAppRegistrationService`/`UserViewController`의 `/user/editform/oauth-apps-owned/new`
+     폼에 이 체크박스를 추가했다. `OAuthAppsAdminController`는 P3-17 이후 전체 앱 조회/강제
+     삭제 감사(audit) 전용이라 등록 폼 자체가 없다.)
+
+- **2026-09-07 2라운드(OIDC, "Sign in with yona") — 완료**: 위 두 결정사항을 그대로 TDD로 구현.
+  - 변경: `AuthorizationServerConfig.kt`(`.oidc { }` 활성화 + `providerConfigurationEndpoint`
+    커스터마이즈로 `scopes_supported`/`claims_supported` 광고, `/userinfo`용 오디언스 무관
+    JwtDecoder를 붙인 `oauth2ResourceServer{}` 추가), `ResourceServerConfig.kt`(`userInfoJwtDecoder`
+    빈 추가), `ResourceIndicatorTokenCustomizer.kt`(ID 토큰 identity 클레임 매핑을 같은 클래스에
+    합침 — 이유는 아래 "실제 버그" 참고), `OAuthAppRegistrationService.kt`(`identityScopes()`
+    추가, `availableScopes()`에 합류), `UserViewController.kt`/`edit_oauth_apps_owned_new.html`
+    (identity 스코프 체크박스 섹션), `OAuthConsentController.kt`/`consent.html`(openid/profile/
+    email 세 스코프만 plain-language 설명으로 대체), `OAuthAuthorization.kt`/
+    `JpaOAuth2AuthorizationService.kt`(`oidc_id_token` 4컬럼 추가 — 아래 버그 2번), messages
+    properties(신규 키).
+  - **클레임 매핑 설계**: ID 토큰만 `authorizedScopes` 기준으로 커스터마이즈하고, `/userinfo`는
+    프레임워크 기본 `DefaultOidcUserInfoMapper`를 그대로 사용 — 그 기본 구현이 "ID 토큰의 클레임을
+    액세스 토큰 스코프로 재필터링"하는 방식이라 ID 토큰만 게이팅해도 두 곳 모두 일관되게
+    스코프-게이팅이 적용된다(커스텀 UserInfo 매퍼 불필요).
+  - **실제 버그 2건(실측 후 즉시 수정)**: (1) `OAuth2TokenCustomizer<JwtEncodingContext>` 빈을
+    2개로 늘리면 Spring이 `getBeanProvider(type).getIfUnique()`로 조회해 **예외 없이 조용히
+    null을 반환**(1라운드 RFC8707 오디언스 스탬핑까지 함께 무력화될 뻔함) — 그래서 별도 클래스로
+    분리하지 않고 기존 `ResourceIndicatorTokenCustomizer` 하나로 합침. (2) `OAuthAuthorization`
+    엔티티가 1라운드엔 "OIDC 미사용"이라는 이유로 `oidc_id_token` 컬럼을 뺐었는데, OIDC를 켜자마자
+    ID 토큰이 재저장 시 조용히 사라져 `/userinfo`가 매번 `invalid_token`으로 실패하는 진짜 gap이
+    됐다 — 공식 JdbcOAuth2AuthorizationService와 동일한 4컬럼 구성으로 해소. 두 버그 모두 순수
+    단위 테스트가 아니라 실제 E2E 통합테스트(`OidcSignInIntegrationSpec`)를 작성하는 과정에서
+    드러났다.
+  - **스코프-클레임 게이팅 검증**: `openid`만 동의하면 ID 토큰/`/userinfo` 둘 다 `sub` 외
+    클레임이 전혀 없음을 GREEN으로 확인. 이 과정에서 프레임워크 자체의 진짜 동작도 하나 더
+    확인했다 — "openid가 유일한 요청 스코프면 동의 화면 자체를 생략한다"(공식 소스
+    `OAuth2AuthorizationCodeRequestAuthenticationProvider.isAuthorizationConsentRequired()`
+    주석 확인, `requireAuthorizationConsent=true` 강제 등록 클라이언트도 예외 없음) — 버그가
+    아니라 표준 OIDC IdP 관례와 일치하는 의도된 설계라 테스트 쪽에서 이 분기를 처리했다.
+  - 테스트: `OidcSignInIntegrationSpec`(신규), `OAuthAppRegistrationServiceSpec`(신규),
+    `JpaOAuth2AuthorizationServiceSpec`(OidcIdToken 왕복 케이스 추가) 전부 GREEN. 1라운드
+    회귀 스위트(`McpOAuth2SecurityIntegrationSpec`/`ApiV1OAuth2SecurityIntegrationSpec`/
+    `OAuthAppsAdminControllerSpec`/`UserViewControllerSpec` 등) 무변경 그대로 GREEN 재확인
+    (-Dyona.it.db=h2).
 
 ## 리스크 / 미결정 사항
 
@@ -144,7 +184,7 @@ PasswordEncoder를 쓰지 않는 것과 대비됨)로 인코딩해 저장, 평�
 |---|---|---|
 | PasswordEncoder 신규 도입 | 이 앱 전체에서 유일하게 Spring `PasswordEncoder`를 쓰는 지점 — 다른 모든 비밀/토큰은 자체 SHA-256+Base64 해시 | Spring Authorization Server의 client_secret_basic 검증이 프레임워크 계약상 요구하는 유일한 예외로 명시(위 설계 개요 4번 참고), 다른 곳에 전파하지 않음 |
 | OAuth v1 토큰이 항상 전체 저장소 대상 | 프로젝트 단위로 좁힌 위임 접근이 불가능(PAT은 가능) | 실제 필요성이 확인되면 RFC8707 resource 파라미터를 프로젝트 단위로 세분화하는 방식으로 확장 가능(P3-07이 이미 이 방향을 언급) — 지금은 과도한 설계 |
-| OIDC 2라운드 이월 | "Sign in with yona"(순수 신원 델리게이션)가 이번 라운드엔 없음 | 다음 세션에서 `.oidc(Customizer.withDefaults())` + UserInfo 매퍼로 추가 예정 |
+| OIDC 2라운드 이월 | ~~"Sign in with yona"(순수 신원 델리게이션)가 이번 라운드엔 없음~~ **해소(2026-09-07 2라운드 완료)** | `.oidc { }` 활성화 + `ResourceIndicatorTokenCustomizer`의 ID 토큰 클레임 매핑으로 구현 완료. 상세: 아래 완료 로그, `docs/parity/tickets/p3-14.md` 2라운드 항목 참고 |
 
 ## 관련
 

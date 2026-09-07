@@ -9,10 +9,12 @@ import java.time.Instant
 
 // yona-wiki P3-07(MCP 서버) Step2 — Spring Authorization Server의 OAuth2Authorization(인가 코드/
 // 액세스 토큰/리프레시 토큰의 발급 상태)을 저장하는 JPA 엔티티. 공식 스키마(oauth2_authorization,
-// JdbcOAuth2AuthorizationService)를 그대로 베낀 컬럼 구성이지만(직접 소스 확인 — 이 프로젝트가
+// JdbcOAuth2AuthorizationService)를 그대로 베낀 컬럼 구성이다(직접 소스 확인). 1라운드 시점엔
 // oauth2_authorization_code/access_token/refresh_token만 쓰고 oidc_id_token/user_code/device_code는
-// 쓰지 않아(OIDC 로그인·디바이스 플로우 미사용) 해당 컬럼은 제외했다. JdbcOAuth2AuthorizationService와
-// 동일하게 attributes/각 토큰의 metadata는 Jackson으로 직렬화한 JSON 문자열로 저장한다
+// 쓰지 않아(OIDC 로그인·디바이스 플로우 미사용) 제외했었지만, P3-14 2라운드(OIDC 활성화)부터
+// oidc_id_token 4컬럼(아래 oidcIdToken* 필드, 공식 스키마와 동일 구성)을 다시 채워넣었다 — user_code/
+// device_code는 여전히 미사용(디바이스 플로우 없음). JdbcOAuth2AuthorizationService와 동일하게
+// attributes/각 토큰의 metadata는 Jackson으로 직렬화한 JSON 문자열로 저장한다
 // (JpaOAuth2AuthorizationService 참고, SecurityJackson2Modules + OAuth2AuthorizationServerJackson2Module
 // 재사용 — Spring 공식 모듈, 직접 직렬화 코드를 새로 짜지 않음).
 @Entity
@@ -82,5 +84,25 @@ class OAuthAuthorization(
     var refreshTokenExpiresAt: Instant? = null,
     @Lob
     @Column(name = "refresh_token_metadata", length = 1_000_000)
-    var refreshTokenMetadata: String? = null
+    var refreshTokenMetadata: String? = null,
+
+    // yona-wiki P3-14 2라운드(OIDC) — 위 주석("oidc_id_token ... 컬럼은 제외했다")은 1라운드 시점엔
+    // 맞는 말이었지만(OIDC 미사용), OIDC를 켜는 순간부터는 진짜 gap이 된다: Spring Authorization
+    // Server는 OidcIdToken을 다른 토큰들과 완전히 동일한 범용 메커니즘
+    // (OAuth2Authorization.Builder.token(idToken) { metadata -> metadata[CLAIMS_METADATA_NAME] =
+    // idToken.claims })으로 OAuth2Authorization에 담아 저장을 요청한다(공식 소스
+    // OAuth2AuthorizationCodeAuthenticationProvider 확인) — 이 엔티티가 이 토큰 타입만 저장할 컬럼이
+    // 없으면 발급 자체는 성공해도 재저장 시 ID 토큰이 조용히 사라지고, 이후 `/userinfo` 호출이
+    // `authorization.getToken(OidcIdToken::class.java)`를 못 찾아 매번 invalid_token으로 실패한다
+    // (JdbcOAuth2AuthorizationService 공식 구현의 oidc_id_token_value/issued_at/expires_at/metadata
+    // 4컬럼 구성을 그대로 따른다 — claims는 metadata 맵 안에 CLAIMS_METADATA_NAME 키로 이미
+    // 포함되어 있어 별도 컬럼이 필요 없다).
+    @Lob
+    @Column(name = "oidc_id_token_value", length = 1_000_000)
+    var oidcIdTokenValue: String? = null,
+    var oidcIdTokenIssuedAt: Instant? = null,
+    var oidcIdTokenExpiresAt: Instant? = null,
+    @Lob
+    @Column(name = "oidc_id_token_metadata", length = 1_000_000)
+    var oidcIdTokenMetadata: String? = null
 )

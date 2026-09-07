@@ -32,18 +32,28 @@
                 <input type="hidden" name="state" th:value="${state}">
 
                 <h5 th:text="#{oauth2.consent.scopesTitle}">이 앱이 요청하는 권한</h5>
+                <!--
+                 yona-wiki P3-14 2라운드 — openid/profile/email 세 identity 스코프만
+                 scopeDescriptionKeys(OAuthConsentController)에 메시지 키가 있어 사람이 읽을 수 있는
+                 문구로 대체된다. 그 외 스코프(issues:read 등 API 스코프)는 1라운드와 동일하게 원문
+                 스코프 문자열을 그대로 보여준다(기존 동작 무변경).
+                -->
                 <ul class="oauth2-consent-scope-list">
                     <li th:each="scope : ${scopes}">
                         <label>
                             <input type="checkbox" name="scope" th:value="${scope}" checked="checked">
-                            <span th:text="${scope}">issues:read</span>
+                            <span th:if="${scopeDescriptionKeys.containsKey(scope)}"
+                                  th:text="#{${scopeDescriptionKeys.get(scope)}}">openid</span>
+                            <span th:unless="${scopeDescriptionKeys.containsKey(scope)}" th:text="${scope}">issues:read</span>
                         </label>
                     </li>
                     <li th:each="scope : ${previouslyApprovedScopes}">
                         <label>
                             <input type="checkbox" name="scope" th:value="${scope}" checked="checked" disabled="disabled">
                             <input type="hidden" name="scope" th:value="${scope}">
-                            <span th:text="${scope}">issues:write</span>
+                            <span th:if="${scopeDescriptionKeys.containsKey(scope)}"
+                                  th:text="#{${scopeDescriptionKeys.get(scope)}}">openid</span>
+                            <span th:unless="${scopeDescriptionKeys.containsKey(scope)}" th:text="${scope}">issues:write</span>
                             <em class="text-muted" th:text="#{oauth2.consent.alreadyApproved}">(이미 승인함)</em>
                         </label>
                     </li>

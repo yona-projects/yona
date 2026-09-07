@@ -856,6 +856,11 @@ class UserViewController(
     ) {
         model.addAttribute("user", loginUser)
         model.addAttribute("currentUser", loginUser)
+        // yona-wiki P3-14 2라운드 — availableScopes()에 API 스코프와 identity 스코프(openid/profile/
+        // email)가 함께 들어있다(register()의 화이트리스트 검증이 이 목록 하나만 기준으로 삼기
+        // 때문). 템플릿은 콜론 포함 여부로 둘을 구분해 보여준다(edit_oauth_apps_owned_new.html
+        // 참고) — identity 스코프 체크박스 자체는 각각 사람이 읽을 수 있는 설명이 필요해 템플릿에
+        // 직접 하드코딩했으므로 별도 모델 속성은 두지 않는다.
         model.addAttribute("availableScopes", oAuthAppRegistrationService.availableScopes())
         model.addAttribute("submittedClientName", submittedClientName)
         model.addAttribute("submittedRedirectUri", submittedRedirectUri)
