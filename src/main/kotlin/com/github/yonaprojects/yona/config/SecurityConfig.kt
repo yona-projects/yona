@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletResponse
 
 import com.github.yonaprojects.yona.config.git.DeployKeyAuthenticationProvider
 import com.github.yonaprojects.yona.config.git.GitAuthorizationFilter
+import com.github.yonaprojects.yona.config.hg.HgAuthorizationFilter
 import com.github.yonaprojects.yona.config.oauth2.CustomOAuth2UserService
 import com.github.yonaprojects.yona.config.sso.EnterpriseOidcUserService
 import com.github.yonaprojects.yona.config.sso.EnterpriseSaml2ResponseAuthenticationConverter
@@ -52,6 +53,9 @@ class SecurityConfig(
     private val yonaAuthenticationProvider: YonaAuthenticationProvider,
     private val deployKeyAuthenticationProvider: DeployKeyAuthenticationProvider,
     private val svnAuthorizationFilter: SvnAuthorizationFilter,
+    // yona-wiki P3-12(Mercurial 지원) 2라운드 — GitAuthorizationFilter/SvnAuthorizationFilter와
+    // 대칭인 Mercurial HTTP 전용 인가 필터.
+    private val hgAuthorizationFilter: HgAuthorizationFilter,
     private val apiTokenAuthenticationFilter: ApiTokenAuthenticationFilter,
     private val accessLogFilter: AccessLogFilter,
     @Value("\${yona.sso.saml2.email-attribute:email}")
@@ -106,6 +110,7 @@ class SecurityConfig(
                     .requestMatchers("/login", "/signup", "/lostPassword", "/user/reset-password", "/bootstrap-setup", "/users/loginform", "/users/signupform", "/users/signup").permitAll()
                     .requestMatchers("/git/**").permitAll()
                     .requestMatchers("/svn/**").permitAll()
+                    .requestMatchers("/hg/**").permitAll()
                     .requestMatchers("/site/**", "/sites/**").hasAnyRole("ADMIN", "SITE_ADMIN")
                     // yona-wiki P3-09(Swagger/OpenAPI UI) 대응 — springdoc이 자동 스캔하는 API
                     // 문서에는 관리자 전용 엔드포인트도 포함되므로 /site/**와 동일하게 제한한다.
@@ -162,6 +167,7 @@ class SecurityConfig(
             }
             .addFilterAfter(gitAuthorizationFilter, BasicAuthenticationFilter::class.java)
             .addFilterAfter(svnAuthorizationFilter, BasicAuthenticationFilter::class.java)
+            .addFilterAfter(hgAuthorizationFilter, BasicAuthenticationFilter::class.java)
             .addFilterAfter(apiTokenAuthenticationFilter, BasicAuthenticationFilter::class.java)
             .addFilterAfter(accessLogFilter, BasicAuthenticationFilter::class.java)
         return http.build()

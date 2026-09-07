@@ -209,10 +209,10 @@ class HgRepository(
         }
     }
 
-    // yona-wiki P3-12 2라운드 과제 — Mercurial의 ref는 git과 개념이 달라(브랜치=커밋에 영구히
-    // 새겨짐, 북마크=git 브랜치에 더 가까운 이동 가능한 포인터) getRefNames()가 브랜치/북마크 중
-    // 무엇을, 어떤 이름 규칙으로 노출할지는 별도 설계가 필요하다. 1라운드는 tip 하나만 노출.
-    override fun getRefNames(): List<String> = listOf("tip")
+    // yona-wiki P3-12 2라운드 — bookmark를 git의 브랜치 개념에 매핑하기로 확정했으므로(아래
+    // getBranches() 주석 참고) 여기서도 bookmark 이름들을 노출한다. tip은 항상 함께 노출해
+    // "브랜치가 하나도 없는" 저장소에서도 최소한 하나의 참조점은 있도록 한다.
+    override fun getRefNames(): List<String> = useHg { hg -> hg.bookmark().call().keys.toList() } + "tip"
 
     override fun isFile(path: String): Boolean {
         return useHg { hg ->
@@ -239,23 +239,142 @@ class HgRepository(
 
     override fun setDefaultBranch(target: String) {}
 
-    // yona-wiki P3-12 2라운드 과제(계획 문서 참고) — 아래 전부 SvnRepository의 선례(대응 개념
-    // 없음/아직 미착수는 빈 값 또는 no-op)를 따른다.
-    override fun getBranches(): List<GitBranch> = emptyList()
+    // yona-wiki P3-12 2라운드 설계 결정(사용자 확정, 재론의 안 함) — yona의 git 모양 "브랜치"
+    // 개념(getBranches/createBranch/deleteBranch/getHeadBranch)은 Mercurial의 **bookmark**에
+    // 매핑한다. Mercurial의 진짜 "named branch"(`hg branch`)는 커밋에 영구히 새겨지는(삭제가
+    // 아니라 "close"만 가능한) 별개의 개념이라 git 브랜치와 근본적으로 다르지만, bookmark는
+    // git 브랜치처럼 자유롭게 이동/삭제 가능한 포인터라 이 코드베이스의 표준 관례(모호하면
+    // GitHub/주류 forge 관례를 따름 — Bitbucket이 과거 Mercurial 저장소를 git 모양 UI로 노출할 때
+    // 쓰던 것과 동일한 매핑)에 부합한다. named branch 지원은 이번 범위 밖(out of scope, 계획
+    // 문서 참고).
+    //
+    // GitBranch/GitTag의 name 필드는 GitRepository와 동일하게 "refs/heads/"/"refs/tags/" 접두어를
+    // 붙인 형태로 채운다 — shortName이 그 접두어를 제거하는 것을 전제로 설계된 값 객체라(각 파일
+    // 상단 주석 참고) Hg 쪽도 같은 계약을 지켜야 소비자(BranchApiController 등, 향후 Hg를 붙일
+    // 경우)가 두 백엔드를 구분 없이 다룰 수 있다.
+    private fun nativeCommitAt(hg: Hg, revNum: Int) =
+        hg.log().setStartRev(revNum.toString()).call().find { it.revision == revNum }
 
-    override fun getHeadBranch(): GitBranch? = null
+    override fun getBranches(): List<GitBranch> {
+        return useHg { hg ->
+            val bookmarks = hg.bookmark().call()
+            bookmarks.mapNotNull { (name, hex) ->
+                val revNum = resolveRevisionNumber(hg, hex) ?: return@mapNotNull null
+                val native = nativeCommitAt(hg, revNum) ?: return@mapNotNull null
+                val commit = HgCommit(native, userResolver)
+                val user = userResolver(commit.getAuthorName(), commit.getAuthorEmail())
+                GitBranch("refs/heads/$name", commit, user)
+            }
+        }
+    }
 
-    override fun deleteBranch(branchName: String) {}
+    override fun getHeadBranch(): GitBranch? {
+        return useHg { hg ->
+            val activeName = hg.bookmark().getActiveBookmark() ?: return@useHg null
+            val hex = hg.bookmark().call()[activeName] ?: return@useHg null
+            val revNum = resolveRevisionNumber(hg, hex) ?: return@useHg null
+            val native = nativeCommitAt(hg, revNum) ?: return@useHg null
+            val commit = HgCommit(native, userResolver)
+            val user = userResolver(commit.getAuthorName(), commit.getAuthorEmail())
+            GitBranch("refs/heads/$activeName", commit, user)
+        }
+    }
 
-    override fun createBranch(branchName: String, startPoint: String) {}
+    override fun deleteBranch(branchName: String) {
+        useHg { hg ->
+            val name = branchName.removePrefix("refs/heads/")
+            val existing = hg.bookmark().call()
+            if (!existing.containsKey(name)) {
+                throw IllegalArgumentException("존재하지 않는 브랜치입니다: $name")
+            }
+            hg.bookmark().setBookmarkName(name).setDelete(true).call()
+        }
+    }
 
-    override fun getTagNames(): List<String> = emptyList()
+    override fun createBranch(branchName: String, startPoint: String) {
+        useHg { hg ->
+            val name = branchName.removePrefix("refs/heads/")
+            // 코디네이터 리뷰(2026-09-08) — hg4j의 BookmarkCommand 자체는 "tip"을 막지 않지만, 실제
+            // hg CLI는 `hg bookmark tip`을 "the name 'tip' is reserved"로 거부한다(태그와 동일한
+            // 예약어 검사, mercurial의 scmutil.checknewlabel()이 bookmark/tag 양쪽에 공유됨) —
+            // createTag()의 동일한 가드와 대칭으로 여기도 지어내지 않고 실제 hg 동작을 재현한다.
+            if (name == "tip") {
+                throw IllegalArgumentException("'tip'은 예약된 이름입니다")
+            }
+            val existing = hg.bookmark().call()
+            if (existing.containsKey(name)) {
+                throw IllegalArgumentException("이미 존재하는 브랜치입니다: $name")
+            }
+            val revNum = resolveRevisionNumber(hg, startPoint)
+                ?: throw IllegalArgumentException("존재하지 않는 시작점입니다: $startPoint")
+            val native = nativeCommitAt(hg, revNum)
+                ?: throw IllegalArgumentException("존재하지 않는 시작점입니다: $startPoint")
+            hg.bookmark().setBookmarkName(name).setRevision(native.nodeId.toHex()).call()
+        }
+    }
 
-    override fun getTags(): List<GitTag> = emptyList()
+    // hg4j의 TagsCommand는 실제 hg CLI와 동일하게 항상 pseudo-tag "tip"을 목록 맨 앞에 끼워
+    // 넣는다(리포지토리 최신 리비전을 가리킬 뿐 실제로 생성/삭제 가능한 태그가 아니다) — yona의
+    // git 모양 태그 API에는 대응 개념이 없으므로 두 메서드 모두에서 걸러낸다.
+    override fun getTagNames(): List<String> {
+        return useHg { hg ->
+            hg.tags().call().filter { it.name != "tip" }.map { "refs/tags/${it.name}" }
+        }
+    }
 
-    override fun deleteTag(tagName: String) {}
+    override fun getTags(): List<GitTag> {
+        return useHg { hg ->
+            val commits = hg.log().call()
+            hg.tags().call()
+                .filter { it.name != "tip" }
+                .mapNotNull { tag ->
+                    val native = commits.find { it.revision == tag.rev } ?: return@mapNotNull null
+                    val commit = HgCommit(native, userResolver)
+                    val user = userResolver(commit.getAuthorName(), commit.getAuthorEmail())
+                    // Mercurial 태그는 git의 annotated 태그처럼 별도의 태거 신원/GPG 서명을 갖는
+                    // 오브젝트가 아니다(태그 자체는 그냥 `.hgtags`에 커밋된 텍스트 한 줄이고,
+                    // 그 커밋 자체의 작성자가 있을 뿐 "태거"라는 별도 개념이 없다) — 지어내지
+                    // 않고 GitTag의 lightweight 태그와 동일하게 tagger/message는 항상 null,
+                    // annotated=false로 둔다(GitTag.kt 상단 주석의 invariant와 일치).
+                    GitTag("refs/tags/${tag.name}", commit, user, message = null, annotated = false)
+                }
+        }
+    }
 
-    override fun createTag(tagName: String, startPoint: String, message: String?, taggerName: String?, taggerEmail: String?) {}
+    override fun deleteTag(tagName: String) {
+        useHg { hg ->
+            val name = tagName.removePrefix("refs/tags/")
+            val existing = hg.tags().call().any { it.name == name && it.name != "tip" }
+            if (!existing) {
+                throw IllegalArgumentException("존재하지 않는 태그입니다: $name")
+            }
+            hg.tag().setTagName(name).setRemove(true).call()
+        }
+    }
+
+    // message/taggerName/taggerEmail은 GitRepository와의 시그니처 대칭을 위해 받지만 사용하지
+    // 않는다 — hg4j의 TagCommand는 태그 커밋의 저자/메시지를 자체적으로 고정하고("hg4j
+    // <hg4j@google.com>", "Added tag X for changeset Y") 커스터마이즈할 방법을 제공하지 않는다
+    // (실제 hg CLI도 태그 커밋 메시지에 한해서만 커밋 에디터를 열지, 이 라이브러리는 그 계층까지
+    // 만들지 않았다). getTags()가 이 필드들을 애초에 노출하지 않는 것과 일관된 선택 — 없는
+    // 기능을 지어내지 않는다.
+    override fun createTag(tagName: String, startPoint: String, message: String?, taggerName: String?, taggerEmail: String?) {
+        useHg { hg ->
+            val name = tagName.removePrefix("refs/tags/")
+            if (name == "tip") {
+                throw IllegalArgumentException("'tip'은 예약된 이름입니다")
+            }
+            val existing = hg.tags().call().any { it.name == name && it.name != "tip" }
+            if (existing) {
+                throw IllegalArgumentException("이미 존재하는 태그입니다: $name")
+            }
+            val revNum = resolveRevisionNumber(hg, startPoint)
+                ?: throw IllegalArgumentException("존재하지 않는 시작점입니다: $startPoint")
+            val native = nativeCommitAt(hg, revNum)
+                ?: throw IllegalArgumentException("존재하지 않는 시작점입니다: $startPoint")
+            hg.tag().setTagName(name).setNodeId(native.nodeId.getBytes()).call()
+        }
+    }
 
     override fun getBlobId(revision: String, path: String): String? = null
 

@@ -477,6 +477,84 @@ if __name__ == "__main__":
                 }
             }
 
+            // yona-wiki P3-12(Mercurial 지원) 2라운드 — HgSshProtocolHandler의 기존 테스트는
+            // clone/push 성공 경로(위 "real hg 클라이언트가...")만 다뤘다. git 쪽의 "PRIVATE 저장소는
+            // 멤버가 아닌 사용자로는..." 테스트(위 341행)와 대칭으로, Hg SSH 경로에서도 비멤버
+            // clone과 읽기전용 Deploy Key push가 실제로 거부되는지 검증한다.
+            it("PRIVATE Mercurial 저장소는 멤버가 아닌 사용자로는 소켓 릴레이를 통한 clone도 실패해야 한다") {
+                if (!pythonAvailable() || !hgAvailable()) return@it
+
+                val owner = userRepository.save(User(loginId = "relay-hg-priv-owner", name = "릴레이Hg비공개오너", email = "relay-hg-priv-owner@example.com"))
+                val project = projectRepository.save(
+                    Project(name = "relay-hg-private-repo", owner = owner.loginId, projectScope = ProjectScope.PRIVATE, vcs = "MERCURIAL")
+                )
+                repositoryService.getRepository(project).create()
+                val repoDir = File(hgBaseDirHolder, "${project.owner}/${project.name}")
+                File(repoDir, "a.txt").writeText("private hg content")
+                runHgInDir(repoDir, "add", "a.txt")
+                runHgInDir(
+                    repoDir, "--config", "ui.username=relay-hg-priv-owner <relay-hg-priv-owner@example.com>",
+                    "commit", "-m", "초기 커밋"
+                )
+
+                val outsider = userRepository.save(User(loginId = "relay-hg-outsider", name = "릴레이Hg외부인", email = "relay-hg-outsider@example.com"))
+                val sshKey = sshKeyService.create(outsider, "릴레이 Hg외부인 키", randomPublicKeyLine("relay-hg-outsider"))
+                val encoded = sshAuthService.encodePrincipal(SshAuthPrincipal.SshKeyPrincipal(outsider, sshKey))
+
+                val cloneUrl = "ssh://relay-hg-outsider@localhost/${project.owner}/${project.name}"
+                val cloneDest = Files.createTempDirectory("ssh-relay-it-hg-clone-denied-").toFile()
+                try {
+                    val (exitCode, _) = runHgWithSsh(
+                        "clone", cloneUrl, cloneDest.absolutePath, sshCommand = sshCommandFor(encoded)
+                    )
+                    (exitCode != 0) shouldBe true
+                } finally {
+                    cloneDest.deleteRecursively()
+                }
+            }
+
+            it("읽기전용 Deploy Key로는 소켓 릴레이를 통한 hg clone은 되지만 push는 실패해야 한다") {
+                if (!pythonAvailable() || !hgAvailable()) return@it
+
+                val owner = userRepository.save(User(loginId = "relay-hg-ro-owner", name = "릴레이Hg읽기전용오너", email = "relay-hg-ro-owner@example.com"))
+                val project = projectRepository.save(Project(name = "relay-hg-ro-repo", owner = owner.loginId, vcs = "MERCURIAL"))
+                repositoryService.getRepository(project).create()
+                val repoDir = File(hgBaseDirHolder, "${project.owner}/${project.name}")
+                File(repoDir, "a.txt").writeText("ro hg content")
+                runHgInDir(repoDir, "add", "a.txt")
+                runHgInDir(
+                    repoDir, "--config", "ui.username=relay-hg-ro-owner <relay-hg-ro-owner@example.com>",
+                    "commit", "-m", "초기 커밋"
+                )
+
+                val issued = deployKeyService.create(project, "릴레이 Hg 읽기전용 Deploy Key", randomPublicKeyLine("relay-hg-ro"), readOnly = true)
+                val encoded = sshAuthService.encodePrincipal(SshAuthPrincipal.DeployKeyPrincipal(issued.deployKey))
+                val sshCommand = sshCommandFor(encoded)
+
+                val cloneUrl = "ssh://hg@localhost/${project.owner}/${project.name}"
+                val cloneDest = Files.createTempDirectory("ssh-relay-it-hg-ro-clone-").toFile()
+                try {
+                    val (cloneExit, cloneOutput) = runHgWithSsh(
+                        "clone", cloneUrl, cloneDest.absolutePath, sshCommand = sshCommand
+                    )
+                    withClue(cloneOutput) { cloneExit shouldBe 0 }
+
+                    File(cloneDest, "b.txt").writeText("should not be pushed")
+                    runHgInDir(cloneDest, "add", "b.txt")
+                    runHgInDir(
+                        cloneDest, "--config", "ui.username=relay-hg-ro-owner <relay-hg-ro-owner@example.com>",
+                        "commit", "-m", "should be rejected"
+                    )
+
+                    val (pushExit, _) = runHgWithSsh(
+                        "push", cloneUrl, dir = cloneDest, sshCommand = sshCommand
+                    )
+                    (pushExit != 0) shouldBe true
+                } finally {
+                    cloneDest.deleteRecursively()
+                }
+            }
+
             it("잘못된/알 수 없는 핸드셰이크 명령은 리스너를 죽이지 않고 거부만 해야 한다") {
                 val badConnectionSocket = SocketChannel.open(
                     StandardProtocolFamily.UNIX

@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.domain.vcs
 
 import com.github.yonaprojects.yona.domain.user.User
 import io.github.search5.hg4j.api.Hg
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -195,6 +196,207 @@ class HgRepositorySpec : DescribeSpec({
 
             moved shouldBe true
             File(File(baseDir), "owner2/project2/.hg").exists() shouldBe true
+        }
+    }
+
+    // yona-wiki P3-12 2라운드 — bookmark를 git 모양 "브랜치"에 매핑한 CRUD. 실제 hg4j
+    // BookmarkCommand로 직접 만든 bookmark를 HgRepository 쪽에서 조회/삭제가 되는지, 그리고
+    // HgRepository.createBranch()/deleteBranch()로 만들고 지운 것도 hg4j 쪽에서 보이는지 양방향으로
+    // 검증한다.
+    describe("브랜치(bookmark) CRUD") {
+        it("getBranches()는 hg4j로 직접 만든 bookmark를 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+            Hg.open(repo.getDirectory()).use { hg -> hg.bookmark().setBookmarkName("feature-x").call() }
+
+            val branches = repo.getBranches()
+
+            branches.map { it.shortName } shouldBe listOf("feature-x")
+            branches[0].headCommit.getShortMessage() shouldBe "커밋1"
+        }
+
+        it("createBranch()로 만든 브랜치가 hg4j bookmark로도 보인다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+            val tip = repo.getCommit("tip")!!
+
+            repo.createBranch("refs/heads/new-branch", "tip")
+
+            val bookmarks = Hg.open(repo.getDirectory()).use { hg -> hg.bookmark().call() }
+            bookmarks["new-branch"] shouldBe tip.getId()
+            repo.getBranches().map { it.shortName } shouldBe listOf("new-branch")
+        }
+
+        it("이미 존재하는 브랜치 이름으로 createBranch()를 호출하면 예외가 발생한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+            repo.createBranch("dup", "tip")
+
+            shouldThrow<IllegalArgumentException> {
+                repo.createBranch("dup", "tip")
+            }
+        }
+
+        it("존재하지 않는 시작점으로 createBranch()를 호출하면 예외가 발생한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+
+            shouldThrow<IllegalArgumentException> {
+                repo.createBranch("orphan", "no-such-revision")
+            }
+        }
+
+        it("deleteBranch()로 지운 브랜치는 getBranches()에서 사라진다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+            repo.createBranch("to-delete", "tip")
+
+            repo.deleteBranch("refs/heads/to-delete")
+
+            repo.getBranches() shouldBe emptyList()
+        }
+
+        it("'tip'이라는 이름으로 createBranch()를 호출하면 예외가 발생한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+
+            shouldThrow<IllegalArgumentException> {
+                repo.createBranch("tip", "tip")
+            }
+        }
+
+        it("존재하지 않는 브랜치를 deleteBranch()로 지우려 하면 예외가 발생한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+
+            shouldThrow<IllegalArgumentException> {
+                repo.deleteBranch("no-such-branch")
+            }
+        }
+
+        it("getHeadBranch()는 active bookmark를 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+            // -r 없이 이름만 지정하면 자동으로 active가 된다(hg4j BookmarkCommand 주석 참고).
+            Hg.open(repo.getDirectory()).use { hg -> hg.bookmark().setBookmarkName("active-one").call() }
+
+            val head = repo.getHeadBranch()
+
+            head.shouldNotBeNull()
+            head.shortName shouldBe "active-one"
+        }
+
+        it("active bookmark가 없으면 getHeadBranch()는 null을 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+
+            repo.getHeadBranch().shouldBeNull()
+        }
+    }
+
+    describe("태그 CRUD") {
+        it("createTag()로 만든 태그가 getTagNames()/getTags()에 보인다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+            val tip = repo.getCommit("tip")!!
+
+            repo.createTag("v1.0", "tip", null, null, null)
+
+            repo.getTagNames() shouldBe listOf("refs/tags/v1.0")
+            val tags = repo.getTags()
+            tags.size shouldBe 1
+            tags[0].shortName shouldBe "v1.0"
+            tags[0].targetCommit.getId() shouldBe tip.getId()
+            // Mercurial 태그는 git 스타일 annotated 태그가 아니다 — tagger/message는 항상 비어 있다.
+            tags[0].annotated shouldBe false
+            tags[0].message shouldBe null
+        }
+
+        it("getTagNames()/getTags()는 pseudo-tag \"tip\"을 걸러낸다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+
+            repo.getTagNames() shouldBe emptyList()
+            repo.getTags() shouldBe emptyList()
+        }
+
+        it("이미 존재하는 태그 이름으로 createTag()를 호출하면 예외가 발생한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+            repo.createTag("dup-tag", "tip", null, null, null)
+
+            shouldThrow<IllegalArgumentException> {
+                repo.createTag("dup-tag", "tip", null, null, null)
+            }
+        }
+
+        it("'tip'이라는 이름으로 createTag()를 호출하면 예외가 발생한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+
+            shouldThrow<IllegalArgumentException> {
+                repo.createTag("tip", "tip", null, null, null)
+            }
+        }
+
+        it("존재하지 않는 시작점으로 createTag()를 호출하면 예외가 발생한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+
+            shouldThrow<IllegalArgumentException> {
+                repo.createTag("orphan-tag", "no-such-revision", null, null, null)
+            }
+        }
+
+        it("deleteTag()로 지운 태그는 getTagNames()에서 사라진다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+            repo.createTag("to-delete", "tip", null, null, null)
+
+            repo.deleteTag("refs/tags/to-delete")
+
+            repo.getTagNames() shouldBe emptyList()
+        }
+
+        it("존재하지 않는 태그를 deleteTag()로 지우려 하면 예외가 발생한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "project", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "1", "커밋1")
+
+            shouldThrow<IllegalArgumentException> {
+                repo.deleteTag("no-such-tag")
+            }
         }
     }
 })

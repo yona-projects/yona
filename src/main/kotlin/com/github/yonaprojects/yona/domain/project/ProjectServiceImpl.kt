@@ -388,18 +388,25 @@ class ProjectServiceImpl(
         recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom(project, originalOwner, originalName)
 
         // 물리 저장소 폴더명 이동
-        // yona-wiki P3-12(Mercurial 지원) 1라운드 — MERCURIAL 분기 추가. **발견한 기존 결함(범위
-        // 밖, 새 티켓으로 등록)**: 아래 sourceDir/targetDir이 vcs 종류와 무관하게 항상 ".git"
-        // 접미사를 붙이는데, SvnRepository.getDirectory()/HgRepository.getDirectory()는 실제로는
-        // 접미사 없는 "$owner/$name" 경로를 쓴다 — 즉 SVN/Mercurial 프로젝트는 sourceDir.exists()가
-        // 거짓이 되어 이 물리 이동이 조용히 no-op된다(git만 실제로 이동됨).
-        val baseDir = when (project.vcs?.uppercase()) {
+        // yona-wiki P3-12(Mercurial 지원) 2라운드 — 1라운드에서 발견한 기존 결함을 수정: 아래
+        // sourceDir/targetDir이 vcs 종류와 무관하게 항상 ".git" 접미사를 붙이던 것을, git만 접미사를
+        // 붙이도록 고쳤다. SvnRepository.getDirectory()/HgRepository.getDirectory()는 실제로는
+        // 접미사 없는 "$owner/$name" 경로를 쓰는데, 이 메서드는 항상 ".git"을 붙여 SVN/Mercurial
+        // 프로젝트는 sourceDir.exists()가 거짓이 되어 물리 이동이 조용히 no-op되고 있었다(git만
+        // 실제로 이동됨 — DB 메타데이터는 갱신되는데 물리 저장소는 옛 경로에 그대로 남고 새 경로
+        // 밑에는 빈 디렉터리가 새로 생기는 형태의 버그).
+        val vcsUpper = project.vcs?.uppercase()
+        val baseDir = when (vcsUpper) {
             "SUBVERSION", "SVN" -> svnBaseDir
             "MERCURIAL", "HG" -> hgBaseDir
             else -> gitBaseDir
         }
-        val sourceDir = File(baseDir, "$originalOwner/$originalName.git")
-        val targetDir = File(baseDir, "$newOwner/$newName.git")
+        val dirSuffix = when (vcsUpper) {
+            "SUBVERSION", "SVN", "MERCURIAL", "HG" -> ""
+            else -> ".git"
+        }
+        val sourceDir = File(baseDir, "$originalOwner/$originalName$dirSuffix")
+        val targetDir = File(baseDir, "$newOwner/$newName$dirSuffix")
         if (sourceDir.exists()) {
             targetDir.parentFile.mkdirs()
             sourceDir.renameTo(targetDir)
@@ -530,16 +537,24 @@ class ProjectServiceImpl(
         )
         projectUserRepository.save(projectUser)
 
-        // 물리 Bare 깃 저장소를 하드링크(Hard Link) 방식으로 무복사 복제 — SVN과 마찬가지로
-        // Mercurial도 이 하드링크 복제 자체가 git 전용 로직이라(아래 실제 복제 코드는 git 저장소
-        // 구조를 전제) 완전한 지원은 아니다(기존 SVN과 동일한 한계, 새 티켓으로 등록).
-        val baseDir = when (original.vcs?.uppercase()) {
+        // 물리 저장소를 하드링크(Hard Link) 방식으로 무복사 복제 — cloneHardLinkedRepository() 자체는
+        // 디렉터리를 재귀적으로 훑어 모든 파일을 하드링크하는 범용 구현이라 git 전용이 아니다
+        // (SVN/Mercurial 저장소 디렉터리 구조에도 그대로 적용 가능). 다만 아래 sourceDir/targetDir이
+        // 1라운드까지는 vcs 종류와 무관하게 항상 ".git" 접미사를 붙이고 있어(acceptTransfer()와 동일한
+        // 결함), SvnRepository/HgRepository의 접미사 없는 실제 경로와 어긋나 SVN/Mercurial 프로젝트는
+        // sourceDir.exists()가 거짓이 되어 포크 시 물리 복제가 조용히 no-op됐다 — 2라운드에서 수정.
+        val vcsUpper = original.vcs?.uppercase()
+        val baseDir = when (vcsUpper) {
             "SUBVERSION", "SVN" -> svnBaseDir
             "MERCURIAL", "HG" -> hgBaseDir
             else -> gitBaseDir
         }
-        val sourceDir = File(baseDir, "${original.owner}/${original.name}.git")
-        val targetDir = File(baseDir, "$destOwner/$destName.git")
+        val dirSuffix = when (vcsUpper) {
+            "SUBVERSION", "SVN", "MERCURIAL", "HG" -> ""
+            else -> ".git"
+        }
+        val sourceDir = File(baseDir, "${original.owner}/${original.name}$dirSuffix")
+        val targetDir = File(baseDir, "$destOwner/$destName$dirSuffix")
 
         if (sourceDir.exists()) {
             try {

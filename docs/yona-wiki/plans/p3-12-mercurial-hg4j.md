@@ -109,12 +109,24 @@ Mercurial의 wire protocol(HTTP 기반 `hg serve` 프로토콜)을 `search5/hg4j
 
 ## 완료 기준 (Definition of Done)
 
-- [ ] `search5/hg4j` API 확정 사항이 이 문서의 설계 개요에 반영됨(Step 0)
-- [ ] 실제 `hg clone`/`hg push` 클라이언트로 yona에 저장소를 만들고 커밋을 올릴 수 있음(수동 검증)
-- [ ] 코드브라우저에서 Mercurial 저장소의 파일 목록/커밋 이력/diff가 Git 저장소와 동일한 화면으로 조회됨
-- [ ] 비공개 Mercurial 저장소에 비멤버가 접근하면 거부됨
-- [ ] push 시 알림/웹훅이 Git과 동일하게 발행됨
-- [ ] `./gradlew test` 전체 GREEN
+- [x] `search5/hg4j` API 확정 사항이 이 문서의 설계 개요에 반영됨(Step 0, 1라운드)
+- [x] 실제 `hg clone`/`hg push` 클라이언트로 yona에 저장소를 만들고 커밋을 올릴 수 있음(2라운드
+      — HTTP는 자동 통합테스트로, SSH는 P3-18의 소켓 릴레이 통합테스트로 검증. "수동 검증"까지는
+      아니지만 실제 `hg` 바이너리로 자동화된 end-to-end 검증을 마쳤다는 점에서 사실상 상회)
+- [ ] 코드브라우저에서 Mercurial 저장소의 파일 목록/커밋 이력/diff가 Git 저장소와 동일한 화면으로
+      조회됨 — 파일 목록/커밋 이력은 1라운드에 이미 됨, **diff는 2라운드에도 의도적으로 범위 밖**
+      (`getDiff`/`getPatch`/`getArchive`는 사용자 확정대로 throw/no-op 그대로 유지, 후속 라운드 과제)
+- [x] 비공개 Mercurial 저장소에 비멤버가 접근하면 거부됨(2라운드 — HTTP는
+      `HgAuthorizationFilterSpec`/`HgHttpProtocolIntegrationSpec`, SSH는
+      `SshRelayServerIntegrationSpec`의 신규 Hg 전용 거부 테스트로 검증)
+- [ ] push 시 알림/웹훅이 Git과 동일하게 발행됨 — **2라운드에도 의도적으로 범위 밖**(사용자가
+      확정한 2라운드 범위는 "HTTP/SSH 프로토콜 서빙 + 브랜치/태그 CRUD"까지였고 push 이벤트
+      배선은 포함되지 않음). 현재 Hg push는 알림/웹훅/`PushedBranch` 추적 없이 조용히 반영된다 —
+      후속 라운드 과제로 명시적으로 남김(거짓 완료 표시 방지).
+- [ ] `./gradlew test` 전체 GREEN — 2라운드에서는 영향 범위(`domain/vcs/Hg*`, `web/Hg*`,
+      `config/**Hg*`, `domain/project/ProjectServiceImpl*`, `config/ssh/*`, `YonaApplicationTests`)만
+      선택 실행해 전부 GREEN 확인(작업 지시상 전체 스위트는 느려서 회귀 의심 근거 없이는 생략).
+      전체 스위트 자체를 이 라운드에서 돌리지 않았다는 점을 정직하게 미체크로 남김.
 
 ## 리스크 / 미결정 사항
 
@@ -204,11 +216,26 @@ Mercurial의 wire protocol(HTTP 기반 `hg serve` 프로토콜)을 `search5/hg4j
        HTTP(WebDAV, `SvnController`)만 유지한다(어느 티켓/계획에도 SVN+SSH가 요청된 적 없음 —
        필요해지면 별도 신규 티켓으로 논의).
 
+- **2026-09-08 2라운드 완료(브랜치/태그 CRUD + HTTP 서빙 + 버그 수정 + SSH 테스트 갭)**: 위
+  "2라운드 착수 전 사용자 결정사항" 그대로 진행. named branch/bookmark 매핑은 **bookmark로
+  확정**(재론의 안 함 — Mercurial 진짜 named branch는 커밋에 영구히 새겨지는 별개 개념이라
+  범위 밖 유지). 브랜치/태그 CRUD는 hg4j `BookmarkCommand`/`TagCommand`/`TagsCommand`로 실제
+  구현(`domain/vcs/HgRepository.kt`), HTTP 서빙은 `web/HgController.kt`+
+  `web/HgServletRequestWrapper.kt`(hg4j `HgHttpWireServer`를 `SvnController`와 동일한 프로젝트별
+  인스턴스 캐시 패턴으로 래핑) + `config/hg/HgAuthorizationFilter.kt`(`GitAuthorizationFilter`/
+  `SvnAuthorizationFilter`와 대칭, `RepoAccessPolicy` 재사용)로 완료. SSH는 P3-18에서 이미 완료돼
+  있었음을 확인(`YonaSshHgCommand`라는 이름의 클래스는 없고 대신 더 얇은
+  `HgSshProtocolHandler`+`authorizeHgCommand()` 조합으로 구현돼 있었음 — 계획서의 가정과 실제
+  구현 클래스명이 다르지만 기능은 동일, 재작업 불필요). `.git` 접미사 버그(`ProjectServiceImpl`의
+  `acceptTransfer`/`forkProject`)도 함께 수정. 상세 파일 목록/테스트 수/의도적으로 남긴 갭(push
+  알림·웹훅 미배선, diff/patch/archive 범위 밖)은 [[p3-12|티켓 완료 로그]] 참고 — 계획서와
+  중복 서술하지 않는다.
+
 ## 관련
 
 - 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-12.md)
 - 관련 계획: 없음
-- 관련 소스: `domain/vcs/{PlayRepository,GitRepository,SvnRepository,RepositoryService}.kt`,
-  `config/{GitServletConfig,git/GitAuthorizationFilter,svn/SvnAuthorizationFilter}.kt`,
-  `web/SvnController.kt`, `templates/project/create.html`
+- 관련 소스: `domain/vcs/{PlayRepository,GitRepository,SvnRepository,RepositoryService,HgRepository}.kt`,
+  `config/{GitServletConfig,git/GitAuthorizationFilter,svn/SvnAuthorizationFilter,hg/HgAuthorizationFilter}.kt`,
+  `web/{SvnController,HgController,HgServletRequestWrapper}.kt`, `templates/project/create.html`
 - 외부 저장소: [github.com/search5/hg4j](https://github.com/search5/hg4j)

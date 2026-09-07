@@ -14,8 +14,9 @@ import org.springframework.stereotype.Component
 // isGuestUser가 완전히 동일한 코드였음) config/git 밖으로 옮기고 이름을 VCS 중립적으로 바꿔
 // 세 곳(Git HTTP/SVN HTTP/SSH) 모두가 공유하도록 정리했다(순수 리팩터링, 동작 변화 없음 —
 // GitAuthorizationFilterSpec/SvnAuthorizationFilterSpec/SvnAuthorizationFilterExtraSpec으로
-// 회귀 여부 재검증). P3-12 2라운드에서 Mercurial용 `HgAuthorizationFilter`를 추가할 때도 이
-// 클래스를 그대로 쓸 것을 염두에 두고 옮겼다.
+// 회귀 여부 재검증). P3-12 2라운드에서 실제로 `config/hg/HgAuthorizationFilter`가 이 클래스를
+// 그대로 재사용해 추가됐다(HgAuthorizationFilterSpec으로 검증) — hg wire protocol 고유의
+// read/write 판정(cmd=unbundle / api/.../rw/...)만 그 필터에 남고 나머지 판정 로직은 동일하다.
 @Component
 class RepoAccessPolicy(
     private val projectService: ProjectService,

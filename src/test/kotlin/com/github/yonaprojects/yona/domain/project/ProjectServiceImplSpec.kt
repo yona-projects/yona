@@ -557,8 +557,12 @@ class ProjectServiceImplSpec : DescribeSpec({
             val destUser = User(id = 407L, loginId = destOwner, name = "물리svn수신")
             val managerRole = Role(id = RoleType.MANAGER.roleType)
 
-            val sourceDir = File("/tmp/yona/svn/$owner/$name.git")
-            val targetDir = File("/tmp/yona/svn/$destOwner/$name.git")
+            // 코디네이터 push 전 리뷰(2026-09-08, P3-12 2라운드) — SvnRepository.getDirectory()는
+            // ".git" 접미사 없는 "$owner/$name" 경로를 쓰므로(git 전용 접미사 버그 수정 이후) 테스트
+            // 픽스처도 실제 물리 경로와 일치시킨다(수정 전에는 이 테스트 자체가 버그와 동일한 ".git"
+            // 접미사를 픽스처에 붙여, 버그가 있어도 통과하는 거짓 양성 테스트였다).
+            val sourceDir = File("/tmp/yona/svn/$owner/$name")
+            val targetDir = File("/tmp/yona/svn/$destOwner/$name")
             sourceDir.deleteRecursively()
             targetDir.deleteRecursively()
             try {
@@ -576,6 +580,50 @@ class ProjectServiceImplSpec : DescribeSpec({
                 every { projectTransferRepository.delete(any()) } returns Unit
 
                 projectService.acceptTransfer(607L, "key", 407L)
+
+                sourceDir.exists() shouldBe false
+                targetDir.exists() shouldBe true
+            } finally {
+                sourceDir.deleteRecursively()
+                targetDir.deleteRecursively()
+            }
+        }
+
+        // yona-wiki P3-12 2라운드 회귀 테스트 — 위 SVN 테스트와 동일한 결함(".git" 접미사 하드코딩)이
+        // Mercurial 프로젝트에도 그대로 적용됐었다. HgRepository.getDirectory()도 접미사 없는
+        // "$owner/$name" 경로를 쓰므로 동일하게 검증한다.
+        it("Mercurial(MERCURIAL) 저장소 폴더가 실재하면 이관 시 hg 기본 경로에서 이동돼야 한다") {
+            val owner = "phys-hg-owner"
+            val name = "phys-hg-repo"
+            val destOwner = "phys-hg-dest-owner"
+            val sender2 = User(id = 309L, loginId = owner, name = "물리hg")
+            val proj = Project(id = 509L, name = name, owner = owner, vcs = "MERCURIAL")
+            val pt = ProjectTransfer(
+                id = 609L, project = proj, sender = sender2, destination = destOwner,
+                confirmKey = "key", newProjectName = name, requested = Instant.now()
+            )
+            val destUser = User(id = 409L, loginId = destOwner, name = "물리hg수신")
+            val managerRole = Role(id = RoleType.MANAGER.roleType)
+
+            val sourceDir = File("/tmp/yona/hg/$owner/$name")
+            val targetDir = File("/tmp/yona/hg/$destOwner/$name")
+            sourceDir.deleteRecursively()
+            targetDir.deleteRecursively()
+            try {
+                sourceDir.mkdirs()
+
+                every { projectTransferRepository.findByIdAndAcceptedAndRequestedAfter(609L, false, any()) } returns Optional.of(pt)
+                every { userRepository.findById(409L) } returns Optional.of(destUser)
+                every { organizationRepository.findByName(destOwner) } returns Optional.empty()
+                every { projectRepository.save(any()) } returns proj
+                every { projectUserRepository.findByProjectIdAndUserId(509L, 309L) } returns Optional.empty()
+                every { userRepository.findByLoginId(destOwner) } returns Optional.of(destUser)
+                every { projectUserRepository.findByProjectIdAndUserId(509L, 409L) } returns Optional.empty()
+                every { roleRepository.findById(RoleType.MANAGER.roleType) } returns Optional.of(managerRole)
+                every { projectUserRepository.save(any()) } returns mockk()
+                every { projectTransferRepository.delete(any()) } returns Unit
+
+                projectService.acceptTransfer(609L, "key", 409L)
 
                 sourceDir.exists() shouldBe false
                 targetDir.exists() shouldBe true
@@ -1600,6 +1648,7 @@ class ProjectServiceImplSpec : DescribeSpec({
     describe("ProjectServiceImpl.forkProject / cloneHardLinkedRepository (실제 파일시스템)") {
         val gitBase = File("/tmp/yona/git")
         val svnBase = File("/tmp/yona/svn")
+        val hgBase = File("/tmp/yona/hg")
 
         it("원본 프로젝트가 없으면 예외가 발생해야 한다") {
             every { projectRepository.findById(9001L) } returns Optional.empty()
@@ -1722,8 +1771,10 @@ class ProjectServiceImplSpec : DescribeSpec({
             val name = "fork-src-repo2"
             val destOwner = "fork-dst-owner2"
             val destName = "fork-dst-repo2"
-            val sourceDir = File(svnBase, "$owner/$name.git")
-            val targetDir = File(svnBase, "$destOwner/$destName.git")
+            // 코디네이터 push 전 리뷰(2026-09-08, P3-12 2라운드) — SvnRepository.getDirectory()는
+            // ".git" 접미사 없는 경로를 쓰므로(git 전용 접미사 버그 수정 이후) 픽스처도 일치시킨다.
+            val sourceDir = File(svnBase, "$owner/$name")
+            val targetDir = File(svnBase, "$destOwner/$destName")
             sourceDir.deleteRecursively()
             targetDir.deleteRecursively()
             try {
@@ -1744,6 +1795,41 @@ class ProjectServiceImplSpec : DescribeSpec({
                 projectService.forkProject(9006L, 8L, destOwner, destName)
 
                 File(targetDir, "config").exists() shouldBe true
+            } finally {
+                sourceDir.deleteRecursively()
+                targetDir.deleteRecursively()
+            }
+        }
+
+        // yona-wiki P3-12 2라운드 회귀 테스트 — 위 SVN 테스트와 동일한 결함이 Mercurial 포크에도
+        // 적용됐었다. HgRepository.getDirectory()도 접미사 없는 경로를 쓴다.
+        it("Mercurial(MERCURIAL) 저장소 폴더가 실재하면 포크 시 hg 기본 경로에서 하드링크 복제돼야 한다") {
+            val owner = "fork-src-owner-hg"
+            val name = "fork-src-repo-hg"
+            val destOwner = "fork-dst-owner-hg"
+            val destName = "fork-dst-repo-hg"
+            val sourceDir = File(hgBase, "$owner/$name")
+            val targetDir = File(hgBase, "$destOwner/$destName")
+            sourceDir.deleteRecursively()
+            targetDir.deleteRecursively()
+            try {
+                sourceDir.mkdirs()
+                File(sourceDir, ".hg").mkdirs()
+                File(sourceDir, ".hg/requires").writeText("dotencode\n")
+
+                val original = Project(id = 9020L, name = name, owner = owner, vcs = "MERCURIAL")
+                val forker = User(id = 20L, loginId = "forker-hg")
+                val managerRole = Role(id = RoleType.MANAGER.roleType)
+                every { projectRepository.findById(9020L) } returns Optional.of(original)
+                every { userRepository.findById(20L) } returns Optional.of(forker)
+                every { projectRepository.findByOwnerAndName(destOwner, destName) } returns Optional.empty()
+                every { projectRepository.save(any()) } answers { firstArg() }
+                every { roleRepository.findById(RoleType.MANAGER.roleType) } returns Optional.of(managerRole)
+                every { projectUserRepository.save(any()) } returns mockk()
+
+                projectService.forkProject(9020L, 20L, destOwner, destName)
+
+                File(targetDir, ".hg/requires").exists() shouldBe true
             } finally {
                 sourceDir.deleteRecursively()
                 targetDir.deleteRecursively()
@@ -1875,8 +1961,10 @@ class ProjectServiceImplSpec : DescribeSpec({
             val destUser = User(id = 102L, loginId = destOwner, name = "커스텀이관수신")
             val managerRole = Role(id = RoleType.MANAGER.roleType)
 
-            val sourceDir = File(customSvnBase, "$owner/$name.git")
-            val targetDir = File(customSvnBase, "$destOwner/$name.git")
+            // 코디네이터 push 전 리뷰(2026-09-08, P3-12 2라운드) — SvnRepository.getDirectory()는
+            // ".git" 접미사 없는 경로를 쓰므로(git 전용 접미사 버그 수정 이후) 픽스처도 일치시킨다.
+            val sourceDir = File(customSvnBase, "$owner/$name")
+            val targetDir = File(customSvnBase, "$destOwner/$name")
             sourceDir.mkdirs()
 
             every { projectTransferRepository.findByIdAndAcceptedAndRequestedAfter(9101L, false, any()) } returns Optional.of(pt)
@@ -1894,7 +1982,7 @@ class ProjectServiceImplSpec : DescribeSpec({
 
             sourceDir.exists() shouldBe false
             targetDir.exists() shouldBe true
-            File("/tmp/yona/svn/$destOwner/$name.git").exists() shouldBe false
+            File("/tmp/yona/svn/$destOwner/$name").exists() shouldBe false
         }
     }
 

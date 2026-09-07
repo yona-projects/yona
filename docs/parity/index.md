@@ -286,7 +286,7 @@
 | P3-09 | [x] | Swagger/OpenAPI UI 노출 (2026-08-28 사용자 제안, TDD로 완료) | 완료 | [[tickets/p3-09]] |
 | P3-10 | [x] | 전체 의존성 최신 버전 업데이트 (2026-08-28 사용자 요청, TDD/전체 스위트로 완료) | 완료 | [[tickets/p3-10]] |
 | P3-11 | [x] | 새 프로젝트 기본 브랜치를 "main"으로 결정론적 고정 (2026-08-31 사용자 요청, TDD로 완료) | 완료 | [[tickets/p3-11]] |
-| P3-12 | [~] | Mercurial(hg4j) 저장소 지원 추가 (2026-08-31 사용자 제안) | 1라운드 진행중 — hg4j 연결 + HgRepository 핵심 골격 완료 | [[tickets/p3-12]] |
+| P3-12 | [x] | Mercurial(hg4j) 저장소 지원 추가 (2026-08-31 사용자 제안) | 완료(2라운드) — 1라운드: hg4j 연결 + 저장소 골격(생성/조회/커밋 이력). 2라운드: 브랜치(bookmark)/태그 CRUD, HTTP 프로토콜 서빙(`HgController`+`HgAuthorizationFilter`), 1라운드에서 발견한 `.git` 접미사 버그 수정(SVN도 함께), SSH 쪽 read-only/비멤버 push 거부 테스트. 실제 `hg` 바이너리로 HTTP/SSH clone·push 모두 end-to-end 검증. 의도적 범위 밖(사용자 확정): named branch, diff/patch/archive, Hg 전용 브랜치 보호 정책, push 알림/웹훅 배선 | [[tickets/p3-12]] |
 | P3-13 | [ ] | 프런트엔드 분리 (React/Vue3/Angular 등 SPA) (2026-08-31 사용자 제안, 계획서만 작성 — 코드 0줄) | 계획서: [`docs/yona-wiki/plans/p3-13-decoupled-spa-frontend.md`](yona-... | [[tickets/p3-13]] |
 | P3-14 | [x] | yona를 OAuth2 서버(Authorization Server)로 제공 — 제3자 앱의 "Sign in with yona"/위임 API 접근 지원 | 완료(2라운드) — 1라운드: 리소스 레지스트리 일반화/`/api/v1` OAuth/앱 등록 UI. 2라운드: OIDC discovery/ID 토큰/`/userinfo`, identity 스코프(openid/profile/email) 선택형 부여, 스코프-클레임 게이팅 검증 | [[tickets/p3-14]] |
 | P3-15 | [x] | PR 승인/변경요청(리뷰 판정) 워크플로 추가 — GitHub의 Approve/Request changes에 대응 | **2026-09-06 사용자 제안, P3-04(브랜치 보호) 작업 중 스파이크로 발견된 갭 | [[tickets/p3-15]] |
