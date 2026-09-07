@@ -1,3 +1,5 @@
+> ⚠️ **이관됨(2026-09-07)**: 이 문서는 `docs/parity/`(표는 `index.md`, 항목별 상세는 `tickets/<id>.md`)로 전량 이관되었다. 아래 내용은 이관 검증을 위해 당분간 남겨두는 것이며, 새 SSOT는 [`docs/parity/index.md`](parity/index.md)다. `docs/COVERAGE_BACKLOG.md`/`docs/GOLDEN_PARITY_CHECK_PLAN.md`/`docs/golden/GOLDEN_PARITY_LEDGER.md`까지 이관이 끝나면 이 파일은 삭제된다.
+
 # yona → yona 동치성 회귀 백로그
 
 `yona`(Play/Java)에서 `yona`(Spring Boot/Kotlin)로 이식하며 발견된 기능 격차를 중요도 순으로 번호를 매겨 정리한 작업 백로그다. 원본 감사 리포트: 이 세션에서 생성한 아티팩트 "요나·유나 동치성 감사" 참고.
