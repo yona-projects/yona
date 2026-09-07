@@ -130,6 +130,14 @@ PasswordEncoder를 쓰지 않는 것과 대비됨)로 인코딩해 저장, 평�
   - **남은 것(2라운드)**: OIDC("Sign in with yona"), 관리자 등록 UI에 identity 스코프(openid/
     profile/email) 선택 추가.
 
+- **2라운드 착수 전 사용자 결정사항(2026-09-07 확정, 아직 미착수)**:
+  1. **UserInfo 클레임 범위**: `profile`+`email` 스코프 전부 노출(GitHub OAuth App과 동등한
+     수준 — 이름/아바타/이메일까지 제3자 앱에 제공). `sub`만 노출하는 최소 범위 안은 채택하지
+     않음.
+  2. **identity 스코프 부여 방식**: 모든 confidential 클라이언트에 자동 포함하지 않고,
+     `OAuthAppsAdminController`의 앱 등록 폼에서 관리자가 `openid`/`profile`/`email`을 앱별로
+     개별 선택하는 체크박스를 추가한다.
+
 ## 리스크 / 미결정 사항
 
 | 항목 | 내용 | 해소 방법 |

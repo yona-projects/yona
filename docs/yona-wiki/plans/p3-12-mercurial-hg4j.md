@@ -167,6 +167,19 @@ Mercurial의 wire protocol(HTTP 기반 `hg serve` 프로토콜)을 `search5/hg4j
     --tests "ProjectRestApiControllerSpec" --tests "YonaApplicationTests" -Dyona.it.db=h2` 전부
     GREEN(이 세션 샌드박스는 Docker 미접근이라 Testcontainers 대신 h2 프로파일 사용).
 
+- **2라운드 착수 전 사용자 결정사항(2026-09-07 확정, 아직 미착수)**:
+  1. **범위**: HTTP 프로토콜 서빙(`HgController`) + SSH(`YonaSshHgCommand`) + 브랜치/태그 CRUD
+     실제 매핑까지 전부 이번 2라운드에 포함(가장 넓은 범위로 확정 — "우선 HTTP만" 등으로 쪼개지
+     않음).
+  2. **기존 버그 동시 수정**: 1라운드에서 발견한 `ProjectServiceImpl`의 `acceptTransfer`/
+     `forkProject` 물리 디렉터리 이동 코드가 vcs 종류 무관하게 항상 `.git` 접미사를 붙이는
+     버그(SVN 프로젝트도 이전/포크 시 물리 저장소가 조용히 안 옮겨짐)를 P3-12 2라운드 작업에
+     함께 포함해 고친다(별도 티켓으로 분리하지 않음).
+  - Mercurial의 named branch/bookmark/phase를 코드브라우저 UI에 정확히 어떻게 매핑할지(1차는
+    named branch만 Git 브랜치처럼 노출하는 안이 1라운드 계획에 있었음)는 범위가 "브랜치/태그
+    모델까지 전부"로 커진 만큼 2라운드 착수 시 실제 hg4j `BranchesCommand`/`TagsCommand` API를
+    다시 확인하며 확정한다.
+
 ## 관련
 
 - 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-12.md)
