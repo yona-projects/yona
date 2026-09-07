@@ -1,4 +1,4 @@
-# SSH: 시스템 sshd 연동 (`git@host:owner/repo.git`)
+# SSH: 시스템 sshd 연동 (`git@host:owner/repo.git`, `hg@host:owner/repo`)
 
 yona-wiki P3-03이 설계했지만 "호스트 시스템을 건드리지 않는다"는 그 세션의 제약 때문에 실제
 등록은 못 하고 미뤄둔 부분이다(`docs/yona-wiki/plans/p3-03-ssh-gpg.md` 참고). 이 문서는 실제
@@ -69,12 +69,25 @@ GitHub/GitLab이 쓰는 것과 동일한 패턴이다(`AuthorizedKeysCommand` + 
 
 ## Step 1. 전용 시스템 계정 만들기
 
-GitHub 방식과 동일하게, 사람이 아니라 **저장소 접근 전용 계정 하나**(관례상 `git`)로 모든
-접속을 받는다. 실제 사용자 구분은 OS 계정이 아니라 공개키로 한다.
+GitHub 방식과 동일하게, 사람이 아니라 **저장소 접근 전용 계정**으로 모든 접속을 받는다. 실제
+사용자 구분은 OS 계정이 아니라 공개키로 한다.
+
+**계정 이름은 VCS 종류와 무관하다 — `git`/`hg` 둘 다 만들어서 URL 관례를 맞춰주는 걸 권장한다.**
+`ssh-auth.sh`(아래 Step 3)의 forced command는 어느 계정으로 접속했는지가 아니라
+`SSH_ORIGINAL_COMMAND`의 내용(git 명령인지 hg 명령인지)만 보고 소켓 반대편(`SshRelayServer`)에
+그대로 릴레이하므로, 계정 이름 자체는 아무 의미가 없다 — `hg clone ssh://git@host/...`도
+기술적으로는 동작한다. 하지만 실제 Mercurial 관례(`hg-ssh` 설정)는 `hg`라는 별도 계정을
+쓰므로, 사용자가 `git@host:owner/repo.git`과 `hg@host:owner/repo` 양쪽 다 자연스럽게 쓸 수
+있도록 계정을 두 개 만들어서 Step 4의 `Match User` 블록 하나로 같이 묶는다(설정 내용은
+완전히 동일 — 계정만 두 개).
 
 ```bash
 sudo useradd --system --shell /bin/bash --home-dir /home/git --create-home git
+sudo useradd --system --shell /bin/bash --home-dir /home/hg --create-home hg
 ```
+
+(아래 예시는 `git` 계정 기준으로 쓰지만 `hg` 계정도 완전히 동일하게 설정한다 — 계정 이름만
+다를 뿐 나머지 Step은 두 계정 모두에 그대로 적용된다.)
 
 **`/usr/sbin/nologin`을 쓰면 안 된다 — 반드시 실제 셸(`/bin/bash`)을 지정할 것.** 처음엔
 직관적으로 nologin을 썼었는데, 실제 컨테이너에 sshd를 띄워 forced command까지 관통시켜보고서야
@@ -100,12 +113,13 @@ SSH도 항상 forced command로만 귀결되므로 보안상 구멍이 생기지
 다만 **그룹 자체는 여전히 공유해야 한다** — 이유가 저장소 파일이 아니라 **소켓 파일**로
 바뀌었을 뿐이다. `SshRelayServer`가 여는 유닉스 도메인 소켓(`yona.ssh.relay.socket-path`)은
 `yona` 프로세스 소유로 그룹 rw(`rw-rw----`)만 열려 있어서(코드가 바인드 직후 명시적으로
-고정한다), `git` 계정이 그 소켓에 `connect()`하려면 여전히 `yona` 그룹의 멤버여야 한다:
+고정한다), `git`/`hg` 계정이 그 소켓에 `connect()`하려면 여전히 `yona` 그룹의 멤버여야 한다:
 
 ```bash
 # 예: yona 앱이 "yona" 계정으로 돈다고 가정 — 저장소 디렉터리엔 더 이상 chmod 안 해도 됨,
-# 이 usermod 한 줄만 있으면 된다(소켓 연결 권한 전용).
+# 이 usermod 두 줄만 있으면 된다(소켓 연결 권한 전용).
 sudo usermod -aG yona git
+sudo usermod -aG yona hg
 ```
 
 ## Step 2. 공유 시크릿 준비
@@ -225,11 +239,13 @@ sudo chown root:yona-ssh-hook /usr/local/lib/yona/ssh-auth.sh
 ## Step 4. sshd_config에 등록
 
 `/etc/ssh/sshd_config`에 아래를 추가한다(파일 맨 끝, `Match` 블록은 항상 끝에 와야 함).
-`git` 계정으로 접속할 때만 이 훅이 개입하도록 `Match User git`으로 범위를 좁힌다 — 다른
-시스템 계정의 SSH 로그인 방식에는 영향이 없다.
+`git`/`hg` 두 계정으로 접속할 때만 이 훅이 개입하도록 `Match User git,hg`로 범위를 좁힌다
+(OpenSSH는 쉼표로 여러 계정을 한 Match 블록에 묶을 수 있다) — 다른 시스템 계정의 SSH 로그인
+방식에는 영향이 없다. 두 계정 다 완전히 같은 설정을 쓴다(Step 1 참고 — 계정 이름 자체는
+`ssh-auth.sh`의 동작에 아무 영향이 없다).
 
 ```sshd_config
-Match User git
+Match User git,hg
     AuthorizedKeysCommand /usr/local/lib/yona/ssh-auth.sh %t %k
     AuthorizedKeysCommandUser yona-ssh-hook
 ```
@@ -280,6 +296,10 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
    git clone git@yona.example.com:owner/repo.git
    cd repo && touch test.txt && git add test.txt
    git commit -m "ssh push 테스트" && git push
+   ```
+   Mercurial 저장소는 `hg` 계정으로 접속한다(계정만 다를 뿐 나머지는 동일):
+   ```bash
+   hg clone ssh://hg@yona.example.com/owner/repo
    ```
 4. 등록되지 않은 키로 접속하면 sshd 표준 방식대로 `Permission denied (publickey)`가 떠야 한다.
 5. **브랜치 보호 확인**(실측 완료): 보호된 브랜치에 직접 push하면 `git push`가
@@ -348,8 +368,10 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
   git이든(`git-upload-pack '<repo>.git'` 등) Hg든(`hg -R '<repo>' serve --stdio`, 공식 `hg-ssh`가
   이 문서와 완전히 같은 아키텍처를 쓰므로 real `hg` 클라이언트가 실제로 보내는 형식 그대로) 그냥
   소켓에 그대로 릴레이한다 — 어느 쪽인지 구분해 처리하는 건 `SshRelayServer`가 소켓 반대편에서
-  하므로, 이 문서 자체는 VCS 종류와 무관하다. Mercurial 쪽 브랜치 보호(require_pull_request
-  등)는 아직 없다(`P3-12` 2라운드 과제 — `HgSshProtocolHandler`에 훅을 걸 자리만 마련돼 있음,
+  하므로, 이 스크립트 자체는 VCS 종류와 무관하다. **다만 계정 이름(`git`/`hg`)은 사용자에게
+  보이는 URL 관례를 맞추기 위한 것일 뿐**이다(Step 1 참고) — `ssh-auth.sh`는 어느 계정으로
+  왔는지 신경 쓰지 않는다. Mercurial 쪽 브랜치 보호(require_pull_request 등)는 아직 없다
+  (`P3-12` 2라운드 과제 — `HgSshProtocolHandler`에 훅을 걸 자리만 마련돼 있음,
   `docs/parity/tickets/p3-18.md` 참고). SVN은 관례상 이 공유-계정 패턴을 쓰지 않아(실제 시스템
   계정 단위 접속이 표준) 이 문서의 대상이 아니며, 지금처럼 HTTP(WebDAV, `SvnController`)로만
   서빙한다.
