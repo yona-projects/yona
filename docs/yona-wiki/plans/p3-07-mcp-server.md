@@ -6,7 +6,7 @@ status: done
 priority: 6
 depends_on: [p3-02-cli-and-rest-api]
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-07
+source: docs/parity/tickets/p3-07.md
 created: 2026-08-28
 updated: 2026-09-07
 tags: [plan, p3, mcp, ai, oauth]
@@ -23,7 +23,7 @@ AI 에이전트(Claude Code 등)가 MCP(Model Context Protocol)로 yona 저장�
 **코드 검증 완료**: 현재 yona에 이슈/PR을 개별적으로 생성·조회·수정하는 범용 JSON REST API가 없음
 (`ProjectApiController.kt`는 export/import 전용, 나머지는 Thymeleaf MVC 컨트롤러) — **[[p3-02-cli-and-rest-api]]와
 정확히 같은 선행 의존성을 공유**한다.
-원본: [`docs/PARITY_BACKLOG.md#P3-07`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-07.md`](../../parity/index.md)
 
 **2026-08-28 인증 방식 재설계(사용자 요청, 리서치 완료)**: 최초 설계는 P3-02의 Fine-grained PAT 토큰을
 설정 파일에 수동으로 붙여넣는 방식만 가정했으나, Claude 등 대화형 MCP 클라이언트가 원격 서버 접속 시
@@ -249,7 +249,7 @@ AI 에이전트(Claude Code 등)가 MCP(Model Context Protocol)로 yona 저장�
   BOARD/WIKI/WEBHOOKS/ADMINISTRATION/USERS) + `ApiTokenPermission`(NONE/READ/WRITE)을 OAuth 스코프 문자열
   축으로 그대로 재사용한다 — OAuth 스코프 문자열을 `"issues:read"`, `"issues:write"` 형식(그룹명 소문자 +
   `:` + 권한명 소문자)으로 정의해 `ApiTokenScopeGroup`/`ApiTokenPermission`과 1:1 매핑한다(신규 축 설계
-  없음, `docs/PARITY_BACKLOG.md`의 P3-14 항목이 이미 언급한 재사용 가능성을 그대로 확정). 단, PAT의
+  없음, `docs/parity/index.md`의 P3-14 항목이 이미 언급한 재사용 가능성을 그대로 확정). 단, PAT의
   `scopedProjects`(저장소 단위 세분화)에 대응하는 개념은 OAuth 스코프 문자열 표준에 자연스러운 자리가
   없어 **v1의 OAuth 토큰은 PAT의 `allRepositories=true`와 동일하게 항상 전체 저장소 대상으로 발급**한다
   (저장소 단위로 좁힌 OAuth 동의는 향후 [[p3-14]] 등에서 필요해지면 `resource` 파라미터(RFC8707)를
@@ -453,7 +453,7 @@ AI 에이전트(Claude Code 등)가 MCP(Model Context Protocol)로 yona 저장�
     DB 부수효과까지 검증 — mockk 단위테스트는 템플릿 문법 오류를 잡지 못하므로 이 스펙이 그 갭을 메움).
 - **전체 스위트 재확인**: `./gradlew test`(mariadb 프로파일) 전체 실행, 이 계획이 만든 코드/테스트는
   전부 GREEN. 무관한 클래스의 결과는 사용자 지시 4번에 따라 교차검증(단독 재실행)했다 — 상세 결과는
-  이 라운드 커밋 메시지 및 `docs/COVERAGE_BACKLOG.md`(있다면)에 남긴 대로.
+  이 라운드 커밋 메시지 및 `docs/coverage/index.md`(있다면)에 남긴 대로.
 - **커밋**: Step별로 4개 커밋(Step1-2, Step3-5, Step6 실버그 수정, 5라운드 UI+문서)으로 분리 — 각각
   `git log`에서 `feat(p3-07)`/`fix(p3-07)` 접두어로 조회 가능.
 
@@ -503,13 +503,13 @@ confidential 클라이언트를 등록하면 인증이 항상 실패할 수 있�
 이 코드로 confidential 클라이언트를 실제로 생성하는 경로가 프로젝트 전체에 전무하다(RFC7591 DCR로
 등록되는 MCP 클라이언트는 전부 공개 클라이언트, PKCE 전용, `clientSecret = null`). 지금 인코딩
 로직을 추가하는 건 아무도 호출하지 않는 경로를 위한 과도한 설계이므로 보류하고, **P3-14
-(`docs/PARITY_BACKLOG.md#P3-14` — 아직 별도 계획서 없음, 백로그 항목만 존재)가 실제로 confidential
+(`docs/parity/tickets/p3-14.md` — 아직 별도 계획서 없음, 백로그 항목만 존재)가 실제로 confidential
 사전등록 클라이언트를 만들 때 반드시 `PasswordEncoder`(Spring 기본 `DelegatingPasswordEncoder`)로
 인코딩해서 저장하도록 그때 구현할 것**을 여기 기록해 미검증 상태로 방치되지 않게 한다.
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-07)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-07.md)
 - 관련 계획: [[p3-02-cli-and-rest-api]](강한 선행 의존성), [[p3-04-branch-protection]](머지 정책 연동 검토),
   [[p3-06-enterprise-sso]](블로커 아님 — 인가 서버가 로그인 위임하는 대상이 확장될 뿐, 레이어가 다름)
 - 비교 참고: v2 브랜치의 읽기 전용 MCP 서버(`app/mcp/*`, `docs/technical/mcp-server.md` — 원 저작자 저장소)

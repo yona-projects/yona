@@ -6,7 +6,7 @@ status: done
 priority: 4
 depends_on: []
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-04
+source: docs/parity/tickets/p3-04.md
 created: 2026-08-28
 updated: 2026-09-07
 tags: [plan, p3, git, security]
@@ -18,7 +18,7 @@ tags: [plan, p3, git, security]
 
 `ProtectedBranch` 모델과 관련 로직이 전무 — 설계만 진행됨. 적용 지점은 두 곳: (1) 직접 push 차단,
 (2) PR 병합 시 체크. `AccessControl`과는 별개 레이어(권한 확인 통과 후 추가 정책)로 설계할 계획.
-원본: [`docs/PARITY_BACKLOG.md#P3-04`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-04.md`](../../parity/index.md)
 
 ## 범위
 
@@ -186,7 +186,7 @@ tags: [plan, p3, git, security]
   TemplateHelper/ApiToken/GitAuthorizationFilter 관련)에서 `project_pushed_branch` FK
   위반으로 53개 테스트가 실패했으나, 이 8개 클래스를 단독 재실행하면 전부 GREEN — 이 환경에
   동시에 떠 있던 다른 세션의 Gradle 데몬(`ps aux`로 확인, 이 리포 공용 MySQL 테스트 DB를 공유)이
-  일으킨 테스트 간 데이터 경합으로 판단했다(`docs/COVERAGE_BACKLOG.md`에 동일 패턴의 선례
+  일으킨 테스트 간 데이터 경합으로 판단했다(`docs/coverage/index.md`에 동일 패턴의 선례
   다수 기록됨 — 동시 실행 시 Gradle 데몬/DB 자원 경합). 이번 라운드가 새로 만든 코드와는 무관함을
   확인하기 위해 전체 스위트를 정지 없이 한 번 더 실행해 재확인했다(결과는 아래).
 - **최종 검증**: 전체 스위트(`./gradlew test`)를 두 차례 실행했는데 두 번 다 동일하게 5,872 tests
@@ -199,7 +199,7 @@ tags: [plan, p3, git, security]
   즉 실패는 오직 5,872개 전체를 한 번에 돌리는 긴(3분+) 전체 스위트 실행에서만 재현되고, 이
   계획이 건드린 코드/테스트만으로는 재현되지 않는다 — `ps aux`로 확인한 결과 이 세션 진행 중에도
   다른 세션의 Gradle 데몬 여러 개가 동일 저장소 워크트리에서 계속 떠 있었고, `docs/
-  COVERAGE_BACKLOG.md`에 이미 여러 차례 기록된 "동시 세션의 공유 MySQL 테스트 DB 경합" 패턴과
+  coverage/index.md`에 이미 여러 차례 기록된 "동시 세션의 공유 MySQL 테스트 DB 경합" 패턴과
   정확히 일치한다. 이 계획 자체의 새 테스트(`ProtectedBranchSpec` 6, `GitPushHooksSpec`의
   `BranchProtectionPreReceiveHook` describe 20, `PullRequestServiceSpec`의 "5-1" describe 6,
   `GitServletConfigSpec` 7 — 이 중 뒤 3개는 기존 스펙에 추가/수정)는 모든 실행에서 항상 GREEN이었다.
@@ -359,7 +359,7 @@ tags: [plan, p3, git, security]
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-04)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-04.md)
 - 관련 계획: [[p3-03-ssh-gpg]](서명 검증 결과 소비), [[p3-15-pr-approval-workflow]](`require_approvals`가
   소비하는 승인/변경요청 판정 데이터의 출처)
 - 관련 소스: `domain/branchprotection/ProtectedBranch.kt`, `domain/branchprotection/ProtectedBranchRepository.kt`,

@@ -1,7 +1,7 @@
 # yona 사용자 가이드
 
 legacy Yona(당시 명칭 Yobi)의 `docs/userManual/TOC.md`를 목차로 삼아 한국어로 옮긴 사용자
-매뉴얼. `docs/PARITY_BACKLOG.md`/`docs/TEMPLATE_BACKLOG.md`에 따라 화면 구조와 동작을 legacy와
+매뉴얼. `docs/parity/index.md`/`docs/TEMPLATE_BACKLOG.md`에 따라 화면 구조와 동작을 legacy와
 동일하게 유지하는 것이 이 프로젝트의 원칙이므로, 아래 안내에 나오는 버튼/메뉴 이름은 대체로
 현재 yona 화면에도 그대로 적용된다. 다만 실제 화면과 다른 부분을 발견하면 알려주기 바란다 —
 전 화면을 한 줄씩 대조 검증하지는 않았다.

@@ -12,4 +12,4 @@ authorization.
 Once you delete a project, you can't recover it.
 
 Deletion cascades to related issues/posts/pull requests/labels/webhooks etc. — see
-`docs/PARITY_BACKLOG.md` P0-19 for background.
+`docs/parity/index.md` P0-19 for background.

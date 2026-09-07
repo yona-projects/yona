@@ -5,10 +5,10 @@
 `yona`(레거시, Java/Play 2.3.10/sbt, 컴파일 불가, `/Users/mzc01-search5/yona-convert/yona`)에서 `yona`(Kotlin/Spring Boot, 이 저장소)로 오랫동안 포팅 작업을 진행했지만, 레거시 코드의 모든 기능이 실제로 옮겨졌는지 확신할 방법이 없었다. 레거시는 컴파일이 안 되므로 런타임/컴파일 기반 검증은 불가능하고, 정적 분석으로 파리티를 확인해야 한다.
 
 조사 결과 이미 두 가지 자산이 존재한다:
-1. `yona` 코드 곳곳(909줄, 284개 파일)에 `// yona X.java:NNN 대응 (티켓번호)` 형태의 마이그레이션 참조 주석이 있고, 이는 `docs/PARITY_BACKLOG.md`(218개 티켓, P0~P2는 사실상 100% `[x]`)와 연결되어 있다.
+1. `yona` 코드 곳곳(909줄, 284개 파일)에 `// yona X.java:NNN 대응 (티켓번호)` 형태의 마이그레이션 참조 주석이 있고, 이는 `docs/parity/index.md`(218개 티켓, P0~P2는 사실상 100% `[x]`)와 연결되어 있다.
 2. `yona` 저장소는 이미 자체 Serena(Java LSP) 프로젝트로 인덱싱되어 있어, 컴파일 없이도 파일 단위 심볼(클래스/메서드) 추출이 가능함이 실증되었다(`.serena/cache/java/document_symbols.pkl` 기존 생성 확인).
 
-하지만 실질적 공백이 확인됐다: `app/playRepository`(Git/SVN 접근 계층, 23파일)와 `app/validation`·`app/errors`·`app/service`(11파일)는 `docs/PARITY_BACKLOG.md`에서 사실상 미언급이고, 218개 티켓 중 38개는 코드에 대응 주석이 전혀 없어 grep으로 역추적이 불가능하다. `doc2/*_SUPER_AUDIT.md` 문서군은 내용 품질 문제(라인 인용 없음, 존재하지 않는 내용 서술, 다른 환경 산출물로 추정되는 리눅스 경로)로 신뢰할 수 없고 현재 작업 디렉터리에서 이미 삭제된 상태다(git status상 `D`) — 이 문서군은 이번 golden check의 근거로 쓰지 않는다.
+하지만 실질적 공백이 확인됐다: `app/playRepository`(Git/SVN 접근 계층, 23파일)와 `app/validation`·`app/errors`·`app/service`(11파일)는 `docs/parity/index.md`에서 사실상 미언급이고, 218개 티켓 중 38개는 코드에 대응 주석이 전혀 없어 grep으로 역추적이 불가능하다. `doc2/*_SUPER_AUDIT.md` 문서군은 내용 품질 문제(라인 인용 없음, 존재하지 않는 내용 서술, 다른 환경 산출물로 추정되는 리눅스 경로)로 신뢰할 수 없고 현재 작업 디렉터리에서 이미 삭제된 상태다(git status상 `D`) — 이 문서군은 이번 golden check의 근거로 쓰지 않는다.
 
 사용자가 확정한 방향: (1) 기존 "yona 대응" 주석을 역추적해 이미 검증 가능한 항목을 저비용으로 확인하고, (2) golden 마커를 **레거시 `yona` 소스에 직접** 심어 검증의 물리적 근거를 만들고, `yona` 쪽에는 대응하는 마커를 병기한다. 범위는 **백엔드 자바 파일 315개 전체**와 **뷰 템플릿(`docs/TEMPLATE_BACKLOG.md`의 242개, 그 중 50개 `[i]` 미검증분 포함)**을 함께, **전체 심볼/파일에 일괄** 다룬다.
 
@@ -19,8 +19,8 @@
 - **golden marker는 `yona` 소스에 직접 삽입, `yona`의 기존 "yona 대응" 주석 컨벤션에 GL-ID를 병기** — 라인범위 퍼지 매칭보다 고유 ID grep 매칭이 라인 밀림에 안전하고 견고함. CSV/ledger는 이 마커들의 인덱스 겸 사람이 읽는 뷰.
 - **CSV는 기계 처리용, MD는 사람이 읽는 최종 요약**.
 - **`yona` 소스(src/**/*.kt) 탐색은 Bash grep/sed 금지, Serena `search_for_pattern` 사용** — 표준 작업 규칙(소스 코드 탐색·편집은 항상 Serena)에 따름. Bash `find`(파일 존재/목록 확인)와 비-소스 산출물(생성된 CSV/로그) 처리에는 grep/sed를 써도 된다. Serena `get_symbols_overview`는 **`yona`(ECJ 파싱 필요) 쪽 심볼 추출에** 사용.
-- **fork agent 배치 재사용, Workflow 툴 신규 도입 없음** — 이번 작업은 "정해진 파일 목록을 순회하며 정형 데이터를 뽑아내는" 반복 작업으로, `COVERAGE_BACKLOG.md`/FQN→import 리팩터링 때 성공한 fork 패턴과 동일 성격.
-- **자동 승격 금지** — 버킷 C(공백 후보)에서 사람이 직접 검토해 "진짜 공백"으로 확정한 항목만 `docs/PARITY_BACKLOG.md`에 신규 티켓으로 승격. 자동 판정으로 완료/공백 딱지를 붙이지 않는다.
+- **fork agent 배치 재사용, Workflow 툴 신규 도입 없음** — 이번 작업은 "정해진 파일 목록을 순회하며 정형 데이터를 뽑아내는" 반복 작업으로, `coverage/index.md`/FQN→import 리팩터링 때 성공한 fork 패턴과 동일 성격.
+- **자동 승격 금지** — 버킷 C(공백 후보)에서 사람이 직접 검토해 "진짜 공백"으로 확정한 항목만 `docs/parity/index.md`에 신규 티켓으로 승격. 자동 판정으로 완료/공백 딱지를 붙이지 않는다.
 
 ## 1단계 — 레거시 yona 심볼 인벤토리 + golden marker 삽입 (백엔드, 315개 파일 전체)
 
@@ -89,13 +89,13 @@ substring_pattern: "yona(에|에는|와)[[:space:]]*(없|무관|존재하지[[:s
 | C. GAP_CANDIDATE | 매치 없음 + trivial 아님 + 제외 아님 | ledger 등재, `priority_flag=HIGH` 우선 정렬 |
 | D. INTENTIONAL_EXCLUDED | 역방향 패턴 매치 | 참고용, 공백 집계에서 제외 |
 
-**38개 무참조 티켓** 별도 처리: `docs/PARITY_BACKLOG.md`의 "yona 근거" 컬럼(파일:라인)을 역으로 1단계 인벤토리와 대조해 해당 범위에 대응하는 yona 구현이 실존하는지(파일+심볼 존재 여부) 확인하는 부록 체크리스트.
+**38개 무참조 티켓** 별도 처리: `docs/parity/index.md`의 "yona 근거" 컬럼(파일:라인)을 역으로 1단계 인벤토리와 대조해 해당 범위에 대응하는 yona 구현이 실존하는지(파일+심볼 존재 여부) 확인하는 부록 체크리스트.
 
 **템플릿**: `[i]`(50개) 및 2단계에서 매치가 전혀 없는 뷰 파일을 템플릿용 GAP_CANDIDATE로 분류.
 
 ## 4단계 — golden 마커 산출물
 
-`docs/golden/GOLDEN_PARITY_LEDGER.md`:
+`docs/golden/index.md`:
 ```markdown
 # Golden Parity Ledger (생성일 YYYY-MM-DD)
 
@@ -112,7 +112,7 @@ substring_pattern: "yona(에|에는|와)[[:space:]]*(없|무관|존재하지[[:s
 ## 부록 — 티켓 근거 재검증 (무참조 38개)
 ## 템플릿 — 미검증/공백 후보
 ```
-`GL-ID`는 1b에서 확정된, 재사용하지 않는 고정 ID(레거시 소스에 실제로 삽입된 값과 동일). 버킷 C 중 사람이 검토해 **진짜 공백**으로 확정한 항목만 `docs/PARITY_BACKLOG.md`에 신규 티켓(다음 번호부터, 승격 시점에 재확인)으로 승격하고 ledger에 `promoted_to: P?-NN`, 상태 CLOSED 표시.
+`GL-ID`는 1b에서 확정된, 재사용하지 않는 고정 ID(레거시 소스에 실제로 삽입된 값과 동일). 버킷 C 중 사람이 검토해 **진짜 공백**으로 확정한 항목만 `docs/parity/index.md`에 신규 티켓(다음 번호부터, 승격 시점에 재확인)으로 승격하고 ledger에 `promoted_to: P?-NN`, 상태 CLOSED 표시.
 
 ## 5단계 — yona 측 GL-ID 병기 (백필)
 
@@ -126,7 +126,7 @@ substring_pattern: "yona(에|에는|와)[[:space:]]*(없|무관|존재하지[[:s
 4. F1~F9 재구성 후 2~3개씩 소규모 배치로 마커 삽입(1c) + 템플릿 마커 삽입(1-T 3), 각 파일 `get_diagnostics_for_file`로 구문 확인.
 5. Serena `search_for_pattern`으로 역참조 인덱스(2단계) 구축.
 6. 메인 세션이 CSV join으로 3단계 대조 실행, 버킷 분류.
-7. `docs/golden/GOLDEN_PARITY_LEDGER.md` 작성(4단계).
+7. `docs/golden/index.md` 작성(4단계).
 8. 버킷 A 전체에 대해 2~3개 fork 소규모 배치로 yona 측 GL-ID 병기(5단계).
 9. 아래 Sanity Check 수행.
 10. `git fetch` 후 신규 산출물 커밋+push (기존 프로젝트 관례: 설명적 커밋 메시지, `git add`로 명시적 파일 지정). **`yona` 리포도 golden marker 삽입분을 별도로 커밋+push한다** — 마커는 `yona`의 자체 git 저장소 이력에도 남아야 재현·감사가 가능하다.
@@ -140,8 +140,8 @@ substring_pattern: "yona(에|에는|와)[[:space:]]*(없|무관|존재하지[[:s
 5. **마커 무결성 검증**: `mcp__serena__search_for_pattern`(`restrict_search_to_code_files=false`)으로 `yona` 전체에서 `GOLDEN:GL-\d+`를 재검색해 (a) 중복 GL-ID가 없는지, (b) CSV의 gl_id 개수와 실제 삽입된 마커 개수가 정확히 일치하는지, (c) 마커 삽입 후 `get_diagnostics_for_file`에서 새로 생긴 파싱 오류가 없는지 확인.
 
 ### Critical Files
-- `docs/PARITY_BACKLOG.md`, `docs/TEMPLATE_BACKLOG.md`
-- `docs/golden/YONA_SYMBOL_INVENTORY.csv`, `YONA_TEMPLATE_INVENTORY.csv`, `YONA_REVERSE_INDEX.csv`, `GOLDEN_PARITY_LEDGER.md` (신규 산출물)
+- `docs/parity/index.md`, `docs/TEMPLATE_BACKLOG.md`
+- `docs/golden/YONA_SYMBOL_INVENTORY.csv`, `YONA_TEMPLATE_INVENTORY.csv`, `YONA_REVERSE_INDEX.csv`, `golden/index.md` (신규 산출물)
 - `/Users/mzc01-search5/yona-convert/yona`의 315개 백엔드 파일 + 242개 템플릿 (golden marker 주석 삽입 대상 — 이 작업에 한해 수정 허용, 그 외 수정 금지)
 - `/Users/mzc01-search5/yona-convert/yona/app/playRepository/**/*.java`, `app/{validation,errors,service}/*.java` (최우선 감사 대상)
 - `/Users/mzc01-search5/yona-convert/yona/app/views/**/*.scala.html` (템플릿 대상)

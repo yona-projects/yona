@@ -6,7 +6,7 @@ Thymeleaf) 242개 전부와 파일 단위로 재대조하지는 않았다 — `d
 파일별 이식 상태를 추적하는 원 소스이니, 특정 화면의 정확한 include 구조가 궁금하면 그쪽을
 먼저 확인하는 게 안전하다. 아래는 legacy 파일명(`views.a.b.scala.html`)을 yona의 명명
 관례(`templates/a/b.html`, [views-naming-guide.md](views-naming-guide.md) 참고)로 기계적으로
-치환한 것이다 — URL 자체는 프로젝트 원칙상(`docs/PARITY_BACKLOG.md`) legacy와 최대한 동일하게
+치환한 것이다 — URL 자체는 프로젝트 원칙상(`docs/parity/index.md`) legacy와 최대한 동일하게
 유지됐다.
 
 ## yona 홈

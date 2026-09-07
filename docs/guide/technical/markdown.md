@@ -36,4 +36,4 @@ Play 템플릿 헬퍼가 없으므로 이 부분만 새로 정리했다. 클라�
   **CommonMark Java**(`org.commonmark:commonmark` + `commonmark-ext-gfm-tables`/
   `commonmark-ext-gfm-strikethrough`/`commonmark-ext-autolink`)로 완전히 대체됐다.
 - 새니타이징도 legacy의 커스텀 `Markdown.java` allowlist 대신 **OWASP Java HTML Sanitizer**로
-  동일한 allowlist 정책을 재구현했다(`docs/PARITY_BACKLOG.md` P0-08).
+  동일한 allowlist 정책을 재구현했다(`docs/parity/index.md` P0-08).

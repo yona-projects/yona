@@ -15,10 +15,10 @@ yona(`/home/jiho/yona-convert/yona/src/main/resources/templates/**/*.html`, Thym
   - `@helper.form(...)`, `@play20.compat.*` → `th:action`/`method`/CSRF는 Spring Security의 표준 방식으로 치환
   - `@Messages("key", arg)` → `#{key(${arg})}` (기존 `templates/*.html`이 이미 이 컨벤션을 씀, `messages*.properties` 재사용)
   - Ebean 엔티티의 필드/메서드 접근(`project.name`, `issue.state.state()` 등)은 대응하는 JPA 엔티티(`Project`, `Issue` Kotlin 클래스)의
-    동일 이름 필드/메서드로 1:1 치환 — 필드가 없으면 백엔드부터 먼저 이식됐는지 `docs/PARITY_BACKLOG.md`에서 확인 후 진행
+    동일 이름 필드/메서드로 1:1 치환 — 필드가 없으면 백엔드부터 먼저 이식됐는지 `docs/parity/index.md`에서 확인 후 진행
   - Play 라우트 헬�다(`@routes.IssueApp.issue(...)`) → Thymeleaf `@{...}` URL 표현식, 대응 컨트롤러의 실제 `@GetMapping` 경로 사용
   - legacy가 AJAX로 부분갱신하던 `partial_*.scala.html` 조각은, 대응하는 컨트롤러 엔드포인트가 yona에 없다면
-    **그 엔드포인트 자체도 이식 대상**이다(뷰만 옮기고 끝나지 않음) — 없으면 `docs/PARITY_BACKLOG.md`에 새 항목으로 등록 후 진행
+    **그 엔드포인트 자체도 이식 대상**이다(뷰만 옮기고 끝나지 않음) — 없으면 `docs/parity/index.md`에 새 항목으로 등록 후 진행
 - **"상태 [~]" (yona에 같은 이름/역할의 파일이 이미 있음)라고 해서 완료로 간주하지 말 것.** 이 세션 이전까지 템플릿 작업은
   거의 검증되지 않았다 — 반드시 legacy 원본과 **줄 단위로 대조**해서 누락된 분기/필드/조각이 없는지 확인하고, 있으면 채워 넣는다.
   대조 결과 완전히 일치하면 그때 백로그 상태를 `[x]`로 바꾸고 완료 로그를 남긴다.
@@ -26,7 +26,7 @@ yona(`/home/jiho/yona-convert/yona/src/main/resources/templates/**/*.html`, Thym
   조각의 내용을 **전부** 포함하는지 확인 필요. 일부만 들어있거나 아예 없으면 `[ ]`로 취급하고 채워 넣는다(인라인이냐 별도
   파일이냐는 아키텍처 선택으로 허용되지만, 아예 빠진 것은 허용되지 않는다).
 - UI는 나중에 실제 서비스에 연결한다는 방침이지만, 이 백로그는 화면 자체를 **지금** 채워 넣는 작업이다 — 컨트롤러가 이미
-  해당 뷰 이름을 반환하도록 이식되어 있는 경우가 많으므로(`docs/PARITY_BACKLOG.md` P0~P2 항목들), 뷰만 채우면 바로 붙는다.
+  해당 뷰 이름을 반환하도록 이식되어 있는 경우가 많으므로(`docs/parity/index.md` P0~P2 항목들), 뷰만 채우면 바로 붙는다.
 - 작업 순서는 **의존성 우선**(레이아웃/공용 파샬 → 화면 도메인)이며, 각 그룹 내부는 대체로 legacy 파일시스템 순서를 따른다.
   番호는 전체 작업 순서(1~242)를 나타낸다 — 반드시 순서대로 할 필요는 없지만, 앞 번호가 뒤 번호에 의존(레이아웃/공용 파샬을
   include)하는 경우가 많아 순서를 지키는 편이 재작업을 줄인다. 단, 레이아웃(그룹1)이 공용 파샬(그룹2, 예: navbar/footer/
@@ -37,13 +37,13 @@ yona(`/home/jiho/yona-convert/yona/src/main/resources/templates/**/*.html`, Thym
   2. `src/test/kotlin/com/github/yonaprojects/yona/web/TemplateEquivalenceSpec.kt`(이미 존재하는 템플릿 렌더링 검증
      하네스 — `AbstractIntegrationTest` 확장, 실제 Spring 컨텍스트+MockMvc로 실제 페이지를 렌더링해 Jsoup으로
      파싱 후 CSS 선택자 단언)에 새 `describe` 블록으로 그 차이점을 검증하는 테스트를 먼저 추가한다. 파일이 아직
-     없는 화면이면 컨트롤러가 그 뷰 이름을 반환하는지부터 확인(없으면 `docs/PARITY_BACKLOG.md` 확인 후 컨트롤러도
+     없는 화면이면 컨트롤러가 그 뷰 이름을 반환하는지부터 확인(없으면 `docs/parity/index.md` 확인 후 컨트롤러도
      함께 이식). 도메인이 크게 다르면(레이아웃, PR/코드리뷰 등) `XxxTemplateEquivalenceSpec.kt`처럼 별도 스펙
      파일을 새로 만들어도 된다(같은 하네스 패턴 재사용).
   3. `./gradlew test --tests "..."`로 레드 확인(템플릿 미비로 실패해야 정상).
   4. 템플릿을 legacy 그대로 채워 넣어 그린 전환.
   5. 영향받는 인접 템플릿/기존 테스트도 함께 재실행해 회귀 확인, 전체 스위트로 마무리 확인.
-  6. 이 문서의 상태(`[ ]`/`[~]`/`[i]` → `[x]`)와 진행 로그, 필요시 `docs/PARITY_BACKLOG.md`(새 컨트롤러 엔드포인트를
+  6. 이 문서의 상태(`[ ]`/`[~]`/`[i]` → `[x]`)와 진행 로그, 필요시 `docs/parity/index.md`(새 컨트롤러 엔드포인트를
      이식한 경우)를 갱신하고 커밋한다.
 
 ## 상태 기호
@@ -71,7 +71,7 @@ yona(`/home/jiho/yona-convert/yona/src/main/resources/templates/**/*.html`, Thym
 | 6 | [i] | `organizationLayout.scala.html` | `organization/*.html` 각 파일(인라인 조합 필요) | `navbar(menuType,null,group)+content+footer` 패턴 대응. **2026-08-23 정정**: 당시 "10개 파일 전부 gnb/footer 조각 없음"이라 기록했던 것은 그룹12 작업(TASK-0252 계열)에서 해소됨을 재확인 — 전체 화면 템플릿(`boardList/create/delete/issueList/list/members/pullRequestList/setting/view.html`)은 전부 `site/layout` 조각을 포함하고, 나머지(`boardList_partial/header/issueList_partial/issueList_quicksearch/issueSearch_partial/menu/partial_settingmenu/pullRequestList_partial.html`)는 전체 화면에 인라인 포함되는 프래그먼트라 자체 gnb/footer가 애초에 불필요한 것으로 확인 |
 | 7 | [i] | `sidebar.scala.html` | `site/layout_framed.html` (인라인) | #2 작업 중 확인: `site/layout_framed.html`의 `#sidebar` div가 이미 이 파일 내용을 인라인 포함(로그인 필수 분기는 컨트롤러 레벨 리다이렉트로 대체) |
 | 8 | [x] | `projectMenu.scala.html` | `project/menu.html` | 완료(TASK-0242, TDD). 리뷰/설정 카운트 배지 누락, PR 탭의 SVN 프로젝트 숨김 조건(`project.vcs=='GIT'`) 누락, 포크 프로젝트의 sentPullRequests 링크 분기 누락, 키보드 단축키(`htKeyMap`+`yobi.project.Global.js`) 스크립트 전체 누락을 발견해 복구 |
-| 9 | [x] | `restricted.scala.html` | (포팅 보류, 아래 참고) | **보류 결정(사유 기록)** — play-authenticate 모듈의 데모/테스트용 페이지(`Sshhh...don't tell anyone`, 하드코딩된 유튜브 영상, `currentAuth()`/`auth.getProvider()`/`auth.expires()` 등 해당 라이브러리 전용 API 표시). yona는 Spring Security 기반이라 동등 개념(OAuth2AuthorizedClientService 등)을 새로 엮어야 하는데, 실사용 가치가 없는 라이브러리 데모 화면이라 투입 대비 효과가 지나치게 낮다고 판단해 보류. `docs/PARITY_BACKLOG.md`의 P1-27 최초 보류 결정처럼, 사용자가 이식을 원하면 언제든 재지시 가능 |
+| 9 | [x] | `restricted.scala.html` | (포팅 보류, 아래 참고) | **보류 결정(사유 기록)** — play-authenticate 모듈의 데모/테스트용 페이지(`Sshhh...don't tell anyone`, 하드코딩된 유튜브 영상, `currentAuth()`/`auth.getProvider()`/`auth.expires()` 등 해당 라이브러리 전용 API 표시). yona는 Spring Security 기반이라 동등 개념(OAuth2AuthorizedClientService 등)을 새로 엮어야 하는데, 실사용 가치가 없는 라이브러리 데모 화면이라 투입 대비 효과가 지나치게 낮다고 판단해 보류. `docs/parity/index.md`의 P1-27 최초 보류 결정처럼, 사용자가 이식을 원하면 언제든 재지시 가능 |
 
 ## 그룹 2 — `common/*` 공용 파샬 (35개, #10~44)
 
@@ -89,7 +89,7 @@ yona(`/home/jiho/yona-convert/yona/src/main/resources/templates/**/*.html`, Thym
 | 17 | [x] | `common/calendar.scala.html` | `common/calendar.html` | 확인 완료 — 완전 일치(TASK-0224 조사 중 대조 완료, 코드 변경 없음) |
 | 18 | [x] | `common/mySeriesMenuTab.scala.html` | `common/mySeriesMenuTab.html` | 완료(TASK-0226, TDD). "기본 페이지로 설정" 버튼 가시 조건에 loginDefaultPage 비교 추가, `index/notifications.html`/`user/userFiles.html`의 중복 인라인 탭바를 공용 조각 재사용으로 교체 |
 | 19 | [i] | `common/markdown.scala.html` | `site/layout.html :: markdown(project)` (인라인) | 확인 완료 — 완전 일치(TASK-0227 조사 중 대조 완료, 코드 변경 없음) |
-| 20 | [x] | `common/editor.scala.html` | `site/layout.html :: markdownEditor(name,value,editorMode)` (인라인) | **재검증 완료(TASK-0254)**. 이전 기록("백엔드에 via email 기능 자체가 없어 저가치 판단")은 stale — `domain/mail/{IncomingMailProcessingService,ImapMailboxPoller,...}`로 via-email 백엔드는 이미 완비돼 있음(`docs/PARITY_BACKLOG.md` P0-02). 그러나 legacy 전체(`git/edit,create`, `board/edit,create`, `milestone/create,edit`, `issue/edit,create`, `common/{commentForm,commentUpdateForm,reviewForm}` 12개 호출부)를 grep한 결과 `viaEmail=true`로 호출하는 곳이 legacy 자체에 단 한 곳도 없음(전부 기본값 false) — 파라미터가 legacy에서도 항상 관측 불가능한 값이라는 결론 자체는 맞았음. `data-via-email="false"`는 이미 yona에 정확히 반영돼 있었고, 대신 실제 렌더링 버그를 하나 발견해 수정: 미리보기 영역의 `class="markdown-preview markdown-wrap content-body"`가 `editorMode` 파라미터를 무시하고 항상 `content-body`로 하드코딩돼 있어(`code-review-body`/`comment-body`/`commit-comment-body`로 호출하는 곳들의 CSS가 깨져있었음) `th:classappend="${editorMode}"`로 수정 |
+| 20 | [x] | `common/editor.scala.html` | `site/layout.html :: markdownEditor(name,value,editorMode)` (인라인) | **재검증 완료(TASK-0254)**. 이전 기록("백엔드에 via email 기능 자체가 없어 저가치 판단")은 stale — `domain/mail/{IncomingMailProcessingService,ImapMailboxPoller,...}`로 via-email 백엔드는 이미 완비돼 있음(`docs/parity/index.md` P0-02). 그러나 legacy 전체(`git/edit,create`, `board/edit,create`, `milestone/create,edit`, `issue/edit,create`, `common/{commentForm,commentUpdateForm,reviewForm}` 12개 호출부)를 grep한 결과 `viaEmail=true`로 호출하는 곳이 legacy 자체에 단 한 곳도 없음(전부 기본값 false) — 파라미터가 legacy에서도 항상 관측 불가능한 값이라는 결론 자체는 맞았음. `data-via-email="false"`는 이미 yona에 정확히 반영돼 있었고, 대신 실제 렌더링 버그를 하나 발견해 수정: 미리보기 영역의 `class="markdown-preview markdown-wrap content-body"`가 `editorMode` 파라미터를 무시하고 항상 `content-body`로 하드코딩돼 있어(`code-review-body`/`comment-body`/`commit-comment-body`로 호출하는 곳들의 CSS가 깨져있었음) `th:classappend="${editorMode}"`로 수정 |
 | 21 | [x] | `common/fileUploader.scala.html` | `site/layout.html :: scripts`(tplAttachedFile/tplDropFilesHere) + `common/uploadForm.html`(신규) | 완료(TASK-0227, TDD). tplAttachedFile/tplDropFilesHere는 이미 정확히 이식돼 있었음(확인). `common.uploadForm(...)` 호출 부분은 #22에서 처리 |
 | 22 | [x] | `common/uploadForm.scala.html` | `common/uploadForm.html`(신규 생성) | 완료(TASK-0227, TDD). **중대 발견**: `issue/view.html`/`board/view.html`의 기존 `#upload-drop-zone`/`input[name=file]` 마크업이 legacy 구조(`upload-wrap`/`data-resource-type`/`input[name=filePath]`)와 전혀 다른 독자 구현이었고, 어떤 정적 JS 파일도 `upload-drop-zone`/`upload-file-input` 셀렉터를 참조하지 않아(grep 확인) 사실상 동작하지 않는 죽은 마크업이었음. legacy 구조로 교체 |
 | 23 | [x] | `common/attachmentFile.scala.html` | `common/attachmentFile.html`(신규) | 완료(TASK-0243). legacy 전체에서 이 파샬의 호출부가 `common/commentUpdateForm.scala.html`(#25) 단 한 곳뿐임을 확인 — #25 재작업과 함께 처리(파일명+삭제버튼 서버렌더 행) |
@@ -110,7 +110,7 @@ yona(`/home/jiho/yona-convert/yona/src/main/resources/templates/**/*.html`, Thym
 | 38 | [x] | `common/commitMsg.scala.html` | `common/commitMsg.html`(신규 fragment) | 완료(TASK-0243). `common/commitMsg.html` fragment 신규 작성(short span/a + 멀티라인일 때 moreBtn + hidden pre.desc). legacy 실사용처는 `code/diff.scala.html`(forceExpand=true)와 `code/history.scala.html`(short+moreBtn) 2곳뿐임을 확인(view/svnDiff는 이 fragment를 쓰지 않고 별도 인라인 span) — 두 곳 모두 fragment 재사용으로 교체 |
 | 39 | [x] | `common/branchItem.scala.html` | `common/branchItem.html`(신규 fragment) | 완료(TASK-0243). legacy 실사용처는 `code/svnDiff.scala.html`의 브랜치 드롭다운(btn-group+dropdown-menu) 한 곳뿐 — 해당 드롭다운 자체가 yona svnDiff.html에 통째로 빠져 있던 것도 함께 복구. `TemplateHelper.branchItemName`/`branchItemType`/`branchInHtml` 신규 추가(legacy `Branches.itemName/itemType/branchInHTML` 대응) |
 | 40 | [x] | `common/reviewForm.scala.html` | `common/reviewForm.html`(신규) | 완료(TASK-0251, 그룹11). `site/layout::markdownEditor` + `common/uploadForm`으로 정확히 이식 |
-| 41 | [x] | `common/partial_history.scala.html` | `common/partial_history.html` | **완료(TASK-0257)**. 기존 백로그 기록("history 필드 자체가 없음")은 stale — 실제로는 `docs/PARITY_BACKLOG.md` P2-02가 이미 백엔드 인프라 전체(AbstractPosting.kt의 `history: String?` 필드, `HistoryUtil.kt`의 `appendHistory()`(legacy `AbstractPostingApp.addToHistory()`/`getHistoryMadeBy()`/로컬 `getDiffText()` 대응, `history-made-by`/`diff-added`/`diff-deleted`/`diff-ellipsis` 클래스로 diff를 렌더링), `IssueServiceImpl.updateIssue()`/`PostingServiceImpl.updatePosting()`의 append-on-edit 배선)를 완비해뒀음을 재확인 — 새 엔티티 필드나 마이그레이션은 전혀 만들지 않았다. 이번에 한 일은 (1) `common/partial_history.html` 프래그먼트 신규 작성(legacy가 `Markdown.sanitize(posting.history)`로 이미 만들어진 HTML을 그대로 통과시키는 것과 동일하게, `MarkdownService`에 `sanitize(html): String` 메서드를 신규 추가해 그대로 사용 — commonmark 파싱 없이 OWASP 새니타이저 정책만 적용), (2) `issue/view.html`/`board/view.html`에 legacy `@if(StringUtils.isNotEmpty(issue.history))` 블록과 동일한 조건분기(비로그인은 로그인 유도 링크만, 로그인 시 모달+`partial_history`) 배선, (3) legacy `AbstractPosting.updatedByAuthorId`(이슈 "최종 수정자" 표시용, P2-02가 다루지 않았던 별도 필드)를 `AbstractPosting.kt`/`Issue.kt`/`Posting.kt`에 `updatedByAuthorId/LoginId/Name`으로 추가하고 `IssueServiceImpl`/`PostingServiceImpl`의 edit 경로에서 채움. 실제 렌더링 테스트(`PostingHistoryTemplateRenderingSpec.kt`, 4개, 전부 통과) 작성 중 `issue/view.html`/`board/view.html`의 편집 버튼 `th:onclick="|window.location='...'|"`가 Thymeleaf 3.1+ 제약(`TemplateProcessingException: Only variable expressions returning numbers or booleans are allowed in this context`)에 걸려 `isAllowedUpdate=true`인 로그인 사용자(작성자/매니저)가 이슈/게시글을 볼 때마다 500 에러가 나는 기존 버그를 발견해 `data-*` 속성 + 정적 onclick으로 수정(동작은 legacy와 동일) |
+| 41 | [x] | `common/partial_history.scala.html` | `common/partial_history.html` | **완료(TASK-0257)**. 기존 백로그 기록("history 필드 자체가 없음")은 stale — 실제로는 `docs/parity/index.md` P2-02가 이미 백엔드 인프라 전체(AbstractPosting.kt의 `history: String?` 필드, `HistoryUtil.kt`의 `appendHistory()`(legacy `AbstractPostingApp.addToHistory()`/`getHistoryMadeBy()`/로컬 `getDiffText()` 대응, `history-made-by`/`diff-added`/`diff-deleted`/`diff-ellipsis` 클래스로 diff를 렌더링), `IssueServiceImpl.updateIssue()`/`PostingServiceImpl.updatePosting()`의 append-on-edit 배선)를 완비해뒀음을 재확인 — 새 엔티티 필드나 마이그레이션은 전혀 만들지 않았다. 이번에 한 일은 (1) `common/partial_history.html` 프래그먼트 신규 작성(legacy가 `Markdown.sanitize(posting.history)`로 이미 만들어진 HTML을 그대로 통과시키는 것과 동일하게, `MarkdownService`에 `sanitize(html): String` 메서드를 신규 추가해 그대로 사용 — commonmark 파싱 없이 OWASP 새니타이저 정책만 적용), (2) `issue/view.html`/`board/view.html`에 legacy `@if(StringUtils.isNotEmpty(issue.history))` 블록과 동일한 조건분기(비로그인은 로그인 유도 링크만, 로그인 시 모달+`partial_history`) 배선, (3) legacy `AbstractPosting.updatedByAuthorId`(이슈 "최종 수정자" 표시용, P2-02가 다루지 않았던 별도 필드)를 `AbstractPosting.kt`/`Issue.kt`/`Posting.kt`에 `updatedByAuthorId/LoginId/Name`으로 추가하고 `IssueServiceImpl`/`PostingServiceImpl`의 edit 경로에서 채움. 실제 렌더링 테스트(`PostingHistoryTemplateRenderingSpec.kt`, 4개, 전부 통과) 작성 중 `issue/view.html`/`board/view.html`의 편집 버튼 `th:onclick="|window.location='...'|"`가 Thymeleaf 3.1+ 제약(`TemplateProcessingException: Only variable expressions returning numbers or booleans are allowed in this context`)에 걸려 `isAllowedUpdate=true`인 로그인 사용자(작성자/매니저)가 이슈/게시글을 볼 때마다 500 에러가 나는 기존 버그를 발견해 `data-*` 속성 + 정적 onclick으로 수정(동작은 legacy와 동일) |
 | 42 | [i] | `common/notificationMail.scala.html` | `domain/notification/NotificationMailRenderer.kt`(인라인) | 확인 완료 — Thymeleaf 템플릿이 아니라 Kotlin 코드로 HTML 문자열을 직접 생성하는 방식으로 이미 완전히 동일하게 이식돼 있음(폰트 스택, `hr` 구분선, unwatch/설정변경 푸터 링크, 메시지 키까지 일치). 코드 변경 없음 |
 | 43 | [x] | `common/uservoice.scala.html` | (포팅 제외) | **제외 결정(사유 기록)** — legacy 자체에서도 이 파일을 호출하는 곳이 0건(grep 확인, 죽은 코드). 설령 사용하더라도 원본 Yona 프로젝트 전용 UserVoice 계정(`forum_id`, 위젯 스크립트 URL이 원본 프로젝트에 하드코딩)이라 포크인 yona에 그대로 심는 것은 부적절 |
 | 44 | [x] | `common/debug.scala.html` | (포팅 제외) | **제외 결정(사유 기록)** — legacy 자체에서도 이 파일을 호출하는 컨트롤러/뷰가 0건(grep 확인, 완전한 죽은 코드) |
@@ -336,7 +336,7 @@ legacy는 PR/코드리뷰를 `git/` 디렉터리에 둔다(Git 저장소 조작�
 | 189 | [x] | `partial_diff_line.scala.html`(최상위) | `pullrequest/partial_diff_line.html` | 완료(TASK-0243). EOF 개행누락 표시(`noNewlineAtEof`)는 극히 드문 엣지케이스라 생략(문서화된 단순화) |
 | 190 | [x] | `partial_diff_comment_on_line.scala.html`(최상위) | `pullrequest/partial_diff_comment_on_line.html` | 완료(TASK-0243). legacy는 미리 그룹핑된 Map을 받지만 yona는 파샬 재사용 단순화를 위해 스레드 전체 목록을 받아 th:each+th:if로 매칭(O(n) 스캔, 결과 동일) |
 | 191 | [x] | `partial_filediff.scala.html`(최상위) | `pullrequest/partial_filediff.html` | 완료(TASK-0243). ADD/DELETE/MODIFY/RENAME/COPY + 바이너리 + 에러(크기초과) + 파일모드변경까지 legacy 분기 전부 재현. yona `FileDiff` 도메인 모델이 이미 legacy와 동일한 Error enum/isFileModeChanged를 갖고 있어 가능했음 |
-| 192 | [x] | `partial_update_notification.scala.html`(최상위) | (미이식, 제외 결정) | **제외 결정(사유 기록)**: 사이트 매니저 전용 "새 버전 알림"(YobiUpdate, 외부 릴리스 URL 폴링) 기능 자체가 yona에 없고, 이를 이식하려면 외부 버전 체크 서브시스템을 통째로 새로 설계해야 함 — 순수 템플릿 이식 범위를 크게 넘어서 이번 배치에서는 제외. 필요 시 `docs/PARITY_BACKLOG.md`에 백엔드 항목으로 등록 후 별도 진행 권장 |
+| 192 | [x] | `partial_update_notification.scala.html`(최상위) | (미이식, 제외 결정) | **제외 결정(사유 기록)**: 사이트 매니저 전용 "새 버전 알림"(YobiUpdate, 외부 릴리스 URL 폴링) 기능 자체가 yona에 없고, 이를 이식하려면 외부 버전 체크 서브시스템을 통째로 새로 설계해야 함 — 순수 템플릿 이식 범위를 크게 넘어서 이번 배치에서는 제외. 필요 시 `docs/parity/index.md`에 백엔드 항목으로 등록 후 별도 진행 권장 |
 
 ## 그룹 12 — `organization/*` 조직 (17개, #193~209)
 
@@ -424,7 +424,7 @@ legacy는 PR/코드리뷰를 `git/` 디렉터리에 둔다(Git 저장소 조작�
 
 ## 진행 로그
 
-작업을 진행하면서 이 섹션에 그룹/파일 단위로 완료 기록을 남긴다(형식은 `docs/PARITY_BACKLOG.md`의 완료 로그와 동일한
+작업을 진행하면서 이 섹션에 그룹/파일 단위로 완료 기록을 남긴다(형식은 `docs/parity/index.md`의 완료 로그와 동일한
 톤 — 원인/구현 내용/legacy와 다르게 처리한 지점과 근거/검증 방법을 명시).
 
 ### #1 `layout.scala.html` → `site/layout.html` (TASK-0220)
@@ -538,7 +538,7 @@ legacy는 PR/코드리뷰를 `git/` 디렉터리에 둔다(Git 저장소 조작�
   전무함을 확인 — project 그룹보다 훨씬 미착수 상태. 그룹12(#193~209) 착수 시 처리하기로 기록.
 - **#9 `restricted.scala.html`**: play-authenticate 라이브러리 데모 페이지(현재 사용하지 않는 인증 스택 전용
   API를 노출하는 디버그용 화면)라 이식 가치 대비 비용이 과도하다고 판단해 보류 결정, 사유를 표에 기록(`docs/
-  PARITY_BACKLOG.md`의 보류 항목 기록 관행과 동일 형식).
+  parity/index.md`의 보류 항목 기록 관행과 동일 형식).
 - **검증**: 문서만 수정, 코드 변경 없음 — 별도 테스트/빌드 불필요.
 
 ### #10~#18 `common/*` 공용 파샬 그룹2 착수분 (TASK-0224)
@@ -716,7 +716,7 @@ legacy는 PR/코드리뷰를 `git/` 디렉터리에 둔다(Git 저장소 조작�
 - **#40(reviewForm)**: 코드리뷰 댓글 폼 — PR/리뷰 도메인(그룹11, #167~192)에서 처리. `common.editor`/
   `common.uploadForm` 재사용 구조라 #20/#22가 이미 재료를 준비해뒀음을 확인.
 - **#41(partial_history)**: (정정, TASK-0257) 이 항목의 원래 기록("history 필드 자체가 없음")은 stale
-  정보였다 — `docs/PARITY_BACKLOG.md` P2-02가 이미 `history` 필드/`HistoryUtil`/edit-time 누적 로직을
+  정보였다 — `docs/parity/index.md` P2-02가 이미 `history` 필드/`HistoryUtil`/edit-time 누적 로직을
   전부 완비해뒀고, 실제로 남아있던 건 뷰 레이어(프래그먼트+배선)뿐이었다. TASK-0257에서 완료. 상세는 위
   표 #41 행 참고.
 - **#42(notificationMail)**: `NotificationMailRenderer.kt`가 Kotlin 코드로 이미 완전히 동일한 HTML을 생성 중임을
@@ -752,7 +752,7 @@ legacy는 PR/코드리뷰를 `git/` 디렉터리에 둔다(Git 저장소 조작�
   프로젝트/조직 컨텍스트별로 분기하려면 그 뷰를 리턴하는 모든 컨트롤러를 고쳐야 하는 광범위한 리팩터 — 투입
   대비 효과(에러 페이지에 프로젝트/조직 메뉴 표시)가 낮다고 판단해 보류, 사유 기록.
   #53(requestTextEntityTooLarge) — 업로드 용량 초과(413) 처리 자체가 yona에 없어(전역 `@ExceptionHandler` 부재)
-  순수 템플릿 이식 범위를 넘는 백엔드 항목이라 `docs/PARITY_BACKLOG.md` 등록 후 처리 권장, 조사만 기록.
+  순수 템플릿 이식 범위를 넘는 백엔드 항목이라 `docs/parity/index.md` 등록 후 처리 권장, 조사만 기록.
 - **테스트**: `TemplateEquivalenceSpec.kt`의 `[Test-19-14]` 3종 — 존재하지 않는 프로젝트 접근 시 404의 D2
   footer, 비공개 프로젝트 비로그인 접근 시 403의 전체 GNB+footer(실제 HTTP 트리거로 검증), 400/500은 트리거
   조건 구성이 복잡해 템플릿 파일 내용 직접 검사로 대체(gnb/footer 조각 참조 여부, errorGnb 미사용 확인).
@@ -1321,8 +1321,8 @@ legacy는 PR/코드리뷰를 `git/` 디렉터리에 둔다(Git 저장소 조작�
   3. ~~"감시(watch)" 버튼(`code/diff.html`/`code/svnDiff.html`): `WatchController`의 범용 `/watch` 엔드포인트가
      `ResourceType.COMMIT`을 지원하지 않고(커밋은 숫자 PK가 아니라 SHA 문자열이라 기존 `resourceId.
      toLongOrNull()` 파싱 자체가 안 맞음) 이를 지원하려면 Watch 리소스 추상화 자체를 확장해야 하는 별도
-     범위의 작업이라 판단, 이번 배치에서는 보류 — `docs/PARITY_BACKLOG.md`에 등록 필요(다음 세션 확인).~~
-     **2026-08-23 완료**: 백로그 재감사 중 `docs/PARITY_BACKLOG.md` P1-50 완료 로그가 "`WatchController`의
+     범위의 작업이라 판단, 이번 배치에서는 보류 — `docs/parity/index.md`에 등록 필요(다음 세션 확인).~~
+     **2026-08-23 완료**: 백로그 재감사 중 `docs/parity/index.md` P1-50 완료 로그가 "`WatchController`의
      범용 `/watch`·`/unwatch` 엔드포인트가 임의의 `resource.type`/`resource.id`를 받으므로 백엔드
      메커니즘 자체는 legacy와 동일하게 완전히 동작한다"고 적어뒀는데 실제로는 `checkWatchPermission()`의
      `when`에 `ResourceType.COMMIT` 케이스가 없어 항상 400을 반환하는 과장된 기록임을 발견 — 실제로
@@ -1758,7 +1758,7 @@ TASK-0252로 그룹10~17 통합 회귀를 green으로 만든 뒤 백로그를 �
 들고와 처리해줘. 필요하다면 백엔드 다 수정해. TDD 기반으로. 자의적 판단하지 말고 레거시 요나 들고와"
 — 이 배치에서 백엔드 설계 비중이 가장 큰 두 항목(#41 변경이력, #178 PR merge 프리뷰)을 처리했다.
 작업 도중 코디네이터가 #41에 대해 중요한 정정을 보내왔다: 기존 백로그 기록("history 필드 자체가
-없음")은 stale 정보였고, `docs/PARITY_BACKLOG.md` P2-02가 이미 백엔드 인프라 전체를 완비해뒀다는
+없음")은 stale 정보였고, `docs/parity/index.md` P2-02가 이미 백엔드 인프라 전체를 완비해뒀다는
 것 — 이 정정을 반영해 #41은 순수 뷰 레이어 작업으로 축소됐다.
 
 **#41 (`common/partial_history.scala.html`, 변경 이력)**
@@ -1863,7 +1863,7 @@ TASK-0252로 그룹10~17 통합 회귀를 green으로 만든 뒤 백로그를 �
 **막힌 부분**: 없음. 두 항목 모두 조사→구현→테스트까지 완료했다.
 
 ### TASK-0258: 사용자 지시("fork.html처럼 todo로 남아있는거 찾아서 확인 후에 코드와 문서도 업데이트")로
-`project/fork.html`의 실제 TODO 주석 발견·수정 + `docs/PARITY_BACKLOG.md` 전수 재검토
+`project/fork.html`의 실제 TODO 주석 발견·수정 + `docs/parity/index.md` 전수 재검토
 
 `src/main/resources/templates/`와 `src/main/kotlin/`을 `grep -rn "TODO\|FIXME"`로 전수 검색한 결과:
 - **`project/fork.html`**: `forkedProjects` 모델 속성이 `ProjectViewController.newFork()`(최초 GET
@@ -1886,7 +1886,7 @@ TASK-0252로 그룹10~17 통합 회귀를 green으로 만든 뒤 백로그를 �
   그대로 포팅 완료한 상태 — 주석은 "이 비교 방향이 legacy의 버그가 아닌지" 판단을 백로그에 남겨둔
   것일 뿐 실제 미완료 작업이 아님. 손대지 않음.
 
-**`docs/PARITY_BACKLOG.md` "범위 조정" 표기 전수 재검토**: 사용자가 "범위조정이라고 쓰여진것들은
+**`docs/parity/index.md` "범위 조정" 표기 전수 재검토**: 사용자가 "범위조정이라고 쓰여진것들은
 실제 다 완료됐으면 범위조정이란 말 빼줘"라고 지시해 `grep -n "범위 조정"`으로 전체(약 40건) 재검토.
 "범위조정"이 실제로는 두 가지 다른 의미로 혼용되고 있었음을 확인:
 1. **완료됐지만 이후 발견된 후속 항목으로 별도 등록된 뒤 그 후속 항목도 이미 완료된 경우**(가장
@@ -1914,7 +1914,7 @@ TASK-0252로 그룹10~17 통합 회귀를 green으로 만든 뒤 백로그를 �
   전부 이미 정확했다 — 문제는 "완료"와 나란히 붙어있던 "범위조정, 아래참고" 라벨이 실제로는 해소된
   과거 결손을 마치 지금도 미해결인 것처럼 읽히게 하는 낡은 표현이었다는 것.
 - **2026-08-23 정정**: 위 "약 6건" 목록도 이후 낡아졌다 — P1-09/41의 UI 배선은 TASK-0261/0262에서
-  `docs/TEMPLATE_BACKLOG.md` TASK-0225가 별도 트랙에서 이미 완료해뒀음을 발견해 정정했고(`PARITY_BACKLOG.md`
+  `docs/TEMPLATE_BACKLOG.md` TASK-0225가 별도 트랙에서 이미 완료해뒀음을 발견해 정정했고(`parity/index.md`
   P1-67 참고), P1-111/135는 재검토 결과 실제로 완료 상태임을 재확인했으며, PullRequestEvent.oldValue도
   `NotificationMessageResolver`가 이 이벤트 타입에 `oldValue`를 쓰지 않음을 코드로 재확인했다(둘 다
   변경 불필요, 정확한 기록이었음). 지금 실제로 남은 순수 "영구 축소" 항목은 **P1-03(계정 수동병합 UI)
@@ -2076,7 +2076,7 @@ add/add·content 충돌을 일으켜 수작업으로 합쳤다), 마지막으로
     project 컨텍스트가 전혀 없는 사용자 계정/프로필 화면 — 제네릭 유지가 legacy와 일치. 변경 없음.
   - `StatisticsViewController.statistics()`: **실제 미전환 지점 발견 및 수정**. `project.projectScope
     != PUBLIC`이고 비로그인/비멤버일 때 반환하던 `error/403`이 project가 이미 resolve된 이후
-    지점인데도 제네릭으로 남아있었다. P1-138 완료 로그(`PARITY_BACKLOG.md` 2026-08-21)를 재확인해
+    지점인데도 제네릭으로 남아있었다. P1-138 완료 로그(`parity/index.md` 2026-08-21)를 재확인해
     이 멤버십 체크 자체는 legacy `DefaultProjectCheckAction`(PUBLIC이 아니면 접근 차단)에 대응하는
     의도된 로직임을 재확인한 뒤, 뷰 이름만 다른 그룹3 전환과 동일한 규칙으로
     `error/forbidden` + `model.addAttribute("project", project)`로 교체.
@@ -2166,10 +2166,10 @@ yona에만 있는 자체 구현은 모두 제거해줘")로 남아있던 마지�
 - **P1-03**(OAuth 계정 병합 UI) — legacy-yona 전체(`UserApp.java`/`conf/routes`/`app/views/`)를
   재검색해 병합 UI 자체가 legacy-yona 저장소 안에 **0건**임을 재확인(서드파티 `play-authenticate`
   라이브러리가 자체 SPI로 처리 — 이 프로젝트에서 유일하게 "포팅할 legacy 원본이 아예 없는" 사례).
-  미이식 유지가 맞는 판단임을 재확인, `docs/PARITY_BACKLOG.md`에 근거 기록.
+  미이식 유지가 맞는 판단임을 재확인, `docs/parity/index.md`에 근거 기록.
 - **P1-111/P1-135, `PullRequestEvent.oldValue`** — 재검토 결과 P1-09/41은 이미 완료(UI 배선까지
   확인), P1-111/P1-135와 `PullRequestEvent.oldValue`는 애초에 현재 구현이 legacy와 이미 동일하게
-  정확했음을 재확인(재검토 전 "약 6건 축소"라던 서술이 stale) — `docs/PARITY_BACKLOG.md`/
+  정확했음을 재확인(재검토 전 "약 6건 축소"라던 서술이 stale) — `docs/parity/index.md`/
   `TEMPLATE_BACKLOG.md`의 관련 서술 정정.
 
 ### TASK-0264: 사용자 지시("테스트 커버리지를 권한 필터만 넣지 말고 DavServlet, SvnRepository 에 대한
@@ -2256,7 +2256,7 @@ yona에만 있는 자체 구현은 모두 제거해줘")로 남아있던 마지�
     상세는 위 블록쿼트의 "2026-08-23 정정" 참고.
   - **#145/#146 관련 그룹8 진행 로그**: "향후 그룹10/11 작업 시 재검토 필요"가 TASK-0263에서 이미
     해소됐음을 알리는 정정 문구 추가(진행 로그 원문은 유지, 뒤이어 정정만 덧붙임).
-  - **`docs/PARITY_BACKLOG.md` P1-66**: "UI는 별도 트랙에서 진행 예정"이라 남아있었으나 재검토 중
+  - **`docs/parity/index.md` P1-66**: "UI는 별도 트랙에서 진행 예정"이라 남아있었으나 재검토 중
     `issue/edit.html`의 `targetProjectId` select 자체는 TASK-0238에서 이미 이식돼 있음을 발견 —
     단, **실버그 발견**: `IssueViewController.editIssue()`가 바인딩하는 `IssueForm`에
     `targetProjectId` 필드가 없어 폼을 제출해도 이슈가 실제로 이동하지 않는 죽은 UI였음(이미

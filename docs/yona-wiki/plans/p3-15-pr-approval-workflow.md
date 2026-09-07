@@ -6,7 +6,7 @@ status: done
 priority: 10
 depends_on: []
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-15
+source: docs/parity/tickets/p3-15.md
 created: 2026-09-07
 updated: 2026-09-07
 tags: [plan, p3, git, pull-request, security]
@@ -23,7 +23,7 @@ tags: [plan, p3, git, pull-request, security]
 자기등록"할 뿐 승인·반려를 표시하는 기능이 아니다(원본 legacy yona도 동일 — 완전 신규 기능).
 이 갭 때문에 P3-04는 `require_approvals`를 "플래그 필드만 존재, 실제 판정 로직 없이 항상 통과
 처리"로 축소해서 구현했다(`docs/yona-wiki/plans/p3-04-branch-protection.md` 1라운드 완료 로그).
-원본: [`docs/PARITY_BACKLOG.md#P3-15`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-15.md`](../../parity/index.md)
 
 ## 범위
 
@@ -202,12 +202,12 @@ tags: [plan, p3, git, pull-request, security]
   다수 클래스(LdapServiceSpec/UserRepositorySpec/WatchServiceSpec 등, PR과 전혀 관계없는 광범위한
   클래스 포함)에서 "Table 'yona.n4user' doesn't exist" 등 공유 MariaDB 테스트 DB 경합으로 인한
   간헐 실패 139건이 재현됐으나, 이 계획이 만들거나 건드린 클래스는 그 실행에서도 전부(위 목록)
-  실패 0건이었고 별도 단독 실행에서도 항상 GREEN임을 교차검증함(`docs/COVERAGE_BACKLOG.md`에
+  실패 0건이었고 별도 단독 실행에서도 항상 GREEN임을 교차검증함(`docs/coverage/index.md`에
   이미 기록된 선례와 동일한 공유 인프라 경합 패턴 — 이 계획의 변경과 무관).
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-15)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-15.md)
 - 관련 계획: [[p3-04-branch-protection]](이 계획이 신설한 판정 데이터를 `require_approvals`가 소비)
 - 관련 소스(서버): `domain/pullrequest/PullRequestReview.kt`,
   `domain/pullrequest/PullRequestReviewRepository.kt`,

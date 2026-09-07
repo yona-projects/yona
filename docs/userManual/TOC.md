@@ -2,7 +2,7 @@
 
 Ported from legacy Yona's `docs/userManual/TOC.md` (legacy called the product Yobi at the time),
 adapted for yona. Screens are meant to stay structurally/behaviorally equivalent to legacy per
-`docs/PARITY_BACKLOG.md`/`docs/TEMPLATE_BACKLOG.md`, so the button/menu names below should
+`docs/parity/index.md`/`docs/TEMPLATE_BACKLOG.md`, so the button/menu names below should
 largely still apply — but this hasn't been checked screen-by-screen against the current UI, so
 let us know if something's out of date.
 

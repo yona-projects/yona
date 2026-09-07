@@ -17,7 +17,7 @@ those variables at all and **refuses to start** if they're set. See
 
 ### Wrong data in SQL Server / CUBRID, or Korean text corrupted
 
-Real DB-specific defects found and fixed during the port (see `docs/PARITY_BACKLOG.md` around
+Real DB-specific defects found and fixed during the port (see `docs/parity/index.md` around
 P1-6x):
 
 - **SQL Server**: without `sendStringParametersAsUnicode=true` on the JDBC URL, string

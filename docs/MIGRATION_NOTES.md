@@ -30,20 +30,43 @@
    서술이 일치하고, P2-51/53은 "완료" 대신 "CLOSED"라는 다른 표현을 썼을 뿐 내용상 모순이
    아니었다. (단, 이건 문자열 기반 점검이라 의미상 불일치까지 다 잡아내진 못했을 수 있다.)
 
-### 남은 일
+## 2. COVERAGE_BACKLOG.md → docs/coverage/ (완료, 2026-09-07)
 
-- `PARITY_BACKLOG.md`는 검증 목적으로 당분간 유지(상단에 이관 안내 배너 추가함). COVERAGE/GOLDEN
-  이관이 끝나면 4개 원본을 한 번에 삭제하고, 그때 `docs/yona-wiki/`·`README.md` 등 다른 문서의
-  `PARITY_BACKLOG.md#P3-XX` 류 참조도 `docs/parity/tickets/p3-xx.md`로 일괄 갱신한다.
+계획서 가정("batch-01~43", 43개)과 실제가 달라(실제 헤더는 약 30개, 일부는 "23~24차"/"26~35차"처럼
+여러 배치가 한 헤더에 묶여 있음) 사용자에게 확인 — **"실제 헤더 단위로 분할"** 채택. 34개 진행
+현황 절(29개 "N차 배치" + 사용자 판단 1건 + P3-02 재회귀 관련 2건)을 각각 `batches/<slug>.md`로
+분리, 클래스별 커버리지 표(226행)는 이미 표-형태 데이터라 `index.md`에 그대로 유지. 정규화 문자열
+비교로 배치 서술 전문 무손실 이관 검증.
 
-## 2. COVERAGE_BACKLOG.md / GOLDEN_PARITY_CHECK_PLAN.md / GOLDEN_PARITY_LEDGER.md — 착수 전, 구조 재확인 필요
+## 3. GOLDEN_PARITY_CHECK_PLAN.md / GOLDEN_PARITY_LEDGER.md → docs/golden/ (완료, 2026-09-07)
 
-계획서가 가정한 구조("batch-01~43", "finding-01~10")와 실제 파일 구조가 상당히 다르다는 걸
-확인했다. 사용자에게 방식을 확인 후 진행 예정(같은 대화에서 질문함).
+계획서 가정("발견사항 10개")과 실제가 크게 달라(`GOLDEN_PARITY_LEDGER.md`의 "버킷 C — 공백 후보"가
+서술형 발견이 아니라 3,625개 심볼짜리 GL-ID→파일:줄 기계적 매핑 표) 사용자에게 확인 —
+**"버킷 C는 패키지별로 분할"** 채택. 최종 구조:
 
-- `COVERAGE_BACKLOG.md`: "N차 배치" 진행 현황 헤더가 실제로는 약 30개(43은 마지막 배치
-  번호일 뿐, 파일 개수가 아님 — "23~24차", "26~35차"처럼 여러 배치를 묶어 쓴 헤더도 있음).
-- `GOLDEN_PARITY_CHECK_PLAN.md`/`GOLDEN_PARITY_LEDGER.md`: "발견사항 10개" 가정과 달리,
-  `GOLDEN_PARITY_LEDGER.md`의 "버킷 C — 공백 후보"는 서술형 발견이 아니라 **3,600줄짜리
-  GL-ID별 파일:줄 기계적 매핑 표**다. 이걸 개별 파일로 쪼개는 건 위키 취지(서술적 발견 단위
-  분리)에 맞지 않아 보인다.
+- `methodology.md` — 원 `GOLDEN_PARITY_CHECK_PLAN.md` 그대로(방법론 문서라 서술형 로그가 아님).
+- `findings/*.md`(7개) — 사람이 검토해 도출한 서술형 발견(HIGH/NORMAL 우선순위 검토, K6 발견사항,
+  버킷C 최종요약+승격목록, 방법론적 한계, Sanity Check 결과, 템플릿 상태).
+- `evidence/*.md`(4개) — 버킷 A(확인됨 표본)/B(티켓 불일치)/D(의도적 제외)/trivial 부록. 서술이
+  아니라 기계적 매칭 원시 데이터라 findings와 분리.
+- `gl-symbol-map/*.md`(14개) — 버킷 C를 GL-ID 접두어 기준 영역(models/controllers/utils/data/
+  view/playRepository/mailbox/actions/actors/Global/notification/service/validation/errors)별로
+  분할. CSV 산출물은 기존 위치 그대로 유지(기계 처리용, 이관 대상 아님).
+
+정규화 문자열 비교로 서술 7건+근거 4건 전문 무손실, 버킷C 3,625행 전부 보존 검증.
+
+## 4. 마무리 (완료, 2026-09-07)
+
+- 4개 원본(`PARITY_BACKLOG.md`/`COVERAGE_BACKLOG.md`/`GOLDEN_PARITY_CHECK_PLAN.md`/
+  `golden/GOLDEN_PARITY_LEDGER.md`) 삭제(git 히스토리에는 보존됨).
+- 다른 문서의 참조 경로 갱신: `README.md`, `docs/yona-wiki/`(index.md + 계획서 13개 + 템플릿),
+  `docs/guide/*`, `docs/userManual/*`, `docs/technical/markdown.md`, `docs/legacy-reference/README.md`,
+  `docs/P1-85_PLAN.md`, `docs/application-conf-desc.md`, `docs/trouble-shootings.md`,
+  `docs/yona-upgrade.md`, `docs/TEMPLATE_BACKLOG.md` 등 35개 파일에서 옛 경로를 새 경로로 스크립트
+  치환(앵커가 있던 `#P3-XX`는 `tickets/p3-xx.md`로, 없는 건 해당 `index.md`로). 프로세스 노트: 일부
+  자리는 "index.md P0-08"처럼 특정 티켓을 언급하면서도 index.md만 가리키게 남았다(더 정확히는
+  해당 `tickets/pX-XX.md`를 직접 가리켜야 함) — 링크가 깨진 건 아니고(표에서 클릭 한 번 더 필요한
+  정도) 개수가 15곳 내외라 이번엔 넘어갔다. 발견 시 개별적으로 더 다듬어도 된다.
+- README.md에 "신규 항목은 이 위키 구조로만 기록한다"는 규칙을 한/영 버전 모두에 추가(재파편화 방지).
+- `docs/parity/index.md`/`docs/coverage/index.md`/`docs/golden/index.md` 상단에 각각 문서 규칙
+  섹션을 명시.

@@ -6,7 +6,7 @@ status: planned
 priority: 9
 depends_on: []
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-12
+source: docs/parity/tickets/p3-12.md
 created: 2026-08-31
 updated: 2026-08-31
 tags: [plan, p3, vcs, mercurial]
@@ -125,7 +125,7 @@ Mercurial의 wire protocol(HTTP 기반 `hg serve` 프로토콜)을 `search5/hg4j
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-12)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-12.md)
 - 관련 계획: 없음
 - 관련 소스: `domain/vcs/{PlayRepository,GitRepository,SvnRepository,RepositoryService}.kt`,
   `config/{GitServletConfig,git/GitAuthorizationFilter,svn/SvnAuthorizationFilter}.kt`,

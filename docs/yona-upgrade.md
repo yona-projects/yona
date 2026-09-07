@@ -21,5 +21,5 @@ architecture** (Play/Java/Ebean → Spring Boot/Kotlin/JPA; different DB driver 
 too). Pointing yona at a legacy Yona database directly and starting it up is not a tested path.
 Keeping screens, data model, and behavior equivalent to legacy is this project's goal, but an
 actual data-migration procedure (legacy DB → yona) isn't documented yet — check
-`docs/PARITY_BACKLOG.md` for porting status, and always back up and test in a non-production
+`docs/parity/index.md` for porting status, and always back up and test in a non-production
 environment before touching real data.

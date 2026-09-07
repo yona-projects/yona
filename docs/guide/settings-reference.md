@@ -29,7 +29,7 @@ legacy Yona의 `docs/ko/application-conf-desc.md`(`conf/application.conf` 설명
 legacy의 `application.guest.user.login.id.prefix`(범용 게스트 접두사), `application.displayPrivateRepositories`,
 `project.default.scope.when.create`, `project.creation.default.menus`, `application.use.email.verification`은
 현재 yona 코드베이스에서 대응하는 설정 키를 찾지 못했다 — 아직 설정 가능한 형태로 이식되지
-않았을 가능성이 있다(하드코딩되어 있거나 범위에서 빠졌을 수 있음). `docs/PARITY_BACKLOG.md`에
+않았을 가능성이 있다(하드코딩되어 있거나 범위에서 빠졌을 수 있음). `docs/parity/index.md`에
 없다면 새 항목으로 등록이 필요하다.
 
 ## 소셜 로그인 / LDAP

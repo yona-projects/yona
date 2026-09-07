@@ -11,4 +11,4 @@
 한 번 삭제한 프로젝트는 복구할 수 없다.
 
 삭제 시 관련된 이슈/게시글/Pull Request/라벨/웹훅 등이 함께 정리(cascade)된다 — 자세한 배경은
-`docs/PARITY_BACKLOG.md`의 P0-19 참고.
+`docs/parity/index.md`의 P0-19 참고.

@@ -6,7 +6,7 @@ status: done
 priority: 1
 depends_on: []
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-09
+source: docs/parity/tickets/p3-09.md
 created: 2026-08-28
 updated: 2026-08-28
 tags: [plan, p3, api, docs]
@@ -20,7 +20,7 @@ legacy Yona에는 없던 신규 기능(yona 동치성과 무관) — 사용자 �
 수십 개(`IssueController`, `BoardController`, `ProjectController`, `IssueApiController`, `BoardApiController`,
 `MigrationApiController`, `SiteApiController`, `CommentController` 등) 있고, 개발이 상당히 진행된 지금 시점에
 API 표면을 한눈에 보고 테스트해볼 수 있는 문서화 도구가 없다는 게 아쉬운 지점이었다.
-원본: [`docs/PARITY_BACKLOG.md#P3-09`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-09.md`](../../parity/index.md)
 
 ## 범위
 
@@ -100,6 +100,6 @@ Step 3(문서 품질 개선 — `@Operation` 어노테이션, `GroupedOpenApi` �
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-09)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-09.md)
 - 관련 소스: `config/SecurityConfig.kt:41-51`, `config/BootstrapSetupInterceptor.kt`
 - 테스트: `src/test/kotlin/com/github/yonaprojects/yona/config/SwaggerUiAccessIntegrationSpec.kt`

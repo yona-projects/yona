@@ -4,7 +4,7 @@
 
 - **목적**: yona(레거시, Java/Play Framework) 백엔드 전체를 yona(신규, Kotlin/Spring Boot)로 필드 단위·분기(비즈니스 로직) 단위까지 빠짐없이 1:1 대조 확인.
 - **범위**: 백엔드 로직만. Play scala.html 템플릿, yona Thymeleaf 템플릿 등 UI 마크업은 감사 대상에서 제외(컨트롤러의 라우팅/권한체크/비즈니스 분기/필드 매핑은 백엔드로 간주해 포함).
-- **방법**: 도메인 14개로 분할(실제 취합된 섹션은 13개)해 각 도메인을 전담하는 에이전트가 yona 원본 파일을 전부 직접 읽고, yona의 대응 파일을 찾아 필드·분기 단위로 대조. 아키텍처 변화(Play Form validation → Spring Bean/수동 검증, Ebean 액티브레코드 → Spring Data JPA, Play 라우팅 → Spring MVC 등)로 인한 "다른 방식으로 동등하게 구현됨"은 결손으로 세지 않음. 각 발견은 `docs/PARITY_BACKLOG.md`와 대조해 이미 추적 중인 항목인지, 신규 발견인지 구분.
+- **방법**: 도메인 14개로 분할(실제 취합된 섹션은 13개)해 각 도메인을 전담하는 에이전트가 yona 원본 파일을 전부 직접 읽고, yona의 대응 파일을 찾아 필드·분기 단위로 대조. 아키텍처 변화(Play Form validation → Spring Bean/수동 검증, Ebean 액티브레코드 → Spring Data JPA, Play 라우팅 → Spring MVC 등)로 인한 "다른 방식으로 동등하게 구현됨"은 결손으로 세지 않음. 각 발견은 `docs/parity/index.md`와 대조해 이미 추적 중인 항목인지, 신규 발견인지 구분.
 - **감사 대상 도메인**: 게시판(Board/Posting), PR/코드리뷰, 프로젝트, 사용자/인증, 조직, 알림/메일, 마일스톤, 첨부파일, 감시(Watch)/즐겨찾기, 웹훅, 코드/Git/SVN, 사이트관리/통계/검색, 접근제어/검증 핵심 유틸. (이슈 도메인은 이 감사 이전에 이미 세션 전체에 걸쳐 매우 상세히 별도 대조돼 있어 이번 통합 감사의 별도 섹션으로는 포함하지 않았다 — 아래 결과에 이슈 도메인 전용 섹션이 없는 것은 누락이 아니라 이 사유다.)
 - **주의**: 아래 "신규 발견"은 이번 감사에서 코드를 읽고 사실 관계를 확인한 결과이며, 백로그 등록 여부·우선순위·착수 여부는 이 문서에서 결정하지 않았다. 제안 심각도(P0/P1/P2)는 각 도메인 보고서의 서술을 근거로 통합 과정에서 분류한 것으로 최종 판단이 아니다.
 
@@ -20,9 +20,9 @@
   - **P0급(보안·데이터손실)**: 7건
   - **P1급(기능결손)**: 32건
   - **P2급(경미)**: 20건
-- **이미 PARITY_BACKLOG.md에 추적 중이던 항목과 겹치는(재확인된) 발견 개수**: 도메인별 "이미 추적 중인 관련 항목" 절에 나열된 P-번호를 단순 합산하면 약 156회 언급된다. 다만 P1-27(알림 파이프라인), P1-85(AccessControl 중앙화), P2-02(DiffUtil/History), P2-16(리소스 접근제어 전수조사), P0-09(프로젝트 이관) 등 여러 항목이 도메인 간 공유 인프라라는 이유로 2~3개 도메인 보고서에서 중복 인용되어, 고유 P-번호 기준으로는 대략 110~130개 내외로 추정된다(정확한 중복 제거는 이번 통합 작업 범위를 넘어서 수행하지 않았으며, 이는 근사치임을 명시한다). 이 항목들은 전부 "완료"로 표시되어 있었고, 이번 재대조에서도 실제 코드로 재확인되었다.
+- **이미 parity/index.md에 추적 중이던 항목과 겹치는(재확인된) 발견 개수**: 도메인별 "이미 추적 중인 관련 항목" 절에 나열된 P-번호를 단순 합산하면 약 156회 언급된다. 다만 P1-27(알림 파이프라인), P1-85(AccessControl 중앙화), P2-02(DiffUtil/History), P2-16(리소스 접근제어 전수조사), P0-09(프로젝트 이관) 등 여러 항목이 도메인 간 공유 인프라라는 이유로 2~3개 도메인 보고서에서 중복 인용되어, 고유 P-번호 기준으로는 대략 110~130개 내외로 추정된다(정확한 중복 제거는 이번 통합 작업 범위를 넘어서 수행하지 않았으며, 이는 근사치임을 명시한다). 이 항목들은 전부 "완료"로 표시되어 있었고, 이번 재대조에서도 실제 코드로 재확인되었다.
 
-**특별히 주목할 사항**: 조직(Organization) 도메인의 신규 발견 8번(`OrganizationController.kt`의 REST API에 사이트매니저 우회 로직 부재)은 PARITY_BACKLOG.md의 **P2-16 항목이 이미 "ORGANIZATION은 문제없음"으로 종결 처리한 판정과 정면으로 배치**된다. 이 건은 판단을 내리지 않고 사실만 병기했으므로, P2-16 재검토가 필요하다.
+**특별히 주목할 사항**: 조직(Organization) 도메인의 신규 발견 8번(`OrganizationController.kt`의 REST API에 사이트매니저 우회 로직 부재)은 parity/index.md의 **P2-16 항목이 이미 "ORGANIZATION은 문제없음"으로 종결 처리한 판정과 정면으로 배치**된다. 이 건은 판단을 내리지 않고 사실만 병기했으므로, P2-16 재검토가 필요하다.
 
 ---
 
@@ -53,7 +53,7 @@
 6. **댓글 대댓글(parentCommentId) 생성이 REST API로 노출 안 됨** — `PostingComment.parentComment`와 서비스 파라미터는 있으나 `CommentController.CommentRequest` DTO에 필드가 없어 항상 `null`로만 호출된다.
 7. **공개 프로젝트 비멤버의 게시글 작성 권한이 yona보다 과도하게 제한됨** — yona `AccessControl.isProjectResourceCreatable()`은 공개 프로젝트 비멤버 로그인 사용자도 `BOARD_POST`/`NONISSUE_COMMENT` 작성을 허용한다(`BOARD_NOTICE`만 예외). yona `BoardController.checkWritePermission`/`BoardViewController`는 공지 여부와 무관하게 항상 "프로젝트 멤버이거나 그룹멤버"를 요구해 공개 프로젝트 비멤버는 일반 게시글조차 작성할 수 없다(권한이 좁아진 회귀). 댓글 작성 권한(`Operation.READ` 기준)은 이 문제가 없음.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 
 P0-15, P1-18, P1-19, P1-44, P1-83, P1-107, P2-02 — 모두 완료 확인. 위 신규 발견 1~7은 이 항목들 및 전체 백로그 문서 어디에도 등록돼 있지 않다.
 
@@ -89,7 +89,7 @@ P0-15, P1-18, P1-19, P1-44, P1-83, P1-107, P2-02 — 모두 완료 확인. 위 �
 4. **`CommentThreadController.open()`/`close()`에 권한 체크가 전혀 없음** — yona는 매니저·스레드 작성자·프로젝트(또는 그룹) 멤버만 허용하나(비멤버 403), yona는 로그인 여부만 확인하고 바로 상태변경 — 무관한 임의 사용자가 다른 프로젝트의 리뷰 스레드를 열고 닫을 수 있다.
 5. **`PullRequest.getCommitComments()`(SVN 커밋 코멘트 ↔ PR 커밋 매핑) 대응 부재** — SVN+PR 조합에서만 커밋 코멘트가 PR 화면에 노출되지 않는 제한적 영향.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P1-20, P1-24, P1-15, P1-27, P1-49, P1-62, P1-52, P1-53, P1-68, P1-71, P1-79, P1-90~P1-98, P1-105, P1-106 — 단 위 3·4번이 지적하는 COMMENT_THREAD/REVIEW_COMMENT/COMMIT_COMMENT(`CodeReviewServiceImpl` 경로)는 P2-15/16 전수조사 범위에 포함되지 않았음.
 
 ---
@@ -117,7 +117,7 @@ P1-20, P1-24, P1-15, P1-27, P1-49, P1-62, P1-52, P1-53, P1-68, P1-71, P1-79, P1-
 2. **`Project.getAssignableUsers()`(조직 그룹 기반 담당자 후보)가 `ProjectMemberController.assignableUsers()`에 이식되지 않음** — yona는 조직 소속 프로젝트에서 PRIVATE면 조직 관리자를, PROTECTED/PUBLIC이면 조직 멤버 전원을 후보에 추가하고 사이트매니저 자신도 포함한다. yona는 프로젝트 멤버만 후보로 써 조직 소속 프로젝트의 담당자 후보 검색이 축소됨.
 3. **(경미, 참고)** `MigrationApp.gatheringUserProjects()`의 사이트매니저 바이패스 범위가 yona `MigrationService.getMigrationProjects()`에서 MANAGER 역할 프로젝트로 축소됨 — 극히 드문 케이스라 정식 결손 등록 대상은 아니라고 판단, 참고로만 기록.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P0-09, P1-13, P1-14, P1-15, P1-16, P1-42, P1-43, P1-57, P1-58, P1-72~76, P1-85, P1-87, P1-88, P1-97, P1-98, P1-100, P1-103 — 모두 실제 코드 위치까지 확인, 기록된 완료 상태와 일치.
 
 ---
@@ -147,7 +147,7 @@ P0-09, P1-13, P1-14, P1-15, P1-16, P1-42, P1-43, P1-57, P1-58, P1-72~76, P1-85, 
    - `users()`/`updateUserState()`(사이트매니저 전용 사용자 전체 조회/상태변경, SITE_ADMIN 승격 방어 포함) — yona엔 목적별 엔드포인트만 있고 이 범용 JSON API는 없음.
 2. **`isSiteManager` 하드코딩 `loginId == "admin"` 분기**(`domain/user/User.kt:111`, `UserDetailsServiceImpl.kt:19`) — yona엔 없는 로직. `loginId=="admin"`이면 `state`와 무관하게 항상 `isSiteManager=true`. "admin"이 예약어라 실질 위험은 낮으나 원본에 없는 로직이며 상태와 독립적으로 항상 관리자 권한을 부여한다는 점에서 기록.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P0-13, P1-01, P1-02, P1-03, P1-04, P1-56, P1-77, P1-104, P1-108, P2-03, P2-09, P2-11 — 모두 실제 코드에서 구현 재확인.
 
 ---
@@ -173,9 +173,9 @@ P0-13, P1-01, P1-02, P1-03, P1-04, P1-56, P1-77, P1-104, P1-108, P2-03, P2-09, P
 5. **`cancelEnroll()` 무조건 알림 발행** — 대기 신청이 있었는지 확인하지 않고 항상 취소 알림을 보냄. `isGuest`(비멤버) 가드도 없음.
 6. **조직 로고 업로드 파일검증 미이식** — yona `isImageFile`/`LOGO_FILE_LIMIT_SIZE` 검증이 yona `updateOrganization()`/`AttachmentServiceImpl.store()` 어디에도 없음(전체 검색 0건).
 7. **FavoriteOrganization 조직명 동기화 미이식** — 조직명 변경 시 `FavoriteOrganization.organizationName`(비정규화 필드) 갱신 로직이 없어, 즐겨찾기 레코드에 옛 이름이 남는다.
-8. **REST API(`/api/organizations`)에 사이트매니저 우회 로직 부재** — yona `AccessControl.isAllowed()`는 최상단에서 사이트매니저 전역 우회를 적용하나, yona `OrganizationController.kt`(REST)의 `isOrgAdmin()`은 `ORG_ADMIN` 역할만 검사해 사이트매니저가 REST API로 설정변경/삭제 시 403이 반환될 것으로 보인다(MVC `OrganizationViewController.kt`는 각 엔드포인트마다 우회를 넣어 문제없음 — 두 컨트롤러 간 비대칭). **주의**: `PARITY_BACKLOG.md` P2-16이 정확히 이 파일의 `isOrgAdmin`을 "문제없음"으로 종결 처리했으나 실제 코드와 배치되어 판단을 내리지 않고 사실만 보고함.
+8. **REST API(`/api/organizations`)에 사이트매니저 우회 로직 부재** — yona `AccessControl.isAllowed()`는 최상단에서 사이트매니저 전역 우회를 적용하나, yona `OrganizationController.kt`(REST)의 `isOrgAdmin()`은 `ORG_ADMIN` 역할만 검사해 사이트매니저가 REST API로 설정변경/삭제 시 403이 반환될 것으로 보인다(MVC `OrganizationViewController.kt`는 각 엔드포인트마다 우회를 넣어 문제없음 — 두 컨트롤러 간 비대칭). **주의**: `parity/index.md` P2-16이 정확히 이 파일의 `isOrgAdmin`을 "문제없음"으로 종결 처리했으나 실제 코드와 배치되어 판단을 내리지 않고 사실만 보고함.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P1-17(완료), P1-108(완료), P2-01(완료), P0-09(완료), P1-16(완료 — 위 신규 4·5번과 동일 유형·원인이나 Organization 쪽엔 대칭 적용 안 됨), P2-16(종결 "문제없음" — 위 신규 8번과 결론 상충, 재검토 필요).
 
 ---
@@ -200,7 +200,7 @@ P1-17(완료), P1-108(완료), P2-01(완료), P0-09(완료), P1-16(완료 — �
 4. **프로젝트 가입 요청/취소 알림(`MEMBER_ENROLL_REQUEST`) 수신자가 워치 여부를 무시함** — yona는 Watch 중인 매니저만 거르나, yona `ProjectUserServiceImpl.getProjectManagers()`는 매니저 전원을 조건 없이 반환 — 언워치해도 알림이 계속 감.
 5. **(부수, 저위험) 조직 가입 신청의 oldValue 상태 페어가 yona와 어긋남** — yona는 `CANCEL`↔`REQUEST` 대칭 페어링으로 30초 드래프트 창 내 "신청 직후 취소"를 상쇄하나, yona `OrganizationServiceImpl`은 `oldValue`가 정확한 역전 쌍이 아니라 이 최적화가 조직 가입에서는 발동하지 않는다(프로젝트 가입 쪽은 문제없음).
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P0-01~04, P1-14, P1-22, P1-25~28, P1-39, P1-42~44, P1-46, P1-48, P1-50, P1-51, P1-58, P1-60, P1-63, P1-69~71, P1-79, P1-88.
 
 ---
@@ -226,7 +226,7 @@ P0-01~04, P1-14, P1-22, P1-25~28, P1-39, P1-42~44, P1-46, P1-48, P1-50, P1-51, P
 4. **due date 형식 오류 시 사용자 피드백 누락** — yona는 파싱 실패 시 저장을 막고 에러를 알리나, yona `createMilestone()`/`editMilestone()`은 `catch (e: Exception) { null }`로 조용히 삼켜 `dueDate=null`로 저장을 진행한다.
 5. **(참고, 시스템 전반 갭)** 텍스트 초과 시 413 응답 누락 — 마일스톤뿐 아니라 yona 전반(`PullRequestApp`/`BoardApp`/`IssueApp` 등)에 공통이며 yona엔 전역 핸들러도 없음. 마일스톤 국한 문제는 아니라 참고로만 기록.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P1-95(완료), P1-88(완료), P2-15(P1-95로 승격 처리), P0-05(첨부 업로드 패턴 기준선), group-member OR 확장 완료 로그(DELETE 전용 엔드포인트는 의도적 제외로 명시).
 
 **참고**: `Milestone.NULL_MILESTONE_ID`(-1 센티널) 처리는 `IssueViewController.kt`/`IssueSpecification.kt`(Issue 도메인)에 정상 이식되어 있음(결손 아님).
@@ -253,7 +253,7 @@ P1-95(완료), P1-88(완료), P2-15(P1-95로 승격 처리), P0-05(첨부 업로
 4. **MIME 타입 감지 방식이 콘텐츠 기반(Tika)에서 확장자 기반(JDK `probeContentType`)으로 바뀌어, 해시 파일명(확장자 없음)에 대해 사실상 항상 오탐 가능성** — Tika 의존성 자체가 코드베이스에 없음. 이미지/PDF가 인라인 대신 다운로드로 처리될 수 있음.
 5. **임시 첨부 정리 스케줄러의 `createdDate` 비교 방향이 yona와 반대** — yona는 `createdDate >= (now - keepUpTime)`(최근 생성분)를, yona `AttachmentCleanupScheduler.kt`는 `createdDate < (now - keepAliveMillis)`(오래된 것)를 정리 대상으로 조회. 어느 쪽이 의도된 동작인지는 판단하지 않고 사실만 기록.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P1-96(완료, 단 `deleteFile()` "문제없음" 판정 근거는 3개 타입만 검토한 것 — 위 결손 3번 참고), P1-85 1b(완료), P1-29/P1-47/P1-59(감사 범위 밖, 기 추적대로 완료만 확인).
 
 ---
@@ -280,7 +280,7 @@ P1-96(완료, 단 `deleteFile()` "문제없음" 판정 근거는 3개 타입만 
 
 참고로 `FavoriteIssue.updateFavoriteIssue()`는 yona에서도 호출부가 없는 죽은 코드라 이식 누락 대상에서 제외했다.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P1-09(완료), P1-21(완료), P1-22(완료), P1-41(완료), P1-50(완료), P1-67(코드 레벨 완료, UI 트랙 별도), P2-09(완료).
 
 ---
@@ -305,7 +305,7 @@ P1-09(완료), P1-21(완료), P1-22(완료), P1-41(완료), P1-50(완료), P1-67
 3. **`DETAIL_HANGOUT_CHAT` 스레드 키가 댓글 이벤트에서 부모 리소스가 아니라 댓글 자신으로 잘못 계산됨** — yona는 댓글이 달린 이슈/게시글 기준으로 스레드를 묶으나, yona는 댓글 자신을 resource로 사용해 매번 새 조회 키가 되어 스레드 그룹핑이 사실상 무력화됨.
 4. **`payloadUrl`/`secret` 길이·필수 검증 미이식** — yona는 Form 바인딩으로 400+에러 메시지를 반환하나, yona `newWebhook()`엔 검증이 없어 DB 제약 위반 예외(비친화적 500)로 이어질 수 있다.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P0-03(완료), P0-04(완료), P1-25(완료), P1-26(완료), P1-69(완료), P1-87(완료), P2-08(완료), P2-16(P1-87로 흡수, 종결).
 
 ---
@@ -335,7 +335,7 @@ P0-03(완료), P0-04(완료), P1-25(완료), P1-26(완료), P1-69(완료), P1-87
 3. **`BranchApiController`의 Git 전용 가드 누락** — yona는 클래스 레벨 `@IsOnlyGitAvailable`로 3개 액션 모두 SVN에서 차단되나, yona는 `BranchViewController.branches`에만 체크가 있고 `BranchApiController.setAsDefault`/`deleteBranch`엔 없다. `SvnRepository`가 no-op이라 크래시는 없으나 SVN 프로젝트에 호출 시 아무 동작 없이 성공 신호(302)를 준다.
 4. **`download`(zip 아카이브)의 경로 존재 사전 검증 소실(경미)** — yona는 404를 반환 후 스트리밍하나, yona `ProjectViewController.downloadCode`는 `path` 파라미터 자체가 없고 사전 검증도 없다.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P0-16, P1-23, P1-64, P1-45, P1-93, P1-97(이미 수정 완료), P2-02, P2-09.
 
 ---
@@ -365,14 +365,14 @@ P0-16, P1-23, P1-64, P1-45, P1-93, P1-97(이미 수정 완료), P2-02, P2-09.
 4. **`SearchType.NA`/`SearchType.PROJECT`에 대한 명시적 400 처리 누락** — yona 세 검색 엔드포인트 모두 즉시 badRequest를 반환하나, `SearchController.kt`/`SearchServiceImpl.kt`엔 이 가드가 없어 조용히 빈 결과를 200 OK로 반환한다.
 5. **(참고, 경미)** `Statistics.empty()`(익명에게 0값 200 응답)와 `StatisticsController.userStatistics()`의 404 응답 계약 차이 — 정식 결손으로는 세지 않고 기록만 함.
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P1-81(완료), P1-83(완료), P1-13(완료), P0-07(완료), P2-10(완료), P2-11(완료), P2-02(인접, HistoryUtil.kt는 이 항목 대응물이며 History.java 대응물이 아님을 확인), P1-99(유사 패턴 선례 — `allowsAnonymousAccess`는 완료이나 `HIDE_PROJECT_LISTING`은 별개 플래그로 미추적).
 
 ---
 
 ## 접근제어/검증 핵심 유틸
 
-*(대조 대상 7개 yona 파일을 모두 Read로 전문 열람, yona 측(`config/security/AccessControl.kt`, `domain/user/{ReservedWordsValidator,LoginIdFormatValidator}.kt`, `domain/support/{MarkdownServiceImpl,AutoLinkRenderer,MarkdownService}.kt`, `web/{CodeViewController,MarkdownController}.kt`)도 전문 열람 후 대조. `docs/PARITY_BACKLOG.md`도 관련 키워드로 전수 검색.)*
+*(대조 대상 7개 yona 파일을 모두 Read로 전문 열람, yona 측(`config/security/AccessControl.kt`, `domain/user/{ReservedWordsValidator,LoginIdFormatValidator}.kt`, `domain/support/{MarkdownServiceImpl,AutoLinkRenderer,MarkdownService}.kt`, `web/{CodeViewController,MarkdownController}.kt`)도 전문 열람 후 대조. `docs/parity/index.md`도 관련 키워드로 전수 검색.)*
 
 ### 완전히 이식됨
 - **AccessControl.java** → `config/security/AccessControl.kt`: 모든 리소스 타입 분기(PROJECT/ORGANIZATION/ISSUE_POST/ISSUE_COMMENT/BOARD_POST/NONISSUE_COMMENT/PULL_REQUEST/COMMIT_COMMENT/COMMENT_THREAD/REVIEW_COMMENT/MILESTONE/WEBHOOK/PROJECT_TRANSFER/ATTACHMENT), `isAllowedIfAuthor`/`isAllowedIfAssignee`/`isAllowedIfSharer`/`isAllowedIfGroupMember`, `allowsAnonymousAccess` 게이트까지 1:1 대응(P1-85 완료).
@@ -394,14 +394,14 @@ P1-81(완료), P1-83(완료), P1-13(완료), P0-07(완료), P2-10(완료), P2-11
 5. **`isGlobalResourceCreatable(User)`/`isResourceCreatable(User, Resource, ResourceType)` 미이식** — 프로젝트 소속이 아닌 글로벌 리소스(임시 첨부 등) 생성 권한 판단 함수. `AccessControl.kt` grep 0건.
 6. **`toValidSHALink`의 `project.isCodeAvailable()` 체크 부재** — yona는 프로젝트 메뉴에서 "코드" 탭이 꺼져 있으면 커밋 링크를 만들지 않으나, yona는 `project.vcs == "GIT"`만 검사한다(참고용, 프로젝트 메뉴 설정 기능 자체의 이식 여부에 종속된 문제).
 
-### 이미 PARITY_BACKLOG.md에 추적 중인 관련 항목
+### 이미 parity/index.md에 추적 중인 관련 항목
 P1-85, P1-86~99, P1-101(모두 완료), P2-01(완료), P1-104, P1-108(완료), P0-08(완료), P1-27(완료, outdated diff 앵커 정밀도는 의도적 생략으로 명시), P1-47(간접 관련).
 
 ---
 
 ## 신규 발견 결손 전체 목록
 
-아래는 이번 통합 감사에서 새로 발견되어 `docs/PARITY_BACKLOG.md` 어디에도 등록되어 있지 않은 것으로 확인된 결손 59건이다. 사용자가 백로그 등록 여부를 판단하는 근거 자료이며, 제안 심각도는 각 도메인 보고서의 서술을 근거로 통합 작업 중 분류한 것으로 최종 판단은 아니다.
+아래는 이번 통합 감사에서 새로 발견되어 `docs/parity/index.md` 어디에도 등록되어 있지 않은 것으로 확인된 결손 59건이다. 사용자가 백로그 등록 여부를 판단하는 근거 자료이며, 제안 심각도는 각 도메인 보고서의 서술을 근거로 통합 작업 중 분류한 것으로 최종 판단은 아니다.
 
 | # | 도메인 | 파일(yona → yona) | 구체적 내용 | 제안 심각도 |
 |---|---|---|---|---|

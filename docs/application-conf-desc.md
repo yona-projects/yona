@@ -30,7 +30,7 @@ settings between Spring Boot standard keys (`spring.*`) and yona-specific keys (
 No config key was found for legacy's `application.guest.user.login.id.prefix` (a generic guest
 prefix), `application.displayPrivateRepositories`, `project.default.scope.when.create`,
 `project.creation.default.menus`, or `application.use.email.verification` — these may be
-hardcoded, or simply not yet ported as configurable. File a `docs/PARITY_BACKLOG.md` item if
+hardcoded, or simply not yet ported as configurable. File a `docs/parity/index.md` item if
 needed.
 
 ## Social login / LDAP

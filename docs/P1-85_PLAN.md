@@ -61,7 +61,7 @@ yona(레거시)는 `app/utils/AccessControl.java` 단일 클래스가 `isAllowed
 
 ## 후속 단계 (미착수, 백로그 별도 항목으로 등록 완료 — 2026-08-20, 그룹 C/D/E 확정 조사까지 반영)
 
-등록 당시 P2-13~17로 임시 번호를 매겼으나, "경미/확인 필요"인 P2가 아니라 대부분 "확정된 권한 로직 오류"임이 밝혀져 P1로 재분류했다(P1-85와 마찬가지 사유). 이어서 "확인 필요"로 남겨뒀던 P2-15/16도 yona와 실제로 한 줄씩 대조하는 확정 조사를 진행해 종결했다(더 이상 "확인 필요" 상태가 아님). `docs/PARITY_BACKLOG.md`의 최신 번호가 정본이며, 아래는 매핑 기록이다.
+등록 당시 P2-13~17로 임시 번호를 매겼으나, "경미/확인 필요"인 P2가 아니라 대부분 "확정된 권한 로직 오류"임이 밝혀져 P1로 재분류했다(P1-85와 마찬가지 사유). 이어서 "확인 필요"로 남겨뒀던 P2-15/16도 yona와 실제로 한 줄씩 대조하는 확정 조사를 진행해 종결했다(더 이상 "확인 필요" 상태가 아님). `docs/parity/index.md`의 최신 번호가 정본이며, 아래는 매핑 기록이다.
 
 - **P1-87(구 P2-13, 최우선)**: `WebhookController`의 인증 자체 부재. 확정 조사로 수정 범위 구체화 — 단순 로그인 체크가 아니라 조회(`webhooks()`)를 포함한 3개 엔드포인트 전부 "프로젝트 멤버(또는 그룹멤버)" 권한이 필요함(yona `ProjectApp.java:1268,1282,1314` 전부 `@IsAllowed(UPDATE)`).
 - **P1-88(구 P2-14)**: 그룹 A/A'(`checkReadPermission` 계열, 17곳) 실제 교체 — PUBLIC+게스트, sharer 두 결함이 실제로 고쳐지는 단계.
@@ -74,5 +74,5 @@ yona(레거시)는 `app/utils/AccessControl.java` 단일 클래스가 `isAllowed
 
 - 1a 완료 시점: `./gradlew test` 전체 그린 (동작 불변 확인).
 - 1b 완료 시점: `./gradlew test --tests "com.github.yonaprojects.yona.config.security.AccessControlSpec"` 그린 + 전체 `./gradlew test` 그린.
-- `docs/PARITY_BACKLOG.md`: P1-85 행을 진행 상태에 맞게 갱신 + 완료 로그에 실제로 한 일과 다음 단계 명시.
+- `docs/parity/index.md`: P1-85 행을 진행 상태에 맞게 갱신 + 완료 로그에 실제로 한 일과 다음 단계 명시.
 - git: 1a와 1b를 별도 커밋으로 분리(전자는 순수 리팩터링, 후자는 addition-only).

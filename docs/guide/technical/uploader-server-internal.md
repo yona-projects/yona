@@ -52,7 +52,7 @@ input으로 보낸다.
 
 **legacy와 달리 명시적인 권한 체크가 있다** — 첨부파일이 속한 컨테이너(이슈/게시글/댓글 등)에
 대한 READ 권한이 없으면 `403 Forbidden`을 반환한다(`accessControl.isAllowedAttachment`,
-`docs/PARITY_BACKLOG.md` P1-96 — legacy에는 이 체크 자체가 없었던 보안 결손이었다).
+`docs/parity/index.md` P1-96 — legacy에는 이 체크 자체가 없었던 보안 결손이었다).
 
 ETag(`"<hash>-<inline|attachment>"`) 기반 조건부 요청(`If-None-Match`)도 지원해서 캐시되어
 있으면 `304 Not Modified`를 반환한다 — legacy에는 없던 기능이다.

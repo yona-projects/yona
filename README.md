@@ -45,8 +45,8 @@
 | JDK | Java 8 | Java 21 |
 | 지원 DB | MariaDB(기본) 또는 H2(내장형) | **MariaDB / PostgreSQL / MySQL / SQL Server / CUBRID / H2(내장형)** |
 
-포팅 진행 상황과 legacy 대비 의도적으로 남겨둔 차이점은 `docs/PARITY_BACKLOG.md`,
-`docs/TEMPLATE_BACKLOG.md`, `docs/COVERAGE_BACKLOG.md`에 기록돼 있습니다.
+포팅 진행 상황과 legacy 대비 의도적으로 남겨둔 차이점은 `docs/parity/index.md`,
+`docs/TEMPLATE_BACKLOG.md`, `docs/coverage/index.md`에 기록돼 있습니다.
 
 ## 요구 사항
 
@@ -180,7 +180,7 @@ java -jar yona.jar --spring.profiles.active=h2
   설정으로 활성화합니다.
 - Yona의 별도 백업/이관 도구인 [Yona Export](https://github.com/yona-projects/yona-export)는
   이 저장소(Kotlin/Spring 이식판) 대상으로는 아직 포팅되지 않았습니다 — 진행 상황은
-  `docs/PARITY_BACKLOG.md` 참고.
+  `docs/parity/index.md` 참고.
 
 ## Contribution
 
@@ -218,8 +218,13 @@ legacy Yona(Yobi/nFORGE 포함)의 설계 스펙·비전 문서·릴리즈노트
 
 ## 코드 구조 개요
 
-`docs/PARITY_BACKLOG.md`, `docs/TEMPLATE_BACKLOG.md`, `docs/COVERAGE_BACKLOG.md`에 legacy yona 대비
+`docs/parity/index.md`, `docs/TEMPLATE_BACKLOG.md`, `docs/coverage/index.md`에 legacy yona 대비
 이식 진행 상황과 의도적으로 남겨둔 차이점들이 기록되어 있습니다.
+
+**문서 작성 규칙**: `docs/parity/`, `docs/coverage/`, `docs/golden/`는 `docs/yona-wiki/` 방식(인덱스는
+표만, 상세 서술은 개별 파일)을 따릅니다. 신규 티켓/배치/발견 사항을 기록할 때는 인덱스 표 아래에
+서술을 이어 쓰지 말고, 해당 디렉터리의 새 파일(`tickets/<id>.md`, `batches/<slug>.md`,
+`findings/<slug>.md` 등)을 만든 뒤 인덱스에 표 한 줄과 링크만 추가하세요.
 
 ## 라이선스
 
@@ -279,8 +284,8 @@ Yona is a web-based project hosting software.
 | JDK | Java 8 | Java 21 |
 | Supported DB | MariaDB (default) or embedded H2 | **MariaDB / PostgreSQL / MySQL / SQL Server / CUBRID / embedded H2** |
 
-Porting progress and deliberate differences from legacy are tracked in `docs/PARITY_BACKLOG.md`,
-`docs/TEMPLATE_BACKLOG.md`, and `docs/COVERAGE_BACKLOG.md`.
+Porting progress and deliberate differences from legacy are tracked in `docs/parity/index.md`,
+`docs/TEMPLATE_BACKLOG.md`, and `docs/coverage/index.md`.
 
 ## Requirements
 
@@ -421,7 +426,7 @@ Project Fork does not physically copy the repository — it clones via filesyste
   `github.allow.migration` settings.
 - The original Yona's separate backup/migration tool,
   [Yona Export](https://github.com/yona-projects/yona-export), has not yet been ported to this
-  repository (the Kotlin/Spring port) — see `docs/PARITY_BACKLOG.md` for status.
+  repository (the Kotlin/Spring port) — see `docs/parity/index.md` for status.
 
 ## Contribution
 
@@ -472,8 +477,14 @@ predecessors) are preserved verbatim under
 
 ## Code structure overview
 
-`docs/PARITY_BACKLOG.md`, `docs/TEMPLATE_BACKLOG.md`, and `docs/COVERAGE_BACKLOG.md` record
+`docs/parity/index.md`, `docs/TEMPLATE_BACKLOG.md`, and `docs/coverage/index.md` record
 porting progress against legacy yona and deliberately preserved differences.
+
+**Documentation convention**: `docs/parity/`, `docs/coverage/`, and `docs/golden/` follow the
+`docs/yona-wiki/` style (index = table only, details = individual files). When logging a new
+ticket/batch/finding, don't append narrative under the index table — create a new file in the
+relevant directory (`tickets/<id>.md`, `batches/<slug>.md`, `findings/<slug>.md`, etc.) and add
+just a table row + link to the index.
 
 ## License
 

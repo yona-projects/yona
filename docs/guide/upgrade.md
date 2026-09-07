@@ -22,6 +22,6 @@ DB 스키마는 [run-options.md의 "DB 스키마 마이그레이션"](run-option
 (Play/Java/Ebean → Spring Boot/Kotlin/JPA, DB 드라이버·스키마 매핑 방식도 다름). legacy Yona의
 DB를 그대로 붙여서 기동하는 것은 검증된 경로가 아니다. 화면·데이터 모델·동작을 legacy와
 동일하게 유지하는 것이 이 프로젝트의 목표이긴 하지만, 실제 마이그레이션(레거시 운영 DB →
-yona) 절차 자체는 아직 별도로 문서화되어 있지 않다 — `docs/PARITY_BACKLOG.md`의 이식 진행
+yona) 절차 자체는 아직 별도로 문서화되어 있지 않다 — `docs/parity/index.md`의 이식 진행
 상황을 참고하되, 실사용 데이터로 전환하기 전에는 반드시 백업 후 테스트 환경에서 먼저
 검증해야 한다.

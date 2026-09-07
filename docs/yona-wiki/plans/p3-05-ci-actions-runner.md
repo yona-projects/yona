@@ -6,7 +6,7 @@ status: planned
 priority: 8
 depends_on: [p3-01-observability]
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-05
+source: docs/parity/tickets/p3-05.md
 created: 2026-08-28
 updated: 2026-08-28
 tags: [plan, p3, ci, runner]
@@ -26,7 +26,7 @@ tags: [plan, p3, ci, runner]
 동일하게 이 기존 이벤트 버스에 새 `@EventListener`를 얹으면 core git 서빙 로직 변경 없이 트리거 구현 가능.
 
 7개 P3 항목 중 **범위가 가장 크고 신규성이 가장 높은 서브시스템**이라 우선순위 최하위로 배치.
-원본: [`docs/PARITY_BACKLOG.md#P3-05`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-05.md`](../../parity/index.md)
 
 ## 범위
 
@@ -135,7 +135,7 @@ WebSocket보다 SSE가 적합. 러너가 로그 청크 업로드 → `eventPubli
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-05)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-05.md)
 - 관련 계획: [[p3-01-observability]](약한 선행), [[p3-02-cli-and-rest-api]](CLI 통합 시 Go 스택 재사용)
 - 레퍼런스: `nektos/act`(MIT), Gitea `act_runner`, GitHub `actions-runner-controller`
 - 관련 소스: `domain/vcs/GitPushHooks.kt`(`YonaPostReceiveHook`), `domain/pullrequest/PullRequestServiceImpl.kt`, `domain/webhook/WebhookNotificationEventListener.kt`(참고 패턴)

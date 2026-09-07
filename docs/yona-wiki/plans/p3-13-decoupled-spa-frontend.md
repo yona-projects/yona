@@ -6,7 +6,7 @@ status: planned
 priority: 10
 depends_on: [p3-02-cli-and-rest-api]
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-13
+source: docs/parity/tickets/p3-13.md
 created: 2026-08-31
 updated: 2026-08-31
 tags: [plan, p3, frontend, api]
@@ -69,7 +69,7 @@ tags: [plan, p3, frontend, api]
    Thymeleaf)하는 점진 전환이 리스크가 낮음 — 전체 컷오버는 159개 템플릿을 한 번에 검증해야 해 리스크가 큼.
 4. **레거시 JS 위젯 대체 범위**: `$yobi.loadModule` 계열 위젯 다수가 이번 세션에서 발견된 것처럼 실제로는
    부분적으로 깨져 있거나 legacy 그대로 이식만 된 상태(P0-27, GNB 드롭다운 색상, project.Home 모듈 누락
-   등, `docs/PARITY_BACKLOG.md`/`docs/TEMPLATE_BACKLOG.md` 최근 항목 참고) — SPA 전환은 이런 결함을
+   등, `docs/parity/index.md`/`docs/TEMPLATE_BACKLOG.md` 최근 항목 참고) — SPA 전환은 이런 결함을
    그대로 옮기지 않고 재설계할 기회이기도 하다.
 
 ## 단계별 작업 계획 (TDD)
@@ -100,7 +100,7 @@ tags: [plan, p3, frontend, api]
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-13)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-13.md)
 - 관련 계획: [[p3-02-cli-and-rest-api]](REST API/인증 토대), [[p3-07-mcp-server]](동일 REST API를 소비하는 또 다른 클라이언트)
 - 관련 소스: `web/*Controller.kt`(31개 REST + 31개 View), `src/main/resources/templates/**`(159개),
   `config/SecurityConfig.kt`

@@ -31,4 +31,4 @@ Server-side, the actual markdown engine is **CommonMark Java**
 (`org.commonmark:commonmark` + GFM tables/strikethrough/autolink extensions) — a full
 replacement for legacy's Nashorn/Rhino JS-engine-based renderer (`lib/js-engine.jar`).
 Sanitization uses the **OWASP Java HTML Sanitizer** with an equivalent allowlist policy to
-legacy's custom `Markdown.java` (`docs/PARITY_BACKLOG.md` P0-08).
+legacy's custom `Markdown.java` (`docs/parity/index.md` P0-08).

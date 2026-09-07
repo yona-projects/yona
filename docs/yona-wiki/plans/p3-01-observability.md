@@ -6,7 +6,7 @@ status: done
 priority: 2
 depends_on: []
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-01
+source: docs/parity/tickets/p3-01.md
 created: 2026-08-28
 updated: 2026-08-28
 tags: [plan, p3, observability]
@@ -20,7 +20,7 @@ tags: [plan, p3, observability]
 `/actuator/prometheus`도 노출돼 있지만, 커스텀 메트릭 코드(`MeterRegistry`/`@Timed`/`Counter.builder`)가 저장소 전체에
 0건이라 JVM/HTTP 기본 지표만 나가고 비즈니스 지표는 전혀 없다. 구조화 로깅과 분산 트레이싱 인프라도 없다.
 `@Async`/`@EventListener` 체인이 많은 아키텍처(웹훅 발송·PR 재병합·알림메일 다이제스트)라 트레이싱 부재가 특히 아쉽다.
-원본: [`docs/PARITY_BACKLOG.md#P3-01`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-01.md`](../../parity/index.md)
 
 ## 범위
 
@@ -118,6 +118,6 @@ TDD로 Step 1→2→3→4→5 순서 그대로 진행. 계측 지점 6곳 전부
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-01)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-01.md)
 - 관련 계획: [[p3-05-ci-actions-runner]](운영 단계에서 동일 인프라 사용)
 - 관련 소스: `domain/notification/NotificationEventRecorder.kt`, `domain/notification/NotificationMailDigestScheduler.kt`, `domain/mail/ImapMailboxPoller.kt`, `domain/event/PullRequestMergeEventListener.kt`, `domain/webhook/WebhookNotificationEventListener.kt`, `domain/vcs/GitPushHooks.kt`

@@ -126,7 +126,7 @@ grep 기반으로 조사됐던 6개 도메인(게시판, 마일스톤, 첨부파
 - **완전히 이식됨 3건** — `Webhook.java`(743줄) 전체를 Read로 재확인, 필드(`id/project/payloadUrl/secret/gitPush/webhookType/createdAt`)와 `WebhookThread.kt`/`GitPostReceiveEvent.kt` 필드가 1:1 일치함을 직접 대조로 재확인.
 - **`create()`/`delete(Long,Long)`/`delete(Long projectId)`/`findByIds()` 죽은 코드** — `find_referencing_symbols`로 넷 다 참조 0건 확인. 추가로 `ProjectApp.java:1315-1322`를 Read해보니 실제 삭제 경로(`webhook.delete()`)는 이 커스텀 오버로드조차 아니라 `Model`에서 상속한 무인자 `delete()`를 호출하는 것이라 어제 판단보다 더 확실하게 죽은 코드임을 확인. `findByProject`는 반대로 `find_referencing_symbols`가 0건을 반환했지만 `search_for_pattern`으로 `NotificationEvent.java`(8곳)와 `ProjectApp.java:1278`에서 실사용을 확인 — 어제 보고서가 이 메서드를 죽은 코드로 분류하지 않은 것은 옳았음.
 - **결손 1~4 전부 코드 근거로 재확인**: `WebhookServiceImpl.buildTextMessage()`는 URL을 전혀 조립하지 않음(코드 273-286행). `DETAIL_SLACK` 분기(89-173행)는 Issue에만 `state` 필드를 추가하고, PR은 `bodyText`의 `when`에 케이스가 없어 `else -> ""`로 빠지며 `fields`도 채워지지 않음. `WebhookController.newWebhook()`(66-98행)은 `payloadUrl`/`secret`에 길이·필수 검증이 전혀 없고 `webhookType` 파싱 실패만 `try/catch`로 `SIMPLE` 폴백.
-- **PARITY_BACKLOG.md 완료 항목 목록** — P0-03/04, P1-25/26/69/87, P2-08/16 전부 `[x]` 완료로 재확인.
+- **parity/index.md 완료 항목 목록** — P0-03/04, P1-25/26/69/87, P2-08/16 전부 `[x]` 완료로 재확인.
 - **legacy `deleteWebhook`도 프로젝트 범위 검증 없음** — `ProjectApp.java:1315`가 `Webhook.find.byId(id)`만으로 삭제, `yona WebhookServiceImpl.deleteWebhook(id)`(48-53행)와 정확히 동치.
 
 ### 수정/정정 필요
@@ -182,7 +182,7 @@ grep 기반으로 조사됐던 6개 도메인(게시판, 마일스톤, 첨부파
 - 결손 6(`toValidSHALink`의 `isCodeAvailable()` 부재): yona `AutoLinkRenderer.kt:214-217`에서 `project.vcs?.uppercase() != "GIT"`만 검사, `isCodeAvailable` 문자열은 yona `src/` 전체에서 0건. yona `AutoLinkRenderer.java:274`의 `!project.isCodeAvailable() || !project.isGit()`와 대조되어 정확.
 
 ### 수정/정정 필요
-1. **결손 5의 심각도 표기는 정확했지만 근거가 더 필요함**: `isProjectResourceCreatable(User, Project, ResourceType)`은 실제로 yona `AccessControl.kt:87`에 존재하며, `IssueLabelController.kt`(3곳)·`CodeHistoryController.kt`·`IssueViewController.kt`(2곳)·`MilestoneController.kt`·`IssueController.kt`·`IncomingMailProcessingService.kt`에 배선까지 완료돼 있음(`docs/PARITY_BACKLOG.md` P1-94/95 로그로 교차 확인). 즉 "리소스 생성 권한 판단" 로직의 대부분(프로젝트 스코프)은 이미 이식·배선됨 — 어제 보고서가 미이식이라 지목한 것은 그중 프로젝트에 속하지 않는 글로벌 리소스(임시 첨부용) 케이스인 `isGlobalResourceCreatable`/`isResourceCreatable` 뿐이며, 이 두 함수는 yona에 정말 0건. 결론적으로 P2/"영향 제한적" 표기는 정확하나, 독자가 "리소스 생성 권한 전체"가 빠진 것으로 오해하지 않도록 범위를 명시할 필요가 있음.
+1. **결손 5의 심각도 표기는 정확했지만 근거가 더 필요함**: `isProjectResourceCreatable(User, Project, ResourceType)`은 실제로 yona `AccessControl.kt:87`에 존재하며, `IssueLabelController.kt`(3곳)·`CodeHistoryController.kt`·`IssueViewController.kt`(2곳)·`MilestoneController.kt`·`IssueController.kt`·`IncomingMailProcessingService.kt`에 배선까지 완료돼 있음(`docs/parity/index.md` P1-94/95 로그로 교차 확인). 즉 "리소스 생성 권한 판단" 로직의 대부분(프로젝트 스코프)은 이미 이식·배선됨 — 어제 보고서가 미이식이라 지목한 것은 그중 프로젝트에 속하지 않는 글로벌 리소스(임시 첨부용) 케이스인 `isGlobalResourceCreatable`/`isResourceCreatable` 뿐이며, 이 두 함수는 yona에 정말 0건. 결론적으로 P2/"영향 제한적" 표기는 정확하나, 독자가 "리소스 생성 권한 전체"가 빠진 것으로 오해하지 않도록 범위를 명시할 필요가 있음.
 2. **"`isAllowedIfAuthor`/`isAllowedIfAssignee`... 1:1 대응"은 문구가 부정확**: yona에는 이 두 이름의 독립 함수가 없음. `AccessControl.kt`의 리소스별 `isAllowed(...)` 오버로드(295-546줄) 내부에 `val isAuthor = ...`/`val isAssignee = ...` 지역 변수로 인라인돼 있음. 반면 `isAllowedIfSharer`(204·213줄)와 `isAllowedIfGroupMember`(185줄)는 실제로 이름 그대로 존재. 동작 결과는 동등하지만 "1:1 대응"이라는 표현은 구조적으로 부정확.
 
 ### 신규 발견(어제 놓친 것)

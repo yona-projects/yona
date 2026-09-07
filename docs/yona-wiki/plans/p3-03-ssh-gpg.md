@@ -6,7 +6,7 @@ status: done
 priority: 7
 depends_on: [p3-02-cli-and-rest-api]
 blocks: [p3-04-branch-protection]
-source: docs/PARITY_BACKLOG.md#P3-03
+source: docs/parity/tickets/p3-03.md
 created: 2026-08-28
 updated: 2026-09-07
 tags: [plan, p3, git, auth, security]
@@ -18,7 +18,7 @@ tags: [plan, p3, git, auth, security]
 
 원본 요나·yona 둘 다 SSH git 프로토콜/GPG 관련 코드가 전혀 없어 이식 대상이 아니라 **완전 신규 기능**이다.
 SSH 키 관리와 GPG 키 관리(커밋 서명 검증 전용, 로그인 인증 용도는 배제) 두 축으로 구성된다.
-원본: [`docs/PARITY_BACKLOG.md#P3-03`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-03.md`](../../parity/index.md)
 
 ## 범위
 
@@ -366,6 +366,6 @@ setWritable(false/true, ...)`로 소유자 전용(0600 상당)으로 제한(Wind
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-03)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-03.md)
 - 관련 계획: [[p3-02-cli-and-rest-api]](스코프 체계 공유, yona-cli에 `internal ssh-auth`/`internal ssh-shell` 서브커맨드 추가), [[p3-04-branch-protection]](서명 검증 결과 소비 — `require_signed_commits`를 이 계획이 만든 `GpgSignatureVerifier`/`Commit.getGpgVerificationStatus()`에 실제로 연결하는 작업을 5부(2026-09-07)에서 완료함)
 - 관련 소스: `config/SecurityConfig.kt`, `config/git/GitAuthorizationFilter.kt`, `config/git/GitAccessPolicy.kt`, `config/git/DeployKeyAuthenticationProvider.kt`, `config/ssh/` 전체(`SshInternalController.kt`, `SshInternalSecretProvider.kt`, `YonaMinaSshServer.kt`, `YonaSshGitCommand.kt`), `domain/deploykey/`, `domain/sshkey/`, `domain/gpgkey/`, `domain/vcs/GitPushHooks.kt`, `domain/vcs/Commit.kt`/`GitCommit.kt`/`GitRepository.kt`, `domain/vcs/RepositoryService.kt`, `web/DeployKeyController.kt`, `web/UserViewController.kt`(SSH/GPG 키 탭), yona-cli의 `cmd/internal.go`/`internal/sshhelper/`

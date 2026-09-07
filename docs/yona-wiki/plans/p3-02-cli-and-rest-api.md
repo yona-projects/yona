@@ -6,7 +6,7 @@ status: planned
 priority: 3
 depends_on: []
 blocks: [p3-03-ssh-gpg, p3-07-mcp-server, p3-05-ci-actions-runner]
-source: docs/PARITY_BACKLOG.md#P3-02
+source: docs/parity/tickets/p3-02.md
 created: 2026-08-28
 updated: 2026-09-03
 tags: [plan, p3, cli, api, auth]
@@ -25,7 +25,7 @@ Go로 결정됨(설치 직후 바로 실행되어야 하므로 JVM 콜드스타�
 
 또한 현재 yona에는 이슈/PR을 개별적으로 생성·조회·수정하는 **범용 JSON REST API가 없다** —
 `ProjectApiController.kt`는 export/import 전용이고, 나머지는 전부 Thymeleaf 렌더링용 MVC 컨트롤러다.
-원본: [`docs/PARITY_BACKLOG.md#P3-02`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-02.md`](../../parity/index.md)
 
 ## 범위
 
@@ -344,7 +344,7 @@ Go로 결정됨(설치 직후 바로 실행되어야 하므로 JVM 콜드스타�
 - [x] Go CLI로 로그인 → 이슈 생성 → PR 목록 조회 골든 패스가 수동 검증 완료 (9라운드, 2026-09-01 — 아래 완료 로그 참고. 실제 서버로 부트스트랩 관리자 생성 → 로그인 → 프로젝트 생성 → 토큰 발급 → `yona auth login` → `yona issue create/list` → `yona pr create/list`까지 전부 성공 확인. 검증 과정에서 순환 직렬화 심각 버그를 발견·수정함)
 - [x] yona-cli 전체 명령(git clone/push, pr checkout/merge/diff/edit, project fork, admin backup/permission/webhook, label edit 포함)이 실서버에 대고 정상 동작함 (10라운드, 2026-09-01 — 아래 완료 로그 참고. 실측으로 7개 실버그 발견·수정. 특히 스마트 HTTP git 프로토콜이 완전히 깨져 있던 심각한 버그를 포함)
 - [ ] `goreleaser` 배포(Step 11: GitHub Releases/Homebrew/Scoop/`.deb`/`.rpm`) (2026-09-01 사용자 지시로 보류 — 아직 외부 배포 대상 사용자가 없어 실제로 필요해지는 시점까지 미룸)
-- [ ] `./gradlew test` 전체 GREEN, JaCoCo 95%/95%/95% 유지(`docs/COVERAGE_BACKLOG.md` 기준) (전체 계획 완료 후 검증 — 10라운드 기준 `./gradlew test`(H2) 5807개 중 4개 실패, 전부 `IssueServiceImplSpec`/`IssueServiceSpec` 각 2케이스로 9라운드 로그에도 이미 기록된 사전 존재 플레이키니스(단독 실행 시 GREEN 재확인) — 이번 라운드가 만든 회귀 아님)
+- [ ] `./gradlew test` 전체 GREEN, JaCoCo 95%/95%/95% 유지(`docs/coverage/index.md` 기준) (전체 계획 완료 후 검증 — 10라운드 기준 `./gradlew test`(H2) 5807개 중 4개 실패, 전부 `IssueServiceImplSpec`/`IssueServiceSpec` 각 2케이스로 9라운드 로그에도 이미 기록된 사전 존재 플레이키니스(단독 실행 시 GREEN 재확인) — 이번 라운드가 만든 회귀 아님)
 
 ## 완료 로그
 
@@ -2001,6 +2001,6 @@ Step8.5 완료 후 "CLI 배선 문제가 아니라 서버 자체에 없어서 �
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-02)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-02.md)
 - 관련 계획: [[p3-03-ssh-gpg]], [[p3-07-mcp-server]], [[p3-05-ci-actions-runner]]
 - 관련 소스: `config/ApiTokenAuthenticationFilter.kt`, `config/SecurityConfig.kt`, `domain/enumeration/ResourceType.kt`, `web/ProjectApiController.kt`, `web/IssueRestApiController.kt`, `web/PullRequestApiController.kt`, `web/ProjectRestApiController.kt`, `web/LabelRestApiController.kt`, `web/SearchRestApiController.kt`, `web/OrganizationRestApiController.kt`, `web/UserIssueStatusRestApiController.kt`, `domain/pullrequest/PullRequestServiceImpl.kt`, `web/WebhookRestApiController.kt`, `web/ProjectPermissionRestApiController.kt`, `domain/pullrequest/PullRequest.kt`, `domain/pullrequest/PullRequestRepository.kt`, `domain/enumeration/SearchType.kt`

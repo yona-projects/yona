@@ -26,7 +26,7 @@ MariaDB 10.2부터 Barracuda/동적 row format이 기본값이 되면서 사실�
 
 ## SQL Server / CUBRID에서 한글이 깨지거나 조회가 안 되는 경우
 
-이식 과정에서 실제로 발견·해결된 DB별 결함이다(`docs/PARITY_BACKLOG.md` P1-6x대 참고):
+이식 과정에서 실제로 발견·해결된 DB별 결함이다(`docs/parity/index.md` P1-6x대 참고):
 
 - **SQL Server**: JDBC URL에 `sendStringParametersAsUnicode=true`가 없으면 문자열 파라미터가
   비유니코드로 전송돼 한글이 깨진다. Hibernate가 String을 기본적으로 `varchar`(비유니코드)로

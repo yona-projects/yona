@@ -6,7 +6,7 @@ status: done
 priority: 5
 depends_on: []
 blocks: []
-source: docs/PARITY_BACKLOG.md#P3-06
+source: docs/parity/tickets/p3-06.md
 created: 2026-08-28
 updated: 2026-09-06
 tags: [plan, p3, auth, sso]
@@ -19,7 +19,7 @@ tags: [plan, p3, auth, sso]
 LDAP 연동(`LdapService.kt`/`LdapUserProvisioningService.kt`/`LdapQueryBuilder.kt`/`LdapUser.kt`,
 `YonaAuthenticationProvider.kt`)은 이미 구현·테스트 완료 상태임이 코드로 확인됨 — 이 계획의 신규 대상은
 **SAML2와 범용 OIDC 두 가지뿐**이며 LDAP은 범위에서 제외한다.
-원본: [`docs/PARITY_BACKLOG.md#P3-06`](../../PARITY_BACKLOG.md)
+원본: [`docs/parity/tickets/p3-06.md`](../../parity/index.md)
 
 ## 범위
 
@@ -240,7 +240,7 @@ LDAP 연동(`LdapService.kt`/`LdapUserProvisioningService.kt`/`LdapQueryBuilder.
 ### 2라운드 (2026-09-06) — 강제 중단 이후 인계 세션의 재검증 + 백로그/인덱스 문서 갱신 마무리
 
 1라운드를 진행하던 세션이 사용자 지시로 중간에 강제 종료됐고("전체 테스트 스위트는 이제 깨끗하게
-컴파일된다... `PARITY_BACKLOG.md`/`index.md` 갱신을 진행하려던 참이었다"는 메모만 남긴 채), 코드는 삭제되지
+컴파일된다... `parity/index.md`/`index.md` 갱신을 진행하려던 참이었다"는 메모만 남긴 채), 코드는 삭제되지
 않고 워킹 디렉터리에 커밋되지 않은 채 그대로 남아있는 상태로 이 세션이 인계받았다. 이 라운드는 새 기능을
 추가하지 않고 **1라운드 산출물의 신뢰도를 독립적으로 재검증**하고 미완이던 문서 갱신을 마무리했다.
 
@@ -258,9 +258,9 @@ LDAP 연동(`LdapService.kt`/`LdapUserProvisioningService.kt`/`LdapQueryBuilder.
   패턴과 정확히 일치하며 이번엔 동시 작업 세션 없이도 재현됐다는 점에서, 원인이 세션 간 경합보다는
   `ddl-auto=create-drop` 방식의 통합 테스트가 전체 스위트를 한 번에 돌릴 때 갖는 근본적인 취약성(다른
   클래스와의 실행 순서/스레드 배치에 따른 산발적 정합성 오류)에 더 가깝다고 판단된다 — 다만 이 판단은
-  이번 라운드가 아닌 별도 인프라 개선 과제(`docs/COVERAGE_BACKLOG.md` 영역)로 남겨둔다. 이 계획이 만든
+  이번 라운드가 아닌 별도 인프라 개선 과제(`docs/coverage/index.md` 영역)로 남겨둔다. 이 계획이 만든
   코드/테스트 자체는 이번 재검증에서도 예외 없이 GREEN.
-- **문서 갱신 마무리**: 1라운드가 미완으로 남긴 두 문서를 갱신 — `docs/PARITY_BACKLOG.md`의 P3-06 행
+- **문서 갱신 마무리**: 1라운드가 미완으로 남긴 두 문서를 갱신 — `docs/parity/index.md`의 P3-06 행
   체크박스를 `[ ]` → `[x]`로 바꾸고 기존 텍스트 뒤에 완료 요약을 이어붙였다(원본 텍스트는 보존).
   `docs/yona-wiki/index.md`의 우선순위 표 P3-06 상태를 `planned` → `완료(2026-09-06)`로 갱신.
 - **코드 변경 없음**: 이 라운드는 검증과 문서 갱신만 수행했다 — 1라운드가 작성한 소스/템플릿/테스트
@@ -297,7 +297,7 @@ push 전 최종 리뷰 과정에서 `OidcUserProvisioningService.reconcile()`을
 
 ## 관련
 
-- 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-06)
+- 백로그 원본: [`docs/parity/index.md`](../../parity/tickets/p3-06.md)
 - 관련 계획: [[p3-07-mcp-server]] — MCP 서버가 자체 운영할 OAuth 인가 서버의 로그인 화면이 이 계획의 SAML/OIDC
   로그인도 그대로 상속받는 구조(이 계획이 P3-07의 블로커는 아님, 순서 무관하게 나중에 합류)
 - 관련 소스: `config/YonaAuthenticationProvider.kt`, `domain/user/LdapUserProvisioningService.kt`,
