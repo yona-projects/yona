@@ -266,6 +266,10 @@ class MarkdownServiceImplSpec : DescribeSpec({
                 override fun getDirectory(): File = File("/tmp")
                 override fun getArchive(os: OutputStream, branchName: String) {}
                 override fun getBlobId(revision: String, path: String): String? = null
+                override fun getTagNames(): List<String> = emptyList()
+                override fun getTags(): List<com.github.yonaprojects.yona.domain.vcs.GitTag> = emptyList()
+                override fun deleteTag(tagName: String) {}
+                override fun createTag(tagName: String, startPoint: String, message: String?, taggerName: String?, taggerEmail: String?) {}
             }
 
             every { repositoryService.getRepository(any()) } returns playRepo
