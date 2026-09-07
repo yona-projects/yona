@@ -28,22 +28,27 @@ yona-wiki P3-03이 설계했지만 "호스트 시스템을 건드리지 않는�
                                                       ▲                                    (127.0.0.1)
                                                       │  ④"이 사용자입니다" 회신받아
                                                       │    authorized_keys 형식 한 줄을 인쇄
-                                                      │    (command="ssh-shell.sh <principal>" 포함)
+                                                      │    (command=에 principal + socat 릴레이
+                                                      │     한 줄을 그대로 심어둠)
                                                       ▼
                                               sshd가 인증 완료, 세션을 command= 로 강제 실행
                                                       │
                                                       ▼
-                                              ssh-shell.sh ──⑤POST /internal/ssh/authorize──▶ yona 서버
-                                                      │        (이 저장소에 이 사용자가 push/clone 가능한가?)
-                                                      ▼
-                                              ⑥허용되면 실제 git-upload-pack/git-receive-pack 실행
+                                              ⑤socat이 stdin/stdout을 유닉스 도메인 소켓에 그대로
+                                                이어붙임(이미 떠 있는 yona 메인 JVM이 반대편에서
+                                                인가 판정 + 실제 git/hg 프로토콜을 처리 — P3-18
+                                                SshRelayServer, HTTPS 경로와 완전히 동일한
+                                                브랜치 보호 로직 적용)
 ```
 
 GitHub/GitLab이 쓰는 것과 동일한 패턴이다(`AuthorizedKeysCommand` + forced command). yona는
-이 흐름의 ③⑤에 해당하는 판정 API(`SshInternalController`, `/internal/ssh/authenticate`,
-`/internal/ssh/authorize`)만 제공하고, ②④⑥에 해당하는 훅 스크립트 두 개는 관리자가 이
-문서대로 서버에 직접 설치한다(별도 `yona-cli` 바이너리는 필요 없다 — 표준 도구인 `curl`/`jq`
-+ 짧은 셸 스크립트로 충분하다).
+①의 신원 확인 API(`SshInternalController`, `/internal/ssh/authenticate`)만 제공하고, 나머지
+인가 판정(이 저장소에 push/clone 가능한가, 브랜치 보호 등)은 ⑤의 `SshRelayServer`가 소켓
+반대편에서 직접 처리한다 — 별도의 "인가 확인 후 git 바이너리 exec" 훅 스크립트는 필요 없다
+(이전 버전 문서에 있던 `ssh-shell.sh`와 `/internal/ssh/authorize` 호출은 **삭제됐다** — 그
+스크립트가 진짜 git 바이너리를 직접 exec해서 브랜치 보호 등 yona의 JGit 훅 체이닝을 우회하는
+구조였기 때문. 지금은 `ssh-auth.sh` 하나와, 표준 도구 `socat`만 있으면 된다 — 별도
+`yona-cli` 바이너리도, 커스텀 셸 스크립트도 필요 없다).
 
 ## 사전 준비
 
@@ -51,10 +56,16 @@ GitHub/GitLab이 쓰는 것과 동일한 패턴이다(`AuthorizedKeysCommand` + 
   루프백 주소(127.0.0.1)에서 온 요청만 받는다 — 훅 스크립트와 yona 서버가 **반드시 같은
   호스트**에 있어야 한다(컨테이너로 띄웠다면 훅 스크립트도 그 컨테이너 안에서 실행되거나,
   host network를 공유해야 한다).
-- `curl`, `jq`가 설치돼 있어야 한다(`apt install curl jq` / `yum install curl jq`).
+- `curl`, `jq`, `socat`이 설치돼 있어야 한다(`apt install curl jq socat` / `yum install curl jq socat`).
+  `socat`은 forced command가 stdin/stdout을 yona의 유닉스 도메인 소켓에 그대로 이어붙이는 데만
+  쓰는 표준 도구다(대부분 배포판 기본 저장소에 있음).
 - yona가 리슨하는 HTTP 포트를 확인한다. `application.yml`에 `server.port`를 별도로 지정하지
   않았다면 Spring Boot 기본값인 `8080`이다 — `server.port`를 직접 설정했다면 그 값을 쓴다
   ([settings-reference.md](settings-reference.md) 참고). 아래 예시는 `8080` 기준이다.
+- yona의 `yona.ssh.relay.socket-path` 설정값(기본 `/tmp/yona/ssh-relay.sock` — **운영에서는
+  `yona.git.base-dir`와 마찬가지로 반드시 영구 경로로 바꿀 것**, `/tmp`는 재부팅 시 사라지고
+  다른 프로세스가 같은 이름으로 먼저 만들어버릴 수도 있다)을 확인한다. `yona.ssh.relay.enabled`는
+  기본값 `true`라 별도 설정 없이 이미 켜져 있다.
 
 ## Step 1. 전용 시스템 계정 만들기
 
@@ -116,9 +127,12 @@ sudo chmod 640 /etc/yona/ssh-internal-secret
 이 그룹(`yona-ssh-hook`)에는 Step 3의 훅 실행 계정과 `git` 계정 둘 다 넣는다(둘 다 이 파일을
 읽어야 한다).
 
-## Step 3. 훅 스크립트 두 개 설치
+## Step 3. 훅 스크립트 설치
 
-`/usr/local/lib/yona/ssh-auth.sh` (①→④, `AuthorizedKeysCommand`가 실행):
+`/usr/local/lib/yona/ssh-auth.sh` 하나만 있으면 된다(①→④, `AuthorizedKeysCommand`가 실행) —
+인가 판정과 git/hg 프로토콜 처리는 전부 `SshRelayServer`(이미 떠 있는 yona 메인 JVM)가
+소켓 반대편에서 직접 하므로, 예전처럼 "인가 확인 API를 또 호출하고 그 결과로 git 바이너리를
+exec하는" 두 번째 스크립트가 필요 없다.
 
 ```bash
 #!/usr/bin/env bash
@@ -132,7 +146,7 @@ set -euo pipefail
 
 YONA_URL="${YONA_INTERNAL_URL:-http://127.0.0.1:8080}"
 SECRET_FILE="${YONA_SSH_SECRET_FILE:-/etc/yona/ssh-internal-secret}"
-SHELL_SCRIPT="/usr/local/lib/yona/ssh-shell.sh"
+RELAY_SOCKET="${YONA_SSH_RELAY_SOCKET:-/tmp/yona/ssh-relay.sock}"
 
 key_type="$1"
 key_blob="$2"
@@ -148,58 +162,35 @@ response="$(curl -s -m 5 -X POST "$YONA_URL/internal/ssh/authenticate" \
 principal="$(echo "$response" | jq -r '.principal // empty')"
 [ -n "$principal" ] || exit 0
 
+# forced command 본체 — SshRelayServer(P3-18)의 핸드셰이크 프로토콜 그대로: 첫 줄은 이
+# principal, 둘째 줄은 클라이언트가 실제 요청한 명령(SSH_ORIGINAL_COMMAND, sshd가 세션
+# 시작 시 자동으로 채워준다). 그 두 줄을 보낸 뒤부터는 순수 바이트 릴레이이므로, 이후 클라이언트가
+# 보내는 나머지 stdin도 그대로 이어붙여야 한다(cat) — printf와 cat의 출력을 한 파이프로 묶어
+# socat의 표준입력("-")에 넣고, socat의 표준출력은 건드리지 않아 그대로 ssh 세션에 돌아간다.
+# $SSH_ORIGINAL_COMMAND는 지금(ssh-auth.sh 실행 시점)이 아니라 나중에(forced command가 실제
+# 세션에서 실행될 때) 평가돼야 하므로 여기서는 반드시 이스케이프(\$)해서 리터럴로 심어야 한다.
+# 대화형 로그인(원본 명령이 없는 ssh -T 접속)은 GitHub과 동일하게 신원 확인 용도로만 허용하고
+# 셸은 주지 않는다.
+forced_command="if [ -z \"\$SSH_ORIGINAL_COMMAND\" ]; then echo 'Hi! yona SSH 인증에 성공했습니다. 다만 대화형 셸 접속은 지원하지 않습니다.' >&2; exit 1; fi; { printf '%s\\n%s\\n' '$principal' \"\$SSH_ORIGINAL_COMMAND\"; cat; } | socat - UNIX-CONNECT:$RELAY_SOCKET"
+
+# authorized_keys의 command="..." 값 안에 있는 리터럴 큰따옴표/역슬래시는 반드시 \"/\\ 로
+# 이스케이프해야 한다 — 안 그러면 sshd가 이스케이프 안 된 첫 번째 큰따옴표에서 값을 끊어버려
+# 뒷부분이 authorized_keys의 별도 필드로 잘못 해석된다(man sshd(8)의 AUTHORIZED_KEYS FILE
+# FORMAT 참고, 위 forced_command에 "$SSH_ORIGINAL_COMMAND" 리터럴이 들어있어 실제로 해당됨).
+# 역슬래시를 먼저 이스케이프해야 순서가 꼬이지 않는다.
+escaped_command="${forced_command//\\/\\\\}"
+escaped_command="${escaped_command//\"/\\\"}"
+
 # no-pty 등으로 대화형 셸/포트포워딩을 원천 차단하고, command=로 이 세션을 무조건
-# ssh-shell.sh로 강제한다(클라이언트가 요청한 명령은 SSH_ORIGINAL_COMMAND로 전달됨).
-echo "command=\"$SHELL_SCRIPT $principal\",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $key_type $key_blob"
-```
-
-`/usr/local/lib/yona/ssh-shell.sh` (⑤→⑥, 세션이 실제로 실행하는 forced command):
-
-```bash
-#!/usr/bin/env bash
-# ssh-auth.sh가 만든 authorized_keys의 command=로 강제 실행된다. $1=principal(위 스크립트가
-# 심어둠), $SSH_ORIGINAL_COMMAND=클라이언트가 실제 요청한 git 명령(sshd가 자동으로 채워줌).
-set -euo pipefail
-
-YONA_URL="${YONA_INTERNAL_URL:-http://127.0.0.1:8080}"
-SECRET_FILE="${YONA_SSH_SECRET_FILE:-/etc/yona/ssh-internal-secret}"
-
-principal="$1"
-original_command="${SSH_ORIGINAL_COMMAND:-}"
-
-if [ -z "$original_command" ]; then
-  # GitHub과 동일 — 대화형 로그인(ssh -T git@host)은 신원 확인 용도로만 허용하고 셸은 안 준다.
-  echo "Hi! yona SSH 인증에 성공했습니다. 다만 대화형 셸 접속은 지원하지 않습니다." >&2
-  exit 1
-fi
-
-secret="$(cat "$SECRET_FILE")"
-payload="$(jq -n --arg p "$principal" --arg c "$original_command" '{principal: $p, command: $c}')"
-
-response="$(curl -s -m 5 -X POST "$YONA_URL/internal/ssh/authorize" \
-  -H "Content-Type: application/json" \
-  -H "X-Yona-Internal-Secret: $secret" \
-  -d "$payload")"
-
-allowed="$(echo "$response" | jq -r '.allowed')"
-if [ "$allowed" != "true" ]; then
-  echo "$(echo "$response" | jq -r '.reason // "접근이 거부되었습니다."')" >&2
-  exit 1
-fi
-
-service="$(echo "$response" | jq -r '.service')"     # git-upload-pack / git-receive-pack / git-upload-archive
-repo_dir="$(echo "$response" | jq -r '.repoDir')"     # yona가 계산해준 실제 물리 경로(신뢰 가능)
-
-# "git-" 접두어를 뗀 서브커맨드 형태로 실행 — /usr/lib/git-core가 PATH에 없어도 동작한다.
-exec git "${service#git-}" "$repo_dir"
+# 위 forced_command로 강제한다.
+echo "command=\"$escaped_command\",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty $key_type $key_blob"
 ```
 
 권한 설정:
 
 ```bash
-sudo chmod 750 /usr/local/lib/yona/ssh-auth.sh /usr/local/lib/yona/ssh-shell.sh
+sudo chmod 750 /usr/local/lib/yona/ssh-auth.sh
 sudo chown root:yona-ssh-hook /usr/local/lib/yona/ssh-auth.sh
-sudo chown root:git /usr/local/lib/yona/ssh-shell.sh
 ```
 
 ## Step 4. sshd_config에 등록
@@ -265,25 +256,45 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
 - **403이 온다** — `/etc/yona/ssh-internal-secret` 파일 내용과 yona의
   `yona.ssh.internal-secret` 설정값이 정확히 일치하는지(공백/개행 문자 포함) 확인한다.
   `echo -n`으로 파일을 썼는지(트레일링 개행이 섞이면 시크릿이 달라진다) 다시 확인.
-- **clone은 되는데 push가 막힌다** — `AuthorizeResponse.reason`이 stderr로 그대로 전달된다
-  (`git push` 클라이언트가 이 메시지를 보여줌) — 브랜치 보호 정책, PRIVATE 프로젝트 멤버십,
-  읽기전용 Deploy Key 여부를 먼저 의심한다([troubleshooting.md](troubleshooting.md) 및
-  브랜치 보호 문서 참고).
+- **clone은 되는데 push가 막힌다** — 인가 거부 사유는 `SshRelayServer`가 소켓에 `ERR <사유>`
+  한 줄을 써서 알려주는데, 이건 git의 정식 프로토콜 응답이 아니라서(`report-status`처럼 깔끔한
+  줄이 아니라 프로토콜 오류로 인식됨) 클라이언트 쪽엔 "fatal: protocol error: ..." 류의 메시지
+  안에 그 사유 텍스트가 섞여 나온다 — 원인 자체는 브랜치 보호 정책, PRIVATE 프로젝트 멤버십,
+  읽기전용 Deploy Key 여부를 먼저 의심한다([troubleshooting.md](troubleshooting.md) 및 브랜치
+  보호 문서 참고). 정상적인 요청(인가 통과)에서는 이 문제가 없다 — JGit `ReceivePack`이 표준
+  `report-status`로 정상 응답하기 때문에, 이건 거부된 요청에서만 나타나는 사소한 UX 한계다.
 - **저장소 파일에 대한 Permission denied (repository 안에서)** — `git` OS 계정이 yona 앱
   계정과 같은 그룹에 속해 있고, `yona.git.base-dir` 디렉터리가 그 그룹에 rwX로 열려 있는지
   Step 1을 다시 확인.
+- **`socat: E connect(...): Permission denied` 또는 `No such file or directory`** — 전자는
+  `git` 계정이 `yona.ssh.relay.socket-path`(기본 `/tmp/yona/ssh-relay.sock`) 소켓 파일에 쓰기
+  권한이 없는 경우다(`SshRelayServer`가 바인드 직후 그룹 rw로 고정하고 `git` 계정이 yona 앱과
+  같은 그룹이어야 함 — Step 1과 위 사전 준비 항목 재확인, `ls -l`로 소켓 파일의 소유자/그룹/권한을
+  직접 확인). 후자는 yona 앱이 아예 안 떠 있거나 `yona.ssh.relay.enabled=false`로 꺼져 있는
+  경우다(기본값은 `true`) — 애플리케이션 로그에서 "SshRelayServer listening at ..." 줄을 확인.
 
 ## 참고
 
-- 판정 로직 자체(공개키→사용자, 명령→권한)는 `SshAuthServiceImpl`
+- 공개키→사용자 판정 로직은 `SshAuthServiceImpl`
   (`src/main/kotlin/com/github/yonaprojects/yona/domain/sshkey/SshAuthServiceImpl.kt`)에 있고,
-  이 문서의 훅 스크립트가 호출하는 API 계약은 `SshInternalController`
+  `ssh-auth.sh`가 호출하는 API 계약은 `SshInternalController`
   (`src/main/kotlin/com/github/yonaprojects/yona/config/ssh/SshInternalController.kt`)가 정의한다.
+  실제 명령(git-upload-pack/git-receive-pack/hg serve 등) 인가 판정과 프로토콜 처리는
+  `SshRelayServer`/`GitSshProtocolHandler`/`HgSshProtocolHandler`
+  (`src/main/kotlin/com/github/yonaprojects/yona/config/ssh/`)가 소켓 반대편에서 담당한다 —
+  HTTPS 경로(`GitServletConfig`)와 완전히 동일한 JGit `PreReceiveHookChain`(브랜치 보호 포함)을
+  그대로 타므로, 이 문서의 forced command 자체는 판정 로직을 전혀 갖지 않는 순수 바이트
+  릴레이다.
 - 윈도우 전용 임베디드 SSH 서버(`YonaMinaSshServer`, `yona.ssh.mina.*` 설정)는 이 문서와 별개
   경로다 — 리눅스/맥 운영 서버라면 이 문서만 따르면 된다.
-- 설계 배경 전체는 `docs/yona-wiki/plans/p3-03-ssh-gpg.md` 참고.
-- **지금은 Git 전용이다.** Mercurial도 공식 `hg-ssh`가 이 문서와 똑같은 아키텍처(공유 계정 +
-  `authorized_keys` 강제 명령)를 쓰므로, P3-12 2라운드에서 `ssh-shell.sh`에 `hg -R '<repo>' serve
-  --stdio` 패턴을 인식하는 분기를 추가해 이 가이드를 그대로 확장할 예정이다(`docs/yona-wiki/plans/p3-12-mercurial-hg4j.md`
-  참고). SVN은 관례상 이 공유-계정 패턴을 쓰지 않아(실제 시스템 계정 단위 접속이 표준) 이 문서의
-  대상이 아니며, 지금처럼 HTTP(WebDAV, `SvnController`)로만 서빙한다.
+- 설계 배경 전체는 `docs/yona-wiki/plans/p3-03-ssh-gpg.md`(SSH/GPG 설계), `docs/parity/tickets/p3-18.md`
+  (forced command를 소켓 릴레이로 바꾼 이유와 핸드셰이크 프로토콜 상세) 참고.
+- **Git과 Mercurial 둘 다 이미 지원한다** — `ssh-auth.sh`가 만드는 forced command는 원본 명령이
+  git이든(`git-upload-pack '<repo>.git'` 등) Hg든(`hg -R '<repo>' serve --stdio`, 공식 `hg-ssh`가
+  이 문서와 완전히 같은 아키텍처를 쓰므로 real `hg` 클라이언트가 실제로 보내는 형식 그대로) 그냥
+  소켓에 그대로 릴레이한다 — 어느 쪽인지 구분해 처리하는 건 `SshRelayServer`가 소켓 반대편에서
+  하므로, 이 문서 자체는 VCS 종류와 무관하다. Mercurial 쪽 브랜치 보호(require_pull_request
+  등)는 아직 없다(`P3-12` 2라운드 과제 — `HgSshProtocolHandler`에 훅을 걸 자리만 마련돼 있음,
+  `docs/parity/tickets/p3-18.md` 참고). SVN은 관례상 이 공유-계정 패턴을 쓰지 않아(실제 시스템
+  계정 단위 접속이 표준) 이 문서의 대상이 아니며, 지금처럼 HTTP(WebDAV, `SvnController`)로만
+  서빙한다.

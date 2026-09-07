@@ -92,6 +92,24 @@ class SshRelayServer(
             serverChannel = channel
             running = true
 
+            // yona-wiki P3-18 — 실제 forced command(sshd_config의 Match User git 아래에서 도는
+            // ssh-auth.sh의 command=)는 이 JVM과 다른 OS 계정("git")으로 실행된다(docs/guide/
+            // ssh-system-sshd-setup.md Step 1 — git 계정은 yona 앱 계정과 그룹만 공유). 유닉스
+            // 도메인 소켓은 connect()에 소켓 파일 자체의 쓰기 권한이 필요한데, 기본 생성 권한은
+            // JVM 프로세스의 umask에 좌우돼 그룹 쓰기가 막혀 있을 수 있다 — 그러면 같은 그룹인
+            // git 계정도 연결이 거부된다. 그룹 rw로 명시 고정해 이 문제를 배포 환경 umask 설정에
+            // 기대지 않고 항상 재현 가능하게 만든다(소유자는 이 JVM 프로세스 계정 그대로,
+            // world 권한은 부여하지 않는다).
+            try {
+                Files.setPosixFilePermissions(
+                    path,
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-rw----")
+                )
+            } catch (e: UnsupportedOperationException) {
+                // POSIX 권한을 지원하지 않는 파일시스템(사실상 발생하지 않음 — UNIX 도메인 소켓
+                // 자체가 POSIX 전용 기능)이면 조용히 넘어간다.
+            }
+
             val thread = Thread({ acceptLoop(channel) }, "yona-ssh-relay-acceptor")
             thread.isDaemon = true
             acceptThread = thread
