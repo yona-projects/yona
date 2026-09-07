@@ -282,3 +282,8 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
 - 윈도우 전용 임베디드 SSH 서버(`YonaMinaSshServer`, `yona.ssh.mina.*` 설정)는 이 문서와 별개
   경로다 — 리눅스/맥 운영 서버라면 이 문서만 따르면 된다.
 - 설계 배경 전체는 `docs/yona-wiki/plans/p3-03-ssh-gpg.md` 참고.
+- **지금은 Git 전용이다.** Mercurial도 공식 `hg-ssh`가 이 문서와 똑같은 아키텍처(공유 계정 +
+  `authorized_keys` 강제 명령)를 쓰므로, P3-12 2라운드에서 `ssh-shell.sh`에 `hg -R '<repo>' serve
+  --stdio` 패턴을 인식하는 분기를 추가해 이 가이드를 그대로 확장할 예정이다(`docs/yona-wiki/plans/p3-12-mercurial-hg4j.md`
+  참고). SVN은 관례상 이 공유-계정 패턴을 쓰지 않아(실제 시스템 계정 단위 접속이 표준) 이 문서의
+  대상이 아니며, 지금처럼 HTTP(WebDAV, `SvnController`)로만 서빙한다.

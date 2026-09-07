@@ -41,7 +41,9 @@ legacy yona와 yona 둘 다 Git/Subversion 두 VCS만 지원하고(`Project.vcs`
 
 ### 제외 (비범위)
 - `hg4j` 라이브러리 자체의 구현(별도 저장소 `search5/hg4j`에서 진행 — 이 계획은 **yona 통합** 범위만 다룸)
-- SSH를 통한 Mercurial 접근([[p3-03-ssh-gpg]]에서 SSH 인프라가 먼저 갖춰진 뒤 재검토)
+- SSH를 통한 Mercurial 접근(1라운드에서는 제외 — **2라운드에 포함 확정**, 아래 "2라운드 착수 전
+  사용자 결정사항"의 SSH 아키텍처 항목 참고. [[p3-03-ssh-gpg|P3-03]]이 만든 SSH 인가 파이프라인을
+  그대로 재사용한다)
 - Mercurial의 named branch/bookmark/phase 등 Git에 없는 개념의 UI 노출(1차는 Git의 "브랜치" 개념에 최대한
   근사하게 매핑, 세부 지원은 후속 라운드)
 
@@ -179,6 +181,28 @@ Mercurial의 wire protocol(HTTP 기반 `hg serve` 프로토콜)을 `search5/hg4j
     named branch만 Git 브랜치처럼 노출하는 안이 1라운드 계획에 있었음)는 범위가 "브랜치/태그
     모델까지 전부"로 커진 만큼 2라운드 착수 시 실제 hg4j `BranchesCommand`/`TagsCommand` API를
     다시 확인하며 확정한다.
+  3. **SSH 아키텍처(2026-09-07 사용자와 조사·확정)**: Mercurial의 SSH 접근은 **Git과 동일한
+     패턴**(공유 시스템 계정 하나 + `authorized_keys`의 `command=` 강제 명령으로 키마다 신원
+     구분 — Mercurial 공식 배포판의 `hg-ssh` 스크립트가 정확히 이 방식)을 따르므로, P3-03이
+     이미 만든 [[p3-03-ssh-gpg|SSH 인가 파이프라인]](`SshInternalController`/`SshAuthService`,
+     `docs/guide/ssh-system-sshd-setup.md`)을 **그대로 재사용**한다 — 별도 인가 파이프라인을
+     새로 만들지 않는다. 구체적으로:
+     - `SshAuthServiceImpl.authorizeGitCommand()`의 `commandPattern`(현재
+       `git-upload-pack`/`git-receive-pack`/`git-upload-archive`만 인식)에 Mercurial의 SSH
+       명령 형태(`hg -R '<repo>' serve --stdio`, `hg-ssh`가 만드는 것과 동일)를 인식하는 분기를
+       추가한다(메서드명을 `authorizeGitCommand`에서 좀 더 VCS 중립적인 이름으로 바꿀지도 이때
+       검토).
+     - `SshCommandAuthorization`의 `service` 필드가 "git-upload-pack" 등을 돌려주듯, Mercurial
+       요청이면 hg4j의 `HgSshWireServer`로 위임하도록 `YonaSshHgCommand`(신규, `YonaSshGitCommand`
+       대응물)에서 분기한다 — 임베디드 MINA 서버(윈도우) 경로.
+     - 리눅스/맥의 실제 시스템 sshd 경로는 `docs/guide/ssh-system-sshd-setup.md`의 `ssh-shell.sh`에
+       "명령이 `hg ... serve --stdio` 패턴이면 `hg4j`(또는 시스템 `hg`) 실행" 분기를 추가하는
+       식으로 확장한다 — 그 가이드가 이미 문서화한 훅 구조(`ssh-auth.sh`는 신원 확인만 하므로
+       변경 불필요) 위에 그대로 얹는다.
+     - **SVN은 이 패턴에 포함하지 않는다** — SVN+SSH(`svnserve -t`)는 관례상 공유 계정이 아니라
+       실제 시스템 계정 단위 접속이 표준이라 이 아키텍처와 근본적으로 다르고, SVN은 지금처럼
+       HTTP(WebDAV, `SvnController`)만 유지한다(어느 티켓/계획에도 SVN+SSH가 요청된 적 없음 —
+       필요해지면 별도 신규 티켓으로 논의).
 
 ## 관련
 
