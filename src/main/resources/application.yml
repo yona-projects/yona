@@ -293,7 +293,15 @@ spring:
     # yona.upload.base-dir과 동일하게 yona.data 프로퍼티 기준으로 둬야 -Dyona.data로 DB 파일
     # 위치까지 격리된다 — 예전엔 상대경로가 고정돼 있어 서버를 실행한 cwd(주로 저장소 루트)에
     # data/h2/가 항상 생겨, -Dyona.data로 격리한 실행끼리도 DB 상태를 공유하는 문제가 있었다.
-    url: "jdbc:h2:file:${yona.data:data}/h2/yona;AUTO_SERVER=TRUE"
+    # 2026-09-07 발견/수정 — 기본값 그대로("data/h2/yona", 앞에 아무 표시 없는 상대경로)로는
+    # H2 2.x가 "A file path that is implicitly relative to the current working directory is
+    # not allowed... Use an absolute path, ~/name, ./name, or the baseDir setting instead."로
+    # 부팅 자체를 거부한다(레거시가 쓰던 H2 1.x는 이 제약이 없었음). 플레이스홀더의 기본값
+    # 쪽에만 `./`를 붙여 해결 — yona.data를 절대경로로 오버라이드하는 운영 배포(git/svn/lfs
+    # base-dir과 같은 관례)에서는 오버라이드 값이 그대로 쓰여 이미 절대경로이므로 영향 없다.
+    # (yona.data를 굳이 "아무 표시 없는 상대경로"로 오버라이드하면 이 문제가 재현될 수 있음 —
+    # 이 경우 지금까지처럼 절대경로 또는 ./로 시작하는 값을 쓸 것.)
+    url: "jdbc:h2:file:${yona.data:./data}/h2/yona;AUTO_SERVER=TRUE"
     username: sa
     password: ""
     driver-class-name: org.h2.Driver
