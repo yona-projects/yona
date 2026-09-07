@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.Instant
 import java.util.UUID
 
@@ -250,7 +251,10 @@ class PullRequestServiceSpec @Autowired constructor(
             data class GeneratedGpgKey(val gnupgHome: File, val keyId: String, val armoredPublicKey: String, val email: String)
 
             fun generateGpgKey(emailLocalPart: String): GeneratedGpgKey {
-                val gnupgHome = Files.createTempDirectory("pr-it-gpg-home-").toFile()
+                // GpgSignatureVerifierSpec/YonaMinaSshServerIntegrationSpec와 동일한 이유(macOS
+                // java.io.tmpdir 경로가 길어 gpg-agent 유닉스 소켓 경로 제한을 넘김, 실측 재현
+                // 완료 2026-09-07) — /tmp 아래에 명시적으로 생성.
+                val gnupgHome = Files.createTempDirectory(Paths.get("/tmp"), "pr-it-gpg-home-").toFile()
                 val email = "$emailLocalPart@example.com"
 
                 val batchFile = File(gnupgHome, "gen-key.batch")

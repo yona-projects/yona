@@ -29,6 +29,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * yona-wiki P3-03 Step5/Step6 — 윈도우 SSH 폴백(Apache MINA SSHD, 이 애플리케이션이 직접 띄우는
@@ -114,7 +115,9 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
     private data class GeneratedGpgKey(val gnupgHome: File, val keyId: String, val armoredPublicKey: String, val email: String)
 
     private fun generateGpgKey(emailLocalPart: String): GeneratedGpgKey {
-        val gnupgHome = Files.createTempDirectory("mina-ssh-it-gpg-home-").toFile()
+        // GpgSignatureVerifierSpec와 동일한 이유(macOS java.io.tmpdir 경로가 길어 gpg-agent
+        // 유닉스 소켓 경로 제한을 넘김, 실측 재현 완료 2026-09-07) — /tmp 아래에 명시적으로 생성.
+        val gnupgHome = Files.createTempDirectory(Paths.get("/tmp"), "mina-ssh-it-gpg-home-").toFile()
         val email = "$emailLocalPart@example.com"
 
         val batchFile = File(gnupgHome, "gen-key.batch")

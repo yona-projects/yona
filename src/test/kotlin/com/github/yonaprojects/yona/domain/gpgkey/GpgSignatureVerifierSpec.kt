@@ -13,6 +13,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * yona-wiki P3-03 Step7/Step8 — 실제 `gpg`/`git commit -S` 바이너리로 만든 진짜 서명 커밋을
@@ -38,7 +39,11 @@ class GpgSignatureVerifierSpec @Autowired constructor(
     private data class GeneratedKey(val gnupgHome: File, val keyId: String, val armoredPublicKey: String, val email: String)
 
     private fun generateGpgKey(emailLocalPart: String): GeneratedKey {
-        val gnupgHome = Files.createTempDirectory("gpg-it-home-").toFile()
+        // macOS의 java.io.tmpdir(/var/folders/.../T)은 경로가 길어 GNUPGHOME 안에 만들어지는
+        // gpg-agent 유닉스 소켓(S.gpg-agent 등) 경로가 커널의 sun_path 길이 제한(~104바이트)을
+        // 넘겨 "gpg: error running '.../gpg-agent': exit status 2"로 키 생성 자체가 실패한다
+        // (실측 재현 완료, 2026-09-07). /tmp는 항상 짧으므로 명시적으로 그 아래에 만든다.
+        val gnupgHome = Files.createTempDirectory(Paths.get("/tmp"), "gpg-it-home-").toFile()
         gnupgHome.setExecutable(true, true)
         gnupgHome.setReadable(true, true)
         gnupgHome.setWritable(true, true)
@@ -122,6 +127,10 @@ class GpgSignatureVerifierSpec @Autowired constructor(
         run("git", "init", "-q", "-b", "main")
         run("git", "config", "user.name", "Unsigned Committer")
         run("git", "config", "user.email", "unsigned@example.com")
+        // 실행 머신의 전역 git 설정(~/.gitconfig)에 commit.gpgsign=true가 걸려 있으면, -S 없이
+        // 커밋해도 전역 signingkey로 실제 서명이 붙어버려 이 테스트의 전제(UNSIGNED)가 깨진다
+        // (실측 재현 완료, 2026-09-07) — 전역 설정과 무관하게 확실히 미서명이 되도록 로컬에서 끈다.
+        run("git", "config", "commit.gpgsign", "false")
         File(repoDir, "file.txt").writeText("hello")
         run("git", "add", "file.txt")
         run("git", "commit", "-q", "-m", "unsigned commit")
