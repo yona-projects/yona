@@ -273,6 +273,34 @@ GREEN(`gofmt -l .`/`go vet ./...` 클린).
 재사용하지 못하는 별도 컨텍스트를 만들기 때문으로 보이며, 테스트 워커 힙을 2048m로 올려(별도 커밋)
 완주 가능하게 만들었다(운영 코드에는 영향 없음).
 
+## SSH 키/GPG 키 화면을 GitHub식 2단계(목록/추가 분리)로 재설계 (2026-09-07, 사용자 지시로 백로그화 — 착수 전, 기록만)
+
+**상태: 미착수.** 사용자가 실제 운영 서버(`/user/editform/ssh-keys`, `/user/editform/gpg-keys`)를
+직접 써보고 지적 — [[p3-02-cli-and-rest-api]] Step 8.8의 API 토큰 화면과 완전히 같은 문제였다.
+`edit_ssh_keys.html`/`edit_gpg_keys.html` 둘 다 목록 테이블 바로 아래 "새 키 추가" 폼이 항상 같이
+떠 있고, 추가해도 리다이렉트 없이 같은 페이지를 다시 그리는 구조를 코드 대조로 확인했다(GitHub는
+목록 페이지 → 별도의 "Add SSH key"/"Add GPG key" 페이지 → 완료 후 목록으로 리다이렉트). 레거시엔
+SSH 키/GPG 키 기능 자체가 0줄이라(완전 신규) 참고할 레거시 구조가 없고, 이 계획 문서가 언급하는
+"GitHub 컨벤션"도 필드 구성(핑거프린트/발급일/최근 사용일 표시 등)에 대한 것이었지 목록↔추가
+페이지 분리 여부는 검토된 적이 없었다. 사용자가 GitHub식으로 바꾸라고 지시했고, 지금은 계획만
+기록하고 실제 작업은 다음 세션으로 미룬다.
+
+**변경 범위**(두 화면 동일 패턴, [[p3-02-cli-and-rest-api]] Step 8.8의 토큰 화면 재설계와
+구현 방식 통일):
+1. **목록 페이지**(`GET /user/editform/ssh-keys`, `GET /user/editform/gpg-keys`) — 기존 목록
+   테이블만 남기고 추가 폼은 뺀다. "새 SSH 키 추가"/"새 GPG 키 추가" 버튼을 눌러 아래 추가
+   페이지로 이동.
+2. **신규 추가 페이지**(`GET /user/editform/ssh-keys/new`, `GET /user/editform/gpg-keys/new`
+   가칭) — 지금 목록 페이지에 있던 폼(SSH: `title`+`publicKey`, GPG: `armoredPublicKey`)을
+   그대로 옮긴다.
+3. **`POST /user/editform/ssh-keys`, `POST /user/editform/gpg-keys`**(추가 처리) — 지금은
+   성공/실패 둘 다 같은 뷰(`user/edit_ssh_keys`/`user/edit_gpg_keys`)를 다시 그리는데, 성공 시
+   목록 페이지로 리다이렉트, 실패(검증 오류: 잘못된 공개키 형식 등) 시에는 추가 페이지로 되돌아가
+   에러를 보여주도록 바꾼다(`sshKeyError`/`gpgKeyError` 모델 속성을 flash attribute로 전달하는
+   방식 검토).
+4. 삭제(`POST /user/editform/{ssh-keys,gpg-keys}/{id}/delete`)는 이미 `redirect:/user/editform/...`로
+   목록 페이지로 돌아가는 구조라 손댈 필요 없음.
+
 ## 완료 기준 (Definition of Done)
 
 - [x] Deploy Key로 HTTPS git clone/push가 저장소 범위 내에서만 동작 — `DeployKeyAuthenticationProvider` +
