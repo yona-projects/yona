@@ -293,3 +293,4 @@
 | P3-16 | [x] | Git 태그(tag) 지원 (2026-09-03 사용자 제안, 2026-09-07 TDD로 완료) | 완료 | [[tickets/p3-16]] |
 | P3-17 | [x] | OAuth2 앱 등록을 사이트 관리자 전용 → 사용자 셀프서비스로 전환 (2026-09-07 사용자 제안) | 완료 — `/user/editform/oauth-apps-owned` 셀프서비스 등록 신설, 관리자 화면(`/site/oauth-apps`)은 전체 조회/강제 삭제 감사(audit) 용도로 축소, IDOR 방지 검증 포함 | [[tickets/p3-17]] |
 | P3-18 | [x] | SSH forced command가 실제 git/hg 바이너리 exec 대신 인프로세스 JGit/hg4j 로직을 재사용하도록 전환 (2026-09-07 사용자 제안) | 완료 — 유닉스 도메인 소켓 릴레이 + `GitSshProtocolHandler`/`HgSshProtocolHandler` 신설, `ssh-auth.sh`+`socat` 실배선까지 완료. 실제 컨테이너(sshd+yona)에 end-to-end로 검증(브랜치 보호 push 거부, PRIVATE 비멤버 clone 거부 포함) — 이 과정에서 nologin 셸 버그/역슬래시 이스케이프 버그 실측 발견·수정. Hg 쪽 read-only push 거부 자동 테스트만 P3-12 2라운드로 이월 | [[tickets/p3-18]] |
+| P3-19 | [ ] | GPG 커밋 서명 검증(Verified/Unverified 배지)을 Git 실사용 검증 + Mercurial까지 확장 (2026-09-08 사용자 제안) | 착수 전 — Git은 P3-03에서 구현됐다고 기록만 됐지 실사용 검증 안 됨, Mercurial은 서명 검증 자체가 아직 없음(메커니즘이 git과 다름 — `.hgsigs` 방식) | [[tickets/p3-19]] |
