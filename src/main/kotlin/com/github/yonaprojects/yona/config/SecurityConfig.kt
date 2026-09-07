@@ -17,6 +17,8 @@ import org.springframework.security.web.savedrequest.HttpSessionRequestCache
 import org.springframework.security.web.savedrequest.SavedRequest
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
+import org.springframework.security.web.firewall.HttpFirewall
+import org.springframework.security.web.firewall.StrictHttpFirewall
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
@@ -57,6 +59,31 @@ class SecurityConfig(
     @Value("\${yona.sso.saml2.display-name-attribute:displayName}")
     private val saml2DisplayNameAttribute: String
 ) {
+
+    // 2026-09-07 발견 — SVN(SvnController → SVNKit DAVServlet)이 실제로 쓰는 WebDAV/DeltaV
+    // 메서드(PROPFIND 등)가 Spring Security 기본 StrictHttpFirewall의 허용 목록
+    // (GET/HEAD/POST/PUT/PATCH/DELETE/OPTIONS)에 없어, 요청이 SvnAuthorizationFilter/
+    // SvnController에 도달하기도 전에 RequestRejectedException → 400으로 거부되고 있었다.
+    // 실제 svn checkout/update/info/log는 전부 PROPFIND를 쓰므로 이 방화벽 기본값 아래에서는
+    // SVN-over-HTTP 자체가 완전히 동작 불가능했다(DeployKeySvnAuthorizationIntegrationSpec을
+    // 실제 springSecurityFilterChain을 태워서 작성하다가 발견 — 기존 SVN 테스트는 전부
+    // standaloneSetup()이거나 보안 필터 체인을 안 태워서 이 문제를 잡아낸 적이 없었음).
+    // HttpFirewall 빈을 노출하면 Spring Security의 WebSecurityConfiguration이 자동으로
+    // 감지해 적용한다(별도 배선 불필요).
+    @Bean
+    fun httpFirewall(): HttpFirewall {
+        val firewall = StrictHttpFirewall()
+        // StrictHttpFirewall 기본값(DELETE/GET/HEAD/OPTIONS/PATCH/POST/PUT, 이 버전엔 상수로
+        // 노출돼 있지 않아 그대로 나열)에 SVN DAVServlet이 쓰는 WebDAV/DeltaV 메서드를 추가한다.
+        firewall.setAllowedHttpMethods(
+            listOf(
+                "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT",
+                "PROPFIND", "PROPPATCH", "MKCOL", "COPY", "MOVE", "LOCK", "UNLOCK",
+                "REPORT", "MKACTIVITY", "CHECKOUT", "MERGE", "VERSION-CONTROL"
+            )
+        )
+        return firewall
+    }
 
     // yona-wiki P3-07(MCP 서버) Step2 — 신규 AuthorizationServerConfig(@Order 1)/ResourceServerConfig
     // (@Order 2: /mcp/**, @Order 3: /api/v1/**, yona-wiki P3-14에서 추가)가 각각 좁은 경로만

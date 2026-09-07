@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.config.svn
 
+import com.github.yonaprojects.yona.config.git.DeployKeyAuthenticationToken
 import com.github.yonaprojects.yona.config.vcs.RepoAccessPolicy
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -62,6 +63,26 @@ class SvnAuthorizationFilter(
             if (authentication == null || !authentication.isAuthenticated || isAnonymous(authentication)) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"SVN Repository\"")
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                return
+            }
+
+            // 2026-09-07 — GitAuthorizationFilter의 Deploy Key 분기(P3-03 Step2)와 동일한 로직.
+            // 이전까지 이 분기가 없어서, DeployKeyAuthenticationProvider가 SecurityConfig에
+            // 전역으로 등록돼 있는 탓에 SVN 요청도 Deploy Key로 "인증"까지는 통과하지만
+            // authentication.name이 "x-access-deploykey" 고정 문자열이라 isMember()가 항상
+            // false를 반환해 무조건 403이 나는 죽은 기능이었다(웹 UI가 vcs 종류로 Deploy Key
+            // 생성을 막지 않아 실제로 재현 가능한 함정이었음).
+            if (authentication is DeployKeyAuthenticationToken) {
+                val deployKey = authentication.deployKey
+                if (deployKey.project?.id != project.id) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
+                    return
+                }
+                if (isWriteRequest && deployKey.readOnly) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
+                    return
+                }
+                filterChain.doFilter(request, response)
                 return
             }
 
