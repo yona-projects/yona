@@ -125,6 +125,17 @@ class AuthorizationServerConfig(
     // 구현하고 있어 Spring이 자동으로 찾아 쓴다 — 이 설정 클래스에서 별도로 @Bean을 다시 선언하지
     // 않는다.
 
+    // yona-wiki P3-14 1라운드 — DCR로 등록되는 클라이언트는 전부 공개(PKCE 전용, clientSecret=null)
+    // 클라이언트라 지금까지 PasswordEncoder가 전혀 필요 없었다(이 코드베이스 전체가 사용자 비밀번호도
+    // 포함해 자체 SHA-256+Base64 해시를 쓰지 PasswordEncoder를 쓰지 않는다 — 유일한 예외). confidential
+    // 클라이언트(OAuthAppsAdminController가 관리자용으로 등록)의 client_secret은 Spring Authorization
+    // Server 자체의 client_secret_basic/client_secret_post 인증(OAuth2ClientAuthenticationProvider)이
+    // 검증하는데, 그 컴포넌트가 PasswordEncoder 빈을 직접 사용하는 계약이라 여기서만 예외적으로
+    // 등록한다(Spring 공식 샘플의 권장 방식).
+    @Bean
+    fun passwordEncoder(): org.springframework.security.crypto.password.PasswordEncoder =
+        org.springframework.security.crypto.factory.PasswordEncoderFactories.createDelegatingPasswordEncoder()
+
     companion object {
         const val CONSENT_PAGE_URI = "/oauth2/consent"
     }

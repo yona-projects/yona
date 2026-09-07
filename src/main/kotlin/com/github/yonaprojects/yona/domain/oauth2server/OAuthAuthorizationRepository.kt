@@ -25,4 +25,8 @@ interface OAuthAuthorizationRepository : JpaRepository<OAuthAuthorization, Strin
     // access"가 즉시 토큰을 무효화하는 것과 다른 동작) — 이 메서드로 해당 클라이언트+사용자의
     // OAuth2Authorization(토큰 보관 레코드) 자체를 함께 지워 즉시 무효화한다.
     fun deleteByRegisteredClientIdAndPrincipalName(registeredClientId: String, principalName: String)
+
+    // yona-wiki P3-14 1라운드 — OAuthAppsAdminController가 클라이언트 자체를 삭제할 때, 그 클라이언트로
+    // 발급된 모든 사용자의 토큰 레코드를 한 번에 무효화한다.
+    fun deleteByRegisteredClientId(registeredClientId: String)
 }

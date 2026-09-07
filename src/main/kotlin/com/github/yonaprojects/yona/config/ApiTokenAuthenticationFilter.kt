@@ -434,7 +434,38 @@ class ApiTokenAuthenticationFilter(
         // attribute 패턴 — 인증에 사용된 ApiToken을 컨트롤러(예: ProjectRestApiController 목록
         // API)가 꺼내 "어떤 프로젝트가 보이는지" 직접 필터링할 수 있게 한다.
         const val SCOPED_API_TOKEN_ATTRIBUTE = "SCOPED_API_TOKEN"
+
+        // yona-wiki P3-14 1라운드 — `/api/v1/**`의 URL → ResourceType/필요 권한 추론 로직은 원래
+        // PAT 인증(authenticateScoped/authenticateAccountLevel)에서만 쓰였다. OAuth2 JWT로 같은
+        // 네임스페이스를 호출하는 제3자 앱에도 동일한 스코프 판정을 적용하기 위해(P3-02의 세분화된
+        // 스코프 체계를 OAuth 축에도 그대로 재사용 — [[p3-02]]), 이 순수 URL 파싱 부분만 별도
+        // 공개 함수로 노출한다. PAT 쪽 기존 로직(ApiToken 엔티티 조회, repo-scope 체크 등)은 전혀
+        // 건드리지 않는다 — OAuthApiScopeAuthorizationFilter가 이 함수만 재사용한다.
+        //
+        // 목록/개별 조회 계열(owner-only list)은 PAT과 마찬가지로 여기서 null을 반환해 "단일 스코프로
+        // 판단 불가"를 표시한다 — OAuth v1 토큰은 프로젝트 단위로 세분화되지 않으므로([[p3-07]]
+        // 완료 로그 "토큰 스코프 축" 참고) 이 경우 스코프 필터를 통과시키고 컨트롤러의 기본 동작에
+        // 맡긴다.
+        fun resolveRequiredScope(request: HttpServletRequest): RequiredScope? {
+            val requestUri = request.requestURI
+            val permission = requiredPermissionFor(request.method)
+
+            val target = parseScopedApiTarget(requestUri)
+            if (target != null) {
+                return RequiredScope(listOf(target.representativeResourceType), permission)
+            }
+            if (isOwnerOnlyListRequest(requestUri)) return null
+
+            val accountTarget = parseAccountLevelTarget(requestUri)
+            if (accountTarget != null) {
+                return RequiredScope(accountTarget.resourceTypes, permission)
+            }
+
+            return null
+        }
     }
+
+    data class RequiredScope(val resourceTypes: List<ResourceType?>, val requiredPermission: ApiTokenPermission)
 
     private data class ScopedApiTarget(
         val owner: String,

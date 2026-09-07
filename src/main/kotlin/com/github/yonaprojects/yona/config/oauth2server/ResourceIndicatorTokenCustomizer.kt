@@ -17,11 +17,14 @@ private const val INVALID_TARGET = "invalid_target"
 // "완료 로그 — Step 1"에서 결정한 대로, Spring Authorization Server가 기본 제공하지 않는 이 부분만
 // 직접 구현한다(PKCE/DCR은 Spring이 기본 제공).
 //
-// MCP 클라이언트(Claude 등)는 `/oauth2/token` 요청에 `resource` 파라미터로 이 MCP 리소스 서버의
-// URI를 명시해야 한다(MCP 인가 스펙 MUST). 이 값을 그대로 액세스 토큰의 `aud` 클레임에 스탬핑해,
-// 리소스 서버(ResourceServerConfig)가 자신 앞으로 발급된 토큰인지 검증할 수 있게 한다 — 다른
-// 리소스 서버용으로 발급된 토큰을 그대로 받아주는 "토큰 패스스루" 취약점을 막는 핵심 지점이다
-// (계획 문서의 보안 검증 항목).
+// yona-wiki P3-14 1라운드 — 원래 MCP 리소스 하나만 허용했으나, 발급 가능한 리소스를
+// ProtectedResource(MCP/API) 레지스트리로 일반화했다. 클라이언트는 `/oauth2/token` 요청에
+// `resource` 파라미터로 발급받고 싶은 리소스의 URI를 명시해야 한다(MCP는 스펙상 필수, 일반
+// API 클라이언트에도 동일하게 강제 — "토큰이 어느 리소스 서버 대상인지 항상 명시적으로 선언한다"는
+// 이 서버의 설계 원칙을 리소스 종류와 무관하게 일관되게 유지하기 위함). 이 값을 그대로 액세스
+// 토큰의 `aud` 클레임에 스탬핑해, 리소스 서버(ResourceServerConfig)가 자신 앞으로 발급된 토큰인지
+// 검증할 수 있게 한다 — 다른 리소스 서버용으로 발급된 토큰을 그대로 받아주는 "토큰 패스스루"
+// 취약점을 막는 핵심 지점이다(계획 문서의 보안 검증 항목).
 @Component
 class ResourceIndicatorTokenCustomizer(
     @Value("\${yona.base-url:http://localhost:8080}")
@@ -36,11 +39,12 @@ class ResourceIndicatorTokenCustomizer(
             ?.additionalParameters
             ?.get(OAuth2ParameterNames.RESOURCE) as? String
 
-        if (resource.isNullOrBlank() || resource != mcpResourceUri) {
+        if (resource.isNullOrBlank() || ProtectedResource.fromUri(resource, baseUrl) == null) {
+            val knownResources = ProtectedResource.entries.joinToString(", ") { it.uri(baseUrl) }
             throw OAuth2AuthenticationException(
                 OAuth2Error(
                     INVALID_TARGET,
-                    "resource 파라미터가 없거나 이 MCP 리소스 서버($mcpResourceUri)를 가리키지 않습니다.",
+                    "resource 파라미터가 없거나 알려진 리소스 서버($knownResources)를 가리키지 않습니다.",
                     null
                 )
             )
@@ -48,7 +52,4 @@ class ResourceIndicatorTokenCustomizer(
 
         context.claims.audience(listOf(resource))
     }
-
-    val mcpResourceUri: String
-        get() = "$baseUrl/mcp"
 }

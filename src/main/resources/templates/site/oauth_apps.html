@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{${message}})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('oauthApps')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10">
+          <div class="title_area">
+            <h2 class="pull-left">OAuth Apps</h2>
+          </div>
+          <p class="description">
+            제3자 애플리케이션이 "Sign in with yona"로 로그인하거나 사용자 동의하에 yona API에
+            위임 접근하도록 등록합니다(GitHub의 OAuth Apps와 동등한 기능). MCP 클라이언트처럼
+            자동으로 스스로를 등록하는 앱(RFC7591 Dynamic Client Registration)은 여기서 관리하지
+            않습니다 — 이 화면은 사람이 직접 이름/redirect URI를 알고 있는 앱을 사전등록할 때만
+            씁니다.
+          </p>
+
+          <!-- 방금 등록한 앱의 client_secret은 여기서 한 번만 보여준다(GitHub OAuth App 관례) -->
+          <div class="alert alert-success" th:if="${registeredClientId != null}">
+            <p><strong>앱이 등록되었습니다.</strong></p>
+            <p>Client ID: <code th:text="${registeredClientId}">client-id</code></p>
+            <p th:if="${registeredPlainSecret != null}">
+              Client Secret(다시 표시되지 않습니다, 지금 복사해두세요):
+              <code th:text="${registeredPlainSecret}">client-secret</code>
+            </p>
+          </div>
+
+          <div class="oauth-apps-section">
+            <h3>새 앱 등록</h3>
+            <form method="post" th:action="@{/sites/oauth-apps/register}" class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label span3">앱 이름</label>
+                <div class="controls">
+                  <input type="text" name="clientName" class="span4" required="required">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">Redirect URI</label>
+                <div class="controls">
+                  <input type="text" name="redirectUri" class="span6" placeholder="https://example.com/callback" required="required">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">클라이언트 종류</label>
+                <div class="controls">
+                  <label class="radio inline">
+                    <input type="radio" name="confidential" value="false" checked="checked">
+                    Public(PKCE, 웹/모바일/CLI 앱 — 이 앱은 시크릿을 안전하게 보관할 수 없음)
+                  </label>
+                  <label class="radio inline">
+                    <input type="radio" name="confidential" value="true">
+                    Confidential(서버 앱 — client_secret을 안전하게 보관 가능)
+                  </label>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label span3">허용할 API 스코프</label>
+                <div class="controls">
+                  <label class="checkbox inline" th:each="scope : ${availableScopes}">
+                    <input type="checkbox" name="scopes" th:value="${scope}"> <span th:text="${scope}">issues:read</span>
+                  </label>
+                  <p class="description">실제 발급 스코프는 매 인가 요청 + 사용자 동의 화면에서 더 좁혀질 수 있습니다.</p>
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="controls">
+                  <button type="submit" class="ybtn ybtn-success">등록</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="oauth-apps-section">
+            <h3>등록된 앱</h3>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>이름</th>
+                  <th>Client ID</th>
+                  <th>종류</th>
+                  <th>스코프</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="app : ${apps}">
+                  <td th:text="${app.clientName}">app</td>
+                  <td><code th:text="${app.clientId}">client-id</code></td>
+                  <td th:text="${app.dynamicallyRegistered} ? '자동등록(DCR)' : (${app.clientSecret} != null ? 'Confidential' : 'Public')">종류</td>
+                  <td th:text="${app.scopes}">scopes</td>
+                  <td>
+                    <form method="post" th:action="@{/sites/oauth-apps/{id}/delete(id=${app.id})}"
+                          onsubmit="return confirm('이 앱을 삭제하면 발급된 토큰이 모두 무효화됩니다. 계속할까요?');">
+                      <button type="submit" class="ybtn ybtn-danger">삭제</button>
+                    </form>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
