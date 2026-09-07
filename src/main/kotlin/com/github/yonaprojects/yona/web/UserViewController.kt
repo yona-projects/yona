@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.servlet.mvc.support.RedirectAttributes
 import org.springframework.http.ResponseEntity
 import java.security.MessageDigest
 import java.time.Instant
@@ -589,8 +590,10 @@ class UserViewController(
     }
 
     // yona-wiki P3-02 Step6.6 — 레거시 전권 토큰 화면(edit_token.html, 위 editUserTokenForm)과는
-    // 완전히 별개인 Fine-grained 토큰 발급/관리 화면. 발급/폐기 후에도 같은 뷰로 돌아와야 해서
-    // 모델 채우기를 fillTokensFormModel()로 뽑아 재사용한다.
+    // 완전히 별개인 Fine-grained 토큰 발급/관리 화면. GitHub의 "Settings > Developer settings >
+    // Personal access tokens" 컨벤션대로 목록(이 메서드)과 발급 폼(newApiTokenForm)을 별개
+    // 페이지로 분리했다 — 발급 성공 시 이 목록으로 리다이렉트되고, 발급된 원문 토큰 값은
+    // RedirectAttributes 플래시 속성으로 다음 GET 한 번만 노출된다(issueApiToken 참고).
     @GetMapping("/user/editform/tokens")
     fun editApiTokensForm(
         authentication: Authentication?,
@@ -600,9 +603,25 @@ class UserViewController(
             ?: return "error/403"
 
         fillAvatarId(loginUser)
-        fillTokensFormModel(loginUser, model)
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("tokens", apiTokenService.listByOwner(loginUser))
 
         return "user/edit_tokens"
+    }
+
+    @GetMapping("/user/editform/tokens/new")
+    fun newApiTokenForm(
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        fillTokenNewFormModel(loginUser, model)
+
+        return "user/edit_tokens_new"
     }
 
     @PostMapping("/user/editform/tokens")
@@ -613,7 +632,8 @@ class UserViewController(
         @RequestParam("expiresInDays") expiresInDays: Long,
         request: HttpServletRequest,
         authentication: Authentication?,
-        model: Model
+        model: Model,
+        redirectAttributes: RedirectAttributes
     ): String {
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "error/403"
@@ -635,14 +655,24 @@ class UserViewController(
                 scopePermissions = scopePermissions,
                 expiresInDays = expiresInDays
             )
-            model.addAttribute("issuedRawToken", issued.rawToken)
-            model.addAttribute("issuedTokenName", issued.apiToken.name)
+            // Post/Redirect/Get — 목록 화면으로 돌아가 원문 토큰 값을 플래시 속성으로 한 번만
+            // 노출한다(DeployKeyController.newDeployKey()와 동일한 컨벤션).
+            redirectAttributes.addFlashAttribute("issuedRawToken", issued.rawToken)
+            redirectAttributes.addFlashAttribute("issuedTokenName", issued.apiToken.name)
+            return "redirect:/user/editform/tokens"
         } catch (e: IllegalArgumentException) {
+            // 검증 실패 시에는 목록이 아니라 방금 있던 발급 폼으로 되돌아가야 입력값을 잃지 않는다.
             model.addAttribute("tokenIssueError", e.message)
+            fillTokenNewFormModel(
+                loginUser, model,
+                submittedName = name,
+                submittedAllRepositories = allRepositories,
+                submittedScopedProjectIds = scopedProjectIds ?: emptyList(),
+                submittedExpiresInDays = expiresInDays,
+                submittedScopePermissions = scopePermissions
+            )
+            return "user/edit_tokens_new"
         }
-
-        fillTokensFormModel(loginUser, model)
-        return "user/edit_tokens"
     }
 
     @PostMapping("/user/editform/tokens/{id}/revoke")
@@ -657,16 +687,28 @@ class UserViewController(
         return "redirect:/user/editform/tokens"
     }
 
-    private fun fillTokensFormModel(loginUser: User, model: Model) {
+    private fun fillTokenNewFormModel(
+        loginUser: User,
+        model: Model,
+        submittedName: String = "",
+        submittedAllRepositories: Boolean = true,
+        submittedScopedProjectIds: List<Long> = emptyList(),
+        submittedExpiresInDays: Long = 30,
+        submittedScopePermissions: Map<ApiTokenScopeGroup, ApiTokenPermission> = emptyMap()
+    ) {
         model.addAttribute("user", loginUser)
         model.addAttribute("currentUser", loginUser)
-        model.addAttribute("tokens", apiTokenService.listByOwner(loginUser))
         model.addAttribute("scopeGroups", ApiTokenScopeGroup.entries)
         // 토큰의 선택 저장소 범위로 고를 수 있는 후보 — 사용자가 멤버로 속한 프로젝트만
         // 노출한다(본인이 소속되지 않은 남의 저장소를 스코프에 담을 이유가 없다).
         val candidateProjects: List<com.github.yonaprojects.yona.domain.project.Project> =
             loginUser.id?.let { userId -> projectUserRepository.findByUserId(userId).map { it.project } } ?: emptyList()
         model.addAttribute("candidateProjects", candidateProjects)
+        model.addAttribute("submittedName", submittedName)
+        model.addAttribute("submittedAllRepositories", submittedAllRepositories)
+        model.addAttribute("submittedScopedProjectIds", submittedScopedProjectIds)
+        model.addAttribute("submittedExpiresInDays", submittedExpiresInDays)
+        model.addAttribute("submittedScopePermissions", submittedScopePermissions)
     }
 
     // yona-wiki P3-07(MCP 서버) Step6 — GitHub의 "Settings > Applications > Authorized OAuth Apps"에
@@ -702,7 +744,9 @@ class UserViewController(
     }
 
     // yona-wiki P3-03 Step3 — GitHub "Settings > SSH and GPG keys" 화면과 동일한 컨벤션
-    // (edit_tokens.html/edit_oauth_apps.html과 같은 탭 메뉴/CSS 클래스/컨트롤러 패턴).
+    // (edit_tokens.html/edit_oauth_apps.html과 같은 탭 메뉴/CSS 클래스/컨트롤러 패턴). 목록
+    // (이 메서드)과 등록 폼(newSshKeyForm)을 별개 페이지로 분리했다 — 등록 성공 시 이 목록으로
+    // 리다이렉트되고 플래시 속성으로 성공 메시지를 한 번만 노출한다(addSshKey 참고).
     @GetMapping("/user/editform/ssh-keys")
     fun editSshKeysForm(
         authentication: Authentication?,
@@ -719,10 +763,8 @@ class UserViewController(
         return "user/edit_ssh_keys"
     }
 
-    @PostMapping("/user/editform/ssh-keys")
-    fun addSshKey(
-        @RequestParam("title") title: String,
-        @RequestParam("publicKey") publicKey: String,
+    @GetMapping("/user/editform/ssh-keys/new")
+    fun newSshKeyForm(
         authentication: Authentication?,
         model: Model
     ): String {
@@ -730,18 +772,44 @@ class UserViewController(
             ?: return "error/403"
 
         fillAvatarId(loginUser)
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("submittedTitle", "")
+        model.addAttribute("submittedPublicKey", "")
+
+        return "user/edit_ssh_keys_new"
+    }
+
+    @PostMapping("/user/editform/ssh-keys")
+    fun addSshKey(
+        @RequestParam("title") title: String,
+        @RequestParam("publicKey") publicKey: String,
+        authentication: Authentication?,
+        model: Model,
+        redirectAttributes: RedirectAttributes
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
         try {
             sshKeyService.create(loginUser, title, publicKey)
+            // Post/Redirect/Get — 목록 화면으로 돌아가 성공 메시지를 플래시 속성으로 한 번만
+            // 노출한다(SSH 공개키는 사용자가 직접 입력한 값이라 토큰과 달리 재노출 위험이 없다).
+            redirectAttributes.addFlashAttribute("sshKeyAdded", true)
+            return "redirect:/user/editform/ssh-keys"
         } catch (e: IllegalArgumentException) {
             model.addAttribute("sshKeyError", e.message)
         } catch (e: com.github.yonaprojects.yona.domain.sshkey.SshPublicKeyFingerprint.InvalidPublicKeyException) {
             model.addAttribute("sshKeyError", e.message)
         }
 
+        // 검증 실패 시에는 목록이 아니라 방금 있던 등록 폼으로 되돌아가야 입력값을 잃지 않는다.
         model.addAttribute("user", loginUser)
         model.addAttribute("currentUser", loginUser)
-        model.addAttribute("sshKeys", sshKeyService.listByUser(loginUser))
-        return "user/edit_ssh_keys"
+        model.addAttribute("submittedTitle", title)
+        model.addAttribute("submittedPublicKey", publicKey)
+        return "user/edit_ssh_keys_new"
     }
 
     @PostMapping("/user/editform/ssh-keys/{id}/delete")
@@ -757,7 +825,8 @@ class UserViewController(
     }
 
     // yona-wiki P3-03 Step7 — GitHub "Settings > SSH and GPG keys" 화면의 GPG 키 섹션과 동일한
-    // 컨벤션.
+    // 컨벤션. 목록(이 메서드)과 등록 폼(newGpgKeyForm)을 별개 페이지로 분리했다 — 등록 성공 시 이
+    // 목록으로 리다이렉트되고 플래시 속성으로 성공 메시지를 한 번만 노출한다(addGpgKey 참고).
     @GetMapping("/user/editform/gpg-keys")
     fun editGpgKeysForm(
         authentication: Authentication?,
@@ -774,9 +843,8 @@ class UserViewController(
         return "user/edit_gpg_keys"
     }
 
-    @PostMapping("/user/editform/gpg-keys")
-    fun addGpgKey(
-        @RequestParam("armoredPublicKey") armoredPublicKey: String,
+    @GetMapping("/user/editform/gpg-keys/new")
+    fun newGpgKeyForm(
         authentication: Authentication?,
         model: Model
     ): String {
@@ -784,18 +852,41 @@ class UserViewController(
             ?: return "error/403"
 
         fillAvatarId(loginUser)
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("submittedArmoredPublicKey", "")
+
+        return "user/edit_gpg_keys_new"
+    }
+
+    @PostMapping("/user/editform/gpg-keys")
+    fun addGpgKey(
+        @RequestParam("armoredPublicKey") armoredPublicKey: String,
+        authentication: Authentication?,
+        model: Model,
+        redirectAttributes: RedirectAttributes
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
         try {
             gpgKeyService.create(loginUser, armoredPublicKey)
+            // Post/Redirect/Get — 목록 화면으로 돌아가 성공 메시지를 플래시 속성으로 한 번만
+            // 노출한다(GPG 공개키는 사용자가 직접 입력한 값이라 토큰과 달리 재노출 위험이 없다).
+            redirectAttributes.addFlashAttribute("gpgKeyAdded", true)
+            return "redirect:/user/editform/gpg-keys"
         } catch (e: IllegalArgumentException) {
             model.addAttribute("gpgKeyError", e.message)
         } catch (e: com.github.yonaprojects.yona.domain.gpgkey.GpgPublicKeyParser.InvalidGpgKeyException) {
             model.addAttribute("gpgKeyError", e.message)
         }
 
+        // 검증 실패 시에는 목록이 아니라 방금 있던 등록 폼으로 되돌아가야 입력값을 잃지 않는다.
         model.addAttribute("user", loginUser)
         model.addAttribute("currentUser", loginUser)
-        model.addAttribute("gpgKeys", gpgKeyService.listByUser(loginUser))
-        return "user/edit_gpg_keys"
+        model.addAttribute("submittedArmoredPublicKey", armoredPublicKey)
+        return "user/edit_gpg_keys_new"
     }
 
     @PostMapping("/user/editform/gpg-keys/{id}/delete")

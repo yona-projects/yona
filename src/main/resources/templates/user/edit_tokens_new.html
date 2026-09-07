@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{apitoken.issue.title})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{apitoken.issue.title}">새 토큰 발급</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('tokens')}"></div>
+
+            <!--
+             yona-wiki P3-02 Step6.6 — edit_tokens.html(목록)에서 분리된 발급 폼 화면. 검증 실패
+             시(issueApiToken의 IllegalArgumentException) 목록이 아니라 이 화면으로 되돌아와
+             입력값과 오류 메시지를 함께 보여준다 — 발급에 성공하면 이 화면으로 다시 오지 않고
+             목록으로 리다이렉트된다.
+            -->
+
+            <div th:if="${tokenIssueError != null}" class="alert alert-error mt20">
+                <span th:text="${tokenIssueError}">발급 오류</span>
+            </div>
+
+            <form id="frmApiTokenIssue" method="post" th:action="@{/user/editform/tokens}" class="mt10">
+                <div class="mt10">
+                    <label th:text="#{apitoken.field.name}">이름</label>
+                    <input type="text" name="name" class="text" style="width: 90%;" required="required"
+                           th:value="${submittedName}">
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{apitoken.field.repoScope}">저장소 범위</label>
+                    <div>
+                        <label>
+                            <input type="radio" name="allRepositories" value="true" th:checked="${submittedAllRepositories}">
+                            <span th:text="#{apitoken.repoScope.all}">전체 저장소</span>
+                        </label>
+                        <label class="ml10">
+                            <input type="radio" name="allRepositories" value="false" th:checked="${!submittedAllRepositories}">
+                            <span th:text="#{apitoken.repoScope.selected}">선택한 저장소</span>
+                        </label>
+                    </div>
+                    <select name="scopedProjectIds" multiple="multiple" data-toggle="select2" style="width: 100%;"
+                            th:if="${candidateProjects != null and !candidateProjects.isEmpty()}">
+                        <option th:each="project : ${candidateProjects}" th:value="${project.id}"
+                                th:selected="${submittedScopedProjectIds != null and submittedScopedProjectIds.contains(project.id)}"
+                                th:text="${project.owner} + '/' + ${project.name}">owner/project</option>
+                    </select>
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{apitoken.field.permissions}">권한</label>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th th:text="#{apitoken.field.scopeGroup}">그룹</th>
+                            <th th:text="#{apitoken.permission.none}">없음</th>
+                            <th th:text="#{apitoken.permission.read}">읽기</th>
+                            <th th:text="#{apitoken.permission.write}">쓰기</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="group : ${scopeGroups}">
+                            <td th:text="${group.name()}">ISSUES</td>
+                            <td><input type="radio" th:name="'scope_' + ${group.name()}" value="NONE"
+                                       th:checked="${submittedScopePermissions.get(group) == null or submittedScopePermissions.get(group).name() == 'NONE'}"></td>
+                            <td><input type="radio" th:name="'scope_' + ${group.name()}" value="READ"
+                                       th:checked="${submittedScopePermissions.get(group) != null and submittedScopePermissions.get(group).name() == 'READ'}"></td>
+                            <td><input type="radio" th:name="'scope_' + ${group.name()}" value="WRITE"
+                                       th:checked="${submittedScopePermissions.get(group) != null and submittedScopePermissions.get(group).name() == 'WRITE'}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{apitoken.field.expiresAt}">만료일</label>
+                    <select name="expiresInDays">
+                        <option value="7" th:selected="${submittedExpiresInDays == 7}">7 일</option>
+                        <option value="30" th:selected="${submittedExpiresInDays == 30}">30 일</option>
+                        <option value="60" th:selected="${submittedExpiresInDays == 60}">60 일</option>
+                    </select>
+                </div>
+
+                <div class="mt10">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{apitoken.issue}">토큰 발급</button>
+                    <a th:href="@{/user/editform/tokens}" class="ybtn ml10" th:text="#{button.cancel}">취소</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+</body>
+</html>

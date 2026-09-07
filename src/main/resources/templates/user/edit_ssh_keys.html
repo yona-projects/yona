@@ -17,14 +17,19 @@
 
             <!--
              yona-wiki P3-03 Step3 — GitHub의 "Settings > SSH and GPG keys" 화면과 동일한 구성
-             (공개키 붙여넣기, 지문 표시, 등록일/마지막 사용일 표시, 삭제 버튼).
+             (공개키 붙여넣기, 지문 표시, 등록일/마지막 사용일 표시, 삭제 버튼). 목록(이 화면)과
+             등록 폼(edit_ssh_keys_new.html)을 별개 페이지로 분리했다 — 등록 성공 시 이 화면으로
+             리다이렉트되고 플래시 속성으로 성공 메시지를 한 번만 노출한다.
             -->
 
-            <div th:if="${sshKeyError != null}" class="alert alert-error mt20">
-                <span th:text="${sshKeyError}">Error</span>
+            <div th:if="${sshKeyAdded != null}" class="alert alert-success mt20">
+                <span th:text="#{sshkey.add.success}">SSH 키가 추가되었습니다.</span>
             </div>
 
-            <h4 class="mt20" th:text="#{sshkey.list.title}">등록된 SSH 키</h4>
+            <h4 class="mt20">
+                <span th:text="#{sshkey.list.title}">등록된 SSH 키</span>
+                <a th:href="@{/user/editform/ssh-keys/new}" class="ybtn ybtn-success pull-right" th:text="#{sshkey.add.title}">새 SSH 키 추가</a>
+            </h4>
             <table class="table" th:if="${sshKeys != null and !sshKeys.isEmpty()}">
                 <thead>
                 <tr>
@@ -51,22 +56,6 @@
                 </tbody>
             </table>
             <p th:if="${sshKeys == null or sshKeys.isEmpty()}" th:text="#{sshkey.list.empty}">등록된 SSH 키가 없습니다.</p>
-
-            <h4 class="mt20" th:text="#{sshkey.add.title}">새 SSH 키 추가</h4>
-            <form id="frmSshKeyAdd" method="post" th:action="@{/user/editform/ssh-keys}" class="mt10">
-                <div class="mt10">
-                    <label th:text="#{sshkey.field.title}">제목</label>
-                    <input type="text" name="title" class="text" style="width: 90%;" required="required">
-                </div>
-                <div class="mt10">
-                    <label th:text="#{sshkey.field.publicKey}">공개키</label>
-                    <textarea name="publicKey" style="width: 90%;" rows="4" required="required"
-                              th:placeholder="#{sshkey.field.publicKey.placeholder}"></textarea>
-                </div>
-                <div class="mt10">
-                    <button type="submit" class="ybtn ybtn-success" th:text="#{sshkey.add}">SSH 키 추가</button>
-                </div>
-            </form>
         </div>
     </div>
     <footer th:replace="~{site/layout :: footer}"></footer>

@@ -18,14 +18,19 @@
             <!--
              yona-wiki P3-03 Step7/Step9 — GitHub의 "Settings > SSH and GPG keys" 화면의 GPG 키
              섹션과 동일한 구성. 등록 시 UID 이메일 중 계정 소유로 인증된 이메일과 일치하는 것만
-             표시한다(실제 서명 검증에 쓰이는 값과 동일 — GpgKeyServiceImpl 참고).
+             표시한다(실제 서명 검증에 쓰이는 값과 동일 — GpgKeyServiceImpl 참고). 목록(이 화면)과
+             등록 폼(edit_gpg_keys_new.html)을 별개 페이지로 분리했다 — 등록 성공 시 이 화면으로
+             리다이렉트되고 플래시 속성으로 성공 메시지를 한 번만 노출한다.
             -->
 
-            <div th:if="${gpgKeyError != null}" class="alert alert-error mt20">
-                <span th:text="${gpgKeyError}">Error</span>
+            <div th:if="${gpgKeyAdded != null}" class="alert alert-success mt20">
+                <span th:text="#{gpgkey.add.success}">GPG 키가 추가되었습니다.</span>
             </div>
 
-            <h4 class="mt20" th:text="#{gpgkey.list.title}">등록된 GPG 키</h4>
+            <h4 class="mt20">
+                <span th:text="#{gpgkey.list.title}">등록된 GPG 키</span>
+                <a th:href="@{/user/editform/gpg-keys/new}" class="ybtn ybtn-success pull-right" th:text="#{gpgkey.add.title}">새 GPG 키 추가</a>
+            </h4>
             <table class="table" th:if="${gpgKeys != null and !gpgKeys.isEmpty()}">
                 <thead>
                 <tr>
@@ -52,18 +57,6 @@
                 </tbody>
             </table>
             <p th:if="${gpgKeys == null or gpgKeys.isEmpty()}" th:text="#{gpgkey.list.empty}">등록된 GPG 키가 없습니다.</p>
-
-            <h4 class="mt20" th:text="#{gpgkey.add.title}">새 GPG 키 추가</h4>
-            <form id="frmGpgKeyAdd" method="post" th:action="@{/user/editform/gpg-keys}" class="mt10">
-                <div class="mt10">
-                    <label th:text="#{gpgkey.field.armoredKey}">공개키</label>
-                    <textarea name="armoredPublicKey" style="width: 90%;" rows="10" required="required"
-                              th:placeholder="#{gpgkey.field.armoredKey.placeholder}"></textarea>
-                </div>
-                <div class="mt10">
-                    <button type="submit" class="ybtn ybtn-success" th:text="#{gpgkey.add}">GPG 키 추가</button>
-                </div>
-            </form>
         </div>
     </div>
     <footer th:replace="~{site/layout :: footer}"></footer>

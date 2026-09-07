@@ -8,13 +8,16 @@ import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.user.YonaUserDetails
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -36,6 +39,10 @@ private const val GPG_KEY_1_EMAIL = "gpg-render-test@example.com"
 
 // yona-wiki P3-03 Step7 — 새 화면(user/edit_gpg_keys.html)이 실제로 Thymeleaf 렌더링까지
 // 통과하는지 검증. SshKeyEditFormTemplateRenderingSpec과 동일한 패턴.
+//
+// GitHub 컨벤션대로 목록(edit_gpg_keys.html)과 등록 폼(edit_gpg_keys_new.html)을 별개 페이지로
+// 분리했고, 등록(POST)은 Post/Redirect/Get 패턴이라 같은 세션으로 리다이렉트를 따라가야 플래시
+// 성공 메시지가 보인다.
 class GpgKeyEditFormTemplateRenderingSpec @Autowired constructor(
     private val webApplicationContext: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -75,36 +82,53 @@ class GpgKeyEditFormTemplateRenderingSpec @Autowired constructor(
         )
 
         describe("GET /user/editform/gpg-keys") {
-            it("로그인 사용자에게 200과 등록 폼/탭메뉴를 렌더링해야 한다") {
+            it("로그인 사용자에게 200과 목록/탭메뉴를 렌더링해야 하고, 등록 폼 필드는 없어야 한다") {
                 val body = mockMvc.perform(get("/user/editform/gpg-keys").with(authOf(owner)))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
                 body shouldContain "새 GPG 키 추가"
+                body shouldContain "/user/editform/gpg-keys/new"
+                body shouldNotContain "frmGpgKeyAdd"
+            }
+        }
+
+        describe("GET /user/editform/gpg-keys/new") {
+            it("로그인 사용자에게 200과 등록 폼을 렌더링해야 한다") {
+                val body = mockMvc.perform(get("/user/editform/gpg-keys/new").with(authOf(owner)))
+                    .andExpect(status().isOk)
+                    .andReturn().response.contentAsString
+
+                body shouldContain "frmGpgKeyAdd"
                 body shouldContain "/user/editform/gpg-keys"
             }
         }
 
         describe("POST /user/editform/gpg-keys -> GET /user/editform/gpg-keys") {
-            it("계정 소유로 인증된 이메일이 UID에 있는 GPG 키를 등록하면 목록에 나타나야 한다") {
-                mockMvc.perform(
-                    post("/user/editform/gpg-keys").with(authOf(owner))
-                        .param("armoredPublicKey", GPG_KEY_1)
-                ).andExpect(status().isOk)
+            it("계정 소유로 인증된 이메일이 UID에 있는 GPG 키를 등록하면 목록 화면으로 리다이렉트되고 성공 메시지와 함께 나타나야 한다") {
+                val session = MockHttpSession()
 
-                val listBody = mockMvc.perform(get("/user/editform/gpg-keys").with(authOf(owner)))
+                mockMvc.perform(
+                    post("/user/editform/gpg-keys").with(authOf(owner)).session(session)
+                        .param("armoredPublicKey", GPG_KEY_1)
+                ).andExpect(status().is3xxRedirection)
+                    .andExpect(redirectedUrl("/user/editform/gpg-keys"))
+
+                val listBody = mockMvc.perform(get("/user/editform/gpg-keys").with(authOf(owner)).session(session))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
+                listBody shouldContain "GPG 키가 추가되었습니다"
                 listBody shouldContain GPG_KEY_1_EMAIL
             }
 
-            it("올바르지 않은 GPG 공개키는 에러 메시지와 함께 200을 응답해야 한다") {
+            it("올바르지 않은 GPG 공개키는 목록이 아니라 등록 폼으로 되돌아가 오류 메시지와 함께 200을 응답해야 한다") {
                 val body = mockMvc.perform(
                     post("/user/editform/gpg-keys").with(authOf(owner))
                         .param("armoredPublicKey", "not-a-valid-gpg-key")
                 ).andExpect(status().isOk).andReturn().response.contentAsString
 
+                body shouldContain "frmGpgKeyAdd"
                 body shouldContain "alert-error"
             }
         }

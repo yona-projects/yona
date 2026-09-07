@@ -28,6 +28,7 @@ import io.mockk.verify
 import io.mockk.Runs
 import io.mockk.just
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -141,7 +142,9 @@ class UserViewControllerSpec : DescribeSpec({
             accessControl,
             mentionService,
             apiTokenService,
-            oAuthAuthorizedAppsService
+            oAuthAuthorizedAppsService,
+            sshKeyService,
+            gpgKeyService
         )
         every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
         every { accessControl.isAllowedToReadProject(any(), any()) } returns true
@@ -568,8 +571,10 @@ class UserViewControllerSpec : DescribeSpec({
     }
 
     // yona-wiki P3-02 Step6.6 — Fine-grained API 토큰 발급/관리 화면(레거시 edit_token.html과는
-    // 별개). editApiTokensForm(목록+발급폼)/issueApiToken(발급)/revokeApiToken(폐기) 세 엔드포인트의
-    // 미인증/성공/실패 분기.
+    // 별개). GitHub의 "Settings > Developer settings > Personal access tokens" 컨벤션대로 목록
+    // (editApiTokensForm)과 발급 폼(newApiTokenForm)을 별개 페이지로 분리했다 —
+    // issueApiToken(발급)은 성공 시 목록으로 리다이렉트 + 플래시 속성, 실패 시 발급 폼을 그대로
+    // 다시 렌더링한다. revokeApiToken(폐기)의 미인증/성공 분기도 함께 검증한다.
     describe("GET/POST /user/editform/tokens (Fine-grained API 토큰)") {
         val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
         val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
@@ -578,34 +583,52 @@ class UserViewControllerSpec : DescribeSpec({
             userViewController.editApiTokensForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
         }
 
-        it("editApiTokensForm은 인증 시 user/edit_tokens 뷰와 tokens/scopeGroups/candidateProjects 모델을 채워야 한다") {
+        it("editApiTokensForm은 인증 시 user/edit_tokens 뷰(목록)와 tokens 모델만 채워야 한다 — 발급 폼 필드는 없어야 한다") {
             every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
             every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
             every { apiTokenService.listByOwner(loginUser) } returns emptyList()
-            every { projectUserRepository.findByUserId(10L) } returns emptyList()
 
             val model = ExtendedModelMap()
             val view = userViewController.editApiTokensForm(userAuth, model)
 
             view shouldBe "user/edit_tokens"
             model.getAttribute("tokens") shouldBe emptyList<Any>()
+            // 목록 화면에는 더 이상 인라인 발급 폼이 없으므로 폼 전용 모델도 채우지 않는다.
+            model.getAttribute("scopeGroups") shouldBe null
+            model.getAttribute("candidateProjects") shouldBe null
+        }
+
+        it("newApiTokenForm은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.newApiTokenForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
+        }
+
+        it("newApiTokenForm은 인증 시 user/edit_tokens_new 뷰와 scopeGroups/candidateProjects 및 기본값 모델을 채워야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { projectUserRepository.findByUserId(10L) } returns emptyList()
+
+            val model = ExtendedModelMap()
+            val view = userViewController.newApiTokenForm(userAuth, model)
+
+            view shouldBe "user/edit_tokens_new"
             model.getAttribute("scopeGroups") shouldNotBe null
             model.getAttribute("candidateProjects") shouldBe emptyList<Any>()
+            model.getAttribute("submittedAllRepositories") shouldBe true
+            model.getAttribute("submittedExpiresInDays") shouldBe 30L
         }
 
         it("issueApiToken은 미인증 시 error/403을 반환해야 한다") {
             val request = mockk<HttpServletRequest>(relaxed = true)
             userViewController.issueApiToken(
                 name = "토큰", allRepositories = false, scopedProjectIds = null,
-                expiresInDays = 30, request = request, authentication = null, model = ExtendedModelMap()
+                expiresInDays = 30, request = request, authentication = null, model = ExtendedModelMap(),
+                redirectAttributes = RedirectAttributesModelMap()
             ) shouldBe "error/403"
         }
 
-        it("issueApiToken은 발급에 성공하면 issuedRawToken을 모델에 채우고 user/edit_tokens 뷰를 반환해야 한다") {
+        it("issueApiToken은 발급에 성공하면 목록으로 리다이렉트하고 issuedRawToken을 플래시 속성으로 채워야 한다") {
             every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
             every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
-            every { apiTokenService.listByOwner(loginUser) } returns emptyList()
-            every { projectUserRepository.findByUserId(10L) } returns emptyList()
             val issued = com.github.yonaprojects.yona.domain.apitoken.IssuedApiToken(
                 apiToken = com.github.yonaprojects.yona.domain.apitoken.ApiToken(owner = loginUser, name = "CI 토큰", tokenHash = "hash"),
                 rawToken = "raw-token-value"
@@ -617,19 +640,21 @@ class UserViewControllerSpec : DescribeSpec({
             every { request.getParameter(any()) } returns null
 
             val model = ExtendedModelMap()
+            val redirectAttributes = RedirectAttributesModelMap()
             val view = userViewController.issueApiToken(
                 name = "CI 토큰", allRepositories = true, scopedProjectIds = null,
-                expiresInDays = 30, request = request, authentication = userAuth, model = model
+                expiresInDays = 30, request = request, authentication = userAuth, model = model,
+                redirectAttributes = redirectAttributes
             )
 
-            view shouldBe "user/edit_tokens"
-            model.getAttribute("issuedRawToken") shouldBe "raw-token-value"
+            view shouldBe "redirect:/user/editform/tokens"
+            redirectAttributes.flashAttributes["issuedRawToken"] shouldBe "raw-token-value"
+            redirectAttributes.flashAttributes["issuedTokenName"] shouldBe "CI 토큰"
         }
 
-        it("issueApiToken은 발급이 거부되면(IllegalArgumentException) tokenIssueError를 모델에 채워야 한다") {
+        it("issueApiToken은 발급이 거부되면(IllegalArgumentException) 발급 폼(edit_tokens_new)을 입력값과 함께 다시 렌더링해야 한다") {
             every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
             every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
-            every { apiTokenService.listByOwner(loginUser) } returns emptyList()
             every { projectUserRepository.findByUserId(10L) } returns emptyList()
             every {
                 apiTokenService.issue(loginUser, "", true, emptyList(), any(), 30)
@@ -640,11 +665,16 @@ class UserViewControllerSpec : DescribeSpec({
             val model = ExtendedModelMap()
             val view = userViewController.issueApiToken(
                 name = "", allRepositories = true, scopedProjectIds = null,
-                expiresInDays = 30, request = request, authentication = userAuth, model = model
+                expiresInDays = 30, request = request, authentication = userAuth, model = model,
+                redirectAttributes = RedirectAttributesModelMap()
             )
 
-            view shouldBe "user/edit_tokens"
+            view shouldBe "user/edit_tokens_new"
             model.getAttribute("tokenIssueError") shouldBe "토큰 이름은 필수입니다."
+            // 입력했던 값을 잃지 않아야 한다.
+            model.getAttribute("submittedName") shouldBe ""
+            model.getAttribute("submittedAllRepositories") shouldBe true
+            model.getAttribute("submittedExpiresInDays") shouldBe 30L
         }
 
         it("revokeApiToken은 미인증 시 error/403을 반환해야 한다") {
@@ -659,6 +689,192 @@ class UserViewControllerSpec : DescribeSpec({
 
             view shouldBe "redirect:/user/editform/tokens"
             verify(exactly = 1) { apiTokenService.revoke(loginUser, 5L) }
+        }
+    }
+
+    // yona-wiki P3-03 Step3 — SSH 키 등록/관리 화면. GitHub 컨벤션대로 목록(editSshKeysForm)과
+    // 등록 폼(newSshKeyForm)을 별개 페이지로 분리했다 — addSshKey(등록)는 성공 시 목록으로
+    // 리다이렉트 + 플래시 성공 메시지, 실패 시 등록 폼을 입력값과 함께 다시 렌더링한다.
+    describe("GET/POST /user/editform/ssh-keys (SSH 키)") {
+        val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+        val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
+
+        it("editSshKeysForm은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.editSshKeysForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
+        }
+
+        it("editSshKeysForm은 인증 시 user/edit_ssh_keys 뷰(목록)와 sshKeys 모델만 채워야 한다 — 등록 폼 필드는 없어야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { sshKeyService.listByUser(loginUser) } returns emptyList()
+
+            val model = ExtendedModelMap()
+            val view = userViewController.editSshKeysForm(userAuth, model)
+
+            view shouldBe "user/edit_ssh_keys"
+            model.getAttribute("sshKeys") shouldBe emptyList<Any>()
+            model.getAttribute("submittedTitle") shouldBe null
+            model.getAttribute("submittedPublicKey") shouldBe null
+        }
+
+        it("newSshKeyForm은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.newSshKeyForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
+        }
+
+        it("newSshKeyForm은 인증 시 user/edit_ssh_keys_new 뷰를 반환해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+
+            val model = ExtendedModelMap()
+            val view = userViewController.newSshKeyForm(userAuth, model)
+
+            view shouldBe "user/edit_ssh_keys_new"
+            model.getAttribute("submittedTitle") shouldBe ""
+        }
+
+        it("addSshKey는 미인증 시 error/403을 반환해야 한다") {
+            userViewController.addSshKey(
+                title = "제목", publicKey = "key", authentication = null, model = ExtendedModelMap(),
+                redirectAttributes = RedirectAttributesModelMap()
+            ) shouldBe "error/403"
+        }
+
+        it("addSshKey는 등록에 성공하면 목록으로 리다이렉트하고 sshKeyAdded를 플래시 속성으로 채워야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { sshKeyService.create(loginUser, "노트북", "ssh-ed25519 AAAA...") } returns
+                com.github.yonaprojects.yona.domain.sshkey.SshKey(id = 1L, user = loginUser, title = "노트북")
+
+            val redirectAttributes = RedirectAttributesModelMap()
+            val view = userViewController.addSshKey(
+                title = "노트북", publicKey = "ssh-ed25519 AAAA...", authentication = userAuth,
+                model = ExtendedModelMap(), redirectAttributes = redirectAttributes
+            )
+
+            view shouldBe "redirect:/user/editform/ssh-keys"
+            redirectAttributes.flashAttributes["sshKeyAdded"] shouldBe true
+        }
+
+        it("addSshKey는 등록이 거부되면(IllegalArgumentException) 등록 폼(edit_ssh_keys_new)을 입력값과 함께 다시 렌더링해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { sshKeyService.create(loginUser, "제목", "bad-key") } throws IllegalArgumentException("올바르지 않은 공개키입니다.")
+
+            val model = ExtendedModelMap()
+            val view = userViewController.addSshKey(
+                title = "제목", publicKey = "bad-key", authentication = userAuth, model = model,
+                redirectAttributes = RedirectAttributesModelMap()
+            )
+
+            view shouldBe "user/edit_ssh_keys_new"
+            model.getAttribute("sshKeyError") shouldBe "올바르지 않은 공개키입니다."
+            model.getAttribute("submittedTitle") shouldBe "제목"
+            model.getAttribute("submittedPublicKey") shouldBe "bad-key"
+        }
+
+        it("deleteSshKey는 미인증 시 error/403을 반환해야 한다") {
+            userViewController.deleteSshKey(id = 1L, authentication = null) shouldBe "error/403"
+        }
+
+        it("deleteSshKey는 인증 시 서비스에 위임하고 /user/editform/ssh-keys로 리다이렉트해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { sshKeyService.delete(loginUser, 5L) } just Runs
+
+            val view = userViewController.deleteSshKey(id = 5L, authentication = userAuth)
+
+            view shouldBe "redirect:/user/editform/ssh-keys"
+            verify(exactly = 1) { sshKeyService.delete(loginUser, 5L) }
+        }
+    }
+
+    // yona-wiki P3-03 Step7 — GPG 키 등록/관리 화면. SSH 키와 동일한 컨벤션(목록/등록 폼 분리).
+    describe("GET/POST /user/editform/gpg-keys (GPG 키)") {
+        val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+        val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
+
+        it("editGpgKeysForm은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.editGpgKeysForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
+        }
+
+        it("editGpgKeysForm은 인증 시 user/edit_gpg_keys 뷰(목록)와 gpgKeys 모델만 채워야 한다 — 등록 폼 필드는 없어야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { gpgKeyService.listByUser(loginUser) } returns emptyList()
+
+            val model = ExtendedModelMap()
+            val view = userViewController.editGpgKeysForm(userAuth, model)
+
+            view shouldBe "user/edit_gpg_keys"
+            model.getAttribute("gpgKeys") shouldBe emptyList<Any>()
+            model.getAttribute("submittedArmoredPublicKey") shouldBe null
+        }
+
+        it("newGpgKeyForm은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.newGpgKeyForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
+        }
+
+        it("newGpgKeyForm은 인증 시 user/edit_gpg_keys_new 뷰를 반환해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+
+            val model = ExtendedModelMap()
+            val view = userViewController.newGpgKeyForm(userAuth, model)
+
+            view shouldBe "user/edit_gpg_keys_new"
+            model.getAttribute("submittedArmoredPublicKey") shouldBe ""
+        }
+
+        it("addGpgKey는 미인증 시 error/403을 반환해야 한다") {
+            userViewController.addGpgKey(
+                armoredPublicKey = "key", authentication = null, model = ExtendedModelMap(),
+                redirectAttributes = RedirectAttributesModelMap()
+            ) shouldBe "error/403"
+        }
+
+        it("addGpgKey는 등록에 성공하면 목록으로 리다이렉트하고 gpgKeyAdded를 플래시 속성으로 채워야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { gpgKeyService.create(loginUser, "armored-key") } returns
+                com.github.yonaprojects.yona.domain.gpgkey.GpgKey(id = 1L, user = loginUser, keyId = "ABCDEF")
+
+            val redirectAttributes = RedirectAttributesModelMap()
+            val view = userViewController.addGpgKey(
+                armoredPublicKey = "armored-key", authentication = userAuth,
+                model = ExtendedModelMap(), redirectAttributes = redirectAttributes
+            )
+
+            view shouldBe "redirect:/user/editform/gpg-keys"
+            redirectAttributes.flashAttributes["gpgKeyAdded"] shouldBe true
+        }
+
+        it("addGpgKey는 등록이 거부되면(IllegalArgumentException) 등록 폼(edit_gpg_keys_new)을 입력값과 함께 다시 렌더링해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { gpgKeyService.create(loginUser, "bad-key") } throws IllegalArgumentException("올바르지 않은 GPG 공개키입니다.")
+
+            val model = ExtendedModelMap()
+            val view = userViewController.addGpgKey(
+                armoredPublicKey = "bad-key", authentication = userAuth, model = model,
+                redirectAttributes = RedirectAttributesModelMap()
+            )
+
+            view shouldBe "user/edit_gpg_keys_new"
+            model.getAttribute("gpgKeyError") shouldBe "올바르지 않은 GPG 공개키입니다."
+            model.getAttribute("submittedArmoredPublicKey") shouldBe "bad-key"
+        }
+
+        it("deleteGpgKey는 미인증 시 error/403을 반환해야 한다") {
+            userViewController.deleteGpgKey(id = 1L, authentication = null) shouldBe "error/403"
+        }
+
+        it("deleteGpgKey는 인증 시 서비스에 위임하고 /user/editform/gpg-keys로 리다이렉트해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { gpgKeyService.delete(loginUser, 5L) } just Runs
+
+            val view = userViewController.deleteGpgKey(id = 5L, authentication = userAuth)
+
+            view shouldBe "redirect:/user/editform/gpg-keys"
+            verify(exactly = 1) { gpgKeyService.delete(loginUser, 5L) }
         }
     }
 

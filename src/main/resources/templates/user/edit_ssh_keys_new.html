@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{sshkey.add.title})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{sshkey.add.title}">새 SSH 키 추가</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('ssh-keys')}"></div>
+
+            <!--
+             yona-wiki P3-03 Step3 — edit_ssh_keys.html(목록)에서 분리된 등록 폼 화면. 검증
+             실패 시(addSshKey의 IllegalArgumentException/InvalidPublicKeyException) 목록이
+             아니라 이 화면으로 되돌아와 입력값과 오류 메시지를 함께 보여준다.
+            -->
+
+            <div th:if="${sshKeyError != null}" class="alert alert-error mt20">
+                <span th:text="${sshKeyError}">Error</span>
+            </div>
+
+            <form id="frmSshKeyAdd" method="post" th:action="@{/user/editform/ssh-keys}" class="mt10">
+                <div class="mt10">
+                    <label th:text="#{sshkey.field.title}">제목</label>
+                    <input type="text" name="title" class="text" style="width: 90%;" required="required"
+                           th:value="${submittedTitle}">
+                </div>
+                <div class="mt10">
+                    <label th:text="#{sshkey.field.publicKey}">공개키</label>
+                    <textarea name="publicKey" style="width: 90%;" rows="4" required="required"
+                              th:placeholder="#{sshkey.field.publicKey.placeholder}"
+                              th:text="${submittedPublicKey}"></textarea>
+                </div>
+                <div class="mt10">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{sshkey.add}">SSH 키 추가</button>
+                    <a th:href="@{/user/editform/ssh-keys}" class="ybtn ml10" th:text="#{button.cancel}">취소</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+</body>
+</html>

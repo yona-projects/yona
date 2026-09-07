@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{gpgkey.add.title})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{gpgkey.add.title}">새 GPG 키 추가</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('gpg-keys')}"></div>
+
+            <!--
+             yona-wiki P3-03 Step7 — edit_gpg_keys.html(목록)에서 분리된 등록 폼 화면. 검증
+             실패 시(addGpgKey의 IllegalArgumentException/InvalidGpgKeyException) 목록이
+             아니라 이 화면으로 되돌아와 입력값과 오류 메시지를 함께 보여준다.
+            -->
+
+            <div th:if="${gpgKeyError != null}" class="alert alert-error mt20">
+                <span th:text="${gpgKeyError}">Error</span>
+            </div>
+
+            <form id="frmGpgKeyAdd" method="post" th:action="@{/user/editform/gpg-keys}" class="mt10">
+                <div class="mt10">
+                    <label th:text="#{gpgkey.field.armoredKey}">공개키</label>
+                    <textarea name="armoredPublicKey" style="width: 90%;" rows="10" required="required"
+                              th:placeholder="#{gpgkey.field.armoredKey.placeholder}"
+                              th:text="${submittedArmoredPublicKey}"></textarea>
+                </div>
+                <div class="mt10">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{gpgkey.add}">GPG 키 추가</button>
+                    <a th:href="@{/user/editform/gpg-keys}" class="ybtn ml10" th:text="#{button.cancel}">취소</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+</body>
+</html>
