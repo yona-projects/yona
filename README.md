@@ -199,6 +199,7 @@ legacy Yona의 설치/운영 문서를 yona 기준으로 다시 쓴 것들이다
 - [백업 및 복구](docs/guide/backup-restore.md)
 - [메일 알림 설정](docs/guide/mail-settings.md)
 - [소셜 로그인 설정](docs/guide/social-login-settings.md)
+- [SSH: 시스템 sshd 연동](docs/guide/ssh-system-sshd-setup.md)
 - [트러블슈팅](docs/guide/troubleshooting.md)
 - [설정 레퍼런스(application.yml)](docs/guide/settings-reference.md)
 - [시스템 요구 사항](docs/guide/system-requirements.md)

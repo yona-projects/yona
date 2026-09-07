@@ -171,6 +171,13 @@ Basic 인증 이후 `/git/**` 프로젝트 단위 접근 제어를 수행하는 
   `systemctl restart sshd`)은 이 세션이 절대 수행할 수 없는 작업으로, 명시적으로 범위 밖에 남긴다** —
   실제 배포 환경에서 운영자가 수행할 수동 설정 단계(DoD 참고). 이 판단은 코디네이터가 이미 내린 것이라
   다시 묻지 않고 그대로 따랐다.
+- **2026-09-07 추가**: 위 수동 설정 단계를 실제로 따라 할 수 있는 관리자용 가이드
+  [`docs/guide/ssh-system-sshd-setup.md`](../../guide/ssh-system-sshd-setup.md)를 작성했다.
+  사용자 지시로 `yona-cli`(별도 저장소, 아직 실제 sshd에 등록해 검증된 적 없음)에 의존하지 않고,
+  `SshInternalController`를 직접 호출하는 `curl`+`jq` 기반 훅 스크립트 두 개(`ssh-auth.sh`/
+  `ssh-shell.sh`)를 가이드 안에 포함시켜 어떤 배포 환경에서도(별도 CLI 바이너리 빌드/배포 없이)
+  따라 할 수 있게 했다. 여전히 **실제 호스트에 적용해 `git clone git@host:...`가 되는지 확인하는
+  것은 이 세션이 할 수 없는 수동 검증**으로 남는다(DoD 체크박스 미해소 상태 유지 — 문서만 준비됨).
 
 **윈도우 폴백(Step 5)** — 이 애플리케이션 프로세스가 JVM 안에서 직접 별도 포트(기본 2222)에 SSH 서버를
 띄우는 방식이라 **호스트 시스템과 무관** — Apache MINA SSHD(`sshd-core:2.15.0`)로 `YonaMinaSshServer`
