@@ -48,3 +48,4 @@ bootRun.log
 data
 build/
 .serena/
+.gradle/
