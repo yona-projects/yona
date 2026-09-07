@@ -1,10 +1,6 @@
 package com.github.yonaprojects.yona.config.svn
 
-import com.github.yonaprojects.yona.config.security.AccessControl
-import com.github.yonaprojects.yona.domain.project.Project
-import com.github.yonaprojects.yona.domain.project.ProjectScope
-import com.github.yonaprojects.yona.domain.project.ProjectService
-import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.config.vcs.RepoAccessPolicy
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -17,9 +13,13 @@ import java.util.regex.Pattern
 
 @Component
 class SvnAuthorizationFilter(
-    private val projectService: ProjectService,
-    private val userRepository: UserRepository,
-    private val accessControl: AccessControl
+    // 2026-09-07 — findProject/requiresAuth/isMember/isGuestUser는 GitAuthorizationFilter가
+    // 이미 쓰던 RepoAccessPolicy와 완전히 동일한 로직을 이 파일이 그대로 복붙해 두고 있던 것을
+    // 발견해 공유하도록 정리했다(순수 리팩터링, 동작 변화 없음 — SvnAuthorizationFilterSpec/
+    // SvnAuthorizationFilterExtraSpec으로 회귀 여부 재검증). project.vcs 검증과 SVN 고유의
+    // 쓰기요청 판정(HTTP 메서드 allowlist)만 RepoAccessPolicy에 없는 SVN 전용 로직이라 이
+    // 필터에 그대로 남겨둔다.
+    private val repoAccessPolicy: RepoAccessPolicy
 ) : OncePerRequestFilter() {
 
     private val svnUriPattern = Pattern.compile("^/svn/([^/]+)/([^/]+?)(?:/.*)?$")
@@ -40,12 +40,14 @@ class SvnAuthorizationFilter(
         val owner = matcher.group(1)
         val projectName = matcher.group(2)
 
-        val project = projectService.findByOwnerAndName(owner, projectName)
+        val project = repoAccessPolicy.findProject(owner, projectName)
         if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project Not Found")
             return
         }
 
+        // vcs 종류 검증은 RepoAccessPolicy에 없는 SVN 전용 로직 — Git/SSH 경로는 project.vcs를
+        // 아예 확인하지 않으므로 이 필터에 남겨둔다.
         val vcs = project.vcs?.lowercase()
         if (vcs != "subversion" && vcs != "svn") {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Not a Subversion project")
@@ -53,14 +55,7 @@ class SvnAuthorizationFilter(
         }
 
         val isWriteRequest = isWriteRequest(request)
-
-        // yona AccessControl READ 규칙(project.isPublic() && !user.isGuest || user.isMemberOf(project) || ...
-        // || isAllowedIfGroupMember(...)) 대응 (P1-23/P1-64): PROTECTED도 PUBLIC과 동일하게 인증 없이
-        // 열람 가능했던 것을 PRIVATE와 같이 인증을 요구하도록 수정. 조직 그룹멤버 우회는 P1-64에서
-        // isMember()에 추가.
-        val requiresAuth = project.projectScope != ProjectScope.PUBLIC
-                || project.isCodeAccessibleMemberOnly
-                || isWriteRequest
+        val requiresAuth = repoAccessPolicy.requiresAuth(project, isWriteRequest)
 
         if (requiresAuth) {
             val authentication = SecurityContextHolder.getContext().authentication
@@ -71,7 +66,7 @@ class SvnAuthorizationFilter(
             }
 
             val loginId = authentication.name
-            if (!isMember(project, loginId)) {
+            if (!repoAccessPolicy.isMember(project, loginId)) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
                 return
             }
@@ -80,7 +75,7 @@ class SvnAuthorizationFilter(
             // (완전한 익명 요청은 애초에 guest로 분류되지 않으므로 영향받지 않는다.)
             val authentication = SecurityContextHolder.getContext().authentication
             if (authentication != null && authentication.isAuthenticated && !isAnonymous(authentication)) {
-                if (isGuestUser(authentication.name)) {
+                if (repoAccessPolicy.isGuestUser(authentication.name)) {
                     response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
                     return
                 }
@@ -98,20 +93,5 @@ class SvnAuthorizationFilter(
 
     private fun isAnonymous(authentication: Authentication): Boolean {
         return authentication is AnonymousAuthenticationToken
-    }
-
-    // yona AccessControl.isAllowedIfGroupMember() 대응 (P1-64). 직접 멤버가 아니어도 프로젝트가 속한
-    // 조직의 구성원이면(PUBLIC/PROTECTED에 한해) 접근을 허용한다.
-    private fun isMember(project: Project, loginId: String): Boolean {
-        val projectId = project.id ?: return false
-        if (projectService.isMember(projectId, loginId)) {
-            return true
-        }
-        val user = userRepository.findByLoginId(loginId).orElse(null) ?: return false
-        return accessControl.isAllowedIfGroupMember(project, user)
-    }
-
-    private fun isGuestUser(loginId: String): Boolean {
-        return userRepository.findByLoginId(loginId).map { it.isGuest }.orElse(false)
     }
 }

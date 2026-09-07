@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.config.git
 
+import com.github.yonaprojects.yona.config.vcs.RepoAccessPolicy
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -12,9 +13,10 @@ import java.util.regex.Pattern
 
 @Component
 class GitAuthorizationFilter(
-    // yona-wiki P3-03 Step6 — 접근 판정 로직(requiresAuth/isMember/isGuestUser)을 GitAccessPolicy로
-    // 추출해 SshAuthServiceImpl(SSH 경로)과 공유한다. 동작은 이전과 동일(순수 리팩터링).
-    private val gitAccessPolicy: GitAccessPolicy
+    // yona-wiki P3-03 Step6 — 접근 판정 로직(requiresAuth/isMember/isGuestUser)을 RepoAccessPolicy로
+    // 추출해 SshAuthServiceImpl(SSH 경로)/SvnAuthorizationFilter(SVN HTTP)와 공유한다(2026-09-07,
+    // 기존 GitAccessPolicy를 VCS 중립적인 이름/패키지로 이동). 동작은 이전과 동일(순수 리팩터링).
+    private val repoAccessPolicy: RepoAccessPolicy
 ) : OncePerRequestFilter() {
 
     private val gitUriPattern = Pattern.compile("^/(git|git-lfs)/([^/]+)/([^/]+?)(?:\\.git)?(?:/.*)?$")
@@ -35,14 +37,14 @@ class GitAuthorizationFilter(
         val owner = matcher.group(2)
         val projectName = matcher.group(3)
 
-        val project = gitAccessPolicy.findProject(owner, projectName)
+        val project = repoAccessPolicy.findProject(owner, projectName)
         if (project == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project Not Found")
             return
         }
 
         val isWriteRequest = isWriteRequest(request)
-        val requiresAuth = gitAccessPolicy.requiresAuth(project, isWriteRequest)
+        val requiresAuth = repoAccessPolicy.requiresAuth(project, isWriteRequest)
 
         if (requiresAuth) {
             val authentication = SecurityContextHolder.getContext().authentication
@@ -71,7 +73,7 @@ class GitAuthorizationFilter(
             }
 
             val loginId = authentication.name
-            if (!gitAccessPolicy.isMember(project, loginId)) {
+            if (!repoAccessPolicy.isMember(project, loginId)) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
                 return
             }
@@ -79,7 +81,7 @@ class GitAuthorizationFilter(
             // yona의 "!user.isGuest" 대응: PUBLIC 프로젝트라도 게스트 계정으로 인증된 요청은 거부한다.
             val authentication = SecurityContextHolder.getContext().authentication
             if (authentication != null && authentication.isAuthenticated && !isAnonymous(authentication)) {
-                if (gitAccessPolicy.isGuestUser(authentication.name)) {
+                if (repoAccessPolicy.isGuestUser(authentication.name)) {
                     response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
                     return
                 }

@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.config.svn
 
 import com.github.yonaprojects.yona.config.security.AccessControl
+import com.github.yonaprojects.yona.config.vcs.RepoAccessPolicy
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.project.ProjectService
@@ -23,7 +24,11 @@ class SvnAuthorizationFilterExtraSpec : DescribeSpec({
     val projectService = mockk<ProjectService>()
     val userRepository = mockk<UserRepository>()
     val accessControl = mockk<AccessControl>()
-    val filter = SvnAuthorizationFilter(projectService, userRepository, accessControl)
+    // 2026-09-07 — SvnAuthorizationFilter가 접근 판정 로직을 RepoAccessPolicy로 위임하도록
+    // 리팩터링됨(GitAuthorizationFilter/SshAuthServiceImpl과 공유). 이 스펙이 검증하는 판정
+    // 결과 자체는 동일하다.
+    val repoAccessPolicy = RepoAccessPolicy(projectService, userRepository, accessControl)
+    val filter = SvnAuthorizationFilter(repoAccessPolicy)
     val filterChain = mockk<FilterChain>(relaxed = true)
 
     beforeTest {

@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.config.git
 
 import com.github.yonaprojects.yona.config.security.AccessControl
+import com.github.yonaprojects.yona.config.vcs.RepoAccessPolicy
 import com.github.yonaprojects.yona.domain.organization.Organization
 import com.github.yonaprojects.yona.domain.organization.OrganizationUser
 import com.github.yonaprojects.yona.domain.organization.OrganizationUserRepository
@@ -57,10 +58,11 @@ class GitAuthorizationFilterSpec : DescribeSpec({
         reviewCommentRepositoryForAccessControl, commitCommentRepositoryForAccessControl,
         milestoneRepositoryForAccessControl
     )
-    // yona-wiki P3-03 Step6 — GitAuthorizationFilter가 접근 판정 로직을 GitAccessPolicy로 위임하도록
-    // 리팩터링됨(SshAuthServiceImpl과 공유하기 위함). 이 스펙이 검증하는 판정 결과 자체는 동일하다.
-    val gitAccessPolicy = GitAccessPolicy(projectService, userRepository, accessControl)
-    val filter = GitAuthorizationFilter(gitAccessPolicy)
+    // yona-wiki P3-03 Step6 — GitAuthorizationFilter가 접근 판정 로직을 RepoAccessPolicy로 위임하도록
+    // 리팩터링됨(SshAuthServiceImpl/SvnAuthorizationFilter와 공유하기 위함, 2026-09-07 이름 변경).
+    // 이 스펙이 검증하는 판정 결과 자체는 동일하다.
+    val repoAccessPolicy = RepoAccessPolicy(projectService, userRepository, accessControl)
+    val filter = GitAuthorizationFilter(repoAccessPolicy)
     val filterChain = mockk<FilterChain>(relaxed = true)
 
     beforeTest {

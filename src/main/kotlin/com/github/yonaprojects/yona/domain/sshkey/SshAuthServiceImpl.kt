@@ -1,6 +1,6 @@
 package com.github.yonaprojects.yona.domain.sshkey
 
-import com.github.yonaprojects.yona.config.git.GitAccessPolicy
+import com.github.yonaprojects.yona.config.vcs.RepoAccessPolicy
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyRepository
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyService
 import com.github.yonaprojects.yona.domain.project.Project
@@ -18,7 +18,7 @@ class SshAuthServiceImpl(
     private val deployKeyRepository: DeployKeyRepository,
     private val deployKeyService: DeployKeyService,
     private val projectRepository: ProjectRepository,
-    private val gitAccessPolicy: GitAccessPolicy,
+    private val repoAccessPolicy: RepoAccessPolicy,
     // GitServletConfig와 동일한 프로퍼티/기본값 — 두 경로(HTTPS/SSH) 모두 같은 물리 저장소를
     // 가리켜야 한다.
     @Value("\${yona.git.base-dir:/tmp/yona/git}")
@@ -134,14 +134,14 @@ class SshAuthServiceImpl(
     ): SshCommandAuthorization {
         val loginId = principal.user.loginId
 
-        if (gitAccessPolicy.isGuestUser(loginId)) {
+        if (repoAccessPolicy.isGuestUser(loginId)) {
             return SshCommandAuthorization.denied("게스트 계정은 git 접근이 허용되지 않습니다.")
         }
 
         // SSH 세션은 이미 공개키로 인증된 상태이므로(GitAuthorizationFilter의 401 분기에 대응하는
         // "미인증" 케이스 자체가 없음), HTTPS 경로의 requiresAuth=true에 대응하는 멤버십 검사만
         // 그대로 재사용한다 — requiresAuth=false(공개 프로젝트 읽기)이면 게스트가 아닌 이상 통과.
-        if (gitAccessPolicy.requiresAuth(project, isWrite) && !gitAccessPolicy.isMember(project, loginId)) {
+        if (repoAccessPolicy.requiresAuth(project, isWrite) && !repoAccessPolicy.isMember(project, loginId)) {
             return SshCommandAuthorization.denied("이 저장소에 접근할 권한이 없습니다.")
         }
 
