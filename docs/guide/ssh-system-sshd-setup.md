@@ -89,15 +89,23 @@ sudo useradd --system --shell /bin/bash --home-dir /home/git --create-home git
 이미 충분히 달성된다 — 셸이 진짜 `/bin/bash`여도 이 계정으로는 비밀번호 로그인이 불가능하고
 SSH도 항상 forced command로만 귀결되므로 보안상 구멍이 생기지 않는다.
 
-yona가 만든 bare 저장소 디렉터리(`yona.git.base-dir`, 기본 `/tmp/yona/git` — 운영에서는 반드시
-영구 경로로 바꿔야 함, [settings-reference.md](settings-reference.md) 참고)에 `git` 계정이
-읽고 쓸 수 있어야 한다. yona 앱을 실행하는 OS 계정과 그룹을 공유하는 게 가장 간단하다.
+**`git` 계정은 저장소 디렉터리(`yona.git.base-dir`/`yona.hg.base-dir`)에 대한 파일시스템
+권한이 전혀 필요 없다** — P3-18 이전(소켓 릴레이 도입 전) 문서에는 `git` 계정을 yona 앱 계정과
+같은 그룹에 넣고 **저장소 디렉터리 자체를 그 그룹에 rwX로 열어주는** 절차가 있었는데, 지금은
+그럴 필요가 없다. forced command(아래 Step 3)가 하는 일은 stdin/stdout을 유닉스 도메인
+소켓에 `socat`으로 이어붙이는 것뿐이고, 실제 git/hg 저장소 파일을 열고 읽고 쓰는 건 전부
+**이미 떠 있는 yona JVM 프로세스 자신**(보통 `yona`라는 별도 OS 계정)이 한다 — `git` 계정은
+그 파일들을 단 한 바이트도 직접 건드리지 않는다.
+
+다만 **그룹 자체는 여전히 공유해야 한다** — 이유가 저장소 파일이 아니라 **소켓 파일**로
+바뀌었을 뿐이다. `SshRelayServer`가 여는 유닉스 도메인 소켓(`yona.ssh.relay.socket-path`)은
+`yona` 프로세스 소유로 그룹 rw(`rw-rw----`)만 열려 있어서(코드가 바인드 직후 명시적으로
+고정한다), `git` 계정이 그 소켓에 `connect()`하려면 여전히 `yona` 그룹의 멤버여야 한다:
 
 ```bash
-# 예: yona 앱이 "yona" 계정으로 돈다고 가정
+# 예: yona 앱이 "yona" 계정으로 돈다고 가정 — 저장소 디렉터리엔 더 이상 chmod 안 해도 됨,
+# 이 usermod 한 줄만 있으면 된다(소켓 연결 권한 전용).
 sudo usermod -aG yona git
-sudo chmod -R g+rwX /srv/yona/git   # yona.git.base-dir 실제 경로로 교체
-sudo chmod g+s /srv/yona/git        # 이후 새로 생기는 저장소도 그룹 상속되도록
 ```
 
 ## Step 2. 공유 시크릿 준비
@@ -134,8 +142,11 @@ sudo chown root:yona-ssh-hook /etc/yona/ssh-internal-secret
 sudo chmod 640 /etc/yona/ssh-internal-secret
 ```
 
-이 그룹(`yona-ssh-hook`)에는 Step 3의 훅 실행 계정과 `git` 계정 둘 다 넣는다(둘 다 이 파일을
-읽어야 한다).
+이 그룹(`yona-ssh-hook`)에는 Step 4에서 만들 훅 실행 계정(`yona-ssh-hook`)만 넣으면 된다 —
+이 시크릿 파일을 읽는 건 `AuthorizedKeysCommand`(`ssh-auth.sh`, `/internal/ssh/authenticate`
+호출)뿐이고, `git` 계정이 실행하는 forced command(위 Step 1 참고 — 소켓에 바이트만 릴레이)는
+이 파일을 전혀 읽지 않는다. **`git` 계정을 이 그룹에 넣을 필요는 없다** — Step 1에서 이미
+설명한 `yona` 그룹(소켓 연결용)과 헷갈리지 말 것, 서로 다른 그룹·다른 목적이다.
 
 ## Step 3. 훅 스크립트 설치
 
@@ -306,9 +317,10 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
   프로젝트 멤버십, 읽기전용 Deploy Key 여부를 먼저 의심한다([troubleshooting.md](troubleshooting.md)
   및 브랜치 보호 문서 참고) — clone 거부 쪽 메시지가 지저분한 건 실제 동작에 영향 없는 사소한
   UX 한계로 남겨둔다.
-- **저장소 파일에 대한 Permission denied (repository 안에서)** — `git` OS 계정이 yona 앱
-  계정과 같은 그룹에 속해 있고, `yona.git.base-dir` 디렉터리가 그 그룹에 rwX로 열려 있는지
-  Step 1을 다시 확인.
+- **저장소 파일 자체에 대한 Permission denied가 보인다면** — 이건 이 SSH 문서가 다루는
+  범위 밖이다(`git` 계정은 저장소 파일을 직접 건드리지 않는다, 위 Step 1 참고). yona 앱을
+  실행하는 OS 계정이 `yona.git.base-dir`/`yona.hg.base-dir`에 rwX 권한이 있는지 확인할 것 —
+  이건 SSH가 아니라 yona 앱 자체의 설치/기동 전제조건이다.
 - **`socat: E connect(...): Permission denied` 또는 `No such file or directory`** — 전자는
   `git` 계정이 `yona.ssh.relay.socket-path`(기본 `/tmp/yona/ssh-relay.sock`) 소켓 파일에 쓰기
   권한이 없는 경우다(`SshRelayServer`가 바인드 직후 그룹 rw로 고정하고 `git` 계정이 yona 앱과
