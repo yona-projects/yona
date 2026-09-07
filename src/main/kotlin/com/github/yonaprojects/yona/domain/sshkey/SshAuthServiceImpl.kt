@@ -22,7 +22,10 @@ class SshAuthServiceImpl(
     // GitServletConfig와 동일한 프로퍼티/기본값 — 두 경로(HTTPS/SSH) 모두 같은 물리 저장소를
     // 가리켜야 한다.
     @Value("\${yona.git.base-dir:/tmp/yona/git}")
-    private val baseDir: String
+    private val baseDir: String,
+    // yona-wiki P3-18/P3-12 — RepositoryService/HgRepository.kt와 동일한 프로퍼티/기본값.
+    @Value("\${yona.hg.base-dir:/tmp/yona/hg}")
+    private val hgBaseDir: String
 ) : SshAuthService {
 
     // GitServletConfig.gitServletRegistrationBean()의 setReceivePackFactory 리졸버가 쓰는
@@ -30,6 +33,15 @@ class SshAuthServiceImpl(
     // 동일한 형식. OpenSSH가 SSH_ORIGINAL_COMMAND로 그대로 넘겨주는 형태다.
     private val commandPattern = Pattern.compile(
         "^(git-upload-pack|git-receive-pack|git-upload-archive)\\s+'([^']+)'$"
+    )
+
+    // real hg 클라이언트의 ui.ssh 원격 명령 고정 형식(mercurial/sshpeer.py 실측,
+    // "hg -R <path> serve --stdio") — 경로에 공백이 없으면 따옴표 없이, 있으면 작은따옴표로
+    // 감싸서 보낸다(둘 다 인식). yona 쪽에서 새로 지어낸 규약이 아니라 real hg가 실제로 보내는
+    // 그대로다 — 그래야 이 저장소가 나중에 real hg 바이너리를 향한 진짜 forced command로도
+    // 그대로 재사용될 수 있다.
+    private val hgCommandPattern = Pattern.compile(
+        "^hg\\s+-R\\s+'?([^'\\s]+)'?\\s+serve\\s+--stdio\\s*$"
     )
 
     @Transactional
@@ -106,6 +118,75 @@ class SshAuthServiceImpl(
             is SshAuthPrincipal.DeployKeyPrincipal -> authorizeForDeployKey(principal.deployKey.let { it }, project, isWrite, service)
             is SshAuthPrincipal.SshKeyPrincipal -> authorizeForUser(principal, project, isWrite, service)
         }
+    }
+
+    @Transactional(readOnly = true)
+    override fun authorizeHgCommand(principal: SshAuthPrincipal, command: String): SshCommandAuthorization {
+        val matcher = hgCommandPattern.matcher(command.trim())
+        if (!matcher.matches()) {
+            return SshCommandAuthorization.denied("지원하지 않는 명령입니다: $command")
+        }
+
+        val repoPath = matcher.group(1).removePrefix("/").removeSuffix("/")
+        val (owner, projectName) = splitOwnerAndProject(repoPath)
+            ?: return SshCommandAuthorization.denied("저장소 경로를 해석할 수 없습니다: $repoPath")
+
+        val project = resolveProject(owner, projectName)
+            ?: return SshCommandAuthorization.denied("존재하지 않는 저장소입니다: $owner/$projectName")
+
+        return when (principal) {
+            is SshAuthPrincipal.DeployKeyPrincipal -> authorizeHgForDeployKey(principal.deployKey, project)
+            is SshAuthPrincipal.SshKeyPrincipal -> authorizeHgForUser(principal, project)
+        }
+    }
+
+    // git의 authorizeForDeployKey()와 동일한 스코프 검사 — readOnly 여부는 (git과 달리 명령줄
+    // 자체로 read/write를 구분할 수 없으므로) 연결 자체를 막지 않고 isWrite에만 반영해, 실제
+    // push 시도는 HgSshProtocolHandler의 pre-changegroup 훅에서 거부한다.
+    private fun authorizeHgForDeployKey(
+        deployKey: com.github.yonaprojects.yona.domain.deploykey.DeployKey,
+        project: Project
+    ): SshCommandAuthorization {
+        if (deployKey.project?.id != project.id) {
+            return SshCommandAuthorization.denied("이 Deploy Key는 이 저장소에 접근할 수 없습니다.")
+        }
+        return SshCommandAuthorization(
+            allowed = true, isWrite = !deployKey.readOnly, repoDir = hgRepoDirOf(project), service = "hg-serve",
+            project = project, pusher = null
+        )
+    }
+
+    // git의 authorizeForUser()와 동일한 게스트/멤버십 검사. 연결(읽기) 허용 여부는
+    // requiresAuth(project, isWriteRequest=false) 기준(공개 저장소는 비멤버도 clone 가능)이지만,
+    // isWrite(=push 허용 여부)는 항상 requiresAuth(project, isWriteRequest=true) 기준으로 별도
+    // 계산한다 — Hg SSH 세션 하나가 pull/push 모두를 처리할 수 있어 명령줄 시점에는 이 세션이
+    // 실제로 push를 시도할지 알 수 없기 때문이다.
+    private fun authorizeHgForUser(
+        principal: SshAuthPrincipal.SshKeyPrincipal,
+        project: Project
+    ): SshCommandAuthorization {
+        val loginId = principal.user.loginId
+
+        if (repoAccessPolicy.isGuestUser(loginId)) {
+            return SshCommandAuthorization.denied("게스트 계정은 hg 접근이 허용되지 않습니다.")
+        }
+
+        val isMember = repoAccessPolicy.isMember(project, loginId)
+        if (repoAccessPolicy.requiresAuth(project, false) && !isMember) {
+            return SshCommandAuthorization.denied("이 저장소에 접근할 권한이 없습니다.")
+        }
+        val canWrite = !repoAccessPolicy.requiresAuth(project, true) || isMember
+
+        return SshCommandAuthorization(
+            allowed = true, isWrite = canWrite, repoDir = hgRepoDirOf(project), service = "hg-serve",
+            project = project, pusher = principal.user
+        )
+    }
+
+    // RepositoryService/HgRepository.kt와 동일한 물리 경로 규칙("owner/name", git과 달리 bare
+    // 저장소 접미어 없음).
+    private fun hgRepoDirOf(project: Project): File {
+        return File(hgBaseDir, "${project.owner}/${project.name}")
     }
 
     private fun authorizeForDeployKey(

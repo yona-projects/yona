@@ -329,6 +329,16 @@ spring:
       hibernate:
         format_sql: true
 
+yona:
+  ssh:
+    relay:
+      # yona-wiki P3-18 — YonaMinaSshServer의 yona.ssh.mina.enabled="auto"(윈도우 전용
+      # 자동활성화)와 동일한 취지. 이 소켓 리스너는 고정 경로("/tmp/yona/ssh-relay.sock")에
+      # 바인딩하므로, 테스트 스위트 전체가 매 컨텍스트 기동마다 이 소켓을 열게 두면 병렬
+      # 실행/여러 JVM 환경에서 경합할 수 있다 — 이 기능을 실제로 검증하는 통합테스트만
+      # @DynamicPropertySource로 개별 임시 경로를 지정해 명시적으로 활성화한다.
+      enabled: false
+
 logging:
   level:
     org.springframework.web: DEBUG

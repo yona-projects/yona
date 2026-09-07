@@ -292,4 +292,4 @@
 | P3-15 | [x] | PR 승인/변경요청(리뷰 판정) 워크플로 추가 — GitHub의 Approve/Request changes에 대응 | **2026-09-06 사용자 제안, P3-04(브랜치 보호) 작업 중 스파이크로 발견된 갭 | [[tickets/p3-15]] |
 | P3-16 | [x] | Git 태그(tag) 지원 (2026-09-03 사용자 제안, 2026-09-07 TDD로 완료) | 완료 | [[tickets/p3-16]] |
 | P3-17 | [x] | OAuth2 앱 등록을 사이트 관리자 전용 → 사용자 셀프서비스로 전환 (2026-09-07 사용자 제안) | 완료 — `/user/editform/oauth-apps-owned` 셀프서비스 등록 신설, 관리자 화면(`/site/oauth-apps`)은 전체 조회/강제 삭제 감사(audit) 용도로 축소, IDOR 방지 검증 포함 | [[tickets/p3-17]] |
-| P3-18 | [ ] | SSH forced command가 실제 git/hg 바이너리 exec 대신 인프로세스 JGit/hg4j 로직을 재사용하도록 전환 (2026-09-07 사용자 제안) | 착수 전 — git(JGit)뿐 아니라 Hg(hg4j의 기존 `HgSshWireServer`)도 동일 패턴 적용 가능함을 코드로 확인(최초 판단 정정) | [[tickets/p3-18]] |
+| P3-18 | [~] | SSH forced command가 실제 git/hg 바이너리 exec 대신 인프로세스 JGit/hg4j 로직을 재사용하도록 전환 (2026-09-07 사용자 제안) | 1라운드 완료(yona 메인 앱 범위) — 유닉스 도메인 소켓 릴레이 + `GitSshProtocolHandler`/`HgSshProtocolHandler` 신설, 실제 git/hg 바이너리로 관통 검증(브랜치 보호 회귀 테스트 포함). yona-cli 쪽 forced command 배선은 후속 작업으로 이월 | [[tickets/p3-18]] |

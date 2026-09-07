@@ -5,8 +5,6 @@ import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthPrincipal
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthService
-import com.github.yonaprojects.yona.domain.vcs.BranchProtectionPreReceiveHook
-import com.github.yonaprojects.yona.domain.vcs.RejectPushToReservedRefsPreReceiveHook
 import org.apache.sshd.server.Environment
 import org.apache.sshd.server.ExitCallback
 import org.apache.sshd.server.channel.ChannelSession
@@ -14,11 +12,6 @@ import org.apache.sshd.server.command.Command
 import org.apache.sshd.server.command.CommandDirectErrorStreamAware
 import org.apache.sshd.server.command.CommandDirectInputStreamAware
 import org.apache.sshd.server.command.CommandDirectOutputStreamAware
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.jgit.transport.PreReceiveHook
-import org.eclipse.jgit.transport.PreReceiveHookChain
-import org.eclipse.jgit.transport.ReceivePack
-import org.eclipse.jgit.transport.UploadPack
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.OutputStream
@@ -49,6 +42,10 @@ class YonaSshGitCommand(
 ) : Command, CommandDirectInputStreamAware, CommandDirectOutputStreamAware, CommandDirectErrorStreamAware {
 
     private val logger = LoggerFactory.getLogger(YonaSshGitCommand::class.java)
+
+    // yona-wiki P3-18 — GitServletConfig(HTTPS)와 동일한 훅 체이닝 로직을 공유 클래스로 뽑아내,
+    // 이 MINA 경로와 새 유닉스 도메인 소켓 릴레이(SshRelayServer) 둘 다 같은 구현을 호출한다.
+    private val gitProtocolHandler = GitSshProtocolHandler(protectedBranchRepository, projectUserRepository, gpgSignatureVerifier)
 
     private var inputStream: InputStream? = null
     private var outputStream: OutputStream? = null
@@ -88,44 +85,12 @@ class YonaSshGitCommand(
                 return
             }
 
-            val repository = FileRepositoryBuilder()
-                .setGitDir(authorization.repoDir)
-                .build()
-
             try {
-                when (authorization.service) {
-                    "git-upload-pack" -> {
-                        val uploadPack = UploadPack(repository)
-                        uploadPack.upload(inputStream, outputStream, errorStream)
-                    }
-                    "git-receive-pack" -> {
-                        val receivePack = ReceivePack(repository)
-                        // GitServletConfig(HTTPS)와 완전히 동일한 훅 체이닝 — refs/yobi/* 예약
-                        // ref 거부는 항상 적용, project를 알 수 없는 경우가 아니라면(이 경로에서는
-                        // authorizeGitCommand()가 성공한 시점에 이미 project가 확정돼 있으므로
-                        // 사실상 항상 해당) 브랜치 보호 규칙도 함께 검사한다. pusher는
-                        // Deploy Key로 push한 경우 null(익명 push와 동일한 의미 — restrict_push_to는
-                        // 여전히 적용되고 admins_can_bypass는 적용되지 않음, HTTPS와 동일한 정책).
-                        val preReceiveHooks = mutableListOf<PreReceiveHook>(RejectPushToReservedRefsPreReceiveHook())
-                        if (authorization.project != null) {
-                            preReceiveHooks.add(
-                                BranchProtectionPreReceiveHook(
-                                    authorization.project, authorization.pusher, protectedBranchRepository,
-                                    projectUserRepository, gpgSignatureVerifier
-                                )
-                            )
-                        }
-                        receivePack.setPreReceiveHook(PreReceiveHookChain.newChain(preReceiveHooks))
-                        receivePack.receive(inputStream, outputStream, errorStream)
-                    }
-                    else -> {
-                        writeError("지원하지 않는 명령입니다: ${authorization.service}")
-                        exitCallback?.onExit(1, "unsupported service")
-                        return
-                    }
-                }
-            } finally {
-                repository.close()
+                gitProtocolHandler.handle(authorization, inputStream!!, outputStream!!, errorStream!!)
+            } catch (e: UnsupportedGitServiceException) {
+                writeError(e.message ?: "지원하지 않는 명령입니다.")
+                exitCallback?.onExit(1, "unsupported service")
+                return
             }
 
             outputStream?.flush()

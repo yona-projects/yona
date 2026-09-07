@@ -47,6 +47,15 @@ interface SshAuthService {
     // command: SSH_ORIGINAL_COMMAND 그대로("git-upload-pack 'owner/project.git'" 등).
     fun authorizeGitCommand(principal: SshAuthPrincipal, command: String): SshCommandAuthorization
 
+    // yona-wiki P3-18/P3-12 — Mercurial용 대응 메서드. command는 real hg 클라이언트가
+    // ui.ssh로 실제 실행하는 고정 원격 명령 그대로("hg -R 'owner/project' serve --stdio" —
+    // 경로에 공백이 없으면 real hg는 따옴표를 생략한다, 둘 다 인식). git과 달리 Hg의 SSH 와이어
+    // 프로토콜은 이 원격 명령 하나로 pull/push를 모두 처리하므로(명령줄만으로는 read/write를
+    // 구분할 수 없음), 여기서 계산하는 SshCommandAuthorization.isWrite는 "이 세션이 지금
+    // push하려 한다"가 아니라 "이 principal이 push를 시도했을 때 허용되는가"를 뜻한다 — 실제
+    // 강제는 HgSshProtocolHandler가 pre-changegroup 훅(unbundle 직전)에서 한다.
+    fun authorizeHgCommand(principal: SshAuthPrincipal, command: String): SshCommandAuthorization
+
     fun resolveProject(owner: String, projectName: String): Project?
 
     // yona-wiki P3-03 Step4 — 리눅스/맥 경로 전용. `internal ssh-auth`가 authenticate()로 얻은
