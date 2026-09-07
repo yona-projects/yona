@@ -127,6 +127,12 @@ dependencies {
 	implementation("org.tmatesoft.svnkit:svnkit:1.10.11")
 	implementation("sonia.svnkit:svnkit-dav:1.10.10-scm2-jakarta")
 
+	// yona-wiki P3-12 — Mercurial 지원. search5/hg4j는 아직 Maven Central/JitPack에 미발행이라
+	// settings.gradle.kts의 includeBuild("../hg4j")(형제 디렉터리, 자체 개발 중)로 소스 빌드
+	// 치환된다 — 이 좌표는 그 컴포짓 빌드가 제공하는 hg4j 자신의 group/name(io.github.search5.hg4j:hg4j)과
+	// 정확히 일치해야 한다.
+	implementation("io.github.search5.hg4j:hg4j")
+
 	// juniversalchardet
 	implementation("com.github.albfernandez:juniversalchardet:2.5.0")
 
