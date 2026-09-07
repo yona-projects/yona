@@ -21,7 +21,10 @@ class EventTypeSpec : DescribeSpec({
 
         it("valueOf()/values()가 정상 동작해야 한다") {
             EventType.valueOf("NEW_ISSUE") shouldBe EventType.NEW_ISSUE
-            EventType.values().size shouldBe 27
+            // P3-15(PR 승인/변경요청 워크플로)가 PULL_REQUEST_REVIEWED를 추가하며 27에서 늘어남
+            // — 테스트가 갱신되지 않아 실패하던 것(환경 문제 아님). order 필드값은 15가 빠져있는
+            // 등 연속적이지 않으므로(최댓값 29 ≠ 개수) 실제 enum 상수 개수(28개)로 검증한다.
+            EventType.values().size shouldBe 28
         }
     }
 })

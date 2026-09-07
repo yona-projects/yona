@@ -13,6 +13,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.project.ProjectUser
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.role.Role
+import com.github.yonaprojects.yona.domain.role.RoleRepository
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -55,7 +56,8 @@ class IssueServiceImplSpec @Autowired constructor(
     private val issueLabelCategoryRepository: IssueLabelCategoryRepository,
     private val watchRepository: WatchRepository,
     private val projectUserRepository: ProjectUserRepository,
-    private val issueCommentRepository: IssueCommentRepository
+    private val issueCommentRepository: IssueCommentRepository,
+    private val roleRepository: RoleRepository
 ) : AbstractIntegrationTest() {
 
     private fun mkUser(loginId: String, name: String = loginId): User =
@@ -483,7 +485,7 @@ class IssueServiceImplSpec @Autowired constructor(
                     val toProject = mkProject("mv-p1-to", "owner-b")
                     // mover가 비공개 프로젝트의 읽기 권한을 가져야(WatchServiceImpl.hasReadPermission)
                     // findActualWatchers()의 allowedWatchersOnly 필터에서 걸러지지 않고 알림 수신자로 남는다.
-                    val moverProjectUser = ProjectUser(user = mover, project = fromProject, role = Role(id = RoleType.MEMBER.roleType))
+                    val moverProjectUser = ProjectUser(user = mover, project = fromProject, role = roleRepository.save(Role(id = RoleType.MEMBER.roleType)))
                     mover.projectUsers.add(moverProjectUser)
                     projectUserRepository.save(moverProjectUser)
                     val watcher = mkUser("mv-p1-watcher")
@@ -543,7 +545,7 @@ class IssueServiceImplSpec @Autowired constructor(
                     val mover = mkUser("mv-mem1")
                     val fromProject = mkProject("mv-mem1-from", "owner-a")
                     val toProject = mkProject("mv-mem1-to", "owner-b")
-                    val projectUser = ProjectUser(user = mover, project = toProject, role = Role(id = RoleType.MEMBER.roleType))
+                    val projectUser = ProjectUser(user = mover, project = toProject, role = roleRepository.save(Role(id = RoleType.MEMBER.roleType)))
                     mover.projectUsers.add(projectUser)
                     projectUserRepository.save(projectUser)
                     val issue = issueRepository.save(

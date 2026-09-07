@@ -53,7 +53,10 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
                 Project(name = "css-proj", owner = "css-owner", projectScope = ProjectScope.PUBLIC, vcs = "GIT")
             )
             val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
-            if (!gitDir.exists()) {
+            // CodeBrowserListWrapRenderingSpec과 동일한 이유(gitBaseDir가 세션을 넘나드는 고정
+            // 경로라 반쪽짜리 bare 저장소가 남을 수 있음, 실측 확인 2026-09-07) — HEAD 파일
+            // 존재로 실제 초기화 완료 여부를 판단한다.
+            if (!File(gitDir, "HEAD").exists()) {
                 repositoryService.getRepository(project).create()
                 BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# css-proj", "첫 커밋")
                 BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# css-proj v2", "두번째 커밋")

@@ -16,6 +16,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.project.ProjectUser
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.role.Role
+import com.github.yonaprojects.yona.domain.role.RoleRepository
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.FavoriteIssue
 import com.github.yonaprojects.yona.domain.user.FavoriteIssueRepository
@@ -54,7 +55,8 @@ class IssueServiceSpec @Autowired constructor(
     private val mentionService: MentionService,
     private val mentionRepository: MentionRepository,
     private val organizationRepository: OrganizationRepository,
-    private val organizationUserRepository: OrganizationUserRepository
+    private val organizationUserRepository: OrganizationUserRepository,
+    private val roleRepository: RoleRepository
 ) : AbstractIntegrationTest() {
 
     init {
@@ -636,7 +638,7 @@ class IssueServiceSpec @Autowired constructor(
                     // 다시 조회해도 동일 인스턴스가 반환되고, User(...) 생성자로 직접 만든 엔티티는
                     // Hibernate가 지연로딩 프록시로 바꿔치기하지 않는다) — isMemberOf()가 읽는 바로 그
                     // 컬렉션에 직접 추가해 실제 멤버십 상태를 반영한다.
-                    val projectUser = ProjectUser(user = mover, project = toProject, role = Role(id = RoleType.MEMBER.roleType))
+                    val projectUser = ProjectUser(user = mover, project = toProject, role = roleRepository.save(Role(id = RoleType.MEMBER.roleType)))
                     mover.projectUsers.add(projectUser)
                     projectUserRepository.save(projectUser)
 
@@ -1046,7 +1048,7 @@ class IssueServiceSpec @Autowired constructor(
                     val orgMember = userRepository.save(User(loginId = "mention-org-member", name = "조직원"))
                     val project = projectRepository.save(Project(name = "mention-org-project", owner = "mention-author"))
                     val org = organizationRepository.save(Organization(name = "mention-target-org"))
-                    val memberRole = Role(id = RoleType.ORG_MEMBER.roleType)
+                    val memberRole = roleRepository.save(Role(id = RoleType.ORG_MEMBER.roleType))
                     organizationUserRepository.save(OrganizationUser(user = orgMember, organization = org, role = memberRole))
 
                     val issue = Issue(

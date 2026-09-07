@@ -57,7 +57,11 @@ class CodeBrowserListWrapRenderingSpec @Autowired constructor(
                     Project(name = "cbw-proj", owner = "cbw-owner", projectScope = ProjectScope.PUBLIC, vcs = "GIT")
                 )
                 val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
-                if (!gitDir.exists()) {
+                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이
+                // 중단돼 objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다
+                // (실측 확인, 2026-09-07) — gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을
+                // 건너뛴다. 실제 초기화 완료 여부(HEAD 파일)로 판단해야 안전하다.
+                if (!File(gitDir, "HEAD").exists()) {
                     repositoryService.getRepository(project).create()
                     BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# cbw-proj", "테스트")
                 }
@@ -91,7 +95,11 @@ class CodeBrowserListWrapRenderingSpec @Autowired constructor(
                     Project(name = "cbw-proj", owner = "cbw-owner", projectScope = ProjectScope.PUBLIC, vcs = "GIT")
                 )
                 val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
-                if (!gitDir.exists()) {
+                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이
+                // 중단돼 objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다
+                // (실측 확인, 2026-09-07) — gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을
+                // 건너뛴다. 실제 초기화 완료 여부(HEAD 파일)로 판단해야 안전하다.
+                if (!File(gitDir, "HEAD").exists()) {
                     repositoryService.getRepository(project).create()
                     BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# cbw-proj", "테스트")
                 }
@@ -118,7 +126,11 @@ class CodeBrowserListWrapRenderingSpec @Autowired constructor(
                     Project(name = "cbw-proj", owner = "cbw-owner", projectScope = ProjectScope.PUBLIC, vcs = "GIT")
                 )
                 val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
-                if (!gitDir.exists()) {
+                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이
+                // 중단돼 objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다
+                // (실측 확인, 2026-09-07) — gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을
+                // 건너뛴다. 실제 초기화 완료 여부(HEAD 파일)로 판단해야 안전하다.
+                if (!File(gitDir, "HEAD").exists()) {
                     repositoryService.getRepository(project).create()
                     BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# cbw-proj", "테스트")
                 }
