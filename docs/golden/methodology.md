@@ -1,5 +1,3 @@
-> ⚠️ **이관됨(2026-09-07)**: 이 문서는 [`docs/golden/methodology.md`](golden/methodology.md)로 그대로 이관되었다(내용 동일). 새 SSOT는 `docs/golden/`이다.
-
 # 골든 체크: yona → yona 정적 파리티 검증 계획
 
 ## Context

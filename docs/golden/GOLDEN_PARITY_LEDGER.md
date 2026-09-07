@@ -1,3 +1,5 @@
+> ⚠️ **이관됨(2026-09-07)**: 이 문서는 `docs/golden/`(index.md/findings/evidence/gl-symbol-map)로 전량 이관되었다. 새 SSOT는 [`docs/golden/index.md`](index.md)다. PARITY/COVERAGE와 함께 이 파일도 곧 삭제된다.
+
 # Golden Parity Ledger (생성일 2026-08-26)
 
 정적 분석 기반 산출물 — 자동 분류 결과이며, 사람의 최종 검토 없이는 어떤 항목도 완료/공백으로 확정하지 않는다. 버킷 C 중 진짜 공백으로 확정된 것만 `docs/PARITY_BACKLOG.md`에 신규 티켓으로 승격한다.
