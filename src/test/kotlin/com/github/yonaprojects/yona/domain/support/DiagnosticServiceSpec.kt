@@ -15,6 +15,13 @@ import javax.sql.DataSource
 // yona.base-url 단일 설정으로 웹훅/알림메일의 모든 절대경로 URL을 만들므로, 그 값이 비어있는지로
 // 이식했다(개념적으로 같은 "URL이 깨지는 설정 실수"를 검출).
 class DiagnosticServiceSpec : DescribeSpec({
+    // 2026-09-07 발견(LdapServiceSpec 등 Docker 기반 통합테스트를 개별 실행하며 원인 조사 중) —
+    // 아래 "Git/SVN 저장소 예외" 테스트가 System.setProperty("yona.data", ...)로 JVM 전역 시스템
+    // 프로퍼티를 바꿔놓고 복원하지 않아, 같은 테스트 워커 JVM에서 이후 실행되는 다른 스펙(예:
+    // JwkKeyPairProvider가 "${yona.data:data}/oauth2/jwt-signing-key.json"으로 서명키 경로를
+    // 읽는 Spring 컨텍스트 부트스트랩)에 잘못된 경로가 새어나가 컨텍스트 로딩이 깨지는 실제 버그였다.
+    afterTest { System.clearProperty("yona.data") }
+
     fun validDataSource(): DataSource {
         val dataSource = mockk<DataSource>()
         val connection = mockk<Connection>(relaxed = true)
