@@ -61,7 +61,7 @@ class VoteController(
 
         issueService.voteIssue(issue.id!!, user)
 
-        return "redirect:/$owner/$projectName/issue/$issueNumber"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/issue/$issueNumber"
     }
 
     @PostMapping(value = ["/{owner}/{projectName}/issue/{issueNumber}/unvote", "/{owner}/{projectName}/issues/{issueNumber}/unvote"])
@@ -86,7 +86,7 @@ class VoteController(
 
         issueService.unvoteIssue(issue.id!!, user)
 
-        return "redirect:/$owner/$projectName/issue/$issueNumber"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/issue/$issueNumber"
     }
 
     @PostMapping(value = ["/{owner}/{projectName}/issue/{issueNumber}/comment/{commentId}/vote", "/{owner}/{projectName}/issues/{issueNumber}/comment/{commentId}/vote"])
@@ -112,7 +112,7 @@ class VoteController(
 
         issueService.voteComment(comment.id!!, user)
 
-        return "redirect:/$owner/$projectName/issue/$issueNumber"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/issue/$issueNumber"
     }
 
     @PostMapping(value = ["/{owner}/{projectName}/issue/{issueNumber}/comment/{commentId}/unvote", "/{owner}/{projectName}/issues/{issueNumber}/comment/{commentId}/unvote"])
@@ -138,6 +138,6 @@ class VoteController(
 
         issueService.unvoteComment(comment.id!!, user)
 
-        return "redirect:/$owner/$projectName/issue/$issueNumber"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/issue/$issueNumber"
     }
 }

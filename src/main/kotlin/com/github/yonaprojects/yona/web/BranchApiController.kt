@@ -60,7 +60,7 @@ class BranchApiController(
 
         repository.setDefaultBranch(decodedBranchName)
 
-        return "redirect:/$owner/$projectName/branches"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/branches"
     }
 
     @DeleteMapping("/{owner}/{projectName}/code/{branch}")
@@ -101,6 +101,6 @@ class BranchApiController(
 
         repository.deleteBranch(decodedBranchName)
 
-        return "redirect:/$owner/$projectName/branches"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/branches"
     }
 }

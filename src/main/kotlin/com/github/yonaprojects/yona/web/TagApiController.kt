@@ -56,6 +56,6 @@ class TagApiController(
 
         repository.deleteTag(decodedTagName)
 
-        return "redirect:/$owner/$projectName/tags"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/tags"
     }
 }

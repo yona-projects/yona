@@ -130,7 +130,7 @@ class ImportViewController(
             // 4. Project 생성
             val savedProject = projectService.createProject(project, loginUser)
 
-            return "redirect:/$targetOwner/$targetName"
+            return "redirect:/${targetOwner.encodePathSegment()}/${targetName.encodePathSegment()}"
         } catch (e: InvalidRemoteException) {
             bindingResult.rejectValue("url", "project.import.error.wrong.url")
         } catch (e: JGitInternalException) {

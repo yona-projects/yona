@@ -350,7 +350,7 @@ class MilestoneViewController(
             )
         }
 
-        return "redirect:/$owner/$projectName/milestone/${savedMilestone.id}"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/milestone/${savedMilestone.id}"
     }
 
     @PostMapping("/{owner}/{projectName}/milestone/{id}/edit")
@@ -464,7 +464,7 @@ class MilestoneViewController(
             )
         }
 
-        return "redirect:/$owner/$projectName/milestone/$id"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/milestone/$id"
     }
 
     @PostMapping("/{owner}/{projectName}/milestone/{id}/open")
@@ -504,7 +504,7 @@ class MilestoneViewController(
             dueDate = milestone.dueDate,
             state = State.OPEN
         )
-        return "redirect:/$owner/$projectName/milestone/$id"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/milestone/$id"
     }
 
     @PostMapping("/{owner}/{projectName}/milestone/{id}/close")
@@ -544,7 +544,7 @@ class MilestoneViewController(
             dueDate = milestone.dueDate,
             state = State.CLOSED
         )
-        return "redirect:/$owner/$projectName/milestone/$id"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/milestone/$id"
     }
 
     @DeleteMapping("/{owner}/{projectName}/milestone/{id}")

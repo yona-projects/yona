@@ -73,9 +73,9 @@ class ReviewViewController(
         )
 
         return if (commitId != null) {
-            "redirect:/$owner/$projectName/pullRequest/${pullRequest.number}/commit/$commitId#comment-${comment.id}"
+            "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/pullRequest/${pullRequest.number}/commit/$commitId#comment-${comment.id}"
         } else {
-            "redirect:/$owner/$projectName/pullRequest/${pullRequest.number}/changes#comment-${comment.id}"
+            "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/pullRequest/${pullRequest.number}/changes#comment-${comment.id}"
         }
     }
 
@@ -134,7 +134,7 @@ class ReviewViewController(
             comment.id
         }
 
-        return "redirect:/$owner/$projectName/commit/$commitId#comment-$commentId"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/commit/$commitId#comment-$commentId"
     }
 
     @DeleteMapping("/{owner}/{projectName}/commit/{commitId}/comments/{id}/delete")
@@ -169,6 +169,6 @@ class ReviewViewController(
             }
             throw e
         }
-        return "redirect:/$owner/$projectName/commit/$commitId"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/commit/$commitId"
     }
 }

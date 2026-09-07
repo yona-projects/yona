@@ -632,7 +632,7 @@ class IssueViewController(
             )
         }
 
-        return "redirect:/$owner/$projectName/issue/${saved.number}"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/issue/${saved.number}"
     }
 
     @GetMapping("/user/issues/new")
@@ -881,7 +881,7 @@ class IssueViewController(
             return ResponseEntity.ok(emptyMap<String, Any>())
         }
 
-        return "redirect:/$owner/$projectName/issues"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/issues"
     }
 
     private fun getIssueTemplate(project: Project): String {
@@ -979,7 +979,7 @@ class IssueViewController(
             labelIds = request.labelIds
         )
 
-        return "redirect:/${redirectProject.owner}/${redirectProject.name}/issue/${updated.number}"
+        return "redirect:/${redirectProject.owner!!.encodePathSegment()}/${redirectProject.name.encodePathSegment()}/issue/${updated.number}"
     }
 
     companion object {

@@ -533,7 +533,7 @@ class ProjectViewController(
             val saved = projectService.createProject(project, loginUser)
             watchService.watch(loginUser, ResourceType.PROJECT, saved.id.toString())
             addVisitHistory(loginUser, saved)
-            return "redirect:/${saved.owner}/${saved.name}"
+            return "redirect:/${saved.owner!!.encodePathSegment()}/${saved.name.encodePathSegment()}"
         } catch (e: Exception) {
             val orgUserList = organizationUserRepository.findByUserIdAndRoleId(loginUser.id!!, RoleType.ORG_ADMIN.roleType)
             val organizations = orgUserList.map { it.organization }
@@ -852,7 +852,7 @@ class ProjectViewController(
             
             projectService.acceptTransfer(transferId, confirmKey, loginUser.id!!)
             
-            "redirect:/$destination/$newProjectName"
+            "redirect:/${destination.encodePathSegment()}/${newProjectName.encodePathSegment()}"
         } catch (e: Exception) {
             model.addAttribute("errorMessage", "이관 승인에 실패했습니다: ${e.message}")
             return "error/500"
@@ -1141,7 +1141,7 @@ class ProjectViewController(
             issueLabelService.copyLabels(fromProject.id!!, toProject.id!!)
         }
 
-        return "redirect:/$owner/$projectName/issue/labelsform"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/issue/labelsform"
     }
 
     // 11. 프로젝트 포크 화면 (GET /{ownerName}/{projectName}/newFork)

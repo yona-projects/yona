@@ -96,7 +96,7 @@ class CodeViewController(
         val defaultBranch = headBranch?.shortName ?: "master"
         val encodedBranch = URLEncoder.encode(defaultBranch, "UTF-8")
 
-        return "redirect:/$owner/$projectName/code/$encodedBranch"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/code/$encodedBranch"
     }
 
     @GetMapping("/{owner}/{projectName}/code/{branch}")

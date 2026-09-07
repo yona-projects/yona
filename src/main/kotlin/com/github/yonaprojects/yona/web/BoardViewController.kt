@@ -373,9 +373,9 @@ class BoardViewController(
         )
 
         if (isReadme) {
-            return "redirect:/$owner/$projectName"
+            return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}"
         }
-        return "redirect:/$owner/$projectName/post/$number"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/post/$number"
     }
 
     @PostMapping("/{owner}/{projectName}/posts")
@@ -426,7 +426,7 @@ class BoardViewController(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            return "redirect:/$owner/$projectName"
+            return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}"
         }
 
         // yona BoardApp.newPost()의 "if(StringUtils.isNotEmpty(post.path) && ...isMemberOf(project)){
@@ -447,7 +447,7 @@ class BoardViewController(
             val encodedPath = path.split("/").joinToString("/") { segment ->
                 URLEncoder.encode(segment, "UTF-8").replace("+", "%20")
             }
-            return "redirect:/$owner/$projectName/code/$branch/$encodedPath"
+            return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/code/$branch/$encodedPath"
         }
 
         val posting = Posting(
@@ -481,9 +481,9 @@ class BoardViewController(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            return "redirect:/$owner/$projectName"
+            return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}"
         }
-        return "redirect:/$owner/$projectName/post/${saved.number}"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/post/${saved.number}"
     }
 
     // yona playRepository/BareRepository.java:89-121 readREADME()/getFirstFoundREADMEfileObjectId()/

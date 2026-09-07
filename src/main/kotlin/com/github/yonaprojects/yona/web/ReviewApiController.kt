@@ -92,7 +92,7 @@ class ReviewApiController(
 
         codeReviewService.addReviewer(pullRequestId, user.id!!)
 
-        return "redirect:/$owner/$projectName/pullRequest/${pullRequest.number}"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/pullRequest/${pullRequest.number}"
     }
 
     @PostMapping("/api/{owner}/{projectName}/pullRequest/{pullRequestId}/unreview")
@@ -125,6 +125,6 @@ class ReviewApiController(
 
         codeReviewService.removeReviewer(pullRequestId, user.id!!)
 
-        return "redirect:/$owner/$projectName/pullRequest/${pullRequest.number}"
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/pullRequest/${pullRequest.number}"
     }
 }
