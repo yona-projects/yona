@@ -1862,7 +1862,7 @@ class ProjectViewControllerSpec : DescribeSpec({
                 .andExpect(view().name("error/forbidden"))
         }
 
-        it("현재 VCS가 SUBVERSION이면 다음 VCS로 GIT을 제안해야 한다") {
+        it("현재 VCS가 SUBVERSION이면 다음 VCS로 MERCURIAL을 제안해야 한다(yona-wiki P3-12 — GIT->SUBVERSION->MERCURIAL->GIT 3종 순환)") {
             val proj = Project(id = 172L, name = "VCSProj3", owner = "owner", vcs = "SUBVERSION")
             val manager = User(id = 172L, loginId = "vcsmanager", name = "VCS매니저")
             val managerAuth = UsernamePasswordAuthenticationToken("vcsmanager", "password")
@@ -1873,6 +1873,21 @@ class ProjectViewControllerSpec : DescribeSpec({
                 Optional.of(ProjectUser(id = 1720L, user = manager, project = proj, role = Role(id = RoleType.MANAGER.roleType)))
 
             mockMvc.perform(get("/owner/VCSProj3/changeVCS").principal(managerAuth))
+                .andExpect(status().isOk)
+                .andExpect(model().attribute("nextVcs", "MERCURIAL"))
+        }
+
+        it("현재 VCS가 MERCURIAL이면 다음 VCS로 GIT을 제안해야 한다(순환 완결)") {
+            val proj = Project(id = 173L, name = "VCSProj4", owner = "owner", vcs = "MERCURIAL")
+            val manager = User(id = 173L, loginId = "vcsmanager2", name = "VCS매니저2")
+            val managerAuth = UsernamePasswordAuthenticationToken("vcsmanager2", "password")
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "VCSProj4") } returns Optional.of(proj)
+            every { userRepository.findByLoginId("vcsmanager2") } returns Optional.of(manager)
+            every { projectUserRepository.existsByProjectIdAndUserId(173L, 173L) } returns true
+            every { projectUserRepository.findByProjectIdAndUserId(173L, 173L) } returns
+                Optional.of(ProjectUser(id = 1730L, user = manager, project = proj, role = Role(id = RoleType.MANAGER.roleType)))
+
+            mockMvc.perform(get("/owner/VCSProj4/changeVCS").principal(managerAuth))
                 .andExpect(status().isOk)
                 .andExpect(model().attribute("nextVcs", "GIT"))
         }
