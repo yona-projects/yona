@@ -73,11 +73,21 @@ GitHub 방식과 동일하게, 사람이 아니라 **저장소 접근 전용 계
 접속을 받는다. 실제 사용자 구분은 OS 계정이 아니라 공개키로 한다.
 
 ```bash
-sudo useradd --system --shell /usr/sbin/nologin --home-dir /home/git --create-home git
+sudo useradd --system --shell /bin/bash --home-dir /home/git --create-home git
 ```
 
-`--shell /usr/sbin/nologin`으로 비밀번호/대화형 로그인 자체를 막는다 — 이후 접속은 전부
-`AuthorizedKeysCommand`가 만들어주는 forced command로만 이뤄진다.
+**`/usr/sbin/nologin`을 쓰면 안 된다 — 반드시 실제 셸(`/bin/bash`)을 지정할 것.** 처음엔
+직관적으로 nologin을 썼었는데, 실제 컨테이너에 sshd를 띄워 forced command까지 관통시켜보고서야
+발견한 문제다(2026-09-08): OpenSSH는 `command=`로 지정된 forced command를 그 계정의
+로그인 셸로 `<셸> -c "<명령>"` 형태로 실행한다 — 셸이 nologin이면 `nologin -c "..."`이
+되는데, `nologin`은 인자를 전부 무시하고 "This account is currently not available." 한 줄만
+찍고 종료해버려 **`command=`가 있으나 마나 하게 무력화된다**(우리 forced command는 전혀
+실행되지 않음). 대화형 로그인/비밀번호 접근을 막는 건 nologin이 아니라 **비밀번호 자체를
+설정하지 않는 것**(`useradd`가 기본적으로 계정을 잠긴 상태로 만듦, `passwd -l`로 재확인
+가능)과 `command=`+`no-pty`(forced command가 항상 강제되고, 원본 명령이 없는 경우
+"대화형 셸 접속은 지원하지 않습니다"를 직접 응답하도록 이미 아래 스크립트에 들어있음)로
+이미 충분히 달성된다 — 셸이 진짜 `/bin/bash`여도 이 계정으로는 비밀번호 로그인이 불가능하고
+SSH도 항상 forced command로만 귀결되므로 보안상 구멍이 생기지 않는다.
 
 yona가 만든 bare 저장소 디렉터리(`yona.git.base-dir`, 기본 `/tmp/yona/git` — 운영에서는 반드시
 영구 경로로 바꿔야 함, [settings-reference.md](settings-reference.md) 참고)에 `git` 계정이
@@ -173,13 +183,21 @@ principal="$(echo "$response" | jq -r '.principal // empty')"
 # 셸은 주지 않는다.
 forced_command="if [ -z \"\$SSH_ORIGINAL_COMMAND\" ]; then echo 'Hi! yona SSH 인증에 성공했습니다. 다만 대화형 셸 접속은 지원하지 않습니다.' >&2; exit 1; fi; { printf '%s\\n%s\\n' '$principal' \"\$SSH_ORIGINAL_COMMAND\"; cat; } | socat - UNIX-CONNECT:$RELAY_SOCKET"
 
-# authorized_keys의 command="..." 값 안에 있는 리터럴 큰따옴표/역슬래시는 반드시 \"/\\ 로
-# 이스케이프해야 한다 — 안 그러면 sshd가 이스케이프 안 된 첫 번째 큰따옴표에서 값을 끊어버려
-# 뒷부분이 authorized_keys의 별도 필드로 잘못 해석된다(man sshd(8)의 AUTHORIZED_KEYS FILE
-# FORMAT 참고, 위 forced_command에 "$SSH_ORIGINAL_COMMAND" 리터럴이 들어있어 실제로 해당됨).
-# 역슬래시를 먼저 이스케이프해야 순서가 꼬이지 않는다.
-escaped_command="${forced_command//\\/\\\\}"
-escaped_command="${escaped_command//\"/\\\"}"
+# authorized_keys의 command="..." 값 안에 있는 리터럴 큰따옴표는 반드시 \" 로 이스케이프해야
+# 한다 — 안 그러면 sshd가 이스케이프 안 된 첫 번째 큰따옴표에서 값을 끊어버려 뒷부분이
+# authorized_keys의 별도 필드로 잘못 해석된다(man sshd(8)의 AUTHORIZED_KEYS FILE FORMAT 참고,
+# 위 forced_command에 "$SSH_ORIGINAL_COMMAND" 리터럴이 들어있어 실제로 해당됨).
+#
+# **역슬래시는 절대 이스케이프하면 안 된다** — 실제 컨테이너에 sshd를 띄워 소켓 릴레이까지
+# 관통시켜 검증하는 과정에서(2026-09-08) 처음엔 "\\"도 "\\\\"로 이스케이프했었는데, 그러면
+# `printf '%s\n%s\n' ...`의 `\n`이 실제 개행이 아니라 리터럴 백슬래시+n 두 글자로 클라이언트에
+# 전달돼(`socat -x`로 실제 바이트를 떠서 확인) 핸드셰이크 자체가 깨졌다 — OpenSSH의
+# authorized_keys 파서는 값을 끝내는 큰따옴표를 찾을 때 "\"" 만 특별 취급(이스케이프된
+# 따옴표로 인식해 값을 안 끝냄)할 뿐, 그 외의 백슬래시는 전혀 손대지 않고 그대로 통과시킨다
+# (man 페이지엔 "큰따옴표를 escape할 수 있다"고만 적혀 있고 일반적인 백슬래시 언이스케이프는
+# 명시돼 있지 않은데, 실제로도 그렇게 동작함을 `socat -x`로 직접 확인). 그래서 역슬래시는
+# 원본 그대로 둬야 forced_command 안의 `\n`이 살아남는다.
+escaped_command="${forced_command//\"/\\\"}"
 
 # no-pty 등으로 대화형 셸/포트포워딩을 원천 차단하고, command=로 이 세션을 무조건
 # 위 forced_command로 강제한다.
@@ -228,19 +246,39 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
 
 ## Step 5. 실제로 확인해보기
 
+**이 문서 전체(Step 1~4 + 아래 시나리오)를 실제 컨테이너(sshd + yona 앱)에 그대로 적용해
+2026-09-08에 end-to-end로 검증했다** — 아래 절차 자체가 이론이 아니라 실측 결과다. 이 과정에서
+실제로 발견해 위 Step 1/Step 3에 이미 반영한 버그 2건:
+- **Step 1의 `nologin` 셸 버그**: forced command가 `<셸> -c "<명령>"`으로 실행되는데
+  nologin은 인자를 무시하고 자기 메시지만 찍어 `command=`를 완전히 무력화시켰다 — `/bin/bash`로
+  바꿔서 해소.
+- **Step 3의 역슬래시 이중 이스케이프 버그**: authorized_keys의 `command="..."` 값을 이스케이프할
+  때 큰따옴표뿐 아니라 역슬래시까지 이스케이프했었는데, OpenSSH가 역슬래시는 언이스케이프하지
+  않고 그대로 통과시켜(`\"`만 특별 취급) `printf`의 `\n`이 실제 개행이 아니라 리터럴 문자 두
+  개로 전달되는 바람에 핸드셰이크 자체가 깨졌다 — `socat -x`로 실제 바이트를 떠서 확인 후
+  역슬래시 이스케이프를 제거해 해소.
+
 1. yona 웹 UI에서 SSH 공개키를 하나 등록한다(`내 정보 > SSH 키`).
 2. 대화형 접속 테스트 — "셸은 안 준다"는 메시지가 떠야 정상:
    ```bash
    ssh -T -i ~/.ssh/id_ed25519 git@yona.example.com
    # Hi! yona SSH 인증에 성공했습니다. 다만 대화형 셸 접속은 지원하지 않습니다.
    ```
-3. 실제 clone/push 테스트:
+3. 실제 clone/push 테스트(실측 완료 — 정상 동작 확인):
    ```bash
    git clone git@yona.example.com:owner/repo.git
    cd repo && touch test.txt && git add test.txt
    git commit -m "ssh push 테스트" && git push
    ```
 4. 등록되지 않은 키로 접속하면 sshd 표준 방식대로 `Permission denied (publickey)`가 떠야 한다.
+5. **브랜치 보호 확인**(실측 완료): 보호된 브랜치에 직접 push하면 `git push`가
+   `! [remote rejected] ... (branch 'main' protected: ... require_pull_request)`처럼 사유를
+   그대로 보여주며 거부돼야 한다 — HTTPS 경로와 동일한 정책이 SSH에도 적용되는지 확인하는
+   가장 중요한 시나리오다(이 문서/`SshRelayServer`가 만들어진 핵심 이유).
+6. **PRIVATE 프로젝트 비멤버 거부 확인**(실측 완료): 그 프로젝트 멤버가 아닌 사용자의 키로
+   clone을 시도하면 `fatal: protocol error: bad line length character: ERR ` 같은 메시지와
+   함께 실패해야 한다(트러블슈팅 절의 "clone/fetch 자체가 거부" 항목 참고 — 이 지저분한
+   메시지 자체가 정상 동작이다, 거부는 됐다는 뜻).
 
 ## 트러블슈팅
 
@@ -256,13 +294,18 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
 - **403이 온다** — `/etc/yona/ssh-internal-secret` 파일 내용과 yona의
   `yona.ssh.internal-secret` 설정값이 정확히 일치하는지(공백/개행 문자 포함) 확인한다.
   `echo -n`으로 파일을 썼는지(트레일링 개행이 섞이면 시크릿이 달라진다) 다시 확인.
-- **clone은 되는데 push가 막힌다** — 인가 거부 사유는 `SshRelayServer`가 소켓에 `ERR <사유>`
-  한 줄을 써서 알려주는데, 이건 git의 정식 프로토콜 응답이 아니라서(`report-status`처럼 깔끔한
-  줄이 아니라 프로토콜 오류로 인식됨) 클라이언트 쪽엔 "fatal: protocol error: ..." 류의 메시지
-  안에 그 사유 텍스트가 섞여 나온다 — 원인 자체는 브랜치 보호 정책, PRIVATE 프로젝트 멤버십,
-  읽기전용 Deploy Key 여부를 먼저 의심한다([troubleshooting.md](troubleshooting.md) 및 브랜치
-  보호 문서 참고). 정상적인 요청(인가 통과)에서는 이 문제가 없다 — JGit `ReceivePack`이 표준
-  `report-status`로 정상 응답하기 때문에, 이건 거부된 요청에서만 나타나는 사소한 UX 한계다.
+- **push가 브랜치 보호로 막히면 메시지가 깔끔하게 뜨지만, clone/fetch 자체가 거부되면 메시지가
+  지저분하다** — 실제 컨테이너로 두 경우 다 확인했다(2026-09-08). **push 거부**(브랜치 보호
+  등, `git-receive-pack`이 이미 시작된 뒤의 거부)는 JGit `ReceivePack`의 표준 `report-status`를
+  타므로 `git push`가 `! [remote rejected] ... (branch 'main' protected: ... require_pull_request)`
+  처럼 사유를 그대로 깔끔하게 보여준다. 반면 **clone/fetch 자체가 거부**(PRIVATE 프로젝트
+  비멤버, 존재하지 않는 저장소 등 — `SshRelayServer`가 `git-upload-pack`을 시작하기도 전에
+  `ERR <사유>` 한 줄만 쓰고 연결을 끊는 경우)는 이게 git의 정식 프로토콜 응답이 아니라서
+  클라이언트 쪽엔 `fatal: protocol error: bad line length character: ERR ` 같은 지저분한
+  메시지로 뜬다(사유 텍스트 자체는 그 뒤에 섞여 나온다). 원인 자체는 브랜치 보호 정책, PRIVATE
+  프로젝트 멤버십, 읽기전용 Deploy Key 여부를 먼저 의심한다([troubleshooting.md](troubleshooting.md)
+  및 브랜치 보호 문서 참고) — clone 거부 쪽 메시지가 지저분한 건 실제 동작에 영향 없는 사소한
+  UX 한계로 남겨둔다.
 - **저장소 파일에 대한 Permission denied (repository 안에서)** — `git` OS 계정이 yona 앱
   계정과 같은 그룹에 속해 있고, `yona.git.base-dir` 디렉터리가 그 그룹에 rwX로 열려 있는지
   Step 1을 다시 확인.
