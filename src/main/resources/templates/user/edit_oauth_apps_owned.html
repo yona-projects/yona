@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{userinfo.oauthAppsOwned})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{userinfo.oauthAppsOwned}">OAuth 앱</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('oauth-apps-owned')}"></div>
+
+            <!--
+             yona-wiki P3-17 — GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는
+             셀프서비스 등록 화면(edit_oauth_apps.html "인가된 OAuth 앱"과는 반대 방향 — 저건 내가
+             인가한 남의 앱, 이건 내가 등록한 내 앱이다). tokens/ssh-keys/gpg-keys와 동일한
+             컨벤션대로 목록(이 화면)과 등록 폼(edit_oauth_apps_owned_new.html)을 별개 페이지로
+             분리했다 — 등록 성공 시 이 화면으로 리다이렉트되고, confidential 앱의 client_secret
+             평문값은 플래시 속성으로 지금 한 번만 표시된다.
+            -->
+
+            <p class="description" th:text="#{oauthapp.description}">설명</p>
+
+            <div th:if="${registeredClientId != null}" class="alert alert-success mt20">
+                <strong th:text="#{oauthapp.registered.title}">앱이 등록되었습니다</strong>
+                <p>Client ID: <code th:text="${registeredClientId}">client-id</code></p>
+                <p th:if="${registeredPlainSecret != null}">
+                    <span th:text="#{oauthapp.registered.secret.warning}">Client Secret(다시 표시되지 않습니다):</span>
+                    <code th:text="${registeredPlainSecret}">client-secret</code>
+                </p>
+            </div>
+
+            <h4 class="mt20">
+                <span th:text="#{oauthapp.list.title}">내 OAuth 앱</span>
+                <a th:href="@{/user/editform/oauth-apps-owned/new}" class="ybtn ybtn-success pull-right" th:text="#{oauthapp.register}">새 OAuth 앱 등록</a>
+            </h4>
+            <table class="table" th:if="${ownedOAuthApps != null and !ownedOAuthApps.isEmpty()}">
+                <thead>
+                <tr>
+                    <th th:text="#{oauthapp.field.name}">이름</th>
+                    <th th:text="#{oauthapp.field.clientId}">Client ID</th>
+                    <th th:text="#{oauthapp.field.type}">종류</th>
+                    <th th:text="#{oauthapp.field.scopesGranted}">스코프</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="app : ${ownedOAuthApps}">
+                    <td th:text="${app.clientName}">app</td>
+                    <td><code th:text="${app.clientId}">client-id</code></td>
+                    <td th:text="${app.clientSecret != null} ? #{oauthapp.field.type.confidential} : #{oauthapp.field.type.public}">종류</td>
+                    <td th:text="${app.scopes}">scopes</td>
+                    <td>
+                        <form method="post" th:action="@{/user/editform/oauth-apps-owned/{id}/delete(id=${app.id})}"
+                              th:attr="data-confirm-message=#{oauthapp.delete.confirm}" class="oauthapp-delete-form">
+                            <button type="submit" class="ybtn ybtn-small ybtn-danger" th:text="#{oauthapp.delete}">삭제</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p th:if="${ownedOAuthApps == null or ownedOAuthApps.isEmpty()}" th:text="#{oauthapp.list.empty}">등록된 OAuth 앱이 없습니다.</p>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    document.addEventListener('submit', function(e) {
+        var form = e.target.closest('.oauthapp-delete-form');
+        if (!form) {
+            return;
+        }
+        var message = form.getAttribute('data-confirm-message');
+        if (message && !confirm(message)) {
+            e.preventDefault();
+        }
+    });
+</script>
+</body>
+</html>

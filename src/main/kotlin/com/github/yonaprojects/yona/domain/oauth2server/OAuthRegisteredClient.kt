@@ -87,7 +87,15 @@ class OAuthRegisteredClient(
     var refreshTokenTtlSeconds: Long = DEFAULT_REFRESH_TOKEN_TTL_SECONDS,
 
     @Column(name = "reuse_refresh_tokens", nullable = false)
-    var reuseRefreshTokens: Boolean = false
+    var reuseRefreshTokens: Boolean = false,
+
+    // yona-wiki P3-17 — OAuth 앱 등록을 사이트 관리자 전용에서 사용자 셀프서비스로 전환하며 추가한
+    // 소유자 컬럼. DCR로 등록되는 MCP 클라이언트와 이 컬럼이 생기기 전에 이미 존재하던 사전등록
+    // 클라이언트는 소유자가 없으므로(null) nullable — null이면 관리자 감사(audit) 화면에서
+    // "DCR/system" 등으로 표시한다. 사용자가 셀프서비스로 등록한 앱만 이 값이 채워지고, 삭제 시
+    // 이 값과 loginUser.id를 대조해 IDOR(다른 사용자의 앱 삭제)을 막는다.
+    @Column(name = "owner_id")
+    var ownerId: Long? = null
 ) {
     companion object {
         const val DEFAULT_ACCESS_TOKEN_TTL_SECONDS = 3600L // 1시간

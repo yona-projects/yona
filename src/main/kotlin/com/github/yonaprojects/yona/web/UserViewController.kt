@@ -18,6 +18,7 @@ import com.github.yonaprojects.yona.domain.apitoken.ApiTokenPermission
 import com.github.yonaprojects.yona.domain.apitoken.ApiTokenScopeGroup
 import com.github.yonaprojects.yona.domain.apitoken.ApiTokenService
 import com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizedAppsService
+import com.github.yonaprojects.yona.domain.oauth2server.OAuthAppRegistrationService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
@@ -79,6 +80,10 @@ class UserViewController(
     // yona-wiki P3-07 Step6 — "Authorized OAuth Apps" 화면(사용자가 인가한 MCP OAuth 클라이언트
     // 조회/취소).
     private val oAuthAuthorizedAppsService: OAuthAuthorizedAppsService,
+    // yona-wiki P3-17 — GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는 사용자
+    // 셀프서비스 OAuth 앱 등록/조회/삭제 UI. 위 oAuthAuthorizedAppsService(내가 "인가"한 남의 앱)와는
+    // 반대 방향(내가 "등록"한 앱)이라 완전히 별개 화면이다 — 혼동 금지.
+    private val oAuthAppRegistrationService: OAuthAppRegistrationService,
     // yona-wiki P3-03 Step3 — GitHub의 "Settings > SSH and GPG keys" 화면과 동등한 SSH 키
     // 등록/조회/삭제 UI.
     private val sshKeyService: com.github.yonaprojects.yona.domain.sshkey.SshKeyService,
@@ -741,6 +746,121 @@ class UserViewController(
 
         oAuthAuthorizedAppsService.revoke(loginUser.loginId, clientId)
         return "redirect:/user/editform/oauth-apps"
+    }
+
+    // yona-wiki P3-17 — GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는 사용자
+    // 셀프서비스 OAuth 앱 등록 화면. [[p3-14]] 1라운드에서는 이 기능이 사이트 관리자 전용
+    // (OAuthAppsAdminController)이었지만, GitHub/Forgejo 둘 다 OAuth 앱 등록은 사용자가 만드는
+    // 자원으로서 계정에 종속된 셀프서비스 기능이라 이 저장소의 표준 방침(모호하면 GitHub 방식을
+    // 따른다)에 맞춰 옮겼다(배경은 [[p3-17]] 참고). 위 editOAuthAuthorizedAppsForm(내가 "인가"한
+    // 남의 앱, edit_oauth_apps.html)과는 반대 방향(내가 "등록"한 앱)이라 URL도 템플릿도 완전히
+    // 별개다 — 혼동 금지. tokens/ssh-keys/gpg-keys와 동일한 컨벤션대로 목록(이 메서드)과 등록 폼
+    // (newOwnedOAuthAppForm)을 별개 페이지로 분리했다 — 등록 성공 시 이 목록으로 리다이렉트되고,
+    // confidential이면 발급된 client_secret 평문값이 플래시 속성으로 다음 GET 한 번만 노출된다
+    // (registerOwnedOAuthApp 참고, URL에는 절대 담지 않는다).
+    @GetMapping("/user/editform/oauth-apps-owned")
+    fun editOwnedOAuthAppsForm(
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("ownedOAuthApps", oAuthAppRegistrationService.listByOwner(loginUser.id!!))
+
+        return "user/edit_oauth_apps_owned"
+    }
+
+    @GetMapping("/user/editform/oauth-apps-owned/new")
+    fun newOwnedOAuthAppForm(
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        fillOwnedOAuthAppNewFormModel(loginUser, model)
+
+        return "user/edit_oauth_apps_owned_new"
+    }
+
+    @PostMapping("/user/editform/oauth-apps-owned/register")
+    fun registerOwnedOAuthApp(
+        @RequestParam clientName: String,
+        @RequestParam redirectUri: String,
+        @RequestParam(defaultValue = "false") confidential: Boolean,
+        @RequestParam(required = false) scopes: List<String>?,
+        authentication: Authentication?,
+        model: Model,
+        redirectAttributes: RedirectAttributes
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        try {
+            val registered = oAuthAppRegistrationService.register(
+                clientName = clientName,
+                redirectUri = redirectUri,
+                confidential = confidential,
+                scopes = scopes,
+                ownerId = loginUser.id
+            )
+            // Post/Redirect/Get — 목록 화면으로 돌아가 client_secret 평문값을 플래시 속성으로 한
+            // 번만 노출한다(edit_tokens.html의 issuedRawToken과 동일한 컨벤션, URL에는 담지 않는다).
+            redirectAttributes.addFlashAttribute("registeredClientId", registered.client.clientId)
+            redirectAttributes.addFlashAttribute("registeredPlainSecret", registered.plainSecret)
+            return "redirect:/user/editform/oauth-apps-owned"
+        } catch (e: IllegalArgumentException) {
+            // 검증 실패 시에는 목록이 아니라 방금 있던 등록 폼으로 되돌아가야 입력값을 잃지 않는다.
+            model.addAttribute("oauthAppError", e.message)
+            fillOwnedOAuthAppNewFormModel(
+                loginUser, model,
+                submittedClientName = clientName,
+                submittedRedirectUri = redirectUri,
+                submittedConfidential = confidential,
+                submittedScopes = scopes ?: emptyList()
+            )
+            return "user/edit_oauth_apps_owned_new"
+        }
+    }
+
+    @PostMapping("/user/editform/oauth-apps-owned/{id}/delete")
+    fun deleteOwnedOAuthApp(
+        @PathVariable id: String,
+        authentication: Authentication?
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        // IDOR 방지 — 본인이 등록한 앱이 아니면(다른 사용자 소유거나 애초에 존재하지 않는 id)
+        // 삭제를 거부한다. 어느 쪽인지는 구분해서 알려주지 않는다(존재 여부 자체도 노출하지 않음).
+        val client = oAuthAppRegistrationService.findOwned(id, loginUser.id!!)
+            ?: return "error/403"
+
+        oAuthAppRegistrationService.deleteClientAndRelatedRecords(client)
+        return "redirect:/user/editform/oauth-apps-owned"
+    }
+
+    private fun fillOwnedOAuthAppNewFormModel(
+        loginUser: User,
+        model: Model,
+        submittedClientName: String = "",
+        submittedRedirectUri: String = "",
+        submittedConfidential: Boolean = false,
+        submittedScopes: List<String> = emptyList()
+    ) {
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("availableScopes", oAuthAppRegistrationService.availableScopes())
+        model.addAttribute("submittedClientName", submittedClientName)
+        model.addAttribute("submittedRedirectUri", submittedRedirectUri)
+        model.addAttribute("submittedConfidential", submittedConfidential)
+        model.addAttribute("submittedScopes", submittedScopes)
     }
 
     // yona-wiki P3-03 Step3 — GitHub "Settings > SSH and GPG keys" 화면과 동일한 컨벤션

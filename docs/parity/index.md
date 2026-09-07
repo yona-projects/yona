@@ -291,3 +291,5 @@
 | P3-14 | [~] | yona를 OAuth2 서버(Authorization Server)로 제공 — 제3자 앱의 "Sign in with yona"/위임 API 접근 지원 | 1라운드 완료 — 리소스 레지스트리 일반화, `/api/v1` OAuth 지원, 관리자 앱 등록 UI. OIDC는 2라운드 | [[tickets/p3-14]] |
 | P3-15 | [x] | PR 승인/변경요청(리뷰 판정) 워크플로 추가 — GitHub의 Approve/Request changes에 대응 | **2026-09-06 사용자 제안, P3-04(브랜치 보호) 작업 중 스파이크로 발견된 갭 | [[tickets/p3-15]] |
 | P3-16 | [x] | Git 태그(tag) 지원 (2026-09-03 사용자 제안, 2026-09-07 TDD로 완료) | 완료 | [[tickets/p3-16]] |
+| P3-17 | [x] | OAuth2 앱 등록을 사이트 관리자 전용 → 사용자 셀프서비스로 전환 (2026-09-07 사용자 제안) | 완료 — `/user/editform/oauth-apps-owned` 셀프서비스 등록 신설, 관리자 화면(`/site/oauth-apps`)은 전체 조회/강제 삭제 감사(audit) 용도로 축소, IDOR 방지 검증 포함 | [[tickets/p3-17]] |
+| P3-18 | [ ] | SSH forced command가 실제 git/hg 바이너리 exec 대신 인프로세스 JGit/hg4j 로직을 재사용하도록 전환 (2026-09-07 사용자 제안) | 착수 전 — git은 JGit 인프로세스 전환만 하면 되나, Hg는 hg4j에 SSH 와이어 프로토콜 서버가 아직 없어 범위 결정 필요 | [[tickets/p3-18]] |

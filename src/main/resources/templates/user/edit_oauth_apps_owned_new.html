@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{oauthapp.register.title})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{oauthapp.register.title}">새 OAuth 앱 등록</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('oauth-apps-owned')}"></div>
+
+            <!--
+             yona-wiki P3-17 — edit_oauth_apps_owned.html(목록)에서 분리된 등록 폼 화면. 검증
+             실패 시(registerOwnedOAuthApp의 IllegalArgumentException — 앱 이름/Redirect URI
+             공백) 목록이 아니라 이 화면으로 되돌아와 입력값과 오류 메시지를 함께 보여준다.
+            -->
+
+            <div th:if="${oauthAppError != null}" class="alert alert-error mt20">
+                <span th:text="${oauthAppError}">Error</span>
+            </div>
+
+            <form id="frmOAuthAppRegister" method="post" th:action="@{/user/editform/oauth-apps-owned/register}" class="mt10">
+                <div class="mt10">
+                    <label th:text="#{oauthapp.field.name}">앱 이름</label>
+                    <input type="text" name="clientName" class="text" style="width: 90%;" required="required"
+                           th:value="${submittedClientName}">
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{oauthapp.field.redirectUri}">Redirect URI</label>
+                    <input type="text" name="redirectUri" class="text" style="width: 90%;" required="required"
+                           th:placeholder="#{oauthapp.field.redirectUri.placeholder}"
+                           th:value="${submittedRedirectUri}">
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{oauthapp.field.clientType}">클라이언트 종류</label>
+                    <div>
+                        <label class="radio inline">
+                            <input type="radio" name="confidential" value="false" th:checked="${!submittedConfidential}">
+                            <span th:text="#{oauthapp.field.clientType.public}">Public</span>
+                        </label>
+                        <label class="radio inline ml10">
+                            <input type="radio" name="confidential" value="true" th:checked="${submittedConfidential}">
+                            <span th:text="#{oauthapp.field.clientType.confidential}">Confidential</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{oauthapp.field.scopes}">허용할 API 스코프</label>
+                    <div>
+                        <label class="checkbox inline" th:each="scope : ${availableScopes}">
+                            <input type="checkbox" name="scopes" th:value="${scope}"
+                                   th:checked="${submittedScopes != null and submittedScopes.contains(scope)}">
+                            <span th:text="${scope}">issues:read</span>
+                        </label>
+                    </div>
+                    <p class="description" th:text="#{oauthapp.field.scopes.description}">설명</p>
+                </div>
+
+                <div class="mt10">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{oauthapp.register}">앱 등록</button>
+                    <a th:href="@{/user/editform/oauth-apps-owned}" class="ybtn ml10" th:text="#{button.cancel}">취소</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+</body>
+</html>

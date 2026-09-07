@@ -79,6 +79,7 @@ class UserViewControllerSpec : DescribeSpec({
     val recentIssueService = mockk<RecentIssueService>(relaxed = true)
     val apiTokenService = mockk<com.github.yonaprojects.yona.domain.apitoken.ApiTokenService>()
     val oAuthAuthorizedAppsService = mockk<com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizedAppsService>()
+    val oAuthAppRegistrationService = mockk<com.github.yonaprojects.yona.domain.oauth2server.OAuthAppRegistrationService>()
     val sshKeyService = mockk<com.github.yonaprojects.yona.domain.sshkey.SshKeyService>()
     val gpgKeyService = mockk<com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService>()
 
@@ -102,6 +103,7 @@ class UserViewControllerSpec : DescribeSpec({
         recentIssueService,
         apiTokenService,
         oAuthAuthorizedAppsService,
+        oAuthAppRegistrationService,
         sshKeyService,
         gpgKeyService
     )
@@ -143,6 +145,7 @@ class UserViewControllerSpec : DescribeSpec({
             mentionService,
             apiTokenService,
             oAuthAuthorizedAppsService,
+            oAuthAppRegistrationService,
             sshKeyService,
             gpgKeyService
         )
@@ -290,7 +293,7 @@ class UserViewControllerSpec : DescribeSpec({
             projectRepository, userProjectNotificationRepository, attachmentRepository, postingRepository,
             favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
             organizationRepository, userService, accessControl, mentionService, recentIssueService,
-            apiTokenService, oAuthAuthorizedAppsService, sshKeyService, gpgKeyService, hideProjectListing = true
+            apiTokenService, oAuthAuthorizedAppsService, oAuthAppRegistrationService, sshKeyService, gpgKeyService, hideProjectListing = true
         )
         val model = ExtendedModelMap()
 
@@ -917,6 +920,151 @@ class UserViewControllerSpec : DescribeSpec({
 
             view shouldBe "redirect:/user/editform/oauth-apps"
             verify(exactly = 1) { oAuthAuthorizedAppsService.revoke("testuser", "client-1") }
+        }
+    }
+
+    // yona-wiki P3-17 — 사용자 셀프서비스 OAuth 앱 등록 화면(/user/editform/oauth-apps-owned).
+    // [[p3-14]] 1라운드의 사이트 관리자 전용 등록(OAuthAppsAdminController)을 GitHub 컨벤션대로
+    // 사용자 계정 단위 셀프서비스로 옮긴 것 — tokens/ssh-keys/gpg-keys와 동일한 목록/등록폼 분리
+    // 패턴이다. 가장 중요한 테스트는 "다른 사용자가 등록한 앱을 삭제하려는 시도가 거부돼야 한다"
+    // (IDOR 방지) 케이스다.
+    describe("GET/POST /user/editform/oauth-apps-owned (사용자 셀프서비스 OAuth 앱 등록)") {
+        val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+        val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
+        val otherUser = User(id = 20L, loginId = "other", name = "다른사용자")
+        val otherAuth = UsernamePasswordAuthenticationToken("other", "password")
+
+        it("editOwnedOAuthAppsForm은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.editOwnedOAuthAppsForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
+        }
+
+        it("editOwnedOAuthAppsForm은 인증 시 user/edit_oauth_apps_owned 뷰(목록)와 본인 소유 앱만 채워야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            val ownApp = com.github.yonaprojects.yona.domain.oauth2server.OAuthRegisteredClient(
+                id = "client-own", clientId = "cid-own", clientName = "내 앱",
+                clientAuthenticationMethods = "none", authorizationGrantTypes = "authorization_code",
+                scopes = "issues:read", ownerId = 10L
+            )
+            every { oAuthAppRegistrationService.listByOwner(10L) } returns listOf(ownApp)
+
+            val model = ExtendedModelMap()
+            val view = userViewController.editOwnedOAuthAppsForm(userAuth, model)
+
+            view shouldBe "user/edit_oauth_apps_owned"
+            model.getAttribute("ownedOAuthApps") shouldBe listOf(ownApp)
+        }
+
+        it("newOwnedOAuthAppForm은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.newOwnedOAuthAppForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
+        }
+
+        it("newOwnedOAuthAppForm은 인증 시 user/edit_oauth_apps_owned_new 뷰와 availableScopes 모델을 채워야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { oAuthAppRegistrationService.availableScopes() } returns listOf("issues:read", "issues:write")
+
+            val model = ExtendedModelMap()
+            val view = userViewController.newOwnedOAuthAppForm(userAuth, model)
+
+            view shouldBe "user/edit_oauth_apps_owned_new"
+            model.getAttribute("availableScopes") shouldBe listOf("issues:read", "issues:write")
+            model.getAttribute("submittedClientName") shouldBe ""
+            model.getAttribute("submittedConfidential") shouldBe false
+        }
+
+        it("registerOwnedOAuthApp은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.registerOwnedOAuthApp(
+                clientName = "앱", redirectUri = "https://example.com/callback", confidential = false, scopes = null,
+                authentication = null, model = ExtendedModelMap(), redirectAttributes = RedirectAttributesModelMap()
+            ) shouldBe "error/403"
+        }
+
+        it("registerOwnedOAuthApp은 등록에 성공하면 ownerId를 채워 등록하고, 목록으로 리다이렉트하며 registeredClientId/registeredPlainSecret을 플래시 속성으로 채워야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            val registeredClient = com.github.yonaprojects.yona.domain.oauth2server.OAuthRegisteredClient(
+                id = "client-new", clientId = "cid-new", clientName = "My App",
+                clientAuthenticationMethods = "client_secret_basic", authorizationGrantTypes = "authorization_code",
+                scopes = "issues:read", ownerId = 10L
+            )
+            every {
+                oAuthAppRegistrationService.register(
+                    clientName = "My App", redirectUri = "https://example.com/callback",
+                    confidential = true, scopes = listOf("issues:read"), ownerId = 10L
+                )
+            } returns com.github.yonaprojects.yona.domain.oauth2server.OAuthAppRegistrationService.Registered(
+                client = registeredClient, plainSecret = "plain-secret-value"
+            )
+
+            val redirectAttributes = RedirectAttributesModelMap()
+            val view = userViewController.registerOwnedOAuthApp(
+                clientName = "My App", redirectUri = "https://example.com/callback", confidential = true,
+                scopes = listOf("issues:read"), authentication = userAuth, model = ExtendedModelMap(),
+                redirectAttributes = redirectAttributes
+            )
+
+            view shouldBe "redirect:/user/editform/oauth-apps-owned"
+            redirectAttributes.flashAttributes["registeredClientId"] shouldBe "cid-new"
+            redirectAttributes.flashAttributes["registeredPlainSecret"] shouldBe "plain-secret-value"
+        }
+
+        it("registerOwnedOAuthApp은 검증 실패(IllegalArgumentException)면 등록 폼(edit_oauth_apps_owned_new)을 입력값과 함께 다시 렌더링해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            every { oAuthAppRegistrationService.availableScopes() } returns listOf("issues:read")
+            every {
+                oAuthAppRegistrationService.register(
+                    clientName = "", redirectUri = "https://example.com/callback",
+                    confidential = false, scopes = null, ownerId = 10L
+                )
+            } throws IllegalArgumentException("앱 이름은 필수입니다.")
+
+            val model = ExtendedModelMap()
+            val view = userViewController.registerOwnedOAuthApp(
+                clientName = "", redirectUri = "https://example.com/callback", confidential = false,
+                scopes = null, authentication = userAuth, model = model,
+                redirectAttributes = RedirectAttributesModelMap()
+            )
+
+            view shouldBe "user/edit_oauth_apps_owned_new"
+            model.getAttribute("oauthAppError") shouldBe "앱 이름은 필수입니다."
+            model.getAttribute("submittedClientName") shouldBe ""
+            model.getAttribute("submittedRedirectUri") shouldBe "https://example.com/callback"
+        }
+
+        it("deleteOwnedOAuthApp은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.deleteOwnedOAuthApp(id = "client-1", authentication = null) shouldBe "error/403"
+        }
+
+        it("deleteOwnedOAuthApp은 본인 소유 앱이면 서비스에 위임해 삭제하고 목록으로 리다이렉트해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            val ownApp = com.github.yonaprojects.yona.domain.oauth2server.OAuthRegisteredClient(
+                id = "client-own", clientId = "cid-own", clientName = "내 앱",
+                clientAuthenticationMethods = "none", authorizationGrantTypes = "authorization_code",
+                scopes = "issues:read", ownerId = 10L
+            )
+            every { oAuthAppRegistrationService.findOwned("client-own", 10L) } returns ownApp
+            every { oAuthAppRegistrationService.deleteClientAndRelatedRecords(ownApp) } returns Unit
+
+            val view = userViewController.deleteOwnedOAuthApp(id = "client-own", authentication = userAuth)
+
+            view shouldBe "redirect:/user/editform/oauth-apps-owned"
+            verify(exactly = 1) { oAuthAppRegistrationService.deleteClientAndRelatedRecords(ownApp) }
+        }
+
+        // IDOR 방지 회귀 테스트 — 이 스펙에서 가장 중요한 테스트. 다른 사용자(other, id=20)가
+        // 소유한 앱(client-own, ownerId=10)을 삭제하려 시도하면 findOwned()가 소유자 불일치로
+        // null을 반환하고, 컨트롤러는 실제 삭제(deleteClientAndRelatedRecords)를 절대 호출하지
+        // 않은 채 403을 반환해야 한다.
+        it("deleteOwnedOAuthApp은 다른 사용자가 소유한 앱을 삭제하려 하면 거부(403)해야 하고, 실제 삭제를 호출하면 안 된다(IDOR 방지)") {
+            every { userRepository.findByLoginId("other") } returns Optional.of(otherUser)
+            every { oAuthAppRegistrationService.findOwned("client-own", 20L) } returns null
+
+            val view = userViewController.deleteOwnedOAuthApp(id = "client-own", authentication = otherAuth)
+
+            view shouldBe "error/403"
+            verify(exactly = 0) { oAuthAppRegistrationService.deleteClientAndRelatedRecords(any()) }
         }
     }
 
