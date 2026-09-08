@@ -304,3 +304,4 @@
 | P3-27 | [ ] | Mercurial 프로젝트의 Pull Request 병합이 동작하지 않음(JGit 하드코딩) | 발견만(P3-21/22 검증 중) — 대규모 신규 작업이라 착수 여부 사용자 확인 대기 | [[tickets/p3-27]] |
 | P3-28 | [x] | `PullRequestController`의 8개 엔드포인트가 순환 참조로 부풀고 비밀번호 해시까지 노출됨 | 완료 — P3-26과 동일 근본원인(raw 엔티티 직렬화), PR 생성/조회/수정/담당자/라벨 등 전체 엔드포인트 DTO 변환으로 수정 | [[tickets/p3-28]] |
 | P3-29 | [x] | MCP `review_pull_request` 도구가 P3-15(실제 Approve/Request changes) 대신 낡은 "리뷰어 등록"에만 매핑돼 있음 | 완료 — 사용자가 기억하던 "PR 승인 이슈", submitReview()에 연결, 기존 동작은 add_reviewer로 분리 보존 | [[tickets/p3-29]] |
+| P3-30 | [ ] | `IssueController`/`IssueApiController`/`BoardController`/`CommentController`/`MilestoneController`(24개 엔드포인트)에도 P3-26/28과 동일한 순환참조/비밀번호 노출 | 코틀린 코드 전수 재점검 중 발견(사용자 지시), 실제 재현 확인(legacy Issue API 60690바이트) — 착수 | [[tickets/p3-30]] |
