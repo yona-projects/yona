@@ -93,7 +93,15 @@ class CodeViewController(
         }
 
         val headBranch = repository.getHeadBranch()
-        val defaultBranch = headBranch?.shortName ?: "master"
+        // yona-wiki P3-20/P3-23(2026-09-09) 버그 수정 — bookmark(headBranch)가 하나도 없는(흔한
+        // 최초 push 직후) Mercurial 프로젝트는 예전에는 "master"로 리다이렉트됐는데, Mercurial에는
+        // 그런 이름의 브랜치가 있을 리 없어(bookmark도 named branch도 아님) 곧바로
+        // resolveRevisionNumber() 실패 -> "브랜치가 존재하지 않음" 404로 이어지는 잠재 버그였다 —
+        // 코드 브라우저 자체에 진입할 수 없어 이번 두 티켓(다운로드 ZIP/브랜치 셀렉터) 실사용
+        // 검증이 애초에 불가능했다. Git/SVN 동작은 그대로 두고 Mercurial만
+        // getDefaultBranch()(="default", HgRepository 참고)로 정정한다.
+        val defaultBranch = headBranch?.shortName
+            ?: if (project.vcs?.uppercase() == "MERCURIAL") repository.getDefaultBranch() else "master"
         val encodedBranch = URLEncoder.encode(defaultBranch, "UTF-8")
 
         return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/code/$encodedBranch"
@@ -150,6 +158,10 @@ class CodeViewController(
         // 참고). PR 브랜치 선택기(PullRequestViewController/ProjectViewController)와 달리 코드
         // 브라우저는 태그로도 브라우징할 수 있어야 하므로 여기서만 tags를 추가로 노출한다.
         val tags = repository.getTagNames()
+        // yona-wiki P3-23 — Mercurial named branch(`hg branch`). bookmark(위 branches, yona의 git
+        // 스타일 "브랜치" 개념)와는 완전히 별개라 옛 Bitbucket 방식대로 셀렉터에 별도 그룹으로
+        // 노출한다(Git/SVN은 항상 빈 목록 — PlayRepository 기본 구현).
+        val namedBranches = repository.getNamedBranchNames()
         val recursiveData = repositoryService.getMetaDataFromAncestorDirectories(repository, decodedBranch, normalizedPath)
             ?: run {
                 // yona CodeApp.java:115-117 notFound(ErrorViews.NotFound.render(branch, project, "code"))
@@ -168,6 +180,7 @@ class CodeViewController(
         model.addAttribute("project", project)
         model.addAttribute("branches", branches)
         model.addAttribute("tags", tags)
+        model.addAttribute("namedBranches", namedBranches)
         model.addAttribute("recursiveData", recursiveData)
         model.addAttribute("branch", decodedBranch)
         model.addAttribute("path", normalizedPath)
@@ -391,6 +404,8 @@ class CodeViewController(
         // yona-wiki P3-10 — code/view.html과 동일한 GitHub 방식 통합 ref 셀렉터를 커밋 히스토리
         // 화면에도 그대로 노출한다(둘 다 같은 select#branches 패턴을 공유).
         val tags = repository.getTagNames()
+        // yona-wiki P3-23 — code/view.html과 동일하게 named branch도 별도 그룹으로 노출한다.
+        val namedBranches = repository.getNamedBranchNames()
 
         // yona CodeHistoryApp.history()의 "catch (NoHeadException e) { return notFound(nohead.render(project)); }"
         // 대응 (P1-136) — 커밋이 하나도 없는 빈 저장소에서 히스토리를 조회하면 JGit이 NoHeadException을
@@ -406,6 +421,7 @@ class CodeViewController(
         model.addAttribute("project", project)
         model.addAttribute("branches", branches)
         model.addAttribute("tags", tags)
+        model.addAttribute("namedBranches", namedBranches)
         model.addAttribute("branch", decodedBranch)
         model.addAttribute("path", decodedPath ?: "")
         model.addAttribute("commits", commits)

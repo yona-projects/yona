@@ -38,9 +38,16 @@
           <!-- 루트(경로 없이 브랜치 전체) 이력을 볼 때만 브랜치 선택 + 탭을 보여준다 (yona code/history.scala.html:88-113) -->
           <th:block th:if="${#strings.isEmpty(path)}">
             <select id="branches" class="form-control pull-right" style="width: 200px;">
-              <!-- GitHub의 브랜치/태그 통합 ref 셀렉터(그룹 헤더로 구분) 대응 (P3-10) -->
-              <optgroup th:if="${!branches.isEmpty()}" th:label="#{title.branches}">
+              <!-- GitHub의 브랜치/태그 통합 ref 셀렉터(그룹 헤더로 구분) 대응 (P3-10). code/view.html과
+                   동일하게 Mercurial의 bookmark/named branch(P3-23)를 별도 그룹으로 구분한다. -->
+              <optgroup th:if="${!branches.isEmpty()}" th:label="${project.vcs == 'MERCURIAL'} ? #{title.bookmarks} : #{title.branches}">
                 <option th:each="branchName : ${branches}"
+                        th:value="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branchName)})}"
+                        th:selected="${templateHelper.branchItemName(branchName) == templateHelper.branchItemName(branch)}"
+                        th:text="${templateHelper.branchItemName(branchName)}"></option>
+              </optgroup>
+              <optgroup th:if="${namedBranches != null and !namedBranches.isEmpty()}" th:label="#{title.namedBranches}">
+                <option th:each="branchName : ${namedBranches}"
                         th:value="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branchName)})}"
                         th:selected="${templateHelper.branchItemName(branchName) == templateHelper.branchItemName(branch)}"
                         th:text="${templateHelper.branchItemName(branchName)}"></option>

@@ -419,14 +419,35 @@ class HgRepository(
     }
 
     // "tip"/정수 리비전 번호/40자 hex 노드ID 문자열을 실제 로컬 리비전 번호로 해석한다.
+    //
+    // yona-wiki P3-20/P3-23(2026-09-09) 버그 수정 — 예전에는 마지막 else 분기가 nodeId.toString()
+    // (NodeId.toString()은 12자 짧은 해시만 반환, NodeId.java 참고)과 rev를 비교했는데, 코드
+    // 브라우저/브랜치 셀렉터/다운로드 ZIP 엔드포인트가 실제로 넘기는 값은 bookmark 이름
+    // ("master" 같은)이나(P3-23에서 신설한) named branch 이름이다 — 이 두 경우 모두 이 분기가
+    // 절대 매치되지 않아 항상 null(404/빈 응답)이 되는 잠재 버그였다(브랜치 셀렉터에서 "tip" 외의
+    // 실제 브랜치를 고르면 무엇을 하든 깨졌다). bookmark -> hex(재귀적으로 40자 분기 재사용) ->
+    // named branch(BranchesCommand의 헤더 리비전, closed 브랜치도 브라우징 목적으로는 허용) 순으로
+    // 조회해 실제 값을 해석한다.
+    //
+    // "default"는 더 이상 "tip"/"HEAD"/빈 문자열과 같은 그룹으로 묶지 않는다 — 실사용 검증 중 발견한
+    // 실제 버그: "default"는 Mercurial 저장소가 항상 갖는 진짜 named branch 이름이라(named branch
+    // 셀렉터에 그대로 노출된다, getDefaultBranch() 참고), 다른 named branch(예: "featurebranch")가
+    // 더 최근에 커밋되면 저장소의 진짜 tip은 그 브랜치에 있게 되는데, "default"를 tip의 별칭으로
+    // 취급하면 브랜치 셀렉터에서 "default"를 골라도(또는 코드브라우저 루트 진입 시 getDefaultBranch()
+    // 경유로도) 엉뚱하게 다른 브랜치의 최신 커밋 내용이 나온다 — "default"라는 이름의 브랜치 자체를
+    // 보여준다는 사용자 기대와 어긋난다. 아래 named branch 조회 분기로 흘려보내 "default" 브랜치의
+    // 실제 헤드 리비전을 찾게 한다(named branch가 하나뿐인 흔한 저장소에서는 어차피 tip과 동일한
+    // 결과이므로 회귀 없음).
     private fun resolveRevisionNumber(hg: Hg, rev: String): Int? {
         val allCommits = hg.log().call()
         if (allCommits.isEmpty()) return null
         return when {
-            rev.isEmpty() || rev == "tip" || rev == "HEAD" || rev == "default" -> allCommits.first().revision
+            rev.isEmpty() || rev == "tip" || rev == "HEAD" -> allCommits.first().revision
             rev.toIntOrNull() != null -> rev.toInt().takeIf { it in allCommits.indices }
             rev.length == 40 -> allCommits.find { it.nodeId == NodeId.fromHex(rev) }?.revision
-            else -> allCommits.find { it.nodeId.toString() == rev }?.revision
+            else -> hg.bookmark().call()[rev]?.let { hex -> resolveRevisionNumber(hg, hex) }
+                ?: hg.branches().setIncludeClosed(true).call().find { it.branch == rev }?.rev
+                ?: allCommits.find { it.nodeId.toString() == rev }?.revision
         }
     }
 
@@ -640,9 +661,113 @@ class HgRepository(
         return File(File(baseDir), "$ownerName/$projectName")
     }
 
-    // yona-wiki P3-12 2라운드 과제 — hg4j의 ArchiveCommand는 파일시스템 목적지(File)를 받는 구조라
-    // PlayRepository의 스트림(OutputStream) 시그니처와 바로 맞지 않는다(임시 디렉터리 경유 변환이
-    // 필요). SvnRepository도 동일하게 미구현("Not implemented (same as legacy Yona)")이라 그 선례를
-    //따른다.
-    override fun getArchive(os: OutputStream, branchName: String) {}
+    // yona-wiki P3-20 — hg4j의 ArchiveCommand(zip/tar 아카이브 생성)는 파일시스템 목적지(File)만
+    // 받는 구조라 PlayRepository의 스트림(OutputStream) 시그니처와 바로 맞지 않는다 — 임시 파일에
+    // 실제로 쓴 뒤 그 내용을 OutputStream으로 복사하고 임시 파일을 정리한다. Git 쪽
+    // GitRepository.getArchive()와 동일한 사용자 경험(파일명은 컨트롤러가 결정, zip 엔트리는 최상위
+    // 디렉터리 접두어 없는 flat 경로)을 재현하기 위해 prefix를 빈 문자열로 강제한다 — hg4j
+    // ArchiveCommand의 기본 동작(destination 파일명에서 유도한 디렉터리 접두어를 붙이는 실제 hg
+    // 동작 재현)은 여기서는 원치 않는다. branchName 해석은 이 파일의 resolveRevisionNumber()를
+    // 그대로 재사용해 bookmark/named branch/hex/숫자 리비전/tip을 전부 지원한다. Git과 동일하게
+    // 해석 실패(존재하지 않는 브랜치) 시 조용히 빈 응답을 반환한다(예외를 던지지 않음).
+    override fun getArchive(os: OutputStream, branchName: String) {
+        useHg { hg ->
+            val revNum = resolveRevisionNumber(hg, branchName) ?: return@useHg
+            val tempFile = Files.createTempFile("yona-hg-archive", ".zip")
+            try {
+                hg.archive()
+                    .setRevision(revNum.toString())
+                    .setDestination(tempFile.toFile())
+                    .setType("zip")
+                    .setPrefix("")
+                    .call()
+                Files.newInputStream(tempFile).use { it.copyTo(os) }
+            } finally {
+                Files.deleteIfExists(tempFile)
+            }
+        }
+    }
+
+    // yona-wiki P3-23 — Mercurial named branch(`hg branch`) 목록. bookmark(getRefNames()/
+    // getBranches())와는 완전히 별개의 개념이라(계획 문서 참고) 신설 메서드로 노출하고, 기존
+    // API는 건드리지 않는다. hg4j의 BranchesCommand는 closed된 branch를 기본적으로 숨기는데(실제
+    // hg CLI의 `hg branches` 기본 동작과 동일), 코드 브라우저 셀렉터도 동일하게 활성 branch만
+    // 보여주는 것이 맞다(브랜치 닫기 자체는 이번 티켓 범위 밖).
+    override fun getNamedBranchNames(): List<String> {
+        return useHg { hg -> hg.branches().call().map { "refs/heads/${it.branch}" } }
+    }
+
+    override fun getNamedBranches(): List<GitBranch> {
+        return useHg { hg ->
+            hg.branches().call().mapNotNull { head ->
+                val native = nativeCommitAt(hg, head.rev) ?: return@mapNotNull null
+                val commit = HgCommit(native, userResolver, gpgVerifier)
+                val user = userResolver(commit.getAuthorName(), commit.getAuthorEmail())
+                GitBranch("refs/heads/${head.branch}", commit, user)
+            }
+        }
+    }
+
+    // yona-wiki P3-23 — 코드브라우저 "편집"/"새 파일"(온라인 커밋, P1-111/P1-135) 쓰기 경로의
+    // Mercurial 대응. Git은 BareCommit(JGit)이 bare 저장소를 직접 다루는 별도 경로라 이 메서드를
+    // 거치지 않는다 — Mercurial은 bare 개념이 없어(파일 상단 주석 참고) 실제 작업 디렉터리에 파일을
+    // 쓰고 hg4j의 add()/commit() 포셀린으로 커밋하면 된다.
+    //
+    // branchBookmark(yona의 git 스타일 "브랜치" = bookmark, P3-12 설계 결정)는 커밋 후 그 이름의
+    // bookmark를 새 커밋으로 전진시킨다(GitHub/BareCommit이 지정한 ref를 새 커밋으로 이동시키는
+    // 것과 동일한 사용자 경험 — 존재하지 않는 이름이면 새로 생성된다). "tip"/"default"/"HEAD"/빈
+    // 문자열은 실제 bookmark가 아닌 pseudo-ref라 bookmark화하지 않는다.
+    //
+    // namedBranchName은 P3-23이 신설한 필드 — 값이 있으면 커밋 전에 `hg branch <name>`으로 작업
+    // 디렉터리 상태를 바꿔 그 커밋이 새 named branch에 속하게 한다(Mercurial에서 named branch를
+    // "생성"하는 유일한 방법 — 별도 생성 커맨드가 없다, 티켓 배경 참고). 지정하지 않으면(null/빈
+    // 문자열) 현재 작업 디렉터리에 이미 설정된 branch를 그대로 쓴다(실제 `hg branch` sticky 동작과
+    // 동일 — 최초 저장소는 "default").
+    override fun commitTextFile(
+        branchBookmark: String,
+        namedBranchName: String?,
+        path: String,
+        content: String,
+        message: String,
+        authorName: String?,
+        authorEmail: String?
+    ) {
+        useHg { hg ->
+            val normalizedPath = path.trim('/')
+            require(normalizedPath.isNotEmpty() && normalizedPath.split("/").none { it.isEmpty() || it == ".." }) {
+                "잘못된 경로입니다: $path"
+            }
+
+            // yona-wiki P3-23 실사용 검증 중 발견한 실제 버그 수정 — yona는 Mercurial을 push(hg
+            // unbundle 경유)로만 갱신하고 그 후 작업 디렉터리를 업데이트하지 않는다(파일 상단
+            // "bare 저장소 개념 없음" 주석 참고, 실제로는 클론 직후 상태처럼 부모가 null인 빈 작업
+            // 디렉터리로 남는다). 이 update() 없이 바로 커밋하면 새 커밋의 부모가 null이 되어(고아
+            // 루트 커밋) 기존에 저장소에 있던 다른 모든 파일이 그 커밋의 매니페스트에서 통째로
+            // 사라지는 실제 데이터 유실 버그를 만든다(실사용 검증 중 `hg log`로 직접 확인). 편집
+            // 화면에서 보고 있던 branchBookmark(또는 비어있으면 tip)로 먼저 작업 디렉터리를
+            // 갱신해서 새 커밋이 그 리비전의 자식이 되게 한다.
+            val baseRev = resolveRevisionNumber(hg, branchBookmark.ifBlank { "tip" }) ?: resolveRevisionNumber(hg, "tip")
+            if (baseRev != null) {
+                hg.update().setRevision(baseRev.toString()).setForce(true).call()
+            }
+
+            val targetFile = File(getDirectory(), normalizedPath)
+            targetFile.parentFile?.mkdirs()
+            targetFile.writeBytes(content.toByteArray(StandardCharsets.UTF_8))
+
+            if (!namedBranchName.isNullOrBlank()) {
+                hg.branch().setBranchName(namedBranchName.trim()).call()
+            }
+
+            hg.add().addFile(normalizedPath).call()
+
+            val author = if (!authorName.isNullOrBlank()) "$authorName <${authorEmail ?: ""}>" else "yona <yona@example.com>"
+            val newNode = hg.commit().setAuthor(author).setMessage(message).call()
+
+            val isPseudoRef = branchBookmark.isBlank() || branchBookmark == "tip" || branchBookmark == "default" || branchBookmark == "HEAD"
+            if (!isPseudoRef) {
+                hg.bookmark().setBookmarkName(branchBookmark).setRevision(NodeId(newNode).toHex()).call()
+            }
+        }
+    }
 }

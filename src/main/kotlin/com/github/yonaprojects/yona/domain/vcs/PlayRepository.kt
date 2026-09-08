@@ -92,4 +92,27 @@ interface PlayRepository {
     // yona PullRequest.getBlobId() 대응 (P1-20, CodeCommentThread.isOutdated()에서 사용).
     // 리비전에 해당 경로가 없으면(파일이 그 시점에 존재하지 않으면) null.
     fun getBlobId(revision: String, path: String): String?
+
+    // yona-wiki P3-23 — Mercurial named branch(`hg branch`) 지원. git/SVN에는 대응 개념이 없어
+    // 기본 구현은 빈 목록(SvnRepository.getBranches()가 빈 목록을 반환하는 선례와 동일 패턴)으로
+    // 둔다 — HgRepository만 의미 있게 override한다.
+    fun getNamedBranchNames(): List<String> = emptyList()
+
+    fun getNamedBranches(): List<GitBranch> = emptyList()
+
+    // 코드브라우저 "새 파일"/"편집"(온라인 커밋, P1-111/P1-135) 쓰기 경로 — Git은 BareCommit(JGit)이
+    // bare 저장소를 직접 다루는 기존 경로를 그대로 쓰고 이 인터페이스를 거치지 않는다. Mercurial
+    // 전용으로 신설: branchBookmark는 커밋을 반영할 bookmark 이름(빈 문자열/"tip"/"default"/"HEAD"면
+    // pseudo-ref로 보고 bookmark를 만들거나 옮기지 않는다), namedBranchName은 지정 시 커밋 전
+    // `hg branch <name>`으로 작업 디렉터리 상태를 바꿔 그 named branch로 커밋되게 한다(null/빈
+    // 문자열이면 현재 상태 유지 — named branch를 만드는 유일한 방법이라 별도 "생성" API가 없다).
+    fun commitTextFile(
+        branchBookmark: String,
+        namedBranchName: String?,
+        path: String,
+        content: String,
+        message: String,
+        authorName: String?,
+        authorEmail: String?
+    ): Unit = throw UnsupportedOperationException("commitTextFile is not supported for this VCS")
 }

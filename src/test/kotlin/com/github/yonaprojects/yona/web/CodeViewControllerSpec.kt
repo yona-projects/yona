@@ -148,6 +148,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main", "refs/heads/dev")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "src/Main.kt") } returns listOf(mockNode)
 
@@ -170,6 +171,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "README.md") } returns listOf(mockNode)
                 every { markdownService.renderFileInCodeBrowser("# 제목", project) } returns "<h1>제목</h1>"
@@ -189,6 +191,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "src/Main.kt") } returns listOf(mockNode)
 
@@ -228,6 +231,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectUserRepository.existsByProjectIdAndUserId(5L, 10L) } returns false
                 every { repositoryService.getRepository(groupProject) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "src/Main.kt") } returns listOf(mockNode)
 
@@ -245,6 +249,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { playRepo.getHistory(0, 25, "HEAD", null) } throws
                     NoHeadException("no HEAD")
@@ -269,6 +274,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { playRepo.getCommit("abcdef1234") } returns commit
                 every { playRepo.getParentCommitOf("abcdef1234") } returns null
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getDiff("abcdef1234") } returns emptyList()
                 every { commentThreadRepository.findByProjectAndCommitIdAndPullRequestIsNullOrderByCreatedDateDesc(project, "abcdef1234") } returns emptyList()
                 every { watchService.isWatching(watcher, ResourceType.COMMIT, "1:abcdef1234") } returns true
@@ -586,6 +592,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns rootPlayRepo
                 every { rootPlayRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { rootPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { rootPlayRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(rootPlayRepo, "main", "") } returns listOf(mockNode)
 
@@ -618,6 +625,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectUserRepository.existsByProjectIdAndUserId(40L, 41L) } returns true
                 every { repositoryService.getRepository(memberProject) } returns cwPlayRepo
                 every { cwPlayRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { cwPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { cwPlayRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(cwPlayRepo, "main", "a.kt") } returns listOf(mockNode)
 
@@ -654,6 +662,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "nobranch", "nopath") } returns null
 
@@ -673,6 +682,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "src") } returns listOf(mockNode)
 
@@ -692,6 +702,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "README.md") } returns listOf(mockNode)
 
@@ -709,6 +720,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "src/Norev.kt") } returns listOf(mockNode)
 
@@ -727,6 +739,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "src/Rev.kt") } returns listOf(mockNode)
                 every { commentThreadRepository.countByProjectAndCommitIdAndCodeRangePath(project, "abc123", "src/Rev.kt") } returns 2L
@@ -748,6 +761,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "svn-view") } returns Optional.of(svnProject)
                 every { repositoryService.getRepository(svnProject) } returns svnPlayRepo
                 every { svnPlayRepo.getRefNames() } returns listOf("trunk")
+                every { svnPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { svnPlayRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(svnPlayRepo, "trunk", "file.txt") } returns listOf(mockNode)
                 every { commitCommentRepository.countByProjectAndCommitIdAndPath(svnProject, "5", "file.txt") } returns 3L
@@ -763,6 +777,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "empty") } returns emptyList()
 
@@ -783,6 +798,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(playRepo, "main", "notype") } returns listOf(mockNode)
 
@@ -807,6 +823,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "novcs-view") } returns Optional.of(novcsProject)
                 every { repositoryService.getRepository(novcsProject) } returns novcsPlayRepo
                 every { novcsPlayRepo.getRefNames() } returns listOf("refs/heads/main")
+                every { novcsPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { novcsPlayRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(novcsPlayRepo, "main", "a.kt") } returns listOf(mockNode)
                 every { commentThreadRepository.countByProjectAndCommitIdAndCodeRangePath(novcsProject, "9", "a.kt") } returns 6L
@@ -830,6 +847,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "svn-literal-view") } returns Optional.of(svnLiteralProject)
                 every { repositoryService.getRepository(svnLiteralProject) } returns svnPlayRepo
                 every { svnPlayRepo.getRefNames() } returns listOf("trunk")
+                every { svnPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { svnPlayRepo.getTagNames() } returns emptyList()
                 every { repositoryService.getMetaDataFromAncestorDirectories(svnPlayRepo, "trunk", "file.txt") } returns listOf(mockNode)
                 every { commitCommentRepository.countByProjectAndCommitIdAndPath(svnLiteralProject, "7", "file.txt") } returns 1L
@@ -876,6 +894,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectUserRepository.existsByProjectIdAndUserId(52L, 53L) } returns true
                 every { repositoryService.getRepository(memberProject) } returns hPlayRepo
                 every { hPlayRepo.getRefNames() } returns emptyList()
+                every { hPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { hPlayRepo.getTagNames() } returns emptyList()
                 every { hPlayRepo.getHistory(0, 25, "main", null) } returns emptyList()
 
@@ -900,6 +919,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectUserRepository.existsByProjectIdAndUserId(55L, 54L) } returns false
                 every { repositoryService.getRepository(groupProject) } returns hPlayRepo
                 every { hPlayRepo.getRefNames() } returns emptyList()
+                every { hPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { hPlayRepo.getTagNames() } returns emptyList()
                 every { hPlayRepo.getHistory(0, 25, "main", null) } returns emptyList()
 
@@ -925,6 +945,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "svn-hist") } returns Optional.of(svnProject)
                 every { repositoryService.getRepository(svnProject) } returns svnPlayRepo
                 every { svnPlayRepo.getRefNames() } returns emptyList()
+                every { svnPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { svnPlayRepo.getTagNames() } returns emptyList()
                 every { svnPlayRepo.getHistory(0, 25, "trunk", null) } throws NoHeadException("no HEAD")
 
@@ -942,6 +963,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { playRepo.getHistory(0, 25, "main", "src/main.kt") } returns listOf(commit)
                 every { commentThreadRepository.countByProjectAndCommitIdAndCodeRangePath(project, "c1", "src/main.kt") } returns 4L
@@ -960,6 +982,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { playRepo.getHistory(0, 25, "main", null) } returns listOf(commit)
                 every { commentThreadRepository.findByCommitIdOrderByCreatedDateDesc("c2") } returns emptyList()
@@ -979,6 +1002,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "svn-hist2") } returns Optional.of(svnProject)
                 every { repositoryService.getRepository(svnProject) } returns svnPlayRepo
                 every { svnPlayRepo.getRefNames() } returns emptyList()
+                every { svnPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { svnPlayRepo.getTagNames() } returns emptyList()
                 every { svnPlayRepo.getHistory(0, 25, "trunk", null) } returns listOf(commit)
                 every { commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(svnProject, "c3") } returns emptyList()
@@ -1000,6 +1024,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "svn-literal-hist") } returns Optional.of(svnLiteralProject)
                 every { repositoryService.getRepository(svnLiteralProject) } returns svnPlayRepo
                 every { svnPlayRepo.getRefNames() } returns emptyList()
+                every { svnPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { svnPlayRepo.getTagNames() } returns emptyList()
                 every { svnPlayRepo.getHistory(0, 25, "trunk", null) } returns listOf(commit)
                 every { commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(svnLiteralProject, "c4") } returns emptyList()
@@ -1020,6 +1045,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "novcs-hist") } returns Optional.of(novcsProject)
                 every { repositoryService.getRepository(novcsProject) } returns novcsPlayRepo
                 every { novcsPlayRepo.getRefNames() } returns emptyList()
+                every { novcsPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { novcsPlayRepo.getTagNames() } returns emptyList()
                 every { novcsPlayRepo.getHistory(0, 25, "main", null) } returns listOf(commit)
                 every { commentThreadRepository.findByCommitIdOrderByCreatedDateDesc("c5") } returns emptyList()
@@ -1034,6 +1060,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { playRepo.getHistory(2, 25, "main", null) } returns emptyList()
 
@@ -1046,6 +1073,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns playRepo
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getTagNames() } returns emptyList()
                 every { playRepo.getHistory(0, 25, "HEAD", null) } returns emptyList()
 
@@ -1095,6 +1123,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { cmPlayRepo.getCommit("cm1") } returns commit
                 every { cmPlayRepo.getParentCommitOf("cm1") } returns null
                 every { cmPlayRepo.getRefNames() } returns emptyList()
+                every { cmPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { cmPlayRepo.getDiff("cm1") } returns emptyList()
                 every { commentThreadRepository.findByProjectAndCommitIdAndPullRequestIsNullOrderByCreatedDateDesc(memberProject, "cm1") } returns emptyList()
                 every { watchService.isWatching(memberUser, ResourceType.COMMIT, "62:cm1") } returns false
@@ -1124,6 +1153,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { cmPlayRepo.getCommit("cm2") } returns commit
                 every { cmPlayRepo.getParentCommitOf("cm2") } returns null
                 every { cmPlayRepo.getRefNames() } returns emptyList()
+                every { cmPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { cmPlayRepo.getDiff("cm2") } returns emptyList()
                 every { commentThreadRepository.findByProjectAndCommitIdAndPullRequestIsNullOrderByCreatedDateDesc(groupProject, "cm2") } returns emptyList()
                 every { watchService.isWatching(groupUser, ResourceType.COMMIT, "65:cm2") } returns false
@@ -1174,6 +1204,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { playRepo.getCommit("cm3") } returns commit
                 every { playRepo.getParentCommitOf("cm3") } throws RuntimeException("no parent")
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getDiff("cm3") } returns emptyList()
                 every { commentThreadRepository.findByProjectAndCommitIdAndPullRequestIsNullOrderByCreatedDateDesc(project, "cm3") } returns emptyList()
 
@@ -1194,6 +1225,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { playRepo.getCommit("cm4") } returns commit
                 every { playRepo.getParentCommitOf("cm4") } returns parentCommit
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getDiff("cm4") } returns emptyList()
                 every { commentThreadRepository.findByProjectAndCommitIdAndPullRequestIsNullOrderByCreatedDateDesc(project, "cm4") } returns emptyList()
 
@@ -1214,6 +1246,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { svnPlayRepo.getCommit("5") } returns commit
                 every { svnPlayRepo.getParentCommitOf("5") } returns null
                 every { svnPlayRepo.getRefNames() } returns emptyList()
+                every { svnPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { svnPlayRepo.getPatch("5") } returns "--- diff patch ---"
                 every { commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(svnProject, "5") } returns emptyList()
 
@@ -1234,6 +1267,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { svnPlayRepo.getCommit("6") } returns commit
                 every { svnPlayRepo.getParentCommitOf("6") } returns null
                 every { svnPlayRepo.getRefNames() } returns emptyList()
+                every { svnPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { svnPlayRepo.getPatch("6") } throws RuntimeException("patch failed")
                 every { commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(svnProject, "6") } returns emptyList()
 
@@ -1256,6 +1290,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { svnPlayRepo.getCommit("7") } returns commit
                 every { svnPlayRepo.getParentCommitOf("7") } returns null
                 every { svnPlayRepo.getRefNames() } returns emptyList()
+                every { svnPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { svnPlayRepo.getPatch("7") } returns "patch-content"
                 every { commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(svnLiteralProject, "7") } returns emptyList()
 
@@ -1277,6 +1312,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { novcsPlayRepo.getCommit("cm6") } returns commit
                 every { novcsPlayRepo.getParentCommitOf("cm6") } returns null
                 every { novcsPlayRepo.getRefNames() } returns emptyList()
+                every { novcsPlayRepo.getNamedBranchNames() } returns emptyList()
                 every { novcsPlayRepo.getDiff("cm6") } returns emptyList()
                 every { commentThreadRepository.findByProjectAndCommitIdAndPullRequestIsNullOrderByCreatedDateDesc(novcsProject, "cm6") } returns emptyList()
 
@@ -1294,6 +1330,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { playRepo.getCommit("cm5") } returns commit
                 every { playRepo.getParentCommitOf("cm5") } returns null
                 every { playRepo.getRefNames() } returns emptyList()
+                every { playRepo.getNamedBranchNames() } returns emptyList()
                 every { playRepo.getDiff("cm5") } throws RuntimeException("diff failed")
                 every { commentThreadRepository.findByProjectAndCommitIdAndPullRequestIsNullOrderByCreatedDateDesc(project, "cm5") } returns emptyList()
 

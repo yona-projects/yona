@@ -437,17 +437,36 @@ class BoardViewController(
         if (!request.path.isNullOrBlank() && projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!)) {
             val branch = request.branch ?: ""
             val path = request.path!!
-            try {
-                val bare = BareCommit(project, loginUser, gitBaseDir)
-                bare.setRefName(Constants.R_HEADS + branch)
-                bare.commitTextFile(branch, path, LineEnding.changeLineEnding(request.body ?: "", request.lineEnding), request.title)
-            } catch (e: Exception) {
-                e.printStackTrace()
+            val body = LineEnding.changeLineEnding(request.body ?: "", request.lineEnding)
+            // yona-wiki P3-23 — Mercurial 프로젝트는 BareCommit(JGit 전용, bare 저장소를 직접
+            // 다룬다)을 쓸 수 없으므로 HgRepository.commitTextFile()로 분기한다. request.namedBranch가
+            // 채워지면(코드 브라우저 "편집" 폼의 신규 필드, Mercurial 프로젝트에서만 노출) 그 이름으로
+            // `hg branch`를 실행한 뒤 커밋해 새 named branch를 만든다 — Mercurial에서 named branch를
+            // 만드는 유일한 방법(별도 생성 커맨드가 없다).
+            if (project.vcs?.uppercase() == "MERCURIAL") {
+                try {
+                    val repository = repositoryService.getRepository(project)
+                    repository.commitTextFile(branch, request.namedBranch, path, body, request.title ?: "", loginUser.name, loginUser.email)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                try {
+                    val bare = BareCommit(project, loginUser, gitBaseDir)
+                    bare.setRefName(Constants.R_HEADS + branch)
+                    bare.commitTextFile(branch, path, body, request.title)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
             val encodedPath = path.split("/").joinToString("/") { segment ->
                 URLEncoder.encode(segment, "UTF-8").replace("+", "%20")
             }
-            return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/code/$branch/$encodedPath"
+            // Mercurial은 branch(=bookmark)를 지정하지 않고 편집하는 경우가 흔하다(브랜치 없이 "tip"을
+            // 보고 있던 경우) — 그 경우 빈 문자열을 그대로 URL에 넣으면 코드브라우저가 깨지므로 "tip"으로
+            // 대체한다. Git은 항상 실제 브랜치명이 채워져 있던 기존 동작을 그대로 유지한다(변경 없음).
+            val redirectBranch = if (project.vcs?.uppercase() == "MERCURIAL") branch.ifBlank { "tip" } else branch
+            return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/code/$redirectBranch/$encodedPath"
         }
 
         val posting = Posting(
@@ -531,6 +550,10 @@ data class PostingForm(
     // 넘어오는 온라인 커밋 전용 필드. path가 채워지면 게시글 DB 행 대신 지정 브랜치에 텍스트 파일을 커밋한다.
     var path: String? = null,
     var branch: String? = null,
-    var lineEnding: String? = null
+    var lineEnding: String? = null,
+    // yona-wiki P3-23 — Mercurial named branch(`hg branch`) 지원. 온라인 커밋 폼에 채워지면(Git
+    // 프로젝트에서는 노출되지 않음, board/create.html 참고) 커밋 전에 `hg branch <name>`을 실행해
+    // 그 커밋을 새 named branch로 시작시킨다. Mercurial 전용 필드라 Git 경로에서는 항상 무시된다.
+    var namedBranch: String? = null
 )
 
