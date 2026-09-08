@@ -2,14 +2,19 @@ package com.github.yonaprojects.yona.config.ssh
 
 import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
+import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthPrincipal
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthService
 import com.github.yonaprojects.yona.domain.sshkey.SshCommandAuthorization
+import com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -53,6 +58,13 @@ class SshRelayServer(
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
     private val gpgSignatureVerifier: GpgSignatureVerifier,
+    // yona-wiki P3-21/P3-22 — HgSshProtocolHandler의 브랜치 보호/push 알림·웹훅·PushedBranch
+    // 훅 구성에 필요(GitSshProtocolHandler와 대칭).
+    private val projectRepository: ProjectRepository,
+    private val pullRequestRepository: PullRequestRepository,
+    private val pushedBranchRepository: PushedBranchRepository,
+    private val eventPublisher: ApplicationEventPublisher,
+    private val meterRegistry: MeterRegistry,
     // YonaMinaSshServer의 yona.ssh.mina.enabled와 동일한 취지 — 테스트 프로파일 등 소켓 경로를
     // 쓸 수 없거나 원치 않는 환경에서 기동을 건너뛸 수 있게 한다. 운영 기본값은 활성화.
     @Value("\${yona.ssh.relay.enabled:true}")
@@ -63,7 +75,10 @@ class SshRelayServer(
     private val logger = LoggerFactory.getLogger(SshRelayServer::class.java)
 
     private val gitProtocolHandler = GitSshProtocolHandler(protectedBranchRepository, projectUserRepository, gpgSignatureVerifier)
-    private val hgProtocolHandler = HgSshProtocolHandler()
+    private val hgProtocolHandler = HgSshProtocolHandler(
+        protectedBranchRepository, projectUserRepository, gpgSignatureVerifier,
+        projectRepository, pullRequestRepository, pushedBranchRepository, eventPublisher, meterRegistry
+    )
 
     private var serverChannel: ServerSocketChannel? = null
     private var acceptThread: Thread? = null

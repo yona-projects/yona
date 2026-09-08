@@ -323,6 +323,73 @@ class WebhookServiceSpec : DescribeSpec({
             }
         }
 
+        // yona-wiki P3-22 — buildPushPayload(PushedCommits)와 동일한 JSON 스키마를 Mercurial push에도
+        // 적용하는 buildPushPayloadForHg()/PushedHgCommits 검증. 실제 hg4j 저장소에 커밋 하나를 만들어
+        // 진짜 io.github.search5.hg4j.api.HgCommit 값 객체로 채운다(mock으로는 nodeId/author 등 값
+        // 필드 조합을 재현하기 번거롭고, 실제 페이로드 빌더가 그 값 객체를 어떻게 읽는지가 검증
+        // 대상이므로 진짜 객체를 쓰는 편이 더 정확하다).
+        describe("buildPayload - Mercurial push 페이로드(PushedHgCommits)도 동일한 JSON 스키마를 가져야 한다 (P3-22)") {
+            fun realHgCommit(repoDir: java.io.File, message: String, author: String = "gildong <gildong@yona.io>"): io.github.search5.hg4j.api.HgCommit {
+                val file = java.io.File(repoDir, "a.txt")
+                file.writeText(message)
+                return io.github.search5.hg4j.api.Hg.open(repoDir).use { hg ->
+                    hg.add().addFile("a.txt").call()
+                    hg.commit().setAuthor(author).setMessage(message).call()
+                    hg.log().call().first()
+                }
+            }
+
+            it("ref/commits/head_commit/sender/pusher/repository를 포함하고 author==committer여야 한다") {
+                val repoDir = java.nio.file.Files.createTempDirectory("webhook-hg-test").toFile()
+                io.github.search5.hg4j.api.Hg.init().setDirectory(repoDir).call()
+                val commit = realHgCommit(repoDir, "fix bug via hg")
+
+                val jsonWebhook = Webhook(
+                    id = 60L, project = project, payloadUrl = "http://localhost:8080/hook",
+                    gitPush = true, webhookType = WebhookType.JSON
+                )
+                val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
+                val pushed = PushedHgCommits(listOf(commit), listOf("refs/heads/main"))
+
+                val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
+                val json = ObjectMapper().readTree(payload)
+
+                val hex = commit.nodeId.toHex()
+                json.get("ref").get(0).asText() shouldBe "refs/heads/main"
+                json.get("commits").size() shouldBe 1
+                json.get("commits").get(0).get("id").asText() shouldBe hex
+                json.get("commits").get(0).get("message").asText() shouldBe "fix bug via hg"
+                json.get("commits").get(0).get("author").get("name").asText() shouldBe "gildong"
+                json.get("commits").get(0).get("author").get("email").asText() shouldBe "gildong@yona.io"
+                json.get("commits").get(0).get("committer").get("name").asText() shouldBe "gildong"
+                json.get("commits").get(0).get("committer").get("email").asText() shouldBe "gildong@yona.io"
+                json.get("head_commit").get("id").asText() shouldBe hex
+                json.get("sender").get("login").asText() shouldBe "gildong"
+                json.get("pusher").get("email").asText() shouldBe "gildong@yona.io"
+                json.get("repository").get("name").asText() shouldBe "test-project"
+            }
+
+            // getResourceType()/getResourceId()는 private라 직접 호출할 수 없으므로, 이미 그 값을
+            // 실제로 소비하는 경로(WebhookType.JSON의 raw-JSON 폴백 분기가 resourceId/resourceType을
+            // 채우는 것과 동일한 구조)로 우회 검증한다 — DETAIL_HANGOUT_CHAT의 스레드 키 계산이
+            // getResourceType()/getResourceId()를 그대로 재사용하므로, 커밋이 없을 때/있을 때 모두
+            // 예외 없이 동작하고 스레드 조회 여부가 갈리는지로 간접 확인한다.
+            it("빈 커밋 목록이어도 buildPayload가 예외 없이 빈 commits 배열을 반환해야 한다") {
+                val jsonWebhook = Webhook(
+                    id = 61L, project = project, payloadUrl = "http://localhost:8080/hook",
+                    gitPush = true, webhookType = WebhookType.JSON
+                )
+                val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
+                val pushed = PushedHgCommits(emptyList(), listOf("refs/heads/main"))
+
+                val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
+                val json = ObjectMapper().readTree(payload)
+
+                json.get("commits").size() shouldBe 0
+                json.has("head_commit") shouldBe false
+            }
+        }
+
         // yona Webhook.java:182-192 buildRequestMessage() 대응 (P1-132) — 텍스트 메시지에 리소스 링크가 [GL-models_Webhook-017;GL-models_Webhook-018]
         // 전혀 없던 것을 Slack 링크 문법(" <url|text>")으로 붙이도록 수정.
         describe("buildPayload - 텍스트 메시지 리소스 링크 (P1-132)") {

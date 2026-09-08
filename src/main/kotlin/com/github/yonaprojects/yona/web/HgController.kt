@@ -1,11 +1,26 @@
 package com.github.yonaprojects.yona.web
 
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
+import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
+import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
+import com.github.yonaprojects.yona.domain.user.User
+import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.vcs.HgBranchProtectionPrePushkeyHook
+import com.github.yonaprojects.yona.domain.vcs.HgYonaPostPushkeyHook
+import com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository
+import io.github.search5.hg4j.api.HgHook
 import io.github.search5.hg4j.lib.HgRepository
 import io.github.search5.hg4j.transport.HgHttpWireServer
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.security.authentication.AnonymousAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -36,15 +51,30 @@ import java.util.concurrent.ConcurrentHashMap
 // HgSshProtocolHandler(SSH, 한 커넥션이 pull/push를 다 처리할 수 있어 명령줄만으로 미리 구분이
 // 안 되므로 pre-changegroup 훅에서 강제)와 달리 여기는 registerPreChangegroupHook이 없어도 된다.
 //
-// **브랜치 보호 미적용(TODO, HgSshProtocolHandler와 동일한 이미 문서화된 갭)**: git의
-// `BranchProtectionPreReceiveHook`(require_pull_request 등, `ProtectedBranchRepository` 기반)에
-// 대응하는 Hg 전용 정책은 아직 존재하지 않는다(P3-12 2라운드 범위 밖으로 확정) — 이 컨트롤러/
-// HgAuthorizationFilter는 멤버십·읽기전용 Deploy Key 수준의 접근 제어만 강제하며, 브랜치별
-// 세부 보호 정책은 강제하지 않는다는 뜻이다. 거짓 안전감을 주지 않기 위해 명시.
+// yona-wiki P3-21/P3-22 — 브랜치 보호(require_pull_request 등)와 push 알림/웹훅/PushedBranch
+// 추적을 hg4j에 새로 추가한 registerPrePushkeyHook/registerPostPushkeyHook(HgHttpWireServer)으로
+// 연결한다. HgSshProtocolHandler(SSH)와 동일한 판정 로직(domain/vcs/HgPushHooks.kt)을 재사용해
+// 두 경로가 정책 드리프트 없이 항상 동일하게 동작하도록 한다.
+//
+// 이 컨트롤러는 프로젝트당 HgHttpWireServer 인스턴스를 캐시해 재사용하므로(위 클래스 설명 참고),
+// 훅 등록 자체는 이 인스턴스가 처음 만들어질 때 한 번만 일어난다 — 그런데 pusher(요청한 사용자)와
+// project 엔티티(개명 가능)는 요청마다 달라질 수 있으므로, 등록하는 훅 람다 내부에서 매번 새로
+// 조회한다(GitServletConfig가 요청마다 resolveProject()/resolveCurrentUser()를 다시 호출하는 것과
+// 동일한 이유 — Hg 쪽은 요청 스레드가 그대로 HgHttpWireServer.service()→Wire1Commands.pushkey()→
+// 이 훅까지 동기 호출로 이어지므로 SecurityContextHolder가 여전히 이 요청의 인증 정보를 담고 있다).
 @RestController
 class HgController(
     @Value("\${yona.hg.base-dir:/tmp/yona/hg}")
-    private val baseDir: String
+    private val baseDir: String,
+    private val projectRepository: ProjectRepository,
+    private val userRepository: UserRepository,
+    private val protectedBranchRepository: ProtectedBranchRepository,
+    private val projectUserRepository: ProjectUserRepository,
+    private val gpgSignatureVerifier: GpgSignatureVerifier,
+    private val pullRequestRepository: PullRequestRepository,
+    private val pushedBranchRepository: PushedBranchRepository,
+    private val eventPublisher: ApplicationEventPublisher,
+    private val meterRegistry: MeterRegistry
 ) {
     private val logger = LoggerFactory.getLogger(HgController::class.java)
     private val wireServerCache = ConcurrentHashMap<String, HgHttpWireServer>()
@@ -59,7 +89,27 @@ class HgController(
         val key = "$owner/$project"
         val wireServer = wireServerCache.computeIfAbsent(key) {
             val repoDir = File(File(baseDir, owner), project)
-            HgHttpWireServer(HgRepository(repoDir))
+            HgHttpWireServer(HgRepository(repoDir)).apply {
+                registerPrePushkeyHook(
+                    HgHook { context ->
+                        val resolvedProject = resolveProject(owner, project) ?: return@HgHook true
+                        val pusher = resolveCurrentUser()
+                        HgBranchProtectionPrePushkeyHook(
+                            resolvedProject, pusher, protectedBranchRepository, projectUserRepository, gpgSignatureVerifier
+                        ).run(context)
+                    }
+                )
+                registerPostPushkeyHook(
+                    HgHook { context ->
+                        val resolvedProject = resolveProject(owner, project) ?: return@HgHook true
+                        val pusher = resolveCurrentUser() ?: return@HgHook true
+                        HgYonaPostPushkeyHook(
+                            resolvedProject, pusher, projectRepository, pullRequestRepository,
+                            pushedBranchRepository, eventPublisher, meterRegistry
+                        ).run(context)
+                    }
+                )
+            }
         }
 
         val wrappedRequest = HgServletRequestWrapper(request, owner, project)
@@ -77,5 +127,18 @@ class HgController(
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
             }
         }
+    }
+
+    // GitServletConfig.resolveProject()와 동일한 폴백(findByOwnerAndNameOrPreviousPlace) — 프로젝트가
+    // 개명된 뒤에도 기존 clone/push URL이 계속 동작해야 한다.
+    private fun resolveProject(owner: String, projectName: String) =
+        projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+
+    private fun resolveCurrentUser(): User? {
+        val authentication = SecurityContextHolder.getContext().authentication ?: return null
+        if (!authentication.isAuthenticated || authentication is AnonymousAuthenticationToken) {
+            return null
+        }
+        return userRepository.findByLoginId(authentication.name).orElse(null)
     }
 }

@@ -14,6 +14,7 @@ import com.github.yonaprojects.yona.domain.pullrequest.CommitComment
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
 import com.github.yonaprojects.yona.domain.pullrequest.ReviewComment
 import com.github.yonaprojects.yona.domain.user.User
+import com.github.yonaprojects.yona.domain.vcs.HgCommit as YonaHgCommitAuthorParser
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import org.springframework.beans.factory.annotation.Value
@@ -161,6 +162,8 @@ class WebhookServiceImpl(
             WebhookType.JSON -> {
                 if (resource is PushedCommits) {
                     buildPushPayload(webhook, sender, resource)
+                } else if (resource is PushedHgCommits) {
+                    buildPushPayloadForHg(webhook, sender, resource)
                 } else {
                     // Raw JSON 포맷
                     val root = objectMapper.createObjectNode()
@@ -324,6 +327,78 @@ class WebhookServiceImpl(
         return objectMapper.writeValueAsString(root)
     }
 
+    // yona-wiki P3-22 — buildPushPayload(PushedCommits)의 Mercurial 대응. 정확히 동일한 필드
+    // 구조(ref/commits/head_commit/sender/pusher/repository)를 hg4j의 HgCommit 값 객체로 채운다 —
+    // Mercurial은 저자/커미터 구분이 없으므로(HgCommit.kt 주석 참고) author와 committer는 항상
+    // 동일한 값이다.
+    private fun buildPushPayloadForHg(webhook: Webhook, sender: User, pushed: PushedHgCommits): String {
+        val objectMapper = ObjectMapper()
+        val root = objectMapper.createObjectNode()
+        val project = webhook.project
+
+        val refNodes = objectMapper.createArrayNode()
+        pushed.refNames.forEach { refNodes.add(it) }
+        root.set("ref", refNodes)
+
+        val commitNodes = objectMapper.createArrayNode()
+        for (commit in pushed.commits) {
+            val commitNode = objectMapper.createObjectNode()
+            val hex = commit.nodeId.toHex()
+            commitNode.put("id", hex)
+            commitNode.put("message", commit.message ?: "")
+            val authorInstant = Instant.ofEpochSecond(commit.timestamp)
+            commitNode.put(
+                "timestamp",
+                authorInstant.atZone(ZoneId.systemDefault()).format(commitTimestampFormatter)
+            )
+            commitNode.put("url", "${projectUrl(project)}/commit/$hex")
+
+            val authorEmail = YonaHgCommitAuthorParser.parseAuthorEmail(commit.author) ?: ""
+            val authorName = if (authorEmail.isNotEmpty()) commit.author.substringBefore("<").trim() else commit.author
+
+            val authorNode = objectMapper.createObjectNode()
+            authorNode.put("name", authorName)
+            authorNode.put("email", authorEmail)
+            commitNode.set("author", authorNode)
+
+            // Mercurial 커밋에는 저자/커미터 구분이 없다 — 동일한 값을 그대로 다시 채운다.
+            val committerNode = objectMapper.createObjectNode()
+            committerNode.put("name", authorName)
+            committerNode.put("email", authorEmail)
+            commitNode.set("committer", committerNode)
+
+            commitNodes.add(commitNode)
+        }
+        root.set("commits", commitNodes)
+        if (commitNodes.size() > 0) {
+            root.set("head_commit", commitNodes.get(0))
+        }
+
+        val senderNode = objectMapper.createObjectNode()
+        senderNode.put("login", sender.loginId)
+        senderNode.put("id", sender.id ?: 0L)
+        senderNode.put("avatar_url", sender.avatarUrl)
+        senderNode.put("type", "User")
+        senderNode.put("site_admin", sender.isSiteManager)
+        root.set("sender", senderNode)
+
+        val pusherNode = objectMapper.createObjectNode()
+        pusherNode.put("name", sender.name)
+        pusherNode.put("email", sender.email ?: "")
+        root.set("pusher", pusherNode)
+
+        val repositoryNode = objectMapper.createObjectNode()
+        repositoryNode.put("id", project?.id ?: 0L)
+        repositoryNode.put("name", project?.name ?: "")
+        repositoryNode.put("owner", project?.owner ?: "")
+        repositoryNode.put("html_url", projectUrl(project))
+        repositoryNode.put("overview", project?.overview ?: "")
+        repositoryNode.put("private", project?.projectScope != ProjectScope.PUBLIC)
+        root.set("repository", repositoryNode)
+
+        return objectMapper.writeValueAsString(root)
+    }
+
     private fun buildTextMessage(
         webhook: Webhook,
         eventType: EventType,
@@ -349,6 +424,10 @@ class WebhookServiceImpl(
         // PushedCommits는 yona도 buildRequestMessage()(리소스 링크)를 쓰지 않는 별도 경로
         // (Webhook.java:668 buildRequestBody(commits, refNames, sender, title))라 링크 없이 그대로 유지.
         if (resource is PushedCommits) {
+            val resourceInfo = "${resource.commits.size}개의 커밋을 ${resource.refNames.firstOrNull() ?: ""} 브랜치로 푸시했습니다"
+            return "[$projectName] ${sender.name}님이 $actionMessage. $resourceInfo"
+        }
+        if (resource is PushedHgCommits) {
             val resourceInfo = "${resource.commits.size}개의 커밋을 ${resource.refNames.firstOrNull() ?: ""} 브랜치로 푸시했습니다"
             return "[$projectName] ${sender.name}님이 $actionMessage. $resourceInfo"
         }
@@ -394,6 +473,7 @@ class WebhookServiceImpl(
             is ReviewComment -> ResourceType.REVIEW_COMMENT
             is CommitComment -> ResourceType.COMMIT_COMMENT
             is PushedCommits -> ResourceType.COMMIT
+            is PushedHgCommits -> ResourceType.COMMIT
             is PullRequest -> ResourceType.PULL_REQUEST
             else -> ResourceType.NOT_A_RESOURCE
         }
@@ -408,6 +488,7 @@ class WebhookServiceImpl(
             is ReviewComment -> resource.id?.toString() ?: ""
             is CommitComment -> resource.id?.toString() ?: ""
             is PushedCommits -> resource.commits.firstOrNull()?.name ?: ""
+            is PushedHgCommits -> resource.commits.firstOrNull()?.nodeId?.toHex() ?: ""
             is PullRequest -> resource.id?.toString() ?: ""
             else -> ""
         }
