@@ -294,3 +294,9 @@
 | P3-17 | [x] | OAuth2 앱 등록을 사이트 관리자 전용 → 사용자 셀프서비스로 전환 (2026-09-07 사용자 제안) | 완료 — `/user/editform/oauth-apps-owned` 셀프서비스 등록 신설, 관리자 화면(`/site/oauth-apps`)은 전체 조회/강제 삭제 감사(audit) 용도로 축소, IDOR 방지 검증 포함 | [[tickets/p3-17]] |
 | P3-18 | [x] | SSH forced command가 실제 git/hg 바이너리 exec 대신 인프로세스 JGit/hg4j 로직을 재사용하도록 전환 (2026-09-07 사용자 제안) | 완료 — 유닉스 도메인 소켓 릴레이 + `GitSshProtocolHandler`/`HgSshProtocolHandler` 신설, `ssh-auth.sh`+`socat` 실배선까지 완료. 실제 컨테이너(sshd+yona)에 end-to-end로 검증(브랜치 보호 push 거부, PRIVATE 비멤버 clone 거부 포함) — 이 과정에서 nologin 셸 버그/역슬래시 이스케이프 버그 실측 발견·수정. Hg 쪽 read-only push 거부 자동 테스트만 P3-12 2라운드로 이월 | [[tickets/p3-18]] |
 | P3-19 | [x] | GPG 커밋 서명 검증(Verified/Unverified 배지)을 Git 실사용 검증 + Mercurial까지 확장 (2026-09-08 사용자 제안) | 완료 — Git 실사용 검증 완료(버그 없음), Mercurial은 changelog `extra`에 git `gpgsig`와 동일한 셰이프로 내장하는 방식으로 hg4j·yona 양쪽 구현+테스트+실사용 검증까지 완료 | [[tickets/p3-19]] |
+| P3-20 | [ ] | Mercurial 저장소 zip 아카이브 다운로드 미구현(`HgRepository.getArchive()`가 빈 no-op) | (2026-09-09 사용자 지시) | [[tickets/p3-20]] |
+| P3-21 | [ ] | Mercurial 브랜치 보호 정책(require_pull_request 등) 미적용 — HTTP/SSH 어느 경로에도 없음 | (2026-09-09 사용자 지시) | [[tickets/p3-21]] |
+| P3-22 | [ ] | Mercurial push 시 알림/웹훅/PushedBranch(최근 push 브랜치) 추적 미발행 | (2026-09-09 사용자 지시) | [[tickets/p3-22]] |
+| P3-23 | [ ] | Mercurial named branch(`hg branch`) 읽기/쓰기 지원 및 UI 노출 없음 | (2026-09-09 사용자 지시) | [[tickets/p3-23]] |
+| P3-24 | [ ] | hg4j `GpgSignature`가 RSA 키로 하드코딩돼 있어 EdDSA 등 다른 알고리즘 서명을 검증 못 함 | (2026-09-09 사용자 지시) | [[tickets/p3-24]] |
+| P3-25 | [ ] | hg4j `Wire1CommandsCoverageTest`의 기존 flaky 실패(빈 저장소 changegroup) 근본 수정 | (2026-09-09 사용자 지시) | [[tickets/p3-25]] |
