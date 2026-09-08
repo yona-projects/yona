@@ -711,7 +711,10 @@ class UserViewController(
         model.addAttribute("candidateProjects", candidateProjects)
         model.addAttribute("submittedName", submittedName)
         model.addAttribute("submittedAllRepositories", submittedAllRepositories)
-        model.addAttribute("submittedScopedProjectIds", submittedScopedProjectIds)
+        // [[submittedScopes]]와 동일한 이유(Kotlin emptyList()가 SpEL 리플렉션으로 contains()를
+        // 못 찾는 kotlin.collections.EmptyList 싱글턴이라 500/503으로 이어짐)로 ArrayList로 감싼다
+        // — candidateProjects가 있는 사용자가 발급 폼을 열면 재현된다.
+        model.addAttribute("submittedScopedProjectIds", ArrayList(submittedScopedProjectIds))
         model.addAttribute("submittedExpiresInDays", submittedExpiresInDays)
         model.addAttribute("submittedScopePermissions", submittedScopePermissions)
     }
@@ -865,7 +868,13 @@ class UserViewController(
         model.addAttribute("submittedClientName", submittedClientName)
         model.addAttribute("submittedRedirectUri", submittedRedirectUri)
         model.addAttribute("submittedConfidential", submittedConfidential)
-        model.addAttribute("submittedScopes", submittedScopes)
+        // Kotlin의 emptyList()/listOf()는 리플렉션으로 접근 시 kotlin.collections.EmptyList
+        // 싱글턴을 반환하는데, SpEL의 리플렉션 기반 메서드 탐색이 여기 선언된 contains(String)를
+        // 못 찾아 "EL1004E: Method call: Method contains cannot be found on type
+        // kotlin.collections.EmptyList" 예외를 던진다(템플릿의 submittedScopes.contains(scope)
+        // 호출 시 500/503으로 이어짐 — 신규 등록 폼을 처음 열 때 기본값이 정확히 이 경우였다).
+        // java.util.ArrayList로 감싸 일반 List 구현체로 노출해 회피한다.
+        model.addAttribute("submittedScopes", ArrayList(submittedScopes))
     }
 
     // yona-wiki P3-03 Step3 — GitHub "Settings > SSH and GPG keys" 화면과 동일한 컨벤션

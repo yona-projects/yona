@@ -67,7 +67,7 @@
                                th:if="${#strings.contains(scope, ':')}">
                             <input type="checkbox" name="scopes" th:value="${scope}"
                                    th:checked="${submittedScopes != null and submittedScopes.contains(scope)}">
-                            <span th:text="${scope}">issues:read</span>
+                            <span th:text="${scope} + ' '">issues:read</span>
                         </label>
                     </div>
                     <p class="description" th:text="#{oauthapp.field.scopes.description}">설명</p>
