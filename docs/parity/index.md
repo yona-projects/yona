@@ -300,3 +300,5 @@
 | P3-23 | [x] | Mercurial named branch(`hg branch`) 읽기/쓰기 지원 및 UI 노출 없음 | 완료 — 읽기: hg4j `BranchesCommand`로 코드브라우저/커밋히스토리 셀렉터에 "Bookmarks"/"Branches" 그룹 분리 노출. 쓰기: 기존 온라인 커밋(P1-111)에 Mercurial 분기+named branch 입력 필드 추가, `hg branch`→커밋→(신규 시)bookmark 전진까지 실배선. 실사용 검증(`hg log -b`로 서버 쪽 확인) 중 온라인 커밋이 고아 루트 커밋을 만들어 기존 파일이 사라지는 실제 데이터 유실 버그를 발견·수정 | [[tickets/p3-23]] |
 | P3-24 | [x] | hg4j `GpgSignature`가 RSA 키로 하드코딩돼 있어 EdDSA 등 다른 알고리즘 서명을 검증 못 함 | (2026-09-09 사용자 지시) | [[tickets/p3-24]] |
 | P3-25 | [x] | hg4j `Wire1CommandsCoverageTest`의 기존 flaky 실패(빈 저장소 changegroup) 근본 수정 | 완료 — 테스트 자체의 낡은 기대값(예전 getBundle 버그를 검증하던 것)이었음을 확인, 실제 페이로드 파싱 검증으로 수정 | [[tickets/p3-25]] |
+| P3-26 | [x] | `/api/{owner}/{projectName}/pushedBranches`가 순환 참조로 부풀고 비밀번호 해시까지 노출됨 | 완료 — DTO 변환으로 수정(Git/Hg 공통 기존 결함, 코디네이터가 P3-22 검증 중 발견) | [[tickets/p3-26]] |
+| P3-27 | [ ] | Mercurial 프로젝트의 Pull Request 병합이 동작하지 않음(JGit 하드코딩) | 발견만(P3-21/22 검증 중) — 대규모 신규 작업이라 착수 여부 사용자 확인 대기 | [[tickets/p3-27]] |

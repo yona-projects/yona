@@ -344,7 +344,24 @@ class ProjectController(
         // yona Project.getRecentlyPushedBranches(): 최근 1시간 이내에 push된 것만 노출한다.
         val cutoff = Instant.now().minus(Duration.ofHours(1))
         val branches = pushedBranchRepository.findByProjectAndPushedDateAfter(project, cutoff)
-        return ResponseEntity.ok(branches)
+        // 2026-09-09 코디네이터 발견/수정 — 엔티티(PushedBranch -> project -> projectUsers ->
+        // user -> projectUsers -> ...)를 그대로 직렬화하면 User<->ProjectUser 양방향 관계가
+        // 끝없이 순환 참조돼 응답이 수십 KB로 부풀 뿐 아니라, User.password/passwordSalt(해시된
+        // 값이지만)까지 그대로 API 응답에 노출되는 정보 노출 문제가 있었다(Git/Hg 프로젝트 모두
+        // 동일하게 재현 — VCS 종류와 무관한 기존 결함). DTO로 변환해 필요한 필드만 반환한다.
+        return ResponseEntity.ok(branches.map { PushedBranchDto(it) })
+    }
+
+    data class PushedBranchDto(
+        val id: Long?,
+        val name: String,
+        val pushedDate: Instant?
+    ) {
+        constructor(pushedBranch: com.github.yonaprojects.yona.domain.vcs.PushedBranch) : this(
+            id = pushedBranch.id,
+            name = pushedBranch.name,
+            pushedDate = pushedBranch.pushedDate
+        )
     }
 
     // yona ProjectApp.deletePushedBranch() 대응 (P1-15). yona처럼 id가 이 프로젝트 소속인지는
