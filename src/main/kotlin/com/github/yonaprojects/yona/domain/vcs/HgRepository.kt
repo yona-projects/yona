@@ -374,22 +374,15 @@ class HgRepository(
     // TreeCommand.call()이 실제로 만드는 자바 8진수 리터럴(0644/0755/0120000)의 10진수 값
     // (420/493/40960)이다. 리터럴로 8진수를 그대로 옮겨 적으면 10진수로 잘못 해석되어(120000,
     // 755) 절대 매치되지 않는 조용한 버그가 되므로 10진수로 명시하고 주석에 원래 8진수 값을 남긴다.
-    // hg4j의 DiffCommand는 oldRevision/newRevision 두 sentinel을 대칭적으로 다루지 않는다 —
-    // oldRevision은 리터럴 -1을 (auto-default용 -2와 별개로) 그대로 ManifestTreeIterator에 넘겨
-    // "빈 매니페스트"로 정확히 처리하지만(loadEntries()의 "-1" 조기 반환), newRevision은 자기 자신의
-    // "값 미지정" sentinel이 -1이라(생성자 주석 "// -1 defaults to tip" 참고) newRevision에 리터럴
-    // -1을 넘기면 "빈 매니페스트"가 아니라 "tip으로 대체"돼 버린다 — revB가 존재하지 않는 커밋일 때
-    // (getDiff(revA, revB)가 newRevNum=-1로 근사하는 경우) DiffCommand에 그대로 넘기면 엉뚱하게
-    // tip과의 diff가 계산되는 조용한 버그가 된다(HgRepositorySpec에서 실제로 재현/확인함). new쪽이
-    // 없는 경우는 DiffCommand를 아예 거치지 않고, old쪽 매니페스트 전체를 DELETE로 직접 합성한다
-    // (old쪽도 없으면 — 즉 둘 다 존재하지 않으면 — 빈 결과).
+    // hg4j의 DiffCommand는 newRevision에 리터럴 -1을 넘기면(revB가 존재하지 않는 커밋이라
+    // getDiff(revA, revB)가 -1로 근사하는 경우) oldRevision과 동일하게 "빈 매니페스트"로 정확히
+    // 처리한다(hg4j 2026-09-09 수정 — 예전에는 newRevision의 "값 미지정" sentinel도 우연히 -1이라
+    // "빈 매니페스트"가 아니라 "tip으로 대체"돼 버리는 실제 버그가 있었다. DiffCommand.java에서
+    // "값 미지정" 전용 sentinel(Integer.MIN_VALUE)을 -1과 분리해 근본 수정했다 — 상세는
+    // hg4j 저장소 커밋/DiffCommand.NOT_SET 주석 참고). 그 결과 old/new 둘 다(또는 한쪽만)
+    // -1이어도 별도 우회 없이 DiffCommand를 그대로 호출하면 된다 — 둘 다 -1이면 빈 매니페스트끼리
+    // 비교해 자연스럽게 빈 결과가 나온다.
     private fun computeChangedEntries(hg: Hg, oldRevNum: Int, newRevNum: Int): List<DiffCommand.DiffEntry> {
-        if (newRevNum < 0) {
-            if (oldRevNum < 0) return emptyList()
-            return hg.tree().setRevision(oldRevNum).call().map { treeEntry ->
-                DiffCommand.DiffEntry(treeEntry.path, DiffCommand.ChangeType.DELETE, "")
-            }
-        }
         return hg.diff().setOldRevision(oldRevNum).setNewRevision(newRevNum).call()
     }
 
