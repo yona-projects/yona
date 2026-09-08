@@ -103,7 +103,7 @@ class PullRequestController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -115,7 +115,12 @@ class PullRequestController(
         val pullRequest = pullRequestService.getPullRequest(projectId, number)
             ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok(pullRequest)
+        // 2026-09-09 코디네이터 발견/수정 — raw PullRequest 엔티티를 그대로 반환하면
+        // toProject/fromProject/contributor 등이 Project<->User 양방향 관계를 끌고 들어와
+        // 순환 직렬화되며 User.password/passwordSalt까지 노출된다(mergePullRequest/changeState는
+        // 이미 이 문제로 .toResponse()를 쓰고 있었는데 이 메서드는 빠져 있었다 — 실측: 실제 앱으로
+        // 재현, 60KB 응답에서 password 값 확인).
+        return ResponseEntity.ok(pullRequest.toResponse())
     }
 
     // yona models/PullRequestEvent.java 타임라인 조회 대응 (P1-08)
@@ -144,7 +149,7 @@ class PullRequestController(
         @PathVariable projectId: Long,
         @RequestBody request: CreatePullRequestRequest,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -181,7 +186,10 @@ class PullRequestController(
                     toBranch = request.toBranch,
                     contributor = user
                 )
-                return ResponseEntity.status(HttpStatus.CREATED).body(pullRequest)
+                // 2026-09-09 코디네이터 발견/수정 — getPullRequest()와 동일한 순환 직렬화/
+                // 비밀번호 노출 문제(실측: 웹 프런트엔드 pullrequest/create.html이 이 엔드포인트를
+                // 직접 호출, 60KB 응답에서 password 값 확인).
+                return ResponseEntity.status(HttpStatus.CREATED).body(pullRequest.toResponse())
             } catch (e: org.springframework.dao.DataIntegrityViolationException) {
                 attempt++
                 if (attempt >= MAX_NUMBER_RETRY_ATTEMPTS) {
@@ -197,7 +205,7 @@ class PullRequestController(
         @PathVariable number: Long,
         @RequestBody request: UpdatePullRequestRequest,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -223,7 +231,9 @@ class PullRequestController(
             toBranch = request.toBranch ?: pullRequest.toBranch
         )
 
-        return ResponseEntity.ok(updated)
+        // 2026-09-09 코디네이터 발견/수정 — getPullRequest()와 동일한 순환 직렬화/비밀번호 노출
+        // 문제.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     @PostMapping("/{number}/merge")
@@ -378,7 +388,7 @@ class PullRequestController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -391,7 +401,8 @@ class PullRequestController(
         }
 
         val updated = pullRequestService.deleteFromBranch(pullRequest.id!!)
-        return ResponseEntity.ok(updated)
+        // 2026-09-09 코디네이터 발견/수정 — getPullRequest()와 동일한 순환 직렬화/비밀번호 노출 문제.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     // yona PullRequestApp.restoreFromBranch 대응
@@ -400,7 +411,7 @@ class PullRequestController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -413,7 +424,8 @@ class PullRequestController(
         }
 
         val updated = pullRequestService.restoreFromBranch(pullRequest.id!!)
-        return ResponseEntity.ok(updated)
+        // 2026-09-09 코디네이터 발견/수정 — getPullRequest()와 동일한 순환 직렬화/비밀번호 노출 문제.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     data class CreatePullRequestRequest(
@@ -534,7 +546,7 @@ class PullRequestController(
         @PathVariable number: Long,
         @RequestBody request: SetAssigneeRequest,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -550,7 +562,8 @@ class PullRequestController(
             ?: return ResponseEntity.badRequest().build()
 
         val updated = pullRequestService.setAssignee(pullRequest.id!!, assigneeUser)
-        return ResponseEntity.ok(updated)
+        // 2026-09-09 코디네이터 발견/수정 — getPullRequest()와 동일한 순환 직렬화/비밀번호 노출 문제.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     @DeleteMapping("/{number}/assignee")
@@ -558,7 +571,7 @@ class PullRequestController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -571,7 +584,7 @@ class PullRequestController(
             ?: return ResponseEntity.notFound().build()
 
         val updated = pullRequestService.setAssignee(pullRequest.id!!, null)
-        return ResponseEntity.ok(updated)
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 라벨 추가/제거. 라벨 정의 자체는
@@ -582,7 +595,7 @@ class PullRequestController(
         @PathVariable number: Long,
         @RequestBody request: AddPullRequestLabelRequest,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -596,7 +609,7 @@ class PullRequestController(
 
         return try {
             val updated = pullRequestService.addLabel(pullRequest.id!!, request.labelId)
-            ResponseEntity.ok(updated)
+            ResponseEntity.ok(updated.toResponse())
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().build()
         }
@@ -608,7 +621,7 @@ class PullRequestController(
         @PathVariable number: Long,
         @PathVariable labelId: Long,
         authentication: Authentication?
-    ): ResponseEntity<PullRequest> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -621,7 +634,8 @@ class PullRequestController(
             ?: return ResponseEntity.notFound().build()
 
         val updated = pullRequestService.removeLabel(pullRequest.id!!, labelId)
-        return ResponseEntity.ok(updated)
+        // 2026-09-09 코디네이터 발견/수정 — getPullRequest()와 동일한 순환 직렬화/비밀번호 노출 문제.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     data class UpdatePullRequestRequest(

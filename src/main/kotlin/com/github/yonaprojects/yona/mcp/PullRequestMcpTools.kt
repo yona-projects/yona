@@ -5,6 +5,7 @@ import com.github.yonaprojects.yona.domain.apitoken.ApiTokenScopeGroup
 import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
 import com.github.yonaprojects.yona.web.PullRequestController
 import com.github.yonaprojects.yona.web.toResponse
 import org.springframework.ai.tool.annotation.Tool
@@ -23,10 +24,15 @@ import org.springframework.stereotype.Component
  * 실행돼야 한다 — AI 에이전트가 PULL_REQUESTS:write 스코프 없이 보호된 브랜치는커녕 어떤 PR도
  * 머지하지 못하게 막는 첫 번째 방어선이다(두 번째 방어선은 브랜치 보호 자체).
  *
- * `review_pull_request`는 GitHub의 "APPROVE/REQUEST_CHANGES" 같은 정식 리뷰 상태 기계가 yona에는
- * 없어(PullRequestController에 그런 API 자체가 없음, 확인됨) 실제로 존재하는 유일한 "리뷰" 동작인
- * 리뷰어 등록(addReviewer, PullRequestApiController의 `POST .../reviewers`와 동일)에 매핑한다 —
- * 신규 리뷰 상태 기계를 만들지 않는다(과도한 설계 금지).
+ * **정정(2026-09-09, 사용자 지시로 코디네이터 재확인)**: 위 `review_pull_request`의 원래 설명은
+ * "yona에는 GitHub의 APPROVE/REQUEST_CHANGES 같은 정식 리뷰 상태 기계가 없다"고 적혀 있었으나,
+ * 이 MCP 서버(P3-07)가 만들어진 이후 [[p3-15-pr-approval-workflow]]([[tickets/p3-15|P3-15]])가
+ * `PullRequestReview`(APPROVE/REQUEST_CHANGES/COMMENT, `PullRequestController.submitReview()`)를
+ * 정식으로 구현했는데, 이 MCP 도구는 그 사실을 반영하지 못한 채 여전히 낡은 방식(단순 리뷰어
+ * 등록)에만 매핑돼 있었다 — AI 에이전트가 이 MCP 서버로는 실제 Approve/Request changes 판정을
+ * 전혀 할 수 없던 실제 기능 갭. `review_pull_request`를 `submitReview()`에 연결하도록 고쳤고,
+ * 순수 "리뷰어로 등록만" 하고 싶은 경우를 위해 `add_reviewer`를 별도 도구로 새로 뒀다(기존
+ * `review_pull_request`의 동작을 그대로 보존 — 하위 호환).
  */
 @Component
 class PullRequestMcpTools(
@@ -61,9 +67,11 @@ class PullRequestMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.READ, found)
+        // 2026-09-09 코디네이터 발견/수정 — getPullRequest()가 이제 순환 직렬화/비밀번호 노출
+        // 수정으로 이미 PullRequestResponse를 담은 ResponseEntity<Any>를 돌려준다(unwrapForMcp()가
+        // 반환하는 정적 타입이 Any가 돼 .toResponse()를 다시 호출할 수 없다).
         return pullRequestController.getPullRequest(found.id!!, number, currentAuth())
             .unwrapForMcp("PR #$number 를 찾을 수 없습니다.")
-            .toResponse()
     }
 
     @Tool(description = "새 풀 리퀘스트를 생성합니다(같은 저장소 안의 브랜치 간, 포크 간 PR은 지원하지 않습니다).")
@@ -84,13 +92,40 @@ class PullRequestMcpTools(
             fromBranch = fromBranch,
             toBranch = toBranch
         )
+        // 2026-09-09 코디네이터 발견/수정 — createPullRequest()도 위와 동일한 이유.
         return pullRequestController.createPullRequest(found.id!!, request, currentAuth())
             .unwrapForMcp()
-            .toResponse()
     }
 
-    @Tool(description = "풀 리퀘스트를 리뷰합니다(yona는 승인/변경요청 상태가 없어 리뷰어로 등록하는 동작으로 처리됩니다).")
+    // 2026-09-09 코디네이터 수정(사용자 지시) — GitHub의 pulls/{number}/reviews와 동일하게 실제
+    // Approve/Request changes/Comment 판정을 남긴다. PullRequestController.submitReview()(P3-15)에
+    // 연결 — 자기 자신의 PR은 SelfReviewException(400)으로 거부되며 unwrapForMcp()가 그 사유를
+    // 그대로 McpToolException으로 변환한다.
+    @Tool(description = "풀 리퀘스트를 리뷰합니다 — APPROVE(승인)/REQUEST_CHANGES(변경 요청)/COMMENT(코멘트만, 판정 없음) 중 하나로 실제 판정을 남깁니다(자기 자신의 PR은 APPROVE/REQUEST_CHANGES 불가).")
     fun review_pull_request(
+        @ToolParam(description = "저장소 소유자") owner: String,
+        @ToolParam(description = "저장소 이름") project: String,
+        @ToolParam(description = "PR 번호") number: Long,
+        @ToolParam(description = "리뷰 판정: APPROVE, REQUEST_CHANGES, COMMENT 중 하나") state: String,
+        @ToolParam(description = "리뷰 코멘트 본문(선택)", required = false) body: String?
+    ): Any {
+        val found = findProject(owner, project)
+        scopeGuard.require(currentAuth(), ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.WRITE, found)
+        val reviewState = try {
+            PullRequestReview.ReviewState.valueOf(state.trim().uppercase())
+        } catch (e: IllegalArgumentException) {
+            throw McpToolException("state는 APPROVE, REQUEST_CHANGES, COMMENT 중 하나여야 합니다(입력값: $state).")
+        }
+        val request = PullRequestController.SubmitPullRequestReviewRequest(state = reviewState, body = body)
+        return pullRequestController.submitReview(found.id!!, number, request, currentAuth())
+            .unwrapForMcp("PR #$number 를 찾을 수 없습니다.")
+    }
+
+    // 2026-09-09 코디네이터 신설(사용자 지시) — review_pull_request가 예전에 하던 "판정 없이 리뷰어
+    // 목록에만 등록" 동작을 이 이름으로 그대로 보존한다(하위 호환 — 기존에 review_pull_request를
+    // 이 용도로 쓰던 MCP 클라이언트가 있을 수 있어 동작 자체는 없애지 않고 도구만 분리).
+    @Tool(description = "풀 리퀘스트에 판정 없이 리뷰어로만 등록합니다(Approve/Request changes 판정을 남기려면 review_pull_request를 쓰세요).")
+    fun add_reviewer(
         @ToolParam(description = "저장소 소유자") owner: String,
         @ToolParam(description = "저장소 이름") project: String,
         @ToolParam(description = "PR 번호") number: Long

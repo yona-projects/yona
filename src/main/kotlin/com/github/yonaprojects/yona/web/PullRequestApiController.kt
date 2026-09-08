@@ -68,7 +68,10 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return pullRequestController.createPullRequest(found.id!!, request, authentication).mapBody { it.toResponse() }
+        // 2026-09-09 코디네이터 발견/수정 — createPullRequest()가 이제 순환 직렬화/비밀번호 노출
+        // 수정으로 이미 변환된 본문을 담은 ResponseEntity<Any>를 돌려준다(위 merge()와 동일한
+        // 이유로 여기서 다시 .mapBody{it.toResponse()}를 호출할 정적 타입 정보가 없다).
+        return pullRequestController.createPullRequest(found.id!!, request, authentication)
     }
 
     @GetMapping("/{number}")
@@ -80,7 +83,9 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return pullRequestController.getPullRequest(found.id!!, number, authentication).mapBody { it.toResponse() }
+        // 2026-09-09 코디네이터 발견/수정 — getPullRequest()가 이제 이미 변환된 본문을 담은
+        // ResponseEntity<Any>를 돌려준다(위 merge()와 동일한 이유).
+        return pullRequestController.getPullRequest(found.id!!, number, authentication)
     }
 
     @PostMapping("/{number}/merge")
@@ -141,7 +146,9 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return pullRequestController.setAssignee(found.id!!, number, request, authentication).mapBody { it.toResponse() }
+        // 2026-09-09 코디네이터 발견/수정 — setAssignee()가 이제 이미 변환된 본문을 담은
+        // ResponseEntity<Any>를 돌려준다(위 merge()와 동일한 이유).
+        return pullRequestController.setAssignee(found.id!!, number, request, authentication)
     }
 
     @DeleteMapping("/{number}/assignee")
@@ -153,7 +160,9 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return pullRequestController.removeAssignee(found.id!!, number, authentication).mapBody { it.toResponse() }
+        // 2026-09-09 코디네이터 발견/수정 — removeAssignee()가 이제 이미 변환된 본문을 담은
+        // ResponseEntity<Any>를 돌려준다.
+        return pullRequestController.removeAssignee(found.id!!, number, authentication)
     }
 
     @PostMapping("/{number}/labels")
@@ -166,7 +175,9 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return pullRequestController.addLabel(found.id!!, number, request, authentication).mapBody { it.toResponse() }
+        // 2026-09-09 코디네이터 발견/수정 — addLabel()이 이제 이미 변환된 본문을 담은
+        // ResponseEntity<Any>를 돌려준다.
+        return pullRequestController.addLabel(found.id!!, number, request, authentication)
     }
 
     @DeleteMapping("/{number}/labels/{labelId}")
@@ -179,7 +190,9 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return pullRequestController.removeLabel(found.id!!, number, labelId, authentication).mapBody { it.toResponse() }
+        // 2026-09-09 코디네이터 발견/수정 — removeLabel()이 이제 이미 변환된 본문을 담은
+        // ResponseEntity<Any>를 돌려준다.
+        return pullRequestController.removeLabel(found.id!!, number, labelId, authentication)
     }
 
     // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr edit`. PullRequestController.
@@ -196,8 +209,9 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
+        // 2026-09-09 코디네이터 발견/수정 — updatePullRequest()가 이제 이미 변환된 본문을 담은
+        // ResponseEntity<Any>를 돌려준다.
         return pullRequestController.updatePullRequest(found.id!!, number, request, authentication)
-            .mapBody { it.toResponse() }
     }
 
     // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr close`/`gh pr reopen`. 서버는 이미
