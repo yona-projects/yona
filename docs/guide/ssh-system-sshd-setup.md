@@ -200,13 +200,39 @@ principal="$(echo "$response" | jq -r '.principal // empty')"
 # forced command 본체 — SshRelayServer(P3-18)의 핸드셰이크 프로토콜 그대로: 첫 줄은 이
 # principal, 둘째 줄은 클라이언트가 실제 요청한 명령(SSH_ORIGINAL_COMMAND, sshd가 세션
 # 시작 시 자동으로 채워준다). 그 두 줄을 보낸 뒤부터는 순수 바이트 릴레이이므로, 이후 클라이언트가
-# 보내는 나머지 stdin도 그대로 이어붙여야 한다(cat) — printf와 cat의 출력을 한 파이프로 묶어
-# socat의 표준입력("-")에 넣고, socat의 표준출력은 건드리지 않아 그대로 ssh 세션에 돌아간다.
+# 보내는 나머지 stdin도 그대로 이어붙여야 한다(cat) — socat의 표준출력은 건드리지 않아 그대로
+# ssh 세션에 돌아간다.
 # $SSH_ORIGINAL_COMMAND는 지금(ssh-auth.sh 실행 시점)이 아니라 나중에(forced command가 실제
 # 세션에서 실행될 때) 평가돼야 하므로 여기서는 반드시 이스케이프(\$)해서 리터럴로 심어야 한다.
 # 대화형 로그인(원본 명령이 없는 ssh -T 접속)은 GitHub과 동일하게 신원 확인 용도로만 허용하고
 # 셸은 주지 않는다.
-forced_command="if [ -z \"\$SSH_ORIGINAL_COMMAND\" ]; then echo 'Hi! yona SSH 인증에 성공했습니다. 다만 대화형 셸 접속은 지원하지 않습니다.' >&2; exit 1; fi; { printf '%s\\n%s\\n' '$principal' \"\$SSH_ORIGINAL_COMMAND\"; cat; } | socat - UNIX-CONNECT:$RELAY_SOCKET"
+#
+# **실제 컨테이너로 PRIVATE 프로젝트 비멤버 clone 거부를 검증하던 중(2026-09-08) 발견한
+# 버그를 고친 형태다** — 원래는 `{ printf ...; cat; } | socat - UNIX-CONNECT:$RELAY_SOCKET`처럼
+# 순수 셸 파이프로 연결했는데, yona가 거부 사유(`ERR ...`)를 쓰고 소켓을 즉시 닫으면 socat은
+# 곧바로 정상 종료하지만(수 초 내), socat과 셸 파이프로만 연결된 별개 프로세스인 `cat`은 socat이
+# 끝난 걸 전혀 모른 채 "클라이언트가 다음에 보낼 stdin"을 계속 blocking read로 기다린다 — 그
+# 결과 이 forced command 전체(bash → cat)가 안 끝나 sshd가 클라이언트 쪽에 채널 EOF/close를
+# 보내지 못하고, 실제 `hg` 클라이언트는(이미 죽은 socat이 답할 리 없는) 응답을 하염없이 기다리며
+# 완전히 멈춘다(실측: 진짜 컨테이너에서 15초+ 타임아웃까지 무한 대기 재현, `ps auxf`로 소켓
+# 반대편 socat은 이미 사라지고 `cat`만 살아있음을 직접 확인 — push 거부(브랜치 보호 등)는 이
+# 문제가 없다, 그쪽은 JGit ReceivePack/HgSshWireServer가 프로토콜 정상 흐름을 끝까지 흘려보내
+# socat/cat 둘 다 자연스럽게 종료됨. clone/fetch처럼 세션이 시작되기도 전에 거부되는 경로에서만
+# 발생).
+#
+# 고친 방식: 이름있는 파이프(FIFO)로 "클라이언트 stdin을 계속 읽어 넘기는 하위 프로세스"를
+# 완전히 분리해 그 PID를 직접 쥐고 있다가, socat이 끝나자마자(=UNIX-CONNECT 쪽이 정리되자마자)
+# 그 PID를 강제 종료한다 — socat 자체의 정상 흐름(fd 0/1이 그대로 ssh 세션이라 응답 방향은
+# 전혀 안 건드림)은 그대로 유지된다. **`set -m`가 필수다** — 저 하위 프로세스를 `&`로
+# 백그라운드에 두는데, bash는 잡 컨트롤이 꺼진 채로(`command="..."`로 실행되는 비대화형 셸은
+# 기본이 꺼짐) 백그라운드 명령을 돌리면 그 명령의 표준입력을 자동으로 `/dev/null`로
+# 바꿔치기한다(bash 매뉴얼 "asynchronous commands" 항목) — 이러면 그 하위 프로세스의 `cat`이
+# 실제 ssh 채널 바이트를 영영 못 받아, 이번엔 거꾸로 **정상 허용(clone/push) 케이스가 즉시
+# "no suitable response"로 깨진다**(실측 재현·수정 완료 — FIFO로 처음 고쳤을 때 이 함정에
+# 그대로 걸렸었다). `set -m`로 잡 컨트롤을 켜면 백그라운드 명령도 실제 표준입력을 그대로
+# 물려받는다. `disown`은 잡 컨트롤을 켠 부작용(백그라운드 잡이 끝날 때 셸이 찍는 "[1]+ Done
+# ..." 알림이 `remote:` 줄로 클라이언트에 새는 것)을 막는 화장용 처리다.
+forced_command="set -m; if [ -z \"\$SSH_ORIGINAL_COMMAND\" ]; then echo 'Hi! yona SSH 인증에 성공했습니다. 다만 대화형 셸 접속은 지원하지 않습니다.' >&2; exit 1; fi; FIFO=\"\$(mktemp -u)\"; mkfifo \"\$FIFO\"; ( printf '%s\\n%s\\n' '$principal' \"\$SSH_ORIGINAL_COMMAND\"; cat ) > \"\$FIFO\" & FEEDER_PID=\$!; disown \"\$FEEDER_PID\"; socat - UNIX-CONNECT:$RELAY_SOCKET < \"\$FIFO\"; kill \"\$FEEDER_PID\" 2>/dev/null; rm -f \"\$FIFO\""
 
 # authorized_keys의 command="..." 값 안에 있는 리터럴 큰따옴표는 반드시 \" 로 이스케이프해야
 # 한다 — 안 그러면 sshd가 이스케이프 안 된 첫 번째 큰따옴표에서 값을 끊어버려 뒷부분이
@@ -306,10 +332,15 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
    `! [remote rejected] ... (branch 'main' protected: ... require_pull_request)`처럼 사유를
    그대로 보여주며 거부돼야 한다 — HTTPS 경로와 동일한 정책이 SSH에도 적용되는지 확인하는
    가장 중요한 시나리오다(이 문서/`SshRelayServer`가 만들어진 핵심 이유).
-6. **PRIVATE 프로젝트 비멤버 거부 확인**(실측 완료): 그 프로젝트 멤버가 아닌 사용자의 키로
-   clone을 시도하면 `fatal: protocol error: bad line length character: ERR ` 같은 메시지와
-   함께 실패해야 한다(트러블슈팅 절의 "clone/fetch 자체가 거부" 항목 참고 — 이 지저분한
-   메시지 자체가 정상 동작이다, 거부는 됐다는 뜻).
+6. **PRIVATE 프로젝트 비멤버 거부 확인**(실측 완료, git·hg 둘 다): git은 `fatal: protocol
+   error: bad line length character: ERR ` 같은 메시지, hg는 `abort: no suitable response
+   from remote hg` 같은 메시지와 함께 **즉시(1초 미만)** 실패해야 한다(트러블슈팅 절의
+   "clone/fetch 자체가 거부" 항목 참고 — 이 지저분한 메시지 자체가 정상 동작이다, 거부는
+   됐다는 뜻). **"즉시"가 핵심이다** — hg 쪽은 한때(2026-09-08 이전 버전의 `ssh-auth.sh`)
+   이 시나리오에서 15초+ 무한 대기(hang)하는 실제 버그가 있었다(아래 트러블슈팅 절 참고,
+   위 forced_command 코드 블록의 FIFO/`set -m` 관련 주석에 근본원인 설명). 이 문서의 현재
+   `ssh-auth.sh`는 이미 수정된 버전이다 — 새로 배포한다면 걱정할 것 없지만, 오래된 버전을
+   그대로 쓰고 있었다면 지금 최신 코드 블록으로 갱신할 것.
 
 ## 트러블슈팅
 
@@ -337,6 +368,17 @@ sudo systemctl reload sshd       # 기존 세션 끊지 않고 설정만 다시 
   프로젝트 멤버십, 읽기전용 Deploy Key 여부를 먼저 의심한다([troubleshooting.md](troubleshooting.md)
   및 브랜치 보호 문서 참고) — clone 거부 쪽 메시지가 지저분한 건 실제 동작에 영향 없는 사소한
   UX 한계로 남겨둔다.
+- **PRIVATE 프로젝트 비멤버가 hg로 clone을 시도하면 15초+ 멈춘 채 응답이 없다(hang)** —
+  이건 예전 `ssh-auth.sh`의 실제 버그였다(2026-09-08 발견·수정, 위 Step 3 forced_command
+  코드 블록에 상세 원인 주석 포함). 요약: `{ printf ...; cat; } | socat - UNIX-CONNECT:...`
+  처럼 순수 셸 파이프로 짜면, yona가 거부 사유를 쓰고 소켓을 닫아 socat은 곧 종료되지만 그
+  파이프의 앞단인 `cat`(클라이언트가 보낼 나머지 바이트를 기다리는 프로세스)은 socat이
+  끝난 걸 전혀 모른 채 계속 blocking read로 남아있어, sshd가 클라이언트에 채널 종료를 못
+  알리고 클라이언트는 하염없이 기다린다(git은 이 문제가 없다 — git 클라이언트가 `ERR` 줄을
+  받자마자 스스로 즉시 포기하고 연결을 닫아버리기 때문에 우연히 안 걸렸을 뿐이다. push
+  거부처럼 정상적으로 프로토콜이 끝까지 흐르는 경로도 문제없다). 지금 이 문서의
+  `ssh-auth.sh`는 FIFO로 그 하위 프로세스를 분리해 소켓 쪽이 끝나자마자 강제 종료하도록
+  고친 버전이다 — 오래된 버전을 배포해뒀다면 최신 코드 블록으로 교체할 것.
 - **저장소 파일 자체에 대한 Permission denied가 보인다면** — 이건 이 SSH 문서가 다루는
   범위 밖이다(`git` 계정은 저장소 파일을 직접 건드리지 않는다, 위 Step 1 참고). yona 앱을
   실행하는 OS 계정이 `yona.git.base-dir`/`yona.hg.base-dir`에 rwX 권한이 있는지 확인할 것 —
