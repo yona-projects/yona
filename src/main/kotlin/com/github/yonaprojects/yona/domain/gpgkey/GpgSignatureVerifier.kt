@@ -1,5 +1,7 @@
 package com.github.yonaprojects.yona.domain.gpgkey
 
+import com.github.yonaprojects.yona.domain.vcs.HgCommit
+import io.github.search5.hg4j.api.HgCommit as NativeHgCommit
 import org.bouncycastle.openpgp.PGPObjectFactory
 import org.bouncycastle.openpgp.PGPSignature
 import org.bouncycastle.openpgp.PGPSignatureList
@@ -34,11 +36,38 @@ class GpgSignatureVerifier(
 
     fun verify(commit: RevCommit): GpgVerificationStatus {
         val rawSignature = commit.rawGpgSignature ?: return GpgVerificationStatus.UNSIGNED
+        val authorEmail = commit.authorIdent?.emailAddress?.trim()?.lowercase()
+        return verifyRaw(rawSignature, signedDataOf(commit), authorEmail, commit.name)
+    }
 
+    // yona-wiki P3-19 — Mercurial 쪽 GPG 배지. hg4j가 changelog `extra` 딕셔너리에 git의 gpgsig
+    // 커밋 헤더와 완전히 동일한 셰이프로 심어둔 gpgsig(armored 서명)/서명 대상 페이로드를 그대로
+    // 노출하므로(HgCommit.getGpgSignature()/getUnsignedChangelogText() — hg4j
+    // CommitCommand.setGpgSigner()의 계약), 이 아래는 verifyRaw()를 그대로 재사용한다 — 후보
+    // 조회(findByAssociatedKeyIdsContaining)/이메일 소유권 검사(verifiedEmails)/암호학적 검증
+    // 루프가 git과 완전히 동일한 코드 경로를 타야, git 쪽에서 이미 핀(pin)된 실패 모드(등록되지
+    // 않은 키/타인의 키/이메일 불일치는 절대 VERIFIED가 되면 안 됨 — GpgSignatureVerifierSpec)가
+    // Mercurial에서도 그대로 보장된다.
+    fun verify(commit: NativeHgCommit): GpgVerificationStatus {
+        val armoredSignature = commit.gpgSignature ?: return GpgVerificationStatus.UNSIGNED
+        val signedData = commit.unsignedChangelogText ?: return GpgVerificationStatus.UNVERIFIED
+        val authorEmail = HgCommit.parseAuthorEmail(commit.author)?.trim()?.lowercase()
+        return verifyRaw(armoredSignature.toByteArray(Charsets.UTF_8), signedData, authorEmail, commit.nodeId.toHex())
+    }
+
+    // git/Mercurial 공통 검증 코어. rawSignature는 armored(또는 드물게 이진) PGP SIGNATURE 블록,
+    // signedData는 그 서명이 실제로 계산된 대상 바이트(git: gpgsig 헤더를 뺀 커밋 원문, hg: gpgsig
+    // extra 항목을 뺀 changelog 원문), authorEmail은 커밋 작성자 이메일이다.
+    private fun verifyRaw(
+        rawSignature: ByteArray,
+        signedData: ByteArray,
+        authorEmail: String?,
+        commitLabel: String
+    ): GpgVerificationStatus {
         val signature = try {
             parseSignature(rawSignature)
         } catch (e: Exception) {
-            logger.debug("GPG 서명 파싱 실패(commit={}): {}", commit.name, e.message)
+            logger.debug("GPG 서명 파싱 실패(commit={}): {}", commitLabel, e.message)
             return GpgVerificationStatus.UNVERIFIED
         } ?: return GpgVerificationStatus.UNVERIFIED
 
@@ -47,9 +76,6 @@ class GpgSignatureVerifier(
         if (candidates.isEmpty()) {
             return GpgVerificationStatus.UNVERIFIED
         }
-
-        val authorEmail = commit.authorIdent?.emailAddress?.trim()?.lowercase()
-        val signedData = signedDataOf(commit)
 
         for (candidate in candidates) {
             val parsed = try {
@@ -64,7 +90,7 @@ class GpgSignatureVerifier(
                 signature.update(signedData)
                 signature.verify()
             } catch (e: Exception) {
-                logger.debug("GPG 서명 검증 실패(commit={}, keyId={}): {}", commit.name, issuerKeyId, e.message)
+                logger.debug("GPG 서명 검증 실패(commit={}, keyId={}): {}", commitLabel, issuerKeyId, e.message)
                 false
             }
 

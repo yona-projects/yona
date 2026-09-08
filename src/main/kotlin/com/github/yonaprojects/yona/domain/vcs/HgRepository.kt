@@ -34,7 +34,12 @@ class HgRepository(
     private val ownerName: String,
     private val projectName: String,
     private val baseDir: String,
-    private val userResolver: (String?, String?) -> User?
+    private val userResolver: (String?, String?) -> User?,
+    // yona-wiki P3-19 — 커밋 목록/상세 화면의 GPG Verified 배지 계산(GpgSignatureVerifier.
+    // verify(NativeHgCommit)). GitRepository.kt와 동일한 패턴: 기본값(no-op, 항상 UNSIGNED)을 둬서
+    // 기존 호출부가 그대로 동작하게 한다 — RepositoryService가 실제 구현을 주입한다.
+    private val gpgVerifier: (io.github.search5.hg4j.api.HgCommit) -> com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus =
+        { com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus.UNSIGNED }
 ) : PlayRepository {
 
     private val objectMapper = ObjectMapper()
@@ -95,7 +100,7 @@ class HgRepository(
                 val data = objectMapper.createObjectNode()
                 data.put("type", if (isFileChild) "file" else "folder")
                 if (lastCommit != null) {
-                    val commit = HgCommit(lastCommit, userResolver)
+                    val commit = HgCommit(lastCommit, userResolver, gpgVerifier)
                     val user = commit.getAuthor()
                     val commitTime = commit.getAuthorDate()?.time ?: 0L
                     data.put("msg", commit.getShortMessage())
@@ -123,7 +128,7 @@ class HgRepository(
     private fun fileAsJson(hg: Hg, revision: Int, path: String): ObjectNode {
         val bytes = hg.cat().setFile(path).setRevision(revision.toString()).call()
         val lastCommit = hg.log().setStartRev(revision.toString()).setFollowPath(path).call().firstOrNull()
-        val commit = lastCommit?.let { HgCommit(it, userResolver) }
+        val commit = lastCommit?.let { HgCommit(it, userResolver, gpgVerifier) }
         val user = commit?.getAuthor()
 
         val isBinary = bytes.contains(0)
@@ -184,7 +189,7 @@ class HgRepository(
             logCommand.call()
                 .drop(pageNum * pageSize)
                 .take(pageSize)
-                .map { HgCommit(it, userResolver) }
+                .map { HgCommit(it, userResolver, gpgVerifier) }
         }
     }
 
@@ -193,7 +198,7 @@ class HgRepository(
             val revNum = resolveRevisionNumber(hg, rev) ?: return@useHg null
             hg.log().setStartRev(revNum.toString()).call()
                 .find { it.revision == revNum }
-                ?.let { HgCommit(it, userResolver) }
+                ?.let { HgCommit(it, userResolver, gpgVerifier) }
         }
     }
 
@@ -261,7 +266,7 @@ class HgRepository(
             bookmarks.mapNotNull { (name, hex) ->
                 val revNum = resolveRevisionNumber(hg, hex) ?: return@mapNotNull null
                 val native = nativeCommitAt(hg, revNum) ?: return@mapNotNull null
-                val commit = HgCommit(native, userResolver)
+                val commit = HgCommit(native, userResolver, gpgVerifier)
                 val user = userResolver(commit.getAuthorName(), commit.getAuthorEmail())
                 GitBranch("refs/heads/$name", commit, user)
             }
@@ -274,7 +279,7 @@ class HgRepository(
             val hex = hg.bookmark().call()[activeName] ?: return@useHg null
             val revNum = resolveRevisionNumber(hg, hex) ?: return@useHg null
             val native = nativeCommitAt(hg, revNum) ?: return@useHg null
-            val commit = HgCommit(native, userResolver)
+            val commit = HgCommit(native, userResolver, gpgVerifier)
             val user = userResolver(commit.getAuthorName(), commit.getAuthorEmail())
             GitBranch("refs/heads/$activeName", commit, user)
         }
@@ -329,7 +334,7 @@ class HgRepository(
                 .filter { it.name != "tip" }
                 .mapNotNull { tag ->
                     val native = commits.find { it.revision == tag.rev } ?: return@mapNotNull null
-                    val commit = HgCommit(native, userResolver)
+                    val commit = HgCommit(native, userResolver, gpgVerifier)
                     val user = userResolver(commit.getAuthorName(), commit.getAuthorEmail())
                     // Mercurial 태그는 git의 annotated 태그처럼 별도의 태거 신원/GPG 서명을 갖는
                     // 오브젝트가 아니다(태그 자체는 그냥 `.hgtags`에 커밋된 텍스트 한 줄이고,
@@ -382,7 +387,7 @@ class HgRepository(
         return useHg { hg ->
             val revNum = resolveRevisionNumber(hg, commitId) ?: return@useHg null
             if (revNum <= 0) return@useHg null
-            hg.log().call().find { it.revision == revNum - 1 }?.let { HgCommit(it, userResolver) }
+            hg.log().call().find { it.revision == revNum - 1 }?.let { HgCommit(it, userResolver, gpgVerifier) }
         }
     }
 

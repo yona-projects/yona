@@ -44,14 +44,16 @@ class RepositoryService(
             HgRepository(
                 ownerName = project.owner ?: "",
                 projectName = project.name,
-                baseDir = hgBaseDir
-            ) { _, email ->
-                if (email != null) {
-                    userRepository.findByEmail(email).orElse(null)
-                } else {
-                    null
-                }
-            }
+                baseDir = hgBaseDir,
+                userResolver = { _, email ->
+                    if (email != null) {
+                        userRepository.findByEmail(email).orElse(null)
+                    } else {
+                        null
+                    }
+                },
+                gpgVerifier = { nativeHgCommit -> gpgSignatureVerifier.verify(nativeHgCommit) }
+            )
         } else {
             GitRepository(
                 ownerName = project.owner ?: "",

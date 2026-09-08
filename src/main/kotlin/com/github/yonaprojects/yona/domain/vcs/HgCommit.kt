@@ -11,7 +11,12 @@ import java.util.TimeZone
 // 이름이 hg4j 쪽과 같아(HgCommit) 파일 안에서는 별칭(NativeHgCommit)으로 구분한다.
 class HgCommit(
     private val native: NativeHgCommit,
-    private val userResolver: (String?, String?) -> User?
+    private val userResolver: (String?, String?) -> User?,
+    // yona-wiki P3-19 — 커밋 목록/상세 화면의 GPG Verified 배지 계산. GitCommit.kt와 동일한 패턴:
+    // 기본값은 항상 UNSIGNED로 판정하는 no-op(GpgSignatureVerifier를 굳이 주입하지 않는 기존
+    // 호출부/테스트가 그대로 동작하게 하기 위함). RepositoryService/HgRepository가 실제
+    // GpgSignatureVerifier.verify(NativeHgCommit)를 넘겨준다.
+    private val gpgVerifier: (NativeHgCommit) -> GpgVerificationStatus = { GpgVerificationStatus.UNSIGNED }
 ) : Commit() {
 
     // 레거시 Mercurial 관례("Full Name <email@example.com>") 파싱 — JGit의 PersonIdent와 달리
@@ -19,13 +24,10 @@ class HgCommit(
     // 저장 형식 자체가 분리되어 있지 않음).
     private val authorNameAndEmail: Pair<String, String?> by lazy {
         val raw = native.author
+        val email = parseAuthorEmail(raw)
         val match = AUTHOR_PATTERN.matchEntire(raw)
-        if (match != null) {
-            val (name, email) = match.destructured
-            (name.trim().ifEmpty { raw } to email)
-        } else {
-            raw to null
-        }
+        val name = if (match != null) match.destructured.component1().trim().ifEmpty { raw } else raw
+        name to email
     }
 
     override fun getShortId(): String = native.nodeId.toString()
@@ -66,13 +68,18 @@ class HgCommit(
     override fun getParentCount(): Int = if (native.revision == 0) 0 else 1
 
     override fun getGpgVerificationStatus(): GpgVerificationStatus {
-        // yona-wiki P3-12 1라운드 범위 밖 — Mercurial의 GPG 서명 검증은 커밋 확장(gpg) 별도 조사가
-        // 필요해 이번 라운드에서는 다루지 않는다(Git의 GpgSignatureVerifier와 동일한 수준으로 만들
-        // 근거가 아직 없음).
-        return GpgVerificationStatus.UNSIGNED
+        return gpgVerifier(native)
     }
 
     companion object {
         private val AUTHOR_PATTERN = Regex("""^(.*?)\s*<(.+)>$""")
+
+        // yona-wiki P3-19 — HgCommit 인스턴스(userResolver 등 다른 의존성) 없이도 hg4j의 원본
+        // author 문자열에서 이메일만 뽑아야 하는 곳(GpgSignatureVerifier.verify(NativeHgCommit))이
+        // 있어 공개 유틸로 뺀다 — 정규식을 두 곳에 따로 두지 않기 위함.
+        fun parseAuthorEmail(raw: String): String? {
+            val match = AUTHOR_PATTERN.matchEntire(raw) ?: return null
+            return match.destructured.component2()
+        }
     }
 }
