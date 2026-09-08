@@ -298,5 +298,5 @@
 | P3-21 | [ ] | Mercurial 브랜치 보호 정책(require_pull_request 등) 미적용 — HTTP/SSH 어느 경로에도 없음 | (2026-09-09 사용자 지시) | [[tickets/p3-21]] |
 | P3-22 | [ ] | Mercurial push 시 알림/웹훅/PushedBranch(최근 push 브랜치) 추적 미발행 | (2026-09-09 사용자 지시) | [[tickets/p3-22]] |
 | P3-23 | [ ] | Mercurial named branch(`hg branch`) 읽기/쓰기 지원 및 UI 노출 없음 | (2026-09-09 사용자 지시) | [[tickets/p3-23]] |
-| P3-24 | [ ] | hg4j `GpgSignature`가 RSA 키로 하드코딩돼 있어 EdDSA 등 다른 알고리즘 서명을 검증 못 함 | (2026-09-09 사용자 지시) | [[tickets/p3-24]] |
+| P3-24 | [x] | hg4j `GpgSignature`가 RSA 키로 하드코딩돼 있어 EdDSA 등 다른 알고리즘 서명을 검증 못 함 | (2026-09-09 사용자 지시) | [[tickets/p3-24]] |
 | P3-25 | [ ] | hg4j `Wire1CommandsCoverageTest`의 기존 flaky 실패(빈 저장소 changegroup) 근본 수정 | (2026-09-09 사용자 지시) | [[tickets/p3-25]] |
