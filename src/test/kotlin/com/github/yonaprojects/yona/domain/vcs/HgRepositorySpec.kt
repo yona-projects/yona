@@ -7,7 +7,9 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import org.eclipse.jgit.diff.DiffEntry
 import java.io.File
 import java.nio.file.Files
 
@@ -29,6 +31,13 @@ class HgRepositorySpec : DescribeSpec({
     }
 
     fun noUser(name: String?, email: String?): User? = null
+
+    fun removeFile(repoDir: File, path: String, message: String, author: String = "tester <tester@example.com>") {
+        Hg.open(repoDir).use { hg ->
+            hg.remove().setFile(path).call()
+            hg.commit().setAuthor(author).setMessage(message).call()
+        }
+    }
 
     describe("create()") {
         it("빈 디렉터리에 새 hg 저장소를 만든다") {
@@ -397,6 +406,256 @@ class HgRepositorySpec : DescribeSpec({
             shouldThrow<IllegalArgumentException> {
                 repo.deleteTag("no-such-tag")
             }
+        }
+    }
+
+    // yona-wiki P3-12 2라운드 마무리 — GitRepositorySpec의 "getPatch()"/"getDiff() - commitId
+    // 단일/두 리비전"/"getFileDiffs() - 파일별 diff 상세" describe 블록과 동일한 구성/신뢰 수준으로,
+    // hg4j 포셀린 API(commitFile/removeFile)로 실제 로컬 저장소를 만들어 검증한다.
+    describe("getPatch()") {
+        it("commitId 하나로 호출하면 부모 커밋과의 diff를 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-patch1", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "line1\nline2\n", "첫 커밋")
+            commitFile(repo.getDirectory(), "a.txt", "line1\nline2-changed\n", "수정 커밋")
+            val commit2 = repo.getCommit("tip")!!
+
+            val patch = repo.getPatch(commit2.getId())
+
+            patch shouldContain "-line2"
+            patch shouldContain "+line2-changed"
+        }
+
+        it("부모가 없는 최초 커밋을 조회하면 빈 매니페스트와의 diff(전체 추가)를 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-patch2", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "hello\n", "최초 커밋")
+            val commit1 = repo.getCommit("tip")!!
+
+            val patch = repo.getPatch(commit1.getId())
+
+            patch shouldContain "+hello"
+        }
+
+        it("존재하지 않는 commitId는 빈 문자열을 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-patch3", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "content", "커밋")
+
+            repo.getPatch("no-such-rev") shouldBe ""
+        }
+
+        it("두 리비전을 지정하면 그 사이의 diff를 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-patch4", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "original\n", "v1")
+            val commit1 = repo.getCommit("tip")!!
+            commitFile(repo.getDirectory(), "a.txt", "changed\n", "v2")
+            val commit2 = repo.getCommit("tip")!!
+
+            val patch = repo.getPatch(commit1.getId(), commit2.getId())
+
+            patch shouldContain "-original"
+            patch shouldContain "+changed"
+        }
+
+        it("revA가 존재하지 않으면 빈 문자열을 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-patch5", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "content", "커밋")
+            val commit1 = repo.getCommit("tip")!!
+
+            repo.getPatch("no-such-rev", commit1.getId()) shouldBe ""
+        }
+
+        it("revB가 존재하지 않으면 빈 문자열을 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-patch6", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "content", "커밋")
+            val commit1 = repo.getCommit("tip")!!
+
+            repo.getPatch(commit1.getId(), "no-such-rev") shouldBe ""
+        }
+    }
+
+    describe("getDiff() - commitId 단일/두 리비전") {
+        it("commitId 하나로 호출하면 부모와의 FileDiff 목록을 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-diff1", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "line1\n", "첫 커밋")
+            commitFile(repo.getDirectory(), "a.txt", "line1\nline2\n", "수정 커밋")
+            val commit2 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit2.getId())
+
+            diffs.size shouldBe 1
+            val fileDiff = diffs[0] as FileDiff
+            fileDiff.changeType shouldBe DiffEntry.ChangeType.MODIFY
+            fileDiff.commitB shouldBe commit2.getId()
+        }
+
+        it("부모가 없는 최초 커밋을 조회하면 전체가 ADD로 표시된다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-diff2", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "hello\n", "최초 커밋")
+            val commit1 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit1.getId())
+
+            diffs.size shouldBe 1
+            (diffs[0] as FileDiff).changeType shouldBe DiffEntry.ChangeType.ADD
+            (diffs[0] as FileDiff).commitA.shouldBeNull()
+        }
+
+        it("존재하지 않는 commitId는 빈 리스트를 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-diff3", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "content", "커밋")
+
+            repo.getDiff("no-such-rev") shouldBe emptyList()
+        }
+
+        it("두 리비전을 지정하면 그 사이의 FileDiff 목록을 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-diff4", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "v1\n", "v1")
+            val commit1 = repo.getCommit("tip")!!
+            commitFile(repo.getDirectory(), "a.txt", "v2\n", "v2")
+            val commit2 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit1.getId(), commit2.getId())
+
+            diffs.size shouldBe 1
+        }
+
+        it("revA가 존재하지 않으면 빈 매니페스트와의 diff(ADD)로 처리된다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-diff5", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "content\n", "커밋")
+            val commit1 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff("no-such-rev", commit1.getId())
+
+            diffs.size shouldBe 1
+            (diffs[0] as FileDiff).changeType shouldBe DiffEntry.ChangeType.ADD
+        }
+
+        it("revB가 존재하지 않으면 빈 매니페스트와의 diff(DELETE)로 처리된다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-diff6", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "content\n", "커밋")
+            val commit1 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit1.getId(), "no-such-rev")
+
+            diffs.size shouldBe 1
+            (diffs[0] as FileDiff).changeType shouldBe DiffEntry.ChangeType.DELETE
+        }
+    }
+
+    describe("getFileDiffs() - 파일별 diff 상세(getDiff를 통해 검증)") {
+        it("새 파일 추가(ADD)는 pathB/텍스트 내용이 채워지고 pathA는 null이다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-fd1", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "new.txt", "added content\n", "추가")
+            val commit1 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit1.getId())
+
+            val fd = diffs[0] as FileDiff
+            fd.changeType shouldBe DiffEntry.ChangeType.ADD
+            fd.pathB shouldBe "new.txt"
+            fd.pathA shouldBe null
+            fd.isBinaryB shouldBe false
+            fd.b shouldNotBe null
+            fd.b!!.getString(0) shouldBe "added content"
+        }
+
+        it("파일 수정(MODIFY)은 editList와 hunks가 계산된다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-fd2", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", (0..9).joinToString("\n") { "line$it" } + "\n", "v1")
+            commitFile(repo.getDirectory(), "a.txt", (0..9).joinToString("\n") { if (it == 5) "CHANGED" else "line$it" } + "\n", "v2")
+            val commit2 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit2.getId())
+
+            val fd = diffs[0] as FileDiff
+            fd.changeType shouldBe DiffEntry.ChangeType.MODIFY
+            fd.editList shouldNotBe null
+            fd.getHunks() shouldNotBe null
+        }
+
+        it("이전 커밋이 있는 상태에서 새 파일을 추가하면 그 파일 항목만 ADD로 표시된다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-fd3", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "existing.txt", "v1\n", "v1")
+            commitFile(repo.getDirectory(), "existing.txt", "v2\n", "v2 수정")
+            Hg.open(repo.getDirectory()).use { hg ->
+                File(repo.getDirectory(), "new.txt").writeText("brand new\n")
+                hg.add().addFile("new.txt").call()
+                hg.commit().setAuthor("tester <tester@example.com>").setMessage("새 파일 추가").call()
+            }
+            val commit3 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit3.getId())
+
+            diffs.size shouldBe 1
+            val added = diffs[0] as FileDiff
+            added.pathB shouldBe "new.txt"
+            added.changeType shouldBe DiffEntry.ChangeType.ADD
+            added.pathA shouldBe null
+        }
+
+        it("파일 삭제(DELETE)는 pathA만 채워지고 pathB는 null이다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-fd4", baseDir, ::noUser)
+            repo.create()
+            commitFile(repo.getDirectory(), "a.txt", "content\n", "추가")
+            removeFile(repo.getDirectory(), "a.txt", "삭제")
+            val commit2 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit2.getId())
+
+            val fd = diffs[0] as FileDiff
+            fd.changeType shouldBe DiffEntry.ChangeType.DELETE
+            fd.pathA shouldBe "a.txt"
+            fd.pathB shouldBe null
+            fd.a shouldNotBe null
+        }
+
+        it("바이너리(NUL 포함) 파일 추가는 isBinaryB=true이고 b는 null이다") {
+            val baseDir = newTempBaseDir()
+            val repo = HgRepository("owner", "p-fd5", baseDir, ::noUser)
+            repo.create()
+            val binFile = File(repo.getDirectory(), "bin.dat")
+            binFile.writeBytes(byteArrayOf(1, 2, 0, 3))
+            Hg.open(repo.getDirectory()).use { hg ->
+                hg.add().addFile("bin.dat").call()
+                hg.commit().setAuthor("tester <tester@example.com>").setMessage("바이너리 추가").call()
+            }
+            val commit1 = repo.getCommit("tip")!!
+
+            val diffs = repo.getDiff(commit1.getId())
+
+            val fd = diffs[0] as FileDiff
+            fd.isBinaryB shouldBe true
+            fd.b shouldBe null
         }
     }
 })

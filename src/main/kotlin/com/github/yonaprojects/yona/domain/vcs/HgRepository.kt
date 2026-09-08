@@ -1,16 +1,24 @@
 package com.github.yonaprojects.yona.domain.vcs
 
+import com.github.yonaprojects.yona.domain.support.FileUtil
 import com.github.yonaprojects.yona.domain.user.User
 import io.github.search5.hg4j.api.CatCommand
+import io.github.search5.hg4j.api.DiffCommand
 import io.github.search5.hg4j.api.Hg
 import io.github.search5.hg4j.api.LogCommand
 import io.github.search5.hg4j.lib.NodeId
+import org.eclipse.jgit.diff.DiffAlgorithm
+import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.diff.RawText
+import org.eclipse.jgit.diff.RawTextComparator
+import org.eclipse.jgit.lib.FileMode
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.node.ObjectNode
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.OutputStream
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -169,15 +177,230 @@ class HgRepository(
         }
     }
 
-    // yona-wiki P3-12 2라운드 과제 — hg4j의 DiffCommand로 통합 diff 생성 가능하나, Git/SVN이 만드는
-    // patch 포맷(unified diff 텍스트)과의 정합을 이번 라운드에서 확정하지 않는다.
-    override fun getPatch(commitId: String): String = throw UnsupportedOperationException()
+    // yona-wiki P3-12 2라운드 마무리(회고 2026-09-08/09) — GitRepository.getPatch()/getDiff()와
+    // 동일한 아키텍처로 구현한다: hg4j의 DiffCommand(io.github.search5.hg4j.api.DiffCommand)는 두
+    // 리비전의 매니페스트(git의 tree에 대응)를 비교해 변경된 경로+ChangeType(ADD/MODIFY/DELETE)
+    // 목록을 이미 정확히 계산해준다(TreeWalk+ManifestTreeIterator, hg의 "hard part") — 이 목록만
+    // 재사용하고, 각 파일의 old/new 콘텐츠 바이트는 CatCommand로 직접 가져와(HgRepository의 기존
+    // fileAsJson()과 동일한 hg.cat().setFile(path).setRevision(rev) 패턴) JGit의 DiffAlgorithm/
+    // RawText/EditList로 직접 라인 단위 diff를 계산한다 — DiffCommand 자신의 사전 렌더링된 유니파이드
+    // diff 텍스트(getDiffContent())는 파싱해 되돌리지 않는다(왕복 변환은 우회로일 뿐). FileDiff가
+    // JGit의 EditList/RawText 위에 지어져 있어(FileDiff.kt 상단 참고, hunk 분할/interestLine/사이즈
+    // 제한 로직이 전부 진짜 EditList를 전제) 이 방식이 git 쪽과 완전히 동일한 소비자 계약
+    // (getDiff()가 실제 List<FileDiff>를 반환 — PullRequestServiceImpl의 unchecked cast가 성립해야
+    // 함)을 만족시키는 유일한 선택이다.
+    //
+    // "부모" 리비전 해석은 이 파일의 getParentCommitOf()/HgCommit.getParentCount()가 이미 채택한
+    // 근사(리비전 번호 - 1)를 그대로 따른다 — hg4j의 공개 porcelain API에는 특정 changeset의 실제
+    // parent1 리비전 번호를 노출하는 명령이 없다(ParentsCommand는 워킹 디렉터리의 부모만 노출).
+    // revNum == 0(최초 커밋)일 때 revNum - 1 == -1이 되는데, 이는 hg4j의 ManifestTreeIterator/
+    // DiffCommand 자체가 "매니페스트 없음(빈 트리)"으로 해석하는 정확히 그 sentinel 값과 일치한다
+    // (ManifestTreeIterator.loadEntries()가 revision == "-1"에서 즉시 빈 목록을 반환) — git 쪽의
+    // EmptyTreeIterator(첫 커밋의 부모)에 대응.
+    override fun getPatch(commitId: String): String {
+        return useHg { hg ->
+            val revNum = resolveRevisionNumber(hg, commitId) ?: return@useHg ""
+            val oldRevNum = if (revNum > 0) revNum - 1 else -1
+            buildPatchText(hg, oldRevNum, revNum)
+        }
+    }
 
-    override fun getPatch(revA: String, revB: String): String = throw UnsupportedOperationException()
+    override fun getPatch(revA: String, revB: String): String {
+        return useHg { hg ->
+            val oldRevNum = resolveRevisionNumber(hg, revA) ?: return@useHg ""
+            val newRevNum = resolveRevisionNumber(hg, revB) ?: return@useHg ""
+            buildPatchText(hg, oldRevNum, newRevNum)
+        }
+    }
 
-    override fun getDiff(commitId: String): List<Any> = throw UnsupportedOperationException()
+    // revA/revB 중 하나가 존재하지 않는 리비전이면 GitRepository.getPatch()와 동일하게 빈 문자열을
+    // 반환한다(getDiff()와 달리 "존재하지 않음 == 빈 트리"로 근사하지 않는다 — Git 쪽 선례 그대로).
+    private fun buildPatchText(hg: Hg, oldRevNum: Int, newRevNum: Int): String {
+        val entries = computeChangedEntries(hg, oldRevNum, newRevNum)
+        if (entries.isEmpty()) return ""
 
-    override fun getDiff(revA: String, revB: String): List<Any> = throw UnsupportedOperationException()
+        // 실제 `hg diff`의 파일별 구분 헤더("diff -r <짧은노드ID> -r <짧은노드ID> <path>")를 그대로
+        // 재현한다 — DiffCommand.DiffEntry.getDiffContent()는 "--- .../+++ .../@@ ..." 본문만 주고
+        // 이 구분 헤더는 만들지 않는다(여러 파일의 diffContent를 그냥 이어붙이면 파일 경계가 애매해짐).
+        val oldHex = if (oldRevNum >= 0) nativeCommitAt(hg, oldRevNum)?.nodeId?.toHex()?.take(12) else null
+        val newHex = if (newRevNum >= 0) nativeCommitAt(hg, newRevNum)?.nodeId?.toHex()?.take(12) else null
+        val nullParentHex = "0".repeat(12)
+
+        val sb = StringBuilder()
+        for (entry in entries) {
+            sb.append("diff -r ").append(oldHex ?: nullParentHex)
+                .append(" -r ").append(newHex ?: nullParentHex)
+                .append(" ").append(entry.path).append("\n")
+            sb.append(entry.diffContent)
+        }
+        return sb.toString()
+    }
+
+    override fun getDiff(commitId: String): List<Any> {
+        return useHg { hg ->
+            val revNum = resolveRevisionNumber(hg, commitId) ?: return@useHg emptyList()
+            val oldRevNum = if (revNum > 0) revNum - 1 else -1
+            getFileDiffs(hg, oldRevNum, revNum)
+        }
+    }
+
+    // GitRepository.getDiff(revA, revB)와 동일하게, revA/revB 중 하나가 존재하지 않는 리비전이면
+    // (resolveRevisionNumber가 null을 반환하면) "빈 트리"로 근사한다(revNum -1) — revA가 없으면
+    // 전부 ADD, revB가 없으면 전부 DELETE로 나타난다. getDiff(commitId) 단일 인자 오버로드와 달리
+    // 여기서는 존재하지 않아도 빈 리스트로 조기 반환하지 않는다(Git 쪽 GitRepositorySpec의 대응
+    // 테스트 관례를 그대로 따름).
+    override fun getDiff(revA: String, revB: String): List<Any> {
+        return useHg { hg ->
+            val oldRevNum = resolveRevisionNumber(hg, revA) ?: -1
+            val newRevNum = resolveRevisionNumber(hg, revB) ?: -1
+            getFileDiffs(hg, oldRevNum, newRevNum)
+        }
+    }
+
+    // GitRepository.getFileDiffs()의 hg 대응. oldRevNum/newRevNum은 -1이면 "리비전 없음(빈 매니페스트)"
+    // — DiffCommand/ManifestTreeIterator 양쪽이 공유하는 동일한 sentinel이라 별도 널 처리 없이 그대로
+    // 넘긴다. 파일 크기/전체 diff 크기 제한(diffFileLimit/diffSizeLimit/diffLineLimit)도 Git 쪽과
+    // 동일한 상수로 재현해 병적으로 큰 diff가 커밋 상세/PR 페이지를 그대로 무너뜨리지 않게 한다.
+    private fun getFileDiffs(hg: Hg, oldRevNum: Int, newRevNum: Int): List<FileDiff> {
+        val entries = computeChangedEntries(hg, oldRevNum, newRevNum)
+
+        val commitAHex = if (oldRevNum >= 0) nativeCommitAt(hg, oldRevNum)?.nodeId?.toHex() else null
+        val commitBHex = if (newRevNum >= 0) nativeCommitAt(hg, newRevNum)?.nodeId?.toHex() else null
+
+        // hg4j의 TreeCommand.TreeEntry.mode는 git 스타일 전체 비트마스크가 아니라 0644/0755(실행
+        // 파일)/0120000(심볼릭 링크)만 담는 단순화된 값이다(TreeCommand.call() 참고) — FileMode로
+        // 정규화해 PR diff 파셜(partial_filediff.html)의 isFileModeChanged()가 최소한 "파일 실행
+        // 권한 변경/심볼릭 링크 여부" 정도는 git과 동일한 방식으로 판정할 수 있게 한다.
+        val oldModes = if (oldRevNum >= 0) hg.tree().setRevision(oldRevNum).call().associate { it.path to it.mode } else emptyMap()
+        val newModes = if (newRevNum >= 0) hg.tree().setRevision(newRevNum).call().associate { it.path to it.mode } else emptyMap()
+
+        val diffFileLimit = 1000
+        val diffSizeLimit = 1000000
+        val diffLineLimit = 20000
+        var totalSize = 0
+        var totalLines = 0
+
+        val result = ArrayList<FileDiff>()
+        for (entry in entries) {
+            val fileDiff = FileDiff()
+            fileDiff.commitA = commitAHex
+            fileDiff.commitB = commitBHex
+            fileDiff.changeType = when (entry.changeType) {
+                DiffCommand.ChangeType.ADD -> DiffEntry.ChangeType.ADD
+                DiffCommand.ChangeType.DELETE -> DiffEntry.ChangeType.DELETE
+                DiffCommand.ChangeType.MODIFY -> DiffEntry.ChangeType.MODIFY
+                null -> DiffEntry.ChangeType.MODIFY
+            }
+
+            val path = entry.path
+
+            if (totalSize > diffSizeLimit || totalLines > diffLineLimit) {
+                if (fileDiff.changeType != DiffEntry.ChangeType.ADD) fileDiff.pathA = path
+                if (fileDiff.changeType != DiffEntry.ChangeType.DELETE) fileDiff.pathB = path
+                fileDiff.addError(FileDiff.Error.OTHERS_SIZE_EXCEEDED)
+                result.add(fileDiff)
+                if (result.size > diffFileLimit) break
+                continue
+            }
+
+            var rawA: ByteArray? = null
+            if (fileDiff.changeType != DiffEntry.ChangeType.ADD) {
+                fileDiff.pathA = path
+                fileDiff.oldMode = toFileMode(oldModes[path])
+                try {
+                    rawA = hg.cat().setFile(path).setRevision(oldRevNum.toString()).call()
+                    fileDiff.isBinaryA = RawText.isBinary(rawA)
+                    fileDiff.a = if (fileDiff.isBinaryA) {
+                        null
+                    } else {
+                        val charsetStr = FileUtil.detectCharset(rawA)
+                        val str = String(rawA, Charset.forName(charsetStr))
+                        RawText(str.toByteArray(StandardCharsets.UTF_8))
+                    }
+                } catch (e: Exception) {
+                    fileDiff.addError(FileDiff.Error.A_SIZE_EXCEEDED)
+                }
+            }
+
+            var rawB: ByteArray? = null
+            if (fileDiff.changeType != DiffEntry.ChangeType.DELETE) {
+                fileDiff.pathB = path
+                fileDiff.newMode = toFileMode(newModes[path])
+                try {
+                    rawB = hg.cat().setFile(path).setRevision(newRevNum.toString()).call()
+                    fileDiff.isBinaryB = RawText.isBinary(rawB)
+                    fileDiff.b = if (fileDiff.isBinaryB) {
+                        null
+                    } else {
+                        val charsetStr = FileUtil.detectCharset(rawB)
+                        val str = String(rawB, Charset.forName(charsetStr))
+                        RawText(str.toByteArray(StandardCharsets.UTF_8))
+                    }
+                } catch (e: Exception) {
+                    fileDiff.addError(FileDiff.Error.B_SIZE_EXCEEDED)
+                }
+            }
+
+            if (fileDiff.a != null && fileDiff.b != null && !(fileDiff.isBinaryA || fileDiff.isBinaryB) &&
+                fileDiff.changeType == DiffEntry.ChangeType.MODIFY
+            ) {
+                val diffAlgorithm = DiffAlgorithm.getAlgorithm(DiffAlgorithm.SupportedAlgorithm.HISTOGRAM)
+                fileDiff.editList = diffAlgorithm.diff(RawTextComparator.DEFAULT, fileDiff.a, fileDiff.b)
+                val hunks = fileDiff.getHunks()
+                if (hunks != null) {
+                    totalSize += hunks.totalSize
+                    totalLines += hunks.lines
+                }
+            }
+
+            if (fileDiff.b != null && !fileDiff.isBinaryB && fileDiff.changeType == DiffEntry.ChangeType.ADD) {
+                totalLines += fileDiff.b!!.size()
+                rawB?.let { totalSize += it.size }
+            }
+
+            if (fileDiff.a != null && !fileDiff.isBinaryA && fileDiff.changeType == DiffEntry.ChangeType.DELETE) {
+                totalLines += fileDiff.a!!.size()
+                rawA?.let { totalSize += it.size }
+            }
+
+            result.add(fileDiff)
+            if (result.size > diffFileLimit) break
+        }
+
+        return result
+    }
+
+    // 주의: 코틀린에는 자바의 8진수 리터럴 표기(0755 등)가 없다 — 여기서 비교하는 값은 hg4j
+    // TreeCommand.call()이 실제로 만드는 자바 8진수 리터럴(0644/0755/0120000)의 10진수 값
+    // (420/493/40960)이다. 리터럴로 8진수를 그대로 옮겨 적으면 10진수로 잘못 해석되어(120000,
+    // 755) 절대 매치되지 않는 조용한 버그가 되므로 10진수로 명시하고 주석에 원래 8진수 값을 남긴다.
+    // hg4j의 DiffCommand는 oldRevision/newRevision 두 sentinel을 대칭적으로 다루지 않는다 —
+    // oldRevision은 리터럴 -1을 (auto-default용 -2와 별개로) 그대로 ManifestTreeIterator에 넘겨
+    // "빈 매니페스트"로 정확히 처리하지만(loadEntries()의 "-1" 조기 반환), newRevision은 자기 자신의
+    // "값 미지정" sentinel이 -1이라(생성자 주석 "// -1 defaults to tip" 참고) newRevision에 리터럴
+    // -1을 넘기면 "빈 매니페스트"가 아니라 "tip으로 대체"돼 버린다 — revB가 존재하지 않는 커밋일 때
+    // (getDiff(revA, revB)가 newRevNum=-1로 근사하는 경우) DiffCommand에 그대로 넘기면 엉뚱하게
+    // tip과의 diff가 계산되는 조용한 버그가 된다(HgRepositorySpec에서 실제로 재현/확인함). new쪽이
+    // 없는 경우는 DiffCommand를 아예 거치지 않고, old쪽 매니페스트 전체를 DELETE로 직접 합성한다
+    // (old쪽도 없으면 — 즉 둘 다 존재하지 않으면 — 빈 결과).
+    private fun computeChangedEntries(hg: Hg, oldRevNum: Int, newRevNum: Int): List<DiffCommand.DiffEntry> {
+        if (newRevNum < 0) {
+            if (oldRevNum < 0) return emptyList()
+            return hg.tree().setRevision(oldRevNum).call().map { treeEntry ->
+                DiffCommand.DiffEntry(treeEntry.path, DiffCommand.ChangeType.DELETE, "")
+            }
+        }
+        return hg.diff().setOldRevision(oldRevNum).setNewRevision(newRevNum).call()
+    }
+
+    private fun toFileMode(rawMode: Int?): FileMode {
+        return when (rawMode) {
+            null -> FileMode.MISSING
+            40960 -> FileMode.SYMLINK // 0120000
+            493 -> FileMode.EXECUTABLE_FILE // 0755
+            else -> FileMode.REGULAR_FILE // 0644 (기본값)
+        }
+    }
 
     override fun getHistory(pageNum: Int, pageSize: Int, untilRev: String?, path: String?): List<Commit> {
         return useHg { hg ->
