@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.config.YonaAuthenticationProvider
 import com.github.yonaprojects.yona.domain.issue.RecentIssueService
+import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.user.Email
 import com.github.yonaprojects.yona.domain.user.EmailDomainValidator
@@ -35,6 +36,7 @@ class UserController(
     private val userSettingRepository: UserSettingRepository,
     private val organizationRepository: OrganizationRepository,
     private val yonaAuthenticationProvider: YonaAuthenticationProvider,
+    private val twoFactorService: TwoFactorService,
     @Value("\${yona.signup.allowed-email-domains:}")
     private val allowedEmailDomains: String,
     @Value("\${yona.signup.require-admin-confirm:false}")
@@ -434,6 +436,27 @@ class UserController(
     }
 
     data class UpdateUserStateRequest(val state: String)
+
+    // 계정 잠금 등 관리자 개입 시 2FA를 강제로 끌 수 있는 경로 — 계정 소유자가
+    // 기기를 분실해 2FA 자격증명(WebAuthn/TOTP/백업코드)에 접근할 수 없게 됐을 때 관리자가
+    // 대신 풀어주는 유일한 수단이다. 위 PATCH 엔드포인트와 같은 관리자 전용 패턴(사이트관리자만).
+    @PostMapping("/-_-api/v1/admin/users/{loginId}/disable-2fa")
+    fun disableTwoFactorByAdmin(
+        @PathVariable loginId: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val currentUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+        if (currentUser == null || !currentUser.isSiteManager) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val user = userRepository.findByLoginId(loginId).orElse(null)
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+        twoFactorService.disableAll(user)
+
+        return ResponseEntity.ok(mapOf("login_id" to user.loginId, "two_factor_enabled" to false))
+    }
 
     // yona UserApp.setDefaultLoginPage() 대응(레거시 Open API 경로 별칭 포함). 로그인 후 사이트
     // 루트로 접속했을 때 이동할 "기본 페이지"를 사용자별로 저장한다(리다이렉트 소비는

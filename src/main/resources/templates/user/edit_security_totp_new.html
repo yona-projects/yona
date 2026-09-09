@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{security.totp.add})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{security.totp.add}">TOTP 추가</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('security')}"></div>
+
+            <div th:if="${totpError != null}" class="alert alert-error mt20">
+                <span th:text="#{security.totp.verify.error}">코드가 올바르지 않습니다. 다시 시도해 주세요.</span>
+            </div>
+
+            <p th:text="#{security.totp.scan.instruction}">인증 앱(Google Authenticator, Authy 등)으로 아래 QR코드를 스캔하세요.</p>
+            <p><img th:src="${qrCodeDataUri}" alt="QR code" style="width: 200px; height: 200px;"></p>
+            <p>
+                <span th:text="#{security.totp.manualEntry}">수동 입력 키:</span>
+                <code th:text="${secret}">SECRET</code>
+            </p>
+
+            <form method="post" th:action="@{/user/editform/security/totp/{id}/verify(id=${credentialId})}" class="mt10">
+                <div class="mt10">
+                    <label th:text="#{security.totp.codeLabel}">앱에 표시된 6자리 코드</label>
+                    <input type="text" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="text"
+                           style="width: 160px; letter-spacing: 4px; text-align: center;" required autofocus>
+                </div>
+                <div class="mt10">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{security.totp.verify}">확인 및 활성화</button>
+                    <a th:href="@{/user/editform/security}" class="ybtn ml10" th:text="#{button.cancel}">취소</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+</body>
+</html>

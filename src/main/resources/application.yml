@@ -128,6 +128,20 @@ yona:
             client-id: dummy-client-id
             client-secret: dummy-client-secret
             scope: user:email,read:user
+    # 로컬 로그인 2FA(TOTP/WebAuthn). TOTP 시크릿은 로그인 시 원문 비교가 필요한 대칭 비밀이라
+    # 비밀번호 해시와 달리 단방향 해시가 아니라 암호화로 저장한다(TotpSecretEncryptor,
+    # Spring Security Encryptors.text 기반). password/salt 기본값은 개발 편의용 placeholder이므로
+    # 운영 배포 시 반드시 환경변수로 덮어써야 한다 — salt는 짝수 길이 hex 문자열이어야 한다.
+    totp:
+      encryption-password: "${YONA_TOTP_ENCRYPTION_PASSWORD:yona-totp-dev-only-password}"
+      encryption-salt: "${YONA_TOTP_ENCRYPTION_SALT:596f6e6132303236}"
+    webauthn:
+      relying-party-id: "${YONA_WEBAUTHN_RP_ID:localhost}"
+      relying-party-name: "${YONA_WEBAUTHN_RP_NAME:Yona}"
+      # navigator.credentials가 origin을 엄격히 검증하므로(HttpSecurity DSL을 거치지 않고
+      # Webauthn4JRelyingPartyOperations를 직접 쓰는 구조라 이 값이 유일한 origin 검증 지점)
+      # 배포 도메인이 다르면 반드시 실제 오리진(스킴+호스트+포트)으로 덮어써야 한다.
+      allowed-origins: "${YONA_WEBAUTHN_ALLOWED_ORIGINS:http://localhost:8080}"
   mail:
     host: localhost
     port: 1025

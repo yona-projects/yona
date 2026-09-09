@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.login2fa})}">
+</head>
+<body class="" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="page full">
+        <div class="center-wrap tag-line-wrap login">
+            <h1 class="title">
+                <span class="highlight" th:text="#{title.login2fa}">2단계 인증</span>
+            </h1>
+        </div>
+
+        <div class="login-form-wrap frm-wrap" style="max-width: 420px; margin: 0 auto;">
+            <div class="alert alert-danger" th:if="${twoFactorError}" th:text="#{login2fa.error}"
+                 style="margin: 10px 0; color: #b94a48; background-color: #f2dede; border: 1px solid #eed3d7; padding: 8px 14px; border-radius: 4px; text-align: left;"></div>
+
+            <!-- WebAuthn 단계: navigator.credentials.get()을 자동으로 트리거하고, 실패/거부 시
+                 구글 로그인처럼 "다시 시도"/"다른 방법 사용" 두 선택지를 보여준다(곧장 TOTP 화면으로
+                 흘려보내지 않는다). -->
+            <div id="webauthnStep" th:if="${step == 'webauthn'}">
+                <p th:text="#{login2fa.webauthn.prompt}">보안 키 또는 생체 인증을 사용해 주세요.</p>
+                <p id="webauthnStatus" style="color: #888;"></p>
+                <div id="webauthnFailureActions" style="display:none;">
+                    <button type="button" id="webauthnRetry" class="ybtn ybtn-primary ybtn-fullsize"
+                            th:text="#{login2fa.retry}">다시 시도</button>
+                    <a th:if="${hasTotp}" th:href="@{/users/login/2fa(method='totp')}"
+                       class="ybtn ybtn-fullsize mt10" th:text="#{login2fa.useAnotherMethod}">다른 방법 사용</a>
+                </div>
+            </div>
+
+            <!-- TOTP 단계 -->
+            <div id="totpStep" th:if="${step == 'totp'}">
+                <p th:text="#{login2fa.totp.prompt}">인증 앱에 표시된 6자리 코드를 입력해 주세요.</p>
+                <form th:action="@{/users/login/2fa/totp}" method="post">
+                    <input type="text" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                           autocomplete="one-time-code" class="text" required autofocus
+                           style="width: 100%; font-size: 20px; letter-spacing: 4px; text-align: center;">
+                    <div class="btns-row mt10">
+                        <button type="submit" class="ybtn ybtn-primary ybtn-fullsize" th:text="#{button.confirm}">확인</button>
+                    </div>
+                </form>
+                <div class="mt10" th:if="${hasWebauthn}">
+                    <a th:href="@{/users/login/2fa}" th:text="#{login2fa.useWebauthn}">보안 키 다시 사용</a>
+                </div>
+            </div>
+
+            <!-- 백업(복구) 코드 단계 -->
+            <div id="backupStep" th:if="${step == 'backup'}">
+                <p th:text="#{login2fa.backup.prompt}">발급받은 복구 코드 중 하나를 입력해 주세요.</p>
+                <form th:action="@{/users/login/2fa/backup}" method="post">
+                    <input type="text" name="code" class="text" required autofocus style="width: 100%;">
+                    <div class="btns-row mt10">
+                        <button type="submit" class="ybtn ybtn-primary ybtn-fullsize" th:text="#{button.confirm}">확인</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="mt10" th:if="${hasBackup and step != 'backup'}">
+                <a th:href="@{/users/login/2fa(method='backup')}" th:text="#{login2fa.useBackupCode}">복구 코드 사용</a>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script th:if="${step == 'webauthn'}" type="text/javascript" th:inline="javascript">
+    function base64urlToBuffer(base64url) {
+        var padded = base64url.replace(/-/g, '+').replace(/_/g, '/');
+        while (padded.length % 4 !== 0) { padded += '='; }
+        var binary = atob(padded);
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+        return bytes.buffer;
+    }
+
+    function bufferToBase64url(buffer) {
+        var bytes = new Uint8Array(buffer);
+        var binary = '';
+        for (var i = 0; i < bytes.byteLength; i++) { binary += String.fromCharCode(bytes[i]); }
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function startWebauthn() {
+        var statusEl = document.getElementById('webauthnStatus');
+        var failureEl = document.getElementById('webauthnFailureActions');
+        failureEl.style.display = 'none';
+        statusEl.textContent = /*[[#{login2fa.webauthn.waiting}]]*/ '기다리는 중...';
+
+        if (!window.PublicKeyCredential) {
+            statusEl.textContent = /*[[#{login2fa.webauthn.unsupported}]]*/ '이 브라우저는 보안 키를 지원하지 않습니다.';
+            failureEl.style.display = 'block';
+            return;
+        }
+
+        fetch('/users/login/2fa/webauthn/options', { method: 'POST', credentials: 'same-origin' })
+            .then(function(res) { return res.json(); })
+            .then(function(options) {
+                options.challenge = base64urlToBuffer(options.challenge);
+                if (options.allowCredentials) {
+                    options.allowCredentials.forEach(function(cred) { cred.id = base64urlToBuffer(cred.id); });
+                }
+                return navigator.credentials.get({ publicKey: options });
+            })
+            .then(function(assertion) {
+                var body = {
+                    id: assertion.id,
+                    type: assertion.type,
+                    rawId: bufferToBase64url(assertion.rawId),
+                    clientExtensionResults: {},
+                    response: {
+                        clientDataJSON: bufferToBase64url(assertion.response.clientDataJSON),
+                        authenticatorData: bufferToBase64url(assertion.response.authenticatorData),
+                        signature: bufferToBase64url(assertion.response.signature),
+                        userHandle: assertion.response.userHandle ? bufferToBase64url(assertion.response.userHandle) : null
+                    }
+                };
+                return fetch('/users/login/2fa/webauthn', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+            })
+            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(function(result) {
+                if (result.ok) {
+                    window.location.href = result.data.redirectUrl || '/';
+                } else {
+                    statusEl.textContent = result.data.error || /*[[#{login2fa.webauthn.failed}]]*/ '인증에 실패했습니다.';
+                    failureEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                statusEl.textContent = /*[[#{login2fa.webauthn.failed}]]*/ '인증에 실패했습니다.';
+                failureEl.style.display = 'block';
+            });
+    }
+
+    document.getElementById('webauthnRetry').addEventListener('click', startWebauthn);
+    startWebauthn();
+</script>
+</body>
+</html>

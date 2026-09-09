@@ -58,6 +58,14 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 	// SAML2 SP 연동. spring-boot-starter-security의 BOM이 버전을 관리하므로 별도 버전 고정 불필요.
 	implementation("org.springframework.security:spring-security-saml2-service-provider")
+	// 로컬 로그인 2FA(P3-43) 중 WebAuthn(보안 키/생체인증) 지원. Spring Security 7.1.1이 자체
+	// 내장(내부적으로 WebAuthn4J 사용) — 서드파티 불필요, 위 SAML2/OAuth2 Authorization Server와
+	// 동일하게 BOM이 버전을 관리해 버전 고정 없이 추가.
+	implementation("org.springframework.security:spring-security-webauthn")
+	// 2FA 중 TOTP(RFC 6238) 지원. Spring Security엔 내장 기능이 없어 별도 라이브러리 필요 —
+	// QR코드 PNG 생성까지 한 번에 해결되는 dev.samstevens.totp 채택(이 프로젝트엔 QR/zxing류
+	// 의존성이 전혀 없었음). Spring Boot BOM이 버전을 관리하지 않는 서드파티라 명시적으로 고정.
+	implementation("dev.samstevens.totp:totp:1.7.1")
 	// yona 자신이 OAuth2 인가 서버(Authorization Server)를 자체 운영하기 위한 라이브러리
 	// (Spring Security 7.0부터 본체에 병합돼 spring-boot-starter-security의 BOM이 버전을 관리).
 	// PKCE(S256 강제 기본값)/RFC7591 Dynamic Client Registration을 기본 제공하고, RFC8707
@@ -173,6 +181,12 @@ dependencies {
 	testImplementation("org.testcontainers:mssqlserver:1.21.4")
 	// CUBRID 공식 Testcontainers 모듈(testcontainers.com Official Module, CUBRID사 직접 관리).
 	testImplementation("org.cubrid:testcontainers-cubrid:0.1.0")
+
+	// WebAuthn 등록/인증 세리모니는 실제 브라우저 없이는 curl로 재현 불가능하다 — WebAuthn4J가
+	// 제공하는 가상 인증기(virtual authenticator) 테스트 유틸리티로 실제 attestation/assertion을
+	// 프로그래밍적으로 만들어 서버 측 검증 로직(서명 검증 포함)까지 실제로 태우는 통합테스트에 쓴다.
+	// spring-security-webauthn이 끌어오는 webauthn4j-core와 버전을 맞춰야 한다.
+	testImplementation("com.webauthn4j:webauthn4j-test:0.31.9.RELEASE")
 }
 
 kotlin {

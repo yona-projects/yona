@@ -22,6 +22,11 @@
       이메일 설정
     </a>
   </li>
+  <li th:class="${tabId == 'security'} ? 'active' : ''">
+    <a th:href="@{/user/editform/security}" th:text="#{userinfo.security}">
+      보안
+    </a>
+  </li>
   <li th:class="${tabId == 'token'} ? 'active' : ''">
     <a th:href="@{/user/editform/token}" th:text="#{userinfo.token}">
       사용자토큰

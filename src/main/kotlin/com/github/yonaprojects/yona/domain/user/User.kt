@@ -68,8 +68,19 @@ class User(
     var enrolledOrganizations: MutableList<Organization> = mutableListOf(),
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var emails: MutableList<Email> = mutableListOf()
+    var emails: MutableList<Email> = mutableListOf(),
+
+    // 2FA(TOTP/WebAuthn) 등록 여부 요약 캐시. 실제 등록 정보는 user_totp_credential/
+    // user_webauthn_credential/user_backup_code 세 테이블에 있고(ssh_key처럼 User와 분리된
+    // 1:N 테이블), 이 필드는 관리자 목록 등에서 조인 없이 빠르게 보여주기 위한 캐시일 뿐이다.
+    // 로그인 게이트처럼 보안에 민감한 판단은 이 캐시가 아니라 TwoFactorService가 실제 테이블을
+    // 조회해 판단한다(캐시 드리프트가 로그인 우회로 이어지지 않도록). 기존 채워진 테이블에 컬럼을
+    // 추가하는 것이라 여러 DB 방언에서 안전하게 걸리도록 nullable로 두고(NOT NULL 추가 시
+    // 방언별 DEFAULT 처리 차이를 피함), null은 false로 취급한다(hasTwoFactorEnabled() 참고).
+    @Column(name = "is_two_factor_enabled")
+    var isTwoFactorEnabled: Boolean? = false
 ) {
+    fun hasTwoFactorEnabled(): Boolean = isTwoFactorEnabled == true
     fun getPreferredLanguage(): String {
         return lang ?: Locale.getDefault().language
     }

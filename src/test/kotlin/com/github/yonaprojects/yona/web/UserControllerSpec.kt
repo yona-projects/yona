@@ -3,6 +3,7 @@ package com.github.yonaprojects.yona.web
 import com.github.yonaprojects.yona.config.YonaAuthenticationProvider
 import com.github.yonaprojects.yona.domain.issue.RecentIssue
 import com.github.yonaprojects.yona.domain.issue.RecentIssueService
+import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.organization.Organization
 import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.user.Email
@@ -54,14 +55,16 @@ class UserControllerSpec : DescribeSpec({
     val userSettingRepository = mockk<UserSettingRepository>()
     val organizationRepository = mockk<OrganizationRepository>()
     val yonaAuthenticationProvider = mockk<YonaAuthenticationProvider>()
+    val twoFactorService = mockk<TwoFactorService>()
     val userController = UserController(
         userService, userRepository, recentIssueService, userSettingRepository,
-        organizationRepository, yonaAuthenticationProvider, allowedEmailDomains = "", requireAdminConfirm = false
+        organizationRepository, yonaAuthenticationProvider, twoFactorService,
+        allowedEmailDomains = "", requireAdminConfirm = false
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(userController).build()
 
     beforeTest {
-        clearMocks(userService, userRepository, recentIssueService, userSettingRepository, organizationRepository, yonaAuthenticationProvider)
+        clearMocks(userService, userRepository, recentIssueService, userSettingRepository, organizationRepository, yonaAuthenticationProvider, twoFactorService)
     }
 
     describe("UserController 웹 API 테스트") {
@@ -834,7 +837,7 @@ class UserControllerSpec : DescribeSpec({
             it("허용된 이메일 도메인이 아니면 결과 배열의 해당 항목에 403을 담아야 한다") {
                 val restrictedController = UserController(
                     userService, userRepository, recentIssueService, userSettingRepository,
-                    organizationRepository, yonaAuthenticationProvider,
+                    organizationRepository, yonaAuthenticationProvider, twoFactorService,
                     allowedEmailDomains = "example.com", requireAdminConfirm = false
                 )
                 val restrictedMockMvc = MockMvcBuilders.standaloneSetup(restrictedController).build()
@@ -856,7 +859,7 @@ class UserControllerSpec : DescribeSpec({
             it("관리자 승인이 필요한 설정이면 생성된 사용자를 LOCKED 상태로 만들어야 한다") {
                 val confirmRequiredController = UserController(
                     userService, userRepository, recentIssueService, userSettingRepository,
-                    organizationRepository, yonaAuthenticationProvider,
+                    organizationRepository, yonaAuthenticationProvider, twoFactorService,
                     allowedEmailDomains = "", requireAdminConfirm = true
                 )
                 val confirmRequiredMockMvc = MockMvcBuilders.standaloneSetup(confirmRequiredController).build()
@@ -1090,6 +1093,41 @@ class UserControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.state").value("LOCKED"))
 
                 verify(exactly = 1) { userRepository.save(match { it.state == UserState.LOCKED }) }
+            }
+        }
+
+        // 계정 잠금 시 관리자가 2FA를 강제로 끌 수 있어야 한다는 요구사항 대응.
+        describe("POST /-_-api/v1/admin/users/{loginId}/disable-2fa") {
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
+
+            it("사이트관리자가 아니면 403을 반환해야 한다") {
+                every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
+
+                mockMvc.perform(post("/-_-api/v1/admin/users/gildong/disable-2fa").principal(auth))
+                    .andExpect(status().isForbidden)
+
+                verify(exactly = 0) { twoFactorService.disableAll(any()) }
+            }
+
+            it("대상 사용자를 찾을 수 없으면 404를 반환해야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByLoginId("nobody") } returns Optional.empty()
+
+                mockMvc.perform(post("/-_-api/v1/admin/users/nobody/disable-2fa").principal(adminAuth))
+                    .andExpect(status().isNotFound)
+            }
+
+            it("사이트관리자면 대상 계정의 2FA를 전부 비활성화하고 200을 반환해야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
+                every { twoFactorService.disableAll(testUser) } returns Unit
+
+                mockMvc.perform(post("/-_-api/v1/admin/users/gildong/disable-2fa").principal(adminAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.two_factor_enabled").value(false))
+
+                verify(exactly = 1) { twoFactorService.disableAll(testUser) }
             }
         }
     }

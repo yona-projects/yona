@@ -19,6 +19,7 @@ import org.springframework.security.web.savedrequest.HttpSessionRequestCache
 import org.springframework.security.web.savedrequest.SavedRequest
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.firewall.HttpFirewall
 import org.springframework.security.web.firewall.StrictHttpFirewall
 import jakarta.servlet.http.HttpServletRequest
@@ -31,7 +32,10 @@ import com.github.yonaprojects.yona.config.oauth2.CustomOAuth2UserService
 import com.github.yonaprojects.yona.config.sso.EnterpriseOidcUserService
 import com.github.yonaprojects.yona.config.sso.EnterpriseSaml2ResponseAuthenticationConverter
 import com.github.yonaprojects.yona.config.svn.SvnAuthorizationFilter
+import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.user.Saml2UserProvisioningService
+import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.user.YonaUserDetails
 
 @Configuration
 @EnableWebSecurity
@@ -85,6 +89,12 @@ class SecurityConfig(
     private val hgAuthorizationFilter: HgAuthorizationFilter,
     private val apiTokenAuthenticationFilter: ApiTokenAuthenticationFilter,
     private val accessLogFilter: AccessLogFilter,
+    // 2FA: 1차 비밀번호 인증 성공 후 계정에 등록된 2FA가 있는지 판단해 완전한 로그인을
+    // 보류할지 결정하는 데 쓴다(YonaAuthenticationSuccessHandler). OAuth2/SAML2/PAT 로그인
+    // 경로는 이 폼 로그인 성공 핸들러를 타지 않으므로 이 게이트 대상이 아니다.
+    private val twoFactorService: TwoFactorService,
+    private val userRepository: UserRepository,
+    private val pre2faGateFilter: Pre2faGateFilter,
     @Value("\${yona.sso.saml2.email-attribute:email}")
     private val saml2EmailAttribute: String,
     @Value("\${yona.sso.saml2.display-name-attribute:displayName}")
@@ -142,6 +152,9 @@ class SecurityConfig(
                 authorize
                     .requestMatchers("/css/**", "/js/**", "/images/**", "/stylesheets/**", "/javascripts/**", "/bootstrap/**", "/assets/**").permitAll()
                     .requestMatchers("/login", "/signup", "/lostPassword", "/user/reset-password", "/bootstrap-setup", "/users/loginform", "/users/signupform", "/users/signup").permitAll()
+                    // 2FA 검증 화면/API — ROLE_PRE_2FA 상태에서만 의미가 있고, Pre2faGateFilter가
+                    // 이 상태의 다른 모든 경로 접근을 여기로 되돌리므로 인가 규칙에서도 열어둬야 한다.
+                    .requestMatchers("/users/login/2fa/**").permitAll()
                     .requestMatchers("/git/**").permitAll()
                     .requestMatchers("/svn/**").permitAll()
                     .requestMatchers("/hg/**").permitAll()
@@ -161,7 +174,7 @@ class SecurityConfig(
                     .loginProcessingUrl("/users/login")
                     .usernameParameter("loginIdOrEmail")
                     .passwordParameter("password")
-                    .successHandler(YonaAuthenticationSuccessHandler())
+                    .successHandler(YonaAuthenticationSuccessHandler(twoFactorService, userRepository))
                     .failureHandler(YonaAuthenticationFailureHandler())
                     .permitAll()
             }
@@ -206,6 +219,7 @@ class SecurityConfig(
             .addFilterAfter(hgAuthorizationFilter, BasicAuthenticationFilter::class.java)
             .addFilterAfter(apiTokenAuthenticationFilter, BasicAuthenticationFilter::class.java)
             .addFilterAfter(accessLogFilter, BasicAuthenticationFilter::class.java)
+            .addFilterAfter(pre2faGateFilter, BasicAuthenticationFilter::class.java)
         return http.build()
     }
 
@@ -220,14 +234,38 @@ class SecurityConfig(
     }
 }
 
-class YonaAuthenticationSuccessHandler : AuthenticationSuccessHandler {
+class YonaAuthenticationSuccessHandler(
+    private val twoFactorService: TwoFactorService,
+    private val userRepository: UserRepository
+) : AuthenticationSuccessHandler {
     private val requestCache = HttpSessionRequestCache()
+    private val securityContextRepository = org.springframework.security.web.context.HttpSessionSecurityContextRepository()
 
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
         response: HttpServletResponse,
         authentication: Authentication
     ) {
+        // 2FA 게이트는 폼 로그인(로컬 비밀번호) 경로만 대상이다 — 이 핸들러는 formLogin()에만
+        // 등록돼 있으므로 OAuth2/SAML2/PAT 로그인은 애초에 이 코드를 타지 않는다. isTwoFactorEnabled()는
+        // User.isTwoFactorEnabled 캐시가 아니라 실제 등록 테이블을 조회하는 단일 진실 공급원이라
+        // 캐시 드리프트가 로그인 우회로 이어지지 않는다.
+        val principal = authentication.principal
+        val loginId = if (principal is YonaUserDetails) principal.loginId else authentication.name
+        val user = userRepository.findByLoginId(loginId).orElse(null)
+
+        if (user != null && twoFactorService.isTwoFactorEnabled(user)) {
+            val pre2fa = Pre2faAuthenticationToken(authentication)
+            val context = SecurityContextHolder.createEmptyContext()
+            context.authentication = pre2fa
+            SecurityContextHolder.setContext(context)
+            securityContextRepository.saveContext(context, request, response)
+            // 원래 목적지는 기존 requestCache에 그대로 남아있다(HttpSessionRequestCache.getRequest()는
+            // 세션에서 제거하지 않음) — 2FA 검증 성공 후 TwoFactorLoginController가 동일 캐시로 읽는다.
+            response.sendRedirect("${request.contextPath}/users/login/2fa")
+            return
+        }
+
         val requestedWith = request.getHeader("X-Requested-With")
         val accept = request.getHeader("Accept")
         val isAjax = "XMLHttpRequest" == requestedWith || (accept != null && accept.contains("application/json"))
