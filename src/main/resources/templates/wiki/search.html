@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="wikiBase=${'/' + project.owner + '/' + project.name + '/wiki'}">
+<head th:replace="~{site/layout :: head(${project.name + ' - Wiki - Search'})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'wiki')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <!-- 위키 페이지 제목(파일명) 검색(P3-42 8번). -->
+            <form th:action="${wikiBase + '/_search'}" method="get" style="margin-bottom:15px;">
+                <input type="text" name="q" th:value="${searchQuery}" placeholder="Search pages" class="span6" />
+                <button type="submit" class="ybtn" th:text="#{post.menu.search}">Search</button>
+            </form>
+
+            <ul class="unstyled">
+                <li th:each="p : ${searchResults}">
+                    <a th:href="${wikiBase + '/' + #uris.escapePath(p.title)}" th:text="${p.title}">Page title</a>
+                    <span th:if="${p.lastCommitMessage != null}" class="muted" th:text="' - ' + ${p.lastCommitMessage}"> - last change</span>
+                </li>
+                <li th:if="${searchResults == null or searchResults.isEmpty()}" th:text="#{wiki.noSearchResults}">No matching pages.</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

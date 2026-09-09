@@ -14,6 +14,7 @@ import com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository
 import com.github.yonaprojects.yona.domain.vcs.RejectPushToReservedRefsPreReceiveHook
 import com.github.yonaprojects.yona.domain.vcs.YonaPostReceiveHook
 import io.micrometer.core.instrument.MeterRegistry
+import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.http.server.GitServlet
 import org.eclipse.jgit.lfs.server.LfsProtocolServlet
 import org.eclipse.jgit.lfs.server.LargeFileRepository
@@ -56,7 +57,17 @@ class GitServletConfig(
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
     // BranchProtectionPreReceiveHook이 require_signed_commits를 실제로 검사하는 데 필요.
-    private val gpgSignatureVerifier: GpgSignatureVerifier
+    private val gpgSignatureVerifier: GpgSignatureVerifier,
+    // 위키(P3-42) 저장소를 git clone/push로 처음 접근할 때(웹 UI로 페이지를 한 번도 저장하지
+    // 않은 상태) 지연 초기화하는 데 쓴다 — WikiServiceImpl이 첫 페이지 저장 시 만드는 것과 동일한
+    // 기본 브랜치로 맞춘다. 기존 포지셔널 생성자 호출부(GitServletConfigSpec 등)를 깨지 않도록
+    // 맨 뒤에 둔다.
+    // Kotlin 기본값을 주면(= "main") 컴파일러가 synthetic 마스크 생성자를 추가로 만들어 이
+    // 클래스에 생성자가 2개가 되고, Spring의 @Configuration CGLIB 프록시 생성자 해석이
+    // 어느 쪽을 써야 할지 못 찾아 "NoSuchMethodException: <init>()"로 컨텍스트 로딩이 깨진다
+    // (직접 겪은 회귀 — 다른 파라미터들처럼 기본값 없이 필수 인자로 유지).
+    @Value("\${yona.git.default-branch:main}")
+    private val gitDefaultBranch: String
 ) {
     private val logger = LoggerFactory.getLogger(GitServletConfig::class.java)
 
@@ -86,6 +97,28 @@ class GitServletConfig(
                 // 정규화해 항상 같은 경로로 resolve한다.
                 val normalizedName = if (name.endsWith(".git")) name else "$name.git"
                 val repoFile = File(gitBaseDir, normalizedName)
+
+                // 위키 저장소(P3-42, "<owner>/<project>.wiki.git")는 웹 UI에서 첫 페이지를 저장할
+                // 때만 만들어진다(WikiServiceImpl.ensureRepository()) — 아직 페이지를 하나도 만들지
+                // 않은 상태에서 "git clone"/"git push"로 먼저 접근하면(요구사항 5번, 로컬에서 직접
+                // 편집) 저장소 자체가 없어 push가 "unpacker error"로 거절된다(위 normalizedName
+                // 정규화 배경 주석 참고 — 존재하지 않는 디렉터리는 clone은 조용히 빈 저장소처럼
+                // 성공하지만 push는 실패). 실제로 그런 이름의 프로젝트가 있을 때만(임의 경로로
+                // 빈 저장소를 마구 생성하지 않도록) 빈 bare 저장소를 지연 생성해 이 문제를 없앤다.
+                val nameWithoutExt = normalizedName.removeSuffix(".git")
+                if (nameWithoutExt.endsWith(".wiki") && !repoFile.exists()) {
+                    val segments = nameWithoutExt.split("/")
+                    if (segments.size == 2) {
+                        val ownerSegment = segments[0]
+                        val projectSegment = segments[1].removeSuffix(".wiki")
+                        val projectExists = projectRepository.findByOwnerAndNameOrPreviousPlace(ownerSegment, projectSegment).isPresent
+                        if (projectExists) {
+                            repoFile.parentFile?.mkdirs()
+                            Git.init().setDirectory(repoFile).setBare(true).setInitialBranch(gitDefaultBranch).call().close()
+                        }
+                    }
+                }
+
                 val builder = FileRepositoryBuilder()
                 builder.setGitDir(repoFile).build()
             }

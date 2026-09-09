@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="wikiBase=${'/' + project.owner + '/' + project.name + '/wiki'}, pageSuffix=${isNew ? 'New Page' : editTitle}, pageTitle=${project.name + ' - Wiki - ' + pageSuffix}">
+<!-- th:replace 프래그먼트 파라미터 표현식 안에 삼항연산자(?:)를 직접 쓰면 Thymeleaf의 제한된
+     SpEL 평가기가 "Instantiation of new objects... forbidden"로 500을 낸다 — html 태그의
+     th:with에서 미리 계산한 단순 변수(pageTitle)만 넘긴다(wiki/view.html과 동일한 패턴). -->
+<head th:replace="~{site/layout :: head(${pageTitle})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'wiki')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <p th:if="${errorMessage != null}" class="alert alert-error" th:text="${errorMessage}">Error</p>
+
+            <!-- 새 페이지는 /_new로, 기존 페이지 수정(이름변경 포함, P3-42 1번)은 /_edit/{oldTitle}로 제출한다.
+                 oldTitle이 슬래시를 포함할 수 있어(중첩 페이지) #uris.escapePath()로 action URL을 만든다. -->
+            <form th:action="${isNew ? (wikiBase + '/_new') : (wikiBase + '/_edit/' + #uris.escapePath(oldTitle))}" method="post" class="nm">
+                <div class="content-wrap frm-wrap">
+                    <dl>
+                        <dt>
+                            <label for="wiki-title" th:text="#{title}">Title</label>
+                        </dt>
+                        <dd>
+                            <!-- 폼 필드명은 항상 "title" — 신규 생성 시엔 새 제목, 수정 시엔 (바꾸지 않으면 그대로,
+                                 바꾸면) 이름변경까지 한 번에 반영된다(WikiViewController.edit() 참고). 슬래시로
+                                 하위 경로 표현 가능("Guides/Setup"). -->
+                            <input type="text" id="wiki-title" name="title" th:value="${editTitle}" class="span6" maxlength="250" placeholder="예: Guides/Setup" autocomplete="off"/>
+                        </dd>
+                        <dd style="position: relative;">
+                            <div th:replace="~{site/layout :: markdownEditor('content', ${editContent}, 'wiki-content')}"></div>
+                        </dd>
+                        <dt>
+                            <label for="wiki-message" th:text="#{wiki.commitMessage}">Commit message</label>
+                        </dt>
+                        <dd>
+                            <input type="text" id="wiki-message" name="message" class="span6"
+                                   th:placeholder="${isNew ? ('Create ' + editTitle) : ('Update ' + editTitle)}" autocomplete="off"/>
+                        </dd>
+                    </dl>
+
+                    <div class="actions">
+                        <button type="submit" class="ybtn ybtn-info" th:text="#{button.save}">Save</button>
+                        <a th:href="${isNew ? (wikiBase) : (wikiBase + '/' + #uris.escapePath(oldTitle))}" class="ybtn" th:text="#{button.cancel}">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

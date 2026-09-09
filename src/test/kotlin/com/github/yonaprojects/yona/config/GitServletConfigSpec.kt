@@ -64,7 +64,8 @@ class GitServletConfigSpec : DescribeSpec({
         SimpleMeterRegistry(),
         protectedBranchRepository,
         projectUserRepository,
-        gpgSignatureVerifier
+        gpgSignatureVerifier,
+        "main"
     )
 
     beforeTest {
@@ -172,7 +173,7 @@ class GitServletConfigSpec : DescribeSpec({
                 freshBaseDir.absolutePath, tempLfsBaseDir.absolutePath, "http://localhost:8080/git-lfs",
                 projectRepository, pullRequestRepository, userRepository, pushedBranchRepository,
                 eventPublisher, gitProjectVisitRecorder, SimpleMeterRegistry(),
-                protectedBranchRepository, projectUserRepository, gpgSignatureVerifier
+                protectedBranchRepository, projectUserRepository, gpgSignatureVerifier, "main"
             )
 
             freshBaseDir.exists() shouldBe false
@@ -248,16 +249,19 @@ class GitServletConfigSpec : DescribeSpec({
         }
 
         it("저장소 리졸버 람다 - FileRepositoryBuilder로 Repository를 생성해야 한다") {
+            // 위키(P3-42) 지연 초기화 분기가 projectRepository/gitDefaultBranch(인스턴스 필드)를
+            // 참조하게 되면서, 이 람다는 더 이상 "this" 없이 static하게 컴파일되지 않는다 — 컴파일된
+            // synthetic 메서드 시그니처의 두 번째 파라미터로 GitServletConfig 인스턴스가 추가됐다.
             val lambda = GitServletConfig::class.java.getDeclaredMethod(
                 "gitServletRegistrationBean\$lambda\$0\$0",
-                File::class.java, HttpServletRequest::class.java, String::class.java
+                File::class.java, GitServletConfig::class.java, HttpServletRequest::class.java, String::class.java
             )
             lambda.isAccessible = true
 
             val gitBaseDir = File.createTempFile("resolver-base", "").apply { delete(); mkdirs() }
             val req = mockk<HttpServletRequest>(relaxed = true)
 
-            val repo = lambda.invoke(null, gitBaseDir, req, "some-repo.git") as Repository
+            val repo = lambda.invoke(null, gitBaseDir, config, req, "some-repo.git") as Repository
             repo shouldNotBe null
             repo.close()
 
@@ -272,18 +276,18 @@ class GitServletConfigSpec : DescribeSpec({
         it("저장소 리졸버 람다 - name에 \".git\" 접미어가 없어도 접미어를 붙인 것과 같은 경로로 resolve해야 한다") {
             val lambda = GitServletConfig::class.java.getDeclaredMethod(
                 "gitServletRegistrationBean\$lambda\$0\$0",
-                File::class.java, HttpServletRequest::class.java, String::class.java
+                File::class.java, GitServletConfig::class.java, HttpServletRequest::class.java, String::class.java
             )
             lambda.isAccessible = true
 
             val gitBaseDir = File.createTempFile("resolver-base-nosuffix", "").apply { delete(); mkdirs() }
             val req = mockk<HttpServletRequest>(relaxed = true)
 
-            val repoWithSuffix = lambda.invoke(null, gitBaseDir, req, "owner/some-repo.git") as Repository
+            val repoWithSuffix = lambda.invoke(null, gitBaseDir, config, req, "owner/some-repo.git") as Repository
             val resolvedWithSuffix = repoWithSuffix.directory
             repoWithSuffix.close()
 
-            val repoWithoutSuffix = lambda.invoke(null, gitBaseDir, req, "owner/some-repo") as Repository
+            val repoWithoutSuffix = lambda.invoke(null, gitBaseDir, config, req, "owner/some-repo") as Repository
             val resolvedWithoutSuffix = repoWithoutSuffix.directory
             repoWithoutSuffix.close()
 

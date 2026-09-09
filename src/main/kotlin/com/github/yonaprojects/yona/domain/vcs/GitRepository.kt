@@ -270,7 +270,32 @@ class GitRepository(
         }
     }
 
-    private fun getPatch(repo: Repository, commitA: RevCommit?, commitB: RevCommit?): String {
+    // 위키 페이지별 diff(P3-42) 대응. 커밋 하나가 여러 파일을 건드렸어도 그 중 path 하나만
+    // 잘라낸 unified diff를 만든다 — 커밋 vs 부모(getPatch(commitId, path)) 또는 두 임의
+    // 리비전 사이(getPatch(revA, revB, path))의 그 파일 변경만 정확히 반영한다(PathFilter로
+    // treeWalk를 좁혀서 그 파일 외 변경은 애초에 diff 스캔 대상에 들어오지 않는다).
+    fun getPatchForPath(commitId: String, path: String): String {
+        return useRepository { repo ->
+            val objectId = repo.resolve(commitId) ?: return@useRepository ""
+            val revWalk = RevWalk(repo)
+            val commit = revWalk.parseCommit(objectId)
+            val parent = if (commit.parentCount > 0) revWalk.parseCommit(commit.getParent(0)) else null
+            getPatch(repo, parent, commit, path)
+        }
+    }
+
+    fun getPatchForPath(revA: String, revB: String, path: String): String {
+        return useRepository { repo ->
+            val idA = repo.resolve(revA) ?: return@useRepository ""
+            val idB = repo.resolve(revB) ?: return@useRepository ""
+            val revWalk = RevWalk(repo)
+            val commitA = revWalk.parseCommit(idA)
+            val commitB = revWalk.parseCommit(idB)
+            getPatch(repo, commitA, commitB, path)
+        }
+    }
+
+    private fun getPatch(repo: Repository, commitA: RevCommit?, commitB: RevCommit?, path: String? = null): String {
         val treeWalk = TreeWalk(repo)
         if (commitA == null) {
             treeWalk.addTree(EmptyTreeIterator())
@@ -283,6 +308,9 @@ class GitRepository(
             treeWalk.addTree(commitB.tree)
         }
         treeWalk.isRecursive = true
+        if (path != null) {
+            treeWalk.filter = PathFilter.create(path)
+        }
 
         val out = ByteArrayOutputStream()
         val diffFormatter = DiffFormatter(out)

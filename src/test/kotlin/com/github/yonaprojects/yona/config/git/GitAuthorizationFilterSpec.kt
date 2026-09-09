@@ -486,5 +486,44 @@ class GitAuthorizationFilterSpec : DescribeSpec({
             response.status shouldBe HttpServletResponse.SC_OK
             verify(exactly = 1) { filterChain.doFilter(any(), any()) }
         }
+
+        // P3-42(위키) — 위키 저장소는 "<owner>/<project>.wiki.git"로 별도 물리 디렉터리지만
+        // 접근 권한은 그 프로젝트의 코드 저장소와 완전히 동일해야 한다. ".wiki" 접미어를 떼지 않고
+        // 그대로 findProject("gildong", "public-repo.wiki")로 조회하면 그런 이름의 프로젝트가
+        // 없어 항상 404가 나 clone/push 자체가 불가능해진다 — 이 회귀를 고정한다.
+        describe("위키 저장소(.wiki.git) 접근은 그 프로젝트의 코드 저장소와 동일한 권한을 따라야 한다") {
+            it("PUBLIC 프로젝트의 위키 clone(GET) 요청은 .wiki 접미어를 뗀 프로젝트로 조회해 통과해야 한다") {
+                val request = MockHttpServletRequest("GET", "/git/gildong/public-repo.wiki.git/info/refs")
+                val response = MockHttpServletResponse()
+
+                val project = Project(owner = "gildong", name = "public-repo", projectScope = ProjectScope.PUBLIC)
+                every { projectService.findByOwnerAndName("gildong", "public-repo") } returns project
+
+                filter.doFilter(request, response, filterChain)
+
+                response.status shouldBe HttpServletResponse.SC_OK
+                verify(exactly = 1) { filterChain.doFilter(any(), any()) }
+                verify(exactly = 0) { projectService.findByOwnerAndName("gildong", "public-repo.wiki") }
+            }
+
+            it("PRIVATE 프로젝트의 위키 push(쓰기) 요청은 멤버가 아니면 403이어야 한다") {
+                val request = MockHttpServletRequest("POST", "/git/gildong/private-repo.wiki.git/git-receive-pack")
+                val response = MockHttpServletResponse()
+
+                val project = Project(id = 1L, owner = "gildong", name = "private-repo", projectScope = ProjectScope.PRIVATE)
+                every { projectService.findByOwnerAndName("gildong", "private-repo") } returns project
+                every { projectService.isMember(1L, "outsider") } returns false
+                val outsider = User(id = 2L, loginId = "outsider", email = "outsider@example.com")
+                every { userRepository.findByLoginId("outsider") } returns Optional.of(outsider)
+
+                val auth = UsernamePasswordAuthenticationToken("outsider", "password", AuthorityUtils.createAuthorityList("ROLE_ACTIVE"))
+                SecurityContextHolder.setContext(SecurityContextImpl(auth))
+
+                filter.doFilter(request, response, filterChain)
+
+                response.status shouldBe HttpServletResponse.SC_FORBIDDEN
+                verify(exactly = 0) { filterChain.doFilter(any(), any()) }
+            }
+        }
     }
 })

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="pageTitle=${project.name + ' - Wiki' + (page != null ? (' - ' + page.title) : '')}, wikiBase=${'/' + project.owner + '/' + project.name + '/wiki'}">
+<head th:replace="~{site/layout :: head(${pageTitle})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'wiki')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="row-fluid">
+                <!-- 위키 페이지 목록 사이드바(P3-42 1번). _Sidebar.md가 있으면 그 내용을 대신 보여준다(2번). -->
+                <!-- 페이지 제목에 슬래시(중첩 페이지, 7번)가 들어갈 수 있어 @{} 경로변수 치환 대신
+                     #uris.escapePath()(슬래시는 보존하고 그 외 특수문자만 escape)로 링크를 만든다 —
+                     @{}의 경로변수 치환은 값 전체를 한 세그먼트로 취급해 "/"까지 %2F로 인코딩해버려
+                     중첩 페이지 링크가 깨진다. -->
+                <div class="span3">
+                    <div class="box-wrap">
+                        <form th:action="@{/{owner}/{name}/wiki/_search(owner=${project.owner}, name=${project.name})}" method="get" style="margin-bottom:10px;">
+                            <input type="text" name="q" placeholder="Search pages" class="span12" />
+                        </form>
+                        <a th:if="${canWriteWiki}" th:href="${wikiBase + '/_new'}" class="ybtn ybtn-success ybtn-block" style="display:block;text-align:center;margin-bottom:10px;">New Page</a>
+
+                        <div th:if="${customSidebarHtml != null}" class="markdown-wrap wiki-custom-sidebar" th:utext="${customSidebarHtml}"></div>
+                        <ul th:unless="${customSidebarHtml != null}" class="unstyled wiki-page-list">
+                            <li th:each="p : ${pages}">
+                                <a th:href="${wikiBase + '/' + #uris.escapePath(p.title)}"
+                                   th:text="${p.title}"
+                                   th:classappend="${activeTitle != null and activeTitle == p.title} ? 'active' : ''">Page title</a>
+                            </li>
+                            <li th:if="${pages == null or pages.isEmpty()}" class="empty" th:text="#{wiki.noPages}">No pages yet.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 페이지 본문 -->
+                <div class="span9">
+                    <div th:if="${page != null}">
+                        <div class="wiki-page-header" style="margin-bottom:10px;">
+                            <h2 th:text="${page.title}" style="display:inline-block;"></h2>
+                            <span th:if="${canWriteWiki}" style="float:right;">
+                                <a th:href="${wikiBase + '/_history/' + #uris.escapePath(page.title)}" class="ybtn" th:text="#{wiki.history}">History</a>
+                                <a th:href="${wikiBase + '/_edit/' + #uris.escapePath(page.title)}" class="ybtn ybtn-info" th:text="#{button.edit}">Edit</a>
+                                <form th:action="${wikiBase + '/_delete/' + #uris.escapePath(page.title)}" method="post" style="display:inline;" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                                    <button type="submit" class="ybtn ybtn-danger" th:text="#{button.delete}">Delete</button>
+                                </form>
+                            </span>
+                            <span th:unless="${canWriteWiki}" style="float:right;">
+                                <a th:href="${wikiBase + '/_history/' + #uris.escapePath(page.title)}" class="ybtn" th:text="#{wiki.history}">History</a>
+                            </span>
+                        </div>
+                        <div class="bubble-wrap gray readme-body markdown-wrap" th:utext="${renderedHtml}">Rendered wiki content</div>
+                    </div>
+
+                    <div th:if="${page == null and notFoundTitle == null}" class="bubble-wrap gray" style="text-align:center;padding:40px 0;">
+                        <p th:text="#{wiki.empty}">This wiki does not have any pages yet.</p>
+                        <a th:if="${canWriteWiki}" th:href="${wikiBase + '/_new?title=Home'}" class="ybtn ybtn-success" th:text="#{wiki.createHome}">Create the Home page</a>
+                    </div>
+
+                    <div th:if="${notFoundTitle != null}" class="bubble-wrap gray" style="text-align:center;padding:40px 0;">
+                        <p th:text="'&quot;' + ${notFoundTitle} + '&quot; ' + #{wiki.pageNotFound}">Page not found.</p>
+                        <a th:if="${canWriteWiki}" th:href="${wikiBase + '/_new?title=' + #uris.escapeQueryParam(notFoundTitle)}" class="ybtn ybtn-success" th:text="#{wiki.createThisPage}">Create this page</a>
+                    </div>
+
+                    <div th:if="${customFooterHtml != null}" class="markdown-wrap wiki-custom-footer" style="margin-top:20px;border-top:1px solid #e5e5e5;padding-top:10px;" th:utext="${customFooterHtml}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

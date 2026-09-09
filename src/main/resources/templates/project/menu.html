@@ -50,6 +50,13 @@
                     <span th:if="${templateHelper.countBoardPosts(project) > 0}" class="project-menu-count" th:text="${templateHelper.countBoardPosts(project)}">0</span>
                 </a>
             </li>
+            <!-- 프로젝트 위키(P3-42). DB 엔티티 없이 항상 켜져 있다 — Board/Milestone처럼 별도
+                 "isWikiEnabled" 토글은 이번 라운드 범위가 아니다(과제 요구사항 8개에 포함되지 않음). -->
+            <li th:class="${activeMenu == 'wiki' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{name}/wiki(owner=${project.owner}, name=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.wiki}">Wiki</span><span class="short-menu">W</span>
+                </a>
+            </li>
         </ul>
         <div th:if="${isManager}" class="project-setting">
             <ul class="project-menu-nav">
@@ -72,6 +79,7 @@ $(document).ready(function(){
     /*[# th:if="${project.isBoardEnabled}"]*/
     htKeyMap["B"] = /*[[@{/{owner}/{name}/posts(owner=${project.owner}, name=${project.name})}]]*/ '';
     /*[/]*/
+    htKeyMap["W"] = /*[[@{/{owner}/{name}/wiki(owner=${project.owner}, name=${project.name})}]]*/ '';
     /*[# th:if="${project.isCodeEnabled and (project.isCodeAccessibleMemberOnly != true or isMember)}"]*/
     htKeyMap["C"] = /*[[@{/{owner}/{name}/code(owner=${project.owner}, name=${project.name})}]]*/ '';
     /*[/]*/

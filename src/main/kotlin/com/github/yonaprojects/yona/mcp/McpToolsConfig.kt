@@ -12,11 +12,12 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class McpToolsConfig(
     private val issueMcpTools: IssueMcpTools,
-    private val pullRequestMcpTools: PullRequestMcpTools
+    private val pullRequestMcpTools: PullRequestMcpTools,
+    private val wikiMcpTools: WikiMcpTools
 ) {
     @Bean
     fun mcpToolCallbackProvider(): ToolCallbackProvider =
         MethodToolCallbackProvider.builder()
-            .toolObjects(issueMcpTools, pullRequestMcpTools)
+            .toolObjects(issueMcpTools, pullRequestMcpTools, wikiMcpTools)
             .build()
 }

@@ -20,7 +20,16 @@ import java.io.IOException
 import java.text.MessageFormat
 import java.time.Instant
 
-class BareCommit(project: Project, user: User, gitBaseDir: String, defaultBranch: String = "main") {
+class BareCommit(
+    project: Project,
+    user: User,
+    gitBaseDir: String,
+    defaultBranch: String = "main",
+    // 위키 저장소(`<owner>/<project>.wiki.git`)처럼 프로젝트의 실제 코드 저장소가 아닌 다른
+    // bare 저장소에 커밋해야 하는 호출부를 위한 오버라이드. null이면 기존과 동일하게
+    // "${project.name}.git"을 그대로 쓴다(기존 호출부 전부 무변경).
+    repoNameOverride: String? = null
+) {
     private val repository: Repository
     private val personIdent: PersonIdent
     private var commitMessage: String? = null
@@ -32,7 +41,8 @@ class BareCommit(project: Project, user: User, gitBaseDir: String, defaultBranch
     private var headObjectId: ObjectId? = null
 
     init {
-        val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
+        val repoName = repoNameOverride ?: project.name
+        val gitDir = File(File(gitBaseDir), "${project.owner}/$repoName.git")
         this.repository = FileRepositoryBuilder().setGitDir(gitDir).build()
         this.personIdent = PersonIdent(user.name ?: user.loginId, user.email ?: "")
     }
@@ -124,6 +134,117 @@ class BareCommit(project: Project, user: User, gitBaseDir: String, defaultBranch
         }
 
         return commitId
+    }
+
+    // 위키 페이지 저장(생성/수정/이름변경 통합) 대응. Forgejo 위키 편집 폼처럼 제목(=경로)과
+    // 본문을 한 커밋으로 함께 반영한다. oldPath가 null이면 신규 생성, oldPath != newPath면 그
+    // 경로의 파일을 지우고 newPath에 새로 쓰는 이름변경까지 한 커밋에서 처리한다. 위 3-인자
+    // commitTextFile()과 달리 실제 파일시스템(bare 저장소 디렉터리)에 스크래치 파일을 쓰지 않고
+    // in-core DirCache만으로 처리한다 — 위키 저장소는 코드브라우저 온라인편집과 달리 동시에
+    // 여러 페이지가 저장될 수 있어, 디스크에 임시 파일을 남기는 기존 방식보다 안전하다.
+    @Throws(IOException::class)
+    fun commitPage(branchName: String, oldPath: String?, newPath: String, text: String, message: String): ObjectId? {
+        var commitId: ObjectId? = null
+        val git = Git(repository)
+        try {
+            git.repository.newObjectInserter().use { inserter ->
+                this.headObjectId = git.repository.resolve("$refName^{commit}")
+                val index = createPageIndex(git, headObjectId, oldPath, newPath, text, inserter)
+                val indexTreeId = index.writeTree(inserter)
+
+                val commit = getCommitBuilder(message, indexTreeId)
+
+                commitId = inserter.insert(commit)
+                inserter.flush()
+
+                val ru = getRefUpdate(branchName, commitId!!, git)
+                applyRefUpdate(ru, commitId!!)
+            }
+        } catch (t: Throwable) {
+            throw RuntimeException(t)
+        }
+        return commitId
+    }
+
+    // 위키 페이지 삭제 대응. path에 해당하는 트리 엔트리만 제거한 새 커밋을 만든다.
+    @Throws(IOException::class)
+    fun deletePage(branchName: String, path: String, message: String): ObjectId? {
+        var commitId: ObjectId? = null
+        val git = Git(repository)
+        try {
+            git.repository.newObjectInserter().use { inserter ->
+                this.headObjectId = git.repository.resolve("$refName^{commit}")
+                    ?: throw java.io.FileNotFoundException("위키 페이지를 찾을 수 없습니다(빈 저장소): $path")
+                val index = createPageIndex(git, headObjectId, oldPath = path, newPath = "", text = null, inserter = inserter)
+                val indexTreeId = index.writeTree(inserter)
+
+                val commit = getCommitBuilder(message, indexTreeId)
+
+                commitId = inserter.insert(commit)
+                inserter.flush()
+
+                val ru = getRefUpdate(branchName, commitId!!, git)
+                applyRefUpdate(ru, commitId!!)
+            }
+        } catch (t: Throwable) {
+            throw RuntimeException(t)
+        }
+        return commitId
+    }
+
+    private fun applyRefUpdate(ru: RefUpdate, commitId: ObjectId) {
+        when (val rc = ru.forceUpdate()) {
+            RefUpdate.Result.NEW, RefUpdate.Result.FORCED, RefUpdate.Result.FAST_FORWARD -> {}
+            RefUpdate.Result.REJECTED, RefUpdate.Result.LOCK_FAILURE ->
+                throw ConcurrentRefUpdateException(JGitText.get().couldNotLockHEAD, ru.ref, rc)
+            else ->
+                throw JGitInternalException(
+                    MessageFormat.format(JGitText.get().updatingRefFailed, Constants.HEAD, commitId.toString(), rc)
+                )
+        }
+    }
+
+    // HEAD 트리를 in-core DirCache로 복사하면서 oldPath(있으면)/newPath 두 경로를 제외한 뒤,
+    // text가 null이 아니면 newPath에 새 blob을 추가한다(text가 null이면 삭제 전용 — newPath는
+    // 빈 문자열을 넘겨 아무것도 추가하지 않는다, deletePage() 참고).
+    private fun createPageIndex(
+        git: Git,
+        headId: ObjectId?,
+        oldPath: String?,
+        newPath: String,
+        text: String?,
+        inserter: ObjectInserter
+    ): DirCache {
+        val inCoreIndex = DirCache.newInCore()
+        val dcBuilder = inCoreIndex.builder()
+
+        if (headId != null) {
+            val revWalk = RevWalk(git.repository)
+            val treeWalk = TreeWalk(git.repository)
+            val hIdx = treeWalk.addTree(revWalk.parseTree(headId))
+            treeWalk.isRecursive = true
+            while (treeWalk.next()) {
+                val walkPath = treeWalk.pathString
+                if (walkPath == oldPath || walkPath == newPath) continue
+                val hTree = treeWalk.getTree(hIdx, CanonicalTreeParser::class.java)
+                val dcEntry = DirCacheEntry(walkPath)
+                dcEntry.setObjectId(hTree.entryObjectId)
+                dcEntry.fileMode = hTree.entryFileMode
+                dcBuilder.add(dcEntry)
+            }
+            treeWalk.close()
+        }
+
+        if (text != null) {
+            val blobId = inserter.insert(Constants.OBJ_BLOB, text.toByteArray(Charsets.UTF_8))
+            val newEntry = DirCacheEntry(newPath)
+            newEntry.setObjectId(blobId)
+            newEntry.fileMode = FileMode.REGULAR_FILE
+            dcBuilder.add(newEntry)
+        }
+
+        dcBuilder.finish()
+        return inCoreIndex
     }
 
     private fun getRefUpdate(branchName: String, commitId: ObjectId, git: Git): RefUpdate {
