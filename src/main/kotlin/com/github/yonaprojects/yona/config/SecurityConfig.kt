@@ -1,11 +1,13 @@
 package com.github.yonaprojects.yona.config
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.ProviderManager
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider
@@ -50,6 +52,31 @@ class SecurityConfig(
     // 빠지면서 로그인 관련 통합테스트가 깨지는 회귀를 겪었다. 그래서 기존에 자동으로 등록되던
     // YonaAuthenticationProvider도 이 필드로 명시적으로 주입받아 아래 securityFilterChain()에서
     // 둘 다 등록한다.
+    // 2026-09-09 발견 — 위 코멘트의 "InitializeAuthenticationProviderBeanManagerConfigurer 비활성화"
+    // 대응은 절반짜리였다. HttpSecurity.authenticationProvider()는 @Bean securityFilterChain()
+    // 메서드 "실행 시점"에 전역(global) AuthenticationManagerBuilder에 provider를 더하는데, 이
+    // 실행 시점은 Spring이 여러 @Bean SecurityFilterChain(AuthorizationServerConfig @Order1 등)을
+    // 만드는 순서에 달려 있어 보장되지 않는다. 다른 체인이 먼저 만들어지면서 전역 빌더에 먼저
+    // 접근하면, Spring Security의 InitializeUserDetailsBeanManagerConfigurer(우리보다 먼저 도는
+    // 별개의 자동설정기)가 "UserDetailsService 빈 하나 + PasswordEncoder 빈 하나가 있으니"
+    // DaoAuthenticationProvider를 몰래 끼워 넣어버린다(AuthorizationServerConfig가 OAuth2
+    // confidential client secret 검증용으로 노출하는 PasswordEncoder 빈을 엉뚱하게 재사용).
+    // 그 결과 ProviderManager 목록이 [DaoAuthenticationProvider, deployKey, yona] 순이 되고,
+    // 로컬 로그인 시 비밀번호가 틀리면(YonaAuthenticationProvider가 정상적으로 BadCredentialsException을
+    // 던짐) ProviderManager가 다음 provider인 DaoAuthenticationProvider로 넘어가는데, 이 provider는
+    // yona가 저장하는 프리픽스 없는 SHA-256 해시를 DelegatingPasswordEncoder로 비교하려다
+    // IllegalArgumentException(AuthenticationException이 아니라서 ProviderManager가 삼키지
+    // 못함)을 던져 로그인 실패가 정상적인 "비밀번호 불일치" 메시지 대신 500으로 튀었다(실사용
+    // 검증 중 발견 — 올바른 비밀번호로는 우연히 YonaAuthenticationProvider에서 먼저 성공해버려
+    // 드러나지 않고, 오직 "틀린 비밀번호 로그인 시도"에서만 재현됨).
+    //
+    // 수정: Spring Security가 공식적으로 보장하는 훅 — 아무 빈에나 있는
+    // `@Autowired fun xxx(auth: AuthenticationManagerBuilder)` 메서드는 전역 빌더를 스캔하는
+    // 자동설정기들(Initialize*BeanManagerConfigurer, 항상 낮은 우선순위로 맨 나중에 돎)보다
+    // 먼저, 결정적으로(항상) 실행된다 — 아래 configureGlobalAuthentication()가 그 훅이다. 여기서
+    // 전역 빌더를 "이미 구성됨" 상태로 만들어두면 이후 어느 체인이 먼저 만들어지든
+    // InitializeUserDetailsBeanManagerConfigurer가 DaoAuthenticationProvider를 끼워 넣지 못한다
+    // (기존 securityFilterChain() 안의 .authenticationProvider() 두 줄은 이제 중복이라 제거).
     private val yonaAuthenticationProvider: YonaAuthenticationProvider,
     private val deployKeyAuthenticationProvider: DeployKeyAuthenticationProvider,
     private val svnAuthorizationFilter: SvnAuthorizationFilter,
@@ -63,6 +90,15 @@ class SecurityConfig(
     @Value("\${yona.sso.saml2.display-name-attribute:displayName}")
     private val saml2DisplayNameAttribute: String
 ) {
+
+    // 위 생성자 코멘트(2026-09-09) 참고 — Initialize*BeanManagerConfigurer들보다 항상 먼저 도는
+    // Spring Security 공식 훅. 여기서 전역 AuthenticationManagerBuilder를 "구성 완료" 상태로
+    // 만들어 DaoAuthenticationProvider가 끼어들 여지를 원천 차단한다.
+    @Autowired
+    fun configureGlobalAuthentication(auth: AuthenticationManagerBuilder) {
+        auth.authenticationProvider(deployKeyAuthenticationProvider)
+        auth.authenticationProvider(yonaAuthenticationProvider)
+    }
 
     // 2026-09-07 발견 — SVN(SvnController → SVNKit DAVServlet)이 실제로 쓰는 WebDAV/DeltaV
     // 메서드(PROPFIND 등)가 Spring Security 기본 StrictHttpFirewall의 허용 목록
@@ -137,8 +173,10 @@ class SecurityConfig(
                     .key("yonaRememberMeKey")
             }
             .httpBasic { }
-            .authenticationProvider(deployKeyAuthenticationProvider)
-            .authenticationProvider(yonaAuthenticationProvider)
+            // deployKeyAuthenticationProvider/yonaAuthenticationProvider는 이제
+            // configureGlobalAuthentication()(위 생성자 코멘트 참고)에서 전역 빌더에 등록한다 —
+            // 여기서 다시 .authenticationProvider()로 추가하면 같은 인스턴스가 중복 등록될
+            // 뿐이라 제거.
             .oauth2Login { oauth2 ->
                 oauth2
                     .loginPage("/users/loginform")
