@@ -7,7 +7,6 @@ import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.web.CommentController
 import com.github.yonaprojects.yona.web.IssueController
-import com.github.yonaprojects.yona.web.toResponse
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.data.domain.PageRequest
@@ -42,11 +41,14 @@ class IssueMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.READ, found)
+        // P3-30(2026-09-09) — IssueController.getIssues()가 이제 자체적으로 Page<IssueResponse>를
+        // 반환하므로(raw Issue 엔티티 순환 직렬화/비밀번호 노출 방지), 여기서 다시 .toResponse()를
+        // 부를 필요가 없다(이미 DTO).
         val page = issueController.getIssues(
             found.id!!, state, null, null, null,
             PageRequest.of(0, IssueController.ITEMS_PER_PAGE), currentAuth()
         ).unwrapForMcp()
-        return page.content.map { it.toResponse() }
+        return page.content
     }
 
     @Tool(description = "이슈 번호로 이슈 하나를 조회합니다.")
@@ -57,9 +59,9 @@ class IssueMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.READ, found)
+        // P3-30 — IssueController.getIssue()가 이미 IssueResponse를 반환한다.
         return issueController.getIssue(found.id!!, number, currentAuth())
             .unwrapForMcp("이슈 #$number 를 찾을 수 없습니다.")
-            .toResponse()
     }
 
     @Tool(description = "새 이슈를 생성합니다.")
@@ -78,7 +80,8 @@ class IssueMcpTools(
             assigneeId = null,
             labelIds = null
         )
-        return issueController.createIssue(found.id!!, request, currentAuth()).unwrapForMcp().toResponse()
+        // P3-30 — IssueController.createIssue()가 이미 IssueResponse를 반환한다.
+        return issueController.createIssue(found.id!!, request, currentAuth()).unwrapForMcp()
     }
 
     @Tool(description = "이슈에 코멘트를 답니다.")
@@ -91,9 +94,9 @@ class IssueMcpTools(
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.WRITE, found)
         val request = CommentController.CommentRequest(contents = body)
+        // P3-30 — CommentController.createIssueComment()가 이미 IssueCommentResponse를 반환한다.
         return commentController.createIssueComment(found.id!!, number, request, currentAuth())
             .unwrapForMcp("이슈 #$number 를 찾을 수 없습니다.")
-            .toResponse()
     }
 
     @Tool(description = "이슈를 닫습니다(CLOSED 상태로 변경).")
@@ -104,8 +107,8 @@ class IssueMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.WRITE, found)
+        // P3-30 — IssueController.changeState()가 이미 IssueResponse를 반환한다.
         return issueController.changeState(found.id!!, number, State.CLOSED, currentAuth())
             .unwrapForMcp("이슈 #$number 를 찾을 수 없습니다.")
-            .toResponse()
     }
 }

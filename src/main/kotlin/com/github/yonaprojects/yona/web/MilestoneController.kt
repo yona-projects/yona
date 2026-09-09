@@ -47,7 +47,7 @@ class MilestoneController(
         @PathVariable projectId: Long,
         @RequestParam(required = false, defaultValue = "OPEN") state: State,
         authentication: Authentication?
-    ): ResponseEntity<List<Milestone>> {
+    ): ResponseEntity<List<MilestoneResponse>> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -57,7 +57,10 @@ class MilestoneController(
         }
 
         val milestones = milestoneService.getMilestones(projectId, state)
-        return ResponseEntity.ok(milestones)
+        // P3-30(2026-09-09 코디네이터 발견/수정) — Milestone.project는 이미 @JsonIgnore가 붙어 있어
+        // 이 경로로 직접 순환 직렬화되지는 않지만, 다른 4개 파일과 동일한 방어(raw 엔티티 미반환)를
+        // 일관되게 적용한다.
+        return ResponseEntity.ok(milestones.map { it.toResponse() })
     }
 
     @GetMapping("/{milestoneId}")
@@ -65,7 +68,7 @@ class MilestoneController(
         @PathVariable projectId: Long,
         @PathVariable milestoneId: Long,
         authentication: Authentication?
-    ): ResponseEntity<Milestone> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -81,7 +84,8 @@ class MilestoneController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        return ResponseEntity.ok(milestone)
+        // P3-30 — 다른 4개 파일과 동일하게 raw 엔티티 대신 DTO를 반환한다.
+        return ResponseEntity.ok(milestone.toResponse())
     }
 
     @PostMapping
@@ -89,7 +93,7 @@ class MilestoneController(
         @PathVariable projectId: Long,
         @RequestBody request: CreateMilestoneRequest,
         authentication: Authentication?
-    ): ResponseEntity<Milestone> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -107,7 +111,8 @@ class MilestoneController(
         )
 
         val saved = milestoneService.createMilestone(projectId, milestone)
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved)
+        // P3-30 — 다른 4개 파일과 동일하게 raw 엔티티 대신 DTO를 반환한다.
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved.toResponse())
     }
 
     // yona controllers/api/MilestoneApi.java:29-50 newMilestone() 대응 (P1-129). GitHub 이슈 임포트 [GL-controllers_api_MilestoneApi-001;GL-controllers_api_MilestoneApi-002]
@@ -138,7 +143,7 @@ class MilestoneController(
         @PathVariable milestoneId: Long,
         @RequestBody request: UpdateMilestoneRequest,
         authentication: Authentication?
-    ): ResponseEntity<Milestone> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -162,7 +167,8 @@ class MilestoneController(
             state = request.state ?: State.OPEN
         )
 
-        return ResponseEntity.ok(updated)
+        // P3-30 — 다른 4개 파일과 동일하게 raw 엔티티 대신 DTO를 반환한다.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     @DeleteMapping("/{milestoneId}")

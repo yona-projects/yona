@@ -9,6 +9,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.web.CommentController
 import com.github.yonaprojects.yona.web.IssueController
+import com.github.yonaprojects.yona.web.toResponse
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -57,7 +58,9 @@ class IssueMcpToolsSpec : DescribeSpec({
     describe("list_issues") {
         it("ISSUES:READ 스코프를 검증한 뒤 IssueController.getIssues에 위임해야 한다") {
             val issue = Issue(id = 5L, number = 5L, title = "제목", project = project)
-            val page = PageImpl(listOf(issue), PageRequest.of(0, 15), 1)
+            // P3-30 — IssueController.getIssues()는 이제 Page<IssueResponse>를 반환한다(raw Issue
+            // 순환 직렬화/비밀번호 노출 방지).
+            val page = PageImpl(listOf(issue.toResponse()), PageRequest.of(0, 15), 1)
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
             every { scopeGuard.require(auth, ApiTokenScopeGroup.ISSUES, ApiTokenPermission.READ, project) } returns Unit
             every { issueController.getIssues(1L, null, null, null, null, any<Pageable>(), auth) } returns ResponseEntity.ok(page)

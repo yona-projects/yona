@@ -100,7 +100,7 @@ class IssueController(
         @RequestParam(required = false) author: String?,
         @PageableDefault(size = ITEMS_PER_PAGE) pageable: Pageable,
         authentication: Authentication?
-    ): ResponseEntity<Page<Issue>> {
+    ): ResponseEntity<Page<IssueResponse>> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -121,11 +121,13 @@ class IssueController(
             } else {
                 issueRepository.findByProject(project, clampedPageable)
             }
-            return ResponseEntity.ok(page)
+            // P3-30 — Issue 엔티티를 그대로 페이지네이션 응답에 담으면 project->projectUsers->user
+            // 순환 직렬화로 비밀번호 해시까지 노출된다(IssueController.getIssue()와 동일한 근본원인).
+            return ResponseEntity.ok(page.map { it.toResponse() })
         }
 
         val spec = buildIssueFilterSpecification(project, state, assignee, label, author)
-        return ResponseEntity.ok(issueRepository.findAll(spec, clampedPageable))
+        return ResponseEntity.ok(issueRepository.findAll(spec, clampedPageable).map { it.toResponse() })
     }
 
     // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — 위 getIssues()의 assignee/label/author 필터
@@ -162,7 +164,7 @@ class IssueController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -181,7 +183,11 @@ class IssueController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        return ResponseEntity.ok(issue)
+        // P3-30(2026-09-09 코디네이터 발견/수정) — raw Issue 엔티티를 그대로 반환하면 project->
+        // projectUsers->user 양방향 관계가 Jackson 직렬화 시 순환되며 User.password/passwordSalt까지
+        // 노출된다(P3-26/P3-28과 동일한 근본원인). 실측: GET /-_-api/v1/.../issues/{number}(동일
+        // 로직을 재사용하는 IssueApiController 경로)로 60690바이트 응답에서 password 값 확인.
+        return ResponseEntity.ok(issue.toResponse())
     }
 
     // yona Issue.getTimeline() / conf/routes "issue/$number/timeline" 대응 (P1-07)
@@ -190,7 +196,7 @@ class IssueController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<List<IssueEvent>> {
+    ): ResponseEntity<List<IssueEventResponse>> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -202,7 +208,9 @@ class IssueController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        return ResponseEntity.ok(issueEventRepository.findByIssueOrderByCreatedAsc(issue))
+        // P3-30 — IssueEvent.issue(ManyToOne)를 그대로 반환하면 issue->project->projectUsers->user로
+        // 이어지는 동일한 순환/비밀번호 노출 문제가 재발한다.
+        return ResponseEntity.ok(issueEventRepository.findByIssueOrderByCreatedAsc(issue).map { it.toResponse() })
     }
 
     @PostMapping
@@ -210,7 +218,7 @@ class IssueController(
         @PathVariable projectId: Long,
         @RequestBody request: CreateIssueRequest,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -236,7 +244,8 @@ class IssueController(
             isDraft = request.isDraft
         )
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved)
+        // P3-30 — createIssue()도 getIssue()와 동일한 순환 직렬화/비밀번호 노출 위험이 있었다.
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved.toResponse())
     }
 
     @PutMapping("/{number}")
@@ -245,7 +254,7 @@ class IssueController(
         @PathVariable number: Long,
         @RequestBody request: UpdateIssueRequest,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -269,7 +278,8 @@ class IssueController(
             labelIds = request.labelIds
         )
 
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     // yona IssueApp.editIssue()의 hasTargetProject() 분기 대응 (P1-48). yona는 이 권한 확인을
@@ -282,7 +292,7 @@ class IssueController(
         @PathVariable number: Long,
         @RequestBody request: MoveIssueRequest,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -303,7 +313,8 @@ class IssueController(
 
         val moved = issueService.moveIssue(issue.id!!, request.targetProjectId, user)
 
-        return ResponseEntity.ok(moved)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(moved.toResponse())
     }
 
     // yona IssueApp.editIssue()의 "if (issue.isPublish) { ... }" 발행 전환 대응 (P1-65).
@@ -312,7 +323,7 @@ class IssueController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -326,7 +337,8 @@ class IssueController(
 
         val published = issueService.publishIssue(issue.id!!, user)
 
-        return ResponseEntity.ok(published)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(published.toResponse())
     }
 
     @DeleteMapping("/{number}")
@@ -356,7 +368,7 @@ class IssueController(
         @PathVariable number: Long,
         @RequestParam state: State,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -370,7 +382,8 @@ class IssueController(
         }
 
         val updated = issueService.changeState(issue.id!!, state, user.loginId)
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
 
@@ -382,7 +395,7 @@ class IssueController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -394,7 +407,8 @@ class IssueController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        return ResponseEntity.ok(issueService.upvoteWeight(issue.id!!))
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(issueService.upvoteWeight(issue.id!!).toResponse())
     }
 
     // yona IssueApi.java:1194-1209 downvoteWeight() 대응 (P1-101).
@@ -403,7 +417,7 @@ class IssueController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -415,7 +429,8 @@ class IssueController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        return ResponseEntity.ok(issueService.downvoteWeight(issue.id!!))
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(issueService.downvoteWeight(issue.id!!).toResponse())
     }
 
 

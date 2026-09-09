@@ -60,7 +60,9 @@ class IssueRestApiControllerSpec : DescribeSpec({
 
         it("존재하면 IssueController.getIssues에 위임한다") {
             val issue = Issue(id = 5L, number = 5L, title = "제목", project = project)
-            val page = PageImpl(listOf(issue), PageRequest.of(0, 15), 1)
+            // P3-30 — IssueController.getIssues()는 이제 Page<IssueResponse>를 반환한다(raw Issue
+            // 순환 직렬화/비밀번호 노출 방지).
+            val page = PageImpl(listOf(issue.toResponse()), PageRequest.of(0, 15), 1)
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
             every { issueController.getIssues(1L, null, null, null, null, any<Pageable>(), any()) } returns ResponseEntity.ok(page)
 
@@ -74,7 +76,7 @@ class IssueRestApiControllerSpec : DescribeSpec({
         // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `--assignee`/`--label`/`--author` 필터.
         it("assignee/label/author 쿼리 파라미터를 IssueController.getIssues에 그대로 전달한다") {
             val issue = Issue(id = 5L, number = 5L, title = "제목", project = project)
-            val page = PageImpl(listOf(issue), PageRequest.of(0, 15), 1)
+            val page = PageImpl(listOf(issue.toResponse()), PageRequest.of(0, 15), 1)
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
             every {
                 issueController.getIssues(1L, null, "alice", "bug", "bob", any<Pageable>(), any())

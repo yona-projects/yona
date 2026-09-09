@@ -734,7 +734,10 @@ class IssueControllerSpec : DescribeSpec({
                         .principal(userAuth)
                 )
                     .andExpect(status().isOk)
-                    .andExpect(jsonPath("$.project.id").value(3))
+                    // P3-30 — moveIssue()가 raw Issue 대신 IssueResponse를 반환하도록 바뀌면서
+                    // 응답 형태가 nested "project.id"에서 flat "projectId"로 바뀌었다(IssueResponse의
+                    // 기존 필드 선택 기준을 그대로 따름 — 다른 v1 API 소비자가 이미 이 필드명을 쓰고 있음).
+                    .andExpect(jsonPath("$.projectId").value(3))
 
                 verify(exactly = 1) { issueService.moveIssue(5L, 3L, user) }
             }

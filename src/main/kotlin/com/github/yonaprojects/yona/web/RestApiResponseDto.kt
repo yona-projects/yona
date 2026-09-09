@@ -1,10 +1,15 @@
 package com.github.yonaprojects.yona.web
 
+import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.State
+import com.github.yonaprojects.yona.domain.board.Posting
+import com.github.yonaprojects.yona.domain.board.PostingComment
 import com.github.yonaprojects.yona.domain.issue.Assignee
 import com.github.yonaprojects.yona.domain.issue.Issue
 import com.github.yonaprojects.yona.domain.issue.IssueComment
+import com.github.yonaprojects.yona.domain.issue.IssueEvent
 import com.github.yonaprojects.yona.domain.issue.IssueLabel
+import com.github.yonaprojects.yona.domain.milestone.Milestone
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestCommit
@@ -157,6 +162,119 @@ fun IssueComment.toResponse() = IssueCommentResponse(
     authorName = authorName,
     parentCommentId = parentComment?.id,
     issueId = issue.id
+)
+
+// P3-30 — IssueController.getTimeline()이 List<IssueEvent>를 가공 없이 그대로 반환하고 있었다.
+// IssueEvent.issue(ManyToOne, JsonIgnore 없음)를 그대로 직렬화하면 issue->project->projectUsers->
+// user로 이어지는 동일한 순환/비밀번호 노출 문제가 재발한다 — issueId만 남기고 issue 자체는
+// 담지 않는다.
+data class IssueEventResponse(
+    val id: Long?,
+    val issueId: Long?,
+    val eventType: EventType,
+    val senderLoginId: String?,
+    val oldValue: String?,
+    val newValue: String?,
+    val created: Instant
+)
+
+fun IssueEvent.toResponse() = IssueEventResponse(
+    id = id,
+    issueId = issue.id,
+    eventType = eventType,
+    senderLoginId = senderLoginId,
+    oldValue = oldValue,
+    newValue = newValue,
+    created = created
+)
+
+// P3-30 — BoardController가 Posting 엔티티를 그대로 반환하고 있었다(Posting -> project ->
+// projectUsers -> user 순환/비밀번호 노출, IssueResponse와 동일한 근본원인). IssueResponse와
+// 같은 필드 선택 기준(연관관계 대신 id/비정규화된 author* 필드만)을 그대로 따른다.
+data class PostingResponse(
+    val id: Long?,
+    val number: Long?,
+    val title: String,
+    val body: String?,
+    val notice: Boolean,
+    val readme: Boolean,
+    val createdDate: Instant?,
+    val updatedDate: Instant?,
+    val authorId: Long?,
+    val authorLoginId: String?,
+    val authorName: String?,
+    val updatedByAuthorId: Long?,
+    val updatedByAuthorLoginId: String?,
+    val updatedByAuthorName: String?,
+    val numOfComments: Int,
+    val labels: List<IssueLabelResponse>,
+    val projectId: Long?
+)
+
+fun Posting.toResponse() = PostingResponse(
+    id = id,
+    number = number,
+    title = title,
+    body = body,
+    notice = notice,
+    readme = readme,
+    createdDate = createdDate,
+    updatedDate = updatedDate,
+    authorId = authorId,
+    authorLoginId = authorLoginId,
+    authorName = authorName,
+    updatedByAuthorId = updatedByAuthorId,
+    updatedByAuthorLoginId = updatedByAuthorLoginId,
+    updatedByAuthorName = updatedByAuthorName,
+    numOfComments = numOfComments,
+    labels = labels.map { it.toResponse() },
+    projectId = project.id
+)
+
+// P3-30 — CommentController가 PostingComment 엔티티를 그대로 반환하고 있었다(IssueCommentResponse와
+// 동일한 사유로, PostingComment.posting -> project -> projectUsers -> user 순환 위험).
+data class PostingCommentResponse(
+    val id: Long?,
+    val contents: String,
+    val createdDate: Instant?,
+    val authorId: Long?,
+    val authorLoginId: String?,
+    val authorName: String?,
+    val parentCommentId: Long?,
+    val postingId: Long?
+)
+
+fun PostingComment.toResponse() = PostingCommentResponse(
+    id = id,
+    contents = contents,
+    createdDate = createdDate,
+    authorId = authorId,
+    authorLoginId = authorLoginId,
+    authorName = authorName,
+    parentCommentId = parentComment?.id,
+    postingId = posting.id
+)
+
+// P3-30 — MilestoneController가 Milestone 엔티티를 그대로 반환하고 있었다. Milestone.project는
+// 이미 @JsonIgnore가 붙어 있어 이 경로만으로는 순환에 빠지지 않지만(직접 재현은 안 됨), 이 티켓의
+// 완료 기준("5개 파일의 어떤 엔드포인트도 raw 엔티티를 직접 반환하지 않는다")과 다른 DTO들과의
+// 일관성을 위해 동일하게 DTO로 감싼다.
+data class MilestoneResponse(
+    val id: Long?,
+    val title: String,
+    val dueDate: Instant?,
+    val contents: String?,
+    val state: State,
+    val projectId: Long?
+)
+
+fun Milestone.toResponse() = MilestoneResponse(
+    id = id,
+    title = title,
+    dueDate = dueDate,
+    contents = contents,
+    state = state,
+    projectId = project.id
 )
 
 data class PullRequestResponse(

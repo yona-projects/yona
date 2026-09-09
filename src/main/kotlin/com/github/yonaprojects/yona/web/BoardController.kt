@@ -59,7 +59,7 @@ class BoardController(
         @PathVariable projectId: Long,
         @PageableDefault(size = ITEMS_PER_PAGE) pageable: Pageable,
         authentication: Authentication?
-    ): ResponseEntity<Page<Posting>> {
+    ): ResponseEntity<Page<PostingResponse>> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -74,7 +74,10 @@ class BoardController(
             pageable.sort
         )
         val page = postingService.getPostings(projectId, fixedPageable)
-        return ResponseEntity.ok(page)
+        // P3-30(2026-09-09 코디네이터 발견/수정) — raw Posting 엔티티를 그대로 페이지네이션 응답에
+        // 담으면 project->projectUsers->user 양방향 관계가 순환 직렬화되며 User.password/
+        // passwordSalt까지 노출된다(P3-26/P3-28/IssueController와 동일한 근본원인).
+        return ResponseEntity.ok(page.map { it.toResponse() })
     }
 
     @GetMapping("/{postId}")
@@ -82,7 +85,7 @@ class BoardController(
         @PathVariable projectId: Long,
         @PathVariable postId: Long,
         authentication: Authentication?
-    ): ResponseEntity<Posting> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -94,7 +97,8 @@ class BoardController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        return ResponseEntity.ok(posting)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(posting.toResponse())
     }
 
     @PostMapping
@@ -102,7 +106,7 @@ class BoardController(
         @PathVariable projectId: Long,
         @RequestBody request: CreatePostingRequest,
         authentication: Authentication?
-    ): ResponseEntity<Posting> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -120,7 +124,8 @@ class BoardController(
         )
 
         val saved = postingService.createPosting(projectId, posting, user.id!!)
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved.toResponse())
     }
 
     @PutMapping("/{postId}")
@@ -129,7 +134,7 @@ class BoardController(
         @PathVariable postId: Long,
         @RequestBody request: UpdatePostingRequest,
         authentication: Authentication?
-    ): ResponseEntity<Posting> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -152,7 +157,8 @@ class BoardController(
             sendNotificationMail = request.sendNotificationMail ?: false
         )
 
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
 
@@ -196,7 +202,7 @@ class BoardController(
         @PathVariable postId: Long,
         @RequestBody labelIds: List<Long>,
         authentication: Authentication?
-    ): ResponseEntity<Posting> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -211,7 +217,8 @@ class BoardController(
         posting.labels = issueLabelRepository.findAllById(labelIds).toMutableSet()
         val saved = postingRepository.save(posting)
 
-        return ResponseEntity.ok(saved)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(saved.toResponse())
     }
 
     @DeleteMapping("/{postId}")

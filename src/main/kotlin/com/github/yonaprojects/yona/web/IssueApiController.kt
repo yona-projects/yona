@@ -89,7 +89,7 @@ class IssueApiController(
         @PathVariable projectName: String,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.badRequest().build()
         val issue = issueRepository.findByProjectAndNumber(project, number)
@@ -100,7 +100,15 @@ class IssueApiController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
 
-        return ResponseEntity.ok(issue)
+        // P3-30(2026-09-09 코디네이터 발견/수정) — raw Issue 엔티티를 그대로 반환하면 project->
+        // projectUsers->user 순환 직렬화로 User.password/passwordSalt까지 노출된다. 실측: 이
+        // 엔드포인트를 실제 앱으로 호출해 60690바이트 응답에 password 값이 그대로 있는 것을 확인.
+        // 응답 필드명은 기존 IssueResponse(id/number/title/body/state/...)를 그대로 재사용한다 —
+        // 실제 legacy 응답은 이미 {"result": {...}} 래핑이나 milestoneTitle/assignees[].loginId 같은
+        // 필드 매핑을 하지 않은 채(가공 없이 그대로 엔티티만 직렬화) 서비스 중이었으므로, "진짜" legacy
+        // Java 계약과는 이미 어긋나 있었다 — 여기서는 그 기존 관찰가능한 동작(감싸지 않은 평탄한 JSON,
+        // title/body/state/weight 등 필드명)만 유지하며 비밀번호 노출만 제거한다.
+        return ResponseEntity.ok(issue.toResponse())
     }
 
     // yona controllers/api/IssueApi.java:1176-1191 upvoteWeight() 대응 (P2-56).
@@ -110,7 +118,7 @@ class IssueApiController(
         @PathVariable projectName: String,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.notFound().build()
         val issue = issueRepository.findByProjectAndNumber(project, number)
@@ -121,7 +129,8 @@ class IssueApiController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        return ResponseEntity.ok(issueService.upvoteWeight(issue.id!!))
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(issueService.upvoteWeight(issue.id!!).toResponse())
     }
 
     // yona controllers/api/IssueApi.java:1194-1209 downvoteWeight() 대응 (P2-56).
@@ -131,7 +140,7 @@ class IssueApiController(
         @PathVariable projectName: String,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.notFound().build()
         val issue = issueRepository.findByProjectAndNumber(project, number)
@@ -142,7 +151,8 @@ class IssueApiController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        return ResponseEntity.ok(issueService.downvoteWeight(issue.id!!))
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(issueService.downvoteWeight(issue.id!!).toResponse())
     }
 
     // yona controllers/api/IssueApi.java:319-349 updateIssueContent() 대응 (P2-56). legacy 필드명은
@@ -186,7 +196,7 @@ class IssueApiController(
         @PathVariable number: Long,
         @RequestBody request: LegacyUpdateIssueStateRequest,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
@@ -199,7 +209,8 @@ class IssueApiController(
         }
 
         val updated = issueService.changeState(issue.id!!, resolveIssueState(request.state), user.loginId!!)
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     // yona controllers/api/IssueApi.java:271-289,352-379 updateIssue()/updateIssueNode() 대응
@@ -212,7 +223,7 @@ class IssueApiController(
         @PathVariable number: Long,
         @RequestBody request: LegacyUpdateIssueRequest,
         authentication: Authentication?
-    ): ResponseEntity<Issue> {
+    ): ResponseEntity<Any> {
         val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
@@ -241,7 +252,8 @@ class IssueApiController(
             updated = issueService.changeState(issue.id!!, resolveIssueState(request.state), user.loginId!!)
         }
 
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     // yona controllers/api/IssueApi.java:427-443 updateLabels()/IssueApi.java:163-184

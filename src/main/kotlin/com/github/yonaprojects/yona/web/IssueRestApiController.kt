@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.ResponseEntity
@@ -37,11 +38,12 @@ class IssueRestApiController(
     private val commentController: CommentController
 ) {
 
-    // yona-wiki P3-02 Step8.7 2번(2026-09-01) — issueController.*()가 반환하는 ResponseEntity<Issue>는
-    // 엔티티를 그대로 담고 있어(Project<->User 양방향 연관관계로 순환 직렬화 유발, RestApiResponseDto.kt
-    // 참고) 이 얇은 어댑터 경계에서 항상 IssueResponse DTO로 변환한 뒤 그대로 상태코드만 유지해 반환한다.
-    private fun <T : Any> ResponseEntity<T>.mapBody(transform: (T) -> Any): ResponseEntity<Any> =
-        ResponseEntity.status(statusCode).body(body?.let(transform))
+    // P3-30(2026-09-09) — 이 이중 변환은 IssueController가 raw Issue 엔티티를 반환하던 시절의
+    // 방어였다. IssueController(getIssues/createIssue/getIssue/updateIssue/changeState/moveIssue)가
+    // 이제 전부 자체적으로 IssueResponse DTO를 반환하도록 고쳐졌으므로(P3-30), 여기서 다시
+    // .toResponse()를 부르면 이미 DTO로 변환된 값에 대해 존재하지 않는 확장 함수를 호출하려다
+    // 컴파일 에러가 난다 — mapBody 자체를 제거하고 그대로 위임한다(PullRequestApiController가
+    // P3-28에서 겪은 것과 동일한 정리).
 
     // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh issue list --assignee/--label/--author`
     // 대응. IssueController.getIssues()에 이미 추가한 동일한 이름의 선택 파라미터를 그대로 전달만
@@ -56,11 +58,10 @@ class IssueRestApiController(
         @RequestParam(required = false) author: String?,
         @PageableDefault(size = IssueController.ITEMS_PER_PAGE) pageable: Pageable,
         authentication: Authentication?
-    ): ResponseEntity<Any> {
+    ): ResponseEntity<Page<IssueResponse>> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
         return issueController.getIssues(found.id!!, state, assignee, label, author, pageable, authentication)
-            .mapBody { page -> page.map { it.toResponse() } }
     }
 
     @PostMapping
@@ -72,7 +73,7 @@ class IssueRestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return issueController.createIssue(found.id!!, request, authentication).mapBody { it.toResponse() }
+        return issueController.createIssue(found.id!!, request, authentication)
     }
 
     @GetMapping("/{number}")
@@ -84,7 +85,7 @@ class IssueRestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return issueController.getIssue(found.id!!, number, authentication).mapBody { it.toResponse() }
+        return issueController.getIssue(found.id!!, number, authentication)
     }
 
     // yona-wiki 계획 원문 "개별 조회/수정/코멘트/클로즈"의 "수정" 대응. 부분 수정 의미가 강한
@@ -101,7 +102,7 @@ class IssueRestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return issueController.updateIssue(found.id!!, number, request, authentication).mapBody { it.toResponse() }
+        return issueController.updateIssue(found.id!!, number, request, authentication)
     }
 
     @PostMapping("/{number}/comments")
@@ -115,7 +116,6 @@ class IssueRestApiController(
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
         return commentController.createIssueComment(found.id!!, number, request, authentication)
-            .mapBody { it.toResponse() }
     }
 
     @PostMapping("/{number}/close")
@@ -127,7 +127,7 @@ class IssueRestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return issueController.changeState(found.id!!, number, State.CLOSED, authentication).mapBody { it.toResponse() }
+        return issueController.changeState(found.id!!, number, State.CLOSED, authentication)
     }
 
     // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh issue reopen`. IssueController.changeState()가
@@ -141,7 +141,7 @@ class IssueRestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        return issueController.changeState(found.id!!, number, State.OPEN, authentication).mapBody { it.toResponse() }
+        return issueController.changeState(found.id!!, number, State.OPEN, authentication)
     }
 
     // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh issue transfer`. 서버 기능(IssueController.
@@ -163,7 +163,7 @@ class IssueRestApiController(
 
         return issueController.moveIssue(
             found.id!!, number, IssueController.MoveIssueRequest(targetProject.id!!), authentication
-        ).mapBody { it.toResponse() }
+        )
     }
 
     data class TransferIssueRequest(

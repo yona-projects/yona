@@ -58,7 +58,7 @@ class CommentController(
         @PathVariable number: Long,
         @RequestBody request: CommentRequest,
         authentication: Authentication?
-    ): ResponseEntity<IssueComment> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -72,7 +72,10 @@ class CommentController(
         }
 
         val savedComment = commentService.createIssueComment(issue.id!!, request.contents, user, request.parentCommentId)
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment)
+        // P3-30(2026-09-09 코디네이터 발견/수정) — raw IssueComment 엔티티를 그대로 반환하면
+        // issue->project->projectUsers->user 순환 직렬화로 User.password/passwordSalt까지
+        // 노출된다(P3-26/P3-28/IssueController와 동일한 근본원인).
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
     // 이슈 댓글 수정
@@ -113,7 +116,8 @@ class CommentController(
         }
 
         val updated = commentService.updateIssueComment(commentId, request.contents, user)
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     // 이슈 댓글 삭제
@@ -158,7 +162,7 @@ class CommentController(
         @PathVariable number: Long,
         @RequestBody request: CommentRequest,
         authentication: Authentication?
-    ): ResponseEntity<PostingComment> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -172,7 +176,8 @@ class CommentController(
         }
 
         val savedComment = commentService.createPostingComment(posting.id!!, request.contents, user, request.parentCommentId)
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
     // 게시판 댓글 수정
@@ -213,7 +218,8 @@ class CommentController(
         }
 
         val updated = commentService.updatePostingComment(commentId, request.contents, user)
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     // 게시판 댓글 삭제
@@ -257,7 +263,7 @@ class CommentController(
         @PathVariable number: Long,
         @RequestBody request: LegacyIssueCommentRequest,
         authentication: Authentication?
-    ): ResponseEntity<IssueComment> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -271,7 +277,8 @@ class CommentController(
         }
 
         val savedComment = commentService.createIssueComment(issue.id!!, request.comment, user, null)
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
     // yona controllers/api/IssueApi.java updateIssueComment() 대응 (P2-56). legacy 필드명은
@@ -310,7 +317,8 @@ class CommentController(
         }
 
         val updated = commentService.updateIssueComment(commentId, request.content, user)
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     // yona controllers/api/BoardApi.java newPostingComment() 대응 (P2-57). legacy 필드명은 `body`.
@@ -321,7 +329,7 @@ class CommentController(
         @PathVariable number: Long,
         @RequestBody request: LegacyPostingCommentRequest,
         authentication: Authentication?
-    ): ResponseEntity<PostingComment> {
+    ): ResponseEntity<Any> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -335,7 +343,8 @@ class CommentController(
         }
 
         val savedComment = commentService.createPostingComment(posting.id!!, request.body, user, null)
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
     // yona controllers/api/BoardApi.java updatePostingComment() 대응 (P2-57). legacy 필드명은
@@ -374,7 +383,8 @@ class CommentController(
         }
 
         val updated = commentService.updatePostingComment(commentId, request.content, user)
-        return ResponseEntity.ok(updated)
+        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        return ResponseEntity.ok(updated.toResponse())
     }
 
     data class LegacyIssueCommentRequest(val comment: String = "")
