@@ -47,7 +47,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
-import java.nio.file.Files
 import java.time.Instant
 
 @Service
@@ -1347,32 +1346,39 @@ class PullRequestServiceImpl(
     }
 
     // ============================================================================================
-    // yona-wiki P3-27 — Mercurial(hg4j) 대응.
+    // yona-wiki P3-27/P3-33 — Mercurial(hg4j) 대응.
     //
-    // 설계 요약(완료 로그에 상세 근거 정리):
+    // 설계 요약(P3-27/P3-33 완료 로그 및 docs/yona-wiki/plans/p3-33-hg4j-incore-merge-commit.md에
+    // 상세 근거 정리):
     //   - attemptMerge()/previewMerge()/processMergeCheck() 내부의 updateMerge()는 hg4j의
     //     TreeMergeCommand(작업 디렉터리를 전혀 건드리지 않는 순수 3-way merge 계산, JGit
     //     ThreeWayMerger와 동등)로 충돌/diff만 계산한다 — 서버가 공유하는 프로젝트 저장소의
     //     작업 디렉터리/dirstate를 절대 건드리지 않으므로 동시 요청 간 경합이 없다.
-    //   - merge()(실제 확정 병합)만 진짜 2-parent 머지 커밋이 필요하다. hg4j의 add()/commit()
-    //     포셀린은 실제 작업 디렉터리 파일을 스캔하는 구조라(HgRepository.kt 상단 주석) 작업
-    //     디렉터리 없이는 커밋을 만들 수 없다 — Git이 "임시 ref로 fetch → 메모리상 병합 → 커밋
-    //     오브젝트만 생성 → ref 갱신 → 임시 ref 삭제"로 부수효과를 격리하는 것과 동일한 목적으로,
-    //     toProject 저장소를 임시 디렉터리에 클론해 그 안에서만 checkout → merge → commit을
-    //     수행한 뒤 결과 커밋을 원본 저장소로 push하고 임시 디렉터리를 정리한다.
-    //   - fromProject != toProject(포크 PR)일 때 hg4j의 FetchCommand/PullCommand는 원격에만
-    //     있는 bookmark를 로컬에 그대로 새로 만든다(BookmarkCommand.mergeFromRemote()) — Git의
-    //     임시 ref(병합 확인 후 삭제, 목록에 노출 안 됨)와 달리 그대로 두면 fromBranch 이름의
-    //     bookmark가 toProject에 영구히 노출된다. hgImportBranchWithoutBookmarkLeak()이 fetch
-    //     직후 "이번에 새로 생긴" bookmark만 찾아 즉시 지워 이 흔적을 없앤다 — 다만 fromProject의
-    //     실제 changeset 자체(changelog/manifest/filelog)는 Mercurial이 append-only라 되돌릴
-    //     방법이 없어 toProject 저장소에 영구히 남는다(완료 로그에 기록한 알려진 한계).
-    //   - hg4j의 MergeCommand는 fast-forward 가능한 경우(대상 브랜치가 그대로인 채 소스만 앞선,
-    //     가장 흔한 PR 형태) working copy만 이동시키고 2-parent 커밋을 만들지 않는다 — 반면 이
-    //     앱의 기존 Git 구현(createMergeCommitAndUpdateRef)은 fast-forward 가능 여부와 무관하게
-    //     항상 명시적 머지 커밋을 만든다("Create a merge commit" 정책, git의 --no-ff와 동일).
-    //     이 정책을 Hg에서도 동일하게 재현하기 위해, merge() 성공 후 dirstate의 두 번째 부모가
-    //     비어 있으면(=지름길을 탔다는 뜻) 커밋 직전에 부모 헤더만 수동으로 보정한다.
+    //   - merge()(실제 확정 병합)도 P3-33부터 동일하게 작업 디렉터리를 건드리지 않는다. hg4j
+    //     MergeCommitCommand(TreeMergeResult + 두 부모 노드ID + 커밋 메타데이터만으로 changelog/
+    //     manifest/filelog에 직접 새 리비전을 쓰는, JGit inCore 병합 커밋과 동등한 API)로
+    //     toProject 저장소에 곧바로 병합 커밋을 만든다 — P3-27 당시의 "toProject 전체를 임시
+    //     디렉터리에 클론 → 체크아웃 → hg4j merge()/commit() → push → 임시 디렉터리 삭제" 방식은
+    //     비용이 "PR이 바꾼 파일 수"가 아니라 "toProject 전체 크기"에 비례해 P3-33에서 폐기했다
+    //     (임시클론/체크아웃/push/삭제 전부 제거). MergeCommitCommand는 항상 명시적 2-parent
+    //     changeset만 만들 뿐 "지름길(fast-forward)"이라는 개념 자체가 없으므로(그건 워킹카피
+    //     기반 옛 MergeCommand가 dirstate를 통해 갖던 개념), 이 앱의 기존 Git 구현
+    //     (createMergeCommitAndUpdateRef, git의 --no-ff와 동일한 "항상 명시적 머지 커밋" 정책)과
+    //     동일한 동작이 별도 보정 없이 자연스럽게 나온다.
+    //   - fromProject != toProject(포크 PR)일 때 hg4j의 FetchCommand는 원격에만 있는 bookmark를
+    //     로컬에 그대로 새로 만든다(BookmarkCommand.mergeFromRemote()) — Git의 임시 ref(병합
+    //     확인 후 삭제, 목록에 노출 안 됨)와 달리 그대로 두면 fromBranch 이름의 bookmark가
+    //     toProject에 영구히 노출된다. hgImportBranchWithoutBookmarkLeak()이 fetch 직후 "이번에
+    //     새로 생긴" bookmark만 찾아 즉시 지워 이 흔적을 없앤다 — 다만 fromProject의 실제
+    //     changeset 자체(changelog/manifest/filelog)는 Mercurial이 append-only라 되돌릴 방법이
+    //     없어 toProject 저장소에 영구히 남는다(완료 로그에 기록한 알려진 한계, P3-33에서도 동일).
+    //   - 동시성(P3-33 설계 결정, JGit의 setExpectedOldObjectId와 동일한 낙관적 동시성): 병합
+    //     계산(TreeMergeCommand)에 쓴 leftHex를 "이 병합이 전제한 toBranch의 기준점"으로 삼아,
+    //     실제 리비전을 쓰기 직전(hg4j MergeCommitCommand가 fail-fast lockStore()로 revlog 쓰기
+    //     구간을 보호하기 바로 전)에 toBranch bookmark가 여전히 leftHex를 가리키는지 재확인한다.
+    //     다르면(그 사이 다른 병합/push가 있었으면) 대기 없이 즉시 PullRequestException을 던져
+    //     호출자가 처음부터 재시도하게 한다 — "기다리는" 락은 이 저장소에서 실제 데드락을 겪은
+    //     전례가 있어 채택하지 않는다(HgRepository.lockStore(int)의 javadoc 참고).
     // ============================================================================================
 
     private data class HgMergeComputation(
@@ -1446,7 +1452,8 @@ class PullRequestServiceImpl(
         )
     }
 
-    // merge()의 Hg 대응 — 클래스 상단 주석의 "임시 클론" 전략 참고.
+    // merge()의 Hg 대응 — P3-33: toProject 저장소를 직접 열어 hg4j MergeCommitCommand로 그 자리에서
+    // 병합 커밋을 만든다(클래스 상단 주석 참고, 임시 클론/체크아웃/push/삭제 전부 제거).
     private fun hgMerge(pullRequest: PullRequest, updater: User): PullRequestMergeResult {
         val toProject = pullRequest.toProject
         val fromProject = pullRequest.fromProject
@@ -1455,77 +1462,89 @@ class PullRequestServiceImpl(
         val toBookmark = pullRequest.toBranch.removePrefix("refs/heads/")
         val fromBookmark = pullRequest.fromBranch.removePrefix("refs/heads/")
 
-        val tempDir = Files.createTempDirectory("yona-hg-merge-${pullRequest.id}").toFile()
-        tempDir.delete()
-
-        try {
-            val nativeRepo = Hg.cloneRepository().setSource(toDir.absolutePath).setDirectory(tempDir).call()
-            return Hg.wrap(nativeRepo).use { hg ->
-                val leftHex = hgResolveRevisionHex(hg, toBookmark)
-                    ?: throw IllegalArgumentException("Target branch '${pullRequest.toBranch}' not found")
-                val rightHex = if (fromProject.id != toProject.id) {
-                    hgImportBranchWithoutBookmarkLeak(hg, fromDir, fromBookmark, toBookmark)
-                } else {
-                    hgResolveRevisionHex(hg, fromBookmark)
-                } ?: throw IllegalArgumentException("Source head ref not found")
-
-                hg.update().setRevision(leftHex).setForce(true).call()
-
-                val diff = hgDiffCommits(hg, leftHex, rightHex)
-                checkSignedCommitsForMerge(pullRequest, updater, diff)
-
-                val mergeResult = hg.merge().setNodeId(NodeId.fromHex(rightHex).getBytes()).call()
-                val result = PullRequestMergeResult(pullRequest = pullRequest)
-
-                if (mergeResult.isConflicted) {
-                    result.setConflictStateOfPullRequest()
-                    result.gitCommits = diff
-                    pullRequestRepository.save(pullRequest)
-                    return@use result
+        return Hg.open(toDir).use { hg ->
+            val leftHex = hgResolveRevisionHex(hg, toBookmark)
+                ?: throw IllegalArgumentException("Target branch '${pullRequest.toBranch}' not found")
+            val rightHex = if (fromProject.id != toProject.id) {
+                val imported = hgImportBranchWithoutBookmarkLeak(hg, fromDir, fromBookmark, toBookmark)
+                // fetch(fromDir)는 fromProject가 toBookmark와 "우연히 같은 이름"의 bookmark를
+                // 갖고 있으면(예: 양쪽 다 기본 브랜치를 "master"라 부르는 흔한 경우)
+                // BookmarkCommand.mergeFromRemote()가 그 이름의 로컬 bookmark까지 fromProject
+                // 쪽 위치로 전진시켜버릴 수 있다 — 이건 fromBranch 콘텐츠를 가져오는 fetch의
+                // 부수효과일 뿐 toBranch 자체가 실제로 이동한 게 아니므로, 병합 계산(leftHex)이
+                // 전제한 toBranch 기준점으로 즉시 되돌린다(안 그러면 바로 다음 낙관적 동시성
+                // 검사가 이 부수효과를 "동시 수정"으로 오판해 매번 실패한다).
+                if (!leftHex.equals(hg.bookmark().call()[toBookmark], ignoreCase = true)) {
+                    hg.bookmark().setBookmarkName(toBookmark).setRevision(leftHex).setForce(true).call()
                 }
+                imported
+            } else {
+                hgResolveRevisionHex(hg, fromBookmark)
+            } ?: throw IllegalArgumentException("Source head ref not found")
 
-                // fast-forward/이미-병합됨 지름길 보정 — 클래스 상단 주석 참고.
-                val dirstate = nativeRepo.getDirstate()
-                val parent2 = dirstate.getParent2Node()
-                if (parent2 == null || parent2.isNull) {
-                    dirstate.setParents(NodeId.fromHex(leftHex).getBytes(), NodeId.fromHex(rightHex).getBytes())
-                    nativeRepo.writeDirstate(dirstate)
-                }
+            val diff = hgDiffCommits(hg, leftHex, rightHex)
+            checkSignedCommitsForMerge(pullRequest, updater, diff)
 
-                val authorStr = "${updater.name} <${updater.email ?: "yona@yona.io"}>"
-                val mergeCommitBytes = hg.commit()
-                    .setAuthor(authorStr)
-                    .setMessage(makeMergeCommitMessage(pullRequest, diff))
-                    .call()
-                val mergeCommitHex = NodeId(mergeCommitBytes).toHex()
+            val treeMergeResult = hg.treeMerge()
+                .setOurs(NodeId.fromHex(leftHex).getBytes())
+                .setTheirs(NodeId.fromHex(rightHex).getBytes())
+                .call()
 
-                // 임시 클론 -> 실제 toProject 저장소로 push (bookmark도 pushkey로 함께 동기화됨,
-                // hg4j PushCommand.call() 3a단계 참고).
-                hg.push().setDestination(toDir.absolutePath).call()
+            val result = PullRequestMergeResult(pullRequest = pullRequest)
 
+            if (treeMergeResult.isConflicted) {
+                result.setConflictStateOfPullRequest()
                 result.gitCommits = diff
-                result.setMergedStateOfPullRequest(updater)
-                pullRequest.mergedCommitIdFrom = leftHex
-                pullRequest.mergedCommitIdTo = mergeCommitHex
-                pullRequest.lastCommitId = rightHex
-                pullRequest.received = Instant.now()
-                pullRequest.isMerging = false
-
                 pullRequestRepository.save(pullRequest)
-                updatePullRequestCommits(pullRequest, diff)
-
-                eventPublisher.publishEvent(
-                    PullRequestMergeEvent(
-                        pullRequestId = pullRequest.id!!,
-                        sender = updater,
-                        isNewPullRequest = false
-                    )
-                )
-
-                result
+                return@use result
             }
-        } finally {
-            tempDir.deleteRecursively()
+
+            // 낙관적 동시성 확인(클래스 상단 주석 참고, JGit setExpectedOldObjectId와 동일 지점의
+            // 동일 검사) — 병합 계산에 쓴 leftHex 기준점에서, 실제 리비전을 쓰기 직전 시점에
+            // toBranch가 여전히 그 기준점을 가리키는지 재확인한다. 다르면(그 사이 다른 병합/push가
+            // toBranch를 옮겼으면) 대기 없이 즉시 실패시켜 호출자가 처음부터 재시도하게 한다.
+            val currentToBookmarkHex = hg.bookmark().call()[toBookmark]
+            if (!leftHex.equals(currentToBookmarkHex, ignoreCase = true)) {
+                throw PullRequestException(
+                    "브랜치 '$toBookmark'가 병합 계산 이후 동시에 이동했습니다" +
+                        "(기준점 $leftHex, 현재 $currentToBookmarkHex) — 병합을 처음부터 다시 시도하십시오."
+                )
+            }
+
+            val authorStr = "${updater.name} <${updater.email ?: "yona@yona.io"}>"
+            val mergeCommitBytes = hg.mergeCommit()
+                .setParents(NodeId.fromHex(leftHex).getBytes(), NodeId.fromHex(rightHex).getBytes())
+                .setTreeMergeResult(treeMergeResult)
+                .setAuthor(authorStr)
+                .setMessage(makeMergeCommitMessage(pullRequest, diff))
+                .call()
+            val mergeCommitHex = NodeId(mergeCommitBytes).toHex()
+
+            // MergeCommitCommand는 bookmark를 모르게 유지한다(클래스 상단 주석 참고, 단일 책임) —
+            // 여기서 toBranch bookmark를 새 병합 커밋으로 전진시킨다. 새 커밋은 항상 leftHex의
+            // 자손(parent1)이라 real hg의 fast-forward 판정을 그대로 통과해 force 없이도 이동된다.
+            hg.bookmark().setBookmarkName(toBookmark).setRevision(mergeCommitHex).call()
+
+            result.gitCommits = diff
+            result.setMergedStateOfPullRequest(updater)
+            pullRequest.mergedCommitIdFrom = leftHex
+            pullRequest.mergedCommitIdTo = mergeCommitHex
+            pullRequest.lastCommitId = rightHex
+            pullRequest.received = Instant.now()
+            pullRequest.isMerging = false
+
+            pullRequestRepository.save(pullRequest)
+            updatePullRequestCommits(pullRequest, diff)
+
+            eventPublisher.publishEvent(
+                PullRequestMergeEvent(
+                    pullRequestId = pullRequest.id!!,
+                    sender = updater,
+                    isNewPullRequest = false
+                )
+            )
+
+            result
         }
     }
 
