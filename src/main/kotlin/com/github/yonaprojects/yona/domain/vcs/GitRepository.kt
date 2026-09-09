@@ -569,7 +569,12 @@ class GitRepository(
             val rev = untilRev ?: "HEAD"
             val objectId = repo.resolve(rev)
             if (objectId != null) {
-                logCommand.add(objectId)
+                // annotated 태그는 ref가 커밋이 아니라 태그 오브젝트를 직접 가리켜, 그 ObjectId를
+                // LogCommand.add()에 그대로 넘기면 IncorrectObjectTypeException("not a commit")이
+                // 난다 — 이 파일의 다른 모든 resolve() 호출부는 RevWalk.parseCommit()/parseTree()로
+                // peel(태그 오브젝트를 실제 커밋까지 따라가는 것)한 뒤 쓰는데 여기만 빠져있었다
+                // (lightweight 태그/브랜치는 ref가 커밋을 곧바로 가리켜 우연히 통과했다).
+                logCommand.add(RevWalk(repo).parseCommit(objectId))
             }
             if (!path.isNullOrEmpty()) {
                 logCommand.addPath(path)

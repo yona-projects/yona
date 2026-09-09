@@ -963,6 +963,37 @@ class GitRepositorySpec : DescribeSpec({
 
             history.size shouldBe 1
         }
+
+        // annotated 태그는 ref가 커밋이 아니라 별도의 태그 오브젝트를 가리켜, peel(커밋까지 따라가기)
+        // 없이 LogCommand에 그대로 넘기면 IncorrectObjectTypeException("not a commit")이 난다 —
+        // 실제 서버(코드 브라우저 커밋 히스토리 화면)에서 500으로 재현된 실사용 버그.
+        it("untilRev로 annotated 태그 이름을 지정해도 500 없이 그 커밋부터 거슬러 올라간 히스토리를 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o54", "p54", baseDir, userResolver)
+            repo.create()
+            val commit1 = testRepo(openRepo(repo)).put("a.txt", "v1").commit("첫 커밋")
+            testRepo(openRepo(repo)).put("a.txt", "v2").commit("두번째 커밋")
+            repo.createTag("v1.0.0", commit1.name, message = "릴리즈", taggerName = "alice", taggerEmail = "alice@example.com")
+
+            val history = repo.getHistory(0, 25, "refs/tags/v1.0.0", null)
+
+            history.size shouldBe 1
+            history[0].getId() shouldBe commit1.name
+        }
+
+        it("untilRev로 lightweight 태그 이름을 지정해도 그 커밋부터 거슬러 올라간 히스토리를 반환한다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o55", "p55", baseDir, userResolver)
+            repo.create()
+            val commit1 = testRepo(openRepo(repo)).put("a.txt", "v1").commit("첫 커밋")
+            testRepo(openRepo(repo)).put("a.txt", "v2").commit("두번째 커밋")
+            repo.createTag("v1.0.1", commit1.name, message = null, taggerName = null, taggerEmail = null)
+
+            val history = repo.getHistory(0, 25, "refs/tags/v1.0.1", null)
+
+            history.size shouldBe 1
+            history[0].getId() shouldBe commit1.name
+        }
     }
 
     describe("getCommit()") {
