@@ -2339,7 +2339,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             val model = ExtendedModelMap()
             val result = projectViewController.newProject(
                 "newprojexuser2", "noname", "설명", "PUBLIC", "GIT",
-                false, false, false, false, false, false, auth2, model
+                false, false, false, false, false, false, false, auth2, model
             )
             result shouldBe "project/create"
             model.getAttribute("error") shouldBe "프로젝트 생성 도중 오류가 발생했습니다."
@@ -2355,7 +2355,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             val model = ExtendedModelMap()
             val result = projectViewController.newProject(
                 "newprojbadscope", "noname", "설명", "NOT_A_SCOPE", "GIT",
-                false, false, false, false, false, false, auth2, model
+                false, false, false, false, false, false, false, auth2, model
             )
             result shouldBe "project/create"
             val form = model.getAttribute("form") as NewProjectForm

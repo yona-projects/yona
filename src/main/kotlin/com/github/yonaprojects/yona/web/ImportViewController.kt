@@ -119,6 +119,7 @@ class ImportViewController(
                 this.isReviewEnabled = form.review
                 this.isMilestoneEnabled = form.milestone
                 this.isBoardEnabled = form.board
+                this.isWikiEnabled = form.wiki
             }
 
             // 조직인 경우 연동
@@ -226,5 +227,6 @@ class ImportForm {
     var review: Boolean = true
     var milestone: Boolean = true
     var board: Boolean = true
+    var wiki: Boolean = true
     var repoAuth: String? = null // 레거시 에러 바인딩 호환용
 }

@@ -132,6 +132,10 @@
                                 <input type="checkbox" class="radio-btn" id="menuSettingBoard" name="board" value="true" th:checked="${project.isBoardEnabled}">
                                 <span th:text="#{menu.board}">Board</span>
                             </label>
+                            <label for="menuSettingWiki" class="bg-radiobtn label-public inline-list" style="margin-right: 15px;">
+                                <input type="checkbox" class="radio-btn" id="menuSettingWiki" name="wiki" value="true" th:checked="${project.isWikiEnabled}">
+                                <span th:text="#{menu.wiki}">Wiki</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -171,6 +175,7 @@
           var isReviewEnabled = $("#menuSettingReview").is(":checked");
           var isMilestoneEnabled = $("#menuSettingMilestone").is(":checked");
           var isBoardEnabled = $("#menuSettingBoard").is(":checked");
+          var isWikiEnabled = $("#menuSettingWiki").is(":checked");
 
           var requestData = {
               name: name,
@@ -185,7 +190,8 @@
               isPullRequestEnabled: isPullRequestEnabled,
               isReviewEnabled: isReviewEnabled,
               isMilestoneEnabled: isMilestoneEnabled,
-              isBoardEnabled: isBoardEnabled
+              isBoardEnabled: isBoardEnabled,
+              isWikiEnabled: isWikiEnabled
           };
 
           $.ajax({

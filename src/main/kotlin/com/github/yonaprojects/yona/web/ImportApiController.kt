@@ -104,6 +104,7 @@ class ImportApiController(
                 this.isReviewEnabled = request.review
                 this.isMilestoneEnabled = request.milestone
                 this.isBoardEnabled = request.board
+                this.isWikiEnabled = request.wiki
             }
 
             if (ownerOrg != null) {
@@ -170,7 +171,8 @@ data class ImportApiRequest(
     val pullRequest: Boolean = true,
     val review: Boolean = true,
     val milestone: Boolean = true,
-    val board: Boolean = true
+    val board: Boolean = true,
+    val wiki: Boolean = true
 )
 
 data class ImportApiResponse(

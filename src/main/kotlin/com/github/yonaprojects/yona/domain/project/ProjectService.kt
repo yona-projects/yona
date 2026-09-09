@@ -42,6 +42,7 @@ data class UpdateProjectParam(
     val isPullRequestEnabled: Boolean,
     val isReviewEnabled: Boolean,
     val isMilestoneEnabled: Boolean,
-    val isBoardEnabled: Boolean
+    val isBoardEnabled: Boolean,
+    val isWikiEnabled: Boolean
 )
 

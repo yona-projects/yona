@@ -21,7 +21,8 @@ class UpdateProjectParamSpec : DescribeSpec({
         isPullRequestEnabled = true,
         isReviewEnabled = true,
         isMilestoneEnabled = true,
-        isBoardEnabled = true
+        isBoardEnabled = true,
+        isWikiEnabled = true
     )
 
     describe("UpdateProjectParam") {
@@ -41,6 +42,7 @@ class UpdateProjectParamSpec : DescribeSpec({
             param.isReviewEnabled shouldBe true
             param.isMilestoneEnabled shouldBe true
             param.isBoardEnabled shouldBe true
+            param.isWikiEnabled shouldBe true
         }
 
         it("name의 기본값은 null이어야 한다") {
@@ -56,7 +58,8 @@ class UpdateProjectParamSpec : DescribeSpec({
                 isPullRequestEnabled = true,
                 isReviewEnabled = true,
                 isMilestoneEnabled = true,
-                isBoardEnabled = true
+                isBoardEnabled = true,
+                isWikiEnabled = true
             )
 
             param.name shouldBe null

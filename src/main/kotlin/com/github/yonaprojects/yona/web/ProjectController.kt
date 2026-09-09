@@ -106,7 +106,8 @@ class ProjectController(
                     isPullRequestEnabled = request.isPullRequestEnabled,
                     isReviewEnabled = request.isReviewEnabled,
                     isMilestoneEnabled = request.isMilestoneEnabled,
-                    isBoardEnabled = request.isBoardEnabled
+                    isBoardEnabled = request.isBoardEnabled,
+                    isWikiEnabled = request.isWikiEnabled
                 )
             )
         } catch (e: IllegalArgumentException) {
@@ -394,6 +395,7 @@ class ProjectController(
         val isPullRequestEnabled: Boolean = true,
         val isReviewEnabled: Boolean = true,
         val isMilestoneEnabled: Boolean = true,
-        val isBoardEnabled: Boolean = true
+        val isBoardEnabled: Boolean = true,
+        val isWikiEnabled: Boolean = true
     )
 }

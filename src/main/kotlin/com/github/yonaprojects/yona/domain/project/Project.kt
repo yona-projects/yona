@@ -48,6 +48,7 @@ class Project(
     var isReviewEnabled: Boolean = true,
     var isMilestoneEnabled: Boolean = true,
     var isBoardEnabled: Boolean = true,
+    var isWikiEnabled: Boolean = true,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id")

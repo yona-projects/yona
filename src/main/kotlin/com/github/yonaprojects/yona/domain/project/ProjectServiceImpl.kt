@@ -169,6 +169,7 @@ class ProjectServiceImpl(
         project.isReviewEnabled = param.isReviewEnabled
         project.isMilestoneEnabled = param.isMilestoneEnabled
         project.isBoardEnabled = param.isBoardEnabled
+        project.isWikiEnabled = param.isWikiEnabled
 
         if (!param.defaultBranch.isNullOrBlank()) {
             try {

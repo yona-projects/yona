@@ -1118,7 +1118,8 @@ class ProjectServiceImplSpec : DescribeSpec({
             isPullRequestEnabled = true,
             isReviewEnabled = true,
             isMilestoneEnabled = true,
-            isBoardEnabled = true
+            isBoardEnabled = true,
+            isWikiEnabled = true
         )
 
         it("이름이 바뀌지 않으면 저장소 rename을 호출하지 않아야 한다") {

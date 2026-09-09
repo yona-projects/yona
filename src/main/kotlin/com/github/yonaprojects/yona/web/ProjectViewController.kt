@@ -484,6 +484,7 @@ class ProjectViewController(
         @RequestParam(value = "review", defaultValue = "false") review: Boolean,
         @RequestParam(value = "milestone", defaultValue = "false") milestone: Boolean,
         @RequestParam(value = "board", defaultValue = "false") board: Boolean,
+        @RequestParam(value = "wiki", defaultValue = "false") wiki: Boolean,
         authentication: Authentication?,
         model: Model
     ): String {
@@ -513,6 +514,7 @@ class ProjectViewController(
                 this.isReviewEnabled = review
                 this.isMilestoneEnabled = milestone
                 this.isBoardEnabled = board
+                this.isWikiEnabled = wiki
                 // owner가 조직명이면 project.organization도 채워야 한다 — 그렇지 않으면 조직 소속
                 // 프로젝트인데도 조직 관리자 권한/조직 프로젝트 목록에서 누락된다.
                 if (organization != null) {
@@ -544,6 +546,7 @@ class ProjectViewController(
                 this.review = review
                 this.milestone = milestone
                 this.board = board
+                this.wiki = wiki
             }
             model.addAttribute("currentUser", loginUser)
             model.addAttribute("organizations", organizations)
@@ -1375,4 +1378,5 @@ class NewProjectForm {
     var review: Boolean = true
     var milestone: Boolean = true
     var board: Boolean = true
+    var wiki: Boolean = true
 }

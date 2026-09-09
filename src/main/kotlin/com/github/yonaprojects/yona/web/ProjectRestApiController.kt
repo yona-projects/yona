@@ -140,6 +140,7 @@ class ProjectRestApiController(
                 this.isReviewEnabled = request.isReviewEnabled
                 this.isMilestoneEnabled = request.isMilestoneEnabled
                 this.isBoardEnabled = request.isBoardEnabled
+                this.isWikiEnabled = request.isWikiEnabled
                 if (organization != null) {
                     this.organization = organization
                 }
@@ -212,7 +213,8 @@ class ProjectRestApiController(
         val isPullRequestEnabled: Boolean = true,
         val isReviewEnabled: Boolean = true,
         val isMilestoneEnabled: Boolean = true,
-        val isBoardEnabled: Boolean = true
+        val isBoardEnabled: Boolean = true,
+        val isWikiEnabled: Boolean = true
     )
 
     // yona ProjectApi.createdProjectNode() 대응(ProjectApiController.kt와 동일 필드
