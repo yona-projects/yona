@@ -41,6 +41,11 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.RefSpec
+// yona-wiki P3-27 — Mercurial PR 병합 검증용(실제 hg4j 저장소를 직접 구성).
+import io.github.search5.hg4j.api.Hg
+import io.github.search5.hg4j.lib.NodeId
+import io.github.search5.hg4j.storage.Revlog
+import io.github.search5.hg4j.util.NodeIdUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
@@ -2793,6 +2798,259 @@ class PullRequestServiceSpec @Autowired constructor(
                         pullRequestService.restoreFromBranch(999999L)
                     }
                 }
+            }
+        }
+
+        // yona-wiki P3-27 — Mercurial 프로젝트의 PR 병합/충돌 계산(attemptMerge/previewMerge/merge).
+        // 위쪽의 거대한 "PullRequestService 통합 테스트" describe와는 독립된 형제 describe로 둔다 —
+        // 그쪽 beforeEach/afterEach는 GIT 전용 toProject/fromProject를 만들고 관리하므로 재사용할
+        // 이유가 없고, 오히려 재사용하면 매번 불필요한 Git 저장소까지 함께 만들게 된다. mock으로
+        // hg4j 동작을 흉내내지 않고, HgRepositorySpec과 동일하게 hg4j 포셀린 API(add/commit/bookmark/
+        // update)로 실제 로컬 Mercurial 저장소를 직접 구성해 검증한다.
+        describe("PullRequestService - Mercurial 프로젝트 PR 병합(P3-27)") {
+            lateinit var hgContributor: User
+            lateinit var hgReceiver: User
+            lateinit var hgToProject: Project
+            lateinit var hgFromProject: Project
+            val hgAuthor = "hg tester <hg-tester@example.com>"
+
+            beforeEach {
+                val suffix = System.currentTimeMillis().toString() + "-" + UUID.randomUUID().toString().take(6)
+                hgContributor = userRepository.save(
+                    User(loginId = "hg-contrib-$suffix", name = "Hg기여자", email = "hg-contrib-$suffix@yona.io")
+                )
+                hgReceiver = userRepository.save(
+                    User(loginId = "hg-receive-$suffix", name = "Hg수신자", email = "hg-receive-$suffix@yona.io")
+                )
+                hgToProject = projectRepository.save(
+                    Project(name = "hg-to-$suffix", owner = "hg-owner-a", vcs = "MERCURIAL", projectScope = ProjectScope.PUBLIC)
+                )
+                hgFromProject = projectRepository.save(
+                    Project(name = "hg-from-$suffix", owner = "hg-owner-b", vcs = "MERCURIAL")
+                )
+                repositoryService.getRepository(hgToProject).create()
+                repositoryService.getRepository(hgFromProject).create()
+            }
+
+            afterEach {
+                try { repositoryService.getRepository(hgToProject).delete() } catch (e: Exception) {}
+                try { repositoryService.getRepository(hgFromProject).delete() } catch (e: Exception) {}
+            }
+
+            fun hgCommitHex(repoDir: File, path: String, content: String, message: String): String {
+                val file = File(repoDir, path)
+                file.parentFile?.mkdirs()
+                file.writeText(content)
+                return Hg.open(repoDir).use { hg ->
+                    hg.add().addFile(path).call()
+                    val bytes = hg.commit().setAuthor(hgAuthor).setMessage(message).call()
+                    NodeId(bytes).toHex()
+                }
+            }
+
+            fun hgBookmark(repoDir: File, name: String, hex: String) {
+                Hg.open(repoDir).use { hg -> hg.bookmark().setBookmarkName(name).setRevision(hex).call() }
+            }
+
+            fun hgCheckout(repoDir: File, hex: String) {
+                Hg.open(repoDir).use { hg -> hg.update().setRevision(hex).setForce(true).call() }
+            }
+
+            // 실제 changelog(revlog)를 직접 열어 해당 커밋의 부모 리비전 번호를 읽는다(-1이면
+            // 해당 부모 없음) — hg4j MergeCommandTest.java가 검증에 쓰는 것과 동일한 저수준 접근으로,
+            // 이 앱의 HgCommit.getParentCount()는 병합 커밋과 일반 커밋을 구분하지 않아(HgCommit.kt
+            // 주석 참고, "root만 0, 나머지는 전부 1로 근사") "진짜 2-parent 머지 커밋인지"는 포셀린
+            // API만으로 검증할 수 없다.
+            fun changelogParents(repoDir: File, hex: String): Pair<Int, Int> {
+                val storeDir = File(File(repoDir, ".hg"), "store")
+                val changelog = Revlog(File(storeDir, "00changelog.i"), File(storeDir, "00changelog.d"))
+                val rev = NodeIdUtil.findRevisionByNodeId(changelog, NodeIdUtil.fromHex(hex))
+                val rec = changelog.getIndexRecord(rev)
+                return rec.parent1 to rec.parent2
+            }
+
+            // "master"/"feature" 두 bookmark가 공통 조상 base에서 각자 다른 파일을 추가해 진짜
+            // 갈라지는(fast-forward 아닌) 구조를 만든다.
+            fun setUpDivergentBranches(repoDir: File): Pair<String, String> {
+                val baseHex = hgCommitHex(repoDir, "common.txt", "base\n", "base commit")
+                hgBookmark(repoDir, "master", baseHex)
+                hgBookmark(repoDir, "feature", baseHex)
+
+                hgCheckout(repoDir, baseHex)
+                val masterHex = hgCommitHex(repoDir, "master-only.txt", "m\n", "master change")
+                hgBookmark(repoDir, "master", masterHex)
+
+                hgCheckout(repoDir, baseHex)
+                val featureHex = hgCommitHex(repoDir, "feature-only.txt", "f\n", "feature change")
+                hgBookmark(repoDir, "feature", featureHex)
+
+                return masterHex to featureHex
+            }
+
+            fun setUpConflictingBranches(repoDir: File): Pair<String, String> {
+                val baseHex = hgCommitHex(repoDir, "same.txt", "line1\nline2\nline3\n", "base commit")
+                hgBookmark(repoDir, "master", baseHex)
+                hgBookmark(repoDir, "feature", baseHex)
+
+                hgCheckout(repoDir, baseHex)
+                val masterHex = hgCommitHex(repoDir, "same.txt", "line1\nMASTER\nline3\n", "master conflicting change")
+                hgBookmark(repoDir, "master", masterHex)
+
+                hgCheckout(repoDir, baseHex)
+                val featureHex = hgCommitHex(repoDir, "same.txt", "line1\nFEATURE\nline3\n", "feature conflicting change")
+                hgBookmark(repoDir, "feature", featureHex)
+
+                return masterHex to featureHex
+            }
+
+            fun setUpFastForwardEligible(repoDir: File): Pair<String, String> {
+                val baseHex = hgCommitHex(repoDir, "common.txt", "base\n", "base commit")
+                hgBookmark(repoDir, "master", baseHex)
+                hgBookmark(repoDir, "feature", baseHex)
+
+                hgCheckout(repoDir, baseHex)
+                val featureHex = hgCommitHex(repoDir, "feature-only.txt", "f\n", "feature change")
+                hgBookmark(repoDir, "feature", featureHex)
+
+                return baseHex to featureHex
+            }
+
+            fun makeOpenPr(fromProject: Project = hgToProject): PullRequest = pullRequestRepository.save(
+                PullRequest(
+                    title = "Hg PR", body = "Mercurial PR 병합 검증용",
+                    toProject = hgToProject, fromProject = fromProject,
+                    toBranch = "refs/heads/master", fromBranch = "refs/heads/feature",
+                    contributor = hgContributor, receiver = hgReceiver,
+                    created = Instant.now(), state = State.OPEN
+                )
+            )
+
+            it("previewMerge - 충돌 없는 두 브랜치는 conflict=false와 diff 커밋을 반환해야 한다") {
+                val toDir = repositoryService.getRepository(hgToProject).getDirectory()
+                setUpDivergentBranches(toDir)
+
+                val preview = pullRequestService.previewMerge(
+                    hgToProject, hgToProject, "refs/heads/feature", "refs/heads/master"
+                )
+
+                preview.conflict shouldBe false
+                preview.commits.size shouldBe 1
+                preview.commits[0].getMessage() shouldContain "feature change"
+            }
+
+            it("previewMerge - 같은 파일 같은 줄을 수정한 두 브랜치는 conflict=true여야 한다") {
+                val toDir = repositoryService.getRepository(hgToProject).getDirectory()
+                setUpConflictingBranches(toDir)
+
+                val preview = pullRequestService.previewMerge(
+                    hgToProject, hgToProject, "refs/heads/feature", "refs/heads/master"
+                )
+
+                preview.conflict shouldBe true
+            }
+
+            it("attemptMerge - 저장된 PR에 대해 충돌 없는 미리보기를 계산하고 lastCommitId를 갱신해야 한다") {
+                val toDir = repositoryService.getRepository(hgToProject).getDirectory()
+                val (_, featureHex) = setUpDivergentBranches(toDir)
+                val pr = makeOpenPr()
+
+                val result = pullRequestService.attemptMerge(pr.id!!)
+
+                result.conflicts() shouldBe false
+                result.gitCommits.size shouldBe 1
+                pullRequestRepository.findById(pr.id!!).get().lastCommitId shouldBe featureHex
+            }
+
+            it("merge - 충돌 없는 두 브랜치를 실제로 병합하면 진짜 2-parent 머지 커밋이 생기고 bookmark가 전진해야 한다") {
+                val toDir = repositoryService.getRepository(hgToProject).getDirectory()
+                setUpDivergentBranches(toDir)
+                val pr = makeOpenPr()
+
+                val result = pullRequestService.merge(pr.id!!, hgReceiver)
+
+                result.conflicts() shouldBe false
+                val saved = pullRequestRepository.findById(pr.id!!).get()
+                saved.state shouldBe State.MERGED
+                saved.mergedCommitIdTo shouldNotBe null
+
+                val mergeHex = saved.mergedCommitIdTo!!
+                val (p1, p2) = changelogParents(toDir, mergeHex)
+                withClue("실제 2-parent 머지 커밋이어야 한다") {
+                    p1 shouldNotBe -1
+                    p2 shouldNotBe -1
+                    p1 shouldNotBe p2
+                }
+
+                val hgRepo = repositoryService.getRepository(hgToProject)
+                hgRepo.getCommit("master")?.getId() shouldBe mergeHex
+                String(hgRepo.getRawFile("master", "master-only.txt")) shouldBe "m\n"
+                String(hgRepo.getRawFile("master", "feature-only.txt")) shouldBe "f\n"
+            }
+
+            it("merge - fast-forward 가능한 상황이어도 fast-forward 대신 명시적 2-parent 머지 커밋을 만들어야 한다") {
+                val toDir = repositoryService.getRepository(hgToProject).getDirectory()
+                val (_, featureHex) = setUpFastForwardEligible(toDir)
+                val pr = makeOpenPr()
+
+                val result = pullRequestService.merge(pr.id!!, hgReceiver)
+
+                result.conflicts() shouldBe false
+                val saved = pullRequestRepository.findById(pr.id!!).get()
+                saved.state shouldBe State.MERGED
+                val mergeHex = saved.mergedCommitIdTo!!
+                // 순수 fast-forward였다면 병합 결과 커밋이 featureHex 그 자체와 같았을 것이다 —
+                // 새 머지 커밋이 실제로 새로 만들어졌는지 확인한다.
+                mergeHex shouldNotBe featureHex
+
+                val (p1, p2) = changelogParents(toDir, mergeHex)
+                withClue("fast-forward 가능해도 2-parent 머지 커밋을 강제해야 한다") {
+                    p1 shouldNotBe -1
+                    p2 shouldNotBe -1
+                }
+            }
+
+            it("merge - 충돌이 있으면 병합하지 않고 OPEN 상태와 원래 bookmark를 그대로 유지해야 한다") {
+                val toDir = repositoryService.getRepository(hgToProject).getDirectory()
+                val (masterHex, _) = setUpConflictingBranches(toDir)
+                val pr = makeOpenPr()
+
+                val result = pullRequestService.merge(pr.id!!, hgReceiver)
+
+                result.conflicts() shouldBe true
+                val saved = pullRequestRepository.findById(pr.id!!).get()
+                saved.state shouldBe State.OPEN
+                saved.mergedCommitIdTo shouldBe null
+
+                repositoryService.getRepository(hgToProject).getCommit("master")?.getId() shouldBe masterHex
+            }
+
+            it("merge - fromProject != toProject(포크)여도 실제로 병합되고 fromBranch bookmark가 toProject에 남지 않아야 한다") {
+                val toDir = repositoryService.getRepository(hgToProject).getDirectory()
+                val fromDir = repositoryService.getRepository(hgFromProject).getDirectory()
+
+                val baseHex = hgCommitHex(toDir, "common.txt", "base\n", "base commit")
+                hgBookmark(toDir, "master", baseHex)
+
+                Hg.open(fromDir).use { hg -> hg.pull().setSource(toDir.absolutePath).call() }
+                hgCheckout(fromDir, baseHex)
+                hgCommitHex(fromDir, "feature-only.txt", "f\n", "feature change")
+                hgBookmark(fromDir, "feature", Hg.open(fromDir).use { hg -> hg.log().call().first().nodeId.toHex() })
+
+                val pr = makeOpenPr(fromProject = hgFromProject)
+
+                val result = pullRequestService.merge(pr.id!!, hgReceiver)
+
+                result.conflicts() shouldBe false
+                pullRequestRepository.findById(pr.id!!).get().state shouldBe State.MERGED
+
+                val hgToRepo = repositoryService.getRepository(hgToProject)
+                String(hgToRepo.getRawFile("master", "feature-only.txt")) shouldBe "f\n"
+
+                // Git의 임시 ref(병합 확인 후 삭제, 목록 비노출)와 동등하게, fromBranch라는 bookmark
+                // 이름 자체는 toProject에 영구히 남지 않아야 한다(hgImportBranchWithoutBookmarkLeak
+                // 검증) — 다만 그 브랜치가 담고 있던 changeset 자체는 Mercurial의 append-only 구조상
+                // 남는다(완료 로그에 기록한 알려진 한계).
+                hgToRepo.getRefNames().contains("feature") shouldBe false
             }
         }
     }

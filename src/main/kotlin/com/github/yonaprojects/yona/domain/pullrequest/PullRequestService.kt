@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.http.HttpStatus
 
 import com.github.yonaprojects.yona.domain.vcs.FileDiff
-import com.github.yonaprojects.yona.domain.vcs.GitCommit
+import com.github.yonaprojects.yona.domain.vcs.Commit
 
 interface PullRequestService {
     /**
@@ -130,8 +130,10 @@ interface PullRequestService {
 // suggestTitleAndBodyFromDiffCommit()의 title/body 두 결과를 하나로 합친 값 — 대응하는 PR 엔티티가
 // 없는 프리뷰 전용 시나리오라 기존 PullRequestMergeResult(비-null PullRequest 필수)를 재사용하지
 // 않고 별도 타입으로 둔다.
+// yona-wiki P3-27 — commits는 원래 GitCommit 전용이었으나 Mercurial의 HgCommit도 담아야 해서
+// 공통 상위 타입 Commit으로 넓혔다(PullRequestMergeResult.kt와 동일한 근거).
 data class MergePreviewResult(
-    val commits: List<GitCommit>,
+    val commits: List<Commit>,
     val conflict: Boolean,
     val suggestedTitle: String?,
     val suggestedBody: String?

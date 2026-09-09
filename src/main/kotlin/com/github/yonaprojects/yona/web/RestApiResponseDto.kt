@@ -19,7 +19,7 @@ import com.github.yonaprojects.yona.domain.pullrequest.ReviewComment
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.vcs.DiffLineType
 import com.github.yonaprojects.yona.domain.vcs.FileDiff
-import com.github.yonaprojects.yona.domain.vcs.GitCommit
+import com.github.yonaprojects.yona.domain.vcs.Commit
 import java.time.Instant
 
 // yona-wiki P3-02 Step8.7 2번(2026-09-01 실서버 골든패스 수동검증 중 발견, 심각도 높음) —
@@ -374,7 +374,9 @@ data class GitCommitResponse(
     val authorEmail: String?
 )
 
-fun GitCommit.toResponse() = GitCommitResponse(
+// yona-wiki P3-27 — 원래 GitCommit 전용이었으나 Mercurial의 HgCommit도 동일한 DTO로 직렬화해야 해서
+// 공통 상위 타입 Commit으로 넓혔다(PullRequestMergeResult.gitCommits도 동일한 이유로 List<Commit>).
+fun Commit.toResponse() = GitCommitResponse(
     id = getId(),
     shortId = getShortId(),
     message = getMessage(),

@@ -301,7 +301,7 @@
 | P3-24 | [x] | hg4j `GpgSignature`가 RSA 키로 하드코딩돼 있어 EdDSA 등 다른 알고리즘 서명을 검증 못 함 | (2026-09-09 사용자 지시) | [[tickets/p3-24]] |
 | P3-25 | [x] | hg4j `Wire1CommandsCoverageTest`의 기존 flaky 실패(빈 저장소 changegroup) 근본 수정 | 완료 — 테스트 자체의 낡은 기대값(예전 getBundle 버그를 검증하던 것)이었음을 확인, 실제 페이로드 파싱 검증으로 수정 | [[tickets/p3-25]] |
 | P3-26 | [x] | `/api/{owner}/{projectName}/pushedBranches`가 순환 참조로 부풀고 비밀번호 해시까지 노출됨 | 완료 — DTO 변환으로 수정(Git/Hg 공통 기존 결함, 코디네이터가 P3-22 검증 중 발견) | [[tickets/p3-26]] |
-| P3-27 | [ ] | Mercurial 프로젝트의 Pull Request 병합이 동작하지 않음(JGit 하드코딩) | 발견만(P3-21/22 검증 중) — 대규모 신규 작업이라 착수 여부 사용자 확인 대기 | [[tickets/p3-27]] |
+| P3-27 | [x] | Mercurial 프로젝트의 Pull Request 병합이 동작하지 않음(JGit 하드코딩) | 완료 — hg4j `TreeMergeCommand`(순수 충돌계산)+`MergeCommand`+`CommitCommand`(임시 클론에서 실제 2-parent 머지 커밋 생성 후 push)로 `PullRequestServiceImpl`의 4개 메서드 전부 구현. 조사 중 발견한 hg4j 전제 버그(병합 커밋만 push 시 changegroup 손상)도 함께 수정. 관련 테스트 204개(P3-27 신규 7개 포함) 전부 GREEN, Git 경로 무회귀 | [[tickets/p3-27]] |
 | P3-28 | [x] | `PullRequestController`의 8개 엔드포인트가 순환 참조로 부풀고 비밀번호 해시까지 노출됨 | 완료 — P3-26과 동일 근본원인(raw 엔티티 직렬화), PR 생성/조회/수정/담당자/라벨 등 전체 엔드포인트 DTO 변환으로 수정 | [[tickets/p3-28]] |
 | P3-29 | [x] | MCP `review_pull_request` 도구가 P3-15(실제 Approve/Request changes) 대신 낡은 "리뷰어 등록"에만 매핑돼 있음 | 완료 — 사용자가 기억하던 "PR 승인 이슈", submitReview()에 연결, 기존 동작은 add_reviewer로 분리 보존 | [[tickets/p3-29]] |
 | P3-30 | [x] | `IssueController`/`IssueApiController`/`BoardController`/`CommentController`/`MilestoneController`(24개 엔드포인트)에도 P3-26/28과 동일한 순환참조/비밀번호 노출 | 완료 — P3-26/28과 동일 근본원인, 커밋 `d1023909b`로 5개 컨트롤러 전부 DTO 변환(관련 테스트 253개 GREEN). 실사용 로그인 검증 중 별도 로그인 버그를 발견해 [[tickets/p3-31|P3-31]]로 분리·수정 | [[tickets/p3-30]] |
