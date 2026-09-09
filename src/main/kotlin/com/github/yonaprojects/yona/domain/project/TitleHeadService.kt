@@ -1,6 +1,6 @@
 package com.github.yonaprojects.yona.domain.project
 
-// yona TitleHead.saveTitleHeadKeyword()/deleteTitleHeadKeyword()/findByProject() 대응 (P1-103).
+// yona TitleHead.saveTitleHeadKeyword()/deleteTitleHeadKeyword()/findByProject() 대응.
 interface TitleHeadService {
     fun saveTitleHeadKeyword(project: Project, title: String)
     fun deleteTitleHeadKeyword(project: Project, title: String)

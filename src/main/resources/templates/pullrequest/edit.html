@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
       th:with="pullRequestMenuLabel=#{pullRequest.menu.overview}, pageTitle=${project.name + ' - ' + pullRequestMenuLabel}">
 <!--
-  legacy git/edit.scala.html 대응 (그룹11 #169). create.html과 동일한 구조 재작성 근거를 공유한다
+  legacy git/edit.scala.html 대응. create.html과 동일한 구조 재작성 근거를 공유한다
   (기존 yona edit.html도 가짜 GNB/중복 jQuery/legacy와 무관한 폼이었다).
 
   legacy와의 핵심 차이: from/to 프로젝트뿐 아니라 브랜치까지 모두 disabled 셀렉트 + hidden input
@@ -13,7 +13,7 @@
   legacy git/edit.scala.html도 create.scala.html과 동일하게 #__commits 탭 + git.Write.js를 로드하고,
   "state"가 "OPEN"이면 페이지 로드 시 1회 자동으로 mergeResult를 조회한다(브랜치 select가 모두
   disabled라 change 이벤트로 재트리거될 일은 없음) — PullRequestViewController#mergeResult()
-  (#178, TASK-0257) 연동 및 이 자동 조회 흐름을 create.html과 동일한 인라인 스크립트로 재구현한다.
+  연동 및 이 자동 조회 흐름을 create.html과 동일한 인라인 스크립트로 재구현한다.
 -->
 <head th:replace="~{site/layout :: head(title=${pageTitle})}">
 </head>
@@ -103,7 +103,7 @@
                     </div>
                 </form>
 
-                <!-- legacy git/edit.scala.html의 #__commits 탭 대응 (#178, TASK-0257) -->
+                <!-- legacy git/edit.scala.html의 #__commits 탭 대응 -->
                 <ul class="nav nav-tabs" id="pull-request-tabs">
                     <li class="active"><a href="#overview" data-toggle="tab" th:text="#{pullRequest.menu.overview}">개요</a></li>
                     <li><a href="#__commits" data-toggle="tab" th:text="#{pullRequest.menu.commit}">커밋</a></li>
@@ -128,7 +128,7 @@
             "url"   : /*[[@{/{owner}/{projectName}/mentionList(owner=${project.owner}, projectName=${project.name})}]]*/ ""
         });
 
-        // legacy yobi.git.Write.js 대응 (#178, TASK-0257) — edit 페이지는 브랜치가 모두 disabled라
+        // legacy yobi.git.Write.js 대응 — edit 페이지는 브랜치가 모두 disabled라
         // change 이벤트 재트리거는 없고, state가 OPEN일 때 로드 시 1회만 조회한다
         // ("if(elements.state === 'OPEN') { _checkMergeResult(); }" 대응).
         var mergeResultURL = /*[[@{/{owner}/{projectName}/pull/mergeResult(owner=${project.owner}, projectName=${project.name})}]]*/ "";

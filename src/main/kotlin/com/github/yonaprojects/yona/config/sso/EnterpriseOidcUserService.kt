@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step2 — `config/oauth2/CustomOAuth2UserService`(소셜 로그인,
+ * `config/oauth2/CustomOAuth2UserService`(소셜 로그인,
  * link/merge 흐름)와는 완전히 분리된 별도 서비스. `.oauth2Login { it.userInfoEndpoint {
  * .userService(customOAuth2UserService).oidcUserService(enterpriseOidcUserService) } }`로 등록해
  * "openid" 스코프를 포함한 등록(엔터프라이즈 OIDC)만 이쪽으로 라우팅되도록 한다 — Spring Security의
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional
  * 구현한다 — `oidcUserService()` 설정 메서드가 요구하는 타입은 이 인터페이스뿐이라 상속이 불필요할
  * 뿐 아니라, 상속했을 때 `delegate: OidcUserService` 생성자 파라미터가 이 빈 자신과 타입이
  * 겹쳐(자기 자신도 OidcUserService의 하위타입이 됨) Spring이 자기참조 순환으로 오인해 컨텍스트
- * 기동에 실패했다(실측 확인: BeanCurrentlyInCreationException).
+ * 기동에 실패했다(BeanCurrentlyInCreationException).
  */
 @Service
 class EnterpriseOidcUserService(

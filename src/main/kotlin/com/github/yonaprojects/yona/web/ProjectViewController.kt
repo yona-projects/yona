@@ -79,7 +79,7 @@ class ProjectViewController(
     private val watchService: WatchService,
     private val recentProjectRepository: RecentProjectRepository,
     private val accessControl: AccessControl,
-    // yona controllers/Application.java:35 HIDE_PROJECT_LISTING 대응 (P0-23).
+    // legacy Application.java의 HIDE_PROJECT_LISTING 설정과 대응.
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
 ) {
@@ -98,7 +98,6 @@ class ProjectViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowed(loginUser, project, Operation.READ)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -120,10 +119,9 @@ class ProjectViewController(
         }
 
         val readmeFileName = getReadmeFileName(project)
-        // yona partial_readme.scala.html:38-42 대응 (P2-42). 코드브라우저 메뉴가 꺼진
-        // (!project.menuSetting.code, yona project.isCodeEnabled) 프로젝트는 게시판에서 작성한
-        // README 글(Posting.findREADMEPosting, readme=true)의 본문을 우선 사용하고, 그 외에는
-        // 기존처럼 git 저장소 파일을 renderFileInReadme()로 렌더링한다(P1-139).
+        // 코드브라우저 메뉴가 꺼진(project.isCodeEnabled == false) 프로젝트는 게시판에서 작성한
+        // README 글(readme=true인 Posting)의 본문을 우선 사용하고, 그 외에는 기존처럼 git 저장소
+        // 파일을 renderFileInReadme()로 렌더링한다.
         val readmeHtml = if (tabId == "readme" && readmeFileName != null) {
             val readmePosting = if (!project.isCodeEnabled) {
                 postingRepository.findByProjectAndReadme(project, true).firstOrNull()
@@ -145,8 +143,7 @@ class ProjectViewController(
         } ?: false
         val watcherCount = watchService.findWatchers(ResourceType.PROJECT, project.id.toString()).size
 
-        // legacy project/home.scala.html:112-118 대응 — 사이드바에 가장 기한이 임박한 열린 마일스톤의
-        // 진행 상황 카드(milestone/partial_status)를 보여준다.
+        // 사이드바에 가장 기한이 임박한 열린 마일스톤의 진행 상황 카드(milestone/partial_status)를 보여준다.
         val sidebarMilestone = if (project.isMilestoneEnabled) {
             milestoneRepository.findByProjectAndState(project, State.OPEN, Sort.by(Sort.Direction.ASC, "dueDate")).firstOrNull()
         } else {
@@ -167,7 +164,7 @@ class ProjectViewController(
         return "project/home"
     }
 
-    // P2-09에서 GitServletConfig와 공용으로 쓰도록 RecentProjectRepository.recordVisit()으로 승격
+    // GitServletConfig와 공용으로 쓰도록 RecentProjectRepository.recordVisit()으로 위임한다.
     private fun addVisitHistory(user: User, project: Project) {
         recentProjectRepository.recordVisit(user, project)
     }
@@ -295,7 +292,6 @@ class ProjectViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowed(loginUser, project, Operation.READ)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -321,7 +317,6 @@ class ProjectViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (loginUser == null || !projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -369,7 +364,6 @@ class ProjectViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (loginUser == null || !projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -443,12 +437,10 @@ class ProjectViewController(
         val decodedBranch = URLDecoder.decode(branch, "UTF-8")
         val decodedPath = URLDecoder.decode(path, "UTF-8")
 
-        // yona CodeApp.java:135-164 download()의 getMetaDataFromAncestorDirectories() 존재 검증
-        // 대응 (P2-30) — 응답 헤더를 쓰고 스트리밍을 시작하기 전에 브랜치/경로가 실제로 존재하는지 [GL-controllers_CodeApp-006]
-        // 먼저 확인해, 존재하지 않는 브랜치를 요청했을 때 스트리밍 도중 예외가 나는 대신 깔끔한
-        // 404를 반환한다. yona 원본도 이 조회 결과의 path는 getArchive()에 전달하지 않고 항상
-        // 브랜치 전체를 아카이브한다(UI의 "Download ZIP" 버튼도 path를 절대 넘기지 않는다) — 그
-        // 동작을 그대로 재현했다.
+        // 응답 헤더를 쓰고 스트리밍을 시작하기 전에 브랜치/경로가 실제로 존재하는지 먼저 확인해,
+        // 존재하지 않는 브랜치를 요청했을 때 스트리밍 도중 예외가 나는 대신 깔끔한 404를 반환한다.
+        // 이 조회 결과의 path는 getArchive()에 전달하지 않고 항상 브랜치 전체를 아카이브한다(UI의
+        // "Download ZIP" 버튼도 path를 절대 넘기지 않는다).
         repositoryService.getMetaDataFromAncestorDirectories(repository, decodedBranch, decodedPath)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Path not found")
 
@@ -498,9 +490,8 @@ class ProjectViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "redirect:/users/loginform"
 
-        // yona ProjectApp.java:168-178 newProject()의 권한 가드 대응 (P2-34) — [GL-controllers_ProjectApp-016;GL-controllers_ProjectApp-017]
-        // isGlobalResourceCreatable(항상 true, 위에서 이미 로그인 확인함)과 별개로, owner가 기존
-        // 조직명과 같으면 그 조직의 admin만 그 조직 아래 프로젝트를 생성할 수 있다.
+        // 로그인 여부와 별개로, owner가 기존 조직명과 같으면 그 조직의 admin만 그 조직 아래
+        // 프로젝트를 생성할 수 있다.
         val trimmedOwner = owner.trim()
         val organization = organizationRepository.findByName(trimmedOwner).orElse(null)
         if (organization != null && !accessControl.isOrganizationAdmin(organization, loginUser)) {
@@ -522,9 +513,8 @@ class ProjectViewController(
                 this.isReviewEnabled = review
                 this.isMilestoneEnabled = milestone
                 this.isBoardEnabled = board
-                // yona ProjectApp.java:184-186 "Organization.isNameExist(owner)면 project.organization
-                // 연동" 대응 (P2-34) — 지금까지는 owner가 조직명이어도 project.organization이 채워지지 [GL-controllers_ProjectApp-018]
-                // 않아, 조직 소속 프로젝트인데도 조직 관리자 권한/조직 프로젝트 목록에서 누락되고 있었다.
+                // owner가 조직명이면 project.organization도 채워야 한다 — 그렇지 않으면 조직 소속
+                // 프로젝트인데도 조직 관리자 권한/조직 프로젝트 목록에서 누락된다.
                 if (organization != null) {
                     this.organization = organization
                 }
@@ -572,8 +562,7 @@ class ProjectViewController(
         authentication: Authentication?,
         model: Model
     ): String {
-        // yona ProjectApp.java:1055-1058 대응 (P0-23) — HIDE_PROJECT_LISTING이 켜져 있으면
-        // 사이트매니저를 포함해 누구도 전체 프로젝트 목록을 볼 수 없다.
+        // HIDE_PROJECT_LISTING이 켜져 있으면 사이트매니저를 포함해 누구도 전체 프로젝트 목록을 볼 수 없다.
         if (hideProjectListing) {
             return "error/403"
         }
@@ -613,8 +602,7 @@ class ProjectViewController(
         @RequestParam(value = "filter", defaultValue = "") filter: String,
         authentication: Authentication?
     ): ResponseEntity<List<String>> {
-        // yona ProjectApp.java:1055-1058 대응 (P0-23) — HIDE_PROJECT_LISTING이 켜져 있으면
-        // 사이트매니저를 포함해 누구도 전체 프로젝트 목록을 볼 수 없다.
+        // HIDE_PROJECT_LISTING이 켜져 있으면 사이트매니저를 포함해 누구도 전체 프로젝트 목록을 볼 수 없다.
         if (hideProjectListing) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
@@ -703,7 +691,6 @@ class ProjectViewController(
             .orElse(false)
 
         if (!isManager) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -878,7 +865,6 @@ class ProjectViewController(
             .orElse(false)
 
         if (!isManager) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -936,8 +922,6 @@ class ProjectViewController(
             .orElse(false)
 
         if (!isManager && !loginUser.isSiteManager) {
-            // yona IssueLabelApp.labelsForm() @IsAllowed(Operation.UPDATE) 대응 — 프로젝트는 이미
-            // 찾았으므로(project resolve 성공) error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -954,13 +938,12 @@ class ProjectViewController(
     }
 
 
-    // yona-wiki P3-02 Step8.7 1번(최우선 실제 버그 수정) — LabelRestApiController.list()가
-    // ProjectController.getProjectLabels()(domain/project/Label, 프로젝트 홈 화면의 토픽 태그)를
-    // 응답해왔는데, create()/update()/delete()는 이 아래 IssueLabel(카테고리 기반 이슈 라벨링,
-    // 실제 CLI/이슈 화면이 쓰는 진짜 라벨) 기준이라 `yona label create`로 만든 라벨이
-    // `yona label list`엔 절대 뜨지 않는 버그가 있었다. list도 동일한 IssueLabel 기준으로
-    // 통일한다. newLabel/updateLabelForm/deleteLabelForm과 달리 대응하는 legacy HTML 세션
-    // 라우트가 없어 @GetMapping을 붙이지 않고 LabelRestApiController 전용 위임 대상으로만 둔다.
+    // LabelRestApiController.list()가 domain/project/Label(프로젝트 홈 화면의 토픽 태그)을
+    // 응답해왔는데, create()/update()/delete()는 IssueLabel(카테고리 기반 이슈 라벨링, 실제
+    // CLI/이슈 화면이 쓰는 진짜 라벨) 기준이라 `yona label create`로 만든 라벨이 `yona label list`엔
+    // 절대 뜨지 않는 버그가 있었다. list도 동일한 IssueLabel 기준으로 통일한다. newLabel/
+    // updateLabelForm/deleteLabelForm과 달리 대응하는 legacy HTML 세션 라우트가 없어 @GetMapping을
+    // 붙이지 않고 LabelRestApiController 전용 위임 대상으로만 둔다.
     fun getIssueLabelsForRestApi(
         owner: String,
         projectName: String,
@@ -985,9 +968,8 @@ class ProjectViewController(
         return ResponseEntity.ok(labels)
     }
 
-    // yona IssueLabelApp.newLabel() 대응 (POST /{owner}/{projectName}/issue/labels) — 신규 라벨 추가.
-    // categoryName으로 카테고리를 찾거나 새로 만든다. ISSUE_LABEL 생성 권한은 프로젝트 멤버 전원에게
-    // 있다(매니저 전용 아님, P1-94 — 기존 IssueLabelController.createLabel()과 동일한 게이트).
+    // 신규 라벨 추가. categoryName으로 카테고리를 찾거나 새로 만든다. ISSUE_LABEL 생성 권한은
+    // 프로젝트 멤버 전원에게 있다(매니저 전용 아님).
     @PostMapping("/{owner}/{projectName}/issue/labels")
     @ResponseBody
     fun newLabel(
@@ -1021,9 +1003,8 @@ class ProjectViewController(
         )
     }
 
-    // yona IssueLabelApp.delete() 대응 (POST /{owner}/{projectName}/issue/label/{id}/delete) — 라벨 삭제.
-    // HTML Form이 DELETE 메소드를 못 써서 _method=delete 파라미터로 오버라이드하는 legacy 관례를 그대로
-    // 재현(AttachmentController의 기존 _method 처리 패턴과 동일).
+    // 라벨 삭제. HTML Form이 DELETE 메소드를 못 써서 _method=delete 파라미터로 오버라이드하는 legacy
+    // 관례를 따른다(AttachmentController의 기존 _method 처리 패턴과 동일).
     @PostMapping("/{owner}/{projectName}/issue/label/{id}/delete")
     @ResponseBody
     fun deleteLabelForm(
@@ -1044,11 +1025,11 @@ class ProjectViewController(
         if (!accessControl.isAllowed(loginUser, project, ResourceType.ISSUE_LABEL, Operation.DELETE)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
-        // yona-wiki P3-02 12라운드 — accessControl.isAllowed()는 URL 경로의 project(owner/projectName)에
-        // 대한 권한만 확인하고, 실제 삭제 대상인 id(라벨 PK)가 그 project 소속인지는 전혀 검증하지
-        // 않았다. 이 때문에 자기 프로젝트에 대한 라벨 삭제 권한만 있으면 URL의 project는 자기 것으로
-        // 두고 id만 다른 프로젝트의 라벨 번호로 바꿔 호출하는 것으로 남의 프로젝트 라벨을 삭제할 수
-        // 있었다(실서버+실 CLI로 재현 확인). id가 project 소속 라벨 목록에 있는지 먼저 확인한다.
+        // accessControl.isAllowed()는 URL 경로의 project(owner/projectName)에 대한 권한만 확인하고,
+        // 실제 삭제 대상인 id(라벨 PK)가 그 project 소속인지는 검증하지 않는다. 이 때문에 자기
+        // 프로젝트에 대한 라벨 삭제 권한만 있으면 URL의 project는 자기 것으로 두고 id만 다른
+        // 프로젝트의 라벨 번호로 바꿔 호출하는 것으로 남의 프로젝트 라벨을 삭제할 수 있었다(IDOR).
+        // id가 project 소속 라벨 목록에 있는지 먼저 확인한다.
         if (issueLabelService.getLabels(project.id!!).none { it.id == id }) {
             return ResponseEntity.notFound().build()
         }
@@ -1076,9 +1057,9 @@ class ProjectViewController(
         if (!accessControl.isAllowed(loginUser, project, ResourceType.ISSUE_LABEL, Operation.UPDATE)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
-        // yona-wiki P3-02 12라운드 — deleteLabelForm()과 동일한 근본원인(위 주석 참고). id뿐 아니라
-        // category.id로 넘어온 값도 다른 프로젝트의 카테고리로 바꿔치기하면 라벨이 남의 프로젝트
-        // 카테고리로 재배정될 수 있어 둘 다 project 소속인지 확인한다.
+        // deleteLabelForm()과 동일한 근본원인(위 주석 참고). id뿐 아니라 category.id로 넘어온 값도
+        // 다른 프로젝트의 카테고리로 바꿔치기하면 라벨이 남의 프로젝트 카테고리로 재배정될 수 있어
+        // 둘 다 project 소속인지 확인한다.
         if (issueLabelService.getLabels(project.id!!).none { it.id == id }) {
             return ResponseEntity.notFound().build()
         }
@@ -1181,12 +1162,10 @@ class ProjectViewController(
         return "project/fork"
     }
 
-    // 12. 프로젝트 포크 실행 (POST /{ownerName}/{projectName}/fork) — legacy PullRequestApp.fork() 대응
-    // (그룹11 #172). legacy는 이 액션에서 실제 git clone을 바로 하지 않고, 이름 중복만 검사한 뒤
-    // "복제 중입니다" 인터스티셜 화면(git/clone.scala.html)을 먼저 보여주고, 그 화면의 JS가
-    // 잠시(3초) 후 doClone()을 호출해 실제 git clone + 프로젝트 생성을 수행한다 — 이번 재작업에서
-    // 그 2단계 구조를 그대로 복원했다(기존에는 이 메서드가 fork를 동기로 즉시 실행하고 바로
-    // redirect했었음).
+    // 12. 프로젝트 포크 실행 (POST /{ownerName}/{projectName}/fork) — legacy PullRequestApp.fork() 대응.
+    // legacy는 이 액션에서 실제 git clone을 바로 하지 않고, 이름 중복만 검사한 뒤 "복제 중입니다"
+    // 인터스티셜 화면(git/clone.scala.html)을 먼저 보여주고, 그 화면의 JS가 잠시(3초) 후 doClone()을
+    // 호출해 실제 git clone + 프로젝트 생성을 수행한다. 이 2단계 구조를 그대로 따른다.
     @PostMapping("/{ownerName}/{projectName}/fork")
     fun fork(
         @PathVariable ownerName: String,
@@ -1228,7 +1207,7 @@ class ProjectViewController(
         return "pullrequest/clone"
     }
 
-    // legacy PullRequestApp.doClone() 대응(그룹11 #172) — pullrequest/clone.html이 로드 3초 후
+    // legacy PullRequestApp.doClone() 대응 — pullrequest/clone.html이 로드 3초 후
     // AJAX로 호출하는 실제 git clone + 프로젝트 생성 엔드포인트. legacy와 동일한 응답 형태
     // ({"status":"success"|"failed","url":"..."})를 돌려준다.
     @PostMapping("/api/{ownerName}/{projectName}/doClone")

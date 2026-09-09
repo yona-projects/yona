@@ -36,20 +36,20 @@ class PostingServiceImpl(
     private val eventPublisher: ApplicationEventPublisher,
     private val titleHeadService: TitleHeadService,
     private val commentService: CommentService,
-    // yona AbstractPosting.updateMention() 대응 (P2-41).
+    // yona AbstractPosting.updateMention() 대응.
     private val mentionService: MentionService,
-    // yona BoardApp.editPost()의 commitReadmeFile()/unmarkAnotherReadmePostingIfExists() 대응(#146
-    // 재검토, TASK-0263) — BoardViewController.editPost()(form POST 경로)에만 있던 로직을 REST 경로
+    // yona BoardApp.editPost()의 commitReadmeFile()/unmarkAnotherReadmePostingIfExists() 대응 —
+    // BoardViewController.editPost()(form POST 경로)에만 있던 로직을 REST 경로
     // (BoardController.updatePosting(), board/edit.html의 실제 제출 경로)에서도 쓸 수 있도록 서비스
     // 계층으로 옮겨왔다.
     @Value("\${yona.git.base-dir:/tmp/yona/git}")
     private val gitBaseDir: String,
-    // yona-wiki P3-02 14라운드 — IssueServiceImpl.nextIssueNumber()와 동일한 이유(JPQL 벌크
-    // UPDATE가 1차 캐시를 갱신하지 않음)로 채번 직후 project 엔티티를 새로고침하는 데 쓴다.
+    // IssueServiceImpl.nextIssueNumber()와 동일한 이유(JPQL 벌크 UPDATE가 1차 캐시를 갱신하지 않음)로
+    // 채번 직후 project 엔티티를 새로고침하는 데 쓴다.
     private val entityManager: EntityManager
 ) : PostingService {
 
-    // yona NotificationEvent.afterNewPost/afterResourceDeleted 대응 (P1-18)
+    // yona NotificationEvent.afterNewPost/afterResourceDeleted 대응.
     private fun publishNotification(
         posting: Posting,
         actor: User,
@@ -73,8 +73,8 @@ class PostingServiceImpl(
             projectId = posting.project.id,
             eventType = eventType
         ).toMutableSet()
-        // yona NotificationEvent.java:1380-1385 getReceivers(abstractPosting, except)의
-        // getMentionedUsers(body) 대응 (P1-127). 신규 게시글 본문의 @멘션도 수신자에 포함한다. [GL-models_NotificationEvent-096]
+        // yona NotificationEvent.getReceivers(abstractPosting, except)의 getMentionedUsers(body) 대응.
+        // 신규 게시글 본문의 @멘션도 수신자에 포함한다.
         receivers.addAll(commentService.extractMentionedUsers(posting.body ?: ""))
         receivers.removeIf { it.id == actor.id }
         notificationEvent.receivers = receivers
@@ -113,13 +113,12 @@ class PostingServiceImpl(
             // 건드리지 않고 지정된 번호를 그대로 쓴다.
             posting.number = explicitNumber
         } else {
-            // yona-wiki P3-02 14라운드(IssueServiceImpl.nextIssueNumber()와 같은 근본원인/수정) —
-            // 잠금 없이 project.lastPostingNumber를 읽고 증가시켜 저장하면 동시 요청 두 개가 같은
-            // 번호를 읽어 posting(project_id, number) UNIQUE 제약 위반(500)이 날 수 있었다. 증가
-            // UPDATE 문 자체의 행 잠금(모든 RDBMS가 예외 없이 즉시 배타 잠금을 거는 기본 동작)으로
-            // 원자적으로 채번한다 — ProjectRepository.incrementLastIssueNumber() 주석 참고
-            // (SELECT FOR UPDATE 기반 잠금은 H2 AUTO_SERVER 파일 모드에서 실제로 블로킹하지 않음을
-            // 실서버로 확인해 폐기했다).
+            // IssueServiceImpl.nextIssueNumber()와 같은 근본원인/수정 — 잠금 없이
+            // project.lastPostingNumber를 읽고 증가시켜 저장하면 동시 요청 두 개가 같은 번호를 읽어
+            // posting(project_id, number) UNIQUE 제약 위반(500)이 날 수 있었다. 증가 UPDATE 문 자체의
+            // 행 잠금(모든 RDBMS가 예외 없이 즉시 배타 잠금을 거는 기본 동작)으로 원자적으로 채번한다
+            // — ProjectRepository.incrementLastIssueNumber() 주석 참고 (SELECT FOR UPDATE 기반 잠금은
+            // H2 AUTO_SERVER 파일 모드에서 실제로 블로킹하지 않으므로 폐기했다).
             projectRepository.incrementLastPostingNumber(project.id!!)
             posting.number = projectRepository.findLastPostingNumber(project.id!!)
             // JPQL 벌크 UPDATE는 1차 캐시를 갱신하지 않는다 — project가 이미 관리 중인 엔티티라면
@@ -136,10 +135,10 @@ class PostingServiceImpl(
 
         val saved = postingRepository.save(posting)
 
-        // yona AbstractPosting.save()의 updateMention() 대응 (P2-41).
+        // yona AbstractPosting.save()의 updateMention() 대응.
         mentionService.update(ResourceType.BOARD_POST, saved.id.toString(), commentService.extractMentionedUsers(saved.body ?: ""))
 
-        // yona AbstractPosting.save()의 TitleHead.saveTitleHeadKeyword() 대응 (P1-103).
+        // yona AbstractPosting.save()의 TitleHead.saveTitleHeadKeyword() 대응.
         titleHeadService.saveTitleHeadKeyword(project, saved.title)
 
         val title = "[${project.name}] 새 게시글: ${saved.title}"
@@ -177,14 +176,14 @@ class PostingServiceImpl(
         posting.updatedDate = Instant.now()
 
         // yona AbstractPostingApp.editPosting()의 "posting.updatedByAuthorId = UserApp.currentUser().id"
-        // 대응 (P2-02) — history 유무와 무관하게 편집이 있을 때마다 항상 갱신된다.
+        // 대응 — history 유무와 무관하게 편집이 있을 때마다 항상 갱신된다.
         if (updater != null) {
             posting.updatedByAuthorId = updater.id
             posting.updatedByAuthorLoginId = updater.loginId
             posting.updatedByAuthorName = updater.name
         }
 
-        // yona AbstractPostingApp.editPosting()의 history 갱신 대응 (P2-02).
+        // yona AbstractPostingApp.editPosting()의 history 갱신 대응.
         if (updater != null && (originalBody ?: "") != body) {
             posting.history = HistoryUtil.appendHistory(
                 originalBody = originalBody,
@@ -199,7 +198,7 @@ class PostingServiceImpl(
         val saved = postingRepository.save(posting)
 
         // yona BoardApp.editPost()의 "if (post.readme) { commitReadmeFile(...);
-        // unmarkAnotherReadmePostingIfExists(...); }" 대응(#146 재검토, TASK-0263) — 제출된(새) readme
+        // unmarkAnotherReadmePostingIfExists(...); }" 대응 — 제출된(새) readme
         // 값이 true면 README.md를 실제로 커밋하고, 같은 프로젝트의 다른 readme 글은 해제한다.
         if (readme && updater != null) {
             try {
@@ -220,16 +219,16 @@ class PostingServiceImpl(
                 }
         }
 
-        // yona AbstractPosting.update()의 updateMention() 대응 (P2-41).
+        // yona AbstractPosting.update()의 updateMention() 대응.
         // 테스트 커버리지 도달 불가: 위 BareCommit 호출부와 동일한 이유로 saved.body는 null일 수 없다.
         mentionService.update(ResourceType.BOARD_POST, saved.id.toString(), commentService.extractMentionedUsers(saved.body ?: ""))
 
         // yona AbstractPostingApp.editPosting()의 TitleHead.saveTitleHeadKeyword()/deleteTitleHeadKeyword()
-        // 대응 (P1-103). 제목이 안 바뀌었어도 legacy와 동일하게 매 수정마다 무조건 두 호출을 모두 실행한다.
+        // 대응. 제목이 안 바뀌었어도 legacy와 동일하게 매 수정마다 무조건 두 호출을 모두 실행한다.
         titleHeadService.saveTitleHeadKeyword(saved.project, saved.title)
         titleHeadService.deleteTitleHeadKeyword(saved.project, originalTitle)
 
-        // yona BoardApp.editPost의 isSelectedToSendNotificationMail() 대응 (P1-44).
+        // yona BoardApp.editPost의 isSelectedToSendNotificationMail() 대응.
         // 본인 글이 아니면 옵션과 무관하게 항상 발송하고, 본인 글이면 체크박스를 선택했을 때만 발송한다.
         if (sendNotificationMail || !isAuthoredByUpdater) {
             if (updater != null) {
@@ -275,7 +274,7 @@ class PostingServiceImpl(
         deletePostingCascade(posting)
     }
 
-    // yona Project.delete()의 posting 삭제 루프(posting.delete()) 대응 (P0-19). PostingComment.posting
+    // yona Project.delete()의 posting 삭제 루프(posting.delete()) 대응. PostingComment.posting
     // FK가 nullable=false라 반드시 먼저 삭제해야 postingRepository.delete(posting)가 FK 제약 위반 없이
     // 성공한다.
     override fun deletePostingCascade(posting: Posting) {
@@ -286,9 +285,9 @@ class PostingServiceImpl(
         }
 
         attachmentService.deleteAll(ResourceType.BOARD_POST, posting.id.toString())
-        // yona models/resource/ResourcePersistAdapter.java postDelete() 대응 (P1-147).
+        // yona ResourcePersistAdapter.postDelete() 대응.
         watchService.deleteAll(ResourceType.BOARD_POST, posting.id.toString())
-        // yona AbstractPosting.delete()의 TitleHead.deleteTitleHeadKeyword() 대응 (P1-103).
+        // yona AbstractPosting.delete()의 TitleHead.deleteTitleHeadKeyword() 대응.
         titleHeadService.deleteTitleHeadKeyword(posting.project, posting.title)
         // 답글(parentComment)이 원 댓글보다 항상 나중에 생성되므로, 생성일 역순으로 지우면
         // 답글이 부모보다 먼저 삭제돼 자기참조 FK(parent_comment_id) 위반을 피할 수 있다.

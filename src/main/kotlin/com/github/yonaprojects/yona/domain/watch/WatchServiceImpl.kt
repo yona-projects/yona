@@ -31,8 +31,7 @@ class WatchServiceImpl(
         }
     }
 
-    // yona models/resource/ResourcePersistAdapter.java의 postDelete()(deleteRelatedWatch/
-    // deleteRelatedUnwatch) 대응 (P1-147).
+    // legacy ResourcePersistAdapter.postDelete()(deleteRelatedWatch/deleteRelatedUnwatch) 대응.
     override fun deleteAll(resourceType: ResourceType, resourceId: String) {
         watchRepository.deleteAll(watchRepository.findByResourceTypeAndResourceId(resourceType, resourceId))
         unwatchRepository.deleteAll(unwatchRepository.findByResourceTypeAndResourceId(resourceType, resourceId))
@@ -89,13 +88,13 @@ class WatchServiceImpl(
         // 3. 해당 리소스 비감시자 제외
         actualWatchers.removeAll(findUnwatchers(resourceType, resourceId))
 
-        // 4. yona Watch.findActualWatchers()의 allowedWatchersOnly 필터 대응 (P1-21):
+        // 4. legacy Watch.findActualWatchers()의 allowedWatchersOnly 필터 대응:
         // 이 리소스를 읽을 권한이 없는 감시자는 실제 감시자 목록에서 제외한다.
         if (allowedWatchersOnly) {
             actualWatchers.retainAll { hasReadPermission(it, projectId) }
         }
 
-        // 5. yona NotificationEvent.filterReceivers()의 UserProjectNotification 뮤트 필터 대응 (P1-22):
+        // 5. legacy NotificationEvent.filterReceivers()의 UserProjectNotification 뮤트 필터 대응:
         // "프로젝트 감시를 통해서만" 이 사용자가 포함된 경우에만 뮤트 설정을 확인한다.
         // baseWatcher(작성자 등)이거나 리소스를 직접 명시적으로 감시 중이면 뮤트와 무관하게 항상 포함한다.
         if (projectId != null && eventType != null) {

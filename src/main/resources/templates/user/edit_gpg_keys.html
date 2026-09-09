@@ -16,7 +16,7 @@
             <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('gpg-keys')}"></div>
 
             <!--
-             yona-wiki P3-03 Step7/Step9 — GitHub의 "Settings > SSH and GPG keys" 화면의 GPG 키
+             GitHub의 "Settings > SSH and GPG keys" 화면의 GPG 키
              섹션과 동일한 구성. 등록 시 UID 이메일 중 계정 소유로 인증된 이메일과 일치하는 것만
              표시한다(실제 서명 검증에 쓰이는 값과 동일 — GpgKeyServiceImpl 참고). 목록(이 화면)과
              등록 폼(edit_gpg_keys_new.html)을 별개 페이지로 분리했다 — 등록 성공 시 이 화면으로

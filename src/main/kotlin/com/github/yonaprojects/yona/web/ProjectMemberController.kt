@@ -34,12 +34,11 @@ class ProjectMemberController(
             .orElse(false)
     }
 
-    // TASK-0417 — 인증 정보가 없거나(PAT 인식 실패 등으로 authentication이 null) 토큰 소유자를
+    // 인증 정보가 없거나(PAT 인식 실패 등으로 authentication이 null) 토큰 소유자를
     // DB에서 못 찾는 경우 IllegalArgumentException을 그대로 던지면 @RestController 기본
-    // 예외 처리기가 500으로 응답한다("Unauthorized"라는 메시지와 전혀 안 맞는 상태 코드였다 —
-    // yona-cli `admin permission add`를 실제 서버에 대고 재현해 발견). ResponseStatusException은
-    // Spring MVC가 자동으로 지정된 상태 코드(401)로 변환해주므로 각 호출부에 try/catch를 추가할
-    // 필요가 없다.
+    // 예외 처리기가 500으로 응답한다("Unauthorized"라는 메시지와 전혀 안 맞는 상태 코드다).
+    // ResponseStatusException은 Spring MVC가 자동으로 지정된 상태 코드(401)로 변환해주므로
+    // 각 호출부에 try/catch를 추가할 필요가 없다.
     private fun getLoginUserId(authentication: Authentication?): Long {
         if (authentication == null) throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized")
         val user = userRepository.findByLoginId(authentication.name)
@@ -173,11 +172,11 @@ class ProjectMemberController(
     }
 
 
-    // yona-wiki P3-02 Step8.6 항목1(2026-09-01) — `yona admin permission list`용 신규 JSON API
+    // `yona admin permission list`용 JSON API
     // (`web/ProjectPermissionRestApiController.kt`, `/api/v1/projects/{owner}/{project}/permissions`)가
     // 위임하는 대상. 이 컨트롤러엔 멤버 추가/역할변경/삭제만 있고 "현재 멤버+역할 목록" 자체를
     // 내려주는 엔드포인트가 없었다(가장 가까운 `assignableUsers`는 배정 후보 목록이지 이미 배정된
-    // 권한 매트릭스가 아니다) — 4라운드 완료 로그가 이 갭을 그대로 기록해뒀다.
+    // 권한 매트릭스가 아니다).
     @GetMapping("/members")
     fun listMembers(
         @PathVariable projectId: Long,
@@ -211,15 +210,15 @@ class ProjectMemberController(
             ?: return ResponseEntity.notFound().build()
         val currentUser = userRepository.findById(currentUserId).orElse(null)
 
-        // yona IssueApi.java:738 @IsAllowed(Operation.READ) 대응 (P1-117 부수 발견). 프로젝트
+        // yona IssueApi.java의 @IsAllowed(Operation.READ) 대응. 프로젝트
         // 멤버/그룹멤버로만 좁게 검사하던 것을, 사이트매니저/조직관리자 우회와 공개 프로젝트 비멤버
         // 열람까지 포함하는 AccessControl.isAllowed(user, project, Operation.READ)로 교체.
         if (!accessControl.isAllowed(currentUser, project, Operation.READ)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        // yona Project.java:566-568 getAssignableUsers() → User.java:446-478
-        // findUsersByProjectAndOrganization() 대응 (P1-117). 프로젝트 멤버뿐 아니라, 조직 소속
+        // yona Project.java의 getAssignableUsers() → User.java의
+        // findUsersByProjectAndOrganization() 대응. 프로젝트 멤버뿐 아니라, 조직 소속
         // 프로젝트라면(PRIVATE인 경우 조직 관리자만, 그 외에는 조직 멤버 전체를) 후보에 포함하고,
         // 사이트관리자 본인도 항상 후보에 포함한다.
         val memberIds = mutableSetOf<Long>()
@@ -265,7 +264,7 @@ class ProjectMemberController(
                 (user.englishName?.contains(query, ignoreCase = true) == true)
             ) {
                 result.add(mapOf(
-                    // yona-wiki P3-02 13라운드(TASK-0430) — yona-cli가 `issue create/edit
+                    // yona-cli가 `issue create/edit
                     // --assignee <loginId>`/`pr edit --assignee <loginId>`를 REST가 요구하는
                     // 숫자 assigneeId/userId로 변환하려면 이 엔드포인트가 userId를 내려줘야 하는데
                     // 원래 loginId만 있어 CLI가 로그인ID를 담당자로 지정할 방법이 없었다(웹 UI는

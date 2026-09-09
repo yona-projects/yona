@@ -6,7 +6,7 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
-// yona-wiki P3-07(MCP 서버) Step2 — OAuth2AuthorizationConsentService의 JPA 기반 구현.
+// OAuth2AuthorizationConsentService의 JPA 기반 구현.
 @Component
 class JpaOAuth2AuthorizationConsentService(
     private val repository: OAuthAuthorizationConsentRepository

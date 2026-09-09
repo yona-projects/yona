@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
-// yona controllers/api/BoardApi.java 대응 (P2-57). legacy Open API 네임스페이스
+// yona controllers/api/BoardApi.java 대응. legacy Open API 네임스페이스
 // (`-_-api/v1/owners/{owner}/projects/{projectName}/...`)를 그대로 유지하는 컨트롤러 — 비즈니스
 // 로직은 BoardController.kt와 동일한 PostingService/리포지토리를 재사용하고, 요청/응답 필드명만
 // legacy JSON 계약에 맞춘다.
@@ -40,7 +40,7 @@ class BoardApiController(
         return userRepository.findByLoginId(authentication.name).orElse(null)
     }
 
-    // yona controllers/api/BoardApi.java:36-56 updatePostLabel() 대응 (P2-57). legacy는 요청 바디
+    // yona controllers/api/BoardApi.java updatePostLabel() 대응. legacy는 요청 바디
     // 전체가 라벨 ID 문자열 배열이다.
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/postlabel/{number}")
     fun updatePostLabelLegacyPath(
@@ -69,7 +69,7 @@ class BoardApiController(
         return ResponseEntity.ok(mapOf("id" to project.owner, "labels" to saved.labels.size))
     }
 
-    // yona controllers/api/BoardApi.java:128-159 updatePostingContent() 대응 (P2-57). legacy
+    // yona controllers/api/BoardApi.java updatePostingContent() 대응. legacy
     // 필드명은 `content`/`sha1`(원문 체크섬).
     @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/content")
     fun updatePostingContentLegacyPath(
@@ -101,8 +101,8 @@ class BoardApiController(
         return ResponseEntity.ok(mapOf("body" to posting.body))
     }
 
-    // yona controllers/api/BoardApi.java:73-91,96-121 newPostings()/createPostingNode() 대응
-    // (P2-57, 2026-08-28 number 복원). legacy는 `{posts:[...]}` 배열 배치 생성
+    // yona controllers/api/BoardApi.java newPostings()/createPostingNode() 대응.
+    // legacy는 `{posts:[...]}` 배열 배치 생성
     // (title/body/author/createdAt/updatedAt/number) — `PostingService.createPosting()`에
     // `explicitNumber` 파라미터를 추가해 legacy `saveWithNumber()`(카운터 미증가, 번호 그대로
     // 사용) 동작을 그대로 재현한다.
@@ -141,7 +141,7 @@ class BoardApiController(
         val title: String = "",
         val body: String = "",
         val author: LegacyPostingAuthorRef? = null,
-        // yona controllers/api/BoardApi.java createPostingNode()의 "number" 필드 대응 (P2-57 복원) —
+        // yona controllers/api/BoardApi.java createPostingNode()의 "number" 필드 대응 —
         // 마이그레이션 시 과거 게시글 번호를 그대로 보존하기 위해 지정. 0 이하면 무시하고 자동 채번.
         val number: Long? = null
     )

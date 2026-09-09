@@ -9,7 +9,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 /**
- * yona `models/NotificationEvent.scheduleDeleteOldNotifications()` 대응 (P1-27). legacy와 동일하게
+ * yona `models/NotificationEvent.scheduleDeleteOldNotifications()` 대응. legacy와 동일하게
  * `keep-days`가 0 이하이면(기본값 -1) 비활성 상태로, 아무 것도 삭제하지 않는다.
  */
 @Component

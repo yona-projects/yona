@@ -4,13 +4,13 @@
 </head>
 <body>
 <!--
- legacy git/partial_pull_request_event.scala.html 대응 (그룹11 #179). PR 개요(overview) 탭
+ legacy git/partial_pull_request_event.scala.html 대응. PR 개요(overview) 탭
  하단 "댓글" 영역에 표시되는 이벤트(상태변경/병합/리뷰완료/커밋변경) 한 건.
  참고: PullRequestViewController의 기존 conversation 탭 필터가 PULL_REQUEST_COMMIT_CHANGED를
- "legacy도 안 보여준다"는 잘못된 전제(P2-39 코멘트)로 제외하고 있었는데, legacy 원본은 실제로
- 이 이벤트 타입을 렌더링한다 — 이번 재작업에서 컨트롤러 필터도 함께 바로잡는다. 단, yona의
+ "legacy도 안 보여준다"는 잘못된 전제로 제외하고 있었는데, legacy 원본은 실제로
+ 이 이벤트 타입을 렌더링한다 — 컨트롤러 필터도 함께 바로잡았다. 단, yona의
  PullRequestEvent 스키마는 legacy처럼 이벤트별 커밋 목록(getPullRequestCommits)을 관계로
- 들고 있지 않아(이번 배치 범위를 넘는 스키마 확장 필요) 커밋 목록 서브 리스트는 생략하고
+ 들고 있지 않아(스키마 확장이 필요한 범위 밖 작업) 커밋 목록 서브 리스트는 생략하고
  메시지 문구 + "추가 변경사항 보기" 링크만 표시한다(문서화된 단순화).
 -->
 <th:block th:fragment="event(project, pull, event)" th:with="eventTypeName=${event.eventType.name()}">

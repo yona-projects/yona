@@ -117,7 +117,7 @@ class IssueViewController(
         // 권한 체크
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowedToReadProject(loginUser, project)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47) — 프로젝트는 이미 찾았으므로
+            // yona error/forbidden.scala.html 대응 — 프로젝트는 이미 찾았으므로
             // 프로젝트 헤더/메뉴가 붙는 컨텍스트 인지형 403으로 교체.
             model.addAttribute("project", project)
             model.addAttribute("messageKey", "error.forbidden.or.notfound")
@@ -135,7 +135,7 @@ class IssueViewController(
         } else {
             Sort.by(Sort.Direction.DESC, orderBy)
         }
-        // yona IssueApp.java:46,166-177 getItemsPerPage() 대응 (P1-105) — 요청값이 45를 넘으면 clamp. [GL-controllers_IssueApp-010]
+        // yona IssueApp.getItemsPerPage() 대응 — 요청값이 45를 넘으면 clamp.
         val pageable = PageRequest.of(actualPage, minOf(itemsPerPage, ITEMS_PER_PAGE_MAX), sort)
 
         // Specification 생성 및 필터 적용
@@ -221,8 +221,8 @@ class IssueViewController(
         val members = projectUsers.map { it.user }
         val labels = issueLabelRepository.findByProject(project)
 
-        // yona partial_list_wrap.scala.html:84-86 "currentPage.getPageIndex==0 && !param.hasCondition
-        // && !param.state.equals(CLOSED)" 대응 (그룹7 #119). 검색/필터 조건이 전혀 없는 목록 첫 페이지
+        // yona partial_list_wrap.scala.html "currentPage.getPageIndex==0 && !param.hasCondition
+        // && !param.state.equals(CLOSED)" 대응. 검색/필터 조건이 전혀 없는 목록 첫 페이지
         // (닫힌 이슈 탭 제외)에서만, 로그인한 작성자 본인의 초안(State.DRAFT) 이슈를 최상단에 노출한다.
         // legacy SearchCondition.hasCondition()은 assigneeId/authorId/mentionId/commenterId/sharerId/
         // favoriteId만 검사한다 — filter(텍스트 검색)/milestoneId/labelIds/dueDate는 포함되지 않는다
@@ -282,14 +282,14 @@ class IssueViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowedToReadProject(loginUser, project)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
+            // yona error/forbidden.scala.html 대응.
             model.addAttribute("project", project)
             model.addAttribute("messageKey", "error.forbidden.or.notfound")
             return "error/forbidden"
         }
 
         val issue = issueRepository.findByProjectAndNumber(project, number) ?: run {
-            // yona error/notfound.scala.html 대응 (P-템플릿 #45) — 프로젝트는 찾았지만 그 안의
+            // yona error/notfound.scala.html 대응 — 프로젝트는 찾았지만 그 안의
             // 이슈를 찾지 못한 경우이므로 컨텍스트 인지형 404(targetType="issue_post")로 교체.
             model.addAttribute("project", project)
             model.addAttribute("targetType", "issue_post")
@@ -331,7 +331,7 @@ class IssueViewController(
 
         buildTimelineModel(project, issue, comments, loginUser, model)
 
-        // yona issue/view.scala.html:329-381 milestone dl 대응 (그룹7 #127) — 인라인 마일스톤 수정
+        // yona issue/view.scala.html milestone dl 대응 — 인라인 마일스톤 수정
         // select2 위젯의 open/closed optgroup용.
         val openMilestones = milestoneService.getMilestones(project.id!!, State.OPEN)
         val closedMilestonesForIssue = milestoneService.getMilestones(project.id!!, State.CLOSED)
@@ -351,7 +351,7 @@ class IssueViewController(
         return "issue/view"
     }
 
-    // yona IssueApp.timeline() 대응 (그룹7 #127) — massUpdate로 담당자/마일스톤/마감일을 저장한 뒤
+    // yona IssueApp.timeline() 대응 — massUpdate로 담당자/마일스톤/마감일을 저장한 뒤
     // yobi.issue.View.js의 _updateTimeline()이 AJAX로 다시 불러오는 타임라인 조각. issue/view.html의
     // th:fragment="timelineItems"(.timeline-list) 한 곳만 다시 렌더링해 돌려준다 — viewIssue()와
     // 동일한 모델 조립 로직(buildTimelineModel)을 공유해 두 진입점이 어긋나지 않게 한다.
@@ -380,7 +380,7 @@ class IssueViewController(
         return "issue/view :: timelineItems"
     }
 
-    // viewIssue()/timeline() 공유 모델 조립 — yona Issue.getTimeline() 대응 (P1-106).
+    // viewIssue()/timeline() 공유 모델 조립 — yona Issue.getTimeline() 대응.
     private fun buildTimelineModel(
         project: Project,
         issue: Issue,
@@ -390,8 +390,8 @@ class IssueViewController(
     ) {
         val events = issueEventRepository.findByIssueOrderByCreatedAsc(issue)
             .filter { it.eventType != EventType.ISSUE_BODY_CHANGED }
-        // legacy issue/partial_comment.scala.html/common.childComments() 대응(그룹11 #25/#29/#30/#31
-        // 재작업) — 대댓글(parentComment != null)은 최상위 타임라인에 별도 항목으로 나타나지 않고
+        // legacy issue/partial_comment.scala.html/common.childComments() 대응 — 대댓글(parentComment != null)은
+        // 최상위 타임라인에 별도 항목으로 나타나지 않고
         // 부모 댓글 아래 common/childComments 조각에서만 렌더링된다.
         val topLevelComments = comments.filter { it.parentComment == null }
         val childCommentsByParentId: Map<Long, List<IssueComment>> =
@@ -433,7 +433,7 @@ class IssueViewController(
         val currentAuth = authentication ?: SecurityContextHolder.getContext().authentication
         val loginUser = currentAuth?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isProjectResourceCreatable(loginUser, project, ResourceType.ISSUE_POST)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
+            // yona error/forbidden.scala.html 대응.
             model.addAttribute("project", project)
             model.addAttribute("messageKey", "error.forbidden.or.notfound")
             return "error/forbidden"
@@ -453,7 +453,7 @@ class IssueViewController(
         // 1. 하위 태스크용 프로젝트 목록
         val movableProjects = projectUserRepository.findByUserId(loginUser!!.id!!).map { it.project }
 
-        // 2. 부모 이슈 후보군 — yona Issue.findParentIssueByProject(project, "", 300) 대응 (그룹7 #125).
+        // 2. 부모 이슈 후보군 — yona Issue.findParentIssueByProject(project, "", 300) 대응.
         // 상태 무관(오픈/클로즈 모두 포함) 부모 없는 이슈를 최신순 최대 300건까지 후보로 노출한다.
         val parentCandidates = issueRepository.findByProjectAndParentIsNullOrderByCreatedDateDesc(
             project, PageRequest.of(0, PARENT_CANDIDATE_LIMIT)
@@ -521,13 +521,13 @@ class IssueViewController(
         // 1. 하위 태스크용 프로젝트 목록
         val movableProjects = projectUserRepository.findByUserId(loginUser!!.id!!).map { it.project }
 
-        // 2. 부모 이슈 후보군 — yona Issue.findParentIssueByProject(project, "", 300) 대응 (그룹7 #125).
+        // 2. 부모 이슈 후보군 — yona Issue.findParentIssueByProject(project, "", 300) 대응.
         // 상태 무관 부모 없는 이슈를 최신순 최대 300건까지, 자기 자신은 제외하고 후보로 노출한다.
         val parentCandidates = issueRepository.findByProjectAndParentIsNullOrderByCreatedDateDesc(
             project, PageRequest.of(0, PARENT_CANDIDATE_LIMIT)
         ).filter { it.id != issue.id }
 
-        // yona partial_select_subtask.scala.html:10 hasChildIssue 대응 (그룹7 #125) — 이 이슈가 이미
+        // yona partial_select_subtask.scala.html hasChildIssue 대응 — 이 이슈가 이미
         // 하위이슈를 갖고 있으면(=이미 부모 이슈) 다른 이슈의 하위이슈로 만들 수 없다.
         val hasChildIssue = issueRepository.countByParentId(issue.id!!) > 0
 
@@ -581,7 +581,7 @@ class IssueViewController(
             ?: return "redirect:/users/loginform"
 
         if (!accessControl.isProjectResourceCreatable(loginUser, project, ResourceType.ISSUE_POST)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
+            // yona error/forbidden.scala.html 대응.
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -620,7 +620,7 @@ class IssueViewController(
 
         if (!temporaryUploadFiles.isNullOrBlank()) {
             val fileIds = temporaryUploadFiles.split(",").mapNotNull { it.trim().toLongOrNull() }
-            // yona Attachment.moveOnlySelected() 대응 (P0-22) — 소유권 검증 없이 요청받은 ID를
+            // yona Attachment.moveOnlySelected() 대응 — 소유권 검증 없이 요청받은 ID를
             // 그대로 재배선하지 않고, 실제로 이 로그인 사용자가 업로드한 임시 첨부만 옮긴다.
             attachmentService.moveOnlySelected(
                 fromType = ResourceType.NOT_A_RESOURCE,
@@ -721,7 +721,7 @@ class IssueViewController(
         }
     }
 
-    // yona IssueApp.massUpdate()의 Accept 헤더 콘텐츠 협상 대응 (그룹7 #127). 이슈 목록의 체크박스
+    // yona IssueApp.massUpdate()의 Accept 헤더 콘텐츠 협상 대응. 이슈 목록의 체크박스
     // 일괄수정(폼 submit, text/html)과 issue/view.html 상세화면의 인라인 담당자/마일스톤/마감일 위젯
     // (yobi.issue.View.js의 $.ajax(dataType:"json"))이 같은 엔드포인트를 공유한다 — legacy와 동일하게
     // JSON을 원하는 요청에는 redirect 대신 JSON 바디로 응답한다.
@@ -742,14 +742,14 @@ class IssueViewController(
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             // "redirect:/error/404"·"redirect:/error/403"는 실제로 매핑된 라우트가 없어 Spring의
             // 기본 404/403으로 빠지던 버그였다 — 다른 메서드들과 동일하게 뷰 이름을 직접 리턴(비JSON
-            // 경로)하도록 정정. JSON을 원하는 요청(wantsJson)은 계속 상태코드만 반환한다(#127).
+            // 경로)하도록 정정. JSON을 원하는 요청(wantsJson)은 계속 상태코드만 반환한다.
             ?: return if (wantsJson) ResponseEntity.notFound().build<Any>() else "error/404"
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (loginUser == null) {
             if (wantsJson) return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47) — 프로젝트는 이미 찾았으므로
-            // 컨텍스트 인지형 403. 멤버십 게이트(isMemberOf)는 TASK-0260에서 legacy massUpdate()와
+            // yona error/forbidden.scala.html 대응 — 프로젝트는 이미 찾았으므로
+            // 컨텍스트 인지형 403. 멤버십 게이트(isMemberOf)는 legacy massUpdate()와
             // 동일하게 이슈 단위 권한 체크로 대체돼 여기서는 로그인 여부만 확인한다(주석 아래 참고).
             model.addAttribute("project", project)
             return "error/forbidden"
@@ -762,8 +762,8 @@ class IssueViewController(
         // 여기서 loginUser.isMemberOf(project)로 선제 차단했는데, User.isMemberOf()는 User
         // 엔티티에 매핑된(mappedBy="user") 지연 컬렉션 projectUsers를 참조해 같은 트랜잭션 안에서
         // User가 먼저 로드된 뒤 ProjectUser가 별도로 저장되면 스냅샷이 갱신되지 않아 실제로는
-        // 멤버인데도 false가 되는 문제도 있었다(그룹7 #127 TASK-0260에서 massUpdate가 403을
-        // 반환하는 원인으로 실측 확인됨). 이제는 legacy처럼 이슈 단위 권한 체크만 쓴다.
+        // 멤버인데도 false가 되는 문제도 있었다(massUpdate가 403을 반환하는 원인이었다). 이제는
+        // legacy처럼 이슈 단위 권한 체크만 쓴다.
         var firstUpdatedIssue: Issue? = null
         var updatedItems = 0
         var rejectedByPermission = 0
@@ -777,7 +777,7 @@ class IssueViewController(
                 // 1. 삭제
                 if (delete) {
                     if (accessControl.isAllowedToUpdateIssue(loginUser, project, issue.authorLoginId)) {
-                        // yona Project.delete() 이슈 삭제 대응 (P0-19) — 댓글/이벤트/즐겨찾기/첨부파일/
+                        // yona Project.delete() 이슈 삭제 대응 — 댓글/이벤트/즐겨찾기/첨부파일/
                         // 타이틀헤드까지 함께 정리하는 IssueServiceImpl.deleteIssueCascade() 재사용.
                         issueService.deleteIssueCascade(issue)
                         updatedItems++
@@ -907,7 +907,7 @@ class IssueViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: run {
-                // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
+                // yona error/forbidden.scala.html 대응.
                 model.addAttribute("project", project)
                 return "error/forbidden"
             }
@@ -929,7 +929,7 @@ class IssueViewController(
 
         // yona editIssue()의 hasTargetProject()/isRequestedToOtherProject()/moveIssueToOtherProject()
         // 대응 — issue/edit.html의 targetProjectId select(다른 프로젝트로 이동)가 이 필드가 없어 실제로는
-        // 죽은 UI였다(P1-66 재검토로 발견). moveIssue()(P1-48)는 이미 legacy와 동일하게 구현돼 있었으나
+        // 죽은 UI였다. moveIssue()는 이미 legacy와 동일하게 구현돼 있었으나
         // 아무 데서도 호출되지 않고 있었음 — 여기서 배선한다.
         var redirectProject = project
         val requestedTargetProjectId = request.targetProjectId
@@ -983,9 +983,9 @@ class IssueViewController(
     }
 
     companion object {
-        // yona IssueApp.java:46 ITEMS_PER_PAGE_MAX 대응 (P1-105).
+        // yona IssueApp.ITEMS_PER_PAGE_MAX 대응.
         private const val ITEMS_PER_PAGE_MAX = 45
-        // yona Issue.findParentIssueByProject(project, "", 300) 대응 (그룹7 #125).
+        // yona Issue.findParentIssueByProject(project, "", 300) 대응.
         private const val PARENT_CANDIDATE_LIMIT = 300
     }
 }
@@ -1019,6 +1019,6 @@ data class IssueForm(
     var dueDate: String? = null,
     var labelIds: List<Long>? = null,
     var parentIssueId: Long? = null,
-    // yona Issue.java targetProjectId(transient 폼 필드) 대응 (P1-66).
+    // yona Issue.targetProjectId(transient 폼 필드) 대응.
     var targetProjectId: Long? = null
 )

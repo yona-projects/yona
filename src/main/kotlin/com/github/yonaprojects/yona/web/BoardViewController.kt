@@ -73,8 +73,6 @@ class BoardViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowed(loginUser, project, Operation.READ)) {
-            // yona BoardApp.posts() @IsAllowed(READ, PROJECT) -> IsAllowedAction의 forbidden 분기
-            // ErrorViews.Forbidden.render("error.forbidden", project) 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -90,7 +88,7 @@ class BoardViewController(
         } else {
             Sort.by(Sort.Direction.DESC, orderBy)
         }
-        // yona AbstractPostingApp.java:35 ITEMS_PER_PAGE 대응 (P1-105) — 게시글 목록은 고정 15, 클라이언트 오버라이드 없음.
+        // 게시글 목록 페이지 크기는 고정 15, 클라이언트 오버라이드 없음.
         val pageable = PageRequest.of(actualPage, ITEMS_PER_PAGE, sort)
 
         val labelFilter = labelIds?.filterNotNull()?.takeIf { it.isNotEmpty() }
@@ -130,15 +128,11 @@ class BoardViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowed(loginUser, project, Operation.READ)) {
-            // yona BoardApp.post() @IsAllowed(READ, BOARD_POST) -> IsAllowedAction의 forbidden 분기
-            // ErrorViews.Forbidden.render("error.forbidden", project) 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
 
         val posting = postingService.getPosting(project.id!!, number) ?: run {
-            // yona BoardApp.post() @IsAllowed(READ, BOARD_POST) -> IsAllowedAction의 resourceObject==null
-            // 분기 ErrorViews.NotFound.render("error.notfound", project, "board_post") 대응 (P-템플릿 #45).
             model.addAttribute("project", project)
             model.addAttribute("targetType", "board_post")
             return "error/notfound"
@@ -171,9 +165,8 @@ class BoardViewController(
         }
         val attachmentsJson = objectMapper.writeValueAsString(mapOf("attachments" to attachmentsList))
 
-        // legacy board/partial_comments.scala.html의 childComments 대응(그룹11 #25/#29/#30/#31
-        // 재작업) — 대댓글은 최상위 댓글 목록에서 제외하고 부모별로 묶어 common/childComments에
-        // 넘긴다(issue/view.html과 동일한 패턴).
+        // legacy board/partial_comments.scala.html의 childComments 대응 — 대댓글은 최상위 댓글
+        // 목록에서 제외하고 부모별로 묶어 common/childComments에 넘긴다(issue/view.html과 동일한 패턴).
         val topLevelComments = comments.filter { it.parentComment == null }
         val childCommentsByParentId: Map<Long, List<PostingComment>> =
             comments.filter { it.parentComment != null }
@@ -212,13 +205,11 @@ class BoardViewController(
             ?: return "error/404"
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
-        // yona BoardApp.java:119 @IsCreatable(ResourceType.BOARD_POST) 대응 (P1-113). 공개 프로젝트의
+        // yona BoardApp.java @IsCreatable(ResourceType.BOARD_POST) 대응. 공개 프로젝트의
         // 비멤버 로그인 사용자도 게시글을 쓸 수 있는데(다른 리소스 타입과 동일 규칙), 여기서는
         // 프로젝트 멤버/그룹멤버로만 좁게 검사해 yona보다 과도하게 제한하고 있었다 — yona
         // IssueViewController.createIssueForm이 이미 쓰고 있는 정답 패턴을 그대로 재사용.
         if (!accessControl.isProjectResourceCreatable(loginUser, project, ResourceType.BOARD_POST)) {
-            // yona BoardApp.newPostForm() @IsCreatable(BOARD_POST) -> IsCreatableAction
-            // ErrorViews.Forbidden.render("error.forbidden", project) 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -239,10 +230,10 @@ class BoardViewController(
             } catch (e: Exception) {}
         }
 
-        // yona board/create.scala.html:100-106 대응(#145 재검토, TASK-0263) — readme 체크박스는
-        // 커밋 생성 권한이 있고, Git 프로젝트이고, ?readme= 쿼리로 열렸을 때만 보인다(보이면 항상
-        // 체크된 상태). yona는 그동안 이 checkbox를 hidden input으로 값만 전달하고 있었을 뿐
-        // 사용자에게 보여주지 않았음 — 실제 체크박스로 복구.
+        // yona board/create.scala.html 대응 — readme 체크박스는 커밋 생성 권한이 있고, Git
+        // 프로젝트이고, ?readme= 쿼리로 열렸을 때만 보인다(보이면 항상 체크된 상태). yona는
+        // 그동안 이 checkbox를 hidden input으로 값만 전달하고 있었을 뿐 사용자에게 보여주지
+        // 않았음 — 실제 체크박스로 복구.
         val canReadmefy = readme == true &&
             project.vcs?.uppercase() == "GIT" &&
             accessControl.isProjectResourceCreatable(loginUser, project, ResourceType.COMMIT)
@@ -270,16 +261,11 @@ class BoardViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (loginUser == null || (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser))) {
-            // yona BoardApp.editPostForm()의 "if (!AccessControl.isAllowed(..., posting.asResource(),
-            // Operation.READ)) { return forbidden(ErrorViews.Forbidden.render("error.forbidden",
-            // project)); }" 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
 
         val posting = postingService.getPosting(project.id!!, number) ?: run {
-            // yona board_post 서브 리소스 조회 실패 -> error/notfound targetType=board_post 대응
-            // (P-템플릿 #45), BoardViewController.viewPost()와 동일한 정답 패턴.
             model.addAttribute("project", project)
             model.addAttribute("targetType", "board_post")
             return "error/notfound"
@@ -287,9 +273,9 @@ class BoardViewController(
 
         val isAllowedToNotice = loginUser != null && (projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) || accessControl.isAllowedIfGroupMember(project, loginUser))
 
-        // yona board/edit.scala.html:59 대응(#146 재검토, TASK-0263) — readme 체크박스는 커밋 생성
-        // 권한이 있고 Git 프로젝트일 때만 보이며(생성 화면과 달리 쿼리파라미터 조건은 없음), 현재
-        // posting.readme 값을 그대로 반영해 토글 가능해야 한다.
+        // yona board/edit.scala.html 대응 — readme 체크박스는 커밋 생성 권한이 있고 Git 프로젝트일
+        // 때만 보이며(생성 화면과 달리 쿼리파라미터 조건은 없음), 현재 posting.readme 값을 그대로
+        // 반영해 토글 가능해야 한다.
         val canReadmefy = project.vcs?.uppercase() == "GIT" &&
             accessControl.isProjectResourceCreatable(loginUser, project, ResourceType.COMMIT)
 
@@ -329,8 +315,8 @@ class BoardViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: run {
-                // yona AbstractPostingApp.editPosting()이 요구하는 로그인 전제 대응 —
-                // 미로그인 상태 대응은 error/forbidden으로 통일 (P-템플릿 #47).
+                // yona AbstractPostingApp.editPosting()이 요구하는 로그인 전제 — 미로그인 상태는
+                // error/forbidden으로 통일.
                 model.addAttribute("project", project)
                 return "error/forbidden"
             }
@@ -345,22 +331,18 @@ class BoardViewController(
             !projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) &&
             !accessControl.isAllowedIfGroupMember(project, loginUser)
         ) {
-            // yona AbstractPostingApp.editPosting()의 "if (!AccessControl.isAllowed(..., original.
-            // asResource(), Operation.UPDATE)) { return forbidden(ErrorViews.Forbidden.render(
-            // "error.forbidden", original.project)); }" 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
 
         // yona BoardApp.editPost()의 "if (post.readme) { ... }"는 제출된(새) readme 값을 쓴다(기존
         // posting.readme가 아니다) — README.md 실제 git 커밋 + 다른 readme 글 해제는
-        // PostingServiceImpl.updatePosting()으로 옮겨(#146 재검토, TASK-0263) 이 경로와 REST 경로
-        // (board/edit.html)가 항상 같은 결과를 내도록 통일했다. 이전에는 여기서 stale한
-        // posting.readme(기존 DB 값)를 써서 체크박스로 readme를 새로 켜는 게 반영되지 않는
-        // 버그가 있었음.
+        // PostingServiceImpl.updatePosting()으로 옮겨 이 경로와 REST 경로(board/edit.html)가 항상
+        // 같은 결과를 내도록 통일했다. 이전에는 여기서 stale한 posting.readme(기존 DB 값)를 써서
+        // 체크박스로 readme를 새로 켜는 게 반영되지 않는 버그가 있었음.
         val isReadme = request.readme ?: false
 
-        // yona BoardApp.editPost의 isSelectedToSendNotificationMail() 대응 (P1-44) — 서비스 계층에 위임.
+        // yona BoardApp.editPost의 isSelectedToSendNotificationMail() 대응 — 서비스 계층에 위임.
         postingService.updatePosting(
             projectId = project.id!!,
             number = number,
@@ -395,19 +377,17 @@ class BoardViewController(
                 return "error/forbidden"
             }
 
-        // yona BoardApp.java:211 @IsCreatable(ResourceType.BOARD_POST) 대응 (P1-113). 공개 프로젝트의 [GL-controllers_BoardApp-009]
+        // yona BoardApp.java @IsCreatable(ResourceType.BOARD_POST) 대응. 공개 프로젝트의
         // 비멤버 로그인 사용자도 게시글을 쓸 수 있는데, 여기서는 프로젝트 멤버/그룹멤버로만 좁게
         // 검사해 yona보다 과도하게 제한하고 있었다 — createPostForm과 동일한 정답 패턴으로 교체.
         if (!accessControl.isProjectResourceCreatable(loginUser, project, ResourceType.BOARD_POST)) {
-            // yona BoardApp.newPost() @IsCreatable(BOARD_POST) -> IsCreatableAction
-            // ErrorViews.Forbidden.render("error.forbidden", project) 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
 
         // yona BoardApp.newPost()의 "if (post.readme) { Posting readmePosting = ...; if (readmePosting
-        // != null) return editPost(...); }" 대응 (P1-109) — README 게시글은 프로젝트당 하나만 존재해야
-        // 하는데, 이미 있으면 새로 만들지 않고 기존 것을 수정하는 editPost로 위임한다(같은 요청의
+        // != null) return editPost(...); }" 대응 — README 게시글은 프로젝트당 하나만 존재해야 하는데,
+        // 이미 있으면 새로 만들지 않고 기존 것을 수정하는 editPost로 위임한다(같은 요청의
         // request/authentication을 그대로 재사용 — legacy도 같은 폼 데이터를 재바인딩해 in-process로
         // editPost를 호출하는 것과 동일).
         if (request.readme == true) {
@@ -418,7 +398,7 @@ class BoardViewController(
         }
 
         // yona BoardApp.newPost()의 "if (post.issueTemplate.equals("true")) { commitIssueTemplateFile(...);
-        // return redirect(...); }" 대응 (P1-110) — 게시글 DB 행을 만들지 않고 ISSUE_TEMPLATE.md만 커밋.
+        // return redirect(...); }" 대응 — 게시글 DB 행을 만들지 않고 ISSUE_TEMPLATE.md만 커밋.
         if (request.issueTemplate == "true") {
             try {
                 val bare = BareCommit(project, loginUser, gitBaseDir)
@@ -430,19 +410,19 @@ class BoardViewController(
         }
 
         // yona BoardApp.newPost()의 "if(StringUtils.isNotEmpty(post.path) && ...isMemberOf(project)){
-        // GitUtil.commitTextFile(...); return redirect(...); }" 대응 (P1-111) — 코드브라우저 "편집"에서
+        // GitUtil.commitTextFile(...); return redirect(...); }" 대응 — 코드브라우저 "편집"에서
         // 넘어온 요청은 게시글 DB 행을 만들지 않고 지정 브랜치(post.branch)의 지정 경로(post.path,
-        // 하위 경로 가능)에 바로 텍스트 파일을 커밋한다. P1-135에서 확장한 BareCommit의
-        // branch+nested-path 지원 오버로드가 전제 조건이었다.
+        // 하위 경로 가능)에 바로 텍스트 파일을 커밋한다. BareCommit의 branch+nested-path 지원
+        // 오버로드가 전제 조건이다.
         if (!request.path.isNullOrBlank() && projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!)) {
             val branch = request.branch ?: ""
             val path = request.path!!
             val body = LineEnding.changeLineEnding(request.body ?: "", request.lineEnding)
-            // yona-wiki P3-23 — Mercurial 프로젝트는 BareCommit(JGit 전용, bare 저장소를 직접
-            // 다룬다)을 쓸 수 없으므로 HgRepository.commitTextFile()로 분기한다. request.namedBranch가
-            // 채워지면(코드 브라우저 "편집" 폼의 신규 필드, Mercurial 프로젝트에서만 노출) 그 이름으로
-            // `hg branch`를 실행한 뒤 커밋해 새 named branch를 만든다 — Mercurial에서 named branch를
-            // 만드는 유일한 방법(별도 생성 커맨드가 없다).
+            // Mercurial 프로젝트는 BareCommit(JGit 전용, bare 저장소를 직접 다룬다)을 쓸 수 없으므로
+            // HgRepository.commitTextFile()로 분기한다. request.namedBranch가 채워지면(코드 브라우저
+            // "편집" 폼의 신규 필드, Mercurial 프로젝트에서만 노출) 그 이름으로 `hg branch`를 실행한
+            // 뒤 커밋해 새 named branch를 만든다 — Mercurial에서 named branch를 만드는 유일한
+            // 방법(별도 생성 커맨드가 없다).
             if (project.vcs?.uppercase() == "MERCURIAL") {
                 try {
                     val repository = repositoryService.getRepository(project)
@@ -481,8 +461,8 @@ class BoardViewController(
 
         if (!request.temporaryUploadFiles.isNullOrBlank()) {
             val fileIds = request.temporaryUploadFiles!!.split(",").mapNotNull { it.trim().toLongOrNull() }
-            // yona Attachment.moveOnlySelected() 대응 (P0-22) — 소유권 검증 없이 요청받은 ID를
-            // 그대로 재배선하지 않고, 실제로 이 로그인 사용자가 업로드한 임시 첨부만 옮긴다.
+            // yona Attachment.moveOnlySelected() 대응 — 소유권 검증 없이 요청받은 ID를 그대로
+            // 재배선하지 않고, 실제로 이 로그인 사용자가 업로드한 임시 첨부만 옮긴다.
             attachmentService.moveOnlySelected(
                 fromType = ResourceType.NOT_A_RESOURCE,
                 fromId = "",
@@ -505,8 +485,8 @@ class BoardViewController(
         return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/post/${saved.number}"
     }
 
-    // yona playRepository/BareRepository.java:89-121 readREADME()/getFirstFoundREADMEfileObjectId()/
-    // READMEFileNameFilter() 대응 (P2-47). 4개 후보 파일명을 이 순서 그대로 순회해 첫 매치를 사용한다.
+    // yona BareRepository의 readREADME()/getFirstFoundREADMEfileObjectId()/READMEFileNameFilter()
+    // 대응. 4개 후보 파일명을 이 순서 그대로 순회해 첫 매치를 사용한다.
     private fun readReadmeCandidate(project: Project): String {
         val candidates = listOf("README.md", "readme.md", "README.markdown", "readme.markdown")
         for (candidate in candidates) {
@@ -532,7 +512,7 @@ class BoardViewController(
     }
 
     companion object {
-        // yona AbstractPostingApp.java:35 ITEMS_PER_PAGE 대응 (P1-105).
+        // yona AbstractPostingApp의 ITEMS_PER_PAGE 대응.
         private const val ITEMS_PER_PAGE = 15
     }
 }
@@ -544,16 +524,16 @@ data class PostingForm(
     var readme: Boolean? = false,
     var temporaryUploadFiles: String? = null,
     var sendNotificationMail: Boolean? = false,
-    // yona Posting.java:37 issueTemplate 대응 (P1-110) — "true"일 때 게시글 대신 ISSUE_TEMPLATE.md로 커밋.
+    // yona Posting.java의 issueTemplate 대응 — "true"일 때 게시글 대신 ISSUE_TEMPLATE.md로 커밋.
     var issueTemplate: String? = null,
-    // yona Posting.java:39-49 path/branch/lineEnding(@Transient) 대응 (P1-111) — 코드브라우저 "편집"에서 [GL-models_Posting-005;GL-models_Posting-006;GL-models_Posting-007]
+    // yona Posting.java의 path/branch/lineEnding(@Transient) 대응 — 코드브라우저 "편집"에서
     // 넘어오는 온라인 커밋 전용 필드. path가 채워지면 게시글 DB 행 대신 지정 브랜치에 텍스트 파일을 커밋한다.
     var path: String? = null,
     var branch: String? = null,
     var lineEnding: String? = null,
-    // yona-wiki P3-23 — Mercurial named branch(`hg branch`) 지원. 온라인 커밋 폼에 채워지면(Git
-    // 프로젝트에서는 노출되지 않음, board/create.html 참고) 커밋 전에 `hg branch <name>`을 실행해
-    // 그 커밋을 새 named branch로 시작시킨다. Mercurial 전용 필드라 Git 경로에서는 항상 무시된다.
+    // Mercurial named branch(`hg branch`) 지원. 온라인 커밋 폼에 채워지면(Git 프로젝트에서는
+    // 노출되지 않음, board/create.html 참고) 커밋 전에 `hg branch <name>`을 실행해 그 커밋을 새
+    // named branch로 시작시킨다. Mercurial 전용 필드라 Git 경로에서는 항상 무시된다.
     var namedBranch: String? = null
 )
 

@@ -4,9 +4,9 @@ import com.github.yonaprojects.yona.domain.user.User
 import jakarta.persistence.*
 import java.time.Instant
 
-// yona-wiki P3-03 Step3 — GitHub "Settings > SSH and GPG keys" 화면과 동일한 사용자 전역 SSH
-// 공개키. DeployKey(저장소 스코프)와는 별개 엔티티로 유지하기로 이미 확정된 설계(계획 문서 "제외"
-// 항목)를 따른다. fingerprint는 DeployKey.fingerprint와 전역적으로 유일해야 한다(계정/저장소
+// GitHub "Settings > SSH and GPG keys" 화면과 동일한 사용자 전역 SSH
+// 공개키. DeployKey(저장소 스코프)와는 별개 엔티티로 유지하기로 확정된 설계를 따른다.
+// fingerprint는 DeployKey.fingerprint와 전역적으로 유일해야 한다(계정/저장소
 // 사칭 방지 — SshKeyServiceImpl.create() 참고).
 @Entity
 @Table(name = "ssh_key")

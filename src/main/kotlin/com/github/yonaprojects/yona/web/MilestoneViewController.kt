@@ -59,8 +59,8 @@ class MilestoneViewController(
 
     private fun toViewDto(milestone: Milestone): MilestoneViewDto {
         val allIssues = issueRepository.findByMilestone(milestone)
-        // yona Milestone.java:99-108 sortedByNumberOfIssue()/sortedByNumberOfOpenIssue()/
-        // sortedByNumberOfClosedIssue() 대응 (P2-22) — 이슈 번호 내림차순. [GL-models_Milestone-014;GL-models_Milestone-015]
+        // legacy Milestone.sortedByNumberOfIssue()/sortedByNumberOfOpenIssue()/
+        // sortedByNumberOfClosedIssue() 대응 — 이슈 번호 내림차순.
         val openIssues = allIssues.filter { it.state == State.OPEN }.sortedByDescending { it.number }
         val closedIssues = allIssues.filter { it.state == State.CLOSED }.sortedByDescending { it.number }
         
@@ -105,7 +105,6 @@ class MilestoneViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowed(loginUser, project, Operation.READ)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -120,8 +119,8 @@ class MilestoneViewController(
         val milestones = milestoneService.getMilestones(project.id!!, stateEnum, orderBy, orderDir)
         var milestoneDtos = milestones.map { toViewDto(it) }
 
-        // yona Milestone.java:214-227 findMilestones()의 completionRate 정렬(Comparator, DB 컬럼이
-        // 아니라 계산 필드라 조회 후 별도 정렬) 대응 (P1-128). [GL-models_Milestone-029]
+        // legacy Milestone.findMilestones()의 completionRate 정렬(Comparator, DB 컬럼이 아니라
+        // 계산 필드라 조회 후 별도 정렬) 대응.
         if (orderBy == "completionRate") {
             milestoneDtos = if (orderDir.equals("desc", ignoreCase = true)) {
                 milestoneDtos.sortedByDescending { it.completionRate }
@@ -153,13 +152,11 @@ class MilestoneViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowed(loginUser, project, Operation.READ)) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
 
         val milestone = milestoneService.getMilestone(id) ?: run {
-            // yona error/notfound.scala.html 대응 (P-템플릿 #45).
             model.addAttribute("project", project)
             model.addAttribute("targetType", "milestone")
             return "error/notfound"
@@ -205,7 +202,6 @@ class MilestoneViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (loginUser == null || (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser))) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -229,13 +225,11 @@ class MilestoneViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (loginUser == null || (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser))) {
-            // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
             model.addAttribute("project", project)
             return "error/forbidden"
         }
 
         val milestone = milestoneService.getMilestone(id) ?: run {
-            // yona error/notfound.scala.html 대응 (P-템플릿 #45).
             model.addAttribute("project", project)
             model.addAttribute("targetType", "milestone")
             return "error/notfound"
@@ -282,7 +276,6 @@ class MilestoneViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: run {
-                // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
                 model.addAttribute("project", project)
                 return "error/forbidden"
             }
@@ -295,9 +288,9 @@ class MilestoneViewController(
         // 1. 중복 제목 검증
         val isDuplicateTitle = milestoneRepository.findByProjectAndTitle(project, title) != null
 
-        // 2. DueDate 날짜 끝 시간(23:59:59.999) 보정. yona MilestoneApp.java:100-125 validateDueDate()
-        // 대응 (P2-23) — 파싱에 실패하면 조용히 null로 저장하지 않고, 폼 바인딩 오류(hasErrors())로 [GL-controllers_MilestoneApp-006]
-        // 전체 제출 자체를 막던 것과 동일하게 저장을 막고 오류를 알린다.
+        // 2. DueDate 날짜 끝 시간(23:59:59.999) 보정. legacy MilestoneApp.validateDueDate() 대응 —
+        // 파싱에 실패하면 조용히 null로 저장하지 않고, 폼 바인딩 오류(hasErrors())로 전체 제출
+        // 자체를 막던 것과 동일하게 저장을 막고 오류를 알린다.
         var dueDateError: String? = null
         val parsedDueDate = if (!dueDate.isNullOrBlank()) {
             try {
@@ -338,8 +331,8 @@ class MilestoneViewController(
 
         if (!temporaryUploadFiles.isNullOrBlank()) {
             val fileIds = temporaryUploadFiles.split(",").mapNotNull { it.trim().toLongOrNull() }
-            // yona Attachment.moveOnlySelected() 대응 (P0-22) — 소유권 검증 없이 요청받은 ID를
-            // 그대로 재배선하지 않고, 실제로 이 로그인 사용자가 업로드한 임시 첨부만 옮긴다.
+            // legacy Attachment.moveOnlySelected() 대응 — 소유권 검증 없이 요청받은 ID를 그대로
+            // 재배선하지 않고, 실제로 이 로그인 사용자가 업로드한 임시 첨부만 옮긴다.
             attachmentService.moveOnlySelected(
                 fromType = ResourceType.NOT_A_RESOURCE,
                 fromId = "",
@@ -372,7 +365,6 @@ class MilestoneViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: run {
-                // yona error/forbidden.scala.html 대응 (P-템플릿 #47).
                 model.addAttribute("project", project)
                 return "error/forbidden"
             }
@@ -383,7 +375,6 @@ class MilestoneViewController(
         }
 
         val original = milestoneService.getMilestone(id) ?: run {
-            // yona error/notfound.scala.html 대응 (P-템플릿 #45).
             model.addAttribute("project", project)
             model.addAttribute("targetType", "milestone")
             return "error/notfound"
@@ -392,9 +383,9 @@ class MilestoneViewController(
         // 1. 중복 제목 검증
         val isDuplicateTitle = original.title != title && milestoneRepository.findByProjectAndTitle(project, title) != null
 
-        // 2. DueDate 날짜 끝 시간(23:59:59.999) 보정. yona MilestoneApp.java:100-125 validateDueDate()
-        // 대응 (P2-23) — 파싱에 실패하면 조용히 null로 저장하지 않고, 폼 바인딩 오류(hasErrors())로 [GL-controllers_MilestoneApp-006]
-        // 전체 제출 자체를 막던 것과 동일하게 저장을 막고 오류를 알린다.
+        // 2. DueDate 날짜 끝 시간(23:59:59.999) 보정. legacy MilestoneApp.validateDueDate() 대응 —
+        // 파싱에 실패하면 조용히 null로 저장하지 않고, 폼 바인딩 오류(hasErrors())로 전체 제출
+        // 자체를 막던 것과 동일하게 저장을 막고 오류를 알린다.
         var dueDateError: String? = null
         val parsedDueDate = if (!dueDate.isNullOrBlank()) {
             try {
@@ -452,8 +443,8 @@ class MilestoneViewController(
 
         if (!temporaryUploadFiles.isNullOrBlank()) {
             val fileIds = temporaryUploadFiles.split(",").mapNotNull { it.trim().toLongOrNull() }
-            // yona Attachment.moveOnlySelected() 대응 (P0-22) — 소유권 검증 없이 요청받은 ID를
-            // 그대로 재배선하지 않고, 실제로 이 로그인 사용자가 업로드한 임시 첨부만 옮긴다.
+            // legacy Attachment.moveOnlySelected() 대응 — 소유권 검증 없이 요청받은 ID를 그대로
+            // 재배선하지 않고, 실제로 이 로그인 사용자가 업로드한 임시 첨부만 옮긴다.
             attachmentService.moveOnlySelected(
                 fromType = ResourceType.NOT_A_RESOURCE,
                 fromId = "",

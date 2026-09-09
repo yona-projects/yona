@@ -23,7 +23,7 @@ class AttachmentServiceImpl(
     private val baseDir: String
 ) : AttachmentService {
 
-    // yona utils/AttachmentCache.java의 remove(container) 대응 (P2-49) — 새 첨부가 추가되면 그
+    // yona utils/AttachmentCache.java의 remove(container) 대응 — 새 첨부가 추가되면 그
     // 컨테이너의 목록 캐시를 무효화한다(dedup으로 기존 행을 재사용하는 경우도 안전하게 함께 지운다).
     @CacheEvict("attachmentsByContainer", key = "#containerType.name() + #containerId")
     override fun store(
@@ -62,7 +62,7 @@ class AttachmentServiceImpl(
             tempFile.delete()
         }
 
-        // yona Attachment.java:537-582 save()의 dedup 대응 (P2-24) — 동일 컨테이너에 동일 [GL-models_Attachment-039;GL-models_Attachment-040]
+        // yona Attachment.java save()의 dedup 대응 — 동일 컨테이너에 동일
         // 이름·내용(name+hash+containerType+containerId)으로 이미 첨부된 기록이 있으면 새 행을
         // 만들지 않고 기존 행을 재사용한다. 이전에는 이 조회 없이 매번 새 Attachment를 저장해,
         // 재업로드마다 DB에 중복 행이 쌓였다.
@@ -73,7 +73,7 @@ class AttachmentServiceImpl(
             return existing to false
         }
 
-        // yona FileUtil.detectMediaType(file, name) 대응 (P2-25) — 해시 파일명(targetFile)의 실제
+        // yona FileUtil.detectMediaType(file, name) 대응 — 해시 파일명(targetFile)의 실제
         // 콘텐츠를 Tika로 감지하고, 원본 파일명(name)은 힌트로만 넘긴다. 기존 Files.probeContentType()은
         // 사실상 확장자 기반이라 확장자 없는 해시 파일명에서 거의 항상 application/octet-stream으로
         // 오탐했다.

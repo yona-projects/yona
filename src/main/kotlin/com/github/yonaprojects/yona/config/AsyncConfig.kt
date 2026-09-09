@@ -18,7 +18,7 @@ class AsyncConfig {
         executor.maxPoolSize = 10
         executor.queueCapacity = 100
         executor.setThreadNamePrefix("yona-async-")
-        // yona-wiki P3-01(Observability) 계측 지점 4(트레이싱) 대응 — 기본 ThreadPoolTaskExecutor는
+        // 트레이싱 계측 대응 — 기본 ThreadPoolTaskExecutor는
         // ThreadLocal 기반 트레이스 컨텍스트(현재 Span 등)를 워커 스레드로 넘기지 않는다.
         // Micrometer Context Propagation(ContextRegistry)에 등록된 ThreadLocalAccessor를 통해
         // @Async("taskExecutor") 경계를 넘어서도 trace-id가 끊기지 않게 한다.

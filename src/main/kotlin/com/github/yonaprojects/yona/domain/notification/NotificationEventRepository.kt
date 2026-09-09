@@ -16,13 +16,13 @@ interface NotificationEventRepository : JpaRepository<NotificationEvent, Long> {
     fun findByReceiver(@Param("user") user: User, pageable: Pageable): Page<NotificationEvent>
 
     // yona NotificationEvent.add()/addWithoutSkipEvent()의 draft-time 병합 조회
-    // (`.eq("resourceId",...).eq("resourceType",...).gt("created", draftDate).orderBy("id desc")`) 대응 (P1-27).
+    // (`.eq("resourceId",...).eq("resourceType",...).gt("created", draftDate).orderBy("id desc")`) 대응.
     fun findFirstByResourceTypeAndResourceIdAndCreatedAfterOrderByIdDesc(
         resourceType: ResourceType,
         resourceId: String,
         created: Instant
     ): NotificationEvent?
 
-    // yona NotificationEvent.scheduleDeleteOldNotifications() 대응 (P1-27).
+    // yona NotificationEvent.scheduleDeleteOldNotifications() 대응.
     fun deleteByCreatedBefore(threshold: Instant): Long
 }

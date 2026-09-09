@@ -52,11 +52,10 @@ class GitServletConfig(
     private val eventPublisher: ApplicationEventPublisher,
     private val gitProjectVisitRecorder: GitProjectVisitRecorder,
     private val meterRegistry: MeterRegistry,
-    // yona-wiki P3-04(브랜치 보호) Step 3 — BranchProtectionPreReceiveHook 구성에 필요.
+    // BranchProtectionPreReceiveHook 구성에 필요.
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
-    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — BranchProtectionPreReceiveHook이
-    // require_signed_commits를 실제로 검사하는 데 필요.
+    // BranchProtectionPreReceiveHook이 require_signed_commits를 실제로 검사하는 데 필요.
     private val gpgSignatureVerifier: GpgSignatureVerifier
 ) {
     private val logger = LoggerFactory.getLogger(GitServletConfig::class.java)
@@ -74,7 +73,7 @@ class GitServletConfig(
 
         val gitServlet = GitServlet().apply {
             setRepositoryResolver { _, name ->
-                // yona-wiki P3-02 12라운드(2026-09-01) — 이 코드베이스 전역에서 물리 bare 저장소는
+                // 이 코드베이스 전역에서 물리 bare 저장소는
                 // 항상 "owner/name.git"로 생성된다(GitServiceImpl.createRepository(),
                 // GitRepository.create() 등). 그런데 이 리졸버는 JGit이 URL에서 파싱해 넘겨주는
                 // name을 가공 없이 그대로 파일 경로로 썼다 — 클라이언트가 ".git" 접미어 없이
@@ -83,8 +82,8 @@ class GitServletConfig(
                 // 존재하지 않는 저장소를 빈 저장소처럼 조용히 취급해 성공한 것처럼 보이지만, push
                 // (쓰기)는 ObjectDirectoryPackParser.parse()가 그 존재하지 않는 objects
                 // 디렉터리에 임시 팩 파일을 만들려다 IOException을 던져 "unpacker error"로
-                // 거절됐다(실서버+실 git 바이너리로 재현, GitSmartHttpProtocolIntegrationSpec에
-                // 회귀 테스트 고정). ".git" 접미어를 정규화해 항상 같은 경로로 resolve한다.
+                // 거절됐다(GitSmartHttpProtocolIntegrationSpec에 회귀 테스트 고정). ".git" 접미어를
+                // 정규화해 항상 같은 경로로 resolve한다.
                 val normalizedName = if (name.endsWith(".git")) name else "$name.git"
                 val repoFile = File(gitBaseDir, normalizedName)
                 val builder = FileRepositoryBuilder()
@@ -96,7 +95,7 @@ class GitServletConfig(
                 val project = resolveProject(req)
                 val pusher = resolveCurrentUser()
 
-                // yona-wiki P3-04(브랜치 보호) Step 3 — refs/yobi/* 예약 ref 거부(항상 적용)에 이어
+                // refs/yobi/* 예약 ref 거부(항상 적용)에 이어
                 // 브랜치 보호 규칙 검사를 체이닝한다. project를 못 찾으면(레포 해석 실패 등, 드묾)
                 // 브랜치 보호 규칙을 조회할 대상 자체가 없으므로 예약 ref 거부만 적용한다. pusher는
                 // null(익명 push)이어도 BranchProtectionPreReceiveHook 자체는 동작해야 한다 —
@@ -128,8 +127,6 @@ class GitServletConfig(
 
         val lfsServlet = object : LfsProtocolServlet() {
             override fun getLargeFileRepository(request: LfsRequest, path: String, action: String): LargeFileRepository {
-                println(">>> LFS debug: path='$path', action='$action'")
-                
                 var cleanPath = path
                 if (cleanPath.startsWith("/git/")) {
                     cleanPath = cleanPath.substring("/git/".length)
@@ -146,8 +143,6 @@ class GitServletConfig(
                 val parts = cleanPath.split("/")
                 val owner = parts.getOrNull(0) ?: "default"
                 val project = parts.getOrNull(1) ?: "default"
-                
-                println(">>> LFS parsed: owner='$owner', project='$project'")
 
                 val projectLfsDir = File(lfsBaseDir, "$owner/$project")
                 if (!projectLfsDir.exists()) {
@@ -161,7 +156,7 @@ class GitServletConfig(
 
         // 단일 진입점 디스패처 서블릿 정의
         val dispatcherServlet = object : HttpServlet() {
-            // 근본원인(TASK-0416): gitServlet/lfsServlet은 컨테이너에 직접 등록되지 않고
+            // 근본원인: gitServlet/lfsServlet은 컨테이너에 직접 등록되지 않고
             // 이 디스패처의 service()에서 수동으로 .service()만 호출돼 왔다. 그런데
             // GitServlet(JGit)은 MetaServlet을 상속하며, 내부 GitFilter가 URL 파이프라인
             // (upload-pack/receive-pack/info-refs 등)을 구성하는 시점이 바로 init(ServletConfig)다.
@@ -176,11 +171,10 @@ class GitServletConfig(
             }
 
             override fun service(req: HttpServletRequest, res: HttpServletResponse) {
-                println(">>> Dispatcher received URI: '${req.requestURI}'")
                 if (req.requestURI.contains("/info/lfs/")) {
                     lfsServlet.service(req, res)
                 } else {
-                    // yona GitApp.java:129-136 대응 (P2-09) — git 프로토콜로만 접근하는 사용자도
+                    // yona GitApp.recordVisit() 대응 — git 프로토콜로만 접근하는 사용자도
                     // "최근 방문 프로젝트"에 기록되도록 실제 RPC 처리 전에 방문을 남긴다.
                     gitProjectVisitRecorder.recordIfApplicable(req)
                     gitServlet.service(req, res)
@@ -200,7 +194,7 @@ class GitServletConfig(
         }
         val owner = matcher.group(2)
         val projectName = matcher.group(3)
-        // yona GitApp.java:95-104의 findByPreviousPlaceOf() 폴백 대응 (P1-76) — 프로젝트가
+        // yona GitApp.findByPreviousPlaceOf() 폴백 대응 — 프로젝트가
         // 이전/개명된 뒤에도 기존 git remote URL이 계속 동작해야 한다.
         return projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
     }

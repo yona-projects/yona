@@ -100,7 +100,7 @@ class SiteService(
         targetUser.lastStateModifiedDate = Instant.now()
         userRepository.save(targetUser)
 
-        // yona models/RecentIssue.java deleteAll(user) 대응 (P1-41).
+        // yona RecentIssue.deleteAll(user) 대응.
         recentIssueService.deleteAll(targetUser)
     }
 
@@ -155,7 +155,7 @@ class SiteService(
         return emails.toList().sorted()
     }
 
-    // yona SiteApp.noAvatarUsers() 대응 (P2-03). avatarId()가 null인(= USER_AVATAR 컨테이너에
+    // yona SiteApp.noAvatarUsers() 대응. avatarId()가 null인(= USER_AVATAR 컨테이너에
     // 첨부파일이 없는) 사용자만 걸러낸다.
     fun getNoAvatarUsers(): List<Map<String, String>> {
         val activeUsers = userRepository.findAll().filter { it.state == UserState.ACTIVE || it.state == UserState.SITE_ADMIN }
@@ -170,7 +170,7 @@ class SiteService(
             }
     }
 
-    // yona SiteApp.setAttachmentToUserAvatar() 대응 (P2-03). 지정한 이미지 첨부파일을
+    // yona SiteApp.setAttachmentToUserAvatar() 대응. 지정한 이미지 첨부파일을
     // 대상 사용자의 아바타(USER_AVATAR 컨테이너)로 옮기고, 기존 아바타 첨부파일은 제거한다.
     @Transactional
     fun setUserAvatar(avatarFileId: Long, email: String) {

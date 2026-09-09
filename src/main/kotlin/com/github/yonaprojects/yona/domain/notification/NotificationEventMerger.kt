@@ -8,7 +8,7 @@ import com.github.yonaprojects.yona.domain.pullrequest.ReviewCommentRepository
 import org.springframework.stereotype.Component
 
 /**
- * yona models/NotificationMail.java의 mergeEvents() 대응 (P1-27).
+ * yona models/NotificationMail.java의 mergeEvents() 대응.
  *
  * 이벤트를 리소스+발신자로 묶어(legacy EventHashKey 대응, [MergeKey]), 상태변경
  * (ISSUE_STATE_CHANGED/REVIEW_THREAD_STATE_CHANGED)과 그 직후 같은 사람이 남긴 댓글
@@ -17,14 +17,14 @@ import org.springframework.stereotype.Component
  * 주어져야 하며(legacy `NotificationMail t2.notificationEvent.created ASC` 정렬과 동일),
  * 내부적으로는 legacy와 동일하게 최신 이벤트부터 역순으로 순회한다.
  *
- * yona는 ISSUE_STATE_CHANGED류 이벤트에 `ISSUE_STATE` 같은 세분화된 resourceType을 쓰지만
- * (P1-07 계열 작업), legacy는 이 모두를 `issue.asResource()`(=ISSUE_POST)로 취급하므로,
+ * yona는 ISSUE_STATE_CHANGED류 이벤트에 `ISSUE_STATE` 같은 세분화된 resourceType을 쓰지만,
+ * legacy는 이 모두를 `issue.asResource()`(=ISSUE_POST)로 취급하므로,
  * 댓글의 컨테이너 키와 맞아떨어지도록 [selfMergeKey]에서 ISSUE_POST로 정규화한다.
  *
  * NEW_REVIEW_COMMENT(컨테이너=COMMENT_THREAD, [ReviewComment.thread])도 legacy `event.getResource()
- * .getContainer()`와 동일하게 [containerMergeKey]에서 정규화한다(P1-51). REVIEW_THREAD_STATE_CHANGED
+ * .getContainer()`와 동일하게 [containerMergeKey]에서 정규화한다. REVIEW_THREAD_STATE_CHANGED
  * 이벤트는 [CodeReviewServiceImpl]이 이미 `resourceType=COMMENT_THREAD`로 발행하므로 [selfMergeKey]가
- * 별도 정규화 없이 그대로 키로 쓸 수 있다. NEW_COMMENT로 발행되는 COMMIT_COMMENT(P1-50)는 legacy에서도
+ * 별도 정규화 없이 그대로 키로 쓸 수 있다. NEW_COMMENT로 발행되는 COMMIT_COMMENT는 legacy에서도
  * "커밋 상태변경" 개념 자체가 없어 대응되는 self-key가 결코 존재하지 않으므로(항상 미스) 컨테이너 키를
  * 계산해도 동작에 차이가 없어 정규화하지 않는다.
  */

@@ -47,18 +47,18 @@ class CommentServiceImpl(
     private val organizationUserRepository: OrganizationUserRepository,
     private val projectRepository: ProjectRepository,
     private val projectUserRepository: ProjectUserRepository,
-    // yona Comment.updateMention() 대응 (P2-41).
+    // yona Comment.updateMention() 대응.
     private val mentionService: MentionService
 ) : CommentService {
 
-    // yona models/User.java:66 LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH(문자 클래스 내 "-"의 range
+    // yona models/User.java의 LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH(문자 클래스 내 "-"의 range
     // 파싱 모호성을 피하려 하이픈을 클래스 끝으로 옮김 — 문자 집합(영숫자/하이픈/슬래시) 자체는
-    // 동일) + NotificationEvent.java:1518 getMentionedUsers()의 매칭 패턴 대응(P1-126,
-    // owner/project 형식의 그룹 멘션을 포착하려면 '/'를 허용해야 한다).
+    // 동일) + NotificationEvent.getMentionedUsers()의 매칭 패턴 대응 —
+    // owner/project 형식의 그룹 멘션을 포착하려면 '/'를 허용해야 한다.
     private val mentionPattern = Pattern.compile("@[a-zA-Z0-9/-]+([_.][a-z_.A-Z0-9/-]+)*")
 
-    // yona BoardApp.java:429-446/IssueApp.java:1020-1057 AddPreviousContent()+getPrevious() 대응
-    // (P2-17) — 새 댓글 알림의 oldValue("인용 이전 내용")를 채운다. 첫 댓글이면 원본 게시물/이슈 본문을,
+    // yona BoardApp/IssueApp의 AddPreviousContent()+getPrevious() 대응
+    // — 새 댓글 알림의 oldValue("인용 이전 내용")를 채운다. 첫 댓글이면 원본 게시물/이슈 본문을,
     // 답글이면 같은 부모의 마지막 형제 답글(없으면 부모 댓글 자신)을, 그 외(최상위 새 댓글)면 게시물/
     // 이슈의 마지막 댓글을 인용한다. IssueApp의 numOfComments 불일치 자가복구(가비지 댓글 삭제) 로직은
     // Ebean 캐시 특유의 데이터 정합성 땜질이라 옮기지 않는다 — yona는 매 저장 시 count를 직접 재계산한다.
@@ -92,7 +92,7 @@ class CommentServiceImpl(
         return "\n\n<br />\n\n--- $title from @${authorLoginId ?: ""}  ${formatShortDate(date)} ---\n\n<br />\n\n$contents"
     }
 
-    // yona utils/JodaDateUtil.java:127-142 getOptionalShortDate() 대응. [GL-utils_JodaDateUtil-019;GL-utils_JodaDateUtil-020]
+    // yona utils/JodaDateUtil.java의 getOptionalShortDate() 대응.
     private fun formatShortDate(date: Instant?): String {
         if (date == null) return ""
         val zone = ZoneId.systemDefault()
@@ -119,7 +119,7 @@ class CommentServiceImpl(
             parentComment = issueCommentRepository.findById(parentCommentId).orElse(null)
         }
 
-        // P2-17: 저장 전에 미리 계산해야 지금 만드는 이 댓글이 "마지막 댓글"에 섞여 들어가지 않는다.
+        // 저장 전에 미리 계산해야 지금 만드는 이 댓글이 "마지막 댓글"에 섞여 들어가지 않는다.
         val previousContents = resolveIssuePreviousContents(issue, parentComment)
 
         val comment = IssueComment(
@@ -135,7 +135,7 @@ class CommentServiceImpl(
         val savedComment = issueCommentRepository.save(comment)
 
         val mentionedUsers = extractMentionedUsers(contents)
-        // yona Comment.save()의 updateMention() 대응 (P2-41).
+        // yona Comment.save()의 updateMention() 대응.
         mentionService.update(ResourceType.ISSUE_COMMENT, savedComment.id.toString(), mentionedUsers)
         val title = "[${issue.project.name}] 이슈 #${issue.number}에 새 댓글이 등록되었습니다."
         val notificationEvent = NotificationEvent(
@@ -183,7 +183,7 @@ class CommentServiceImpl(
             parentComment = postingCommentRepository.findById(parentCommentId).orElse(null)
         }
 
-        // P2-17: 저장 전에 미리 계산해야 지금 만드는 이 댓글이 "마지막 댓글"에 섞여 들어가지 않는다.
+        // 저장 전에 미리 계산해야 지금 만드는 이 댓글이 "마지막 댓글"에 섞여 들어가지 않는다.
         val previousContents = resolvePostingPreviousContents(posting, parentComment)
 
         val comment = PostingComment(
@@ -198,12 +198,12 @@ class CommentServiceImpl(
         )
         val savedComment = postingCommentRepository.save(comment)
 
-        // yona AbstractPosting.save()/update()의 numOfComments = computeNumOfComments() 대응 (P1-19)
+        // yona AbstractPosting.save()/update()의 numOfComments = computeNumOfComments() 대응.
         posting.numOfComments = postingCommentRepository.countByPostingId(posting.id!!)
         postingRepository.save(posting)
 
         val mentionedUsers = extractMentionedUsers(contents)
-        // yona Comment.save()의 updateMention() 대응 (P2-41).
+        // yona Comment.save()의 updateMention() 대응.
         mentionService.update(ResourceType.NONISSUE_COMMENT, savedComment.id.toString(), mentionedUsers)
         val title = "[${posting.project.name}] 게시글 #${posting.number}에 새 댓글이 등록되었습니다."
         val notificationEvent = NotificationEvent(
@@ -237,7 +237,7 @@ class CommentServiceImpl(
         return savedComment
     }
 
-    // yona NotificationEvent.java:1517-1528 getMentionedUsers() 대응 (P1-126). 개별 사용자 멘션뿐 [GL-models_NotificationEvent-107;GL-models_NotificationEvent-108]
+    // yona NotificationEvent.getMentionedUsers() 대응. 개별 사용자 멘션뿐
     // 아니라 조직 이름(@orgname → 조직 멤버 전원)과 owner/project 형식(@owner/project → 프로젝트
     // 멤버 전원)도 확장한다. 기존 게스트 계정 제외 정책은 확장된 멤버에도 동일하게 적용한다.
     // 조직/프로젝트 멤버는 엔티티의 in-memory 컬렉션(org.organizationUsers 등) 대신 리포지토리로
@@ -279,7 +279,7 @@ class CommentServiceImpl(
         }
         comment.contents = contents
         val saved = issueCommentRepository.save(comment)
-        // yona Comment.update()의 updateMention() 대응 (P2-41).
+        // yona Comment.update()의 updateMention() 대응.
         mentionService.update(ResourceType.ISSUE_COMMENT, saved.id.toString(), extractMentionedUsers(contents))
         return saved
     }
@@ -301,7 +301,7 @@ class CommentServiceImpl(
         }
         comment.contents = contents
         val saved = postingCommentRepository.save(comment)
-        // yona Comment.update()의 updateMention() 대응 (P2-41).
+        // yona Comment.update()의 updateMention() 대응.
         mentionService.update(ResourceType.NONISSUE_COMMENT, saved.id.toString(), extractMentionedUsers(contents))
         return saved
     }
@@ -315,7 +315,7 @@ class CommentServiceImpl(
         val posting = comment.posting
         postingCommentRepository.delete(comment)
 
-        // yona AbstractPosting.save()/update()의 numOfComments = computeNumOfComments() 대응 (P1-19)
+        // yona AbstractPosting.save()/update()의 numOfComments = computeNumOfComments() 대응.
         posting.numOfComments = postingCommentRepository.countByPostingId(posting.id!!)
         postingRepository.save(posting)
     }

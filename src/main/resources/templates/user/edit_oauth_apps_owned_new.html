@@ -16,9 +16,9 @@
             <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('oauth-apps-owned')}"></div>
 
             <!--
-             yona-wiki P3-17 — edit_oauth_apps_owned.html(목록)에서 분리된 등록 폼 화면. 검증
-             실패 시(registerOwnedOAuthApp의 IllegalArgumentException — 앱 이름/Redirect URI
-             공백) 목록이 아니라 이 화면으로 되돌아와 입력값과 오류 메시지를 함께 보여준다.
+             edit_oauth_apps_owned.html(목록)에서 분리된 등록 폼 화면. 검증 실패 시
+             (registerOwnedOAuthApp의 IllegalArgumentException — 앱 이름/Redirect URI 공백)
+             목록이 아니라 이 화면으로 되돌아와 입력값과 오류 메시지를 함께 보여준다.
             -->
 
             <div th:if="${oauthAppError != null}" class="alert alert-error mt20">
@@ -57,8 +57,8 @@
                     <label th:text="#{oauthapp.field.scopes}">허용할 API 스코프</label>
                     <div>
                         <!--
-                         yona-wiki P3-14 2라운드 — availableScopes에는 API 스코프(예: issues:read)와
-                         identity 스코프(openid/profile/email, 콜론이 없다)가 함께 들어있다(register()의
+                         availableScopes에는 API 스코프(예: issues:read)와 identity 스코프
+                         (openid/profile/email, 콜론이 없다)가 함께 들어있다(register()의
                          화이트리스트 검증이 이 목록 하나만 기준으로 삼기 때문, OAuthAppRegistrationService
                          참고) — 여기서는 콜론이 있는 것만(API 스코프) 걸러서 보여주고, identity
                          스코프는 아래 별도 섹션에서 사람이 읽을 수 있는 설명과 함께 보여준다.

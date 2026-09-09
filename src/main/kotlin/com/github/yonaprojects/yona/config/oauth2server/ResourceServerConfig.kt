@@ -16,13 +16,13 @@ import org.springframework.security.oauth2.server.resource.web.authentication.Be
 import org.springframework.security.web.SecurityFilterChain
 import java.security.interfaces.RSAPublicKey
 
-// yona-wiki P3-07(MCP 서버) Step2 — yona 자신이 리소스 서버(Resource Server) 역할을 하는 설정.
-// yona-wiki P3-14 1라운드 — 원래 `/mcp/**` 하나만 담당했으나, 제3자 앱의 REST API 위임 접근을
-// 지원하기 위해 `/api/v1/**`용 체인을 하나 더 추가했다(ProtectedResource 레지스트리 참고). 두 체인
-// 모두 그 외 모든 경로는 기존 SecurityConfig(@Order 낮음, catch-all)로 그대로 위임한다.
+// yona 자신이 리소스 서버(Resource Server) 역할을 하는 설정. 원래 `/mcp/**` 하나만 담당했으나,
+// 제3자 앱의 REST API 위임 접근을 지원하기 위해 `/api/v1/**`용 체인을 하나 더 추가했다
+// (ProtectedResource 레지스트리 참고). 두 체인 모두 그 외 모든 경로는 기존 SecurityConfig(@Order
+// 낮음, catch-all)로 그대로 위임한다.
 //
-// 이중 인증 지원(계획 문서 요구사항): OAuth2 JWT(대화형 클라이언트)와 [[p3-02]] Fine-grained PAT
-// (헤드리스 클라이언트) 둘 다 허용 — ApiTokenAuthenticationFilter를 BearerTokenAuthenticationFilter
+// 이중 인증 지원: OAuth2 JWT(대화형 클라이언트)와 Fine-grained PAT(헤드리스 클라이언트) 둘 다
+// 허용 — ApiTokenAuthenticationFilter를 BearerTokenAuthenticationFilter
 // 앞에 추가해, PAT 헤더(Authorization: token .../Yona-Token)가 있으면 그쪽으로 먼저 인증하고, 없으면
 // JWT 처리로 넘어간다(같은 순서 원칙이 `/api/v1/projects/**`에도 이미 적용돼 있다 —
 // ApiTokenAuthenticationFilter의 KDoc 참고).
@@ -46,13 +46,13 @@ class ResourceServerConfig(
         return decoder
     }
 
-    // yona-wiki P3-14 1라운드 — 리소스가 mcp 하나뿐일 때는 JwtDecoder 빈이 하나라 타입만으로 주입이
-    // 됐지만, 두 번째(api) 빈이 생기면서 모호해졌다. Kotlin은 기본적으로 `-java-parameters`
-    // 컴파일 옵션을 켜지 않아 @Bean 팩토리 메서드의 파라미터 이름이 리플렉션에서 지워지므로(Spring이
-    // 이름 기반으로 자동 구분하는 폴백이 동작하지 않음), 각 리소스 서버 체인의 `.decoder(...)`
-    // 호출부는 @Qualifier로 명시적으로 구분한다.
+    // 리소스가 mcp 하나뿐일 때는 JwtDecoder 빈이 하나라 타입만으로 주입이 됐지만, 두 번째(api)
+    // 빈이 생기면서 모호해졌다. Kotlin은 기본적으로 `-java-parameters` 컴파일 옵션을 켜지 않아
+    // @Bean 팩토리 메서드의 파라미터 이름이 리플렉션에서 지워지므로(Spring이 이름 기반으로 자동
+    // 구분하는 폴백이 동작하지 않음), 각 리소스 서버 체인의 `.decoder(...)` 호출부는 @Qualifier로
+    // 명시적으로 구분한다.
     //
-    // @Primary가 필요한 이유(실측 확인, 2026-09-07): Spring Authorization Server의
+    // @Primary가 필요한 이유: Spring Authorization Server의
     // OAuth2AuthorizationServerConfigurer가 초기화 중 내부적으로(리소스 서버 체인과 무관하게)
     // `applicationContext.getBean(JwtDecoder.class)`를 타입으로만 조회하는 지점이 있어(정확한
     // 용도는 프레임워크 내부 구현이라 불명 — revocation/introspection류 엔드포인트가 토큰 종류를
@@ -68,8 +68,8 @@ class ResourceServerConfig(
     @Qualifier("apiJwtDecoder")
     fun apiJwtDecoder(): JwtDecoder = jwtDecoderFor(apiResourceUri)
 
-    // yona-wiki P3-14 2라운드(OIDC) — `/userinfo`(AuthorizationServerConfig 소속 체인, 리소스
-    // 서버 체인이 아님)를 위한 디코더. 위 두 디코더와 달리 오디언스(aud) 검증을 걸지 않는다 —
+    // `/userinfo`(AuthorizationServerConfig 소속 체인, 리소스 서버 체인이 아님)를 위한 디코더.
+    // 위 두 디코더와 달리 오디언스(aud) 검증을 걸지 않는다 —
     // "Sign in with yona"만 하려는 순수 identity 클라이언트가 MCP/API 리소스에는 관심이 없어도
     // `/oauth2/token`은 여전히 resource 파라미터를 요구하므로(ResourceIndicatorTokenCustomizer가
     // 리소스 종류 불문 강제) 액세스 토큰의 aud는 mcp/api 둘 중 하나로 고정된다 — `/userinfo`가
@@ -102,8 +102,8 @@ class ResourceServerConfig(
         return http.build()
     }
 
-    // yona-wiki P3-14 1라운드 — `/api/v1/**`(P3-02가 만든 REST API 네임스페이스)에 OAuth2 JWT
-    // 인증을 추가한다. GET은 기존 SecurityConfig 캐치올 체인과 동일한 관례(공개 프로젝트 익명 조회
+    // `/api/v1/**` REST API 네임스페이스에 OAuth2 JWT 인증을 추가한다. GET은 기존 SecurityConfig
+    // 캐치올 체인과 동일한 관례(공개 프로젝트 익명 조회
     // 허용, 컨트롤러가 나머지 인가를 처리)를 그대로 유지하고, 그 외 메서드만 인증을 요구한다 — 실제
     // 스코프 단위 인가(issues:write 등)는 OAuthApiScopeAuthorizationFilter가 판정한다.
     @Bean

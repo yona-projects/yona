@@ -218,7 +218,7 @@ class WatchController(
 
         // yona AbstractPosting.getWatchers()/Issue.getWatchers()의 Watch.findActualWatchers()
         // (작성자/담당자/투표자 + 명시적 Watch row + 프로젝트 감시자 합산, 읽기 권한 없는 사용자
-        // 필터링) 대응 (P1-131). 명시적 Watch row만 반환하던 것을 watchService.findActualWatchers()
+        // 필터링) 대응. 명시적 Watch row만 반환하던 것을 watchService.findActualWatchers()
         // 재사용으로 교체한다.
         val watchers: Set<User> = when (type.lowercase()) {
             "issues" -> {
@@ -240,7 +240,7 @@ class WatchController(
             else -> emptySet()
         }
 
-        // yona WatcherApi.java:26-58의 LIMIT=100 대응. [GL-controllers_api_WatcherApi-002]
+        // yona WatcherApi.java의 LIMIT=100 대응.
         val limited = watchers.take(100)
         val watcherDtos = limited.map {
             WatcherDto(name = it.name, url = "/user/${it.loginId}")

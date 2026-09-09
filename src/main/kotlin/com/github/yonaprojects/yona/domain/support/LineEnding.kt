@@ -1,6 +1,6 @@
 package com.github.yonaprojects.yona.domain.support
 
-// yona utils/LineEnding.java 대응 (P1-111, 코드브라우저 편집 커밋에서 post.lineEnding 처리에 필요).
+// yona utils/LineEnding.java 대응(코드브라우저 편집 커밋에서 post.lineEnding 처리에 필요).
 // changeLineEnding(contents, EndingType.DOS) 분기의 `contents.replace("\n", "\n")`는 yona 원본의
 // `contents.replaceAll("\\n", "\\n")`과 동일한 무의미한 치환(no-op) 버그를 그대로 재현한 것 —
 // DOS 개행 변환이 실제로는 동작하지 않는 legacy 동작을 의도적으로 보존한다.

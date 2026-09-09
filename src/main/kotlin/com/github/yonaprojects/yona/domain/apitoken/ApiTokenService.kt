@@ -2,9 +2,9 @@ package com.github.yonaprojects.yona.domain.apitoken
 
 import com.github.yonaprojects.yona.domain.user.User
 
-// yona-wiki P3-02 Step6.6 — "토큰 발급/관리 웹 UI 설계" 대응. 지금까지 ApiTokenRepository는
-// findByTokenHash() 하나뿐이라 사용자가 ApiToken을 발급/조회/폐기할 방법이 전혀 없었다(테스트
-// 코드로 DB에 직접 넣는 것 외엔 발급 경로 없음 — 계획 문서 "Fine-grained PAT 완전성 갭 분석" 1번).
+// 토큰 발급/관리 웹 UI 대응. ApiTokenRepository는 findByTokenHash() 하나뿐이라 사용자가
+// ApiToken을 발급/조회/폐기할 방법이 이 서비스 이전에는 없었다(테스트 코드로 DB에 직접 넣는
+// 것 외엔 발급 경로 없음).
 interface ApiTokenService {
     fun listByOwner(owner: User): List<ApiToken>
 

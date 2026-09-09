@@ -16,12 +16,12 @@
             <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('oauth-apps-owned')}"></div>
 
             <!--
-             yona-wiki P3-17 — GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는
-             셀프서비스 등록 화면(edit_oauth_apps.html "인가된 OAuth 앱"과는 반대 방향 — 저건 내가
-             인가한 남의 앱, 이건 내가 등록한 내 앱이다). tokens/ssh-keys/gpg-keys와 동일한
-             컨벤션대로 목록(이 화면)과 등록 폼(edit_oauth_apps_owned_new.html)을 별개 페이지로
-             분리했다 — 등록 성공 시 이 화면으로 리다이렉트되고, confidential 앱의 client_secret
-             평문값은 플래시 속성으로 지금 한 번만 표시된다.
+             GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는 셀프서비스 등록
+             화면(edit_oauth_apps.html "인가된 OAuth 앱"과는 반대 방향 — 저건 내가 인가한 남의 앱,
+             이건 내가 등록한 내 앱이다). tokens/ssh-keys/gpg-keys와 동일한 컨벤션대로 목록(이
+             화면)과 등록 폼(edit_oauth_apps_owned_new.html)을 별개 페이지로 분리했다 — 등록 성공
+             시 이 화면으로 리다이렉트되고, confidential 앱의 client_secret 평문값은 플래시
+             속성으로 지금 한 번만 표시된다.
             -->
 
             <p class="description" th:text="#{oauthapp.description}">설명</p>

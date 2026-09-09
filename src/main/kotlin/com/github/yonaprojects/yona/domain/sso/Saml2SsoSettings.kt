@@ -7,7 +7,7 @@ import jakarta.persistence.Lob
 import jakarta.persistence.Table
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step4 — 관리자 UI가 등록/조회/수정하는 SAML2 IdP 설정.
+ * 관리자 UI가 등록/조회/수정하는 SAML2 IdP 설정.
  * 필드 구성/명명은 GitHub Enterprise의 조직 설정 > Security > "SAML single sign-on" 화면을
  * 그대로 차용한다(모호할 때 GitHub 방식을 따르는 공통 방침) — Sign on URL, Issuer, Public
  * Certificate, 활성화 여부(GitHub의 "Enable SAML authentication"). GitHub은 여기에 더해

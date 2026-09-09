@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.util.regex.Pattern
 
-// yona-wiki P3-12(Mercurial 지원) 2라운드 — GitAuthorizationFilter/SvnAuthorizationFilter와
+// GitAuthorizationFilter/SvnAuthorizationFilter와
 // 대칭인 Mercurial HTTP 전용 인가 필터. RepoAccessPolicy(findProject/requiresAuth/isMember/
 // isGuestUser)를 그대로 재사용하고, 이 필터에만 필요한 것은 (1) URI에서 owner/project를 뽑는
 // 정규식과 (2) hg wire protocol 고유의 read/write 판정 로직뿐이다.
@@ -71,7 +71,7 @@ class HgAuthorizationFilter(
                 return
             }
 
-            // yona-wiki P3-03 Step2와 동일한 Deploy Key 분기(Git/SVN 필터와 대칭).
+            // Git/SVN 필터와 동일한 Deploy Key 분기.
             if (authentication is DeployKeyAuthenticationToken) {
                 val deployKey = authentication.deployKey
                 if (deployKey.project?.id != project.id) {
@@ -105,7 +105,7 @@ class HgAuthorizationFilter(
         filterChain.doFilter(request, response)
     }
 
-    // 코디네이터 리뷰(2026-09-08)에서 실측으로 발견/수정한 보안 결함 — 최초 구현은 v1의
+    // 보안 결함 수정 — 최초 구현은 v1의
     // `unbundle`만 쓰기로 분류하고 `pushkey`를 읽기로 잘못 분류했다. 실제 hg 서버는 pushkey도
     // push 권한이 필요한 명령이다(mercurial/hgweb/common.py의 checkauthz가 "push requires POST
     // request"로 강제하는 대상이 unbundle과 pushkey 둘 다 — hg4j의 HgRemoteClient.java 934행

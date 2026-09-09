@@ -65,7 +65,7 @@ interface PlayRepository {
 
     fun createBranch(branchName: String, startPoint: String)
 
-    // yona-wiki P3-10 — 브랜치의 getRefNames()/getBranches()/deleteBranch()/createBranch()와
+    // 브랜치의 getRefNames()/getBranches()/deleteBranch()/createBranch()와
     // 정확히 같은 패턴의 git 태그 지원. getTagNames()는 코드브라우저의 통합 ref 셀렉터가
     // getRefNames()(브랜치)와 나란히 쓰는 원시 ref 이름 목록("refs/tags/v1" 형태), getTags()는
     // 태그 목록 화면이 쓰는 상세 뷰 모델(GitTag) 목록이다.
@@ -89,18 +89,18 @@ interface PlayRepository {
 
     fun getArchive(os: OutputStream, branchName: String)
 
-    // yona PullRequest.getBlobId() 대응 (P1-20, CodeCommentThread.isOutdated()에서 사용).
+    // yona PullRequest.getBlobId() 대응(CodeCommentThread.isOutdated()에서 사용).
     // 리비전에 해당 경로가 없으면(파일이 그 시점에 존재하지 않으면) null.
     fun getBlobId(revision: String, path: String): String?
 
-    // yona-wiki P3-23 — Mercurial named branch(`hg branch`) 지원. git/SVN에는 대응 개념이 없어
+    // Mercurial named branch(`hg branch`) 지원. git/SVN에는 대응 개념이 없어
     // 기본 구현은 빈 목록(SvnRepository.getBranches()가 빈 목록을 반환하는 선례와 동일 패턴)으로
     // 둔다 — HgRepository만 의미 있게 override한다.
     fun getNamedBranchNames(): List<String> = emptyList()
 
     fun getNamedBranches(): List<GitBranch> = emptyList()
 
-    // 코드브라우저 "새 파일"/"편집"(온라인 커밋, P1-111/P1-135) 쓰기 경로 — Git은 BareCommit(JGit)이
+    // 코드브라우저 "새 파일"/"편집"(온라인 커밋) 쓰기 경로 — Git은 BareCommit(JGit)이
     // bare 저장소를 직접 다루는 기존 경로를 그대로 쓰고 이 인터페이스를 거치지 않는다. Mercurial
     // 전용으로 신설: branchBookmark는 커밋을 반영할 bookmark 이름(빈 문자열/"tip"/"default"/"HEAD"면
     // pseudo-ref로 보고 bookmark를 만들거나 옮기지 않는다), namedBranchName은 지정 시 커밋 전

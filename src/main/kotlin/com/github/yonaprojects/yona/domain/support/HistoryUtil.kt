@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 
 /**
  * yona의 controllers/AbstractPostingApp.java의 editPosting()/addToHistory()/getHistoryMadeBy()/
- * (로컬) getDiffText() 대응 (P2-02). Issue/Posting 본문 수정 시 변경 이력을 `history`에 누적한다.
+ * (로컬) getDiffText() 대응. Issue/Posting 본문 수정 시 변경 이력을 `history`에 누적한다.
  *
  * yona는 이슈 초안(draft)을 최초 발행(isPublish)할 때 history를 초기화하는 별도 분기가 있지만,
  * yona는 이슈 초안 발행 플로우 자체를 아직 이식하지 않았으므로(별도 범위) 이 유틸은 "본문이

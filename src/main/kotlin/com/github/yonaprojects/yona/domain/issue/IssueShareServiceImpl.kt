@@ -31,7 +31,7 @@ class IssueShareServiceImpl(
     private val notificationEventRecorder: NotificationEventRecorder,
     private val eventPublisher: ApplicationEventPublisher,
     private val issueEventRepository: IssueEventRepository,
-    // yona-wiki P3-01(Observability) 계측 지점 2 대응 — IssueEventRepository.recordWithDraftMerge()에 그대로 전달한다.
+    // IssueEventRepository.recordWithDraftMerge()에 그대로 전달한다.
     private val meterRegistry: MeterRegistry
 ) : IssueShareService {
 
@@ -231,7 +231,7 @@ class IssueShareServiceImpl(
         // 쓴다 — 중간 지점은 남기고 정확히 원상복구된 경우만 상쇄한다.
         notificationEventRecorder.record(notificationEvent, skipWaypoint = false)?.let { eventPublisher.publishEvent(it) }
 
-        // 이슈 타임라인(IssueEvent) 기록 (P1-37)
+        // 이슈 타임라인(IssueEvent) 기록
         val issueEvent = IssueEvent(
             issue = issue,
             senderLoginId = currentUser.loginId!!,

@@ -16,10 +16,10 @@
             <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('oauth-apps')}"></div>
 
             <!--
-             yona-wiki P3-07(MCP 서버) Step6 — GitHub의 "Settings > Applications > Authorized OAuth
+             GitHub의 "Settings > Applications > Authorized OAuth
              Apps"와 동등한 화면. Claude Code 등 MCP OAuth 클라이언트를 조회/취소한다. 사전등록
              클라이언트 관리자 화면은 아직 없다 — RFC7591 Dynamic Client Registration으로 클라이언트
-             자동 등록이 이미 API로 되므로 필수는 아니라고 판단했다(계획 문서 참고).
+             자동 등록이 이미 API로 되므로 필수는 아니라고 판단했다.
             -->
 
             <h4 class="mt20" th:text="#{oauth2.authorizedApps.list.title}">인가한 애플리케이션</h4>

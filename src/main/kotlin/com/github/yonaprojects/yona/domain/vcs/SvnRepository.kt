@@ -298,7 +298,7 @@ class SvnRepository(
 
     override fun createBranch(branchName: String, startPoint: String) {}
 
-    // yona-wiki P3-10 — git 태그는 SVN에 대응 개념이 없다(브랜치와 마찬가지로 no-op/빈 목록).
+    // git 태그는 SVN에 대응 개념이 없다(브랜치와 마찬가지로 no-op/빈 목록).
     override fun getTagNames(): List<String> = emptyList()
 
     override fun getTags(): List<GitTag> = emptyList()
@@ -307,7 +307,7 @@ class SvnRepository(
 
     override fun createTag(tagName: String, startPoint: String, message: String?, taggerName: String?, taggerEmail: String?) {}
 
-    // PR 코드리뷰(P1-20 isOutdated)는 Git 전용 기능이라 SVN에서는 지원하지 않는다.
+    // PR 코드리뷰(isOutdated)는 Git 전용 기능이라 SVN에서는 지원하지 않는다.
     override fun getBlobId(revision: String, path: String): String? = null
 
     override fun getParentCommitOf(commitId: String): Commit? {

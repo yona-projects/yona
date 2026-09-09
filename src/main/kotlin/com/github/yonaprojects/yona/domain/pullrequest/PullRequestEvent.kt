@@ -6,7 +6,7 @@ import java.time.Instant
 
 /**
  * yona의 models/PullRequestEvent.java 대응(최소 스키마, draft-time 병합/취소
- * 최적화는 이식하지 않음 — 이슈 타임라인(P1-07)과 동일한 범위 조정 기준).
+ * 최적화는 이식하지 않음 — 이슈 타임라인과 동일한 범위 조정 기준).
  */
 @Entity
 @Table(name = "pull_request_event")

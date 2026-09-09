@@ -12,8 +12,8 @@ class YonaUpdateService(
     private val repositoryUrl: String,
     @Value("\${yona.update.current-version:1.15.0}")
     private val currentVersion: String,
-    // yona application.update.notification.interval 대응 (P2-10). 코드 레벨 fallback 기본값은
-    // 1시간이지만, 실제 배포용 conf 템플릿(application.conf.default:253)은 6시간(21600000ms)으로
+    // yona application.update.notification.interval 대응. 코드 레벨 fallback 기본값은
+    // 1시간이지만, 실제 배포용 conf 템플릿(application.conf.default)은 6시간(21600000ms)으로
     // 오버라이드돼 있어 그 값을 기본값으로 채택한다.
     @Value("\${yona.update.interval-ms:21600000}")
     private val intervalMillis: Long = 21600000L
@@ -28,7 +28,7 @@ class YonaUpdateService(
     fun isUpdateRequired(): Boolean = isUpdateRequired
     fun getReleaseUrl(): String = "https://github.com/yona-projects/yona/releases/tag/v${latestVersion ?: ""}"
 
-    // yona YobiUpdate.java:40-41(interval 기본값 및 설정 가능), initdelay 기본 5초 대응. [GL-models_YobiUpdate-002]
+    // yona YobiUpdate(interval 기본값 및 설정 가능), initdelay 기본 5초 대응.
     @Scheduled(
         fixedDelayString = "\${yona.update.interval-ms:21600000}",
         initialDelayString = "\${yona.update.initial-delay-ms:5000}"

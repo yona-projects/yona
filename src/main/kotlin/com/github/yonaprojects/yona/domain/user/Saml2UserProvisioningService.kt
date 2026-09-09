@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step3 — `LdapUserProvisioningService`/`OidcUserProvisioningService`와
+ * `LdapUserProvisioningService`/`OidcUserProvisioningService`와
  * 동일한 JIT 프로비저닝을 SAML2 어서션 속성에 대해 수행한다. 이메일 속성 이름은 IdP마다 다를 수 있어
  * (Okta/Azure AD/Keycloak 등) 설정 가능한 attribute 이름을 인자로 받는다(`SsoSettingsService` 참고).
  */

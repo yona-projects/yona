@@ -34,7 +34,6 @@ class PullRequestMergeEventListener(
     private val notificationEventRecorder: NotificationEventRecorder,
     private val eventPublisher: ApplicationEventPublisher,
     private val pullRequestEventRepository: PullRequestEventRepository,
-    // yona-wiki P3-01(Observability) 계측 지점 5 대응.
     private val meterRegistry: MeterRegistry
 ) {
     private val logger = LoggerFactory.getLogger(PullRequestMergeEventListener::class.java)
@@ -127,10 +126,10 @@ class PullRequestMergeEventListener(
         }
     }
 
-    // yona actors/RelatedPullRequestMergingActor.java + PullRequestActor.processPullRequestMerging 대응.
+    // legacy RelatedPullRequestMergingActor + PullRequestActor.processPullRequestMerging 대응.
     // 다른 PR과 관련된 브랜치에 push가 발생했을 때, 관련 PR들의 병합/충돌 상태를 다시 검사한다.
     // 이전에는 isMerging=true만 세팅하고 실제 재검사를 하지 않아 상태가 영구히 "병합중"으로
-    // 멈춰있던 버그였다(P1-05).
+    // 멈춰있던 버그였다.
     @Async("taskExecutor")
     @EventListener
     @Transactional
@@ -148,9 +147,9 @@ class PullRequestMergeEventListener(
 
             val sample = Timer.start(meterRegistry)
             try {
-                // yona RelatedPullRequestMergingActor도 processPullRequestMerging()을 거치므로,
+                // legacy RelatedPullRequestMergingActor도 processPullRequestMerging()을 거치므로,
                 // 새 커밋 발견 시 PullRequestCommit 영속화/PullRequestEvent 기록/리뷰어 초기화/알림
-                // 발행, diff 소멸 시 자동 MERGED 전환까지 processMergeCheck()가 모두 수행한다(P1-52).
+                // 발행, diff 소멸 시 자동 MERGED 전환까지 processMergeCheck()가 모두 수행한다.
                 pullRequestService.processMergeCheck(id, event.sender, isNewPullRequest = false)
             } catch (e: Exception) {
                 logger.error("[PR MERGE] Failed to re-check merge for related PR ID: $id", e)

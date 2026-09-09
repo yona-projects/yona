@@ -26,19 +26,19 @@ interface IssueRepository : JpaRepository<Issue, Long>, JpaSpecificationExecutor
     fun findByProjectIn(projects: List<Project>, pageable: Pageable): Page<Issue>
     fun findByProjectInAndState(projects: List<Project>, state: State, pageable: Pageable): Page<Issue>
 
-    // yona organization/group_issue_search_partial.scala.html:72 Issue.countIssuesBy(organization, ...)
-    // 대응 (조직 그룹, TASK-0244) — 열림/닫힘 상태 탭 배지 카운트.
+    // yona organization/group_issue_search_partial.scala.html의 Issue.countIssuesBy(organization, ...)
+    // 대응 — 열림/닫힘 상태 탭 배지 카운트.
     fun countByProjectInAndState(projects: List<Project>, state: State): Long
     fun findByProjectAndNumber(project: Project, number: Long): Issue?
     fun findByMilestone(milestone: Milestone): List<Issue>
     fun findByMilestoneAndState(milestone: Milestone, state: State): List<Issue>
     fun findByAuthorId(authorId: Long): List<Issue>
 
-    // yona models/support/IssueSearchCondition.java:80-84 setAssigneeIfExists()의
-    // eq("assignee.user.id", assigneeId) 대응 (P2-52).
+    // yona models/support/IssueSearchCondition.java의 setAssigneeIfExists()의
+    // eq("assignee.user.id", assigneeId) 대응.
     fun findByAssignee_UserId(userId: Long): List<Issue>
 
-    // yona Issue.java:524-529 findRecentlyIssuesByDaysAgo(user, days) 대응 (P2-38) — 작성자 또는 [GL-models_Issue-061]
+    // yona Issue.java의 findRecentlyIssuesByDaysAgo(user, days) 대응 — 작성자 또는
     // 담당자인 이슈 중 최근 daysAgo일 안에 갱신된 것만, updatedDate desc/state asc 순으로 반환한다.
     // assignee는 LEFT JOIN으로 명시해야 한다(암묵적 경로 탐색은 INNER JOIN으로 컴파일돼 담당자 없는
     // 이슈까지 결과에서 사라진다 — searchIssues()와 동일한 이유).
@@ -52,18 +52,18 @@ interface IssueRepository : JpaRepository<Issue, Long>, JpaSpecificationExecutor
     """)
     fun findRecentlyByUser(@Param("userId") userId: Long, @Param("since") since: Instant): List<Issue>
 
-    // yona Search.java:112-127 issuesEL()의 "(Project && Keyword) || (Author && Keyword) ||
-    // (Assignee && Keyword)" 대응 (P1-81) — 프로젝트 접근권한과 무관하게 본인이 작성했거나
+    // yona Search.java의 issuesEL()의 "(Project && Keyword) || (Author && Keyword) ||
+    // (Assignee && Keyword)" 대응 — 프로젝트 접근권한과 무관하게 본인이 작성했거나
     // 담당자로 지정된 이슈는 항상 검색에 노출된다(equalsUserTemplate()가 익명 사용자는 건너뛰므로
     // userId가 null이면 이 두 분기는 자연히 무효화된다). assignee는 LEFT JOIN으로 명시해야 한다 —
     // 암묵적 경로 탐색(i.assignee.user.id)은 Hibernate가 INNER JOIN으로 컴파일해, OR로 묶은
     // 다른 분기가 매치돼야 할 담당자 없는 이슈까지 통째로 결과에서 사라지게 만든다.
-    // JPQL/Criteria 대신 네이티브 쿼리를 쓰는 이유: Hibernate 7.2.x(12~24.Final 전부 재현)의
+    // JPQL/Criteria 대신 네이티브 쿼리를 쓰는 이유: Hibernate 7.2.x(버전 12~24.Final 전부 동일)의
     // PostgreSQL SQL AST 변환기가 LIKE 술어를 `like_escape(pattern, escapechar)` 함수 호출로
     // 합성하는데, 같은 쿼리 안에 LIKE가 2개 이상이면(JPQL/Criteria 무관, OR/AND 무관, ESCAPE
     // 명시 여부 무관) 두 번째 이후 like_escape 호출의 인자 타입을 bigint로 잘못 추론해
     // "function pg_catalog.like_escape(bigint, unknown) does not exist"로 항상 실패한다
-    // (MariaDB에서는 재현 안 됨 — Postgres SQL AST 변환기 고유 버그). 순수 ANSI SQL LIKE는
+    // (MariaDB에서는 발생하지 않음 — Postgres SQL AST 변환기 고유 버그). 순수 ANSI SQL LIKE는
     // 지원 대상 5개 DB에서 문법이 동일해 네이티브 쿼리로 우회하면 이 버그를 피할 수 있다.
     // 네이티브 쿼리는 JPQL과 달리 빈 컬렉션을 "IN ()"으로 그대로 내보내 SQL 문법 오류가 나므로
     // (JPQL은 Hibernate가 1=0으로 자동 치환해줬음), searchIssues/countSearchIssues에서 대신
@@ -268,7 +268,7 @@ interface IssueRepository : JpaRepository<Issue, Long>, JpaSpecificationExecutor
         @Param("state") state: State
     ): Long
 
-    // 4. 나를 언급한 이슈 (yona Mention.getMentioningIssueIds() 대응, P2-41 — 조직/프로젝트 그룹
+    // 4. 나를 언급한 이슈 (yona Mention.getMentioningIssueIds() 대응 — 조직/프로젝트 그룹
     // 멘션까지 포함한 실제 멘션 인덱스 테이블 기반. 이전에는 title/body/댓글 LIKE 텍스트 검색으로만
     // 근사해 그룹 멘션(@orgname, @owner/project)으로 간접 멘션된 이슈를 놓쳤다.)
     @Query(
@@ -380,19 +380,19 @@ interface IssueRepository : JpaRepository<Issue, Long>, JpaSpecificationExecutor
     fun countByParentId(parentId: Long): Long
     fun countByParentIdAndState(parentId: Long, state: State): Long
     fun findByParentId(parentId: Long): List<Issue>
-    // yona Issue.findByParentIssueIdAndState() 대응 (issue/partial_view_child*.scala.html, 그룹7
-    // #134/#135/#136). 부모 이슈 화면에서 초안/오픈/클로즈 하위이슈를 상태별로 나눠 렌더링한다.
+    // yona Issue.findByParentIssueIdAndState() 대응 (issue/partial_view_child*.scala.html).
+    // 부모 이슈 화면에서 초안/오픈/클로즈 하위이슈를 상태별로 나눠 렌더링한다.
     fun findByParentIdAndState(parentId: Long, state: State): List<Issue>
 
-    // yona IssueApp.findDraftIssues() 대응 (issue/partial_list_draft.scala.html, 그룹7 #119).
+    // yona IssueApp.findDraftIssues() 대응 (issue/partial_list_draft.scala.html).
     // 이슈 목록 첫 페이지 상단에 "작성자 본인의 초안"만 노출한다.
     fun findByProjectAndAuthorLoginIdAndIsDraftTrueOrderByNumberDesc(project: Project, authorLoginId: String): List<Issue>
 
-    // yona Issue.findParentIssueByProject(project, "", 300) 대응 (issue/partial_select_subtask.scala.html,
-    // 그룹7 #125). 부모가 없는 이슈를 프로젝트 전체(상태 무관)에서 최신순으로 최대 300건까지 후보로 노출한다.
+    // yona Issue.findParentIssueByProject(project, "", 300) 대응 (issue/partial_select_subtask.scala.html).
+    // 부모가 없는 이슈를 프로젝트 전체(상태 무관)에서 최신순으로 최대 300건까지 후보로 노출한다.
     fun findByProjectAndParentIsNullOrderByCreatedDateDesc(project: Project, pageable: Pageable): List<Issue>
 
-    // yona ProjectApp.getMentionIssueList() 대응 (P1-14): @이슈번호 멘션 자동완성용 최근 이슈 검색.
+    // yona ProjectApp.getMentionIssueList() 대응: @이슈번호 멘션 자동완성용 최근 이슈 검색.
     // 네이티브 쿼리 이유는 이 파일 위쪽 주석 참고 (Postgres Hibernate 7.2.x LIKE 2개 이상 버그).
     @Query(
         value = """

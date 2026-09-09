@@ -20,8 +20,8 @@ interface PostingRepository : JpaRepository<Posting, Long> {
     fun findByProjectIn(projects: List<Project>, pageable: Pageable): Page<Posting>
     fun findByProjectAndReadme(project: Project, readme: Boolean): List<Posting>
 
-    // yona organization/group_board_list.scala.html:65-71 notices 대응 (조직 그룹, TASK-0244) —
-    // 조직에서 보이는 프로젝트들의 공지 게시글 전체(페이지 무관, 1페이지에서만 상단에 노출됨).
+    // yona organization/group_board_list.scala.html의 notices 대응(조직 그룹) — 조직에서 보이는
+    // 프로젝트들의 공지 게시글 전체(페이지 무관, 1페이지에서만 상단에 노출됨).
     fun findByProjectInAndNotice(projects: List<Project>, notice: Boolean): List<Posting>
 
     // yona organization/group_board_list.scala.html의 param.filter(검색어) + projectNames[](프로젝트
@@ -33,9 +33,8 @@ interface PostingRepository : JpaRepository<Posting, Long> {
     // (IssueRepository.searchIssues() 주석 참고). 네이티브 쿼리는 엔티티가 아닌 ID로만 바인딩
     // 가능하므로 `List<Project>`를 받는 공개 메서드는 ID 리스트로 변환해 내부 쿼리에 위임한다.
     // notice = false/0 같은 SQL 리터럴은 DB마다 다르게 깨진다(PostgreSQL은 진짜 boolean 컬럼이라
-    // 정수 리터럴과 비교 시 타입 불일치 에러, SQL Server는 TRUE/FALSE 리터럴 자체가 없음 —
-    // 실측 확인). 리터럴 대신 파라미터로 바인딩하면 각 방언의 Boolean JDBC 타입 매핑을 그대로
-    // 타므로 전부 호환된다.
+    // 정수 리터럴과 비교 시 타입 불일치 에러, SQL Server는 TRUE/FALSE 리터럴 자체가 없음). 리터럴
+    // 대신 파라미터로 바인딩하면 각 방언의 Boolean JDBC 타입 매핑을 그대로 타므로 전부 호환된다.
     @Query(
         value = "SELECT * FROM posting WHERE project_id IN :projectIds AND notice = :isNotice AND (:keyword = '' OR LOWER(title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(body) LIKE LOWER(CONCAT('%', :keyword, '%')))",
         countQuery = "SELECT COUNT(*) FROM posting WHERE project_id IN :projectIds AND notice = :isNotice AND (:keyword = '' OR LOWER(title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(body) LIKE LOWER(CONCAT('%', :keyword, '%')))",
@@ -86,7 +85,7 @@ interface PostingRepository : JpaRepository<Posting, Long> {
 
     fun findAllByOrderByCreatedDateDesc(pageable: Pageable): Page<Posting>
 
-    // yona BoardApp.SearchCondition.asExpressionList()의 labelIdSet 필터 대응 (P1-19)
+    // yona BoardApp.SearchCondition.asExpressionList()의 labelIdSet 필터 대응
     @Query(
         value = """
             SELECT DISTINCT p.* FROM posting p

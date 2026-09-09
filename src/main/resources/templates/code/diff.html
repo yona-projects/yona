@@ -40,7 +40,7 @@
             </div>
             <div class="commitId-wrap" style="margin-top: 10px; font-family: monospace;">
               <strong class="commitId" th:text="'@' + ${commit.id}">Commit ID</strong>
-              <!-- yona-wiki P3-03 Step9 — GPG 서명 검증 배지(미서명 커밋은 표시 안 함). -->
+              <!-- GPG 서명 검증 배지(미서명 커밋은 표시 안 함). -->
               <span th:if="${commit.gpgVerificationStatus.name() == 'VERIFIED'}"
                     class="label-head gpg-verified" style="background-color:#dafbe1;color:#1a7f37;border:1px solid #2da44e;" th:title="#{commit.gpg.verified.title}" th:text="#{commit.gpg.verified}">Verified</span>
               <span th:if="${commit.gpgVerificationStatus.name() == 'UNVERIFIED'}"

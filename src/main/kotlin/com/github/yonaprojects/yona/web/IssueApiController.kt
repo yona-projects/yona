@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-// yona controllers/api/IssueApi.java 대응 (P2-55, P2-56). legacy Open API 네임스페이스
+// yona controllers/api/IssueApi.java 대응. legacy Open API 네임스페이스
 // (`-_-api/v1/owners/{owner}/projects/{projectName}/...`)를 그대로 유지하는 컨트롤러 — 비즈니스
 // 로직은 IssueController.kt와 동일한 IssueService/리포지토리를 재사용하고, 요청/응답 필드명만
 // legacy JSON 계약(title/body/milestoneTitle/assignees[].loginId/labels[].labelName 등)에 맞춘다.
@@ -82,7 +82,7 @@ class IssueApiController(
     private fun resolveIssueState(state: String?): State =
         if (state?.equals("OPEN", ignoreCase = true) != false) State.OPEN else State.CLOSED
 
-    // yona controllers/api/IssueApi.java getIssue() 대응 (P2-56).
+    // yona controllers/api/IssueApi.java getIssue() 대응.
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}")
     fun getIssueLegacyPath(
         @PathVariable owner: String,
@@ -100,18 +100,17 @@ class IssueApiController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
 
-        // P3-30(2026-09-09 코디네이터 발견/수정) — raw Issue 엔티티를 그대로 반환하면 project->
-        // projectUsers->user 순환 직렬화로 User.password/passwordSalt까지 노출된다. 실측: 이
-        // 엔드포인트를 실제 앱으로 호출해 60690바이트 응답에 password 값이 그대로 있는 것을 확인.
-        // 응답 필드명은 기존 IssueResponse(id/number/title/body/state/...)를 그대로 재사용한다 —
-        // 실제 legacy 응답은 이미 {"result": {...}} 래핑이나 milestoneTitle/assignees[].loginId 같은
-        // 필드 매핑을 하지 않은 채(가공 없이 그대로 엔티티만 직렬화) 서비스 중이었으므로, "진짜" legacy
-        // Java 계약과는 이미 어긋나 있었다 — 여기서는 그 기존 관찰가능한 동작(감싸지 않은 평탄한 JSON,
-        // title/body/state/weight 등 필드명)만 유지하며 비밀번호 노출만 제거한다.
+        // raw Issue 엔티티를 그대로 반환하면 project->projectUsers->user 순환 직렬화로
+        // User.password/passwordSalt까지 노출된다. 응답 필드명은 기존 IssueResponse
+        // (id/number/title/body/state/...)를 그대로 재사용한다 — 실제 legacy 응답은 이미
+        // {"result": {...}} 래핑이나 milestoneTitle/assignees[].loginId 같은 필드 매핑을 하지 않은
+        // 채(가공 없이 그대로 엔티티만 직렬화) 서비스 중이었으므로, "진짜" legacy Java 계약과는 이미
+        // 어긋나 있었다 — 여기서는 그 기존 관찰가능한 동작(감싸지 않은 평탄한 JSON, title/body/
+        // state/weight 등 필드명)만 유지하며 비밀번호 노출만 제거한다.
         return ResponseEntity.ok(issue.toResponse())
     }
 
-    // yona controllers/api/IssueApi.java:1176-1191 upvoteWeight() 대응 (P2-56).
+    // yona IssueApi.upvoteWeight() 대응.
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/upvoteWeight")
     fun upvoteWeightLegacyPath(
         @PathVariable owner: String,
@@ -129,11 +128,11 @@ class IssueApiController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        // 동일한 순환 직렬화/비밀번호 노출 문제 대응.
         return ResponseEntity.ok(issueService.upvoteWeight(issue.id!!).toResponse())
     }
 
-    // yona controllers/api/IssueApi.java:1194-1209 downvoteWeight() 대응 (P2-56).
+    // yona IssueApi.downvoteWeight() 대응.
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/downvoteWeight")
     fun downvoteWeightLegacyPath(
         @PathVariable owner: String,
@@ -151,11 +150,11 @@ class IssueApiController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        // 동일한 순환 직렬화/비밀번호 노출 문제 대응.
         return ResponseEntity.ok(issueService.downvoteWeight(issue.id!!).toResponse())
     }
 
-    // yona controllers/api/IssueApi.java:319-349 updateIssueContent() 대응 (P2-56). legacy 필드명은
+    // yona IssueApi.updateIssueContent() 대응. legacy 필드명은
     // `content`/`sha1`(원문 체크섬) — IssueController.updateIssueContent()와 동일한 충돌감지 로직.
     @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/content")
     fun updateIssueContentLegacyPath(
@@ -187,7 +186,7 @@ class IssueApiController(
         return ResponseEntity.ok(mapOf("body" to issue.body))
     }
 
-    // yona controllers/api/IssueApi.java:292-317 updateIssueState() 대응 (P2-56). legacy 필드명은
+    // yona IssueApi.updateIssueState() 대응. legacy 필드명은
     // `state`("open"/그 외는 모두 closed 취급) — IssueController.changeState()와 동일한 서비스 재사용.
     @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}")
     fun updateIssueStateLegacyPath(
@@ -209,12 +208,12 @@ class IssueApiController(
         }
 
         val updated = issueService.changeState(issue.id!!, resolveIssueState(request.state), user.loginId!!)
-        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        // 동일한 순환 직렬화/비밀번호 노출 문제 대응.
         return ResponseEntity.ok(updated.toResponse())
     }
 
-    // yona controllers/api/IssueApi.java:271-289,352-379 updateIssue()/updateIssueNode() 대응
-    // (P2-56). legacy 필드명은 title/body/milestoneTitle(제목으로 마일스톤 조회)/state/
+    // yona IssueApi.updateIssue()/updateIssueNode() 대응. legacy 필드명은
+    // title/body/milestoneTitle(제목으로 마일스톤 조회)/state/
     // assignees[0].loginId — IssueController.updateIssue()/changeState()와 동일한 서비스 재사용.
     @PutMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}")
     fun updateIssueLegacyPath(
@@ -252,12 +251,11 @@ class IssueApiController(
             updated = issueService.changeState(issue.id!!, resolveIssueState(request.state), user.loginId!!)
         }
 
-        // P3-30 — 동일한 순환 직렬화/비밀번호 노출 문제 대응.
+        // 동일한 순환 직렬화/비밀번호 노출 문제 대응.
         return ResponseEntity.ok(updated.toResponse())
     }
 
-    // yona controllers/api/IssueApi.java:427-443 updateLabels()/IssueApi.java:163-184
-    // updateIssueLabel() 대응 (P2-56). legacy는 요청 바디 전체가 라벨 ID 문자열 배열이다
+    // yona IssueApi.updateLabels()/updateIssueLabel() 대응. legacy는 요청 바디 전체가 라벨 ID 문자열 배열이다
     // (`for(JsonNode node: json){ Long labelId = Long.parseLong(node.asText()); ... }`).
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issuelabel/{number}")
     fun updateIssueLabelLegacyPath(
@@ -287,8 +285,7 @@ class IssueApiController(
         return ResponseEntity.ok(mapOf("id" to project.owner, "labels" to saved.labels.size))
     }
 
-    // yona controllers/api/IssueApi.java:246-268,392-425 newIssues()/createIssuesNode() 대응
-    // (P2-56, 2026-08-28 number/sendNotification 복원). legacy는 `{issues:[...], sendNotification}`
+    // yona IssueApi.newIssues()/createIssuesNode() 대응. legacy는 `{issues:[...], sendNotification}`
     // 배열 배치 생성 — 각 항목은 title/body/state/milestoneTitle(제목 조회)/assignees[0].loginId/
     // labels[](labelName+category 조회)/number(명시적 이슈번호, migration 전용)로 구성된다.
     // `IssueService.createIssue()`에 `explicitNumber`/`sendNotification` 파라미터를 추가해
@@ -357,7 +354,7 @@ class IssueApiController(
         val assignees: List<LegacyAssigneeRef>? = null,
         val labels: List<LegacyLabelRef>? = null,
         val author: LegacyAuthorRef? = null,
-        // yona controllers/api/IssueApi.java createIssuesNode()의 "number" 필드 대응 (P2-56 복원) —
+        // yona IssueApi.createIssuesNode()의 "number" 필드 대응 —
         // 마이그레이션 시 과거 이슈 번호를 그대로 보존하기 위해 지정. 0 이하면 무시하고 자동 채번.
         val number: Long? = null
     )
@@ -366,7 +363,7 @@ class IssueApiController(
         val sendNotification: Boolean = false
     )
 
-    // yona controllers/api/IssueApi.java imports() 대응 (P2-55). 게시글(Posting) 하나를 이슈로
+    // yona IssueApi.imports() 대응. 게시글(Posting) 하나를 이슈로
     // 전환한다 — legacy Issue.from(posting)/IssueComment.from(postingComment, issue)와 동일하게
     // 필드를 그대로 복사하고, 댓글은 최상위→답글 순으로 옮긴다(legacy와 동일하게 2단계 depth만
     // 지원). 첨부파일은 AttachmentService.moveAll()로 캐시까지 함께 갱신하며 이관한다. 원본

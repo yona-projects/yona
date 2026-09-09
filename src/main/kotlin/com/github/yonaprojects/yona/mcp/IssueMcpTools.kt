@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 /**
- * yona-wiki P3-07(MCP 서버) Step3~4 — 이슈 읽기/쓰기 MCP 도구. IssueRestApiController/
+ * 이슈 읽기/쓰기 MCP 도구. IssueRestApiController/
  * PullRequestApiController와 완전히 동일한 원칙: 신규 비즈니스 로직 없이 기존
  * IssueController/CommentController(이미 AccessControl/브랜치 보호 등을 전부 갖춘 웹 컨트롤러)에
  * 위임만 한다 — 이 클래스가 새로 하는 일은 (1) owner/project 이름으로 프로젝트를 찾는 것과
@@ -41,7 +41,7 @@ class IssueMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.READ, found)
-        // P3-30(2026-09-09) — IssueController.getIssues()가 이제 자체적으로 Page<IssueResponse>를
+        // IssueController.getIssues()가 자체적으로 Page<IssueResponse>를
         // 반환하므로(raw Issue 엔티티 순환 직렬화/비밀번호 노출 방지), 여기서 다시 .toResponse()를
         // 부를 필요가 없다(이미 DTO).
         val page = issueController.getIssues(
@@ -59,7 +59,7 @@ class IssueMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.READ, found)
-        // P3-30 — IssueController.getIssue()가 이미 IssueResponse를 반환한다.
+        // IssueController.getIssue()가 이미 IssueResponse를 반환한다.
         return issueController.getIssue(found.id!!, number, currentAuth())
             .unwrapForMcp("이슈 #$number 를 찾을 수 없습니다.")
     }
@@ -80,7 +80,7 @@ class IssueMcpTools(
             assigneeId = null,
             labelIds = null
         )
-        // P3-30 — IssueController.createIssue()가 이미 IssueResponse를 반환한다.
+        // IssueController.createIssue()가 이미 IssueResponse를 반환한다.
         return issueController.createIssue(found.id!!, request, currentAuth()).unwrapForMcp()
     }
 
@@ -94,7 +94,7 @@ class IssueMcpTools(
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.WRITE, found)
         val request = CommentController.CommentRequest(contents = body)
-        // P3-30 — CommentController.createIssueComment()가 이미 IssueCommentResponse를 반환한다.
+        // CommentController.createIssueComment()가 이미 IssueCommentResponse를 반환한다.
         return commentController.createIssueComment(found.id!!, number, request, currentAuth())
             .unwrapForMcp("이슈 #$number 를 찾을 수 없습니다.")
     }
@@ -107,7 +107,7 @@ class IssueMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.ISSUES, ApiTokenPermission.WRITE, found)
-        // P3-30 — IssueController.changeState()가 이미 IssueResponse를 반환한다.
+        // IssueController.changeState()가 이미 IssueResponse를 반환한다.
         return issueController.changeState(found.id!!, number, State.CLOSED, currentAuth())
             .unwrapForMcp("이슈 #$number 를 찾을 수 없습니다.")
     }

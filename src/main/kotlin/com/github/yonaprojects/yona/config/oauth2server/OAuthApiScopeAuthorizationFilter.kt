@@ -10,7 +10,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
-// yona-wiki P3-14 1라운드 — `/api/v1/**`에서 OAuth2 JWT로 인증된 요청에 대해 [[p3-02]]의
+// `/api/v1/**`에서 OAuth2 JWT로 인증된 요청에 대해 기존
 // Fine-grained 스코프 체계(ApiTokenScopeGroup/ApiTokenPermission)와 동일한 인가를 적용한다.
 // PAT 인증(ApiTokenAuthenticationFilter)은 자기 경로에서 이미 스코프를 판정하므로, 이 필터는
 // SecurityContext의 Authentication이 JwtAuthenticationToken일 때만(= PAT이 아니라 OAuth2로

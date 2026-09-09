@@ -8,7 +8,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step3 — SAML 어서션 자체의 파싱/서명 검증은 Spring Security의
+ * SAML 어서션 자체의 파싱/서명 검증은 Spring Security의
  * 기본 구현(`OpenSaml5AuthenticationProvider.createDefaultResponseAuthenticationConverter()`)에
  * 위임하고, 그 결과로 나온 `Saml2Authentication`의 principal(어서션 속성)을 받아 LDAP/OIDC와 동일한
  * JIT 프로비저닝을 수행한 뒤 로컬 User를 담은 principal로 교체한다.

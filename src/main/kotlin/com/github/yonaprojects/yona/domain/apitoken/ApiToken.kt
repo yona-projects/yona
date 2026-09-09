@@ -5,7 +5,7 @@ import com.github.yonaprojects.yona.domain.user.User
 import jakarta.persistence.*
 import java.time.Instant
 
-// yona-wiki P3-02 Step1 — GitHub Fine-grained PAT 대응. legacy User.token(전권 단일 토큰, 기존
+// GitHub Fine-grained PAT 대응. legacy User.token(전권 단일 토큰, 기존
 // UserRepository.findByToken)을 대체하는 저장소 범위 + 리소스별 권한 스코프 토큰.
 // repo scope는 "전체 저장소(allRepositories) vs 선택 저장소 목록(scopedProjects)" 2가지 모드를
 // User.enrolledProjects와 동일한 ManyToMany 조인테이블 패턴으로 구현했다 — 선택 저장소 목록은
@@ -23,7 +23,7 @@ class ApiToken(
     @JoinColumn(name = "owner_id", nullable = false)
     var owner: User? = null,
 
-    // yona-wiki P3-02 Step6.6 — GitHub Fine-grained PAT은 토큰마다 이름을 강제한다(여러 토큰을
+    // GitHub Fine-grained PAT은 토큰마다 이름을 강제한다(여러 토큰을
     // 발급/관리하는 화면에서 구분할 유일한 사용자용 식별자). 기존 Step1~3 테스트가 positional이 아닌
     // named argument로만 ApiToken(...)을 생성하므로 어느 위치에 넣어도 안전하지만, owner/tokenHash
     // 바로 다음에 둬 "토큰을 식별하는 정보"끼리 묶었다.
@@ -53,7 +53,7 @@ class ApiToken(
     @OneToMany(mappedBy = "apiToken", cascade = [CascadeType.ALL], orphanRemoval = true)
     var scopes: MutableList<ApiTokenScope> = mutableListOf(),
 
-    // 2026-08-24 결정 — 무기한 토큰 발급 자체를 금지한다. 타입을 Instant?로 열어둔 이유는
+    // 설계 결정 — 무기한 토큰 발급 자체를 금지한다. 타입을 Instant?로 열어둔 이유는
     // "null이면 저장 거부"를 테스트가 직접 null을 넘겨 검증할 수 있게 하기 위함이고, 실제 거부는
     // 이 @Column(nullable = false) DB 제약(NOT NULL 위반)이 담당한다 — 이 리포지토리의 다른
     // 엔티티(Webhook.project 등)도 같은 방식(Kotlin nullable 타입 + JPA nullable=false)을 쓴다.

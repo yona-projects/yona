@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
-// yona-wiki P3-12(Mercurial 지원) 2라운드 — hg4j의 HgHttpWireServer(JGit GitServlet에 대응하는
+// hg4j의 HgHttpWireServer(JGit GitServlet에 대응하는
 // 순수 HttpServlet, 실제 hg wire protocol v1 `?cmd=`/v2 `/api/` 를 그대로 처리)를 SvnController와
 // 동일한 "프로젝트별 서블릿 인스턴스 캐시" 패턴으로 감싼다.
 //
@@ -51,7 +51,7 @@ import java.util.concurrent.ConcurrentHashMap
 // HgSshProtocolHandler(SSH, 한 커넥션이 pull/push를 다 처리할 수 있어 명령줄만으로 미리 구분이
 // 안 되므로 pre-changegroup 훅에서 강제)와 달리 여기는 registerPreChangegroupHook이 없어도 된다.
 //
-// yona-wiki P3-21/P3-22 — 브랜치 보호(require_pull_request 등)와 push 알림/웹훅/PushedBranch
+// 브랜치 보호(require_pull_request 등)와 push 알림/웹훅/PushedBranch
 // 추적을 hg4j에 새로 추가한 registerPrePushkeyHook/registerPostPushkeyHook(HgHttpWireServer)으로
 // 연결한다. HgSshProtocolHandler(SSH)와 동일한 판정 로직(domain/vcs/HgPushHooks.kt)을 재사용해
 // 두 경로가 정책 드리프트 없이 항상 동일하게 동작하도록 한다.

@@ -221,7 +221,7 @@ class SiteApiController(
         return ResponseEntity.ok(emails)
     }
 
-    // 9. 전체 데이터 백업 다운로드 (모든 테이블, P0-07: users/projects만 백업되던 문제 해결)
+    // 9. 전체 데이터 백업 다운로드 (모든 테이블 — 이전에는 users/projects만 백업되던 문제를 해결)
     @GetMapping("/export")
     fun exportData(
         authentication: Authentication?
@@ -263,7 +263,7 @@ class SiteApiController(
         return ResponseEntity.ok(mapOf("users" to users))
     }
 
-    // 12. 아바타 지정 API (yona SiteApp.setAttachmentToUserAvatar 대응, P2-03)
+    // 12. 아바타 지정 API (yona SiteApp.setAttachmentToUserAvatar 대응)
     @PostMapping("/setAttachmentToUserAvatar")
     @ResponseBody
     fun setAttachmentToUserAvatar(

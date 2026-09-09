@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component
 import java.net.URI
 
 /**
- * yona `models/NotificationMail.java`의 `handleLinks()`/`handleImages()`/`removeHeadAnchor()`
- * 대응 (P1-27). 알림 메일 HTML 본문을 발송 직전에 후처리한다.
+ * `NotificationMail`의 `handleLinks()`/`handleImages()`/`removeHeadAnchor()` 대응.
+ * 알림 메일 HTML 본문을 발송 직전에 후처리한다.
  */
 @Component
 class NotificationMailBodyProcessor(

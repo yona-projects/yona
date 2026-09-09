@@ -221,7 +221,7 @@ class CodeReviewServiceImpl(
         // 테스트 커버리지 도달 불가: thread.id는 @GeneratedValue(IDENTITY)라 영속화된(findById로
         // 조회 가능한) 스레드는 id가 결코 null일 수 없다.
         val threadId = thread.id ?: throw IllegalStateException("Thread has no id.")
-        // yona AccessControl.java:205-301 isProjectResourceAllowed() 대응 (P1-116). 작성자 또는 [GL-utils_AccessControl-009]
+        // yona AccessControl.isProjectResourceAllowed() 대응. 작성자 또는
         // 프로젝트 role==MANAGER로만 좁게 검사하던 것을, 사이트매니저/조직관리자 우회까지 포함하는
         // AccessControl.isAllowed(user, project, reviewComment, Operation)로 교체.
         val project = thread.project ?: thread.pullRequest?.toProject
@@ -303,7 +303,7 @@ class CodeReviewServiceImpl(
         val comment = commitCommentRepository.findById(commentId)
             .orElseThrow { IllegalArgumentException("CommitComment not found for id: $commentId") }
 
-        // yona AccessControl.java:205-301 isProjectResourceAllowed() 대응 (P1-116). deleteReviewComment와 [GL-utils_AccessControl-009]
+        // yona AccessControl.isProjectResourceAllowed() 대응. deleteReviewComment와
         // 동일하게 사이트매니저/조직관리자 우회를 포함하는 AccessControl.isAllowed()로 교체.
         val project = comment.project ?: throw IllegalStateException("Comment has no associated project.")
         if (!accessControl.isAllowed(currentUser, project, comment, Operation.DELETE)) {
@@ -330,8 +330,8 @@ class CodeReviewServiceImpl(
         thread.state = state
         val saved = commentThreadRepository.save(thread)
 
-        // yona CommentThreadApp.java:66-70의 try/catch(알림 발행 실패해도 상태변경은 항상 커밋)
-        // 대응 (P1-79). 클래스 레벨 @Transactional 하에서 이 호출이 예외를 던지면 메서드 밖으로
+        // yona CommentThreadApp의 try/catch(알림 발행 실패해도 상태변경은 항상 커밋) 대응.
+        // 클래스 레벨 @Transactional 하에서 이 호출이 예외를 던지면 메서드 밖으로
         // 전파돼 트랜잭션 전체(방금 저장한 상태변경까지)가 롤백되므로, 반드시 여기서 잡아야 한다.
         try {
             publishThreadStateChangedNotification(saved, oldState, currentUser)
@@ -380,11 +380,11 @@ class CodeReviewServiceImpl(
         notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
     }
 
-    // yona ReviewApp.java(유일한 진입점) → PullRequest.addReviewer()/removeReviewer()(유일한 모델
+    // yona ReviewApp(유일한 진입점) → PullRequest.addReviewer()/removeReviewer()(유일한 모델
     // 메서드)와 달리 yona는 REST 표면이 두 벌(PullRequestController/ReviewApiController)이라 서비스도
-    // 각각 독립 구현돼 있었다(P1-49 완료 로그에 이미 기록된 기술부채). PullRequestServiceSpec의 "최소
+    // 각각 독립 구현돼 있었다(기술부채). PullRequestServiceSpec의 "최소
     // 리뷰어 수 미달 시 머지 실패" 테스트가 PullRequestService.addReviewer에 의존하고 있어 그쪽을
-    // 유일한 구현으로 남기고 이쪽은 위임만 한다(P1-62).
+    // 유일한 구현으로 남기고 이쪽은 위임만 한다.
     override fun addReviewer(pullRequestId: Long, reviewerId: Long) {
         val reviewer = userRepository.findById(reviewerId)
             .orElseThrow { IllegalArgumentException("User not found") }
@@ -397,7 +397,7 @@ class CodeReviewServiceImpl(
         pullRequestService.removeReviewer(pullRequestId, reviewer)
     }
 
-    // yona CodeCommentThread.isOutdated() 대응 (P1-20)
+    // yona CodeCommentThread.isOutdated() 대응
     override fun isThreadOutdated(threadId: Long): Boolean {
         val thread = commentThreadRepository.findById(threadId).orElse(null) as? CodeCommentThread ?: return false
         return computeOutdated(thread)

@@ -12,7 +12,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * yona utils/AccessLogger.java 대응 (P2-48). Apache Combined Log Format으로 매 요청을 로깅한다.
+ * yona utils/AccessLogger.java 대응. Apache Combined Log Format으로 매 요청을 로깅한다.
  * legacy는 Global.onRequest()/onError()/onBadRequest()/onHandlerNotFound()에서 예외 없이 항상
  * 이 로그를 남겼으므로, 이 필터도 경로 제외 없이 모든 요청에 적용된다. legacy는 요청 경로별로
  * 별도 Logger("access." + uri)를 동적으로 만들었지만, Spring/Logback에서는 로거 하나로 남기고

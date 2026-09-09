@@ -24,7 +24,7 @@
                                         </div>
                                         <div class="span1 subtask-message" th:classappend="${parentIssue != null} ? 'option-on' : ''" th:text="#{issue.option}">Option</div>
                                     </div>
-                                    <!-- 하위 태스크 설정 영역 — yona partial_select_subtask.scala.html 대응 (그룹7 #125).
+                                    <!-- 하위 태스크 설정 영역 — yona partial_select_subtask.scala.html 대응.
                                          legacy의 showOption = parentIssueId.isDefined || currentIssueId.isDefined 이며,
                                          수정 화면은 currentIssueId(=이 이슈 자신)가 항상 존재하므로 showOption은 항상
                                          참이다 — parentIssue 유무와 무관하게 항상 펼쳐져 있고 활성화돼 있어야 한다

@@ -11,14 +11,14 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.stereotype.Component
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step4 — 관리자 UI로 등록한 엔터프라이즈 OIDC를 기존 소셜
+ * 관리자 UI로 등록한 엔터프라이즈 OIDC를 기존 소셜
  * 로그인(google/github, `application.yml`의 `spring.security.oauth2.client.registration.*`)과
  * 같은 `/oauth2/authorization/{registrationId}` 경로로 동작하게 하려면 이 저장소가 필요하다.
  *
  * 이 빈을 직접 정의하면 Spring Boot의 `OAuth2ClientConfigurations.ClientRegistrationRepositoryConfiguration`
  * (`@ConditionalOnMissingBean(ClientRegistrationRepository::class)`)이 통째로 물러난다 — 그런데
  * `@EnableConfigurationProperties(OAuth2ClientProperties::class)`가 바로 그 백오프하는 클래스에
- * 걸려 있어서(실측 확인: `NoSuchBeanDefinitionException`), google/github의 `OAuth2ClientProperties`
+ * 걸려 있어서(걷어내면 `NoSuchBeanDefinitionException`이 발생한다), google/github의 `OAuth2ClientProperties`
  * 바인딩 자체도 우리가 직접 재선언해야 한다 — 아래 `@EnableConfigurationProperties`가 그 역할이다.
  *
  * 엔터프라이즈 OIDC는 매 요청마다 `SsoSettingsService`에서 최신 설정을 읽어 즉석에서

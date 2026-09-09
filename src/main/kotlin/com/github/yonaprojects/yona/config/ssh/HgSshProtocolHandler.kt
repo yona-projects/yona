@@ -19,17 +19,17 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * yona-wiki P3-18/P3-12/P3-21/P3-22 — hg4j의 [HgSshWireServer](JGit UploadPack/ReceivePack에
- * 대응하는 Hg SSH 와이어 프로토콜 서버, `../hg4j`)를 이 애플리케이션의 소켓 릴레이
- * ([SshRelayServer])에 연결하는 얇은 어댑터. [GitSshProtocolHandler]와 대칭 — 인가는 이미
- * [SshAuthService.authorizeHgCommand]가 끝낸 상태로 받는다.
+ * hg4j의 [HgSshWireServer](JGit UploadPack/ReceivePack에 대응하는 Hg SSH 와이어 프로토콜 서버,
+ * `../hg4j`)를 이 애플리케이션의 소켓 릴레이([SshRelayServer])에 연결하는 얇은 어댑터.
+ * [GitSshProtocolHandler]와 대칭 — 인가는 이미 [SshAuthService.authorizeHgCommand]가 끝낸
+ * 상태로 받는다.
  *
- * **멤버십 쓰기 권한**(P3-18): git의 `git-upload-pack`/`git-receive-pack`처럼 명령줄만 보고
- * read/write를 미리 구분할 수 없는 게 Hg SSH 와이어 프로토콜의 구조적 특성(한 세션 안에서
- * pull/push 모두 가능)이라, `authorizeHgCommand()`가 이미 계산해둔 쓰기 권한(멤버십/읽기전용
- * Deploy Key)은 pre-changegroup 훅에서 강제한다.
+ * **멤버십 쓰기 권한**: git의 `git-upload-pack`/`git-receive-pack`처럼 명령줄만 보고 read/write를
+ * 미리 구분할 수 없는 게 Hg SSH 와이어 프로토콜의 구조적 특성(한 세션 안에서 pull/push 모두
+ * 가능)이라, `authorizeHgCommand()`가 이미 계산해둔 쓰기 권한(멤버십/읽기전용 Deploy Key)은
+ * pre-changegroup 훅에서 강제한다.
  *
- * **브랜치 보호/push 알림(P3-21/P3-22)**: git의 `BranchProtectionPreReceiveHook`/
+ * **브랜치 보호/push 알림**: git의 `BranchProtectionPreReceiveHook`/
  * `YonaPostReceiveHook`(GitPushHooks.kt)에 정확히 대응하는 `HgBranchProtectionPrePushkeyHook`/
  * `HgYonaPostPushkeyHook`(domain/vcs/HgPushHooks.kt)을 pushkey 훅(bookmark 이동 시점 — 실제 북마크
  * 이동이 일어나는 유일한 지점, unbundle은 changeset만 반영할 뿐 어떤 ref가 움직였는지 모른다)에

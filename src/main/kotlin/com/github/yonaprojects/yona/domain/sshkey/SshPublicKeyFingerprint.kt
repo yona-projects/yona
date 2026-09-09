@@ -3,7 +3,7 @@ package com.github.yonaprojects.yona.domain.sshkey
 import java.security.MessageDigest
 import java.util.Base64
 
-// yona-wiki P3-03 Step1/Step3 — OpenSSH authorized_keys 한 줄 형식("ssh-ed25519 AAAA... comment")을
+// OpenSSH authorized_keys 한 줄 형식("ssh-ed25519 AAAA... comment")을
 // 파싱해 GitHub과 동일한 형태의 지문("SHA256:<base64, 패딩 없음>")을 계산한다. DeployKey(저장소
 // 스코프)와 SshKey(사용자 전역) 양쪽이 동일한 파싱/지문 로직을 공유해야 "같은 공개키가 이미 등록돼
 // 있는지" 교차 검사(계정 사칭 방지, 아래 SshPublicKeyRegistry 참고)를 할 수 있다.

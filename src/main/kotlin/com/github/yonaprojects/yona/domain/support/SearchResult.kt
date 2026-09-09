@@ -26,7 +26,7 @@ class SearchResult(
     var issueCommentsCount: Int = 0,
     var postCommentsCount: Int = 0,
     var reviewsCount: Int = 0,
-    // yona-wiki P3-02 Step8.6 항목3(2026-09-01, 우선순위 3위) — `yona search prs` 대응.
+    // `yona search prs` 대응.
     var pullRequestsCount: Int = 0,
 
     var users: Page<User> = Page.empty(),
@@ -132,8 +132,8 @@ class SearchResult(
             searchType = SearchType.REVIEW
             return
         }
-        // yona-wiki P3-02 Step8.6 항목3(2026-09-01, 우선순위 3위) — PULL_REQUEST 우선순위는
-        // 기존 8개 타입 뒤, 기본값(ISSUE) 폴백 앞에 추가한다(기존 우선순위 순서를 바꾸지 않음).
+        // PULL_REQUEST 우선순위는 기존 8개 타입 뒤, 기본값(ISSUE) 폴백 앞에 추가한다(기존
+        // 우선순위 순서를 바꾸지 않음).
         if (pullRequestsCount > 0) {
             searchType = SearchType.PULL_REQUEST
             return

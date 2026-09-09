@@ -14,11 +14,10 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.core.type.TypeReference
 
-// yona-wiki P3-07(MCP 서버) Step2 — OAuth2AuthorizationService의 JPA 기반 구현. 컬럼 구성/직렬화
-// 방식은 JdbcOAuth2AuthorizationService 공식 소스를 그대로 참고했다(OAuthAuthorization.kt 상단 주석
+// OAuth2AuthorizationService의 JPA 기반 구현. 컬럼 구성/직렬화 방식은
+// JdbcOAuth2AuthorizationService 공식 소스를 그대로 참고했다(OAuthAuthorization.kt 상단 주석
 // 참고). user_code/device_code 두 토큰 타입은 이 프로젝트가 쓰지 않아(디바이스 플로우 없음) 여전히
-// 제외한다 — oidc_id_token은 P3-14 2라운드부터 지원한다(아래 toEntity/toAuthorization의
-// OidcIdToken 처리 참고).
+// 제외한다 — oidc_id_token은 지원한다(아래 toEntity/toAuthorization의 OidcIdToken 처리 참고).
 @Component
 class JpaOAuth2AuthorizationService(
     private val repository: OAuthAuthorizationRepository,
@@ -97,8 +96,8 @@ class JpaOAuth2AuthorizationService(
                 entity.refreshTokenMetadata = writeMap(refreshToken.metadata)
             }
 
-            // yona-wiki P3-14 2라운드(OIDC) — OAuthAuthorization.kt의 oidcIdToken* 필드 주석 참고.
-            // idToken.metadata에는 프레임워크가 발급 시점에 이미 CLAIMS_METADATA_NAME 키로 클레임
+            // OAuthAuthorization.kt의 oidcIdToken* 필드 주석 참고. idToken.metadata에는 프레임워크가
+            // 발급 시점에 이미 CLAIMS_METADATA_NAME 키로 클레임
             // 전체를 담아뒀으므로(OAuth2AuthorizationCodeAuthenticationProvider 공식 소스 확인),
             // 다른 토큰들과 동일하게 metadata만 통째로 직렬화하면 클레임까지 함께 보존된다 — 별도
             // claims 컬럼/역직렬화 로직이 필요 없다.

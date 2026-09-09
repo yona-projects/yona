@@ -13,7 +13,7 @@ interface IssueLabelService {
     fun updateLabel(labelId: Long, name: String, color: String, categoryId: Long): IssueLabel
     fun updateCategory(categoryId: Long, name: String, isExclusive: Boolean): IssueLabelCategory
     fun copyLabels(fromProjectId: Long, toProjectId: Long): List<IssueLabel>
-    // yona IssueApp.transferLabels()(IssueLabel.copyIssueLabel()/findExistLabel()) 대응 (P1-48).
+    // yona IssueApp.transferLabels()(IssueLabel.copyIssueLabel()/findExistLabel()) 대응.
     // 이슈를 다른 프로젝트로 옮길 때 그 이슈의 라벨들을 대상 프로젝트로 이전한다. copyLabels()와 달리
     // 이미 대상 프로젝트에 존재하는 라벨도 반환 결과에 포함한다(옮겨진 이슈의 최종 라벨 집합이므로).
     fun transferLabelsForIssue(labels: Set<IssueLabel>, toProject: Project): Set<IssueLabel>

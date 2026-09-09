@@ -149,7 +149,7 @@ class TemplateHelper(
         return title.replace(regex, "")
     }
 
-    // yona layout.scala.html:8 titleArray = title.split(" |:| ") 대응 — 페이지 제목에
+    // yona layout.scala.html의 titleArray = title.split(" |:| ") 대응 — 페이지 제목에
     // " |:| "로 og:description/twitter:description용 부가 설명이 덧붙는 컨벤션 이식.
     fun titleMain(title: String?): String {
         if (title.isNullOrEmpty()) return ""
@@ -161,7 +161,7 @@ class TemplateHelper(
         return title.split(" |:| ").last()
     }
 
-    // yona issue/view.scala.html:53, board/view.scala.html:26 대응 —
+    // yona issue/view.scala.html, board/view.scala.html 대응 —
     // 본문 앞부분 200자를 og:description/twitter:description 미리보기로 사용.
     @JvmOverloads
     fun ogDescriptionPreview(body: String?, maxLen: Int = 200): String {
@@ -174,10 +174,10 @@ class TemplateHelper(
         return issueRepository.countByParentId(issueId) > 0
     }
 
-    // yona error/notfound.scala.html의 로컬 함수 getMenuType/getReturnURL/getMessage 대응
-    // (P-템플릿 #45). 이슈/게시글/마일스톤/코드 등 프로젝트 내 서브 리소스를 찾지 못했을 때
-    // 쓰는 컨텍스트 인지형 404 화면이 여러 컨트롤러에서 공통으로 참조하는 로직이라, 호출부마다
-    // 중복 구현하지 않도록 TemplateHelper에 한 곳으로 모았다.
+    // yona error/notfound.scala.html의 로컬 함수 getMenuType/getReturnURL/getMessage 대응.
+    // 이슈/게시글/마일스톤/코드 등 프로젝트 내 서브 리소스를 찾지 못했을 때 쓰는 컨텍스트 인지형
+    // 404 화면이 여러 컨트롤러에서 공통으로 참조하는 로직이라, 호출부마다 중복 구현하지 않도록
+    // TemplateHelper에 한 곳으로 모았다.
     fun notFoundActiveMenu(targetType: String?): String {
         return when (targetType) {
             "issue_post" -> "issue"
@@ -225,7 +225,7 @@ class TemplateHelper(
         return issueRepository.findByParentId(parentId)
     }
 
-    // yona Issue.findByParentIssueIdAndState() 대응 (issue/partial_view_childIssueList.html, 그룹7 #135).
+    // yona Issue.findByParentIssueIdAndState() 대응 (issue/partial_view_childIssueList.html에서 사용).
     fun findByParentIdAndState(parentId: Long, state: State): List<Issue> {
         return issueRepository.findByParentIdAndState(parentId, state)
     }
@@ -236,9 +236,9 @@ class TemplateHelper(
     }
 
     // yona TemplateHelper.scala의 getPercent(unit, total) = ((unit/total)*100).toInt 대응.
-    // Scala의 Double.toInt는 반올림이 아니라 0쪽으로 절삭(truncate)한다 — 그룹7 #135 검증 중
-    // String.format("%.0f", ...)로 반올림하던 이전 구현이 legacy와 다른 값(예: 66.66% → legacy
-    // 66, 반올림 67)을 낼 수 있음을 확인해 legacy와 동일한 절삭 방식으로 맞춘다.
+    // Scala의 Double.toInt는 반올림이 아니라 0쪽으로 절삭(truncate)한다 — String.format("%.0f", ...)로
+    // 반올림하면 legacy와 다른 값(예: 66.66% → legacy는 66, 반올림하면 67)이 나올 수 있어 legacy와
+    // 동일한 절삭 방식으로 맞춘다.
     fun getPercentFormatted(numerator: Long, denominator: Long): String {
         val pct = getPercent(numerator.toDouble(), (numerator + denominator).toDouble())
         return pct.toInt().toString()
@@ -276,10 +276,9 @@ class TemplateHelper(
         return formatter.format(instant)
     }
 
-    // yona models/User.java:247-250 getDateString() 대응(search/partial_users.scala.html의 [GL-models_User-044]
-    // "userinfo.since" 가입일 표시에서 사용). "MMM dd, yyyy" 포맷을 Locale.US로 고정하는 legacy
-    // 원본을 그대로 재현 — TemplateHelper.getDateString(instant)(yyyy-MM-dd h:mm:ss a, 로컬 로케일)와는
-    // 포맷이 달라 별도 메서드로 분리했다.
+    // yona models/User.java getDateString() 대응(search/partial_users.scala.html의 "userinfo.since"
+    // 가입일 표시에서 사용). "MMM dd, yyyy" 포맷을 Locale.US로 고정하는 legacy 원본을 그대로 재현 —
+    // getDateString(instant)(yyyy-MM-dd h:mm:ss a, 로컬 로케일)와는 포맷이 달라 별도 메서드로 분리했다.
     fun getUserSinceDateString(instant: Instant?): String {
         if (instant == null) return ""
         val zone = ZoneId.systemDefault()
@@ -287,7 +286,7 @@ class TemplateHelper(
         return formatter.format(instant)
     }
 
-    // yona models/Milestone.java:261 until() 대응 (search/partial_milestones.scala.html에서 사용).
+    // yona models/Milestone.java의 until() 대응(search/partial_milestones.scala.html에서 사용).
     // 오늘/기한초과/남은일수 3분기 — issue용 until(issue: Issue)와는 메시지 키가 다르다(legacy 원본이
     // Issue.until()과 Milestone.until()에서 서로 다른 메시지 키 세트를 쓰기 때문에 그대로 분리 재현).
     fun until(milestone: Milestone): String {
@@ -309,7 +308,7 @@ class TemplateHelper(
         }
     }
 
-    // yona utils/TemplateHelper.scala:428-445 urlToCommentThread()/urlToContainer() 대응
+    // yona utils/TemplateHelper.scala의 urlToCommentThread()/urlToContainer() 대응
     // (search/partial_reviews.scala.html에서 사용). PR 리뷰 스레드면 PR 화면, 커밋 리뷰 스레드면
     // 커밋 화면으로 링크한다 — outdated diff의 특정 커밋 앵커(specificChange) 세부 분기는
     // NotificationUrlResolver.urlToContainer()에서 이미 동일하게 생략해둔 전례를 따라 여기서도
@@ -351,18 +350,18 @@ class TemplateHelper(
         return postingRepository.countByProject(project)
     }
 
-    // yona projectMenu.scala.html:40-42 CommentThread.countReviewsBy(project.id, null) 대응.
+    // yona projectMenu.scala.html의 CommentThread.countReviewsBy(project.id, null) 대응.
     fun countReviews(project: Project): Long {
         return reviewThreadService.countReviewThreads(project, ReviewSearchCondition(state = "OPEN"))
     }
 
-    // yona User.isMemberOf(org)/isAdminOf(org) 대응 — common/navbar.scala.html:84 검색범위 노출 조건.
+    // yona User.isMemberOf(org)/isAdminOf(org) 대응 — common/navbar.scala.html의 검색범위 노출 조건.
     fun isOrganizationMemberOrAdmin(org: Organization?, user: User?): Boolean {
         if (org == null || user == null) return false
         return organizationUserRepository.existsByOrganizationIdAndUserId(org.id!!, user.id!!)
     }
 
-    // yona project/header.scala.html:48-50 FavoriteProject.findByProjectId(userId, projectId) != null 대응.
+    // yona project/header.scala.html의 FavoriteProject.findByProjectId(userId, projectId) != null 대응.
     fun isFavoriteProject(project: Project?, user: User?): Boolean {
         if (project == null || user == null) return false
         return favoriteProjectRepository.findByUserIdAndProjectId(user.id!!, project.id!!).isPresent
@@ -450,8 +449,8 @@ class TemplateHelper(
         val isOverdue: Boolean
     )
 
-    // yona models/Milestone.java:92-98,135-137,277-279 getNumOpenIssues()/getNumClosedIssues()/
-    // getCompletionRate()/isOverDueDate() 대응 (milestone/partial_status.html에서 사용).
+    // yona models/Milestone.java의 getNumOpenIssues()/getNumClosedIssues()/getCompletionRate()/
+    // isOverDueDate() 대응 (milestone/partial_status.html에서 사용).
     fun getMilestoneProgress(milestone: Milestone): MilestoneProgress {
         val allIssues = issueRepository.findByMilestone(milestone)
         val openCount = allIssues.count { it.state == State.OPEN }
@@ -468,14 +467,14 @@ class TemplateHelper(
         return userAgent.contains("Macintosh", ignoreCase = true)
     }
 
-    // yona utils/TemplateHelper.scala:227-234 Branches.itemName() 대응 — RepositoryService.getRefNames()가
+    // yona utils/TemplateHelper.scala의 Branches.itemName() 대응 — RepositoryService.getRefNames()가
     // 돌려주는 "refs/heads/master" 같은 전체 ref 이름에서 표시/URL용 브랜치 이름("master")만 뽑아낸다.
     fun branchItemName(branch: String): String {
         val parts = branch.split("/", limit = 3)
         return if (parts.size == 3 && parts[0] == "refs") parts[2] else branch
     }
 
-    // yona utils/TemplateHelper.scala:216-225 Branches.itemType() 대응.
+    // yona utils/TemplateHelper.scala의 Branches.itemType() 대응.
     fun branchItemType(branch: String): String {
         val parts = branch.split("/")
         return when {
@@ -486,7 +485,7 @@ class TemplateHelper(
         }
     }
 
-    // yona utils/TemplateHelper.scala:236-246 Branches.branchInHTML() 대응 — "refs/heads/..." 같은
+    // yona utils/TemplateHelper.scala의 Branches.branchInHTML() 대응 — "refs/heads/..." 같은
     // 전체 ref 이름이면 타입 라벨(<span class="label branch">branch</span>)을 붙이고, 그렇지 않으면(이미
     // 짧은 이름이면) 그대로 반환한다.
     fun branchInHtml(branch: String): String {
@@ -499,7 +498,7 @@ class TemplateHelper(
         }
     }
 
-    // yona models/OrganizationUser.java:62-68 isAdmin(Organization, User) 대응 (조직 그룹, TASK-0244).
+    // yona models/OrganizationUser.java isAdmin(Organization, User) 대응.
     // organization.organizationUsers는 컨트롤러에서 이미 로드해 모델에 넘기는 컬렉션이라 여기서는
     // 추가 조회 없이 그 컬렉션을 순회한다(project 쪽 isManager()가 별도 repository 조회를 쓰는 것과
     // 달리, organization/header·menu 프래그먼트가 매 페이지에서 반복 호출하므로 N+1을 피하기 위함).
@@ -508,13 +507,13 @@ class TemplateHelper(
         return organization.organizationUsers.any { it.user.id == user.id && it.role.id == RoleType.ORG_ADMIN.roleType }
     }
 
-    // yona models/OrganizationUser.java:74-76 isMember(Organization, User) 대응.
+    // yona models/OrganizationUser.java isMember(Organization, User) 대응.
     fun isOrganizationMember(organization: Organization?, user: User?): Boolean {
         if (organization == null || user == null) return false
         return organization.organizationUsers.any { it.user.id == user.id && it.role.id == RoleType.ORG_MEMBER.roleType }
     }
 
-    // yona models/OrganizationUser.java:70-72 isGuest(Organization, User) 대응. 사이트매니저와 [GL-models_OrganizationUser-010]
+    // yona models/OrganizationUser.java isGuest(Organization, User) 대응. 사이트매니저와
     // 조직 내 역할(관리자/멤버)이 있는 사용자는 게스트가 아니다 — 비로그인 사용자도 게스트가 아니다
     // (legacy roleTypeOf()가 비로그인이면 ANONYMOUS를 반환하지 GUEST를 반환하지 않음).
     fun isOrganizationGuest(organization: Organization?, user: User?): Boolean {
@@ -522,13 +521,13 @@ class TemplateHelper(
         return organization.organizationUsers.none { it.user.id == user.id }
     }
 
-    // yona models/User.java:677-683 enrolled(Organization) 대응. [GL-models_User-078]
+    // yona models/User.java enrolled(Organization) 대응.
     fun isEnrolledOrganization(organization: Organization?, user: User?): Boolean {
         if (organization == null || user == null) return false
         return user.enrolledOrganizations.any { it.id == organization.id }
     }
 
-    // yona organization/group_pullrequest_list_partial.scala.html:49,55 countCommentThreadsByState/
+    // yona organization/group_pullrequest_list_partial.scala.html의 countCommentThreadsByState/
     // req.commentThreads.size 대응. PullRequest 엔티티에 commentThreads 연관관계가 직접 매핑돼 있지
     // 않아(다른 화면에서도 CommentThreadRepository.findByPullRequest()로 조회하는 기존 관례를 따름)
     // 여기서 조회한다.
@@ -536,7 +535,7 @@ class TemplateHelper(
         return commentThreadRepository.findByPullRequest(pullRequest)
     }
 
-    // yona group_pullrequest_list_partial.scala.html:53 getPercent(countClosed.toDouble,
+    // yona group_pullrequest_list_partial.scala.html의 getPercent(countClosed.toDouble,
     // req.commentThreads.size.toDouble) 대응. 템플릿에서 SpEL로 getPercent(Double, Double) 오버로드를
     // 직접 호출하면 Long/Int 인자와의 타입 매칭이 불안정하므로, PullRequest 하나를 받아 내부에서
     // closed/전체 스레드 수를 모두 계산하는 전용 메서드로 둔다.
@@ -558,7 +557,7 @@ class TemplateHelper(
         return watchRepository.findByUserAndResourceTypeAndResourceId(user, ResourceType.PROJECT, project.id.toString()) != null
     }
 
-    // yona git/partial_state.scala.html의 getCodeURL(project) 대응 (그룹11 #183). 프로젝트 멤버면
+    // yona git/partial_state.scala.html의 getCodeURL(project) 대응. 프로젝트 멤버면
     // "scheme://loginId@host[:port]/owner/name.git" 형태로 사용자 계정을 끼워넣은 clone URL을
     // 돌려주고(로그인 인증 git push용), 아니면 계정 없이 그대로 돌려준다. legacy는
     // CodeApp.getURL()이 별도로 존재했지만 yona에는 clone URL 헬퍼가 아직 없어 여기에 신설한다.
@@ -572,12 +571,11 @@ class TemplateHelper(
         val isMember = user != null && project.id != null && user.id != null &&
             projectUserRepository.existsByProjectIdAndUserId(project.id!!, user.id!!)
         val authority = if (isMember && user != null) "${user.loginId}@$hostPart" else hostPart
-        // TASK-0416 부수 발견(P3-02 10라운드) — 실제 git 스마트 HTTP 서블릿은 GitServletConfig가
-        // "/git/*" 경로에 등록돼 있는데(GitServletConfig.kt), 이 헬퍼는 "/git/" 세그먼트 없이
-        // "scheme://host/owner/name.git" 형태로 URL을 만들어왔다. 이 URL은 실제로 존재하지 않는
-        // 경로라 partial_state.html("git remote add upstream ...")이 화면에 보여주는 안내
-        // 커맨드를 그대로 실행하면 항상 404가 난다 — yona-cli의 planCheckout()도 동일한 착오로
-        // 같은 형태의 URL을 만들고 있었다(둘 다 이번에 함께 수정).
+        // 실제 git 스마트 HTTP 서블릿은 GitServletConfig가 "/git/*" 경로에 등록돼 있는데, 이
+        // 헬퍼는 "/git/" 세그먼트 없이 "scheme://host/owner/name.git" 형태로 URL을 만들어왔다.
+        // 이 URL은 실제로 존재하지 않는 경로라 partial_state.html("git remote add upstream ...")이
+        // 화면에 보여주는 안내 커맨드를 그대로 실행하면 항상 404가 난다 — yona-cli의
+        // planCheckout()도 동일한 착오로 같은 형태의 URL을 만들고 있었다(둘 다 함께 수정).
         return "$scheme://$authority/git/${project.owner}/${project.name}.git"
     }
 }

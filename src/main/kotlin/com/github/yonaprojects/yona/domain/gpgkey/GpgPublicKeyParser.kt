@@ -6,7 +6,7 @@ import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import java.io.ByteArrayInputStream
 
-// yona-wiki P3-03 Step7 — ASCII armor로 내보낸 GPG 공개키(`gpg --export --armor`)를 파싱해
+// ASCII armor로 내보낸 GPG 공개키(`gpg --export --armor`)를 파싱해
 // 등록/검증에 필요한 정보를 뽑는다. BouncyCastle(bcpg/bcprov)로 실제 파싱한다 — 문자열 정규식
 // 흉내가 아니다.
 object GpgPublicKeyParser {

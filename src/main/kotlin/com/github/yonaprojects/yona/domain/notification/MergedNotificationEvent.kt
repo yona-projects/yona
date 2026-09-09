@@ -6,7 +6,7 @@ import com.github.yonaprojects.yona.domain.user.User
 import java.time.Instant
 
 /**
- * yona notification/MergedNotificationEvent.java 대응 (P1-27). [INotificationEvent]를 구현해
+ * yona notification/MergedNotificationEvent.java 대응. [INotificationEvent]를 구현해
  * NotificationEvent(단일 이벤트)와 다형적으로 다뤄진다 — legacy도 두 클래스 모두
  * INotificationEvent를 구현해 호출부(발송 파이프라인)가 "단일 이벤트인지 병합 이벤트인지"를
  * 신경 쓰지 않고 같은 계약으로 다루도록 돼 있다.

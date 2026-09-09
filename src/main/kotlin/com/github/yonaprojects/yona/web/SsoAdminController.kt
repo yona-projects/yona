@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step4 — 사용자 지시로 확장된 관리자 UI. `SiteViewController`와
+ * 엔터프라이즈 SSO 설정 관리자 UI. `SiteViewController`와
  * 동일한 관리자 전용 패턴(checkAdmin → IllegalArgumentException → error/403)을 그대로 따른다.
  * 필드 구성/문구는 GitHub Enterprise의 조직 설정 > Security > "SAML single sign-on" 화면(Sign on
  * URL/Issuer/Public Certificate)을 차용했다(모호할 때 GitHub 방식을 따르는 공통 방침) — OIDC는

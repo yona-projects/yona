@@ -16,19 +16,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 
-// yona-wiki P3-02 16라운드(TASK-0440) — `gh status`("내가 구독 중인 모든 저장소에 걸친 작업 현황"
-// 대시보드) 대응. 이미 구현된 UserIssueStatusRestApiController(GET /api/v1/user/issues/status,
-// `gh issue status` 대응)는 이슈만 다뤄 gh status의 부분집합이다. 이 컨트롤러는 gh status의 5개
-// 구성요소를 재감사한 결과에 따라 범위를 정했다:
+// `gh status`("내가 구독 중인 모든 저장소에 걸친 작업 현황" 대시보드) 대응. 이미 구현된
+// UserIssueStatusRestApiController(GET /api/v1/user/issues/status, `gh issue status` 대응)는
+// 이슈만 다뤄 gh status의 부분집합이다. 이 컨트롤러는 gh status의 5개 구성요소를 기준으로 범위를
+// 정했다:
 // - Assigned Issues: 기존 UserIssueStatusRestApiController와 동일한 IssueRepository 메서드 재사용.
-// - Assigned Pull Requests / Review Requests: PullRequestServiceImpl.setAssignee/addReviewer(각각
-//   13/12라운드)로 데이터 모델은 이미 있었지만 "로그인 사용자 전체"를 대상으로 한 조회가 없어
+// - Assigned Pull Requests / Review Requests: PullRequestServiceImpl.setAssignee/addReviewer로
+//   데이터 모델은 이미 있었지만 "로그인 사용자 전체"를 대상으로 한 조회가 없어
 //   PullRequestRepository에 신규 쿼리 2쌍만 추가했다(신규 서비스 로직 없음).
 // - Mentions: MentionService.getMentioningIssueIds()가 이미 있으나 ISSUE_POST/ISSUE_COMMENT만
 //   다룬다 — PullRequest 본문·리뷰 코멘트에는 멘션 감지가 아예 연결돼 있지 않다
-//   (PullRequestServiceImpl/ReviewComment 어디에도 mentionService.update() 호출이 없음, 전수
-//   확인). 따라서 이 섹션은 "이슈 멘션만" 노출하고(gh status처럼 이슈+PR 멘션 통합은 불가),
-//   PR 멘션 감지 자체를 새로 설계하지는 않는다(범위 밖 — 있는 기능을 노출하는 게 원칙).
+//   (PullRequestServiceImpl/ReviewComment 어디에도 mentionService.update() 호출이 없음). 따라서
+//   이 섹션은 "이슈 멘션만" 노출하고(gh status처럼 이슈+PR 멘션 통합은 불가), PR 멘션 감지 자체를
+//   새로 설계하지는 않는다(범위 밖 — 있는 기능을 노출하는 게 원칙).
 // - Repository Activity: 신규 기능처럼 보이지만 실제로는 NotificationEvent + WatchService의
 //   findActualWatchers()가 이미 "내가 watch하는 프로젝트에 새 이슈/PR/댓글이 생기면 나를
 //   receiver로 알림 이벤트를 남긴다"를 구현해뒀다(IssueServiceImpl.createIssue() 등). 이미
@@ -73,8 +73,8 @@ class UserStatusRestApiController(
     )
 
     // gh status 자체가 --state 플래그 없이 항상 "현재 열려있는 것"만 보여주는 대시보드라
-    // (`gh status --help` 실측 확인) state 파라미터를 두지 않고 OPEN으로 고정한다. 각 섹션의
-    // openCount/closedCount는 배지 용도로 그대로 계산해 함께 내려준다.
+    // state 파라미터를 두지 않고 OPEN으로 고정한다. 각 섹션의 openCount/closedCount는 배지
+    // 용도로 그대로 계산해 함께 내려준다.
     @GetMapping("/status")
     fun status(authentication: Authentication?): ResponseEntity<UserStatusResponse> {
         val user = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }

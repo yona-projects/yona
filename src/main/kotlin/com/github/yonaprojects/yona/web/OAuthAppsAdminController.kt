@@ -14,21 +14,19 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 
-// yona-wiki P3-14(yona를 OAuth2 서버로 제공) 1라운드에서는 이 컨트롤러(`/site/oauth-apps`)가 OAuth 앱
+// 이 컨트롤러(`/site/oauth-apps`)는 한때 OAuth 앱
 // 등록까지 사이트 관리자 전용으로 담당했다. 그런데 이 결정은 GitHub/Forgejo와 비교 검토한 결과가
 // 아니라 `SsoAdminController`(사이트 전역 SSO IdP 설정)와 동일한 관리자 전용 패턴을 그대로 복사한
 // 것이었다 — 실제로 GitHub(Settings > Developer settings > OAuth Apps)/Forgejo 둘 다 OAuth 앱
-// 등록은 "사용자가 만드는 자원"으로서 사용자 계정에 종속된 셀프서비스 기능이다(자세한 배경은
-// [[p3-17]] 참고).
+// 등록은 "사용자가 만드는 자원"으로서 사용자 계정에 종속된 셀프서비스 기능이다.
 //
-// [[p3-17]]에서 이 컨트롤러의 역할을 "등록"에서 "사이트 전체 감사/오버사이트"로 축소했다 — 실제
+// 이후 이 컨트롤러의 역할을 "등록"에서 "사이트 전체 감사/오버사이트"로 축소했다 — 실제
 // 등록/자기소유 삭제는 UserViewController(`/user/editform/oauth-apps-owned`)로 옮겼고, 여기는:
 //  1. 사이트 전체에 등록된 앱(DCR 자동등록 + 사용자 셀프서비스 등록 전부)을 한눈에 조회 — 어떤
 //     사용자가 등록했는지(ownerId → loginId)도 함께 보여준다. ownerId가 null이면 DCR/시스템 앱.
 //  2. 사이트 관리자가 소유자와 무관하게 아무 앱이나 강제 삭제(override) — `checkAdmin`/
 //     `isSiteManager`를 다른 곳에서도 전역 오버라이드 용도로 쓰는 것과 동일한 패턴.
-// 등록 폼/POST .../register 라우트는 완전히 제거했다 — 관리자가 남의 앱을 대신 등록해줄 이유가
-// 없다는 것이 이 티켓의 핵심이었다.
+// 등록 폼/POST .../register 라우트는 완전히 제거했다 — 관리자가 남의 앱을 대신 등록해줄 이유가 없다.
 @Controller
 @RequestMapping(value = ["/site/oauth-apps", "/sites/oauth-apps"])
 class OAuthAppsAdminController(

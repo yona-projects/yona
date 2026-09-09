@@ -14,13 +14,12 @@ import java.io.File
 class RepositoryService(
     private val userRepository: UserRepository,
     private val projectRepository: ProjectRepository,
-    // yona-wiki P3-03 Step9 — 커밋 목록/상세 화면의 GPG Verified 배지 계산에 쓴다.
+    // 커밋 목록/상세 화면의 GPG Verified 배지 계산에 쓴다.
     private val gpgSignatureVerifier: GpgSignatureVerifier,
     @Value("\${yona.git.base-dir:/tmp/yona/git}")
     private val gitBaseDir: String,
     @Value("\${yona.svn.base-dir:/tmp/yona/svn}")
     private val svnBaseDir: String,
-    // yona-wiki P3-12(Mercurial 지원) 1라운드.
     @Value("\${yona.hg.base-dir:/tmp/yona/hg}")
     private val hgBaseDir: String,
     // 사용자 요청 — 새 프로젝트 기본 브랜치를 "master" 대신 "main"으로. 호스트 git의

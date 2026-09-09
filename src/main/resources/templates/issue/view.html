@@ -46,7 +46,7 @@
                         </a>
                     </div>
 
-                    <!-- legacy issue/view.scala.html:169 "@if(StringUtils.isNotEmpty(issue.history))" 블록 대응 (#41, TASK-0257) -->
+                    <!-- legacy issue/view.scala.html의 "@if(StringUtils.isNotEmpty(issue.history))" 블록 대응 -->
                     <div class="posting-history" th:if="${issue.history != null and !#strings.isEmpty(issue.history)}">
                         <a th:if="${currentUser == null}" th:href="@{/users/loginform}" th:text="#{change.history}">변경 이력</a>
                         <th:block th:if="${currentUser != null}">
@@ -141,9 +141,8 @@
                         <span class="act-row">
                             <!-- th:onclick에 문자열 리터럴 조립식을 쓰면 Thymeleaf가 "Only variable expressions
                                  returning numbers or booleans are allowed" 예외를 던진다(이벤트 핸들러 속성
-                                 제약) — 이번 세션에 매니저로 렌더링 검증하면서 실제로 재현된 버그. legacy는
-                                 onclick(순수 JS)였지만 yona에서는 아래 !isAllowedUpdate 분기와 동일하게
-                                 th:href 앵커로 감싸 동일한 이동 동작을 안전하게 재현한다. -->
+                                 제약). legacy는 onclick(순수 JS)였지만 yona에서는 아래 !isAllowedUpdate
+                                 분기와 동일하게 th:href 앵커로 감싸 동일한 이동 동작을 안전하게 재현한다. -->
                             <a th:if="${isAllowedUpdate}" th:href="@{/{owner}/{projectName}/issue/{number}/editform(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
                                 <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"><i class="yobicon-edit-2"></i></button>
                             </a>
@@ -163,7 +162,7 @@
                         </span>
                     </div>
 
-                    <!-- yona issue/view.scala.html:270-278 subtasks 영역 대응 (그룹7 #134/#135/#136).
+                    <!-- yona issue/view.scala.html의 subtasks 영역 대응.
                          amIShared: 현재 사용자가 이 이슈의 공유자(sharer)인지. isThisParentIssue: 이
                          이슈 자체가 최상위 부모인지(parent==null). 공유자로서 하위이슈를 보고 있을 때는
                          (자신이 이미 하위이슈인 경우) 형제 하위이슈 목록을 노출하지 않는다. -->
@@ -176,7 +175,7 @@
 
                     <div id="comments" class="board-comment-wrap">
                         <div id="timeline">
-                            <!-- yona IssueApp.timeline()/yobi.issue.View.js _updateTimeline() 대응 (그룹7 #127).
+                            <!-- yona IssueApp.timeline()/yobi.issue.View.js _updateTimeline() 대응.
                                  massUpdate로 담당자/마일스톤/마감일을 저장한 뒤 이 영역만 AJAX로 다시 불러온다
                                  (GET .../issue/{number}/timeline, "issue/view :: timelineItems"). 이 fragment 밖의
                                  로컬 변수(th:with)는 참조하지 않고 모델 속성(timeline, childCommentsByParentId,
@@ -198,7 +197,7 @@
                                             <span class="date" th:text="${templateHelper.agoOrDateString(comment.createdDate)}">작성일</span>
 
                                             <span class="act-row pull-right">
-                                                <!-- 그룹11 #25 재작업: 댓글 인라인 수정/삭제 버튼(legacy issue/partial_comment.scala.html
+                                                <!-- 댓글 인라인 수정/삭제 버튼(legacy issue/partial_comment.scala.html
                                                      의 data-toggle="comment-edit"/"comment-delete" 대응) -->
                                                 <button th:if="${currentUser != null}" type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" th:data-comment-id="${comment.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
                                                 <button th:if="${currentUser != null and (comment.authorId == currentUser.id or isProjectManager)}" type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete" th:data-request-uri="${commentApiBase} + '/' + ${comment.id}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
@@ -265,7 +264,7 @@
                                     </div>
                                 </div>
 
-                                <!-- 이벤트 영역: yona partial_event_timeline.scala.html 대응 (P1-106) -->
+                                <!-- 이벤트 영역: yona partial_event_timeline.scala.html 대응 -->
                                 <div th:if="${item.kind == 'EVENT'}" th:with="event=${item.event}, eventTypeName=${event.eventType.name()}" class="event" th:id="'event-' + ${event.id}">
                                     <div>
                                         <th:block th:if="${eventTypeName == 'ISSUE_STATE_CHANGED'}">
@@ -339,7 +338,7 @@
                         <form id="issueUpdateForm" th:action="@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}" method="post">
                             <input type="hidden" name="issues[0].id" th:value="${issue.id}" />
 
-                            <!-- 담당자 — yona issue/partial_assignee.scala.html 대응 (그룹7 #127). isAllowedUpdate
+                            <!-- 담당자 — yona issue/partial_assignee.scala.html 대응. isAllowedUpdate
                                  일 때는 select2 인라인 위젯(yonaAssgineeModule, IssueApi.findAssignableUsers/
                                  updateAssginees와 동일한 REST 대응 엔드포인트로 저장)으로 바뀐다 — massUpdate가
                                  아니라 담당자 전용 REST 엔드포인트로 즉시 저장되는 legacy 동작을 그대로 재현한다. -->
@@ -360,7 +359,7 @@
                                 </dd>
                             </dl>
 
-                            <!-- 마일스톤 — yona issue/view.scala.html:329-381 대응 (그룹7 #127). project.menuSetting.milestone
+                            <!-- 마일스톤 — yona issue/view.scala.html 대응. project.menuSetting.milestone
                                  대응 gate + isAllowedUpdate일 때 select2, 아니면 링크/텍스트. -->
                             <dl th:if="${project.isMilestoneEnabled}">
                                 <dt th:text="#{milestone}">마일스톤</dt>
@@ -386,7 +385,7 @@
                                 </dd>
                             </dl>
 
-                            <!-- 마감일 — yona issue/view.scala.html:384-411 대응 (그룹7 #127). isAllowedUpdate일 때
+                            <!-- 마감일 — yona issue/view.scala.html 대응. isAllowedUpdate일 때
                                  calendar 텍스트 입력(massUpdate로 저장), 아니면 기존과 동일한 텍스트 표시. -->
                             <dl>
                                 <dt>
@@ -511,7 +510,7 @@
             }
         });
 
-        // yona issue/view.scala.html:539-544 yonaAssgineeModule(...) 대응 (그룹7 #127) — 담당자
+        // yona issue/view.scala.html의 yonaAssgineeModule(...) 대응 — 담당자
         // select2는 massUpdate가 아니라 이슈별 전용 REST 엔드포인트(findAssignableUsers/updateAssginees,
         // 이미 IssueShareController에 구현돼 있음)로 즉시 저장된다.
         <th:block th:if="${isAllowedUpdate}">
@@ -533,7 +532,7 @@
             });
         });
 
-        // ===== 그룹11 #25/#26/#29/#30/#31 재작업: 댓글 인라인 수정/대댓글 AJAX 배선 =====
+        // ===== 댓글 인라인 수정/대댓글 AJAX 배선 =====
         // legacy는 풀페이지 폼 제출(commentUpdateForm/child_commentForm)이지만, yona는 REST(PUT/POST
         // .../comments[/id])만 제공하므로 fetch 기반 AJAX로 대체한다 — 성공 시 간단히 페이지를
         // reload한다(리뷰어 참여/해제 등 이미 정착된 다른 PR 화면과 동일한 패턴).

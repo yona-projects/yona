@@ -4,8 +4,8 @@ import com.github.yonaprojects.yona.domain.user.User
 import jakarta.persistence.*
 import java.time.Instant
 
-// yona-wiki P3-03 Step7 — GitHub "Settings > SSH and GPG keys" 화면의 GPG 키 섹션과 동일한
-// 사용자 전역 GPG 공개키. 로그인 인증 수단이 아니라 커밋 서명 검증 전용이다(계획 문서 "제외" 항목).
+// GitHub "Settings > SSH and GPG keys" 화면의 GPG 키 섹션과 동일한 사용자 전역 GPG 공개키.
+// 로그인 인증 수단이 아니라 커밋 서명 검증 전용이다.
 @Entity
 @Table(name = "gpg_key")
 class GpgKey(

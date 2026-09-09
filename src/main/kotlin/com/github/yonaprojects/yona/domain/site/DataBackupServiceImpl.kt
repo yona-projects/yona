@@ -17,20 +17,20 @@ import javax.sql.DataSource
  * yona는 테이블별 전용 Exchanger 클래스를 44개 손으로 나열해 유지하지만, yona는
  * DB 메타데이터로 테이블 목록을 스스로 찾아내는 범용 방식을 택했다 — 엔티티가
  * 추가돼도 이 서비스는 수정할 필요가 없고, 기존 SiteApiController가 하드코딩했던
- * "users/projects 필드만 export" 문제(P0-07)를 테이블 단위로 완전히 해소한다.
+ * "users/projects 필드만 export" 문제를 테이블 단위로 완전히 해소한다.
  *
  * 복원 시 테이블 전체를 DELETE 후 백업 내용을 다시 INSERT한다(= 완전 교체).
  * yona는 원본 PK를 그대로 복원하는데, yona도 auto-increment 컬럼을 포함해 백업된
  * 값 그대로 INSERT한다 — 신규 채번과 충돌하지 않도록 테이블마다 복원 직후
  * auto-increment/시퀀스를 재설정한다.
  *
- * yona `DefaultExchanger.exportData()`/`importSequence()`(P2-07) 대응 — export 시점에
+ * yona `DefaultExchanger.exportData()`/`importSequence()` 대응 — export 시점에
  * 실제 DB가 갖고 있던 auto-increment/시퀀스의 "다음 값"(`INFORMATION_SCHEMA.TABLES.AUTO_INCREMENT`)을
  * 그대로 캡처해뒀다가 복원 시 그 값으로 되돌린다. 백업된 행들의 `max(id)+1`을 복원 시점에
  * 재계산하는 방식(이전 구현)은 export 이전에 이미 삭제된 행으로 생긴 시퀀스 갭을 없애버려
  * 그 ID가 재사용될 수 있었는데, 이 방식은 yona처럼 갭을 그대로 보존한다.
  *
- * datetime(`Instant`) 컬럼 왕복 버그 수정(2026-08-20) — `exportAll()`이 `Instant` 값을 JSON에
+ * datetime(`Instant`) 컬럼 왕복 버그 — `exportAll()`이 `Instant` 값을 JSON에
  * ISO-8601 문자열로 직렬화하는데, `importAll()`은 이를 타입 정보 없는 `Map<String, Any?>`로
  * 역직렬화해 평범한 String이 된다. 이 String을 그대로 바인딩하면 MariaDB가 ISO-8601('T'/'Z')을
  * datetime으로 파싱하지 못해 `DataIntegrityViolationException`을 던진다(해당 컬럼이 NULL인
@@ -104,16 +104,11 @@ class DataBackupServiceImpl(
         }
     }
 
-    // 원인 진단(2026-08-20, 사용자 요청으로 근본 원인 추적): `exportAll()`이 `Instant` 컬럼 값을
-    // ObjectMapper로 직렬화하면 JSON에는 ISO-8601 문자열(`"2026-08-20T06:21:04.973Z"`)로 남는데,
-    // `importAll()`이 이를 타입 정보 없는 `Map<String, Any?>`로 역직렬화하면 그 값은 그냥 평범한
-    // Kotlin String이 된다. 이 String을 그대로 PreparedStatement에 바인딩하면 MariaDB가
-    // `'yyyy-MM-dd HH:mm:ss[.f...]'` 형식이 아닌 ISO-8601('T'/'Z' 포함)을 datetime으로 파싱하지
-    // 못해 `DataIntegrityViolationException`을 던진다. 이 값이 있는 테이블에 대해서만 재현되므로
-    // (해당 컬럼이 전부 NULL인 테이블/행에서는 증상이 없음) "가끔 실패하는 flake"처럼 보였지만,
-    // 실제로는 datetime 컬럼에 값이 있는 모든 테이블에서 100% 결정적으로 재현되는 버그였다.
-    // 컬럼의 실제 JDBC 타입을 조회해 TIMESTAMP/DATE/TIME 계열이면 String -> Instant -> Timestamp로
-    // 되돌려 바인딩한다.
+    // exportAll()이 직렬화한 Instant 값은 importAll()에서 타입 정보 없는 Map<String, Any?>로
+    // 역직렬화되어 평범한 String이 된다. 이 String을 그대로 바인딩하면 MariaDB가 ISO-8601('T'/'Z'
+    // 포함)을 datetime으로 파싱하지 못해 DataIntegrityViolationException을 던진다(해당 컬럼이
+    // NULL인 행/테이블에서는 증상이 없음) — 컬럼의 실제 JDBC 타입을 조회해 TIMESTAMP/DATE/TIME
+    // 계열이면 String -> Instant -> Timestamp로 되돌려 바인딩한다.
     private fun insertRow(table: String, row: Map<String, Any?>, dateTimeColumns: Set<String>) {
         if (row.isEmpty()) {
             return
@@ -155,7 +150,7 @@ class DataBackupServiceImpl(
         }
     }
 
-    // yona DefaultExchanger.exportData()의 hasSequence() 분기 대응 (P2-07) — export 시점에
+    // yona DefaultExchanger.exportData()의 hasSequence() 분기 대응 — export 시점에
     // 실제 DB가 다음으로 배정할 auto-increment/시퀀스 값을 그대로 조회해둔다. id 컬럼이
     // 없는 조인 테이블 등은 조회 결과가 null이라 자연히 스킵된다(yona의 hasSequence()=false와
     // 동일한 효과를 하드코딩된 테이블 목록 없이 얻는다).
@@ -183,14 +178,13 @@ class DataBackupServiceImpl(
                     JLong::class.java
                 )?.toLong()
             }
-            // h2 지원 추가(H2는 legacy가 기본값으로 제공하던 임베디드 DB 대응). identity 컬럼이
-            // MariaDB의 AUTO_INCREMENT와 달리 명시적 INSERT 값을 보고 스스로 전진하지 않는다는
-            // 걸 실측으로 확인(DataBackupServiceH2IntegrationSpec — 복원 직후 PK 충돌 재현).
+            // H2는 legacy가 기본값으로 제공하던 임베디드 DB 대응. identity 컬럼은
+            // MariaDB의 AUTO_INCREMENT와 달리 명시적 INSERT 값을 보고 스스로 전진하지 않는다.
             // H2는 PostgreSQL의 pg_get_serial_sequence()처럼 identity 컬럼의 "다음 값"을 직접
             // 조회하는 표준 SQL이 없어(INFORMATION_SCHEMA.SEQUENCES에 identity 컬럼용 항목이
-            // 노출되지 않음, 실측 확인) MAX(id)+1로 근사한다 — MariaDB/PostgreSQL과 달리
-            // export 이전에 이미 삭제된 행으로 생긴 시퀀스 갭까지는 보존하지 못하는 것으로
-            // 알려진 제약(문서화된 한계, docs/PARITY_BACKLOG.md P3 참고).
+            // 노출되지 않음) MAX(id)+1로 근사한다 — MariaDB/PostgreSQL과 달리
+            // export 이전에 이미 삭제된 행으로 생긴 시퀀스 갭까지는 보존하지 못하는
+            // 알려진 제약이다(문서화된 한계, docs/PARITY_BACKLOG.md 참고).
             Dialect.H2 -> {
                 if (!hasIdColumn(table)) return null
                 jdbcTemplate.queryForObject(
@@ -202,7 +196,7 @@ class DataBackupServiceImpl(
     }
 
     // columnNamePattern에 "id"(소문자)를 그대로 넘기면 MariaDB/PostgreSQL(소문자로 컬럼명을
-    // 저장)에서는 맞지만, H2는 unquoted DDL 컬럼명을 대문자로 저장해(실측 확인, COLUMN_NAME=ID)
+    // 저장)에서는 맞지만, H2는 unquoted DDL 컬럼명을 대문자로 저장해(COLUMN_NAME=ID)
     // 패턴이 안 맞아 컬럼이 있어도 없다고 오판한다 — columnNamePattern을 null로 열어 전체를
     // 받아온 뒤 대소문자 무관 비교로 직접 걸러낸다.
     private fun hasIdColumn(table: String): Boolean {
@@ -216,7 +210,7 @@ class DataBackupServiceImpl(
         }
     }
 
-    // yona DefaultExchanger.importSequence() 대응 (P2-07) — export 시점에 캡처해둔 "다음 값"을
+    // yona DefaultExchanger.importSequence() 대응 — export 시점에 캡처해둔 "다음 값"을
     // 그대로 복원한다(백업된 행들의 max(id)+1을 재계산하지 않음 — 그러면 export 이전에 이미
     // 삭제된 행으로 생긴 시퀀스 갭이 사라져 그 ID가 재사용될 수 있다).
     private fun restoreSequence(table: String, dialect: Dialect, nextValue: Long) {
@@ -237,8 +231,7 @@ class DataBackupServiceImpl(
                     jdbcTemplate.queryForObject("SELECT setval(?, ?, false)", Long::class.java, sequenceName, nextValue)
                 }
             }
-            // ALTER COLUMN ... RESTART WITH — H2 고유 구문(실측 확인, PostgreSQL의 setval()과
-            // 동등한 효과).
+            // ALTER COLUMN ... RESTART WITH — H2 고유 구문(PostgreSQL의 setval()과 동등한 효과).
             Dialect.H2 -> {
                 if (!hasIdColumn(table)) return
                 jdbcTemplate.execute("ALTER TABLE $table ALTER COLUMN id RESTART WITH $nextValue")
@@ -264,7 +257,7 @@ class DataBackupServiceImpl(
         when (dialect) {
             Dialect.MYSQL_COMPATIBLE -> jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = ${if (enabled) 1 else 0}")
             Dialect.POSTGRES -> jdbcTemplate.execute("SET session_replication_role = '${if (enabled) "origin" else "replica"}'")
-            // SET REFERENTIAL_INTEGRITY — H2 고유 구문(실측 확인).
+            // SET REFERENTIAL_INTEGRITY — H2 고유 구문.
             Dialect.H2 -> jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY ${if (enabled) "TRUE" else "FALSE"}")
             Dialect.OTHER -> logger.warn("알 수 없는 DB 방언이라 외래키 제약을 토글하지 않습니다")
         }

@@ -35,18 +35,17 @@ import java.time.format.DateTimeFormatter
 class WebhookServiceImpl(
     private val webhookRepository: WebhookRepository,
     private val webhookThreadRepository: WebhookThreadRepository,
-    // yona Webhook.java:178 getBaseUrl()(스킴+호스트) 대응 (P2-08). NotificationUrlResolver가
+    // yona Webhook.java getBaseUrl()(스킴+호스트) 대응. NotificationUrlResolver가
     // 이미 동일 목적으로 쓰는 설정값을 그대로 재사용한다.
     @Value("\${yona.base-url:}")
     private val baseUrl: String,
-    // yona Webhook.java:182-192 buildRequestMessage()(리소스 링크) 대응 (P1-132) — 이슈/게시글/PR/댓글 [GL-models_Webhook-017;GL-models_Webhook-018]
+    // yona Webhook.java buildRequestMessage()(리소스 링크) 대응 — 이슈/게시글/PR/댓글
     // URL 계산 로직을 새로 만들지 않고, 알림메일 경로에서 이미 쓰는 것과 동일한 리졸버를 재사용한다.
     private val notificationUrlResolver: NotificationUrlResolver,
-    // yona Webhook.java:622-658 sendRequest(payload, webhookId, resource) 대응 (P1-143) — Hangout Chat [GL-models_Webhook-046;GL-models_Webhook-047]
+    // yona Webhook.java sendRequest(payload, webhookId, resource) 대응 — Hangout Chat
     // 응답의 thread.name을 저장하는 쓰기 경로. 비동기 HTTP 콜백 스레드에서도 트랜잭션이 걸리도록 별도
     // Spring 빈으로 분리했다(자세한 이유는 WebhookThreadRecorder 주석 참고).
     private val webhookThreadRecorder: WebhookThreadRecorder,
-    // yona-wiki P3-01(Observability) 계측 지점 6 대응.
     private val meterRegistry: MeterRegistry
 ) : WebhookService {
 
@@ -128,7 +127,7 @@ class WebhookServiceImpl(
                 val root = objectMapper.createObjectNode()
                 root.put("text", textMessage)
 
-                // yona Webhook.java:299-317 Posting 오버로드 대응 (P2-36) — 다른 리소스 타입과 [GL-models_Webhook-025]
+                // yona Webhook.java Posting 오버로드 대응 — 다른 리소스 타입과
                 // 달리 Posting(게시글) 오버로드에는 DETAIL_SLACK 전용 분기 자체가 없어, SLACK
                 // 웹훅이어도 attachments 없이 텍스트만 보낸다(buildTextPropertyOnlyJSON로 귀결).
                 if (resource !is Posting) {
@@ -143,7 +142,7 @@ class WebhookServiceImpl(
                 val root = objectMapper.createObjectNode()
                 root.put("text", textMessage)
 
-                // 스레드 지원 (P1-134 — 부모 리소스 기준 키로 조회)
+                // 스레드 지원 — 부모 리소스 기준 키로 조회
                 val (resType, resId) = threadKeyOf(resource)
                 if (resType != ResourceType.NOT_A_RESOURCE && resId.isNotBlank()) {
                     val webhookThread = webhookThreadRepository.findByWebhookIdAndResourceTypeAndResourceId(
@@ -184,20 +183,20 @@ class WebhookServiceImpl(
         }
     }
 
-    // yona Webhook.java의 push용 buildRequestBody(commits, refNames, sender) 대응 (P2-04).
+    // yona Webhook.java의 push용 buildRequestBody(commits, refNames, sender) 대응.
     // 커밋 목록이 빠진 채 event/sender/project만 담겨있던 단순 JSON 대신, GitHub 웹훅과 유사한
     // ref/commits/head_commit/sender/pusher/repository 구조로 구성한다.
-    // yona Webhook.java:178 getBaseUrl() 대응 (P2-08) — RouteUtil.getUrl(project)(상대경로)에 붙는
+    // yona Webhook.java getBaseUrl() 대응 — RouteUtil.getUrl(project)(상대경로)에 붙는
     // 스킴+호스트. NotificationUrlResolver가 쓰는 것과 동일한 yona.base-url 설정을 재사용한다.
     private fun projectUrl(project: Project?): String =
         project?.let { "$baseUrl/${it.owner}/${it.name}" } ?: baseUrl
 
-    // yona Webhook.java:713-714 buildJSONFromCommit()의
-    // new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ") 대응 (P2-08) — 문자열 포맷까지 그대로 재현한다.
+    // yona Webhook.java buildJSONFromCommit()의
+    // new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ") 대응 — 문자열 포맷까지 그대로 재현한다.
     private val commitTimestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ssZ")
 
-    // yona Webhook.java:284-298 buildIssueDetails() / :502-515 buildJsonWithPullReqtuestDetails() /
-    // :376-384 buildCommentDetails() / :545-552 buildAttachmentJSON() 대응 (P1-133) — DETAIL_SLACK
+    // yona Webhook.java buildIssueDetails() / buildJsonWithPullReqtuestDetails() /
+    // buildCommentDetails() / buildAttachmentJSON() 대응 — DETAIL_SLACK
     // attachment의 fields를 리소스 타입별로 yona와 동일하게 구성한다. Issue는 마일스톤(있을 때만)+담당자+상태,
     // PullRequest는 보낸사람+보낸브랜치+받는브랜치(yona 원본은 완전히 미지원이었음), 그 외(댓글 등)는
     // yona도 fields 없이 본문만 담는다. yona는 color를 `Play.application().configuration().getString(
@@ -216,7 +215,7 @@ class WebhookServiceImpl(
                 fields.add(buildTitleValueJSON(objectMapper, "상태", resource.state.toString(), true))
             }
             // Posting은 위 buildPayload()의 DETAIL_SLACK 분기에서 이 함수 자체를 호출하지 않으므로
-            // (P2-36) 이 when에는 도달하지 않는다 — legacy에도 Posting용 buildXxxDetails()가 없다.
+            // 이 when에는 도달하지 않는다 — legacy에도 Posting용 buildXxxDetails()가 없다.
             is PullRequest -> {
                 text = resource.body ?: ""
                 fields.add(buildTitleValueJSON(objectMapper, "보낸 사람", resource.contributor.name, false))
@@ -238,7 +237,7 @@ class WebhookServiceImpl(
                 }
             }
             // CommitComment는 yona Webhook.java에 대응하는 오버로드 자체가 없는 yona 전용 리소스라
-            // (P2-18) else 분기(본문/필드 없음)로 떨어지도록 그대로 둔다(레거시에 없는 동작 추가 금지).
+            // else 분기(본문/필드 없음)로 떨어지도록 그대로 둔다(레거시에 없는 동작 추가 금지).
             else -> text = ""
         }
 
@@ -305,7 +304,7 @@ class WebhookServiceImpl(
         senderNode.put("id", sender.id ?: 0L)
         senderNode.put("avatar_url", sender.avatarUrl)
         senderNode.put("type", "User")
-        // yona Webhook.java:560 buildSenderJSON()의 site_admin 대응 (P2-08).
+        // yona Webhook.java buildSenderJSON()의 site_admin 대응.
         senderNode.put("site_admin", sender.isSiteManager)
         root.set("sender", senderNode)
 
@@ -319,7 +318,7 @@ class WebhookServiceImpl(
         repositoryNode.put("name", project?.name ?: "")
         repositoryNode.put("owner", project?.owner ?: "")
         repositoryNode.put("html_url", projectUrl(project))
-        // yona Webhook.java:577 buildRepositoryJSON()의 overview(프로젝트 설명) 대응 (P2-08).
+        // yona Webhook.java buildRepositoryJSON()의 overview(프로젝트 설명) 대응.
         repositoryNode.put("overview", project?.overview ?: "")
         repositoryNode.put("private", project?.projectScope != ProjectScope.PUBLIC)
         root.set("repository", repositoryNode)
@@ -327,7 +326,7 @@ class WebhookServiceImpl(
         return objectMapper.writeValueAsString(root)
     }
 
-    // yona-wiki P3-22 — buildPushPayload(PushedCommits)의 Mercurial 대응. 정확히 동일한 필드
+    // buildPushPayload(PushedCommits)의 Mercurial 대응. 정확히 동일한 필드
     // 구조(ref/commits/head_commit/sender/pusher/repository)를 hg4j의 HgCommit 값 객체로 채운다 —
     // Mercurial은 저자/커미터 구분이 없으므로(HgCommit.kt 주석 참고) author와 committer는 항상
     // 동일한 값이다.
@@ -449,7 +448,7 @@ class WebhookServiceImpl(
             is ReviewComment ->
                 resource.thread?.pullRequest?.let { "#${it.number}: ${it.title}" }
             // CommitComment는 yona Webhook.java에 대응하는 오버로드 자체가 없는 yona 전용 리소스라
-            // (P2-18) 링크를 만들지 않는다(레거시에 없는 동작 추가 금지).
+            // 링크를 만들지 않는다(레거시에 없는 동작 추가 금지).
             is PullRequest -> "#${resource.number}: ${resource.title}"
             else -> null
         } ?: return ""
@@ -549,10 +548,10 @@ class WebhookServiceImpl(
         webhookThreadRecorder.recordThreadIfAbsent(webhookId, resType, resId, threadId)
     }
 
-    // yona Webhook.java:346 eventComment.getParent().asResource() / :480 eventPullRequest.asResource()
-    // 대응 (P1-134) — Hangout Chat 스레드 키는 댓글 자신이 아니라 부모 리소스(이슈/게시글/PR) 기준으로
+    // yona Webhook.java eventComment.getParent().asResource() / eventPullRequest.asResource()
+    // 대응 — Hangout Chat 스레드 키는 댓글 자신이 아니라 부모 리소스(이슈/게시글/PR) 기준으로
     // 계산해야 같은 이슈/게시글/PR에 달리는 댓글들이 하나의 대화 스레드로 묶인다. CommitComment는 yona에
-    // 대응 이벤트 자체가 없어(P2-18) 부모 매핑 규칙이 없으므로 자기 자신의 키를 그대로 쓴다
+    // 대응 이벤트 자체가 없어 부모 매핑 규칙이 없으므로 자기 자신의 키를 그대로 쓴다
     // (레거시에 없는 동작을 새로 추가하지 않는다).
     private fun threadKeyOf(resource: Any): Pair<ResourceType, String> {
         return when (resource) {

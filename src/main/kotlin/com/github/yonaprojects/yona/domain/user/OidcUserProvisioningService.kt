@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step2 — `LdapUserProvisioningService`와 동일한 취지의 JIT
+ * `LdapUserProvisioningService`와 동일한 취지의 JIT
  * (Just-In-Time) 프로비저닝: 임의의 OIDC IdP(Okta/Azure AD/Keycloak 등)가 인증에 성공해 돌려준
  * `OidcUser`(Spring Security가 ID 토큰/UserInfo 엔드포인트 응답을 이미 파싱해 준 결과)를 받아
  * 이메일 기준으로 기존 로컬 User와 매칭하거나 없으면 신규 생성한다.

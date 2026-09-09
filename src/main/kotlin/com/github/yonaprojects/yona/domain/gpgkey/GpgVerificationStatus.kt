@@ -1,6 +1,6 @@
 package com.github.yonaprojects.yona.domain.gpgkey
 
-// yona-wiki P3-03 Step9 — 커밋 목록/상세 화면의 Verified 배지가 쓰는 3가지 상태. GitHub의
+// 커밋 목록/상세 화면의 Verified 배지가 쓰는 3가지 상태. GitHub의
 // "Verified"/"Unverified"/무배지 3분류와 동일한 개념이다.
 enum class GpgVerificationStatus {
     // 커밋에 gpgsig 헤더가 아예 없음(가장 흔한 기본 상태) — 배지를 표시하지 않는다.

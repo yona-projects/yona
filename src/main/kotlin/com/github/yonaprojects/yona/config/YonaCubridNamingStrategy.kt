@@ -10,7 +10,7 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment
  * `spring.jpa.properties.hibernate.globally_quoted_identifiers` 전역 설정으로 예약어 충돌
  * (role 등)을 피하려 했으나, Hibernate가 모든 식별자를 미리 "이미 인용됨" 상태로 표시해버려
  * 네이밍 전략의 "이미 인용된 이름은 그대로 둔다"는 규칙에 따라 camelCase→snake_case 변환
- * 자체를 건너뛰는 부작용이 실측으로 확인됐다(예: authorId가 author_id로 안 바뀌고 그대로
+ * 자체를 건너뛰는 부작용이 있었다(예: authorId가 author_id로 안 바뀌고 그대로
  * 남음). 그래서 전역 인용 대신, 평범하게 snake_case로 변환한 뒤 그 결과가 CUBRID 예약어와
  * 겹칠 때만 개별적으로 인용 처리한다.
  */

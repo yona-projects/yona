@@ -25,7 +25,7 @@ class SearchController(
     private val projectRepository: ProjectRepository,
     private val organizationRepository: OrganizationRepository,
     private val organizationUserRepository: OrganizationUserRepository,
-    // yona controllers/Application.java:35 HIDE_PROJECT_LISTING 대응 (P0-23).
+    // legacy Application.HIDE_PROJECT_LISTING 대응.
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
 ) {
@@ -43,7 +43,7 @@ class SearchController(
         }
 
         val searchType = SearchType.getValue(searchTypeVal)
-        // yona SearchApp.java:56-58 searchInAll()의 "SearchType.NA면 badRequest" 가드 대응 (P2-31).
+        // legacy SearchApp.searchInAll()의 "SearchType.NA면 badRequest" 가드 대응.
         if (searchType == SearchType.NA) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         }
@@ -81,9 +81,9 @@ class SearchController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
 
-        // yona SearchApp.java:126-130 대응 (P0-23). HIDE_PROJECT_LISTING이 켜져 있으면 이 조직의
-        // ORG_MEMBER이면서 동시에 ORG_ADMIN인 사용자만 그룹 검색이 허용된다(legacy 원문 그대로 —
-        // 두 역할이 DB상 상호 배타적이라 사실상 항상 거부되는 legacy 자체의 동작을 그대로 재현).
+        // legacy SearchApp 대응. HIDE_PROJECT_LISTING이 켜져 있으면 이 조직의 ORG_MEMBER이면서
+        // 동시에 ORG_ADMIN인 사용자만 그룹 검색이 허용된다(legacy 원문 그대로 — 두 역할이 DB상
+        // 상호 배타적이라 사실상 항상 거부되는 legacy 자체의 동작을 그대로 재현한 것).
         if (hideProjectListing) {
             val orgUser = loginUser?.id?.let {
                 organizationUserRepository.findByOrganizationIdAndUserId(organization.id!!, it).orElse(null)
@@ -96,9 +96,9 @@ class SearchController(
         }
 
         val searchType = SearchType.getValue(searchTypeVal)
-        // yona SearchApp.java:134-136 searchInAGroup()의 "SearchType.NA면 badRequest" 가드 대응
-        // (P2-31). legacy 조건의 나머지 절(organization == null)은 yona에서는 위에서 이미
-        // orElseThrow{404}로 먼저 처리되므로 여기서 다시 확인할 필요가 없다.
+        // legacy SearchApp.searchInAGroup()의 "SearchType.NA면 badRequest" 가드 대응. legacy 조건의
+        // 나머지 절(organization == null)은 yona에서는 위에서 이미 orElseThrow{404}로 먼저
+        // 처리되므로 여기서 다시 확인할 필요가 없다.
         if (searchType == SearchType.NA) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         }
@@ -134,8 +134,8 @@ class SearchController(
         }
 
         val searchType = SearchType.getValue(searchTypeVal)
-        // yona SearchApp.java:209-211 searchInAProject()의 "SearchType.NA 또는 PROJECT면 badRequest"
-        // 가드 대응 (P2-31) — 프로젝트 범위 검색에서 "프로젝트를 찾는다"는 검색 타입 자체가 무의미하다.
+        // legacy SearchApp.searchInAProject()의 "SearchType.NA 또는 PROJECT면 badRequest" 가드
+        // 대응 — 프로젝트 범위 검색에서 "프로젝트를 찾는다"는 검색 타입 자체가 무의미하다.
         if (searchType == SearchType.NA || searchType == SearchType.PROJECT) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         }

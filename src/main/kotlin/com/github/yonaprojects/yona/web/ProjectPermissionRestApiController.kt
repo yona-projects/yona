@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-// yona-wiki P3-02 Step8.6 항목1(2026-09-01, 우선순위 1위) — `yona admin permission list`용 신규
+// `yona admin permission list`용 신규
 // JSON REST API(`/api/v1/projects/{owner}/{project}/permissions`). 기존
 // `web/ProjectMemberController.kt`(`/api/projects/{projectId}(숫자 ID)/...`)엔 멤버 추가/역할변경/
-// 삭제는 있지만 "현재 멤버+역할 목록" 자체를 내려주는 엔드포인트가 없었다(4라운드 완료 로그 참고,
+// 삭제는 있지만 "현재 멤버+역할 목록" 자체를 내려주는 엔드포인트가 없었다(
 // `assignableUsers`는 배정 후보 목록이지 이미 배정된 권한 매트릭스가 아니다) — 신규
 // `ProjectMemberController.listMembers()`에 위임하는 얇은 어댑터로, owner/project 이름만 숫자
 // projectId로 바꿔 넘긴다(`ProjectRestApiController`의 settings/fork 어댑터와 동일 패턴).

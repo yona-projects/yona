@@ -17,8 +17,8 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * yona-wiki P3-03 Step5 — 윈도우 폴백(Apache MINA SSHD)에서 실제로 git 프로토콜을 처리하는
- * Command 구현. GitServletConfig(HTTPS 경로)와 동일하게 JGit의 UploadPack/ReceivePack을 직접
+ * 윈도우 폴백(Apache MINA SSHD)에서 실제로 git 프로토콜을 처리하는 Command 구현.
+ * GitServletConfig(HTTPS 경로)와 동일하게 JGit의 UploadPack/ReceivePack을 직접
  * 사용해 같은 물리 저장소(SshAuthService.authorizeGitCommand()가 계산한 repoDir)를 다룬다.
  *
  * Direct*StreamAware 마커 인터페이스를 구현하면 MINA SSHD가 자체 비동기 파이프 대신 실제
@@ -29,22 +29,21 @@ class YonaSshGitCommand(
     private val commandLine: String,
     private val principal: SshAuthPrincipal,
     private val sshAuthService: SshAuthService,
-    // 코디네이터 push 전 리뷰(2026-09-07) — GitServletConfig(HTTPS 경로)와 동일하게
-    // BranchProtectionPreReceiveHook을 체이닝하기 위해 필요하다. 이 필드들이 없어
-    // require_pull_request/disallow_force_push/disallow_delete/restrict_push_to 전부가
-    // SSH를 통하면 우회되는 실제 보안 결함이 있었다(YonaMinaSshServerIntegrationSpec의
-    // 회귀 테스트로 고정).
+    // GitServletConfig(HTTPS 경로)와 동일하게 BranchProtectionPreReceiveHook을 체이닝하기
+    // 위해 필요하다. 이 필드들이 없으면 require_pull_request/disallow_force_push/
+    // disallow_delete/restrict_push_to 전부가 SSH를 통하면 우회되는 보안 결함이 생긴다
+    // (YonaMinaSshServerIntegrationSpec의 회귀 테스트로 고정).
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
-    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — BranchProtectionPreReceiveHook이
-    // require_signed_commits를 실제로 검사하는 데 필요(HTTPS 경로 GitServletConfig와 동일).
+    // BranchProtectionPreReceiveHook이 require_signed_commits를 실제로 검사하는 데 필요
+    // (HTTPS 경로 GitServletConfig와 동일).
     private val gpgSignatureVerifier: GpgSignatureVerifier
 ) : Command, CommandDirectInputStreamAware, CommandDirectOutputStreamAware, CommandDirectErrorStreamAware {
 
     private val logger = LoggerFactory.getLogger(YonaSshGitCommand::class.java)
 
-    // yona-wiki P3-18 — GitServletConfig(HTTPS)와 동일한 훅 체이닝 로직을 공유 클래스로 뽑아내,
-    // 이 MINA 경로와 새 유닉스 도메인 소켓 릴레이(SshRelayServer) 둘 다 같은 구현을 호출한다.
+    // GitServletConfig(HTTPS)와 동일한 훅 체이닝 로직을 공유 클래스로 뽑아내, 이 MINA 경로와
+    // 유닉스 도메인 소켓 릴레이(SshRelayServer) 둘 다 같은 구현을 호출하도록 한다.
     private val gitProtocolHandler = GitSshProtocolHandler(protectedBranchRepository, projectUserRepository, gpgSignatureVerifier)
 
     private var inputStream: InputStream? = null

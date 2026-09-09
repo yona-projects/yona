@@ -30,11 +30,11 @@ import java.util.Properties
 import java.util.concurrent.ScheduledFuture
 
 /**
- * yona의 mailbox/MailboxService.java + mailbox/EmailHandler.java 대응 (P1-55, 전면 재작업).
+ * yona의 mailbox/MailboxService.java + mailbox/EmailHandler.java 대응.
  *
  * yona와 완전히 동일한 설계로 이식했다: IMAP `IDLE` 명령으로 실시간 push를 우선 시도하고, 서버가
  * IDLE을 지원하지 않을 때만 폴링(`polling-interval-ms`, 기본 5분)으로 폴백한다. 진행 상황은 메일함의
- * `\Seen` 플래그가 아니라 `Property`(P1-55 신규, yona `models/Property.java` 대응) 테이블에 저장하는
+ * `\Seen` 플래그가 아니라 `Property`(yona `models/Property.java` 대응) 테이블에 저장하는
  * UID 워터마크(`MAILBOX_LAST_SEEN_UID`)+UID 유효성(`MAILBOX_LAST_UID_VALIDITY`)으로 별도 추적하며,
  * 폴더는 항상 `READ_ONLY`로 열어 메일함 자체(다른 IMAP 클라이언트가 보는 읽음 상태)는 절대 건드리지
  * 않는다 — 이전 버전(`\Seen` 플래그를 자체 북마크로 재활용)은 외부에서 먼저 읽힌 메일을 영구히
@@ -43,7 +43,7 @@ import java.util.concurrent.ScheduledFuture
  * 실제 IMAP 서버 연결/스레드 관리는 순수 글루 코드라 단위테스트 대상에서 제외했다(이 저장소의 다른
  * *Config류 인프라 배선과 동일한 관례) — 다만 UID 구간 조회 여부 판단(`shouldFetchByUidRange`)과
  * 워터마크 전진 규칙(`advancedSeenUid`)은 순수 함수로 분리해 실제로 단위테스트한다.
- * `toInboundEmailMessage`(본문/첨부파일 MIME 파싱, P1-29/P1-47)도 기존과 동일하게 커버된다.
+ * `toInboundEmailMessage`(본문/첨부파일 MIME 파싱)도 기존과 동일하게 커버된다.
  */
 @Component
 @ConditionalOnProperty(prefix = "yona.mailbox.imap", name = ["enabled"], havingValue = "true")
@@ -57,7 +57,6 @@ class ImapMailboxPoller(
     @Value("\${yona.mailbox.imap.ssl:true}") private val useSsl: Boolean,
     @Value("\${yona.mailbox.imap.folder:inbox}") private val folderName: String,
     @Value("\${yona.mailbox.imap.polling-interval-ms:300000}") private val pollingIntervalMs: Long,
-    // yona-wiki P3-01(Observability) 계측 지점 4 대응.
     private val meterRegistry: MeterRegistry
 ) {
     private val logger = LoggerFactory.getLogger(ImapMailboxPoller::class.java)
@@ -102,8 +101,8 @@ class ImapMailboxPoller(
         }
     }
 
-    // yona MailboxService.java:177-188 Diagnostic.register(new SimpleDiagnostic() { checkOne() })
-    // 대응 (P1-137). idleThread가 null이면 아직 초기화되지 않은 것, isAlive가 false면 죽은 것.
+    // yona MailboxService.java Diagnostic.register(new SimpleDiagnostic() { checkOne() })
+    // 대응. idleThread가 null이면 아직 초기화되지 않은 것, isAlive가 false면 죽은 것.
     // (폴링 모드로 폴백한 경우 idleThread가 계속 null이라 이 체크는 IDLE 지원 서버에서만 유효 —
     // yona 원본도 동일한 한계를 가진다.)
     fun healthCheckMessage(): String? {
@@ -200,7 +199,7 @@ class ImapMailboxPoller(
     }
 
     // yona EmailHandler.handleMessage(IMAPMessage) 대응. 실제 리소스 생성 로직은
-    // IncomingMailProcessingService(P0-02)에 전부 위임돼 있다 — 중복 메일 판별도 그쪽에서 이미 한다.
+    // IncomingMailProcessingService에 전부 위임돼 있다 — 중복 메일 판별도 그쪽에서 이미 한다.
     private fun handleMessage(targetFolder: IMAPFolder, message: Message) {
         meterRegistry.counter("yona.mailbox.messages.processed").increment()
         try {
@@ -328,8 +327,8 @@ class ImapMailboxPoller(
         )
     }
 
-    // yona CreationViaEmail.saveAttachments()가 순회하는 MIME 파트 트리 대응 (P1-29).
-    // Content-ID도 함께 추출해 본문의 cid: 참조와 매칭할 수 있게 한다(P1-47).
+    // yona CreationViaEmail.saveAttachments()가 순회하는 MIME 파트 트리 대응.
+    // Content-ID도 함께 추출해 본문의 cid: 참조와 매칭할 수 있게 한다.
     private fun extractAttachments(part: Part): List<InboundAttachment> {
         return try {
             when {
@@ -353,7 +352,7 @@ class ImapMailboxPoller(
     private data class ExtractedBody(val content: String, val isHtml: Boolean)
 
     // yona CreationViaEmail.processPart()/getContentOfBestPart() 대응(간소화 - 여러 표현 중 첫 번째로
-    // 발견되는 비어있지 않은 파트를 그대로 쓴다). text/plain이 있으면 그걸 쓰고, text/html뿐이면 P1-47부터는
+    // 발견되는 비어있지 않은 파트를 그대로 쓴다). text/plain이 있으면 그걸 쓰고, text/html뿐이면
     // 태그를 벗겨 텍스트화하지 않고 원본 HTML을 그대로 보존한다(cid 치환·마크다운 렌더링은 상위에서 처리).
     private fun extractBody(part: Part): ExtractedBody {
         return try {

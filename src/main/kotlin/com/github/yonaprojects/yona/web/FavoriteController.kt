@@ -97,7 +97,7 @@ class FavoriteController(
         ))
     }
 
-    // yona controllers/api/UserApi.java:129-186 getIssuesByUser()/issuesAsJson() 대응 (P2-52).
+    // yona controllers/api/UserApi.java getIssuesByUser()/issuesAsJson() 대응.
     @GetMapping("/-_-api/v1/user/issues")
     fun getIssuesByUser(
         @RequestParam(defaultValue = "assigned") filter: String,

@@ -36,9 +36,9 @@ class BranchViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (project.isCodeAccessibleMemberOnly == true) {
             if (loginUser == null || (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser))) {
-                // yona actions/CodeAccessCheckAction.java:22-24 forbidden(ErrorViews.Forbidden.render(
+                // yona CodeAccessCheckAction의 forbidden(ErrorViews.Forbidden.render(
                 // "error.forbidden.or.notfound", context.request().path())) 대응 — 이 (String,String)
-                // 오버로드는 ErrorViews.java:45-51에서 보듯 project를 받지 않고
+                // 오버로드는 project를 받지 않고
                 // forbidden_default.render(messageKey)(제네릭, 헤더/메뉴 없음)로 귀결된다(비로그인이면
                 // 로그인 화면으로 보내지만 그 부분은 이 P-템플릿 작업 범위 밖). 즉 project가 이미
                 // resolve됐어도 legacy 자체가 프로젝트 컨텍스트를 보여주지 않으므로, 신규 컨텍스트 인지형
@@ -57,9 +57,9 @@ class BranchViewController(
 
         val vcsType = project.vcs?.uppercase() ?: "GIT"
         if (vcsType != "GIT") {
-            // yona actions/IsOnlyGitAvailableAction.java:44-45 [GL-actions_IsOnlyGitAvailableAction-002]
+            // yona IsOnlyGitAvailableAction의
             // badRequest(ErrorViews.BadRequest.render("error.badrequest.only.available.for.git"))
-            // 대응 — BadRequest의 (String) 1-arg 오버로드는 ErrorViews.java:134-137에서 보듯
+            // 대응 — BadRequest의 (String) 1-arg 오버로드는
             // badrequest_default.render(messageKey)(제네릭)로 귀결된다(컨텍스트 인지형
             // badrequest.render(messageKey, project, menuType)은 2-arg/3-arg Project 오버로드 전용).
             // 기존 코드는 이 경우를 error/403(403)으로 잘못 매핑하고 있었다 — legacy는 400이므로
@@ -78,7 +78,7 @@ class BranchViewController(
             allBranches
         }
 
-        // yona GitRepository.setTheLatestPullRequest() 대응 (그룹10 #157) — 브랜치별로 이 프로젝트로
+        // yona GitRepository.setTheLatestPullRequest() 대응 — 브랜치별로 이 프로젝트로
         // 보낸 가장 최근 PR을 찾아 "보낸 코드" 컬럼에 링크로 보여준다.
         val pullRequestsByBranch = (filteredBranches + listOfNotNull(headBranch)).associate { branch ->
             branch.shortName to pullRequestRepository.findFirstByFromProjectAndFromBranchAndToProjectOrderByNumberDesc(
@@ -86,7 +86,7 @@ class BranchViewController(
             )
         }
 
-        // yona code/branches.scala.html:59-62 대응 — DELETE 또는 UPDATE 권한이 있을 때만 액션 컬럼(빈 th 포함) 자체를 렌더링한다.
+        // yona code/branches.scala.html 대응 — DELETE 또는 UPDATE 권한이 있을 때만 액션 컬럼(빈 th 포함) 자체를 렌더링한다.
         val showActionsColumn = accessControl.isAllowed(loginUser, project, Operation.DELETE) ||
             accessControl.isAllowed(loginUser, project, Operation.UPDATE)
         val canUpdate = accessControl.isAllowed(loginUser, project, Operation.UPDATE)

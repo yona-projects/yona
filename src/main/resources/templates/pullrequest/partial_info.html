@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
- legacy git/partial_info.scala.html 대응 (그룹11 #176). PR 헤더(제목/뱃지/등록일) + 리뷰어 참여
+ legacy git/partial_info.scala.html 대응. PR 헤더(제목/뱃지/등록일) + 리뷰어 참여
  정보/리뷰(review/unreview) 버튼 + 병합(accept) 버튼 + overview/changes 탭 바.
  legacy는 이 조각을 git/view.scala.html(menuType="overview")과 git/viewChanges.scala.html
  (menuType="changes") 양쪽에서 공유해서 쓴다 — yona도 pullrequest/view.html이 tab 값에 따라
@@ -27,7 +27,7 @@
                 <span style="font-size: 13px; vertical-align: middle; margin: 0 10px;" th:utext="#{pullRequest.review.participants(${pull.reviewers.size()})}">참여자 0명</span>
                 <a th:each="reviewer : ${pull.reviewers}" th:href="@{/user/{loginId}(loginId=${reviewer.loginId})}" class="avatar-wrap smaller" style="position:relative;" data-toggle="tooltip" data-placement="top" th:title="${reviewer.name}">
                     <img th:src="${reviewer.avatarUrl}">
-                    <!-- yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub PR 페이지의 초록 체크(승인)/
+                    <!-- GitHub PR 페이지의 초록 체크(승인)/
                          빨간 X(변경요청) 표시 대응. latestReviewStateByReviewerId는 PullRequestViewController.
                          addCommonPrAttributes()가 PullRequestService.getLatestReviewStates()(리뷰어별
                          가장 최근 APPROVE/REQUEST_CHANGES만 유효, COMMENT 전용 판정은 제외)로 채운다. -->
@@ -44,7 +44,7 @@
             </th:block>
         </th:block>
 
-        <!-- yona-wiki P3-15(PR 승인/변경요청 워크플로) — Approve/Request changes 현재 집계.
+        <!-- Approve/Request changes 현재 집계.
              project.isUsingReviewerCount(단순 "등록된 리뷰어 수" 강제 옵션)와는 완전히 독립된
              기능이라 위 reviewers 블록의 th:if 밖(그 설정이 꺼진 프로젝트에서도)에 둔다 — GitHub도
              브랜치 보호(require_approvals) 규칙 유무나 리뷰어 수 강제 여부와 무관하게 이 요약을 PR

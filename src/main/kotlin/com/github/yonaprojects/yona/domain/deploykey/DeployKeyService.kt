@@ -18,11 +18,11 @@ interface DeployKeyService {
     // 일어나지 않아야 한다 — project 소유 확인 후에만 삭제.
     fun delete(project: Project, deployKeyId: Long)
 
-    // yona-wiki P3-03 Step2 — HTTPS Basic 인증(DeployKeyAuthenticationProvider)이 쓰는 조회.
+    // HTTPS Basic 인증(DeployKeyAuthenticationProvider)이 쓰는 조회.
     fun findByHttpsToken(rawHttpsToken: String): DeployKey?
 
     fun markUsed(deployKey: DeployKey)
 
-    // repository_id 스코프 밖 프로젝트 접근을 거부하기 위한 순수 판정 로직(Step1 실패 테스트 대상).
+    // repository_id 스코프 밖 프로젝트 접근을 거부하기 위한 순수 판정 로직.
     fun isAuthorizedForProject(deployKey: DeployKey, projectId: Long): Boolean
 }

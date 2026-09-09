@@ -110,10 +110,10 @@ object IssueSpecification {
         }
     }
 
-    // yona organization/group_issue_search_partial.scala.html 대응 (조직 그룹, TASK-0244). 프로젝트
-    // 그룹(#filterIssues)과 달리 단일 project가 아니라 조직에 속한(공개 범위로 걸러진) 여러 project를
-    // 대상으로 검색하고, 필터도 authorId/assigneeId/mentionId 3종뿐이다(마일스톤/라벨/댓글단사람/
-    // 마감일 필터는 legacy group_issue_search_partial.scala.html에 아예 없음).
+    // yona organization/group_issue_search_partial.scala.html 대응. 프로젝트 그룹(#filterIssues)과
+    // 달리 단일 project가 아니라 조직에 속한(공개 범위로 걸러진) 여러 project를 대상으로 검색하고,
+    // 필터도 authorId/assigneeId/mentionId 3종뿐이다(마일스톤/라벨/댓글단사람/마감일 필터는 legacy
+    // group_issue_search_partial.scala.html에 아예 없음).
     fun filterOrganizationIssues(
         projects: List<Project>,
         state: State,

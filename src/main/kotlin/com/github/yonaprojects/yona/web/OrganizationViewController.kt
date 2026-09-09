@@ -57,7 +57,7 @@ class OrganizationViewController(
     private val accessControl: AccessControl,
     private val mentionService: MentionService,
     private val roleRepository: RoleRepository,
-    // yona controllers/Application.java:35 HIDE_PROJECT_LISTING 대응 (P0-23).
+    // yona controllers/Application.java의 HIDE_PROJECT_LISTING 대응.
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
 ) {
@@ -112,8 +112,8 @@ class OrganizationViewController(
         }
 
         if (!isOrgAdmin && loginUser?.isSiteManager != true) {
-            // yona error/forbidden_organization.scala.html 대응 (P-템플릿 #49) — 조직은 이미
-            // 찾았으므로 조직 헤더/메뉴가 붙는 컨텍스트 인지형 403.
+            // yona error/forbidden_organization.scala.html 대응 — 조직은 이미 찾았으므로 조직
+            // 헤더/메뉴가 붙는 컨텍스트 인지형 403.
             model.addAttribute("org", org)
             return "error/forbidden_organization"
         }
@@ -295,7 +295,7 @@ class OrganizationViewController(
         return "organization/pullRequestList"
     }
 
-    // yona OrganizationApp.java:287-311 leave()/validateForLeave() 대응. [GL-controllers_OrganizationApp-014]
+    // yona OrganizationApp의 leave()/validateForLeave() 대응.
     @ResponseBody
     @DeleteMapping(value = ["/org/{orgName}/leave", "/organizations/{orgName}/leave"])
     fun leave(
@@ -338,7 +338,7 @@ class OrganizationViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "error/403"
 
-        // yona OrganizationApp.java:90-91 @GuestProhibit 대응 (P1-121). [GL-controllers_OrganizationApp-005]
+        // yona OrganizationApp의 @GuestProhibit 대응.
         if (loginUser.isGuest) {
             return "redirect:/"
         }
@@ -369,8 +369,8 @@ class OrganizationViewController(
         val attachment = attachments.firstOrNull()
 
         if (attachment == null) {
-            // 디폴트 그룹 이미지 반환 (하드코딩된 개발자 로컬 절대경로였던 실버그 수정 —
-            // 커버리지 감사 중 발견, static 리소스는 classpath에서 로드해야 배포 환경에서도 동작한다)
+            // 디폴트 그룹 이미지 반환 — 예전에는 하드코딩된 개발자 로컬 절대경로를 썼던 실버그가
+            // 있었다. static 리소스는 classpath에서 로드해야 배포 환경에서도 동작한다.
             val defaultImage = ClassPathResource("static/images/group_default.png")
             return if (defaultImage.exists()) {
                 ResponseEntity.ok()
@@ -410,7 +410,7 @@ class OrganizationViewController(
         }
 
         if (!isOrgAdmin && !loginUser.isSiteManager) {
-            // yona error/forbidden_organization.scala.html 대응 (P-템플릿 #49) — 조직은 이미 찾았음.
+            // yona error/forbidden_organization.scala.html 대응 — 조직은 이미 찾았음.
             model.addAttribute("org", org)
             return "error/forbidden_organization"
         }
@@ -443,15 +443,15 @@ class OrganizationViewController(
         }
 
         if (!isOrgAdmin && !loginUser.isSiteManager) {
-            // yona error/forbidden_organization.scala.html 대응 (P-템플릿 #49).
+            // yona error/forbidden_organization.scala.html 대응.
             model.addAttribute("org", org)
             return "error/forbidden_organization"
         }
 
-        // yona OrganizationApp.java:409-420 validateForUpdate()의 LogoUtil.isImageFile()/ [GL-controllers_OrganizationApp-022]
-        // LOGO_FILE_LIMIT_SIZE 검증 대응 (P1-124). 로고가 유효하지 않으면 이름/설명 변경을
-        // 포함해 갱신 자체를 아무 것도 반영하지 않는다(legacy가 badRequest(setting.render(...))로
-        // 응답하는 것과 동일).
+        // yona OrganizationApp의 validateForUpdate()가 하는 LogoUtil.isImageFile()/
+        // LOGO_FILE_LIMIT_SIZE 검증 대응. 로고가 유효하지 않으면 이름/설명 변경을 포함해 갱신
+        // 자체를 아무 것도 반영하지 않는다(legacy가 badRequest(setting.render(...))로 응답하는
+        // 것과 동일).
         if (logoFile != null && !logoFile.isEmpty) {
             val filename = logoFile.originalFilename ?: ""
             if (!LogoValidator.isImageFile(filename)) {
@@ -521,7 +521,7 @@ class OrganizationViewController(
         }
 
         if (!isOrgAdmin && !loginUser.isSiteManager) {
-            // yona error/forbidden_organization.scala.html 대응 (P-템플릿 #49).
+            // yona error/forbidden_organization.scala.html 대응.
             model.addAttribute("org", org)
             return "error/forbidden_organization"
         }
@@ -620,14 +620,13 @@ class OrganizationViewController(
     ): String {
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
 
-        // yona OrganizationApp.java:485-486 @GuestProhibit 대응 (P1-120). 게스트 계정(User.isGuest)은
-        // 인덱스로 리다이렉트한다 — 로그인하지 않은 익명 사용자는 isGuest가 아니므로 그대로 통과한다.
+        // yona OrganizationApp의 @GuestProhibit 대응. 게스트 계정(User.isGuest)은 인덱스로
+        // 리다이렉트한다 — 로그인하지 않은 익명 사용자는 isGuest가 아니므로 그대로 통과한다.
         if (loginUser?.isGuest == true) {
             return "redirect:/"
         }
 
-        // yona OrganizationApp.java:485-488 대응 (P0-23) — HIDE_PROJECT_LISTING이 켜져 있으면
-        // 누구도 전체 조직 목록을 볼 수 없다.
+        // HIDE_PROJECT_LISTING이 켜져 있으면 누구도 전체 조직 목록을 볼 수 없다.
         if (hideProjectListing) {
             return "error/403"
         }

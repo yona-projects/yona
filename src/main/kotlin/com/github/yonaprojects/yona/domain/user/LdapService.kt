@@ -20,11 +20,11 @@ sealed class LdapAuthResult {
 }
 
 /**
- * yona의 utils/LdapService.java 대응. 실제 LDAP 서버로의 JNDI 바인딩만 담당하는
+ * legacy utils/LdapService.java 대응. 실제 LDAP 서버로의 JNDI 바인딩만 담당하는
  * 얇은 글루 클래스 — 순수 로직은 LdapQueryBuilder로 분리되어 있다.
- * 2026-08-25: `LdapServiceSpec`이 Testcontainers(osixia/openldap)로 실제 LDAP 서버를 띄워
- * 실제 bind 경로까지 검증한다(InitialDirContext 생성자는 mockkConstructor로 가로챌 수 없어
- * 실제 서버가 필요했음) — search() 결과만 mockkConstructor로 시나리오별 오버라이드한다.
+ * `LdapServiceSpec`은 Testcontainers(osixia/openldap)로 실제 LDAP 서버를 띄워 실제 bind
+ * 경로까지 검증한다(InitialDirContext 생성자는 mockkConstructor로 가로챌 수 없어 실제 서버가
+ * 필요했음) — search() 결과만 mockkConstructor로 시나리오별 오버라이드한다.
  */
 @Component
 class LdapService(

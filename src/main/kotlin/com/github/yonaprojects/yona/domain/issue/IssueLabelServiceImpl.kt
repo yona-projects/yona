@@ -33,7 +33,7 @@ class IssueLabelServiceImpl(
         val category = issueLabelCategoryRepository.findById(categoryId)
             .orElseThrow { IllegalArgumentException("Category not found: $categoryId") }
         
-        // yona IssueLabel.exists()(project+category+name 복합 유일성) 대응 (P1-54).
+        // yona IssueLabel.exists()(project+category+name 복합 유일성) 대응.
         val existing = issueLabelRepository.findByProjectAndCategoryAndName(project, category, name)
         if (existing != null) {
             return existing
@@ -71,7 +71,7 @@ class IssueLabelServiceImpl(
             .orElseThrow { IllegalArgumentException("Project not found: $projectId") }
         val category = createCategory(projectId, categoryName, categoryIsExclusive)
 
-        // yona IssueLabel.exists()(project+category+name 복합 유일성, P1-54) 대응 — 이미 있으면 null.
+        // yona IssueLabel.exists()(project+category+name 복합 유일성) 대응 — 이미 있으면 null.
         if (issueLabelRepository.findByProjectAndCategoryAndName(project, category, labelName) != null) {
             return null
         }
@@ -118,7 +118,7 @@ class IssueLabelServiceImpl(
     // yona IssueLabel.copyIssueLabels()/copyIssueLabel()/copyIssueLabelCategory() 대응.
     // 원본 프로젝트의 라벨을 대상 프로젝트로 복사하되, 같은 이름의 카테고리/라벨이 이미 있으면
     // 재사용(재생성하지 않음)한다. yona copyIssueLabelCategory()가 카테고리를 먼저 찾거나 만든 뒤
-    // copyIssueLabel().exists()(project+category+name 복합 유일성, P1-54)로 중복을 판단하는 순서를
+    // copyIssueLabel().exists()(project+category+name 복합 유일성)로 중복을 판단하는 순서를
     // 그대로 따른다 — 카테고리를 먼저 정해야 그 카테고리 기준으로 중복 여부를 물을 수 있다.
     override fun copyLabels(fromProjectId: Long, toProjectId: Long): List<IssueLabel> {
         val fromProject = projectRepository.findById(fromProjectId)
@@ -141,7 +141,7 @@ class IssueLabelServiceImpl(
         return copiedLabels
     }
 
-    // yona IssueLabel.copyIssueLabel()/findExistLabel() 대응 (P1-48). copyLabels()와 달리 이미
+    // yona IssueLabel.copyIssueLabel()/findExistLabel() 대응. copyLabels()와 달리 이미
     // 존재하는 라벨도 결과에 포함한다 — 옮겨지는 이슈의 최종 라벨 집합을 그대로 돌려줘야 하기 때문.
     override fun transferLabelsForIssue(labels: Set<IssueLabel>, toProject: Project): Set<IssueLabel> {
         val transferred = mutableSetOf<IssueLabel>()
@@ -165,7 +165,7 @@ class IssueLabelServiceImpl(
             )
     }
 
-    // yona IssueLabel.copyIssueLabel()의 project+category+name 유일성 재사용 부분(P1-54) 대응.
+    // yona IssueLabel.copyIssueLabel()의 project+category+name 유일성 재사용 부분 대응.
     private fun findOrCreateLabel(toProject: Project, category: IssueLabelCategory, fromLabel: IssueLabel): IssueLabel {
         return issueLabelRepository.findByProjectAndCategoryAndName(toProject, category, fromLabel.name)
             ?: issueLabelRepository.save(

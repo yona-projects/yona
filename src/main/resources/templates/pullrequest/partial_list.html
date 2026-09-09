@@ -4,7 +4,7 @@
 </head>
 <body>
 <!--
-  legacy git/partial_list.scala.html 대응 (그룹11 #167). 기존 yona pullrequest/list.html에
+  legacy git/partial_list.scala.html 대응. 기존 yona pullrequest/list.html에
   하드코딩돼 있던 <table> 목록(yona 자체 발명, legacy에 없음)을 legacy의
   <ul class="post-list-wrap">/<li class="post-item title"> 구조로 완전히 교체한다.
 
@@ -66,9 +66,9 @@
                     <span th:if="${req.toBranch == defaultBranch}" class="to-default-branch" th:text="${req.toBranch}">master</span>
                     <span th:unless="${req.toBranch == defaultBranch}" class="to-branch" th:text="${req.toBranch}">브랜치</span>
 
-                    <!-- yona-wiki P3-02 Step8.7 2번(2026-09-01) — PR 라벨 표시. issue/partial_list.html의
-                         라벨 배지 마크업(클래스/데이터 속성)을 그대로 재사용한다(목록은 읽기 전용 —
-                         Issue 목록도 여기서 편집은 하지 않는다, 편집은 상세 화면에서만). -->
+                    <!-- PR 라벨 표시. issue/partial_list.html의 라벨 배지 마크업(클래스/데이터 속성)을
+                         그대로 재사용한다(목록은 읽기 전용 — Issue 목록도 여기서 편집은 하지 않는다,
+                         편집은 상세 화면에서만). -->
                     <th:block th:each="label : ${req.labels}">
                         <a href="#" class="label issue-label list-label active" th:data-category-id="${label.category.id}" th:data-label-id="${label.id}" th:style="'background: ' + ${label.color}" th:text="${label.name}">라벨</a>
                     </th:block>
@@ -76,10 +76,10 @@
             </div>
             <div class="span2 hide-in-mobile">
                 <div class="mt5 pull-right hide-in-mobile">
-                    <!-- yona-wiki P3-02 Step8.7 2번 — PR 담당자 아바타. issue/partial_list.html의
-                         담당자 아바타 마크업(avatar-wrap assignee 클래스)을 그대로 재사용한다. 이
-                         칸에 이미 있던 avatar-wrap assinee(오탈자 - legacy 그대로 유지, 건드리지
-                         않음)는 receiver(병합한 사람)이고 담당자와는 다른 개념이라 별도로 둔다. -->
+                    <!-- PR 담당자 아바타. issue/partial_list.html의 담당자 아바타 마크업(avatar-wrap
+                         assignee 클래스)을 그대로 재사용한다. 이 칸에 이미 있던 avatar-wrap
+                         assinee(오탈자 - legacy 그대로 유지, 건드리지 않음)는 receiver(병합한 사람)이고
+                         담당자와는 다른 개념이라 별도로 둔다. -->
                     <a th:if="${req.assignee != null}" th:href="@{/{loginId}(loginId=${req.assignee.user.loginId})}" class="avatar-wrap assignee"
                        data-toggle="tooltip" data-placement="top" th:title="#{issue.assignee} + ': ' + ${req.assignee.user.name}">
                         <img th:src="${req.assignee.user.avatarUrl}" width="32" height="32" th:alt="${req.assignee.user.name}">

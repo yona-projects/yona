@@ -23,7 +23,7 @@ class OrganizationServiceImpl(
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
     private val notificationEventRecorder: NotificationEventRecorder,
-    // yona FavoriteOrganization.java:38-46 updateFavoriteOrganization() 대응 (P2-19). [GL-models_FavoriteOrganization-007]
+    // yona FavoriteOrganization.updateFavoriteOrganization() 대응.
     private val favoriteOrganizationRepository: FavoriteOrganizationRepository
 ) : OrganizationService {
 
@@ -43,7 +43,7 @@ class OrganizationServiceImpl(
 
     @Transactional
     override fun createOrganization(name: String, descr: String?, creatorId: Long): Organization {
-        // yona models/Organization.java:42 @Constraints.Pattern(User.LOGIN_ID_PATTERN) 대응 (P1-108).
+        // yona Organization @Constraints.Pattern(User.LOGIN_ID_PATTERN) 대응.
         if (!LoginIdFormatValidator.isValid(name)) {
             throw IllegalArgumentException("Organization name format is invalid: $name")
         }
@@ -53,7 +53,7 @@ class OrganizationServiceImpl(
         if (userRepository.findByLoginId(name).isPresent) {
             throw IllegalArgumentException("User with this name already exists: $name")
         }
-        // yona utils/ReservedWordsValidator.java 대응 (P2-01).
+        // yona ReservedWordsValidator 대응.
         if (ReservedWordsValidator.isReserved(name)) {
             throw IllegalArgumentException("Organization name is a reserved word: $name")
         }
@@ -95,7 +95,7 @@ class OrganizationServiceImpl(
         organization.descr = descr
         organizationRepository.save(organization)
 
-    // yona FavoriteOrganization.java:38-46 updateFavoriteOrganization() 대응 (P2-19) — 조직명이 [GL-models_FavoriteOrganization-007]
+    // yona FavoriteOrganization.updateFavoriteOrganization() 대응 — 조직명이
         // 바뀌면 즐겨찾기 목록에 저장된 비정규화 organizationName도 함께 갱신한다(그대로 두면 즐겨찾기
         // 화면에 옛 조직명이 남는다).
         favoriteOrganizationRepository.findByOrganizationId(orgId).forEach {
@@ -112,7 +112,7 @@ class OrganizationServiceImpl(
         val targetUser = userRepository.findByLoginId(userLoginId)
             .orElseThrow { IllegalArgumentException("User with login ID $userLoginId not found") }
 
-        // yona OrganizationApp.validateForAddMember()의 게스트 계정 거부 대응 (P1-17)
+        // yona OrganizationApp.validateForAddMember()의 게스트 계정 거부 대응.
         if (targetUser.isGuest) {
             throw IllegalArgumentException("게스트 계정은 조직 멤버로 추가할 수 없습니다.")
         }
@@ -222,8 +222,8 @@ class OrganizationServiceImpl(
             throw IllegalArgumentException("User is already a member of this organization")
         }
 
-        // yona EnrollOrganizationApp.java 대응, Project ProjectUserServiceImpl.enroll()의 User.enrolled()
-        // 가드와 동일 유형(P1-122): 이미 대기 중인 가입 신청이 있으면 조용히 무시하고 중복 알림을
+        // yona EnrollOrganizationApp 대응, ProjectUserServiceImpl.enroll()의 User.enrolled()
+        // 가드와 동일 유형: 이미 대기 중인 가입 신청이 있으면 조용히 무시하고 중복 알림을
         // 발생시키지 않는다.
         if (user.enrolledOrganizations.any { it.id == organization.id }) {
             return
@@ -260,14 +260,14 @@ class OrganizationServiceImpl(
         val user = userRepository.findById(userId)
             .orElseThrow { IllegalArgumentException("User not found: $userId") }
 
-        // yona EnrollOrganizationApp.java:101-104 validateForCancelEnroll()의 OrganizationUser.isGuest()
-        // 가드 대응 (P1-123). 이미 조직의 정식 멤버(ORG_ADMIN/ORG_MEMBER)라면 가입 신청 취소 자체가 [GL-controllers_EnrollOrganizationApp-005]
+        // yona EnrollOrganizationApp.validateForCancelEnroll()의 OrganizationUser.isGuest()
+        // 가드 대응. 이미 조직의 정식 멤버(ORG_ADMIN/ORG_MEMBER)라면 가입 신청 취소 자체가
         // 성립하지 않는다.
         if (organizationUserRepository.existsByOrganizationIdAndUserId(organization.id!!, user.id!!)) {
             throw IllegalArgumentException("User is already a member of this organization")
         }
 
-        // yona EnrollOrganizationApp.java:82 User.enrolled(organization) 가드 대응. 실제 대기 중인
+        // yona EnrollOrganizationApp User.enrolled(organization) 가드 대응. 실제 대기 중인
         // 가입 신청이 없으면 취소할 것도, 알릴 것도 없다(조용히 무시).
         if (user.enrolledOrganizations.none { it.id == organization.id }) {
             return
@@ -306,7 +306,7 @@ class OrganizationServiceImpl(
             .map { it.role.id == RoleType.ORG_ADMIN.roleType }
             .orElse(false)
 
-        // yona OrganizationApp.java:288-309 validateForLeave() 그대로 이식 — 관리자는 이 가드를
+        // yona OrganizationApp.validateForLeave() 그대로 이식 — 관리자는 이 가드를
         // 완전히 우회하고(마지막 관리자라도 탈퇴 가능), 관리자가 아니면 "조직 전체 관리자 수 == 1"일
         // 때 탈퇴 요청자와 무관하게 거부한다.
         if (!isAdmin) {

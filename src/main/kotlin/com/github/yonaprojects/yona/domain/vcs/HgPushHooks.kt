@@ -27,7 +27,7 @@ import java.time.Instant
 private const val BOOKMARKS_NAMESPACE = "bookmarks"
 private val HG_RECENTLY_PUSHED_WINDOW: Duration = Duration.ofHours(1)
 
-// yona-wiki P3-21/P3-22 — git 쪽 domain/vcs/GitPushHooks.kt(BranchProtectionPreReceiveHook/
+// git 쪽 domain/vcs/GitPushHooks.kt(BranchProtectionPreReceiveHook/
 // YonaPostReceiveHook)에 정확히 대응하는 Mercurial 버전. Mercurial의 실제 "브랜치 이동" 이벤트는
 // unbundle(changegroup 반영)이 아니라 pushkey(namespace="bookmarks") wire 명령에서만 일어난다 —
 // hg4j에 새로 추가한 Wire1Commands.pushkey(repo, args, prePushkeyHooks, postPushkeyHooks)/
@@ -36,7 +36,7 @@ private val HG_RECENTLY_PUSHED_WINDOW: Duration = Duration.ofHours(1)
 // 노드 hex, 없으면 "")/new(새 노드 hex, 없으면 "")/repository(네이티브 io.github.search5.hg4j.
 // lib.HgRepository) — Git의 ReceiveCommand(refName/oldId/newId)와 동등한 정보량).
 //
-// P3-12 설계 결정(HgRepository.kt 참고)에 따라 yona의 git 스타일 "브랜치"는 Mercurial의
+// 설계 결정(HgRepository.kt 참고)에 따라 yona의 git 스타일 "브랜치"는 Mercurial의
 // bookmark에 매핑되므로, 이 파일의 모든 판정은 namespace가 "bookmarks"일 때만 의미를 가진다
 // (다른 namespace의 pushkey — 예: phases — 는 그냥 통과시킨다).
 
@@ -56,7 +56,7 @@ data class HgBookmarkMove(
 // 작업 디렉터리 부모만 노출) — 그래서 git의 RevWalk.markUninteresting()에 대응하는 조상 관계
 // 판정은 Wire2Commands.changelog()와 동일한 저수준 Revlog(00changelog.i/.d)를 직접 열어
 // IndexRecord.getParent1()/getParent2()로 계산한다(hg4j 자신도 이미 이 저수준 API로 동일한
-// 계산을 한다 — 새 API를 hg4j에 추가할 필요가 없다, 티켓 P3-21의 "간단히 구현" 지침대로).
+// 계산을 한다 — 새 API를 hg4j에 추가할 필요가 없다).
 internal object HgBookmarkAncestry {
     fun changelogRevlogOf(nativeRepo: NativeHgRepository): Revlog {
         val idx = File(nativeRepo.storeDir, "00changelog.i")
@@ -126,15 +126,15 @@ internal object HgBookmarkAncestry {
 }
 
 /**
- * yona-wiki P3-21 — git의 BranchProtectionPreReceiveHook(GitPushHooks.kt)과 최대한 동일한
- * 검사 순서/사유 메시지를 재현한 Mercurial(pushkey) 버전. yona의 "브랜치" == bookmark(P3-12)이므로
+ * git의 BranchProtectionPreReceiveHook(GitPushHooks.kt)과 최대한 동일한
+ * 검사 순서/사유 메시지를 구현한 Mercurial(pushkey) 버전. yona의 "브랜치" == bookmark이므로
  * pushkey의 key(bookmark 이름)를 ProtectedBranch.branchPattern에 매칭한다.
  *
  * git과의 차이: (1) 판정 결과를 command.setResult()가 아니라 HgHook.run()의 boolean 반환값으로
  * 전달한다 — 실제 hg wire pushkey 응답 자체가 "성공/실패" 두 값뿐이라(Wire1Commands.pushkey()의
  * javadoc 참고, "output is always empty") 거부 사유 문자열이 클라이언트까지 전달되지 않는다(로그로만
- * 남긴다) — 이는 지어낸 제약이 아니라 실제 hg wire protocol 자체의 한계다(P3-12/P3-18에서 이미
- * 문서화한 "clone/fetch 거부처럼 지저분한 메시지"와 동일한 선례). (2) CREATE/UPDATE/
+ * 남긴다) — 이는 지어낸 제약이 아니라 실제 hg wire protocol 자체의 한계다("clone/fetch 거부처럼
+ * 지저분한 메시지"와 동일한 선례). (2) CREATE/UPDATE/
  * UPDATE_NONFASTFORWARD/DELETE 판정에 JGit의 ReceiveCommand.Type 대신 [HgBookmarkAncestry]를 쓴다.
  */
 class HgBranchProtectionPrePushkeyHook(
@@ -230,7 +230,7 @@ class HgBranchProtectionPrePushkeyHook(
 }
 
 /**
- * yona-wiki P3-22 — git의 YonaPostReceiveHook(UpdateLastPushedDate/NotifyPushedCommits/
+ * git의 YonaPostReceiveHook(UpdateLastPushedDate/NotifyPushedCommits/
  * PullRequestCheck)에 대응하는 Mercurial(pushkey) 버전. git의 PostReceiveHook은 push 하나의
  * 커맨드 전체를 한 번에 받지만, hg4j의 Wire1Commands.pushkey()는 북마크 하나당 한 번씩 호출되므로
  * 이 훅도 북마크 하나의 이동만 다룬다 — 여러 북마크를 한 번의 `hg push`로 옮기면 이 훅이 그만큼
@@ -244,7 +244,7 @@ class HgYonaPostPushkeyHook(
     private val pullRequestRepository: PullRequestRepository,
     private val pushedBranchRepository: PushedBranchRepository,
     private val eventPublisher: ApplicationEventPublisher,
-    // yona-wiki P3-01(Observability) 계측 지점 6 대응 — git의 yona.git.push_hook.duration과 대칭.
+    // git의 yona.git.push_hook.duration과 대칭인 계측 지점.
     private val meterRegistry: MeterRegistry
 ) : HgHook {
     private val logger = LoggerFactory.getLogger(HgYonaPostPushkeyHook::class.java)

@@ -27,11 +27,11 @@ class BootstrapSetupInterceptor(
             uri.startsWith("/stylesheets/") ||
             uri.startsWith("/javascripts/") ||
             uri.startsWith("/webjars/") ||
-            // yona-wiki P3-03 Step4 — `/internal/ssh/**`(SshInternalController)는 시스템 sshd의
-            // AuthorizedKeysCommand 훅이 호출하는 JSON API다. 브라우저 세션이 아니라 로컬 머신
-            // 프로세스 간 호출이라 302로 HTML 설정 페이지에 리다이렉트하는 게 아무 의미가 없고,
-            // 호출자(Go CLI)가 JSON을 기대하는데 HTML 리다이렉트를 받으면 오동작한다 — 이 컨트롤러
-            // 자체의 루프백 주소 + 공유 시크릿 검사가 인가를 담당한다.
+            // `/internal/ssh/**`(SshInternalController)는 시스템 sshd의 AuthorizedKeysCommand
+            // 훅이 호출하는 JSON API다. 브라우저 세션이 아니라 로컬 머신 프로세스 간 호출이라
+            // 302로 HTML 설정 페이지에 리다이렉트하는 게 아무 의미가 없고, 호출자(Go CLI)가 JSON을
+            // 기대하는데 HTML 리다이렉트를 받으면 오동작한다 — 이 컨트롤러 자체의 루프백 주소 +
+            // 공유 시크릿 검사가 인가를 담당한다.
             uri.startsWith("/internal/") ||
             uri == "/error" ||
             uri == "/favicon.ico"

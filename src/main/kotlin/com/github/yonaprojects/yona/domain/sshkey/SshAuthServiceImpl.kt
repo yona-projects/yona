@@ -36,7 +36,7 @@ class SshAuthServiceImpl(
         "^(git-upload-pack|git-receive-pack|git-upload-archive)\\s+'([^']+)'$"
     )
 
-    // real hg 클라이언트의 ui.ssh 원격 명령 고정 형식(mercurial/sshpeer.py 실측,
+    // real hg 클라이언트의 ui.ssh 원격 명령 고정 형식(mercurial/sshpeer.py 기준,
     // "hg -R <path> serve --stdio") — 경로에 공백이 없으면 따옴표 없이, 있으면 작은따옴표로
     // 감싸서 보낸다(둘 다 인식). yona 쪽에서 새로 지어낸 규약이 아니라 real hg가 실제로 보내는
     // 그대로다 — 그래야 이 저장소가 나중에 real hg 바이너리를 향한 진짜 forced command로도

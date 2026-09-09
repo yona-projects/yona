@@ -15,18 +15,18 @@ import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 
 /**
- * yona-wiki P3-03 Step8 — 커밋의 GPG 서명을 실제로 암호학적으로 검증한다(서명이 "있다"만
- * 확인하는 것이 아니라 BouncyCastle로 공개키에 대해 실제 서명 검증을 수행한다 — 보안 리뷰 항목).
+ * 커밋의 GPG 서명을 실제로 암호학적으로 검증한다(서명이 "있다"만 확인하는 것이 아니라
+ * BouncyCastle로 공개키에 대해 실제 서명 검증을 수행한다 — 보안 리뷰 항목).
  *
- * 정책(계획 문서 "리스크/미결정 사항"에서 착수 시 확정): 미서명 커밋도 push는 항상 허용되고
- * 배지만 표시되지 않는다(UNSIGNED). author 이메일과 서명 키의 (계정 소유로 인증된) UID
- * 이메일이 일치해야만 VERIFIED, 서명은 있으나 암호학적 검증 실패거나 이메일이 일치하지 않으면
- * UNVERIFIED — 이 서비스는 push를 거부하는 훅이 아니라 순수 판정 로직이다(GitPushHooks의
- * PreReceiveHook과 달리 결과를 반환만 한다 — Commit.getGpgVerificationStatus()가 커밋 목록/
- * 상세 조회 시점에 즉시 호출해 화면에 표시하므로 별도의 DB 캐시 테이블이 필요 없다. 커밋은
- * 이 앱에서 애초에 JPA 엔티티로 미러링되지 않고 항상 git 객체 저장소에서 그때그때 읽어오므로
- * "Commit 모델에 검증결과 필드 추가"는 domain/vcs/Commit.kt에 새 추상 메서드를 추가하는
- * 형태로 구현했다 — GitCommit.kt/GitRepository.kt 참고).
+ * 정책: 미서명 커밋도 push는 항상 허용되고 배지만 표시되지 않는다(UNSIGNED). author 이메일과
+ * 서명 키의 (계정 소유로 인증된) UID 이메일이 일치해야만 VERIFIED, 서명은 있으나 암호학적 검증
+ * 실패거나 이메일이 일치하지 않으면 UNVERIFIED — 이 서비스는 push를 거부하는 훅이 아니라 순수
+ * 판정 로직이다(GitPushHooks의 PreReceiveHook과 달리 결과를 반환만 한다 —
+ * Commit.getGpgVerificationStatus()가 커밋 목록/상세 조회 시점에 즉시 호출해 화면에 표시하므로
+ * 별도의 DB 캐시 테이블이 필요 없다. 커밋은 이 앱에서 애초에 JPA 엔티티로 미러링되지 않고 항상
+ * git 객체 저장소에서 그때그때 읽어오므로 "Commit 모델에 검증결과 필드 추가"는
+ * domain/vcs/Commit.kt에 새 추상 메서드를 추가하는 형태로 구현했다 — GitCommit.kt/
+ * GitRepository.kt 참고).
  */
 @Service
 class GpgSignatureVerifier(
@@ -40,7 +40,7 @@ class GpgSignatureVerifier(
         return verifyRaw(rawSignature, signedDataOf(commit), authorEmail, commit.name)
     }
 
-    // yona-wiki P3-19 — Mercurial 쪽 GPG 배지. hg4j가 changelog `extra` 딕셔너리에 git의 gpgsig
+    // Mercurial 쪽 GPG 배지. hg4j가 changelog `extra` 딕셔너리에 git의 gpgsig
     // 커밋 헤더와 완전히 동일한 셰이프로 심어둔 gpgsig(armored 서명)/서명 대상 페이로드를 그대로
     // 노출하므로(HgCommit.getGpgSignature()/getUnsignedChangelogText() — hg4j
     // CommitCommand.setGpgSigner()의 계약), 이 아래는 verifyRaw()를 그대로 재사용한다 — 후보

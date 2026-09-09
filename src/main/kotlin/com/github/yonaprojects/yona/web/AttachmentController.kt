@@ -73,9 +73,8 @@ class AttachmentController(
         // NFC 파일명 정규화
         val normalizedFilename = Normalizer.normalize(file.originalFilename ?: "unknown", Normalizer.Form.NFC)
 
-        // yona AttachmentApp.java:84-85 attach.store(...)의 반환값(isCreated) 대응 (P2-24) —
-        // AttachmentService.store()가 dedup 여부를 직접 반환하므로 사후에 existsByHash로 추정할
-        // 필요가 없다.
+        // yona AttachmentApp의 attach.store(...) 반환값(isCreated) 대응 — AttachmentService.store()가
+        // dedup 여부를 직접 반환하므로 사후에 existsByHash로 추정할 필요가 없다.
         val (attach, isNew) = attachmentService.store(
             inputStream = file.inputStream,
             name = normalizedFilename,
@@ -111,8 +110,8 @@ class AttachmentController(
         val attachment = attachmentRepository.findById(id).orElse(null)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
-        // yona AccessControl.java:255-259 ATTACHMENT READ(컨테이너의 READ 권한으로 위임) 대응 (P1-96,
-        // 보안). 다운로드/인라인 조회 둘 다 이 게이트를 거친다 — 이전에는 권한 체크 자체가 없었다.
+        // yona AccessControl의 ATTACHMENT READ(컨테이너의 READ 권한으로 위임) 대응 — 보안 이슈.
+        // 다운로드/인라인 조회 둘 다 이 게이트를 거친다 — 이전에는 권한 체크 자체가 없었다.
         val loginUser = principal?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowedAttachment(loginUser, attachment, Operation.READ)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
@@ -193,9 +192,9 @@ class AttachmentController(
                     }
                 } ?: false
             }
-            // yona AccessControl.java:250-263 isProjectResourceAllowed()의 ATTACHMENT 케이스
-            // (컨테이너의 UPDATE 권한으로 위임) 대응 (P1-130). 업로더 본인 전용으로 과잉 제한하던
-            // catch-all에서 COMMIT_COMMENT/REVIEW_COMMENT를 분리 — AccessControl.isAllowedAttachment()가
+            // yona AccessControl의 isProjectResourceAllowed()가 하는 ATTACHMENT 케이스(컨테이너의
+            // UPDATE 권한으로 위임) 대응. 업로더 본인 전용으로 과잉 제한하던 catch-all에서
+            // COMMIT_COMMENT/REVIEW_COMMENT를 분리 — AccessControl.isAllowedAttachment()가
             // 이미 이 두 타입을 정확히 컨테이너(커밋/리뷰 댓글)의 UPDATE 권한(프로젝트 멤버 누구나)으로
             // 위임하도록 구현돼 있어(getFile()의 READ 체크가 이미 재사용 중) 그대로 재사용한다.
             ResourceType.COMMIT_COMMENT, ResourceType.REVIEW_COMMENT -> {
@@ -238,8 +237,8 @@ class AttachmentController(
             ResourceType.NOT_A_RESOURCE
         }
 
-        // yona AccessControl.java:255-259 ATTACHMENT READ 대응 (P1-96, 보안). 목록 조회는 특정 첨부가
-        // 아니라 컨테이너 단위 질의이므로, containerType/containerId만으로 동일한 컨테이너 권한 위임
+        // yona AccessControl의 ATTACHMENT READ 대응 — 보안 이슈. 목록 조회는 특정 첨부가 아니라
+        // 컨테이너 단위 질의이므로, containerType/containerId만으로 동일한 컨테이너 권한 위임
         // 로직(isAllowedAttachment)을 재사용한다(id/name/hash 등은 이 판정에 쓰이지 않아 더미로 둬도 안전).
         val loginUser = principal?.let { userRepository.findByLoginId(it.name).orElse(null) }
         val containerProbe = Attachment(containerType = resType, containerId = containerId)

@@ -33,7 +33,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * yona `models/NotificationMail.startSchedule()`/`sendMail()`/`sendNotification()` 대응 (P1-27).
+ * yona `models/NotificationMail.startSchedule()`/`sendMail()`/`sendNotification()` 대응.
  * Akka 스케줄러 대신 Spring `@Scheduled`를 쓴다(사용자 지시 — 이 부분만 Spring/Kotlin 방식으로
  * 재설계). 나머지 알고리즘(지연 발송, 이벤트 병합, 도메인 제한, 수신자 제한 분할, 언어별 그룹핑,
  * Message-ID/References 스레딩)은 legacy 그대로 옮긴다.
@@ -66,7 +66,6 @@ class NotificationMailDigestScheduler(
     @Value("\${yona.mailbox.imap.address:}") private val imapAddress: String,
     @Value("\${yona.hostname:localhost}") private val hostname: String,
     @Value("\${yona.site-name:Yona}") private val siteName: String,
-    // yona-wiki P3-01(Observability) 계측 지점 3 대응.
     private val meterRegistry: MeterRegistry
 ) {
     private val logger = LoggerFactory.getLogger(NotificationMailDigestScheduler::class.java)
@@ -226,7 +225,7 @@ class NotificationMailDigestScheduler(
         val htmlMessage = if (main.eventType == EventType.ISSUE_BODY_CHANGED || main.eventType == EventType.POSTING_BODY_CHANGED) {
             message
         } else {
-            // yona Markdown.render(source, project, lang) 대응 (P1-140) — 이 스케줄러는 HTTP 요청 스레드가
+            // yona Markdown.render(source, project, lang) 대응 — 이 스케줄러는 HTTP 요청 스레드가
             // 아니라 LocaleContextHolder로 수신자의 언어를 알 수 없다. 이미 계산해둔 수신자 배치의 locale을
             // 명시적으로 넘겨 @멘션 표시 이름이 발신자가 아니라 수신자의 언어로 렌더링되게 한다.
             markdownService.render(message, true, projectOf(main), locale.language)
@@ -275,7 +274,7 @@ class NotificationMailDigestScheduler(
     }
 
     // yona NotificationMail.getReplyTo() 대응 — comment 계열은 컨테이너(이슈/게시글)의 상세 주소로,
-    // post 계열은 자기 자신의 상세 주소로 회신을 라우팅한다. IncomingMailProcessingService(P1-32)의
+    // post 계열은 자기 자신의 상세 주소로 회신을 라우팅한다. IncomingMailProcessingService의
     // "owner/project/<resourceType>/<resourceId>" detail 파싱과 짝을 이룬다.
     private fun getReplyTo(event: NotificationEvent): String? {
         if (imapAddress.isBlank()) return null
@@ -324,8 +323,8 @@ class NotificationMailDigestScheduler(
     // yona EventEmail.addReferences() 대응. resource.getContainer()가 COMMENT_THREAD면 그 스레드의
     // "첫 리뷰 댓글" Message-ID를 참조하고(legacy 특수 케이스), 그 외 컨테이너가 있으면 컨테이너 자체의
     // Message-ID를 참조한다(default 케이스). REVIEW_COMMENT의 컨테이너는 COMMENT_THREAD, COMMIT_COMMENT의
-    // 컨테이너는 COMMIT이다(P1-50에서 NEW_REVIEW_COMMENT/NEW_COMMENT/REVIEW_THREAD_STATE_CHANGED 생산이
-    // 실제로 배선된 뒤 이 References 매핑도 함께 갱신). COMMENT_THREAD 자신(REVIEW_THREAD_STATE_CHANGED)은
+    // 컨테이너는 COMMIT이다(NEW_REVIEW_COMMENT/NEW_COMMENT/REVIEW_THREAD_STATE_CHANGED 생산이
+    // 실제로 배선된 뒤 이 References 매핑도 함께 갱신해야 한다). COMMENT_THREAD 자신(REVIEW_THREAD_STATE_CHANGED)은
     // legacy에서도 컨테이너가 없어(CommentThread.asResource()가 getContainer()를 오버라이드하지 않음)
     // References를 채우지 않는다.
     private fun computeReferences(event: NotificationEvent): String? {

@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import java.security.Principal
 
-// yona-wiki P3-07(MCP 서버) Step2 — OAuth2 동의(consent) 화면. 사용자 방침("모호하면 GitHub 방식을
-// 기본값으로")에 따라 GitHub의 OAuth 동의 화면 문구/레이아웃(앱 이름 + 요청 권한 목록 + Authorize/Cancel
+// OAuth2 동의(consent) 화면. 모호한 설계 결정은 GitHub 방식을 기본값으로 삼는 방침에 따라
+// GitHub의 OAuth 동의 화면 문구/레이아웃(앱 이름 + 요청 권한 목록 + Authorize/Cancel
 // 버튼)을 그대로 차용했다. Spring Authorization Server는 이 화면을 자체 제공하지 않고
 // 애플리케이션이 직접 구현하도록 설계돼 있다(공식 샘플 저장소의 AuthorizationConsentController와
 // 동일한 패턴 — 요청된 스코프 중 이미 동의한 것과 새로 동의를 구해야 하는 것을 구분해 보여준다).
@@ -22,8 +22,8 @@ class OAuthConsentController(
 ) {
 
     companion object {
-        // yona-wiki P3-14 2라운드 — `issues:read`류 API 스코프는 원래부터 원문 스코프 문자열을
-        // 그대로 보여주는 것 말고는 아무 설명 메커니즘이 없었다(consent.html 1라운드 코드 확인) —
+        // `issues:read`류 API 스코프는 원래부터 원문 스코프 문자열을
+        // 그대로 보여주는 것 말고는 아무 설명 메커니즘이 없었다 —
         // 그 관례를 깨지 않으면서, GitHub이 OIDC identity 스코프에 한해서는 plain-language 설명을
         // 보여주는 것과 동등하게 openid/profile/email 세 개만 메시지 키로 매핑해 사람이 읽을 수 있는
         // 문구로 대체한다(GitHub 컨벤션 기본값 방침). 매핑에 없는 스코프(API 스코프 포함)는 계속

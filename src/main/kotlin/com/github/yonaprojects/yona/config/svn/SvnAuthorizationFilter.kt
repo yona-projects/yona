@@ -14,12 +14,9 @@ import java.util.regex.Pattern
 
 @Component
 class SvnAuthorizationFilter(
-    // 2026-09-07 — findProject/requiresAuth/isMember/isGuestUser는 GitAuthorizationFilter가
-    // 이미 쓰던 RepoAccessPolicy와 완전히 동일한 로직을 이 파일이 그대로 복붙해 두고 있던 것을
-    // 발견해 공유하도록 정리했다(순수 리팩터링, 동작 변화 없음 — SvnAuthorizationFilterSpec/
-    // SvnAuthorizationFilterExtraSpec으로 회귀 여부 재검증). project.vcs 검증과 SVN 고유의
-    // 쓰기요청 판정(HTTP 메서드 allowlist)만 RepoAccessPolicy에 없는 SVN 전용 로직이라 이
-    // 필터에 그대로 남겨둔다.
+    // findProject/requiresAuth/isMember/isGuestUser는 GitAuthorizationFilter가 쓰는
+    // RepoAccessPolicy와 로직을 공유한다. project.vcs 검증과 SVN 고유의 쓰기요청 판정
+    // (HTTP 메서드 allowlist)만 RepoAccessPolicy에 없는 SVN 전용 로직이라 이 필터에 남겨둔다.
     private val repoAccessPolicy: RepoAccessPolicy
 ) : OncePerRequestFilter() {
 
@@ -66,12 +63,12 @@ class SvnAuthorizationFilter(
                 return
             }
 
-            // 2026-09-07 — GitAuthorizationFilter의 Deploy Key 분기(P3-03 Step2)와 동일한 로직.
-            // 이전까지 이 분기가 없어서, DeployKeyAuthenticationProvider가 SecurityConfig에
-            // 전역으로 등록돼 있는 탓에 SVN 요청도 Deploy Key로 "인증"까지는 통과하지만
-            // authentication.name이 "x-access-deploykey" 고정 문자열이라 isMember()가 항상
-            // false를 반환해 무조건 403이 나는 죽은 기능이었다(웹 UI가 vcs 종류로 Deploy Key
-            // 생성을 막지 않아 실제로 재현 가능한 함정이었음).
+            // GitAuthorizationFilter의 Deploy Key 분기와 동일한 로직. 이 분기가 없으면,
+            // DeployKeyAuthenticationProvider가 SecurityConfig에 전역으로 등록돼 있는 탓에
+            // SVN 요청도 Deploy Key로 "인증"까지는 통과하지만 authentication.name이
+            // "x-access-deploykey" 고정 문자열이라 isMember()가 항상 false를 반환해 무조건
+            // 403이 나는 죽은 기능이 된다(웹 UI가 vcs 종류로 Deploy Key 생성을 막지 않으므로
+            // 실제로 발생할 수 있는 함정).
             if (authentication is DeployKeyAuthenticationToken) {
                 val deployKey = authentication.deployKey
                 if (deployKey.project?.id != project.id) {

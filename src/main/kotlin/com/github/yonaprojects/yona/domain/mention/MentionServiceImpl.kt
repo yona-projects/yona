@@ -12,7 +12,7 @@ class MentionServiceImpl(
     private val issueCommentRepository: IssueCommentRepository
 ) : MentionService {
 
-    // yona Mention.java:33-49 update(Resource, Set<User>) 대응 — diff-sync: 기존 행 중 새 멘션 [GL-models_Mention-004;GL-models_Mention-005;GL-models_Mention-006;GL-models_Mention-007;GL-models_Mention-008]
+    // yona Mention.java update(Resource, Set<User>) 대응 — diff-sync: 기존 행 중 새 멘션
     // 집합에 없는 것은 삭제하고, 새로 추가된 멘션만 insert한다.
     @Transactional
     override fun update(resourceType: ResourceType, resourceId: String, mentionedUsers: Set<User>) {

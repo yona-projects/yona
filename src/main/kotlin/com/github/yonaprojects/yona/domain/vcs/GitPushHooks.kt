@@ -47,7 +47,7 @@ class RejectPushToReservedRefsPreReceiveHook : PreReceiveHook {
 }
 
 /**
- * yona-wiki P3-04(브랜치 보호) — legacy에는 대응 로직이 전혀 없는 신규 인프라. `ProtectedBranch`
+ * 브랜치 보호(branch protection) — legacy에는 대응 로직이 전혀 없는 신규 인프라. `ProtectedBranch`
  * (`domain/branchprotection/`)의 branch_pattern이 매칭되는 규칙을 찾아 직접 push를 정책대로
  * 거부한다. 검사 순서: (1) admins_can_bypass가 켜져 있고 pusher가 프로젝트 매니저면 이 규칙 전체를
  * 우회, (2) require_pull_request가 켜져 있으면 DELETE를 제외한 모든 직접 push(CREATE/UPDATE/
@@ -56,18 +56,17 @@ class RejectPushToReservedRefsPreReceiveHook : PreReceiveHook {
  * require_signed_commits가 켜져 있으면 이 커맨드가 새로 들여오는 커밋(oldId..newId 범위) 중
  * `GpgSignatureVerifier.verify()`가 VERIFIED로 판정하지 않는 커밋이 하나라도 있으면 거부, (6)
  * restrict_push_to가 설정돼 있으면 그 목록에 없는 pusher의 모든 push 거부. 여러 규칙이 같은
- * 브랜치에 매칭될 가능성(중복 patterns)은 이 계획의 DoD 범위 밖이라 첫 매칭 규칙만 적용한다.
+ * 브랜치에 매칭될 가능성(중복 patterns)은 범위 밖이라 첫 매칭 규칙만 적용한다.
  *
  * `RejectPushToReservedRefsPreReceiveHook`과 마찬가지로 `PreReceiveHookChain.newChain()`으로
  * 체이닝된다(`GitServletConfig` 참고) — refs/yobi 예약 ref 거부가 먼저 실행되므로 이미 다른
  * 이유로 거부된 커맨드는 건드리지 않는다(command.result가 NOT_ATTEMPTED일 때만 검사).
  *
- * yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — `requireSignedCommits`는 P3-03의 GPG 서명 검증
- * 파이프라인(`GpgSignatureVerifier`)이 완성되기 전까지 값과 무관하게 항상 통과 처리됐다. 이제 실제로
- * 검사한다: `require_pull_request=true`인 브랜치는 이미 (2)에서 DELETE를 제외한 모든 직접 push가
- * 막히므로 requireSignedCommits는 require_pull_request=false인 브랜치에 직접 push할 때만 실질적인
- * 의미를 가진다 — 두 플래그가 함께 켜져 있어도 (2)가 먼저 매칭돼 거부하고 continue하므로 순서와
- * 무관하게 정상 동작한다.
+ * `requireSignedCommits`는 GPG 서명 검증 파이프라인(`GpgSignatureVerifier`)이 완성되기 전까지
+ * 값과 무관하게 항상 통과 처리됐으나, 이제 실제로 검사한다: `require_pull_request=true`인
+ * 브랜치는 이미 (2)에서 DELETE를 제외한 모든 직접 push가 막히므로 requireSignedCommits는
+ * require_pull_request=false인 브랜치에 직접 push할 때만 실질적인 의미를 가진다 — 두 플래그가
+ * 함께 켜져 있어도 (2)가 먼저 매칭돼 거부하고 continue하므로 순서와 무관하게 정상 동작한다.
  */
 class BranchProtectionPreReceiveHook(
     private val project: Project,
@@ -146,7 +145,7 @@ class BranchProtectionPreReceiveHook(
             for (commit in walk) {
                 // RevWalk가 기본으로 유지하는 건 커밋 헤더(부모/트리 등)뿐, 본문(raw buffer)은
                 // 아니다 — ReceivePack의 RevWalk는 연결성 검사용으로 만들어져 retainBody가
-                // 꺼져 있어(실측: RevCommit.getRawGpgSignature()가 raw buffer null로 NPE) 본문에
+                // 꺼져 있어(RevCommit.getRawGpgSignature()가 raw buffer null로 NPE를 던진다) 본문에
                 // 있는 gpgsig 헤더를 읽으려면 명시적으로 parseBody()를 호출해야 한다.
                 walk.parseBody(commit)
                 if (gpgSignatureVerifier.verify(commit) != GpgVerificationStatus.VERIFIED) {
@@ -179,7 +178,6 @@ class YonaPostReceiveHook(
     private val pullRequestRepository: PullRequestRepository,
     private val pushedBranchRepository: PushedBranchRepository,
     private val eventPublisher: ApplicationEventPublisher,
-    // yona-wiki P3-01(Observability) 계측 지점 6 대응.
     private val meterRegistry: MeterRegistry
 ) : PostReceiveHook {
 
@@ -197,7 +195,7 @@ class YonaPostReceiveHook(
     }
 
     // yona playRepository/hooks/PullRequestCheck.java의 onPostReceive() 첫 번째 루프
-    // (ReceiveCommandUtil.getUpdatedBranches→RelatedPullRequestMergingActor) 대응 (P1-146).
+    // (ReceiveCommandUtil.getUpdatedBranches→RelatedPullRequestMergingActor) 대응.
     // 새 커밋이 갱신된(생성이 아닌) 브랜치를 fromBranch로 하는 PR들의 병합/충돌 상태를 재검사해야
     // 하므로, UPDATE/UPDATE_NONFASTFORWARD 커맨드에 대해서만 이벤트를 발행한다.
     private fun notifyRelatedPullRequestsForUpdatedBranches(commands: Collection<ReceiveCommand>) {
@@ -233,7 +231,7 @@ class YonaPostReceiveHook(
             }
     }
 
-    // yona playRepository/hooks/UpdateRecentlyPushedBranch.java 대응 (P1-24)
+    // yona playRepository/hooks/UpdateRecentlyPushedBranch.java 대응.
     private fun updateRecentlyPushedBranches(commands: Collection<ReceiveCommand>) {
         removeOldPushedBranches()
         saveRecentlyPushedBranches(commands)

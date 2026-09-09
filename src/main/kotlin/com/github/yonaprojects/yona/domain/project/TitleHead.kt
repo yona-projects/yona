@@ -10,7 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 
-// yona models/TitleHead.java 대응 (P1-103). 이슈/게시글 제목이 "[Bug][UI] ..."처럼 대괄호로 시작하는
+// legacy models/TitleHead.java 대응. 이슈/게시글 제목이 "[Bug][UI] ..."처럼 대괄호로 시작하는
 // 머리말(head keyword)로 시작하면, 프로젝트별로 그 키워드의 사용 빈도를 추적해 제목 자동완성/
 // 중복이슈 제안에 쓴다.
 @Entity

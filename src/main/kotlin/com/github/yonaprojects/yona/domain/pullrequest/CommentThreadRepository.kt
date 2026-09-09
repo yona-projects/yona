@@ -14,10 +14,10 @@ interface CommentThreadRepository : JpaRepository<CommentThread, Long> {
     fun findByPullRequest(pullRequest: PullRequest): List<CommentThread>
     fun findByProjectAndCommitIdAndPullRequestIsNullOrderByCreatedDateDesc(project: Project, commitId: String): List<CommentThread>
 
-    // yona Project.deleteCommentThreads()(this.commentThreads 전체) 대응 (P0-19).
+    // yona Project.deleteCommentThreads()(this.commentThreads 전체) 대응.
     fun findByProject(project: Project): List<CommentThread>
 
-    // yona CommentThread.countOnCommit(project, commitId, path) 대응 (그룹10 #154, code/view.html 파일뷰의
+    // yona CommentThread.countOnCommit(project, commitId, path) 대응(code/view.html 파일뷰의
     // 리비전 링크 옆 댓글 수 배지). codeRange는 CodeCommentThread(서브클래스)에만 있는 필드라 Spring Data의
     // 파생 쿼리(프로퍼티 경로)로는 베이스 타입 CommentThread에서 곧바로 참조할 수 없어 TREAT를 쓰는
     // 명시적 JPQL로 작성한다.

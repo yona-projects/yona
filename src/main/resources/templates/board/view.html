@@ -38,7 +38,7 @@
                         </a>
                     </div>
 
-                    <!-- legacy board/view.scala.html:78 "@if(StringUtils.isNotEmpty(post.history))" 블록 대응 (#41, TASK-0257) -->
+                    <!-- legacy board/view.scala.html "@if(StringUtils.isNotEmpty(post.history))" 블록 대응 -->
                     <div class="posting-history" th:if="${post.history != null and !#strings.isEmpty(post.history)}">
                         <a th:if="${currentUser == null}" th:href="@{/users/loginform}" th:text="#{change.history}">변경 이력</a>
                         <th:block th:if="${currentUser != null}">
@@ -80,7 +80,7 @@
 
                         <span class="act-row">
                             <!-- issue/view.html과 동일한 이유로 th:onclick 대신 data-* + 정적 onclick으로
-                                 우회한다(TASK-0257, TemplateProcessingException 실제 발견/수정). -->
+                                 우회한다 — th:onclick으로 쓰면 TemplateProcessingException이 발생했다. -->
                             <button th:if="${isAllowedUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}" th:data-edit-url="@{/{owner}/{projectName}/post/{number}/editform(owner=${project.owner}, projectName=${project.name}, number=${post.number})}" onclick="window.location=this.getAttribute('data-edit-url')"><i class="yobicon-edit-2"></i></button>
                             <a th:if="${!isAllowedUpdate}" th:href="@{/{owner}/{projectName}/post/{number}/editform(owner=${project.owner}, projectName=${project.name}, number=${post.number})}">
                                 <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button>
@@ -109,7 +109,7 @@
                                             <strong class="name" th:text="${comment.authorName != null ? comment.authorName : comment.authorLoginId}">댓글작성자</strong>
                                             <span class="date" th:text="${templateHelper.agoOrDateString(comment.createdDate)}">작성일</span>
                                             <span class="act-row pull-right">
-                                                <!-- 그룹11 #25 재작업: 댓글 인라인 수정/삭제 버튼 -->
+                                                <!-- 댓글 인라인 수정/삭제 버튼 -->
                                                 <button th:if="${currentUser != null}" type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" th:data-comment-id="${comment.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
                                                 <button th:if="${currentUser != null and (comment.authorId == currentUser.id or isProjectManager)}" type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete" th:data-request-uri="${commentApiBase} + '/' + ${comment.id}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
                                             </span>
@@ -231,7 +231,7 @@
             });
         });
 
-        // ===== 그룹11 #25/#26/#29/#30/#31 재작업: 댓글 인라인 수정/대댓글 AJAX 배선 =====
+        // ===== 댓글 인라인 수정/대댓글 AJAX 배선 =====
         $(document).on('click', '[data-toggle="comment-edit"]', function(){
             var id = $(this).data('commentId');
             $('#comment-body-' + id).hide();

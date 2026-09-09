@@ -7,7 +7,7 @@ import java.time.Instant
 private val DRAFT_WINDOW: Duration = Duration.ofSeconds(30)
 
 /**
- * yona `models/IssueEvent.java`의 `add()`/`addWithoutSkipEvent()` 대응(P1-38).
+ * yona `models/IssueEvent.java`의 `add()`/`addWithoutSkipEvent()` 대응.
  * 같은 이슈에 대해 같은 사용자가 [DRAFT_WINDOW] 이내에 같은 타입의 이벤트를 연속으로 남기면
  * 타임라인 잡음을 줄이기 위해 병합하거나 상쇄한다.
  *
@@ -18,8 +18,8 @@ private val DRAFT_WINDOW: Duration = Duration.ofSeconds(30)
  *
  * 저장되면 저장된 [IssueEvent]를, 상쇄되어 저장되지 않았으면 null을 반환한다.
  *
- * [meterRegistry]는 yona-wiki P3-01(Observability) 계측 지점 2 대응 — "새 이벤트 저장" vs
- * "직전 이벤트 병합/상쇄" 비율을 outcome 태그로 카운팅한다. 확장 함수라 Spring 빈이 아니므로
+ * [meterRegistry]는 "새 이벤트 저장" vs "직전 이벤트 병합/상쇄" 비율을 outcome 태그로 카운팅하는
+ * 계측 지점이다. 확장 함수라 Spring 빈이 아니므로
  * DI 컨테이너 대신 파라미터로 주입받는다(호출부인 IssueServiceImpl/IssueShareServiceImpl이
  * 생성자로 주입받은 걸 그대로 전달).
  */

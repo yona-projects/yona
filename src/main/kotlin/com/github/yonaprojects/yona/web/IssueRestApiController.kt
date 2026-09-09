@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-// yona-wiki P3-02 Step4 — Go CLI 등 외부 클라이언트를 위한 신규 범용 REST API
+// Go CLI 등 외부 클라이언트를 위한 신규 범용 REST API
 // (`/api/v1/projects/{owner}/{project}/issues`). ApiTokenAuthenticationFilter가 이미 이
 // 네임스페이스로 들어오는 요청의 스코프(ISSUES 그룹) 인가를 필터 단계에서 처리하므로(필터의
-// resourceSegmentToResourceType 매핑에 "issues"가 이미 존재, Step3에서 선행 구현됨) 이 컨트롤러는
-// 스코프 판정을 다시 구현하지 않는다.
+// resourceSegmentToResourceType 매핑에 "issues"가 이미 존재) 이 컨트롤러는 스코프 판정을 다시
+// 구현하지 않는다.
 //
 // 클래스명이 IssueApiController가 아니라 IssueRestApiController인 이유: 그 이름은 이미
 // IssueApiController.kt(legacy Open API 네임스페이스 `-_-api/v1/owners/...` 전용)가 쓰고 있다.
@@ -38,16 +38,15 @@ class IssueRestApiController(
     private val commentController: CommentController
 ) {
 
-    // P3-30(2026-09-09) — 이 이중 변환은 IssueController가 raw Issue 엔티티를 반환하던 시절의
-    // 방어였다. IssueController(getIssues/createIssue/getIssue/updateIssue/changeState/moveIssue)가
-    // 이제 전부 자체적으로 IssueResponse DTO를 반환하도록 고쳐졌으므로(P3-30), 여기서 다시
-    // .toResponse()를 부르면 이미 DTO로 변환된 값에 대해 존재하지 않는 확장 함수를 호출하려다
-    // 컴파일 에러가 난다 — mapBody 자체를 제거하고 그대로 위임한다(PullRequestApiController가
-    // P3-28에서 겪은 것과 동일한 정리).
+    // 예전엔 여기서 IssueController가 반환한 값을 다시 .toResponse()로 감쌌으나, 그건
+    // IssueController가 raw Issue 엔티티를 반환하던 시절의 방어였다. IssueController(getIssues/
+    // createIssue/getIssue/updateIssue/changeState/moveIssue)가 전부 자체적으로 IssueResponse
+    // DTO를 반환하도록 고쳐지면서, 이미 DTO로 변환된 값에 존재하지 않는 확장 함수를 호출하려다
+    // 컴파일 에러가 났다 — mapBody 자체를 제거하고 그대로 위임한다(PullRequestApiController가
+    // 겪은 것과 동일한 정리).
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh issue list --assignee/--label/--author`
-    // 대응. IssueController.getIssues()에 이미 추가한 동일한 이름의 선택 파라미터를 그대로 전달만
-    // 한다(신규 서비스 로직 없음, 얇은 어댑터 원칙 유지).
+    // `gh issue list --assignee/--label/--author` 대응. IssueController.getIssues()에 이미 추가한
+    // 동일한 이름의 선택 파라미터를 그대로 전달만 한다(신규 서비스 로직 없음, 얇은 어댑터 원칙 유지).
     @GetMapping
     fun list(
         @PathVariable owner: String,
@@ -88,7 +87,7 @@ class IssueRestApiController(
         return issueController.getIssue(found.id!!, number, authentication)
     }
 
-    // yona-wiki 계획 원문 "개별 조회/수정/코멘트/클로즈"의 "수정" 대응. 부분 수정 의미가 강한
+    // "개별 조회/수정/코멘트/클로즈"의 "수정" 대응. 부분 수정 의미가 강한
     // PATCH를 쓴다(IssueController의 웹용 대응 메서드는 PUT이지만, 그건 폼 전체 재제출을 전제로
     // 한 웹 프런트엔드 컨벤션이고 이 신규 API는 CLI/서드파티 연동 대상이라 REST 관례상 PATCH가
     // 더 적절하다 — 필드는 동일한 UpdateIssueRequest를 그대로 재사용).
@@ -130,7 +129,7 @@ class IssueRestApiController(
         return issueController.changeState(found.id!!, number, State.CLOSED, authentication)
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh issue reopen`. IssueController.changeState()가
+    // `gh issue reopen`. IssueController.changeState()가
     // close와 동일한 범용 상태변경 API라 값만 OPEN으로 고정해 위임한다.
     @PostMapping("/{number}/reopen")
     fun reopen(
@@ -144,7 +143,7 @@ class IssueRestApiController(
         return issueController.changeState(found.id!!, number, State.OPEN, authentication)
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh issue transfer`. 서버 기능(IssueController.
+    // `gh issue transfer`. 서버 기능(IssueController.
     // moveIssue(), MoveIssueRequest(targetProjectId: Long))은 이미 있지만 숫자 ID를 요구한다 - CLI가
     // 매번 대상 프로젝트의 숫자 ID를 미리 조회하지 않아도 되도록, 이 어댑터가 owner/project 이름
     // 쌍을 받아 내부에서 ID로 resolve한 뒤 위임한다(신규 서비스 로직 없음).

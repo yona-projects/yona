@@ -4,22 +4,21 @@ import com.github.yonaprojects.yona.domain.project.Project
 import jakarta.persistence.*
 import java.time.Instant
 
-// yona-wiki P3-03 Step1 — GitHub "Deploy keys"(SSH, read-only 체크박스) 화면과 동일한 저장소
-// 스코프 자격증명. 설계 문서(docs/yona-wiki/plans/p3-03-ssh-gpg.md)의 개요는 필드를
-// (repository_id, public_key, fingerprint, read_only, added_date)로 적었지만, 구현 과정에서
-// 다음 결정을 추가했다(문서 완료 로그에도 동일하게 기록):
+// GitHub "Deploy keys"(SSH, read-only 체크박스) 화면과 동일한 저장소
+// 스코프 자격증명. 설계 초안은 필드를 (repository_id, public_key, fingerprint, read_only,
+// added_date)로 적었지만, 구현 과정에서 다음 결정을 추가했다:
 // - GitHub/GitLab 모두 SSH 공개키와 불투명 토큰을 같은 엔티티로 합치지 않는다는 조사 결과를
-//   존중하되, "저장소 범위로 스코프된 자격증명" 하나의 관리 화면에서 SSH(Step4~6의 프로토콜
-//   경로)와 HTTPS(이번 Step2의 AuthenticationProvider) 양쪽에 다 쓸 수 있어야 한다는 요구가
+//   존중하되, "저장소 범위로 스코프된 자격증명" 하나의 관리 화면에서 SSH 프로토콜 경로와
+//   HTTPS AuthenticationProvider 양쪽에 다 쓸 수 있어야 한다는 요구가
 //   있어, 이 엔티티에 "SSH 공개키" 필드와 "HTTPS Basic 인증용 불투명 시크릿 해시" 필드를
 //   같이 둔다 — 실제 인증 메커니즘(비대칭키 서명 검증 vs 시크릿 비교)은 여전히 별개이고, 단지
 //   같은 project_id/read_only 스코프 레코드를 두 경로가 공유할 뿐이다.
 // - publicKey는 등록 시점에 항상 요구한다(GitHub Deploy Key 화면과 동일). httpsToken은 등록할
-//   때마다 항상 자동 발급한다(한 번만 표시) — SSH 프로토콜(Step4~6)과 HTTPS(Step2) 양쪽에서
+//   때마다 항상 자동 발급한다(한 번만 표시) — SSH 프로토콜과 HTTPS 양쪽에서
 //   즉시 쓸 수 있게 하기 위함.
-// - fingerprint는 SshKey(사용자 전역 키, Step3)와 전역적으로 유일해야 한다 — 같은 공개키를
+// - fingerprint는 SshKey(사용자 전역 키)와 전역적으로 유일해야 한다 — 같은 공개키를
 //   서로 다른 프로젝트의 Deploy Key로, 혹은 다른 사용자의 SshKey로 중복 등록하면 계정/저장소
-//   사칭에 악용될 수 있다는 보안 리뷰 지적(작업 지시문 4번 항목)을 반영한 결정.
+//   사칭에 악용될 수 있다는 보안 검토를 반영한 결정.
 @Entity
 @Table(name = "deploy_key")
 class DeployKey(

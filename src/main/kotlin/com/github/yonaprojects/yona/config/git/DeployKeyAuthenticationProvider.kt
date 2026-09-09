@@ -7,7 +7,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 
 /**
- * yona-wiki P3-03 Step2 — HTTPS 경로의 Deploy Key 인증. GitHub App의 설치 토큰 관례
+ * HTTPS 경로의 Deploy Key 인증. GitHub App의 설치 토큰 관례
  * ("x-access-token" 사용자명 + 토큰을 비밀번호로 쓰는 Basic 인증)을 그대로 따른다
  * ("모호하면 GitHub 방식을 기본값으로" 원칙).
  *

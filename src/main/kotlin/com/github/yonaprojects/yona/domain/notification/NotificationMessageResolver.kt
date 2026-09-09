@@ -17,7 +17,7 @@ import java.util.Locale
 
 /**
  * yona `models/NotificationEvent.java`의 `getMessage(Lang)`/`getPlainMessage(Lang)` +
- * `buildCommentedCodeMessage()` 대응 (P1-27). Play의 `Messages.get(lang, key, args...)`를
+ * `buildCommentedCodeMessage()` 대응. Play의 `Messages.get(lang, key, args...)`를
  * Spring `MessageSource.getMessage(key, args, defaultMessage, locale)`로 옮기되, yona의
  * `NotificationEvent.oldValue`/`newValue`가 legacy와 다르게 저장하는 이벤트 타입들
  * (ISSUE_STATE_CHANGED/ISSUE_MILESTONE_CHANGED/ISSUE_LABEL_CHANGED/RESOURCE_DELETED/
@@ -57,7 +57,7 @@ class NotificationMessageResolver(
                 newValue.orEmpty()
 
             // legacy: newValue + oldValue. oldValue(comment.previousContents, "인용 이전 내용")는
-            // CommentServiceImpl.resolvePostingPreviousContents/resolveIssuePreviousContents(P2-17)가
+            // CommentServiceImpl.resolvePostingPreviousContents/resolveIssuePreviousContents가
             // 채운다 — 최초 댓글이면 원본 게시물/이슈 본문, 아니면 형제 답글/부모 댓글/마지막 댓글을 인용.
             EventType.NEW_COMMENT -> newValue.orEmpty() + oldValue.orEmpty()
 
@@ -116,7 +116,7 @@ class NotificationMessageResolver(
 
             EventType.ISSUE_MOVED -> msg("notification.type.issue.moved", locale, oldValue.orEmpty(), newValue.orEmpty())
 
-            // yona는 loginId를 저장한다(legacy와 동일, P1-37 확인).
+            // yona는 loginId를 저장한다(legacy와 동일).
             EventType.ISSUE_SHARER_CHANGED ->
                 if (!newValue.isNullOrBlank()) {
                     val user = userRepository.findByLoginId(newValue).orElse(null)

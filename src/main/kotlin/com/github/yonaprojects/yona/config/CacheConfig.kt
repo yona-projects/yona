@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.concurrent.TimeUnit
 
-// yona utils/AttachmentCache.java의 Play Cache.set(key, value, ONE_DAY) 대응 (P2-49).
+// yona utils/AttachmentCache.java의 Play Cache.set(key, value, ONE_DAY) 대응.
 @Configuration
 class CacheConfig {
 

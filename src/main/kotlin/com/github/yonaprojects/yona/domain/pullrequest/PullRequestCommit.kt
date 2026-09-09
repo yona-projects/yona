@@ -50,9 +50,9 @@ class PullRequestCommit(
     }
 
     companion object {
-        // yona-wiki P3-27 — 원래 GitCommit 전용이었으나, Mercurial PR 병합도 이 바인딩을 재사용해야
-        // 해서 공통 상위 타입 Commit으로 넓혔다(bindPullRequestCommit이 실제로 쓰는 멤버는 전부
-        // Commit 추상 클래스가 정의한 것들이라 Git 쪽 동작은 그대로다).
+        // 원래 GitCommit 전용이었으나, Mercurial PR 병합도 이 바인딩을 재사용해야 해서 공통
+        // 상위 타입 Commit으로 넓혔다(bindPullRequestCommit이 실제로 쓰는 멤버는 전부 Commit
+        // 추상 클래스가 정의한 것들이라 Git 쪽 동작은 그대로다).
         fun bindPullRequestCommit(commit: Commit, pullRequest: PullRequest): PullRequestCommit {
             return PullRequestCommit(
                 commitId = commit.getId(),

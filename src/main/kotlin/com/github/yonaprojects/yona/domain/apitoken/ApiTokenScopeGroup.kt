@@ -2,10 +2,9 @@ package com.github.yonaprojects.yona.domain.apitoken
 
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 
-// yona-wiki P3-02 설계 결정(2026-08-28) — 토큰 발급 UI/스코프 판정은 기존 ResourceType(33종, 알림·감사
+// 토큰 발급 UI/스코프 판정은 기존 ResourceType(33종, 알림·감사
 // 로그와 공유)을 그대로 재사용하되, GitHub Fine-grained PAT처럼 사용자에게는 대분류 단위로만 노출한다.
-// 신규 축을 따로 만들지 않고 매핑 테이블로 재사용하기로 한 결정의 근거는 계획 문서 "권한 스코프
-// 카테고리 — 미결정 사항 확정 필요" 절 참고.
+// 신규 축을 따로 만들지 않고 이 매핑 테이블로 재사용하기로 했다.
 enum class ApiTokenScopeGroup {
     ISSUES,
     PULL_REQUESTS,

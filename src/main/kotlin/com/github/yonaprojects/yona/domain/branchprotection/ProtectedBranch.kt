@@ -4,13 +4,13 @@ import com.github.yonaprojects.yona.domain.project.Project
 import jakarta.persistence.*
 import java.time.Instant
 
-// yona-wiki P3-04(브랜치 보호) — legacy에는 대응 모델이 전혀 없는 신규 인프라(Webhook.kt와 동일하게
+// 브랜치 보호 — legacy에는 대응 모델이 전혀 없는 신규 인프라(Webhook.kt와 동일하게
 // 프로젝트 범위 설정 엔티티). 적용 지점은 두 곳: (1) 직접 push 차단
 // (domain/vcs/GitPushHooks.kt의 BranchProtectionPreReceiveHook), (2) PR 병합 시 체크
 // (PullRequestServiceImpl.merge()). AccessControl과는 별개 레이어(권한 확인 통과 후 추가 정책)다.
 //
-// require_signed_commits는 GPG 서명 검증 파이프라인(P3-03)에 연결되어 있고(checkSignedCommitsForMerge()),
-// require_approvals는 PR 승인/변경요청 판정(P3-15, domain/pullrequest/PullRequestReview.kt)에
+// require_signed_commits는 GPG 서명 검증 파이프라인에 연결되어 있고(checkSignedCommitsForMerge()),
+// require_approvals는 PR 승인/변경요청 판정(domain/pullrequest/PullRequestReview.kt)에
 // 연결되어 있다(checkApprovalsForMerge()) — 둘 다 값에 따라 실제로 병합을 거부한다.
 @Entity
 @Table(name = "protected_branch")
@@ -31,13 +31,13 @@ class ProtectedBranch(
     @Column(nullable = false)
     var requirePullRequest: Boolean = false,
 
-    // 0 = 비활성. P3-15 연결 작업 이후 PullRequestServiceImpl.checkApprovalsForMerge()가 실제로
+    // 0 = 비활성. PullRequestServiceImpl.checkApprovalsForMerge()가 실제로
     // 검사한다 — 리뷰어별 가장 최근 APPROVE 판정 수가 이 값 미만이면 병합을 거부하고, 최신 판정이
     // REQUEST_CHANGES인 리뷰어가 하나라도 있으면 이 값과 무관하게 무조건 거부한다.
     @Column(nullable = false)
     var requireApprovals: Int = 0,
 
-    // P3-03의 GPG 서명 검증 파이프라인이 완성되기 전까지 값과 무관하게 항상 통과 처리된다.
+    // GPG 서명 검증 파이프라인이 완성되기 전까지 값과 무관하게 항상 통과 처리된다.
     @Column(nullable = false)
     var requireSignedCommits: Boolean = false,
 

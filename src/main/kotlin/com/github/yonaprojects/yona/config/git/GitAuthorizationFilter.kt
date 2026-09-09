@@ -13,9 +13,9 @@ import java.util.regex.Pattern
 
 @Component
 class GitAuthorizationFilter(
-    // yona-wiki P3-03 Step6 — 접근 판정 로직(requiresAuth/isMember/isGuestUser)을 RepoAccessPolicy로
-    // 추출해 SshAuthServiceImpl(SSH 경로)/SvnAuthorizationFilter(SVN HTTP)와 공유한다(2026-09-07,
-    // 기존 GitAccessPolicy를 VCS 중립적인 이름/패키지로 이동). 동작은 이전과 동일(순수 리팩터링).
+    // 접근 판정 로직(requiresAuth/isMember/isGuestUser)을 RepoAccessPolicy로 추출해
+    // SshAuthServiceImpl(SSH 경로)/SvnAuthorizationFilter(SVN HTTP)와 공유한다(기존
+    // GitAccessPolicy를 VCS 중립적인 이름/패키지로 이동). 동작은 이전과 동일(순수 리팩터링).
     private val repoAccessPolicy: RepoAccessPolicy
 ) : OncePerRequestFilter() {
 
@@ -54,10 +54,10 @@ class GitAuthorizationFilter(
                 return
             }
 
-            // yona-wiki P3-03 Step2 — Deploy Key(저장소 스코프 자격증명)는 loginId 기반 멤버십
-            // 검사 대상이 아니다. project.id가 정확히 일치하는 저장소에만 접근을 허용하고(다른
-            // 프로젝트 스코프로 발급된 Deploy Key로는 이 프로젝트에 절대 접근할 수 없다 —
-            // 보안 리뷰 항목), read_only 플래그가 켜져 있으면 쓰기 요청을 거부한다.
+            // Deploy Key(저장소 스코프 자격증명)는 loginId 기반 멤버십 검사 대상이 아니다.
+            // project.id가 정확히 일치하는 저장소에만 접근을 허용하고(다른 프로젝트 스코프로
+            // 발급된 Deploy Key로는 이 프로젝트에 절대 접근할 수 없다), read_only 플래그가 켜져
+            // 있으면 쓰기 요청을 거부한다.
             if (authentication is DeployKeyAuthenticationToken) {
                 val deployKey = authentication.deployKey
                 if (deployKey.project?.id != project.id) {

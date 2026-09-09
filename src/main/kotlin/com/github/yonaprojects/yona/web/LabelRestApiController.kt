@@ -11,18 +11,18 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-// yona-wiki P3-02 4라운드(Step8.5 서버 보강) — Go CLI `yona label list/create/edit/delete`용
+// Go CLI `yona label list/create/edit/delete`용
 // 신규 범용 REST API(`/api/v1/projects/{owner}/{project}/labels`).
 //
-// **재검증으로 바로잡은 지점**: 계획 문서 최초 감사표는 이 기능이 web/LabelController.kt에 있다고
-// 안내했지만, 실제로 그 파일은 프로젝트와 무관한 전역 라벨/카테고리 자동완성(`/labels`,
-// `/categories`, 라벨 입력 위젯용)만 제공한다. 실제 "프로젝트 하나에 속한 라벨" CRUD는
+// **주의**: 이 기능이 web/LabelController.kt에 있다고 착각하기 쉬운데, 실제로 그 파일은 프로젝트와
+// 무관한 전역 라벨/카테고리 자동완성(`/labels`, `/categories`, 라벨 입력 위젯용)만 제공한다. 실제
+// "프로젝트 하나에 속한 라벨" CRUD는
 // ProjectViewController.getIssueLabelsForRestApi()/newLabel()/updateLabelForm()/deleteLabelForm()
 // (IssueLabel 기준, ISSUE_LABEL AccessControl 체크)에 이미 구현돼 있어(세션/폼 기반이지만 응답은
 // @ResponseBody로 JSON) 이 컨트롤러는 새 서비스 로직 없이 그 메서드들에 위임하는 얇은 어댑터로만
 // 구현한다(Issue/PR REST API와 동일한 패턴).
 //
-// **Step8.7 1번(2026-09-01) 버그 수정 이력**: list()는 원래 ProjectController.getProjectLabels()
+// **버그 수정 이력**: list()는 원래 ProjectController.getProjectLabels()
 // (domain/project/Label, 프로젝트 홈 화면의 토픽 태그 - project/home.html의 sURLProjectLabels가
 // 실사용 중이라 그 메서드/엔티티 자체는 그대로 둠)를 호출했는데, create/update/delete는 완전히
 // 다른 엔티티(IssueLabel)를 다뤄 `yona label create`로 만든 라벨이 `yona label list`엔 절대

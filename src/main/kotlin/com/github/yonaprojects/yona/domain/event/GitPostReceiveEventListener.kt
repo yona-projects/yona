@@ -130,8 +130,8 @@ class GitPostReceiveEventListener(
             newValue = title
         )
 
-        // yona NotificationEvent.java:604-680(push 메일 경로) 대응 (P1-46). 수신자를 계산해야 [GL-models_NotificationEvent-038;GL-models_NotificationEvent-039;GL-models_NotificationEvent-040;GL-models_NotificationEvent-041;GL-models_NotificationEvent-042;GL-models_NotificationEvent-043;GL-models_NotificationEvent-044;GL-models_NotificationEvent-045;GL-models_NotificationEvent-046]
-        // NotificationEventRecorder(P1-27)가 NotificationMail 대기열에 올리고, WebhookNotificationEventListener가
+        // yona NotificationEvent(push 메일 경로) 대응. 수신자를 계산해야
+        // NotificationEventRecorder가 NotificationMail 대기열에 올리고, WebhookNotificationEventListener가
         // publish된 이벤트를 구독해 웹훅도 즉시 보낼 수 있다.
         val receivers = watchService.findActualWatchers(
             baseWatchers = emptySet(),
@@ -146,7 +146,7 @@ class GitPostReceiveEventListener(
         notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
         logger.info("[NOTIFICATION] Pushed commits notification created and saved: '$title' by ${sender.name}")
 
-        // yona Webhook.sendRequestToPayloadUrl(commits, refNames, sender) 대응 (P1-25).
+        // yona Webhook.sendRequestToPayloadUrl(commits, refNames, sender) 대응.
         // 커밋은 DB 엔티티가 아니라 NotificationEvent.resourceId(커밋 SHA)만으로는 프로젝트를 되짚어
         // 재조회할 수 없으므로, WebhookNotificationEventListener(비동기, resourceId 기반 재조회)를
         // 거치지 않고 project/commits를 이미 들고 있는 이 지점에서 직접 웹훅을 보낸다.

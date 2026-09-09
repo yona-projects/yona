@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step4 — LDAP(`application.yml`의 `yona.ldap.*`)과 동일하게
- * "설정 파일만으로도 최소 동작"을 보장하되, 사용자 지시에 따라 확장된 관리자 UI(`SsoAdminController`)가
- * DB에 저장한 값이 있으면 그 값을 우선한다. DB에 아직 아무 것도 저장되지 않은 시점(앱을 막 띄운
- * 직후, UI를 한 번도 안 쓴 상태)에는 `yona.sso.oidc.*`/`yona.sso.saml2.*` 프로퍼티(환경변수로도
- * 주입 가능)로 만든 설정을 그대로 돌려준다 — LDAP의 `@Value` 기본값 패턴과 동일한 취지.
+ * LDAP(`application.yml`의 `yona.ldap.*`)과 동일하게 "설정 파일만으로도 최소 동작"을 보장하되,
+ * 관리자 UI(`SsoAdminController`)가 DB에 저장한 값이 있으면 그 값을 우선한다. DB에 아직 아무
+ * 것도 저장되지 않은 시점(앱을 막 띄운 직후, UI를 한 번도 안 쓴 상태)에는
+ * `yona.sso.oidc.*`/`yona.sso.saml2.*` 프로퍼티(환경변수로도 주입 가능)로 만든 설정을 그대로
+ * 돌려준다 — LDAP의 `@Value` 기본값 패턴과 동일한 취지.
  */
 @Service
 class SsoSettingsService(

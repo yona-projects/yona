@@ -25,10 +25,10 @@ class AuthController(
     private val userService: UserService,
     @Value("\${yona.signup.allowed-email-domains:}")
     private val allowedEmailDomains: String,
-    // yona UserApp.java:1218-1224 isUsingSignUpConfirm()(signup.require.admin.confirm) 대응 (P1-77).
+    // yona UserApp.isUsingSignUpConfirm()(signup.require.admin.confirm) 대응.
     @Value("\${yona.signup.require-admin-confirm:false}")
     private val requireAdminConfirm: Boolean,
-    // yona-wiki P3-06(엔터프라이즈 SSO) — 로그인 화면에 OIDC/SAML2 로그인 버튼을 조건부로 노출한다.
+    // 로그인 화면에 OIDC/SAML2 로그인 버튼을 조건부로 노출한다.
     private val ssoSettingsService: SsoSettingsService
 ) {
 
@@ -91,7 +91,7 @@ class AuthController(
         model: Model
     ): String {
         model.addAttribute("requireAdminConfirm", requireAdminConfirm)
-        // yona models/User.java:65-66,80 LOGIN_ID_PATTERN(@Pattern) 대응 (P1-104).
+        // yona User.LOGIN_ID_PATTERN(@Pattern) 대응.
         if (!LoginIdFormatValidator.isValid(user.loginId)) {
             bindingResult.rejectValue("loginId", "pattern", "아이디 형식이 올바르지 않습니다.")
         }
@@ -118,8 +118,8 @@ class AuthController(
         user.password = hashed
         user.passwordSalt = salt
 
-        // yona UserApp.java:1260-1275 createNewUser()의 "관리자 승인 대기면 State.LOCKED로 생성"
-        // 대응 (P1-77). 로그인 시 LOCKED 계정 차단 자체는 이미 YonaAuthenticationProvider(P0-13)가
+        // yona UserApp.createNewUser()의 "관리자 승인 대기면 State.LOCKED로 생성"
+        // 대응. 로그인 시 LOCKED 계정 차단 자체는 이미 YonaAuthenticationProvider가
         // 이 설정과 무관하게 항상 수행하므로, 여기서는 가입 시점의 초기 상태 결정만 담당한다.
         if (requireAdminConfirm) {
             user.state = UserState.LOCKED

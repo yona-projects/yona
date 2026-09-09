@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 import java.util.Locale
 
 /**
- * yona `views/common/notificationMail.scala.html` 대응 (P1-27). 렌더링 시점에 이미 locale이
+ * yona `views/common/notificationMail.scala.html` 대응. 렌더링 시점에 이미 locale이
  * 확정돼 있으므로(수신자별 언어로 미리 나뉜 뒤 호출됨), Thymeleaf 템플릿 엔진을 거치지 않고
  * 문자열을 직접 구성한다 — DiffUtil/HistoryUtil과 동일한 접근.
  */

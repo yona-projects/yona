@@ -2,13 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
       th:with="pullRequestNewLabel=#{pullRequest.new}, pageTitle=${project.name + ' - ' + pullRequestNewLabel}">
 <!--
-  legacy git/create.scala.html 대응 (그룹11 #168). 기존 yona pullrequest/create.html은 가짜
-  .gnb-wrap GNB, 인라인 <style>, code.jquery.com 중복 jQuery 로드, legacy와 무관한 부트스트랩 폼을
-  하드코딩하고 있어(버그 패턴 a/b) 전면 재작성한다.
+  legacy git/create.scala.html 대응.
 
   legacy는 fromProjectId/toProjectId를 project.getAssociationProjects()(이 프로젝트 자신 + 이
   프로젝트에서 포크해간 프로젝트들 + 이 프로젝트가 포크라면 원본) 기준의 실렉트로 제공해 서로 다른
-  fork 간에도 PR을 보낼 수 있다 — TASK-0263에서 Project.associationProjects(신규)로 완성했다.
+  fork 간에도 PR을 보낼 수 있다 — Project.associationProjects로 대응한다.
   fromProjectId 실렉트는 legacy와 동일하게 "현재 로그인 사용자가 멤버인" 연관 프로젝트만 후보로
   좁힌다(memberAssociationProjects). toProjectId는 이 프로젝트가 포크이고 원본의 코드/PR 메뉴가
   둘 다 켜져 있으면 기본값이 원본으로 전환된다(PullRequestViewController#resolveAssociatedProject,
@@ -19,8 +17,8 @@
 
   legacy는 $yobi.loadModule("git.Write", {...})(public/javascripts/service/yobi.git.Write.js)로
   브랜치 select가 바뀔 때마다 PullRequestApp.mergeResult()를 GET AJAX로 호출해 커밋 탭(#__commits)을
-  채운다 — 이 흐름을 PullRequestViewController#mergeResult()(#178, TASK-0257)로 신설한 대응 엔드포인트
-  호출로 직접 재구현했다(별도 모듈 로더 없이 인라인 스크립트로, legacy git.Write.js의
+  채운다 — 이 흐름을 PullRequestViewController#mergeResult() 엔드포인트 호출로 직접 재구현했다
+  (별도 모듈 로더 없이 인라인 스크립트로, legacy git.Write.js의
   _checkMergeResult()/_onSuccessMergeResult()/_getMergeResultData()와 동일한 데이터 흐름:
   GET 응답 HTML을 #__commits에 삽입 → 갓 삽입된 #mergeResult의 data-commits/data-conflict/
   data-pullrequest-title/data-pullrequest-body 속성을 다시 읽어 #status 배너와 title/body
@@ -28,7 +26,7 @@
   체크가 항상 거짓) 페이지 로드시 자동 실행되지 않고 브랜치 select의 change 이벤트로만 트리거된다 —
   이 파일도 동일하게 change 이벤트에만 바인딩한다(edit.html은 로드시 1회 자동 실행, edit.html
   주석 참고). 실제 폼 제출은 기존 REST 엔드포인트(POST /api/projects/{projectId}/pullrequests)로
-  AJAX 전송한다(허용된 Play→Thymeleaf 변환 범위).
+  AJAX 전송한다.
 -->
 <head th:replace="~{site/layout :: head(title=${pageTitle})}">
 </head>
@@ -144,7 +142,7 @@
         });
 
         // legacy yobi.git.Write.js _checkMergeResult()/_onSuccessMergeResult()/_getMergeResultData()
-        // 대응 (#178, TASK-0257). 브랜치 select가 바뀔 때마다 GET /pull/mergeResult로 커밋 프리뷰
+        // 대응. 브랜치 select가 바뀔 때마다 GET /pull/mergeResult로 커밋 프리뷰
         // 조각을 받아와 #__commits에 꽂고, 그 조각이 렌더링한 #mergeResult의 data-* 속성을 다시 읽어
         // #status 배너를 갱신한다.
         var mergeResultURL = /*[[@{/{owner}/{projectName}/pull/mergeResult(owner=${project.owner}, projectName=${project.name})}]]*/ "";

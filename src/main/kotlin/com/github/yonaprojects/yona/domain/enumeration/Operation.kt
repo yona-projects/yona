@@ -1,6 +1,6 @@
 package com.github.yonaprojects.yona.domain.enumeration
 
-// yona models/enumeration/Operation.java 대응 (P1-85 1b)
+// yona models/enumeration/Operation.java 대응
 enum class Operation(private val value: String) {
     READ("read"),
     UPDATE("edit"),

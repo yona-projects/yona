@@ -16,9 +16,9 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 
-// yona-wiki P3-04(브랜치 보호) 2라운드 — 1라운드에서 `ProtectedBranch` 엔티티/리포지토리와 강제
+// `ProtectedBranch` 엔티티/리포지토리와 강제
 // 로직(GitPushHooks.BranchProtectionPreReceiveHook, PullRequestServiceImpl.
-// checkBranchProtectionForMerge())까지는 구현했지만, 프로젝트 소유자/매니저가 실제로 규칙을
+// checkBranchProtectionForMerge())은 이미 있었지만, 프로젝트 소유자/매니저가 실제로 규칙을
 // 만들거나 조회·수정·삭제할 진입점이 전혀 없었다(DB 직접 조작 말고는 방법이 없던 갭). 같은 성격의
 // 기존 기능(프로젝트 범위 설정, 매니저 전용 관리 화면)인 `WebhookController`와 동일한 패턴 —
 // 프로젝트 조회 + `AccessControl.isAllowed(user, project, Operation.UPDATE)` 권한 체크 — 을 그대로
@@ -74,7 +74,7 @@ class BranchProtectionController(
     }
 
     // branchPattern 컬럼 길이(250)/restrictPushTo 컬럼 길이(1000) 제약은 WebhookController의
-    // payloadUrl/secret 사전 검증(P2-28)과 동일한 이유로 컨트롤러에서 미리 걸러낸다 — 이 검증이
+    // payloadUrl/secret 사전 검증과 동일한 이유로 컨트롤러에서 미리 걸러낸다 — 이 검증이
     // 없으면 DB에 닿기도 전에 400을 반환해야 할 입력이 그대로 저장을 시도하다 컬럼 길이 제약
     // 위반(처리되지 않은 500)으로 노출될 수 있다.
     @PostMapping("/projects/{owner}/{projectName}/branch-protections")

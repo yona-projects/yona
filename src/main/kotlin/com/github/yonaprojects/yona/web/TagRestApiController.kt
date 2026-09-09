@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
-// yona-wiki P3-10 — `yona tag list/create/delete` CLI 및 REST 클라이언트용 신규 JSON API
+// `yona tag list/create/delete` CLI 및 REST 클라이언트용 JSON API
 // (`/api/v1/projects/{owner}/{project}/tags`). Issue/PR REST API와 달리 위임할 만한 기존
 // 세션/폼 컨트롤러가 없어(완전 신규 기능) BranchApiController/TagViewController와 동일한
 // AccessControl 판정을 이 컨트롤러가 직접 수행한다(ProjectRestApiController.create()/fork()가
@@ -139,7 +139,7 @@ class TagRestApiController(
         }
 
         val decodedTagName = URLDecoder.decode(tag.trimStart('/'), StandardCharsets.UTF_8.name())
-        // 코디네이터 push 전 리뷰(2026-09-07) — create()는 Repository.isValidRefName()으로 경로
+        // create()는 Repository.isValidRefName()으로 경로
         // 탈출/인젝션 문자를 걸러내는데 delete()는 그 검증 없이 곧바로 deleteTag()를 호출하고
         // 있었다. JGit의 ref 업데이트가 실제로 임의 파일에 영향을 줄 가능성은 낮아 보이지만(존재
         // 확인 후 파싱 검증을 거쳐야 삭제로 이어짐), 검증 비대칭을 남겨둘 이유가 없어 동일하게

@@ -3,7 +3,7 @@ package com.github.yonaprojects.yona.domain.support
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-// yona models/Property.java의 get()/getLong()/set() 정적 메서드 대응 (P1-55).
+// Property.get()/getLong()/set() 정적 메서드 대응.
 @Service
 class PropertyService(
     private val propertyRepository: PropertyRepository

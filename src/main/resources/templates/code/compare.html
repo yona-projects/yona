@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
 <!-- th:replace는 호스트 <head> 태그와 그 자식을 전부 프래그먼트 결과로 치환하므로, 페이지 전용
-     <style>를 <head> 안에 두면 절대 렌더링되지 않는다(code/view.html P0-27과 동일 유형, 전수 감사로
-     발견) — <body> 최상단으로 옮겨서 실제로 렌더링되게 한다. -->
+     <style>를 <head> 안에 두면 절대 렌더링되지 않는다(code/view.html과 동일 유형) —
+     <body> 최상단으로 옮겨서 실제로 렌더링되게 한다. -->
 <head th:replace="~{site/layout :: head(${commitA.id} + '..' + ${commitB.id})}"></head>
 <body class="theme-default">
 <style>

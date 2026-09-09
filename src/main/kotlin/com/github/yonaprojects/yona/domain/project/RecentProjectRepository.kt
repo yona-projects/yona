@@ -11,7 +11,7 @@ interface RecentProjectRepository : JpaRepository<RecentProject, Long> {
     fun findByUserIdAndProjectId(userId: Long, projectId: Long): Optional<RecentProject>
     fun deleteByUserIdAndProjectId(userId: Long, projectId: Long)
 
-    // yona User.visits(Project)/RecentProject.addNew() 대응 (P2-09). 웹 컨트롤러
+    // yona User.visits(Project)/RecentProject.addNew() 대응. 웹 컨트롤러
     // (ProjectViewController)뿐 아니라 git 프로토콜 진입점(GitServletConfig)에서도
     // 동일하게 최근 방문 프로젝트를 기록할 수 있도록 저장소 계층 공용 메서드로 승격.
     fun recordVisit(user: User, project: Project) {

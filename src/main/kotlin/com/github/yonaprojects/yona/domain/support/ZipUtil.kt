@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
 
-// yona utils/ZipUtil.java 대응 (P2-43). 문자열을 Deflate로 압축/해제하는 용도.
+// yona utils/ZipUtil.java 대응. 문자열을 Deflate로 압축/해제하는 용도.
 object ZipUtil {
     fun compress(text: String): ByteArray {
         val baos = ByteArrayOutputStream()

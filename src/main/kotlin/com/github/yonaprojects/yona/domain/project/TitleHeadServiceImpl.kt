@@ -3,7 +3,7 @@ package com.github.yonaprojects.yona.domain.project
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-// yona models/TitleHead.java 대응 (P1-103).
+// yona models/TitleHead.java 대응.
 @Service
 @Transactional
 class TitleHeadServiceImpl(

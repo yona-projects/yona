@@ -56,11 +56,11 @@
                         <input type="hidden" id="lineEnding" name="lineEnding" value="LF">
                     </div>
 
-                    <!-- yona-wiki P3-23 — Mercurial named branch(`hg branch`) 지원. 온라인 커밋
+                    <!-- Mercurial named branch(`hg branch`) 지원. 온라인 커밋
                          (path가 채워진 코드브라우저 "편집"/"새 파일") 화면에서만, Mercurial
                          프로젝트에서만 노출한다 — Git은 이미 있는 branch 필드가 그 역할을 겸한다.
                          새 이름을 입력하면 이 커밋으로 시작하는 새 named branch가 만들어진다
-                         (Mercurial에는 별도 "브랜치 생성" 커맨드가 없다 — 티켓 배경 참고). 비워두면
+                         (Mercurial에는 별도 "브랜치 생성" 커맨드가 없다). 비워두면
                          현재 작업 디렉터리에 설정된 branch를 그대로 쓴다("default"가 최초값). -->
                     <div class="content-footer" th:if="${project.vcs == 'MERCURIAL' and !#strings.isEmpty(param.path)}">
                         <label for="namedBranch" th:text="#{code.namedBranch.label}">Named branch (Mercurial)</label>

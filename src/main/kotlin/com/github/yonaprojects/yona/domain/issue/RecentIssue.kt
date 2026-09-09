@@ -8,8 +8,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 
-// yona models/RecentIssue.java 대응 (P1-09). 이슈와 게시글 방문 이력을 함께 추적하는
-// yona 원본 설계를 그대로 따라 issueId/postingId 둘 다 nullable로 둔다.
+// RecentIssue.java 대응. 이슈와 게시글 방문 이력을 함께 추적하는 yona 원본 설계를 그대로 따라
+// issueId/postingId 둘 다 nullable로 둔다.
 @Entity
 @Table(name = "recent_issue")
 class RecentIssue(

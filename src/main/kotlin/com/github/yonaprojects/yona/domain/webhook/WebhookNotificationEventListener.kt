@@ -22,10 +22,10 @@ import org.springframework.transaction.annotation.Transactional
  * 이슈/댓글 등 도메인 서비스가 이미 publish하고 있던 NotificationEvent를
  * 구독해 해당 프로젝트에 등록된 웹훅으로 실제 전송한다(이전에는 아무도 구독하지 않아 미발송이었음).
  *
- * PULL_REQUEST는 P1-26에서 지원 추가됨(WebhookServiceImpl.buildPayload/getResourceType 포함).
- * REVIEW_COMMENT/COMMIT_COMMENT는 P1-69에서 지원 추가됨(yona
- * NotificationEvent.java:756 webhookRequest(NEW_REVIEW_COMMENT, ...)/:780 webhookRequest(NEW_COMMENT, ...) 대응).
- * 그 외 아직 payload를 만들 수 없는 리소스 타입(예: COMMIT — P1-25에서 별도 직접 경로로 처리됨)은
+ * PULL_REQUEST는 WebhookServiceImpl.buildPayload/getResourceType에서 지원한다.
+ * REVIEW_COMMENT/COMMIT_COMMENT는 yona NotificationEvent.java의
+ * webhookRequest(NEW_REVIEW_COMMENT, ...)/webhookRequest(NEW_COMMENT, ...) 대응이다.
+ * 그 외 아직 payload를 만들 수 없는 리소스 타입(예: COMMIT — 별도 직접 경로로 처리됨)은
  * 조용히 스킵한다.
  */
 @Component

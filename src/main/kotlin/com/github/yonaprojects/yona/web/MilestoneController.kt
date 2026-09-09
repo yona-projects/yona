@@ -57,9 +57,8 @@ class MilestoneController(
         }
 
         val milestones = milestoneService.getMilestones(projectId, state)
-        // P3-30(2026-09-09 코디네이터 발견/수정) — Milestone.project는 이미 @JsonIgnore가 붙어 있어
-        // 이 경로로 직접 순환 직렬화되지는 않지만, 다른 4개 파일과 동일한 방어(raw 엔티티 미반환)를
-        // 일관되게 적용한다.
+        // Milestone.project는 이미 @JsonIgnore가 붙어 있어 이 경로로 직접 순환 직렬화되지는
+        // 않지만, 다른 컨트롤러들과 동일한 방어(raw 엔티티 미반환)를 일관되게 적용한다.
         return ResponseEntity.ok(milestones.map { it.toResponse() })
     }
 
@@ -84,7 +83,7 @@ class MilestoneController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        // P3-30 — 다른 4개 파일과 동일하게 raw 엔티티 대신 DTO를 반환한다.
+        // 다른 컨트롤러들과 동일하게 raw 엔티티 대신 DTO를 반환한다.
         return ResponseEntity.ok(milestone.toResponse())
     }
 
@@ -111,14 +110,14 @@ class MilestoneController(
         )
 
         val saved = milestoneService.createMilestone(projectId, milestone)
-        // P3-30 — 다른 4개 파일과 동일하게 raw 엔티티 대신 DTO를 반환한다.
+        // 다른 컨트롤러들과 동일하게 raw 엔티티 대신 DTO를 반환한다.
         return ResponseEntity.status(HttpStatus.CREATED).body(saved.toResponse())
     }
 
-    // yona controllers/api/MilestoneApi.java:29-50 newMilestone() 대응 (P1-129). GitHub 이슈 임포트 [GL-controllers_api_MilestoneApi-001;GL-controllers_api_MilestoneApi-002]
-    // 등에서 쓰는 벌크 마일스톤 생성 API 전체가 yona에 없었음 — 단건 생성 API(createMilestone())만
-    // 있었고, 그마저도 MilestoneServiceImpl.createMilestone()이 state를 항상 OPEN으로 강제해
-    // 임포트 시 CLOSED 상태를 그대로 들여올 수 없어 리포지토리를 직접 써서 우회한다.
+    // yona controllers/api/MilestoneApi.java의 newMilestone() 대응. GitHub 이슈 임포트 등에서 쓰는
+    // 벌크 마일스톤 생성 API 전체가 yona에 없었음 — 단건 생성 API(createMilestone())만 있었고,
+    // 그마저도 MilestoneServiceImpl.createMilestone()이 state를 항상 OPEN으로 강제해 임포트 시
+    // CLOSED 상태를 그대로 들여올 수 없어 리포지토리를 직접 써서 우회한다.
     @PostMapping("/bulk")
     fun bulkCreateMilestones(
         @PathVariable projectId: Long,
@@ -167,7 +166,7 @@ class MilestoneController(
             state = request.state ?: State.OPEN
         )
 
-        // P3-30 — 다른 4개 파일과 동일하게 raw 엔티티 대신 DTO를 반환한다.
+        // 다른 컨트롤러들과 동일하게 raw 엔티티 대신 DTO를 반환한다.
         return ResponseEntity.ok(updated.toResponse())
     }
 
@@ -224,7 +223,7 @@ class MilestoneController(
 // 유일해야 함) 생성하지 않고 입력값과 메시지를 그대로 돌려주고, 성공하면 MigrationApp.
 // getMilestoneNode()와 동일한 형식({id, title, state, description, due_on})으로 응답한다.
 // MilestoneController.bulkCreateMilestones()(projectId 기반)와 MilestoneApiController(legacy
-// owner/projectName 기반, P2-58)가 로직 중복 없이 함께 쓰도록 top-level 함수로 분리했다.
+// owner/projectName 기반)가 로직 중복 없이 함께 쓰도록 top-level 함수로 분리했다.
 internal fun createMilestoneNode(
     item: MilestoneController.BulkMilestoneItem,
     project: Project,

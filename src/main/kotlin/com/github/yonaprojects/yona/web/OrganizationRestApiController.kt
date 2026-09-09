@@ -16,24 +16,23 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-// yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `yona org list/view`. web/OrganizationViewController.kt
-// (orgList()/organizationHome())는 Thymeleaf 뷰(`organization/list`, `organization/view`)를
-// 렌더링하는 세션 기반 컨트롤러라 위임 대상으로 쓸 수 없어(응답이 뷰 이름 String), 동일한 권한
-// 로직(게스트 차단, HIDE_PROJECT_LISTING, AccessControl.getVisibleProjects)만 재사용해 JSON
-// 응답으로 노출하는 신규 얇은 컨트롤러를 뒀다.
+// `yona org list/view`. web/OrganizationViewController.kt(orgList()/organizationHome())는
+// Thymeleaf 뷰(`organization/list`, `organization/view`)를 렌더링하는 세션 기반 컨트롤러라 위임
+// 대상으로 쓸 수 없어(응답이 뷰 이름 String), 동일한 권한 로직(게스트 차단, HIDE_PROJECT_LISTING,
+// AccessControl.getVisibleProjects)만 재사용해 JSON 응답으로 노출하는 신규 얇은 컨트롤러를 뒀다.
 //
-// **스코프 인가 갭(계획 문서 리스크 표에 기록)**: 조직은 "저장소"가 아니라 여러 저장소를 묶는
-// 상위 개념이라 `/api/v1/projects/{owner}/{project}/{resource}` 저장소 단위 스코프 모델과
-// 자연스럽게 맞지 않는다. `/api/v1/organizations/**`는 ApiTokenAuthenticationFilter의 어떤
-// 스코프 패턴과도 매칭되지 않아 세션 로그인/레거시 전권 토큰으로만 인증되고, Fine-grained 스코프
-// 토큰은 인증되지 않는다(SearchRestApiController와 동일한 성격의 제한 - 구멍이 아니라 기능 제한).
+// **스코프 인가 갭**: 조직은 "저장소"가 아니라 여러 저장소를 묶는 상위 개념이라
+// `/api/v1/projects/{owner}/{project}/{resource}` 저장소 단위 스코프 모델과 자연스럽게 맞지
+// 않는다. `/api/v1/organizations/**`는 ApiTokenAuthenticationFilter의 어떤 스코프 패턴과도
+// 매칭되지 않아 세션 로그인/레거시 전권 토큰으로만 인증되고, Fine-grained 스코프 토큰은
+// 인증되지 않는다(SearchRestApiController와 동일한 성격의 제한 - 구멍이 아니라 기능 제한).
 @RestController
 @RequestMapping("/api/v1/organizations")
 class OrganizationRestApiController(
     private val organizationRepository: OrganizationRepository,
     private val userRepository: UserRepository,
     private val accessControl: AccessControl,
-    // yona OrganizationApp.java:485-488 HIDE_PROJECT_LISTING 대응 (P0-23) - OrganizationViewController/
+    // yona OrganizationApp.java의 HIDE_PROJECT_LISTING 대응 - OrganizationViewController/
     // SearchController와 동일한 프로퍼티를 재사용한다.
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
@@ -49,7 +48,7 @@ class OrganizationRestApiController(
         authentication: Authentication?
     ): ResponseEntity<Any> {
         val user = getLoginUser(authentication)
-        // yona OrganizationApp.java:485-486 @GuestProhibit 대응.
+        // yona OrganizationApp의 @GuestProhibit 대응.
         if (user?.isGuest == true) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
         }

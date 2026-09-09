@@ -22,8 +22,8 @@ class IssueSharer(
     var user: User,
 
     // Issue.sharers <-> IssueSharer.issue 순환 참조가 그대로 직렬화되면 Jackson이
-    // 무한 중첩(StreamWriteConstraints 깊이 제한 초과)으로 실패한다 (P1-82에서 이슈를
-    // REST 응답으로 직접 반환하는 경로에 sharers가 채워지면서 드러난 기존 결함).
+    // 무한 중첩(StreamWriteConstraints 깊이 제한 초과)으로 실패한다 (이슈를
+    // REST 응답으로 직접 반환하는 경로에 sharers가 채워지면서 드러난 결함).
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_id", nullable = false)

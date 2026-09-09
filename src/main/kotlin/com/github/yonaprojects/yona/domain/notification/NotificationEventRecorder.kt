@@ -9,12 +9,12 @@ import java.time.Instant
 private val DRAFT_WINDOW: Duration = Duration.ofSeconds(30)
 
 /**
- * yona `models/NotificationEvent.java`의 `add()`/`addWithoutSkipEvent()` 대응 (P1-27).
+ * yona `models/NotificationEvent.java`의 `add()`/`addWithoutSkipEvent()` 대응.
  *
  * 두 가지 역할을 한 번에 한다(legacy와 동일하게 원자적으로 처리):
  * 1. draft-time 병합/취소 — 같은 리소스(resourceType+resourceId)에 같은 사용자가 [DRAFT_WINDOW]
  *    이내에 같은 타입의 이벤트를 연속으로 남기면 병합하거나 상쇄한다(IssueEvent/PullRequestEvent와
- *    동일한 패턴, P1-38/P1-40 참고). `skipWaypoint=true`(`add()`)는 A→B→C를 A→C로 병합하고
+ *    동일한 패턴). `skipWaypoint=true`(`add()`)는 A→B→C를 A→C로 병합하고
  *    A→B→A는 완전히 상쇄한다. `skipWaypoint=false`(`addWithoutSkipEvent()`)는 중간 지점은
  *    남기되 정확히 되돌아오는 경우만 상쇄한다.
  * 2. 저장 시 [NotificationMail] 마커를 함께 만들어 붙인다 — legacy의
@@ -28,7 +28,7 @@ private val DRAFT_WINDOW: Duration = Duration.ofSeconds(30)
 class NotificationEventRecorder(
     private val notificationEventRepository: NotificationEventRepository,
     private val notificationMailRepository: NotificationMailRepository,
-    // yona-wiki P3-01(Observability) 계측 지점 1 — record()는 전체 알림이 거치는 단일 지점이라
+    // record()는 전체 알림이 거치는 단일 지점이라
     // 여기 하나만 계측해도 시스템 전체 알림 활동량을 eventType/resourceType별로 볼 수 있다.
     private val meterRegistry: MeterRegistry
 ) {

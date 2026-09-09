@@ -11,8 +11,8 @@ import java.sql.Types
 
 /**
  * CUBRID 지원용 커스텀 방언. org.hibernate.community.dialect.CUBRIDDialect를 그대로 쓰면
- * CUBRID JDBC 드라이버(11.3.2.0053)와 실제로 안 맞는 지점이 두 군데 있어 우회한다(둘 다 실측
- * 재현 — 방언은 지원한다고 광고하지만 드라이버가 그 바인딩을 못 받는 유형의 결함).
+ * CUBRID JDBC 드라이버(11.3.2.0053)와 실제로 안 맞는 지점이 두 군데 있어 우회한다(방언은
+ * 지원한다고 광고하지만 드라이버가 그 바인딩을 못 받는 유형의 결함).
  *
  * 1. BOOLEAN을 CUBRID의 `bit` 타입으로 매핑하는데(getPreferredSqlTypeCodeForBoolean() ==
  *    Types.BIT), 드라이버가 이 bit 바인드 파라미터를 받아들이지 못해 "Cannot coerce host var
@@ -37,8 +37,7 @@ class YonaCubridDialect : CUBRIDDialect() {
 
     /**
      * CUBRID JDBC 드라이버(11.3.2.0053)는 NOT NULL 제약 위반 시 SQLState를 아예 안 주고
-     * (getSQLState() == null) 벤더 고유 errorCode만 준다(실측 확인, ApiTokenSpec의
-     * "expiresAt이 null이면 저장이 거부되어야 한다" 테스트로 재현). org.hibernate.community.
+     * (getSQLState() == null) 벤더 고유 errorCode만 준다. org.hibernate.community.
      * dialect.CUBRIDDialect는 buildSQLExceptionConversionDelegate()를 오버라이드하지 않아
      * (부모 Dialect 기본 구현이 null 반환) SQLState 기반 표준 분류에 의존하는데, SQLState가
      * 없으니 분류가 실패해 org.hibernate.exception.GenericJDBCException으로 떨어지고
@@ -75,7 +74,7 @@ class YonaCubridDialect : CUBRIDDialect() {
 
     private companion object {
         // CUBRID JDBC 드라이버(11.3.2.0053)가 NOT NULL 제약 위반 시 실제로 던지는 errorCode.
-        // (SQLState는 null이라 쓸 수 없다 — 실측 확인.)
+        // (SQLState는 null이라 쓸 수 없다.)
         const val CUBRID_NOT_NULL_VIOLATION_ERROR_CODE = -631
     }
 }

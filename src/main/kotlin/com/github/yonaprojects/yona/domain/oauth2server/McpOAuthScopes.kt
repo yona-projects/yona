@@ -3,9 +3,8 @@ package com.github.yonaprojects.yona.domain.oauth2server
 import com.github.yonaprojects.yona.domain.apitoken.ApiTokenPermission
 import com.github.yonaprojects.yona.domain.apitoken.ApiTokenScopeGroup
 
-// yona-wiki P3-07(MCP 서버) Step2 — OAuth 스코프 축을 [[p3-02-cli-and-rest-api]]의
-// ApiTokenScopeGroup(8개 그룹)/ApiTokenPermission(NONE/READ/WRITE)에서 그대로 파생한다(신규 축 설계
-// 없음, 계획 문서 "완료 로그 — Step 1" 참고). 문자열 형식은 "<그룹 소문자>:<권한 소문자>"
+// OAuth 스코프 축을 ApiTokenScopeGroup(8개 그룹)/ApiTokenPermission(NONE/READ/WRITE)에서 그대로
+// 파생한다(신규 축 설계 없음). 문자열 형식은 "<그룹 소문자>:<권한 소문자>"
 // (예: "issues:read", "issues:write") — GitHub Fine-grained PAT 스코프 표기와 유사하다.
 //
 // RFC7591 DCR은 클라이언트가 등록 시점에 scope를 직접 지정하는 것을 기본 정책상 거부한다

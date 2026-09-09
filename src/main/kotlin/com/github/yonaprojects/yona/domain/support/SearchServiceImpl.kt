@@ -29,14 +29,14 @@ class SearchServiceImpl(
     private val issueCommentRepository: IssueCommentRepository,
     private val postingCommentRepository: PostingCommentRepository,
     private val reviewCommentRepository: ReviewCommentRepository,
-    // yona-wiki P3-02 Step8.6 항목3(2026-09-01, 우선순위 3위) — `yona search prs` 대응.
+    // `yona search prs` 대응.
     private val pullRequestRepository: PullRequestRepository,
-    // yona controllers/Application.java:35 HIDE_PROJECT_LISTING 대응 (P0-23).
+    // yona controllers/Application.java의 HIDE_PROJECT_LISTING 대응.
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
 ) : SearchService {
 
-    // yona Search.projectsEL() 대응 (P0-23). HIDE_PROJECT_LISTING이 켜져 있으면 PUBLIC 프로젝트를
+    // yona Search.projectsEL() 대응. HIDE_PROJECT_LISTING이 켜져 있으면 PUBLIC 프로젝트를
     // 검색 대상에서 제외한다 — 익명은 결과 없음, 로그인 사용자는 자신이 멤버이거나 소속 조직이
     // PROTECTED로 공개한 프로젝트만 남는다.
     private fun getAllowedProjectIds(user: User?): List<Long> {

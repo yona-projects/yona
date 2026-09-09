@@ -3,7 +3,7 @@ package com.github.yonaprojects.yona.web
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
-// yona controllers/api/GlobalApi.java hello() 대응 (P2-54)
+// yona controllers/api/GlobalApi.java hello() 대응
 @RestController
 class GlobalApiController {
 

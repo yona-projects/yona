@@ -10,8 +10,8 @@ import java.time.Instant
 import java.util.Base64
 import java.util.UUID
 
-// yona-wiki P3-17 — OAuth 앱(사전등록 클라이언트) 등록/삭제 로직을 한 곳에 모은다. [[p3-14]] 1라운드에서는
-// 이 로직이 OAuthAppsAdminController(사이트 관리자 전용) 안에만 있었지만, P3-17에서 사용자 셀프서비스
+// OAuth 앱(사전등록 클라이언트) 등록/삭제 로직을 한 곳에 모은다. 처음에는
+// 이 로직이 OAuthAppsAdminController(사이트 관리자 전용) 안에만 있었지만, 사용자 셀프서비스
 // 등록 화면(UserViewController)이 새로 생기면서 두 컨트롤러가 "등록"(register)과 "삭제 시 관련 동의/토큰
 // 레코드 정리"(deleteClientAndRelatedRecords) 로직을 그대로 공유해야 한다 — 컨트롤러마다 복제하는 대신
 // 도메인 서비스로 뽑아 하나의 구현만 유지한다. 오너십(누가 등록했는지) 판단/검증은 이 서비스가 갖고
@@ -28,8 +28,8 @@ class OAuthAppRegistrationService(
 ) {
 
     // 스코프 선택지 — DCR(McpOAuthScopes.ALL)과 동일한 축(ApiTokenScopeGroup x READ/WRITE)을
-    // 재사용한다(신규 축 설계 없음, [[p3-02]]/[[p3-07]]과 일관성 유지). yona-wiki P3-14 2라운드부터는
-    // 여기에 identityScopes()(openid/profile/email)도 합쳐서 반환한다 — register()의 화이트리스트
+    // 재사용한다(신규 축 설계 없음, 기존 스코프 체계와 일관성 유지). 여기에
+    // identityScopes()(openid/profile/email)도 합쳐서 반환한다 — register()의 화이트리스트
     // 필터(`scopes.filter { it in availableScopes() }`)가 이 목록 하나만 기준으로 삼으므로, identity
     // 스코프도 API 스코프와 동일한 검증 경로를 타게 하려면 반드시 여기 포함돼야 한다.
     fun availableScopes(): List<String> =
@@ -39,7 +39,7 @@ class OAuthAppRegistrationService(
             }
         } + identityScopes()
 
-    // yona-wiki P3-14 2라운드(OIDC) — 2라운드 착수 전 사용자 결정사항("identity 스코프는 전
+    // 사용자 결정사항("identity 스코프는 전
     // 클라이언트 자동 포함이 아니라 앱 등록 시 사용자가 개별 선택")에 따라 API 스코프
     // (ApiTokenScopeGroup 기반)와는 완전히 별개 축으로 둔다 — OIDC 표준 스코프 리터럴이라
     // ApiTokenScopeGroup에서 파생할 수 없다(신규 그룹을 추가하는 게 아니라 별도 상수 목록).

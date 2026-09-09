@@ -15,12 +15,11 @@ interface IssueCommentRepository : JpaRepository<IssueComment, Long> {
 
     // 네이티브 쿼리를 쓰는 진짜 이유는 domain/support/Comment.kt의 contents 필드 주석 참고 —
     // Postgres + Hibernate 7.2.x에서 @Lob String 컬럼은 LIKE가 예외 없이 조용히 0건으로 실패했다
-    // (원인은 @Lob 자체였고 지금은 제거함). 이 파일은 네이티브 쿼리로 이미 전환해뒀고 정상 동작을
-    // 재확인했으므로 그대로 유지한다.
+    // (원인은 @Lob 자체였고 지금은 제거함).
     //
     // issue_comment.project_id(Comment 기반 클래스의 denormalized 컬럼)를 직접 쓰지 않고 굳이
     // issue를 조인해 issue.project_id를 쓰는 이유: issue_comment.project_id는 실제로 값이 항상
-    // 채워진다는 보장이 없다(실측으로 null인 행 확인 — 이 컬럼을 채우는 코드 경로가 없음). 원래
+    // 채워진다는 보장이 없다(이 컬럼을 채우는 코드 경로가 없어 null인 행이 존재함). 원래
     // JPQL(ic.issue.project.id)이 관계를 통해 항상 신뢰할 수 있게 프로젝트를 구했던 것과 동일하게,
     // issue 조인을 통해 구해야 한다. userId는 null일 수 있어 매치 불가능한 sentinel(-1)로 치환한다.
     @Query(

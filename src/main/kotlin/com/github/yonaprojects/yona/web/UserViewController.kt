@@ -305,7 +305,7 @@ class UserViewController(
         return "user/verified"
     }
 
-    // yona UserApp.java:1101-1114 confirmEmail() 대응. 성공 시 editUserInfoForm으로 리다이렉트, [GL-controllers_UserApp-079;GL-controllers_UserApp-080]
+    // yona UserApp.confirmEmail() 대응. 성공 시 editUserInfoForm으로 리다이렉트,
     // 실패 시 ErrorViews.NotFound(404)를 반환한다. Play의 addUserInfoToSession(자동 세션 갱신)은
     // Spring Security 인증 모델과 근본적으로 다른 메커니즘이라 이식 범위에서 제외했다.
     @GetMapping("/user/email/confirm/{emailId}/{token}")

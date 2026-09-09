@@ -4,9 +4,8 @@
 </head>
 <body>
 <!--
- legacy common/child_commentForm.scala.html 대응 (#29, 이번 그룹11 세션에서 실제 착수). 대댓글
- 한 줄 작성 폼. 백엔드 CommentController가 이미 parentCommentId를 받으므로(P1-112) REST POST로
- 그대로 연결한다.
+ legacy common/child_commentForm.scala.html 대응. 대댓글 한 줄 작성 폼. 백엔드 CommentController가
+ 이미 parentCommentId를 받으므로 REST POST로 그대로 연결한다.
 -->
 <th:block th:fragment="childCommentForm(parentCommentId, apiBase, currentUser)">
     <form th:if="${currentUser != null}" th:data-api-base="${apiBase}" th:data-parent-comment-id="${parentCommentId}" class="child-comment-form">

@@ -4,7 +4,7 @@ import com.github.yonaprojects.yona.util.diff_match_patch
 import org.apache.commons.lang3.StringEscapeUtils
 
 /**
- * yona의 utils/DiffUtil.java 대응 (P2-02). 핵심 diff 알고리즘 자체(Myers diff + 효율성 정리)는
+ * legacy utils/DiffUtil.java 대응. 핵심 diff 알고리즘 자체(Myers diff + 효율성 정리)는
  * 원본 그대로인 `com.github.yonaprojects.yona.util.diff_match_patch`(Google diff-match-patch,
  * `utils/diff_match_patch.java`를 패키지 선언만 바꿔 그대로 옮김)에 위임하고, 이 클래스는 그 결과를
  * HTML/plain text로 렌더링하는 원본 `DiffUtil.java`의 로직을 그대로 포팅한다.

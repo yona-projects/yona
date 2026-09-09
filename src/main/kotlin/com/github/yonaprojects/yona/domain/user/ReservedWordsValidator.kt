@@ -1,7 +1,7 @@
 package com.github.yonaprojects.yona.domain.user
 
 /**
- * yona의 utils/ReservedWordsValidator.java 대응 (P2-01).
+ * yona의 utils/ReservedWordsValidator.java 대응.
  * yona는 Play 라우트 테이블을 런타임에 스캔해 `/{loginId}` 패턴과 충돌하는 정적 최상위 경로를
  * 자동 수집하지만, yona는 Spring MVC 라우팅 방식이 달라 등가의 런타임 스캔 대신 실제 컨트롤러의
  * 정적 최상위 경로를 정적으로 나열한다(신규 최상위 정적 경로 추가 시 이 목록도 함께 갱신 필요).

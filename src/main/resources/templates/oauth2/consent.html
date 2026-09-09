@@ -14,9 +14,9 @@
     <div class="page-wrap-outer">
         <div class="page-wrap" style="max-width: 640px; margin: 0 auto;">
             <!--
-             yona-wiki P3-07(MCP 서버) Step2 — GitHub의 OAuth 동의 화면 관행을 따른다: "<clientName>이(가)
-             <principalName> 계정에 접근하려고 합니다" + 요청 권한 목록(체크박스, 이미 동의한 항목은
-             기본 체크) + Authorize/Cancel 버튼.
+             GitHub의 OAuth 동의 화면 관행을 따른다: "<clientName>이(가) <principalName> 계정에
+             접근하려고 합니다" + 요청 권한 목록(체크박스, 이미 동의한 항목은 기본 체크) +
+             Authorize/Cancel 버튼.
             -->
             <h4 class="mt20">
                 <span th:text="${clientName}">Claude Code</span>
@@ -33,10 +33,9 @@
 
                 <h5 th:text="#{oauth2.consent.scopesTitle}">이 앱이 요청하는 권한</h5>
                 <!--
-                 yona-wiki P3-14 2라운드 — openid/profile/email 세 identity 스코프만
-                 scopeDescriptionKeys(OAuthConsentController)에 메시지 키가 있어 사람이 읽을 수 있는
-                 문구로 대체된다. 그 외 스코프(issues:read 등 API 스코프)는 1라운드와 동일하게 원문
-                 스코프 문자열을 그대로 보여준다(기존 동작 무변경).
+                 openid/profile/email 세 identity 스코프만 scopeDescriptionKeys(OAuthConsentController)에
+                 메시지 키가 있어 사람이 읽을 수 있는 문구로 대체된다. 그 외 스코프(issues:read 등
+                 API 스코프)는 원문 스코프 문자열을 그대로 보여준다.
                 -->
                 <ul class="oauth2-consent-scope-list">
                     <li th:each="scope : ${scopes}">

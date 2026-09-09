@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 private const val MENTION_ADMIN_LOGIN_ID = "admin"
 private const val ISSUE_MENTION_SHOW_LIMIT = 20
 
-// yona ProjectApp.mentionList()/mentionListAtCommitDiff()/mentionListAtPullRequest() 대응 (P1-14, P1-42, P1-43).
+// yona ProjectApp.mentionList()/mentionListAtCommitDiff()/mentionListAtPullRequest() 대응.
 @RestController
 class MentionController(
     private val projectRepository: ProjectRepository,
@@ -136,8 +136,7 @@ class MentionController(
         return userMentions
     }
 
-    // yona collectedUsersToMentionList 대응
-    // yona ProjectApp.collectedUsersToMentionList() 대응 (P1-58). "name"은 user.name이 아니라
+    // yona ProjectApp.collectedUsersToMentionList() 대응. "name"은 user.name이 아니라
     // user.getDisplayName()(요청한 사용자의 언어 설정에 따라 englishName+부서로 바뀔 수 있음), "searchText"는
     // name+getDisplayName()+loginId 3필드를 그대로 이어붙인다.
     private fun toMentionMaps(users: Collection<User>, currentUser: User?): List<Map<String, String>> {
@@ -154,7 +153,7 @@ class MentionController(
             }
     }
 
-    // yona ProjectApp.mentionListAtCommitDiff() 대응 (P1-43)
+    // yona ProjectApp.mentionListAtCommitDiff() 대응
     @GetMapping("/api/{owner}/{projectName}/mentionListAtCommitDiff")
     fun mentionListAtCommitDiff(
         @PathVariable owner: String,
@@ -217,7 +216,7 @@ class MentionController(
         return ResponseEntity.ok(result)
     }
 
-    // yona ProjectApp.mentionListAtPullRequest() 대응 (P1-43)
+    // yona ProjectApp.mentionListAtPullRequest() 대응
     @GetMapping("/api/{owner}/{projectName}/mentionListAtPullRequest")
     fun mentionListAtPullRequest(
         @PathVariable owner: String,

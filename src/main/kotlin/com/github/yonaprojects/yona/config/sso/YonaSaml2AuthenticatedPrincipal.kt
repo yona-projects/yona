@@ -6,12 +6,12 @@ import com.github.yonaprojects.yona.domain.user.User
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 
 /**
- * yona-wiki P3-06(엔터프라이즈 SSO) Step3 — `config/sso/YonaOidcUser`/`config/oauth2/YonaOAuth2User`와
+ * `config/sso/YonaOidcUser`/`config/oauth2/YonaOAuth2User`와
  * 동일한 취지. `getName()`이 SAML NameID가 아니라 로컬 User.loginId를 반환해야 기존
  * `authentication.name` 기반 관례(Git/SVN 인증 필터, `userRepository.findByLoginId` 등)가 그대로
  * 동작한다.
  *
- * P3-32(회귀 수정, 2026-09-09) — `YonaUserDetails`가 이미 겪은 것과 동일한 문제(OAuthObjectMapper
+ * `YonaUserDetails`가 이미 겪은 것과 동일한 문제(OAuthObjectMapper
  * 참고: OAuth2 동의 처리 과정에서 이 principal이 attributes 맵에 담겨 JSON 직렬화/역직렬화됨)를
  * 여기서도 겪었다. 처음엔 `val user: User`로 JPA 엔티티 전체를 직접 물고 있었는데, 이러면
  * `YonaSaml2AuthenticatedPrincipal` 자신을 화이트리스트에 추가해도 그 안에 중첩된 `User` 타입

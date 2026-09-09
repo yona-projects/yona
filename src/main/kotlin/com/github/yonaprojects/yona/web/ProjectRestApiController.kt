@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-// yona-wiki P3-02 Step6 — Go CLI 등 외부 클라이언트를 위한 신규 범용 REST API
+// Go CLI 등 외부 클라이언트를 위한 신규 범용 REST API
 // (`/api/v1/projects/{owner}` 목록, `/api/v1/projects/{owner}/{project}` 조회).
 //
 // 이 컨트롤러는 AccessControl.isAllowedToReadProject()로 웹 UI와 동일한 가시성 규칙을 그대로
 // 적용한다(공개 프로젝트는 비로그인 사용자에게도 노출, 비공개는 멤버/조직관리자/사이트 매니저만).
 // 응답 필드는 ProjectApiController.createdProjectNode()와 동일한 컨벤션을 따른다.
 //
-// yona-wiki P3-02 Step6.5 — 개별 조회(`/api/v1/projects/{owner}/{project}`)는
+// 개별 조회(`/api/v1/projects/{owner}/{project}`)는
 // ApiTokenAuthenticationFilter가 "metadata" 스코프(그룹/권한 매트릭스 없이 repo scope만 확인)로
 // 인가하므로 Fine-grained 스코프 토큰으로도 호출 가능해졌다(스코프 밖이면 필터가 이미 403으로
 // 막으므로 이 컨트롤러는 별도 처리가 필요 없다). 목록(`/api/v1/projects/{owner}`)은 "인증됨/아님"
@@ -97,27 +97,23 @@ class ProjectRestApiController(
         return ResponseEntity.ok(toProjectNode(found))
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `yona project create`. ProjectViewController.
-    // newProject()(세션/폼 기반)와 동일한 권한 로직(owner가 기존 조직명이면 그 조직 admin만 생성
-    // 가능)을 그대로 재사용하되, JSON 요청/응답으로 노출한다.
+    // `yona project create`. ProjectViewController.newProject()(세션/폼 기반)와 동일한 권한 로직
+    // (owner가 기존 조직명이면 그 조직 admin만 생성 가능)을 그대로 재사용하되, JSON 요청/응답으로
+    // 노출한다.
     //
-    // yona-wiki P3-02 10라운드(TASK-0417) — 위 4라운드 주석은 "GitHub Fine-grained PAT도 새 저장소
-    // 생성을 지원하지 않는다"는 전제로 이 bare POST가 Fine-grained PAT의 어떤 스코프 패턴과도
-    // 매칭되지 않는 것을 의도적 설계로 문서화했었다. 실제 서버 + 실제 yona-cli(`yona project
-    // create`)로 재현한 결과 이건 의도가 아니라 버그였다 — `yona project create`가 발급받은
-    // fine-grained PAT으로 이 엔드포인트를 호출하면 항상 401이 났다(ApiTokenAuthenticationFilter의
+    // 이 bare POST(URL에 owner 세그먼트가 없음)는 ApiTokenAuthenticationFilter의
     // scopedApiPattern/individualProjectPattern/ownerOnlyPattern이 전부 owner 세그먼트를 최소
-    // 1개 요구해 세그먼트가 아예 없는 이 URL과 매칭되지 않았기 때문). 이제
-    // ApiTokenAuthenticationFilter.projectCreatePattern이 이 URL을 인식해, "allRepositories=true
-    // (All repositories) + ADMINISTRATION(ResourceType.PROJECT) 그룹 WRITE 권한"을 가진 토큰만
-    // 여기 도달하도록 허용한다 — 신규 프로젝트는 아직 존재하지 않는 저장소라 특정 프로젝트로
-    // 스코프를 좁힌 토큰으로는 원천적으로 판정할 수 없으므로(repo scope 체크 대상이 없음),
-    // GitHub Fine-grained PAT이 "All repositories" 토큰에만 새 저장소 생성 권한을 주는 것과 동일한
-    // 논리로 allRepositories를 강제한다. 별도 스코프 그룹을 신설하지 않고 기존 ADMINISTRATION(이미
-    // ResourceType.PROJECT를 포함)을 재사용한 이유는, 계정 전체의 "프로젝트를 새로 만들 수 있는가"
-    // 판정이 다른 ADMINISTRATION 항목(SITE_SETTING/PROJECT_TRANSFER/ORGANIZATION 등)과 같은
-    // "저장소 자체의 존재/설정을 다루는 관리 행위" 범주에 속한다고 판단했기 때문이다(근거는
-    // docs/yona-wiki/plans/p3-02-cli-and-rest-api.md 10라운드 로그 참고).
+    // 1개 요구해 매칭되지 않는 탓에, 발급받은 fine-grained PAT으로 이 엔드포인트를 호출하면 항상
+    // 401이 나는 버그가 있었다. ApiTokenAuthenticationFilter.projectCreatePattern이 이 URL을
+    // 인식하도록 추가해, "allRepositories=true(All repositories) + ADMINISTRATION
+    // (ResourceType.PROJECT) 그룹 WRITE 권한"을 가진 토큰만 여기 도달하도록 허용한다 — 신규
+    // 프로젝트는 아직 존재하지 않는 저장소라 특정 프로젝트로 스코프를 좁힌 토큰으로는 원천적으로
+    // 판정할 수 없으므로(repo scope 체크 대상이 없음), GitHub Fine-grained PAT이 "All repositories"
+    // 토큰에만 새 저장소 생성 권한을 주는 것과 동일한 논리로 allRepositories를 강제한다. 별도
+    // 스코프 그룹을 신설하지 않고 기존 ADMINISTRATION(이미 ResourceType.PROJECT를 포함)을 재사용한
+    // 이유는, 계정 전체의 "프로젝트를 새로 만들 수 있는가" 판정이 다른 ADMINISTRATION 항목
+    // (SITE_SETTING/PROJECT_TRANSFER/ORGANIZATION 등)과 같은 "저장소 자체의 존재/설정을 다루는
+    // 관리 행위" 범주에 속한다고 판단했기 때문이다.
     @PostMapping
     fun create(
         @RequestBody request: CreateProjectRequest,
@@ -159,7 +155,7 @@ class ProjectRestApiController(
         }
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `yona project fork`. ProjectController.forkProject()
+    // `yona project fork`. ProjectController.forkProject()
     // (`/api/{owner}/{projectName}/fork`)가 이미 owner/projectName 이름 기반으로 동작해(숫자 ID 변환이
     // 필요 없음) 그대로 위임한다. ApiTokenAuthenticationFilter의 resourceSegmentToResourceType에
     // "fork" -> ResourceType.FORK(CODE 그룹)가 매핑돼 있어 Fine-grained 스코프 토큰(CODE:write)으로도
@@ -173,7 +169,7 @@ class ProjectRestApiController(
         return projectController.forkProject(owner, project, authentication)
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `yona project edit`/`yona project delete`.
+    // `yona project edit`/`yona project delete`.
     // ProjectController.updateProject()/deleteProject()는 숫자 projectId 기반이라 owner/project
     // 이름을 먼저 id로 바꿔 위임한다(Issue/PR REST API와 동일한 어댑터 패턴). URL에 "settings"
     // 세그먼트를 붙인 이유: 세그먼트 없는 `/api/v1/projects/{owner}/{project}`는 이미 "metadata"
@@ -218,7 +214,7 @@ class ProjectRestApiController(
         val isBoardEnabled: Boolean = true
     )
 
-    // yona ProjectApi.java:220-228 createdProjectNode() 대응(ProjectApiController.kt와 동일 필드
+    // yona ProjectApi.createdProjectNode() 대응(ProjectApiController.kt와 동일 필드
     // 컨벤션) — id/scope만 이 신규 API 전용으로 추가한다.
     private fun toProjectNode(project: Project): Map<String, Any?> {
         return mapOf(

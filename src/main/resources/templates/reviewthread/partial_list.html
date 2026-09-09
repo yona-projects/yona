@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<!-- legacy reviewthread/partial_list.scala.html 1:1 이식 (P2-46 계열, 그룹11).
+<!-- legacy reviewthread/partial_list.scala.html 1:1 이식.
      list.html의 review-list-wrap 안에서 th:insert로 삽입되는 조각. -->
 <th:block th:fragment="list(project, commentThreads, searchCondition)">
     <ul class="post-list-wrap" th:if="${commentThreads.content.size() > 0}">

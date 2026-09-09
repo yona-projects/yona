@@ -3,7 +3,7 @@ package com.github.yonaprojects.yona.web
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletRequestWrapper
 
-// yona-wiki P3-12(Mercurial 지원) 2라운드 — HgHttpWireServer(hg4j)는 SVNKit의 DAVServlet과 달리
+// HgHttpWireServer(hg4j)는 SVNKit의 DAVServlet과 달리
 // getServletPath()/getPathInfo()가 아니라 request.getRequestURI() 하나만으로 자신의 라우팅을 결정한다
 // ("/"(정확히 루트)면 wire protocol v2 capabilities-discovery, "/api/"로 시작하면 v2 명령 프레임
 // 디스패치, 그 외에는 쿼리스트링의 cmd 파라미터만으로 v1 명령을 디스패치 — HgHttpWireServer.service()

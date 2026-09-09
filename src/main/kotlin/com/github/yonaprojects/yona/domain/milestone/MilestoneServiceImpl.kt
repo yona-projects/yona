@@ -25,8 +25,8 @@ class MilestoneServiceImpl(
         val project = projectRepository.findById(projectId)
             .orElseThrow { IllegalArgumentException("프로젝트를 찾을 수 없습니다.") }
 
-        // yona Milestone.java:188-230 findMilestones(projectId, state, sort, direction) 대응 [GL-models_Milestone-027;GL-models_Milestone-028;GL-models_Milestone-029]
-        // (P1-128). completionRate는 계산 필드(DB 컬럼 아님)라 DB 정렬 대상에서 제외하고
+        // yona Milestone.findMilestones(projectId, state, sort, direction) 대응.
+        // completionRate는 계산 필드(DB 컬럼 아님)라 DB 정렬 대상에서 제외하고
         // 정렬 없이 조회한 뒤, 컨트롤러가 DTO 변환 후 completionRate 기준으로 별도 정렬한다
         // (legacy도 동일하게 findMilestones() 안에서 조회 후 Collections.sort()로 재정렬).
         val direction = if (orderDir.equals("desc", ignoreCase = true)) Sort.Direction.DESC else Sort.Direction.ASC
@@ -91,7 +91,7 @@ class MilestoneServiceImpl(
         issueRepository.removeMilestoneFromIssues(milestone)
         
         attachmentService.deleteAll(ResourceType.MILESTONE, milestone.id.toString())
-        // yona models/resource/ResourcePersistAdapter.java postDelete() 대응 (P1-147).
+        // yona ResourcePersistAdapter.postDelete() 대응.
         watchService.deleteAll(ResourceType.MILESTONE, milestone.id.toString())
         milestoneRepository.delete(milestone)
     }

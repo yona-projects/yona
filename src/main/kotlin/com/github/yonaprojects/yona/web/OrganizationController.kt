@@ -17,8 +17,8 @@ class OrganizationController(
     private val userRepository: UserRepository
 ) {
 
-    // yona AccessControl.java:119-203 isGlobalResourceAllowed()의 ORGANIZATION 케이스
-    // "user.isSiteManager() || isOrganizationAdmin" 대응 (P0-21). 사이트매니저 전역 우회가
+    // yona AccessControl.isGlobalResourceAllowed()의 ORGANIZATION 케이스
+    // "user.isSiteManager() || isOrganizationAdmin" 대응. 사이트매니저 전역 우회가
     // 빠져 있어 조직 관리자가 아닌 사이트매니저는 이 REST API 전체에서 403을 받고 있었다.
     private fun isOrgAdmin(orgId: Long, userId: Long): Boolean {
         val isSiteManager = userRepository.findById(userId).map { it.isSiteManager }.orElse(false)

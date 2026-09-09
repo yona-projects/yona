@@ -59,7 +59,7 @@ class UserController(
         }
     }
 
-    // yona models/User.java getVisitedIssues() / RecentIssue.getRecentIssues 대응 (P1-41).
+    // yona User.getVisitedIssues() / RecentIssue.getRecentIssues 대응.
     @GetMapping("/api/users/me/recent-issues")
     fun getRecentIssues(authentication: Authentication?): ResponseEntity<List<Map<String, Any?>>> {
         if (authentication == null) {
@@ -154,7 +154,7 @@ class UserController(
         }
     }
 
-    // yona UserApp.java:1008-1013 isUsed() 대응. 회원가입 폼의 아이디 실시간 중복확인에 사용된다.
+    // yona UserApp.isUsed() 대응. 회원가입 폼의 아이디 실시간 중복확인에 사용된다.
     @GetMapping("/user/isUsed")
     fun isUsed(@RequestParam("name") name: String): ResponseEntity<Map<String, Boolean>> {
         val isExist = userService.isLoginIdExist(name) || organizationRepository.findByName(name).isPresent
@@ -166,7 +166,7 @@ class UserController(
         )
     }
 
-    // yona UserApp.java:1016-1020 isEmailExist() 대응. 회원가입 폼의 이메일 실시간 중복확인에 사용된다. [GL-controllers_UserApp-075]
+    // yona UserApp.isEmailExist() 대응. 회원가입 폼의 이메일 실시간 중복확인에 사용된다.
     @GetMapping("/user/isEmailExist")
     fun isEmailExist(@RequestParam("email") email: String): ResponseEntity<Map<String, Boolean>> {
         return ResponseEntity.ok(mapOf("isExist" to userService.isEmailExist(email)))
@@ -294,7 +294,7 @@ class UserController(
         val retypedPassword: String
     )
 
-    // yona UserApi.java:218-241 newUser() 대응 (P1-118). 사이트관리자 전용 벌크 사용자 생성 — [GL-controllers_api_UserApi-014]
+    // yona UserApi.newUser() 대응. 사이트관리자 전용 벌크 사용자 생성 —
     // 비로그인 상태에서도 호출 가능한 API이므로 권한 검사는 세션/토큰 인증을 거친 currentUser로 직접
     // 판단한다(스프링 시큐리티 인가 규칙이 아닌 컨트롤러 내부 판단인 것도 legacy와 동일).
     @PostMapping("/api/users")
@@ -312,7 +312,7 @@ class UserController(
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUsers)
     }
 
-    // yona UserApi.java:407-434 createUserNode() 대응. yona는 벌크 생성된 사용자의 비밀번호를 [GL-controllers_api_UserApi-024;GL-controllers_api_UserApi-025;GL-controllers_api_UserApi-026]
+    // yona UserApi.createUserNode() 대응. yona는 벌크 생성된 사용자의 비밀번호를
     // SecureRandomNumberGenerator로 생성한 불투명한 값으로 채운 뒤, 그 값을 "평문"으로 취급해 다시
     // salt+해시하는(UserApp.createNewUser) 절차를 그대로 거친다 — 즉 결과적으로 어떤 실제 비밀번호로도
     // 로그인할 수 없는 계정이 되며, 별도의 비밀번호 재설정 절차(신규 요청 범위 밖)를 거쳐야 한다.
@@ -353,7 +353,7 @@ class UserController(
     data class NewUsersRequest(val users: List<NewUserItem>)
     data class NewUserItem(val loginId: String, val name: String, val email: String)
 
-    // yona UserApi.java:244-265 newToken() 대응 (P1-118). 세션 없이 아이디(또는 이메일)+비밀번호로 [GL-controllers_api_UserApi-015]
+    // yona UserApi.newToken() 대응. 세션 없이 아이디(또는 이메일)+비밀번호로
     // API 액세스 토큰을 발급한다. 비밀번호 검증 자체는 YonaAuthenticationProvider에 위임해 LDAP
     // 활성화 여부/계정 잠금 상태 처리를 로그인 폼과 동일하게 재사용한다.
     @PostMapping("/api/users/token")
@@ -383,7 +383,7 @@ class UserController(
 
     data class NewTokenRequest(val id: String, val password: String)
 
-    // yona UserApi.java:320-339 users() 대응 (P1-118). 사이트관리자 전용, ACTIVE 사용자 전체 목록. [GL-controllers_api_UserApi-018;GL-controllers_api_UserApi-019]
+    // yona UserApi.users() 대응. 사이트관리자 전용, ACTIVE 사용자 전체 목록.
     @GetMapping("/api/admin/users")
     fun listAllUsersForAdmin(authentication: Authentication?): ResponseEntity<Any> {
         val currentUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
@@ -401,7 +401,7 @@ class UserController(
         return ResponseEntity.ok(result)
     }
 
-    // yona UserApi.java:341-379 updateUserState() 대응 (P1-118). 사이트관리자 전용, 사이트관리자 [GL-controllers_api_UserApi-020;GL-controllers_api_UserApi-021]
+    // yona UserApi.updateUserState() 대응. 사이트관리자 전용, 사이트관리자
     // 상태(SITE_ADMIN)로의 변경은 이 API로 금지한다(별도 절차 필요 — legacy와 동일한 제약).
     @PatchMapping("/api/admin/users/{loginId}")
     fun updateUserStateByAdmin(
@@ -430,10 +430,10 @@ class UserController(
 
     data class UpdateUserStateRequest(val state: String)
 
-    // yona UserApp.java:1372-1380 setDefaultLoginPage() 대응 (P2-11, 레거시 Open API 경로 별칭은
-    // P2-60). 로그인 후 사이트 루트로 접속했을 때 이동할 "기본 페이지"를 사용자별로 저장한다
-    // (리다이렉트 소비는 IndexController). legacy 경로 `/-_-api/v1/user/defultLoginPage`는 legacy
-    // 자체 오타(defult)까지 그대로 유지한 별칭 — 기존 `/user/setDefaultLoginPage`도 계속 지원한다.
+    // yona UserApp.setDefaultLoginPage() 대응(레거시 Open API 경로 별칭 포함). 로그인 후 사이트
+    // 루트로 접속했을 때 이동할 "기본 페이지"를 사용자별로 저장한다(리다이렉트 소비는
+    // IndexController). legacy 경로 `/-_-api/v1/user/defultLoginPage`는 legacy 자체 오타(defult)까지
+    // 그대로 유지한 별칭 — 기존 `/user/setDefaultLoginPage`도 계속 지원한다.
     @PostMapping(value = ["/user/setDefaultLoginPage", "/-_-api/v1/user/defultLoginPage"])
     fun setDefaultLoginPage(
         @RequestParam(required = false) path: String?,

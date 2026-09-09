@@ -3,7 +3,7 @@
 <!-- th:replace는 호스트 <head> 태그와 그 자식을 전부 프래그먼트 결과로 치환하므로, 페이지 전용
      <style>를 <head> 안에 두면 절대 렌더링되지 않는다(이 저장소의 다른 모든 템플릿은
      `<head th:replace="..."></head>`처럼 안을 비워둔다) — <body> 최상단으로 옮겨서 실제로
-     렌더링되게 한다(P0-27). -->
+     렌더링되게 한다. -->
 <head th:replace="~{site/layout :: head(${project.name} + ' - 코드 브라우저')}"></head>
 <body class="prj" id="html-body">
 <style>
@@ -145,13 +145,13 @@
       <!-- 브라우저 헤더 (브랜치 선택 및 브레드크럼) -->
       <div class="code-browse-header">
         <div style="display: flex; align-items: center; gap: 15px;">
-          <!-- 브랜치 선택 셀렉트 박스 (yona code/view.scala.html:78-87) -->
+          <!-- 브랜치 선택 셀렉트 박스 (legacy code/view.scala.html 대응) -->
           <select id="branches" class="form-control pull-left"
                   th:classappend="${recursiveData[recursiveData.size() - 1].get('type').asText() == 'file'} ? 'mb10' : ''">
-            <!-- GitHub의 브랜치/태그 통합 ref 셀렉터(그룹 헤더로 구분) 대응 (P3-10). Mercurial
-                 프로젝트는 이 그룹이 실제로는 bookmark 목록이라(P3-12 설계 결정) 옛 Bitbucket
-                 방식대로 "Bookmarks"로 라벨링하고, named branch(P3-23)를 별도 그룹으로 아래에
-                 덧붙인다 — Git/SVN은 항상 기존 라벨("Branches")과 빈 named branch 그룹(미노출). -->
+            <!-- GitHub의 브랜치/태그 통합 ref 셀렉터(그룹 헤더로 구분) 대응. Mercurial 프로젝트는
+                 이 그룹이 실제로는 bookmark 목록이라(설계 결정) 옛 Bitbucket 방식대로 "Bookmarks"로
+                 라벨링하고, named branch를 별도 그룹으로 아래에 덧붙인다 — Git/SVN은 항상 기존
+                 라벨("Branches")과 빈 named branch 그룹(미노출). -->
             <optgroup th:if="${!branches.isEmpty()}" th:label="${project.vcs == 'MERCURIAL'} ? #{title.bookmarks} : #{title.branches}">
               <option th:each="branchName : ${branches}"
                       th:value="@{/{owner}/{name}/code/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branchName)}, path=${path})}"
@@ -172,15 +172,15 @@
             </optgroup>
           </select>
 
-          <!-- 브레드크럼 (yona code/view.scala.html:26-39 makeBreadCrumbs() 대응, 세그먼트 사이에 구분자 없음) -->
+          <!-- 브레드크럼 (legacy code/view.scala.html의 makeBreadCrumbs() 대응, 세그먼트 사이에 구분자 없음) -->
           <div class="code-breadcrumb-wrap" id="breadcrumbs">
             <a th:href="@{/{owner}/{name}/code/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch})}" th:text="${project.name}">project</a><th:block
                th:each="crumb : ${breadcrumbs}"><a th:href="@{/{owner}/{name}/code/{branch}/{subPath}(owner=${project.owner}, name=${project.name}, branch=${branch}, subPath=${crumb.second})}" th:text="${crumb.first}">segment</a></th:block>
           </div>
         </div>
 
-        <!-- yona-wiki P3-20 — Mercurial 저장소도 실제로 zip 아카이브를 만들 수 있게 됐으므로(hg4j
-             ArchiveCommand) Git 전용 게이트를 풀어 노출한다. SVN은 여전히 미구현이라 제외. -->
+        <!-- Mercurial 저장소도 실제로 zip 아카이브를 만들 수 있으므로(hg4j ArchiveCommand) Git
+             전용 게이트를 풀어 노출한다. SVN은 여전히 미구현이라 제외. -->
         <th:block th:if="${project.vcs == 'GIT' or project.vcs == 'MERCURIAL'}">
           <div class="pull-right">
             <a th:href="@{/{owner}/{name}/code/download/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch})}" class="ybtn" th:text="#{code.download}">ZIP 다운로드</a>

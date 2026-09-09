@@ -12,8 +12,8 @@ import java.time.Instant
 //
 // yona INotificationEvent의 getMessage(Lang)/getPlainMessage(Lang)/getUrlToView()/resourceExists()는
 // Ebean active-record 모델이 정적 파인더(예: Resource.exists(...))로 직접 DB를 조회하는 메서드였다.
-// yona는 그 책임을 이미 별도 Spring 서비스(NotificationMessageResolver/NotificationUrlResolver 등,
-// P1-27)로 분리해뒀고 엔티티에 리포지토리를 주입하는 건 JPA 관례에 맞지 않으므로, 이 인터페이스에는
+// yona는 그 책임을 이미 별도 Spring 서비스(NotificationMessageResolver/NotificationUrlResolver 등)로
+// 분리해뒀고 엔티티에 리포지토리를 주입하는 건 JPA 관례에 맞지 않으므로, 이 인터페이스에는
 // "이벤트 자신이 들고 있는 상태"만 남기고 메시지/URL 해석은 계속 이 인터페이스를 받는 외부 서비스가
 // 담당한다(NotificationMessageResolver.getMessage(NotificationEvent|MergedNotificationEvent, ...)
 // 오버로드가 이미 legacy MergedNotificationEvent.getMessage()의 "\n\n---\n\n" join 동작을 그대로 재현).

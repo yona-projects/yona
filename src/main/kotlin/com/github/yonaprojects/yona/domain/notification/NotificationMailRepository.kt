@@ -8,7 +8,7 @@ import java.time.Instant
 interface NotificationMailRepository : JpaRepository<NotificationMail, Long> {
     fun findByNotificationEvent(notificationEvent: NotificationEvent): NotificationMail?
 
-    // yona NotificationMail.startSchedule()의
-    // `.lt("notificationEvent.created", createdUntil).orderBy("notificationEvent.created ASC")` 대응 (P1-27).
+    // legacy NotificationMail.startSchedule()의
+    // `.lt("notificationEvent.created", createdUntil).orderBy("notificationEvent.created ASC")` 대응.
     fun findByNotificationEvent_CreatedBeforeOrderByNotificationEvent_CreatedAsc(threshold: Instant): List<NotificationMail>
 }

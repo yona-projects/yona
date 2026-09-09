@@ -14,25 +14,23 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 /**
- * yona-wiki P3-07(MCP 서버) Step3~5 — PR 읽기/쓰기 MCP 도구. PullRequestApiController와 완전히
- * 동일한 원칙(신규 비즈니스 로직 없이 PullRequestController에 위임만 함)을 따른다.
+ * PR 읽기/쓰기 MCP 도구. PullRequestApiController와 완전히 동일한 원칙(신규 비즈니스 로직 없이
+ * PullRequestController에 위임만 함)을 따른다.
  *
- * `merge_pull_request`는 이 계획의 리스크 표 1순위 항목이다 — 반드시
- * `pullRequestController.mergePullRequest()`를 그대로 호출해야
- * [[p3-04-branch-protection]]의 `PullRequestServiceImpl.merge() -> checkBranchProtectionForMerge()`를
- * 우회 없이 통과한다(새 머지 경로를 만들지 않음). scopeGuard.require()는 이 호출보다 반드시 먼저
- * 실행돼야 한다 — AI 에이전트가 PULL_REQUESTS:write 스코프 없이 보호된 브랜치는커녕 어떤 PR도
- * 머지하지 못하게 막는 첫 번째 방어선이다(두 번째 방어선은 브랜치 보호 자체).
+ * `merge_pull_request`는 반드시 `pullRequestController.mergePullRequest()`를 그대로 호출해야
+ * `PullRequestServiceImpl.merge() -> checkBranchProtectionForMerge()`를 우회 없이 통과한다(새
+ * 머지 경로를 만들지 않음). scopeGuard.require()는 이 호출보다 반드시 먼저 실행돼야 한다 — AI
+ * 에이전트가 PULL_REQUESTS:write 스코프 없이 보호된 브랜치는커녕 어떤 PR도 머지하지 못하게 막는
+ * 첫 번째 방어선이다(두 번째 방어선은 브랜치 보호 자체).
  *
- * **정정(2026-09-09, 사용자 지시로 코디네이터 재확인)**: 위 `review_pull_request`의 원래 설명은
- * "yona에는 GitHub의 APPROVE/REQUEST_CHANGES 같은 정식 리뷰 상태 기계가 없다"고 적혀 있었으나,
- * 이 MCP 서버(P3-07)가 만들어진 이후 [[p3-15-pr-approval-workflow]]([[tickets/p3-15|P3-15]])가
- * `PullRequestReview`(APPROVE/REQUEST_CHANGES/COMMENT, `PullRequestController.submitReview()`)를
- * 정식으로 구현했는데, 이 MCP 도구는 그 사실을 반영하지 못한 채 여전히 낡은 방식(단순 리뷰어
- * 등록)에만 매핑돼 있었다 — AI 에이전트가 이 MCP 서버로는 실제 Approve/Request changes 판정을
- * 전혀 할 수 없던 실제 기능 갭. `review_pull_request`를 `submitReview()`에 연결하도록 고쳤고,
- * 순수 "리뷰어로 등록만" 하고 싶은 경우를 위해 `add_reviewer`를 별도 도구로 새로 뒀다(기존
- * `review_pull_request`의 동작을 그대로 보존 — 하위 호환).
+ * `review_pull_request`는 한때 "yona에는 GitHub의 APPROVE/REQUEST_CHANGES 같은 정식 리뷰 상태
+ * 기계가 없다"는 전제로 단순 리뷰어 등록에만 매핑돼 있었으나, 이후 `PullRequestReview`(APPROVE/
+ * REQUEST_CHANGES/COMMENT, `PullRequestController.submitReview()`)가 정식으로 구현되면서 이 MCP
+ * 도구가 그 사실을 반영하지 못한 채 낡은 방식에 머물러 있던 시기가 있었다 — AI 에이전트가 이 MCP
+ * 서버로는 실제 Approve/Request changes 판정을 전혀 할 수 없던 기능 갭이었다. `review_pull_request`를
+ * `submitReview()`에 연결하도록 고쳤고, 순수 "리뷰어로 등록만" 하고 싶은 경우를 위해
+ * `add_reviewer`를 별도 도구로 새로 뒀다(기존 `review_pull_request`의 동작을 그대로 보존 — 하위
+ * 호환).
  */
 @Component
 class PullRequestMcpTools(
@@ -67,9 +65,9 @@ class PullRequestMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.READ, found)
-        // 2026-09-09 코디네이터 발견/수정 — getPullRequest()가 이제 순환 직렬화/비밀번호 노출
-        // 수정으로 이미 PullRequestResponse를 담은 ResponseEntity<Any>를 돌려준다(unwrapForMcp()가
-        // 반환하는 정적 타입이 Any가 돼 .toResponse()를 다시 호출할 수 없다).
+        // getPullRequest()가 순환 직렬화/비밀번호 노출 방지를 위해 이미 PullRequestResponse를 담은
+        // ResponseEntity<Any>를 돌려준다(unwrapForMcp()가 반환하는 정적 타입이 Any가 돼
+        // .toResponse()를 다시 호출할 수 없다).
         return pullRequestController.getPullRequest(found.id!!, number, currentAuth())
             .unwrapForMcp("PR #$number 를 찾을 수 없습니다.")
     }
@@ -92,15 +90,15 @@ class PullRequestMcpTools(
             fromBranch = fromBranch,
             toBranch = toBranch
         )
-        // 2026-09-09 코디네이터 발견/수정 — createPullRequest()도 위와 동일한 이유.
+        // createPullRequest()도 위와 동일한 이유.
         return pullRequestController.createPullRequest(found.id!!, request, currentAuth())
             .unwrapForMcp()
     }
 
-    // 2026-09-09 코디네이터 수정(사용자 지시) — GitHub의 pulls/{number}/reviews와 동일하게 실제
-    // Approve/Request changes/Comment 판정을 남긴다. PullRequestController.submitReview()(P3-15)에
-    // 연결 — 자기 자신의 PR은 SelfReviewException(400)으로 거부되며 unwrapForMcp()가 그 사유를
-    // 그대로 McpToolException으로 변환한다.
+    // GitHub의 pulls/{number}/reviews와 동일하게 실제 Approve/Request changes/Comment 판정을
+    // 남긴다. PullRequestController.submitReview()에 연결 — 자기 자신의 PR은
+    // SelfReviewException(400)으로 거부되며 unwrapForMcp()가 그 사유를 그대로 McpToolException으로
+    // 변환한다.
     @Tool(description = "풀 리퀘스트를 리뷰합니다 — APPROVE(승인)/REQUEST_CHANGES(변경 요청)/COMMENT(코멘트만, 판정 없음) 중 하나로 실제 판정을 남깁니다(자기 자신의 PR은 APPROVE/REQUEST_CHANGES 불가).")
     fun review_pull_request(
         @ToolParam(description = "저장소 소유자") owner: String,
@@ -121,9 +119,9 @@ class PullRequestMcpTools(
             .unwrapForMcp("PR #$number 를 찾을 수 없습니다.")
     }
 
-    // 2026-09-09 코디네이터 신설(사용자 지시) — review_pull_request가 예전에 하던 "판정 없이 리뷰어
-    // 목록에만 등록" 동작을 이 이름으로 그대로 보존한다(하위 호환 — 기존에 review_pull_request를
-    // 이 용도로 쓰던 MCP 클라이언트가 있을 수 있어 동작 자체는 없애지 않고 도구만 분리).
+    // review_pull_request가 예전에 하던 "판정 없이 리뷰어 목록에만 등록" 동작을 이 이름으로 그대로
+    // 보존한다(하위 호환 — 기존에 review_pull_request를 이 용도로 쓰던 MCP 클라이언트가 있을 수
+    // 있어 동작 자체는 없애지 않고 도구만 분리).
     @Tool(description = "풀 리퀘스트에 판정 없이 리뷰어로만 등록합니다(Approve/Request changes 판정을 남기려면 review_pull_request를 쓰세요).")
     fun add_reviewer(
         @ToolParam(description = "저장소 소유자") owner: String,
@@ -159,8 +157,8 @@ class PullRequestMcpTools(
         @ToolParam(description = "PR 번호") number: Long
     ): Any {
         val found = findProject(owner, project)
-        // yona-wiki P3-07 Step5 — 이 require() 호출이 pullRequestController.mergePullRequest()보다
-        // 먼저 실행되는 것이 이 도구의 핵심 안전장치다(클래스 KDoc 참고).
+        // 이 require() 호출이 pullRequestController.mergePullRequest()보다 먼저 실행되는 것이 이
+        // 도구의 핵심 안전장치다(클래스 KDoc 참고).
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.WRITE, found)
         return pullRequestController.mergePullRequest(found.id!!, number, currentAuth())
             .unwrapForMcp("PR #$number 를 찾을 수 없습니다.")

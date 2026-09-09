@@ -21,8 +21,8 @@ import java.io.OutputStream
 class UnsupportedGitServiceException(service: String?) : Exception("지원하지 않는 명령입니다: $service")
 
 /**
- * yona-wiki P3-18 — GitServletConfig(HTTPS)/YonaSshGitCommand(임베디드 MINA SSHD)가 각각 따로
- * 구성하던 "JGit UploadPack/ReceivePack을 열고, RejectPushToReservedRefsPreReceiveHook +
+ * GitServletConfig(HTTPS)/YonaSshGitCommand(임베디드 MINA SSHD)가 각각 따로 구성하던 "JGit
+ * UploadPack/ReceivePack을 열고, RejectPushToReservedRefsPreReceiveHook +
  * BranchProtectionPreReceiveHook을 체이닝해서 돌린다"는 로직을 한 곳으로 뽑아낸 공유 구현체.
  *
  * SSH 전송 수단(임베디드 MINA SSHD의 Command 채널 스트림 vs 새 유닉스 도메인 소켓 릴레이의

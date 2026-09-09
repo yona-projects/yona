@@ -21,26 +21,24 @@ import org.springframework.stereotype.Component
 // RFC8707 §3의 공식 오류 코드. Spring의 OAuth2ErrorCodes 상수 목록에는 아직 없어 리터럴로 둔다.
 private const val INVALID_TARGET = "invalid_target"
 
-// yona-wiki P3-07(MCP 서버) Step2 — RFC8707(Resource Indicators) 오디언스 스탬핑. 계획 문서
-// "완료 로그 — Step 1"에서 결정한 대로, Spring Authorization Server가 기본 제공하지 않는 이 부분만
-// 직접 구현한다(PKCE/DCR은 Spring이 기본 제공).
+// RFC8707(Resource Indicators) 오디언스 스탬핑. Spring Authorization Server가 기본 제공하지
+// 않는 이 부분만 직접 구현한다(PKCE/DCR은 Spring이 기본 제공).
 //
-// yona-wiki P3-14 1라운드 — 원래 MCP 리소스 하나만 허용했으나, 발급 가능한 리소스를
-// ProtectedResource(MCP/API) 레지스트리로 일반화했다. 클라이언트는 `/oauth2/token` 요청에
-// `resource` 파라미터로 발급받고 싶은 리소스의 URI를 명시해야 한다(MCP는 스펙상 필수, 일반
-// API 클라이언트에도 동일하게 강제 — "토큰이 어느 리소스 서버 대상인지 항상 명시적으로 선언한다"는
-// 이 서버의 설계 원칙을 리소스 종류와 무관하게 일관되게 유지하기 위함). 이 값을 그대로 액세스
-// 토큰의 `aud` 클레임에 스탬핑해, 리소스 서버(ResourceServerConfig)가 자신 앞으로 발급된 토큰인지
-// 검증할 수 있게 한다 — 다른 리소스 서버용으로 발급된 토큰을 그대로 받아주는 "토큰 패스스루"
-// 취약점을 막는 핵심 지점이다(계획 문서의 보안 검증 항목).
+// 발급 가능한 리소스는 ProtectedResource(MCP/API) 레지스트리로 일반화했다. 클라이언트는
+// `/oauth2/token` 요청에 `resource` 파라미터로 발급받고 싶은 리소스의 URI를 명시해야 한다(MCP는
+// 스펙상 필수, 일반 API 클라이언트에도 동일하게 강제 — "토큰이 어느 리소스 서버 대상인지 항상
+// 명시적으로 선언한다"는 이 서버의 설계 원칙을 리소스 종류와 무관하게 일관되게 유지하기 위함).
+// 이 값을 그대로 액세스 토큰의 `aud` 클레임에 스탬핑해, 리소스 서버(ResourceServerConfig)가
+// 자신 앞으로 발급된 토큰인지 검증할 수 있게 한다 — 다른 리소스 서버용으로 발급된 토큰을 그대로
+// 받아주는 "토큰 패스스루" 취약점을 막는 핵심 지점이다.
 //
-// yona-wiki P3-14 2라운드(OIDC) — ID 토큰의 identity 클레임(name/email/email_verified/picture)
-// 매핑도 이 클래스에 합쳤다(별도 클래스로 분리하지 않은 이유가 중요): Spring Authorization
+// ID 토큰의 identity 클레임(name/email/email_verified/picture) 매핑도 이 클래스에 합쳤다(별도
+// 클래스로 분리하지 않은 이유가 중요): Spring Authorization
 // Server의 OAuth2ConfigurerUtils.getJwtCustomizer()는 `OAuth2TokenCustomizer<JwtEncodingContext>`
 // 타입 빈을 `ApplicationContext.getBeanProvider(type).getIfUnique()`로 조회한다(공식 소스 확인) —
 // getIfUnique()는 후보가 2개 이상이면 @Primary가 없는 한 그냥 null을 반환한다(예외를 던지지
 // 않는다!). 즉 이 타입의 빈을 하나 더 추가하면 "둘 다 적용"이 아니라 "둘 다 무시"된다 — RFC8707
-// 오디언스 스탬핑(1라운드의 핵심 보안 장치)까지 조용히 사라지는 심각한 회귀였을 것이다. 그래서
+// 오디언스 스탬핑(핵심 보안 장치)까지 조용히 사라지는 심각한 회귀였을 것이다. 그래서
 // 이 프로젝트 전체에서 `OAuth2TokenCustomizer<JwtEncodingContext>` 빈은 반드시 이 클래스
 // 하나여야 한다.
 @Component
@@ -78,8 +76,8 @@ class ResourceIndicatorTokenCustomizer(
         context.claims.audience(listOf(resource))
     }
 
-    // yona-wiki P3-14 2라운드 — 2라운드 착수 전 사용자 결정사항("UserInfo는 profile+email 스코프
-    // 전부 노출, GitHub OAuth App과 동등한 수준")을 그대로 구현한다. sub은 JwtGenerator가 이미
+    // "UserInfo는 profile+email 스코프 전부 노출, GitHub OAuth App과 동등한 수준"을 그대로
+    // 구현한다. sub은 JwtGenerator가 이미
     // principal.getName()(로그인 세션의 Authentication.name = loginId, YonaUserDetails 등 이
     // 프로젝트의 모든 UserDetails 구현체가 공통으로 따르는 관례)으로 채워두므로(공식 소스
     // JwtGenerator.generate() 확인) 여기서 다시 설정할 필요가 없다 — profile/email 스코프가 허용한

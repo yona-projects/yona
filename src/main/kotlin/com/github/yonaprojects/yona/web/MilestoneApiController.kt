@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
-// yona controllers/api/MilestoneApi.java newMilestone() 대응 (P2-58). legacy Open API 네임스페이스
+// MilestoneApi.newMilestone() 대응. legacy Open API 네임스페이스
 // (`-_-api/v1/owners/{owner}/projects/{projectName}/...`)를 그대로 유지하는 컨트롤러 — 로직은
 // MilestoneController.kt 파일의 top-level 함수(createMilestoneNode/parseDueOn)를 그대로 재사용한다.
 @RestController

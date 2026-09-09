@@ -12,8 +12,8 @@
     <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
 
     <!--
-     legacy git/view.scala.html("overview") + git/viewChanges.scala.html("changes") 대응(그룹11
-     #170/#171). 두 legacy 화면은 서로 다른 URL이지만 pullrequest/view.html 하나로 합쳐 tab 모델
+     legacy git/view.scala.html("overview") + git/viewChanges.scala.html("changes") 대응.
+     두 legacy 화면은 서로 다른 URL이지만 pullrequest/view.html 하나로 합쳐 tab 모델
      속성(overview|changes)에 따라 분기한다 — URL 라우팅은 legacy와 동일하게 별도로 유지된다
      (/pull/{number} = overview, /pull/{number}/changes[/{commitId}] = changes, 컨트롤러 참고).
     -->
@@ -39,14 +39,13 @@
                     <div class="attachments" id="attachments" th:data-attachments="${attachmentsJson}"></div>
                 </div>
 
-                <!-- yona-wiki P3-02 Step8.7 2번(2026-09-01) — PR 담당자/라벨 표시·편집. 7라운드가
-                     백엔드(PullRequestService.setAssignee/addLabel/removeLabel,
-                     PullRequestApiController)만 만들고 화면은 명시적으로 범위 밖에 뒀던 부분. issue/
+                <!-- PR 담당자/라벨 표시·편집. 백엔드(PullRequestService.setAssignee/addLabel/removeLabel,
+                     PullRequestApiController)는 먼저 만들어져 있었고 화면은 이후에 추가됐다. issue/
                      view.html의 담당자 dl/dt/dd 마크업(usf-group/avatar-wrap/name/loginid 클래스)과
                      라벨 프래그먼트(issue/partial_select_label, issue/partial_show_selected_label)를
                      그대로 재사용한다. 다만 담당자 입력만은 그대로 재사용하지 않았다 — Issue의
                      담당자 select2는 로그인ID 기반 AJAX 검색(yonaAssgineeModule, Issue 전용
-                     assignableUsers/assignees 엔드포인트)인데 PR의 setAssignee REST API(round7)는
+                     assignableUsers/assignees 엔드포인트)인데 PR의 setAssignee REST API는
                      숫자 userId를 받는 별도 계약이라 그대로 이어붙일 수 없다 — 대신 같은 화면의
                      마일스톤 select(정적 <option> + data-toggle="select2")와 동일한 패턴으로 프로젝트
                      멤버 목록을 서버 렌더링한다. 라벨은 백엔드 계약이 issue와 동일(라벨 ID)해 프래그먼트를
@@ -129,9 +128,10 @@
                     </ul>
                 </div>
 
-                <!-- yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub PR 페이지의 리뷰 판정
+                <!-- PR 승인/변경요청 워크플로 — GitHub PR 페이지의 리뷰 판정
                      (Approve/Request changes/Comment) 이력 + 제출 폼. addReviewer/removeReviewer
-                     (위 #reviewers 자기등록)와는 완전히 별개 액션이다(설계 결정 5번). -->
+                     (위 #reviewers 자기등록)와는 완전히 별개 액션이다: "리뷰어로 등록"과 "리뷰 판정을
+                     내림"은 GitHub에서도 서로 다른 개념이라 API/버튼을 분리했다. -->
                 <div id="pr-reviews" class="board-comment-wrap" th:if="${reviews != null}">
                     <h4 style="margin:15px 0 10px;" th:text="#{pullRequest.review.total}">전체 리뷰</h4>
 
@@ -299,7 +299,7 @@
           });
       });
 
-      // yona-wiki P3-02 Step8.7 2번 — 담당자 변경. PullRequestApiController(round7)의
+      // 담당자 변경. PullRequestApiController의
       // PUT/DELETE .../assignee에 위임한다(userId 기반 계약, 위 select 주석 참고).
       $('#pr-assignee-select').on('change', function() {
           var userId = $(this).val();
@@ -312,8 +312,8 @@
       });
 
       // 라벨 추가/제거. issue/partial_select_label.html의 select2 다중선택 마크업을 그대로
-      // 재사용하되, 이슈의 massUpdate 폼 제출과 달리 PR은 라벨 전용 REST 엔드포인트(round7의
-      // PullRequestApiController POST/DELETE .../labels)라 select2 change 이벤트에서 이전
+      // 재사용하되, 이슈의 massUpdate 폼 제출과 달리 PR은 라벨 전용 REST 엔드포인트
+      // (PullRequestApiController POST/DELETE .../labels)라 select2 change 이벤트에서 이전
       // 선택값과의 diff를 계산해 추가/삭제 요청을 각각 보낸다.
       var prevLabelIds = ($('#labelIds').val() || []).map(String);
       $('#labelIds').on('change', function() {
@@ -342,8 +342,8 @@
           $.post("[[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/unreview(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]]", function() { window.location.reload(); });
       });
 
-      // yona-wiki P3-15(PR 승인/변경요청 워크플로) — Approve/Request changes/Comment 판정 제출.
-      // 위 btn-review/btn-unreview(자기등록/취소)와는 완전히 별개 액션이다(설계 결정 5번). 서버가
+      // Approve/Request changes/Comment 판정 제출.
+      // 위 btn-review/btn-unreview(자기등록/취소)와는 완전히 별개 액션이다. 서버가
       // 자기 자신의 PR에 대한 APPROVE/REQUEST_CHANGES를 400 + {"error": "..."}로 거부하면
       // (SelfReviewException) 그 메시지를 그대로 alert로 보여준다.
       function submitPullRequestReview(state) {

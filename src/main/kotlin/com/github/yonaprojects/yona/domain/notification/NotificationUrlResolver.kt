@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 
 /**
  * yona `utils/RouteUtil.java`(리소스별 URL) + `NotificationEvent.getUrlToView()`/`getProject()`
- * 대응 (P1-27). yona는 Play 라우트 리버스가 없어 컨트롤러의 실제 `@GetMapping` 경로를 그대로 문자열로
+ * 대응. yona는 Play 라우트 리버스가 없어 컨트롤러의 실제 `@GetMapping` 경로를 그대로 문자열로
  * 구성한다. `CommentThread.urlToContainer()`의 "outdated diff의 특정 커밋으로 링크" 세부 분기
  * (TemplateHelper.scala의 specificChange/isOutdated)는 코드리뷰 화면 내 앵커 정밀도에 관한 것으로,
  * 여기서는 PR/커밋 페이지로 링크하는 것까지만 재현하고 그 세부 분기는 생략한다(기능 누락이 아니라

@@ -211,8 +211,8 @@ class AutoLinkRenderer(
     private fun toValidSHALink(prefix: String, project: Project?, sha: String): Link {
         if (project != null) {
             try {
-                // yona utils/AutoLinkRenderer.java:275 "!project.isCodeAvailable() || !project.isGit()"
-                // 대응 (P2-35). isCodeAvailable()(코드브라우저 메뉴 활성 여부, legacy
+                // yona AutoLinkRenderer "!project.isCodeAvailable() || !project.isGit()"
+                // 대응. isCodeAvailable()(코드브라우저 메뉴 활성 여부, legacy
                 // `menuSetting == null || menuSetting.code` == yona `project.isCodeEnabled`)이 꺼져
                 // 있으면 GIT이어도 커밋 SHA를 링크로 바꾸지 않는다.
                 val vcs = project.vcs?.uppercase() ?: "GIT"
@@ -255,7 +255,7 @@ class AutoLinkRenderer(
             } else {
                 "<img src='${user.avatarUrl}' class='avatar-wrap smaller no-margin-no-padding vertical-top' alt='@${user.name} ${user.loginId}'> "
             }
-            // yona AutoLinkRenderer.java:322-327 대응 (P1-140) — lang이 명시적으로 주어지면(다이제스트
+            // yona AutoLinkRenderer 대응 — lang이 명시적으로 주어지면(다이제스트
             // 메일 배치 스레드처럼 HTTP 요청 컨텍스트가 없어 LocaleContextHolder가 수신자의 언어를 알 수
             // 없는 경우) 그 값을 그대로 쓰고, 없을 때만(일반 요청 처리 스레드) 현재 요청의 로케일로 대체한다.
             val effectiveLang = if (lang.isNullOrBlank()) LocaleContextHolder.getLocale().language else lang

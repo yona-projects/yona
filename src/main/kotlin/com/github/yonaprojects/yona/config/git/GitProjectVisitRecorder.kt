@@ -10,10 +10,10 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import java.util.regex.Pattern
 
-// yona GitApp.java:88-137 service()의 user.visits(project) 대응 (P2-09). git 프로토콜(clone/fetch/push)로만 [GL-controllers_GitApp-005]
-// 접근하는 사용자는 웹 UI를 거치지 않아 "최근 방문 프로젝트"에 전혀 기록되지 않던 결손을 해결한다.
-// yona는 advertise 단계(GET .../info/refs)가 아니라 실제 RPC(POST git-upload-pack/git-receive-pack)
-// 처리 단계에서만 방문을 기록하므로(:129-136 else 분기) 동일하게 재현한다.
+// yona GitApp.java의 service()에서 user.visits(project)를 부르는 부분 대응. git 프로토콜
+// (clone/fetch/push)로만 접근하는 사용자는 웹 UI를 거치지 않아 "최근 방문 프로젝트"에 전혀
+// 기록되지 않던 결손을 해결한다. yona는 advertise 단계(GET .../info/refs)가 아니라 실제 RPC
+// (POST git-upload-pack/git-receive-pack) 처리 단계에서만 방문을 기록하므로 동일하게 재현한다.
 @Component
 class GitProjectVisitRecorder(
     private val projectService: ProjectService,

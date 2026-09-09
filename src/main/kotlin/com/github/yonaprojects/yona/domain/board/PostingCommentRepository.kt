@@ -17,7 +17,7 @@ interface PostingCommentRepository : JpaRepository<PostingComment, Long> {
     // 네이티브 쿼리를 쓰는 이유는 IssueCommentRepository.searchIssueComments() 주석 참고 (Postgres
     // Hibernate 7.2.x @Lob LIKE 버그, 지금은 제거함). posting_comment.project_id(Comment 기반
     // 클래스의 denormalized 컬럼) 대신 posting을 조인해 posting.project_id를 쓰는 이유도 같은
-    // 주석 참고 — denormalized 컬럼이 항상 채워진다는 보장이 없다(실측 확인).
+    // 주석 참고 — denormalized 컬럼이 항상 채워진다는 보장이 없다.
     @Query(
         value = "SELECT pc.* FROM posting_comment pc JOIN posting p ON p.id = pc.posting_id WHERE LOWER(pc.contents) LIKE LOWER(:keyword) AND (p.project_id IN :projectIds OR pc.author_id = :userId)",
         countQuery = "SELECT COUNT(*) FROM posting_comment pc JOIN posting p ON p.id = pc.posting_id WHERE LOWER(pc.contents) LIKE LOWER(:keyword) AND (p.project_id IN :projectIds OR pc.author_id = :userId)",

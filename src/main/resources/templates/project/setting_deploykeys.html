@@ -16,9 +16,9 @@
           <h3 style="margin-top: 0; margin-bottom: 20px;" th:text="#{project.deploykey.title}">Deploy Key</h3>
 
           <!--
-           yona-wiki P3-03 Step1/Step2 — GitHub "Settings > Deploy keys" 화면과 동일한 구성(공개키
-           붙여넣기 + 읽기 전용 체크박스). 등록에 성공하면 HTTPS 접근용 토큰이 한 번만 표시된다
-           (edit_tokens.html의 issuedRawToken과 동일한 패턴).
+           GitHub "Settings > Deploy keys" 화면과 동일한 구성(공개키 붙여넣기 + 읽기 전용
+           체크박스). 등록에 성공하면 HTTPS 접근용 토큰이 한 번만 표시된다(edit_tokens.html의
+           issuedRawToken과 동일한 패턴).
           -->
           <div th:if="${issuedHttpsToken != null}" class="alert alert-success mt20">
               <strong th:text="#{project.deploykey.issued.title}">Deploy key added</strong>

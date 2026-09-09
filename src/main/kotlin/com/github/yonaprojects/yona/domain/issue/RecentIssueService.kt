@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
-// yona models/RecentIssue.java의 addVisitIssueHistory/addVisitPostingHistory 대응 (P1-09).
+// yona RecentIssue의 addVisitIssueHistory/addVisitPostingHistory 대응.
 // 사용자별 최근 방문 이슈/게시글을 issueId 또는 postingId로 중복 제거하고,
 // MAX_RECENT_LIST_PER_USER(100)를 넘으면 가장 오래된 항목부터 제거한다.
 @Service
@@ -68,7 +68,7 @@ class RecentIssueService(
         return recentIssueRepository.findByUserIdOrderByIdDesc(userId)
     }
 
-    // yona models/RecentIssue.java deleteAll(user) 대응 (P1-41). 회원 탈퇴/계정 삭제 시 방문 이력을 정리한다.
+    // yona RecentIssue.deleteAll(user) 대응. 회원 탈퇴/계정 삭제 시 방문 이력을 정리한다.
     @Transactional
     fun deleteAll(user: User) {
         val userId = user.id ?: return

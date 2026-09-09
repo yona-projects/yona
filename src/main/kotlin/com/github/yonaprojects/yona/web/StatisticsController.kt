@@ -30,9 +30,9 @@ class StatisticsController(
         return "project/statistics"
     }
 
-    // yona 자체 신규 기능(P2-61) — legacy `-_-api/v1` Open API 네임스페이스에는 통계 API가 존재한
-    // 적이 없다(legacy는 `/:user/:project/statistics` HTML 화면뿐). 이전에는 이 경로가 legacy Open
-    // API 목록에 있는 것처럼 잘못 놓여 있었으므로 yona 자체 컨벤션(`/api/...`)으로 옮긴다.
+    // yona 자체 신규 기능 — legacy `-_-api/v1` Open API 네임스페이스에는 통계 API가 존재한 적이
+    // 없다(legacy는 `/:user/:project/statistics` HTML 화면뿐). 이전에는 이 경로가 legacy Open API
+    // 목록에 있는 것처럼 잘못 놓여 있었으므로 yona 자체 컨벤션(`/api/...`)으로 옮긴다.
     @GetMapping("/api/users/{loginId}/statistics")
     @ResponseBody
     fun userStatistics(

@@ -15,7 +15,7 @@ interface ProjectService {
     fun forkProject(projectId: Long, forkerId: Long, destinationOwner: String = "", destinationName: String = ""): Project
     fun changeVCS(projectId: Long): Project
 
-    // yona ProjectApp.labels/attachLabel/detachLabel 대응 (P1-13)
+    // yona ProjectApp.labels/attachLabel/detachLabel 대응
     fun getProjectLabels(projectId: Long): Set<Label>
     fun attachLabel(projectId: Long, category: String?, name: String): AttachLabelResult
     fun detachLabel(projectId: Long, labelId: Long): Boolean
@@ -28,7 +28,7 @@ data class AttachLabelResult(
 )
 
 data class UpdateProjectParam(
-    // yona ProjectApp.settingProject()의 이름 변경(개명) 분기 대응 (P1-144). null/현재 이름과 동일하면
+    // yona ProjectApp.settingProject()의 이름 변경(개명) 분기 대응. null/현재 이름과 동일하면
     // 변경하지 않는다 — 지정되면 소유자는 그대로 두고 이름만 바꾼다(소유권 이전과는 다른 별개 경로).
     val name: String? = null,
     val overview: String,

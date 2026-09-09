@@ -5,9 +5,9 @@ import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.user.User
 import java.io.File
 
-// yona-wiki P3-03 Step6 — 리눅스/맥(AuthorizedKeysCommand 훅, `internal ssh-auth`/`internal
-// ssh-shell`)과 윈도우 폴백(Apache MINA SSHD 임베디드 서버) 두 경로가 공유하는 공통 서비스
-// 레이어. 어느 쪽도 이 인터페이스 뒤의 판정 로직을 다시 구현하지 않는다.
+// 리눅스/맥(AuthorizedKeysCommand 훅, `internal ssh-auth`/`internal ssh-shell`)과 윈도우
+// 폴백(Apache MINA SSHD 임베디드 서버) 두 경로가 공유하는 공통 서비스 레이어. 어느 쪽도 이
+// 인터페이스 뒤의 판정 로직을 다시 구현하지 않는다.
 sealed class SshAuthPrincipal {
     data class SshKeyPrincipal(val user: User, val sshKey: SshKey) : SshAuthPrincipal()
     data class DeployKeyPrincipal(val deployKey: DeployKey) : SshAuthPrincipal()
@@ -19,8 +19,8 @@ data class SshCommandAuthorization(
     val repoDir: File? = null,
     val service: String? = null,
     val reason: String? = null,
-    // 코디네이터 push 전 리뷰(2026-09-07) — GitServletConfig(HTTPS)의
-    // BranchProtectionPreReceiveHook 체이닝을 이 SSH 경로에서도 그대로 재현하려면 이 두 값이
+    // GitServletConfig(HTTPS)의 BranchProtectionPreReceiveHook 체이닝을 이 SSH 경로에서도
+    // 그대로 재현하려면 이 두 값이
     // 필요하다. pusher는 SshKeyPrincipal일 때만 채워지고 DeployKeyPrincipal이면 null이다 —
     // HTTPS 경로도 Deploy Key(Basic 인증)로 push할 때 pusher를 null로 취급하는 것과 동일한
     // 의미(익명 push와 동일하게 restrict_push_to는 여전히 적용되고 admins_can_bypass는
@@ -47,7 +47,7 @@ interface SshAuthService {
     // command: SSH_ORIGINAL_COMMAND 그대로("git-upload-pack 'owner/project.git'" 등).
     fun authorizeGitCommand(principal: SshAuthPrincipal, command: String): SshCommandAuthorization
 
-    // yona-wiki P3-18/P3-12 — Mercurial용 대응 메서드. command는 real hg 클라이언트가
+    // Mercurial용 대응 메서드. command는 real hg 클라이언트가
     // ui.ssh로 실제 실행하는 고정 원격 명령 그대로("hg -R 'owner/project' serve --stdio" —
     // 경로에 공백이 없으면 real hg는 따옴표를 생략한다, 둘 다 인식). git과 달리 Hg의 SSH 와이어
     // 프로토콜은 이 원격 명령 하나로 pull/push를 모두 처리하므로(명령줄만으로는 read/write를
@@ -58,7 +58,7 @@ interface SshAuthService {
 
     fun resolveProject(owner: String, projectName: String): Project?
 
-    // yona-wiki P3-03 Step4/P3-18 — 리눅스/맥 경로 전용. `ssh-auth.sh`(AuthorizedKeysCommand)가
+    // 리눅스/맥 경로 전용. `ssh-auth.sh`(AuthorizedKeysCommand)가
     // authenticate()로 얻은 principal을 opaque 문자열로 authorized_keys의 command=에 심어두면,
     // 이후 forced command(SshRelayServer로의 소켓 릴레이)가 그 문자열을 핸드셰이크 첫 줄로
     // 그대로 보내 principal을 복원한다(매 git/hg 명령마다 공개키를 다시 보내지 않아도 됨 — sshd가
