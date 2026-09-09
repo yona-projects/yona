@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.domain.twofactor.TotpActivationResult
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
+import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
@@ -89,15 +90,33 @@ class TwoFactorSettingsController(
     }
 
     @PostMapping("/totp/{id}/delete")
-    fun deleteTotp(@PathVariable id: Long, authentication: Authentication?): String {
+    fun deleteTotp(
+        @PathVariable id: Long,
+        @RequestParam password: String,
+        authentication: Authentication?,
+        redirectAttributes: RedirectAttributes
+    ): String {
         val user = currentUser(authentication) ?: return "error/403"
+        if (!verifyPassword(user, password)) {
+            redirectAttributes.addFlashAttribute("deleteError", true)
+            return "redirect:/user/editform/security"
+        }
         twoFactorService.deleteTotpCredential(user, id)
         return "redirect:/user/editform/security"
     }
 
     @PostMapping("/webauthn/{id}/delete")
-    fun deleteWebauthn(@PathVariable id: Long, authentication: Authentication?): String {
+    fun deleteWebauthn(
+        @PathVariable id: Long,
+        @RequestParam password: String,
+        authentication: Authentication?,
+        redirectAttributes: RedirectAttributes
+    ): String {
         val user = currentUser(authentication) ?: return "error/403"
+        if (!verifyPassword(user, password)) {
+            redirectAttributes.addFlashAttribute("deleteError", true)
+            return "redirect:/user/editform/security"
+        }
         twoFactorService.deleteWebauthnCredential(user, id)
         return "redirect:/user/editform/security"
     }
@@ -138,8 +157,7 @@ class TwoFactorSettingsController(
         redirectAttributes: RedirectAttributes
     ): String {
         val user = currentUser(authentication) ?: return "error/403"
-        val hashed = hashPassword(password, user.passwordSalt ?: "")
-        if (user.password != hashed) {
+        if (!verifyPassword(user, password)) {
             redirectAttributes.addFlashAttribute("disableError", true)
             return "redirect:/user/editform/security"
         }
@@ -147,6 +165,12 @@ class TwoFactorSettingsController(
         redirectAttributes.addFlashAttribute("twoFactorDisabled", true)
         return "redirect:/user/editform/security"
     }
+
+    // 개별 자격증명 삭제/전체 비활성화 공통 — 등록된 2FA 자격증명을 지우는 조작은 계정 탈취 시
+    // 공격자가 방어 수단을 무력화하는 경로이므로, 클라이언트 confirm() 대화상자만으로는 부족하고
+    // 서버가 매번 현재 비밀번호를 재확인해야 한다.
+    private fun verifyPassword(user: User, password: String): Boolean =
+        hashPassword(password, user.passwordSalt ?: "") == user.password
 
     // YonaAuthenticationProvider/UserController와 동일한 legacy 해시(SHA-256, salt 선행,
     // 1024회 반복) — 로그인 시 사용하는 비밀번호 저장 방식과 일치해야 재확인이 가능하다.

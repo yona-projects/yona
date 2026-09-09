@@ -29,6 +29,9 @@
             <div th:if="${disableError != null}" class="alert alert-error mt20">
                 <span th:text="#{security.disable.error}">비밀번호가 일치하지 않습니다.</span>
             </div>
+            <div th:if="${deleteError != null}" class="alert alert-error mt20">
+                <span th:text="#{security.delete.error}">비밀번호가 일치하지 않아 삭제되지 않았습니다.</span>
+            </div>
 
             <h4 class="mt20">
                 <span th:text="#{security.webauthn.title}">보안 키 / 생체 인증</span>
@@ -51,6 +54,7 @@
                     <td>
                         <form method="post" th:action="@{/user/editform/security/webauthn/{id}/delete(id=${cred.id})}"
                               th:attr="data-confirm-message=#{security.webauthn.delete.confirm}" class="security-delete-form">
+                            <input type="password" name="password" th:placeholder="#{security.delete.passwordLabel}" required style="width: 140px;">
                             <button type="submit" class="ybtn ybtn-small ybtn-danger" th:text="#{security.delete}">삭제</button>
                         </form>
                     </td>
@@ -78,6 +82,7 @@
                     <td>
                         <form method="post" th:action="@{/user/editform/security/totp/{id}/delete(id=${cred.id})}"
                               th:attr="data-confirm-message=#{security.totp.delete.confirm}" class="security-delete-form">
+                            <input type="password" name="password" th:placeholder="#{security.delete.passwordLabel}" required style="width: 140px;">
                             <button type="submit" class="ybtn ybtn-small ybtn-danger" th:text="#{security.delete}">삭제</button>
                         </form>
                     </td>

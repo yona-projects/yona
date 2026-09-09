@@ -135,6 +135,46 @@ class TwoFactorSettingsControllerSpec : DescribeSpec({
         }
     }
 
+    describe("POST /user/editform/security/totp/{id}/delete") {
+        it("비밀번호가 일치하면 해당 TOTP 자격증명을 삭제해야 한다") {
+            every { twoFactorService.deleteTotpCredential(user, 10L) } returns Unit
+
+            mockMvc.perform(post("/user/editform/security/totp/10/delete").param("password", "correct-password").principal(auth))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/user/editform/security"))
+
+            verify(exactly = 1) { twoFactorService.deleteTotpCredential(user, 10L) }
+        }
+
+        it("비밀번호가 틀리면 삭제하지 않고 에러와 함께 리다이렉트해야 한다") {
+            mockMvc.perform(post("/user/editform/security/totp/10/delete").param("password", "wrong-password").principal(auth))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/user/editform/security"))
+
+            verify(exactly = 0) { twoFactorService.deleteTotpCredential(any(), any()) }
+        }
+    }
+
+    describe("POST /user/editform/security/webauthn/{id}/delete") {
+        it("비밀번호가 일치하면 해당 보안 키를 삭제해야 한다") {
+            every { twoFactorService.deleteWebauthnCredential(user, 20L) } returns Unit
+
+            mockMvc.perform(post("/user/editform/security/webauthn/20/delete").param("password", "correct-password").principal(auth))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/user/editform/security"))
+
+            verify(exactly = 1) { twoFactorService.deleteWebauthnCredential(user, 20L) }
+        }
+
+        it("비밀번호가 틀리면 삭제하지 않고 에러와 함께 리다이렉트해야 한다") {
+            mockMvc.perform(post("/user/editform/security/webauthn/20/delete").param("password", "wrong-password").principal(auth))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/user/editform/security"))
+
+            verify(exactly = 0) { twoFactorService.deleteWebauthnCredential(any(), any()) }
+        }
+    }
+
     describe("POST /user/editform/security/backup-codes/regenerate") {
         it("재발급 후 백업 코드 표시 화면으로 리다이렉트해야 한다") {
             every { twoFactorService.regenerateBackupCodes(user) } returns listOf("CCCCC-DDDDD")
