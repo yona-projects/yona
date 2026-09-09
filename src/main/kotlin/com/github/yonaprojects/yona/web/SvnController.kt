@@ -70,13 +70,18 @@ class SvnController(
         }
 
         val wrappedRequest = SvnServletRequestWrapper(request, ownerName)
+        // P3-34에서 발견 — DAVServlet이 WebDAV/DeltaV 프로토콜의 정상 협상 과정에서 던지는
+        // sendError()(예: 커밋 중 신규 파일 존재 여부를 묻는 HEAD의 404)가 Spring Boot의 전역
+        // 에러 페이지 재-dispatch로 가로채져 500으로 뒤바뀌는 문제를 막는다(SvnServletResponseWrapper
+        // 주석 참고, SvnHttpProtocolIntegrationSpec으로 재현/고정).
+        val wrappedResponse = SvnServletResponseWrapper(response)
 
         // yona SvnApp.startDavService()의 "catch (Exception e) { response.setStatus(500); ...;
         // play.Logger.error(...) }" 대응 — 저장소가 DB엔 존재해도 실제 디스크 경로가 없거나 손상된
         // 경우 등 DAVServlet 자체가 던지는 예외를 잡아 스택트레이스가 그대로 노출되지 않게 하고 로그를
         // 남긴다(실제 HTTP 상태 코드는 이전에도 500이었으므로 관찰 가능한 응답은 바뀌지 않는다).
         try {
-            davServlet.service(wrappedRequest, response)
+            davServlet.service(wrappedRequest, wrappedResponse)
         } catch (e: Exception) {
             logger.error("Failed to process a SVN request: {}", uri, e)
             if (!response.isCommitted) {
