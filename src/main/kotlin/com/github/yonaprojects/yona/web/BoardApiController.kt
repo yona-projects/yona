@@ -9,7 +9,6 @@ import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.issue.IssueLabelRepository
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.support.isModifiedByOthers
-import com.github.yonaprojects.yona.domain.support.isModifiedByOthersLegacyChecksum
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import org.springframework.http.HttpStatus
@@ -69,8 +68,7 @@ class BoardApiController(
         return ResponseEntity.ok(mapOf("id" to project.owner, "labels" to saved.labels.size))
     }
 
-    // yona controllers/api/BoardApi.java updatePostingContent() 대응. legacy
-    // 필드명은 `content`/`sha1`(원문 체크섬).
+    // yona controllers/api/BoardApi.java updatePostingContent() 대응.
     @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/content")
     fun updatePostingContentLegacyPath(
         @PathVariable owner: String,
@@ -90,7 +88,7 @@ class BoardApiController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        if (isModifiedByOthersLegacyChecksum(posting.body ?: "", request.sha1)) {
+        if (isModifiedByOthers(posting.body ?: "", request.original)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(mapOf("message" to "Already modified by someone.", "storedContent" to posting.body))
         }
@@ -135,7 +133,9 @@ class BoardApiController(
         return ResponseEntity.status(HttpStatus.CREATED).body(created)
     }
 
-    data class LegacyUpdatePostingContentRequest(val content: String = "", val sha1: String = "")
+    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 해시 아님, v1.6
+    // BoardApi.updatePostingContent()로 확인).
+    data class LegacyUpdatePostingContentRequest(val content: String = "", val original: String = "")
     data class LegacyPostingAuthorRef(val loginId: String? = null)
     data class LegacyNewPostingItem(
         val title: String = "",

@@ -230,21 +230,21 @@ class IssueApiControllerSpec : DescribeSpec({
             mockMvc.perform(
                 patch("/-_-api/v1/owners/alice/projects/myproject/issues/7/content")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"content":"수정됨","sha1":"${com.github.yonaprojects.yona.domain.support.sha1Hex("원문")}"}""")
+                    .content("""{"content":"수정됨","original":"원문"}""")
                     .principal(auth)
             )
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.body").value("수정됨"))
         }
 
-        it("체크섬이 다르면(다른 사람이 이미 수정) 409를 반환한다") {
+        it("original(원문)이 현재 값과 다르면(다른 사람이 이미 수정) 409를 반환한다") {
             val issue = Issue(id = 50L, title = "이슈", body = "원문", project = project, number = 7L, authorId = 10L)
             every { issueRepository.findByProjectAndNumber(project, 7L) } returns issue
 
             mockMvc.perform(
                 patch("/-_-api/v1/owners/alice/projects/myproject/issues/7/content")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"content":"수정됨","sha1":"다른체크섬"}""")
+                    .content("""{"content":"수정됨","original":"다른내용"}""")
                     .principal(auth)
             ).andExpect(status().isConflict)
         }

@@ -19,7 +19,6 @@ import com.github.yonaprojects.yona.domain.pullrequest.CommitCommentRepository
 import com.github.yonaprojects.yona.domain.pullrequest.ReviewCommentRepository
 import com.github.yonaprojects.yona.domain.role.Role
 import com.github.yonaprojects.yona.domain.role.RoleType
-import com.github.yonaprojects.yona.domain.support.sha1Hex
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import io.kotest.core.spec.style.DescribeSpec
@@ -103,21 +102,21 @@ class BoardApiControllerSpec : DescribeSpec({
             mockMvc.perform(
                 patch("/-_-api/v1/owners/alice/projects/myproject/posts/6/content")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"content":"수정됨","sha1":"${sha1Hex("원문")}"}""")
+                    .content("""{"content":"수정됨","original":"원문"}""")
                     .principal(auth)
             )
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.body").value("수정됨"))
         }
 
-        it("체크섬이 다르면 409를 반환한다") {
+        it("original(원문)이 현재 값과 다르면 409를 반환한다") {
             val posting = Posting(id = 60L, title = "글", body = "원문", project = project, number = 6L, authorId = 10L)
             every { postingRepository.findByProjectAndNumber(project, 6L) } returns posting
 
             mockMvc.perform(
                 patch("/-_-api/v1/owners/alice/projects/myproject/posts/6/content")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"content":"수정됨","sha1":"다른체크섬"}""")
+                    .content("""{"content":"수정됨","original":"다른내용"}""")
                     .principal(auth)
             ).andExpect(status().isConflict)
         }

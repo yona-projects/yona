@@ -17,7 +17,6 @@ import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.support.isModifiedByOthers
-import com.github.yonaprojects.yona.domain.support.isModifiedByOthersLegacyChecksum
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import org.springframework.http.HttpStatus
@@ -272,8 +271,9 @@ class CommentController(
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
-    // legacy 필드명은 `content`/`sha1`(원문 체크섬) — updateIssueComment()와 동일한 로직을 재사용한다.
-    // v1.6 원본은 이 메서드(controllers.api.IssueApi.updateIssueComment)를 두 경로로 이중 매핑해뒀다
+    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 해시 아님, v1.6
+    // `yona.Tasklist.js`의 실제 AJAX 요청 바디로 재확인) — updateIssueComment()와 동일한 로직을
+    // 재사용한다. v1.6 원본은 이 메서드(controllers.api.IssueApi.updateIssueComment)를 두 경로로 이중 매핑해뒀다
     // — 공식 `-_-api/v1` 경로(PUT)와, 아마도 웹 UI 자체 AJAX용으로 보이는 bare 경로
     // `/:owner/:project/issue/:number/comments/:commentId`(PATCH). 후자가 이식에서 빠져있었다.
     @RequestMapping(
@@ -310,7 +310,7 @@ class CommentController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        if (isModifiedByOthersLegacyChecksum(comment.contents, request.sha1)) {
+        if (isModifiedByOthers(comment.contents, request.original)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(mapOf("message" to "Already modified by someone.", "storedContent" to comment.contents))
         }
@@ -346,7 +346,7 @@ class CommentController(
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
-    // legacy 필드명은 `content`/`sha1`(원문 체크섬). v1.6 원본은 이 메서드
+    // legacy 필드명은 `content`/`original`(원문 그 자체). v1.6 원본은 이 메서드
     // (controllers.api.BoardApi.updatePostingComment)를 공식 `-_-api/v1` 경로(PUT)와 bare 경로
     // `/:owner/:project/post/:number/comment/:commentId`(PATCH, "post"/"comment" 단수 — 이슈 쪽과
     // 다름, 원본 그대로) 둘 다로 매핑해뒀다. 후자가 이식에서 빠져있었다.
@@ -384,7 +384,7 @@ class CommentController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        if (isModifiedByOthersLegacyChecksum(comment.contents, request.sha1)) {
+        if (isModifiedByOthers(comment.contents, request.original)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(mapOf("message" to "Already modified by someone.", "storedContent" to comment.contents))
         }
@@ -396,7 +396,11 @@ class CommentController(
 
     data class LegacyIssueCommentRequest(val comment: String = "")
     data class LegacyPostingCommentRequest(val body: String = "")
-    data class LegacyUpdateCommentRequest(val content: String = "", val sha1: String = "")
+    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 SHA-1 해시가 아니다, v1.6
+    // 원본 IssueApi.java/BoardApi.java와 실제 클라이언트 JS(yona.Tasklist.js)로 재확인). 서버가
+    // 현재 값과 이 원문을 각각 해시해서 비교한다(isModifiedByOthers()) — 한때 별도의
+    // "클라이언트가 이미 해시를 보낸다"는 잘못된 함수를 썼던 결함을 정정했다.
+    data class LegacyUpdateCommentRequest(val content: String = "", val original: String = "")
 
     data class CommentRequest(
         val contents: String = "",

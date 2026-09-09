@@ -1041,7 +1041,7 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isCreated)
             }
 
-            it("PUT /-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId} — content/sha1 필드로 이슈 댓글을 수정한다") {
+            it("PUT /-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId} — content/original 필드로 이슈 댓글을 수정한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
                 every { issueCommentRepository.findById(100L) } returns Optional.of(issueComment)
@@ -1052,7 +1052,7 @@ class CommentControllerSpec : DescribeSpec({
                     put("/-_-api/v1/owners/owner/projects/TestProject/issues/5/comments/100")
                         .principal(userAuth)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"content": "수정됨", "sha1": "${com.github.yonaprojects.yona.domain.support.sha1Hex("이슈댓글")}"}""")
+                        .content("""{"content": "수정됨", "original": "이슈댓글"}""")
                 )
                     .andExpect(status().isOk)
             }
@@ -1070,7 +1070,7 @@ class CommentControllerSpec : DescribeSpec({
                     patch("/owner/TestProject/issue/5/comments/100")
                         .principal(userAuth)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"content": "수정됨", "sha1": "${com.github.yonaprojects.yona.domain.support.sha1Hex("이슈댓글")}"}""")
+                        .content("""{"content": "수정됨", "original": "이슈댓글"}""")
                 )
                     .andExpect(status().isOk)
             }
@@ -1090,7 +1090,7 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isCreated)
             }
 
-            it("PUT /-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/comments/{commentId} — content/sha1 필드로 게시글 댓글을 수정한다") {
+            it("PUT /-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/comments/{commentId} — content/original 필드로 게시글 댓글을 수정한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
                 every { postingCommentRepository.findById(200L) } returns Optional.of(postingComment)
@@ -1101,7 +1101,7 @@ class CommentControllerSpec : DescribeSpec({
                     put("/-_-api/v1/owners/owner/projects/TestProject/posts/6/comments/200")
                         .principal(userAuth)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"content": "수정됨", "sha1": "${com.github.yonaprojects.yona.domain.support.sha1Hex("게시판댓글")}"}""")
+                        .content("""{"content": "수정됨", "original": "게시판댓글"}""")
                 )
                     .andExpect(status().isOk)
             }
@@ -1120,12 +1120,12 @@ class CommentControllerSpec : DescribeSpec({
                     patch("/owner/TestProject/post/6/comment/200")
                         .principal(userAuth)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"content": "수정됨", "sha1": "${com.github.yonaprojects.yona.domain.support.sha1Hex("게시판댓글")}"}""")
+                        .content("""{"content": "수정됨", "original": "게시판댓글"}""")
                 )
                     .andExpect(status().isOk)
             }
 
-            it("체크섬이 legacy sha1과 다르면(다른 사람이 이미 수정) 409를 반환한다") {
+            it("original(원문)이 현재 값과 다르면(다른 사람이 이미 수정) 409를 반환한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
                 every { issueCommentRepository.findById(100L) } returns Optional.of(issueComment)
@@ -1135,7 +1135,7 @@ class CommentControllerSpec : DescribeSpec({
                     put("/-_-api/v1/owners/owner/projects/TestProject/issues/5/comments/100")
                         .principal(userAuth)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"content": "수정됨", "sha1": "다른체크섬"}""")
+                        .content("""{"content": "수정됨", "original": "다른내용"}""")
                 )
                     .andExpect(status().isConflict)
             }

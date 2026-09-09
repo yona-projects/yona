@@ -20,7 +20,6 @@ import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.support.isModifiedByOthers
-import com.github.yonaprojects.yona.domain.support.isModifiedByOthersLegacyChecksum
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import org.springframework.http.HttpStatus
@@ -154,8 +153,8 @@ class IssueApiController(
         return ResponseEntity.ok(issueService.downvoteWeight(issue.id!!).toResponse())
     }
 
-    // yona IssueApi.updateIssueContent() 대응. legacy 필드명은
-    // `content`/`sha1`(원문 체크섬) — IssueController.updateIssueContent()와 동일한 충돌감지 로직.
+    // yona IssueApi.updateIssueContent() 대응 — IssueController.updateIssueContent()와 동일한
+    // 충돌감지 로직.
     @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/content")
     fun updateIssueContentLegacyPath(
         @PathVariable owner: String,
@@ -171,7 +170,7 @@ class IssueApiController(
         val issue = issueRepository.findByProjectAndNumber(project, number)
             ?: return ResponseEntity.notFound().build()
 
-        if (isModifiedByOthersLegacyChecksum(issue.body ?: "", request.sha1)) {
+        if (isModifiedByOthers(issue.body ?: "", request.original)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(mapOf("message" to "Already modified by someone.", "storedContent" to issue.body))
         }
@@ -334,7 +333,10 @@ class IssueApiController(
         return ResponseEntity.status(HttpStatus.CREATED).body(created)
     }
 
-    data class LegacyUpdateIssueContentRequest(val content: String = "", val sha1: String = "")
+    // legacy 필드명은 `content`/`original`(수정 시도 직전 화면에 있던 원문 그 자체 — 미리 계산한
+    // 해시 아님, v1.6 IssueApi.updateIssueContent()로 확인). 서버가 현재 값과 이 원문을 각각
+    // 해시해서 비교한다(isModifiedByOthers()).
+    data class LegacyUpdateIssueContentRequest(val content: String = "", val original: String = "")
     data class LegacyUpdateIssueStateRequest(val state: String? = null)
     data class LegacyAssigneeRef(val loginId: String? = null)
     data class LegacyLabelRef(val labelName: String? = null, val category: String? = null)
