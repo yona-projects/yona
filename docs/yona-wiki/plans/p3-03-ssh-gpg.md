@@ -273,9 +273,16 @@ GREEN(`gofmt -l .`/`go vet ./...` 클린).
 재사용하지 못하는 별도 컨텍스트를 만들기 때문으로 보이며, 테스트 워커 힙을 2048m로 올려(별도 커밋)
 완주 가능하게 만들었다(운영 코드에는 영향 없음).
 
-## SSH 키/GPG 키 화면을 GitHub식 2단계(목록/추가 분리)로 재설계 (2026-09-07, 사용자 지시로 백로그화 — 착수 전, 기록만)
+## SSH 키/GPG 키 화면을 GitHub식 2단계(목록/추가 분리)로 재설계 (2026-09-07 백로그 → 2026-09-07 완료)
 
-**상태: 미착수.** 사용자가 실제 운영 서버(`/user/editform/ssh-keys`, `/user/editform/gpg-keys`)를
+**상태: 완료.** 커밋 `ab1cb860b`(refactor(user-settings): split token/SSH/GPG key add-forms into
+GitHub-style separate pages)로 아래 변경 범위 1~4를 모두 구현했다 — 목록 페이지에서 추가 폼 제거
++ "새 SSH 키 추가"/"새 GPG 키 추가" 버튼, `GET /user/editform/{ssh-keys,gpg-keys}/new` 신설,
+성공 시 목록으로 redirect+flash attribute로 성공 메시지 노출, 실패 시 추가 폼으로 되돌아가
+`sshKeyError`/`gpgKeyError`로 오류 표시. [[p3-02-cli-and-rest-api]] Step 8.8의 토큰 화면도 같은
+커밋에서 동일 패턴으로 함께 처리됨. 아래는 착수 전 기록 원문.
+
+**(백로그 당시 상태: 미착수.)** 사용자가 실제 운영 서버(`/user/editform/ssh-keys`, `/user/editform/gpg-keys`)를
 직접 써보고 지적 — [[p3-02-cli-and-rest-api]] Step 8.8의 API 토큰 화면과 완전히 같은 문제였다.
 `edit_ssh_keys.html`/`edit_gpg_keys.html` 둘 다 목록 테이블 바로 아래 "새 키 추가" 폼이 항상 같이
 떠 있고, 추가해도 리다이렉트 없이 같은 페이지를 다시 그리는 구조를 코드 대조로 확인했다(GitHub는
