@@ -855,6 +855,7 @@ class BoardViewControllerSpec : DescribeSpec({
                 mockMvc.perform(get("/owner/TestProj/post/new").param("path", "  ").principal(userAuth))
                     .andExpect(status().isOk)
                     .andExpect(model().attribute("preparedPostBody", ""))
+                    .andExpect(model().attribute("preparedTitle", ""))
 
                 verify(exactly = 0) { repositoryService.getRepository(project) }
             }
@@ -879,6 +880,25 @@ class BoardViewControllerSpec : DescribeSpec({
                     .andExpect(model().attribute("canReadmefy", false))
             }
 
+            // legacy board/create.scala.html의 titleMessage 대응 — "README 만들기/편집" 버튼은
+            // 항상 이 create 폼으로 오고 기존 제목을 조회하지 않아, title을 미리 채워두지 않으면
+            // 매번 필수 입력값을 새로 타이핑해야 한다(사용자가 직접 재현·신고한 실사용 버그).
+            it("readme=true면 title이 'Update README.md'로 미리 채워져야 한다") {
+                val gitProject = Project(id = 23L, name = "ReadmeTitleProj", owner = "owner", vcs = "GIT", projectScope = ProjectScope.PRIVATE)
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+                memberUser.projectUsers.add(ProjectUser(id = 981L, user = memberUser, project = gitProject, role = Role(id = RoleType.MEMBER.roleType)))
+                val mockRepo = mockk<PlayRepository>()
+                every { mockRepo.getRawFile("HEAD", "README.md") } returns "readme 내용".toByteArray(Charsets.UTF_8)
+                every { repositoryService.getRepository(gitProject) } returns mockRepo
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "ReadmeTitleProj") } returns Optional.of(gitProject)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(23L, 10L) } returns true
+
+                mockMvc.perform(get("/owner/ReadmeTitleProj/post/new").param("readme", "true").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(model().attribute("preparedTitle", "Update README.md"))
+            }
+
             it("issueTemplate=true면 ISSUE_TEMPLATE.md 내용이 preparedPostBody에 채워져야 한다") {
                 val gitProject = Project(id = 21L, name = "IssueTplProj", owner = "owner", vcs = "GIT", projectScope = ProjectScope.PRIVATE)
                 val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
@@ -893,6 +913,22 @@ class BoardViewControllerSpec : DescribeSpec({
                 mockMvc.perform(get("/owner/IssueTplProj/post/new").param("issueTemplate", "true").principal(userAuth))
                     .andExpect(status().isOk)
                     .andExpect(model().attribute("preparedPostBody", "템플릿 내용"))
+            }
+
+            it("issueTemplate=true면 title이 'ISSUE_TEMPLATE.md: Project Issue Template'로 미리 채워져야 한다") {
+                val gitProject = Project(id = 24L, name = "IssueTplTitleProj", owner = "owner", vcs = "GIT", projectScope = ProjectScope.PRIVATE)
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+                memberUser.projectUsers.add(ProjectUser(id = 982L, user = memberUser, project = gitProject, role = Role(id = RoleType.MEMBER.roleType)))
+                val mockRepo = mockk<PlayRepository>()
+                every { mockRepo.getRawFile("HEAD", "ISSUE_TEMPLATE.md") } returns "템플릿 내용".toByteArray(Charsets.UTF_8)
+                every { repositoryService.getRepository(gitProject) } returns mockRepo
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "IssueTplTitleProj") } returns Optional.of(gitProject)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(24L, 10L) } returns true
+
+                mockMvc.perform(get("/owner/IssueTplTitleProj/post/new").param("issueTemplate", "true").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(model().attribute("preparedTitle", "ISSUE_TEMPLATE.md: Project Issue Template"))
             }
 
             it("issueTemplate 조회 중 예외가 발생하면 preparedPostBody가 빈 문자열이어야 한다") {

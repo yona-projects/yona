@@ -14,7 +14,11 @@
                 <div class="content-wrap frm-wrap">
                     <dl>
                         <dd>
-                            <input type="text" id="title" autocomplete="off" name="title" class="zen-mode text title" maxlength="250" tabindex="1" th:placeholder="#{title}"/>
+                            <!-- legacy board/create.scala.html의 titleMessage 대응 — README/이슈 템플릿
+                                 편집 진입점("만들기"/"편집" 버튼 둘 다 이 create 화면으로 옴, 기존 제목을
+                                 조회하지 않음)은 title을 고정 문자열로 미리 채워 매번 재입력하지 않아도
+                                 되게 한다. -->
+                            <input type="text" id="title" autocomplete="off" name="title" th:value="${preparedTitle}" class="zen-mode text title" maxlength="250" tabindex="1" th:placeholder="#{title}"/>
                         </dd>
                         <dd style="position: relative;">
                             <div th:replace="~{site/layout :: markdownEditor('body', ${preparedPostBody}, 'content-body')}"></div>
