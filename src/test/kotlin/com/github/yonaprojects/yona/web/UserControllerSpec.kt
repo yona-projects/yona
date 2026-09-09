@@ -911,6 +911,22 @@ class UserControllerSpec : DescribeSpec({
 
                 verify(exactly = 0) { userService.createUser(any()) }
             }
+
+            // legacy 원본 경로(`-_-api/v1/users`) 별칭도 동일하게 동작해야 한다.
+            it("legacy 원본 경로 /-_-api/v1/users로도 동일하게 신규 사용자를 생성해야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByEmail("legacy-path@example.com") } returns Optional.empty()
+                every { userService.createUser(any()) } answers { (firstArg() as User).apply { id = 101L } }
+
+                mockMvc.perform(
+                    post("/-_-api/v1/users")
+                        .principal(adminAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"users": [{"loginId": "legacypath", "name": "레거시경로", "email": "legacy-path@example.com"}]}""")
+                )
+                    .andExpect(status().isCreated)
+                    .andExpect(jsonPath("$[0].status").value(201))
+            }
         }
 
         // yona UserApi.java:244-265 newToken() 대응 (P1-118). [GL-controllers_api_UserApi-015]
@@ -986,6 +1002,23 @@ class UserControllerSpec : DescribeSpec({
 
                 verify(exactly = 1) { userRepository.save(match { it.token != null }) }
             }
+
+            // legacy 원본 경로(`-_-api/v1/users/token`) 별칭도 동일하게 동작해야 한다.
+            it("legacy 원본 경로 /-_-api/v1/users/token으로도 동일하게 토큰을 발급해야 한다") {
+                every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
+                every {
+                    yonaAuthenticationProvider.authenticate(match<UsernamePasswordAuthenticationToken> { it.name == "gildong" })
+                } returns UsernamePasswordAuthenticationToken("gildong", "correct")
+                every { userRepository.save(any()) } answers { firstArg() }
+
+                mockMvc.perform(
+                    post("/-_-api/v1/users/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"id": "gildong", "password": "correct"}""")
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.access_token").isNotEmpty)
+            }
         }
 
         // yona UserApi.java:320-339 users() 대응 (P1-118). [GL-controllers_api_UserApi-018;GL-controllers_api_UserApi-019]
@@ -1010,6 +1043,16 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByState(UserState.ACTIVE) } returns listOf(testUser)
 
                 mockMvc.perform(get("/api/admin/users").principal(adminAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$[0].login_id").value("gildong"))
+            }
+
+            // legacy 원본 경로(`-_-api/v1/admin/users`) 별칭도 동일하게 동작해야 한다.
+            it("legacy 원본 경로 /-_-api/v1/admin/users로도 동일하게 ACTIVE 사용자 목록을 반환해야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByState(UserState.ACTIVE) } returns listOf(testUser)
+
+                mockMvc.perform(get("/-_-api/v1/admin/users").principal(adminAuth))
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$[0].login_id").value("gildong"))
             }
@@ -1090,6 +1133,21 @@ class UserControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.state").value("LOCKED"))
 
                 verify(exactly = 1) { userRepository.save(match { it.state == UserState.LOCKED }) }
+            }
+
+            // legacy 원본 경로(`-_-api/v1/admin/users/{loginId}`) 별칭도 동일하게 동작해야 한다.
+            it("legacy 원본 경로 /-_-api/v1/admin/users/{loginId}로도 동일하게 사용자 상태를 변경해야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
+                every { userRepository.save(any()) } answers { firstArg() }
+
+                mockMvc.perform(
+                    patch("/-_-api/v1/admin/users/gildong").principal(adminAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"state": "LOCKED"}""")
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.state").value("LOCKED"))
             }
         }
     }

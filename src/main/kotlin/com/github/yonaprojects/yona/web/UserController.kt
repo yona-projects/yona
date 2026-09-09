@@ -297,7 +297,13 @@ class UserController(
     // yona UserApi.newUser() 대응. 사이트관리자 전용 벌크 사용자 생성 —
     // 비로그인 상태에서도 호출 가능한 API이므로 권한 검사는 세션/토큰 인증을 거친 currentUser로 직접
     // 판단한다(스프링 시큐리티 인가 규칙이 아닌 컨트롤러 내부 판단인 것도 legacy와 동일).
-    @PostMapping("/api/users")
+    //
+    // legacy 원본 경로는 `-_-api/v1/users`인데, 이 4종(newUser/newToken/users/updateUserState)만
+    // 포팅 당시 "Play 프레임워크 라우팅 아티팩트라 이식 대상 아님"으로 잘못 판단해 `/api/*`로만
+    // 옮겨졌다 — 그 직후 다른 라운드가 `-_-api/v1`을 실제 외부 클라이언트 계약으로 재확인하고 35개
+    // 엔드포인트를 원본 경로 그대로 이식한 것과 모순된다. 기존 `/api/*` 경로(내부적으로 이미 쓰이고
+    // 있을 수 있음)는 유지한 채 원본 경로를 별칭으로 되돌린다.
+    @PostMapping(value = ["/api/users", "/-_-api/v1/users"])
     fun newUser(
         @RequestBody request: NewUsersRequest,
         authentication: Authentication?
@@ -356,7 +362,7 @@ class UserController(
     // yona UserApi.newToken() 대응. 세션 없이 아이디(또는 이메일)+비밀번호로
     // API 액세스 토큰을 발급한다. 비밀번호 검증 자체는 YonaAuthenticationProvider에 위임해 LDAP
     // 활성화 여부/계정 잠금 상태 처리를 로그인 폼과 동일하게 재사용한다.
-    @PostMapping("/api/users/token")
+    @PostMapping(value = ["/api/users/token", "/-_-api/v1/users/token"])
     fun newToken(@RequestBody request: NewTokenRequest): ResponseEntity<Map<String, String>> {
         val user = userRepository.findByLoginId(request.id).orElse(null)
             ?: userRepository.findByEmail(request.id).orElse(null)
@@ -384,7 +390,7 @@ class UserController(
     data class NewTokenRequest(val id: String, val password: String)
 
     // yona UserApi.users() 대응. 사이트관리자 전용, ACTIVE 사용자 전체 목록.
-    @GetMapping("/api/admin/users")
+    @GetMapping(value = ["/api/admin/users", "/-_-api/v1/admin/users"])
     fun listAllUsersForAdmin(authentication: Authentication?): ResponseEntity<Any> {
         val currentUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (currentUser == null || !currentUser.isSiteManager) {
@@ -403,7 +409,7 @@ class UserController(
 
     // yona UserApi.updateUserState() 대응. 사이트관리자 전용, 사이트관리자
     // 상태(SITE_ADMIN)로의 변경은 이 API로 금지한다(별도 절차 필요 — legacy와 동일한 제약).
-    @PatchMapping("/api/admin/users/{loginId}")
+    @PatchMapping(value = ["/api/admin/users/{loginId}", "/-_-api/v1/admin/users/{loginId}"])
     fun updateUserStateByAdmin(
         @PathVariable loginId: String,
         @RequestBody request: UpdateUserStateRequest,

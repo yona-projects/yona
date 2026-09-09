@@ -83,6 +83,21 @@ class StatisticsControllerSpec : DescribeSpec({
             )
                 .andExpect(status().isNotFound)
         }
+
+        // legacy 원본 경로(`-_-api/v1/users/{loginId}/statistics`) 별칭도 동일하게 동작해야 한다.
+        it("legacy 원본 경로 /-_-api/v1/users/{loginId}/statistics로도 동일하게 통계를 반환해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+            every { statisticsService.getUserStatistics(10L) } returns UserStatisticsResponse(
+                issue = 10, posting = 5, assignedIssue = 2,
+                issueComment = 4, postingComment = 1, issueVoter = 0, issueCommentVoter = 0
+            )
+
+            mockMvc.perform(
+                get("/-_-api/v1/users/testuser/statistics")
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.issue").value(10))
+        }
     }
 })
 
