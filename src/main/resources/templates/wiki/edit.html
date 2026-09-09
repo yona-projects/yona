@@ -16,7 +16,7 @@
         <div class="project-page-wrap">
             <p th:if="${errorMessage != null}" class="alert alert-error" th:text="${errorMessage}">Error</p>
 
-            <!-- 새 페이지는 /_new로, 기존 페이지 수정(이름변경 포함, P3-42 1번)은 /_edit/{oldTitle}로 제출한다.
+            <!-- 새 페이지는 /_new로, 기존 페이지 수정(이름변경 포함)은 /_edit/{oldTitle}로 제출한다.
                  oldTitle이 슬래시를 포함할 수 있어(중첩 페이지) #uris.escapePath()로 action URL을 만든다. -->
             <form th:action="${isNew ? (wikiBase + '/_new') : (wikiBase + '/_edit/' + #uris.escapePath(oldTitle))}" method="post" class="nm">
                 <div class="content-wrap frm-wrap">

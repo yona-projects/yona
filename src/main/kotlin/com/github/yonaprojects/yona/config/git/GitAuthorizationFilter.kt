@@ -36,10 +36,10 @@ class GitAuthorizationFilter(
 
         val owner = matcher.group(2)
         val rawProjectName = matcher.group(3)
-        // 위키 저장소(P3-42)는 "<owner>/<project>.wiki.git"로 물리 디렉터리가 별도지만, 접근 권한은
-        // 그 프로젝트의 코드 저장소와 완전히 동일해야 한다(요구사항 6번 — 위키 쓰기 = 프로젝트
-        // 쓰기 권한). ".wiki" 접미어를 떼어 실제 프로젝트를 찾는다 — 안 그러면 "<project>.wiki"라는
-        // 이름의 프로젝트가 없어 매번 404가 나 clone/push 자체가 불가능해진다.
+        // 위키 저장소는 "<owner>/<project>.wiki.git"로 물리 디렉터리가 별도지만, 접근 권한은
+        // 그 프로젝트의 코드 저장소와 완전히 동일해야 한다(위키 쓰기 = 프로젝트 쓰기 권한).
+        // ".wiki" 접미어를 떼어 실제 프로젝트를 찾는다 — 안 그러면 "<project>.wiki"라는 이름의
+        // 프로젝트가 없어 매번 404가 나 clone/push 자체가 불가능해진다.
         val projectName = rawProjectName.removeSuffix(".wiki")
 
         val project = repoAccessPolicy.findProject(owner, projectName)

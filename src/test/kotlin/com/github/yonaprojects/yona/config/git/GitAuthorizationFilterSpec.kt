@@ -487,10 +487,10 @@ class GitAuthorizationFilterSpec : DescribeSpec({
             verify(exactly = 1) { filterChain.doFilter(any(), any()) }
         }
 
-        // P3-42(위키) — 위키 저장소는 "<owner>/<project>.wiki.git"로 별도 물리 디렉터리지만
-        // 접근 권한은 그 프로젝트의 코드 저장소와 완전히 동일해야 한다. ".wiki" 접미어를 떼지 않고
-        // 그대로 findProject("gildong", "public-repo.wiki")로 조회하면 그런 이름의 프로젝트가
-        // 없어 항상 404가 나 clone/push 자체가 불가능해진다 — 이 회귀를 고정한다.
+        // 위키 저장소는 "<owner>/<project>.wiki.git"로 별도 물리 디렉터리지만 접근 권한은 그
+        // 프로젝트의 코드 저장소와 완전히 동일해야 한다. ".wiki" 접미어를 떼지 않고 그대로
+        // findProject("gildong", "public-repo.wiki")로 조회하면 그런 이름의 프로젝트가 없어
+        // 항상 404가 나 clone/push 자체가 불가능해진다 — 이 회귀를 고정한다.
         describe("위키 저장소(.wiki.git) 접근은 그 프로젝트의 코드 저장소와 동일한 권한을 따라야 한다") {
             it("PUBLIC 프로젝트의 위키 clone(GET) 요청은 .wiki 접미어를 뗀 프로젝트로 조회해 통과해야 한다") {
                 val request = MockHttpServletRequest("GET", "/git/gildong/public-repo.wiki.git/info/refs")

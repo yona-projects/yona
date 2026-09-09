@@ -33,7 +33,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
 
-// WikiRestApiController(P3-42) end-to-end 검증 — TagRestApiControllerIntegrationSpec과 동일한
+// WikiRestApiController end-to-end 검증 — TagRestApiControllerIntegrationSpec과 동일한
 // AbstractIntegrationTest 패턴(실제 DB + 실제 파일시스템 bare 위키 저장소). 이 컨트롤러가
 // yona-cli `yona wiki` 명령/MCP 위키 도구가 실제로 호출하는 백엔드이므로, 여기서 통과하면 그
 // 위의 얇은 클라이언트들도 동작함을 신뢰할 수 있다.
@@ -72,8 +72,8 @@ class WikiRestApiControllerIntegrationSpec @Autowired constructor(
 
             val owner = userRepository.save(User(loginId = ownerName, name = "위키E2E소유자", email = "$ownerName@example.com"))
             userRepository.save(User(loginId = outsiderName, name = "위키E2E외부인", email = "$outsiderName@example.com"))
-            // PUBLIC — "쓰기는 멤버만, 읽기는 공개 프로젝트 읽기 권한과 동일"(P3-42 6번) 시나리오를
-            // 실제로 검증하려면 비멤버가 읽을 수 있는 공개 프로젝트여야 한다.
+            // PUBLIC — "쓰기는 멤버만, 읽기는 공개 프로젝트 읽기 권한과 동일" 시나리오를 실제로
+            // 검증하려면 비멤버가 읽을 수 있는 공개 프로젝트여야 한다.
             val project = projectRepository.save(Project(owner = ownerName, name = projName, vcs = "GIT", projectScope = ProjectScope.PUBLIC))
             val managerRole = roleRepository.findById(RoleType.MANAGER.roleType).orElseGet {
                 roleRepository.save(Role(id = RoleType.MANAGER.roleType, name = "MANAGER"))
@@ -96,7 +96,7 @@ class WikiRestApiControllerIntegrationSpec @Autowired constructor(
         fun outsiderAuth() = authOf(outsiderName)
 
         describe("POST/GET/PUT/DELETE /api/v1/projects/{owner}/{project}/wiki/pages — 실제 bare 위키 저장소 end-to-end") {
-            it("페이지를 생성하면 목록/조회에 나타나고, 수정하면 내용이 바뀌고, 삭제하면 사라져야 한다(P3-42 1번)") {
+            it("페이지를 생성하면 목록/조회에 나타나고, 수정하면 내용이 바뀌고, 삭제하면 사라져야 한다") {
                 mockMvc.perform(
                     post("/api/v1/projects/$ownerName/$projName/wiki/pages")
                         .with(ownerAuth())
@@ -132,7 +132,7 @@ class WikiRestApiControllerIntegrationSpec @Autowired constructor(
                     .andExpect(status().isNotFound)
             }
 
-            it("PUT으로 newTitle을 주면 이름변경(rename)까지 한 번에 반영해야 한다(P3-42 1번 rename)") {
+            it("PUT으로 newTitle을 주면 이름변경(rename)까지 한 번에 반영해야 한다") {
                 mockMvc.perform(
                     post("/api/v1/projects/$ownerName/$projName/wiki/pages")
                         .with(ownerAuth())
@@ -155,7 +155,7 @@ class WikiRestApiControllerIntegrationSpec @Autowired constructor(
                     .andExpect(status().isOk)
             }
 
-            it("중첩 경로(슬래시) 제목의 페이지도 생성/조회/수정할 수 있어야 한다(P3-42 7번)") {
+            it("중첩 경로(슬래시) 제목의 페이지도 생성/조회/수정할 수 있어야 한다") {
                 mockMvc.perform(
                     post("/api/v1/projects/$ownerName/$projName/wiki/pages")
                         .with(ownerAuth())
@@ -185,7 +185,7 @@ class WikiRestApiControllerIntegrationSpec @Autowired constructor(
                 ).andExpect(status().isConflict)
             }
 
-            it("프로젝트 멤버가 아닌 로그인 사용자는 읽기는 되지만 쓰기는 403이어야 한다(P3-42 6번 권한)") {
+            it("프로젝트 멤버가 아닌 로그인 사용자는 읽기는 되지만 쓰기는 403이어야 한다") {
                 mockMvc.perform(
                     post("/api/v1/projects/$ownerName/$projName/wiki/pages")
                         .with(ownerAuth())
@@ -231,7 +231,7 @@ class WikiRestApiControllerIntegrationSpec @Autowired constructor(
             }
         }
 
-        describe("GET /api/v1/projects/{owner}/{project}/wiki/history, /diff — 히스토리 + diff(P3-42 3, 4번)") {
+        describe("GET /api/v1/projects/{owner}/{project}/wiki/history, /diff — 히스토리 + diff") {
             it("history는 최신순 리비전을 반환하고, diff는 그 리비전이 반영한 변경만 돌려줘야 한다") {
                 mockMvc.perform(
                     post("/api/v1/projects/$ownerName/$projName/wiki/pages")
@@ -262,7 +262,7 @@ class WikiRestApiControllerIntegrationSpec @Autowired constructor(
             }
         }
 
-        describe("GET /api/v1/projects/{owner}/{project}/wiki/pages?q= — 검색(P3-42 8번)") {
+        describe("GET /api/v1/projects/{owner}/{project}/wiki/pages?q= — 검색") {
             it("제목 부분일치로 검색 결과를 반환해야 한다") {
                 mockMvc.perform(
                     post("/api/v1/projects/$ownerName/$projName/wiki/pages")

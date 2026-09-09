@@ -11,7 +11,7 @@
 
     <div class="page-wrap-outer">
         <div class="project-page-wrap">
-            <!-- 위키 페이지 제목(파일명) 검색(P3-42 8번). -->
+            <!-- 위키 페이지 제목(파일명) 검색. -->
             <form th:action="${wikiBase + '/_search'}" method="get" style="margin-bottom:15px;">
                 <input type="text" name="q" th:value="${searchQuery}" placeholder="Search pages" class="span6" />
                 <button type="submit" class="ybtn" th:text="#{post.menu.search}">Search</button>

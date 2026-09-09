@@ -73,7 +73,7 @@ class WikiServiceImpl(
 
     // GitRepository.getMetaDataFromPath()(디렉터리 한 단계 조회 + 자식별 최신 커밋 메타데이터)를
     // 재귀적으로 호출해 트리 전체를 훑는다 — 새 저수준 JGit 순회를 만들지 않고 기존 메서드를
-    // 그대로 재사용한다(과제 지침).
+    // 그대로 재사용한다.
     private fun collectPages(repo: GitRepository, path: String, acc: MutableList<WikiPageSummary>) {
         val node = repo.getMetaDataFromPath("HEAD", path) ?: return
         val data = node.get("data") ?: return

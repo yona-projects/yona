@@ -31,8 +31,8 @@ private fun readTreeFiles(repository: Repository, commitId: ObjectId): Map<Strin
     return filesInTree
 }
 
-// BareCommit.commitPage()/deletePage()(P3-42 위키 페이지 저장/삭제) 대응 — 실제 파일시스템에
-// bare 저장소를 만들어 진짜 JGit 커밋으로 검증한다(GitRepositorySpec/BareCommitSpec과 동일한 방식).
+// BareCommit.commitPage()/deletePage()(위키 페이지 저장/삭제) 검증 — 실제 파일시스템에 bare
+// 저장소를 만들어 진짜 JGit 커밋으로 검증한다(GitRepositorySpec/BareCommitSpec과 동일한 방식).
 class BareCommitWikiSpec : DescribeSpec({
 
     fun newRepoDir(repoName: String = "myproj.wiki"): Pair<File, File> {
@@ -63,7 +63,7 @@ class BareCommitWikiSpec : DescribeSpec({
             }
         }
 
-        it("중첩 경로(슬래시 포함, P3-42 7번)로 페이지를 만들 수 있다") {
+        it("중첩 경로(슬래시 포함)로 페이지를 만들 수 있다") {
             val (gitBaseDir, bareDir) = newRepoDir()
             val bare = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
             bare.setRefName(Constants.R_HEADS + "main")
@@ -124,7 +124,7 @@ class BareCommitWikiSpec : DescribeSpec({
             }
         }
 
-        it("커밋 메시지를 그대로 반영한다(P3-42 4번 — 커밋 메시지 커스터마이징)") {
+        it("커밋 메시지를 그대로 반영한다(커밋 메시지 커스터마이징)") {
             val (gitBaseDir, _) = newRepoDir()
             val bare = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
             bare.setRefName(Constants.R_HEADS + "main")

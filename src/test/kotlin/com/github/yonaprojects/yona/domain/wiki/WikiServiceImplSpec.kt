@@ -14,7 +14,7 @@ import java.io.File
 import java.nio.file.Files
 import java.util.Optional
 
-// WikiServiceImpl(P3-42)을 실제 파일시스템 bare git 저장소로 end-to-end 검증한다
+// WikiServiceImpl을 실제 파일시스템 bare git 저장소로 end-to-end 검증한다
 // (GitRepositorySpec/BareCommitSpec과 동일한 패턴 — DB/Spring 컨텍스트 없이도 위키는 완전히
 // git 파일 기반이라 순수 JVM 테스트로 충분하다).
 class WikiServiceImplSpec : DescribeSpec({
@@ -59,7 +59,7 @@ class WikiServiceImplSpec : DescribeSpec({
         }
     }
 
-    describe("페이지 CRUD(P3-42 1번)") {
+    describe("페이지 CRUD") {
         it("페이지를 생성하고 다시 읽으면 같은 내용을 반환한다") {
             val gitBaseDir = Files.createTempDirectory("yona-wiki-test").toFile().absolutePath
             val service = newService(gitBaseDir)
@@ -128,7 +128,7 @@ class WikiServiceImplSpec : DescribeSpec({
         }
     }
 
-    describe("중첩 페이지(P3-42 7번, 슬래시로 하위 경로 표현)") {
+    describe("중첩 페이지(슬래시로 하위 경로 표현)") {
         it("슬래시가 포함된 제목은 하위 디렉터리 파일로 저장되고 그대로 읽힌다") {
             val gitBaseDir = Files.createTempDirectory("yona-wiki-test").toFile().absolutePath
             val service = newService(gitBaseDir)
@@ -154,7 +154,7 @@ class WikiServiceImplSpec : DescribeSpec({
         }
     }
 
-    describe("특수 페이지(P3-42 2번 — Home/_Sidebar/_Footer)") {
+    describe("특수 페이지(Home/_Sidebar/_Footer)") {
         it("_Sidebar, _Footer, Home도 일반 페이지처럼 저장/조회된다") {
             val gitBaseDir = Files.createTempDirectory("yona-wiki-test").toFile().absolutePath
             val service = newService(gitBaseDir)
@@ -170,7 +170,7 @@ class WikiServiceImplSpec : DescribeSpec({
         }
     }
 
-    describe("검색(P3-42 8번)") {
+    describe("검색") {
         it("제목 부분일치(대소문자 무시)로 검색한다") {
             val gitBaseDir = Files.createTempDirectory("yona-wiki-test").toFile().absolutePath
             val service = newService(gitBaseDir)
@@ -184,7 +184,7 @@ class WikiServiceImplSpec : DescribeSpec({
         }
     }
 
-    describe("히스토리 + diff(P3-42 3번)") {
+    describe("히스토리 + diff") {
         it("history()는 그 페이지 파일의 커밋만 최신순으로 반환한다") {
             val gitBaseDir = Files.createTempDirectory("yona-wiki-test").toFile().absolutePath
             val service = newService(gitBaseDir)
@@ -224,7 +224,7 @@ class WikiServiceImplSpec : DescribeSpec({
         }
     }
 
-    describe("커밋 메시지 커스터마이징(P3-42 4번)") {
+    describe("커밋 메시지 커스터마이징") {
         it("메시지를 지정하지 않으면 Create/Update/Rename 기본 메시지를 만든다") {
             val gitBaseDir = Files.createTempDirectory("yona-wiki-test").toFile().absolutePath
             val service = newService(gitBaseDir)

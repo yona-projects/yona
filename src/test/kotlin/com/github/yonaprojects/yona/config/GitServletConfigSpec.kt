@@ -249,8 +249,8 @@ class GitServletConfigSpec : DescribeSpec({
         }
 
         it("저장소 리졸버 람다 - FileRepositoryBuilder로 Repository를 생성해야 한다") {
-            // 위키(P3-42) 지연 초기화 분기가 projectRepository/gitDefaultBranch(인스턴스 필드)를
-            // 참조하게 되면서, 이 람다는 더 이상 "this" 없이 static하게 컴파일되지 않는다 — 컴파일된
+            // 위키 지연 초기화 분기가 projectRepository/gitDefaultBranch(인스턴스 필드)를 참조하게
+            // 되면서, 이 람다는 더 이상 "this" 없이 static하게 컴파일되지 않는다 — 컴파일된
             // synthetic 메서드 시그니처의 두 번째 파라미터로 GitServletConfig 인스턴스가 추가됐다.
             val lambda = GitServletConfig::class.java.getDeclaredMethod(
                 "gitServletRegistrationBean\$lambda\$0\$0",

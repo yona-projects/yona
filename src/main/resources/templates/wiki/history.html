@@ -18,7 +18,7 @@
                 </h2>
             </div>
 
-            <!-- 리비전 목록(P3-42 3번) + 두 리비전을 골라 비교(리비전 간 diff). -->
+            <!-- 리비전 목록 + 두 리비전을 골라 비교(리비전 간 diff). -->
             <form th:action="${wikiBase + '/_history/' + #uris.escapePath(historyTitle)}" method="get" id="compare-form">
                 <table class="table" style="width:100%;">
                     <thead>

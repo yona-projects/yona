@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 /**
- * 프로젝트 위키(P3-42) 읽기/쓰기 MCP 도구. IssueMcpTools/PullRequestMcpTools와 완전히 동일한
+ * 프로젝트 위키 읽기/쓰기 MCP 도구. IssueMcpTools/PullRequestMcpTools와 완전히 동일한
  * 원칙: 신규 비즈니스 로직 없이 기존 WikiRestApiController(이미 AccessControl/멤버십 검사를
  * 갖춘 REST 컨트롤러)에 위임만 한다 — 이 클래스가 새로 하는 일은 (1) owner/project 이름으로
  * 프로젝트를 찾는 것과 (2) McpScopeGuard로 OAuth/PAT 스코프(WIKI 그룹)를 도구 호출 "전"에

@@ -20,7 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder
 import java.util.Optional
 
-// P3-42(위키) MCP 도구 — IssueMcpToolsSpec/PullRequestMcpToolsSpec과 동일한 접근: 위임 여부만
+// 위키 MCP 도구 — IssueMcpToolsSpec/PullRequestMcpToolsSpec과 동일한 접근: 위임 여부만
 // 검증한다(업무 로직 자체는 WikiRestApiControllerIntegrationSpec에서 이미 실제 bare 저장소로
 // 검증됨). 핵심 검증 포인트는 McpScopeGuard가 거부하면 WikiRestApiController가 절대 호출되지
 // 않아야 한다는 것 — "모든 MCP 도구는 호출 전에 스코프를 검증한다"는 이 세션의 보안 불변식이

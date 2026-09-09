@@ -27,11 +27,11 @@ import org.springframework.web.bind.annotation.RestController
 // (`/api/v1/projects/{owner}/{project}/wiki`). TagRestApiController와 동일하게 위임할 만한
 // 기존 세션/폼 컨트롤러가 없어(완전 신규 기능) AccessControl 판정을 이 컨트롤러가 직접 수행한다.
 //
-// 권한(P3-42 6번 요구사항): 읽기는 프로젝트 읽기 권한과 동일(공개 프로젝트는 게스트 제외
-// 누구나), 쓰기(생성/수정/삭제)는 "프로젝트 쓰기 권한(멤버)과 동일" — BoardViewController의
-// 코드브라우저 온라인편집이 쓰는 것과 동일한 "existsByProjectIdAndUserId" 멤버십 검사를
-// 재사용한다(TagRestApiController처럼 매니저 전용 Operation.UPDATE를 쓰지 않는다 — 위키는
-// 코드 push와 동일한 문턱이어야 한다는 요구사항이므로 의도적으로 다른 임계값).
+// 권한: 읽기는 프로젝트 읽기 권한과 동일(공개 프로젝트는 게스트 제외 누구나), 쓰기(생성/수정/
+// 삭제)는 "프로젝트 쓰기 권한(멤버)과 동일" — BoardViewController의 코드브라우저 온라인편집이
+// 쓰는 것과 동일한 "existsByProjectIdAndUserId" 멤버십 검사를 재사용한다(TagRestApiController
+// 처럼 매니저 전용 Operation.UPDATE를 쓰지 않는다 — 위키는 코드 push와 동일한 문턱이어야
+// 한다는 요구사항이므로 의도적으로 다른 임계값).
 //
 // ApiTokenAuthenticationFilter의 resourceSegmentToResourceType에 이미 "wiki" ->
 // ResourceType.WIKI_PAGE(WIKI 스코프 그룹) 매핑이 있어(scopedApiPattern이 3번째 세그먼트 뒤
@@ -60,7 +60,7 @@ class WikiRestApiController(
     private fun canRead(user: User?, project: Project): Boolean = accessControl.isAllowedToReadProject(user, project)
 
     // 위키 쓰기 권한 = 프로젝트 멤버(코드 push 권한과 동일 문턱). BoardViewController의 코드브라우저
-    // 온라인편집 커밋 경로가 쓰는 것과 동일한 판정 방식이다(과제 지침 6번).
+    // 온라인편집 커밋 경로가 쓰는 것과 동일한 판정 방식이다.
     private fun canWrite(user: User?, project: Project): Boolean {
         if (user == null || user.isGuest) return false
         if (user.isSiteManager) return true

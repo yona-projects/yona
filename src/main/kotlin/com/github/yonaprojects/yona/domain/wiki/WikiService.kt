@@ -4,7 +4,7 @@ import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.vcs.Commit
 
-// Forgejo 수준 프로젝트 위키(P3-42) 서비스. 위키 페이지는 DB 엔티티가 아니라 프로젝트별
+// Forgejo 수준 프로젝트 위키 서비스. 위키 페이지는 DB 엔티티가 아니라 프로젝트별
 // bare git 저장소(`<owner>/<project>.wiki.git`, 프로젝트의 실제 VCS 종류와 무관하게 항상
 // git) 안의 마크다운 파일이다 — 이 인터페이스는 그 저장소를 읽고 쓰는 창구 하나로 통일한다.
 interface WikiService {
