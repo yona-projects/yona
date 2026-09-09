@@ -27,22 +27,17 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 /**
- * yona의 mailbox/EmailHandler.java + CreationViaEmail.java 대응 핵심 라우팅/생성 로직.
- * IMAP 연결(IncomingMailPoller)과 분리되어 있어, 실제 메일 서버 없이도 단위테스트로
- * 검증 가능하다.
+ * 메일로 들어온 답장/신규 이메일을 실제 리소스(이슈/댓글/리뷰스레드 등)로 라우팅·생성하는 핵심
+ * 로직. IMAP 연결(IncomingMailPoller)과 분리되어 있어, 실제 메일 서버 없이도 단위테스트로 검증
+ * 가능하다.
  *
- * 의도적으로 다루지 않는 범위(follow-up, docs/PARITY_BACKLOG.md 참고):
- *  - HTML 본문의 cid 이미지 치환은 P1-47, HtmlCompressor를 통한 태그 사이 개행 제거는 P1-61에서 구현됨
- *  - 코드리뷰(COMMENT_THREAD)/커밋(COMMIT_COMMENT) 댓글 스레드로의 답장 라우팅은 P1-30에서 구현됨.
- *    Reply-To 헤더 자체가 이미 리소스 상세 주소(owner/project/<resourceType>/<resourceId>,
- *    resolveDirectResource() 대응)로 설정되므로 수신 주소만으로도 스레드를 찾을 수 있고, 여기에 더해
- *    In-Reply-To/References 기반 라우팅(resolveThreads())도 OriginalEmail 미스 시 발신 Message-ID의
- *    결정론적 포맷(computeMessageId() 대응)을 직접 역파싱하는 폴백을 갖춰(P1-60, yona
- *    EmailHandler.findResourcesByMessageId()의 IMAPMessageUtil.getIdLeftFromMessageId()+
- *    Resource.findByPath() 대응) UI에서 만든 리소스(OriginalEmail이 없는)에 대한 답장도 매칭한다.
- *  - "help" 자동응답, 수신 거부 사유 회신 메일은 P1-31에서 구현됨
- *  - 수신 주소 detail에 리소스 경로를 직접 명시하는 방식(owner/project/issue_post/5)은 P1-32에서 구현됨
- *  - 한 이메일이 여러 프로젝트로 발송된 경우, OriginalEmail은 최초 성공 리소스 1건만 기록
+ * Reply-To 헤더 자체가 이미 리소스 상세 주소(owner/project/<resourceType>/<resourceId>,
+ * resolveDirectResource() 참고)로 설정되므로 수신 주소만으로도 스레드를 찾을 수 있고, 여기에
+ * 더해 In-Reply-To/References 기반 라우팅(resolveThreads())도 OriginalEmail 미스 시 발신
+ * Message-ID의 결정론적 포맷(computeMessageId() 참고)을 직접 역파싱하는 폴백을 갖춰 UI에서 만든
+ * 리소스(OriginalEmail이 없는)에 대한 답장도 매칭한다.
+ *
+ * 한 이메일이 여러 프로젝트로 발송된 경우, OriginalEmail은 최초 성공 리소스 1건만 기록한다.
  */
 @Service
 class IncomingMailProcessingService(
@@ -100,7 +95,7 @@ class IncomingMailProcessingService(
         return outcomes
     }
 
-    // yona EmailHandler.handle()의 "errors.size() > 0이면 도움말+사유를 회신" 분기 대응 (P1-31)
+    // yona EmailHandler.handle()의 "errors.size() > 0이면 도움말+사유를 회신" 분기 대응
     private fun replyWithErrorsIfAny(outcomes: List<IncomingMailOutcome>, sender: User, message: InboundEmailMessage) {
         val reasons = outcomes.filterIsInstance<IncomingMailOutcome.Rejected>().map { it.reason }
         if (reasons.isEmpty()) return
@@ -114,7 +109,7 @@ class IncomingMailProcessingService(
         )
     }
 
-    // yona EmailHandler.getHelpMessage() 대응 (P1-31). i18n 메시지 번들 대신 이 저장소의
+    // yona EmailHandler.getHelpMessage() 대응. i18n 메시지 번들 대신 이 저장소의
     // 다른 사용자 안내문과 마찬가지로 한국어 고정 문구로 단순화했다.
     private fun buildHelpMessage(username: String, errors: List<String> = emptyList()): String {
         val lines = mutableListOf("안녕하세요 ${username}님,")
@@ -148,7 +143,7 @@ class IncomingMailProcessingService(
         sender: User,
         message: InboundEmailMessage
     ): IncomingMailOutcome {
-        // yona EmailHandler.getProjects()의 detail=="help" 분기 대응 (P1-31)
+        // yona EmailHandler.getProjects()의 detail=="help" 분기 대응
         if (target.detail.equals("help", ignoreCase = true)) {
             mailService.sendReply(
                 toEmail = sender.email,
@@ -180,7 +175,7 @@ class IncomingMailProcessingService(
         }
         val cidAttachments = attachAttachments(outcome, message.attachments, sender)
 
-        // yona CreationViaEmail.postprocessForHTML() 대응 (P1-47/P1-61). cid: 첨부가 없어도
+        // yona CreationViaEmail.postprocessForHTML() 대응. cid: 첨부가 없어도
         // HtmlCompressor 압축은 시도해야 하므로(yona도 항상 postprocessForHTML을 호출) HTML이면 무조건 진입 —
         // 실제로 바뀐 게 없으면 postprocessHtmlBody 내부에서 저장을 건너뛴다.
         if (message.isHtml) {
@@ -190,15 +185,15 @@ class IncomingMailProcessingService(
         return outcome
     }
 
-    // yona CreationViaEmail.saveAttachments() 대응 (P1-29). Content-ID가 있는 첨부파일은
-    // cid → Attachment 매핑으로 반환해, HTML 본문의 cid: 참조 치환(P1-47)에 사용한다.
+    // yona CreationViaEmail.saveAttachments() 대응. Content-ID가 있는 첨부파일은
+    // cid → Attachment 매핑으로 반환해, HTML 본문의 cid: 참조 치환에 사용한다.
     private fun attachAttachments(outcome: IncomingMailOutcome, attachments: List<InboundAttachment>, sender: User): Map<String, Attachment> {
         if (attachments.isEmpty()) return emptyMap()
         val (resourceType, resourceId) = when (outcome) {
             is IncomingMailOutcome.IssueCreated -> ResourceType.ISSUE_POST to outcome.issueId.toString()
             is IncomingMailOutcome.IssueCommentCreated -> ResourceType.ISSUE_POST to outcome.issueId.toString()
             is IncomingMailOutcome.PostingCommentCreated -> ResourceType.BOARD_POST to outcome.postingId.toString()
-            // yona saveReviewComment()의 saveAttachments(content.attachments, comment.asResource()) 대응 (P1-59).
+            // yona saveReviewComment()의 saveAttachments(content.attachments, comment.asResource()) 대응.
             // 첨부는 스레드가 아니라 댓글 자신에 붙는다(comment.asResource() == REVIEW_COMMENT+comment.id).
             is IncomingMailOutcome.ReviewCommentCreated -> ResourceType.REVIEW_COMMENT to outcome.commentId.toString()
             is IncomingMailOutcome.CommitCommentCreated -> ResourceType.COMMIT_COMMENT to outcome.commentId.toString()
@@ -224,10 +219,10 @@ class IncomingMailProcessingService(
         return cidMap
     }
 
-    // yona CreationViaEmail.postprocessForHTML() 대응 (P1-47/P1-61). 이미 생성된 리소스의 본문에서
+    // yona CreationViaEmail.postprocessForHTML() 대응. 이미 생성된 리소스의 본문에서
     // cid: 참조를 실제 저장된 첨부파일 URL로 치환하고 HtmlCompressor로 압축해 갱신한다. Issue/Posting
-    // 본문은 Markdown 기준이지만 렌더링 시점에 항상 OWASP sanitizer를 거치므로(MarkdownServiceImpl,
-    // P0-08) 원본 HTML을 그대로 저장해도 안전하다.
+    // 본문은 Markdown 기준이지만 렌더링 시점에 항상 OWASP sanitizer를 거치므로(MarkdownServiceImpl
+    // 참고) 원본 HTML을 그대로 저장해도 안전하다.
     private fun postprocessHtmlBody(outcome: IncomingMailOutcome, cidAttachments: Map<String, Attachment>) {
         when (outcome) {
             is IncomingMailOutcome.IssueCreated -> {
@@ -264,7 +259,7 @@ class IncomingMailProcessingService(
         }
     }
 
-    // yona postprocessForHTML()의 "1. cid 치환 2. HtmlCompressor로 태그 사이 개행 제거" 순서 그대로 (P1-61).
+    // yona postprocessForHTML()의 "1. cid 치환 2. HtmlCompressor로 태그 사이 개행 제거" 순서 그대로.
     // 결과가 원본과 동일하면(치환도 압축도 실질적 변화 없음) null을 반환해 불필요한 저장을 막는다.
     private fun postprocessForHtml(html: String, cidAttachments: Map<String, Attachment>): String? {
         val cidReplaced = replaceCidWithAttachments(html, cidAttachments) ?: html
@@ -312,7 +307,7 @@ class IncomingMailProcessingService(
 
     // yona EmailHandler.findResourcesByMessageId()의 OriginalEmail 미스 시 폴백(IMAPMessageUtil.
     // getIdLeftFromMessageId() + Resource.findByPath()), 그리고 getThreads()의
-    // "case REVIEW_COMMENT: threads.add(resource.getContainer())" 리다이렉트 대응 (P1-60).
+    // "case REVIEW_COMMENT: threads.add(resource.getContainer())" 리다이렉트 대응.
     // yona도 발신(outbound) 시점에는 OriginalEmail을 쓰지 않는다(CreationViaEmail.java 3곳에서만,
     // 전부 수신 메일 처리 시점에 기록) — 대신 발신 Message-ID 자체가 Resource.getMessageId()의
     // 결정론적 "<type/id@host>" 포맷(yona computeMessageId()와 동일 포맷)이라 역파싱만으로 UI에서
@@ -341,14 +336,14 @@ class IncomingMailProcessingService(
 
         return when (resourceType) {
             ResourceType.COMMENT_THREAD, ResourceType.ISSUE_POST, ResourceType.BOARD_POST,
-            // yona에는 없는 커밋 댓글 전용 모델(P0-16의 yona 고유 구조)이지만 첨부/원본메일 저장(P1-59)에서
+            // yona에는 없는 커밋 댓글 전용 모델이지만 첨부/원본메일 저장에서
             // 이미 REVIEW_COMMENT/COMMIT_COMMENT를 동급으로 다루고 있어 폴백 대상에도 동일하게 포함한다.
             ResourceType.COMMIT_COMMENT -> resourceType to resourceId
             else -> null
         }
     }
 
-    // yona EmailHandler.getResourceFromDetail() 대응 (P1-32). detail이
+    // yona EmailHandler.getResourceFromDetail() 대응. detail이
     // "owner/project/<resourceType>/<resourceId>" 형식(resourceType은 ResourceType.getValue()가
     // 받는 전체 문자열, 예: issue_post)이면 In-Reply-To/References 없이도 그 리소스를 바로 스레드로 취급한다.
     private fun resolveDirectResource(target: EmailAddressDetail): ResolvedThread? {
@@ -382,7 +377,7 @@ class IncomingMailProcessingService(
 
     private fun createComment(thread: ResolvedThread, sender: User, body: String): IncomingMailOutcome {
         return when (thread.resourceType) {
-            // yona IssueApp.java:1004-1011 newReferComment() 대응 (P2-34). isResourceCreatable()의 [GL-controllers_IssueApp-049]
+            // yona IssueApp.java:1004-1011 newReferComment() 대응. isResourceCreatable()의
             // ISSUE_COMMENT 케이스로 판단해, 발신자가 프로젝트 READ 권한이 없어도 그 이슈의
             // 작성자/담당자/공유대상이면 메일 답장으로 댓글을 달 수 있다(legacy와 동일하게 거부 시
             // 조용히 Rejected로 회신 — 메일 인바운드 발신자 이메일 노출 방지).
@@ -406,7 +401,7 @@ class IncomingMailProcessingService(
         }
     }
 
-    // yona EmailHandler.getThreads()의 COMMENT_THREAD 분기(CreationViaEmail.saveReviewComment) 대응 (P1-30)
+    // yona EmailHandler.getThreads()의 COMMENT_THREAD 분기(CreationViaEmail.saveReviewComment) 대응
     private fun createReviewCommentReply(thread: ResolvedThread, sender: User, body: String): IncomingMailOutcome {
         val threadId = thread.resourceId.toLong()
         val commentThread = commentThreadRepository.findById(threadId).orElse(null)
@@ -418,8 +413,8 @@ class IncomingMailProcessingService(
         return IncomingMailOutcome.ReviewCommentCreated(comment.id!!, threadId)
     }
 
-    // yona EmailHandler.getThreads()의 REVIEW_COMMENT->컨테이너 분기(커밋 댓글 부분) 대응 (P1-30).
-    // yona는 커밋 댓글에 별도 스레드 개념이 없어(P0-16), 같은 커밋/경로/라인에 새 댓글을 추가하는 것으로 답장을 표현한다.
+    // yona EmailHandler.getThreads()의 REVIEW_COMMENT->컨테이너 분기(커밋 댓글 부분) 대응.
+    // yona는 커밋 댓글에 별도 스레드 개념이 없어, 같은 커밋/경로/라인에 새 댓글을 추가하는 것으로 답장을 표현한다.
     private fun createCommitCommentReply(thread: ResolvedThread, sender: User, body: String): IncomingMailOutcome {
         val originalId = thread.resourceId.toLong()
         val original = commitCommentRepository.findById(originalId).orElse(null)

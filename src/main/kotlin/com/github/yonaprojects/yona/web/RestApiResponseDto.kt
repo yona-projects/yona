@@ -22,13 +22,9 @@ import com.github.yonaprojects.yona.domain.vcs.FileDiff
 import com.github.yonaprojects.yona.domain.vcs.Commit
 import java.time.Instant
 
-// yona-wiki P3-02 Step8.7 2번(2026-09-01 실서버 골든패스 수동검증 중 발견, 심각도 높음) —
-// IssueRestApiController/PullRequestApiController/SearchRestApiController가 JPA 엔티티
-// (Issue/PullRequest/Project)를 가공 없이 그대로 반환하는데, User.projectUsers
-// (@OneToMany mappedBy="user") <-> ProjectUser.user(@ManyToOne)가 양방향 연관관계라
-// Jackson이 "이슈->project->projectUsers[]->user->projectUsers[]->user->..."로 무한
-// 순환 직렬화한다(실측: curl로 60KB 넘는 깨진 채로 끊긴 JSON 확인, 서버가 open-in-view라
-// 응답 작성 시점까지 세션이 열려있어 lazy 컬렉션이 실제로 초기화되며 재현됨).
+// JPA 엔티티(Issue/PullRequest/Project)를 가공 없이 그대로 반환하면, User.projectUsers
+// (@OneToMany mappedBy="user") <-> ProjectUser.user(@ManyToOne)가 양방향 연관관계라 Jackson이
+// "이슈->project->projectUsers[]->user->projectUsers[]->user->..."로 무한 순환 직렬화한다.
 //
 // ProjectRestApiController.toProjectNode()가 이미 쓰고 있는 "엔티티를 그대로 반환하지 않고
 // 필요한 필드만 담은 응답 모델로 변환" 패턴을 Issue/PullRequest에도 그대로 적용한다. 필드
@@ -164,7 +160,7 @@ fun IssueComment.toResponse() = IssueCommentResponse(
     issueId = issue.id
 )
 
-// P3-30 — IssueController.getTimeline()이 List<IssueEvent>를 가공 없이 그대로 반환하고 있었다.
+// IssueController.getTimeline()이 List<IssueEvent>를 가공 없이 그대로 반환하고 있었다.
 // IssueEvent.issue(ManyToOne, JsonIgnore 없음)를 그대로 직렬화하면 issue->project->projectUsers->
 // user로 이어지는 동일한 순환/비밀번호 노출 문제가 재발한다 — issueId만 남기고 issue 자체는
 // 담지 않는다.
@@ -188,7 +184,7 @@ fun IssueEvent.toResponse() = IssueEventResponse(
     created = created
 )
 
-// P3-30 — BoardController가 Posting 엔티티를 그대로 반환하고 있었다(Posting -> project ->
+// BoardController가 Posting 엔티티를 그대로 반환하고 있었다(Posting -> project ->
 // projectUsers -> user 순환/비밀번호 노출, IssueResponse와 동일한 근본원인). IssueResponse와
 // 같은 필드 선택 기준(연관관계 대신 id/비정규화된 author* 필드만)을 그대로 따른다.
 data class PostingResponse(
@@ -231,7 +227,7 @@ fun Posting.toResponse() = PostingResponse(
     projectId = project.id
 )
 
-// P3-30 — CommentController가 PostingComment 엔티티를 그대로 반환하고 있었다(IssueCommentResponse와
+// CommentController가 PostingComment 엔티티를 그대로 반환하고 있었다(IssueCommentResponse와
 // 동일한 사유로, PostingComment.posting -> project -> projectUsers -> user 순환 위험).
 data class PostingCommentResponse(
     val id: Long?,
@@ -255,9 +251,7 @@ fun PostingComment.toResponse() = PostingCommentResponse(
     postingId = posting.id
 )
 
-// P3-30 — MilestoneController가 Milestone 엔티티를 그대로 반환하고 있었다. Milestone.project는
-// 이미 @JsonIgnore가 붙어 있어 이 경로만으로는 순환에 빠지지 않지만(직접 재현은 안 됨), 이 티켓의
-// 완료 기준("5개 파일의 어떤 엔드포인트도 raw 엔티티를 직접 반환하지 않는다")과 다른 DTO들과의
+// Milestone.project는 이미 @JsonIgnore가 붙어 있어 순환에 빠지지 않지만, 다른 DTO들과의
 // 일관성을 위해 동일하게 DTO로 감싼다.
 data class MilestoneResponse(
     val id: Long?,
@@ -323,9 +317,8 @@ fun PullRequest.toResponse() = PullRequestResponse(
     reviewers = reviewers.map { it.toRefResponse() }
 )
 
-// yona-wiki P3-15(PR 승인/변경요청 워크플로) — PullRequestReview는 reviewer(User)를 직접 참조하고
-// 있어 다른 엔티티들과 동일한 순환 직렬화 위험(User<->ProjectUser)이 있다 — 그대로 반환하지 않고
-// 이 DTO로 변환한다.
+// PullRequestReview는 reviewer(User)를 직접 참조하고 있어 다른 엔티티들과 동일한 순환 직렬화
+// 위험(User<->ProjectUser)이 있다 — 그대로 반환하지 않고 이 DTO로 변환한다.
 data class PullRequestReviewResponse(
     val id: Long?,
     val state: PullRequestReview.ReviewState,
@@ -374,8 +367,8 @@ data class GitCommitResponse(
     val authorEmail: String?
 )
 
-// yona-wiki P3-27 — 원래 GitCommit 전용이었으나 Mercurial의 HgCommit도 동일한 DTO로 직렬화해야 해서
-// 공통 상위 타입 Commit으로 넓혔다(PullRequestMergeResult.gitCommits도 동일한 이유로 List<Commit>).
+// 원래 GitCommit 전용이었으나 Mercurial의 HgCommit도 동일한 DTO로 직렬화해야 해서 공통 상위
+// 타입 Commit으로 넓혔다(PullRequestMergeResult.gitCommits도 동일한 이유로 List<Commit>).
 fun Commit.toResponse() = GitCommitResponse(
     id = getId(),
     shortId = getShortId(),
@@ -423,14 +416,10 @@ fun PullRequestMergeResult.toResponse() = PullRequestMergeResultResponse(
     newCommits = newCommits.map { it.toResponse() }
 )
 
-// TASK-0419(P3-02 10라운드) — `GET .../pull-requests/{number}/diff`(PullRequestController.getDiff())가
-// FileDiff 엔티티를 가공 없이 그대로 반환하던 문제. FileDiff.a/b는 org.eclipse.jgit.diff.RawText,
-// editList는 EditList(Edit 리스트), oldMode/newMode는 FileMode인데 전부 일반 Jackson 빈 컨벤션에
-// 맞는 getter가 없는 JGit 내부 타입이다 — 그대로 직렬화하면 a/b가 rawContent(byte[] 필드 하나만
-// base64로 노출)만 덜렁 나오고 editList/hunks는 사실상 못 쓰는 내부 표현이 그대로 노출된다(실측
-// 확인). yona-cli(internal/api/pr.go GetPullRequestDiff())는 이미 pathA/pathB/changeType만
-// 신뢰하도록 방어적으로 작성돼 있었지만, 그마저도 Jackson이 a/b/editList 직렬화 도중 문제를
-// 일으키면 응답 전체가 깨질 위험이 있었다.
+// FileDiff.a/b는 org.eclipse.jgit.diff.RawText, editList는 EditList(Edit 리스트),
+// oldMode/newMode는 FileMode인데 전부 일반 Jackson 빈 컨벤션에 맞는 getter가 없는 JGit 내부
+// 타입이다 — 그대로 직렬화하면 a/b가 rawContent(byte[] 필드 하나만 base64로 노출)만 덜렁 나오고
+// editList/hunks는 사실상 못 쓰는 내부 표현이 그대로 노출된다.
 //
 // 대신 pathA/pathB/changeType 등 단순 필드만 노출하고, JGit RawText/EditList를 그대로 넘기는 대신
 // FileDiff.getHunks()(이미 이 클래스가 순수 데이터 구조인 DiffLine 목록으로 계산해주는 값)를

@@ -1,10 +1,12 @@
 package com.github.yonaprojects.yona.config
 
+import org.hibernate.JDBCException
 import org.hibernate.community.dialect.CUBRIDDialect
 import org.hibernate.dialect.TimeZoneSupport
 import org.hibernate.exception.ConstraintViolationException
 import org.hibernate.exception.spi.SQLExceptionConversionDelegate
 import org.hibernate.type.SqlTypes
+import java.sql.SQLException
 import java.sql.Types
 
 /**
@@ -53,10 +55,10 @@ class YonaCubridDialect : CUBRIDDialect() {
     override fun buildSQLExceptionConversionDelegate(): SQLExceptionConversionDelegate =
         object : SQLExceptionConversionDelegate {
             override fun convert(
-                sqlException: java.sql.SQLException,
+                sqlException: SQLException,
                 message: String,
                 sql: String
-            ): org.hibernate.JDBCException? {
+            ): JDBCException? {
                 return if (sqlException.errorCode == CUBRID_NOT_NULL_VIOLATION_ERROR_CODE) {
                     ConstraintViolationException(
                         message,

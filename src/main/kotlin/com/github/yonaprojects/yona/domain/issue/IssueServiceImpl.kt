@@ -42,18 +42,15 @@ class IssueServiceImpl(
     private val attachmentService: AttachmentService,
     private val favoriteIssueRepository: FavoriteIssueRepository,
     private val commentService: CommentService,
-    // yona AbstractPosting.updateMention() 대응 (P2-41).
     private val mentionService: MentionService,
-    // yona-wiki P3-01(Observability) 계측 지점 2 대응 — recordIssueEvent()가 위임하는
-    // IssueEventRepository.recordWithDraftMerge()에 그대로 전달한다.
+    // recordIssueEvent()가 위임하는 IssueEventRepository.recordWithDraftMerge()에 그대로 전달한다.
     private val meterRegistry: MeterRegistry,
-    // yona-wiki P3-02 14라운드 — nextIssueNumber()의 원자적 채번 UPDATE 이후, 이미 영속성
-    // 컨텍스트에 관리 중인 project 엔티티의 lastIssueNumber 필드를 DB의 최신 값으로 다시
-    // 동기화하는 데 쓴다(JPQL 벌크 UPDATE는 1차 캐시를 자동으로 갱신하지 않는다).
+    // nextIssueNumber()의 원자적 채번 UPDATE 이후, 이미 영속성 컨텍스트에 관리 중인 project
+    // 엔티티의 lastIssueNumber 필드를 DB의 최신 값으로 다시 동기화하는 데 쓴다(JPQL 벌크 UPDATE는
+    // 1차 캐시를 자동으로 갱신하지 않는다).
     private val entityManager: EntityManager
 ) : IssueService {
 
-    // yona models/support/IssueSearchCondition.java:18-44 getExpressionListByFilter() 대응 (P2-52).
     override fun getIssuesByFilter(filter: IssueFilterType, user: User): List<Issue> {
         val userId = user.id!!
         return when (filter) {
@@ -77,22 +74,18 @@ class IssueServiceImpl(
         }
     }
 
-    // yona-wiki P3-02 14라운드 — project.lastIssueNumber를 읽고 증가시켜 저장하는 채번 로직을
-    // 공용 함수로 뽑았다. 원래 코드(project.lastIssueNumber = project.lastIssueNumber + 1;
-    // projectRepository.save(project))는 잠금이 전혀 없어, 동시에 같은 프로젝트에 이슈를 만들면
-    // (포크/동시 생성 등) 두 트랜잭션이 같은 번호를 읽고 각각 저장하려다 issue(project_id, number)
-    // UNIQUE 제약을 위반해 500 에러가 났다(실서버 동시요청 20개로 재현: 3건 성공/17건 500).
+    // project.lastIssueNumber = project.lastIssueNumber + 1; projectRepository.save(project) 방식은
+    // 잠금이 전혀 없어, 동시에 같은 프로젝트에 이슈를 만들면 두 트랜잭션이 같은 번호를 읽고 각각
+    // 저장하려다 issue(project_id, number) UNIQUE 제약을 위반해 500 에러가 난다.
     //
-    // 처음엔 @Lock(PESSIMISTIC_WRITE)로 프로젝트 행을 잠그는 방식을 시도했으나, 실서버(H2,
-    // AUTO_SERVER=TRUE 파일 모드)로 재검증하는 과정에서 H2가 "select ... for update"를 실제로는
-    // 블로킹하지 않고(두 트랜잭션의 "for update" SELECT가 로그상 곧바로 연달아 실행되고, 둘 다
-    // 상대방의 커밋을 기다리지 않은 채 같은 옛 값을 읽어감을 확인) 여전히 같은 버그가 재현됐다 —
-    // MariaDB(InnoDB)에서는 정상 직렬화됨을 통합테스트로 확인했지만, H2도 이 저장소가 공식
-    // 지원하는 6개 DB 중 하나라 H2에서도 안전해야 한다. UPDATE 문 자체의 행 잠금(SELECT FOR
-    // UPDATE와 달리 모든 RDBMS가 예외 없이 갱신 시점에 즉시 배타 잠금을 거는 가장 기본적인 동작)은
-    // MVCC 엔진에서도 흔들리지 않으므로, "증가 UPDATE 실행 → 그 결과값을 다시 SELECT"로 바꿔
-    // Project 엔티티의 Java 필드는 아예 건드리지 않는다(건드리면 트랜잭션 커밋 시점의 dirty
-    // checking이 이 스테일한 값으로 되돌려 쓸 위험이 있다).
+    // @Lock(PESSIMISTIC_WRITE)로 프로젝트 행을 잠그는 방식은 H2(AUTO_SERVER=TRUE 파일 모드)에서
+    // "select ... for update"가 실제로는 블로킹하지 않아(두 트랜잭션의 "for update" SELECT가
+    // 상대방의 커밋을 기다리지 않은 채 같은 옛 값을 읽어감) 여전히 같은 버그가 재현됐다 — MariaDB
+    // (InnoDB)에서는 정상 직렬화되지만, H2도 이 저장소가 공식 지원하는 DB 중 하나라 안전해야 한다.
+    // UPDATE 문 자체의 행 잠금(모든 RDBMS가 갱신 시점에 즉시 배타 잠금을 거는 기본 동작)은 MVCC
+    // 엔진에서도 흔들리지 않으므로, "증가 UPDATE 실행 → 그 결과값을 다시 SELECT"로 바꿔 Project
+    // 엔티티의 Java 필드는 아예 건드리지 않는다(건드리면 트랜잭션 커밋 시점의 dirty checking이 이
+    // 스테일한 값으로 되돌려 쓸 위험이 있다).
     private fun nextIssueNumber(project: Project): Long {
         projectRepository.incrementLastIssueNumber(project.id!!)
         val newNumber = projectRepository.findLastIssueNumber(project.id!!)
@@ -130,7 +123,6 @@ class IssueServiceImpl(
         issue.authorLoginId = author.loginId
         issue.authorName = author.name
 
-        // yona IssueApp.newIssue()의 "if (newIssue.isDraft) { state = DRAFT } else { state = OPEN }" 대응 (P1-65).
         issue.isDraft = isDraft
         issue.state = if (isDraft) State.DRAFT else State.OPEN
 
@@ -139,11 +131,10 @@ class IssueServiceImpl(
         }
 
         if (milestoneId != null) {
-            // yona-wiki P3-02 14라운드(IDOR, TASK-0426과 같은 근본원인) — id로만 조회하고 그
-            // 마일스톤이 이 이슈의 project 소속인지 검증하지 않으면, REST API로 labelIds/milestoneId를
-            // 직접 받는 이 경로가 다른(심지어 멤버가 아닌 PRIVATE) 프로젝트의 마일스톤을 노출·연결하는
-            // 데 악용될 수 있다. project 소속이 아니면 조용히 무시한다(웹 폼은 항상 자기 프로젝트
-            // 마일스톤만 보내므로 정상 사용에는 영향 없음).
+            // id로만 조회하고 그 마일스톤이 이 이슈의 project 소속인지 검증하지 않으면(IDOR), REST
+            // API로 labelIds/milestoneId를 직접 받는 이 경로가 다른(심지어 멤버가 아닌 PRIVATE)
+            // 프로젝트의 마일스톤을 노출·연결하는 데 악용될 수 있다. project 소속이 아니면 조용히
+            // 무시한다(웹 폼은 항상 자기 프로젝트 마일스톤만 보내므로 정상 사용에는 영향 없음).
             val milestone = milestoneRepository.findById(milestoneId).orElse(null)
             if (milestone != null && milestone.project.id == project.id) {
                 issue.milestone = milestone
@@ -151,23 +142,19 @@ class IssueServiceImpl(
         }
 
         if (!labelIds.isNullOrEmpty()) {
-            // yona-wiki P3-02 14라운드 — 위와 동일한 근본원인의 라벨 버전.
+            // 위와 동일한 근본원인의 라벨 버전(IDOR 방지).
             val labels = issueLabelRepository.findAllById(labelIds).filter { it.project.id == project.id }
             issue.labels = labels.toMutableSet()
         }
 
         val savedIssue = issueRepository.save(issue)
 
-        // yona AbstractPosting.save()의 updateMention() 대응 (P2-41) — 초안 여부와 무관하게 저장할
-        // 때마다 항상 멘션 인덱스를 동기화한다(알림 발송 여부와는 별개).
+        // 초안 여부와 무관하게 저장할 때마다 항상 멘션 인덱스를 동기화한다(알림 발송 여부와는 별개).
         mentionService.update(ResourceType.ISSUE_POST, savedIssue.id.toString(), commentService.extractMentionedUsers(savedIssue.body ?: ""))
 
-        // yona AbstractPosting.save()의 TitleHead.saveTitleHeadKeyword() 대응 (P1-103).
         titleHeadService.saveTitleHeadKeyword(project, savedIssue.title)
 
-        // yona IssueApp.newIssue()의 "if (!newIssue.isDraft) { NotificationEvent.afterNewIssue(newIssue); }"
-        // 대응 — 초안은 발행(publishIssue) 시점에야 처음 알림이 발행된다. sendNotification=false는
-        // controllers/api/IssueApi.java newIssues()의 "sendNotification" 플래그 대응(P2-56 복원) —
+        // 초안은 발행(publishIssue) 시점에야 처음 알림이 발행된다. sendNotification=false는
         // 마이그레이션으로 과거 이슈를 대량 삽입할 때 알림 폭주를 막는 용도.
         if (!isDraft && sendNotification) {
             publishNewIssueNotification(savedIssue, author)
@@ -176,11 +163,8 @@ class IssueServiceImpl(
         return savedIssue
     }
 
-    // yona IssueApp.editIssue()의 "if (issue.isPublish) { originalIssue.createdDate = now();
-    // if (state == DRAFT) state = OPEN; originalIssue.setNumber(Project.increaseLastIssueNumber(...)); }"
-    // + AbstractPostingApp.editPosting()의 "if (posting.isPublish) { posting.history = ""; }" 대응 (P1-65).
-    // yona는 생성 시에도(AbstractPosting.save()) 이미 번호를 매기므로, 발행 시의 재채번은 초안이 예약해간
-    // 번호를 "발행 시점의 최신 번호"로 대체하는 것이다(그 사이 다른 이슈가 먼저 발행됐다면 그만큼 밀림).
+    // 생성 시에도 이미 번호를 매기므로, 발행 시의 재채번은 초안이 예약해간 번호를 "발행 시점의 최신
+    // 번호"로 대체하는 것이다(그 사이 다른 이슈가 먼저 발행됐다면 그만큼 밀림).
     override fun publishIssue(issueId: Long, publisher: User): Issue {
         val issue = issueRepository.findById(issueId).orElseThrow { IllegalArgumentException("Issue not found: $issueId") }
         val project = issue.project
@@ -202,9 +186,9 @@ class IssueServiceImpl(
         return savedIssue
     }
 
-    // yona NotificationEvent.afterNewIssue(issue)(forNewIssue(issue, sender)) 대응. 이슈를 새로 만들 때뿐
-    // 아니라, 다른 프로젝트로 이동했을 때도 "그 프로젝트에 새로 생긴 이슈"로서 동일한 형식의 알림을
-    // 다시 발행한다(moveIssue(), P1-48) — sender만 다르다(생성 시=작성자, 이동 시=이동을 실행한 사용자).
+    // 이슈를 새로 만들 때뿐 아니라, 다른 프로젝트로 이동했을 때도 "그 프로젝트에 새로 생긴 이슈"로서
+    // 동일한 형식의 알림을 다시 발행한다(moveIssue()) — sender만 다르다(생성 시=작성자, 이동
+    // 시=이동을 실행한 사용자).
     private fun publishNewIssueNotification(issue: Issue, sender: User) {
         val title = "[${issue.project.name}] 신규 이슈 등록: #${issue.number} ${issue.title}"
         val notificationEvent = NotificationEvent(
@@ -224,8 +208,7 @@ class IssueServiceImpl(
             projectId = issue.project.id,
             eventType = notificationEvent.eventType
         ).toMutableSet()
-        // yona NotificationEvent.java:1380-1385 getReceivers(abstractPosting, except)의
-        // getMentionedUsers(body) 대응 (P1-127). 신규 이슈 본문의 @멘션도 수신자에 포함한다. [GL-models_NotificationEvent-096]
+        // 신규 이슈 본문의 @멘션도 수신자에 포함한다.
         receivers.addAll(commentService.extractMentionedUsers(issue.body ?: ""))
         receivers.removeIf { it.id == sender.id }
         notificationEvent.receivers = receivers
@@ -251,13 +234,11 @@ class IssueServiceImpl(
         issue.body = (body)
         issue.updatedDate = Instant.now()
 
-        // yona AbstractPostingApp.editPosting()의 "posting.updatedByAuthorId = UserApp.currentUser().id"
-        // 대응 (P2-02) — history 유무와 무관하게 편집이 있을 때마다 항상 갱신된다.
+        // history 유무와 무관하게 편집이 있을 때마다 항상 갱신된다.
         issue.updatedByAuthorId = updater.id
         issue.updatedByAuthorLoginId = updater.loginId
         issue.updatedByAuthorName = updater.name
 
-        // yona AbstractPostingApp.editPosting()의 history 갱신 대응 (P2-02).
         if ((oldBody ?: "") != body) {
             issue.history = HistoryUtil.appendHistory(
                 originalBody = oldBody,
@@ -276,8 +257,7 @@ class IssueServiceImpl(
         }
 
         if (milestoneId != null) {
-            // yona-wiki P3-02 14라운드(IDOR, TASK-0426과 같은 근본원인) — createIssue와 동일하게
-            // 다른 프로젝트 소속 마일스톤은 조용히 무시한다.
+            // createIssue와 동일하게 다른 프로젝트 소속 마일스톤은 조용히 무시한다(IDOR 방지).
             val milestone = milestoneRepository.findById(milestoneId).orElse(null)
             issue.milestone = if (milestone != null && milestone.project.id == issue.project.id) milestone else null
         } else {
@@ -285,28 +265,24 @@ class IssueServiceImpl(
         }
 
         if (labelIds != null) {
-            // yona-wiki P3-02 14라운드 — 위와 동일한 근본원인의 라벨 버전.
+            // 위와 동일한 근본원인의 라벨 버전(IDOR 방지).
             val labels = issueLabelRepository.findAllById(labelIds).filter { it.project.id == issue.project.id }
             issue.labels = labels.toMutableSet()
         } else {
             issue.labels.clear()
         }
 
-        // yona Issue.checkLabels() 대응 (P1-80) — AbstractPostingApp.editPosting()가 이슈 수정마다
-        // 호출하는 검증(생성 시점에는 호출 안 함, yona도 동일). 같은 배타(exclusive) 카테고리의
+        // 이슈 수정마다 호출하는 검증(생성 시점에는 호출 안 함). 같은 배타(exclusive) 카테고리의
         // 라벨을 두 개 이상 붙일 수 없다.
         checkExclusiveLabelCategories(issue.labels)
 
         val savedIssue = issueRepository.save(issue)
 
-        // yona AbstractPosting.update()의 updateMention() 대응 (P2-41) — 본문이 안 바뀌었어도
-        // legacy와 동일하게 매 수정마다 무조건 재동기화한다(변화 없으면 diff-sync가 no-op).
+        // 본문이 안 바뀌었어도 매 수정마다 무조건 재동기화한다(변화 없으면 diff-sync가 no-op).
         mentionService.update(ResourceType.ISSUE_POST, savedIssue.id.toString(), commentService.extractMentionedUsers(savedIssue.body ?: ""))
 
-        // yona AbstractPostingApp.editPosting()의 "TitleHead.saveTitleHeadKeyword(posting.project,
-        // posting.title); TitleHead.deleteTitleHeadKeyword(original.project, original.title);" 대응
-        // (P1-103). 제목이 안 바뀌었어도 legacy와 동일하게 매 수정마다 무조건 두 호출을 모두 실행한다
-        // (그런 경우 새 키워드 +1/-1이 상쇄돼 관찰 가능한 순변화는 없다).
+        // 제목이 안 바뀌었어도 매 수정마다 무조건 두 호출을 모두 실행한다(그런 경우 새 키워드
+        // +1/-1이 상쇄돼 관찰 가능한 순변화는 없다).
         titleHeadService.saveTitleHeadKeyword(savedIssue.project, savedIssue.title)
         titleHeadService.deleteTitleHeadKeyword(savedIssue.project, oldTitle)
 
@@ -505,13 +481,10 @@ class IssueServiceImpl(
         return savedIssue
     }
 
-    // yona IssueApp.editIssue()의 hasTargetProject()/moveIssueToOtherProject()/addIssueMovedNotification()
-    // 대응 (P1-48). 권한 확인(대상 프로젝트 생성권한/원본 이슈 수정권한)은 이 저장소의 다른 서비스
-    // 메서드들과 동일하게 컨트롤러 쪽 책임이라 여기서는 하지 않는다 — 다만 yona의 editIssue()는
-    // 그 순서가 반대(이동을 먼저 수행한 뒤 마지막에 editPosting()에서 UPDATE 권한을 확인)라 권한이
-    // 없어도 이동 자체는 일부 반영되는 허점이 있었다. 그대로 재현하면 인가 우회 취약점을 그대로
-    // 들여오는 셈이라, yona 컨트롤러는 이동을 호출하기 전에 두 권한을 모두 먼저 확인하도록
-    // 순서를 바로잡았다(관찰 가능한 정상 동작 자체는 legacy와 동일).
+    // 권한 확인(대상 프로젝트 생성권한/원본 이슈 수정권한)은 이 저장소의 다른 서비스 메서드들과
+    // 동일하게 컨트롤러 쪽 책임이라 여기서는 하지 않는다 — 컨트롤러는 이동을 호출하기 전에 두
+    // 권한을 모두 먼저 확인해야 한다(순서가 반대면 권한 없이도 이동이 일부 반영되는 인가 우회
+    // 허점이 생긴다).
     override fun moveIssue(issueId: Long, targetProjectId: Long, mover: User): Issue {
         val issue = issueRepository.findById(issueId).orElseThrow { IllegalArgumentException("Issue not found: $issueId") }
         val previous = issue.project
@@ -615,14 +588,13 @@ class IssueServiceImpl(
 
         notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
 
-        // yona IssueApp.addIssueMovedNotification()의 IssueEvent.addFromNotificationEvent(notiEvent,
-        // originalIssue, loginId) 대응 (P1-70) — 알림과 함께 이슈 타임라인에도 이동 이력을 남긴다.
+        // 알림과 함께 이슈 타임라인에도 이동 이력을 남긴다.
         recordIssueEvent(issue, EventType.ISSUE_MOVED, mover.loginId!!, oldValue, newValue)
     }
 
-    // yona Issue.checkLabels() 대응 (P1-80) — 같은 배타(exclusive) 카테고리의 라벨이 두 개
-    // 이상이면 거부한다. yona는 Set 순회 순서에 의존하지 않고 "이미 본 배타 카테고리"를 누적하며
-    // 검사하므로, 라벨이 몇 개든 어떤 순서로 순회되든 동일한 결과가 나온다.
+    // 같은 배타(exclusive) 카테고리의 라벨이 두 개 이상이면 거부한다. Set 순회 순서에 의존하지 않고
+    // "이미 본 배타 카테고리"를 누적하며 검사하므로, 라벨이 몇 개든 어떤 순서로 순회되든 동일한
+    // 결과가 나온다.
     private fun checkExclusiveLabelCategories(labels: Set<IssueLabel>) {
         val seenExclusiveCategories = mutableSetOf<Long>()
         for (label in labels) {
@@ -638,7 +610,6 @@ class IssueServiceImpl(
         }
     }
 
-    // yona models/IssueEvent.java의 add()/addWithoutSkipEvent() 대응(draft-time 병합/취소, P1-38).
     private fun recordIssueEvent(
         issue: Issue,
         eventType: EventType,
@@ -673,7 +644,6 @@ class IssueServiceImpl(
     }
 
 
-    // yona IssueApi.java:1176-1210 upvoteWeight()/downvoteWeight() 대응 (P1-101). [GL-controllers_api_IssueApi-064;GL-controllers_api_IssueApi-065]
     override fun upvoteWeight(issueId: Long): Issue {
         val issue = issueRepository.findById(issueId)
             .orElseThrow { IllegalArgumentException("Issue not found: $issueId") }
@@ -689,16 +659,15 @@ class IssueServiceImpl(
     }
 
 
-    // yona Project.delete() 이슈 삭제 루프(issue.delete()) 대응 (P0-19). IssueComment/IssueEvent/
-    // FavoriteIssue는 issue FK가 nullable=false라 반드시 먼저 삭제해야 issueRepository.delete(issue)가
-    // FK 제약 위반 없이 성공한다(assignee/sharers/labels/voters는 Issue 엔티티 자체의 cascade로 처리됨).
+    // IssueComment/IssueEvent/FavoriteIssue는 issue FK가 nullable=false라 반드시 먼저 삭제해야
+    // issueRepository.delete(issue)가 FK 제약 위반 없이 성공한다(assignee/sharers/labels/voters는
+    // Issue 엔티티 자체의 cascade로 처리됨).
     override fun deleteIssueCascade(issue: Issue) {
         val comments = issueCommentRepository.findByIssueIdOrderByCreatedDateAsc(issue.id!!)
         for (comment in comments) {
             attachmentService.deleteAll(ResourceType.ISSUE_COMMENT, comment.id.toString())
         }
         attachmentService.deleteAll(ResourceType.ISSUE_POST, issue.id.toString())
-        // yona models/resource/ResourcePersistAdapter.java postDelete() 대응 (P1-147).
         watchService.deleteAll(ResourceType.ISSUE_POST, issue.id.toString())
         titleHeadService.deleteTitleHeadKeyword(issue.project, issue.title)
 

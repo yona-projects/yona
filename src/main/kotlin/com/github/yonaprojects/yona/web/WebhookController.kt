@@ -7,6 +7,7 @@ import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.webhook.Webhook
 import com.github.yonaprojects.yona.domain.webhook.WebhookService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -16,14 +17,10 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 
-// yona ProjectApp.java:1268,1283,1313 webhooks()/newWebhook()/deleteWebhook() 셋 다 걸려 있던
-// `@IsAllowed(Operation.UPDATE)`(resourceType 기본값 PROJECT) 대응 (P1-87). yona는 이 세 엔드포인트에
-// 로그인 체크 자체가 없어 미인증 사용자가 임의 프로젝트의 웹훅(secret 포함)을 조회/생성/삭제할 수 있던
-// 취약점이었다. resourceType 기본값 PROJECT는 `Resource.getResourceObject()`가 project 자신을
-// `GlobalResource`로 반환해 `isGlobalResourceAllowed()`의 PROJECT 케이스(매니저 또는 조직관리자만)를
-// 타는 것이지, `isProjectResourceAllowed()`의 일반 멤버 규칙이 아니다 — Serena LSP로 `IsAllowedAction`/
-// `IsAllowed`/`Resource.getResourceObject()`를 직접 대조해 확인(백로그의 이전 추정 "isMemberOf만 있으면
-// 허용"은 부정확했음).
+// `@IsAllowed(Operation.UPDATE)`(resourceType 기본값 PROJECT)로 웹훅(secret 포함) 조회/생성/삭제를
+// 매니저·조직관리자로 제한한다. resourceType 기본값 PROJECT는 `Resource.getResourceObject()`가
+// project 자신을 `GlobalResource`로 반환해 `isGlobalResourceAllowed()`의 PROJECT 케이스(매니저
+// 또는 조직관리자만)를 타는 것이지, `isProjectResourceAllowed()`의 일반 멤버 규칙이 아니다.
 @Controller
 class WebhookController(
     private val webhookService: WebhookService,
@@ -80,10 +77,8 @@ class WebhookController(
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden")
         }
 
-        // yona Webhook.java:74-81 @Required/@Size(payloadUrl<=2000, secret<=250) 대응 (P2-28). [GL-models_Webhook-006]
-        // Play는 폼 바인딩 단계에서 이 검증에 걸리면 DB에 닿기도 전에 400을 반환하는데, 이 사전
-        // 검증이 없으면 그대로 저장을 시도하다 DB 컬럼 길이 제약 위반으로 처리되지 않은 500이
-        // 노출될 수 있다(엔티티 컬럼 길이는 이미 동일하게 2000/250으로 맞춰져 있음).
+        // 이 사전 검증이 없으면 DB 컬럼 길이 제약(payloadUrl<=2000, secret<=250) 위반으로 처리되지
+        // 않은 500이 노출될 수 있다.
         if (payloadUrl.isBlank()) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Payload URL은 필수 입력 항목입니다.")
         }
@@ -132,13 +127,10 @@ class WebhookController(
     }
 
 
-    // yona-wiki P3-02 Step8.6 항목1(2026-09-01) — `yona admin webhook list`용 신규 JSON API
-    // (`web/WebhookRestApiController.kt`, `/api/v1/projects/{owner}/{project}/webhooks`)가
-    // 위임하는 대상. 기존 `webhooks()`는 Thymeleaf 뷰 이름을 반환해 JSON 클라이언트가 파싱할 수
-    // 없었다 — 동일한 프로젝트 조회 + 권한 체크(`checkWebhookPermission`, Operation.UPDATE) 로직을
-    // 재사용하되 결과를 JSON으로 직렬화 가능한 형태로 반환한다. secret은 이 화면(`setting_webhook.
-    // html`)에서도 매니저에게 그대로 노출되므로(비어있으면 "NONE") API 응답에서도 동일한 노출
-    // 수준을 유지한다.
+    // `web/WebhookRestApiController.kt`의 JSON API가 위임하는 대상 — 기존 `webhooks()`는 Thymeleaf
+    // 뷰 이름을 반환해 JSON 클라이언트가 파싱할 수 없다. 동일한 조회+권한 체크 로직을 재사용하되
+    // JSON으로 직렬화 가능한 형태로 반환한다. secret은 `setting_webhook.html`에서도 매니저에게
+    // 그대로 노출되므로(비어있으면 "NONE") API 응답에서도 동일한 노출 수준을 유지한다.
     fun listWebhooksJson(
         owner: String,
         projectName: String,
@@ -156,7 +148,7 @@ class WebhookController(
         return ResponseEntity.ok(webhooks.map { toWebhookNode(it) })
     }
 
-    private fun toWebhookNode(webhook: com.github.yonaprojects.yona.domain.webhook.Webhook): Map<String, Any?> {
+    private fun toWebhookNode(webhook: Webhook): Map<String, Any?> {
         return mapOf(
             "id" to webhook.id,
             "payloadUrl" to webhook.payloadUrl,

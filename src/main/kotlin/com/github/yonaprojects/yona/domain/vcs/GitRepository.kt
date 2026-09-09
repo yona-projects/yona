@@ -2,13 +2,16 @@ package com.github.yonaprojects.yona.domain.vcs
 
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.node.ObjectNode
+import com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus
 import com.github.yonaprojects.yona.domain.user.User
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.errors.LargeObjectException
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ConfigConstants
+import org.eclipse.jgit.lib.PersonIdent
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.revwalk.RevTag
 import org.eclipse.jgit.revwalk.RevTree
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
@@ -62,11 +65,11 @@ class GitRepository(
     // yona.git.default-branch 설정값을 넘겨줌). userResolver 뒤에 둬서(파라미터 순서 유지) 기존
     // `GitRepository(a, b, c, userResolver)` 형태의 수십 개 테스트 호출부가 그대로 동작하게 한다.
     private val defaultBranch: String = "main",
-    // yona-wiki P3-03 Step9 — 커밋 목록/상세 화면의 GPG Verified 배지 계산(GpgSignatureVerifier.
-    // verify()). 기본값(no-op, 항상 UNSIGNED)을 둬서 defaultBranch와 마찬가지로 기존 호출부가
-    // 그대로 동작하게 한다 — RepositoryService가 실제 구현을 주입한다.
-    private val gpgVerifier: (org.eclipse.jgit.revwalk.RevCommit) -> com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus =
-        { com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus.UNSIGNED }
+    // 커밋 목록/상세 화면의 GPG Verified 배지 계산. 기본값(no-op, 항상 UNSIGNED)을 둬서
+    // defaultBranch와 마찬가지로 기존 호출부가 그대로 동작하게 한다 — RepositoryService가 실제
+    // 구현을 주입한다.
+    private val gpgVerifier: (RevCommit) -> GpgVerificationStatus =
+        { GpgVerificationStatus.UNSIGNED }
 ) : PlayRepository {
 
     private val objectMapper = ObjectMapper()
@@ -688,7 +691,7 @@ class GitRepository(
                 // 커밋을 곧바로 가리킨다 — parseAny()로 실제 오브젝트 타입을 확인해 구분한다
                 // (parseCommit()은 어느 쪽이든 자동으로 peel해버려 이 구분 자체가 불가능해진다).
                 val any = revWalk.parseAny(ref.objectId)
-                if (any is org.eclipse.jgit.revwalk.RevTag) {
+                if (any is RevTag) {
                     val commit = revWalk.parseCommit(any.`object`)
                     val gitCommit = GitCommit(commit, userResolver, gpgVerifier)
                     val taggerIdent = any.taggerIdent
@@ -732,7 +735,7 @@ class GitRepository(
                     tagCommand.setAnnotated(true)
                     tagCommand.setMessage(message)
                     tagCommand.setTagger(
-                        org.eclipse.jgit.lib.PersonIdent(taggerName ?: "yona", taggerEmail ?: "yona@yona.io")
+                        PersonIdent(taggerName ?: "yona", taggerEmail ?: "yona@yona.io")
                     )
                 } else {
                     tagCommand.setAnnotated(false)

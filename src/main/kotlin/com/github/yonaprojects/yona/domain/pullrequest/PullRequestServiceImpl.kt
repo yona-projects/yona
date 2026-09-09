@@ -9,7 +9,6 @@ import com.github.yonaprojects.yona.domain.vcs.FileDiff
 import com.github.yonaprojects.yona.domain.vcs.GitCommit
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import com.github.yonaprojects.yona.domain.vcs.GitRepository
-// yona-wiki P3-27 — Mercurial PR 병합/충돌 계산 지원.
 import com.github.yonaprojects.yona.domain.vcs.HgRepository
 import com.github.yonaprojects.yona.domain.vcs.HgCommit
 import com.github.yonaprojects.yona.domain.vcs.Commit
@@ -63,38 +62,29 @@ class PullRequestServiceImpl(
     private val issueRepository: IssueRepository,
     private val issueEventRepository: IssueEventRepository,
     private val commentService: CommentService,
-    // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 라벨 추가/제거용(addLabel/removeLabel).
+    // PR 라벨 추가/제거용(addLabel/removeLabel).
     private val issueLabelRepository: IssueLabelRepository,
-    // yona-wiki P3-04(브랜치 보호) Step 4/5 — merge() 시 toBranch에 걸린 ProtectedBranch 규칙 검사용.
+    // merge() 시 toBranch에 걸린 ProtectedBranch 규칙 검사용.
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
-    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — submitReview()/getReviews() 및
-    // checkApprovalsForMerge()가 require_approvals를 실제 판정과 연결하는 데 사용한다.
+    // submitReview()/getReviews() 및 checkApprovalsForMerge()가 require_approvals를 실제 판정과
+    // 연결하는 데 사용한다.
     private val pullRequestReviewRepository: PullRequestReviewRepository,
-    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — checkSignedCommitsForMerge()가
-    // require_signed_commits를 실제로 검사하는 데 필요.
+    // checkSignedCommitsForMerge()가 require_signed_commits를 실제로 검사하는 데 필요.
     private val gpgSignatureVerifier: GpgSignatureVerifier,
     @Value("\${yona.site-name:Yona}")
     private val siteName: String,
-    // yona-wiki P3-01(Observability) 계측 지점 2 대응 — PullRequestEventRepository.recordWithDraftMerge()에 그대로 전달한다.
+    // PullRequestEventRepository.recordWithDraftMerge()에 그대로 전달한다.
     private val meterRegistry: MeterRegistry
 ) : PullRequestService {
 
-    // TASK-0416 부수 발견(P3-02 10라운드) — 실제 서버 + 실제 yona-cli로 `pr create` -> `pr merge`
-    // 골든패스를 검증하다가 드러난 근본원인. `pr create --from-branch feature-1`(그리고 세션 웹 UI의
-    // PR 생성 폼도 동일 — PullRequestViewController.branchNamesOf()가 "refs/heads/" 접두어를 미리
-    // 벗겨서 select 옵션 값을 채운다)처럼 실제 운영 경로는 항상 짧은 브랜치 이름을
-    // PullRequest.fromBranch/toBranch에 그대로 저장한다. 그런데 JGit의 로컬(파일시스템) fetch
-    // 연결(BaseConnection.getRef())은 광고된 ref 맵에서 정확히 일치하는 전체 이름만 찾고 짧은
-    // 이름을 "refs/heads/"로 보정해주지 않는다 — 그래서 RefSpec 소스로 짧은 이름을 그대로 넘기면
-    // 항상 "Remote does not have <branch> available for fetch"로 실패했다(이 파일의 단위 테스트들은
-    // PullRequestService.createPullRequest()를 직접 "refs/heads/..." 형태로만 호출해왔기 때문에
-    // 이 갭이 지금까지 안 잡혔다). resolve() 계열(toBranch 조회 등)은 짧은 이름을 지원해 문제가
-    // 없다 — fetch RefSpec 소스에만 이 보정이 필요하다. 저장 형식(DB 마이그레이션 없음)이나 화면
-    // 표시(fromBranch/toBranch를 그대로 "feature-1 -> main"처럼 보여주는 CLI/웹 UI)에는 영향을
-    // 주지 않도록 fetch 직전에만 지역적으로 보정한다(GitRepository.kt setDefaultBranch()가 쓰는
-    // 것과 동일한 패턴). attemptMerge/previewMerge/merge/updateMerge 네 곳 모두 동일한 fetch
-    // 패턴을 반복하고 있어 공용 헬퍼로 뽑았다.
+    // PullRequest.fromBranch/toBranch에는 항상 짧은 브랜치 이름이 저장된다. 그런데 JGit의
+    // 로컬(파일시스템) fetch 연결(BaseConnection.getRef())은 광고된 ref 맵에서 정확히 일치하는
+    // 전체 이름만 찾고 짧은 이름을 "refs/heads/"로 보정해주지 않는다 — RefSpec 소스로 짧은 이름을
+    // 그대로 넘기면 "Remote does not have <branch> available for fetch"로 실패한다. resolve()
+    // 계열(toBranch 조회 등)은 짧은 이름을 지원해 문제가 없다 — fetch RefSpec 소스에만 이 보정이
+    // 필요하다. attemptMerge/previewMerge/merge/updateMerge 네 곳 모두 동일한 fetch 패턴을
+    // 반복하고 있어 공용 헬퍼로 뽑았다.
     private fun qualifyBranchRef(branch: String): String =
         if (branch.startsWith("refs/")) branch else "refs/heads/$branch"
 
@@ -104,8 +94,8 @@ class PullRequestServiceImpl(
             .orElseThrow { IllegalArgumentException("PullRequest with ID $pullRequestId not found") }
 
         val playRepo = repositoryService.getRepository(pullRequest.toProject)
-        // yona-wiki P3-27 — Mercurial 프로젝트는 JGit이 아니라 hg4j 기반 계산으로 분기한다
-        // (클래스 하단 "Mercurial(hg4j) 대응" 섹션 참고).
+        // Mercurial 프로젝트는 JGit이 아니라 hg4j 기반 계산으로 분기한다(클래스 하단 "Mercurial(hg4j)
+        // 대응" 섹션 참고).
         if (playRepo is HgRepository) {
             return hgAttemptMerge(pullRequest)
         }
@@ -154,12 +144,9 @@ class PullRequestServiceImpl(
         }
     }
 
-    // yona PullRequestApp.mergeResult()/PullRequest.attemptMerge()/getPullRequestMergeResult() 대응
-    // (#178, TASK-0257). attemptMerge(pullRequestId)와 동일한 JGit 흐름(임시 ref로 fetch → 3-way
-    // merge 시도 → 커밋 diff 계산 → 임시 ref 삭제)이지만, 저장된 PullRequest 엔티티를 조회/저장하지
-    // 않고 임의의 fromProject/toProject/fromBranch/toBranch만으로 동작한다(legacy도 이 프리뷰 액션에서
-    // 만드는 PullRequest 객체를 저장하지 않는다 — PullRequest.createNewPullRequest()는 순수 in-memory
-    // 객체 생성일 뿐이다).
+    // attemptMerge(pullRequestId)와 동일한 JGit 흐름(임시 ref로 fetch → 3-way merge 시도 → 커밋
+    // diff 계산 → 임시 ref 삭제)이지만, 저장된 PullRequest 엔티티를 조회/저장하지 않고 임의의
+    // fromProject/toProject/fromBranch/toBranch만으로 동작한다.
     @Transactional(readOnly = true)
     override fun previewMerge(fromProject: Project, toProject: Project, fromBranch: String, toBranch: String): MergePreviewResult {
         val playRepo = repositoryService.getRepository(toProject)
@@ -208,9 +195,8 @@ class PullRequestServiceImpl(
         }
     }
 
-    // yona PullRequest.suggestTitleAndBodyFromDiffCommit() 대응 (#178, TASK-0257). 커밋이 1개면 첫
-    // 줄을 title로, 나머지 줄들을 body로 쓰고, 2개 이상이면 title 없이 각 커밋의 첫 줄만 모아 body로
-    // 쓴다(legacy와 동일하게 title 키 자체가 없음 = null).
+    // 커밋이 1개면 첫 줄을 title로, 나머지 줄들을 body로 쓰고, 2개 이상이면 title 없이 각 커밋의
+    // 첫 줄만 모아 body로 쓴다.
     private fun suggestTitleAndBody(commits: List<Commit>): Pair<String?, String?> {
         if (commits.isEmpty()) {
             return null to null
@@ -227,17 +213,14 @@ class PullRequestServiceImpl(
         return null to firstMessages.joinToString("\n")
     }
 
-    // yona actors/PullRequestActor.processPullRequestMerging() 대응 (P1-52). attemptMerge()는
-    // PullRequestViewController가 페이지 렌더링마다 호출하는 부수효과 없는 미리보기(legacy
-    // PullRequest.attemptMerge())라 여기서 부수효과를 추가하면 조회할 때마다 알림/이벤트가 잘못
-    // 발생한다 — legacy도 updateMerge()(액터 전용, 부수효과 있음)와 attemptMerge()(뷰 전용, 부수효과
-    // 없음)를 분리해뒀으므로 그 경계를 그대로 따라 별도 메서드로 둔다.
+    // attemptMerge()는 PullRequestViewController가 페이지 렌더링마다 호출하는 부수효과 없는
+    // 미리보기라 여기서 부수효과를 추가하면 조회할 때마다 알림/이벤트가 잘못 발생한다 —
+    // updateMerge()(부수효과 있음)와 attemptMerge()(부수효과 없음)의 경계를 별도 메서드로 유지한다.
     @Transactional
     override fun processMergeCheck(pullRequestId: Long, sender: User, isNewPullRequest: Boolean): PullRequestMergeResult {
         val before = pullRequestRepository.findById(pullRequestId).orElse(null)
         val beforeMergedCommitIdTo = before?.mergedCommitIdTo
-        // yona PullRequestActor.processPullRequestMerging()의 "boolean wasConflict = pullRequest.isConflict"
-        // 대응 (P1-71) — updateMerge() 호출 전(재검사 이전) 상태를 미리 캡처해둔다.
+        // updateMerge() 호출 전(재검사 이전) 상태를 미리 캡처해둔다.
         val wasConflict = before?.isConflict ?: false
 
         val result = updateMerge(pullRequestId)
@@ -268,7 +251,6 @@ class PullRequestServiceImpl(
             changeState(pullRequestId, State.MERGED, sender.loginId)
         }
 
-        // yona PullRequestActor.processPullRequestMerging()의 conflict 상태 전환 추적 대응 (P1-71).
         // diff/커밋 처리와 완전히 별개로, 재검사 결과 conflict 여부 자체가 바뀌면(충돌 없다가 발생/
         // 충돌이 해소됨) 알림+타임라인을 남긴다. eventType은 이름과 달리 "머지 완료"가 아니라 이
         // conflict 전환 전용이다(실제 머지 완료는 위 changeState(..., MERGED, ...)의
@@ -283,7 +265,6 @@ class PullRequestServiceImpl(
         return result
     }
 
-    // yona NotificationEvent.afterMerge(sender, pullRequest, state)/PullRequestEvent.addMergeEvent() 대응 (P1-71).
     private fun notifyMergeConflictChanged(pullRequest: PullRequest, sender: User, state: State) {
         val notificationEvent = NotificationEvent(
             title = formatReplyTitle(pullRequest),
@@ -344,17 +325,15 @@ class PullRequestServiceImpl(
         return builder.toString()
     }
 
-    // yona PullRequestEvent.addCommitEvents() 대응. legacy가 add()(draft-time 병합/취소, P1-40)를
-    // 거치지 않고 항상 그대로 저장하는 유일한 PullRequestEvent 생성 지점이라 recordPullRequestEvent()
-    // (recordWithDraftMerge 경유)를 쓰지 않고 직접 저장한다.
+    // recordPullRequestEvent()(recordWithDraftMerge 경유)를 거치지 않고 항상 그대로 저장하는
+    // 유일한 PullRequestEvent 생성 지점이라 직접 저장한다.
     private fun recordCommitChangedEvent(
         pullRequest: PullRequest,
         sender: User,
         newCommits: List<PullRequestCommit>,
         beforeMergedCommitIdTo: String?
     ) {
-        // yona PullRequestActor.getCommitEventOldValue(oldMergeCommitId, pullRequest.mergedCommitIdTo)
-        // 대응 — 이전 mergedCommitIdTo가 없으면(최초 재검사) oldValue도 null, 있으면 "이전,새" 쌍.
+        // 이전 mergedCommitIdTo가 없으면(최초 재검사) oldValue도 null, 있으면 "이전,새" 쌍.
         val oldValue = beforeMergedCommitIdTo?.let { "$it,${pullRequest.mergedCommitIdTo}" }
         val newValue = newCommits.joinToString(",") { it.id.toString() }
         pullRequestEventRepository.save(
@@ -374,24 +353,20 @@ class PullRequestServiceImpl(
         val pullRequest = pullRequestRepository.findById(pullRequestId)
             .orElseThrow { IllegalArgumentException("PullRequest with ID $pullRequestId not found") }
 
-        // TASK-0424(P3-02 11라운드) — 실서버+실 yona-cli로 "이미 MERGED된 PR을 다시 merge"를
-        // 실측하다가 발견: 이 가드가 없으면 매번 새 머지 커밋을 만들어 refs/heads/{toBranch}에
-        // 또 이어붙인다(실측: 동일 PR에 `pr merge`를 두 번 호출하니 대상 브랜치에 병합 커밋이
-        // 중복으로 2개 쌓임). 머지는 OPEN 상태에서만 의미가 있으므로 그 외 상태(MERGED/CLOSED)면
-        // 여기서 즉시 거절한다.
+        // 이 가드가 없으면 이미 MERGED된 PR을 다시 merge할 때마다 새 머지 커밋을 만들어
+        // refs/heads/{toBranch}에 중복으로 이어붙인다. 머지는 OPEN 상태에서만 의미가 있으므로 그 외
+        // 상태(MERGED/CLOSED)면 여기서 즉시 거절한다.
         if (pullRequest.state != State.OPEN) {
             throw IllegalArgumentException(
                 "이미 ${pullRequest.state} 상태인 풀 리퀘스트는 머지할 수 없습니다."
             )
         }
 
-        // yona-wiki P3-04(브랜치 보호) Step 4/5 — toBranch에 걸린 ProtectedBranch 규칙 검사.
-        // LackingReviewerException(아래) 검사보다 먼저 두는 특별한 이유는 없다 — 둘 다 merge()를
-        // 조기에 거부하는 독립적인 가드일 뿐이라 순서는 임의다.
+        // toBranch에 걸린 ProtectedBranch 규칙 검사. LackingReviewerException(아래) 검사보다 먼저
+        // 두는 특별한 이유는 없다 — 둘 다 merge()를 조기에 거부하는 독립적인 가드일 뿐이라 순서는 임의다.
         checkBranchProtectionForMerge(pullRequest, updater)
 
-        // yona-wiki P3-15 연결 작업(2026-09-07) — P3-04가 "필드만 존재, 항상 통과"로 남겨뒀던
-        // require_approvals를 이제 실제 PullRequestReview 판정과 연결한다. fetch 이전(leftParent/
+        // require_approvals를 실제 PullRequestReview 판정과 연결한다. fetch 이전(leftParent/
         // rightParent가 필요 없는 검사)이라 checkBranchProtectionForMerge()와 같은 지점에서 호출한다.
         checkApprovalsForMerge(pullRequest, updater)
 
@@ -434,9 +409,8 @@ class PullRequestServiceImpl(
             val rightParent = repo.resolve(fetchSourceRef)
                 ?: throw IllegalArgumentException("Source head ref not found")
 
-            // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — toBranch에 걸린 규칙이
-            // require_signed_commits라면, 실제로 병합될 커밋(leftParent..rightParent 범위)을
-            // 여기서 검사한다. leftParent/rightParent가 확정된 시점에서만 그 범위를 계산할 수
+            // toBranch에 걸린 규칙이 require_signed_commits라면, 실제로 병합될 커밋(leftParent..rightParent
+            // 범위)을 여기서 검사한다. leftParent/rightParent가 확정된 시점에서만 그 범위를 계산할 수
             // 있으므로 checkBranchProtectionForMerge()(fetch 전, restrict_push_to만 검사)보다
             // 늦게 실행된다.
             checkSignedCommitsForMerge(pullRequest, updater, repo, leftParent, rightParent)
@@ -454,8 +428,7 @@ class PullRequestServiceImpl(
             // 머지 성공: 머지 커밋 생성
             val whoMerges = PersonIdent(updater.name, updater.email ?: "yona@yona.io")
             val diff = diffCommits(repo, leftParent, rightParent)
-            // TASK-0423(P3-02 11라운드) — additionalTargetRef로 실제 대상 브랜치도 함께 갱신한다
-            // (아래 createMergeCommitAndUpdateRef() 주석 참고).
+            // additionalTargetRef로 실제 대상 브랜치도 함께 갱신한다(아래 createMergeCommitAndUpdateRef() 참고).
             val mergeCommitId = createMergeCommitAndUpdateRef(
                 repo, pullRequest, leftParent, rightParent, merger, whoMerges, diff,
                 additionalTargetRef = qualifyBranchRef(pullRequest.toBranch)
@@ -486,23 +459,19 @@ class PullRequestServiceImpl(
         }
     }
 
-    // yona-wiki P3-04(브랜치 보호) Step 4/5 — legacy에 대응 로직이 전혀 없는 신규 인프라.
     // toBranch에 매칭되는 ProtectedBranch 규칙이 있으면 merge()를 거부할지 판정한다.
     //
-    // 이 계획의 Step1 스파이크 결론(계획 문서 참고)에 따라 requirePullRequest 필드는 이 메서드에서
-    // 어떤 검사도 하지 않는다 — merge()는 정의상 PullRequestId를 통해서만 호출되는 PR 병합
-    // 경로이므로(직접 push로 브랜치를 갱신하는 경로가 아님) 항상 이 조건을 만족한다. 직접
-    // push 차단은 BranchProtectionPreReceiveHook(GitPushHooks.kt)의 몫이다.
+    // requirePullRequest 필드는 이 메서드에서 어떤 검사도 하지 않는다 — merge()는 정의상
+    // PullRequestId를 통해서만 호출되는 PR 병합 경로이므로(직접 push로 브랜치를 갱신하는 경로가
+    // 아님) 항상 이 조건을 만족한다. 직접 push 차단은 BranchProtectionPreReceiveHook(GitPushHooks.kt)의 몫이다.
     //
-    // requireApprovals는 더 이상 no-op이 아니다 — yona-wiki P3-15 연결 작업(2026-09-07, P3-15가
-    // 신설한 PullRequestReview로 실제 판정 데이터가 생겼다)으로 checkApprovalsForMerge()가 별도로
-    // 실제 검사를 수행한다(merge()에서 이 메서드 바로 다음에 호출).
+    // requireApprovals는 checkApprovalsForMerge()가 별도로 실제 검사를 수행한다(merge()에서 이
+    // 메서드 바로 다음에 호출).
     //
-    // requireSignedCommits는 더 이상 no-op이 아니다 — yona-wiki P3-03/P3-04 연결 작업(2026-09-07,
-    // P3-03 4부 완료 로그에 "후속 과제"로 명시적으로 남겨뒀던 항목)으로 checkSignedCommitsForMerge()가
-    // 실제 검사를 수행한다. 이 메서드는 fetch 이전(leftParent/rightParent를 아직 모르는 시점)에
-    // 호출되므로 병합 대상 커밋 범위가 필요한 requireSignedCommits는 여기서 검사할 수 없다 —
-    // merge()가 leftParent/rightParent를 확정한 직후 별도로 호출한다.
+    // requireSignedCommits는 checkSignedCommitsForMerge()가 실제 검사를 수행한다. 이 메서드는
+    // fetch 이전(leftParent/rightParent를 아직 모르는 시점)에 호출되므로 병합 대상 커밋 범위가
+    // 필요한 requireSignedCommits는 여기서 검사할 수 없다 — merge()가 leftParent/rightParent를
+    // 확정한 직후 별도로 호출한다.
     //
     // restrictPushTo만 실질적으로 검사한다 — merge()가 toBranch에 병합 커밋을 직접 기록하는
     // ref 갱신이라는 점에서 git push와 동등하게 취급한다(admins_can_bypass=true인 프로젝트
@@ -522,8 +491,8 @@ class PullRequestServiceImpl(
         }
     }
 
-    // yona-wiki P3-15 연결 작업(2026-09-07) — require_approvals를 실제 판정(PullRequestReview)과
-    // 연결한다. GitHub 방식 기본값에 따라 두 조건을 검사한다:
+    // require_approvals를 실제 판정(PullRequestReview)과 연결한다. GitHub 방식 기본값에 따라 두
+    // 조건을 검사한다:
     //   1. 최신 판정이 REQUEST_CHANGES인 리뷰어가 하나라도 있으면, 승인 개수와 무관하게 무조건
     //      병합을 거부한다("변경 요청이 하나라도 살아있으면 차단").
     //   2. 그렇지 않으면 최신 판정이 APPROVE인 리뷰어 수가 requireApprovals 이상이어야 한다.
@@ -570,9 +539,9 @@ class PullRequestServiceImpl(
         return latest
     }
 
-    // yona-wiki P3-03/P3-04 연결 작업(2026-09-07) — toBranch에 매칭되는 규칙의
-    // require_signed_commits가 켜져 있으면, 실제로 병합될 커밋(leftParent에는 없고 rightParent에는
-    // 있는 커밋, 즉 diffCommits()와 동일한 범위)을 GpgSignatureVerifier로 검사해 하나라도
+    // toBranch에 매칭되는 규칙의 require_signed_commits가 켜져 있으면, 실제로 병합될 커밋
+    // (leftParent에는 없고 rightParent에는 있는 커밋, 즉 diffCommits()와 동일한 범위)을
+    // GpgSignatureVerifier로 검사해 하나라도
     // VERIFIED가 아니면 병합을 거부한다. admins_can_bypass 처리는 checkBranchProtectionForMerge()와
     // 동일하게 이 규칙 전체에 대해 적용한다(BranchProtectionPreReceiveHook의 admins_can_bypass가
     // 규칙 전체를 우회하는 것과 동일한 의미).
@@ -610,8 +579,7 @@ class PullRequestServiceImpl(
             .orElse(false)
     }
 
-    // yona PullRequest.Merger.Success.createCommit(PersonIdent)/MergeRefUpdate.updateRef() 대응.
-    // merge()(실제 병합)와 updateMerge()(재검사 미리보기, P1-53) 둘 다 "머지 커밋을 만들어
+    // merge()(실제 병합)와 updateMerge()(재검사 미리보기) 둘 다 "머지 커밋을 만들어
     // refs/yobi/pull/{id}/merged를 갱신"하는 동일한 절차를 쓰므로 공용 헬퍼로 추출했다.
     private fun createMergeCommitAndUpdateRef(
         repo: Repository,
@@ -621,17 +589,11 @@ class PullRequestServiceImpl(
         merger: ThreeWayMerger,
         whoMerges: PersonIdent,
         diff: List<GitCommit>,
-        // TASK-0423(P3-02 11라운드, "pr merge가 실제 브랜치 ref를 갱신하지 않는" 이월 결함) —
-        // 이 헬퍼는 원래 merge()(실제 병합)/updateMerge()(재검사 미리보기, P1-53) 둘 다 항상
-        // refs/yobi/pull/{id}/merged만 갱신했다. legacy PullRequest.merge()
-        // (app/models/PullRequest.java:547-554)는 실제 병합 시 `result.createCommit(...)
-        // .updateRef(toBranch)`로 실제 대상 브랜치를 직접 갱신하고, `refs/yobi/pull/{id}/merged`
-        // 갱신은 checkMerge() 미리보기(app/models/PullRequest.java:911-922) 전용이다 — 이 이식이
-        // 그 구분을 놓쳐, 실제 merge() 후 toProject에서 `git pull`을 해도 toBranch가 전혀
-        // 움직이지 않았다(실서버+실 yona-cli로 clone -> push -> pr create -> pr merge ->
-        // git pull 골든패스 재현 확인). merge()만 이 파라미터로 qualifyBranchRef(toBranch)를
-        // 넘겨 대상 브랜치도 함께 fast-forward한다 — updateMerge()는 그대로 null을 넘겨
-        // mergedRef만 갱신하는 기존 부수효과 경계를 유지한다.
+        // 이 헬퍼는 merge()(실제 병합)/updateMerge()(재검사 미리보기) 둘 다 refs/yobi/pull/{id}/merged를
+        // 갱신하지만, 실제 병합 시에는 대상 브랜치(toBranch)도 함께 갱신해야 `git pull`로 반영된다.
+        // merge()만 이 파라미터로 qualifyBranchRef(toBranch)를 넘겨 대상 브랜치도 함께
+        // fast-forward한다 — updateMerge()는 그대로 null을 넘겨 mergedRef만 갱신하는 기존
+        // 부수효과 경계를 유지한다.
         additionalTargetRef: String? = null
     ): ObjectId {
         val reusableTreeId = getMergedTreeIfReusable(repo, leftParent, rightParent, pullRequest)
@@ -681,27 +643,24 @@ class PullRequestServiceImpl(
         return mergeCommitId
     }
 
-    // yona PullRequest.updateMerge() 대응 (P1-53). attemptMerge()(뷰 전용, 임시 브랜치로 fetch 후
-    // 삭제, 부수효과 없음)와 달리 소스를 영구 ref(refs/yobi/pull/{id}/head)로 fetch하고, 충돌이 없으면
-    // 실제 "미리보기 병합 커밋"을 만들어 refs/yobi/pull/{id}/merged를 갱신한 뒤 그 커밋의 부모/자신
-    // 해시를 mergedCommitIdFrom/mergedCommitIdTo에 기록한다. processMergeCheck() 전용이며,
-    // PullRequestViewController가 페이지 렌더링마다 호출하는 attemptMerge()는 이 메서드를 거치지 않는다
-    // (부수효과 경계는 P1-52에서 이미 확립). yona가 이 미리보기 커밋의 작성자로 사이트 시스템 계정
-    // (Config.getSiteName()/getSystemEmailAddress())을 쓰는 것과 동일하게, 실제 push한 sender가 아니라
-    // 사이트 이름으로 커밋한다.
+    // attemptMerge()(뷰 전용, 임시 브랜치로 fetch 후 삭제, 부수효과 없음)와 달리 소스를 영구
+    // ref(refs/yobi/pull/{id}/head)로 fetch하고, 충돌이 없으면 실제 "미리보기 병합 커밋"을 만들어
+    // refs/yobi/pull/{id}/merged를 갱신한 뒤 그 커밋의 부모/자신 해시를
+    // mergedCommitIdFrom/mergedCommitIdTo에 기록한다. processMergeCheck() 전용이며,
+    // PullRequestViewController가 페이지 렌더링마다 호출하는 attemptMerge()는 이 메서드를 거치지
+    // 않는다. 실제 push한 sender가 아니라 사이트 시스템 계정(siteName)으로 커밋한다.
     private fun updateMerge(pullRequestId: Long): PullRequestMergeResult {
         val pullRequest = pullRequestRepository.findById(pullRequestId)
             .orElseThrow { IllegalArgumentException("PullRequest with ID $pullRequestId not found") }
 
         val playRepo = repositoryService.getRepository(pullRequest.toProject)
-        // yona-wiki P3-27 — Mercurial은 진짜 changelog가 append-only라 Git처럼 "재검사 때마다
+        // Mercurial은 진짜 changelog가 append-only라 Git처럼 "재검사 때마다
         // refs/yobi/pull/{id}/merged에 버려질 수 있는 미리보기 커밋"을 만들 방법이 없다(만들면
         // 재검사할 때마다 실제 프로젝트 히스토리에 영구 쓰레기 changeset이 쌓인다). 그래서
         // hgAttemptMerge()와 동일한 순수 계산(TreeMergeCommand)만 수행하고 mergedCommitIdFrom/
         // mergedCommitIdTo는 항상 null로 남긴다 — Git의 attemptMerge()도 이 두 필드는 건드리지
-        // 않으므로, "미리보기 전용 부수효과가 없다"는 계약 자체는 동일하게 지켜진다(완료 로그의
-        // 알려진 차이점 참고: outdated 리뷰 코멘트 감지처럼 이 필드에 기대는 부가 기능만 Hg에서
-        // 동작하지 않는다).
+        // 않으므로 "미리보기 전용 부수효과가 없다"는 계약은 동일하게 지켜진다(다만 outdated 리뷰
+        // 코멘트 감지처럼 이 필드에 기대는 부가 기능은 Hg에서 동작하지 않는다).
         if (playRepo is HgRepository) {
             return hgAttemptMerge(pullRequest)
         }
@@ -784,7 +743,7 @@ class PullRequestServiceImpl(
     }
 
     // yona PullRequestMergeResult.saveCommits()/findNewCommits()/updatePriorCommits() 대응.
-    // 반환값(새로 저장된 커밋)은 P1-52의 processMergeCheck()가 PullRequestEvent/알림 생성에 사용한다.
+    // 반환값(새로 저장된 커밋)은 processMergeCheck()가 PullRequestEvent/알림 생성에 사용한다.
     private fun updatePullRequestCommits(pullRequest: PullRequest, gitCommits: List<Commit>): List<PullRequestCommit> {
         val priorCommits = pullRequestCommitRepository.findByPullRequestAndState(
             pullRequest, PullRequestCommit.State.CURRENT
@@ -876,15 +835,11 @@ class PullRequestServiceImpl(
         val toProject = projectRepository.findById(toProjectId)
             .orElseThrow { IllegalArgumentException("Target project not found: $toProjectId") }
 
-        // yona-wiki P3-02 14라운드(IDOR 아님, 별도 발견) — PullRequest는 project.lastIssueNumber
-        // 같은 카운터 컬럼 없이 매번 findFirstByToProjectOrderByNumberDesc()로 최댓값을 조회해
-        // +1하는데, 게다가(이번 라운드 전까지는) pull_request 테이블에 (to_project_id, number)
-        // UNIQUE 제약조차 없었다. 그 결과 동시에 같은 프로젝트로 PR을 여러 개 만들면 issue처럼
-        // 500으로 막히지도 않고 완전히 조용한 데이터 손상이 났다 — 실서버에 동시 요청 10개를 쏴
-        // 재현: 10개 전부 201로 성공하면서 전부 같은 번호(#2)를 받아버렸다(번호로 PR을 특정할 수
-        // 없게 됨). PullRequest.kt에 그 UNIQUE 제약을 신설해 "조용한 손상"을 최소한 "명확한 제약
-        // 위반 실패"로 바꿨고, PullRequestController.createPullRequest()가 이 실패를 잡아 전체
-        // 재시도한다(이 메서드 전체가 @Transactional이라 실패 시 부수효과가 전부 롤백되므로 안전).
+        // PullRequest는 전용 카운터 컬럼 없이 매번 findFirstByToProjectOrderByNumberDesc()로
+        // 최댓값을 조회해 +1한다. pull_request 테이블의 (to_project_id, number) UNIQUE 제약이
+        // "조용한 손상"을 "명확한 제약 위반 실패"로 바꿔주고, PullRequestController.createPullRequest()가
+        // 이 실패를 잡아 전체 재시도한다(이 메서드 전체가 @Transactional이라 실패 시 부수효과가
+        // 전부 롤백되므로 안전).
         val lastPr = pullRequestRepository.findFirstByToProjectOrderByNumberDesc(toProject)
         val nextNumber = (lastPr?.number ?: 0L) + 1L
 
@@ -905,15 +860,13 @@ class PullRequestServiceImpl(
         val saved = pullRequestRepository.save(pullRequest)
 
         try {
-            // yona PullRequestMergingActor(PR 생성 시 트리거)도 processPullRequestMerging()을 거치므로
-            // 최초 커밋 목록의 PullRequestCommit 영속화/PullRequestEvent 기록까지 여기서 함께 이뤄진다
-            // (알림만 isNewPullRequest=true라 생략됨, P1-52).
+            // 최초 커밋 목록의 PullRequestCommit 영속화/PullRequestEvent 기록까지 여기서 함께
+            // 이뤄진다(알림만 isNewPullRequest=true라 생략됨).
             processMergeCheck(saved.id!!, contributor, isNewPullRequest = true)
         } catch (e: Exception) {
             // JGit merge 예외가 발생하더라도 PR 생성 자체는 허용
         }
 
-        // yona NotificationEvent.afterNewPullRequest 대응 (P1-39).
         val title = "[${toProject.name}] 새 풀 리퀘스트: #${saved.number} ${saved.title}"
         val notificationEvent = NotificationEvent(
             title = title,
@@ -931,8 +884,7 @@ class PullRequestServiceImpl(
             projectId = toProject.id,
             eventType = notificationEvent.eventType
         ).toMutableSet()
-        // yona NotificationEvent.java:1425-1428 getDefaultReceivers(pullRequest)의
-        // getMentionedUsers(body) 대응 (P1-127). 신규 PR 본문의 @멘션도 수신자에 포함한다. [GL-models_NotificationEvent-098]
+        // 신규 PR 본문의 @멘션도 수신자에 포함한다.
         receivers.addAll(commentService.extractMentionedUsers(saved.body ?: ""))
         receivers.removeIf { it.id == contributor.id }
         notificationEvent.receivers = receivers
@@ -983,7 +935,6 @@ class PullRequestServiceImpl(
         return updated
     }
 
-    // yona PullRequest.deleteIssueEvents() 대응 (P1-68).
     private fun deleteIssueReferenceEvents(pullRequest: PullRequest) {
         val newValue = pullRequest.id.toString()
         val oldEvents = issueEventRepository.findByNewValueAndSenderLoginIdAndEventType(
@@ -994,8 +945,8 @@ class PullRequestServiceImpl(
         }
     }
 
-    // yona PullRequest.addNewIssueEvents() 대응 (P1-68). title+body에서 "#숫자" 형태로 참조된
-    // 이슈들을 toProject에서 찾아 ISSUE_REFERRED_FROM_PULL_REQUEST 이벤트를 새로 만든다.
+    // title+body에서 "#숫자" 형태로 참조된 이슈들을 toProject에서 찾아
+    // ISSUE_REFERRED_FROM_PULL_REQUEST 이벤트를 새로 만든다.
     private fun addIssueReferenceEvents(pullRequest: PullRequest) {
         val issueNumbers = IssueReferenceParser.findReferredIssueNumbers(pullRequest.title + (pullRequest.body ?: ""))
         val newValue = pullRequest.id.toString()
@@ -1026,10 +977,9 @@ class PullRequestServiceImpl(
             return pr
         }
 
-        // TASK-0424(P3-02 11라운드) — 실서버+실 yona-cli로 "이미 MERGED된 PR을 close/reopen"을
-        // 실측하다가 발견: 가드가 없으면 이미 실제 git 커밋까지 병합 완료된 PR이 CLOSED/OPEN을
-        // 오가며 상태만 바뀌어(물리적으로는 여전히 병합된 채로) 화면/CLI에 "OPEN"으로 잘못
-        // 표시된다. MERGED는 이 서비스 안에서 종결 상태다 — 여기로 들어오는 CLOSED/OPEN 전환
+        // 가드가 없으면 이미 실제 git 커밋까지 병합 완료된 PR이 CLOSED/OPEN을 오가며 상태만
+        // 바뀌어(물리적으로는 여전히 병합된 채로) 화면/CLI에 "OPEN"으로 잘못 표시된다. MERGED는
+        // 이 서비스 안에서 종결 상태다 — 여기로 들어오는 CLOSED/OPEN 전환
         // 요청(close/reopen 명령이 유일한 호출부, 위 merge()는 이 메서드를 거치지 않고 직접
         // pullRequestRepository.save()로 MERGED를 반영한다)만 막고, MERGED로의 전환 자체는
         // (State.MERGED 파라미터로 이 메서드를 호출하는 다른 내부 경로가 있을 수 있어) 막지 않는다.
@@ -1074,7 +1024,7 @@ class PullRequestServiceImpl(
         return saved
     }
 
-    // yona models/PullRequestEvent.java 대응(draft-time 병합/취소 최적화는 recordWithDraftMerge에서 처리, P1-40).
+    // draft-time 병합/취소 최적화는 recordWithDraftMerge에서 처리한다.
     private fun recordPullRequestEvent(
         pullRequest: PullRequest,
         eventType: EventType,
@@ -1120,10 +1070,9 @@ class PullRequestServiceImpl(
     }
 
 
-    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub의 Approve/Request changes/Comment에
-    // 대응하는 PR 전체 판정을 새로 남긴다. addReviewer()(자기등록)와 달리 이미 등록된 리뷰어인지
-    // 여부와 무관하게 언제나 새 이력을 추가한다 — 등록 여부를 요구하면 review 흐름이 자기등록에
-    // 종속되어 설계 결정 5번("자기등록과 판정은 별개 개념")을 어기게 된다.
+    // GitHub의 Approve/Request changes/Comment에 대응하는 PR 전체 판정을 새로 남긴다.
+    // addReviewer()(자기등록)와 달리 이미 등록된 리뷰어인지 여부와 무관하게 언제나 새 이력을
+    // 추가한다 — 자기등록과 판정은 별개 개념이다.
     @Transactional
     override fun submitReview(
         pullRequestId: Long,
@@ -1192,7 +1141,6 @@ class PullRequestServiceImpl(
         recordPullRequestEvent(pullRequest, EventType.PULL_REQUEST_REVIEWED, reviewer.loginId, null, state.name)
     }
 
-    // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 담당자 지정/해제.
     // IssueServiceImpl.updateIssue()의 assigneeId 처리와 동일하게, 기존 Assignee 로우를 재사용하지
     // 않고 매번 새로 만든다(Assignee는 (user, project) 값 객체에 가까움).
     @Transactional
@@ -1209,8 +1157,7 @@ class PullRequestServiceImpl(
         return pullRequestRepository.save(pr)
     }
 
-    // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 라벨 추가/제거. 라벨 정의 자체는
-    // 만들지 않고 프로젝트에 이미 존재하는 IssueLabel만 참조한다.
+    // 라벨 정의 자체는 만들지 않고 프로젝트에 이미 존재하는 IssueLabel만 참조한다.
     @Transactional
     override fun addLabel(pullRequestId: Long, labelId: Long): PullRequest {
         val pr = pullRequestRepository.findById(pullRequestId)
@@ -1218,11 +1165,10 @@ class PullRequestServiceImpl(
         val label = issueLabelRepository.findById(labelId)
             .orElseThrow { IllegalArgumentException("IssueLabel not found: $labelId") }
 
-        // yona-wiki P3-02 14라운드(IDOR, TASK-0426/이슈 라벨 IDOR와 같은 근본원인) — labelId를
-        // id로만 조회하고 그 라벨이 실제로 이 PR의 프로젝트(toProject) 소속인지 검증하지 않았다.
-        // 컨트롤러(PullRequestController.addLabel())는 URL 경로의 project에 대한 쓰기 권한만
-        // 확인하므로, 자기 프로젝트에 PR 라벨을 추가할 권한만 있으면 labelId를 다른(멤버가 아닌
-        // PRIVATE) 프로젝트의 라벨 번호로 바꿔 그 라벨을 노출·연결할 수 있었다.
+        // labelId를 id로만 조회하고 그 라벨이 실제로 이 PR의 프로젝트(toProject) 소속인지
+        // 검증하지 않으면(IDOR), 컨트롤러가 URL 경로의 project에 대한 쓰기 권한만 확인하므로 자기
+        // 프로젝트에 PR 라벨을 추가할 권한만 있으면 labelId를 다른(멤버가 아닌 PRIVATE) 프로젝트의
+        // 라벨 번호로 바꿔 그 라벨을 노출·연결할 수 있다.
         if (label.project.id != pr.toProject.id) {
             throw IllegalArgumentException("IssueLabel not found: $labelId")
         }
@@ -1242,12 +1188,11 @@ class PullRequestServiceImpl(
         return pullRequestRepository.save(pr)
     }
 
-    // yona CodeReviewServiceImpl.addReviewer/removeReviewer와 동일한 알림/타임라인 기록 (P1-49).
-    // PullRequestController(REST)가 이 서비스를, ReviewApiController가 CodeReviewService를 각각 사용하는
-    // 중복 구현 구조는 그대로 남아있지만(별도 정리 과제), 최소한 두 경로 모두 알림이 발송되도록 맞춘다.
-    // yona NotificationEvent.afterReviewed()의 title = formatReplyTitle(pullRequest) 대응 (P1-63).
-    // 리뷰어 참여/취소를 구분하는 임의의 문장 대신, 다른 PR 알림들과 동일한 "Re: [project] title (#number)"
-    // 범용 포맷을 그대로 재현한다.
+    // CodeReviewServiceImpl.addReviewer/removeReviewer와 동일한 알림/타임라인 기록.
+    // PullRequestController(REST)가 이 서비스를, ReviewApiController가 CodeReviewService를 각각
+    // 사용하는 중복 구현 구조는 그대로 남아있지만, 최소한 두 경로 모두 알림이 발송되도록 맞춘다.
+    // 리뷰어 참여/취소를 구분하는 임의의 문장 대신, 다른 PR 알림들과 동일한 "Re: [project] title
+    // (#number)" 범용 포맷을 쓴다.
     private fun formatReplyTitle(pullRequest: PullRequest): String =
         "Re: [${pullRequest.toProject.name}] ${pullRequest.title} (#${pullRequest.number})"
 
@@ -1346,39 +1291,36 @@ class PullRequestServiceImpl(
     }
 
     // ============================================================================================
-    // yona-wiki P3-27/P3-33 — Mercurial(hg4j) 대응.
+    // Mercurial(hg4j) 대응.
     //
-    // 설계 요약(P3-27/P3-33 완료 로그 및 docs/yona-wiki/plans/p3-33-hg4j-incore-merge-commit.md에
-    // 상세 근거 정리):
+    // 설계 요약(상세 근거는 docs/yona-wiki/plans/p3-33-hg4j-incore-merge-commit.md 참고):
     //   - attemptMerge()/previewMerge()/processMergeCheck() 내부의 updateMerge()는 hg4j의
     //     TreeMergeCommand(작업 디렉터리를 전혀 건드리지 않는 순수 3-way merge 계산, JGit
     //     ThreeWayMerger와 동등)로 충돌/diff만 계산한다 — 서버가 공유하는 프로젝트 저장소의
     //     작업 디렉터리/dirstate를 절대 건드리지 않으므로 동시 요청 간 경합이 없다.
-    //   - merge()(실제 확정 병합)도 P3-33부터 동일하게 작업 디렉터리를 건드리지 않는다. hg4j
+    //   - merge()(실제 확정 병합)도 동일하게 작업 디렉터리를 건드리지 않는다. hg4j
     //     MergeCommitCommand(TreeMergeResult + 두 부모 노드ID + 커밋 메타데이터만으로 changelog/
     //     manifest/filelog에 직접 새 리비전을 쓰는, JGit inCore 병합 커밋과 동등한 API)로
-    //     toProject 저장소에 곧바로 병합 커밋을 만든다 — P3-27 당시의 "toProject 전체를 임시
-    //     디렉터리에 클론 → 체크아웃 → hg4j merge()/commit() → push → 임시 디렉터리 삭제" 방식은
-    //     비용이 "PR이 바꾼 파일 수"가 아니라 "toProject 전체 크기"에 비례해 P3-33에서 폐기했다
-    //     (임시클론/체크아웃/push/삭제 전부 제거). MergeCommitCommand는 항상 명시적 2-parent
-    //     changeset만 만들 뿐 "지름길(fast-forward)"이라는 개념 자체가 없으므로(그건 워킹카피
-    //     기반 옛 MergeCommand가 dirstate를 통해 갖던 개념), 이 앱의 기존 Git 구현
-    //     (createMergeCommitAndUpdateRef, git의 --no-ff와 동일한 "항상 명시적 머지 커밋" 정책)과
-    //     동일한 동작이 별도 보정 없이 자연스럽게 나온다.
+    //     toProject 저장소에 곧바로 병합 커밋을 만든다 — "toProject 전체를 임시 디렉터리에 클론 →
+    //     체크아웃 → hg4j merge()/commit() → push → 임시 디렉터리 삭제" 방식은 비용이 "PR이 바꾼
+    //     파일 수"가 아니라 "toProject 전체 크기"에 비례해 폐기했다. MergeCommitCommand는 항상
+    //     명시적 2-parent changeset만 만들 뿐 "지름길(fast-forward)"이라는 개념 자체가 없으므로,
+    //     이 앱의 기존 Git 구현(createMergeCommitAndUpdateRef, git의 --no-ff와 동일한 "항상 명시적
+    //     머지 커밋" 정책)과 동일한 동작이 별도 보정 없이 자연스럽게 나온다.
     //   - fromProject != toProject(포크 PR)일 때 hg4j의 FetchCommand는 원격에만 있는 bookmark를
     //     로컬에 그대로 새로 만든다(BookmarkCommand.mergeFromRemote()) — Git의 임시 ref(병합
     //     확인 후 삭제, 목록에 노출 안 됨)와 달리 그대로 두면 fromBranch 이름의 bookmark가
     //     toProject에 영구히 노출된다. hgImportBranchWithoutBookmarkLeak()이 fetch 직후 "이번에
     //     새로 생긴" bookmark만 찾아 즉시 지워 이 흔적을 없앤다 — 다만 fromProject의 실제
     //     changeset 자체(changelog/manifest/filelog)는 Mercurial이 append-only라 되돌릴 방법이
-    //     없어 toProject 저장소에 영구히 남는다(완료 로그에 기록한 알려진 한계, P3-33에서도 동일).
-    //   - 동시성(P3-33 설계 결정, JGit의 setExpectedOldObjectId와 동일한 낙관적 동시성): 병합
-    //     계산(TreeMergeCommand)에 쓴 leftHex를 "이 병합이 전제한 toBranch의 기준점"으로 삼아,
-    //     실제 리비전을 쓰기 직전(hg4j MergeCommitCommand가 fail-fast lockStore()로 revlog 쓰기
-    //     구간을 보호하기 바로 전)에 toBranch bookmark가 여전히 leftHex를 가리키는지 재확인한다.
-    //     다르면(그 사이 다른 병합/push가 있었으면) 대기 없이 즉시 PullRequestException을 던져
-    //     호출자가 처음부터 재시도하게 한다 — "기다리는" 락은 이 저장소에서 실제 데드락을 겪은
-    //     전례가 있어 채택하지 않는다(HgRepository.lockStore(int)의 javadoc 참고).
+    //     없어 toProject 저장소에 영구히 남는다(알려진 한계).
+    //   - 동시성(JGit의 setExpectedOldObjectId와 동일한 낙관적 동시성): 병합 계산(TreeMergeCommand)에
+    //     쓴 leftHex를 "이 병합이 전제한 toBranch의 기준점"으로 삼아, 실제 리비전을 쓰기 직전
+    //     (hg4j MergeCommitCommand가 fail-fast lockStore()로 revlog 쓰기 구간을 보호하기 바로 전)에
+    //     toBranch bookmark가 여전히 leftHex를 가리키는지 재확인한다. 다르면(그 사이 다른 병합/push가
+    //     있었으면) 대기 없이 즉시 PullRequestException을 던져 호출자가 처음부터 재시도하게 한다 —
+    //     "기다리는" 락은 이 저장소에서 실제 데드락을 겪은 전례가 있어 채택하지 않는다
+    //     (HgRepository.lockStore(int)의 javadoc 참고).
     // ============================================================================================
 
     private data class HgMergeComputation(
@@ -1452,7 +1394,7 @@ class PullRequestServiceImpl(
         )
     }
 
-    // merge()의 Hg 대응 — P3-33: toProject 저장소를 직접 열어 hg4j MergeCommitCommand로 그 자리에서
+    // merge()의 Hg 대응 — toProject 저장소를 직접 열어 hg4j MergeCommitCommand로 그 자리에서
     // 병합 커밋을 만든다(클래스 상단 주석 참고, 임시 클론/체크아웃/push/삭제 전부 제거).
     private fun hgMerge(pullRequest: PullRequest, updater: User): PullRequestMergeResult {
         val toProject = pullRequest.toProject
@@ -1548,10 +1490,10 @@ class PullRequestServiceImpl(
         }
     }
 
-    // yona-wiki P3-03/P3-04 연결 작업의 checkSignedCommitsForMerge(repo: Repository, ...) 오버로드의
-    // Hg 대응. Commit.getGpgVerificationStatus()가 이미 GitCommit/HgCommit 양쪽에서 정확히 동일한
-    // gpgSignatureVerifier.verify(...) 호출로 구현돼 있어(GitCommit.kt/HgCommit.kt 참고), VCS
-    // 종류에 무관하게 재사용 가능한 하나의 검사 로직으로 작성한다.
+    // 위 checkSignedCommitsForMerge(repo: Repository, ...) 오버로드의 Hg 대응.
+    // Commit.getGpgVerificationStatus()가 이미 GitCommit/HgCommit 양쪽에서 정확히 동일한
+    // gpgSignatureVerifier.verify(...) 호출로 구현돼 있어, VCS 종류에 무관하게 재사용 가능한 하나의
+    // 검사 로직으로 작성한다.
     private fun checkSignedCommitsForMerge(pullRequest: PullRequest, updater: User, commits: List<Commit>) {
         val toProjectId = pullRequest.toProject.id ?: return
         val branch = pullRequest.toBranch.removePrefix("refs/heads/")
@@ -1569,7 +1511,7 @@ class PullRequestServiceImpl(
         }
     }
 
-    // Hg 브랜치(=bookmark, P3-12 설계 결정) 이름/"tip"/40자 hex를 실제 hex 노드ID로 해석한다.
+    // Hg 브랜치(=bookmark) 이름/"tip"/40자 hex를 실제 hex 노드ID로 해석한다.
     // HgRepository.resolveRevisionNumber()와 목적은 같지만 그건 특정 (baseDir/owner/project)로
     // 고정된 저장소 전용 private 메서드라, 임시 클론까지 포함해 임의의 Hg 인스턴스를 다뤄야 하는
     // 여기서는 최소 기능만 별도로 재구현한다(named branch 조회까지는 필요 없음 — PR의 from/toBranch는
@@ -1607,12 +1549,12 @@ class PullRequestServiceImpl(
     // fromProject != toProject(포크 PR)일 때 fromProject의 브랜치를 toProject의 저장소로 가져온다.
     // hg4j의 FetchCommand는 작업 디렉터리/dirstate는 전혀 건드리지 않지만(PullCommand와 달리),
     // 원격에만 있던 bookmark는 그대로 로컬에 새로 만든다(BookmarkCommand.mergeFromRemote()) — Git의
-    // 임시 ref(쓰고 나서 바로 삭제, 목록에 노출 안 됨)와 동등한 "겉보기 흔적 없음"을 재현하기 위해
-    // fetch로 새로 생긴 bookmark만 찾아 즉시 지운다. 단, 가져온 changeset 자체는 Mercurial의
-    // append-only 저장 구조상 되돌릴 방법이 없어 toProject 저장소에 영구히 남는다(완료 로그에 기록한
-    // 알려진 한계 — Git의 "임시 ref 삭제로 사실상 dangling object가 되어 결국 GC됨"과 달리, Hg
-    // changelog에 한번 들어간 changeset은 hg strip 같은 파괴적 재작성 없이는 지울 수 없고, 공유
-    // 저장소에서 그런 재작성을 자동으로 트리거하는 것은 안전하지 않다고 판단해 하지 않는다).
+    // 임시 ref(쓰고 나서 바로 삭제, 목록에 노출 안 됨)와 동등한 "겉보기 흔적 없음"을 위해 fetch로
+    // 새로 생긴 bookmark만 찾아 즉시 지운다. 단, 가져온 changeset 자체는 Mercurial의 append-only
+    // 저장 구조상 되돌릴 방법이 없어 toProject 저장소에 영구히 남는다(알려진 한계 — Git의 "임시 ref
+    // 삭제로 사실상 dangling object가 되어 결국 GC됨"과 달리, Hg changelog에 한번 들어간 changeset은
+    // hg strip 같은 파괴적 재작성 없이는 지울 수 없고, 공유 저장소에서 그런 재작성을 자동으로
+    // 트리거하는 것은 안전하지 않다고 판단해 하지 않는다).
     // 반환값은 fetch 직후(=삭제 이전) 시점에 해석한 fromBookmark의 hex다 — 정리를 먼저 하고
     // 나중에 이름으로 다시 찾으려 하면(이전 버전의 버그) 지워버린 bookmark를 스스로 못 찾아
     // "Source ... not found"가 나므로, 반드시 해석 -> 정리 순서를 지킨다.

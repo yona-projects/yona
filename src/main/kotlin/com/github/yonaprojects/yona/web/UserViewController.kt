@@ -1,8 +1,13 @@
 package com.github.yonaprojects.yona.web
 
+import com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService
+import com.github.yonaprojects.yona.domain.gpgkey.GpgPublicKeyParser.InvalidGpgKeyException
 import com.github.yonaprojects.yona.domain.issue.IssueRepository
+import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.sshkey.SshKeyService
+import com.github.yonaprojects.yona.domain.sshkey.SshPublicKeyFingerprint.InvalidPublicKeyException
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.watch.WatchRepository
@@ -71,25 +76,18 @@ class UserViewController(
     private val organizationRepository: OrganizationRepository,
     private val userService: UserService,
     private val accessControl: AccessControl,
-    // yona Mention.getMentioningIssueIds() 대응 (P2-41).
     private val mentionService: MentionService,
-    // yona User.getVisitedIssues() 대응.
     private val recentIssueService: RecentIssueService,
-    // yona-wiki P3-02 Step6.6 — Fine-grained API 토큰 발급/관리 웹 UI.
+    // Fine-grained API 토큰 발급/관리 웹 UI.
     private val apiTokenService: ApiTokenService,
-    // yona-wiki P3-07 Step6 — "Authorized OAuth Apps" 화면(사용자가 인가한 MCP OAuth 클라이언트
-    // 조회/취소).
+    // "Authorized OAuth Apps" 화면(사용자가 인가한 MCP OAuth 클라이언트 조회/취소).
     private val oAuthAuthorizedAppsService: OAuthAuthorizedAppsService,
-    // yona-wiki P3-17 — GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는 사용자
-    // 셀프서비스 OAuth 앱 등록/조회/삭제 UI. 위 oAuthAuthorizedAppsService(내가 "인가"한 남의 앱)와는
-    // 반대 방향(내가 "등록"한 앱)이라 완전히 별개 화면이다 — 혼동 금지.
+    // GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는 사용자 셀프서비스 OAuth 앱
+    // 등록/조회/삭제 UI. 위 oAuthAuthorizedAppsService(내가 "인가"한 남의 앱)와는 반대 방향(내가
+    // "등록"한 앱)이라 완전히 별개 화면이다 — 혼동 금지.
     private val oAuthAppRegistrationService: OAuthAppRegistrationService,
-    // yona-wiki P3-03 Step3 — GitHub의 "Settings > SSH and GPG keys" 화면과 동등한 SSH 키
-    // 등록/조회/삭제 UI.
-    private val sshKeyService: com.github.yonaprojects.yona.domain.sshkey.SshKeyService,
-    // yona-wiki P3-03 Step7 — 커밋 서명 검증용 GPG 키 등록/조회/삭제 UI.
-    private val gpgKeyService: com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService,
-    // yona controllers/Application.java:35 HIDE_PROJECT_LISTING 대응 (P0-23).
+    private val sshKeyService: SshKeyService,
+    private val gpgKeyService: GpgKeyService,
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
 ) {
@@ -124,8 +122,7 @@ class UserViewController(
 
         val currentState = State.getValue(state.lowercase())
         val searchKeyword = if (!filter.isNullOrBlank()) "%$filter%" else null
-        // yona Mention.getMentioningIssueIds() 대응 (P2-41) — LIKE 텍스트 검색 대신 실제 멘션 인덱스
-        // 테이블 조회로 조직/프로젝트 그룹 멘션까지 포함해 계산한다.
+        // LIKE 텍스트 검색 대신 실제 멘션 인덱스 테이블 조회로 조직/프로젝트 그룹 멘션까지 포함해 계산한다.
         val mentionedIssueIds = mentionService.getMentioningIssueIds(loginUser.id!!)
 
         // 아무 필터도 주어지지 않은 상태라면 기본적으로 나에게 할당된(assigneeId) 이슈로 취급
@@ -234,16 +231,13 @@ class UserViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
 
-        // yona UserApp.java:752 "!HIDE_PROJECT_LISTING || !currentUser().isAnonymous()" 대응
-        // (P0-23) — HIDE_PROJECT_LISTING이 켜져 있으면 비로그인 방문자에게는 프로젝트/이슈/PR
-        // 목록을 전혀 보여주지 않는다(로그인 사용자는 이 화면에서는 영향 없음).
+        // HIDE_PROJECT_LISTING이 켜져 있으면 비로그인 방문자에게는 프로젝트/이슈/PR 목록을 전혀
+        // 보여주지 않는다(로그인 사용자는 이 화면에서는 영향 없음).
         val hideFromThisViewer = hideProjectListing && loginUser == null
 
-        // yona UserApp.java:811-846 getAclValidatedIssues()/getAclValidatedPullRequests()/ [GL-controllers_UserApp-064]
-        // collectProjects()+addProjectNotDupped() 대응 (P0-25). 대상 사용자가 작성한 이슈/PR/
-        // 소속 프로젝트를 방문자(loginUser)가 READ 가능한 것만 남긴다 — 필터링이 전혀 없어
-        // 비공개 프로젝트의 이슈/PR 제목이 그 프로젝트 멤버가 아닌 누구에게나(익명 포함)
-        // 프로필을 통해 유출되던 정보노출 취약점.
+        // 대상 사용자가 작성한 이슈/PR/소속 프로젝트를 방문자(loginUser)가 READ 가능한 것만 남긴다
+        // — 필터링이 없으면 비공개 프로젝트의 이슈/PR 제목이 그 프로젝트 멤버가 아닌 누구에게나
+        // (익명 포함) 프로필을 통해 유출된다.
         val projects = if (hideFromThisViewer) {
             emptyList()
         } else {
@@ -251,15 +245,13 @@ class UserViewController(
                 .filter { accessControl.isAllowedToReadProject(loginUser, it) }
         }
 
-        // yona UserApp.java:740-743 "daysAgo < 0이면 1로 보정" 대응 (P2-38). [GL-controllers_UserApp-059]
         val effectiveDaysAgo = if (daysAgo < 0) 1 else daysAgo
         val since = Instant.now().minus(effectiveDaysAgo.toLong(), ChronoUnit.DAYS)
 
         val issues = if (hideFromThisViewer) {
             emptyList()
         } else {
-            // yona UserApp.java:754-755 Issue.findRecentlyIssuesByDaysAgo(user, daysAgo) 대응
-            // (P2-38) — 작성자 또는 담당자인 이슈 중 daysAgo일 이내에 갱신된 것만 노출한다.
+            // 작성자 또는 담당자인 이슈 중 daysAgo일 이내에 갱신된 것만 노출한다.
             issueRepository.findRecentlyByUser(user.id!!, since)
                 .filter { accessControl.isAllowedToReadProject(loginUser, it.project) }
         }
@@ -269,8 +261,6 @@ class UserViewController(
         val pullRequests = if (hideFromThisViewer) {
             emptyList()
         } else {
-            // yona UserApp.java:757-759 PullRequest.findOpendPullRequestsByDaysAgo(user, daysAgo)
-            // 대응 (P2-38). [GL-controllers_UserApp-060]
             pullRequestRepository.findByContributorAndUpdatedGreaterThanEqualOrderByUpdatedDescStateAsc(user, since)
                 .filter { accessControl.isAllowedToReadProject(loginUser, it.toProject) }
         }
@@ -594,11 +584,10 @@ class UserViewController(
         return "user/edit_token"
     }
 
-    // yona-wiki P3-02 Step6.6 — 레거시 전권 토큰 화면(edit_token.html, 위 editUserTokenForm)과는
-    // 완전히 별개인 Fine-grained 토큰 발급/관리 화면. GitHub의 "Settings > Developer settings >
-    // Personal access tokens" 컨벤션대로 목록(이 메서드)과 발급 폼(newApiTokenForm)을 별개
-    // 페이지로 분리했다 — 발급 성공 시 이 목록으로 리다이렉트되고, 발급된 원문 토큰 값은
-    // RedirectAttributes 플래시 속성으로 다음 GET 한 번만 노출된다(issueApiToken 참고).
+    // 레거시 전권 토큰 화면(edit_token.html, 위 editUserTokenForm)과는 완전히 별개인 Fine-grained
+    // 토큰 발급/관리 화면 — 목록(이 메서드)과 발급 폼(newApiTokenForm)을 별개 페이지로 분리했다.
+    // 발급 성공 시 이 목록으로 리다이렉트되고, 발급된 원문 토큰 값은 RedirectAttributes 플래시
+    // 속성으로 다음 GET 한 번만 노출된다(issueApiToken 참고).
     @GetMapping("/user/editform/tokens")
     fun editApiTokensForm(
         authentication: Authentication?,
@@ -706,7 +695,7 @@ class UserViewController(
         model.addAttribute("scopeGroups", ApiTokenScopeGroup.entries)
         // 토큰의 선택 저장소 범위로 고를 수 있는 후보 — 사용자가 멤버로 속한 프로젝트만
         // 노출한다(본인이 소속되지 않은 남의 저장소를 스코프에 담을 이유가 없다).
-        val candidateProjects: List<com.github.yonaprojects.yona.domain.project.Project> =
+        val candidateProjects: List<Project> =
             loginUser.id?.let { userId -> projectUserRepository.findByUserId(userId).map { it.project } } ?: emptyList()
         model.addAttribute("candidateProjects", candidateProjects)
         model.addAttribute("submittedName", submittedName)
@@ -719,10 +708,8 @@ class UserViewController(
         model.addAttribute("submittedScopePermissions", submittedScopePermissions)
     }
 
-    // yona-wiki P3-07(MCP 서버) Step6 — GitHub의 "Settings > Applications > Authorized OAuth Apps"에
-    // 대응하는 화면. 사용자가 자신이 인가한 OAuth 클라이언트(Claude Code 등 MCP 클라이언트)를
-    // 조회하고 취소(revoke)할 수 있게 한다 — 백엔드(인가 서버)만 만들고 실제로 관리할 방법이 없는
-    // 상태로 남기지 않기 위한 필수 UI.
+    // GitHub의 "Settings > Applications > Authorized OAuth Apps"에 대응하는 화면 — 사용자가 자신이
+    // 인가한 OAuth 클라이언트(Claude Code 등 MCP 클라이언트)를 조회하고 취소(revoke)할 수 있게 한다.
     @GetMapping("/user/editform/oauth-apps")
     fun editOAuthAuthorizedAppsForm(
         authentication: Authentication?,
@@ -751,16 +738,11 @@ class UserViewController(
         return "redirect:/user/editform/oauth-apps"
     }
 
-    // yona-wiki P3-17 — GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는 사용자
-    // 셀프서비스 OAuth 앱 등록 화면. [[p3-14]] 1라운드에서는 이 기능이 사이트 관리자 전용
-    // (OAuthAppsAdminController)이었지만, GitHub/Forgejo 둘 다 OAuth 앱 등록은 사용자가 만드는
-    // 자원으로서 계정에 종속된 셀프서비스 기능이라 이 저장소의 표준 방침(모호하면 GitHub 방식을
-    // 따른다)에 맞춰 옮겼다(배경은 [[p3-17]] 참고). 위 editOAuthAuthorizedAppsForm(내가 "인가"한
-    // 남의 앱, edit_oauth_apps.html)과는 반대 방향(내가 "등록"한 앱)이라 URL도 템플릿도 완전히
-    // 별개다 — 혼동 금지. tokens/ssh-keys/gpg-keys와 동일한 컨벤션대로 목록(이 메서드)과 등록 폼
-    // (newOwnedOAuthAppForm)을 별개 페이지로 분리했다 — 등록 성공 시 이 목록으로 리다이렉트되고,
-    // confidential이면 발급된 client_secret 평문값이 플래시 속성으로 다음 GET 한 번만 노출된다
-    // (registerOwnedOAuthApp 참고, URL에는 절대 담지 않는다).
+    // GitHub의 "Settings > Developer settings > OAuth Apps"에 대응하는 사용자 셀프서비스 OAuth 앱
+    // 등록 화면. 위 editOAuthAuthorizedAppsForm(내가 "인가"한 남의 앱, edit_oauth_apps.html)과는
+    // 반대 방향(내가 "등록"한 앱)이라 URL도 템플릿도 완전히 별개다 — 혼동 금지. 등록 성공 시 이
+    // 목록으로 리다이렉트되고, confidential이면 발급된 client_secret 평문값이 플래시 속성으로
+    // 다음 GET 한 번만 노출된다(registerOwnedOAuthApp 참고, URL에는 절대 담지 않는다).
     @GetMapping("/user/editform/oauth-apps-owned")
     fun editOwnedOAuthAppsForm(
         authentication: Authentication?,
@@ -859,11 +841,9 @@ class UserViewController(
     ) {
         model.addAttribute("user", loginUser)
         model.addAttribute("currentUser", loginUser)
-        // yona-wiki P3-14 2라운드 — availableScopes()에 API 스코프와 identity 스코프(openid/profile/
-        // email)가 함께 들어있다(register()의 화이트리스트 검증이 이 목록 하나만 기준으로 삼기
-        // 때문). 템플릿은 콜론 포함 여부로 둘을 구분해 보여준다(edit_oauth_apps_owned_new.html
-        // 참고) — identity 스코프 체크박스 자체는 각각 사람이 읽을 수 있는 설명이 필요해 템플릿에
-        // 직접 하드코딩했으므로 별도 모델 속성은 두지 않는다.
+        // availableScopes()에 API 스코프와 identity 스코프(openid/profile/email)가 함께 들어있다
+        // (register()의 화이트리스트 검증이 이 목록 하나만 기준으로 삼기 때문). 템플릿은 콜론 포함
+        // 여부로 둘을 구분해 보여준다(edit_oauth_apps_owned_new.html 참고).
         model.addAttribute("availableScopes", oAuthAppRegistrationService.availableScopes())
         model.addAttribute("submittedClientName", submittedClientName)
         model.addAttribute("submittedRedirectUri", submittedRedirectUri)
@@ -877,10 +857,10 @@ class UserViewController(
         model.addAttribute("submittedScopes", ArrayList(submittedScopes))
     }
 
-    // yona-wiki P3-03 Step3 — GitHub "Settings > SSH and GPG keys" 화면과 동일한 컨벤션
-    // (edit_tokens.html/edit_oauth_apps.html과 같은 탭 메뉴/CSS 클래스/컨트롤러 패턴). 목록
-    // (이 메서드)과 등록 폼(newSshKeyForm)을 별개 페이지로 분리했다 — 등록 성공 시 이 목록으로
-    // 리다이렉트되고 플래시 속성으로 성공 메시지를 한 번만 노출한다(addSshKey 참고).
+    // GitHub "Settings > SSH and GPG keys" 화면과 동일한 컨벤션(edit_tokens.html/edit_oauth_apps.html과
+    // 같은 탭 메뉴/CSS 클래스/컨트롤러 패턴). 목록(이 메서드)과 등록 폼(newSshKeyForm)을 별개
+    // 페이지로 분리했다 — 등록 성공 시 이 목록으로 리다이렉트되고 플래시 속성으로 성공 메시지를
+    // 한 번만 노출한다(addSshKey 참고).
     @GetMapping("/user/editform/ssh-keys")
     fun editSshKeysForm(
         authentication: Authentication?,
@@ -934,7 +914,7 @@ class UserViewController(
             return "redirect:/user/editform/ssh-keys"
         } catch (e: IllegalArgumentException) {
             model.addAttribute("sshKeyError", e.message)
-        } catch (e: com.github.yonaprojects.yona.domain.sshkey.SshPublicKeyFingerprint.InvalidPublicKeyException) {
+        } catch (e: InvalidPublicKeyException) {
             model.addAttribute("sshKeyError", e.message)
         }
 
@@ -958,9 +938,9 @@ class UserViewController(
         return "redirect:/user/editform/ssh-keys"
     }
 
-    // yona-wiki P3-03 Step7 — GitHub "Settings > SSH and GPG keys" 화면의 GPG 키 섹션과 동일한
-    // 컨벤션. 목록(이 메서드)과 등록 폼(newGpgKeyForm)을 별개 페이지로 분리했다 — 등록 성공 시 이
-    // 목록으로 리다이렉트되고 플래시 속성으로 성공 메시지를 한 번만 노출한다(addGpgKey 참고).
+    // GitHub "Settings > SSH and GPG keys" 화면의 GPG 키 섹션과 동일한 컨벤션. 목록(이 메서드)과
+    // 등록 폼(newGpgKeyForm)을 별개 페이지로 분리했다 — 등록 성공 시 이 목록으로 리다이렉트되고
+    // 플래시 속성으로 성공 메시지를 한 번만 노출한다(addGpgKey 참고).
     @GetMapping("/user/editform/gpg-keys")
     fun editGpgKeysForm(
         authentication: Authentication?,
@@ -1012,7 +992,7 @@ class UserViewController(
             return "redirect:/user/editform/gpg-keys"
         } catch (e: IllegalArgumentException) {
             model.addAttribute("gpgKeyError", e.message)
-        } catch (e: com.github.yonaprojects.yona.domain.gpgkey.GpgPublicKeyParser.InvalidGpgKeyException) {
+        } catch (e: InvalidGpgKeyException) {
             model.addAttribute("gpgKeyError", e.message)
         }
 

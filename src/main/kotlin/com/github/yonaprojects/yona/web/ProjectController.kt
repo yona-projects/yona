@@ -13,6 +13,7 @@ import com.github.yonaprojects.yona.domain.project.UpdateProjectParam
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.vcs.PushedBranch
 import com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository
 import java.time.Duration
 import java.time.Instant
@@ -113,11 +114,8 @@ class ProjectController(
         } catch (e: IllegalStateException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf("error" to e.message))
         }
-        // TASK-0424(P3-02 11라운드, 버그8과 동일 근본원인의 별도 발생 지점) — 실서버+실 yona-cli로
-        // `project edit`(PATCH .../settings, ProjectRestApiController.updateSettings()가 이 메서드에
-        // 그대로 위임)을 실측하다가 발견: 여기서도 raw Project 엔티티를 그대로 반환해 fork와 동일한
-        // 순환 직렬화 경로로 User.password/passwordSalt가 응답에 수백 번 반복 노출됐다(실측: curl로
-        // 60KB 응답에서 "password" 값 확인). fork와 동일하게 toRefResponse()로 감싼다.
+        // raw Project 엔티티를 그대로 반환하면 fork()와 동일한 순환 직렬화 경로로
+        // User.password/passwordSalt가 노출된다 — fork()와 동일하게 toRefResponse()로 감싼다.
         return ResponseEntity.ok(updated.toRefResponse())
     }
 
@@ -180,14 +178,10 @@ class ProjectController(
         }
     }
 
-    // TASK-0421(P3-02 11라운드, 버그8) — 이 엔드포인트가 forkedProject(JPA Project 엔티티)를
-    // 가공 없이 그대로 반환하면 Project.projectUsers[].user(User.projectUsers와의 양방향 연관)를
-    // 따라가며 Jackson이 순환 직렬화를 시도하다 User.password/passwordSalt 해시값까지 응답
-    // 바이트에 그대로 노출한다(실측: curl로 90KB 응답에서 "password" 키 확인, RestApiResponseDto.kt
-    // 상단 주석에 적힌 이슈/PR 순환직렬화 버그와 동일한 근본원인의 별개 발생 지점).
-    // ProjectRestApiController.fork()가 이 메서드를 그대로 위임 호출하므로, RestApiResponseDto.kt의
-    // Project.toRefResponse()(id/owner/name/overview/vcs/scope만 노출)로 감싸 두 경로 모두 함께
-    // 고친다.
+    // forkedProject(JPA Project 엔티티)를 가공 없이 그대로 반환하면 Project.projectUsers[].user
+    // (User.projectUsers와의 양방향 연관)를 따라가며 Jackson이 순환 직렬화를 시도하다
+    // User.password/passwordSalt 해시값까지 노출한다 — Project.toRefResponse()(id/owner/name/
+    // overview/vcs/scope만 노출)로 감싼다.
     @PostMapping("/api/{owner}/{projectName}/fork")
     fun forkProject(
         @PathVariable owner: String,
@@ -206,7 +200,6 @@ class ProjectController(
         }
     }
 
-    // yona ProjectApp.labels() 대응 (P1-13)
     @GetMapping("/api/{owner}/{projectName}/labels")
     fun getProjectLabels(
         @PathVariable owner: String,
@@ -224,11 +217,9 @@ class ProjectController(
         return ResponseEntity.ok(projectService.getProjectLabels(project.id!!))
     }
 
-    // yona ProjectApp.attachLabel() 대응 (P1-13). yona AccessControl은 PROJECT_LABELS를
-    // 별도 케이스로 다루지 않아 일반 프로젝트 리소스 UPDATE 규칙(user.isMemberOf(project))을 그대로
-    // 따른다 - MANAGER가 아니어도 프로젝트 멤버라면 라벨을 붙이고 뗄 수 있다.
-    // legacy controllers/api/ProjectApi.java newLabel() 경로 별칭은 P2-59 — owner/projectName
-    // 경로변수 구조가 동일해 매핑만 추가한다.
+    // AccessControl은 PROJECT_LABELS를 별도 케이스로 다루지 않아 일반 프로젝트 리소스 UPDATE
+    // 규칙(user.isMemberOf(project))을 그대로 따른다 — MANAGER가 아니어도 프로젝트 멤버라면
+    // 라벨을 붙이고 뗄 수 있다.
     @PostMapping(value = ["/api/{owner}/{projectName}/labels", "/-_-api/v1/owners/{owner}/projects/{projectName}/labels"])
     fun attachLabel(
         @PathVariable owner: String,
@@ -258,7 +249,6 @@ class ProjectController(
         }
     }
 
-    // yona ProjectApp.detachLabel() 대응 (P1-13)
     @DeleteMapping("/api/{owner}/{projectName}/labels/{labelId}")
     fun detachLabel(
         @PathVariable owner: String,
@@ -281,10 +271,8 @@ class ProjectController(
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     }
 
-    // yona ProjectApi.titleHeads()/getherTitleHeads()/getherProjectLabels()/getTitleHeadNode()/
-    // getIssueLabelNode() 대응 (P1-103). 이슈/게시글 제목 자동완성에 쓰는 "이전에 쓰인 대괄호 머리말
-    // 사용 빈도"와 "프로젝트 이슈 라벨 목록"을 하나의 배열로 합쳐 반환한다(머리말 먼저, 라벨 나중 —
-    // legacy와 동일한 순서).
+    // 이슈/게시글 제목 자동완성에 쓰는 "이전에 쓰인 대괄호 머리말 사용 빈도"와 "프로젝트 이슈 라벨
+    // 목록"을 하나의 배열로 합쳐 반환한다(머리말 먼저, 라벨 나중).
     @GetMapping("/api/{owner}/{projectName}/titleHeads")
     fun titleHeads(
         @PathVariable owner: String,
@@ -324,9 +312,7 @@ class ProjectController(
         return ResponseEntity.ok(mapOf("result" to (titleHeadNodes + labelNodes)))
     }
 
-    // yona ProjectApp.getRecentlyPushedBranches()/partial_recently_pushed_branches.scala.html 대응 (P1-15/24).
-    // yona 라우트 표에는 없지만(뷰에 임베드된 데이터), 삭제 API(P1-15) 단독으로는 사용할 방법이 없어
-    // 같은 데이터를 노출하는 조회용 엔드포인트를 함께 추가했다.
+    // 삭제 API 단독으로는 사용할 방법이 없어 같은 데이터를 노출하는 조회용 엔드포인트를 함께 둔다.
     @GetMapping("/api/{owner}/{projectName}/pushedBranches")
     fun getPushedBranches(
         @PathVariable owner: String,
@@ -341,14 +327,12 @@ class ProjectController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        // yona Project.getRecentlyPushedBranches(): 최근 1시간 이내에 push된 것만 노출한다.
+        // 최근 1시간 이내에 push된 것만 노출한다.
         val cutoff = Instant.now().minus(Duration.ofHours(1))
         val branches = pushedBranchRepository.findByProjectAndPushedDateAfter(project, cutoff)
-        // 2026-09-09 코디네이터 발견/수정 — 엔티티(PushedBranch -> project -> projectUsers ->
-        // user -> projectUsers -> ...)를 그대로 직렬화하면 User<->ProjectUser 양방향 관계가
-        // 끝없이 순환 참조돼 응답이 수십 KB로 부풀 뿐 아니라, User.password/passwordSalt(해시된
-        // 값이지만)까지 그대로 API 응답에 노출되는 정보 노출 문제가 있었다(Git/Hg 프로젝트 모두
-        // 동일하게 재현 — VCS 종류와 무관한 기존 결함). DTO로 변환해 필요한 필드만 반환한다.
+        // 엔티티(PushedBranch -> project -> projectUsers -> user -> ...)를 그대로 직렬화하면
+        // User<->ProjectUser 양방향 관계가 순환 참조되며 password/passwordSalt까지 노출된다 —
+        // DTO로 변환해 필요한 필드만 반환한다.
         return ResponseEntity.ok(branches.map { PushedBranchDto(it) })
     }
 
@@ -357,15 +341,14 @@ class ProjectController(
         val name: String,
         val pushedDate: Instant?
     ) {
-        constructor(pushedBranch: com.github.yonaprojects.yona.domain.vcs.PushedBranch) : this(
+        constructor(pushedBranch: PushedBranch) : this(
             id = pushedBranch.id,
             name = pushedBranch.name,
             pushedDate = pushedBranch.pushedDate
         )
     }
 
-    // yona ProjectApp.deletePushedBranch() 대응 (P1-15). yona처럼 id가 이 프로젝트 소속인지는
-    // 별도로 검증하지 않고(원본 그대로), 존재하면 삭제·존재하지 않아도 200 OK를 반환한다.
+    // id가 이 프로젝트 소속인지는 별도로 검증하지 않는다 — 존재하면 삭제, 존재하지 않아도 200 OK.
     @DeleteMapping("/api/{owner}/{projectName}/pushedBranches/{id}")
     fun deletePushedBranch(
         @PathVariable owner: String,
@@ -386,8 +369,7 @@ class ProjectController(
     }
 
     data class UpdateProjectRequest(
-        // yona ProjectApp.settingProject()의 개명(rename) 필드 대응 (P1-144). UI는 나중에 붙일
-        // 예정이라 API 필드만 우선 이식 — 값이 없거나 현재 이름과 같으면 서비스 계층에서 무시된다.
+        // 값이 없거나 현재 이름과 같으면 서비스 계층에서 무시된다.
         val name: String? = null,
         val overview: String,
         val projectScope: ProjectScope,

@@ -30,14 +30,14 @@ import java.nio.channels.SocketChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermissions
 
 /**
- * yona-wiki P3-18 — SSH forced command가 실제 git/hg 바이너리를 exec하는 대신, 이미 떠 있는
- * yona 메인 JVM에 얇은 바이트 릴레이로 연결해 인프로세스 JGit/hg4j 로직(HTTPS 경로와 완전히
- * 동일한 브랜치 보호 훅 체이닝)을 그대로 타도록 하는 유닉스 도메인 소켓 리스너.
+ * SSH forced command가 실제 git/hg 바이너리를 exec하는 대신, 이미 떠 있는 yona 메인 JVM에 얇은
+ * 바이트 릴레이로 연결해 인프로세스 JGit/hg4j 로직(HTTPS 경로와 동일한 브랜치 보호 훅 체이닝)을
+ * 그대로 타도록 하는 유닉스 도메인 소켓 리스너.
  *
- * **핸드셰이크 프로토콜**(단순한 내부 전용 프로토콜, 공개 스펙 아님 — 상세 설계는
- * `docs/parity/tickets/p3-18.md` 참고):
+ * **핸드셰이크 프로토콜**(내부 전용, 상세 설계는 `docs/parity/tickets/p3-18.md` 참고):
  * 1. 클라이언트가 연결하면 개행으로 구분된 정확히 두 줄을 먼저 보낸다:
  *    - 1번째 줄: [SshAuthService.encodePrincipal]이 만드는 인코딩된 principal 문자열
  *      (`sshkey:123` / `deploykey:45`).
@@ -55,12 +55,12 @@ import java.nio.file.Path
 @Component
 class SshRelayServer(
     private val sshAuthService: SshAuthService,
-    // yona-wiki P3-18 — GitSshProtocolHandler 구성에 필요(YonaMinaSshServer와 동일한 이유).
+    // GitSshProtocolHandler 구성에 필요.
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
     private val gpgSignatureVerifier: GpgSignatureVerifier,
-    // yona-wiki P3-21/P3-22 — HgSshProtocolHandler의 브랜치 보호/push 알림·웹훅·PushedBranch
-    // 훅 구성에 필요(GitSshProtocolHandler와 대칭).
+    // HgSshProtocolHandler의 브랜치 보호/push 알림·웹훅·PushedBranch 훅 구성에 필요
+    // (GitSshProtocolHandler와 대칭).
     private val projectRepository: ProjectRepository,
     private val pullRequestRepository: PullRequestRepository,
     private val pushedBranchRepository: PushedBranchRepository,
@@ -108,18 +108,14 @@ class SshRelayServer(
             serverChannel = channel
             running = true
 
-            // yona-wiki P3-18 — 실제 forced command(sshd_config의 Match User git 아래에서 도는
-            // ssh-auth.sh의 command=)는 이 JVM과 다른 OS 계정("git")으로 실행된다(docs/guide/
-            // ssh-system-sshd-setup.md Step 1 — git 계정은 yona 앱 계정과 그룹만 공유). 유닉스
-            // 도메인 소켓은 connect()에 소켓 파일 자체의 쓰기 권한이 필요한데, 기본 생성 권한은
-            // JVM 프로세스의 umask에 좌우돼 그룹 쓰기가 막혀 있을 수 있다 — 그러면 같은 그룹인
-            // git 계정도 연결이 거부된다. 그룹 rw로 명시 고정해 이 문제를 배포 환경 umask 설정에
-            // 기대지 않고 항상 재현 가능하게 만든다(소유자는 이 JVM 프로세스 계정 그대로,
-            // world 권한은 부여하지 않는다).
+            // 실제 forced command는 이 JVM과 다른 OS 계정("git", yona 앱 계정과 그룹만 공유,
+            // docs/guide/ssh-system-sshd-setup.md 참고)으로 실행된다. 소켓 파일의 기본 생성 권한은
+            // JVM 프로세스의 umask에 좌우돼 그룹 쓰기가 막혀 있으면 git 계정 연결이 거부되므로,
+            // 그룹 rw로 명시 고정해 배포 환경 umask에 기대지 않게 한다(world 권한은 부여하지 않음).
             try {
                 Files.setPosixFilePermissions(
                     path,
-                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-rw----")
+                    PosixFilePermissions.fromString("rw-rw----")
                 )
             } catch (e: UnsupportedOperationException) {
                 // POSIX 권한을 지원하지 않는 파일시스템(사실상 발생하지 않음 — UNIX 도메인 소켓
@@ -133,9 +129,8 @@ class SshRelayServer(
 
             logger.info("SshRelayServer listening at {}", path)
         } catch (e: Exception) {
-            // yona-wiki P3-18 — 테스트 프로파일 등 소켓 경로를 쓸 수 없는 환경에서도 애플리케이션
-            // 기동 자체는 절대 실패하면 안 된다(YonaMinaSshServer가 윈도우 폴백 실패를 감수하는
-            // 것과 동일한 관용도). 실패하면 이 기능만 조용히 비활성 상태로 남는다.
+            // 소켓 경로를 쓸 수 없는 환경에서도 애플리케이션 기동 자체는 실패하면 안 된다 —
+            // 실패하면 이 기능만 조용히 비활성 상태로 남는다.
             logger.warn("Failed to start SshRelayServer at {} — SSH socket relay disabled", socketPathSetting, e)
             running = false
         }
@@ -220,13 +215,10 @@ class SshRelayServer(
             trimmed.startsWith("hg ") -> {
                 val authorization = sshAuthService.authorizeHgCommand(principal, commandLine)
                 if (!isUsable(authorization)) {
-                    // 백로그 48번 — HgRepository를 아예 만들지 않은 채(권한 검사가 저장소 접근보다
-                    // 먼저이므로) writeErrorLine로 에러 한 줄만 쓰고 연결을 끊으면, 실제 hg SSH
-                    // 클라이언트는 hello+between 핸드셰이크에 응답을 못 받아 between 응답을 영원히
-                    // 기다리며 멈춘다(hang). HgSshWireServer.rejectConnection이 hello+between을
-                    // 정상적으로 완료한 뒤 OOB 에러로 거절해 이 hang을 막는다. git 쪽은 JGit이
-                    // UploadPack/ReceivePack 자체적으로 프로토콜에 맞게 에러를 보고하므로 이 문제가
-                    // 없다 — hg 분기에만 적용.
+                    // writeErrorLine로 에러 한 줄만 쓰고 연결을 끊으면, 실제 hg SSH 클라이언트는
+                    // hello+between 핸드셰이크 응답을 못 받아 영원히 멈춘다(hang) — git 쪽은 JGit이
+                    // 자체적으로 프로토콜에 맞게 에러를 보고해 이 문제가 없지만, hg는 rejectConnection이
+                    // hello+between을 정상 완료한 뒤 OOB 에러로 거절해야 한다.
                     HgSshWireServer.rejectConnection(input, output, authorization.reason ?: "접근이 거부되었습니다.")
                     return
                 }
@@ -240,12 +232,9 @@ class SshRelayServer(
         authorization.allowed && authorization.repoDir != null
 
     private fun handleGit(authorization: SshCommandAuthorization, input: InputStream, output: OutputStream) {
-        // yona-wiki P3-18 1라운드 한계(문서화됨) — 이 소켓은 stdin/stdout 하나뿐이라 SSH 채널의
-        // 별도 stderr 채널에 해당하는 게 없다. JGit ReceivePack/UploadPack의 "메시지" 스트림으로
-        // 가는 내용(진행률 등 부가 정보)은 여기서는 버린다 — ref 거부 사유 등 핵심 프로토콜
-        // 응답(report-status)은 이 메시지 스트림이 아니라 주 output 스트림으로 나가므로
-        // 영향받지 않는다(YonaMinaSshServerIntegrationSpec의 브랜치 보호 회귀 테스트와 동일한
-        // 검증 방식이 이 릴레이 경로에도 그대로 통과하는 것으로 확인).
+        // 이 소켓은 stdin/stdout 하나뿐이라 SSH 채널의 별도 stderr 채널이 없다. JGit
+        // ReceivePack/UploadPack의 "메시지" 스트림(진행률 등 부가 정보)은 여기서 버린다 — ref
+        // 거부 사유 등 핵심 프로토콜 응답(report-status)은 주 output 스트림으로 나가 영향받지 않는다.
         val discardedMessages = ByteArrayOutputStream()
         try {
             gitProtocolHandler.handle(authorization, input, output, discardedMessages)

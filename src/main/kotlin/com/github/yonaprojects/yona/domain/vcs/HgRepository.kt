@@ -1,10 +1,12 @@
 package com.github.yonaprojects.yona.domain.vcs
 
+import com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus
 import com.github.yonaprojects.yona.domain.support.FileUtil
 import com.github.yonaprojects.yona.domain.user.User
 import io.github.search5.hg4j.api.CatCommand
 import io.github.search5.hg4j.api.DiffCommand
 import io.github.search5.hg4j.api.Hg
+import io.github.search5.hg4j.api.HgCommit as NativeHgCommit
 import io.github.search5.hg4j.api.LogCommand
 import io.github.search5.hg4j.lib.NodeId
 import org.eclipse.jgit.diff.DiffAlgorithm
@@ -23,16 +25,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-// yona-wiki P3-12(Mercurial 지원) 1라운드 — search5/hg4j(형제 디렉터리, includeBuild로 연결)로 감싸는
-// PlayRepository 구현. GitRepository/SvnRepository와 동일한 (ownerName, projectName, baseDir,
-// userResolver) 생성자 형태를 따른다.
-//
-// **범위(1라운드)**: create/isEmpty/getDefaultBranch/getMetaDataFromPath/getRawFile/getHistory/
-// getCommit/getParentCommitOf/move/renameTo — "저장소를 만들고 커밋을 탐색"하는 핵심 경로만 실제
-// 구현한다. 브랜치/태그 CRUD, diff/patch 생성, archive는 SvnRepository의 선례(대응 개념이 없거나
-// 아직 다루지 않은 기능은 빈 값/no-op/UnsupportedOperationException으로 명시)를 그대로 따라 2라운드
-// 이후로 미룬다 — Mercurial의 "branch"는 git과 달리 커밋에 영구히 새겨지는 개념이라(삭제가 아니라
-// "close"만 가능) 잘못된 매핑을 서둘러 확정하지 않기 위함(계획 문서 참고).
+// search5/hg4j(형제 디렉터리, includeBuild로 연결)로 감싸는 PlayRepository 구현. GitRepository/
+// SvnRepository와 동일한 (ownerName, projectName, baseDir, userResolver) 생성자 형태를 따른다.
 //
 // **bare 저장소 개념 없음**: GitRepository는 서버 호스팅을 위해 bare(작업 디렉터리 없는) 저장소를
 // 쓰지만, Mercurial은 애초에 그런 구분이 없다 — `hg serve`도 일반(작업 디렉터리가 있는) 저장소를
@@ -43,11 +37,11 @@ class HgRepository(
     private val projectName: String,
     private val baseDir: String,
     private val userResolver: (String?, String?) -> User?,
-    // yona-wiki P3-19 — 커밋 목록/상세 화면의 GPG Verified 배지 계산(GpgSignatureVerifier.
-    // verify(NativeHgCommit)). GitRepository.kt와 동일한 패턴: 기본값(no-op, 항상 UNSIGNED)을 둬서
-    // 기존 호출부가 그대로 동작하게 한다 — RepositoryService가 실제 구현을 주입한다.
-    private val gpgVerifier: (io.github.search5.hg4j.api.HgCommit) -> com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus =
-        { com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus.UNSIGNED }
+    // 커밋 목록/상세 화면의 GPG Verified 배지 계산. GitRepository.kt와 동일한 패턴: 기본값(no-op,
+    // 항상 UNSIGNED)을 둬서 기존 호출부가 그대로 동작하게 한다 — RepositoryService가 실제 구현을
+    // 주입한다.
+    private val gpgVerifier: (NativeHgCommit) -> GpgVerificationStatus =
+        { GpgVerificationStatus.UNSIGNED }
 ) : PlayRepository {
 
     private val objectMapper = ObjectMapper()
@@ -177,8 +171,7 @@ class HgRepository(
         }
     }
 
-    // yona-wiki P3-12 2라운드 마무리(회고 2026-09-08/09) — GitRepository.getPatch()/getDiff()와
-    // 동일한 아키텍처로 구현한다: hg4j의 DiffCommand(io.github.search5.hg4j.api.DiffCommand)는 두
+    // GitRepository.getPatch()/getDiff()와 동일한 아키텍처로 구현한다: hg4j의 DiffCommand(io.github.search5.hg4j.api.DiffCommand)는 두
     // 리비전의 매니페스트(git의 tree에 대응)를 비교해 변경된 경로+ChangeType(ADD/MODIFY/DELETE)
     // 목록을 이미 정확히 계산해준다(TreeWalk+ManifestTreeIterator, hg의 "hard part") — 이 목록만
     // 재사용하고, 각 파일의 old/new 콘텐츠 바이트는 CatCommand로 직접 가져와(HgRepository의 기존
@@ -376,12 +369,8 @@ class HgRepository(
     // 755) 절대 매치되지 않는 조용한 버그가 되므로 10진수로 명시하고 주석에 원래 8진수 값을 남긴다.
     // hg4j의 DiffCommand는 newRevision에 리터럴 -1을 넘기면(revB가 존재하지 않는 커밋이라
     // getDiff(revA, revB)가 -1로 근사하는 경우) oldRevision과 동일하게 "빈 매니페스트"로 정확히
-    // 처리한다(hg4j 2026-09-09 수정 — 예전에는 newRevision의 "값 미지정" sentinel도 우연히 -1이라
-    // "빈 매니페스트"가 아니라 "tip으로 대체"돼 버리는 실제 버그가 있었다. DiffCommand.java에서
-    // "값 미지정" 전용 sentinel(Integer.MIN_VALUE)을 -1과 분리해 근본 수정했다 — 상세는
-    // hg4j 저장소 커밋/DiffCommand.NOT_SET 주석 참고). 그 결과 old/new 둘 다(또는 한쪽만)
-    // -1이어도 별도 우회 없이 DiffCommand를 그대로 호출하면 된다 — 둘 다 -1이면 빈 매니페스트끼리
-    // 비교해 자연스럽게 빈 결과가 나온다.
+    // 처리한다("값 미지정" 전용 sentinel을 -1과 분리한 DiffCommand.NOT_SET 참고) — old/new 둘 다
+    // (또는 한쪽만) -1이어도 별도 우회 없이 DiffCommand를 그대로 호출하면 된다.
     private fun computeChangedEntries(hg: Hg, oldRevNum: Int, newRevNum: Int): List<DiffCommand.DiffEntry> {
         return hg.diff().setOldRevision(oldRevNum).setNewRevision(newRevNum).call()
     }
@@ -420,24 +409,16 @@ class HgRepository(
 
     // "tip"/정수 리비전 번호/40자 hex 노드ID 문자열을 실제 로컬 리비전 번호로 해석한다.
     //
-    // yona-wiki P3-20/P3-23(2026-09-09) 버그 수정 — 예전에는 마지막 else 분기가 nodeId.toString()
-    // (NodeId.toString()은 12자 짧은 해시만 반환, NodeId.java 참고)과 rev를 비교했는데, 코드
-    // 브라우저/브랜치 셀렉터/다운로드 ZIP 엔드포인트가 실제로 넘기는 값은 bookmark 이름
-    // ("master" 같은)이나(P3-23에서 신설한) named branch 이름이다 — 이 두 경우 모두 이 분기가
-    // 절대 매치되지 않아 항상 null(404/빈 응답)이 되는 잠재 버그였다(브랜치 셀렉터에서 "tip" 외의
-    // 실제 브랜치를 고르면 무엇을 하든 깨졌다). bookmark -> hex(재귀적으로 40자 분기 재사용) ->
-    // named branch(BranchesCommand의 헤더 리비전, closed 브랜치도 브라우징 목적으로는 허용) 순으로
-    // 조회해 실제 값을 해석한다.
+    // 코드 브라우저/브랜치 셀렉터/다운로드 ZIP 엔드포인트가 실제로 넘기는 값은 40자 hex 노드ID가
+    // 아니라 bookmark 이름이나 named branch 이름일 수 있다 — bookmark -> hex(재귀적으로 40자 분기
+    // 재사용) -> named branch(BranchesCommand의 헤더 리비전, closed 브랜치도 브라우징 목적으로는
+    // 허용) 순으로 조회해 실제 값을 해석한다.
     //
-    // "default"는 더 이상 "tip"/"HEAD"/빈 문자열과 같은 그룹으로 묶지 않는다 — 실사용 검증 중 발견한
-    // 실제 버그: "default"는 Mercurial 저장소가 항상 갖는 진짜 named branch 이름이라(named branch
-    // 셀렉터에 그대로 노출된다, getDefaultBranch() 참고), 다른 named branch(예: "featurebranch")가
-    // 더 최근에 커밋되면 저장소의 진짜 tip은 그 브랜치에 있게 되는데, "default"를 tip의 별칭으로
-    // 취급하면 브랜치 셀렉터에서 "default"를 골라도(또는 코드브라우저 루트 진입 시 getDefaultBranch()
-    // 경유로도) 엉뚱하게 다른 브랜치의 최신 커밋 내용이 나온다 — "default"라는 이름의 브랜치 자체를
-    // 보여준다는 사용자 기대와 어긋난다. 아래 named branch 조회 분기로 흘려보내 "default" 브랜치의
-    // 실제 헤드 리비전을 찾게 한다(named branch가 하나뿐인 흔한 저장소에서는 어차피 tip과 동일한
-    // 결과이므로 회귀 없음).
+    // "default"는 "tip"/"HEAD"/빈 문자열과 같은 그룹으로 묶지 않는다 — "default"는 Mercurial
+    // 저장소가 항상 갖는 진짜 named branch 이름이라, 다른 named branch가 더 최근에 커밋되면
+    // 저장소의 진짜 tip은 그 브랜치에 있게 된다. "default"를 tip의 별칭으로 취급하면 브랜치
+    // 셀렉터에서 "default"를 골라도 엉뚱하게 다른 브랜치의 최신 커밋 내용이 나온다 — 아래 named
+    // branch 조회 분기로 흘려보내 "default" 브랜치의 실제 헤드 리비전을 찾게 한다.
     private fun resolveRevisionNumber(hg: Hg, rev: String): Int? {
         val allCommits = hg.log().call()
         if (allCommits.isEmpty()) return null
@@ -451,8 +432,7 @@ class HgRepository(
         }
     }
 
-    // yona-wiki P3-12 2라운드 — bookmark를 git의 브랜치 개념에 매핑하기로 확정했으므로(아래
-    // getBranches() 주석 참고) 여기서도 bookmark 이름들을 노출한다. tip은 항상 함께 노출해
+    // bookmark를 git의 브랜치 개념에 매핑한다(아래 getBranches() 참고). tip은 항상 함께 노출해
     // "브랜치가 하나도 없는" 저장소에서도 최소한 하나의 참조점은 있도록 한다.
     override fun getRefNames(): List<String> = useHg { hg -> hg.bookmark().call().keys.toList() } + "tip"
 
@@ -481,14 +461,10 @@ class HgRepository(
 
     override fun setDefaultBranch(target: String) {}
 
-    // yona-wiki P3-12 2라운드 설계 결정(사용자 확정, 재론의 안 함) — yona의 git 모양 "브랜치"
-    // 개념(getBranches/createBranch/deleteBranch/getHeadBranch)은 Mercurial의 **bookmark**에
-    // 매핑한다. Mercurial의 진짜 "named branch"(`hg branch`)는 커밋에 영구히 새겨지는(삭제가
-    // 아니라 "close"만 가능한) 별개의 개념이라 git 브랜치와 근본적으로 다르지만, bookmark는
-    // git 브랜치처럼 자유롭게 이동/삭제 가능한 포인터라 이 코드베이스의 표준 관례(모호하면
-    // GitHub/주류 forge 관례를 따름 — Bitbucket이 과거 Mercurial 저장소를 git 모양 UI로 노출할 때
-    // 쓰던 것과 동일한 매핑)에 부합한다. named branch 지원은 이번 범위 밖(out of scope, 계획
-    // 문서 참고).
+    // yona의 git 모양 "브랜치" 개념(getBranches/createBranch/deleteBranch/getHeadBranch)은
+    // Mercurial의 **bookmark**에 매핑한다. Mercurial의 진짜 "named branch"(`hg branch`)는 커밋에
+    // 영구히 새겨지는(삭제가 아니라 "close"만 가능한) 별개의 개념이라 git 브랜치와 근본적으로
+    // 다르지만, bookmark는 git 브랜치처럼 자유롭게 이동/삭제 가능한 포인터라 이 매핑에 부합한다.
     //
     // GitBranch/GitTag의 name 필드는 GitRepository와 동일하게 "refs/heads/"/"refs/tags/" 접두어를
     // 붙인 형태로 채운다 — shortName이 그 접두어를 제거하는 것을 전제로 설계된 값 객체라(각 파일
@@ -536,10 +512,9 @@ class HgRepository(
     override fun createBranch(branchName: String, startPoint: String) {
         useHg { hg ->
             val name = branchName.removePrefix("refs/heads/")
-            // 코디네이터 리뷰(2026-09-08) — hg4j의 BookmarkCommand 자체는 "tip"을 막지 않지만, 실제
-            // hg CLI는 `hg bookmark tip`을 "the name 'tip' is reserved"로 거부한다(태그와 동일한
-            // 예약어 검사, mercurial의 scmutil.checknewlabel()이 bookmark/tag 양쪽에 공유됨) —
-            // createTag()의 동일한 가드와 대칭으로 여기도 지어내지 않고 실제 hg 동작을 재현한다.
+            // hg4j의 BookmarkCommand 자체는 "tip"을 막지 않지만, 실제 hg CLI는 `hg bookmark tip`을
+            // "the name 'tip' is reserved"로 거부한다(태그와 동일한 예약어 검사) —
+            // createTag()의 동일한 가드와 대칭으로 맞춘다.
             if (name == "tip") {
                 throw IllegalArgumentException("'tip'은 예약된 이름입니다")
             }
@@ -661,15 +636,11 @@ class HgRepository(
         return File(File(baseDir), "$ownerName/$projectName")
     }
 
-    // yona-wiki P3-20 — hg4j의 ArchiveCommand(zip/tar 아카이브 생성)는 파일시스템 목적지(File)만
-    // 받는 구조라 PlayRepository의 스트림(OutputStream) 시그니처와 바로 맞지 않는다 — 임시 파일에
-    // 실제로 쓴 뒤 그 내용을 OutputStream으로 복사하고 임시 파일을 정리한다. Git 쪽
-    // GitRepository.getArchive()와 동일한 사용자 경험(파일명은 컨트롤러가 결정, zip 엔트리는 최상위
-    // 디렉터리 접두어 없는 flat 경로)을 재현하기 위해 prefix를 빈 문자열로 강제한다 — hg4j
-    // ArchiveCommand의 기본 동작(destination 파일명에서 유도한 디렉터리 접두어를 붙이는 실제 hg
-    // 동작 재현)은 여기서는 원치 않는다. branchName 해석은 이 파일의 resolveRevisionNumber()를
-    // 그대로 재사용해 bookmark/named branch/hex/숫자 리비전/tip을 전부 지원한다. Git과 동일하게
-    // 해석 실패(존재하지 않는 브랜치) 시 조용히 빈 응답을 반환한다(예외를 던지지 않음).
+    // hg4j의 ArchiveCommand(zip/tar 아카이브 생성)는 파일시스템 목적지(File)만 받는 구조라
+    // PlayRepository의 스트림(OutputStream) 시그니처와 바로 맞지 않는다 — 임시 파일에 실제로 쓴 뒤
+    // 그 내용을 OutputStream으로 복사하고 임시 파일을 정리한다. GitRepository.getArchive()와 동일한
+    // 사용자 경험(zip 엔트리는 최상위 디렉터리 접두어 없는 flat 경로)을 위해 prefix를 빈 문자열로
+    // 강제한다. Git과 동일하게 해석 실패(존재하지 않는 브랜치) 시 조용히 빈 응답을 반환한다.
     override fun getArchive(os: OutputStream, branchName: String) {
         useHg { hg ->
             val revNum = resolveRevisionNumber(hg, branchName) ?: return@useHg
@@ -688,11 +659,9 @@ class HgRepository(
         }
     }
 
-    // yona-wiki P3-23 — Mercurial named branch(`hg branch`) 목록. bookmark(getRefNames()/
-    // getBranches())와는 완전히 별개의 개념이라(계획 문서 참고) 신설 메서드로 노출하고, 기존
-    // API는 건드리지 않는다. hg4j의 BranchesCommand는 closed된 branch를 기본적으로 숨기는데(실제
-    // hg CLI의 `hg branches` 기본 동작과 동일), 코드 브라우저 셀렉터도 동일하게 활성 branch만
-    // 보여주는 것이 맞다(브랜치 닫기 자체는 이번 티켓 범위 밖).
+    // Mercurial named branch(`hg branch`) 목록 — bookmark(getRefNames()/getBranches())와는 완전히
+    // 별개의 개념이다. hg4j의 BranchesCommand는 closed된 branch를 기본적으로 숨기는데(실제 hg CLI의
+    // `hg branches` 기본 동작과 동일), 코드 브라우저 셀렉터도 동일하게 활성 branch만 보여준다.
     override fun getNamedBranchNames(): List<String> {
         return useHg { hg -> hg.branches().call().map { "refs/heads/${it.branch}" } }
     }
@@ -708,21 +677,17 @@ class HgRepository(
         }
     }
 
-    // yona-wiki P3-23 — 코드브라우저 "편집"/"새 파일"(온라인 커밋, P1-111/P1-135) 쓰기 경로의
-    // Mercurial 대응. Git은 BareCommit(JGit)이 bare 저장소를 직접 다루는 별도 경로라 이 메서드를
-    // 거치지 않는다 — Mercurial은 bare 개념이 없어(파일 상단 주석 참고) 실제 작업 디렉터리에 파일을
-    // 쓰고 hg4j의 add()/commit() 포셀린으로 커밋하면 된다.
+    // 코드브라우저 "편집"/"새 파일"(온라인 커밋) 쓰기 경로의 Mercurial 대응. Git은 BareCommit(JGit)이
+    // bare 저장소를 직접 다루는 별도 경로라 이 메서드를 거치지 않는다 — Mercurial은 bare 개념이
+    // 없어 실제 작업 디렉터리에 파일을 쓰고 hg4j의 add()/commit() 포셀린으로 커밋하면 된다.
     //
-    // branchBookmark(yona의 git 스타일 "브랜치" = bookmark, P3-12 설계 결정)는 커밋 후 그 이름의
-    // bookmark를 새 커밋으로 전진시킨다(GitHub/BareCommit이 지정한 ref를 새 커밋으로 이동시키는
-    // 것과 동일한 사용자 경험 — 존재하지 않는 이름이면 새로 생성된다). "tip"/"default"/"HEAD"/빈
-    // 문자열은 실제 bookmark가 아닌 pseudo-ref라 bookmark화하지 않는다.
+    // branchBookmark(yona의 git 스타일 "브랜치" = bookmark)는 커밋 후 그 이름의 bookmark를 새
+    // 커밋으로 전진시킨다(존재하지 않는 이름이면 새로 생성된다). "tip"/"default"/"HEAD"/빈 문자열은
+    // 실제 bookmark가 아닌 pseudo-ref라 bookmark화하지 않는다.
     //
-    // namedBranchName은 P3-23이 신설한 필드 — 값이 있으면 커밋 전에 `hg branch <name>`으로 작업
-    // 디렉터리 상태를 바꿔 그 커밋이 새 named branch에 속하게 한다(Mercurial에서 named branch를
-    // "생성"하는 유일한 방법 — 별도 생성 커맨드가 없다, 티켓 배경 참고). 지정하지 않으면(null/빈
-    // 문자열) 현재 작업 디렉터리에 이미 설정된 branch를 그대로 쓴다(실제 `hg branch` sticky 동작과
-    // 동일 — 최초 저장소는 "default").
+    // namedBranchName은 값이 있으면 커밋 전에 `hg branch <name>`으로 작업 디렉터리 상태를 바꿔 그
+    // 커밋이 새 named branch에 속하게 한다(Mercurial에서 named branch를 "생성"하는 유일한 방법).
+    // 지정하지 않으면 현재 작업 디렉터리에 이미 설정된 branch를 그대로 쓴다.
     override fun commitTextFile(
         branchBookmark: String,
         namedBranchName: String?,
@@ -738,12 +703,10 @@ class HgRepository(
                 "잘못된 경로입니다: $path"
             }
 
-            // yona-wiki P3-23 실사용 검증 중 발견한 실제 버그 수정 — yona는 Mercurial을 push(hg
-            // unbundle 경유)로만 갱신하고 그 후 작업 디렉터리를 업데이트하지 않는다(파일 상단
-            // "bare 저장소 개념 없음" 주석 참고, 실제로는 클론 직후 상태처럼 부모가 null인 빈 작업
-            // 디렉터리로 남는다). 이 update() 없이 바로 커밋하면 새 커밋의 부모가 null이 되어(고아
-            // 루트 커밋) 기존에 저장소에 있던 다른 모든 파일이 그 커밋의 매니페스트에서 통째로
-            // 사라지는 실제 데이터 유실 버그를 만든다(실사용 검증 중 `hg log`로 직접 확인). 편집
+            // yona는 Mercurial을 push(hg unbundle 경유)로만 갱신하고 그 후 작업 디렉터리를
+            // 업데이트하지 않는다 — 실제로는 클론 직후 상태처럼 부모가 null인 빈 작업 디렉터리로
+            // 남는다. 이 update() 없이 바로 커밋하면 새 커밋의 부모가 null이 되어(고아 루트 커밋)
+            // 기존에 저장소에 있던 다른 모든 파일이 그 커밋의 매니페스트에서 통째로 사라진다. 편집
             // 화면에서 보고 있던 branchBookmark(또는 비어있으면 tip)로 먼저 작업 디렉터리를
             // 갱신해서 새 커밋이 그 리비전의 자식이 되게 한다.
             val baseRev = resolveRevisionNumber(hg, branchBookmark.ifBlank { "tip" }) ?: resolveRevisionNumber(hg, "tip")

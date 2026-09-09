@@ -25,13 +25,14 @@ import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.io.File
 import java.time.Instant
 
-// yona-wiki P3-22 — GitPostReceiveEventListener(domain/event/GitPostReceiveEvent.kt)의 Mercurial
-// 대응. 최종적으로 호출하는 서비스(NotificationEventRecorder/WebhookService/WatchService)는 git
-// 쪽과 완전히 동일한 것을 재사용한다 — 다른 점은 오직 "새로 들여온 커밋 목록을 어떻게 계산하는가"
-// (JGit RevWalk 대신 HgBookmarkAncestry의 저수준 Revlog 조상 판정)와 "웹훅 페이로드를 어떤 값
-// 객체로 감싸는가"(PushedCommits(JGit RevCommit) 대신 PushedHgCommits(hg4j HgCommit)) 뿐이다.
+// GitPostReceiveEventListener의 Mercurial 대응 — 최종적으로 호출하는 서비스
+// (NotificationEventRecorder/WebhookService/WatchService)는 git 쪽과 동일한 것을 재사용한다.
+// 다른 점은 "새로 들여온 커밋 목록을 어떻게 계산하는가"(JGit RevWalk 대신 HgBookmarkAncestry의
+// 저수준 Revlog 조상 판정)와 "웹훅 페이로드를 어떤 값 객체로 감싸는가"(PushedCommits 대신
+// PushedHgCommits) 뿐이다.
 @Component
 class HgPostReceiveEventListener(
     private val repositoryService: RepositoryService,
@@ -81,7 +82,7 @@ class HgPostReceiveEventListener(
     // git RevWalk(markStart(newId)/markUninteresting(oldId))와 동일한 목적 — Wire2Commands.
     // changelog()와 동일한 저수준 Revlog(00changelog.i/.d)로 실제 부모 사슬을 따라간다(hg4j 포셀린
     // HgCommit에는 부모 리비전이 노출되지 않으므로).
-    private fun parseCommitsFrom(repoDir: java.io.File, oldHex: String, newHex: String): List<NativeHgCommit> {
+    private fun parseCommitsFrom(repoDir: File, oldHex: String, newHex: String): List<NativeHgCommit> {
         val nativeRepo = NativeHgRepository(repoDir)
         try {
             val revlog = HgBookmarkAncestry.changelogRevlogOf(nativeRepo)

@@ -30,6 +30,7 @@ import com.github.yonaprojects.yona.domain.webhook.WebhookThreadRepository
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.watch.WatchService
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.SecureRandom
@@ -47,7 +48,7 @@ class ProjectServiceImpl(
     private val organizationRepository: OrganizationRepository,
     private val organizationUserRepository: OrganizationUserRepository,
     private val labelRepository: LabelRepository,
-    // P0-19: 프로젝트 삭제 계단식 정리(yona Project.delete())에 필요한 의존성.
+    // 프로젝트 삭제 계단식 정리에 필요한 의존성.
     private val issueRepository: IssueRepository,
     private val issueService: IssueService,
     private val issueLabelCategoryRepository: IssueLabelCategoryRepository,
@@ -61,9 +62,7 @@ class ProjectServiceImpl(
     private val pullRequestRepository: PullRequestRepository,
     private val pullRequestEventRepository: PullRequestEventRepository,
     private val pullRequestCommitRepository: PullRequestCommitRepository,
-    // yona FavoriteProject.java:41-50 updateFavoriteProject() 대응 (P2-27). [GL-models_FavoriteProject-008]
     private val favoriteProjectRepository: FavoriteProjectRepository,
-    // yona models/resource/ResourcePersistAdapter.java postDelete() 대응 (P1-147).
     private val watchService: WatchService,
     // 크로스플랫폼/운영 경로 설정 버그 수정 — 다른 서비스(RepositoryService 등)와 동일하게
     // 물리 저장소 base-dir을 설정으로 주입받는다. 이전에는 acceptTransfer/forkProject 두 곳에
@@ -73,14 +72,12 @@ class ProjectServiceImpl(
     private val gitBaseDir: String,
     @Value("\${yona.svn.base-dir:/tmp/yona/svn}")
     private val svnBaseDir: String,
-    // yona-wiki P3-12(Mercurial 지원) 1라운드.
     @Value("\${yona.hg.base-dir:/tmp/yona/hg}")
     private val hgBaseDir: String
 ) : ProjectService {
 
-    // yona Project.findByOwnerAndProjectName()의 예전 위치(previousOwnerLoginId/previousName) 폴백
-    // 대응 (P1-76) — 프로젝트가 이전/개명된 뒤에도 이 서비스 메서드를 쓰는 모든 호출부(SVN/Git
-    // 인가 필터 등)가 자동으로 예전 owner/name도 계속 찾을 수 있다.
+    // 프로젝트가 이전/개명된 뒤에도 이 서비스 메서드를 쓰는 모든 호출부(SVN/Git 인가 필터 등)가
+    // 자동으로 예전 owner/name도 계속 찾을 수 있다.
     override fun findByOwnerAndName(owner: String, name: String): Project? {
         return projectRepository.findByOwnerAndNameOrPreviousPlace(owner, name).orElse(null)
     }
@@ -91,7 +88,6 @@ class ProjectServiceImpl(
 
     @Transactional
     override fun createProject(project: Project, creator: User): Project {
-        // yona models/Project.java:62 @ExConstraints.Restricted({".", "..", ".git"}) 대응 (P1-145).
         if (ProjectNameValidator.isRestricted(project.name)) {
             throw IllegalArgumentException("Project name is restricted: ${project.name}")
         }
@@ -110,7 +106,6 @@ class ProjectServiceImpl(
             projectUserRepository.save(projectUser)
             savedProject.projectUsers.add(projectUser)
         }
-        // yona ProjectApp.java:191 "RepositoryService.createRepository(project)" 대응 (P0-26).
         // 이 호출이 없으면 DB 행만 생기고 물리 bare 저장소가 안 만들어져, 이후 README 커밋 등
         // 저장소 쓰기 작업이 BareCommit의 조용한 catch(Exception)에 가려진 채 전부 실패한다.
         repositoryService.getRepository(savedProject).create()
@@ -134,10 +129,8 @@ class ProjectServiceImpl(
         val project = projectRepository.findById(projectId)
             .orElseThrow { IllegalArgumentException("프로젝트를 찾을 수 없습니다.") }
 
-        // yona ProjectApp.settingProject()의 "!project.name.equals(updatedProject.name)" 개명 분기 대응
-        // (P1-144). validateWhenUpdate()의 projectNameChangeable() 중복 검사를 가장 먼저 수행해, 다른
-        // 필드가 바뀌기 전에 실패하면 아무 것도 반영되지 않게 한다(legacy도 컨트롤러 최상단에서 폼
-        // 검증에 실패하면 즉시 badRequest로 돌아가고 어떤 필드도 적용하지 않는다).
+        // 개명 검사를 가장 먼저 수행해, 다른 필드가 바뀌기 전에 실패하면 아무 것도 반영되지
+        // 않게 한다.
         if (param.name != null && param.name != project.name) {
             val owner = project.owner ?: ""
             if (projectRepository.existsByOwnerIgnoreCaseAndNameIgnoreCaseAndIdNot(owner, param.name, projectId)) {
@@ -156,9 +149,7 @@ class ProjectServiceImpl(
 
             project.name = param.name
 
-            // yona FavoriteProject.updateFavoriteProject(updatedProject) 대응 — 이 프로젝트를
-            // 즐겨찾기한 모든 사용자의 비정규화된 owner/projectName도 함께 최신화한다(acceptTransfer의
-            // P2-27 이식과 동일한 메커니즘, 개명 경로 본연의 호출 지점).
+            // 이 프로젝트를 즐겨찾기한 모든 사용자의 비정규화된 owner/projectName도 함께 최신화한다.
             favoriteProjectRepository.findByProjectId(project.id!!).forEach {
                 it.owner = project.owner ?: ""
                 it.projectName = project.name ?: ""
@@ -196,24 +187,20 @@ class ProjectServiceImpl(
         val project = projectRepository.findById(projectId)
             .orElseThrow { IllegalArgumentException("프로젝트를 찾을 수 없습니다.") }
 
-        // yona Project.delete():754-759 deleteProjectTransfer() 대응.
         projectTransferRepository.deleteAll(projectTransferRepository.findByProjectId(projectId))
 
-        // yona Project.delete():779-783 deleteCommentThreads() 대응 — thread.project==이 프로젝트인
-        // 스레드를 지운다(reviewComments는 CommentThread 엔티티의 cascade=ALL, orphanRemoval=true로
-        // 함께 삭제됨). thread.project가 다른 프로젝트(fork가 제3 프로젝트로 보낸 PR 등)인 스레드는
-        // 이 단계로는 안 잡히고, 아래 deletePullRequestCascade()가 PR 단위로 마저 정리한다(P2-37,
-        // legacy CommentThread.deleteByPullRequest()와 동일한 이중 커버리지).
+        // thread.project==이 프로젝트인 스레드를 지운다(reviewComments는 CommentThread 엔티티의
+        // cascade=ALL, orphanRemoval=true로 함께 삭제됨). thread.project가 다른 프로젝트(fork가 제3
+        // 프로젝트로 보낸 PR 등)인 스레드는 이 단계로는 안 잡히고, 아래 deletePullRequestCascade()가
+        // PR 단위로 마저 정리한다.
         commentThreadRepository.deleteAll(commentThreadRepository.findByProject(project))
 
-        // yona Project.delete():765-777 deletePullRequests() 대응 — 이 프로젝트가 보낸(fromProject)
-        // PR과 받은(toProject) PR을 모두 지운다.
+        // 이 프로젝트가 보낸(fromProject) PR과 받은(toProject) PR을 모두 지운다.
         (pullRequestRepository.findByFromProject(project) + pullRequestRepository.findByToProject(project))
             .forEach { deletePullRequestCascade(it) }
 
-        // yona Project.delete():608-624 forkingProjects 루프 대응 — 이 프로젝트를 fork한 자식
-        // 프로젝트는 삭제하지 않고, legacy와 동일하게 그 fork가 관여한 PR만 정리한 뒤(fork.deletePullRequests())
-        // 원본 연결을 끊는다(fork.deleteOriginal()) — fork 프로젝트 자체나 그 이슈/게시글 등은 보존.
+        // 이 프로젝트를 fork한 자식 프로젝트는 삭제하지 않고, 그 fork가 관여한 PR만 정리한 뒤
+        // 원본 연결을 끊는다 — fork 프로젝트 자체나 그 이슈/게시글 등은 보존.
         project.forkingProjects.forEach { fork ->
             (pullRequestRepository.findByFromProject(fork) + pullRequestRepository.findByToProject(fork))
                 .forEach { deletePullRequestCascade(it) }
@@ -255,17 +242,12 @@ class ProjectServiceImpl(
         val members = projectUserRepository.findByProjectId(projectId)
         projectUserRepository.deleteAll(members)
 
-        // yona models/resource/ResourcePersistAdapter.java postDelete() 대응 (P1-147).
         watchService.deleteAll(ResourceType.PROJECT, projectId.toString())
 
-        // TASK-0421(P3-02 11라운드, 버그9) — DB Project 행만 지우고 물리 bare 저장소 디렉터리
-        // ({git|svn}.base-dir/{owner}/{name}.git)를 그대로 남겨두면, 같은 owner/name으로 재생성하거나
-        // (createProject의 repositoryService.getRepository(project).create()) 그 이름으로 새로 fork를
-        // 시도할 때(forkProject의 cloneHardLinkedRepository -> Files.createLink) 이미 존재하는
-        // 디렉터리/파일과 충돌해 FileAlreadyExistsException이 그대로 500으로 튄다(우아한 4xx 거절이
-        // 아님). changeVCS()가 VCS 전환 시 이미 이 패턴(getRepository(project).delete() 후 재생성)을
-        // 쓰고 있어 동일하게 맞춘다 — 물리 저장소가 이미 없거나 삭제 중 오류가 나도(예: 권한 문제)
-        // DB 정리 자체는 막지 않는다.
+        // DB Project 행만 지우고 물리 bare 저장소 디렉터리를 남겨두면, 같은 owner/name으로
+        // 재생성하거나 새로 fork를 시도할 때 이미 존재하는 디렉터리/파일과 충돌해
+        // FileAlreadyExistsException이 500으로 튄다. changeVCS()와 동일한 패턴을 쓴다 — 물리
+        // 저장소가 이미 없거나 삭제 중 오류가 나도 DB 정리 자체는 막지 않는다.
         try {
             repositoryService.getRepository(project).delete()
         } catch (e: Exception) {
@@ -275,19 +257,14 @@ class ProjectServiceImpl(
         projectRepository.delete(project)
     }
 
-    // yona Project.delete():765-777의 PullRequest 삭제 단위 동작(CommentThread.deleteByPullRequest()
-    // + pullRequest.delete()) 대응 (P2-37 정정). legacy의 CommentThread.deleteByPullRequest()는
     // pullRequest FK만으로 스레드를 찾아 thread.project 값과 무관하게 지운다 — 위쪽
     // deleteCommentThreads 단계(findByProject)는 project==이 프로젝트인 스레드만 지우므로, fork가
-    // 제3 프로젝트로 보낸 PR(thread.project가 그 제3 프로젝트)이나 이 프로젝트 자신이 보낸
-    // PR(toProject≠이 프로젝트, thread.project가 상대 프로젝트)에 달린 스레드는 project 단위
-    // 정리로는 잡히지 않는다. findByProject 단계에서 이미 지워진 스레드는 여기서 다시 조회되지
-    // 않으므로(project==이 프로젝트인 스레드는 이미 없음) 중복 삭제 걱정 없이 그대로 재사용 가능.
+    // 제3 프로젝트로 보낸 PR이나 이 프로젝트 자신이 보낸 PR에 달린 스레드는 project 단위 정리로는
+    // 잡히지 않는다.
     private fun deletePullRequestCascade(pullRequest: PullRequest) {
         commentThreadRepository.deleteAll(commentThreadRepository.findByPullRequest(pullRequest))
         pullRequestEventRepository.deleteAll(pullRequestEventRepository.findByPullRequestOrderByCreatedAsc(pullRequest))
         pullRequestCommitRepository.deleteAll(pullRequestCommitRepository.findByPullRequest(pullRequest))
-        // yona models/resource/ResourcePersistAdapter.java postDelete() 대응 (P1-147).
         watchService.deleteAll(ResourceType.PULL_REQUEST, pullRequest.id.toString())
         pullRequestRepository.delete(pullRequest)
     }
@@ -304,8 +281,7 @@ class ProjectServiceImpl(
         val destOrg = projectRepository.findByOwner(destination) // 기존에 조직 등으로 존재하거나 owner로 식별 가능한지
         
         val key = (1..50).map { (('a'..'z') + ('A'..'Z') + ('0'..'9')).random() }.joinToString("")
-        // yona Project.newProjectName(destination, name) 대응 (P1-72) — 목적지에 이미 동명
-        // 프로젝트가 있으면 name-1, name-2...로 충돌이 없을 때까지 자동으로 뒤에 숫자를 붙인다.
+        // 목적지에 이미 동명 프로젝트가 있으면 name-1, name-2...로 충돌이 없을 때까지 뒤에 숫자를 붙인다.
         val newProjName = resolveNewProjectName(destination, project.name)
 
         val existing = projectTransferRepository.findByProjectAndSenderAndDestination(project, sender, destination)
@@ -327,7 +303,6 @@ class ProjectServiceImpl(
         }
     }
 
-    // yona Project.recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom() 대응 (P1-76).
     private fun recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom(
         project: Project,
         currentOwner: String,
@@ -343,7 +318,6 @@ class ProjectServiceImpl(
         }
     }
 
-    // yona Project.newProjectName(loginId, projectName) 대응 (P1-72).
     private fun resolveNewProjectName(destination: String, name: String): String {
         if (!projectRepository.findByOwnerAndName(destination, name).isPresent) {
             return name
@@ -381,20 +355,14 @@ class ProjectServiceImpl(
         val newName = pt.newProjectName
         val senderId = pt.sender.id!!
 
-        // yona Project.recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom() 대응 (P1-76) —
-        // 마지막 이전/개명 기록으로부터 24시간이 지났을 때만(또는 최초일 때만) 예전 위치를 갱신한다.
-        // 짧은 시간 내 연속 이전이 일어나도 "예전 위치" 포인터가 계속 최신으로만 덮어써지지 않도록
-        // 방지하는 legacy의 의도를 그대로 재현.
+        // 마지막 이전/개명 기록으로부터 24시간이 지났을 때만(또는 최초일 때만) 예전 위치를 갱신한다
+        // — 짧은 시간 내 연속 이전이 일어나도 "예전 위치" 포인터가 계속 최신으로만 덮어써지지
+        // 않도록 방지한다.
         recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom(project, originalOwner, originalName)
 
-        // 물리 저장소 폴더명 이동
-        // yona-wiki P3-12(Mercurial 지원) 2라운드 — 1라운드에서 발견한 기존 결함을 수정: 아래
-        // sourceDir/targetDir이 vcs 종류와 무관하게 항상 ".git" 접미사를 붙이던 것을, git만 접미사를
-        // 붙이도록 고쳤다. SvnRepository.getDirectory()/HgRepository.getDirectory()는 실제로는
-        // 접미사 없는 "$owner/$name" 경로를 쓰는데, 이 메서드는 항상 ".git"을 붙여 SVN/Mercurial
-        // 프로젝트는 sourceDir.exists()가 거짓이 되어 물리 이동이 조용히 no-op되고 있었다(git만
-        // 실제로 이동됨 — DB 메타데이터는 갱신되는데 물리 저장소는 옛 경로에 그대로 남고 새 경로
-        // 밑에는 빈 디렉터리가 새로 생기는 형태의 버그).
+        // 물리 저장소 폴더명 이동 — SvnRepository/HgRepository는 접미사 없는 "$owner/$name" 경로를
+        // 쓰므로, git만 ".git" 접미사를 붙여야 한다(그렇지 않으면 SVN/Mercurial 프로젝트는
+        // sourceDir.exists()가 거짓이 되어 물리 이동이 조용히 no-op된다).
         val vcsUpper = project.vcs?.uppercase()
         val baseDir = when (vcsUpper) {
             "SUBVERSION", "SVN" -> svnBaseDir
@@ -415,18 +383,12 @@ class ProjectServiceImpl(
         // DB 메타데이터 변경 반영
         project.owner = newOwner
         project.name = newName
-        // yona ProjectApp.acceptTransfer()의 "project.organization = newOwnerOrg 또는 null" 대응
-        // (P1-73) — 목적지가 조직이면 그 조직으로, 개인이면 null로 명시적으로 갱신한다.
+        // 목적지가 조직이면 그 조직으로, 개인이면 null로 명시적으로 갱신한다.
         project.organization = organizationRepository.findByName(newOwner).orElse(null)
         projectRepository.save(project)
 
-        // yona FavoriteProject.java:41-50 updateFavoriteProject() 대응 (P2-27) — 이 프로젝트를 [GL-models_FavoriteProject-008]
-        // 즐겨찾기한 모든 사용자의 비정규화된 owner/projectName도 함께 갱신한다. yona는 이 동기화를
-        // 동일 소유자 내 개명(ProjectApp.settingProject())에서만 호출하고 소유권 이전(acceptTransfer())
-        // 에서는 호출하지 않는데, 즐겨찾기 표시가 이관 후에도 옛 owner/projectName으로 남는 yona
-        // 자체의 누락으로 보인다. yona는 개명 전용 경로 없이 이관(acceptTransfer)이 이름/소유자
-        // 변경의 유일한 경로라, 관심사(즐겨찾기 표시 최신화)와 메커니즘은 yona 원본 그대로 여기서
-        // 수행한다.
+        // 이 프로젝트를 즐겨찾기한 모든 사용자의 비정규화된 owner/projectName도 함께 갱신한다 —
+        // 그렇지 않으면 즐겨찾기 표시가 이관 후에도 옛 owner/projectName으로 남는다.
         favoriteProjectRepository.findByProjectId(project.id!!).forEach {
             it.owner = project.owner ?: ""
             it.projectName = project.name ?: ""
@@ -462,11 +424,7 @@ class ProjectServiceImpl(
             }
         }
 
-        // yona ProjectApp.disableProjectTransferLink()의 ProjectTransfer.deleteExisting(project,
-        // pt.sender, pt.destination) 대응 (P1-74) — 실제 쿼리 조건이 pt 자신과 동일한
-        // (project, sender, destination) 3중 키라, "완료된 이관 요청을 DB에서 삭제"하는 게 실제
-        // 동작이다(accepted=true로 남겨두지 않음). in-memory 상의 pt.accepted=true 대입은 yona에서도
-        // 삭제 직전에만 존재하는 값이라(영속 안 됨) 그대로 재현하되, 영속화는 save가 아니라 delete로 한다.
+        // 완료된 이관 요청은 accepted=true로 남겨두지 않고 DB에서 삭제한다.
         pt.accepted = true
         projectTransferRepository.delete(pt)
     }
@@ -482,16 +440,11 @@ class ProjectServiceImpl(
         return orgUser.role.id == RoleType.ORG_ADMIN.roleType
     }
 
-    // TASK-0418 — 원래 @Transactional(기본 rollbackFor)만 있었는데, 이 메서드는 DB 저장(projectRepository.save,
-    // projectUserRepository.save) 다음에 java.nio.file.Files.createLink()가 던지는 체크 예외
-    // (FileAlreadyExistsException/IOException)로 실패할 수 있다. Spring 트랜잭션의 기본 롤백 규칙은
-    // RuntimeException/Error만 롤백 대상으로 삼고 체크 예외는 커밋 대상으로 취급하므로("체크 예외는
-    // 복구 가능한 정상적인 실패"라는 EJB 관례를 계승), 파일시스템 작업이 실패해도 이미 실행된 DB
-    // 저장은 그대로 커밋되어 owner+name이 중복된 Project 행이 남았다(실서버 재현: 자기 자신에게 fork
-    // 시도 → FileAlreadyExistsException → 500이지만 DB에는 중복 프로젝트가 남고, 이후 그 프로젝트를
-    // 대상으로 한 모든 스코프 API가 ApiTokenAuthenticationFilter의 findByOwnerAndName에서
-    // IncorrectResultSizeDataAccessException으로 연쇄 500). rollbackFor = [Exception::class]로
-    // 체크 예외도 롤백 대상에 포함시켜 부분 커밋 자체를 막는다.
+    // 이 메서드는 DB 저장 다음에 Files.createLink()가 체크 예외(FileAlreadyExistsException/
+    // IOException)로 실패할 수 있는데, Spring 트랜잭션의 기본 롤백 규칙은 RuntimeException/Error만
+    // 대상으로 삼아 체크 예외는 커밋 대상으로 취급한다 — 그러면 파일시스템 작업이 실패해도 이미
+    // 실행된 DB 저장은 커밋되어 owner+name이 중복된 Project 행이 남는다. rollbackFor =
+    // [Exception::class]로 체크 예외도 롤백 대상에 포함시켜 부분 커밋을 막는다.
     @Transactional(rollbackFor = [Exception::class])
     override fun forkProject(
         projectId: Long,
@@ -507,10 +460,8 @@ class ProjectServiceImpl(
         val destOwner = if (destinationOwner.isNotBlank()) destinationOwner else forker.loginId
         val destName = if (destinationName.isNotBlank()) destinationName else original.name
 
-        // TASK-0418 — 목적지가 이미 존재하면(대표적으로 "목적지 미지정 + 이미 그 프로젝트의
-        // owner 본인" 시나리오) 파일시스템 하드링크를 시도하기도 전에 400 계열로 깔끔하게
-        // 거절한다. 위 rollbackFor 보강과는 별개로 필요하다 — 애초에 예측 가능한 충돌이므로
-        // 트랜잭션 롤백에 기대는 대신 사전 검증으로 막는 게 더 명확하고 저렴하다.
+        // 목적지가 이미 존재하면 파일시스템 하드링크를 시도하기도 전에 400 계열로 거절한다 —
+        // 예측 가능한 충돌이므로 트랜잭션 롤백에 기대는 대신 사전 검증으로 막는 게 더 저렴하다.
         if (projectRepository.findByOwnerAndName(destOwner, destName).isPresent) {
             throw IllegalArgumentException("'$destOwner/$destName' 프로젝트가 이미 존재합니다.")
         }
@@ -559,17 +510,11 @@ class ProjectServiceImpl(
         if (sourceDir.exists()) {
             try {
                 cloneHardLinkedRepository(sourceDir, targetDir)
-            } catch (e: java.io.IOException) {
-                // yona-wiki P3-02 14라운드 — 위 findByOwnerAndName() 사전 체크와 실제 하드링크
-                // 사이에는 시간차가 있다(TOCTOU). 같은 프로젝트를 동시에 두 번 fork하면(더블클릭
-                // 등) 두 요청 모두 "존재하지 않음"으로 사전 체크를 통과한 뒤 같은 물리 경로
-                // ($destOwner/$destName.git)에 하드링크를 시도해, 나중 요청이
-                // FileAlreadyExistsException(IOException의 하위 타입)으로 실패한다 — 그동안 이
-                // 예외가 잡히지 않아 500 Internal Server Error로 그대로 노출됐다(실서버 동시요청
-                // 3개로 재현: 1건 성공/2건 500). 이 메서드는 @Transactional이라 예외가 전파되면
-                // 방금 저장한 Project/ProjectUser row는 안전하게 롤백되므로(DB에 중복 row가
-                // 남지 않는다), 남은 건 사용자에게 보여줄 응답뿐이다 — 순차 중복 fork(위 사전
-                // 체크)와 동일한 메시지로 통일해 500 대신 400으로 깔끔하게 거절한다.
+            } catch (e: IOException) {
+                // 위 findByOwnerAndName() 사전 체크와 실제 하드링크 사이에는 시간차가 있다(TOCTOU)
+                // — 동시에 두 번 fork하면 나중 요청이 FileAlreadyExistsException으로 실패한다. 이
+                // 메서드는 @Transactional이라 예외가 전파되면 방금 저장한 row는 롤백되므로, 순차
+                // 중복 fork와 동일한 메시지로 통일해 500 대신 400으로 거절한다.
                 throw IllegalArgumentException("'$destOwner/$destName' 프로젝트가 이미 존재합니다.")
             }
         }
@@ -616,7 +561,6 @@ class ProjectServiceImpl(
             // ignore
         }
 
-        // yona-wiki P3-12 1라운드 — GIT<->SUBVERSION 2지선다였던 토글을 3종 순환으로 확장.
         project.vcs = nextVcsInCycle(project.vcs)
 
         repositoryService.getRepository(project).create()

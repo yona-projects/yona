@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.domain.sshkey
 
 import com.github.yonaprojects.yona.config.vcs.RepoAccessPolicy
+import com.github.yonaprojects.yona.domain.deploykey.DeployKey
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyRepository
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyService
 import com.github.yonaprojects.yona.domain.project.Project
@@ -23,7 +24,7 @@ class SshAuthServiceImpl(
     // 가리켜야 한다.
     @Value("\${yona.git.base-dir:/tmp/yona/git}")
     private val baseDir: String,
-    // yona-wiki P3-18/P3-12 — RepositoryService/HgRepository.kt와 동일한 프로퍼티/기본값.
+    // RepositoryService/HgRepository.kt와 동일한 프로퍼티/기본값.
     @Value("\${yona.hg.base-dir:/tmp/yona/hg}")
     private val hgBaseDir: String
 ) : SshAuthService {
@@ -144,7 +145,7 @@ class SshAuthServiceImpl(
     // 자체로 read/write를 구분할 수 없으므로) 연결 자체를 막지 않고 isWrite에만 반영해, 실제
     // push 시도는 HgSshProtocolHandler의 pre-changegroup 훅에서 거부한다.
     private fun authorizeHgForDeployKey(
-        deployKey: com.github.yonaprojects.yona.domain.deploykey.DeployKey,
+        deployKey: DeployKey,
         project: Project
     ): SshCommandAuthorization {
         if (deployKey.project?.id != project.id) {
@@ -190,7 +191,7 @@ class SshAuthServiceImpl(
     }
 
     private fun authorizeForDeployKey(
-        deployKey: com.github.yonaprojects.yona.domain.deploykey.DeployKey,
+        deployKey: DeployKey,
         project: Project,
         isWrite: Boolean,
         service: String

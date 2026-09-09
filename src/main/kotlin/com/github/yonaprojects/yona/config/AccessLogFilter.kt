@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * yona utils/AccessLogger.java 대응 (P2-48). Apache Combined Log Format으로 매 요청을 로깅한다.
@@ -33,7 +36,7 @@ class AccessLogFilter : OncePerRequestFilter() {
                 "%s - %s [%s] \"%s %s %s\" %d - %s %s %dms",
                 request.remoteAddr,
                 orHyphen(username),
-                DATE_FORMAT.get().format(java.util.Date()),
+                DATE_FORMAT.get().format(Date()),
                 request.method,
                 request.requestURI,
                 request.protocol,
@@ -54,7 +57,7 @@ class AccessLogFilter : OncePerRequestFilter() {
 
         // SimpleDateFormat은 스레드-세이프하지 않으므로 요청마다 새로 만들지 않고 스레드별로 재사용한다.
         private val DATE_FORMAT = ThreadLocal.withInitial {
-            java.text.SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", java.util.Locale.ENGLISH)
+            SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH)
         }
 
         fun orHyphen(value: String?): String = if (value.isNullOrEmpty()) "-" else value

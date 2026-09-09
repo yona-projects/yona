@@ -67,9 +67,6 @@ class PullRequestViewController(
     private val attachmentRepository: AttachmentRepository
 ) {
     // 이슈 자동 닫기 정규식 패턴 (대소문자 구분 없이 close(s/d), fix(es/ed), resolve(s/d) #숫자).
-    // "fix[e[s|d]]?" 부분이 대괄호를 중첩해 문자클래스로 잘못 해석되는 바람에(정규식은 [] 안에서
-    // []를 중첩 지원하지 않음) fix/fixes/fixed 중 어느 것도 실제로 매치하지 못하던 실버그를
-    // 커버리지 감사 중 발견해 수정(TASK-0270, 사용자 지시로 기능은 유지하고 정규식만 고침).
     private val closePattern = "(?i)(?:close[s|d]?|fix(?:es|ed)?|resolve[s|d]?)\\s+#(\\d+)".toRegex()
 
 
@@ -289,7 +286,7 @@ class PullRequestViewController(
         // render(key, project, type)는 컨텍스트 인지형 error/notfound.html로 귀결되지만,
         // PULL_REQUEST.resource()=="pull_request"는 notfound.html의 4개 targetType case(issue_post/
         // board_post/milestone/code) 중 어느 것과도 매치되지 않아 항상 제네릭 문구로 빠진다 —
-        // targetType을 비워 그 실제 도달 분기를 그대로 재현한다(프로젝트 헤더/메뉴는 유지).
+        // targetType을 비워 그 분기를 그대로 재현한다(프로젝트 헤더/메뉴는 유지).
         val pullRequest = pullRequestService.getPullRequest(project.id!!, number) ?: run {
             model.addAttribute("project", project)
             return "error/notfound"
@@ -301,11 +298,8 @@ class PullRequestViewController(
             null
         }
 
-        // legacy git/view.scala.html의 renderEventsOnPullRequest(pull) + partial_pull_request_event.
-        // scala.html 대응(P2-39/P1-106 범위 재정정) — 이전 세션은 legacy가 PULL_REQUEST_COMMIT_CHANGED를
-        // "case _ => {}"로 제외한다고 잘못 기록했으나(P2-39 코멘트), legacy partial_pull_request_event.
-        // scala.html을 다시 대조해보면 COMMIT_CHANGED에 대한 전용 case가 있어 실제로는 렌더링한다 —
-        // 이번 재작업에서 필터에 포함시켜 바로잡는다.
+        // legacy partial_pull_request_event.scala.html에는 PULL_REQUEST_COMMIT_CHANGED 전용 렌더링
+        // case가 있다 — 필터에 포함시킨다.
         val renderedEventTypes = setOf(
             EventType.PULL_REQUEST_STATE_CHANGED,
             EventType.PULL_REQUEST_MERGED,
@@ -391,8 +385,8 @@ class PullRequestViewController(
         model.addAttribute("canDeleteBranch", canDeleteBranch)
         model.addAttribute("canRestoreBranch", canRestoreBranch)
 
-        // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub PR 페이지의 리뷰 상태 표시(초록
-        // 체크=승인, 빨간 X=변경요청) 대응. 최신순으로 보여준다(활동 로그 성격 — GitHub의 Conversation
+        // GitHub PR 페이지의 리뷰 상태 표시(초록 체크=승인, 빨간 X=변경요청) 대응. 최신순으로
+        // 보여준다(활동 로그 성격 — GitHub의 Conversation
         // 탭이 리뷰 이벤트를 시간순으로 나열하는 것과 동일). require_approvals 정책 판단과 동일한
         // 알고리즘(getLatestReviewStates, 리뷰어별 최신 APPROVE/REQUEST_CHANGES만 유효)을 그대로
         // 재사용해 화면에도 일관된 "현재 승인 상태"를 보여준다.
@@ -446,7 +440,7 @@ class PullRequestViewController(
     // yona PullRequestApp.newPullRequestForm(...)?fromBranch=...&toBranch=... 대응(그룹11 #167/#168) —
     // git/partial_recently_pushed_branches.scala.html의 "풀 리퀘스트 보내기" 버튼이 이 쿼리 파라미터로
     // 브랜치를 미리 채워 링크한다. fromProjectId/toProjectId 쿼리로 fork 프로젝트 간(cross-fork) PR
-    // 생성도 지원한다(Project.associationProjects 대응, TASK-0263에서 완성).
+    // 생성도 지원한다(Project.associationProjects 대응).
     @GetMapping("/{owner}/{projectName}/pull/new")
     fun createPullRequestForm(
         @PathVariable owner: String,
@@ -469,7 +463,7 @@ class PullRequestViewController(
             // 메시지 키가 아닌 리터럴 영어 문장이라는 legacy의 특이 케이스다. Thymeleaf #{...}는
             // 실제 메시지 키를 요구해 리터럴 문자열을 그대로 재현할 수 없어, 같은 "프로젝트
             // 리소스에 대한 권한 없음" 성격의 다른 호출부들과 동일하게 error/forbidden(project)로
-            // 단순화한다(문서화된 근사치, #47).
+            // 단순화한다.
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -540,13 +534,10 @@ class PullRequestViewController(
         }
     }
 
-    // yona PullRequestApp.mergeResult() 대응 (#178, TASK-0257). legacy 라우트
-    // "GET /:ownerName/:project/newPullRequest/mergeResult"의 대응 경로. PR 생성/수정 화면에서
-    // from/to 브랜치를 바꿀 때마다 AJAX(GET, query string)로 호출해 커밋 프리뷰 + 충돌 여부 조각을
-    // 돌려받는다. fromProjectId/toProjectId로 연관 프로젝트(fork) 간 PR도 지원한다
-    // (createPullRequestForm()과 동일한 Project.associationProjects 기반 해석, TASK-0263에서 완성).
-    // legacy validateBeforePullRequest()(ProjectUser.isGuest 체크) 대응은 createPullRequestForm()과
-    // 동일한 멤버/그룹 접근 체크를 재사용한다.
+    // PR 생성/수정 화면에서 from/to 브랜치를 바꿀 때마다 AJAX(GET, query string)로 호출해 커밋
+    // 프리뷰 + 충돌 여부 조각을 돌려받는다. fromProjectId/toProjectId로 연관 프로젝트(fork) 간
+    // PR도 지원한다(createPullRequestForm()과 동일한 Project.associationProjects 기반 해석).
+    // 접근 체크는 createPullRequestForm()과 동일한 멤버/그룹 체크를 재사용한다.
     @GetMapping("/{owner}/{projectName}/pull/mergeResult")
     fun mergeResult(
         @PathVariable owner: String,
@@ -682,13 +673,11 @@ class PullRequestViewController(
         return viewChangesInternal(owner, projectName, number, commitId, authentication, model)
     }
 
-    // yona PullRequest.java:1063-1103 getCodeCommentThreadsForChanges() + git/viewChanges.scala.html:142
-    // renderNonRangedThreads(pull.commentThreads.toList, commitId, ...) 대응 (P1-114). yona는 diff에 [GL-models_PullRequest-100]
-    // 라인 단위로 붙는 CodeCommentThread(ranged)는 getCodeCommentThreadsForChanges()로 outdated/커밋
-    // 필터링해 노출하고, PR 전체에 붙는 NonRangedCodeCommentThread는 필터링 없이(단 commitId 지정 시
-    // 그 커밋 것만) 그대로 노출한다 — 서로 다른 두 목록이다. yona 템플릿(pullrequest/view.html,
-    // code/diff.html)은 이 둘을 하나의 commentThreads 모델 속성으로 합쳐서 쓰므로, 여기서 두 필터를
-    // 각각 적용한 뒤 합쳐서 반환한다.
+    // diff에 라인 단위로 붙는 CodeCommentThread(ranged)는 outdated/커밋 필터링해 노출하고, PR
+    // 전체에 붙는 NonRangedCodeCommentThread는 필터링 없이(단 commitId 지정 시 그 커밋 것만)
+    // 그대로 노출한다 — 서로 다른 두 목록이다. 템플릿(pullrequest/view.html, code/diff.html)은
+    // 이 둘을 하나의 commentThreads 모델 속성으로 합쳐서 쓰므로, 여기서 두 필터를 각각 적용한 뒤
+    // 합쳐서 반환한다.
     private fun buildCommentThreadsForChanges(pullRequest: PullRequest, commitId: String?): List<CommentThread> {
         val allThreads = commentThreadRepository.findByPullRequest(pullRequest)
 
@@ -766,8 +755,8 @@ class PullRequestViewController(
     }
 
     companion object {
-        // yona models/PullRequest.java:66 ITEMS_PER_PAGE 대응 (P1-105) — PR 목록은 AbstractPostingApp과
-        // 별개의 독립 상수(값은 동일 15)를 쓰며, 고정값이고 클라이언트 오버라이드가 없다.
+        // PR 목록은 AbstractPostingApp과 별개의 독립 상수(값은 동일 15)를 쓰며, 고정값이고
+        // 클라이언트 오버라이드가 없다.
         private const val ITEMS_PER_PAGE = 15
     }
 }
