@@ -271,6 +271,158 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
             }
         }
 
+        // 사용자 요청(2026-09-09)으로 P3-02 계획 문서의 "미해결" 리스크 항목(search/organizations는
+        // 저장소 단위 3세그먼트 모델에 맞지 않아 Fine-grained PAT이 인증되지 않는다)을 재조사한 결과,
+        // 그 항목이 기록된 이후(16라운드) 정확히 이 문제를 풀기 위한 AccountLevelTarget 메커니즘이
+        // 이미 만들어져 있었음을 확인 — 새 설계 없이 그 메커니즘을 확장하는 것만으로 해소 가능하다.
+        // 현재는 이 URL들이 ApiTokenAuthenticationFilter의 어떤 패턴과도 매칭되지 않아 PAT 헤더가
+        // 있어도 인증되지 않고(레거시 findByToken이 스코프 토큰의 원문을 모름), 그 결과 익명
+        // 취급되어 apiResourceServerSecurityFilterChain의 anyRequest().authenticated()에 막혀
+        // 401이 난다(스코프 부족의 403이 아니라 아예 인증 자체가 안 되는 401).
+        describe("search/organizations 네임스페이스(P3-36)의 스코프 인가") {
+            it("GET /api/v1/search/issues는 ISSUES 스코프가 없는 토큰을 403으로 거부해야 한다") {
+                val owner = userRepository.save(
+                    User(loginId = "search-issues-owner2", name = "검색이슈권한없음2", email = "search-issues-owner2@example.com")
+                )
+                val raw = "search-issues-no-issues-scope"
+                tokenFor(owner, raw, allRepositories = true, scopeGroup = ApiTokenScopeGroup.CODE, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/search/issues").param("q", "hello").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 403
+            }
+
+            it("GET /api/v1/search/issues는 ISSUES:READ 토큰을 200으로 통과시켜야 한다") {
+                val owner = userRepository.save(
+                    User(loginId = "search-issues-owner3", name = "검색이슈권한있음", email = "search-issues-owner3@example.com")
+                )
+                val raw = "search-issues-read"
+                tokenFor(owner, raw, allRepositories = false, scopeGroup = ApiTokenScopeGroup.ISSUES, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/search/issues").param("q", "hello").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 200
+            }
+
+            it("GET /api/v1/search/prs는 PULL_REQUESTS 스코프가 없는 토큰을 403으로 거부해야 한다") {
+                val owner = userRepository.save(
+                    User(loginId = "search-prs-owner1", name = "검색PR권한없음", email = "search-prs-owner1@example.com")
+                )
+                val raw = "search-prs-no-scope"
+                tokenFor(owner, raw, allRepositories = true, scopeGroup = ApiTokenScopeGroup.CODE, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/search/prs").param("q", "hello").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 403
+            }
+
+            it("GET /api/v1/search/prs는 PULL_REQUESTS:READ 토큰을 200으로 통과시켜야 한다") {
+                val owner = userRepository.save(
+                    User(loginId = "search-prs-owner2", name = "검색PR권한있음", email = "search-prs-owner2@example.com")
+                )
+                val raw = "search-prs-read"
+                tokenFor(owner, raw, allRepositories = false, scopeGroup = ApiTokenScopeGroup.PULL_REQUESTS, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/search/prs").param("q", "hello").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 200
+            }
+
+            it("GET /api/v1/search/projects는 ADMINISTRATION 스코프가 없는 토큰을 403으로 거부해야 한다") {
+                val owner = userRepository.save(
+                    User(loginId = "search-projects-owner1", name = "검색프로젝트권한없음", email = "search-projects-owner1@example.com")
+                )
+                val raw = "search-projects-no-scope"
+                tokenFor(owner, raw, allRepositories = true, scopeGroup = ApiTokenScopeGroup.CODE, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/search/projects").param("q", "hello").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 403
+            }
+
+            it("GET /api/v1/search/projects는 ADMINISTRATION:READ 토큰을 200으로 통과시켜야 한다") {
+                val owner = userRepository.save(
+                    User(loginId = "search-projects-owner2", name = "검색프로젝트권한있음", email = "search-projects-owner2@example.com")
+                )
+                val raw = "search-projects-read"
+                tokenFor(owner, raw, allRepositories = false, scopeGroup = ApiTokenScopeGroup.ADMINISTRATION, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/search/projects").param("q", "hello").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 200
+            }
+
+            it("GET /api/v1/organizations는 ADMINISTRATION 스코프가 없는 토큰을 403으로 거부해야 한다") {
+                val owner = userRepository.save(
+                    User(loginId = "org-list-owner1", name = "조직목록권한없음", email = "org-list-owner1@example.com")
+                )
+                val raw = "org-list-no-scope"
+                tokenFor(owner, raw, allRepositories = true, scopeGroup = ApiTokenScopeGroup.CODE, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/organizations").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 403
+            }
+
+            it("GET /api/v1/organizations는 ADMINISTRATION:READ 토큰을 200으로 통과시켜야 한다") {
+                val owner = userRepository.save(
+                    User(loginId = "org-list-owner2", name = "조직목록권한있음", email = "org-list-owner2@example.com")
+                )
+                val raw = "org-list-read"
+                tokenFor(owner, raw, allRepositories = false, scopeGroup = ApiTokenScopeGroup.ADMINISTRATION, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/organizations").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 200
+            }
+
+            it("GET /api/v1/organizations/{name}도 동일하게 ADMINISTRATION 스코프로 인가돼야 한다(스코프 없으면 403)") {
+                val owner = userRepository.save(
+                    User(loginId = "org-view-owner1", name = "조직조회권한없음", email = "org-view-owner1@example.com")
+                )
+                val raw = "org-view-no-scope"
+                tokenFor(owner, raw, allRepositories = true, scopeGroup = ApiTokenScopeGroup.CODE, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/organizations/no-such-org").header("Yona-Token", raw)
+                ).andReturn()
+
+                result.response.status shouldBe 403
+            }
+
+            it("GET /api/v1/organizations/{name}은 ADMINISTRATION:READ 토큰이면 필터를 통과해 컨트롤러까지 도달해야 한다(존재하지 않는 조직이면 404)") {
+                val owner = userRepository.save(
+                    User(loginId = "org-view-owner2", name = "조직조회권한있음", email = "org-view-owner2@example.com")
+                )
+                val raw = "org-view-read"
+                tokenFor(owner, raw, allRepositories = false, scopeGroup = ApiTokenScopeGroup.ADMINISTRATION, permission = ApiTokenPermission.READ)
+
+                val result = mockMvc.perform(
+                    get("/api/v1/organizations/no-such-org").header("Yona-Token", raw)
+                ).andReturn()
+
+                // 필터를 통과해 컨트롤러(get())까지 도달하면, 존재하지 않는 조직이라 404를 응답한다
+                // — 401/403이 아니라는 것으로 스코프 인가 필터를 실제로 통과했음을 확인한다.
+                result.response.status shouldBe 404
+            }
+        }
+
         describe("레거시 세션 기반 웹 MVC 프로젝트 리소스(/projects/{owner}/{project}/{resource})의 스코프 인가") {
             it("POST /projects/{owner}/{project}/webhooks는 WEBHOOKS 스코프가 없는 토큰을 403으로 거부해야 한다") {
                 val owner = userRepository.save(

@@ -67,6 +67,14 @@ import java.util.regex.Pattern
  * `resourceTypes: List<ResourceType?>`로 바꿔 여러 그룹을 AND로 요구할 수 있게 했다 — ISSUES:READ와
  * PULL_REQUESTS:READ 둘 다 있어야 200, 하나라도 없으면 403.
  *
+ * `/api/v1/search/{issues,prs,projects}`(전역 검색)와 `/api/v1/organizations` 이하 전체(조직)도
+ * 특정 저장소 하나에 속하지 않는 계정 수준 리소스라 같은 `AccountLevelTarget` 메커니즘으로 판정한다 —
+ * 이 URL들은 3세그먼트 스코프 모델(`/api/v1/projects/{owner}/{project}/{resource}`)과 자연스럽게
+ * 맞지 않아 한동안 Fine-grained PAT이 아예 인증되지 않았는데(세션/레거시 전권 토큰만 가능),
+ * 위 `user/status`가 이미 만들어둔 이 메커니즘을 확장하는 것만으로 해소됐다 — 검색 엔드포인트별로
+ * 응답 타입이 균일해(issues→ISSUES, prs→PULL_REQUESTS, projects→ADMINISTRATION) `user/status`와
+ * 달리 여러 그룹을 AND로 요구할 필요는 없다.
+ *
  * `/mcp` 이하 요청(Streamable HTTP 단일 엔드포인트)은 이 필터가 스코프를 판정하지 않는다. 한 HTTP
  * 요청(JSON-RPC POST) 안에 어떤 도구(list_issues vs merge_pull_request 등)가 들어있는지는 URL만
  * 보고는 알 수 없고, 필요한 스코프도 도구마다 다르기 때문이다 — 대신
@@ -275,6 +283,21 @@ class ApiTokenAuthenticationFilter(
         // `/api/v1/projects/**`와 구분되는 별도 네임스페이스다.
         private val userApiPattern = Pattern.compile("^/api/v1/user/issues(?:/.*)?$")
 
+        // 전역 검색(`/api/v1/search/{issues,prs,projects}`) — 여러 프로젝트를 가로지르는 요청이라
+        // 저장소 단위 3세그먼트 스코프 모델에 맞지 않아 계정 수준으로 판정한다. 응답 타입이
+        // 엔드포인트별로 균일해(user/status와 달리 여러 타입을 한 번에 섞어 내려주지 않음) 각각
+        // 정확히 대응하는 스코프 그룹 하나씩만 요구하면 된다 — issues/prs는 검색 결과 자체가
+        // ISSUES/PULL_REQUESTS 그룹 데이터이고, projects는 기존 프로젝트 생성/조회와 동일하게
+        // ADMINISTRATION 그룹(PROJECT)으로 취급한다.
+        private val searchIssuesApiPattern = Pattern.compile("^/api/v1/search/issues(?:/.*)?$")
+        private val searchPullRequestsApiPattern = Pattern.compile("^/api/v1/search/prs(?:/.*)?$")
+        private val searchProjectsApiPattern = Pattern.compile("^/api/v1/search/projects(?:/.*)?$")
+
+        // 조직(`/api/v1/organizations`, `/api/v1/organizations/{name}`) — 조직도 특정 저장소
+        // 하나에 속하지 않는 계정 수준 리소스다. ResourceType.ORGANIZATION이 이미
+        // ADMINISTRATION 그룹에 매핑돼 있어 그대로 재사용한다(신규 그룹/타입 불필요).
+        private val organizationsApiPattern = Pattern.compile("^/api/v1/organizations(?:/.*)?$")
+
         // `gh status` 대응(GET /api/v1/user/status)은 이슈뿐 아니라 PR(담당/리뷰요청)까지 한 번에
         // 내려주므로 userApiPattern과 별도 패턴으로 분리한다 — 아래 AccountLevelTarget.resourceTypes가
         // ISSUES 스코프 하나가 아니라 ISSUES+PULL_REQUESTS 둘 다 요구하도록 판정해야 하기 때문이다.
@@ -362,6 +385,18 @@ class ApiTokenAuthenticationFilter(
             }
             if (userApiPattern.matcher(requestUri).matches()) {
                 return AccountLevelTarget(listOf(ResourceType.ISSUE_POST), requireAllRepositories = false)
+            }
+            if (searchIssuesApiPattern.matcher(requestUri).matches()) {
+                return AccountLevelTarget(listOf(ResourceType.ISSUE_POST), requireAllRepositories = false)
+            }
+            if (searchPullRequestsApiPattern.matcher(requestUri).matches()) {
+                return AccountLevelTarget(listOf(ResourceType.PULL_REQUEST), requireAllRepositories = false)
+            }
+            if (searchProjectsApiPattern.matcher(requestUri).matches()) {
+                return AccountLevelTarget(listOf(ResourceType.PROJECT), requireAllRepositories = false)
+            }
+            if (organizationsApiPattern.matcher(requestUri).matches()) {
+                return AccountLevelTarget(listOf(ResourceType.ORGANIZATION), requireAllRepositories = false)
             }
             if (siteApiPattern.matcher(requestUri).matches()) {
                 return AccountLevelTarget(listOf(ResourceType.SITE_SETTING), requireAllRepositories = true)

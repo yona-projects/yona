@@ -21,11 +21,10 @@ import org.springframework.web.bind.annotation.RestController
 // 대상으로 쓸 수 없어(응답이 뷰 이름 String), 동일한 권한 로직(게스트 차단, HIDE_PROJECT_LISTING,
 // AccessControl.getVisibleProjects)만 재사용해 JSON 응답으로 노출하는 신규 얇은 컨트롤러를 뒀다.
 //
-// **스코프 인가 갭**: 조직은 "저장소"가 아니라 여러 저장소를 묶는 상위 개념이라
-// `/api/v1/projects/{owner}/{project}/{resource}` 저장소 단위 스코프 모델과 자연스럽게 맞지
-// 않는다. `/api/v1/organizations/**`는 ApiTokenAuthenticationFilter의 어떤 스코프 패턴과도
-// 매칭되지 않아 세션 로그인/레거시 전권 토큰으로만 인증되고, Fine-grained 스코프 토큰은
-// 인증되지 않는다(SearchRestApiController와 동일한 성격의 제한 - 구멍이 아니라 기능 제한).
+// 조직은 "저장소"가 아니라 여러 저장소를 묶는 상위 개념이라 `/api/v1/projects/{owner}/{project}/
+// {resource}` 저장소 단위 스코프 모델과 자연스럽게 맞지 않는다 —
+// ApiTokenAuthenticationFilter.parseAccountLevelTarget()가 이미 ADMINISTRATION 그룹에 매핑돼
+// 있는 ResourceType.ORGANIZATION으로 계정 수준(project=null) 스코프 판정한다.
 @RestController
 @RequestMapping("/api/v1/organizations")
 class OrganizationRestApiController(

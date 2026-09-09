@@ -22,12 +22,10 @@ import org.springframework.web.bind.annotation.RestController
 // 기존 ISSUE 타입과 동일한 패턴(전역 검색은 toProject가 허용 프로젝트에 있거나 내가 contributor인
 // PR까지 포함)의 인덱싱/검색 쿼리를 추가해 아래 searchPullRequests()로 노출한다.
 //
-// **스코프 인가 갭**: 이 엔드포인트는 여러 프로젝트를 가로지르는 전역
-// 검색이라 `/api/v1/projects/{owner}/{project}/{resource}` 3세그먼트 모델(저장소 단위 스코프)에
-// 자연스럽게 맞지 않는다. `/api/v1/search/**`는 ApiTokenAuthenticationFilter의 어떤 스코프 패턴과도
-// 매칭되지 않아 세션 로그인/레거시 전권 토큰으로만 인증되고, Fine-grained 스코프 토큰은 이 경로에서
-// 인증되지 않는다(레거시 findByToken 조회가 스코프 토큰의 원문값을 모르므로 자연히 비로그인 취급 -
-// 구멍이 아니라 기능 제한, ProjectRestApiController 목록/조회 API의 갭과 동일한 성격).
+// 이 엔드포인트는 여러 프로젝트를 가로지르는 전역 검색이라 `/api/v1/projects/{owner}/{project}/
+// {resource}` 3세그먼트 모델(저장소 단위 스코프)에 자연스럽게 맞지 않는다 —
+// ApiTokenAuthenticationFilter.parseAccountLevelTarget()가 /search/issues|prs/projects를
+// 각각 ISSUES/PULL_REQUESTS/ADMINISTRATION 그룹의 계정 수준(project=null) 스코프로 판정한다.
 @RestController
 @RequestMapping("/api/v1/search")
 class SearchRestApiController(
