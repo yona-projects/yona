@@ -1720,13 +1720,55 @@ class ProjectServiceImplSpec : DescribeSpec({
             val forker = User(id = 6L, loginId = "forker2")
             every { projectRepository.findById(9004L) } returns Optional.of(original)
             every { userRepository.findById(6L) } returns Optional.of(forker)
-            every { projectRepository.findByOwnerAndName("dest-owner2", "dest-name2") } returns Optional.empty()
+            // destinationOwner를 forker 본인 계정으로 둬서 새로 추가된 목적지 인가 검사를
+            // 통과시키고, 이 테스트가 검증하려는 MANAGER 역할 조회 실패 경로만 순수하게 격리한다.
+            every { projectRepository.findByOwnerAndName("forker2", "dest-name2") } returns Optional.empty()
             every { projectRepository.save(any()) } answers { firstArg() }
             every { roleRepository.findById(RoleType.MANAGER.roleType) } returns Optional.empty()
 
             shouldThrow<IllegalStateException> {
-                projectService.forkProject(9004L, 6L, "dest-owner2", "dest-name2")
+                projectService.forkProject(9004L, 6L, "", "dest-name2")
             }
+        }
+
+        it("본인 계정도 아니고 ORG_ADMIN으로 속한 조직도 아닌 임의의 destinationOwner로는 fork가 거부돼야 한다(인가 우회 방지)") {
+            val original = Project(id = 9011L, name = "orig-guard", owner = "owner-guard", vcs = "GIT")
+            val forker = User(id = 13L, loginId = "forker-guard")
+            every { projectRepository.findById(9011L) } returns Optional.of(original)
+            every { userRepository.findById(13L) } returns Optional.of(forker)
+            every { organizationRepository.findByName("someone-elses-org") } returns Optional.empty()
+            clearMocks(projectRepository, projectUserRepository, answers = false)
+
+            shouldThrow<IllegalArgumentException> {
+                projectService.forkProject(9011L, 13L, "someone-elses-org", "stolen-name")
+            }
+
+            // 이름 충돌 검사보다도 먼저 거부돼야 한다 — findByOwnerAndName이 호출되지 않아야
+            // 인가 검사가 실제로 저장 시도 이전에 먼저 실행된다는 것을 보장한다.
+            verify(exactly = 0) { projectRepository.findByOwnerAndName(any(), any()) }
+            verify(exactly = 0) { projectRepository.save(any()) }
+            verify(exactly = 0) { projectUserRepository.save(any()) }
+        }
+
+        it("forker가 ORG_ADMIN으로 속한 조직으로는 fork가 허용돼야 한다") {
+            val original = Project(id = 9012L, name = "orig-org-fork", owner = "owner-org-fork", vcs = "GIT")
+            val forker = User(id = 14L, loginId = "org-forker")
+            val org = Organization(id = 8L, name = "my-managed-org")
+            val adminRole = Role(id = RoleType.ORG_ADMIN.roleType)
+            val managerRole = Role(id = RoleType.MANAGER.roleType)
+            val orgUser = OrganizationUser(id = 800L, user = forker, organization = org, role = adminRole)
+            every { projectRepository.findById(9012L) } returns Optional.of(original)
+            every { userRepository.findById(14L) } returns Optional.of(forker)
+            every { organizationRepository.findByName("my-managed-org") } returns Optional.of(org)
+            every { organizationUserRepository.findByOrganizationIdAndUserId(8L, 14L) } returns Optional.of(orgUser)
+            every { projectRepository.findByOwnerAndName("my-managed-org", "orig-org-fork") } returns Optional.empty()
+            every { projectRepository.save(any()) } answers { firstArg() }
+            every { roleRepository.findById(RoleType.MANAGER.roleType) } returns Optional.of(managerRole)
+            every { projectUserRepository.save(any()) } returns mockk()
+
+            val result = projectService.forkProject(9012L, 14L, "my-managed-org", "")
+
+            result.owner shouldBe "my-managed-org"
         }
 
         it("원본 저장소가 실재하면 하드링크 방식으로 무복사 복제해야 한다 (GIT, 중첩 디렉터리 포함)") {
@@ -1745,7 +1787,9 @@ class ProjectServiceImplSpec : DescribeSpec({
                 File(sourceDir, "objects/info.txt").writeText("info")
 
                 val original = Project(id = 9005L, name = name, owner = owner, vcs = "GIT")
-                val forker = User(id = 7L, loginId = "forker3")
+                // forker의 loginId를 destOwner와 일치시켜(자기 자신에게 fork) 이 테스트가 검증하려는
+                // 하드링크 복제 메커니즘과 무관한 목적지 인가 검사를 자연스럽게 통과시킨다.
+                val forker = User(id = 7L, loginId = destOwner)
                 val managerRole = Role(id = RoleType.MANAGER.roleType)
                 every { projectRepository.findById(9005L) } returns Optional.of(original)
                 every { userRepository.findById(7L) } returns Optional.of(forker)
@@ -1783,7 +1827,7 @@ class ProjectServiceImplSpec : DescribeSpec({
                 targetDir.mkdirs() // target.exists()==true 분기를 태우기 위해 미리 생성
 
                 val original = Project(id = 9006L, name = name, owner = owner, vcs = "SUBVERSION")
-                val forker = User(id = 8L, loginId = "forker4")
+                val forker = User(id = 8L, loginId = destOwner)
                 val managerRole = Role(id = RoleType.MANAGER.roleType)
                 every { projectRepository.findById(9006L) } returns Optional.of(original)
                 every { userRepository.findById(8L) } returns Optional.of(forker)
@@ -1818,7 +1862,7 @@ class ProjectServiceImplSpec : DescribeSpec({
                 File(sourceDir, ".hg/requires").writeText("dotencode\n")
 
                 val original = Project(id = 9020L, name = name, owner = owner, vcs = "MERCURIAL")
-                val forker = User(id = 20L, loginId = "forker-hg")
+                val forker = User(id = 20L, loginId = destOwner)
                 val managerRole = Role(id = RoleType.MANAGER.roleType)
                 every { projectRepository.findById(9020L) } returns Optional.of(original)
                 every { userRepository.findById(20L) } returns Optional.of(forker)
@@ -1850,7 +1894,7 @@ class ProjectServiceImplSpec : DescribeSpec({
                 sourceDir.writeText("this-is-a-plain-file-not-a-directory")
 
                 val original = Project(id = 9007L, name = name, owner = owner, vcs = "GIT")
-                val forker = User(id = 9L, loginId = "forker5")
+                val forker = User(id = 9L, loginId = destOwner)
                 val managerRole = Role(id = RoleType.MANAGER.roleType)
                 every { projectRepository.findById(9007L) } returns Optional.of(original)
                 every { userRepository.findById(9L) } returns Optional.of(forker)
@@ -1872,7 +1916,7 @@ class ProjectServiceImplSpec : DescribeSpec({
         // baseDir 판정용 vcs?.uppercase() 체인 — vcs가 null(엘비스 분기)이면 기본 GIT 경로로 처리돼야 한다.
         it("원본 프로젝트의 vcs가 null이어도 기본 GIT 경로 기준으로 정상 처리돼야 한다") {
             val original = Project(id = 9008L, name = "vcs-null-fork-src", owner = "vcs-null-owner", vcs = null)
-            val forker = User(id = 10L, loginId = "forker6")
+            val forker = User(id = 10L, loginId = "vcs-null-fork-dest")
             val managerRole = Role(id = RoleType.MANAGER.roleType)
             every { projectRepository.findById(9008L) } returns Optional.of(original)
             every { userRepository.findById(10L) } returns Optional.of(forker)
@@ -1889,7 +1933,7 @@ class ProjectServiceImplSpec : DescribeSpec({
         // vcs가 축약형 "SVN"인 경우도 svn 기본 경로로 판정돼야 한다(OR의 두 번째 항이 true).
         it("원본 프로젝트의 vcs가 SVN(축약형)이면 svn 기본 경로 기준으로 판단돼야 한다") {
             val original = Project(id = 9009L, name = "vcs-svn-abbrev-fork-src", owner = "vcs-svn-abbrev-owner", vcs = "SVN")
-            val forker = User(id = 11L, loginId = "forker7")
+            val forker = User(id = 11L, loginId = "vcs-svn-abbrev-fork-dest")
             val managerRole = Role(id = RoleType.MANAGER.roleType)
             every { projectRepository.findById(9009L) } returns Optional.of(original)
             every { userRepository.findById(11L) } returns Optional.of(forker)
@@ -1931,7 +1975,7 @@ class ProjectServiceImplSpec : DescribeSpec({
             File(sourceDir, "HEAD").writeText("ref: refs/heads/main")
 
             val original = Project(id = 9100L, name = name, owner = owner, vcs = "GIT")
-            val forker = User(id = 100L, loginId = "custom-forker")
+            val forker = User(id = 100L, loginId = destOwner)
             val managerRole = Role(id = RoleType.MANAGER.roleType)
             every { projectRepository.findById(9100L) } returns Optional.of(original)
             every { userRepository.findById(100L) } returns Optional.of(forker)

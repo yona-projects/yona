@@ -460,6 +460,16 @@ class ProjectServiceImpl(
         val destOwner = if (destinationOwner.isNotBlank()) destinationOwner else forker.loginId
         val destName = if (destinationName.isNotBlank()) destinationName else original.name
 
+        // destinationOwner가 임의의 문자열이면(호출자가 폼/REST 바디로 직접 지정) 이름 충돌 검사 전에
+        // 먼저 forker가 그 이름으로 fork할 권한이 있는지 확인한다 — 이 검증이 없으면 아무 로그인
+        // 사용자나 자신이 속하지 않은 조직(또는 다른 사용자)의 이름을 destinationOwner로 지정해
+        // 그 네임스페이스에 프로젝트를 만들고 스스로 MANAGER가 될 수 있었다(그 이름에 아직 프로젝트가
+        // 없기만 하면 충돌 검사를 통과함). acceptTransfer()와 동일한 규칙(본인 계정이거나 ORG_ADMIN인
+        // 조직만 허용)을 재사용한다.
+        if (!isAuthorizedToAcceptTransfer(destOwner, forker)) {
+            throw IllegalArgumentException("'$destOwner' 이름으로 포크할 권한이 없습니다 — 본인 계정이거나 관리자(ORG_ADMIN)로 속한 조직만 목적지로 지정할 수 있습니다.")
+        }
+
         // 목적지가 이미 존재하면 파일시스템 하드링크를 시도하기도 전에 400 계열로 거절한다 —
         // 예측 가능한 충돌이므로 트랜잭션 롤백에 기대는 대신 사전 검증으로 막는 게 더 저렴하다.
         if (projectRepository.findByOwnerAndName(destOwner, destName).isPresent) {

@@ -164,9 +164,10 @@ class ProjectRestApiController(
     fun fork(
         @PathVariable owner: String,
         @PathVariable project: String,
+        @RequestBody(required = false) request: ProjectController.ForkProjectRequest?,
         authentication: Authentication?
     ): ResponseEntity<Any> {
-        return projectController.forkProject(owner, project, authentication)
+        return projectController.forkProject(owner, project, request, authentication)
     }
 
     // `yona project edit`/`yona project delete`.

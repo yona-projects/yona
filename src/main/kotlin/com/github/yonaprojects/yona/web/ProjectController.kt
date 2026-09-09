@@ -182,10 +182,16 @@ class ProjectController(
     // (User.projectUsers와의 양방향 연관)를 따라가며 Jackson이 순환 직렬화를 시도하다
     // User.password/passwordSalt 해시값까지 노출한다 — Project.toRefResponse()(id/owner/name/
     // overview/vcs/scope만 노출)로 감싼다.
+    // destinationOwner: 비워두면(기존 동작) forker 본인 계정으로 fork된다. 조직 이름을 지정하면
+    // 그 조직으로 fork되는데, ProjectServiceImpl.forkProject()가 forker가 그 조직의 ORG_ADMIN인지
+    // 실제로 검증하므로(그렇지 않으면 IllegalArgumentException) 여기서 별도 권한 검사를 하지 않는다.
+    // 세션 기반 웹 UI(ProjectViewController.doClone())가 이미 지원하던 조직 목적지 fork를 REST API/
+    // yona-cli에도 동일하게 노출한다(GitHub의 `gh repo fork --org` 대응).
     @PostMapping("/api/{owner}/{projectName}/fork")
     fun forkProject(
         @PathVariable owner: String,
         @PathVariable projectName: String,
+        @RequestBody(required = false) request: ForkProjectRequest?,
         authentication: Authentication?
     ): ResponseEntity<Any> {
         val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
@@ -193,12 +199,18 @@ class ProjectController(
             ?: return ResponseEntity.notFound().build()
 
         return try {
-            val forkedProject = projectService.forkProject(project.id!!, user.id!!)
+            val forkedProject = projectService.forkProject(
+                project.id!!, user.id!!,
+                destinationOwner = request?.destinationOwner ?: "",
+                destinationName = request?.destinationName ?: ""
+            )
             ResponseEntity.ok(forkedProject.toRefResponse())
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().body(mapOf("error" to e.message))
         }
     }
+
+    data class ForkProjectRequest(val destinationOwner: String? = null, val destinationName: String? = null)
 
     @GetMapping("/api/{owner}/{projectName}/labels")
     fun getProjectLabels(

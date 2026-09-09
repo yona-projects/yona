@@ -218,12 +218,30 @@ class ProjectRestApiControllerSpec : DescribeSpec({
 
     describe("POST /api/v1/projects/{owner}/{project}/fork") {
         it("ProjectController.forkProject에 위임한다") {
-            every { projectController.forkProject("yona", "public-repo", any()) } returns ResponseEntity.ok(publicProject)
+            every { projectController.forkProject("yona", "public-repo", any(), any()) } returns ResponseEntity.ok(publicProject)
 
             mockMvc.perform(post("/api/v1/projects/yona/public-repo/fork").principal(auth))
                 .andExpect(status().isOk)
 
-            verify(exactly = 1) { projectController.forkProject("yona", "public-repo", any()) }
+            verify(exactly = 1) { projectController.forkProject("yona", "public-repo", any(), any()) }
+        }
+
+        it("요청 바디의 destinationOwner를 ProjectController.forkProject에 그대로 전달한다") {
+            every { projectController.forkProject("yona", "public-repo", any(), any()) } returns ResponseEntity.ok(publicProject)
+
+            mockMvc.perform(
+                post("/api/v1/projects/yona/public-repo/fork").principal(auth)
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .content("""{"destinationOwner":"some-org"}""")
+            ).andExpect(status().isOk)
+
+            verify(exactly = 1) {
+                projectController.forkProject(
+                    "yona", "public-repo",
+                    ProjectController.ForkProjectRequest(destinationOwner = "some-org", destinationName = null),
+                    any()
+                )
+            }
         }
     }
 
