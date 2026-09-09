@@ -24,15 +24,15 @@ repositories {
 	maven {
 		url = uri("https://packages.scm-manager.org/repository/releases/")
 	}
-	// P3-06(엔터프라이즈 SSO) — spring-security-saml2-service-provider가 의존하는 OpenSAML은
-	// Maven Central에 미배포되어(Shibboleth 프로젝트가 자체 저장소에서만 배포) 이 저장소가 필요하다.
+	// spring-security-saml2-service-provider가 의존하는 OpenSAML은 Maven Central에 미배포되어
+	// (Shibboleth 프로젝트가 자체 저장소에서만 배포) 이 저장소가 필요하다.
 	maven {
 		url = uri("https://build.shibboleth.net/nexus/content/repositories/releases/")
 	}
 }
 
-// yona-wiki P3-07(MCP 서버) Step1 — io.spring.dependency-management가 자동으로 가져오는 건
-// Spring Boot의 BOM뿐이라, Spring AI의 버전을 관리하려면 그 BOM을 명시적으로 import해야 한다.
+// io.spring.dependency-management가 자동으로 가져오는 건 Spring Boot의 BOM뿐이라, Spring AI의
+// 버전을 관리하려면 그 BOM을 명시적으로 import해야 한다.
 dependencyManagement {
 	imports {
 		mavenBom("org.springframework.ai:spring-ai-bom:2.0.1")
@@ -42,47 +42,40 @@ dependencyManagement {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("io.micrometer:micrometer-registry-prometheus")
-	// yona-wiki P3-01(Observability) 대응 — 구조화 JSON 로깅. Spring Boot BOM이 버전을 관리하지
-	// 않는 서드파티 라이브러리라 명시적으로 버전을 고정한다(Maven Central 최신 안정판 9.0 확인).
+	// 구조화 JSON 로깅. Spring Boot BOM이 버전을 관리하지 않는 서드파티 라이브러리라 명시적으로
+	// 버전을 고정한다.
 	implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-	// yona-wiki P3-01(Observability) 대응 — 분산 트레이싱. Spring Boot 4.x는 트레이싱 자동구성을
-	// spring-boot-starter-actuator에서 분리해 이 스타터로 모듈화했다(micrometer-tracing-bridge-otel/
-	// opentelemetry-exporter-otlp만 추가하면 의존성은 갖춰지지만 자동구성 클래스 자체가 없어 Tracer
-	// 빈이 생성되지 않는다 — 실제로 이렇게 시도했다가 통합 테스트에서 NoSuchBeanDefinitionException으로
-	// 확인). 버전은 Spring Boot의 dependency-management가 관리하는 값을 그대로 쓴다.
+	// 분산 트레이싱. Spring Boot 4.x는 트레이싱 자동구성을 spring-boot-starter-actuator에서 분리해
+	// 이 스타터로 모듈화했다 — micrometer-tracing-bridge-otel/opentelemetry-exporter-otlp만
+	// 추가하면 의존성은 갖춰지지만 자동구성 클래스 자체가 없어 Tracer 빈이 생성되지 않는다.
 	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
-	// Swagger/OpenAPI UI 노출 (P3-09, yona 동치성과 무관한 신규 기능) — 기존 @RestController를
-	// 런타임에 자동 스캔해 /swagger-ui.html에 대화형 API 문서를 제공한다. springdoc 3.x가
-	// Spring Boot 4.x/Spring Framework 7.x 계열용 메이저 버전이라 이걸 쓴다(2.x는 Spring Boot 3.x용).
+	// Swagger/OpenAPI UI 노출 — 기존 @RestController를 런타임에 자동 스캔해 /swagger-ui.html에
+	// 대화형 API 문서를 제공한다. springdoc 3.x가 Spring Boot 4.x/Spring Framework 7.x 계열용
+	// 메이저 버전이라 이걸 쓴다(2.x는 Spring Boot 3.x용).
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-	// P3-06(엔터프라이즈 SSO) — SAML2 SP 연동. spring-boot-starter-security의 BOM(Spring Security
-	// 7.1.1)이 버전을 관리하므로 별도 버전 고정 불필요.
+	// SAML2 SP 연동. spring-boot-starter-security의 BOM이 버전을 관리하므로 별도 버전 고정 불필요.
 	implementation("org.springframework.security:spring-security-saml2-service-provider")
-	// yona-wiki P3-07(MCP 서버) Step1 — yona 자신이 OAuth2 인가 서버(Authorization Server)를 자체
-	// 운영하기 위한 라이브러리(Spring Security 7.0부터 Spring Security 본체에 병합돼 spring-boot-
-	// starter-security의 BOM이 버전을 관리 — 별도 버전 고정 불필요). PKCE(S256 강제 기본값)/RFC7591
-	// Dynamic Client Registration을 기본 제공하고, RFC8707(Resource Indicators) 오디언스 검증만
-	// 이 프로젝트가 직접 구현한다(결정 근거: 계획 문서 "완료 로그 — Step 1" 참고).
+	// yona 자신이 OAuth2 인가 서버(Authorization Server)를 자체 운영하기 위한 라이브러리
+	// (Spring Security 7.0부터 본체에 병합돼 spring-boot-starter-security의 BOM이 버전을 관리).
+	// PKCE(S256 강제 기본값)/RFC7591 Dynamic Client Registration을 기본 제공하고, RFC8707
+	// (Resource Indicators) 오디언스 검증만 이 프로젝트가 직접 구현한다.
 	implementation("org.springframework.security:spring-security-oauth2-authorization-server")
-	// yona-wiki P3-07 Step1 — MCP 프로토콜(Streamable HTTP 전송, 도구 등록)을 처음부터 구현하지
-	// 않고 재사용한다. spring-ai-bom(위 dependencyManagement)이 버전을 관리한다.
+	// MCP 프로토콜(Streamable HTTP 전송, 도구 등록)을 처음부터 구현하지 않고 재사용한다.
+	// spring-ai-bom(위 dependencyManagement)이 버전을 관리한다.
 	implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
-	// yona utils/AttachmentCache.java의 Play Cache(24시간 TTL) 대응 (P2-49).
 	implementation("org.springframework.boot:spring-boot-starter-cache")
 	implementation("com.github.ben-manes.caffeine:caffeine")
-	// yona MailboxService의 com.sun.mail.imap.IMAPFolder/IMAPStore(IDLE 명령, UID 조회) 대응 (P1-55).
-	// spring-boot-starter-mail은 angus-mail을 runtimeOnly로만 끌어와 IMAPFolder 등 구현 클래스가
-	// 컴파일 시점엔 보이지 않으므로 명시적으로 추가한다(버전은 Spring Boot 의존성 관리로 고정됨).
+	// IMAP IDLE 명령/UID 조회에 필요한 IMAPFolder/IMAPStore. spring-boot-starter-mail은 angus-mail을
+	// runtimeOnly로만 끌어와 그 구현 클래스가 컴파일 시점엔 보이지 않으므로 명시적으로 추가한다.
 	implementation("org.eclipse.angus:angus-mail")
-	// yona CreationViaEmail.postprocessForHTML()의 new HtmlCompressor().compress() 대응 (P1-61).
 	implementation("com.googlecode.htmlcompressor:htmlcompressor:1.5.2")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
@@ -108,18 +101,17 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit.lfs:7.7.1.202607240634-r")
 	implementation("org.eclipse.jgit:org.eclipse.jgit.lfs.server:7.7.1.202607240634-r")
 
-	// yona-wiki P3-03 Step5 — 윈도우 SSH 폴백(시스템 OpenSSH의 AuthorizedKeysCommand 훅을 쓸 수
-	// 없는 환경)을 위한 JVM 내장 SSH 서버. 별도 포트(기본 2222)에서 이 애플리케이션 프로세스가
-	// 직접 SshServer를 띄운다 — 시스템 sshd/포트 22와는 무관.
+	// 윈도우 SSH 폴백(시스템 OpenSSH의 AuthorizedKeysCommand 훅을 쓸 수 없는 환경)을 위한 JVM
+	// 내장 SSH 서버. 별도 포트(기본 2222)에서 이 애플리케이션 프로세스가 직접 SshServer를 띄운다
+	// — 시스템 sshd/포트 22와는 무관.
 	implementation("org.apache.sshd:sshd-core:2.15.0")
 
-	// yona-wiki P3-03 Step8 — GPG 커밋 서명 실제 암호학적 검증(단순 "서명 존재" 확인이 아니라
-	// BouncyCastle(bcpg/bcprov)로 서명을 공개키에 대해 실제로 검증한다 — GpgSignatureVerifier.kt).
-	// org.eclipse.jgit.gpg.bc의 BouncyCastleGpgSignatureVerifier도 검토했으나, 그 verify()는
-	// Repository/GpgConfig 기반 로컬 GPG 키링(~/.gnupg) 조회에 결합돼 있어(자체 사용자 GPG 키를
-	// DB에 등록하는 이 앱의 멀티테넌트 모델과 안 맞음) 채택하지 않았다 — bcpg/bcprov API로
-	// (1) 등록된 공개키 목록에서 서명자 키를 직접 찾고 (2) PGPSignature.verify()로 검증하는
-	// 흐름을 직접 구현했다.
+	// GPG 커밋 서명 실제 암호학적 검증(단순 "서명 존재" 확인이 아니라 BouncyCastle(bcpg/bcprov)로
+	// 서명을 공개키에 대해 실제로 검증한다 — GpgSignatureVerifier.kt). org.eclipse.jgit.gpg.bc의
+	// BouncyCastleGpgSignatureVerifier는 Repository/GpgConfig 기반 로컬 GPG 키링(~/.gnupg)
+	// 조회에 결합돼 있어(자체 사용자 GPG 키를 DB에 등록하는 이 앱의 멀티테넌트 모델과 안 맞음)
+	// 채택하지 않았다 — bcpg/bcprov API로 (1) 등록된 공개키 목록에서 서명자 키를 직접 찾고
+	// (2) PGPSignature.verify()로 검증하는 흐름을 직접 구현했다.
 	implementation("org.bouncycastle:bcpg-jdk18on:1.82")
 	implementation("org.bouncycastle:bcprov-jdk18on:1.82")
 
@@ -152,13 +144,12 @@ dependencies {
 	// JExcelAPI (Legacy Yona Excel support)
 	implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
 
-	// Apache Tika (yona FileUtil.detectMediaType()의 콘텐츠 기반 MIME 감지 대응, P2-25) — 확장자가
-	// 없는 해시 파일명(SHA-256 원문 저장 방식) 그대로 JDK Files.probeContentType()에 넘기면 사실상
-	// 항상 감지 실패해 모든 첨부가 application/octet-stream으로 저장된다.
+	// Apache Tika — 확장자가 없는 해시 파일명(SHA-256 원문 저장 방식) 그대로 JDK
+	// Files.probeContentType()에 넘기면 사실상 항상 감지 실패해 모든 첨부가
+	// application/octet-stream으로 저장된다.
 	implementation("org.apache.tika:tika-core:4.0.0")
 
-	// Guava (yona utils/CacheStore.java의 renderedMarkdown 캐시 대응, P2-43) — 사용자 지시로 원본
-	// 그대로 Guava Cache/CacheBuilder를 사용한다(Caffeine 등으로 대체하지 않음).
+	// renderedMarkdown 캐시는 Caffeine 등으로 대체하지 않고 Guava Cache/CacheBuilder를 그대로 쓴다.
 	implementation("com.google.guava:guava:33.4.8-jre")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -216,14 +207,12 @@ fun resolveDockerHost(): String? {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
-	// yona-wiki P3-03 — Gradle의 테스트 워커 기본 힙(512m)은 이 계획이 추가한 여러 신규
-	// @SpringBootTest 스펙(SshInternalControllerIntegrationSpec/YonaMinaSshServerIntegrationSpec/
-	// GpgKeyEditFormTemplateRenderingSpec 등, 각각 @DynamicPropertySource로 고유한 프로퍼티를 써서
-	// Spring TestContext 캐시가 재사용하지 못하는 별도 ApplicationContext를 만든다)가 기존의
-	// 수천 개 테스트 위에 더해지며 전체 스위트(`./gradlew test`, 포크 없이 전부) 실행 시 실제로
-	// OutOfMemoryError로 이어지는 것을 실측했다 — 개별/배치 실행에서는 전혀 재현되지 않다가
-	// 전체 스위트 단독 실행에서만 나타났다. gradle.properties의 데몬 힙(2048m)과 동일한 값으로
-	// 테스트 워커 힙을 올려 해소한다(운영 코드/성능에는 영향 없음, 테스트 실행 전용 설정).
+	// Gradle의 테스트 워커 기본 힙(512m)은, 각각 @DynamicPropertySource로 고유한 프로퍼티를 써서
+	// Spring TestContext 캐시가 재사용하지 못하는 별도 ApplicationContext를 만드는
+	// @SpringBootTest 스펙들이 많아지면서 전체 스위트(`./gradlew test`, 포크 없이 전부) 실행 시
+	// OutOfMemoryError로 이어진다 — 개별/배치 실행에서는 재현되지 않고 전체 스위트 단독 실행에서만
+	// 나타난다. gradle.properties의 데몬 힙(2048m)과 동일한 값으로 테스트 워커 힙을 올려 해소한다
+	// (운영 코드/성능에는 영향 없음, 테스트 실행 전용 설정).
 	maxHeapSize = "2048m"
 	systemProperty("spring.profiles.active", "test")
 	systemProperty("testcontainers.host", "127.0.0.1")
