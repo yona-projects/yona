@@ -40,7 +40,7 @@ class EnterpriseSaml2ResponseAuthenticationConverterSpec : DescribeSpec({
             val result = converter.buildAuthentication(defaultAuthentication)
 
             val principal = result.principal as YonaSaml2AuthenticatedPrincipal
-            principal.user.id shouldBe 11L
+            principal.userId shouldBe 11L
             result.name shouldBe "gildong"
             result.authorities.map { it.authority } shouldBe listOf("ROLE_ACTIVE")
             result.saml2Response shouldBe "raw-saml-response"

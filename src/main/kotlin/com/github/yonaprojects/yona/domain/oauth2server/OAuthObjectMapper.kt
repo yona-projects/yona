@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.domain.oauth2server
 
+import com.github.yonaprojects.yona.config.sso.YonaSaml2AuthenticatedPrincipal
 import com.github.yonaprojects.yona.domain.user.YonaUserDetails
 import org.springframework.security.jackson.SecurityJacksonModules
 import tools.jackson.databind.json.JsonMapper
@@ -24,11 +25,23 @@ import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator
 // (SecurityJacksonModules.getModules(ClassLoader, BasicPolymorphicTypeValidator.Builder))을 그대로
 // 써서 이 클래스 하나만 화이트리스트에 추가한다 — 화이트리스트 검증 메커니즘 자체를 우회/비활성화하지
 // 않는다(보안 유지).
+//
+// 2026-09-09 발견(P3-32) — 위와 완전히 동일한 문제가 SAML2 로그인 경로에도 있었다. 관리자가
+// SAML SSO로 로그인하게 해둔 상태에서 yona를 OAuth2 공급자로도 쓰면(제3자 앱이 "Sign in with
+// yona"), 세션의 Authentication이 YonaUserDetails가 아니라 Saml2Authentication(principal이
+// YonaSaml2AuthenticatedPrincipal)이라 위 화이트리스트에 안 걸려 있어 동일하게 500이 났다 —
+// 실제 kristophjunge/test-saml-idp 컨테이너로 SAML 로그인 후 `/oauth2/authorize` →
+// 동의(consent) 화면까지는 정상 도달했지만(principal.name만 쓰는 나머지 로직은 문제 없음),
+// "Authorize" 클릭 시 OAuth2AuthorizationConsentAuthenticationProvider가 저장된
+// OAuth2Authorization을 다시 읽어오는 시점(JpaOAuth2AuthorizationService.findByToken)에
+// InvalidTypeIdException으로 재현. YonaUserDetails 때와 동일한 방식(화이트리스트에 클래스
+// 하나 추가)으로 수정 — 우회 없음.
 object OAuthObjectMapper {
     val instance: JsonMapper by lazy {
         val classLoader = OAuthObjectMapper::class.java.classLoader
         val polymorphicTypeValidatorBuilder = BasicPolymorphicTypeValidator.builder()
             .allowIfSubType(YonaUserDetails::class.java)
+            .allowIfSubType(YonaSaml2AuthenticatedPrincipal::class.java)
         JsonMapper.builder()
             .addModules(SecurityJacksonModules.getModules(classLoader, polymorphicTypeValidatorBuilder))
             .build()
