@@ -9,6 +9,7 @@ import com.github.yonaprojects.yona.domain.sshkey.SshAuthPrincipal
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthService
 import com.github.yonaprojects.yona.domain.sshkey.SshCommandAuthorization
 import com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository
+import io.github.search5.hg4j.transport.HgSshWireServer
 import io.micrometer.core.instrument.MeterRegistry
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
@@ -219,7 +220,14 @@ class SshRelayServer(
             trimmed.startsWith("hg ") -> {
                 val authorization = sshAuthService.authorizeHgCommand(principal, commandLine)
                 if (!isUsable(authorization)) {
-                    writeErrorLine(output, authorization.reason ?: "접근이 거부되었습니다.")
+                    // 백로그 48번 — HgRepository를 아예 만들지 않은 채(권한 검사가 저장소 접근보다
+                    // 먼저이므로) writeErrorLine로 에러 한 줄만 쓰고 연결을 끊으면, 실제 hg SSH
+                    // 클라이언트는 hello+between 핸드셰이크에 응답을 못 받아 between 응답을 영원히
+                    // 기다리며 멈춘다(hang). HgSshWireServer.rejectConnection이 hello+between을
+                    // 정상적으로 완료한 뒤 OOB 에러로 거절해 이 hang을 막는다. git 쪽은 JGit이
+                    // UploadPack/ReceivePack 자체적으로 프로토콜에 맞게 에러를 보고하므로 이 문제가
+                    // 없다 — hg 분기에만 적용.
+                    HgSshWireServer.rejectConnection(input, output, authorization.reason ?: "접근이 거부되었습니다.")
                     return
                 }
                 hgProtocolHandler.handle(authorization, input, output)
