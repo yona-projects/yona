@@ -805,7 +805,7 @@ class UserControllerSpec : DescribeSpec({
         }
 
         // yona UserApi.java:218-241 newUser() 대응 (P1-118). [GL-controllers_api_UserApi-014]
-        describe("POST /api/users") {
+        describe("POST /-_-api/v1/users") {
             val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
@@ -813,7 +813,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
 
                 mockMvc.perform(
-                    post("/api/users")
+                    post("/-_-api/v1/users")
                         .principal(auth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"users": [{"loginId": "newbie", "name": "새사람", "email": "newbie@example.com"}]}""")
@@ -823,7 +823,7 @@ class UserControllerSpec : DescribeSpec({
 
             it("인증 정보가 없으면 400 Bad Request를 반환해야 한다") {
                 mockMvc.perform(
-                    post("/api/users")
+                    post("/-_-api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"users": [{"loginId": "newbie", "name": "새사람", "email": "newbie@example.com"}]}""")
                 )
@@ -841,7 +841,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
 
                 restrictedMockMvc.perform(
-                    post("/api/users")
+                    post("/-_-api/v1/users")
                         .principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"users": [{"loginId": "outsider", "name": "외부인", "email": "outsider@other.com"}]}""")
@@ -865,7 +865,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userService.createUser(any()) } answers { (firstArg() as User).apply { id = 100L } }
 
                 confirmRequiredMockMvc.perform(
-                    post("/api/users")
+                    post("/-_-api/v1/users")
                         .principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"users": [{"loginId": "lockeduser", "name": "잠김예정", "email": "locked-new@example.com"}]}""")
@@ -884,7 +884,7 @@ class UserControllerSpec : DescribeSpec({
                 }
 
                 mockMvc.perform(
-                    post("/api/users")
+                    post("/-_-api/v1/users")
                         .principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"users": [{"loginId": "newbie", "name": "새사람", "email": "newbie@example.com"}]}""")
@@ -901,7 +901,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByEmail("dup@example.com") } returns Optional.of(testUser)
 
                 mockMvc.perform(
-                    post("/api/users")
+                    post("/-_-api/v1/users")
                         .principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"users": [{"loginId": "dup", "name": "중복", "email": "dup@example.com"}]}""")
@@ -911,32 +911,16 @@ class UserControllerSpec : DescribeSpec({
 
                 verify(exactly = 0) { userService.createUser(any()) }
             }
-
-            // legacy 원본 경로(`-_-api/v1/users`) 별칭도 동일하게 동작해야 한다.
-            it("legacy 원본 경로 /-_-api/v1/users로도 동일하게 신규 사용자를 생성해야 한다") {
-                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
-                every { userRepository.findByEmail("legacy-path@example.com") } returns Optional.empty()
-                every { userService.createUser(any()) } answers { (firstArg() as User).apply { id = 101L } }
-
-                mockMvc.perform(
-                    post("/-_-api/v1/users")
-                        .principal(adminAuth)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"users": [{"loginId": "legacypath", "name": "레거시경로", "email": "legacy-path@example.com"}]}""")
-                )
-                    .andExpect(status().isCreated)
-                    .andExpect(jsonPath("$[0].status").value(201))
-            }
         }
 
         // yona UserApi.java:244-265 newToken() 대응 (P1-118). [GL-controllers_api_UserApi-015]
-        describe("POST /api/users/token") {
+        describe("POST /-_-api/v1/users/token") {
             it("존재하지 않는 아이디/이메일이면 401과 No valid user by id를 반환해야 한다") {
                 every { userRepository.findByLoginId("nobody") } returns Optional.empty()
                 every { userRepository.findByEmail("nobody") } returns Optional.empty()
 
                 mockMvc.perform(
-                    post("/api/users/token")
+                    post("/-_-api/v1/users/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"id": "nobody", "password": "pw"}""")
                 )
@@ -949,7 +933,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("locked") } returns Optional.of(locked)
 
                 mockMvc.perform(
-                    post("/api/users/token")
+                    post("/-_-api/v1/users/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"id": "locked", "password": "pw"}""")
                 )
@@ -962,7 +946,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("gone") } returns Optional.of(deleted)
 
                 mockMvc.perform(
-                    post("/api/users/token")
+                    post("/-_-api/v1/users/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"id": "gone", "password": "pw"}""")
                 )
@@ -977,7 +961,7 @@ class UserControllerSpec : DescribeSpec({
                 } throws BadCredentialsException("비밀번호가 일치하지 않습니다.")
 
                 mockMvc.perform(
-                    post("/api/users/token")
+                    post("/-_-api/v1/users/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"id": "gildong", "password": "wrong"}""")
                 )
@@ -993,7 +977,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.save(any()) } answers { firstArg() }
 
                 mockMvc.perform(
-                    post("/api/users/token")
+                    post("/-_-api/v1/users/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"id": "gildong", "password": "correct"}""")
                 )
@@ -1002,53 +986,26 @@ class UserControllerSpec : DescribeSpec({
 
                 verify(exactly = 1) { userRepository.save(match { it.token != null }) }
             }
-
-            // legacy 원본 경로(`-_-api/v1/users/token`) 별칭도 동일하게 동작해야 한다.
-            it("legacy 원본 경로 /-_-api/v1/users/token으로도 동일하게 토큰을 발급해야 한다") {
-                every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
-                every {
-                    yonaAuthenticationProvider.authenticate(match<UsernamePasswordAuthenticationToken> { it.name == "gildong" })
-                } returns UsernamePasswordAuthenticationToken("gildong", "correct")
-                every { userRepository.save(any()) } answers { firstArg() }
-
-                mockMvc.perform(
-                    post("/-_-api/v1/users/token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"id": "gildong", "password": "correct"}""")
-                )
-                    .andExpect(status().isOk)
-                    .andExpect(jsonPath("$.access_token").isNotEmpty)
-            }
         }
 
         // yona UserApi.java:320-339 users() 대응 (P1-118). [GL-controllers_api_UserApi-018;GL-controllers_api_UserApi-019]
-        describe("GET /api/admin/users") {
+        describe("GET /-_-api/v1/admin/users") {
             val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
             it("사이트관리자가 아니면 403을 반환해야 한다") {
                 every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
 
-                mockMvc.perform(get("/api/admin/users").principal(auth))
+                mockMvc.perform(get("/-_-api/v1/admin/users").principal(auth))
                     .andExpect(status().isForbidden)
             }
 
             it("인증 정보가 없으면 403을 반환해야 한다") {
-                mockMvc.perform(get("/api/admin/users"))
+                mockMvc.perform(get("/-_-api/v1/admin/users"))
                     .andExpect(status().isForbidden)
             }
 
             it("사이트관리자면 ACTIVE 사용자 목록을 반환해야 한다") {
-                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
-                every { userRepository.findByState(UserState.ACTIVE) } returns listOf(testUser)
-
-                mockMvc.perform(get("/api/admin/users").principal(adminAuth))
-                    .andExpect(status().isOk)
-                    .andExpect(jsonPath("$[0].login_id").value("gildong"))
-            }
-
-            // legacy 원본 경로(`-_-api/v1/admin/users`) 별칭도 동일하게 동작해야 한다.
-            it("legacy 원본 경로 /-_-api/v1/admin/users로도 동일하게 ACTIVE 사용자 목록을 반환해야 한다") {
                 every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
                 every { userRepository.findByState(UserState.ACTIVE) } returns listOf(testUser)
 
@@ -1059,7 +1016,7 @@ class UserControllerSpec : DescribeSpec({
         }
 
         // yona UserApi.java:341-379 updateUserState() 대응 (P1-118). [GL-controllers_api_UserApi-020;GL-controllers_api_UserApi-021]
-        describe("PATCH /api/admin/users/{loginId}") {
+        describe("PATCH /-_-api/v1/admin/users/{loginId}") {
             val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
@@ -1067,7 +1024,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
 
                 mockMvc.perform(
-                    patch("/api/admin/users/gildong").principal(auth)
+                    patch("/-_-api/v1/admin/users/gildong").principal(auth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"state": "LOCKED"}""")
                 )
@@ -1076,7 +1033,7 @@ class UserControllerSpec : DescribeSpec({
 
             it("인증 정보가 없으면 403을 반환해야 한다") {
                 mockMvc.perform(
-                    patch("/api/admin/users/gildong")
+                    patch("/-_-api/v1/admin/users/gildong")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"state": "LOCKED"}""")
                 )
@@ -1088,7 +1045,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("nobody") } returns Optional.empty()
 
                 mockMvc.perform(
-                    patch("/api/admin/users/nobody").principal(adminAuth)
+                    patch("/-_-api/v1/admin/users/nobody").principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"state": "LOCKED"}""")
                 )
@@ -1100,7 +1057,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
 
                 mockMvc.perform(
-                    patch("/api/admin/users/gildong").principal(adminAuth)
+                    patch("/-_-api/v1/admin/users/gildong").principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"state": "NOT_A_REAL_STATE"}""")
                 )
@@ -1112,7 +1069,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
 
                 mockMvc.perform(
-                    patch("/api/admin/users/gildong").principal(adminAuth)
+                    patch("/-_-api/v1/admin/users/gildong").principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"state": "SITE_ADMIN"}""")
                 )
@@ -1125,7 +1082,7 @@ class UserControllerSpec : DescribeSpec({
                 every { userRepository.save(any()) } answers { firstArg() }
 
                 mockMvc.perform(
-                    patch("/api/admin/users/gildong").principal(adminAuth)
+                    patch("/-_-api/v1/admin/users/gildong").principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"state": "LOCKED"}""")
                 )
@@ -1133,21 +1090,6 @@ class UserControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.state").value("LOCKED"))
 
                 verify(exactly = 1) { userRepository.save(match { it.state == UserState.LOCKED }) }
-            }
-
-            // legacy 원본 경로(`-_-api/v1/admin/users/{loginId}`) 별칭도 동일하게 동작해야 한다.
-            it("legacy 원본 경로 /-_-api/v1/admin/users/{loginId}로도 동일하게 사용자 상태를 변경해야 한다") {
-                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
-                every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
-                every { userRepository.save(any()) } answers { firstArg() }
-
-                mockMvc.perform(
-                    patch("/-_-api/v1/admin/users/gildong").principal(adminAuth)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"state": "LOCKED"}""")
-                )
-                    .andExpect(status().isOk)
-                    .andExpect(jsonPath("$.state").value("LOCKED"))
             }
         }
     }

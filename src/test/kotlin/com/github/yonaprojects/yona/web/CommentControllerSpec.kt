@@ -1057,6 +1057,24 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isOk)
             }
 
+            // v1.6 원본 conf/routes에 controllers.api.IssueApi.updateIssueComment()가 -_-api/v1 PUT뿐
+            // 아니라 bare 경로 PATCH로도 이중 매핑돼 있던 것을 발견해 뒤늦게 이식(P3-38).
+            it("PATCH /{owner}/{projectName}/issue/{number}/comments/{commentId} — legacy bare 경로(PATCH)로도 동일하게 수정된다") {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { issueCommentRepository.findById(100L) } returns Optional.of(issueComment)
+                every { projectUserRepository.findByProjectIdAndUserId(1L, 10L) } returns Optional.empty()
+                every { commentService.updateIssueComment(100L, "수정됨", user) } returns issueComment
+
+                mockMvc.perform(
+                    patch("/owner/TestProject/issue/5/comments/100")
+                        .principal(userAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"content": "수정됨", "sha1": "${com.github.yonaprojects.yona.domain.support.sha1Hex("이슈댓글")}"}""")
+                )
+                    .andExpect(status().isOk)
+            }
+
             it("POST /-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/comments — body 필드로 게시글 댓글을 생성한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -1081,6 +1099,25 @@ class CommentControllerSpec : DescribeSpec({
 
                 mockMvc.perform(
                     put("/-_-api/v1/owners/owner/projects/TestProject/posts/6/comments/200")
+                        .principal(userAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"content": "수정됨", "sha1": "${com.github.yonaprojects.yona.domain.support.sha1Hex("게시판댓글")}"}""")
+                )
+                    .andExpect(status().isOk)
+            }
+
+            // v1.6 원본 conf/routes에 controllers.api.BoardApi.updatePostingComment()가 -_-api/v1
+            // PUT뿐 아니라 bare 경로 PATCH("post"/"comment" 단수, 이슈 쪽과 다름 — 원본 그대로)로도
+            // 이중 매핑돼 있던 것을 발견해 뒤늦게 이식(P3-38).
+            it("PATCH /{owner}/{projectName}/post/{number}/comment/{commentId} — legacy bare 경로(PATCH)로도 동일하게 수정된다") {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { postingCommentRepository.findById(200L) } returns Optional.of(postingComment)
+                every { projectUserRepository.findByProjectIdAndUserId(1L, 10L) } returns Optional.empty()
+                every { commentService.updatePostingComment(200L, "수정됨", user) } returns postingComment
+
+                mockMvc.perform(
+                    patch("/owner/TestProject/post/6/comment/200")
                         .principal(userAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"content": "수정됨", "sha1": "${com.github.yonaprojects.yona.domain.support.sha1Hex("게시판댓글")}"}""")

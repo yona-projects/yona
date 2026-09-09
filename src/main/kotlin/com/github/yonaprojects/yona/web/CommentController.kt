@@ -273,7 +273,16 @@ class CommentController(
     }
 
     // legacy 필드명은 `content`/`sha1`(원문 체크섬) — updateIssueComment()와 동일한 로직을 재사용한다.
-    @PutMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId}")
+    // v1.6 원본은 이 메서드(controllers.api.IssueApi.updateIssueComment)를 두 경로로 이중 매핑해뒀다
+    // — 공식 `-_-api/v1` 경로(PUT)와, 아마도 웹 UI 자체 AJAX용으로 보이는 bare 경로
+    // `/:owner/:project/issue/:number/comments/:commentId`(PATCH). 후자가 이식에서 빠져있었다.
+    @RequestMapping(
+        value = [
+            "/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId}",
+            "/{owner}/{projectName}/issue/{number}/comments/{commentId}"
+        ],
+        method = [RequestMethod.PUT, RequestMethod.PATCH]
+    )
     fun updateIssueCommentLegacyPath(
         @PathVariable owner: String,
         @PathVariable projectName: String,
@@ -337,8 +346,17 @@ class CommentController(
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
-    // legacy 필드명은 `content`/`sha1`(원문 체크섬).
-    @PutMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/comments/{commentId}")
+    // legacy 필드명은 `content`/`sha1`(원문 체크섬). v1.6 원본은 이 메서드
+    // (controllers.api.BoardApi.updatePostingComment)를 공식 `-_-api/v1` 경로(PUT)와 bare 경로
+    // `/:owner/:project/post/:number/comment/:commentId`(PATCH, "post"/"comment" 단수 — 이슈 쪽과
+    // 다름, 원본 그대로) 둘 다로 매핑해뒀다. 후자가 이식에서 빠져있었다.
+    @RequestMapping(
+        value = [
+            "/-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/comments/{commentId}",
+            "/{owner}/{projectName}/post/{number}/comment/{commentId}"
+        ],
+        method = [RequestMethod.PUT, RequestMethod.PATCH]
+    )
     fun updatePostingCommentLegacyPath(
         @PathVariable owner: String,
         @PathVariable projectName: String,
