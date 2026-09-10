@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- CSRF 재활성화 조사(docs/CSRF_INVESTIGATION_2026-09-10.md)용 테스트 전용 템플릿.
+     th:action 폼에 thymeleaf-extras-springsecurity6 + CSRF 활성화만으로 _csrf 히든
+     input이 자동 주입되는지 확인한다. -->
+<form th:action="@{/csrf-investigation/submit}" method="post">
+    <button type="submit">go</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- CSRF 재활성화 조사(docs/CSRF_INVESTIGATION_2026-09-10.md)용 테스트 전용 템플릿.
+     site/layout.html의 익명 로그인 모달(action="/users/login")이나 code/diff.html·
+     code/compare.html의 JS 템플릿 문자열로 만드는 폼처럼, th:action이 아니라 순수 HTML
+     action= 속성만 쓰는 폼은 SpringActionTagProcessor(th:action 전용)가 아예 관여하지 않아
+     RequestDataValueProcessor의 getExtraHiddenFields()가 호출되지 않는다 — CSRF가 켜져 있어도
+     자동 주입 대상이 아니라는 걸 재현한다. -->
+<form action="/csrf-investigation/submit" method="post">
+    <button type="submit">go</button>
+</form>
+</body>
+</html>
