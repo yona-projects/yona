@@ -73,7 +73,7 @@ class TimelineTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "이 이슈를 닫았습니다"
+                body shouldContain "closed this issue"
             }
 
             it("PR 상세 화면이 리뷰완료 이벤트 메시지를 실제로 렌더링해야 한다") {
@@ -99,7 +99,7 @@ class TimelineTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "리뷰를 완료했습니다"
+                body shouldContain "completed a pull request review."
             }
         }
     }

@@ -74,7 +74,7 @@ class SshKeyEditFormTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "새 SSH 키 추가"
+                body shouldContain "Add new SSH key"
                 body shouldContain "/user/editform/ssh-keys/new"
                 body shouldNotContain "frmSshKeyAdd"
             }
@@ -106,7 +106,7 @@ class SshKeyEditFormTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                listBody shouldContain "SSH 키가 추가되었습니다"
+                listBody shouldContain "SSH key added."
                 listBody shouldContain "렌더링테스트키"
                 listBody shouldContain "SHA256:"
             }

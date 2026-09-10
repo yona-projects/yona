@@ -88,7 +88,7 @@ class GpgKeyEditFormTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "새 GPG 키 추가"
+                body shouldContain "Add new GPG key"
                 body shouldContain "/user/editform/gpg-keys/new"
                 body shouldNotContain "frmGpgKeyAdd"
             }
@@ -119,7 +119,7 @@ class GpgKeyEditFormTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                listBody shouldContain "GPG 키가 추가되었습니다"
+                listBody shouldContain "GPG key added."
                 listBody shouldContain GPG_KEY_1_EMAIL
             }
 

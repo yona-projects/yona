@@ -156,7 +156,7 @@ class PullRequestListTemplateEquivalenceSpec @Autowired constructor(
                     val doc = Jsoup.parse(result.response.contentAsString)
                     doc.select("ul.pullrequeset-tab-menu li").size shouldNotBe 0
                     doc.select("ul.pullrequeset-tab-menu .num-badge").size shouldNotBe 0
-                    doc.select("a.ybtn-success").text() shouldBe "새 코드 보내기"
+                    doc.select("a.ybtn-success").text() shouldBe "pull request"
                     doc.select("#advanced-search-form select#contributors").size shouldBe 1
                     doc.select("#two-column-mode-checkbox").size shouldBe 1
                 }
@@ -212,7 +212,11 @@ class PullRequestListTemplateEquivalenceSpec @Autowired constructor(
                     ).andReturn()
 
                     val doc = Jsoup.parse(result.response.contentAsString)
-                    doc.select("script[src*='lib/select2/select2.js']").size shouldBe 1
+                    // P3-46 #5에서 Select2(v3)가 Tom Select로 교체돼(common/select2.html 주석 참고)
+                    // 이제 lib/select2/select2.js가 아니라 tom-select.complete.min.js가 로드된다 —
+                    // 이 테스트는 그 교체 이전의 스크립트 경로를 그대로 확인하고 있던 낡은 단언이었다
+                    // (P3-51 로케일 작업 중 발견한 무관한 스테일 테스트, 즉시 수정).
+                    doc.select("script[src*='tom-select.complete.min.js']").size shouldBe 1
                     doc.select(".upload-wrap[data-resource-type=PULL_REQUEST]").size shouldBe 1
                     doc.select("input[name='filePath']").size shouldBe 1
                     doc.select("[data-toggle=markdown-editor]").size shouldNotBe 0
@@ -230,7 +234,7 @@ class PullRequestListTemplateEquivalenceSpec @Autowired constructor(
                     doc.select("#toBranch[disabled]").size shouldBe 1
                     doc.select("input[name=fromBranch]").attr("value") shouldBe "feature-a"
                     doc.select("input[name=toBranch]").attr("value") shouldBe "master"
-                    doc.select("button.ybtn-success").text() shouldBe "저장"
+                    doc.select("button.ybtn-success").text() shouldBe "Save"
                 }
 
                 it("PR이 열림(OPEN) 상태면 #status 병합 알림이 노출되어야 한다(legacy pullRequest.isOpen 조건)") {

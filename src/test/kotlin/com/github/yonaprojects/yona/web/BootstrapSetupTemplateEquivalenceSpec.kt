@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import java.util.Locale
 
 // legacy welcome/secret.scala.html -> bootstrap-setup.html,
 // welcome/restart.scala.html -> bootstrap-restart.html
@@ -46,7 +47,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
             }
 
             it("가입자가 0명일 때 GET /bootstrap-setup 은 legacy welcome/secret.scala.html과 동치인 최초 관리자 생성 화면을 렌더링해야 한다") {
-                val result = mockMvc.perform(get("/bootstrap-setup"))
+                val result = mockMvc.perform(get("/bootstrap-setup").locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn()
 
@@ -85,6 +86,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
                 val result = mockMvc.perform(
                     post("/bootstrap-setup")
                         .with(csrf())
+                        .locale(Locale.KOREAN)
                         .param("loginId", "notadmin")
                         .param("name", "관리자")
                         .param("email", "admin@yona.io")
@@ -105,6 +107,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
             it("비밀번호와 비밀번호 확인이 다르면 legacy와 동일하게 재입력 라벨 옆에 user.confirmPassword.alert 뱃지가 노출되어야 한다") {
                 val result = mockMvc.perform(
                     post("/bootstrap-setup")
+                        .locale(Locale.KOREAN)
                         .param("loginId", "admin")
                         .param("name", "관리자")
                         .param("email", "admin@yona.io")
@@ -122,6 +125,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
             it("이메일이 비어있으면 legacy와 동일하게 이메일 라벨 옆에 validation.invalidEmail 뱃지가 노출되어야 한다") {
                 val result = mockMvc.perform(
                     post("/bootstrap-setup")
+                        .locale(Locale.KOREAN)
                         .param("loginId", "admin")
                         .param("name", "관리자")
                         .param("email", "")
@@ -140,6 +144,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
                 val result = mockMvc.perform(
                     post("/bootstrap-setup")
                         .with(csrf())
+                        .locale(Locale.KOREAN)
                         .param("loginId", "admin")
                         .param("name", "관리자")
                         .param("email", "admin@yona.io")

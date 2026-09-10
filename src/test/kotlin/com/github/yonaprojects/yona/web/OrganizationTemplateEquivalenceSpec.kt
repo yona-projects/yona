@@ -35,6 +35,7 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
+import java.util.Locale
 
 // 그룹12 organization/* (#193~209, TASK-0244) 동치성 검증. 별도 스펙 파일로 분리한 이유는 조직 도메인
 // 픽스처(Organization/OrganizationUser/조직 소속 Project)가 TemplateEquivalenceSpec.kt의 기존 픽스처와
@@ -156,9 +157,15 @@ class OrganizationTemplateEquivalenceSpec @Autowired constructor(
                 }
 
                 it("조직 관리자/멤버 목록이 역할별로 분리되어 노출되고, 관리자에게는 탈퇴 버튼이 노출되어야 한다") {
+                    // P3-51: 이 테스트는 legacy와의 한국어 UI 문구 동치성 자체를 검증하는 목적이라
+                    // (h3 라벨 문구 확인), Accept-Language 헤더 없는 요청이 이제 root(영어)로
+                    // 결정적으로 폴백하는 것과 무관하게 한국어 로케일을 명시적으로 요청한다.
                     val doc = Jsoup.parse(
-                        mockMvc.perform(get("/organizations/${org.name}").with(SecurityMockMvcRequestPostProcessors.user(adminDetails)))
-                            .andReturn().response.contentAsString
+                        mockMvc.perform(
+                            get("/organizations/${org.name}")
+                                .with(SecurityMockMvcRequestPostProcessors.user(adminDetails))
+                                .locale(Locale.KOREAN)
+                        ).andReturn().response.contentAsString
                     )
                     doc.select("h3:contains(그룹 관리자)").size shouldBe 1
                     doc.select("h3:contains(그룹 구성원)").size shouldBe 1

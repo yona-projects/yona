@@ -4,6 +4,11 @@ spring:
   messages:
     basename: messages/messages
     encoding: UTF-8
+    # P3-51: 기본값(true)은 요청 로케일 전용 번들이 없으면 root(영어)보다 먼저 서버 JVM의
+    # 시스템 기본 로케일 번들을 시도한다 — 배포 환경마다 i18n 메시지가 달라지는 비결정적
+    # 버그(legacy application.langs의 결정적 첫 값 en-US와 동치가 아님). 꺼서 root(영어)로만
+    # 결정적으로 폴백하게 한다.
+    fallback-to-system-locale: false
   mail:
     host: localhost
     port: 1025

@@ -81,14 +81,14 @@ class OAuthAuthorizedAppsControllerIntegrationSpec @Autowired constructor(
             it("비로그인 상태로 접근하면 error/403 페이지를 200으로 렌더링해야 한다(기존 계정설정 화면과 동일한 관례)") {
                 val result = mockMvc.perform(get("/user/editform/oauth-apps")).andReturn()
                 result.response.status shouldBe 200
-                result.response.contentAsString.shouldContain("권한이 없습니다")
+                result.response.contentAsString.shouldContain("You are not authorized")
             }
 
             it("인가한 앱이 없으면 빈 상태 메시지를 렌더링해야 한다") {
                 val result = mockMvc.perform(get("/user/editform/oauth-apps").with(user(userDetails()))).andReturn()
 
                 result.response.status shouldBe 200
-                result.response.contentAsString.shouldContain("인가한 OAuth 애플리케이션이 없습니다")
+                result.response.contentAsString.shouldContain("You have not authorized any OAuth applications yet.")
             }
 
             it("인가한 앱이 있으면 이름/스코프/취소 버튼을 렌더링해야 한다") {

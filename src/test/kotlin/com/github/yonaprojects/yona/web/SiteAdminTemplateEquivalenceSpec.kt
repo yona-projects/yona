@@ -128,8 +128,11 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
 
             describe("[SiteAdmin-2] <title> 메시지 키 정합성 (data/diagnostic/postList/issueList/userList/projectList/update, #211~220)") {
                 it("data 화면은 legacy가 넘기는 title.siteSetting('사이트 설정')을 <title>에 써야 한다") {
+                    // P3-51: <title> 문구가 legacy 한국어 값과 정확히 같은지(내용 동치성) 확인하는
+                    // 테스트라 Accept-Language 헤더 없는 요청의 새 기본값(영어)과 무관하게 한국어
+                    // 로케일을 명시적으로 요청한다.
                     val result = mockMvc.perform(
-                        get("/sites/data").with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails))
+                        get("/sites/data").with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails)).locale(Locale.KOREAN)
                     ).andExpect(status().isOk).andReturn()
                     val doc = Jsoup.parse(result.response.contentAsString)
                     // 수정 전에는 head(#{site.sidebar.data}) = "데이터"를 <title>에 썼다(legacy는 title.siteSetting="사이트 설정").
@@ -138,7 +141,7 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
 
                 it("projectList 화면은 legacy가 넘기는 title.projectList('프로젝트 목록')를 <title>에 써야 한다") {
                     val result = mockMvc.perform(
-                        get("/sites/projectList").with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails))
+                        get("/sites/projectList").with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails)).locale(Locale.KOREAN)
                     ).andExpect(status().isOk).andReturn()
                     val doc = Jsoup.parse(result.response.contentAsString)
                     // 수정 전에는 head('프로젝트 관리')로 하드코딩돼 있었다(legacy는 title.projectList="프로젝트 목록").
@@ -148,7 +151,7 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
                 it("userList/issueList/postList/update 화면도 title.siteSetting('사이트 설정')을 <title>에 써야 한다") {
                     for (path in listOf("/sites/userList", "/sites/issueList", "/sites/postList", "/sites/update")) {
                         val result = mockMvc.perform(
-                            get(path).with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails))
+                            get(path).with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails)).locale(Locale.KOREAN)
                         ).andExpect(status().isOk).andReturn()
                         val doc = Jsoup.parse(result.response.contentAsString)
                         withClue(path) {
@@ -259,7 +262,7 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
 
             describe("[SiteAdmin-7] user/lostPassword.html 독자 페이지 버그 수정 (#221)") {
                 it("legacy siteLayout처럼 전체 GNB/footer를 포함해야 한다(기존엔 독자 <head>뿐이었음)") {
-                    val result = mockMvc.perform(get("/lostPassword")).andExpect(status().isOk).andReturn()
+                    val result = mockMvc.perform(get("/lostPassword").locale(Locale.KOREAN)).andExpect(status().isOk).andReturn()
                     val doc = Jsoup.parse(result.response.contentAsString)
                     doc.select("header.gnb-outer").isEmpty() shouldBe false
                     doc.select("footer.page-footer-outer").isEmpty() shouldBe false
@@ -269,6 +272,7 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
                 it("아이디/이메일이 일치하지 않으면 site.resetPasswordEmail.invalidRequest 메시지를 노출해야 한다") {
                     val result = mockMvc.perform(
                         post("/lostPassword")
+                            .locale(Locale.KOREAN)
                             .param("loginId", "no-such-user-13")
                             .param("emailAddress", "nope@yona.io")
                             .with(SecurityMockMvcRequestPostProcessors.csrf())

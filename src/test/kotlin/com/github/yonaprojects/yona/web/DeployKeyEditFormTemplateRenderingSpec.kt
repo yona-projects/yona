@@ -86,7 +86,7 @@ class DeployKeyEditFormTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "새 Deploy Key 추가"
+                body shouldContain "Add new deploy key"
                 body shouldContain "/projects/${project.owner}/${project.name}/deploy-keys"
             }
         }

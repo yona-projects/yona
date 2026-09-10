@@ -44,8 +44,8 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andExpect(view().name("index"))
                     .andExpect(content().string(Matchers.containsString("21st Century Software Development Platform")))
-                    .andExpect(content().string(Matchers.containsString("로그인")))
-                    .andExpect(content().string(Matchers.containsString("개발팀에게 문의하기")))
+                    .andExpect(content().string(Matchers.containsString("Log in")))
+                    .andExpect(content().string(Matchers.containsString("Feedback")))
             }
 
             // site/layout.html의 익명 사용자용 로그인 모달이 순수 action= 속성이라 CSRF 자동
@@ -99,7 +99,7 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andExpect(view().name("index"))
                     .andExpect(content().string(Matchers.containsString("gildong")))
-                    .andExpect(content().string(Matchers.containsString("새 프로젝트 만들기")))
+                    .andExpect(content().string(Matchers.containsString("Create new project")))
             }
         }
     }

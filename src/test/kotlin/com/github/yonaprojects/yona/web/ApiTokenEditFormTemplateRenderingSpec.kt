@@ -80,8 +80,8 @@ class ApiTokenEditFormTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "발급된 토큰"
-                body shouldContain "새 토큰 발급"
+                body shouldContain "Your tokens"
+                body shouldContain "Generate new token"
                 body shouldContain "/user/editform/tokens/new"
                 body shouldNotContain "frmApiTokenIssue"
             }
@@ -94,7 +94,7 @@ class ApiTokenEditFormTemplateRenderingSpec @Autowired constructor(
                     .andReturn().response.contentAsString
 
                 body shouldContain "frmApiTokenIssue"
-                body shouldContain "새 토큰 발급"
+                body shouldContain "Generate new token"
                 body shouldContain "/user/editform/tokens"
             }
         }
@@ -116,7 +116,7 @@ class ApiTokenEditFormTemplateRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                listBody shouldContain "토큰이 발급되었습니다"
+                listBody shouldContain "Token generated"
                 listBody shouldContain "렌더링테스트토큰"
                 listBody shouldContain "issues:write"
             }

@@ -177,8 +177,9 @@ class TagRestApiControllerIntegrationSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                // 기본 로케일(ko)에서는 title.tags가 "태그"로 렌더링된다(messages_ko_KR.properties).
-                body shouldContain "<optgroup label=\"태그\">"
+                // P3-51: Accept-Language 헤더가 없으면 root(영어) 번들로 결정적으로 렌더링된다
+                // (title.tags의 root 값은 "Tags" — messages.properties).
+                body shouldContain "<optgroup label=\"Tags\">"
                 body shouldContain "v3.0"
             }
         }

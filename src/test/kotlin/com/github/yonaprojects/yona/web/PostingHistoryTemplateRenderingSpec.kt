@@ -93,7 +93,7 @@ class PostingHistoryTemplateRenderingSpec @Autowired constructor(
                 // getHistoryMadeBy()/getDiffText() 대응) - 실제로 렌더링된 HTML에 그대로 나타나야 한다.
                 body shouldContain "history-made-by"
                 body shouldContain author.name
-                body shouldContain "변경 이력"
+                body shouldContain "Change history"
             }
 
             it("history가 없는 이슈는 변경 이력 링크를 렌더링하지 않아야 한다") {

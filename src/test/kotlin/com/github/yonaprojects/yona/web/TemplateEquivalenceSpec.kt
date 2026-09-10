@@ -1342,7 +1342,9 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val post = postingRepository.findAll().find { it.project.id == publicProj.id }!!
                     val doc = Jsoup.parse(
                         mockMvc.perform(
-                            get("/owner/${publicProj.name}/post/${post.number}").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                            get("/owner/${publicProj.name}/post/${post.number}")
+                                .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                                .locale(Locale.KOREAN)
                         ).andReturn().response.contentAsString
                     )
 
@@ -1628,7 +1630,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                 it("이슈 탭: 스니펫 말줄임표, 작성자 링크/작성자없음 폴백, 프로젝트링크 owner/name 표기, 페이지네이션 위젯이 legacy와 일치해야 한다") {
                     val doc = Jsoup.parse(
-                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "issue"))
+                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "issue").locale(Locale.KOREAN))
                             .andExpect(status().isOk).andReturn().response.contentAsString
                     )
                     val items = doc.select("div.search-result-wrap li.search-list-item")
@@ -1649,7 +1651,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                 it("프로젝트 탭: 로고/포크뱃지/전체 개요(스니펫 아님)/생성일·코드업데이트 문구가 legacy와 일치해야 하고, 페이지네이션이 없어야 한다") {
                     val doc = Jsoup.parse(
-                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "project"))
+                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "project").locale(Locale.KOREAN))
                             .andExpect(status().isOk).andReturn().response.contentAsString
                     )
                     val items = doc.select("div.search-result-wrap li.search-list-item.project")
@@ -1670,7 +1672,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                 it("사용자 탭: 아바타 이미지와 userinfo.since 가입일 문구가 legacy와 일치해야 한다") {
                     val doc = Jsoup.parse(
-                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "user"))
+                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "user").locale(Locale.KOREAN))
                             .andExpect(status().isOk).andReturn().response.contentAsString
                     )
                     val item = doc.select("div.search-result-wrap li.search-list-item.project")
@@ -1682,7 +1684,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                 it("마일스톤 탭: 기한이 없으면 기한 영역 자체가 렌더링되지 않아야 한다(legacy 그대로)") {
                     val doc = Jsoup.parse(
-                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "milestone"))
+                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "milestone").locale(Locale.KOREAN))
                             .andExpect(status().isOk).andReturn().response.contentAsString
                     )
                     val items = doc.select("div.search-result-wrap li.search-list-item")
@@ -1697,7 +1699,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                 it("이슈댓글/게시글댓글 탭: 제목이 legacy 그대로 'Re) ' 접두사여야 하고 noAuthor 메시지키가 도메인별로 달라야 한다") {
                     val issueCommentDoc = Jsoup.parse(
-                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "issue_comment"))
+                        mockMvc.perform(get("/search").param("keyword", searchKeyword).param("searchType", "issue_comment").locale(Locale.KOREAN))
                             .andExpect(status().isOk).andReturn().response.contentAsString
                     )
                     val icItem = issueCommentDoc.select("div.search-result-wrap li.search-list-item")
@@ -1748,7 +1750,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
             describe("[Test-19-35] 도움말 화면(help/*.scala.html, 그룹15 #234~238) 동치성 검증") {
                 it("toc.html(#234)은 legacy와 동일하게 6개의 Q&A 항목을 렌더링해야 한다") {
                     val doc = Jsoup.parse(
-                        mockMvc.perform(get("/_help")).andExpect(status().isOk).andReturn().response.contentAsString
+                        mockMvc.perform(get("/_help").locale(Locale.KOREAN)).andExpect(status().isOk).andReturn().response.contentAsString
                     )
 
                     doc.select("ul.qas > li.qa").size shouldBe 6
@@ -1757,7 +1759,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                 it("toc.html(#234)의 <title>은 하드코딩 문자열이 아니라 title.help 메시지 키를 사용해야 한다") {
                     val doc = Jsoup.parse(
-                        mockMvc.perform(get("/_help")).andExpect(status().isOk).andReturn().response.contentAsString
+                        mockMvc.perform(get("/_help").locale(Locale.KOREAN)).andExpect(status().isOk).andReturn().response.contentAsString
                     )
                     doc.select("title").text() shouldBe "도움말 - Yona"
 
@@ -1797,7 +1799,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                 it("keymap.html(#236)은 section 값에 따라 게시판 목록/상세에서 서로 다른 안내 항목을 노출해야 한다") {
                     val listDoc = Jsoup.parse(
                         mockMvc.perform(
-                            get("/owner/public-proj/posts").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                            get("/owner/public-proj/posts").with(SecurityMockMvcRequestPostProcessors.user(memberDetails)).locale(Locale.KOREAN)
                         ).andExpect(status().isOk).andReturn().response.contentAsString
                     )
                     listDoc.select("#helpKeys").select("span.help-inline:containsOwn(글쓰기)").size shouldBe 1
@@ -1808,7 +1810,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val post = postingRepository.findAll().find { it.project.id == publicProj.id }!!
                     val viewDoc = Jsoup.parse(
                         mockMvc.perform(
-                            get("/owner/public-proj/post/${post.number}").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                            get("/owner/public-proj/post/${post.number}").with(SecurityMockMvcRequestPostProcessors.user(memberDetails)).locale(Locale.KOREAN)
                         ).andExpect(status().isOk).andReturn().response.contentAsString
                     )
                     viewDoc.select("#helpKeys").select("span.help-inline:containsOwn(목록)").size shouldBe 1

@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.multipart.MaxUploadSizeExceededException
+import java.util.Locale
 
 // GlobalExceptionHandler(#53)는 실제로 MaxUploadSizeExceededException을 잡아 error/413을
 // 렌더링하는지 검증해야 하는데, MockMvc의 MockMultipartHttpServletRequest는 실제 서블릿 컨테이너의
@@ -89,7 +90,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                     Project(name = "errpage-proj1", owner = "errpage-owner1", projectScope = ProjectScope.PUBLIC)
                 )
 
-                val body = mockMvc.perform(get("/${project.owner}/${project.name}/issue/999"))
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/issue/999").locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -110,7 +111,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 )
                 val auth = UsernamePasswordAuthenticationToken(outsider.loginId, "pw")
 
-                val body = mockMvc.perform(get("/${project.owner}/${project.name}/issues").principal(auth))
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/issues").principal(auth).locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -129,7 +130,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 organizationUserRepository.save(OrganizationUser(user = member, organization = org, role = memberRole))
                 val auth = UsernamePasswordAuthenticationToken(member.loginId, "pw")
 
-                val body = mockMvc.perform(get("/org/${org.name}/members").principal(auth))
+                val body = mockMvc.perform(get("/org/${org.name}/members").principal(auth).locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -147,7 +148,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 val auth = UsernamePasswordAuthenticationToken(user.loginId, "pw")
 
                 val body = mockMvc.perform(
-                    post("/${project.owner}/${project.name}/code/master/setAsDefault").principal(auth)
+                    post("/${project.owner}/${project.name}/code/master/setAsDefault").principal(auth).locale(Locale.KOREAN)
                 )
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
@@ -159,7 +160,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
             it("MaxUploadSizeExceededException이 발생하면 GlobalExceptionHandler가 error/413을 실제로 렌더링해야 한다 (#53)") {
                 userRepository.save(User(loginId = "errpage-bootstrap2", name = "부트스트랩2", email = "errpage-bootstrap2@yona.io"))
 
-                val body = mockMvc.perform(get("/__test/trigger-max-upload-size-exceeded"))
+                val body = mockMvc.perform(get("/__test/trigger-max-upload-size-exceeded").locale(Locale.KOREAN))
                     .andExpect(status().isPayloadTooLarge)
                     .andReturn().response.contentAsString
 
@@ -175,7 +176,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                     Project(name = "errpage-board-proj", owner = "errpage-board-owner", projectScope = ProjectScope.PUBLIC)
                 )
 
-                val body = mockMvc.perform(get("/${project.owner}/${project.name}/post/999"))
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/post/999").locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -196,7 +197,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 )
                 val auth = UsernamePasswordAuthenticationToken(outsider.loginId, "pw")
 
-                val body = mockMvc.perform(get("/${project.owner}/${project.name}/posts").principal(auth))
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/posts").principal(auth).locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -214,7 +215,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 val auth = UsernamePasswordAuthenticationToken(outsider.loginId, "pw")
 
                 val body = mockMvc.perform(
-                    get("/${project.owner}/${project.name}/compare/aaaaaaa..bbbbbbb").principal(auth)
+                    get("/${project.owner}/${project.name}/compare/aaaaaaa..bbbbbbb").principal(auth).locale(Locale.KOREAN)
                 )
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
@@ -242,7 +243,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                     )
                 )
 
-                val body = mockMvc.perform(get("/${project.owner}/${project.name}/code"))
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/code").locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -261,7 +262,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 // getMetaDataFromAncestorDirectories()가 null을 반환해 notfound 경로를 탄다.
                 repositoryService.getRepository(project).create()
 
-                val body = mockMvc.perform(get("/${project.owner}/${project.name}/code/no-such-branch"))
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/code/no-such-branch").locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -290,7 +291,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 val auth = UsernamePasswordAuthenticationToken(outsider.loginId, "pw")
 
                 val body = mockMvc.perform(
-                    post("/api/${project.owner}/${project.name}/pullRequest/999999/review").principal(auth)
+                    post("/api/${project.owner}/${project.name}/pullRequest/999999/review").principal(auth).locale(Locale.KOREAN)
                 )
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
@@ -318,7 +319,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 val auth = UsernamePasswordAuthenticationToken(member.loginId, "pw")
 
                 val body = mockMvc.perform(
-                    post("/api/${project.owner}/${project.name}/pullRequest/999999/review").principal(auth)
+                    post("/api/${project.owner}/${project.name}/pullRequest/999999/review").principal(auth).locale(Locale.KOREAN)
                 )
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
@@ -338,7 +339,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 val auth = UsernamePasswordAuthenticationToken(outsider.loginId, "pw")
 
                 val body = mockMvc.perform(
-                    post("/api/${project.owner}/${project.name}/pullRequest/999999/unreview").principal(auth)
+                    post("/api/${project.owner}/${project.name}/pullRequest/999999/unreview").principal(auth).locale(Locale.KOREAN)
                 )
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
@@ -356,7 +357,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 )
                 val auth = UsernamePasswordAuthenticationToken(outsider.loginId, "pw")
 
-                val body = mockMvc.perform(get("/${project.owner}/${project.name}/pulls").principal(auth))
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/pulls").principal(auth).locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -370,7 +371,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                     Project(name = "errpage-pr-proj2", owner = "errpage-pr-owner2", projectScope = ProjectScope.PUBLIC, vcs = "GIT")
                 )
 
-                val body = mockMvc.perform(get("/${project.owner}/${project.name}/pull/999"))
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/pull/999").locale(Locale.KOREAN))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
@@ -392,7 +393,7 @@ class ErrorPageTemplateRenderingSpec @Autowired constructor(
                 val auth = UsernamePasswordAuthenticationToken(outsider.loginId, "pw")
 
                 val body = mockMvc.perform(
-                    get("/${project.owner}/${project.name}/reviews").principal(auth)
+                    get("/${project.owner}/${project.name}/reviews").principal(auth).locale(Locale.KOREAN)
                 )
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
