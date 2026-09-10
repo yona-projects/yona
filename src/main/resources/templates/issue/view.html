@@ -305,7 +305,7 @@
                                 <div class="write-comment-box">
                                     <div th:replace="~{site/layout :: markdownEditor('contents', '', 'comment-body')}"></div>
 
-                                    <div th:replace="~{common/uploadForm :: uploadForm('ISSUE_COMMENT', null, null)}"></div>
+                                    <div th:replace="~{common/uploadForm :: uploadForm('ISSUE_COMMENT', null, 'upload')}"></div>
 
                                     <div class="write-comment-wrap">
                                         <div class="right-txt">
@@ -508,17 +508,6 @@
             }
         });
 
-        // yona issue/view.scala.html의 yonaAssgineeModule(...) 대응 — 담당자
-        // select2는 massUpdate가 아니라 이슈별 전용 REST 엔드포인트(findAssignableUsers/updateAssginees,
-        // 이미 IssueShareController에 구현돼 있음)로 즉시 저장된다.
-        <th:block th:if="${isAllowedUpdate}">
-        yonaAssgineeModule(
-            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignableUsers(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
-            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignees(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
-            "[[#{issue.assignee}]]"
-        );
-        </th:block>
-
         $('[data-request-method="delete"]').click(function(){
             var uri = $(this).data("requestUri");
             $.ajax({
@@ -574,6 +563,27 @@
                 error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
             });
         });
+    });
+</script>
+
+<!-- yona issue/view.scala.html의 담당자 지정 모듈 초기화 대응 — 담당자 select2는 massUpdate가
+     아니라 이슈별 전용 REST 엔드포인트(findAssignableUsers/updateAssginees, 이미
+     IssueShareController에 구현돼 있음)로 즉시 저장된다. 위 본문 스크립트 안에 th:block
+     요소로 이 호출을 중첩했던 최초 이식은 실패했다 — script 요소는 HTML5 스펙상 raw text라
+     중첩 pseudo-element 태그를 Thymeleaf가 처리하지 못하고 그대로 출력해버려 브라우저 JS
+     파싱 자체가 깨지고(그 여파로 앞의 모듈 로드 호출까지 통째로 무효화됐다), th:inline이
+     붙은 블록 주석 문법으로 바꿔도 본문의 다른 인라인 표현식들이 JSON 문자열로 다시
+     감싸여 깨졌다(따옴표 중복/슬래시 이스케이프) — 그 표현식들은 원래 th:inline 없이
+     렌더링되도록 작성돼 있었기 때문이다. 그래서 이 조건부 호출만 별도의 script 태그로
+     분리해 태그 자체에 th:if를 건다 — th:if는 엘리먼트 속성이라 raw text 제약을 받지 않고,
+     본문 스크립트는 원래 방식 그대로 둘 수 있다. -->
+<script type="text/javascript" th:if="${isAllowedUpdate}">
+    $(function(){
+        yonaAssgineeModule(
+            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignableUsers(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
+            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignees(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
+            "[[#{issue.assignee}]]"
+        );
     });
 </script>
 </body>
