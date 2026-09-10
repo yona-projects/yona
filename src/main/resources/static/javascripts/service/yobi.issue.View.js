@@ -174,9 +174,13 @@
          * @private
          */
         function _requestUpdateIssue(evt, callback){
+            // P3-46 #5: Select2(v3) -> Tom Select 교체. field.data("select2")로 인스턴스를 얻던
+            // 방식을 field[0].tomselect로 교체한다(현재 이 경로로 실제 도달하는 필드는 #milestone
+            // 하나뿐 - 최종 보고 "범위 밖 발견" 참고).
             var field = $(evt.target);
             var fieldName = field.data("fieldName") || field.prop("name");
-            var fieldValue = field.data("select2") ? field.data("select2").val() : field.val();
+            var fieldTomSelect = field[0] && field[0].tomselect;
+            var fieldValue = fieldTomSelect ? fieldTomSelect.getValue() : field.val();
 
             // Send request to update issueInfo
             $.ajax(vars.urls.massUpdate, {
@@ -189,8 +193,8 @@
 
                 $yobi.notify(Messages("issue.update." + fieldName), 3000);
 
-                if(field.data("select2")){
-                    field.data("select2").val(fieldValue);
+                if(fieldTomSelect){
+                    fieldTomSelect.setValue(fieldValue, true);
                 }
 
                 if(typeof callback === "function"){

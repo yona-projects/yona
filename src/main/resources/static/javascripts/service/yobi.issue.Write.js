@@ -76,10 +76,22 @@
 
             temporarySaveHandler(htElement.welTextarea);
 
+            // P3-46 #5: Select2(v3) -> Tom Select 교체. 인스턴스는 htElement.welAssignee[0].tomselect로
+            // 접근한다(yona.issue.Assginee.js가 생성). weEvt.val은 yobi.ui.Select2.js의
+            // bridgeChangeEvent가 원본 select2 "change" 이벤트와 동일한 모양으로 채워 넣어준다.
+            // setValue의 두 번째 인자(silent:true)는 이 정규화 재설정이 또 다른 change를 유발해
+            // 무한루프로 이어지지 않도록 막는다.
             htElement.welAssignee.on("change", function(weEvt){
-                htElement.welAssignee.select2("val", weEvt.val);
+                var tomSelectInstance = htElement.welAssignee[0] && htElement.welAssignee[0].tomselect;
+                if(tomSelectInstance){
+                    tomSelectInstance.setValue(weEvt.val, true);
+                }
             });
 
+            // 범위 밖 발견(최종 보고 참고): data("forceChange")는 어느 템플릿/JS에서도 설정된 적이
+            // 없어 이 분기는 원본(select2)에서도 이미 도달 불가능한 죽은 코드였다. Tom Select는
+            // 애초에 "select2-selecting" 이벤트를 발생시키지 않으므로 이 바인딩은 등록은 되지만
+            // 결코 실행되지 않는다 - 동작 변화가 없어 그대로 보존한다.
             htElement.welAssignee.on("select2-selecting", function(weEvt){
                 if($(weEvt.object.element).data("forceChange")){
                     htElement.welAssignee.trigger("change");

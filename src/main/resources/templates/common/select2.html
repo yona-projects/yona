@@ -3,49 +3,42 @@
 <head>
 </head>
 <body>
+<!--
+  P3-46 #5: Select2(v3) -> Tom Select 교체.
+
+  기존 jQuery 템플릿(#tplSelect2*) 5종은 yobi.ui.Select2.js/yona.issue.Assginee.js가 더 이상
+  $.tmpl에 의존하지 않고 순수 JS 문자열 + Tom Select의 escape() 헬퍼로 동일한 HTML을 직접
+  만들어내도록 재작성되면서 완전히 불필요해져 제거했다(다른 소비처 없음, grep으로 재확인 완료).
+
+  select2_locale_ko.js/ja.js가 하던 일(전역 $.fn.select2.defaults 문자열 오버라이드)은 Tom Select에
+  대응 개념(render.no_results/not_loading/loading)이 있어, 동일하게 로케일별 인라인 스크립트로
+  window.YOBI_SELECT2_I18N을 채워 넘긴다. formatInputTooLong/formatSelectionTooBig은 이 프로젝트
+  어디서도 실제로 트리거되지 않는 설정(해당 min/maxLength 제약을 쓰는 인스턴스가 없음)이라 이식하지
+  않았다(최종 보고 "결정 필요 사항" 참고).
+-->
 <th:block th:fragment="select2">
-    <script type="text/javascript" src="/javascripts/lib/select2/select2.js"></script>
-    <script type="text/javascript" src="/javascripts/common/yobi.ui.Select2.js"></script>
-    
+    <script type="text/javascript" src="/javascripts/lib/tomselect/tom-select.complete.min.js"></script>
+
     <th:block th:if="${#locale.language == 'ko'}">
-        <script type="text/javascript" src="/javascripts/lib/select2/select2_locale_ko.js"></script>
+        <script type="text/javascript">
+            window.YOBI_SELECT2_I18N = {
+                noResults: "결과 없음",
+                searching: "검색 중…",
+                tooShort: function(n){ return "너무 짧습니다. " + n + "글자 더 입력해주세요."; }
+            };
+        </script>
     </th:block>
     <th:block th:if="${#locale.language == 'ja'}">
-        <script type="text/javascript" src="/javascripts/lib/select2/select2_locale_ja.js"></script>
+        <script type="text/javascript">
+            window.YOBI_SELECT2_I18N = {
+                noResults: "該当なし",
+                searching: "検索中･･･",
+                tooShort: function(n){ return "後" + n + "文字入れてください"; }
+            };
+        </script>
     </th:block>
-    
-    <script id="tplSelect2FormatUser" type="text/x-jquery-tmpl">
-    <div class="usf-group" title="${name} ${loginId}">
-        <span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>
-        <strong class="name">${name}</strong>
-        <span class="loginid">${loginId}</span>
-    </div>
-    </script>
-    <script id="tplSelect2FormatMilestone" type="text/x-jquery-tmpl">
-    <div title="[${stateLabel}] ${name}">
-        ${name}
-    </div>
-    </script>
-    <script id="tplSelect2Projects" type="text/x-jquery-tmpl">
-    <div class="usf-group" title="${name}">
-        <span class="avatar-wrap smaller"><img src="${avatarURL}" width="16" height="16"></span>
-        <span class="loginid">${owner}</span>
-        <span class="name">${name}</span>
-    </div>
-    </script>
-    <script id="tplSelect2ProjectsWithoutAvatar" type="text/x-jquery-tmpl">
-    <div class="usf-group" title="${name}">
-        <span class="width25px"></span>
-        <span class="loginid">${owner}</span>
-        <span class="name">${name}</span>
-    </div>
-    </script>
-    
-    <script id="tplSelect2FormatIssues" type="text/x-jquery-tmpl">
-    <div title="${name}">
-        ${name}
-    </div>
-    </script>
+
+    <script type="text/javascript" src="/javascripts/common/yobi.ui.Select2.js"></script>
 </th:block>
 </body>
 </html>

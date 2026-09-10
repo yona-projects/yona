@@ -49,8 +49,11 @@ function yonaTitleHeadModule(htOptions){
         _initTribute();
         _attachEvent();
 
-        if($("#labelIds").length > 0 ) {
-            issueLabels = $("#labelIds").select2("val");
+        // P3-46 #5: Select2(v3) -> Tom Select 교체. #labelIds는 yobi.ui.Select2.js의 자동
+        // 초기화(data-toggle="select2")로 생성되므로 인스턴스는 DOM 요소의 .tomselect 프로퍼티로
+        // 접근한다. getValue()는 다중 선택일 때 배열을 돌려준다(select2("val")과 동일한 모양).
+        if($("#labelIds").length > 0 && $("#labelIds")[0].tomselect) {
+            issueLabels = $("#labelIds")[0].tomselect.getValue();
         }
     }
 
@@ -89,7 +92,7 @@ function yonaTitleHeadModule(htOptions){
             return;
         }
         NProgress.start();
-        issueLabels = $("#labelIds").length > 0 && $("#labelIds").select2("val") || [];
+        issueLabels = ($("#labelIds").length > 0 && $("#labelIds")[0].tomselect && $("#labelIds")[0].tomselect.getValue()) || [];
         clearTimeout(searchPending);
 
         searchPending = setTimeout(function () {
@@ -162,7 +165,10 @@ function yonaTitleHeadModule(htOptions){
                             }
 
                             issueLabels.push($selectedLabel.val());
-                            $labelField.select2("val", issueLabels);
+                            // P3-46 #5: Select2(v3) -> Tom Select 교체.
+                            if($labelField[0].tomselect){
+                                $labelField[0].tomselect.setValue(issueLabels);
+                            }
 
                             $yobi.notify('Label: ' + original.name, 3000);
                             return "";
