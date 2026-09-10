@@ -48,7 +48,7 @@
                     </div>
 
                     <div th:id="'post-' + ${post.number}" class="hide">
-                        <form th:action="@{/api/{owner}/{projectName}/posts/{number}/content(owner=${project.owner}, projectName=${project.name}, number=${post.number})}">
+                        <form th:action="@{/api/projects/{projectId}/posts/{postId}/content(projectId=${project.id}, postId=${post.number})}">
                             <textarea th:text="${post.body}"></textarea>
                         </form>
                     </div>
@@ -127,7 +127,7 @@
 
                         <!-- 댓글 등록 폼 영역 -->
                         <th:block sec:authorize="isAuthenticated()">
-                            <form id="comment-form" th:action="@{/{owner}/{projectName}/post/{postNumber}/comment(owner=${project.owner}, projectName=${project.name}, postNumber=${post.number})}" method="post" enctype="multipart/form-data">
+                            <form id="comment-form" th:data-api-base="${commentApiBase}" th:action="@{/{owner}/{projectName}/post/{postNumber}/comment(owner=${project.owner}, projectName=${project.name}, postNumber=${post.number})}" method="post" enctype="multipart/form-data">
                                 <div class="write-comment-box">
                                     <div th:replace="~{site/layout :: markdownEditor('contents', '', 'comment-body')}"></div>
 
@@ -241,6 +241,24 @@
             var id = $(this).data('commentId');
             $('#comment-editform-' + id).hide();
             $('#comment-body-' + id).show();
+        });
+        // P3-48 화면별 재현 세션에서 발견: issue/view.html과 동일하게, 새 댓글 등록 폼
+        // (#comment-form)의 th:action이 가리키는 "/{owner}/{projectName}/post/{postNumber}/comment"
+        // 경로가 어느 컨트롤러에도 매핑돼 있지 않았다(Playwright로 실제 등록 시 항상 404 —
+        // CSRF와는 무관한 별도 결함). 형제 폼들과 동일하게 REST(POST .../comments)로 전환한다.
+        $(document).on('submit', '#comment-form', function(e){
+            e.preventDefault();
+            var $form = $(this);
+            var apiBase = $form.data('apiBase');
+            var contents = $form.find('textarea[name="contents"]').val();
+            $.ajax({
+                url: apiBase,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ contents: contents }),
+                success: function(){ window.location.reload(); },
+                error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
+            });
         });
         $(document).on('submit', '.comment-update-form form', function(e){
             e.preventDefault();

@@ -9,8 +9,8 @@ yona common/branchItem.scala.html 대응 (그룹2 #39, 그룹10에서 처리). l
 <ul>
 <li th:fragment="branchItem(project, branch, selected)"
     th:data-value="${branch}" th:data-selected="${selected} ? 'true' : null">
-  <a th:href="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${@templateHelper.branchItemName(branch)})}"
-     th:utext="${@templateHelper.branchInHtml(branch)}">branch</a>
+  <a th:href="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branch)})}"
+     th:utext="${templateHelper.branchInHtml(branch)}">branch</a>
 </li>
 </ul>
 </body>

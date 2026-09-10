@@ -69,7 +69,11 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "jQuery.ajaxSetup"
+                // P3-48 화면별 재현 세션에서 jQuery.ajaxSetup(beforeSend)을 jQuery(document).ajaxSend로
+                // 교체했다 — 개별 $.ajax() 호출이 자기만의 beforeSend를 넘기면(예:
+                // yona.Tasklist.js) ajaxSetup의 beforeSend를 완전히 덮어써 CSRF 헤더가 빠지는
+                // 문제를 실제로 재현해서 고쳤다(GlobalCsrfAjaxHeaderTemplateEquivalenceSpec 참고).
+                body shouldContain "ajaxSend"
                 body shouldContain "X-XSRF-TOKEN"
                 body shouldContain "window.fetch = function"
             }

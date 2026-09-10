@@ -5,12 +5,16 @@
   <title th:text="${titleMain} + ' - Yona'">어드민 관리 - Yona</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <!-- P3-48: raw $.ajax(PUT/DELETE/PATCH 등)가 CSRF 토큰을 못 실어 403으로 거부되던 문제 대응.
-       Spring Security 공식 문서가 권장하는 방식(meta 태그로 노출 + 전역 ajaxSetup) — site/layout.html::scripts
-       하단의 인라인 스크립트가 이 두 meta를 읽어 모든 $.ajax 호출에 CSRF 헤더를 자동으로 붙인다.
-       _csrf 요청 속성은 CsrfFilter를 거치지 않는 일부 경로(예: 에러 페이지 포워딩)에서는 없을 수
-       있어 안전 내비게이션(?.)으로 접근 — 전체 스위트 실행 중 ErrorPageTemplateRenderingSpec 등
-       13개 스펙에서 이 NPE로 실제로 깨지는 것을 발견하고 수정. -->
+  <!-- P3-48: raw $.ajax(PUT/DELETE/PATCH 등)가 CSRF 토큰을 못 실어 403으로 거부되던 문제 대응 중
+       Spring Security 공식 문서가 권장하는 최초 방식(이 meta 태그로 토큰을 노출)으로 시작했다.
+       이후(P3-legal/P3-44) CookieCsrfTokenRepository 기반 더블서브밋 쿠키 방식으로 CSRF
+       아키텍처 자체가 교체돼(site/layout.html::scripts 하단, config/CsrfSupport.kt 참고) 실제
+       헤더 주입은 이제 XSRF-TOKEN 쿠키를 직접 읽는 쪽이 담당한다 — 이 meta 태그는 더 이상 그
+       주입 경로에 쓰이지 않지만, 별도 소비자가 없는지 확인했고(app 전역에 다른 참조 없음)
+       제거보다 유지 쪽이 더 안전해 그대로 둔다. _csrf 요청 속성은 CsrfFilter를 거치지 않는 일부
+       경로(예: 에러 페이지 포워딩)에서는 없을 수 있어 안전 내비게이션(?.)으로 접근 — 전체
+       스위트 실행 중 ErrorPageTemplateRenderingSpec 등 13개 스펙에서 이 NPE로 실제로 깨지는
+       것을 발견하고 수정. -->
   <meta name="_csrf" th:content="${_csrf?.token}">
   <meta name="_csrf_header" th:content="${_csrf?.headerName}">
   <meta property="og:title" th:content="${titleMain}">
@@ -581,26 +585,6 @@
 
   <!-- 공통 스크립트 및 모달 다이얼로그 -->
   <th:block th:fragment="scripts">
-    <!-- P3-48: CSRF 재활성화 이후 화면 곳곳의 raw $.ajax({method:'PUT'/'DELETE'/'PATCH', data:
-         JSON.stringify(...)}) 호출이 CSRF 토큰을 전혀 싣지 않아 403으로 거부되던 문제의 근본
-         수정. .ajaxForm()/.ajaxSubmit() 플러그인 경로(yona-common.js)는 이미 meta[name=csrf-*]를
-         읽어 자동 처리하지만, 그 경로를 안 타는 순수 $.ajax 호출에는 대응 장치가 없었다 — 여기서
-         전역으로 한 번 걸어 모든 $.ajax 호출에 일괄 적용한다(GET/HEAD/OPTIONS/TRACE는 Spring
-         Security도 CSRF 검증을 안 하므로 헤더를 안 붙여도 무해하지만, 동일하게 붙여도 안전하다). -->
-    <script type="text/javascript">
-        (function(){
-            var csrfToken = $("meta[name='_csrf']").attr("content");
-            var csrfHeader = $("meta[name='_csrf_header']").attr("content");
-            if (csrfToken && csrfHeader) {
-                $.ajaxSetup({
-                    beforeSend: function(xhr){
-                        xhr.setRequestHeader(csrfHeader, csrfToken);
-                    }
-                });
-            }
-        })();
-    </script>
-
     <!-- yobi.ui.Dialog -->
     <div id="yobiDialog" class="modal hide yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
@@ -697,7 +681,16 @@
          검증하지 않으므로 제외한다. 토큰은 CookieCsrfTokenRepository.withHttpOnlyFalse()가
          원문 그대로 저장하는 XSRF-TOKEN 쿠키에서 읽어 X-XSRF-TOKEN 헤더로 보낸다
          (SpaCsrfTokenRequestHandler가 헤더 값은 XOR 복원 없이 그대로 비교 — config/CsrfSupport.kt
-         참고). -->
+         참고).
+
+         P3-48 화면별 재현 세션에서 발견: 처음엔 jQuery의 ajaxSetup(그 옵션의 beforeSend)으로 걸었는데,
+         common/yona.Tasklist.js(이슈/게시글 본문 tasklist 체크박스 토글 PATCH)처럼 개별
+         $.ajax() 호출이 자기만의 beforeSend 옵션을 넘기면 jQuery가 그 호출별 beforeSend로
+         "완전히 대체"해버려(ajaxSetup의 기본값은 여러 beforeSend를 체이닝하지 않는다) CSRF
+         헤더가 조용히 빠진 채 전송됐다(Playwright로 실제 체크박스를 클릭해 403으로 재현).
+         jQuery의 전역 ajax 이벤트(ajaxSend)는 등록된 모든 핸들러가 호출마다 매번 실행되고
+         개별 호출의 beforeSend와도 독립적이라 이런 식으로 우회될 수 없다 — 그래서 ajaxSetup
+         대신 이 전역 이벤트로 옮긴다. -->
     <script type="text/javascript">
     (function() {
         var CSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -710,13 +703,11 @@
         }
 
         if (window.jQuery) {
-            jQuery.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    var method = (settings.type || "GET").toUpperCase();
-                    if (SAFE_METHOD_PATTERN.test(method)) return;
-                    var token = readCsrfTokenFromCookie();
-                    if (token) xhr.setRequestHeader(CSRF_HEADER_NAME, token);
-                }
+            jQuery(document).ajaxSend(function(event, xhr, settings) {
+                var method = (settings.type || "GET").toUpperCase();
+                if (SAFE_METHOD_PATTERN.test(method)) return;
+                var token = readCsrfTokenFromCookie();
+                if (token) xhr.setRequestHeader(CSRF_HEADER_NAME, token);
             });
         }
 
@@ -739,8 +730,8 @@
 
         // 로그아웃 — CSRF 활성화 시 Spring Security LogoutConfigurer가 logoutRequestMatcher를
         // POST 전용으로 바꾼다(기존 <a href="/users/logout"> GET 링크는 더 이상 매치되지 않음).
-        // 위 jQuery.ajaxSetup 인터셉터가 이미 배선돼 있으므로 $.post 한 번이면 토큰이 자동으로
-        // 실린다.
+        // 위 jQuery(document).ajaxSend 인터셉터가 이미 배선돼 있으므로 $.post 한 번이면 토큰이
+        // 자동으로 실린다.
         //
         // 서버는 로그아웃 성공 시 /users/loginform?logout으로 실제 302를 반환한다
         // (SecurityConfig.kt의 .logout { } 참고). 다만 이 요청은 <a> 클릭을 가로챈 XHR($.post)이라

@@ -139,6 +139,7 @@ dependencies {
 	implementation("org.commonmark:commonmark-ext-gfm-tables:0.24.0")
 	implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.24.0")
 	implementation("org.commonmark:commonmark-ext-autolink:0.24.0")
+	implementation("org.commonmark:commonmark-ext-task-list-items:0.24.0")
 
 	// JSoup
 	implementation("org.jsoup:jsoup:1.21.1")
