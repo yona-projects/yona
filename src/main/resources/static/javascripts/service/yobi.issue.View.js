@@ -47,8 +47,6 @@
             elements.timelineWrap = $("#timeline");
             elements.timelineList = elements.timelineWrap.find(".timeline-list");
 
-            elements.dueDate = $("#issueDueDate");
-
             elements.btnVoteComment = $(options.btnVoteComment || '[data-request-type="comment-vote"]');
         }
 
