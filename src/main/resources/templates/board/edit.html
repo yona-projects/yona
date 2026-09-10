@@ -96,7 +96,7 @@
             var projectName = /*[[${project.name}]]*/ '';
             
             var title = $("#title").val();
-            var body = $("#body").val();
+            var body = $('textarea[id^=editor-]').val();
             var notice = $("#notice").is(":checked");
             var sendNotificationMail = $("#sendNotificationMail").length ? $("#sendNotificationMail").is(":checked") : false;
             // legacy board/edit.scala.html:59-64 대응 — readme 체크박스가 없으면(권한/VCS 조건

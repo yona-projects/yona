@@ -140,8 +140,12 @@ class LogoutCsrfIntegrationSpec @Autowired constructor(
                 // 대신 "완전한 익명 접근과 동일한 결과"로 검증한다. 단, 두 응답 모두 sitewide 로그인
                 // 모달의 _csrf 히든 필드 값은 매 요청 새로 발급되는 난수라 그 부분만 마스킹하고
                 // 비교한다.
+                // P3-48: site/layout.html::head에 추가된 <meta name="_csrf" content="...">도
+                // 매 요청 새로 발급되는 난수라 함께 마스킹해야 한다(히든 폼 필드 value=".."뿐 아니라
+                // meta 태그의 content=".."도).
                 fun maskCsrfToken(body: String) =
                     body.replace(Regex("name=\"_csrf\" value=\"[^\"]*\""), "name=\"_csrf\" value=\"MASKED\"")
+                        .replace(Regex("name=\"_csrf\" content=\"[^\"]*\""), "name=\"_csrf\" content=\"MASKED\"")
 
                 val afterLogoutBody = client.send(
                     HttpRequest.newBuilder(URI.create("http://localhost:$port/user/editform"))

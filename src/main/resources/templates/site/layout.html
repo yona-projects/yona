@@ -5,6 +5,14 @@
   <title th:text="${titleMain} + ' - Yona'">어드민 관리 - Yona</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- P3-48: raw $.ajax(PUT/DELETE/PATCH 등)가 CSRF 토큰을 못 실어 403으로 거부되던 문제 대응.
+       Spring Security 공식 문서가 권장하는 방식(meta 태그로 노출 + 전역 ajaxSetup) — site/layout.html::scripts
+       하단의 인라인 스크립트가 이 두 meta를 읽어 모든 $.ajax 호출에 CSRF 헤더를 자동으로 붙인다.
+       _csrf 요청 속성은 CsrfFilter를 거치지 않는 일부 경로(예: 에러 페이지 포워딩)에서는 없을 수
+       있어 안전 내비게이션(?.)으로 접근 — 전체 스위트 실행 중 ErrorPageTemplateRenderingSpec 등
+       13개 스펙에서 이 NPE로 실제로 깨지는 것을 발견하고 수정. -->
+  <meta name="_csrf" th:content="${_csrf?.token}">
+  <meta name="_csrf_header" th:content="${_csrf?.headerName}">
   <meta property="og:title" th:content="${titleMain}">
   <meta property="og:url" th:content="${currentRequestPath}">
   <meta property="og:type" content="website">
@@ -559,6 +567,26 @@
 
   <!-- 공통 스크립트 및 모달 다이얼로그 -->
   <th:block th:fragment="scripts">
+    <!-- P3-48: CSRF 재활성화 이후 화면 곳곳의 raw $.ajax({method:'PUT'/'DELETE'/'PATCH', data:
+         JSON.stringify(...)}) 호출이 CSRF 토큰을 전혀 싣지 않아 403으로 거부되던 문제의 근본
+         수정. .ajaxForm()/.ajaxSubmit() 플러그인 경로(yona-common.js)는 이미 meta[name=csrf-*]를
+         읽어 자동 처리하지만, 그 경로를 안 타는 순수 $.ajax 호출에는 대응 장치가 없었다 — 여기서
+         전역으로 한 번 걸어 모든 $.ajax 호출에 일괄 적용한다(GET/HEAD/OPTIONS/TRACE는 Spring
+         Security도 CSRF 검증을 안 하므로 헤더를 안 붙여도 무해하지만, 동일하게 붙여도 안전하다). -->
+    <script type="text/javascript">
+        (function(){
+            var csrfToken = $("meta[name='_csrf']").attr("content");
+            var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+            if (csrfToken && csrfHeader) {
+                $.ajaxSetup({
+                    beforeSend: function(xhr){
+                        xhr.setRequestHeader(csrfHeader, csrfToken);
+                    }
+                });
+            }
+        })();
+    </script>
+
     <!-- yobi.ui.Dialog -->
     <div id="yobiDialog" class="modal hide yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
