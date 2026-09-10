@@ -131,7 +131,13 @@
             <div class="row-fluid user-menu-wrap">
               <span class="user-menu"><a th:href="@{'/user/' + ${#authentication.name}}" th:text="#{userinfo.profile}">Profile</a></span>
               <span class="user-menu"><a href="/user/editform" th:text="#{userinfo.accountSetting}">Account settings</a></span>
-              <a href="/users/logout"><span class="user-menu logout label" th:text="#{title.logout}">Log out</span></a>
+              <!-- 로그아웃은 상태를 바꾸는 동작이라 GET으로는 더 이상 허용되지 않는다(Spring
+                   Security LogoutConfigurer: CSRF 활성화 시 logoutRequestMatcher가 POST 전용으로
+                   바뀜). js-logout-link 클래스로 표시해 site/layout.html::scripts의 전역
+                   핸들러가 클릭을 가로채 POST로 보내게 한다(href는 JS 비활성 환경을 위한
+                   최소한의 표시 목적으로만 남겨둠 — 실제로는 이 앱의 다른 상호작용 다수도 이미
+                   JS 없이는 동작하지 않는다). -->
+              <a href="/users/logout" class="js-logout-link"><span class="user-menu logout label" th:text="#{title.logout}">Log out</span></a>
             </div>
             <ul class="nav nav-tabs nm">
               <li class="myOrganizationList active">
@@ -254,7 +260,13 @@
             <div class="row-fluid user-menu-wrap">
               <span class="user-menu"><a href="/admin" th:text="#{userinfo.profile}">Profile</a></span>
               <span class="user-menu"><a href="/user/editform" th:text="#{userinfo.accountSetting}">Account settings</a></span>
-              <a href="/users/logout"><span class="user-menu logout label" th:text="#{title.logout}">Log out</span></a>
+              <!-- 로그아웃은 상태를 바꾸는 동작이라 GET으로는 더 이상 허용되지 않는다(Spring
+                   Security LogoutConfigurer: CSRF 활성화 시 logoutRequestMatcher가 POST 전용으로
+                   바뀜). js-logout-link 클래스로 표시해 site/layout.html::scripts의 전역
+                   핸들러가 클릭을 가로채 POST로 보내게 한다(href는 JS 비활성 환경을 위한
+                   최소한의 표시 목적으로만 남겨둠 — 실제로는 이 앱의 다른 상호작용 다수도 이미
+                   JS 없이는 동작하지 않는다). -->
+              <a href="/users/logout" class="js-logout-link"><span class="user-menu logout label" th:text="#{title.logout}">Log out</span></a>
             </div>
             <ul class="nav nav-tabs nm">
               <li class="myOrganizationList active">
@@ -579,7 +591,11 @@
         <div class="pull-right">
           <button type="button" class="close mr10" data-dismiss="modal" aria-hidden="true">&times;</button>
         </div>
-        <form action="/users/login" method="post" class="frm-wrap login-form-wrap">
+        <!-- 익명 사용자에게 sitewide로 렌더링되는 유일한 순수 HTML action= 서버 렌더링 폼이었다.
+             th:action으로 바꾸면 Spring Security의 requestDataValueProcessor 빈 +
+             thymeleaf-spring6의 SpringActionTagProcessor가 _csrf 히든 필드를 자동으로
+             주입한다(추가 코드 불필요). -->
+        <form th:action="@{/users/login}" method="post" class="frm-wrap login-form-wrap">
           <div class="btns-row nm" th:if="${useSocialLoginOnly}" th:text="#{app.warn.support.social.login.only}">소셜 로그인을 통한 로그인만 가능합니다.</div>
           <th:block th:unless="${useSocialLoginOnly}">
           <dl>
@@ -631,6 +647,83 @@
 
     <!-- 스크립트 라이브러리들 로드 -->
     <script type="text/javascript" src="/javascripts/yona-common.js"></script>
+
+    <!-- 개별 수정 없이 이 인터셉터 하나로 $.ajax/fetch() 호출 전체를 커버한다. jQuery Form
+         Plugin의 .ajaxForm()(yobi.Files.js 업로드, yobi.Common.js/yona-layout.js의
+         $yobi.sendForm 사용처)도 내부적으로 $.ajax()를 호출하므로 함께 커버된다 — 별도 패치
+         불필요. GET/HEAD/OPTIONS/TRACE(안전 메서드)는 Spring Security의 CsrfFilter 자체가
+         검증하지 않으므로 제외한다. 토큰은 CookieCsrfTokenRepository.withHttpOnlyFalse()가
+         원문 그대로 저장하는 XSRF-TOKEN 쿠키에서 읽어 X-XSRF-TOKEN 헤더로 보낸다
+         (SpaCsrfTokenRequestHandler가 헤더 값은 XOR 복원 없이 그대로 비교 — config/CsrfSupport.kt
+         참고). -->
+    <script type="text/javascript">
+    (function() {
+        var CSRF_COOKIE_NAME = "XSRF-TOKEN";
+        var CSRF_HEADER_NAME = "X-XSRF-TOKEN";
+        var SAFE_METHOD_PATTERN = /^(GET|HEAD|OPTIONS|TRACE)$/i;
+
+        function readCsrfTokenFromCookie() {
+            var match = document.cookie.match(new RegExp("(?:^|; )" + CSRF_COOKIE_NAME + "=([^;]*)"));
+            return match ? decodeURIComponent(match[1]) : null;
+        }
+
+        if (window.jQuery) {
+            jQuery.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    var method = (settings.type || "GET").toUpperCase();
+                    if (SAFE_METHOD_PATTERN.test(method)) return;
+                    var token = readCsrfTokenFromCookie();
+                    if (token) xhr.setRequestHeader(CSRF_HEADER_NAME, token);
+                }
+            });
+        }
+
+        if (window.fetch) {
+            var originalFetch = window.fetch;
+            window.fetch = function(input, init) {
+                init = init || {};
+                var method = (init.method || (input && input.method) || "GET").toUpperCase();
+                if (!SAFE_METHOD_PATTERN.test(method)) {
+                    var token = readCsrfTokenFromCookie();
+                    if (token) {
+                        var headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+                        headers.set(CSRF_HEADER_NAME, token);
+                        init = Object.assign({}, init, { headers: headers });
+                    }
+                }
+                return originalFetch.call(this, input, init);
+            };
+        }
+
+        // 로그아웃 — CSRF 활성화 시 Spring Security LogoutConfigurer가 logoutRequestMatcher를
+        // POST 전용으로 바꾼다(기존 <a href="/users/logout"> GET 링크는 더 이상 매치되지 않음).
+        // 위 jQuery.ajaxSetup 인터셉터가 이미 배선돼 있으므로 $.post 한 번이면 토큰이 자동으로
+        // 실린다.
+        //
+        // 서버는 로그아웃 성공 시 /users/loginform?logout으로 실제 302를 반환한다
+        // (SecurityConfig.kt의 .logout { } 참고). 다만 이 요청은 <a> 클릭을 가로챈 XHR($.post)이라
+        // 브라우저가 그 302를 "페이지 이동"으로 취급하지 않는다 — XHR은 same-origin 리다이렉트를
+        // 내부적으로 조용히 따라가 최종 응답만 돌려줄 뿐, 주소창/화면은 그대로다. 그래서 폼 제출
+        // 방식(<form method="post"> 자동 submit)으로 바꾸는 대신, 브라우저 네비게이션은 계속 JS가
+        // 명시적으로 담당하도록 했다 — 이미 있던 골격(AJAX 콜백에서 location.href로 이동)을 그대로
+        // 살리는 쪽이 마크업/스타일 변경 없이 최소 침습적이고, 로그인 모달 등 이 링크 주변의 다른
+        // 상호작용과도 일관된다. 단 기존 코드는 .always()라 요청이 실패해도(네트워크 오류, CSRF
+        // 토큰 만료로 403 등) 무조건 "로그아웃됨" 페이지로 이동시켜, 실제로는 세션이 살아있는데도
+        // 로그아웃된 것처럼 오인시킬 수 있었다 — .done()으로 좁혀 성공(2xx) 응답을 받았을 때만
+        // 이동시키고, 실패 시에는 현재 화면에 남겨 사용자가 다시 시도할 수 있게 한다.
+        if (window.jQuery) {
+            jQuery(document).on("click", ".js-logout-link", function(e) {
+                e.preventDefault();
+                jQuery.post("/users/logout").done(function() {
+                    window.location.href = "/users/loginform?logout";
+                }).fail(function() {
+                    window.alert("로그아웃에 실패했습니다. 다시 시도해 주세요.");
+                });
+            });
+        }
+    })();
+    </script>
+
     <script type="text/javascript" src="/bootstrap/js/bootstrap-better-typeahead.js"></script>
     <script type="text/javascript" src="/bootstrap/js/bootstrap-switch.js"></script>
     <script type="text/javascript" src="/javascripts/yona-lib.js"></script>

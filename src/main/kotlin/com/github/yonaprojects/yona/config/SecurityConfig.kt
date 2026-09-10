@@ -22,6 +22,8 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.firewall.HttpFirewall
 import org.springframework.security.web.firewall.StrictHttpFirewall
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
@@ -139,14 +141,51 @@ class SecurityConfig(
     }
 
     // 신규 AuthorizationServerConfig(@Order 1)/ResourceServerConfig(@Order 2: /mcp/**, @Order 3:
-    // /api/v1/**)가 각각 좁은 경로만 담당하므로 이 캐치올 체인은 가장 낮은 우선순위(@Order 4)로
-    // 명시한다 — 겹치는 URL이 없어 동작 변화는 없지만, 여러 SecurityFilterChain 빈이 공존할 때
-    // 순서를 암묵적 추론에 맡기지 않기 위해 명시적으로 선언했다.
+    // /api/v1/**)/LegacyApiSecurityConfig(@Order 4: /-_-api/v1/**, /api/**)가 각각 좁은 경로만
+    // 담당하므로 이 캐치올 체인은 가장 낮은 우선순위(@Order 5)로 명시한다 — 겹치는 URL이 없어
+    // 동작 변화는 없지만, 여러 SecurityFilterChain 빈이 공존할 때 순서를 암묵적 추론에 맡기지
+    // 않기 위해 명시적으로 선언했다.
     @Bean
-    @Order(4)
+    @Order(5)
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf { csrf -> csrf.disable() }
+            // CSRF는 포팅 과정에서 사유 없이 꺼진 채 방치돼 있었다(레거시 Play 앱도 원래 꺼져
+            // 있었을 뿐, 의도적 설계는 아니었음). 템플릿 폼 대부분은 이미 th:action이라 자동으로
+            // 보호되고, 나머지는 개별 대응했다(site/layout.html 로그인 모달, code/compare·
+            // diff.html 인라인 댓글 폼, site/layout.html::scripts의 전역 $.ajax/fetch 인터셉터).
+            // CookieCsrfTokenRepository(원문 토큰을 XSRF-TOKEN
+            // 쿠키에 저장, withHttpOnlyFalse로 JS가 직접 읽게 함) + SpaCsrfTokenRequestHandler
+            // (서버 렌더링 폼과 AJAX 양쪽을 함께 지원)는 Spring Security 공식 문서가 이 조합에
+            // 권장하는 패턴 그대로다(CsrfSupport.kt 참고).
+            //
+            // ignoringRequestMatchers 대상은 전부 "세션 쿠키가 아닌 별도 인증 수단을 쓰는
+            // 비브라우저/머신 클라이언트"다 — CSRF는 애초에 "브라우저가 로그인 세션의 앰비언트
+            // 인증정보를 이용해 대신 요청을 보내는" 공격을 막는 것이 목적이라, 세션 쿠키 자체를
+            // 쓰지 않는 이 경로들엔 적용할 대상이 없다(오히려 켜면 정상 클라이언트만 깨짐):
+            // - /git/**, /svn/**, /hg/**: HTTP Basic(GitAuthorizationFilter 등) 또는 Deploy Key
+            //   인증. git push/svn commit/hg push가 세션 쿠키를 보낼 수 없다.
+            // - /internal/**: SshInternalController(`/internal/ssh/authenticate`) — 같은 호스트
+            //   loopback에서만 오는 시스템 sshd AuthorizedKeysCommand 훅 호출, 공유 시크릿 헤더
+            //   (X-Yona-Internal-Secret) 인증. 브라우저가 관여하지 않는 순수 머신-투-머신 호출.
+            // - /login/saml2/sso/**: SAML2 ACS(Assertion Consumer Service) 엔드포인트 — IdP가
+            //   브라우저를 통해 HTTP-POST 바인딩으로 보내는 응답이라, 이 앱이 발급한 CSRF
+            //   토큰을 IdP가 알 도리가 없다(SAML2LoginConfigurer는 OAuth2AuthorizationServerConfigurer와
+            //   달리 이 경로를 자동으로 CSRF 예외 처리해주지 않는다).
+            //
+            // 경로 목록과 별개로, PAT/레거시 전권 토큰 헤더(tokenAuthenticatedRequestMatcher,
+            // CsrfSupport.kt)를 든 요청도 통째로 예외 처리한다 — ApiTokenAuthenticationFilter가
+            // 인증하는 레거시 세션 기반 웹 MVC 경로 중 `-_-api`/`api` 접두어가 없어 이 캐치올
+            // 체인을 그대로 타는 경로(예: `POST /projects/{owner}/{project}/webhooks` —
+            // ApiTokenAuthenticationFilter.parseLegacyWebProjectTarget 대상)가 있다 — 이 경로들도
+            // yona-cli 등 헤드리스 클라이언트가 PAT로 호출하므로 세션 쿠키를 전제하는 CSRF를
+            // 적용할 대상이 아니다.
+            .csrf { csrf ->
+                csrf
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
+                    .ignoringRequestMatchers("/git/**", "/svn/**", "/hg/**", "/internal/**", "/login/saml2/sso/**")
+                    .ignoringRequestMatchers(tokenAuthenticatedRequestMatcher)
+            }
             .headers { headers ->
                 headers.frameOptions { frameOptions ->
                     frameOptions.sameOrigin()
@@ -215,7 +254,25 @@ class SecurityConfig(
             .logout { logout ->
                 logout
                     .logoutUrl("/users/logout")
-                    .logoutSuccessUrl("/users/loginform?logout")
+                    // .logoutSuccessUrl(...)만으로는 302가 나가지 않았다 — 근본 원인은 바로 위
+                    // .httpBasic { }: HttpBasicConfigurer.init()이 항상
+                    // LogoutConfigurer.defaultLogoutSuccessHandlerFor(HttpStatusReturningLogoutSuccessHandler(204),
+                    // preferredMatcher)를 등록해둔다. preferredMatcher는 "X-Requested-With:
+                    // XMLHttpRequest" 또는 "Accept가 text/html을 명시하지 않는 요청"(Accept 헤더
+                    // 자체가 없는 요청도 HeaderContentNegotiationStrategy가 */*로 협상해 여기
+                    // 포함)에 매치되고, .logoutSuccessUrl(...)로 만든 SimpleUrlLogoutSuccessHandler는
+                    // LogoutConfigurer.createDefaultSuccessHandler()가 이 매핑을
+                    // defaultLogoutSuccessHandler로만 깔아둔 DelegatingLogoutSuccessHandler에
+                    // 감싸인다 — 즉 매치되는 요청은 우리 URL 대신 204로 새버린다. site/layout.html의
+                    // $.post 로그아웃 요청은 jQuery가 자동으로 X-Requested-With를 붙이므로 정확히
+                    // 이 조건에 걸렸다. .logoutSuccessHandler(...)로 핸들러를 직접 지정하면
+                    // LogoutConfigurer.getLogoutSuccessHandler()가 필드가 non-null일 때 그 값을
+                    // 그대로 반환해(defaultLogoutSuccessHandlerMappings를 아예 참조하지 않음)
+                    // httpBasic()의 기본 매핑을 완전히 무시하고 항상 이 리다이렉트를 쓰게 된다 —
+                    // 브라우저 내비게이션/AJAX 구분 없이 로그아웃 성공 시 항상 302.
+                    .logoutSuccessHandler(
+                        SimpleUrlLogoutSuccessHandler().apply { setDefaultTargetUrl("/users/loginform?logout") }
+                    )
                     .permitAll()
             }
             .addFilterAfter(gitAuthorizationFilter, BasicAuthenticationFilter::class.java)

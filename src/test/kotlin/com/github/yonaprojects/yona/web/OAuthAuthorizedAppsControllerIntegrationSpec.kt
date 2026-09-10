@@ -16,6 +16,7 @@ import io.kotest.matchers.string.shouldContain
 import jakarta.servlet.Filter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -26,8 +27,8 @@ import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 import java.util.UUID
 
-// yona-wiki P3-07(MCP 서버) Step6 — "Authorized OAuth Apps" 화면(사용자 지시 1번: "필요한 UI는 반드시
-// 구현한다")이 실제 Spring 컨텍스트+실제 Thymeleaf 템플릿 엔진으로 정상 렌더링되는지 확인한다.
+// "Authorized OAuth Apps" 화면이 실제 Spring 컨텍스트+실제 Thymeleaf 템플릿 엔진으로 정상
+// 렌더링되는지 확인한다.
 // UserViewControllerSpec(mockk 기반 단위테스트)은 뷰 이름만 검증하고 템플릿 문법 자체는 렌더링하지
 // 않으므로, 이 스펙이 실제 HTML 렌더링(오타/Thymeleaf 문법 오류 검출)과 revoke의 실제 DB 부수효과
 // (동의 레코드 + 토큰 레코드 둘 다 삭제됨)를 커버한다.
@@ -72,11 +73,11 @@ class OAuthAuthorizedAppsControllerIntegrationSpec @Autowired constructor(
         )
 
         describe("GET /user/editform/oauth-apps") {
-            // yona-wiki P3-07 Step6 — 이 컨트롤러의 다른 계정 설정 엔드포인트(editApiTokensForm 등)와
-            // 동일한 기존 관례: SecurityConfig가 /user/editform/**를 별도로 보호하지 않고, 각
-            // 컨트롤러 메서드가 authentication == null을 직접 확인해 "error/403" 뷰(200 OK로 렌더링되는
-            // 일반 오류 페이지 — HTTP 상태코드 자체를 403으로 바꾸는 게 아니다)를 반환한다. 실측
-            // 확인 결과 302 리다이렉트가 아니라 200으로 렌더링됨을 확인했다.
+            // 이 컨트롤러의 다른 계정 설정 엔드포인트(editApiTokensForm 등)와 동일한 기존 관례:
+            // SecurityConfig가 /user/editform/**를 별도로 보호하지 않고, 각 컨트롤러 메서드가
+            // authentication == null을 직접 확인해 "error/403" 뷰(200 OK로 렌더링되는 일반 오류
+            // 페이지 — HTTP 상태코드 자체를 403으로 바꾸는 게 아니다)를 반환한다. 302 리다이렉트가
+            // 아니라 200으로 렌더링된다.
             it("비로그인 상태로 접근하면 error/403 페이지를 200으로 렌더링해야 한다(기존 계정설정 화면과 동일한 관례)") {
                 val result = mockMvc.perform(get("/user/editform/oauth-apps")).andReturn()
                 result.response.status shouldBe 200
@@ -154,7 +155,7 @@ class OAuthAuthorizedAppsControllerIntegrationSpec @Autowired constructor(
                 )
 
                 val result = mockMvc.perform(
-                    post("/user/editform/oauth-apps/${client.clientId}/revoke").with(user(userDetails()))
+                    post("/user/editform/oauth-apps/${client.clientId}/revoke").with(user(userDetails())).with(csrf())
                 ).andReturn()
 
                 result.response.status shouldBe 302

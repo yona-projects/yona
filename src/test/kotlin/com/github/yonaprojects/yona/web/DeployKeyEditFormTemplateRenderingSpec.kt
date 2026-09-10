@@ -17,6 +17,7 @@ import io.kotest.matchers.string.shouldNotContain
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.mock.web.MockHttpSession
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
@@ -32,8 +33,7 @@ private const val DEPLOY_KEY_1 =
 private const val DEPLOY_KEY_2 =
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILRyWi6jud2ngJsCWbqDTigEMGZ6zxc+j8wSz5iQL6Bx deployform-test2@example.com"
 
-// yona-wiki P3-03 Step1/Step2 — 새 화면(project/setting_deploykeys.html)이 실제로 Thymeleaf
-// 렌더링까지 통과하는지 검증.
+// 새 화면(project/setting_deploykeys.html)이 실제로 Thymeleaf 렌더링까지 통과하는지 검증.
 class DeployKeyEditFormTemplateRenderingSpec @Autowired constructor(
     private val webApplicationContext: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -91,14 +91,14 @@ class DeployKeyEditFormTemplateRenderingSpec @Autowired constructor(
             }
         }
 
-        // yona-wiki P3-03 Step2 — 등록(POST)은 Post/Redirect/Get 패턴이라(DeployKeyController 주석
-        // 참고) 같은 세션으로 리다이렉트를 따라가야 플래시 속성(issuedHttpsToken)이 보인다.
+        // 등록(POST)은 Post/Redirect/Get 패턴이라(DeployKeyController 주석 참고) 같은 세션으로
+        // 리다이렉트를 따라가야 플래시 속성(issuedHttpsToken)이 보인다.
         describe("POST /projects/{owner}/{name}/deploy-keys -> GET") {
             it("Deploy Key를 등록하면 리다이렉트 후 화면에 HTTPS 토큰이 노출되고 목록에도 나타나야 한다") {
                 val session = MockHttpSession()
 
                 mockMvc.perform(
-                    post("/projects/${project.owner}/${project.name}/deploy-keys").with(authOf(manager)).session(session)
+                    post("/projects/${project.owner}/${project.name}/deploy-keys").with(authOf(manager)).with(csrf()).session(session)
                         .param("title", "렌더링테스트DK")
                         .param("publicKey", DEPLOY_KEY_1)
                         .param("readOnly", "true")
@@ -114,7 +114,7 @@ class DeployKeyEditFormTemplateRenderingSpec @Autowired constructor(
 
             it("삭제하면 목록에서 사라져야 한다") {
                 mockMvc.perform(
-                    post("/projects/${project.owner}/${project.name}/deploy-keys").with(authOf(manager))
+                    post("/projects/${project.owner}/${project.name}/deploy-keys").with(authOf(manager)).with(csrf())
                         .param("title", "삭제될DK")
                         .param("publicKey", DEPLOY_KEY_2)
                         .param("readOnly", "true")
@@ -122,7 +122,7 @@ class DeployKeyEditFormTemplateRenderingSpec @Autowired constructor(
 
                 val issued = deployKeyRepository.findByProjectId(project.id!!).first { it.title == "삭제될DK" }
 
-                mockMvc.perform(post("/projects/${project.owner}/${project.name}/deploy-keys/${issued.id}/delete").with(authOf(manager)))
+                mockMvc.perform(post("/projects/${project.owner}/${project.name}/deploy-keys/${issued.id}/delete").with(authOf(manager)).with(csrf()))
                     .andExpect(status().is3xxRedirection)
 
                 val listBody = mockMvc.perform(get("/projects/${project.owner}/${project.name}/deploy-keys").with(authOf(manager)))

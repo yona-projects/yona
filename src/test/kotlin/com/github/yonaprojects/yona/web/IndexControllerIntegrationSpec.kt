@@ -3,6 +3,7 @@ package com.github.yonaprojects.yona.web
 import com.github.yonaprojects.yona.AbstractIntegrationTest
 import com.github.yonaprojects.yona.domain.user.YonaUserDetails
 import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.string.shouldContain
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
@@ -45,6 +46,32 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                     .andExpect(content().string(Matchers.containsString("21st Century Software Development Platform")))
                     .andExpect(content().string(Matchers.containsString("로그인")))
                     .andExpect(content().string(Matchers.containsString("개발팀에게 문의하기")))
+            }
+
+            // site/layout.html의 익명 사용자용 로그인 모달이 순수 action= 속성이라 CSRF 자동
+            // 주입 대상이 아니었다. th:action으로 바꾼 뒤(SecurityConfig의 캐치올 체인이 CSRF를
+            // 활성화했으므로) 이 sitewide 모달에 _csrf 히든 필드가 실제로 붙는지 실제 보안 필터
+            // 체인으로 검증한다.
+            it("익명 사용자에게 렌더링되는 로그인 모달에 _csrf 히든 필드가 자동으로 붙어야 한다") {
+                val body = mockMvc.perform(get("/"))
+                    .andExpect(status().isOk)
+                    .andReturn().response.contentAsString
+
+                body shouldContain "action=\"/users/login\""
+                body shouldContain "name=\"_csrf\""
+            }
+
+            // site/layout.html::scripts에 추가한 전역 $.ajax/fetch 인터셉터가 익명 사용자를
+            // 포함해 실제로 모든 페이지에 렌더링되는지 확인한다(로그인 여부와 무관하게 이
+            // 인터셉터가 빠지면 $.ajax/fetch 호출 전부가 CSRF로 막힌다).
+            it("모든 페이지에 전역 CSRF $.ajax/fetch 인터셉터 스크립트가 포함돼야 한다") {
+                val body = mockMvc.perform(get("/"))
+                    .andExpect(status().isOk)
+                    .andReturn().response.contentAsString
+
+                body shouldContain "jQuery.ajaxSetup"
+                body shouldContain "X-XSRF-TOKEN"
+                body shouldContain "window.fetch = function"
             }
 
             it("로그인한 사용자가 메인 홈(/) 접근 시, 대시보드 화면과 사용자명이 노출되어야 한다") {

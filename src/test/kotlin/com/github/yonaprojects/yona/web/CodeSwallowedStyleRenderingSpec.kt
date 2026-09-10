@@ -20,8 +20,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
 
-// code/view.html에서 발견된 것과 동일한 유형(P0-27)의 버그가 code/history.html, code/compare.html,
-// code/compare_svn.html에도 그대로 있었음 — 전수 감사(사용자 요청)에서 기계적으로 확인:
+// code/view.html에서 발견된 것과 동일한 유형의 버그가 code/history.html, code/compare.html,
+// code/compare_svn.html에도 그대로 있었다:
 // `<head th:replace="~{site/layout :: head(...)}"> <style>...</style> </head>` 형태로 페이지 전용
 // <style>을 th:replace가 통째로 치환하는 <head> 태그 "안"에 둬서 한 번도 렌더링되지 않는 죽은
 // 코드였다. 세 파일 모두 `.code-browse-wrap` 카드 배경/테두리만 잃는 순수 시각적 문제(다행히
@@ -54,8 +54,8 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
             )
             val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
             // CodeBrowserListWrapRenderingSpec과 동일한 이유(gitBaseDir가 세션을 넘나드는 고정
-            // 경로라 반쪽짜리 bare 저장소가 남을 수 있음, 실측 확인 2026-09-07) — HEAD 파일
-            // 존재로 실제 초기화 완료 여부를 판단한다.
+            // 경로라 반쪽짜리 bare 저장소가 남을 수 있음) — HEAD 파일 존재로 실제 초기화 완료
+            // 여부를 판단한다.
             if (!File(gitDir, "HEAD").exists()) {
                 repositoryService.getRepository(project).create()
                 BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# css-proj", "첫 커밋")
@@ -77,6 +77,51 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
 
                 body shouldContain ".code-browse-wrap {"
                 body shouldContain ".code-browse-wrap .commitId {"
+            }
+
+            // code/compare.html·code/diff.html의 인라인 댓글 폼은 Thymeleaf가 아니라 JS 템플릿
+            // 문자열로 런타임에 DOM에 삽입되는 진짜 네이티브 <form>이다(.submit()을 가로채는 JS
+            // 핸들러가 전혀 없음 — 클릭 시 브라우저가 그대로 전체 페이지 POST 내비게이션을
+            // 수행하고, 수신측 ReviewViewController도 "redirect:..."를 반환하는 고전적
+            // POST-Redirect-GET이라 th:action 자동 주입이 적용될 수 없다). 그래서 Thymeleaf의
+            // _csrf 요청 attribute 값을 JS 변수로 직접 심어 히든 필드를 수동 채운다 — 캐치올 체인이
+            // CSRF를 활성화했으므로(SecurityConfig) 실제 서버 필터 체인을 태우면 이 값이 채워져야
+            // 한다(webAppContextSetup, springSecurity() 미적용 — 이 파일은 필터 체인 없이
+            // DispatcherServlet만 태우지만 CsrfFilter 없이도 컨트롤러 코드 자체가 "_csrf가 있으면
+            // 그 값을 그대로 쓴다"는 걸 검증하기엔 충분하다).
+            it("code/compare.html: _csrf 요청 attribute 값이 인라인 댓글 폼 히든 필드 JS 변수에 그대로 노출돼야 한다") {
+                val csrfToken = org.springframework.security.web.csrf.DefaultCsrfToken(
+                    "X-XSRF-TOKEN", "_csrf", "compare-view-csrf-test-token"
+                )
+
+                val body = mockMvc.perform(
+                    get("/${project.owner}/${project.name}/compare/main..main")
+                        .requestAttr("_csrf", csrfToken)
+                )
+                    .andExpect(status().isOk)
+                    .andReturn().response.contentAsString
+
+                body shouldContain "const csrfParameterName = \"_csrf\""
+                body shouldContain "const csrfTokenValue = \"compare-view-csrf-test-token\""
+            }
+
+            it("code/diff.html: _csrf 요청 attribute 값이 인라인 댓글 폼 히든 필드 JS 변수에 그대로 노출돼야 한다") {
+                val log = repositoryService.getRepository(project).getHistory(0, 10, "main", null)
+                val headCommitId = log.first().getId()
+
+                val csrfToken = org.springframework.security.web.csrf.DefaultCsrfToken(
+                    "X-XSRF-TOKEN", "_csrf", "diff-view-csrf-test-token"
+                )
+
+                val body = mockMvc.perform(
+                    get("/${project.owner}/${project.name}/commit/$headCommitId")
+                        .requestAttr("_csrf", csrfToken)
+                )
+                    .andExpect(status().isOk)
+                    .andReturn().response.contentAsString
+
+                body shouldContain "const csrfParameterName = \"_csrf\""
+                body shouldContain "const csrfTokenValue = \"diff-view-csrf-test-token\""
             }
         }
 

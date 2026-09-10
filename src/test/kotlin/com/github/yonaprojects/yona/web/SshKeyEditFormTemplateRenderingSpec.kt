@@ -10,6 +10,7 @@ import io.kotest.matchers.string.shouldNotContain
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
@@ -26,8 +27,8 @@ private const val SSH_KEY_1 =
 private const val SSH_KEY_2 =
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILRyWi6jud2ngJsCWbqDTigEMGZ6zxc+j8wSz5iQL6Bx render-test2@example.com"
 
-// yona-wiki P3-03 Step3 — 새 화면(user/edit_ssh_keys.html)이 실제로 Thymeleaf 렌더링까지 통과하는지
-// 검증. ApiTokenEditFormTemplateRenderingSpec과 동일한 패턴.
+// 새 화면(user/edit_ssh_keys.html)이 실제로 Thymeleaf 렌더링까지 통과하는지 검증.
+// ApiTokenEditFormTemplateRenderingSpec과 동일한 패턴.
 //
 // GitHub 컨벤션대로 목록(edit_ssh_keys.html)과 등록 폼(edit_ssh_keys_new.html)을 별개 페이지로
 // 분리했고, 등록(POST)은 Post/Redirect/Get 패턴이라 같은 세션으로 리다이렉트를 따라가야 플래시
@@ -95,7 +96,7 @@ class SshKeyEditFormTemplateRenderingSpec @Autowired constructor(
                 val session = MockHttpSession()
 
                 mockMvc.perform(
-                    post("/user/editform/ssh-keys").with(authOf(owner)).session(session)
+                    post("/user/editform/ssh-keys").with(authOf(owner)).with(csrf()).session(session)
                         .param("title", "렌더링테스트키")
                         .param("publicKey", SSH_KEY_1)
                 ).andExpect(status().is3xxRedirection)
@@ -112,14 +113,14 @@ class SshKeyEditFormTemplateRenderingSpec @Autowired constructor(
 
             it("삭제하면 목록에서 사라져야 한다") {
                 mockMvc.perform(
-                    post("/user/editform/ssh-keys").with(authOf(owner))
+                    post("/user/editform/ssh-keys").with(authOf(owner)).with(csrf())
                         .param("title", "삭제될키")
                         .param("publicKey", SSH_KEY_2)
                 ).andExpect(status().is3xxRedirection)
 
                 val issued = sshKeyRepository.findByUserId(owner.id!!).first { it.title == "삭제될키" }
 
-                mockMvc.perform(post("/user/editform/ssh-keys/${issued.id}/delete").with(authOf(owner)))
+                mockMvc.perform(post("/user/editform/ssh-keys/${issued.id}/delete").with(authOf(owner)).with(csrf()))
                     .andExpect(status().is3xxRedirection)
 
                 val listBody = mockMvc.perform(get("/user/editform/ssh-keys").with(authOf(owner)))
@@ -131,7 +132,7 @@ class SshKeyEditFormTemplateRenderingSpec @Autowired constructor(
 
             it("올바르지 않은 공개키는 목록이 아니라 등록 폼으로 되돌아가 오류와 함께 200을 응답해야 한다") {
                 val body = mockMvc.perform(
-                    post("/user/editform/ssh-keys").with(authOf(owner))
+                    post("/user/editform/ssh-keys").with(authOf(owner)).with(csrf())
                         .param("title", "잘못된 키")
                         .param("publicKey", "not-a-valid-key")
                 ).andExpect(status().isOk).andReturn().response.contentAsString

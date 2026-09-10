@@ -28,14 +28,14 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-// TASK-0417 — 실제 서버 + 실제 yona-cli로 재현한 "Fine-grained PAT이 인식 안 되는 5개 URL" 중
-// `/api/projects/{id}/members`의 500(item3-3)을 뺀 4개의 스코프 인식 갭 회귀 방지.
+// Fine-grained PAT이 인식되지 않던 스코프 인식 갭에 대한 회귀 방지.
 // 공통 근본원인: ApiTokenAuthenticationFilter의 scopedApiPattern/individualProjectPattern/
 // ownerOnlyPattern이 전부 `/api/v1/projects/{owner}/...`(최소 owner 세그먼트 필요) 형태만
 // 인식해, 그 밖의 URL(세그먼트가 없거나, prefix가 다르거나, PK 기반인 URL)로 들어온 요청은
@@ -64,15 +64,13 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
                 .build()
         }
 
-        // TASK-0417 회귀 — 이 스펙의 여러 테스트가 실제 POST로 부수효과 있는 엔티티를 만든다
-        // (webhooks: 실제 Webhook, project create: WatchService.watch()가 만드는 Watch +
+        // 이 스펙의 여러 테스트가 실제 POST로 부수효과 있는 엔티티를 만든다(webhooks: 실제
+        // Webhook, project create: WatchService.watch()가 만드는 Watch +
         // ProjectServiceImpl.createProject()가 만드는 매니저 ProjectUser). AbstractIntegrationTest는
         // 같은 forked 테스트 JVM 안의 스펙끼리 H2 인메모리 DB를 공유하므로, 이 정리가 없으면 남은
         // 행들이 project_id/user_id FK를 계속 참조해 뒤에 실행되는 무관한 스펙(예: 프로젝트/유저를
         // deleteAll()하는 스펙)에서 "Referential integrity constraint violation" 연쇄 실패를
-        // 일으킨다(실제로 전체 스위트 실행에서 재현/확인함 — Webhook->WatchServiceSpec,
-        // Watch->OrganizationServiceSpec 등 무관한 스펙에서 FK 위반으로 튀었었다). FK 의존 순서대로
-        // 지운다(참조하는 쪽 먼저).
+        // 일으킨다. FK 의존 순서대로 지운다(참조하는 쪽 먼저).
         afterSpec {
             watchRepository.deleteAll()
             webhookRepository.deleteAll()
@@ -167,8 +165,8 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
                 result.response.status shouldBe 200
             }
 
-            // yona-wiki P3-02 16라운드(TASK-0440) — `GET /api/v1/user/status`(`gh status` 대응)는
-            // ISSUES+PULL_REQUESTS 두 스코프를 AND로 요구한다(둘 중 하나만 있으면 403).
+            // `GET /api/v1/user/status`(`gh status` 대응)는 ISSUES+PULL_REQUESTS 두 스코프를
+            // AND로 요구한다(둘 중 하나만 있으면 403).
             it("GET /api/v1/user/status는 ISSUES 스코프만 있고 PULL_REQUESTS 스코프가 없으면 403이어야 한다") {
                 val owner = userRepository.save(
                     User(loginId = "acct-status-owner1", name = "이슈만있음", email = "acct-status-owner1@example.com")
@@ -271,10 +269,9 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
             }
         }
 
-        // 사용자 요청(2026-09-09)으로 P3-02 계획 문서의 "미해결" 리스크 항목(search/organizations는
-        // 저장소 단위 3세그먼트 모델에 맞지 않아 Fine-grained PAT이 인증되지 않는다)을 재조사한 결과,
-        // 그 항목이 기록된 이후(16라운드) 정확히 이 문제를 풀기 위한 AccountLevelTarget 메커니즘이
-        // 이미 만들어져 있었음을 확인 — 새 설계 없이 그 메커니즘을 확장하는 것만으로 해소 가능하다.
+        // search/organizations는 저장소 단위 3세그먼트 모델에 맞지 않아 Fine-grained PAT이
+        // 그대로는 인증되지 않는 문제였으나, 정확히 이 문제를 풀기 위한 AccountLevelTarget
+        // 메커니즘이 이미 있어 새 설계 없이 그 메커니즘을 확장하는 것만으로 해소된다.
         // 현재는 이 URL들이 ApiTokenAuthenticationFilter의 어떤 패턴과도 매칭되지 않아 PAT 헤더가
         // 있어도 인증되지 않고(레거시 findByToken이 스코프 토큰의 원문을 모름), 그 결과 익명
         // 취급되어 apiResourceServerSecurityFilterChain의 anyRequest().authenticated()에 막혀
@@ -483,8 +480,12 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
                 )
                 val project = projectRepository.save(Project(owner = owner.loginId, name = "legacy-member-repo1"))
 
+                // 인증 헤더/세션이 전혀 없어도 CSRF는 통과해야(진짜 브라우저 요청이면 로그인 여부와
+                // 무관하게 유효한 CSRF 쿠키/토큰을 늘 갖고 있음) 컨트롤러의 "로그인 사용자 없음"
+                // 401 처리까지 도달한다 — 그래야 이 테스트의 원래 목적(500이 아니라 401)이
+                // 유지된다.
                 val result = mockMvc.perform(
-                    post("/api/projects/${project.id}/members").param("loginId", "someone")
+                    post("/api/projects/${project.id}/members").param("loginId", "someone").with(csrf())
                 ).andReturn()
 
                 result.response.status shouldBe 401

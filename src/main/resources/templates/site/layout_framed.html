@@ -35,7 +35,9 @@
                 <span class="caret-text hide-in-mobile" th:text="${currentUser.name}">jiho</span>
             </a></span>
             <span class="user-menu"><a href="/user/editform" target="mainFrame" th:text="#{userinfo.accountSetting}">사용자 설정</a></span>
-            <a href="/users/logout"><span class="user-menu logout label" th:text="#{title.logout}">로그아웃</span></a>
+            <!-- CSRF 재활성화 — site/layout.html의 동일 패턴 참고(js-logout-link 클래스로 표시해
+                 site/layout.html::scripts의 전역 핸들러가 클릭을 가로채 POST로 보내게 함). -->
+            <a href="/users/logout" class="js-logout-link"><span class="user-menu logout label" th:text="#{title.logout}">로그아웃</span></a>
         </div>
         <ul class="nav nav-tabs nm">
             <li class="myOrganizationList active">

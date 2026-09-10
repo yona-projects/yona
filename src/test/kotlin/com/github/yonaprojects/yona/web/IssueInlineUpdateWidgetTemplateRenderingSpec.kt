@@ -22,6 +22,7 @@ import io.kotest.matchers.string.shouldContain
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
@@ -33,7 +34,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// yona issue/partial_assignee.scala.html 대응 (그룹7 #127, TASK-0256). 이슈 상세화면
+// legacy issue/partial_assignee.scala.html 대응. 이슈 상세화면
 // (issue/view.html)의 담당자/마일스톤/마감일이 매니저(isAllowedUpdate)에게는 인라인 수정 select2/
 // calendar 위젯으로, 그 외에는 정적 텍스트로 렌더링되는지, 그리고 massUpdate 엔드포인트가 AJAX(JSON
 // Accept 헤더) 요청에는 리다이렉트 대신 JSON으로 응답하는지 실제 렌더링/요청으로 확인한다.
@@ -97,6 +98,7 @@ class IssueInlineUpdateWidgetTemplateRenderingSpec @Autowired constructor(
                 val res = mockMvc.perform(
                     post("/${project.owner}/${project.name}/issues/massupdate")
                         .with(user(details))
+                        .with(csrf())
                         .accept(MediaType.APPLICATION_JSON)
                         .param("issues[0].id", issue.id.toString())
                         .param("isDueDateChanged", "true")

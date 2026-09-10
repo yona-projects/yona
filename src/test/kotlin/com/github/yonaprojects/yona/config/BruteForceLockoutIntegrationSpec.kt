@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import jakarta.servlet.Filter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpSession
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
@@ -17,8 +18,8 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// 법적 컴플라이언스 감사 #4 대응(브루트포스 방어) — YonaAuthenticationProvider에 추가한 자동 잠금이
-// 실제 springSecurityFilterChain(폼 로그인 전체 경로) 위에서도 그대로 동작하는지 검증한다.
+// 브루트포스 방어 — YonaAuthenticationProvider에 추가한 자동 잠금이 실제
+// springSecurityFilterChain(폼 로그인 전체 경로) 위에서도 그대로 동작하는지 검증한다.
 class BruteForceLockoutIntegrationSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -53,6 +54,7 @@ class BruteForceLockoutIntegrationSpec @Autowired constructor(
                             .param("loginIdOrEmail", loginId)
                             .param("password", "wrong-password")
                             .session(MockHttpSession())
+                            .with(csrf())
                     ).andExpect(status().is3xxRedirection)
                         .andExpect(redirectedUrl("/users/loginform?error=true"))
                 }
@@ -62,6 +64,7 @@ class BruteForceLockoutIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", loginId)
                         .param("password", "correct-password")
                         .session(MockHttpSession())
+                        .with(csrf())
                 ).andExpect(status().is3xxRedirection)
                     .andExpect(redirectedUrl("/users/loginform?error=true"))
 
@@ -85,6 +88,7 @@ class BruteForceLockoutIntegrationSpec @Autowired constructor(
                             .param("loginIdOrEmail", loginId)
                             .param("password", "wrong-password")
                             .session(MockHttpSession())
+                            .with(csrf())
                     ).andExpect(status().is3xxRedirection)
                         .andExpect(redirectedUrl("/users/loginform?error=true"))
                 }
@@ -94,6 +98,7 @@ class BruteForceLockoutIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", loginId)
                         .param("password", "correct-password")
                         .session(MockHttpSession())
+                        .with(csrf())
                 ).andExpect(status().is3xxRedirection)
                     .andExpect(redirectedUrl("/"))
 

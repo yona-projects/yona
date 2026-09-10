@@ -18,6 +18,7 @@ import jakarta.servlet.Filter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -91,6 +92,7 @@ class TwoFactorLoginFlowIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", loginId)
                         .param("password", "password1234")
                         .session(session)
+                        .with(csrf())
                 )
                     .andExpect(status().is3xxRedirection)
                     .andExpect(redirectedUrl("/"))
@@ -126,6 +128,7 @@ class TwoFactorLoginFlowIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", user.loginId)
                         .param("password", "password1234")
                         .session(session)
+                        .with(csrf())
                 )
                     .andExpect(status().is3xxRedirection)
                     .andExpect(redirectedUrl("/users/login/2fa"))
@@ -136,14 +139,14 @@ class TwoFactorLoginFlowIntegrationSpec @Autowired constructor(
                     .andExpect(redirectedUrl("/users/login/2fa"))
 
                 // 틀린 코드로는 완전한 로그인이 되지 않는다.
-                mockMvc.perform(post("/users/login/2fa/totp").param("code", "000000").session(session))
+                mockMvc.perform(post("/users/login/2fa/totp").param("code", "000000").session(session).with(csrf()))
                     .andExpect(status().is3xxRedirection)
                 mockMvc.perform(get("/").session(session))
                     .andExpect(status().is3xxRedirection)
                     .andExpect(redirectedUrl("/users/login/2fa"))
 
                 // 올바른 코드로 완전히 로그인된다.
-                mockMvc.perform(post("/users/login/2fa/totp").param("code", currentTotpCode(secret)).session(session))
+                mockMvc.perform(post("/users/login/2fa/totp").param("code", currentTotpCode(secret)).session(session).with(csrf()))
                     .andExpect(status().is3xxRedirection)
                     .andExpect(redirectedUrl("/"))
                 mockMvc.perform(get("/").session(session))
@@ -172,9 +175,10 @@ class TwoFactorLoginFlowIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", user.loginId)
                         .param("password", "password1234")
                         .session(session)
+                        .with(csrf())
                 ).andExpect(redirectedUrl("/users/login/2fa"))
 
-                mockMvc.perform(post("/users/login/2fa/backup").param("code", code).session(session))
+                mockMvc.perform(post("/users/login/2fa/backup").param("code", code).session(session).with(csrf()))
                     .andExpect(redirectedUrl("/"))
                 mockMvc.perform(get("/").session(session)).andExpect(status().isOk)
 
@@ -185,9 +189,10 @@ class TwoFactorLoginFlowIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", user.loginId)
                         .param("password", "password1234")
                         .session(secondSession)
+                        .with(csrf())
                 ).andExpect(redirectedUrl("/users/login/2fa"))
 
-                mockMvc.perform(post("/users/login/2fa/backup").param("code", code).session(secondSession))
+                mockMvc.perform(post("/users/login/2fa/backup").param("code", code).session(secondSession).with(csrf()))
                     .andExpect(status().is3xxRedirection)
                 mockMvc.perform(get("/").session(secondSession))
                     .andExpect(redirectedUrl("/users/login/2fa"))
@@ -216,6 +221,7 @@ class TwoFactorLoginFlowIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", user.loginId)
                         .param("password", "password1234")
                         .session(session)
+                        .with(csrf())
                 )
                     .andExpect(status().is3xxRedirection)
                     .andExpect(redirectedUrl("/"))

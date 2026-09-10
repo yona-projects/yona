@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.jsoup.Jsoup
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -19,7 +20,7 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// 그룹17 welcome/* (#241~242): legacy welcome/secret.scala.html -> bootstrap-setup.html,
+// legacy welcome/secret.scala.html -> bootstrap-setup.html,
 // welcome/restart.scala.html -> bootstrap-restart.html
 // 이 화면은 가입자 0명(최초 부팅) 상태에서만 도달 가능하므로 다른 스펙과 픽스처를 공유하지 않고
 // 매 테스트마다 userRepository를 완전히 비워 legacy Global.java의 "최초 관리자 미생성" 상태를 재현한다.
@@ -83,6 +84,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
             it("loginId가 admin이 아니면 legacy와 동일하게 아이디 라벨 옆에 user.wrongloginId.alert 뱃지가 노출되어야 한다") {
                 val result = mockMvc.perform(
                     post("/bootstrap-setup")
+                        .with(csrf())
                         .param("loginId", "notadmin")
                         .param("name", "관리자")
                         .param("email", "admin@yona.io")
@@ -108,6 +110,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
                         .param("email", "admin@yona.io")
                         .param("password", "pw12345!")
                         .param("retypedPassword", "different!")
+                        .with(csrf())
                 )
                     .andExpect(status().isOk)
                     .andReturn()
@@ -124,6 +127,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
                         .param("email", "")
                         .param("password", "pw12345!")
                         .param("retypedPassword", "pw12345!")
+                        .with(csrf())
                 )
                     .andExpect(status().isOk)
                     .andReturn()
@@ -135,6 +139,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
             it("모든 입력이 올바르면 SITE_ADMIN 계정이 생성되고 legacy welcome/restart.scala.html과 동치인 재시작 안내 화면이 렌더링되어야 한다") {
                 val result = mockMvc.perform(
                     post("/bootstrap-setup")
+                        .with(csrf())
                         .param("loginId", "admin")
                         .param("name", "관리자")
                         .param("email", "admin@yona.io")

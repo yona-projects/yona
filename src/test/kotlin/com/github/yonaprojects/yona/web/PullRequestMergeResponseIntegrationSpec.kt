@@ -26,6 +26,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.RefSpec
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
@@ -37,17 +38,16 @@ import java.io.File
 import java.nio.file.Files
 import java.time.Instant
 
-// TASK-0424(P3-02 11라운드) — 실서버(H2 프로파일)+실 yona-cli로 "pr merge/close/reopen"
-// 골든패스를 실측하다가 발견한 2개 결함을 함께 고정한다.
+// "pr merge/close/reopen" 골든패스에서 발견된 2개 결함을 함께 고정한다.
 //
 // 1) POST .../pull-requests/{number}/merge(레거시 PullRequestController.mergePullRequest(),
 //    /api/v1/... 경로는 PullRequestApiController.merge()가 그대로 위임)가 성공 시 raw
 //    PullRequestMergeResult(내부에 raw PullRequest -> contributor: User)를 그대로 반환해
-//    User.projectUsers 양방향 연관을 따라가며 password/passwordSalt가 노출됐다(실측: curl로
-//    60KB 응답에서 "password" 값 확인, 버그8/"project edit"와 동일한 근본원인).
+//    User.projectUsers 양방향 연관을 따라가며 password/passwordSalt가 노출됐다(ProjectController의
+//    fork/edit 응답과 동일한 근본원인).
 // 2) 이미 MERGED된 PR을 다시 merge/close/reopen하면 가드가 없어 매번 새 병합 커밋이 쌓이거나
-//    (재머지) 이미 병합된 PR이 CLOSED/OPEN을 오갔다(실측: 동일 PR로 `pr merge`를 두 번 호출하니
-//    대상 브랜치에 병합 커밋이 중복 2개) — 이제 IllegalArgumentException -> 400으로 거절된다.
+//    (재머지) 이미 병합된 PR이 CLOSED/OPEN을 오갔다 — 이제 IllegalArgumentException -> 400으로
+//    거절된다.
 class PullRequestMergeResponseIntegrationSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -68,7 +68,7 @@ class PullRequestMergeResponseIntegrationSpec @Autowired constructor(
     private val ownerName = "pr-merge-resp-owner"
     private val projName = "pr-merge-resp-repo"
 
-    // 순환 직렬화에 빠지면 실측(curl)에서 60KB를 넘겼다.
+    // 순환 직렬화에 빠지면 응답이 60KB를 넘겼다.
     private val maxSaneResponseLength = 10_000
 
     private lateinit var owner: User
@@ -176,6 +176,7 @@ class PullRequestMergeResponseIntegrationSpec @Autowired constructor(
                 val result = mockMvc.perform(
                     post("/api/projects/${project.id}/pullrequests/${pr.number}/merge")
                         .with(user(ownerDetails()))
+                        .with(csrf())
                 ).andReturn()
 
                 result.response.status shouldBe 200
@@ -196,6 +197,7 @@ class PullRequestMergeResponseIntegrationSpec @Autowired constructor(
                 mockMvc.perform(
                     post("/api/projects/${project.id}/pullrequests/${pr.number}/merge")
                         .with(user(ownerDetails()))
+                        .with(csrf())
                 ).andReturn().response.status shouldBe 200
 
                 val refAfterFirstMerge = Git.open(bareDir).use { it.repository.resolve("master")!!.name }
@@ -203,6 +205,7 @@ class PullRequestMergeResponseIntegrationSpec @Autowired constructor(
                 val secondResult = mockMvc.perform(
                     post("/api/projects/${project.id}/pullrequests/${pr.number}/merge")
                         .with(user(ownerDetails()))
+                        .with(csrf())
                 ).andReturn()
 
                 secondResult.response.status shouldBe 400
@@ -219,18 +222,21 @@ class PullRequestMergeResponseIntegrationSpec @Autowired constructor(
                 mockMvc.perform(
                     post("/api/projects/${project.id}/pullrequests/${pr.number}/merge")
                         .with(user(ownerDetails()))
+                        .with(csrf())
                 ).andReturn().response.status shouldBe 200
 
                 mockMvc.perform(
                     post("/api/projects/${project.id}/pullrequests/${pr.number}/state")
                         .param("state", "CLOSED")
                         .with(user(ownerDetails()))
+                        .with(csrf())
                 ).andReturn().response.status shouldBe 400
 
                 mockMvc.perform(
                     post("/api/projects/${project.id}/pullrequests/${pr.number}/state")
                         .param("state", "OPEN")
                         .with(user(ownerDetails()))
+                        .with(csrf())
                 ).andReturn().response.status shouldBe 400
             }
         }

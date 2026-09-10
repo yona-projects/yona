@@ -12,6 +12,7 @@ import io.kotest.matchers.string.shouldNotContain
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
@@ -37,8 +38,8 @@ JAU=
 -----END PGP PUBLIC KEY BLOCK-----"""
 private const val GPG_KEY_1_EMAIL = "gpg-render-test@example.com"
 
-// yona-wiki P3-03 Step7 — 새 화면(user/edit_gpg_keys.html)이 실제로 Thymeleaf 렌더링까지
-// 통과하는지 검증. SshKeyEditFormTemplateRenderingSpec과 동일한 패턴.
+// 새 화면(user/edit_gpg_keys.html)이 실제로 Thymeleaf 렌더링까지 통과하는지 검증.
+// SshKeyEditFormTemplateRenderingSpec과 동일한 패턴.
 //
 // GitHub 컨벤션대로 목록(edit_gpg_keys.html)과 등록 폼(edit_gpg_keys_new.html)을 별개 페이지로
 // 분리했고, 등록(POST)은 Post/Redirect/Get 패턴이라 같은 세션으로 리다이렉트를 따라가야 플래시
@@ -109,7 +110,7 @@ class GpgKeyEditFormTemplateRenderingSpec @Autowired constructor(
                 val session = MockHttpSession()
 
                 mockMvc.perform(
-                    post("/user/editform/gpg-keys").with(authOf(owner)).session(session)
+                    post("/user/editform/gpg-keys").with(authOf(owner)).with(csrf()).session(session)
                         .param("armoredPublicKey", GPG_KEY_1)
                 ).andExpect(status().is3xxRedirection)
                     .andExpect(redirectedUrl("/user/editform/gpg-keys"))
@@ -124,7 +125,7 @@ class GpgKeyEditFormTemplateRenderingSpec @Autowired constructor(
 
             it("올바르지 않은 GPG 공개키는 목록이 아니라 등록 폼으로 되돌아가 오류 메시지와 함께 200을 응답해야 한다") {
                 val body = mockMvc.perform(
-                    post("/user/editform/gpg-keys").with(authOf(owner))
+                    post("/user/editform/gpg-keys").with(authOf(owner)).with(csrf())
                         .param("armoredPublicKey", "not-a-valid-gpg-key")
                 ).andExpect(status().isOk).andReturn().response.contentAsString
 

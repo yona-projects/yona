@@ -20,6 +20,7 @@ import jakarta.servlet.http.Cookie
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
@@ -92,6 +93,7 @@ class DeviceRecognitionLoginIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", loginId)
                         .param("password", "password1234")
                         .session(MockHttpSession())
+                        .with(csrf())
                 ).andExpect(redirectedUrl("/")).andReturn()
 
                 val issuedCookie = firstResult.response.getCookie(DeviceRecognitionService.COOKIE_NAME)
@@ -104,6 +106,7 @@ class DeviceRecognitionLoginIntegrationSpec @Autowired constructor(
                         .param("password", "password1234")
                         .session(MockHttpSession())
                         .cookie(Cookie(DeviceRecognitionService.COOKIE_NAME, issuedCookie!!.value))
+                        .with(csrf())
                 ).andExpect(redirectedUrl("/")).andReturn()
 
                 secondResult.response.getCookie(DeviceRecognitionService.COOKIE_NAME) shouldBe null
@@ -131,10 +134,11 @@ class DeviceRecognitionLoginIntegrationSpec @Autowired constructor(
                         .param("loginIdOrEmail", loginId)
                         .param("password", "password1234")
                         .session(session)
+                        .with(csrf())
                 ).andExpect(redirectedUrl("/users/login/2fa"))
 
                 val result = mockMvc.perform(
-                    post("/users/login/2fa/totp").param("code", currentTotpCode(secret)).session(session)
+                    post("/users/login/2fa/totp").param("code", currentTotpCode(secret)).session(session).with(csrf())
                 ).andExpect(redirectedUrl("/")).andReturn()
 
                 result.response.getCookie(DeviceRecognitionService.COOKIE_NAME) shouldNotBe null

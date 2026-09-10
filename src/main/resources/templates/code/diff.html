@@ -217,6 +217,16 @@
 document.addEventListener("DOMContentLoaded", function() {
   const currentUser = [[${currentUser != null}]];
   const postUrl = [[@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commit.id})}]];
+  // compare.html과 동일한 근거로 이 파일의 인라인 댓글 폼도 진짜 네이티브 <form>이다(.submit()을
+  // 가로채는 JS 핸들러 없음, ReviewViewController.newCommitComment도 "redirect:..."를 반환하는
+  // 고전적 POST-Redirect-GET). th:action 자동 주입 대신 _csrf 요청 attribute를 직접 읽어 히든
+  // 필드로 수동 주입한다.
+  // 이 <script> 태그는 th:inline="javascript"가 명시돼 있어(위 상단 선언) 문자열 결과를
+  // Thymeleaf가 자동으로 따옴표까지 포함해 직렬화한다 — compare.html(explicit th:inline 없이
+  // 자동 인라인만 적용, 문자열이 따옴표 없이 나옴)과 달리 여기서 직접 따옴표를 감싸면
+  // ""처럼 이중 따옴표가 되므로 감싸지 않는다.
+  const csrfParameterName = [[${_csrf != null ? _csrf.parameterName : ''}]];
+  const csrfTokenValue = [[${_csrf != null ? _csrf.token : ''}]];
 
   // legacy code/diff.scala.html $yobi.loadModule("code.Diff", {sWatchUrl/sUnwatchUrl}) 대응
   const watchBtn = document.getElementById("watch-button");
@@ -278,6 +288,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <td colspan="3" style="padding: 10px; background-color: #fafbfc; border-top: 1px solid #e1e4e8; border-bottom: 1px solid #e1e4e8;">
               <div class="write-comment-form">
                 <form action="${postUrl}" method="post">
+                  <input type="hidden" name="${csrfParameterName}" value="${csrfTokenValue}">
                   <input type="hidden" name="path" value="${path}">
                   <input type="hidden" name="startSide" value="${side}">
                   <input type="hidden" name="startLine" value="${lineVal}">

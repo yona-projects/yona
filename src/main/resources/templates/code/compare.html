@@ -233,6 +233,15 @@
 document.addEventListener("DOMContentLoaded", function() {
   const currentUser = [[${currentUser != null}]];
   const postUrl = "[[@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commitB.getId()})}]]";
+  // 이 파일의 인라인 댓글 폼은 Thymeleaf가 렌더링하지 않고 아래에서 JS 템플릿 문자열로 런타임에
+  // DOM에 삽입하는 진짜 네이티브 <form>이다(th:action 대상이 아님). 이 폼에는 .submit()을
+  // 가로채는 JS 핸들러가 전혀 없어(preventDefault 없음, $.ajax/fetch 아님) 버튼 클릭 시 브라우저가
+  // 그대로 전체 페이지 POST 내비게이션을 수행한다(수신측 ReviewViewController.newCommitComment도
+  // "redirect:..."를 반환하는 고전적 POST-Redirect-GET 흐름 — JSON API가 아님). th:action 자동
+  // 주입이 적용될 수 없으므로 Thymeleaf의 _csrf 요청 attribute(th:action 폼이 내부적으로 쓰는 것과
+  // 동일한 값)를 직접 읽어 히든 필드로 수동 주입한다.
+  const csrfParameterName = "[[${_csrf != null ? _csrf.parameterName : ''}]]";
+  const csrfTokenValue = "[[${_csrf != null ? _csrf.token : ''}]]";
 
   // hover effect for add-comment button
   document.querySelectorAll(".diff-line-tr").forEach(tr => {
@@ -280,6 +289,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <td colspan="3" style="padding: 10px; background-color: #fafbfc; border-top: 1px solid #e1e4e8; border-bottom: 1px solid #e1e4e8;">
               <div class="write-comment-form">
                 <form action="${postUrl}" method="post">
+                  <input type="hidden" name="${csrfParameterName}" value="${csrfTokenValue}">
                   <input type="hidden" name="path" value="${path}">
                   <input type="hidden" name="startSide" value="${side}">
                   <input type="hidden" name="startLine" value="${lineVal}">

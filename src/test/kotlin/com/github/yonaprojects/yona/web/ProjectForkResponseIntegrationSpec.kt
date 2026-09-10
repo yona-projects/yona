@@ -18,6 +18,7 @@ import io.kotest.matchers.string.shouldNotContain
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.http.MediaType
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
 import org.springframework.test.web.servlet.MockMvc
@@ -27,15 +28,13 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// TASK-0421(P3-02 11라운드, 버그8) — 실서버(H2 프로파일) + 실제 yona-cli 바이너리로
-// `yona project fork admin/<proj>`를 반복 검증하던 중 발견. ProjectController.forkProject()
-// (`/api/{owner}/{projectName}/fork`)와 이를 그대로 위임 호출하는 ProjectRestApiController.fork()
-// (`/api/v1/projects/{owner}/{project}/fork`)가 성공 시 forkedProject(JPA Project 엔티티)를
-// 가공 없이 그대로 반환했다. Project.projectUsers[].user(User.projectUsers와의 양방향 연관)를
-// 따라가며 Jackson이 순환 직렬화를 시도하는 과정에서 User.password/passwordSalt 해시값까지
-// 응답 바이트에 그대로 노출된다(실측: curl로 90KB 응답에서 "password" 키 확인) — 단순 파싱
-// 실패가 아니라 보안 문제. IssueAndPullRequestCircularSerializationIntegrationSpec.kt와 동일하게
-// mockk가 아닌 실제 DB + MockMvc로 실제 연관관계 그래프를 직렬화해 재현한다.
+// ProjectController.forkProject()(`/api/{owner}/{projectName}/fork`)와 이를 그대로 위임 호출하는
+// ProjectRestApiController.fork()(`/api/v1/projects/{owner}/{project}/fork`)가 성공 시
+// forkedProject(JPA Project 엔티티)를 가공 없이 그대로 반환했다. Project.projectUsers[].user
+// (User.projectUsers와의 양방향 연관)를 따라가며 Jackson이 순환 직렬화를 시도하는 과정에서
+// User.password/passwordSalt 해시값까지 응답 바이트에 그대로 노출된다 — 단순 파싱 실패가 아니라
+// 보안 문제. IssueAndPullRequestCircularSerializationIntegrationSpec.kt와 동일하게 mockk가 아닌
+// 실제 DB + MockMvc로 실제 연관관계 그래프를 직렬화해 재현한다.
 class ProjectForkResponseIntegrationSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -53,8 +52,8 @@ class ProjectForkResponseIntegrationSpec @Autowired constructor(
     private val forkerName = "fork-resp-forker"
     private val projName = "fork-resp-repo"
 
-    // 순환 직렬화에 빠지면 실측(curl)에서 90KB를 넘겼다 — DTO로 정상 변환되면 수백 바이트~수 KB
-    // 수준이어야 한다. 정상 응답도 여유를 두기 위해 10KB로 잡는다.
+    // 순환 직렬화에 빠지면 응답이 90KB를 넘겼다 — DTO로 정상 변환되면 수백 바이트~수 KB 수준이어야
+    // 한다. 정상 응답도 여유를 두기 위해 10KB로 잡는다.
     private val maxSaneResponseLength = 10_000
 
     init {
@@ -151,6 +150,7 @@ class ProjectForkResponseIntegrationSpec @Autowired constructor(
                 val result = mockMvc.perform(
                     post("/api/$ownerName/$projName/fork")
                         .with(user(userDetails(forkerName, forker.id!!)))
+                        .with(csrf())
                 ).andReturn()
 
                 result.response.status shouldBe 200
@@ -163,11 +163,9 @@ class ProjectForkResponseIntegrationSpec @Autowired constructor(
             }
         }
 
-        // TASK-0424(P3-02 11라운드, 버그8과 동일 근본원인의 별도 발생 지점) — 실서버+실 yona-cli로
-        // `project edit`를 실측하다가 발견. ProjectController.updateProject()
-        // (PATCH .../settings가 위임하는 대상)도 성공 시 raw Project 엔티티를 그대로 반환해 동일한
-        // 순환 직렬화로 password/passwordSalt가 노출됐다(실측: curl로 60KB 응답에서 "password" 값
-        // 수백 회 반복 확인).
+        // 위와 동일 근본원인의 별도 발생 지점 — ProjectController.updateProject()(PATCH
+        // .../settings가 위임하는 대상)도 성공 시 raw Project 엔티티를 그대로 반환해 동일한 순환
+        // 직렬화로 password/passwordSalt가 노출됐다.
         describe("PATCH /api/v1/projects/{owner}/{project}/settings") {
             it("순환 직렬화 없이 작은 JSON으로 응답하고 password/passwordSalt를 노출하지 않아야 한다") {
                 val owner = userRepository.findByLoginId(ownerName).orElseThrow()

@@ -1,11 +1,11 @@
-# CSRF 재활성화 조사 (2026-09-10)
+# CSRF 재활성화 조사 및 구현 (2026-09-10)
 
 `docs/LEGAL_COMPLIANCE_AUDIT_2026-09-10.md` 3번 항목("CSRF 보호가 애플리케이션 전역에서
-비활성화됨")에 대한 상세 조사 기록이다. **이 라운드에서는 조사만 수행했고, 실제 코드
-변경(SecurityConfig.kt, JS, 템플릿)은 하지 않았다** — 사용자가 조사 도중 명시적으로
-"조사만 하고 구현은 하지 마라"고 지시했기 때문이다(아래 "최종 결정" 참고). 조사 자체는
-철저히 수행했고, 실제 구현이 필요한 시점에 그대로 착수할 수 있을 만큼 구체적인 설계
-근거를 이 문서에 남긴다.
+비활성화됨")에 대한 조사·구현 기록이다. 1차 라운드는 조사만 수행하고 실제 코드
+변경(SecurityConfig.kt, JS, 템플릿)은 하지 않았다 — 사용자가 조사 도중 명시적으로
+"조사만 하고 구현은 하지 마라"고 지시했기 때문이다. 같은 날 2차 라운드에서 이 문서의
+조사 결과를 그대로 설계로 삼아 실제 구현까지 완료했다. 아래 1~5절은 1차 라운드 조사
+내용을 그대로 보존하고, 6절 "최종 결정"에 2차 라운드의 구현 결과를 기록한다.
 
 ## 요약
 
@@ -16,7 +16,7 @@
 | 폼 커버리지 | 템플릿의 `<form>` 99개 중 82개(83%)가 `th:action`이라 CSRF를 켜면 추가 조치 없이 보호됨. 나머지 5개(그 중 최소 1개는 실사용 중인 sitewide 로그인 모달) + JS로 동적 생성되는 폼(11개 파일)은 미보호 |
 | JS AJAX 호출 | `$.ajax` 약 68곳(JS 파일 약 40곳 + 템플릿 인라인 스크립트 약 28곳), `fetch()` 9곳(템플릿 6개 파일) — 전부 개별 대응 필요 |
 | API/Git/SVN/Hg | `/api/v1/**`·`/mcp/**`는 이미 별도 체인이라 영향 없음(추가 조치 불요). `/-_-api/v1/**`·레거시 `/api/**`·`/git,svn,hg/**`는 캐치올 체인을 그대로 타므로 CSRF 예외 처리가 반드시 필요(안 하면 yona-cli/git push/svn/hg 전부 깨짐) |
-| 최종 결정 | **보류(이번 라운드에서 구현하지 않음 — 사용자 지시)**. 실제 코드 변경 없음 |
+| 최종 결정 | **구현 완료(2026-09-10, 2차 라운드)**. 전체 회귀 6,494건 통과. 구현 중 CSRF와 무관한 로그아웃 204 버그를 발견해 [[tickets/p3-44\|P3-44]]로 분리·수정 |
 
 ---
 
@@ -301,7 +301,9 @@ CSRF를 무조건 켜면 **git push/svn commit/hg push가 전부 깨진다.**
   남는다 — 전수 확인 필요.
 - **`code/compare.html`/`code/diff.html`의 인라인 댓글 폼이 실제로 어떻게 제출되는지**:
   폼 생성부(JS 템플릿 문자열)까지만 확인했고, 제출 시점 로직(`$.ajax`인지 `fetch`인지
-  진짜 `.submit()`인지)은 끝까지 추적하지 못했다.
+  진짜 `.submit()`인지)은 끝까지 추적하지 못했다. **(2차 라운드에서 해결 — 6절 참고)**
+  JS를 끝까지 추적한 결과 `$.ajax`/`fetch` 어느 쪽도 아닌 진짜 네이티브 `<form>` 전체
+  페이지 POST(고전적 POST-Redirect-GET)였다 — `_csrf` 히든 필드를 수동 주입해 대응.
 - **`fetch()`/`$.ajax` 호출 개수는 grep 기반 정적 집계**다 — 동적으로 생성되는 URL
   문자열 안에 숨은 호출(예: `eval`, 문자열 조합으로 만든 메서드명)이 있다면 이 목록에
   빠졌을 수 있다.
@@ -315,7 +317,7 @@ CSRF를 무조건 켜면 **git push/svn commit/hg push가 전부 깨진다.**
 
 ## 6. 최종 결정
 
-**보류(이번 라운드에서 구현하지 않음 — 사용자 지시).**
+### 1차 라운드: 보류(사용자 지시)
 
 조사 자체는 "재활성화가 안전하게 가능한가"라는 질문에 대해 상당히 긍정적인 답을
 찾았다 — 폼의 83%는 이미 무료로 보호되고, `/api/v1/**`·`/mcp/**`는 애초에 영향이
@@ -323,32 +325,43 @@ CSRF를 무조건 켜면 **git push/svn commit/hg push가 전부 깨진다.**
 구체적인 대응 설계(3.4, 4.4절)를 세울 수 있는 수준까지 파악했다. 즉 "손댈 수 없을
 만큼 위험하거나 범위가 크다"는 판단으로 보류한 것이 아니다 — 조사 도중 사용자가
 "조사만 하고 구현은 하지 마라"고 명시적으로 지시해 그 지시를 그대로 따른 것이다.
+이 라운드에서는 프로덕션 코드를 전혀 건드리지 않고, 순수 조사/검증용 통합테스트
+2건(`CsrfThymeleafAutoInjectionThActionFormSpec`/`...PlainActionFormSpec`, 테스트
+전용 좁은 `securityMatcher` 체인 + 테스트 전용 템플릿)만 추가해 2.3절의 사실을
+검증했다.
 
-### 향후 착수 시 필요한 작업(우선순위 순, 이번 라운드 미착수)
+### 2차 라운드: 구현 완료(2026-09-10, 같은 날)
 
-1. `/-_-api/v1/**`(+ 레거시 `/api/**`) 전용 `SecurityFilterChain` 신설(CSRF 제외) —
-   4.4절 옵션 1의 변형. 착수 전 5번의 "웹 UI가 세션 쿠키로 이 경로를 호출하는 사례"
-   여부부터 확인해야 함.
-2. 캐치올 체인 `.csrf {}`를 기본값(활성화)으로 전환 + `/git/**`, `/svn/**`, `/hg/**`
-   `ignoringRequestMatchers` 추가. `CookieCsrfTokenRepository.withHttpOnlyFalse()` 채택.
-3. `site/layout.html:582` 로그인 모달을 `th:action`으로 수정(가장 저비용 고효과).
-4. `site/layout.html :: scripts`에 전역 `$.ajaxSetup` beforeSend 인터셉터 +
-   `window.fetch` 패치 추가(3.4절 스니펫 기반).
-5. `$yobi.sendForm`/`yobi.Common.js sendForm`(11개 파일 사용처)에 CSRF 히든 필드 주입
-   패치.
-6. `code/compare.html`/`code/diff.html` 인라인 댓글 폼의 실제 제출 경로 확정 후 대응.
-7. 전체 6,474건 테스트 회귀(`./gradlew test -Dyona.it.db=h2`) + 대표 실사용 검증
-   (브라우저 폼 제출, curl CSRF 토큰 유무별 재현, yona-cli PAT 골든패스, git
-   clone/push, svn/hg 실사용) — 원래 브리핑의 TDD/검증 절 그대로.
+위 "향후 착수 시 필요한 작업" 7단계를 그대로 따라 실제 구현까지 마쳤다.
 
-### 이번 라운드에서 실제로 만든 것(순수 조사/검증, 프로덕션 코드 아님)
+1. **`/-_-api/v1/**` + 레거시 `/api/**` 전용 체인**: `LegacyApiSecurityConfig.kt` 신설.
+   웹 UI가 세션 쿠키로 이 경로를 실제로 호출하는 사례(즐겨찾기 토글, assignableUsers 등)가
+   있어, 인증 방식별로 분기했다 — PAT/`Yona-Token` 헤더 요청만 CSRF 면제, 세션 쿠키
+   요청은 CSRF 요구. 공용 매처는 `CsrfSupport.kt`의 `tokenAuthenticatedRequestMatcher`로
+   뽑아 캐치올 체인과 공유.
+2. **캐치올 체인 CSRF 활성화**: `SecurityConfig.kt`에 `CookieCsrfTokenRepository.withHttpOnlyFalse()`
+   + `SpaCsrfTokenRequestHandler`(`CsrfSupport.kt`) 적용. `ignoringRequestMatchers`에
+   원래 계획한 `/git/**`·`/svn/**`·`/hg/**` 외에, 구현 중 추가로 필요하다고 확인된
+   `/internal/**`(SSH 내부 인증 API)·`/login/saml2/sso/**`(SAML ACS)·PAT 헤더 요청
+   전체도 포함시켰다(`POST /projects/{owner}/{project}/webhooks`가 PAT로도 호출되는데
+   `/api` 접두어가 없어 캐치올 체인을 타는 것을 회귀 테스트로 실제 발견).
+3. **로그인 모달**: `site/layout.html`의 `<form action="/users/login">`을
+   `th:action="@{/users/login}"`으로 수정.
+4. **전역 AJAX/fetch 인터셉터**: `site/layout.html :: scripts`에 추가(GET/HEAD/OPTIONS/TRACE
+   제외, `XSRF-TOKEN` 쿠키를 읽어 `X-XSRF-TOKEN` 헤더로 전송). 부수 발견: CSRF 활성화가
+   Spring Security의 로그아웃을 POST 전용으로 강제 전환해 기존 GET 로그아웃 링크가
+   깨지는 것을 확인해 `.js-logout-link` 클릭 핸들러(`$.post`)로 대체.
+5. **`$yobi.sendForm` 등 11개 파일 사용처**: `jquery.form.js`를 직접 확인해 `.ajaxForm()`이
+   내부적으로 `$.ajax()`를 호출함을 확정 — 전역 인터셉터로 자동 커버되어 별도 패치 불필요.
+6. **`code/compare.html`/`code/diff.html` 인라인 댓글 폼**: 5절 참고 — 진짜 네이티브
+   `<form>` POST(PRG 패턴)로 확정, `_csrf` 히든 필드 수동 주입으로 대응.
+7. **전체 회귀**: `./gradlew test -Dyona.it.db=h2` — **6,494건 전부 통과, 실패 0건**.
 
-- `src/test/kotlin/com/github/yonaprojects/yona/config/CsrfThymeleafAutoInjectionThActionFormSpec.kt`
-- `src/test/kotlin/com/github/yonaprojects/yona/config/CsrfThymeleafAutoInjectionPlainActionFormSpec.kt`
-- `src/test/resources/templates/csrf-investigation-form.html`
-- `src/test/resources/templates/csrf-investigation-plain-form.html`
+구현 과정에서 CSRF와 무관한 기존 결함(로그아웃 성공 시 302 대신 204가 반환되는 버그 —
+`SecurityConfig.kt`의 `.httpBasic {}`이 `X-Requested-With` 헤더가 있는 요청에 204를
+자동 매핑하는 Spring Security 기본 동작 때문)을 발견해 [[tickets/p3-44|P3-44]]로 분리해
+같은 날 TDD로 수정 완료했다(전체 회귀 재확인 포함).
 
-네 파일 모두 이 저장소의 실제 `SecurityConfig.kt`/기존 템플릿을 전혀 수정하지 않고,
-테스트 전용 좁은 `securityMatcher` 체인과 테스트 전용 템플릿만 추가해 위 2.3절의
-사실을 검증한다 — GREEN 확인됨(`./gradlew test -Dyona.it.db=h2 --tests
-"com.github.yonaprojects.yona.config.CsrfThymeleafAutoInjection*"`).
+신규/수정 파일은 `git log`의 해당 커밋 참고. 이후 전체 변경분(CSRF 재활성화 +
+P3-44 + 주석 트리밍)에 `docs/COMMENT_TRIMMING_GUIDELINES.md` 기준의 주석 정리도
+적용했다.
