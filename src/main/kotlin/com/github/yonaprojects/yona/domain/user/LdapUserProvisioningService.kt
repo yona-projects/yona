@@ -2,9 +2,6 @@ package com.github.yonaprojects.yona.domain.user
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.security.MessageDigest
-import java.security.SecureRandom
-import java.util.Base64
 
 /**
  * yona의 UserApp.authenticateWithLdap() 성공 분기(LDAP 인증 자체가 아니라
@@ -13,7 +10,8 @@ import java.util.Base64
  */
 @Service
 class LdapUserProvisioningService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val passwordEncodingService: PasswordEncodingService
 ) {
     @Transactional
     fun reconcile(ldapUser: LdapUser, rawPassword: String): User {
@@ -26,13 +24,12 @@ class LdapUserProvisioningService(
     }
 
     private fun createNewUser(ldapUser: LdapUser, rawPassword: String): User {
-        val salt = generateSalt()
         val user = User(
             loginId = ldapUser.loginId,
             name = ldapUser.fullDisplayName,
             email = ldapUser.email,
-            password = hashPassword(rawPassword, salt),
-            passwordSalt = salt,
+            password = passwordEncodingService.encode(rawPassword),
+            passwordSalt = null,
             isGuest = ldapUser.isGuestUser,
             state = UserState.ACTIVE
         )
@@ -43,10 +40,9 @@ class LdapUserProvisioningService(
     }
 
     private fun syncExistingUser(user: User, ldapUser: LdapUser, rawPassword: String): User {
-        if (!passwordMatches(rawPassword, user)) {
-            val salt = generateSalt()
-            user.password = hashPassword(rawPassword, salt)
-            user.passwordSalt = salt
+        if (!passwordEncodingService.matches(rawPassword, user.password, user.passwordSalt)) {
+            user.password = passwordEncodingService.encode(rawPassword)
+            user.passwordSalt = null
         }
         user.name = ldapUser.fullDisplayName
         if (!ldapUser.englishName.isNullOrBlank()) {
@@ -54,28 +50,5 @@ class LdapUserProvisioningService(
         }
         user.isGuest = ldapUser.isGuestUser
         return userRepository.save(user)
-    }
-
-    private fun passwordMatches(rawPassword: String, user: User): Boolean {
-        val salt = user.passwordSalt ?: return false
-        return hashPassword(rawPassword, salt) == user.password
-    }
-
-    private fun generateSalt(): String {
-        val bytes = ByteArray(20)
-        SecureRandom().nextBytes(bytes)
-        return Base64.getEncoder().encodeToString(bytes)
-    }
-
-    private fun hashPassword(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
     }
 }

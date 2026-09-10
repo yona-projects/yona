@@ -1,11 +1,14 @@
 package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.config.YonaAuthenticationProvider
+import com.github.yonaprojects.yona.domain.audit.AuditAction
+import com.github.yonaprojects.yona.domain.audit.AuditLogService
 import com.github.yonaprojects.yona.domain.issue.RecentIssueService
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.user.Email
 import com.github.yonaprojects.yona.domain.user.EmailDomainValidator
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.ReservedWordsValidator
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -26,7 +29,6 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.util.Base64
-import java.util.UUID
 
 @RestController
 class UserController(
@@ -37,6 +39,8 @@ class UserController(
     private val organizationRepository: OrganizationRepository,
     private val yonaAuthenticationProvider: YonaAuthenticationProvider,
     private val twoFactorService: TwoFactorService,
+    private val passwordEncodingService: PasswordEncodingService,
+    private val auditLogService: AuditLogService,
     @Value("\${yona.signup.allowed-email-domains:}")
     private val allowedEmailDomains: String,
     @Value("\${yona.signup.require-admin-confirm:false}")
@@ -250,8 +254,7 @@ class UserController(
             val user = userRepository.findById(userId).orElseThrow { IllegalArgumentException("User not found") }
 
             // 현재 비밀번호 검증
-            val hashedOld = hashPassword(request.oldPassword, user.passwordSalt ?: "")
-            if (user.password != hashedOld) {
+            if (!passwordEncodingService.matches(request.oldPassword, user.password, user.passwordSalt)) {
                 return ResponseEntity.badRequest().body(mapOf("error" to "현재 비밀번호가 일치하지 않습니다."))
             }
 
@@ -264,30 +267,15 @@ class UserController(
                 return ResponseEntity.badRequest().body(mapOf("error" to "비밀번호는 4자 이상이어야 합니다."))
             }
 
-            // 비밀번호 재설정
-            val newSalt = UUID.randomUUID().toString().substring(0, 8)
-            val newHashed = hashPassword(request.password, newSalt)
-            
-            user.passwordSalt = newSalt
-            user.password = newHashed
+            // 비밀번호 재설정 — 새 비밀번호는 항상 Argon2id로 저장한다(PasswordEncodingService 참고).
+            user.passwordSalt = null
+            user.password = passwordEncodingService.encode(request.password)
             userRepository.save(user)
 
             ResponseEntity.ok(mapOf("status" to "success"))
         } catch (e: Exception) {
             ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to change password")))
         }
-    }
-
-    private fun hashPassword(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
     }
 
     data class ChangePasswordRequest(
@@ -335,13 +323,12 @@ class UserController(
         }
 
         val opaqueRandomPassword = Base64.getEncoder().encodeToString(SecureRandom().generateSeed(20))
-        val salt = UUID.randomUUID().toString().substring(0, 8)
         val user = User(
             loginId = item.loginId,
             name = item.name,
             email = item.email,
-            password = hashPassword(opaqueRandomPassword, salt),
-            passwordSalt = salt
+            password = passwordEncodingService.encode(opaqueRandomPassword),
+            passwordSalt = null
         )
         if (requireAdminConfirm) {
             user.state = UserState.LOCKED
@@ -431,6 +418,7 @@ class UserController(
 
         user.state = state
         userRepository.save(user)
+        auditLogService.record(currentUser.loginId, user.loginId, AuditAction.USER_STATE_CHANGED, "state=${state.name}")
 
         return ResponseEntity.ok(mapOf("id" to user.id, "login_id" to user.loginId, "state" to user.state.name))
     }
@@ -454,8 +442,54 @@ class UserController(
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
         twoFactorService.disableAll(user)
+        auditLogService.record(currentUser.loginId, user.loginId, AuditAction.TWO_FACTOR_DISABLED_BY_ADMIN)
 
         return ResponseEntity.ok(mapOf("login_id" to user.loginId, "two_factor_enabled" to false))
+    }
+
+    // 브루트포스 자동 잠금(User.lockedUntil, 관리자가 거는 UserState.LOCKED와는 별개 축)은
+    // 시간이 지나면 스스로 풀리지만, 실수로 잠긴 계정을 관리자가 즉시 풀어줄 수 있는 수단도
+    // 필요하다(그렇지 않으면 그 자체로 새로운 가용성 문제가 된다).
+    @PostMapping("/-_-api/v1/admin/users/{loginId}/unlock")
+    fun unlockBruteForceLockByAdmin(
+        @PathVariable loginId: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val currentUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+        if (currentUser == null || !currentUser.isSiteManager) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val user = userRepository.findByLoginId(loginId).orElse(null)
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
+        user.failedLoginAttempts = 0
+        user.lockedUntil = null
+        userRepository.save(user)
+        auditLogService.record(currentUser.loginId, user.loginId, AuditAction.ACCOUNT_LOCK_RELEASED)
+
+        return ResponseEntity.ok(mapOf("login_id" to user.loginId, "locked" to false))
+    }
+
+    // 관리자 조치 감사 로그 조회 — 별도 목록 UI 없이 최소한의 REST 조회 수단만 제공한다.
+    @GetMapping("/-_-api/v1/admin/audit-logs")
+    fun listAuditLogsForAdmin(authentication: Authentication?): ResponseEntity<Any> {
+        val currentUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+        if (currentUser == null || !currentUser.isSiteManager) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val logs = auditLogService.findAll().map { log ->
+            mapOf(
+                "id" to log.id,
+                "actor_login_id" to log.actorLoginId,
+                "target_login_id" to log.targetLoginId,
+                "action" to log.action,
+                "reason" to log.reason,
+                "created_at" to log.createdAt.toString()
+            )
+        }
+        return ResponseEntity.ok(logs)
     }
 
     // yona UserApp.setDefaultLoginPage() 대응(레거시 Open API 경로 별칭 포함). 로그인 후 사이트

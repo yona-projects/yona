@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.web
 
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.user.UserService
@@ -10,9 +11,6 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
-import java.security.MessageDigest
-import java.util.Base64
-import java.util.UUID
 
 // legacy: welcome/secret.scala.html + welcome/restart.scala.html. legacy의 트리거는
 // Global.java의 getConfigSecretAction()/hasError() (application.secret이 기본값일 때 최초
@@ -23,6 +21,7 @@ import java.util.UUID
 class BootstrapSetupController(
     private val userRepository: UserRepository,
     private val userService: UserService,
+    private val passwordEncodingService: PasswordEncodingService,
     @Value("\${yona.site-name:Yona}") private val siteName: String
 ) {
 
@@ -82,15 +81,12 @@ class BootstrapSetupController(
             return "bootstrap-setup"
         }
 
-        val salt = UUID.randomUUID().toString().substring(0, 8)
-        val hashedPassword = hashPassword(password, salt)
-
         val adminUser = User().apply {
             this.loginId = loginId
             this.name = name
             this.email = email
-            this.password = hashedPassword
-            this.passwordSalt = salt
+            this.password = passwordEncodingService.encode(password)
+            this.passwordSalt = null
             this.state = UserState.SITE_ADMIN // 최초 가입자는 사이트 총괄 관리자 권한 부여
             this.isGuest = false
         }
@@ -98,17 +94,5 @@ class BootstrapSetupController(
         userService.createUser(adminUser)
         model.addAttribute("siteName", siteName)
         return "bootstrap-restart"
-    }
-
-    private fun hashPassword(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
     }
 }

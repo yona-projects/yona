@@ -1,7 +1,10 @@
 package com.github.yonaprojects.yona.domain.twofactor
 
+import com.github.yonaprojects.yona.domain.mail.MailService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -14,7 +17,9 @@ class TwoFactorServiceImpl(
     private val userRepository: UserRepository,
     private val totpSecretEncryptor: TotpSecretEncryptor,
     private val totpCodeVerifier: TotpCodeVerifier,
-    private val backupCodeGenerator: BackupCodeGenerator
+    private val backupCodeGenerator: BackupCodeGenerator,
+    private val mailService: MailService,
+    @Value("\${yona.site-name:Yona}") private val siteName: String
 ) : TwoFactorService {
 
     @Transactional(readOnly = true)
@@ -144,11 +149,39 @@ class TwoFactorServiceImpl(
     @Transactional
     override fun disableAll(user: User) {
         val userId = user.id ?: return
-        totpCredentialRepository.findByUserId(userId).forEach { totpCredentialRepository.delete(it) }
-        webauthnCredentialRepository.findByUserId(userId).forEach { webauthnCredentialRepository.delete(it) }
+        val totpCredentials = totpCredentialRepository.findByUserId(userId)
+        val webauthnCredentials = webauthnCredentialRepository.findByUserId(userId)
+        // 실제로 뭔가 켜져 있었을 때만 알린다(빈 계정에 대고 관리자/본인이 습관적으로 눌러도
+        // 알림 스팸이 되지 않도록).
+        val hadTwoFactor = totpCredentials.isNotEmpty() || webauthnCredentials.isNotEmpty()
+
+        totpCredentials.forEach { totpCredentialRepository.delete(it) }
+        webauthnCredentials.forEach { webauthnCredentialRepository.delete(it) }
         backupCodeRepository.deleteByUserId(userId)
         user.isTwoFactorEnabled = false
         userRepository.save(user)
+
+        if (hadTwoFactor) {
+            notifyTwoFactorDisabled(user)
+        }
+    }
+
+    // 계정 탈취 시나리오에서 공격자가 방어 수단(2FA)을 끄는 것이 가장 민감한 이벤트라(감사
+    // 항목 #10) 본인/관리자 강제 여부와 무관하게 항상 알린다. 메일 발송 실패가 비활성화 자체를
+    // 막아서는 안 되므로 PasswordResetController와 동일하게 예외를 삼키고 로그만 남긴다.
+    private fun notifyTwoFactorDisabled(user: User) {
+        if (user.email.isBlank()) return
+        try {
+            mailService.sendHtmlMail(
+                user.email,
+                user.name,
+                "[$siteName] 2단계 인증(2FA)이 비활성화되었습니다",
+                "계정 ${user.loginId}의 2단계 인증(2FA)이 방금 비활성화되었습니다.<br/>" +
+                    "본인이 직접 한 것이 아니라면 즉시 비밀번호를 변경하고 사이트 관리자에게 문의하세요."
+            )
+        } catch (e: Exception) {
+            logger.warn("2FA 비활성화 알림 메일 발송 실패: loginId=${user.loginId}", e)
+        }
     }
 
     @Transactional
@@ -164,5 +197,9 @@ class TwoFactorServiceImpl(
         val userId = user.id ?: return null
         if (backupCodeRepository.findByUserId(userId).isNotEmpty()) return null
         return regenerateBackupCodes(user)
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(TwoFactorServiceImpl::class.java)
     }
 }

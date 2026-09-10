@@ -32,17 +32,17 @@
 | # | 항목 | 관련 분야 | 심각도 |
 |---|------|----------|--------|
 | 1 | 개별 2FA 자격증명 삭제에 서버 측 재인증 없음 | 인증 보안 | ~~P0~~ **이미 수정됨(2026-09-10)** |
-| 2 | TOTP 암호화 키가 운영에서도 개발용 기본값으로 동작 가능(강제 없음) | 인증 보안 / 암호화 키 관리 | P0 |
+| 2 | TOTP 암호화 키가 운영에서도 개발용 기본값으로 동작 가능(강제 없음) | 인증 보안 / 암호화 키 관리 | ~~P0~~ **완료됨** |
 | 3 | CSRF 보호가 애플리케이션 전역에서 비활성화됨 | 웹 보안 | P0 |
-| 4 | 로그인 실패 횟수 기반 자동 계정 잠금(brute-force 방어) 없음 | 인증 보안 | P1 |
-| 5 | 비밀번호 해시 알고리즘이 현재 업계 권고 대비 약함(SHA-256×1024) | 인증 보안 | P1 |
-| 6 | 보안 관련 관리자 조치/로그인 이벤트에 대한 감사 로그(audit trail) 없음 | 감사/모니터링(SOC2·ISO27001) | P1 |
+| 4 | 로그인 실패 횟수 기반 자동 계정 잠금(brute-force 방어) 없음 | 인증 보안 | ~~P1~~ **완료됨** |
+| 5 | 비밀번호 해시 알고리즘이 현재 업계 권고 대비 약함(SHA-256×1024) | 인증 보안 | ~~P1~~ **완료됨** |
+| 6 | 보안 관련 관리자 조치/로그인 이벤트에 대한 감사 로그(audit trail) 없음 | 감사/모니터링(SOC2·ISO27001) | ~~P1~~ **완료됨(관리자 조치 범위)** |
 | 7 | 계정 탈퇴가 실제 삭제·익명화가 아니라 상태 플래그(soft delete)뿐 | 개인정보 파기(GDPR 17조/PIPA) | P1 |
-| 8 | 접속 로그에 IP·사용자ID가 보존기간 정책 없이 무기한 남을 수 있음 | 개인정보 보유기간 | P1 |
+| 8 | 접속 로그에 IP·사용자ID가 보존기간 정책 없이 무기한 남을 수 있음 | 개인정보 보유기간 | ~~P1~~ **완료됨(문서화)** |
 | 9 | 개인정보처리방침/이용약관 페이지가 애플리케이션 안에 없음 | 고지 의무(GDPR/PIPA) | P1 |
-| 10 | 보안 민감 이벤트(2FA 변경, 새 기기 로그인 등) 사용자 알림 없음 | 보안 모범사례 | P2 |
+| 10 | 보안 민감 이벤트(2FA 변경, 새 기기 로그인 등) 사용자 알림 없음 | 보안 모범사례 | ~~P2~~ **완료됨(2FA 비활성화 범위)** |
 | 11 | 데이터 이동권(내 정보 다운로드) 기능 없음 | GDPR 20조(데이터 이동권) | P2 |
-| 12 | 세션 쿠키 Secure/SameSite/타임아웃이 명시적으로 설정돼 있지 않음 | 웹 보안 | P2 |
+| 12 | 세션 쿠키 Secure/SameSite/타임아웃이 명시적으로 설정돼 있지 않음 | 웹 보안 | ~~P2~~ **완료됨** |
 | 13 | 신규 2FA 의존성 라이선스는 문제없음(참고용, 조치 불요) | 라이선스 | 정보 |
 
 ---
@@ -79,6 +79,15 @@ yona.security.totp:
 추가. (TOTP 시크릿 암호화 자체는 정상 설계 — `TotpSecretEncryptor`, AES 기반. 문제는
 "운영에서 기본값을 못 쓰게 막는 장치"의 부재.)
 
+**조치(완료됨)**: 이 저장소에는 prod/dev 같은 환경 프로파일 개념이 없고(profile은
+DB 엔진 선택 용도), 표준 로컬 검증 워크플로와 6,400여 건 테스트 전체가 env var
+없이 이 placeholder 기본값으로 컨텍스트를 띄운다 — 그래서 hard fail 대신
+`TotpEncryptionKeyGuard`(`ApplicationRunner`)를 추가해, 값이 커밋된 기본값과 같으면
+기동을 막지 않으면서 ERROR 레벨의 눈에 띄는 경고를 로그로 남긴다. 단위테스트
+(`TotpEncryptionKeyGuardSpec`)로 기본값/비기본값 각각의 동작을 검증했고, 환경변수 없이
+h2로 기동해 실제로 이 경고가 로그에 찍히는 것과, 전체 테스트 스위트가 그대로 통과하는
+것을 재확인했다.
+
 ### 3. CSRF 보호가 애플리케이션 전역에서 비활성화됨
 
 `SecurityConfig.kt:145`:
@@ -110,6 +119,15 @@ Bearer 토큰 인증)라면 CSRF가 구조적으로 의미 없어 꺼도 되지�
 **권고**: 계정별 또는 IP별 실패 횟수 카운팅 + 임시 잠금/지연(예: Spring Security의
 `AuthenticationFailureHandler`에서 카운터 증가, 캐시나 DB에 기록) 도입 검토.
 
+**조치(완료됨)**: `User`에 `failedLoginAttempts`/`lockedUntil` 필드를 추가하고(기존
+`UserState.LOCKED`와는 완전히 별개 축 — 상태를 바꾸지 않는다), `YonaAuthenticationProvider`가
+계정별 실패 횟수를 세어 5회 도달 시 15분간 자동 잠근다. 로그인 성공 시 카운터는 항상
+리셋되고, `lockedUntil`이 지나면 별도 조작 없이 자동 해제된다 — 실수로 잠긴 계정이
+영구 잠기지 않도록 관리자 즉시 해제 API(`POST /-_-api/v1/admin/users/{loginId}/unlock`,
+감사 로그 기록 포함)도 추가했다. 단위테스트(`YonaAuthenticationProviderSpec`)와 실제
+`springSecurityFilterChain` 위에서 검증하는 통합테스트(`BruteForceLockoutIntegrationSpec`)로
+실패 누적→잠금→거부, 성공 시 리셋을 확인했다.
+
 ### 5. 비밀번호 해시 알고리즘이 현재 업계 권고 대비 약함
 
 `YonaAuthenticationProvider.hashPassword()`/`UserController.hashPassword()` (두 곳에
@@ -130,6 +148,19 @@ v1.6 legacy부터 그대로 이식된 방식이다. OWASP Password Storage Cheat
 해시를 구분하는 prefix/버전 필드 필요 — 스키마 변경 수반, 별도 설계 필요한 규모의
 작업).
 
+**조치(완료됨)**: `PasswordEncodingService`를 신설해 이전에 아홉 곳(로그인/비밀번호
+변경/2FA 비활성화 재확인/신규가입/부트스트랩 관리자 생성/LDAP 동기화/관리자 비밀번호
+초기화/비밀번호 찾기 등)에 중복돼 있던 SHA-256×1024 구현을 이곳 하나로 통일했다.
+Spring Security Crypto가 이미 제공하는 `Argon2PasswordEncoder`(신규 외부 의존성 추가
+없음)로 새 비밀번호는 항상 Argon2id로 저장하고, 저장된 해시가 `$`로 시작하면 Argon2,
+아니면 레거시 포맷으로 자동 판별해 검증한다(별도 DB 컬럼 불필요). 레거시 포맷 계정은
+로그인 성공 시 그 자리에서 즉시 Argon2id로 재해싱해 저장하므로, 기존 가입자는 강제
+재설정 없이 그대로 로그인하면서 점진적으로 이전된다. 회귀 검증: 레거시 해시 픽스처로
+로그인하는 기존 테스트(`YonaAuthenticationProviderSpec` 등 legacyHash 사용 전체)가
+그대로 통과함을 확인했고(=레거시 계정이 여전히 로그인된다는 검증이기도 함), 로그인
+성공 직후 DB 해시가 Argon2 포맷으로 바뀌는 것과 재로그인도 성공하는 것을 신규
+테스트로 확인했다. 전체 테스트 스위트도 그대로 GREEN이다.
+
 ### 6. 보안 관련 관리자 조치/로그인 이벤트에 대한 감사 로그 없음
 
 프로젝트 전체에서 `audit` 관련 모듈을 찾지 못했다(파일명 검색 0건). 다음 이벤트들이
@@ -145,6 +176,18 @@ SOC2(CC6 계열 통제)나 ISO 27001(A.8.15 로깅) 심사에서는 "누가, 언
 
 **권고**: 최소한 관리자 조치(계정 잠금/해제, 2FA 강제 해제, 권한 변경)만이라도 별도
 `audit_log` 테이블에 행위자/대상/시각/사유를 기록하는 것부터 시작 권장.
+
+**조치(완료됨 — 관리자 조치 범위)**: `audit_log` 테이블(`AuditLog`/`AuditLogRepository`/
+`AuditLogService`)을 신설해, 관리자의 사용자 상태 변경(`PATCH
+/-_-api/v1/admin/users/{loginId}`), 2FA 강제 비활성화(`POST
+/-_-api/v1/admin/users/{loginId}/disable-2fa`), 이번에 4번 항목과 함께 추가한 브루트포스
+잠금 강제 해제(`POST /-_-api/v1/admin/users/{loginId}/unlock`) 세 곳에 행위자/대상/액션/
+사유/시각을 기록한다. 조회는 최소 범위로 `GET /-_-api/v1/admin/audit-logs`(사이트관리자
+전용) REST 엔드포인트만 추가했고, 별도 목록 UI는 이번 범위에 포함하지 않았다. 단위테스트
+(`AuditLogServiceSpec`)와 실제 DB 왕복을 확인하는 통합테스트(`AuditLogServiceIntegrationSpec`),
+그리고 세 관리자 엔드포인트가 실제로 올바른 필드로 기록을 호출하는지 확인하는
+`UserControllerSpec` 테스트로 검증했다. 로그인 성공/실패, 비밀번호/이메일 변경 등 나머지
+이벤트의 감사 로그는 이번 범위 밖으로 남겨둔다.
 
 ### 7. 계정 탈퇴가 실제 삭제·익명화가 아니라 상태 플래그뿐
 
@@ -171,6 +214,15 @@ GDPR 17조(삭제권, "잊혀질 권리")나 한국 개인정보보호법 21조(
 **권고**: 로그 보존기간 정책을 명시적으로 정의하고(예: 90일 후 자동 삭제), 인프라
 레벨(logback rolling policy, 로그 수집기 보존 설정)에서 실제로 적용되는지 확인.
 
+**조치(완료됨 — 문서화)**: `logback-spring.xml`을 다시 확인한 결과, 이 애플리케이션은
+파일 appender가 전혀 없이 전부 STDOUT JSON(`LogstashEncoder`, Loki/Promtail 등 외부
+로그 수집기 전제)으로만 로깅한다 — 즉 애플리케이션 코드/설정 레벨에서 "보존기간"을
+구현할 파일 로테이션 대상 자체가 없다. 실질적인 조치는 코드가 아니라 문서화였다:
+`docs/logging.md`가 "이 저장소엔 logback-spring.xml이 없다"고 틀리게(구조화 JSON
+로깅으로 바뀌기 전 상태로) 적혀 있던 것을 현재 상태에 맞게 정정하고, "로그 보존기간은
+이 저장소 책임 범위 밖이며 배포 환경의 로그 수집기에서 설정해야 한다"는 절을 명시적으로
+추가했다.
+
 ### 9. 개인정보처리방침/이용약관 페이지가 애플리케이션 안에 없음
 
 `src/main/resources/templates`에 privacy/terms/policy 관련 템플릿을 찾지 못했다.
@@ -187,6 +239,15 @@ GDPR 17조(삭제권, "잊혀질 권리")나 한국 개인정보보호법 21조(
 이메일 등으로 계정 소유자에게 알려주는 로직이 없다(GitHub/GitLab 등은 이런 이벤트마다
 알림 이메일을 보낸다). 법적 강제사항은 아니지만 SOC2 등 보안 모범사례 심사에서
 자주 언급되는 항목이다.
+
+**조치(완료됨 — 2FA 비활성화 범위)**: 계정 탈취 시나리오에서 가장 민감한 이벤트인
+"2FA 비활성화"부터 구현했다. `TwoFactorServiceImpl.disableAll()`(본인 요청과 관리자
+강제 비활성화가 공통으로 거치는 단일 지점)에 기존 `MailService`(신규 메일 발송 인프라
+없이 재사용)로 계정 소유자에게 알림 메일을 보내는 로직을 추가했다 — 실제로 등록돼
+있던 2FA를 껐을 때만 보내고(빈 계정에 대고 눌러도 스팸이 되지 않도록), 메일 발송 실패가
+비활성화 자체를 막지 않도록 예외를 삼키고 로그만 남긴다. 단위테스트
+(`TwoFactorServiceImplSpec`)로 발송/미발송 분기를 검증했다. 2FA 활성화, 새 WebAuthn
+등록, TOTP 삭제, 새 기기 로그인 등 나머지 이벤트는 이번 범위 밖으로 남겨둔다.
 
 ### 11. 데이터 이동권(내 정보 다운로드) 기능 없음
 
@@ -205,6 +266,16 @@ Boot 기본값에 의존한다(요청이 HTTPS면 `Secure` 플래그는 보통 �
 **권고**: 운영 배포 아키텍처(리버스 프록시 유무)를 확인하고, 필요하면
 `server.forward-headers-strategy: framework`(또는 `native`)와
 `server.servlet.session.cookie.secure=true`, `same-site=lax` 또는 `strict`를 명시.
+
+**조치(완료됨)**: `application.yml`에 `server.forward-headers-strategy: framework`
+(리버스 프록시가 TLS를 종료하는 배포에서 `Secure` 플래그가 자동으로 붙도록, 프록시
+없는 로컬 배포에는 영향 없음), `server.servlet.session.cookie.same-site: lax`(`strict`는
+OAuth2/SAML2 로그인의 최상위 탐색 리다이렉트를 깰 수 있어 제외), `server.servlet.session.timeout:
+30m`을 명시했다. `cookie.secure`는 의도적으로 고정하지 않았다 — 로컬 h2 개발과 이
+저장소의 표준 HTTP 기반 실사용 검증 워크플로가 깨지기 때문이다. 실제 임베디드 서버를
+띄우는 통합테스트(`SessionCookieSecurityIntegrationSpec`)로 로그인 성공 시
+`Set-Cookie` 헤더에 `SameSite=Lax`가 실제로 붙는 것을 확인했고, curl로도 직접
+재현했다. 기존 OAuth2/SAML2/일반 로그인 통합테스트 전체가 회귀 없이 통과함을 확인했다.
 
 ### 13. (정보) 신규 2FA 의존성 라이선스 — 문제없음
 

@@ -1,26 +1,29 @@
 yona supports logging of system messages for operators and yona programmers.
-yona writes logs to standard output (console), using Spring Boot's default Logback setup.
+yona writes logs to standard output (console) as one JSON object per line, via
+`src/main/resources/logback-spring.xml` (Logstash encoder).
 
 Ported from legacy Yona's `docs/logging.md`, adapted for yona — most of it changed, since
-legacy wrote to separate files under `logs/` via `conf/application-logger.xml`, and yona doesn't
-currently do that.
+legacy wrote to separate files under `logs/` via `conf/application-logger.xml`, and yona
+writes structured JSON to stdout instead (see "Log Retention" below for why file rotation
+isn't the mechanism here).
 
 Log Output
 ---------
 
-**Unlike legacy, yona does not currently write to separate log files**
-(`logs/application.log`, `logs/access.log`, `logs/root.log`) — there's no `logback-spring.xml`
-in this repository, so everything (application logs and access logs alike) goes to the console
-via Spring Boot's default Logback configuration. If you need file output, add your own
-`logback-spring.xml` to `src/main/resources/` (standard Spring Boot mechanism) — this hasn't
-been done yet.
+yona does not write to separate log files (`logs/application.log`, `logs/access.log`,
+`logs/root.log`) like legacy did. Instead, `src/main/resources/logback-spring.xml` configures
+a single console appender with `LogstashEncoder`, so every log line (application logs and
+access logs alike) is a single-line JSON object on stdout. This is meant to be scraped by an
+external log collector (e.g. Loki/Promtail, CloudWatch Logs, ELK) rather than read directly
+from a file on disk.
 
 Logging Configuration
 --------------------
 
-Configure logging in `src/main/resources/application.yml` under `logging.level.*` (currently
-`org.springframework.web: DEBUG`, `org.hibernate: WARN`), or add a `logback-spring.xml` for
-finer control. This replaces legacy's `conf/application-logger.xml`.
+Configure log levels in `src/main/resources/application.yml` under `logging.level.*`
+(currently `org.springframework.web: DEBUG`, `org.hibernate: WARN`), or edit
+`src/main/resources/logback-spring.xml` for encoder/appender changes. This replaces legacy's
+`conf/application-logger.xml`.
 
 Log Levels
 ----------
@@ -38,13 +41,16 @@ Log Format
 
 ### Application log
 
-Configure the format by modifying the Logback configuration, as above.
+Each line is a JSON object produced by `LogstashEncoder` (timestamp, level, logger, thread,
+message, MDC fields, stack trace when present). Configure the format by editing
+`logback-spring.xml`.
 
 ### Access log
 
 **This part is actually preserved from legacy almost verbatim** — `AccessLogFilter`
-(`config/AccessLogFilter.kt`) still logs every request in Apache Combined Log Format, with the
-same trailing processing-time-in-milliseconds suffix legacy added:
+(`config/AccessLogFilter.kt`) still logs every request in Apache Combined Log Format (as the
+JSON `message` field, wrapped like every other log line by the encoder above), with the same
+trailing processing-time-in-milliseconds suffix legacy added:
 
 ```
 127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif" 200
@@ -63,6 +69,21 @@ same trailing processing-time-in-milliseconds suffix legacy added:
 * Access log entries currently go through a single `"access"` SLF4J logger (legacy dynamically
   created a separate `Logger("access." + uri)` per path) — route by path via log pattern/MDC if
   you need that level of separation.
+
+Log Retention
+-------------
+
+Access log entries contain personal data (IP address, and the authenticated login ID when
+present) as flagged in the legal compliance audit
+(`docs/LEGAL_COMPLIANCE_AUDIT_2026-09-10.md`, item #8). **This repository has no file
+appender and therefore no rotation/retention policy to configure at the application level**
+— everything goes to stdout, and how long it survives depends entirely on whatever collects
+it downstream (Loki, CloudWatch Logs, a container runtime's own log driver, etc.).
+
+**Setting and enforcing a retention period for these logs is the responsibility of the
+deployment environment's log collector, not this codebase.** Whoever operates a deployment
+must configure a retention policy there (e.g. a Loki retention period, a CloudWatch Logs
+retention setting, an index lifecycle policy) — nothing in this repository does it for them.
 
 References
 ----------

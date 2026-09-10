@@ -4,6 +4,7 @@ import com.github.yonaprojects.yona.domain.twofactor.TotpActivationResult
 import com.github.yonaprojects.yona.domain.twofactor.TotpEnrollment
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorTotpCredential
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import io.kotest.core.spec.style.DescribeSpec
@@ -36,7 +37,7 @@ private fun legacyHash(password: String, salt: String): String {
 class TwoFactorSettingsControllerSpec : DescribeSpec({
     val userRepository = mockk<UserRepository>()
     val twoFactorService = mockk<TwoFactorService>()
-    val controller = TwoFactorSettingsController(userRepository, twoFactorService)
+    val controller = TwoFactorSettingsController(userRepository, twoFactorService, PasswordEncodingService())
     val viewResolver = InternalResourceViewResolver().apply {
         setPrefix("/templates/")
         setSuffix(".html")

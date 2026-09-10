@@ -82,6 +82,7 @@ class UserViewControllerSpec : DescribeSpec({
     val oAuthAppRegistrationService = mockk<com.github.yonaprojects.yona.domain.oauth2server.OAuthAppRegistrationService>()
     val sshKeyService = mockk<com.github.yonaprojects.yona.domain.sshkey.SshKeyService>()
     val gpgKeyService = mockk<com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService>()
+    val passwordEncodingService = com.github.yonaprojects.yona.domain.user.PasswordEncodingService()
 
     val userViewController = UserViewController(
         userRepository,
@@ -98,6 +99,7 @@ class UserViewControllerSpec : DescribeSpec({
         organizationUserRepository,
         organizationRepository,
         userService,
+        passwordEncodingService,
         accessControl,
         mentionService,
         recentIssueService,
@@ -292,7 +294,7 @@ class UserViewControllerSpec : DescribeSpec({
             userRepository, projectUserRepository, issueRepository, pullRequestRepository, watchRepository,
             projectRepository, userProjectNotificationRepository, attachmentRepository, postingRepository,
             favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
-            organizationRepository, userService, accessControl, mentionService, recentIssueService,
+            organizationRepository, userService, passwordEncodingService, accessControl, mentionService, recentIssueService,
             apiTokenService, oAuthAuthorizedAppsService, oAuthAppRegistrationService, sshKeyService, gpgKeyService, hideProjectListing = true
         )
         val model = ExtendedModelMap()

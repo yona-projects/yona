@@ -3,6 +3,7 @@ package com.github.yonaprojects.yona.web
 import com.github.yonaprojects.yona.domain.sso.SsoSettingsService
 import com.github.yonaprojects.yona.domain.user.EmailDomainValidator
 import com.github.yonaprojects.yona.domain.user.LoginIdFormatValidator
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.ReservedWordsValidator
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserService
@@ -16,9 +17,6 @@ import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
-import java.security.MessageDigest
-import java.util.Base64
-import java.util.UUID
 
 @Controller
 class AuthController(
@@ -29,7 +27,8 @@ class AuthController(
     @Value("\${yona.signup.require-admin-confirm:false}")
     private val requireAdminConfirm: Boolean,
     // 로그인 화면에 OIDC/SAML2 로그인 버튼을 조건부로 노출한다.
-    private val ssoSettingsService: SsoSettingsService
+    private val ssoSettingsService: SsoSettingsService,
+    private val passwordEncodingService: PasswordEncodingService
 ) {
 
     @GetMapping("/login")
@@ -113,10 +112,8 @@ class AuthController(
             return "signup"
         }
 
-        val salt = UUID.randomUUID().toString().substring(0, 8)
-        val hashed = hashPassword(user.password ?: "", salt)
-        user.password = hashed
-        user.passwordSalt = salt
+        user.password = passwordEncodingService.encode(user.password ?: "")
+        user.passwordSalt = null
 
         // yona UserApp.createNewUser()의 "관리자 승인 대기면 State.LOCKED로 생성"
         // 대응. 로그인 시 LOCKED 계정 차단 자체는 이미 YonaAuthenticationProvider가
@@ -133,15 +130,4 @@ class AuthController(
         }
     }
 
-    private fun hashPassword(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
-    }
 }

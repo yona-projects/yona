@@ -152,6 +152,19 @@ yona:
           starttls:
             enable: false
 
+# 세션 쿠키 보안 속성을 프레임워크 기본값에 암묵적으로 맡기지 않고 명시한다.
+server:
+  # 리버스 프록시가 TLS를 종료하는 배포에서 X-Forwarded-Proto를 인식해 세션 쿠키 Secure
+  # 플래그가 올바르게 붙도록 한다(프록시 없는 로컬 h2 배포에서는 영향 없음).
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        # strict는 OAuth2/SAML2 로그인의 최상위 탐색(top-level navigation) GET 리다이렉트를
+        # 깨뜨릴 수 있어 lax로 둔다.
+        same-site: lax
+      timeout: 30m
+
 management:
   endpoints:
     web:

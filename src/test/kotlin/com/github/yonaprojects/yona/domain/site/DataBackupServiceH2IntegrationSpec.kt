@@ -64,7 +64,8 @@ class DataBackupServiceH2IntegrationSpec @Autowired constructor(
                                 "email" to "restored1@example.com",
                                 "remember_me" to false,
                                 "is_guest" to false,
-                                "state" to "ACTIVE"
+                                "state" to "ACTIVE",
+                                "failed_login_attempts" to 0
                             )
                         )
                     ),

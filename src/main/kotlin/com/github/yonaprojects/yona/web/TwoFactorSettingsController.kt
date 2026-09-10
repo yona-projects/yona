@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.domain.twofactor.TotpActivationResult
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import org.springframework.security.core.Authentication
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
-import java.security.MessageDigest
-import java.util.Base64
 
 // 계정 보안 설정 화면 — GitHub "Settings > Password and authentication"과 동일한 관례로
 // UserViewController의 tokens/ssh-keys 섹션과 같은 URL 패턴(/user/editform/*)을 따르되, 등록
@@ -26,7 +25,8 @@ import java.util.Base64
 @RequestMapping("/user/editform/security")
 class TwoFactorSettingsController(
     private val userRepository: UserRepository,
-    private val twoFactorService: TwoFactorService
+    private val twoFactorService: TwoFactorService,
+    private val passwordEncodingService: PasswordEncodingService
 ) {
 
     private fun currentUser(authentication: Authentication?) =
@@ -170,19 +170,5 @@ class TwoFactorSettingsController(
     // 공격자가 방어 수단을 무력화하는 경로이므로, 클라이언트 confirm() 대화상자만으로는 부족하고
     // 서버가 매번 현재 비밀번호를 재확인해야 한다.
     private fun verifyPassword(user: User, password: String): Boolean =
-        hashPassword(password, user.passwordSalt ?: "") == user.password
-
-    // YonaAuthenticationProvider/UserController와 동일한 legacy 해시(SHA-256, salt 선행,
-    // 1024회 반복) — 로그인 시 사용하는 비밀번호 저장 방식과 일치해야 재확인이 가능하다.
-    private fun hashPassword(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
-    }
+        passwordEncodingService.matches(password, user.password, user.passwordSalt)
 }

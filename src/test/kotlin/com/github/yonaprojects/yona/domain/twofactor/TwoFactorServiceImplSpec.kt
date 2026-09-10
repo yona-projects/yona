@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.domain.twofactor
 
+import com.github.yonaprojects.yona.domain.mail.MailService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import dev.samstevens.totp.code.DefaultCodeGenerator
@@ -11,6 +12,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import java.util.Optional
 
 class TwoFactorServiceImplSpec : DescribeSpec({
@@ -21,10 +23,12 @@ class TwoFactorServiceImplSpec : DescribeSpec({
     val totpSecretEncryptor = TotpSecretEncryptor("test-password", "596f6e6132303236")
     val totpCodeVerifier = TotpCodeVerifier("Yona")
     val backupCodeGenerator = BackupCodeGenerator()
+    val mailService = mockk<MailService>(relaxed = true)
 
     val service = TwoFactorServiceImpl(
         totpCredentialRepository, webauthnCredentialRepository, backupCodeRepository,
-        userRepository, totpSecretEncryptor, totpCodeVerifier, backupCodeGenerator
+        userRepository, totpSecretEncryptor, totpCodeVerifier, backupCodeGenerator,
+        mailService, "테스트사이트"
     )
 
     fun currentTotpCode(secret: String): String =
@@ -33,6 +37,9 @@ class TwoFactorServiceImplSpec : DescribeSpec({
     val user = User(id = 1L, loginId = "gildong", name = "홍길동")
 
     beforeTest {
+        // mailService는 verify(exactly = 0){...}로도 검증하므로, 이전 테스트의 호출 기록이
+        // 새는 것을 막기 위해 매번 초기화한다.
+        io.mockk.clearMocks(mailService, answers = false)
         every { userRepository.save(any()) } answers { firstArg() }
     }
 
@@ -142,6 +149,34 @@ class TwoFactorServiceImplSpec : DescribeSpec({
             service.disableAll(user)
 
             user.isTwoFactorEnabled shouldBe false
+        }
+
+        // 법적 컴플라이언스 감사 #10 대응 — 계정 탈취 시나리오에서 공격자가 방어 수단을 끄는
+        // 것이 가장 민감한 이벤트라 본인/관리자 강제 여부와 무관하게 항상 알린다.
+        it("실제로 등록돼 있던 2FA를 비활성화하면 계정 소유자에게 알림 메일을 보내야 한다") {
+            val notifyUser = User(id = 40L, loginId = "notifyme", name = "알림대상", email = "notifyme@example.com")
+            val totp = TwoFactorTotpCredential(id = 32L, user = notifyUser, enabled = true)
+            every { totpCredentialRepository.findByUserId(40L) } returns listOf(totp)
+            every { totpCredentialRepository.delete(totp) } returns Unit
+            every { webauthnCredentialRepository.findByUserId(40L) } returns emptyList()
+            every { backupCodeRepository.deleteByUserId(40L) } returns Unit
+
+            service.disableAll(notifyUser)
+
+            verify(exactly = 1) {
+                mailService.sendHtmlMail("notifyme@example.com", "알림대상", any(), any())
+            }
+        }
+
+        it("애초에 등록된 2FA가 없었다면 알림 메일을 보내지 않아야 한다") {
+            val noopUser = User(id = 41L, loginId = "noop", name = "무동작", email = "noop@example.com")
+            every { totpCredentialRepository.findByUserId(41L) } returns emptyList()
+            every { webauthnCredentialRepository.findByUserId(41L) } returns emptyList()
+            every { backupCodeRepository.deleteByUserId(41L) } returns Unit
+
+            service.disableAll(noopUser)
+
+            verify(exactly = 0) { mailService.sendHtmlMail(any(), any(), any(), any()) }
         }
     }
 

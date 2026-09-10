@@ -78,7 +78,14 @@ class User(
     // 추가하는 것이라 여러 DB 방언에서 안전하게 걸리도록 nullable로 두고(NOT NULL 추가 시
     // 방언별 DEFAULT 처리 차이를 피함), null은 false로 취급한다(hasTwoFactorEnabled() 참고).
     @Column(name = "is_two_factor_enabled")
-    var isTwoFactorEnabled: Boolean? = false
+    var isTwoFactorEnabled: Boolean? = false,
+
+    // 브루트포스 방어용 자동/일시 잠금 — 기존 UserState.LOCKED(관리자가 수동으로 거는 영구
+    // 잠금)와는 별개 축이다. 이 두 필드는 상태를 바꾸지 않고, 로그인 성공 시 항상 0/null로
+    // 리셋된다. 로그인 게이트는 YonaAuthenticationProvider가 두 축을 순서대로(관리자 잠금
+    // 우선) 확인한다.
+    var failedLoginAttempts: Int = 0,
+    var lockedUntil: Instant? = null
 ) {
     fun hasTwoFactorEnabled(): Boolean = isTwoFactorEnabled == true
     fun getPreferredLanguage(): String {

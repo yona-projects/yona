@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.web
 
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.user.UserService
@@ -26,8 +27,9 @@ import org.springframework.web.servlet.view.RedirectView
 class BootstrapSetupControllerSpec : DescribeSpec({
     val userRepository = mockk<UserRepository>()
     val userService = mockk<UserService>()
+    val passwordEncodingService = PasswordEncodingService()
 
-    val controller = BootstrapSetupController(userRepository, userService, "테스트사이트")
+    val controller = BootstrapSetupController(userRepository, userService, passwordEncodingService, "테스트사이트")
     // 반환하는 뷰 이름("bootstrap-setup")이 매핑된 URL 경로(/bootstrap-setup)와 같아, MockMvc 기본
     // InternalResourceViewResolver가 순환 포워드로 오인해 ServletException을 던진다(테스트 하네스
     // 한정 문제 — 다른 뷰 이름을 쓰는 컨트롤러들은 겪지 않음). "redirect:" 접두사는 실제
@@ -110,7 +112,8 @@ class BootstrapSetupControllerSpec : DescribeSpec({
             userSlot.captured.state shouldBe UserState.SITE_ADMIN
             userSlot.captured.isGuest shouldBe false
             userSlot.captured.password.isNullOrBlank() shouldBe false
-            userSlot.captured.passwordSalt.isNullOrBlank() shouldBe false
+            userSlot.captured.passwordSalt shouldBe null
+            passwordEncodingService.matches("password1", userSlot.captured.password, null) shouldBe true
         }
 
         it("loginId가 빈 값이면 loginIdErrors가 채워지고 설정 화면을 다시 반환해야 한다") {

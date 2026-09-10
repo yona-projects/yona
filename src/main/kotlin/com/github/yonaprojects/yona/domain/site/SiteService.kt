@@ -7,14 +7,13 @@ import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectService
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.role.RoleType
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.user.UserState
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.security.MessageDigest
 import java.time.Instant
-import java.util.Base64
 import java.util.UUID
 
 @Service
@@ -24,7 +23,8 @@ class SiteService(
     private val projectUserRepository: ProjectUserRepository,
     private val projectService: ProjectService,
     private val recentIssueService: RecentIssueService,
-    private val attachmentRepository: AttachmentRepository
+    private val attachmentRepository: AttachmentRepository,
+    private val passwordEncodingService: PasswordEncodingService
 ) {
 
     @Transactional
@@ -62,25 +62,12 @@ class SiteService(
             ?: throw IllegalArgumentException("USER_NOT_FOUND")
 
         val newPassword = UUID.randomUUID().toString().substring(0, 6)
-        val salt = UUID.randomUUID().toString().substring(0, 8)
 
-        targetUser.passwordSalt = salt
-        targetUser.password = hashPassword(newPassword, salt)
+        targetUser.passwordSalt = null
+        targetUser.password = passwordEncodingService.encode(newPassword)
         userRepository.save(targetUser)
 
         return newPassword
-    }
-
-    private fun hashPassword(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
     }
 
     @Transactional

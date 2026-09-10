@@ -44,6 +44,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Page
 
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserService
 import org.springframework.web.bind.annotation.PostMapping
@@ -75,6 +76,7 @@ class UserViewController(
     private val organizationUserRepository: OrganizationUserRepository,
     private val organizationRepository: OrganizationRepository,
     private val userService: UserService,
+    private val passwordEncodingService: PasswordEncodingService,
     private val accessControl: AccessControl,
     private val mentionService: MentionService,
     private val recentIssueService: RecentIssueService,
@@ -1128,8 +1130,7 @@ class UserViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "error/403"
 
-        val hashedOld = hashPassword(oldPassword, loginUser.passwordSalt ?: "")
-        if (loginUser.password != hashedOld) {
+        if (!passwordEncodingService.matches(oldPassword, loginUser.password, loginUser.passwordSalt)) {
             return "redirect:/user/editform/password"
         }
 
@@ -1141,26 +1142,12 @@ class UserViewController(
             return "redirect:/user/editform/password"
         }
 
-        val newSalt = UUID.randomUUID().toString().substring(0, 8)
-        val newHashed = hashPassword(password, newSalt)
-        loginUser.passwordSalt = newSalt
-        loginUser.password = newHashed
+        loginUser.passwordSalt = null
+        loginUser.password = passwordEncodingService.encode(password)
         userRepository.save(loginUser)
 
         request.logout()
         return "redirect:/users/loginform"
-    }
-
-    private fun hashPassword(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
     }
 
     @PostMapping("/user/resetVisitedList")
@@ -1279,10 +1266,9 @@ class UserViewController(
             ?: return ResponseEntity.status(404).body(mapOf("isSuccess" to false, "reason" to "USER_NOT_FOUND"))
 
         val newPassword = UUID.randomUUID().toString().substring(0, 6)
-        val salt = UUID.randomUUID().toString().substring(0, 8)
 
-        targetUser.passwordSalt = salt
-        targetUser.password = hashPassword(newPassword, salt)
+        targetUser.passwordSalt = null
+        targetUser.password = passwordEncodingService.encode(newPassword)
         userRepository.save(targetUser)
 
         return ResponseEntity.ok(mapOf(

@@ -7,33 +7,19 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.verify
-import java.security.MessageDigest
-import java.util.Base64
 import java.util.Optional
 
 class LdapUserProvisioningServiceSpec : DescribeSpec({
     val userRepository = mockk<UserRepository>()
-    val service = LdapUserProvisioningService(userRepository)
-
-    fun legacyHash(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
-    }
+    val passwordEncodingService = PasswordEncodingService()
+    val service = LdapUserProvisioningService(userRepository, passwordEncodingService)
 
     beforeTest {
         clearMocks(userRepository)
     }
 
     describe("LdapUserProvisioningService.reconcile") {
-        it("이메일로 로컬 유저를 찾지 못하면 LDAP 정보로 신규 유저를 생성해야 한다") {
+        it("이메일로 로컬 유저를 찾지 못하면 LDAP 정보로 신규 유저를 생성하고 비밀번호는 Argon2로 저장해야 한다") {
             val ldapUser = LdapUser(
                 displayName = "홍길동", email = "gildong@example.com", loginId = "gildong",
                 department = "개발팀", isGuestUser = false
@@ -48,16 +34,15 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
             result.email shouldBe "gildong@example.com"
             result.name shouldBe "홍길동 [개발팀]"
             result.state shouldBe UserState.ACTIVE
-            result.password shouldNotBe null
-            result.passwordSalt shouldNotBe null
-            legacyHash("myPassword123!", result.passwordSalt!!) shouldBe result.password
+            result.passwordSalt shouldBe null
+            passwordEncodingService.matches("myPassword123!", result.password, null) shouldBe true
         }
 
-        it("이메일로 기존 유저를 찾으면 비밀번호가 다를 때만 재설정하고 이름/게스트 여부를 동기화해야 한다") {
+        it("이메일로 기존 유저를 찾으면 비밀번호가 다를 때만 Argon2로 재발급하고 이름/게스트 여부를 동기화해야 한다") {
             val oldSalt = "old-salt"
             val existingUser = User(
                 id = 5L, loginId = "gildong", name = "옛이름", email = "gildong@example.com",
-                password = legacyHash("oldPassword", oldSalt), passwordSalt = oldSalt, isGuest = false
+                password = PasswordEncodingService.legacyHash("oldPassword", oldSalt), passwordSalt = oldSalt, isGuest = false
             )
             every { userRepository.findByEmail("gildong@example.com") } returns Optional.of(existingUser)
             every { userRepository.save(any()) } answers { firstArg() }
@@ -72,14 +57,16 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
             result.id shouldBe 5L
             result.name shouldBe "홍길동 [개발팀]"
             result.isGuest shouldBe true
-            legacyHash("newPassword456!", result.passwordSalt!!) shouldBe result.password
+            result.passwordSalt shouldBe null
+            passwordEncodingService.matches("newPassword456!", result.password, null) shouldBe true
         }
 
-        it("기존 유저의 비밀번호가 이미 동일하면 비밀번호/salt를 재발급하지 않아야 한다") {
+        it("기존 유저의 비밀번호가 이미 동일하면(레거시 포맷이라도) 비밀번호를 재발급하지 않아야 한다") {
             val salt = "same-salt"
+            val legacyHashed = PasswordEncodingService.legacyHash("samePassword", salt)
             val existingUser = User(
                 id = 5L, loginId = "gildong", name = "옛이름", email = "gildong@example.com",
-                password = legacyHash("samePassword", salt), passwordSalt = salt, isGuest = false
+                password = legacyHashed, passwordSalt = salt, isGuest = false
             )
             every { userRepository.findByEmail("gildong@example.com") } returns Optional.of(existingUser)
             every { userRepository.save(any()) } answers { firstArg() }
@@ -88,6 +75,7 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
 
             val result = service.reconcile(ldapUser, "samePassword")
 
+            result.password shouldBe legacyHashed
             result.passwordSalt shouldBe salt
         }
 
@@ -158,7 +146,7 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
             result.englishName shouldBe "Old English Name"
         }
 
-        it("기존 유저의 passwordSalt가 null이면 비밀번호 불일치로 간주하고 재발급해야 한다") {
+        it("기존 유저의 passwordSalt가 null(레거시 포맷 판정 불가)이면 비밀번호 불일치로 간주하고 Argon2로 재발급해야 한다") {
             val existingUser = User(
                 id = 5L, loginId = "gildong", name = "옛이름", email = "gildong@example.com",
                 password = "somePassword", passwordSalt = null, isGuest = false
@@ -173,7 +161,8 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
 
             val result = service.reconcile(ldapUser, "newPassword456!")
 
-            result.passwordSalt shouldNotBe null
+            result.passwordSalt shouldBe null
+            passwordEncodingService.matches("newPassword456!", result.password, null) shouldBe true
         }
     }
 })

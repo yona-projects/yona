@@ -3,6 +3,7 @@ package com.github.yonaprojects.yona.web
 import com.github.yonaprojects.yona.domain.sso.OidcSsoSettings
 import com.github.yonaprojects.yona.domain.sso.Saml2SsoSettings
 import com.github.yonaprojects.yona.domain.sso.SsoSettingsService
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserService
 import io.kotest.core.spec.style.DescribeSpec
@@ -22,7 +23,8 @@ import com.github.yonaprojects.yona.domain.user.UserState
 class AuthControllerSpec : DescribeSpec({
     val userService = mockk<UserService>()
     val ssoSettingsService = mockk<SsoSettingsService>()
-    val authController = AuthController(userService, "", false, ssoSettingsService)
+    val passwordEncodingService = PasswordEncodingService()
+    val authController = AuthController(userService, "", false, ssoSettingsService, passwordEncodingService)
     val viewResolver = InternalResourceViewResolver().apply {
         setPrefix("/templates/")
         setSuffix(".html")
@@ -142,7 +144,7 @@ class AuthControllerSpec : DescribeSpec({
 
             // yona UserApp.java:1218-1224 isUsingSignUpConfirm()/:1260-1275 createNewUser() 대응 (P1-77).
             it("관리자 승인 대기 설정이 켜져 있으면 신규 유저가 LOCKED 상태로 생성되고 승인 대기 안내로 리다이렉트되어야 한다") {
-                val confirmController = AuthController(userService, "", true, ssoSettingsService)
+                val confirmController = AuthController(userService, "", true, ssoSettingsService, passwordEncodingService)
                 val confirmViewResolver = InternalResourceViewResolver().apply {
                     setPrefix("/templates/")
                     setSuffix(".html")
@@ -209,7 +211,7 @@ class AuthControllerSpec : DescribeSpec({
             }
 
             it("허용된 이메일 도메인 설정이 있고 그 목록에 없는 도메인이면 가입이 거부되어야 한다") {
-                val restrictedController = AuthController(userService, "allowed.com", false, ssoSettingsService)
+                val restrictedController = AuthController(userService, "allowed.com", false, ssoSettingsService, passwordEncodingService)
                 val restrictedViewResolver = InternalResourceViewResolver().apply {
                     setPrefix("/templates/")
                     setSuffix(".html")

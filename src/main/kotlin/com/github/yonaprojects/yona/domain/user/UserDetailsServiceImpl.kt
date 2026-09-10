@@ -34,7 +34,8 @@ class UserDetailsServiceImpl(
             passwordVal = user.password ?: "",
             passwordSalt = user.passwordSalt ?: "",
             authoritiesVal = authorities,
-            state = user.state
+            state = user.state,
+            lockedUntil = user.lockedUntil
         )
     }
 }

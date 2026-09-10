@@ -11,6 +11,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectUser
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.role.Role
 import com.github.yonaprojects.yona.domain.role.RoleType
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.user.UserState
@@ -31,8 +32,9 @@ class SiteServiceSpec : DescribeSpec({
     val projectService = mockk<ProjectService>()
     val recentIssueService = mockk<RecentIssueService>()
     val attachmentRepository = mockk<AttachmentRepository>()
+    val passwordEncodingService = PasswordEncodingService()
 
-    val service = SiteService(userRepository, projectRepository, projectUserRepository, projectService, recentIssueService, attachmentRepository)
+    val service = SiteService(userRepository, projectRepository, projectUserRepository, projectService, recentIssueService, attachmentRepository, passwordEncodingService)
 
     val targetUser = User(id = 10L, loginId = "gildong", name = "홍길동", state = UserState.ACTIVE)
 
@@ -145,7 +147,7 @@ class SiteServiceSpec : DescribeSpec({
             }
         }
 
-        it("비밀번호를 재설정하면 새 임시 비밀번호(6자)를 반환하고 salt/해시가 저장되어야 한다") {
+        it("비밀번호를 재설정하면 새 임시 비밀번호(6자)를 반환하고 Argon2 해시가 저장되어야 한다") {
             val user = User(id = 26L, loginId = "reset-target", name = "대상자")
             every { userRepository.findByLoginId("reset-target") } returns Optional.of(user)
             every { userRepository.save(any()) } answers { firstArg() }
@@ -153,8 +155,8 @@ class SiteServiceSpec : DescribeSpec({
             val newPassword = service.resetUserPassword("reset-target")
 
             newPassword.length shouldBe 6
-            (user.passwordSalt != null) shouldBe true
-            (user.password != null) shouldBe true
+            user.passwordSalt shouldBe null
+            passwordEncodingService.matches(newPassword, user.password, null) shouldBe true
             verify(exactly = 1) { userRepository.save(user) }
         }
     }

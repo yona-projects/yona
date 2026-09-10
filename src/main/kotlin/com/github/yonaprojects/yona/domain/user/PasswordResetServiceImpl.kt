@@ -3,14 +3,14 @@ package com.github.yonaprojects.yona.domain.user
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.MessageDigest
-import java.util.Base64
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
 @Transactional
 class PasswordResetServiceImpl(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val passwordEncodingService: PasswordEncodingService
 ) : PasswordResetService {
 
     // loginId -> hashString
@@ -57,9 +57,8 @@ class PasswordResetServiceImpl(
         val loginId = getKeyByValue(resetHashMap, hashString) ?: return false
         val user = userRepository.findByLoginId(loginId).orElse(null) ?: return false
 
-        val salt = UUID.randomUUID().toString().substring(0, 8)
-        user.passwordSalt = salt
-        user.password = hashPassword(newPassword, salt)
+        user.passwordSalt = null
+        user.password = passwordEncodingService.encode(newPassword)
         userRepository.save(user)
 
         removeResetHash(hashString)
@@ -86,17 +85,5 @@ class PasswordResetServiceImpl(
             }
         }
         return null
-    }
-
-    private fun hashPassword(password: String, salt: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        digest.reset()
-        digest.update(salt.toByteArray(Charsets.UTF_8))
-        var hashed = digest.digest(password.toByteArray(Charsets.UTF_8))
-        for (i in 1 until 1024) {
-            digest.reset()
-            hashed = digest.digest(hashed)
-        }
-        return Base64.getEncoder().encodeToString(hashed)
     }
 }

@@ -7,6 +7,7 @@ import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.organization.Organization
 import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.user.Email
+import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.user.UserService
@@ -56,15 +57,17 @@ class UserControllerSpec : DescribeSpec({
     val organizationRepository = mockk<OrganizationRepository>()
     val yonaAuthenticationProvider = mockk<YonaAuthenticationProvider>()
     val twoFactorService = mockk<TwoFactorService>()
+    val passwordEncodingService = PasswordEncodingService()
+    val auditLogService = mockk<com.github.yonaprojects.yona.domain.audit.AuditLogService>(relaxed = true)
     val userController = UserController(
         userService, userRepository, recentIssueService, userSettingRepository,
-        organizationRepository, yonaAuthenticationProvider, twoFactorService,
+        organizationRepository, yonaAuthenticationProvider, twoFactorService, passwordEncodingService, auditLogService,
         allowedEmailDomains = "", requireAdminConfirm = false
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(userController).build()
 
     beforeTest {
-        clearMocks(userService, userRepository, recentIssueService, userSettingRepository, organizationRepository, yonaAuthenticationProvider, twoFactorService)
+        clearMocks(userService, userRepository, recentIssueService, userSettingRepository, organizationRepository, yonaAuthenticationProvider, twoFactorService, auditLogService)
     }
 
     describe("UserController 웹 API 테스트") {
@@ -837,7 +840,7 @@ class UserControllerSpec : DescribeSpec({
             it("허용된 이메일 도메인이 아니면 결과 배열의 해당 항목에 403을 담아야 한다") {
                 val restrictedController = UserController(
                     userService, userRepository, recentIssueService, userSettingRepository,
-                    organizationRepository, yonaAuthenticationProvider, twoFactorService,
+                    organizationRepository, yonaAuthenticationProvider, twoFactorService, passwordEncodingService, auditLogService,
                     allowedEmailDomains = "example.com", requireAdminConfirm = false
                 )
                 val restrictedMockMvc = MockMvcBuilders.standaloneSetup(restrictedController).build()
@@ -859,7 +862,7 @@ class UserControllerSpec : DescribeSpec({
             it("관리자 승인이 필요한 설정이면 생성된 사용자를 LOCKED 상태로 만들어야 한다") {
                 val confirmRequiredController = UserController(
                     userService, userRepository, recentIssueService, userSettingRepository,
-                    organizationRepository, yonaAuthenticationProvider, twoFactorService,
+                    organizationRepository, yonaAuthenticationProvider, twoFactorService, passwordEncodingService, auditLogService,
                     allowedEmailDomains = "", requireAdminConfirm = true
                 )
                 val confirmRequiredMockMvc = MockMvcBuilders.standaloneSetup(confirmRequiredController).build()
@@ -1093,6 +1096,9 @@ class UserControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.state").value("LOCKED"))
 
                 verify(exactly = 1) { userRepository.save(match { it.state == UserState.LOCKED }) }
+                verify(exactly = 1) {
+                    auditLogService.record("admin", "gildong", com.github.yonaprojects.yona.domain.audit.AuditAction.USER_STATE_CHANGED, any())
+                }
             }
         }
 
@@ -1128,6 +1134,79 @@ class UserControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.two_factor_enabled").value(false))
 
                 verify(exactly = 1) { twoFactorService.disableAll(testUser) }
+                verify(exactly = 1) {
+                    auditLogService.record("admin", "gildong", com.github.yonaprojects.yona.domain.audit.AuditAction.TWO_FACTOR_DISABLED_BY_ADMIN, null)
+                }
+            }
+        }
+
+        // 법적 컴플라이언스 감사 #4(브루트포스 자동 잠금) 관리자 해제 경로 + #6(감사 로그) 대응.
+        describe("POST /-_-api/v1/admin/users/{loginId}/unlock") {
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
+
+            it("사이트관리자가 아니면 403을 반환해야 한다") {
+                every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
+
+                mockMvc.perform(post("/-_-api/v1/admin/users/gildong/unlock").principal(auth))
+                    .andExpect(status().isForbidden)
+            }
+
+            it("대상 사용자를 찾을 수 없으면 404를 반환해야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByLoginId("nobody") } returns Optional.empty()
+
+                mockMvc.perform(post("/-_-api/v1/admin/users/nobody/unlock").principal(adminAuth))
+                    .andExpect(status().isNotFound)
+            }
+
+            it("사이트관리자면 실패 횟수/잠금을 해제하고 200을 반환하며 감사 로그를 남겨야 한다") {
+                val lockedUser = User(
+                    id = 3L, loginId = "lockeduser", name = "잠긴유저", email = "locked@example.com",
+                    failedLoginAttempts = 5, lockedUntil = java.time.Instant.now().plusSeconds(600)
+                )
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByLoginId("lockeduser") } returns Optional.of(lockedUser)
+                every { userRepository.save(any()) } answers { firstArg() }
+
+                mockMvc.perform(post("/-_-api/v1/admin/users/lockeduser/unlock").principal(adminAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.locked").value(false))
+
+                verify(exactly = 1) {
+                    userRepository.save(match { it.failedLoginAttempts == 0 && it.lockedUntil == null })
+                }
+                verify(exactly = 1) {
+                    auditLogService.record("admin", "lockeduser", com.github.yonaprojects.yona.domain.audit.AuditAction.ACCOUNT_LOCK_RELEASED, null)
+                }
+            }
+        }
+
+        describe("GET /-_-api/v1/admin/audit-logs") {
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
+
+            it("사이트관리자가 아니면 403을 반환해야 한다") {
+                every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
+
+                mockMvc.perform(get("/-_-api/v1/admin/audit-logs").principal(auth))
+                    .andExpect(status().isForbidden)
+            }
+
+            it("사이트관리자면 감사 로그 목록을 반환해야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { auditLogService.findAll() } returns listOf(
+                    com.github.yonaprojects.yona.domain.audit.AuditLog(
+                        id = 1L, actorLoginId = "admin", targetLoginId = "gildong",
+                        action = com.github.yonaprojects.yona.domain.audit.AuditAction.USER_STATE_CHANGED, reason = "state=LOCKED"
+                    )
+                )
+
+                mockMvc.perform(get("/-_-api/v1/admin/audit-logs").principal(adminAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$[0].actor_login_id").value("admin"))
+                    .andExpect(jsonPath("$[0].target_login_id").value("gildong"))
+                    .andExpect(jsonPath("$[0].action").value(com.github.yonaprojects.yona.domain.audit.AuditAction.USER_STATE_CHANGED))
             }
         }
     }
