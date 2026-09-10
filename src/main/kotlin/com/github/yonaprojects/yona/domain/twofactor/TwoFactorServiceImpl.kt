@@ -76,7 +76,11 @@ class TwoFactorServiceImpl(
         totpCredentialRepository.save(credential)
         refreshSummaryFlag(user)
 
-        return TotpActivationResult.Success(ensureBackupCodesInitialized(user))
+        val freshBackupCodes = ensureBackupCodesInitialized(user)
+        if (freshBackupCodes != null) {
+            notifyTwoFactorEnabled(user)
+        }
+        return TotpActivationResult.Success(freshBackupCodes)
     }
 
     @Transactional(readOnly = true)
@@ -106,7 +110,11 @@ class TwoFactorServiceImpl(
     @Transactional
     override fun completeWebauthnRegistration(user: User, credential: WebauthnCredential): List<String>? {
         refreshSummaryFlag(user)
-        return ensureBackupCodesInitialized(user)
+        val freshBackupCodes = ensureBackupCodesInitialized(user)
+        if (freshBackupCodes != null) {
+            notifyTwoFactorEnabled(user)
+        }
+        return freshBackupCodes
     }
 
     @Transactional(readOnly = true)
@@ -166,9 +174,27 @@ class TwoFactorServiceImpl(
         }
     }
 
-    // 계정 탈취 시나리오에서 공격자가 방어 수단(2FA)을 끄는 것이 가장 민감한 이벤트라(감사
-    // 항목 #10) 본인/관리자 강제 여부와 무관하게 항상 알린다. 메일 발송 실패가 비활성화 자체를
-    // 막아서는 안 되므로 PasswordResetController와 동일하게 예외를 삼키고 로그만 남긴다.
+    // ensureBackupCodesInitialized()가 non-null을 반환하는 경우는 그 계정에 2FA가 "처음"
+    // 활성화된 순간뿐이다(이미 백업 코드가 있으면 null) — 이 신호를 그대로 재사용해 첫 등록일
+    // 때만 알리고, 두 번째 방식을 추가 등록하는 경우는 중복 알림이 되지 않도록 건너뛴다.
+    private fun notifyTwoFactorEnabled(user: User) {
+        if (user.email.isBlank()) return
+        try {
+            mailService.sendHtmlMail(
+                user.email,
+                user.name,
+                "[$siteName] 2단계 인증(2FA)이 활성화되었습니다",
+                "계정 ${user.loginId}에 2단계 인증(2FA)이 방금 활성화되었습니다.<br/>" +
+                    "본인이 직접 한 것이 아니라면 즉시 비밀번호를 변경하고 사이트 관리자에게 문의하세요."
+            )
+        } catch (e: Exception) {
+            logger.warn("2FA 활성화 알림 메일 발송 실패: loginId=${user.loginId}", e)
+        }
+    }
+
+    // 계정 탈취 시나리오에서 공격자가 방어 수단(2FA)을 끄는 것이 가장 민감한 이벤트라 본인/관리자
+    // 강제 여부와 무관하게 항상 알린다. 메일 발송 실패가 비활성화 자체를 막아서는 안 되므로
+    // 예외를 삼키고 로그만 남긴다.
     private fun notifyTwoFactorDisabled(user: User) {
         if (user.email.isBlank()) return
         try {

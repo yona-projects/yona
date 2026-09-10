@@ -1,7 +1,9 @@
 package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.config.Pre2faAuthenticationToken
+import com.github.yonaprojects.yona.domain.device.DeviceRecognitionService
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
+import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -36,7 +38,8 @@ class TwoFactorLoginController(
     private val userRepository: UserRepository,
     private val twoFactorService: TwoFactorService,
     private val webAuthnRelyingPartyOperations: WebAuthnRelyingPartyOperations,
-    private val requestOptionsRepository: PublicKeyCredentialRequestOptionsRepository
+    private val requestOptionsRepository: PublicKeyCredentialRequestOptionsRepository,
+    private val deviceRecognitionService: DeviceRecognitionService
 ) {
     private val requestCache = HttpSessionRequestCache()
     private val securityContextRepository = HttpSessionSecurityContextRepository()
@@ -96,7 +99,9 @@ class TwoFactorLoginController(
             if (resolvedUser.name != token.name) {
                 return ResponseEntity.status(403).body(mapOf("error" to "인증에 실패했습니다."))
             }
-            finalizeLogin(token, request, response)
+            val user = userRepository.findByLoginId(token.name).orElse(null)
+                ?: return ResponseEntity.status(401).body(mapOf("error" to "인증에 실패했습니다."))
+            finalizeLogin(token, user, request, response)
             ResponseEntity.ok(mapOf("status" to "success", "redirectUrl" to targetUrl(request, response)))
         } catch (e: Exception) {
             ResponseEntity.status(401).body(mapOf("error" to "인증에 실패했습니다."))
@@ -117,7 +122,7 @@ class TwoFactorLoginController(
             redirectAttributes.addFlashAttribute("twoFactorError", true)
             return "redirect:/users/login/2fa?method=totp"
         }
-        finalizeLogin(token, request, response)
+        finalizeLogin(token, user, request, response)
         return "redirect:${targetUrl(request, response)}"
     }
 
@@ -135,17 +140,18 @@ class TwoFactorLoginController(
             redirectAttributes.addFlashAttribute("twoFactorError", true)
             return "redirect:/users/login/2fa?method=backup"
         }
-        finalizeLogin(token, request, response)
+        finalizeLogin(token, user, request, response)
         return "redirect:${targetUrl(request, response)}"
     }
 
     private fun targetUrl(request: HttpServletRequest, response: HttpServletResponse): String =
         requestCache.getRequest(request, response)?.redirectUrl ?: "/"
 
-    private fun finalizeLogin(token: Pre2faAuthenticationToken, request: HttpServletRequest, response: HttpServletResponse) {
+    private fun finalizeLogin(token: Pre2faAuthenticationToken, user: User, request: HttpServletRequest, response: HttpServletResponse) {
         val context = SecurityContextHolder.createEmptyContext()
         context.authentication = token.originalAuthentication
         SecurityContextHolder.setContext(context)
         securityContextRepository.saveContext(context, request, response)
+        deviceRecognitionService.recognizeLogin(user, request, response)
     }
 }

@@ -32,6 +32,7 @@ import com.github.yonaprojects.yona.config.oauth2.CustomOAuth2UserService
 import com.github.yonaprojects.yona.config.sso.EnterpriseOidcUserService
 import com.github.yonaprojects.yona.config.sso.EnterpriseSaml2ResponseAuthenticationConverter
 import com.github.yonaprojects.yona.config.svn.SvnAuthorizationFilter
+import com.github.yonaprojects.yona.domain.device.DeviceRecognitionService
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.user.Saml2UserProvisioningService
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -95,6 +96,9 @@ class SecurityConfig(
     private val twoFactorService: TwoFactorService,
     private val userRepository: UserRepository,
     private val pre2faGateFilter: Pre2faGateFilter,
+    // 새 기기 로그인 인식(쿠키 기반) — 2FA 없는 계정은 아래 successHandler()에서 바로,
+    // 2FA 계정은 TwoFactorLoginController.finalizeLogin()에서 검증 통과 후 같은 서비스를 탄다.
+    private val deviceRecognitionService: DeviceRecognitionService,
     @Value("\${yona.sso.saml2.email-attribute:email}")
     private val saml2EmailAttribute: String,
     @Value("\${yona.sso.saml2.display-name-attribute:displayName}")
@@ -174,7 +178,7 @@ class SecurityConfig(
                     .loginProcessingUrl("/users/login")
                     .usernameParameter("loginIdOrEmail")
                     .passwordParameter("password")
-                    .successHandler(YonaAuthenticationSuccessHandler(twoFactorService, userRepository))
+                    .successHandler(YonaAuthenticationSuccessHandler(twoFactorService, userRepository, deviceRecognitionService))
                     .failureHandler(YonaAuthenticationFailureHandler())
                     .permitAll()
             }
@@ -236,7 +240,8 @@ class SecurityConfig(
 
 class YonaAuthenticationSuccessHandler(
     private val twoFactorService: TwoFactorService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val deviceRecognitionService: DeviceRecognitionService
 ) : AuthenticationSuccessHandler {
     private val requestCache = HttpSessionRequestCache()
     private val securityContextRepository = org.springframework.security.web.context.HttpSessionSecurityContextRepository()
@@ -264,6 +269,10 @@ class YonaAuthenticationSuccessHandler(
             // 세션에서 제거하지 않음) — 2FA 검증 성공 후 TwoFactorLoginController가 동일 캐시로 읽는다.
             response.sendRedirect("${request.contextPath}/users/login/2fa")
             return
+        }
+
+        if (user != null) {
+            deviceRecognitionService.recognizeLogin(user, request, response)
         }
 
         val requestedWith = request.getHeader("X-Requested-With")

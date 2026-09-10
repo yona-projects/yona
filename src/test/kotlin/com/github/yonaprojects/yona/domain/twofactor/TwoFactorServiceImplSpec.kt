@@ -101,6 +101,71 @@ class TwoFactorServiceImplSpec : DescribeSpec({
 
             result.shouldBeInstanceOf<TotpActivationResult.NotFound>()
         }
+
+        it("계정에 2FA를 처음 활성화하면 소유자에게 알림 메일을 보낸다") {
+            val notifyUser = User(id = 50L, loginId = "first2fa", name = "첫등록", email = "first2fa@example.com")
+            val secret = "JBSWY3DPEHPK3PXP"
+            val pending = TwoFactorTotpCredential(id = 50L, user = notifyUser, encryptedSecret = totpSecretEncryptor.encrypt(secret), enabled = false)
+            every { totpCredentialRepository.findById(50L) } returns Optional.of(pending)
+            every { totpCredentialRepository.save(pending) } returns pending
+            every { totpCredentialRepository.findByUserIdAndEnabledTrue(50L) } returns listOf(pending)
+            every { webauthnCredentialRepository.findByUserId(50L) } returns emptyList()
+            every { backupCodeRepository.findByUserId(50L) } returns emptyList()
+            every { backupCodeRepository.deleteByUserId(50L) } returns Unit
+            every { backupCodeRepository.save(any()) } answers { firstArg() }
+
+            service.verifyAndActivateTotp(notifyUser, 50L, currentTotpCode(secret))
+
+            verify(exactly = 1) {
+                mailService.sendHtmlMail("first2fa@example.com", "첫등록", any(), any())
+            }
+        }
+
+        it("이미 다른 2FA 방식이 등록된 계정에 두 번째 방식을 추가할 때는 중복 알림을 보내지 않는다") {
+            val notifyUser = User(id = 51L, loginId = "second2fa", name = "추가등록", email = "second2fa@example.com")
+            val secret = "JBSWY3DPEHPK3PXP"
+            val pending = TwoFactorTotpCredential(id = 51L, user = notifyUser, encryptedSecret = totpSecretEncryptor.encrypt(secret), enabled = false)
+            every { totpCredentialRepository.findById(51L) } returns Optional.of(pending)
+            every { totpCredentialRepository.save(pending) } returns pending
+            every { totpCredentialRepository.findByUserIdAndEnabledTrue(51L) } returns listOf(pending)
+            every { webauthnCredentialRepository.findByUserId(51L) } returns emptyList()
+            // 이미 미사용 백업 코드가 있다 = 이 계정은 이전에 이미 2FA를 등록해 첫 알림을 받았다.
+            every { backupCodeRepository.findByUserId(51L) } returns listOf(BackupCode(id = 1L, user = notifyUser, codeHash = "x"))
+
+            service.verifyAndActivateTotp(notifyUser, 51L, currentTotpCode(secret))
+
+            verify(exactly = 0) { mailService.sendHtmlMail(any(), any(), any(), any()) }
+        }
+    }
+
+    describe("WebAuthn 등록 완료") {
+        it("계정에 2FA를 처음 활성화하는 WebAuthn 등록이면 알림 메일을 보낸다") {
+            val notifyUser = User(id = 60L, loginId = "firstwebauthn", name = "웹인증첫등록", email = "firstwebauthn@example.com")
+            val credential = WebauthnCredential(id = 60L, user = notifyUser)
+            every { totpCredentialRepository.findByUserIdAndEnabledTrue(60L) } returns emptyList()
+            every { webauthnCredentialRepository.findByUserId(60L) } returns listOf(credential)
+            every { backupCodeRepository.findByUserId(60L) } returns emptyList()
+            every { backupCodeRepository.deleteByUserId(60L) } returns Unit
+            every { backupCodeRepository.save(any()) } answers { firstArg() }
+
+            service.completeWebauthnRegistration(notifyUser, credential)
+
+            verify(exactly = 1) {
+                mailService.sendHtmlMail("firstwebauthn@example.com", "웹인증첫등록", any(), any())
+            }
+        }
+
+        it("이미 2FA가 등록된 계정에 WebAuthn을 추가 등록할 때는 중복 알림을 보내지 않는다") {
+            val notifyUser = User(id = 61L, loginId = "secondwebauthn", name = "웹인증추가등록", email = "secondwebauthn@example.com")
+            val credential = WebauthnCredential(id = 61L, user = notifyUser)
+            every { totpCredentialRepository.findByUserIdAndEnabledTrue(61L) } returns emptyList()
+            every { webauthnCredentialRepository.findByUserId(61L) } returns listOf(credential)
+            every { backupCodeRepository.findByUserId(61L) } returns listOf(BackupCode(id = 2L, user = notifyUser, codeHash = "x"))
+
+            service.completeWebauthnRegistration(notifyUser, credential)
+
+            verify(exactly = 0) { mailService.sendHtmlMail(any(), any(), any(), any()) }
+        }
     }
 
     describe("로그인 시 TOTP 검증") {

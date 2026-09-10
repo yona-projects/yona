@@ -40,7 +40,7 @@
 | 7 | 계정 탈퇴가 실제 삭제·익명화가 아니라 상태 플래그(soft delete)뿐 | 개인정보 파기(GDPR 17조/PIPA) | P1 |
 | 8 | 접속 로그에 IP·사용자ID가 보존기간 정책 없이 무기한 남을 수 있음 | 개인정보 보유기간 | ~~P1~~ **완료됨(문서화)** |
 | 9 | 개인정보처리방침/이용약관 페이지가 애플리케이션 안에 없음 | 고지 의무(GDPR/PIPA) | P1 |
-| 10 | 보안 민감 이벤트(2FA 변경, 새 기기 로그인 등) 사용자 알림 없음 | 보안 모범사례 | ~~P2~~ **완료됨(2FA 비활성화 범위)** |
+| 10 | 보안 민감 이벤트(2FA 변경, 새 기기 로그인 등) 사용자 알림 없음 | 보안 모범사례 | ~~P2~~ **완료됨(2FA 활성화/비활성화, 새 기기 로그인)** |
 | 11 | 데이터 이동권(내 정보 다운로드) 기능 없음 | GDPR 20조(데이터 이동권) | P2 |
 | 12 | 세션 쿠키 Secure/SameSite/타임아웃이 명시적으로 설정돼 있지 않음 | 웹 보안 | ~~P2~~ **완료됨** |
 | 13 | 신규 2FA 의존성 라이선스는 문제없음(참고용, 조치 불요) | 라이선스 | 정보 |
@@ -246,8 +246,36 @@ GDPR 17조(삭제권, "잊혀질 권리")나 한국 개인정보보호법 21조(
 없이 재사용)로 계정 소유자에게 알림 메일을 보내는 로직을 추가했다 — 실제로 등록돼
 있던 2FA를 껐을 때만 보내고(빈 계정에 대고 눌러도 스팸이 되지 않도록), 메일 발송 실패가
 비활성화 자체를 막지 않도록 예외를 삼키고 로그만 남긴다. 단위테스트
-(`TwoFactorServiceImplSpec`)로 발송/미발송 분기를 검증했다. 2FA 활성화, 새 WebAuthn
-등록, TOTP 삭제, 새 기기 로그인 등 나머지 이벤트는 이번 범위 밖으로 남겨둔다.
+(`TwoFactorServiceImplSpec`)로 발송/미발송 분기를 검증했다.
+
+**추가 조치(완료됨 — 2FA 활성화, 새 기기 로그인)**:
+
+- *2FA 활성화(첫 등록) 알림*: `TwoFactorServiceImpl.verifyAndActivateTotp()`/
+  `completeWebauthnRegistration()`이 공통으로 거치는 `ensureBackupCodesInitialized()`는
+  그 계정에 2FA가 "처음" 활성화되는 순간에만 신규 백업 코드를 반환하고(이미 다른 방식이
+  등록돼 있으면 null) — 이 신호를 그대로 재사용해 첫 등록일 때만 `notifyTwoFactorEnabled()`로
+  알림 메일을 보낸다. 두 번째 방식을 추가 등록해도 중복 알림이 가지 않는다. 비활성화
+  알림과 동일하게 메일 발송 실패는 예외를 삼키고 로그만 남긴다. 단위테스트
+  (`TwoFactorServiceImplSpec`)로 "첫 등록 시 발송" / "추가 등록 시 미발송"을 TOTP·WebAuthn
+  양쪽 경로 모두 검증했다.
+- *새 기기 로그인 알림*: 이 저장소에는 기기 인식 인프라가 전혀 없었다. IP 기반 판별은
+  동적 IP/모바일 네트워크에서 매번 오탐하므로, GitHub 관례를 따라 쿠키 기반으로 새로
+  설계했다. 신규 테이블 `user_known_device`(`user_id` FK, `device_token_hash`, `label`,
+  `first_seen_at`, `last_seen_at`)와 `DeviceRecognitionService`를 추가해, 폼 로그인이
+  완전한 로그인으로 확정되는 두 지점 — 2FA 없는 계정의 `YonaAuthenticationSuccessHandler`,
+  2FA 계정의 `TwoFactorLoginController.finalizeLogin()` — 모두에서 공용으로 호출한다.
+  요청에 `yona_device` 쿠키(HttpOnly, 1년 만료, SameSite=Lax)가 없거나 그 계정의
+  `user_known_device`에 없는 토큰이면 새 기기로 판단해 알림 메일 발송 + 신규 등록 +
+  응답에 쿠키 재발급하고, 이미 아는 기기면 `last_seen_at`만 조용히 갱신한다. 쿠키 값
+  자체가 아니라 SHA-256 해시만 저장한다(BackupCode와 동일한 설계 관례). OAuth2/SAML2/
+  LDAP/PAT 로그인 경로는 대상이 아니다. 단위테스트(`DeviceRecognitionServiceSpec`)로
+  신규 기기 알림/기존 기기 무알림/계정별 기기 목록 분리를 검증했고, 실제
+  `springSecurityFilterChain` 위에서 두 로그인 경로 모두 쿠키가 발급·재사용되는 것을
+  확인하는 통합테스트(`DeviceRecognitionLoginIntegrationSpec`)를 추가했다.
+
+새 WebAuthn 키 등록은 "2FA 활성화" 알림에 이미 포함된다(WebAuthn이 첫 2FA 방식으로
+등록되는 경우 위 로직을 그대로 탄다). TOTP/WebAuthn 개별 삭제, 비밀번호 변경 등 나머지
+이벤트의 알림은 이번 범위 밖으로 남겨둔다.
 
 ### 11. 데이터 이동권(내 정보 다운로드) 기능 없음
 

@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.config
 
+import com.github.yonaprojects.yona.domain.device.DeviceRecognitionService
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -22,7 +23,8 @@ class YonaAuthenticationSuccessHandlerSpec : DescribeSpec({
     val requestCache = mockk<HttpSessionRequestCache>()
     val userRepository = mockk<UserRepository>()
     val twoFactorService = mockk<TwoFactorService>()
-    val handler = YonaAuthenticationSuccessHandler(twoFactorService, userRepository).apply {
+    val deviceRecognitionService = mockk<DeviceRecognitionService>(relaxed = true)
+    val handler = YonaAuthenticationSuccessHandler(twoFactorService, userRepository, deviceRecognitionService).apply {
         ReflectionTestUtils.setField(this, "requestCache", requestCache)
     }
     // 2FA를 등록하지 않은 계정 — 기존과 동일하게 동작해야 한다(회귀 방지). authentication.principal이
@@ -100,6 +102,19 @@ class YonaAuthenticationSuccessHandlerSpec : DescribeSpec({
                 handler.onAuthenticationSuccess(request, response, authentication)
 
                 response.redirectedUrl shouldBe "/"
+            }
+
+            it("완전한 로그인이 확정되면 기기 인식 서비스를 호출해야 한다") {
+                val user = User(id = 5L, loginId = "no-2fa-user", name = "일반유저")
+                every { userRepository.findByLoginId("no-2fa-user") } returns java.util.Optional.of(user)
+                every { twoFactorService.isTwoFactorEnabled(user) } returns false
+                val request = MockHttpServletRequest()
+                val response = MockHttpServletResponse()
+                every { requestCache.getRequest(request, response) } returns null
+
+                handler.onAuthenticationSuccess(request, response, authentication)
+
+                verify(exactly = 1) { deviceRecognitionService.recognizeLogin(user, request, response) }
             }
         }
 
