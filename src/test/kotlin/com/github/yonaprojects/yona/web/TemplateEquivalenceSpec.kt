@@ -475,7 +475,9 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                     doc.select("link[href*='lib/viewerjs/viewer.css']").size shouldBe 1
                     doc.select("script[src*='lib/viewerjs/viewer.js']").size shouldBe 1
-                    doc.select("script[src*='lib/viewerjs/jquery-viewer.js']").size shouldBe 1
+                    // P3-46 #4: jQuery 래퍼(jquery-viewer.js)는 제거되고 순정 Viewer.js API로
+                    // 전환됐다 — ViewerLightboxWidgetTemplateEquivalenceSpec 참고.
+                    doc.select("script[src*='lib/viewerjs/jquery-viewer.js']").size shouldBe 0
                     html.contains(".markdown-wrap").shouldBe(true)
                 }
 

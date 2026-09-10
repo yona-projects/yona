@@ -764,7 +764,6 @@
     <script type="text/javascript" src="/javascripts/common/yobi.LoginDialog.js"></script>
     <script type="text/javascript" src="/javascripts/lib/nprogress/nprogress.js"></script>
     <script type="text/javascript" src="/javascripts/lib/viewerjs/viewer.js"></script>
-    <script type="text/javascript" src="/javascripts/lib/viewerjs/jquery-viewer.js"></script>
 
     <script type="text/javascript">
         $(function() {
@@ -772,6 +771,14 @@
         });
     </script>
     <script type="text/javascript">
+        // P3-46 #4: jQuery 래퍼(jquery-viewer.js) 제거 — 순정 Viewer.js API로 전환.
+        // 컨테이너(.markdown-wrap)마다 개별 Viewer 인스턴스를 붙이는 기존 구조는 그대로 유지한다
+        // (본문 하나에 여러 댓글이 각자 .markdown-wrap을 가지는 화면 — 이슈/PR 상세 등 — 에서
+        // 컨테이너별로 독립된 갤러리가 필요하기 때문).
+        // mouseover 시 커서를 포인터로 바꾸는 로직은 순정 Viewer.js에 동등한 옵션/CSS가 없어(뷰어가
+        // 열리기 전, 원본 <img>에 대한 커서 처리는 라이브러리가 관여하지 않는 영역) 기존 jQuery
+        // 핸들러를 그대로 보존한다 — jquery-viewer.js 래퍼와는 무관하게 처음부터 순정 jQuery로
+        // 동작하던 코드였다.
         $(function () {
             Viewer.setDefaults({
                 transition: false
@@ -781,7 +788,9 @@
                 $that.find("img").on("mouseover", function () {
                     $(this).css("cursor", "pointer");
                 })
-                $that.viewer();
+                new Viewer(this, {
+                    transition: false
+                });
             });
         });
     </script>
