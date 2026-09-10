@@ -26,6 +26,10 @@
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yobicon/style.css">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/tomselect/tom-select.min.css">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/flatpickr/flatpickr.min.css">
+  <!-- P3-46 #8-1: 마크다운 에디터(EasyMDE) 셸. markdownEditor 프래그먼트가 17개 화면에서 쓰여
+       select2/calendar처럼 화면별 opt-in 프래그먼트로 두지 않고, tomselect/flatpickr CSS와 같이
+       전역으로 로드한다(JS도 scripts 프래그먼트에 전역 배치 - 아래 참고). -->
+  <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/easymde/easymde.min.css">
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/usermenu.css">
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yobi.css?v=20260614-2">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/nprogress/nprogress.css">
@@ -364,51 +368,33 @@
 
 
     <!-- Markdown Editor fragment -->
+    <!-- P3-46 #8-1(셸 교체): textarea + 수제 Edit/Preview 탭 UI(ul.nav-tabs, data-mode=edit/preview)를
+         EasyMDE 인스턴스로 교체(셸 교체만 - 미리보기 렌더러/멘션/체크리스트 등 재구현은 후속 단계).
+         EasyMDE는 아래 textarea를 대상(element)으로 삼아 런타임에 자기 툴바/에디터 UI를 이 자리에
+         직접 삽입하므로(원본 textarea는 JS가 display:none으로 숨김) 여기서는 별도 툴바 마크업을
+         두지 않는다 - 초기화/재스킨은 javascripts/common/yobi.ui.MarkdownEditor.js
+         ([data-toggle="markdown-editor"] textarea를 순회) 참고.
+
+         제거한 것들(사용자 확정, P3-46 8번 항목 세부 결정사항 참고):
+         - 탭 UI(ul.nav-tabs) 자체 - EasyMDE 기본값(단일 뷰 토글)로 대체.
+         - .task-list-button("체크리스트 추가") - EasyMDE 내장 체크리스트 툴바 버튼으로 대체.
+         - .editor-clear-temporary("임시저장 지우기") / .notification-receiver(알림수신자 목록) -
+           4단계에서 재구현 예정.
+         - .markdown-preview 미리보기 div - EasyMDE 자체 미리보기 토글이 대신 그 자리를 채운다.
+           이 div에 있던 editorMode별 클래스 분기(th:classappend="${editorMode}")를 잡아 쓰는
+           CSS/JS 규칙을 찾지 못했다(yobi.css/전체 JS grep 결과 - 최종 보고 참고) - 2단계에서
+           previewRender를 연결할 때 이 분기가 실제로 필요한지 다시 확인해야 한다.
+         유지한 것: help/markdown 프래그먼트(마크다운 도움말 - 에디터와 독립적이라 그대로 둠),
+         .editor-notice-label(임시저장 시스템이 "Draft saved"를 표시하는 곳 - 살아있는 기능이라
+         DOM은 유지, 위치/스타일만 새로 잡음). -->
     <div th:fragment="markdownEditor(name, value, editorMode)" data-toggle="markdown-editor" class="mt10" th:with="wrapId=${#strings.randomAlphanumeric(8)}">
-        <ul class="nav nav-tabs nm small">
-            <li class="active">
-                <a th:href="'#edit-' + ${wrapId}" data-toggle="tab" data-mode="edit" th:text="#{common.editor.edit}">Edit</a>
-            </li>
-            <li>
-                <a th:href="'#preview-' + ${wrapId}" data-toggle="tab" data-mode="preview" th:text="#{common.editor.preview}">Preview</a>
-            </li>
-            <li>
-                <div class="task-list-button">
-                    <button type="button" class="add-task-list-button ybtn ybtn-small ybtn-danger-no-outline">
-                        <i class="yobicon-list task-list-icon"></i> 
-                        <span th:text="#{button.add.checklist}">Add checklist</span>
-                    </button>
-                </div>
-            </li>
-            <li>
-                <div class="editor-clear-temporary">
-                    <div class="editor-clear-temporary-button">
-                        <button type="button" id="button-clear-temporary" class="ybtn ybtn-small ybtn-warning" th:text="#{button.clear.temporary}">Clear temporary</button>
-                    </div>
-                </div>
-            </li>
-            <li>
-                <div class="editor-notice-label"></div>
-            </li>
-        </ul>
+        <div class="editor-notice-label"></div>
 
-        <div class="tab-content" style="position:relative;overflow: visible;">
-            <div th:replace="~{help/markdown}"></div>
-
-            <div th:id="'edit-' + ${wrapId}" class="tab-pane active">
-                <div class="textarea-box">
-                    <textarea th:name="${name}" class="editorSeries content comment nm" th:data-editor-mode="${editorMode}" markdown="true" th:id="'editor-' + ${name} + '-' + ${wrapId}" tabindex="2" style="overflow: hidden; overflow-wrap: break-word; resize: none; height: 300px;" th:text="${value}"></textarea>
-                </div>
-            </div>
-
-            <div th:id="'preview-' + ${wrapId}" class="tab-pane">
-                <div class="markdown-preview markdown-wrap" th:classappend="${editorMode}" data-via-email="false"></div>
-            </div>
-            <div class="notification-receiver">
-                <span class="notification-receiver-title" th:text="#{notification.receiver.list.title}">Notification receivers</span>
-                <span class="notification-receiver-list"></span>
-            </div>
+        <div class="textarea-box">
+            <textarea th:name="${name}" class="editorSeries content comment nm" th:data-editor-mode="${editorMode}" markdown="true" th:id="'editor-' + ${name} + '-' + ${wrapId}" tabindex="2" style="overflow: hidden; overflow-wrap: break-word; resize: none; height: 300px;" th:text="${value}"></textarea>
         </div>
+
+        <div th:replace="~{help/markdown}"></div>
     </div>
 
   <!-- Markdown Script fragment -->
@@ -772,6 +758,13 @@
     <script type="text/javascript" src="/javascripts/common/yobi.LoginDialog.js"></script>
     <script type="text/javascript" src="/javascripts/lib/nprogress/nprogress.js"></script>
     <script type="text/javascript" src="/javascripts/lib/viewerjs/viewer.js"></script>
+    <!-- P3-46 #8-1: markdownEditor 프래그먼트가 17개 화면에서 쓰여 select2/calendar 프래그먼트처럼
+         화면별 opt-in으로 두지 않고 전역으로 로드한다. yobi.ui.MarkdownEditor.js가
+         [data-toggle="markdown-editor"] textarea를 순회하며 EasyMDE를 붙인다(대상이 없는
+         페이지에서는 아무 일도 하지 않는다 - $yobi.setScriptPath 등 다른 전역 스크립트와 동일한
+         패턴). -->
+    <script type="text/javascript" src="/javascripts/lib/easymde/easymde.min.js"></script>
+    <script type="text/javascript" src="/javascripts/common/yobi.ui.MarkdownEditor.js"></script>
 
     <script type="text/javascript">
         $(function() {

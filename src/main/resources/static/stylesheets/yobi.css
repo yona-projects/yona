@@ -12119,3 +12119,84 @@ input:-webkit-autofill:focus {
 .viewer-toolbar ul li {
   line-height: unset;
 }
+/** override EasyMDE (P3-46 #8-1: textarea+수제 탭 UI -> EasyMDE 셸 교체) **/
+/* EasyMDE 기본 스타일(회색 톤, FontAwesome류 아이콘)을 그대로 쓰지 않고 yona의 .ybtn/yobicon-*
+   체계로 재스킨한다 - 실제 버튼 클래스는 javascripts/common/yobi.ui.MarkdownEditor.js의 toolbar
+   구성에서 부여한다(className: "ybtn ybtn-small yobicon-*"). 여기서는 그 버튼들이 EasyMDE 자체
+   CSS(.editor-toolbar button 셀렉터, 클래스 1개+엘리먼트 1개라 순정 .ybtn보다 우선순위가 높다)에
+   눌리지 않도록 같은 특이도 이상으로 덮어쓰고, 툴바/에디터 영역 전체를 yona 톤(테두리/라운드
+   코너)에 맞춘다. */
+[data-toggle="markdown-editor"] .editor-notice-label {
+  min-height: 20px;
+  padding: 4px 2px;
+  text-align: right;
+}
+[data-toggle="markdown-editor"] .editor-notice-label .saved,
+[data-toggle="markdown-editor"] .editor-notice-label .unsaved {
+  display: inline-block;
+  font-size: 12px;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+[data-toggle="markdown-editor"] .editor-notice-label .unsaved {
+  border: 1px solid #fd8658;
+  color: #fd8658;
+}
+[data-toggle="markdown-editor"] .editor-notice-label .saved {
+  border: 1px solid #8bc34a;
+  color: #8bc34a;
+}
+.EasyMDEContainer {
+  margin-bottom: 4px;
+}
+.EasyMDEContainer .editor-toolbar {
+  background-color: #fafafa;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  padding: 6px 8px;
+  opacity: 1;
+}
+.EasyMDEContainer .editor-toolbar button.ybtn {
+  height: 26px;
+  min-width: 30px;
+  margin: 0 2px 0 0;
+  padding: 0 8px !important;
+  font-size: 14px !important;
+  line-height: 24px;
+  color: #333;
+}
+.EasyMDEContainer .editor-toolbar button.ybtn[class*="yobicon-"]:before {
+  vertical-align: middle;
+}
+.EasyMDEContainer .editor-toolbar button.ybtn.markdown-editor-text-icon {
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+}
+.EasyMDEContainer .editor-toolbar button.ybtn:hover,
+.EasyMDEContainer .editor-toolbar button.ybtn.active {
+  background-color: #51AACC;
+  border-color: #51AACC;
+  color: #fff;
+}
+.EasyMDEContainer .editor-toolbar button.ybtn.disabled,
+.EasyMDEContainer .editor-toolbar button.ybtn:disabled {
+  opacity: 0.35;
+}
+.EasyMDEContainer .editor-toolbar i.separator {
+  border-left: 1px solid rgba(0, 0, 0, 0.15);
+  width: 0;
+  margin: 0 6px;
+}
+.EasyMDEContainer .CodeMirror {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0 0 4px 4px;
+  font-family: Consolas, Menlo, Monaco, monospace;
+  font-size: 13px;
+}
+.EasyMDEContainer .CodeMirror-focused {
+  border-color: #51AACC;
+}
+.EasyMDEContainer .editor-preview {
+  background-color: #fff;
+}
