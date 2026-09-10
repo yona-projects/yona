@@ -27,35 +27,59 @@ yobi.Markdown = (function(htOptions){
     function _initVar(htOptions){
         htVar.sMarkdownRendererUrl = htOptions.sMarkdownRendererUrl;
 
+        // P3-46 #6+7: marked.js(v0.7 전후) -> v18로 버전업하며 "highlight" 옵션 콜백 방식이
+        // 없어져서(marked v5+에서 제거), 커스텀 renderer.code()로 이식한다(marked.use()는 전역
+        // 싱글턴에 한 번 등록하면 이후 marked.parse() 호출마다 적용된다). 원본의
+        // langPrefix:''(클래스에 접두어 없음, "hljs" 클래스도 원래 안 붙였음) 동작을 그대로
+        // 재현: 언어가 있으면 <code class="lang">, 없으면 <code>만.
         htVar.htMarkedOption = {
-            "gfm"       : true,
-            "tables"    : true,
-            "pedantic"  : false,
-            "sanitize"  : false,
-            "smartLists": true,
-            "langPrefix": '',
-            "highlight" : function(sCode, sLang) {
-                if(sLang) {
-                    try {
-                        return hljs.highlight(sLang.toLowerCase(), sCode).value;
-                    } catch(oException) {
-                        console.log(oException.message);
+            "gfm"     : true,
+            "pedantic": false
+        };
+
+        marked.use({
+            "renderer": {
+                "code": function(oToken){
+                    var sCode = oToken.text;
+                    var sLang = oToken.lang ? oToken.lang.toLowerCase() : "";
+
+                    if(sLang && typeof hljs !== "undefined" && hljs.getLanguage(sLang)){
+                        try {
+                            var sHighlighted = hljs.highlight(sCode, {language: sLang}).value;
+                            return '<pre><code class="' + sLang + '">' + sHighlighted + '\n</code></pre>\n';
+                        } catch(oException) {
+                            console.log(oException.message);
+                        }
                     }
+
+                    return '<pre><code' + (sLang ? ' class="' + sLang + '"' : '') + '>' +
+                        _escapeCode(sCode) + '\n</code></pre>\n';
                 }
             }
-        };
+        });
+    }
+
+    /**
+     * HTML-escape raw code text before inserting into markup(marked의 기본 code renderer가
+     * 하던 이스케이프를 커스텀 renderer가 대체하며 직접 수행).
+     *
+     * @param {String} sText
+     * @return {String}
+     */
+    function _escapeCode(sText){
+        return sText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
     /**
      * Render as Markdown document
      *
-     * @require showdown.js
+     * @require marked.js
      * @require hljs.js
      * @param {String} sText
      * @return {String}
      */
     function _renderMarkdown(sText) {
-        return $yobi.xssClean(marked(sText, htVar.htMarkedOption));
+        return $yobi.xssClean(marked.parse(sText, htVar.htMarkedOption));
     }
 
     /**
@@ -87,7 +111,7 @@ yobi.Markdown = (function(htOptions){
             "success": function(data){
                 welTarget.html(data);
                 $('pre code').each(function(i, block) {
-                    hljs.highlightBlock(block);
+                    hljs.highlightElement(block);
                 });
             }
         });

@@ -416,10 +416,18 @@
     <link rel="stylesheet" type="text/css" href="/javascripts/lib/highlight/styles/default.css" />
     <script type="text/javascript" src="/javascripts/lib/highlight/highlight.pack.js"></script>
     <script type="text/javascript" src="/javascripts/lib/marked.js"></script>
+    <!-- P3-46 #6+7: marked/highlight.js를 실제로 호출하는 yobi.Markdown.js가 어느 템플릿에서도
+         <script src>로 로드된 적이 없어(항목3 atjs->Tribute와 동일한 함정), 전역 레거시 번들
+         yona-lib.js에 박혀있던 구버전 사본이 실행되고 있었다 — 여기서 실제로 로드한다. 이
+         스크립트 태그는 반드시 아래 yobi.Markdown.init(...) 호출보다 먼저 와야 하고, 이 fragment를
+         site/layout.html::scripts(yona-lib.js 포함)보다 나중에 include하는 페이지가 있으면(예:
+         pullrequest/view.html) 그 페이지의 include 순서도 scripts가 먼저 오도록 바로잡아야 한다
+         (그렇지 않으면 나중에 로드되는 yona-lib.js가 전역 yobi.Markdown을 다시 구버전으로 덮어씀). -->
+    <script type="text/javascript" src="/javascripts/common/yobi.Markdown.js"></script>
     <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         hljs.configure({languages: []});
-        hljs.initHighlightingOnLoad();
+        hljs.highlightAll();
         var htOptions = {};
 
         /*[# th:if="${project != null}"]*/

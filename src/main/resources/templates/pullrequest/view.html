@@ -241,7 +241,6 @@
         </div>
     </div>
 
-    <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
     <th:block th:with="commentsContainerSelector=${tab == 'changes' ? '#changes' : '#comments'}">
         <div th:replace="~{common/commentDeleteModal :: commentDeleteModal(${commentsContainerSelector})}"></div>
     </th:block>
@@ -268,6 +267,11 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
+<!-- P3-46 #6+7: markdown fragment(yobi.Markdown.js 로드 포함)를 반드시 scripts fragment
+     (yona-lib.js 포함, 구버전 yobi.Markdown 사본이 박혀있음) 뒤로 옮겨야 새 정의가 번들의
+     구식 정의를 덮어쓴다 — 원래 이 페이지는 순서가 반대였다(다른 모든 페이지는 이미 scripts가
+     먼저였음). 자세한 경위는 site/layout.html::markdown(project) fragment의 주석 참고. -->
+<th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <script type="text/javascript" th:inline="javascript">
   $(document).ready(function() {
