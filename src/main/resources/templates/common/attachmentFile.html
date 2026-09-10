@@ -4,18 +4,22 @@
 </head>
 <body>
 <!--
- legacy common/attachmentFile.scala.html 대응. legacy 전체에서 이 파샬을 부르는 곳은 오직
- common/commentUpdateForm.scala.html(댓글 인라인 수정 폼) 한 곳뿐이라 그 하위 조각으로 함께
- 완성한다 — 댓글 수정 폼을 열었을 때 "이미 첨부된 파일" 한 건을 보여주는
- 서버 렌더 행(파일명 + 삭제 버튼).
+ legacy common/attachmentFile.scala.html 대응(P3-50). yona.CommentAttachmentsUpdate.js가 기대하는
+ 마크업(.attached-file/.attached-file-marker, data-name/data-href/data-mime, .btn-delete
+ data-id)에 정확히 맞춘다 — 클릭 삭제(.attached-file-marker > .btn-delete)와 새로 업로드된
+ 파일이 JS에서 만드는 카드(getAttachmentCard())가 동일한 구조를 갖도록 legacy와 1:1로 맞춰야
+ 두 경로(서버 렌더 기존 파일 / 클라이언트 렌더 새 파일)가 같은 삭제 이벤트로 처리된다.
+ data-href는 legacy와 동일하게 GET(다운로드)/POST(삭제, _method=delete) 겸용 URL이다 —
+ yona.CommentAttachmentsUpdate.js의 deleteAttachment()가 이 URL로 $.post(url, {_method:
+ 'delete'})를 보낸다(AttachmentController.deleteFile()의 _method 파라미터 계약).
 -->
-<li th:fragment="attachmentFile(attachment)" class="attachment-file" th:data-attachment-id="${attachment.id}">
-    <a th:href="@{/files/{id}(id=${attachment.id})}" target="_blank" th:text="${attachment.name}">파일명.png</a>
-    <span class="size" th:text="'(' + ${attachment.size} + ' bytes)'">(0 bytes)</span>
-    <button type="button" class="btn-transparent attachment-file-delete" data-toggle="tooltip" th:title="#{button.delete}"
-            th:data-request-uri="@{/files/{id}(id=${attachment.id}, _method='delete')}">
-        <i class="yobicon-trash"></i>
-    </button>
-</li>
+<div th:fragment="attachmentFile(attachment)" class="attached-file attached-file-marker"
+     th:data-name="${attachment.name}"
+     th:data-href="@{/files/{id}(id=${attachment.id})}"
+     th:data-mime="${attachment.mimeType}">
+    <strong class="name" th:text="${attachment.name}">파일명.png</strong>
+    <span class="size" th:text="${attachment.size != null ? (attachment.size &lt; 1024 ? attachment.size + ' B' : (attachment.size &lt; 1048576 ? (attachment.size / 1024) + ' KB' : (attachment.size / 1048576) + ' MB')) : '0 B'}">0 B</span>
+    <button type="button" class="btn-transparent btn-delete" th:data-id="${attachment.id}">&times;</button>
+</div>
 </body>
 </html>

@@ -727,6 +727,10 @@ class BoardViewControllerSpec : DescribeSpec({
                 every { postingCommentRepository.findByPostingIdOrderByCreatedDateAsc(5L) } returns listOf(parentComment, childComment)
                 every { watchService.isWatching(any(), any(), any()) } returns false
                 every { attachmentRepository.findByContainerTypeAndContainerId(ResourceType.BOARD_POST, "5") } returns listOf(attachNoId, attachWithId)
+                // P3-50: 댓글 수정 폼의 기존 첨부파일 목록(commentAttachmentsByCommentId)이
+                // 댓글마다 개별 조회한다.
+                every { attachmentRepository.findByContainerTypeAndContainerId(ResourceType.NONISSUE_COMMENT, "1") } returns emptyList()
+                every { attachmentRepository.findByContainerTypeAndContainerId(ResourceType.NONISSUE_COMMENT, "2") } returns emptyList()
 
                 mockMvc.perform(get("/owner/TestProj/post/1").principal(userAuth))
                     .andExpect(status().isOk)

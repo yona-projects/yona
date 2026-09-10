@@ -412,6 +412,18 @@ class IssueViewController(
         model.addAttribute("isProjectManager", isProjectManager)
         model.addAttribute("commentApiBase", "/api/projects/${project.id}/issues/${issue.number}/comments")
         model.addAttribute("timeline", timeline)
+        // P3-50: 댓글 수정 폼(common/commentUpdateForm)이 "이미 첨부된 파일" 목록을 보여주려면
+        // 댓글별 첨부파일 목록이 필요하다 — findByContainerTypeAndContainerId 자체가
+        // @Cacheable(컨테이너 단위)이라 댓글마다 개별 호출해도 ProjectApiController의
+        // composeCommentNode()와 동일한 패턴(N+1이지만 캐시로 상쇄)을 재사용한다.
+        model.addAttribute(
+            "commentAttachmentsByCommentId",
+            comments.associate { comment ->
+                comment.id!! to attachmentRepository.findByContainerTypeAndContainerId(
+                    ResourceType.ISSUE_COMMENT, comment.id.toString()
+                )
+            }
+        )
     }
 
     @GetMapping("/{owner}/{projectName}/issueform")

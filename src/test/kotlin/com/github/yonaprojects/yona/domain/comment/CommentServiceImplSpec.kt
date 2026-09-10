@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.domain.comment
 
 import com.github.yonaprojects.yona.AbstractIntegrationTest
+import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.board.Posting
 import com.github.yonaprojects.yona.domain.board.PostingComment
 import com.github.yonaprojects.yona.domain.board.PostingCommentRepository
@@ -47,7 +48,9 @@ class CommentServiceImplSpec @Autowired constructor(
     private val projectUserRepository: ProjectUserRepository,
     private val organizationRepository: OrganizationRepository,
     private val organizationUserRepository: OrganizationUserRepository,
-    private val roleRepository: RoleRepository
+    private val roleRepository: RoleRepository,
+    private val notificationEventRepository: com.github.yonaprojects.yona.domain.notification.NotificationEventRepository,
+    private val attachmentRepository: com.github.yonaprojects.yona.domain.attachment.AttachmentRepository
 ) : AbstractIntegrationTest() {
 
     private fun mkUser(loginId: String, isGuest: Boolean = false): User =
@@ -175,6 +178,45 @@ class CommentServiceImplSpec @Autowired constructor(
                     val comment = commentService.createIssueComment(issue.id!!, "@mentioned1 확인해주세요", author, null)
                     comment.contents shouldBe "@mentioned1 확인해주세요"
                 }
+
+                // P3-50 조사 중 발견: common/uploadForm.html(yobi.Files.js)로 올린 파일은
+                // POST /files가 항상 NOT_A_RESOURCE(임시)에 저장하는데, 댓글 생성 경로가 그
+                // 파일을 실제 컨테이너로 옮기는 단계가 아예 없어 첨부파일이 영구히 미아가 됐다.
+                it("본문에 링크된 첨부파일을 NOT_A_RESOURCE에서 ISSUE_COMMENT로 옮겨야 한다") {
+                    val issue = mkIssue(project, author)
+                    val attachment = attachmentRepository.save(
+                        com.github.yonaprojects.yona.domain.attachment.Attachment(
+                            name = "upload.png", hash = "hash-create-issue-attach",
+                            containerType = ResourceType.NOT_A_RESOURCE, containerId = "",
+                            mimeType = "image/png", size = 100L, createdDate = Instant.now(), ownerLoginId = author.loginId
+                        )
+                    )
+
+                    val comment = commentService.createIssueComment(
+                        issue.id!!, "본문 ![img](/files/${attachment.id})", author, null
+                    )
+
+                    val moved = attachmentRepository.findById(attachment.id!!).orElseThrow()
+                    moved.containerType shouldBe ResourceType.ISSUE_COMMENT
+                    moved.containerId shouldBe comment.id.toString()
+                }
+
+                it("다른 사람이 올린 파일에 대한 링크를 붙여넣어도 옮겨가지 않아야 한다(하이재킹 방지)") {
+                    val issue = mkIssue(project, author)
+                    val stranger = mkUser("attach-stranger1")
+                    val attachment = attachmentRepository.save(
+                        com.github.yonaprojects.yona.domain.attachment.Attachment(
+                            name = "stranger.png", hash = "hash-stranger-issue-attach",
+                            containerType = ResourceType.NOT_A_RESOURCE, containerId = "",
+                            mimeType = "image/png", size = 100L, createdDate = Instant.now(), ownerLoginId = stranger.loginId
+                        )
+                    )
+
+                    commentService.createIssueComment(issue.id!!, "훔친 링크 ![img](/files/${attachment.id})", author, null)
+
+                    val untouched = attachmentRepository.findById(attachment.id!!).orElseThrow()
+                    untouched.containerType shouldBe ResourceType.NOT_A_RESOURCE
+                }
             }
 
             describe("createPostingComment") {
@@ -184,6 +226,25 @@ class CommentServiceImplSpec @Autowired constructor(
                     commentService.createPostingComment(posting.id!!, "댓글2", author, null)
                     val updated = postingRepository.findById(posting.id!!).orElseThrow()
                     updated.numOfComments shouldBe 2
+                }
+
+                it("본문에 링크된 첨부파일을 NOT_A_RESOURCE에서 NONISSUE_COMMENT로 옮겨야 한다") {
+                    val posting = mkPosting(project, author)
+                    val attachment = attachmentRepository.save(
+                        com.github.yonaprojects.yona.domain.attachment.Attachment(
+                            name = "upload.png", hash = "hash-create-posting-attach",
+                            containerType = ResourceType.NOT_A_RESOURCE, containerId = "",
+                            mimeType = "image/png", size = 100L, createdDate = Instant.now(), ownerLoginId = author.loginId
+                        )
+                    )
+
+                    val comment = commentService.createPostingComment(
+                        posting.id!!, "본문 ![img](/files/${attachment.id})", author, null
+                    )
+
+                    val moved = attachmentRepository.findById(attachment.id!!).orElseThrow()
+                    moved.containerType shouldBe ResourceType.NONISSUE_COMMENT
+                    moved.containerId shouldBe comment.id.toString()
                 }
 
                 it("답글이고 같은 부모의 형제 댓글이 있으면 그 형제를 인용해야 한다") {
@@ -317,6 +378,49 @@ class CommentServiceImplSpec @Autowired constructor(
                         commentService.deleteIssueComment(999999L, author)
                     }
                 }
+
+                // P3-50: legacy IssueApp.saveComment()의
+                // `isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(currentUser)` 대응.
+                it("작성자 본인이 sendNotificationMail=false로 수정하면 알림을 발행하지 않아야 한다") {
+                    val issue = mkIssue(project, author)
+                    val comment = commentService.createIssueComment(issue.id!!, "원본", author, null)
+                    val before = notificationEventRepository.count()
+
+                    commentService.updateIssueComment(comment.id!!, "수정본", author, sendNotificationMail = false)
+
+                    notificationEventRepository.count() shouldBe before
+                }
+
+                it("작성자 본인이 sendNotificationMail=true로 수정하면 COMMENT_UPDATED 알림을 발행해야 한다") {
+                    // record()는 수신자가 비어있으면 알림을 아예 저장하지 않으므로(스팸 방지),
+                    // 이슈 작성자=댓글 작성자=수정자가 전부 동일한 이 테스트에서는 멘션으로
+                    // 최소 한 명의 수신자를 확보한다.
+                    val mentioned = mkUser("member-notify-mentioned1")
+                    addMember(mentioned, project)
+                    val issue = mkIssue(project, author)
+                    val comment = commentService.createIssueComment(issue.id!!, "원본", author, null)
+                    val before = notificationEventRepository.count()
+
+                    commentService.updateIssueComment(comment.id!!, "수정본 @member-notify-mentioned1", author, sendNotificationMail = true)
+
+                    val events = notificationEventRepository.findAll()
+                        .filter { it.resourceId == comment.id.toString() && it.eventType == com.github.yonaprojects.yona.domain.enumeration.EventType.COMMENT_UPDATED }
+                    notificationEventRepository.count() shouldBe before + 1
+                    events.size shouldBe 1
+                    events.first().newValue shouldBe "수정본 @member-notify-mentioned1"
+                }
+
+                it("작성자가 아닌 다른 사람이 수정하면 sendNotificationMail 값과 무관하게 항상 알림을 발행해야 한다") {
+                    val issue = mkIssue(project, author)
+                    val comment = commentService.createIssueComment(issue.id!!, "원본", author, null)
+                    val otherMember = mkUser("member-notify1")
+                    addMember(otherMember, project)
+                    val before = notificationEventRepository.count()
+
+                    commentService.updateIssueComment(comment.id!!, "매니저 수정", otherMember, sendNotificationMail = false)
+
+                    notificationEventRepository.count() shouldBe before + 1
+                }
             }
 
             describe("updatePostingComment / deletePostingComment") {
@@ -368,6 +472,45 @@ class CommentServiceImplSpec @Autowired constructor(
                     shouldThrow<IllegalArgumentException> {
                         commentService.deletePostingComment(999999L, author)
                     }
+                }
+
+                // P3-50: legacy BoardApp.saveComment()와 동일한 규칙.
+                it("작성자 본인이 sendNotificationMail=false로 수정하면 알림을 발행하지 않아야 한다") {
+                    val posting = mkPosting(project, author)
+                    val comment = commentService.createPostingComment(posting.id!!, "원본", author, null)
+                    val before = notificationEventRepository.count()
+
+                    commentService.updatePostingComment(comment.id!!, "수정본", author, sendNotificationMail = false)
+
+                    notificationEventRepository.count() shouldBe before
+                }
+
+                it("작성자 본인이 sendNotificationMail=true로 수정하면 COMMENT_UPDATED 알림을 발행해야 한다") {
+                    val mentioned = mkUser("member-notify-mentioned2")
+                    addMember(mentioned, project)
+                    val posting = mkPosting(project, author)
+                    val comment = commentService.createPostingComment(posting.id!!, "원본", author, null)
+                    val before = notificationEventRepository.count()
+
+                    commentService.updatePostingComment(comment.id!!, "수정본 @member-notify-mentioned2", author, sendNotificationMail = true)
+
+                    val events = notificationEventRepository.findAll()
+                        .filter { it.resourceId == comment.id.toString() && it.eventType == com.github.yonaprojects.yona.domain.enumeration.EventType.COMMENT_UPDATED }
+                    notificationEventRepository.count() shouldBe before + 1
+                    events.size shouldBe 1
+                    events.first().newValue shouldBe "수정본 @member-notify-mentioned2"
+                }
+
+                it("작성자가 아닌 다른 사람이 수정하면 sendNotificationMail 값과 무관하게 항상 알림을 발행해야 한다") {
+                    val posting = mkPosting(project, author)
+                    val comment = commentService.createPostingComment(posting.id!!, "원본", author, null)
+                    val otherMember = mkUser("member-notify2")
+                    addMember(otherMember, project)
+                    val before = notificationEventRepository.count()
+
+                    commentService.updatePostingComment(comment.id!!, "매니저 수정", otherMember, sendNotificationMail = false)
+
+                    notificationEventRepository.count() shouldBe before + 1
                 }
             }
         }

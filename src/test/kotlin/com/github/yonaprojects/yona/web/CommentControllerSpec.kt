@@ -264,6 +264,29 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.contents").value("수정된이슈댓글"))
             }
 
+            // P3-50: commentUpdateForm의 "알림 메일 받기" 체크박스가 켜지면 요청 바디의
+            // sendNotificationMail 필드가 그대로 CommentService까지 전달돼야 한다.
+            it("sendNotificationMail=true를 보내면 그 값 그대로 CommentService에 전달해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { projectUserRepository.findByProjectIdAndUserId(1L, 10L) } returns Optional.empty()
+                every { issueCommentRepository.findById(100L) } returns Optional.of(issueComment)
+
+                val updatedComment = IssueComment(id = 100L, contents = "수정된이슈댓글", issue = issue, authorId = user.id, authorLoginId = user.loginId, authorName = user.name)
+                every { commentService.updateIssueComment(100L, "수정된이슈댓글", user, true) } returns updatedComment
+
+                mockMvc.perform(
+                    put("/api/projects/1/issues/5/comments/100")
+                        .principal(userAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"contents\": \"수정된이슈댓글\", \"sendNotificationMail\": true}")
+                )
+                    .andExpect(status().isOk)
+
+                verify(exactly = 1) { commentService.updateIssueComment(100L, "수정된이슈댓글", user, true) }
+            }
+
             it("original이 현재 댓글 내용과 일치하면 정상적으로 수정해야 한다 (P1-102)") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -732,6 +755,27 @@ class CommentControllerSpec : DescribeSpec({
                 )
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.contents").value("수정된게시판댓글"))
+            }
+
+            it("sendNotificationMail=true를 보내면 그 값 그대로 CommentService에 전달해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { projectUserRepository.findByProjectIdAndUserId(1L, 10L) } returns Optional.empty()
+                every { postingCommentRepository.findById(200L) } returns Optional.of(postingComment)
+
+                val updatedComment = PostingComment(id = 200L, contents = "수정된게시판댓글", posting = posting, authorId = user.id, authorLoginId = user.loginId, authorName = user.name)
+                every { commentService.updatePostingComment(200L, "수정된게시판댓글", user, true) } returns updatedComment
+
+                mockMvc.perform(
+                    put("/api/projects/1/posts/6/comments/200")
+                        .principal(userAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"contents\": \"수정된게시판댓글\", \"sendNotificationMail\": true}")
+                )
+                    .andExpect(status().isOk)
+
+                verify(exactly = 1) { commentService.updatePostingComment(200L, "수정된게시판댓글", user, true) }
             }
 
             it("original이 현재 댓글 내용과 일치하면 정상적으로 수정해야 한다 (P1-107)") {

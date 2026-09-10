@@ -391,6 +391,41 @@ yobi.Attachments = function(htOptions) {
     }
 
     /**
+     * P3-50: yobi.ui.MarkdownEditor.js가 EasyMDE로 감싼 textarea는 CodeMirror -> textarea
+     * 단방향 동기화만 있다(yobi.ui.MarkdownEditor.js의 codemirror.on("change", ...) 참고) —
+     * 이 함수들처럼 raw textarea.val()을 직접 써서 프로그램적으로 내용을 바꾸는 코드는
+     * CodeMirror가 전혀 인지하지 못해 실제로는 반영되지 않는다(첨부파일 업로드 성공 시
+     * 마크다운 링크가 삽입된 것처럼 보여도 실제 제출되는 내용에는 빠져있었음 — Playwright로
+     * 실제 재현). welTextarea.data("easymde")로 저장된 인스턴스가 있으면 CodeMirror 공식 API로
+     * 커서 위치에 삽입하고, 없으면(EasyMDE 없이 쓰이는 순수 textarea) 기존 raw 조작으로
+     * 폴백한다.
+     *
+     * @return {Object|null}
+     */
+    function _getEasyMDE(){
+        var welTextarea = htElements.welTextarea;
+        return welTextarea.length ? (welTextarea.data("easymde") || null) : null;
+    }
+
+    /**
+     * P3-50: raw textarea 조작 결과를 EasyMDE에도 강제로 반영한다. CodeMirror API
+     * (replaceRange 등)로 직접 조작하는 대신 "먼저 raw 로직으로 최종 문자열을 계산 -> 그
+     * 문자열을 easyMDE.value()로 그대로 밀어넣기" 방식을 쓰는 이유: 이 파일의 여러 호출
+     * 경로(클릭/드롭/붙여넣기/성공콜백)마다 EasyMDE 인스턴스 조회 시점·컨텍스트가 달라
+     * 실제로 CodeMirror API 경로를 타지 못하는 경우가 실측으로 발견됐다(예: 카드 클릭으로
+     * 링크를 넣은 직후엔 raw textarea에 정상 반영되지만, 이후 제출 버튼 클릭으로 포커스가
+     * 빠지는 순간 CodeMirror가 자신의 변경 없는 내부 버퍼를 textarea에 다시 밀어써
+     * 방금 넣은 값이 사라지는 것을 Playwright로 재현). 이 방식은 raw textarea가 최종
+     * 소스오브트루스가 되도록 강제해, 그 어떤 호출 경로를 타든 결과가 항상 일치한다.
+     */
+    function _syncEasyMDE(welTextarea){
+        var easyMDE = welTextarea.length ? welTextarea.data("easymde") : null;
+        if(easyMDE){
+            easyMDE.value(welTextarea.val());
+        }
+    }
+
+    /**
      * @param {Variant} vLink
      */
     function _insertLinkToTextarea(vLink){
@@ -400,12 +435,13 @@ yobi.Attachments = function(htOptions) {
             return false;
         }
 
+        var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
         var nPos = welTextarea.prop("selectionStart");
         var sText = welTextarea.val();
-        var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
 
         welTextarea.val(sText.substring(0, nPos) + sLink + sText.substring(nPos));
         _setCursorPosition(welTextarea, nPos + sLink.length);
+        _syncEasyMDE(welTextarea);
     }
 
     /**
@@ -471,9 +507,10 @@ yobi.Attachments = function(htOptions) {
         }
 
         var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
-        var sData = welTextarea.val().split(sLink).join('');
-        sData = sData.split(sLink.trim()).join('');
-        welTextarea.val(sData);
+        var sRawData = welTextarea.val().split(sLink).join('');
+        sRawData = sRawData.split(sLink.trim()).join('');
+        welTextarea.val(sRawData);
+        _syncEasyMDE(welTextarea);
     }
 
     /**
@@ -495,6 +532,7 @@ yobi.Attachments = function(htOptions) {
         if(nGap > 0){
             _setCursorPosition(welTextarea, nCurPos + nGap);
         }
+        _syncEasyMDE(welTextarea);
     }
 
     /**

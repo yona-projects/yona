@@ -760,6 +760,17 @@
     <script type="text/javascript" src="/bootstrap/js/bootstrap-better-typeahead.js"></script>
     <script type="text/javascript" src="/bootstrap/js/bootstrap-switch.js"></script>
     <script type="text/javascript" src="/javascripts/yona-lib.js"></script>
+    <!-- P3-50: yobi.Markdown.js(위 markdown(project) fragment 주석 참고)와 완전히 동일한 함정 —
+         첨부파일 위젯을 실제로 구현하는 yobi.Files.js/yobi.Attachments.js가 어느 템플릿에서도
+         <script src>로 로드된 적이 없어, 전역 레거시 번들 yona-lib.js에 박혀있던 EasyMDE를
+         전혀 모르는 구버전 사본이 계속 실행되고 있었다 — 새 댓글/게시글 작성 폼에서 파일을
+         업로드해도 카드 클릭으로 마크다운 링크를 넣으면 raw textarea에는 반영되지만 CodeMirror는
+         이를 몰라 그 사이 포커스가 빠지면(예: 저장 버튼 클릭) CodeMirror가 자신의 변경 없는
+         내부 버퍼로 되돌려써 방금 넣은 링크가 사라지는 것을 Playwright로 실제 재현해 발견했다.
+         반드시 yona-lib.js보다 뒤에 로드해야 전역 yobi.Files/yobi.Attachments가 이 최신
+         (EasyMDE 인지) 버전으로 최종적으로 덮어써진다. -->
+    <script type="text/javascript" src="/javascripts/common/yobi.Files.js"></script>
+    <script type="text/javascript" src="/javascripts/common/yobi.Attachments.js"></script>
     <script type="text/javascript" src="/javascripts/lib/autosize/autosize.min.js"></script>
     <script type="text/javascript" src="/javascripts/common/yona.KeyControl.js"></script>
     <script type="text/javascript" src="/javascripts/lib/tippy/popper.min.js"></script>

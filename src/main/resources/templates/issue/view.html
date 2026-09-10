@@ -255,7 +255,7 @@
                                                 </th:block>
                                             </span>
                                         </div>
-                                        <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${issueCommentResourceType})}"></div>
+                                        <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${issueCommentResourceType}, ${commentAttachmentsByCommentId != null ? commentAttachmentsByCommentId.get(comment.id) : null})}"></div>
                                         <div th:id="'comment-body-' + ${comment.id}">
                                             <div class="content markdown-wrap" th:utext="${markdownService.render(comment.contents, true, project)}">댓글내용</div>
                                         </div>
@@ -494,6 +494,9 @@
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 <script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
+<!-- P3-50: 댓글 수정 폼(common/commentUpdateForm)의 기존 첨부파일 목록 클릭/드래그드롭/붙여넣기/
+     삭제를 담당 — legacy와 동일하게 issue/board view 두 화면에서만 로드한다. -->
+<script type="text/javascript" src="/javascripts/common/yona.CommentAttachmentsUpdate.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.issue.Assginee.js"></script>
 <script type="text/javascript">
     $(function(){
@@ -558,11 +561,13 @@
             var apiBase = $form.data('apiBase');
             var commentId = $form.data('commentId');
             var contents = $form.find('textarea[data-editor-mode="update-comment-body"]').val();
+            // P3-50: "알림 메일 받기" 체크박스(작성자 본인에게만 노출) 상태를 함께 보낸다.
+            var sendNotificationMail = $form.find('.send-notification-checkbox').is(':checked');
             $.ajax({
                 url: apiBase + '/' + commentId,
                 type: 'PUT',
                 contentType: 'application/json',
-                data: JSON.stringify({ contents: contents }),
+                data: JSON.stringify({ contents: contents, sendNotificationMail: sendNotificationMail }),
                 success: function(){ window.location.reload(); },
                 error: function(xhr){ alert('[[#{common.comment.edit}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
             });

@@ -47,6 +47,14 @@ class CommentServiceImpl(
     private val organizationUserRepository: OrganizationUserRepository,
     private val projectRepository: ProjectRepository,
     private val projectUserRepository: ProjectUserRepository,
+    // P3-50 조사 중 발견: common/uploadForm.html + yobi.Files.js로 올린 첨부파일은
+    // POST /files가 항상 NOT_A_RESOURCE(임시) 컨테이너에 저장하고, 새 댓글 생성 경로
+    // (createIssueComment/createPostingComment)는 그 파일을 실제 컨테이너(ISSUE_COMMENT/
+    // NONISSUE_COMMENT)로 옮기는 단계가 아예 없었다 — 파일은 다운로드는 되지만(마크다운 링크는
+    // 살아있음) attachmentsByContainer 조회에는 영원히 안 잡혀(댓글 삭제 시 청소도 안 되고,
+    // 이 티켓이 만드는 수정 폼 첨부파일 목록에도 안 보임). moveAll()과 달리 본문에 실제로
+    // 링크된 파일만, 그것도 이 작성자가 업로드한 것만 옮기도록 attachmentService를 직접 쓴다.
+    private val attachmentService: com.github.yonaprojects.yona.domain.attachment.AttachmentService,
     // yona Comment.updateMention() 대응.
     private val mentionService: MentionService
 ) : CommentService {
@@ -56,6 +64,38 @@ class CommentServiceImpl(
     // 동일) + NotificationEvent.getMentionedUsers()의 매칭 패턴 대응 —
     // owner/project 형식의 그룹 멘션을 포착하려면 '/'를 허용해야 한다.
     private val mentionPattern = Pattern.compile("@[a-zA-Z0-9/-]+([_.][a-z_.A-Z0-9/-]+)*")
+
+    // P3-50: common/uploadForm.html(yobi.Files.js)이 첨부 성공 시 본문에 항상
+    // "[name](/files/{id})" 또는 "![name](/files/{id})" 형태의 링크를 삽입한다 — 이 링크에서
+    // 첨부파일 id를 역추출해 임시 컨테이너(NOT_A_RESOURCE)에서 실제 댓글 컨테이너로 옮긴다.
+    private val attachmentLinkPattern = Pattern.compile("/files/(\\d+)")
+
+    private fun extractAttachmentIds(contents: String): List<Long> {
+        val ids = mutableListOf<Long>()
+        val matcher = attachmentLinkPattern.matcher(contents)
+        while (matcher.find()) {
+            matcher.group(1).toLongOrNull()?.let { ids.add(it) }
+        }
+        return ids.distinct()
+    }
+
+    // 새 댓글 본문에 링크된 첨부파일을, 그 파일을 올린 사람이 실제로 이 댓글을 쓴 사람일 때만
+    // NOT_A_RESOURCE(임시)에서 실제 컨테이너로 옮긴다(moveOnlySelected가 이미 ownerLoginId
+    // 일치 여부로 필터링 — 다른 사람이 올린 파일에 대한 링크를 텍스트에 붙여넣어도 하이재킹되지
+    // 않는다).
+    private fun attachUploadedFiles(contents: String, containerType: ResourceType, containerId: String, authorLoginId: String?) {
+        if (authorLoginId == null) return
+        val ids = extractAttachmentIds(contents)
+        if (ids.isEmpty()) return
+        attachmentService.moveOnlySelected(
+            fromType = ResourceType.NOT_A_RESOURCE,
+            fromId = "",
+            toType = containerType,
+            toId = containerId,
+            selectedIds = ids,
+            moverLoginId = authorLoginId
+        )
+    }
 
     // yona BoardApp/IssueApp의 AddPreviousContent()+getPrevious() 대응
     // — 새 댓글 알림의 oldValue("인용 이전 내용")를 채운다. 첫 댓글이면 원본 게시물/이슈 본문을,
@@ -133,6 +173,7 @@ class CommentServiceImpl(
             parentComment = parentComment
         )
         val savedComment = issueCommentRepository.save(comment)
+        attachUploadedFiles(contents, ResourceType.ISSUE_COMMENT, savedComment.id.toString(), author.loginId)
 
         val mentionedUsers = extractMentionedUsers(contents)
         // yona Comment.save()의 updateMention() 대응.
@@ -197,6 +238,7 @@ class CommentServiceImpl(
             parentComment = parentComment
         )
         val savedComment = postingCommentRepository.save(comment)
+        attachUploadedFiles(contents, ResourceType.NONISSUE_COMMENT, savedComment.id.toString(), author.loginId)
 
         // yona AbstractPosting.save()/update()의 numOfComments = computeNumOfComments() 대응.
         posting.numOfComments = postingCommentRepository.countByPostingId(posting.id!!)
@@ -271,16 +313,56 @@ class CommentServiceImpl(
         return users
     }
 
-    override fun updateIssueComment(commentId: Long, contents: String, author: User): IssueComment {
+    override fun updateIssueComment(commentId: Long, contents: String, author: User, sendNotificationMail: Boolean): IssueComment {
         val comment = issueCommentRepository.findById(commentId)
             .orElseThrow { IllegalArgumentException("IssueComment not found: $commentId") }
         if (!accessControl.isAllowed(author, comment.issue.project, comment, Operation.UPDATE)) {
             throw IllegalArgumentException("Permission denied")
         }
+        val previousContents = comment.contents
+        val originalAuthorId = comment.authorId
         comment.contents = contents
         val saved = issueCommentRepository.save(comment)
+        // P3-50: 수정 폼(yona.CommentAttachmentsUpdate.js)에서 새로 올린 파일도 같은 임시
+        // 컨테이너 문제를 겪는다 — 새 댓글 작성과 동일하게 본문 링크 기준으로 옮긴다.
+        attachUploadedFiles(contents, ResourceType.ISSUE_COMMENT, saved.id.toString(), author.loginId)
+        val mentionedUsers = extractMentionedUsers(contents)
         // yona Comment.update()의 updateMention() 대응.
-        mentionService.update(ResourceType.ISSUE_COMMENT, saved.id.toString(), extractMentionedUsers(contents))
+        mentionService.update(ResourceType.ISSUE_COMMENT, saved.id.toString(), mentionedUsers)
+
+        // yona IssueApp.saveComment()의
+        // `isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(currentUser)` 대응(P3-50)
+        // — 작성자 본인이 체크박스를 켰거나, 작성자가 아닌 다른 사람(체크박스 자체가 안 보이는
+        // 매니저 등)이 수정하면 항상 알림을 보낸다.
+        if (sendNotificationMail || originalAuthorId != author.id) {
+            val issue = comment.issue
+            val title = "[${issue.project.name}] 이슈 #${issue.number}의 댓글이 수정되었습니다."
+            val notificationEvent = NotificationEvent(
+                title = title,
+                senderId = author.id,
+                created = Instant.now(),
+                resourceType = ResourceType.ISSUE_COMMENT,
+                resourceId = saved.id.toString(),
+                eventType = EventType.COMMENT_UPDATED,
+                oldValue = previousContents,
+                newValue = contents
+            )
+            val authorUser = issue.authorId?.let { userRepository.findById(it).orElse(null) }
+            val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
+            val receivers = watchService.findActualWatchers(
+                baseWatchers = baseWatchers,
+                resourceType = ResourceType.ISSUE_POST,
+                resourceId = issue.id.toString(),
+                projectId = issue.project.id,
+                eventType = notificationEvent.eventType
+            ).toMutableSet()
+            receivers.removeIf { it.id == author.id }
+            receivers.addAll(mentionedUsers)
+            notificationEvent.receivers = receivers
+
+            notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
+        }
+
         return saved
     }
 
@@ -293,16 +375,54 @@ class CommentServiceImpl(
         issueCommentRepository.delete(comment)
     }
 
-    override fun updatePostingComment(commentId: Long, contents: String, author: User): PostingComment {
+    override fun updatePostingComment(commentId: Long, contents: String, author: User, sendNotificationMail: Boolean): PostingComment {
         val comment = postingCommentRepository.findById(commentId)
             .orElseThrow { IllegalArgumentException("PostingComment not found: $commentId") }
         if (!accessControl.isAllowed(author, comment.posting.project, comment, Operation.UPDATE)) {
             throw IllegalArgumentException("Permission denied")
         }
+        val previousContents = comment.contents
+        val originalAuthorId = comment.authorId
         comment.contents = contents
         val saved = postingCommentRepository.save(comment)
+        // P3-50: 수정 폼(yona.CommentAttachmentsUpdate.js)에서 새로 올린 파일도 같은 임시
+        // 컨테이너 문제를 겪는다 — 새 댓글 작성과 동일하게 본문 링크 기준으로 옮긴다.
+        attachUploadedFiles(contents, ResourceType.NONISSUE_COMMENT, saved.id.toString(), author.loginId)
+        val mentionedUsers = extractMentionedUsers(contents)
         // yona Comment.update()의 updateMention() 대응.
-        mentionService.update(ResourceType.NONISSUE_COMMENT, saved.id.toString(), extractMentionedUsers(contents))
+        mentionService.update(ResourceType.NONISSUE_COMMENT, saved.id.toString(), mentionedUsers)
+
+        // yona BoardApp.saveComment()의
+        // `isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(currentUser)` 대응(P3-50).
+        if (sendNotificationMail || originalAuthorId != author.id) {
+            val posting = comment.posting
+            val title = "[${posting.project.name}] 게시글 #${posting.number}의 댓글이 수정되었습니다."
+            val notificationEvent = NotificationEvent(
+                title = title,
+                senderId = author.id,
+                created = Instant.now(),
+                resourceType = ResourceType.NONISSUE_COMMENT,
+                resourceId = saved.id.toString(),
+                eventType = EventType.COMMENT_UPDATED,
+                oldValue = previousContents,
+                newValue = contents
+            )
+            val authorUser = posting.authorId?.let { userRepository.findById(it).orElse(null) }
+            val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
+            val receivers = watchService.findActualWatchers(
+                baseWatchers = baseWatchers,
+                resourceType = ResourceType.BOARD_POST,
+                resourceId = posting.id.toString(),
+                projectId = posting.project.id,
+                eventType = notificationEvent.eventType
+            ).toMutableSet()
+            receivers.removeIf { it.id == author.id }
+            receivers.addAll(mentionedUsers)
+            notificationEvent.receivers = receivers
+
+            notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
+        }
+
         return saved
     }
 

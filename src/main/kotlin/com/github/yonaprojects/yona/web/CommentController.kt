@@ -109,7 +109,7 @@ class CommentController(
                 .body(mapOf("message" to "Already modified by someone.", "storedContent" to comment.contents))
         }
 
-        val updated = commentService.updateIssueComment(commentId, request.contents, user)
+        val updated = commentService.updateIssueComment(commentId, request.contents, user, request.sendNotificationMail)
         // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.ok(updated.toResponse())
     }
@@ -208,7 +208,7 @@ class CommentController(
                 .body(mapOf("message" to "Already modified by someone.", "storedContent" to comment.contents))
         }
 
-        val updated = commentService.updatePostingComment(commentId, request.contents, user)
+        val updated = commentService.updatePostingComment(commentId, request.contents, user, request.sendNotificationMail)
         // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.ok(updated.toResponse())
     }
@@ -407,6 +407,9 @@ class CommentController(
         // 클라이언트가 저장 직전 화면에 있던 원문을 함께 보내면 동시편집 충돌을 감지한다 — null이면
         // 기존 호출자(원문을 안 보내는 클라이언트)와의 하위호환을 위해 충돌 검사를 건너뛴다.
         val original: String? = null,
-        val parentCommentId: Long? = null
+        val parentCommentId: Long? = null,
+        // P3-50: legacy commentUpdateForm.scala.html의 "알림 메일 받기" 체크박스 대응 — 댓글
+        // 생성 요청에서는 쓰이지 않고 updateIssueComment/updatePostingComment 쪽에서만 참조한다.
+        val sendNotificationMail: Boolean = false
     )
 }

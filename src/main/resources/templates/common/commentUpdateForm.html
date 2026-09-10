@@ -12,19 +12,48 @@
  제출 방식이지만, yona 백엔드는 REST(PUT /api/projects/{projectId}/issues|posts/{number}/comments/
  {commentId})만 제공하므로 이 폼은 실제 제출을 막고(JS가 preventDefault) fetch PUT으로 대체한다 —
  필요한 AJAX 전환(정책 문서 "필요한 아키텍처 차이"에 해당, scope-cutting 아님).
+
+ P3-50: 새 글 작성용 범용 common/uploadForm 프래그먼트 재사용을 legacy 전용 마크업
+ (.file-upload__input/.temporaryUploadFiles/.attachment-files)으로 되돌렸다 — 이미 이식돼 있던
+ yona.CommentAttachmentsUpdate.js(이 파일 하단에서 issue/board view가 로드)가 바로 이 마크업의
+ 클릭/드래그드롭/붙여넣기/삭제 이벤트를 담당하도록 원래 설계돼 있었다. "알림 메일 받기"
+ 체크박스는 댓글 작성자 본인에게만 노출되고(legacy와 동일), CommentController의
+ sendNotificationMail 필드로 전달돼 CommentServiceImpl이 COMMENT_UPDATED 알림을 실제로
+ 발행한다(작성자가 아닌 사람이 수정하면 체크박스와 무관하게 항상 발행 — legacy
+ IssueApp/BoardApp.saveComment()와 동일).
 -->
-<div th:fragment="updateForm(comment, apiBase, isAllowedUpdate, resourceType)" th:id="'comment-editform-' + ${comment.id}" class="comment-update-form">
+<div th:fragment="updateForm(comment, apiBase, isAllowedUpdate, resourceType, attachments)" th:id="'comment-editform-' + ${comment.id}" class="comment-update-form">
     <form th:id="'comment-update-form-' + ${comment.id}" th:data-api-base="${apiBase}" th:data-comment-id="${comment.id}" th:data-original="${comment.contents}">
         <div class="write-comment-box">
             <div class="write-comment-wrap">
                 <div th:replace="~{site/layout :: markdownEditor('contents-' + ${comment.id}, ${comment.contents}, 'update-comment-body')}"></div>
 
-                <div th:replace="~{common/uploadForm :: uploadForm(${resourceType}, ${comment.id}, null)}"></div>
+                <div class="upload-drop-here">
+                    <div class="msg-wrap">
+                        <div class="msg" th:text="#{common.attach.dropFilesHere}">여기에 파일을 끌어다 놓으면 업로드 됩니다</div>
+                    </div>
+                </div>
 
                 <div class="right-txt comment-update-button upload-button-line">
+                    <span class="file-upload">
+                        <label th:for="'upload-' + ${comment.id}" class="file-upload__label ybtn" th:text="#{button.upload}">업로드</label>
+                        <input type="file" class="file-upload__input" th:id="'upload-' + ${comment.id}" name="filePath" multiple="multiple">
+                    </span>
+                    <span th:if="${currentUser != null and comment.authorId == currentUser.id}" class="send-notification-check" data-toggle="popover" data-trigger="hover" data-placement="top" th:data-content="#{notification.send.mail.warning}">
+                        <label class="checkbox inline">
+                            <input type="checkbox" class="send-notification-checkbox" name="notificationMail" value="yes" checked="checked">
+                            <strong th:text="#{notification.send.mail}">수정 알림 메일 발송</strong>
+                        </label>
+                    </span>
                     <button type="button" class="ybtn ybtn-cancel" th:data-comment-id="${comment.id}" th:text="#{button.cancel}">취소</button>
                     <button th:if="${isAllowedUpdate}" type="submit" class="ybtn ybtn-info" th:text="#{button.save}">저장</button>
                 </div>
+            </div>
+            <input type="hidden" name="temporaryUploadFiles" class="temporaryUploadFiles" value="">
+            <div class="attachment-files">
+                <th:block th:each="attachment : ${attachments}">
+                    <div th:replace="~{common/attachmentFile :: attachmentFile(${attachment})}"></div>
+                </th:block>
             </div>
         </div>
     </form>

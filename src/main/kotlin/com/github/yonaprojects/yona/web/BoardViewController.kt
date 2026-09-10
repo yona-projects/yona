@@ -186,6 +186,16 @@ class BoardViewController(
         model.addAttribute("isWatching", isWatching)
         model.addAttribute("isAllowedUpdate", isAllowedUpdate)
         model.addAttribute("attachmentsJson", attachmentsJson)
+        // P3-50: 댓글 수정 폼(common/commentUpdateForm)이 "이미 첨부된 파일" 목록을 보여주려면
+        // 댓글별 첨부파일 목록이 필요하다 — issue/view.html과 동일한 패턴.
+        model.addAttribute(
+            "commentAttachmentsByCommentId",
+            comments.associate { comment ->
+                comment.id!! to attachmentRepository.findByContainerTypeAndContainerId(
+                    ResourceType.NONISSUE_COMMENT, comment.id.toString()
+                )
+            }
+        )
 
         return "board/view"
     }
