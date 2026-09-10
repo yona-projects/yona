@@ -93,12 +93,12 @@
 
             htVar.nMaxFileSizeInNoCrop = 1024 * 1000 * 1; // 1Mb
 
-            htVar.bUseJCrop = yobi.Files.getEnv().bXHR2;
+            htVar.bUseCropper = yobi.Files.getEnv().bXHR2;
 
-            if(htVar.bUseJCrop){
+            if(htVar.bUseCropper){
                 htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
                 htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
-                htElement.welAvatarCropWrap.on("hidden", _clearJcrop);
+                htElement.welAvatarCropWrap.on("hidden", _clearCropper);
 
                 yobi.Files.attach({
                    "successUpload": _onAvatarCroppedImageUploaded,
@@ -133,8 +133,8 @@
 
             _setAvatarProgressBar(100);
 
-            if(htVar.bUseJCrop){
-                _showJcrop(oRes);
+            if(htVar.bUseCropper){
+                _showCropper(oRes);
                 return;
             }
 
@@ -166,8 +166,13 @@
         /**
          * @param {Object} oRes
          */
-        function _showJcrop(oRes){
-            _clearJcrop();
+        function _showCropper(oRes){
+            _clearCropper();
+
+            // Jcrop 시절부터 있던 기존 버그(P3-46 전환 중 발견, 사용자 확인 후 함께 수정):
+            // 크롭 결과를 canvas.toBlob()으로 인코딩할 때 원본 mimeType을 넘기지 않아 항상
+            // PNG로 고정 인코딩됐다 — 원본 형식을 기억해뒀다가 그대로 써서 원본 형식을 보존한다.
+            htVar.sAvatarMimeType = oRes.mimeType;
 
             htElement.welAvatarCropImg.attr("src", oRes.url);
             htElement.welAvatarCropPreviewImg.attr("src", oRes.url);
@@ -178,26 +183,36 @@
          * @private
          */
         function _onAvatarCropImageLoad(){
-            htElement.welAvatarCropImg.Jcrop({
-                "aspectRatio": 1,
-                "minSize"  : [32, 32],
-                "bgColor"  : "#fff",
-                "setSelect": [0, 0, 128, 128],
-                "onSelect" : _onAvatarImageCrop,
-                "onChange" : _onAvatarImageCrop,
-                "onRelease": _onAvatarImageCropCancel
-            }, function(){
-                htVar.oJcrop = this; // "this" means jCrop object
+            htVar.oCropper = new Cropper(htElement.welAvatarCropImg.get(0), {
+                "aspectRatio"     : 1,
+                "viewMode"        : 1, // Jcrop처럼 크롭박스가 이미지 영역을 벗어나지 않도록 제한
+                "minCropBoxWidth" : 32,
+                "minCropBoxHeight": 32,
+                "autoCropArea"    : 1,
+                "crop"            : _onAvatarImageCrop,
+                "ready"           : _onAvatarCropReady
             });
+        }
+
+        /**
+         * Jcrop의 setSelect:[0,0,128,128](기본 선택영역)에 대응.
+         * Cropper.js는 초기화 시점에 setCropBoxData를 바로 적용할 수 없어 ready 콜백에서 설정한다.
+         *
+         * @private
+         */
+        function _onAvatarCropReady(){
+            htVar.oCropper.setCropBoxData({"left": 0, "top": 0, "width": 128, "height": 128});
+            // setCropBoxData는 crop 이벤트를 발생시키지 않으므로 미리보기를 직접 한 번 갱신한다.
+            _onAvatarImageCrop({"detail": htVar.oCropper.getData()});
         }
 
         /**
          * @private
          */
-        function _clearJcrop(){
-            if(htVar.oJcrop){
-                htVar.oJcrop.destroy();
-                htVar.oJcrop = null;
+        function _clearCropper(){
+            if(htVar.oCropper){
+                htVar.oCropper.destroy();
+                htVar.oCropper = null;
             }
 
             htElement.welAvatarCropImg.attr("src", "");
@@ -206,61 +221,41 @@
         }
 
         /**
-         * @param {Hash Table} htData
+         * Cropper.js의 "crop" 이벤트 핸들러. Jcrop의 onSelect/onChange(둘 다 동일 콜백을 썼음)에 대응.
+         *
+         * 주의: Cropper.js의 crop 이벤트 detail(x,y,width,height)은 Jcrop의 onSelect/onChange가
+         * 주던 "화면에 표시된 이미지" 기준 좌표와 달리 "원본 이미지" 기준 좌표다. 그래서 비율
+         * 계산의 분모도 화면 표시 크기(welAvatarCropImg.width()) 대신 원본 크기(naturalWidth)를
+         * 써야 동일한 실시간 미리보기 결과가 나온다.
+         *
+         * @param {jQuery.Event|Object} weEvt weEvt.detail = {x, y, width, height, ...}
          */
-        function _onAvatarImageCrop(htData){
-            if(htData.w <= 0){
+        function _onAvatarImageCrop(weEvt){
+            var htData = weEvt.detail || weEvt;
+
+            if(htData.width <= 0){
                 return;
             }
-            var nRx = 128 / htData.w;
-            var nRy = 128 / htData.h;
 
-            var nWidth = htElement.welAvatarCropImg.width();
-            var nHeight = htElement.welAvatarCropImg.height();
+            var elImage   = htElement.welAvatarCropImg.get(0);
+            var nRx = 128 / htData.width;
+            var nRy = 128 / htData.height;
 
             htElement.welAvatarCropPreviewImg.css({
-                "width"     : Math.round(nRx * nWidth) + "px",
-                "height"    : Math.round(nRy * nHeight) + "px",
+                "width"     : Math.round(nRx * elImage.naturalWidth) + "px",
+                "height"    : Math.round(nRy * elImage.naturalHeight) + "px",
                 "marginLeft": "-" + Math.round(nRx * htData.x) + "px",
                 "marginTop" : "-" + Math.round(nRy * htData.y) + "px"
             });
-
-            htVar.htLastCrop = htData;
-        }
-
-        function _onAvatarImageCropCancel(){
-            if(htVar.oJcrop){
-                htVar.oJcrop.setSelect([0, 0, 128, 128]);
-            } else {
-                htVar.htLastCrop = null;
-            }
         }
 
         function _onClickBtnSubmitCrop(){
-            var elImage = new Image();
+            var oCroppedCanvas = htVar.oCropper.getCroppedCanvas({"width": 128, "height": 128});
 
-            elImage.onload = function(){
-                var htData = htVar.htLastCrop;
-                var nWidth = htElement.welAvatarCropImg.width();
-                var nRealWidth  = elImage.width;
-                var nRw = nRealWidth / nWidth;
-                var htCropData = {
-                    "x": (htData.x * nRw),
-                    "y": (htData.y * nRw),
-                    "w": (htData.w * nRw),
-                    "h": (htData.h * nRw)
-                };
-
-                var oContext = htElement.elAvatarCropCanvas.getContext("2d");
-                oContext.drawImage(elImage, htCropData.x, htCropData.y, htCropData.w, htCropData.h, 0, 0, 128, 128);
-
-                // canvas-to-blob.js
-                htElement.elAvatarCropCanvas.toBlob(function(oFile){
-                    yobi.Files.uploadFile(oFile, "jCropUpload");
-                }, elImage.mimeType, 100);
-            };
-
-            elImage.src = htElement.welAvatarCropImg.attr("src");
+            // canvas-to-blob.js
+            oCroppedCanvas.toBlob(function(oFile){
+                yobi.Files.uploadFile(oFile, "jCropUpload");
+            }, htVar.sAvatarMimeType);
         }
 
         /**
