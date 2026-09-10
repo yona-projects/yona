@@ -72,9 +72,9 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<link rel="stylesheet" type="text/css" media="screen" href="/javascripts/lib/atjs/jquery.atwho.css">
-<script type="text/javascript" src="/javascripts/lib/atjs/jquery.caret.min.js"></script>
-<script type="text/javascript" src="/javascripts/lib/atjs/jquery.atwho.js"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="/javascripts/lib/tribute/tribute.min.css">
+<script type="text/javascript" src="/javascripts/lib/tribute/tribute.min.js"></script>
+<script type="text/javascript" src="/javascripts/common/yobi.Mention.js"></script>
 <script type="text/javascript">
     $(function(){
         $yobi.loadModule("board.Write", {
@@ -84,7 +84,7 @@
 
         yobi.Mention({
             "target": 'textarea[id^=editor-]',
-            "url"   : "/[[${project.owner}]]/[[${project.name}]]/mentionList"
+            "url"   : "/api/[[${project.owner}]]/[[${project.name}]]/mentionList"
         });
 
         $("#post-form").submit(function(e) {
@@ -92,8 +92,8 @@
             
             var projectId = [[${project.id}]];
             var postId = [[${post.number}]];
-            var owner = [[${project.owner}]];
-            var projectName = [[${project.name}]];
+            var owner = /*[[${project.owner}]]*/ '';
+            var projectName = /*[[${project.name}]]*/ '';
             
             var title = $("#title").val();
             var body = $("#body").val();

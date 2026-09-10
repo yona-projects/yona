@@ -157,8 +157,8 @@
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
-<script type="text/javascript" src="/javascripts/lib/atjs/jquery.caret.min.js"></script>
-<script type="text/javascript" src="/javascripts/lib/atjs/jquery.atwho.js"></script>
+<script type="text/javascript" src="/javascripts/lib/tribute/tribute.min.js"></script>
+<script type="text/javascript" src="/javascripts/common/yobi.Mention.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.Subtask.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.issue.Assginee.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.TitleHeadAutoCompletion.js"></script>
@@ -175,7 +175,7 @@
 
         yobi.Mention({
             "target": 'textarea[id^=editor-]',
-            "url"   : "/[[${project.owner}]]/[[${project.name}]]/mentionList"
+            "url"   : "/api/[[${project.owner}]]/[[${project.name}]]/mentionList"
         });
 
         if([[${isFromGlobalMenuNew}]]) {
@@ -190,7 +190,7 @@
 
         yonaTitleHeadModule({
             "target": 'input[id=title]',
-            "url"   : "/api/projects/[[${project.id}]]/titleHeads"
+            "url"   : "/api/[[${project.owner}]]/[[${project.name}]]/titleHeads"
         });
 
         $('#button-save').on('click', function(){
