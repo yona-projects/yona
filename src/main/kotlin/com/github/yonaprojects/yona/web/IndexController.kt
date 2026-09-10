@@ -13,6 +13,7 @@ import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.milestone.MilestoneRepository
 import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
+import com.github.yonaprojects.yona.domain.support.MarkdownService
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
@@ -31,7 +32,8 @@ class IndexController(
     private val pullRequestRepository: PullRequestRepository,
     private val organizationRepository: OrganizationRepository,
     private val milestoneRepository: MilestoneRepository,
-    private val userSettingRepository: UserSettingRepository
+    private val userSettingRepository: UserSettingRepository,
+    private val markdownService: MarkdownService
 ) {
 
     data class NotificationViewDto(
@@ -235,7 +237,12 @@ class IndexController(
                 created = event.created,
                 eventType = event.eventType,
                 newValue = event.newValue,
-                message = msg,
+                // index/partial_notifications.html이 이 값을 th:utext(비이스케이프)로 렌더링한다.
+                // msg는 댓글/이슈/PR 본문 등 사용자가 직접 쓴 원문을 그대로 담을 수 있어(예:
+                // NEW_COMMENT의 newValue = 댓글 원문), 반드시 새니타이즈를 거쳐야 한다 - legacy
+                // index/partial_notifications.scala.html의 @Html(HtmlUtil.defaultSanitize(
+                // msg.replaceAll("(?<!>)\n", "<br/>\n"))) 대응.
+                message = markdownService.sanitize(msg.replace(Regex("(?<!>)\n"), "<br/>\n")),
                 senderLoginId = sender?.loginId,
                 senderName = sender?.name,
                 senderAvatarUrl = sender?.avatarUrl,

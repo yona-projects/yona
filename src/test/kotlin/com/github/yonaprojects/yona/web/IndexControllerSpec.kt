@@ -46,6 +46,7 @@ class IndexControllerSpec : DescribeSpec({
     val organizationRepository = mockk<OrganizationRepository>()
     val milestoneRepository = mockk<MilestoneRepository>()
     val userSettingRepository = mockk<UserSettingRepository>()
+    val markdownService = mockk<com.github.yonaprojects.yona.domain.support.MarkdownService>()
 
     val indexController = IndexController(
         notificationEventRepository,
@@ -56,7 +57,8 @@ class IndexControllerSpec : DescribeSpec({
         pullRequestRepository,
         organizationRepository,
         milestoneRepository,
-        userSettingRepository
+        userSettingRepository,
+        markdownService
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(indexController).build()
 
@@ -70,8 +72,10 @@ class IndexControllerSpec : DescribeSpec({
             pullRequestRepository,
             organizationRepository,
             userSettingRepository,
-            milestoneRepository
+            milestoneRepository,
+            markdownService
         )
+        every { markdownService.sanitize(any()) } answers { firstArg() }
     }
 
     describe("IndexController 웹 테스트") {
