@@ -1005,8 +1005,10 @@
           });
       </script>
     </th:block>
-  <!-- 첨부파일 아이템 렌더링 템플릿 -->
-  <script type="text/x-jquery-tmpl" id="tplAttachedFile">
+  <!-- 첨부파일 아이템 렌더링 템플릿. 스크립트 태그 내부는 Thymeleaf가 raw text로 취급해
+       th:text 같은 속성 프로세서가 동작하지 않는다 - th:inline="text"로 이 태그만 텍스트
+       인라인 모드를 켜고 메시지 인라인 토큰으로 치환한다. -->
+  <script type="text/x-jquery-tmpl" id="tplAttachedFile" th:inline="text">
     <li class="attached-file" data-id="${fileId}" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
         <i class="yobicon-supportrequest"></i>
         <i class="mimetype"></i>
@@ -1016,11 +1018,11 @@
             <div class="progress upload-progress"><div class="bar orange"></div></div>
         </div>
         <button type="button" class="btn-transparent btn-delete pull-right">&times;</button>
-        <span class="pull-right nbtn small white btn-insert" th:text="#{common.attach.clickToPost}">본문에 넣기</span>
+        <span class="pull-right nbtn small white btn-insert">[[#{common.attach.clickToPost}]]</span>
     </li>
   </script>
-  <script type="text/x-jquery-tmpl" id="tplDropFilesHere">
-    <div class="upload-drop-here"><div class="msg-wrap"><div class="msg" th:text="#{common.attach.dropFilesHere}">여기에 파일을 끌어다 놓으면 업로드 됩니다</div></div></div>
+  <script type="text/x-jquery-tmpl" id="tplDropFilesHere" th:inline="text">
+    <div class="upload-drop-here"><div class="msg-wrap"><div class="msg">[[#{common.attach.dropFilesHere}]]</div></div></div>
   </script>
 
   <th:block th:if="${sendYonaUsage}">
