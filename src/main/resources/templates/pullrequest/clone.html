@@ -33,12 +33,12 @@
     $(function(){
         if (typeof NProgress !== 'undefined') { NProgress.start(); }
         setTimeout(function(){
-            var cloneUrl = "[[@{/api/{owner}/{projectName}/doClone(owner=${project.owner}, projectName=${project.name})}]]";
-            var cloneParam = { owner: "[[${forkOwner}]]", name: "[[${forkName}]]", projectScope: "[[${forkProjectScope}]]" };
+            var cloneUrl = [[@{/api/{owner}/{projectName}/doClone(owner=${project.owner}, projectName=${project.name})}]];
+            var cloneParam = { owner: [[${forkOwner}]], name: [[${forkName}]], projectScope: [[${forkProjectScope}]] };
 
             $.post(cloneUrl, cloneParam, function(data){
                 if (data.status === "failed") {
-                    alert("[[#{fork.failed}]]");
+                    alert([[#{fork.failed}]]);
                     location.replace(data.url);
                 } else {
                     location.replace(data.url);

@@ -291,14 +291,14 @@
       // legacy partial_info.scala.html의 accept 버튼(#btnAccept) 대응
       $("#btnAccept").click(function(e) {
           e.preventDefault();
-          if (!confirm("[[#{pullRequest.merge}]]?")) { return; }
+          if (!confirm([[#{pullRequest.merge}]] + '?')) { return; }
           $.ajax({
               url: '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/merge',
               type: 'POST',
               success: function() { window.location.reload(); },
               error: function(xhr) {
                   var msg = (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || xhr.responseText || "";
-                  alert("[[#{pullRequest.merge}]] failed: " + msg);
+                  alert([[#{pullRequest.merge}]] + ' failed: ' + msg);
               }
           });
       });
@@ -340,10 +340,10 @@
 
       // 리뷰 참여/취소 버튼(legacy ReviewApp.review/unreview)
       $("#btn-review").click(function() {
-          $.post("[[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/review(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]]", function() { window.location.reload(); });
+          $.post([[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/review(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]], function() { window.location.reload(); });
       });
       $("#btn-unreview").click(function() {
-          $.post("[[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/unreview(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]]", function() { window.location.reload(); });
+          $.post([[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/unreview(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]], function() { window.location.reload(); });
       });
 
       // Approve/Request changes/Comment 판정 제출.
