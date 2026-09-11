@@ -136,11 +136,6 @@
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {
-        yobi.Mention({
-            "target": 'textarea[id^=editor-]',
-            "url"   : /*[[@{/{owner}/{projectName}/mentionList(owner=${project.owner}, projectName=${project.name})}]]*/ ""
-        });
-
         // legacy yobi.git.Write.js _checkMergeResult()/_onSuccessMergeResult()/_getMergeResultData()
         // 대응. 브랜치 select가 바뀔 때마다 GET /pull/mergeResult로 커밋 프리뷰
         // 조각을 받아와 #__commits에 꽂고, 그 조각이 렌더링한 #mergeResult의 data-* 속성을 다시 읽어

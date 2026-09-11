@@ -95,20 +95,12 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
-<script type="text/javascript" src="/javascripts/lib/tribute/tribute.min.js"></script>
-<script type="text/javascript" src="/javascripts/common/yobi.Mention.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         // yobi.milestone.Write
         $yobi.loadModule("milestone.Write", {
             "elDueDate"   : $("#dueDate"),
             "elDatePicker": $("#datepicker")
-        });
-
-        // yobi.Mention
-        yobi.Mention({
-            "target": "textarea[id^=editor-]",
-            "url"   : "/api/[[${project.owner}]]/[[${project.name}]]/mentionList"
         });
     });
 </script>

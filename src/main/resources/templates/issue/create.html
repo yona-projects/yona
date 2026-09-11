@@ -158,7 +158,6 @@
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript" src="/javascripts/lib/tribute/tribute.min.js"></script>
-<script type="text/javascript" src="/javascripts/common/yobi.Mention.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.Subtask.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.issue.Assginee.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.TitleHeadAutoCompletion.js"></script>
@@ -171,11 +170,6 @@
             "elTextarea"   : 'textarea[data-editor-mode="content-body"]',
             "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
             "elDueDate"    : $("#issueDueDate")
-        });
-
-        yobi.Mention({
-            "target": 'textarea[id^=editor-]',
-            "url"   : "/api/[[${project.owner}]]/[[${project.name}]]/mentionList"
         });
 
         if([[${isFromGlobalMenuNew}]]) {

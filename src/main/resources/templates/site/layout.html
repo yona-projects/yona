@@ -402,10 +402,17 @@
          yona.CommentAttachmentsUpdate.js가 $textarea.data("easymde")로 얻은 EasyMDE 인스턴스의
          .value(newValue)를 호출해 첨부파일 링크 삽입 결과를 강제 동기화하던 것(P3-50 데이터
          손실 버그 방지책)은, 이 컴포넌트가 같은 jQuery data 키에 최소 shim({ value(newValue?) })을
-         노출해 그대로 계속 동작한다(컴포넌트 소스의 exposeLegacyEasyMdeShim 참고). 멘션
-         (yobi.Mention.js)도 이 키를 읽지만 이 shim은 멘션 용도(easyMDE.codemirror)를 지원하지
-         않는다 - **멘션은 5단계(CM6 @codemirror/autocomplete 재구현)까지 일시적으로 동작하지
-         않는다(사용자 승인 - 데이터 손실이 아닌 기능 일시 중단이라 허용됨)**.
+         노출해 그대로 계속 동작한다(컴포넌트 소스의 exposeLegacyEasyMdeShim 참고). 멘션은
+         2~4단계 동안 이 shim에 기대지 않고는 동작하지 않는 채로(사용자 승인된 일시 중단) 남아
+         있다가, 5단계에서 yobi.Mention.js가 완전히 삭제되고 @codemirror/autocomplete 기반으로
+         컴포넌트에 흡수되며 다시 동작하게 됐다(아래 data-mention-url 참고). tribute.min.{js,css}
+         자체는 board/pullrequest/milestone/issue의 8개 화면 중 yobi.Mention() 호출부와 함께
+         로드되던 6곳에서는 이제 필요 없어져 제거했지만, board/create.html·issue/create.html·
+         issue/edit.html은 `common/yona.TitleHeadAutoCompletion.js`(`[` 라벨 트리거 - 이번
+         5단계 범위 밖, CodeMirror와 무관한 별도 Tribute 인스턴스)가 여전히 전역 `Tribute`
+         생성자에 직접 의존하므로 이 3곳은 tribute.min.js(+ 원래도 board/create·issue/edit만
+         로드하던 tribute.min.css)를 그대로 유지한다 - 처음에 8곳 전부에서 걷어냈다가 범위
+         침범(계획서 "범위 밖" 절 위반)임을 뒤늦게 알아채고 이 3곳만 복원했다.
 
          제거한 것들(1~2단계에 걸쳐 사용자 확정, P3-46 8번 항목 세부 결정사항 참고):
          - 탭 UI(ul.nav-tabs) 자체, .task-list-button/.add-task-list-button, .markdown-preview
@@ -426,8 +433,24 @@
          목록이 컨텍스트를 제한하지 않음). markdownEditor를 쓰는 16개 호출부는 전부
          board/wiki/code/issue/milestone/pullrequest 등 프로젝트 스코프 컨트롤러가 렌더링하며
          전부 모델에 project를 채워 넣는 것을 확인했다 - project가 없는 화면은 실사용처가 없어
-         이 th:if는 방어적 가드로만 존재한다. -->
-    <div th:fragment="markdownEditor(name, value, editorMode)" data-toggle="markdown-editor" class="mt10" th:data-markdown-render-url="${project != null} ? (@{/markdown/{owner}/{name}(owner=${project.owner}, name=${project.name})}) : null">
+         이 th:if는 방어적 가드로만 존재한다.
+
+         P3-46 #8 5단계(멘션): data-mention-url도 render-url과 동일한 게이트(project != null)로
+         노출한다 - MentionController(/api/{owner}/{projectName}/mentionList)는 프로젝트
+         스코프이기만 하면 어떤 화면에서도 쓸 수 있는 범용 엔드포인트다. 옛 yobi.Mention()은
+         board/pullrequest/milestone/issue의 create/edit 8개 화면에서만 호출됐지만(각 템플릿의
+         inline <script>에 하드코딩), 그건 "이 8개 화면만 멘션이 필요하다"는 의도적 설계가
+         아니라 단지 그 8개 화면만 실제로 호출 코드를 추가해뒀을 뿐이었다(예: pullrequest/create
+         .html·pullrequest/edit.html은 심지어 tribute.min.js 자체를 로드하지 않아 실제로는
+         이미 깨져 있었다 - Tribute is not defined). 4단계가 미리보기(render-url)를 8개 화면
+         한정에서 project 컨텍스트가 있는 16개 전부로 넓힌 것과 동일한 이유로, 멘션도 여기서
+         16개 전부로 넓힌다(각 화면이 개별적으로 호출부를 추가/관리할 필요가 없어지고, 8개
+         템플릿에 흩어져 있던 하드코딩된 URL 중 pullrequest 두 곳의 "/api" 접두어 누락 버그도
+         이 중앙화로 함께 해소된다) - 코디네이터 검토 시 재확인 필요한 판단 지점으로
+         docs/parity/tickets/p3-46.md CM6-5단계 로그에 기록. -->
+    <div th:fragment="markdownEditor(name, value, editorMode)" data-toggle="markdown-editor" class="mt10"
+         th:data-markdown-render-url="${project != null} ? (@{/markdown/{owner}/{name}(owner=${project.owner}, name=${project.name})}) : null"
+         th:data-mention-url="${project != null} ? (@{/api/{owner}/{name}/mentionList(owner=${project.owner}, name=${project.name})}) : null">
         <div class="editor-notice-label"></div>
 
         <div class="textarea-box">

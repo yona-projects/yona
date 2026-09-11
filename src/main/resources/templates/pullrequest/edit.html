@@ -123,11 +123,6 @@
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {
-        yobi.Mention({
-            "target": 'textarea[id^=editor-]',
-            "url"   : /*[[@{/{owner}/{projectName}/mentionList(owner=${project.owner}, projectName=${project.name})}]]*/ ""
-        });
-
         // legacy yobi.git.Write.js 대응 — edit 페이지는 브랜치가 모두 disabled라
         // change 이벤트 재트리거는 없고, state가 OPEN일 때 로드 시 1회만 조회한다
         // ("if(elements.state === 'OPEN') { _checkMergeResult(); }" 대응).

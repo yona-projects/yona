@@ -42,26 +42,37 @@ import java.io.File
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-// P3-46 #3: @/:/#/[ 자동완성 위젯(atjs -> Tribute.js) 교체.
+// P3-46 CM6-5단계: @codemirror/autocomplete 기반 멘션 자동완성("@"/":"/"#" 3트리거) 마크업 계약
+// 회귀 검증.
 //
-// 이 스펙은 실시간 자동완성 드롭다운 동작(브라우저 JS 상호작용)은 검증하지 않는다 — MockMvc+Jsoup
-// 하네스는 렌더링된 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다. 대신 아래 "마크업 계약"이
-// 회귀 없이 유지되는지를 검증한다: (1) atjs 리소스가 완전히 사라졌는지, (2) Tribute.js 리소스가
-// 로드되는지, (3) 자동완성 대상 textarea/input이 그대로 남아 있는지.
-//
-// 대상 11개 호출부(yobi.Mention 8곳 + yonaTitleHeadModule 3곳):
-//   issue/create, issue/edit, board/create, board/edit, milestone/create, milestone/edit,
-//   pullrequest/create, pullrequest/edit
-//
-// 메인 세션이 리뷰 중 발견한 회귀(TDD 에이전트가 놓쳤던 것): yobi.Mention을 호출하는 6개 화면
-// (pullrequest 2개 제외) 어디에도 "<script src=.../common/yobi.Mention.js>" 태그가 없었다 — 실제
-// 실행되는 yobi.Mention은 전역 레이아웃이 먼저 로드하는 yona-lib.js 번들에 박혀있던 구식 atjs
-// 기반 사본뿐이었고, 이 티켓이 편집한 common/yobi.Mention.js 소스는 브라우저에 전혀 반영되지
-// 않는 죽은 파일이었다. atjs 삭제로 그 번들 사본이 이제 항상 크래시하게 되어, 지금까지 실제로
-// 동작하던 ":" 이모지 트리거까지 깨지는 회귀였다 — 6개 화면에 tribute.min.js 바로 뒤로 그 스크립트
-// 태그를 추가해(실행 순서상 번들의 정의를 새 정의로 덮어씀) 해결했다. assertMentionScriptLoaded가
-// 그 회귀 방지 테스트다. yona-lib.js 번들 자체에 남은 구식 사본은 이제 완전히 죽은 코드가 됐지만,
-// 빌드 파이프라인 없이 수작업으로 만들어진 레거시 번들이라 정리는 별도 사안으로 남겨둔다.
+// 이 스펙은 실제 드롭다운 표시/후보 선택/키보드 내비게이션 등 Shadow DOM 내부 동작(브라우저 JS
+// 상호작용)은 검증하지 않는다 — MockMvc+Jsoup 하네스는 서버가 내려주는 초기 마크업까지만 볼 수
+// 있다(Shadow DOM 내부는 Playwright가 1차 검증 수단 - p3-46-cm6-plan.md 5단계 절 참고). 대신
+// 아래 "마크업 계약"이 회귀 없이 유지되는지를 검증한다:
+//   1) atjs/atwho/yobi.Mention.js 리소스는 전부 사라져야 한다(5단계에서 yobi.Mention.js가
+//      완전히 삭제됐다 - 순수 로직은 components/editor/src/mention.ts로 흡수,
+//      menuItemTemplate/selectTemplate은 @codemirror/autocomplete의 Completion/addToOptions
+//      어댑터로 새로 작성됨). tribute.min.{js,css} 자체는 계획서 "범위 밖" 절이 명시한
+//      `yona.TitleHeadAutoCompletion.js`(`[` 라벨 트리거, CodeMirror와 무관한 별도 Tribute
+//      인스턴스)가 여전히 전역 Tribute 생성자에 의존하므로, 그 스크립트를 로드하는 3개 화면
+//      (board/create, issue/create, issue/edit)에서는 그대로 유지되어야 한다 - 처음에 8곳
+//      전부에서 걷어냈다가 이 의존을 놓쳐 `[` 트리거를 깨뜨릴 뻔했다(코디네이터 지적으로 발견,
+//      docs/parity/tickets/p3-46.md CM6-5단계 로그 참고). 나머지 5곳(board/edit,
+//      milestone/create·edit, pullrequest/create·edit)은 TitleHeadAutoCompletion을 쓰지 않으므로
+//      tribute도 완전히 사라져야 한다.
+//   2) markdownEditor 프래그먼트(site/layout.html)가 render-url(4단계)과 동일한 게이트
+//      (project != null)로 data-mention-url="/api/{owner}/{name}/mentionList"을 노출해야
+//      한다. 옛 yobi.Mention()은 board/pullrequest/milestone/issue의 create/edit 8개 화면에서만
+//      하드코딩 호출됐지만, 그건 "이 8개 화면만 멘션이 필요하다"는 의도적 설계가 아니라 그 8개만
+//      호출 코드를 추가해뒀을 뿐이었다(pullrequest 두 곳은 심지어 tribute.min.js 자체를 로드하지
+//      않아 이미 깨져 있었다 - Tribute is not defined). 4단계가 미리보기(render-url)를 8개
+//      화면에서 project 컨텍스트가 있는 16개 전부로 넓힌 것과 동일한 이유로 멘션도 여기서 16개
+//      전부로 넓혔다(site/layout.html markdownEditor 프래그먼트 주석 참고 - 코디네이터 재검토가
+//      필요한 판단 지점으로 docs/parity/tickets/p3-46.md CM6-5단계 로그에 기록). 이 스펙은 옛
+//      8개 화면 전부 + 옛 mention-less 화면 1곳(issue/view)에서 이 확장을 검증한다.
+//   3) yona-lib.js(레거시 통짜 번들)에 남아있는 구식 atjs 기반 yobi.Mention 사본은 이제 아무
+//      곳에서도 호출되지 않는 완전한 죽은 코드다(그 번들 자체를 다루는 정리는 별도 사안으로
+//      남겨둔다 - 이전 단계들과 동일한 판단).
 class MentionAutocompleteWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -183,28 +194,32 @@ class MentionAutocompleteWidgetTemplateEquivalenceSpec @Autowired constructor(
                 )
             )
 
-            fun assertNoAtjs(doc: Document) {
+            val expectedMentionUrl = "/api/${project.owner}/${project.name}/mentionList"
+
+            fun assertNoLegacyMentionResources(doc: Document) {
                 doc.select("script[src*=atjs]").size shouldBe 0
                 doc.select("link[href*=atjs]").size shouldBe 0
                 doc.select("script[src*=atwho]").size shouldBe 0
                 doc.select("link[href*=atwho]").size shouldBe 0
+                doc.select("script[src*='yobi.Mention.js']").size shouldBe 0
             }
 
-            fun assertTributeLoaded(doc: Document) {
-                doc.select("script[src='/javascripts/lib/tribute/tribute.min.js']").size shouldBe 1
+            // tribute.min.js/css는 멘션(yobi.Mention.js, 이번에 삭제됨)과 라벨 트리거
+            // (yona.TitleHeadAutoCompletion.js, 범위 밖 - 무변경)가 함께 쓰던 공유 라이브러리다.
+            // 후자가 여전히 전역 Tribute 생성자에 의존하므로, 그 스크립트를 로드하는 3개 화면
+            // (board/create, issue/create, issue/edit)에서는 tribute가 그대로 남아있어야 하고,
+            // 나머지 5개 화면에서는 완전히 사라져야 한다.
+            fun assertTributePresence(doc: Document, expectedPresent: Boolean) {
+                val expectedCount = if (expectedPresent) 1 else 0
+                doc.select("script[src='/javascripts/lib/tribute/tribute.min.js']").size shouldBe expectedCount
             }
 
-            // 메인 세션이 리뷰 중 발견한 회귀(에이전트가 놓침): 이 6개 화면 어디에도
-            // "<script src=.../common/yobi.Mention.js>" 태그가 없어, 실제로 실행되는 yobi.Mention은
-            // 전역으로 먼저 로드되는 yona-lib.js 번들에 박혀있던 구식 atjs 기반 사본뿐이었다(이
-            // 소스 파일을 아무리 Tribute로 재작성해도 브라우저에는 전혀 반영되지 않는 죽은 파일).
-            // atjs 라이브러리 삭제로 그 번들 사본이 이제 항상 "atwho is not a function"을 던지게
-            // 되어, 지금까지 실제로 동작하던 ":" 이모지 트리거까지 깨지는 회귀였다. 6개 화면에
-            // "<script src=.../common/yobi.Mention.js>"를 tribute.min.js 바로 뒤에 추가해
-            // (스크립트 실행 순서상 번들의 구식 정의를 새 정의로 덮어쓰게 됨) 해결 — 이 단언이
-            // 그 수정의 회귀 방지 테스트다.
-            fun assertMentionScriptLoaded(doc: Document) {
-                doc.select("script[src='/javascripts/common/yobi.Mention.js']").size shouldBe 1
+            fun assertMentionUrlExposed(doc: Document): org.jsoup.select.Elements {
+                val editorWraps = doc.select("[data-toggle=markdown-editor]")
+                (editorWraps.size > 0) shouldBe true
+                editorWraps.forEach { it.attr("data-mention-url") shouldBe expectedMentionUrl }
+                editorWraps.forEach { it.select("yona-markdown-editor").size shouldBe 1 }
+                return editorWraps
             }
 
             fun fetchDoc(url: String) = Jsoup.parse(
@@ -212,81 +227,74 @@ class MentionAutocompleteWidgetTemplateEquivalenceSpec @Autowired constructor(
                     .andExpect(status().isOk).andReturn().response.contentAsString
             )
 
-            it("issue/create(issueform) 화면은 atjs 대신 Tribute.js를 로드하고 멘션 대상 textarea와 라벨 트리거 대상 title input을 유지해야 한다") {
+            it("issue/create(issueform) 화면은 atjs 없이 data-mention-url을 노출하고, tribute는 라벨 트리거(TitleHeadAutoCompletion) 때문에 유지되며 그 대상 title input도 유지해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issueform")
-                assertNoAtjs(doc)
-                assertTributeLoaded(doc)
-                assertMentionScriptLoaded(doc)
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = true)
+                assertMentionUrlExposed(doc)
                 doc.select("script[src='/javascripts/common/yona.TitleHeadAutoCompletion.js']").size shouldBe 1
-                doc.select("textarea[id^=editor-]").size shouldBe 1
                 doc.select("input#title").size shouldBe 1
             }
 
-            it("issue/edit(editform) 화면은 atjs 대신 Tribute.js를 로드하고 멘션 대상 textarea와 라벨 트리거 대상 title input을 유지해야 한다") {
+            it("issue/edit(editform) 화면은 atjs 없이 data-mention-url을 노출하고, tribute는 라벨 트리거 때문에 유지되며 그 대상 title input도 유지해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issue/${issue.number}/editform")
-                assertNoAtjs(doc)
-                assertTributeLoaded(doc)
-                assertMentionScriptLoaded(doc)
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = true)
+                assertMentionUrlExposed(doc)
                 doc.select("script[src='/javascripts/common/yona.TitleHeadAutoCompletion.js']").size shouldBe 1
-                doc.select("textarea[id^=editor-]").size shouldBe 1
                 doc.select("input#title").size shouldBe 1
             }
 
-            it("board/create(post/new) 화면은 atjs 대신 Tribute.js를 로드하고 멘션 대상 textarea와 라벨 트리거 대상 title input을 유지해야 한다") {
+            it("board/create(post/new) 화면은 atjs 없이 data-mention-url을 노출하고, tribute는 라벨 트리거 때문에 유지되며 그 대상 title input도 유지해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/post/new")
-                assertNoAtjs(doc)
-                assertTributeLoaded(doc)
-                assertMentionScriptLoaded(doc)
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = true)
+                assertMentionUrlExposed(doc)
                 doc.select("script[src='/javascripts/common/yona.TitleHeadAutoCompletion.js']").size shouldBe 1
-                doc.select("textarea[id^=editor-]").size shouldBe 1
                 doc.select("input#title").size shouldBe 1
             }
 
-            it("board/edit(post/{number}/editform) 화면은 atjs 대신 Tribute.js를 로드하고 멘션 대상 textarea를 유지해야 한다(이 화면은 라벨 트리거[TitleHeadAutoCompletion] 호출부가 없다)") {
+            it("board/edit(post/{number}/editform) 화면은 atjs/tribute 없이 data-mention-url을 노출해야 한다(이 화면은 라벨 트리거[TitleHeadAutoCompletion] 호출부가 없어 tribute도 필요 없다)") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/post/${posting.number}/editform")
-                assertNoAtjs(doc)
-                assertTributeLoaded(doc)
-                assertMentionScriptLoaded(doc)
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = false)
+                assertMentionUrlExposed(doc)
                 doc.select("script[src='/javascripts/common/yona.TitleHeadAutoCompletion.js']").size shouldBe 0
-                doc.select("textarea[id^=editor-]").size shouldBe 1
             }
 
-            it("milestone/create(milestone/new) 화면은 atjs 대신 Tribute.js를 로드하고 멘션 대상 textarea를 유지해야 한다") {
+            it("milestone/create(milestone/new) 화면은 atjs/tribute 없이 data-mention-url을 노출해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/milestone/new")
-                assertNoAtjs(doc)
-                assertTributeLoaded(doc)
-                assertMentionScriptLoaded(doc)
-                doc.select("textarea[id^=editor-]").size shouldBe 1
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = false)
+                assertMentionUrlExposed(doc)
             }
 
-            it("milestone/edit(editform) 화면은 atjs 대신 Tribute.js를 로드하고 멘션 대상 textarea를 유지해야 한다") {
+            it("milestone/edit(editform) 화면은 atjs/tribute 없이 data-mention-url을 노출해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/milestone/${milestone.id}/editform")
-                assertNoAtjs(doc)
-                assertTributeLoaded(doc)
-                assertMentionScriptLoaded(doc)
-                doc.select("textarea[id^=editor-]").size shouldBe 1
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = false)
+                assertMentionUrlExposed(doc)
             }
 
-            it("pullrequest/create(pull/new) 화면은 atjs를 로드한 적이 없었고(범위 밖 발견 — 최종 보고 참고) 지금도 로드하지 않으며, 멘션 대상 textarea는 유지해야 한다") {
+            it("pullrequest/create(pull/new) 화면은 atjs/tribute를 로드한 적이 없었고(범위 밖 발견) 지금도 로드하지 않으며, data-mention-url을 노출해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/pull/new")
-                assertNoAtjs(doc)
-                // 범위 밖 발견: pullrequest/create.html은 atjs 시절에도 atjs/tribute 스크립트를
-                // 전혀 로드하지 않은 채 yobi.Mention()만 호출하고 있었다(기존 버그, 최종 보고
-                // 참고) — 이번 교체로 새로 추가하지 않고 기존 상태를 그대로 보존한다.
-                doc.select("script[src='/javascripts/lib/tribute/tribute.min.js']").size shouldBe 0
-                doc.select("textarea[id^=editor-]").size shouldBe 1
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = false)
+                assertMentionUrlExposed(doc)
             }
 
-            it("pullrequest/edit(pull/{number}/edit) 화면은 atjs를 로드한 적이 없었고(범위 밖 발견 — 최종 보고 참고) 지금도 로드하지 않으며, 멘션 대상 textarea는 유지해야 한다") {
+            it("pullrequest/edit(pull/{number}/edit) 화면은 atjs/tribute를 로드한 적이 없었고(범위 밖 발견) 지금도 로드하지 않으며, data-mention-url을 노출해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/pull/${openPr.number}/edit")
-                assertNoAtjs(doc)
-                doc.select("script[src='/javascripts/lib/tribute/tribute.min.js']").size shouldBe 0
-                doc.select("textarea[id^=editor-]").size shouldBe 1
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = false)
+                assertMentionUrlExposed(doc)
             }
 
-            it("issue/view 화면은 atjs를 더 이상 로드하지 않아야 한다(범위 밖 발견 — yobi.Mention() 호출 자체가 없는 죽은 include였음, 최종 보고 참고)") {
+            it("issue/view(이슈 상세, 옛 CM5/Tribute 시절엔 yobi.Mention() 호출 자체가 없던 화면) 화면도 이제 data-mention-url을 노출해야 한다 - 5단계 스코프 확장 판단(site/layout.html markdownEditor 프래그먼트 주석 참고)") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issue/${issue.number}")
-                assertNoAtjs(doc)
+                assertNoLegacyMentionResources(doc)
+                assertTributePresence(doc, expectedPresent = false)
+                assertMentionUrlExposed(doc)
             }
         }
     }

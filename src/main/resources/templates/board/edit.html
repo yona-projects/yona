@@ -72,19 +72,11 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<link rel="stylesheet" type="text/css" media="screen" href="/javascripts/lib/tribute/tribute.min.css">
-<script type="text/javascript" src="/javascripts/lib/tribute/tribute.min.js"></script>
-<script type="text/javascript" src="/javascripts/common/yobi.Mention.js"></script>
 <script type="text/javascript">
     $(function(){
         $yobi.loadModule("board.Write", {
             "sMode"     : "edit",
             "elTextarea": 'textarea[data-editor-mode="content-body"]'
-        });
-
-        yobi.Mention({
-            "target": 'textarea[id^=editor-]',
-            "url"   : "/api/[[${project.owner}]]/[[${project.name}]]/mentionList"
         });
 
         $("#post-form").submit(function(e) {
