@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.config.security.AccessControl
+import com.github.yonaprojects.yona.domain.attachment.AttachmentRepository
 import com.github.yonaprojects.yona.domain.enumeration.Operation
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
@@ -13,6 +14,7 @@ import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import com.github.yonaprojects.yona.domain.watch.WatchService
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
+import tools.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -43,6 +45,9 @@ class CodeViewController(
     private val accessControl: AccessControl,
     private val markdownService: MarkdownService,
     private val watchService: WatchService,
+    // P3-56: code/svnDiff.html 댓글별 첨부파일 목록(legacy AttachmentApp.getFileList 대응) 렌더링용.
+    private val attachmentRepository: AttachmentRepository,
+    private val objectMapper: ObjectMapper,
     // yona utils.Config.getSiteName() 대응 — code/nohead(_svn).html의 안내 문구 {0} 자리에 채워 넣는다.
     @Value("\${yona.site-name:Yona}")
     private val siteName: String
@@ -546,6 +551,26 @@ class CodeViewController(
             }
             model.addAttribute("patch", patch)
             model.addAttribute("comments", comments)
+            // P3-56: legacy AttachmentApp.getFileList(COMMIT_COMMENT, comment.id) 대응 — 댓글별
+            // 첨부파일 목록을 board/issue 댓글과 동일한 {"attachments":[...]} JSON으로 미리 계산해
+            // .attachments[data-attachments] 컨테이너에 심는다(렌더링은 yobi.Attachments.js가 담당).
+            model.addAttribute(
+                "commentAttachmentsJsonByCommentId",
+                comments.associate { comment ->
+                    val files = attachmentRepository.findByContainerTypeAndContainerId(
+                        ResourceType.COMMIT_COMMENT, comment.id.toString()
+                    ).map { attach ->
+                        mapOf(
+                            "id" to (attach.id?.toString() ?: ""),
+                            "mimeType" to (attach.mimeType ?: ""),
+                            "name" to attach.name,
+                            "url" to "/files/${attach.id}",
+                            "size" to (attach.size?.toString() ?: "0")
+                        )
+                    }
+                    comment.id!! to objectMapper.writeValueAsString(mapOf("attachments" to files))
+                }
+            )
             "code/svnDiff"
         } else {
             val fileDiffs = try {

@@ -68,6 +68,10 @@ class CodeViewControllerSpec : DescribeSpec({
         milestoneRepositoryForAccessControl
     )
 
+    val attachmentRepository = mockk<com.github.yonaprojects.yona.domain.attachment.AttachmentRepository>()
+    every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+    val objectMapperForController = ObjectMapper()
+
     val controller = CodeViewController(
         projectRepository,
         projectUserRepository,
@@ -78,6 +82,8 @@ class CodeViewControllerSpec : DescribeSpec({
         accessControl,
         markdownService,
         watchService,
+        attachmentRepository,
+        objectMapperForController,
         "Yona"
     )
 

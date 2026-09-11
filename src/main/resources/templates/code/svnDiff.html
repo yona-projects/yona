@@ -49,40 +49,63 @@
           <div id="commit" data-commit-origin="true" class="diff-body hide" th:text="${patch}">Patch Content</div>
         </div>
 
-        <!-- SVN Comments List -->
+        <!-- SVN 커밋 댓글 (legacy code/svnDiff.scala.html:100-138 board-comment-wrap 대응. Git 쪽
+             code/partial_nonrange_codecomment_thread.html과 동일한 컴포넌트 구성으로 통일한다:
+             마크다운 렌더링, 아바타, 권한기반 삭제+확인모달, 첨부파일, markdownEditor+uploadForm
+             폼(#24/#25/#26 그룹 프래그먼트 재사용) — TEMPLATE_BACKLOG 감사에서 발견된 격차(P3-56)
+             복구. -->
         <div class="board-comment-wrap" style="margin-top: 30px;">
-          <ul class="comments" style="list-style: none; padding-left: 0;" th:if="${comments != null && !comments.isEmpty()}">
-            <li th:each="comment : ${comments}" th:id="'comment-' + ${comment.id}" class="comment" style="display: flex; margin-bottom: 15px; border-bottom: 1px solid #f6f8fa; padding-bottom: 10px;">
-              <div class="comment-avatar" style="margin-right: 10px;">
-                <img src="/images/default-avatar-32.png" width="32" height="32" style="border-radius: 50%;">
+          <ul class="comments" th:if="${comments != null && !comments.isEmpty()}">
+            <li th:each="comment : ${comments}" th:id="'comment-' + ${comment.id}" class="comment"
+                th:with="commentAuthorUser=${comment.author?.loginId != null} ? ${@userRepository.findByLoginId(comment.author.loginId).orElse(null)} : null">
+              <div class="comment-avatar">
+                <a th:if="${comment.author?.loginId != null}" th:href="@{/user/{loginId}(loginId=${comment.author.loginId})}" class="avatar-wrap"
+                   data-toggle="tooltip" data-placement="top" th:title="${comment.author.name}">
+                  <img th:src="${commentAuthorUser != null ? commentAuthorUser.avatarUrl : '/images/default-avatar-32.png'}" width="32" height="32" th:alt="${comment.author?.loginId}">
+                </a>
+                <span th:unless="${comment.author?.loginId != null}" class="avatar-wrap">
+                  <img src="/images/default-avatar-32.png" width="32" height="32">
+                </span>
               </div>
-              <div class="media-body" style="flex: 1;">
-                <div class="meta-info" style="font-size: 12px; color: #586069; margin-bottom: 4px;">
-                  <strong style="color: #24292e;" th:text="${comment.author?.loginId}">작성자</strong>
-                  <span th:text="${templateHelper.getDateString(comment.createdDate)}">작성일</span>
-                  <span class="edit pull-right" th:if="${currentUser != null && comment.author?.id == currentUser.id}">
-                    <button type="button" class="btn-transparent btn-comment-delete" th:data-comment-id="${comment.id}" style="background: none; border: none; font-size: 13px; cursor: pointer; color: #cb2431;">
-                      <i class="yobicon-trash"></i>
-                    </button>
+              <div class="media-body">
+                <div class="meta-info">
+                  <span class="comment_author pull-left">
+                    <a th:if="${comment.author?.loginId != null}" th:href="@{/user/{loginId}(loginId=${comment.author.loginId})}">
+                      <strong th:text="${comment.author.loginId}">작성자</strong>
+                    </a>
+                  </span>
+                  <span class="ago" th:title="${templateHelper.getDateString(comment.createdDate)}" th:text="${templateHelper.agoOrDateString(comment.createdDate)}">방금 전</span>
+                  <span class="edit pull-right" th:if="${@accessControl.isAllowed(currentUser, project, comment, T(com.github.yonaprojects.yona.domain.enumeration.Operation).DELETE)}">
+                    <button class="btn-transparent pull-right close" data-toggle="comment-delete"
+                            th:data-request-uri="@{/comments/COMMIT_COMMENT/{id}(id=${comment.id})}"><i class="yobicon-trash"></i></button>
                   </span>
                 </div>
-                <div class="comment-body markdown-wrap" style="font-size: 13px; color: #24292e; white-space: pre-wrap;" th:text="${comment.contents}">댓글 내용</div>
+                <div class="comment-body markdown-wrap" th:utext="${markdownService.render(comment.contents, true, project)}">댓글 내용</div>
+                <div class="attachments" th:data-attachments="${commentAttachmentsJsonByCommentId != null ? commentAttachmentsJsonByCommentId.get(comment.id) : '{}'}"></div>
               </div>
             </li>
           </ul>
 
-          <!-- SVN Comment Form -->
-          <div class="write-comment-form" th:if="${currentUser != null}" style="margin-top: 20px;">
-            <form th:action="@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commit.id})}" method="post">
-              <div class="write-comment-box" style="display: flex; flex-direction: column; gap: 8px;">
-                <textarea name="contents" placeholder="이 SVN 커밋에 댓글을 남기세요..." style="width: 100%; height: 80px; padding: 10px; border: 1px solid #d1d5da; border-radius: 3px; font-family: sans-serif; resize: vertical;" required></textarea>
-                <div style="text-align: right;">
-                  <button type="submit" class="ybtn ybtn-success">댓글 등록</button>
+          <!-- SVN 커밋 댓글 작성 폼: Git 쪽 code/diff.html(범위 없는 커밋 댓글)과 동일하게
+               markdownEditor(에디터+멘션)/uploadForm(첨부) 프래그먼트를 재사용한다. -->
+          <div class="write-comment-form" th:if="${currentUser != null}">
+            <form th:action="@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commit.id})}" method="post" enctype="multipart/form-data">
+              <div class="write-comment-box">
+                <div th:replace="~{site/layout :: markdownEditor('contents', '', 'comment-body')}"></div>
+
+                <div th:replace="~{common/uploadForm :: uploadForm('COMMIT_COMMENT', null, 'upload')}"></div>
+
+                <div class="write-comment-wrap">
+                  <div class="right-txt">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}">댓글 등록</button>
+                  </div>
                 </div>
               </div>
             </form>
           </div>
         </div>
+
+        <div th:replace="~{common/commentDeleteModal :: commentDeleteModal('.board-comment-wrap')}"></div>
 
         <button th:if="${currentUser != null}" id="watch-button" type="button" class="ybtn" th:classappend="${isWatching} ? 'active' : ''"
                 data-toggle="button" th:text="#{notification.watch}">지켜보기</button>
@@ -119,22 +142,8 @@
                 "sCodeURL"       : codeUrl
             });
         }
-
-        // delete comment action
-        $(document).on("click", ".btn-comment-delete", function() {
-            const commentId = $(this).attr("data-comment-id");
-            if (confirm("댓글을 삭제하시겠습니까?")) {
-              fetch("/comments/COMMIT_COMMENT/" + commentId, {
-                method: "DELETE"
-              }).then(res => {
-                if (res.ok) {
-                  location.reload();
-                } else {
-                  alert("댓글 삭제에 실패했습니다.");
-                }
-              });
-            }
-        });
+        // 댓글 삭제는 이제 common/commentDeleteModal 프래그먼트(data-toggle="comment-delete" +
+        // data-request-uri 위임)가 처리한다 — 다른 댓글 화면들과 동일한 삭제 UX로 통일(P3-56).
     });
 </script>
 </body>
