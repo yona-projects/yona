@@ -6,17 +6,25 @@
 <!-- legacy partial_comment_thread.scala.html 대응 (그룹11 #186). 코드리뷰 스레드 렌더러(댓글
      목록 + 답글 폼). CodeCommentThread면 data-range-* 속성으로 라인 범위 정보를 함께 노출한다. -->
 <div th:fragment="thread(thread, project, pull)"
+     th:with="isCodeCommentThread=${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread)},
+              rangePath=${isCodeCommentThread ? thread.codeRange.path : null},
+              rangeStartSide=${isCodeCommentThread ? thread.codeRange.startSide : null},
+              rangeStartLine=${isCodeCommentThread ? thread.codeRange.startLine : null},
+              rangeStartColumn=${isCodeCommentThread ? thread.codeRange.startColumn : null},
+              rangeEndSide=${isCodeCommentThread ? thread.codeRange.endSide : null},
+              rangeEndLine=${isCodeCommentThread ? thread.codeRange.endLine : null},
+              rangeEndColumn=${isCodeCommentThread ? thread.codeRange.endColumn : null}"
      th:id="'thread-' + ${thread.id}"
      th:data-state="${#strings.toLowerCase(thread.state.name())}"
-     th:class="'comment-thread-wrap ' + ${#strings.toLowerCase(thread.state.name())} + ${(thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) and thread.state.name() == 'CLOSED') ? ' fold' : ''}"
-     th:data-toggle="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? 'CodeCommentThread' : null}"
-     th:data-range-path="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.path : null}"
-     th:data-range-startside="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.startSide : null}"
-     th:data-range-startline="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.startLine : null}"
-     th:data-range-startcolumn="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.startColumn : null}"
-     th:data-range-endside="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.endSide : null}"
-     th:data-range-endline="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.endLine : null}"
-     th:data-range-endcolumn="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.endColumn : null}">
+     th:class="'comment-thread-wrap ' + ${#strings.toLowerCase(thread.state.name())} + ${(isCodeCommentThread and thread.state.name() == 'CLOSED') ? ' fold' : ''}"
+     th:data-toggle="${isCodeCommentThread ? 'CodeCommentThread' : null}"
+     th:data-range-path="${rangePath}"
+     th:data-range-startside="${rangeStartSide}"
+     th:data-range-startline="${rangeStartLine}"
+     th:data-range-startcolumn="${rangeStartColumn}"
+     th:data-range-endside="${rangeEndSide}"
+     th:data-range-endline="${rangeEndLine}"
+     th:data-range-endcolumn="${rangeEndColumn}">
 
     <div class="btn-thread-here btn-thread-minimize">
         <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-post2"></i></button>

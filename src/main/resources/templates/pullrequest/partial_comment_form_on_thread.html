@@ -10,7 +10,8 @@
  방식 그대로 살아있는 REST 엔드포인트) — legacy와 동일하게 실제 <form method="post"> 그대로 재사용.
 -->
 <th:block th:fragment="form(thread, project, pull, currentUser)">
-    <th:block th:with="canCreate=${currentUser != null and @accessControl.isProjectResourceCreatable(currentUser, project, T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT)}">
+    <th:block th:with="reviewCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT},
+                       canCreate=${currentUser != null and @accessControl.isProjectResourceCreatable(currentUser, project, reviewCommentResourceType)}">
         <div class="write-comment-form" th:if="${canCreate}">
             <form th:action="${pull != null}
                     ? @{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pull.id}, commitId=${thread.commitId})}
@@ -28,7 +29,7 @@
                     <div class="write-comment-wrap">
                         <div th:replace="~{site/layout :: markdownEditor('contents', '', 'code-review-body')}"></div>
 
-                        <div th:replace="~{common/uploadForm :: uploadForm(${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT}, null, null)}"></div>
+                        <div th:replace="~{common/uploadForm :: uploadForm(${reviewCommentResourceType}, null, null)}"></div>
 
                         <div class="right-txt">
                             <button th:if="${@accessControl.isAllowed(currentUser, project, thread, T(com.github.yonaprojects.yona.domain.enumeration.Operation).UPDATE)}"

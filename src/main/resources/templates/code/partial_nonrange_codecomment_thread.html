@@ -17,11 +17,12 @@ model 암묵 접근이 안 되므로 project/currentUser를 명시적으로 함�
     <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-comments"></i></button>
   </div>
   <ul class="comments">
-    <li th:each="comment : ${thread.reviewComments}" th:id="'comment-' + ${comment.id}" class="comment">
+    <li th:each="comment : ${thread.reviewComments}" th:id="'comment-' + ${comment.id}" class="comment"
+        th:with="commentAuthorAvatarUrl=${@userRepository.findByLoginId(comment.author.loginId).orElse(null)?.avatarUrl}">
       <div class="comment-avatar">
         <a th:href="@{/user/{loginId}(loginId=${comment.author.loginId})}" class="avatar-wrap"
            data-toggle="tooltip" data-placement="top" th:title="${comment.author.name}">
-          <img th:src="${@userRepository.findByLoginId(comment.author.loginId).orElse(null)?.avatarUrl}"
+          <img th:src="${commentAuthorAvatarUrl}"
                width="32" height="32" th:alt="${comment.author.loginId}">
         </a>
       </div>
