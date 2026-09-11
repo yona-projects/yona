@@ -119,9 +119,18 @@
                                                 <button th:if="${currentUser != null and (comment.authorId == currentUser.id or isProjectManager)}" type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete" th:data-request-uri="${commentApiBase} + '/' + ${comment.id}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
                                             </span>
                                         </div>
-                                        <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${postingCommentResourceType}, ${commentAttachmentsByCommentId != null ? commentAttachmentsByCommentId.get(comment.id) : null})}"></div>
+                                        <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${postingCommentResourceType}, ${commentAttachmentsByCommentId != null ? commentAttachmentsByCommentId.get(comment.id) : null}, @{/{owner}/{projectName}/post/{number}/comment/{commentId}(owner=${project.owner}, projectName=${project.name}, number=${post.number}, commentId=${comment.id})})}"></div>
                                         <div th:id="'comment-body-' + ${comment.id}">
-                                            <div class="content markdown-wrap" th:utext="${markdownService.render(comment.contents, true, project)}">댓글내용</div>
+                                            <!-- P3-60: legacy board/partial_comments.scala.html:67-70 대응 —
+                                                 본문(56-62행)에는 이미 있던 .tasklist 셸/data-allowed-update가
+                                                 댓글 쪽엔 빠져 있었다(issue/view.html과 동일한 대칭적 격차). -->
+                                            <div class="tasklist">
+                                                <div class="task-title">Tasks<span class="done-counter"></span></div>
+                                                <div class="task-progress">
+                                                    <div class="bar red" style="width: 0;" title="Tasklist"></div>
+                                                </div>
+                                            </div>
+                                            <div class="content markdown-wrap" th:data-allowed-update="${canEditThisComment}" th:utext="${markdownService.render(comment.contents, true, project)}">댓글내용</div>
                                         </div>
                                     </div>
                                     <div th:replace="~{common/childComments :: childComments(${comment}, ${children}, ${project}, ${commentApiBase}, ${currentUser}, ${isProjectManager})}"></div>

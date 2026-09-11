@@ -22,8 +22,18 @@
  발행한다(작성자가 아닌 사람이 수정하면 체크박스와 무관하게 항상 발행 — legacy
  IssueApp/BoardApp.saveComment()와 동일).
 -->
-<div th:fragment="updateForm(comment, apiBase, isAllowedUpdate, resourceType, attachments)" th:id="'comment-editform-' + ${comment.id}" class="comment-update-form">
-    <form th:id="'comment-update-form-' + ${comment.id}" th:data-api-base="${apiBase}" th:data-comment-id="${comment.id}" th:data-original="${comment.contents}">
+<!--
+ P3-60: th:action은 REST JSON API(apiBase, PUT + application/json 전체 댓글 수정용)가 아니라
+ legacy 호환 bare 경로(CommentController.updateIssueCommentLegacyPath/updatePostingCommentLegacyPath,
+ PUT/PATCH 둘 다 허용, {content, original} 필드명)를 가리켜야 한다 — yona.Tasklist.js가 댓글
+ 본문의 체크박스를 클릭할 때 정확히 이 폼(`$this.closest("div[id]").prev().find("form")`가
+ 찾는 폼)의 action으로 PATCH를 보내고 {content, original} JSON을 싣기 때문. 호출부(issue/board
+ view)가 각자의 owner/project/issue-or-post 번호로 미리 계산해 contentPatchUrl로 넘긴다(이
+ fragment는 issue/board 양쪽에서 재사용돼 URL 세그먼트 이름(issue vs post, comments vs comment)이
+ 달라 여기서 직접 계산할 수 없음).
+-->
+<div th:fragment="updateForm(comment, apiBase, isAllowedUpdate, resourceType, attachments, contentPatchUrl)" th:id="'comment-editform-' + ${comment.id}" class="comment-update-form">
+    <form th:id="'comment-update-form-' + ${comment.id}" th:action="${contentPatchUrl}" th:data-api-base="${apiBase}" th:data-comment-id="${comment.id}" th:data-original="${comment.contents}">
         <div class="write-comment-box">
             <div class="write-comment-wrap">
                 <div th:replace="~{site/layout :: markdownEditor('contents-' + ${comment.id}, ${comment.contents}, 'update-comment-body')}"></div>

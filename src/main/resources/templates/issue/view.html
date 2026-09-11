@@ -260,9 +260,20 @@
                                                 </th:block>
                                             </span>
                                         </div>
-                                        <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${issueCommentResourceType}, ${commentAttachmentsByCommentId != null ? commentAttachmentsByCommentId.get(comment.id) : null})}"></div>
+                                        <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${issueCommentResourceType}, ${commentAttachmentsByCommentId != null ? commentAttachmentsByCommentId.get(comment.id) : null}, @{/{owner}/{projectName}/issue/{number}/comments/{commentId}(owner=${project.owner}, projectName=${project.name}, number=${issue.number}, commentId=${comment.id})})}"></div>
                                         <div th:id="'comment-body-' + ${comment.id}">
-                                            <div class="content markdown-wrap" th:utext="${markdownService.render(comment.contents, true, project)}">댓글내용</div>
+                                            <!-- P3-60: legacy issue/partial_comment.scala.html:108-113 대응 —
+                                                 본문(69-76행)에는 이미 있던 .tasklist 셸/data-allowed-update가
+                                                 댓글 쪽엔 빠져 있어 댓글의 GFM 체크리스트에 진행률 바가 안 뜨고
+                                                 (yona.Tasklist.js가 $this.prev()로 .tasklist를 찾음), 수정 권한
+                                                 없는 사용자의 체크박스도 비활성화되지 않았다. -->
+                                            <div class="tasklist">
+                                                <div class="task-title">Tasks<span class="done-counter"></span></div>
+                                                <div class="task-progress">
+                                                    <div class="bar red" style="width: 0;" title="Tasklist"></div>
+                                                </div>
+                                            </div>
+                                            <div class="content markdown-wrap" th:data-allowed-update="${canEditThisComment}" th:utext="${markdownService.render(comment.contents, true, project)}">댓글내용</div>
                                         </div>
                                     </div>
                                     <div th:replace="~{common/childComments :: childComments(${comment}, ${children}, ${project}, ${commentApiBase}, ${currentUser}, ${isProjectManager})}"></div>
