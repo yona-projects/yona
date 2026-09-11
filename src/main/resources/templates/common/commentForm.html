@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy common/commentForm.scala.html 대응 (P3-55). "범위 없는 일반 댓글 작성" 폼 - PR
+ changes 탭의 board-comment-wrap 안, non-ranged-threads-wrap 바로 다음(legacy
+ git/viewChanges.scala.html 141-146줄과 동일 위치)에 항상 보이는(legacy CSS에 display:none이
+ 없었다) 폼이다. legacy에서 같은 board-comment-wrap 밖에 있던 reviewForm/CodeCommentBox.js
+ (diff 라인/스레드로 동적 이동되는 팝오버 템플릿)와는 완전히 다른 파일이었는데, yona 포팅
+ 과정에서 이 파일 자체가 누락되고 reviewForm이 그 자리를 대신 차지하고 있었던 것을 재발견해
+ 새로 만들었다(P3-55 티켓 참고 - reviewForm/CodeCommentBox.js는 결국 삭제).
+
+ common.editor("contents","","","comment-body") -> site/layout::markdownEditor. legacy는
+ editor-mode로 "comment-body"를 썼지만, 같은 화면(PR changes 탭)의 다른 REVIEW_COMMENT 폼들
+ (기존 스레드 답글 - commentFormOnThread.html/partial_comment_form_on_thread.html)이 전부
+ "code-review-body"를 쓰고 있어 이 페이지 내 일관성을 위해 그대로 맞췄다(순수 CSS/속성 스코프용
+ 문자열이라 기능 차이는 없음).
+ common.fileUploader(resourceType, null) -> common/uploadForm::uploadForm 재사용(다른
+ REVIEW_COMMENT 폼들과 동일).
+ 권한 없음(canComment=false)일 때의 비활성 placeholder는 legacy 그대로(로그인 필요 안내)이며,
+ 이미 포팅된 common/child_commentForm.html의 동일 패턴을 그대로 따른다.
+
+ commitId는 action URL에 쿼리파라미터로 직접 굽지 않는다 - `@{...(commitId=${commitId})}`처럼
+ 넣으면 commitId가 null이어도(변경사항 탭 "전체" 보기의 기본값) Thymeleaf가 `?commitId=`를
+ 그대로 렌더링해버려서, 서버가 commitId를 null이 아니라 빈 문자열로 바인딩하게 되고
+ CodeReviewServiceImpl.createReviewComment()의 "commitId != null이면 그 값을 쓰고, 아니면
+ PR의 병합 커밋으로 대체" 폴백이 깨진다(직접 재현/확인). 그 대신 같은 페이지의 라인별 댓글
+ 폼(pullrequest/view.html 인라인 스크립트)이 이미 쓰던 방식대로 commitId가 있을 때만 hidden
+ 필드를 추가한다.
+-->
+<div th:fragment="commentForm(project, resourceType, action, currentUser, canComment, commitId)" id="comment-form-wrap">
+    <form th:if="${canComment}" id="comment-form" th:action="${action}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="commitId" th:if="${commitId != null}" th:value="${commitId}"/>
+        <div class="write-comment-box">
+            <div th:replace="~{site/layout :: markdownEditor('contents', '', 'code-review-body')}"></div>
+
+            <div th:replace="~{common/uploadForm :: uploadForm(${resourceType}, null, null)}"></div>
+
+            <div class="write-comment-wrap">
+                <div class="right-txt">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}">댓글 등록</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div th:unless="${canComment}" class="write-comment-box mt20" th:title="#{error.auth.unauthorized.comment}" data-login="required">
+        <div class="write-comment-wrap">
+            <div class="textarea-box">
+                <textarea class="comment disabled" disabled="disabled" style="cursor:text;"></textarea>
+            </div>
+            <div class="right-txt mt10">
+                <span class="ybtn ybtn-disabled" th:text="#{button.comment.new}">댓글 등록</span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

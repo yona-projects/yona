@@ -187,7 +187,9 @@
                          th:with="canReviewComment=${currentUser != null and @accessControl.isProjectResourceCreatable(currentUser, project, T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT)}"
                          th:data-can-review-comment="${canReviewComment}"
                          th:data-review-comment-post-url="@{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}"
-                         th:data-commit-id="${commitId}">
+                         th:data-commit-id="${commitId}"
+                         th:data-markdown-render-url="@{/markdown/{owner}/{name}(owner=${project.owner}, name=${project.name})}"
+                         th:data-mention-url="@{/api/{owner}/{name}/mentionList(owner=${project.owner}, name=${project.name})}">
                         <div id="commits" class="btn-group auto mb10">
                             <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                 <span class="d-label" th:text="${commitId == null} ? #{pullRequest.changes.all} : ${commitId}">전체</span>
@@ -212,10 +214,23 @@
                                          th:replace="~{pullrequest/partial_comment_thread :: thread(${thread}, ${project}, ${pr})}"></div>
                                 </th:block>
                             </div>
-                            <th:block th:if="${currentUser != null and @accessControl.isProjectResourceCreatable(currentUser, project, T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT)}"
-                                      th:with="reviewCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT},
-                                               reviewFormAction=@{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id}, commitId=${commitId})}">
-                                <div th:replace="~{common/reviewForm :: reviewForm(${project}, ${reviewCommentResourceType}, ${reviewFormAction}, ${currentUser})}"></div>
+                            <!--
+                             P3-55: legacy 재조사 결과, board-comment-wrap 안에서 "범위 없는
+                             일반 댓글 작성"을 담당하던 것은 reviewForm이 아니라 완전히 별도
+                             파일인 common.commentForm(container, resourceType, action)이었다
+                             (legacy git/viewChanges.scala.html 145줄 - common/commentForm
+                             .scala.html 호출, non-ranged-threads-wrap 바로 다음). reviewForm은
+                             board-comment-wrap 밖의 "BlockComment" 섹션에서 diff 라인/스레드로
+                             yobi.CodeCommentBox.js가 동적으로 옮겨 재사용하던 별개의 팝오버
+                             템플릿이었다(그래서 죽은 코드로 판단해 common/reviewForm.html +
+                             yobi.CodeCommentBox.js를 완전히 제거했다 - code/diff.html이 이미
+                             별도 vanilla JS 패턴으로 대체한 것과 동일 판단, P3-52). 포팅
+                             과정에서 commentForm에 대응하는 파일이 통째로 누락돼 있던 것을
+                             새로 만들었다(common/commentForm.html) - legacy와 동일 위치에 배치.
+                            -->
+                            <th:block th:with="reviewCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT},
+                                               commentFormAction=@{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}">
+                                <div th:replace="~{common/commentForm :: commentForm(${project}, ${reviewCommentResourceType}, ${commentFormAction}, ${currentUser}, ${canReviewComment}, ${commitId})}"></div>
                             </th:block>
                         </div>
                     </div>
@@ -398,6 +413,8 @@
       if ($changesRoot.length && $changesRoot.data('canReviewComment')) {
           var reviewCommentPostUrl = $changesRoot.data('reviewCommentPostUrl');
           var reviewCommentCommitId = $changesRoot.data('commitId');
+          var markdownRenderUrl = $changesRoot.data('markdownRenderUrl');
+          var mentionUrl = $changesRoot.data('mentionUrl');
           var csrfParameterName = [[${_csrf != null ? _csrf.parameterName : ''}]];
           var csrfTokenValue = [[${_csrf != null ? _csrf.token : ''}]];
 
@@ -439,7 +456,19 @@
                   '<input type="hidden" name="endLine" value="' + lineVal + '">' +
                   '<input type="hidden" name="endColumn" value="0">' +
                   '<div style="display:flex;align-items:flex-start;">' +
-                  '<textarea name="contents" placeholder="' + [[#{button.comment.new}]] + '" style="width:100%;height:50px;padding:6px;border:1px solid #d1d5da;border-radius:3px;resize:vertical;margin-right:10px;font-size:12px;" required></textarea>' +
+                  // P3-55: 순수 <textarea>였던 자리를 site/layout.html::markdownEditor
+                  // 프래그먼트와 동일한 마크업(data-toggle="markdown-editor" 래퍼 +
+                  // <yona-markdown-editor>)으로 교체한다 - 커스텀 엘리먼트는 이미 전역
+                  // 로드돼 있어(site/layout::scripts) 문자열로 삽입해도 브라우저가
+                  // connectedCallback을 실행해 정상 초기화한다(P3-55 티켓의 사전 조사에서
+                  // .min.js를 직접 확인). name="contents" light DOM textarea가 폼 제출 시
+                  // 자동으로 값에 동기화된다. render-url/mention-url은 markdownEditor
+                  // 프래그먼트와 동일하게 $changesRoot의 data 속성에서 읽는다.
+                  '<div data-toggle="markdown-editor" class="mt10" style="flex:1;margin-right:10px;" ' +
+                  'data-markdown-render-url="' + markdownRenderUrl + '" data-mention-url="' + mentionUrl + '">' +
+                  '<div class="editor-notice-label"></div>' +
+                  '<div class="textarea-box"><yona-markdown-editor name="contents" editor-mode="code-review-body"></yona-markdown-editor></div>' +
+                  '</div>' +
                   '<button type="submit" class="ybtn ybtn-success ybtn-small" style="padding:4px 10px;">' + [[#{button.comment.new}]] + '</button>' +
                   '</div></form></div></td></tr>';
               $tr.after(formHtml);

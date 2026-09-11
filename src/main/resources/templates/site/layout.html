@@ -421,6 +421,17 @@
            2단계에서 완전히 걷어냄.
          - .editor-clear-temporary("임시저장 지우기") / .notification-receiver(알림수신자 목록) -
            4단계에서 재구현 예정.
+           (2026-09-11 추가 완료 - P3-55와 함께 처리된 별도 항목) .editor-clear-temporary는
+           재구현됐다: 아래 markdownEditor 프래그먼트에 .editor-notice-label 옆(형제 요소로,
+           안쪽에 두면 temporarySaveHandler의 noticePanel.html(...)가 "Draft saved" 표시를 그릴
+           때 통째로 지워지므로 피함)에 버튼을 새로 추가하고, 클릭 시 기존 전역 함수
+           removeCurrentPageTemprarySavedContent()(service/yona.temporarySaveHandler.js -
+           yona-lib.js에 박혀있는 사본과 기능이 완전히 동일해 별도로 로드할 필요는 없었다,
+           위 yobi.Markdown/yobi.Files/yobi.ShortcutKey 케이스와 달리 여기는 진짜 함정이
+           아니었음)을 호출한 뒤 페이지를 새로고침한다(legacy issue/edit.scala.html의
+           `.editor-clear-temporary-button` 클릭 핸들러와 동일한 동작 - "Draft saved" 표시와
+           버튼 자체 모두 자연히 사라짐). .notification-receiver(알림수신자 목록)는 여전히
+           범위 밖(별도 항목).
          유지한 것: help/markdown 프래그먼트(마크다운 도움말 - 에디터와 독립적이라 그대로 둠),
          .editor-notice-label(임시저장 시스템이 "Draft saved"를 표시하는 곳 - 살아있는 기능이라
          DOM은 유지, 위치/스타일만 새로 잡음).
@@ -452,6 +463,21 @@
          th:data-markdown-render-url="${project != null} ? (@{/markdown/{owner}/{name}(owner=${project.owner}, name=${project.name})}) : null"
          th:data-mention-url="${project != null} ? (@{/api/{owner}/{name}/mentionList(owner=${project.owner}, name=${project.name})}) : null">
         <div class="editor-notice-label"></div>
+        <!--
+         legacy common/editor.scala.html의 #button-clear-temporary 대응(P3-46 8번 항목,
+         "4단계에서 재구현 예정"으로 미뤄뒀던 것 - P3-55와 함께 처리). .editor-notice-label
+         "안"이 아니라 형제로 둔다 - temporarySaveHandler(yona-lib.js에 박혀있는, 기능은 동일한
+         사본)가 초안을 저장할 때마다 noticePanel.html("<span class=\"saved\">Draft saved</span>")로
+         .editor-notice-label의 내용을 통째로 갈아치우므로, 안에 두면 버튼이 주기적으로
+         사라진다. 기본은 legacy와 동일하게 숨김(display:none, CSS는 yobi.css의
+         .editor-clear-temporary 규칙 재사용) - 아래 markdown(project) 스크립트가 이 페이지 경로에
+         대한 localStorage 임시저장이 있을 때만 보여준다.
+        -->
+        <div class="editor-clear-temporary">
+            <div class="editor-clear-temporary-button">
+                <button type="button" class="ybtn ybtn-small ybtn-warning" th:text="#{button.clear.temporary}">복구된 본문 삭제</button>
+            </div>
+        </div>
 
         <div class="textarea-box">
             <yona-markdown-editor th:attr="name=${name},editor-mode=${editorMode}" th:text="${value}"></yona-markdown-editor>
@@ -487,6 +513,28 @@
 
         // Reusable markdown renderer
         yobi.Markdown.init(htOptions);
+
+        // P3-46 8번 항목("4단계에서 재구현 예정"으로 미뤄뒀던 .editor-clear-temporary) - P3-55와
+        // 함께 처리. legacy issue/edit.scala.html의 페이지별 인라인 배선을 markdownEditor를 쓰는
+        // 모든 화면에 공통 적용되도록 여기로 옮겼다 - 한 페이지에 markdownEditor 인스턴스가
+        // 여러 개(예: PR changes 탭의 여러 스레드 답글 폼) 있어도 각자의
+        // [data-toggle="markdown-editor"] 안에서만 보이고 닫히도록 스코프를 준다(legacy는
+        // 페이지당 에디터가 하나뿐이라 이 스코프 문제가 없었다).
+        $('[data-toggle="markdown-editor"]').each(function(){
+            if (localStorage.getItem(location.pathname) != null) {
+                $(this).find('.editor-clear-temporary').show();
+            }
+        });
+        $(document).on('click', '.editor-clear-temporary-button', function(){
+            // removeCurrentPageTemprarySavedContent()는 yona-lib.js에 박혀있는 사본이 제공한다 -
+            // service/yona.temporarySaveHandler.js(독립 파일)와 기능이 완전히 동일해(문자열
+            // 비교로 확인) 별도로 <script src>를 추가할 필요가 없었다(yobi.Markdown/yobi.Files/
+            // yobi.ShortcutKey 때와 달리 진짜 함정이 아니었음).
+            removeCurrentPageTemprarySavedContent();
+            // "Draft saved" 표시와 이 버튼 자체가 함께 사라지도록 legacy와 동일하게 새로고침한다
+            // (issue/edit.scala.html의 .editor-clear-temporary-button 클릭 핸들러와 동일 동작).
+            window.location.reload();
+        });
     });
     </script>
   </th:block>

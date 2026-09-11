@@ -18,6 +18,7 @@ import com.github.yonaprojects.yona.domain.user.YonaUserDetails
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import org.jsoup.Jsoup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.authority.AuthorityUtils
@@ -95,6 +96,28 @@ class PullRequestInlineReviewCommentWiringTemplateRenderingSpec @Autowired const
                 body shouldContain "add-comment-btn-cell"
                 body shouldContain "pr-comment-form-tr"
                 body shouldContain "canReviewComment"
+            }
+
+            // P3-55: 라인별(ranged) 리뷰 댓글 삽입 폼이 순수 <textarea>가 아니라
+            // <yona-markdown-editor>(CM6 에디터, P3-46에서 16개 화면에 이미 붙인 컴포넌트)를
+            // 쓰도록 교체됐는지 확인한다. 실제 Shadow DOM 초기화/툴바/멘션/미리보기 동작 자체는
+            // Jsoup/MockMvc로 검증할 수 없어(브라우저 런타임 필요) 완료 시점에 Playwright로
+            // 1회 별도 확인한다 - 여기서는 순수 문자열 <textarea name="contents">가 더 이상
+            // 남아있지 않고, markdownEditor 프래그먼트와 동일한 마크업 계약
+            // (data-toggle="markdown-editor" + render-url/mention-url + <yona-markdown-editor>)이
+            // 인라인 스크립트에 내려가는지만 확인한다.
+            it("라인별 댓글 삽입 폼에는 순수 textarea 대신 yona-markdown-editor가 쓰여야 한다") {
+                val result = mockMvc.perform(
+                    get("/${project.owner}/${project.name}/pull/${pr.number}/changes").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                ).andReturn()
+
+                val body = result.response.contentAsString
+
+                body shouldContain "<yona-markdown-editor name=\"contents\" editor-mode=\"code-review-body\">"
+                body shouldContain "data-toggle=\"markdown-editor\""
+                body shouldContain "markdownRenderUrl"
+                body shouldContain "mentionUrl"
+                body shouldNotContain "textarea name=\"contents\""
             }
         }
     }
