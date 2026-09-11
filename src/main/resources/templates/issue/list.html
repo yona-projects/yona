@@ -400,7 +400,17 @@
 <script type="text/javascript" th:inline="javascript">
     $(function(){
         $yobi.loadModule("issue.List");
-
+    });
+</script>
+<!-- 부수 발견(P3-61 완료 로그 보고, 코디네이터가 직접 조사·수정): legacy
+     issue/partial_list_wrap.scala.html:61-71은 검색 결과가 없으면(isEmpty 분기) partial_massupdate
+     (마크업 + 이 초기화 스크립트가 같은 파일 안에 함께 있음) 자체를 렌더링하지 않는다 — 결과가
+     있고(else 분기) 프로젝트 멤버일 때만 마크업과 초기화가 함께 나온다. 이 스크립트를 무조건
+     실행되는 전역 블록에 둔 채로 있었어서, 결과 0건이면 #mass-update-form이 DOM에 없는데
+     yobi.issue.MassUpdate._setMassUpdateFormAffixed()가 $('.mass-update-wrap').offset()을
+     불러 TypeError가 났다 — 마크업(248행)과 동일한 조건으로 감싸 legacy와 동치로 되돌린다. -->
+<script type="text/javascript" th:if="${!issuePage.content.isEmpty() && currentUser != null && currentUser.isMemberOf(project)}" th:inline="javascript">
+    $(function(){
         // 일괄 업데이트 초기화
         $yobi.loadModule("issue.MassUpdate", {
             "sURL": /*[[@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}]]*/ "",
