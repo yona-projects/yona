@@ -284,7 +284,7 @@ yona(`/home/jiho/yona-convert/yona/src/main/resources/templates/**/*.html`, Thym
 | 150 | [x] | `milestone/create.scala.html` | `milestone/create.html` | 완료 확인(TASK-0253). 제목/에디터/첨부/상태라디오/기한 필드 전부 legacy와 일치 |
 | 151 | [x] | `milestone/edit.scala.html` | `milestone/edit.html` | 완료 확인(TASK-0253). create.html과 동일 패턴, legacy와 일치 |
 | 152 | [x] | `milestone/view.scala.html` | `milestone/view.html` | 완료(TASK-0253). 이슈 목록 영역이 하드코딩 인라인 스타일(yona 독자구현)이었던 것을 issue/partial_list 공용 조각 재사용으로 교체 |
-| 153 | [x] | `milestone/partial_status.scala.html` | `milestone/partial_status.html` | 완료(TASK-0253). project/home.html 사이드바에 완전히 빠져있던 위젯(가장 임박한 열린 마일스톤 진행률 카드)을 신규 작성 및 배선 |
+| 153 | [x] | `milestone/partial_status.scala.html` | `milestone/partial_status.html` | 완료(TASK-0253). project/home.html 사이드바에 완전히 빠져있던 위젯(가장 임박한 열린 마일스톤 진행률 카드)을 신규 작성 및 배선. **2026-09-11 Twirl 컴파일러 산출물 기반 재감사로 정정**: 당시 "나머지 2개 호출부(`issue/partial_searchform.scala.html`/`issue/my_partial_search.scala.html`)는 cross-project 전용이라 yona에 라우트 자체가 없어 포팅 범위 밖"이라 판단했던 것은 **틀렸음** — `issue/partial_searchform.scala.html`은 `@(param, project:Project)`로 project를 필수 파라미터로 받고 `issue/partial_list_wrap.scala.html`(→프로젝트 범위 이슈 목록 `issue/list.scala.html`) 경유로 호출되는 파일이라 cross-project 전용이 아니었고, `issue/my_list.scala.html`(진짜 cross-project 화면)도 `UserViewController.kt:220`에 라우트가 이미 존재함. 이슈 목록 두 화면(`issue/list.html`/`issue/my_partial_search.html`) 모두에 마일스톤 진행률 카드가 실제로 빠져있음을 확인 — **P3-61**로 신규 등록 |
 
 ## 그룹 10 — `code/*` 코드브라우저 (13개, #154~166)
 
