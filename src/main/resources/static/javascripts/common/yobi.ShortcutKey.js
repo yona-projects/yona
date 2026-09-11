@@ -78,14 +78,44 @@ yobi.ShortcutKey = (function(htOptions){
         }
     }
 
+    /**
+     * Resolve the element the keydown actually originated from.
+     *
+     * P3-46(CM6 마크다운 에디터) 회귀 대응: this listener is bound on `window`, and
+     * `<yona-markdown-editor>`(2단계~)는 실제 타이핑이 Shadow DOM 안의 CodeMirror 6
+     * contenteditable에서 일어난다. Shadow DOM을 넘어 window까지 버블링된 이벤트는 브라우저가
+     * `event.target`을 shadow host(`<yona-markdown-editor>`, tagName이 INPUT/TEXTAREA가
+     * 아님)로 리타게팅하므로, `weEvt.target.tagName`만 보면 에디터 안에서 타이핑 중인데도
+     * "폼 입력 아님"으로 오판해 H/C/I/M/B/A/U/N 같은 전역 단축키(setKeymapLink)가 그대로
+     * 발동해 미저장 내용을 잃은 채 페이지를 이동시켰다. `composedPath()[0]`으로 실제 origin
+     * 엘리먼트를 구해야 한다(Shadow DOM 경계와 무관하게 진짜 이벤트 발생 지점을 반환).
+     *
+     * @param {Wrapped Event} weEvt
+     * @return {HTMLElement}
+     */
+    function _resolveActualTarget(weEvt){
+        var oNativeEvt = weEvt.originalEvent || weEvt;
+        if(typeof oNativeEvt.composedPath === "function"){
+            var aPath = oNativeEvt.composedPath();
+            if(aPath && aPath.length){
+                return aPath[0];
+            }
+        }
+        return weEvt.target;
+    }
+
     function _runEventHandler(fHandler, weEvt, sKeyInput){
-        var sTagName = weEvt.target.tagName.toUpperCase();
+        var elTarget = _resolveActualTarget(weEvt);
+        var sTagName = elTarget.tagName ? elTarget.tagName.toUpperCase() : "";
         var htInfo = {
             "weEvt"     : weEvt,
-            "welTarget" : $(weEvt.target),
+            "welTarget" : $(elTarget),
             "sTagName"  : sTagName,
             "sKeyInput" : sKeyInput,
-            "bFormInput": (htVar.aFormTags.indexOf(sTagName) > -1)
+            // CodeMirror 6(<yona-markdown-editor>)는 <textarea>가 아니라 contenteditable div에
+            // 직접 입력을 받으므로, aFormTags(INPUT/TEXTAREA) 체크만으로는 이 경우를 못 잡는다 -
+            // isContentEditable도 함께 "폼 입력 중"으로 취급한다.
+            "bFormInput": (htVar.aFormTags.indexOf(sTagName) > -1) || !!elTarget.isContentEditable
         };
 
         try {
