@@ -27,6 +27,19 @@
                             <div th:replace="~{issue/partial_select_label :: selectLabel(${projectLabels}, null, '', '', ${project})}"></div>
                         </div>
                     </th:block>
+
+                    <!-- P3-59: legacy board/list.scala.html:45 @common.twoColumnModeCheckboxArea(false)
+                         대응 — issue/list.html 등 이미 이식된 6개 화면과 동일한 마크업(다른 화면들과
+                         호환되는 고정 id/class 구조). yona.twoColumnMode.js의 _initTwoColumnMode()는
+                         board/list.html이 이미 로드하는 $yobi.loadModule("board.List", ...)가 호출한다
+                         (yobi.board.List.js:28) — 마크업만 없어 죽은 include였다. -->
+                    <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:data-content="#{common.two.column.mode.desc}">
+                        <label class="checkbox">
+                            <div class="two-column-icon-border">
+                                <input id="two-column-mode" type="checkbox"><span class="two-column-mode-text" th:text="#{common.two.column.view}">2단 보기</span>
+                            </div>
+                        </label>
+                    </div>
                 </form>
                 <div class="pull-right">
                     <a th:href="@{/{owner}/{projectName}/post/new(owner=${project.owner}, projectName=${project.name})}" class="ybtn ybtn-success" th:text="#{post.write}">글쓰기</a>
