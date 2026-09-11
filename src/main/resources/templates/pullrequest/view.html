@@ -183,7 +183,11 @@
                     <button th:if="${commentThreads != null and !commentThreads.isEmpty()}" type="button" class="ybtn ybtn-default btn-show-reviewcards">
                         <i class="yobicon-restore"></i>
                     </button>
-                    <div id="changes" class="diffs-wrap">
+                    <div id="changes" class="diffs-wrap"
+                         th:with="canReviewComment=${currentUser != null and @accessControl.isProjectResourceCreatable(currentUser, project, T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT)}"
+                         th:data-can-review-comment="${canReviewComment}"
+                         th:data-review-comment-post-url="@{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}"
+                         th:data-commit-id="${commitId}">
                         <div id="commits" class="btn-group auto mb10">
                             <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                 <span class="d-label" th:text="${commitId == null} ? #{pullRequest.changes.all} : ${commitId}">전체</span>
@@ -383,6 +387,64 @@
       // legacy git/viewChanges.scala.html의 btn-show-reviewcards / btn-hide-reviewcards 토글
       $('.btn-show-reviewcards').click(function() { $('.review-wrap').addClass('show'); });
       $('.btn-hide-reviewcards').click(function() { $('.review-wrap').removeClass('show'); });
+
+      // P3-52 항목4 — code/diff.html에는 있던 "diff 줄 클릭 -> 그 줄에 새 리뷰 댓글 작성 폼"
+      // UI가 PR 코드리뷰(changes 탭)에는 없었다(기존 스레드는 partial_diff_comment_on_line로
+      // 잘 보이지만 "시작"하는 UI 자체가 없었음 — 백엔드 POST .../pullRequest/{id}/comments는
+      // 이미 codeRange를 받을 수 있어 프론트엔드 배선만 빠져 있었다). code/diff.html과 동일한
+      // 패턴(네이티브 <form> 삽입 + 실제 POST/Redirect/GET, AJAX 아님 — ReviewViewController.
+      // newPullRequestComment()도 "redirect:..."를 반환하는 고전적 패턴)으로 이식한다.
+      var $changesRoot = $('#changes');
+      if ($changesRoot.length && $changesRoot.data('canReviewComment')) {
+          var reviewCommentPostUrl = $changesRoot.data('reviewCommentPostUrl');
+          var reviewCommentCommitId = $changesRoot.data('commitId');
+          var csrfParameterName = [[${_csrf != null ? _csrf.parameterName : ''}]];
+          var csrfTokenValue = [[${_csrf != null ? _csrf.token : ''}]];
+
+          $changesRoot.find('tr[data-line]').each(function() {
+              var $tr = $(this);
+              var $btnCell = $tr.find('.add-comment-btn-cell');
+              if (!$btnCell.length) { return; }
+              $btnCell.css('cursor', 'pointer');
+              $tr.hover(
+                  function() { $btnCell.css('color', '#0366d6'); },
+                  function() { $btnCell.css('color', 'transparent'); }
+              );
+          });
+
+          $changesRoot.on('click', '.add-comment-btn-cell', function(e) {
+              e.stopPropagation();
+              var $tr = $(this).closest('tr');
+              var $existingForm = $tr.next('tr.pr-comment-form-tr');
+              if ($existingForm.length) {
+                  $existingForm.remove();
+                  return;
+              }
+
+              var path = $tr.data('path');
+              var side = $tr.data('side');
+              var lineVal = $tr.data('line');
+
+              var formHtml = '<tr class="pr-comment-form-tr">' +
+                  '<td colspan="3" style="padding:10px;background-color:#fafbfc;border-top:1px solid #e1e4e8;border-bottom:1px solid #e1e4e8;">' +
+                  '<div class="write-comment-form">' +
+                  '<form action="' + reviewCommentPostUrl + '" method="post">' +
+                  '<input type="hidden" name="' + csrfParameterName + '" value="' + csrfTokenValue + '">' +
+                  (reviewCommentCommitId ? '<input type="hidden" name="commitId" value="' + reviewCommentCommitId + '">' : '') +
+                  '<input type="hidden" name="path" value="' + path + '">' +
+                  '<input type="hidden" name="startSide" value="' + side + '">' +
+                  '<input type="hidden" name="startLine" value="' + lineVal + '">' +
+                  '<input type="hidden" name="startColumn" value="0">' +
+                  '<input type="hidden" name="endSide" value="' + side + '">' +
+                  '<input type="hidden" name="endLine" value="' + lineVal + '">' +
+                  '<input type="hidden" name="endColumn" value="0">' +
+                  '<div style="display:flex;align-items:flex-start;">' +
+                  '<textarea name="contents" placeholder="' + [[#{button.comment.new}]] + '" style="width:100%;height:50px;padding:6px;border:1px solid #d1d5da;border-radius:3px;resize:vertical;margin-right:10px;font-size:12px;" required></textarea>' +
+                  '<button type="submit" class="ybtn ybtn-success ybtn-small" style="padding:4px 10px;">' + [[#{button.comment.new}]] + '</button>' +
+                  '</div></form></div></td></tr>';
+              $tr.after(formHtml);
+          });
+      }
   });
 </script>
 </body>

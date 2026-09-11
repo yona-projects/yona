@@ -249,18 +249,61 @@
         // (#comment-form)의 th:action이 가리키는 "/{owner}/{projectName}/post/{postNumber}/comment"
         // 경로가 어느 컨트롤러에도 매핑돼 있지 않았다(Playwright로 실제 등록 시 항상 404 —
         // CSRF와는 무관한 별도 결함). 형제 폼들과 동일하게 REST(POST .../comments)로 전환한다.
+        //
+        // P3-52 항목3 — yobi.CommentForm.js 대응(빈 값 제출 방지/Ctrl+Shift+Enter 단축 제출/
+        // beforeunload 이탈 경고/localStorage 임시저장). issue/view.html과 동일한 이유(legacy
+        // 원본의 네이티브 form.submit() 재스케줄링이 이미 검증된 AJAX 핸들러와 공존 불가)로
+        // 원본 파일을 로드하지 않고 이 AJAX 핸들러에 직접 재구현한다.
+        var $commentForm = $('#comment-form');
+        var $commentTextarea = $commentForm.find('textarea[name="contents"]');
+        function isCommentFormBodyEmpty(){
+            return !($commentTextarea.val() || '').trim().length;
+        }
+        if ($commentTextarea.length) {
+            temporarySaveHandler($commentTextarea);
+
+            // issue/view.html과 동일한 이유(EasyMDE/CodeMirror가 원본 textarea를 숨기고 실제
+            // 입력은 별도 DOM에서 일어남)로 document 레벨에서 활성 엘리먼트가 이 폼 안에 있을 때만
+            // 반응하도록 한다.
+            $(document).on('keydown', function(e){
+                var isSubmitCombo = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.keyCode === 13 || e.key === 'Enter');
+                if (isSubmitCombo && document.activeElement && $.contains($commentForm[0], document.activeElement)) {
+                    e.preventDefault();
+                    $commentForm.trigger('submit');
+                }
+            });
+
+            $(window).on('beforeunload', function(){
+                if (!isCommentFormBodyEmpty() && !$commentForm.data('onsubmit')) {
+                    return '[[#{common.comment.beforeunload.confirm}]]';
+                }
+            });
+        }
+
         $(document).on('submit', '#comment-form', function(e){
             e.preventDefault();
             var $form = $(this);
+            if (isCommentFormBodyEmpty()) {
+                $yobi.notify('[[#{post.comment.empty}]]', 3000);
+                $commentTextarea.focus();
+                return;
+            }
             var apiBase = $form.data('apiBase');
-            var contents = $form.find('textarea[name="contents"]').val();
+            var contents = $commentTextarea.val();
+            $form.data('onsubmit', true);
             $.ajax({
                 url: apiBase,
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ contents: contents }),
-                success: function(){ window.location.reload(); },
-                error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
+                success: function(){
+                    removeCurrentPageTemprarySavedContent();
+                    window.location.reload();
+                },
+                error: function(xhr){
+                    $form.data('onsubmit', false);
+                    alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || ''));
+                }
             });
         });
         $(document).on('submit', '.comment-update-form form', function(e){

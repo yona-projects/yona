@@ -61,7 +61,7 @@
               <th:block th:unless="${diff.hasError()}">
                 <tr class="range"><td class="linenum"><div class="line-number"></div></td><td class="linenum"><div class="line-number"></div></td><td class="hunk" th:text="'@@ -0,0 +1,' + ${diff.b.size()} + ' @@'"></td></tr>
                 <th:block th:each="i : ${#numbers.sequence(0, diff.b.size() - 1)}">
-                  <tr th:replace="~{pullrequest/partial_diff_line :: diffLine('add', '+', ${i+1}, null, ${i+1}, ${diff.b.getString(i)})}"></tr>
+                  <tr th:replace="~{pullrequest/partial_diff_line :: diffLine('add', '+', ${i+1}, null, ${i+1}, ${diff.b.getString(i)}, ${diff.pathB})}"></tr>
                   <div th:replace="~{pullrequest/partial_diff_comment_on_line :: commentsOnLine(${threads}, ${diff}, ${project}, null, ${i}, 'B')}"></div>
                 </th:block>
               </th:block>
@@ -78,7 +78,7 @@
               <th:block th:unless="${diff.hasError()}">
                 <tr class="range"><td class="linenum"><div class="line-number"></div></td><td class="linenum"><div class="line-number"></div></td><td class="hunk" th:text="'@@ -1,' + ${diff.a.size()} + ' +0,0 @@'"></td></tr>
                 <th:block th:each="i : ${#numbers.sequence(0, diff.a.size() - 1)}">
-                  <tr th:replace="~{pullrequest/partial_diff_line :: diffLine('remove', '-', ${i+1}, ${i+1}, null, ${diff.a.getString(i)})}"></tr>
+                  <tr th:replace="~{pullrequest/partial_diff_line :: diffLine('remove', '-', ${i+1}, ${i+1}, null, ${diff.a.getString(i)}, ${diff.pathA})}"></tr>
                   <div th:replace="~{pullrequest/partial_diff_comment_on_line :: commentsOnLine(${threads}, ${diff}, ${project}, null, ${i}, 'A')}"></div>
                 </th:block>
               </th:block>
@@ -106,8 +106,9 @@
                             th:with="klass=${line.kind.name() == 'ADD' ? 'add' : (line.kind.name() == 'REMOVE' ? 'remove' : '')},
                                      prefix=${line.kind.name() == 'ADD' ? '+' : (line.kind.name() == 'REMOVE' ? '-' : ' ')},
                                      side=${line.kind.name() == 'REMOVE' ? 'A' : 'B'},
-                                     lineVal=${line.kind.name() == 'REMOVE' ? line.numA : line.numB}">
-                    <tr th:replace="~{pullrequest/partial_diff_line :: diffLine(${klass}, ${prefix}, ${(line.numA != null ? line.numA : line.numB) + 1}, ${line.numA != null ? line.numA + 1 : null}, ${line.numB != null ? line.numB + 1 : null}, ${line.content})}"></tr>
+                                     lineVal=${line.kind.name() == 'REMOVE' ? line.numA : line.numB},
+                                     pathVal=${line.kind.name() == 'REMOVE' ? diff.pathA : diff.pathB}">
+                    <tr th:replace="~{pullrequest/partial_diff_line :: diffLine(${klass}, ${prefix}, ${(line.numA != null ? line.numA : line.numB) + 1}, ${line.numA != null ? line.numA + 1 : null}, ${line.numB != null ? line.numB + 1 : null}, ${line.content}, ${pathVal})}"></tr>
                     <div th:replace="~{pullrequest/partial_diff_comment_on_line :: commentsOnLine(${threads}, ${diff}, ${project}, null, ${lineVal}, ${side})}"></div>
                   </th:block>
                 </th:block>

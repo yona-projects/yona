@@ -301,13 +301,18 @@
 
                         <!-- 댓글 등록 폼 영역 -->
                         <th:block sec:authorize="isAuthenticated()">
-                            <form id="comment-form" th:data-api-base="${commentApiBase}" th:action="@{/{owner}/{projectName}/issue/{issueNumber}/comment(owner=${project.owner}, projectName=${project.name}, issueNumber=${issue.number})}" method="post" enctype="multipart/form-data">
+                            <form id="comment-form" th:data-api-base="${commentApiBase}"
+                                  th:data-noti-receivers-url="@{/api/projects/{projectId}/issues/{number}/commentNotiReceivers(projectId=${project.id}, number=${issue.number})}"
+                                  th:action="@{/{owner}/{projectName}/issue/{issueNumber}/comment(owner=${project.owner}, projectName=${project.name}, issueNumber=${issue.number})}" method="post" enctype="multipart/form-data">
                                 <div class="write-comment-box">
                                     <div th:replace="~{site/layout :: markdownEditor('contents', '', 'comment-body')}"></div>
 
                                     <div th:replace="~{common/uploadForm :: uploadForm('ISSUE_COMMENT', null, 'upload')}"></div>
 
                                     <div class="write-comment-wrap">
+                                        <!-- P3-52 항목1: yona.ReceiverList.js가 디바운스 AJAX로 채우는
+                                             "지금 등록하면 알림 받을 사람" 미리보기 목록. -->
+                                        <span class="notification-receiver-list"></span>
                                         <div class="right-txt">
                                             <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}">댓글 등록</button>
                                         </div>
@@ -315,6 +320,12 @@
                                 </div>
                             </form>
                         </th:block>
+
+                        <!-- P3-52 항목2: service/yona.detectChange.js 폴링 배선용 초기 상태값
+                             (IssueController.detectChange()가 매 폴링마다 비교하는 것과 동일한 값). -->
+                        <input type="hidden" id="issueBodyChecksum" th:value="${issueBodyChecksum}"/>
+                        <input type="hidden" id="numOfComments" th:value="${numOfComments}"/>
+                        <input type="hidden" id="issueUpdateDate" th:value="${issueUpdateDate}"/>
 
                         <!-- 비로그인 사용자용 안내 영역 -->
                         <th:block sec:authorize="isAnonymous()">
@@ -498,6 +509,13 @@
      삭제를 담당 — legacy와 동일하게 issue/board view 두 화면에서만 로드한다. -->
 <script type="text/javascript" src="/javascripts/common/yona.CommentAttachmentsUpdate.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.issue.Assginee.js"></script>
+<!-- P3-52 항목1: 댓글 작성 중 알림수신자 미리보기(디바운스 AJAX). 어느 번들에도 박혀있지 않은
+     순수 신규 기능이라 yona-lib.js와의 로드 순서(셰도잉) 문제는 없다. -->
+<script type="text/javascript" src="/javascripts/common/yona.ReceiverList.js"></script>
+<!-- P3-52 항목2: 이슈 본문/댓글 수 변경을 폴링으로 감지해 새로고침을 안내(legacy issue/view.scala.html
+     전용). Favico(파비콘 배지)는 이 기능만 쓰는 서드파티 라이브러리라 여기서 로드한다. -->
+<script type="text/javascript" src="/javascripts/lib/favico/favico.min.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.detectChange.js"></script>
 <script type="text/javascript">
     $(function(){
         $yobi.loadModule("issue.View", {
@@ -541,18 +559,72 @@
         // "/{owner}/{projectName}/issue/{issueNumber}/comment" 경로 자체가 어느 컨트롤러에도
         // 매핑돼 있지 않았다 — 실제로 Playwright로 댓글을 등록해보면 항상 404였다(CSRF와는
         // 무관한 별도 결함). 형제 폼들과 동일하게 REST(POST .../comments)로 전환한다.
+        // P3-52 항목3 — yobi.CommentForm.js 대응(빈 값 제출 방지/Ctrl+Shift+Enter 단축 제출/
+        // beforeunload 이탈 경고/localStorage 임시저장). legacy 원본은 네이티브 form.submit()을
+        // 다시 스케줄링하는데, #comment-form은 이미 위 AJAX 핸들러로 전환돼 있어(P3-48) 그 흐름과
+        // 공존시킬 수 없다(사용자 결정: yobi.CommentForm.js는 로드하지 않고 이미 검증된 AJAX
+        // 핸들러 쪽에 동일 기능을 직접 재구현) — 그래서 이 AJAX 핸들러 자체에 가드를 추가한다.
+        var $commentForm = $('#comment-form');
+        var $commentTextarea = $commentForm.find('textarea[name="contents"]');
+        function isCommentFormBodyEmpty(){
+            return !($commentTextarea.val() || '').trim().length;
+        }
+        if ($commentTextarea.length) {
+            // 임시저장(초안 자동저장)은 전역 temporarySaveHandler(다른 모든 작성 화면에서 이미
+            // 쓰이고 있음, yona.temporarySaveHandler.js)를 그대로 재사용한다.
+            temporarySaveHandler($commentTextarea);
+
+            var notiReceiversUrl = $commentForm.data('notiReceiversUrl');
+            if (notiReceiversUrl) {
+                findNotiReceiversHandler($commentTextarea, notiReceiversUrl);
+            }
+
+            // Ctrl(⌘)+Shift+Enter로 즉시 제출. markdownEditor는 이 textarea를 EasyMDE(CodeMirror)로
+            // 감싸 실제로 화면에 보이는 입력 표면은 CodeMirror가 만드는 별도 DOM(원본 textarea의
+            // 형제 엘리먼트)이라, keydown을 원본 textarea에 직접 바인딩하면 실제 타이핑 중에는
+            // 절대 발생하지 않는다(원본 textarea는 EasyMDE가 숨겨두고 값 동기화 대상으로만 씀 —
+            // P3-50에서 이미 확인된 EasyMDE 단방향 동기화 함정과 같은 종류). document 레벨에서
+            // 캡처해 현재 포커스가 이 폼 안에 있을 때만 반응하는 방식으로 CodeMirror를 포함한 실제
+            // 입력 표면 어디서 눌러도 동작하게 한다.
+            $(document).on('keydown', function(e){
+                var isSubmitCombo = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.keyCode === 13 || e.key === 'Enter');
+                if (isSubmitCombo && document.activeElement && $.contains($commentForm[0], document.activeElement)) {
+                    e.preventDefault();
+                    $commentForm.trigger('submit');
+                }
+            });
+
+            $(window).on('beforeunload', function(){
+                if (!isCommentFormBodyEmpty() && !$commentForm.data('onsubmit')) {
+                    return '[[#{common.comment.beforeunload.confirm}]]';
+                }
+            });
+        }
+
         $(document).on('submit', '#comment-form', function(e){
             e.preventDefault();
             var $form = $(this);
+            if (isCommentFormBodyEmpty()) {
+                $yobi.notify('[[#{post.comment.empty}]]', 3000);
+                $commentTextarea.focus();
+                return;
+            }
             var apiBase = $form.data('apiBase');
-            var contents = $form.find('textarea[name="contents"]').val();
+            var contents = $commentTextarea.val();
+            $form.data('onsubmit', true);
             $.ajax({
                 url: apiBase,
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ contents: contents }),
-                success: function(){ window.location.reload(); },
-                error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
+                success: function(){
+                    removeCurrentPageTemprarySavedContent();
+                    window.location.reload();
+                },
+                error: function(xhr){
+                    $form.data('onsubmit', false);
+                    alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || ''));
+                }
             });
         });
         $(document).on('submit', '.comment-update-form form', function(e){
@@ -587,6 +659,9 @@
                 error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
             });
         });
+
+        // P3-52 항목2: 본문/댓글 수 변경 폴링 시작.
+        detectPageChange("[[@{/api/projects/{projectId}/issues/{number}/detectChange(projectId=${project.id}, number=${issue.number})}]]");
     });
 </script>
 

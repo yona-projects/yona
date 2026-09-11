@@ -5,6 +5,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.enumeration.State
+import com.github.yonaprojects.yona.domain.support.sha1Hex
 import com.github.yonaprojects.yona.domain.issue.Issue
 import com.github.yonaprojects.yona.domain.issue.IssueCommentRepository
 import com.github.yonaprojects.yona.domain.issue.IssueEventRepository
@@ -347,6 +348,13 @@ class IssueViewController(
         model.addAttribute("attachmentsJson", attachmentsJson)
         model.addAttribute("openMilestones", openMilestones)
         model.addAttribute("closedMilestones", closedMilestonesForIssue)
+
+        // P3-52 항목2 — service/yona.detectChange.js(폴링으로 본문/댓글 변경 감지) 배선용
+        // 초기 상태값. IssueController.detectChange()가 매 폴링마다 비교하는 것과 동일한 값을
+        // 최초 페이지 로드 시점에 hidden input으로 심어둔다.
+        model.addAttribute("issueBodyChecksum", sha1Hex(issue.body ?: ""))
+        model.addAttribute("numOfComments", comments.size)
+        model.addAttribute("issueUpdateDate", (issue.updatedDate ?: issue.createdDate)?.toEpochMilli())
 
         return "issue/view"
     }

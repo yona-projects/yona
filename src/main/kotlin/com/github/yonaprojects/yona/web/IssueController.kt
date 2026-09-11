@@ -31,6 +31,9 @@ import com.github.yonaprojects.yona.domain.issue.IssueLabel
 import com.github.yonaprojects.yona.domain.project.TitleHeadService
 import com.github.yonaprojects.yona.domain.support.isModifiedByOthers
 import com.github.yonaprojects.yona.domain.support.sha1Hex
+import com.github.yonaprojects.yona.domain.comment.CommentService
+import com.github.yonaprojects.yona.domain.enumeration.EventType
+import com.github.yonaprojects.yona.domain.watch.WatchService
 import org.springframework.data.jpa.domain.Specification
 
 @RestController
@@ -45,7 +48,9 @@ class IssueController(
     private val issueCommentRepository: IssueCommentRepository,
     private val issueEventRepository: IssueEventRepository,
     private val accessControl: AccessControl,
-    private val titleHeadService: TitleHeadService
+    private val titleHeadService: TitleHeadService,
+    private val watchService: WatchService,
+    private val commentService: CommentService
 ) {
 
     private fun getLoginUser(authentication: Authentication?): User? {
@@ -451,6 +456,52 @@ class IssueController(
         return ResponseEntity.ok(result)
     }
 
+    // P3-52 항목1 — legacy IssueApi.commentNotiRecivers() 대응. 댓글 작성 중(디바운스) "지금 이
+    // 내용으로 등록하면 누구에게 알림이 갈지" 미리보기. legacy는 임시 IssueComment를 만들어
+    // NotificationEvent.getMandatoryReceivers(comment, NEW_COMMENT)를 호출하지만, yona
+    // CommentServiceImpl.createIssueComment()는 이미 더 단순화된 대응 로직(baseWatchers=이슈
+    // 작성자 + watchService.findActualWatchers(ISSUE_POST, NEW_COMMENT) + 멘션 - 본인)으로
+    // 실제 알림을 발행한다 — 미리보기가 실제 발행 결과와 어긋나지 않도록 그 로직을 그대로
+    // 재사용한다(범위는 legacy와 동일하게 이슈 댓글 한정, 게시글/PR 댓글은 대상 아님).
+    @PostMapping("/{number}/commentNotiReceivers")
+    fun commentNotiReceivers(
+        @PathVariable projectId: Long,
+        @PathVariable number: Long,
+        @RequestBody request: CommentNotiReceiversRequest,
+        authentication: Authentication?
+    ): ResponseEntity<Map<String, Any?>> {
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        val project = projectRepository.findById(projectId).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val issue = issueRepository.findByProjectAndNumber(project, number)
+            ?: return ResponseEntity.notFound().build()
+
+        val authorUser = issue.authorId?.let { userRepository.findById(it).orElse(null) }
+        val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
+        val receivers = watchService.findActualWatchers(
+            baseWatchers = baseWatchers,
+            resourceType = ResourceType.ISSUE_POST,
+            resourceId = issue.id.toString(),
+            projectId = issue.project.id,
+            eventType = EventType.NEW_COMMENT
+        ).toMutableSet()
+        receivers.removeIf { it.id == user.id }
+        receivers.addAll(commentService.extractMentionedUsers(request.comment))
+
+        val users = receivers.sortedBy { it.name }.map { r ->
+            mapOf(
+                "loginId" to r.loginId,
+                "name" to r.getDisplayName(),
+                "pureNameOnly" to r.getPureNameOnly(),
+                "avatarUrl" to (r.avatarUrl ?: "")
+            )
+        }
+
+        return ResponseEntity.ok(mapOf("receivers" to users))
+    }
+
     // 이슈 본문만 인라인 수정하는 경량 API — 클라이언트가 "저장 직전에 화면에 있던 원문 전체"를
     // 그대로 보내면, 서버가 그 원문의 체크섬과 현재 DB 값의 체크섬을 비교해 다르면(=그 사이에 다른
     // 사람이 이미 수정) 409로 거부한다.
@@ -510,6 +561,11 @@ class IssueController(
     data class DetectChangeRequest(
         val issueBodyChecksum: String,
         val numOfComments: Int
+    )
+
+    data class CommentNotiReceiversRequest(
+        val comment: String = "",
+        val parentCommentId: String? = null
     )
 
     data class UpdateIssueContentRequest(

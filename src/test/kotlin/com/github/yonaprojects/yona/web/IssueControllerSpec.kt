@@ -48,6 +48,7 @@ import io.mockk.slot
 import com.github.yonaprojects.yona.domain.issue.IssueSharer
 import com.github.yonaprojects.yona.domain.issue.IssueEvent
 import com.github.yonaprojects.yona.domain.enumeration.EventType
+import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.issue.IssueComment
 import java.security.MessageDigest
 import java.time.Instant
@@ -63,6 +64,8 @@ class IssueControllerSpec : DescribeSpec({
     val issueCommentRepository = mockk<IssueCommentRepository>()
     val issueEventRepository = mockk<IssueEventRepository>()
     val titleHeadService = mockk<TitleHeadService>()
+    val watchService = mockk<com.github.yonaprojects.yona.domain.watch.WatchService>()
+    val commentService = mockk<com.github.yonaprojects.yona.domain.comment.CommentService>()
     val organizationUserRepository = mockk<OrganizationUserRepository>()
     every { organizationUserRepository.findByOrganizationIdAndUserId(any(), any()) } returns Optional.empty()
     val userRepositoryForAccessControl = mockk<UserRepository>()
@@ -90,14 +93,16 @@ class IssueControllerSpec : DescribeSpec({
         issueCommentRepository,
         issueEventRepository,
         accessControl,
-        titleHeadService
+        titleHeadService,
+        watchService,
+        commentService
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(issueController)
         .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())
         .build()
 
     beforeTest {
-        clearMocks(issueService, issueRepository, projectRepository, projectUserRepository, userRepository, attachmentService, issueCommentRepository, issueEventRepository, titleHeadService)
+        clearMocks(issueService, issueRepository, projectRepository, projectUserRepository, userRepository, attachmentService, issueCommentRepository, issueEventRepository, titleHeadService, watchService, commentService)
         every { titleHeadService.deleteTitleHeadKeyword(any(), any()) } returns Unit
     }
 
@@ -1357,6 +1362,118 @@ class IssueControllerSpec : DescribeSpec({
                 )
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.issueUpdateDate").value(updatedInstant.toEpochMilli()))
+            }
+        }
+
+        // P3-52 항목1 — yona IssueApi.commentNotiRecivers() 대응. 이슈 댓글 작성 중(디바운스)
+        // "지금 이 내용으로 등록하면 누구에게 알림이 갈지" 미리보기. CommentServiceImpl.
+        // createIssueComment()의 실제 알림 수신자 계산(baseWatchers=이슈 작성자 +
+        // watchService.findActualWatchers(ISSUE_POST, NEW_COMMENT) + 멘션 - 본인)과 정확히
+        // 동일한 로직을 재사용해, 미리보기와 실제 알림 발행 결과가 어긋나지 않게 한다.
+        describe("POST /api/projects/{projectId}/issues/{issueId}/commentNotiReceivers") {
+            it("이슈 작성자와 감시자를 알림 수신자로 반환해야 한다") {
+                val authoredIssue = Issue(
+                    id = 5L, number = 5L, title = "이슈 제목", body = "이슈 내용", project = project,
+                    authorId = otherUser.id, state = State.OPEN
+                )
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { issueRepository.findByProjectAndNumber(project, 5L) } returns authoredIssue
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { userRepository.findById(otherUser.id!!) } returns Optional.of(otherUser)
+                every {
+                    watchService.findActualWatchers(setOf(otherUser), ResourceType.ISSUE_POST, "5", 1L, eventType = EventType.NEW_COMMENT)
+                } returns setOf(otherUser)
+                every { commentService.extractMentionedUsers("새 댓글 내용") } returns emptySet()
+
+                val jsonContent = """{ "comment": "새 댓글 내용", "parentCommentId": "" }"""
+
+                mockMvc.perform(
+                    post("/api/projects/1/issues/5/commentNotiReceivers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.receivers.length()").value(1))
+                    .andExpect(jsonPath("$.receivers[0].loginId").value(otherUser.loginId))
+                    .andExpect(jsonPath("$.receivers[0].pureNameOnly").value(otherUser.getPureNameOnly()))
+            }
+
+            it("댓글 내용에 멘션이 있으면 멘션된 사용자도 수신자에 포함해야 한다") {
+                val mentionedUser = User(id = 40L, loginId = "mentioned", name = "멘션대상")
+                val authoredIssue = Issue(
+                    id = 5L, number = 5L, title = "이슈 제목", body = "이슈 내용", project = project,
+                    authorId = otherUser.id, state = State.OPEN
+                )
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { issueRepository.findByProjectAndNumber(project, 5L) } returns authoredIssue
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { userRepository.findById(otherUser.id!!) } returns Optional.of(otherUser)
+                every {
+                    watchService.findActualWatchers(setOf(otherUser), ResourceType.ISSUE_POST, "5", 1L, eventType = EventType.NEW_COMMENT)
+                } returns emptySet()
+                every { commentService.extractMentionedUsers("@mentioned 안녕하세요") } returns setOf(mentionedUser)
+
+                val jsonContent = """{ "comment": "@mentioned 안녕하세요", "parentCommentId": "" }"""
+
+                mockMvc.perform(
+                    post("/api/projects/1/issues/5/commentNotiReceivers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.receivers.length()").value(1))
+                    .andExpect(jsonPath("$.receivers[0].loginId").value("mentioned"))
+            }
+
+            it("요청 작성자 본인은 수신자 목록에서 제외돼야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { issueRepository.findByProjectAndNumber(project, 5L) } returns issue
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { userRepository.findById(user.id!!) } returns Optional.of(user)
+                every {
+                    watchService.findActualWatchers(setOf(user), ResourceType.ISSUE_POST, "5", 1L, eventType = EventType.NEW_COMMENT)
+                } returns setOf(user)
+                every { commentService.extractMentionedUsers("내용") } returns emptySet()
+
+                val jsonContent = """{ "comment": "내용", "parentCommentId": "" }"""
+
+                mockMvc.perform(
+                    post("/api/projects/1/issues/5/commentNotiReceivers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.receivers.length()").value(0))
+            }
+
+            it("익명 사용자는 401을 반환해야 한다") {
+                val jsonContent = """{ "comment": "내용", "parentCommentId": "" }"""
+
+                mockMvc.perform(
+                    post("/api/projects/1/issues/5/commentNotiReceivers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+                )
+                    .andExpect(status().isUnauthorized)
+            }
+
+            it("존재하지 않는 이슈면 404를 반환해야 한다") {
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { issueRepository.findByProjectAndNumber(project, 999L) } returns null
+
+                val jsonContent = """{ "comment": "내용", "parentCommentId": "" }"""
+
+                mockMvc.perform(
+                    post("/api/projects/1/issues/999/commentNotiReceivers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent)
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isNotFound)
             }
         }
 

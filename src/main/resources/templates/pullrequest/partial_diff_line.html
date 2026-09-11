@@ -3,9 +3,13 @@
 <head>
 </head>
 <body>
-<!-- legacy partial_diff_line.scala.html 대응 (그룹11 #189). diff 한 줄(tr) 렌더러. -->
-<tr th:fragment="diffLine(klass, prefix, num, numA, numB, content)" th:class="${klass}" th:data-line="${num}" th:data-type="${klass}" th:data-side="${klass == 'remove' ? 'A' : 'B'}">
-    <td class="linenum">
+<!-- legacy partial_diff_line.scala.html 대응 (그룹11 #189). diff 한 줄(tr) 렌더러.
+     P3-52 항목4: path 파라미터 + add-comment-btn-cell 클래스(첫 번째 linenum 셀, 이미 있던
+     yobicon-comments 아이콘 위치) 추가 — code/diff.html의 "줄 클릭 -> 새 리뷰 댓글 폼"과
+     동일한 클릭 타겟 패턴을 PR 코드리뷰(changes 탭)에도 제공한다(pullrequest/view.html의
+     인라인 스크립트가 이 셀의 클릭을 구독). -->
+<tr th:fragment="diffLine(klass, prefix, num, numA, numB, content, path)" th:class="${klass}" th:data-line="${num}" th:data-type="${klass}" th:data-side="${klass == 'remove' ? 'A' : 'B'}" th:data-path="${path}">
+    <td class="linenum add-comment-btn-cell" style="cursor:pointer;">
         <i class="yobicon-comments"></i>
         <div class="line-number" th:data-line-num="${numA}"></div>
         <span class="hidden" th:text="${numA}"></span>
