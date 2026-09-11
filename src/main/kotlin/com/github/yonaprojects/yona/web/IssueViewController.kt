@@ -260,6 +260,16 @@ class IssueViewController(
 
         model.addAttribute("milestones", milestones)
         model.addAttribute("closedMilestones", closedMilestones)
+        // P3-61: legacy issue/partial_searchform.scala.html:106-113 대응 — milestoneId가 선택돼
+        // 있으면(단, -1은 "마일스톤 없음" 센티널이라 실제 마일스톤이 아님) milestone/partial_status
+        // 진행률 카드를 표시하기 위해 선택된 마일스톤 엔티티 자체를 모델에 담는다. 이미 위에서
+        // 조회해둔 open/closed 마일스톤 목록에서 찾으면 충분해 별도 리포지토리 조회가 필요 없다.
+        val selectedMilestone = if (milestoneId != null && milestoneId > 0) {
+            (milestones + closedMilestones).find { it.id == milestoneId }
+        } else {
+            null
+        }
+        model.addAttribute("selectedMilestone", selectedMilestone)
         model.addAttribute("members", members)
         model.addAttribute("labels", labels)
         model.addAttribute("templateHelper", templateHelper)

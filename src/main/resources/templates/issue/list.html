@@ -144,6 +144,15 @@
                                 </dd>
                             </dl>
 
+                            <!-- P3-61: legacy issue/partial_searchform.scala.html:106-113 대응 —
+                                 마일스톤으로 필터링 중이면(마일스톤 없음(-1) 제외) 그 마일스톤의
+                                 진행률 카드를 보여준다. project/home.html 사이드바가 이미 쓰는
+                                 것과 동일한 fragment 재사용. -->
+                            <th:block th:if="${selectedMilestone != null}">
+                                <div th:replace="~{milestone/partial_status :: status(${selectedMilestone}, ${project})}"></div>
+                                <hr>
+                            </th:block>
+
                             <!-- 목표 완료일 -->
                             <dl class="issue-option">
                                 <dt th:text="#{issue.dueDate}">목표 완료일</dt>
