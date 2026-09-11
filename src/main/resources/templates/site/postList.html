@@ -22,7 +22,7 @@
           </div>
           
           <ul class="post-list-wrap">
-            <li class="row-fluid listitem" th:each="post : ${posts.content}" th:with="user=${userRepository.findByLoginId(post.authorLoginId).orElse(null)}">
+            <li class="row-fluid listitem" th:each="post : ${posts.content}" th:with="user=${post.authorLoginId != null ? userRepository.findByLoginId(post.authorLoginId).orElse(null) : null}">
               <a th:href="@{'/' + ${post.project.owner} + '/' + ${post.project.name}}" class="avatar-wrap list-avatar">
                 <img th:src="@{/projects/{projectId}/logo(projectId=${post.project.id})}" th:alt="${post.project.name}"/>
               </a>

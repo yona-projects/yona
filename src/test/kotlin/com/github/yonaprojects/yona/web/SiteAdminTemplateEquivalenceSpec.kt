@@ -42,7 +42,10 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
     private val yonaUpdateService: YonaUpdateService,
-    private val templateEngine: SpringTemplateEngine
+    private val templateEngine: SpringTemplateEngine,
+    private val postingRepository: com.github.yonaprojects.yona.domain.board.PostingRepository,
+    private val projectRepository: com.github.yonaprojects.yona.domain.project.ProjectRepository,
+    private val issueRepository: com.github.yonaprojects.yona.domain.issue.IssueRepository
 ) : AbstractIntegrationTest() {
 
     override fun extensions() = listOf(SpringExtension)
@@ -191,6 +194,44 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
                             result.response.contentAsString.contains("\"paramNameForPage\": \"page\"") shouldBe true
                         }
                     }
+                }
+            }
+
+            // P3-54 — authorLoginId가 null인 게시글/이슈가 하나라도 있으면(작성자 탈퇴 등)
+            // site/postList.html·site/issueList.html의
+            // "userRepository.findByLoginId(post.authorLoginId)" 호출이 그대로 null을 넘겨
+            // UserRepository.findByLoginId(loginId: String)의 Kotlin 널 안전성 검사에 걸려
+            // TemplateProcessingException으로 화면 전체가 깨졌다(.orElse(null)은 "사용자를 못
+            // 찾았을 때"만 처리하지, "null을 넘겨 호출 자체가 실패하는 경우"는 못 막는다).
+            describe("[SiteAdmin-8] authorLoginId가 null인 게시글/이슈도 목록 화면에서 예외 없이 렌더링돼야 한다") {
+                it("site/postList: authorLoginId가 null인 게시글이 있어도 500 없이 렌더링돼야 한다") {
+                    val project = com.github.yonaprojects.yona.domain.project.Project(
+                        name = "siteadmin-null-author-post-proj", owner = "siteadmin-null-author-post-owner"
+                    ).let { projectRepository.save(it) }
+                    postingRepository.save(
+                        com.github.yonaprojects.yona.domain.board.Posting(
+                            title = "작성자없는게시글", body = "본문", project = project, number = 9001L, authorLoginId = null
+                        )
+                    )
+
+                    mockMvc.perform(
+                        get("/sites/postList").with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails))
+                    ).andExpect(status().isOk)
+                }
+
+                it("site/issueList: authorLoginId가 null인 이슈가 있어도 500 없이 렌더링돼야 한다") {
+                    val project = com.github.yonaprojects.yona.domain.project.Project(
+                        name = "siteadmin-null-author-issue-proj", owner = "siteadmin-null-author-issue-owner"
+                    ).let { projectRepository.save(it) }
+                    issueRepository.save(
+                        com.github.yonaprojects.yona.domain.issue.Issue(
+                            title = "작성자없는이슈", body = "본문", project = project, number = 9001L, authorLoginId = null
+                        )
+                    )
+
+                    mockMvc.perform(
+                        get("/sites/issueList").with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails))
+                    ).andExpect(status().isOk)
                 }
             }
 

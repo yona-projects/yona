@@ -44,7 +44,7 @@
                   이슈제목
                 </a>
               </div>
-              <div class="post-meta-wrap" th:with="user=${userRepository.findByLoginId(issue.authorLoginId).orElse(null)}">
+              <div class="post-meta-wrap" th:with="user=${issue.authorLoginId != null ? userRepository.findByLoginId(issue.authorLoginId).orElse(null) : null}">
                 <a th:href="@{'/user/' + ${issue.authorLoginId}}" class="avatar-wrap">
                   <img th:src="${user != null ? user.avatarUrl : '/images/default-avatar-128.png'}" th:alt="${issue.authorName}" width="16" height="16"/>
                 </a>
