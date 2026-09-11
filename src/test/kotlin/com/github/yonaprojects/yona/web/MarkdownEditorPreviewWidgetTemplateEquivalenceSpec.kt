@@ -38,12 +38,14 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-46 #8-2(미리보기 연동): site/layout.html::markdownEditor 프래그먼트가 project 컨텍스트가 있는
-// 화면에서 data-markdown-render-url="/markdown/{owner}/{name}" 속성을 노출해야 한다
-// (yobi.ui.MarkdownEditor.js의 previewRender가 이 속성을 읽어 서버 렌더링 AJAX를 호출한다).
+// P3-46 #8-2(미리보기 연동, 2단계 시점 갱신): site/layout.html::markdownEditor 프래그먼트가
+// project 컨텍스트가 있는 화면에서 data-markdown-render-url="/markdown/{owner}/{name}" 속성을
+// 노출해야 한다. 이 속성은 2단계 시점에서는 아직 아무도 읽지 않지만(CM6 컴포넌트에 미리보기
+// 자체가 없음 - 서버 렌더링 미리보기 재연동은 4단계 범위), 4단계에서 컴포넌트가 이 속성을 읽기
+// 시작할 수 있도록 마크업 계약 자체는 계속 유지·검증한다.
 //
-// 이 스펙은 실제 브라우저 JS 실행(AJAX 호출/hljs 하이라이팅/previewRender 콜백)은 검증하지 않는다
-// -- MockMvc+Jsoup 하네스는 렌더링된 마크업까지만 볼 수 있다. 대신 아래 "마크업 계약"을 검증한다:
+// 이 스펙은 실제 브라우저 JS 실행(CM6 마운트/hljs 하이라이팅 등)은 검증하지 않는다 -- MockMvc+
+// Jsoup 하네스는 렌더링된 마크업까지만 볼 수 있다. 대신 아래 "마크업 계약"을 검증한다:
 //   1) project 컨텍스트가 있는 대표 화면들(issue/view, board/view, wiki/edit(_new), milestone/create,
 //      pullrequest/view-common/reviewForm)에서 data-markdown-render-url이 정확한 값으로
 //      렌더링돼야 한다.
@@ -52,8 +54,12 @@ import org.springframework.web.context.WebApplicationContext
 //      파라미터 시그니처가 있어도 호출 측 전체 모델 컨텍스트를 상속받는다는 것을 board/postform
 //      직접 렌더링 테스트로 사전에 확인했다(1단계 깊이). 이 스펙은 2단계 깊이에서도 동일함을
 //      검증한다.
-//   3) yobi.ui.MarkdownEditor.js/easymde 스크립트 로드 순서가 여전히 올바른지(1단계 완료 로그의
-//      재검증) + 새로 전역 승격한 highlight.js가 yobi.ui.MarkdownEditor.js보다 먼저 로드되는지.
+//   3) P3-46 8번 항목 2단계(셸 교체, EasyMDE(CodeMirror5) -> CM6 Web Component): EasyMDE/
+//      yobi.ui.MarkdownEditor.js 리소스 로드가 0개로 사라지고, yona-markdown-editor.min.js가
+//      1개 로드되는지. highlight.js(markdown(project) fragment의 hljs.highlightAll()이 여전히
+//      의존 - site/layout.html head::head/scripts 주석 참고)는 계속 1개 로드돼야 한다. 이
+//      단계에서는 에디터-highlight.js 간 로드 순서 제약이 없다(그 제약은 previewRender 때문이었고
+//      이제 previewRender 자체가 없음 - 4단계에서 재도입 시 다시 검토).
 class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -178,23 +184,23 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
                 ).andExpect(status().isOk).andReturn().response.contentAsString
             )
 
-            fun assertEasyMdeAndHighlightResourcesLoaded(doc: Document) {
-                doc.select("link[href*='/javascripts/lib/easymde/'][rel=stylesheet]").size shouldBe 1
-                doc.select("script[src*='/javascripts/lib/easymde/']").size shouldBe 1
-                doc.select("script[src='/javascripts/lib/highlight/highlight.pack.js']").size shouldBe 1
-                doc.select("script[src*='yobi.ui.MarkdownEditor.js']").size shouldBe 1
+            fun assertEditorAndHighlightResourcesLoaded(doc: Document) {
+                // EasyMDE(CodeMirror5) 리소스는 2단계에서 완전히 사라져야 한다.
+                doc.select("link[href*='/javascripts/lib/easymde/'][rel=stylesheet]").size shouldBe 0
+                doc.select("script[src*='/javascripts/lib/easymde/']").size shouldBe 0
+                doc.select("script[src*='yobi.ui.MarkdownEditor.js']").size shouldBe 0
 
-                val raw = doc.outerHtml()
-                val highlightIdx = raw.indexOf("/javascripts/lib/highlight/highlight.pack.js")
-                val editorJsIdx = raw.indexOf("/javascripts/common/yobi.ui.MarkdownEditor.js")
-                (highlightIdx >= 0) shouldBe true
-                (editorJsIdx >= 0) shouldBe true
-                (editorJsIdx > highlightIdx) shouldBe true
+                // CM6 기반 Web Component 번들이 그 자리를 대신한다.
+                doc.select("script[src*='/javascripts/lib/yona-markdown-editor/']").size shouldBe 1
+
+                // markdown(project) fragment의 hljs.highlightAll()(SSR 콘텐츠 하이라이팅)이 여전히
+                // 의존하므로 highlight.js는 그대로 유지돼야 한다.
+                doc.select("script[src='/javascripts/lib/highlight/highlight.pack.js']").size shouldBe 1
             }
 
             it("issue/view(이슈 상세, 새 댓글 폼 + 기존 댓글 수정 폼 2단계 중첩) 화면은 모든 markdownEditor에 올바른 data-markdown-render-url을 노출해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issue/${issue.number}")
-                assertEasyMdeAndHighlightResourcesLoaded(doc)
+                assertEditorAndHighlightResourcesLoaded(doc)
 
                 val editorWraps = doc.select("[data-toggle=markdown-editor]")
                 (editorWraps.size > 0) shouldBe true
@@ -209,7 +215,7 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
 
             it("board/view(게시글 상세, 새 댓글 폼 + 기존 댓글 수정 폼 2단계 중첩) 화면은 두 markdownEditor 모두 올바른 data-markdown-render-url을 노출해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/post/${posting.number}")
-                assertEasyMdeAndHighlightResourcesLoaded(doc)
+                assertEditorAndHighlightResourcesLoaded(doc)
 
                 // 새 댓글 작성 폼(board/view.html이 markdownEditor를 직접 호출 - 1단계 깊이).
                 val newCommentEditor = doc.select("form#comment-form [data-toggle=markdown-editor]")
@@ -227,7 +233,7 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
 
             it("wiki/edit(_new, 새 위키 페이지 작성) 화면은 markdownEditor에 올바른 data-markdown-render-url을 노출해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/wiki/_new")
-                assertEasyMdeAndHighlightResourcesLoaded(doc)
+                assertEditorAndHighlightResourcesLoaded(doc)
 
                 val editorWrap = doc.select("[data-toggle=markdown-editor]")
                 editorWrap.size shouldBe 1
@@ -236,7 +242,7 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
 
             it("milestone/create(milestone/new, 마일스톤 작성) 화면은 markdownEditor에 올바른 data-markdown-render-url을 노출해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/milestone/new")
-                assertEasyMdeAndHighlightResourcesLoaded(doc)
+                assertEditorAndHighlightResourcesLoaded(doc)
 
                 val editorWrap = doc.select("[data-toggle=markdown-editor]")
                 editorWrap.size shouldBe 1
@@ -249,7 +255,7 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
                 // /pull/{number}/changes 전용 라우트(viewChangesInternal)에서만 tab="changes"로
                 // 채워진다(PullRequestViewController 확인).
                 val doc = fetchDoc("/${project.owner}/${project.name}/pull/${pr.number}/changes")
-                assertEasyMdeAndHighlightResourcesLoaded(doc)
+                assertEditorAndHighlightResourcesLoaded(doc)
 
                 val editorWraps = doc.select("[data-toggle=markdown-editor]")
                 (editorWraps.size > 0) shouldBe true

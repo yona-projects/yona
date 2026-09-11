@@ -30,10 +30,12 @@
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yobicon/style.css">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/tomselect/tom-select.min.css">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/flatpickr/flatpickr.min.css">
-  <!-- P3-46 #8-1: 마크다운 에디터(EasyMDE) 셸. markdownEditor 프래그먼트가 17개 화면에서 쓰여
-       select2/calendar처럼 화면별 opt-in 프래그먼트로 두지 않고, tomselect/flatpickr CSS와 같이
-       전역으로 로드한다(JS도 scripts 프래그먼트에 전역 배치 - 아래 참고). -->
-  <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/easymde/easymde.min.css">
+  <!-- P3-46 #8 2단계: 마크다운 에디터 셸을 EasyMDE(CodeMirror5)에서 CM6 기반 Web Component
+       (<yona-markdown-editor>, javascripts/lib/yona-markdown-editor/에 vendoring)로 교체.
+       markdownEditor 프래그먼트가 17개 화면에서 쓰여 select2/calendar처럼 화면별 opt-in
+       프래그먼트로 두지 않고, tomselect/flatpickr CSS와 같이 스크립트를 전역으로 로드한다(아래
+       ::scripts 참고). 이 단계(셸)에는 컴포넌트 전용 CSS가 없다(테마 계약(::part()/CSS 커스텀
+       프로퍼티)은 3단계 이후 범위). -->
   <!-- P3-46 #8-2(미리보기 연동): 서버 렌더링 미리보기(previewRender)가 코드 블록에
        hljs.highlightElement()를 적용하므로, highlight.js CSS/JS도 markdownEditor와 동일하게
        전역으로 승격한다. 기존에는 markdown(project) fragment(8개 화면 한정)에서만 로드됐으나,
@@ -41,7 +43,11 @@
        미리보기를 지원해야 하므로 이 라이브러리 로드 자체를 여기로 옮긴다. markdown(project)
        fragment의 hljs.highlightAll() 호출(SSR 렌더링 콘텐츠 하이라이팅)은 그대로 그 fragment에
        남겨두고, 중복 로드를 피하기 위해 <script src>만 여기로 이동한다(아래 markdown(project)
-       fragment 참고). -->
+       fragment 참고). P3-46 #8 2단계 갱신: 에디터 자체의 클라이언트 미리보기(previewRender)는
+       CM6 컴포넌트로 교체하며 일단 걷어냈고(4단계에서 서버 렌더링 미리보기로 재도입 예정) —
+       그래도 이 CSS/JS를 여기서 걷어내지 않는 이유는 markdown(project) fragment의
+       hljs.highlightAll()(SSR 렌더링 콘텐츠 하이라이팅)이 8개 화면에서 지금도 이 전역 hljs에
+       의존하기 때문이다(2단계 착수 전 grep으로 재확인). -->
   <link rel="stylesheet" type="text/css" href="/javascripts/lib/highlight/styles/default.css" />
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/usermenu.css">
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yobi.css?v=20260614-2">
@@ -381,39 +387,51 @@
 
 
     <!-- Markdown Editor fragment -->
-    <!-- P3-46 #8-1(셸 교체): textarea + 수제 Edit/Preview 탭 UI(ul.nav-tabs, data-mode=edit/preview)를
-         EasyMDE 인스턴스로 교체(셸 교체만 - 미리보기 렌더러/멘션/체크리스트 등 재구현은 후속 단계).
-         EasyMDE는 아래 textarea를 대상(element)으로 삼아 런타임에 자기 툴바/에디터 UI를 이 자리에
-         직접 삽입하므로(원본 textarea는 JS가 display:none으로 숨김) 여기서는 별도 툴바 마크업을
-         두지 않는다 - 초기화/재스킨은 javascripts/common/yobi.ui.MarkdownEditor.js
-         ([data-toggle="markdown-editor"] textarea를 순회) 참고.
+    <!-- P3-46 #8 2단계(셸 교체): EasyMDE(CodeMirror5) 인스턴스를 CM6 기반 Web Component
+         (<yona-markdown-editor>, javascripts/lib/yona-markdown-editor/yona-markdown-editor.min.js
+         - 별도 저장소(yona-projects/components/editor)에서 빌드해 vendoring, 소스는 이 저장소에
+         없음)로 교체. 이 커스텀 엘리먼트가 connectedCallback에서 스스로 실제 light DOM
+         <textarea>를 만들어 채워 넣고(name/data-editor-mode/markdown="true"/id(editor- 접두어)
+         계약은 그대로 유지 - 기존 폼 제출 코드가 지금처럼 이 textarea의 DOM value를 직접 읽을 수
+         있다) Shadow DOM 안에 CM6 EditorView를 마운트한다 - 그래서 여기서는 더 이상 <textarea>를
+         직접 렌더링하지 않고, 초기값/이름/editorMode는 커스텀 엘리먼트 속성(th:text로 넣는 슬롯
+         콘텐츠 + name/editor-mode 속성)으로 전달한다. textarea id의 유일성 보장은 서버
+         (#strings.randomAlphanumeric(8))에서 컴포넌트 쪽(내부 카운터)으로 옮겨갔다.
 
-         제거한 것들(사용자 확정, P3-46 8번 항목 세부 결정사항 참고):
-         - 탭 UI(ul.nav-tabs) 자체 - EasyMDE 기본값(단일 뷰 토글)로 대체.
-         - .task-list-button("체크리스트 추가") - EasyMDE 내장 체크리스트 툴바 버튼으로 대체.
+         호환 shim(사용자 결정 확정 2026-09-11): yobi.Attachments.js/
+         yona.CommentAttachmentsUpdate.js가 $textarea.data("easymde")로 얻은 EasyMDE 인스턴스의
+         .value(newValue)를 호출해 첨부파일 링크 삽입 결과를 강제 동기화하던 것(P3-50 데이터
+         손실 버그 방지책)은, 이 컴포넌트가 같은 jQuery data 키에 최소 shim({ value(newValue?) })을
+         노출해 그대로 계속 동작한다(컴포넌트 소스의 exposeLegacyEasyMdeShim 참고). 멘션
+         (yobi.Mention.js)도 이 키를 읽지만 이 shim은 멘션 용도(easyMDE.codemirror)를 지원하지
+         않는다 - **멘션은 5단계(CM6 @codemirror/autocomplete 재구현)까지 일시적으로 동작하지
+         않는다(사용자 승인 - 데이터 손실이 아닌 기능 일시 중단이라 허용됨)**.
+
+         제거한 것들(1~2단계에 걸쳐 사용자 확정, P3-46 8번 항목 세부 결정사항 참고):
+         - 탭 UI(ul.nav-tabs) 자체, .task-list-button/.add-task-list-button, .markdown-preview
+           미리보기 div(editorMode별 th:classappend 분기 포함 - 죽은 코드였음, 재현 불필요 확인됨).
+         - EasyMDE 자체(CodeMirror5) 및 그 셸 초기화 스크립트(yobi.ui.MarkdownEditor.js) -
+           2단계에서 완전히 걷어냄.
          - .editor-clear-temporary("임시저장 지우기") / .notification-receiver(알림수신자 목록) -
            4단계에서 재구현 예정.
-         - .markdown-preview 미리보기 div - EasyMDE 자체 미리보기 토글이 대신 그 자리를 채운다.
-           이 div에 있던 editorMode별 클래스 분기(th:classappend="${editorMode}") - 2단계에서
-           yobi.css/전체 JS를 다시 grep해 재확인 완료: 이 분기를 읽는 CSS/JS 규칙이 정말 없다
-           (죽은 코드였음, 재현 불필요). 대신 EasyMDE 미리보기 div에는 사이트 전역 마크다운 콘텐츠
-           스타일(.markdown-wrap)을 previewRender에서 직접 붙여 시각적으로 맞춘다(8-2단계).
          유지한 것: help/markdown 프래그먼트(마크다운 도움말 - 에디터와 독립적이라 그대로 둠),
          .editor-notice-label(임시저장 시스템이 "Draft saved"를 표시하는 곳 - 살아있는 기능이라
          DOM은 유지, 위치/스타일만 새로 잡음).
 
-         P3-46 #8-2(미리보기 연동): data-markdown-render-url 속성으로 서버 렌더링 엔드포인트를
-         노출한다. `project`는 이 프래그먼트의 명시적 파라미터가 아니지만, Thymeleaf 프래그먼트는
-         호출 측 모델 컨텍스트를 그대로 상속받는다(직접 렌더링 테스트로 확인 - 파라미터 시그니처가
-         있어도 파라미터 목록이 컨텍스트를 제한하지 않음). markdownEditor를 쓰는 16개 호출부는
-         전부 board/wiki/code/issue/milestone/pullrequest 등 프로젝트 스코프 컨트롤러가 렌더링하며
+         P3-46 #8-2(미리보기 연동, 2단계 시점 재확인): data-markdown-render-url 속성은 이번
+         단계에서는 아직 아무도 읽지 않지만(CM6 컴포넌트에 미리보기 자체가 없음 - 4단계 범위),
+         나중에 컴포넌트가 이 속성을 읽기 시작할 수 있도록 그대로 유지한다. `project`는 이
+         프래그먼트의 명시적 파라미터가 아니지만, Thymeleaf 프래그먼트는 호출 측 모델 컨텍스트를
+         그대로 상속받는다(직접 렌더링 테스트로 확인 - 파라미터 시그니처가 있어도 파라미터
+         목록이 컨텍스트를 제한하지 않음). markdownEditor를 쓰는 16개 호출부는 전부
+         board/wiki/code/issue/milestone/pullrequest 등 프로젝트 스코프 컨트롤러가 렌더링하며
          전부 모델에 project를 채워 넣는 것을 확인했다 - project가 없는 화면은 실사용처가 없어
          이 th:if는 방어적 가드로만 존재한다. -->
-    <div th:fragment="markdownEditor(name, value, editorMode)" data-toggle="markdown-editor" class="mt10" th:with="wrapId=${#strings.randomAlphanumeric(8)}" th:data-markdown-render-url="${project != null} ? (@{/markdown/{owner}/{name}(owner=${project.owner}, name=${project.name})}) : null">
+    <div th:fragment="markdownEditor(name, value, editorMode)" data-toggle="markdown-editor" class="mt10" th:data-markdown-render-url="${project != null} ? (@{/markdown/{owner}/{name}(owner=${project.owner}, name=${project.name})}) : null">
         <div class="editor-notice-label"></div>
 
         <div class="textarea-box">
-            <textarea th:name="${name}" class="editorSeries content comment nm" th:data-editor-mode="${editorMode}" markdown="true" th:id="'editor-' + ${name} + '-' + ${wrapId}" tabindex="2" style="overflow: hidden; overflow-wrap: break-word; resize: none; height: 300px;" th:text="${value}"></textarea>
+            <yona-markdown-editor th:attr="name=${name},editor-mode=${editorMode}" th:text="${value}"></yona-markdown-editor>
         </div>
 
         <div th:replace="~{help/markdown}"></div>
@@ -780,19 +798,20 @@
     <script type="text/javascript" src="/javascripts/common/yobi.LoginDialog.js"></script>
     <script type="text/javascript" src="/javascripts/lib/nprogress/nprogress.js"></script>
     <script type="text/javascript" src="/javascripts/lib/viewerjs/viewer.js"></script>
-    <!-- P3-46 #8-1: markdownEditor 프래그먼트가 17개 화면에서 쓰여 select2/calendar 프래그먼트처럼
-         화면별 opt-in으로 두지 않고 전역으로 로드한다. yobi.ui.MarkdownEditor.js가
-         [data-toggle="markdown-editor"] textarea를 순회하며 EasyMDE를 붙인다(대상이 없는
-         페이지에서는 아무 일도 하지 않는다 - $yobi.setScriptPath 등 다른 전역 스크립트와 동일한
-         패턴). -->
-    <script type="text/javascript" src="/javascripts/lib/easymde/easymde.min.js"></script>
+    <!-- P3-46 #8 2단계: markdownEditor 프래그먼트가 17개 화면에서 쓰여 select2/calendar
+         프래그먼트처럼 화면별 opt-in으로 두지 않고 전역으로 로드한다. <yona-markdown-editor>는
+         Custom Element이므로 이 스크립트 로드만으로 customElements.define이 실행되고, 이후
+         브라우저가 DOM에서 이 태그를 만나는 즉시(대상이 없는 페이지에서는 자연히 아무 일도
+         일어나지 않는다) connectedCallback으로 스스로 초기화한다 - jQuery selector로 대상을
+         순회하던 yobi.ui.MarkdownEditor.js(삭제됨)와 달리 별도 초기화 스크립트가 필요 없다. -->
+    <script type="text/javascript" src="/javascripts/lib/yona-markdown-editor/yona-markdown-editor.min.js"></script>
     <!-- P3-46 #8-2: highlight.js 라이브러리 자체를 전역으로 승격(위 head::CSS 승격과 동일 이유).
-         yobi.ui.MarkdownEditor.js의 previewRender가 이 전역 hljs를 사용한다. 이 태그는 반드시
-         yobi.ui.MarkdownEditor.js보다 먼저 와야 한다. markdown(project) fragment는 이 스크립트를
-         중복 로드하지 않도록 자기 <script src="...highlight.pack.js">는 제거하고 hljs.configure/
-         highlightAll 호출만 남겼다(이 전역 hljs를 그대로 사용). -->
+         2단계 시점에서는 에디터 자체의 미리보기(previewRender)가 없어 이 전역 hljs를 쓰는
+         소비자는 아니지만, markdown(project) fragment의 hljs.highlightAll()(SSR 렌더링 콘텐츠
+         하이라이팅, 8개 화면)이 지금도 여기 의존한다 - 그 fragment는 이 스크립트를 중복 로드하지
+         않도록 자기 <script src="...highlight.pack.js">는 제거하고 hljs.configure/highlightAll
+         호출만 남겼다(이 전역 hljs를 그대로 사용). -->
     <script type="text/javascript" src="/javascripts/lib/highlight/highlight.pack.js"></script>
-    <script type="text/javascript" src="/javascripts/common/yobi.ui.MarkdownEditor.js"></script>
 
     <script type="text/javascript">
         $(function() {

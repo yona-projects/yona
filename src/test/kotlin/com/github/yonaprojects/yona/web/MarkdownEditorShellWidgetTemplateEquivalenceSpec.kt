@@ -27,16 +27,24 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-46 #8-1: 마크다운 에디터 셸 교체(textarea + 수제 Edit/Preview 탭 UI -> EasyMDE 인스턴스).
+// P3-46 #8 2단계: 마크다운 에디터 셸 교체(EasyMDE(CodeMirror5) 인스턴스 -> CM6 기반 Web
+// Component <yona-markdown-editor>, javascripts/lib/yona-markdown-editor/에 vendoring).
 //
-// 이 스펙은 실제 EasyMDE/CodeMirror의 렌더링·상호작용(브라우저 JS)은 검증하지 않는다 —
-// MockMvc+Jsoup 하네스는 렌더링된 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다. 대신
+// 이 스펙은 실제 CM6/Shadow DOM의 렌더링·상호작용(브라우저 JS)은 검증하지 않는다 — MockMvc+
+// Jsoup 하네스는 서버가 내려주는 초기 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다(Shadow
+// DOM 내부 동작은 Playwright가 담당 - stateless-launching-ripple.md 테스트 전략 전환 참고). 대신
 // 아래 "마크업 계약"이 회귀 없이 유지되는지를 검증한다:
-//   1) EasyMDE 리소스(자체 호스팅)가 로드되어야 한다.
+//   1) <yona-markdown-editor> 커스텀 엘리먼트가 렌더링되고, EasyMDE 리소스(CSS/JS)는 이제 0개,
+//      yona-markdown-editor.min.js 스크립트 로드는 1개여야 한다.
 //   2) 옛 탭 UI(ul.nav-tabs, data-mode=edit/preview)와 그 안의 체크리스트/임시저장 지우기/
-//      알림수신자 마크업은 사라져야 한다(사용자 확정 결정사항 - 4단계에서 재구현 예정).
-//   3) textarea의 name/id(id^=editor-)/data-editor-mode 속성 패턴은 그대로 유지되어야 한다 -
-//      멘션(Tribute) 대상 셀렉터, 폼 제출 시 서버가 받는 필드명 등 다른 여러 곳이 의존한다.
+//      알림수신자 마크업은 사라져야 한다(1단계부터 이어진 사용자 확정 결정사항 - 4단계에서
+//      재구현 예정). 서버가 렌더링하는 시점에는 <yona-markdown-editor> 안에 아직 실제
+//      <textarea>가 없다(그건 브라우저에서 connectedCallback이 만든다) - 이 스펙은 그 대신
+//      <yona-markdown-editor> 자체의 name/editor-mode 속성과 슬롯 콘텐츠(초기값)를 검증한다.
+//   3) name/editor-mode 속성값은 기존 textarea의 name/data-editor-mode 계약과 동일한 값이어야
+//      한다 - 폼 제출 시 서버가 받는 필드명, 컴포넌트가 재현할 data-editor-mode 등 다른 여러
+//      곳이 의존한다. textarea의 id(id^=editor-) 유일성 생성은 2단계부터 서버가 아니라
+//      컴포넌트(클라이언트) 책임으로 넘어갔으므로 이 스펙(서버 렌더링만 봄)에서는 검증하지 않는다.
 //   4) help/markdown 프래그먼트(마크다운 도움말)는 에디터와 독립적이므로 변경 없이 그대로
 //      렌더링되어야 한다.
 //   5) .editor-notice-label(임시저장 "Draft saved" 표시 - 살아있는 기능)은 DOM에 남아있어야 한다.
@@ -59,7 +67,7 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
                 .build()
         }
 
-        describe("P3-46 #8-1 마크다운 에디터 셸(textarea+수제 탭 UI -> EasyMDE) 마크업 계약 회귀 검증") {
+        describe("P3-46 #8 2단계 마크다운 에디터 셸(EasyMDE -> CM6 Web Component) 마크업 계약 회귀 검증") {
             val member = userRepository.findByLoginId("mdeditor-member").orElseGet {
                 userRepository.save(User(loginId = "mdeditor-member", name = "에디터셸위젯멤버", email = "mdeditor-member@yona.io"))
             }
@@ -91,10 +99,11 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
                 authoritiesVal = AuthorityUtils.createAuthorityList("ROLE_ACTIVE")
             )
 
-            fun assertEasyMdeResourcesLoaded(doc: Document) {
-                doc.select("link[href*='/javascripts/lib/easymde/'][rel=stylesheet]").size shouldBe 1
-                doc.select("script[src*='/javascripts/lib/easymde/']").size shouldBe 1
-                doc.select("script[src*='yobi.ui.MarkdownEditor.js']").size shouldBe 1
+            fun assertEditorResourcesLoaded(doc: Document) {
+                doc.select("link[href*='/javascripts/lib/easymde/'][rel=stylesheet]").size shouldBe 0
+                doc.select("script[src*='/javascripts/lib/easymde/']").size shouldBe 0
+                doc.select("script[src*='yobi.ui.MarkdownEditor.js']").size shouldBe 0
+                doc.select("script[src*='/javascripts/lib/yona-markdown-editor/']").size shouldBe 1
             }
 
             fun assertOldTabUiGone(editorWrap: org.jsoup.select.Elements) {
@@ -109,13 +118,18 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
                 editorWrap.select("div.markdown-preview").size shouldBe 0
             }
 
-            fun assertTextareaContractPreserved(editorWrap: org.jsoup.select.Elements, expectedName: String, expectedEditorMode: String) {
-                val textarea = editorWrap.select("textarea")
-                textarea.size shouldBe 1
-                textarea.attr("name") shouldBe expectedName
-                textarea.attr("data-editor-mode") shouldBe expectedEditorMode
-                textarea.attr("markdown") shouldBe "true"
-                (textarea.attr("id").startsWith("editor-")) shouldBe true
+            fun assertMarkdownEditorElementContractPreserved(editorWrap: org.jsoup.select.Elements, expectedName: String, expectedEditorMode: String) {
+                // 서버가 렌더링하는 시점에는 <yona-markdown-editor> 하나만 있고, 그 안의 실제
+                // <textarea>는 브라우저에서 connectedCallback이 만든다(컴포넌트 소스
+                // components/editor/src/YonaMarkdownEditor.ts 참고) - id(editor- 접두어) 유일성
+                // 생성도 그때 컴포넌트가 담당하므로 서버 렌더링 마크업에서는 검증할 대상이 없다.
+                val editorElement = editorWrap.select("yona-markdown-editor")
+                editorElement.size shouldBe 1
+                editorElement.attr("name") shouldBe expectedName
+                editorElement.attr("editor-mode") shouldBe expectedEditorMode
+                // 옛 textarea 계약 중 markdown="true"/textarea 자체는 이제 서버 마크업이 아니라
+                // 컴포넌트 책임이므로, 서버 쪽에서는 더 이상 <textarea>가 존재하지 않아야 한다.
+                editorWrap.select("textarea").size shouldBe 0
             }
 
             fun assertHelpAndNoticeLabelPreserved(editorWrap: org.jsoup.select.Elements) {
@@ -126,7 +140,7 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
                 editorWrap.select(".editor-notice-label").size shouldBe 1
             }
 
-            it("board/postform(게시글 작성) 화면은 EasyMDE 셸로 교체되어야 하고 name/id/data-editor-mode 계약과 도움말/임시저장 표시는 유지해야 한다") {
+            it("board/postform(게시글 작성) 화면은 CM6 Web Component 셸로 교체되어야 하고 name/editor-mode 계약과 도움말/임시저장 표시는 유지해야 한다") {
                 val doc = Jsoup.parse(
                     mockMvc.perform(
                         get("/${project.owner}/${project.name}/postform")
@@ -134,17 +148,17 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
                     ).andExpect(status().isOk).andReturn().response.contentAsString
                 )
 
-                assertEasyMdeResourcesLoaded(doc)
+                assertEditorResourcesLoaded(doc)
 
                 val editorWrap = doc.select("[data-toggle=markdown-editor]")
                 editorWrap.size shouldBe 1
 
                 assertOldTabUiGone(editorWrap)
-                assertTextareaContractPreserved(editorWrap, "body", "content-body")
+                assertMarkdownEditorElementContractPreserved(editorWrap, "body", "content-body")
                 assertHelpAndNoticeLabelPreserved(editorWrap)
             }
 
-            it("issue/issueform(이슈 작성) 화면은 EasyMDE 셸로 교체되어야 하고 name/id/data-editor-mode 계약과 도움말/임시저장 표시는 유지해야 한다") {
+            it("issue/issueform(이슈 작성) 화면은 CM6 Web Component 셸로 교체되어야 하고 name/editor-mode 계약과 도움말/임시저장 표시는 유지해야 한다") {
                 val doc = Jsoup.parse(
                     mockMvc.perform(
                         get("/${project.owner}/${project.name}/issueform")
@@ -152,13 +166,13 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
                     ).andExpect(status().isOk).andReturn().response.contentAsString
                 )
 
-                assertEasyMdeResourcesLoaded(doc)
+                assertEditorResourcesLoaded(doc)
 
                 val editorWrap = doc.select("[data-toggle=markdown-editor]")
                 editorWrap.size shouldBe 1
 
                 assertOldTabUiGone(editorWrap)
-                assertTextareaContractPreserved(editorWrap, "body", "content-body")
+                assertMarkdownEditorElementContractPreserved(editorWrap, "body", "content-body")
                 assertHelpAndNoticeLabelPreserved(editorWrap)
             }
         }
