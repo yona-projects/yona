@@ -95,7 +95,12 @@
 
                     <div id="comments" class="board-comment-wrap">
                         <div id="timeline">
-                            <div class="timeline-list">
+                            <!-- P3-53 항목2: legacy board/partial_comments.scala.html의 <ul class="comments"> 대응.
+                                 yobi.css의 숨김 규칙(.board-comment-wrap .comments .comment .add-a-comment 등)이
+                                 .board-comment-wrap과 .comment 사이에 .comments 조상 클래스를 요구하는데,
+                                 이 클래스가 없으면 그 선택자가 매치되지 않아 대댓글 입력창이 상시 펼쳐진 채로
+                                 보인다(브라우저 기본값 display:block). -->
+                            <div class="timeline-list comments">
                                 <div th:each="comment : ${comments}"
                                      th:with="children=${childCommentsByParentId != null ? childCommentsByParentId.get(comment.id) : null}, canEditThisComment=${currentUser != null and (comment.authorId == currentUser.id or isProjectManager)}, postingCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).NONISSUE_COMMENT}"
                                      class="comment" th:classappend="${currentUser != null and comment.authorLoginId == currentUser.loginId} ? ' author'" th:id="'comment-' + ${comment.id}">
@@ -213,6 +218,10 @@
 <!-- P3-50: 댓글 수정 폼(common/commentUpdateForm)의 기존 첨부파일 목록 클릭/드래그드롭/붙여넣기/
      삭제를 담당 — legacy와 동일하게 issue/board view 두 화면에서만 로드한다. -->
 <script type="text/javascript" src="/javascripts/common/yona.CommentAttachmentsUpdate.js"></script>
+<!-- P3-53 항목2: 대댓글 입력창(.add-a-comment/.child-comment-input-form) hover 노출/클릭 토글 담당.
+     제출은 이미 아래 인라인 스크립트의 delegated .child-comment-form submit 핸들러가 AJAX로 처리하므로
+     이 파일은 순수 표시/토글 UI만 담당해 충돌하지 않는다. -->
+<script type="text/javascript" src="/javascripts/common/yona.SubComment.js"></script>
 <script type="text/javascript">
     $(function(){
         $yobi.loadModule("board.View", {

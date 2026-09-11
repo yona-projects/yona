@@ -10230,27 +10230,6 @@ span.issue-label:hover {
 .nav-tabs li.active a {
   font-weight: bold;
 }
-.nav-tabs.small {
-  height: 29px;
-}
-.nav-tabs.small li a {
-  padding: 4px 15px;
-}
-.nav-tabs.small .editor-notice-label {
-  padding: 4px 15px;
-}
-.nav-tabs.small .editor-notice-label .unsaved {
-  border: 1px solid #fd8658;
-  border-radius: 3px;
-  color: #fd8658;
-  padding: 2px 4px;
-}
-.nav-tabs.small .editor-notice-label .saved {
-  border: 1px solid #8bc34a;
-  border-radius: 3px;
-  color: #8bc34a;
-  padding: 2px 4px;
-}
 .tab-box {
   border-top: none;
   -webkit-border-radius: 0 0 4px 4px;
