@@ -13,12 +13,14 @@
     <div th:replace="~{project/menu :: menu(${project}, 'none')}"></div>
   </div>
 
-  <!-- 조직 내 검색일 경우 조직 헤더 -->
-  <div th:if="${org != null and project == null}" class="org-header">
-    <div class="container">
-      <h2><a th:href="@{/org/{orgName}(orgName=${org.name})}" th:text="${org.name}" style="text-decoration: none; color: inherit;">조직 이름</a></h2>
-      <p th:text="${org.descr != null && !org.descr.isEmpty() ? org.descr : '조직 설명이 등록되지 않았습니다.'}" style="color: #666; font-size: 15px; margin-top: 10px;"></p>
-    </div>
+  <!-- 조직 내 검색일 경우 조직 헤더/메뉴 (P3-58: legacy search/result.scala.html:33-38 대응 —
+       즉석 .org-header 블록 대신 다른 조직 화면들(error/forbidden_organization.html 등)과 동일한
+       organization/header, organization/menu fragment를 재사용한다. 검색 결과 화면은 홈/이슈/
+       게시판/PR 중 어느 탭도 아니므로 activeMenu는 'none'(전부 비활성) — error/forbidden_organization.html의
+       경로 기반 activeMenu 계산과 달리 검색 화면은 애초에 특정 섹션에 속하지 않아 단순 상수로 충분하다. -->
+  <div th:if="${org != null and project == null}">
+    <div th:replace="~{organization/header :: header(${org})}"></div>
+    <div th:replace="~{organization/menu :: menu(${org}, 'none')}"></div>
   </div>
 
   <!-- 검색 상단 브레드크럼 (프로젝트/조직 없을 때만 노출) -->
