@@ -459,6 +459,13 @@
                     </div>
                 </div>
             </div>
+
+            <!-- P3-57: legacy issue/view.scala.html:454-456 board-footer 대응 — 키보드 단축키
+                 도움말(help/keymap) 모달. board/view.html의 keymap('boardDetail', ...) 배선과
+                 동일 패턴. -->
+            <div class="board-footer" style="margin-top: 15px; margin-bottom: 15px;">
+                <div th:replace="~{help/keymap :: keymap('issueDetail', ${project})}"></div>
+            </div>
         </div>
     </div>
 

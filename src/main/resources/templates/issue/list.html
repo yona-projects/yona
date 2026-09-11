@@ -367,86 +367,14 @@
                         <div id="pagination" th:data-total="${issuePage.totalPages}"><!-- pagination.js가 채움 --></div>
                     </th:block>
 
-                    <!-- 단축키 안내 모달 -->
-                    <div class="pull-left" style="padding:10px 0; margin-left: 55px;">
-                        <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini" th:text="#{common.shortcut.guide}">
-                            단축키 안내
-                        </a>
-
-                        <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
-                            <div class="row-fluid">
-                                <div class="span3">
-                                    <h5 th:text="#{shortcut.project}">프로젝트</h5>
-
-                                    <span class="ybtn ybtn-small">H</span>
-                                    <span class="help-inline" th:text="#{shortcut.home}">홈</span><br>
-
-                                    <span class="ybtn ybtn-small">B</span>
-                                    <span class="help-inline" th:text="#{shortcut.board}">게시판</span><br>
-
-                                    <span class="ybtn ybtn-small">I</span>
-                                    <span class="help-inline" th:text="#{shortcut.issue}">이슈</span><br>
-
-                                    <span class="ybtn ybtn-small">C</span>
-                                    <span class="help-inline" th:text="#{shortcut.code}">코드</span><br>
-
-                                    <span class="ybtn ybtn-small">M</span>
-                                    <span class="help-inline" th:text="#{shortcut.milestone}">마일스톤</span><br>
-
-                                    <th:block th:if="${project.isCodeEnabled}">
-                                        <span class="ybtn ybtn-small">P</span>
-                                        <span class="help-inline" th:text="#{shortcut.pullRequest}">코드 주고받기</span><br>
-                                    </th:block>
-
-                                    <span class="ybtn ybtn-small">Q</span>
-                                    <span class="help-inline" th:text="#{shortcut.setting}">설정</span><br>
-                                </div>
-
-                                <div class="span9">
-                                    <div class="row-fluid">
-                                        <div class="span5">
-                                            <h5 th:text="#{shortcut.issueList}">이슈 목록</h5>
-
-                                            <span class="ybtn ybtn-small">N</span>
-                                            <span class="help-inline" th:text="#{shortcut.newIssue}">새 이슈</span><br>
-
-                                            <span class="ybtn ybtn-small">&larr;</span>
-                                            <span class="help-inline" th:text="#{shortcut.prevPage}">이전 페이지</span><br>
-
-                                            <span class="ybtn ybtn-small">&rarr;</span>
-                                            <span class="help-inline" th:text="#{shortcut.nextPage}">다음 페이지</span><br>
-
-                                            <span class="ybtn ybtn-small">CTRL</span>+ <span class="ybtn ybtn-small">A</span>
-                                            <span class="help-inline" th:text="#{shortcut.selectAll}">전체 선택</span><br>
-                                        </div>
-
-                                        <div class="span7">
-                                            <h5 th:text="#{shortcut.site}">사이트</h5>
-
-                                            <span class="ybtn ybtn-small">A</span>
-                                            <span class="help-inline" th:text="#{shortcut.myIssues}">내 이슈</span><br>
-
-                                            <span class="ybtn ybtn-small">U</span>
-                                            <span class="help-inline" th:text="#{shortcut.profile}">프로필 페이지</span><br>
-
-                                            <span class="ybtn ybtn-small">F</span>
-                                            <span class="help-inline" th:text="#{shortcut.userMenu}">사용자 메뉴</span><br>
-
-                                            <span class="ybtn ybtn-small">ALT</span> + <span class="ybtn ybtn-small">S</span>
-                                            <span class="help-inline" th:text="#{shortcut.siteSearch}">사이트 검색</span><br>
-
-                                            <span class="ybtn ybtn-small">CTRL</span> + <span class="ybtn ybtn-small">ENTER</span>
-                                            <span class="help-inline" th:text="#{shortcut.submit}">폼 전송</span><br>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <p class="actrow">
-                                <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}">확인</button>
-                            </p>
-                        </div>
-                    </div>
+                    <!-- P3-57: TASK-0249가 board 2곳만 파라미터화된 help/keymap :: keymap(section, project)
+                         fragment로 교체하면서 issue/list.html은 리팩터 이전(하드코딩 복제) 상태로
+                         남아있었다 — 권한 게이트도 여기서 하드코딩된 채 틀려 있었다(설정 메뉴가
+                         매니저 여부와 무관하게 항상 노출, PR 메뉴가 project.vcs=='GIT' 대신
+                         isCodeEnabled로만 판단돼 SVN/Hg 프로젝트에서도 잘못 노출). 다른 화면들과
+                         동일한 fragment 재사용으로 통일한다(legacy issue/partial_list_wrap.scala.html:67,95
+                         두 분기 모두 동일한 @help.keymap("issueList", project) 호출이라 병합 가능). -->
+                    <div th:replace="~{help/keymap :: keymap('issueList', ${project})}"></div>
 
                 </div>
             </div>
