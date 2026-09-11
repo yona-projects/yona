@@ -12098,13 +12098,19 @@ input:-webkit-autofill:focus {
 .viewer-toolbar ul li {
   line-height: unset;
 }
-/** override EasyMDE (P3-46 #8-1: textarea+수제 탭 UI -> EasyMDE 셸 교체) **/
-/* EasyMDE 기본 스타일(회색 톤, FontAwesome류 아이콘)을 그대로 쓰지 않고 yona의 .ybtn/yobicon-*
-   체계로 재스킨한다 - 실제 버튼 클래스는 javascripts/common/yobi.ui.MarkdownEditor.js의 toolbar
-   구성에서 부여한다(className: "ybtn ybtn-small yobicon-*"). 여기서는 그 버튼들이 EasyMDE 자체
-   CSS(.editor-toolbar button 셀렉터, 클래스 1개+엘리먼트 1개라 순정 .ybtn보다 우선순위가 높다)에
-   눌리지 않도록 같은 특이도 이상으로 덮어쓰고, 툴바/에디터 영역 전체를 yona 톤(테두리/라운드
-   코너)에 맞춘다. */
+/** yona-markdown-editor 테마 계약 (P3-46 3단계, CM6-3단계) **/
+/* 옛 EasyMDE 재스킨 CSS(.EasyMDEContainer ...)는 2단계에서 EasyMDE 자체가 완전히 삭제되어
+   더 이상 어떤 마크업에도 매치되지 않는 죽은 규칙이 되었으므로 이번에 걷어내고, 그 자리를
+   CM6 Web Component(<yona-markdown-editor>)의 ::part()/CSS 커스텀 프로퍼티 테마 계약으로
+   대체한다. 색상/치수(툴바 배경 #fafafa, 테두리 rgba(0,0,0,.15), 포커스/hover 강조색 #51AACC,
+   버튼 26px/3px 라운드, 에디터 폰트 Consolas 계열 13px 등)는 옛 재스킨과 동일한 값을 컴포넌트
+   자체 기본값으로 이미 내장했다(components/editor/src/toolbar.ts의 TOOLBAR_STYLES 참고) - 그래서
+   여기서는 ::part() 색상 오버라이드가 필요 없고, 페이지 레이아웃에 필요한 최소 통합 규칙만
+   추가한다. */
+yona-markdown-editor {
+  display: block;
+  margin-bottom: 4px;
+}
 [data-toggle="markdown-editor"] .editor-notice-label {
   min-height: 20px;
   padding: 4px 2px;
@@ -12124,58 +12130,4 @@ input:-webkit-autofill:focus {
 [data-toggle="markdown-editor"] .editor-notice-label .saved {
   border: 1px solid #8bc34a;
   color: #8bc34a;
-}
-.EasyMDEContainer {
-  margin-bottom: 4px;
-}
-.EasyMDEContainer .editor-toolbar {
-  background-color: #fafafa;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
-  padding: 6px 8px;
-  opacity: 1;
-}
-.EasyMDEContainer .editor-toolbar button.ybtn {
-  height: 26px;
-  min-width: 30px;
-  margin: 0 2px 0 0;
-  padding: 0 8px !important;
-  font-size: 14px !important;
-  line-height: 24px;
-  color: #333;
-}
-.EasyMDEContainer .editor-toolbar button.ybtn[class*="yobicon-"]:before {
-  vertical-align: middle;
-}
-.EasyMDEContainer .editor-toolbar button.ybtn.markdown-editor-text-icon {
-  font-family: Arial, sans-serif;
-  font-weight: bold;
-}
-.EasyMDEContainer .editor-toolbar button.ybtn:hover,
-.EasyMDEContainer .editor-toolbar button.ybtn.active {
-  background-color: #51AACC;
-  border-color: #51AACC;
-  color: #fff;
-}
-.EasyMDEContainer .editor-toolbar button.ybtn.disabled,
-.EasyMDEContainer .editor-toolbar button.ybtn:disabled {
-  opacity: 0.35;
-}
-.EasyMDEContainer .editor-toolbar i.separator {
-  border-left: 1px solid rgba(0, 0, 0, 0.15);
-  width: 0;
-  margin: 0 6px;
-}
-.EasyMDEContainer .CodeMirror {
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 0 0 4px 4px;
-  font-family: Consolas, Menlo, Monaco, monospace;
-  font-size: 13px;
-}
-.EasyMDEContainer .CodeMirror-focused {
-  border-color: #51AACC;
-}
-.EasyMDEContainer .editor-preview {
-  background-color: #fff;
 }
