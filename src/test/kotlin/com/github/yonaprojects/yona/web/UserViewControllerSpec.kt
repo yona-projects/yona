@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.config.security.AccessControl
 import com.github.yonaprojects.yona.domain.issue.IssueRepository
+import com.github.yonaprojects.yona.domain.milestone.MilestoneRepository
 import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.mention.MentionService
 import com.github.yonaprojects.yona.domain.issue.RecentIssueService
@@ -82,6 +83,7 @@ class UserViewControllerSpec : DescribeSpec({
     val oAuthAppRegistrationService = mockk<com.github.yonaprojects.yona.domain.oauth2server.OAuthAppRegistrationService>()
     val sshKeyService = mockk<com.github.yonaprojects.yona.domain.sshkey.SshKeyService>()
     val gpgKeyService = mockk<com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService>()
+    val milestoneRepository = mockk<MilestoneRepository>()
     val passwordEncodingService = com.github.yonaprojects.yona.domain.user.PasswordEncodingService()
 
     val userViewController = UserViewController(
@@ -107,7 +109,8 @@ class UserViewControllerSpec : DescribeSpec({
         oAuthAuthorizedAppsService,
         oAuthAppRegistrationService,
         sshKeyService,
-        gpgKeyService
+        gpgKeyService,
+        milestoneRepository
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(userViewController)
         .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())
@@ -295,7 +298,8 @@ class UserViewControllerSpec : DescribeSpec({
             projectRepository, userProjectNotificationRepository, attachmentRepository, postingRepository,
             favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
             organizationRepository, userService, passwordEncodingService, accessControl, mentionService, recentIssueService,
-            apiTokenService, oAuthAuthorizedAppsService, oAuthAppRegistrationService, sshKeyService, gpgKeyService, hideProjectListing = true
+            apiTokenService, oAuthAuthorizedAppsService, oAuthAppRegistrationService, sshKeyService, gpgKeyService,
+            milestoneRepository, hideProjectListing = true
         )
         val model = ExtendedModelMap()
 

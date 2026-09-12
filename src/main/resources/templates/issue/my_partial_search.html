@@ -13,6 +13,7 @@
                 <input type="hidden" name="mentionId" th:value="${mentionId}" data-search="mentionId">
                 <input type="hidden" name="sharerId" th:value="${sharerId}" data-search="sharerId">
                 <input type="hidden" name="favoriteId" th:value="${favoriteId}" data-search="favoriteId">
+                <input type="hidden" name="milestoneId" th:value="${milestoneId}">
                 <div class="search myissues-search-input">
                     <div class="search-bar">
                         <input name="filter" class="textbox full" type="text" th:value="${filter}" th:placeholder="#{issue.search}">
@@ -20,6 +21,13 @@
                     </div>
                 </div>
             </form>
+
+            <!-- P3-62: legacy my_partial_search.scala.html:47-54 대응 — 이 화면은 cross-project라
+                 project 모델 변수가 없으므로 selectedMilestone.project를 대신 전달한다. -->
+            <th:block th:if="${selectedMilestone != null}">
+                <hr>
+                <div th:replace="~{milestone/partial_status :: status(${selectedMilestone}, ${selectedMilestone.project})}"></div>
+            </th:block>
         </div>
     </div>
     <div class="span10 span-hard-wrap" id="span10">
