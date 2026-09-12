@@ -5,22 +5,34 @@
  * https://yona.io
  **/
 
+// 점진적 jQuery 제거 - jQuery($) 없이 순수 DOM API로 재작성. 동작(로컬스토리지 기억,
+// 하위 이슈 목록 표시/숨김, 숨길 때 하이라이트/커서 스타일 초기화)은 원본과 동일하다.
 function _initShowSubtasks(){
     var showSubtasksAlways = localStorage.getItem('showSubtasksAlways');
-    var $toggleShowSubtasks = $("#toggle-show-subtasks");
+    var toggleShowSubtasks = document.getElementById('toggle-show-subtasks');
 
-    if( showSubtasksAlways  === 'true'){
-        $toggleShowSubtasks.prop('checked', true);
-        $(".child-issue-list").show();
+    function setChildIssueListVisible(visible){
+        document.querySelectorAll('.child-issue-list').forEach(function(el){
+            el.style.display = visible ? '' : 'none';
+        });
     }
-    $toggleShowSubtasks.on('click', function () {
+
+    if(showSubtasksAlways === 'true'){
+        toggleShowSubtasks.checked = true;
+        setChildIssueListVisible(true);
+    }
+
+    toggleShowSubtasks.addEventListener('click', function(){
         if(this.checked){
             localStorage.setItem('showSubtasksAlways', true);
-            $(".child-issue-list").show();
+            setChildIssueListVisible(true);
         } else {
             localStorage.setItem('showSubtasksAlways', false);
-            $('.post-item').removeClass('highlightBg').css("cursor", "");
-            $(".child-issue-list").hide();
+            document.querySelectorAll('.post-item').forEach(function(el){
+                el.classList.remove('highlightBg');
+                el.style.cursor = '';
+            });
+            setChildIssueListVisible(false);
         }
     });
 }
