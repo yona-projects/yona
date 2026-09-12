@@ -19,13 +19,12 @@
  * limitations under the License.
  */
 /**
- * yona.ui.Select2
+ * yona.ui.TomSelect
  *
- * P3-46 #5: Select2(v3) -> Tom Select 교체.
- *
- * 파일명/네임스페이스(yona.ui.Select2)는 P3-46 앞선 항목들(yona.ui.Calendar.js 등)과 동일한 이유로
- * 그대로 유지한다 - 17개 템플릿이 이 파일 경로를 직접 참조하므로 이름을 바꾸면 위험만 커지고 얻는
- * 것이 없다.
+ * P3-46 #5: Select2(v3) -> Tom Select 교체. 사용자 결정(2026-09-12)으로 select2 관례(파일명/
+ * 네임스페이스/data-toggle 속성/CSS 클래스)를 전부 tomselect로 바꿨다 - 17개 템플릿의 <script src>
+ * 경로/fragment 참조와 data-toggle="tomselect" 속성값 33곳, .tomselect-without-searchbox 클래스
+ * 2곳을 함께 갱신했다(SelectWidgetTemplateEquivalenceSpec 등 관련 테스트도 동기화).
  *
  * Tom Select는 대상 <select>/<input>의 data-* 속성을 자동으로 읽어 옵션 데이터 객체에 그대로
  * 얹어준다(dataset 기반 - 예: data-avatar-url -> avatarUrl, data-category-id -> categoryId,
@@ -44,9 +43,9 @@
     var oNS = $yona.createNamespace(ns);
 
     // ===== 로케일 문자열 (select2_locale_ko.js/ja.js 대응) =====
-    // common/select2.html이 로케일에 따라 window.YONA_SELECT2_I18N을 채워둔다. 없으면(영어 등)
+    // common/tomselect.html이 로케일에 따라 window.YONA_TOMSELECT_I18N을 채워둔다. 없으면(영어 등)
     // select2 v3 기본 영어 문구(select2.js:3203-3208)와 동일한 값으로 폴백한다.
-    var I18N = window.YONA_SELECT2_I18N || {
+    var I18N = window.YONA_TOMSELECT_I18N || {
         noResults: "No matches found",
         searching: "Searching...",
         tooShort: function(n){ return "Please enter " + n + " more character" + (n === 1 ? "" : "s"); }
@@ -196,7 +195,7 @@
     // (내부 MicroEvent 시스템으로만 'change'를 trigger한다) - 그런데 이 프로젝트의 여러 곳
     // (yona.project.New.js의 #vcs 핸들러, yona.issue.View.js의 이슈 인라인 수정 등)이 여전히
     // jQuery로 원본 요소의 "change"를 델리게이트로 구독하며 select2 시절처럼 evt.val을 읽는다.
-    // 이 브릿지가 없으면 그 기능들이 조용히 멈춘다 - data-toggle="select2"로 자동 초기화되는
+    // 이 브릿지가 없으면 그 기능들이 조용히 멈춘다 - data-toggle="tomselect"로 자동 초기화되는
     // 인스턴스뿐 아니라(아래 자동 초기화 루프), 자동 초기화를 거치지 않고 별도 모듈에서 직접
     // TomSelect를 생성하는 #assignee(yona.issue.Assginee.js)/#issueSharer(yona.issue.Sharer.js)도
     // 반드시 이 브릿지를 걸어야 한다 - 그래서 재사용 가능하도록 외부에 노출해둔다.
@@ -305,11 +304,11 @@
             };
         }
 
-        // select2-without-searchbox: select2 v3에서는 드롭다운 안 검색창을 CSS로 숨겼을 뿐이지만
+        // tomselect-without-searchbox: select2 v3에서는 드롭다운 안 검색창을 CSS로 숨겼을 뿐이지만
         // display:none이라 포커스/탭도 안 됐다 - 실질적으로 "검색 불가, 클릭으로만 선택"과 동일했다.
         // Tom Select는 검색창이 컨트롤 자체와 합쳐져 있어 "숨기기만" 하는 대응이 없다 -
         // controlInput:null(입력 자체를 없앰)이 원본의 실제 동작(타이핑 불가)과 결과적으로 동일하다.
-        if(dropdownCssClass === "select2-without-searchbox"){
+        if(dropdownCssClass === "tomselect-without-searchbox"){
             tsOptions.controlInput = null;
         } else if(dropdownCssClass){
             tsOptions.dropdownClass = "ts-dropdown " + dropdownCssClass;
@@ -322,14 +321,14 @@
     };
 
     // 다른 모듈(yona.issue.Sharer.js/yona.issue.Assginee.js)이 재사용할 수 있도록 노출한다 -
-    // 그 둘은 data-toggle="select2" 자동 초기화 루프를 타지 않고 직접 TomSelect를 생성하므로
+    // 그 둘은 data-toggle="tomselect" 자동 초기화 루프를 타지 않고 직접 TomSelect를 생성하므로
     // change 이벤트 브릿지를 스스로 걸어야 한다.
     oNS.container[oNS.name].bridgeChangeEvent = bridgeChangeEvent;
     oNS.container[oNS.name].i18n = I18N;
 
     $(function(){
-        $('[data-toggle="select2"]').each(function(i, el){
-            yona.ui.Select2(el);
+        $('[data-toggle="tomselect"]').each(function(i, el){
+            yona.ui.TomSelect(el);
         });
     });
-})("yona.ui.Select2");
+})("yona.ui.TomSelect");

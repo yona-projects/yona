@@ -47,7 +47,7 @@
                      담당자 select2는 로그인ID 기반 AJAX 검색(yonaAssgineeModule, Issue 전용
                      assignableUsers/assignees 엔드포인트)인데 PR의 setAssignee REST API는
                      숫자 userId를 받는 별도 계약이라 그대로 이어붙일 수 없다 — 대신 같은 화면의
-                     마일스톤 select(정적 <option> + data-toggle="select2")와 동일한 패턴으로 프로젝트
+                     마일스톤 select(정적 <option> + data-toggle="tomselect")와 동일한 패턴으로 프로젝트
                      멤버 목록을 서버 렌더링한다. 라벨은 백엔드 계약이 issue와 동일(라벨 ID)해 프래그먼트를
                      100% 그대로 재사용했다. 편집 가능 여부는 PullRequestController.checkWritePermission()
                      (프로젝트 멤버 여부)과 동일한 @templateHelper.isMember()로 게이트한다. -->
@@ -57,7 +57,7 @@
                         <dt th:text="#{issue.assignee}">담당자</dt>
                         <dd>
                             <select th:if="${prAssigneeLabelEditable}" id="pr-assignee-select" name="assigneeUserId"
-                                    data-toggle="select2" data-container-css-class="fullsize" style="width: 100%;">
+                                    data-toggle="tomselect" data-container-css-class="fullsize" style="width: 100%;">
                                 <option value="" th:selected="${pr.assignee == null}" th:text="#{issue.noAssignee}">담당자 없음</option>
                                 <option th:each="pu : ${project.projectUsers}" th:value="${pu.user.id}"
                                         th:selected="${pr.assignee != null and pr.assignee.user.id == pu.user.id}"
@@ -291,7 +291,7 @@
      구식 정의를 덮어쓴다 — 원래 이 페이지는 순서가 반대였다(다른 모든 페이지는 이미 scripts가
      먼저였음). 자세한 경위는 site/layout.html::markdown(project) fragment의 주석 참고. -->
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript" th:inline="javascript">
   $(document).ready(function() {
       var projectId = [[${project.id}]];

@@ -33,11 +33,11 @@
                             <dl class="pull-request-project">
                                 <dt th:text="#{pullRequest.from}">코드 보내는 곳</dt>
                                 <dd>
-                                    <select id="fromProjectId" data-toggle="select2" disabled="disabled">
+                                    <select id="fromProjectId" data-toggle="tomselect" disabled="disabled">
                                         <option th:value="${pr.fromProject.id}" th:text="${pr.fromProject.owner} + '/' + ${pr.fromProject.name}">owner/project</option>
                                     </select>
                                     <input type="hidden" name="fromProjectId" th:value="${pr.fromProject.id}">
-                                    <select id="fromBranch" data-toggle="select2" disabled="disabled">
+                                    <select id="fromBranch" data-toggle="tomselect" disabled="disabled">
                                         <option th:value="${pr.fromBranch}" th:text="${pr.fromBranch}"></option>
                                     </select>
                                     <input type="hidden" name="fromBranch" th:value="${pr.fromBranch}">
@@ -51,11 +51,11 @@
                             <dl class="pull-request-project">
                                 <dt th:text="#{pullRequest.to}">코드 받을 곳</dt>
                                 <dd>
-                                    <select id="toProjectId" data-toggle="select2" disabled="disabled">
+                                    <select id="toProjectId" data-toggle="tomselect" disabled="disabled">
                                         <option th:value="${pr.toProject.id}" th:text="${pr.toProject.owner} + '/' + ${pr.toProject.name}">owner/project</option>
                                     </select>
                                     <input type="hidden" name="toProjectId" th:value="${pr.toProject.id}">
-                                    <select id="toBranch" data-toggle="select2" disabled="disabled">
+                                    <select id="toBranch" data-toggle="tomselect" disabled="disabled">
                                         <option th:value="${pr.toBranch}" th:text="${pr.toBranch}"></option>
                                     </select>
                                     <input type="hidden" name="toBranch" th:value="${pr.toBranch}">
@@ -119,7 +119,7 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {

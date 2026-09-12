@@ -45,7 +45,7 @@
                             <span th:text="#{apitoken.repoScope.selected}">선택한 저장소</span>
                         </label>
                     </div>
-                    <select name="scopedProjectIds" multiple="multiple" data-toggle="select2" style="width: 100%;"
+                    <select name="scopedProjectIds" multiple="multiple" data-toggle="tomselect" style="width: 100%;"
                             th:if="${candidateProjects != null and !candidateProjects.isEmpty()}">
                         <option th:each="project : ${candidateProjects}" th:value="${project.id}"
                                 th:selected="${submittedScopedProjectIds != null and submittedScopedProjectIds.contains(project.id)}"

@@ -16,7 +16,7 @@
                     <input type="hidden" name="orderBy" th:value="${orderBy}">
                     <input type="hidden" name="orderDir" th:value="${orderDir}">
                     <div class="project-selects span7">
-                        <select id="projects" name="projectNames[]" data-format="projects" multiple th:data-placeholder="#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
+                        <select id="projects" name="projectNames[]" data-format="projects" multiple th:data-placeholder="#{organization.choose.projects}" data-toggle="tomselect" data-container-css-class="fullsize">
                             <option th:each="project : ${visibleProjects}" th:with="isSelected=${selectedProjectNames.contains(project.name)}" th:value="${project.name}" th:selected="${isSelected}" th:data-avatar-url="@{/projects/{id}/logo(id=${project.id})}" th:text="${project.name}">project</option>
                         </select>
                     </div>
@@ -79,7 +79,7 @@
     <footer th:replace="~{site/layout :: footer}"></footer>
     <div th:replace="~{site/layout :: scripts}"></div>
 </div>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
 <script type="text/javascript" th:inline="javascript">

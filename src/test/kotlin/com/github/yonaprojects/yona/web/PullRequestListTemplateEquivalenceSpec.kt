@@ -206,13 +206,13 @@ class PullRequestListTemplateEquivalenceSpec @Autowired constructor(
                     doc.select("#__commits").size shouldBe 1
                 }
 
-                it("select2/마크다운 에디터/파일 업로더 드롭존이 issue/create.html과 동일한 방식으로 이식되어야 한다") {
+                it("tomselect/마크다운 에디터/파일 업로더 드롭존이 issue/create.html과 동일한 방식으로 이식되어야 한다") {
                     val result = mockMvc.perform(
                         get("/pr-owner/pr-list-proj/pull/new").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
                     ).andReturn()
 
                     val doc = Jsoup.parse(result.response.contentAsString)
-                    // P3-46 #5에서 Select2(v3)가 Tom Select로 교체돼(common/select2.html 주석 참고)
+                    // P3-46 #5에서 Select2(v3)가 Tom Select로 교체돼(common/tomselect.html 주석 참고)
                     // 이제 lib/select2/select2.js가 아니라 tom-select.complete.min.js가 로드된다 —
                     // 이 테스트는 그 교체 이전의 스크립트 경로를 그대로 확인하고 있던 낡은 단언이었다
                     // (P3-51 로케일 작업 중 발견한 무관한 스테일 테스트, 즉시 수정).

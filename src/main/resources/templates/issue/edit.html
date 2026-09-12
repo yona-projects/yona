@@ -31,7 +31,7 @@
                                          (이 이슈에 부모가 아직 없어도 수정 화면에서 새로 부모를 지정할 수 있어야 함). -->
                                     <div class="subtask-wrap show">
                                         <div class="span3">
-                                            <select id="targetProjectId" name="targetProjectId" data-format="projects" th:data-placeholder="#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
+                                            <select id="targetProjectId" name="targetProjectId" data-format="projects" th:data-placeholder="#{organization.choose.projects}" data-toggle="tomselect" data-container-css-class="fullsize">
                                                 <option th:value="${project.id}" th:data-avatar-url="@{/projects/{projectId}/logo(projectId=${project.id})}" th:text="${project.name}"></option>
                                                 <option th:each="movable : ${movableProjects}" th:if="${movable.id != project.id}" th:value="${movable.id}" th:data-owner="${movable.owner} + ' /'" th:data-avatar-url="@{/projects/{projectId}/logo(projectId=${movable.id})}" th:text="${movable.name}"></option>
                                             </select>
@@ -40,7 +40,7 @@
                                             <!-- hasChildIssue: 이 이슈가 이미 하위이슈를 갖고 있으면(=이미 부모 이슈) 다른
                                                  이슈의 하위이슈로 만들 수 없다 — placeholder만 안내 문구로 바뀌고 후보
                                                  목록은 비운다(legacy와 동일하게 매니저 이슈 그대로 재현). -->
-                                            <select id="parentId" name="parentIssueId" data-format="issues" th:data-placeholder="#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
+                                            <select id="parentId" name="parentIssueId" data-format="issues" th:data-placeholder="#{organization.choose.projects}" data-toggle="tomselect" data-container-css-class="fullsize">
                                                 <option value="" th:text="${hasChildIssue} ? '이미 부모 이슈입니다.' : #{issue.subtask.select}">부모 이슈 선택</option>
                                                 <option th:if="${parentIssue != null}" th:value="${parentIssue.id}" selected th:text="'#' + ${parentIssue.number} + '. ' + ${parentIssue.title}"></option>
                                                 <th:block th:unless="${hasChildIssue}">
@@ -103,7 +103,7 @@
                                         </div>
                                         <div th:if="${milestones != null && !milestones.isEmpty()}">
                                             <select id="milestoneId" name="milestoneId"
-                                                    data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                                    data-toggle="tomselect" data-format="milestone" data-container-css-class="fullsize">
                                                 <option value="" th:text="#{issue.noMilestone}">마일스톤 없음</option>
                                                 <option th:each="milestone : ${milestones}" th:value="${milestone.id}" th:selected="${issue.milestone != null && issue.milestone.id == milestone.id}" th:text="${milestone.title}"></option>
                                             </select>
@@ -125,7 +125,7 @@
                                     <dt th:text="#{label}">라벨</dt>
                                     <dd>
                                         <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
-                                                data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
+                                                data-toggle="tomselect" data-format="issuelabel" data-allow-clear="true"
                                                 data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
                                                 th:data-placeholder="#{label.select}" class="hide">
                                             <option></option>
@@ -148,7 +148,7 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <link rel="stylesheet" type="text/css" media="screen" href="/javascripts/lib/tribute/tribute.min.css">

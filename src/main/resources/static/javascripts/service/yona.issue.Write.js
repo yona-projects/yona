@@ -77,7 +77,7 @@
             temporarySaveHandler(htElement.welTextarea);
 
             // P3-46 #5: Select2(v3) -> Tom Select 교체. 인스턴스는 htElement.welAssignee[0].tomselect로
-            // 접근한다(yona.issue.Assginee.js가 생성). weEvt.val은 yona.ui.Select2.js의
+            // 접근한다(yona.issue.Assginee.js가 생성). weEvt.val은 yona.ui.TomSelect.js의
             // bridgeChangeEvent가 원본 select2 "change" 이벤트와 동일한 모양으로 채워 넣어준다.
             // setValue의 두 번째 인자(silent:true)는 이 정규화 재설정이 또 다른 change를 유발해
             // 무한루프로 이어지지 않도록 막는다.

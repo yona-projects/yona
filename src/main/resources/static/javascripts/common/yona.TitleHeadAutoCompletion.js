@@ -49,8 +49,8 @@ function yonaTitleHeadModule(htOptions){
         _initTribute();
         _attachEvent();
 
-        // P3-46 #5: Select2(v3) -> Tom Select 교체. #labelIds는 yona.ui.Select2.js의 자동
-        // 초기화(data-toggle="select2")로 생성되므로 인스턴스는 DOM 요소의 .tomselect 프로퍼티로
+        // P3-46 #5: Select2(v3) -> Tom Select 교체. #labelIds는 yona.ui.TomSelect.js의 자동
+        // 초기화(data-toggle="tomselect")로 생성되므로 인스턴스는 DOM 요소의 .tomselect 프로퍼티로
         // 접근한다. getValue()는 다중 선택일 때 배열을 돌려준다(select2("val")과 동일한 모양).
         var labelIdsEl = document.getElementById("labelIds");
         if (labelIdsEl && labelIdsEl.tomselect) {

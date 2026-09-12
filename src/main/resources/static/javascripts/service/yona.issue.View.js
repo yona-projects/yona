@@ -85,7 +85,11 @@
             elements.timelineWrap.on("click", '[data-request-type="comment-vote"]', _onClickCommentVote);
 
             // Update issue info
-            elements.issueInfoWrap.on("change", "[data-toggle=select2]", _onChangeIssueInfo);
+            // data-toggle 속성값이 select2->tomselect로 바뀌었으므로(사용자 결정 2026-09-12)
+            // 델리게이트 셀렉터도 함께 갱신 - 안 그러면 yona.ui.TomSelect.js의 bridgeChangeEvent가
+            // 쏘는 네이티브 change 이벤트를 이 델리게이트가 못 잡아 이슈 인라인 수정(담당자/
+            // 마일스톤/라벨)이 조용히 멈춘다.
+            elements.issueInfoWrap.on("change", "[data-toggle=tomselect]", _onChangeIssueInfo);
             elements.issueInfoWrap.on("change", "[data-toggle=calendar]", _onChangeDueDate);
             elements.issueInfoWrap.on("select2-selecting", '[name="assignee.user.id"]', _onSelectingAssignee);
 

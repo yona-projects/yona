@@ -51,21 +51,21 @@ import java.time.temporal.ChronoUnit
 // 이 스펙은 드롭다운/자동완성의 실시간 상호작용(브라우저 JS)은 검증하지 않는다 - MockMvc+Jsoup
 // 하네스는 렌더링된 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다. 대신 아래 "마크업 계약"이
 // 회귀 없이 유지되는지를 검증한다: (1) select2 리소스가 완전히 사라지고 Tom Select 리소스가
-// 로드되는지, (2) data-toggle="select2"/data-format 등 JS가 의존하는 속성이 그대로 남아있는지,
+// 로드되는지, (2) data-toggle="tomselect"/data-format 등 JS가 의존하는 속성이 그대로 남아있는지,
 // (3) issuelabel 포맷의 optgroup(카테고리) 구조 - data-category-id/data-category-is-exclusive - 가
 // 그대로 유지되는지.
 //
 // 자동화 커버리지 범위(8개 화면 - 6개 data-format 전부 + plain(no-format) + 원격 AJAX 담당자):
 //   issue/create(projects/issues/milestone/issuelabel), issue/edit(동일 4종, 다른 상태),
 //   issue/list(user x2/milestone/issuelabel 필터), issue/view(milestone 단일 + #assignee 원격
-//   AJAX + #issueSharer 죽은 위젯 마크업), project/create(user + plain/select2-without-searchbox),
+//   AJAX + #issueSharer 죽은 위젯 마크업), project/create(user + plain/tomselect-without-searchbox),
 //   board/list(issue/partial_select_label 재사용 - issuelabel), pullrequest/create·edit(plain 셀렉트
 //   4종).
 //
 // 커버 안 된 화면(최종 보고 "수동 브라우저 확인 필요" 참고): project/importing, project/issuelabels,
 // organization/boardList, organization/issueList, pullrequest/list, pullrequest/view,
 // code/view, code/history, code/diff - 전부 마크업 구조는 issue/create·edit·list·view나
-// project/create와 동일한 패턴(같은 yona.ui.Select2.js/common/select2.html 프래그먼트)이라
+// project/create와 동일한 패턴(같은 yona.ui.TomSelect.js/common/tomselect.html 프래그먼트)이라
 // 회귀 위험이 낮다고 판단해 시간 예산상 자동화 테스트에서는 제외했다.
 class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
@@ -211,7 +211,7 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
             )
 
             fun assertNoSelect2(doc: Document) {
-                // yona.ui.Select2.js(래퍼 파일명, P3-46 앞선 항목들과 동일한 이유로 의도적으로 유지)를
+                // yona.ui.TomSelect.js(사용자 결정 2026-09-12로 파일명도 select2 관례에서 벗어났다)를
                 // 오검출하지 않도록 select2 "라이브러리" 경로(lib/select2)만 정확히 검사한다.
                 doc.select("script[src*='lib/select2']").size shouldBe 0
                 doc.select("link[href*='lib/select2']").size shouldBe 0
@@ -220,11 +220,11 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
 
             fun assertTomSelectLoaded(doc: Document) {
                 doc.select("script[src='/javascripts/lib/tomselect/tom-select.complete.min.js']").size shouldBe 1
-                doc.select("script[src='/javascripts/common/yona.ui.Select2.js']").size shouldBe 1
+                doc.select("script[src='/javascripts/common/yona.ui.TomSelect.js']").size shouldBe 1
             }
 
             fun assertIssueLabelOptgroupMarkup(doc: Document) {
-                val select = doc.select("select#labelIds[data-toggle=select2][data-format=issuelabel]")
+                val select = doc.select("select#labelIds[data-toggle=tomselect][data-format=issuelabel]")
                 select.size shouldBe 1
                 val exclusiveGroup = select.select("optgroup[label=\"셀렉트위젯-배타카테고리\"]")
                 exclusiveGroup.size shouldBe 1
@@ -248,9 +248,9 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertNoSelect2(doc)
                 assertTomSelectLoaded(doc)
 
-                doc.select("select#targetProjectId[data-toggle=select2][data-format=projects]").size shouldBe 1
-                doc.select("select#parentId[data-toggle=select2][data-format=issues]").size shouldBe 1
-                doc.select("select#milestoneId[data-toggle=select2][data-format=milestone]").size shouldBe 1
+                doc.select("select#targetProjectId[data-toggle=tomselect][data-format=projects]").size shouldBe 1
+                doc.select("select#parentId[data-toggle=tomselect][data-format=issues]").size shouldBe 1
+                doc.select("select#milestoneId[data-toggle=tomselect][data-format=milestone]").size shouldBe 1
                 assertIssueLabelOptgroupMarkup(doc)
             }
 
@@ -259,9 +259,9 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertNoSelect2(doc)
                 assertTomSelectLoaded(doc)
 
-                doc.select("select#targetProjectId[data-toggle=select2][data-format=projects]").size shouldBe 1
-                doc.select("select#parentId[data-toggle=select2][data-format=issues]").size shouldBe 1
-                doc.select("select#milestoneId[data-toggle=select2][data-format=milestone]").size shouldBe 1
+                doc.select("select#targetProjectId[data-toggle=tomselect][data-format=projects]").size shouldBe 1
+                doc.select("select#parentId[data-toggle=tomselect][data-format=issues]").size shouldBe 1
+                doc.select("select#milestoneId[data-toggle=tomselect][data-format=milestone]").size shouldBe 1
                 assertIssueLabelOptgroupMarkup(doc)
             }
 
@@ -270,9 +270,9 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertNoSelect2(doc)
                 assertTomSelectLoaded(doc)
 
-                doc.select("select#authorId[data-toggle=select2][data-format=user]").size shouldBe 1
-                doc.select("select#assigneeId[data-toggle=select2][data-format=user]").size shouldBe 1
-                doc.select("select#milestoneId[data-toggle=select2][data-format=milestone]").size shouldBe 1
+                doc.select("select#authorId[data-toggle=tomselect][data-format=user]").size shouldBe 1
+                doc.select("select#assigneeId[data-toggle=tomselect][data-format=user]").size shouldBe 1
+                doc.select("select#milestoneId[data-toggle=tomselect][data-format=milestone]").size shouldBe 1
                 assertIssueLabelOptgroupMarkup(doc)
             }
 
@@ -281,8 +281,8 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertNoSelect2(doc)
                 assertTomSelectLoaded(doc)
 
-                doc.select("select#milestone[data-toggle=select2][data-format=milestone]").size shouldBe 1
-                // #assignee는 data-toggle="select2"가 아니라 yona.issue.Assginee.js가 직접 TomSelect를
+                doc.select("select#milestone[data-toggle=tomselect][data-format=milestone]").size shouldBe 1
+                // #assignee는 data-toggle="tomselect"가 아니라 yona.issue.Assginee.js가 직접 TomSelect를
                 // 생성한다 - 그 스크립트가 로드되고 hidden input이 그대로 남아있는지만 확인한다.
                 doc.select("script[src='/javascripts/service/yona.issue.Assginee.js']").size shouldBe 1
                 doc.select("input#assignee[type=hidden]").size shouldBe 1
@@ -294,18 +294,18 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 doc.select("script[src='/javascripts/service/yona.issue.Sharer.js']").size shouldBe 1
             }
 
-            it("project/create(projectform) 화면은 Tom Select 리소스를 로드하고 project-owner(user)·vcs(plain, select2-without-searchbox) select 마크업을 유지해야 한다") {
+            it("project/create(projectform) 화면은 Tom Select 리소스를 로드하고 project-owner(user)·vcs(plain, tomselect-without-searchbox) select 마크업을 유지해야 한다") {
                 val doc = fetchDoc("/projectform")
                 assertNoSelect2(doc)
                 assertTomSelectLoaded(doc)
 
-                doc.select("select#project-owner[data-toggle=select2][data-format=user]").size shouldBe 1
-                val vcsSelect = doc.select("select#vcs[data-toggle=select2]")
+                doc.select("select#project-owner[data-toggle=tomselect][data-format=user]").size shouldBe 1
+                val vcsSelect = doc.select("select#vcs[data-toggle=tomselect]")
                 vcsSelect.size shouldBe 1
-                // data-dropdown-css-class 값은 여전히 "select2-without-searchbox" 그대로 남겨둔다 -
-                // yona.ui.Select2.js가 이 정확한 문자열을 보고 controlInput:null(검색 입력 자체를
-                // 없앰)로 분기한다(최종 보고 "결정 필요 사항" 참고).
-                vcsSelect.attr("data-dropdown-css-class") shouldBe "select2-without-searchbox"
+                // data-dropdown-css-class 값은 "tomselect-without-searchbox"로 바뀌었다(사용자 결정
+                // 2026-09-12로 select2 관례 정리) - yona.ui.TomSelect.js가 이 정확한 문자열을 보고
+                // controlInput:null(검색 입력 자체를 없앰)로 분기한다.
+                vcsSelect.attr("data-dropdown-css-class") shouldBe "tomselect-without-searchbox"
             }
 
             it("board/list(posts) 화면은 Tom Select 리소스를 로드하고 issue/partial_select_label 재사용 issuelabel select 마크업을 유지해야 한다") {
@@ -320,10 +320,10 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertNoSelect2(doc)
                 assertTomSelectLoaded(doc)
 
-                doc.select("select#fromProjectId[data-toggle=select2]").size shouldBe 1
-                doc.select("select#fromBranch[data-toggle=select2]").size shouldBe 1
-                doc.select("select#toProjectId[data-toggle=select2]").size shouldBe 1
-                doc.select("select#toBranch[data-toggle=select2]").size shouldBe 1
+                doc.select("select#fromProjectId[data-toggle=tomselect]").size shouldBe 1
+                doc.select("select#fromBranch[data-toggle=tomselect]").size shouldBe 1
+                doc.select("select#toProjectId[data-toggle=tomselect]").size shouldBe 1
+                doc.select("select#toBranch[data-toggle=tomselect]").size shouldBe 1
                 // 이 4개는 data-format이 없다 - 기존에도 커스텀 포맷터/매처 없이 기본 렌더링이었다.
                 doc.select("select#fromBranch[data-format]").size shouldBe 0
             }
@@ -333,10 +333,10 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertNoSelect2(doc)
                 assertTomSelectLoaded(doc)
 
-                doc.select("select#fromProjectId[data-toggle=select2]").size shouldBe 1
-                doc.select("select#fromBranch[data-toggle=select2]").size shouldBe 1
-                doc.select("select#toProjectId[data-toggle=select2]").size shouldBe 1
-                doc.select("select#toBranch[data-toggle=select2]").size shouldBe 1
+                doc.select("select#fromProjectId[data-toggle=tomselect]").size shouldBe 1
+                doc.select("select#fromBranch[data-toggle=tomselect]").size shouldBe 1
+                doc.select("select#toProjectId[data-toggle=tomselect]").size shouldBe 1
+                doc.select("select#toBranch[data-toggle=tomselect]").size shouldBe 1
             }
 
             it("site/layout 공통 헤더는 select2.css 대신 tom-select.min.css를 로드해야 한다") {

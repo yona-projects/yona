@@ -68,7 +68,7 @@
               </label>
             </dt>
             <dd>
-              <select id="project-owner" name="owner" data-toggle="select2" data-format="user" class="mb10" style="min-width: 220px;">
+              <select id="project-owner" name="owner" data-toggle="tomselect" data-format="user" class="mb10" style="min-width: 220px;">
                 <option data-type="user"
                         th:data-avatar-url="${currentUser.avatarUrl ?: '/images/default-avatar-128.png'}"
                         th:value="${currentUser.loginId}"
@@ -162,7 +162,7 @@
                 </label>
               </div>
               <div class="span10 cu-desc">
-                <select data-toggle="select2" class="mb10 mt5" disabled>
+                <select data-toggle="tomselect" class="mb10 mt5" disabled>
                   <option selected th:text="#{project.new.vcsType.git}">Git</option>
                 </select>
                 <input type="hidden" name="vcs" value="GIT">
@@ -224,7 +224,7 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript">
   $(function() {
       // 인증 체크박스 토글

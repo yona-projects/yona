@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
 // legacy issue/partial_assignee.scala.html 대응. 이슈 상세화면
-// (issue/view.html)의 담당자/마일스톤/마감일이 매니저(isAllowedUpdate)에게는 인라인 수정 select2/
+// (issue/view.html)의 담당자/마일스톤/마감일이 매니저(isAllowedUpdate)에게는 인라인 수정 tomselect/
 // calendar 위젯으로, 그 외에는 정적 텍스트로 렌더링되는지, 그리고 massUpdate 엔드포인트가 AJAX(JSON
 // Accept 헤더) 요청에는 리다이렉트 대신 JSON으로 응답하는지 실제 렌더링/요청으로 확인한다.
 @Transactional
@@ -61,7 +61,7 @@ class IssueInlineUpdateWidgetTemplateRenderingSpec @Autowired constructor(
 
     init {
         describe("이슈 상세화면 담당자/마일스톤/마감일 인라인 위젯 렌더링") {
-            it("매니저에게는 담당자 select2 hidden input과 마일스톤 select가 렌더링돼야 한다") {
+            it("매니저에게는 담당자 tomselect hidden input과 마일스톤 select가 렌더링돼야 한다") {
                 val manager = userRepository.save(User(loginId = "tmpl-widget-manager", name = "매니저", email = "tmpl-widget-manager@yona.io"))
                 val project = projectRepository.save(Project(name = "tmpl-widget-proj", owner = "tmpl-widget-owner", projectScope = ProjectScope.PUBLIC))
                 projectUserRepository.save(ProjectUser(project = project, user = manager, role = managerRole()))

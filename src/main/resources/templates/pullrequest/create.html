@@ -50,11 +50,11 @@
                             <dl class="pull-request-project">
                                 <dt th:text="#{pullRequest.from}">코드 보내는 곳</dt>
                                 <dd>
-                                    <select id="fromProjectId" name="fromProjectId" data-toggle="select2">
+                                    <select id="fromProjectId" name="fromProjectId" data-toggle="tomselect">
                                         <option th:each="repo : ${memberAssociationProjects}" th:value="${repo.id}"
                                                 th:text="${repo.owner} + '/' + ${repo.name}" th:selected="${repo.id == fromProject.id}">owner/project</option>
                                     </select>
-                                    <select id="fromBranch" name="fromBranch" data-toggle="select2">
+                                    <select id="fromBranch" name="fromBranch" data-toggle="tomselect">
                                         <option th:each="br : ${fromBranches}" th:value="${br}" th:text="${br}" th:selected="${br == prefillFromBranch}"></option>
                                     </select>
                                 </dd>
@@ -67,12 +67,12 @@
                             <dl class="pull-request-project">
                                 <dt th:text="#{pullRequest.to}">코드 받을 곳</dt>
                                 <dd>
-                                    <select id="toProjectId" name="toProjectId" data-toggle="select2">
+                                    <select id="toProjectId" name="toProjectId" data-toggle="tomselect">
                                         <option th:each="repo : ${associationProjects}" th:value="${repo.id}"
                                                 th:data-owner="${repo.owner}" th:data-name="${repo.name}"
                                                 th:text="${repo.owner} + '/' + ${repo.name}" th:selected="${repo.id == toProject.id}">owner/project</option>
                                     </select>
-                                    <select id="toBranch" name="toBranch" data-toggle="select2">
+                                    <select id="toBranch" name="toBranch" data-toggle="tomselect">
                                         <option th:each="br : ${toBranches}" th:value="${br}" th:text="${br}" th:selected="${br == prefillToBranch}"></option>
                                     </select>
                                 </dd>
@@ -132,7 +132,7 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {

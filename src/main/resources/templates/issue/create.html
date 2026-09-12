@@ -27,13 +27,13 @@
                                     <!-- 하위 태스크 설정 영역 -->
                                     <div class="subtask-wrap" th:classappend="${parentIssue != null} ? 'show' : ''">
                                         <div class="span3">
-                                            <select id="targetProjectId" name="targetProjectId" data-format="projects" th:data-placeholder="#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize" th:disabled="${parentIssue == null}">
+                                            <select id="targetProjectId" name="targetProjectId" data-format="projects" th:data-placeholder="#{organization.choose.projects}" data-toggle="tomselect" data-container-css-class="fullsize" th:disabled="${parentIssue == null}">
                                                 <option th:value="${project.id}" th:data-avatar-url="@{/projects/{projectId}/logo(projectId=${project.id})}" th:text="${project.name}"></option>
                                                 <option th:each="movable : ${movableProjects}" th:if="${movable.id != project.id}" th:value="${movable.id}" th:data-owner="${movable.owner} + ' /'" th:data-avatar-url="@{/projects/{projectId}/logo(projectId=${movable.id})}" th:text="${movable.name}"></option>
                                             </select>
                                         </div>
                                         <div class="span6">
-                                            <select id="parentId" name="parentIssueId" data-format="issues" th:data-placeholder="#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize" th:disabled="${parentIssue == null}">
+                                            <select id="parentId" name="parentIssueId" data-format="issues" th:data-placeholder="#{organization.choose.projects}" data-toggle="tomselect" data-container-css-class="fullsize" th:disabled="${parentIssue == null}">
                                                 <option value="" th:text="#{issue.subtask.select}">부모 이슈 선택</option>
                                                 <option th:if="${parentIssue != null}" th:value="${parentIssue.id}" selected th:text="'#' + ${parentIssue.number} + '. ' + ${parentIssue.title}"></option>
                                                 <option th:each="parentCandidate : ${parentCandidates}" th:value="${parentCandidate.id}" th:text="'#' + ${parentCandidate.number} + '. ' + ${parentCandidate.title}"></option>
@@ -94,7 +94,7 @@
                                         </div>
                                         <div th:if="${milestones != null && !milestones.isEmpty()}">
                                             <select id="milestoneId" name="milestoneId"
-                                                    data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                                    data-toggle="tomselect" data-format="milestone" data-container-css-class="fullsize">
                                                 <option value="" th:text="#{issue.noMilestone}">마일스톤 없음</option>
                                                 <option th:each="milestone : ${milestones}" th:value="${milestone.id}" th:text="${milestone.title}"></option>
                                             </select>
@@ -122,7 +122,7 @@
                                     </dt>
                                     <dd>
                                         <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
-                                                data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
+                                                data-toggle="tomselect" data-format="issuelabel" data-allow-clear="true"
                                                 data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
                                                 th:data-placeholder="#{label.select}" class="hide">
                                             <option></option>
@@ -154,7 +154,7 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript" src="/javascripts/lib/tribute/tribute.min.js"></script>

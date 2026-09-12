@@ -72,7 +72,7 @@ class IssueEditSubtaskTemplateRenderingSpec @Autowired constructor(
 
                 body shouldContain "subtask-wrap show"
                 body shouldContain "id=\"parentId\""
-                body shouldNotContain "select2\" data-container-css-class=\"fullsize\" disabled"
+                body shouldNotContain "tomselect\" data-container-css-class=\"fullsize\" disabled"
             }
 
             it("이미 하위이슈를 가진 이슈는 부모이슈 후보 대신 안내 문구만 노출해야 한다") {

@@ -84,7 +84,7 @@
                             <dl class="issue-option">
                                 <dt th:text="#{issue.author}">등록자</dt>
                                 <dd>
-                                    <select id="authorId" name="authorId" data-search="authorId" data-toggle="select2" data-format="user" data-container-css-class="fullsize">
+                                    <select id="authorId" name="authorId" data-search="authorId" data-toggle="tomselect" data-format="user" data-container-css-class="fullsize">
                                         <option value="" th:text="#{common.order.all}">전체</option>
                                         <th:block th:if="${currentUser != null}">
                                             <option th:value="${currentUser.id}" th:text="#{issue.list.authoredByMe}">작성한 이슈</option>
@@ -105,7 +105,7 @@
                             <dl class="issue-option">
                                 <dt th:text="#{issue.assignee}">담당자</dt>
                                 <dd>
-                                    <select id="assigneeId" name="assigneeId" data-search="assigneeId" data-toggle="select2" data-format="user" data-container-css-class="fullsize">
+                                    <select id="assigneeId" name="assigneeId" data-search="assigneeId" data-toggle="tomselect" data-format="user" data-container-css-class="fullsize">
                                         <option value="" th:text="#{common.order.all}">전체</option>
                                         <option value="-1" th:selected="${assigneeId == -1}" th:text="#{issue.noAssignee}">담당자 없음</option>
                                         <th:block th:if="${currentUser != null}">
@@ -127,7 +127,7 @@
                             <dl class="issue-option" th:if="${!milestones.isEmpty() || !closedMilestones.isEmpty()}">
                                 <dt th:text="#{milestone}">마일스톤</dt>
                                 <dd>
-                                    <select id="milestoneId" name="milestoneId" data-search="milestoneId" data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                    <select id="milestoneId" name="milestoneId" data-search="milestoneId" data-toggle="tomselect" data-format="milestone" data-container-css-class="fullsize">
                                         <option value="" th:text="#{milestone.state.all}">전체</option>
                                         <option value="-1" th:selected="${milestoneId == -1}" th:text="#{issue.noMilestone}">마일스톤 없음</option>
                                         <optgroup th:label="#{milestone.state.open}">
@@ -167,7 +167,7 @@
                                 <dt th:text="#{label}">라벨</dt>
                                 <dd>
                                     <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
-                                            data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
+                                            data-toggle="tomselect" data-format="issuelabel" data-allow-clear="true"
                                             data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
                                             th:data-placeholder="#{label.select}" class="hide">
                                         <option></option>
@@ -398,7 +398,7 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 <script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>

@@ -592,7 +592,10 @@
 
             elements.editCategoryForm.data(target.data());
             elements.editCategoryName.val(target.data("categoryName"));
-            elements.editCategoryForm.find("[name=isExclusive]").data("select2").val(target.data("categoryIsExclusive") + "");
+            // P3-46 #5 후속 버그 수정(2026-09-12): Select2 v3 API(.data("select2").val(...))가 Tom
+            // Select 교체 후에도 남아있어 항상 undefined였다(TypeError로 크래시). element.tomselect +
+            // setValue(value)로 교체.
+            elements.editCategoryForm.find("[name=isExclusive]")[0].tomselect.setValue(target.data("categoryIsExclusive") + "");
             elements.editCategoryForm.modal("show");
         }
 
@@ -638,7 +641,9 @@
             elements.editLabelForm.data(target.data());
             elements.editLabelName.val(target.data("labelName"));
             elements.editLabelColor.val(target.data("labelColor"));
-            elements.editLabelCategory.data("select2").val(target.data("categoryId"));
+            // P3-46 #5 후속 버그 수정(2026-09-12): 위 _onClickBtnEditCategory와 동일한 이유로
+            // element.tomselect + setValue(value)로 교체.
+            elements.editLabelCategory[0].tomselect.setValue(target.data("categoryId"));
             elements.editLabelForm.modal("show");
 
             _updateInputBySelectedColor(elements.editLabelName,
@@ -660,7 +665,12 @@
             };
 
             // Check is label with same name exists on new category
-            var categoryName = elements.editLabelCategory.data("select2").data().text;
+            // P3-46 #5 후속 버그 수정(2026-09-12): Select2 v3의 .data("select2").data()(현재 선택된
+            // 데이터 객체 반환)를 Tom Select API로 교체 - 인스턴스의 options[현재 값]이 선택된
+            // 옵션 객체(포맷 없는 select라 기본 렌더러의 {value, text} 형태)다.
+            var editLabelCategoryTomSelect = elements.editLabelCategory[0].tomselect;
+            var selectedCategoryOption = editLabelCategoryTomSelect.options[editLabelCategoryTomSelect.getValue()];
+            var categoryName = selectedCategoryOption ? selectedCategoryOption.text : undefined;
             var initialLabelName = elements.editLabelForm.data("labelName");
             var isLabelNameChanged = (requestData.name != initialLabelName);
 

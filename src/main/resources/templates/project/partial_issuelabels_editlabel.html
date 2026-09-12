@@ -6,7 +6,7 @@
   <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
   <div class="message edit-label-form">
     <div class="center-txt">
-      <select name="category.id" data-toggle="select2">
+      <select name="category.id" data-toggle="tomselect">
         <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">카테고리</option>
       </select>
 

@@ -6,9 +6,9 @@
  **/
 // P3-46 #5: Select2(v3) -> Tom Select 교체.
 //
-// #assignee(이슈 담당자, issue/view.html)는 data-toggle="select2" 자동 초기화 대상이 아니라
+// #assignee(이슈 담당자, issue/view.html)는 data-toggle="tomselect" 자동 초기화 대상이 아니라
 // (그런 속성이 없다) 이 모듈이 직접 TomSelect를 생성한다 - 그래서 change 이벤트 브릿지도 여기서
-// 직접 걸어야 한다(yona.ui.Select2.js 상단 주석 참고, yona.issue.Write.js/yona.project.New.js처럼
+// 직접 걸어야 한다(yona.ui.TomSelect.js 상단 주석 참고, yona.issue.Write.js/yona.project.New.js처럼
 // evt.val을 읽는 코드와의 호환을 위해 필요).
 function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, message){
   var MIN_INPUT_LENGTH = 0;
@@ -70,14 +70,14 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
       item: formatter,
       not_loading: function(data){
         var n = MIN_INPUT_LENGTH - data.input.length;
-        return n > 0 ? '<div class="no-results">' + yona.ui.Select2.i18n.tooShort(n) + '</div>' : '';
+        return n > 0 ? '<div class="no-results">' + yona.ui.TomSelect.i18n.tooShort(n) + '</div>' : '';
       },
-      no_results: function(){ return '<div class="no-results">' + yona.ui.Select2.i18n.noResults + '</div>'; },
-      loading: function(){ return '<div class="no-results">' + yona.ui.Select2.i18n.searching + '</div>'; }
+      no_results: function(){ return '<div class="no-results">' + yona.ui.TomSelect.i18n.noResults + '</div>'; },
+      loading: function(){ return '<div class="no-results">' + yona.ui.TomSelect.i18n.searching + '</div>'; }
     }
   });
 
-  yona.ui.Select2.bridgeChangeEvent(tomSelectInstance, assigneeElement);
+  yona.ui.TomSelect.bridgeChangeEvent(tomSelectInstance, assigneeElement);
 
   // initSelection 대응: 단일 선택이라 초기 아이템은 최대 1개(hidden input의 초기 value가 이미
   // Tom Select의 <input> 파싱 경로에서 아이템으로 선택돼 있다). 이름/아바타가 채워진 완전한

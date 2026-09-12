@@ -7,7 +7,7 @@
             <div th:replace="~{organization/issueList_quicksearch :: quicksearch(${org}, ${state}, ${authorId}, ${assigneeId}, ${mentionId}, ${selectedProjectNames})}"></div>
 
             <form id="search" name="search" th:action="@{/org/{orgName}/issues(orgName=${org.name})}" method="get">
-                <select id="projects" name="projectNames[]" multiple th:data-placeholder="#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
+                <select id="projects" name="projectNames[]" multiple th:data-placeholder="#{organization.choose.projects}" data-toggle="tomselect" data-container-css-class="fullsize">
                     <option th:each="project : ${visibleProjects}" th:with="isSelected=${selectedProjectNames.contains(project.name)}" th:value="${project.name}" th:selected="${isSelected}" th:data-avatar-url="@{/projects/{id}/logo(id=${project.id})}" th:text="${project.name}">project</option>
                 </select>
                 <hr>
