@@ -105,7 +105,10 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <div class="show-subtasks mr10" id="two-column-mode-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="자식이슈(Subtask)를 항상 펼쳐진 상태로 표시합니다" data-original-title="자식이슈 펼쳐보기">
+                                        <!-- 사용자 요청(2026-09-12)으로 정리: legacy 원본부터 id
+                                             중복 버그가 있었음(issue/list.html 228행 주석 참고) -
+                                             고유 id로 정리. -->
+                                        <div class="show-subtasks mr10" id="show-subtasks-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="자식이슈(Subtask)를 항상 펼쳐진 상태로 표시합니다" data-original-title="자식이슈 펼쳐보기">
                                             <label class="checkbox">
                                                 <div class="show-subtasks-button-border">
                                                     <input id="toggle-show-subtasks" type="checkbox"><span class="show-subtasks-text">자식이슈 펼쳐보기</span>

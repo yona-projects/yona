@@ -225,7 +225,13 @@
                         </li>
                         <li class="show-subtasks-li">
                             <!-- 자식이슈 펼쳐보기 -->
-                            <div class="show-subtasks mr10" id="two-column-mode-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" th:title="#{common.show.subtasks}" th:data-content="#{common.show.subtasks.desc}">
+                            <!-- 사용자 요청(2026-09-12)으로 정리: legacy common/showSubtasksCheckbox.scala.html
+                                 원본부터 이 wrapper div가 "2단 보기" 위젯과 동일한
+                                 id="two-column-mode-checkbox"를 중복 사용하는 버그가 있었다(legacy
+                                 원본 확인됨). Playwright 실측 결과 실제 popover/체크박스 동작에는
+                                 문제 없었지만(data-toggle 속성 기반 자동 초기화라 id 중복과 무관),
+                                 HTML id 유일성 위반 자체는 정리한다. -->
+                            <div class="show-subtasks mr10" id="show-subtasks-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" th:title="#{common.show.subtasks}" th:data-content="#{common.show.subtasks.desc}">
                                 <label class="checkbox">
                                     <div class="show-subtasks-button-border">
                                         <input id="toggle-show-subtasks" type="checkbox"><span class="show-subtasks-text" th:text="#{common.show.subtasks}">자식이슈 펼쳐보기</span>
