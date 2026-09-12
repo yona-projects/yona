@@ -5,8 +5,8 @@
 <body>
 <!--
  legacy git/partial_merge_result.scala.html 대응. PR 생성/수정 화면(create.html/
- edit.html)의 "#__commits" 영역을 pullrequest-write.js가 브랜치 선택 시마다 AJAX로 채우는 조각 —
- from/to 브랜치 사이의 커밋 목록 + 충돌 여부를 보여준다.
+ edit.html)의 "#__commits" 영역을 yona.pullrequest.Write.js가 브랜치 선택 시마다(또는 edit
+ 화면 최초 로드 시) AJAX로 채우는 조각 — from/to 브랜치 사이의 커밋 목록 + 충돌 여부를 보여준다.
  PullRequestViewController#mergeResult()가 PullRequestService.previewMerge(fromProject, toProject,
  fromBranch, toBranch)를 호출해 렌더링한다(저장되지 않은 임의 브랜치 조합 프리뷰 — legacy의
  PullRequestApp.mergeResult()/PullRequest.attemptMerge() 대응). commit-id 링크와 커밋 작성자
