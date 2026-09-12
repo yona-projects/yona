@@ -122,12 +122,16 @@
 
             NProgress.start();
 
-            $.ajax(vars.mergeResultURL, {
-                "data": data
+            fetch(vars.mergeResultURL + "?" + new URLSearchParams(data))
+            .then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                return response.text();
             })
-            .done(_onSuccessMergeResult)
-            .fail(_onErrorMergeResult)
-            .always(function(){
+            .then(_onSuccessMergeResult)
+            .catch(_onErrorMergeResult)
+            .finally(function(){
                 NProgress.done();
             });
         }

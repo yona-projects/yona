@@ -60,23 +60,27 @@
         }
 
         function changeVCS() {
-            $.ajax(options.sTransferURL, {
-                "method" : "post",
-                "success": function(res, status, xhr){
+            fetch(options.sTransferURL, {"method": "post"})
+                .then(function(response){
+                    // jQuery의 error 콜백은 HTTP 에러 상태(4xx/5xx)에서도 호출됐지만, fetch는
+                    // 네트워크 레벨 실패만 reject하므로 response.ok를 직접 확인해야 동일하게
+                    // 동작한다.
+                    if(!response.ok){
+                        return Promise.reject(response);
+                    }
                     // default action below:
-                    var location = xhr.getResponseHeader("Location");
+                    var location = response.headers.get("Location");
 
-                    if(xhr.status === NO_CONTENT && location){
+                    if(response.status === NO_CONTENT && location){
                         document.location.href = location;
                     } else {
                         document.location.reload();
                     }
-                },
-                "error": function(){
+                })
+                .catch(function(){
                     $("#alertChangeVCS").modal("hide");
                     $yona.alert(Messages("project.changeVCS.error"));
-                }
-            });
+                });
         }
 
         _init(options || {});

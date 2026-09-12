@@ -131,17 +131,25 @@
          */
         function doesExists(welInput, sURL){
 
-            $.ajax({
-                "url": sURL + welInput.val()
-            }).done(function(htData){
-                if(htData.isExist === true){
-                    showErrorMessage(welInput, Messages("validation.duplicated"));
-                } else if (htData.isReserved == true) {
-                    showErrorMessage(welInput, Messages("validation.reservedWord"));
-                } else {
-                    hideErrorMessage(welInput);
-                }
-            });
+            fetch(sURL + welInput.val())
+                .then(function(response){
+                    if(!response.ok){
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                })
+                .then(function(htData){
+                    if(htData.isExist === true){
+                        showErrorMessage(welInput, Messages("validation.duplicated"));
+                    } else if (htData.isReserved == true) {
+                        showErrorMessage(welInput, Messages("validation.reservedWord"));
+                    } else {
+                        hideErrorMessage(welInput);
+                    }
+                })
+                .catch(function(){
+                    // 원본 jQuery 버전에도 error 핸들러가 없어 실패 시 조용히 무시됐다.
+                });
         }
 
         /**

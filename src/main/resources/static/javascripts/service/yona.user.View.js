@@ -84,18 +84,19 @@
             var welTarget = $(this);
             var sURL = welTarget.attr("href");
 
-            $.ajax(sURL, {
-                "method" : "post",
-                "success": function(){
+            fetch(sURL, {"method": "post"})
+                .then(function(response){
+                    if(!response.ok){
+                        return Promise.reject(response);
+                    }
                     document.location.reload();
-                },
-                "error"  : function(oRes){
+                })
+                .catch(function(oRes){
                     var bOnWatching = welTarget.hasClass("blue");
                     var sActionMsg = Messages(bOnWatching ? "project.unwatch" : "project.watch");
 
                     $yona.notify(Messages("error.failedTo", sActionMsg, oRes.status, oRes.statusText));
-                }
-            });
+                });
 
             weEvt.preventDefault();
             return false;

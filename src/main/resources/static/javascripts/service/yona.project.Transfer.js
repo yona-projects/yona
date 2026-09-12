@@ -49,24 +49,24 @@
             htElement.welBtnTransferPop.click(_onClickBtnTransferPop);
 
             htElement.welBtnTransferPrj.one("click", function(){
-                $.ajax(htOptions.sTransferURL + "?owner=" + $("#owner").val(), {
-                    "method" : "put",
-                    "success": function(oRes, sStatus, oXHR){
+                fetch(htOptions.sTransferURL + "?owner=" + $("#owner").val(), {"method": "put"})
+                    .then(function(response){
+                        if(!response.ok){
+                            return Promise.reject(response);
+                        }
                         // default action below:
-                        var sLocation = oXHR.getResponseHeader("Location");
+                        var sLocation = response.headers.get("Location");
 
-                        if(oXHR.status === 204 && sLocation){
+                        if(response.status === 204 && sLocation){
                             document.location.href = sLocation;
                         } else {
                             document.location.reload();
                         }
-                    },
-                    "error": function(){
+                    })
+                    .catch(function(){
                         $("#alertTransfer").modal("hide");
                         $yona.alert(Messages("project.transfer.error"));
-                        return false;
-                    }
-                });
+                    });
             });
         }
         

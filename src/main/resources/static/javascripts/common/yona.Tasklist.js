@@ -34,22 +34,27 @@ $(function () {
 
         var text = $form.find("textarea").val();
 
-        $.ajax({
+        NProgress.start();
+        fetch(url, {
             method: "PATCH",
-            url: url,
-            contentType: "application/json",
-            data: JSON.stringify({ content: text, original: originalText }),
-            beforeSend: function() {
-                NProgress.start();
-            }
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ content: text, original: originalText })
         })
-        .done(function (msg) {
+        .then(function(response){
+            if(!response.ok){
+                return response.text().then(function(text){
+                    return Promise.reject({statusText: response.statusText, responseText: text});
+                });
+            }
+            return response.text();
+        })
+        .then(function (msg) {
             NProgress.done();
             checkTasklistDoneCount($markdownWrap);
         })
-        .fail(function(jqXHR, textStatus){
-            var response = JSON.parse(jqXHR.responseText);
-            var message = '[' + jqXHR.statusText + '] ' + response.message + '\n\nRefresh the page!';
+        .catch(function(err){
+            var response = JSON.parse(err.responseText);
+            var message = '[' + err.statusText + '] ' + response.message + '\n\nRefresh the page!';
             $yona.showAlert(message);
             NProgress.done();
         });

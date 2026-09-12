@@ -21,13 +21,20 @@ function findNotiReceiversHandler($textarea, url) {
     function findNotiReceivers() {
         var parentCommentId = $textarea.closest("form").find(".parentCommentId").val()
 
-        $.ajax({
+        fetch(url, {
             method: "POST",
-            url: url,
-            contentType: "application/json",
-            data: JSON.stringify({ comment: $textarea.val(), parentCommentId: parentCommentId || "" }),
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ comment: $textarea.val(), parentCommentId: parentCommentId || "" })
         })
-        .done(function (data) {
+        .then(function(response){
+            if(!response.ok){
+                return response.text().then(function(text){
+                    return Promise.reject({statusText: response.statusText, responseText: text});
+                });
+            }
+            return response.json();
+        })
+        .then(function (data) {
             NProgress.done();
             var receivers = "";
             if (!data && !data.receivers) {
@@ -48,9 +55,9 @@ function findNotiReceiversHandler($textarea, url) {
             // Display notification receivers
             $textarea.closest("form").find(".notification-receiver-list").html(receivers);
         })
-        .fail(function (jqXHR, textStatus) {
-            var response = JSON.parse(jqXHR.responseText);
-            var message = '[' + jqXHR.statusText + '] ' + response.message + '\n\nRefresh the page!';
+        .catch(function (err) {
+            var response = JSON.parse(err.responseText);
+            var message = '[' + err.statusText + '] ' + response.message + '\n\nRefresh the page!';
             $yona.showAlert(message);
         });
     }

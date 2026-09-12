@@ -104,16 +104,26 @@ yona.Markdown = (function(htOptions){
             "breaks": (welTarget.hasClass('readme-body') ? false : true)
         };
 
-        $.ajax(htVar.sMarkdownRendererUrl,{
-            "type": "post",
-            "contentType":"application/json; charset=utf-8",
-            "data": JSON.stringify(source),
-            "success": function(data){
-                welTarget.html(data);
-                $('pre code').each(function(i, block) {
-                    hljs.highlightElement(block);
-                });
+        fetch(htVar.sMarkdownRendererUrl, {
+            "method": "post",
+            "headers": {"Content-Type": "application/json; charset=utf-8"},
+            "body": JSON.stringify(source)
+        }).then(function(response){
+            // jQuery의 success 콜백은 HTTP 에러 상태(4xx/5xx)에서는 호출되지 않았으므로
+            // (원본에 error 핸들러가 없어 그런 경우 조용히 무시됐다) response.ok를 직접
+            // 확인해 동일하게 동작시킨다.
+            if(!response.ok){
+                return Promise.reject(response);
             }
+            return response.text();
+        }).then(function(data){
+            welTarget.html(data);
+            $('pre code').each(function(i, block) {
+                hljs.highlightElement(block);
+            });
+        }).catch(function(){
+            // 실패해도 아무것도 안 함(원본 jQuery 버전에도 error 핸들러 없음) - 이 요청이
+            // 실패해도 교체되지 않은 원본 콘텐츠가 사용자에게 그대로 보이기 때문.
         });
     }
 

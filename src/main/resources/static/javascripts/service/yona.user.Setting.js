@@ -385,18 +385,19 @@
             var bChecked   = welTarget.prop("checked");
             var url        = $(this).attr("data-href");
 
-            $.ajax(url, {
-                "method" : "post",
-                "success": function(data){
+            fetch(url, {"method": "post"})
+                .then(function(response){
+                    if(!response.ok){
+                        return Promise.reject(response);
+                    }
                     welTarget.prop("checked", bChecked);
-                },
-                "error"  : function(oRes){
+                })
+                .catch(function(oRes){
                     welTarget.prop("checked", !bChecked);
                     $yona.alert(Messages("error.failedTo",
                         Messages("userinfo.changeNotifications"),
                         oRes.status, oRes.statusText));
-                }
-            })
+                });
         }
 
         function _showNotificationTab(){
