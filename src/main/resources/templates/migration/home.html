@@ -14,15 +14,15 @@
 <script type="text/javascript" src="/javascripts/lib/jquery/jquery-1.9.0.js"></script>
 <script type="text/javascript" src="/javascripts/lib/jquery/jquery.browser.js"></script>
 <script type="text/javascript" src="/javascripts/lib/jquery/jquery.pjax.js"></script>
-<script type="text/javascript" src="/javascripts/common/yobi.Common.js"></script>
+<script type="text/javascript" src="/javascripts/common/yona.Common.js"></script>
 <script type="text/javascript" src="/javascripts/lib/vendor.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.Migration.js"></script>
 
 <div id="main" class="main">
   <div th:replace="~{site/layout :: gnb}"></div>
 
-  <div ng-app="yona.migration" ng-controller="MigrationController as vm" class="yobi-migration"
-       th:attr="ng-init=|vm.setUserToken('${token}');vm.yobiUser = '${currentUser.loginId}';vm.yobiUserEmail = '${currentUser.email}'|">
+  <div ng-app="yona.migration" ng-controller="MigrationController as vm" class="yona-migration"
+       th:attr="ng-init=|vm.setUserToken('${token}');vm.yonaUser = '${currentUser.loginId}';vm.yonaUserEmail = '${currentUser.email}'|">
     <div class="header-pannel" th:if="${token != null and !token.isEmpty()}">
       <div class="comeback-text pull-right">Yona to Github<span class="midium-font"></span></div>
       <div class="row title-text-bg">
@@ -266,7 +266,7 @@
                             }
                         })
                         .fail(function (data) {
-                            $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                            $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                         });
             });
 
@@ -282,7 +282,7 @@
                             }
                         })
                         .fail(function (data) {
-                            $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                            $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                         });
             });
 

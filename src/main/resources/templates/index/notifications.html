@@ -63,10 +63,10 @@
         $("#toggleIntro").click(function(){
             var $outerGuide = $(".site-guide-outer");
             $outerGuide.toggleClass("hide");
-            localStorage.setItem("yobi-intro", !$outerGuide.hasClass("hide"));
+            localStorage.setItem("yona-intro", !$outerGuide.hasClass("hide"));
         });
 
-        if(localStorage.getItem("yobi-intro") != "false"){
+        if(localStorage.getItem("yona-intro") != "false"){
             $(".site-guide-outer").removeClass("hide");
         }
 

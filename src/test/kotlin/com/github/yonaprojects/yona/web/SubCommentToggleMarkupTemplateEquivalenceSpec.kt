@@ -31,7 +31,7 @@ import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 
 // P3-53 항목2: common/childComments.html의 대댓글 입력창(.add-a-comment/.child-comment-input-form)이
-// yobi.css의 숨김 규칙(.board-comment-wrap .comments .comment ...)과 매치되지 않아 페이지 로드 시부터
+// yona.css의 숨김 규칙(.board-comment-wrap .comments .comment ...)과 매치되지 않아 페이지 로드 시부터
 // 상시 펼쳐진 채로 보이는 UI 회귀. legacy v1.6(app/views/issue|board/partial_comments.scala.html)은
 // <ul class="comments"><li class="comment">...</li></ul> 구조로 .comments가 .comment의 직계
 // 조상이었지만, 이식된 issue/view.html·board/view.html은 #comments.board-comment-wrap → #timeline →
@@ -58,7 +58,7 @@ class SubCommentToggleMarkupTemplateEquivalenceSpec @Autowired constructor(
                 .build()
         }
 
-        describe("P3-53 항목2: 대댓글 입력창은 yobi.css의 숨김 선택자가 매치되는 조상 구조로 렌더링되고 토글 스크립트를 로드해야 한다") {
+        describe("P3-53 항목2: 대댓글 입력창은 yona.css의 숨김 선택자가 매치되는 조상 구조로 렌더링되고 토글 스크립트를 로드해야 한다") {
             val author = userRepository.findByLoginId("subcomment-author").orElseGet {
                 userRepository.save(User(loginId = "subcomment-author", name = "대댓글작성자", email = "subcomment-author@yona.io"))
             }
@@ -115,7 +115,7 @@ class SubCommentToggleMarkupTemplateEquivalenceSpec @Autowired constructor(
                     )
                 )
 
-            it("issue/view.html의 .comment는 legacy와 동치인 .comments 조상 아래에서 렌더링돼 yobi.css 숨김 선택자가 매치돼야 한다") {
+            it("issue/view.html의 .comment는 legacy와 동치인 .comments 조상 아래에서 렌더링돼 yona.css 숨김 선택자가 매치돼야 한다") {
                 val doc = Jsoup.parse(
                     mockMvc.perform(
                         get("/${project.owner}/${project.name}/issue/${issue.number}")

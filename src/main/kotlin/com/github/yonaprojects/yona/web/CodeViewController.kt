@@ -553,7 +553,7 @@ class CodeViewController(
             model.addAttribute("comments", comments)
             // P3-56: legacy AttachmentApp.getFileList(COMMIT_COMMENT, comment.id) 대응 — 댓글별
             // 첨부파일 목록을 board/issue 댓글과 동일한 {"attachments":[...]} JSON으로 미리 계산해
-            // .attachments[data-attachments] 컨테이너에 심는다(렌더링은 yobi.Attachments.js가 담당).
+            // .attachments[data-attachments] 컨테이너에 심는다(렌더링은 yona.Attachments.js가 담당).
             model.addAttribute(
                 "commentAttachmentsJsonByCommentId",
                 comments.associate { comment ->

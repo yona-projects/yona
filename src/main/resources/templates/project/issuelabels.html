@@ -68,10 +68,10 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
-<script type="text/javascript" src="/javascripts/service/yobi.issue.LabelEditor.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.issue.LabelEditor.js"></script>
 <script type="text/javascript" th:inline="javascript">
   $(function(){
-      $yobi.loadModule("issue.LabelEditor", {
+      $yona.loadModule("issue.LabelEditor", {
           "form": "#frmNewLabel",
           "list": "#labelsList",
           "editCategoryForm": "#editCategory",

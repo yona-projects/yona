@@ -53,7 +53,7 @@ angular.module("yona.migration")
 function MigrationController($log, $timeout, $scope, migrationService, USER, WORKER, CONFIG) {
     /* jshint validthis: true */
     var vm = this;
-    vm.yobiUser = "yobi user loginId";  // set by ng-init at the view page
+    vm.yonaUser = "yona user loginId";  // set by ng-init at the view page
     vm.project = {};
     vm.destinationProjects = [];
     vm.importResult = {};
@@ -330,7 +330,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
             systemMessage("진행바가 끝까지 진행된 이후에는 브라우저를 닫으셔도 이슈 이전작업에 영향을 주지 않습니다");
             delegateAttachmentsMigration();
         });
-        migrationService.logToIssue(vm.source, vm.destination, "게시글", vm.yobiUser, vm.source.postCount);
+        migrationService.logToIssue(vm.source, vm.destination, "게시글", vm.yonaUser, vm.source.postCount);
     }
 
     function importIssues(source){
@@ -477,7 +477,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
             systemMessage("(실제 최종 데이터가 보이려면 작업 이후에도 시간이 좀 더 걸릴 수 있습니다)");
             systemMessage("진행바가 끝까지 진행된 이후에는 브라우저를 닫으셔도 이슈 이전작업에 영향을 주지 않습니다");
         });
-        migrationService.logToIssue(vm.source, vm.destination, "이슈", vm.yobiUser, vm.source.issueCount);
+        migrationService.logToIssue(vm.source, vm.destination, "이슈", vm.yonaUser, vm.source.issueCount);
     }
 
     function endLoadingBar(counter){
@@ -526,7 +526,7 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
             vm.destination.milestones = vm.importResult;
             endLoadingBar(1);
         });
-        migrationService.logToIssue(vm.source, vm.destination, "마일스톤", vm.yobiUser, vm.source.milestoneCount);
+        migrationService.logToIssue(vm.source, vm.destination, "마일스톤", vm.yonaUser, vm.source.milestoneCount);
     }
 
     function getProject(owner, projectName) {
@@ -651,14 +651,14 @@ function migrationService($http, $log, CONFIG, USER, WORKER) {
 
     //////////////////////////////
 
-    function logToIssue(source, destination, type, yobiUser, count){
+    function logToIssue(source, destination, type, yonaUser, count){
         var body = "source project total \n--- \n"
             + "\nmilestone: " + source.milestoneCount
             + "\nissue: " + source.issueCount
             + "\nposting: " + source.postCount
             + "\n\nsee: https://github.com/" + destination.full_name + "/issues"
             + "\n\n====\n\n"
-            + " by [" + yobiUser + "](http://github.com/" + yobiUser + ")";
+            + " by [" + yonaUser + "](http://github.com/" + yonaUser + ")";
         var sourceFullName = source.owner +"/" + source.projectName;
         var labels = [sourceFullName + " --> " + destination.full_name, destination.owner];
         if(destination.withWikiCommit){

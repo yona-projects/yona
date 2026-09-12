@@ -179,7 +179,7 @@ class CommentServiceImplSpec @Autowired constructor(
                     comment.contents shouldBe "@mentioned1 확인해주세요"
                 }
 
-                // P3-50 조사 중 발견: common/uploadForm.html(yobi.Files.js)로 올린 파일은
+                // P3-50 조사 중 발견: common/uploadForm.html(yona.Files.js)로 올린 파일은
                 // POST /files가 항상 NOT_A_RESOURCE(임시)에 저장하는데, 댓글 생성 경로가 그
                 // 파일을 실제 컨테이너로 옮기는 단계가 아예 없어 첨부파일이 영구히 미아가 됐다.
                 it("본문에 링크된 첨부파일을 NOT_A_RESOURCE에서 ISSUE_COMMENT로 옮겨야 한다") {

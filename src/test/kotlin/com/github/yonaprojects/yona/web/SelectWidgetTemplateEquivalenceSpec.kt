@@ -65,7 +65,7 @@ import java.time.temporal.ChronoUnit
 // 커버 안 된 화면(최종 보고 "수동 브라우저 확인 필요" 참고): project/importing, project/issuelabels,
 // organization/boardList, organization/issueList, pullrequest/list, pullrequest/view,
 // code/view, code/history, code/diff - 전부 마크업 구조는 issue/create·edit·list·view나
-// project/create와 동일한 패턴(같은 yobi.ui.Select2.js/common/select2.html 프래그먼트)이라
+// project/create와 동일한 패턴(같은 yona.ui.Select2.js/common/select2.html 프래그먼트)이라
 // 회귀 위험이 낮다고 판단해 시간 예산상 자동화 테스트에서는 제외했다.
 class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
@@ -211,7 +211,7 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
             )
 
             fun assertNoSelect2(doc: Document) {
-                // yobi.ui.Select2.js(래퍼 파일명, P3-46 앞선 항목들과 동일한 이유로 의도적으로 유지)를
+                // yona.ui.Select2.js(래퍼 파일명, P3-46 앞선 항목들과 동일한 이유로 의도적으로 유지)를
                 // 오검출하지 않도록 select2 "라이브러리" 경로(lib/select2)만 정확히 검사한다.
                 doc.select("script[src*='lib/select2']").size shouldBe 0
                 doc.select("link[href*='lib/select2']").size shouldBe 0
@@ -220,7 +220,7 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
 
             fun assertTomSelectLoaded(doc: Document) {
                 doc.select("script[src='/javascripts/lib/tomselect/tom-select.complete.min.js']").size shouldBe 1
-                doc.select("script[src='/javascripts/common/yobi.ui.Select2.js']").size shouldBe 1
+                doc.select("script[src='/javascripts/common/yona.ui.Select2.js']").size shouldBe 1
             }
 
             fun assertIssueLabelOptgroupMarkup(doc: Document) {
@@ -303,7 +303,7 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 val vcsSelect = doc.select("select#vcs[data-toggle=select2]")
                 vcsSelect.size shouldBe 1
                 // data-dropdown-css-class 값은 여전히 "select2-without-searchbox" 그대로 남겨둔다 -
-                // yobi.ui.Select2.js가 이 정확한 문자열을 보고 controlInput:null(검색 입력 자체를
+                // yona.ui.Select2.js가 이 정확한 문자열을 보고 controlInput:null(검색 입력 자체를
                 // 없앰)로 분기한다(최종 보고 "결정 필요 사항" 참고).
                 vcsSelect.attr("data-dropdown-css-class") shouldBe "select2-without-searchbox"
             }

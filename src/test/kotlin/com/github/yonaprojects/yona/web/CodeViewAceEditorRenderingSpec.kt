@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
 
-// P3-63(후속): 코드 브라우저 파일 뷰에 legacy service/yobi.code.Browser.js와 동치인 진짜 Ace
+// P3-63(후속): 코드 브라우저 파일 뷰에 legacy service/yona.code.Browser.js와 동치인 진짜 Ace
 // 에디터를 연결한다. 직전 커밋(CodeViewSourceContentRenderingSpec)에서는 hljs 폴백으로 "내용이
 // 안 보이는" 핵심 버그만 최소 비용으로 고쳤고, Ace 자체는 아직 로드/연결되지 않았었다. 이번 스펙은
 // 그 gap을 검증한다: ace.js 스크립트가 이 템플릿에 로드되는지, ace.edit("showCode")로 실제

@@ -122,7 +122,7 @@ $(function () {
                         }
                     })
                     .fail(function (data) {
-                        $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
             });
 
@@ -137,10 +137,10 @@ $(function () {
                         } else {
                             that.find('i').removeClass("starred");
                         }
-                        $yobi.notify(Messages(data.message), 3000);
+                        $yona.notify(Messages(data.message), 3000);
                     })
                     .fail(function (data) {
-                        $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
 
             });
@@ -182,7 +182,7 @@ $(function () {
                         }
                     })
                     .fail(function (data) {
-                        $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
             });
 

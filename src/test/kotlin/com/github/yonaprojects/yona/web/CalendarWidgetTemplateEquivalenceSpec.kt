@@ -126,8 +126,8 @@ class CalendarWidgetTemplateEquivalenceSpec @Autowired constructor(
                 // Pikaday 스크립트는 완전히 사라지고 Flatpickr로 대체되어야 한다.
                 doc.select("script[src*=pikaday]").size shouldBe 0
                 doc.select("script[src*='/javascripts/lib/flatpickr/']").size shouldBe 1
-                // 래퍼(yobi.ui.Calendar.js)는 공개 API(getDate/setDate)를 유지한 채 그대로 로드되어야 한다.
-                doc.select("script[src*='yobi.ui.Calendar.js']").size shouldBe 1
+                // 래퍼(yona.ui.Calendar.js)는 공개 API(getDate/setDate)를 유지한 채 그대로 로드되어야 한다.
+                doc.select("script[src*='yona.ui.Calendar.js']").size shouldBe 1
             }
 
             fun assertDueDateTriggerMarkup(doc: org.jsoup.nodes.Document, inputSelector: String) {
@@ -135,7 +135,7 @@ class CalendarWidgetTemplateEquivalenceSpec @Autowired constructor(
                 input.size shouldBe 1
                 input.attr("data-toggle") shouldBe "calendar"
                 // 트리거 버튼(.btn-calendar)이 input 바로 다음 형제로 남아 있어야 한다
-                // (yobi.ui.Calendar.js가 targetElement.next(".btn-calendar")로 찾는 구조).
+                // (yona.ui.Calendar.js가 targetElement.next(".btn-calendar")로 찾는 구조).
                 val next = input.first()!!.nextElementSibling()
                 next?.hasClass("btn-calendar") shouldBe true
             }
@@ -175,7 +175,7 @@ class CalendarWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertCalendarFragmentScriptsUseFlatpickr(doc)
                 // 주의(범위 밖 발견): issue/view.html의 마감일 input은 issue/create·edit·list와
                 // 달리 id="issueDueDate"가 없다(name=dueDate + data-toggle=calendar만 있음).
-                // yobi.issue.View.js:50의 $("#issueDueDate")는 이 화면에서 항상 빈 셀렉션이라
+                // yona.issue.View.js:50의 $("#issueDueDate")는 이 화면에서 항상 빈 셀렉션이라
                 // 사실상 죽은 코드다 — Pikaday->Flatpickr 교체와 무관한 기존 상태이므로 테스트도
                 // 실제 마크업(name 기준)에 맞춰 검증한다.
                 assertDueDateTriggerMarkup(doc, "input[name=dueDate][data-toggle=calendar]")

@@ -55,19 +55,16 @@ import java.io.File
 //       /javascripts/lib/highlight/highlight.pack.js)에서 로드된다(파일 위치는 그대로, 내용만
 //       최신 버전으로 교체).
 //   (2) 항목3(atjs->Tribute)에서 발견된 것과 동일한 함정 -- marked()/hljs.*를 실제로 호출하는
-//       common/yobi.Markdown.js가 이전까지 *어느 템플릿에서도* <script src>로 로드되지 않고,
-//       전역 레거시 번들 yona-lib.js에 박혀있던 구버전 사본만 실행되고 있었다. 이번에 yobi.Markdown.js
-//       를 실제로 로드하는 <script src> 태그를 추가했는지 검증한다.
-//   (3) yobi.Markdown.js/site/layout.html의 소스 코드 자체가 신버전 API로 이식됐는지(구버전 API
-//       호출이 남아있지 않은지) 직접 소스 텍스트로 검증한다 -- 실제 실행 결과는 볼 수 없지만,
-//       "무엇을 호출하는 코드가 배포됐는지"는 정적으로 검증 가능하고, 이게 이번 버전업의 핵심
-//       회귀 지점이다(구버전 API 호출부가 신버전 라이브러리와 만나면 런타임에서 깨진다).
-//   (4) pullrequest/view.html은 site/layout.html :: scripts(yona-lib.js 포함)보다 site/layout.html
-//       :: markdown(project) 프래그먼트를 *먼저* include하고 있어서, yobi.Markdown.js 스크립트
-//       태그를 마크다운 프래그먼트 안에 추가하는 것만으로는 부족했다 -- 나중에 로드되는 yona-lib.js
-//       번들이 전역 yobi.Markdown을 다시 구버전 사본으로 덮어써버리기 때문이다(항목3과 똑같은
-//       함정의 변형). scripts 프래그먼트가 markdown 프래그먼트보다 먼저 오도록 순서를 바로잡았다
-//       -- 이 스펙이 그 순서를 직접 검증한다.
+//       common/yona.Markdown.js가 한때 *어느 템플릿에서도* <script src>로 로드되지 않고, 전역
+//       레거시 번들 yona-lib.js에 박혀있던 구버전 사본만 실행됐던 적이 있다(당시엔 개별
+//       override 로드로 정정). 이후 support-script/js-bundle/minify-js.sh(legacy 번들링 스크립트
+//       부활)로 yona-lib.js 자체를 최신 소스로 재생성해, 번들 안의 사본이 더 이상 구버전이
+//       아니게 됐으므로 그 개별 override 로드는 순수 중복이 되어 제거했다 -- 이제는 개별 로드가
+//       *없어야* 하는 쪽을 검증한다.
+//   (3) yona.Markdown.js의 소스 코드 자체가 신버전 API로 이식됐는지(구버전 API 호출이 남아있지
+//       않은지) 직접 소스 텍스트로 검증한다 -- 실제 실행 결과는 볼 수 없지만, "무엇을 호출하는
+//       코드가 배포됐는지"는 정적으로 검증 가능하고, 이게 이번 버전업의 핵심 회귀 지점이다
+//       (구버전 API 호출부가 신버전 라이브러리와 만나면 런타임에서 깨진다).
 class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -200,83 +197,82 @@ class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
                 doc.select("link[href='/javascripts/lib/highlight/styles/default.css']").size shouldBe 1
             }
 
-            // 항목3(atjs->Tribute)과 동일한 함정 재발 방지 -- common/yobi.Markdown.js가 실제로
-            // <script src>로 로드되는지(단순히 소스 파일을 고쳤다고 브라우저에 반영되는 게 아니다).
-            fun assertMarkdownScriptLoaded(doc: Document) {
-                doc.select("script[src='/javascripts/common/yobi.Markdown.js']").size shouldBe 1
+            // support-script/js-bundle/minify-js.sh(legacy 번들링 스크립트 부활)로 yona-lib.js를
+            // 최신 소스로 재생성한 뒤에는, 번들 안의 yona.Markdown.js 사본이 더 이상 구버전이
+            // 아니므로 site/layout.html에서 override용 개별 <script src> 로드를 제거했다(순수
+            // 중복이었음). 이제는 개별 로드가 없어야 하는 쪽을 검증한다.
+            fun assertMarkdownScriptNotLoadedIndividually(doc: Document) {
+                doc.select("script[src='/javascripts/common/yona.Markdown.js']").size shouldBe 0
             }
 
-            it("issue/create(issueform) 화면은 marked.js/highlight.pack.js와 yobi.Markdown.js를 로드해야 한다") {
+            it("issue/create(issueform) 화면은 marked.js/highlight.pack.js를 로드하고 yona.Markdown.js는 개별 로드하지 않는다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issueform")
                 assertMarkedAndHljsLoaded(doc)
-                assertMarkdownScriptLoaded(doc)
+                assertMarkdownScriptNotLoadedIndividually(doc)
             }
 
-            it("issue/edit(editform) 화면은 marked.js/highlight.pack.js와 yobi.Markdown.js를 로드해야 한다") {
+            it("issue/edit(editform) 화면은 marked.js/highlight.pack.js를 로드하고 yona.Markdown.js는 개별 로드하지 않는다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issue/${issue.number}/editform")
                 assertMarkedAndHljsLoaded(doc)
-                assertMarkdownScriptLoaded(doc)
+                assertMarkdownScriptNotLoadedIndividually(doc)
             }
 
-            it("milestone/create(milestone/new) 화면은 marked.js/highlight.pack.js와 yobi.Markdown.js를 로드해야 한다") {
+            it("milestone/create(milestone/new) 화면은 marked.js/highlight.pack.js를 로드하고 yona.Markdown.js는 개별 로드하지 않는다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/milestone/new")
                 assertMarkedAndHljsLoaded(doc)
-                assertMarkdownScriptLoaded(doc)
+                assertMarkdownScriptNotLoadedIndividually(doc)
             }
 
-            it("milestone/edit(editform) 화면은 marked.js/highlight.pack.js와 yobi.Markdown.js를 로드해야 한다") {
+            it("milestone/edit(editform) 화면은 marked.js/highlight.pack.js를 로드하고 yona.Markdown.js는 개별 로드하지 않는다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/milestone/${milestone.id}/editform")
                 assertMarkedAndHljsLoaded(doc)
-                assertMarkdownScriptLoaded(doc)
+                assertMarkdownScriptNotLoadedIndividually(doc)
             }
 
-            it("milestone/view(milestone/{id}) 화면은 marked.js/highlight.pack.js와 yobi.Markdown.js를 로드해야 한다") {
+            it("milestone/view(milestone/{id}) 화면은 marked.js/highlight.pack.js를 로드하고 yona.Markdown.js는 개별 로드하지 않는다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/milestone/${milestone.id}")
                 assertMarkedAndHljsLoaded(doc)
-                assertMarkdownScriptLoaded(doc)
+                assertMarkdownScriptNotLoadedIndividually(doc)
             }
 
-            it("pullrequest/create(pull/new) 화면은 marked.js/highlight.pack.js와 yobi.Markdown.js를 로드해야 한다") {
+            it("pullrequest/create(pull/new) 화면은 marked.js/highlight.pack.js를 로드하고 yona.Markdown.js는 개별 로드하지 않는다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/pull/new")
                 assertMarkedAndHljsLoaded(doc)
-                assertMarkdownScriptLoaded(doc)
+                assertMarkdownScriptNotLoadedIndividually(doc)
             }
 
-            it("pullrequest/edit(pull/{number}/edit) 화면은 marked.js/highlight.pack.js와 yobi.Markdown.js를 로드해야 한다") {
+            it("pullrequest/edit(pull/{number}/edit) 화면은 marked.js/highlight.pack.js를 로드하고 yona.Markdown.js는 개별 로드하지 않는다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/pull/${pr.number}/edit")
                 assertMarkedAndHljsLoaded(doc)
-                assertMarkdownScriptLoaded(doc)
+                assertMarkdownScriptNotLoadedIndividually(doc)
             }
 
-            it("pullrequest/view(pull/{number}) 화면은 marked.js/highlight.pack.js와 yobi.Markdown.js를 로드하고, yona-lib.js(구버전 yobi.Markdown 사본이 박힌 전역 번들)보다 뒤에 yobi.Markdown.js가 와야 한다(그래야 새 정의가 번들의 구식 정의를 덮어쓴다)") {
+            it("pullrequest/view(pull/{number}) 화면은 marked.js/highlight.pack.js와 yona-lib.js를 로드하고, yona.Markdown.js는 번들 재생성 이후 개별 로드하지 않는다") {
                 val raw = fetchRaw("/${project.owner}/${project.name}/pull/${pr.number}")
                 val doc = Jsoup.parse(raw)
                 assertMarkedAndHljsLoaded(doc)
-                assertMarkdownScriptLoaded(doc)
+                assertMarkdownScriptNotLoadedIndividually(doc)
 
                 val yonaLibIdx = raw.indexOf("/javascripts/yona-lib.js")
-                val markdownJsIdx = raw.indexOf("/javascripts/common/yobi.Markdown.js")
                 (yonaLibIdx >= 0) shouldBe true
-                (markdownJsIdx >= 0) shouldBe true
-                (markdownJsIdx > yonaLibIdx) shouldBe true
             }
 
             // 범위 밖 발견(고치지 않고 보존) -- board/edit·create, board/view, issue/view, wiki/edit,
             // code/diff는 markdownEditor 프래그먼트(에디터 UI)는 쓰면서도 site/layout.html ::
-            // markdown(project) 프래그먼트는 애초에 include하지 않는다. 즉 yobi.Markdown.init()이
+            // markdown(project) 프래그먼트는 애초에 include하지 않는다. 즉 yona.Markdown.init()이
             // 이 화면들에서는 한 번도 호출된 적이 없다(marked/highlight.js 버전과 무관한 기존
             // 구조적 공백 -- 최종 보고 참고). 이번 버전업으로 새로 생기거나 없어지는 문제가
             // 아니므로 현재 상태(스크립트 미로드)를 그대로 보존하는 회귀 가드만 남긴다.
-            it("board/view 화면은 (기존과 마찬가지로) markdown 프래그먼트를 include하지 않아 marked.js/yobi.Markdown.js를 로드하지 않는다(범위 밖 기존 공백, 최종 보고 참고)") {
+            it("board/view 화면은 (기존과 마찬가지로) markdown 프래그먼트를 include하지 않아 marked.js/yona.Markdown.js를 로드하지 않는다(범위 밖 기존 공백, 최종 보고 참고)") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/post/${posting.number}")
                 doc.select("script[src='/javascripts/lib/marked.js']").size shouldBe 0
-                doc.select("script[src='/javascripts/common/yobi.Markdown.js']").size shouldBe 0
+                doc.select("script[src='/javascripts/common/yona.Markdown.js']").size shouldBe 0
             }
 
-            it("issue/view 화면은 (기존과 마찬가지로) markdown 프래그먼트를 include하지 않아 marked.js/yobi.Markdown.js를 로드하지 않는다(범위 밖 기존 공백, 최종 보고 참고)") {
+            it("issue/view 화면은 (기존과 마찬가지로) markdown 프래그먼트를 include하지 않아 marked.js/yona.Markdown.js를 로드하지 않는다(범위 밖 기존 공백, 최종 보고 참고)") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issue/${issue.number}")
                 doc.select("script[src='/javascripts/lib/marked.js']").size shouldBe 0
-                doc.select("script[src='/javascripts/common/yobi.Markdown.js']").size shouldBe 0
+                doc.select("script[src='/javascripts/common/yona.Markdown.js']").size shouldBe 0
             }
 
             // 소스 계약 검증 -- 실제 marked()/hljs 호출 결과(HTML)는 MockMvc로 볼 수 없으므로,
@@ -306,9 +302,9 @@ class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
                 (majorVersion >= 11) shouldBe true
             }
 
-            it("common/yobi.Markdown.js는 marked/highlight.js 신버전 API로 이식되고 구버전 API 호출이 남아있지 않아야 한다") {
+            it("common/yona.Markdown.js는 marked/highlight.js 신버전 API로 이식되고 구버전 API 호출이 남아있지 않아야 한다") {
                 val src = MarkdownRendererWidgetTemplateEquivalenceSpec::class.java
-                    .getResourceAsStream("/static/javascripts/common/yobi.Markdown.js")!!
+                    .getResourceAsStream("/static/javascripts/common/yona.Markdown.js")!!
                     .bufferedReader(Charsets.UTF_8).readText()
 
                 // 신버전 API
@@ -332,9 +328,9 @@ class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
 
                 src shouldContain "hljs.highlightAll()"
                 src shouldNotContain "hljs.initHighlightingOnLoad()"
-                // yobi.Markdown.js를 실제로 로드하는 <script src> 태그가 markdown(project) 프래그먼트
-                // 안에 있어야 한다(항목3과 동일한 함정 재발 방지).
-                src shouldContain "src=\"/javascripts/common/yobi.Markdown.js\""
+                // yona.Markdown.js를 markdown(project) 프래그먼트에서 개별 <script src>로 로드하던
+                // override는 yona-lib.js 번들 재생성 이후 순수 중복이 되어 제거했다.
+                src shouldNotContain "src=\"/javascripts/common/yona.Markdown.js\""
             }
         }
     }

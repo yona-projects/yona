@@ -55,7 +55,7 @@ import org.springframework.web.context.WebApplicationContext
 //      직접 렌더링 테스트로 사전에 확인했다(1단계 깊이). 이 스펙은 2단계 깊이에서도 동일함을
 //      검증한다.
 //   3) P3-46 8번 항목 2단계(셸 교체, EasyMDE(CodeMirror5) -> CM6 Web Component): EasyMDE/
-//      yobi.ui.MarkdownEditor.js 리소스 로드가 0개로 사라지고, yona-markdown-editor.min.js가
+//      yona.ui.MarkdownEditor.js 리소스 로드가 0개로 사라지고, yona-markdown-editor.min.js가
 //      1개 로드되는지. highlight.js(markdown(project) fragment의 hljs.highlightAll()이 여전히
 //      의존 - site/layout.html head::head/scripts 주석 참고)는 계속 1개 로드돼야 한다. 이
 //      단계에서는 에디터-highlight.js 간 로드 순서 제약이 없다(그 제약은 previewRender 때문이었고
@@ -188,7 +188,7 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
                 // EasyMDE(CodeMirror5) 리소스는 2단계에서 완전히 사라져야 한다.
                 doc.select("link[href*='/javascripts/lib/easymde/'][rel=stylesheet]").size shouldBe 0
                 doc.select("script[src*='/javascripts/lib/easymde/']").size shouldBe 0
-                doc.select("script[src*='yobi.ui.MarkdownEditor.js']").size shouldBe 0
+                doc.select("script[src*='yona.ui.MarkdownEditor.js']").size shouldBe 0
 
                 // CM6 기반 Web Component 번들이 그 자리를 대신한다.
                 doc.select("script[src*='/javascripts/lib/yona-markdown-editor/']").size shouldBe 1

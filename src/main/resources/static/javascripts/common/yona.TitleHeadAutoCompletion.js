@@ -1,12 +1,12 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * Copyright Yona Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 // P3-46 #3: atjs(jquery.atwho.js) -> Tribute.js 교체.
 //
-// yobi.Mention.js와 동일한 이유로 즉시(eager) 등록 방식으로 단순화했다 — atjs 시절엔 "[" 키가
+// yona.Mention.js와 동일한 이유로 즉시(eager) 등록 방식으로 단순화했다 — atjs 시절엔 "[" 키가
 // 처음 눌렸을 때만 지연 등록했지만, 실제 드롭다운은 여전히 "[" 를 입력했을 때만 나타나므로
 // 사용자 입장에서 차이가 없다. 단, _initTribute()를 _attachEvent()(파이어폭스 IME 폴리필,
 // jQuery.browser 미로드로 인해 항상 TypeError가 발생하는 기존 버그 — 최종 보고 참고)보다 반드시
@@ -22,7 +22,7 @@ function yonaTitleHeadModule(htOptions){
     var MAX_QUERY_LEN = 20; // atjs DEFAULT_CALLBACKS.matcher의 maxLen(기본값 20) 이식
 
     /**
-     * atjs DEFAULT_CALLBACKS.highlighter 이식(yobi.Mention.js 주석 참고) — Tribute의
+     * atjs DEFAULT_CALLBACKS.highlighter 이식(yona.Mention.js 주석 참고) — Tribute의
      * menuItemTemplate은 <li> 내부 콘텐츠만 돌려주므로, 원본과 동일한 경계 조건으로 검색어를
      * <strong>으로 감싸기 위해 임시로 <li>...</li> 로 감쌌다가 다시 벗겨낸다.
      */
@@ -49,7 +49,7 @@ function yonaTitleHeadModule(htOptions){
         _initTribute();
         _attachEvent();
 
-        // P3-46 #5: Select2(v3) -> Tom Select 교체. #labelIds는 yobi.ui.Select2.js의 자동
+        // P3-46 #5: Select2(v3) -> Tom Select 교체. #labelIds는 yona.ui.Select2.js의 자동
         // 초기화(data-toggle="select2")로 생성되므로 인스턴스는 DOM 요소의 .tomselect 프로퍼티로
         // 접근한다. getValue()는 다중 선택일 때 배열을 돌려준다(select2("val")과 동일한 모양).
         if($("#labelIds").length > 0 && $("#labelIds")[0].tomselect) {
@@ -170,7 +170,7 @@ function yonaTitleHeadModule(htOptions){
                                 $labelField[0].tomselect.setValue(issueLabels);
                             }
 
-                            $yobi.notify('Label: ' + original.name, 3000);
+                            $yona.notify('Label: ' + original.name, 3000);
                             return "";
                         }
                         return value;
@@ -200,7 +200,7 @@ function yonaTitleHeadModule(htOptions){
      */
     function _attachEvent() {
         // 파이어폭스 조합입력(IME) 대응 폴리필 — atjs 시절부터 있던 코드를 그대로 유지한다
-        // (결정 필요 사항: 최종 보고 참고). yobi.Mention.js와 동일하게 jQuery.browser가 이
+        // (결정 필요 사항: 최종 보고 참고). yona.Mention.js와 동일하게 jQuery.browser가 이
         // 페이지들에 로드되어 있지 않아(범위 밖 발견, 최종 보고 참고) 항상 TypeError가 발생하지만,
         // _initTribute()를 먼저 호출해 두었으므로 라벨 자동완성 자체는 영향을 받지 않는다.
         if (jQuery.browser.mozilla){

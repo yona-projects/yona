@@ -24,7 +24,7 @@ import org.springframework.web.context.WebApplicationContext
 // MockMvc+Jsoup 하네스는 렌더링된 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다. 대신
 // 아래 "마크업 계약"이 회귀 없이 유지되는지를 검증한다.
 //
-// 대상 화면: user/edit(GET /user/editform) 단 하나 (yobi.user.Setting.js에서 유일하게 참조).
+// 대상 화면: user/edit(GET /user/editform) 단 하나 (yona.user.Setting.js에서 유일하게 참조).
 class AvatarCropWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository

@@ -175,12 +175,12 @@ class ProjectForkAndReviewThreadTemplateEquivalenceSpec @Autowired constructor(
                     noOrgDoc.select("input#protected[value=PROTECTED]").size shouldBe 0
                 }
 
-                it("project.Fork JS 모듈(yobi.project.Fork.js)이 legacy와 동일하게 로드되어야 한다") {
+                it("project.Fork JS 모듈(yona.project.Fork.js)이 legacy와 동일하게 로드되어야 한다") {
                     val html = mockMvc.perform(
                         get("/pfr-owner/pfr-public-proj/newFork").with(SecurityMockMvcRequestPostProcessors.user(orgAdminDetails))
                     ).andReturn().response.contentAsString
 
-                    // $yobi.loadModule은 이 코드베이스 전반에서 쓰는 동적 모듈 로더라 <script src=...> 태그가
+                    // $yona.loadModule은 이 코드베이스 전반에서 쓰는 동적 모듈 로더라 <script src=...> 태그가
                     // 직접 있지 않다(legacy도 동일) — loadModule 호출 문자열만 확인한다.
                     html.contains("loadModule(\"project.Fork\")") shouldBe true
                 }
@@ -296,7 +296,7 @@ class ProjectForkAndReviewThreadTemplateEquivalenceSpec @Autowired constructor(
 
                     doc.select("a[href*='format=xls']").size shouldBe 1
                     doc.select("#pagination").size shouldBe 1
-                    // $yobi.loadModule은 동적 모듈 로더라 <script src=...> 태그가 직접 있지 않다(legacy도 동일).
+                    // $yona.loadModule은 동적 모듈 로더라 <script src=...> 태그가 직접 있지 않다(legacy도 동일).
                     html.contains("loadModule(\"review.List\"") shouldBe true
                 }
 

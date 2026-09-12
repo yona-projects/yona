@@ -47,7 +47,7 @@ class CommentServiceImpl(
     private val organizationUserRepository: OrganizationUserRepository,
     private val projectRepository: ProjectRepository,
     private val projectUserRepository: ProjectUserRepository,
-    // P3-50 조사 중 발견: common/uploadForm.html + yobi.Files.js로 올린 첨부파일은
+    // P3-50 조사 중 발견: common/uploadForm.html + yona.Files.js로 올린 첨부파일은
     // POST /files가 항상 NOT_A_RESOURCE(임시) 컨테이너에 저장하고, 새 댓글 생성 경로
     // (createIssueComment/createPostingComment)는 그 파일을 실제 컨테이너(ISSUE_COMMENT/
     // NONISSUE_COMMENT)로 옮기는 단계가 아예 없었다 — 파일은 다운로드는 되지만(마크다운 링크는
@@ -65,7 +65,7 @@ class CommentServiceImpl(
     // owner/project 형식의 그룹 멘션을 포착하려면 '/'를 허용해야 한다.
     private val mentionPattern = Pattern.compile("@[a-zA-Z0-9/-]+([_.][a-z_.A-Z0-9/-]+)*")
 
-    // P3-50: common/uploadForm.html(yobi.Files.js)이 첨부 성공 시 본문에 항상
+    // P3-50: common/uploadForm.html(yona.Files.js)이 첨부 성공 시 본문에 항상
     // "[name](/files/{id})" 또는 "![name](/files/{id})" 형태의 링크를 삽입한다 — 이 링크에서
     // 첨부파일 id를 역추출해 임시 컨테이너(NOT_A_RESOURCE)에서 실제 댓글 컨테이너로 옮긴다.
     private val attachmentLinkPattern = Pattern.compile("/files/(\\d+)")

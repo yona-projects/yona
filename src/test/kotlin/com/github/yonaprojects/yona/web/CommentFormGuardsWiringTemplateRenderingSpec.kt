@@ -22,13 +22,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// P3-52 항목3 — legacy common/yobi.CommentForm.js(빈 값 제출 방지, Ctrl+Shift+Enter 단축 제출,
+// P3-52 항목3 — legacy common/yona.CommentForm.js(빈 값 제출 방지, Ctrl+Shift+Enter 단축 제출,
 // 페이지 이탈 시 beforeunload 경고, localStorage 임시저장)의 기능적 동치를 #comment-form에
 // 이식했다. 원본 파일을 그대로 <script src>로 로드하지는 않는다 — 그 파일의 onSubmitCommentForm은
 // event.preventDefault() 후 300ms 뒤 실제 네이티브 form.submit()을 다시 스케줄링하는데,
 // #comment-form은 이미 P3-48/50에서 검증된 AJAX 제출 핸들러($(document).on('submit', ...))로
 // 전환돼 있어 그 흐름과 공존시키면 이중 제출 버그가 난다(사용자 결정, 2026-09-11) — 그래서 이미
-// 검증된 AJAX 핸들러 쪽에 4가지 기능을 직접 재구현했다. yobi.CommentForm.js 파일 자체는
+// 검증된 AJAX 핸들러 쪽에 4가지 기능을 직접 재구현했다. yona.CommentForm.js 파일 자체는
 // 삭제하지 않고 계속 미참조 상태로 남겨둔다(사용자 결정).
 @Transactional
 class CommentFormGuardsWiringTemplateRenderingSpec @Autowired constructor(

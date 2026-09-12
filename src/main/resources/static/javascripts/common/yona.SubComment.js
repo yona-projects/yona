@@ -3,7 +3,7 @@ $(function(){
     $(".event > .label").each(function() {
         var $this = $(this);
         $this.removeClass("dimgray white")
-            .addClass($yobi.getContrastColor($this.css('background-color')))
+            .addClass($yona.getContrastColor($this.css('background-color')))
     });
 
     // Releated with one line sub-comment feature

@@ -33,7 +33,7 @@ import org.springframework.web.context.WebApplicationContext
 // v1.6(Twirl) 대조 결과 발견된 두 결함 검증(P3-49 후속 — board/view.html은 원래 티켓 검토 범위
 // 밖이었다). issue/view.scala.html·board/view.scala.html은 새 댓글 작성 폼에
 // common.fileUploader(type, null)를 쓰는데, 이 헬퍼는 항상 formId="upload"를 하드코딩해
-// 넘긴다(app/views/common/fileUploader.scala.html) — yobi.Files.js의 _initFileUploader()가
+// 넘긴다(app/views/common/fileUploader.scala.html) — yona.Files.js의 _initFileUploader()가
 // 전역 $("#upload")로 컨테이너를 찾으므로 이 id가 없으면 클릭 업로드/드롭존/textarea
 // 드래그드롭/붙여넣기가 전부 조용히 죽는다. 포팅본은 이 헬퍼 대신 raw uploadForm 프래그먼트를
 // formId=null로 직접 호출해 id 자체가 렌더링되지 않았다.
@@ -100,7 +100,7 @@ class CommentAttachmentUploadWidgetTemplateEquivalenceSpec @Autowired constructo
             val posting = postingRepository.findAll().find { it.project.id == project.id && it.title == "댓글업로드 게시글" }
                 ?: postingRepository.save(Posting(title = "댓글업로드 게시글", body = "본문", project = project, number = 1L))
 
-            it("issue/view 화면의 새 댓글 폼은 id=upload 업로더 컨테이너와 CommentAttachmentsUpdate.js 없이도 yobi.Files.js 훅을 갖춰야 한다") {
+            it("issue/view 화면의 새 댓글 폼은 id=upload 업로더 컨테이너와 CommentAttachmentsUpdate.js 없이도 yona.Files.js 훅을 갖춰야 한다") {
                 val doc = Jsoup.parse(
                     mockMvc.perform(
                         get("/${project.owner}/${project.name}/issue/${issue.number}")

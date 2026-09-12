@@ -104,7 +104,7 @@
 </ul>
 <script type="text/javascript" th:fragment="listScript(prPage)" th:inline="javascript">
     $(function(){
-        yobi.Pagination.update($("#pagination"), /*[[${prPage.totalPages}]]*/ 0);
+        yona.Pagination.update($("#pagination"), /*[[${prPage.totalPages}]]*/ 0);
         (function _initImplicitTitlePrefix() {
             $(".title-prefix").on("click", function(){
                 var filterInput = $("input[name*='filter']");

@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * Copyright Yona Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 
@@ -48,17 +48,17 @@ function detectPageChange(url){
             .done(function (data) {
                 if (data.numOfComments - numOfComments === 1) {
                     numOfComments = data.numOfComments;
-                    $yobi.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);
+                    $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);
                     favicon.badge('N');
                 } else if (data.numOfComments - numOfComments > 1) {
                     numOfComments = data.numOfComments;
-                    $yobi.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comments added!");
+                    $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comments added!");
                     favicon.badge('N');
                 }
 
                 if (data.issueBodyChanged) {
                     issueBodyChecksum = data.issueBodyChecksum;
-                    $yobi.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "Issue updated!");
+                    $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "Issue updated!");
                     favicon.badge('N');
                 }
             })

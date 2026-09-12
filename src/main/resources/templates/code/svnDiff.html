@@ -132,8 +132,8 @@
         var sUnwatchUrl = /*[[${'/unwatch?resource.type=COMMIT&resource.id=' + commitResourceId}]]*/ '';
         /*]]>*/
 
-        if (typeof $yobi !== 'undefined' && $yobi.loadModule) {
-            $yobi.loadModule("code.SvnDiff", {
+        if (typeof $yona !== 'undefined' && $yona.loadModule) {
+            $yona.loadModule("code.SvnDiff", {
                 "bCommentable"   : /*[[${currentUser != null}]]*/ false,
                 "sWatchUrl"      : sWatchUrl,
                 "sUnwatchUrl"    : sUnwatchUrl,

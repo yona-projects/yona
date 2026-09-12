@@ -370,7 +370,7 @@ class IssueViewController(
     }
 
     // yona IssueApp.timeline() 대응 — massUpdate로 담당자/마일스톤/마감일을 저장한 뒤
-    // yobi.issue.View.js의 _updateTimeline()이 AJAX로 다시 불러오는 타임라인 조각. issue/view.html의
+    // yona.issue.View.js의 _updateTimeline()이 AJAX로 다시 불러오는 타임라인 조각. issue/view.html의
     // th:fragment="timelineItems"(.timeline-list) 한 곳만 다시 렌더링해 돌려준다 — viewIssue()와
     // 동일한 모델 조립 로직(buildTimelineModel)을 공유해 두 진입점이 어긋나지 않게 한다.
     @GetMapping("/{owner}/{projectName}/issue/{number}/timeline")
@@ -753,7 +753,7 @@ class IssueViewController(
 
     // yona IssueApp.massUpdate()의 Accept 헤더 콘텐츠 협상 대응. 이슈 목록의 체크박스
     // 일괄수정(폼 submit, text/html)과 issue/view.html 상세화면의 인라인 담당자/마일스톤/마감일 위젯
-    // (yobi.issue.View.js의 $.ajax(dataType:"json"))이 같은 엔드포인트를 공유한다 — legacy와 동일하게
+    // (yona.issue.View.js의 $.ajax(dataType:"json"))이 같은 엔드포인트를 공유한다 — legacy와 동일하게
     // JSON을 원하는 요청에는 redirect 대신 JSON 바디로 응답한다.
     @PostMapping("/{owner}/{projectName}/issues/massupdate")
     @Transactional

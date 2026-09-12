@@ -26,7 +26,7 @@ import java.io.File
 // <style>을 th:replace가 통째로 치환하는 <head> 태그 "안"에 둬서 한 번도 렌더링되지 않는 죽은
 // 코드였다. 세 파일 모두 `.code-browse-wrap` 카드 배경/테두리만 잃는 순수 시각적 문제(다행히
 // code/view.html의 `.list-wrap{display:none}`처럼 콘텐츠 자체가 숨겨지는 치명적 케이스는 아님).
-// 추가로 code/compare.html/compare_svn.html의 `.commitId`는 공용 yobi.css의 더 구체적인
+// 추가로 code/compare.html/compare_svn.html의 `.commitId`는 공용 yona.css의 더 구체적인
 // `.code-browse-wrap .commitId`(색상 다름)에 명시도로 밀리므로 스코프도 함께 필요.
 class CodeSwallowedStyleRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
@@ -138,7 +138,7 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
                 (styleStart > headEnd) shouldBe true
             }
 
-            it(".commitId가 legacy yobi.css의 더 구체적인 .code-browse-wrap .commitId에 밀리지 않게 스코프돼야 한다") {
+            it(".commitId가 legacy yona.css의 더 구체적인 .code-browse-wrap .commitId에 밀리지 않게 스코프돼야 한다") {
                 html shouldContain ".code-browse-wrap .commitId {"
             }
         }

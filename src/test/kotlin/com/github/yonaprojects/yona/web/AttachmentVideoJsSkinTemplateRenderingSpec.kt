@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
 // P3-65: legacy issue/view.scala.html(488·492행)이 로드하는 Video.js(첨부 동영상 스킨)가 yona
-// issue/view.html에는 로드되지 않아, common/yobi.Attachments.js가 생성하는
+// issue/view.html에는 로드되지 않아, common/yona.Attachments.js가 생성하는
 // class="video-js" data-setup='{}' 마크업이 Video.js 없이는 무시되고 브라우저 기본
 // <video controls> UI로만 재생되고 있었다(기능 손실은 없지만 순수 시각적 스킨 격차).
 // 이 스펙은 이슈 상세 화면(board 쪽은 legacy도 videojs를 로드하지 않음)에 Video.js

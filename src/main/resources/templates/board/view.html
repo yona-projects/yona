@@ -103,7 +103,7 @@
                     <div id="comments" class="board-comment-wrap">
                         <div id="timeline">
                             <!-- P3-53 항목2: legacy board/partial_comments.scala.html의 <ul class="comments"> 대응.
-                                 yobi.css의 숨김 규칙(.board-comment-wrap .comments .comment .add-a-comment 등)이
+                                 yona.css의 숨김 규칙(.board-comment-wrap .comments .comment .add-a-comment 등)이
                                  .board-comment-wrap과 .comment 사이에 .comments 조상 클래스를 요구하는데,
                                  이 클래스가 없으면 그 선택자가 매치되지 않아 대댓글 입력창이 상시 펼쳐진 채로
                                  보인다(브라우저 기본값 display:block). -->
@@ -243,7 +243,7 @@
 <script type="text/javascript" src="/javascripts/common/yona.SubComment.js"></script>
 <script type="text/javascript">
     $(function(){
-        $yobi.loadModule("board.View", {
+        $yona.loadModule("board.View", {
             "postId"  : "[[${post.id}]]",
             "urls"     : {
                 "watch"     : "/watch",
@@ -278,7 +278,7 @@
         // 경로가 어느 컨트롤러에도 매핑돼 있지 않았다(Playwright로 실제 등록 시 항상 404 —
         // CSRF와는 무관한 별도 결함). 형제 폼들과 동일하게 REST(POST .../comments)로 전환한다.
         //
-        // P3-52 항목3 — yobi.CommentForm.js 대응(빈 값 제출 방지/Ctrl+Shift+Enter 단축 제출/
+        // P3-52 항목3 — yona.CommentForm.js 대응(빈 값 제출 방지/Ctrl+Shift+Enter 단축 제출/
         // beforeunload 이탈 경고/localStorage 임시저장). issue/view.html과 동일한 이유(legacy
         // 원본의 네이티브 form.submit() 재스케줄링이 이미 검증된 AJAX 핸들러와 공존 불가)로
         // 원본 파일을 로드하지 않고 이 AJAX 핸들러에 직접 재구현한다.
@@ -312,7 +312,7 @@
             e.preventDefault();
             var $form = $(this);
             if (isCommentFormBodyEmpty()) {
-                $yobi.notify('[[#{post.comment.empty}]]', 3000);
+                $yona.notify('[[#{post.comment.empty}]]', 3000);
                 $commentTextarea.focus();
                 return;
             }

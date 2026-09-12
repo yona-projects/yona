@@ -92,7 +92,7 @@
     $(document).ready(function() {
         var orgId = [[${org.id}]];
 
-        // 1. 멤버 추가 연동 (project/members.html과 동일 관례 — legacy $yobi.loadModule 대신
+        // 1. 멤버 추가 연동 (project/members.html과 동일 관례 — legacy $yona.loadModule 대신
         //    이미 확립된 REST API(/api/organizations/{orgId}/members)로 직결)
         $("#addNewMember").submit(function(e) {
             e.preventDefault();

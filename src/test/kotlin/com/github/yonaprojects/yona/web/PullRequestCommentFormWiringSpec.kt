@@ -33,7 +33,7 @@ import org.springframework.web.context.WebApplicationContext
 // P3-55 (2차 재작업) — legacy 재조사 결과 PR changes 탭의 "범위 없는 일반 댓글 작성"은
 // reviewForm이 아니라 완전히 별도 파일인 common.commentForm(container, resourceType, action)이
 // 담당했다(legacy git/viewChanges.scala.html 141-146줄, common/commentForm.scala.html).
-// reviewForm/yobi.CodeCommentBox.js는 diff 라인/스레드로 동적 이동되는 별개의 팝오버
+// reviewForm/yona.CodeCommentBox.js는 diff 라인/스레드로 동적 이동되는 별개의 팝오버
 // 템플릿이었을 뿐이라 완전히 삭제했다(1차 작업에서 되살렸던 #review-form 트리거는 되돌림).
 // 이 스펙은 새로 만든 common/commentForm.html이:
 //   1) non-ranged-threads-wrap 바로 다음, board-comment-wrap 안에 legacy와 동일하게 렌더링되는지,
@@ -103,14 +103,14 @@ class PullRequestCommentFormWiringSpec @Autowired constructor(
                 body shouldContain "data-toggle=\"markdown-editor\""
 
                 // 삭제된 reviewForm/CodeCommentBox 관련 마크업/스크립트가 더 이상 남아있지 않아야
-                // 한다. "yobi.CodeCommentBox.js"라는 문자열 자체는 왜 지웠는지 설명하는 HTML
+                // 한다. "yona.CodeCommentBox.js"라는 문자열 자체는 왜 지웠는지 설명하는 HTML
                 // 주석(prose) 안에는 여전히 등장하므로, 그 문자열이 아니라 실제 <script src="...">
                 // 태그와 트리거 마크업이 없는지를 검사한다.
                 body shouldNotContain "id=\"review-form\""
                 body shouldNotContain "id=\"btn-add-review-comment\""
-                body shouldNotContain "src=\"/javascripts/common/yobi.CodeCommentBox.js\""
-                body shouldNotContain "yobi.CodeCommentBox.show("
-                body shouldNotContain "yobi.CodeCommentBox.init("
+                body shouldNotContain "src=\"/javascripts/common/yona.CodeCommentBox.js\""
+                body shouldNotContain "yona.CodeCommentBox.show("
+                body shouldNotContain "yona.CodeCommentBox.init("
             }
 
             it("작성 권한이 없으면 로그인 필요 placeholder만 보이고 실제 폼은 렌더링되지 않아야 한다") {

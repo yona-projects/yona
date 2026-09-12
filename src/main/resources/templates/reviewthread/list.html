@@ -91,7 +91,7 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
     $(function(){
-        $yobi.loadModule("review.List", {
+        $yona.loadModule("review.List", {
             "elPagination": $("#pagination"),
             "nTotalPages" : [[${commentThreads.totalPages}]],
             "welSearchForm": $("form[name='search']")

@@ -8,12 +8,12 @@
 #
 # legacy 원본 재료 목록 대비 하나만 뺐다(이미 삭제된 소스 파일이라 재료로 넣을 수 없음 -
 # 죽은 코드를 다시 얼려넣지 않기 위해 의도적으로 제외):
-#   - yona-lib.js에서 common/yobi.Mention.js: P3-46 5단계에서 CM6 기반 mention.ts로
+#   - yona-lib.js에서 common/yona.Mention.js: P3-46 5단계에서 CM6 기반 mention.ts로
 #     완전히 대체되며 소스 자체가 삭제됨.
 #
 # lib/xss.js는 legacy 재료 목록 그대로 유지한다 - 처음엔 "서버사이드 Markdown.java 전용이라
-# 클라이언트 번들엔 필요 없다"고 오판해 뺐었는데, 실제로는 yobi.Common.js의 xssClean()이
-# `new Filter()`(xss.js가 노출하는 전역 클래스)를 직접 호출하고 yobi.Markdown.js(클라이언트
+# 클라이언트 번들엔 필요 없다"고 오판해 뺐었는데, 실제로는 yona.Common.js의 xssClean()이
+# `new Filter()`(xss.js가 노출하는 전역 클래스)를 직접 호출하고 yona.Markdown.js(클라이언트
 # 사이드 마크다운 미리보기)가 그 xssClean()을 쓴다 - 뺐더니 Playwright로 실제
 # "ReferenceError: Filter is not defined"가 재현돼 원복했다. lib/xss.js 소스 파일 자체는
 # (어느 템플릿도 <script src>로 개별 로드하지 않으므로) 서 있기만 하고 이 번들 재료로만
@@ -36,7 +36,7 @@ java -jar "$COMPILER" \
   --js "$JS/lib/jquery/jquery-3.3.1.js" \
   --js "$JS/lib/jquery/jquery.browser.js" \
   --js "$JS/lib/jquery/jquery.pjax.js" \
-  --js "$JS/common/yobi.Common.js" \
+  --js "$JS/common/yona.Common.js" \
   --js_output_file "$JS/yona-layout.js"
 
 echo "== yona-common.js =="
@@ -58,17 +58,17 @@ java -jar "$COMPILER" \
 
 echo "== yona-lib.js =="
 java -jar "$COMPILER" \
-  --js "$JS/common/yobi.Attachments.js" \
-  --js "$JS/common/yobi.Files.js" \
-  --js "$JS/common/yobi.Markdown.js" \
-  --js "$JS/common/yobi.Pagination.js" \
-  --js "$JS/common/yobi.ShortcutKey.js" \
-  --js "$JS/common/yobi.ui.Dropdown.js" \
-  --js "$JS/common/yobi.ui.Typeahead.js" \
-  --js "$JS/common/yobi.ui.Dialog.js" \
-  --js "$JS/common/yobi.ui.Toast.js" \
-  --js "$JS/common/yobi.ui.Tabs.js" \
-  --js "$JS/common/yobi.OriginalMessage.js" \
+  --js "$JS/common/yona.Attachments.js" \
+  --js "$JS/common/yona.Files.js" \
+  --js "$JS/common/yona.Markdown.js" \
+  --js "$JS/common/yona.Pagination.js" \
+  --js "$JS/common/yona.ShortcutKey.js" \
+  --js "$JS/common/yona.ui.Dropdown.js" \
+  --js "$JS/common/yona.ui.Typeahead.js" \
+  --js "$JS/common/yona.ui.Dialog.js" \
+  --js "$JS/common/yona.ui.Toast.js" \
+  --js "$JS/common/yona.ui.Tabs.js" \
+  --js "$JS/common/yona.OriginalMessage.js" \
   --js "$JS/service/yona.temporarySaveHandler.js" \
   --js_output_file "$JS/yona-lib.js"
 

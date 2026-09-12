@@ -62,7 +62,7 @@
                                      변수로 받지 않는다(컨트롤러 시그니처 확인 완료). 따라서 옵션이 바뀌어도
                                      동일한 newFork URL을 가리키는 것으로 단순화했다 — 실제 목적지 전환은
                                      컨트롤러에 forkOwner 경로변수가 추가돼야 동작한다(후속 작업 필요, out of
-                                     scope). project.Fork JS 모듈(yobi.project.Fork.js)은 정적 자산으로 이미
+                                     scope). project.Fork JS 모듈(yona.project.Fork.js)은 정적 자산으로 이미
                                      존재하여 그대로 로드한다. -->
                                 <select id="project-owner" name="owner">
                                     <option th:value="${currentUser.loginId}"
@@ -117,7 +117,7 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript">
-$(document).ready(function() { $yobi.loadModule("project.Fork"); });
+$(document).ready(function() { $yona.loadModule("project.Fork"); });
 </script>
 </body>
 </html>

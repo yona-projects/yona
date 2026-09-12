@@ -28,13 +28,13 @@ class YonaUpdateService(
     fun isUpdateRequired(): Boolean = isUpdateRequired
     fun getReleaseUrl(): String = "https://github.com/yona-projects/yona/releases/tag/v${latestVersion ?: ""}"
 
-    // yona YobiUpdate(interval 기본값 및 설정 가능), initdelay 기본 5초 대응.
+    // yona YonaUpdate(interval 기본값 및 설정 가능), initdelay 기본 5초 대응.
     @Scheduled(
         fixedDelayString = "\${yona.update.interval-ms:21600000}",
         initialDelayString = "\${yona.update.initial-delay-ms:5000}"
     )
     fun refreshVersionToUpdate() {
-        // yona YobiUpdate.onStart()의 "interval이 0보다 클 때만 폴링을 등록한다"와 동일한 관찰 가능
+        // yona YonaUpdate.onStart()의 "interval이 0보다 클 때만 폴링을 등록한다"와 동일한 관찰 가능
         // 동작(업데이트 확인이 전혀 실행되지 않음)을 재현한다.
         if (intervalMillis <= 0) {
             log.info("Yona update check disabled (interval <= 0)")

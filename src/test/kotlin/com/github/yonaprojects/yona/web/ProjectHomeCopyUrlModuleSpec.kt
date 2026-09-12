@@ -18,10 +18,10 @@ import org.springframework.web.context.WebApplicationContext
 // 눌러도 아무 반응이 없음.
 //
 // 원인: legacy project/home.scala.html:165-177는 페이지 하단에서 항상
-// `$yobi.loadModule("project.Home", {...})`을 호출해 clone-URL 복사(ClipboardJS)/설명 수정 저장/
+// `$yona.loadModule("project.Home", {...})`을 호출해 clone-URL 복사(ClipboardJS)/설명 수정 저장/
 // 라벨 편집 등을 배선하는데, yona project/home.html에는 이 호출 자체가 통째로 없다(grep 0건) —
 // 버튼의 HTML(`data-clipboard-target`, `id="cloneURLBtn"`)과 그 대상으로 쓰이는 클라이언트 JS
-// 모듈(`yobi.project.Home.js`)은 그대로 다 있는데 아무도 그 모듈을 초기화하지 않아 죽은 버튼이었다.
+// 모듈(`yona.project.Home.js`)은 그대로 다 있는데 아무도 그 모듈을 초기화하지 않아 죽은 버튼이었다.
 // (`ClipboardJS` 자체는 사이트 전역 `yona-common.js`에 이미 번들돼 있어 별도 <script> 추가는 불필요
 // — 실제로 legacy도 clipboard.js를 이 페이지에 별도로 로드하지 않는다, 직접 대조 확인.)
 class ProjectHomeCopyUrlModuleSpec @Autowired constructor(
@@ -34,7 +34,7 @@ class ProjectHomeCopyUrlModuleSpec @Autowired constructor(
 
     init {
         describe("project/home.html의 project.Home 모듈 배선 (주소복사 버튼)") {
-            it("페이지 하단에 \$yobi.loadModule(\"project.Home\", ...)이 project.id/description 저장 URL과 함께 실제로 렌더링돼야 한다") {
+            it("페이지 하단에 \$yona.loadModule(\"project.Home\", ...)이 project.id/description 저장 URL과 함께 실제로 렌더링돼야 한다") {
                 // BootstrapSetupInterceptor는 DB에 유저가 0명이면 무조건 /bootstrap-setup으로
                 // 리다이렉트하므로, 인증 없이 GET하는 이 화면도 유저를 최소 1명 만들어둬야 한다.
                 userRepository.findByLoginId("phc-bootstrap1").orElseGet {

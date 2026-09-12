@@ -50,7 +50,7 @@
        의존하기 때문이다(2단계 착수 전 grep으로 재확인). -->
   <link rel="stylesheet" type="text/css" href="/javascripts/lib/highlight/styles/default.css" />
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/usermenu.css">
-  <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yobi.css?v=20260614-2">
+  <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yona.css?v=20260614-2">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/nprogress/nprogress.css">
   <link rel="stylesheet" href="/javascripts/lib/viewerjs/viewer.css">
   <script type="text/javascript" src="/javascripts/yona-layout.js"></script>
@@ -104,7 +104,7 @@
           <li class="divider hide-in-mobile" th:if="${!hideProjectListing and (currentUser == null or !currentUser.isGuest)}"></li>
 
           <li class="hide-in-mobile">
-            <a th:href="${#strings.isEmpty(feedbackUrl) ? 'https://github.com/yona-projects/yona/issues' : feedbackUrl}" target="_blank" th:text="#{title.yobi.feedback}">개발팀에게 문의하기</a>
+            <a th:href="${#strings.isEmpty(feedbackUrl) ? 'https://github.com/yona-projects/yona/issues' : feedbackUrl}" target="_blank" th:text="#{title.yona.feedback}">개발팀에게 문의하기</a>
           </li>
           
           <li>
@@ -281,7 +281,7 @@
             <a href="/_help" th:text="#{title.help}">도움말</a>
           </li>
           <li>
-            <a th:href="${feedbackUrl != null and !feedbackUrl.isEmpty()} ? ${feedbackUrl} : 'https://github.com/yona-projects/yona/issues'" target="_blank" th:text="#{title.yobi.feedback}">개발팀에게 문의하기</a>
+            <a th:href="${feedbackUrl != null and !feedbackUrl.isEmpty()} ? ${feedbackUrl} : 'https://github.com/yona-projects/yona/issues'" target="_blank" th:text="#{title.yona.feedback}">개발팀에게 문의하기</a>
           </li>
         </ul>
         
@@ -398,15 +398,15 @@
          콘텐츠 + name/editor-mode 속성)으로 전달한다. textarea id의 유일성 보장은 서버
          (#strings.randomAlphanumeric(8))에서 컴포넌트 쪽(내부 카운터)으로 옮겨갔다.
 
-         호환 shim(사용자 결정 확정 2026-09-11): yobi.Attachments.js/
+         호환 shim(사용자 결정 확정 2026-09-11): yona.Attachments.js/
          yona.CommentAttachmentsUpdate.js가 $textarea.data("easymde")로 얻은 EasyMDE 인스턴스의
          .value(newValue)를 호출해 첨부파일 링크 삽입 결과를 강제 동기화하던 것(P3-50 데이터
          손실 버그 방지책)은, 이 컴포넌트가 같은 jQuery data 키에 최소 shim({ value(newValue?) })을
          노출해 그대로 계속 동작한다(컴포넌트 소스의 exposeLegacyEasyMdeShim 참고). 멘션은
          2~4단계 동안 이 shim에 기대지 않고는 동작하지 않는 채로(사용자 승인된 일시 중단) 남아
-         있다가, 5단계에서 yobi.Mention.js가 완전히 삭제되고 @codemirror/autocomplete 기반으로
+         있다가, 5단계에서 yona.Mention.js가 완전히 삭제되고 @codemirror/autocomplete 기반으로
          컴포넌트에 흡수되며 다시 동작하게 됐다(아래 data-mention-url 참고). tribute.min.{js,css}
-         자체는 board/pullrequest/milestone/issue의 8개 화면 중 yobi.Mention() 호출부와 함께
+         자체는 board/pullrequest/milestone/issue의 8개 화면 중 yona.Mention() 호출부와 함께
          로드되던 6곳에서는 이제 필요 없어져 제거했지만, board/create.html·issue/create.html·
          issue/edit.html은 `common/yona.TitleHeadAutoCompletion.js`(`[` 라벨 트리거 - 이번
          5단계 범위 밖, CodeMirror와 무관한 별도 Tribute 인스턴스)가 여전히 전역 `Tribute`
@@ -417,7 +417,7 @@
          제거한 것들(1~2단계에 걸쳐 사용자 확정, P3-46 8번 항목 세부 결정사항 참고):
          - 탭 UI(ul.nav-tabs) 자체, .task-list-button/.add-task-list-button, .markdown-preview
            미리보기 div(editorMode별 th:classappend 분기 포함 - 죽은 코드였음, 재현 불필요 확인됨).
-         - EasyMDE 자체(CodeMirror5) 및 그 셸 초기화 스크립트(yobi.ui.MarkdownEditor.js) -
+         - EasyMDE 자체(CodeMirror5) 및 그 셸 초기화 스크립트(yona.ui.MarkdownEditor.js) -
            2단계에서 완전히 걷어냄.
          - .editor-clear-temporary("임시저장 지우기") / .notification-receiver(알림수신자 목록) -
            4단계에서 재구현 예정.
@@ -427,7 +427,7 @@
            때 통째로 지워지므로 피함)에 버튼을 새로 추가하고, 클릭 시 기존 전역 함수
            removeCurrentPageTemprarySavedContent()(service/yona.temporarySaveHandler.js -
            yona-lib.js에 박혀있는 사본과 기능이 완전히 동일해 별도로 로드할 필요는 없었다,
-           위 yobi.Markdown/yobi.Files/yobi.ShortcutKey 케이스와 달리 여기는 진짜 함정이
+           위 yona.Markdown/yona.Files/yona.ShortcutKey 케이스와 달리 여기는 진짜 함정이
            아니었음)을 호출한 뒤 페이지를 새로고침한다(legacy issue/edit.scala.html의
            `.editor-clear-temporary-button` 클릭 핸들러와 동일한 동작 - "Draft saved" 표시와
            버튼 자체 모두 자연히 사라짐). .notification-receiver(알림수신자 목록)는 여전히
@@ -448,7 +448,7 @@
 
          P3-46 #8 5단계(멘션): data-mention-url도 render-url과 동일한 게이트(project != null)로
          노출한다 - MentionController(/api/{owner}/{projectName}/mentionList)는 프로젝트
-         스코프이기만 하면 어떤 화면에서도 쓸 수 있는 범용 엔드포인트다. 옛 yobi.Mention()은
+         스코프이기만 하면 어떤 화면에서도 쓸 수 있는 범용 엔드포인트다. 옛 yona.Mention()은
          board/pullrequest/milestone/issue의 create/edit 8개 화면에서만 호출됐지만(각 템플릿의
          inline <script>에 하드코딩), 그건 "이 8개 화면만 멘션이 필요하다"는 의도적 설계가
          아니라 단지 그 8개 화면만 실제로 호출 코드를 추가해뒀을 뿐이었다(예: pullrequest/create
@@ -469,7 +469,7 @@
          "안"이 아니라 형제로 둔다 - temporarySaveHandler(yona-lib.js에 박혀있는, 기능은 동일한
          사본)가 초안을 저장할 때마다 noticePanel.html("<span class=\"saved\">Draft saved</span>")로
          .editor-notice-label의 내용을 통째로 갈아치우므로, 안에 두면 버튼이 주기적으로
-         사라진다. 기본은 legacy와 동일하게 숨김(display:none, CSS는 yobi.css의
+         사라진다. 기본은 legacy와 동일하게 숨김(display:none, CSS는 yona.css의
          .editor-clear-temporary 규칙 재사용) - 아래 markdown(project) 스크립트가 이 페이지 경로에
          대한 localStorage 임시저장이 있을 때만 보여준다.
         -->
@@ -493,14 +493,6 @@
          프로젝트 스코프 화면에서 hljs를 필요로 하게 됐기 때문 - 8-2단계 참고). 중복 로드를 피하기
          위해 여기서는 더 이상 <link>/<script src="highlight.pack.js">를 직접 싣지 않는다. -->
     <script type="text/javascript" src="/javascripts/lib/marked.js"></script>
-    <!-- P3-46 #6+7: marked/highlight.js를 실제로 호출하는 yobi.Markdown.js가 어느 템플릿에서도
-         <script src>로 로드된 적이 없어(항목3 atjs->Tribute와 동일한 함정), 전역 레거시 번들
-         yona-lib.js에 박혀있던 구버전 사본이 실행되고 있었다 — 여기서 실제로 로드한다. 이
-         스크립트 태그는 반드시 아래 yobi.Markdown.init(...) 호출보다 먼저 와야 하고, 이 fragment를
-         site/layout.html::scripts(yona-lib.js 포함)보다 나중에 include하는 페이지가 있으면(예:
-         pullrequest/view.html) 그 페이지의 include 순서도 scripts가 먼저 오도록 바로잡아야 한다
-         (그렇지 않으면 나중에 로드되는 yona-lib.js가 전역 yobi.Markdown을 다시 구버전으로 덮어씀). -->
-    <script type="text/javascript" src="/javascripts/common/yobi.Markdown.js"></script>
     <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         hljs.configure({languages: []});
@@ -512,7 +504,7 @@
         /*[/]*/
 
         // Reusable markdown renderer
-        yobi.Markdown.init(htOptions);
+        yona.Markdown.init(htOptions);
 
         // P3-46 8번 항목("4단계에서 재구현 예정"으로 미뤄뒀던 .editor-clear-temporary) - P3-55와
         // 함께 처리. legacy issue/edit.scala.html의 페이지별 인라인 배선을 markdownEditor를 쓰는
@@ -528,8 +520,8 @@
         $(document).on('click', '.editor-clear-temporary-button', function(){
             // removeCurrentPageTemprarySavedContent()는 yona-lib.js에 박혀있는 사본이 제공한다 -
             // service/yona.temporarySaveHandler.js(독립 파일)와 기능이 완전히 동일해(문자열
-            // 비교로 확인) 별도로 <script src>를 추가할 필요가 없었다(yobi.Markdown/yobi.Files/
-            // yobi.ShortcutKey 때와 달리 진짜 함정이 아니었음).
+            // 비교로 확인) 별도로 <script src>를 추가할 필요가 없었다(yona.Markdown/yona.Files/
+            // yona.ShortcutKey 때와 달리 진짜 함정이 아니었음).
             removeCurrentPageTemprarySavedContent();
             // "Draft saved" 표시와 이 버튼 자체가 함께 사라지도록 legacy와 동일하게 새로고침한다
             // (issue/edit.scala.html의 .editor-clear-temporary-button 클릭 핸들러와 동일 동작).
@@ -674,8 +666,8 @@
 
   <!-- 공통 스크립트 및 모달 다이얼로그 -->
   <th:block th:fragment="scripts">
-    <!-- yobi.ui.Dialog -->
-    <div id="yobiDialog" class="modal hide yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- yona.ui.Dialog -->
+    <div id="yonaDialog" class="modal hide yonaDialog" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
         <div class="message">
             <div class="center-text">
@@ -688,9 +680,9 @@
         </div>
     </div>
     
-    <!-- yobi.ui.Toast -->
-    <div id="yobiToasts" class="yobiToasts"></div>
-    <script type="text/x-jquery-tmpl" id="tplYobiToast">
+    <!-- yona.ui.Toast -->
+    <div id="yonaToasts" class="yonaToasts"></div>
+    <script type="text/x-jquery-tmpl" id="tplYonaToast">
     <div class="toast" tabindex="-1">
         <div class="btn-dismiss"><button type="button" class="btn-transparent">&times;</button></div>
         <div class="center-text">
@@ -764,8 +756,8 @@
     <script type="text/javascript" src="/javascripts/yona-common.js"></script>
 
     <!-- 개별 수정 없이 이 인터셉터 하나로 $.ajax/fetch() 호출 전체를 커버한다. jQuery Form
-         Plugin의 .ajaxForm()(yobi.Files.js 업로드, yobi.Common.js/yona-layout.js의
-         $yobi.sendForm 사용처)도 내부적으로 $.ajax()를 호출하므로 함께 커버된다 — 별도 패치
+         Plugin의 .ajaxForm()(yona.Files.js 업로드, yona.Common.js/yona-layout.js의
+         $yona.sendForm 사용처)도 내부적으로 $.ajax()를 호출하므로 함께 커버된다 — 별도 패치
          불필요. GET/HEAD/OPTIONS/TRACE(안전 메서드)는 Spring Security의 CsrfFilter 자체가
          검증하지 않으므로 제외한다. 토큰은 CookieCsrfTokenRepository.withHttpOnlyFalse()가
          원문 그대로 저장하는 XSRF-TOKEN 쿠키에서 읽어 X-XSRF-TOKEN 헤더로 보낸다
@@ -849,40 +841,20 @@
     <script type="text/javascript" src="/bootstrap/js/bootstrap-better-typeahead.js"></script>
     <script type="text/javascript" src="/bootstrap/js/bootstrap-switch.js"></script>
     <script type="text/javascript" src="/javascripts/yona-lib.js"></script>
-    <!-- P3-50: yobi.Markdown.js(위 markdown(project) fragment 주석 참고)와 완전히 동일한 함정 —
-         첨부파일 위젯을 실제로 구현하는 yobi.Files.js/yobi.Attachments.js가 어느 템플릿에서도
-         <script src>로 로드된 적이 없어, 전역 레거시 번들 yona-lib.js에 박혀있던 EasyMDE를
-         전혀 모르는 구버전 사본이 계속 실행되고 있었다 — 새 댓글/게시글 작성 폼에서 파일을
-         업로드해도 카드 클릭으로 마크다운 링크를 넣으면 raw textarea에는 반영되지만 CodeMirror는
-         이를 몰라 그 사이 포커스가 빠지면(예: 저장 버튼 클릭) CodeMirror가 자신의 변경 없는
-         내부 버퍼로 되돌려써 방금 넣은 링크가 사라지는 것을 Playwright로 실제 재현해 발견했다.
-         반드시 yona-lib.js보다 뒤에 로드해야 전역 yobi.Files/yobi.Attachments가 이 최신
-         (EasyMDE 인지) 버전으로 최종적으로 덮어써진다. -->
-    <script type="text/javascript" src="/javascripts/common/yobi.Files.js"></script>
-    <script type="text/javascript" src="/javascripts/common/yobi.Attachments.js"></script>
-    <!-- P3-46(CM6 마크다운 에디터) 4단계 완료 후 발견: 위와 완전히 동일한 함정이 yobi.ShortcutKey에도
-         있었다 - common/yobi.ShortcutKey.js가 어느 템플릿에서도 <script src>로 로드된 적이 없어,
-         yona-lib.js에 박혀있던 구버전 사본(target.tagName만 보고 Shadow DOM 리타게팅을 모름)이
-         계속 실행되고 있었다. 그래서 <yona-markdown-editor> 안에서 H/C/I/M/B/A/U/N 같은 단축키
-         글자를 타이핑하면 전역 단축키가 오발동해 페이지가 이동하며 미저장 내용을 잃는 심각한
-         회귀가 있었음을 Playwright로 재현해 발견했다. yona-lib.js보다 뒤에 로드해야 전역
-         yobi.ShortcutKey가 composedPath()/isContentEditable을 아는 최신 버전으로 덮어써진다. -->
-    <script type="text/javascript" src="/javascripts/common/yobi.ShortcutKey.js"></script>
     <script type="text/javascript" src="/javascripts/lib/autosize/autosize.min.js"></script>
     <script type="text/javascript" src="/javascripts/common/yona.KeyControl.js"></script>
     <script type="text/javascript" src="/javascripts/lib/tippy/popper.min.js"></script>
     <script type="text/javascript" src="/javascripts/lib/tippy/tippy-bundle.umd.min.js"></script>
     <script type="text/javascript" src="/javascripts/common/yona.Usermenu.js"></script>
     <script type="text/javascript" src="/javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js"></script>
-    <script type="text/javascript" src="/javascripts/common/yobi.LoginDialog.js"></script>
-    <script type="text/javascript" src="/javascripts/lib/nprogress/nprogress.js"></script>
+    <script type="text/javascript" src="/javascripts/common/yona.LoginDialog.js"></script>
     <script type="text/javascript" src="/javascripts/lib/viewerjs/viewer.js"></script>
     <!-- P3-46 #8 2단계: markdownEditor 프래그먼트가 17개 화면에서 쓰여 select2/calendar
          프래그먼트처럼 화면별 opt-in으로 두지 않고 전역으로 로드한다. <yona-markdown-editor>는
          Custom Element이므로 이 스크립트 로드만으로 customElements.define이 실행되고, 이후
          브라우저가 DOM에서 이 태그를 만나는 즉시(대상이 없는 페이지에서는 자연히 아무 일도
          일어나지 않는다) connectedCallback으로 스스로 초기화한다 - jQuery selector로 대상을
-         순회하던 yobi.ui.MarkdownEditor.js(삭제됨)와 달리 별도 초기화 스크립트가 필요 없다. -->
+         순회하던 yona.ui.MarkdownEditor.js(삭제됨)와 달리 별도 초기화 스크립트가 필요 없다. -->
     <script type="text/javascript" src="/javascripts/lib/yona-markdown-editor/yona-markdown-editor.min.js"></script>
     <!-- P3-46 #8-2: highlight.js 라이브러리 자체를 전역으로 승격(위 head::CSS 승격과 동일 이유).
          2단계 시점에서는 에디터 자체의 미리보기(previewRender)가 없어 이 전역 hljs를 쓰는
@@ -923,7 +895,7 @@
     </script>
 
     <script type="text/javascript" th:inline="javascript">
-        // yobi.Usermenu.js를 위한 API URL 매핑
+        // yona.Usermenu.js를 위한 API URL 매핑
         var UsermenuToggleFavoriteProjectUrl = "/-_-api/v1/favoriteProjects/";
         var UsermenuToggleFoveriteOrganizationUrl = "/-_-api/v1/favoriteOrganizations/";
         var UsermenuGetFoveriteProjectsUrl = "/-_-api/v1/favoriteProjects";
@@ -931,7 +903,7 @@
         var UsermenuGetFoveriteIssuesUrl = "/-_-api/v1/favoriteIssues";
         var UsermenuUrl = "/user/usermenuTabContentList";
         
-        $yobi.setScriptPath("/javascripts/");
+        $yona.setScriptPath("/javascripts/");
 
         $(document).ready(function(){
             // tooltip
@@ -942,33 +914,33 @@
             // jquery.placeholder plugin initiator
             $('input[type=text], textarea').placeholder();
 
-            // yobi.Dropdown
+            // yona.Dropdown
             var sActivation;
             $(".btn-group[data-name]").each(function(i, el){
                 sActivation = $(el).attr("data-activate");
                 if(typeof sActivation == "undefined" || sActivation != "manual"){
-                    (new yobi.ui.Dropdown({"elContainer":el}));
+                    (new yona.ui.Dropdown({"elContainer":el}));
                 }
             });
 
-            // yobi.ShortcutKey
-            yobi.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
+            // yona.ShortcutKey
+            yona.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
                 if(htInfo.bFormInput){
                     $(htInfo.welTarget.parents("form").get(0)).submit();
                 }
             });
 
-            yobi.ShortcutKey.setKeymapLink({
+            yona.ShortcutKey.setKeymapLink({
                 "A": "/user/issues"
             });
             /*[# th:if="${currentUser != null}"]*/
-            yobi.ShortcutKey.setKeymapLink({
+            yona.ShortcutKey.setKeymapLink({
                 "U": [[${'/user/' + currentUser.loginId}]]
             });
             /*[/]*/
 
-            // yobi.Files 초기화
-            yobi.Files.init({
+            // yona.Files 초기화
+            yona.Files.init({
                 "sListURL"  : "/files",
                 "sUploadURL": "/files",
                 "maxFileSize": "2147483454"  // 2Gb
@@ -1017,16 +989,16 @@
             });
 
             /*[# th:if="${warning}"]*/
-            $yobi.notify([[${warning}]], 5000);
+            $yona.notify([[${warning}]], 5000);
             /*[/]*/
             /*[# th:if="${error}"]*/
-            $yobi.notify([[${error}]], 5000);
+            $yona.notify([[${error}]], 5000);
             /*[/]*/
             /*[# th:if="${info}"]*/
-            $yobi.notify([[${info}]], 5000);
+            $yona.notify([[${info}]], 5000);
             /*[/]*/
 
-            yobi.OriginalMessage.hide($("[data-via-email]"));
+            yona.OriginalMessage.hide($("[data-via-email]"));
 
             $('.logo, .title > a, .project-menu-nav > li > a, .show-progress-bar, .project-breadcrumb > span > a, .project-name > a, a[class="title"]').on('click.progressbar', function(){
                 NProgress.set(0.7);
@@ -1088,7 +1060,7 @@
 
     <!-- Yona 원본 project.Global 모듈 로드 및 단축키 바인딩 -->
     <th:block th:if="${project != null}">
-      <script type="text/javascript" src="/javascripts/service/yobi.project.Global.js"></script>
+      <script type="text/javascript" src="/javascripts/service/yona.project.Global.js"></script>
       <script type="text/javascript" th:inline="javascript">
           $(document).ready(function(){
               var htKeyMap = {
@@ -1098,7 +1070,7 @@
                   "M": [[@{/{owner}/{name}/milestones(owner=${project.owner}, name=${project.name})}]],
                   "B": [[@{/{owner}/{name}/posts(owner=${project.owner}, name=${project.name})}]]
               };
-              $yobi.loadModule("project.Global", {
+              $yona.loadModule("project.Global", {
                   "htKeyMap": htKeyMap,
                   "sRepoURL": [[${project.owner}]] + '@' + window.location.host + '/' + [[${project.owner}]] + '/' + [[${project.name}]]
               });

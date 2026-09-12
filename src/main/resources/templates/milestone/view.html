@@ -153,7 +153,7 @@
 
         var projectOwner = [[${project.owner}]];
         var projectName = [[${project.name}]];
-        $yobi.loadModule("milestone.View", {
+        $yona.loadModule("milestone.View", {
             "sMilestoneId" : [[${milestoneDto.milestone.id}]],
             "sURLLabels"   : "/" + projectOwner + "/" + projectName + "/issues"
         });

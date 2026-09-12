@@ -54,12 +54,12 @@
 
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<script src="/javascripts/common/yobi.Common.js"></script>
-<script src="/javascripts/common/yobi.ui.Typeahead.js"></script>
-<script src="/javascripts/service/yobi.site.MassMail.js"></script>
+<script src="/javascripts/common/yona.Common.js"></script>
+<script src="/javascripts/common/yona.ui.Typeahead.js"></script>
+<script src="/javascripts/service/yona.site.MassMail.js"></script>
 <script th:inline="javascript">
   $(document).ready(function(){
-    $yobi.loadModule("site.MassMail", {
+    $yona.loadModule("site.MassMail", {
         "sURLMailList": "/sites/mailList",
         "sURLProjects": "/projects"
     });

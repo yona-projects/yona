@@ -5,7 +5,7 @@
 <body>
 <!--
  legacy common/commentDeleteModal.scala.html 대응 (그룹2 #26, 그룹11에서 실제 착수). 댓글/코드리뷰
- 댓글 삭제 확인 모달 + 삭제 버튼 클릭 위임 스크립트. legacy는 yobi.Comment.js를 로드해서
+ 댓글 삭제 확인 모달 + 삭제 버튼 클릭 위임 스크립트. legacy는 yona.Comment.js를 로드해서
  [data-toggle="comment-delete"] 클릭을 위임 처리하지만, 그런 정적 자산이 yona에는 없어(신규
  이식 시 확인) 동등한 동작을 인라인 스크립트로 직접 구현한다 — data-request-uri에 담긴 URL로
  DELETE 요청을 보내고 성공하면 해당 댓글의 <li>/<div id="comment-N">를 DOM에서 제거한다.

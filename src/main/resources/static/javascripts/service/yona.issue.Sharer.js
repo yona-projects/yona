@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * Copyright Yona Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 // P3-46 #5: Select2(v3) -> Tom Select 교체.
@@ -74,14 +74,14 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
       item: formatter,
       not_loading: function(data){
         var n = MIN_INPUT_LENGTH - data.input.length;
-        return n > 0 ? '<div class="no-results">' + yobi.ui.Select2.i18n.tooShort(n) + '</div>' : '';
+        return n > 0 ? '<div class="no-results">' + yona.ui.Select2.i18n.tooShort(n) + '</div>' : '';
       },
-      no_results: function(){ return '<div class="no-results">' + yobi.ui.Select2.i18n.noResults + '</div>'; },
-      loading: function(){ return '<div class="no-results">' + yobi.ui.Select2.i18n.searching + '</div>'; }
+      no_results: function(){ return '<div class="no-results">' + yona.ui.Select2.i18n.noResults + '</div>'; },
+      loading: function(){ return '<div class="no-results">' + yona.ui.Select2.i18n.searching + '</div>'; }
     }
   });
 
-  yobi.ui.Select2.bridgeChangeEvent(tomSelectInstance, issueSharerElement);
+  yona.ui.Select2.bridgeChangeEvent(tomSelectInstance, issueSharerElement);
 
   // initSelection 대응: input의 초기 value(콤마로 join된 loginId 목록)는 Tom Select가 <input>
   // 텍스트박스 초기화 경로(getSettings.ts init_textbox)에서 이미 알아서 delimiter(',')로 쪼개
@@ -116,7 +116,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         contentType: "application/json",
         data: JSON.stringify(payload)
       }).done(function(response){
-        $yobi.notify(response.action + ": " + response.sharer, 3000);
+        $yona.notify(response.action + ": " + response.sharer, 3000);
       });
     }
   });
@@ -135,7 +135,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         contentType: "application/json",
         data: JSON.stringify(payload)
       }).done(function(response){
-        $yobi.notify(response.action + ": " + response.sharer, 3000);
+        $yona.notify(response.action + ": " + response.sharer, 3000);
       });
     }
   });

@@ -59,7 +59,7 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script th:inline="javascript">
   $(function(){
-    yobi.Pagination.update($("#pagination"), /*[[${posts.totalPages}]]*/ 1, {"paramNameForPage": "page"});
+    yona.Pagination.update($("#pagination"), /*[[${posts.totalPages}]]*/ 1, {"paramNameForPage": "page"});
   });
 </script>
 </body>

@@ -49,7 +49,7 @@ import java.time.temporal.ChronoUnit
 // 상호작용)은 검증하지 않는다 — MockMvc+Jsoup 하네스는 서버가 내려주는 초기 마크업까지만 볼 수
 // 있다(Shadow DOM 내부는 Playwright가 1차 검증 수단 - p3-46-cm6-plan.md 5단계 절 참고). 대신
 // 아래 "마크업 계약"이 회귀 없이 유지되는지를 검증한다:
-//   1) atjs/atwho/yobi.Mention.js 리소스는 전부 사라져야 한다(5단계에서 yobi.Mention.js가
+//   1) atjs/atwho/yona.Mention.js 리소스는 전부 사라져야 한다(5단계에서 yona.Mention.js가
 //      완전히 삭제됐다 - 순수 로직은 components/editor/src/mention.ts로 흡수,
 //      menuItemTemplate/selectTemplate은 @codemirror/autocomplete의 Completion/addToOptions
 //      어댑터로 새로 작성됨). tribute.min.{js,css} 자체는 계획서 "범위 밖" 절이 명시한
@@ -62,7 +62,7 @@ import java.time.temporal.ChronoUnit
 //      tribute도 완전히 사라져야 한다.
 //   2) markdownEditor 프래그먼트(site/layout.html)가 render-url(4단계)과 동일한 게이트
 //      (project != null)로 data-mention-url="/api/{owner}/{name}/mentionList"을 노출해야
-//      한다. 옛 yobi.Mention()은 board/pullrequest/milestone/issue의 create/edit 8개 화면에서만
+//      한다. 옛 yona.Mention()은 board/pullrequest/milestone/issue의 create/edit 8개 화면에서만
 //      하드코딩 호출됐지만, 그건 "이 8개 화면만 멘션이 필요하다"는 의도적 설계가 아니라 그 8개만
 //      호출 코드를 추가해뒀을 뿐이었다(pullrequest 두 곳은 심지어 tribute.min.js 자체를 로드하지
 //      않아 이미 깨져 있었다 - Tribute is not defined). 4단계가 미리보기(render-url)를 8개
@@ -70,7 +70,7 @@ import java.time.temporal.ChronoUnit
 //      전부로 넓혔다(site/layout.html markdownEditor 프래그먼트 주석 참고 - 코디네이터 재검토가
 //      필요한 판단 지점으로 docs/parity/tickets/p3-46.md CM6-5단계 로그에 기록). 이 스펙은 옛
 //      8개 화면 전부 + 옛 mention-less 화면 1곳(issue/view)에서 이 확장을 검증한다.
-//   3) yona-lib.js(레거시 통짜 번들)에 남아있는 구식 atjs 기반 yobi.Mention 사본은 이제 아무
+//   3) yona-lib.js(레거시 통짜 번들)에 남아있는 구식 atjs 기반 yona.Mention 사본은 이제 아무
 //      곳에서도 호출되지 않는 완전한 죽은 코드다(그 번들 자체를 다루는 정리는 별도 사안으로
 //      남겨둔다 - 이전 단계들과 동일한 판단).
 class MentionAutocompleteWidgetTemplateEquivalenceSpec @Autowired constructor(
@@ -201,10 +201,10 @@ class MentionAutocompleteWidgetTemplateEquivalenceSpec @Autowired constructor(
                 doc.select("link[href*=atjs]").size shouldBe 0
                 doc.select("script[src*=atwho]").size shouldBe 0
                 doc.select("link[href*=atwho]").size shouldBe 0
-                doc.select("script[src*='yobi.Mention.js']").size shouldBe 0
+                doc.select("script[src*='yona.Mention.js']").size shouldBe 0
             }
 
-            // tribute.min.js/css는 멘션(yobi.Mention.js, 이번에 삭제됨)과 라벨 트리거
+            // tribute.min.js/css는 멘션(yona.Mention.js, 이번에 삭제됨)과 라벨 트리거
             // (yona.TitleHeadAutoCompletion.js, 범위 밖 - 무변경)가 함께 쓰던 공유 라이브러리다.
             // 후자가 여전히 전역 Tribute 생성자에 의존하므로, 그 스크립트를 로드하는 3개 화면
             // (board/create, issue/create, issue/edit)에서는 tribute가 그대로 남아있어야 하고,
@@ -290,7 +290,7 @@ class MentionAutocompleteWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertMentionUrlExposed(doc)
             }
 
-            it("issue/view(이슈 상세, 옛 CM5/Tribute 시절엔 yobi.Mention() 호출 자체가 없던 화면) 화면도 이제 data-mention-url을 노출해야 한다 - 5단계 스코프 확장 판단(site/layout.html markdownEditor 프래그먼트 주석 참고)") {
+            it("issue/view(이슈 상세, 옛 CM5/Tribute 시절엔 yona.Mention() 호출 자체가 없던 화면) 화면도 이제 data-mention-url을 노출해야 한다 - 5단계 스코프 확장 판단(site/layout.html markdownEditor 프래그먼트 주석 참고)") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issue/${issue.number}")
                 assertNoLegacyMentionResources(doc)
                 assertTributePresence(doc, expectedPresent = false)

@@ -23,7 +23,7 @@ import java.io.File
 
 // P3-63 회귀 스펙: 코드 브라우저에서 바이너리도 마크다운도 아닌 일반 텍스트/소스 코드 파일을 열면
 // 실제 파일 내용은 숨겨진 `#codeVal`(class="hidden")에만 채워지고, 화면에 실제로 보이는
-// `#showCode`(<pre>)는 항상 비어있게 렌더링되던 버그(legacy `service/yobi.code.Browser.js`가
+// `#showCode`(<pre>)는 항상 비어있게 렌더링되던 버그(legacy `service/yona.code.Browser.js`가
 // `#codeVal` -> Ace 에디터(`#showCode`)로 내용을 복사했는데, 이 JS가 어떤 yona 템플릿에서도
 // 로드되지 않아 연결이 끊겨 있었음 — Ace/AJAX 트리 완전 이식은 별도 범위, 이번엔 "내용이 안 보이는"
 // 핵심 버그만 최소 비용으로 고친다).

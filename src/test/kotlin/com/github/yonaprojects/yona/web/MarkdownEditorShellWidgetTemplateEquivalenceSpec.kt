@@ -104,7 +104,7 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
             fun assertEditorResourcesLoaded(doc: Document) {
                 doc.select("link[href*='/javascripts/lib/easymde/'][rel=stylesheet]").size shouldBe 0
                 doc.select("script[src*='/javascripts/lib/easymde/']").size shouldBe 0
-                doc.select("script[src*='yobi.ui.MarkdownEditor.js']").size shouldBe 0
+                doc.select("script[src*='yona.ui.MarkdownEditor.js']").size shouldBe 0
                 doc.select("script[src*='/javascripts/lib/yona-markdown-editor/']").size shouldBe 1
             }
 

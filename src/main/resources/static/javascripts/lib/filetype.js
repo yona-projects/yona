@@ -1,7 +1,7 @@
 /**
  *  Yona, 21st Century Project Hosting SW
  *  <p>
- *  Copyright Yona & Yobi Authors & NAVER Corp.
+ *  Copyright Yona Authors & NAVER Corp.
  *  https://yona.io
  **/
 /**

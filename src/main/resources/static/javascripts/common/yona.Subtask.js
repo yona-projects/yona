@@ -69,7 +69,7 @@ _onReady(function(){
                     parentId.disabled = true;
                 }
             }
-            $yobi.notify("Issue will be moved or written to '" + targetProjectName + "'", 4000);
+            $yona.notify("Issue will be moved or written to '" + targetProjectName + "'", 4000);
         }
     });
 });

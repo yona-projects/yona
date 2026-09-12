@@ -470,7 +470,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val doc = Jsoup.parse(html)
 
                     doc.select("link[href*='lib/nprogress/nprogress.css']").size shouldBe 1
-                    doc.select("script[src*='lib/nprogress/nprogress.js']").size shouldBe 1
+                    // nprogress.js는 yona-layout.js 번들(support-script/js-bundle/minify-js.sh 재료
+                    // 목록 참고)에 포함돼 있으므로, 개별 <script src>로는 더 이상 로드하지 않는다
+                    // (site/layout.html에 남아있던 순수 중복 로드를 제거했다).
+                    doc.select("script[src*='lib/nprogress/nprogress.js']").size shouldBe 0
                     html.contains("NProgress.configure(") shouldBe true
 
                     doc.select("link[href*='lib/viewerjs/viewer.css']").size shouldBe 1
@@ -646,7 +649,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val html = result.response.contentAsString
                     val doc = Jsoup.parse(html)
 
-                    doc.select("script#tplYobiToast").size shouldBe 1
+                    doc.select("script#tplYonaToast").size shouldBe 1
 
                     html.contains("\"U\":") shouldBe true
                     html.contains("user\\/${member.loginId}") shouldBe true
@@ -960,7 +963,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("form[name='gnb-search-form']").size shouldBe 1
                     doc.select("footer.page-footer-outer").size shouldBe 1
                     doc.select("script[src*='lib/validate.js']").size shouldBe 1
-                    doc.select("script[src*='service/yobi.user.SignUp.js']").size shouldBe 1
+                    doc.select("script[src*='service/yona.user.SignUp.js']").size shouldBe 1
 
                     val html = result.response.contentAsString
                     html.contains("sLogindIdCheckUrl") shouldBe true
@@ -995,7 +998,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("form[name='gnb-search-form']").size shouldBe 1
                     doc.select("footer.page-footer-outer").size shouldBe 1
                     doc.select("script[src*='lib/validate.js']").size shouldBe 1
-                    doc.select("script[src*='service/yobi.resetPassword.js']").size shouldBe 1
+                    doc.select("script[src*='service/yona.resetPassword.js']").size shouldBe 1
                 }
             }
 
@@ -1082,7 +1085,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("footer.page-footer-outer").size shouldBe 1
                     doc.select(".project-header-outer").size shouldBe 1
                     doc.select(".project-menu-outer").size shouldBe 1
-                    doc.select("script[src*='service/yobi.project.ChangeVCS.js']").size shouldBe 1
+                    doc.select("script[src*='service/yona.project.ChangeVCS.js']").size shouldBe 1
                 }
             }
 
@@ -1153,7 +1156,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
             describe("[Test-19-23] 이슈 라벨 설정 화면(project/issuelabels.scala.html) 동치성 검증") {
                 // 2026-08-23 재감사: #108이 "보류(현행 커스텀 구현 유지)"로 남겨뒀던 라벨/카테고리 CRUD를
-                // legacy 실제 정적 모듈(yobi.issue.LabelEditor.js) + 서버렌더 파샬(partial_issuelabels_list/
+                // legacy 실제 정적 모듈(yona.issue.LabelEditor.js) + 서버렌더 파샬(partial_issuelabels_list/
                 // editcategory/editlabel) 기반으로 교체(TASK-0262) — JSON REST(/api/projects/{id}/labels)
                 // 커스텀 구현을 걷어내고 legacy와 동일한 폼 제출/모달 구조로 재작성했다.
                 val settingCategory = issueLabelCategoryRepository.findAll().find { it.project.id == settingProj.id && it.name == "설정테스트카테고리" }
@@ -1185,7 +1188,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     )
 
                     // legacy가 실제로 로드하는 정적 모듈(REST JSON 커스텀 구현이 아님)
-                    doc.select("script[src='/javascripts/service/yobi.issue.LabelEditor.js']").size shouldBe 1
+                    doc.select("script[src='/javascripts/service/yona.issue.LabelEditor.js']").size shouldBe 1
 
                     val categoryWrap = doc.select("div.category-wrap[data-category-name='설정테스트카테고리']")
                     categoryWrap.size shouldBe 1
@@ -1199,8 +1202,8 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                     doc.select("form#copyLabel[action='/owner/${settingProj.name}/copyLabels']").size shouldBe 1
                     doc.select("form#frmNewLabel[action='/owner/${settingProj.name}/issue/labels']").size shouldBe 1
-                    doc.select("#editCategory.yobiDialog").size shouldBe 1
-                    doc.select("#editLabel.yobiDialog select[name='category.id'] option").size shouldBe 1
+                    doc.select("#editCategory.yonaDialog").size shouldBe 1
+                    doc.select("#editLabel.yonaDialog select[name='category.id'] option").size shouldBe 1
                 }
             }
 
@@ -1485,13 +1488,13 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("script[src*='lib/jquery/jquery-1.9.0.js']").size shouldBe 1
                     doc.select("script[src*='lib/jquery/jquery.browser.js']").size shouldBe 1
                     doc.select("script[src*='lib/jquery/jquery.pjax.js']").size shouldBe 1
-                    doc.select("script[src*='common/yobi.Common.js']").size shouldBe 1
+                    doc.select("script[src*='common/yona.Common.js']").size shouldBe 1
                     doc.select("script[src*='lib/vendor.js']").size shouldBe 1
                     doc.select("script[src*='service/yona.Migration.js']").size shouldBe 1
                     doc.select("link[href*='fonts.googleapis.com/css?family=Montserrat']").size shouldBe 1
 
                     // AngularJS 앱 컨테이너는 토큰 유무와 무관하게 항상 렌더링된다
-                    doc.select("div.yobi-migration[ng-app=yona.migration]").size shouldBe 1
+                    doc.select("div.yona-migration[ng-app=yona.migration]").size shouldBe 1
                 }
 
                 it("code 파라미터(및 그에 따른 token)가 없으면 header-pannel 전체가 렌더링되지 않아야 한다(legacy ng-if=\"'@token'\")") {
@@ -1501,7 +1504,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                         ).andReturn().response.contentAsString
                     )
 
-                    doc.select(".yobi-migration > .header-pannel").size shouldBe 0
+                    doc.select(".yona-migration > .header-pannel").size shouldBe 0
                 }
 
                 it("로그인하지 않은 사용자는 로그인 폼으로 리다이렉트되어야 한다") {
@@ -1649,7 +1652,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     noAuthor.select(".search-meta-info span.meta-item").first()!!.text() shouldBe "작성자 없음"
 
                     doc.select("#pagination").size shouldBe 1
-                    doc.html().contains("yobi.Pagination.update") shouldBe true
+                    doc.html().contains("yona.Pagination.update") shouldBe true
                 }
 
                 it("프로젝트 탭: 로고/포크뱃지/전체 개요(스니펫 아님)/생성일·코드업데이트 문구가 legacy와 일치해야 하고, 페이지네이션이 없어야 한다") {
@@ -1778,8 +1781,8 @@ class TemplateEquivalenceSpec @Autowired constructor(
                         mockMvc.perform(get("/_UIKit")).andExpect(status().isOk).andReturn().response.contentAsString
                     )
 
-                    doc.select("title").text() shouldBe "Yobi UI"
-                    doc.select("header.gnb-outer > span.subtitle").text() shouldBe "Yobi UI"
+                    doc.select("title").text() shouldBe "Yona UI"
+                    doc.select("header.gnb-outer > span.subtitle").text() shouldBe "Yona UI"
                     doc.select(".ybtn.ybtn-primary").text() shouldBe "Primary"
                     doc.select(".avatar-wrap.xlarge").size shouldBe 1
                     doc.select(".switch.switch-square").size shouldBe 1

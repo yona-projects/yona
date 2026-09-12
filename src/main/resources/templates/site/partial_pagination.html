@@ -3,7 +3,7 @@
 <!--
   legacy site/partial_pagination.scala.html 대응. legacy 원본은 전체 legacy-yona 저장소를 전수 검색해도
   어떤 컨트롤러/템플릿에서도 호출되지 않는 죽은(orphan) 파샬이었다(실제 페이지네이션은 site/userList 등에서
-  yobi.Pagination.js 클라이언트 위젯으로 구현됨). 그 상태를 그대로 이식 — 새 호출부를 만들지 않고 legacy와 동일한
+  yona.Pagination.js 클라이언트 위젯으로 구현됨). 그 상태를 그대로 이식 — 새 호출부를 만들지 않고 legacy와 동일한
   구조/연산(prev/숫자/next, pageNum 윈도우 계산)만 담은 프래그먼트로 둔다(TEMPLATE_BACKLOG.md #222 참고).
   page 파라미터는 legacy의 com.avaje.ebean.Page(0-based getPageIndex)에 대응하는 Spring Data Page(0-based
   number/totalPages/hasPrevious()/hasNext())를 그대로 사용한다.

@@ -30,7 +30,7 @@ import org.springframework.web.context.WebApplicationContext
 
 // 부수 발견(P3-61 완료 로그에서 보고, 이번에 코디네이터가 직접 조사·수정): 이슈 검색 결과가
 // 0건이면 legacy issue/partial_list_wrap.scala.html:61-67은 @if(currentPage.getList.isEmpty)
-// 블록으로 들어가 partial_massupdate(마크업+"$yobi.loadModule('issue.MassUpdate', ...)" 초기화
+// 블록으로 들어가 partial_massupdate(마크업+"$yona.loadModule('issue.MassUpdate', ...)" 초기화
 // 스크립트가 그 파일 안에 함께 있음) 자체를 렌더링하지 않는다 - 결과가 있을 때(else 블록)만
 // 마크업과 초기화 스크립트가 함께 나온다. yona issue/list.html은 이 초기화 스크립트를
 // 페이지 최하단 전역 스크립트 블록으로 옮기면서 조건 없이 항상 실행하게 됐다 - 결과 0건이면
@@ -81,7 +81,7 @@ class IssueListMassUpdateEmptyResultTemplateRenderingSpec @Autowired constructor
                 ).andExpect(status().isOk).andReturn().response.contentAsString
 
                 html shouldContain "error-wrap"
-                html shouldNotContain "\$yobi.loadModule(\"issue.MassUpdate\""
+                html shouldNotContain "\$yona.loadModule(\"issue.MassUpdate\""
             }
 
             it("결과가 있으면 응답 HTML에 issue.MassUpdate 초기화 스크립트가 있어야 한다") {
@@ -98,7 +98,7 @@ class IssueListMassUpdateEmptyResultTemplateRenderingSpec @Autowired constructor
                         .param("state", "OPEN")
                 ).andExpect(status().isOk).andReturn().response.contentAsString
 
-                html shouldContain "\$yobi.loadModule(\"issue.MassUpdate\""
+                html shouldContain "\$yona.loadModule(\"issue.MassUpdate\""
             }
         }
     }

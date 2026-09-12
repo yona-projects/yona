@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * Copyright Yona Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 
@@ -50,7 +50,7 @@ $(function () {
         .fail(function(jqXHR, textStatus){
             var response = JSON.parse(jqXHR.responseText);
             var message = '[' + jqXHR.statusText + '] ' + response.message + '\n\nRefresh the page!';
-            $yobi.showAlert(message);
+            $yona.showAlert(message);
             NProgress.done();
         });
 

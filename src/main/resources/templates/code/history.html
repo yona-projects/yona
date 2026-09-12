@@ -13,7 +13,7 @@
       padding: 20px;
       margin-bottom: 25px;
   }
-  /* 공용 yobi.css에 `.code-browse-wrap .commit-wrap { background-color: #FFF; }`이 이미 있어
+  /* 공용 yona.css에 `.code-browse-wrap .commit-wrap { background-color: #FFF; }`이 이미 있어
      프리픽스를 맞춘다(속성이 겹치진 않지만 일관성/향후 안전을 위해 스코프). */
   .code-browse-wrap .commit-wrap {
       margin-top: 15px;
@@ -158,7 +158,7 @@ $(document).ready(function(){
                 new ClipboardJS(this, {
                     text: function(){ return $(welBtnCopy).data("commitid"); }
                 }).on('success', function(e) {
-                    if (window.$yobi) { $yobi.notify("[[#{code.copyCommitId.copied}]]", 1000); }
+                    if (window.$yona) { $yona.notify("[[#{code.copyCommitId.copied}]]", 1000); }
                     e.clearSelection();
                 });
             }

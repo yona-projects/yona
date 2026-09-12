@@ -500,7 +500,7 @@ class WebhookServiceImpl(
             val requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(webhook.payloadUrl))
                 .header("Content-Type", "application/json")
-                .header("User-Agent", "Yobi-Hookshot")
+                .header("User-Agent", "Yona-Hookshot")
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
 
             if (!webhook.secret.isNullOrBlank()) {

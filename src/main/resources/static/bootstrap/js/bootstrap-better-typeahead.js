@@ -10,10 +10,10 @@
  * ============================================================ */
 
 // **************************************************
-// Yobi modifications by Yi EungJun
+// Yona modifications by Yi EungJun
 // http://github.com/nforge/yobi/
 //
-// Modifications are tagged with "yobi"
+// Modifications are tagged with "yona"
 // **************************************************
 
 !function($) {
@@ -58,7 +58,7 @@
                 return this.shown ? this.hide() : this;
             }
 
-            // yobi: If-clause to make this work only if query's length is more
+            // yona: If-clause to make this work only if query's length is more
             // than 0, has been removed from the original version.
             items = items.slice(0, this.options.items);
 

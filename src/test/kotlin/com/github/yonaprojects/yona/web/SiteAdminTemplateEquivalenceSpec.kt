@@ -181,7 +181,7 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
             }
 
             describe("[SiteAdmin-4] 사이트 관리자 목록 화면 페이지네이션 위젯 정합성 (userList/projectList/issueList, #217/#218/#220)") {
-                it("legacy처럼 yobi.Pagination.js 클라이언트 위젯용 div#pagination을 쓰고, yona 독자 서버사이드 ul.pagination을 쓰지 않아야 한다") {
+                it("legacy처럼 yona.Pagination.js 클라이언트 위젯용 div#pagination을 쓰고, yona 독자 서버사이드 ul.pagination을 쓰지 않아야 한다") {
                     for (path in listOf("/sites/userList", "/sites/projectList", "/sites/issueList")) {
                         val result = mockMvc.perform(
                             get(path).with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails))
@@ -190,7 +190,7 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
                         withClue(path) {
                             doc.select("div#pagination").isEmpty() shouldBe false
                             doc.select("ul.pagination").isEmpty() shouldBe true
-                            result.response.contentAsString.contains("yobi.Pagination.update") shouldBe true
+                            result.response.contentAsString.contains("yona.Pagination.update") shouldBe true
                             result.response.contentAsString.contains("\"paramNameForPage\": \"page\"") shouldBe true
                         }
                     }

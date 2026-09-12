@@ -23,7 +23,7 @@
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <script type="text/javascript" th:inline="javascript">
     $(function(){
-        $yobi.loadModule("issue.List");
+        $yona.loadModule("issue.List");
 
         $("#projects").on("change", function(){
             $("#search").submit();

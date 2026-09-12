@@ -1,5 +1,5 @@
 /**
- * Yobi, Project Hosting SW
+ * Yona, Project Hosting SW
  *
  * Copyright 2014 NAVER Corp.
  * http://yobi.io

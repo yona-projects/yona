@@ -115,7 +115,7 @@
         $(document).ready(function(){
             var projectOwner = [[${project.owner}]];
             var projectName = [[${project.name}]];
-            $yobi.loadModule("issue.MassUpdate", {
+            $yona.loadModule("issue.MassUpdate", {
                 "sURL": "/" + projectOwner + "/" + projectName + "/issues/massupdate",
                 "welMassUpdateForm": $('#mass-update-form'),
                 "welMassUpdateButtons": $('#mass-update-form button'),

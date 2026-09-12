@@ -140,10 +140,10 @@
         $("#toggleIntro").click(function(){
             var $outerGuide = $(".site-guide-outer");
             $outerGuide.toggleClass("hide");
-            localStorage.setItem("yobi-intro", !$outerGuide.hasClass("hide"));
+            localStorage.setItem("yona-intro", !$outerGuide.hasClass("hide"));
         });
 
-        if(localStorage.getItem("yobi-intro") != "false"){
+        if(localStorage.getItem("yona-intro") != "false"){
             $(".site-guide-outer").removeClass("hide");
         }
 
@@ -195,11 +195,11 @@
         $setDefaultLoginPage.on('click', function(){
             $.post("/user/setDefaultLoginPage?path=" + $setDefaultLoginPage.data("url"))
                 .done(function (data) {
-                    $yobi.notify("Set to default: " + (data ? data.defaultLoginPage : "notifications"), 3000);
+                    $yona.notify("Set to default: " + (data ? data.defaultLoginPage : "notifications"), 3000);
                     $setDefaultLoginPage.hide();
                 })
                 .fail(function (data) {
-                    $yobi.alert("set Default page failed: " + data);
+                    $yona.alert("set Default page failed: " + data);
                 });
         });
     });
