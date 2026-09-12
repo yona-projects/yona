@@ -140,7 +140,9 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     }
   });
 
-  $(issueSharerElement).on("change", function(){
-    $(".issue-sharer-count").text(tomSelectInstance.items.length);
+  issueSharerElement.addEventListener("change", function(){
+    document.querySelectorAll(".issue-sharer-count").forEach(function(el){
+      el.textContent = tomSelectInstance.items.length;
+    });
   });
 }

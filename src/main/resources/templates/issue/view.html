@@ -9,8 +9,11 @@
     <div th:replace="~{project/menu :: menu(${project}, 'issue')}"></div>
     <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
     <!-- P3-64: legacy issue/view.scala.html(487·491행)의 "맨 위로 스크롤" 버튼(jQuery elevator).
-         마크업 없이 스스로 버튼을 주입하는 플러그인이라 css+js 로드와 $.elevator(...) 호출만
-         legacy와 동일하게 이식한다. -->
+         마크업 없이 스스로 버튼을 주입하는 플러그인이라 css+js 로드와 초기화 호출만 legacy와
+         동일하게 이식한다.
+         P3-66: 초기화 호출은 jQuery 플러그인(jquery.elevator.js)에서 vanilla JS
+         (common/yona.ScrollElevator.js, yona.createScrollElevator(...))로 교체됐다. CSS는
+         순수 스타일이라 그대로 유지. -->
     <link rel="stylesheet" href="/javascripts/lib/elevator/jquery.elevator.css" type="text/css" />
     <!-- P3-65: legacy issue/view.scala.html(488행)의 Video.js 스킨. common/yobi.Attachments.js가
          이미 생성하는 class="video-js" data-setup='{}' 마크업을 이 css+js 로드만으로 자동
@@ -537,7 +540,9 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
-<script type="text/javascript" src="/javascripts/lib/elevator/jquery.elevator.js"></script>
+<!-- P3-66: jQuery elevator 플러그인을 vanilla JS로 교체(jquery.elevator.css는 순수 스타일이라
+     그대로 유지). -->
+<script type="text/javascript" src="/javascripts/common/yona.ScrollElevator.js"></script>
 <script type="text/javascript" src="/javascripts/lib/videojs/video.min.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
 <!-- P3-50: 댓글 수정 폼(common/commentUpdateForm)의 기존 첨부파일 목록 클릭/드래그드롭/붙여넣기/
@@ -709,7 +714,8 @@
         // P3-64: legacy issue/view.scala.html(614행)와 동일한 옵션으로 elevator 초기화 —
         // board/view.html과 달리 이 화면은 glass가 아니라 tooltips 옵션을 쓴다(커밋 96d56c403,
         // 2018-07-06 확인).
-        $.elevator({
+        // P3-66: jQuery 플러그인 호출을 vanilla JS yona.createScrollElevator(...)로 교체.
+        yona.createScrollElevator({
             shape: 'rounded',
             tooltips: true
         });
