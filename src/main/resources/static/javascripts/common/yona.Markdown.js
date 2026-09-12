@@ -9,6 +9,34 @@ yona.Markdown = (function(htOptions){
 
     var htVar = {};
 
+    // 호출부가 제각각이라(내부에서는 raw 엘리먼트, yona.project.Home.js 등 미전환
+    // 파일에서는 jQuery 객체) 단일 엘리먼트/컬렉션 인자를 모두 raw DOM으로 정규화한다.
+    function _toElement(el){
+        if(!el){
+            return null;
+        }
+        if(el.jquery){
+            return el[0];
+        }
+        return el;
+    }
+
+    function _toElements(x){
+        if(!x){
+            return document.querySelectorAll("[markdown]");
+        }
+        if(typeof x === "string"){
+            return document.querySelectorAll(x);
+        }
+        if(x.jquery){
+            return x.toArray();
+        }
+        if(x.length !== undefined){
+            return x; // NodeList or Array
+        }
+        return [x]; // single Element
+    }
+
     /**
      * initialize
      * @param {Hash Table} htOptions
@@ -99,9 +127,10 @@ yona.Markdown = (function(htOptions){
     }
 
     function _render(welTarget, sContentBody) {
+        var elTarget = _toElement(welTarget);
         var source = {
             "body": sContentBody,
-            "breaks": (welTarget.hasClass('readme-body') ? false : true)
+            "breaks": (elTarget.classList.contains('readme-body') ? false : true)
         };
 
         fetch(htVar.sMarkdownRendererUrl, {
@@ -117,8 +146,8 @@ yona.Markdown = (function(htOptions){
             }
             return response.text();
         }).then(function(data){
-            welTarget.html(data);
-            $('pre code').each(function(i, block) {
+            elTarget.innerHTML = data;
+            document.querySelectorAll('pre code').forEach(function(block){
                 hljs.highlightElement(block);
             });
         }).catch(function(){
@@ -130,56 +159,66 @@ yona.Markdown = (function(htOptions){
     /**
      * set Markdown Viewer
      *
-     * @param {Wrapped Element} welTarget is not <textarea> or <input>
+     * @param {Element} elTarget is not <textarea> or <input>
      */
-    function _setViewer(welTarget){
-        var sMarkdownText = welTarget.text();
-        var sContentBody  = (sMarkdownText) ? _renderMarkdown(sMarkdownText) : welTarget.html();
-        $('.markdown-loader').remove();
-        welTarget.html(sContentBody).removeClass('markdown-before');
+    function _setViewer(elTarget){
+        var sMarkdownText = elTarget.textContent;
+        var sContentBody  = (sMarkdownText) ? _renderMarkdown(sMarkdownText) : elTarget.innerHTML;
+        document.querySelectorAll('.markdown-loader').forEach(function(el){ el.remove(); });
+        elTarget.innerHTML = sContentBody;
+        elTarget.classList.remove('markdown-before');
     }
 
     // Deprecated. so never call this method
     function _postMarkdownRender(){
         // Make first li font bold when multi-depth list is used
-        var ul = $(".markdown-wrap > ul");
-        ul.find("> li > ul").parent().closest('ul').css('font-weight', 'bold');  //ul > ul
-        ul.find("> li > ol").parent().closest('ul').css('font-weight', 'bold');  //ul > ol
+        document.querySelectorAll(".markdown-wrap > ul").forEach(function(ul){
+            ul.querySelectorAll("> li > ul").forEach(function(el){ el.closest('ul').style.fontWeight = 'bold'; }); //ul > ul
+            ul.querySelectorAll("> li > ol").forEach(function(el){ el.closest('ul').style.fontWeight = 'bold'; }); //ul > ol
+        });
 
-        var ol = $(".markdown-wrap > ol");
-        ol.find("> li > ul").parent().closest('ol').css('font-weight', 'bold');  //ol > ul
-        ol.find("> li > ol").parent().closest('ol').css('font-weight', 'bold');  //ol > ol
+        document.querySelectorAll(".markdown-wrap > ol").forEach(function(ol){
+            ol.querySelectorAll("> li > ul").forEach(function(el){ el.closest('ol').style.fontWeight = 'bold'; }); //ol > ul
+            ol.querySelectorAll("> li > ol").forEach(function(el){ el.closest('ol').style.fontWeight = 'bold'; }); //ol > ol
+        });
     }
 
     /**
      * set Markdown Editor
      *
-     * @param {Wrapped Element} welTextarea
+     * @param {Element} elTextarea
      */
-    function _setEditor(welTextarea){
-        var elContainer = welTextarea.parents('[data-toggle="markdown-editor"]').get(0);
+    function _setEditor(elTextarea){
+        var elContainer = elTextarea.closest('[data-toggle="markdown-editor"]');
 
         if(!elContainer){
             return false;
         }
 
-        $(elContainer).on("click", 'a[data-mode="preview"]', function(weEvt){
-            var welPreview = $(weEvt.delegateTarget).find("div.markdown-preview");
-            var sContentBody = welTextarea.val();
+        elContainer.addEventListener("click", function(weEvt){
+            var match = weEvt.target.closest('a[data-mode="preview"]');
+            if(!match || !elContainer.contains(match)){
+                return;
+            }
 
-            _replaceAutoLink(welPreview, sContentBody);
+            var elPreview = elContainer.querySelector("div.markdown-preview");
+            var sContentBody = elTextarea.value;
 
-            welPreview.css({"min-height": welTextarea.height() + 'px'});
+            _replaceAutoLink(elPreview, sContentBody);
+
+            elPreview.style.minHeight = elTextarea.offsetHeight + 'px';
         });
 
-        welTextarea.on("keydown.tabkey-event-handler", function(e) {
-            var $this = $(this);
+        // _tab()/_untab()은 이 코드베이스 어디에도 정의되어 있지 않다(jQuery 시절부터의
+        // 미구현 참조로 확인됨) - Tab/Shift+Tab 들여쓰기 기능은 원래도 동작하지 않았으므로
+        // 동작을 바꾸지 않기 위해 호출부를 그대로 보존한다.
+        elTextarea.addEventListener("keydown", function(e) {
             if (e.shiftKey && e.key === 'Tab') {
                 e.preventDefault();
-                _untab($this.get(0));
+                _untab(this);
             } else if ( e.key === 'Tab' ) {
                 e.preventDefault();
-                _tab($this.get(0));
+                _tab(this);
             }
         });
     }
@@ -190,10 +229,10 @@ yona.Markdown = (function(htOptions){
      * @param {String} sQuery Selector string for targets
      */
     function _enableMarkdown(sQuery){
-        var waTarget = $(sQuery || "[markdown]"); // TODO: markdown=true
+        var waTarget = _toElements(sQuery);
 
-        waTarget.each(function(nIndex, elTarget){
-            _isEditableElement(elTarget) ? _setEditor($(elTarget)) : _setViewer($(elTarget));
+        waTarget.forEach(function(elTarget){
+            _isEditableElement(elTarget) ? _setEditor(elTarget) : _setViewer(elTarget);
         });
     }
 
