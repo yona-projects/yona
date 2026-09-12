@@ -33,8 +33,16 @@ yobi.ShortcutKey = (function(htOptions){
 
     /**
      * initialize variables
+     *
+     * destroy()가 beforeunload 시점에 htVar를 null로 만드는데, _getKeyString/_normalizeKeyString의
+     * "if(!htVar) _initVar()" 지연 재초기화 가드는 htVar가 이미 null이라는 것까지는 감지하면서도
+     * 정작 이 함수가 기존 htVar의 프로퍼티만 채우고 객체 자체를 새로 만들지는 않아서, null에
+     * 프로퍼티를 대입하려다 TypeError가 났다(project.Global.js의 $yobi.loadModule 비동기 로딩이
+     * beforeunload보다 늦게 끝나는 레이스에서 재현 확인). 여기서 htVar 자체를 새로 만들어야
+     * 가드가 실제로 방어 역할을 한다.
      */
     function _initVar(){
+        htVar = {};
         htVar.rxTrim = /\s+/g;
         htVar.aFormTags = ["INPUT", "TEXTAREA"];
         htVar.aCombinationKeys = ["CTRL", "ALT", "SHIFT"];
