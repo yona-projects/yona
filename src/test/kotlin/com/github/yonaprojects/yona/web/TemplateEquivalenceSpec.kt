@@ -491,7 +491,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
             }
 
             describe("[Test-19-6] framed 레이아웃(site/layout_framed.html) 동치성 검증") {
-                it("사이드바 프레임 페이지에 og/twitter 메타 태그와 nprogress/magnific-popup 자산이 포함되어야 한다") {
+                it("사이드바 프레임 페이지에 og/twitter 메타 태그와 nprogress 자산이 포함되어야 한다") {
                     val result = mockMvc.perform(
                         get("/user/sidebar")
                             .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
@@ -504,7 +504,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("meta[property='og:url']").size shouldBe 1
                     doc.select("meta[name='twitter:card']").attr("content") shouldBe "summary"
                     doc.select("link[href*='lib/nprogress/nprogress.css']").size shouldBe 1
-                    doc.select("link[href*='lib/magnific-popup/magnific-popup.css']").size shouldBe 1
+                    // magnific-popup.css는 legacy에서도 본체(jquery.magnific-popup.js)가 어디서도
+                    // 로드되지 않는 죽은 참조였다(legacy HEAD/v1.6.1 모두 확인) - CSS만 남아 아무
+                    // 기능도 하지 않아 제거했다.
+                    doc.select("link[href*='lib/magnific-popup/magnific-popup.css']").size shouldBe 0
                 }
 
                 it("사이드바 프레임 body 클래스는 theme-default와 framed-body를 모두 가져야 한다") {
