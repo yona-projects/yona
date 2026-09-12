@@ -288,7 +288,7 @@
                 <div th:utext="${markdownHtml}">Rendered markdown</div>
               </div>
               <th:block th:if="${markdownHtml == null}">
-                <pre id="showCode" class="code-wrap" th:data-mimetype="${fileInfo.get('mimeType').asText()}"><code th:text="${fileInfo.get('data').asText()}"></code></pre>
+                <pre id="showCode" class="code-wrap" th:data-mimetype="${fileInfo.get('mimeType').asText()}" th:data-path="${path}"><code th:text="${fileInfo.get('data').asText()}"></code></pre>
               </th:block>
             </th:block>
           </div>
@@ -304,6 +304,11 @@
 
 <div th:replace="~{site/layout :: scripts}"></div>
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
+<!-- P3-63(후속): 파일 내용 보기 전용 진짜 Ace 에디터. 이 화면에서만 필요하므로 전역
+     site/layout.html이 아니라 이 템플릿에만 로드한다(legacy service/yobi.code.Browser.js와
+     동치). Ace의 모드/테마 파일은 이 <script> 태그의 src 경로를 기준으로 자기 자신이 비동기로
+     추론/로드하므로 별도 basePath 설정은 필요 없다. -->
+<script src="/javascripts/lib/ace/ace.js"></script>
 <script type="text/javascript">
   $(document).ready(function(){
       $("#branches").on("change", function(){
@@ -313,13 +318,101 @@
       // help popover at open with browser button
       $("#open-in-browser").popover({trigger: "hover", placement: "top"});
 
-      // P3-63: 일반 텍스트/소스 코드 파일 뷰(마크다운/바이너리 제외)에 문법강조를 붙인다.
-      // hljs는 site/layout.html의 site/layout :: scripts fragment(아래에서 include)가 이미
-      // 전역으로 로드해두므로 별도 스크립트 로드 없이 바로 쓴다. 마크다운/바이너리 케이스에는
-      // #showCode 자체가 없어 querySelector가 null을 반환하므로 안전하게 건너뛴다.
-      var showCodeEl = document.querySelector("#showCode code");
-      if (showCodeEl && typeof hljs !== "undefined") {
-          hljs.highlightElement(showCodeEl);
+      // P3-63: 일반 텍스트/소스 코드 파일 뷰(마크다운/바이너리 제외)에 진짜 Ace 에디터를 붙인다
+      // (legacy service/yobi.code.Browser.js의 _getEditor(400~412행)/_initCodeView(369~394행)/
+      // ext2mode(432~480행)와 동치). Ace 로딩에 실패하면(스크립트 404 등) hljs 문법강조로
+      // 폴백한다(완전 대체가 아니라 이중 안전장치). 마크다운/바이너리 케이스에는 #showCode 자체가
+      // 없어 querySelector가 null을 반환하므로 안전하게 건너뛴다.
+      var showCodeCodeEl = document.querySelector("#showCode code");
+      if (showCodeCodeEl) {
+          if (typeof ace !== "undefined") {
+              // ace.edit()는 대상 엘리먼트(#showCode)의 자식을 지우고 자기 DOM으로 교체하므로,
+              // 원본 텍스트는 반드시 그 전에 읽어둬야 한다.
+              var sourceText = showCodeCodeEl.textContent;
+              var showCodeContainerEl = document.getElementById("showCode");
+              var sMimeType = showCodeContainerEl.getAttribute("data-mimetype") || "";
+              var sPath = showCodeContainerEl.getAttribute("data-path") || "";
+
+              // legacy htVar.rxSub: 서버가 명시적으로 "text/x-<lang>-source" 형태의 MIME
+              // 타입을 알려준 경우 우선 사용하고, 아니면 파일 경로(확장자)로 추론한다.
+              var rxSub = /text\/x-(.+)-source/;
+
+              // legacy ext2mode()의 확장자 -> Ace 모드 매핑 테이블을 그대로(동치로) 포팅.
+              var htExtMap = {
+                  "actionscript": ["as", "actionscript"],
+                  "assembly_x86": ["a", "a86"],
+                  "ada": ["ada"],
+                  "batchfile": ["bat"],
+                  "coffee": ["coffee"],
+                  "c_cpp": ["c", "cp", "cpp", "c__", "cxx"],
+                  "csharp": ["cs"],
+                  "css": ["css"],
+                  "d": ["d"],
+                  "diff": ["diff"],
+                  "dart": ["dart"],
+                  "erlang": ["erl"],
+                  "html": ["html", "htm"],
+                  "ini": ["ini", "config"],
+                  "jade": ["jade"],
+                  "java": ["java"],
+                  "javascript": ["js"],
+                  "json": ["json"],
+                  "jsp": ["jsp"],
+                  "latex": ["dtx", "tex"],
+                  "less": ["less"],
+                  "makefile": ["mk", "emakrfile", "emakerfile"],
+                  "markdown": ["md", "readme", "license"],
+                  "php": ["php", "php3", "php4", "php5", "php6", "phps", "inc"],
+                  "python": ["py"],
+                  "r": ["r"],
+                  "ruby": ["rb", "ruby"],
+                  "sh": ["sh"],
+                  "svg": ["svg"],
+                  "scala": ["scala"],
+                  "sql": ["sql"],
+                  "text": ["txt", "gitignore", "sbt"],
+                  "vbscript": ["vbs"],
+                  "xml": ["xml"],
+                  "yaml": ["yaml", "yml"]
+              };
+
+              var basename = function (sPathArg) {
+                  return sPathArg.split("/").pop();
+              };
+              // legacy getExt(): "*.scala.html" 파일명은 확장자를 "scala"로 취급한다.
+              var getExt = function (sFilename) {
+                  return (/\.scala\.html$/i).test(sFilename) ? "scala" : sFilename.split(".").pop();
+              };
+              var ext2mode = function (sExt) {
+                  sExt = (sExt || "").toLowerCase();
+                  for (var sMode in htExtMap) {
+                      if (htExtMap[sMode].indexOf(sExt) > -1) {
+                          return sMode;
+                      }
+                  }
+                  return false;
+              };
+              var getEditorModeByPath = function (sPathArg) {
+                  return ext2mode(getExt(basename(sPathArg || "")));
+              };
+
+              var aMatch = sMimeType.match(rxSub);
+              var sMode = (aMatch ? aMatch[1] : getEditorModeByPath(sPath)) || "text";
+
+              // legacy _getEditor("showCode")와 동치.
+              var editor = ace.edit("showCode");
+              editor.setTheme("ace/theme/clouds");
+              editor.setHighlightActiveLine(false);
+              editor.setReadOnly(true);
+              editor.setFontSize(12); // legacy htVar.nFontSize 기본값(_initVar)
+              editor.setShowPrintMargin(false);
+
+              var session = editor.getSession();
+              session.setMode("ace/mode/" + sMode);
+              session.setValue(sourceText);
+          } else if (typeof hljs !== "undefined") {
+              hljs.highlightElement(showCodeCodeEl);
+          }
       }
   });
 </script>
