@@ -212,8 +212,8 @@ function MigrationController($log, $timeout, $scope, migrationService, USER, WOR
     function systemMessage(text){
         vm.systemMessages.push(text);
         setTimeout(function(){
-            var systemMsgDisplay = $("#system-msg");
-            systemMsgDisplay.scrollTop(systemMsgDisplay[0].scrollHeight);
+            var systemMsgDisplay = document.getElementById("system-msg");
+            systemMsgDisplay.scrollTop = systemMsgDisplay.scrollHeight;
         }, 500);
     }
 

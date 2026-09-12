@@ -926,7 +926,18 @@
             // yona.ShortcutKey
             yona.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
                 if(htInfo.bFormInput){
-                    $(htInfo.welTarget.parents("form").get(0)).submit();
+                    var elForm = htInfo.elTarget.closest("form");
+                    // jQuery의 인자 없는 .submit()은 "submit" 이벤트를 실제로 발생시켜 등록된
+                    // 핸들러(예: AJAX 제출용 preventDefault)를 전부 실행한 뒤, 아무도 막지 않았을
+                    // 때만 네이티브 제출을 수행하는 하이브리드 동작이다 - dispatchEvent만으로는
+                    // (신뢰할 수 없는 이벤트라) 브라우저가 자동으로 네이티브 제출을 트리거하지
+                    // 않으므로 반환값을 보고 직접 호출해야 동일하게 재현된다.
+                    if(elForm){
+                        var notCancelled = elForm.dispatchEvent(new Event("submit", {"bubbles": true, "cancelable": true}));
+                        if(notCancelled){
+                            elForm.submit();
+                        }
+                    }
                 }
             });
 

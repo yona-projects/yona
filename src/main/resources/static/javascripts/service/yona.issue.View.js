@@ -509,7 +509,7 @@
             // if yona.ShortcutKey exists
             if(yona.ShortcutKey){
                 yona.ShortcutKey.attach("CTRL+SHIFT+ENTER", function(htInfo){
-                    if(htInfo.welTarget.is(elements.textarea)){
+                    if(elements.textarea.is(htInfo.elTarget)){
                         dynamicCommentBtn.click();
                     }
                 });

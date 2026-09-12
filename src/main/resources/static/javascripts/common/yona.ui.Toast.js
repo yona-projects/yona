@@ -49,8 +49,10 @@
          * @param {String} sContainer
          */
         function _initElement(sContainer){
-            htElement.welContainer = $(sContainer);
-            htElement.welToast = $(htVar.sTplToast);
+            htElement.elContainer = document.querySelector(sContainer);
+            var elTemplate = document.createElement("div");
+            elTemplate.innerHTML = htVar.sTplToast;
+            htElement.elToast = elTemplate.firstElementChild;
         }
 
         /**
@@ -58,49 +60,49 @@
          * @param {Number} nDuration
          */
         function pushToast(sMessage, nDuration){
-            var welToast = _getToast(sMessage);
-            htElement.welContainer.prepend(welToast);
-            welToast.css("opacity", "1");
+            var elToast = _getToast(sMessage);
+            htElement.elContainer.prepend(elToast);
+            elToast.style.opacity = "1";
 
             if(nDuration && nDuration > 0){
-                _fadeOutTimer(welToast, nDuration);
+                _fadeOutTimer(elToast, nDuration);
             }
         }
 
         /**
          * @param {String} sMessage
-         * @return {Wrapped Element}
+         * @return {HTMLElement}
          */
         function _getToast(sMessage){
-            var welToast = htElement.welToast.clone();
-            var welMessage = welToast.find(".msg");
+            var elToast = htElement.elToast.cloneNode(true);
+            var elMessage = elToast.querySelector(".msg");
 
-            welToast.css("opacity", "0");
-            welToast.click(_onClickClose);
-            welMessage.html($yona.nl2br(sMessage));
+            elToast.style.opacity = "0";
+            elToast.addEventListener("click", _onClickClose);
+            elMessage.innerHTML = $yona.nl2br(sMessage);
 
-            return welToast;
+            return elToast;
         }
 
         function _onClickClose(weEvt){
-            $(this).remove();
+            this.remove();
         }
 
         /**
-         * @param {Wrapped Element} welToast
+         * @param {HTMLElement} elToast
          * @param {Number} nDuration
          */
-        function _fadeOutTimer(welToast, nDuration){
-            welToast.bind("webkitTransitionEnd", function(){
-                welToast.remove();
+        function _fadeOutTimer(elToast, nDuration){
+            elToast.addEventListener("webkitTransitionEnd", function(){
+                elToast.remove();
             });
             setTimeout(function(){
-                welToast.css("opacity", 0);
+                elToast.style.opacity = 0;
             }, nDuration);
         }
 
         function clearToasts(){
-            htElement.welContainer.empty();
+            htElement.elContainer.innerHTML = "";
         }
 
         _init(sContainer, htOptions || {});

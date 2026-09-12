@@ -12,9 +12,9 @@ var favicon=new Favico({
 });
 
 function detectPageChange(url){
-    var issueBodyChecksum = $("#issueBodyChecksum").val();
-    var numOfComments = $("#numOfComments").val();
-    var issueUpdateDate = $("#issueUpdateDate").val();
+    var issueBodyChecksum = document.getElementById("issueBodyChecksum").value;
+    var numOfComments = document.getElementById("numOfComments").value;
+    var issueUpdateDate = document.getElementById("issueUpdateDate").value;
 
     var duration = 3000;
 
@@ -35,17 +35,17 @@ function detectPageChange(url){
     }
 
     function detectChange(){
-        $.ajax({
+        fetch(url, {
             method: "POST",
-            url: url,
-            contentType: "application/json",
-            data: JSON.stringify({
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
                 issueBodyChecksum: issueBodyChecksum,
                 numOfComments: numOfComments,
                 lastUpdateDate: issueUpdateDate
-            }),
+            })
         })
-            .done(function (data) {
+            .then(function(response){ return response.json(); })
+            .then(function (data) {
                 if (data.numOfComments - numOfComments === 1) {
                     numOfComments = data.numOfComments;
                     $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);

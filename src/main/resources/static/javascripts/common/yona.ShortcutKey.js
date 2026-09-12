@@ -61,17 +61,13 @@ yona.ShortcutKey = (function(htOptions){
      * add event listener
      */
     function _attachEvent(){
-        $(window).on({
-            "keydown"     : _onKeyDown,
-            "beforeunload": destroy // free memory
-        });
+        window.addEventListener("keydown", _onKeyDown);
+        window.addEventListener("beforeunload", destroy); // free memory
     }
 
     function _detachEvent(){
-        $(window).off({
-            "keydown"     : _onKeyDown,
-            "beforeunload": destroy // free memory
-        });
+        window.removeEventListener("keydown", _onKeyDown);
+        window.removeEventListener("beforeunload", destroy);
     }
 
     /**
@@ -117,7 +113,7 @@ yona.ShortcutKey = (function(htOptions){
         var sTagName = elTarget.tagName ? elTarget.tagName.toUpperCase() : "";
         var htInfo = {
             "weEvt"     : weEvt,
-            "welTarget" : $(elTarget),
+            "elTarget"  : elTarget,
             "sTagName"  : sTagName,
             "sKeyInput" : sKeyInput,
             // CodeMirror 6(<yona-markdown-editor>)는 <textarea>가 아니라 contenteditable div에
