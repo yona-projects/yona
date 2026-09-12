@@ -8,6 +8,14 @@
     <div th:replace="~{project/header :: header(${project})}"></div>
     <div th:replace="~{project/menu :: menu(${project}, 'issue')}"></div>
     <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+    <!-- P3-64: legacy issue/view.scala.html(487·491행)의 "맨 위로 스크롤" 버튼(jQuery elevator).
+         마크업 없이 스스로 버튼을 주입하는 플러그인이라 css+js 로드와 $.elevator(...) 호출만
+         legacy와 동일하게 이식한다. -->
+    <link rel="stylesheet" href="/javascripts/lib/elevator/jquery.elevator.css" type="text/css" />
+    <!-- P3-65: legacy issue/view.scala.html(488행)의 Video.js 스킨. common/yobi.Attachments.js가
+         이미 생성하는 class="video-js" data-setup='{}' 마크업을 이 css+js 로드만으로 자동
+         활성화한다(별도 초기화 스크립트 불필요 - Video.js가 class="video-js" 요소를 스스로 스캔). -->
+    <link rel="stylesheet" href="/javascripts/lib/videojs/video-js.min.css" type="text/css" />
 
 
     <div class="page-wrap-outer">
@@ -453,7 +461,9 @@
                                 </dt>
                                 <dd id="sharer-list" th:classappend="${issue.sharers.isEmpty()} ? 'hide' : ''">
                                     <th:block th:if="${isAllowedUpdate}">
-                                        <input type="text" class="width100p" id="issueSharer" name="issueSharer" th:placeholder="#{issue.sharer.select}" th:value="${#strings.listJoin(issue.sharers.![user.loginId], ',')}" style="width: 100%;">
+                                        <!-- P3-66: legacy issue/view.scala.html(257행)와 동일하게 hidden input +
+                                             TomSelect(yona.issue.Sharer.js) 강화 대상으로 되돌린다. -->
+                                        <input type="hidden" class="bigdrop width100p" id="issueSharer" name="issueSharer" th:placeholder="#{issue.sharer.select}" th:value="${#strings.listJoin(issue.sharers.![user.loginId], ',')}" title="">
                                     </th:block>
                                     <th:block th:unless="${isAllowedUpdate}">
                                         <div th:each="sharer : ${issue.sharers}" class="text-ellipsis sharer-item" style="padding: 2px 0;">
@@ -527,6 +537,8 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/elevator/jquery.elevator.js"></script>
+<script type="text/javascript" src="/javascripts/lib/videojs/video.min.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
 <!-- P3-50: 댓글 수정 폼(common/commentUpdateForm)의 기존 첨부파일 목록 클릭/드래그드롭/붙여넣기/
      삭제를 담당 — legacy와 동일하게 issue/board view 두 화면에서만 로드한다. -->
@@ -536,6 +548,10 @@
      이 파일은 순수 표시/토글 UI만 담당해 충돌하지 않는다. -->
 <script type="text/javascript" src="/javascripts/common/yona.SubComment.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.issue.Assginee.js"></script>
+<!-- P3-66: legacy issue/view.scala.html(495행)와 동일하게 이슈 공유자(Sharer) 위젯 스크립트를
+     로드한다 - yonaAssgineeModule과 동일한 패턴(같은 화면에서 이미 동작 중)으로 아래에서
+     yonaIssueSharerModule(...)을 초기화한다. -->
+<script type="text/javascript" src="/javascripts/service/yona.issue.Sharer.js"></script>
 <!-- P3-52 항목1: 댓글 작성 중 알림수신자 미리보기(디바운스 AJAX). 어느 번들에도 박혀있지 않은
      순수 신규 기능이라 yona-lib.js와의 로드 순서(셰도잉) 문제는 없다. -->
 <script type="text/javascript" src="/javascripts/common/yona.ReceiverList.js"></script>
@@ -689,6 +705,14 @@
 
         // P3-52 항목2: 본문/댓글 수 변경 폴링 시작.
         detectPageChange("[[@{/api/projects/{projectId}/issues/{number}/detectChange(projectId=${project.id}, number=${issue.number})}]]");
+
+        // P3-64: legacy issue/view.scala.html(614행)와 동일한 옵션으로 elevator 초기화 —
+        // board/view.html과 달리 이 화면은 glass가 아니라 tooltips 옵션을 쓴다(커밋 96d56c403,
+        // 2018-07-06 확인).
+        $.elevator({
+            shape: 'rounded',
+            tooltips: true
+        });
     });
 </script>
 
@@ -709,6 +733,20 @@
             "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignableUsers(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
             "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignees(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
             "[[#{issue.assignee}]]"
+        );
+    });
+</script>
+
+<!-- P3-66: legacy issue/view.scala.html(546~551행)의 이슈 공유자(Sharer) 모듈 초기화 대응 —
+     yonaAssgineeModule 초기화와 동일한 이유(위 인라인 스크립트는 raw text라 th:block 중첩 불가)로
+     별도 script 태그에 th:if를 건다. -->
+<script type="text/javascript" th:if="${isAllowedUpdate}">
+    $(function(){
+        yonaIssueSharerModule(
+            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/findSharer(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
+            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/sharableUsers(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
+            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/share(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
+            "[[#{issue.sharer}]]"
         );
     });
 </script>

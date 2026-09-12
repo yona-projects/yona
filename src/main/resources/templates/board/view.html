@@ -8,6 +8,10 @@
     <div th:replace="~{project/header :: header(${project})}"></div>
     <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
     <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+    <!-- P3-64: legacy board/view.scala.html(208·294행)의 "맨 위로 스크롤" 버튼(jQuery elevator).
+         마크업 없이 스스로 버튼을 주입하는 플러그인이라 css+js 로드와 $.elevator(...) 호출만
+         legacy와 동일하게 이식한다. -->
+    <link rel="stylesheet" href="/javascripts/lib/elevator/jquery.elevator.css" type="text/css" />
 
 
     <div class="page-wrap-outer">
@@ -223,6 +227,7 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/elevator/jquery.elevator.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
 <!-- P3-50: 댓글 수정 폼(common/commentUpdateForm)의 기존 첨부파일 목록 클릭/드래그드롭/붙여넣기/
      삭제를 담당 — legacy와 동일하게 issue/board view 두 화면에서만 로드한다. -->
@@ -355,6 +360,12 @@
                 success: function(){ window.location.reload(); },
                 error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
             });
+        });
+
+        // P3-64: legacy board/view.scala.html(294행)와 동일한 옵션으로 elevator 초기화.
+        $.elevator({
+            shape: 'rounded',
+            glass: true
         });
     });
 </script>

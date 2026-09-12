@@ -276,7 +276,7 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertIssueLabelOptgroupMarkup(doc)
             }
 
-            it("issue/view 화면은 Tom Select 리소스를 로드하고 milestone(단일) select와 원격 AJAX 담당자 input(#assignee), 죽은 코드인 #issueSharer input 마크업을 유지해야 한다") {
+            it("issue/view 화면은 Tom Select 리소스를 로드하고 milestone(단일) select와 원격 AJAX 담당자 input(#assignee)·공유자 input(#issueSharer) 마크업을 유지해야 한다") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/issue/${issue.number}")
                 assertNoSelect2(doc)
                 assertTomSelectLoaded(doc)
@@ -286,11 +286,12 @@ class SelectWidgetTemplateEquivalenceSpec @Autowired constructor(
                 // 생성한다 - 그 스크립트가 로드되고 hidden input이 그대로 남아있는지만 확인한다.
                 doc.select("script[src='/javascripts/service/yona.issue.Assginee.js']").size shouldBe 1
                 doc.select("input#assignee[type=hidden]").size shouldBe 1
-                // #issueSharer도 원본부터 죽은 코드(yona.issue.Sharer.js는 <script src>로 로드된 적이
-                // 없다 - 최종 보고 "범위 밖 발견" 참고) - 이번 교체로도 그 상태를 그대로 보존했으므로
-                // input은 남아있지만 모듈 스크립트는 로드되지 않아야 한다.
-                doc.select("input#issueSharer").size shouldBe 1
-                doc.select("script[src*='yona.issue.Sharer.js']").size shouldBe 0
+                // P3-66: #issueSharer도 동일한 패턴으로 배선이 복원됐다(더 이상 죽은 코드가 아니다) -
+                // hidden input + yona.issue.Sharer.js 로드 + yonaIssueSharerModule(...) 초기화 호출을
+                // 확인한다(실제 검색/추가/제거 동작은 IssueSharerWidgetWiringTemplateRenderingSpec/
+                // Playwright가 검증).
+                doc.select("input#issueSharer[type=hidden]").size shouldBe 1
+                doc.select("script[src='/javascripts/service/yona.issue.Sharer.js']").size shouldBe 1
             }
 
             it("project/create(projectform) 화면은 Tom Select 리소스를 로드하고 project-owner(user)·vcs(plain, select2-without-searchbox) select 마크업을 유지해야 한다") {
