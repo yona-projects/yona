@@ -155,15 +155,19 @@
          * @private
          */
         function _onSubmitAddNewMember(evt){
-            $.ajax(htElement.formAddNewMember.attr("action"), {
-                "method"  : "post",
-                "dataType": "json",
-                "data"    : {
+            fetch(htElement.formAddNewMember.attr("action"), {
+                "method": "post",
+                "body"  : new URLSearchParams({
                     "loginId": htElement.inputAddNewMember.val()
+                })
+            }).then(function(response){
+                if(!response.ok){
+                    return response.text().then(function(text){
+                        return Promise.reject({"responseText": text});
+                    });
                 }
-            }).done(function(){
                 location.reload();
-            }).fail(function(res){
+            }).catch(function(res){
                 var error = JSON.parse(res.responseText);
                 $yona.notify(error.loginId.pop(), 3000);
             });

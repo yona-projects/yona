@@ -240,6 +240,21 @@
             );
         }
 
+        /**
+         * jQuery.param()과 동일하게 값이 undefined/null이어도 키는 유지하고 빈 문자열로
+         * 직렬화한다(예: categoryIsExclusive가 미확정이면 "categoryIsExclusive=") -
+         * URLSearchParams에 requestData 객체를 직접 넘기면 undefined가 문자열
+         * "undefined"로 잘못 직렬화되는 문제를 막는다.
+         */
+        function _toRequestParams(requestData){
+            var params = new URLSearchParams();
+            Object.keys(requestData).forEach(function(key){
+                var value = requestData[key];
+                params.append(key, value == null ? "" : value);
+            });
+            return params;
+        }
+
         function _showError(res, messageKey){
             if(res.responseText){
                 try{
@@ -272,12 +287,20 @@
                 return false;
             }
 
-            $.ajax(vars.actionURL, {
+            fetch(vars.actionURL, {
                 "method": "post",
-                "data"  : requestData
+                "body"  : _toRequestParams(requestData)
             })
-            .done(function(res){
-                if (res instanceof Object){
+            .then(function(response){
+                if(!response.ok){
+                    return response.text().then(function(text){
+                        return Promise.reject({"status": response.status, "statusText": response.statusText, "responseText": text});
+                    });
+                }
+                return response.json().catch(function(){ return null; });
+            })
+            .then(function(res){
+                if (res instanceof Object && res !== null){
                     _addLabelIntoCategory(res);
                     elements.inputName.val("").focus();
                     return;
@@ -285,7 +308,7 @@
 
                 $yona.alert(Messages("label.error.creationFailed"));
             })
-            .fail(function(res){
+            .catch(function(res){
                 _showError(res, "label.add");
             });
         }
@@ -522,11 +545,14 @@
         function _requestRemoveLabel(target){
             var targetButton = $(target);
 
-            $.ajax(targetButton.data("deleteUri"), {
+            fetch(targetButton.data("deleteUri"), {
                 "method": "post",
-                "data"  : {"_method": "delete"}
+                "body"  : new URLSearchParams({"_method": "delete"})
             })
-            .done(function(){
+            .then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
                 _removeLabel(targetButton.data("categoryName"), targetButton.data("labelId"));
             });
         }
@@ -615,14 +641,19 @@
 
             NProgress.start();
 
-            $.ajax(elements.editCategoryForm.data("categoryUpdateUri"), {
+            fetch(elements.editCategoryForm.data("categoryUpdateUri"), {
                 "method": "put",
-                "data"  : requestData
-            }).done(function(){
+                "body"  : _toRequestParams(requestData)
+            }).then(function(response){
+                if(!response.ok){
+                    return response.text().then(function(text){
+                        return Promise.reject({"status": response.status, "statusText": response.statusText, "responseText": text});
+                    });
+                }
                 _reloadLabelList();
-            }).fail(function(res){
+            }).catch(function(res){
                 _showError(res, "label.category.edit");
-            }).always(function(){
+            }).finally(function(){
                 elements.editCategoryForm.modal("hide");
                 NProgress.done();
             });
@@ -687,14 +718,19 @@
 
             NProgress.start();
 
-            $.ajax(elements.editLabelForm.data("updateUri"), {
+            fetch(elements.editLabelForm.data("updateUri"), {
                 "method": "put",
-                "data"  : requestData
-            }).done(function(){
+                "body"  : _toRequestParams(requestData)
+            }).then(function(response){
+                if(!response.ok){
+                    return response.text().then(function(text){
+                        return Promise.reject({"status": response.status, "statusText": response.statusText, "responseText": text});
+                    });
+                }
                 _reloadLabelList();
-            }).fail(function(res){
+            }).catch(function(res){
                 _showError(res, "label.edit");
-            }).always(function(){
+            }).finally(function(){
                 elements.editLabelForm.modal("hide");
                 NProgress.done();
             });

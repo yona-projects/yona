@@ -166,7 +166,14 @@
 
             htVar.bStateUpdating = true;
 
-            $.get(htVar.sStateUrl, function(oRes){
+            fetch(htVar.sStateUrl)
+            .then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                return response.json();
+            })
+            .then(function(oRes){
                 var sResult = oRes.html;
 
                 // update state only HTML has changed
@@ -177,7 +184,9 @@
 
                 // update visiblitity of actrow buttons
                 htElement.welBtnAccept.css("display", oRes.isConflict ? "none" : "inline-block");
-            }).always(function(){
+            })
+            .catch(function(){})
+            .finally(function(){
                 htVar.bStateUpdating = false;
             });
         }

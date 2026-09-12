@@ -117,33 +117,38 @@ yona.Files = (function(){
         var filename = oFile.name === 'image.png' ? nSubmitId + ".png" : oFile.name;
         oData.append("filePath", oFile, filename);
 
-        $.ajax({
-            "type" : "post",
-            "url"  : htVar.sUploadURL,
-            "data" : oData,
-            "cache": false,
-            "processData": false,
-            "contentType": false,
-            "success": function(oRes){
-                _onSuccessSubmit(nSubmitId, oRes, sNamespace);
-            },
-            "error": function(oRes){
-                _onErrorSubmit(nSubmitId, oRes, sNamespace);
-            },
-            "xhr": function(){
-                var oXHR = $.ajaxSettings.xhr();
+        // fetch는 업로드 진행률(uploadProgress)을 지원하지 않으므로(다운로드 스트림만 가능),
+        // jQuery $.ajax의 xhr: 커스터마이징이 하던 일(XMLHttpRequest.upload의 progress 이벤트
+        // 구독)을 그대로 유지하기 위해 순수 XMLHttpRequest를 쓴다.
+        var oXHR = new XMLHttpRequest();
+        oXHR.open("POST", htVar.sUploadURL);
 
-                if(oXHR.upload){
-                    oXHR.upload.addEventListener("progress", function(weEvt){
-                        if(weEvt.lengthComputable){
-                            _onUploadProgress(nSubmitId, Math.ceil((weEvt.loaded / weEvt.total) * 100), sNamespace);
-                        }
-                    }, false);
+        if(oXHR.upload){
+            oXHR.upload.addEventListener("progress", function(weEvt){
+                if(weEvt.lengthComputable){
+                    _onUploadProgress(nSubmitId, Math.ceil((weEvt.loaded / weEvt.total) * 100), sNamespace);
                 }
+            }, false);
+        }
 
-                return oXHR;
+        oXHR.addEventListener("load", function(){
+            if(oXHR.status >= 200 && oXHR.status < 300){
+                var oRes;
+                try{
+                    oRes = JSON.parse(oXHR.responseText);
+                }catch(e){
+                    oRes = oXHR.responseText;
+                }
+                _onSuccessSubmit(nSubmitId, oRes, sNamespace);
+            } else {
+                _onErrorSubmit(nSubmitId, oXHR, sNamespace);
             }
         });
+        oXHR.addEventListener("error", function(){
+            _onErrorSubmit(nSubmitId, oXHR, sNamespace);
+        });
+
+        oXHR.send(oData);
     }
 
     /**
@@ -283,14 +288,28 @@ yona.Files = (function(){
      * @param {Function} htOptions.fOnError
      */
     function _getFileList(htOptions){
-        $.ajax({
-            "type"   : "get",
-            "url"    : htVar.sListURL,
-            "success": htOptions.fOnLoad,
-            "error"  : htOptions.fOnError,
-            "data"   : {
-                "containerType": htOptions.sResourceType,
-                "containerId"  : htOptions.sResourceId
+        // jQuery의 $.param()은 값이 undefined/null인 키를 빈 문자열로 직렬화했다(키 자체는
+        // 유지) - URLSearchParams는 undefined를 문자열 "undefined"로 바꿔버리므로(String(undefined)),
+        // sResourceId가 없는 호출(단일 리소스가 아닌 페이지)에서 동일하게 동작하도록 빈 문자열로
+        // 맞춰준다.
+        fetch(htVar.sListURL + "?" + new URLSearchParams({
+            "containerType": htOptions.sResourceType || "",
+            "containerId"  : htOptions.sResourceId || ""
+        }))
+        .then(function(response){
+            if(!response.ok){
+                return Promise.reject(response);
+            }
+            return response.json();
+        })
+        .then(function(data){
+            if(typeof htOptions.fOnLoad === "function"){
+                htOptions.fOnLoad(data);
+            }
+        })
+        .catch(function(err){
+            if(typeof htOptions.fOnError === "function"){
+                htOptions.fOnError(err);
             }
         });
     }

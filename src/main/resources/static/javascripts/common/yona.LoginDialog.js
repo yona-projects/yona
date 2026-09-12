@@ -73,19 +73,27 @@ $(function(){
     }
 
     function _onSubmitForm(weEvt){
-        $.ajax(htElement.welForm.attr("action"), {
-            "type": "post",
-            "dataType": "json",
-            "data": {
+        fetch(htElement.welForm.attr("action"), {
+            "method": "post",
+            "body": new URLSearchParams({
                 "loginIdOrEmail" : htElement.welInputId.val(),
                 "password": htElement.welInputPw.val(),
                 "rememberMe": htElement.welInputRememberMe.is(":checked")
+            })
+        }).then(function(response){
+            if(response.ok){
+                document.location.reload();
+                return;
             }
-        }).done(function(){
-            document.location.reload();
-        }).fail(function(htResult){
-            // If the value of readyState is UNSET(zero), it will be viewed as 'Network Error'
-            if(htResult.readyState == networkErrorStatus){
+            return response.text().then(function(responseText){
+                return Promise.reject({"status": response.status, "responseText": responseText});
+            });
+        }).catch(function(htResult){
+            // jQuery의 readyState===0(UNSET)은 요청이 서버에 도달하지 못한 네트워크 실패를
+            // 뜻했다 - fetch는 이런 경우 프로미스 자체가 reject되며 TypeError를 던지므로
+            // (Response 객체가 아예 안 생김) htResult.status가 undefined인 것으로 동일하게
+            // 감지한다.
+            if(typeof htResult.status === "undefined"){
                 _showDialogError(Messages("user.login.failed.network"));
             }else if(htResult.responseText && htResult.responseText.length > 0){
                 try{

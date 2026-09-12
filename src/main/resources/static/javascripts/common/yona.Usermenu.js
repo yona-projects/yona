@@ -15,13 +15,19 @@ $(function () {
     }
 
     if ($(".gnb-usermenu-dropdown").length !== 0) {
-        $.get(UsermenuUrl)
-            .done(function (data) {
+        fetch(UsermenuUrl)
+            .then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                return response.text();
+            })
+            .then(function (data) {
                 $("#usermenu-tab-content-list").html(data);
                 iniNaviUserMenu();
                 afterUsermenuLoaded();
             })
-            .fail(function (data) {
+            .catch(function (data) {
                 console.log("Usermenu loading failed: " + data);
             });
     }
@@ -113,15 +119,23 @@ $(function () {
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 var that = $(this);
-                $.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"))
-                    .done(function (data) {
+                fetch(UsermenuToggleFavoriteProjectUrl + that.data("projectId"), {"method": "post"})
+                    .then(function(response){
+                        return response.text().then(function(text){
+                            if(!response.ok){
+                                return Promise.reject({"responseText": text});
+                            }
+                            return JSON.parse(text);
+                        });
+                    })
+                    .then(function (data) {
                         if (data.favored) {
                             that.find('i').addClass("starred");
                         } else {
                             that.find('i').removeClass("starred");
                         }
                     })
-                    .fail(function (data) {
+                    .catch(function (data) {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
             });
@@ -130,8 +144,16 @@ $(function () {
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 var that = $(this);
-                $.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"))
-                    .done(function (data) {
+                fetch(UsermenuToggleFavoriteIssueUrl + that.data("issueId"), {"method": "post"})
+                    .then(function(response){
+                        return response.text().then(function(text){
+                            if(!response.ok){
+                                return Promise.reject({"responseText": text});
+                            }
+                            return JSON.parse(text);
+                        });
+                    })
+                    .then(function (data) {
                         if (data.favored) {
                             that.find('i').addClass("starred");
                         } else {
@@ -139,7 +161,7 @@ $(function () {
                         }
                         $yona.notify(Messages(data.message), 3000);
                     })
-                    .fail(function (data) {
+                    .catch(function (data) {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
 
@@ -173,15 +195,23 @@ $(function () {
             .on("click.org", function toggleOrgFavorite(e) {
                 e.stopPropagation();
                 var that = $(this);
-                $.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"))
-                    .done(function (data) {
+                fetch(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"), {"method": "post"})
+                    .then(function(response){
+                        return response.text().then(function(text){
+                            if(!response.ok){
+                                return Promise.reject({"responseText": text});
+                            }
+                            return JSON.parse(text);
+                        });
+                    })
+                    .then(function (data) {
                         if (data.favored) {
                             that.find('i').addClass("starred");
                         } else {
                             that.find('i').removeClass("starred");
                         }
                     })
-                    .fail(function (data) {
+                    .catch(function (data) {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
             });
@@ -223,8 +253,14 @@ $(function () {
 
     // This method intended to sync sub tab list of projects
     function updateStar() {
-        $.get(UsermenuGetFoveriteProjectsUrl)
-            .done(function (data) {
+        fetch(UsermenuGetFoveriteProjectsUrl)
+            .then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                return response.json();
+            })
+            .then(function (data) {
                 $(".star-project").each(function () {
                     var $this = $(this);
                     if (data.projectIds.indexOf($this.data("projectId")) !== -1) {
@@ -233,7 +269,8 @@ $(function () {
                         $this.find("i").removeClass("starred");
                     }
                 });
-            });
+            })
+            .catch(function(){});
     }
 
 });

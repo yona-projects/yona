@@ -96,18 +96,28 @@
          */
         function _updateMergely(sRawURLFrom, sRawURLTo){
             // lhs = from
-            $.get(sRawURLFrom).done(function(sData){
+            fetch(sRawURLFrom).then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                return response.text();
+            }).then(function(sData){
                 htElement.welMergely.mergely("lhs", sData);
                 htElement.welMergely.mergely("resize");
                 htElement.welMergely.mergely("update");
-            });
+            }).catch(function(){});
 
             // rhs = to
-            $.get(sRawURLTo).done(function(sData){
+            fetch(sRawURLTo).then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                return response.text();
+            }).then(function(sData){
                 htElement.welMergely.mergely("rhs", sData);
                 htElement.welMergely.mergely("resize");
                 htElement.welMergely.mergely("update");
-            });
+            }).catch(function(){});
         }
 
         function _resizeMergely(){

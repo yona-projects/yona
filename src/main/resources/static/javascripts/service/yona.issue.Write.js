@@ -106,7 +106,12 @@
         }
 
         function _onReloadMilestone() {
-            $.get(htVar.sIssueFormURL, function(data){
+            fetch(htVar.sIssueFormURL).then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                return response.text();
+            }).then(function(data){
                 var context = data.replace("<!DOCTYPE html>", "").trim();
                 var milestoneOptionDiv = $("#milestoneOption", context);
                 $("#milestoneOption").html(milestoneOptionDiv.html());

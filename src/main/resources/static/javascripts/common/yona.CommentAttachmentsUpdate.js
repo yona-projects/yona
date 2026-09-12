@@ -24,11 +24,14 @@ $(function () {
         // AttachmentController.deleteFile()은 POST + _method=delete 파라미터 계약이다
         // (yona.Files.js._deleteFile()이 이미 쓰는 것과 동일한 계약 — P3-50에서 실제 클릭으로
         // 검증하며 발견: 이 파라미터 없이 순수 $.post(url)만 보내면 400 Bad Request).
-        $.post(url, { "_method": "delete" })
-            .done(function (data) {
+        fetch(url, { "method": "post", "body": new URLSearchParams({ "_method": "delete" }) })
+            .then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
                 $parent.remove();
             })
-            .fail(function (data) {
+            .catch(function (data) {
                 console.log(data);
             });
     }
@@ -46,14 +49,17 @@ $(function () {
             var formData = new FormData();
             formData.append("filePath", files[i]);
 
-            $.ajax({
-                url: '/files',
-                type: 'POST',
-                cache: false,
-                contentType: false,
-                processData: false,
-                data: formData
-            }).done(function (data) {
+            fetch('/files', {
+                method: 'POST',
+                body: formData
+            }).then(function(response){
+                if(!response.ok){
+                    return response.text().then(function(text){
+                        return Promise.reject(text);
+                    });
+                }
+                return response.json();
+            }).then(function (data) {
                 var $parentForm = $attachmentInput.parent().closest("form");
 
                 buildTemporaryUploadedFileCards($parentForm, data);
@@ -62,7 +68,7 @@ $(function () {
                 if (doneCount === files.length) {
                     NProgress.done();
                 }
-            }).fail(function (data) {
+            }).catch(function (data) {
                 $yona.notify(data);
             });
         }
@@ -109,18 +115,23 @@ $(function () {
                     var formData = new FormData();
                     formData.append('filePath', item.getAsFile(), generateFileName());
 
-                    $.ajax('/files', {
-                        type: 'POST',
-                        contentType: false,
-                        processData: false,
-                        data: formData
-                    }).done(function (data) {
+                    fetch('/files', {
+                        method: 'POST',
+                        body: formData
+                    }).then(function(response){
+                        if(!response.ok){
+                            return response.text().then(function(text){
+                                return Promise.reject(text);
+                            });
+                        }
+                        return response.json();
+                    }).then(function (data) {
                         var $parentForm = $attachmentInput.parent().closest("form");
 
                         buildTemporaryUploadedFileCards($parentForm, data);
                         caretPos = insertLinkIntoTextarea($parentForm.find("textarea"), data, caretPos);
                         NProgress.done();
-                    }).fail(function (data) {
+                    }).catch(function (data) {
                         $yona.notify(data);
                     });
 

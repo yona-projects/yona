@@ -303,14 +303,34 @@ $yona = yona.Common = (function(){
      * Show confirm before send ajax.
      *
      * @param {String} sMessage confirm message
-     * @param {Hash Table} htAjaxOptions jQuery.ajax settings
+     * @param {Hash Table} htAjaxOptions fetch 기반 설정 - {url, method, dataType, success, error}만
+     *        지원한다(원래 jQuery.ajax settings를 그대로 넘기던 것을 실제 호출부 1곳(현재
+     *        yona.project.Member.js)의 사용 범위에 맞춰 좁혔다 - 2026-09-12).
      * @param {String} sDescription Description string (optional)
      * @param {Hash Table} htConfirmOptions showConfirm options (optional)
      */
     function ajaxConfirm(sMessage, htAjaxOptions, sDescription, htConfirmOptions){
         showConfirm(sMessage, function(htData){
             if(htData.nButtonIndex === 1){
-                $.ajax(htAjaxOptions);
+                fetch(htAjaxOptions.url, {"method": htAjaxOptions.method || "get"})
+                    .then(function(response){
+                        return response.text().then(function(text){
+                            if(!response.ok){
+                                return Promise.reject({"status": response.status, "responseText": text});
+                            }
+                            return htAjaxOptions.dataType === "json" ? JSON.parse(text) : text;
+                        });
+                    })
+                    .then(function(data){
+                        if(typeof htAjaxOptions.success === "function"){
+                            htAjaxOptions.success(data);
+                        }
+                    })
+                    .catch(function(err){
+                        if(typeof htAjaxOptions.error === "function"){
+                            htAjaxOptions.error(err);
+                        }
+                    });
             }
         }, sDescription, htConfirmOptions);
     }

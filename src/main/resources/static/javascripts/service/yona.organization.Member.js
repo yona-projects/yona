@@ -163,12 +163,17 @@
 
             // DELETE 메소드로 AJAX 호출
             $("#deleteBtn").click(function(){
-                $.ajax(sURL, {
-                    "method"  : "delete",
-                    "dataType": "html",
-                    "success" : _onSuccessDeleteMember,
-                    "error"   : _onErrorDeleteMember
-                });
+                fetch(sURL, {"method": "delete"})
+                    .then(function(response){
+                        if(!response.ok){
+                            return response.text().then(function(text){
+                                return Promise.reject({"status": response.status, "responseText": text});
+                            });
+                        }
+                        return response.text();
+                    })
+                    .then(_onSuccessDeleteMember)
+                    .catch(_onErrorDeleteMember);
             });
 
             _showConfirmDeleteMember(sURL);

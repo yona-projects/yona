@@ -57,12 +57,17 @@
         function _onClickLeaveBtn(){
             var sURL = htElement.welGroupLeaveBtn.attr("data-href");
 
-            $.ajax(sURL, {
-                "method"  : "delete",
-                "dataType": "html",
-                "success" : _onSuccessLeaveMember,
-                "error"   : _onErrorLeaveMember
-            });
+            fetch(sURL, {"method": "delete"})
+                .then(function(response){
+                    if(!response.ok){
+                        return response.text().then(function(text){
+                            return Promise.reject({"responseText": text});
+                        });
+                    }
+                    return response.text();
+                })
+                .then(_onSuccessLeaveMember)
+                .catch(_onErrorLeaveMember);
         }
 
         function _onSuccessLeaveMember(oXHR){

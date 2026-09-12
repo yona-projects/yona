@@ -6,12 +6,11 @@
  **/
 // P3-46 #5: Select2(v3) -> Tom Select 교체.
 //
-// 범위 밖 발견(최종 보고 참고): yonaIssueSharerModule(...)는 어느 템플릿에서도 호출되지 않고,
-// 이 파일 자체도 <script src>로 로드된 적이 없다(grep으로 재확인) - #issueSharer(issue/view.html)
-// input은 현재 순수 텍스트 입력일 뿐이며 이 모듈은 완전한 죽은 코드다. 그대로 두면 향후 누군가
-// 이 모듈을 다시 연결할 수 있으므로, 브리핑 대상 5개 파일에 포함된 만큼 Tom Select로는 이식하되
-// 새로 <script src>를 추가해 활성화하지는 않았다(원본의 malformed 템플릿 - 닫히지 않은 div,
-// 아바타/로그인id 미표시 - 도 "완전히 일치" 원칙에 따라 그대로 보존했다).
+// P3-66에서 #issueSharer 배선이 복원되며 이 파일도 issue/view.html:559에서 실제로
+// <script src>로 로드되고 751행에서 yonaIssueSharerModule(...)이 호출된다 - 더 이상
+// 죽은 코드가 아니다(이 주석은 한동안 스테일 상태였다가 정정함, 2026-09-12). 원본의
+// malformed 템플릿(닫히지 않은 div, 아바타/로그인id 미표시)은 "완전히 일치" 원칙에 따라
+// 그대로 보존했다.
 function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUrl, updateSharingApiUrl, message){
   var MIN_INPUT_LENGTH = 1;
   var resultCache = {};
@@ -58,16 +57,20 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         return;
       }
 
-      $.ajax(findSharableUsersApiUrl, {
-        type: "GET",
-        dataType: "json",
-        data: { query: query }
-      }).done(function(data){
-        resultCache[query] = data || [];
-        callback(resultCache[query]);
-      }).fail(function(){
-        callback();
-      });
+      fetch(findSharableUsersApiUrl + "?" + new URLSearchParams({ query: query }))
+        .then(function(response){
+          if(!response.ok){
+            return Promise.reject(response);
+          }
+          return response.json();
+        })
+        .then(function(data){
+          resultCache[query] = data || [];
+          callback(resultCache[query]);
+        })
+        .catch(function(){
+          callback();
+        });
     },
     render: {
       option: formatter,
@@ -90,16 +93,24 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
   // 뒤늦게 갱신됨).
   var initialIds = tomSelectInstance.items.join(",");
   if(initialIds !== ""){
-    $.ajax(findUsersByloginIdsApiUrl + "?query=" + initialIds, {
-      dataType: "json"
-    }).done(function(data){
-      if(data && data.length > 0){
-        data.forEach(function(user){
-          tomSelectInstance.updateOption(user.loginId, user);
-        });
-        tomSelectInstance.refreshItems();
-      }
-    });
+    fetch(findUsersByloginIdsApiUrl + "?query=" + initialIds)
+      .then(function(response){
+        if(!response.ok){
+          return Promise.reject(response);
+        }
+        return response.json();
+      })
+      .then(function(data){
+        if(data && data.length > 0){
+          data.forEach(function(user){
+            tomSelectInstance.updateOption(user.loginId, user);
+          });
+          tomSelectInstance.refreshItems();
+        }
+      })
+      .catch(function(){
+        // 원본 jQuery 버전에도 fail 핸들러가 없어 실패 시 조용히 무시됐다.
+      });
   }
 
   tomSelectInstance.on("item_add", function(value){
@@ -110,13 +121,22 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     var payload = { sharer: { loginId: data.loginId, type: data.type }, action: "add" };
 
     if(updateSharingApiUrl){
-      $.ajax(updateSharingApiUrl, {
+      fetch(updateSharingApiUrl, {
         method: "POST",
-        dataType: "json",
-        contentType: "application/json",
-        data: JSON.stringify(payload)
-      }).done(function(response){
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      })
+      .then(function(response){
+        if(!response.ok){
+          return Promise.reject(response);
+        }
+        return response.json();
+      })
+      .then(function(response){
         $yona.notify(response.action + ": " + response.sharer, 3000);
+      })
+      .catch(function(){
+        // 원본 jQuery 버전에도 fail 핸들러가 없어 실패 시 조용히 무시됐다.
       });
     }
   });
@@ -129,13 +149,22 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     var payload = { sharer: { loginId: data.loginId, type: data.type }, action: "delete" };
 
     if(updateSharingApiUrl){
-      $.ajax(updateSharingApiUrl, {
+      fetch(updateSharingApiUrl, {
         method: "POST",
-        dataType: "json",
-        contentType: "application/json",
-        data: JSON.stringify(payload)
-      }).done(function(response){
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      })
+      .then(function(response){
+        if(!response.ok){
+          return Promise.reject(response);
+        }
+        return response.json();
+      })
+      .then(function(response){
         $yona.notify(response.action + ": " + response.sharer, 3000);
+      })
+      .catch(function(){
+        // 원본 jQuery 버전에도 fail 핸들러가 없어 실패 시 조용히 무시됐다.
       });
     }
   });

@@ -102,12 +102,16 @@
                 });
             $('#descriptionSaveBtn').on('click',function(){
                 var overview = {"overview" : $("#project-description-input").val() };
-                $.ajax({
-                    "url": htVar.sURLProject,
+                fetch(htVar.sURLProject, {
                     "method": "put",
-                    "data": JSON.stringify(overview),
-                    "contentType":"application/json"
-                }).done(function(data){
+                    "headers": {"Content-Type": "application/json"},
+                    "body": JSON.stringify(overview)
+                }).then(function(response){
+                    if(!response.ok){
+                        return Promise.reject(response);
+                    }
+                    return response.json();
+                }).then(function(data){
                         var sDescription = (data.overview)
                                             ? data.overview
                                             : $("#project-description-input").attr('placeholder');
@@ -117,7 +121,7 @@
                         $('[data-toggle="project-description-tab"]').toggleClass('hidden');
 
 
-                }).fail(function(err){
+                }).catch(function(err){
                         console.log("err>> ", err);
                 });
             });
@@ -128,13 +132,16 @@
 
                 $("#leaveBtn").click(function(){
 
-                    $.ajax(sURL, {
-                        "method": "delete",
-                        "dataType": "html"
-                    }).done(function(sResult){
+                    fetch(sURL, {"method": "delete"})
+                    .then(function(response){
+                        if(!response.ok){
+                            return Promise.reject(response);
+                        }
+                        return response.text();
+                    }).then(function(sResult){
                         var htData = $.parseJSON(sResult);
                         document.location.replace(htData.location);
-                    }).fail(function(oXHR){
+                    }).catch(function(oXHR){
                         var sErrorMsg;
 
                         switch(oXHR.status){

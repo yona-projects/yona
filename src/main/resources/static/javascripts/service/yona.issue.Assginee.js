@@ -54,16 +54,20 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
         return;
       }
 
-      $.ajax(findAssignableUsersApiUrl, {
-        type: "GET",
-        dataType: "json",
-        data: { query: query }
-      }).done(function(data){
-        resultCache[query] = data || [];
-        callback(resultCache[query]);
-      }).fail(function(){
-        callback();
-      });
+      fetch(findAssignableUsersApiUrl + "?" + new URLSearchParams({ query: query }))
+        .then(function(response){
+          if(!response.ok){
+            return Promise.reject(response);
+          }
+          return response.json();
+        })
+        .then(function(data){
+          resultCache[query] = data || [];
+          callback(resultCache[query]);
+        })
+        .catch(function(){
+          callback();
+        });
     },
     render: {
       option: formatter,
@@ -84,27 +88,44 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
   // 데이터로 비동기 갱신한다.
   var initialId = tomSelectInstance.items[0];
   if(initialId){
-    $.ajax(findAssignableUsersApiUrl + "?query=" + initialId + "&type=loginId", {
-      dataType: "json"
-    }).done(function(data){
-      if(data && data.length > 0){
-        tomSelectInstance.updateOption(data[0].loginId, data[0]);
-        tomSelectInstance.refreshItems();
-      }
-    });
+    fetch(findAssignableUsersApiUrl + "?query=" + initialId + "&type=loginId")
+      .then(function(response){
+        if(!response.ok){
+          return Promise.reject(response);
+        }
+        return response.json();
+      })
+      .then(function(data){
+        if(data && data.length > 0){
+          tomSelectInstance.updateOption(data[0].loginId, data[0]);
+          tomSelectInstance.refreshItems();
+        }
+      })
+      .catch(function(){
+        // 원본 jQuery 버전에도 fail 핸들러가 없어 실패 시 조용히 무시됐다.
+      });
   }
 
   tomSelectInstance.on("item_add", function(value){
     var data = { assignees: [value] };
 
     if(updateAssgineesApiUrl){
-      $.ajax(updateAssgineesApiUrl, {
+      fetch(updateAssgineesApiUrl, {
         method: "POST",
-        dataType: "json",
-        contentType: "application/json",
-        data: JSON.stringify(data)
-      }).done(function(response){
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      })
+      .then(function(response){
+        if(!response.ok){
+          return Promise.reject(response);
+        }
+        return response.json();
+      })
+      .then(function(response){
         $yona.notify(message + ": " + response.assignee.name, 3000);
+      })
+      .catch(function(){
+        // 원본 jQuery 버전에도 fail 핸들러가 없어 실패 시 조용히 무시됐다.
       });
     }
   });

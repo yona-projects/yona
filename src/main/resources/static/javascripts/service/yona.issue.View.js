@@ -101,15 +101,42 @@
         }
 
         function _onClickCommentVote(){
-            $.ajax($(this).data("requestUri"), {
-                "method"  : "post",
-                "success" : function(){
+            fetch($(this).data("requestUri"), {"method": "post"})
+                .then(function(response){
+                    if(!response.ok){
+                        return response.text().then(function(text){
+                            return Promise.reject(text);
+                        });
+                    }
                     location.reload();
-                },
-                "error" : function(res){
-                    $yona.notify(Messages(res.responseText), 3000);
+                })
+                .catch(function(responseText){
+                    $yona.notify(Messages(responseText), 3000);
+                });
+        }
+
+        /**
+         * jQuery.param()(traditional:false, 기본값)과 동일한 방식으로 요청 데이터를
+         * URLSearchParams로 직렬화한다 - 배열 값은 key[]=v1&key[]=v2 형태로 반복
+         * append한다(_getUpdateIssueRequestData의 attachingLabelIds/detachingLabelIds
+         * 대응, 서버가 기대하는 파라미터 이름 규칙을 그대로 유지하기 위함).
+         */
+        function _toJQueryStyleParams(data){
+            var params = new URLSearchParams();
+            Object.keys(data).forEach(function(key){
+                var value = data[key];
+                // jQuery.param()은 값이 undefined/null이어도 키 자체는 유지하고 빈 문자열로
+                // 직렬화한다(예: attachingLabelIds가 없으면 "attachingLabelIds=") - 키를 통째로
+                // 생략하면 서버 바인딩이 달라질 수 있어 정확히 재현한다.
+                if(Array.isArray(value)){
+                    value.forEach(function(item){
+                        params.append(key + "[]", item == null ? "" : item);
+                    });
+                } else {
+                    params.append(key, value == null ? "" : value);
                 }
             });
+            return params;
         }
 
         function _onSelectingAssignee(evt){
@@ -187,12 +214,17 @@
             var fieldValue = fieldTomSelect ? fieldTomSelect.getValue() : field.val();
 
             // Send request to update issueInfo
-            $.ajax(vars.urls.massUpdate, {
-                "method"  : "post",
-                "dataType": "json",
-                "data"    : _getUpdateIssueRequestData(fieldName, fieldValue, evt)
+            fetch(vars.urls.massUpdate, {
+                "method": "post",
+                "body": _toJQueryStyleParams(_getUpdateIssueRequestData(fieldName, fieldValue, evt))
             })
-            .done(function(res){
+            .then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                return response.json();
+            })
+            .then(function(res){
                 _updateTimeline();
 
                 $yona.notify(Messages("issue.update." + fieldName), 3000);
@@ -205,7 +237,7 @@
                     callback(res, fieldName, fieldValue, evt);
                 }
             })
-            .fail(function(res){
+            .catch(function(res){
                 $yona.notify(Messages("error.failedTo",
                     Messages("issue.update." + fieldName),
                     res.status, res.statusText));
@@ -294,7 +326,10 @@
             var watching = button.data("watching");
             var url = watching ? vars.urls.unwatch : vars.urls.watch;
 
-            $.post(url, function(){
+            fetch(url, {"method": "post"}).then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
                 button.data("watching", !watching)
                     .toggleClass('ybtn-watching')
                     .html(Messages(!watching ? "issue.unwatch" : "issue.watch"))
@@ -348,8 +383,16 @@
 
             vars.isTimelineUpdating = true;
 
-            $.get(vars.urls.timeline, _onLoadTimeline)
-             .always(function(){
+            fetch(vars.urls.timeline)
+             .then(function(response){
+                 if(!response.ok){
+                     return Promise.reject(response);
+                 }
+                 return response.text();
+             })
+             .then(_onLoadTimeline)
+             .catch(function(){})
+             .finally(function(){
                  vars.isTimelineUpdating = false;
              });
         }
