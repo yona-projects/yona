@@ -218,8 +218,82 @@ class GitRepositorySpec : DescribeSpec({
     }
 
     describe("isIntermediateFolder()") {
-        it("Git 저장소에는 svn과 달리 중간 폴더 개념이 없으므로 항상 false다") {
-            val repo = GitRepository("o6", "p6", newTempBaseDir(), userResolver)
+        // legacy GitRepository.java의 isIntermediateFolder() 대응: 해당 경로가 폴더이고, 그 안의
+        // 유일한 항목이 폴더 하나뿐이면(파일 없음, 자식 폴더 1개) "중간 폴더"로 true를 반환한다.
+        // 코드 브라우저가 조상 경로들을 중첩 표시할 때 이런 중간 폴더 단계는 건너뛰기 위해 쓰인다.
+        it("a/b/c/file.txt만 있으면(각 단계가 자식 폴더 하나뿐) a와 a/b는 중간 폴더로 true다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o6", "p6", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a/b/c/file.txt", "content").commit("커밋")
+
+            repo.isIntermediateFolder("a") shouldBe true
+            repo.isIntermediateFolder("a/b") shouldBe true
+        }
+
+        it("a/b/c는 유일한 항목이 파일(file.txt)이므로 중간 폴더가 아니다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o6b", "p6b", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a/b/c/file.txt", "content").commit("커밋")
+
+            repo.isIntermediateFolder("a/b/c") shouldBe false
+        }
+
+        it("폴더 안에 파일과 폴더가 섞여 있으면 중간 폴더가 아니다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o6c", "p6c", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo))
+                .put("a/file1.txt", "content")
+                .put("a/b/file2.txt", "content2")
+                .commit("커밋")
+
+            repo.isIntermediateFolder("a") shouldBe false
+        }
+
+        it("폴더 안에 자식 폴더가 2개 이상이면 중간 폴더가 아니다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o6d", "p6d", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo))
+                .put("a/b1/file1.txt", "content")
+                .put("a/b2/file2.txt", "content2")
+                .commit("커밋")
+
+            repo.isIntermediateFolder("a") shouldBe false
+        }
+
+        it("루트(\"\")는 항상 false다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o6e", "p6e", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a/b/file.txt", "content").commit("커밋")
+
+            repo.isIntermediateFolder("") shouldBe false
+        }
+
+        it("존재하지 않는 경로는 false다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o6f", "p6f", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a/b/file.txt", "content").commit("커밋")
+
+            repo.isIntermediateFolder("no-such/path") shouldBe false
+        }
+
+        it("파일 경로(폴더가 아님)는 false다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o6g", "p6g", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a/b/file.txt", "content").commit("커밋")
+
+            repo.isIntermediateFolder("a/b/file.txt") shouldBe false
+        }
+
+        it("커밋이 없는 빈 저장소에서는 false다") {
+            val repo = GitRepository("o6h", "p6h", newTempBaseDir(), userResolver)
+            repo.create()
 
             repo.isIntermediateFolder("any/path") shouldBe false
         }

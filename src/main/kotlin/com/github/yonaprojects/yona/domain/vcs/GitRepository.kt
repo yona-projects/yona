@@ -88,8 +88,32 @@ class GitRepository(
         Git.init().setDirectory(gitDir).setBare(true).setInitialBranch(defaultBranch).call().close()
     }
 
+    // legacy GitRepository.java의 isIntermediateFolder() 대응. 그 경로가 폴더이고, 그 안의 유일한
+    // 항목이 폴더 하나뿐이면(파일 없음, 자식 폴더 정확히 1개) true를 반환한다. 코드 브라우저가
+    // 조상 경로들을 중첩 표시할 때 이런 "자식이 폴더 하나뿐인" 중간 단계는 건너뛰기 위해 쓰인다.
     override fun isIntermediateFolder(path: String): Boolean {
-        return false
+        if (path.isEmpty()) {
+            return false
+        }
+        return try {
+            useRepository { repo ->
+                val objectId = repo.resolve(Constants.HEAD) ?: return@useRepository false
+                val revWalk = RevWalk(repo)
+                val revTree = revWalk.parseTree(objectId)
+                val treeWalk = TreeWalk.forPath(repo, path, revTree)
+                // path is not a folder
+                if (treeWalk == null || !treeWalk.isSubtree) return@useRepository false
+                treeWalk.enterSubtree()
+                treeWalk.next()
+                // path contains a file
+                if (!treeWalk.isSubtree) return@useRepository false
+                // path contains more than a single entry
+                if (treeWalk.next()) return@useRepository false
+                true
+            }
+        } catch (e: IOException) {
+            false
+        }
     }
 
     override fun getMetaDataFromPath(path: String): ObjectNode? {
