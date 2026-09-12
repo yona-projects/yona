@@ -288,8 +288,7 @@
                 <div th:utext="${markdownHtml}">Rendered markdown</div>
               </div>
               <th:block th:if="${markdownHtml == null}">
-                <div id="codeVal" class="hidden" th:text="${fileInfo.get('data').asText()}">code</div>
-                <pre id="showCode" class="code-wrap" th:data-mimetype="${fileInfo.get('mimeType').asText()}"></pre>
+                <pre id="showCode" class="code-wrap" th:data-mimetype="${fileInfo.get('mimeType').asText()}"><code th:text="${fileInfo.get('data').asText()}"></code></pre>
               </th:block>
             </th:block>
           </div>
@@ -313,6 +312,15 @@
 
       // help popover at open with browser button
       $("#open-in-browser").popover({trigger: "hover", placement: "top"});
+
+      // P3-63: 일반 텍스트/소스 코드 파일 뷰(마크다운/바이너리 제외)에 문법강조를 붙인다.
+      // hljs는 site/layout.html의 site/layout :: scripts fragment(아래에서 include)가 이미
+      // 전역으로 로드해두므로 별도 스크립트 로드 없이 바로 쓴다. 마크다운/바이너리 케이스에는
+      // #showCode 자체가 없어 querySelector가 null을 반환하므로 안전하게 건너뛴다.
+      var showCodeEl = document.querySelector("#showCode code");
+      if (showCodeEl && typeof hljs !== "undefined") {
+          hljs.highlightElement(showCodeEl);
+      }
   });
 </script>
 </body>
