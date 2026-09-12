@@ -13,6 +13,15 @@
         var htVar = {};
         var htElement = {};
 
+        // 호출부(issue/create.html, issue/edit.html)가 elDueDate/elMilestoneRefresh를
+        // jQuery 객체($("#issueDueDate") 등)로 넘기므로 raw DOM으로 정규화한다.
+        function _toElement(el){
+            if(el && el.jquery){
+                return el[0];
+            }
+            return el;
+        }
+
         /**
          * initialize
          */
@@ -23,7 +32,7 @@
             _initFileUploader();
 
             htElement.welInputTitle.focus();
-            htElement.welInputTitle.on('keydown', function (e) {
+            htElement.welInputTitle.addEventListener('keydown', function (e) {
                 if((e.keyCode || e.which) === 13) {
                     e.preventDefault();
                     htElement.welTextarea.focus();
@@ -39,7 +48,7 @@
             htVar.sIssueId = htOptions.sIssueId || null;
             htVar.sIssueListURL = htOptions.sIssueListURL;
             htVar.sIssueFormURL = htOptions.sIssueFormURL;
-            htVar.sTplFileItem = htOptions.sTplFileItem || htElement.welTplFileItem.text();
+            htVar.sTplFileItem = htOptions.sTplFileItem || htElement.welTplFileItem.textContent;
             htVar.bUnloadEvent = false;
         }
 
@@ -47,42 +56,57 @@
          * initialize element variable
          */
         function _initElement(htOptions){
-            htElement.welUploader = $(htOptions.elUploader || "#upload");
-            htElement.welIssueOptions = $(htOptions.elIssueOptions || "#options");
-            htElement.welTextarea = $(htOptions.elTextarea || "#body");
-            htElement.welInputTitle = $(htOptions.elInputTitle || "#title");
-            htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
-            htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
-            htElement.welTplFileItem = $('#tplAttachedFile');
-            htElement.welAssignee = $("#assignee");
-            htElement.welDueDate = $(htOptions.elDueDate || "#issueDueDate");
+            htElement.welUploader = document.querySelector(htOptions.elUploader || "#upload");
+            htElement.welIssueOptions = document.querySelector(htOptions.elIssueOptions || "#options");
+            htElement.welTextarea = document.querySelector(htOptions.elTextarea || "#body");
+            htElement.welInputTitle = document.querySelector(htOptions.elInputTitle || "#title");
+            htElement.welBtnManageLabel = document.querySelector(htOptions.welBtnManageLabel || "#manage-label-link");
+            // 이 값은 아래 _attachEvent의 기존 버그(비델리게이트 바인딩) 때문에 실제로는
+            // 셀렉터로 쓰이지 않는다 - 저장만 하고 값 자체는 사용하지 않는다.
+            htElement.welMilestoneRefresh = htOptions.elMilestoneRefresh;
+            htElement.welTplFileItem = document.getElementById('tplAttachedFile');
+            htElement.welAssignee = document.getElementById("assignee");
+            htElement.welDueDate = _toElement(htOptions.elDueDate) || document.getElementById("issueDueDate");
         }
 
         /**
          * attach event handler
          */
         function _attachEvent(){
-            $("form").submit(_onSubmitForm);
-            htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
+            document.querySelectorAll("form").forEach(function(form){
+                form.addEventListener("submit", _onSubmitForm);
+            });
 
-            htElement.welTextarea.on({
-                "focus": function(){
-                    if(htVar.bUnloadEvent === false){
-                        $(window).on("beforeunload", _onBeforeUnload);
-                        htVar.bUnloadEvent = true;
-                    }
+            // 원본 jQuery 코드는 .on("click", htElement.welMilestoneRefresh, _onReloadMilestone)로
+            // 델리게이트 셀렉터 자리에 문자열이 아니라 jQuery 객체를 넘겼다 - jQuery의 .on()
+            // 오버로드 해석 규칙상 이 경우 델리게이션이 성립하지 않고 (selector, data, fn) ->
+            // (undefined, welMilestoneRefresh, _onReloadMilestone)로 재해석되어, 결과적으로
+            // #options 컨테이너 전체에 바로 바인딩된다(전달한 값은 event.data로 들어가지만
+            // _onReloadMilestone은 인자를 쓰지 않는다). 즉 #options 안 어디를 클릭해도
+            // 마일스톤 갱신이 실행되는 기존 버그다 - 동작을 바꾸지 않기 위해 그대로 재현한다.
+            // 다만 #options 자체가 현재 issue/create.html, issue/edit.html 어디에도 없어(스테일
+            // 배선) jQuery에서도 원래 빈 선택자라 이 바인딩은 실제로는 무동작이었다 - null
+            // 가드로 동일하게 보존한다.
+            if(htElement.welIssueOptions){
+                htElement.welIssueOptions.addEventListener("click", _onReloadMilestone);
+            }
+
+            htElement.welTextarea.addEventListener("focus", function(){
+                if(htVar.bUnloadEvent === false){
+                    window.addEventListener("beforeunload", _onBeforeUnload);
+                    htVar.bUnloadEvent = true;
                 }
             });
 
             temporarySaveHandler(htElement.welTextarea);
 
-            // P3-46 #5: Select2(v3) -> Tom Select 교체. 인스턴스는 htElement.welAssignee[0].tomselect로
+            // P3-46 #5: Select2(v3) -> Tom Select 교체. 인스턴스는 htElement.welAssignee.tomselect로
             // 접근한다(yona.issue.Assginee.js가 생성). weEvt.val은 yona.ui.TomSelect.js의
             // bridgeChangeEvent가 원본 select2 "change" 이벤트와 동일한 모양으로 채워 넣어준다.
             // setValue의 두 번째 인자(silent:true)는 이 정규화 재설정이 또 다른 change를 유발해
             // 무한루프로 이어지지 않도록 막는다.
-            htElement.welAssignee.on("change", function(weEvt){
-                var tomSelectInstance = htElement.welAssignee[0] && htElement.welAssignee[0].tomselect;
+            htElement.welAssignee.addEventListener("change", function(weEvt){
+                var tomSelectInstance = htElement.welAssignee && htElement.welAssignee.tomselect;
                 if(tomSelectInstance){
                     tomSelectInstance.setValue(weEvt.val, true);
                 }
@@ -92,15 +116,15 @@
             // 없어 이 분기는 원본(select2)에서도 이미 도달 불가능한 죽은 코드였다. Tom Select는
             // 애초에 "select2-selecting" 이벤트를 발생시키지 않으므로 이 바인딩은 등록은 되지만
             // 결코 실행되지 않는다 - 동작 변화가 없어 그대로 보존한다.
-            htElement.welAssignee.on("select2-selecting", function(weEvt){
-                if($(weEvt.object.element).data("forceChange")){
-                    htElement.welAssignee.trigger("change");
+            htElement.welAssignee.addEventListener("select2-selecting", function(weEvt){
+                if(weEvt.object && window.jQuery(weEvt.object.element).data("forceChange")){
+                    htElement.welAssignee.dispatchEvent(new Event("change"));
                 }
             });
         }
 
         function _onBeforeUnload(){
-            if($yona.getTrim(htElement.welTextarea.val()).length > 0){
+            if($yona.getTrim(htElement.welTextarea.value).length > 0){
                 return Messages("issue.error.beforeunload");
             }
         }
@@ -113,8 +137,13 @@
                 return response.text();
             }).then(function(data){
                 var context = data.replace("<!DOCTYPE html>", "").trim();
-                var milestoneOptionDiv = $("#milestoneOption", context);
-                $("#milestoneOption").html(milestoneOptionDiv.html());
+                var parsedDoc = new DOMParser().parseFromString(context, "text/html");
+                var milestoneOptionDiv = parsedDoc.getElementById("milestoneOption");
+                // jQuery의 .html(undefined)는 setter가 아니라 getter로 동작해 아무 것도 바꾸지
+                // 않았다 - milestoneOptionDiv를 못 찾은 경우 원본과 동일하게 아무 것도 하지 않는다.
+                if(milestoneOptionDiv){
+                    document.getElementById("milestoneOption").innerHTML = milestoneOptionDiv.innerHTML;
+                }
                 (new yona.ui.Dropdown({"elContainer":"#milestoneId"}));
             });
         }
@@ -130,30 +159,32 @@
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
-                    "sUploaderId"  : oUploader.attr("data-namespace")
+                    "sUploaderId"  : oUploader[0].getAttribute("data-namespace")
                 }));
             }
         }
 
-        function _onSubmitForm(){
-            var sTitle = $yona.getTrim(htElement.welInputTitle.val());
+        function _onSubmitForm(event){
+            var sTitle = $yona.getTrim(htElement.welInputTitle.value);
 
             if(sTitle.length < 1){
+                event.preventDefault();
                 $yona.alert(Messages("issue.error.emptyTitle"), function(){
                     htElement.welInputTitle.focus();
                 });
                 return false;
             }
 
-            var sDueDate = $yona.getTrim(htElement.welDueDate.val());
+            var sDueDate = $yona.getTrim(htElement.welDueDate.value);
 
             if (sDueDate && !moment(sDueDate).isValid()) {
+                event.preventDefault();
                 $yona.notify(Messages("issue.error.invalid.duedate"), 3000);
                 htElement.welDueDate.focus();
                 return false;
             }
 
-            $(window).off("beforeunload", _onBeforeUnload);
+            window.removeEventListener("beforeunload", _onBeforeUnload);
 
             removeCurrentPageTemprarySavedContent();
 

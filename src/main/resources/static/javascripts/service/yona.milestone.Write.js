@@ -13,6 +13,15 @@
         var htVar = {};
         var htElement = {};
 
+        // 호출부(milestone/create.html, milestone/edit.html)가 elDueDate/elDatePicker를
+        // jQuery 객체($("#dueDate") 등)로 넘기므로 raw DOM으로 정규화한다.
+        function _toElement(el){
+            if(el && el.jquery){
+                return el[0];
+            }
+            return el;
+        }
+
         /**
          * initialize
          */
@@ -24,7 +33,7 @@
             _initFileUploader();
 
             htElement.welInputTitle.focus();
-            htElement.welInputTitle.on('keydown', function (e) {
+            htElement.welInputTitle.addEventListener('keydown', function (e) {
                 if((e.keyCode || e.which) === 13) {
                     e.preventDefault();
                     htElement.welInputContent.focus();
@@ -39,19 +48,19 @@
         function _initVar(htOptions){
             htVar.sDateFormat  = htOptions.sDateFormat  || "YYYY-MM-DD";
             htVar.rxDateFormat = htOptions.rxDateFormat || /\d{4}-\d{2}-\d{2}$/;
-            htVar.sTplFileItem = $('#tplAttachedFile').text();
+            htVar.sTplFileItem = document.getElementById('tplAttachedFile').textContent;
         }
 
         /**
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welForm = $("#milestone-form");
-            htElement.welDatePicker   = $(htOptions.elDatePicker);
-            htElement.welInputDueDate = $(htOptions.elDueDate);
-            htElement.welInputTitle   = $('#title');
-            htElement.welInputContent = $('textarea[data-editor-mode="content-body"]');
-            htElement.welUploader = $(htOptions.elUploader || "#upload");
+            htElement.welForm = document.getElementById("milestone-form");
+            htElement.welDatePicker   = _toElement(htOptions.elDatePicker);
+            htElement.welInputDueDate = _toElement(htOptions.elDueDate);
+            htElement.welInputTitle   = document.getElementById('title');
+            htElement.welInputContent = document.querySelector('textarea[data-editor-mode="content-body"]');
+            htElement.welUploader = document.querySelector(htOptions.elUploader || "#upload");
         }
 
         /**
@@ -59,7 +68,7 @@
          */
         function _attachEvent(){
             temporarySaveHandler(htElement.welInputContent);
-            htElement.welForm.submit(_onSubmitForm);
+            htElement.welForm.addEventListener("submit", _onSubmitForm);
         }
 
         /**
@@ -67,13 +76,17 @@
          */
         function _onSubmitForm(weEvt){
             removeCurrentPageTemprarySavedContent();
-            return _validateForm();
+            if(!_validateForm()){
+                weEvt.preventDefault();
+                return false;
+            }
+            return true;
         }
 
         function _validateForm(){
-            var sTitle = $.trim(htElement.welInputTitle.val());
-            var sContent = $.trim(htElement.welInputContent.val());
-            var sDueDate = $.trim(htElement.welInputDueDate.val());
+            var sTitle = htElement.welInputTitle.value.trim();
+            var sContent = htElement.welInputContent.value.trim();
+            var sDueDate = htElement.welInputDueDate.value.trim();
 
             if(sTitle.length === 0){
                 $yona.showAlert(Messages("milestone.error.title"));
@@ -117,24 +130,24 @@
             // append Flatpickr calendar to DatePicker (element 자체가 field를 겸함 — 실제 input이
             // 아니므로 화면에 별도 표시되는 값은 없다. Pikaday의 "append(oPicker.el)"과 동일한
             // 위치에 인라인으로 렌더링되도록 appendTo를 같은 컨테이너로 지정한다)
-            htVar.oPicker = flatpickr(htElement.welDatePicker.get(0), {
+            htVar.oPicker = flatpickr(htElement.welDatePicker, {
                 "inline"    : true,
-                "appendTo"  : htElement.welDatePicker.get(0),
+                "appendTo"  : htElement.welDatePicker,
                 "dateFormat": sFlatpickrFormat,
                 "onChange"  : function(selectedDates, dateStr) {
-                    htElement.welInputDueDate.val(dateStr);
+                    htElement.welInputDueDate.value = dateStr;
                 }
             });
 
             // fill DatePicker date to InputDueDate if empty
             // or set DatePicker date with InputDueDate
-            var sDueDate = htElement.welInputDueDate.val();
+            var sDueDate = htElement.welInputDueDate.value;
             if(sDueDate.length > 0){
                 htVar.oPicker.setDate(sDueDate, true, sFlatpickrFormat);
             }
 
             // set relative event between dueDate input and datePicker
-            htElement.welInputDueDate.blur(function() {
+            htElement.welInputDueDate.addEventListener('blur', function() {
                 // Pikaday.setDate()는 파싱 불가능한 문자열이면 조용히 무시하고 필드 값은 건드리지
                 // 않았다. Flatpickr는 선택된 날짜가 없으면 자신에 바인딩된 필드 값을 비워버리므로
                 // (여기서는 #datepicker 자신 — dueDate 입력이 아님 — 이라 직접적인 피해는 없지만),
@@ -158,7 +171,7 @@
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welInputContent,
                     "sTplFileItem" : htVar.sTplFileItem,
-                    "sUploaderId"  : oUploader.attr("data-namespace")
+                    "sUploaderId"  : oUploader[0].getAttribute("data-namespace")
                 }));
             }
         }

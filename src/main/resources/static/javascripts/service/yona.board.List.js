@@ -57,7 +57,10 @@
             htElement.welInputOrderBy = htElement.welForm.querySelector("input[name=orderBy]");
             htElement.welInputOrderDir = htElement.welForm.querySelector("input[name=orderDir]");
             htElement.welInputPageNum = htElement.welForm.querySelector("input[name=pageNum]");
-            htElement.welIssueWrap = document.querySelector(htOptions.welIssueWrap || '.post-list-wrap');
+            // .post-list-wrap은 공지(.notice-wrap)와 일반 게시글 목록에 각각 따로 렌더링되고
+            // (board/list.html), 게시글이 하나도 없으면 아예 존재하지 않을 수도 있다 - 단일
+            // 엘리먼트로 취급하면 안 되므로 매칭되는 전체를 컬렉션으로 다룬다.
+            htElement.welIssueWrap = document.querySelectorAll(htOptions.welIssueWrap || '.post-list-wrap');
 
             htElement.welPages = document.querySelectorAll(htOptions.sQueryPages || "#pagination a");
             htElement.welPagination = htOptions.elPagination || document.querySelector('#pagination');
@@ -68,11 +71,13 @@
          */
         function _attachEvent() {
             htElement.welPages.forEach(function(el){ el.addEventListener("click", _onClickPage); });
-            htElement.welIssueWrap.addEventListener("click", function(e){
-                var match = e.target.closest("a[data-label-id][data-category-id]");
-                if(match && htElement.welIssueWrap.contains(match)){
-                    _onClickLabelOnList.call(match, e);
-                }
+            htElement.welIssueWrap.forEach(function(wrap){
+                wrap.addEventListener("click", function(e){
+                    var match = e.target.closest("a[data-label-id][data-category-id]");
+                    if(match && wrap.contains(match)){
+                        _onClickLabelOnList.call(match, e);
+                    }
+                });
             });
         }
 
