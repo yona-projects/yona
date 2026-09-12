@@ -57,26 +57,26 @@
          * initialize element variables
          */
         function _initElement() {
-            htElement.welBtnWatch   = $(".watchBtn, #btnWatch");
-            htElement.welBtnEnroll  = $("#enrollBtn");
+            htElement.welBtnWatch   = document.querySelectorAll(".watchBtn, #btnWatch");
+            htElement.welBtnEnroll  = document.querySelectorAll("#enrollBtn");
 
-            htElement.welForkedFrom = $("#forkedFrom");
-            htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');
+            htElement.welForkedFrom = document.querySelectorAll("#forkedFrom");
+            htElement.weBtnHeaderToggle = document.querySelectorAll('.project-header-toggle-btn');
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent() {
-            htElement.welBtnWatch.on('click',_onClickBtnWatch);
-            htElement.welBtnEnroll.on('click',_onClickBtnEnroll);
+            htElement.welBtnWatch.forEach(function(el){ el.addEventListener('click', _onClickBtnWatch); });
+            htElement.welBtnEnroll.forEach(function(el){ el.addEventListener('click', _onClickBtnEnroll); });
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
-            var sURL = $(this).attr('href');
+            var sURL = this.getAttribute('href');
 
             fetch(sURL, {"method": "post"})
                 .then(function(response){
@@ -94,10 +94,10 @@
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
          */
         function _onClickBtnEnroll(weEvt){
-            var sURL = $(this).attr('href');
+            var sURL = this.getAttribute('href');
 
             fetch(sURL, {"method": "post"})
                 .then(function(response){

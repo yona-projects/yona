@@ -5,11 +5,12 @@
  * https://yona.io
  **/
 
-$(function(){
+document.addEventListener("DOMContentLoaded", function(){
 
     "use strict";
 
     var elements = {};
+    var bOnSubmit = false;
 
     /**
      * Initialize
@@ -24,17 +25,20 @@ $(function(){
      * @private
      */
     function _initElement(){
-        elements.commentForm = $("#comment-form");
-        elements.textarea = elements.commentForm.find("textarea");
+        elements.commentForm = document.getElementById("comment-form");
+        elements.textarea = elements.commentForm ? elements.commentForm.querySelector("textarea") : null;
     }
 
     /**
      * Attach event handlers
      */
     function _attachEvent(){
-        elements.commentForm.submit(onSubmitCommentForm);
-        $(window).on("keydown",  onKeydownWindow);
-        $(window).on("beforeunload", onBeforeUnloadWindow);
+        if(!elements.commentForm){
+            return;
+        }
+        elements.commentForm.addEventListener("submit", onSubmitCommentForm);
+        window.addEventListener("keydown", onKeydownWindow);
+        window.addEventListener("beforeunload", onBeforeUnloadWindow);
         temporarySaveHandler(elements.textarea);
     }
 
@@ -45,11 +49,10 @@ $(function(){
      */
     function onSubmitCommentForm(event){
         removeCurrentPageTemprarySavedContent();
-        elements.textarea.off();
         clearTimeout(window.draftSavingTimeout);
 
         event.preventDefault();
-        var that = this;
+        var that = event.target;
 
         if(isCommentBodyEmpty()){
             $yona.notify(Messages("post.comment.empty"), 3000);
@@ -61,7 +64,7 @@ $(function(){
             return false;
         }
 
-        elements.commentForm.data("onsubmit", true);
+        bOnSubmit = true;
 
         NProgress.start();
 
@@ -77,7 +80,7 @@ $(function(){
      * @returns {boolean}
      */
     function isCommentBodyEmpty(){
-        return !(elements.textarea.val().trim().length);
+        return !(elements.textarea.value.trim().length);
     }
 
     /**
@@ -86,7 +89,7 @@ $(function(){
      * @returns {*}
      */
     function isOnSubmit(){
-        return elements.commentForm.data("onsubmit");
+        return bOnSubmit;
     }
 
     /**
@@ -98,7 +101,7 @@ $(function(){
     function onKeydownWindow(evt){
         if (isEscapeKeyPressed(evt) && isOnSubmit()){
             NProgress.done();
-            elements.commentForm.data("onsubmit", false);
+            bOnSubmit = false;
         }
     }
 

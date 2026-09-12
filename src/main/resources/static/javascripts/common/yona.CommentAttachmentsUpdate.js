@@ -1,25 +1,34 @@
-$(function () {
-    function deleteAttachment() {
-        var $this = $(this);
-        var $parent = $this.parent(".attached-file-marker");
-        var id = $this.data("id");
-        var filename = $parent.data("name");
-        var url = $parent.data("href");
-        var mimeType = $parent.data("mime");
+document.addEventListener("DOMContentLoaded", function () {
+    function delegate(container, eventType, selector, handler) {
+        container.addEventListener(eventType, function (e) {
+            var match = e.target.closest(selector);
+            if (match && container.contains(match)) {
+                handler.call(match, e);
+            }
+        });
+    }
+
+    function deleteAttachment(event) {
+        var target = event.currentTarget;
+        var parent = target.closest(".attached-file-marker");
+        var id = target.dataset.id;
+        var filename = parent.dataset.name;
+        var url = parent.dataset.href;
+        var mimeType = parent.dataset.mime;
         var linkStr = "[" + filename + "](" + url + ")";
 
         if (mimeType.startsWith("image")) {
             linkStr = "!" + linkStr;
         }
 
-        var $form = $this.parent().closest("form");
-        var $textarea = $form.find("textarea");
-        var $attachfiles = $form.find(".temporaryUploadFiles");
+        var form = target.closest("form");
+        var textarea = form.querySelector("textarea");
+        var attachfiles = form.querySelector(".temporaryUploadFiles");
 
-        $attachfiles.val($attachfiles.val().split(",").filter(function (item) {
+        attachfiles.value = attachfiles.value.split(",").filter(function (item) {
             return item != id;
-        }).join(","));
-        removeLinkFromTextarea($textarea, linkStr);
+        }).join(",");
+        removeLinkFromTextarea(textarea, linkStr);
 
         // AttachmentController.deleteFile()은 POST + _method=delete 파라미터 계약이다
         // (yona.Files.js._deleteFile()이 이미 쓰는 것과 동일한 계약 — P3-50에서 실제 클릭으로
@@ -29,83 +38,87 @@ $(function () {
                 if(!response.ok){
                     return Promise.reject(response);
                 }
-                $parent.remove();
+                parent.remove();
             })
             .catch(function (data) {
                 console.log(data);
             });
     }
 
-    $(".attached-file-marker").on("click", ".btn-delete", deleteAttachment);
-    $(".file-upload__input").on("change", function (e) {
-        NProgress.start();
+    document.querySelectorAll(".attached-file-marker").forEach(function (marker) {
+        delegate(marker, "click", ".btn-delete", deleteAttachment);
+    });
 
-        var $attachmentInput = $(this);
-        var files = $attachmentInput[0].files;
-        var caretPos = getCaretPos($attachmentInput);
-        var doneCount = 0;
+    document.querySelectorAll(".file-upload__input").forEach(function (attachmentInput) {
+        attachmentInput.addEventListener("change", function (e) {
+            NProgress.start();
 
-        for (var i = 0; i < files.length; i++) {
-            var formData = new FormData();
-            formData.append("filePath", files[i]);
+            var files = attachmentInput.files;
+            var caretPos = getCaretPos(attachmentInput);
+            var doneCount = 0;
 
-            fetch('/files', {
-                method: 'POST',
-                body: formData
-            }).then(function(response){
-                if(!response.ok){
-                    return response.text().then(function(text){
-                        return Promise.reject(text);
-                    });
-                }
-                return response.json();
-            }).then(function (data) {
-                var $parentForm = $attachmentInput.parent().closest("form");
+            for (var i = 0; i < files.length; i++) {
+                var formData = new FormData();
+                formData.append("filePath", files[i]);
 
-                buildTemporaryUploadedFileCards($parentForm, data);
-                caretPos = insertLinkIntoTextarea($parentForm.find("textarea"), data, caretPos);
-                doneCount++;
-                if (doneCount === files.length) {
-                    NProgress.done();
-                }
-            }).catch(function (data) {
-                $yona.notify(data);
-            });
-        }
+                fetch('/files', {
+                    method: 'POST',
+                    body: formData
+                }).then(function(response){
+                    if(!response.ok){
+                        return response.text().then(function(text){
+                            return Promise.reject(text);
+                        });
+                    }
+                    return response.json();
+                }).then(function (data) {
+                    var parentForm = attachmentInput.closest("form");
+
+                    buildTemporaryUploadedFileCards(parentForm, data);
+                    caretPos = insertLinkIntoTextarea(parentForm.querySelector("textarea"), data, caretPos);
+                    doneCount++;
+                    if (doneCount === files.length) {
+                        NProgress.done();
+                    }
+                }).catch(function (data) {
+                    $yona.notify(data);
+                });
+            }
+        });
     });
 
     var rememberBorder = "";
-    $(".textarea-box")
-        .on("dragenter", "textarea", function (e) {
+    document.querySelectorAll(".textarea-box").forEach(function (textareaBox) {
+        delegate(textareaBox, "dragenter", "textarea", function (e) {
             e.stopPropagation();
             e.preventDefault();
-            rememberBorder = $(this).css("border");
-            $(this).css("border", "1px dashed orange");
-        })
-        .on("dragover", "textarea", function (e) {
+            rememberBorder = this.style.border;
+            this.style.border = "1px dashed orange";
+        });
+        delegate(textareaBox, "dragover", "textarea", function (e) {
             e.stopPropagation();
             e.preventDefault();
-        })
-        .on("drop", "textarea", function (e) {
+        });
+        delegate(textareaBox, "drop", "textarea", function (e) {
             e.stopPropagation();
             e.preventDefault();
 
-            var dt = e.originalEvent.dataTransfer;
+            var dt = e.dataTransfer;
             var files = dt.files;
 
-            $(this).css("border", rememberBorder);
+            this.style.border = rememberBorder;
 
-            var attachmentInput = $(this).parent().closest("form").find(".file-upload__input");
-            attachmentInput[0].files = files;
-            attachmentInput.trigger("change");
-        })
-        .on("dragleave", "textarea", function (e) {
-            $(this).css("border", rememberBorder);
-        })
-        .on("paste", "textarea", function (event) {
-            var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-            var $attachmentInput = $(this).parent().closest("form").find(".file-upload__input");
-            var caretPos = getCaretPos($attachmentInput);
+            var attachmentInput = this.closest("form").querySelector(".file-upload__input");
+            attachmentInput.files = files;
+            attachmentInput.dispatchEvent(new Event("change"));
+        });
+        delegate(textareaBox, "dragleave", "textarea", function (e) {
+            this.style.border = rememberBorder;
+        });
+        delegate(textareaBox, "paste", "textarea", function (event) {
+            var items = event.clipboardData.items;
+            var attachmentInput = this.closest("form").querySelector(".file-upload__input");
+            var caretPos = getCaretPos(attachmentInput);
 
             for (var index in items) {
                 var item = items[index];
@@ -126,10 +139,10 @@ $(function () {
                         }
                         return response.json();
                     }).then(function (data) {
-                        var $parentForm = $attachmentInput.parent().closest("form");
+                        var parentForm = attachmentInput.closest("form");
 
-                        buildTemporaryUploadedFileCards($parentForm, data);
-                        caretPos = insertLinkIntoTextarea($parentForm.find("textarea"), data, caretPos);
+                        buildTemporaryUploadedFileCards(parentForm, data);
+                        caretPos = insertLinkIntoTextarea(parentForm.querySelector("textarea"), data, caretPos);
                         NProgress.done();
                     }).catch(function (data) {
                         $yona.notify(data);
@@ -138,17 +151,18 @@ $(function () {
                 }
             }
         });
+    });
 
-    function getCaretPos($attachmentInput) {
-        return $attachmentInput.parent().closest("form").find("textarea")[0].selectionStart;
+    function getCaretPos(attachmentInput) {
+        return attachmentInput.closest("form").querySelector("textarea").selectionStart;
     }
 
-    function buildTemporaryUploadedFileCards($parentForm, data) {
-        var attachmentFileListArea = $parentForm.find(".attachment-files");
+    function buildTemporaryUploadedFileCards(parentForm, data) {
+        var attachmentFileListArea = parentForm.querySelector(".attachment-files");
 
-        setTemporaryUploadFileIds($parentForm.find(".temporaryUploadFiles"), data.id);
-        attachmentFileListArea.append(getAttachmentCard(data))
-            .on("click", ".btn-delete", deleteAttachment);
+        setTemporaryUploadFileIds(parentForm.querySelector(".temporaryUploadFiles"), data.id);
+        attachmentFileListArea.insertAdjacentHTML("beforeend", getAttachmentCard(data));
+        delegate(attachmentFileListArea, "click", ".btn-delete", deleteAttachment);
     }
 
     function getAttachmentCard(data) {
@@ -160,13 +174,13 @@ $(function () {
             '</div>';
     }
 
-    function setTemporaryUploadFileIds($attachmentFiles, fileId) {
-        if ($attachmentFiles.val() === "") {
-            $attachmentFiles.val(fileId);
+    function setTemporaryUploadFileIds(attachmentFiles, fileId) {
+        if (attachmentFiles.value === "") {
+            attachmentFiles.value = fileId;
         } else {
-            var splitIds = $attachmentFiles.val().split(",");
+            var splitIds = attachmentFiles.value.split(",");
             if (!splitIds.includes(fileId)) {
-                $attachmentFiles.val(splitIds.concat(fileId).join(","));
+                attachmentFiles.value = splitIds.concat(fileId).join(",");
             }
         }
     }
@@ -179,7 +193,7 @@ $(function () {
 
     // P3-50: 이 댓글 수정 폼의 textarea는 site/layout.html::markdownEditor가 EasyMDE(CodeMirror)로
     // 감싸둔 상태다 — CodeMirror -> textarea 단방향 동기화만 있어(yona.ui.MarkdownEditor.js의
-    // codemirror.on("change", ...) 참고) $textarea.val(...)로 직접 쓰는 값은 CodeMirror가
+    // codemirror.on("change", ...) 참고) textarea.value = ...로 직접 쓰는 값은 CodeMirror가
     // 인지하지 못해 실제 제출 내용에는 반영되지 않는다(Playwright로 실제 재현). 새 댓글 폼의
     // 동일 문제(yona.Attachments.js)와 같은 방식으로, EasyMDE 인스턴스가 있으면 CodeMirror
     // 공식 API로 삽입/삭제하고 없으면 기존 raw textarea 조작으로 폴백한다.
@@ -190,15 +204,20 @@ $(function () {
     // 클릭 직후엔 raw textarea에 정상 반영되지만 이후 포커스가 빠지며 CodeMirror가 자신의
     // 변경 없는 내부 버퍼로 되돌려써 사라짐), raw textarea를 항상 최종 소스오브트루스로 강제
     // 동기화하면 호출 경로와 무관하게 결과가 일관된다.
-    function syncEasyMDE($textarea) {
-        var easyMDE = $textarea.length ? $textarea.data("easymde") : null;
+    //
+    // easymde 인스턴스는 site/layout.html 쪽 커스텀 엘리먼트(yona-markdown-editor)가
+    // window.jQuery(textarea).data("easymde", ...)로 저장해둔 것이라, 이 값을 읽으려면
+    // jQuery의 데이터 저장소를 그대로 조회해야 한다($textarea.data(key)와 완전히 동일한
+    // jQuery.data(elem, key) 정적 API를 사용).
+    function syncEasyMDE(textarea) {
+        var easyMDE = textarea && window.jQuery ? window.jQuery.data(textarea, "easymde") : null;
         if (easyMDE) {
-            easyMDE.value($textarea.val());
+            easyMDE.value(textarea.value);
         }
     }
 
-    function insertLinkIntoTextarea($textarea, data, caretPos) {
-        var textAreaTxt = $textarea.val();
+    function insertLinkIntoTextarea(textarea, data, caretPos) {
+        var textAreaTxt = textarea.value;
         var txtToAdd = "[" + data.name + "](" + data.url + ")";
         if (data.mimeType.startsWith("image")) {
             txtToAdd = "!" + txtToAdd;
@@ -210,14 +229,14 @@ $(function () {
             caretPos = textAreaTxt.length;
         }
 
-        $textarea.val(textAreaTxt.substring(0, caretPos) + txtToAdd + textAreaTxt.substring(caretPos));
-        syncEasyMDE($textarea);
+        textarea.value = textAreaTxt.substring(0, caretPos) + txtToAdd + textAreaTxt.substring(caretPos);
+        syncEasyMDE(textarea);
 
         return caretPos + txtToAdd.length;
     }
 
-    function removeLinkFromTextarea($textarea, linkStr) {
-        $textarea.val($textarea.val().split(linkStr).join(""));
-        syncEasyMDE($textarea);
+    function removeLinkFromTextarea(textarea, linkStr) {
+        textarea.value = textarea.value.split(linkStr).join("");
+        syncEasyMDE(textarea);
     }
 });

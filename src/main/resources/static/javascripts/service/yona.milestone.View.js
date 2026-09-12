@@ -41,8 +41,8 @@
          * initialize elements
          */
         function _initElement(htOptions){
-            htElement.welAttachments = $(".attachments")
-            htElement.waLabels = $("a.issue-label[data-color]")
+            htElement.welAttachments = document.querySelectorAll(".attachments");
+            htElement.waLabels = document.querySelectorAll("a.issue-label[data-color]");
             htElement.sMilestoneId = htOptions.sMilestoneId;
             htElement.sURLLabels = htOptions.sURLLabels;
         }
@@ -51,17 +51,19 @@
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.waLabels.on("click", function(weEvt){
-                weEvt.preventDefault();
-                location.href = htElement.sURLLabels + "?milestoneId=" + htElement.sMilestoneId + "&labelIds=" + $(this).attr('data-labelId');
+            htElement.waLabels.forEach(function(elLabel){
+                elLabel.addEventListener("click", function(weEvt){
+                    weEvt.preventDefault();
+                    location.href = htElement.sURLLabels + "?milestoneId=" + htElement.sMilestoneId + "&labelIds=" + elLabel.getAttribute('data-labelId');
+                });
             });
         }
         /**
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            htElement.welAttachments.each(function(i, elContainer){
-                if(!$(elContainer).data("isYonaAttachment")){
+            htElement.welAttachments.forEach(function(elContainer){
+                if(!window.jQuery.data(elContainer, "isYonaAttachment")){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }
             });

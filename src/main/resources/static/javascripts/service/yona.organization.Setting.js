@@ -49,23 +49,23 @@
          * initialize element variables
          */
         function _initElement(){
-            htElement.welForm = $("form#saveSetting");
-            htElement.welInputLogo = $("#logoPath");
+            htElement.welForm = document.querySelector("form#saveSetting");
+            htElement.welInputLogo = document.getElementById("logoPath");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welInputLogo.change(_onChangeLogoPath);
+            htElement.welInputLogo.addEventListener("change", _onChangeLogoPath);
         }
 
         function _onChangeLogoPath(){
-            var welTarget = $(this);
+            var welTarget = this;
 
             if($yona.isImageFile(welTarget) === false){
                 $yona.showAlert(Messages("project.logo.alert"));
-                welTarget.val('');
+                welTarget.value = '';
                 return;
             }
 
@@ -82,13 +82,13 @@
             var aRules = [];
 
             htVar.oValidator = new FormValidator(htVar.sFormName, aRules, function(aErrors){
-                var oForm = $(document.forms[htVar.sFormName]);
-                var oElement = oForm.find("input[name=name]");
-                var sOrgName = oElement.val();
+                var oForm = document.forms[htVar.sFormName];
+                var oElement = oForm.querySelector("input[name=name]");
+                var sOrgName = oElement.value;
                 if(!htVar.rxOrgName.test(sOrgName)){
                     aErrors.push({
-                        id: oElement.attr("id"),
-                        name: oElement.attr("name"),
+                        id: oElement.id,
+                        name: oElement.name,
                         message: Messages("organization.name.alert")
                     });
                 }
@@ -101,8 +101,11 @@
          */
         function _onFormValidate(aErrors){
             if(aErrors.length > 0){
-                $('span.warning').hide();
-                $('span.msg').html(aErrors[0].message).show();
+                document.querySelectorAll('span.warning').forEach(function(el){ el.style.display = "none"; });
+                document.querySelectorAll('span.msg').forEach(function(el){
+                    el.innerHTML = aErrors[0].message;
+                    el.style.display = "";
+                });
             } else {
                 NProgress.start();
             }

@@ -1,20 +1,23 @@
-$(function () {
+document.addEventListener("DOMContentLoaded", function () {
     /* Set side navigation */
     // Also, see index.scala.html for home page menu sliding actions !!
-    var $sidebar = $("#mySidenav");
-    var viewSize = window.parent === window ? $(window).width() : $(window.parent).width();
+    var sidebar = document.getElementById("mySidenav");
+    var viewSize = window.parent === window ? document.documentElement.clientWidth : window.parent.document.documentElement.clientWidth;
     var PIXEL_CRITERIA_FOR_SMALL_DEVICE = 720;  // Criteria to distinguish small devices
     var SIDE_BAR_DEFAULT_WIDTH = "360px";
 
-    if ($(".gnb-outer").css("position") === "absolute" || $(".gnb-outer").css("position") === "fixed") {
-        $sidebar.css("top", "40px");
-    } else if ($(".admin-logged-in-affix").length === 1) {
-        $sidebar.css("top", "84px");
+    var gnbOuter = document.querySelector(".gnb-outer");
+    var gnbPosition = gnbOuter ? getComputedStyle(gnbOuter).position : undefined;
+
+    if (gnbPosition === "absolute" || gnbPosition === "fixed") {
+        sidebar.style.top = "40px";
+    } else if (document.querySelectorAll(".admin-logged-in-affix").length === 1) {
+        sidebar.style.top = "84px";
     } else {
-        $sidebar.css("top", "40px");
+        sidebar.style.top = "40px";
     }
 
-    if ($(".gnb-usermenu-dropdown").length !== 0) {
+    if (document.querySelectorAll(".gnb-usermenu-dropdown").length !== 0) {
         fetch(UsermenuUrl)
             .then(function(response){
                 if(!response.ok){
@@ -23,7 +26,7 @@ $(function () {
                 return response.text();
             })
             .then(function (data) {
-                $("#usermenu-tab-content-list").html(data);
+                document.getElementById("usermenu-tab-content-list").innerHTML = data;
                 iniNaviUserMenu();
                 afterUsermenuLoaded();
             })
@@ -35,26 +38,26 @@ $(function () {
     afterUsermenuLoaded();
 
     function iniNaviUserMenu() {
-        $(document).on("keypress.openFavorite", function openFavoriteMenuWithShortcutKey(event) {
+        document.addEventListener("keypress", function openFavoriteMenuWithShortcutKey(event) {
             if (isShortcutKeyPressed(event)) {
                 event.preventDefault();
-                openSidebar($sidebar);
+                openSidebar(sidebar);
                 updateStar();
             }
         });
 
-        $("#main").on("click.main", function (event) {
-            if ($sidebar.width() !== 0 && $(event.target).parents("#mySidenav").length == 0) {
-                closeSidebar($sidebar);
+        document.getElementById("main").addEventListener("click", function (event) {
+            if (sidebar.offsetWidth !== 0 && !(sidebar.contains(event.target) && event.target !== sidebar)) {
+                closeSidebar(sidebar);
             }
         });
 
-        $("#sidebar-open-btn").on("click.usermenu", function (event) {
+        document.getElementById("sidebar-open-btn").addEventListener("click", function (event) {
             event.stopPropagation();
-            if ($sidebar.width() !== 0) {
-                closeSidebar($sidebar);
+            if (sidebar.offsetWidth !== 0) {
+                closeSidebar(sidebar);
             } else {
-                openSidebar($sidebar);
+                openSidebar(sidebar);
                 updateStar();
             }
         });
@@ -62,64 +65,73 @@ $(function () {
 
     function afterUsermenuLoaded() {
         // used for new project list ui
-        $(".right-menu").on("click.tab", ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function () {
-            updateStar();
-            setTimeout(function focusToProjectSearchInput() {
-                var $projectSearch = $('.project-search');
-                var $orgSearch = $('.org-search');
-                if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
-                    $projectSearch.focus();
+        var rightMenu = document.querySelector(".right-menu");
+        if (rightMenu) {
+            rightMenu.addEventListener("click", function (e) {
+                var match = e.target.closest(".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']");
+                if (!match || !rightMenu.contains(match)) {
+                    return;
                 }
-                if (!$projectSearch.val()) {
-                    $projectSearch.val($orgSearch.val());
-                }
-                $orgSearch.val("");
-            }, 200);
+                updateStar();
+                setTimeout(function focusToProjectSearchInput() {
+                    var projectSearch = document.querySelector('.project-search');
+                    var orgSearch = document.querySelector('.org-search');
+                    if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
+                        projectSearch.focus();
+                    }
+                    if (!projectSearch.value) {
+                        projectSearch.value = orgSearch.value;
+                    }
+                    orgSearch.value = "";
+                }, 200);
+            });
+        }
 
-        });
-
-        $('.myOrganizationList').on("click.orgList", function focusToOrgSearchInput() {
-            setTimeout(function () {
-                var $projectSearch = $('.project-search');
-                var $orgSearch = $('.org-search');
-                if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
-                    $orgSearch.focus();
-                }
-                $orgSearch.val($projectSearch.val());
-                $projectSearch.val("");
-            }, 200);
+        document.querySelectorAll('.myOrganizationList').forEach(function (el) {
+            el.addEventListener("click", function focusToOrgSearchInput() {
+                setTimeout(function () {
+                    var projectSearch = document.querySelector('.project-search');
+                    var orgSearch = document.querySelector('.org-search');
+                    if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
+                        orgSearch.focus();
+                    }
+                    orgSearch.value = projectSearch.value;
+                    projectSearch.value = "";
+                }, 200);
+            });
         });
 
         // search by keyword
-        $(".search-input")
-            .on("keyup.search", function (event) {
-                var value = $(this).val().toLowerCase().trim();
+        document.querySelectorAll(".search-input").forEach(function (searchInput) {
+            searchInput.addEventListener("keyup", function (event) {
+                var value = this.value.toLowerCase().trim();
 
                 if (value !== "" || event.which === 8) {  // 8: backspace
-                    $(".user-li").each(function () {
-                        $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+                    document.querySelectorAll(".user-li").forEach(function (el) {
+                        el.style.display = el.textContent.toLowerCase().indexOf(value) !== -1 ? "" : "none";
                     });
-                    $(".org-li").each(function () {
-                        $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+                    document.querySelectorAll(".org-li").forEach(function (el) {
+                        el.style.display = el.textContent.toLowerCase().indexOf(value) !== -1 ? "" : "none";
                     });
                 }
-            })
-            .on("keydown.moveCursorFromInputform", function (e) {
+            });
+            searchInput.addEventListener("keydown", function (e) {
                 switch (e.keyCode) {
                     case 27:   // ESC
-                        $('.project-search').blur();
-                        closeSidebar($sidebar);
+                        document.querySelector('.project-search').blur();
+                        closeSidebar(sidebar);
                         break;
                     default:
                         break;
                 }
             });
+        });
 
-        $(".project-list > .star-project, .project-breadcrumb > .user-project-list")
-            .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
+        document.querySelectorAll(".project-list > .star-project, .project-breadcrumb > .user-project-list").forEach(function (el) {
+            el.addEventListener("click", function toggleProjectFavorite(e) {
                 e.stopPropagation();
-                var that = $(this);
-                fetch(UsermenuToggleFavoriteProjectUrl + that.data("projectId"), {"method": "post"})
+                var that = this;
+                fetch(UsermenuToggleFavoriteProjectUrl + that.dataset.projectId, {"method": "post"})
                     .then(function(response){
                         return response.text().then(function(text){
                             if(!response.ok){
@@ -130,21 +142,22 @@ $(function () {
                     })
                     .then(function (data) {
                         if (data.favored) {
-                            that.find('i').addClass("starred");
+                            that.querySelector('i').classList.add("starred");
                         } else {
-                            that.find('i').removeClass("starred");
+                            that.querySelector('i').classList.remove("starred");
                         }
                     })
                     .catch(function (data) {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
             });
+        });
 
-        $(".favorite-issue")
-            .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
+        document.querySelectorAll(".favorite-issue").forEach(function (el) {
+            el.addEventListener("click", function toggleProjectFavorite(e) {
                 e.stopPropagation();
-                var that = $(this);
-                fetch(UsermenuToggleFavoriteIssueUrl + that.data("issueId"), {"method": "post"})
+                var that = this;
+                fetch(UsermenuToggleFavoriteIssueUrl + that.dataset.issueId, {"method": "post"})
                     .then(function(response){
                         return response.text().then(function(text){
                             if(!response.ok){
@@ -155,9 +168,9 @@ $(function () {
                     })
                     .then(function (data) {
                         if (data.favored) {
-                            that.find('i').addClass("starred");
+                            that.querySelector('i').classList.add("starred");
                         } else {
-                            that.find('i').removeClass("starred");
+                            that.querySelector('i').classList.remove("starred");
                         }
                         $yona.notify(Messages(data.message), 3000);
                     })
@@ -166,19 +179,20 @@ $(function () {
                     });
 
             });
+        });
 
-        $(".user-ul > .user-li, .project-ul > .user-li")
-            .on("click.project", function (e) {
+        document.querySelectorAll(".user-ul > .user-li, .project-ul > .user-li").forEach(function (el) {
+            el.addEventListener("click", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                var location = $(this).data('location');
+                var location = this.dataset.location;
                 if (e.metaKey || e.ctrlKey || e.shiftKey) {
                    return window.location = location;
                 }
 
                 if (window.self.name !== 'mainFrame') {
-                    if ($("#mainFrame").length > 0) {
+                    if (document.getElementById("mainFrame")) {
                         window.open(location, 'mainFrame');
                     } else {
                         window.open(location, '_blank');
@@ -187,15 +201,18 @@ $(function () {
                     window.open(location, 'mainFrame');
                 }
 
-                $(".user-ul > .user-li, .project-ul > .user-li").removeClass("selected");
-                $(this).addClass("selected");
+                document.querySelectorAll(".user-ul > .user-li, .project-ul > .user-li").forEach(function (li) {
+                    li.classList.remove("selected");
+                });
+                this.classList.add("selected");
             });
+        });
 
-        $(".org-list > .star-org")
-            .on("click.org", function toggleOrgFavorite(e) {
+        document.querySelectorAll(".org-list > .star-org").forEach(function (el) {
+            el.addEventListener("click", function toggleOrgFavorite(e) {
                 e.stopPropagation();
-                var that = $(this);
-                fetch(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"), {"method": "post"})
+                var that = this;
+                fetch(UsermenuToggleFoveriteOrganizationUrl + that.dataset.organizationId, {"method": "post"})
                     .then(function(response){
                         return response.text().then(function(text){
                             if(!response.ok){
@@ -206,49 +223,101 @@ $(function () {
                     })
                     .then(function (data) {
                         if (data.favored) {
-                            that.find('i').addClass("starred");
+                            that.querySelector('i').classList.add("starred");
                         } else {
-                            that.find('i').removeClass("starred");
+                            that.querySelector('i').classList.remove("starred");
                         }
                     })
                     .catch(function (data) {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                     });
             });
+        });
 
 
-        $(".all-orgs")
-            .on("click.allOrgs", function () {
-                var $li = $(this).closest("li").find(".hide").toggle("fast");
+        document.querySelectorAll(".all-orgs").forEach(function (el) {
+            el.addEventListener("click", function () {
+                var hidden = this.closest("li").querySelectorAll(".hide");
+                hidden.forEach(function (hiddenEl) {
+                    toggleFast(hiddenEl);
+                });
             });
+        });
 
-        $(".sub-project-counter").each(function (item) {
-            var $this = $(this);
-            var counter = $this.closest(".org-li").find(".project-ul > .user-li").length || "";
+        document.querySelectorAll(".sub-project-counter").forEach(function (el) {
+            var counter = el.closest(".org-li").querySelectorAll(".project-ul > .user-li").length || "";
 
-            $this.text(counter);
+            el.textContent = counter;
         });
     }
 
     function isShortcutKeyPressed(event) {
         return (!event.metaKey && (event.which === 102 || event.which === 12601))     // keycode => 102: f, 12623: ㄹ
-            && $(':focus').length === 0;                        // avoid already somewhere focused state
+            && (document.activeElement === null || document.activeElement === document.body);   // avoid already somewhere focused state
     }
 
-    function closeSidebar($sidebar) {
-        $sidebar.width("0").css("border", "none");
-        $(".main-stream").removeClass("span8").addClass("span12");
+    function closeSidebar(sidebar) {
+        sidebar.style.width = "0";
+        sidebar.style.border = "none";
+        document.querySelectorAll(".main-stream").forEach(function (el) {
+            el.classList.remove("span8");
+            el.classList.add("span12");
+        });
     }
 
-    function openSidebar($sidebar) {
+    function openSidebar(sidebar) {
         // 720px is a criteria to distinguish small devices
         if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
-            $sidebar.width(SIDE_BAR_DEFAULT_WIDTH).css("border", "1px solid #ccc");
-            $(".search-input").focus();
+            sidebar.style.width = SIDE_BAR_DEFAULT_WIDTH;
+            sidebar.style.border = "1px solid #ccc";
+            document.querySelector(".search-input").focus();
         } else {
-            $sidebar.width("100vw").css("border", "1px solid #ccc");
+            sidebar.style.width = "100vw";
+            sidebar.style.border = "1px solid #ccc";
         }
-        $(".main-stream").removeClass("span12").addClass("span8");
+        document.querySelectorAll(".main-stream").forEach(function (el) {
+            el.classList.remove("span12");
+            el.classList.add("span8");
+        });
+    }
+
+    // jQuery의 기본 .toggle("fast")(200ms, 높이+투명도 애니메이션)에 대응하는
+    // 최소한의 CSS 트랜지션 기반 구현. 정확히 동일한 이징 알고리즘은 아니지만
+    // 시각적으로 동등한 펼침/접힘 효과를 낸다.
+    function toggleFast(el) {
+        var isHidden = getComputedStyle(el).display === "none";
+        el.style.transition = "none";
+        if (isHidden) {
+            el.style.display = "";
+            el.style.overflow = "hidden";
+            el.style.maxHeight = "0px";
+            el.style.opacity = "0";
+            var targetHeight = el.scrollHeight;
+            requestAnimationFrame(function () {
+                el.style.transition = "max-height 200ms ease, opacity 200ms ease";
+                el.style.maxHeight = targetHeight + "px";
+                el.style.opacity = "1";
+            });
+            el.addEventListener("transitionend", function handler() {
+                el.style.maxHeight = "";
+                el.style.overflow = "";
+                el.style.transition = "";
+                el.removeEventListener("transitionend", handler);
+            });
+        } else {
+            el.style.overflow = "hidden";
+            el.style.maxHeight = el.scrollHeight + "px";
+            requestAnimationFrame(function () {
+                el.style.transition = "max-height 200ms ease, opacity 200ms ease";
+                el.style.maxHeight = "0px";
+                el.style.opacity = "0";
+            });
+            el.addEventListener("transitionend", function handler() {
+                el.style.display = "none";
+                el.style.transition = "";
+                el.removeEventListener("transitionend", handler);
+            });
+        }
     }
 
     // This method intended to sync sub tab list of projects
@@ -261,12 +330,11 @@ $(function () {
                 return response.json();
             })
             .then(function (data) {
-                $(".star-project").each(function () {
-                    var $this = $(this);
-                    if (data.projectIds.indexOf($this.data("projectId")) !== -1) {
-                        $this.find("i").addClass("starred");
+                document.querySelectorAll(".star-project").forEach(function (el) {
+                    if (data.projectIds.indexOf(Number(el.dataset.projectId)) !== -1) {
+                        el.querySelector("i").classList.add("starred");
                     } else {
-                        $this.find("i").removeClass("starred");
+                        el.querySelector("i").classList.remove("starred");
                     }
                 });
             })

@@ -5,78 +5,72 @@
  * https://yona.io
  **/
 
-$(function () {
-    var $markdownWrap = $(".markdown-wrap");
+document.addEventListener("DOMContentLoaded", function () {
+    var markdownWraps = document.querySelectorAll(".markdown-wrap");
     var inputCheckBox = "input[type='checkbox']";
 
-    checkTasklistDoneCount($markdownWrap);
-    disableCheckboxIfNeeds($markdownWrap);
+    checkTasklistDoneCount(markdownWraps);
+    disableCheckboxIfNeeds(markdownWraps);
 
-    $markdownWrap.find(inputCheckBox).each(function () {
-        var $this = $(this);
-        var $parent = $this.closest();
+    // 레거시 버그 보존: 원본은 $this.closest()를 인자 없이 호출해 항상 빈 jQuery
+    // 컬렉션이 되므로("부모를 클릭/호버하면 체크박스가 토글된다"는 의도와 달리)
+    // 이 블록은 처음부터 아무 동작도 하지 않는 죽은 코드였다. 동작을 바꾸지 않기
+    // 위해 그대로 아무것도 바인딩하지 않는다.
 
-        $parent
-            .click(function () {
-                $this.trigger('click');
-            })
-            .hover(function(){
-                $(this).css({ cursor: 'pointer' });
-            });
-    });
+    markdownWraps.forEach(function (wrap) {
+        wrap.querySelectorAll(inputCheckBox).forEach(function (checkbox) {
+            checkbox.addEventListener("click", function () {
+                var form = checkbox.closest("div[id]").previousElementSibling.querySelector("form");
+                var url = form.getAttribute("action");
+                var textarea = form.querySelector("textarea");
+                var originalText = textarea.value;
+                checkTask(checkbox);
 
-    $markdownWrap.find(inputCheckBox).on("click", function () {
-        var $this = $(this);
-        var $form = $this.closest("div[id]").prev().find("form");
-        var url = $form.attr("action");
-        var originalText = $form.find("textarea").val();
-        checkTask($this);
+                var text = textarea.value;
 
-        var text = $form.find("textarea").val();
-
-        NProgress.start();
-        fetch(url, {
-            method: "PATCH",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ content: text, original: originalText })
-        })
-        .then(function(response){
-            if(!response.ok){
-                return response.text().then(function(text){
-                    return Promise.reject({statusText: response.statusText, responseText: text});
+                NProgress.start();
+                fetch(url, {
+                    method: "PATCH",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ content: text, original: originalText })
+                })
+                .then(function(response){
+                    if(!response.ok){
+                        return response.text().then(function(text){
+                            return Promise.reject({statusText: response.statusText, responseText: text});
+                        });
+                    }
+                    return response.text();
+                })
+                .then(function (msg) {
+                    NProgress.done();
+                    checkTasklistDoneCount(markdownWraps);
+                })
+                .catch(function(err){
+                    var response = JSON.parse(err.responseText);
+                    var message = '[' + err.statusText + '] ' + response.message + '\n\nRefresh the page!';
+                    $yona.showAlert(message);
+                    NProgress.done();
                 });
-            }
-            return response.text();
-        })
-        .then(function (msg) {
-            NProgress.done();
-            checkTasklistDoneCount($markdownWrap);
-        })
-        .catch(function(err){
-            var response = JSON.parse(err.responseText);
-            var message = '[' + err.statusText + '] ' + response.message + '\n\nRefresh the page!';
-            $yona.showAlert(message);
-            NProgress.done();
+            });
         });
-
     });
 
     function checkTask(that, checked) {
-        var $this = that;
         var isChecked;
         if(checked === undefined) {
-            isChecked = $this.prop("checked");
+            isChecked = that.checked;
         } else {
             isChecked = checked;
         }
 
-        $this.prop('checked', isChecked);
+        that.checked = isChecked;
 
-        var $parent = $this.closest(".markdown-wrap");
-        var index = $parent.find(inputCheckBox).index($this);
-        var $form = $this.closest("div[id]").prev().find("form");
-        var $textarea = $form.find("textarea");
-        var text = $textarea.val();
+        var parent = that.closest(".markdown-wrap");
+        var index = Array.prototype.indexOf.call(parent.querySelectorAll(inputCheckBox), that);
+        var form = that.closest("div[id]").previousElementSibling.querySelector("form");
+        var textarea = form.querySelector("textarea");
+        var text = textarea.value;
 
         var counter = 0;
         // See: https://regex101.com/r/uIC2RM/2
@@ -93,45 +87,47 @@ $(function () {
             return composedText;
         });
 
-        $textarea.val(text);
-        $this.next().find(inputCheckBox).each(function () {
-            checkTask($(this), isChecked);
-        });
+        textarea.value = text;
+        if(that.nextElementSibling){
+            that.nextElementSibling.querySelectorAll(inputCheckBox).forEach(function (checkbox) {
+                checkTask(checkbox, isChecked);
+            });
+        }
     }
 
-    function checkTasklistDoneCount($target) {
-        $target.each(function( index ) {
-            var $this = $(this);
+    function checkTasklistDoneCount(targets) {
+        targets.forEach(function (target) {
             var total = 0;
             var checked = 0;
-            $this.find(inputCheckBox).each(function () {
+            target.querySelectorAll(inputCheckBox).forEach(function (checkbox) {
                 total++;
-                if($(this).prop("checked")) {
+                if(checkbox.checked) {
                     checked++;
                 }
             });
-            var $tasklist = $this.prev();
+            var tasklist = target.previousElementSibling;
             var percentage = checked / total * 100;
-            $tasklist.find(".done-counter").html("(" + checked + "/" + total + ")");
-            $tasklist.find(".bar").width(percentage + "%");
-            $tasklist.find(".task-title").width(percentage + "%");
+            tasklist.querySelector(".done-counter").innerHTML = "(" + checked + "/" + total + ")";
+            tasklist.querySelector(".bar").style.width = percentage + "%";
+            tasklist.querySelector(".task-title").style.width = percentage + "%";
             if(total > 0) {
-                $tasklist.addClass("task-show");
+                tasklist.classList.add("task-show");
             }
             if(percentage === 100) {
-                $tasklist.find(".bar").removeClass("red").addClass("green");
+                tasklist.querySelector(".bar").classList.remove("red");
+                tasklist.querySelector(".bar").classList.add("green");
             } else {
-                $tasklist.find(".bar").removeClass("green").addClass("red");
+                tasklist.querySelector(".bar").classList.remove("green");
+                tasklist.querySelector(".bar").classList.add("red");
             }
         });
     }
 
-    function disableCheckboxIfNeeds($target){
-        $target.each(function() {
-            var $this = $(this);
-            if($this.data("allowedUpdate") !== true) {
-                $this.find(inputCheckBox).each(function () {
-                    $(this).prop("disabled", true);
+    function disableCheckboxIfNeeds(targets){
+        targets.forEach(function (target) {
+            if(target.dataset.allowedUpdate !== "true") {
+                target.querySelectorAll(inputCheckBox).forEach(function (checkbox) {
+                    checkbox.disabled = true;
                 });
             }
         });

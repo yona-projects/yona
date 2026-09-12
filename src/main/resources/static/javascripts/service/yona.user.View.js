@@ -40,13 +40,17 @@
         }
 
         function _initShowChildList() {
-            $(".post-item").on("click", function(e){
-                $(this).find(".child-issue-list").show();
+            document.querySelectorAll(".post-item").forEach(function(el){
+                el.addEventListener("click", function(e){
+                    this.querySelector(".child-issue-list").style.display = "";
+                });
             });
 
-            $(".title-wrap > .title").on("click", function(e){
-                e.stopPropagation();
-            })
+            document.querySelectorAll(".title-wrap > .title").forEach(function(el){
+                el.addEventListener("click", function(e){
+                    e.stopPropagation();
+                });
+            });
         }
 
         /**
@@ -62,27 +66,27 @@
          * initialize elements
          */
         function _initElement(){
-            htElement.welDaysAgo = $('#daysAgoBtn');
-            htElement.waTabs = $('a[data-toggle="tab"]');
-            htElement.waLeaveProject = $("a.leaveProject");
-            htElement.waBtnWatch   = $(".watchBtn");
+            htElement.welDaysAgo = document.getElementById('daysAgoBtn');
+            htElement.waTabs = document.querySelectorAll('a[data-toggle="tab"]');
+            htElement.waLeaveProject = document.querySelectorAll("a.leaveProject");
+            htElement.waBtnWatch   = document.querySelectorAll(".watchBtn");
         }
 
         /**
          * attach event
          */
         function _attachEvent(){
-            htElement.welDaysAgo.on("keypress", _onKeypressDaysAgo);
-            htElement.waLeaveProject.on("click", _onClickBtnLeaveProject);
-            htElement.waBtnWatch.on("click",_onClickBtnWatch);
+            htElement.welDaysAgo.addEventListener("keypress", _onKeypressDaysAgo);
+            htElement.waLeaveProject.forEach(function(el){ el.addEventListener("click", _onClickBtnLeaveProject); });
+            htElement.waBtnWatch.forEach(function(el){ el.addEventListener("click", _onClickBtnWatch); });
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
-            var welTarget = $(this);
-            var sURL = welTarget.attr("href");
+            var welTarget = this;
+            var sURL = welTarget.getAttribute("href");
 
             fetch(sURL, {"method": "post"})
                 .then(function(response){
@@ -92,7 +96,7 @@
                     document.location.reload();
                 })
                 .catch(function(oRes){
-                    var bOnWatching = welTarget.hasClass("blue");
+                    var bOnWatching = welTarget.classList.contains("blue");
                     var sActionMsg = Messages(bOnWatching ? "project.unwatch" : "project.watch");
 
                     $yona.notify(Messages("error.failedTo", sActionMsg, oRes.status, oRes.statusText));
@@ -103,10 +107,10 @@
         }
 
         /**
-         * @param {Wrapped Event}
+         * @param {Event}
          */
         function _onClickBtnLeaveProject(weEvt){
-            var sProjectName = $(this).attr("data-projectName");
+            var sProjectName = this.getAttribute("data-projectName");
 
             if(confirm(Messages("userinfo.leaveProject.confirm", sProjectName)) === false){
                 weEvt.preventDefault();
@@ -120,6 +124,7 @@
          */
         function _onKeypressDaysAgo(weEvt){
             if(weEvt.keyCode === 13){ // Enter 키에 대해서만
+                weEvt.preventDefault();
                 _rememberCurrentTab();
                 document.location.href = '?' + _getTabQueryString();
                 return false;
@@ -141,7 +146,7 @@
          */
         function _getTabQueryString(){
             var oURI = parseUri(document.location.href);
-            var sDaysAgo = htElement.welDaysAgo.val();
+            var sDaysAgo = htElement.welDaysAgo.value;
             var sOptGroups = (oURI.queryKey.groups) ? "&groups=" + oURI.queryKey.groups : "";
 
             return 'daysAgo=' + sDaysAgo + '&selected=' + htVar.sTabSelected + sOptGroups;

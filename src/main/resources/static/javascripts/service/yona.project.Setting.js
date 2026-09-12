@@ -49,63 +49,72 @@
          */
         function _initElement(htOptions){
             // 프로젝트 설정 관련
-            htElement.welForm = $("form#saveSetting");
-            htElement.welInputLogo = $("#logoPath");
-            htElement.welInputName = $("input#project-name");
-            htElement.welBtnSave   = $("#save");
-            htElement.welReviewerCount = $("#welReviewerCount");
-            htElement.welMenuSettingCode = $("#menuSettingCode");
-            htElement.welMenuSettingPullRequest = $("#menuSettingPullRequest");
-            htElement.welReviewerCountDisable = $('#reviewerCountDisable')
-            htElement.welMenuSettingReview = $("#menuSettingReview");
-            htElement.welReviewerCountSettingPanel = $("#reviewerCountSettingPanel");
-            htElement.welDefaultBranceSettingPanel = $("#defaultBranceSettingPanel");
-            htElement.welSubMenuProjectChangeVCS = $("#subMenuProjectChangeVCS");
+            htElement.welForm = document.querySelector("form#saveSetting");
+            htElement.welInputLogo = document.getElementById("logoPath");
+            htElement.welInputName = document.querySelector("input#project-name");
+            htElement.welBtnSave   = document.getElementById("save");
+            htElement.welReviewerCount = document.getElementById("welReviewerCount");
+            htElement.welMenuSettingCode = document.getElementById("menuSettingCode");
+            htElement.welMenuSettingPullRequest = document.getElementById("menuSettingPullRequest");
+            htElement.welReviewerCountDisable = document.getElementById('reviewerCountDisable');
+            htElement.welMenuSettingReview = document.getElementById("menuSettingReview");
+            htElement.welReviewerCountSettingPanel = document.getElementById("reviewerCountSettingPanel");
+            htElement.welDefaultBranceSettingPanel = document.getElementById("defaultBranceSettingPanel");
+            htElement.welSubMenuProjectChangeVCS = document.getElementById("subMenuProjectChangeVCS");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welInputLogo.change(_onChangeLogoPath);
-            
-            htElement.welBtnSave.click(_onClickBtnSave);
-            
-            htElement.welMenuSettingCode.on('click', _onClickMenuSettingCode);
-            htElement.welMenuSettingPullRequest.on('click', _onClickMenuSettingPullRequest);
-            htElement.welMenuSettingReview.on('click', _onClickMenuSettingReview);
+            htElement.welInputLogo.addEventListener("change", _onChangeLogoPath);
 
-            if(htElement.welReviewerCount.data("value") === true) {
-                htElement.welReviewerCount.show();
+            htElement.welBtnSave.addEventListener("click", _onClickBtnSave);
+
+            htElement.welMenuSettingCode.addEventListener('click', _onClickMenuSettingCode);
+            htElement.welMenuSettingPullRequest.addEventListener('click', _onClickMenuSettingPullRequest);
+            htElement.welMenuSettingReview.addEventListener('click', _onClickMenuSettingReview);
+
+            if(htElement.welReviewerCount.dataset.value === "true") {
+                htElement.welReviewerCount.style.display = "";
             }
 
-            $(".reviewer-count-wrap").on("click", '[data-toggle="reviewer-count"]', _toggleReviewerCount);
+            document.querySelectorAll(".reviewer-count-wrap").forEach(function(wrap){
+                wrap.addEventListener("click", function(e){
+                    var match = e.target.closest('[data-toggle="reviewer-count"]');
+                    if(match && wrap.contains(match)){
+                        _toggleReviewerCount.call(match);
+                    }
+                });
+            });
         }
 
         function _toggleReviewerCount(){
-            var sAction = $(this).data("action");
-            htElement.welReviewerCount[sAction]();
+            var sAction = this.dataset.action;
+            htElement.welReviewerCount.style.display = (sAction === "show") ? "" : "none";
         }
 
         function _onChangeLogoPath(){
-            var welTarget = $(this);
+            var welTarget = this;
 
             if($yona.isImageFile(welTarget) === false){
                 $yona.showAlert(Messages("project.logo.alert"));
-                welTarget.val('');
+                welTarget.value = '';
                 return;
             }
 
             htElement.welForm.submit();
         }
 
-        function _onClickBtnSave(){
-            var sPrjName = htElement.welInputName.val();
+        function _onClickBtnSave(event){
+            var sPrjName = htElement.welInputName.value;
             if(!htVar.rxPrjName.test(sPrjName)){
+                event.preventDefault();
                 $yona.showAlert(Messages("project.name.alert"));
                 return false;
             }
             if(htVar.aReservedWords.indexOf(sPrjName) >= 0){
+                event.preventDefault();
                 $yona.showAlert(Messages("project.name.reserved.alert"));
                 return false;
             }
@@ -114,38 +123,38 @@
         }
 
         function _onClickMenuSettingCode() {
-            var isChecked = $(this).prop("checked");
-            
+            var isChecked = this.checked;
+
             if (!isChecked) {
-                htElement.welMenuSettingCode.prop("checked", false);
-                htElement.welMenuSettingPullRequest.prop("checked", false);
-                htElement.welMenuSettingReview.prop("checked", false);
-                htElement.welReviewerCountDisable.trigger('click');
-                
-                htElement.welReviewerCountSettingPanel.hide();
-                htElement.welDefaultBranceSettingPanel.hide();
-                htElement.welSubMenuProjectChangeVCS.hide();
+                htElement.welMenuSettingCode.checked = false;
+                htElement.welMenuSettingPullRequest.checked = false;
+                htElement.welMenuSettingReview.checked = false;
+                htElement.welReviewerCountDisable.click();
+
+                htElement.welReviewerCountSettingPanel.style.display = "none";
+                htElement.welDefaultBranceSettingPanel.style.display = "none";
+                htElement.welSubMenuProjectChangeVCS.style.display = "none";
             }
         }
 
         function _onClickMenuSettingPullRequest() {
-            var isChecked = $(this).prop("checked");
-            
+            var isChecked = this.checked;
+
             if(isChecked) {
-                htElement.welMenuSettingCode.prop("checked", true);
-                htElement.welReviewerCountSettingPanel.show();    
+                htElement.welMenuSettingCode.checked = true;
+                htElement.welReviewerCountSettingPanel.style.display = "";
             } else {
-                htElement.welReviewerCountSettingPanel.hide();    
-                htElement.welReviewerCountDisable.trigger('click');
-            }   
+                htElement.welReviewerCountSettingPanel.style.display = "none";
+                htElement.welReviewerCountDisable.click();
+            }
         }
 
         function _onClickMenuSettingReview() {
-            var isChecked = $(this).prop("checked");
-            
+            var isChecked = this.checked;
+
             if(isChecked) {
-                htElement.welMenuSettingCode.prop("checked", true);
-            }     
+                htElement.welMenuSettingCode.checked = true;
+            }
         }
 
         _init(htOptions);

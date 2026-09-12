@@ -23,7 +23,7 @@
 
             _initFileUploader();
             htElement.welInputTitle.focus();
-            htElement.welInputTitle.on('keydown', function (e) {
+            htElement.welInputTitle.addEventListener('keydown', function (e) {
                 if((e.keyCode || e.which) === 13) {
                     e.preventDefault();
                     htElement.welTextarea.focus();
@@ -36,37 +36,37 @@
          */
         function _initVar(htOptions){
             htVar.sMode = htOptions.sMode || "new";
-            htVar.sTplFileItem = htOptions.sTplFileItem || (htElement.welTplFileItem ? htElement.welTplFileItem.text() : "");
+            htVar.sTplFileItem = htOptions.sTplFileItem || (htElement.welTplFileItem ? htElement.welTplFileItem.textContent : "");
         }
 
         /**
          * initialize element variable
          */
         function _initElement(htOptions){
-            htElement.welUploader = $(htOptions.elTarget || "#upload");
-            htElement.welTextarea = $(htOptions.elTextarea || "#body");
-            htElement.welTplFileItem = $('#tplAttachedFile');
+            htElement.welUploader = document.querySelector(htOptions.elTarget || "#upload");
+            htElement.welTextarea = document.querySelector(htOptions.elTextarea || "#body");
+            htElement.welTplFileItem = document.getElementById('tplAttachedFile');
 
             // Validate
-            htElement.welForm = $("form");
-            htElement.welInputTitle = $("input#title");
+            htElement.welForms = document.querySelectorAll("form");
+            htElement.welInputTitle = document.querySelector("input#title");
         }
 
         /**
          * attach event handler : for validate form
          */
         function _attachEvent(){
-            htElement.welForm.submit(_onSubmitForm);
+            htElement.welForms.forEach(function(form){ form.addEventListener("submit", _onSubmitForm); });
 
             temporarySaveHandler(htElement.welTextarea);
 
-            htElement.welTextarea.on("focus", function(){
-                $(window).on("beforeunload", _onBeforeUnload);
+            htElement.welTextarea.addEventListener("focus", function(){
+                window.addEventListener("beforeunload", _onBeforeUnload);
             });
         }
 
         function _onBeforeUnload(){
-            if($yona.getTrim(htElement.welTextarea.val()).length > 0){
+            if($yona.getTrim(htElement.welTextarea.value).length > 0){
                 return Messages("post.error.beforeunload");
             }
         }
@@ -74,15 +74,16 @@
         /**
          * Validate form on submit
          */
-        function _onSubmitForm(){
-            if(htElement.welInputTitle.val() == ""){
+        function _onSubmitForm(event){
+            if(htElement.welInputTitle.value == ""){
+                event.preventDefault();
                 $yona.showAlert(Messages("post.error.emptyTitle"), function() {
-                    $("#title").focus();
+                    document.getElementById("title").focus();
                 });
                 return false;
             }
 
-            $(window).off("beforeunload", _onBeforeUnload);
+            window.removeEventListener("beforeunload", _onBeforeUnload);
 
             removeCurrentPageTemprarySavedContent();
 
@@ -100,7 +101,7 @@
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
-                    "sUploaderId"  : oUploader.attr("data-namespace")
+                    "sUploaderId"  : oUploader[0].getAttribute("data-namespace")
                 }));
             }
         }
