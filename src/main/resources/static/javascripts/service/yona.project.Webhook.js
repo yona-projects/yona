@@ -43,8 +43,8 @@
          * @private
          */
         function _initElement(options){
-            elements.form = $(options.form);
-            elements.payloadUrl = elements.form.find('input[name="payloadUrl"]');
+            elements.form = typeof options.form === "string" ? document.querySelector(options.form) : options.form;
+            elements.payloadUrl = elements.form.querySelector('input[name="payloadUrl"]');
         }
 
         /**
@@ -62,7 +62,11 @@
          * @private
          */
         function _attachEvent(){
-            elements.form.on("submit", _isFormValid);
+            elements.form.addEventListener("submit", function(event){
+                if (!_isFormValid()) {
+                    event.preventDefault();
+                }
+            });
         }
 
         /**
@@ -73,7 +77,7 @@
          * @private
          */
         function _isFormValid(){
-            if (elements.payloadUrl.val().length === 0) {
+            if (elements.payloadUrl.value.length === 0) {
                 $yona.alert(Messages("project.webhook.payloadUrl.empty"));
                 return false;
             }

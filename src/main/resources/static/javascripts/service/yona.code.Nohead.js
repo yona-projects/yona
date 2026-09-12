@@ -47,17 +47,18 @@
          * attach event handlers
          */
         function _attachEvent(){
-            $(window).on("focus", _onFocusWindow);
-            $(window).on("blur", _onBlurWindow);
+            window.addEventListener("focus", _onFocusWindow);
+            window.addEventListener("blur", _onBlurWindow);
         }
 
         /**
          * check is repository has updated
          */
         function _checkUpdate(){
-            $.ajax({
-                "url": htVar.sPath,
-                "success": _onLoadList
+            fetch(htVar.sPath).then(function(response){
+                if (response.ok) {
+                    _onLoadList();
+                }
             });
         }
 

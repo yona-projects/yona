@@ -70,28 +70,24 @@ yona.Interval = (function(htOptions){
         delete htTimers[nTimerId];
     }
 
+    var aUserInputEvents = ["scroll", "mousedown", "mousemove", "keypress"];
+
     /**
      * add listeners to window object
      */
     function _attachEvent(){
-        $(window).on({
-            "scroll"   : _onUserInput,
-            "mousedown": _onUserInput,
-            "mousemove": _onUserInput,
-            "keypress" : _onUserInput,
-            "beforeunload": _destroy
+        aUserInputEvents.forEach(function(sEventName){
+            window.addEventListener(sEventName, _onUserInput);
         });
+        window.addEventListener("beforeunload", _destroy);
     }
 
     /**
      * remove listeners to window object
      */
     function _detachEvent(){
-        $(window).off({
-            "scroll"   : _onUserInput,
-            "mousedown": _onUserInput,
-            "mousemove": _onUserInput,
-            "keypress" : _onUserInput,
+        aUserInputEvents.forEach(function(sEventName){
+            window.removeEventListener(sEventName, _onUserInput);
         });
     }
 

@@ -52,8 +52,9 @@ function yonaTitleHeadModule(htOptions){
         // P3-46 #5: Select2(v3) -> Tom Select 교체. #labelIds는 yona.ui.Select2.js의 자동
         // 초기화(data-toggle="select2")로 생성되므로 인스턴스는 DOM 요소의 .tomselect 프로퍼티로
         // 접근한다. getValue()는 다중 선택일 때 배열을 돌려준다(select2("val")과 동일한 모양).
-        if($("#labelIds").length > 0 && $("#labelIds")[0].tomselect) {
-            issueLabels = $("#labelIds")[0].tomselect.getValue();
+        var labelIdsEl = document.getElementById("labelIds");
+        if (labelIdsEl && labelIdsEl.tomselect) {
+            issueLabels = labelIdsEl.tomselect.getValue();
         }
     }
 
@@ -78,7 +79,7 @@ function yonaTitleHeadModule(htOptions){
             }
             return;
         }
-        htElement.welTarget = $(htVar.target);
+        htElement.elTarget = document.querySelector(htVar.target);
     }
 
     /**
@@ -92,14 +93,17 @@ function yonaTitleHeadModule(htOptions){
             return;
         }
         NProgress.start();
-        issueLabels = ($("#labelIds").length > 0 && $("#labelIds")[0].tomselect && $("#labelIds")[0].tomselect.getValue()) || [];
+        var labelIdsEl = document.getElementById("labelIds");
+        issueLabels = (labelIdsEl && labelIdsEl.tomselect && labelIdsEl.tomselect.getValue()) || [];
         clearTimeout(searchPending);
 
         searchPending = setTimeout(function () {
-            $.getJSON(htVar.url, { query: query }, function (data) {
-                NProgress.done();
-                callback(_sortLabels(query, data.result || []));
-            });
+            fetch(htVar.url + "?" + new URLSearchParams({ query: query }))
+                .then(function(response){ return response.json(); })
+                .then(function(data){
+                    NProgress.done();
+                    callback(_sortLabels(query, data.result || []));
+                });
         }, 300);
     }
 
@@ -151,12 +155,12 @@ function yonaTitleHeadModule(htOptions){
                     selectTemplate: function(item) {
                         var original = item.original;
                         var category = original.category || "";
-                        var $labelField = $("#labelIds");
+                        var labelField = document.getElementById("labelIds");
                         var value = "[" + original.name + "]";
 
-                        if (category && $labelField.length > 0) {
-                            var $selectedLabel = $labelField.find("option[value=" + original.id + "]");
-                            $selectedLabel.prop('selected', true);
+                        if (category && labelField) {
+                            var selectedLabel = labelField.querySelector("option[value=" + original.id + "]");
+                            selectedLabel.selected = true;
 
                             if (original.isExclusive) {
                                 issueLabels = issueLabels.filter(function(label) {
@@ -164,10 +168,10 @@ function yonaTitleHeadModule(htOptions){
                                 });
                             }
 
-                            issueLabels.push($selectedLabel.val());
+                            issueLabels.push(selectedLabel.value);
                             // P3-46 #5: Select2(v3) -> Tom Select 교체.
-                            if($labelField[0].tomselect){
-                                $labelField[0].tomselect.setValue(issueLabels);
+                            if(labelField.tomselect){
+                                labelField.tomselect.setValue(issueLabels);
                             }
 
                             $yona.notify('Label: ' + original.name, 3000);
@@ -184,15 +188,15 @@ function yonaTitleHeadModule(htOptions){
             ]
         });
 
-        htElement.welTarget.each(function() {
-            var el = this;
+        if (htElement.elTarget) {
+            var el = htElement.elTarget;
             tribute.attach(el);
             // atjs TextareaController.insert()가 삽입 후 항상 $inputor.change()를 호출하던 것과
             // 동일하게 유지한다.
             el.addEventListener("tribute-replaced", function() {
-                $(el).trigger("change");
+                el.dispatchEvent(new Event("change", { bubbles: true }));
             });
-        });
+        }
     }
 
     /**
@@ -200,12 +204,13 @@ function yonaTitleHeadModule(htOptions){
      */
     function _attachEvent() {
         // 파이어폭스 조합입력(IME) 대응 폴리필 — atjs 시절부터 있던 코드를 그대로 유지한다
-        // (결정 필요 사항: 최종 보고 참고). yona.Mention.js와 동일하게 jQuery.browser가 이
-        // 페이지들에 로드되어 있지 않아(범위 밖 발견, 최종 보고 참고) 항상 TypeError가 발생하지만,
-        // _initTribute()를 먼저 호출해 두었으므로 라벨 자동완성 자체는 영향을 받지 않는다.
-        if (jQuery.browser.mozilla){
-            htElement.welTarget.on("focus", _startKeyupEventGenerator);
-            htElement.welTarget.on("blur", _stopKeyupEventGenerator);
+        // (결정 필요 사항: 최종 보고 참고). 예전엔 jQuery.browser가 이 페이지들에 로드되어
+        // 있지 않아 항상 TypeError가 발생해 이 분기가 실행조차 안 됐는데(범위 밖 발견, 최종
+        // 보고 참고), vanilla User-Agent 감지로 바꾸며 그 버그도 함께 고쳤다 — 파이어폭스에서
+        // 실제로 폴리필이 동작하는지 별도 검증 필요.
+        if (/firefox/i.test(navigator.userAgent) && htElement.elTarget){
+            htElement.elTarget.addEventListener("focus", _startKeyupEventGenerator);
+            htElement.elTarget.addEventListener("blur", _stopKeyupEventGenerator);
         }
     }
 
@@ -216,9 +221,9 @@ function yonaTitleHeadModule(htOptions){
 
         htVar.nKeyupEventGenerator = setInterval(
             function(){
-                if (htVar.sMentionText != htElement.welTarget.val()){
-                    htElement.welTarget.trigger("keyup");
-                    htVar.sMentionText = htElement.welTarget.val();
+                if (htVar.sMentionText != htElement.elTarget.value){
+                    htElement.elTarget.dispatchEvent(new Event("keyup", { bubbles: true }));
+                    htVar.sMentionText = htElement.elTarget.value;
                 }
             }
             ,100);
@@ -242,17 +247,18 @@ function yonaTitleHeadModule(htOptions){
      */
     function getProjectLabels(){
         var allLabels = {};
-        $("#labelIds > optgroup").each(function(){
-            var allLabelsOfTheCategory = [];
-            var categoryId;
-            $(this).children().each(function(){
-                $this = $(this);
-                allLabelsOfTheCategory.push($this.val());
-                categoryId = $this.data("categoryId")
+        var labelIdsEl = document.getElementById("labelIds");
+        if (labelIdsEl) {
+            Array.prototype.forEach.call(labelIdsEl.querySelectorAll("optgroup"), function(optgroup){
+                var allLabelsOfTheCategory = [];
+                var categoryId;
+                Array.prototype.forEach.call(optgroup.children, function(option){
+                    allLabelsOfTheCategory.push(option.value);
+                    categoryId = option.dataset.categoryId;
+                });
+                allLabels[categoryId] = allLabelsOfTheCategory;
             });
-
-            allLabels[categoryId] = allLabelsOfTheCategory;
-        });
+        }
         return allLabels;
     }
 

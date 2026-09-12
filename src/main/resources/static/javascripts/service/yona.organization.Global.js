@@ -35,30 +35,31 @@
          * initialize element variables
          */
         function _initElement() {
-            htElement.welBtnEnroll  = $("#enrollBtn");
+            htElement.elBtnEnroll  = document.getElementById("enrollBtn");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent() {
-            htElement.welBtnEnroll.on('click',_onClickBtnEnroll);
+            htElement.elBtnEnroll.addEventListener('click', _onClickBtnEnroll);
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
          */
         function _onClickBtnEnroll(weEvt){
-            var sURL = $(this).attr('href');
-            $.ajax(sURL, {
-                "method" : "post",
-                "success": function(){
+            var sURL = this.getAttribute('href');
+            fetch(sURL, { "method": "post" })
+                .then(function(response){
+                    if (!response.ok) {
+                        throw new Error("Server Error");
+                    }
                     document.location.reload();
-                },
-                "error": function(){
+                })
+                .catch(function(){
                     $yona.notify("Server Error");
-                }
-            })
+                });
 
             weEvt.preventDefault();
             return false;

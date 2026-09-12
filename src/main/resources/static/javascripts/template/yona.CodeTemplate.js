@@ -47,14 +47,18 @@
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welDocument = $(htOptions.elDocument || document);
+            htElement.elDocument = htOptions.elDocument || document;
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent() {
-            htElement.welDocument.ready(_onDocumentReady);
+            if (htElement.elDocument.readyState !== "loading") {
+                _onDocumentReady();
+            } else {
+                htElement.elDocument.addEventListener("DOMContentLoaded", _onDocumentReady);
+            }
         }
 
         function _onDocumentReady(){

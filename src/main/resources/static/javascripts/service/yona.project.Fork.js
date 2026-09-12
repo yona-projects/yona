@@ -38,18 +38,18 @@
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welInputProjectOwner = $("#project-owner");
+            htElement.elInputProjectOwner = document.getElementById("project-owner");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent() {
-            htElement.welInputProjectOwner.on("change", _onChangeProjectOwner);
+            htElement.elInputProjectOwner.addEventListener("change", _onChangeProjectOwner);
         }
 
         function _onChangeProjectOwner() {
-            document.location.href = $(this).find("option:selected").data("url");
+            document.location.href = this.selectedOptions[0].dataset.url;
         }
 
         /**
