@@ -25,59 +25,92 @@ yona.OriginalMessage = (function(htOptions){
 
         a = function() {
             f1();
-            elem.click(b);
+            elem.removeEventListener('click', a);
+            elem.addEventListener('click', b);
         }
 
         b = function() {
             f2();
-            elem.click(a);
+            elem.removeEventListener('click', b);
+            elem.addEventListener('click', a);
         }
 
-        elem.click(a);
+        elem.addEventListener('click', a);
+    }
+
+    function _hideAll(elements) {
+        elements.forEach(function(el){ el.style.display = "none"; });
+    }
+
+    function _showAll(elements) {
+        elements.forEach(function(el){ el.style.display = ""; });
+    }
+
+    /**
+     * jQuery의 delimiterLine.add(delimiterLine.nextAll()).add(delimiterLine.parents()
+     * .filter(target 안쪽만).nextAll())와 동일하게, delimiterLine 자신 + 그 뒤 형제들 +
+     * (delimiterLine부터 target 사이 각 조상 레벨의) 뒤 형제들을 모두 모은다.
+     */
+    function _collectOriginalMessageElements(delimiterLine, target) {
+        var elements = [delimiterLine];
+        var sib = delimiterLine.nextElementSibling;
+        while (sib) {
+            elements.push(sib);
+            sib = sib.nextElementSibling;
+        }
+
+        var ancestor = delimiterLine.parentElement;
+        while (ancestor && ancestor !== target && target.contains(ancestor)) {
+            var asib = ancestor.nextElementSibling;
+            while (asib) {
+                elements.push(asib);
+                asib = asib.nextElementSibling;
+            }
+            ancestor = ancestor.parentElement;
+        }
+
+        return elements;
     }
 
     /**
      * Hide original message part from the given elements
      *
-     * @param {String} sQuery Selector string for targets
+     * @param {NodeList|Array} targets
      */
     function _hide(targets) {
-        $.each(targets, function(_, targetElem) {
+        targets.forEach(function(target) {
             var delimiterLine;
-            var originalMessage; // list of jquery elements which construct the original message
-            var buttonToHideOriginalMessage; // a button to toggle the original message
-            var target = $(targetElem);
 
-            target.find(":contains('---')").each(function() {
-                var h = $(this).html()
-                // This matches the boudnary which starts the original message like
-                // '----Original Mesage---' roughly.
-                if (h && !$(this).is(target.children(":first")) &&
-                    h.match(/(^|^<[^>]+>)---+[^-]*---+/)) {
-                    delimiterLine = $(this);
-                    return false;
-                }
-                return true;
+            var candidates = Array.prototype.filter.call(target.querySelectorAll('*'), function(el){
+                return el.textContent && el.textContent.indexOf('---') !== -1;
             });
 
-            if (delimiterLine) {
-                originalMessage = delimiterLine.add(
-                        delimiterLine.nextAll()
-                    ).add(
-                        delimiterLine.parents().filter(function(idx, elem) {
-                            return target.has(elem).length > 0;
-                        }).nextAll()
-                    ).hide();
+            for (var i = 0; i < candidates.length; i++) {
+                var el = candidates[i];
+                var h = el.innerHTML;
+                // This matches the boudnary which starts the original message like
+                // '----Original Mesage---' roughly.
+                if (h && el !== target.firstElementChild &&
+                    h.match(/(^|^<[^>]+>)---+[^-]*---+/)) {
+                    delimiterLine = el;
+                    break;
+                }
+            }
 
-                buttonToHideOriginalMessage = $("<button>")
-                    .css('border', 0)
-                    .css('padding-left', '5px')
-                    .css('padding-right', '5px')
-                    .attr('type', 'button')
-                    .text('...');
+            if (delimiterLine) {
+                var originalMessage = _collectOriginalMessageElements(delimiterLine, target);
+                _hideAll(originalMessage);
+
+                var buttonToHideOriginalMessage = document.createElement('button');
+                buttonToHideOriginalMessage.style.border = '0';
+                buttonToHideOriginalMessage.style.paddingLeft = '5px';
+                buttonToHideOriginalMessage.style.paddingRight = '5px';
+                buttonToHideOriginalMessage.type = 'button';
+                buttonToHideOriginalMessage.textContent = '...';
+
                 _setToggle(buttonToHideOriginalMessage,
-                        function() { originalMessage.show(); },
-                        function() { originalMessage.hide(); });
+                        function() { _showAll(originalMessage); },
+                        function() { _hideAll(originalMessage); });
                 delimiterLine.before(buttonToHideOriginalMessage);
             }
         });

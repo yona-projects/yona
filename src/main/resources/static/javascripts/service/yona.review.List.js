@@ -44,8 +44,8 @@
          * initialize element
          */
         function _initElement(){
-            htElement.welPagination = $(htVar.elPagination || "#pagination");
-            htElement.welIssueListWrap = $('.issue-list-wrap');
+            htElement.welPagination = htVar.elPagination || document.querySelector("#pagination");
+            htElement.welIssueListWrap = document.querySelector('.issue-list-wrap');
             htElement.welSearchForm = htVar.welSearchForm;
         }
 
@@ -53,22 +53,32 @@
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welIssueListWrap.on('click','[data-toggle="filter"]', _onChangeFilter);
-            htElement.welIssueListWrap.on('click','[data-toggle="order"]', _onChangeOrder);
+            htElement.welIssueListWrap.addEventListener('click', function(e){
+                var match = e.target.closest('[data-toggle="filter"]');
+                if(match && htElement.welIssueListWrap.contains(match)){
+                    _onChangeFilter.call(match, e);
+                }
+            });
+            htElement.welIssueListWrap.addEventListener('click', function(e){
+                var match = e.target.closest('[data-toggle="order"]');
+                if(match && htElement.welIssueListWrap.contains(match)){
+                    _onChangeOrder.call(match, e);
+                }
+            });
         }
 
         function _onChangeFilter(weEvent) {
             weEvent.preventDefault();
 
-            var welElement = $(this);
-            if(welElement.data('type') === 'state') {
-                $("input[name='state']").val(welElement.data('value'));
+            var welElement = this;
+            if(welElement.dataset.type === 'state') {
+                document.querySelectorAll("input[name='state']").forEach(function(el){ el.value = welElement.dataset.value; });
             } else {
-                var sAuthorId = (welElement.data('type') === 'authorId') ? welElement.data('value') : '';
-                var sParticipantId = (welElement.data('type') ==='participantId') ? welElement.data('value') : '';
+                var sAuthorId = (welElement.dataset.type === 'authorId') ? welElement.dataset.value : '';
+                var sParticipantId = (welElement.dataset.type === 'participantId') ? welElement.dataset.value : '';
 
-                $("input[name='authorId']").val(sAuthorId);
-                $("input[name='participantId']").val(sParticipantId);
+                document.querySelectorAll("input[name='authorId']").forEach(function(el){ el.value = sAuthorId; });
+                document.querySelectorAll("input[name='participantId']").forEach(function(el){ el.value = sParticipantId; });
             }
 
             htElement.welSearchForm.submit();
@@ -77,12 +87,12 @@
         function _onChangeOrder(weEvent) {
             weEvent.preventDefault();
 
-            var welElement = $(this);
-            var sOrderField = welElement.data('field');
-            var sOrderValue = welElement.data('value');
+            var welElement = this;
+            var sOrderField = welElement.dataset.field;
+            var sOrderValue = welElement.dataset.value;
 
-            $("input[name='orderBy']").val(sOrderField);
-            $("input[name='orderDir']").val(sOrderValue);
+            document.querySelectorAll("input[name='orderBy']").forEach(function(el){ el.value = sOrderField; });
+            document.querySelectorAll("input[name='orderDir']").forEach(function(el){ el.value = sOrderValue; });
             htElement.welSearchForm.submit();
         }
 

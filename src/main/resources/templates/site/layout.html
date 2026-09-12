@@ -1009,7 +1009,7 @@
             $yona.notify([[${info}]], 5000);
             /*[/]*/
 
-            yona.OriginalMessage.hide($("[data-via-email]"));
+            yona.OriginalMessage.hide(document.querySelectorAll("[data-via-email]"));
 
             $('.logo, .title > a, .project-menu-nav > li > a, .show-progress-bar, .project-breadcrumb > span > a, .project-name > a, a[class="title"]').on('click.progressbar', function(){
                 NProgress.set(0.7);

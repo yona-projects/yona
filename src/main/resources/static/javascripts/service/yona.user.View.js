@@ -76,7 +76,11 @@
          * attach event
          */
         function _attachEvent(){
-            htElement.welDaysAgo.addEventListener("keypress", _onKeypressDaysAgo);
+            // daysAgoBtn은 게스트 사용자에게는 렌더링되지 않는다
+            // (user/view.html의 th:if="${currentUser == null || !currentUser.isGuest}").
+            if(htElement.welDaysAgo){
+                htElement.welDaysAgo.addEventListener("keypress", _onKeypressDaysAgo);
+            }
             htElement.waLeaveProject.forEach(function(el){ el.addEventListener("click", _onClickBtnLeaveProject); });
             htElement.waBtnWatch.forEach(function(el){ el.addEventListener("click", _onClickBtnWatch); });
         }

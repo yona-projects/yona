@@ -6,15 +6,19 @@ document.addEventListener("DOMContentLoaded", function () {
     var PIXEL_CRITERIA_FOR_SMALL_DEVICE = 720;  // Criteria to distinguish small devices
     var SIDE_BAR_DEFAULT_WIDTH = "360px";
 
-    var gnbOuter = document.querySelector(".gnb-outer");
-    var gnbPosition = gnbOuter ? getComputedStyle(gnbOuter).position : undefined;
+    // #mySidenav는 로그인 사용자에게만 렌더링된다(site/layout.html의
+    // sec:authorize="isAuthenticated()") - 비로그인 사용자는 sidebar가 null.
+    if (sidebar) {
+        var gnbOuter = document.querySelector(".gnb-outer");
+        var gnbPosition = gnbOuter ? getComputedStyle(gnbOuter).position : undefined;
 
-    if (gnbPosition === "absolute" || gnbPosition === "fixed") {
-        sidebar.style.top = "40px";
-    } else if (document.querySelectorAll(".admin-logged-in-affix").length === 1) {
-        sidebar.style.top = "84px";
-    } else {
-        sidebar.style.top = "40px";
+        if (gnbPosition === "absolute" || gnbPosition === "fixed") {
+            sidebar.style.top = "40px";
+        } else if (document.querySelectorAll(".admin-logged-in-affix").length === 1) {
+            sidebar.style.top = "84px";
+        } else {
+            sidebar.style.top = "40px";
+        }
     }
 
     if (document.querySelectorAll(".gnb-usermenu-dropdown").length !== 0) {

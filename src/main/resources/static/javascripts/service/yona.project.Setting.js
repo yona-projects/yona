@@ -75,7 +75,10 @@
             htElement.welMenuSettingPullRequest.addEventListener('click', _onClickMenuSettingPullRequest);
             htElement.welMenuSettingReview.addEventListener('click', _onClickMenuSettingReview);
 
-            if(htElement.welReviewerCount.dataset.value === "true") {
+            // welReviewerCount 등은 project.vcs가 GIT일 때만 렌더링되는 패널
+            // (project/setting.html의 th:if="...toUpperCase() == 'GIT'") 안에 있어
+            // SVN 프로젝트에서는 존재하지 않는다.
+            if(htElement.welReviewerCount && htElement.welReviewerCount.dataset.value === "true") {
                 htElement.welReviewerCount.style.display = "";
             }
 
@@ -129,10 +132,16 @@
                 htElement.welMenuSettingCode.checked = false;
                 htElement.welMenuSettingPullRequest.checked = false;
                 htElement.welMenuSettingReview.checked = false;
-                htElement.welReviewerCountDisable.click();
+                if(htElement.welReviewerCountDisable){
+                    htElement.welReviewerCountDisable.click();
+                }
 
-                htElement.welReviewerCountSettingPanel.style.display = "none";
-                htElement.welDefaultBranceSettingPanel.style.display = "none";
+                if(htElement.welReviewerCountSettingPanel){
+                    htElement.welReviewerCountSettingPanel.style.display = "none";
+                }
+                if(htElement.welDefaultBranceSettingPanel){
+                    htElement.welDefaultBranceSettingPanel.style.display = "none";
+                }
                 htElement.welSubMenuProjectChangeVCS.style.display = "none";
             }
         }
@@ -142,10 +151,16 @@
 
             if(isChecked) {
                 htElement.welMenuSettingCode.checked = true;
-                htElement.welReviewerCountSettingPanel.style.display = "";
+                if(htElement.welReviewerCountSettingPanel){
+                    htElement.welReviewerCountSettingPanel.style.display = "";
+                }
             } else {
-                htElement.welReviewerCountSettingPanel.style.display = "none";
-                htElement.welReviewerCountDisable.click();
+                if(htElement.welReviewerCountSettingPanel){
+                    htElement.welReviewerCountSettingPanel.style.display = "none";
+                }
+                if(htElement.welReviewerCountDisable){
+                    htElement.welReviewerCountDisable.click();
+                }
             }
         }
 

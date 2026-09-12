@@ -25,8 +25,25 @@
 yona.Pagination = (function(window, document) {
     var htRegEx = {};
     var rxDigit = /^.[0-9]*$/;
-    // $.isNumeric determines hex, point or negative numbers as numeric.
+    // isNumeric determines hex, point or negative numbers as numeric.
     // but, rxDigit finds only positive decimal integer numbers
+
+    // elTarget는 수많은 템플릿 인라인 스크립트/미전환 JS 파일에서 여전히 jQuery
+    // 객체($("#pagination"))로 넘어오므로, 그 호출부들을 건드리지 않기 위해
+    // raw DOM 엘리먼트로 정규화한다.
+    function _toElement(el){
+        if(el && el.jquery){
+            return el[0];
+        }
+        return el;
+    }
+
+    // jQuery $.isNumeric()과 동일한 트릭(문자열 - 숫자 파싱값이 0이 아니면 NaN이
+    // 되는 성질 이용). 16진수/부호/소수점 문자열도 숫자로 판정하는 동작까지 동일하게 유지.
+    function isNumeric(obj){
+        var realStringObj = obj && obj.toString();
+        return !Array.isArray(obj) && (realStringObj - parseFloat(realStringObj) + 1) >= 0;
+    }
 
     /**
      * getQuery
@@ -93,7 +110,7 @@ yona.Pagination = (function(window, document) {
      * validateOptions
      */
     function validateOptions(options) {
-        if (!$.isNumeric(options.current)) {
+        if (!isNumeric(options.current)) {
             throw new Error("options.current is not valid: " + options.current);
         }
     }
@@ -110,7 +127,7 @@ yona.Pagination = (function(window, document) {
             return;
         }
 
-        var welTarget = $(elTarget);
+        var welTarget = _toElement(elTarget);
         var htData = htOptions || {};
 
         htData.url = htData.url || document.URL;
@@ -123,8 +140,8 @@ yona.Pagination = (function(window, document) {
 
         validateOptions(htData);
 
-        welTarget.html('');
-        welTarget.addClass('page-navigation-wrap');
+        welTarget.innerHTML = '';
+        welTarget.classList.add('page-navigation-wrap');
 
         // prev/next link
         var welPagePrev = _getPrevPageLink(htData);
@@ -132,14 +149,23 @@ yona.Pagination = (function(window, document) {
 
         // page input box
         var welPageInput = _getPageInputBox(htData);
-        var welPageInputWrap = $('<li class="page-num">').append(welPageInput);
-        var welDelimiter = $('<li class="page-num delimiter">').text('/');
-        var welTotalPages = $('<li class="page-num">').text(nTotalPages);
+        var welPageInputWrap = document.createElement('li');
+        welPageInputWrap.className = 'page-num';
+        welPageInputWrap.appendChild(welPageInput);
+
+        var welDelimiter = document.createElement('li');
+        welDelimiter.className = 'page-num delimiter';
+        welDelimiter.textContent = '/';
+
+        var welTotalPages = document.createElement('li');
+        welTotalPages.className = 'page-num';
+        welTotalPages.textContent = nTotalPages;
 
         // fill #pagination
-        var welPageList = $('<ul class="page-nums">');
-        welPageList.append([welPagePrev, welPageInputWrap, welDelimiter, welTotalPages, welPageNext]);
-        welTarget.append(welPageList);
+        var welPageList = document.createElement('ul');
+        welPageList.className = 'page-nums';
+        welPageList.append(welPagePrev, welPageInputWrap, welDelimiter, welTotalPages, welPageNext);
+        welTarget.appendChild(welPageList);
     }
 
     /**
@@ -159,26 +185,27 @@ yona.Pagination = (function(window, document) {
      * Get PageNum INPUT element
      *
      * @param htData
-     * @returns {Wrapped Element}
+     * @returns {Element}
      * @private
      */
     function _getPageInputBox(htData){
-        var welPageInput = $('<input type="number" pattern="[0-9]*" class="input-mini nospinner">');
+        var welPageInput = document.createElement('input');
+        welPageInput.type = 'number';
+        welPageInput.setAttribute('pattern', '[0-9]*');
+        welPageInput.className = 'input-mini nospinner';
 
-        welPageInput.prop({
-            "name" : htData.paramNameForPage,
-            "max"  : htData.totalPages,
-            "min"  : 1
-        });
+        welPageInput.name = htData.paramNameForPage;
+        welPageInput.max  = htData.totalPages;
+        welPageInput.min  = 1;
 
-        welPageInput.val(htData.current);
+        welPageInput.value = htData.current;
 
-        welPageInput.on("keydown", function(weEvt){
+        welPageInput.addEventListener("keydown", function(weEvt){
             if(!isValidInputNum(welPageInput, htData.current)){
                 return;
             }
 
-            var nCurrentValue = welPageInput.val();
+            var nCurrentValue = welPageInput.value;
 
             if(typeof htData.submit === "function"){
                 htData.submit(nCurrentValue);
@@ -194,7 +221,7 @@ yona.Pagination = (function(window, document) {
      * Get previous page link
      *
      * @param htData
-     * @returns {Wrapped Element}
+     * @returns {Element}
      * @private
      */
     function _getPrevPageLink(htData){
@@ -202,7 +229,7 @@ yona.Pagination = (function(window, document) {
         var sLinkHTMLOn = '<i class="ico btn-pg-prev"></i><span>' + sLinkText + '</span>';
         var sLinkHTMLOff = '<i class="ico btn-pg-prev off"></i><span class="off">' + sLinkText + '</span>';
 
-        var htOptions = $.extend(htData, {
+        var htOptions = Object.assign(htData, {
             "bActive"  : htData.hasPrev,
             "sLinkHref": htData.hasPrev ? urlWithPageNum(htData.url, htData.current - 1, htData.paramNameForPage) : "",
             "sLinkHTMLOn"   : sLinkHTMLOn,
@@ -220,7 +247,7 @@ yona.Pagination = (function(window, document) {
      * Get next page link
      *
      * @param htData
-     * @returns {Wrapped Element}
+     * @returns {Element}
      * @private
      */
     function _getNextPageLink(htData){
@@ -228,7 +255,7 @@ yona.Pagination = (function(window, document) {
         var sLinkHTMLOn = '<span>' + sLinkText + '</span><i class="ico btn-pg-next"></i>';
         var sLinkHTMLOff = '<span class="off">' + sLinkText + '</span><i class="ico btn-pg-next off"></i>';
 
-        var htOptions = $.extend(htData, {
+        var htOptions = Object.assign(htData, {
             "bActive"  : htData.hasNext,
             "sLinkHref": htData.hasNext ? urlWithPageNum(htData.url, htData.current + 1, htData.paramNameForPage) : "",
             "sLinkHTMLOn"   : sLinkHTMLOn,
@@ -246,28 +273,30 @@ yona.Pagination = (function(window, document) {
      * Build prev/next page link
      *
      * @param htData
-     * @returns {Wrapped Element}
+     * @returns {Element}
      * @private
      */
     function _buildPageLink(htData){
-        var welPageLink = $('<li class="page-num ikon">');
+        var welPageLink = document.createElement('li');
+        welPageLink.className = 'page-num ikon';
 
         if(htData.bActive){
-            var welLink = $('<a pjax-page>');
-            welLink.html(htData.sLinkHTMLOn);
+            var welLink = document.createElement('a');
+            welLink.setAttribute('pjax-page', '');
+            welLink.innerHTML = htData.sLinkHTMLOn;
 
             if(typeof htData.submit === 'function'){
-                welLink.attr("href", "javascript: void(0);");
-                welLink.on("click", function(){
+                welLink.setAttribute("href", "javascript: void(0);");
+                welLink.addEventListener("click", function(){
                     htData.submit(htData.nSubmitPageNum);
                 });
             } else {
-                welLink.attr("href", htData.sLinkHref);
+                welLink.setAttribute("href", htData.sLinkHref);
             }
 
-            welPageLink.append(welLink);
+            welPageLink.appendChild(welLink);
         } else {
-            welPageLink.html(htData.sLinkHTMLOff);
+            welPageLink.innerHTML = htData.sLinkHTMLOff;
         }
 
         // if yona.ShortcutKey exists
@@ -282,19 +311,19 @@ yona.Pagination = (function(window, document) {
 
     // validate number range
     function isValidInputNum(welTarget, nCurrentPageNum){
-        if(rxDigit.test(welTarget.val()) === false){
-            welTarget.val(nCurrentPageNum);
+        if(rxDigit.test(welTarget.value) === false){
+            welTarget.value = nCurrentPageNum;
             return false;
         }
 
-        var nVal = parseInt(welTarget.val(), 10);
-        var nMin = parseInt(welTarget.attr("min"), 10);
-        var nMax = parseInt(welTarget.attr("max"), 10);
+        var nVal = parseInt(welTarget.value, 10);
+        var nMin = parseInt(welTarget.min, 10);
+        var nMax = parseInt(welTarget.max, 10);
 
         if(nVal < nMin){
-            welTarget.val(nMin);
+            welTarget.value = nMin;
         } else if(nVal > nMax){
-            welTarget.val(nMax);
+            welTarget.value = nMax;
         }
         return true;
     }
@@ -304,6 +333,9 @@ yona.Pagination = (function(window, document) {
     };
 })(window, document);
 
-$(document).on('click.pagination.number-api','input[name="pageNum"][type="number"]',function() {
-    $(this).select();
+document.addEventListener('click', function(e){
+    var match = e.target.closest('input[name="pageNum"][type="number"]');
+    if(match){
+        match.select();
+    }
 });

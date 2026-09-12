@@ -26,7 +26,8 @@
  *     "
  * });
  *
- * @require bootstrap-dropdown.js
+ * Bootstrap dropdown 플러그인에 의존하지 않는 순수 커스텀 구현이다 - 실제 코드에는
+ * .dropdown() 호출이 전혀 없고 li 클릭/active 클래스 토글만으로 직접 동작한다.
  */
 (function(ns){
 
@@ -35,6 +36,22 @@
 
         var htVar = {"sValue":""};
         var htElement = {};
+
+        // elContainer는 호출부에 따라 raw DOM 엘리먼트(layout.html), 문자열 셀렉터
+        // (yona.issue.Write.js), jQuery 객체(yona.issue.MassUpdate.js 경유)로 제각각
+        // 넘어오므로 셋 다 raw DOM 엘리먼트로 정규화한다.
+        function _toElement(el){
+            if(!el){
+                return null;
+            }
+            if(typeof el === "string"){
+                return document.querySelector(el);
+            }
+            if(el.jquery){
+                return el[0];
+            }
+            return el;
+        }
 
          function _init(htOptions){
             _initElement(htOptions);
@@ -46,15 +63,20 @@
         }
 
          function _initElement(htOptions){
-            htElement.welContainer = $(htOptions.elContainer);
-            htElement.welSelectedLabel = htElement.welContainer.find(".d-label");
-            htElement.welList = htElement.welContainer.find(".dropdown-menu");
-            htElement.waItems = htElement.welList.find("li");
+            htElement.welContainer = _toElement(htOptions.elContainer);
+            htElement.welSelectedLabel = htElement.welContainer.querySelector(".d-label");
+            htElement.welList = htElement.welContainer.querySelector(".dropdown-menu");
+            htElement.waItems = htElement.welList.querySelectorAll("li");
         }
 
         function _attachEvent(){
-            htElement.welList.on("click", "li", _onClickItem);
-            htElement.welList.on("mousewheel", _onScrollList);
+            htElement.welList.addEventListener("click", function(weEvt){
+                var match = weEvt.target.closest("li");
+                if(match && htElement.welList.contains(match)){
+                    _onClickItem(weEvt, match);
+                }
+            });
+            htElement.welList.addEventListener("mousewheel", _onScrollList);
         }
 
         /**
@@ -63,8 +85,8 @@
          * @private
          */
         function _onScrollList(weEvt){
-            if((weEvt.originalEvent.deltaY > 0 && _isScrollEndOfList()) ||
-               (weEvt.originalEvent.deltaY < 0 && _isScrollTopOfList())){
+            if((weEvt.deltaY > 0 && _isScrollEndOfList()) ||
+               (weEvt.deltaY < 0 && _isScrollTopOfList())){
                 weEvt.preventDefault();
                 weEvt.stopPropagation();
                 return false;
@@ -76,7 +98,7 @@
          * @private
          */
         function _isScrollTopOfList(){
-            return (htElement.welList.scrollTop() === 0);
+            return (htElement.welList.scrollTop === 0);
         }
 
         /**
@@ -84,19 +106,16 @@
          * @private
          */
         function _isScrollEndOfList(){
-            return (htElement.welList.scrollTop() + htElement.welList.height() === htElement.welList.get(0).scrollHeight);
+            return (htElement.welList.scrollTop + htElement.welList.clientHeight === htElement.welList.scrollHeight);
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
+         * @param {Element} welTarget <li> item that was clicked (or its ancestor li)
          */
-        function _onClickItem(weEvt){
-            // set welTarget to <li> item
-            var welCurrent = $(weEvt.target);
-            var welTarget = (weEvt.target.tagName === "LI") ? welCurrent : $(welCurrent.parents("li")[0]);
-
+        function _onClickItem(weEvt, welTarget){
             // ignore click event if item doesn't have data-value attribute
-            if(welTarget.length === 0 || typeof welTarget.attr("data-value") === "undefined"){
+            if(!welTarget || welTarget.getAttribute("data-value") === null){
                 weEvt.stopPropagation();
                 weEvt.preventDefault();
                 return false;
@@ -108,35 +127,37 @@
         }
 
         /**
-         * @param {Wrapped Element} welTarget
+         * @param {Element} welTarget
          */
         function _setItemSelected(welTarget){
-            htElement.welSelectedLabel.html(welTarget.html());
-            htElement.waItems.removeClass("active");
-            welTarget.addClass("active");
+            htElement.welSelectedLabel.innerHTML = welTarget.innerHTML;
+            htElement.waItems.forEach(function(item){ item.classList.remove("active"); });
+            welTarget.classList.add("active");
         }
 
         /**
-         * @param {Wrapped Element} welTarget
+         * @param {Element} welTarget
          */
         function _setFormValue(welTarget){
-            var sFieldValue = welTarget.attr("data-value");
-            var sFieldName  = htElement.welContainer.attr("data-name");
+            var sFieldValue = welTarget.getAttribute("data-value");
+            var sFieldName  = htElement.welContainer.getAttribute("data-name");
             htVar.sName     = sFieldName;
             htVar.sValue    = sFieldValue;
 
-            if(typeof sFieldName === "undefined"){
+            if(sFieldName === null){
                 return;
             }
 
-            var welInput = htElement.welContainer.find("input[name='" + sFieldName +"']");
+            var welInput = htElement.welContainer.querySelector("input[name='" + sFieldName +"']");
 
-            if(welInput.length === 0){
-                welInput = $('<input type="hidden" name="' + sFieldName + '">');
-                htElement.welContainer.append(welInput);
+            if(!welInput){
+                welInput = document.createElement("input");
+                welInput.type = "hidden";
+                welInput.name = sFieldName;
+                htElement.welContainer.appendChild(welInput);
             }
 
-            welInput.val(sFieldValue);
+            welInput.value = sFieldValue;
         }
 
         function _onChange(){
@@ -177,12 +198,12 @@
          * @param {String} sQuery
          */
         function _selectItem(sQuery){
-            var waFind = htElement.welContainer.find(sQuery);
+            var waFind = htElement.welContainer.querySelectorAll(sQuery);
             if(waFind.length <= 0){
                 return false; // no item matches
             }
 
-            var welTarget = $(waFind[0]);
+            var welTarget = waFind[0];
             _setItemSelected(welTarget);
             _setFormValue(welTarget);
 
