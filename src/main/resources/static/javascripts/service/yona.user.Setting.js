@@ -399,7 +399,10 @@
         }
 
         function _showNotificationTab(){
-            $('#notification-projects a[href="' + location.hash + '"]').tab("show");
+            var elLink = document.querySelector('#notification-projects a[href="' + location.hash + '"]');
+            if(elLink){
+                $yona.tabShow(elLink);
+            }
         }
 
         _init(htOptions || {});

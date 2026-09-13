@@ -651,6 +651,64 @@ $yona = yona.Common = (function(){
         }
     }
 
+    /**
+     * Bootstrap .tab() 플러그인의 Tab.prototype.show/activate를 재현한다 - 클릭된
+     * 탭 링크가 속한 <li> 목록에서 active를 옮기고, href(또는 data-target)가
+     * 가리키는 패널 쪽 형제 목록에서도 active를 옮긴다. fade 트랜지션은 이 앱의
+     * 마크업에 쓰이지 않아(직접 대조 확인) 생략했다.
+     *
+     * @param {Element|jQuery} elTabLink
+     */
+    function tabShow(elTabLink){
+        var el = _toElement(elTabLink);
+        if(!el){
+            return;
+        }
+
+        var elLi = el.closest("li");
+        if(elLi && elLi.classList.contains("active")){
+            return;
+        }
+
+        var sSelector = el.getAttribute("data-target") || el.getAttribute("href");
+        // href="#23"처럼 id가 숫자로 시작하면 document.querySelector("#23")은 유효하지
+        // 않은 CSS 셀렉터라 예외를 던진다(user/edit_notifications.html의 project.id 앵커로
+        // 실제 재현) - getElementById는 순수 문자열 비교라 이 문제가 없다.
+        var elTarget = (sSelector && sSelector.charAt(0) === "#") ? document.getElementById(sSelector.slice(1)) : null;
+
+        var elUl = el.closest("ul");
+        if(elUl){
+            var elActiveLi = elUl.querySelector(":scope > li.active");
+            if(elActiveLi){
+                elActiveLi.classList.remove("active");
+            }
+            if(elLi){
+                elLi.classList.add("active");
+            }
+        }
+
+        if(elTarget && elTarget.parentElement){
+            var elActivePane = elTarget.parentElement.querySelector(":scope > .active");
+            if(elActivePane){
+                elActivePane.classList.remove("active");
+            }
+            elTarget.classList.add("active");
+        }
+    }
+
+    /**
+     * Bootstrap의 $(document).on('click.tab.data-api', '[data-toggle="tab"], ...')
+     * 전역 위임과 동일 - 이 문서 전체에 한 번만 등록한다(yona.Common.js는 IIFE로
+     * 페이지당 한 번만 평가되므로 중복 바인딩 걱정이 없다).
+     */
+    document.addEventListener("click", function(weEvt){
+        var elTabLink = weEvt.target.closest('[data-toggle="tab"], [data-toggle="pill"]');
+        if(elTabLink){
+            weEvt.preventDefault();
+            tabShow(elTabLink);
+        }
+    });
+
     /* public Interface */
     return {
         "setScriptPath"   : setScriptPath,
@@ -674,7 +732,8 @@ $yona = yona.Common = (function(){
         "attachDialogDismiss": attachDialogDismiss,
         "initHoverPopovers": initHoverPopovers,
         "showPopoverError": showPopoverError,
-        "hidePopoverError": hidePopoverError
+        "hidePopoverError": hidePopoverError,
+        "tabShow": tabShow
     };
 })();
 

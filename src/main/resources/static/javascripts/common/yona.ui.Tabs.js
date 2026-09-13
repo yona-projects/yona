@@ -18,43 +18,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-$(document).ready(function(){
+document.addEventListener("DOMContentLoaded", function(){
 
-    var waItems;
-    var welContainer;
-    var sContainerId;
+    document.querySelectorAll(".nav-tabs[id]").forEach(function(elContainer){
+        var sContainerId = elContainer.id;
 
-    $(".nav-tabs[id]").each(function(i, elContainer){
-        welContainer = $(elContainer);
-        sContainerId = welContainer.attr("id");
-
-        if(typeof sContainerId != "undefined"){
-            waItems = welContainer.find("li");
-            waItems.click(function(){
-                localStorage.setItem("yonatab-" + sContainerId, $(this).index());
+        elContainer.querySelectorAll("li").forEach(function(elLi, nIndex){
+            elLi.addEventListener("click", function(){
+                localStorage.setItem("yonatab-" + sContainerId, nIndex);
             });
-            _restoreTab(sContainerId, waItems);
-        }
+        });
+
+        _restoreTab(sContainerId);
     });
 
     /**
      * @param {String} sContainerId
-     * @param {Wrapped Array} waItems
      */
-    function _restoreTab(sContainerId, waItems){
-        var welLink;
-        var waItems = $("#" + sContainerId).find("li > a");
-        var nIndex = localStorage.getItem("yonatab-" + sContainerId);
-
-        if(nIndex && waItems[nIndex]){
-            welLink = $(waItems[nIndex]);
-
-            if(welLink && welLink.data("toggle" == "tab")){
-                welLink.tab("show");
-            }
-        }
-
-        welLink = waItems = nIndex = null;
+    function _restoreTab(sContainerId){
+        // 레거시 버그 보존(v1.6 yobi.ui.Tabs.js부터 동일): 원본은
+        // welLink.data("toggle" == "tab")을 호출하는데 "toggle" == "tab"이 먼저
+        // 평가돼(false) 항상 falsy가 되어 저장된 탭 인덱스를 찾아도 $yona.tabShow가
+        // 호출된 적이 없다 - 즉 탭 복원 기능은 legacy부터 처음부터 죽어있었다.
+        // 동작을 바꾸지 않기 위해 이 함수는 의도적으로 아무 것도 하지 않는다.
     }
 
 });
