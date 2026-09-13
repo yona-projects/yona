@@ -92,7 +92,7 @@ class IssueViewController(
     fun listIssues(
         @PathVariable owner: String,
         @PathVariable projectName: String,
-        @RequestParam(required = false, defaultValue = "OPEN") state: State,
+        @RequestParam(value = "state", required = false, defaultValue = "open") stateParam: String,
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false) pageNum: Int?,
         @RequestParam(required = false) filter: String?,
@@ -114,6 +114,15 @@ class IssueViewController(
                 model.addAttribute("messageKey", "error.forbidden.or.notfound")
                 return "error/404"
             }
+
+        // State는 이름(OPEN/CLOSED)이 아니라 소문자 커스텀 값(open/closed)으로
+        // 직렬화되는 enum이라(State.state()), Spring 기본 enum 바인딩(Enum.valueOf)에
+        // 맡기면 안 된다 - issue/list.html의 상태 탭(state="open"/"closed")을 클릭할
+        // 때마다 MethodArgumentTypeMismatchException으로 400이 나던 것을(pjax를
+        // vanilla로 전환하며 실제 클릭 흐름을 처음 검증하다 발견) State.getValue()로
+        // 직접 변환해 해결 - 다른 컨트롤러(UserViewController/SiteViewController 등)도
+        // 전부 이 방식을 쓴다.
+        val state = State.getValue(stateParam.lowercase())
 
         // 권한 체크
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }

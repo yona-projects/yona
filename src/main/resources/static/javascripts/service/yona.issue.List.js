@@ -206,41 +206,96 @@
         /**
          * Initialize Pjax
          *
-         * @requires jquery.pjax
+         * jquery.pjax 플러그인을 걷어내고 fetch + DOMParser + history.pushState로 직접
+         * 구현한다. 서버는 X-PJAX류 헤더를 전혀 보지 않고 항상 전체 페이지를 그대로
+         * 렌더링하므로(컨트롤러 쪽에 그런 분기가 없음을 확인함), 클라이언트가 응답
+         * 전체에서 div[pjax-container] 부분만 잘라 교체하면 기존과 동일하게 동작한다.
+         * 기존 jquery.pjax가 걸어두던 "Firefox/Safari의 bfcache 버그 우회(2013년대
+         * 그 라이브러리 특유의 이슈)"는 그 라이브러리 자체를 걷어내므로 더 이상 적용
+         * 대상이 아니다.
+         *
+         * pjax-container(.issue-list-wrap)는 매번 innerHTML만 교체하고 그 컨테이너
+         * 엘리먼트 자체는 그대로 두므로, _attachEvent()가 이 컨테이너에 걸어둔 위임형
+         * 이벤트 리스너들은 재바인딩 없이 계속 유효하다(레거시 pjax도 같은 이유로
+         * 컨테이너 자체는 남기고 내용만 바꿨다).
+         *
          * @private
          */
         function _initPjax(){
-            var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-            var isSafari = navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1;
-            // Workaround for pjax bug result from bfcache
-            // https://developer.mozilla.org/en-US/docs/Using_Firefox_1.5_caching
-            if(isFirefox || isSafari){
+            var elContainer = document.querySelector('div[pjax-container]');
+            if(!elContainer){
                 return;
             }
-            var htPjaxOptions = {
-                "fragment": "div[pjax-container]",
-                "timeout" : 3000
-            };
 
-            if($.support.pjax) {
-                $.pjax.defaults.maxCacheLength = 0;
-            }
-
-            // on click pagination
-            $(document).on("click", "a[pjax-page]", function(weEvt) {
-                $.pjax.click(weEvt, "div[pjax-container]", htPjaxOptions);
+            document.addEventListener("click", function(weEvt){
+                var elLink = weEvt.target.closest("a[pjax-page]");
+                if(!elLink){
+                    return;
+                }
+                weEvt.preventDefault();
+                _pjaxNavigate(elLink.href, false);
             });
 
-            // on submit search form
-            $(document).on("submit", "form[name='search']", function(weEvt) {
-                $.pjax.submit(weEvt, "div[pjax-container]", htPjaxOptions);
+            // _onClickListOrder/_onClickStateTab/_onClickSearchFilter/_onChangeSearchField가
+            // 여전히 jQuery의 인자 없는 .submit()(내부적으로 .trigger("submit")과 동일)으로
+            // 검색 폼을 제출한다 - 이건 jQuery가 등록한 핸들러만 실행하고, 아무도
+            // preventDefault를 안 부르면 폴백으로 네이티브 elem.submit()을 직접 호출해버린다.
+            // 네이티브 elem.submit()은 스펙상 "submit" 이벤트 자체를 발생시키지 않으므로,
+            // document.addEventListener("submit", ...)로는 이 경로를 절대 가로챌 수 없다
+            // (실제로 시도했다가 전체 페이지 이동으로 새는 것을 Playwright로 재현했다).
+            // jQuery의 이벤트 위임($(document).on)만 이 트리거 경로에 반응하므로 그대로 쓴다.
+            $(document).on("submit", "form[name='search']", function(weEvt){
+                weEvt.preventDefault();
+                var elForm = this;
+                var sQuery = new URLSearchParams(new FormData(elForm)).toString();
+                var sBaseUrl = elForm.action.split("?")[0];
+                _pjaxNavigate(sBaseUrl + (sQuery ? "?" + sQuery : ""), false);
             });
 
-            // show spinners
-            $(document).on({
-                "pjax:send"    : _onBeforeLoadIssueList,
-                "pjax:complete": _onLoadIssueList
+            window.addEventListener("popstate", function(){
+                _pjaxNavigate(document.location.href, true);
             });
+        }
+
+        /**
+         * @param {String} sUrl
+         * @param {Boolean} bIsPopState history.pushState를 다시 쌓지 않아야 하는 뒤로/앞으로
+         *   가기 탐색인 경우 true.
+         * @private
+         */
+        function _pjaxNavigate(sUrl, bIsPopState){
+            _onBeforeLoadIssueList();
+
+            fetch(sUrl, { "headers": { "X-Requested-With": "XMLHttpRequest" } })
+                .then(function(oResp){
+                    if(!oResp.ok){
+                        throw new Error("pjax fetch failed: " + oResp.status);
+                    }
+                    return oResp.text();
+                })
+                .then(function(sHtml){
+                    var oDoc = new DOMParser().parseFromString(sHtml, "text/html");
+                    var elNewContainer = oDoc.querySelector("div[pjax-container]");
+                    var elCurrContainer = document.querySelector("div[pjax-container]");
+
+                    if(elNewContainer && elCurrContainer){
+                        elCurrContainer.innerHTML = elNewContainer.innerHTML;
+                    }
+                    if(oDoc.title){
+                        document.title = oDoc.title;
+                    }
+                    if(!bIsPopState){
+                        window.history.pushState({}, "", sUrl);
+                    }
+
+                    _onLoadIssueList();
+                })
+                .catch(function(){
+                    // pjax fetch/파싱 실패 시 일반 페이지 이동으로 폴백한다(레거시
+                    // jquery.pjax도 오류 시 동일하게 전체 페이지 이동으로 떨어졌다).
+                    NProgress.done();
+                    document.location.href = sUrl;
+                });
         }
 
         function _onBeforeLoadIssueList(){

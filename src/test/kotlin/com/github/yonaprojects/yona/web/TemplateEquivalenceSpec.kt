@@ -1487,7 +1487,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     // migrationPageLayout 전용 헤드/스크립트 자산(공용 site/layout::head/scripts에는 없음)
                     doc.select("script[src*='lib/jquery/jquery-1.9.0.js']").size shouldBe 1
                     doc.select("script[src*='lib/jquery/jquery.browser.js']").size shouldBe 1
-                    doc.select("script[src*='lib/jquery/jquery.pjax.js']").size shouldBe 1
+                    // jquery.pjax.js는 pjax 카테고리 vanilla 전환으로 제거됨 - 이 페이지의
+                    // yona.Migration.js는 애초에 $.pjax를 쓴 적이 없어(grep으로 확인) 로드만
+                    // 되고 쓰이지 않던 죽은 스크립트 태그였다.
+                    doc.select("script[src*='lib/jquery/jquery.pjax.js']").size shouldBe 0
                     doc.select("script[src*='common/yona.Common.js']").size shouldBe 1
                     doc.select("script[src*='lib/vendor.js']").size shouldBe 1
                     doc.select("script[src*='service/yona.Migration.js']").size shouldBe 1

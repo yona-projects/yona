@@ -123,11 +123,22 @@ yona.Pagination = (function(window, document) {
      * @param {Hash Table} htOpt
      */
     function updatePagination(elTarget, nTotalPages, htOptions) {
-        if (nTotalPages <= 0){
+        // `nTotalPages <= 0`만으로는 undefined/NaN을 걸러내지 못한다(둘 다 모든 비교
+        // 연산자에서 false를 내므로 이 가드를 그냥 통과해버린다) - 결과가 0건이라
+        // #pagination 자체가 서버 렌더링에서 통째로 빠지는 화면(예: issue/list.html의
+        // th:if="${!issuePage.content.isEmpty()}")에서 elTarget이 빈 jQuery
+        // 셀렉션이 되고, .data("total")도 undefined를 반환해 이 가드를 통과한 뒤
+        // _toElement가 undefined를 내놔 "Cannot set properties of undefined"로
+        // 죽던 것을 실제 검증 중 발견했다 - target 부재와 undefined 총 페이지 수를
+        // 모두 명시적으로 걸러낸다.
+        if(!elTarget || !(nTotalPages > 0)){
             return;
         }
 
         var welTarget = _toElement(elTarget);
+        if(!welTarget){
+            return;
+        }
         var htData = htOptions || {};
 
         htData.url = htData.url || document.URL;
