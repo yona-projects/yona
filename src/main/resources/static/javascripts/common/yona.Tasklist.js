@@ -106,6 +106,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
             var tasklist = target.previousElementSibling;
+            if(!tasklist){
+                return;
+            }
             var percentage = checked / total * 100;
             tasklist.querySelector(".done-counter").innerHTML = "(" + checked + "/" + total + ")";
             tasklist.querySelector(".bar").style.width = percentage + "%";

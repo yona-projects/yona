@@ -64,12 +64,21 @@
 
          function _initElement(htOptions){
             htElement.welContainer = _toElement(htOptions.elContainer);
+            // elContainer가 th:if 등으로 렌더링되지 않은 화면(예: 마일스톤이 없는 프로젝트의
+            // #milestone 드롭다운)에서는 jQuery 셀렉터가 빈 컬렉션이 되어 welContainer가 null이
+            // 된다 - 원본 jQuery는 빈 컬렉션에 대한 조작이 조용히 no-op이었으므로 동일하게 처리한다.
+            if(!htElement.welContainer){
+                return;
+            }
             htElement.welSelectedLabel = htElement.welContainer.querySelector(".d-label");
             htElement.welList = htElement.welContainer.querySelector(".dropdown-menu");
             htElement.waItems = htElement.welList.querySelectorAll("li");
         }
 
         function _attachEvent(){
+            if(!htElement.welContainer){
+                return;
+            }
             htElement.welList.addEventListener("click", function(weEvt){
                 var match = weEvt.target.closest("li");
                 if(match && htElement.welList.contains(match)){
@@ -198,6 +207,9 @@
          * @param {String} sQuery
          */
         function _selectItem(sQuery){
+            if(!htElement.welContainer){
+                return false;
+            }
             var waFind = htElement.welContainer.querySelectorAll(sQuery);
             if(waFind.length <= 0){
                 return false; // no item matches
