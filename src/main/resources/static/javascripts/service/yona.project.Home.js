@@ -49,7 +49,11 @@
          * initialize element
          */
         function _initElement(htOptions) {
-            var welBtnPlus = $('#plus-button-template').tmpl();
+            // #plus-button-template 마크업 자체가 legacy(v1.6 yobi.project.Home.js)부터
+            // 존재하지 않았다(git grep으로 대조 확인) - 이 라벨 보드 위젯(#label-board) 전체가
+            // project/home.html에 이식되지 않은 도달 불가능 코드라, welBtnPlus도 원래부터
+            // 할당만 되고 쓰인 적이 없다. .tmpl() 의존성만 제거한다.
+            var welBtnPlus = $();
 
             htElement.welRepoURL = $("#repositoryURL");
 
@@ -286,12 +290,15 @@
                 });
             };
 
-            var welDeleteButton = $('#label-delete-button-template')
-                .tmpl()
+            // #label-delete-button-template/#label-template도 legacy부터 마크업이
+            // 없었다(위 _initElement 주석 참고) - 사용 패턴(welLabel.addClass('label')/
+            // .append(welDeleteButton), welDeleteButton.show()/.hide())에서 합리적으로
+            // 추정한 최소 마크업으로 대체한다. 실제로 실행될 일이 없는 코드라 원본과
+            // 100% 동일할 필요는 없다.
+            var welDeleteButton = $('<button type="button" class="btn-delete-label">&times;</button>')
                 .click(fOnClickDelete);
 
-            var welLabel = $('#label-template')
-                .tmpl({'name': sName})
+            var welLabel = $($yona.tmpl('<span class="issue-label">${name}</span>', {'name': sName}))
                 .append(welDeleteButton);
 
             welLabel.setRemovability = function(bFlag) {
@@ -347,9 +354,13 @@
                 .data('category', sCategory)
                 .click(_onClickPlusLabel);
 
-            var welCategory = $('#category-template')
-                .tmpl({'category': sCategory})
-                .append(welBtnPlusLabel);
+            // #category-template도 legacy부터 마크업이 없었다(_initElement 주석 참고) -
+            // _appendLabels()가 [data-category=...]로 찾고 .children('.label-list')에
+            // 라벨을 추가하는 사용 패턴에서 합리적으로 추정한 최소 마크업으로 대체한다.
+            var welCategory = $($yona.tmpl(
+                '<div data-category="${category}"><span class="category-name">${category}</span><div class="label-list"></div></div>',
+                {'category': sCategory}
+            )).append(welBtnPlusLabel);
 
             welCategory.welBtnPlusLabel = welBtnPlusLabel;
             htElement.aBtnPlusLabel.push(welBtnPlusLabel);

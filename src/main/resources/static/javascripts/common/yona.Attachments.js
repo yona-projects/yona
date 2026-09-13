@@ -195,14 +195,14 @@ yona.Attachments = function(htOptions) {
      * @return {Wrapped Element}
      */
     function _getFileItem(htFile, bTemp) {
-        var welItem = $.tmpl(htVar.sTplFileItem, {
+        var welItem = $($yona.tmpl(htVar.sTplFileItem, {
             "fileId"  : htFile.id,
             "fileName": htFile.name,
             "fileHref": htFile.url,
             "fileSize": htFile.size,
             "fileSizeReadable": humanize.filesize(htFile.size),
             "mimeType": htFile.mimeType
-        });
+        }));
 
         _showMimetypeIcon(welItem, htFile.mimeType);
 

@@ -105,12 +105,19 @@ class ReviewViewController(
 
         val isSvn = project.vcs?.uppercase() == "SUBVERSION" || project.vcs?.uppercase() == "SVN"
         val commentId = if (isSvn) {
-            val sideVal = codeRangeReq.startSide?.let { CodeRange.Side.valueOf(it.uppercase()) }
+            // code/svnDiff.html의 #comment-form은 legacy와 동일하게 범위 없는 일반 커밋 댓글과
+            // 라인별 인라인 댓글을 겸한다(단일 폼 재사용) - 일반 댓글로 제출될 때는
+            // yona.code.SvnDiff.js가 붙여둔 path/startSide hidden input이 value 없이(빈 문자열로)
+            // 그대로 제출된다. String 타입은 Spring 바인딩이 빈 문자열을 null로 바꿔주지 않아서
+            // (Int인 startLine과 달리) codeRangeReq.startSide가 ""로 들어와 Side.valueOf("")가
+            // 예외를 던지던 것을 실제 일반 댓글 작성 검증 중 발견했다 - 빈 문자열도 "값 없음"으로
+            // 취급한다.
+            val sideVal = codeRangeReq.startSide?.takeIf { it.isNotBlank() }?.let { CodeRange.Side.valueOf(it.uppercase()) }
             val comment = codeReviewService.createCommitComment(
                 project = project,
                 commitId = commitId,
                 contents = contents,
-                path = codeRangeReq.path,
+                path = codeRangeReq.path?.takeIf { it.isNotBlank() },
                 line = codeRangeReq.startLine,
                 side = sideVal,
                 currentUser = user

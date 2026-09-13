@@ -123,6 +123,15 @@ yona.Files = (function(){
         var oXHR = new XMLHttpRequest();
         oXHR.open("POST", htVar.sUploadURL);
 
+        // site/layout.html의 전역 CSRF 자동 주입 패치는 jQuery.ajaxSend와 window.fetch만
+        // 감싸고 순수 XMLHttpRequest는 다루지 않는다 - 이 파일만 진행률 이벤트 때문에 XHR을
+        // 직접 쓰는 사각지대라, 실제로 파일 업로드가 항상 403으로 실패하는 것을 발견해
+        // 여기서 동일한 방식(XSRF-TOKEN 쿠키 원문을 X-XSRF-TOKEN 헤더로)으로 직접 주입한다.
+        var sCsrfCookieMatch = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+        if(sCsrfCookieMatch){
+            oXHR.setRequestHeader("X-XSRF-TOKEN", decodeURIComponent(sCsrfCookieMatch[1]));
+        }
+
         if(oXHR.upload){
             oXHR.upload.addEventListener("progress", function(weEvt){
                 if(weEvt.lengthComputable){

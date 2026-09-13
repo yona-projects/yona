@@ -72,17 +72,25 @@
             var welHidden = $('<input>').attr('type', 'hidden');
 
             htElement.welDiff = $('#commit');
+            // ReviewViewController.newCommitComment()는 CodeRangeRequest(path/startSide/
+            // startLine)로 바인딩한다 - 이 파일이 붙이던 hidden 필드명(line/side)이 서버
+            // 계약과 안 맞아 라인별 댓글 작성이 항상 400/무시됐던 것을 #comment-form 마크업
+            // 자체가 없어 크래시하는 것을 조사하다 함께 발견했다.
             htElement.welEmptyCommentForm = $('#comment-form')
                 .append(welHidden.clone().attr('name', 'path'))
-                .append(welHidden.clone().attr('name', 'line'))
-                .append(welHidden.clone().attr('name', 'side'));
+                .append(welHidden.clone().attr('name', 'startLine'))
+                .append(welHidden.clone().attr('name', 'startSide'));
             htElement.welComments = $('ul.comments');
 
+            // #comment-icon-template/#linenum-column-template/#comment-button-template
+            // 마크업 자체가 Spring Boot 이식 과정에서 code/svnDiff.html에 누락돼(v1.6
+            // code/svnDiff.scala.html:160-167 대응 - 데이터 치환이 전혀 없는 정적 조각이라
+            // 별도 템플릿 스크립트 태그 없이 그대로 인라인한다.
             if (htVar.bCommentable) {
-                htElement.welIcon = $('#comment-icon-template').tmpl();
+                htElement.welIcon = $('<i class="yobicon-comments"></i>');
             }
-            htElement.welEmptyLineNumColumn = $('#linenum-column-template').tmpl();
-            htElement.welEmptyCommentButton = $('#comment-button-template').tmpl();
+            htElement.welEmptyLineNumColumn = $('<td class="linenum"></td>');
+            htElement.welEmptyCommentButton = $('<button class="ybtn medium btn-thread"></button>');
 
             htElement.welBtnWatch = $('#watch-button');
 
@@ -229,8 +237,12 @@
         function _hideCommentBox() {
             htElement.welCommentTr.remove();
             htElement.welEmptyCommentForm.find('[name=path]').removeAttr('value');
-            htElement.welEmptyCommentForm.find('[name=line]').removeAttr('value');
-            htElement.welEmptyCommentForm.find('[name=side]').removeAttr('value');
+            htElement.welEmptyCommentForm.find('[name=startLine]').removeAttr('value');
+            htElement.welEmptyCommentForm.find('[name=startSide]').removeAttr('value');
+            // #comment-form은 legacy와 동일하게 board-comment-wrap 맨 아래(일반 댓글 작성
+            // 위치)로 돌아가며, 그 자리에서 범위 없는 일반 커밋 댓글 폼으로 계속 보인다(숨기지
+            // 않는다) - 별도의 write-comment-form이 존재하던 이전 구조에서만 필요했던 hide()
+            // 호출이었다(legacy 대조로 단일 폼 겸용 구조로 정리하며 제거).
             htElement.welComments.after(htElement.welEmptyCommentForm);
             _updateMiniMap();
         }
@@ -295,8 +307,8 @@
 
             welCommentTr = htElement.welCommentTr;
             welCommentTr.find('[name="path"]').val(sPath);
-            welCommentTr.find('[name="line"]').val(nLine);
-            welCommentTr.find('[name="side"]').val(sSide);
+            welCommentTr.find('[name="startLine"]').val(nLine);
+            welCommentTr.find('[name="startSide"]').val(sSide);
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();
@@ -515,7 +527,7 @@
                 waTargets.each(function(i, el){
                     welTarget = $(el);
 
-                    aLinks.push($.tmpl(htVar.sTplMiniMapLink, {
+                    aLinks.push($yona.tmpl(htVar.sTplMiniMapLink, {
                         "id"    : welTarget.attr("id"),
                         "top"   : Math.ceil(welTarget.offset().top * htVar.nMiniMapRatio),
                         "height": Math.ceil(welTarget.height() * htVar.nMiniMapRatio)

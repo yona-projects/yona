@@ -78,7 +78,10 @@
         }
 
         function _onChangeVCSItem(evt){
-            if(evt.val.toUpperCase() === "SUBVERSION"){
+            // select2(evt.val 커스텀 필드) -> TomSelect 교체 후 change 이벤트가 표준 DOM
+            // 이벤트로 바뀌어 evt.val이 항상 undefined였다(issue.LabelEditor.js의 Select2 v3
+            // -> Tom Select 이관 누락과 같은 계열의 버그, Playwright로 실제 재현).
+            if(evt.target.value.toUpperCase() === "SUBVERSION"){
                 htElement.svnWarning.show();
                 /**
                  * We don't know whether the user want to check this or not

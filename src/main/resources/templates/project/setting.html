@@ -96,7 +96,12 @@
                         </div>
                     </div>
 
-                    <div th:if="${(project.vcs ?: 'GIT').toUpperCase() == 'GIT' and branches != null and !branches.isEmpty()}" class="box-wrap middle" id="defaultBranchSettingPanel">
+                    <!-- id는 오타(Brance)를 legacy 그대로 유지한다 - yona.project.Setting.js가
+                         document.getElementById("defaultBranceSettingPanel")로 이 오타를 그대로
+                         참조하므로("코드 관리" 체크박스 해제 시 이 패널을 숨기는 용도), 포팅 시
+                         이 id만 "정상 철자"로 고쳤다가 JS와 어긋나 패널이 항상 안 숨겨지던 버그를
+                         이식 누락 전수 감사 중 발견해 원복했다. -->
+                    <div th:if="${(project.vcs ?: 'GIT').toUpperCase() == 'GIT' and branches != null and !branches.isEmpty()}" class="box-wrap middle" id="defaultBranceSettingPanel">
                         <div class="cu-label vmiddle" th:text="#{code.branches.defaultBranch}">Default Branch</div>
                         <div class="cu-desc">
                             <select id="project-default-branch" name="defaultBranch" style="min-width: 220px;">

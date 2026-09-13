@@ -6,10 +6,14 @@
 # legacy public/compiler.jar를 그대로 복사)로 같은 SIMPLE 최적화를 적용해 legacy와 동일한
 # 압축 방식을 유지한다.
 #
-# legacy 원본 재료 목록 대비 하나만 뺐다(이미 삭제된 소스 파일이라 재료로 넣을 수 없음 -
+# legacy 원본 재료 목록 대비 두 개를 뺐다(둘 다 이제 아무 소비자가 없음을 grep으로 확인 -
 # 죽은 코드를 다시 얼려넣지 않기 위해 의도적으로 제외):
 #   - yona-lib.js에서 common/yona.Mention.js: P3-46 5단계에서 CM6 기반 mention.ts로
 #     완전히 대체되며 소스 자체가 삭제됨.
+#   - yona-common.js에서 lib/jquery/jquery.tmpl.js: tmpl 카테고리 vanilla 전환으로
+#     $(selector).tmpl(...)/$.tmpl(...) 실사용이 전부 $yona.tmpl()(순수 ${key} 치환,
+#     yona.Common.js)로 대체됨 - 유일하게 남은 $.tmpl 참조는 yona.code.Diff.js인데
+#     이 파일 자체가 어느 템플릿에서도 로드되지 않는 완전한 죽은 코드로 이미 확인됨.
 #
 # lib/xss.js는 legacy 재료 목록 그대로 유지한다 - 처음엔 "서버사이드 Markdown.java 전용이라
 # 클라이언트 번들엔 필요 없다"고 오판해 뺐었는데, 실제로는 yona.Common.js의 xssClean()이
@@ -41,7 +45,6 @@ java -jar "$COMPILER" \
 
 echo "== yona-common.js =="
 java -jar "$COMPILER" \
-  --js "$JS/lib/jquery/jquery.tmpl.js" \
   --js "$JS/lib/jquery/jquery.form.js" \
   --js "$JS/lib/jquery/jquery.validate.js" \
   --js "$JS/lib/jquery/jquery.requestAs.js" \
