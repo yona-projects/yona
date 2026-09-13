@@ -106,9 +106,11 @@
 
             // edit category form
             elements.editCategoryForm.on("click", ".btnSubmit", _onClickBtnSubmitEditCategory);
+            $yona.attachDialogDismiss(elements.editCategoryForm.get(0));
 
             // edit label form
             elements.editLabelForm.on("click", ".btnSubmit", _onClickBtnSubmitEditLabel);
+            $yona.attachDialogDismiss(elements.editLabelForm.get(0));
             elements.editLabelForm.on("click", ".btn-preset-color", _onClickBtnPresetColorOnEditForm);
             elements.editLabelColor.on({
                 "keyup": _onKeyUpEditColor,
@@ -622,7 +624,7 @@
             // Select 교체 후에도 남아있어 항상 undefined였다(TypeError로 크래시). element.tomselect +
             // setValue(value)로 교체.
             elements.editCategoryForm.find("[name=isExclusive]")[0].tomselect.setValue(target.data("categoryIsExclusive") + "");
-            elements.editCategoryForm.modal("show");
+            elements.editCategoryForm.get(0).showModal();
         }
 
         /**
@@ -654,7 +656,7 @@
             }).catch(function(res){
                 _showError(res, "label.category.edit");
             }).finally(function(){
-                elements.editCategoryForm.modal("hide");
+                elements.editCategoryForm.get(0).close();
                 NProgress.done();
             });
         }
@@ -675,7 +677,7 @@
             // P3-46 #5 후속 버그 수정(2026-09-12): 위 _onClickBtnEditCategory와 동일한 이유로
             // element.tomselect + setValue(value)로 교체.
             elements.editLabelCategory[0].tomselect.setValue(target.data("categoryId"));
-            elements.editLabelForm.modal("show");
+            elements.editLabelForm.get(0).showModal();
 
             _updateInputBySelectedColor(elements.editLabelName,
                                         elements.editLabelColor,
@@ -731,7 +733,7 @@
             }).catch(function(res){
                 _showError(res, "label.edit");
             }).finally(function(){
-                elements.editLabelForm.modal("hide");
+                elements.editLabelForm.get(0).close();
                 NProgress.done();
             });
         }
