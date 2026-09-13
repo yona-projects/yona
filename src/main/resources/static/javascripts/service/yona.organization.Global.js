@@ -42,7 +42,9 @@
          * attach event handlers
          */
         function _attachEvent() {
-            htElement.elBtnEnroll.addEventListener('click', _onClickBtnEnroll);
+            if(htElement.elBtnEnroll){
+                htElement.elBtnEnroll.addEventListener('click', _onClickBtnEnroll);
+            }
         }
 
         /**
