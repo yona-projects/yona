@@ -209,9 +209,16 @@
 
                         <div class="board-comment-wrap">
                             <div class="non-ranged-threads-wrap">
+                                <!-- th:if와 th:replace를 같은 태그에 함께 쓰면 Thymeleaf의 처리
+                                     우선순위(fragment inclusion이 conditional evaluation보다
+                                     먼저 처리됨)상 th:if가 false여도 프래그먼트가 이미 삽입돼
+                                     버려서 ranged 스레드까지 이 영역에 중복 렌더링되는 버그가
+                                     있었다(스레드 중복 렌더링 원인) - th:if를 별도 th:block으로
+                                     감싸 분리해 수정. -->
                                 <th:block th:if="${commentThreads != null}" th:each="thread : ${commentThreads}">
-                                    <div th:if="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.NonRangedCodeCommentThread)}"
-                                         th:replace="~{pullrequest/partial_comment_thread :: thread(${thread}, ${project}, ${pr})}"></div>
+                                    <th:block th:if="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.NonRangedCodeCommentThread)}">
+                                        <div th:replace="~{pullrequest/partial_comment_thread :: thread(${thread}, ${project}, ${pr})}"></div>
+                                    </th:block>
                                 </th:block>
                             </div>
                             <!--
