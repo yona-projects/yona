@@ -95,9 +95,13 @@
 
             htVar.bUseCropper = yona.Files.getEnv().bXHR2;
 
-            if(htVar.bUseCropper){
+            if(htVar.bUseCropper && htElement.welAvatarCropWrap.length > 0){
                 htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
                 htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
+                // #avatarCropWrap은 user/edit.html(프로필 탭)에만 있다 - user.Setting.js가
+                // 로드되는 다른 탭(예: 비밀번호 변경)에는 없어 welAvatarCropWrap이 빈 jQuery
+                // 컬렉션이 되므로 .get(0)이 undefined일 수 있다(원본 jQuery는 빈 컬렉션에
+                // .on()을 걸어도 조용히 no-op이었다).
                 // #avatarCropWrap은 네이티브 <dialog>로 바뀌었으니(data-backdrop="static"이라
                 // 배경 클릭으로는 안 닫힘) Bootstrap의 "hidden" 대신 네이티브 "close" 이벤트를 쓴다.
                 htElement.welAvatarCropWrap.get(0).addEventListener("close", _clearCropper);
@@ -365,22 +369,13 @@
          * @param {String} sMessage
          */
         function _showPopover(welInput, sMessage){
-            welInput.popover({"trigger": "manual", "placement": "right"});
-
-            var oPopover = welInput.data('popover');
-            oPopover.options.placement = 'right';
-            oPopover.options.trigger   = 'manual';
-            oPopover.options.content   = sMessage;
-
-            welInput.popover('show');
+            $yona.showPopoverError(welInput, sMessage, "right");
         }
 
         function _clearPopovers(){
-            try {
-                htElement.welFormPswd.find("input").each(function(i, v){
-                    $(v).popover("destroy");
-                });
-            } catch(e){} // to avoid bootstrap bug
+            htElement.welFormPswd.find("input").each(function(i, v){
+                $yona.hidePopoverError(v);
+            });
         }
 
         function _onChangeNotiSwitch(){

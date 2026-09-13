@@ -93,11 +93,7 @@
         }
 
         function showErrorMessage(welInput, sMessage){
-            welInput.popover({
-                "trigger": "manual",
-                "placement": "left",
-                "content": sMessage
-            }).popover("show");
+            $yona.showPopoverError(welInput, sMessage, "left");
         }
 
         _init();

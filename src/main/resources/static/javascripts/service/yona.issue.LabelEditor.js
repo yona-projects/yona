@@ -808,11 +808,7 @@
          * @private
          */
         function _popoverMessageOn(message, element){
-            element.popover("destroy");
-            element.popover({
-                "placement": "bottom",
-                "content"  : message
-            }).popover("show");
+            $yona.showPopoverError(element, message, "bottom");
         }
 
         _init(options || {});

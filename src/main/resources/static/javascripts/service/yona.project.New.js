@@ -72,7 +72,7 @@
         }
 
         function _onChangeRepoAuthCheck(){
-            $("input").popover("destroy");
+            document.querySelectorAll("input").forEach($yona.hidePopoverError);
             htElement.welRepoAuthWrap.toggle("slide");
             htElement.waRepoAuthInput.attr("disabled", !htElement.welRepoAuthCheck.is(":checked"));
         }
@@ -178,11 +178,7 @@
                 targetElement = htElement.welForm.find("[name=" + target + "]");
 
                 if(targetElement.length > 0) {
-                    targetElement.popover({
-                        "trigger"  : "manual",
-                        "placement": "left",
-                        "content"  : error[target].shift()
-                    }).popover("show");
+                    $yona.showPopoverError(targetElement, error[target].shift(), "left");
                 }
             }
         }
