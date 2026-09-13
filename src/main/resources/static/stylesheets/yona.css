@@ -4630,13 +4630,20 @@ div.markdown-preview {
 .issue-info {
   padding: 15px 0 0 52px;
 }
-.issue-info.affix {
-  top: 0;
-  max-height: 97vh;
-  overflow-y: scroll;
+.sticky-issue-info {
+  position: sticky;
+  top: 10px;
+  max-height: calc(100vh - 10px);
+  overflow-y: auto;
   overflow-x: hidden;
-  right: 0;
-  width: 23%;
+}
+/* board/view.html, issue/view.html 전용(.row-fluid까지 동시에 갖는 board-body만 매치 —
+   pullrequest/view.html의 .board-body는 .row-fluid가 없어 영향 없음). .span-left-pane/
+   .span-right-pane은 원래 float 기반 컬럼이라 서로 독립된 높이를 가져, 본문보다 짧은
+   .span-right-pane 안에서는 sticky-issue-info가 붙어있을 공간 자체가 부족했다 — 두
+   컬럼을 flex item으로 만들어(기본 align-items: stretch) 높이를 맞춘다. */
+.board-body.row-fluid {
+  display: flex;
 }
 .issue-info .project-btn-item a {
   width: 90%;
@@ -5217,8 +5224,8 @@ label.issue-item-row {
   width: 260px;
   position: relative;
 }
-.codediff-wrap .review-wrap .review-container.affix {
-  position: fixed;
+.codediff-wrap .review-wrap .review-container.sticky-review-container {
+  position: sticky;
   top: 10px;
 }
 .codediff-wrap .review-wrap .review-container .review-list {
@@ -6566,13 +6573,22 @@ label.issue-item-row {
 .request-summary td {
   text-align: right;
 }
-.mass-update-wrap.affix {
+.mass-update-wrap {
+  position: sticky;
   top: 0;
   padding: 15px 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   width: 100%;
   background: #fff;
   z-index: 900;
+}
+.mass-update-wrap:after {
+  /* 자식 .mass-update-form이 float:left라 clearfix가 없으면 이 요소의 높이가
+     0이 된다 - position:fixed였을 때는 문서 흐름 밖이라 문제가 안 보였지만
+     sticky는 흐름 안에 남으므로 높이 0에서는 sticky 임계점 계산이 어긋난다. */
+  content: "";
+  display: table;
+  clear: both;
 }
 .mass-update-form {
   position: relative;

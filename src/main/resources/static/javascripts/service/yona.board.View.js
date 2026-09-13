@@ -112,11 +112,7 @@
         }
 
         function _affixIssueInfoWrap(){
-            htElement.issueInfoWrap.affix({
-                "offset": {
-                    "top": htElement.issueInfoWrap.offset().top - 10
-                }
-            });
+            htElement.issueInfoWrap.addClass("sticky-issue-info");
         }
 
         _init(htOptions);

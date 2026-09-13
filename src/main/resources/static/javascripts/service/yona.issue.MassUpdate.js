@@ -33,7 +33,6 @@
             _initVar(htOptions || {});
             _initElement(htOptions || {});
             _attachEvent();
-            _setMassUpdateFormAffixed();
         }
 
         /**
@@ -324,13 +323,7 @@
             return sItemId;
         }
 
-        function _setMassUpdateFormAffixed(){
-            $('.mass-update-wrap').affix({
-                offset: {top:$('.mass-update-wrap').offset().top - 15}
-            });
-         }
-
-        function _onChangeAttachingLabelField(sLabelId){
+function _onChangeAttachingLabelField(sLabelId){
             var aDetachLabels = htVar.htExclusiveLabels[htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').data('category')] || [];
             for(var i = 0; i < aDetachLabels.length; i++) {
                 if(sLabelId !== aDetachLabels[i]){

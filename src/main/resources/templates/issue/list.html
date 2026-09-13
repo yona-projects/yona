@@ -249,8 +249,13 @@
 
                     <!-- 이슈 목록 -->
                     <th:block th:if="${!issuePage.content.isEmpty()}">
-                        <div class="filter-wrap board">
-                            <!-- 일괄 수정 (Mass Update) 폼 영역 -->
+                        <!-- P3-XX: position:sticky는 부모 컨테이너 범위를 벗어나
+                             고정될 수 없다(구 Bootstrap .affix()의 position:fixed와
+                             달리) - .mass-update-wrap이 .filter-wrap(필터 툴바만
+                             감싸는 좁은 컨테이너) 안에 있으면 스크롤 시 그 짧은 부모와
+                             함께 화면 밖으로 사라져버린다. 이슈 목록 전체를 감싸는
+                             이 wrapper로 sticky 대상을 옮겨 충분한 스크롤 여백을 준다. -->
+                        <div class="issue-list-scroll-area">
                             <div class="mass-update-wrap hide-in-mobile" th:if="${currentUser != null && currentUser.isMemberOf(project)}">
                                 <form id="mass-update-form" class="mass-update-form pull-left" th:action="@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}" method="post">
                                     <div class="btn-group check-all">
@@ -340,7 +345,7 @@
                                     </div>
                                 </form>
                             </div>
-
+                        <div class="filter-wrap board">
                             <div class="filters pull-right" th:if="${issuePage.totalElements > 1}">
                                 <a th:href="@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name}, state=${state}, filter=${filter}, orderBy='dueDate', orderDir=${orderBy == 'dueDate' && orderDir == 'desc' ? 'asc' : 'desc'})}"
                                    th:class="${orderBy == 'dueDate'} ? 'filter active' : 'filter'">
@@ -380,6 +385,7 @@
                         </div>
 
                         <div id="pagination" th:data-total="${issuePage.totalPages}"><!-- pagination.js가 채움 --></div>
+                        </div>
                     </th:block>
 
                     <!-- P3-57: TASK-0249가 board 2곳만 파라미터화된 help/keymap :: keymap(section, project)

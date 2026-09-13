@@ -110,14 +110,7 @@
 
             htElement.waBtnToggleReviewWrap.on("click", function(){
                 htElement.welContainer.toggleClass("diffs-only");
-
-                var positionTop =  10;
-                if(htElement.welReviewContainer.offset().top - positionTop < $(document).scrollTop()){
-                    htElement.welReviewContainer
-                        .addClass('affix-top')
-                        .removeClass('affix');
-                }
-
+                _setReviewListHeight();
             });
 
             // 리뷰카드 링크 클릭시
@@ -278,9 +271,7 @@
                 return;
             }
 
-            htElement.welReviewContainer.affix({
-                offset : {top : htElement.welReviewContainer.offset().top-10}
-            });
+            htElement.welReviewContainer.addClass('sticky-review-container');
         }
 
         /**
@@ -666,8 +657,14 @@
 
         function _setReviewListHeight() {
             var nMaxHeight;
-            
-            if(htElement.welReviewContainer.hasClass('affix')) {
+
+            // position: sticky는 fixed와 달리 상태 변화 이벤트가 없어, top:10px에
+            // 실제로 붙었는지 여부를 getBoundingClientRect()로 직접 판별한다(Bootstrap
+            // affix.js의 .affix 클래스 판별을 대체).
+            var bIsStuck = htElement.welReviewContainer.length > 0 &&
+                htElement.welReviewContainer[0].getBoundingClientRect().top <= 10;
+
+            if(bIsStuck) {
                 var nCodeDiffWrapOffsetBottom = htElement.welContainer.position().top + htElement.welContainer.height();
                 var nReviewListOffsetBottom = htElement.welReviewList.offset().top + htElement.welReviewList.height();
                 var nReviewListDefaultMarginBottom = 15;

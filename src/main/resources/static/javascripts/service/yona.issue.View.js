@@ -560,11 +560,7 @@
         }
 
         function _affixIssueInfoWrap(){
-            elements.issueInfoWrap.affix({
-                "offset": {
-                    "top": elements.issueInfoWrap.offset().top - 10
-                }
-            });
+            elements.issueInfoWrap.addClass("sticky-issue-info");
         }
 
         // initialize
