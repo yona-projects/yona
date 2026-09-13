@@ -76,7 +76,9 @@ yona.CodeCommentBlock = (function(){
         var prevDisplay = el.style.display;
         var prevVisibility = el.style.visibility;
         el.style.visibility = "hidden";
-        el.style.display = "";
+        // .btnPop은 CSS(.diff-body .btnPop)에서 기본 display:none이라 인라인 스타일을
+        // 비우는 것만으로는 다시 보이지 않는다 - 측정을 위해 명시적으로 block을 강제한다.
+        el.style.display = "block";
         var width = el.offsetWidth;
         el.style.display = prevDisplay;
         el.style.visibility = prevVisibility;
@@ -272,7 +274,8 @@ yona.CodeCommentBlock = (function(){
     function _showPopButtonOnBlock(){
         var htPosition = _getPopButtonPosition();
 
-        htElement.welPopButtonOnBlock.style.display = "";
+        // .btnPop은 CSS에서 기본 display:none이라(yona.css) 빈 문자열로는 다시 안 보인다.
+        htElement.welPopButtonOnBlock.style.display = "block";
         htElement.welPopButtonOnBlock.style.top = htPosition.top + "px";
         htElement.welPopButtonOnBlock.style.left = htPosition.left + "px";
     }

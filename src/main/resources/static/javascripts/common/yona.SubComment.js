@@ -6,7 +6,9 @@ document.addEventListener("DOMContentLoaded", function(){
 
     function fadeIn(el, duration){
         el.style.transition = "opacity " + duration + "ms";
-        el.style.display = "";
+        // .add-a-comment/.new-issue-by는 CSS에서 기본 display:none이라(yona.css) 인라인
+        // 스타일을 비우는 것만으로는 다시 보이지 않는다 - 명시적으로 block을 강제한다.
+        el.style.display = "block";
         el.style.opacity = "0";
         requestAnimationFrame(function(){
             el.style.opacity = "1";
@@ -35,7 +37,9 @@ document.addEventListener("DOMContentLoaded", function(){
             // Show input form
             var inputForm = parent.querySelector(".child-comment-input-form");
             if(inputForm){
-                inputForm.style.display = (getComputedStyle(inputForm).display === "none") ? "" : "none";
+                // .child-comment-input-form도 CSS 기본값이 display:none이라 빈 문자열로는
+                // 다시 보이지 않는다 - block을 명시한다.
+                inputForm.style.display = (getComputedStyle(inputForm).display === "none") ? "block" : "none";
             }
 
             parent.querySelectorAll("textarea").forEach(function(textarea){

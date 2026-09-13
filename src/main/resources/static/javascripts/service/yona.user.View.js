@@ -42,7 +42,9 @@
         function _initShowChildList() {
             document.querySelectorAll(".post-item").forEach(function(el){
                 el.addEventListener("click", function(e){
-                    this.querySelector(".child-issue-list").style.display = "";
+                    // .child-issue-list는 Bootstrap .hide 클래스(display:none)가 붙어 있어
+                    // 인라인 스타일을 비우는 것만으로는 다시 보이지 않는다 - block을 강제한다.
+                    this.querySelector(".child-issue-list").style.display = "block";
                 });
             });
 

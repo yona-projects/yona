@@ -292,7 +292,10 @@ document.addEventListener("DOMContentLoaded", function () {
         var isHidden = getComputedStyle(el).display === "none";
         el.style.transition = "none";
         if (isHidden) {
-            el.style.display = "";
+            // 대상은 항상 <li class="user-li hide">(usermenu_tab_content_list.html) - Bootstrap
+            // .hide{display:none}가 강제되어 있어 빈 문자열로는 다시 안 보인다. <li>의 기본
+            // display는 list-item이라 block이 아니라 list-item을 명시해야 정확하다.
+            el.style.display = "list-item";
             el.style.overflow = "hidden";
             el.style.maxHeight = "0px";
             el.style.opacity = "0";
