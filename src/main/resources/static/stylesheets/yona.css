@@ -10313,6 +10313,12 @@ span.issue-label:hover {
   line-height: 150%;
   color: #555;
 }
+/* 네이티브 <dialog>로 전환하며 .modal-backdrop 대신 ::backdrop 의사 엘리먼트를 쓴다
+   (yona.ui.Dialog.js 참고) - 불투명도는 기존 .modal-backdrop과 동일하게 맞춘다. */
+.yonaDialog::backdrop {
+  background-color: #000000;
+  opacity: 0.8;
+}
 .yonaToasts {
   position: fixed;
   overflow: hidden;

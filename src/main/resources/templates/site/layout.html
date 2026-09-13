@@ -666,8 +666,9 @@
 
   <!-- 공통 스크립트 및 모달 다이얼로그 -->
   <th:block th:fragment="scripts">
-    <!-- yona.ui.Dialog -->
-    <div id="yonaDialog" class="modal hide yonaDialog" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- yona.ui.Dialog: 네이티브 <dialog> - .modal 클래스는 그대로 유지해 기존 위치/테두리
+         CSS를 재사용한다(yona.ui.Dialog.js 상단 주석 참고). -->
+    <dialog id="yonaDialog" class="modal yonaDialog">
         <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
         <div class="message">
             <div class="center-text">
@@ -678,7 +679,7 @@
                 <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}">Confirm</button>
             </div>
         </div>
-    </div>
+    </dialog>
     
     <!-- yona.ui.Toast -->
     <div id="yonaToasts" class="yonaToasts"></div>

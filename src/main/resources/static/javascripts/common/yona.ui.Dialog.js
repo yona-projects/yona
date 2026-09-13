@@ -23,7 +23,9 @@
  * var oDialog = new yona.ui.Dialog("#yonaDialog")
  * oDialog.show("메시지");
  *
- * @require bootstrap-modal.js
+ * bootstrap-modal.js 대신 네이티브 <dialog> + showModal()/close()를 사용한다. #yonaDialog
+ * 자체가 <dialog class="modal yonaDialog">로 바뀌었으므로(site/layout.html 참고) 기존 .modal
+ * CSS(위치/테두리/그림자)는 그대로 재사용되고, 백드롭은 ::backdrop 의사 엘리먼트로 대체된다.
  */
 (function(ns){
 
@@ -57,19 +59,37 @@
          * @param {String} sContainer
          */
         function _initElement(sContainer){
-            htElement.welContainer = $(sContainer).clone();
-            htElement.welMessage = htElement.welContainer.find(".msg");
-            htElement.welDescription = htElement.welContainer.find(".desc");
-            htElement.welButtons = htElement.welContainer.find(".buttons");
-            htElement.welContainer.modal({
-                "show": false
-            });
+            var elOriginal = document.querySelector(sContainer);
+            htElement.elContainer = elOriginal.cloneNode(true);
+            document.body.appendChild(htElement.elContainer);
+            htElement.elMessage = htElement.elContainer.querySelector(".msg");
+            htElement.elDescription = htElement.elContainer.querySelector(".desc");
+            htElement.elButtons = htElement.elContainer.querySelector(".buttons");
         }
 
         function _attachEvent(){
-            htElement.welContainer.on("shown", _onShownDialog);
-            htElement.welContainer.on("hidden", _onHiddenDialog);
-            htElement.welContainer.on("click", "button.ybtn", _onClickButton);
+            htElement.elContainer.addEventListener("close", _onHiddenDialog);
+
+            htElement.elContainer.addEventListener("click", function(weEvt){
+                // 배경(백드롭) 클릭 시 닫기 - 네이티브 dialog는 backdrop 클릭이 dialog 자신에 대한
+                // 클릭으로 버블링되므로(target === 자기 자신) 이것으로 배경 클릭을 판별한다.
+                if(weEvt.target === htElement.elContainer){
+                    hideDialog();
+                    return;
+                }
+
+                var elButton = weEvt.target.closest("button.ybtn");
+                if(elButton && htElement.elContainer.contains(elButton)){
+                    _onClickButton(elButton, weEvt);
+                    return;
+                }
+
+                // X 닫기 버튼(.btn-dismiss button)처럼 ybtn 클래스가 없는 data-dismiss="modal" 엘리먼트
+                var elDismiss = weEvt.target.closest('[data-dismiss="modal"]');
+                if(elDismiss && htElement.elContainer.contains(elDismiss)){
+                    hideDialog();
+                }
+            });
         }
 
         /**
@@ -84,10 +104,11 @@
             var sButtonHTML = htOptions.aButtonLabels ?
                 _getCustomButtons(htOptions) : htVar.sDefaultButton;
 
-            htElement.welButtons.html(sButtonHTML);
-            htElement.welMessage.html($yona.nl2br(sMessage));
-            htElement.welDescription.html($yona.nl2br(sDescription || ""));
-            htElement.welContainer.modal("show");
+            htElement.elButtons.innerHTML = sButtonHTML;
+            htElement.elMessage.innerHTML = $yona.nl2br(sMessage);
+            htElement.elDescription.innerHTML = $yona.nl2br(sDescription || "");
+            htElement.elContainer.showModal();
+            _onShownDialog();
         }
 
         /**
@@ -111,14 +132,15 @@
         }
 
         /**
+         * @param {Element} elButton
          * @param weEvt
          * @private
          */
-        function _onClickButton(weEvt){
+        function _onClickButton(elButton, weEvt){
             if(typeof htVar.fOnClickButton === "function"){
                 var bResult = htVar.fOnClickButton({
                     "weEvt"       : weEvt,
-                    "nButtonIndex": $(this).index()
+                    "nButtonIndex": Array.prototype.indexOf.call(htElement.elButtons.children, elButton)
                 });
 
                 // fOnClickButton 이 false 를 반환하는 경우
@@ -130,7 +152,7 @@
         }
 
         function hideDialog(){
-            htElement.welContainer.modal("hide");
+            htElement.elContainer.close();
         }
 
         function _onShownDialog(){
@@ -139,12 +161,17 @@
             }
 
             if(htVar.bAutoFocusOnLastButton){
-                htElement.welButtons.find(".ybtn-primary:last,button:last").focus();
+                var aPrimaryButtons = htElement.elButtons.querySelectorAll(".ybtn-primary");
+                var elFocusTarget = aPrimaryButtons.length ?
+                    aPrimaryButtons[aPrimaryButtons.length - 1] : htElement.elButtons.lastElementChild;
+                if(elFocusTarget){
+                    elFocusTarget.focus();
+                }
             }
         }
 
         function _onHiddenDialog(){
-            htElement.welMessage.html("");
+            htElement.elMessage.innerHTML = "";
 
             if(typeof htVar.fOnAfterHide == "function"){
                 htVar.fOnAfterHide();
