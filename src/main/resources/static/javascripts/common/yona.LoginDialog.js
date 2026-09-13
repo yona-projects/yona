@@ -18,7 +18,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-$(function(){
+document.addEventListener("DOMContentLoaded", function(){
     "use strict";
 
     var htElement = {};
@@ -32,36 +32,49 @@ $(function(){
             return;
         }
 
+        // #loginDialog는 익명 사용자에게만 렌더링된다(site/layout.html의
+        // sec:authorize="isAnonymous()") - 로그인된 사용자의 페이지에는 아예 없다.
+        if(!document.getElementById("loginDialog")){
+            return;
+        }
+
         _initElement();
         _attachEvent();
     }
 
     function _initElement(){
-        htElement.welDialog = $("#loginDialog");
-        htElement.welForm = htElement.welDialog.find("form");
-        htElement.welInputId = htElement.welDialog.find("input[name='loginIdOrEmail']");
-        htElement.welInputPw = htElement.welDialog.find("input[name='password']");
-        htElement.welInputRememberMe = htElement.welDialog.find("input[name='rememberMe']");
-        htElement.welLoginError = htElement.welDialog.find(".error");
-        htElement.welLoginErrorMsg = htElement.welLoginError.find(".error-message");
+        htElement.elDialog = document.getElementById("loginDialog");
+        htElement.elForm = htElement.elDialog.querySelector("form");
+        htElement.elInputId = htElement.elDialog.querySelector("input[name='loginIdOrEmail']");
+        htElement.elInputPw = htElement.elDialog.querySelector("input[name='password']");
+        htElement.elInputRememberMe = htElement.elDialog.querySelector("input[name='rememberMe']");
+        htElement.elLoginError = htElement.elDialog.querySelector(".error");
+        htElement.elLoginErrorMsg = htElement.elLoginError.querySelector(".error-message");
     }
 
     function _attachEvent(){
-        $(document.body).on('click', '[data-login="required"]', _showDialog);
-        htElement.welForm.on('submit', _onSubmitForm);
+        document.body.addEventListener('click', function(weEvt){
+            var elTrigger = weEvt.target.closest('[data-login="required"]');
+            if(elTrigger){
+                _showDialog(weEvt);
+            }
+        });
+        htElement.elForm.addEventListener('submit', _onSubmitForm);
+        // 배경 클릭/X 닫기 버튼(data-dismiss="modal") 처리 - ESC는 <dialog> 네이티브 동작으로 충분.
+        $yona.attachDialogDismiss(htElement.elDialog);
     }
 
     function _showDialog(weEvt){
         if(_isInputElement(weEvt.target)){
-            $(weEvt.target).blur();
+            weEvt.target.blur();
         }
 
-        htElement.welLoginError.hide();
-        htElement.welInputPw.val("");
-        htElement.welInputId.val("");
+        htElement.elLoginError.style.display = "none";
+        htElement.elInputPw.value = "";
+        htElement.elInputId.value = "";
 
-        htElement.welDialog.modal("show");
-        htElement.welInputId.focus();
+        htElement.elDialog.showModal();
+        htElement.elInputId.focus();
 
         weEvt.preventDefault();
         weEvt.stopPropagation();
@@ -73,12 +86,19 @@ $(function(){
     }
 
     function _onSubmitForm(weEvt){
-        fetch(htElement.welForm.attr("action"), {
+        fetch(htElement.elForm.getAttribute("action"), {
             "method": "post",
+            // jQuery $.ajax/$.post는 동일 출처 요청에 X-Requested-With: XMLHttpRequest를
+            // 자동으로 붙였는데 fetch는 그렇지 않다 - 이 헤더가 없으면 서버
+            // (YonaAuthenticationFailureHandler)가 AJAX 요청인지 못 알아채고 302 리다이렉트를
+            // 내려주고, fetch가 그 리다이렉트를 그대로 따라가 200을 받아버려 로그인 실패 시
+            // 에러 메시지가 전혀 뜨지 않고 조용히 페이지만 새로고침되는 회귀가 있었다(Playwright로
+            // 실제 재현) - 명시적으로 헤더를 붙여 서버가 AJAX 경로(JSON 에러 응답)를 타게 한다.
+            "headers": {"X-Requested-With": "XMLHttpRequest"},
             "body": new URLSearchParams({
-                "loginIdOrEmail" : htElement.welInputId.val(),
-                "password": htElement.welInputPw.val(),
-                "rememberMe": htElement.welInputRememberMe.is(":checked")
+                "loginIdOrEmail" : htElement.elInputId.value,
+                "password": htElement.elInputPw.value,
+                "rememberMe": htElement.elInputRememberMe.checked
             })
         }).then(function(response){
             if(response.ok){
@@ -127,10 +147,19 @@ $(function(){
     }
 
     function _showDialogError(sMessage){
-        htElement.welLoginErrorMsg.html(sMessage);
-        htElement.welLoginError.show();
-        htElement.welDialog.effect("shake", {"distance": 2}, 200);
-        htElement.welInputId.focus();
+        htElement.elLoginErrorMsg.innerHTML = sMessage;
+        // .loginDialog .error는 CSS에서 기본 display:none이라(yona.css) 인라인 스타일을
+        // 단순히 비우는 것만으로는 다시 나타나지 않는다 - jQuery .show()가 하던 것처럼
+        // 명시적으로 보이는 display 값을 강제한다.
+        htElement.elLoginError.style.display = "block";
+
+        // jQuery UI .effect("shake")를 CSS 애니메이션으로 대체(yona.css의 .yona-shake 참고).
+        // 클래스를 뗐다 다시 붙이기 전에 강제로 리플로우시켜야 연속 실패 시에도 애니메이션이 재생된다.
+        htElement.elDialog.classList.remove("yona-shake");
+        void htElement.elDialog.offsetWidth;
+        htElement.elDialog.classList.add("yona-shake");
+
+        htElement.elInputId.focus();
     }
 
     _init();

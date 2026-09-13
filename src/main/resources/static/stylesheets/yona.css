@@ -10319,6 +10319,16 @@ span.issue-label:hover {
   background-color: #000000;
   opacity: 0.8;
 }
+/* jQuery UI .effect("shake")를 대체하는 CSS 애니메이션(yona.LoginDialog.js 참고). */
+@keyframes yona-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+}
+.yona-shake {
+  animation: yona-shake 200ms ease-in-out;
+}
 .yonaToasts {
   position: fixed;
   overflow: hidden;

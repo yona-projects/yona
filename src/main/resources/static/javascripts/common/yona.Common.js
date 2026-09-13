@@ -440,6 +440,28 @@ $yona = yona.Common = (function(){
       return filter.defence(str);
     }
 
+    /**
+     * 네이티브 <dialog> 엘리먼트에 "배경(backdrop) 클릭으로 닫기"와
+     * "[data-dismiss=modal] 클릭으로 닫기"를 붙여준다. Bootstrap .modal()이 전역으로 제공하던
+     * 것을 각 다이얼로그마다 대체하기 위한 공용 헬퍼(ESC 닫기는 <dialog> 자체가 네이티브로
+     * 처리하므로 별도 구현이 필요 없다).
+     *
+     * @param {Element} elDialog
+     */
+    function attachDialogDismiss(elDialog){
+        elDialog.addEventListener("click", function(weEvt){
+            if(weEvt.target === elDialog){
+                elDialog.close();
+                return;
+            }
+
+            var elDismiss = weEvt.target.closest('[data-dismiss="modal"]');
+            if(elDismiss && elDialog.contains(elDismiss)){
+                elDialog.close();
+            }
+        });
+    }
+
     /* public Interface */
     return {
         "setScriptPath"   : setScriptPath,
@@ -459,7 +481,8 @@ $yona = yona.Common = (function(){
         "tmpl"      : processTpl,
         "htmlspecialchars": htmlspecialchars,
         "isImageFile": isImageFile,
-        "xssClean" : xssClean
+        "xssClean" : xssClean,
+        "attachDialogDismiss": attachDialogDismiss
     };
 })();
 

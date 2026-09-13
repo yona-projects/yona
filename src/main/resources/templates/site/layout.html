@@ -693,8 +693,8 @@
     </div>
     </script>
 
-    <!-- loginDialog (익명 사용자용) -->
-    <div sec:authorize="isAnonymous()" id="loginDialog" class="modal hide loginDialog" tabindex="-1" role="dialog">
+    <!-- loginDialog (익명 사용자용) - 네이티브 <dialog>(yona.LoginDialog.js 참고) -->
+    <dialog sec:authorize="isAnonymous()" id="loginDialog" class="modal loginDialog">
       <div class="modal-body">
         <div class="pull-right">
           <button type="button" class="close mr10" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -751,7 +751,7 @@
           </div>
         </form>
       </div>
-    </div>
+    </dialog>
 
     <!-- 스크립트 라이브러리들 로드 -->
     <script type="text/javascript" src="/javascripts/yona-common.js"></script>
