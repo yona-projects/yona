@@ -592,15 +592,24 @@
         // legacy는 풀페이지 폼 제출(commentUpdateForm/child_commentForm)이지만, yona는 REST(PUT/POST
         // .../comments[/id])만 제공하므로 fetch 기반 AJAX로 대체한다 — 성공 시 간단히 페이지를
         // reload한다(리뷰어 참여/해제 등 이미 정착된 다른 PR 화면과 동일한 패턴).
+        // legacy yobi.Comment.js의 _toggleEditForm이 열기/닫기 양쪽 클릭에서 공통으로
+        // 하던 부수 동작(.add-a-comment 숨김 + autosize 재계산)을 그대로 재현한다 - 특히
+        // autosize.update()가 없으면 display:none 상태로 페이지가 로드될 때 전역
+        // autosize($('textarea'))가 실제 내용 줄 수를 계산 못 해, 여러 줄짜리 기존 댓글을
+        // 수정할 때 편집창 높이가 내용에 안 맞게 나타난다(사용자가 뭔가 입력해야 재계산됨).
         $(document).on('click', '[data-toggle="comment-edit"]', function(){
             var id = $(this).data('commentId');
             $('#comment-body-' + id).hide();
             $('#comment-editform-' + id).show();
+            $(".add-a-comment").hide();
+            autosize.update($('textarea'));
         });
         $(document).on('click', '.ybtn-cancel', function(){
             var id = $(this).data('commentId');
             $('#comment-editform-' + id).hide();
             $('#comment-body-' + id).show();
+            $(".add-a-comment").hide();
+            autosize.update($('textarea'));
         });
         // P3-48 화면별 재현 세션에서 발견: 새 댓글 등록 폼(#comment-form)은 위 두 폼(댓글 수정/
         // 대댓글)과 달리 AJAX로 전환되지 않은 채 남아있어, th:action이 가리키는

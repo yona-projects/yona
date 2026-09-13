@@ -263,15 +263,21 @@
         });
 
         // ===== 댓글 인라인 수정/대댓글 AJAX 배선 =====
+        // legacy yobi.Comment.js의 _toggleEditForm이 열기/닫기 양쪽 클릭에서 공통으로
+        // 하던 부수 동작(.add-a-comment 숨김 + autosize 재계산)을 그대로 재현한다.
         $(document).on('click', '[data-toggle="comment-edit"]', function(){
             var id = $(this).data('commentId');
             $('#comment-body-' + id).hide();
             $('#comment-editform-' + id).show();
+            $(".add-a-comment").hide();
+            autosize.update($('textarea'));
         });
         $(document).on('click', '.ybtn-cancel', function(){
             var id = $(this).data('commentId');
             $('#comment-editform-' + id).hide();
             $('#comment-body-' + id).show();
+            $(".add-a-comment").hide();
+            autosize.update($('textarea'));
         });
         // P3-48 화면별 재현 세션에서 발견: issue/view.html과 동일하게, 새 댓글 등록 폼
         // (#comment-form)의 th:action이 가리키는 "/{owner}/{projectName}/post/{postNumber}/comment"
