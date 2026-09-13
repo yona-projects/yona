@@ -50,13 +50,24 @@
 
           <!-- Diff Body -->
           <div class="diff-body discommentable">
+            <!-- yona.CodeCommentBlock.js(드래그 다중행 범위선택, 3단계 복원)가 선택 범위 끝에
+                 띄우는 "댓글 달기" 팝업 버튼. pullrequest/view.html에는 이미 있었는데 이
+                 화면엔 없었다 - yona.css의 .diff-body .btnPop이 이미 기본 display:none을
+                 정의해두고 있어 마크업만 추가하면 된다. -->
+            <div class="btnPop" th:if="${currentUser != null}"><button type="button" class="ybtn ybtn-info ybtn-small"><i class="yobicon-post2"></i></button></div>
             <div class="diff-partial-outer" th:each="diff : ${fileDiffs}" th:id="${diff.pathB != null ? diff.pathB : diff.pathA}">
               <div class="diff-partial-inner">
                 <div class="diff-partial-meta clearfix" style="background-color: #fafbfc; border: 1px solid #d1d5da; border-bottom: none; padding: 10px; border-top-left-radius: 3px; border-top-right-radius: 3px; font-family: monospace;">
                   <span th:text="${diff.pathB != null ? diff.pathB : diff.pathA}">파일명</span>
                 </div>
                 <div class="diff-partial-code" style="border: 1px solid #d1d5da; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; overflow: auto; margin-bottom: 20px;">
-                  <table class="diff-container show-comments" style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;">
+                  <!-- data-path-a/data-path-b/data-file-path는 yona.CodeCommentBlock.js(드래그
+                       다중행 범위선택, 3단계 복원)가 _getElementsByOffsetOptions()에서 파일
+                       스코프를 좁히는 데 쓴다 - pullrequest/partial_filediff.html에는 이미
+                       있었는데 이 화면엔 없었다. -->
+                  <table class="diff-container show-comments" style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;"
+                         th:data-path-a="${diff.pathA}" th:data-path-b="${diff.pathB}"
+                         th:data-file-path="${diff.pathB != null ? diff.pathB : diff.pathA}">
                     <tbody>
                     <!-- ADD -->
                     <th:block th:if="${diff.changeType.name == 'ADD'}">
@@ -68,6 +79,7 @@
                         <tr class="add diff-line-tr" style="background-color: #e6ffed;"
                             th:data-path="${diff.pathB}"
                             th:data-line-num-b="${i}"
+                            th:data-line="${i}" data-side="B" data-type="add"
                             data-kind="ADD">
                           <td class="linenum add-comment-btn-cell" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none; cursor: pointer; position: relative;">+</td>
                           <td class="linenum" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none;" th:text="${i+1}">1</td>
@@ -90,6 +102,7 @@
                         <tr class="remove diff-line-tr" style="background-color: #ffeef0;"
                             th:data-path="${diff.pathA}"
                             th:data-line-num-a="${i}"
+                            th:data-line="${i}" data-side="A" data-type="remove"
                             data-kind="REMOVE">
                           <td class="linenum" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none;" th:text="${i+1}">1</td>
                           <td class="linenum add-comment-btn-cell" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none; cursor: pointer; position: relative;">+</td>
@@ -116,11 +129,14 @@
                         </tr>
                         
                         <th:block th:each="line : ${hunk.lines}">
-                          <tr class="diff-line-tr" 
+                          <tr class="diff-line-tr"
                               th:style="${line.kind.name == 'ADD' ? 'background-color: #e6ffed;' : (line.kind.name == 'REMOVE' ? 'background-color: #ffeef0;' : '')}"
                               th:data-path="${line.kind.name == 'REMOVE' ? diff.pathA : diff.pathB}"
                               th:data-line-num-a="${line.numA}"
                               th:data-line-num-b="${line.numB}"
+                              th:data-line="${line.kind.name == 'REMOVE' ? line.numA : line.numB}"
+                              th:data-side="${line.kind.name == 'REMOVE' ? 'A' : 'B'}"
+                              th:data-type="${line.kind.name().toLowerCase()}"
                               th:data-kind="${line.kind}">
                             <td class="linenum add-comment-btn-cell" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none; cursor: pointer; position: relative;" 
                                 th:text="${line.numA != null ? line.numA + 1 : '+'}"></td>
@@ -204,6 +220,16 @@
       <button th:if="${currentUser != null}" id="watch-button" type="button" class="pull-left ybtn" th:classappend="${isWatching} ? 'active ybtn-watching' : ''"
               data-toggle="button" th:data-watching="${isWatching}" th:text="#{notification.watch}">지켜보기</button>
       <a th:href="@{/{owner}/{name}/commits/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${selectedBranch}, path=${path})}" class="ybtn pull-right" th:text="#{button.list}">목록</a>
+
+      <!-- code.Diff.js의 미니맵(스크롤 위치에 댓글 표시) - code/svnDiff.html에서 이미 이식한
+           것과 동일한 마크업(#minimap/.minimap-wrap/.minimap-curr/.minimap-links). legacy
+           code/diff.scala.html에는 있었는데 Spring Boot 이식 시 통째로 빠져있었다. -->
+      <div id="minimap" class="minimap-outer">
+        <div class="minimap-wrap">
+          <div class="minimap-curr"></div>
+          <div class="minimap-links"></div>
+        </div>
+      </div>
       </div>
     </div>
   </div>
@@ -213,6 +239,9 @@
 
 <div th:replace="~{site/layout :: scripts}"></div>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
+<!-- 3단계: 드래그 다중행 범위선택 - yona.CodeCommentBlock.js는 이미 완전한 vanilla 포팅으로
+     존재했지만(common/yona.CodeCommentBlock.js) 어느 템플릿도 로드하지 않아 죽어 있었다. -->
+<script src="/javascripts/common/yona.CodeCommentBlock.js"></script>
 <script th:inline="javascript">
 document.addEventListener("DOMContentLoaded", function() {
   const currentUser = [[${currentUser != null}]];
@@ -242,7 +271,46 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // hover effect for add-comment button
+  // 댓글 삭제는 data-request-method="delete" 속성을 통해 site/layout::scripts가 로드하는
+  // 전역 jquery.requestAs.js 핸들러(yona-common.js)가 처리한다 — 별도 fetch 핸들러 불필요.
+
+  // 라인/범위 댓글 폼을 targetTr 바로 다음에 삽입한다(단일 라인 클릭·드래그 범위선택 공용) -
+  // 이미 열려 있으면 닫는다(토글). htRange의 필드명은 CodeRangeRequest와 동일.
+  function insertCommentForm(targetTr, htRange){
+    var nextTr = targetTr.nextElementSibling;
+    if (nextTr && nextTr.classList.contains("comments-form-tr")) {
+      nextTr.remove();
+      return;
+    }
+    document.querySelectorAll("tr.comments-form-tr").forEach(function(el){ el.remove(); });
+
+    var formHtml = `
+      <tr class="comments-form-tr">
+        <td colspan="3" style="padding: 10px; background-color: #fafbfc; border-top: 1px solid #e1e4e8; border-bottom: 1px solid #e1e4e8;">
+          <div class="write-comment-form">
+            <form action="${postUrl}" method="post">
+              <input type="hidden" name="${csrfParameterName}" value="${csrfTokenValue}">
+              <input type="hidden" name="path" value="${htRange.path}">
+              <input type="hidden" name="startSide" value="${htRange.startSide}">
+              <input type="hidden" name="startLine" value="${htRange.startLine}">
+              <input type="hidden" name="startColumn" value="${htRange.startColumn}">
+              <input type="hidden" name="endSide" value="${htRange.endSide}">
+              <input type="hidden" name="endLine" value="${htRange.endLine}">
+              <input type="hidden" name="endColumn" value="${htRange.endColumn}">
+
+              <div style="display: flex; align-items: flex-start;">
+                <textarea name="contents" placeholder="새 코드 댓글을 입력하세요..." style="width: 100%; height: 50px; padding: 6px; border: 1px solid #d1d5da; border-radius: 3px; font-family: sans-serif; resize: vertical; margin-right: 10px; font-size: 12px;" required></textarea>
+                <button type="submit" class="ybtn ybtn-success ybtn-small" style="padding: 4px 10px;">등록</button>
+              </div>
+            </form>
+          </div>
+        </td>
+      </tr>
+    `;
+    targetTr.insertAdjacentHTML("afterend", formHtml);
+  }
+
+  // hover effect for add-comment button + 단일 라인 클릭으로 댓글 시작
   document.querySelectorAll(".diff-line-tr").forEach(tr => {
     const btnCell = tr.querySelector(".add-comment-btn-cell");
     if (btnCell) {
@@ -253,23 +321,16 @@ document.addEventListener("DOMContentLoaded", function() {
       tr.addEventListener("mouseleave", () => {
         btnCell.style.color = "transparent";
       });
-      
+
       btnCell.addEventListener("click", function(e) {
         if (!currentUser) return;
         e.stopPropagation();
-        
-        // check if form already open
-        let nextTr = tr.nextElementSibling;
-        if (nextTr && nextTr.classList.contains("comments-form-tr")) {
-          nextTr.remove();
-          return;
-        }
-        
-        const path = tr.getAttribute("th:data-path") || tr.getAttribute("data-path");
+
+        const path = tr.getAttribute("data-path");
         const lineNumA = tr.getAttribute("data-line-num-a");
         const lineNumB = tr.getAttribute("data-line-num-b");
         const kind = tr.getAttribute("data-kind");
-        
+
         let side = "B";
         let lineVal = lineNumB;
         if (kind === "REMOVE") {
@@ -282,36 +343,269 @@ document.addEventListener("DOMContentLoaded", function() {
           side = "B";
           lineVal = lineNumB || lineNumA;
         }
-        
-        const formHtml = `
-          <tr class="comments-form-tr">
-            <td colspan="3" style="padding: 10px; background-color: #fafbfc; border-top: 1px solid #e1e4e8; border-bottom: 1px solid #e1e4e8;">
-              <div class="write-comment-form">
-                <form action="${postUrl}" method="post">
-                  <input type="hidden" name="${csrfParameterName}" value="${csrfTokenValue}">
-                  <input type="hidden" name="path" value="${path}">
-                  <input type="hidden" name="startSide" value="${side}">
-                  <input type="hidden" name="startLine" value="${lineVal}">
-                  <input type="hidden" name="startColumn" value="0">
-                  <input type="hidden" name="endSide" value="${side}">
-                  <input type="hidden" name="endLine" value="${lineVal}">
-                  <input type="hidden" name="endColumn" value="0">
-                  
-                  <div style="display: flex; align-items: flex-start;">
-                    <textarea name="contents" placeholder="새 코드 댓글을 입력하세요..." style="width: 100%; height: 50px; padding: 6px; border: 1px solid #d1d5da; border-radius: 3px; font-family: sans-serif; resize: vertical; margin-right: 10px; font-size: 12px;" required></textarea>
-                    <button type="submit" class="ybtn ybtn-success ybtn-small" style="padding: 4px 10px;">등록</button>
-                  </div>
-                </form>
-              </div>
-            </td>
-          </tr>
-        `;
-        tr.insertAdjacentHTML("afterend", formHtml);
+
+        insertCommentForm(tr, {
+          path: path, startSide: side, startLine: lineVal, startColumn: 0,
+          endSide: side, endLine: lineVal, endColumn: 0
+        });
       });
     }
   });
-  // 댓글 삭제는 data-request-method="delete" 속성을 통해 site/layout::scripts가 로드하는
-  // 전역 jquery.requestAs.js 핸들러(yona-common.js)가 처리한다 — 별도 fetch 핸들러 불필요.
+
+  // ===== 3단계 복원: 드래그 다중행 범위선택(yona.CodeCommentBlock.js) =====
+  // common/yona.CodeCommentBlock.js는 이미 완전한 vanilla 포팅으로 존재했지만 어느 템플릿도
+  // 로드하지 않아 죽어 있었다 - 로드 + 연결만 하면 됐다. legacy code.Diff.js의
+  // _initCodeCommentBox()/_onClickBtnAddBlockComment()가 하던 일 중, 플로팅 팝업(CodeCommentBox,
+  // 4단계 - 이전 세션에서 이미 죽은 코드로 판단해 제거된 전력이 있어 이번엔 복원하지 않기로
+  // 판단, pullrequest/view.html:217-229 주석 참고)은 건너뛰고, 이미 있는 "행 바로 아래에 폼을
+  // 끼워 넣는" insertCommentForm()을 그대로 재사용해 실제 드래그 범위(startLine≠endLine)를
+  // 전달하도록 확장했다.
+  if (currentUser) {
+    const diffBody = document.querySelector(".diff-body");
+    const btnPop = diffBody ? diffBody.querySelector(".btnPop") : null;
+    if (diffBody && btnPop && typeof yona !== "undefined" && yona.CodeCommentBlock) {
+      yona.CodeCommentBlock.init({
+        "welContainer": diffBody,
+        "welPopButtonOnBlock": btnPop
+      });
+
+      btnPop.addEventListener("click", function(){
+        const htBlockInfo = yona.CodeCommentBlock.getData();
+        yona.CodeCommentBlock.block(htBlockInfo);
+
+        // yona.CodeCommentBlock.js._getElementsByOffsetOptions()와 동일하게 data-line/data-side로
+        // 대상 행을 찾는다(data-kind는 ADD/REMOVE 두 값뿐이라 MODIFY 블록의 변경 없는 컨텍스트
+        // 줄까지는 못 찾는다 - data-side는 모든 행 종류에 항상 있다).
+        const sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
+        const sLineSide = htBlockInfo.bIsReversed ? htBlockInfo.sStartSide : htBlockInfo.sEndSide;
+        const targetTable = document.querySelector('table.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
+        const targetTr = targetTable ? targetTable.querySelector('tr[data-line="' + sLineNum + '"][data-side="' + sLineSide + '"]') : null;
+        if (!targetTr) { return; }
+
+        insertCommentForm(targetTr, {
+          path: htBlockInfo.sPath,
+          startSide: htBlockInfo.sStartSide, startLine: htBlockInfo.nStartLine, startColumn: htBlockInfo.nStartColumn,
+          endSide: htBlockInfo.sEndSide, endLine: htBlockInfo.nEndLine, endColumn: htBlockInfo.nEndColumn
+        });
+      });
+    }
+  }
+
+  // ===== code.Diff.js 1단계 복원: 미니맵/해시 딥링크/스레드 접기·펴기/리뷰 사이드바 sticky =====
+  // "죽은 코드" 감사 중 code.Diff.js 자체가 어느 템플릿도 로드하지 않는 걸 발견했고, 그 화면이
+  // legacy보다 훨씬 축소된 별도 구현으로 대체돼 있던 것을 확인해 legacy와 동일하게 되돌리는
+  // 작업(project_code_diff_restoration_plan 메모 참고)의 1단계 - 댓글 제출 흐름은 안 건드리고
+  // 상대적으로 독립적인 기능들만 먼저 복원한다.
+
+  // --- 미니맵 (code/svnDiff.html에서 이미 이식한 것과 동일 패턴, li.comment 대신
+  //     .comment-thread-wrap을 대상으로 한다는 것만 다르다 - legacy code.Diff.js도
+  //     htVar.sQueryMiniMap 기본값이 "li.comment"였지만 실제 이 화면엔 그런 요소가 없고
+  //     .comment-thread-wrap이 스크롤 위치 표시 대상이다) -----------------------------------
+  (function(){
+    var elMiniMap = document.getElementById("minimap");
+    if (!elMiniMap) { return; }
+    var elMiniMapWrap = elMiniMap.querySelector(".minimap-wrap");
+    var elMiniMapCurr = elMiniMapWrap.querySelector(".minimap-curr");
+    var elMiniMapLinks = elMiniMapWrap.querySelector(".minimap-links");
+    var sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
+    var nMiniMapRatio = 1;
+
+    function setMiniMapRatio(){
+      var nDocumentHeight = document.documentElement.scrollHeight;
+      nMiniMapRatio = elMiniMapWrap.offsetHeight / nDocumentHeight;
+    }
+
+    function updateMiniMapCurr(){
+      elMiniMapCurr.style.top = Math.ceil(document.documentElement.scrollTop * nMiniMapRatio) + "px";
+    }
+
+    function resizeMiniMapCurr(){
+      elMiniMapCurr.style.height = Math.ceil(window.innerHeight * nMiniMapRatio) + "px";
+    }
+
+    function updateMiniMap(){
+      var aTargets = document.querySelectorAll(".comment-thread-wrap[id]");
+      if (aTargets.length > 0) {
+        var aLinks = [];
+        aTargets.forEach(function(el){
+          var rect = el.getBoundingClientRect();
+          aLinks.push($yona.tmpl(sTplMiniMapLink, {
+            "id": el.id,
+            "top": Math.ceil((rect.top + window.scrollY) * nMiniMapRatio),
+            "height": Math.ceil(rect.height * nMiniMapRatio)
+          }));
+        });
+        elMiniMapLinks.innerHTML = aLinks.join("");
+        elMiniMap.style.display = "block";
+      } else {
+        elMiniMap.style.display = "none";
+      }
+    }
+
+    function initMiniMap(){
+      setMiniMapRatio();
+      updateMiniMap();
+      resizeMiniMapCurr();
+    }
+
+    window.addEventListener("resize", initMiniMap);
+    window.addEventListener("scroll", updateMiniMapCurr);
+    initMiniMap();
+
+    document.getElementById("toggle-comments")?.addEventListener("click", function(){
+      document.querySelectorAll(".diff-container").forEach(function(el){ el.classList.toggle("show-comments"); });
+      elMiniMap.style.display = (elMiniMap.style.display === "none") ? "block" : "none";
+    });
+  })();
+
+  // --- 스레드 접기/펴기 (legacy _onClickBtnFoldThread/_setAllBtnThreadHerePosition/
+  //     _setBtnThreadHerePosition/_getTargetLineByThread) -------------------------------
+  (function(){
+    function getTargetLineByThread(elThread){
+      var sEndLine = elThread.getAttribute("data-range-endline");
+      var sEndSide = elThread.getAttribute("data-range-endside");
+      return document.querySelector('tr[data-line="' + sEndLine + '"][data-side="' + sEndSide + '"]');
+    }
+
+    function setBtnThreadHerePosition(elButton){
+      var elThread = elButton.closest(".comment-thread-wrap");
+      var nPadding = 10;
+      var aSiblings = Array.prototype.slice.call(elThread.parentElement.children).filter(function(el){
+        return el.classList && el.classList.contains("comment-thread-wrap");
+      });
+      var nIndex = aSiblings.indexOf(elThread);
+      elButton.style.right = ((nIndex * elButton.offsetWidth) + nPadding) + "px";
+
+      var elEndLine = getTargetLineByThread(elThread);
+      if (elEndLine) {
+        var rect = elEndLine.getBoundingClientRect();
+        elButton.style.top = (rect.top + window.scrollY - nPadding) + "px";
+      }
+    }
+
+    function setAllBtnThreadHerePosition(){
+      document.querySelectorAll(".btn-thread-here").forEach(setBtnThreadHerePosition);
+    }
+
+    // 위임 지점을 document 하나로 통일한다 - .diff-body 안의 스레드는 그 tr 자체가
+    // "board-comment-wrap" 클래스도 같이 가지고 있어(<tr class="comments board-comment-wrap">),
+    // .diff-body와 .board-comment-wrap 양쪽에 각각 리스너를 걸면 하나의 클릭이 두 번 버블링되며
+    // 두 리스너가 서로 toggle을 상쇄시켜(켰다 바로 꺼짐) 접기 자체가 아예 안 되는 버그가
+    // 났었다(Playwright로 재현).
+    document.addEventListener("click", function(weEvt){
+      var elBtn = weEvt.target.closest(".btn-thread-minimize");
+      if (!elBtn) { return; }
+      elBtn.closest(".comment-thread-wrap").classList.toggle("fold");
+      setAllBtnThreadHerePosition();
+    });
+
+    setAllBtnThreadHerePosition();
+    window.__setAllBtnThreadHerePosition = setAllBtnThreadHerePosition;
+  })();
+
+  // --- 해시 딥링크(리뷰카드/URL 해시로 특정 스레드까지 스크롤+하이라이트, legacy
+  //     _scrollToHash/_onHashChange/_scrollToAndHighlight/_getThread/_isFoldedThread) ------
+  (function(){
+    function getThread(elTarget){
+      return elTarget.classList.contains("comment-thread-wrap") ? elTarget : elTarget.closest(".comment-thread-wrap");
+    }
+
+    function isFoldedThread(elThread){
+      return elThread.classList.contains("fold") && elThread.querySelector(".btn-thread-here") !== null;
+    }
+
+    function showReviewCardsTabByState(sState){
+      if (sState === "open" || sState === "closed") {
+        var elTab = document.querySelector('a[href="#reviewcards-' + sState + '"]');
+        if (elTab) { $yona.tabShow(elTab); }
+      }
+    }
+
+    function scrollToAndHighlight(elTarget){
+      var elThread = elTarget ? getThread(elTarget) : null;
+      if (!elTarget || !elThread) { return; }
+
+      if (isFoldedThread(elThread)) {
+        elThread.classList.remove("fold");
+        if (typeof window.__setAllBtnThreadHerePosition === "function") {
+          window.__setAllBtnThreadHerePosition();
+        }
+      }
+
+      showReviewCardsTabByState(elThread.getAttribute("data-state"));
+      window.scrollTo(0, elTarget.getBoundingClientRect().top + window.scrollY - 50);
+
+      // jQuery UI effects 모듈이 로드돼 있지 않아(.effect("highlight") 사용 불가) 동일한
+      // 시각효과를 CSS 트랜지션으로 재현한다 - 노란 배경이 잠깐 나타났다 원래대로 돌아온다.
+      elTarget.style.transition = "background-color 0.3s ease";
+      var sOriginalBg = elTarget.style.backgroundColor;
+      elTarget.style.backgroundColor = "#fff9c4";
+      setTimeout(function(){ elTarget.style.backgroundColor = sOriginalBg; }, 1000);
+    }
+
+    function onHashChange(){
+      if (location.hash) {
+        scrollToAndHighlight(document.getElementById(location.hash.substring(1)));
+      }
+    }
+
+    // 리뷰카드 클릭 시 해당 스레드로 이동(legacy _onClickReviewCardLink/_getHashFromLinkString/
+    // _isThreadExistOnCurrentPage) - 2단계 항목이지만 review-card 마크업이 이미 #thread-N
+    // href로 존재해 hashchange 리스너 하나로 자연스럽게 같이 해결된다.
+    document.querySelectorAll("a.review-card").forEach(function(elCard){
+      elCard.addEventListener("click", function(weEvt){
+        var sThreadId = elCard.getAttribute("href").split("#").pop();
+        if (!document.getElementById(sThreadId)) { return; }
+
+        var sPreviousHash = location.hash;
+        location.hash = sThreadId;
+        if (sPreviousHash === location.hash) {
+          onHashChange();
+        }
+        weEvt.preventDefault();
+      });
+    });
+
+    window.addEventListener("hashchange", onHashChange);
+    if (location.hash) { onHashChange(); }
+  })();
+
+  // --- 리뷰 사이드바 sticky(legacy _setReviewWrapAffixed/_setReviewListHeight) -------------
+  (function(){
+    var welReviewContainer = $(".review-container");
+    if (welReviewContainer.length === 0) { return; }
+
+    welReviewContainer.affix({
+      offset: { top: welReviewContainer.offset().top - 10 }
+    });
+
+    function setReviewListHeight(){
+      var welContainer = $(".codediff-wrap");
+      var welReviewList = $(".review-list");
+      if (welReviewList.length === 0) { return; }
+      var nMaxHeight;
+
+      if (welReviewContainer.hasClass("affix")) {
+        var nCodeDiffWrapOffsetBottom = welContainer.position().top + welContainer.outerHeight();
+        var nReviewListOffsetBottom = welReviewList.offset().top + welReviewList.outerHeight();
+        var nReviewListDefaultMarginBottom = 15;
+        var nDiffWrapBottomPadding = 90;
+
+        if (nCodeDiffWrapOffsetBottom <= nReviewListOffsetBottom + nReviewListDefaultMarginBottom) {
+          nMaxHeight = nCodeDiffWrapOffsetBottom - $(document).scrollTop() + nDiffWrapBottomPadding;
+        } else {
+          nMaxHeight = $(window).height() - welReviewList.position().top - nReviewListDefaultMarginBottom;
+        }
+      } else {
+        nMaxHeight = welContainer.outerHeight() - welReviewList.position().top;
+      }
+
+      welReviewList.css("max-height", nMaxHeight + "px");
+    }
+
+    $(window).on("resize scroll", setReviewListHeight);
+    setReviewListHeight();
+  })();
 });
 </script>
 </body>

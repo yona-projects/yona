@@ -257,6 +257,15 @@
                 </div>
             </th:block>
 
+            <!-- code.Diff.js의 미니맵(스크롤 위치에 리뷰 스레드 표시) - code/diff.html에서 이미
+                 이식한 것과 동일한 마크업. legacy git/viewChanges.scala.html에는 있었는데 PR
+                 "Changes" 탭 이식 시 통째로 빠져있었다. -->
+            <div id="minimap" class="minimap-outer" th:if="${tab == 'changes'}">
+                <div class="minimap-wrap">
+                    <div class="minimap-curr"></div>
+                    <div class="minimap-links"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -292,6 +301,9 @@
      먼저였음). 자세한 경위는 site/layout.html::markdown(project) fragment의 주석 참고. -->
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
+<!-- 3단계: 드래그 다중행 범위선택 - common/yona.CodeCommentBlock.js는 이미 완전한 vanilla
+     포팅으로 존재했지만 어느 템플릿도 로드하지 않아 죽어 있었다. -->
+<script src="/javascripts/common/yona.CodeCommentBlock.js"></script>
 <script type="text/javascript" th:inline="javascript">
   $(document).ready(function() {
       var projectId = [[${project.id}]];
@@ -429,18 +441,16 @@
               );
           });
 
-          $changesRoot.on('click', '.add-comment-btn-cell', function(e) {
-              e.stopPropagation();
-              var $tr = $(this).closest('tr');
+          // 라인/범위 댓글 폼을 $tr 바로 다음에 삽입한다(단일 라인 클릭·드래그 범위선택 공용,
+          // 3단계 복원 - code/diff.html의 insertCommentForm()과 동일 패턴). htRange 필드명은
+          // CodeRangeRequest와 동일.
+          function insertReviewCommentForm($tr, htRange) {
               var $existingForm = $tr.next('tr.pr-comment-form-tr');
               if ($existingForm.length) {
                   $existingForm.remove();
                   return;
               }
-
-              var path = $tr.data('path');
-              var side = $tr.data('side');
-              var lineVal = $tr.data('line');
+              $changesRoot.find('tr.pr-comment-form-tr').remove();
 
               var formHtml = '<tr class="pr-comment-form-tr">' +
                   '<td colspan="3" style="padding:10px;background-color:#fafbfc;border-top:1px solid #e1e4e8;border-bottom:1px solid #e1e4e8;">' +
@@ -448,13 +458,13 @@
                   '<form action="' + reviewCommentPostUrl + '" method="post">' +
                   '<input type="hidden" name="' + csrfParameterName + '" value="' + csrfTokenValue + '">' +
                   (reviewCommentCommitId ? '<input type="hidden" name="commitId" value="' + reviewCommentCommitId + '">' : '') +
-                  '<input type="hidden" name="path" value="' + path + '">' +
-                  '<input type="hidden" name="startSide" value="' + side + '">' +
-                  '<input type="hidden" name="startLine" value="' + lineVal + '">' +
-                  '<input type="hidden" name="startColumn" value="0">' +
-                  '<input type="hidden" name="endSide" value="' + side + '">' +
-                  '<input type="hidden" name="endLine" value="' + lineVal + '">' +
-                  '<input type="hidden" name="endColumn" value="0">' +
+                  '<input type="hidden" name="path" value="' + htRange.path + '">' +
+                  '<input type="hidden" name="startSide" value="' + htRange.startSide + '">' +
+                  '<input type="hidden" name="startLine" value="' + htRange.startLine + '">' +
+                  '<input type="hidden" name="startColumn" value="' + htRange.startColumn + '">' +
+                  '<input type="hidden" name="endSide" value="' + htRange.endSide + '">' +
+                  '<input type="hidden" name="endLine" value="' + htRange.endLine + '">' +
+                  '<input type="hidden" name="endColumn" value="' + htRange.endColumn + '">' +
                   '<div style="display:flex;align-items:flex-start;">' +
                   // P3-55: 순수 <textarea>였던 자리를 site/layout.html::markdownEditor
                   // 프래그먼트와 동일한 마크업(data-toggle="markdown-editor" 래퍼 +
@@ -472,7 +482,220 @@
                   '<button type="submit" class="ybtn ybtn-success ybtn-small" style="padding:4px 10px;">' + [[#{button.comment.new}]] + '</button>' +
                   '</div></form></div></td></tr>';
               $tr.after(formHtml);
+          }
+
+          $changesRoot.on('click', '.add-comment-btn-cell', function(e) {
+              e.stopPropagation();
+              var $tr = $(this).closest('tr');
+              insertReviewCommentForm($tr, {
+                  path: $tr.data('path'), startSide: $tr.data('side'), startLine: $tr.data('line'), startColumn: 0,
+                  endSide: $tr.data('side'), endLine: $tr.data('line'), endColumn: 0
+              });
           });
+
+          // ===== 3단계 복원: 드래그 다중행 범위선택(yona.CodeCommentBlock.js) =====
+          // code/diff.html과 동일한 이유(common/yona.CodeCommentBlock.js는 이미 완전한 vanilla
+          // 포팅으로 존재했지만 로드하는 템플릿이 없어 죽어 있었음)로 연결한다. 플로팅 팝업
+          // (CodeCommentBox, 4단계)은 건너뛰고 이미 있는 insertReviewCommentForm()을 실제
+          // 드래그 범위로 확장해 재사용한다 - pullrequest/view.html:217-229 주석에 기록된 대로
+          // CodeCommentBox.js는 이전 세션에 이미 죽은 코드로 판단해 제거된 전력이 있다.
+          var diffBodyEl = $changesRoot.find('.diff-body')[0];
+          var btnPopEl = $changesRoot.find('.btnPop')[0];
+          if (diffBodyEl && btnPopEl && typeof yona !== 'undefined' && yona.CodeCommentBlock) {
+              yona.CodeCommentBlock.init({
+                  'welContainer': diffBodyEl,
+                  'welPopButtonOnBlock': btnPopEl
+              });
+
+              btnPopEl.addEventListener('click', function(){
+                  var htBlockInfo = yona.CodeCommentBlock.getData();
+                  yona.CodeCommentBlock.block(htBlockInfo);
+
+                  var sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
+                  var sLineSide = htBlockInfo.bIsReversed ? htBlockInfo.sStartSide : htBlockInfo.sEndSide;
+                  var targetTable = diffBodyEl.querySelector('table.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
+                  var targetTr = targetTable ? targetTable.querySelector('tr[data-line="' + sLineNum + '"][data-side="' + sLineSide + '"]') : null;
+                  if (!targetTr) { return; }
+
+                  insertReviewCommentForm($(targetTr), {
+                      path: htBlockInfo.sPath,
+                      startSide: htBlockInfo.sStartSide, startLine: htBlockInfo.nStartLine, startColumn: htBlockInfo.nStartColumn,
+                      endSide: htBlockInfo.sEndSide, endLine: htBlockInfo.nEndLine, endColumn: htBlockInfo.nEndColumn
+                  });
+              });
+          }
+      }
+
+      // ===== code.Diff.js 1단계 복원: 미니맵/해시 딥링크/스레드 접기·펴기/리뷰 사이드바 sticky =====
+      // code/diff.html에 이식한 것과 동일한 기능 - "changes" 탭에서만 의미가 있다(다른 탭엔
+      // #minimap/.comment-thread-wrap/.review-container 자체가 없다). project_code_diff_
+      // restoration_plan 메모의 1단계, code/diff.html과 동일한 로직을 이 화면 구조(data-line/
+      // data-side는 partial_diff_line.html이 이미 legacy와 동일하게 갖추고 있다)에 맞춰 반복한다.
+      if ([[${tab == 'changes'}]]) {
+        (function(){
+          var elMiniMap = document.getElementById("minimap");
+          if (!elMiniMap) { return; }
+          var elMiniMapWrap = elMiniMap.querySelector(".minimap-wrap");
+          var elMiniMapCurr = elMiniMapWrap.querySelector(".minimap-curr");
+          var elMiniMapLinks = elMiniMapWrap.querySelector(".minimap-links");
+          var sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
+          var nMiniMapRatio = 1;
+
+          function setMiniMapRatio(){
+            nMiniMapRatio = elMiniMapWrap.offsetHeight / document.documentElement.scrollHeight;
+          }
+          function updateMiniMapCurr(){
+            elMiniMapCurr.style.top = Math.ceil(document.documentElement.scrollTop * nMiniMapRatio) + "px";
+          }
+          function resizeMiniMapCurr(){
+            elMiniMapCurr.style.height = Math.ceil(window.innerHeight * nMiniMapRatio) + "px";
+          }
+          function updateMiniMap(){
+            var aTargets = document.querySelectorAll(".comment-thread-wrap[id]");
+            if (aTargets.length > 0) {
+              var aLinks = [];
+              aTargets.forEach(function(el){
+                var rect = el.getBoundingClientRect();
+                aLinks.push($yona.tmpl(sTplMiniMapLink, {
+                  "id": el.id,
+                  "top": Math.ceil((rect.top + window.scrollY) * nMiniMapRatio),
+                  "height": Math.ceil(rect.height * nMiniMapRatio)
+                }));
+              });
+              elMiniMapLinks.innerHTML = aLinks.join("");
+              elMiniMap.style.display = "block";
+            } else {
+              elMiniMap.style.display = "none";
+            }
+          }
+          function initMiniMap(){ setMiniMapRatio(); updateMiniMap(); resizeMiniMapCurr(); }
+
+          window.addEventListener("resize", initMiniMap);
+          window.addEventListener("scroll", updateMiniMapCurr);
+          initMiniMap();
+        })();
+
+        (function(){
+          function getTargetLineByThread(elThread){
+            var sEndLine = elThread.getAttribute("data-range-endline");
+            var sEndSide = elThread.getAttribute("data-range-endside");
+            return document.querySelector('tr[data-line="' + sEndLine + '"][data-side="' + sEndSide + '"]');
+          }
+          function setBtnThreadHerePosition(elButton){
+            var elThread = elButton.closest(".comment-thread-wrap");
+            var nPadding = 10;
+            var aSiblings = Array.prototype.slice.call(elThread.parentElement.children).filter(function(el){
+              return el.classList && el.classList.contains("comment-thread-wrap");
+            });
+            elButton.style.right = ((aSiblings.indexOf(elThread) * elButton.offsetWidth) + nPadding) + "px";
+
+            var elEndLine = getTargetLineByThread(elThread);
+            if (elEndLine) {
+              var rect = elEndLine.getBoundingClientRect();
+              elButton.style.top = (rect.top + window.scrollY - nPadding) + "px";
+            }
+          }
+          function setAllBtnThreadHerePosition(){
+            document.querySelectorAll(".btn-thread-here").forEach(setBtnThreadHerePosition);
+          }
+
+          document.addEventListener("click", function(weEvt){
+            var elBtn = weEvt.target.closest(".btn-thread-minimize");
+            if (!elBtn) { return; }
+            elBtn.closest(".comment-thread-wrap").classList.toggle("fold");
+            setAllBtnThreadHerePosition();
+          });
+
+          setAllBtnThreadHerePosition();
+          window.__setAllBtnThreadHerePosition = setAllBtnThreadHerePosition;
+        })();
+
+        (function(){
+          function getThread(elTarget){
+            return elTarget.classList.contains("comment-thread-wrap") ? elTarget : elTarget.closest(".comment-thread-wrap");
+          }
+          function isFoldedThread(elThread){
+            return elThread.classList.contains("fold") && elThread.querySelector(".btn-thread-here") !== null;
+          }
+          function showReviewCardsTabByState(sState){
+            if (sState === "open" || sState === "closed") {
+              var elTab = document.querySelector('a[href="#reviewcards-' + sState + '"]');
+              if (elTab) { $yona.tabShow(elTab); }
+            }
+          }
+          function scrollToAndHighlight(elTarget){
+            var elThread = elTarget ? getThread(elTarget) : null;
+            if (!elTarget || !elThread) { return; }
+
+            if (isFoldedThread(elThread)) {
+              elThread.classList.remove("fold");
+              if (typeof window.__setAllBtnThreadHerePosition === "function") {
+                window.__setAllBtnThreadHerePosition();
+              }
+            }
+
+            showReviewCardsTabByState(elThread.getAttribute("data-state"));
+            window.scrollTo(0, elTarget.getBoundingClientRect().top + window.scrollY - 50);
+
+            elTarget.style.transition = "background-color 0.3s ease";
+            var sOriginalBg = elTarget.style.backgroundColor;
+            elTarget.style.backgroundColor = "#fff9c4";
+            setTimeout(function(){ elTarget.style.backgroundColor = sOriginalBg; }, 1000);
+          }
+          function onHashChange(){
+            if (location.hash) {
+              scrollToAndHighlight(document.getElementById(location.hash.substring(1)));
+            }
+          }
+
+          document.querySelectorAll("a.review-card").forEach(function(elCard){
+            elCard.addEventListener("click", function(weEvt){
+              var sThreadId = elCard.getAttribute("href").split("#").pop();
+              if (!document.getElementById(sThreadId)) { return; }
+
+              var sPreviousHash = location.hash;
+              location.hash = sThreadId;
+              if (sPreviousHash === location.hash) { onHashChange(); }
+              weEvt.preventDefault();
+            });
+          });
+
+          window.addEventListener("hashchange", onHashChange);
+          if (location.hash) { onHashChange(); }
+        })();
+
+        (function(){
+          var welReviewContainer = $(".review-container");
+          if (welReviewContainer.length === 0) { return; }
+
+          welReviewContainer.affix({ offset: { top: welReviewContainer.offset().top - 10 } });
+
+          function setReviewListHeight(){
+            var welContainer = $(".codediff-wrap");
+            var welReviewList = $(".review-list");
+            if (welReviewList.length === 0) { return; }
+            var nMaxHeight;
+
+            if (welReviewContainer.hasClass("affix")) {
+              var nCodeDiffWrapOffsetBottom = welContainer.position().top + welContainer.outerHeight();
+              var nReviewListOffsetBottom = welReviewList.offset().top + welReviewList.outerHeight();
+              var nReviewListDefaultMarginBottom = 15;
+              var nDiffWrapBottomPadding = 90;
+
+              if (nCodeDiffWrapOffsetBottom <= nReviewListOffsetBottom + nReviewListDefaultMarginBottom) {
+                nMaxHeight = nCodeDiffWrapOffsetBottom - $(document).scrollTop() + nDiffWrapBottomPadding;
+              } else {
+                nMaxHeight = $(window).height() - welReviewList.position().top - nReviewListDefaultMarginBottom;
+              }
+            } else {
+              nMaxHeight = welContainer.outerHeight() - welReviewList.position().top;
+            }
+            welReviewList.css("max-height", nMaxHeight + "px");
+          }
+
+          $(window).on("resize scroll", setReviewListHeight);
+          setReviewListHeight();
+        })();
       }
   });
 </script>

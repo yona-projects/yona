@@ -170,15 +170,32 @@
                        (side == 'B' && thread.codeRange.endSide.name == 'B' && thread.codeRange.endLine == lineNum))}">
       <tr class="comments board-comment-wrap" th:data-commit-id="${thread.commitId}">
         <td colspan="3" style="padding: 10px; background-color: #fafbfc; border-top: 1px solid #e1e4e8; border-bottom: 1px solid #e1e4e8;">
-          <div th:id="'thread-' + ${thread.id}" 
+          <!-- data-range-*/btn-thread-minimize/fold는 pullrequest/partial_comment_thread.html이
+               이미 갖추고 있던 legacy 마크업 계약과 동일하게 맞춘 것 - code.Diff.js의 스레드
+               접기/펴기(_onClickBtnFoldThread/_setBtnThreadHerePosition)와 드래그 범위 하이라이트
+               (_onMouseOverCodeCommentThread, 3단계에서 다룸)가 이 속성들을 필요로 한다. -->
+          <div th:id="'thread-' + ${thread.id}"
                th:data-state="${thread.state.toString().toLowerCase()}"
-               th:class="'comment-thread-wrap ' + ${thread.state.toString().toLowerCase()}"
+               th:class="'comment-thread-wrap ' + ${thread.state.toString().toLowerCase()} + ${thread.state.name() == 'CLOSED' ? ' fold' : ''}"
+               data-toggle="CodeCommentThread"
+               th:data-range-path="${thread.codeRange.path}"
+               th:data-range-startside="${thread.codeRange.startSide}"
+               th:data-range-startline="${thread.codeRange.startLine}"
+               th:data-range-startcolumn="${thread.codeRange.startColumn}"
+               th:data-range-endside="${thread.codeRange.endSide}"
+               th:data-range-endline="${thread.codeRange.endLine}"
+               th:data-range-endcolumn="${thread.codeRange.endColumn}"
                style="border: 1px solid #e1e4e8; border-radius: 4px; padding: 10px; background: #fff; margin-bottom: 10px;">
-            
+
+            <div class="btn-thread-here btn-thread-minimize">
+              <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-post2"></i></button>
+            </div>
+
             <div class="thread-header" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-              <span th:class="'badge state ' + ${thread.state.toString().toLowerCase()}" 
+              <span th:class="'badge state ' + ${thread.state.toString().toLowerCase()}"
                     th:text="${thread.state.name == 'OPEN' ? '열림' : '닫힘'}"
                     style="font-size: 11px;">상태</span>
+              <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
             </div>
 
             <ul class="comments" style="list-style: none; padding-left: 0; margin-bottom: 12px;">
@@ -204,18 +221,31 @@
               </li>
             </ul>
 
-            <!-- Thread reply form -->
+            <!-- Thread reply form. class="review-form"은 legacy에서 CodeCommentBox 플로팅 팝업
+                 전용이라 yona.css의 .review-form이 기본 display:none(말풍선 팝업이 JS로 열릴 때만
+                 보이는 스타일)인데, 여기서는 이미 화면에 떠 있는 스레드 안의 일반 답글 폼으로
+                 재사용하면서 style="display:block"으로 덮어쓰는 걸 깜빡해 답글 폼 자체가
+                 완전히 숨겨져 있었다(pullrequest/partial_comment_form_on_thread.html은 이미
+                 이 오버라이드가 있었음 - 거기서 쓰던 동일한 수정을 여기도 반영). -->
             <div class="write-comment-form" th:if="${currentUser != null}">
-              <form th:action="@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commitB.getId()})}" 
-                    method="post" class="review-form">
+              <form th:action="@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commitB.getId()})}"
+                    method="post" class="review-form" style="display:block;">
                 <input type="hidden" name="thread.id" th:value="${thread.id}">
                 <div class="write-comment-box" style="display: flex; align-items: flex-start;">
                   <textarea name="contents" placeholder="댓글을 입력하세요..." style="width: 100%; height: 50px; padding: 4px 6px; border: 1px solid #d1d5da; border-radius: 3px; font-family: sans-serif; resize: vertical; margin-right: 8px; font-size: 12px;" required></textarea>
                   <div style="display: flex; flex-direction: column; gap: 4px;">
                     <button type="submit" class="ybtn ybtn-success ybtn-small" style="font-size: 11px; padding: 2px 6px;">댓글달기</button>
-                    <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-state-toggle" 
-                            th:data-thread-id="${thread.id}" 
-                            th:data-current-state="${thread.state}" 
+                    <!-- pullrequest/partial_comment_form_on_thread.html과 동일한 방식으로 교체 -
+                         이 fragment는 code/diff.html이 th:insert로 마크업만 가져다 쓰기 때문에,
+                         이 파일 하단의 페이지 전용 <script>(.btn-thread-state-toggle 커스텀
+                         fetch 핸들러)가 code/diff.html에서는 아예 로드되지 않아 버튼이 죽어
+                         있었다. site/layout::scripts가 전역으로 로드하는 jquery.requestAs.js가
+                         [data-request-method] 속성이 있는 요소를 자동으로 초기화하고 성공 시
+                         페이지를 새로고침하므로, 페이지별 JS 없이 어디서 재사용되든 항상
+                         동작한다. -->
+                    <button type="button" class="ybtn ybtn-default ybtn-small"
+                            th:data-request-method="post"
+                            th:data-request-uri="${thread.state.name() == 'OPEN'} ? @{/threads/{id}/close(id=${thread.id})} : @{/threads/{id}/open(id=${thread.id})}"
                             style="font-size: 11px; padding: 2px 6px;"
                             th:text="${thread.state.name == 'OPEN' ? '닫기' : '열기'}">닫기</button>
                   </div>
@@ -330,23 +360,9 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 
-  // thread state toggle action
-  document.querySelectorAll(".btn-thread-state-toggle").forEach(btn => {
-    btn.addEventListener("click", function() {
-      const threadId = this.getAttribute("data-thread-id");
-      const currentState = this.getAttribute("data-current-state");
-      const action = currentState === "OPEN" ? "close" : "open";
-      fetch("/threads/" + threadId + "/" + action, {
-        method: "POST"
-      }).then(res => {
-        if (res.ok) {
-          location.reload();
-        } else {
-          alert("스레드 상태 업데이트 실패");
-        }
-      });
-    });
-  });
+  // 스레드 상태 토글 버튼은 이제 [data-request-method]/[data-request-uri] 속성만으로
+  // 전역 jquery.requestAs.js가 자동 처리한다(위 renderLineComments 프래그먼트 주석 참고) -
+  // 페이지 전용 커스텀 핸들러가 필요 없어졌다.
 });
 </script>
 </body>

@@ -397,11 +397,14 @@ yona.CodeCommentBlock = (function(){
      */
     function _getElementsByOffsetOptions(htOffset){
         var htResult = {};
-        var sContainerProp = htOffset.sPath ? "[data-file-path='" + htOffset.sPath + "']": "";
-        var sStartProp = [htOffset.nStartLine ? "[data-line=" + htOffset.nStartLine + "]": "",
-            htOffset.sStartSide ? "[data-side=" + htOffset.sStartSide + "]" : ""].join("");
-        var sEndProp = [htOffset.nEndLine ? "[data-line=" + htOffset.nEndLine + "]": "",
-            htOffset.sEndSide ? "[data-side=" + htOffset.sEndSide + "]": ""].join("");
+        // legacy jQuery(Sizzle)는 따옴표 없는 숫자 속성값([data-line=1])도 허용했지만,
+        // 네이티브 querySelectorAll은 CSS 명세를 엄격히 따라 이를 유효하지 않은 선택자로
+        // 거부한다(SyntaxError) - 모든 속성값을 따옴표로 감싸 동등하게 동작하도록 한다.
+        var sContainerProp = htOffset.sPath ? "[data-file-path=\"" + htOffset.sPath + "\"]": "";
+        var sStartProp = [htOffset.nStartLine ? "[data-line=\"" + htOffset.nStartLine + "\"]": "",
+            htOffset.sStartSide ? "[data-side=\"" + htOffset.sStartSide + "\"]" : ""].join("");
+        var sEndProp = [htOffset.nEndLine ? "[data-line=\"" + htOffset.nEndLine + "\"]": "",
+            htOffset.sEndSide ? "[data-side=\"" + htOffset.sEndSide + "\"]": ""].join("");
 
         // sContainerProp이 없으면(sPath 미지정) jQuery는 "table.diff-container" 전체를
         // 대상으로 검색했다 - 페이지에 diff 테이블이 여러 개 있을 수 있어 컬렉션으로 다룬다.
