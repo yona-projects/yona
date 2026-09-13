@@ -1532,7 +1532,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             val siteManager = User(id = 200L, loginId = "sitemanager", name = "사이트매니저", state = UserState.SITE_ADMIN)
             val siteManagerAuth = UsernamePasswordAuthenticationToken("sitemanager", "password")
             every { userRepository.findByLoginId("sitemanager") } returns Optional.of(siteManager)
-            every { projectRepository.findProjectsForAdmin("admin-query", any()) } returns
+            every { projectRepository.findProjectsForAdmin("%admin-query%", any()) } returns
                 PageImpl(listOf(Project(id = 201L, name = "adminproj", owner = "adminowner")))
 
             val response = projectViewController.projectsJson("admin-query", "", siteManagerAuth)
@@ -1544,7 +1544,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             val siteManager = User(id = 202L, loginId = "sitemanager2", name = "사이트매니저2", state = UserState.SITE_ADMIN)
             val siteManagerAuth = UsernamePasswordAuthenticationToken("sitemanager2", "password")
             every { userRepository.findByLoginId("sitemanager2") } returns Optional.of(siteManager)
-            every { projectRepository.findProjectsForAdmin("filter-value", any()) } returns PageImpl(emptyList())
+            every { projectRepository.findProjectsForAdmin("%filter-value%", any()) } returns PageImpl(emptyList())
 
             val response = projectViewController.projectsJson("", "filter-value", siteManagerAuth)
             response.statusCode shouldBe HttpStatus.OK
@@ -1568,7 +1568,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             every { userRepository.findByLoginId("normaluser2") } returns Optional.of(normalUser)
             every { projectRepository.findAllowedProjectIdsForUser(204L) } returns emptyList()
             every { projectRepository.findPublicProjectIds() } returns listOf(300L, 301L)
-            every { projectRepository.searchProjects(listOf(300L, 301L), "", any()) } returns
+            every { projectRepository.searchProjects(listOf(300L, 301L), "%%", any()) } returns
                 PageImpl(listOf(Project(id = 300L, name = "publicproj", owner = "publicowner")))
 
             val response = projectViewController.projectsJson("", "", normalAuth)
@@ -1581,7 +1581,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             val normalAuth = UsernamePasswordAuthenticationToken("normaluser3", "password")
             every { userRepository.findByLoginId("normaluser3") } returns Optional.of(normalUser)
             every { projectRepository.findAllowedProjectIdsForUser(205L) } returns listOf(400L)
-            every { projectRepository.searchProjects(listOf(400L), "query1", any()) } returns
+            every { projectRepository.searchProjects(listOf(400L), "%query1%", any()) } returns
                 PageImpl(listOf(Project(id = 400L, name = "allowedproj", owner = "allowedowner")))
 
             val response = projectViewController.projectsJson("query1", "", normalAuth)

@@ -613,7 +613,11 @@ class ProjectViewController(
         val user = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 
-        val searchKeyword = if (query.isNotBlank()) query else filter
+        // findProjectsForAdminQuery/searchProjectsQuery 둘 다 LIKE LOWER(:keyword)를 그대로
+        // 쓰는 네이티브 쿼리라(ProjectRepository.kt) 호출부에서 %를 감싸지 않으면 완전 일치
+        // 검색이 되어버린다(project/list 페이지의 keyword = "%$filter%" 처리와 동일하게 맞춘다) -
+        // yona.ui.Typeahead.js 자동완성 검증 중 항상 빈 배열이 오는 것을 보고 발견.
+        val searchKeyword = "%${if (query.isNotBlank()) query else filter}%"
         val pageable = PageRequest.of(0, 1000)
 
         val projectPage = if (user.isSiteManager) {
