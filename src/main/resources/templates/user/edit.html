@@ -60,7 +60,9 @@
                 </form>
             </div>
 
-            <div id="avatarCropWrap" class="modal hide" role="dialog" data-backdrop="static">
+            <!-- 네이티브 <dialog>(yona.user.Setting.js 참고). data-backdrop="static"이라
+                 배경 클릭으로는 닫지 않는다(attachDialogDismiss(el, true)). -->
+            <dialog id="avatarCropWrap" class="modal">
                 <div class="modal-header center-txt">
                     <div class="avatar-wrap xlarge">
                         <img style="width:128px; max-width:none;"/>
@@ -74,7 +76,7 @@
                     <button type="button" class="ybtn ybtn-default" data-dismiss="modal" th:text="#{button.cancel}">취소</button>
                     <button type="button" class="ybtn ybtn-success btnSubmitCrop" th:text="#{button.save}">저장</button>
                 </div>
-            </div>
+            </dialog>
 
             <link rel="stylesheet" type="text/css" th:href="@{/javascripts/lib/cropperjs/cropper.min.css}" />
             <script type="text/javascript" th:src="@{/javascripts/lib/cropperjs/cropper.min.js}"></script>

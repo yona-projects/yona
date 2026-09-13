@@ -59,7 +59,8 @@
             htElement.welInputCloneURL =$('#cloneURL');
             htElement.welBtnCopy   = $('#cloneURLBtn');
 
-            htElement.welAlertLeave = $("#alertLeave");
+            htElement.elAlertLeave = document.getElementById("alertLeave");
+            $yona.attachDialogDismiss(htElement.elAlertLeave);
         }
 
         /**
@@ -126,7 +127,7 @@
                 });
             });
             $('#projectLeaveBtn').on('click',function(){
-                htElement.welAlertLeave.modal();
+                htElement.elAlertLeave.showModal();
 
                 var sURL = $(this).attr("data-href");
 

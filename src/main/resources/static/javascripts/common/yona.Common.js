@@ -447,10 +447,12 @@ $yona = yona.Common = (function(){
      * 처리하므로 별도 구현이 필요 없다).
      *
      * @param {Element} elDialog
+     * @param {Boolean} bStaticBackdrop true면 배경 클릭으로 닫지 않는다(Bootstrap의
+     *        data-backdrop="static"과 동일 - 예: 아바타 자르기처럼 실수로 닫히면 곤란한 모달).
      */
-    function attachDialogDismiss(elDialog){
+    function attachDialogDismiss(elDialog, bStaticBackdrop){
         elDialog.addEventListener("click", function(weEvt){
-            if(weEvt.target === elDialog){
+            if(!bStaticBackdrop && weEvt.target === elDialog){
                 elDialog.close();
                 return;
             }

@@ -41,11 +41,13 @@
               </div>
           </div>
           <div class="box-wrap bottom" style="margin-top: 20px;">
-              <a id="btnTransfer" href="#alertTransfer" class="ybtn ybtn-danger" data-toggle="modal" ><!--
+              <a id="btnTransfer" href="#alertTransfer" class="ybtn ybtn-danger" ><!--
                --><i class="yobicon-database"></i> <span th:text="#{project.transfer.this}">프로젝트를 이관합니다.</span></a>
           </div>
 
-          <div id="alertTransfer" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+          <!-- 네이티브 <dialog>(yona.project.Transfer.js 참고, data-toggle="modal" 델리게이트 대신
+               JS에서 체크박스 검증 후 showModal 호출) -->
+          <dialog id="alertTransfer" class="modal">
               <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal">×</button>
                   <h3 th:text="#{project.transfer.requestion}">프로젝트를 이관하시겠습니까?</h3>
@@ -58,7 +60,7 @@
                   <button id="btnTransferExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}">예</button>
                   <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니오</button>
               </div>
-          </div>
+          </dialog>
 
         </div>
     </div>

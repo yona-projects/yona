@@ -37,25 +37,30 @@
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welAlertLeave = $(htOptions.welAlertLeave || "#alertLeave");
-            htElement.welGroupLeaveBtn = $(htOptions.welGroupLeaveBtn || "#groupLeaveBtn");
-            htElement.welLeaveBtn = $(htOptions.welLeaveBtn || "#leaveBtn");
+            htElement.elAlertLeave = document.querySelector(htOptions.welAlertLeave || "#alertLeave");
+            htElement.waGroupLeaveBtn = document.querySelectorAll(htOptions.welGroupLeaveBtn || "#groupLeaveBtn");
+            htElement.waLeaveBtn = document.querySelectorAll(htOptions.welLeaveBtn || "#leaveBtn");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welGroupLeaveBtn.on("click", _onGroupClickLeaveBtn);
-            htElement.welLeaveBtn.on("click", _onClickLeaveBtn);
+            htElement.waGroupLeaveBtn.forEach(function(el){ el.addEventListener("click", _onGroupClickLeaveBtn); });
+            htElement.waLeaveBtn.forEach(function(el){ el.addEventListener("click", _onClickLeaveBtn); });
+
+            // 배경 클릭/X버튼(data-dismiss=modal) 닫기 - ESC는 <dialog> 네이티브 동작.
+            $yona.attachDialogDismiss(htElement.elAlertLeave);
         }
 
         function _onGroupClickLeaveBtn(){
-            htElement.welAlertLeave.modal("show");
+            htElement.elAlertLeave.showModal();
         }
 
         function _onClickLeaveBtn(){
-            var sURL = htElement.welGroupLeaveBtn.attr("data-href");
+            // 클릭된 확인 버튼(this) 자신이 아니라, 모달을 열었던 groupLeaveBtn의
+            // data-href를 읽는다(원본 jQuery 코드와 동일한 계약).
+            var sURL = htElement.waGroupLeaveBtn[0].getAttribute("data-href");
 
             fetch(sURL, {"method": "delete"})
                 .then(function(response){
@@ -72,7 +77,7 @@
 
         function _onSuccessLeaveMember(oXHR){
             try{
-                var htData = $.parseJSON(oXHR);
+                var htData = JSON.parse(oXHR);
                 document.location.replace(htData.location);
             }catch(e){
                 document.location.reload();
@@ -83,12 +88,12 @@
             var sErrorMsg;
 
             try{
-                sErrorMsg = Messages($.parseJSON(oXHR.responseText).errorMsg);
+                sErrorMsg = Messages(JSON.parse(oXHR.responseText).errorMsg);
             }catch(e){
                 sErrorMsg = Messages("organization.member.leave.unknownerror");
             }
 
-            htElement.welAlertLeave.modal("hide");
+            htElement.elAlertLeave.close();
             $yona.notify(sErrorMsg, 3000);
         }
 

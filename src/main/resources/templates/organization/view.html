@@ -132,8 +132,8 @@
         </div>
     </div>
 
-    <!-- Confirm to leave the project -->
-    <div id="alertLeave" class="modal hide">
+    <!-- Confirm to leave the project - 네이티브 <dialog>(yona.organization.View.js 참고) -->
+    <dialog id="alertLeave" class="modal">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
             <h3 th:text="#{organization.member.leave}">Leave organization</h3>
@@ -145,7 +145,7 @@
             <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn" th:text="#{button.yes}">Yes</button>
             <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}">No</button>
         </div>
-    </div>
+    </dialog>
 
     <footer th:replace="~{site/layout :: footer}"></footer>
     <div th:replace="~{site/layout :: scripts}"></div>

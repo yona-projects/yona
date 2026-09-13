@@ -78,7 +78,9 @@ class AvatarCropWidgetTemplateEquivalenceSpec @Autowired constructor(
                     ).andExpect(status().isOk).andReturn().response.contentAsString
                 )
 
-                val modal = doc.select("div#avatarCropWrap.modal")
+                // P3-46 이후 <div class="modal">에서 네이티브 <dialog class="modal">로 전환됨
+                // (yona.user.Setting.js/yona.Common.js의 $yona.attachDialogDismiss 참고).
+                val modal = doc.select("dialog#avatarCropWrap.modal")
                 modal.size shouldBe 1
 
                 // 크롭 대상 원본 이미지 (htElement.welAvatarCropImg: ".modal-body > img")

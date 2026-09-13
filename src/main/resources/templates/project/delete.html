@@ -25,11 +25,13 @@
               </div>
           </div>
           <div class="box-wrap bottom">
-              <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal">
+              <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger">
                   <i class="yobicon-database-remove"></i> <span th:text="#{project.delete.this}">프로젝트를 삭제합니다.</span></a>
           </div>
 
-          <div id="alertDeletion" class="modal hide">
+          <!-- 네이티브 <dialog>(yona.project.Delete.js 참고, data-toggle="modal" 델리게이트 대신
+               JS에서 체크박스 검증 후 showModal 호출) -->
+          <dialog id="alertDeletion" class="modal">
               <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal">&times;</button>
                   <h3 th:text="#{project.delete.requestion}">프로젝트를 삭제하시겠습니까?</h3>
@@ -42,7 +44,7 @@
                   <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}">예</button>
                   <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니오</button>
               </div>
-          </div>
+          </dialog>
         </div>
     </div>
 

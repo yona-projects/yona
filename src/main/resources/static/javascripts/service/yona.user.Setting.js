@@ -98,7 +98,10 @@
             if(htVar.bUseCropper){
                 htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
                 htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
-                htElement.welAvatarCropWrap.on("hidden", _clearCropper);
+                // #avatarCropWrap은 네이티브 <dialog>로 바뀌었으니(data-backdrop="static"이라
+                // 배경 클릭으로는 안 닫힘) Bootstrap의 "hidden" 대신 네이티브 "close" 이벤트를 쓴다.
+                htElement.welAvatarCropWrap.get(0).addEventListener("close", _clearCropper);
+                $yona.attachDialogDismiss(htElement.welAvatarCropWrap.get(0), true);
 
                 yona.Files.attach({
                    "successUpload": _onAvatarCroppedImageUploaded,
@@ -176,7 +179,7 @@
 
             htElement.welAvatarCropImg.attr("src", oRes.url);
             htElement.welAvatarCropPreviewImg.attr("src", oRes.url);
-            htElement.welAvatarCropWrap.modal("show");
+            htElement.welAvatarCropWrap.get(0).showModal();
         }
 
         /**

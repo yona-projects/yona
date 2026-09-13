@@ -293,7 +293,8 @@
                 </div>
             </div>
             
-            <div id="alertLeave" class="modal hide">
+            <!-- 네이티브 <dialog>(yona.project.Home.js 참고) -->
+            <dialog id="alertLeave" class="modal">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">×</button>
                     <h3 th:text="#{project.member.leave}">Leave project</h3>
@@ -305,7 +306,7 @@
                     <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn" th:text="#{button.yes}">Yes</button>
                     <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}">No</button>
                 </div>
-            </div>
+            </dialog>
         </div>
     </div>
 
