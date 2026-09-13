@@ -79,8 +79,12 @@
             vars.actionURL = elements.form.prop("action");
             vars.categories = [];
 
-            elements.inputCategory.typeahead();
-            elements.inputCategory.data("typeahead").source = vars.categories;
+            // vars.categories는 이후 130/340번째 줄 근처에서 push로 채워지는데,
+            // source에 이 배열 레퍼런스를 그대로 넘겨두면 yona.ui.Typeahead가
+            // 매 입력마다 최신 상태를 다시 읽어 별도 갱신 없이 반영된다.
+            new yona.ui.Typeahead(elements.inputCategory, {
+                "htData": {"source": vars.categories}
+            });
         }
 
         /**
