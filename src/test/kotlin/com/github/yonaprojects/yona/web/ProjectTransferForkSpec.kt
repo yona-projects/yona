@@ -1,6 +1,8 @@
 package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.config.security.AccessControl
+import com.github.yonaprojects.yona.domain.attachment.AttachmentRepository
+import com.github.yonaprojects.yona.domain.attachment.AttachmentService
 import com.github.yonaprojects.yona.domain.organization.OrganizationUserRepository
 import com.github.yonaprojects.yona.domain.project.*
 import com.github.yonaprojects.yona.domain.role.Role
@@ -35,6 +37,8 @@ class ProjectTransferForkSpec : DescribeSpec({
     val pushedBranchRepository = mockk<PushedBranchRepository>()
     val titleHeadService = mockk<TitleHeadService>()
     val issueLabelRepository = mockk<IssueLabelRepository>()
+    val attachmentRepository = mockk<AttachmentRepository>()
+    val attachmentService = mockk<AttachmentService>()
     val organizationUserRepository = mockk<OrganizationUserRepository>()
     every { organizationUserRepository.findByOrganizationIdAndUserId(any(), any()) } returns Optional.empty()
     val userRepositoryForAccessControl = mockk<UserRepository>()
@@ -60,7 +64,9 @@ class ProjectTransferForkSpec : DescribeSpec({
         pushedBranchRepository,
         accessControl,
         titleHeadService,
-        issueLabelRepository
+        issueLabelRepository,
+        attachmentRepository,
+        attachmentService
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(projectController).build()
     val auth = UsernamePasswordAuthenticationToken("gildong", "pass")

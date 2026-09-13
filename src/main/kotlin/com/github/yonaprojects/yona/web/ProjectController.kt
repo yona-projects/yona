@@ -1,7 +1,11 @@
 package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.config.security.AccessControl
+import com.github.yonaprojects.yona.domain.attachment.AttachmentRepository
+import com.github.yonaprojects.yona.domain.attachment.AttachmentService
+import com.github.yonaprojects.yona.domain.attachment.LogoValidator
 import com.github.yonaprojects.yona.domain.enumeration.Operation
+import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.issue.IssueLabelRepository
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
@@ -15,6 +19,7 @@ import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.vcs.PushedBranch
 import com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository
+import java.text.Normalizer
 import java.time.Duration
 import java.time.Instant
 import org.springframework.data.domain.PageRequest
@@ -22,6 +27,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 class ProjectController(
@@ -32,7 +38,9 @@ class ProjectController(
     private val pushedBranchRepository: PushedBranchRepository,
     private val accessControl: AccessControl,
     private val titleHeadService: TitleHeadService,
-    private val issueLabelRepository: IssueLabelRepository
+    private val issueLabelRepository: IssueLabelRepository,
+    private val attachmentRepository: AttachmentRepository,
+    private val attachmentService: AttachmentService
 ) {
 
     private fun getLoginUser(authentication: Authentication?): User? {
@@ -77,6 +85,54 @@ class ProjectController(
             }
         }
         return ResponseEntity.ok(projectNames)
+    }
+
+    // legacy yobi.project.Setting.js._onChangeLogoPath()가 이미지 파일 검증 후 곧바로
+    // 전체 폼(멀티파트)을 제출해 로고를 갱신하던 것 대응. 이 화면의 나머지 설정은 이미
+    // /api/projects/{id}(PUT, JSON)로 이식돼 있어 파일을 같이 실어 보낼 수 없으므로,
+    // organization/{orgName}/setting(POST, 멀티파트)이 로고를 처리하는 것과 동일한 방식
+    // (LogoValidator 검증 + 기존 첨부 삭제 후 재저장)의 별도 엔드포인트로 분리했다 - 로고를
+    // 선택하는 즉시 이 엔드포인트로 올라가는 것으로 legacy의 "선택 즉시 반영" 체감을 유지한다.
+    // 이 엔드포인트 자체가 이번에 처음 추가된 것 - 기존에는 project/setting.html에 파일
+    // input(#logoPath)만 있고 그걸 실제로 받는 컨트롤러가 전혀 없어 로고 변경이 완전히
+    // 먹통이었다(죽은 코드 감사 중 발견).
+    @PostMapping("/api/projects/{projectId}/logo")
+    fun updateProjectLogo(
+        @PathVariable projectId: Long,
+        @RequestParam("logoPath") logoFile: MultipartFile,
+        authentication: Authentication?
+    ): ResponseEntity<*> {
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build<Any>()
+        if (!isProjectManager(projectId, user.id!!)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
+        }
+        val project = projectRepository.findById(projectId).orElse(null)
+            ?: return ResponseEntity.notFound().build<Any>()
+
+        if (logoFile.isEmpty) {
+            return ResponseEntity.badRequest().body(mapOf("error" to "파일이 비어 있습니다."))
+        }
+        val filename = logoFile.originalFilename ?: ""
+        if (!LogoValidator.isImageFile(filename)) {
+            return ResponseEntity.badRequest().body(mapOf("error" to "지원하지 않는 이미지 형식입니다."))
+        }
+        if (logoFile.size > LogoValidator.LOGO_FILE_LIMIT_SIZE) {
+            return ResponseEntity.badRequest().body(mapOf("error" to "이미지 파일 크기가 너무 큽니다."))
+        }
+
+        attachmentRepository.findByContainerTypeAndContainerId(ResourceType.PROJECT, project.id.toString())
+            .forEach { attachmentService.delete(it) }
+
+        val normalizedFilename = Normalizer.normalize(filename, Normalizer.Form.NFC)
+        attachmentService.store(
+            inputStream = logoFile.inputStream,
+            name = normalizedFilename,
+            containerType = ResourceType.PROJECT,
+            containerId = project.id.toString(),
+            ownerLoginId = user.loginId ?: "anonymous"
+        )
+
+        return ResponseEntity.ok(mapOf("status" to "success"))
     }
 
     @PutMapping("/api/projects/{projectId}")

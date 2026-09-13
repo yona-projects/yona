@@ -78,16 +78,21 @@
                         </div>
                     </div>
 
-                    <div th:if="${(project.vcs ?: 'GIT').toUpperCase() == 'GIT'}" class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel">
+                    <!-- legacy project/setting.scala.html:95의 style="@if(!project.menuSetting.code){display:none;}"
+                         대응 - "코드" 메뉴가 꺼져있으면 이 패널 자체가 처음부터 숨겨져 있어야 한다. -->
+                    <div th:if="${(project.vcs ?: 'GIT').toUpperCase() == 'GIT'}" class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel" th:style="${!project.isCodeEnabled} ? 'display:none;' : ''">
                         <div class="cu-label vmiddle" th:text="#{project.reviewer.count}">Reviewer Count</div>
                         <div class="cu-desc">
-                            <input name="isUsingReviewerCount" type="radio" class="radio-btn" id="reviewerCountEnable" value="true" th:checked="${project.isUsingReviewerCount}">
+                            <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="show" type="radio" class="radio-btn" id="reviewerCountEnable" value="true" th:checked="${project.isUsingReviewerCount}">
                             <label for="reviewerCountEnable" class="bg-radiobtn label-public" th:text="#{project.reviewer.count.enable}">Enable</label>
-                            
-                            <input name="isUsingReviewerCount" type="radio" class="radio-btn" id="reviewerCountDisable" value="false" th:checked="${!project.isUsingReviewerCount}">
+
+                            <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="hide" type="radio" class="radio-btn" id="reviewerCountDisable" value="false" th:checked="${!project.isUsingReviewerCount}">
                             <label for="reviewerCountDisable" class="bg-radiobtn label-private" th:text="#{project.reviewer.count.disable}">Disable</label>
 
-                            <div id="welReviewerCount" style="margin-top: 10px; display: inline-block;">
+                            <!-- legacy project/setting.scala.html:102의 class="hide"+data-value 대응 -
+                                 초기 표시 여부는 project.isUsingReviewerCount를 따르고, 이후는 위
+                                 라디오 버튼 클릭(data-toggle="reviewer-count")이 show()/hide()로 토글한다. -->
+                            <div id="welReviewerCount" th:data-value="${project.isUsingReviewerCount}" th:class="${project.isUsingReviewerCount} ? '' : 'hide'" style="margin-top: 10px;">
                                 <label for="defaultReviewerCount" style="font-weight: normal; margin-right: 10px;" th:text="#{project.reviewer.count.description}">Reviewer Count:</label>
                                 <select id="defaultReviewerCount" name="defaultReviewerCount" class="form-control" style="display: inline-block; width: 100px;">
                                     <option th:each="num : ${#numbers.sequence(1, 10)}" th:value="${num}" th:text="${num}" th:selected="${project.defaultReviewerCount == num}"></option>
@@ -158,11 +163,96 @@
 
 <script th:inline="javascript">
   $(document).ready(function() {
+      // legacy yobi.project.Setting.js._initVar()의 이름 검증 규칙 - 클라이언트 사이드에만
+      // 있던 검증이라(서버는 예약어만 별도로 재검사) 그대로 재현한다.
+      var rxPrjName = /^[0-9A-Za-z-_\.가-힣]+$/;
+      var aReservedWords = [".", "..", ".git"];
+
+      // legacy yobi.project.Setting.js._onChangeLogoPath() 대응 - 이미지 파일인지 검증한 뒤
+      // 곧바로 업로드한다(죽은 코드 감사 중 발견 - 이 화면엔 원래 로고를 실제로 받는
+      // 컨트롤러가 전혀 없어 로고 변경이 완전히 먹통이었다. /api/projects/{id}/logo를
+      // 새로 만들어 연결).
+      $("#logoPath").on("change", function(){
+          var welTarget = $(this);
+          if ($yona.isImageFile(this) === false) {
+              $yona.showAlert(Messages("project.logo.alert"));
+              welTarget.val("");
+              return;
+          }
+
+          var formData = new FormData();
+          formData.append("logoPath", this.files[0]);
+          $.ajax({
+              url: "/api/projects/" + [[${project.id}]] + "/logo",
+              type: "POST",
+              data: formData,
+              processData: false,
+              contentType: false,
+              success: function(){
+                  window.location.reload();
+              },
+              error: function(xhr){
+                  $yona.showAlert("로고 업로드 실패: " + xhr.responseText);
+                  welTarget.val("");
+              }
+          });
+      });
+
+      // legacy yobi.project.Setting.js._onClickMenuSettingCode/_onClickMenuSettingPullRequest/
+      // _onClickMenuSettingReview의 메뉴 종속관계 - "코드"를 끄면 PR/코드리뷰도 강제로
+      // 꺼지고 관련 패널이 숨겨지며, PR/코드리뷰를 켜면 "코드"가 강제로 켜진다.
+      $("#menuSettingCode").on("click", function(){
+          if (!$(this).prop("checked")) {
+              $("#menuSettingCode").prop("checked", false);
+              $("#menuSettingPullRequest").prop("checked", false);
+              $("#menuSettingReview").prop("checked", false);
+              $("#reviewerCountDisable").trigger("click");
+
+              $("#reviewerCountSettingPanel").hide();
+              $("#defaultBranceSettingPanel").hide();
+              $("#subMenuProjectChangeVCS").hide();
+          }
+      });
+      $("#menuSettingPullRequest").on("click", function(){
+          if ($(this).prop("checked")) {
+              $("#menuSettingCode").prop("checked", true);
+              $("#reviewerCountSettingPanel").show();
+          } else {
+              $("#reviewerCountSettingPanel").hide();
+              $("#reviewerCountDisable").trigger("click");
+          }
+      });
+      $("#menuSettingReview").on("click", function(){
+          if ($(this).prop("checked")) {
+              $("#menuSettingCode").prop("checked", true);
+          }
+      });
+
+      // legacy yobi.project.Setting.js._toggleReviewerCount() 대응 - Enable/Disable 라디오에
+      // 따라 리뷰어 수 select를 보이거나 숨긴다.
+      $(".reviewer-count-wrap").on("click", "[data-toggle='reviewer-count']", function(){
+          var sAction = $(this).data("action");
+          $("#welReviewerCount")[sAction]();
+      });
+      if ($("#welReviewerCount").data("value") === true) {
+          $("#welReviewerCount").show();
+      }
+
       $("#saveSetting").submit(function(e) {
           e.preventDefault();
           var projectId = [[${project.id}]];
           var overview = $("#project-desc").val();
           var name = $("#project-name").val();
+
+          // legacy yobi.project.Setting.js._onClickBtnSave() 대응 - 형식/예약어 검증.
+          if (!rxPrjName.test(name)) {
+              $yona.showAlert(Messages("project.name.alert"));
+              return;
+          }
+          if (aReservedWords.indexOf(name) >= 0) {
+              $yona.showAlert(Messages("project.name.reserved.alert"));
+              return;
+          }
           var projectScope = $("input[name='projectScope']:checked").val();
           var isCodeAccessibleMemberOnly = $("input[name='isCodeAccessibleMemberOnly']:checked").val() === "true";
           
