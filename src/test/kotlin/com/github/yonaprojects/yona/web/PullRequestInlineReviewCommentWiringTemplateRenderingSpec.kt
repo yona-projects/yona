@@ -81,7 +81,7 @@ class PullRequestInlineReviewCommentWiringTemplateRenderingSpec @Autowired const
                 )
             )
 
-            it("리뷰 댓글 작성 권한이 있는 멤버에게는 #changes에 canReviewComment=true와 POST URL이 내려가고 클릭 핸들러 스크립트가 포함돼야 한다") {
+            it("리뷰 댓글 작성 권한이 있는 멤버에게는 #changes에 canReviewComment=true와 POST URL이 내려가고 CodeCommentBox 팝업이 포함돼야 한다") {
                 val result = mockMvc.perform(
                     get("/${project.owner}/${project.name}/pull/${pr.number}/changes").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
                 ).andReturn()
@@ -93,30 +93,33 @@ class PullRequestInlineReviewCommentWiringTemplateRenderingSpec @Autowired const
                 doc.select("#changes").attr("data-review-comment-post-url") shouldBe
                     "/${project.owner}/${project.name}/pullRequest/${pr.id}/comments"
 
+                // code.Diff.js 4단계 복원(CodeCommentBox) - 매번 새 <textarea> 폼을 tr 뒤에
+                // 끼워 넣던 이전 구현(insertReviewCommentForm/pr-comment-form-tr)을 legacy와
+                // 동일한 "단일 팝업 재사용" 아키텍처로 교체했다.
                 body shouldContain "add-comment-btn-cell"
-                body shouldContain "pr-comment-form-tr"
+                body shouldContain "id=\"review-form\""
                 body shouldContain "canReviewComment"
+                body shouldNotContain "pr-comment-form-tr"
             }
 
-            // P3-55: 라인별(ranged) 리뷰 댓글 삽입 폼이 순수 <textarea>가 아니라
-            // <yona-markdown-editor>(CM6 에디터, P3-46에서 16개 화면에 이미 붙인 컴포넌트)를
-            // 쓰도록 교체됐는지 확인한다. 실제 Shadow DOM 초기화/툴바/멘션/미리보기 동작 자체는
-            // Jsoup/MockMvc로 검증할 수 없어(브라우저 런타임 필요) 완료 시점에 Playwright로
-            // 1회 별도 확인한다 - 여기서는 순수 문자열 <textarea name="contents">가 더 이상
-            // 남아있지 않고, markdownEditor 프래그먼트와 동일한 마크업 계약
-            // (data-toggle="markdown-editor" + render-url/mention-url + <yona-markdown-editor>)이
-            // 인라인 스크립트에 내려가는지만 확인한다.
-            it("라인별 댓글 삽입 폼에는 순수 textarea 대신 yona-markdown-editor가 쓰여야 한다") {
+            // P3-55 이후 code.Diff.js 4단계 복원 - 라인별(ranged) 리뷰 댓글 작성이 매번 새 폼을
+            // tr 뒤에 끼워 넣던 방식에서 legacy와 동일한 단일 CodeCommentBox 팝업(common/
+            // reviewForm.html)을 재사용하는 방식으로 바뀌었다. 그 팝업이 순수 <textarea>가 아니라
+            // <yona-markdown-editor>(CM6 에디터)+첨부파일 업로드폼을 쓰는지 확인한다. 실제
+            // 드래그 범위선택/팝업 표시/제출 흐름 자체는 Jsoup/MockMvc로 검증할 수 없어(브라우저
+            // 런타임 필요) Playwright로 별도 검증했다(project_code_diff_restoration_plan 메모
+            // 4단계 참고).
+            it("새 라인/범위 댓글 팝업(review-form)에는 순수 textarea 대신 yona-markdown-editor와 첨부파일 업로드폼이 있어야 한다") {
                 val result = mockMvc.perform(
                     get("/${project.owner}/${project.name}/pull/${pr.number}/changes").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
                 ).andReturn()
 
                 val body = result.response.contentAsString
 
+                body shouldContain "id=\"review-form\""
                 body shouldContain "<yona-markdown-editor name=\"contents\" editor-mode=\"code-review-body\">"
                 body shouldContain "data-toggle=\"markdown-editor\""
-                body shouldContain "markdownRenderUrl"
-                body shouldContain "mentionUrl"
+                body shouldContain "upload-wrap"
                 body shouldNotContain "textarea name=\"contents\""
             }
         }

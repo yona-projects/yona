@@ -105,23 +105,47 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
                 body shouldContain "const csrfTokenValue = \"compare-view-csrf-test-token\""
             }
 
-            it("code/diff.html: _csrf 요청 attribute 값이 인라인 댓글 폼 히든 필드 JS 변수에 그대로 노출돼야 한다") {
+            // code.Diff.js 4단계 복원(CodeCommentBox)으로 이 화면의 새 라인/범위 댓글 폼이
+            // 더 이상 JS 템플릿 문자열로 즉석 삽입되는 순수 HTML action= 폼이 아니라, 진짜
+            // Thymeleaf <form th:action=...>(common/reviewForm.html)로 바뀌었다 - 그래서
+            // CsrfRequestDataValueProcessor가 자동으로 _csrf 히든 필드를 주입해준다(수동 JS
+            // 변수 주입이 더 이상 필요하지 않다).
+            it("code/diff.html: review-form(CodeCommentBox 팝업)에 _csrf 히든 필드가 자동 주입돼야 한다") {
                 val log = repositoryService.getRepository(project).getHistory(0, 10, "main", null)
                 val headCommitId = log.first().getId()
 
-                val csrfToken = org.springframework.security.web.csrf.DefaultCsrfToken(
-                    "X-XSRF-TOKEN", "_csrf", "diff-view-csrf-test-token"
+                // CsrfRequestDataValueProcessor(자동 hidden input 주입)는 Spring Security 필터
+                // 체인 컨텍스트에 의존한다 - 이 스펙의 공용 mockMvc(springSecurity() 미적용)로는
+                // 재현되지 않아 이 테스트에서만 로컬로 springSecurity()를 적용한 mockMvc를 쓴다.
+                // 실제 CsrfFilter가 요청마다 새 토큰을 발급하므로(수동으로 request attribute에
+                // 주입한 값은 필터가 덮어써버린다) 특정 값이 아니라 hidden input 자체가
+                // 실제로 주입됐는지만 확인한다.
+                val secureMockMvc = org.springframework.test.web.servlet.setup.MockMvcBuilders
+                    .webAppContextSetup(wac)
+                    .apply<org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder>(
+                        org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity()
+                    )
+                    .build()
+
+                // review-form은 th:if="${currentUser != null}"로 감싸져 있어 로그인 사용자로
+                // 요청해야 렌더링된다.
+                val ownerDetails = com.github.yonaprojects.yona.domain.user.YonaUserDetails(
+                    id = owner.id!!,
+                    loginId = owner.loginId,
+                    passwordVal = "hashed",
+                    passwordSalt = "salt",
+                    authoritiesVal = org.springframework.security.core.authority.AuthorityUtils.createAuthorityList("ROLE_ACTIVE")
                 )
 
-                val body = mockMvc.perform(
+                val body = secureMockMvc.perform(
                     get("/${project.owner}/${project.name}/commit/$headCommitId")
-                        .requestAttr("_csrf", csrfToken)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(ownerDetails))
                 )
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "const csrfParameterName = \"_csrf\""
-                body shouldContain "const csrfTokenValue = \"diff-view-csrf-test-token\""
+                body shouldContain "id=\"review-form\""
+                body shouldContain Regex("<form[^>]*action=\"[^\"]*/commit/$headCommitId/comments\"[^>]*>\\s*<input type=\"hidden\" name=\"_csrf\"")
             }
         }
 

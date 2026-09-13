@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!-- legacy common/reviewForm.scala.html 대응(4단계 - code.Diff.js 복원 계획 참고). 페이지당
+     단 하나만 존재하는 "플로팅 코드리뷰 댓글 상자"다 - yona.CodeCommentBox.js가 새 라인/범위
+     댓글을 달 때든 기존 스레드에 답글을 달 때든 이 하나의 DOM을 필요한 위치로 옮겨 재사용한다
+     (매번 새 폼을 만들어 삽입하지 않음 - legacy와 동일한 아키텍처). action은 페이지당 고정된
+     하나의 URL(새 스레드 생성과 답글 모두 이 URL로 제출되며, hidden thread.id 유무로 서버가
+     구분한다 - ReviewViewController.newPullRequestComment/newCommitComment 참고). -->
+<div th:fragment="reviewForm(project, resourceType, action)" id="review-form" class="review-form">
+    <form th:action="${action}" method="post" enctype="multipart/form-data">
+        <div class="author-info-wrap pull-left hide-in-mobile" th:if="${currentUser != null}">
+            <div class="author-info">
+                <a th:href="@{/user/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap medium" th:title="${currentUser.name}" data-toggle="tooltip" data-placement="top">
+                    <img th:src="${currentUser.avatarUrl}" width="32" height="32">
+                </a>
+            </div>
+        </div>
+        <div class="write-comment-box">
+            <div class="write-comment-wrap">
+                <div class="pull-right"><button type="button" class="ybtn ybtn-default ybtn-small" data-toggle="close">&times;</button></div>
+
+                <div th:replace="~{site/layout :: markdownEditor('contents', '', 'code-review-body')}"></div>
+
+                <div th:if="${currentUser != null}" th:replace="~{common/uploadForm :: uploadForm(${resourceType}, null, null)}"></div>
+
+                <div class="right-txt">
+                    <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}">댓글 등록</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

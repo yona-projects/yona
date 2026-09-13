@@ -165,9 +165,10 @@
 <!-- Thymeleaf Fragment: Line Comments Renderer -->
 <th:block th:fragment="renderLineComments(threads, diff, lineNum, side)">
   <th:block th:if="${threads != null}" th:each="thread : ${threads}">
-    <th:block th:if="${thread.class.simpleName == 'CodeCommentThread' && thread.codeRange.isFor(diff) && 
+    <th:block th:if="${thread.class.simpleName == 'CodeCommentThread' && thread.codeRange.isFor(diff) &&
                       ((side == 'A' && thread.codeRange.endSide.name == 'A' && thread.codeRange.endLine == lineNum) ||
-                       (side == 'B' && thread.codeRange.endSide.name == 'B' && thread.codeRange.endLine == lineNum))}">
+                       (side == 'B' && thread.codeRange.endSide.name == 'B' && thread.codeRange.endLine == lineNum))}"
+              th:with="reviewFormResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).COMMIT_COMMENT}">
       <tr class="comments board-comment-wrap" th:data-commit-id="${thread.commitId}">
         <td colspan="3" style="padding: 10px; background-color: #fafbfc; border-top: 1px solid #e1e4e8; border-bottom: 1px solid #e1e4e8;">
           <!-- data-range-*/btn-thread-minimize/fold는 pullrequest/partial_comment_thread.html이
@@ -226,15 +227,22 @@
                  보이는 스타일)인데, 여기서는 이미 화면에 떠 있는 스레드 안의 일반 답글 폼으로
                  재사용하면서 style="display:block"으로 덮어쓰는 걸 깜빡해 답글 폼 자체가
                  완전히 숨겨져 있었다(pullrequest/partial_comment_form_on_thread.html은 이미
-                 이 오버라이드가 있었음 - 거기서 쓰던 동일한 수정을 여기도 반영). -->
+                 이 오버라이드가 있었음 - 거기서 쓰던 동일한 수정을 여기도 반영).
+                 4단계 복원: 순수 textarea였던 자리를 markdownEditor+uploadForm(첨부파일)으로
+                 교체 - pullrequest/partial_comment_form_on_thread.html은 이미 이 조합을 쓰고
+                 있었는데 code 쪽만 훨씬 단순화된 대체 구현이었다. 새 라인/범위 댓글은
+                 CodeCommentBox 팝업으로 옮겼지만(code/diff.html 참고), 기존 스레드 답글은
+                 legacy처럼 팝업을 재사용하지 않고 이 상시 노출 폼을 그대로 유지한다(기능은
+                 동등, 클릭 한 번 덜 드는 실용적 차이). -->
             <div class="write-comment-form" th:if="${currentUser != null}">
               <form th:action="@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commitB.getId()})}"
-                    method="post" class="review-form" style="display:block;">
+                    method="post" enctype="multipart/form-data" class="review-form" style="display:block;">
                 <input type="hidden" name="thread.id" th:value="${thread.id}">
-                <div class="write-comment-box" style="display: flex; align-items: flex-start;">
-                  <textarea name="contents" placeholder="댓글을 입력하세요..." style="width: 100%; height: 50px; padding: 4px 6px; border: 1px solid #d1d5da; border-radius: 3px; font-family: sans-serif; resize: vertical; margin-right: 8px; font-size: 12px;" required></textarea>
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <button type="submit" class="ybtn ybtn-success ybtn-small" style="font-size: 11px; padding: 2px 6px;">댓글달기</button>
+                <div class="write-comment-box">
+                  <div th:replace="~{site/layout :: markdownEditor('contents', '', 'code-review-body')}"></div>
+                  <div th:replace="~{common/uploadForm :: uploadForm(${reviewFormResourceType}, null, null)}"></div>
+                  <div class="right-txt">
+                    <button type="submit" class="ybtn ybtn-success ybtn-small">댓글달기</button>
                     <!-- pullrequest/partial_comment_form_on_thread.html과 동일한 방식으로 교체 -
                          이 fragment는 code/diff.html이 th:insert로 마크업만 가져다 쓰기 때문에,
                          이 파일 하단의 페이지 전용 <script>(.btn-thread-state-toggle 커스텀
@@ -246,7 +254,6 @@
                     <button type="button" class="ybtn ybtn-default ybtn-small"
                             th:data-request-method="post"
                             th:data-request-uri="${thread.state.name() == 'OPEN'} ? @{/threads/{id}/close(id=${thread.id})} : @{/threads/{id}/open(id=${thread.id})}"
-                            style="font-size: 11px; padding: 2px 6px;"
                             th:text="${thread.state.name == 'OPEN' ? '닫기' : '열기'}">닫기</button>
                   </div>
                 </div>

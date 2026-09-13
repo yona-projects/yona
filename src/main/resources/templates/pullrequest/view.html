@@ -184,9 +184,11 @@
                         <i class="yobicon-restore"></i>
                     </button>
                     <div id="changes" class="diffs-wrap"
-                         th:with="canReviewComment=${currentUser != null and @accessControl.isProjectResourceCreatable(currentUser, project, T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT)}"
+                         th:with="reviewCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT},
+                                  reviewCommentPostUrl=@{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})},
+                                  canReviewComment=${currentUser != null and @accessControl.isProjectResourceCreatable(currentUser, project, T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT)}"
                          th:data-can-review-comment="${canReviewComment}"
-                         th:data-review-comment-post-url="@{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}"
+                         th:data-review-comment-post-url="${reviewCommentPostUrl}"
                          th:data-commit-id="${commitId}"
                          th:data-markdown-render-url="@{/markdown/{owner}/{name}(owner=${project.owner}, name=${project.name})}"
                          th:data-mention-url="@{/api/{owner}/{name}/mentionList(owner=${project.owner}, name=${project.name})}">
@@ -205,6 +207,17 @@
                             <div th:if="${diffs != null and !diffs.isEmpty()}" th:replace="~{pullrequest/partial_diff :: diff(${diffs}, ${commentThreads}, ${project}, ${pr.toProject}, ${pr.toProject})}"></div>
                             <div class="alert alert-info" th:if="${diffs == null or diffs.isEmpty()}" th:text="#{pullRequest.diff.noChanges}">변경 내역이 없습니다.</div>
                             <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-small"><i class="yobicon-post2"></i></button></div>
+                            <!-- 4단계 복원: legacy CodeCommentBox(플로팅 마크다운 에디터+첨부파일
+                                 팝업). code/diff.html과 동일한 이유로 되살린다 - 이전엔 매번 새
+                                 <textarea> 폼을 tr 뒤에 끼워 넣는 훨씬 단순화된 대체 구현이었다.
+                                 이 위 227~236줄 주석에 남아있던 "P3-55에서 CodeCommentBox.js를
+                                 완전히 제거하기로 결정했다"는 기록은 legacy 재조사 결과 뒤집혔다
+                                 (project_code_diff_restoration_plan 메모 4단계 참고, 사용자
+                                 확인 완료) - 단, "범위 없는 PR 전체 댓글"(common/commentForm)은
+                                 legacy에서도 이 팝업과 무관한 별개 상시 폼이라 그대로 둔다. -->
+                            <th:block th:if="${canReviewComment}">
+                                <div th:replace="~{common/reviewForm :: reviewForm(${project}, ${reviewCommentResourceType}, ${reviewCommentPostUrl})}"></div>
+                            </th:block>
                         </div>
 
                         <div class="board-comment-wrap">
@@ -311,6 +324,7 @@
 <!-- 3단계: 드래그 다중행 범위선택 - common/yona.CodeCommentBlock.js는 이미 완전한 vanilla
      포팅으로 존재했지만 어느 템플릿도 로드하지 않아 죽어 있었다. -->
 <script src="/javascripts/common/yona.CodeCommentBlock.js"></script>
+<script src="/javascripts/common/yona.CodeCommentBox.js"></script>
 <script type="text/javascript" th:inline="javascript">
   $(document).ready(function() {
       var projectId = [[${project.id}]];
@@ -430,12 +444,7 @@
       // newPullRequestComment()도 "redirect:..."를 반환하는 고전적 패턴)으로 이식한다.
       var $changesRoot = $('#changes');
       if ($changesRoot.length && $changesRoot.data('canReviewComment')) {
-          var reviewCommentPostUrl = $changesRoot.data('reviewCommentPostUrl');
           var reviewCommentCommitId = $changesRoot.data('commitId');
-          var markdownRenderUrl = $changesRoot.data('markdownRenderUrl');
-          var mentionUrl = $changesRoot.data('mentionUrl');
-          var csrfParameterName = [[${_csrf != null ? _csrf.parameterName : ''}]];
-          var csrfTokenValue = [[${_csrf != null ? _csrf.token : ''}]];
 
           $changesRoot.find('tr[data-line]').each(function() {
               var $tr = $(this);
@@ -448,86 +457,115 @@
               );
           });
 
-          // 라인/범위 댓글 폼을 $tr 바로 다음에 삽입한다(단일 라인 클릭·드래그 범위선택 공용,
-          // 3단계 복원 - code/diff.html의 insertCommentForm()과 동일 패턴). htRange 필드명은
-          // CodeRangeRequest와 동일.
-          function insertReviewCommentForm($tr, htRange) {
-              var $existingForm = $tr.next('tr.pr-comment-form-tr');
-              if ($existingForm.length) {
-                  $existingForm.remove();
-                  return;
-              }
-              $changesRoot.find('tr.pr-comment-form-tr').remove();
-
-              var formHtml = '<tr class="pr-comment-form-tr">' +
-                  '<td colspan="3" style="padding:10px;background-color:#fafbfc;border-top:1px solid #e1e4e8;border-bottom:1px solid #e1e4e8;">' +
-                  '<div class="write-comment-form">' +
-                  '<form action="' + reviewCommentPostUrl + '" method="post">' +
-                  '<input type="hidden" name="' + csrfParameterName + '" value="' + csrfTokenValue + '">' +
-                  (reviewCommentCommitId ? '<input type="hidden" name="commitId" value="' + reviewCommentCommitId + '">' : '') +
-                  '<input type="hidden" name="path" value="' + htRange.path + '">' +
-                  '<input type="hidden" name="startSide" value="' + htRange.startSide + '">' +
-                  '<input type="hidden" name="startLine" value="' + htRange.startLine + '">' +
-                  '<input type="hidden" name="startColumn" value="' + htRange.startColumn + '">' +
-                  '<input type="hidden" name="endSide" value="' + htRange.endSide + '">' +
-                  '<input type="hidden" name="endLine" value="' + htRange.endLine + '">' +
-                  '<input type="hidden" name="endColumn" value="' + htRange.endColumn + '">' +
-                  '<div style="display:flex;align-items:flex-start;">' +
-                  // P3-55: 순수 <textarea>였던 자리를 site/layout.html::markdownEditor
-                  // 프래그먼트와 동일한 마크업(data-toggle="markdown-editor" 래퍼 +
-                  // <yona-markdown-editor>)으로 교체한다 - 커스텀 엘리먼트는 이미 전역
-                  // 로드돼 있어(site/layout::scripts) 문자열로 삽입해도 브라우저가
-                  // connectedCallback을 실행해 정상 초기화한다(P3-55 티켓의 사전 조사에서
-                  // .min.js를 직접 확인). name="contents" light DOM textarea가 폼 제출 시
-                  // 자동으로 값에 동기화된다. render-url/mention-url은 markdownEditor
-                  // 프래그먼트와 동일하게 $changesRoot의 data 속성에서 읽는다.
-                  '<div data-toggle="markdown-editor" class="mt10" style="flex:1;margin-right:10px;" ' +
-                  'data-markdown-render-url="' + markdownRenderUrl + '" data-mention-url="' + mentionUrl + '">' +
-                  '<div class="editor-notice-label"></div>' +
-                  '<div class="textarea-box"><yona-markdown-editor name="contents" editor-mode="code-review-body"></yona-markdown-editor></div>' +
-                  '</div>' +
-                  '<button type="submit" class="ybtn ybtn-success ybtn-small" style="padding:4px 10px;">' + [[#{button.comment.new}]] + '</button>' +
-                  '</div></form></div></td></tr>';
-              $tr.after(formHtml);
-          }
-
-          $changesRoot.on('click', '.add-comment-btn-cell', function(e) {
-              e.stopPropagation();
-              var $tr = $(this).closest('tr');
-              insertReviewCommentForm($tr, {
-                  path: $tr.data('path'), startSide: $tr.data('side'), startLine: $tr.data('line'), startColumn: 0,
-                  endSide: $tr.data('side'), endLine: $tr.data('line'), endColumn: 0
-              });
-          });
-
-          // ===== 3단계 복원: 드래그 다중행 범위선택(yona.CodeCommentBlock.js) =====
-          // code/diff.html과 동일한 이유(common/yona.CodeCommentBlock.js는 이미 완전한 vanilla
-          // 포팅으로 존재했지만 로드하는 템플릿이 없어 죽어 있었음)로 연결한다. 플로팅 팝업
-          // (CodeCommentBox, 4단계)은 건너뛰고 이미 있는 insertReviewCommentForm()을 실제
-          // 드래그 범위로 확장해 재사용한다 - pullrequest/view.html:217-229 주석에 기록된 대로
-          // CodeCommentBox.js는 이전 세션에 이미 죽은 코드로 판단해 제거된 전력이 있다.
+          // ===== 3~4단계 복원: 드래그 다중행 범위선택(CodeCommentBlock) + 플로팅 댓글 상자
+          // (CodeCommentBox) ===== code/diff.html과 완전히 동일한 이유·패턴으로 연결한다 -
+          // common/yona.CodeCommentBlock.js는 이미 완전한 vanilla 포팅으로 존재했지만 로드하는
+          // 템플릿이 없어 죽어 있었다. 위 224~234줄의 "P3-55에서 CodeCommentBox.js를 완전히
+          // 제거하기로 결정했다"는 기록은 legacy 재조사 결과 뒤집혔다(project_code_diff_
+          // restoration_plan 메모 4단계 참고, 사용자 확인 완료) - 매번 새 <textarea> 폼을 tr
+          // 뒤에 끼워 넣던 이전 구현(insertReviewCommentForm)을 legacy와 동일한 "단일 팝업
+          // 재사용" 아키텍처로 교체했다.
           var diffBodyEl = $changesRoot.find('.diff-body')[0];
           var btnPopEl = $changesRoot.find('.btnPop')[0];
-          if (diffBodyEl && btnPopEl && typeof yona !== 'undefined' && yona.CodeCommentBlock) {
+          if (diffBodyEl && btnPopEl && typeof yona !== 'undefined' && yona.CodeCommentBlock && yona.CodeCommentBox) {
               yona.CodeCommentBlock.init({
                   'welContainer': diffBodyEl,
                   'welPopButtonOnBlock': btnPopEl
               });
+              yona.CodeCommentBox.init();
 
+              // commitId가 있는 화면(특정 커밋 보기)이면 팝업 폼에 고정 hidden input을 한 번만
+              // 추가해둔다 - CodeCommentBox._setReviewFormFields()는 이미 있는 필드는 값만
+              // 갱신하고 지우지 않으므로, 매번 새로 만들 필요 없이 계속 재사용된다.
+              if (reviewCommentCommitId) {
+                  var elReviewForm = document.getElementById('review-form');
+                  var elCommitIdField = document.createElement('input');
+                  elCommitIdField.type = 'hidden';
+                  elCommitIdField.name = 'commitId';
+                  elCommitIdField.value = reviewCommentCommitId;
+                  elReviewForm.querySelector('form').prepend(elCommitIdField);
+              }
+
+              function getTargetTr(sPath, sLineNum, sLineSide) {
+                  var targetTable = diffBodyEl.querySelector('table.diff-container[data-file-path="' + sPath + '"]');
+                  return targetTable ? targetTable.querySelector('tr[data-line="' + sLineNum + '"][data-side="' + sLineSide + '"]') : null;
+              }
+
+              // 드래그 다중행 범위선택 후 "댓글 달기" 팝업 버튼(.btnPop) 클릭 -
+              // legacy _onClickBtnAddBlockComment 대응.
               btnPopEl.addEventListener('click', function(){
                   var htBlockInfo = yona.CodeCommentBlock.getData();
                   yona.CodeCommentBlock.block(htBlockInfo);
 
                   var sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
                   var sLineSide = htBlockInfo.bIsReversed ? htBlockInfo.sStartSide : htBlockInfo.sEndSide;
-                  var targetTable = diffBodyEl.querySelector('table.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
-                  var targetTr = targetTable ? targetTable.querySelector('tr[data-line="' + sLineNum + '"][data-side="' + sLineSide + '"]') : null;
+                  var targetTr = getTargetTr(htBlockInfo.sFilePath, sLineNum, sLineSide);
                   if (!targetTr) { return; }
 
-                  insertReviewCommentForm($(targetTr), {
-                      path: htBlockInfo.sPath,
-                      startSide: htBlockInfo.sStartSide, startLine: htBlockInfo.nStartLine, startColumn: htBlockInfo.nStartColumn,
-                      endSide: htBlockInfo.sEndSide, endLine: htBlockInfo.nEndLine, endColumn: htBlockInfo.nEndColumn
+                  yona.CodeCommentBox.show(targetTr, {
+                      'sPlacement': htBlockInfo.bIsReversed ? 'top' : 'bottom',
+                      'htBlockInfo': htBlockInfo
+                  });
+              });
+
+              // 라인 번호 셀 클릭 -> 그 줄 전체를 선택 상태로 만들고 CodeCommentBlock의 mouseup
+              // 핸들러를 재사용해 단일 라인 범위를 계산한다(legacy _onClickLineNumA와 동일
+              // 트릭). PR쪽 마크업은 라인번호 칸이 항상 add-comment-btn-cell 하나뿐이라(반대쪽은
+              // 빈 칸) 그 셀만 대상으로 한다.
+              $changesRoot.on('click', 'tr[data-line] .add-comment-btn-cell', function(e){
+                  e.stopPropagation();
+                  window.getSelection().removeAllRanges();
+                  var elPre = this.closest('tr').querySelector('td.code pre');
+                  if (!elPre || !elPre.childNodes[0]) { return; }
+                  var elNode = elPre.childNodes[0];
+                  var oRange = document.createRange();
+                  oRange.setStart(elNode, 0);
+                  oRange.setEnd(elNode, elNode.length);
+                  window.getSelection().addRange(oRange);
+
+                  diffBodyEl.dispatchEvent(new MouseEvent('mouseup'));
+                  btnPopEl.click();
+              });
+
+              // diff-body 바깥(팝업/스레드 제외) 마우스다운 시 팝업 숨김 - legacy
+              // _onMouseDownDiffBody.
+              diffBodyEl.addEventListener('mousedown', function(weEvt){
+                  if (weEvt.button !== 0) { return; }
+                  if (weEvt.target.closest('.btnPop')) { return; }
+                  if (weEvt.target.closest('.comment-thread-wrap, .review-form')) { return; }
+
+                  if (document.getSelection().toString().length === 0) {
+                      yona.CodeCommentBox.hide();
+                  }
+              });
+
+              window.addEventListener('CodeCommentBox:afterhide', function(){
+                  yona.CodeCommentBlock.unblock();
+              });
+
+              // 스레드 mouseover/leave 하이라이트 - legacy _onMouseOverCodeCommentThread/
+              // _onMouseLeaveCodeCommentThread.
+              $changesRoot.find('[data-toggle="CodeCommentThread"]').each(function(){
+                  var elThread = this;
+                  elThread.addEventListener('mouseenter', function(weEvt){
+                      if (weEvt.buttons !== 0) { return; }
+                      yona.CodeCommentBlock.block({
+                          'sPath': elThread.getAttribute('data-range-path'),
+                          'sStartSide': elThread.getAttribute('data-range-startside'),
+                          'nStartLine': parseInt(elThread.getAttribute('data-range-startline'), 10),
+                          'nStartColumn': parseInt(elThread.getAttribute('data-range-startcolumn'), 10),
+                          'sEndSide': elThread.getAttribute('data-range-endside'),
+                          'nEndLine': parseInt(elThread.getAttribute('data-range-endline'), 10),
+                          'nEndColumn': parseInt(elThread.getAttribute('data-range-endcolumn'), 10)
+                      });
+                  });
+                  elThread.addEventListener('mouseleave', function(){
+                      yona.CodeCommentBlock.unblock();
+
+                      if (yona.CodeCommentBox.isVisible()) {
+                          var htBlockInfo = yona.CodeCommentBlock.getData();
+                          if (htBlockInfo) { yona.CodeCommentBlock.block(htBlockInfo); }
+                      }
                   });
               });
           }

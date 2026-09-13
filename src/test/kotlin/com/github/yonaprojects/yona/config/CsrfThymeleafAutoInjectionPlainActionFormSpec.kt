@@ -22,9 +22,11 @@ import org.springframework.web.context.WebApplicationContext
 
 // CsrfThymeleafAutoInjectionThActionFormSpec의 대조군 — 유일한 차이는 렌더링하는 템플릿이
 // th:action이 아니라 순수 HTML action= 속성만 쓴다는 것뿐이다. site/layout.html의 익명 로그인
-// 모달(action="/users/login", th:action 아님)이나 code/diff.html·code/compare.html이 JS
-// 템플릿 문자열로 즉석에서 만드는 폼이 실제로 이 패턴이다 — CSRF를 켜도 이런 폼은 자동 주입
-// 대상이 아니므로, 재활성화를 실제로 한다면 이런 폼들은 개별적으로 손봐야 한다는 근거다.
+// 모달(action="/users/login", th:action 아님)이나 code/compare.html이 JS 템플릿 문자열로
+// 즉석에서 만드는 폼이 실제로 이 패턴이다 — CSRF를 켜도 이런 폼은 자동 주입 대상이 아니므로,
+// 재활성화를 실제로 한다면 이런 폼들은 개별적으로 손봐야 한다는 근거다. (code/diff.html은
+// code.Diff.js 4단계 복원으로 이 패턴에서 벗어났다 - 새 라인/범위 댓글 폼이 이제 진짜
+// <form th:action=...>(common/reviewForm.html)라 자동 주입 대상이다.)
 // 프로덕션 SecurityConfig.kt는 건드리지 않는다(이 스펙 전용의 좁은 securityMatcher 체인만 추가).
 @Import(CsrfInvestigationPlainActionFormConfig::class)
 class CsrfThymeleafAutoInjectionPlainActionFormSpec @Autowired constructor(
