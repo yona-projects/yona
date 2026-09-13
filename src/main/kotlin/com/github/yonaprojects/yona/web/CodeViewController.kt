@@ -257,6 +257,64 @@ class CodeViewController(
         return ext in setOf("markdown", "mdown", "mkdn", "mkd", "md", "mdwn")
     }
 
+    // codeBrowserWithBranch()의 접근 검사(isCodeAccessibleMemberOnly/READ)를 ajaxCodeBrowser()와
+    // 공유하기 위해 뽑아냄 - 로직은 그대로, 반환 타입만 페이지 컨트롤러(에러 템플릿)와 AJAX
+    // 엔드포인트(HTTP 상태 코드)가 각자 다르게 쓸 수 있도록 Boolean으로.
+    private fun isCodeReadAllowed(project: Project, loginUser: User?): Boolean {
+        return if (project.isCodeAccessibleMemberOnly == true) {
+            loginUser != null && (
+                projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) ||
+                    accessControl.isAllowedIfGroupMember(project, loginUser)
+                )
+        } else {
+            accessControl.isAllowed(loginUser, project, Operation.READ)
+        }
+    }
+
+    // legacy CodeApp.ajaxRequestWithBranch() 대응 - code.Browser.js의 AJAX 폴더 트리
+    // 지연로딩(hash 기반 expand-in-place)이 한 단계 아래 폴더 내용을 가져올 때 호출한다.
+    // repository.getMetaDataFromPath(branch, path)가 이미 codeBrowserWithBranch()가 전체
+    // 조상 경로를 한 번에 렌더링할 때 쓰는 것과 동일한 메서드라, 여기서는 그 결과 ObjectNode
+    // 하나를 그대로 JSON으로 반환하기만 하면 된다 - "죽은 코드" 감사 중 이 AJAX 트리 기능
+    // 자체가 이식되지 않았던 것을 발견해 legacy와 동일하게 복원했다(이전 세션 P3-63에서는
+    // "페이지 이동 방식으로 충분하다"고 포팅을 보류했었으나, 이번 세션에 legacy 완전 동치화
+    // 방침에 따라 되돌린다).
+    @GetMapping("/{owner}/{projectName}/code/{branch}/!")
+    fun ajaxCodeBrowserRoot(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @PathVariable branch: String,
+        authentication: Authentication?
+    ): ResponseEntity<*> {
+        return ajaxCodeBrowser(owner, projectName, branch, "", authentication)
+    }
+
+    @GetMapping("/{owner}/{projectName}/code/{branch}/!/{*path}")
+    fun ajaxCodeBrowser(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @PathVariable branch: String,
+        @PathVariable path: String,
+        authentication: Authentication?
+    ): ResponseEntity<*> {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build<Any>()
+
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+        if (!isCodeReadAllowed(project, loginUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Any>()
+        }
+
+        val decodedBranch = URLDecoder.decode(branch, "UTF-8")
+        val normalizedPath = URLDecoder.decode(path.removePrefix("/"), "UTF-8")
+
+        val repository = repositoryService.getRepository(project)
+        val fileInfo = repository.getMetaDataFromPath(decodedBranch, normalizedPath)
+            ?: return ResponseEntity.notFound().build<Any>()
+
+        return ResponseEntity.ok(fileInfo)
+    }
+
     @GetMapping("/{owner}/{projectName}/rawcode/{rev}/{*path}")
     fun showRawFile(
         @PathVariable owner: String,

@@ -105,14 +105,12 @@
   .markdown-wrap {
       padding: 30px;
   }
-  /* legacy yona.css의 `.code-browse-wrap .list-wrap { display: none; }`는 legacy JS
-     `$yona.loadModule("code.Browser", ...)`의 `$(".list-wrap").show()`로 열리는 걸 전제로 한
-     규칙인데, yona는 이 SPA 트리 전개 JS 모듈을 포팅하지 않고 일반 페이지 이동 링크로 단순화했다
-     (code/view.html은 폴더 클릭 시 AJAX 없이 새 페이지를 로드) — 그래서 이 규칙을 여기서 명시적으로
-     되돌리지 않으면 위 스타일이 실제로 렌더링되어도 폴더 목록 자체가 항상 숨겨진 채로 남는다. */
-  .code-browse-wrap .list-wrap {
-      display: block;
-  }
+  /* legacy yona.css의 `.code-browse-wrap .list-wrap { display: none; }`를 그대로 되살렸다 -
+     "죽은 코드" 감사 중 code.Browser.js의 AJAX 폴더 트리(hash 기반 expand-in-place)가 이식되지
+     않았던 것을 발견해 legacy와 동일하게 복원(아래 스크립트 참고). 이 규칙은 다시 legacy처럼
+     $(".list-wrap").show()/그 JS가 명시적으로 보여주는 것을 전제로 한다 - 이전 세션(P3-63)에서
+     "AJAX 트리는 포팅하지 않고 일반 페이지 이동으로 단순화했다"는 이유로 여기서 display:block으로
+     강제 오버라이드했었으나, 이번 세션에 legacy 완전 동치화 방침에 따라 되돌린다. -->
 </style>
 <div id="main" class="main">
   <div th:replace="~{site/layout :: gnb}"></div>
@@ -122,7 +120,15 @@
   <!-- 메인 컨텐츠 영역 -->
   <div class="page-wrap-outer">
     <div class="project-page-wrap">
-      <div class="code-browse-wrap">
+      <!-- code.Browser.js의 AJAX 폴더 트리(hash 기반 expand-in-place)가 쓰는 컨텍스트 값들.
+           legacy는 $yobi.loadModule("code.Browser", {sProjectName, sMetaInfoURL, sBasePathURL, ...})로
+           서버 렌더링 값을 JS에 넘겼다 - 이 템플릿은 th:inline="javascript"를 안 쓰므로 이 프로젝트의
+           다른 화면들과 동일하게 data-* 속성으로 노출한다. -->
+      <div class="code-browse-wrap" id="code-browse-wrap"
+           th:data-project-name="${project.name}"
+           th:data-base-path-url="@{/{owner}/{name}/code/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch})}"
+           th:data-meta-info-url="@{/{owner}/{name}/code/{branch}/!(owner=${project.owner}, name=${project.name}, branch=${branch})}"
+           th:data-initial-path="${path}">
       <!-- 상단 탭 메뉴 (yona code/view.scala.html:62-76 대응 — recursiveData의 루트(경로 "")가 폴더일 때만 노출) -->
       <ul class="nav nav-tabs" th:if="${recursiveData[0].get('type').asText() == 'folder'}" style="margin-bottom:20px;">
         <li class="active">
@@ -196,8 +202,18 @@
         <div id="spin" style="position:fixed; top:50%; left:50%"></div>
         <th:block th:each="fileInfo : ${recursiveData}">
 
-          <!-- Case 1: Folder View (yona code/partial_view_folder.scala.html 대응) -->
-          <div th:if="${fileInfo.get('type').asText() == 'folder'}" class="list-wrap" data-type="folder">
+          <!-- Case 1: Folder View (yona code/partial_view_folder.scala.html 대응).
+               data-listpath/data-path/data-targetpath/data-type/id는 legacy
+               partial_view_folder.scala.html의 마크업 계약을 그대로 재현한 것 - 아래
+               code.Browser.js(AJAX 폴더 트리, hash 기반 expand-in-place)가 이 속성들로
+               이미 펼쳐진 조상 목록을 찾고, 새로 받아온 하위 목록을 같은 모양으로 만들어
+               끼워 넣는다("죽은 코드" 감사 중 이 트리 기능 자체가 이식되지 않았던 것을
+               발견해 legacy와 동일하게 복원). fileInfo.get('path')는
+               RepositoryService.getMetaDataFromAncestorDirectories()가 각 단계마다
+               채워 넣는 누적 경로(listPath)다. -->
+          <div th:if="${fileInfo.get('type').asText() == 'folder'}" class="list-wrap" data-type="folder"
+               th:with="listPath=${fileInfo.get('path').asText()}"
+               th:data-listpath="${listPath != ''} ? ${listPath} : null">
             <div class="listhead">
               <div class="filename" th:text="#{code.filename}">파일명</div>
               <div class="commitMsg" th:text="#{code.commitMsg}">최신 커밋 메시지</div>
@@ -210,10 +226,13 @@
 
             <!-- 폴더 먼저, 그 다음 파일 순서로 렌더링 (legacy가 fieldNames()를 두 번 순회하는 것과 동일) -->
             <div class="listitem" th:each="fileName : ${#lists.sort(#lists.toList(fileInfo.get('data').propertyNames()))}"
-                 th:if="${fileInfo.get('data').get(fileName).get('type').asText() == 'folder'}" th:with="file=${fileInfo.get('data').get(fileName)}">
+                 th:if="${fileInfo.get('data').get(fileName).get('type').asText() == 'folder'}"
+                 th:with="file=${fileInfo.get('data').get(fileName)}, targetPath=${listPath == '' ? fileName : listPath + '/' + fileName}"
+                 th:id="'cb-' + ${listPath} + ${fileName}" th:data-path="${targetPath}">
               <div class="filename">
                 <span class="dynatree-icon vmiddle"></span>
-                <a th:href="@{/{owner}/{name}/code/{branch}/{subPath}(owner=${project.owner}, name=${project.name}, branch=${branch}, subPath=${path == null or path.isEmpty() ? fileName : path + '/' + fileName})}"
+                <a th:href="@{/{owner}/{name}/code/{branch}/{subPath}(owner=${project.owner}, name=${project.name}, branch=${branch}, subPath=${targetPath})} + '#cb-' + ${listPath} + ${fileName}"
+                   data-type="folder" th:data-targetpath="${targetPath}"
                    th:text="${fileName}">fileName</a>
               </div>
               <div class="commitMsg">
@@ -223,10 +242,13 @@
               <div class="commitDate" th:text="${templateHelper.agoOrDateString(T(java.time.Instant).ofEpochMilli(file.get('createdDate').asLong()))}">Date</div>
             </div>
             <div class="listitem" th:each="fileName : ${#lists.sort(#lists.toList(fileInfo.get('data').propertyNames()))}"
-                 th:if="${fileInfo.get('data').get(fileName).get('type').asText() != 'folder'}" th:with="file=${fileInfo.get('data').get(fileName)}">
+                 th:if="${fileInfo.get('data').get(fileName).get('type').asText() != 'folder'}"
+                 th:with="file=${fileInfo.get('data').get(fileName)}, targetPath=${listPath == '' ? fileName : listPath + '/' + fileName}"
+                 th:id="'cb-' + ${listPath} + ${fileName}" th:data-path="${targetPath}">
               <div class="filename">
                 <span class="dynatree-icon vmiddle"></span>
-                <a th:href="@{/{owner}/{name}/code/{branch}/{subPath}(owner=${project.owner}, name=${project.name}, branch=${branch}, subPath=${path == null or path.isEmpty() ? fileName : path + '/' + fileName})}"
+                <a th:href="@{/{owner}/{name}/code/{branch}/{subPath}(owner=${project.owner}, name=${project.name}, branch=${branch}, subPath=${targetPath})}"
+                   th:data-targetpath="${targetPath}"
                    th:text="${fileName}">fileName</a>
               </div>
               <div class="commitMsg">
@@ -295,7 +317,25 @@
 
         </th:block>
       </div>
+
+      <!-- legacy code/partial_view_folder.scala.html의 #tplFileListItem(type="text/x-jquery-tmpl")
+           대응 - AJAX로 받아온 하위 폴더 목록 항목을 렌더링하는 템플릿. jQuery.tmpl 플러그인은
+           tmpl 카테고리에서 이미 걷어냈으므로 ${key} 치환 문법이 100% 호환되는 $yona.tmpl()로
+           그대로 재사용한다(문법은 legacy와 동일, 실행 엔진만 다르다). -->
+      <script id="tplFileListItem" type="text/plain">
+<div id="cb-${listPath}${fileName}" class="listitem" data-path="${targetPath}">
+    <div class="filename">
+        <span class="dynatree-icon vmiddle"></span>
+        <a href="${path}" data-targetpath="${targetPath}" data-type="${type}">${fileName}</a>
     </div>
+    <div class="commitMsg">
+        ${avatarImg}
+        <span class="ml5"><a href="${commitUrl}">${commitMsg}</a></span>
+    </div>
+    <div class="commitDate">${commitDate}</div>
+</div>
+      </script>
+      </div>
     </div>
   </div>
 
@@ -415,6 +455,258 @@
           }
       }
   });
+</script>
+
+<!-- legacy service/yobi.code.Browser.js의 AJAX 폴더 트리(hash 기반 expand-in-place) 복원.
+     "죽은 코드" 감사 중 이 기능 자체가 이식되지 않았던 것을 발견 - 이전 세션(P3-63)엔
+     "페이지 이동 방식으로 충분하다"며 포팅을 보류했으나, legacy 완전 동치화 방침에 따라
+     이번에 되돌린다. 파일보기(Ace 에디터) 쪽은 이미 위에서 별도로 이식돼 있어 손대지 않는다. -->
+<script src="/javascripts/lib/moment-with-langs.min.js"></script>
+<script type="text/javascript">
+(function(){
+    var welBrowseWrap = document.getElementById("code-browse-wrap");
+    // 파일 보기 화면(showCode/showFile)에는 애초에 폴더 목록(.list-wrap[data-listpath])이
+    // 없으므로 이 초기화 자체가 필요 없다 - legacy _init()의 `if(htElement.welFileView.length > 0)`
+    // 분기와 동일하게 여기서 걸러낸다.
+    if (!welBrowseWrap || $(".file-wrap[data-type=file]").length > 0) {
+        return;
+    }
+
+    var sProjectName = welBrowseWrap.getAttribute("data-project-name");
+    var sBasePathURL = welBrowseWrap.getAttribute("data-base-path-url");
+    var sMetaInfoURL = welBrowseWrap.getAttribute("data-meta-info-url");
+    var sInitialPath = welBrowseWrap.getAttribute("data-initial-path") || "";
+    var sTplListItem = document.getElementById("tplFileListItem").textContent;
+    var elStyle = document.styleSheets[0];
+    var aAddedDepth = [];
+    var aPathQueue = [];
+    var aWelList = [];
+
+    function getCorrectedPath(sPath, sFileName){
+        return sPath + (sPath.substr(-1) === "/" ? "" : "/") + sFileName;
+    }
+
+    function addCSSRule(sSelector, sRule){
+        if (elStyle.insertRule) {
+            elStyle.insertRule(sSelector + " { " + sRule + " }", elStyle.cssRules.length);
+        } else if (elStyle.addRule) {
+            elStyle.addRule(sSelector, sRule);
+        }
+    }
+
+    function setIndentByDepth(nDepth){
+        nDepth = parseInt(nDepth, 10);
+        if (aAddedDepth.indexOf(nDepth) === -1) {
+            aAddedDepth.push(nDepth);
+            addCSSRule(".depth-" + nDepth + " .filename", "padding-left:" + (20 * nDepth) + "px");
+        }
+    }
+
+    function setCurrentPathBold(sPath){
+        var welCurrent = $('[data-path="' + sPath + '"]');
+        if (welCurrent.length > 0) {
+            $(".currentPath").removeClass("currentPath");
+            welCurrent.addClass("currentPath");
+        }
+    }
+
+    function isListExistsByPath(sTargetPath){
+        return $('[data-listpath="' + sTargetPath + '"]').length > 0;
+    }
+
+    function getSortedList(htData){
+        var htListByType = {};
+        for (var sFileName in htData) {
+            var htFileInfo = htData[sFileName];
+            htFileInfo.fileName = sFileName;
+            var sType = htFileInfo.type;
+            htListByType[sType] = htListByType[sType] || [];
+            htListByType[sType].push(htFileInfo);
+        }
+        return htListByType;
+    }
+
+    function getFileInfoForTpl(htFile, sTargetPath){
+        var sAuthorURL = htFile.userLoginId ? ("/" + htFile.userLoginId) : "javascript:void(0);";
+        htFile.commitDate = (typeof htFile.createdDate !== "undefined") ? moment(new Date(htFile.createdDate)).fromNow() : "";
+        htFile.avatarImg = (typeof htFile.avatar !== "undefined")
+            ? ('<a href="' + sAuthorURL + '" class="avatar-wrap smaller"><img src="' + htFile.avatar + '"></a>')
+            : "";
+        htFile.commitMsg = $yona.htmlspecialchars(htFile.msg || "");
+        htFile.listPath = sTargetPath;
+        htFile.targetPath = getCorrectedPath(sTargetPath, htFile.fileName);
+        htFile.path = getCorrectedPath(sBasePathURL, htFile.targetPath);
+        if (htFile.type === "folder") {
+            htFile.path += ("#cb-" + sTargetPath + htFile.fileName);
+        }
+        return htFile;
+    }
+
+    function getListHTML(htData, sTargetPath){
+        var aHTML = [];
+        var htSortedData = getSortedList(htData);
+        ["folder", "file"].forEach(function(sType){
+            if (htSortedData[sType] instanceof Array) {
+                htSortedData[sType].forEach(function(htFile){
+                    htFile = getFileInfoForTpl(htFile, sTargetPath);
+                    aHTML.push($yona.tmpl(sTplListItem, htFile));
+                });
+            }
+        });
+        return aHTML;
+    }
+
+    function appendFolderList(welTarget, sTargetPath){
+        // legacy _appendFolderList()의 _getCorrectedPath(htVar.sMetaInfoURL, sTargetPath)와
+        // 동일하게 단순 문자열 접합 - sMetaInfoURL 자체가 이미 "/owner/name/code/branch/!"
+        // 형태(끝에 슬래시 없음)라 여기 붙는 sTargetPath와 합쳐 컨트롤러의
+        // "/code/{branch}/!/{*path}" 매핑과 정확히 맞아떨어진다.
+        var sURL = getCorrectedPath(sMetaInfoURL, sTargetPath);
+        var nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0;
+        var nNewDepth = nParentDepth + 1;
+        setIndentByDepth(nNewDepth);
+
+        NProgress.start();
+        $.ajax(sURL, {
+            "success": function(oRes){
+                if (isListExistsByPath(sTargetPath)) {
+                    NProgress.done();
+                    return;
+                }
+
+                var aHTML = getListHTML(oRes.data, sTargetPath);
+                var welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
+                var welList = $('<div class="list-wrap" data-listpath="' + sTargetPath + '"></div>');
+
+                welList.data("depth", nNewDepth);
+                welList.addClass("depth-" + nNewDepth);
+                welList.css("display", "none");
+                welList.html(aHTML.join(""));
+                welTargetItem.after(welList);
+                aWelList.push(welList);
+
+                if (aPathQueue.length > 0) {
+                    requestFolderList();
+                } else {
+                    setCurrentPathBold(sTargetPath);
+                    aWelList.forEach(function(welList){ welList.css("display", "block"); });
+                }
+                NProgress.done();
+            },
+            "error": function(){
+                NProgress.done();
+            }
+        });
+    }
+
+    function requestFolderList(){
+        if (aPathQueue.length === 0) {
+            NProgress.done();
+            aWelList.forEach(function(welList){ welList.css("display", "block"); });
+            return;
+        }
+
+        var sTargetPath = decodeURI(aPathQueue.shift());
+        var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
+
+        if (isListExistsByPath(sTargetPath)) {
+            requestFolderList();
+        } else {
+            appendFolderList(welTarget, sTargetPath);
+        }
+    }
+
+    function updateQueryStringParameter(sUri, sKey, sValue){
+        var rx = new RegExp("([?&])" + sKey + "=.*?(&|$)", "i");
+        var separator = sUri.indexOf("?") !== -1 ? "&" : "?";
+        if (sUri.match(rx)) {
+            return sUri.replace(rx, "$1" + sKey + "=" + sValue + "$2");
+        }
+        return sUri + separator + sKey + "=" + sValue;
+    }
+
+    function updateBreadcrumbs(aQueue){
+        var aCrumbs = ['<a href="' + sBasePathURL + '">' + sProjectName + "</a>"];
+        aQueue.forEach(function(sPath){
+            sPath = decodeURI(sPath);
+            var sLink = getCorrectedPath(sBasePathURL, sPath);
+            var sName = sPath.split("/").pop();
+            aCrumbs.push('<a href="' + sLink + '">' + sName + "</a>");
+        });
+
+        document.getElementById("breadcrumbs").innerHTML = $yona.xssClean(aCrumbs.join(""));
+
+        var welNewFileLink = $("#new-file-link");
+        if (welNewFileLink[0]) {
+            var sPath = document.location.hash.substr(1);
+            welNewFileLink.attr("href", updateQueryStringParameter(welNewFileLink.attr("href"), "path", sPath + "/"));
+        }
+    }
+
+    function onHashChange(){
+        if (document.location.hash.length < 1) {
+            return;
+        }
+
+        var sTargetPath = document.location.hash.substr(1);
+        var welList = $('[data-listpath="' + sTargetPath + '"]');
+        var sCheckPath = "";
+        aPathQueue = [];
+        aWelList = [];
+
+        sTargetPath.split("/").forEach(function(sPath){
+            sCheckPath = (sCheckPath === "") ? sPath : (sCheckPath + "/" + sPath);
+            aPathQueue.push(sCheckPath);
+        });
+        updateBreadcrumbs(aPathQueue);
+
+        if (welList.length > 0) {
+            welList.toggle();
+            setCurrentPathBold(sTargetPath);
+        } else {
+            requestFolderList();
+        }
+    }
+
+    function onClickWrap(weEvt){
+        var elTarget = weEvt.target;
+        var welTarget = $(elTarget);
+
+        if (elTarget.tagName.toLowerCase() === "a" && welTarget.data("type") === "folder") {
+            var sPreviousHash = document.location.hash;
+            document.location.hash = welTarget.data("targetpath");
+
+            if (document.location.hash === sPreviousHash) {
+                $(window).trigger("hashchange");
+            }
+
+            weEvt.preventDefault();
+            weEvt.stopPropagation();
+            return false;
+        }
+    }
+
+    function initDepthedList(){
+        var waFileWrap = $("div.list-wrap[data-listpath]");
+        waFileWrap.each(function(i, elList){
+            var welList = $(elList);
+            var sListPath = welList.data("listpath");
+            var welTarget = $('[data-path="' + sListPath + '"]');
+
+            welList.data("depth", i + 1);
+            welList.addClass("depth-" + (i + 1));
+            setIndentByDepth(i + 1);
+            welTarget.after(welList);
+        });
+        $(".list-wrap").show();
+        setCurrentPathBold(sInitialPath);
+    }
+
+    initDepthedList();
+    $(".code-viewer-wrap").on("click", onClickWrap);
+    $(window).on("hashchange", onHashChange);
+    $(window).trigger("hashchange");
+})();
 </script>
 </body>
 </html>
