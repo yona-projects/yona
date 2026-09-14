@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ P3-69: PR 뷰(overview 탭) 폴링 전용 합성 프래그먼트. legacy service/yobi.git.View.js의
+ _updateState()가 GET .../pullRequest/:id/state 응답(html + isConflict)으로 #state 배너와
+ #btnAccept 표시 여부를 함께 갱신하던 것과 동치 — yona는 #state(pullrequest/partial_state)와
+ Accept 버튼(pullrequest/partial_info::acceptButton)이 서로 다른 DOM 위치에 있어, 한 번의
+ GET(PullRequestViewController.pullRequestState())으로 두 조각을 함께 돌려주고 클라이언트가
+ 각자의 실제 컨테이너(#state, #pr-accept-button)로 나눠 옮겨 넣는다.
+
+ th:insert(th:replace 아님)를 써서 아래 두 div의 id(pr-state-poll-body/pr-accept-button-poll-body)
+ 자체는 남기고 그 안에 프래그먼트 내용만 삽입한다 — 클라이언트가 이 id로 두 조각을 구분해서
+ 꺼내 쓴다. data-pr-state/data-pr-merging은 폴링을 계속할지(완료 기준 3번: CLOSED/MERGED/
+ isMerging이면 중단) 클라이언트가 판단하는 데 쓴다.
+-->
+<!--
+ 주의: 이 최상위 프래그먼트는 컨트롤러가 "pullrequest/partial_state_poll :: poll" 뷰 이름으로
+ 직접 반환한다(다른 템플릿이 th:insert로 인자를 명시해 호출하는 게 아니다) — 이 경우 Thymeleaf는
+ 인자 없이 선택된 프래그먼트의 파라미터를 컨트롤러 Model의 동일한 이름의 속성에서 그대로
+ 가져온다(partial_merge_result.html의 mergeResult(fromProject, pullRequestTitle, ...)와 동일한
+ 기존 관례). 그래서 파라미터명이 PullRequestViewController가 실제로 addAttribute하는 이름
+ (project, pr, currentUser, canDeleteBranch, canRestoreBranch, isAcceptable, disabledAcceptReason)과
+ 정확히 일치해야 한다 — partial_state.html/partial_info.html 내부에서만 쓰는 지역 파라미터명
+ "pull"과 다르므로 혼동 주의.
+-->
+<th:block th:fragment="poll(project, pr, currentUser, canDeleteBranch, canRestoreBranch, isAcceptable, disabledAcceptReason)">
+    <div id="pr-state-poll-body"
+         th:attr="data-pr-state=${pr.state.name()},data-pr-merging=${pr.isMerging == true}"
+         th:insert="~{pullrequest/partial_state :: state(${project}, ${pr}, ${currentUser}, ${canDeleteBranch}, ${canRestoreBranch})}"></div>
+    <div id="pr-accept-button-poll-body"
+         th:insert="~{pullrequest/partial_info :: acceptButton(${project}, ${pr}, ${currentUser}, ${isAcceptable}, ${disabledAcceptReason})}"></div>
+</th:block>
+</body>
+</html>

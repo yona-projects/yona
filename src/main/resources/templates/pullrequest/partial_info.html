@@ -54,11 +54,21 @@
         <span th:if="${changesRequestedCount != null and changesRequestedCount > 0}" class="badge nm review-verdict-summary review-verdict-summary-request-changes"
               th:text="${#strings.concat(#messages.msg('pullRequest.review.verdict.state.requestChanges'), ' ', changesRequestedCount)}">변경 요청 1</span>
 
+        <!--
+         P3-69: 폴링(pullrequest/partial_state_poll.html)이 #state 배너와 함께 이 Accept 버튼도
+         재조회해 갱신할 수 있도록, 이 블록을 독립적으로 참조 가능한 named fragment로도
+         노출한다(th:fragment를 붙여도 이 위치에서의 정상 렌더링에는 영향이 없다). 바깥
+         span#pr-accept-button은 클라이언트가 .html()로 통째로 교체할 안정적인 컨테이너다.
+        -->
+        <span id="pr-accept-button">
+        <th:block th:fragment="acceptButton(project, pull, currentUser, isAcceptable, disabledAcceptReason)">
         <th:block th:if="${currentUser != null and (pull.contributor.id == currentUser.id or @templateHelper.isManager(project, currentUser))}">
             <a id="btnAccept" th:if="${isAcceptable}" th:href="@{/api/projects/{projectId}/pullrequests/{number}/merge(projectId=${project.id}, number=${pull.number})}"
                data-request-method="post" class="ybtn ybtn-success" th:text="#{pullRequest.merge}">병합</a>
             <button th:unless="${isAcceptable}" class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" th:title="${disabledAcceptReason}" th:text="#{pullRequest.merge}">병합</button>
         </th:block>
+        </th:block>
+        </span>
     </div>
 
     <ul class="nav nav-tabs nm">

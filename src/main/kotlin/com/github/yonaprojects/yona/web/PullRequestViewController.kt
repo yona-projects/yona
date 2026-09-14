@@ -18,6 +18,7 @@ import com.github.yonaprojects.yona.domain.pullrequest.NonRangedCodeCommentThrea
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestCommitRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestEventRepository
+import com.github.yonaprojects.yona.domain.pullrequest.PullRequestMergeResult
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestService
@@ -292,11 +293,7 @@ class PullRequestViewController(
             return "error/notfound"
         }
 
-        val mergeResult = try {
-            pullRequestService.attemptMerge(pullRequest.id!!)
-        } catch (e: Exception) {
-            null
-        }
+        val mergeResult = recomputeMergeResultAndCommonAttributes(model, project, pullRequest, loginUser)
 
         // legacy partial_pull_request_event.scala.html에는 PULL_REQUEST_COMMIT_CHANGED 전용 렌더링
         // case가 있다 — 필터에 포함시킨다.
@@ -315,8 +312,6 @@ class PullRequestViewController(
 
         val referredIssues = getReferredIssues(pullRequest)
         model.addAttribute("referredIssues", referredIssues)
-
-        addCommonPrAttributes(model, project, pullRequest, loginUser)
 
         // legacy git/view.scala.html의 AttachmentApp.getFileList(ResourceType.PULL_REQUEST, pull.id)
         // 대응 — PR 본문에 첨부된 파일 목록(issue/board view.html과 동일한 attachmentsJson 패턴).
@@ -399,6 +394,64 @@ class PullRequestViewController(
         // 설계 결정 3번(GitHub 방식) 회귀 대응 — 자기 자신의 PR에는 Approve/Request changes 버튼을
         // 아예 감춘다(Comment는 자기 PR에도 허용하므로 그대로 노출).
         model.addAttribute("canApproveOrRequestChanges", loginUser != null && loginUser.id != pullRequest.contributor.id)
+    }
+
+    // P3-69: viewPullRequest()/viewChangesInternal()/pullRequestState() 세 곳이 공통으로 필요로
+    // 하는 "attemptMerge()로 최신 충돌 상태 재계산 + addCommonPrAttributes() 호출" 순서를
+    // 한 곳으로 추출한 헬퍼. attemptMerge()가 예외를 던져도(JGit 오류 등) 화면을 깨뜨리지 않고
+    // mergeResult=null로 완화하는 기존 관례를 그대로 유지한다.
+    private fun recomputeMergeResultAndCommonAttributes(
+        model: Model,
+        project: Project,
+        pullRequest: PullRequest,
+        loginUser: User?
+    ): PullRequestMergeResult? {
+        val mergeResult = try {
+            pullRequestService.attemptMerge(pullRequest.id!!)
+        } catch (e: Exception) {
+            null
+        }
+        addCommonPrAttributes(model, project, pullRequest, loginUser)
+        return mergeResult
+    }
+
+    // P3-69: legacy service/yobi.git.View.js가 10초 간격으로 폴링하던
+    // GET /:owner/:project/pullRequest/:id/state(PullRequestApp.pullRequestState) 대응.
+    // viewPullRequest()와 동일하게 attemptMerge()로 충돌 상태를 재계산한 뒤
+    // addCommonPrAttributes()가 채우는 isAcceptable/disabledAcceptReason/canDeleteBranch/
+    // canRestoreBranch를 그대로 재사용해, #state 배너(partial_state)와 Accept 버튼
+    // (partial_info::acceptButton)을 한 번에 다시 렌더링하는 합성 프래그먼트를 반환한다.
+    @GetMapping("/{owner}/{projectName}/pull/{number}/state")
+    fun pullRequestState(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @PathVariable number: Long,
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return "error/404"
+
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+        if (!accessControl.isAllowed(loginUser, project, Operation.READ)) {
+            // viewPullRequest()와 동일한 IsAllowedAction forbidden 분기 대응(P-템플릿 #47, 위 주석 참고).
+            model.addAttribute("project", project)
+            return "error/forbidden"
+        }
+
+        // viewPullRequest()와 동일한 IsAllowedAction notFound 분기 대응(P-템플릿 #45, 위 주석 참고).
+        val pullRequest = pullRequestService.getPullRequest(project.id!!, number) ?: run {
+            model.addAttribute("project", project)
+            return "error/notfound"
+        }
+
+        recomputeMergeResultAndCommonAttributes(model, project, pullRequest, loginUser)
+
+        model.addAttribute("project", project)
+        model.addAttribute("pr", pullRequest)
+        model.addAttribute("currentUser", loginUser)
+
+        return "pullrequest/partial_state_poll :: poll"
     }
 
     private fun getReferredIssues(pullRequest: PullRequest): List<Issue> {
@@ -720,11 +773,7 @@ class PullRequestViewController(
             return "error/notfound"
         }
 
-        val mergeResult = try {
-            pullRequestService.attemptMerge(pullRequest.id!!)
-        } catch (e: Exception) {
-            null
-        }
+        val mergeResult = recomputeMergeResultAndCommonAttributes(model, project, pullRequest, loginUser)
 
         val diffs = try {
             if (commitId.isNullOrEmpty()) {
@@ -738,8 +787,6 @@ class PullRequestViewController(
 
         val commentThreads = buildCommentThreadsForChanges(pullRequest, commitId)
         val referredIssues = getReferredIssues(pullRequest)
-
-        addCommonPrAttributes(model, project, pullRequest, loginUser)
 
         model.addAttribute("project", project)
         model.addAttribute("pr", pullRequest)

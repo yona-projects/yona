@@ -356,6 +356,105 @@ class PullRequestViewControllerSpec : DescribeSpec({
             }
         }
 
+        // P3-69: legacy service/yobi.git.View.js가 10초 간격으로 폴링하던
+        // GET .../pullRequest/:id/state(PullRequestApp.pullRequestState) 대응. viewPullRequest()와
+        // 동일한 attemptMerge() 재계산 + addCommonPrAttributes() 계산을 재사용해 #state 배너
+        // (partial_state)와 Accept 버튼(partial_info::acceptButton)을 한 번에 다시 렌더링하는
+        // 합성 프래그먼트(pullrequest/partial_state_poll :: poll)를 반환해야 한다.
+        describe("GET /{owner}/{projectName}/pull/{number}/state") {
+            it("멤버라면 200 OK와 pullrequest/partial_state_poll 프래그먼트를 반환하고, viewPullRequest()와 동일한 모델 속성(isAcceptable/disabledAcceptReason/canDeleteBranch/canRestoreBranch)을 채워야 한다") {
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+                memberUser.projectUsers.add(ProjectUser(id = 950L, user = memberUser, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 1L) } returns pullRequest
+                every { pullRequestService.attemptMerge(50L) } returns PullRequestMergeResult(pullRequest = pullRequest)
+                every { commentThreadRepository.findByPullRequest(pullRequest) } returns emptyList()
+
+                mockMvc.perform(get("/owner/TestProj/pull/1/state").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(view().name("pullrequest/partial_state_poll :: poll"))
+                    .andExpect(
+                        model().attributeExists(
+                            "project", "pr", "currentUser",
+                            "isAcceptable", "canDeleteBranch", "canRestoreBranch"
+                        )
+                    )
+                    // isAcceptable=true인 경우 disabledAcceptReason은 null이어야 한다(addCommonPrAttributes 로직) —
+                    // Model.addAttribute(name, null)로 채워지므로 attributeExists가 아니라 값 자체를 확인한다.
+                    .andExpect(model().attribute("disabledAcceptReason", org.hamcrest.Matchers.nullValue()))
+                    .andExpect(model().attribute("isAcceptable", true))
+                    .andExpect(model().attribute("canDeleteBranch", false))
+                    .andExpect(model().attribute("canRestoreBranch", false))
+            }
+
+            it("attemptMerge()가 예외를 던져도 화면이 깨지지 않고(200 OK) addCommonPrAttributes 계산은 그대로 이루어져야 한다") {
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+                memberUser.projectUsers.add(ProjectUser(id = 951L, user = memberUser, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 1L) } returns pullRequest
+                every { pullRequestService.attemptMerge(50L) } throws RuntimeException("jgit merge error")
+                every { commentThreadRepository.findByPullRequest(pullRequest) } returns emptyList()
+
+                mockMvc.perform(get("/owner/TestProj/pull/1/state").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(view().name("pullrequest/partial_state_poll :: poll"))
+                    .andExpect(model().attribute("isAcceptable", true))
+            }
+
+            it("충돌 상태(isConflict=true)라면 isAcceptable=false, disabledAcceptReason이 채워져야 한다") {
+                val conflictingPr = PullRequest(
+                    id = 60L, title = "충돌 PR", body = "본문",
+                    toProject = project, fromProject = project,
+                    toBranch = "master", fromBranch = "feature2",
+                    contributor = User(id = 10L, loginId = "testuser", name = "테스트유저"),
+                    state = State.OPEN, number = 2L, isConflict = true
+                )
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+                memberUser.projectUsers.add(ProjectUser(id = 952L, user = memberUser, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 2L) } returns conflictingPr
+                every { pullRequestService.attemptMerge(60L) } returns PullRequestMergeResult(pullRequest = conflictingPr)
+                every { commentThreadRepository.findByPullRequest(conflictingPr) } returns emptyList()
+
+                mockMvc.perform(get("/owner/TestProj/pull/2/state").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(model().attribute("isAcceptable", false))
+                    .andExpect(model().attributeExists("disabledAcceptReason"))
+            }
+
+            it("프로젝트를 찾을 수 없으면 404 뷰를 반환해야 한다") {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "NoSuchProj") } returns Optional.empty()
+
+                mockMvc.perform(get("/owner/NoSuchProj/pull/1/state").principal(userAuth))
+                    .andExpect(view().name("error/404"))
+            }
+
+            it("읽기 권한이 없으면 403 Forbidden 뷰를 반환해야 한다") {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+
+                mockMvc.perform(get("/owner/TestProj/pull/1/state"))
+                    .andExpect(view().name("error/forbidden"))
+            }
+
+            it("PR을 찾을 수 없으면 404(error/notfound) 뷰를 반환해야 한다") {
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+                memberUser.projectUsers.add(ProjectUser(id = 953L, user = memberUser, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 999L) } returns null
+
+                mockMvc.perform(get("/owner/TestProj/pull/999/state").principal(userAuth))
+                    .andExpect(view().name("error/notfound"))
+            }
+        }
+
         describe("GET /{owner}/{projectName}/pull/{number}/changes") {
             it("멤버라면 200 OK와 pullrequest/view 뷰를 반환하고 diffs 모델을 주입해야 한다") {
                 val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")

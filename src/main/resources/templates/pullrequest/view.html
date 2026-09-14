@@ -325,10 +325,25 @@
      포팅으로 존재했지만 어느 템플릿도 로드하지 않아 죽어 있었다. -->
 <script src="/javascripts/common/yona.CodeCommentBlock.js"></script>
 <script src="/javascripts/common/yona.CodeCommentBox.js"></script>
+<!-- P3-69: legacy service/yobi.git.View.js의 #state 폴링(10초 간격) 대응 — overview 탭에서만
+     초기화한다(아래 loadModule 호출의 tab 분기 참고). -->
+<script src="/javascripts/service/yona.pullrequest.View.js"></script>
 <script type="text/javascript" th:inline="javascript">
   $(document).ready(function() {
       var projectId = [[${project.id}]];
       var prNumber = [[${pr.number}]];
+      var tab = [[${tab}]];
+
+      // P3-69: legacy service/yobi.git.View.js의 _setStateUpdateTimer() 대응 — overview 탭에서만
+      // #state/#pr-accept-button을 10초 간격으로 폴링한다. PR이 이미 CLOSED/MERGED거나 병합
+      // 진행 중(isMerging)이면 shouldPoll=false로 넘겨 애초에 타이머를 만들지 않는다
+      // (partial_state.html의 최상위 조건 분기 참고 — 이 상태들에서는 더 이상 바뀌지 않는다).
+      if (tab === 'overview') {
+          $yona.loadModule("pullrequest.View", {
+              "stateUrl": [[@{/{owner}/{projectName}/pull/{number}/state(owner=${project.owner}, projectName=${project.name}, number=${pr.number})}]],
+              "shouldPoll": [[${pr.state.name() != 'CLOSED' and pr.state.name() != 'MERGED' and pr.isMerging != true}]]
+          });
+      }
 
       // legacy git/view.scala.html $yona.loadModule("git.View", {...}) 대응 — watch 토글
       $("#watch-button").click(function() {
@@ -340,8 +355,10 @@
           });
       });
 
-      // legacy partial_info.scala.html의 accept 버튼(#btnAccept) 대응
-      $("#btnAccept").click(function(e) {
+      // legacy partial_info.scala.html의 accept 버튼(#btnAccept) 대응. P3-69: 폴링이 상태
+      // 갱신 시 이 버튼(#pr-accept-button 내부)을 통째로 다시 렌더링해 DOM에서 교체하므로,
+      // 폴링 이후에도 클릭이 계속 동작하도록 직접 바인딩이 아닌 위임(delegated) 방식으로 건다.
+      $(document).on("click", "#btnAccept", function(e) {
           e.preventDefault();
           if (!confirm([[#{pullRequest.merge}]] + '?')) { return; }
           $.ajax({
@@ -420,8 +437,10 @@
       $('#btn-review-request-changes').click(function() { submitPullRequestReview('REQUEST_CHANGES'); });
       $('#btn-review-comment').click(function() { submitPullRequestReview('COMMENT'); });
 
-      // [data-request-method] 범용 처리(닫기/다시열기/브랜치 삭제·복구 등)
-      $('[data-request-method]').not('#btnAccept').click(function(e) {
+      // [data-request-method] 범용 처리(닫기/다시열기/브랜치 삭제·복구 등). P3-69: 브랜치
+      // 삭제/복구 버튼은 #state 안(pullrequest/partial_state)에 있어 폴링이 갱신할 때마다
+      // DOM에서 새로 그려지므로, 위 #btnAccept와 동일한 이유로 위임 방식으로 건다.
+      $(document).on('click', '[data-request-method]:not(#btnAccept)', function(e) {
           e.preventDefault();
           var $this = $(this);
           $.ajax({
