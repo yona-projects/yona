@@ -197,6 +197,19 @@ $yona = yona.Common = (function(){
     }
 
     /**
+     * P3-70 라운드7 의도적 미전환: 이 함수는 처음부터 끝까지 lib/jquery.form.js 벤더
+     * 플러그인(.ajaxForm())에 의존한다 - 폼 생성(.append/.appendTo)과 제출(.ajaxForm/.submit)이
+     * 하나의 흐름으로 얽혀 있어 앞부분만 vanilla로 바꾸고 .ajaxForm() 호출만 남기는 "절반 전환"은
+     * 의미가 없다(성공 콜백 fOnLoad(responseText, statusText, xhr, $form) 시그니처 자체가
+     * jquery.form.js 계약이라 - yona-lib.js의 site.search 캐시 로직이 세 번째 인자
+     * xhr.getResponseHeader()까지 실제로 사용함). 이 티켓의 라운드10("jquery.form 호출부
+     * 네이티브 대체")이 명시적으로 이 파일을 대상으로 하므로, 원칙(".requestAs()/.zclip()/
+     * ...코어·벤더 플러그인 의존부는 라운드9/10 대상")에 따라 그대로 두고 근거만 남긴다.
+     * 호출부 14곳(전부 grep으로 확인: yona.Files.js/ui.Typeahead.js/project.Home.js/
+     * site.MassMail.js/board.View.js/code.Diff.js/code.SvnDiff.js/project.Member.js/
+     * organization.Member.js + 압축 번들 yona-lib.js 내 Markdown/site.search) 전부 이
+     * 시그니처를 그대로 기대하므로 손대지 않았다.
+     *
      * Send a request using $.ajaxForm
      * @param {Hash Table} htOptions
      * @param {String}        htOptions.sURL <form> action
@@ -342,8 +355,12 @@ $yona = yona.Common = (function(){
      */
     function notify(sMessage, nDuration, sTitle){
         if(!htVar.oToast){
+            // jQuery $("#tplYonaToast").text()는 매치가 없으면 ""를 반환한다(예외 아님) -
+            // yona.ui.Toast._initVar()가 htOptions.sTplToast에 .replace()를 바로 호출해
+            // undefined면 예외를 던지므로, 같은 no-op 동치를 위해 null 가드 후 ""로 폴백한다.
+            var elTplToast = document.getElementById("tplYonaToast");
             htVar.oToast = new yona.ui.Toast("#yonaToasts", {
-                "sTplToast": $("#tplYonaToast").text()
+                "sTplToast": elTplToast ? elTplToast.textContent : ""
             });
         }
 
@@ -390,8 +407,13 @@ $yona = yona.Common = (function(){
      * @return {String}
      */
     function htmlspecialchars(sHTML){
-        htVar.welHSC = htVar.welHSC || $("<div>");
-        return htVar.welHSC.text(sHTML).html();
+        // jQuery $("<div>").text(sHTML).html()과 동일한 트릭 - textContent에 넣었다가
+        // innerHTML로 다시 꺼내면 <,>,&,",' 등이 브라우저 파서에 의해 그대로 이스케이프된다.
+        // jQuery .text(v) setter가 내부적으로 el.textContent = v를 호출하는 것과 동일해
+        // 완전히 동치다.
+        htVar.elHSC = htVar.elHSC || document.createElement("div");
+        htVar.elHSC.textContent = sHTML;
+        return htVar.elHSC.innerHTML;
     }
 
     /**
@@ -408,9 +430,10 @@ $yona = yona.Common = (function(){
             return (vFile.type.toLowerCase().indexOf("image/") === 0);
         }
 
-        // if vFile is HTMLElement
-        var welFile = $(vFile);
-        var oFileList = welFile.prop("files");
+        // if vFile is HTMLElement(raw 또는 jQuery 객체 둘 다 호출부 계약대로 허용 -
+        // _toElement로 raw element 정규화, yona.ui.Dropdown._toElement와 동일 패턴)
+        var elFile = _toElement(vFile);
+        var oFileList = elFile ? elFile.files : undefined;
 
         if(oFileList && oFileList.length){
             var bResult = true;
@@ -425,9 +448,9 @@ $yona = yona.Common = (function(){
         // if cannot find MIME type from File object
         // get whether filename ends with extension looks like image file
         // like as .gif, .bmp, .jpg, .jpeg, .png.
-        if(typeof welFile.val() === "string"){
+        if(elFile && typeof elFile.value === "string"){
             htVar.rxImgExts = htVar.rxImgExts || /\.(gif|bmp|jpg|jpeg|png)$/i;
-            return htVar.rxImgExts.test(welFile.val());
+            return htVar.rxImgExts.test(elFile.value);
         }
 
         // Unavailable to detect mimeType
