@@ -940,9 +940,12 @@
                 }
             }, true);
 
-            // jquery.placeholder plugin initiator - 라운드10(코어 라이브러리 제거, jquery.placeholder
-            // 명시 대상)까지 의도적으로 jQuery 객체를 유지한다.
-            $('input[type=text], textarea').placeholder();
+            // P3-70 라운드10: jquery.placeholder.min.js(lib/, 미수정) 호출을 제거했다 - 이
+            // 폴리필은 'placeholder' in input/textarea 피처 디텍션에서 둘 다 true면(모든
+            // 현대 브라우저, Chromium/Firefox/Safari 포함) `i.placeholder = function(){
+            // return this }`로 스스로를 완전한 no-op으로 만든다(플러그인 소스 코드로 직접
+            // 확인) - 즉 이 호출은 이미 항상 아무 일도 하지 않고 있었다. HTML5 placeholder
+            // 속성은 네이티브로 항상 표시되므로 제거해도 동치.
 
             // yona.Dropdown
             var sActivation;

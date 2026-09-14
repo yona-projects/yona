@@ -337,16 +337,15 @@
              initActiveMenu();
 
              // 2. 비동기 usermenuTabContentList 데이터 덮어쓰기 완료 시점에 탭 active 재조정.
-             // $.ajaxComplete()는 jQuery 자체의 AJAX 이벤트 시스템(jQuery의 $.ajax 호출에만
-             // 반응, 네이티브 fetch/XHR에는 대응 API가 없음)에 의존하는 jQuery 코어 API라
-             // 라운드10(코어 라이브러리 제거)까지 의도적으로 유지한다 - 이 요청을 실제로 만드는
-             // 코드가 번들(yona-layout.js, 압축된 별도 프레임 전용 번들이라 이 티켓의 소스
-             // 트리 범위 밖)에 있어 jQuery 기반인지도 이번 라운드에서 확인할 수 없었다.
-             $(document).ajaxComplete(function(event, xhr, settings) {
-                 if (settings.url && settings.url.indexOf("/user/usermenuTabContentList") !== -1) {
-                     initActiveMenu();
-                 }
-             });
+             // P3-70 라운드10: $(document).ajaxComplete(...)(jQuery 코어 API, jQuery 자체의
+             // $.ajax 호출에만 반응하고 네이티브 fetch/XHR에는 대응 API가 없음) 호출을
+             // 제거했다 - 실제로 이 URL을 요청하는 코드(common/yona.Usermenu.js:25
+             // `fetch(UsermenuUrl)`)는 이미 완전히 fetch 기반이라, 이 핸들러는 jQuery가
+             // 로드돼 있던 지금까지도 단 한 번도 실행될 수 없는 죽은 등록이었다(grep으로
+             // yona.Usermenu.js 전체를 확인 - $.ajax 호출이 전혀 없다). 제거해도 관찰 가능한
+             // 동작 변화가 없다 - 오히려 jQuery 제거 후 이 줄이 "$ is not defined"로 예외를
+             // 던져 바로 아래 .refresh-button/사이드바 메뉴 클릭 바인딩까지 막는 회귀를
+             // 방지한다.
 
              document.querySelectorAll('.refresh-button').forEach(function(el){
                  el.addEventListener('click', function(){

@@ -5,7 +5,13 @@
  * https://yona.io
  **/
 
-function findNotiReceiversHandler($textarea, url) {
+/**
+ * P3-70 라운드10: elTextarea는 이제 raw DOM 엘리먼트다(호출부 issue/view.html:723도 $(...)
+ * 래핑을 제거했다) - jQuery `.on/.off/.closest/.find/.val/.html`을 각각 addEventListener(핸들러
+ * 참조를 엘리먼트에 보관해 off에서 재사용)/removeEventListener/closest/querySelector/.value/
+ * .innerHTML로 대체했다. 로직 자체(디바운스 시간, fetch 요청/에러 처리, 정렬)는 완전히 동일하다.
+ */
+function findNotiReceiversHandler(elTextarea, url) {
     var MAX_DISPLAY = 10
     var DEBOUNCE_DURATION = 1000;
 
@@ -13,18 +19,24 @@ function findNotiReceiversHandler($textarea, url) {
 
     findNotiReceivers();
 
-    $textarea.on('keyup.receiverList', function () {
+    function _onKeyup() {
         clearTimeout(window.displayTimeout);
         window.displayTimeout = setTimeout(findNotiReceivers, DEBOUNCE_DURATION);
-    });
+    }
+    // unbindFindNotiReceiversHandler가 동일한 핸들러 참조로 해제할 수 있도록 엘리먼트에
+    // 보관한다(jQuery의 네임스페이스 이벤트 "keyup.receiverList"가 하던 역할과 동일).
+    elTextarea._receiverListKeyupHandler = _onKeyup;
+    elTextarea.addEventListener('keyup', _onKeyup);
 
     function findNotiReceivers() {
-        var parentCommentId = $textarea.closest("form").find(".parentCommentId").val()
+        var elForm = elTextarea.closest("form");
+        var elParentCommentId = elForm ? elForm.querySelector(".parentCommentId") : null;
+        var parentCommentId = elParentCommentId ? elParentCommentId.value : "";
 
         fetch(url, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ comment: $textarea.val(), parentCommentId: parentCommentId || "" })
+            body: JSON.stringify({ comment: elTextarea.value, parentCommentId: parentCommentId || "" })
         })
         .then(function(response){
             if(!response.ok){
@@ -53,7 +65,10 @@ function findNotiReceiversHandler($textarea, url) {
             }
 
             // Display notification receivers
-            $textarea.closest("form").find(".notification-receiver-list").html(receivers);
+            var elReceiverList = elForm ? elForm.querySelector(".notification-receiver-list") : null;
+            if (elReceiverList) {
+                elReceiverList.innerHTML = receivers;
+            }
         })
         .catch(function (err) {
             var response = JSON.parse(err.responseText);
@@ -78,6 +93,9 @@ function findNotiReceiversHandler($textarea, url) {
 }
 
 
-function unbindFindNotiReceiversHandler($textarea) {
-    $textarea.off('keyup.receiverList')
+function unbindFindNotiReceiversHandler(elTextarea) {
+    if (elTextarea._receiverListKeyupHandler) {
+        elTextarea.removeEventListener('keyup', elTextarea._receiverListKeyupHandler);
+        elTextarea._receiverListKeyupHandler = null;
+    }
 }

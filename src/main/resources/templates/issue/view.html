@@ -714,13 +714,9 @@
 
             var notiReceiversUrl = elCommentForm.dataset.notiReceiversUrl;
             if (notiReceiversUrl) {
-                // common/yona.ReceiverList.js(findNotiReceiversHandler)는 이번 라운드(P3-70
-                // 라운드6, "템플릿 자체 인라인"만 대상) 범위 밖의 별도 common JS 파일이고, 내부적으로
-                // jQuery API(.on/.closest/.find/.val/.html)에 의존한 채 아직 vanilla로 전환되지
-                // 않았다(10라운드 계획 어디에도 명시적으로 포함돼 있지 않은 파일 - 범위 밖 발견으로
-                // 티켓에 기록). 그 계약을 깨지 않도록 이 호출 지점에서만 jQuery로 감싼 텍스트영역을
-                // 넘긴다.
-                findNotiReceiversHandler($(elCommentTextarea), notiReceiversUrl);
+                // common/yona.ReceiverList.js(findNotiReceiversHandler)는 P3-70 라운드10에서
+                // vanilla로 전환됐다 - 이제 raw 엘리먼트를 그대로 넘긴다(jQuery 래핑 불필요).
+                findNotiReceiversHandler(elCommentTextarea, notiReceiversUrl);
             }
 
             // Ctrl(⌘)+Shift+Enter로 즉시 제출. markdownEditor는 이 textarea를 EasyMDE(CodeMirror)로

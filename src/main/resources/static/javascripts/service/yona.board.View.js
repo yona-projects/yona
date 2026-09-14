@@ -98,10 +98,8 @@
             var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                // P3-70 라운드3/4: yona.Files.getUploader()는 code.Diff.js/code.SvnDiff.js
-                // (라운드5 대상)가 여전히 .attr()로 접근해야 해서 반환값을 jQuery로 감싸둔
-                // 상태다 - 이미 vanilla로 전환된 board.Write.js/milestone.Write.js와
-                // 동일하게 oUploader[0]로 raw element를 꺼내 네이티브로 읽는다.
+                // yona.Files.getUploader()는 [elContainer] 형태의 순수 배열을 반환한다
+                // (P3-70 라운드10에서 jQuery 래핑 제거) - oUploader[0]로 raw element를 꺼낸다.
                 (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,

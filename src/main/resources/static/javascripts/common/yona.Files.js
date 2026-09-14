@@ -385,15 +385,13 @@ yona.Files = (function(){
         });
         _attachEvent(sNamespace);
 
-        // P3-70 라운드3: 반환값은 이미 vanilla로 전환된 호출부(board.Write.js/milestone.View.js/
-        // issue.Write.js/milestone.Write.js - oUploader[0].getAttribute(...)로 접근)와 아직
-        // jQuery인 호출부(board.View.js/code.Diff.js/code.SvnDiff.js/issue.View.js, 라운드4/5
-        // 대상 - oUploader.attr(...)로 접근) 양쪽이 동시에 의존한다. 두 관례가 서로 호환되지
-        // 않아(raw element는 [0] 인덱싱이 없고, jQuery 없이는 .attr()도 없다) 이 반환 지점
-        // 하나만 jQuery로 감싸 양쪽을 계속 만족시킨다 - 나머지 jQuery 호출부가 전부 vanilla로
-        // 바뀌는 라운드5 완료 시점에 이 wrap도 raw element 반환으로 정리할 수 있다. 함수 내부
-        // 로직 자체(_initElement/_attachEvent 이하)는 전부 vanilla다.
-        return $(htElements[sNamespace].welContainer);
+        // P3-70 라운드10: 전수 재확인 결과(grep) 모든 호출부(board.View.js/board.Write.js/
+        // code.Diff.js x2/code.SvnDiff.js/issue.View.js/issue.Write.js/milestone.Write.js)가
+        // 이미 raw element 관례(oUploader[0].getAttribute(...))로 전환되어 있었다(round3가
+        // 예정한 "라운드5 완료 시점 정리"가 실제로는 누락된 채 남아있던 잔존 jQuery 래핑 -
+        // 이번 라운드에서 발견해 정리). .attr()로 접근하는 호출부는 더 이상 없어 jQuery
+        // 컬렉션일 필요가 없으므로, 동일한 [0] 인덱싱 계약만 유지한 채 순수 배열로 바꾼다.
+        return [htElements[sNamespace].welContainer];
     }
 
     /**

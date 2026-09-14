@@ -197,70 +197,311 @@ $yona = yona.Common = (function(){
     }
 
     /**
-     * P3-70 라운드7 의도적 미전환: 이 함수는 처음부터 끝까지 lib/jquery.form.js 벤더
-     * 플러그인(.ajaxForm())에 의존한다 - 폼 생성(.append/.appendTo)과 제출(.ajaxForm/.submit)이
-     * 하나의 흐름으로 얽혀 있어 앞부분만 vanilla로 바꾸고 .ajaxForm() 호출만 남기는 "절반 전환"은
-     * 의미가 없다(성공 콜백 fOnLoad(responseText, statusText, xhr, $form) 시그니처 자체가
-     * jquery.form.js 계약이라 - yona-lib.js의 site.search 캐시 로직이 세 번째 인자
-     * xhr.getResponseHeader()까지 실제로 사용함). 이 티켓의 라운드10("jquery.form 호출부
-     * 네이티브 대체")이 명시적으로 이 파일을 대상으로 하므로, 원칙(".requestAs()/.zclip()/
-     * ...코어·벤더 플러그인 의존부는 라운드9/10 대상")에 따라 그대로 두고 근거만 남긴다.
-     * 호출부 14곳(전부 grep으로 확인: yona.Files.js/ui.Typeahead.js/project.Home.js/
-     * site.MassMail.js/board.View.js/code.Diff.js/code.SvnDiff.js/project.Member.js/
-     * organization.Member.js + 압축 번들 yona-lib.js 내 Markdown/site.search) 전부 이
-     * 시그니처를 그대로 기대하므로 손대지 않았다.
+     * P3-70 라운드10: jquery.form.js(lib/, 미수정) 의존을 제거하고 fetch 기반으로 재작성했다.
+     * 원본은 실제 &lt;form&gt;을 만들어 .ajaxForm()으로 제출했지만(REST 메서드는 htData._method
+     * 히든 필드로 오버라이드하는 관례 - 실제 와이어 상 HTTP 메서드는 htOptForm.method(get/post)
+     * 그대로 유지해야 한다, PUT/DELETE를 fetch에 직접 지정하면 안 됨), 결과적으로 브라우저가
+     * 보내는 요청 모양(메서드/Content-Type/바디 인코딩)은 fetch로도 동일하게 재현 가능하다 -
+     * method가 get이면 쿼리스트링으로, 아니면 URLSearchParams(기본, application/x-www-form-
+     * urlencoded와 동일) 또는 FormData(enctype에 "multipart" 포함 시, 기존 캠페인이 이미
+     * fetch+FormData로 전환한 다른 파일들과 동일한 관례)로 바디를 구성한다.
      *
-     * Send a request using $.ajaxForm
+     * fOnLoad(responseText, statusText, xhr) 시그니처는 그대로 유지한다 - yona-lib.js의
+     * site.search 캐시 로직이 세 번째 인자 xhr.getResponseHeader("Content-Range")를 실제로
+     * 읽으므로, fetch Response를 감싸 getResponseHeader/status/responseText를 제공하는 최소
+     * XHR 호환 shim을 만들어 넘긴다(두 번째 인자 statusText는 어느 호출부도 값 자체를 읽지
+     * 않고 즉시 재대입만 하는 것을 grep으로 확인했다 - jQuery.form의 textStatus 문자열
+     * "success"/"error"만 흉내내도 충분).
+     *
      * @param {Hash Table} htOptions
-     * @param {String}        htOptions.sURL <form> action
-     * @param {Hash Table} htOptions.htOptForm <form> attributes
-     * @param {Hash Table} htOptions.htData data to send
+     * @param {String}        htOptions.sURL 요청 URL
+     * @param {Hash Table} htOptions.htOptForm {method, enctype} 등 <form> 속성 - method
+     *        기본값은 "post"(원본과 동일)
+     * @param {Hash Table} htOptions.htData 전송할 데이터(객체 또는 배열 - 원본이 for-in으로
+     *        키를 순회해 히든 필드를 만들던 것과 동일하게 배열도 인덱스 키로 전송된다)
      * @param {Function}   htOptions.fOnLoad callback function on load
      * @param {Function}   htOptions.fOnError callback function on error
-     * @param {String}       htOptions.sDataType
+     * @param {String}       htOptions.sDataType "json"이면 응답을 JSON.parse해 fOnLoad에 넘긴다
      */
     function sendForm(htOptions){
         var sKey = "";
-        var aFields = [];
-        var aFormAttr = [];
-
-        // create form with attributes (htOptForm)
         var htOptForm = htOptions.htOptForm || {"method":"post"};
-        for(sKey in htOptForm){
-            aFormAttr.push(sKey + '="' + htOptForm[sKey] + '"');
-        }
-        var sFormAttr = aFormAttr.join(" ");
-        var welForm = $('<form action="' + htOptions.sURL + '" ' + sFormAttr + '>');
-
-        // form fields
+        var sMethod = (htOptForm.method || "post").toLowerCase();
         var htData = htOptions.htData || {};
-        for(sKey in htData){
-            aFields.push($('<input type="hidden" name="' + sKey + '" value="' + htData[sKey] + '">'));
+        var sURL = htOptions.sURL;
+        var oInit = {"method": sMethod, "credentials": "same-origin"};
+
+        if(sMethod === "get"){
+            var oParams = new URLSearchParams();
+            for(sKey in htData){
+                oParams.append(sKey, htData[sKey]);
+            }
+            var sQuery = oParams.toString();
+            if(sQuery){
+                sURL += (sURL.indexOf("?") === -1 ? "?" : "&") + sQuery;
+            }
+        } else if((htOptForm.enctype || "").indexOf("multipart") !== -1){
+            var oFormData = new FormData();
+            for(sKey in htData){
+                oFormData.append(sKey, htData[sKey]);
+            }
+            oInit.body = oFormData;
+        } else {
+            var oBody = new URLSearchParams();
+            for(sKey in htData){
+                oBody.append(sKey, htData[sKey]);
+            }
+            oInit.body = oBody;
         }
-        welForm.append(aFields);
-        welForm.appendTo(document.body);
 
-        // send form
-        welForm.ajaxForm({
-            "success" : function(){
+        fetch(sURL, oInit).then(function(oResponse){
+            var fReadBody = (htOptions.sDataType === "json") ? oResponse.json() : oResponse.text();
+            return fReadBody.then(function(vBody){
+                return {"response": oResponse, "body": vBody};
+            }, function(){
+                // JSON 파싱 실패 시 원본 jQuery.form과 동일하게 실패를 전파하지 않고 빈 값으로 폴백.
+                return {"response": oResponse, "body": (htOptions.sDataType === "json") ? null : ""};
+            });
+        }).then(function(oResult){
+            var oResponse = oResult.response;
+            var sResponseText = (typeof oResult.body === "string") ? oResult.body : JSON.stringify(oResult.body);
+            var oXHRShim = {
+                "status"    : oResponse.status,
+                "statusText": oResponse.statusText,
+                "responseText": sResponseText,
+                "getResponseHeader": function(sName){ return oResponse.headers.get(sName); }
+            };
+
+            if(oResponse.ok){
                 if(typeof htOptions.fOnLoad === "function"){
-                    htOptions.fOnLoad.apply(this, arguments);
+                    htOptions.fOnLoad(oResult.body, "success", oXHRShim);
                 }
-                welForm.remove();
-            },
-            "error"   : function(){
-                if(typeof htOptions.fOnError === "function"){
-                    htOptions.fOnError.apply(this, arguments);
-                }
-                welForm.remove();
-            },
-            "dataType": htOptions.sDataType || null
+            } else if(typeof htOptions.fOnError === "function"){
+                htOptions.fOnError(oXHRShim, "error", oResponse.statusText);
+            }
+        }).catch(function(oErr){
+            if(typeof htOptions.fOnError === "function"){
+                htOptions.fOnError({
+                    "status": 0,
+                    "statusText": "error",
+                    "responseText": "",
+                    "getResponseHeader": function(){ return null; }
+                }, "error", String(oErr));
+            }
         });
-
-        welForm.submit();
-
-        aFields = aFormAttr = sFormAttr = null;
     }
+
+    /**
+     * P3-70 라운드10: jquery.requestAs.js(lib/, 미수정) 플러그인의 네이티브 대체.
+     *
+     * 원본 플러그인 계약을 그대로 재현한다 - 엘리먼트당 한 번만 초기화되고(idempotent,
+     * el._yonaRequestAs로 캐시 - jQuery `.data("requestAs")`와 동일한 "최초 1회만 생성" 동작,
+     * 두 번째 호출부터는 새 htOptions를 무시하고 기존 인스턴스를 그대로 반환한다), click/keydown
+     * (Enter)에서 요청을 보내고, 커스텀 이벤트(beforeRequest/load/error)를 등록·발생시킬 수
+     * 있는 {options, on, off} 인터페이스를 반환한다. 성공 시 204+Location이면 그 위치로 이동,
+     * 아니면 페이지를 새로고침 - 원본 _onSuccessRequest/_onErrorRequest와 동일한 기본 동작이다.
+     *
+     * @param {Element|jQuery} elArg
+     * @param {Hash Table} [htOptions]
+     * @param {String} [htOptions.sMethod] 없으면 data-request-method 속성, 없으면 "get"
+     * @param {String} [htOptions.sHref] 없으면 data-request-uri 속성, 없으면 href 속성
+     * @param {Function} [htOptions.fOnLoad]
+     * @param {Function} [htOptions.fOnError]
+     * @returns {Object|null} {options, on, off}
+     */
+    function requestAs(elArg, htOptions){
+        var el = _toElement(elArg);
+        if(!el){
+            return null;
+        }
+        if(el._yonaRequestAs){
+            return el._yonaRequestAs;
+        }
+
+        htOptions = htOptions || {};
+        var htHandlers = {};
+        var htData = {
+            "sMethod": (htOptions.sMethod || el.getAttribute("data-request-method") || "get").toLowerCase(),
+            "sHref"  : htOptions.sHref || el.getAttribute("data-request-uri") || el.getAttribute("href")
+        };
+
+        function _fireEvent(sName, oData){
+            var aHandlers = htHandlers[sName];
+            if(!(aHandlers instanceof Array)){
+                return undefined;
+            }
+            var bResult;
+            aHandlers.forEach(function(fHandler){ bResult = bResult || fHandler(oData); });
+            return bResult;
+        }
+
+        function _on(sEventName, fHandler){
+            if(typeof sEventName === "object"){
+                for(var sKey in sEventName){
+                    htHandlers[sKey] = htHandlers[sKey] || [];
+                    htHandlers[sKey].push(sEventName[sKey]);
+                }
+            } else {
+                htHandlers[sEventName] = htHandlers[sEventName] || [];
+                htHandlers[sEventName].push(fHandler);
+            }
+        }
+
+        function _off(sEventName, fHandler){
+            if(!fHandler){
+                htHandlers[sEventName] = [];
+                return;
+            }
+            var aHandlers = htHandlers[sEventName];
+            var nIndex = aHandlers ? aHandlers.indexOf(fHandler) : -1;
+            if(nIndex > -1){
+                aHandlers.splice(nIndex, 1);
+            }
+        }
+
+        // legacy compatibility - htOptions.fOnLoad/fOnError는 "load"/"error" 커스텀 이벤트
+        // 핸들러로 등록된다(원본 RequestAs.init()과 동일).
+        if(typeof htOptions.fOnLoad === "function"){
+            _on("load", htOptions.fOnLoad);
+        }
+        if(typeof htOptions.fOnError === "function"){
+            _on("error", htOptions.fOnError);
+        }
+
+        function _onErrorResponse(oResponse, oXHRShim){
+            var bResult = _fireEvent("error", {"oXHR": oXHRShim});
+            if(bResult === false){
+                return;
+            }
+            var nStatus = oResponse ? oResponse.status : 0;
+            if(nStatus === 200){
+                document.location.reload();
+            } else if(nStatus === 204){
+                document.location.href = oResponse.headers.get("Location");
+            }
+        }
+
+        function _sendRequest(){
+            var htReqOpt = {"method": htData.sMethod};
+            if(_fireEvent("beforeRequest", htReqOpt) === false){
+                return;
+            }
+
+            fetch(htData.sHref, {"method": htReqOpt.method, "credentials": "same-origin"})
+                .then(function(oResponse){
+                    return oResponse.text().then(function(sText){
+                        var oXHRShim = {
+                            "status": oResponse.status,
+                            "responseText": sText,
+                            "getResponseHeader": function(sName){ return oResponse.headers.get(sName); }
+                        };
+                        if(oResponse.ok){
+                            var bResult = _fireEvent("load", {"oRes": sText, "oXHR": oXHRShim, "sStatus": "success"});
+                            if(bResult === false){
+                                return;
+                            }
+                            var sLocation = oResponse.headers.get("Location");
+                            if(oResponse.status === 204 && sLocation){
+                                document.location.href = sLocation;
+                            } else {
+                                document.location.reload();
+                            }
+                        } else {
+                            _onErrorResponse(oResponse, oXHRShim);
+                        }
+                    });
+                })
+                .catch(function(){
+                    _onErrorResponse(null, {"status": 0, "responseText": "", "getResponseHeader": function(){ return null; }});
+                });
+        }
+
+        function _onClickOrKeydown(weEvt){
+            if(weEvt.type === "keydown" && weEvt.keyCode !== 13){
+                return;
+            }
+            _sendRequest();
+            weEvt.preventDefault();
+            weEvt.stopPropagation();
+        }
+
+        // GET 메서드의 <a> 태그는 원본 플러그인도 클릭 핸들러를 붙이지 않는다(네이티브 앵커
+        // 이동만으로 충분하다는 의도) - 이 앱에는 data-request-method="get"이 전혀 없어(전수
+        // grep 확인) 실제로는 항상 핸들러가 붙지만, 원본 조건을 그대로 재현해 둔다.
+        if(!(htData.sMethod === "get" && el.tagName.toLowerCase() === "a")){
+            el.style.cursor = "pointer";
+            el.addEventListener("click", _onClickOrKeydown);
+            el.addEventListener("keydown", _onClickOrKeydown);
+        }
+
+        el._yonaRequestAs = {
+            "options": htData,
+            "on"     : _on,
+            "off"    : _off
+        };
+        return el._yonaRequestAs;
+    }
+
+    /**
+     * jquery.requestAs.js의 DATA-API(`$(document).ready(function(){ $("[data-request-
+     * method]").requestAs(); })`)와 동일 - 페이지에 정적으로 존재하는 [data-request-method]
+     * 엘리먼트를 전부 초기화한다. issue.View.js 등 나중에 동적으로 삽입된 영역은 각자
+     * $yona.requestAs(el)을 개별 호출해 추가로 초기화한다(idempotent라 중복 호출해도 안전).
+     */
+    document.addEventListener("DOMContentLoaded", function(){
+        document.querySelectorAll("[data-request-method]").forEach(function(el){
+            requestAs(el);
+        });
+    });
+
+    /**
+     * P3-70 라운드10: jquery.search.js(lib/, 미수정)의 네이티브 대체 - data-toggle="item-
+     * search" 입력창에 타이핑하면 data-items로 지정된 [data-item="..."] 목록을 data-value
+     * 부분일치로 실시간 필터링한다(현재 저장소 전체에서 유일한 사용처는
+     * organization/view.html의 "내 프로젝트만 보기" 검색창).
+     */
+    function _initItemSearch(el){
+        if(el._yonaSearchBound){
+            return;
+        }
+        el._yonaSearchBound = true;
+
+        var sItem = el.getAttribute("data-items") || "";
+        var aItems = document.querySelectorAll('[data-item="' + sItem + '"]');
+        var nSearchTimer;
+
+        function _search(sFilter){
+            // jQuery `$.trim(filter)`은 앞뒤 공백만 제거한다(내부 공백은 유지) - 빈 입력
+            // 여부 판정에만 쓰이고, 실제 부분일치 비교는 트리밍 전(내부 공백 포함) 값을
+            // 그대로 쓴다는 점에 주의 - $yona.getTrim()(내부 공백까지 축약)을 쓰면 안 된다.
+            if(!sFilter.trim()){
+                aItems.forEach(function(elItem){ elItem.style.display = ""; });
+                return;
+            }
+            aItems.forEach(function(elItem){
+                var sValue = (elItem.getAttribute("data-value") || "").toLowerCase();
+                elItem.style.display = (sValue.indexOf(sFilter) !== -1) ? "" : "none";
+            });
+        }
+
+        el.addEventListener("keyup", function(){
+            clearTimeout(nSearchTimer);
+            var sFilter = el.value.toLowerCase();
+            nSearchTimer = setTimeout(function(){ _search(sFilter); }, 200);
+        });
+        el.addEventListener("keydown", function(){
+            clearTimeout(nSearchTimer);
+        });
+    }
+
+    // jquery.search.js DATA-API(`$(document).on('focus', '[data-toggle="item-search"]', ...)`)와
+    // 동일 - focus는 버블링하지 않아 라운드6에서 확립한 캡처 단계 위임 관례를 사용한다.
+    document.addEventListener("focus", function(weEvt){
+        var matched = weEvt.target.closest && weEvt.target.closest('[data-toggle="item-search"]');
+        if(matched && document.contains(matched)){
+            _initItemSearch(matched);
+        }
+    }, true);
 
     /**
      * Strip all whitespace in string
@@ -835,6 +1076,7 @@ $yona = yona.Common = (function(){
         "loadScript": loadScript,
         "stopEvent" : stopEvent,
         "sendForm"  : sendForm,
+        "requestAs" : requestAs,
         "getTrim"   : getTrim,
         "showAlert" : showAlert,
         "alert"     : showAlert,

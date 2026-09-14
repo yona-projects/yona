@@ -156,19 +156,24 @@ document.addEventListener("DOMContentLoaded", function(){
         elUserListWrap.addEventListener('click', function(event) {
             var matchedDelete = event.target.closest('[data-toggle="account-delete"]');
             if (matchedDelete && elUserListWrap.contains(matchedDelete)) {
-                // .requestAs()는 jquery.requestAs.js 플러그인 호출부라 라운드10(코어 라이브러리
-                // 제거)까지 의도적으로 jQuery 객체를 유지한다(.modal()은 라운드9에서 네이티브
-                // <dialog>로 이미 전환됨 - 위 elAlertDeletionWrap.showModal() 참고).
-                $('#accountToggleBtn')
-                    .data("requestUri", matchedDelete.dataset.href)
-                    .data("requestMethod","delete")
-                    .requestAs({
-                            "fOnError": function(oRes) {
-                                if (oRes.oXHR.status == 403) {
-                                    document.location.reload();
-                                }
-                            }
-                        });
+                // P3-70 라운드10: jquery.requestAs.js 플러그인 호출을 $yona.requestAs로 전환.
+                // 원본은 매 클릭마다 jQuery `.data()`에 requestUri/requestMethod를 새로 심고
+                // 인자 없이 `.requestAs()`를 불렀지만, 실제로는 최초 1회만 인스턴스가 생성되고
+                // (jQuery 데이터 캐시의 "이미 있으면 재생성 안 함" 가드) 이후 클릭에서 새로 심은
+                // requestUri는 무시된 채 첫 클릭 때의 URL이 그대로 재사용되는 기존 동작이 있었다
+                // (한 페이지에서 삭제 확인을 취소하고 다른 사용자를 다시 열 때만 관찰되는 극히
+                // 드문 경로 - 성공/거절 시 항상 페이지가 새로고침되므로 보통은 드러나지 않는다).
+                // $yona.requestAs도 동일하게 el._yonaRequestAs를 최초 1회만 채우는 idempotent
+                // 가드라 이 기존 동작을 그대로 재현한다.
+                $yona.requestAs(document.getElementById('accountToggleBtn'), {
+                    "sMethod": "delete",
+                    "sHref"  : matchedDelete.dataset.href,
+                    "fOnError": function(oRes) {
+                        if (oRes.oXHR.status == 403) {
+                            document.location.reload();
+                        }
+                    }
+                });
                 var elUserInfo = document.getElementById('userInfo');
                 if (elUserInfo) {
                     elUserInfo.innerHTML = matchedDelete.dataset.userName + '(' + matchedDelete.dataset.userId + ')';

@@ -571,11 +571,13 @@
 
             _initFileDownloader(timelineList.querySelectorAll(".attachments"));
             yona.Markdown.enableMarkdown(timelineList.querySelectorAll("[markdown]"));
-            // P3-70: .requestAs()(jquery.requestAs.js, lib/) 호출부는 라운드10(코어 라이브러리
-            // 제거)까지 일부러 미룬다 - common/yona.Comment.js(라운드3)/service/yona.code.Diff.js
-            // (라운드5)와 같은 판단(라운드1 완료 로그 참고). timelineList는 위에서 이미 raw
-            // element로 바꿨으므로 이 한 줄만 jQuery로 다시 감싼다.
-            $(timelineList).find("[data-request-method]").requestAs(); // delete button
+            // P3-70 라운드10: 새로 렌더링된(아직 Common.js의 전역 DOMContentLoaded auto-init을
+            // 거치지 않은) 타임라인 조각 안의 [data-request-method] 엘리먼트(삭제 버튼)를 개별
+            // 초기화한다 - $yona.requestAs는 idempotent라 이미 초기화된 엘리먼트를 다시 넘겨도
+            // 안전하다.
+            timelineList.querySelectorAll("[data-request-method]").forEach(function(el){
+                $yona.requestAs(el);
+            }); // delete button
 
             return timelineList;
         }

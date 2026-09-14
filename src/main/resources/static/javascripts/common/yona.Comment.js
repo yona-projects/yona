@@ -9,9 +9,8 @@
  * P3-70 라운드3: 이 파일은 어느 템플릿에서도 로드되지 않는 죽은 코드다(<script src>도
  * $yona.loadModule("Comment") 호출도 저장소 전체에 0건, grep으로 재확인). 실제 댓글 삭제/수정
  * UI는 common/commentDeleteModal.html의 별도 인라인 스크립트와 common/yona.SubComment.js가
- * 처리한다. 원칙대로 삭제하지 않고 완전 동치 보장 하에 vanilla로 전환했다 - 단,
- * _openDeleteModal()의 .requestAs()는 라운드1에서 yona.project.Delete.js에 대해 내린 판단과
- * 동일하게 미룬다(jquery.requestAs.js 플러그인 자체가 라운드10 "코어 라이브러리 제거" 대상).
+ * 처리한다. 원칙대로 삭제하지 않고 완전 동치 보장 하에 vanilla로 전환했다(라운드10에서
+ * _openDeleteModal()의 .requestAs()도 $yona.requestAs로 마저 전환해 완전히 vanilla가 됐다).
  */
 yona.Comment = (function(){
     var htElement = {};
@@ -93,16 +92,19 @@ yona.Comment = (function(){
     /**
      * open delete modal
      *
-     * P3-70 라운드3: .requestAs()는 jquery.requestAs.js 플러그인 호출이라 라운드10(코어
-     * 라이브러리 제거)까지 전환을 미룬다(라운드1의 yona.project.Delete.js와 동일 판단) - 이
-     * 함수 전체가 그 호출에 강하게 결합돼 있어 그대로 둔다. .modal()만 기존 캠페인에서 이미
-     * 확립된 네이티브 <dialog> 관례로 전환한다(round2의 organization.Member.js와 동일).
+     * P3-70 라운드10: jquery.requestAs.js 플러그인 호출을 $yona.requestAs로 전환했다 - 원본은
+     * jQuery `.data()` 내부 캐시에 requestUri/requestMethod를 먼저 심어두고 인자 없이
+     * `.requestAs()`를 호출해 그 캐시를 읽게 했지만(welDeleteConfirmBtn 자체엔 원래
+     * data-request-* 속성이 없다), $yona.requestAs는 htOptions로 직접 넘기면 동일하게
+     * 우선 적용되므로(_getRequestOptions 우선순위: htOptions > data 속성) 그 간접 단계를
+     * 생략해도 완전히 동치다. .modal()은 기존 캠페인에서 이미 확립된 네이티브 <dialog>
+     * 관례로 전환한다(round2의 organization.Member.js와 동일).
      */
     function _openDeleteModal() {
-        window.jQuery(htElement.welDeleteConfirmBtn)
-            .data('requestUri', this.getAttribute('data-request-uri'))
-            .data('requestMethod', 'delete')
-            .requestAs();
+        $yona.requestAs(htElement.welDeleteConfirmBtn, {
+            "sMethod": "delete",
+            "sHref"  : this.getAttribute('data-request-uri')
+        });
 
         if(htElement.welDeleteModal && typeof htElement.welDeleteModal.showModal === 'function'){
             htElement.welDeleteModal.showModal();

@@ -40,9 +40,7 @@
         function _initElement(htOptions){
             htElement.elChkAccept    = document.getElementById("accept");
             htElement.elBtnDeletePop = document.getElementById("btnDelete");
-            // requestAs 플러그인(jquery.requestAs.js)은 이 파일에서 아직 전환하지 않아
-            // btnDeletePrj만 jQuery 객체로 남겨둔다(아래 .requestAs() 호출부).
-            htElement.welBtnDeletePrj = $("#btnDeleteExec");
+            htElement.elBtnDeletePrj = document.getElementById("btnDeleteExec");
             htElement.elAlertDeletion = document.getElementById("alertDeletion");
         }
 
@@ -63,7 +61,9 @@
 
             $yona.attachDialogDismiss(htElement.elAlertDeletion);
 
-            htElement.welBtnDeletePrj.requestAs({
+            // P3-70 라운드10: jquery.requestAs.js 플러그인 호출부를 $yona.requestAs(코어
+            // 라이브러리 제거를 위해 이번 라운드에서 신설된 네이티브 대체)로 전환.
+            $yona.requestAs(htElement.elBtnDeletePrj, {
                 "sMethod" : "delete",
                 "sHref"   : htOptions.sDeleteURL,
                 "fOnError": function(){

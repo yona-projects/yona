@@ -103,13 +103,13 @@ document.addEventListener("DOMContentLoaded", function(){
             var matched = event.target.closest('[data-toggle="delete-project"]');
             if (!matched || !elProjectListWrap.contains(matched)) { return; }
 
-            // .requestAs()는 jquery.requestAs.js 플러그인 호출부라 라운드10(코어 라이브러리 제거)까지
-            // 의도적으로 jQuery 객체를 유지한다(project.Delete.js/Comment.js/issue.View.js/code.Diff.js와
-            // 동일한 판단).
-            $('#projectDeleteBtn')
-              .data('requestUri', matched.dataset.href)
-              .data("requestMethod","delete")
-              .requestAs();
+            // P3-70 라운드10: jquery.requestAs.js 플러그인 호출을 $yona.requestAs로 전환
+            // (userList.html의 계정 삭제 버튼과 동일한 관례 - htOptions로 직접 넘겨 jQuery
+            // 데이터 캐시 간접 단계를 생략).
+            $yona.requestAs(document.getElementById('projectDeleteBtn'), {
+                "sMethod": "delete",
+                "sHref"  : matched.dataset.href
+            });
 
             var elProjectName = document.getElementById('project-name');
             if (elProjectName) { elProjectName.innerHTML = matched.dataset.projectName; }

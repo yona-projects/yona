@@ -199,10 +199,9 @@
             htElement.welMiniMapCurr = htElement.welMiniMapWrap ? htElement.welMiniMapWrap.querySelector(".minimap-curr") : null;
             htElement.welMiniMapLinks = htElement.welMiniMapWrap ? htElement.welMiniMapWrap.querySelector(".minimap-links") : null;
 
-            // 코드받기 - jquery.requestAs.js 플러그인 호출부라 라운드10까지 전환을 미룬다
-            // (라운드1 project.Delete.js/라운드3 Comment.js/라운드4 issue.View.js와 동일한 판단).
-            // 이 한 지점만 예외적으로 jQuery 객체로 유지한다.
-            htElement.welBtnAccept = $("#btnAccept");
+            // 코드받기 - #btnAccept는 [data-request-method]라 Common.js의 전역 auto-init이
+            // 페이지 로드시 이미 $yona.requestAs()로 초기화해둔다(P3-70 라운드10).
+            htElement.welBtnAccept = document.getElementById("btnAccept");
         }
 
         /**
@@ -242,11 +241,11 @@
 
             window.addEventListener("hashchange", _onHashChange);
 
-            // jquery.requestAs.js 플러그인 호출부(라운드10까지 미룸) - htElement.welBtnAccept만
-            // 예외적으로 jQuery 객체를 유지한다.
-            if(htElement.welBtnAccept.length > 0 && htElement.welBtnAccept.data("requestAs")){
-                htElement.welBtnAccept.data("requestAs").on("beforeRequest", function(){
-                    htElement.welBtnAccept.attr('disabled','disabled');
+            // P3-70 라운드10: el._yonaRequestAs는 Common.js의 전역 auto-init이 페이지 로드시
+            // 이미 채워뒀을 것이다(원본 jQuery `.data("requestAs")`와 동일한 존재 확인 가드).
+            if(htElement.welBtnAccept && htElement.welBtnAccept._yonaRequestAs){
+                htElement.welBtnAccept._yonaRequestAs.on("beforeRequest", function(){
+                    htElement.welBtnAccept.setAttribute('disabled', 'disabled');
                     NProgress.start();
                 });
             }
@@ -409,9 +408,8 @@
             var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                // P3-70 라운드5: yona.Files.getUploader()는 이 라운드 완료 시점까지 반환값을
-                // 아직 jQuery로 감싸둔 상태다(board.Write.js 등 이미 vanilla인 다른 호출부와
-                // 동일하게 oUploader[0]로 raw element를 꺼내 네이티브로 읽는다).
+                // yona.Files.getUploader()는 [elContainer] 형태의 순수 배열을 반환한다
+                // (P3-70 라운드10에서 jQuery 래핑 제거) - oUploader[0]로 raw element를 꺼낸다.
                 (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,

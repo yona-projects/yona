@@ -807,25 +807,67 @@
         // 판단 그대로 유지) Bootstrap2 jQuery 플러그인 .affix()의 checkPosition() 알고리즘을
         // bootstrap.js(v2.3.1, 미수정)에서 그대로 옮겨와 재현했다(P3-70 라운드9, code/diff.html의
         // 동일 블록과 완전히 동일한 구현 - offset.top만 쓰는 호출이라 "top"/false 두 상태만
-        // 재현하면 완전 동치). 나머지(setReviewListHeight 내부 jQuery core 호출)는 라운드10 대상.
+        // 재현하면 완전 동치).
+        // P3-70 라운드10: setReviewListHeight 내부의 나머지 jQuery 코어 호출(.offset()/
+        // .position()/.outerHeight()/.css()/$(window)/$(document))도 제거했다 - code/diff.html과
+        // 완전히 동일한 방식으로 jQuery 3.3.1 core/offset.js의 .offset()/.position() 계산식을
+        // 그대로 이식했다.
         (function(){
-          var welReviewContainer = $(".review-container");
-          if (welReviewContainer.length === 0) { return; }
+          function cssNum(el, sProp){
+            var n = parseFloat(getComputedStyle(el)[sProp]);
+            return isNaN(n) ? 0 : n;
+          }
+
+          function jqOffset(el){
+            var rect = el.getBoundingClientRect();
+            return {"top": rect.top + window.pageYOffset, "left": rect.left + window.pageXOffset};
+          }
+
+          function jqPosition(el){
+            var htParentOffset = {"top": 0, "left": 0};
+            var htOffset;
+
+            if(getComputedStyle(el).position === "fixed"){
+              var rect = el.getBoundingClientRect();
+              htOffset = {"top": rect.top, "left": rect.left};
+            } else {
+              htOffset = jqOffset(el);
+              var doc = el.ownerDocument;
+              var elOffsetParent = el.offsetParent || doc.documentElement;
+              while(elOffsetParent && (elOffsetParent === doc.body || elOffsetParent === doc.documentElement) &&
+                    getComputedStyle(elOffsetParent).position === "static"){
+                  elOffsetParent = elOffsetParent.parentNode;
+              }
+              if(elOffsetParent && elOffsetParent !== el && elOffsetParent.nodeType === 1){
+                  htParentOffset = jqOffset(elOffsetParent);
+                  htParentOffset.top += cssNum(elOffsetParent, "borderTopWidth");
+                  htParentOffset.left += cssNum(elOffsetParent, "borderLeftWidth");
+              }
+            }
+
+            return {
+              "top": htOffset.top - htParentOffset.top - cssNum(el, "marginTop"),
+              "left": htOffset.left - htParentOffset.left - cssNum(el, "marginLeft")
+            };
+          }
+
+          var elReviewContainer = document.querySelector(".review-container");
+          if (!elReviewContainer) { return; }
 
           (function(){
-            var nAffixOffsetTop = welReviewContainer.offset().top - 10;
+            var nAffixOffsetTop = jqOffset(elReviewContainer).top - 10;
             var sAffixState;
 
             function checkAffixPosition(){
-              var el = welReviewContainer[0];
-              if (!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)) { return; }
+              if (!(elReviewContainer.offsetWidth || elReviewContainer.offsetHeight || elReviewContainer.getClientRects().length)) { return; }
 
               var nScrollTop = window.pageYOffset || document.documentElement.scrollTop;
               var sAffix = nScrollTop <= nAffixOffsetTop ? "top" : false;
               if (sAffixState === sAffix) { return; }
 
               sAffixState = sAffix;
-              welReviewContainer.removeClass("affix affix-top affix-bottom").addClass("affix" + (sAffix ? "-" + sAffix : ""));
+              elReviewContainer.classList.remove("affix", "affix-top", "affix-bottom");
+              elReviewContainer.classList.add("affix" + (sAffix ? "-" + sAffix : ""));
             }
 
             checkAffixPosition();
@@ -834,29 +876,35 @@
           })();
 
           function setReviewListHeight(){
-            var welContainer = $(".codediff-wrap");
-            var welReviewList = $(".review-list");
-            if (welReviewList.length === 0) { return; }
+            var elContainer = document.querySelector(".codediff-wrap");
+            var elReviewList = document.querySelector(".review-list");
+            if (!elReviewList) { return; }
+            // 원본 jQuery는 .codediff-wrap이 없어도(빈 컬렉션) 예외 없이 undefined를 돌려주고
+            // 산술은 NaN으로 전파돼 결국 무해한 "max-height:NaNpx"(브라우저가 조용히 무시)가
+            // 된다 - 네이티브 null 참조 예외를 피하기 위해 동일하게 undefined로 폴백한다.
+            var nContainerHeight = elContainer ? elContainer.offsetHeight : undefined;
+            var nContainerPositionTop = elContainer ? jqPosition(elContainer).top : undefined;
             var nMaxHeight;
 
-            if (welReviewContainer.hasClass("affix")) {
-              var nCodeDiffWrapOffsetBottom = welContainer.position().top + welContainer.outerHeight();
-              var nReviewListOffsetBottom = welReviewList.offset().top + welReviewList.outerHeight();
+            if (elReviewContainer.classList.contains("affix")) {
+              var nCodeDiffWrapOffsetBottom = nContainerPositionTop + nContainerHeight;
+              var nReviewListOffsetBottom = jqOffset(elReviewList).top + elReviewList.offsetHeight;
               var nReviewListDefaultMarginBottom = 15;
               var nDiffWrapBottomPadding = 90;
 
               if (nCodeDiffWrapOffsetBottom <= nReviewListOffsetBottom + nReviewListDefaultMarginBottom) {
-                nMaxHeight = nCodeDiffWrapOffsetBottom - $(document).scrollTop() + nDiffWrapBottomPadding;
+                nMaxHeight = nCodeDiffWrapOffsetBottom - (window.pageYOffset || document.documentElement.scrollTop) + nDiffWrapBottomPadding;
               } else {
-                nMaxHeight = $(window).height() - welReviewList.position().top - nReviewListDefaultMarginBottom;
+                nMaxHeight = window.innerHeight - jqPosition(elReviewList).top - nReviewListDefaultMarginBottom;
               }
             } else {
-              nMaxHeight = welContainer.outerHeight() - welReviewList.position().top;
+              nMaxHeight = nContainerHeight - jqPosition(elReviewList).top;
             }
-            welReviewList.css("max-height", nMaxHeight + "px");
+            elReviewList.style.maxHeight = nMaxHeight + "px";
           }
 
-          $(window).on("resize scroll", setReviewListHeight);
+          window.addEventListener("resize", setReviewListHeight);
+          window.addEventListener("scroll", setReviewListHeight);
           setReviewListHeight();
         })();
       }
