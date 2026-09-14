@@ -130,11 +130,14 @@
     <footer th:replace="~{site/layout :: footer}"></footer>
 </div>
 
-<script type="text/javascript" src="/javascripts/lib/jquery/jquery-1.9.0.js"></script>
 <script type="text/javascript">
-    $(document).ready(function(){
-        $(".qas > .qa").click(function(e){
-            $(e.currentTarget).toggleClass("open");
+    document.addEventListener("DOMContentLoaded", function(){
+        document.querySelectorAll(".qas > .qa").forEach(function(elQa){
+            // 위임이 아닌 개별 요소 바인딩이라 jQuery의 e.currentTarget과 네이티브
+            // e.currentTarget이 완전히 동일하다(둘 다 리스너가 붙은 이 .qa 요소 자신).
+            elQa.addEventListener("click", function(e){
+                e.currentTarget.classList.toggle("open");
+            });
         });
     });
 </script>

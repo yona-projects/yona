@@ -96,8 +96,13 @@
     </div>
 </footer>
 <script type="text/javascript">
-    $(document).ready(function(){
-        $("input[name=seed]").focus();
+    document.addEventListener("DOMContentLoaded", function(){
+        // 원본 jQuery $("input[name=seed]")는 현재 폼에 name="seed" input이 없어 항상
+        // 매치 없는 빈 컬렉션(no-op)이었다 - null 가드로 동일하게 재현한다.
+        var elSeed = document.querySelector("input[name=seed]");
+        if (elSeed) {
+            elSeed.focus();
+        }
     });
 </script>
 </body>

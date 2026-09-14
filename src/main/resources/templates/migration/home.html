@@ -171,133 +171,199 @@
 
 <!-- migrationPageLayout.scala.html 하단 인라인 스크립트(사이드바/즐겨찾기 토글) -->
 <script type="text/javascript">
-        $(function() {
+        document.addEventListener("DOMContentLoaded", function() {
             NProgress.configure({minimum: 0.7});
 
             /* Set side navigation */
-            // Also, see index.scala.html for home page menu sliding actions !!
-            var $sidebar = $("#mySidenav");
-            var viewSize = $(window).width();
+            // common/yona.Usermenu.js(site/layout::scripts로 이 화면에도 함께 로드됨)가
+            // #mySidenav/#sidebar-open-btn/.star-project 등 동일한 요소에 이미 자체 리스너를
+            // 붙인다 - 이 화면 전용 인라인 스크립트가 같은 요소에 한 번 더 리스너를 거는
+            // pre-existing 중복 구조(jQuery 시절부터 있던 구조, 이번 전환과 무관하다 - 아래
+            // "범위 밖 발견" 참고). 새로 합치거나 제거하지 않고 원본 동작 그대로 재현한다.
+            var sidebar = document.getElementById("mySidenav");
+            var viewSize = document.documentElement.clientWidth;
 
-            $("#main").on("click", function(event){
-                if( $sidebar.width() !== 0 && $(event.target).parents("#mySidenav").length == 0) {
-                    closeSidebar($sidebar);
-                }
-            });
-
-            $("#sidebar-open-btn").on("click", function (event) {
-                event.stopPropagation();
-                if( $sidebar.width() !== 0){
-                    closeSidebar($sidebar);
-                } else {
-                    openSidebar($sidebar);
-                    updateStar();
-                }
-            });
-
-            function closeSidebar($sidebar) {
-                $sidebar.width("0").css("border", "none");
-                $(".main-stream").removeClass("span8").addClass("span12");
+            var elMain = document.getElementById("main");
+            if (elMain) {
+                elMain.addEventListener("click", function(event){
+                    // 원본 $(event.target).parents("#mySidenav").length == 0 은 "target 자신이
+                    // sidebar 요소이거나 sidebar 밖일 때" true(.parents()는 자기 자신은 제외) -
+                    // contains(...) && target !== sidebar 로 동일하게 재현(common/yona.Usermenu.js
+                    // 가 이미 쓰는 것과 동일한 관용구).
+                    if (sidebar && sidebar.offsetWidth !== 0 && !(sidebar.contains(event.target) && event.target !== sidebar)) {
+                        closeSidebar(sidebar);
+                    }
+                });
             }
 
-            function openSidebar($sidebar){
-                $sidebar.width("420px").css("border", "1px solid #ccc");
-                $(".main-stream").removeClass("span12").addClass("span8");
+            var elSidebarOpenBtn = document.getElementById("sidebar-open-btn");
+            if (elSidebarOpenBtn) {
+                elSidebarOpenBtn.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    if (sidebar && sidebar.offsetWidth !== 0) {
+                        closeSidebar(sidebar);
+                    } else if (sidebar) {
+                        openSidebar(sidebar);
+                        updateStar();
+                    }
+                });
+            }
+
+            function closeSidebar(sidebar) {
+                sidebar.style.width = "0";
+                sidebar.style.border = "none";
+                document.querySelectorAll(".main-stream").forEach(function(el){
+                    el.classList.remove("span8");
+                    el.classList.add("span12");
+                });
+            }
+
+            function openSidebar(sidebar){
+                sidebar.style.width = "420px";
+                sidebar.style.border = "1px solid #ccc";
+                document.querySelectorAll(".main-stream").forEach(function(el){
+                    el.classList.remove("span12");
+                    el.classList.add("span8");
+                });
                 if (viewSize > 720) {
-                    $(".search-input").focus();
+                    var elSearchInput = document.querySelector(".search-input");
+                    if (elSearchInput) { elSearchInput.focus(); }
                 }
             }
 
             // used for new project list ui
-            $(".right-menu").on('click', ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function() {
-                updateStar();
-                setTimeout(function focusToProjectSearchInput() {
-                    var $projectSearch = $('.project-search');
-                    var $orgSearch = $('.org-search');
-                    if (viewSize > 720) {
-                        $projectSearch.focus();
+            var elRightMenu = document.querySelector(".right-menu");
+            if (elRightMenu) {
+                elRightMenu.addEventListener("click", function(e){
+                    var elMatched = e.target.closest(".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']");
+                    if (!elMatched || !elRightMenu.contains(elMatched)) {
+                        return;
                     }
-                    if(!$projectSearch.val()){
-                        $projectSearch.val($orgSearch.val());
-                    }
-                    $orgSearch.val("");
-                }, 200);
+                    updateStar();
+                    setTimeout(function focusToProjectSearchInput() {
+                        var elProjectSearch = document.querySelector('.project-search');
+                        var elOrgSearch = document.querySelector('.org-search');
+                        if (viewSize > 720 && elProjectSearch) {
+                            elProjectSearch.focus();
+                        }
+                        if (elProjectSearch && !elProjectSearch.value) {
+                            elProjectSearch.value = elOrgSearch ? elOrgSearch.value : "";
+                        }
+                        if (elOrgSearch) { elOrgSearch.value = ""; }
+                    }, 200);
+                });
+            }
 
-            });
-
-            $('.myOrganizationList').on('click', function focusToOrgSearchInput(){
-                setTimeout(function () {
-                    var $projectSearch = $('.project-search');
-                    var $orgSearch = $('.org-search');
-                    if (viewSize > 720) {
-                        $orgSearch.focus();
-                    }
-                    $orgSearch.val($projectSearch.val());
-                    $projectSearch.val("");
-                }, 200);
+            document.querySelectorAll('.myOrganizationList').forEach(function(el){
+                el.addEventListener('click', function focusToOrgSearchInput(){
+                    setTimeout(function () {
+                        var elProjectSearch = document.querySelector('.project-search');
+                        var elOrgSearch = document.querySelector('.org-search');
+                        if (viewSize > 720 && elOrgSearch) {
+                            elOrgSearch.focus();
+                        }
+                        if (elOrgSearch) { elOrgSearch.value = elProjectSearch ? elProjectSearch.value : ""; }
+                        if (elProjectSearch) { elProjectSearch.value = ""; }
+                    }, 200);
+                });
             });
 
             // search by keyword
-            $(".search-input").on("keyup", function() {
-                var value = $(this).val().toLowerCase().trim();
-                $(".user-li").each(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+            document.querySelectorAll(".search-input").forEach(function(elSearchInput){
+                elSearchInput.addEventListener("keyup", function() {
+                    var value = this.value.toLowerCase().trim();
+                    document.querySelectorAll(".user-li").forEach(function(el){
+                        el.style.display = el.textContent.toLowerCase().indexOf(value) !== -1 ? "" : "none";
+                    });
                 });
-            }).on("keydown.moveCursorFromInputform", function(e) {
-                switch (e.keyCode) {
-                    case 27:   // ESC
-                        closeSidebar($sidebar);
-                        break;
-                    default:
-                        break;
-                }
+                elSearchInput.addEventListener("keydown", function(e) {
+                    switch (e.keyCode) {
+                        case 27:   // ESC
+                            if (sidebar) { closeSidebar(sidebar); }
+                            break;
+                        default:
+                            break;
+                    }
+                });
             });
 
-            $(".project-list > .star-project").on("click", function toggleProjectFavorite(e) {
-                e.stopPropagation();
-                var that = $(this);
-                $.post("/-_-api/v1/favoriteProjects/" + that.data("projectId"))
-                        .done(function (data) {
-                            if(data.favored){
-                                that.find('i').addClass("starred");
+            document.querySelectorAll(".project-list > .star-project").forEach(function(el){
+                el.addEventListener("click", function toggleProjectFavorite(e) {
+                    e.stopPropagation();
+                    var that = this;
+                    fetch("/-_-api/v1/favoriteProjects/" + that.dataset.projectId, {"method": "post"})
+                        .then(function(response){
+                            return response.text().then(function(text){
+                                if (!response.ok) {
+                                    return Promise.reject({"responseText": text});
+                                }
+                                return JSON.parse(text);
+                            });
+                        })
+                        .then(function (data) {
+                            var elIcon = that.querySelector('i');
+                            if (!elIcon) { return; }
+                            if (data.favored) {
+                                elIcon.classList.add("starred");
                             } else {
-                                that.find('i').removeClass("starred");
+                                elIcon.classList.remove("starred");
                             }
                         })
-                        .fail(function (data) {
+                        .catch(function (data) {
                             $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                         });
+                });
             });
 
-            $(".org-list > .star-org").on("click", function toggleOrgFavorite(e) {
-                e.stopPropagation();
-                var that = $(this);
-                $.post("/-_-api/v1/favoriteOrganizations/" + that.data("organizationId"))
-                        .done(function (data) {
-                            if(data.favored){
-                                that.find('i').addClass("starred");
+            document.querySelectorAll(".org-list > .star-org").forEach(function(el){
+                el.addEventListener("click", function toggleOrgFavorite(e) {
+                    e.stopPropagation();
+                    var that = this;
+                    fetch("/-_-api/v1/favoriteOrganizations/" + that.dataset.organizationId, {"method": "post"})
+                        .then(function(response){
+                            return response.text().then(function(text){
+                                if (!response.ok) {
+                                    return Promise.reject({"responseText": text});
+                                }
+                                return JSON.parse(text);
+                            });
+                        })
+                        .then(function (data) {
+                            var elIcon = that.querySelector('i');
+                            if (!elIcon) { return; }
+                            if (data.favored) {
+                                elIcon.classList.add("starred");
                             } else {
-                                that.find('i').removeClass("starred");
+                                elIcon.classList.remove("starred");
                             }
                         })
-                        .fail(function (data) {
+                        .catch(function (data) {
                             $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
                         });
+                });
             });
 
             // This method intended to sync sub tab list of projects
             function updateStar(){
-                $.get("/-_-api/v1/favoriteProjects")
-                        .done(function(data){
-                            $(".star-project").each(function () {
-                                var $this = $(this);
-                                if (data.projectIds.includes($this.data("projectId"))) {
-                                    $this.find("i").addClass("starred");
-                                } else {
-                                    $this.find("i").removeClass("starred");
-                                }
-                            });
+                fetch("/-_-api/v1/favoriteProjects")
+                    .then(function(response){
+                        if (!response.ok) {
+                            return Promise.reject(response);
+                        }
+                        return response.json();
+                    })
+                    .then(function(data){
+                        document.querySelectorAll(".star-project").forEach(function(el) {
+                            var elIcon = el.querySelector("i");
+                            if (!elIcon) { return; }
+                            if (data.projectIds.indexOf(Number(el.dataset.projectId)) !== -1) {
+                                elIcon.classList.add("starred");
+                            } else {
+                                elIcon.classList.remove("starred");
+                            }
                         });
+                    })
+                    .catch(function(){});
             }
         });
 </script>
