@@ -84,15 +84,19 @@
      (lib/, 미수정) 의존이 제거됨 - 더 이상 로드하지 않는다. -->
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         $yona.loadModule("board.List", {
-            "elPagination": $('#pagination'),
+            "elPagination": document.getElementById('pagination'),
             "nTotalPages" : [[${currentPage.totalPages}]]
         });
 
-        $("#projects").on("change", function(){
-            $("#option_form").submit();
-        });
+        var elProjects = document.getElementById("projects");
+        if (elProjects) {
+            elProjects.addEventListener("change", function(){
+                var elOptionForm = document.getElementById("option_form");
+                if (elOptionForm) { elOptionForm.submit(); }
+            });
+        }
     });
 </script>
 </body>

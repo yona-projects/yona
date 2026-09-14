@@ -103,13 +103,18 @@
     </div>
 </ul>
 <script type="text/javascript" th:fragment="listScript(prPage)" th:inline="javascript">
-    $(function(){
-        yona.Pagination.update($("#pagination"), /*[[${prPage.totalPages}]]*/ 0);
+    document.addEventListener("DOMContentLoaded", function(){
+        yona.Pagination.update(document.getElementById("pagination"), /*[[${prPage.totalPages}]]*/ 0);
         (function _initImplicitTitlePrefix() {
-            $(".title-prefix").on("click", function(){
-                var filterInput = $("input[name*='filter']");
-                filterInput.val($(this).text());
-                filterInput.closest("form").submit();
+            document.querySelectorAll(".title-prefix").forEach(function(el){
+                el.addEventListener("click", function(){
+                    var filterInput = document.querySelector("input[name*='filter']");
+                    if (filterInput) {
+                        filterInput.value = el.textContent;
+                        var form = filterInput.closest("form");
+                        if (form) { form.submit(); }
+                    }
+                });
             });
         })();
     });

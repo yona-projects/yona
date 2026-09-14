@@ -87,14 +87,17 @@ class PullRequestViewInlineScriptSyntaxSpec @Autowired constructor(
                 val confirmCall = body.substringAfter("if (!confirm(").substringBefore(")) { return; }")
                 confirmCall.contains("\"\"") shouldBe false
 
-                // review/unreview POST URL - 중복 따옴표 시 $.post(""/api/...", ...) 형태로 깨진다.
+                // review/unreview POST URL - 중복 따옴표 시 fetch(""/api/...", ...) 형태로 깨진다.
                 // th:inline="javascript"의 자동 JSON 문자열 직렬화는 슬래시를 \/ 로 이스케이프하는데
                 // (유효한 JS 문자열 이스케이프, 브라우저는 런타임에 /로 해석) 이건 버그가 아니다.
-                val reviewCall = body.substringAfter("$(\"#btn-review\").click(function() {").substringBefore("});")
+                // P3-70 라운드6: jQuery $("#btn-review").click(function(){ $.post(url, cb); })를
+                // 네이티브 elBtnReview.addEventListener("click", function(){ fetch(url,{...}).then(cb); })로
+                // 전환했으므로 마커 문자열도 이에 맞춰 갱신한다.
+                val reviewCall = body.substringAfter("elBtnReview.addEventListener(\"click\", function() {").substringBefore("});")
                 reviewCall.contains("\"\"") shouldBe false
                 reviewCall shouldContain "pullRequest\\/${pr.id}\\/review"
 
-                val unreviewCall = body.substringAfter("$(\"#btn-unreview\").click(function() {").substringBefore("});")
+                val unreviewCall = body.substringAfter("elBtnUnreview.addEventListener(\"click\", function() {").substringBefore("});")
                 unreviewCall.contains("\"\"") shouldBe false
                 unreviewCall shouldContain "pullRequest\\/${pr.id}\\/unreview"
             }

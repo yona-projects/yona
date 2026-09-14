@@ -161,8 +161,8 @@
               <!-- pagination.js가 채울 영역 -->
               <div id="pagination"></div>
               <script th:inline="javascript">
-                $(document).ready(function(){
-                    yona.Pagination.update($("#pagination"), [[${searchResult.issues.totalPages}]]);
+                document.addEventListener("DOMContentLoaded", function(){
+                    yona.Pagination.update(document.getElementById("pagination"), [[${searchResult.issues.totalPages}]]);
                 });
               </script>
               </th:block>
@@ -188,8 +188,8 @@
               <!-- pagination.js가 채울 영역 -->
               <div id="pagination"></div>
               <script th:inline="javascript">
-                $(document).ready(function(){
-                    yona.Pagination.update($("#pagination"), [[${searchResult.users.totalPages}]]);
+                document.addEventListener("DOMContentLoaded", function(){
+                    yona.Pagination.update(document.getElementById("pagination"), [[${searchResult.users.totalPages}]]);
                 });
               </script>
               </th:block>
@@ -258,8 +258,8 @@
               <!-- pagination.js가 채울 영역 -->
               <div id="pagination"></div>
               <script th:inline="javascript">
-                $(document).ready(function(){
-                    yona.Pagination.update($("#pagination"), [[${searchResult.posts.totalPages}]]);
+                document.addEventListener("DOMContentLoaded", function(){
+                    yona.Pagination.update(document.getElementById("pagination"), [[${searchResult.posts.totalPages}]]);
                 });
               </script>
               </th:block>
@@ -290,8 +290,8 @@
               <!-- pagination.js가 채울 영역 -->
               <div id="pagination"></div>
               <script th:inline="javascript">
-                $(document).ready(function(){
-                    yona.Pagination.update($("#pagination"), [[${searchResult.milestones.totalPages}]]);
+                document.addEventListener("DOMContentLoaded", function(){
+                    yona.Pagination.update(document.getElementById("pagination"), [[${searchResult.milestones.totalPages}]]);
                 });
               </script>
               </th:block>
@@ -321,8 +321,8 @@
               <!-- pagination.js가 채울 영역 -->
               <div id="pagination"></div>
               <script th:inline="javascript">
-                $(document).ready(function(){
-                    yona.Pagination.update($("#pagination"), [[${searchResult.issueComments.totalPages}]]);
+                document.addEventListener("DOMContentLoaded", function(){
+                    yona.Pagination.update(document.getElementById("pagination"), [[${searchResult.issueComments.totalPages}]]);
                 });
               </script>
               </th:block>
@@ -352,8 +352,8 @@
               <!-- pagination.js가 채울 영역 -->
               <div id="pagination"></div>
               <script th:inline="javascript">
-                $(document).ready(function(){
-                    yona.Pagination.update($("#pagination"), [[${searchResult.postComments.totalPages}]]);
+                document.addEventListener("DOMContentLoaded", function(){
+                    yona.Pagination.update(document.getElementById("pagination"), [[${searchResult.postComments.totalPages}]]);
                 });
               </script>
               </th:block>
@@ -389,8 +389,8 @@
               <!-- pagination.js가 채울 영역 -->
               <div id="pagination"></div>
               <script th:inline="javascript">
-                $(document).ready(function(){
-                    yona.Pagination.update($("#pagination"), [[${searchResult.reviews.totalPages}]]);
+                document.addEventListener("DOMContentLoaded", function(){
+                    yona.Pagination.update(document.getElementById("pagination"), [[${searchResult.reviews.totalPages}]]);
                 });
               </script>
               </th:block>
@@ -407,28 +407,36 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script th:inline="javascript">
-  $(document).ready(function() {
+  document.addEventListener("DOMContentLoaded", function() {
       // 카테고리 탭 클릭 이벤트
-      $(".search-category-wrap").on("click", 'a[data-toggle="search-category"]', function(e) {
-          e.preventDefault();
-          var type = $(this).data("type");
-          $("#searchTypeInput").val(type);
-          $("#searchInnerForm").submit();
-      });
+      var elSearchCategoryWrap = document.querySelector(".search-category-wrap");
+      if (elSearchCategoryWrap) {
+          elSearchCategoryWrap.addEventListener("click", function(e) {
+              var matched = e.target.closest('a[data-toggle="search-category"]');
+              if (!matched || !elSearchCategoryWrap.contains(matched)) { return; }
+              e.preventDefault();
+              var type = matched.dataset.type;
+              var elSearchTypeInput = document.getElementById("searchTypeInput");
+              var elSearchInnerForm = document.getElementById("searchInnerForm");
+              if (elSearchTypeInput) { elSearchTypeInput.value = type; }
+              if (elSearchInnerForm) { elSearchInnerForm.submit(); }
+          });
+      }
 
       // 검색어 하이라이트 기능
-      var keyword = $("#searchKeyword").val().trim();
+      var elSearchKeyword = document.getElementById("searchKeyword");
+      var keyword = elSearchKeyword ? elSearchKeyword.value.trim() : "";
       if (keyword) {
           var escapeRegExp = function(string) {
               return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           };
           var regex = new RegExp(escapeRegExp(keyword), "ig");
-          $(".search-content-body, .title").each(function() {
-              var html = $(this).html();
+          document.querySelectorAll(".search-content-body, .title").forEach(function(el) {
+              var html = el.innerHTML;
               html = html.replace(regex, function(match) {
                   return "<strong class='keyword'>" + match + "</strong>";
               });
-              $(this).html(html);
+              el.innerHTML = html;
           });
       }
   });

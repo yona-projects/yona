@@ -48,7 +48,7 @@
   <div th:replace="~{site/layout :: scripts}"></div>
 </div>
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         $yona.loadModule("organization.New", {
             "sFormName" : "new-org"
         });

@@ -23,26 +23,29 @@
   document.addEventListener("DOMContentLoaded", function(){
       $yona.loadModule("issue.List");
 
-      var $setDefaultLoginPage = $("#setDefaultLoginPage");
-      $setDefaultLoginPage.on('click', function(){
-          $.post("/user/setDefaultLoginPage?path=" + $setDefaultLoginPage.data("url"))
-                  .done(function (data) {
-                      $yona.notify("Set to default: " + data.defaultLoginPage, 3000);
-                      $setDefaultLoginPage.hide();
+      var elSetDefaultLoginPage = document.getElementById("setDefaultLoginPage");
+      if (elSetDefaultLoginPage) {
+          elSetDefaultLoginPage.addEventListener('click', function(){
+              fetch("/user/setDefaultLoginPage?path=" + elSetDefaultLoginPage.dataset.url, {method: "POST"})
+                  .then(function(response){
+                      if (!response.ok) { return Promise.reject(response); }
+                      return response.json();
                   })
-                  .fail(function (data) {
+                  .then(function (data) {
+                      $yona.notify("Set to default: " + data.defaultLoginPage, 3000);
+                      elSetDefaultLoginPage.style.display = "none";
+                  })
+                  .catch(function (data) {
                       $yona.alert("set Default page failed: " + data);
                   });
-      });
+          });
+      }
 
-      $(document).on({
-          "pjax:complete": labelTextColorAdjust
-      });
+      document.addEventListener("pjax:complete", labelTextColorAdjust);
       function labelTextColorAdjust() {
-          $(".title-cell > .label").each(function () {
-              var $this = $(this);
-              $this.removeClass("dimgray white")
-                      .addClass($yona.getContrastColor($this.css('background-color')))
+          document.querySelectorAll(".title-cell > .label").forEach(function (el) {
+              el.classList.remove("dimgray", "white");
+              el.classList.add($yona.getContrastColor(getComputedStyle(el).backgroundColor));
           });
       }
 

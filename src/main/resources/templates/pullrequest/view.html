@@ -329,10 +329,23 @@
      초기화한다(아래 loadModule 호출의 tab 분기 참고). -->
 <script src="/javascripts/service/yona.pullrequest.View.js"></script>
 <script type="text/javascript" th:inline="javascript">
-  $(document).ready(function() {
+  document.addEventListener("DOMContentLoaded", function() {
       var projectId = [[${project.id}]];
       var prNumber = [[${pr.number}]];
       var tab = [[${tab}]];
+
+      function _errorMessageFrom(text, fallback) {
+          try {
+              var parsed = JSON.parse(text);
+              if (parsed && (parsed.message || parsed.error)) { return parsed.message || parsed.error; }
+          } catch(e) {}
+          return text || fallback || '';
+      }
+      function _formEncode(obj) {
+          return Object.keys(obj).map(function(k){
+              return encodeURIComponent(k) + "=" + encodeURIComponent(obj[k]);
+          }).join("&");
+      }
 
       // P3-69: legacy service/yobi.git.View.js의 _setStateUpdateTimer() 대응 — overview 탭에서만
       // #state/#pr-accept-button을 10초 간격으로 폴링한다. PR이 이미 CLOSED/MERGED거나 병합
@@ -346,114 +359,156 @@
       }
 
       // legacy git/view.scala.html $yona.loadModule("git.View", {...}) 대응 — watch 토글
-      $("#watch-button").click(function() {
-          var $btn = $(this);
-          var watching = $btn.data("watching") === true || $btn.data("watching") === "true";
-          var url = watching ? "/unwatch" : "/watch";
-          $.post(url, { "resource.type": "PULL_REQUEST", "resource.id": String([[${pr.id}]]) }, function() {
-              window.location.reload();
+      var elWatchButton = document.getElementById("watch-button");
+      if (elWatchButton) {
+          elWatchButton.addEventListener("click", function() {
+              var watching = elWatchButton.dataset.watching === "true";
+              var url = watching ? "/unwatch" : "/watch";
+              fetch(url, {
+                  method: "POST",
+                  headers: {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
+                  body: _formEncode({ "resource.type": "PULL_REQUEST", "resource.id": String([[${pr.id}]]) })
+              }).then(function() { window.location.reload(); });
           });
-      });
+      }
 
       // legacy partial_info.scala.html의 accept 버튼(#btnAccept) 대응. P3-69: 폴링이 상태
       // 갱신 시 이 버튼(#pr-accept-button 내부)을 통째로 다시 렌더링해 DOM에서 교체하므로,
       // 폴링 이후에도 클릭이 계속 동작하도록 직접 바인딩이 아닌 위임(delegated) 방식으로 건다.
-      $(document).on("click", "#btnAccept", function(e) {
+      document.addEventListener("click", function(e) {
+          var matched = e.target.closest("#btnAccept");
+          if (!matched) { return; }
           e.preventDefault();
           if (!confirm([[#{pullRequest.merge}]] + '?')) { return; }
-          $.ajax({
-              url: '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/merge',
-              type: 'POST',
-              success: function() { window.location.reload(); },
-              error: function(xhr) {
-                  var msg = (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || xhr.responseText || "";
-                  alert([[#{pullRequest.merge}]] + ' failed: ' + msg);
-              }
-          });
+          fetch('/api/projects/' + projectId + '/pullrequests/' + prNumber + '/merge', {method: 'POST'})
+              .then(function(response) {
+                  if (response.ok) {
+                      window.location.reload();
+                  } else {
+                      return response.text().then(function(text) {
+                          alert([[#{pullRequest.merge}]] + ' failed: ' + _errorMessageFrom(text));
+                      });
+                  }
+              });
       });
 
       // 담당자 변경. PullRequestApiController의
       // PUT/DELETE .../assignee에 위임한다(userId 기반 계약, 위 select 주석 참고).
-      $('#pr-assignee-select').on('change', function() {
-          var userId = $(this).val();
-          var url = '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/assignee';
-          var req = userId
-              ? $.ajax({ url: url, type: 'PUT', contentType: 'application/json', data: JSON.stringify({ userId: parseInt(userId, 10) }) })
-              : $.ajax({ url: url, type: 'DELETE' });
-          req.done(function() { window.location.reload(); })
-             .fail(function() { alert('담당자 변경에 실패했습니다.'); });
-      });
+      var elPrAssigneeSelect = document.getElementById('pr-assignee-select');
+      if (elPrAssigneeSelect) {
+          elPrAssigneeSelect.addEventListener('change', function() {
+              var userId = elPrAssigneeSelect.value;
+              var url = '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/assignee';
+              var req = userId
+                  ? fetch(url, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: parseInt(userId, 10) }) })
+                  : fetch(url, { method: 'DELETE' });
+              req.then(function(response) {
+                  if (response.ok) { window.location.reload(); }
+                  else { alert('담당자 변경에 실패했습니다.'); }
+              });
+          });
+      }
 
       // 라벨 추가/제거. issue/partial_select_label.html의 select2 다중선택 마크업을 그대로
       // 재사용하되, 이슈의 massUpdate 폼 제출과 달리 PR은 라벨 전용 REST 엔드포인트
       // (PullRequestApiController POST/DELETE .../labels)라 select2 change 이벤트에서 이전
       // 선택값과의 diff를 계산해 추가/삭제 요청을 각각 보낸다.
-      var prevLabelIds = ($('#labelIds').val() || []).map(String);
-      $('#labelIds').on('change', function() {
-          var current = ($(this).val() || []).map(String);
-          var added = current.filter(function(id) { return prevLabelIds.indexOf(id) === -1; });
-          var removed = prevLabelIds.filter(function(id) { return current.indexOf(id) === -1; });
-          if (added.length === 0 && removed.length === 0) { return; }
-          var base = '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/labels';
-          var requests = [];
-          added.forEach(function(id) {
-              requests.push($.ajax({ url: base, type: 'POST', contentType: 'application/json', data: JSON.stringify({ labelId: parseInt(id, 10) }) }));
+      var elLabelIds = document.getElementById('labelIds');
+      var prevLabelIds = (elLabelIds ? Array.prototype.map.call(elLabelIds.selectedOptions, function(o){ return o.value; }) : []).map(String);
+      if (elLabelIds) {
+          elLabelIds.addEventListener('change', function() {
+              var current = Array.prototype.map.call(elLabelIds.selectedOptions, function(o){ return o.value; }).map(String);
+              var added = current.filter(function(id) { return prevLabelIds.indexOf(id) === -1; });
+              var removed = prevLabelIds.filter(function(id) { return current.indexOf(id) === -1; });
+              if (added.length === 0 && removed.length === 0) { return; }
+              var base = '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/labels';
+              var requests = [];
+              added.forEach(function(id) {
+                  requests.push(fetch(base, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ labelId: parseInt(id, 10) }) }));
+              });
+              removed.forEach(function(id) {
+                  requests.push(fetch(base + '/' + id, { method: 'DELETE' }));
+              });
+              Promise.all(requests).then(function(responses) {
+                  if (responses.every(function(r){ return r.ok; })) {
+                      window.location.reload();
+                  } else {
+                      alert('라벨 변경에 실패했습니다.');
+                  }
+              }, function() { alert('라벨 변경에 실패했습니다.'); });
           });
-          removed.forEach(function(id) {
-              requests.push($.ajax({ url: base + '/' + id, type: 'DELETE' }));
-          });
-          $.when.apply($, requests)
-              .done(function() { window.location.reload(); })
-              .fail(function() { alert('라벨 변경에 실패했습니다.'); });
-      });
+      }
 
       // 리뷰 참여/취소 버튼(legacy ReviewApp.review/unreview)
-      $("#btn-review").click(function() {
-          $.post([[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/review(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]], function() { window.location.reload(); });
-      });
-      $("#btn-unreview").click(function() {
-          $.post([[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/unreview(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]], function() { window.location.reload(); });
-      });
+      var elBtnReview = document.getElementById("btn-review");
+      if (elBtnReview) {
+          elBtnReview.addEventListener("click", function() {
+              fetch([[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/review(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]], {method: "POST"})
+                  .then(function() { window.location.reload(); });
+          });
+      }
+      var elBtnUnreview = document.getElementById("btn-unreview");
+      if (elBtnUnreview) {
+          elBtnUnreview.addEventListener("click", function() {
+              fetch([[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/unreview(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]], {method: "POST"})
+                  .then(function() { window.location.reload(); });
+          });
+      }
 
       // Approve/Request changes/Comment 판정 제출.
       // 위 btn-review/btn-unreview(자기등록/취소)와는 완전히 별개 액션이다. 서버가
       // 자기 자신의 PR에 대한 APPROVE/REQUEST_CHANGES를 400 + {"error": "..."}로 거부하면
       // (SelfReviewException) 그 메시지를 그대로 alert로 보여준다.
       function submitPullRequestReview(state) {
-          var body = $('#pr-review-body').val();
-          $.ajax({
-              url: '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/reviews',
-              type: 'POST',
-              contentType: 'application/json',
-              data: JSON.stringify({ state: state, body: body })
-          })
-              .done(function() { window.location.reload(); })
-              .fail(function(xhr) {
-                  var message = (xhr.responseJSON && xhr.responseJSON.error) || '리뷰 등록에 실패했습니다.';
-                  alert(message);
-              });
+          var elPrReviewBody = document.getElementById('pr-review-body');
+          var body = elPrReviewBody ? elPrReviewBody.value : undefined;
+          fetch('/api/projects/' + projectId + '/pullrequests/' + prNumber + '/reviews', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ state: state, body: body })
+          }).then(function(response) {
+              if (response.ok) {
+                  window.location.reload();
+              } else {
+                  return response.text().then(function(text) {
+                      alert(_errorMessageFrom(text, '리뷰 등록에 실패했습니다.'));
+                  });
+              }
+          });
       }
-      $('#btn-review-approve').click(function() { submitPullRequestReview('APPROVE'); });
-      $('#btn-review-request-changes').click(function() { submitPullRequestReview('REQUEST_CHANGES'); });
-      $('#btn-review-comment').click(function() { submitPullRequestReview('COMMENT'); });
+      var elBtnReviewApprove = document.getElementById('btn-review-approve');
+      var elBtnReviewRequestChanges = document.getElementById('btn-review-request-changes');
+      var elBtnReviewComment = document.getElementById('btn-review-comment');
+      if (elBtnReviewApprove) { elBtnReviewApprove.addEventListener('click', function() { submitPullRequestReview('APPROVE'); }); }
+      if (elBtnReviewRequestChanges) { elBtnReviewRequestChanges.addEventListener('click', function() { submitPullRequestReview('REQUEST_CHANGES'); }); }
+      if (elBtnReviewComment) { elBtnReviewComment.addEventListener('click', function() { submitPullRequestReview('COMMENT'); }); }
 
       // [data-request-method] 범용 처리(닫기/다시열기/브랜치 삭제·복구 등). P3-69: 브랜치
       // 삭제/복구 버튼은 #state 안(pullrequest/partial_state)에 있어 폴링이 갱신할 때마다
       // DOM에서 새로 그려지므로, 위 #btnAccept와 동일한 이유로 위임 방식으로 건다.
-      $(document).on('click', '[data-request-method]:not(#btnAccept)', function(e) {
+      document.addEventListener('click', function(e) {
+          var matched = e.target.closest('[data-request-method]');
+          if (!matched || matched.id === 'btnAccept') { return; }
           e.preventDefault();
-          var $this = $(this);
-          $.ajax({
-              url: $this.data('requestUri') || $this.attr('href'),
-              type: $this.data('requestMethod').toUpperCase(),
-              success: function() { window.location.reload(); },
-              error: function() { alert('요청을 처리하지 못했습니다.'); }
+          fetch(matched.dataset.requestUri || matched.getAttribute('href'), {
+              method: matched.dataset.requestMethod.toUpperCase()
+          }).then(function(response) {
+              if (response.ok) { window.location.reload(); }
+              else { alert('요청을 처리하지 못했습니다.'); }
           });
       });
 
       // legacy git/viewChanges.scala.html의 btn-show-reviewcards / btn-hide-reviewcards 토글
-      $('.btn-show-reviewcards').click(function() { $('.review-wrap').addClass('show'); });
-      $('.btn-hide-reviewcards').click(function() { $('.review-wrap').removeClass('show'); });
+      document.querySelectorAll('.btn-show-reviewcards').forEach(function(el){
+          el.addEventListener('click', function() {
+              document.querySelectorAll('.review-wrap').forEach(function(w){ w.classList.add('show'); });
+          });
+      });
+      document.querySelectorAll('.btn-hide-reviewcards').forEach(function(el){
+          el.addEventListener('click', function() {
+              document.querySelectorAll('.review-wrap').forEach(function(w){ w.classList.remove('show'); });
+          });
+      });
 
       // P3-52 항목4 — code/diff.html에는 있던 "diff 줄 클릭 -> 그 줄에 새 리뷰 댓글 작성 폼"
       // UI가 PR 코드리뷰(changes 탭)에는 없었다(기존 스레드는 partial_diff_comment_on_line로
@@ -731,6 +786,10 @@
           if (location.hash) { onHashChange(); }
         })();
 
+        // 이 IIFE는 Bootstrap2 jQuery 플러그인 .affix()에 의존한다 - position:sticky로는
+        // 부모 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어(issue/list.html의
+        // 동일한 기존 판단 참고) 대체하지 못했다. 라운드9(Bootstrap2 플러그인 호출부 대체)까지
+        // 의도적으로 jQuery 객체를 유지한다 - 이번 라운드(P3-70 라운드6)는 손대지 않는다.
         (function(){
           var welReviewContainer = $(".review-container");
           if (welReviewContainer.length === 0) { return; }

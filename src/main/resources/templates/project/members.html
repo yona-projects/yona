@@ -95,82 +95,86 @@
 </div>
 
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         var projectId = [[${project.id}]];
 
-        // 1. 멤버 추가 연동
-        $("#addNewMember").submit(function(e) {
-            e.preventDefault();
-            var loginId = $("#loginId").val().trim();
-            if (!loginId) return;
-
-            $.ajax({
-                url: '/api/projects/' + projectId + '/members?loginId=' + encodeURIComponent(loginId),
-                type: 'POST',
-                success: function(res) {
+        function _requestMember(url, method, onError) {
+            fetch(url, {method: method}).then(function(response) {
+                if (response.ok) {
                     window.location.reload();
-                },
-                error: function(xhr) {
-                    var errorMsg = "멤버 추가 실패";
-                    if (xhr.responseJSON && xhr.responseJSON.error) {
-                        errorMsg += ": " + xhr.responseJSON.error;
-                    }
-                    alert(errorMsg);
+                } else {
+                    return response.json().catch(function(){ return null; }).then(function(body) {
+                        onError(body);
+                    });
                 }
             });
-        });
+        }
+
+        // 1. 멤버 추가 연동
+        var elAddNewMember = document.getElementById("addNewMember");
+        if (elAddNewMember) {
+            elAddNewMember.addEventListener("submit", function(e) {
+                e.preventDefault();
+                var elLoginId = document.getElementById("loginId");
+                var loginId = elLoginId ? elLoginId.value.trim() : "";
+                if (!loginId) return;
+
+                _requestMember(
+                    '/api/projects/' + projectId + '/members?loginId=' + encodeURIComponent(loginId),
+                    'POST',
+                    function(body) {
+                        var errorMsg = "멤버 추가 실패";
+                        if (body && body.error) {
+                            errorMsg += ": " + body.error;
+                        }
+                        alert(errorMsg);
+                    }
+                );
+            });
+        }
 
         // 2. 역할 변경 연동
-        $(".role-apply-btn").click(function(e) {
-            e.preventDefault();
-            var userId = $(this).data("user-id");
-            var roleId = $(this).data("role-id");
+        document.querySelectorAll(".role-apply-btn").forEach(function(el){
+            el.addEventListener("click", function(e) {
+                e.preventDefault();
+                var userId = el.dataset.userId;
+                var roleId = el.dataset.roleId;
 
-            $.ajax({
-                url: '/api/projects/' + projectId + '/members/' + userId + '/role?roleId=' + roleId,
-                type: 'PUT',
-                success: function(res) {
-                    window.location.reload();
-                },
-                error: function(xhr) {
-                    alert("역할 변경 실패");
-                }
+                _requestMember(
+                    '/api/projects/' + projectId + '/members/' + userId + '/role?roleId=' + roleId,
+                    'PUT',
+                    function() { alert("역할 변경 실패"); }
+                );
             });
         });
 
         // 3. 멤버 삭제 연동
-        $(".delete-member-btn").click(function(e) {
-            e.preventDefault();
-            var userId = $(this).data("user-id");
+        document.querySelectorAll(".delete-member-btn").forEach(function(el){
+            el.addEventListener("click", function(e) {
+                e.preventDefault();
+                var userId = el.dataset.userId;
 
-            if (confirm("정말 이 멤버를 프로젝트에서 제거하시겠습니까?")) {
-                $.ajax({
-                    url: '/api/projects/' + projectId + '/members/' + userId,
-                    type: 'DELETE',
-                    success: function(res) {
-                        window.location.reload();
-                    },
-                    error: function(xhr) {
-                        alert("멤버 제거 실패");
-                    }
-                });
-            }
+                if (confirm("정말 이 멤버를 프로젝트에서 제거하시겠습니까?")) {
+                    _requestMember(
+                        '/api/projects/' + projectId + '/members/' + userId,
+                        'DELETE',
+                        function() { alert("멤버 제거 실패"); }
+                    );
+                }
+            });
         });
 
         // 4. 가입 요청 승인 연동
-        $(".enrollAcceptBtn").click(function(e) {
-            e.preventDefault();
-            var userId = $(this).data("user-id");
+        document.querySelectorAll(".enrollAcceptBtn").forEach(function(el){
+            el.addEventListener("click", function(e) {
+                e.preventDefault();
+                var userId = el.dataset.userId;
 
-            $.ajax({
-                url: '/api/projects/' + projectId + '/members/' + userId + '/accept',
-                type: 'POST',
-                success: function(res) {
-                    window.location.reload();
-                },
-                error: function(xhr) {
-                    alert("가입 승인 실패");
-                }
+                _requestMember(
+                    '/api/projects/' + projectId + '/members/' + userId + '/accept',
+                    'POST',
+                    function() { alert("가입 승인 실패"); }
+                );
             });
         });
     });

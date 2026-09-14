@@ -63,7 +63,7 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" src="/javascripts/service/yona.project.ChangeVCS.js"></script>
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("project.ChangeVCS", {
             "sTransferURL": /*[[@{/{owner}/{name}/changeVCS(owner=${project.owner}, name=${project.name})}]]*/ ""
         });

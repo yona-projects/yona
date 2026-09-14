@@ -90,7 +90,7 @@
 <script type="text/javascript" src="/javascripts/lib/tribute/tribute.min.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.TitleHeadAutoCompletion.js"></script>
 <script type="text/javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("board.Write", {
             "sMode"     : "new",
             "elTextarea": 'textarea[data-editor-mode="content-body"]'

@@ -118,8 +118,8 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
-$(document).ready(function(){
-    yona.Pagination.update($("#pagination"), /*[[${projects.totalPages}]]*/ 1);
+document.addEventListener("DOMContentLoaded", function(){
+    yona.Pagination.update(document.getElementById("pagination"), /*[[${projects.totalPages}]]*/ 1);
 });
 </script>
 </body>

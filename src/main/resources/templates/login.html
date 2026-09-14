@@ -89,8 +89,9 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript">
-    $(function() {
-        $('#loginIdOrEmailD').focus();
+    document.addEventListener("DOMContentLoaded", function() {
+        var elLoginId = document.getElementById('loginIdOrEmailD');
+        if (elLoginId) { elLoginId.focus(); }
     });
 </script>
 </body>

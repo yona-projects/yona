@@ -1862,8 +1862,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     inlineScripts.contains("#formNewWebhook") shouldBe true
 
                     // 기존 동작(JSON 타입 선택 시 Git Push 강제 체크) 회귀 없이 유지돼야 한다.
+                    // P3-70 라운드6: jQuery $("#gitPush") 선택자 문자열을 네이티브
+                    // document.getElementById("gitPush")로 전환했으므로 "#" 접두사 없이 id만 확인한다.
                     inlineScripts.contains("webhookType") shouldBe true
-                    inlineScripts.contains("#gitPush") shouldBe true
+                    inlineScripts.contains("gitPush") shouldBe true
 
                     // yona.project.Webhook.js의 _initElement가 실제로 찾는 마크업 계약(name="payloadUrl")과
                     // 일치하는지 확인 — 포팅 과정에서 name/id가 달라지지 않았음을 보장한다.

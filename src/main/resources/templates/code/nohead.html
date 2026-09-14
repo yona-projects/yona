@@ -39,7 +39,7 @@ git push origin master</code></pre>
 
 <div th:replace="~{site/layout :: scripts}"></div>
 <script th:inline="javascript">
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         var currentUser = /*[[${currentUser != null ? currentUser.loginId : null}]]*/ null;
         var owner = /*[[${project.owner}]]*/ '';
         var name = /*[[${project.name}]]*/ '';
@@ -69,9 +69,12 @@ git push origin master</code></pre>
         var remoteGuide = "git remote add origin " + cloneUrl + "\n" +
                           "git push origin master";
 
-        $("#clone-guide").text(cloneGuide);
-        $("#init-guide").text(initGuide);
-        $("#remote-guide").text(remoteGuide);
+        var elCloneGuide = document.getElementById("clone-guide");
+        var elInitGuide = document.getElementById("init-guide");
+        var elRemoteGuide = document.getElementById("remote-guide");
+        if (elCloneGuide) { elCloneGuide.textContent = cloneGuide; }
+        if (elInitGuide) { elInitGuide.textContent = initGuide; }
+        if (elRemoteGuide) { elRemoteGuide.textContent = remoteGuide; }
 
         if (window.$yona && $yona.loadModule) {
             $yona.loadModule("code.Nohead", {

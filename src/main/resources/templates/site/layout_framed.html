@@ -318,42 +318,57 @@
     </div>
     
     <script type="text/javascript">
-         $(function(){
+         document.addEventListener("DOMContentLoaded", function(){
              function initActiveMenu() {
                  var activeMenu = localStorage.getItem('sidebarActiveMenu');
-                 $('.myOrganizationList, .myProjectList, #myOrganizationList, #myProjectList').removeClass('active');
+                 document.querySelectorAll('.myOrganizationList, .myProjectList, #myOrganizationList, #myProjectList').forEach(function(el){ el.classList.remove('active'); });
                  if (activeMenu == null) {
-                     $('.myOrganizationList').addClass('active');
-                     $('#myOrganizationList').addClass('active');
+                     document.querySelectorAll('.myOrganizationList').forEach(function(el){ el.classList.add('active'); });
+                     var elMyOrganizationListId = document.getElementById('myOrganizationList');
+                     if (elMyOrganizationListId) { elMyOrganizationListId.classList.add('active'); }
                  } else {
-                     $('.'+activeMenu).addClass('active');
-                     $('#'+activeMenu).addClass('active');
+                     document.querySelectorAll('.'+activeMenu).forEach(function(el){ el.classList.add('active'); });
+                     var elActiveMenuId = document.getElementById(activeMenu);
+                     if (elActiveMenuId) { elActiveMenuId.classList.add('active'); }
                  }
              }
 
              // 1. 초기 탭 렌더링 동기화
              initActiveMenu();
-             
-             // 2. 비동기 usermenuTabContentList 데이터 덮어쓰기 완료 시점에 탭 active 재조정
+
+             // 2. 비동기 usermenuTabContentList 데이터 덮어쓰기 완료 시점에 탭 active 재조정.
+             // $.ajaxComplete()는 jQuery 자체의 AJAX 이벤트 시스템(jQuery의 $.ajax 호출에만
+             // 반응, 네이티브 fetch/XHR에는 대응 API가 없음)에 의존하는 jQuery 코어 API라
+             // 라운드10(코어 라이브러리 제거)까지 의도적으로 유지한다 - 이 요청을 실제로 만드는
+             // 코드가 번들(yona-layout.js, 압축된 별도 프레임 전용 번들이라 이 티켓의 소스
+             // 트리 범위 밖)에 있어 jQuery 기반인지도 이번 라운드에서 확인할 수 없었다.
              $(document).ajaxComplete(function(event, xhr, settings) {
                  if (settings.url && settings.url.indexOf("/user/usermenuTabContentList") !== -1) {
                      initActiveMenu();
                  }
              });
-             
-             $('.refresh-button').on('click', function(){
-                 window.location.reload();
-             });
-             
-             $('.myOrganizationList').on('click', function(){
-                 localStorage.setItem('sidebarActiveMenu', 'myOrganizationList');
-                 $(".sidebar-bottom").hide();
-             });
-             $('.myProjectList').on('click', function(){
-                 localStorage.setItem('sidebarActiveMenu', 'myProjectList');
-                 $(".sidebar-bottom").hide();
+
+             document.querySelectorAll('.refresh-button').forEach(function(el){
+                 el.addEventListener('click', function(){
+                     window.location.reload();
+                 });
              });
 
+             document.querySelectorAll('.myOrganizationList').forEach(function(el){
+                 el.addEventListener('click', function(){
+                     localStorage.setItem('sidebarActiveMenu', 'myOrganizationList');
+                     document.querySelectorAll(".sidebar-bottom").forEach(function(b){ b.style.display = "none"; });
+                 });
+             });
+             document.querySelectorAll('.myProjectList').forEach(function(el){
+                 el.addEventListener('click', function(){
+                     localStorage.setItem('sidebarActiveMenu', 'myProjectList');
+                     document.querySelectorAll(".sidebar-bottom").forEach(function(b){ b.style.display = "none"; });
+                 });
+             });
+
+             // Bootstrap2 jQuery 플러그인 호출 - 라운드9(Bootstrap2 플러그인 호출부 대체)까지
+             // 의도적으로 jQuery 객체를 유지한다.
              $('[data-toggle="popover"]').popover();
          });
     </script>

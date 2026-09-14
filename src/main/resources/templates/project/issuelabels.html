@@ -70,7 +70,7 @@
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript" src="/javascripts/service/yona.issue.LabelEditor.js"></script>
 <script type="text/javascript" th:inline="javascript">
-  $(function(){
+  document.addEventListener("DOMContentLoaded", function(){
       $yona.loadModule("issue.LabelEditor", {
           "form": "#frmNewLabel",
           "list": "#labelsList",

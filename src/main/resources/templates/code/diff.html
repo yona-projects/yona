@@ -580,6 +580,11 @@ document.addEventListener("DOMContentLoaded", function() {
   })();
 
   // --- 리뷰 사이드바 sticky(legacy _setReviewWrapAffixed/_setReviewListHeight) -------------
+  // 이 IIFE는 Bootstrap2 jQuery 플러그인 .affix()에 의존한다 - position:sticky로는 부모
+  // 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어(issue/list.html의 동일한 기존 판단
+  // 참고, pullrequest/view.html의 동일 블록도 동일 판단) 대체하지 못했다. 라운드9(Bootstrap2
+  // 플러그인 호출부 대체)까지 의도적으로 jQuery 객체를 유지한다 - 이번 라운드(P3-70 라운드6)는
+  // 손대지 않는다(이 파일의 jQuery 잔존은 사실상 이 블록이 전부다).
   (function(){
     var welReviewContainer = $(".review-container");
     if (welReviewContainer.length === 0) { return; }

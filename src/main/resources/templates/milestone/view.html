@@ -124,32 +124,40 @@
 
 <script type="text/javascript" th:inline="javascript">
     function toggleIssueState(state) {
-        $("#issues ul.nav-tabs li").removeClass("active");
+        document.querySelectorAll("#issues ul.nav-tabs li").forEach(function(el){ el.classList.remove("active"); });
+        var elOpenItems = document.querySelectorAll(".open-issue-item");
+        var elClosedItems = document.querySelectorAll(".closed-issue-item");
         if (state === 'open') {
-            $("#tab-open-issues").addClass("active");
-            $(".open-issue-item").show();
-            $(".closed-issue-item").hide();
+            var elTabOpen = document.getElementById("tab-open-issues");
+            if (elTabOpen) { elTabOpen.classList.add("active"); }
+            elOpenItems.forEach(function(el){ el.style.display = ""; });
+            elClosedItems.forEach(function(el){ el.style.display = "none"; });
         } else if (state === 'closed') {
-            $("#tab-closed-issues").addClass("active");
-            $(".open-issue-item").hide();
-            $(".closed-issue-item").show();
+            var elTabClosed = document.getElementById("tab-closed-issues");
+            if (elTabClosed) { elTabClosed.classList.add("active"); }
+            elOpenItems.forEach(function(el){ el.style.display = "none"; });
+            elClosedItems.forEach(function(el){ el.style.display = ""; });
         } else {
-            $("#tab-all-issues").addClass("active");
-            $(".open-issue-item").show();
-            $(".closed-issue-item").show();
+            var elTabAll = document.getElementById("tab-all-issues");
+            if (elTabAll) { elTabAll.classList.add("active"); }
+            elOpenItems.forEach(function(el){ el.style.display = ""; });
+            elClosedItems.forEach(function(el){ el.style.display = ""; });
         }
     }
 
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         toggleIssueState('open');
 
         // search by keyword
-        $(".textbox").on("keyup", function() {
-            var value = $(this).val().toLowerCase().trim();
-            $(".issue-item").each(function() {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+        var elTextbox = document.querySelector(".textbox");
+        if (elTextbox) {
+            elTextbox.addEventListener("keyup", function() {
+                var value = elTextbox.value.toLowerCase().trim();
+                document.querySelectorAll(".issue-item").forEach(function(el) {
+                    el.style.display = (el.textContent.toLowerCase().indexOf(value) !== -1) ? "" : "none";
+                });
             });
-        });
+        }
 
         var projectOwner = [[${project.owner}]];
         var projectName = [[${project.name}]];

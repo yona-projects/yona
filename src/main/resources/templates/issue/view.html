@@ -565,7 +565,7 @@
 <script type="text/javascript" src="/javascripts/lib/favico/favico.min.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.detectChange.js"></script>
 <script type="text/javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("issue.View", {
             "issueId"  : "[[${issue.id}]]",
             "nextState": "[[${issue.state}]]",
@@ -577,14 +577,30 @@
             }
         });
 
-        $('[data-request-method="delete"]').click(function(){
-            var uri = $(this).data("requestUri");
-            $.ajax({
-                url: uri,
-                type: "DELETE",
-                success: function() {
-                    window.location = "[[@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name})}]]";
-                }
+        function _errorMessageFrom(text) {
+            try {
+                var parsed = JSON.parse(text);
+                if (parsed && parsed.message) { return parsed.message; }
+            } catch(e) {}
+            return text || '';
+        }
+        // jQuery 인자 없는 .submit()/.trigger('submit')은 실제 "submit" 이벤트를 발생시켜 같은
+        // 폼에 바인딩된 다른 핸들러(delegated submit 리스너)를 먼저 호출하고, 아무도
+        // preventDefault를 안 하면 네이티브 제출로 폴백한다(라운드4에서 확립한 헬퍼).
+        function _triggerFormSubmit(form) {
+            var evt = new Event("submit", {bubbles: true, cancelable: true});
+            var notCancelled = form.dispatchEvent(evt);
+            if (notCancelled) { form.submit(); }
+        }
+
+        document.querySelectorAll('[data-request-method="delete"]').forEach(function(el){
+            el.addEventListener("click", function(){
+                var uri = el.dataset.requestUri;
+                fetch(uri, {method: "DELETE"}).then(function(response) {
+                    if (response.ok) {
+                        window.location = "[[@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name})}]]";
+                    }
+                });
             });
         });
 
@@ -597,19 +613,28 @@
         // autosize.update()가 없으면 display:none 상태로 페이지가 로드될 때 전역
         // autosize($('textarea'))가 실제 내용 줄 수를 계산 못 해, 여러 줄짜리 기존 댓글을
         // 수정할 때 편집창 높이가 내용에 안 맞게 나타난다(사용자가 뭔가 입력해야 재계산됨).
-        $(document).on('click', '[data-toggle="comment-edit"]', function(){
-            var id = $(this).data('commentId');
-            $('#comment-body-' + id).hide();
-            $('#comment-editform-' + id).show();
-            $(".add-a-comment").hide();
-            autosize.update($('textarea'));
-        });
-        $(document).on('click', '.ybtn-cancel', function(){
-            var id = $(this).data('commentId');
-            $('#comment-editform-' + id).hide();
-            $('#comment-body-' + id).show();
-            $(".add-a-comment").hide();
-            autosize.update($('textarea'));
+        document.addEventListener('click', function(event){
+            var matched = event.target.closest('[data-toggle="comment-edit"]');
+            if (matched) {
+                var id = matched.dataset.commentId;
+                var elBody = document.getElementById('comment-body-' + id);
+                var elEditForm = document.getElementById('comment-editform-' + id);
+                if (elBody) { elBody.style.display = "none"; }
+                if (elEditForm) { elEditForm.style.display = "block"; }
+                document.querySelectorAll(".add-a-comment").forEach(function(el){ el.style.display = "none"; });
+                autosize.update(document.querySelectorAll('textarea'));
+                return;
+            }
+            var matchedCancel = event.target.closest('.ybtn-cancel');
+            if (matchedCancel) {
+                var cancelId = matchedCancel.dataset.commentId;
+                var elEditFormCancel = document.getElementById('comment-editform-' + cancelId);
+                var elBodyCancel = document.getElementById('comment-body-' + cancelId);
+                if (elEditFormCancel) { elEditFormCancel.style.display = "none"; }
+                if (elBodyCancel) { elBodyCancel.style.display = "block"; }
+                document.querySelectorAll(".add-a-comment").forEach(function(el){ el.style.display = "none"; });
+                autosize.update(document.querySelectorAll('textarea'));
+            }
         });
         // P3-48 화면별 재현 세션에서 발견: 새 댓글 등록 폼(#comment-form)은 위 두 폼(댓글 수정/
         // 대댓글)과 달리 AJAX로 전환되지 않은 채 남아있어, th:action이 가리키는
@@ -621,19 +646,29 @@
         // 다시 스케줄링하는데, #comment-form은 이미 위 AJAX 핸들러로 전환돼 있어(P3-48) 그 흐름과
         // 공존시킬 수 없다(사용자 결정: yona.CommentForm.js는 로드하지 않고 이미 검증된 AJAX
         // 핸들러 쪽에 동일 기능을 직접 재구현) — 그래서 이 AJAX 핸들러 자체에 가드를 추가한다.
-        var $commentForm = $('#comment-form');
-        var $commentTextarea = $commentForm.find('textarea[name="contents"]');
+        var elCommentForm = document.getElementById('comment-form');
+        var elCommentTextarea = elCommentForm ? elCommentForm.querySelector('textarea[name="contents"]') : null;
+        // $form.data('onsubmit', bool)은 DOM 속성이 아니라 jQuery 내부 캐시에만 저장되는 값이라(라운드4
+        // 확립 함정) 네이티브 dataset로 옮기지 않고 순수 클로저 변수로 대체한다(yona.CommentForm.js의
+        // bOnSubmit과 동일한 관례).
+        var bCommentFormOnSubmit = false;
         function isCommentFormBodyEmpty(){
-            return !($commentTextarea.val() || '').trim().length;
+            return !(elCommentTextarea && elCommentTextarea.value || '').trim().length;
         }
-        if ($commentTextarea.length) {
+        if (elCommentTextarea) {
             // 임시저장(초안 자동저장)은 전역 temporarySaveHandler(다른 모든 작성 화면에서 이미
             // 쓰이고 있음, yona.temporarySaveHandler.js)를 그대로 재사용한다.
-            temporarySaveHandler($commentTextarea);
+            temporarySaveHandler(elCommentTextarea);
 
-            var notiReceiversUrl = $commentForm.data('notiReceiversUrl');
+            var notiReceiversUrl = elCommentForm.dataset.notiReceiversUrl;
             if (notiReceiversUrl) {
-                findNotiReceiversHandler($commentTextarea, notiReceiversUrl);
+                // common/yona.ReceiverList.js(findNotiReceiversHandler)는 이번 라운드(P3-70
+                // 라운드6, "템플릿 자체 인라인"만 대상) 범위 밖의 별도 common JS 파일이고, 내부적으로
+                // jQuery API(.on/.closest/.find/.val/.html)에 의존한 채 아직 vanilla로 전환되지
+                // 않았다(10라운드 계획 어디에도 명시적으로 포함돼 있지 않은 파일 - 범위 밖 발견으로
+                // 티켓에 기록). 그 계약을 깨지 않도록 이 호출 지점에서만 jQuery로 감싼 텍스트영역을
+                // 넘긴다.
+                findNotiReceiversHandler($(elCommentTextarea), notiReceiversUrl);
             }
 
             // Ctrl(⌘)+Shift+Enter로 즉시 제출. markdownEditor는 이 textarea를 EasyMDE(CodeMirror)로
@@ -643,78 +678,102 @@
             // P3-50에서 이미 확인된 EasyMDE 단방향 동기화 함정과 같은 종류). document 레벨에서
             // 캡처해 현재 포커스가 이 폼 안에 있을 때만 반응하는 방식으로 CodeMirror를 포함한 실제
             // 입력 표면 어디서 눌러도 동작하게 한다.
-            $(document).on('keydown', function(e){
+            document.addEventListener('keydown', function(e){
                 var isSubmitCombo = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.keyCode === 13 || e.key === 'Enter');
-                if (isSubmitCombo && document.activeElement && $.contains($commentForm[0], document.activeElement)) {
+                // $.contains(container, el)은 container===el이면 false를 반환하는 "진짜 후손"
+                // 검사인 반면 네이티브 Node.contains()는 자기 자신도 true로 본다 - 동치 재현을
+                // 위해 자기 자신 케이스를 별도로 제외한다.
+                var isInsideForm = document.activeElement
+                    && document.activeElement !== elCommentForm
+                    && elCommentForm.contains(document.activeElement);
+                if (isSubmitCombo && isInsideForm) {
                     e.preventDefault();
-                    $commentForm.trigger('submit');
+                    _triggerFormSubmit(elCommentForm);
                 }
             });
 
-            $(window).on('beforeunload', function(){
-                if (!isCommentFormBodyEmpty() && !$commentForm.data('onsubmit')) {
+            window.addEventListener('beforeunload', function(){
+                if (!isCommentFormBodyEmpty() && !bCommentFormOnSubmit) {
                     return '[[#{common.comment.beforeunload.confirm}]]';
                 }
             });
         }
 
-        $(document).on('submit', '#comment-form', function(e){
-            e.preventDefault();
-            var $form = $(this);
-            if (isCommentFormBodyEmpty()) {
-                $yona.notify('[[#{post.comment.empty}]]', 3000);
-                $commentTextarea.focus();
+        if (elCommentForm) {
+            elCommentForm.addEventListener('submit', function(e){
+                e.preventDefault();
+                if (isCommentFormBodyEmpty()) {
+                    $yona.notify('[[#{post.comment.empty}]]', 3000);
+                    if (elCommentTextarea) { elCommentTextarea.focus(); }
+                    return;
+                }
+                var apiBase = elCommentForm.dataset.apiBase;
+                var contents = elCommentTextarea.value;
+                bCommentFormOnSubmit = true;
+                fetch(apiBase, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: contents })
+                }).then(function(response) {
+                    if (response.ok) {
+                        removeCurrentPageTemprarySavedContent();
+                        window.location.reload();
+                    } else {
+                        return response.text().then(function(text) {
+                            bCommentFormOnSubmit = false;
+                            alert('[[#{button.comment.new}]] failed: ' + _errorMessageFrom(text));
+                        });
+                    }
+                });
+            });
+        }
+        document.addEventListener('submit', function(e){
+            var elForm = e.target.closest('.comment-update-form form');
+            if (elForm && document.contains(elForm)) {
+                e.preventDefault();
+                var apiBase = elForm.dataset.apiBase;
+                var commentId = elForm.dataset.commentId;
+                var elTextarea = elForm.querySelector('textarea[data-editor-mode="update-comment-body"]');
+                var contents = elTextarea ? elTextarea.value : undefined;
+                // P3-50: "알림 메일 받기" 체크박스(작성자 본인에게만 노출) 상태를 함께 보낸다.
+                var elNotificationCheckbox = elForm.querySelector('.send-notification-checkbox');
+                var sendNotificationMail = !!(elNotificationCheckbox && elNotificationCheckbox.checked);
+                fetch(apiBase + '/' + commentId, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: contents, sendNotificationMail: sendNotificationMail })
+                }).then(function(response) {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        return response.text().then(function(text) {
+                            alert('[[#{common.comment.edit}]] failed: ' + _errorMessageFrom(text));
+                        });
+                    }
+                });
                 return;
             }
-            var apiBase = $form.data('apiBase');
-            var contents = $commentTextarea.val();
-            $form.data('onsubmit', true);
-            $.ajax({
-                url: apiBase,
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ contents: contents }),
-                success: function(){
-                    removeCurrentPageTemprarySavedContent();
-                    window.location.reload();
-                },
-                error: function(xhr){
-                    $form.data('onsubmit', false);
-                    alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || ''));
-                }
-            });
-        });
-        $(document).on('submit', '.comment-update-form form', function(e){
-            e.preventDefault();
-            var $form = $(this);
-            var apiBase = $form.data('apiBase');
-            var commentId = $form.data('commentId');
-            var contents = $form.find('textarea[data-editor-mode="update-comment-body"]').val();
-            // P3-50: "알림 메일 받기" 체크박스(작성자 본인에게만 노출) 상태를 함께 보낸다.
-            var sendNotificationMail = $form.find('.send-notification-checkbox').is(':checked');
-            $.ajax({
-                url: apiBase + '/' + commentId,
-                type: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ contents: contents, sendNotificationMail: sendNotificationMail }),
-                success: function(){ window.location.reload(); },
-                error: function(xhr){ alert('[[#{common.comment.edit}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
-            });
-        });
-        $(document).on('submit', '.child-comment-form', function(e){
-            e.preventDefault();
-            var $form = $(this);
-            var apiBase = $form.data('apiBase');
-            var parentCommentId = $form.data('parentCommentId');
-            var contents = $form.find('textarea[name="contents"]').val();
-            $.ajax({
-                url: apiBase,
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ contents: contents, parentCommentId: parentCommentId }),
-                success: function(){ window.location.reload(); },
-                error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
-            });
+            var elChildForm = e.target.closest('.child-comment-form');
+            if (elChildForm && document.contains(elChildForm)) {
+                e.preventDefault();
+                var childApiBase = elChildForm.dataset.apiBase;
+                var parentCommentId = elChildForm.dataset.parentCommentId;
+                var elChildTextarea = elChildForm.querySelector('textarea[name="contents"]');
+                var childContents = elChildTextarea ? elChildTextarea.value : undefined;
+                fetch(childApiBase, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: childContents, parentCommentId: parentCommentId })
+                }).then(function(response) {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        return response.text().then(function(text) {
+                            alert('[[#{button.comment.new}]] failed: ' + _errorMessageFrom(text));
+                        });
+                    }
+                });
+            }
         });
 
         // P3-52 항목2: 본문/댓글 수 변경 폴링 시작.
@@ -743,7 +802,7 @@
      분리해 태그 자체에 th:if를 건다 — th:if는 엘리먼트 속성이라 raw text 제약을 받지 않고,
      본문 스크립트는 원래 방식 그대로 둘 수 있다. -->
 <script type="text/javascript" th:if="${isAllowedUpdate}">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         yonaAssgineeModule(
             "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignableUsers(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
             "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignees(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
@@ -756,7 +815,7 @@
      yonaAssgineeModule 초기화와 동일한 이유(위 인라인 스크립트는 raw text라 th:block 중첩 불가)로
      별도 script 태그에 th:if를 건다. -->
 <script type="text/javascript" th:if="${isAllowedUpdate}">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         yonaIssueSharerModule(
             "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/findSharer(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
             "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/sharableUsers(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",

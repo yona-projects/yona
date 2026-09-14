@@ -131,7 +131,7 @@
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript" th:inline="javascript">
-    $(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         $yona.loadModule("pullrequest.Write", {
             "sMode"           : "new",
             "sMergeResultURL" : /*[[@{/{owner}/{projectName}/pull/mergeResult(owner=${project.owner}, projectName=${project.name})}]]*/ "",

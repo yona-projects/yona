@@ -90,11 +90,11 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("review.List", {
-            "elPagination": $("#pagination"),
+            "elPagination": document.getElementById("pagination"),
             "nTotalPages" : [[${commentThreads.totalPages}]],
-            "welSearchForm": $("form[name='search']")
+            "welSearchForm": document.querySelector("form[name='search']")
         });
     });
 </script>

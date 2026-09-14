@@ -155,15 +155,18 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:if="${project.isMilestoneEnabled}" th:inline="javascript">
-    $(document).ready(function () {
+    document.addEventListener("DOMContentLoaded", function () {
         // search by keyword
-        $(".textbox").on("keyup", function() {
-            var value = $(this).val().toLowerCase().trim();
-            $(".issue-link").each(function() {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+        var elTextbox = document.querySelector(".textbox");
+        if (elTextbox) {
+            elTextbox.addEventListener("keyup", function() {
+                var value = elTextbox.value.toLowerCase().trim();
+                document.querySelectorAll(".issue-link").forEach(function(el) {
+                    el.style.display = (el.textContent.toLowerCase().indexOf(value) !== -1) ? "" : "none";
+                });
             });
-        });
-        
+        }
+
         var projectOwner = [[${project.owner}]];
         var projectName = [[${project.name}]];
         yona.ShortcutKey.setKeymapLink({

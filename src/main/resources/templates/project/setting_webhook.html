@@ -121,20 +121,24 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" src="/javascripts/service/yona.project.Webhook.js"></script>
 <script th:inline="javascript">
-  $(document).ready(function() {
+  document.addEventListener("DOMContentLoaded", function() {
       $yona.loadModule("project.Webhook", {
           "form": "#formNewWebhook"
       });
 
       // JSON 타입 선택 시 Git Push 이벤트를 필수로 체크하게끔 동적 제어
-      $('input[type=radio][name=webhookType]').change(function() {
-          if (this.value == 'JSON') {
-              $("#gitPush").prop('checked', true);
-              $("#gitPush").attr('onclick', 'return false;');
-          } else {
-              $("#gitPush").attr('onclick', '');
-              $("#gitPush").prop('checked', false);
-          }
+      document.querySelectorAll('input[type=radio][name=webhookType]').forEach(function(el){
+          el.addEventListener('change', function() {
+              var elGitPush = document.getElementById("gitPush");
+              if (!elGitPush) { return; }
+              if (this.value == 'JSON') {
+                  elGitPush.checked = true;
+                  elGitPush.setAttribute('onclick', 'return false;');
+              } else {
+                  elGitPush.setAttribute('onclick', '');
+                  elGitPush.checked = false;
+              }
+          });
       });
   });
 </script>

@@ -117,7 +117,7 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript">
-$(document).ready(function() { $yona.loadModule("project.Fork"); });
+document.addEventListener("DOMContentLoaded", function() { $yona.loadModule("project.Fork"); });
 </script>
 </body>
 </html>

@@ -142,28 +142,38 @@
 <div th:replace="~{site/layout :: scripts}"></div>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript">
-$(document).ready(function(){
-    $("button.moreBtn").on("click", function(){
-        $(this).next("pre.commitMsg.desc").toggleClass("hidden");
-    });
-
-    $("#branches").on("change", function(){
-        location.href = $(this).val();
-    });
-
-    $("#history").find(".btn-copy-commitId").each(function(i, el){
-        var welBtnCopy = $(el);
-        welBtnCopy.on("mouseenter", function(){
-            if (typeof ClipboardJS !== "undefined" && ClipboardJS.isSupported()) {
-                new ClipboardJS(this, {
-                    text: function(){ return $(welBtnCopy).data("commitid"); }
-                }).on('success', function(e) {
-                    if (window.$yona) { $yona.notify("[[#{code.copyCommitId.copied}]]", 1000); }
-                    e.clearSelection();
-                });
+document.addEventListener("DOMContentLoaded", function(){
+    document.querySelectorAll("button.moreBtn").forEach(function(btn){
+        btn.addEventListener("click", function(){
+            var elNext = btn.nextElementSibling;
+            if (elNext && elNext.matches("pre.commitMsg.desc")) {
+                elNext.classList.toggle("hidden");
             }
         });
     });
+
+    var elBranches = document.getElementById("branches");
+    if (elBranches) {
+        elBranches.addEventListener("change", function(){
+            location.href = elBranches.value;
+        });
+    }
+
+    var elHistory = document.getElementById("history");
+    if (elHistory) {
+        elHistory.querySelectorAll(".btn-copy-commitId").forEach(function(el){
+            el.addEventListener("mouseenter", function(){
+                if (typeof ClipboardJS !== "undefined" && ClipboardJS.isSupported()) {
+                    new ClipboardJS(el, {
+                        text: function(){ return el.dataset.commitid; }
+                    }).on('success', function(e) {
+                        if (window.$yona) { $yona.notify("[[#{code.copyCommitId.copied}]]", 1000); }
+                        e.clearSelection();
+                    });
+                }
+            });
+        });
+    }
 });
 </script>
 </body>

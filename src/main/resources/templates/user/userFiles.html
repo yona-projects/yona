@@ -81,21 +81,22 @@
 
 <script type="text/javascript" src="/javascripts/lib/filetype.js"></script>
 <script type="text/javascript" th:inline="javascript">
-$(document).ready(function(){
-    $(".attachment-file-detail").hover(
-        function() {
-            $(this).addClass('hover');
-        }, function () {
-            $(this).removeClass("hover");
-        }
-    );
+document.addEventListener("DOMContentLoaded", function(){
+    document.querySelectorAll(".attachment-file-detail").forEach(function(el){
+        el.addEventListener("mouseenter", function() { el.classList.add('hover'); });
+        el.addEventListener("mouseleave", function() { el.classList.remove('hover'); });
+    });
 
-    $('.file-name').each(function(){
-        var that = $(this);
+    document.querySelectorAll('.file-name').forEach(function(el){
         if (typeof fileType !== 'undefined') {
             fileType.some(function(item){
-                if( item[0].test(that.text()) ) {
-                    that.find('i').removeClass('text-icon').addClass(item[1] + " font-larger");
+                if( item[0].test(el.textContent) ) {
+                    var elIcon = el.querySelector('i');
+                    if (elIcon) {
+                        elIcon.classList.remove('text-icon');
+                        item[1].split(" ").forEach(function(cls){ elIcon.classList.add(cls); });
+                        elIcon.classList.add("font-larger");
+                    }
                     return true;
                 }
             });
@@ -106,7 +107,7 @@ $(document).ready(function(){
     var totalPages = /*[[${page.totalPages}]]*/ 1;
     /*]]>*/
     if (typeof yona !== 'undefined' && yona.Pagination) {
-        yona.Pagination.update($("#pagination"), totalPages);
+        yona.Pagination.update(document.getElementById("pagination"), totalPages);
     }
 });
 </script>

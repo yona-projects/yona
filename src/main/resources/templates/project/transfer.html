@@ -71,7 +71,7 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" src="/javascripts/service/yona.project.Transfer.js"></script>
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("project.Transfer", {
             "sTransferURL": /*[[ @{/{owner}/{name}/transfer(owner=${project.owner}, name=${project.name})} ]]*/ ''
         });

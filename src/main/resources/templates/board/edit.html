@@ -73,50 +73,60 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("board.Write", {
             "sMode"     : "edit",
             "elTextarea": 'textarea[data-editor-mode="content-body"]'
         });
 
-        $("#post-form").submit(function(e) {
-            e.preventDefault();
-            
-            var projectId = [[${project.id}]];
-            var postId = [[${post.number}]];
-            var owner = /*[[${project.owner}]]*/ '';
-            var projectName = /*[[${project.name}]]*/ '';
-            
-            var title = $("#title").val();
-            var body = $('textarea[id^=editor-]').val();
-            var notice = $("#notice").is(":checked");
-            var sendNotificationMail = $("#sendNotificationMail").length ? $("#sendNotificationMail").is(":checked") : false;
-            // legacy board/edit.scala.html:59-64 대응 — readme 체크박스가 없으면(권한/VCS 조건
-            // 불충족) legacy도 posting.readme가 항상 false로 바인딩된다(폼에 필드 자체가 없으므로).
-            var readme = $("#readme").length ? $("#readme").is(":checked") : false;
+        var elPostForm = document.getElementById("post-form");
+        if (elPostForm) {
+            elPostForm.addEventListener("submit", function(e) {
+                e.preventDefault();
 
-            var requestData = {
-                title: title,
-                body: body,
-                notice: notice,
-                readme: readme,
-                sendNotificationMail: sendNotificationMail
-            };
-            
-            $.ajax({
-                url: '/api/projects/' + projectId + '/posts/' + postId,
-                type: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify(requestData),
-                success: function(result) {
-                    alert("글이 성공적으로 수정되었습니다.");
-                    window.location.href = '/' + owner + '/' + projectName + '/post/' + postId;
-                },
-                error: function(xhr, status, error) {
-                    alert("수정 실패: " + xhr.responseText);
-                }
+                var projectId = [[${project.id}]];
+                var postId = [[${post.number}]];
+                var owner = /*[[${project.owner}]]*/ '';
+                var projectName = /*[[${project.name}]]*/ '';
+
+                var elTitle = document.getElementById("title");
+                var elBody = document.querySelector('textarea[id^=editor-]');
+                var elNotice = document.getElementById("notice");
+                var elSendNotificationMail = document.getElementById("sendNotificationMail");
+                // legacy board/edit.scala.html:59-64 대응 — readme 체크박스가 없으면(권한/VCS 조건
+                // 불충족) legacy도 posting.readme가 항상 false로 바인딩된다(폼에 필드 자체가 없으므로).
+                var elReadme = document.getElementById("readme");
+
+                var title = elTitle ? elTitle.value : undefined;
+                var body = elBody ? elBody.value : undefined;
+                var notice = !!(elNotice && elNotice.checked);
+                var sendNotificationMail = !!(elSendNotificationMail && elSendNotificationMail.checked);
+                var readme = !!(elReadme && elReadme.checked);
+
+                var requestData = {
+                    title: title,
+                    body: body,
+                    notice: notice,
+                    readme: readme,
+                    sendNotificationMail: sendNotificationMail
+                };
+
+                fetch('/api/projects/' + projectId + '/posts/' + postId, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(requestData)
+                }).then(function(response) {
+                    if (response.ok) {
+                        alert("글이 성공적으로 수정되었습니다.");
+                        window.location.href = '/' + owner + '/' + projectName + '/post/' + postId;
+                    } else {
+                        return response.text().then(function(text) {
+                            alert("수정 실패: " + text);
+                        });
+                    }
+                });
             });
-        });
+        }
     });
 </script>
 </body>

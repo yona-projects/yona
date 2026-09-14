@@ -350,12 +350,16 @@
      추론/로드하므로 별도 basePath 설정은 필요 없다. -->
 <script src="/javascripts/lib/ace/ace.js"></script>
 <script type="text/javascript">
-  $(document).ready(function(){
-      $("#branches").on("change", function(){
-          location.href = $(this).val();
-      });
+  document.addEventListener("DOMContentLoaded", function(){
+      var elBranches = document.getElementById("branches");
+      if (elBranches) {
+          elBranches.addEventListener("change", function(){
+              location.href = elBranches.value;
+          });
+      }
 
-      // help popover at open with browser button
+      // help popover at open with browser button - Bootstrap2 jQuery 플러그인 호출이라
+      // 라운드9(Bootstrap2 플러그인 호출부 대체)까지 의도적으로 jQuery 객체를 유지한다.
       $("#open-in-browser").popover({trigger: "hover", placement: "top"});
 
       // P3-63: 일반 텍스트/소스 코드 파일 뷰(마크다운/바이너리 제외)에 진짜 Ace 에디터를 붙인다
@@ -468,7 +472,7 @@
     // 파일 보기 화면(showCode/showFile)에는 애초에 폴더 목록(.list-wrap[data-listpath])이
     // 없으므로 이 초기화 자체가 필요 없다 - legacy _init()의 `if(htElement.welFileView.length > 0)`
     // 분기와 동일하게 여기서 걸러낸다.
-    if (!welBrowseWrap || $(".file-wrap[data-type=file]").length > 0) {
+    if (!welBrowseWrap || document.querySelectorAll(".file-wrap[data-type=file]").length > 0) {
         return;
     }
 
@@ -503,15 +507,15 @@
     }
 
     function setCurrentPathBold(sPath){
-        var welCurrent = $('[data-path="' + sPath + '"]');
-        if (welCurrent.length > 0) {
-            $(".currentPath").removeClass("currentPath");
-            welCurrent.addClass("currentPath");
+        var elCurrent = document.querySelector('[data-path="' + sPath + '"]');
+        if (elCurrent) {
+            document.querySelectorAll(".currentPath").forEach(function(el){ el.classList.remove("currentPath"); });
+            elCurrent.classList.add("currentPath");
         }
     }
 
     function isListExistsByPath(sTargetPath){
-        return $('[data-listpath="' + sTargetPath + '"]').length > 0;
+        return document.querySelectorAll('[data-listpath="' + sTargetPath + '"]').length > 0;
     }
 
     function getSortedList(htData){
@@ -556,63 +560,68 @@
         return aHTML;
     }
 
-    function appendFolderList(welTarget, sTargetPath){
+    function appendFolderList(elTarget, sTargetPath){
         // legacy _appendFolderList()의 _getCorrectedPath(htVar.sMetaInfoURL, sTargetPath)와
         // 동일하게 단순 문자열 접합 - sMetaInfoURL 자체가 이미 "/owner/name/code/branch/!"
         // 형태(끝에 슬래시 없음)라 여기 붙는 sTargetPath와 합쳐 컨트롤러의
         // "/code/{branch}/!/{*path}" 매핑과 정확히 맞아떨어진다.
         var sURL = getCorrectedPath(sMetaInfoURL, sTargetPath);
-        var nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0;
+        // __depth는 순수 내부 캐시(서버 렌더링 마크업엔 존재하지 않는 값)라 jQuery
+        // .data()/dataset 대신 커스텀 expando로 대체한다(라운드4/5 확립 관례).
+        var elParentListWrap = elTarget ? elTarget.closest(".list-wrap") : null;
+        var nParentDepth = (elParentListWrap && elParentListWrap.__depth) || 0;
         var nNewDepth = nParentDepth + 1;
         setIndentByDepth(nNewDepth);
 
         NProgress.start();
-        $.ajax(sURL, {
-            "success": function(oRes){
+        fetch(sURL)
+            .then(function(response){ return response.json(); })
+            .then(function(oRes){
                 if (isListExistsByPath(sTargetPath)) {
                     NProgress.done();
                     return;
                 }
 
                 var aHTML = getListHTML(oRes.data, sTargetPath);
-                var welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
-                var welList = $('<div class="list-wrap" data-listpath="' + sTargetPath + '"></div>');
+                var elTargetItem = document.querySelector('.listitem[data-path="' + sTargetPath + '"]');
+                var elList = document.createElement("div");
+                elList.className = "list-wrap";
+                elList.setAttribute("data-listpath", sTargetPath);
 
-                welList.data("depth", nNewDepth);
-                welList.addClass("depth-" + nNewDepth);
-                welList.css("display", "none");
-                welList.html(aHTML.join(""));
-                welTargetItem.after(welList);
-                aWelList.push(welList);
+                elList.__depth = nNewDepth;
+                elList.classList.add("depth-" + nNewDepth);
+                elList.style.display = "none";
+                elList.innerHTML = aHTML.join("");
+                if (elTargetItem) { elTargetItem.insertAdjacentElement("afterend", elList); }
+                aWelList.push(elList);
 
                 if (aPathQueue.length > 0) {
                     requestFolderList();
                 } else {
                     setCurrentPathBold(sTargetPath);
-                    aWelList.forEach(function(welList){ welList.css("display", "block"); });
+                    aWelList.forEach(function(elList){ elList.style.display = "block"; });
                 }
                 NProgress.done();
-            },
-            "error": function(){
+            })
+            .catch(function(){
                 NProgress.done();
-            }
-        });
+            });
     }
 
     function requestFolderList(){
         if (aPathQueue.length === 0) {
             NProgress.done();
-            aWelList.forEach(function(welList){ welList.css("display", "block"); });
+            aWelList.forEach(function(elList){ elList.style.display = "block"; });
             return;
         }
 
         var sTargetPath = decodeURI(aPathQueue.shift());
-        var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
+        var elTarget = document.querySelector('[data-targetpath="' + sTargetPath + '"]');
 
         if (isListExistsByPath(sTargetPath)) {
             requestFolderList();
         } else {
-            appendFolderList(welTarget, sTargetPath);
+            appendFolderList(elTarget, sTargetPath);
         }
     }
 
@@ -636,10 +645,10 @@
 
         document.getElementById("breadcrumbs").innerHTML = $yona.xssClean(aCrumbs.join(""));
 
-        var welNewFileLink = $("#new-file-link");
-        if (welNewFileLink[0]) {
+        var elNewFileLink = document.getElementById("new-file-link");
+        if (elNewFileLink) {
             var sPath = document.location.hash.substr(1);
-            welNewFileLink.attr("href", updateQueryStringParameter(welNewFileLink.attr("href"), "path", sPath + "/"));
+            elNewFileLink.setAttribute("href", updateQueryStringParameter(elNewFileLink.getAttribute("href"), "path", sPath + "/"));
         }
     }
 
@@ -649,7 +658,7 @@
         }
 
         var sTargetPath = document.location.hash.substr(1);
-        var welList = $('[data-listpath="' + sTargetPath + '"]');
+        var elList = document.querySelector('[data-listpath="' + sTargetPath + '"]');
         var sCheckPath = "";
         aPathQueue = [];
         aWelList = [];
@@ -660,8 +669,11 @@
         });
         updateBreadcrumbs(aPathQueue);
 
-        if (welList.length > 0) {
-            welList.toggle();
+        if (elList) {
+            // jQuery 인자 없는 .toggle()은 호출 시점의 실제 가시성을 보고 방향을 정한다 -
+            // 이 목록은 항상 인라인 style.display로만 제어되므로(경쟁하는 CSS 클래스 규칙
+            // 없음) 계산된 스타일로 동일하게 재현한다.
+            elList.style.display = (getComputedStyle(elList).display === "none") ? "block" : "none";
             setCurrentPathBold(sTargetPath);
         } else {
             requestFolderList();
@@ -670,14 +682,13 @@
 
     function onClickWrap(weEvt){
         var elTarget = weEvt.target;
-        var welTarget = $(elTarget);
 
-        if (elTarget.tagName.toLowerCase() === "a" && welTarget.data("type") === "folder") {
+        if (elTarget.tagName.toLowerCase() === "a" && elTarget.dataset.type === "folder") {
             var sPreviousHash = document.location.hash;
-            document.location.hash = welTarget.data("targetpath");
+            document.location.hash = elTarget.dataset.targetpath;
 
             if (document.location.hash === sPreviousHash) {
-                $(window).trigger("hashchange");
+                window.dispatchEvent(new Event("hashchange"));
             }
 
             weEvt.preventDefault();
@@ -687,25 +698,24 @@
     }
 
     function initDepthedList(){
-        var waFileWrap = $("div.list-wrap[data-listpath]");
-        waFileWrap.each(function(i, elList){
-            var welList = $(elList);
-            var sListPath = welList.data("listpath");
-            var welTarget = $('[data-path="' + sListPath + '"]');
+        document.querySelectorAll("div.list-wrap[data-listpath]").forEach(function(elList, i){
+            var sListPath = elList.dataset.listpath;
+            var elTarget = document.querySelector('[data-path="' + sListPath + '"]');
 
-            welList.data("depth", i + 1);
-            welList.addClass("depth-" + (i + 1));
+            elList.__depth = i + 1;
+            elList.classList.add("depth-" + (i + 1));
             setIndentByDepth(i + 1);
-            welTarget.after(welList);
+            if (elTarget) { elTarget.insertAdjacentElement("afterend", elList); }
         });
-        $(".list-wrap").show();
+        document.querySelectorAll(".list-wrap").forEach(function(el){ el.style.display = "block"; });
         setCurrentPathBold(sInitialPath);
     }
 
     initDepthedList();
-    $(".code-viewer-wrap").on("click", onClickWrap);
-    $(window).on("hashchange", onHashChange);
-    $(window).trigger("hashchange");
+    var elCodeViewerWrap = document.querySelector(".code-viewer-wrap");
+    if (elCodeViewerWrap) { elCodeViewerWrap.addEventListener("click", onClickWrap); }
+    window.addEventListener("hashchange", onHashChange);
+    window.dispatchEvent(new Event("hashchange"));
 })();
 </script>
 </body>

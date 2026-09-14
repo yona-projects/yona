@@ -56,7 +56,7 @@
     </li>
 
     <script type="text/javascript" th:if="${notifications != null && !notifications.isEmpty()}">
-        $(document).ready(function(){
+        document.addEventListener("DOMContentLoaded", function(){
             function checkOverflow(el) {
                 var curOverflow = el.style.overflow;
                 if (!curOverflow || curOverflow === "visible")
@@ -66,20 +66,26 @@
                 return isOverflowing;
             }
 
-            $("#notification-more").click(function() {
-                $("#notification-more").closest("li").remove();
-                var currentCount = $('.notification-stream').length;
-                $.get("/_notifications?from=" + currentCount + "&size=20", function(data) {
-                    $('.activity-streams').append(data);
-                    $(".more").remove();
-                    $(".message-wrap").each(function(index, value){
-                        var $this = $(this);
-                        if(checkOverflow($this[0])){
-                            $this.after("<div class='more'>...</div>");
-                        }
-                    });
+            var elNotificationMore = document.getElementById("notification-more");
+            if (elNotificationMore) {
+                elNotificationMore.addEventListener("click", function() {
+                    var elLi = elNotificationMore.closest("li");
+                    if (elLi) { elLi.remove(); }
+                    var currentCount = document.querySelectorAll('.notification-stream').length;
+                    fetch("/_notifications?from=" + currentCount + "&size=20")
+                        .then(function(response) { return response.text(); })
+                        .then(function(data) {
+                            var elActivityStreams = document.querySelector('.activity-streams');
+                            if (elActivityStreams) { elActivityStreams.insertAdjacentHTML("beforeend", data); }
+                            document.querySelectorAll(".more").forEach(function(el){ el.remove(); });
+                            document.querySelectorAll(".message-wrap").forEach(function(el){
+                                if(checkOverflow(el)){
+                                    el.insertAdjacentHTML("afterend", "<div class='more'>...</div>");
+                                }
+                            });
+                        });
                 });
-            });
+            }
         });
     </script>
 </th:block>

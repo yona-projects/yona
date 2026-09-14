@@ -123,7 +123,7 @@
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript" th:inline="javascript">
-    $(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         var projectId = [[${project.id}]];
         var owner = [[${project.owner}]];
         var projectName = [[${project.name}]];

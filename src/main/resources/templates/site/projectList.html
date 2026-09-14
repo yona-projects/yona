@@ -90,20 +90,32 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
-$(function(){
-    $('.project-list-wrap').on('click','[data-toggle="delete-project"]',function(){
-        $('#projectDeleteBtn')
-          .data('requestUri',$(this).data('href'))
-          .data("requestMethod","delete")
-          .requestAs();
+document.addEventListener("DOMContentLoaded", function(){
+    var elProjectListWrap = document.querySelector('.project-list-wrap');
+    if (elProjectListWrap) {
+        elProjectListWrap.addEventListener('click', function(event) {
+            var matched = event.target.closest('[data-toggle="delete-project"]');
+            if (!matched || !elProjectListWrap.contains(matched)) { return; }
 
-        $('#project-name').html($(this).data('projectName'));
-        $('#alertDeletionWrap').modal('show');
+            // .requestAs()는 jquery.requestAs.js 플러그인 호출부라 라운드10(코어 라이브러리 제거)까지
+            // 의도적으로 jQuery 객체를 유지한다(project.Delete.js/Comment.js/issue.View.js/code.Diff.js와
+            // 동일한 판단).
+            $('#projectDeleteBtn')
+              .data('requestUri', matched.dataset.href)
+              .data("requestMethod","delete")
+              .requestAs();
 
-        console.log($(this).data('href'));
-    });
+            var elProjectName = document.getElementById('project-name');
+            if (elProjectName) { elProjectName.innerHTML = matched.dataset.projectName; }
+            // jQuery Bootstrap2 modal 플러그인 호출 - 라운드9(Bootstrap2 플러그인 호출부 대체)까지
+            // 의도적으로 jQuery 객체를 유지한다(마크업이 실제 <div class="modal fade">).
+            $('#alertDeletionWrap').modal('show');
 
-    yona.Pagination.update($("#pagination"), /*[[${projects.totalPages}]]*/ 1, {"paramNameForPage": "page"});
+            console.log(matched.dataset.href);
+        });
+    }
+
+    yona.Pagination.update(document.getElementById("pagination"), /*[[${projects.totalPages}]]*/ 1, {"paramNameForPage": "page"});
 });
 </script>
 </body>

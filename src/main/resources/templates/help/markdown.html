@@ -263,24 +263,39 @@ commit: @763575 or @763575f177a4ce8b9370954de3ea1a1410205593
 <script type="text/javascript">
 var helpNavEventSetted;
 var previousClicked;
-$(function(){
+document.addEventListener("DOMContentLoaded", function(){
     if ( helpNavEventSetted === undefined) {
-        $('.markdown-help-nav').on('click','[data-toggle="markdown-help"]',function() {
-            var welPreviousShownMenu = $(this).parent().children('.active');
-            welPreviousShownMenu.toggleClass('active');
+        var elNav = document.querySelector('.markdown-help-nav');
+        if (elNav) {
+            elNav.addEventListener('click', function(event) {
+                var matched = event.target.closest('[data-toggle="markdown-help"]');
+                if (!matched || !elNav.contains(matched)) { return; }
 
-            var welPreviousShownContents = $(this).parents('.markdown-help').find('.markdown-help-wrap').children('.active');
-            welPreviousShownContents.toggleClass('active');
+                // jQuery $(this).parent().children('.active')는 형제 중 .active인 것 전부를 대상으로
+                // toggleClass를 적용한다 - 보통 최대 1개지만 동치를 위해 전부 순회.
+                var aPreviousShownMenu = matched.parentElement
+                    ? Array.prototype.filter.call(matched.parentElement.children, function(el){ return el.classList.contains('active'); })
+                    : [];
+                aPreviousShownMenu.forEach(function(el){ el.classList.toggle('active'); });
 
-            var welClickedMenu = $(this);
-            var sClickedMenuName = welClickedMenu.data('target');
-            var welPreviousShownMenuName = welPreviousShownMenu.data('target');
-            if ( welPreviousShownMenuName !== sClickedMenuName){
-                welClickedMenu.toggleClass('active');
-                var welClickedMenuContent = $(this).parents('.markdown-help').find('.markdown-help-wrap>.'+ sClickedMenuName);
-                welClickedMenuContent.toggleClass('active');
-            }
-        });
+                var elMarkdownHelp = matched.closest('.markdown-help');
+                var elMarkdownHelpWrap = elMarkdownHelp ? elMarkdownHelp.querySelector('.markdown-help-wrap') : null;
+                var aPreviousShownContents = elMarkdownHelpWrap
+                    ? Array.prototype.filter.call(elMarkdownHelpWrap.children, function(el){ return el.classList.contains('active'); })
+                    : [];
+                aPreviousShownContents.forEach(function(el){ el.classList.toggle('active'); });
+
+                var sClickedMenuName = matched.dataset.target;
+                var welPreviousShownMenuName = aPreviousShownMenu.length ? aPreviousShownMenu[0].dataset.target : undefined;
+                if ( welPreviousShownMenuName !== sClickedMenuName){
+                    matched.classList.toggle('active');
+                    var elClickedMenuContent = elMarkdownHelpWrap
+                        ? elMarkdownHelpWrap.querySelector(':scope > .' + sClickedMenuName)
+                        : null;
+                    if (elClickedMenuContent) { elClickedMenuContent.classList.toggle('active'); }
+                }
+            });
+        }
         helpNavEventSetted = true;
     }
 });

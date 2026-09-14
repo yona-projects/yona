@@ -75,8 +75,8 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
-$(function(){
-    yona.Pagination.update($("#pagination"), /*[[${issues.totalPages}]]*/ 1, {"paramNameForPage": "page"});
+document.addEventListener("DOMContentLoaded", function(){
+    yona.Pagination.update(document.getElementById("pagination"), /*[[${issues.totalPages}]]*/ 1, {"paramNameForPage": "page"});
 });
 </script>
 </body>

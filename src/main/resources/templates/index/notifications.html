@@ -59,34 +59,61 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 
 <script type="text/javascript">
-    $(document).ready(function(){
-        $("#toggleIntro").click(function(){
-            var $outerGuide = $(".site-guide-outer");
-            $outerGuide.toggleClass("hide");
-            localStorage.setItem("yona-intro", !$outerGuide.hasClass("hide"));
-        });
-
-        if(localStorage.getItem("yona-intro") != "false"){
-            $(".site-guide-outer").removeClass("hide");
+    document.addEventListener("DOMContentLoaded", function(){
+        // _contentHeight: jQuery .height()(콘텐츠 박스 높이, padding/border 제외)와 동일 - 라운드5에서
+        // 확립한 헬퍼와 동일한 계산(index.html과 동일 패턴).
+        function _contentHeight(el) {
+            var style = getComputedStyle(el);
+            return el.clientHeight - parseFloat(style.paddingTop || 0) - parseFloat(style.paddingBottom || 0);
         }
 
-        $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
-            var $this = $(this);
-            $this.find(".more").toggle();
-            var sTargetId = $this.data('target'),
-                welMessage = $('#'+sTargetId),
-                nHeight;
+        var elToggleIntro = document.getElementById("toggleIntro");
+        if (elToggleIntro) {
+            elToggleIntro.addEventListener("click", function(){
+                var elOuterGuide = document.querySelector(".site-guide-outer");
+                if (elOuterGuide) {
+                    elOuterGuide.classList.toggle("hide");
+                    localStorage.setItem("yona-intro", !elOuterGuide.classList.contains("hide"));
+                }
+            });
+        }
 
-            if(event.target.localName =='a' || event.target.localName =='img') {
-                return ;
-            }
+        if(localStorage.getItem("yona-intro") != "false"){
+            var elSiteGuideOuter = document.querySelector(".site-guide-outer");
+            if (elSiteGuideOuter) { elSiteGuideOuter.classList.remove("hide"); }
+        }
 
-            welMessage.toggleClass('nowrap');
+        var elNotificationWrap = document.querySelector('.notification-wrap');
+        if (elNotificationWrap) {
+            elNotificationWrap.addEventListener('click', function(event) {
+                var matched = event.target.closest('[data-toggle="learnmore"]');
+                if (!matched || !elNotificationWrap.contains(matched)) { return; }
 
-            nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
+                var elMore = matched.querySelector(".more");
+                if (elMore) {
+                    elMore.style.display = (getComputedStyle(elMore).display === "none") ? "block" : "none";
+                }
+                var sTargetId = matched.dataset.target;
+                var welMessage = document.getElementById(sTargetId);
+                var nHeight;
 
-            $(welMessage).css('min-height',nHeight);
-        });
+                if(event.target.localName =='a' || event.target.localName =='img') {
+                    return ;
+                }
+
+                if (!welMessage) { return; }
+                welMessage.classList.toggle('nowrap');
+
+                if (welMessage.classList.contains('nowrap')) {
+                    nHeight = '';
+                } else {
+                    var elMessage = welMessage.querySelector('.message');
+                    nHeight = elMessage ? _contentHeight(elMessage) : '';
+                }
+
+                welMessage.style.minHeight = (nHeight === '') ? '' : (nHeight + 'px');
+            });
+        }
 
         function checkOverflow(el) {
             var curOverflow = el.style.overflow;
@@ -102,10 +129,9 @@
             return isOverflowing;
         }
 
-        $(".message-wrap").each(function(index, value){
-            var $this = $(this);
-            if(checkOverflow($this[0])){
-                $this.after("<div class='more'>...</div>");
+        document.querySelectorAll(".message-wrap").forEach(function(el){
+            if(checkOverflow(el)){
+                el.insertAdjacentHTML("afterend", "<div class='more'>...</div>");
             }
         });
     });

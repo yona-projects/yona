@@ -30,13 +30,22 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         if (typeof NProgress !== 'undefined') { NProgress.start(); }
         setTimeout(function(){
             var cloneUrl = [[@{/api/{owner}/{projectName}/doClone(owner=${project.owner}, projectName=${project.name})}]];
             var cloneParam = { owner: [[${forkOwner}]], name: [[${forkName}]], projectScope: [[${forkProjectScope}]] };
+            // jQuery $.post(url, obj, cb)는 obj를 application/x-www-form-urlencoded로 직렬화해 보내고
+            // 응답을 자동으로 JSON 파싱한다 - fetch로 동일하게 재현.
+            var cloneBody = Object.keys(cloneParam).map(function(k){
+                return encodeURIComponent(k) + "=" + encodeURIComponent(cloneParam[k]);
+            }).join("&");
 
-            $.post(cloneUrl, cloneParam, function(data){
+            fetch(cloneUrl, {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"},
+                body: cloneBody
+            }).then(function(response){ return response.json(); }).then(function(data){
                 if (data.status === "failed") {
                     alert([[#{fork.failed}]]);
                     location.replace(data.url);

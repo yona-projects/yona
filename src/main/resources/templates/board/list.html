@@ -157,9 +157,9 @@
      (lib/, 미수정) 의존이 제거됨 - 더 이상 로드하지 않는다. -->
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         $yona.loadModule("board.List", {
-            "elPagination": $('#pagination'),
+            "elPagination": document.getElementById('pagination'),
             "nTotalPages" : [[${postingPage.totalPages}]]
         });
 
@@ -170,9 +170,13 @@
             "N": "/" + projectOwner + "/" + projectName + "/post/new"
         });
 
-        $('.board-labels select').on('change', function(e){
-            $("#option_form").submit();
-        });
+        var elBoardLabelsSelect = document.querySelector('.board-labels select');
+        if (elBoardLabelsSelect) {
+            elBoardLabelsSelect.addEventListener('change', function(e){
+                var elOptionForm = document.getElementById("option_form");
+                if (elOptionForm) { elOptionForm.submit(); }
+            });
+        }
     });
 </script>
 </body>

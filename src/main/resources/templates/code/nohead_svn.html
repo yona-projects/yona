@@ -29,7 +29,7 @@
 
 <div th:replace="~{site/layout :: scripts}"></div>
 <script th:inline="javascript">
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         var currentUser = /*[[${currentUser != null ? currentUser.loginId : null}]]*/ null;
         var owner = /*[[${project.owner}]]*/ '';
         var name = /*[[${project.name}]]*/ '';
@@ -45,7 +45,8 @@
                        "svn add README.md\n" +
                        "svn commit -m \"first commit\"";
 
-        $("#svn-guide").text(svnGuide);
+        var elSvnGuide = document.getElementById("svn-guide");
+        if (elSvnGuide) { elSvnGuide.textContent = svnGuide; }
 
         if (window.$yona && $yona.loadModule) {
             $yona.loadModule("code.Nohead", {

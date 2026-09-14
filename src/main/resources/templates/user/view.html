@@ -297,7 +297,7 @@
 <script type="text/javascript" src="/javascripts/service/yona.showSubtask.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.user.View.js"></script>
 <script type="text/javascript" th:inline="javascript">
-$(document).ready(function(){
+document.addEventListener("DOMContentLoaded", function(){
     $yona.loadModule("user.View", {
         "sTabSelected": [[${selected}]]
     });

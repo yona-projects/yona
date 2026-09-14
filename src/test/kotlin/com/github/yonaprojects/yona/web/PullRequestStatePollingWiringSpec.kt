@@ -35,11 +35,18 @@ class PullRequestStatePollingWiringSpec : DescribeSpec({
         }
 
         it("#btnAccept 클릭 핸들러는 폴링에 의한 DOM 교체 이후에도 계속 동작하도록 위임(delegated) 방식으로 바인딩해야 한다") {
-            viewHtml shouldContain "\$(document).on(\"click\", \"#btnAccept\""
+            // P3-70 라운드6: jQuery $(document).on("click", "#btnAccept", ...) 위임 바인딩을
+            // 네이티브 document.addEventListener("click", ...) + e.target.closest("#btnAccept")
+            // 패턴으로 전환(동일하게 document 레벨 위임이라 폴링에 의한 DOM 교체와 무관하게 계속
+            // 동작한다).
+            viewHtml shouldContain "document.addEventListener(\"click\", function(e) {"
+            viewHtml shouldContain "e.target.closest(\"#btnAccept\")"
         }
 
         it("#state 안의 [data-request-method] 버튼(브랜치 삭제/복구 등)도 폴링에 의한 DOM 교체 이후 계속 동작하도록 위임 방식이어야 한다") {
-            viewHtml shouldContain "\$(document).on('click', '[data-request-method]:not(#btnAccept)'"
+            // P3-70 라운드6: 동일하게 네이티브 document 레벨 위임(closest + #btnAccept 제외)으로 전환.
+            viewHtml shouldContain "e.target.closest('[data-request-method]')"
+            viewHtml shouldContain "matched.id === 'btnAccept'"
         }
     }
 

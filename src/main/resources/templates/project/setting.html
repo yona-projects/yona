@@ -162,7 +162,7 @@
 </div>
 
 <script th:inline="javascript">
-  $(document).ready(function() {
+  document.addEventListener("DOMContentLoaded", function() {
       // legacy yobi.project.Setting.js._initVar()의 이름 검증 규칙 - 클라이언트 사이드에만
       // 있던 검증이라(서버는 예약어만 별도로 재검사) 그대로 재현한다.
       var rxPrjName = /^[0-9A-Za-z-_\.가-힣]+$/;
@@ -172,137 +172,175 @@
       // 곧바로 업로드한다(죽은 코드 감사 중 발견 - 이 화면엔 원래 로고를 실제로 받는
       // 컨트롤러가 전혀 없어 로고 변경이 완전히 먹통이었다. /api/projects/{id}/logo를
       // 새로 만들어 연결).
-      $("#logoPath").on("change", function(){
-          var welTarget = $(this);
-          if ($yona.isImageFile(this) === false) {
-              $yona.showAlert(Messages("project.logo.alert"));
-              welTarget.val("");
-              return;
-          }
-
-          var formData = new FormData();
-          formData.append("logoPath", this.files[0]);
-          $.ajax({
-              url: "/api/projects/" + [[${project.id}]] + "/logo",
-              type: "POST",
-              data: formData,
-              processData: false,
-              contentType: false,
-              success: function(){
-                  window.location.reload();
-              },
-              error: function(xhr){
-                  $yona.showAlert("로고 업로드 실패: " + xhr.responseText);
-                  welTarget.val("");
+      var elLogoPath = document.getElementById("logoPath");
+      if (elLogoPath) {
+          elLogoPath.addEventListener("change", function(){
+              if ($yona.isImageFile(elLogoPath) === false) {
+                  $yona.showAlert(Messages("project.logo.alert"));
+                  elLogoPath.value = "";
+                  return;
               }
+
+              var formData = new FormData();
+              formData.append("logoPath", elLogoPath.files[0]);
+              fetch("/api/projects/" + [[${project.id}]] + "/logo", {
+                  method: "POST",
+                  body: formData
+              }).then(function(response) {
+                  if (response.ok) {
+                      window.location.reload();
+                  } else {
+                      return response.text().then(function(text) {
+                          $yona.showAlert("로고 업로드 실패: " + text);
+                          elLogoPath.value = "";
+                      });
+                  }
+              });
           });
-      });
+      }
 
       // legacy yobi.project.Setting.js._onClickMenuSettingCode/_onClickMenuSettingPullRequest/
       // _onClickMenuSettingReview의 메뉴 종속관계 - "코드"를 끄면 PR/코드리뷰도 강제로
       // 꺼지고 관련 패널이 숨겨지며, PR/코드리뷰를 켜면 "코드"가 강제로 켜진다.
-      $("#menuSettingCode").on("click", function(){
-          if (!$(this).prop("checked")) {
-              $("#menuSettingCode").prop("checked", false);
-              $("#menuSettingPullRequest").prop("checked", false);
-              $("#menuSettingReview").prop("checked", false);
-              $("#reviewerCountDisable").trigger("click");
+      var elMenuSettingCode = document.getElementById("menuSettingCode");
+      var elMenuSettingPullRequest = document.getElementById("menuSettingPullRequest");
+      var elMenuSettingReview = document.getElementById("menuSettingReview");
+      var elReviewerCountDisable = document.getElementById("reviewerCountDisable");
+      var elReviewerCountSettingPanel = document.getElementById("reviewerCountSettingPanel");
+      var elDefaultBranceSettingPanel = document.getElementById("defaultBranceSettingPanel");
+      var elSubMenuProjectChangeVCS = document.getElementById("subMenuProjectChangeVCS");
 
-              $("#reviewerCountSettingPanel").hide();
-              $("#defaultBranceSettingPanel").hide();
-              $("#subMenuProjectChangeVCS").hide();
-          }
-      });
-      $("#menuSettingPullRequest").on("click", function(){
-          if ($(this).prop("checked")) {
-              $("#menuSettingCode").prop("checked", true);
-              $("#reviewerCountSettingPanel").show();
-          } else {
-              $("#reviewerCountSettingPanel").hide();
-              $("#reviewerCountDisable").trigger("click");
-          }
-      });
-      $("#menuSettingReview").on("click", function(){
-          if ($(this).prop("checked")) {
-              $("#menuSettingCode").prop("checked", true);
-          }
-      });
+      if (elMenuSettingCode) {
+          elMenuSettingCode.addEventListener("click", function(){
+              if (!elMenuSettingCode.checked) {
+                  elMenuSettingCode.checked = false;
+                  if (elMenuSettingPullRequest) { elMenuSettingPullRequest.checked = false; }
+                  if (elMenuSettingReview) { elMenuSettingReview.checked = false; }
+                  if (elReviewerCountDisable) { elReviewerCountDisable.click(); }
+
+                  if (elReviewerCountSettingPanel) { elReviewerCountSettingPanel.style.display = "none"; }
+                  if (elDefaultBranceSettingPanel) { elDefaultBranceSettingPanel.style.display = "none"; }
+                  if (elSubMenuProjectChangeVCS) { elSubMenuProjectChangeVCS.style.display = "none"; }
+              }
+          });
+      }
+      if (elMenuSettingPullRequest) {
+          elMenuSettingPullRequest.addEventListener("click", function(){
+              if (elMenuSettingPullRequest.checked) {
+                  if (elMenuSettingCode) { elMenuSettingCode.checked = true; }
+                  if (elReviewerCountSettingPanel) { elReviewerCountSettingPanel.style.display = "block"; }
+              } else {
+                  if (elReviewerCountSettingPanel) { elReviewerCountSettingPanel.style.display = "none"; }
+                  if (elReviewerCountDisable) { elReviewerCountDisable.click(); }
+              }
+          });
+      }
+      if (elMenuSettingReview) {
+          elMenuSettingReview.addEventListener("click", function(){
+              if (elMenuSettingReview.checked) {
+                  if (elMenuSettingCode) { elMenuSettingCode.checked = true; }
+              }
+          });
+      }
 
       // legacy yobi.project.Setting.js._toggleReviewerCount() 대응 - Enable/Disable 라디오에
       // 따라 리뷰어 수 select를 보이거나 숨긴다.
-      $(".reviewer-count-wrap").on("click", "[data-toggle='reviewer-count']", function(){
-          var sAction = $(this).data("action");
-          $("#welReviewerCount")[sAction]();
-      });
-      if ($("#welReviewerCount").data("value") === true) {
-          $("#welReviewerCount").show();
+      var elReviewerCountWrap = document.querySelector(".reviewer-count-wrap");
+      var elWelReviewerCount = document.getElementById("welReviewerCount");
+      if (elReviewerCountWrap) {
+          elReviewerCountWrap.addEventListener("click", function(event){
+              var matched = event.target.closest("[data-toggle='reviewer-count']");
+              if (!matched || !elReviewerCountWrap.contains(matched)) { return; }
+              var sAction = matched.dataset.action;
+              if (!elWelReviewerCount) { return; }
+              if (sAction === "show") { elWelReviewerCount.style.display = "block"; }
+              else if (sAction === "hide") { elWelReviewerCount.style.display = "none"; }
+          });
+      }
+      if (elWelReviewerCount && elWelReviewerCount.dataset.value === "true") {
+          elWelReviewerCount.style.display = "block";
       }
 
-      $("#saveSetting").submit(function(e) {
-          e.preventDefault();
-          var projectId = [[${project.id}]];
-          var overview = $("#project-desc").val();
-          var name = $("#project-name").val();
+      var elSaveSetting = document.getElementById("saveSetting");
+      if (elSaveSetting) {
+          elSaveSetting.addEventListener("submit", function(e) {
+              e.preventDefault();
+              var projectId = [[${project.id}]];
+              var elProjectDesc = document.getElementById("project-desc");
+              var elProjectName = document.getElementById("project-name");
+              var overview = elProjectDesc ? elProjectDesc.value : undefined;
+              var name = elProjectName ? elProjectName.value : undefined;
 
-          // legacy yobi.project.Setting.js._onClickBtnSave() 대응 - 형식/예약어 검증.
-          if (!rxPrjName.test(name)) {
-              $yona.showAlert(Messages("project.name.alert"));
-              return;
-          }
-          if (aReservedWords.indexOf(name) >= 0) {
-              $yona.showAlert(Messages("project.name.reserved.alert"));
-              return;
-          }
-          var projectScope = $("input[name='projectScope']:checked").val();
-          var isCodeAccessibleMemberOnly = $("input[name='isCodeAccessibleMemberOnly']:checked").val() === "true";
-          
-          var isUsingReviewerCount = false;
-          var defaultReviewerCount = 1;
-          if ($("#reviewerCountEnable").length > 0) {
-              isUsingReviewerCount = $("input[name='isUsingReviewerCount']:checked").val() === "true";
-              defaultReviewerCount = parseInt($("#defaultReviewerCount").val());
-          }
-          var defaultBranch = $("#project-default-branch").val();
-          
-          var isCodeEnabled = $("#menuSettingCode").is(":checked");
-          var isIssueEnabled = $("#menuSettingIssue").is(":checked");
-          var isPullRequestEnabled = $("#menuSettingPullRequest").is(":checked");
-          var isReviewEnabled = $("#menuSettingReview").is(":checked");
-          var isMilestoneEnabled = $("#menuSettingMilestone").is(":checked");
-          var isBoardEnabled = $("#menuSettingBoard").is(":checked");
-          var isWikiEnabled = $("#menuSettingWiki").is(":checked");
-
-          var requestData = {
-              name: name,
-              overview: overview,
-              projectScope: projectScope,
-              isCodeAccessibleMemberOnly: isCodeAccessibleMemberOnly,
-              isUsingReviewerCount: isUsingReviewerCount,
-              defaultReviewerCount: defaultReviewerCount,
-              defaultBranch: defaultBranch,
-              isCodeEnabled: isCodeEnabled,
-              isIssueEnabled: isIssueEnabled,
-              isPullRequestEnabled: isPullRequestEnabled,
-              isReviewEnabled: isReviewEnabled,
-              isMilestoneEnabled: isMilestoneEnabled,
-              isBoardEnabled: isBoardEnabled,
-              isWikiEnabled: isWikiEnabled
-          };
-
-          $.ajax({
-              url: '/api/projects/' + projectId,
-              type: 'PUT',
-              contentType: 'application/json',
-              data: JSON.stringify(requestData),
-              success: function(result) {
-                  alert("설정이 성공적으로 저장되었습니다.");
-                  window.location.reload();
-              },
-              error: function(xhr, status, error) {
-                  alert("저장 실패: " + xhr.responseText);
+              // legacy yobi.project.Setting.js._onClickBtnSave() 대응 - 형식/예약어 검증.
+              if (!rxPrjName.test(name)) {
+                  $yona.showAlert(Messages("project.name.alert"));
+                  return;
               }
+              if (aReservedWords.indexOf(name) >= 0) {
+                  $yona.showAlert(Messages("project.name.reserved.alert"));
+                  return;
+              }
+              var elProjectScopeChecked = document.querySelector("input[name='projectScope']:checked");
+              var elCodeAccessibleChecked = document.querySelector("input[name='isCodeAccessibleMemberOnly']:checked");
+              var projectScope = elProjectScopeChecked ? elProjectScopeChecked.value : undefined;
+              var isCodeAccessibleMemberOnly = (elCodeAccessibleChecked ? elCodeAccessibleChecked.value : undefined) === "true";
+
+              var isUsingReviewerCount = false;
+              var defaultReviewerCount = 1;
+              if (document.getElementById("reviewerCountEnable")) {
+                  var elUsingReviewerCountChecked = document.querySelector("input[name='isUsingReviewerCount']:checked");
+                  var elDefaultReviewerCount = document.getElementById("defaultReviewerCount");
+                  isUsingReviewerCount = (elUsingReviewerCountChecked ? elUsingReviewerCountChecked.value : undefined) === "true";
+                  defaultReviewerCount = parseInt(elDefaultReviewerCount ? elDefaultReviewerCount.value : undefined);
+              }
+              var elProjectDefaultBranch = document.getElementById("project-default-branch");
+              var defaultBranch = elProjectDefaultBranch ? elProjectDefaultBranch.value : undefined;
+
+              var isCodeEnabled = !!(elMenuSettingCode && elMenuSettingCode.checked);
+              var elMenuSettingIssue = document.getElementById("menuSettingIssue");
+              var isIssueEnabled = !!(elMenuSettingIssue && elMenuSettingIssue.checked);
+              var isPullRequestEnabled = !!(elMenuSettingPullRequest && elMenuSettingPullRequest.checked);
+              var isReviewEnabled = !!(elMenuSettingReview && elMenuSettingReview.checked);
+              var elMenuSettingMilestone = document.getElementById("menuSettingMilestone");
+              var isMilestoneEnabled = !!(elMenuSettingMilestone && elMenuSettingMilestone.checked);
+              var elMenuSettingBoard = document.getElementById("menuSettingBoard");
+              var isBoardEnabled = !!(elMenuSettingBoard && elMenuSettingBoard.checked);
+              var elMenuSettingWiki = document.getElementById("menuSettingWiki");
+              var isWikiEnabled = !!(elMenuSettingWiki && elMenuSettingWiki.checked);
+
+              var requestData = {
+                  name: name,
+                  overview: overview,
+                  projectScope: projectScope,
+                  isCodeAccessibleMemberOnly: isCodeAccessibleMemberOnly,
+                  isUsingReviewerCount: isUsingReviewerCount,
+                  defaultReviewerCount: defaultReviewerCount,
+                  defaultBranch: defaultBranch,
+                  isCodeEnabled: isCodeEnabled,
+                  isIssueEnabled: isIssueEnabled,
+                  isPullRequestEnabled: isPullRequestEnabled,
+                  isReviewEnabled: isReviewEnabled,
+                  isMilestoneEnabled: isMilestoneEnabled,
+                  isBoardEnabled: isBoardEnabled,
+                  isWikiEnabled: isWikiEnabled
+              };
+
+              fetch('/api/projects/' + projectId, {
+                  method: 'PUT',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify(requestData)
+              }).then(function(response) {
+                  if (response.ok) {
+                      alert("설정이 성공적으로 저장되었습니다.");
+                      window.location.reload();
+                  } else {
+                      return response.text().then(function(text) {
+                          alert("저장 실패: " + text);
+                      });
+                  }
+              });
           });
-      });
+      }
   });
 </script>
 </body>

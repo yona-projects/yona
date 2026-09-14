@@ -38,26 +38,30 @@
     <div th:replace="~{site/layout :: scripts}"></div>
 </div>
 <script language="javascript" th:inline="javascript">
-    $("#btnDeleteExec").on("click", function() {
-        $.ajax({
-            type: "delete",
-            url: /*[[@{/organizations/{orgName}(orgName=${org.name})}]]*/ "",
-            success: function() {
-                location.href = /*[[@{/}]]*/ "/";
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                $("#alertDeletion").modal("hide");
-                var sErrorMsg;
-                try{
-                    sErrorMsg = Messages($.parseJSON(jqXHR.responseText).errorMsg);
-                }catch(e){
-                    sErrorMsg = Messages("organization.delete.error");
-                }
-                $yona.alert(sErrorMsg);
-                return false;
-            }
+    var elBtnDeleteExec = document.getElementById("btnDeleteExec");
+    if (elBtnDeleteExec) {
+        elBtnDeleteExec.addEventListener("click", function() {
+            fetch(/*[[@{/organizations/{orgName}(orgName=${org.name})}]]*/ "", {method: "delete"})
+                .then(function(response) {
+                    if (response.ok) {
+                        location.href = /*[[@{/}]]*/ "/";
+                        return;
+                    }
+                    return response.text().then(function(responseText) {
+                        // jQuery Bootstrap2 modal 플러그인 호출 - 라운드9(Bootstrap2 플러그인 호출부
+                        // 대체)까지 의도적으로 jQuery 객체를 유지한다(마크업이 실제 <div class="modal hide">).
+                        $("#alertDeletion").modal("hide");
+                        var sErrorMsg;
+                        try{
+                            sErrorMsg = Messages(JSON.parse(responseText).errorMsg);
+                        }catch(e){
+                            sErrorMsg = Messages("organization.delete.error");
+                        }
+                        $yona.alert(sErrorMsg);
+                    });
+                });
         });
-    });
+    }
 </script>
 </body>
 </html>

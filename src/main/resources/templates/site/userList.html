@@ -137,44 +137,64 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
-$(function(){
-    function _showRequestWaitingMessage(that){
-        $(".alert").remove();
-        $.tmpl (document.getElementById("dismissable-alerts-request" ).text, {}).appendTo(that.parent());
+document.addEventListener("DOMContentLoaded", function(){
+    // $.tmpl은 jquery.tmpl.js(lib/, 미수정) 코어 템플릿 플러그인 호출이라 라운드10(코어 라이브러리
+    // 제거)까지 의도적으로 유지한다 - 이 함수의 나머지(알림 제거, 부모 엘리먼트 계산)는 vanilla.
+    function _showRequestWaitingMessage(elAnchor){
+        document.querySelectorAll(".alert").forEach(function(el){ el.remove(); });
+        $.tmpl(document.getElementById("dismissable-alerts-request").text, {}).appendTo(elAnchor.parentElement);
     }
 
-    $('.user-list-wrap').on('click','[data-toggle="account-delete"]',function(){
-        $('#accountToggleBtn')
-            .data("requestUri", $(this).data('href'))
-            .data("requestMethod","delete")
-            .requestAs({
-                    "fOnError": function(oRes) {
-                        if (oRes.oXHR.status == 403) {
-                            document.location.reload();
-                        }
-                    }
-                });
-        $('#userInfo').html($(this).data('userName')+'('+$(this).data('userId')+')');
-        $('#alertDeletionWrap').modal('show');
-    })
-    .on('click','[data-toggle="reset-password"]',function(){
-        var that = $(this);
-        _showRequestWaitingMessage(that);
-        $.post(that.data("href"))
-            .done(function(data){
-                $(".alert").remove();
-                if(data && data.isSuccess === true){
-                    $.tmpl($('#dismissable-alerts').text(), data).appendTo(that.parent());
-                } else {
-                    $yona.alert("password change failed: " + data.reason);
+    var elUserListWrap = document.querySelector('.user-list-wrap');
+    if (elUserListWrap) {
+        elUserListWrap.addEventListener('click', function(event) {
+            var matchedDelete = event.target.closest('[data-toggle="account-delete"]');
+            if (matchedDelete && elUserListWrap.contains(matchedDelete)) {
+                // .requestAs()/.modal()은 각각 라운드10/라운드9 대상 jQuery 플러그인 호출이라
+                // 의도적으로 jQuery 객체를 유지한다.
+                $('#accountToggleBtn')
+                    .data("requestUri", matchedDelete.dataset.href)
+                    .data("requestMethod","delete")
+                    .requestAs({
+                            "fOnError": function(oRes) {
+                                if (oRes.oXHR.status == 403) {
+                                    document.location.reload();
+                                }
+                            }
+                        });
+                var elUserInfo = document.getElementById('userInfo');
+                if (elUserInfo) {
+                    elUserInfo.innerHTML = matchedDelete.dataset.userName + '(' + matchedDelete.dataset.userId + ')';
                 }
-            })
-            .fail(function(data){
-                $yona.alert("password change failed: " + JSON.parse(data.responseText).reason);
-            });
-    });
+                $('#alertDeletionWrap').modal('show');
+                return;
+            }
 
-    yona.Pagination.update($("#pagination"), /*[[${users.totalPages}]]*/ 1, {"paramNameForPage": "page"});
+            var matchedReset = event.target.closest('[data-toggle="reset-password"]');
+            if (matchedReset && elUserListWrap.contains(matchedReset)) {
+                _showRequestWaitingMessage(matchedReset);
+                fetch(matchedReset.dataset.href, {method: "POST"})
+                    .then(function(response) {
+                        if (response.ok) {
+                            return response.json().then(function(data){
+                                document.querySelectorAll(".alert").forEach(function(el){ el.remove(); });
+                                if(data && data.isSuccess === true){
+                                    $.tmpl(document.getElementById('dismissable-alerts').text, data).appendTo(matchedReset.parentElement);
+                                } else {
+                                    $yona.alert("password change failed: " + data.reason);
+                                }
+                            });
+                        } else {
+                            return response.text().then(function(text) {
+                                $yona.alert("password change failed: " + JSON.parse(text).reason);
+                            });
+                        }
+                    });
+            }
+        });
+    }
+
+    yona.Pagination.update(document.getElementById("pagination"), /*[[${users.totalPages}]]*/ 1, {"paramNameForPage": "page"});
 });
 </script>
 <script type="text/x-jquery-tmpl" id="dismissable-alerts">

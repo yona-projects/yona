@@ -89,85 +89,98 @@
 </div>
 
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         var orgId = [[${org.id}]];
+
+        function _postOrPutOrDelete(url, method, onSuccess, onError) {
+            fetch(url, {method: method}).then(function(response) {
+                if (response.ok) {
+                    onSuccess();
+                } else {
+                    return response.json().catch(function(){ return null; }).then(function(body) {
+                        onError(body);
+                    });
+                }
+            });
+        }
 
         // 1. 멤버 추가 연동 (project/members.html과 동일 관례 — legacy $yona.loadModule 대신
         //    이미 확립된 REST API(/api/organizations/{orgId}/members)로 직결)
-        $("#addNewMember").submit(function(e) {
-            e.preventDefault();
-            var loginId = $("#loginId").val().trim();
-            if (!loginId) return;
+        var elAddNewMember = document.getElementById("addNewMember");
+        if (elAddNewMember) {
+            elAddNewMember.addEventListener("submit", function(e) {
+                e.preventDefault();
+                var elLoginId = document.getElementById("loginId");
+                var loginId = elLoginId ? elLoginId.value.trim() : "";
+                if (!loginId) return;
 
-            $.ajax({
-                url: '/api/organizations/' + orgId + '/members?userLoginId=' + encodeURIComponent(loginId) + '&roleId=7',
-                type: 'POST',
-                success: function() {
-                    window.location.reload();
-                },
-                error: function(xhr) {
-                    var errorMsg = "멤버 추가 실패";
-                    if (xhr.responseJSON && xhr.responseJSON.error) {
-                        errorMsg += ": " + xhr.responseJSON.error;
+                _postOrPutOrDelete(
+                    '/api/organizations/' + orgId + '/members?userLoginId=' + encodeURIComponent(loginId) + '&roleId=7',
+                    'POST',
+                    function() { window.location.reload(); },
+                    function(body) {
+                        var errorMsg = "멤버 추가 실패";
+                        if (body && body.error) {
+                            errorMsg += ": " + body.error;
+                        }
+                        alert(errorMsg);
                     }
-                    alert(errorMsg);
-                }
+                );
             });
-        });
+        }
 
         // 2. 역할 변경 연동
-        $(".role-apply-btn").click(function(e) {
-            e.preventDefault();
-            var userId = $(this).data("user-id");
-            var roleId = $(this).data("role-id");
+        document.querySelectorAll(".role-apply-btn").forEach(function(el){
+            el.addEventListener("click", function(e) {
+                e.preventDefault();
+                var userId = el.dataset.userId;
+                var roleId = el.dataset.roleId;
 
-            $.ajax({
-                url: '/api/organizations/' + orgId + '/members/' + userId + '/role?roleId=' + roleId,
-                type: 'PUT',
-                success: function() {
-                    window.location.reload();
-                },
-                error: function() {
-                    alert("역할 변경 실패");
-                }
+                _postOrPutOrDelete(
+                    '/api/organizations/' + orgId + '/members/' + userId + '/role?roleId=' + roleId,
+                    'PUT',
+                    function() { window.location.reload(); },
+                    function() { alert("역할 변경 실패"); }
+                );
             });
         });
 
         // 3. 멤버 삭제 연동
         var sDeleteUserId = null;
-        $(".delete-member-btn").click(function(e) {
-            e.preventDefault();
-            sDeleteUserId = $(this).data("user-id");
-            $("#alertDeletion").modal("show");
-        });
-        $("#deleteBtn").click(function() {
-            if (sDeleteUserId == null) return;
-            $.ajax({
-                url: '/api/organizations/' + orgId + '/members/' + sDeleteUserId,
-                type: 'DELETE',
-                success: function() {
-                    window.location.reload();
-                },
-                error: function() {
-                    alert("멤버 제거 실패");
-                }
+        document.querySelectorAll(".delete-member-btn").forEach(function(el){
+            el.addEventListener("click", function(e) {
+                e.preventDefault();
+                sDeleteUserId = el.dataset.userId;
+                // jQuery Bootstrap2 modal 플러그인 호출 - 라운드9(Bootstrap2 플러그인 호출부 대체)까지
+                // 의도적으로 jQuery 객체를 유지한다(마크업이 실제 <div class="modal hide">).
+                $("#alertDeletion").modal("show");
             });
         });
+        var elDeleteBtn = document.getElementById("deleteBtn");
+        if (elDeleteBtn) {
+            elDeleteBtn.addEventListener("click", function() {
+                if (sDeleteUserId == null) return;
+                _postOrPutOrDelete(
+                    '/api/organizations/' + orgId + '/members/' + sDeleteUserId,
+                    'DELETE',
+                    function() { window.location.reload(); },
+                    function() { alert("멤버 제거 실패"); }
+                );
+            });
+        }
 
         // 4. 가입 요청 승인 연동
-        $(".enrollAcceptBtn").click(function(e) {
-            e.preventDefault();
-            var loginId = $(this).data("loginid");
+        document.querySelectorAll(".enrollAcceptBtn").forEach(function(el){
+            el.addEventListener("click", function(e) {
+                e.preventDefault();
+                var loginId = el.dataset.loginid;
 
-            $.ajax({
-                url: '/api/organizations/' + orgId + '/members?userLoginId=' + encodeURIComponent(loginId) + '&roleId=7',
-                type: 'POST',
-                success: function() {
-                    window.location.reload();
-                },
-                error: function() {
-                    alert("가입 승인 실패");
-                }
+                _postOrPutOrDelete(
+                    '/api/organizations/' + orgId + '/members?userLoginId=' + encodeURIComponent(loginId) + '&roleId=7',
+                    'POST',
+                    function() { window.location.reload(); },
+                    function() { alert("가입 승인 실패"); }
+                );
             });
         });
     });

@@ -494,7 +494,7 @@
          위해 여기서는 더 이상 <link>/<script src="highlight.pack.js">를 직접 싣지 않는다. -->
     <script type="text/javascript" src="/javascripts/lib/marked.js"></script>
     <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         hljs.configure({languages: []});
         hljs.highlightAll();
         var htOptions = {};
@@ -512,12 +512,14 @@
         // 여러 개(예: PR changes 탭의 여러 스레드 답글 폼) 있어도 각자의
         // [data-toggle="markdown-editor"] 안에서만 보이고 닫히도록 스코프를 준다(legacy는
         // 페이지당 에디터가 하나뿐이라 이 스코프 문제가 없었다).
-        $('[data-toggle="markdown-editor"]').each(function(){
+        document.querySelectorAll('[data-toggle="markdown-editor"]').forEach(function(el){
             if (localStorage.getItem(location.pathname) != null) {
-                $(this).find('.editor-clear-temporary').show();
+                var elClearTemporary = el.querySelector('.editor-clear-temporary');
+                if (elClearTemporary) { elClearTemporary.style.display = "block"; }
             }
         });
-        $(document).on('click', '.editor-clear-temporary-button', function(){
+        document.addEventListener('click', function(event){
+            if (!event.target.closest('.editor-clear-temporary-button')) { return; }
             // removeCurrentPageTemprarySavedContent()는 yona-lib.js에 박혀있는 사본이 제공한다 -
             // service/yona.temporarySaveHandler.js(독립 파일)와 기능이 완전히 동일해(문자열
             // 비교로 확인) 별도로 <script src>를 추가할 필요가 없었다(yona.Markdown/yona.Files/
@@ -866,7 +868,7 @@
     <script type="text/javascript" src="/javascripts/lib/highlight/highlight.pack.js"></script>
 
     <script type="text/javascript">
-        $(function() {
+        document.addEventListener("DOMContentLoaded", function() {
             NProgress.configure({minimum: 0.7});
         });
     </script>
@@ -876,19 +878,19 @@
         // (본문 하나에 여러 댓글이 각자 .markdown-wrap을 가지는 화면 — 이슈/PR 상세 등 — 에서
         // 컨테이너별로 독립된 갤러리가 필요하기 때문).
         // mouseover 시 커서를 포인터로 바꾸는 로직은 순정 Viewer.js에 동등한 옵션/CSS가 없어(뷰어가
-        // 열리기 전, 원본 <img>에 대한 커서 처리는 라이브러리가 관여하지 않는 영역) 기존 jQuery
-        // 핸들러를 그대로 보존한다 — jquery-viewer.js 래퍼와는 무관하게 처음부터 순정 jQuery로
-        // 동작하던 코드였다.
-        $(function () {
+        // 열리기 전, 원본 <img>에 대한 커서 처리는 라이브러리가 관여하지 않는 영역) 기존 핸들러를
+        // 그대로 보존한다(P3-70 라운드6: jQuery 문법만 vanilla로 전환, 로직은 완전 동일).
+        document.addEventListener("DOMContentLoaded", function () {
             Viewer.setDefaults({
                 transition: false
             })
-            $(".markdown-wrap").each(function () {
-                var $that = $(this);
-                $that.find("img").on("mouseover", function () {
-                    $(this).css("cursor", "pointer");
-                })
-                new Viewer(this, {
+            document.querySelectorAll(".markdown-wrap").forEach(function (el) {
+                el.querySelectorAll("img").forEach(function(img){
+                    img.addEventListener("mouseover", function () {
+                        img.style.cursor = "pointer";
+                    });
+                });
+                new Viewer(el, {
                     transition: false
                 });
             });
@@ -906,20 +908,25 @@
         
         $yona.setScriptPath("/javascripts/");
 
-        $(document).ready(function(){
-            // tooltip
-            $(document.body).on("mouseenter", "[data-toggle=tooltip]", function(){
-                $(this).tooltip("show");
-            });
+        document.addEventListener("DOMContentLoaded", function(){
+            // tooltip - Bootstrap2 jQuery 플러그인 호출이라 라운드9(Bootstrap2 플러그인 호출부
+            // 대체)까지 의도적으로 jQuery 객체를 유지한다. 위임 바인딩 자체는 vanilla로 전환.
+            document.body.addEventListener("mouseenter", function(event){
+                var matched = event.target.closest("[data-toggle=tooltip]");
+                if (matched && document.body.contains(matched)) {
+                    $(matched).tooltip("show");
+                }
+            }, true);
 
-            // jquery.placeholder plugin initiator
+            // jquery.placeholder plugin initiator - 라운드10(코어 라이브러리 제거, jquery.placeholder
+            // 명시 대상)까지 의도적으로 jQuery 객체를 유지한다.
             $('input[type=text], textarea').placeholder();
 
             // yona.Dropdown
             var sActivation;
-            $(".btn-group[data-name]").each(function(i, el){
-                sActivation = $(el).attr("data-activate");
-                if(typeof sActivation == "undefined" || sActivation != "manual"){
+            document.querySelectorAll(".btn-group[data-name]").forEach(function(el){
+                sActivation = el.getAttribute("data-activate");
+                if(typeof sActivation == "undefined" || sActivation === null || sActivation != "manual"){
                     (new yona.ui.Dropdown({"elContainer":el}));
                 }
             });
@@ -959,11 +966,10 @@
             });
 
             // 내부 링크 URL 툴팁
-            $(".issueLink").each(function(index) {
-                var $this = $(this);
-                var url = decodeURI($this.attr("href"));
+            document.querySelectorAll(".issueLink").forEach(function(el) {
+                var url = decodeURI(el.getAttribute("href"));
 
-                tippy($this[0], {
+                tippy(el, {
                     content: url,
                     delay: [1000, 100],
                     placement: 'top-start',
@@ -974,30 +980,42 @@
             });
 
             if (window.parent === window) {
-                $(".pin > .yobicon-arrow-right").show();
+                // jQuery .show()가 <i>(기본 inline)에 명시적으로 쓰는 표시값 - CSS 클래스 규칙
+                // (display:none)이 인라인 스타일보다 우선순위가 낮아 밀리므로 "" 대신 명시값 사용.
+                document.querySelectorAll(".pin > .yobicon-arrow-right").forEach(function(el){ el.style.display = "inline"; });
             }
 
-            $(".pin").on("click", function () {
-                if (window.parent === window) {
-                    localStorage.setItem('shallWeOpenLeftNavigation', "true");
-                    window.location.href = "/user/sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
-                } else {
-                    localStorage.setItem('shallWeOpenLeftNavigation', "false");
-                    window.parent.location = window.location.href;
-                }
+            document.querySelectorAll(".pin").forEach(function(el){
+                el.addEventListener("click", function () {
+                    if (window.parent === window) {
+                        localStorage.setItem('shallWeOpenLeftNavigation', "true");
+                        window.location.href = "/user/sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
+                    } else {
+                        localStorage.setItem('shallWeOpenLeftNavigation', "false");
+                        window.parent.location = window.location.href;
+                    }
+                });
             });
 
-            if ($("div#sidebar.sidebar", window.parent.document).css("display") === "block") {
-                $("div.pin > i.yobicon-arrow-right").removeClass("yobicon-arrow-right").addClass("yobicon-arrow-left");
+            var elParentSidebar = window.parent.document.querySelector("div#sidebar.sidebar");
+            if (elParentSidebar && getComputedStyle(elParentSidebar).display === "block") {
+                document.querySelectorAll("div.pin > i.yobicon-arrow-right").forEach(function(el){
+                    el.classList.remove("yobicon-arrow-right");
+                    el.classList.add("yobicon-arrow-left");
+                });
             }
 
             if(navigator.userAgent.match(/MSIE ([0-9])\./)){
-               $('.unsupported').show();
+               document.querySelectorAll('.unsupported').forEach(function(el){ el.style.display = "block"; });
             }
 
-            $('[data-toggle="search-scope"]').on('click', function() {
-                $('form[name="gnb-search-form"]').attr('action', $(this).data('action'));
-                $('#gnb-search-scope-title').text($(this).text());
+            document.querySelectorAll('[data-toggle="search-scope"]').forEach(function(el){
+                el.addEventListener('click', function() {
+                    var elForm = document.querySelector('form[name="gnb-search-form"]');
+                    if (elForm) { elForm.setAttribute('action', el.dataset.action); }
+                    var elTitle = document.getElementById('gnb-search-scope-title');
+                    if (elTitle) { elTitle.textContent = el.textContent; }
+                });
             });
 
             /*[# th:if="${warning}"]*/
@@ -1012,9 +1030,14 @@
 
             yona.OriginalMessage.hide(document.querySelectorAll("[data-via-email]"));
 
-            $('.logo, .title > a, .project-menu-nav > li > a, .show-progress-bar, .project-breadcrumb > span > a, .project-name > a, a[class="title"]').on('click.progressbar', function(){
-                NProgress.set(0.7);
-                NProgress.start();
+            // jQuery 네임스페이스 이벤트(click.progressbar)는 나중에 ".progressbar" 네임스페이스로만
+            // 선택 해제(off)하기 위한 것인데, 코드베이스 전체에 그런 .off() 호출이 없어(재확인 완료)
+            // 네임스페이스 없는 순수 "click" 리스너로 전환해도 완전히 동치다.
+            document.querySelectorAll('.logo, .title > a, .project-menu-nav > li > a, .show-progress-bar, .project-breadcrumb > span > a, .project-name > a, a[class="title"]').forEach(function(el){
+                el.addEventListener('click', function(){
+                    NProgress.set(0.7);
+                    NProgress.start();
+                });
             });
 
             window.addEventListener('pageshow', (event) => {
@@ -1023,48 +1046,54 @@
                 }
             });
 
-            $('.markdown-wrap').find('a[href]').each(function () {
-                var $link = $(this);
-                var linkUrl = $link.attr("href");
-                if (linkUrl && linkUrl.match("^[^./#]")) {
-                    var location = window.location;
-                    if (linkUrl.indexOf(location.protocol + "//" + location.host) !== 0) {
-                        $(this).attr("target", "_blank");
+            document.querySelectorAll('.markdown-wrap').forEach(function(wrap){
+                wrap.querySelectorAll('a[href]').forEach(function (link) {
+                    var linkUrl = link.getAttribute("href");
+                    if (linkUrl && linkUrl.match("^[^./#]")) {
+                        var location = window.location;
+                        if (linkUrl.indexOf(location.protocol + "//" + location.host) !== 0) {
+                            link.setAttribute("target", "_blank");
+                        }
                     }
-                }
+                });
             });
 
-            autosize($('textarea'));
+            autosize(document.querySelectorAll('textarea'));
 
             addTaskListButtonListener();
             function addTaskListButtonListener() {
-                $(".add-task-list-button").on('click', function () {
-                    var tasklistTemplate = "\n- [ ] Todo A\n- [ ] Todo B\n- [ ] Todo C";
-                    var $textarea = $(this).closest("form").find("textarea");
-                    var cursorPos = $textarea.prop('selectionStart');
-                    var text = $textarea.val();
+                document.querySelectorAll(".add-task-list-button").forEach(function(btn){
+                    btn.addEventListener('click', function () {
+                        var tasklistTemplate = "\n- [ ] Todo A\n- [ ] Todo B\n- [ ] Todo C";
+                        var elForm = btn.closest("form");
+                        var elTextarea = elForm ? elForm.querySelector("textarea") : null;
+                        if (!elTextarea) { return; }
+                        var cursorPos = elTextarea.selectionStart;
+                        var text = elTextarea.value;
 
-                    if(cursorPos === 0 && text && text.length > 0){
-                        cursorPos = text.length;
-                    }
+                        if(cursorPos === 0 && text && text.length > 0){
+                            cursorPos = text.length;
+                        }
 
-                    var textBefore = text.substring(0, cursorPos);
-                    var textAfter  = text.substring(cursorPos, text.length);
+                        var textBefore = text.substring(0, cursorPos);
+                        var textAfter  = text.substring(cursorPos, text.length);
 
-                    $textarea.val(textBefore + tasklistTemplate + textAfter);
-                    $textarea.focus();
-                    $textarea.get(0).setSelectionRange(cursorPos + tasklistTemplate.length, cursorPos + tasklistTemplate.length);
+                        elTextarea.value = textBefore + tasklistTemplate + textAfter;
+                        elTextarea.focus();
+                        elTextarea.setSelectionRange(cursorPos + tasklistTemplate.length, cursorPos + tasklistTemplate.length);
+                    });
                 });
             }
 
             if (window.parent !== window) {
-                $("a.ago, .head-anchor, .share-link").on("click", function () {
-                    var $this = $(this);
-                    if (!history.state) {
-                        window.parent.history.pushState({ startPath: location.pathname }, $this.text(), $this.attr("href"));
-                    } else {
-                        window.parent.history.replaceState(history.state, $this.text(), $this.attr("href"));
-                    }
+                document.querySelectorAll("a.ago, .head-anchor, .share-link").forEach(function(el){
+                    el.addEventListener("click", function () {
+                        if (!history.state) {
+                            window.parent.history.pushState({ startPath: location.pathname }, el.textContent, el.getAttribute("href"));
+                        } else {
+                            window.parent.history.replaceState(history.state, el.textContent, el.getAttribute("href"));
+                        }
+                    });
                 });
             }
         });
@@ -1074,7 +1103,7 @@
     <th:block th:if="${project != null}">
       <script type="text/javascript" src="/javascripts/service/yona.project.Global.js"></script>
       <script type="text/javascript" th:inline="javascript">
-          $(document).ready(function(){
+          document.addEventListener("DOMContentLoaded", function(){
               var htKeyMap = {
                   "H": [[@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}]],
                   "C": [[@{/{owner}/{name}/code(owner=${project.owner}, name=${project.name})}]],

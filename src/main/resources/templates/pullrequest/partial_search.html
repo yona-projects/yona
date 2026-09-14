@@ -93,13 +93,24 @@
     </div>
     <div th:replace="~{pullrequest/partial_list :: listScript(${prPage})}"></div>
     <script type="text/javascript">
-        $(function(){
-            $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
-              $('#search').attr('action', $(this).data('url'));
-              $('#search').submit();
-              return false;
+        document.addEventListener("DOMContentLoaded", function(){
+            var elTabMenu = document.querySelector('.pullrequeset-tab-menu');
+            if (elTabMenu) {
+                elTabMenu.addEventListener('click', function(e) {
+                    var matched = e.target.closest('[data-type="state"]');
+                    if (!matched || !elTabMenu.contains(matched)) { return; }
+                    e.preventDefault();
+                    var elSearch = document.getElementById('search');
+                    if (elSearch) {
+                        elSearch.setAttribute('action', matched.dataset.url);
+                        elSearch.submit();
+                    }
+                });
+            }
+            yona.ui.TomSelect("#contributors").on("change", function(){
+                var elSearch = document.getElementById('search');
+                if (elSearch) { elSearch.submit(); }
             });
-            yona.ui.TomSelect("#contributors").on("change", function(){ $('#search').submit(); });
         });
     </script>
 </div>
