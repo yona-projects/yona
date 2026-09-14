@@ -39,18 +39,18 @@
          * initialize elements
          */
         function _initElement(){
-            htElement.welInputPassword  = $('#password');
-            htElement.welInputPassword2 = $('#retypedPassword');
+            htElement.welInputPassword  = document.getElementById('password');
+            htElement.welInputPassword2 = document.getElementById('retypedPassword');
 
-            htElement.welForm = $("form[name=passwordReset]");
+            htElement.welForm = document.querySelector("form[name=passwordReset]");
         }
 
         /**
          * attach event
          */
         function _attachEvent(){
-            htElement.welInputPassword.focusout(_onBlurInputPassword);
-            htElement.welInputPassword2.focusout(_onBlurInputPassword);
+            htElement.welInputPassword.addEventListener("focusout", _onBlurInputPassword);
+            htElement.welInputPassword2.addEventListener("focusout", _onBlurInputPassword);
         }
 
 
@@ -85,7 +85,7 @@
             var welTarget;
 
             aErrors.forEach(function(htError){
-                welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
+                welTarget = htElement.welForm.querySelector("input[name=" + htError.name + "]");
                 if(welTarget){
                     showErrorMessage(welTarget, htError.message);
                 }

@@ -58,17 +58,35 @@
         function _render(items) {
             var that = this;
 
-            items = $(items).map(function(i, item) {
-                i = $(that.options.item).attr('data-value', item);
-                var _linkHtml = $('<div />');
-                _linkHtml.append(item);
-                i.find('a').html(_linkHtml.html());
-                return i[0];
+            items = items.map(function(item) {
+                var elItem = _htmlToElement(that.options.item);
+                elItem.setAttribute('data-value', item);
+
+                var elLinkHtml = document.createElement('div');
+                elLinkHtml.appendChild(document.createTextNode(item));
+                var elAnchor = elItem.querySelector('a');
+                if(elAnchor){
+                    elAnchor.innerHTML = elLinkHtml.innerHTML;
+                }
+                return elItem;
             });
 
-            items.first().addClass('active');
-            this.$menu.html(items);
+            if(items[0]){
+                items[0].classList.add('active');
+            }
+            this.$menu.innerHTML = "";
+            items.forEach(function(el){ that.$menu.appendChild(el); });
             return this;
+        }
+
+        /**
+         * @param {String} sHtml
+         * @return {Element}
+         */
+        function _htmlToElement(sHtml){
+            var elWrap = document.createElement('div');
+            elWrap.innerHTML = sHtml.trim();
+            return elWrap.firstElementChild;
         }
 
         function _updater(item) {
@@ -99,7 +117,7 @@
 
                         var userData = {};
                         var userInfos = [];
-                        $.each(oData, function (i, user) {
+                        (oData || []).forEach(function (user) {
                             userData[user.info] = user;
                             userInfos.push(user.info);
                         });
@@ -129,21 +147,32 @@
          * initialize element variables
          */
         function _initElement(){
-            htElement.waBtns = $(".btns");
-            htElement.enrollAcceptBtns = $(".enrollAcceptBtn");
-            htElement.memberListWrap = $('.members');
-            htElement.formAddNewMember = $("#addNewMember");
-            htElement.inputAddNewMember = $("#loginId");
+            htElement.waBtns = document.querySelectorAll(".btns");
+            htElement.enrollAcceptBtns = document.querySelectorAll(".enrollAcceptBtn");
+            htElement.memberListWrap = document.querySelector('.members');
+            htElement.formAddNewMember = document.getElementById("addNewMember");
+            htElement.inputAddNewMember = document.getElementById("loginId");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.memberListWrap.on('click','[data-action="apply"]',_onClickApply);
-            htElement.memberListWrap.on('click','[data-action="delete"]',_onClickDelete);
-            htElement.enrollAcceptBtns.on("click", _onClickEnrollAcceptBtns);
-            htElement.formAddNewMember.on("submit", _onSubmitAddNewMember);
+            htElement.memberListWrap.addEventListener('click', function(weEvt){
+                var elApply = weEvt.target.closest('[data-action="apply"]');
+                if(elApply && htElement.memberListWrap.contains(elApply)){
+                    _onClickApply.call(elApply, weEvt);
+                    return;
+                }
+                var elDelete = weEvt.target.closest('[data-action="delete"]');
+                if(elDelete && htElement.memberListWrap.contains(elDelete)){
+                    _onClickDelete.call(elDelete, weEvt);
+                }
+            });
+            htElement.enrollAcceptBtns.forEach(function(el){
+                el.addEventListener("click", _onClickEnrollAcceptBtns);
+            });
+            htElement.formAddNewMember.addEventListener("submit", _onSubmitAddNewMember);
         }
 
         /**
@@ -155,10 +184,10 @@
          * @private
          */
         function _onSubmitAddNewMember(evt){
-            fetch(htElement.formAddNewMember.attr("action"), {
+            fetch(htElement.formAddNewMember.getAttribute("action"), {
                 "method": "post",
                 "body"  : new URLSearchParams({
-                    "loginId": htElement.inputAddNewMember.val()
+                    "loginId": htElement.inputAddNewMember.value
                 })
             }).then(function(response){
                 if(!response.ok){
@@ -177,20 +206,20 @@
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
          */
         function _onClickEnrollAcceptBtns(weEvt){
             weEvt.preventDefault();
-            var loginId = $(this).attr('data-loginId');
-            $('#loginId').val(loginId);
-            $('#addNewMember').submit();
+            var loginId = this.getAttribute('data-loginId');
+            document.getElementById('loginId').value = loginId;
+            document.getElementById('addNewMember').submit();
         }
 
         /**
-         * @param {Wrapped Element} weltArget
+         * @param {Element} this 클릭된 delete 액션 엘리먼트
          */
         function _onClickDelete(){
-            var sURL = $(this).attr("data-href");
+            var sURL = this.getAttribute("data-href");
 
             $yona.ajaxConfirm(Messages("project.member.deleteConfirm"),
                 {
@@ -208,7 +237,7 @@
         }
 
         function _onSuccessDeleteMember(sResult){
-            var htData = $.parseJSON(sResult);
+            var htData = JSON.parse(sResult);
             document.location.replace(htData.location);
         }
 
@@ -237,12 +266,13 @@
         }
 
         /**
-         * @param {Wrapped Element} welTarget
+         * @param {Element} this 클릭된 apply 액션 엘리먼트
          */
         function _onClickApply(){
-            var sURL = $(this).attr("data-href");
-            var sLoginId = $(this).attr("data-loginId");
-            var sRoleId = $('input[name="roleof-' + sLoginId + '"]').val();
+            var sURL = this.getAttribute("data-href");
+            var sLoginId = this.getAttribute("data-loginId");
+            var elRole = document.querySelector('input[name="roleof-' + sLoginId + '"]');
+            var sRoleId = elRole ? elRole.value : undefined;
 
             if(typeof sRoleId == "undefined"){
                 //console.log("cannot find Role Id");

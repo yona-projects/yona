@@ -56,17 +56,35 @@
         function _render(items) {
             var that = this;
 
-            items = $(items).map(function(i, item) {
-                i = $(that.options.item).attr('data-value', item);
-                var _linkHtml = $('<div />');
-                _linkHtml.append(item);
-                i.find('a').html(_linkHtml.html());
-                return i[0];
+            items = items.map(function(item) {
+                var elItem = _htmlToElement(that.options.item);
+                elItem.setAttribute('data-value', item);
+
+                var elLinkHtml = document.createElement('div');
+                elLinkHtml.appendChild(document.createTextNode(item));
+                var elAnchor = elItem.querySelector('a');
+                if(elAnchor){
+                    elAnchor.innerHTML = elLinkHtml.innerHTML;
+                }
+                return elItem;
             });
 
-            items.first().addClass('active');
-            this.$menu.html(items);
+            if(items[0]){
+                items[0].classList.add('active');
+            }
+            this.$menu.innerHTML = "";
+            items.forEach(function(el){ that.$menu.appendChild(el); });
             return this;
+        }
+
+        /**
+         * @param {String} sHtml
+         * @return {Element}
+         */
+        function _htmlToElement(sHtml){
+            var elWrap = document.createElement('div');
+            elWrap.innerHTML = sHtml.trim();
+            return elWrap.firstElementChild;
         }
         function _updater(item) {
             return htVar.htUserData[item].loginId;
@@ -96,7 +114,7 @@
 
                         var userData = {};
                         var userInfos = [];
-                        $.each(oData, function (i, user) {
+                        (oData || []).forEach(function (user) {
                             userData[user.info] = user;
                             userInfos.push(user.info);
                         });
@@ -126,43 +144,54 @@
          * initialize element variables
          */
         function _initElement(){
-            htElement.waBtns = $(".btns");
-            htElement.enrollAcceptBtns = $(".enrollAcceptBtn");
-            htElement.memberListWrap = $('.members');
+            htElement.waBtns = document.querySelectorAll(".btns");
+            htElement.enrollAcceptBtns = document.querySelectorAll(".enrollAcceptBtn");
+            htElement.memberListWrap = document.querySelector('.members');
 
-            htElement.welAlertDelete = $("#alertDeletion");
+            htElement.welAlertDelete = document.getElementById("alertDeletion");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.memberListWrap.on('click','[data-action="apply"]',_onClickApply);
-            htElement.memberListWrap.on('click','[data-action="delete"]',_onClickDelete);
+            htElement.memberListWrap.addEventListener('click', function(weEvt){
+                var elApply = weEvt.target.closest('[data-action="apply"]');
+                if(elApply && htElement.memberListWrap.contains(elApply)){
+                    _onClickApply.call(elApply, weEvt);
+                    return;
+                }
+                var elDelete = weEvt.target.closest('[data-action="delete"]');
+                if(elDelete && htElement.memberListWrap.contains(elDelete)){
+                    _onClickDelete.call(elDelete, weEvt);
+                }
+            });
 
-            htElement.enrollAcceptBtns.click(_onClickEnrollAcceptBtns);
+            htElement.enrollAcceptBtns.forEach(function(el){
+                el.addEventListener('click', _onClickEnrollAcceptBtns);
+            });
 
-            $('#loginId').focus();
+            document.getElementById('loginId').focus();
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
          */
         function _onClickEnrollAcceptBtns(weEvt){
             weEvt.preventDefault();
-            var loginId = $(this).attr('data-loginId');
-            $('#loginId').val(loginId);
-            $('#addNewMember').submit();
+            var loginId = this.getAttribute('data-loginId');
+            document.getElementById('loginId').value = loginId;
+            document.getElementById('addNewMember').submit();
         }
 
         /**
-         * @param {Wrapped Element} weltArget
+         * @param {Element} this 클릭된 delete 액션 엘리먼트
          */
         function _onClickDelete(){
-            var sURL = $(this).attr("data-href");
+            var sURL = this.getAttribute("data-href");
 
             // DELETE 메소드로 AJAX 호출
-            $("#deleteBtn").click(function(){
+            document.getElementById("deleteBtn").addEventListener('click', function(){
                 fetch(sURL, {"method": "delete"})
                     .then(function(response){
                         if(!response.ok){
@@ -180,7 +209,7 @@
         }
 
         function _onSuccessDeleteMember(sResult){
-            var htData = $.parseJSON(sResult);
+            var htData = JSON.parse(sResult);
             document.location.replace(htData.location);
         }
 
@@ -206,23 +235,24 @@
             }
 
             $yona.alert(sErrorMsg);
-            htElement.welAlertDelete.modal("hide");
+            htElement.welAlertDelete.close();
         }
 
         /**
          * @param {String} sURL
          */
         function _showConfirmDeleteMember(sURL){
-            htElement.welAlertDelete.modal();
+            htElement.welAlertDelete.showModal();
         }
 
         /**
-         * @param {Wrapped Element} welTarget
+         * @param {Element} this 클릭된 apply 액션 엘리먼트
          */
         function _onClickApply(){
-            var sURL = $(this).attr("data-href");
-            var sLoginId = $(this).attr("data-loginId");
-            var sRoleId = $('input[name="roleof-' + sLoginId + '"]').val();
+            var sURL = this.getAttribute("data-href");
+            var sLoginId = this.getAttribute("data-loginId");
+            var elRole = document.querySelector('input[name="roleof-' + sLoginId + '"]');
+            var sRoleId = elRole ? elRole.value : undefined;
 
             if(typeof sRoleId == "undefined"){
                 //console.log("cannot find Role Id");
@@ -236,7 +266,7 @@
                 "fOnLoad" : function(oData, oStatus, oXHR) {
                     console.log("oXHR.responseText:" + oXHR.responseText);
                     if (oXHR.responseText != "") {
-                        var htData = $.parseJSON(oXHR.responseText);
+                        var htData = JSON.parse(oXHR.responseText);
                         document.location.replace(htData.location);
                     }
                 }

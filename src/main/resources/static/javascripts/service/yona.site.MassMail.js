@@ -49,32 +49,78 @@
          */
         function _initElement(htOptions){
             // projects
-            htElement.welInputProject = $('#input-project');
-            htElement.welSelectedProjects = $('#selected-projects');
-            htElement.welBtnSelectProject = $('#select-project');
-            htElement.welBtnWriteEmail = $('#write-email');
-            htElement.welProjectList = $('#project-list-wrap')
+            htElement.welInputProject = document.getElementById('input-project');
+            htElement.welSelectedProjects = document.getElementById('selected-projects');
+            htElement.welBtnSelectProject = document.getElementById('select-project');
+            htElement.welBtnWriteEmail = document.getElementById('write-email');
+            htElement.welProjectList = document.getElementById('project-list-wrap');
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welInputProject.keypress(_onKeyPressInputProject);
-            htElement.welBtnSelectProject.click(_onClickSelectProject);
-            htElement.welBtnWriteEmail.click(_onClickWriteEmail);
+            htElement.welInputProject.addEventListener('keypress', _onKeyPressInputProject);
+            htElement.welBtnSelectProject.addEventListener('click', _onClickSelectProject);
+            htElement.welBtnWriteEmail.addEventListener('click', _onClickWriteEmail);
             new yona.ui.Typeahead(htElement.welInputProject, {
                 "sActionURL": htVar.sURLProjects
             });
 
-            $('.mess-mail-wrap').on('click','[data-toggle="mail-type"]',_clickMailTypeLabel)
+            var elMailWrap = document.querySelector('.mess-mail-wrap');
+            elMailWrap.addEventListener('click', function(weEvt){
+                var elLabel = weEvt.target.closest('[data-toggle="mail-type"]');
+                if(elLabel && elMailWrap.contains(elLabel)){
+                    _clickMailTypeLabel.call(elLabel);
+                }
+            });
+        }
+
+        /**
+         * jQuery의 show()/hide()를 대체 - #project-list-wrap은 <div>라서 show 시
+         * 기본 표시값인 "block"으로 되돌린다(원본 jQuery .show()와 동일 결과).
+         *
+         * @param {String} sAction "show" 또는 "hide"
+         */
+        function _setProjectListVisibility(sAction){
+            htElement.welProjectList.style.display = (sAction === "show") ? "block" : "none";
         }
 
         function _clickMailTypeLabel() {
-            var sAction = $(this).data('action');
-            htElement.welSelectedProjects.html("");
-            htElement.welProjectList[sAction]();
+            var sAction = this.getAttribute('data-action');
+            htElement.welSelectedProjects.innerHTML = "";
+            _setProjectListVisibility(sAction);
 
+        }
+
+        /**
+         * Bootstrap 2 $.fn.button('loading'/'reset')를 대체 - yona-common.js에 번들된
+         * 벤더 플러그인(파일 자체는 미수정 대상)을 더 이상 호출하지 않도록 동일 동작을
+         * 직접 재현한다: 최초 호출 시 원래 innerHTML을 저장해두고, "loading"이면
+         * data-loading-text(없으면 Bootstrap 기본값 "loading...")로 교체 후 버튼을
+         * 비활성화하고, "reset"이면 저장해둔 원래 텍스트로 되돌리고 다시 활성화한다.
+         * 원본도 setTimeout(fn, 0)으로 상태 전환을 미뤘으므로 동일하게 유지한다.
+         *
+         * @param {Element} el
+         * @param {String} sState "loading" 또는 "reset"
+         */
+        function _setButtonState(el, sState){
+            if(el._yonaResetText === undefined){
+                el._yonaResetText = el.innerHTML;
+            }
+
+            el.innerHTML = (sState === "loading") ?
+                (el.getAttribute("data-loading-text") || "loading...") : el._yonaResetText;
+
+            setTimeout(function(){
+                if(sState === "loading"){
+                    el.classList.add("disabled");
+                    el.setAttribute("disabled", "disabled");
+                } else {
+                    el.classList.remove("disabled");
+                    el.removeAttribute("disabled");
+                }
+            }, 0);
         }
 
         /**
@@ -82,12 +128,12 @@
          */
         function _onClickWriteEmail() {
             // Get project names from labels in #selected-projects div.
-            var sMailingType = $('[name=mailingType]:checked').val();
+            var sMailingType = document.querySelector('[name=mailingType]:checked').value;
             var waProjectSpan, aProjects;
             if (sMailingType == 'all') {
                 aProjects = {'all': 'true'}
             } else {
-                waProjectSpan = $('#selected-projects > .label');
+                waProjectSpan = document.querySelectorAll('#selected-projects > .label');
                 aProjects = [];
                 for (var i = 0; i < waProjectSpan.length; i++) {
                     aProjects.push(waProjectSpan[i].childNodes[0].nodeValue.trim());
@@ -96,7 +142,7 @@
 
             // Send a request contains project names to get email addresses and
             // launch user's mail client with them using mailto scheme.
-            htElement.welBtnWriteEmail.button('loading');
+            _setButtonState(htElement.welBtnWriteEmail, "loading");
 
             $yona.sendForm({
                 "sURL"      : htVar.sURLMailList,
@@ -104,17 +150,17 @@
                 "htData"    : aProjects,
                 "sDataType" : "json",
                 "fOnLoad"   : function(data) {
-                    var form = $('<form>');
+                    var form = document.createElement('form');
                     var mailto = 'mailto:';
                     for (var i = 0; i < data.length; i++) {
                         mailto += data[i] + ',';
                     }
                     console.log(mailto);
-                    form.attr('method', 'POST');
-                    form.attr('action', mailto);
-                    form.attr('enctype', 'text/plain');
+                    form.setAttribute('method', 'POST');
+                    form.setAttribute('action', mailto);
+                    form.setAttribute('enctype', 'text/plain');
                     form.submit();
-                    htElement.welBtnWriteEmail.button('reset');
+                    _setButtonState(htElement.welBtnWriteEmail, "reset");
                 }
             });
         }
@@ -124,8 +170,8 @@
          * #selected-projects div.
          */
         function _onClickSelectProject() {
-            _appendProjectLabel(htElement.welInputProject.val());
-            htElement.welInputProject.val("");
+            _appendProjectLabel(htElement.welInputProject.value);
+            htElement.welInputProject.value = "";
             return false;
         }
 
@@ -136,8 +182,8 @@
          */
         function _onKeyPressInputProject(oEvent) {
             if (oEvent.keyCode == 13) {
-                _appendProjectLabel(htElement.welInputProject.val());
-                htElement.welInputProject.val("");
+                _appendProjectLabel(htElement.welInputProject.value);
+                htElement.welInputProject.value = "";
                 return false;
             }
         }
@@ -145,17 +191,24 @@
         /**
          * Make a project label by given name.
          *
+         * sName은 원본 jQuery 버전(`$('<span>'+sName+'</span>')`)도 HTML로 그대로 파싱해
+         * 넣었으므로 동일하게 innerHTML로 삽입한다(동치 유지 목적, 신규 이스케이프 도입 안 함).
+         *
          * @param {String} sName
          */
         function _createProjectLabel(sName) {
-            var fOnClickUnselect = function() {
-                welProject.remove();
-            };
+            var welProject = document.createElement('span');
+            welProject.className = 'label label-info';
+            welProject.innerHTML = sName + " ";
+            welProject.style.marginRight = '5px';
 
-            var welProject = $('<span class="label label-info">' + sName + " </span>")
-                .css('margin-right','5px')
-                .append($('<a href="javascript:void(0)">x</a>')
-                .click(fOnClickUnselect));
+            var elUnselect = document.createElement('a');
+            elUnselect.setAttribute('href', 'javascript:void(0)');
+            elUnselect.textContent = 'x';
+            elUnselect.addEventListener('click', function() {
+                welProject.remove();
+            });
+            welProject.appendChild(elUnselect);
 
             return welProject;
         }
@@ -166,7 +219,7 @@
          * @param {Object} htProjects
          */
         function _appendProjectLabel(sTags) {
-            htElement.welSelectedProjects.append(_createProjectLabel(sTags));
+            htElement.welSelectedProjects.appendChild(_createProjectLabel(sTags));
         }
 
         _init(htOptions);

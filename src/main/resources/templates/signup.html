@@ -83,7 +83,7 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" src="/javascripts/lib/validate.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         $yona.loadModule("user.SignUp", {
             "sLogindIdCheckUrl" : "/user/isUsed?name=",
             "sEmailCheckUrl" : "/user/isEmailExist?email="

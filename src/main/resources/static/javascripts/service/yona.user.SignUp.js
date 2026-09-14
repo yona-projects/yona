@@ -41,13 +41,13 @@
          * initialize elements
          */
         function _initElement(){
-            htElement.welInputPassword  = $('#password');
-            htElement.welInputPassword2 = $('#retypedPassword');
-            htElement.welInputEmail     = $('#email');
-            htElement.welInputLoginId   = $('#loginId');
+            htElement.welInputPassword  = document.getElementById('password');
+            htElement.welInputPassword2 = document.getElementById('retypedPassword');
+            htElement.welInputEmail     = document.getElementById('email');
+            htElement.welInputLoginId   = document.getElementById('loginId');
             htElement.welInputLoginId.focus();
 
-            htElement.welForm = $("form[name=signup]");
+            htElement.welForm = document.querySelector("form[name=signup]");
 
         }
 
@@ -64,16 +64,16 @@
          * attach event
          */
         function _attachEvent(){
-            htElement.welInputLoginId.on('focusout', _onBlurInputLoginId);
-            htElement.welInputEmail.on('focusout', _onBlurInputEmail);
-            htElement.welInputPassword.on('keyup', _onValidInputPassword);
-            htElement.welInputPassword2.on('keyup', _onValidInputPasswordCheck);
+            htElement.welInputLoginId.addEventListener('focusout', _onBlurInputLoginId);
+            htElement.welInputEmail.addEventListener('focusout', _onBlurInputEmail);
+            htElement.welInputPassword.addEventListener('keyup', _onValidInputPassword);
+            htElement.welInputPassword2.addEventListener('keyup', _onValidInputPasswordCheck);
         }
 
         function _onBlurInputLoginId(){
-            var welInput = $(this);
-            var sLoginId = $yona.getTrim(welInput.val()).toLowerCase();
-            welInput.val(sLoginId);
+            var welInput = this;
+            var sLoginId = $yona.getTrim(welInput.value).toLowerCase();
+            welInput.value = sLoginId;
 
             if(_onValidateLoginId(sLoginId) === false){
                 showErrorMessage(welInput, Messages("validation.allowedCharsForLoginId"));
@@ -81,15 +81,15 @@
             }
 
             if(sLoginId != ""){
-                doesExists($(this), htVar.sLogindIdCheckUrl);
+                doesExists(this, htVar.sLogindIdCheckUrl);
             }
         }
 
         function _onBlurInputEmail(){
 
-            var welInput = $(this);
+            var welInput = this;
 
-            if($.trim(welInput.val()) !== ""){
+            if(welInput.value.trim() !== ""){
                 doesExists(welInput, htVar.sEmailCheckUrl);
             }
         }
@@ -104,7 +104,7 @@
         function checkPassword() {
           hideErrorMessage(htElement.welInputPassword);
 
-          if($.trim(htElement.welInputPassword.val()).length < 4) {
+          if(htElement.welInputPassword.value.trim().length < 4) {
             showErrorMessage(htElement.welInputPassword, Messages("validation.tooShortPassword"));
           }
 
@@ -120,18 +120,18 @@
         function checkPasswordConfirm() {
           hideErrorMessage(htElement.welInputPassword2);
 
-          if (htElement.welInputPassword2.val() !== htElement.welInputPassword.val()) {
+          if (htElement.welInputPassword2.value !== htElement.welInputPassword.value) {
             showErrorMessage(htElement.welInputPassword2, Messages("validation.passwordMismatch"));
           }
         }
 
         /**
-         * @param {Wrapped Element} welInput
+         * @param {Element} welInput
          * @param {String} sURL
          */
         function doesExists(welInput, sURL){
 
-            fetch(sURL + welInput.val())
+            fetch(sURL + welInput.value)
                 .then(function(response){
                     if(!response.ok){
                         return Promise.reject(response);
@@ -192,7 +192,7 @@
             var welTarget;
 
             aErrors.forEach(function(htError){
-                welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
+                welTarget = htElement.welForm.querySelector("input[name=" + htError.name + "]");
                 if(welTarget){
                     showErrorMessage(welTarget, htError.message);
                 }

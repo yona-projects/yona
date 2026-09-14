@@ -58,7 +58,7 @@
 <script src="/javascripts/common/yona.ui.Typeahead.js"></script>
 <script src="/javascripts/service/yona.site.MassMail.js"></script>
 <script th:inline="javascript">
-  $(document).ready(function(){
+  document.addEventListener("DOMContentLoaded", function(){
     $yona.loadModule("site.MassMail", {
         "sURLMailList": "/sites/mailList",
         "sURLProjects": "/projects"

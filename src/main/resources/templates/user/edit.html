@@ -87,7 +87,7 @@
     <div th:replace="~{site/layout :: scripts}"></div>
 </div>
 <script type="text/javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("user.Setting");
     });
 </script>

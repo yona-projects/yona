@@ -42,40 +42,57 @@
 
         /**
          * initialize elements
+         *
+         * 이 모듈은 user/edit.html, user/edit_password.html, user/edit_notifications.html,
+         * user/edit_tokens*.html, user/edit_token.html, user/edit_emails.html 등 여러
+         * 화면에서 공통으로 $yona.loadModule("user.Setting")로 로드된다 - 화면마다 아래
+         * 요소 중 일부만 실제로 존재한다(예: #avatarCropWrap은 user/edit.html 프로필 탭에만
+         * 있음). 원본 jQuery 셀렉터는 매치가 없어도 빈 컬렉션(길이 0)을 반환해 이후
+         * .find()/.on() 호출이 조용히 no-op이 됐으므로, 네이티브 전환에서는 존재하지
+         * 않는 화면에서 null이 되도록 하고 사용처마다 null 가드를 둬 동일하게 no-op을
+         * 재현한다.
          */
         function _initElement(){
-            htElement.welFormBasic = $("#frmBasic");
+            htElement.welFormBasic = document.getElementById("frmBasic");
 
-            htElement.welFormAvatar = $("#frmAvatar");
-            htElement.welBtnUploadAvatar = htElement.welFormAvatar.find(".btnUploadAvatar");
-            htElement.welAvatarWrap = htElement.welFormAvatar.find(".avatar-wrap");
-            htElement.welAvatarImage = htElement.welAvatarWrap.find("img");
-            htElement.welAvatarProgress = htElement.welFormAvatar.find(".upload-progress");
-            htElement.welAvatarProgressBar = htElement.welAvatarProgress.find(".bar");
+            htElement.welFormAvatar = document.getElementById("frmAvatar");
+            htElement.welBtnUploadAvatar = htElement.welFormAvatar ? htElement.welFormAvatar.querySelector(".btnUploadAvatar") : null;
+            htElement.welAvatarWrap = htElement.welFormAvatar ? htElement.welFormAvatar.querySelector(".avatar-wrap") : null;
+            htElement.welAvatarImage = htElement.welAvatarWrap ? htElement.welAvatarWrap.querySelector("img") : null;
+            htElement.welAvatarProgress = htElement.welFormAvatar ? htElement.welFormAvatar.querySelector(".upload-progress") : null;
+            htElement.welAvatarProgressBar = htElement.welAvatarProgress ? htElement.welAvatarProgress.querySelector(".bar") : null;
 
-            htElement.welAvatarCropWrap = $("#avatarCropWrap");
-            htElement.welAvatarCropImg = htElement.welAvatarCropWrap.find(".modal-body > img");
-            htElement.welAvatarCropPreviewImg = htElement.welAvatarCropWrap.find(".avatar-wrap > img");
-            htElement.elAvatarCropCanvas = htElement.welAvatarCropWrap.find("canvas").get(0);
-            htElement.welBtnSubmitCrop = htElement.welAvatarCropWrap.find("button.btnSubmitCrop");
+            htElement.welAvatarCropWrap = document.getElementById("avatarCropWrap");
+            htElement.welAvatarCropImg = htElement.welAvatarCropWrap ? htElement.welAvatarCropWrap.querySelector(".modal-body > img") : null;
+            htElement.welAvatarCropPreviewImg = htElement.welAvatarCropWrap ? htElement.welAvatarCropWrap.querySelector(".avatar-wrap > img") : null;
+            htElement.elAvatarCropCanvas = htElement.welAvatarCropWrap ? htElement.welAvatarCropWrap.querySelector("canvas") : null;
+            htElement.welBtnSubmitCrop = htElement.welAvatarCropWrap ? htElement.welAvatarCropWrap.querySelector("button.btnSubmitCrop") : null;
 
-            htElement.welFormPswd = $("#frmPassword");
-            htElement.welInputOldPassword  = $('#oldPassword');
-            htElement.welInputPassword  = $('#password');
-            htElement.welInputRetypedPassword = $('#retypedPassword');
+            htElement.welFormPswd = document.getElementById("frmPassword");
+            htElement.welInputOldPassword  = document.getElementById('oldPassword');
+            htElement.welInputPassword  = document.getElementById('password');
+            htElement.welInputRetypedPassword = document.getElementById('retypedPassword');
 
-            htElement.welChkNotiSwtich = $(".notiUpdate");
+            htElement.welChkNotiSwtich = document.querySelectorAll(".notiUpdate");
         }
 
         /**
          * attach event
          */
         function _attachEvent(){
-            htElement.welInputOldPassword.focusout(_onBlurInputPassword);
-            htElement.welInputPassword.focusout(_onBlurInputPassword);
-            htElement.welInputRetypedPassword.focusout(_onBlurInputPassword);
+            if(htElement.welInputOldPassword){
+                htElement.welInputOldPassword.addEventListener("focusout", _onBlurInputPassword);
+            }
+            if(htElement.welInputPassword){
+                htElement.welInputPassword.addEventListener("focusout", _onBlurInputPassword);
+            }
+            if(htElement.welInputRetypedPassword){
+                htElement.welInputRetypedPassword.addEventListener("focusout", _onBlurInputPassword);
+            }
 
-            htElement.welChkNotiSwtich.change(_onChangeNotiSwitch);
+            htElement.welChkNotiSwtich.forEach(function(el){
+                el.addEventListener("change", _onChangeNotiSwitch);
+            });
         }
 
         /**
@@ -95,17 +112,17 @@
 
             htVar.bUseCropper = yona.Files.getEnv().bXHR2;
 
-            if(htVar.bUseCropper && htElement.welAvatarCropWrap.length > 0){
-                htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
-                htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
+            if(htVar.bUseCropper && htElement.welAvatarCropWrap){
+                htElement.welBtnSubmitCrop.addEventListener("click", _onClickBtnSubmitCrop);
+                htElement.welAvatarCropImg.addEventListener("load", _onAvatarCropImageLoad);
                 // #avatarCropWrap은 user/edit.html(프로필 탭)에만 있다 - user.Setting.js가
-                // 로드되는 다른 탭(예: 비밀번호 변경)에는 없어 welAvatarCropWrap이 빈 jQuery
-                // 컬렉션이 되므로 .get(0)이 undefined일 수 있다(원본 jQuery는 빈 컬렉션에
-                // .on()을 걸어도 조용히 no-op이었다).
+                // 로드되는 다른 탭(예: 비밀번호 변경)에는 없어 welAvatarCropWrap이 null이 된다
+                // (원본 jQuery는 빈 컬렉션에 .on()을 걸어도 조용히 no-op이었다 - 위 null 체크로
+                // 동일하게 재현).
                 // #avatarCropWrap은 네이티브 <dialog>로 바뀌었으니(data-backdrop="static"이라
                 // 배경 클릭으로는 안 닫힘) Bootstrap의 "hidden" 대신 네이티브 "close" 이벤트를 쓴다.
-                htElement.welAvatarCropWrap.get(0).addEventListener("close", _clearCropper);
-                $yona.attachDialogDismiss(htElement.welAvatarCropWrap.get(0), true);
+                htElement.welAvatarCropWrap.addEventListener("close", _clearCropper);
+                $yona.attachDialogDismiss(htElement.welAvatarCropWrap, true);
 
                 yona.Files.attach({
                    "successUpload": _onAvatarCroppedImageUploaded,
@@ -160,14 +177,16 @@
          * @private
          */
         function _setAvatarIdOnForm(nAvatarId){
-            var welAvatarId = htElement.welFormAvatar.find("input[name=avatarId]");
+            var welAvatarId = htElement.welFormAvatar.querySelector("input[name=avatarId]");
 
-            if(welAvatarId.length === 0){
-                welAvatarId = $('<input type="hidden" name="avatarId">');
-                htElement.welFormAvatar.append(welAvatarId);
+            if(!welAvatarId){
+                welAvatarId = document.createElement("input");
+                welAvatarId.type = "hidden";
+                welAvatarId.name = "avatarId";
+                htElement.welFormAvatar.appendChild(welAvatarId);
             }
 
-            welAvatarId.val(nAvatarId);
+            welAvatarId.value = nAvatarId;
         }
 
         /**
@@ -181,16 +200,16 @@
             // PNG로 고정 인코딩됐다 — 원본 형식을 기억해뒀다가 그대로 써서 원본 형식을 보존한다.
             htVar.sAvatarMimeType = oRes.mimeType;
 
-            htElement.welAvatarCropImg.attr("src", oRes.url);
-            htElement.welAvatarCropPreviewImg.attr("src", oRes.url);
-            htElement.welAvatarCropWrap.get(0).showModal();
+            htElement.welAvatarCropImg.setAttribute("src", oRes.url);
+            htElement.welAvatarCropPreviewImg.setAttribute("src", oRes.url);
+            htElement.welAvatarCropWrap.showModal();
         }
 
         /**
          * @private
          */
         function _onAvatarCropImageLoad(){
-            htVar.oCropper = new Cropper(htElement.welAvatarCropImg.get(0), {
+            htVar.oCropper = new Cropper(htElement.welAvatarCropImg, {
                 "aspectRatio"     : 1,
                 "viewMode"        : 1, // Jcrop처럼 크롭박스가 이미지 영역을 벗어나지 않도록 제한
                 "minCropBoxWidth" : 32,
@@ -222,9 +241,10 @@
                 htVar.oCropper = null;
             }
 
-            htElement.welAvatarCropImg.attr("src", "");
-            htElement.welAvatarCropImg.css({"width":"auto", "height":"auto"});
-            htElement.welAvatarCropPreviewImg.attr("src", "");
+            htElement.welAvatarCropImg.setAttribute("src", "");
+            htElement.welAvatarCropImg.style.width = "auto";
+            htElement.welAvatarCropImg.style.height = "auto";
+            htElement.welAvatarCropPreviewImg.setAttribute("src", "");
         }
 
         /**
@@ -244,16 +264,14 @@
                 return;
             }
 
-            var elImage   = htElement.welAvatarCropImg.get(0);
+            var elImage   = htElement.welAvatarCropImg;
             var nRx = 128 / htData.width;
             var nRy = 128 / htData.height;
 
-            htElement.welAvatarCropPreviewImg.css({
-                "width"     : Math.round(nRx * elImage.naturalWidth) + "px",
-                "height"    : Math.round(nRy * elImage.naturalHeight) + "px",
-                "marginLeft": "-" + Math.round(nRx * htData.x) + "px",
-                "marginTop" : "-" + Math.round(nRy * htData.y) + "px"
-            });
+            htElement.welAvatarCropPreviewImg.style.width = Math.round(nRx * elImage.naturalWidth) + "px";
+            htElement.welAvatarCropPreviewImg.style.height = Math.round(nRy * elImage.naturalHeight) + "px";
+            htElement.welAvatarCropPreviewImg.style.marginLeft = "-" + Math.round(nRx * htData.x) + "px";
+            htElement.welAvatarCropPreviewImg.style.marginTop = "-" + Math.round(nRy * htData.y) + "px";
         }
 
         function _onClickBtnSubmitCrop(){
@@ -289,7 +307,7 @@
          */
         function _onAvatarUploading(weEvt, nPosition, nTotal, nPercent){
             _setAvatarProgressBar(nPercent);
-            htElement.welAvatarProgress.css("opacity", 1);
+            htElement.welAvatarProgress.style.opacity = 1;
         }
 
         /**
@@ -301,12 +319,12 @@
             nPercent = parseInt(nPercent, 10);
 
             if(nPercent > 0){
-                htElement.welAvatarProgress.show();
+                htElement.welAvatarProgress.style.display = "block";
             } else {
-                htElement.welAvatarProgress.hide();
+                htElement.welAvatarProgress.style.display = "none";
             }
 
-            htElement.welAvatarProgressBar.css("width", nPercent + "%");
+            htElement.welAvatarProgressBar.style.width = nPercent + "%";
 
             // Hide progress bar 1s after full
             if(nPercent >= 100){
@@ -350,9 +368,13 @@
                 return _clearPopovers();
             }
 
+            if(!htElement.welFormPswd){
+                return;
+            }
+
             var welTarget;
             aErrors.forEach(function(htError){
-                welTarget = htElement.welFormPswd.find("input[name=" + htError.name + "]");
+                welTarget = htElement.welFormPswd.querySelector("input[name=" + htError.name + "]");
 
                 if(welTarget){
                     _showPopover(welTarget, htError.message);
@@ -373,25 +395,28 @@
         }
 
         function _clearPopovers(){
-            htElement.welFormPswd.find("input").each(function(i, v){
+            if(!htElement.welFormPswd){
+                return;
+            }
+            htElement.welFormPswd.querySelectorAll("input").forEach(function(v){
                 $yona.hidePopoverError(v);
             });
         }
 
         function _onChangeNotiSwitch(){
-            var welTarget  = $(this);
-            var bChecked   = welTarget.prop("checked");
-            var url        = $(this).attr("data-href");
+            var welTarget  = this;
+            var bChecked   = welTarget.checked;
+            var url        = welTarget.getAttribute("data-href");
 
             fetch(url, {"method": "post"})
                 .then(function(response){
                     if(!response.ok){
                         return Promise.reject(response);
                     }
-                    welTarget.prop("checked", bChecked);
+                    welTarget.checked = bChecked;
                 })
                 .catch(function(oRes){
-                    welTarget.prop("checked", !bChecked);
+                    welTarget.checked = !bChecked;
                     $yona.alert(Messages("error.failedTo",
                         Messages("userinfo.changeNotifications"),
                         oRes.status, oRes.statusText));
