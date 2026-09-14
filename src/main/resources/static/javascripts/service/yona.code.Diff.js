@@ -27,6 +27,110 @@
         var htElement = {};
 
         /**
+         * P3-70 라운드5: 이 파일은 "죽은 코드" 감사에서 어느 템플릿도
+         * `$yona.loadModule("code.Diff", ...)`를 실제로 호출하지 않는 것으로 확인됐다
+         * (code/diff.html 등이 자체 vanilla 재구현으로 이미 대체). 실행되는 화면이 없어
+         * Playwright 실측 검증은 불가능하지만, "완전 동치 보장 하에 vanilla로 전환"
+         * 원칙(라운드2/3의 organization.Member.js/ui.Mergely.js와 동일한 판단)에 따라
+         * 삭제하지 않고 1:1로 전환한다.
+         */
+
+        /**
+         * jQuery의 인자 없는 `.parents(sQuery)`(자기 자신 제외, 매칭 조상 전체) 근사 -
+         * 이 파일에서는 항상 "가장 가까운 매칭 조상 1개"만 실제로 쓰이므로 자신을 제외한
+         * closest로 충분하다.
+         */
+        function _closestAncestor(el, sQuery){
+            return (el && el.parentElement) ? el.parentElement.closest(sQuery) : null;
+        }
+
+        function _hasMatchingAncestor(el, sQuery){
+            return !!_closestAncestor(el, sQuery);
+        }
+
+        /**
+         * jQuery `.offset()`과 동일한 문서 기준 절대좌표.
+         */
+        function _offset(el){
+            var rect = el.getBoundingClientRect();
+            return {"top": rect.top + window.scrollY, "left": rect.left + window.scrollX};
+        }
+
+        /**
+         * jQuery `.position()`과 동일한 offsetParent 기준 상대좌표.
+         */
+        function _position(el){
+            var rect = el.getBoundingClientRect();
+            var elOffsetParent = el.offsetParent || document.documentElement;
+            var parentRect = elOffsetParent.getBoundingClientRect();
+            var style = window.getComputedStyle(el);
+            var parentStyle = window.getComputedStyle(elOffsetParent);
+            var nMarginTop = parseFloat(style.marginTop) || 0;
+            var nMarginLeft = parseFloat(style.marginLeft) || 0;
+            var nBorderTop = parseFloat(parentStyle.borderTopWidth) || 0;
+            var nBorderLeft = parseFloat(parentStyle.borderLeftWidth) || 0;
+            return {
+                "top": rect.top - parentRect.top - nMarginTop + nBorderTop,
+                "left": rect.left - parentRect.left - nMarginLeft + nBorderLeft
+            };
+        }
+
+        /**
+         * jQuery `.width()`/`.height()`(padding/border 제외한 content box 크기)와 동일.
+         */
+        function _contentWidth(el){
+            if(!el){ return 0; }
+            var style = window.getComputedStyle(el);
+            return el.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+        }
+
+        function _contentHeight(el){
+            if(!el){ return 0; }
+            var style = window.getComputedStyle(el);
+            return el.clientHeight - (parseFloat(style.paddingTop) || 0) - (parseFloat(style.paddingBottom) || 0);
+        }
+
+        /**
+         * jQuery `:visible`(레이아웃 유무로 판단) 근사 - 라운드4에서 확립한 패턴.
+         */
+        function _isVisible(el){
+            return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+        }
+
+        /**
+         * jQuery UI `.effect("highlight")`(노란색으로 반짝였다 원래 배경색으로 서서히
+         * 복귀)와 동일한 시각 효과의 최소 vanilla 재현.
+         */
+        function _highlightElement(el){
+            if(!el){ return; }
+            var sOriginalTransition = el.style.transition;
+            var sOriginalBackground = el.style.backgroundColor;
+            el.style.transition = "none";
+            el.style.backgroundColor = "#ffff99";
+            void el.offsetWidth; // 강제 리플로우 - transition:none이 실제 적용된 뒤 되돌려야 애니메이션이 보인다.
+            el.style.transition = "background-color 1.6s ease";
+            el.style.backgroundColor = sOriginalBackground;
+            setTimeout(function(){
+                el.style.transition = sOriginalTransition;
+            }, 1600);
+        }
+
+        /**
+         * 위임 클릭/이벤트 바인딩 - 라운드2~4에서 확립한 관례(closest + contains 가드).
+         */
+        function _delegate(container, sEventType, sSelector, fHandler){
+            if(!container){
+                return;
+            }
+            container.addEventListener(sEventType, function(weEvt){
+                var matched = weEvt.target.closest(sSelector);
+                if(matched && container.contains(matched)){
+                    fHandler.call(matched, weEvt);
+                }
+            });
+        }
+
+        /**
          * initialize
          */
         function _init(htOptions){
@@ -60,40 +164,44 @@
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
 
             // yona.Attachments
-            htVar.sTplFileItem = $('#tplAttachedFile').text();
+            // jQuery `$('#tplAttachedFile').text()`는 매치가 없어도 빈 문자열을 반환한다.
+            var elTplFileItem = document.getElementById("tplAttachedFile");
+            htVar.sTplFileItem = elTplFileItem ? elTplFileItem.textContent : "";
         }
 
         /**
          * initialize element
          */
         function _initElement(){
-            htElement.welContainer = $(".codediff-wrap");
+            htElement.welContainer = document.querySelector(".codediff-wrap");
 
             // 변경내역
-            htElement.welDiffWrap = htElement.welContainer.find("div.diffs-wrap");
-            htElement.welDiffBody = htElement.welDiffWrap.find(".diff-body");
-            htElement.waDiffContainers = htElement.welDiffWrap.find(".diff-container");
+            htElement.welDiffWrap = htElement.welContainer ? htElement.welContainer.querySelector("div.diffs-wrap") : null;
+            htElement.welDiffBody = htElement.welDiffWrap ? htElement.welDiffWrap.querySelector(".diff-body") : null;
+            htElement.waDiffContainers = htElement.welDiffWrap ? htElement.welDiffWrap.querySelectorAll(".diff-container") : [];
 
             // 리뷰영역
-            htElement.welCommentWrap = htElement.welContainer.find("div.board-comment-wrap");
-            htElement.welReviewWrap = htElement.welContainer.find("div.review-wrap");
-            htElement.welReviewContainer = htElement.welReviewWrap.find("div.review-container");
-            htElement.waBtnToggleReviewWrap = htElement.welContainer.find("button.btn-show-reviewcards,button.btn-hide-reviewcards");
-            htElement.welReviewList = htElement.welContainer.find("div.review-list");
+            htElement.welCommentWrap = htElement.welContainer ? htElement.welContainer.querySelector("div.board-comment-wrap") : null;
+            htElement.welReviewWrap = htElement.welContainer ? htElement.welContainer.querySelector("div.review-wrap") : null;
+            htElement.welReviewContainer = htElement.welReviewWrap ? htElement.welReviewWrap.querySelector("div.review-container") : null;
+            htElement.waBtnToggleReviewWrap = htElement.welContainer ? htElement.welContainer.querySelectorAll("button.btn-show-reviewcards,button.btn-hide-reviewcards") : [];
+            htElement.welReviewList = htElement.welContainer ? htElement.welContainer.querySelector("div.review-list") : null;
             // 전체 댓글 (Non-Ranged comment thread)
-            htElement.welUploader = $("#upload");
-            htElement.welTextarea = $('textarea[data-editor-mode="comment-body"]');
+            htElement.welUploader = document.getElementById("upload");
+            htElement.welTextarea = document.querySelector('textarea[data-editor-mode="comment-body"]');
 
             // 지켜보기
-            htElement.welBtnWatch = $('#watch-button');
+            htElement.welBtnWatch = document.getElementById("watch-button");
 
             // 미니맵
-            htElement.welMiniMap = $("#minimap"); // .minimap-outer
-            htElement.welMiniMapWrap = htElement.welMiniMap.find(".minimap-wrap");
-            htElement.welMiniMapCurr = htElement.welMiniMapWrap.find(".minimap-curr");
-            htElement.welMiniMapLinks = htElement.welMiniMapWrap.find(".minimap-links");
+            htElement.welMiniMap = document.getElementById("minimap"); // .minimap-outer
+            htElement.welMiniMapWrap = htElement.welMiniMap ? htElement.welMiniMap.querySelector(".minimap-wrap") : null;
+            htElement.welMiniMapCurr = htElement.welMiniMapWrap ? htElement.welMiniMapWrap.querySelector(".minimap-curr") : null;
+            htElement.welMiniMapLinks = htElement.welMiniMapWrap ? htElement.welMiniMapWrap.querySelector(".minimap-links") : null;
 
-            // 코드받기
+            // 코드받기 - jquery.requestAs.js 플러그인 호출부라 라운드10까지 전환을 미룬다
+            // (라운드1 project.Delete.js/라운드3 Comment.js/라운드4 issue.View.js와 동일한 판단).
+            // 이 한 지점만 예외적으로 jQuery 객체로 유지한다.
             htElement.welBtnAccept = $("#btnAccept");
         }
 
@@ -101,32 +209,41 @@
          * attach event handler
          */
         function _attachEvent(){
-            htElement.welBtnWatch.on("click", _onClickBtnWatchToggle);
+            if(htElement.welBtnWatch){
+                htElement.welBtnWatch.addEventListener("click", _onClickBtnWatchToggle);
+            }
 
-            $(window).on({
-                "resize": _initMiniMap,
-                "scroll": _updateMiniMapCurr
-            });
+            window.addEventListener("resize", _initMiniMap);
+            window.addEventListener("scroll", _updateMiniMapCurr);
 
-            htElement.waBtnToggleReviewWrap.on("click", function(){
-                htElement.welContainer.toggleClass("diffs-only");
-                _setReviewListHeight();
+            htElement.waBtnToggleReviewWrap.forEach(function(el){
+                el.addEventListener("click", function(){
+                    if(htElement.welContainer){
+                        htElement.welContainer.classList.toggle("diffs-only");
+                    }
+                    _setReviewListHeight();
+                });
             });
 
             // 리뷰카드 링크 클릭시
-            htElement.welReviewWrap.on("click", "a.review-card", _onClickReviewCardLink);
+            _delegate(htElement.welReviewWrap, "click", "a.review-card", _onClickReviewCardLink);
 
             // Diff 영역에서 스크롤시
             // .comment-thread-wrap 의 좌우 위치를 맞춰준다
-            $(".diff-partial-code").on("scroll", function(){
-                var welPartial = $(this);
-                var sHashCode = $(this).data("hashcode");
-                htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap");
-                htVar.htThreadWrap[sHashCode].css("margin-left", welPartial.scrollLeft() + "px");
+            document.querySelectorAll(".diff-partial-code").forEach(function(elPartial){
+                elPartial.addEventListener("scroll", function(){
+                    var sHashCode = elPartial.dataset.hashcode;
+                    htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || elPartial.querySelector(".comment-thread-wrap");
+                    if(htVar.htThreadWrap[sHashCode]){
+                        htVar.htThreadWrap[sHashCode].style.marginLeft = elPartial.scrollLeft + "px";
+                    }
+                });
             });
 
-            $(window).on("hashchange", _onHashChange);
+            window.addEventListener("hashchange", _onHashChange);
 
+            // jquery.requestAs.js 플러그인 호출부(라운드10까지 미룸) - htElement.welBtnAccept만
+            // 예외적으로 jQuery 객체를 유지한다.
             if(htElement.welBtnAccept.length > 0 && htElement.welBtnAccept.data("requestAs")){
                 htElement.welBtnAccept.data("requestAs").on("beforeRequest", function(){
                     htElement.welBtnAccept.attr('disabled','disabled');
@@ -136,11 +253,15 @@
 
             _setReviewWrapAffixed();
 
-            $(window).on('resize scroll', _setReviewListHeight);
+            window.addEventListener("resize", _setReviewListHeight);
+            window.addEventListener("scroll", _setReviewListHeight);
 
-            $("#branches").on("change", function(weEvt){
-                location.href = weEvt.val;
-            });
+            var elBranches = document.getElementById("branches");
+            if(elBranches){
+                elBranches.addEventListener("change", function(weEvt){
+                    location.href = weEvt.val;
+                });
+            }
         }
 
         /**
@@ -149,7 +270,7 @@
          * @private
          */
         function _onClickReviewCardLink(weEvt){
-            var sThreadId = _getHashFromLinkString($(weEvt.currentTarget).attr("href"));
+            var sThreadId = _getHashFromLinkString(this.getAttribute("href"));
 
             if(!_isThreadExistOnCurrentPage(sThreadId)){
                 return;
@@ -159,7 +280,7 @@
             location.hash = sThreadId;
 
             if(sPreviousHash === location.hash) {
-                $(window).trigger("hashchange");
+                window.dispatchEvent(new Event("hashchange"));
             }
 
             weEvt.preventDefault();
@@ -181,7 +302,7 @@
          * @private
          */
         function _isThreadExistOnCurrentPage(sHash){
-            return ($("#" + sHash).length > 0);
+            return !!document.getElementById(sHash);
         }
 
         /**
@@ -189,7 +310,7 @@
          */
         function _onHashChange(){
             if(location.hash) {
-                _scrollToAndHighlight($(location.hash));
+                _scrollToAndHighlight(document.querySelector(location.hash));
             }
         }
 
@@ -198,23 +319,23 @@
          * @private
          */
         function _scrollToAndHighlight(welTarget){
-            var welThread = _getThread(welTarget);
+            var welThread = welTarget ? _getThread(welTarget) : null;
 
-            if(!welTarget || welTarget.length === 0 || !welThread || welThread.length === 0){
+            if(!welTarget || !welThread){
                 return;
             }
 
             if(_isFoldedThread(welThread)){
-                welThread.removeClass("fold");
+                welThread.classList.remove("fold");
             }
 
-            _showReviewCardsTabByState(welThread.data("state"));
-            window.scrollTo(0, welTarget.offset().top - 50);
-            welTarget.effect("highlight");
+            _showReviewCardsTabByState(welThread.dataset.state);
+            window.scrollTo(0, _offset(welTarget).top - 50);
+            _highlightElement(welTarget);
         }
 
         function _getThread(welTarget){
-            return (welTarget.hasClass("comment-thread-wrap")) ? welTarget : welTarget.parents(".comment-thread-wrap");
+            return welTarget.classList.contains("comment-thread-wrap") ? welTarget : _closestAncestor(welTarget, ".comment-thread-wrap");
         }
 
         /**
@@ -225,7 +346,10 @@
          */
         function _showReviewCardsTabByState(state){
             if(["open", "closed"].indexOf(state) > -1) {
-                $("a[href=#reviewcards-" + state + "]").tab("show");
+                var elTab = document.querySelector('a[href="#reviewcards-' + state + '"]');
+                if(elTab){
+                    $yona.tabShow(elTab);
+                }
             }
         }
 
@@ -235,7 +359,7 @@
          * @private
          */
         function _isFoldedThread(welTarget){
-            return welTarget.hasClass("fold") && (welTarget.find(".btn-thread-here").length > 0);
+            return welTarget.classList.contains("fold") && welTarget.querySelectorAll(".btn-thread-here").length > 0;
         }
 
         /**
@@ -243,7 +367,7 @@
          */
         function _scrollToHash(){
             if(location.hash){
-                $(window).trigger("hashchange");
+                window.dispatchEvent(new Event("hashchange"));
             }
         }
 
@@ -252,13 +376,17 @@
          * @private
          */
         function _onClickBtnWatchToggle(weEvt){
-            var welTarget = $(weEvt.target);
-            var bWatched = welTarget.hasClass("active");
+            var welTarget = weEvt.target;
+            var bWatched = welTarget.classList.contains("active");
 
             $yona.sendForm({
                 "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                 "fOnLoad": function(){
-                    welTarget.toggleClass("active ybtn-watching");
+                    // jQuery `.toggleClass("active ybtn-watching")`는 두 클래스를 각각 독립적으로
+                    // (자기 자신의 현재 상태 기준으로) 토글한다 - 네이티브 classList.toggle을
+                    // 클래스별로 따로 호출해 동일하게 재현.
+                    welTarget.classList.toggle("active");
+                    welTarget.classList.toggle("ybtn-watching");
                 }
             });
         }
@@ -267,11 +395,11 @@
          * @private
          */
         function _setReviewWrapAffixed(){
-            if(htElement.welReviewContainer.length === 0){
+            if(!htElement.welReviewContainer){
                 return;
             }
 
-            htElement.welReviewContainer.addClass('sticky-review-container');
+            htElement.welReviewContainer.classList.add('sticky-review-container');
         }
 
         /**
@@ -281,18 +409,20 @@
             var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
+                // P3-70 라운드5: yona.Files.getUploader()는 이 라운드 완료 시점까지 반환값을
+                // 아직 jQuery로 감싸둔 상태다(board.Write.js 등 이미 vanilla인 다른 호출부와
+                // 동일하게 oUploader[0]로 raw element를 꺼내 네이티브로 읽는다).
                 (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
-                    "sUploaderId"  : oUploader.attr("data-namespace")
+                    "sUploaderId"  : oUploader[0].getAttribute("data-namespace")
                 }));
             }
 
-            $("form.review-form").each(function(i, el){
-                var form = $(el);
-                var container = form.find(".upload-wrap");
-                var textarea = form.find("textarea");
+            document.querySelectorAll("form.review-form").forEach(function(form){
+                var container = form.querySelector(".upload-wrap");
+                var textarea = form.querySelector("textarea");
                 var uploader = yona.Files.getUploader(container, textarea);
 
                 if(uploader){
@@ -300,7 +430,7 @@
                         "elTextarea"   : textarea,
                         "elContainer"  : container,
                         "sTplFileItem" : htVar.sTplFileItem,
-                        "sUploaderId"  : uploader.attr("data-namespace")
+                        "sUploaderId"  : uploader[0].getAttribute("data-namespace")
                     }));
 
                 }
@@ -311,8 +441,11 @@
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            $(".attachments").each(function(i, elContainer){
-                if(!$(elContainer).data("isYonaAttachment")){
+            document.querySelectorAll(".attachments").forEach(function(elContainer){
+                // isYonaAttachment는 다른 파일들(milestone.View.js 등, 이미 vanilla)이 확립한
+                // 것과 동일한 공개 계약 - window.jQuery.data() 정적 접근자로 jQuery 내부 데이터
+                // 캐시를 직접 읽는다(yona.Attachments.js가 이 키로 기록).
+                if(!window.jQuery.data(elContainer, "isYonaAttachment")){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }
             });
@@ -322,10 +455,17 @@
          * initialize toggle comments button
          */
         function _initToggleCommentsButton(){
-            $('#toggle-comments').on('click', function(){
-                htElement.waDiffContainers.toggleClass('show-comments');
-                htElement.welMiniMap.toggle();
-            });
+            var elToggle = document.getElementById('toggle-comments');
+            if(elToggle){
+                elToggle.addEventListener('click', function(){
+                    htElement.waDiffContainers.forEach(function(el){
+                        el.classList.toggle('show-comments');
+                    });
+                    if(htElement.welMiniMap){
+                        htElement.welMiniMap.style.display = _isVisible(htElement.welMiniMap) ? "none" : "block";
+                    }
+                });
+            }
         }
 
         /**
@@ -336,19 +476,28 @@
                 _initCodeCommentBox();
                 _initCodeCommentBlock();
 
-                $('div.diff-body[data-outdated!="true"]').on("click", "tr[data-line] .linenum", _onClickLineNumA);
+                // Sizzle의 `[data-outdated!="true"]`(네이티브 CSS엔 없는 확장) 대신 표준
+                // `:not([data-outdated="true"])`로 대체 - 속성이 아예 없는 경우까지 포함해
+                // 동일하게 매칭한다.
+                document.querySelectorAll('div.diff-body:not([data-outdated="true"])').forEach(function(elDiffBody){
+                    _delegate(elDiffBody, "click", "tr[data-line] .linenum", _onClickLineNumA);
+                });
 
-                htElement.welDiffWrap.on("click", "button.btn-thread", _onClickBtnReplyOnThread);
+                _delegate(htElement.welDiffWrap, "click", "button.btn-thread", _onClickBtnReplyOnThread);
             } else {
-                htElement.welDiffBody.find(".linenum > .yobicon-comments").hide();
+                if(htElement.welDiffBody){
+                    htElement.welDiffBody.querySelectorAll(".linenum > .yobicon-comments").forEach(function(el){
+                        el.style.display = "none";
+                    });
+                }
             }
 
-            htElement.welDiffBody.on("click", ".btn-thread-minimize", _onClickBtnFoldThread);
+            _delegate(htElement.welDiffBody, "click", ".btn-thread-minimize", _onClickBtnFoldThread);
 
             // block/unblock with thread range with mouseenter/leave event
-            $('div[data-toggle="CodeCommentThread"]').on({
-                "mouseenter": _onMouseOverCodeCommentThread,
-                "mouseleave": _onMouseLeaveCodeCommentThread
+            document.querySelectorAll('div[data-toggle="CodeCommentThread"]').forEach(function(el){
+                el.addEventListener("mouseenter", _onMouseOverCodeCommentThread);
+                el.addEventListener("mouseleave", _onMouseLeaveCodeCommentThread);
             });
         }
 
@@ -360,13 +509,11 @@
                 "sTplFileItem": htVar.sTplFileItem
             });
 
-            $(window).on({
-                "CodeCommentBox:aftershow": _updateMiniMap,
-                "CodeCommentBox:afterhide": function(){
-                    _updateMiniMap();
-                    yona.CodeCommentBlock.unblock();
-                    htVar.htBlockInfo = null;
-                }
+            window.addEventListener("CodeCommentBox:aftershow", _updateMiniMap);
+            window.addEventListener("CodeCommentBox:afterhide", function(){
+                _updateMiniMap();
+                yona.CodeCommentBlock.unblock();
+                htVar.htBlockInfo = null;
             });
         }
 
@@ -375,16 +522,22 @@
          * @private
          */
         function _onClickBtnReplyOnThread(weEvt){
-            var welButton = $(weEvt.currentTarget);
-            var welActions = welButton.closest(".thread-actrow");
+            var elButton = this;
+            var elActions = elButton.closest(".thread-actrow");
 
-            $(window).on("CodeCommentBox:afterhide", function(){
-                welActions.show();
-                $(window).off("CodeCommentBox:afterhide", arguments.callee);
-            });
-            yona.CodeCommentBox.show(welButton);
+            function _onAfterHide(){
+                if(elActions){
+                    elActions.style.display = "";
+                }
+                window.removeEventListener("CodeCommentBox:afterhide", _onAfterHide);
+            }
+            window.addEventListener("CodeCommentBox:afterhide", _onAfterHide);
 
-            welActions.hide();
+            yona.CodeCommentBox.show(elButton);
+
+            if(elActions){
+                elActions.style.display = "none";
+            }
         }
 
         /**
@@ -393,11 +546,11 @@
         function _initCodeCommentBlock(){
             yona.CodeCommentBlock.init({
                 "welContainer"       : htElement.welDiffBody,
-                "welPopButtonOnBlock": htElement.welDiffBody.find(".btnPop")
+                "welPopButtonOnBlock": htElement.welDiffBody ? htElement.welDiffBody.querySelector(".btnPop") : null
             });
 
-            htElement.welDiffBody.on("click", ".btnPop", _onClickBtnAddBlockComment);
-            htElement.welDiffBody.on("mousedown", ":not(.btnPop)", _onMouseDownDiffBody);
+            _delegate(htElement.welDiffBody, "click", ".btnPop", _onClickBtnAddBlockComment);
+            _delegate(htElement.welDiffBody, "mousedown", ":not(.btnPop)", _onMouseDownDiffBody);
         }
 
         /**
@@ -435,7 +588,7 @@
          * @private
          */
         function _isTargetBelongs(elTarget, sQuery){
-            return ($(elTarget).parents(sQuery).length > 0);
+            return _hasMatchingAncestor(elTarget, sQuery);
         }
 
         /**
@@ -455,13 +608,17 @@
 
             var sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
             var sLineType = htBlockInfo.bIsReversed ? htBlockInfo.sStartType : htBlockInfo.sEndType;
-            var welContainer = $('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
-            var welTR = welContainer.find('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]');
-            welTR.data("blockInfo", htBlockInfo);
+            var welContainer = document.querySelector('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
+            var welTR = welContainer ? welContainer.querySelector('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]') : null;
+            if(welTR){
+                // 이 값은 원본에서도 이후 어디서도 다시 읽히지 않는 내부 전용 기록이다(전수
+                // 조사 완료) - jQuery `.data()` 캐시 대신 커스텀 expando로 그대로 보존한다.
+                welTR.__blockInfo = htBlockInfo;
+            }
 
             yona.CodeCommentBox.show(welTR, {
                 "sPlacement": htBlockInfo.bIsReversed ? "top" : "bottom",
-                "nAdjustmentTop": htElement.welDiffBody.position().top
+                "nAdjustmentTop": htElement.welDiffBody ? _position(htElement.welDiffBody).top : 0
             });
 
             var nMarginFromBorder = 20;
@@ -482,7 +639,7 @@
          * @private
          */
         function _doesCommentBoxOutOfWindow(){
-            var nScrollTop = $(document.body).scrollTop();
+            var nScrollTop = document.body.scrollTop;
             var nOffsetTop = yona.CodeCommentBox.offset().top;
 
             return (nScrollTop + window.innerHeight < nOffsetTop) ||
@@ -495,15 +652,19 @@
         function _onClickLineNumA(weEvt){
             window.getSelection().removeAllRanges();
 
-            var welTarget = $(weEvt.target).closest("tr").find("td.code pre");
-            var oNode = welTarget.get(0).childNodes[0];
+            var elTr = this.closest("tr");
+            var elPre = elTr ? elTr.querySelector("td.code pre") : null;
+            if(!elPre){
+                return;
+            }
+            var oNode = elPre.childNodes[0];
             var oRange = document.createRange();
 
             oRange.setStart(oNode, 0);
             oRange.setEnd(oNode, oNode.length);
             window.getSelection().addRange(oRange);
 
-            welTarget.trigger("mouseup");
+            elPre.dispatchEvent(new Event("mouseup", {"bubbles": true}));
             _onClickBtnAddBlockComment();
         }
 
@@ -514,7 +675,10 @@
          * @private
          */
         function _onClickBtnFoldThread(weEvt){
-            $(weEvt.currentTarget).closest(".comment-thread-wrap").toggleClass("fold");
+            var elThread = this.closest(".comment-thread-wrap");
+            if(elThread){
+                elThread.classList.toggle("fold");
+            }
             _setAllBtnThreadHerePosition();
         }
 
@@ -524,8 +688,11 @@
          * @private
          */
         function _setAllBtnThreadHerePosition(){
-            htElement.welDiffBody.find(".btn-thread-here").each(function(i, el){
-                _setBtnThreadHerePosition($(el));
+            if(!htElement.welDiffBody){
+                return;
+            }
+            htElement.welDiffBody.querySelectorAll(".btn-thread-here").forEach(function(el){
+                _setBtnThreadHerePosition(el);
             });
         }
 
@@ -540,13 +707,15 @@
             var nPadding = 10;
 
             // set unfold button right
-            welButton.css("right", ((welThread.index() * welButton.width()) + nPadding) + "px");
+            var nThreadIndex = welThread && welThread.parentElement ?
+                Array.prototype.indexOf.call(welThread.parentElement.children, welThread) : 0;
+            welButton.style.right = ((nThreadIndex * _contentWidth(welButton)) + nPadding) + "px";
 
             // set unfold button top
             // find target line with thread
-            var welEndLine = _getTargetLineByThread(welThread);
-            if(welEndLine.length > 0){
-                welButton.css("top", welEndLine.position().top - nPadding + "px");
+            var welEndLine = welThread ? _getTargetLineByThread(welThread) : null;
+            if(welEndLine){
+                welButton.style.top = (_position(welEndLine).top - nPadding) + "px";
             }
         }
 
@@ -558,11 +727,12 @@
          * @private
          */
         function _getTargetLineByThread(welThread){
-            var sEndLineQuery = 'tr[data-line="' + welThread.data("range-endline") + '"]' +
-                '[data-side="' + welThread.data("range-endside") + '"]';
-            var welEndLine = welThread.closest("tr").prev(sEndLineQuery);
+            var sEndLineQuery = 'tr[data-line="' + welThread.dataset.rangeEndline + '"]' +
+                '[data-side="' + welThread.dataset.rangeEndside + '"]';
+            var elTr = welThread.closest("tr");
+            var elPrev = elTr ? elTr.previousElementSibling : null;
 
-            return welEndLine;
+            return (elPrev && elPrev.matches(sEndLineQuery)) ? elPrev : null;
         }
 
         /**
@@ -576,15 +746,15 @@
                 return;
             }
 
-            var welThread = $(weEvt.currentTarget);
+            var welThread = weEvt.currentTarget;
             var htBlockInfo = {
-                "sPath"       : welThread.data("range-path"),
-                "sStartSide"  : welThread.data("range-startside"),
-                "nStartLine"  : parseInt(welThread.data("range-startline"), 10),
-                "nStartColumn": parseInt(welThread.data("range-startcolumn"), 10),
-                "sEndSide"    : welThread.data("range-endside"),
-                "nEndLine"    : parseInt(welThread.data("range-endline"), 10),
-                "nEndColumn"  : parseInt(welThread.data("range-endcolumn"), 10)
+                "sPath"       : welThread.dataset.rangePath,
+                "sStartSide"  : welThread.dataset.rangeStartside,
+                "nStartLine"  : parseInt(welThread.dataset.rangeStartline, 10),
+                "nStartColumn": parseInt(welThread.dataset.rangeStartcolumn, 10),
+                "sEndSide"    : welThread.dataset.rangeEndside,
+                "nEndLine"    : parseInt(welThread.dataset.rangeEndline, 10),
+                "nEndColumn"  : parseInt(welThread.dataset.rangeEndcolumn, 10)
             };
             yona.CodeCommentBlock.block(htBlockInfo);
         }
@@ -619,39 +789,44 @@
         }
 
         function _setMiniMapRatio(){
-            var nDocumentHeight = $(document).height();
-            var nMapHeight = htElement.welMiniMapWrap.height();
+            var nDocumentHeight = document.documentElement.scrollHeight;
+            var nMapHeight = htElement.welMiniMapWrap ? htElement.welMiniMapWrap.offsetHeight : 0;
 
             htVar.nMiniMapRatio = nMapHeight / nDocumentHeight;
         }
 
         function _updateMiniMapCurr(){
-            htElement.welMiniMapCurr.css("top", Math.ceil($(document.body).scrollTop() * htVar.nMiniMapRatio) + "px");
+            if(htElement.welMiniMapCurr){
+                htElement.welMiniMapCurr.style.top = Math.ceil(document.body.scrollTop * htVar.nMiniMapRatio) + "px";
+            }
         }
 
         function _resizeMiniMapCurr(){
-            htElement.welMiniMapCurr.css("height", Math.ceil(window.innerHeight * htVar.nMiniMapRatio) + "px");
+            if(htElement.welMiniMapCurr){
+                htElement.welMiniMapCurr.style.height = Math.ceil(window.innerHeight * htVar.nMiniMapRatio) + "px";
+            }
         }
 
         function _updateMiniMap(){
             var aLinks = [];
-            var welTarget, nTop;
-            var waTargets = $(htVar.sQueryMiniMap);
+            var waTargets = document.querySelectorAll(htVar.sQueryMiniMap);
 
             if(waTargets.length > 0){
-                waTargets.each(function(i, el){
-                    welTarget = $(el);
-
-                    aLinks.push($.tmpl(htVar.sTplMiniMapLink, {
-                        "id"    : welTarget.attr("id"),
-                        "top"   : Math.ceil(welTarget.offset().top * htVar.nMiniMapRatio),
-                        "height": Math.ceil(welTarget.height() * htVar.nMiniMapRatio)
+                waTargets.forEach(function(el){
+                    aLinks.push($yona.tmpl(htVar.sTplMiniMapLink, {
+                        "id"    : el.getAttribute("id"),
+                        "top"   : Math.ceil(_offset(el).top * htVar.nMiniMapRatio),
+                        "height": Math.ceil(el.offsetHeight * htVar.nMiniMapRatio)
                     }));
                 });
-                htElement.welMiniMapLinks.html(aLinks.join(""));
-                htElement.welMiniMap.show();
-            } else {
-                htElement.welMiniMap.hide();
+                if(htElement.welMiniMapLinks){
+                    htElement.welMiniMapLinks.innerHTML = aLinks.join("");
+                }
+                if(htElement.welMiniMap){
+                    htElement.welMiniMap.style.display = "block";
+                }
+            } else if(htElement.welMiniMap){
+                htElement.welMiniMap.style.display = "none";
             }
         }
 
@@ -661,25 +836,27 @@
             // position: sticky는 fixed와 달리 상태 변화 이벤트가 없어, top:10px에
             // 실제로 붙었는지 여부를 getBoundingClientRect()로 직접 판별한다(Bootstrap
             // affix.js의 .affix 클래스 판별을 대체).
-            var bIsStuck = htElement.welReviewContainer.length > 0 &&
-                htElement.welReviewContainer[0].getBoundingClientRect().top <= 10;
+            var bIsStuck = !!htElement.welReviewContainer &&
+                htElement.welReviewContainer.getBoundingClientRect().top <= 10;
 
-            if(bIsStuck) {
-                var nCodeDiffWrapOffsetBottom = htElement.welContainer.position().top + htElement.welContainer.height();
-                var nReviewListOffsetBottom = htElement.welReviewList.offset().top + htElement.welReviewList.height();
+            if(bIsStuck && htElement.welContainer && htElement.welReviewList) {
+                var nCodeDiffWrapOffsetBottom = _position(htElement.welContainer).top + _contentHeight(htElement.welContainer);
+                var nReviewListOffsetBottom = _offset(htElement.welReviewList).top + _contentHeight(htElement.welReviewList);
                 var nReviewListDefaultMarginBottom = 15;
                 var nDiffWrapBottomPadding = 90;
 
                 if(nCodeDiffWrapOffsetBottom <= nReviewListOffsetBottom + nReviewListDefaultMarginBottom) {
-                    nMaxHeight = nCodeDiffWrapOffsetBottom  - $(document).scrollTop() + nDiffWrapBottomPadding;
+                    nMaxHeight = nCodeDiffWrapOffsetBottom - window.scrollY + nDiffWrapBottomPadding;
                 } else {
-                    nMaxHeight = $(window).height() - htElement.welReviewList.position().top - nReviewListDefaultMarginBottom;
+                    nMaxHeight = window.innerHeight - _position(htElement.welReviewList).top - nReviewListDefaultMarginBottom;
                 }
-            } else {
-                nMaxHeight = htElement.welContainer.height() - htElement.welReviewList.position().top;
+            } else if(htElement.welContainer && htElement.welReviewList) {
+                nMaxHeight = _contentHeight(htElement.welContainer) - _position(htElement.welReviewList).top;
             }
 
-            htElement.welReviewList.css({'max-height': nMaxHeight +'px'});
+            if(htElement.welReviewList && typeof nMaxHeight !== "undefined"){
+                htElement.welReviewList.style.maxHeight = nMaxHeight + 'px';
+            }
         }
 
         _init(htOptions || {});

@@ -320,13 +320,13 @@
      이 화면에 아직 없는 요소라 빈 jQuery 선택이 되지만, 모듈 쪽에서 그 요소가 실제로 있을 때만
      사용하므로 안전하다(라벨 편집기는 이 화면에 아직 이식되지 않은 별도 범위). -->
 <script type="text/javascript" th:inline="javascript">
-$(document).ready(function(){
+document.addEventListener("DOMContentLoaded", function(){
     $yona.loadModule("project.Home", {
         "sURLProjectLabels": /*[[@{/api/{owner}/{name}/labels(owner=${project.owner}, name=${project.name})}]]*/ "",
         "sURLLabels": /*[[@{/labels}]]*/ "",
         "sURLLabelCategories": /*[[@{/categories}]]*/ "",
-        "welLabelBoard": $('#label-board'),
-        "welLabelEditorToggle": $('#label-editor-toggle'),
+        "welLabelBoard": document.getElementById('label-board'),
+        "welLabelEditorToggle": document.getElementById('label-editor-toggle'),
         "nProjectId": /*[[${project.id}]]*/ "",
         "sURLProject": /*[[@{/api/projects/{id}(id=${project.id})}]]*/ "",
         "sURLZeroClipboard": /*[[@{/javascripts/lib/jquery/ZeroClipboard.swf}]]*/ ""

@@ -41,7 +41,7 @@
                 _initDepthedList();
                 _attachEvent();
 
-                $(window).trigger("hashchange");
+                window.dispatchEvent(new Event("hashchange"));
             }
         }
 
@@ -55,7 +55,9 @@
             htVar.sMetaInfoURL = htOptions.sMetaInfoURL;
             htVar.sBasePathURL = htOptions.sBasePathURL;
             htVar.elStyle = document.styleSheets[0];
-            htVar.sTplListItem = $("#tplFileListItem").text();
+            // jQuery `$("#tplFileListItem").text()`는 매치가 없어도 빈 문자열을 반환한다.
+            var elTplListItem = document.getElementById("tplFileListItem");
+            htVar.sTplListItem = elTplListItem ? elTplListItem.textContent : "";
             htVar.rxSub = /text\/x-(.+)-source/;
             htVar.rxScala = /\.scala\.html$/i;
             htVar.sPath = htOptions.sInitialPath;
@@ -68,38 +70,50 @@
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welFileView = $(".file-wrap[data-type=file]");
-            htElement.welShowFile = $("#showFile"); // fileInfo
-            htElement.welShowCode = $("#showCode"); // aceEditor
-            htElement.welCodeVal  = $("#codeVal");
-            htElement.welBreadCrumbs = $("#breadcrumbs");
-            htElement.welBranches = $("#branches");
+            htElement.welFileView = document.querySelectorAll('.file-wrap[data-type="file"]');
+            htElement.welShowFile = document.getElementById("showFile"); // fileInfo
+            htElement.welShowCode = document.getElementById("showCode"); // aceEditor
+            htElement.welCodeVal  = document.getElementById("codeVal");
+            htElement.welBreadCrumbs = document.getElementById("breadcrumbs");
+            htElement.welBranches = document.getElementById("branches");
         }
 
         function _initDepthedList(){
-            var waFileWrap = $("div.list-wrap[data-listpath]");
+            var waFileWrap = document.querySelectorAll("div.list-wrap[data-listpath]");
 
-            waFileWrap.each(function(i, elList){
-                var welList = $(elList);
-                var sListPath = welList.data("listpath");
-                var welTarget = $('[data-path="' + sListPath + '"]');
+            waFileWrap.forEach(function(elList, i){
+                var sListPath = elList.dataset.listpath;
+                var welTarget = document.querySelector('[data-path="' + sListPath + '"]');
 
-                welList.data("content", sListPath);
-                welList.data("depth", i+1);
-                welList.addClass("depth-" + (i+1));
-                _setIndentByDepth(i+1);
+                // "content" data 키는 이 모듈 내부에서만 쓰는 값으로, 다른 파일이 읽지 않는
+                // 커스텀 상태다(전수 조사 완료) - dataset 문자열 변환 함정과 무관하게 커스텀
+                // expando로 그대로 보존.
+                elList.__content = sListPath;
+                // "depth"는 이후 산술 연산(+1)에 쓰이므로 dataset(항상 문자열)로 옮기면
+                // 문자열 연결(예: "2"+1 === "21")로 깨진다 - 커스텀 expando로 숫자를 그대로 보존.
+                elList.__depth = i + 1;
+                elList.classList.add("depth-" + (i + 1));
+                _setIndentByDepth(i + 1);
 
-                welTarget.after(welList);
+                if(welTarget){
+                    welTarget.insertAdjacentElement("afterend", elList);
+                }
             });
-            $(".list-wrap").show();
+            document.querySelectorAll(".list-wrap").forEach(function(el){
+                el.style.display = "block";
+            });
 
             _setCurrentPathBold(htVar.sPath);
         }
 
         function _attachEvent(){
-            $('.code-viewer-wrap').click(_onClickWrap);
-            $(window).on("hashchange", _onHashChange);
-            htElement.welBranches.on("change", _onChangeBranch);
+            document.querySelectorAll(".code-viewer-wrap").forEach(function(el){
+                el.addEventListener("click", _onClickWrap);
+            });
+            window.addEventListener("hashchange", _onHashChange);
+            if(htElement.welBranches){
+                htElement.welBranches.addEventListener("change", _onChangeBranch);
+            }
         }
 
         function _onChangeBranch(weEvt){
@@ -107,19 +121,18 @@
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
          */
         function _onClickWrap(weEvt){
             var elTarget = weEvt.target;
-            var welTarget = $(elTarget);
 
-            if(elTarget.tagName.toLowerCase() === 'a' && welTarget.data("type") === "folder"){
+            if(elTarget.tagName.toLowerCase() === 'a' && elTarget.dataset.type === "folder"){
                 var sPreviousHash = document.location.hash;
-                var sTargetPath = welTarget.data("targetpath");
+                var sTargetPath = elTarget.dataset.targetpath;
                 document.location.hash = sTargetPath;
 
                 if(document.location.hash === sPreviousHash){
-                    $(window).trigger("hashchange");
+                    window.dispatchEvent(new Event("hashchange"));
                 }
 
                 weEvt.preventDefault();
@@ -134,7 +147,7 @@
             }
 
             var sTargetPath = document.location.hash.substr(1);
-            var welList = $('[data-listpath="' + sTargetPath + '"]');
+            var waList = document.querySelectorAll('[data-listpath="' + sTargetPath + '"]');
 
             var sCheckPath = "";
             htVar.aPathQueue = [];
@@ -146,8 +159,16 @@
             });
             _updateBreadcrumbs(htVar.aPathQueue);
 
-            if(welList.length > 0){
-                welList.toggle();
+            if(waList.length > 0){
+                // jQuery의 인자 없는 `.toggle()`은 인라인 스타일이 아니라 실제 계산된 가시성
+                // (`:visible`)을 보고 반전한다 - `.list-wrap`의 CSS 기본값이 `display:none`이라
+                // 인라인 스타일만 비교하면(라운드1에서 발견된 Subtask.js와 동일한 함정) 최초
+                // 1회는 항상 "숨김→숨김"으로 잘못 판정된다. 라운드4에서 확립한 `:visible` 근사
+                // (offsetWidth||offsetHeight||getClientRects().length)로 실제 가시성을 판별한다.
+                waList.forEach(function(el){
+                    var bVisible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+                    el.style.display = bVisible ? "none" : "block";
+                });
                 _setCurrentPathBold(sTargetPath);
             } else {
                 _requestFolderList();
@@ -159,13 +180,13 @@
             if(htVar.aPathQueue.length === 0){
                 NProgress.done();
                 htVar.aWelList.forEach(function(welList){
-                    welList.css("display", "block");
+                    welList.style.display = "block";
                 });
                 return false;
             }
 
             var sTargetPath = decodeURI(htVar.aPathQueue.shift());
-            var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
+            var welTarget = document.querySelector('[data-targetpath="' + sTargetPath + '"]');
 
             if(_isListExistsByPath(sTargetPath)){
                 _requestFolderList();
@@ -175,48 +196,55 @@
         }
 
         /**
-         * @param {Wrapped Element} welTarget
+         * @param {Element} welTarget
          * @param {String} sTargetPath
          */
         function _appendFolderList(welTarget, sTargetPath){
             var sURL = _getCorrectedPath(htVar.sMetaInfoURL, sTargetPath);
-            var nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0;
+            var elParentWrap = welTarget ? welTarget.closest(".list-wrap") : null;
+            var nParentDepth = (elParentWrap && elParentWrap.__depth) || 0;
             var nNewDepth = nParentDepth + 1;
             _setIndentByDepth(nNewDepth);
 
             NProgress.start();
-            $.ajax(sURL, {
-                "success": function(oRes){
-                    if(_isListExistsByPath(sTargetPath)){
-                        NProgress.done();
-                        return;
-                    }
-
-                    var aHTML = _getListHTML(oRes.data, sTargetPath);
-                    var welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
-                    var welList = $('<div class="list-wrap" data-listPath="' + sTargetPath + '"></div>');
-
-                    welList.data("depth", nNewDepth);
-                    welList.addClass("depth-" + nNewDepth);
-                    welList.css("display", "none");
-                    welList.html(aHTML);
-                    welTargetItem.after(welList);
-                    htVar.aWelList.push(welList);
-
-                    if(htVar.aPathQueue.length > 0){
-                        _requestFolderList();
-                    } else {
-                        _setCurrentPathBold(sTargetPath);
-                        htVar.aWelList.forEach(function(welList){
-                            welList.css("display", "block");
-                        });
-                    }
-
-                    NProgress.done();
-                },
-                "error"  : function(){
-                    NProgress.done();
+            fetch(sURL).then(function(oResponse){
+                if(!oResponse.ok){
+                    throw new Error("request failed");
                 }
+                return oResponse.json();
+            }).then(function(oRes){
+                if(_isListExistsByPath(sTargetPath)){
+                    NProgress.done();
+                    return;
+                }
+
+                var aHTML = _getListHTML(oRes.data, sTargetPath);
+                var welTargetItem = document.querySelector('.listitem[data-path="' + sTargetPath + '"]');
+                var welList = document.createElement("div");
+                welList.className = "list-wrap";
+                welList.dataset.listpath = sTargetPath;
+
+                welList.__depth = nNewDepth;
+                welList.classList.add("depth-" + nNewDepth);
+                welList.style.display = "none";
+                welList.innerHTML = aHTML.join("");
+                if(welTargetItem){
+                    welTargetItem.insertAdjacentElement("afterend", welList);
+                }
+                htVar.aWelList.push(welList);
+
+                if(htVar.aPathQueue.length > 0){
+                    _requestFolderList();
+                } else {
+                    _setCurrentPathBold(sTargetPath);
+                    htVar.aWelList.forEach(function(welList){
+                        welList.style.display = "block";
+                    });
+                }
+
+                NProgress.done();
+            }).catch(function(){
+                NProgress.done();
             });
         }
 
@@ -226,7 +254,7 @@
          * @private
          */
         function _isListExistsByPath(sTargetPath){
-            return ($('[data-listpath="' + sTargetPath + '"]').length > 0);
+            return (document.querySelectorAll('[data-listpath="' + sTargetPath + '"]').length > 0);
         }
 
         /**
@@ -308,11 +336,13 @@
          * @param {String} sPath
          */
         function _setCurrentPathBold(sPath){
-            var welCurrent = $('[data-path="' + sPath + '"]');
+            var welCurrent = document.querySelector('[data-path="' + sPath + '"]');
 
-            if(welCurrent.length > 0){
-                $(".currentPath").removeClass("currentPath");
-                welCurrent.addClass("currentPath");
+            if(welCurrent){
+                document.querySelectorAll(".currentPath").forEach(function(el){
+                    el.classList.remove("currentPath");
+                });
+                welCurrent.classList.add("currentPath");
             }
         }
 
@@ -345,9 +375,9 @@
         }
 
         function _initShowFile(){
-            if(htElement.welShowCode.length > 0){
+            if(htElement.welShowCode){
                 _initCodeView(); // 코드보기
-            } else if(htElement.welShowFile.length > 0){
+            } else if(htElement.welShowFile){
                 _beautifyFileSize(); // 파일정보
             }
         }
@@ -356,9 +386,13 @@
          * @require humanize.js
          */
         function _beautifyFileSize(){
-            htElement.welShowfile.find(".filesize").each(function(i, el){
-                var welTarget = $(el);
-                welTarget.html(humanize.filesize(welTarget.text()));
+            // 원본 코드 그대로 보존: `htElement.welShowfile`(소문자 f)는 `_initElement`가 실제로
+            // 채우는 `htElement.welShowFile`(대문자 F)와 이름이 달라 항상 undefined다 - 이
+            // 함수가 실제로 호출되면 원본도 이 지점에서 TypeError를 던졌을 pre-existing 오타
+            // 버그다(이 파일 자체가 어느 템플릿에서도 로드되지 않는 죽은 코드라 실제로 발현된
+            // 적은 없다). jQuery 전환과 무관해 고치지 않고 동일하게 보존한다.
+            htElement.welShowfile.querySelectorAll(".filesize").forEach(function(el){
+                el.innerHTML = humanize.filesize(el.textContent);
             });
         }
 
@@ -367,14 +401,15 @@
          * @param {String} sMode
          */
         function _initCodeView(){
-            
+
             if(_isMarkdownExtension(htVar.sPath)) {
 
-                htElement.welFileView.removeClass('file-wrap');
+                htElement.welFileView.forEach(function(el){
+                    el.classList.remove('file-wrap');
+                });
 
-                htElement.welCodeVal
-                    .removeClass('hidden')
-                    .addClass('markdown-wrap codebrowser-markdown');
+                htElement.welCodeVal.classList.remove('hidden');
+                htElement.welCodeVal.classList.add('markdown-wrap', 'codebrowser-markdown');
             } else {
 
                 if(!htVar.oEditor){
@@ -383,12 +418,12 @@
 
                 // Use explicit MIME Type if the server told which language is used to write the source code.
                 // or the client should guess it.
-                var sMimeType = htElement.welShowCode.data("mimetype");
+                var sMimeType = htElement.welShowCode.dataset.mimetype;
                 var aMatch = sMimeType.match(htVar.rxSub);
                 var sMode = (aMatch ? aMatch[1] : _getEditorModeByPath(htVar.sPath)) || "text";
 
                 htVar.oSession.setMode("ace/mode/" + sMode);
-                htVar.oSession.setValue(htElement.welCodeVal.text());
+                htVar.oSession.setValue(htElement.welCodeVal.textContent);
                 setTimeout(_resizeEditor, 50);
             }
         }
@@ -413,7 +448,7 @@
 
         function _isMarkdownExtension(sPath) {
             var sExt =  getExt(basename(htVar.sPath));
-            return ($.inArray(sExt, htVar.aMarkdownExtension) !== -1);
+            return (htVar.aMarkdownExtension.indexOf(sExt) !== -1);
         }
 
         /**
@@ -500,7 +535,7 @@
             nLineHeight = (nLineHeight === 1) ? (htVar.nFontSize + 4) : nLineHeight;
 
             var newHeight = (htVar.oSession.getScreenLength() * nLineHeight) + htVar.oEditor.renderer.scrollBar.getWidth();
-            htElement.welShowCode.height(newHeight);
+            htElement.welShowCode.style.height = newHeight + "px";
             htVar.oEditor.resize();
         }
 
@@ -520,15 +555,15 @@
 
             var breadcrumb = $yona.xssClean(aCrumbs.join(""));
 
-            htElement.welBreadCrumbs.html(breadcrumb);
+            htElement.welBreadCrumbs.innerHTML = breadcrumb;
 
-            var $newFileLink = $("#new-file-link");
+            var elNewFileLink = document.getElementById("new-file-link");
             var path = window.location.hash.substr(1);
 
             // 'New File' Button supports only git repositories.
-            if ($newFileLink[0]) {
-                var newPath = updateQueryStringParameter($newFileLink.attr("href"), "path", path + "/");
-                $newFileLink.attr("href", newPath);
+            if (elNewFileLink) {
+                var newPath = updateQueryStringParameter(elNewFileLink.getAttribute("href"), "path", path + "/");
+                elNewFileLink.setAttribute("href", newPath);
             }
         }
 

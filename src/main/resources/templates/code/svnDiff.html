@@ -144,7 +144,7 @@
 <div th:replace="~{site/layout :: scripts}"></div>
 <script type="text/javascript" src="/javascripts/lib/diff.js"></script>
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         /*[<![CDATA[*/
         var parentCommitId = /*[[${parentCommit != null ? parentCommit.id : ''}]]*/ '';
         var commitId = /*[[${commit.id}]]*/ '';

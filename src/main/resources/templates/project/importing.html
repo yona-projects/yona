@@ -226,30 +226,50 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript">
-  $(function() {
+  document.addEventListener("DOMContentLoaded", function() {
       // 인증 체크박스 토글
-      $("#useRepoAuth").change(function() {
-          if($(this).is(":checked")) {
-              $("#repoAuth").show();
-          } else {
-              $("#repoAuth").hide();
-              $("input[name='authId']").val("");
-              $("input[name='authPw']").val("");
-          }
-      });
+      var elUseRepoAuth = document.getElementById("useRepoAuth");
+      if(elUseRepoAuth){
+          elUseRepoAuth.addEventListener("change", function() {
+              var elRepoAuth = document.getElementById("repoAuth");
+              if(this.checked) {
+                  // `.form-wrap.new-project .repo-auth-wrap { display: none; }`(yona.css)
+                  // 클래스 규칙 때문에 인라인 스타일을 빈 문자열로만 비우면 그 규칙이 그대로
+                  // 이겨 패널이 열리지 않는다(Playwright 실측 회귀 발견) - 명시적으로 오버라이드.
+                  if(elRepoAuth){ elRepoAuth.style.display = "block"; }
+              } else {
+                  if(elRepoAuth){ elRepoAuth.style.display = "none"; }
+                  document.querySelectorAll("input[name='authId']").forEach(function(el){ el.value = ""; });
+                  document.querySelectorAll("input[name='authPw']").forEach(function(el){ el.value = ""; });
+              }
+          });
+      }
 
       // 소유자가 조직(group)인 경우 protected 옵션을 노출
-      $("#project-owner").change(function() {
-          var selectedType = $(this).find("option:selected").attr("data-type");
+      var elProjectOwner = document.getElementById("project-owner");
+      function _onChangeProjectOwnerVisibility() {
+          // jQuery Sizzle 전용 `:selected` 의사클래스는 네이티브 querySelector에서 유효하지
+          // 않은 셀렉터라 SyntaxError를 던진다(Playwright 실측으로 발견한 실제 회귀 - 이 예외가
+          // 이 함수 호출 직후의 $yona.loadModule("project.New", ...)까지 통째로 막아버렸다).
+          // HTML5 표준 `:checked`(option 요소의 선택 상태에도 적용됨)로 대체.
+          var elSelected = elProjectOwner ? elProjectOwner.querySelector("option:checked") : null;
+          var selectedType = elSelected ? elSelected.getAttribute("data-type") : undefined;
+          var elOptProtected = document.getElementById("opt-protected");
           if(selectedType === "group") {
-              $("#opt-protected").show();
+              if(elOptProtected){ elOptProtected.style.display = ""; }
           } else {
-              $("#opt-protected").hide();
-              if($("#protected").is(":checked")) {
-                  $("#public").click();
+              if(elOptProtected){ elOptProtected.style.display = "none"; }
+              var elProtectedCheckbox = document.getElementById("protected");
+              if(elProtectedCheckbox && elProtectedCheckbox.checked) {
+                  var elPublic = document.getElementById("public");
+                  if(elPublic){ elPublic.click(); }
               }
           }
-      }).trigger("change");
+      }
+      if(elProjectOwner){
+          elProjectOwner.addEventListener("change", _onChangeProjectOwnerVisibility);
+      }
+      _onChangeProjectOwnerVisibility(); // 원본의 `.trigger("change")`와 동일 - 최초 로드시 1회 실행
 
       $yona.loadModule("project.New", {
           "sFormId": "#importGit",

@@ -193,7 +193,7 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript">
-    $(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         $yona.loadModule("project.New", {
             "sFormId": "#newProjectForm",
             "htError": {}
