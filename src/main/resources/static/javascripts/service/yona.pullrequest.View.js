@@ -27,8 +27,8 @@
         }
 
         function _initElement(){
-            elements.state = $("#state");
-            elements.acceptButton = $("#pr-accept-button");
+            elements.state = document.getElementById("state");
+            elements.acceptButton = document.getElementById("pr-accept-button");
         }
 
         function _initVar(options){
@@ -76,15 +76,24 @@
             }
             vars.stateHTML = html;
 
-            var $parsed = $("<div></div>").html(html);
-            var $stateBody = $parsed.find("#pr-state-poll-body");
-            var $acceptButtonBody = $parsed.find("#pr-accept-button-poll-body");
+            var parsed = document.createElement("div");
+            parsed.innerHTML = html;
+            var stateBody = parsed.querySelector("#pr-state-poll-body");
+            var acceptButtonBody = parsed.querySelector("#pr-accept-button-poll-body");
 
-            elements.state.html($stateBody.html());
-            elements.acceptButton.html($acceptButtonBody.html());
+            // 원본 jQuery `.html($x.html())`은 $x가 매치 없이 비어 있으면 `.html()`
+            // getter가 undefined를 반환하고, `.html(undefined)` setter는 실제로는
+            // 아무 것도 바꾸지 않는 no-op이 된다(비우지 않고 기존 내용 유지) - 그
+            // quirk를 그대로 재현하기 위해 대상이 실제로 있을 때만 innerHTML을 갱신한다.
+            if(stateBody && elements.state){
+                elements.state.innerHTML = stateBody.innerHTML;
+            }
+            if(acceptButtonBody && elements.acceptButton){
+                elements.acceptButton.innerHTML = acceptButtonBody.innerHTML;
+            }
 
-            var prState = $stateBody.attr("data-pr-state");
-            var prMerging = $stateBody.attr("data-pr-merging") === "true";
+            var prState = stateBody ? stateBody.getAttribute("data-pr-state") : undefined;
+            var prMerging = stateBody ? stateBody.getAttribute("data-pr-merging") === "true" : false;
             if(prState === "CLOSED" || prState === "MERGED" || prMerging){
                 _unsetStateUpdateTimer();
             }

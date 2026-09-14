@@ -44,7 +44,10 @@
          * initialize variables except HTML Element
          */
         function _initVar(htOptions){
-            htVar.sTplFileItem = $('#tplAttachedFile').text();
+            var tplFileItemEl = document.getElementById("tplAttachedFile");
+            // jQuery `$('#tplAttachedFile').text()`는 매치가 없어도 빈 문자열을
+            // 반환한다(undefined가 아님) - 그 quirk를 그대로 재현.
+            htVar.sTplFileItem = tplFileItemEl ? tplFileItemEl.textContent : "";
             htVar.sAction = htOptions.sAction;
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
@@ -54,30 +57,34 @@
          * initialize HTML Element variables
          */
         function _initElement(htOptions){
-            htElement.welUploader = $("#upload");
-            htElement.welTextarea = $('textarea[data-editor-mode="comment-body"]');
+            htElement.welUploader = document.getElementById("upload");
+            htElement.welTextarea = document.querySelector('textarea[data-editor-mode="comment-body"]');
 
-            htElement.welAttachments = $(".attachments");
-            htElement.welBtnWatch = $('#watch-button');
-            htElement.issueInfoWrap = $(".issue-info");
+            htElement.welAttachments = document.querySelectorAll(".attachments");
+            htElement.welBtnWatch = document.getElementById("watch-button");
+            htElement.issueInfoWrap = document.querySelector(".issue-info");
         }
 
         /**
          * attach event handler
          */
         function _attachEvent(){
-            htElement.welBtnWatch.click(function(weEvt) {
-                var welTarget = $(weEvt.target);
-                var bWatched = (welTarget.attr("data-watching") === "true");
-                
+            if(!htElement.welBtnWatch){
+                return;
+            }
+
+            htElement.welBtnWatch.addEventListener("click", function(weEvt) {
+                var welTarget = weEvt.target;
+                var bWatched = (welTarget.getAttribute("data-watching") === "true");
+
                 $yona.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
-                        welTarget
-                            .attr("data-watching", !bWatched)
-                            .toggleClass('ybtn-watching')
-                            .html(Messages(!bWatched ? "post.unwatch" : "post.watch")).blur();
-                        
+                        welTarget.setAttribute("data-watching", !bWatched);
+                        welTarget.classList.toggle('ybtn-watching');
+                        welTarget.innerHTML = Messages(!bWatched ? "post.unwatch" : "post.watch");
+                        welTarget.blur();
+
                         $yona.notify(Messages(bWatched ? "post.unwatch.start" : "post.watch.start"), 3000);
                     }
                 });
@@ -91,11 +98,15 @@
             var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
+                // P3-70 라운드3/4: yona.Files.getUploader()는 code.Diff.js/code.SvnDiff.js
+                // (라운드5 대상)가 여전히 .attr()로 접근해야 해서 반환값을 jQuery로 감싸둔
+                // 상태다 - 이미 vanilla로 전환된 board.Write.js/milestone.Write.js와
+                // 동일하게 oUploader[0]로 raw element를 꺼내 네이티브로 읽는다.
                 (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
-                    "sUploaderId"  : oUploader.attr("data-namespace")
+                    "sUploaderId"  : oUploader[0].getAttribute("data-namespace")
                 }));
             }
         }
@@ -104,15 +115,20 @@
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            htElement.welAttachments.each(function(i, elContainer){
-                if(!$(elContainer).data("isYonaAttachment")){
+            htElement.welAttachments.forEach(function(elContainer){
+                // isYonaAttachment는 milestone.View.js(이미 vanilla)가 확립한 것과 동일한
+                // 공개 계약 - window.jQuery.data() 정적 접근자로 jQuery 내부 데이터 캐시를
+                // 직접 읽는다(yona.Attachments.js가 이 키로 기록).
+                if(!window.jQuery.data(elContainer, "isYonaAttachment")){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }
             });
         }
 
         function _affixIssueInfoWrap(){
-            htElement.issueInfoWrap.addClass("sticky-issue-info");
+            if(htElement.issueInfoWrap){
+                htElement.issueInfoWrap.classList.add("sticky-issue-info");
+            }
         }
 
         _init(htOptions);

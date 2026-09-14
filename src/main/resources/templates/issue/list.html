@@ -406,11 +406,12 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
-<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<!-- P3-70 라운드4: yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js
+     (lib/, 미수정) 의존이 제거됨 - 더 이상 로드하지 않는다. -->
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.showSubtask.js"></script>
 <script type="text/javascript" th:inline="javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("issue.List");
     });
 </script>
@@ -422,18 +423,18 @@
      yona.issue.MassUpdate._setMassUpdateFormAffixed()가 $('.mass-update-wrap').offset()을
      불러 TypeError가 났다 — 마크업(248행)과 동일한 조건으로 감싸 legacy와 동치로 되돌린다. -->
 <script type="text/javascript" th:if="${!issuePage.content.isEmpty() && currentUser != null && currentUser.isMemberOf(project)}" th:inline="javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         // 일괄 업데이트 초기화
         $yona.loadModule("issue.MassUpdate", {
             "sURL": /*[[@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}]]*/ "",
-            "welMassUpdateForm": $('#mass-update-form'),
-            "welMassUpdateButtons": $('#mass-update-form button'),
-            "welState": $("#state"),
-            "welMilestone": $("#milestone"),
-            "welAssignee": $("#assignee"),
-            "welAttachingLabel": $("#attaching-label"),
-            "welDetachingLabel": $("#detaching-label"),
-            "welDeleteButton": $("#delete"),
+            "welMassUpdateForm": document.getElementById('mass-update-form'),
+            "welMassUpdateButtons": document.querySelectorAll('#mass-update-form button'),
+            "welState": document.getElementById("state"),
+            "welMilestone": document.getElementById("milestone"),
+            "welAssignee": document.getElementById("assignee"),
+            "welAttachingLabel": document.getElementById("attaching-label"),
+            "welDetachingLabel": document.getElementById("detaching-label"),
+            "welDeleteButton": document.getElementById("delete"),
             "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
         });
     });

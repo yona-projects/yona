@@ -28,11 +28,77 @@
         var htElement = {};
         var htInitialOptions = {};
 
+        /**
+         * jQuery `.on(evt, selector, fn)` 위임 바인딩과 동일하게 재현한다:
+         * addEventListener + closest(selector) + container.contains(...) 가드 +
+         * fn.call(matchedEl, e) (P3-70 라운드2에서 확립한 관례).
+         *
+         * @private
+         */
+        function _delegate(container, sEventType, sSelector, fHandler){
+            if(!container){
+                return;
+            }
+            container.addEventListener(sEventType, function(weEvt){
+                var matched = weEvt.target.closest(sSelector);
+                if(matched && container.contains(matched)){
+                    fHandler.call(matched, weEvt);
+                }
+            });
+        }
+
+        /**
+         * jQuery의 인자 없는 `.submit()`은 사실 `.trigger("submit")`과 같다 - "submit"
+         * 이벤트를 실제로 발생시켜(버블링 포함) 바인딩된 핸들러를 전부 호출하고, 그 중
+         * 누구도 preventDefault를 부르지 않았으면 네이티브 elem.submit()으로 폴백한다.
+         * 이 파일의 pjax 가로채기(_initPjax)와 due-date 검증(_onSubmitSearchForm)이 모두
+         * 이 "이벤트 발생 우선, 아무도 안 막으면 진짜 제출" 흐름에 의존하므로, 네이티브
+         * form.submit()을 직접 호출하면 두 로직을 건너뛰게 된다 - 그래서 이 헬퍼로
+         * 똑같은 흐름을 재현한다.
+         *
+         * @private
+         */
+        function _triggerSubmit(elForm){
+            if(!elForm){
+                return;
+            }
+            var weEvt = new Event("submit", {"bubbles": true, "cancelable": true});
+            var bNotPrevented = elForm.dispatchEvent(weEvt);
+            if(bNotPrevented){
+                elForm.submit();
+            }
+        }
+
+        /**
+         * jQuery `.val()` getter가 multiple-select에서 선택된 option들의 value 배열을
+         * 돌려주는 것과 동일하게 재현한다.
+         *
+         * @private
+         */
+        function _getMultiSelectValues(elSelect){
+            return Array.prototype.map.call(elSelect.selectedOptions, function(option){
+                return option.value;
+            });
+        }
+
         function _initImplicitTitlePrefix() {
-            $(".title-prefix").on("click", function(){
-                var filterInput = $("input[name*='filter']");
-                filterInput.val($(this).text());
-                filterInput.closest("form").submit();
+            document.querySelectorAll(".title-prefix").forEach(function(elPrefix){
+                elPrefix.addEventListener("click", function(){
+                    var filterInputs = document.querySelectorAll("input[name*='filter']");
+                    var aForms = [];
+
+                    filterInputs.forEach(function(elInput){
+                        elInput.value = elPrefix.textContent;
+                        var elForm = elInput.closest("form");
+                        if(elForm && aForms.indexOf(elForm) < 0){
+                            aForms.push(elForm);
+                        }
+                    });
+
+                    aForms.forEach(function(elForm){
+                        _triggerSubmit(elForm);
+                    });
+                });
             });
         }
 
@@ -56,25 +122,25 @@
          * initialize element
          */
         function _initElement(htOptions){
-            htElement.welIssueWrap = $(htOptions.welIssueWrap || '.issue-list-wrap');
-            htElement.welSearchForm = $(htOptions.welSearchForm || "form[name='search']");
-            htElement.welPagination = $(htOptions.elPagination || "#pagination");
+            htElement.welIssueWrap = document.querySelector(htOptions.welIssueWrap || '.issue-list-wrap');
+            htElement.welSearchForm = document.querySelector(htOptions.welSearchForm || "form[name='search']");
+            htElement.welPagination = document.querySelector(htOptions.elPagination || "#pagination");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welIssueWrap.on("click", "a[data-label-id][data-category-id]", _onClickLabelOnList);
-            htElement.welIssueWrap.on("click", "a[pjax-filter]", _onClickSearchFilter);
-            htElement.welIssueWrap.on("click", "a[orderBy]", _onClickListOrder);
-            htElement.welIssueWrap.on("click", "a[state]", _onClickStateTab);
-            htElement.welIssueWrap.on("click", "[data-submit]", _onChangeSearchField);
+            _delegate(htElement.welIssueWrap, "click", "a[data-label-id][data-category-id]", _onClickLabelOnList);
+            _delegate(htElement.welIssueWrap, "click", "a[pjax-filter]", _onClickSearchFilter);
+            _delegate(htElement.welIssueWrap, "click", "a[orderBy]", _onClickListOrder);
+            _delegate(htElement.welIssueWrap, "click", "a[state]", _onClickStateTab);
+            _delegate(htElement.welIssueWrap, "click", "[data-submit]", _onChangeSearchField);
 
-            htElement.welIssueWrap.on("change", '[data-toggle="issue-checkbox"]', _onChangeIssueCheckBox);
-            htElement.welIssueWrap.on("change", "[data-search]", _onChangeSearchField);
-            htElement.welIssueWrap.on("change", '[data-toggle="calendar"]', _onChangeSearchField);
-            htElement.welIssueWrap.on("submit", "form[name='search']", _onSubmitSearchForm);
+            _delegate(htElement.welIssueWrap, "change", '[data-toggle="issue-checkbox"]', _onChangeIssueCheckBox);
+            _delegate(htElement.welIssueWrap, "change", "[data-search]", _onChangeSearchField);
+            _delegate(htElement.welIssueWrap, "change", '[data-toggle="calendar"]', _onChangeSearchField);
+            _delegate(htElement.welIssueWrap, "submit", "form[name='search']", _onSubmitSearchForm);
         }
 
         /**
@@ -85,13 +151,17 @@
          * @private
          */
         function _onChangeIssueCheckBox() {
-            var welCheckBox = $(this);
-            var welItemWrap = $('#issue-item-' + welCheckBox.data('issueId'));
+            var welCheckBox = this;
+            var welItemWrap = document.getElementById('issue-item-' + welCheckBox.dataset.issueId);
 
-            if(welCheckBox.is(':checked')){
-                welItemWrap.addClass('active');
+            if(!welItemWrap){
+                return;
+            }
+
+            if(welCheckBox.checked){
+                welItemWrap.classList.add('active');
             } else {
-                welItemWrap.removeClass('active');
+                welItemWrap.classList.remove('active');
             }
         }
 
@@ -106,11 +176,15 @@
         function _onClickListOrder(weEvt) {
             weEvt.preventDefault();
 
-            var link = $(this);
+            var link = this;
 
-            htElement.welSearchForm.find("input[name=orderBy]").val(link.attr("orderBy"));
-            htElement.welSearchForm.find("input[name=orderDir]").val(link.attr("orderDir"));
-            htElement.welSearchForm.submit();
+            htElement.welSearchForm.querySelectorAll("input[name=orderBy]").forEach(function(el){
+                el.value = link.getAttribute("orderBy");
+            });
+            htElement.welSearchForm.querySelectorAll("input[name=orderDir]").forEach(function(el){
+                el.value = link.getAttribute("orderDir");
+            });
+            _triggerSubmit(htElement.welSearchForm);
         }
 
         /**
@@ -123,8 +197,11 @@
         function _onClickStateTab(weEvt) {
             weEvt.preventDefault();
 
-            htElement.welSearchForm.find("input[name=state]").val($(this).attr("state"));
-            htElement.welSearchForm.submit();
+            var link = this;
+            htElement.welSearchForm.querySelectorAll("input[name=state]").forEach(function(el){
+                el.value = link.getAttribute("state");
+            });
+            _triggerSubmit(htElement.welSearchForm);
         }
 
         /**
@@ -137,15 +214,15 @@
         function _onClickLabelOnList(weEvt) {
             weEvt.preventDefault();
 
-            var link = $(this);
+            var link = this;
             var targetQuery = "[data-search=labelIds]";
-            var target = htElement.welSearchForm.find(targetQuery);
+            var target = htElement.welSearchForm.querySelector(targetQuery);
 
-            var labelId = link.data("labelId");
+            var labelId = link.dataset.labelId;
             var newValue;
 
-            if(target.prop("multiple")){
-                newValue = (target.val() || []);
+            if(target.multiple){
+                newValue = _getMultiSelectValues(target);
                 newValue.push(labelId);
             } else {
                 newValue = labelId;
@@ -156,7 +233,7 @@
             // 반환해 TypeError로 죽어있었다(실사용 경로 - 라벨 클릭 시 크래시). Tom Select 인스턴스는
             // element.tomselect로 접근하고 값 반영은 setValue(value)로 한다(두 번째 인자 silent를
             // 생략하면 change 이벤트가 발생해 Select2의 triggerChange=true와 동등하다).
-            target[0].tomselect.setValue(newValue);
+            target.tomselect.setValue(newValue);
         }
 
         /**
@@ -166,7 +243,7 @@
          * @private
          */
         function _onChangeSearchField() {
-            htElement.welSearchForm.submit();
+            _triggerSubmit(htElement.welSearchForm);
         }
 
         /**
@@ -184,13 +261,15 @@
         function _onClickSearchFilter(weEvt) {
             weEvt.preventDefault();
 
-            var data = $(this).data();
+            var data = this.dataset;
 
             for(var key in data){
-                htElement.welSearchForm.find('[data-search="' + key + '"]').val(data[key]);
+                htElement.welSearchForm.querySelectorAll('[data-search="' + key + '"]').forEach(function(el){
+                    el.value = data[key];
+                });
             }
 
-            htElement.welSearchForm.submit();
+            _triggerSubmit(htElement.welSearchForm);
         }
 
         /**
@@ -200,7 +279,8 @@
          * @private
          */
         function _initPagination(){
-            yona.Pagination.update(htElement.welPagination, htElement.welPagination.data("total"));
+            var nTotal = htElement.welPagination ? Number(htElement.welPagination.dataset.total) : undefined;
+            yona.Pagination.update(htElement.welPagination, nTotal);
         }
 
         /**
@@ -219,6 +299,10 @@
          * 이벤트 리스너들은 재바인딩 없이 계속 유효하다(레거시 pjax도 같은 이유로
          * 컨테이너 자체는 남기고 내용만 바꿨다).
          *
+         * P3-70 라운드4: 이 파일의 나머지 `.submit()` 호출을 전부 _triggerSubmit()(진짜
+         * "submit" 이벤트를 bubbles:true로 발생시킴)으로 바꿨으므로, 여기서도 jQuery
+         * 위임 없이 순수 네이티브 위임(_delegate)만으로 동일하게 가로챌 수 있다.
+         *
          * @private
          */
         function _initPjax(){
@@ -236,15 +320,7 @@
                 _pjaxNavigate(elLink.href, false);
             });
 
-            // _onClickListOrder/_onClickStateTab/_onClickSearchFilter/_onChangeSearchField가
-            // 여전히 jQuery의 인자 없는 .submit()(내부적으로 .trigger("submit")과 동일)으로
-            // 검색 폼을 제출한다 - 이건 jQuery가 등록한 핸들러만 실행하고, 아무도
-            // preventDefault를 안 부르면 폴백으로 네이티브 elem.submit()을 직접 호출해버린다.
-            // 네이티브 elem.submit()은 스펙상 "submit" 이벤트 자체를 발생시키지 않으므로,
-            // document.addEventListener("submit", ...)로는 이 경로를 절대 가로챌 수 없다
-            // (실제로 시도했다가 전체 페이지 이동으로 새는 것을 Playwright로 재현했다).
-            // jQuery의 이벤트 위임($(document).on)만 이 트리거 경로에 반응하므로 그대로 쓴다.
-            $(document).on("submit", "form[name='search']", function(weEvt){
+            _delegate(document, "submit", "form[name='search']", function(weEvt){
                 weEvt.preventDefault();
                 var elForm = this;
                 var sQuery = new URLSearchParams(new FormData(elForm)).toString();
@@ -303,13 +379,23 @@
         }
 
         function _initShowChildList() {
-            $(".post-item").on("click", function(e){
-                $(this).find(".child-issue-list").show();
+            document.querySelectorAll(".post-item").forEach(function(elPostItem){
+                elPostItem.addEventListener("click", function(e){
+                    var elChildList = elPostItem.querySelector(".child-issue-list");
+                    if(elChildList){
+                        // .child-issue-list는 <div class="child-issue-list hide">라 CSS
+                        // .hide가 display:none을 강제한다 - P3-70 라운드1/2 관례대로
+                        // style.display = "block"으로 override한다.
+                        elChildList.style.display = "block";
+                    }
+                });
             });
-            
-            $(".title-wrap > .title").on("click", function(e){
-                e.stopPropagation();
-            })
+
+            document.querySelectorAll(".title-wrap > .title").forEach(function(el){
+                el.addEventListener("click", function(e){
+                    e.stopPropagation();
+                });
+            });
         }
 
         function _onLoadIssueList(){
@@ -328,18 +414,24 @@
         }
 
         function _listHoverEffect(){
-            $(".post-item").hover(function () {
-                $(this).css("background-color", "#fafafa");
-            }, function () {
-                $(this).css("background-color", "#fff");
+            document.querySelectorAll(".post-item").forEach(function(el){
+                el.addEventListener("mouseenter", function(){
+                    el.style.backgroundColor = "#fafafa";
+                });
+                el.addEventListener("mouseleave", function(){
+                    el.style.backgroundColor = "#fff";
+                });
             });
         }
 
         function _addEventAtOrganizationIssueSearchPage() {
             // pjax reset previous events, so it is required adding event again.
-            $("#projects" ).on("change", function(){
-                $("#search" ).submit();
-            });
+            var elProjects = document.getElementById("projects");
+            if(elProjects){
+                elProjects.addEventListener("change", function(){
+                    _triggerSubmit(document.getElementById("search"));
+                });
+            }
         }
 
         /**
@@ -350,7 +442,7 @@
          */
         function _initSelect2(){
             if(typeof yona.ui.TomSelect === "function"){
-                $('[data-toggle="tomselect"]').each(function(i, el){
+                document.querySelectorAll('[data-toggle="tomselect"]').forEach(function(el){
                     yona.ui.TomSelect(el);
                 });
             }
@@ -364,7 +456,7 @@
          */
         function _initCalendar(){
            if(typeof yona.ui.Calendar === "function"){
-               $('[data-toggle="calendar"]').each(function(i, el){
+               document.querySelectorAll('[data-toggle="calendar"]').forEach(function(el){
                    yona.ui.Calendar(el, {
                        "silent": true
                    });
@@ -373,19 +465,26 @@
         }
 
         function _onSubmitSearchForm(evt){
-            var elDueDate = htElement.welIssueWrap.find("[data-toggle='calendar']");
+            var elDueDate = htElement.welIssueWrap.querySelector("[data-toggle='calendar']");
 
-            if(elDueDate.length > 0) {
-                var sDueDate = $yona.getTrim($(elDueDate).val());
+            if(elDueDate) {
+                var sDueDate = $yona.getTrim(elDueDate.value);
 
                 if(sDueDate && !moment(sDueDate).isValid()){
                     $yona.notify(Messages("issue.error.invalid.duedate"), 3000);
                     elDueDate.focus();
+                    // 원본 jQuery 핸들러의 "return false"는 preventDefault +
+                    // stopPropagation을 동시에 의미한다 - 네이티브 addEventListener는
+                    // 반환값을 무시하므로 명시적으로 호출해야 pjax 제출까지 막힌다
+                    // (stopPropagation 없이는 document의 pjax 핸들러까지 계속 버블링돼
+                    // 검증에 실패해도 검색이 진행돼버린다).
+                    evt.preventDefault();
+                    evt.stopPropagation();
                     return false;
                 }
 
                 return true;
-            }    
+            }
 
             return true;
         }

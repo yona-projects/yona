@@ -44,7 +44,12 @@
             htVar.sIssueCheckedBoxesSelector = htVar.sIssueCheckBoxesSelector + ':checked';
             htVar.sActionURL = htOptions.sURL;
             htVar.htExclusiveLabels = {};
-            htVar.detachingLabelName = htOptions.welDetachingLabel.data('name') + '[]';
+            // #attaching-label/#detaching-label은 프로젝트에 라벨이 없으면 애초에 렌더링되지
+            // 않는다(th:if) - 원본 jQuery `$(...).data('name')`는 그 경우 매치 없는 빈 집합에서
+            // undefined를 반환해 "undefined[]"가 됐다(런타임 에러는 아님). 네이티브
+            // getElementById는 그 경우 null을 주므로, null 가드로 동일한 "undefined[]" 결과를
+            // 재현한다(이 값 자체가 이후 실제로 쓰이는지 여부와 무관하게 원본과 동일하게).
+            htVar.detachingLabelName = (htOptions.welDetachingLabel ? htOptions.welDetachingLabel.dataset.name : undefined) + '[]';
 
             htVar.oState     = new yona.ui.Dropdown({"elContainer": htOptions.welState});
             htVar.oAssignee  = new yona.ui.Dropdown({"elContainer": htOptions.welAssignee});
@@ -57,21 +62,24 @@
          * initialize element
          */
         function _initElement(htOptions){
-            htElement.waLabels = $("a.issue-label[data-color]");
+            htElement.waLabels = document.querySelectorAll("a.issue-label[data-color]");
 
-            htElement.welContainer  = $(".inner");
-            htElement.welBtnAdvance = $(".btn-advanced");
-            htElement.welPagination = $(htOptions.elPagination || "#pagination");
+            htElement.welContainer  = document.querySelector(".inner");
+            htElement.welBtnAdvance = document.querySelector(".btn-advanced");
+            htElement.welPagination = htOptions.elPagination || document.getElementById("pagination");
 
             htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
             htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
-            htElement.waCheckboxes  = $(htOptions.sIssueCheckBoxesSelector);
-            htElement.weAllCheckbox = $('#check-all');
+            htElement.waCheckboxes  = document.querySelectorAll(htOptions.sIssueCheckBoxesSelector);
+            htElement.weAllCheckbox = document.getElementById('check-all');
 
-            htElement.welBtnAttachingLabel = $(htOptions.welAttachingLabel).find("button");
-            htElement.welBtnDetachingLabel = $(htOptions.welDetachingLabel).find("button");
-            htElement.welAttachLabels = $('#attach-label-list');
-            htElement.welDetachLabels = $('#delete-label-list');
+            // welAttachingLabel/welDetachingLabel 자체가 null일 수 있다(위 참고) - 그 경우
+            // 원본 jQuery `$(null).find("button")`는 빈 집합을 안전하게 반환하지만 네이티브
+            // querySelector는 null에서 호출하면 예외이므로 가드한다.
+            htElement.welBtnAttachingLabel = htOptions.welAttachingLabel ? htOptions.welAttachingLabel.querySelector("button") : null;
+            htElement.welBtnDetachingLabel = htOptions.welDetachingLabel ? htOptions.welDetachingLabel.querySelector("button") : null;
+            htElement.welAttachLabels = document.getElementById('attach-label-list');
+            htElement.welDetachLabels = document.getElementById('delete-label-list');
         }
 
         /**
@@ -86,20 +94,35 @@
             htVar.oDetachingLabel.onChange(_onChangeUpdateField);
 
             // massUpdate checkboxes
-            htElement.waCheckboxes.change(_onCheckIssue);
-            if($(htVar.sIssueCheckedBoxesSelector).length > 0){ // if already checked box exists
+            htElement.waCheckboxes.forEach(function(el){
+                el.addEventListener("change", _onCheckIssue);
+            });
+            if(document.querySelectorAll(htVar.sIssueCheckedBoxesSelector).length > 0){ // if already checked box exists
                 _onCheckIssue();
             }
 
             // selectAll
-            $(htElement.weAllCheckbox).on('click', function(){
-                $(htVar.sIssueCheckBoxesSelector).prop('checked', this.checked).change();
-                _onCheckIssue();
-            });
+            if(htElement.weAllCheckbox){
+                htElement.weAllCheckbox.addEventListener('click', function(){
+                    var checked = htElement.weAllCheckbox.checked;
+                    htElement.waCheckboxes.forEach(function(el){
+                        el.checked = checked;
+                        // 원본 jQuery `.change()`는 각 체크박스에 바인딩된 "change" 핸들러
+                        // (_onCheckIssue)를 그대로 호출한다 - 네이티브 change 이벤트를 직접
+                        // 발생시켜 동일하게 재현.
+                        el.dispatchEvent(new Event('change'));
+                    });
+                    _onCheckIssue();
+                });
+            }
             yona.ShortcutKey.attach("CTRL+A", function(htInfo){
                 if(!htInfo.bFormInput){
                     htInfo.weEvt.preventDefault();
-                    $(htElement.weAllCheckbox).trigger('click');
+                    if(htElement.weAllCheckbox){
+                        // 원본 jQuery `.trigger('click')`는 체크박스처럼 네이티브 메서드가
+                        // 있는 이벤트는 실제 네이티브 click()을 호출한다 - 동일하게 재현.
+                        htElement.weAllCheckbox.click();
+                    }
                     return false;
                 }
             });
@@ -109,11 +132,11 @@
          * Add a hidden input element into the given form.
          */
         function _addFormField(welForm, sName, sValue) {
-            $('<input>').attr({
-                'type': 'hidden',
-                'name': sName,
-                'value': sValue
-            }).appendTo(welForm);
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = sName;
+            input.value = sValue;
+            welForm.appendChild(input);
         }
 
         /**
@@ -121,10 +144,12 @@
          * more issues are checked, otherwise disable them.
          */
         function _onCheckIssue(){
-            var waChecked = $(htVar.sIssueCheckedBoxesSelector);
+            var waChecked = document.querySelectorAll(htVar.sIssueCheckedBoxesSelector);
             var bDisabled = (waChecked.length === 0);
 
-            htElement.welMassUpdateButtons.attr('disabled', bDisabled);
+            htElement.welMassUpdateButtons.forEach(function(btn){
+                btn.disabled = bDisabled;
+            });
 
             if(bDisabled){
                 _restoreLabelList();
@@ -137,14 +162,22 @@
          * Restore labels list
          */
         function _restoreLabelList(){
-            htElement.welAttachLabels.find('li').show();
-            htElement.welDetachLabels.find('li').show();
+            if(htElement.welAttachLabels){
+                htElement.welAttachLabels.querySelectorAll('li').forEach(function(el){
+                    el.style.display = "";
+                });
+            }
+            if(htElement.welDetachLabels){
+                htElement.welDetachLabels.querySelectorAll('li').forEach(function(el){
+                    el.style.display = "";
+                });
+            }
         }
 
         /**
          * Make label list by checked issue item
          *
-         * @param {Wrapped Array} waChecked
+         * @param {NodeList} waChecked
          */
         function _makeLabelListByChecked(waChecked){
             var htLabels = _getLabelsByChecked(waChecked);
@@ -173,7 +206,10 @@
                     htLabel = htLabels[sCategory][sLabelId];
 
                     if(htLabel.issues.length === nLength){
-                        htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').hide();
+                        var labelEl = htElement.welAttachLabels ? htElement.welAttachLabels.querySelector('[data-value="' + sLabelId + '"]') : null;
+                        if(labelEl){
+                            labelEl.style.display = "none";
+                        }
                     }
 
                     if(htLabels[sCategory][sLabelId].exclusive){
@@ -186,32 +222,38 @@
                 bVisible = _getLabelCategoryVisibility(htElement.welAttachLabels, sCategory) || bVisible;
             } // end-for-category
 
-            htElement.welBtnAttachingLabel.attr("disabled", htLabels.hasOwnProperty() ? !bVisible : false);
+            if(htElement.welBtnAttachingLabel){
+                htElement.welBtnAttachingLabel.disabled = htLabels.hasOwnProperty() ? !bVisible : false;
+            }
         }
 
         /**
          * Hide category itself if all items are invisible
          *
-         * @param {Wrapped Element} welList Target Label List
+         * @param {?HTMLElement} welList Target Label List (라벨이 없는 프로젝트면 null)
          * @param {String} sCategory CategoryName
          *
          * @return {Boolean} Returns does category visible
          */
         function _getLabelCategoryVisibility(welList, sCategory){
-            var welItem;
             var bHidden = true;
-            var waCategoryItems = welList.find('li[data-category="' + sCategory +'"]');
 
-            waCategoryItems.each(function(i, el){
-                welItem = $(el);
+            if(!welList){
+                return false;
+            }
 
-                if(typeof welItem.data("value") !== "undefined"){
-                    bHidden = bHidden && (welItem.css("display") === "none");
+            var waCategoryItems = welList.querySelectorAll('li[data-category="' + sCategory + '"]');
+
+            waCategoryItems.forEach(function(el){
+                if(typeof el.dataset.value !== "undefined"){
+                    bHidden = bHidden && (getComputedStyle(el).display === "none");
                 }
             });
 
             if(bHidden){
-                waCategoryItems.hide();
+                waCategoryItems.forEach(function(el){
+                    el.style.display = "none";
+                });
             }
 
             return !bHidden;
@@ -227,7 +269,9 @@
         function _setDetachLabelList(htLabels){
             var aHTML = [];
             var sCategory, sLabelId, htLabel;
-            var sTpl = $("#labelListItem").text();
+            var tplEl = document.getElementById("labelListItem");
+            // jQuery `$('#labelListItem').text()`는 매치가 없어도 빈 문자열을 반환한다.
+            var sTpl = tplEl ? tplEl.textContent : "";
 
             // Category
             for(sCategory in htLabels){
@@ -243,26 +287,27 @@
             }
 
             if(aHTML.length > 0){
-                htElement.welDetachLabels.html(aHTML.join("\n"));
-            } else {
-                htElement.welBtnDetachingLabel.attr("disabled", true);
+                if(htElement.welDetachLabels){
+                    htElement.welDetachLabels.innerHTML = aHTML.join("\n");
+                }
+            } else if(htElement.welBtnDetachingLabel){
+                htElement.welBtnDetachingLabel.disabled = true;
             }
         }
 
         /**
          * Get labels by checked issue item
          *
-         * @param {Wrapped Array} waChecked
+         * @param {NodeList} waChecked
          * @return {Hash Table}
          */
         function _getLabelsByChecked(waChecked){
             var htLabels = {};
-            var welCheck, sIssueLabels, aIssueLabels, aLabel;
+            var sIssueLabels, aLabel;
             var sCategory, sLabelId, sLabelName, sCategoryId, bExclusiveCategory;
 
-            waChecked.each(function(i, el){
-                welCheck = $(el);
-                sIssueLabels = welCheck.data("issueLabels");
+            waChecked.forEach(function(el){
+                sIssueLabels = el.dataset.issueLabels;
 
                 if(!sIssueLabels){
                     return;
@@ -283,7 +328,7 @@
                     htLabels[sCategory] = htLabels[sCategory] || {}; // category
                     htLabels[sCategory][sLabelId] = htLabels[sCategory][sLabelId] || {"id":sLabelId, "name":sLabelName, "category":sCategory, "categoryId":sCategoryId, "exclusive":bExclusiveCategory}; // label
                     htLabels[sCategory][sLabelId].issues = htLabels[sCategory][sLabelId].issues || []; // issues to count
-                    htLabels[sCategory][sLabelId].issues.push(welCheck.data("issue-id"));
+                    htLabels[sCategory][sLabelId].issues.push(el.dataset.issueId);
                 });
             });
 
@@ -300,31 +345,50 @@
             var sItemId = _getCurrentItemIdByScrollTop();
 
             if(sItemId){
-                welForm.attr("action", htVar.sActionURL + "#" + sItemId);
+                welForm.setAttribute("action", htVar.sActionURL + "#" + sItemId);
             }
 
-            $(htVar.sIssueCheckedBoxesSelector).each(function(){
+            document.querySelectorAll(htVar.sIssueCheckedBoxesSelector).forEach(function(el){
                 _addFormField(
                     welForm,
                     'issues[' + (nCnt++) + '].id',
-                    $(this).data('issue-id')
+                    el.dataset.issueId
                 );
             });
 
             welForm.submit();
         }
 
+        /**
+         * jQuery `$(el).offset().top`(문서 기준 절대 좌표)와 `$(window).scrollTop()`의 차는
+         * 대수적으로 `el.getBoundingClientRect().top`(뷰포트 기준)과 항상 같다
+         * (offset().top = rect.top + scrollY, scrollTop = scrollY이므로
+         * offset().top > scrollTop ⇔ rect.top > 0) - scrollY를 따로 구하지 않고
+         * rect.top > 0만 비교해도 완전히 동치다.
+         */
         function _getCurrentItemIdByScrollTop(){
-            var nScrollTop = $(window).scrollTop();
-            var sItemId = $(".post-item").filter(function(i,el){
-                return ($(el).offset().top > nScrollTop);
-            }).first().prev().attr("id");
+            var postItems = document.querySelectorAll(".post-item");
+            var target = null;
 
-            return sItemId;
+            for(var i = 0; i < postItems.length; i++){
+                if(postItems[i].getBoundingClientRect().top > 0){
+                    target = postItems[i];
+                    break;
+                }
+            }
+
+            if(!target){
+                return null;
+            }
+
+            var prev = target.previousElementSibling;
+            return prev ? prev.getAttribute("id") : null;
         }
 
 function _onChangeAttachingLabelField(sLabelId){
-            var aDetachLabels = htVar.htExclusiveLabels[htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').data('category')] || [];
+            var labelEl = htElement.welAttachLabels ? htElement.welAttachLabels.querySelector('[data-value="' + sLabelId + '"]') : null;
+            var categoryId = labelEl ? labelEl.dataset.category : undefined;
+            var aDetachLabels = htVar.htExclusiveLabels[categoryId] || [];
             for(var i = 0; i < aDetachLabels.length; i++) {
                 if(sLabelId !== aDetachLabels[i]){
                     _addFormField(

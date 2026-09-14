@@ -112,19 +112,19 @@
     </th:block>
 
     <script type="text/javascript" th:inline="javascript">
-        $(document).ready(function(){
+        document.addEventListener("DOMContentLoaded", function(){
             var projectOwner = [[${project.owner}]];
             var projectName = [[${project.name}]];
             $yona.loadModule("issue.MassUpdate", {
                 "sURL": "/" + projectOwner + "/" + projectName + "/issues/massupdate",
-                "welMassUpdateForm": $('#mass-update-form'),
-                "welMassUpdateButtons": $('#mass-update-form button'),
-                "welState": $("#state"),
-                "welMilestone": $("#milestone"),
-                "welAssignee": $("#assignee"),
-                "welAttachingLabel": $("#attaching-label"),
-                "welDetachingLabel": $("#detaching-label"),
-                "welDeleteButton": $("#delete"),
+                "welMassUpdateForm": document.getElementById('mass-update-form'),
+                "welMassUpdateButtons": document.querySelectorAll('#mass-update-form button'),
+                "welState": document.getElementById("state"),
+                "welMilestone": document.getElementById("milestone"),
+                "welAssignee": document.getElementById("assignee"),
+                "welAttachingLabel": document.getElementById("attaching-label"),
+                "welDetachingLabel": document.getElementById("detaching-label"),
+                "welDeleteButton": document.getElementById("delete"),
                 "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
             });
         });

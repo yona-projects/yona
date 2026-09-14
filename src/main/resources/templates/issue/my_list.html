@@ -15,11 +15,12 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<!-- P3-70 라운드4: yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js
+     (lib/, 미수정) 의존이 제거됨 - 더 이상 로드하지 않는다. -->
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.showSubtask.js"></script>
 <script type="text/javascript">
-  $(function(){
+  document.addEventListener("DOMContentLoaded", function(){
       $yona.loadModule("issue.List");
 
       var $setDefaultLoginPage = $("#setDefaultLoginPage");
