@@ -2,7 +2,7 @@
 type: plan
 id: P3-12
 title: "Mercurial(hg4j) 저장소 지원 추가"
-status: in-progress
+status: done
 priority: 9
 depends_on: []
 blocks: []

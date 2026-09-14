@@ -28,7 +28,7 @@
 | 9 | P3-05 | CI/Actions 러너 아키텍처 | **제외됨(2026-09-06 사용자 지시 — "ci/actions는 이번 구현에서 제외해!", 자동 진행 대상에서 빠짐, 재개는 사용자 지시 대기)** | P3-01(약함) | [[plans/p3-05-ci-actions-runner]] |
 | 10 | P3-15 | PR 승인/변경요청(리뷰 판정) 워크플로 추가 | **완료(2026-09-07)** | 없음(순수 신규 도메인 기능) | [[plans/p3-15-pr-approval-workflow]] |
 | 11 | P3-14 | yona를 OAuth2 서버(Authorization Server)로 제공 | **1라운드 진행중(2026-09-07) — 리소스 레지스트리 일반화, `/api/v1/**` OAuth 지원, confidential 앱 관리자 등록 UI 완료. OIDC("Sign in with yona")는 2라운드로 이월** | P3-07(완료) | [[plans/p3-14-oauth2-provider]] |
-| 12 | P3-12 | Mercurial(hg4j) 저장소 지원 | planned — 외부 블로커 있음 | 없음(단, `search5/hg4j` 라이브러리 진행 상황이 사실상의 착수 조건) | [[plans/p3-12-mercurial-hg4j]] |
+| 12 | P3-12 | Mercurial(hg4j) 저장소 지원 | **완료(2026-09-09, 2026-09-14 문서 동기화)** — 외부 블로커였던 `search5/hg4j`가 실제로 진행되어 착수 조건이 해소됨. HTTP/SSH 프로토콜 서빙, 브랜치/태그 CRUD, diff/patch 전부 구현 | 없음(해소됨) | [[plans/p3-12-mercurial-hg4j]] |
 | 13 | P3-13 | 프런트엔드 분리 (React/Vue3/Angular 등 SPA) | planned — 프레임워크/인증 방식 미결정 | P3-02(REST API·인증 토대, 약한 선행) | [[plans/p3-13-decoupled-spa-frontend]] |
 
 ## 우선순위 판단 근거
