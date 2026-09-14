@@ -15,16 +15,25 @@
         /**
          * jQuery UI `.toggle("slide")`(가로 슬라이드 show/hide)의 최소 vanilla 재현.
          * `#repoAuth`(repo-auth-wrap)에만 쓰이는 단일 용도 헬퍼라 이 파일 안에 둔다.
+         *
+         * P3-71: 원래 `.toggle()`처럼 "지금 보이는지"만 보고 반대로 뒤집었는데, 이 페이지에서
+         * 같은 change 이벤트에 걸린 다른 핸들러가 먼저 display를 바꿔놓으면 그 바뀐 상태를
+         * "지금 상태"로 오인해 반대 방향(반전)으로 애니메이션했다. bShow로 목표 상태를 직접
+         * 받아 판단하도록 바꿔 호출부(체크박스 checked 여부)와 항상 일치하게 한다.
          */
-        function _toggleSlide(el){
+        function _toggleSlide(el, bShow){
             if(!el){
                 return;
             }
 
-            var bHidden = window.getComputedStyle(el).display === "none";
+            var bCurrentlyVisible = window.getComputedStyle(el).display !== "none";
+            if(bShow === bCurrentlyVisible){
+                return; // 이미 목표 상태 - 중복 호출이어도 다시 애니메이션하지 않는다.
+            }
+
             var nDuration = 400;
 
-            if(bHidden){
+            if(bShow){
                 // `.form-wrap.new-project .repo-auth-wrap { display: none; }`(yona.css)처럼
                 // 클래스 기반 display:none 규칙이 있으면 인라인 스타일을 빈 문자열로만
                 // 비워서는 그 규칙이 그대로 이겨 패널이 절대 열리지 않는다(Playwright 실측
@@ -143,10 +152,17 @@
 
         function _onChangeRepoAuthCheck(){
             document.querySelectorAll("input").forEach($yona.hidePopoverError);
-            _toggleSlide(htElement.welRepoAuthWrap);
+
+            var bChecked = !!(htElement.welRepoAuthCheck && htElement.welRepoAuthCheck.checked);
+            _toggleSlide(htElement.welRepoAuthWrap, bChecked);
             htElement.waRepoAuthInput.forEach(function(el){
-                el.disabled = !(htElement.welRepoAuthCheck && htElement.welRepoAuthCheck.checked);
+                el.disabled = !bChecked;
             });
+
+            if(!bChecked){
+                document.querySelectorAll("input[name='authId']").forEach(function(el){ el.value = ""; });
+                document.querySelectorAll("input[name='authPw']").forEach(function(el){ el.value = ""; });
+            }
         }
 
         function _onChangeVCSItem(evt){

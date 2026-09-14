@@ -80,7 +80,7 @@
                         th:data-avatar-url="@{/organizations/{orgId}/logo(orgId=${org.id})}"
                         th:value="${org.name}"
                         th:text="${org.name}"
-                        th:selected="*{owner == org.name}">
+                        th:selected="${importForm.owner == org.name}">
                   group
                 </option>
               </select>
@@ -227,23 +227,12 @@
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function() {
-      // 인증 체크박스 토글
-      var elUseRepoAuth = document.getElementById("useRepoAuth");
-      if(elUseRepoAuth){
-          elUseRepoAuth.addEventListener("change", function() {
-              var elRepoAuth = document.getElementById("repoAuth");
-              if(this.checked) {
-                  // `.form-wrap.new-project .repo-auth-wrap { display: none; }`(yona.css)
-                  // 클래스 규칙 때문에 인라인 스타일을 빈 문자열로만 비우면 그 규칙이 그대로
-                  // 이겨 패널이 열리지 않는다(Playwright 실측 회귀 발견) - 명시적으로 오버라이드.
-                  if(elRepoAuth){ elRepoAuth.style.display = "block"; }
-              } else {
-                  if(elRepoAuth){ elRepoAuth.style.display = "none"; }
-                  document.querySelectorAll("input[name='authId']").forEach(function(el){ el.value = ""; });
-                  document.querySelectorAll("input[name='authPw']").forEach(function(el){ el.value = ""; });
-              }
-          });
-      }
+      // P3-71: "인증정보 사용" 체크박스의 change 핸들러는 project.New.js의
+      // _onChangeRepoAuthCheck() 하나만 등록한다(전에는 여기서도 같은 change 이벤트에
+      // 단순 show/hide 핸들러를 하나 더 걸어뒀는데, 그게 먼저 display를 바꿔놓은 뒤
+      // project.New.js의 _toggleSlide()가 "이미 바뀐 상태"를 보고 반대 방향으로
+      // 애니메이션해 체크할 때마다 패널이 반전 동작했다 - docs/parity/tickets/p3-71.md
+      // 참고. 핸들러를 하나로 통합해 해소했다.
 
       // 소유자가 조직(group)인 경우 protected 옵션을 노출
       var elProjectOwner = document.getElementById("project-owner");
