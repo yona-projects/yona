@@ -9,7 +9,13 @@
       <div class="project-page-wrap">
           <div class="error-wrap">
               <i class="ico ico-err2"></i>
-              <p th:text="${messageKey != null} ? #{__${messageKey}__} : #{error.badrequest}">잘못된 요청입니다.</p>
+              <!-- P3-68: messageKey는 각 컨트롤러가 명시적으로 Model에 채우는 컨텍스트 인지형
+                   문구용(기존 관례)이고, message는 ResponseStatusException(...)이 BasicErrorController의
+                   /error 자동 포워딩을 거쳐 넘어오는 원인 텍스트다(예: WebhookController의 "Payload
+                   URL은 필수 입력 항목입니다."). spring.web.error.include-message: always로 message
+                   속성 자체는 모델에 실리게 됐지만, 이 템플릿이 messageKey만 읽고 있어 실제 화면에는
+                   여전히 노출되지 않던 문제를 고친다 — messageKey가 없을 때만 message로 폴백한다. -->
+              <p th:text="${messageKey != null} ? #{__${messageKey}__} : (${message} != null ? ${message} : #{error.badrequest})">잘못된 요청입니다.</p>
               <a href="/" class="ybtn ybtn-info" th:text="#{menu.home}">홈</a>
           </div>
       </div>

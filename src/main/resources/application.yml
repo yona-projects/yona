@@ -1,6 +1,24 @@
 spring:
   profiles:
     active: mariadb
+  web:
+    error:
+      # P3-68 — 기본값 never라 ResponseStatusException(status, reason)의 reason이
+      # BasicErrorController 응답(JSON의 "message" 필드, 또는 /error로 자동 포워딩되는
+      # error/400·401·403·404.html의 렌더링 모델)에서 통째로 빠졌다.
+      # WebhookController.newWebhook()의 "Payload URL은 필수 입력 항목입니다."가 대표 사례.
+      # 전역으로 켜기 전에 현재 ResponseStatusException(...) 호출부 9개 파일 80곳 전수를
+      # 카테고리별로 표본 확인했다 — 전부 "Project not found"/"Forbidden"/"Login required"/
+      # 길이 초과 안내 같은 일반적인 문구뿐이고, 내부 구현 경로·DB 식별자·보안 판단 근거 등
+      # 노출하면 안 되는 내용은 없었다(근거는 docs/parity/tickets/p3-68.md 완료 로그 참고).
+      # 그래서 개별 컨트롤러/예외 종류별로 범위를 좁히는 대신 전역 설정으로 간단히 해소한다 —
+      # 향후 추가되는 ResponseStatusException에도 동일하게 일관되게 적용된다.
+      # 주의: Spring Boot 4에서 이 설정은 server.error.*가 아니라 spring.web.error.*로
+      # 이동했다(server.error.include-message는 이 버전에서 조용히 무시되는 존재하지 않는
+      # 키다 — 실제로 처음엔 server.error.include-message로 잘못 넣었다가 통합테스트가 계속
+      # RED로 남아있어서 spring-boot-autoconfigure-4.1.1.jar의
+      # META-INF/spring-configuration-metadata.json을 직접 까봐서 발견했다).
+      include-message: always
   messages:
     basename: messages/messages
     encoding: UTF-8
