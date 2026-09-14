@@ -116,8 +116,11 @@
             // 없어 이 분기는 원본(select2)에서도 이미 도달 불가능한 죽은 코드였다. Tom Select는
             // 애초에 "select2-selecting" 이벤트를 발생시키지 않으므로 이 바인딩은 등록은 되지만
             // 결코 실행되지 않는다 - 동작 변화가 없어 그대로 보존한다.
+            // P3-70 라운드1: $(el).data(key) 대신 jQuery의 정적 접근자 jQuery.data(el, key)를
+            // 직접 호출해 $(...) 선택자 생성만 제거했다(CommentAttachmentsUpdate.js의
+            // syncEasyMDE()와 동일한 관례) - 동일한 내부 데이터 캐시를 읽으므로 완전히 동치다.
             htElement.welAssignee.addEventListener("select2-selecting", function(weEvt){
-                if(weEvt.object && window.jQuery(weEvt.object.element).data("forceChange")){
+                if(weEvt.object && window.jQuery.data(weEvt.object.element, "forceChange")){
                     htElement.welAssignee.dispatchEvent(new Event("change"));
                 }
             });

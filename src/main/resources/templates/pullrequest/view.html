@@ -461,19 +461,20 @@
       // 이미 codeRange를 받을 수 있어 프론트엔드 배선만 빠져 있었다). code/diff.html과 동일한
       // 패턴(네이티브 <form> 삽입 + 실제 POST/Redirect/GET, AJAX 아님 — ReviewViewController.
       // newPullRequestComment()도 "redirect:..."를 반환하는 고전적 패턴)으로 이식한다.
-      var $changesRoot = $('#changes');
-      if ($changesRoot.length && $changesRoot.data('canReviewComment')) {
-          var reviewCommentCommitId = $changesRoot.data('commitId');
+      var changesRoot = document.getElementById('changes');
+      // P3-70 라운드1: jQuery .data()는 문자열 "true"/"false"를 실제 boolean으로 자동 변환하지만
+      // 네이티브 dataset은 항상 문자열을 돌려준다 - data-can-review-comment="false"가 dataset
+      // 접근 시 그대로 truthy한 "false" 문자열이 되어 게이트가 깨지는 것을 막기 위해 명시적으로
+      // 문자열 "true"와 비교한다.
+      if (changesRoot && changesRoot.dataset.canReviewComment === 'true') {
+          var reviewCommentCommitId = changesRoot.dataset.commitId;
 
-          $changesRoot.find('tr[data-line]').each(function() {
-              var $tr = $(this);
-              var $btnCell = $tr.find('.add-comment-btn-cell');
-              if (!$btnCell.length) { return; }
-              $btnCell.css('cursor', 'pointer');
-              $tr.hover(
-                  function() { $btnCell.css('color', '#0366d6'); },
-                  function() { $btnCell.css('color', 'transparent'); }
-              );
+          changesRoot.querySelectorAll('tr[data-line]').forEach(function(tr) {
+              var btnCell = tr.querySelector('.add-comment-btn-cell');
+              if (!btnCell) { return; }
+              btnCell.style.cursor = 'pointer';
+              tr.addEventListener('mouseenter', function() { btnCell.style.color = '#0366d6'; });
+              tr.addEventListener('mouseleave', function() { btnCell.style.color = 'transparent'; });
           });
 
           // ===== 3~4단계 복원: 드래그 다중행 범위선택(CodeCommentBlock) + 플로팅 댓글 상자
@@ -484,8 +485,8 @@
           // restoration_plan 메모 4단계 참고, 사용자 확인 완료) - 매번 새 <textarea> 폼을 tr
           // 뒤에 끼워 넣던 이전 구현(insertReviewCommentForm)을 legacy와 동일한 "단일 팝업
           // 재사용" 아키텍처로 교체했다.
-          var diffBodyEl = $changesRoot.find('.diff-body')[0];
-          var btnPopEl = $changesRoot.find('.btnPop')[0];
+          var diffBodyEl = changesRoot.querySelector('.diff-body');
+          var btnPopEl = changesRoot.querySelector('.btnPop');
           if (diffBodyEl && btnPopEl && typeof yona !== 'undefined' && yona.CodeCommentBlock && yona.CodeCommentBox) {
               yona.CodeCommentBlock.init({
                   'welContainer': diffBodyEl,
@@ -531,10 +532,13 @@
               // 핸들러를 재사용해 단일 라인 범위를 계산한다(legacy _onClickLineNumA와 동일
               // 트릭). PR쪽 마크업은 라인번호 칸이 항상 add-comment-btn-cell 하나뿐이라(반대쪽은
               // 빈 칸) 그 셀만 대상으로 한다.
-              $changesRoot.on('click', 'tr[data-line] .add-comment-btn-cell', function(e){
+              changesRoot.addEventListener('click', function(e){
+                  var target = e.target.closest('tr[data-line] .add-comment-btn-cell');
+                  if (!target || !changesRoot.contains(target)) { return; }
+
                   e.stopPropagation();
                   window.getSelection().removeAllRanges();
-                  var elPre = this.closest('tr').querySelector('td.code pre');
+                  var elPre = target.closest('tr').querySelector('td.code pre');
                   if (!elPre || !elPre.childNodes[0]) { return; }
                   var elNode = elPre.childNodes[0];
                   var oRange = document.createRange();
@@ -564,8 +568,7 @@
 
               // 스레드 mouseover/leave 하이라이트 - legacy _onMouseOverCodeCommentThread/
               // _onMouseLeaveCodeCommentThread.
-              $changesRoot.find('[data-toggle="CodeCommentThread"]').each(function(){
-                  var elThread = this;
+              changesRoot.querySelectorAll('[data-toggle="CodeCommentThread"]').forEach(function(elThread){
                   elThread.addEventListener('mouseenter', function(weEvt){
                       if (weEvt.buttons !== 0) { return; }
                       yona.CodeCommentBlock.block({

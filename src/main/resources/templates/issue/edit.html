@@ -157,14 +157,14 @@
 <script type="text/javascript" src="/javascripts/service/yona.issue.Assginee.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.TitleHeadAutoCompletion.js"></script>
 <script type="text/javascript">
-    $(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("issue.Write", {
             "sMode"		   : "edit",
             "sIssueFormURL": "/[[${project.owner}]]/[[${project.name}]]/issue/[[${issue.number}]]/editform",
             "sIssueListURL": "/[[${project.owner}]]/[[${project.name}]]/issues",
             "elTextarea"   : 'textarea[data-editor-mode="content-body"]',
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
-            "elDueDate"    : $("#issueDueDate")
+            "elMilestoneRefresh": document.querySelector("#milestoneOption .yobicon-refresh"),
+            "elDueDate"    : document.getElementById("issueDueDate")
         });
 
         yonaAssgineeModule(
@@ -178,15 +178,20 @@
             "url"   : "/api/[[${project.owner}]]/[[${project.name}]]/titleHeads"
         });
 
-        $('#button-save').on('click', function(){
-            var $this = $(this);
-            $this.prop('disabled', true);
-            setTimeout(function (){
-                $this.prop('disabled', false);
-            }, 3000);
+        var btnSave = document.getElementById('button-save');
+        if(btnSave){
+            btnSave.addEventListener('click', function(){
+                btnSave.disabled = true;
+                setTimeout(function (){
+                    btnSave.disabled = false;
+                }, 3000);
 
-            $('#issue-form').submit();
-        });
+                var issueForm = document.getElementById('issue-form');
+                if(issueForm){
+                    issueForm.submit();
+                }
+            });
+        }
     });
 </script>
 </body>

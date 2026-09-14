@@ -54,7 +54,7 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" src="/javascripts/service/yona.project.Delete.js"></script>
 <script type="text/javascript" th:inline="javascript">
-    $(document).ready(function(){
+    document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("project.Delete", {
             "sDeleteURL": /*[[ @{/{owner}/{name}/delete(owner=${project.owner}, name=${project.name})} ]]*/ ''
         });

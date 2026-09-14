@@ -96,11 +96,11 @@
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <script type="text/javascript">
-    $(document).ready(function() {
+    document.addEventListener("DOMContentLoaded", function() {
         // yona.milestone.Write
         $yona.loadModule("milestone.Write", {
-            "elDueDate"   : $("#dueDate"),
-            "elDatePicker": $("#datepicker")
+            "elDueDate"   : document.getElementById("dueDate"),
+            "elDatePicker": document.getElementById("datepicker")
         });
     });
 </script>
