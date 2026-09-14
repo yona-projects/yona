@@ -27,6 +27,7 @@
                 <div th:if="${currentUser != null}" th:replace="~{common/uploadForm :: uploadForm(${resourceType}, null, null)}"></div>
 
                 <div class="right-txt">
+                    <button type="button" class="ybtn ybtn-small" data-toggle="close" th:text="#{button.cancel}">취소</button>
                     <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}">댓글 등록</button>
                 </div>
             </div>

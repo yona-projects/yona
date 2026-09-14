@@ -7234,6 +7234,21 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   margin: 0;
   margin-left: 46px;
 }
+/* P3-73 후속: code diff에서 뜨는 리뷰 댓글 팝업은 화면 폭 대비 좁은 위치에 뜨고, 짧은
+   코드 코멘트 위주라 기본 --yona-md-min-height(300px, lib/yona-markdown-editor 기본값)는
+   과하다 - 실측(13px 폰트 기준 한 줄 18.19px + .cm-content 상하 padding 4px씩)으로 계산한
+   "5줄" 높이(약 100px)로 기본값을 줄인다. <yona-markdown-editor>는 에디터 컨테이너를
+   CSS Shadow Part로 "editor"라는 이름으로 노출해두고 있어(벤더 소스
+   setAttribute("part","editor") 확인), 벤더 파일을 건드리지 않고도 ::part()로 그 안쪽
+   요소에 직접 스타일을 줄 수 있다 - 네이티브 textarea의 resize:vertical과 동일한 사용자
+   경험을 준다(세로로만, 최소 크기는 아래 --yona-md-min-height로 축소한 값). */
+.review-form yona-markdown-editor {
+  --yona-md-min-height: 100px;
+}
+.review-form yona-markdown-editor::part(editor) {
+  resize: vertical;
+  overflow: auto;
+}
 .review-block {
   /** ref: yona.CodeCommentBlock.js **/
   /*background-color:rgba(133,246,150,0.25);*/

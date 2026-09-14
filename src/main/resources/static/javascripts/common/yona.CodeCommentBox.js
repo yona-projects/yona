@@ -106,6 +106,47 @@ yona.CodeCommentBox = (function(){
         var elNewEditor = elOldEditor.cloneNode(true);
         elOldEditor.replaceWith(elNewEditor);
         htElement.welCommentTextarea = htElement.welCommentForm.querySelector('[data-toggle="markdown-editor"] textarea');
+        _makeEditorResizable(elNewEditor);
+    }
+
+    /**
+     * P3-73 후속: `stylesheets/yona.css`가 `.review-form yona-markdown-editor::part(editor)`
+     * (light DOM에서 shadow DOM 안의 `part="editor"` 엘리먼트, 즉 `.editor-wrapper`를
+     * 직접 스타일링)에 `resize:vertical`을 줘서 네이티브 리사이즈 핸들을 노출했다. 다만
+     * `.editor-wrapper`를 드래그로 늘려도 그 안의 실제 CodeMirror 뷰(`.cm-editor`)는
+     * `min-height: var(--yona-md-min-height)`(고정 300px)에만 반응하지 커진 부모 크기를
+     * 자동으로 따라가지 않는다(CM6는 명시적 height 설정이 없으면 내용 기준 auto-grow라
+     * 부모 크기 변화 자체를 알 방법이 없음, 실측 확인 - 리사이즈해도 `.cm-editor` 높이
+     * 그대로, 늘어난 만큼은 그냥 빈 여백). `part="editor"`만 노출돼 있어 `.cm-editor`는
+     * 외부 CSS(`::part()`)로 직접 겨냥할 수 없으므로, `ResizeObserver`로 `.editor-wrapper`
+     * 크기 변화를 감지해 `.cm-editor`의 `min-height`를 그 크기에 맞춰 JS로 직접 동기화한다
+     * (shadowRoot가 open이라 `elEditor.shadowRoot.querySelector(...)`로 접근 가능 - 이미
+     * Playwright 실측에서 이 경로로 내부 상태를 확인해온 것과 동일).
+     *
+     * `ResizeObserver`는 `.observe()` 호출 시 관찰 대상의 "현재" 크기로 콜백을 즉시 한 번
+     * 실행한다(스펙 규정 동작) - 이 최초 1회 호출까지 그대로 반영하면, 아직 사용자가
+     * 리사이즈 핸들을 만지지도 않았는데 그 순간의 자연 높이가 인라인 `min-height`로
+     * 고정돼버려 위 CSS의 `--yona-md-min-height`(기본 5줄) 축소가 무력화된다(실측 확인 -
+     * 최초 관찰 시점 높이가 164px로 굳어 5줄보다 훨씬 커짐). 최초 1회는 건너뛰고 실제
+     * 사용자가 드래그해 크기가 "변한" 이후부터만 동기화한다.
+     */
+    function _makeEditorResizable(elEditor){
+        if(typeof ResizeObserver === "undefined" || !elEditor.shadowRoot){
+            return;
+        }
+        var elWrapper = elEditor.shadowRoot.querySelector(".editor-wrapper");
+        var elCm = elEditor.shadowRoot.querySelector(".cm-editor");
+        if(!elWrapper || !elCm){
+            return;
+        }
+        var bSkipFirstCallback = true;
+        new ResizeObserver(function(){
+            if(bSkipFirstCallback){
+                bSkipFirstCallback = false;
+                return;
+            }
+            elCm.style.minHeight = elWrapper.getBoundingClientRect().height + "px";
+        }).observe(elWrapper);
     }
 
     /**
@@ -214,6 +255,16 @@ yona.CodeCommentBox = (function(){
         if(welFormWrap){
             welFormWrap.remove();
         }
+
+        // P3-73 후속: 취소(닫기 버튼)든 바깥 클릭이든, 닫힐 때는 매번 에디터를 완전히
+        // 새로 만든다 - GitHub 등 다른 코드리뷰 UI도 댓글 상자를 닫으면 초안을 버리고
+        // 다음에 열 때는 깨끗한 상태로 시작한다. 지금 구현은 "다음 show()가 매번 새
+        // <tr>을 만드는" 우연 덕에 결과적으로 이미 깨끗하게 보이지만(실측 확인 완료),
+        // 그건 우연에 기대는 것이라 "닫히는 시점"에 명시적으로 리마운트해 강제한다 -
+        // 다음 show() 시점의 appendChild 조건(parentElement 비교)이 우연히 스킵되는
+        // 경로(예: 같은 스레드 답글 상자를 두 번 여는데 그 사이 다른 이동이 없는 경우)가
+        // 생기더라도 항상 안전하다.
+        _remountEditor();
 
         window.dispatchEvent(new CustomEvent("CodeCommentBox:afterhide"));
     }
