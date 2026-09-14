@@ -367,9 +367,9 @@
                  });
              });
 
-             // Bootstrap2 jQuery 플러그인 호출 - 라운드9(Bootstrap2 플러그인 호출부 대체)까지
-             // 의도적으로 jQuery 객체를 유지한다.
-             $('[data-toggle="popover"]').popover();
+             // Common.js가 이미 갖춘 네이티브 hover popover 구현(initHoverPopovers)을 그대로
+             // 재사용한다 - Bootstrap2 .popover() 플러그인 호출을 대체(P3-70 라운드9).
+             $yona.initHoverPopovers('[data-toggle="popover"]');
          });
     </script>
 

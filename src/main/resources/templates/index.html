@@ -217,11 +217,11 @@
             if (elSidenav) { elSidenav.style.top = "84px"; }
         }
 
-        // welSetDefaultLoginPage.popover()는 Bootstrap2 jQuery 플러그인 호출부라 라운드9(Bootstrap2
-        // 플러그인 호출부 대체)까지 의도적으로 jQuery 객체를 유지한다 - 나머지 로직(클릭/데이터/숨김)은
-        // 전부 vanilla로 전환.
-        var welSetDefaultLoginPage = $("#setDefaultLoginPage");
-        welSetDefaultLoginPage.popover();
+        // #setDefaultLoginPage는 data-toggle="popover" data-trigger="hover" 마크업이라
+        // Common.js가 이미 갖춘 네이티브 hover popover 구현(initHoverPopovers, registerModule이
+        // loadModule마다 자동으로 [data-toggle=popover]에 호출하는 것과 동일 메커니즘)을 그대로
+        // 재사용한다 - Bootstrap2 .popover() 플러그인 호출을 대체(P3-70 라운드9).
+        $yona.initHoverPopovers("#setDefaultLoginPage");
         var elSetDefaultLoginPage = document.getElementById("setDefaultLoginPage");
         if (elSetDefaultLoginPage) {
             elSetDefaultLoginPage.addEventListener('click', function(){

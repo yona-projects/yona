@@ -160,7 +160,7 @@
                 </div>
 
                 <div class="right-txt">
-                    <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" data-toggle="modal" th:text="#{title.help}">도움말</a>
+                    <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" th:text="#{title.help}">도움말</a>
                 </div>
             </th:block>
 
@@ -293,7 +293,10 @@
         <div th:replace="~{common/commentDeleteModal :: commentDeleteModal(${commentsContainerSelector})}"></div>
     </th:block>
 
-    <div id="helpMessage" class="modal hide fade pullreq-info" th:if="${tab == 'overview'}">
+    <!-- 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은 트리거에서 제거했다(아래
+         스크립트가 직접 showModal() 호출) - bootstrap.js(미수정) 자체의 전역 데이터 API
+         델리게이트와의 충돌(InvalidStateError, Playwright로 재현 확인) 회피. -->
+    <dialog id="helpMessage" class="modal pullreq-info" th:if="${tab == 'overview'}">
         <div class="modal-header">
             <h5 th:text="#{pullRequest.merge.help.1}">도움말</h5>
         </div>
@@ -309,7 +312,7 @@
         <div class="modal-footer">
             <button type="button" class="ybtn ybtn-info ybtn-small" data-dismiss="modal" th:text="#{button.confirm}">확인</button>
         </div>
-    </div>
+    </dialog>
 
     <footer th:replace="~{site/layout :: footer}"></footer>
 </div>
@@ -333,6 +336,20 @@
       var projectId = [[${project.id}]];
       var prNumber = [[${pr.number}]];
       var tab = [[${tab}]];
+
+      // 도움말 모달 오픈(P3-70 라운드9) - data-toggle="modal"을 쓰지 않고 직접 showModal()을
+      // 호출한다(위 <dialog> 주석 참고, tab=='overview'일 때만 두 엘리먼트 모두 존재).
+      var elHelpMessage = document.getElementById("helpMessage");
+      if (elHelpMessage) {
+          $yona.attachDialogDismiss(elHelpMessage);
+          var elHelpTrigger = document.querySelector('a[href="#helpMessage"]');
+          if (elHelpTrigger) {
+              elHelpTrigger.addEventListener("click", function(weEvt){
+                  weEvt.preventDefault();
+                  elHelpMessage.showModal();
+              });
+          }
+      }
 
       function _errorMessageFrom(text, fallback) {
           try {
@@ -786,15 +803,35 @@
           if (location.hash) { onHashChange(); }
         })();
 
-        // 이 IIFE는 Bootstrap2 jQuery 플러그인 .affix()에 의존한다 - position:sticky로는
-        // 부모 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어(issue/list.html의
-        // 동일한 기존 판단 참고) 대체하지 못했다. 라운드9(Bootstrap2 플러그인 호출부 대체)까지
-        // 의도적으로 jQuery 객체를 유지한다 - 이번 라운드(P3-70 라운드6)는 손대지 않는다.
+        // position:sticky로는 부모 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어(기존
+        // 판단 그대로 유지) Bootstrap2 jQuery 플러그인 .affix()의 checkPosition() 알고리즘을
+        // bootstrap.js(v2.3.1, 미수정)에서 그대로 옮겨와 재현했다(P3-70 라운드9, code/diff.html의
+        // 동일 블록과 완전히 동일한 구현 - offset.top만 쓰는 호출이라 "top"/false 두 상태만
+        // 재현하면 완전 동치). 나머지(setReviewListHeight 내부 jQuery core 호출)는 라운드10 대상.
         (function(){
           var welReviewContainer = $(".review-container");
           if (welReviewContainer.length === 0) { return; }
 
-          welReviewContainer.affix({ offset: { top: welReviewContainer.offset().top - 10 } });
+          (function(){
+            var nAffixOffsetTop = welReviewContainer.offset().top - 10;
+            var sAffixState;
+
+            function checkAffixPosition(){
+              var el = welReviewContainer[0];
+              if (!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)) { return; }
+
+              var nScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+              var sAffix = nScrollTop <= nAffixOffsetTop ? "top" : false;
+              if (sAffixState === sAffix) { return; }
+
+              sAffixState = sAffix;
+              welReviewContainer.removeClass("affix affix-top affix-bottom").addClass("affix" + (sAffix ? "-" + sAffix : ""));
+            }
+
+            checkAffixPosition();
+            window.addEventListener("scroll", checkAffixPosition);
+            window.addEventListener("click", function(){ setTimeout(checkAffixPosition, 1); });
+          })();
 
           function setReviewListHeight(){
             var welContainer = $(".codediff-wrap");

@@ -358,9 +358,10 @@
           });
       }
 
-      // help popover at open with browser button - Bootstrap2 jQuery 플러그인 호출이라
-      // 라운드9(Bootstrap2 플러그인 호출부 대체)까지 의도적으로 jQuery 객체를 유지한다.
-      $("#open-in-browser").popover({trigger: "hover", placement: "top"});
+      // help popover at open with browser button - Common.js가 이미 갖춘 네이티브 hover
+      // popover 구현(initHoverPopovers)을 재사용한다(P3-70 라운드9, Bootstrap2 .popover()
+      // 플러그인 호출 대체). placement 기본값이 "top"이라 별도 data-placement 없이도 동일.
+      $yona.initHoverPopovers("#open-in-browser");
 
       // P3-63: 일반 텍스트/소스 코드 파일 뷰(마크다운/바이너리 제외)에 진짜 Ace 에디터를 붙인다
       // (legacy service/yona.code.Browser.js의 _getEditor(400~412행)/_initCodeView(369~394행)/

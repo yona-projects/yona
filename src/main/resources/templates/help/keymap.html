@@ -1,10 +1,14 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="keymap(section, project)" th:with="isMac=${@templateHelper.isMac()}, ctrl=${isMac ? '⌘' : 'CTRL'}">
 <div class="pull-left" style="padding:10px 0; margin-left: 55px;">
-    <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini" th:text="#{title.keymap}">
+    <a href="#helpKeys" class="ybtn ybtn-inverse ybtn-mini" th:text="#{title.keymap}">
         단축키 도움말
     </a>
 
-    <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
+    <!-- 네이티브 <dialog>(P3-70 라운드9, tabindex/role="dialog"는 <dialog> 엘리먼트 자체가
+         네이티브로 제공해 제거). data-toggle="modal"은 트리거에서 제거했다(아래 스크립트가
+         직접 showModal() 호출) - bootstrap.js(미수정) 자체의 전역 데이터 API 델리게이트와의
+         충돌(InvalidStateError, Playwright로 재현 확인) 회피. -->
+    <dialog id="helpKeys" class="modal keymap-help">
         <div class="row-fluid">
             <div class="span3">
                 <h5 th:text="#{project.projects}">프로젝트</h5>
@@ -113,6 +117,20 @@
         <p class="actrow">
             <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}">확인</button>
         </p>
-    </div>
+    </dialog>
+    <script type="text/javascript">
+        (function(){
+            var elHelpKeys = document.getElementById("helpKeys");
+            if (!elHelpKeys) { return; }
+            $yona.attachDialogDismiss(elHelpKeys);
+            var elTrigger = document.querySelector('a[href="#helpKeys"]');
+            if (elTrigger) {
+                elTrigger.addEventListener("click", function(weEvt){
+                    weEvt.preventDefault();
+                    elHelpKeys.showModal();
+                });
+            }
+        })();
+    </script>
 </div>
 </th:block>

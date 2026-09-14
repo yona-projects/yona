@@ -580,18 +580,37 @@ document.addEventListener("DOMContentLoaded", function() {
   })();
 
   // --- 리뷰 사이드바 sticky(legacy _setReviewWrapAffixed/_setReviewListHeight) -------------
-  // 이 IIFE는 Bootstrap2 jQuery 플러그인 .affix()에 의존한다 - position:sticky로는 부모
-  // 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어(issue/list.html의 동일한 기존 판단
-  // 참고, pullrequest/view.html의 동일 블록도 동일 판단) 대체하지 못했다. 라운드9(Bootstrap2
-  // 플러그인 호출부 대체)까지 의도적으로 jQuery 객체를 유지한다 - 이번 라운드(P3-70 라운드6)는
-  // 손대지 않는다(이 파일의 jQuery 잔존은 사실상 이 블록이 전부다).
+  // position:sticky로는 부모 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어(기존
+  // 판단 그대로 유지) Bootstrap2 jQuery 플러그인 .affix()의 checkPosition() 알고리즘을
+  // bootstrap.js(v2.3.1, 미수정)에서 그대로 옮겨와 재현했다(P3-70 라운드9) - offset.bottom을
+  // 쓰지 않는 이 호출(offset.top만 지정)에서는 원본이 늘 scrollTop<=offsetTop이면 "top",
+  // 아니면 false 상태만 오가므로 그 두 상태만 구현하면 완전 동치다. 나머지(setReviewListHeight
+  // 내부의 jQuery core .position()/.offset()/.outerHeight()/.css() 호출)는 코어 jQuery라
+  // 라운드10 대상 - 이번 라운드는 .affix() 플러그인 호출 지점만 국소적으로 걷어낸다.
   (function(){
     var welReviewContainer = $(".review-container");
     if (welReviewContainer.length === 0) { return; }
 
-    welReviewContainer.affix({
-      offset: { top: welReviewContainer.offset().top - 10 }
-    });
+    (function(){
+      var nAffixOffsetTop = welReviewContainer.offset().top - 10;
+      var sAffixState; // undefined: 아직 미평가, "top": 상단 고정 전, false: 스크롤로 pin된 상태
+
+      function checkAffixPosition(){
+        var el = welReviewContainer[0];
+        if (!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)) { return; }
+
+        var nScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var sAffix = nScrollTop <= nAffixOffsetTop ? "top" : false;
+        if (sAffixState === sAffix) { return; }
+
+        sAffixState = sAffix;
+        welReviewContainer.removeClass("affix affix-top affix-bottom").addClass("affix" + (sAffix ? "-" + sAffix : ""));
+      }
+
+      checkAffixPosition();
+      window.addEventListener("scroll", checkAffixPosition);
+      window.addEventListener("click", function(){ setTimeout(checkAffixPosition, 1); });
+    })();
 
     function setReviewListHeight(){
       var welContainer = $(".codediff-wrap");

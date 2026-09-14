@@ -49,7 +49,7 @@
                     <div class="posting-history" th:if="${post.history != null and !#strings.isEmpty(post.history)}">
                         <a th:if="${currentUser == null}" th:href="@{/users/loginform}" th:text="#{change.history}">변경 이력</a>
                         <th:block th:if="${currentUser != null}">
-                            <a href="#-yona-posting-history" data-toggle="modal" th:text="#{change.history}">변경 이력</a>
+                            <a href="#-yona-posting-history" th:text="#{change.history}">변경 이력</a>
                             <div th:replace="~{common/partial_history :: partial_history(${post})}"></div>
                         </th:block>
                     </div>
@@ -93,7 +93,7 @@
                                 <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button>
                             </a>
                             <th:block th:if="${isAllowedUpdate}">
-                                <a href="#deleteConfirm" data-toggle="modal">
+                                <a href="#deleteConfirm">
                                     <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button>
                                 </a>
                             </th:block>
@@ -209,8 +209,11 @@
         </div>
     </div>
 
-    <!-- Confirm to delete post -->
-    <div id="deleteConfirm" class="modal hide fade">
+    <!-- Confirm to delete post - 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은
+         트리거에서 제거했다(아래 스크립트가 직접 showModal() 호출) - bootstrap.js(미수정) 자체의
+         전역 데이터 API 델리게이트가 여전히 살아있어 속성을 남기면 같은 클릭에 이중으로 반응해
+         InvalidStateError가 나는 실제 충돌을 Playwright로 재현해 확인했다. -->
+    <dialog id="deleteConfirm" class="modal">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">×</button>
             <h3 th:text="#{post.delete}">글 삭제</h3>
@@ -222,7 +225,7 @@
             <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:data-request-uri="@{/api/projects/{projectId}/posts/{number}(projectId=${project.id}, number=${post.number})}" th:text="#{button.yes}">예</button>
             <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니요</button>
         </div>
-    </div>
+    </dialog>
 
     <div th:replace="~{common/commentDeleteModal :: commentDeleteModal('#comments')}"></div>
 
@@ -251,6 +254,19 @@
             }
         });
 
+        // 삭제 확인/변경 이력 모달 오픈(P3-70 라운드9) - data-toggle="modal"을 쓰지 않고
+        // 직접 showModal()을 호출한다(위 <dialog> 주석 참고).
+        var elDeleteConfirm = document.getElementById("deleteConfirm");
+        if (elDeleteConfirm) {
+            $yona.attachDialogDismiss(elDeleteConfirm);
+            var elBtnDeleteTrigger = document.querySelector('a[href="#deleteConfirm"]');
+            if (elBtnDeleteTrigger) {
+                elBtnDeleteTrigger.addEventListener("click", function(weEvt){
+                    weEvt.preventDefault();
+                    elDeleteConfirm.showModal();
+                });
+            }
+        }
         // jQuery의 .text(null)/.html(null)가 빈 문자열로 취급되는 것과 달리 네이티브
         // textContent/innerHTML = null은 문자열 "null"이 된다 - 응답 본문 파싱 실패시에도
         // 항상 문자열을 반환하도록 helper로 감싼다(회귀 방지).
@@ -435,6 +451,29 @@
             shape: 'rounded',
             glass: true
         });
+    });
+</script>
+<!-- P3-70 라운드9 코디네이터 수정. 이 태그 자체가 th:if로 조건부이므로 세부 근거는 HTML
+     주석이 아니라 아래 JS 주석에 남긴다 - HTML 주석은 th:if와 무관하게 항상 렌더링되므로
+     여기 두면 대상 dialog id 문자열이 history 없는 화면에서도 새 버려 회귀가 재발한다(실측으로
+     직접 재현·확인했던 실수). -->
+<script type="text/javascript" th:if="${post.history != null and !#strings.isEmpty(post.history) and currentUser != null}">
+    // <dialog>(common/partial_history)는 post.history가 있고 로그인 사용자일 때만
+    // 렌더링되는데(비로그인은 평범한 로그인 유도 링크만 표시 - 위 posting-history div의
+    // th:if 분기 참고), 이 배선이 원래 post.history 조건만으로(currentUser 무관) 위 공용
+    // 스크립트 블록에 있어 history 없는 게시글 화면 및 비로그인 화면에서도 대상 id 리터럴이
+    // 응답 본문에 남아 PostingHistoryTemplateRenderingSpec의 "history 없으면/비로그인이면
+    // 전혀 렌더링하지 않는다" 계약을 깨뜨렸다(실측으로 재현·확인).
+    document.addEventListener("DOMContentLoaded", function(){
+        var elPostingHistory = document.getElementById("-yona-posting-history");
+        $yona.attachDialogDismiss(elPostingHistory);
+        var elHistoryTrigger = document.querySelector('a[href="#-yona-posting-history"]');
+        if (elHistoryTrigger) {
+            elHistoryTrigger.addEventListener("click", function(weEvt){
+                weEvt.preventDefault();
+                elPostingHistory.showModal();
+            });
+        }
     });
 </script>
 </body>

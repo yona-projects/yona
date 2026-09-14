@@ -909,12 +909,34 @@
         $yona.setScriptPath("/javascripts/");
 
         document.addEventListener("DOMContentLoaded", function(){
-            // tooltip - Bootstrap2 jQuery 플러그인 호출이라 라운드9(Bootstrap2 플러그인 호출부
-            // 대체)까지 의도적으로 jQuery 객체를 유지한다. 위임 바인딩 자체는 vanilla로 전환.
+            // tooltip - Bootstrap2 jQuery 플러그인(.tooltip()) 호출부를 $yona.showTooltip/
+            // hideTooltip(Common.js가 popover와 동일한 위치 계산 공식을 재사용해 구현한
+            // 네이티브 대체)으로 교체했다(P3-70 라운드9). trigger:"hover focus"(Bootstrap
+            // 기본값)를 그대로 재현하기 위해 mouseenter/mouseleave뿐 아니라 focus/blur도
+            // 위임한다 - 넷 다 버블링하지 않는 이벤트라 라운드6에서 확립한 캡처 단계 관례를
+            // 그대로 재사용한다.
             document.body.addEventListener("mouseenter", function(event){
                 var matched = event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
-                    $(matched).tooltip("show");
+                    $yona.showTooltip(matched);
+                }
+            }, true);
+            document.body.addEventListener("mouseleave", function(event){
+                var matched = event.target.closest("[data-toggle=tooltip]");
+                if (matched && document.body.contains(matched)) {
+                    $yona.hideTooltip(matched);
+                }
+            }, true);
+            document.body.addEventListener("focus", function(event){
+                var matched = event.target.closest("[data-toggle=tooltip]");
+                if (matched && document.body.contains(matched)) {
+                    $yona.showTooltip(matched);
+                }
+            }, true);
+            document.body.addEventListener("blur", function(event){
+                var matched = event.target.closest("[data-toggle=tooltip]");
+                if (matched && document.body.contains(matched)) {
+                    $yona.hideTooltip(matched);
                 }
             }, true);
 

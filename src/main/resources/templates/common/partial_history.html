@@ -11,7 +11,12 @@
  대응).
 -->
 <th:block th:fragment="partial_history(posting)">
-    <div id="-yona-posting-history" class="modal hide">
+    <!-- 네이티브 <dialog>(P3-70 라운드9) - 트리거 <a href="#-yona-posting-history">는
+         board/view.html·issue/view.html에 각각 있고, 두 파일의 자체 스크립트가
+         showModal()/attachDialogDismiss를 직접 호출한다(data-toggle="modal"은 쓰지 않는다 -
+         bootstrap.js 자체 전역 데이터 API 델리게이트와의 충돌을 피하기 위해, 이 프래그먼트
+         자체에는 스크립트가 없다). -->
+    <dialog id="-yona-posting-history" class="modal">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h5 class="nm" th:text="#{change.history}">변경 이력</h5>
@@ -22,7 +27,7 @@
         <div class="modal-footer">
             <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true" th:text="#{button.confirm}">확인</button>
         </div>
-    </div>
+    </dialog>
 </th:block>
 </body>
 </html>

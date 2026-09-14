@@ -61,7 +61,7 @@
                     <div class="posting-history" th:if="${issue.history != null and !#strings.isEmpty(issue.history)}">
                         <a th:if="${currentUser == null}" th:href="@{/users/loginform}" th:text="#{change.history}">변경 이력</a>
                         <th:block th:if="${currentUser != null}">
-                            <a href="#-yona-posting-history" data-toggle="modal">
+                            <a href="#-yona-posting-history">
                                 <span class="lastUpdatedBy" th:if="${issue.updatedByAuthorId != null}">
                                     <span th:text="${issue.updatedByAuthorName != null ? issue.updatedByAuthorName : issue.updatedByAuthorLoginId}">수정자</span>
                                     <span th:text="${templateHelper.agoOrDateString(issue.updatedDate)}">방금 전</span>
@@ -137,7 +137,7 @@
                                         </li>
                                         <li th:if="${otherVoters.size() > 3}" data-toggle="tooltip" data-html="true"
                                             th:title="${templateHelper.getVotersTooltip(otherVoters, 3, 5)}">
-                                            <a href="#voters" data-toggle="modal" th:text="#{issue.voters.more(${otherVoters.size() - 3})}">
+                                            <a href="#voters" th:text="#{issue.voters.more(${otherVoters.size() - 3})}">
                                                 외 N명
                                             </a>
                                         </li>
@@ -162,7 +162,7 @@
                             </a>
                             <th:block th:if="${isAllowedUpdate}">
                                 <th:block th:if="${@templateHelper.canBeDeleted(issue, comments)}">
-                                    <a href="#deleteConfirm" data-toggle="modal">
+                                    <a href="#deleteConfirm">
                                         <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button>
                                     </a>
                                 </th:block>
@@ -220,13 +220,18 @@
                                                 <!-- 댓글 공감인 5명 초과인 경우 -->
                                                 <th:block th:if="${comment.voters.size() > 5}">
                                                     <span style="margin-right: 2px;" data-toggle="tooltip" data-html="true" th:title="${templateHelper.getVotersTooltip(comment.voters, 0, 5)}">
-                                                        <a class="vote-description-people" th:href="'#voters-' + ${comment.id}" data-toggle="modal" th:text="${comment.voters.size() == 1 ? #messages.msg('common.comment.vote.agreement', comment.voters.size()) : #messages.msg('common.comment.vote.agreements', comment.voters.size())}">
+                                                        <a class="vote-description-people" th:href="'#voters-' + ${comment.id}" th:text="${comment.voters.size() == 1 ? #messages.msg('common.comment.vote.agreement', comment.voters.size()) : #messages.msg('common.comment.vote.agreements', comment.voters.size())}">
                                                             N 공감
                                                         </a>
                                                     </span>
 
-                                                    <!-- 댓글 추천인 모달 -->
-                                                    <div th:id="'voters-' + ${comment.id}" class="modal hide voters-dialog">
+                                                    <!-- 댓글 추천인 모달 - 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은
+                                                         트리거(.vote-description-people)에서 제거했다 - bootstrap.js(미수정) 자체의
+                                                         전역 데이터 API 델리게이트와 이중으로 반응해 InvalidStateError가 나는 실제
+                                                         충돌을 Playwright로 재현해 확인했다. 아래 스크립트가 .vote-description-people
+                                                         클래스로 위임 바인딩해 href="#voters-N"이 가리키는 대상을 직접 연다(댓글마다
+                                                         반복 렌더링돼도 위임이라 개수와 무관하게 동작한다). -->
+                                                    <dialog th:id="'voters-' + ${comment.id}" class="modal voters-dialog">
                                                         <div class="modal-header">
                                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                                             <h5 class="nm" th:text="#{issue.voters}">공감하는 사람들</h5>
@@ -247,7 +252,7 @@
                                                         <div class="modal-footer">
                                                             <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true" th:text="#{button.close}">닫기</button>
                                                         </div>
-                                                    </div>
+                                                    </dialog>
                                                 </th:block>
 
                                                 <!-- 댓글 공감인 5명 이하인 경우 -->
@@ -493,8 +498,10 @@
         </div>
     </div>
 
-    <!-- Confirm to delete post -->
-    <div id="deleteConfirm" class="modal hide fade">
+    <!-- Confirm to delete post - 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은
+         트리거에서 제거했다(아래 스크립트가 직접 showModal() 호출) - bootstrap.js(미수정) 자체의
+         전역 데이터 API 델리게이트와의 충돌(InvalidStateError, Playwright로 재현 확인) 회피. -->
+    <dialog id="deleteConfirm" class="modal">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">×</button>
             <h3 th:text="#{issue.delete}">이슈 삭제</h3>
@@ -506,10 +513,12 @@
             <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:data-request-uri="@{/api/projects/{projectId}/issues/{number}(projectId=${project.id}, number=${issue.number})}">네</button>
             <button type="button" class="ybtn" data-dismiss="modal">아니요</button>
         </div>
-    </div>
+    </dialog>
 
-    <!-- Voters Modal -->
-    <div id="voters" class="modal hide voters-dialog">
+    <!-- Voters Modal - 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은 트리거에서
+         제거했다(아래 스크립트가 직접 showModal() 호출) - bootstrap.js(미수정) 자체의 전역
+         데이터 API 델리게이트와의 충돌(InvalidStateError, Playwright로 재현 확인) 회피. -->
+    <dialog id="voters" class="modal voters-dialog">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h5 class="nm" th:text="#{issue.voters}">공감하는 사람들</h5>
@@ -530,7 +539,7 @@
         <div class="modal-footer">
             <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true" th:text="#{button.close}">닫기</button>
         </div>
-    </div>
+    </dialog>
 
     <div th:replace="~{common/commentDeleteModal :: commentDeleteModal('#comments')}"></div>
 
@@ -575,6 +584,49 @@
                 "timeline"  : "[[@{/{owner}/{projectName}/issue/{number}/timeline(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
                 "massUpdate": "[[@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}]]"
             }
+        });
+
+        // 삭제 확인 모달 오픈(P3-70 라운드9) - data-toggle="modal"을 쓰지 않고 직접
+        // showModal()을 호출한다(위 <dialog> 주석 참고). 변경 이력 모달 배선은 history가
+        // 있을 때만 렌더링되는 dialog를 대상으로 하므로 별도 조건부 script 태그로 분리했다
+        // (아래 "이슈 변경 이력 모달 초기화" 참고 - 코디네이터 수정).
+        var elDeleteConfirm = document.getElementById("deleteConfirm");
+        if (elDeleteConfirm) {
+            $yona.attachDialogDismiss(elDeleteConfirm);
+            var elDeleteTrigger = document.querySelector('a[href="#deleteConfirm"]');
+            if (elDeleteTrigger) {
+                elDeleteTrigger.addEventListener("click", function(weEvt){
+                    weEvt.preventDefault();
+                    elDeleteConfirm.showModal();
+                });
+            }
+        }
+        var elVoters = document.getElementById("voters");
+        if (elVoters) {
+            $yona.attachDialogDismiss(elVoters);
+            var elVotersTrigger = document.querySelector('a[href="#voters"]');
+            if (elVotersTrigger) {
+                elVotersTrigger.addEventListener("click", function(weEvt){
+                    weEvt.preventDefault();
+                    elVoters.showModal();
+                });
+            }
+        }
+        // 댓글별 공감자 모달(#voters-N)은 댓글 수만큼 반복 렌더링되므로 위임 바인딩으로
+        // 한 번만 등록한다(라운드1 이후 확립된 _delegate 관용구 - closest + contains 가드).
+        document.addEventListener("click", function(weEvt){
+            var elTrigger = weEvt.target.closest(".vote-description-people");
+            if (!elTrigger) { return; }
+            var sHref = elTrigger.getAttribute("href") || "";
+            if (sHref.charAt(0) !== "#") { return; }
+            var elCommentVoters = document.getElementById(sHref.slice(1));
+            if (!elCommentVoters) { return; }
+            weEvt.preventDefault();
+            if (!elCommentVoters._yonaDialogDismissBound) {
+                elCommentVoters._yonaDialogDismissBound = true;
+                $yona.attachDialogDismiss(elCommentVoters);
+            }
+            elCommentVoters.showModal();
         });
 
         function _errorMessageFrom(text) {
@@ -787,6 +839,32 @@
             shape: 'rounded',
             tooltips: true
         });
+    });
+</script>
+
+<!-- 이슈 변경 이력 모달 초기화(P3-70 라운드9 코디네이터 수정). 이 태그 자체가 th:if로
+     조건부이므로(issue.history가 없으면 태그 전체가 출력되지 않음) 세부 근거는 HTML 주석이
+     아니라 아래 JS 주석에 남긴다 - HTML 주석은 th:if와 무관하게 항상 렌더링되므로, 여기 두면
+     비어있는 이슈 화면에서도 대상 dialog id 문자열이 응답 본문에 새 버려 회귀가 재발한다
+     (실측으로 직접 재현·확인). -->
+<script type="text/javascript" th:if="${issue.history != null and !#strings.isEmpty(issue.history) and currentUser != null}">
+    // <dialog>(common/partial_history)는 issue.history가 있고 로그인 사용자일 때만 렌더링되는데
+    // (비로그인은 평범한 로그인 유도 링크만 표시 - 위 posting-history div의 th:if 분기 참고),
+    // 이 배선이
+    // 원래 위 공용 스크립트 블록에 있어 history 없는 화면에서도 대상 id 리터럴이 응답 본문에
+    // 남아 PostingHistoryTemplateRenderingSpec의 "history 없으면 전혀 렌더링하지 않는다"
+    // 계약을 깨뜨렸다 - 위 yonaAssgineeModule/yonaIssueSharerModule과 동일한 이유(script는
+    // raw text라 th:block 중첩 불가)로 별도 script 태그에 th:if를 건다.
+    document.addEventListener("DOMContentLoaded", function(){
+        var elPostingHistory = document.getElementById("-yona-posting-history");
+        $yona.attachDialogDismiss(elPostingHistory);
+        var elHistoryTrigger = document.querySelector('a[href="#-yona-posting-history"]');
+        if (elHistoryTrigger) {
+            elHistoryTrigger.addEventListener("click", function(weEvt){
+                weEvt.preventDefault();
+                elPostingHistory.showModal();
+            });
+        }
     });
 </script>
 

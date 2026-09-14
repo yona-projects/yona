@@ -111,7 +111,10 @@
           
           <div id="pagination"></div>
 
-          <div id="alertDeletionWrap" class="modal fade">
+          <!-- 네이티브 <dialog>(P3-70 라운드9). 트리거가 data-toggle="account-delete"
+               (bootstrap.js의 data-toggle="modal" 대상이 아님, userInfo/requestAs 데이터를
+               먼저 채워야 해서 아래 스크립트가 직접 showModal()을 호출한다). -->
+          <dialog id="alertDeletionWrap" class="modal">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal">×</button>
               <span id="userInfo"></span>
@@ -126,7 +129,7 @@
               </a>
               <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니요</button>
             </div>
-          </div>
+          </dialog>
         </div>
       </div>
     </div>
@@ -145,13 +148,17 @@ document.addEventListener("DOMContentLoaded", function(){
         $.tmpl(document.getElementById("dismissable-alerts-request").text, {}).appendTo(elAnchor.parentElement);
     }
 
+    var elAlertDeletionWrap = document.getElementById('alertDeletionWrap');
+    $yona.attachDialogDismiss(elAlertDeletionWrap);
+
     var elUserListWrap = document.querySelector('.user-list-wrap');
     if (elUserListWrap) {
         elUserListWrap.addEventListener('click', function(event) {
             var matchedDelete = event.target.closest('[data-toggle="account-delete"]');
             if (matchedDelete && elUserListWrap.contains(matchedDelete)) {
-                // .requestAs()/.modal()은 각각 라운드10/라운드9 대상 jQuery 플러그인 호출이라
-                // 의도적으로 jQuery 객체를 유지한다.
+                // .requestAs()는 jquery.requestAs.js 플러그인 호출부라 라운드10(코어 라이브러리
+                // 제거)까지 의도적으로 jQuery 객체를 유지한다(.modal()은 라운드9에서 네이티브
+                // <dialog>로 이미 전환됨 - 위 elAlertDeletionWrap.showModal() 참고).
                 $('#accountToggleBtn')
                     .data("requestUri", matchedDelete.dataset.href)
                     .data("requestMethod","delete")
@@ -166,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function(){
                 if (elUserInfo) {
                     elUserInfo.innerHTML = matchedDelete.dataset.userName + '(' + matchedDelete.dataset.userId + ')';
                 }
-                $('#alertDeletionWrap').modal('show');
+                elAlertDeletionWrap.showModal();
                 return;
             }
 

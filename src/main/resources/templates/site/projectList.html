@@ -72,8 +72,11 @@
   <footer th:replace="~{site/layout :: footer}"></footer>
 </div>
 
-<!-- Confirm to delete project -->
-<div id="alertDeletionWrap" class="modal fade">
+<!-- Confirm to delete project - 네이티브 <dialog>(P3-70 라운드9). 트리거가
+     data-toggle="delete-project"(bootstrap.js의 data-toggle="modal" 대상이 아님,
+     project-name/requestAs 데이터를 먼저 채워야 해서 아래 스크립트가 직접 showModal()을
+     호출한다). -->
+<dialog id="alertDeletionWrap" class="modal">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">×</button>
     <span id="project-name"></span><span th:text="#{site.project.delete}">프로젝트 삭제</span>
@@ -85,12 +88,15 @@
     <button type="button" id="projectDeleteBtn" class="ybtn ybtn-danger" th:text="#{button.yes}">예</button>
     <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니요</button>
   </div>
-</div>
+</dialog>
 
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
 document.addEventListener("DOMContentLoaded", function(){
+    var elAlertDeletionWrap = document.getElementById('alertDeletionWrap');
+    $yona.attachDialogDismiss(elAlertDeletionWrap);
+
     var elProjectListWrap = document.querySelector('.project-list-wrap');
     if (elProjectListWrap) {
         elProjectListWrap.addEventListener('click', function(event) {
@@ -107,9 +113,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
             var elProjectName = document.getElementById('project-name');
             if (elProjectName) { elProjectName.innerHTML = matched.dataset.projectName; }
-            // jQuery Bootstrap2 modal 플러그인 호출 - 라운드9(Bootstrap2 플러그인 호출부 대체)까지
-            // 의도적으로 jQuery 객체를 유지한다(마크업이 실제 <div class="modal fade">).
-            $('#alertDeletionWrap').modal('show');
+            elAlertDeletionWrap.showModal();
 
             console.log(matched.dataset.href);
         });

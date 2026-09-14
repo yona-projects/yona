@@ -643,6 +643,100 @@ $yona = yona.Common = (function(){
     }
 
     /**
+     * Bootstrap Tooltip.prototype.fixTitle()과 동일 - title 속성을 최초 1회만
+     * data-original-title로 옮겨서, 네이티브 브라우저 툴팁(title이 그대로 있으면 OS가
+     * 띄우는 기본 툴팁)과 커스텀 tooltip이 중복 표시되는 것을 막는다.
+     *
+     * @param {Element} elTrigger
+     */
+    function _fixTooltipTitle(elTrigger){
+        if(elTrigger.getAttribute("data-original-title") === null){
+            elTrigger.setAttribute("data-original-title", elTrigger.getAttribute("title") || "");
+            elTrigger.setAttribute("title", "");
+        }
+    }
+
+    /**
+     * Bootstrap .tooltip() 마크업(tooltip/tooltip-arrow/tooltip-inner)과 배치별
+     * CSS(.tooltip.top/.right/.bottom/.left, .fade.in)는 yona.css/bootstrap.css에
+     * 이미 갖춰져 있다 - 위치 계산 공식은 popover와 완전히 동일해 _positionPopoverElement/
+     * _getPopoverContainer를 그대로 재사용하고, 마크업 생성만 별도로 둔다.
+     *
+     * @param {Boolean} bHtml data-html="true" 마크업(issue/view.html의 댓글 추천인 목록 등)
+     *        대응 - Bootstrap setContent()의 "html이면 .html(), 아니면 .text()" 분기와 동일.
+     */
+    function _createTooltipElement(sContent, sPlacement, bHtml){
+        var elTooltip = document.createElement("div");
+        elTooltip.className = "tooltip fade " + (sPlacement || "top");
+        elTooltip.setAttribute("role", "tooltip");
+
+        var elArrow = document.createElement("div");
+        elArrow.className = "tooltip-arrow";
+        elTooltip.appendChild(elArrow);
+
+        var elInner = document.createElement("div");
+        elInner.className = "tooltip-inner";
+        if(bHtml){
+            elInner.innerHTML = sContent;
+        } else {
+            elInner.textContent = sContent;
+        }
+        elTooltip.appendChild(elInner);
+
+        return elTooltip;
+    }
+
+    /**
+     * data-toggle="tooltip" 마크업(title 또는 이미 옮겨진 data-original-title)에 대해
+     * hover/focus 시 즉시 tooltip을 표시한다(Bootstrap Tooltip 기본 옵션 delay:0과 동일 -
+     * 별도 지연 없음). site/layout.html이 document.body에 위임 바인딩(캡처 단계 -
+     * mouseenter/mouseleave/focus/blur는 버블링하지 않으므로 라운드6에서 확립한 캡처
+     * 단계 관례를 그대로 재사용)으로 호출한다.
+     *
+     * @param {Element} elTrigger
+     */
+    function showTooltip(elTrigger){
+        if(!elTrigger || elTrigger._yonaTooltipEl){
+            return;
+        }
+        _fixTooltipTitle(elTrigger);
+        var sTitle = elTrigger.getAttribute("data-original-title") || "";
+        if(!sTitle){
+            return; // Bootstrap hasContent()과 동일 - 표시할 내용이 없으면 아무것도 하지 않는다.
+        }
+        var sPlacement = elTrigger.getAttribute("data-placement") || "top";
+        // jQuery .data("html")은 문자열 "true"를 boolean으로 자동 변환하지만 네이티브
+        // getAttribute는 항상 원본 문자열이라 명시 비교로 재현한다(라운드1 이후 확립된 관례).
+        var bHtml = elTrigger.getAttribute("data-html") === "true";
+        var elContainer = _getPopoverContainer(elTrigger);
+        var elTooltip = _createTooltipElement(sTitle, sPlacement, bHtml);
+        elContainer.appendChild(elTooltip);
+        _positionPopoverElement(elTrigger, elTooltip, sPlacement, elContainer);
+        elTooltip.classList.add("in");
+        elTrigger._yonaTooltipEl = elTooltip;
+    }
+
+    /**
+     * @param {Element} elTrigger
+     */
+    function hideTooltip(elTrigger){
+        var elTooltip = elTrigger && elTrigger._yonaTooltipEl;
+        if(!elTooltip){
+            return;
+        }
+        elTrigger._yonaTooltipEl = null;
+        elTooltip.classList.remove("in");
+
+        // Bootstrap Tooltip.prototype.hide()의 "트랜지션 종료 후 제거(폴백 500ms)"와 동일.
+        var nRemoveTimeout = setTimeout(function(){ elTooltip.remove(); }, 500);
+        elTooltip.addEventListener("transitionend", function onTransitionEnd(){
+            clearTimeout(nRemoveTimeout);
+            elTooltip.removeEventListener("transitionend", onTransitionEnd);
+            elTooltip.remove();
+        });
+    }
+
+    /**
      * 입력 필드 등 특정 엘리먼트 옆에 검증 에러 메시지를 즉시(manual trigger)
      * 표시한다 - issue.LabelEditor/user.SignUp/resetPassword/project.New/
      * user.Setting이 공통으로 쓰던 "$el.popover({trigger:manual, content:...}).
@@ -756,7 +850,9 @@ $yona = yona.Common = (function(){
         "initHoverPopovers": initHoverPopovers,
         "showPopoverError": showPopoverError,
         "hidePopoverError": hidePopoverError,
-        "tabShow": tabShow
+        "tabShow": tabShow,
+        "showTooltip": showTooltip,
+        "hideTooltip": hideTooltip
     };
 })();
 

@@ -14,11 +14,18 @@
             <div th:replace="~{organization/partial_settingmenu :: menu(${org}, 'delete')}"></div>
 
             <div class="box-wrap bottom">
-                <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" th:text="#{organization.delete.this}">Delete this organization</a>
+                <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" th:text="#{organization.delete.this}">Delete this organization</a>
             </div>
 
-            <!-- Confirm to delete organization -->
-            <div id="alertDeletion" class="modal hide">
+            <!-- Confirm to delete organization - 네이티브 <dialog>(P3-70 라운드9). data-toggle=
+                 "modal" 속성은 제거했다 - bootstrap.js(미수정, static/bootstrap/js/) 자체의
+                 전역 [data-toggle="modal"] 데이터 API 델리게이트가 여전히 살아있어(플러그인 파일을
+                 못 건드리니 비활성화 불가) 속성을 남겨두면 그 델리게이트가 같은 클릭에 반응해
+                 $(target).modal()을 호출하다가 "dialog가 이미 모달로 열려있다"는
+                 InvalidStateError를 던지는 실제 충돌을 Playwright로 재현했다(project.Delete.js
+                 등 기존 라운드가 확립한 "속성 제거 + JS에서 직접 showModal()" 패턴과 동일하게
+                 맞춤). -->
+            <dialog id="alertDeletion" class="modal">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                     <h3 th:text="#{organization.delete.requestion}">Delete organization?</h3>
@@ -30,7 +37,7 @@
                     <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}">Yes</button>
                     <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">No</button>
                 </div>
-            </div>
+            </dialog>
         </div>
     </div>
 
@@ -38,6 +45,17 @@
     <div th:replace="~{site/layout :: scripts}"></div>
 </div>
 <script language="javascript" th:inline="javascript">
+    var elAlertDeletion = document.getElementById("alertDeletion");
+    $yona.attachDialogDismiss(elAlertDeletion);
+
+    var elBtnDelete = document.getElementById("btnDelete");
+    if (elBtnDelete) {
+        elBtnDelete.addEventListener("click", function(weEvt) {
+            weEvt.preventDefault();
+            elAlertDeletion.showModal();
+        });
+    }
+
     var elBtnDeleteExec = document.getElementById("btnDeleteExec");
     if (elBtnDeleteExec) {
         elBtnDeleteExec.addEventListener("click", function() {
@@ -48,9 +66,7 @@
                         return;
                     }
                     return response.text().then(function(responseText) {
-                        // jQuery Bootstrap2 modal 플러그인 호출 - 라운드9(Bootstrap2 플러그인 호출부
-                        // 대체)까지 의도적으로 jQuery 객체를 유지한다(마크업이 실제 <div class="modal hide">).
-                        $("#alertDeletion").modal("hide");
+                        elAlertDeletion.close();
                         var sErrorMsg;
                         try{
                             sErrorMsg = Messages(JSON.parse(responseText).errorMsg);

@@ -41,7 +41,7 @@
                     <a th:href="@{/{owner}/{projectName}/milestones(owner=${project.owner}, projectName=${project.name})}" class="ybtn pull-left" th:text="#{button.list}">목록</a>
 
                     <!-- 삭제 버튼: 로그인 세션 존재 시 노출 -->
-                    <a sec:authorize="isAuthenticated()" href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger" th:text="#{button.delete}">삭제</a>
+                    <a sec:authorize="isAuthenticated()" href="#deleteConfirm" class="ybtn ybtn-danger" th:text="#{button.delete}">삭제</a>
 
                     <!-- 수정 및 상태 전환 버튼: 로그인 세션 존재 시 노출 -->
                     <th:block sec:authorize="isAuthenticated()">
@@ -104,8 +104,11 @@
     </div>
 </div>
 
-<!-- 삭제 확인 모달 -->
-<div id="deleteConfirm" class="modal hide fade">
+<!-- 삭제 확인 모달 - 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은 트리거에서
+     제거했다(아래 스크립트가 직접 showModal() 호출) - bootstrap.js(미수정) 자체의 전역
+     데이터 API 델리게이트와 이중으로 반응해 InvalidStateError가 나는 실제 충돌을
+     Playwright로 재현해 확인했다. -->
+<dialog id="deleteConfirm" class="modal">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">×</button>
         <h3 th:text="#{milestone.delete}">마일스톤 삭제</h3>
@@ -117,7 +120,7 @@
         <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:data-request-uri="@{/{owner}/{projectName}/milestone/{id}(owner=${project.owner}, projectName=${project.name}, id=${milestoneDto.milestone.id})}" th:text="#{button.yes}">예</button>
         <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니오</button>
     </div>
-</div>
+</dialog>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
@@ -165,6 +168,20 @@
             "sMilestoneId" : [[${milestoneDto.milestone.id}]],
             "sURLLabels"   : "/" + projectOwner + "/" + projectName + "/issues"
         });
+
+        // 삭제 확인 모달 오픈(P3-70 라운드9) - data-toggle="modal"을 쓰지 않고 직접
+        // showModal()을 호출한다(위 <dialog> 주석 참고).
+        var elDeleteConfirm = document.getElementById("deleteConfirm");
+        if (elDeleteConfirm) {
+            $yona.attachDialogDismiss(elDeleteConfirm);
+            var elBtnDeleteTrigger = document.querySelector('a[href="#deleteConfirm"]');
+            if (elBtnDeleteTrigger) {
+                elBtnDeleteTrigger.addEventListener("click", function(weEvt){
+                    weEvt.preventDefault();
+                    elDeleteConfirm.showModal();
+                });
+            }
+        }
     });
 </script>
 </body>

@@ -46,8 +46,10 @@
                 </li>
             </ul>
 
-            <!-- Confirm to delete member -->
-            <div id="alertDeletion" class="modal hide">
+            <!-- Confirm to delete member - 네이티브 <dialog>(P3-70 라운드9). 트리거는
+                 .delete-member-btn(data-toggle="modal" 아님, sDeleteUserId를 먼저 세팅해야
+                 해서 아래 스크립트가 직접 showModal()을 호출한다). -->
+            <dialog id="alertDeletion" class="modal">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                     <h3 th:text="#{organization.member.delete}">Delete member</h3>
@@ -59,7 +61,7 @@
                     <button type="button" class="ybtn ybtn-info ybtn-mini" id="deleteBtn" th:text="#{button.yes}">Yes</button>
                     <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}">No</button>
                 </div>
-            </div>
+            </dialog>
 
             <!-- Enrolled Users -->
             <th:block th:if="${org.enrolledUsers.size() > 0}">
@@ -91,6 +93,8 @@
 <script type="text/javascript" th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function() {
         var orgId = [[${org.id}]];
+        var elAlertDeletion = document.getElementById("alertDeletion");
+        $yona.attachDialogDismiss(elAlertDeletion);
 
         function _postOrPutOrDelete(url, method, onSuccess, onError) {
             fetch(url, {method: method}).then(function(response) {
@@ -151,9 +155,7 @@
             el.addEventListener("click", function(e) {
                 e.preventDefault();
                 sDeleteUserId = el.dataset.userId;
-                // jQuery Bootstrap2 modal 플러그인 호출 - 라운드9(Bootstrap2 플러그인 호출부 대체)까지
-                // 의도적으로 jQuery 객체를 유지한다(마크업이 실제 <div class="modal hide">).
-                $("#alertDeletion").modal("show");
+                elAlertDeletion.showModal();
             });
         });
         var elDeleteBtn = document.getElementById("deleteBtn");
