@@ -774,7 +774,18 @@
          헤더가 조용히 빠진 채 전송됐다(Playwright로 실제 체크박스를 클릭해 403으로 재현).
          jQuery의 전역 ajax 이벤트(ajaxSend)는 등록된 모든 핸들러가 호출마다 매번 실행되고
          개별 호출의 beforeSend와도 독립적이라 이런 식으로 우회될 수 없다 — 그래서 ajaxSetup
-         대신 이 전역 이벤트로 옮긴다. -->
+         대신 이 전역 이벤트로 옮긴다.
+
+         P3-70 라운드11 참고: 저장소 전체를 재확인(grep)한 결과 우리 코드에서 실제로 도달
+         가능한 $.ajax/$.get/$.post/.ajaxForm() 호출은 이제 0건이다(라운드10에서
+         $yona.sendForm()이 fetch 기반으로 재작성됐고, 유일한 잔여 .ajaxForm() 호출부인
+         yona.Files.js의 _uploadFileForm은 htVar.bXHR2가 모든 현대 브라우저에서 항상 true라
+         도달 불가능한 죽은 분기임이 이미 확인돼 있다) - 즉 아래 jQuery(document).ajaxSend
+         등록 자체는 이미 죽은 코드다. 다만 이번 라운드는 jQuery 코어를 실제로 제거하지
+         못했고(bootstrap-switch.js가 여전히 진짜 jQuery를 요구 - 아래 참고) 진짜 jQuery가
+         계속 로드된 상태에서는 이 블록이 예외 없이 그대로 동작하므로, 불필요한 변경을
+         피하기 위해 이번 라운드에서는 손대지 않고 그대로 둔다(다음에 jQuery 코어를 실제로
+         제거하는 라운드에서 함께 정리). -->
     <script type="text/javascript">
     (function() {
         var CSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -814,30 +825,42 @@
 
         // 로그아웃 — CSRF 활성화 시 Spring Security LogoutConfigurer가 logoutRequestMatcher를
         // POST 전용으로 바꾼다(기존 <a href="/users/logout"> GET 링크는 더 이상 매치되지 않음).
-        // 위 jQuery(document).ajaxSend 인터셉터가 이미 배선돼 있으므로 $.post 한 번이면 토큰이
+        // 위 window.fetch 전역 패치가 이미 배선돼 있으므로 fetch 한 번이면 CSRF 토큰이
         // 자동으로 실린다.
         //
         // 서버는 로그아웃 성공 시 /users/loginform?logout으로 실제 302를 반환한다
-        // (SecurityConfig.kt의 .logout { } 참고). 다만 이 요청은 <a> 클릭을 가로챈 XHR($.post)이라
-        // 브라우저가 그 302를 "페이지 이동"으로 취급하지 않는다 — XHR은 same-origin 리다이렉트를
-        // 내부적으로 조용히 따라가 최종 응답만 돌려줄 뿐, 주소창/화면은 그대로다. 그래서 폼 제출
-        // 방식(<form method="post"> 자동 submit)으로 바꾸는 대신, 브라우저 네비게이션은 계속 JS가
-        // 명시적으로 담당하도록 했다 — 이미 있던 골격(AJAX 콜백에서 location.href로 이동)을 그대로
-        // 살리는 쪽이 마크업/스타일 변경 없이 최소 침습적이고, 로그인 모달 등 이 링크 주변의 다른
-        // 상호작용과도 일관된다. 단 기존 코드는 .always()라 요청이 실패해도(네트워크 오류, CSRF
-        // 토큰 만료로 403 등) 무조건 "로그아웃됨" 페이지로 이동시켜, 실제로는 세션이 살아있는데도
-        // 로그아웃된 것처럼 오인시킬 수 있었다 — .done()으로 좁혀 성공(2xx) 응답을 받았을 때만
-        // 이동시키고, 실패 시에는 현재 화면에 남겨 사용자가 다시 시도할 수 있게 한다.
-        if (window.jQuery) {
-            jQuery(document).on("click", ".js-logout-link", function(e) {
-                e.preventDefault();
-                jQuery.post("/users/logout").done(function() {
+        // (SecurityConfig.kt의 .logout { } 참고). 다만 이 요청은 <a> 클릭을 가로챈 fetch라
+        // 브라우저가 그 302를 "페이지 이동"으로 취급하지 않는다 — fetch는 same-origin
+        // 리다이렉트를 내부적으로 조용히 따라가 최종 응답만 돌려줄 뿐, 주소창/화면은
+        // 그대로다. 그래서 폼 제출 방식(<form method="post"> 자동 submit)으로 바꾸는 대신,
+        // 브라우저 네비게이션은 계속 JS가 명시적으로 담당하도록 했다 — 이미 있던 골격
+        // (AJAX 콜백에서 location.href로 이동)을 그대로 살리는 쪽이 마크업/스타일 변경 없이
+        // 최소 침습적이고, 로그인 모달 등 이 링크 주변의 다른 상호작용과도 일관된다.
+        // response.ok(2xx) 응답을 받았을 때만 이동시키고, 실패 시에는 현재 화면에 남겨
+        // 사용자가 다시 시도할 수 있게 한다(예전 jQuery .always() 버전을 .done()으로 좁혀둔
+        // 판단을 그대로 유지 — 세션이 실제로 살아있는데도 로그아웃된 것처럼 오인시키지
+        // 않기 위함).
+        //
+        // P3-70 라운드11: jQuery.post() → fetch 전환. `if(window.jQuery)` 가드는 jQuery
+        // 객체 API가 실제로 필요해서가 아니라(이 핸들러 자체는 jQuery API를 쓸 필요가
+        // 없다) 단순히 jQuery 로드 여부에 기대던 것이라, 가드 자체도 함께 제거하고 순수
+        // vanilla 클릭 위임으로 바꿨다.
+        document.addEventListener("click", function(e) {
+            var elLogoutLink = e.target.closest(".js-logout-link");
+            if (!elLogoutLink || !document.contains(elLogoutLink)) {
+                return;
+            }
+            e.preventDefault();
+            fetch("/users/logout", { method: "post" }).then(function(response) {
+                if (response.ok) {
                     window.location.href = "/users/loginform?logout";
-                }).fail(function() {
+                } else {
                     window.alert("로그아웃에 실패했습니다. 다시 시도해 주세요.");
-                });
+                }
+            }).catch(function() {
+                window.alert("로그아웃에 실패했습니다. 다시 시도해 주세요.");
             });
-        }
+        });
     })();
     </script>
 

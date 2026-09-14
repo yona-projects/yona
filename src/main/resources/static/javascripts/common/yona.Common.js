@@ -20,6 +20,79 @@
  */
 window.yona = (typeof yona == "undefined") ? {} : yona;
 
+/**
+ * P3-70 라운드11: jQuery 코어가 실제로 제거된 뒤에도 `lib/yona-markdown-editor/
+ * yona-markdown-editor.min.js`(미수정)의 `exposeLegacyEasyMdeShim()`이 요구하는 아주 좁은
+ * jQuery API 표면만 만족시키는 호환 shim이다. 벤더 파일을 디코딩해 확인한 계약은 정확히
+ * 이 한 줄뿐이다: `window.jQuery(textarea).data("easymde", i)` (인스턴스 형태, 2-인자
+ * setter). 반대로 우리 쪽 읽기 코드는 정적 형태를 쓴다:
+ * `window.jQuery.data(textarea, "easymde")`(2-인자 getter, common/yona.Attachments.js·
+ * common/yona.CommentAttachmentsUpdate.js·다수 service/*.js) 및
+ * `window.jQuery.data(elContainer, "isYonaAttachment", true)`(3-인자 setter,
+ * common/yona.Attachments.js). 실제 jQuery 라이브러리 전체를 흉내내지 않고, 이 3가지
+ * 계약(인스턴스 setter, 정적 getter, 정적 setter)만 만족하는 몇 줄짜리 shim으로 대신한다.
+ * 저장은 WeakMap(엘리먼트 → 데이터 객체)을 써서 jQuery의 내부 데이터 캐시와 동일하게
+ * 엘리먼트별로 격리한다.
+ *
+ * `if(window.jQuery){ return; }`로 자체 가드한다 - 아직 진짜 jQuery(jquery-3.3.1.js)가
+ * 함께 로드되는 현재 상태(코디네이터 확인 필요: bootstrap-switch.js가 `user/
+ * edit_notifications.html`의 `.switch` 알림 토글에 여전히 진짜 jQuery를 요구해 이번
+ * 라운드에서 jQuery 코어 자체는 아직 제거하지 못했다)에서는 이 shim이 아무 일도 하지
+ * 않고, 진짜 jQuery가 이미 `window.jQuery.data()`를 완전하게 제공한다. 이후 jQuery 코어가
+ * 실제로 제거되는 시점에는 이 shim이 그 자리를 대신한다.
+ *
+ * 로드 순서: yona-layout.js 번들(nprogress.js → yona.Common.js, 진짜 jQuery가 이 번들에서
+ * 빠지는 시나리오 기준)이 site/layout.html 56행에서 사이트 전역 스크립트 중 가장 먼저
+ * 로드되므로, `<yona-markdown-editor>` 커스텀 엘리먼트(861행에서 로드)의
+ * `connectedCallback()`이 `window.jQuery`를 읽는 시점보다 항상 먼저 정의돼 있다.
+ */
+(function(){
+    if(window.jQuery){
+        return;
+    }
+
+    var oDataStore = new WeakMap();
+
+    function _getOwnStore(el){
+        var oStore = oDataStore.get(el);
+        if(!oStore){
+            oStore = {};
+            oDataStore.set(el, oStore);
+        }
+        return oStore;
+    }
+
+    function _jQueryDataShim(el, sKey, oValue){
+        if(!el){
+            return undefined;
+        }
+        if(arguments.length >= 3){
+            _getOwnStore(el)[sKey] = oValue;
+            return oValue;
+        }
+        var oStore = oDataStore.get(el);
+        return oStore ? oStore[sKey] : undefined;
+    }
+
+    function _jQueryShim(el){
+        // 벤더 파일이 실제로 넘기는 건 항상 raw DOM 엘리먼트(textarea)뿐이지만, 혹시
+        // 다른 곳에서 jQuery 객체를 넘기더라도 안전하게 풀어낸다.
+        var elResolved = (el && el.jquery && el.length !== undefined) ? el[0] : el;
+        return {
+            "data": function(sKey, oValue){
+                if(arguments.length >= 2){
+                    _jQueryDataShim(elResolved, sKey, oValue);
+                    return this;
+                }
+                return _jQueryDataShim(elResolved, sKey);
+            }
+        };
+    }
+    _jQueryShim.data = _jQueryDataShim;
+
+    window.jQuery = _jQueryShim;
+})();
+
 $yona = yona.Common = (function(){
 
     var htVar = {
@@ -1065,6 +1138,155 @@ $yona = yona.Common = (function(){
             weEvt.preventDefault();
             tabShow(elTabLink);
         }
+    });
+
+    /**
+     * P3-70 라운드11: Bootstrap 2 bootstrap-dropdown.js(static/bootstrap/js/bootstrap.js
+     * 640-803행, 미수정) DATA-API의 vanilla 재구현 - 코디네이터가 원본 소스를 라인 단위로
+     * 대조해 확인한 알고리즘 그대로 이식했다.
+     *
+     * - 원본은 document에 5개 핸들러를 등록한다: (1) 셀렉터 없는 clearMenus, (2)
+     *   '.dropdown form' 위임 stopPropagation, (3) 셀렉터 없는 stopPropagation(주석 참고),
+     *   (4) '[data-toggle=dropdown]' 위임 toggle, (5) keydown 위임.
+     * - (3)은 코드에 `.on('click.dropdown-menu', function(e){ e.stopPropagation() })`로
+     *   셀렉터 인자가 없다(bootstrap.js 799행 확인 - `.dropdown-menu`로 위임됐어야 하는데
+     *   안 된, 잘 알려진 Bootstrap 2.3.1의 결함). 셀렉터가 없으므로 document에 직접 바인딩된
+     *   것과 같아 등록 순서상 (1)보다 뒤에 실행되고, document가 버블링의 끝이라
+     *   stopPropagation을 호출해도 관찰 가능한 효과가 전혀 없다 - 즉 이 벤더 파일은 실제로
+     *   `.dropdown-menu` 안의 일반 링크를 클릭해도 (1) clearMenus가 그대로 실행돼 열린
+     *   메뉴를 전부 닫는다. 이 무의미한 (3)번 줄은 이식하지 않았다(재현해도 관찰 가능한
+     *   차이가 없음).
+     * - (4) toggle은 `clearMenus()`를 직접 호출(모든 메뉴를 먼저 닫음)한 뒤, 클릭 전에
+     *   자신이 닫혀 있었으면 다시 연다. `return false`(jQuery에서 preventDefault +
+     *   stopPropagation과 동일)로 이벤트 버블링을 끊어, 같은 document에 등록된 (1)
+     *   clearMenus가 뒤이어 다시 실행되며 방금 연 메뉴를 즉시 닫아버리는 것을 막는다 -
+     *   네이티브에서는 별도 핸들러 없이 이 함수 안에서 처리를 끝내고 return하는 것으로
+     *   동일한 효과를 낸다.
+     * - keydown(위/아래 화살표로 `[role=menu] li a` 탐색, ESC로 닫기)은 이 앱의 어떤
+     *   `.dropdown-menu`에도 `role="menu"`가 없어(grep 재확인, 0건) 원본에서도 `$items`가
+     *   항상 빈 컬렉션이라 죽은 경로다 - 이식하지 않았다.
+     */
+    function _dropdownGetParent(el){
+        var sSelector = el.getAttribute("data-target");
+        if(!sSelector){
+            sSelector = el.getAttribute("href");
+            sSelector = (sSelector && sSelector.indexOf("#") !== -1) ? sSelector.replace(/.*(?=#[^\s]*$)/, "") : null;
+        }
+        var elParent = (sSelector && sSelector.charAt(0) === "#") ? document.getElementById(sSelector.slice(1)) : null;
+        return elParent || el.parentElement;
+    }
+
+    function _dropdownClearMenus(){
+        document.querySelectorAll('[data-toggle="dropdown"]').forEach(function(el){
+            var elParent = _dropdownGetParent(el);
+            if(elParent){
+                elParent.classList.remove("open");
+            }
+        });
+    }
+
+    /**
+     * P3-70 라운드11 코디네이터 확인 필요 사항(전수 조사 중 발견한 4번째 실의존):
+     * `user/edit_notifications.html`의 `.switch`(`data-toggle="switch"`) 알림 토글은
+     * `bootstrap-switch.js`(site/layout.html에서 yona-common.js와 별개로 로드되는 벤더
+     * 파일, 미수정)가 파일 맨 끝의 `$(function(){ $('.switch')['bootstrapSwitch'](); })`로
+     * **호출부 없이 스스로** DOMContentLoaded에 전부 초기화한다 - `$.fn.bootstrapSwitch`
+     * 등록 자체가 진짜 jQuery(`$.fn`)를 요구해 실 jQuery가 없으면 정의 시점에 즉시 예외를
+     * 던진다. 관련 시각 효과(`.has-switch`/`.switch-on`/`.switch-off` 등)는 이 플러그인이
+     * 만드는 래핑 마크업에 전적으로 의존하는 CSS(stylesheets/yona.css:11093-)라, jQuery
+     * 코어를 실제로 제거하면 이 화면의 토글 스위치가 평범한 체크박스로 깨진다(시각적
+     * 회귀). 이 위젯은 우리 코드의 명시적 "호출부"가 아니라 벤더 파일 자체의 자동 초기화라
+     * 라운드9(호출부 대체) 범위에서도 빠져 있었다 - 새 vanilla 위젯을 직접 만드는 것은
+     * "완전히 죽었다고 확신할 때만 제거" 원칙과 "새 기능 추가 금지" 원칙 사이에서 이번
+     * 라운드 범위를 벗어난다고 판단해 코디네이터 승인 없이 임의로 만들지 않았다.
+     *
+     * 이 때문에 jQuery 코어(및 bootstrap.js)를 이번 라운드에서 실제로 제거하지 못했다 -
+     * 아래 두 DATA-API(dropdown/button)는 알고리즘 이식은 완료했지만, 진짜 jQuery +
+     * bootstrap.js가 계속 로드된 채 남아있는 한 그쪽의 동일한 전역 DATA-API 델리게이트와
+     * 중복 실행(더블 토글 등 새 회귀)을 피하기 위해 "진짜 jQuery가 이미 있으면 스스로
+     * 비활성화"하는 가드를 둔다 - 향후 이 스위치 위젯 문제가 별도로 해소돼 jQuery 코어가
+     * 실제로 제거되면 가드가 자동으로 풀리며 아래 구현이 그대로 살아난다.
+     */
+    function _isRealJQueryStillLoaded(){
+        return !!(window.jQuery && window.jQuery.fn);
+    }
+
+    document.addEventListener("click", function(weEvt){
+        if(_isRealJQueryStillLoaded()){
+            return;
+        }
+        var elToggle = weEvt.target.closest('[data-toggle="dropdown"]');
+        if(elToggle){
+            // jQuery `$this.is('.disabled, :disabled')` - 엘리먼트 자기 자신만 검사한다
+            // (조상까지 검사하지 않음).
+            if(elToggle.classList.contains("disabled") || elToggle.disabled){
+                return;
+            }
+
+            var elParent = _dropdownGetParent(elToggle);
+            var bWasOpen = !!(elParent && elParent.classList.contains("open"));
+
+            _dropdownClearMenus();
+
+            if(!bWasOpen && elParent){
+                elParent.classList.add("open");
+            }
+
+            elToggle.focus();
+            weEvt.preventDefault();
+            weEvt.stopPropagation();
+            return;
+        }
+
+        if(weEvt.target.closest(".dropdown form")){
+            return;
+        }
+
+        _dropdownClearMenus();
+    });
+
+    /**
+     * P3-70 라운드11: Bootstrap 2 bootstrap-button.js(static/bootstrap/js/bootstrap.js
+     * 183-266행, 미수정) `[data-toggle^=button]` DATA-API의 vanilla 재구현.
+     *
+     * 원본: `$btn = $(e.target); if(!$btn.hasClass('btn')) $btn = $btn.closest('.btn');
+     * $btn.button('toggle')` → `Button.prototype.toggle`은 `[data-toggle="buttons-radio"]`
+     * 조상이 있으면 그 안의 `.active`를 전부 제거한 뒤 자신에 `.active`를 토글한다(라디오
+     * 그룹이 없으면 그냥 자기 자신만 토글).
+     *
+     * 이 앱의 실사용처(watch-button, code/svnDiff.html·code/diff.html·pullrequest/
+     * view.html 3곳, 전수 grep 재확인)는 전부 `class="ybtn"`(커스텀 클래스)이지 Bootstrap의
+     * `.btn`이 아니다 - `closest('.btn')`이 항상 매치 실패해 `$btn`이 빈 컬렉션이 되고
+     * `.button('toggle')` 호출 자체가 no-op이 된다(현재 jQuery+bootstrap.js 상태에서도
+     * 동일 - watch 토글의 실제 active/ybtn-watching 클래스 전환은 각 페이지 JS의
+     * `_onClickBtnWatchToggle` 등 별도 클릭 핸들러가 전담하고, 이 DATA-API는 관여하지
+     * 않는다). 원본 알고리즘은 그대로 이식해 향후 실제 `.btn` 클래스 엘리먼트가 추가돼도
+     * 동일하게 동작하도록 한다.
+     */
+    document.addEventListener("click", function(weEvt){
+        if(_isRealJQueryStillLoaded()){
+            return;
+        }
+        if(!weEvt.target.closest('[data-toggle^="button"]')){
+            return;
+        }
+
+        var elBtn = weEvt.target;
+        if(!elBtn.classList || !elBtn.classList.contains("btn")){
+            elBtn = elBtn.closest(".btn");
+        }
+        if(!elBtn){
+            return;
+        }
+
+        var elRadioParent = elBtn.closest('[data-toggle="buttons-radio"]');
+        if(elRadioParent){
+            elRadioParent.querySelectorAll(".active").forEach(function(elActive){
+                elActive.classList.remove("active");
+            });
+        }
+
+        elBtn.classList.toggle("active");
     });
 
     /* public Interface */
