@@ -30,16 +30,21 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// P3-55 (2차 재작업) — legacy 재조사 결과 PR changes 탭의 "범위 없는 일반 댓글 작성"은
-// reviewForm이 아니라 완전히 별도 파일인 common.commentForm(container, resourceType, action)이
-// 담당했다(legacy git/viewChanges.scala.html 141-146줄, common/commentForm.scala.html).
-// reviewForm/yona.CodeCommentBox.js는 diff 라인/스레드로 동적 이동되는 별개의 팝오버
-// 템플릿이었을 뿐이라 완전히 삭제했다(1차 작업에서 되살렸던 #review-form 트리거는 되돌림).
-// 이 스펙은 새로 만든 common/commentForm.html이:
-//   1) non-ranged-threads-wrap 바로 다음, board-comment-wrap 안에 legacy와 동일하게 렌더링되는지,
+// P3-72 — 이 스펙은 P3-55(2차 재작업) 시점("reviewForm/yona.CodeCommentBox.js를 legacy
+// 재조사 결과 완전히 삭제하기로 했다")의 전제를 그대로 담고 있었으나, 그 뒤 "code.Diff.js
+// 복원 4단계"(project_code_diff_restoration_plan)에서 legacy와 완전히 동일하게 되살리는
+// 쪽으로 결정이 다시 뒤집혔고 P3-73에서 마저 다듬어졌다 — 즉 review-form/CodeCommentBox.js는
+// 이제 죽은 코드가 아니라 "범위 있는(라인/드래그) 코드리뷰 댓글" 작성을 담당하는 의도된
+// 최종 설계다. PR changes 탭의 "범위 없는 일반 댓글 작성"은 여전히 별도 파일인
+// common.commentForm(container, resourceType, action)이 담당한다(legacy git/viewChanges
+// .scala.html 141-146줄, common/commentForm.scala.html 대응) — review-form과 commentForm은
+// 서로 다른 두 기능(라인/범위 댓글 vs PR 전체 일반 댓글)이 공존하는 것이 정상이다.
+// 이 스펙은:
+//   1) common/commentForm.html이 non-ranged-threads-wrap 바로 다음, board-comment-wrap 안에
+//      legacy와 동일하게 렌더링되는지,
 //   2) <yona-markdown-editor>(CM6)가 붙어있는지(순수 textarea가 아님),
 //   3) 작성 권한이 없으면 로그인 필요 placeholder만 보이는지,
-//   4) reviewForm/CodeCommentBox.js 관련 마크업이 더 이상 전혀 남아있지 않은지
+//   4) review-form(CodeCommentBox 팝업)이 commentForm과 별개로 정상 공존하는지
 // 를 렌더링 레벨(Jsoup/MockMvc)에서 검증한다. 실제 Shadow DOM 초기화/제출 후
 // NonRangedCodeCommentThread 저장 여부는 Playwright로 별도 1회 확인한다.
 @Transactional
@@ -102,15 +107,13 @@ class PullRequestCommentFormWiringSpec @Autowired constructor(
                 body shouldContain "<yona-markdown-editor name=\"contents\" editor-mode=\"code-review-body\">"
                 body shouldContain "data-toggle=\"markdown-editor\""
 
-                // 삭제된 reviewForm/CodeCommentBox 관련 마크업/스크립트가 더 이상 남아있지 않아야
-                // 한다. "yona.CodeCommentBox.js"라는 문자열 자체는 왜 지웠는지 설명하는 HTML
-                // 주석(prose) 안에는 여전히 등장하므로, 그 문자열이 아니라 실제 <script src="...">
-                // 태그와 트리거 마크업이 없는지를 검사한다.
-                body shouldNotContain "id=\"review-form\""
-                body shouldNotContain "id=\"btn-add-review-comment\""
-                body shouldNotContain "src=\"/javascripts/common/yona.CodeCommentBox.js\""
-                body shouldNotContain "yona.CodeCommentBox.show("
-                body shouldNotContain "yona.CodeCommentBox.init("
+                // review-form(CodeCommentBox 팝업 - 라인/범위 댓글 전용)은 이제 legacy와
+                // 동일하게 복원된 의도된 최종 설계라 commentForm과 함께 공존해야 한다
+                // (project_code_diff_restoration_plan 4단계 + P3-73 참고).
+                body shouldContain "id=\"review-form\""
+                body shouldContain "src=\"/javascripts/common/yona.CodeCommentBox.js\""
+                body shouldContain "yona.CodeCommentBox.show("
+                body shouldContain "yona.CodeCommentBox.init("
             }
 
             it("작성 권한이 없으면 로그인 필요 placeholder만 보이고 실제 폼은 렌더링되지 않아야 한다") {
