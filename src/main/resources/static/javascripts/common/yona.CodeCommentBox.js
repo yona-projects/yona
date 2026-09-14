@@ -72,7 +72,40 @@ yona.CodeCommentBox = (function(){
         _setReviewFormFields(_getReviewFormFieldData(welFormTarget, htBlockInfo));
 
         var welWriteCommentForm = welFormPlace.querySelector(".write-comment-form");
-        welWriteCommentForm.appendChild(htElement.welCommentWrap);
+        // P3-73: Node.appendChild()는 대상이 이미 같은 부모의 자식이어도(마지막 자식이어도)
+        // 내부적으로 disconnect 후 reconnect를 일으킨다 - 불필요한 재배치는 이 가드로 피한다
+        // (P3-55 1차 시도에서 한 번 발견·수정됐다가 4단계 복원 때 유실됐던 것과 동일한 가드).
+        // 다만 새 댓글(스레드 답글이 아닌 경우)은 _getReviewFormPlace()가 매번 새 <tr>을
+        // 만들어 반환하므로 이 가드로도 실제 이동 자체는 피할 수 없다 - 그 경우를 위해
+        // _remountEditor()로 별도 대응한다(바로 아래).
+        if(htElement.welCommentWrap.parentElement !== welWriteCommentForm){
+            welWriteCommentForm.appendChild(htElement.welCommentWrap);
+            _remountEditor();
+        }
+    }
+
+    /**
+     * P3-73: <yona-markdown-editor>(lib/yona-markdown-editor, 미수정)의 connectedCallback은
+     * 이미 shadowRoot가 있으면 재초기화를 건너뛴다(중복 초기화 방지용 가드) - 그런데 위
+     * appendChild로 review-form을 다른 위치로 옮기면 그 안에 있는 이 커스텀 엘리먼트도
+     * disconnectedCallback → connectedCallback을 다시 타면서 기존 CodeMirror 뷰가
+     * destroy된 뒤 그 가드 때문에 다시 만들어지지 않는다(실측 확인 - 이동 후
+     * `.editor-wrapper`가 완전히 빈 채로 남아 타이핑할 수 있는 입력란 자체가 사라짐).
+     * 벤더 파일을 수정할 수 없으므로, 이동 직후 완전히 새 인스턴스로 교체해 우회한다 -
+     * `cloneNode(true)`는 light DOM 자식(`<textarea>`와 그 속성)은 그대로 복사하고 imperative
+     * shadow DOM(생성자/connectedCallback에서 attachShadow로 만든 것)은 복사하지 않으므로,
+     * 새 인스턴스가 연결될 때 connectedCallback이 빈 shadowRoot를 보고 정상적으로 CM6를
+     * 새로 만든다(`common/yona.ui.Toast.js`/`yona.ui.Dialog.js`가 이미 쓰는 cloneNode 기반
+     * 재사용 관례와 동일한 기법).
+     */
+    function _remountEditor(){
+        var elOldEditor = htElement.welCommentForm.querySelector("yona-markdown-editor");
+        if(!elOldEditor){
+            return;
+        }
+        var elNewEditor = elOldEditor.cloneNode(true);
+        elOldEditor.replaceWith(elNewEditor);
+        htElement.welCommentTextarea = htElement.welCommentForm.querySelector('[data-toggle="markdown-editor"] textarea');
     }
 
     /**
@@ -174,7 +207,10 @@ yona.CodeCommentBox = (function(){
     function _hide(){
         htElement.welCommentWrap.style.display = "none";
         var welFormWrap = htElement.welCommentWrap.closest("tr.comment-form");
-        htElement.welInitialParent.appendChild(htElement.welCommentWrap);
+        // P3-73: 위 _placeReviewForm()과 동일한 이유로 실제 이동이 필요할 때만 appendChild한다.
+        if(htElement.welCommentWrap.parentElement !== htElement.welInitialParent){
+            htElement.welInitialParent.appendChild(htElement.welCommentWrap);
+        }
         if(welFormWrap){
             welFormWrap.remove();
         }
