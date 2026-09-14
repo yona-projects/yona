@@ -662,13 +662,19 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     html.contains("window.parent.history.pushState") shouldBe true
                 }
 
-                it("비로그인 사용자에게 렌더링되는 로그인 모달이 jquery-ui 스크립트를 로드해야 한다") {
+                it("비로그인 사용자에게 렌더링되는 페이지가 더 이상 jquery-ui 스크립트를 로드하지 않아야 한다") {
+                    // P3-70 라운드12: jquery-ui-1.10.4.custom.min.js는 저장소 전체에 실 호출부가
+                    // 0건인 완전한 죽은 로드임을 재확인해(라운드11이 실험적 jQuery 코어 제거
+                    // 빌드에서 이미 발견해뒀던 것을 이번 라운드에서 grep으로 재확인) site/
+                    // layout.html의 <script src> 참조를 제거했다(magnific-popup.css 등 이전
+                    // 라운드의 확인된-죽은-벤더-자산 제거와 동일한 처리 - 벤더 파일 자체는
+                    // 삭제하지 않음). 이 테스트도 기대값을 1건 → 0건으로 갱신한다.
                     val result = mockMvc.perform(get("/owner/public-proj"))
                         .andExpect(status().isOk)
                         .andReturn()
 
                     val doc = Jsoup.parse(result.response.contentAsString)
-                    doc.select("script[src*='lib/jquery/jquery-ui-1.10.4.custom.min.js']").size shouldBe 1
+                    doc.select("script[src*='lib/jquery/jquery-ui-1.10.4.custom.min.js']").size shouldBe 0
                 }
             }
 

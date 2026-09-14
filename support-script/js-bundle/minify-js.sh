@@ -47,30 +47,32 @@
 #     자기 자신을 no-op으로 만드는 코드임을 소스로 직접 확인(모든 현대 브라우저에서 항상
 #     참) - site/layout.html의 호출 자체를 제거.
 #
-# jquery-3.3.1.js(및 jquery.browser.js)/bootstrap.js는 이번 라운드에서 의도적으로 남겨둔다 -
-# 무리하게 제거하지 않는다는 원칙에 따라, 아래 세 가지 실사용 의존을 확인했다(전수 조사,
-# 2026-09-14):
+# jquery-3.3.1.js(및 jquery.browser.js)/bootstrap.js는 라운드10~11에서 의도적으로 남겨뒀었다
+# - 무리하게 제거하지 않는다는 원칙에 따라, 당시 아래 네 가지 실사용 의존을 순차로 확인했다:
 #   1. Bootstrap 2 자체의 전역 DATA-API 델리게이트 중 [data-toggle="dropdown"]/
-#      [data-toggle="button"]가 여전히 수십 개 템플릿(project/header.html, organization/
-#      project members.html, issue/list.html·partial_massupdate.html의 mass-update
-#      드롭다운, code/svnDiff.html·code/diff.html·pullrequest/view.html의 watch 버튼,
-#      site/layout.html의 GNB 검색 범위 선택 등)에서 실제로 열림/닫힘/토글에 쓰인다 -
-#      라운드9는 .modal()/.tooltip()/.popover()/.affix() 4개만 명시적으로 다뤘고
-#      dropdown/button DATA-API는 범위 밖이었다(대체 구현이 아직 없음).
-#   2. site/layout.html의 로그아웃 링크 핸들러가 여전히 jQuery.post("/users/logout")를
-#      직접 호출한다.
-#   3. lib/yona-markdown-editor/yona-markdown-editor.min.js(수정 금지)의
-#      exposeLegacyEasyMdeShim()이 window.jQuery(textarea).data("easymde", ...)로
-#      EasyMDE 호환 shim을 노출하고, common/yona.Attachments.js·yona.
-#      CommentAttachmentsUpdate.js가 window.jQuery.data(textarea, "easymde")로 그 값을
-#      읽어 CodeMirror 공식 API로 파일 첨부 마크다운 링크를 삽입한다(라운드1이 확립한
-#      "jQuery.data() 정적 접근자" 관례) - 양쪽 다 `if(window.jQuery)` 가드가 있어 jQuery가
-#      없으면 예외 없이 조용히 스킵되지만, 그러면 CodeMirror 편집 중인 라이브 값이 아니라
-#      비어있는 원본 textarea만 읽게 되는 실제 기능 회귀가 생긴다 - 쓰는 쪽 파일이 lib/라
-#      수정 금지 대상이라 이 라운드에서 대체 메커니즘을 새로 설계하지 않는 한 고칠 수 없다.
-# 위 세 가지 모두 해소하려면 (a) Bootstrap dropdown/button 플러그인의 vanilla 재구현
-# (별도 라운드급 작업), (b) 로그아웃 핸들러의 fetch 전환, (c) easymde 브릿지를 jQuery
-# 데이터 캐시가 아닌 다른 공유 채널(예: WeakMap)로 옮기는 lib 자산 재빌드가 각각 필요하다.
+#      [data-toggle="button"](라운드9는 .modal()/.tooltip()/.popover()/.affix() 4개만
+#      다뤘고 범위 밖이었다) - 라운드11이 common/yona.Common.js에 vanilla 재구현.
+#   2. site/layout.html의 로그아웃 링크 핸들러(jQuery.post) - 라운드11이 fetch로 전환.
+#   3. lib/yona-markdown-editor/yona-markdown-editor.min.js(수정 금지)의 EasyMDE
+#      jQuery.data() 브릿지 - 라운드11이 common/yona.Common.js에 WeakMap 기반
+#      window.jQuery shim(진짜 jQuery가 없을 때만 설치)으로 대체.
+#   4. user/edit_notifications.html의 알림 on/off 토글(`.switch`)이 bootstrap-switch.js
+#      (static/bootstrap/js/, 미수정)의 `$.fn.bootstrapSwitch` 자동 초기화에 의존 - 발견
+#      당시엔 새 위젯을 만드는 게 범위 밖이라 판단해 라운드12로 미뤘다.
+#
+# P3-70 라운드12(2026-09-15)에서 4번을 common/yona.ui.Switch.js(아래 yona-lib.js 재료
+# 목록에 추가) vanilla 구현으로 해소해 jQuery 코어 제거의 마지막 블로커를 없앴다. 착수 시
+# carousel/collapse/typeahead(bootstrap.js 자체 플러그인, bootstrap-better-typeahead.js와는
+# 별개)의 실사용 여부를 전수 재확인한 결과 셋 다 이 앱에 실사용처 0건(원래부터 죽은 로드)
+# 이었지만, `[data-dismiss="alert"]`(alert 플러그인의 DATA-API)는 templates/user/
+# lostPassword.html에서 실제로 동작 중인 5번째 실의존으로 새로 발견해 같은 라운드 안에서
+# common/yona.Common.js에 vanilla 재구현했다(dropdown/button과 동일 패턴 - 원본 알고리즘
+# 라인 단위 이식 + `_isRealJQueryStillLoaded()` 가드). 이로써 jquery-3.3.1.js/
+# jquery.browser.js/bootstrap.js를 이번 라운드부터 재료 목록에서 뺀다 - 아래 두 recipe에서
+# 제거된 것이 바로 이 셋이다. bootstrap-switch.js/bootstrap-better-typeahead.js/
+# jquery-ui-1.10.4.custom.min.js(원래부터 이 스크립트가 아니라 site/layout.html에서 직접
+# <script src>로 로드되던 것들)의 <script src> 참조도 layout.html에서 제거했다(각 파일
+# 자체는 삭제하지 않음, 수정 금지 원칙 그대로 유지).
 #
 # 사용법(저장소 루트에서, Java 필요):
 #   ./support-script/js-bundle/minify-js.sh
@@ -86,14 +88,11 @@ COMPILER="$SCRIPT_DIR/compiler.jar"
 echo "== yona-layout.js =="
 java -jar "$COMPILER" \
   --js "$JS/lib/nprogress/nprogress.js" \
-  --js "$JS/lib/jquery/jquery-3.3.1.js" \
-  --js "$JS/lib/jquery/jquery.browser.js" \
   --js "$JS/common/yona.Common.js" \
   --js_output_file "$JS/yona-layout.js"
 
 echo "== yona-common.js =="
 java -jar "$COMPILER" \
-  --js "$STATIC/bootstrap/js/bootstrap.js" \
   --js "$JS/lib/rgbcolor.js" \
   --js "$JS/lib/humanize.js" \
   --js "$JS/lib/validate.js" \
@@ -113,6 +112,7 @@ java -jar "$COMPILER" \
   --js "$JS/common/yona.ui.Dialog.js" \
   --js "$JS/common/yona.ui.Toast.js" \
   --js "$JS/common/yona.ui.Tabs.js" \
+  --js "$JS/common/yona.ui.Switch.js" \
   --js "$JS/common/yona.OriginalMessage.js" \
   --js "$JS/service/yona.temporarySaveHandler.js" \
   --js_output_file "$JS/yona-lib.js"

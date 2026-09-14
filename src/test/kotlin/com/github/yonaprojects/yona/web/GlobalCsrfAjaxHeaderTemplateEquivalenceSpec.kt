@@ -94,20 +94,26 @@ class GlobalCsrfAjaxHeaderTemplateEquivalenceSpec @Autowired constructor(
                 (html.contains("window.fetch") && html.contains("originalFetch")) shouldBe true
             }
 
-            // 개별 $.ajax() 호출의 beforeSend 옵션(예: yona.Tasklist.js의 NProgress.start())이
-            // 전역 CSRF 주입을 셰도잉하지 못하도록, ajaxSetup(beforeSend) 대신 항상 함께 실행되는
-            // 전역 ajax 이벤트(ajaxSend)를 쓴다 — 이 계약이 다시 ajaxSetup(beforeSend)로
-            // 회귀하지 않도록 마크업으로 고정한다.
-            it("CSRF 헤더 주입은 개별 호출의 beforeSend로 셰도잉될 수 없는 전역 ajaxSend 이벤트를 써야 한다 (P3-48)") {
+            // P3-70 라운드12 갱신: jQuery 코어(jquery-3.3.1.js) 자체를 제거하면서, 이 테스트가
+            // 지키던 "개별 $.ajax() 호출의 beforeSend가 전역 주입을 셰도잉하는" 시나리오의
+            // 전제 자체가 사라졌다 — 저장소 전체에 $.ajax() 호출이 이제 0건이다(라운드10에서
+            // 전부 fetch로 전환 완료, 라운드10~11 로그로 재확인됨). 그 대체 메커니즘이었던
+            // `jQuery(document).ajaxSend(...)` 블록도 진짜 jQuery가 없으면 예외를 던지는 죽은
+            // 코드였음이 이번 라운드 Playwright 실측(사이트 전역 pageerror 재현)으로 드러나
+            // 블록 자체를 제거했다 - 남은 유일한 CSRF 메커니즘은 아래에서 확인하는 전역
+            // window.fetch 패치뿐이다. 그래서 "ajaxSend 이벤트를 써야 한다"는 이전 계약을
+            // "jQuery 기반 ajaxSend/ajaxSetup 호출 형태가 더 이상 없어야 한다"로 뒤집는다 -
+            // 다시 jQuery ajax 메커니즘으로 회귀하면 이 테스트가 잡아낸다.
+            it("CSRF 헤더 주입에 더 이상 jQuery 기반 ajaxSend/ajaxSetup 호출을 쓰지 않아야 한다 (P3-48, P3-70 라운드12)") {
                 val html = Jsoup.parse(
                     mockMvc.perform(get("/").with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
                         .andExpect(status().isOk).andReturn().response.contentAsString
                 ).outerHtml()
 
-                // 설명용 HTML 주석에는 역사적 맥락(과거 ajaxSetup 방식)을 설명하기 위해 여전히
-                // 그 단어가 등장할 수 있으므로, 주석이 아니라 실제 "호출 형태"(jQuery.ajaxSetup(
-                // 또는 $.ajaxSetup()의 유무로 판단한다.
-                html.contains("ajaxSend") shouldBe true
+                // 설명용 HTML 주석에는 역사적 맥락(과거 ajaxSetup/ajaxSend 방식)을 설명하기 위해
+                // 여전히 그 단어들이 등장할 수 있으므로, 주석이 아니라 실제 "호출 형태"의
+                // 유무로 판단한다.
+                html.contains("jQuery(document).ajaxSend(") shouldBe false
                 html.contains("jQuery.ajaxSetup(") shouldBe false
                 html.contains("\$.ajaxSetup(") shouldBe false
             }

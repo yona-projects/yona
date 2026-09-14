@@ -61,10 +61,10 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                 body shouldContain "name=\"_csrf\""
             }
 
-            // site/layout.html::scripts에 추가한 전역 $.ajax/fetch 인터셉터가 익명 사용자를
-            // 포함해 실제로 모든 페이지에 렌더링되는지 확인한다(로그인 여부와 무관하게 이
-            // 인터셉터가 빠지면 $.ajax/fetch 호출 전부가 CSRF로 막힌다).
-            it("모든 페이지에 전역 CSRF $.ajax/fetch 인터셉터 스크립트가 포함돼야 한다") {
+            // site/layout.html::scripts에 추가한 전역 fetch 인터셉터가 익명 사용자를 포함해
+            // 실제로 모든 페이지에 렌더링되는지 확인한다(로그인 여부와 무관하게 이 인터셉터가
+            // 빠지면 fetch 호출 전부가 CSRF로 막힌다).
+            it("모든 페이지에 전역 CSRF fetch 인터셉터 스크립트가 포함돼야 한다") {
                 val body = mockMvc.perform(get("/"))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
@@ -73,7 +73,11 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                 // 교체했다 — 개별 $.ajax() 호출이 자기만의 beforeSend를 넘기면(예:
                 // yona.Tasklist.js) ajaxSetup의 beforeSend를 완전히 덮어써 CSRF 헤더가 빠지는
                 // 문제를 실제로 재현해서 고쳤다(GlobalCsrfAjaxHeaderTemplateEquivalenceSpec 참고).
-                body shouldContain "ajaxSend"
+                // P3-70 라운드12 갱신: jQuery 코어 자체를 제거하면서 이 jQuery(document).ajaxSend
+                // 블록(도달 가능한 $.ajax 호출이 0건인 죽은 코드였다 - 라운드10~11에서 이미 확인)도
+                // 함께 제거했다 - $.ajax 호출 자체가 이제 저장소 전체에 없으므로(모두 fetch로
+                // 전환됨) "ajaxSend" 문자열 존재 여부는 더 이상 의미 있는 계약이 아니다. 실제
+                // CSRF 주입은 아래 window.fetch 패치 단독으로 담당한다.
                 body shouldContain "X-XSRF-TOKEN"
                 body shouldContain "window.fetch = function"
             }

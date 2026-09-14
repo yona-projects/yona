@@ -781,11 +781,22 @@
          $yona.sendForm()이 fetch 기반으로 재작성됐고, 유일한 잔여 .ajaxForm() 호출부인
          yona.Files.js의 _uploadFileForm은 htVar.bXHR2가 모든 현대 브라우저에서 항상 true라
          도달 불가능한 죽은 분기임이 이미 확인돼 있다) - 즉 아래 jQuery(document).ajaxSend
-         등록 자체는 이미 죽은 코드다. 다만 이번 라운드는 jQuery 코어를 실제로 제거하지
-         못했고(bootstrap-switch.js가 여전히 진짜 jQuery를 요구 - 아래 참고) 진짜 jQuery가
-         계속 로드된 상태에서는 이 블록이 예외 없이 그대로 동작하므로, 불필요한 변경을
-         피하기 위해 이번 라운드에서는 손대지 않고 그대로 둔다(다음에 jQuery 코어를 실제로
-         제거하는 라운드에서 함께 정리). -->
+         등록 자체는 이미 죽은 코드다.
+
+         P3-70 라운드12 갱신: jQuery 코어(jquery-3.3.1.js/jquery.browser.js)를 실제로
+         제거했다(마지막 블로커였던 bootstrap-switch.js를 common/yona.ui.Switch.js vanilla
+         구현으로 대체 - support-script/js-bundle/minify-js.sh 참고). 처음엔 "이미
+         `if (window.jQuery) { ... }`로 감싸여 있으니 안전하다"고 판단했는데(코드만 보고
+         내린 정적 판단), 실제로 Playwright를 돌려보니 사이트 전역에서
+         "jQuery(...).ajaxSend is not a function" pageerror가 재현됐다 - 원인은 common/
+         yona.Common.js가 설치하는 EasyMDE WeakMap shim(`window.jQuery = _jQueryShim`,
+         라운드11 도입)이 `window.jQuery`를 undefined가 아니라 "진짜 jQuery는 아니지만
+         truthy한 값"으로 채워놓기 때문 - `if (window.jQuery)` 검사 자체는 통과해버리고,
+         이 shim에는 `.ajaxSend` 메서드가 없어 호출 시점에 예외가 난다. 정적 코드 추론만으로
+         "안전하다"고 결론 내리면 안 되고 실제로 띄워봐야 한다는 걸 이 라운드 스스로
+         재확인한 사례다. 어차피 이 블록은 도달 가능한 $.ajax/.ajaxForm() 호출이 0건인
+         죽은 코드로 이미 확인돼 있었으므로(라운드10~11), 가드를 고치는 대신 블록 자체를
+         제거했다. -->
     <script type="text/javascript">
     (function() {
         var CSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -795,15 +806,6 @@
         function readCsrfTokenFromCookie() {
             var match = document.cookie.match(new RegExp("(?:^|; )" + CSRF_COOKIE_NAME + "=([^;]*)"));
             return match ? decodeURIComponent(match[1]) : null;
-        }
-
-        if (window.jQuery) {
-            jQuery(document).ajaxSend(function(event, xhr, settings) {
-                var method = (settings.type || "GET").toUpperCase();
-                if (SAFE_METHOD_PATTERN.test(method)) return;
-                var token = readCsrfTokenFromCookie();
-                if (token) xhr.setRequestHeader(CSRF_HEADER_NAME, token);
-            });
         }
 
         if (window.fetch) {
@@ -864,15 +866,21 @@
     })();
     </script>
 
-    <script type="text/javascript" src="/bootstrap/js/bootstrap-better-typeahead.js"></script>
-    <script type="text/javascript" src="/bootstrap/js/bootstrap-switch.js"></script>
+    <!-- P3-70 라운드12: bootstrap-better-typeahead.js/jquery-ui-1.10.4.custom.min.js는
+         저장소 전체에 실 호출부가 0건인 완전한 죽은 로드임을 재확인해(라운드11이 실험적
+         jQuery 코어 제거 빌드에서 이미 발견해뒀던 것을 이번 라운드에서 grep으로 재확인)
+         <script src> 참조를 제거했다(벤더 파일 자체는 삭제하지 않음). bootstrap-switch.js는
+         common/yona.ui.Switch.js(yona-lib.js에 번들, 아래) vanilla 구현으로 완전히
+         대체하고 참조를 제거했다 - 유일한 실사용처였던 user/edit_notifications.html의 알림
+         on/off 토글이 그 대체 구현으로 동작한다(이 위젯이 jQuery 코어 제거의 마지막
+         블로커였다). 세 벤더 파일 모두 static/bootstrap/js·static/javascripts/lib/ 아래
+         그대로 남아있다(수정 금지 원칙, 참조만 제거). -->
     <script type="text/javascript" src="/javascripts/yona-lib.js"></script>
     <script type="text/javascript" src="/javascripts/lib/autosize/autosize.min.js"></script>
     <script type="text/javascript" src="/javascripts/common/yona.KeyControl.js"></script>
     <script type="text/javascript" src="/javascripts/lib/tippy/popper.min.js"></script>
     <script type="text/javascript" src="/javascripts/lib/tippy/tippy-bundle.umd.min.js"></script>
     <script type="text/javascript" src="/javascripts/common/yona.Usermenu.js"></script>
-    <script type="text/javascript" src="/javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js"></script>
     <script type="text/javascript" src="/javascripts/common/yona.LoginDialog.js"></script>
     <script type="text/javascript" src="/javascripts/lib/viewerjs/viewer.js"></script>
     <!-- P3-46 #8 2단계: markdownEditor 프래그먼트가 17개 화면에서 쓰여 select2/calendar

@@ -1206,6 +1206,14 @@ $yona = yona.Common = (function(){
      * 중복 실행(더블 토글 등 새 회귀)을 피하기 위해 "진짜 jQuery가 이미 있으면 스스로
      * 비활성화"하는 가드를 둔다 - 향후 이 스위치 위젯 문제가 별도로 해소돼 jQuery 코어가
      * 실제로 제거되면 가드가 자동으로 풀리며 아래 구현이 그대로 살아난다.
+     *
+     * P3-70 라운드12 갱신: 위에서 "범위를 벗어난다"고 보류했던 vanilla 스위치 위젯을
+     * common/yona.ui.Switch.js로 새로 구현해 이 마지막 블로커를 해소했다(코디네이터 승인
+     * 하에 이번 라운드 범위로 편입). 아래 dropdown/button DATA-API와 yona.ui.Switch.js,
+     * 그리고 바로 아래 alert DATA-API 모두 이 함수(`_isRealJQueryStillLoaded`)를 공유
+     * 가드로 쓴다 - jQuery 코어를 실제로 제거한 뒤에는 이 함수가 항상 false를 반환하게 되어
+     * 가드 자체는 무해하게 남는다(제거하지 않았다 - 남겨둬도 기능에 영향 없고, 향후 어떤
+     * 경로로든 진짜 jQuery가 다시 로드되는 예외 상황에도 안전망 역할을 한다).
      */
     function _isRealJQueryStillLoaded(){
         return !!(window.jQuery && window.jQuery.fn);
@@ -1287,6 +1295,92 @@ $yona = yona.Common = (function(){
         }
 
         elBtn.classList.toggle("active");
+    });
+
+    /**
+     * P3-70 라운드12: Bootstrap 2 bootstrap-alert.js(static/bootstrap/js/bootstrap.js
+     * 90-161행, 미수정) `[data-dismiss="alert"]` DATA-API의 vanilla 재구현.
+     *
+     * 라운드10~11은 dropdown/button DATA-API만 다루고 alert/carousel/collapse/typeahead는
+     * "실사용 여부 재확인 필요"로 남겨뒀었다(tab은 이미 yona.Common.js의 tabShow가 자체
+     * vanilla 구현을 갖고 있어 제외) - 이번 라운드 착수 시 전수 grep한 결과 carousel/
+     * collapse/typeahead(bootstrap 자체 플러그인, bootstrap-better-typeahead.js와는 별개)는
+     * 이 앱 어디에도 실사용처가 0건(원래부터 죽은 로드)이었지만, `[data-dismiss="alert"]`는
+     * `templates/user/lostPassword.html`(비밀번호 재설정 성공/실패 알림 박스)에서 실제로
+     * 동작 중인 살아있는 의존으로 새로 발견했다 - bootstrap-switch.js에 이은 6번째(문서상
+     * "4번째"였던 것에서 라운드12 자체 조사로 하나 더) 실의존이라 코디네이터에게 보고하는
+     * 동시에, dropdown/button과 완전히 같은 패턴(원본 알고리즘 라인 단위 이식 + jQuery
+     * still-loaded 가드)이라 이번 라운드 안에서 함께 해소했다.
+     *
+     * (참고로 확인한 나머지 두 곳의 `data-dismiss="alert"` 마크업은 실사용이 아니다:
+     * `templates/site/userList.html`의 2곳은 `<script type="text/x-jquery-tmpl">` 안에
+     * 있어 라운드10 이전에 이미 jquery.tmpl.js가 빠지며 죽은 코드가 됐고(재확인, pre-existing),
+     * `templates/pullrequest/partial_recently_pushed_branches.html`의 "×" 링크는
+     * `data-request-method="delete"`도 함께 달려 있어 $yona.requestAs의 직접 클릭 리스너가
+     * document 위임보다 먼저 실행되며 stopPropagation()을 호출한다 - 이벤트가 document까지
+     * 버블링되지 못해 이 DATA-API에 원래부터 도달하지 못했다(라운드10이 문서화한 #btnAccept와
+     * 동일한 "requestAs가 먼저 실행되고 커스텀 델리게이트를 막는" 패턴).)
+     *
+     * 원본 Alert.prototype.close 알고리즘: data-target 속성이 있으면 그 셀렉터, 없으면
+     * href의 마지막 "#..." 부분을 셀렉터로 쓴다 - 이 앱 실사용처(lostPassword.html)는 둘 다
+     * 없는 <button>이라 매치되는 대상이 없고, `$this.hasClass('alert') ? $this :
+     * $this.parent()`로 폴백한다(실사용처는 버튼이 .alert의 직접 자식이라 .parent()가 바로
+     * 그 .alert 박스). 그 다음 취소 가능한 'close' 커스텀 이벤트를 쏘고(리스너 0건, grep
+     * 재확인), 기본 동작이 막히지 않았으면 'in' 클래스 제거 후(이 앱은 .alert에 .fade를 쓰지
+     * 않아 - grep 재확인 - $.support.transition 분기를 탈 일이 없다) 곧바로 'closed' 이벤트를
+     * 쏘고 DOM에서 제거한다.
+     *
+     * href="#"인 pullrequest 링크의 셀렉터 폴백(정규식이 "#"을 그대로 남김)은 jQuery의
+     * `$("#")`가 Sizzle에서 예외를 던질 수 있는 알려진 엣지케이스지만, 위에서 확인했듯 이
+     * 링크는 stopPropagation() 때문에 애초에 이 핸들러에 도달하지 않아 관찰 가능한 차이가
+     * 없다 - 예외를 그대로 재현하는 대신 안전하게 무시(fallback)하도록 구현했다.
+     */
+    function _alertGetTargetSelector(el){
+        var sSelector = el.getAttribute("data-target");
+        if(!sSelector){
+            var sHref = el.getAttribute("href");
+            sSelector = (sHref && sHref.indexOf("#") !== -1) ? sHref.replace(/.*(?=#[^\s]*$)/, "") : null;
+        }
+        return sSelector;
+    }
+
+    document.addEventListener("click", function(weEvt){
+        if(_isRealJQueryStillLoaded()){
+            return;
+        }
+        var elTrigger = weEvt.target.closest('[data-dismiss="alert"]');
+        if(!elTrigger){
+            return;
+        }
+        weEvt.preventDefault();
+
+        var sSelector = _alertGetTargetSelector(elTrigger);
+        var elParent = null;
+        if(sSelector){
+            try {
+                elParent = document.querySelector(sSelector);
+            } catch(oParseError){
+                elParent = null; // 위 주석 참고 - jQuery는 던질 수 있는 경우지만 안전하게 무시
+            }
+        }
+        if(!elParent){
+            elParent = elTrigger.classList.contains("alert") ? elTrigger : elTrigger.parentElement;
+        }
+        if(!elParent){
+            return;
+        }
+
+        var closeEvent = new Event("close", {"bubbles": true, "cancelable": true});
+        elParent.dispatchEvent(closeEvent);
+        if(closeEvent.defaultPrevented){
+            return;
+        }
+
+        elParent.classList.remove("in");
+        elParent.dispatchEvent(new Event("closed", {"bubbles": true}));
+        if(elParent.parentNode){
+            elParent.parentNode.removeChild(elParent);
+        }
     });
 
     /* public Interface */
