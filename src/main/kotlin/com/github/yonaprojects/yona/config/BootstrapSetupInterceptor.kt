@@ -26,6 +26,14 @@ class BootstrapSetupInterceptor(
             uri.startsWith("/bootstrap/") ||
             uri.startsWith("/stylesheets/") ||
             uri.startsWith("/javascripts/") ||
+            // `/assets/**`(WebMvcConfig.addResourceHandlers())는 `/static/`을 그대로
+            // 재매핑한 legacy 호환용 별칭 경로다 - bootstrap-setup.html이 이 경로로
+            // 스크립트를 로드하는데, 여기서 빠져 있어 그 요청까지 /bootstrap-setup으로
+            // 리다이렉트되고 있었다(SecurityConfig/Pre2faGateFilter는 이미 예외 처리 중 -
+            // 이 인터셉터만 누락돼 있었다). 그 결과 브라우저가 리다이렉트로 받은 HTML을
+            // 스크립트로 실행하려다 "Refused to execute script... MIME type ('text/html')"
+            // 콘솔 에러가 났다.
+            uri.startsWith("/assets/") ||
             uri.startsWith("/webjars/") ||
             // `/internal/ssh/**`(SshInternalController)는 시스템 sshd의 AuthorizedKeysCommand
             // 훅이 호출하는 JSON API다. 브라우저 세션이 아니라 로컬 머신 프로세스 간 호출이라
