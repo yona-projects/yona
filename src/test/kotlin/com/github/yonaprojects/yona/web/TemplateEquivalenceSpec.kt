@@ -1839,6 +1839,37 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("#experimentalHelp button.ybtn-info[data-dismiss=modal]").text() shouldBe "확인"
                 }
             }
+
+            // P3-67 — legacy(app/views/project/setting_webhook.scala.html)는
+            // service/yona.project.Webhook.js를 로드해 payloadUrl 빈 값 제출 시
+            // $yona.alert(Messages("project.webhook.payloadUrl.empty"))로 즉시 안내했으나,
+            // 포팅된 project/setting_webhook.html에는 이 스크립트가 어디에도(<script src>,
+            // minify-js.sh 번들, $yona.loadModule 전부) 배선돼 있지 않았다. 서버측
+            // (WebhookController.kt payloadUrl.isBlank() 체크)이 최종 방어선으로 남아있어
+            // 데이터 무결성 문제는 없었지만, 클라이언트측 즉시 안내라는 UX가 빠져 있었다.
+            describe("[Test-19-36] 웹훅 등록 폼(project/setting_webhook.html) 클라이언트측 스크립트 배선 검증") {
+                it("yona.project.Webhook.js를 로드하고 formNewWebhook을 대상으로 초기화해야 한다") {
+                    val doc = Jsoup.parse(
+                        mockMvc.perform(
+                            get("/projects/owner/${settingProj.name}/webhooks").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                        ).andExpect(status().isOk).andReturn().response.contentAsString
+                    )
+
+                    doc.select("script[src='/javascripts/service/yona.project.Webhook.js']").size shouldBe 1
+
+                    val inlineScripts = doc.select("script").joinToString("\n") { it.data() }
+                    inlineScripts.contains("loadModule(\"project.Webhook\"") shouldBe true
+                    inlineScripts.contains("#formNewWebhook") shouldBe true
+
+                    // 기존 동작(JSON 타입 선택 시 Git Push 강제 체크) 회귀 없이 유지돼야 한다.
+                    inlineScripts.contains("webhookType") shouldBe true
+                    inlineScripts.contains("#gitPush") shouldBe true
+
+                    // yona.project.Webhook.js의 _initElement가 실제로 찾는 마크업 계약(name="payloadUrl")과
+                    // 일치하는지 확인 — 포팅 과정에서 name/id가 달라지지 않았음을 보장한다.
+                    doc.select("form#formNewWebhook input[name='payloadUrl']").size shouldBe 1
+                }
+            }
         }
     }
 }
