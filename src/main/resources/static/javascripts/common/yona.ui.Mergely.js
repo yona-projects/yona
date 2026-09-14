@@ -18,6 +18,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * P3-70 라운드3: 착수 전 재확인 결과 이 모듈은 완전한 죽은 코드다 - 저장소 전체에서
+ * "yona.ui.Mergely("(인스턴스화) 호출이 0건이고, 대상 마크업(#compare/#mergely)을 가진
+ * 템플릿도 0건이다(grep으로 확인). 게다가 이 파일이 의존하는 jQuery 플러그인 $.fn.mergely
+ * 자체가 static/javascripts/lib/ 어디에도 존재하지 않는다 - 즉 이 모듈은 jQuery 전환과
+ * 무관하게 애초에 실행 불가능한 상태였다(인스턴스화되는 순간이 와도 .mergely()가 "not a
+ * function"으로 즉시 실패했을 것). 원칙대로 삭제하지 않고 vanilla로 전환하되, 존재하지 않는
+ * $.fn.mergely 플러그인 호출 자체는 대체 구현을 새로 작성하는 것(범위 밖의 새 기능 작성에
+ * 해당)이 아니라 기존 그대로(jQuery 래핑) 남겨 원본과 동일하게 "플러그인 없음"으로 실패하도록
+ * 뒀다 - 이 부분만 제외한 선택자/이벤트/DOM 조작은 전부 vanilla로 바꿨다. .modal()은 이 파일과
+ * 무관하게 이미 완료된 별도 캠페인(레거시 Bootstrap2 모달 -> 네이티브 <dialog> 전환)의 관례를
+ * 그대로 적용했다(round2의 organization.Member.js와 동일 판단).
+ */
 (function(ns){
 
     var oNS = $yona.createNamespace(ns);
@@ -33,17 +46,19 @@
         }
 
         function _initElement(htOptions){
-            htElement.welMergelyWrap = $("#compare");
-            htElement.welMergely = $("#mergely");
-            htElement.welMergelyPathTitle = htElement.welMergelyWrap.find(".path > span");
-            htElement.welMergelyCommitA = htElement.welMergelyWrap.find(".commitA");
-            htElement.welMergelyCommitB = htElement.welMergelyWrap.find(".commitB");
+            htElement.welMergelyWrap = document.getElementById("compare");
+            htElement.welMergely = document.getElementById("mergely");
+            htElement.welMergelyPathTitle = htElement.welMergelyWrap ? htElement.welMergelyWrap.querySelector(".path > span") : null;
+            htElement.welMergelyCommitA = htElement.welMergelyWrap ? htElement.welMergelyWrap.querySelector(".commitA") : null;
+            htElement.welMergelyCommitB = htElement.welMergelyWrap ? htElement.welMergelyWrap.querySelector(".commitB") : null;
         }
 
         function _initMergely(){
             var htWrapSize = _getMergelyWrapSize();
 
-            htElement.welMergely.mergely({
+            // $.fn.mergely 플러그인 자체가 이 저장소에 존재하지 않는다(위 파일 헤더 설명 참고) -
+            // 원본과 동일하게 실패하도록 그대로 둔다.
+            $(htElement.welMergely).mergely({
                 "width" : "auto",
                 // "height": "auto",
                 "height": (htWrapSize.nWrapHeight - 100) + "px",
@@ -54,30 +69,40 @@
         }
 
         function _attachEvent(){
-            $(window).on("resize", _resizeMergely);
+            window.addEventListener("resize", _resizeMergely);
         }
 
         function _setButtons(sQuery){
-            $(sQuery).on("click", _onClickBtnFullDiff);
+            document.querySelectorAll(sQuery).forEach(function(el){
+                el.addEventListener("click", _onClickBtnFullDiff);
+            });
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * @param {Event} weEvt
          */
         function _onClickBtnFullDiff(weEvt){
-            var welTarget = $(weEvt.target);
-            var sCommitA = welTarget.attr("data-commitA");
-            var sCommitB = welTarget.attr("data-commitB");
-            var sPathA   = welTarget.attr("data-pathA");
-            var sPathB   = welTarget.attr("data-pathB");
-            var sRawA    = welTarget.attr("data-rawA");
-            var sRawB    = welTarget.attr("data-rawB");
+            var welTarget = weEvt.target;
+            var sCommitA = welTarget.getAttribute("data-commitA");
+            var sCommitB = welTarget.getAttribute("data-commitB");
+            var sPathA   = welTarget.getAttribute("data-pathA");
+            var sPathB   = welTarget.getAttribute("data-pathB");
+            var sRawA    = welTarget.getAttribute("data-rawA");
+            var sRawB    = welTarget.getAttribute("data-rawB");
 
             // UpdateText
-            htElement.welMergelyPathTitle.text((sPathA != sPathB) ? (sPathA + " -> " + sPathB) : sPathB);
-            htElement.welMergelyCommitA.text(sCommitA);
-            htElement.welMergelyCommitB.text(sCommitB);
-            htElement.welMergelyWrap.modal();
+            if(htElement.welMergelyPathTitle){
+                htElement.welMergelyPathTitle.textContent = (sPathA != sPathB) ? (sPathA + " -> " + sPathB) : sPathB;
+            }
+            if(htElement.welMergelyCommitA){
+                htElement.welMergelyCommitA.textContent = sCommitA;
+            }
+            if(htElement.welMergelyCommitB){
+                htElement.welMergelyCommitB.textContent = sCommitB;
+            }
+            if(htElement.welMergelyWrap && typeof htElement.welMergelyWrap.showModal === "function"){
+                htElement.welMergelyWrap.showModal();
+            }
 
             _resizeMergely();
             _updateMergely(sRawA, sRawB);
@@ -102,9 +127,9 @@
                 }
                 return response.text();
             }).then(function(sData){
-                htElement.welMergely.mergely("lhs", sData);
-                htElement.welMergely.mergely("resize");
-                htElement.welMergely.mergely("update");
+                $(htElement.welMergely).mergely("lhs", sData);
+                $(htElement.welMergely).mergely("resize");
+                $(htElement.welMergely).mergely("update");
             }).catch(function(){});
 
             // rhs = to
@@ -114,9 +139,9 @@
                 }
                 return response.text();
             }).then(function(sData){
-                htElement.welMergely.mergely("rhs", sData);
-                htElement.welMergely.mergely("resize");
-                htElement.welMergely.mergely("update");
+                $(htElement.welMergely).mergely("rhs", sData);
+                $(htElement.welMergely).mergely("resize");
+                $(htElement.welMergely).mergely("update");
             }).catch(function(){});
         }
 
@@ -125,16 +150,21 @@
             var nWidth = ((htWrapSize.nWrapWidth - 92) / 2);
             var nHeight = (htWrapSize.nWrapHeight - 100);
 
-            htElement.welMergelyWrap.css({
-                "width" : htWrapSize.nWrapWidth + "px",
-                "height": htWrapSize.nWrapHeight + "px",
-                "margin-left": -(htWrapSize.nWrapWidth / 2) + "px"
-            });
-            htElement.welMergely.mergely("cm", "rhs").setSize(nWidth + "px", nHeight + "px");
-            htElement.welMergely.mergely("cm", "lhs").setSize(nWidth + "px", nHeight + "px");
+            if(htElement.welMergelyWrap){
+                htElement.welMergelyWrap.style.width = htWrapSize.nWrapWidth + "px";
+                htElement.welMergelyWrap.style.height = htWrapSize.nWrapHeight + "px";
+                htElement.welMergelyWrap.style.marginLeft = -(htWrapSize.nWrapWidth / 2) + "px";
+            }
+            $(htElement.welMergely).mergely("cm", "rhs").setSize(nWidth + "px", nHeight + "px");
+            $(htElement.welMergely).mergely("cm", "lhs").setSize(nWidth + "px", nHeight + "px");
 
-            $(".mergely-column").width(nWidth).height(nHeight);
-            $(".CodeMirror").height(nHeight);
+            document.querySelectorAll(".mergely-column").forEach(function(el){
+                el.style.width = nWidth + "px";
+                el.style.height = nHeight + "px";
+            });
+            document.querySelectorAll(".CodeMirror").forEach(function(el){
+                el.style.height = nHeight + "px";
+            });
         }
 
         _init(htOptions || {});

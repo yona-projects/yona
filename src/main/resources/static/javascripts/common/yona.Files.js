@@ -10,6 +10,26 @@ yona.Files = (function(){
     var htHandlers = {};
 
     /**
+     * P3-70 라운드3: elContainer/elTextarea는 이 모듈의 공개 API(yona.Files.getUploader)를 통해
+     * 여러 파일에서 넘어온다 - 이미 vanilla로 전환된 호출부(board.Write.js/milestone.View.js 등)는
+     * raw DOM element를, 아직 jQuery인 호출부(board.View.js/code.Diff.js/code.SvnDiff.js/
+     * issue.View.js, 라운드4/5 대상)는 jQuery 객체를 넘긴다. 양쪽을 다 받아주기 위한 정규화
+     * 헬퍼(milestone.Write.js의 _toElement와 동일한 관례, 셀렉터 문자열도 함께 지원).
+     *
+     * @param {Variant} el
+     * @return {HTMLElement|null}
+     */
+    function _toElement(el){
+        if(el && el.jquery){
+            return el[0] || null;
+        }
+        if(typeof el === "string"){
+            return document.querySelector(el);
+        }
+        return el || null;
+    }
+
+    /**
      * initialize fileUploader
      *
      * @param {Hash Table} htOptions
@@ -165,18 +185,26 @@ yona.Files = (function(){
      * available in almost browsers, except Safari on OSX.
      * Reference: http://malsup.com/jquery/form/
      *
+     * P3-70 라운드3: htVar.bXHR2가 false인 구형 브라우저(XHR2/FormData/FileReader 미지원)에서만
+     * 호출되는 legacy 폴백 경로다. jQuery Form 플러그인(lib/jquery/jquery.form.js)의
+     * .ajaxForm()에 강하게 결합돼 있고, 이 플러그인은 이 티켓의 라운드10("코어 라이브러리
+     * 제거")이 명시적으로 다루기로 예정된 대상이라 - project.Delete.js의 .requestAs()를
+     * 라운드1에서 미룬 것과 동일한 판단으로 - 이번 라운드에서는 그대로 둔다. 현재 모든 현대
+     * 브라우저(및 Playwright/Chromium)는 bXHR2가 true라 이 경로 자체가 실행되지 않는다.
+     *
      * @param {Number} nSubmitId
      * @param {HTMLElement} elFile
      * @param {String} sNamespace
      */
     function _uploadFileForm(nSubmitId, elFile, sNamespace){
         var htElement = htElements[sNamespace];
+        var welInputFileRaw = (htElement && htElement.welInputFile) || elFile;
 
-        if(!htElement.welInputFile && !elFile){
+        if(!welInputFileRaw){
             return false;
         }
 
-        var welInputFile = htElement.welInputFile || $(elFile);
+        var welInputFile = $(welInputFileRaw);
         var welInputFileClone = welInputFile.clone();
         var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
 
@@ -240,9 +268,16 @@ yona.Files = (function(){
             return _onErrorSubmit(nSubmitId, oRes);
         }
 
-        // clear inputFile
+        // clear inputFile - htElements[sNamespace].welInputFile은 평소엔 raw element지만,
+        // _uploadFileForm(legacy 폴백, 위 주석 참고)을 거치면 jQuery clone으로 바뀐다 - 양쪽 다
+        // 지원.
         if(sNamespace && htElements[sNamespace] && htElements[sNamespace].welInputFile){
-            htElements[sNamespace].welInputFile.val("");
+            var welInputFileRef = htElements[sNamespace].welInputFile;
+            if(welInputFileRef.jquery){
+                welInputFileRef.val("");
+            } else {
+                welInputFileRef.value = "";
+            }
         }
 
         // fireEvent: onSuccessSubmit
@@ -332,19 +367,33 @@ yona.Files = (function(){
     function _getUploader(elContainer, elTextarea, sNamespace){
         sNamespace = sNamespace || _getSubmitId();
 
+        var elContainerNode = _toElement(elContainer);
+        var elTextareaNode  = _toElement(elTextarea);
+
         // only single uploader can be attached on single Container/Textarea
-        if($(elContainer).data("isYonaUploader") || $(elTextarea).data("isYonaUploader")){
+        // (isYonaUploader는 이 파일 내부에서만 쓰는 플래그라 - 다른 파일이 읽지 않음 - 코드베이스
+        // 관례대로 커스텀 expando 프로퍼티로 boolean 값을 그대로 보존한다, dataset 문자열
+        // 변환 함정 회피)
+        if((elContainerNode && elContainerNode._yonaIsUploader) || (elTextareaNode && elTextareaNode._yonaIsUploader)){
             return false;
         }
 
         _initElement({
-            "elContainer": elContainer,
-            "elTextarea" : elTextarea,
+            "elContainer": elContainerNode,
+            "elTextarea" : elTextareaNode,
             "sNamespace" : sNamespace
         });
         _attachEvent(sNamespace);
 
-        return htElements[sNamespace].welContainer;
+        // P3-70 라운드3: 반환값은 이미 vanilla로 전환된 호출부(board.Write.js/milestone.View.js/
+        // issue.Write.js/milestone.Write.js - oUploader[0].getAttribute(...)로 접근)와 아직
+        // jQuery인 호출부(board.View.js/code.Diff.js/code.SvnDiff.js/issue.View.js, 라운드4/5
+        // 대상 - oUploader.attr(...)로 접근) 양쪽이 동시에 의존한다. 두 관례가 서로 호환되지
+        // 않아(raw element는 [0] 인덱싱이 없고, jQuery 없이는 .attr()도 없다) 이 반환 지점
+        // 하나만 jQuery로 감싸 양쪽을 계속 만족시킨다 - 나머지 jQuery 호출부가 전부 vanilla로
+        // 바뀌는 라운드5 완료 시점에 이 wrap도 raw element 반환으로 정리할 수 있다. 함수 내부
+        // 로직 자체(_initElement/_attachEvent 이하)는 전부 vanilla다.
+        return $(htElements[sNamespace].welContainer);
     }
 
     /**
@@ -367,13 +416,16 @@ yona.Files = (function(){
         var sNamespace = htOptions.sNamespace;
 
         htElements[sNamespace] = {};
-        htElements[sNamespace].welContainer = $(htOptions.elContainer);
-        htElements[sNamespace].welTextarea  = $(htOptions.elTextarea);
-        htElements[sNamespace].welInputFile = htElements[sNamespace].welContainer.find("input[type=file]");
-        htElements[sNamespace].welContainer.attr("data-namespace", sNamespace);
+        htElements[sNamespace].welContainer = htOptions.elContainer;
+        htElements[sNamespace].welTextarea  = htOptions.elTextarea;
+        htElements[sNamespace].welInputFile = htOptions.elContainer ? htOptions.elContainer.querySelector("input[type=file]") : null;
 
-        if(!htVar.bXHR2){
-            htElements[sNamespace].welInputFile.attr("multiple", null);
+        if(htOptions.elContainer){
+            htOptions.elContainer.setAttribute("data-namespace", sNamespace);
+        }
+
+        if(!htVar.bXHR2 && htElements[sNamespace].welInputFile){
+            htElements[sNamespace].welInputFile.removeAttribute("multiple");
         }
     }
 
@@ -382,37 +434,55 @@ yona.Files = (function(){
      */
     function _attachEvent(sNamespace){
         var htElement = htElements[sNamespace];
-        htElement.welInputFile.on("change", $.proxy(_onChangeFile, this, sNamespace));
+        var welContainer = htElement.welContainer;
+        var welTextarea  = htElement.welTextarea;
+
+        htElement._onChangeFileHandler = function(){ _onChangeFile(sNamespace); };
+        if(htElement.welInputFile){
+            htElement.welInputFile.addEventListener("change", htElement._onChangeFileHandler);
+        }
 
         // Upload by Drag & Drop
-        if(htVar.bDroppable){
-            htElement.welContainer.on({
-                "dragover" : $.proxy(_onDragOver, this, sNamespace),
-                "drop"     : $.proxy(_onDropFile, this, sNamespace)
-            });
+        if(htVar.bDroppable && welContainer){
+            htElement._onDragOverHandler = function(weEvt){ _onDragOver(sNamespace, weEvt); };
+            htElement._onDropFileHandler = function(weEvt){ _onDropFile(sNamespace, weEvt); };
+            welContainer.addEventListener("dragover", htElement._onDragOverHandler);
+            welContainer.addEventListener("drop", htElement._onDropFileHandler);
 
-            var sTplDropper = $("#tplDropFilesHere").text().trim() ||
+            var elTplDropper = document.getElementById("tplDropFilesHere");
+            var sTplDropper = (elTplDropper ? elTplDropper.textContent.trim() : "") ||
                 '<div class="upload-drop-here"><div class="msg-wrap"><div class="msg">' +
                 Messages("common.attach.dropFilesHere") +
                 '</div></div></div>';
-            htElement.welDropper = $(sTplDropper);
-            htElement.welTextarea.before(htElement.welDropper);
-            htElement.welTextarea.on({
-                "dragover" : $.proxy(_onDragOver,  this, sNamespace),
-                "dragenter": $.proxy(_onDragEnter, this, sNamespace),
-                "dragleave": $.proxy(_onDragLeave, this, sNamespace),
-                "drop"     : $.proxy(_onDropFile,  this, sNamespace)
-            });
+            var elTemplateHolder = document.createElement("div");
+            elTemplateHolder.innerHTML = sTplDropper;
+            htElement.welDropper = elTemplateHolder.firstElementChild;
+
+            if(welTextarea && htElement.welDropper){
+                welTextarea.parentNode.insertBefore(htElement.welDropper, welTextarea);
+
+                htElement._onDragEnterHandler = function(weEvt){ _onDragEnter(sNamespace, weEvt); };
+                htElement._onDragLeaveHandler = function(weEvt){ _onDragLeave(sNamespace, weEvt); };
+                welTextarea.addEventListener("dragover", htElement._onDragOverHandler);
+                welTextarea.addEventListener("dragenter", htElement._onDragEnterHandler);
+                welTextarea.addEventListener("dragleave", htElement._onDragLeaveHandler);
+                welTextarea.addEventListener("drop", htElement._onDropFileHandler);
+            }
         }
 
         // Upload by paste
-        if(htVar.bPastable && htElement.welTextarea){
-            htElement.welTextarea.on("paste", $.proxy(_onPasteFile, this, sNamespace));
+        if(htVar.bPastable && welTextarea){
+            htElement._onPasteFileHandler = function(weEvt){ _onPasteFile(sNamespace, weEvt); };
+            welTextarea.addEventListener("paste", htElement._onPasteFileHandler);
         }
 
         // Mark as already attached
-        htElement.welContainer.data("isYonaUploader", true);
-        htElement.welTextarea.data("isYonaUploader", true);
+        if(welContainer){
+            welContainer._yonaIsUploader = true;
+        }
+        if(welTextarea){
+            welTextarea._yonaIsUploader = true;
+        }
     }
 
     /**
@@ -420,7 +490,7 @@ yona.Files = (function(){
      * @private
      */
     function _showDropper(){
-        $(document.body).addClass("dragover");
+        document.body.classList.add("dragover");
     }
 
     /**
@@ -428,7 +498,7 @@ yona.Files = (function(){
      * @private
      */
     function _hideDropper(){
-        $(document.body).removeClass("dragover");
+        document.body.classList.remove("dragover");
     }
 
     /**
@@ -453,7 +523,7 @@ yona.Files = (function(){
     function _onDragEnter(sNamespace, weEvt){
         _showDropper();
 
-        weEvt.originalEvent.dataTransfer.dropEffect = _getDropEffect(weEvt);
+        weEvt.dataTransfer.dropEffect = _getDropEffect(weEvt);
         weEvt.stopPropagation();
         weEvt.preventDefault();
     }
@@ -464,7 +534,7 @@ yona.Files = (function(){
      * @private
      */
     function _getDropEffect(weEvt){
-        var oData = weEvt.originalEvent.dataTransfer;
+        var oData = weEvt.dataTransfer;
 
         if(!oData.types){
             return "none";
@@ -488,7 +558,7 @@ yona.Files = (function(){
     function _onDragLeave(sNamespace, weEvt){
         _hideDropper();
 
-        weEvt.originalEvent.dataTransfer.dropEffect = "none";
+        weEvt.dataTransfer.dropEffect = "none";
         weEvt.stopPropagation();
         weEvt.preventDefault();
     }
@@ -498,11 +568,50 @@ yona.Files = (function(){
      */
     function _detachEvent(sNamespace){
         var htElement = htElements[sNamespace];
-        htElement.welInputFile.off();
-        htElement.welContainer.off();
-        htElement.welTextarea.off();
-        htElement.welContainer.data("isYonaUploader", false);
-        htElement.welTextarea.data("isYonaUploader", false);
+        var welContainer = htElement.welContainer;
+        var welTextarea  = htElement.welTextarea;
+
+        if(htElement.welInputFile && htElement._onChangeFileHandler){
+            if(htElement.welInputFile.jquery){
+                htElement.welInputFile.off();
+            } else {
+                htElement.welInputFile.removeEventListener("change", htElement._onChangeFileHandler);
+            }
+        }
+
+        if(welContainer){
+            if(htElement._onDragOverHandler){
+                welContainer.removeEventListener("dragover", htElement._onDragOverHandler);
+            }
+            if(htElement._onDropFileHandler){
+                welContainer.removeEventListener("drop", htElement._onDropFileHandler);
+            }
+        }
+
+        if(welTextarea){
+            if(htElement._onDragOverHandler){
+                welTextarea.removeEventListener("dragover", htElement._onDragOverHandler);
+            }
+            if(htElement._onDragEnterHandler){
+                welTextarea.removeEventListener("dragenter", htElement._onDragEnterHandler);
+            }
+            if(htElement._onDragLeaveHandler){
+                welTextarea.removeEventListener("dragleave", htElement._onDragLeaveHandler);
+            }
+            if(htElement._onDropFileHandler){
+                welTextarea.removeEventListener("drop", htElement._onDropFileHandler);
+            }
+            if(htElement._onPasteFileHandler){
+                welTextarea.removeEventListener("paste", htElement._onPasteFileHandler);
+            }
+        }
+
+        if(welContainer){
+            welContainer._yonaIsUploader = false;
+        }
+        if(welTextarea){
+            welTextarea._yonaIsUploader = false;
+        }
     }
 
     /**
@@ -512,22 +621,25 @@ yona.Files = (function(){
      */
     function _onChangeFile(sNamespace){
         var htElement = htElements[sNamespace];
-        var sFileName = _getBasename(htElement.welInputFile.val());
+        var welInputFile = htElement.welInputFile;
+        var sRawValue = welInputFile.jquery ? welInputFile.val() : welInputFile.value;
+        var sFileName = _getBasename(sRawValue);
         if(!sFileName || sFileName === ""){
             return;
         }
 
-        _uploadFile(htElement.welInputFile[0].files || htElement.welInputFile[0], sNamespace);
+        var elInputFile = welInputFile.jquery ? welInputFile[0] : welInputFile;
+        _uploadFile(elInputFile.files || elInputFile, sNamespace);
     }
 
     /**
      * @param {String} sNamespace
-     * @param {Wrapped Event} weEvt
+     * @param {Event} weEvt
      */
     function _onDropFile(sNamespace, weEvt){
         _hideDropper();
 
-        var oFiles = weEvt.originalEvent.dataTransfer.files;
+        var oFiles = weEvt.dataTransfer.files;
         if(!oFiles || oFiles.length === 0){
             return;
         }
@@ -546,10 +658,10 @@ yona.Files = (function(){
 
     /**
      * @param {String} sNamespace
-     * @param {Wrapped Event} weEvt
+     * @param {Event} weEvt
      */
     function _onPasteFile(sNamespace, weEvt){
-        var oClipboardData = weEvt.originalEvent.clipboardData;
+        var oClipboardData = weEvt.clipboardData;
 
         if(!oClipboardData || !oClipboardData.items){
             return;

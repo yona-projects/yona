@@ -199,6 +199,18 @@
     // 인스턴스뿐 아니라(아래 자동 초기화 루프), 자동 초기화를 거치지 않고 별도 모듈에서 직접
     // TomSelect를 생성하는 #assignee(yona.issue.Assginee.js)/#issueSharer(yona.issue.Sharer.js)도
     // 반드시 이 브릿지를 걸어야 한다 - 그래서 재사용 가능하도록 외부에 노출해둔다.
+    //
+    // P3-70 라운드3 발견: yona.issue.View.js(라운드4 대상, 아직 미전환)가 정확히 이 evt.val을
+    // 델리게이트 jQuery .on("change", "[data-toggle=tomselect]", ...)으로 읽는다
+    // (_onChangeIssueInfo, "targetElement.val() === evt.val" 비교). jQuery.Event 객체를
+    // .trigger()로 직접 발화하면 jQuery의 내부 트리거 경로(네이티브 dispatchEvent를 거치지 않고
+    // 같은 이벤트 객체를 그대로 핸들러 큐에 넘김)를 타기 때문에 evt.val 같은 임의 커스텀
+    // 프로퍼티가 그대로 보존된다. 이걸 네이티브 CustomEvent(dispatchEvent)로 바꾸면 jQuery의
+    // .on()이 네이티브 이벤트를 새 jQuery.Event로 다시 감싸면서(jQuery.event.fix, 고정된
+    // property 목록만 복사) evt.val이 사라져 - 이슈 뷰의 담당자/마일스톤/상태 인라인 수정
+    // 기능이 조용히 깨진다(실제로 그렇게 되는지 코드 대조로 확인, Playwright로 재현 X - 논리
+    // 검증). issue.View.js가 vanilla로 전환되는 라운드4까지 이 브릿지는 jQuery로 유지한다
+    // (project.Delete.js의 .requestAs() 라운드1 유예와 동일한 판단).
     function bridgeChangeEvent(tomSelectInstance, targetElement){
         tomSelectInstance.on("change", function(value){
             var evt = $.Event("change");
@@ -217,31 +229,44 @@
         }
         mousewheelGuardInstalled = true;
 
-        $(document).on("mousewheel", ".ts-dropdown-content", function(evt){
-            var element = evt.currentTarget;
-            var atBottom = ($(element).scrollTop() + $(element).height() >= element.scrollHeight);
-            var atTop = ($(element).scrollTop() === 0);
+        document.addEventListener("mousewheel", function(evt){
+            var element = evt.target.closest(".ts-dropdown-content");
+            if(!element || !document.contains(element)){
+                return;
+            }
 
-            if((evt.originalEvent.deltaY > 0 && atBottom) || (evt.originalEvent.deltaY < 0 && atTop)){
+            var atBottom = (element.scrollTop + element.clientHeight >= element.scrollHeight);
+            var atTop = (element.scrollTop === 0);
+
+            if((evt.deltaY > 0 && atBottom) || (evt.deltaY < 0 && atTop)){
                 evt.preventDefault();
                 evt.stopPropagation();
                 return false;
             }
-        });
+        }, {"passive": false});
     }
 
     oNS.container[oNS.name] = function(element, options){
         _installMousewheelGuardOnce();
 
-        var targetElement = $(element);
-        var formatName = (targetElement.data("format") || "").toString().toLowerCase();
+        // P3-70 라운드3: element는 원래 $(element)로 감싸서 .data()를 읽었기 때문에 raw element
+        // 뿐 아니라 CSS 셀렉터 문자열(pullrequest/partial_search.html의
+        // yona.ui.TomSelect("#contributors") 호출)·jQuery 객체까지 받아들였다. new TomSelect(...)
+        // 자체와 bridgeChangeEvent 내부의 $(targetElement)는 문자열/엘리먼트를 그대로 받아도
+        // 문제없지만(각각 라이브러리 자체 처리, jQuery 처리), .dataset 읽기는 실제 엘리먼트가
+        // 있어야 하므로 이 지점에서만 정규화한다(yona.Files.js/yona.Attachments.js의 _toElement와
+        // 동일한 관례).
+        var targetElement = (element && element.jquery) ? element[0] :
+            (typeof element === "string" ? document.querySelector(element) : element);
+
+        var formatName = ((targetElement && targetElement.dataset.format) || "").toString().toLowerCase();
         var renderer = renderers[formatName];
         var scoreFn = scoreFns[formatName] || _defaultScore;
 
-        var dropdownCssClass = targetElement.data("dropdownCssClass");
-        var containerCssClass = targetElement.data("containerCssClass");
+        var dropdownCssClass = targetElement ? targetElement.dataset.dropdownCssClass : undefined;
+        var containerCssClass = targetElement ? targetElement.dataset.containerCssClass : undefined;
 
-        var tsOptions = $.extend({
+        var tsOptions = Object.assign({
             // 로컬 데이터 기반 인스턴스는 select2처럼 매치되는 항목을 전부 보여줘야 한다 - Tom Select
             // 기본값(maxOptions:50)은 프로젝트/멤버/마일스톤/라벨이 50개를 넘는 순간 나머지를 조용히
             // 잘라버리므로 반드시 큰 값으로 올려둔다.
@@ -326,8 +351,8 @@
     oNS.container[oNS.name].bridgeChangeEvent = bridgeChangeEvent;
     oNS.container[oNS.name].i18n = I18N;
 
-    $(function(){
-        $('[data-toggle="tomselect"]').each(function(i, el){
+    document.addEventListener("DOMContentLoaded", function(){
+        document.querySelectorAll('[data-toggle="tomselect"]').forEach(function(el){
             yona.ui.TomSelect(el);
         });
     });

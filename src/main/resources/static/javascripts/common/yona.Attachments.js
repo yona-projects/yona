@@ -10,6 +10,38 @@ yona.Attachments = function(htOptions) {
     var htElements = {};
 
     /**
+     * P3-70 라운드3: elContainer/elTextarea/targetFormId 정규화 헬퍼(yona.Files.js의 _toElement와
+     * 동일한 관례) - raw element/jQuery 객체/셀렉터 문자열을 모두 받아준다. 이 생성자는 아직 jQuery인
+     * 여러 호출부(board.View.js/code.Diff.js/code.SvnDiff.js/issue.View.js, 라운드4/5 대상)와 이미
+     * vanilla인 호출부(board.Write.js/milestone.View.js/issue.Write.js/milestone.Write.js)에서 함께
+     * 쓰인다.
+     *
+     * @param {Variant} el
+     * @return {HTMLElement|null}
+     */
+    function _toElement(el){
+        if(el && el.jquery){
+            return el[0] || null;
+        }
+        if(typeof el === "string"){
+            return document.querySelector(el);
+        }
+        return el || null;
+    }
+
+    /**
+     * @param {HTMLElement} el
+     * @param {Boolean} bShow
+     * @param {String} sDisplayWhenShown
+     */
+    function _setDisplay(el, bShow, sDisplayWhenShown){
+        if(!el){
+            return;
+        }
+        el.style.display = bShow ? sDisplayWhenShown : "none";
+    }
+
+    /**
      * initialize fileUploader
      *
      * @param {Hash Table} htOptions
@@ -56,37 +88,60 @@ yona.Attachments = function(htOptions) {
      * @param {Hash Table} htOptions
      */
     function _initElement(htOptions){
+        var elContainer = _toElement(htOptions.elContainer);
 
         // parentForm
-        htElements.welToAttach = htOptions.targetFormId || $(htOptions.elContainer);
+        htElements.welToAttach = _toElement(htOptions.targetFormId) || elContainer;
         var sTagName = htOptions.sTagNameForTemporaryUploadFiles || "temporaryUploadFiles";
-        htElements.welTemporaryUploadFileList = $('<input type="hidden" name="'+sTagName+'">');
-        htElements.welToAttach.prepend(htElements.welTemporaryUploadFileList);
+        htElements.welTemporaryUploadFileList = document.createElement("input");
+        htElements.welTemporaryUploadFileList.setAttribute("type", "hidden");
+        htElements.welTemporaryUploadFileList.setAttribute("name", sTagName);
+        if(htElements.welToAttach){
+            htElements.welToAttach.insertBefore(htElements.welTemporaryUploadFileList, htElements.welToAttach.firstChild);
+        }
         htVar.aTemporaryFileIds = [];
 
         // welContainer
-        htElements.welContainer = $(htOptions.elContainer);
-        htElements.welContainer.data("isYonaAttachment", true);
-        htVar.sResourceId = htVar.sResourceId || htElements.welContainer.data('resourceId');
-        htVar.sResourceType = htVar.sResourceType || htElements.welContainer.data('resourceType');
+        htElements.welContainer = elContainer;
+        if(elContainer){
+            // P3-70 라운드3: isYonaAttachment는 milestone.View.js(이미 vanilla, 이 티켓 범위 밖)가
+            // window.jQuery.data(elContainer, "isYonaAttachment")로 직접 읽는 공개 계약이다(중복
+            // 초기화 가드) - dataset/커스텀 프로퍼티로 바꾸면 그 파일의 가드가 항상 false로 읽혀
+            // Attachments가 매번 중복 생성된다. 계속 jQuery 내부 데이터 캐시에 기록해 그 계약을
+            // 유지한다(round1의 window.jQuery.data(el, key) 정적 접근자 관례와 동일, 여기선 setter).
+            window.jQuery.data(elContainer, "isYonaAttachment", true);
+        }
+        htVar.sResourceId = htVar.sResourceId || (elContainer ? elContainer.dataset.resourceId : undefined);
+        htVar.sResourceType = htVar.sResourceType || (elContainer ? elContainer.dataset.resourceType : undefined);
 
         if (!htVar.attachments) {
-            htVar.attachments = htElements.welContainer.data('attachments');
+            // P3-70 라운드3 함정 발견: data-attachments는 JSON 배열 문자열이다(예: issue/view.html의
+            // th:data-attachments="${attachmentsJson}"). jQuery .data()는 "["로 시작하는 문자열을
+            // 자동으로 JSON.parse해서 돌려주지만(내부 dataAttr 변환 - 라운드1에서 발견한 boolean
+            // 자동변환과 같은 계열의 함정), 네이티브 dataset은 항상 raw 문자열 그대로 돌려준다.
+            // 여기서 명시적으로 JSON.parse하지 않으면 htVar.attachments가 배열이 아니라 문자열이
+            // 되어(그래도 truthy라 아래 _init의 분기까지는 타지만) _updateAttachments()가 기대하는
+            // 모양이 아니게 되어 기존 첨부파일이 페이지 로드시 전혀 렌더링되지 않는 실제 회귀가
+            // 생긴다(milestone.View.js/board.View.js 등이 이 경로로 Attachments를 초기화함).
+            var sAttachmentsRaw = elContainer ? elContainer.dataset.attachments : undefined;
+            htVar.attachments = sAttachmentsRaw ? JSON.parse(sAttachmentsRaw) : undefined;
         }
 
         // welTextarea (Optional)
-        htElements.welTextarea  = $(htOptions.elTextarea);
+        htElements.welTextarea = _toElement(htOptions.elTextarea);
 
         // attached files list
-        htElements.welFileList  = htElements.welContainer.find("ul.attached-files");
-        htElements.welFileListHelp = htElements.welContainer.find("p.help");
+        htElements.welFileList = elContainer ? elContainer.querySelector("ul.attached-files") : null;
+        htElements.welFileListHelp = elContainer ? elContainer.querySelector("p.help") : null;
 
         // -- help messages for additional uploader features
         var htEnv = yona.Files.getEnv();
-        htElements.welHelpDroppable = htElements.welContainer.find(".help-droppable");
-        htElements.welHelpPastable  = htElements.welContainer.find(".help-pastable");
-        htElements.welHelpDroppable[htEnv.bDroppable ? "show" : "hide"]();
-        htElements.welHelpPastable[htEnv.bPastable ? "show" : "hide"]();
+        htElements.welHelpDroppable = elContainer ? elContainer.querySelector(".help-droppable") : null;
+        htElements.welHelpPastable  = elContainer ? elContainer.querySelector(".help-pastable") : null;
+        // 두 span 모두 CSS상 기본 표시값이 inline(.help 클래스 자체는 display:none, .help-droppable은
+        // 그걸 오버라이드) - jQuery .show()가 <span> 기본 표시값(inline)으로 복원하던 것과 동일하게.
+        _setDisplay(htElements.welHelpDroppable, htEnv.bDroppable, "inline");
+        _setDisplay(htElements.welHelpPastable, htEnv.bPastable, "inline");
     }
 
     /**
@@ -157,15 +212,17 @@ yona.Attachments = function(htOptions) {
             welItem = _getFileItem(oFile, htData.bTemporary);
 
             if(typeof oFile.id !== "undefined" && oFile.id !== ""){
-                welItem.addClass("complete");
+                welItem.classList.add("complete");
 
-                if(htElements.welTextarea.length > 0){
-                    welItem.click(_onClickListItem);
+                if(htElements.welTextarea){
+                    welItem.addEventListener("click", _onClickListItem);
                 }
             } else {
-                welItem.attr("id", oFile.nSubmitId);
-                welItem.css("opacity", "0.2");
-                welItem.data("progressBar", welItem.find(".progress > .bar"));
+                welItem.id = oFile.nSubmitId;
+                welItem.style.opacity = "0.2";
+                // progressBar 참조는 이 파일 내부에서만 쓰는 값이라(다른 파일이 읽지 않음) 코드베이스
+                // 관례대로 커스텀 expando 프로퍼티에 raw element를 그대로 보관한다.
+                welItem._yonaProgressBar = welItem.querySelector(".progress > .bar");
             }
 
             aWelItems.push(welItem);
@@ -173,14 +230,22 @@ yona.Attachments = function(htOptions) {
         });
 
         if(aWelItems.length > 0){
-            if(htElements.welFileList.length === 0){
-                htElements.welFileList = $(htVar.sTplFileList);
-                htElements.welContainer.append(htElements.welFileList);
+            if(!htElements.welFileList){
+                var elTplHolder = document.createElement("div");
+                elTplHolder.innerHTML = htVar.sTplFileList;
+                htElements.welFileList = elTplHolder.firstElementChild;
+                htElements.welContainer.appendChild(htElements.welFileList);
             }
-            htElements.welFileList.show();
-            htElements.welFileListHelp.show();
+            // .upload-wrap .attached-files/.help는 CSS 기본값이 display:none이라(round2와 동일한
+            // 판단), jQuery .show()가 <ul>/<p> 기본 표시값(block)으로 복원하던 것과 동일하게 맞춘다.
+            htElements.welFileList.style.display = "block";
+            if(htElements.welFileListHelp){
+                htElements.welFileListHelp.style.display = "block";
+            }
 
-            htElements.welFileList.append(aWelItems);
+            aWelItems.forEach(function(el){
+                htElements.welFileList.appendChild(el);
+            });
         }
 
         return nFileSize;
@@ -192,22 +257,25 @@ yona.Attachments = function(htOptions) {
      * @param {Hash Table} htFile
      * @param {Boolean} bTemp
      *
-     * @return {Wrapped Element}
+     * @return {HTMLElement}
      */
     function _getFileItem(htFile, bTemp) {
-        var welItem = $($yona.tmpl(htVar.sTplFileItem, {
+        var sHtml = $yona.tmpl(htVar.sTplFileItem, {
             "fileId"  : htFile.id,
             "fileName": htFile.name,
             "fileHref": htFile.url,
             "fileSize": htFile.size,
             "fileSizeReadable": humanize.filesize(htFile.size),
             "mimeType": htFile.mimeType
-        }));
+        });
+        var elTplHolder = document.createElement("div");
+        elTplHolder.innerHTML = sHtml;
+        var welItem = elTplHolder.firstElementChild;
 
         _showMimetypeIcon(welItem, htFile.mimeType);
 
         if(bTemp){
-            welItem.addClass("temporary");
+            welItem.classList.add("temporary");
         }
         return welItem;
     }
@@ -217,45 +285,55 @@ yona.Attachments = function(htOptions) {
      * @param {Object} oRes
      */
     function _updateFileItem(nSubmitId, oRes){
-        var welItem = $("#" + nSubmitId);
-        var welItemExists = htElements.welFileList.find('[data-id="' + oRes.id + '"]');
+        var welItem = document.getElementById(String(nSubmitId));
+        var welItemExists = htElements.welFileList ? htElements.welFileList.querySelector('[data-id="' + oRes.id + '"]') : null;
 
-        if(welItemExists.length > 0){
-            welItem.remove();
+        if(welItemExists){
+            if(welItem){
+                welItem.remove();
+            }
             _blinkFileItem(welItemExists);
             return false;
         }
 
-        welItem.attr({
-            "data-id"  : oRes.id,
-            "data-href": oRes.url,
-            "data-name": oRes.name,
-            "data-mime": oRes.mimeType
-        });
+        if(!welItem){
+            return;
+        }
+
+        welItem.setAttribute("data-id", oRes.id);
+        welItem.setAttribute("data-href", oRes.url);
+        welItem.setAttribute("data-name", oRes.name);
+        welItem.setAttribute("data-mime", oRes.mimeType);
 
         // for IE (uploadFileForm)
-        welItem.find(".name").html(oRes.name);
-        welItem.find(".size").html(humanize.filesize(oRes.size));
+        var elName = welItem.querySelector(".name");
+        if(elName){
+            elName.innerHTML = oRes.name;
+        }
+        var elSize = welItem.querySelector(".size");
+        if(elSize){
+            elSize.innerHTML = humanize.filesize(oRes.size);
+        }
 
-        welItem.click(_onClickListItem);
+        welItem.addEventListener("click", _onClickListItem);
     }
 
     function _blinkFileItem(welItem, sBlinkColor){
         var sBgColor;
 
         sBlinkColor = sBlinkColor || "#f36c22";
-        sBgColor = welItem.css("background");
-        welItem.css("background", sBlinkColor);
+        sBgColor = getComputedStyle(welItem).background;
+        welItem.style.background = sBlinkColor;
 
         setTimeout(function(){
-            welItem.css("background", sBgColor);
+            welItem.style.background = sBgColor;
         }, 500);
     }
 
     function _addUploadFileIdToListAndForm(sFileId) {
         if(htVar.aTemporaryFileIds.indexOf(sFileId) === -1) {
             htVar.aTemporaryFileIds.push(sFileId);
-            htElements.welTemporaryUploadFileList.val(htVar.aTemporaryFileIds.join(","));
+            htElements.welTemporaryUploadFileList.value = htVar.aTemporaryFileIds.join(",");
         }
     }
 
@@ -263,7 +341,7 @@ yona.Attachments = function(htOptions) {
         var nIndex = htVar.aTemporaryFileIds.indexOf(sFileId.toString());
         if( nIndex !== -1){
             htVar.aTemporaryFileIds.splice(nIndex, 1);
-            htElements.welTemporaryUploadFileList.val(htVar.aTemporaryFileIds.join(","));
+            htElements.welTemporaryUploadFileList.value = htVar.aTemporaryFileIds.join(",");
         }
     }
 
@@ -289,12 +367,12 @@ yona.Attachments = function(htOptions) {
             _setProgressBar(nSubmitId, 100);
         }
 
-        var aFileItemQuery = [
-            "#" + htData.nSubmitId,
-            '.attached-file[data-id="' + htData.oRes.id + '"]'
-        ];
-
-        var welFileItem = $(aFileItemQuery.join(", "));
+        // 원본은 "#nSubmitId, .attached-file[data-id=oRes.id]" 콤보 셀렉터로 전체 문서에서 찾았다
+        // (welContainer로 스코핑하지 않음) - _updateFileItem이 정상 처리된 경우 두 조건 모두 같은
+        // 노드를 가리켜 결과가 같고, welItemExists 분기(기존 파일과 중복)로 임시 노드가 이미
+        // remove()된 경우엔 data-id 쪽만 남아 그걸 찾아준다. 동일하게 문서 전체에서 OR로 찾는다.
+        var welFileItem = document.getElementById(String(htData.nSubmitId)) ||
+            document.querySelector('.attached-file[data-id="' + htData.oRes.id + '"]');
         var sTempLink = _getTempLinkText(htData.nSubmitId);
         var sRealLink = _getLinkText(welFileItem);
         _replaceLinkInTextarea(sTempLink, sRealLink);
@@ -320,13 +398,15 @@ yona.Attachments = function(htOptions) {
      * @param {Number} nProgress
      */
     function _setProgressBar(nSubmitId, nProgress) {
-        var welItem = $("#" + nSubmitId);
-        welItem.data("progressBar").css("width", nProgress + "%");
+        var welItem = document.getElementById(String(nSubmitId));
+        if(welItem && welItem._yonaProgressBar){
+            welItem._yonaProgressBar.style.width = nProgress + "%";
+        }
 
-        if(nProgress*1 === 100){
-            welItem.css("opacity", "1");
+        if(nProgress*1 === 100 && welItem){
+            welItem.style.opacity = "1";
             setTimeout(function(){
-                welItem.addClass("complete");
+                welItem.classList.add("complete");
             }, 1000);
         }
     }
@@ -339,11 +419,18 @@ yona.Attachments = function(htOptions) {
      * @param {Object} htData.oRes
      */
     function _onErrorUpload(htData){
-        $("#" + htData.nSubmitId).remove();
+        var welItem = document.getElementById(String(htData.nSubmitId));
+        if(welItem){
+            welItem.remove();
+        }
 
-        if(htElements.welFileList.children().length === 0){
-            htElements.welFileList.hide();
-            htElements.welFileListHelp.hide();
+        if(!htElements.welFileList || htElements.welFileList.children.length === 0){
+            if(htElements.welFileList){
+                htElements.welFileList.style.display = "none";
+            }
+            if(htElements.welFileListHelp){
+                htElements.welFileListHelp.style.display = "none";
+            }
         }
 
         $yona.notify(Messages("common.attach.error.upload", htData.oRes.status, htData.oRes.statusText));
@@ -353,13 +440,13 @@ yona.Attachments = function(htOptions) {
     /**
      * On Click attached files list
      *
-     * @param {Wrapped Event} weEvt
+     * @param {Event} weEvt
      */
     function _onClickListItem(weEvt){
-        var welTarget = $(weEvt.target);
-        var welItem = $(weEvt.currentTarget);
+        var welTarget = weEvt.target;
+        var welItem = weEvt.currentTarget;
 
-        if(welTarget.hasClass("btn-delete")){
+        if(welTarget.classList.contains("btn-delete")){
             _deleteAttachedFile(welItem);
         } else {
             _insertLinkToTextarea(welItem);
@@ -367,21 +454,25 @@ yona.Attachments = function(htOptions) {
     }
 
     /**
-     * @param {Wrapped Element} welItem
+     * @param {HTMLElement} welItem
      */
     function _deleteAttachedFile(welItem){
-       var sURL = welItem.attr("data-href");
+       var sURL = welItem.getAttribute("data-href");
 
         yona.Files.deleteFile({
            "sURL"   : sURL,
            "fOnLoad": function(){
-                _removeDeletedFileIdFromListAndForm(welItem.data("id"))
+                _removeDeletedFileIdFromListAndForm(welItem.dataset.id)
                 _clearLinkInTextarea(welItem);
                 welItem.remove();
 
-                if(htElements.welFileList.children().length === 0){
-                    htElements.welFileList.hide();
-                    htElements.welFileListHelp.hide();
+                if(!htElements.welFileList || htElements.welFileList.children.length === 0){
+                    if(htElements.welFileList){
+                        htElements.welFileList.style.display = "none";
+                    }
+                    if(htElements.welFileListHelp){
+                        htElements.welFileListHelp.style.display = "none";
+                    }
                 }
             },
             "fOnError": function(oRes){
@@ -400,11 +491,16 @@ yona.Attachments = function(htOptions) {
      * 커서 위치에 삽입하고, 없으면(EasyMDE 없이 쓰이는 순수 textarea) 기존 raw 조작으로
      * 폴백한다.
      *
+     * P3-70 라운드3: easymde 인스턴스는 lib/yona-markdown-editor(수정 금지 대상)의 커스텀
+     * 엘리먼트가 window.jQuery(textarea).data("easymde", ...)로 저장해둔 것이라(CommentAttachmentsUpdate.js
+     * 라운드1과 동일한 상황), 이 값을 읽으려면 jQuery 없이는 방법이 없다 - $(selector) 생성 없이
+     * jQuery.data(elem, key) 정적 API만 사용(round1 확립 관례).
+     *
      * @return {Object|null}
      */
     function _getEasyMDE(){
         var welTextarea = htElements.welTextarea;
-        return welTextarea.length ? (welTextarea.data("easymde") || null) : null;
+        return (welTextarea && window.jQuery) ? (window.jQuery.data(welTextarea, "easymde") || null) : null;
     }
 
     /**
@@ -419,9 +515,9 @@ yona.Attachments = function(htOptions) {
      * 소스오브트루스가 되도록 강제해, 그 어떤 호출 경로를 타든 결과가 항상 일치한다.
      */
     function _syncEasyMDE(welTextarea){
-        var easyMDE = welTextarea.length ? welTextarea.data("easymde") : null;
+        var easyMDE = (welTextarea && window.jQuery) ? window.jQuery.data(welTextarea, "easymde") : null;
         if(easyMDE){
-            easyMDE.value(welTextarea.val());
+            easyMDE.value(welTextarea.value);
         }
     }
 
@@ -431,15 +527,15 @@ yona.Attachments = function(htOptions) {
     function _insertLinkToTextarea(vLink){
         var welTextarea = htElements.welTextarea;
 
-        if(welTextarea.length === 0){
+        if(!welTextarea){
             return false;
         }
 
         var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
-        var nPos = welTextarea.prop("selectionStart");
-        var sText = welTextarea.val();
+        var nPos = welTextarea.selectionStart;
+        var sText = welTextarea.value;
 
-        welTextarea.val(sText.substring(0, nPos) + sLink + sText.substring(nPos));
+        welTextarea.value = sText.substring(0, nPos) + sLink + sText.substring(nPos);
         _setCursorPosition(welTextarea, nPos + sLink.length);
         _syncEasyMDE(welTextarea);
     }
@@ -449,40 +545,51 @@ yona.Attachments = function(htOptions) {
      */
     function isHtml5Video(sMimeType) {
         return ["video/mp4", "video/ogg", "video/webm"]
-            .indexOf($.trim(sMimeType).toLowerCase()) >= 0;
+            .indexOf((sMimeType || "").toString().trim().toLowerCase()) >= 0;
     }
 
     /**
      * Show a icon matches sMimeType on welFileItem
      */
     function _showMimetypeIcon(welFileItem, sMimeType) {
-        if (isHtml5Video(sMimeType)) {
-            welFileItem.children('i.mimetype').addClass('yobicon-video2').show();
+        if (isHtml5Video(sMimeType) && welFileItem) {
+            var elIcon = welFileItem.querySelector(":scope > i.mimetype");
+            if(elIcon){
+                elIcon.classList.add('yobicon-video2');
+                elIcon.style.display = "";
+            }
         }
     }
 
     /**
-     * @param {Wrapped Element} welItem
+     * @param {HTMLElement} welItem
      * @return {String}
      */
     function _getLinkText(welItem){
-        var sMimeType = welItem.attr("data-mime");
-        var sFileName = welItem.attr("data-name");
-        var sFilePath = welItem.attr("data-href");
+        var sMimeType = welItem.getAttribute("data-mime");
+        var sFileName = welItem.getAttribute("data-name");
+        var sFilePath = welItem.getAttribute("data-href");
 
         var sLinkText = '[' + sFileName + '](' + sFilePath + ') ';
 
         if (sMimeType.substr(0,5) === "image") {
             return '!' + sLinkText;
         } else if (isHtml5Video(sMimeType)) {
-            return $('<div>').append(
-                $(`<video class="video-js" data-setup='{}'>`)
-                    .attr('controls', true)
-                    .append($('<source>')
-                        .attr('src', sFilePath)
-                        .attr('type', sMimeType))
-            ).append(sLinkText).html();
-
+            var elWrap = document.createElement('div');
+            var elVideo = document.createElement('video');
+            elVideo.className = 'video-js';
+            elVideo.setAttribute('data-setup', '{}');
+            // jQuery .attr('controls', true)는 boolean 속성 관례대로 controls="controls"로
+            // 직렬화한다 - 네이티브 setAttribute(name, true)는 문자열 "true"로 직렬화해버려
+            // 결과 마크다운 원문 텍스트가 달라지므로 명시적으로 맞춘다.
+            elVideo.setAttribute('controls', 'controls');
+            var elSource = document.createElement('source');
+            elSource.setAttribute('src', sFilePath);
+            elSource.setAttribute('type', sMimeType);
+            elVideo.appendChild(elSource);
+            elWrap.appendChild(elVideo);
+            elWrap.appendChild(document.createTextNode(sLinkText));
+            return elWrap.innerHTML;
         } else {
             return sLinkText;
         }
@@ -502,14 +609,14 @@ yona.Attachments = function(htOptions) {
      */
     function _clearLinkInTextarea(vLink){
         var welTextarea = htElements.welTextarea;
-        if(welTextarea.length === 0){
+        if(!welTextarea){
             return false;
         }
 
         var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
-        var sRawData = welTextarea.val().split(sLink).join('');
+        var sRawData = welTextarea.value.split(sLink).join('');
         sRawData = sRawData.split(sLink.trim()).join('');
-        welTextarea.val(sRawData);
+        welTextarea.value = sRawData;
         _syncEasyMDE(welTextarea);
     }
 
@@ -520,14 +627,14 @@ yona.Attachments = function(htOptions) {
      */
     function _replaceLinkInTextarea(sLink1, sLink2){
         var welTextarea = htElements.welTextarea;
-        if(welTextarea.length === 0){
+        if(!welTextarea){
             return false;
         }
 
         var nCurPos = _getCursorPosition(welTextarea);
         var nGap = (sLink2.length - sLink1.length - 1);
 
-        welTextarea.val(welTextarea.val().split(sLink1).join(sLink2));
+        welTextarea.value = welTextarea.value.split(sLink1).join(sLink2);
 
         if(nGap > 0){
             _setCursorPosition(welTextarea, nCurPos + nGap);
@@ -541,7 +648,7 @@ yona.Attachments = function(htOptions) {
      * @private
      */
     function _setCursorPosition(welTextarea, nPos){
-        var elTextarea = welTextarea.get(0);
+        var elTextarea = welTextarea;
 
         if(elTextarea.setSelectionRange){
             elTextarea.setSelectionRange(nPos, nPos);
@@ -560,7 +667,7 @@ yona.Attachments = function(htOptions) {
      * @private
      */
     function _getCursorPosition(welTextarea){
-        return welTextarea.prop("selectionStart");
+        return welTextarea.selectionStart;
     }
 
     /**
@@ -574,14 +681,14 @@ yona.Attachments = function(htOptions) {
     function _onPasteMarkdownTable(htData){
         var welTextarea = htElements.welTextarea;
 
-        if(welTextarea.length === 0){
+        if(!welTextarea){
             return false;
         }
 
-        var nPos = welTextarea.prop("selectionStart");
-        var sText = welTextarea.val();
+        var nPos = welTextarea.selectionStart;
+        var sText = welTextarea.value;
 
-        welTextarea.val(sText.substring(0, nPos) + htData.markdownTableText + sText.substring(nPos));
+        welTextarea.value = sText.substring(0, nPos) + htData.markdownTableText + sText.substring(nPos);
         _setCursorPosition(welTextarea, nPos + htData.markdownTableText.length);
     }
 
