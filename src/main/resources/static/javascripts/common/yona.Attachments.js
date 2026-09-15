@@ -500,9 +500,14 @@ yona.Attachments = function(htOptions) {
      * 자신의 네이티브 `value` getter/setter로 노출한다 - `textarea.closest(
      * 'yona-markdown-editor')`로 그 엘리먼트를 직접 찾아 jQuery 없이 바로 접근한다(순수
      * textarea만 쓰는 화면에서는 closest()가 null을 반환해 그대로 조용히 스킵된다).
+     * components/vue-widgets가 defineCustomElement로 빌드한 <yona-markdown-editor-vue>도
+     * 원본과 동일한 `.value` getter/setter 계약을 제공하므로(light DOM textarea까지
+     * 포함해 원본과 동일한 구조 - 실제 <form> 제출/첨부파일 클릭 삽입까지 실측 검증됨,
+     * components/vue-widgets/README.md 참고) 태그 셀렉터에 추가하는 것만으로 호환된다 -
+     * 원본만 쓰는 화면에서는 동작이 전혀 바뀌지 않는다(closest()가 여전히 같은 것을 찾음).
      */
     function _syncMarkdownEditor(welTextarea){
-        var elEditor = welTextarea ? welTextarea.closest("yona-markdown-editor") : null;
+        var elEditor = welTextarea ? welTextarea.closest("yona-markdown-editor, yona-markdown-editor-vue") : null;
         if(elEditor){
             elEditor.value = welTextarea.value;
         }

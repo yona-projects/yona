@@ -204,9 +204,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // 6단계(jQuery 완전 제거): lib/yona-markdown-editor(수정 금지 대상)가 예전엔
     // `window.jQuery(textarea).data(...)`로 노출하던 것을, 이제 커스텀 엘리먼트
     // 자신의 네이티브 `value` getter/setter로 노출한다 - `textarea.closest(
-    // 'yona-markdown-editor')`로 직접 찾아 jQuery 없이 바로 접근한다.
+    // 'yona-markdown-editor')`로 직접 찾아 jQuery 없이 바로 접근한다. yona.Attachments.js와
+    // 동일한 이유로 <yona-markdown-editor-vue>(components/vue-widgets)도 셀렉터에 추가 -
+    // 원본만 쓰는 화면에서는 동작이 전혀 바뀌지 않는다.
     function syncMarkdownEditor(textarea) {
-        var elEditor = textarea ? textarea.closest("yona-markdown-editor") : null;
+        var elEditor = textarea ? textarea.closest("yona-markdown-editor, yona-markdown-editor-vue") : null;
         if (elEditor) {
             elEditor.value = textarea.value;
         }
