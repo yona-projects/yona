@@ -27,14 +27,14 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-46 #8 2단계: 마크다운 에디터 셸 교체(EasyMDE(CodeMirror5) 인스턴스 -> CM6 기반 Web
+// P3-46 #8 2단계: 마크다운 에디터 셸 교체(CodeMirror5 기반 구현 인스턴스 -> CM6 기반 Web
 // Component <yona-markdown-editor>, javascripts/lib/yona-markdown-editor/에 vendoring).
 //
 // 이 스펙은 실제 CM6/Shadow DOM의 렌더링·상호작용(브라우저 JS)은 검증하지 않는다 — MockMvc+
 // Jsoup 하네스는 서버가 내려주는 초기 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다(Shadow
 // DOM 내부 동작은 Playwright가 담당 - stateless-launching-ripple.md 테스트 전략 전환 참고). 대신
 // 아래 "마크업 계약"이 회귀 없이 유지되는지를 검증한다:
-//   1) <yona-markdown-editor> 커스텀 엘리먼트가 렌더링되고, EasyMDE 리소스(CSS/JS)는 이제 0개,
+//   1) <yona-markdown-editor> 커스텀 엘리먼트가 렌더링되고, 옛 CodeMirror5 기반 구현 리소스(CSS/JS)는 이제 0개,
 //      yona-markdown-editor.min.js 스크립트 로드는 1개여야 한다.
 //   2) 옛 탭 UI(ul.nav-tabs, data-mode=edit/preview)와 그 안의 체크리스트/알림수신자 마크업은
 //      사라져야 한다(1단계부터 이어진 사용자 확정 결정사항). "임시저장 지우기"는 애초에
@@ -69,7 +69,7 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
                 .build()
         }
 
-        describe("P3-46 #8 2단계 마크다운 에디터 셸(EasyMDE -> CM6 Web Component) 마크업 계약 회귀 검증") {
+        describe("P3-46 #8 2단계 마크다운 에디터 셸(CodeMirror5 기반 구현 -> CM6 Web Component) 마크업 계약 회귀 검증") {
             val member = userRepository.findByLoginId("mdeditor-member").orElseGet {
                 userRepository.save(User(loginId = "mdeditor-member", name = "에디터셸위젯멤버", email = "mdeditor-member@yona.io"))
             }

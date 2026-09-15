@@ -236,10 +236,11 @@
             var selectedElement = targetElement.querySelector("option:checked");
             var isValueNotChanged = (targetElement.value === evt.val);
             // P3-70 라운드1에서 issue.Write.js와 동일하게 확인: forceChange/nonMember는 어느
-            // 템플릿/JS도 설정한 적 없는 순수 죽은 참조라 항상 undefined다 - window.jQuery.data()
-            // 정적 접근자로 jQuery 내부 데이터 캐시를 그대로 읽는 관례를 유지한다.
-            var isForceChange = window.jQuery.data(evt.object.element, "forceChange");
-            var isNonMember = selectedElement ? window.jQuery.data(selectedElement, "nonMember") : undefined;
+            // 템플릿/JS도 설정한 적 없는 순수 죽은 참조라 항상 undefined다. 6단계(jQuery
+            // 완전 제거)에서 window.jQuery.data() 정적 접근자를 순수 expando 프로퍼티 읽기로
+            // 바꿨다 - 도달 불가능한 분기라 실질적 영향 없이 완전 동치.
+            var isForceChange = evt.object.element._forceChange;
+            var isNonMember = selectedElement ? selectedElement._nonMember : undefined;
 
             if (isNonMember && !isValueNotChanged) {
                 if(selectedElement){
@@ -471,9 +472,9 @@
         function _initFileDownloader(target){
             var containers = target || document.querySelectorAll(".attachments");
             containers.forEach(function(container){
-                // isYonaAttachment는 milestone.View.js(이미 vanilla)가 확립한 공개 계약 -
-                // window.jQuery.data() 정적 접근자로 jQuery 내부 데이터 캐시를 직접 읽는다.
-                if(!window.jQuery.data(container, "isYonaAttachment")){
+                // 6단계(jQuery 완전 제거): isYonaAttachment는 yona.Attachments.js가 붙이는
+                // 순수 expando 프로퍼티다(공개 계약, 중복 초기화 가드).
+                if(!container._isYonaAttachment){
                     (new yona.Attachments({"elContainer": container}));
                 }
             });

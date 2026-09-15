@@ -30,7 +30,7 @@
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yobicon/style.css">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/tomselect/tom-select.min.css">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/flatpickr/flatpickr.min.css">
-  <!-- P3-46 #8 2단계: 마크다운 에디터 셸을 EasyMDE(CodeMirror5)에서 CM6 기반 Web Component
+  <!-- P3-46 #8 2단계: 마크다운 에디터 셸을 CodeMirror5 기반 구현에서 CM6 기반 Web Component
        (<yona-markdown-editor>, javascripts/lib/yona-markdown-editor/에 vendoring)로 교체.
        markdownEditor 프래그먼트가 17개 화면에서 쓰여 select2/calendar처럼 화면별 opt-in
        프래그먼트로 두지 않고, tomselect/flatpickr CSS와 같이 스크립트를 전역으로 로드한다(아래
@@ -387,7 +387,7 @@
 
 
     <!-- Markdown Editor fragment -->
-    <!-- P3-46 #8 2단계(셸 교체): EasyMDE(CodeMirror5) 인스턴스를 CM6 기반 Web Component
+    <!-- P3-46 #8 2단계(셸 교체): CodeMirror5 기반 구현 인스턴스를 CM6 기반 Web Component
          (<yona-markdown-editor>, javascripts/lib/yona-markdown-editor/yona-markdown-editor.min.js
          - 별도 저장소(yona-projects/components/editor)에서 빌드해 vendoring, 소스는 이 저장소에
          없음)로 교체. 이 커스텀 엘리먼트가 connectedCallback에서 스스로 실제 light DOM
@@ -398,11 +398,13 @@
          콘텐츠 + name/editor-mode 속성)으로 전달한다. textarea id의 유일성 보장은 서버
          (#strings.randomAlphanumeric(8))에서 컴포넌트 쪽(내부 카운터)으로 옮겨갔다.
 
-         호환 shim(사용자 결정 확정 2026-09-11): yona.Attachments.js/
-         yona.CommentAttachmentsUpdate.js가 $textarea.data("easymde")로 얻은 EasyMDE 인스턴스의
-         .value(newValue)를 호출해 첨부파일 링크 삽입 결과를 강제 동기화하던 것(P3-50 데이터
-         손실 버그 방지책)은, 이 컴포넌트가 같은 jQuery data 키에 최소 shim({ value(newValue?) })을
-         노출해 그대로 계속 동작한다(컴포넌트 소스의 exposeLegacyEasyMdeShim 참고). 멘션은
+         호환 shim(사용자 결정 확정 2026-09-11 도입 → 6단계에서 완전 제거): yona.Attachments.js/
+         yona.CommentAttachmentsUpdate.js가 첨부파일 링크 삽입 결과를 강제 동기화하던 방식(P3-50
+         데이터 손실 버그 방지책)은 처음엔 jQuery data 키로 얻은 최소 shim({ value(newValue?) })을
+         통했지만, yona 쪽 jQuery 코어가 P3-70에서 완전히 제거되며 그 인디렉션 자체가
+         불필요해졌다 - 지금은 이 컴포넌트 자신의 네이티브 `value` getter/setter를
+         `textarea.closest('yona-markdown-editor')`로 직접 찾아 쓴다(jQuery도, 데이터 키
+         인디렉션도 없음). 멘션은
          2~4단계 동안 이 shim에 기대지 않고는 동작하지 않는 채로(사용자 승인된 일시 중단) 남아
          있다가, 5단계에서 yona.Mention.js가 완전히 삭제되고 @codemirror/autocomplete 기반으로
          컴포넌트에 흡수되며 다시 동작하게 됐다(아래 data-mention-url 참고). tribute.min.{js,css}
@@ -417,8 +419,8 @@
          제거한 것들(1~2단계에 걸쳐 사용자 확정, P3-46 8번 항목 세부 결정사항 참고):
          - 탭 UI(ul.nav-tabs) 자체, .task-list-button/.add-task-list-button, .markdown-preview
            미리보기 div(editorMode별 th:classappend 분기 포함 - 죽은 코드였음, 재현 불필요 확인됨).
-         - EasyMDE 자체(CodeMirror5) 및 그 셸 초기화 스크립트(yona.ui.MarkdownEditor.js) -
-           2단계에서 완전히 걷어냄.
+         - CodeMirror5 기반 마크다운 에디터 자체 및 그 셸 초기화 스크립트
+           (yona.ui.MarkdownEditor.js) - 2단계에서 완전히 걷어냄.
          - .editor-clear-temporary("임시저장 지우기") / .notification-receiver(알림수신자 목록) -
            4단계에서 재구현 예정.
            (2026-09-11 추가 완료 - P3-55와 함께 처리된 별도 항목) .editor-clear-temporary는
@@ -488,7 +490,7 @@
 
   <!-- Markdown Script fragment -->
   <th:block th:fragment="markdown(project)">
-    <!-- P3-46 #8-2: highlight.js CSS/JS는 head::head와 scripts 하단(easymde 옆)으로 전역 승격되어
+    <!-- P3-46 #8-2: highlight.js CSS/JS는 head::head와 scripts 하단(yona-markdown-editor 옆)으로 전역 승격되어
          이제 이 fragment가 호출되기 전에 이미 로드돼 있다(markdownEditor의 previewRender가 모든
          프로젝트 스코프 화면에서 hljs를 필요로 하게 됐기 때문 - 8-2단계 참고). 중복 로드를 피하기
          위해 여기서는 더 이상 <link>/<script src="highlight.pack.js">를 직접 싣지 않는다. -->
@@ -789,7 +791,7 @@
          `if (window.jQuery) { ... }`로 감싸여 있으니 안전하다"고 판단했는데(코드만 보고
          내린 정적 판단), 실제로 Playwright를 돌려보니 사이트 전역에서
          "jQuery(...).ajaxSend is not a function" pageerror가 재현됐다 - 원인은 common/
-         yona.Common.js가 설치하는 EasyMDE WeakMap shim(`window.jQuery = _jQueryShim`,
+         yona.Common.js가 설치하는 WeakMap 기반 jQuery shim(`window.jQuery = _jQueryShim`,
          라운드11 도입)이 `window.jQuery`를 undefined가 아니라 "진짜 jQuery는 아니지만
          truthy한 값"으로 채워놓기 때문 - `if (window.jQuery)` 검사 자체는 통과해버리고,
          이 shim에는 `.ajaxSend` 메서드가 없어 호출 시점에 예외가 난다. 정적 코드 추론만으로

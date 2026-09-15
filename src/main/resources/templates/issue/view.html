@@ -719,11 +719,11 @@
                 findNotiReceiversHandler(elCommentTextarea, notiReceiversUrl);
             }
 
-            // Ctrl(⌘)+Shift+Enter로 즉시 제출. markdownEditor는 이 textarea를 EasyMDE(CodeMirror)로
+            // Ctrl(⌘)+Shift+Enter로 즉시 제출. markdownEditor는 이 textarea를 CodeMirror로
             // 감싸 실제로 화면에 보이는 입력 표면은 CodeMirror가 만드는 별도 DOM(원본 textarea의
             // 형제 엘리먼트)이라, keydown을 원본 textarea에 직접 바인딩하면 실제 타이핑 중에는
-            // 절대 발생하지 않는다(원본 textarea는 EasyMDE가 숨겨두고 값 동기화 대상으로만 씀 —
-            // P3-50에서 이미 확인된 EasyMDE 단방향 동기화 함정과 같은 종류). document 레벨에서
+            // 절대 발생하지 않는다(원본 textarea는 숨겨두고 값 동기화 대상으로만 씀 —
+            // P3-50에서 이미 확인된 단방향 동기화 함정과 같은 종류). document 레벨에서
             // 캡처해 현재 포커스가 이 폼 안에 있을 때만 반응하는 방식으로 CodeMirror를 포함한 실제
             // 입력 표면 어디서 눌러도 동작하게 한다.
             document.addEventListener('keydown', function(e){

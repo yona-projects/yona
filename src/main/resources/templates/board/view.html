@@ -344,7 +344,7 @@
         if (elCommentTextarea) {
             temporarySaveHandler(elCommentTextarea);
 
-            // issue/view.html과 동일한 이유(EasyMDE/CodeMirror가 원본 textarea를 숨기고 실제
+            // issue/view.html과 동일한 이유(CodeMirror가 원본 textarea를 숨기고 실제
             // 입력은 별도 DOM에서 일어남)로 document 레벨에서 활성 엘리먼트가 이 폼 안에 있을 때만
             // 반응하도록 한다.
             document.addEventListener('keydown', function(e){

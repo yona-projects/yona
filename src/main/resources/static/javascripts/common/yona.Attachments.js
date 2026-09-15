@@ -104,12 +104,13 @@ yona.Attachments = function(htOptions) {
         // welContainer
         htElements.welContainer = elContainer;
         if(elContainer){
-            // P3-70 라운드3: isYonaAttachment는 milestone.View.js(이미 vanilla, 이 티켓 범위 밖)가
-            // window.jQuery.data(elContainer, "isYonaAttachment")로 직접 읽는 공개 계약이다(중복
-            // 초기화 가드) - dataset/커스텀 프로퍼티로 바꾸면 그 파일의 가드가 항상 false로 읽혀
-            // Attachments가 매번 중복 생성된다. 계속 jQuery 내부 데이터 캐시에 기록해 그 계약을
-            // 유지한다(round1의 window.jQuery.data(el, key) 정적 접근자 관례와 동일, 여기선 setter).
-            window.jQuery.data(elContainer, "isYonaAttachment", true);
+            // isYonaAttachment는 milestone.View.js/issue.View.js/code.Diff.js/code.SvnDiff.js/
+            // board.View.js가 읽는 공개 계약이다(중복 초기화 가드 - 이 컨테이너에 이미
+            // Attachments를 붙였는지). 6단계(jQuery 완전 제거)에서 window.jQuery.data() 정적
+            // 접근자를 걷어내고 순수 expando 프로퍼티로 바꿨다 - $yona.requestAs의
+            // el._yonaRequestAs, yona.ui.Switch의 el._yonaSwitch와 동일한 관례. 읽는 쪽 5개
+            // 파일도 전부 같은 프로퍼티로 갱신했다.
+            elContainer._isYonaAttachment = true;
         }
         htVar.sResourceId = htVar.sResourceId || (elContainer ? elContainer.dataset.resourceId : undefined);
         htVar.sResourceType = htVar.sResourceType || (elContainer ? elContainer.dataset.resourceType : undefined);
@@ -482,42 +483,28 @@ yona.Attachments = function(htOptions) {
     }
 
     /**
-     * P3-50: yona.ui.MarkdownEditor.js가 EasyMDE로 감싼 textarea는 CodeMirror -> textarea
-     * 단방향 동기화만 있다(yona.ui.MarkdownEditor.js의 codemirror.on("change", ...) 참고) —
-     * 이 함수들처럼 raw textarea.val()을 직접 써서 프로그램적으로 내용을 바꾸는 코드는
-     * CodeMirror가 전혀 인지하지 못해 실제로는 반영되지 않는다(첨부파일 업로드 성공 시
-     * 마크다운 링크가 삽입된 것처럼 보여도 실제 제출되는 내용에는 빠져있었음 — Playwright로
-     * 실제 재현). welTextarea.data("easymde")로 저장된 인스턴스가 있으면 CodeMirror 공식 API로
-     * 커서 위치에 삽입하고, 없으면(EasyMDE 없이 쓰이는 순수 textarea) 기존 raw 조작으로
-     * 폴백한다.
+     * P3-50: <yona-markdown-editor>가 감싼 textarea는 CodeMirror -> textarea 단방향
+     * 동기화만 있다 — 이 함수들처럼 raw textarea.val()을 직접 써서 프로그램적으로 내용을
+     * 바꾸는 코드는 CodeMirror가 전혀 인지하지 못해 실제로는 반영되지 않는다(첨부파일 업로드
+     * 성공 시 마크다운 링크가 삽입된 것처럼 보여도 실제 제출되는 내용에는 빠져있었음 —
+     * Playwright로 실제 재현). raw textarea 조작 결과를 계산한 뒤 그 최종 문자열을
+     * CodeMirror 쪽에도 강제로 밀어넣어야 한다 - 이 파일의 여러 호출 경로(클릭/드롭/붙여넣기/
+     * 성공콜백)마다 시점·컨텍스트가 달라 CodeMirror API 경로 자체를 타지 못하는 경우가
+     * 실측으로 발견됐기 때문에(예: 카드 클릭으로 링크를 넣은 직후엔 raw textarea에 정상
+     * 반영되지만, 이후 제출 버튼 클릭으로 포커스가 빠지는 순간 CodeMirror가 자신의 변경
+     * 없는 내부 버퍼를 textarea에 다시 밀어써 방금 넣은 값이 사라지는 것을 Playwright로
+     * 재현) raw textarea를 항상 최종 소스오브트루스로 강제 동기화한다.
      *
-     * P3-70 라운드3: easymde 인스턴스는 lib/yona-markdown-editor(수정 금지 대상)의 커스텀
-     * 엘리먼트가 window.jQuery(textarea).data("easymde", ...)로 저장해둔 것이라(CommentAttachmentsUpdate.js
-     * 라운드1과 동일한 상황), 이 값을 읽으려면 jQuery 없이는 방법이 없다 - $(selector) 생성 없이
-     * jQuery.data(elem, key) 정적 API만 사용(round1 확립 관례).
-     *
-     * @return {Object|null}
+     * 6단계(jQuery 완전 제거): lib/yona-markdown-editor(수정 금지 대상)가 예전엔
+     * `window.jQuery(textarea).data(...)`로 노출하던 것을, 이제 커스텀 엘리먼트
+     * 자신의 네이티브 `value` getter/setter로 노출한다 - `textarea.closest(
+     * 'yona-markdown-editor')`로 그 엘리먼트를 직접 찾아 jQuery 없이 바로 접근한다(순수
+     * textarea만 쓰는 화면에서는 closest()가 null을 반환해 그대로 조용히 스킵된다).
      */
-    function _getEasyMDE(){
-        var welTextarea = htElements.welTextarea;
-        return (welTextarea && window.jQuery) ? (window.jQuery.data(welTextarea, "easymde") || null) : null;
-    }
-
-    /**
-     * P3-50: raw textarea 조작 결과를 EasyMDE에도 강제로 반영한다. CodeMirror API
-     * (replaceRange 등)로 직접 조작하는 대신 "먼저 raw 로직으로 최종 문자열을 계산 -> 그
-     * 문자열을 easyMDE.value()로 그대로 밀어넣기" 방식을 쓰는 이유: 이 파일의 여러 호출
-     * 경로(클릭/드롭/붙여넣기/성공콜백)마다 EasyMDE 인스턴스 조회 시점·컨텍스트가 달라
-     * 실제로 CodeMirror API 경로를 타지 못하는 경우가 실측으로 발견됐다(예: 카드 클릭으로
-     * 링크를 넣은 직후엔 raw textarea에 정상 반영되지만, 이후 제출 버튼 클릭으로 포커스가
-     * 빠지는 순간 CodeMirror가 자신의 변경 없는 내부 버퍼를 textarea에 다시 밀어써
-     * 방금 넣은 값이 사라지는 것을 Playwright로 재현). 이 방식은 raw textarea가 최종
-     * 소스오브트루스가 되도록 강제해, 그 어떤 호출 경로를 타든 결과가 항상 일치한다.
-     */
-    function _syncEasyMDE(welTextarea){
-        var easyMDE = (welTextarea && window.jQuery) ? window.jQuery.data(welTextarea, "easymde") : null;
-        if(easyMDE){
-            easyMDE.value(welTextarea.value);
+    function _syncMarkdownEditor(welTextarea){
+        var elEditor = welTextarea ? welTextarea.closest("yona-markdown-editor") : null;
+        if(elEditor){
+            elEditor.value = welTextarea.value;
         }
     }
 
@@ -537,7 +524,7 @@ yona.Attachments = function(htOptions) {
 
         welTextarea.value = sText.substring(0, nPos) + sLink + sText.substring(nPos);
         _setCursorPosition(welTextarea, nPos + sLink.length);
-        _syncEasyMDE(welTextarea);
+        _syncMarkdownEditor(welTextarea);
     }
 
     /**
@@ -617,7 +604,7 @@ yona.Attachments = function(htOptions) {
         var sRawData = welTextarea.value.split(sLink).join('');
         sRawData = sRawData.split(sLink.trim()).join('');
         welTextarea.value = sRawData;
-        _syncEasyMDE(welTextarea);
+        _syncMarkdownEditor(welTextarea);
     }
 
     /**
@@ -639,7 +626,7 @@ yona.Attachments = function(htOptions) {
         if(nGap > 0){
             _setCursorPosition(welTextarea, nCurPos + nGap);
         }
-        _syncEasyMDE(welTextarea);
+        _syncMarkdownEditor(welTextarea);
     }
 
     /**

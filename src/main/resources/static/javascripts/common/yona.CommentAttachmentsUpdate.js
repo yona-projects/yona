@@ -191,28 +191,24 @@ document.addEventListener("DOMContentLoaded", function () {
             + '-' + now.getDate() + '-' + now.getHours() + '-' + now.getMinutes() + ".png";
     }
 
-    // P3-50: 이 댓글 수정 폼의 textarea는 site/layout.html::markdownEditor가 EasyMDE(CodeMirror)로
-    // 감싸둔 상태다 — CodeMirror -> textarea 단방향 동기화만 있어(yona.ui.MarkdownEditor.js의
-    // codemirror.on("change", ...) 참고) textarea.value = ...로 직접 쓰는 값은 CodeMirror가
-    // 인지하지 못해 실제 제출 내용에는 반영되지 않는다(Playwright로 실제 재현). 새 댓글 폼의
-    // 동일 문제(yona.Attachments.js)와 같은 방식으로, EasyMDE 인스턴스가 있으면 CodeMirror
-    // 공식 API로 삽입/삭제하고 없으면 기존 raw textarea 조작으로 폴백한다.
-    // P3-50: raw textarea 조작 결과를 EasyMDE에도 강제로 반영한다. CodeMirror API
-    // (replaceRange/setValue)로 곧장 분기하는 대신 "먼저 raw 로직으로 최종 문자열을 계산 ->
-    // 그 문자열을 easyMDE.value()로 밀어넣기" 방식을 쓴다 — 클릭/제출 등 호출 시점에 따라
-    // CodeMirror API 분기 자체가 항상 타지 못하는 경우가 있고(Playwright로 실제 재현: 카드
-    // 클릭 직후엔 raw textarea에 정상 반영되지만 이후 포커스가 빠지며 CodeMirror가 자신의
-    // 변경 없는 내부 버퍼로 되돌려써 사라짐), raw textarea를 항상 최종 소스오브트루스로 강제
-    // 동기화하면 호출 경로와 무관하게 결과가 일관된다.
+    // P3-50: 이 댓글 수정 폼의 textarea는 <yona-markdown-editor>(CodeMirror)가 감싸둔
+    // 상태다 — CodeMirror -> textarea 단방향 동기화만 있어 textarea.value = ...로 직접
+    // 쓰는 값은 CodeMirror가 인지하지 못해 실제 제출 내용에는 반영되지 않는다(Playwright로
+    // 실제 재현). raw textarea 조작 결과를 계산한 뒤 그 최종 문자열을 CodeMirror 쪽에도
+    // 강제로 반영한다 — 클릭/제출 등 호출 시점에 따라 CodeMirror API 분기 자체가 항상
+    // 타지 못하는 경우가 있고(Playwright로 실제 재현: 카드 클릭 직후엔 raw textarea에 정상
+    // 반영되지만 이후 포커스가 빠지며 CodeMirror가 자신의 변경 없는 내부 버퍼로 되돌려써
+    // 사라짐), raw textarea를 항상 최종 소스오브트루스로 강제 동기화하면 호출 경로와
+    // 무관하게 결과가 일관된다(새 댓글 폼의 동일 문제 - yona.Attachments.js - 와 같은 방식).
     //
-    // easymde 인스턴스는 site/layout.html 쪽 커스텀 엘리먼트(yona-markdown-editor)가
-    // window.jQuery(textarea).data("easymde", ...)로 저장해둔 것이라, 이 값을 읽으려면
-    // jQuery의 데이터 저장소를 그대로 조회해야 한다($textarea.data(key)와 완전히 동일한
-    // jQuery.data(elem, key) 정적 API를 사용).
-    function syncEasyMDE(textarea) {
-        var easyMDE = textarea && window.jQuery ? window.jQuery.data(textarea, "easymde") : null;
-        if (easyMDE) {
-            easyMDE.value(textarea.value);
+    // 6단계(jQuery 완전 제거): lib/yona-markdown-editor(수정 금지 대상)가 예전엔
+    // `window.jQuery(textarea).data(...)`로 노출하던 것을, 이제 커스텀 엘리먼트
+    // 자신의 네이티브 `value` getter/setter로 노출한다 - `textarea.closest(
+    // 'yona-markdown-editor')`로 직접 찾아 jQuery 없이 바로 접근한다.
+    function syncMarkdownEditor(textarea) {
+        var elEditor = textarea ? textarea.closest("yona-markdown-editor") : null;
+        if (elEditor) {
+            elEditor.value = textarea.value;
         }
     }
 
@@ -230,13 +226,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         textarea.value = textAreaTxt.substring(0, caretPos) + txtToAdd + textAreaTxt.substring(caretPos);
-        syncEasyMDE(textarea);
+        syncMarkdownEditor(textarea);
 
         return caretPos + txtToAdd.length;
     }
 
     function removeLinkFromTextarea(textarea, linkStr) {
         textarea.value = textarea.value.split(linkStr).join("");
-        syncEasyMDE(textarea);
+        syncMarkdownEditor(textarea);
     }
 });

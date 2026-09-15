@@ -114,10 +114,9 @@
          */
         function _initFileDownloader(){
             htElement.welAttachments.forEach(function(elContainer){
-                // isYonaAttachment는 milestone.View.js(이미 vanilla)가 확립한 것과 동일한
-                // 공개 계약 - window.jQuery.data() 정적 접근자로 jQuery 내부 데이터 캐시를
-                // 직접 읽는다(yona.Attachments.js가 이 키로 기록).
-                if(!window.jQuery.data(elContainer, "isYonaAttachment")){
+                // 6단계(jQuery 완전 제거): isYonaAttachment는 yona.Attachments.js가 붙이는
+                // 순수 expando 프로퍼티다(공개 계약, 중복 초기화 가드).
+                if(!elContainer._isYonaAttachment){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }
             });

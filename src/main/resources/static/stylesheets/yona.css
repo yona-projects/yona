@@ -12146,7 +12146,7 @@ input:-webkit-autofill:focus {
   line-height: unset;
 }
 /** yona-markdown-editor 테마 계약 (P3-46 3단계, CM6-3단계) **/
-/* 옛 EasyMDE 재스킨 CSS(.EasyMDEContainer ...)는 2단계에서 EasyMDE 자체가 완전히 삭제되어
+/* 옛 CodeMirror5 기반 에디터의 재스킨 CSS는 2단계에서 그 에디터 자체가 완전히 삭제되어
    더 이상 어떤 마크업에도 매치되지 않는 죽은 규칙이 되었으므로 이번에 걷어내고, 그 자리를
    CM6 Web Component(<yona-markdown-editor>)의 ::part()/CSS 커스텀 프로퍼티 테마 계약으로
    대체한다. 색상/치수(툴바 배경 #fafafa, 테두리 rgba(0,0,0,.15), 포커스/hover 강조색 #51AACC,

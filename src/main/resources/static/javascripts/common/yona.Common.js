@@ -21,78 +21,20 @@
 window.yona = (typeof yona == "undefined") ? {} : yona;
 
 /**
- * P3-70 라운드11: jQuery 코어가 실제로 제거된 뒤에도 `lib/yona-markdown-editor/
- * yona-markdown-editor.min.js`(미수정)의 `exposeLegacyEasyMdeShim()`이 요구하는 아주 좁은
- * jQuery API 표면만 만족시키는 호환 shim이다. 벤더 파일을 디코딩해 확인한 계약은 정확히
- * 이 한 줄뿐이다: `window.jQuery(textarea).data("easymde", i)` (인스턴스 형태, 2-인자
- * setter). 반대로 우리 쪽 읽기 코드는 정적 형태를 쓴다:
- * `window.jQuery.data(textarea, "easymde")`(2-인자 getter, common/yona.Attachments.js·
- * common/yona.CommentAttachmentsUpdate.js·다수 service/*.js) 및
- * `window.jQuery.data(elContainer, "isYonaAttachment", true)`(3-인자 setter,
- * common/yona.Attachments.js). 실제 jQuery 라이브러리 전체를 흉내내지 않고, 이 3가지
- * 계약(인스턴스 setter, 정적 getter, 정적 setter)만 만족하는 몇 줄짜리 shim으로 대신한다.
- * 저장은 WeakMap(엘리먼트 → 데이터 객체)을 써서 jQuery의 내부 데이터 캐시와 동일하게
- * 엘리먼트별로 격리한다.
+ * 6단계(jQuery 완전 제거, yona-markdown-editor components 저장소와 연계): 라운드11이
+ * 도입했던 `window.jQuery` WeakMap shim을 완전히 걷어냈다. 그 shim은
+ * `lib/yona-markdown-editor/yona-markdown-editor.min.js`가 예전 버전에서 요구하던
+ * jQuery API 표면(`.data(...)`)과, `common/yona.Attachments.js`가 쓰던
+ * `window.jQuery.data(el, "isYonaAttachment", ...)` 정적 접근자를 흉내내기 위한 것이었다.
  *
- * `if(window.jQuery){ return; }`로 자체 가드한다 - 아직 진짜 jQuery(jquery-3.3.1.js)가
- * 함께 로드되는 현재 상태(코디네이터 확인 필요: bootstrap-switch.js가 `user/
- * edit_notifications.html`의 `.switch` 알림 토글에 여전히 진짜 jQuery를 요구해 이번
- * 라운드에서 jQuery 코어 자체는 아직 제거하지 못했다)에서는 이 shim이 아무 일도 하지
- * 않고, 진짜 jQuery가 이미 `window.jQuery.data()`를 완전하게 제공한다. 이후 jQuery 코어가
- * 실제로 제거되는 시점에는 이 shim이 그 자리를 대신한다.
- *
- * 로드 순서: yona-layout.js 번들(nprogress.js → yona.Common.js, 진짜 jQuery가 이 번들에서
- * 빠지는 시나리오 기준)이 site/layout.html 56행에서 사이트 전역 스크립트 중 가장 먼저
- * 로드되므로, `<yona-markdown-editor>` 커스텀 엘리먼트(861행에서 로드)의
- * `connectedCallback()`이 `window.jQuery`를 읽는 시점보다 항상 먼저 정의돼 있다.
+ * 이제 두 계약 모두 jQuery 없는 형태로 바뀌었다: `<yona-markdown-editor>` 컴포넌트
+ * 자신이(components/editor 저장소 6단계) `.value` getter/setter를 네이티브 프로퍼티로
+ * 직접 노출하고(소비자는 `textarea.closest('yona-markdown-editor')`로 엘리먼트를 찾아
+ * 바로 접근), `isYonaAttachment`는 `elContainer._isYonaAttachment` 순수 expando
+ * 프로퍼티로 바뀌었다. `window.jQuery`를 흉내낼 이유 자체가 없어져 shim을 삭제한다 -
+ * 이제 저장소 전체에 실행되는 코드 기준으로 "jQuery"는 완전히 사라졌다(벤더 파일/주석/
+ * git 히스토리에만 이름이 남는다).
  */
-(function(){
-    if(window.jQuery){
-        return;
-    }
-
-    var oDataStore = new WeakMap();
-
-    function _getOwnStore(el){
-        var oStore = oDataStore.get(el);
-        if(!oStore){
-            oStore = {};
-            oDataStore.set(el, oStore);
-        }
-        return oStore;
-    }
-
-    function _jQueryDataShim(el, sKey, oValue){
-        if(!el){
-            return undefined;
-        }
-        if(arguments.length >= 3){
-            _getOwnStore(el)[sKey] = oValue;
-            return oValue;
-        }
-        var oStore = oDataStore.get(el);
-        return oStore ? oStore[sKey] : undefined;
-    }
-
-    function _jQueryShim(el){
-        // 벤더 파일이 실제로 넘기는 건 항상 raw DOM 엘리먼트(textarea)뿐이지만, 혹시
-        // 다른 곳에서 jQuery 객체를 넘기더라도 안전하게 풀어낸다.
-        var elResolved = (el && el.jquery && el.length !== undefined) ? el[0] : el;
-        return {
-            "data": function(sKey, oValue){
-                if(arguments.length >= 2){
-                    _jQueryDataShim(elResolved, sKey, oValue);
-                    return this;
-                }
-                return _jQueryDataShim(elResolved, sKey);
-            }
-        };
-    }
-    _jQueryShim.data = _jQueryDataShim;
-
-    window.jQuery = _jQueryShim;
-})();
-
 $yona = yona.Common = (function(){
 
     var htVar = {
