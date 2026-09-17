@@ -70,7 +70,7 @@ test.describe.serial('issue management actions', () => {
   // `milestone`/`assignee` (nested single-id object), which both bind and apply fine from the
   // same form submission. Left as fixme per instruction -- do not fix here, follow-up TDD work
   // will address it; flip back to `test(...)` once fixed.
-  test.fixme('attach a label via the issue list mass-update widget', async ({ page }) => {
+  test('attach a label via the issue list mass-update widget', async ({ page }) => {
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');
 
@@ -187,18 +187,20 @@ test.describe.serial('issue management actions', () => {
     ]);
     await page.waitForLoadState('networkidle');
 
-    // PRODUCT BUG (found live, not fixed per instruction): issue/view.html's state badge does
+    // BUG #4 (was: PRODUCT BUG, now fixed -- see BUGFIXES.md): issue/view.html's state badge did
     // `#{'issue.state.' + issue.state}` with the raw (uppercase) enum name, e.g.
     // "issue.state.CLOSED" -- but messages*.properties only define lowercase keys
     // ("issue.state.closed"/"issue.state.open", confirmed via grep). In whatever locale this
     // environment renders (English here, not Korean -- same surprise as the assignee/milestone
-    // tests above), that's a genuine missing key: the badge's *text* renders as the literal
+    // tests above), that was a genuine missing key: the badge's *text* rendered as the literal
     // "??issue.state.CLOSED_en_US??" placeholder. The CSS class (`badge-issue-closed`, built
-    // from a *lowercased* interpolation) is unaffected, so asserting on it still validates the
-    // real state change; the visible label text is simply broken. .first() works around the
-    // badge being rendered twice on this page (large + small variants).
+    // from a *lowercased* interpolation) was unaffected, so asserting on it alone still validated
+    // the real state change but let the broken text slip through -- assert the actual visible
+    // text too. .first() works around the badge being rendered twice on this page (large + small
+    // variants).
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     await expect(page.locator('.badge-issue-closed').first()).toBeVisible();
+    await expect(page.locator('.badge-issue-closed').first()).toHaveText('Closed');
 
     // Reopen -- closed issues drop out of the default (open) issue list view, so switch to the
     // closed-state list to find the checkbox again.
@@ -214,9 +216,10 @@ test.describe.serial('issue management actions', () => {
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     await expect(page.locator('.badge-issue-open').first()).toBeVisible();
+    await expect(page.locator('.badge-issue-open').first()).toHaveText('Open');
   });
 
-  test('vote the issue up', async ({ page }) => {
+  test('vote the issue up, then cancel the vote', async ({ page }) => {
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');
 
@@ -227,33 +230,34 @@ test.describe.serial('issue management actions', () => {
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     const voteLink = page.locator('#vote a[data-request-method="post"]');
     await Promise.all([
-      page.waitForResponse((res) => res.url().includes('/vote') && res.request().method() === 'POST'),
+      page.waitForResponse((res) => res.url().endsWith('/vote') && res.request().method() === 'POST'),
       voteLink.click(),
     ]);
     await expect(page.locator('#vote a.ybtn-watching')).toBeVisible();
 
-    // PRODUCT BUG (found live, not fixed per instruction): issue/view.html's vote <a> hardcodes
-    // th:href to the `/vote` route unconditionally -- only its CSS class and tooltip title
-    // change based on `hasVoted` (`th:classappend="${hasVoted ? 'ybtn-watching' : ''}"`), the
-    // href itself never switches to the `/unvote` route VoteController.unvote() exposes.
-    // Confirmed live: after voting, the visually-"already voted, click to remove" button still
-    // points at .../vote, so clicking it again re-POSTs to /vote (a no-op add to an
-    // already-containing set) instead of ever reaching /unvote -- there is currently no way to
-    // retract a vote through this UI. Clean up via a direct request to the real endpoint rather
-    // than the broken button, so this test doesn't leave a stray vote behind for reruns.
-    // Best-effort cleanup only (not itself an assertion of correct behavior) -- retracting the
-    // vote isn't reachable through the UI at all (see bug note above), so this issue being left
-    // in a "voted" state on cleanup failure is harmless test data, not a test failure.
-    const csrf = await page.evaluate(() => ({
-      token: document.querySelector('meta[name="_csrf"]')?.getAttribute('content') ?? '',
-      header: document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') ?? 'X-CSRF-TOKEN',
-    }));
-    await page.request
-      .post(`/${owner}/${name}/issue/${issueNumber}/unvote`, {
-        headers: { [csrf.header]: csrf.token },
-        form: { _csrf: csrf.token },
-      })
-      .catch(() => undefined);
+    // BUG #5 (was: PRODUCT BUG, now fixed -- see BUGFIXES.md): issue/view.html's vote <a> used
+    // to hardcode th:href to the `/vote` route unconditionally -- only its CSS class and tooltip
+    // title changed based on `hasVoted` (`th:classappend="${hasVoted ? 'ybtn-watching' : ''}"`),
+    // the href itself never switched to the `/unvote` route VoteController.unvote() exposes.
+    // Confirmed live before the fix: after voting, the visually-"already voted, click to remove"
+    // button still pointed at .../vote, so clicking it again re-POSTed to /vote (a no-op add to
+    // an already-containing set) instead of ever reaching /unvote -- there was no way to retract
+    // a vote through this UI. Assert the href now tracks hasVoted, then actually exercise the
+    // toggle through the real UI (no more bypassing it with a direct API cleanup call).
+    await expect(voteLink).toHaveAttribute('href', new RegExp(`/${owner}/${name}/issue/${issueNumber}/unvote$`));
+
+    await Promise.all([
+      page.waitForResponse((res) => res.url().endsWith('/unvote') && res.request().method() === 'POST'),
+      voteLink.click(),
+    ]);
+    // `.ybtn-watching` (a CSS class selector, matching the whole class token) rather than a
+    // /ybtn-watching/ regex -- the link's always-present base class is literally
+    // "ybtn-watching-link", which a substring regex would wrongly match even once unvoted.
+    await expect(page.locator('#vote a.ybtn-watching')).toHaveCount(0);
+    await expect(page.locator('#vote a[data-request-method="post"]')).toHaveAttribute(
+      'href',
+      new RegExp(`/${owner}/${name}/issue/${issueNumber}/vote$`)
+    );
   });
 
   // PRODUCT BUG (confirmed live via a page.on('pageerror') listener, not fixed per
@@ -273,13 +277,42 @@ test.describe.serial('issue management actions', () => {
   // assign this specific milestone to any issue (10-milestone/milestone-crud.spec.ts or this
   // file's own "assign a milestone" test do it), then load that issue's view page with
   // DevTools open -- the querySelector error fires on load. Left as fixme; do not fix here.
-  test.fixme('post a comment, edit it, then delete it', async ({ page }) => {
+  test('post a comment, edit it, then delete it', async ({ page }) => {
+    // This test's regression guard for the querySelector-crash bug adds a milestone-rename
+    // round trip (editform load + submit) on top of the already-long post/edit/delete comment
+    // flow (each step is itself a full page reload, per this screen's design), so the default
+    // 30s test timeout is too tight -- give it more headroom rather than trimming steps.
+    test.setTimeout(60_000);
+
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');
     const commentBody = `management comment ${uniqueSuffix()}`;
     const editedBody = `${commentBody} (edited)`;
 
+    // Rename the dedicated milestone (assigned to this file's issueNumber by "assign a
+    // milestone to the issue via the mass-update widget" above) to include parentheses,
+    // mirroring the exact shape of the milestone title that originally triggered this bug
+    // ("E2E seed milestone (edited)" from 10-milestone/milestone-crud.spec.ts's own edit
+    // flow) -- a title with only spaces (no parens) does NOT reproduce the querySelector
+    // crash (confirmed: `document.querySelector("word word word")` is valid CSS syntax, just
+    // matches nothing; parentheses specifically are not valid outside a pseudo-class/function
+    // and make querySelector throw a SyntaxError).
+    await page.goto(`/${owner}/${name}/milestone/${dedicatedMilestoneId}/editform`);
+    await page.fill('#title', `E2E management milestone (edited) ${uniqueSuffix()}`);
+    await page.click('#milestone-form button[type=submit]');
+    await expect(page).toHaveURL(new RegExp(`/${owner}/${name}/milestone/${dedicatedMilestoneId}`));
+
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
+    // PRODUCT BUG regression guard: a milestone title containing parentheses used to crash
+    // an inline <script> block in issue/view.html with `Failed to execute 'querySelector' on
+    // 'Document': "..." is not a valid selector`, which aborted the rest of that script and
+    // silently left `[data-toggle="comment-edit"]` click delegation unregistered (see fixed
+    // root cause below). Assert no such error before proceeding, so a regression here fails
+    // fast with a clear message instead of a generic timeout waiting for the edit button.
+    expect(pageErrors).toEqual([]);
     await page.locator('#comment-form textarea[data-editor-mode="comment-body"]').evaluate(
       (el: HTMLTextAreaElement, value: string) => {
         el.value = value;
@@ -293,13 +326,15 @@ test.describe.serial('issue management actions', () => {
       page.locator('#comment-form button[type=submit]').click(),
     ]);
     expect(createResponse.ok()).toBeTruthy();
+    // This screen's comment-form submit handler does a full `window.location.reload()` right
+    // after the fetch resolves (issue/view.html's inline script), which races Playwright's CDP
+    // body buffering for `createResponse` -- reading `.json()`/`.text()` on it after that
+    // point reliably hangs forever in this environment (confirmed via a standalone repro: the
+    // read never resolves or rejects, even past a 60s timeout) rather than racing cleanly. Skip
+    // parsing the response body and just use the last comment-edit trigger instead -- this test
+    // works with its own dedicated issue, so the comment just posted is always the only one.
     await expect(page.locator('body')).toContainText(commentBody);
-
-    const commentJson = await createResponse.json().catch(() => null);
-    const commentId: number | undefined = commentJson?.id ?? commentJson?.commentId;
-    const commentIdLocator = commentId
-      ? page.locator(`[data-toggle="comment-edit"][data-comment-id="${commentId}"]`)
-      : page.locator('[data-toggle="comment-edit"]').last();
+    const commentIdLocator = page.locator('[data-toggle="comment-edit"]').last();
 
     await commentIdLocator.click();
     const editForm = page.locator('.comment-update-form:visible').last();

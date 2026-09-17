@@ -124,20 +124,7 @@ test.describe.serial('admin user-management actions on a dedicated throwaway acc
   // `document.location.reload()` -- a same-URL reload, not a navigation to the redirect target.
   // waitForURL() never resolves here since the address bar URL never actually changes; wait on
   // the underlying POST response instead, then let the reload settle with networkidle.
-  // PRODUCT BUG (confirmed live via a debug script instrumenting the actual request/response and
-  // re-checking both tabs' body text, not fixed per instruction): toggling "guest mode" on a user
-  // never makes them appear under the site/userList "게스트 사용자" (GUEST) tab, and they never
-  // disappear from the ACTIVE tab. Root cause: SiteApiController's toggleGuestMode() calls
-  // SiteService.toggleGuestMode() (SiteService.kt), which flips `targetUser.isGuest` -- a
-  // separate boolean column -- and never touches `targetUser.state`. But the GUEST tab's list
-  // query (UserRepository.findUsersForAdminQuery / countUsersForAdmin, both native SQL) filters
-  // strictly on the `state` enum column (`WHERE state = :state`). Since toggleGuestMode() never
-  // sets `state = UserState.GUEST`, the GUEST tab is permanently empty regardless of how many
-  // users are toggled, and a toggled user's row stays under whichever tab their real `state`
-  // value already put them in. The toggle itself is not a total no-op though: `isGuest` does
-  // flip in the DB and the row's own button label re-renders correctly (게스트 지정 <->
-  // 일반회원 전환) after the reload -- verify that instead of the broken tab-based assertion.
-  test('toggle guest mode on, then off (see PRODUCT BUG note: the GUEST tab filter never reflects it)', async ({ page }) => {
+  test('toggle guest mode on, then off (moves the user between the ACTIVE and GUEST tabs)', async ({ page }) => {
     await page.goto(`/site/userList?state=ACTIVE&query=${targetLoginId}`);
     const row = page.locator('li.listitem', { hasText: targetLoginId });
     await expect(row).toBeVisible();
@@ -149,19 +136,26 @@ test.describe.serial('admin user-management actions on a dedicated throwaway acc
     ]);
     await page.waitForLoadState('networkidle');
 
-    // Re-fetch the row after reload -- still on the ACTIVE tab, confirming the tab-membership
-    // bug, but the button itself now reflects isGuest=true.
+    // The account must disappear from the ACTIVE tab and show up under the GUEST tab -- a real
+    // reload/re-query of both tabs, not just the button label re-rendering.
     await page.goto(`/site/userList?state=ACTIVE&query=${targetLoginId}`);
+    await expect(page.locator('li.listitem', { hasText: targetLoginId })).toHaveCount(0);
+
+    await page.goto(`/site/userList?state=GUEST&query=${targetLoginId}`);
     const rowAfterToggle = page.locator('li.listitem', { hasText: targetLoginId });
     await expect(rowAfterToggle).toBeVisible();
     await expect(rowAfterToggle.locator('a[data-request-uri*="toggleGuestMode"]')).toHaveClass(/ybtn-success/);
 
-    // Toggle back off (un-guest), restoring the account to its default non-guest state.
+    // Toggle back off (un-guest), restoring the account to its default non-guest state and tab.
     await Promise.all([
       page.waitForResponse((res) => res.url().includes('toggleGuestMode') && res.request().method() === 'POST'),
       rowAfterToggle.locator('a[data-request-uri*="toggleGuestMode"]').click(),
     ]);
     await page.waitForLoadState('networkidle');
+
+    await page.goto(`/site/userList?state=GUEST&query=${targetLoginId}`);
+    await expect(page.locator('li.listitem', { hasText: targetLoginId })).toHaveCount(0);
+
     await page.goto(`/site/userList?state=ACTIVE&query=${targetLoginId}`);
     const rowRestored = page.locator('li.listitem', { hasText: targetLoginId });
     await expect(rowRestored).toBeVisible();
@@ -231,19 +225,49 @@ test.describe.serial('admin user-management actions on a dedicated throwaway acc
     await expect(page.locator('li.listitem', { hasText: targetLoginId })).toBeVisible();
   });
 
-  // PRODUCT BUG (confirmed live, not fixed per instruction): the "비밀번호 초기화" button's
-  // data-href is built by userList.html as `@{'/' + ${user.loginId}(action='resetPassword')}`,
+  // FIXED (was a product bug -- see BUGFIXES.md #8): the "비밀번호 초기화" button's data-href
+  // used to be built by userList.html as `@{'/' + ${user.loginId}(action='resetPassword')}`,
   // i.e. POST /{loginId}?action=resetPassword -- but the real reset endpoint
   // (SiteApiController.kt's resetUserPasswordBySiteManager) is mapped at
-  // POST /site/users/{loginId}/reset-password, an entirely different path. No controller matches
-  // bare POST /{loginId}, so the button 404s every time; userList.html's own click handler for
-  // data-toggle="reset-password" then surfaces this as a "password change failed" $yona.alert().
-  // Left as fixme -- do not fix here, follow-up TDD work will address it.
-  test.fixme('force-reset the target account password', async ({ page }) => {
+  // POST /site/users/{loginId}/reset-password, an entirely different path. No controller matched
+  // bare POST /{loginId}, so the button 404d every time; userList.html's own click handler for
+  // data-toggle="reset-password" surfaced this as a "password change failed" $yona.alert(). Fixed
+  // by pointing data-href at the real route. Verify a real behavioral effect, not just "no longer
+  // 404s": the old password must stop working and the newly issued one must log the account in.
+  test('force-reset the target account password', async ({ page }) => {
     await page.goto(`/site/userList?state=ACTIVE&query=${targetLoginId}`);
     const row = page.locator('li.listitem', { hasText: targetLoginId });
     const resetButton = row.locator('button[data-toggle="reset-password"]');
-    await resetButton.click();
+
+    const [response] = await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/reset-password') && res.request().method() === 'POST'),
+      resetButton.click(),
+    ]);
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.isSuccess).toBe(true);
+    const newPassword: string = body.newPassword;
+    expect(newPassword).toBeTruthy();
+
     await expect(row.locator('.alert-success')).toBeVisible();
+
+    const context = await page.context().browser()!.newContext({ storageState: { cookies: [], origins: [] } });
+    const freshPage = await context.newPage();
+
+    // The old password must no longer work.
+    await freshPage.goto('/users/loginform');
+    await freshPage.fill('#loginIdOrEmailD', targetLoginId);
+    await freshPage.fill('#password', targetPassword);
+    await freshPage.click('form[action="/users/login"] button[type=submit]');
+    await expect(freshPage.locator('a[href="/login"]')).toHaveCount(1);
+
+    // The freshly issued password must work.
+    await freshPage.goto('/users/loginform');
+    await freshPage.fill('#loginIdOrEmailD', targetLoginId);
+    await freshPage.fill('#password', newPassword);
+    await freshPage.click('form[action="/users/login"] button[type=submit]');
+    await expect(freshPage.locator('a[href="/login"]')).toHaveCount(0);
+
+    await context.close();
   });
 });

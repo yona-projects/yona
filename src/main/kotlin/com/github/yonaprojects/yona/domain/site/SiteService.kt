@@ -41,7 +41,15 @@ class SiteService(
     fun toggleGuestMode(loginId: String) {
         val targetUser = userRepository.findByLoginId(loginId).orElse(null)
         if (targetUser != null) {
-            targetUser.isGuest = !targetUser.isGuest
+            // state도 함께 뒤집어야 한다 - site/userList의 "게스트 사용자" 탭
+            // (UserRepository.findUsersForAdminQuery/countUsersForAdmin)은 isGuest 컬럼이 아니라
+            // state 컬럼만 필터링하므로(toggleAccountLock/toggleSiteAdminRole과 동일한 패턴),
+            // isGuest만 뒤집으면 탭 목록에 절대 반영되지 않는다. isGuest는 여전히 함께 유지한다 -
+            // RepoAccessPolicy/AccessControl 등 실제 게스트 권한 판단 로직 전체가 state가 아니라
+            // isGuest를 직접 읽는다.
+            targetUser.state = if (targetUser.state == UserState.GUEST) UserState.ACTIVE else UserState.GUEST
+            targetUser.isGuest = targetUser.state == UserState.GUEST
+            targetUser.lastStateModifiedDate = Instant.now()
             userRepository.save(targetUser)
         }
     }

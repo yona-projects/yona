@@ -126,15 +126,30 @@
         "milestone": function(data){
             var milestoneState = data.state;
 
+            // 원본의 "${name}".replace('<', '&lt;')를 그대로 재현한다 - 정규식이 아니라 String#replace라
+            // 문자열의 '첫 번째' '<' 문자만 치환하는 불완전한 이스케이프다(의도적으로 고치지 않음).
+            var name = (data.text || "").trim().replace('<', '&lt;');
+
+            // BUGFIX: 이 분기가 예전엔 `return data.text;`로 가공 없는 원본 텍스트를 그대로
+            // 돌려줬다. yona.ui.TomSelect.js의 K()(Tom Select 라이브러리 getDom() 대응)는 render
+            // 결과 문자열에 "<"가 없으면 HTML이 아니라 CSS 셀렉터 문자열로 간주해
+            // document.querySelector(text)를 호출한다 - 마일스톤 제목에 괄호 등 셀렉터로
+            // 해석 불가능한 문자가 있으면 SyntaxError로 즉시 크래시하고, 그렇지 않아도(예:
+            // "No Milestone"처럼 공백만 있는 경우) 매치가 없어 null을 반환해 다음 단계의
+            // setAttribute 호출이 null 참조로 크래시한다. 게다가 `#milestone` select의
+            // `<option>`들은 애초에 data-state 속성을 렌더링하지 않아(issue/view.html) 이
+            // 분기가 사실상 모든 마일스톤 옵션에서 항상 타는 경로였다 - 자동초기화 루프
+            // (document.querySelectorAll('[data-toggle="tomselect"]').forEach(...))가 이 크래시로
+            // 중간에 멈추면 그 뒤에 순회 예정이던 다른 tomselect 인스턴스(#labelIds 등)도
+            // 아예 초기화되지 않고, 같은 인라인 스크립트 블록의 나머지 초기화(댓글 수정 버튼
+            // 배선 포함)도 함께 멈췄다. 항상 HTML 마크업("<"로 시작)을 반환하도록 고쳐 K()가
+            // 절대 querySelector 경로를 타지 않게 한다.
             if(!milestoneState){
-                return data.text;
+                return '<div>' + name + '</div>';
             }
 
             milestoneState = milestoneState.toLowerCase();
             var milestoneStateLabel = Messages("milestone.state." + milestoneState);
-            // 원본의 "${name}".replace('<', '&lt;')를 그대로 재현한다 - 정규식이 아니라 String#replace라
-            // 문자열의 '첫 번째' '<' 문자만 치환하는 불완전한 이스케이프다(의도적으로 고치지 않음).
-            var name = data.text.trim().replace('<', '&lt;');
 
             return '<div title="[' + milestoneStateLabel + '] ' + name + '">' + name + '</div>';
         },

@@ -51,6 +51,9 @@
             htVar.sAction = htOptions.sAction;
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
+            // urls.labels: PUT /api/projects/{projectId}/posts/{number}/labels (BoardController.
+            // updatePostLabels) - accepts a raw JSON array of label ids as the request body.
+            htVar.sLabelsUrl = htOptions.urls ? htOptions.urls.labels : undefined;
         }
 
         /**
@@ -69,25 +72,67 @@
          * attach event handler
          */
         function _attachEvent(){
-            if(!htElement.welBtnWatch){
+            if(htElement.welBtnWatch){
+                htElement.welBtnWatch.addEventListener("click", function(weEvt) {
+                    var welTarget = weEvt.target;
+                    var bWatched = (welTarget.getAttribute("data-watching") === "true");
+
+                    $yona.sendForm({
+                        "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
+                        "fOnLoad": function(){
+                            welTarget.setAttribute("data-watching", !bWatched);
+                            welTarget.classList.toggle('ybtn-watching');
+                            welTarget.innerHTML = Messages(!bWatched ? "post.unwatch" : "post.watch");
+                            welTarget.blur();
+
+                            $yona.notify(Messages(bWatched ? "post.unwatch.start" : "post.watch.start"), 3000);
+                        }
+                    });
+                });
+            }
+
+            // Wire the label <select data-toggle="tomselect" id="labelIds"> (issue/
+            // partial_select_label.html, shared with issue/view.html) into a PUT to
+            // urls.labels (BoardController#updatePostLabels) on every "change" - mirrors
+            // yona.issue.View.js's `_delegate(elements.issueInfoWrap, "change",
+            // "[data-toggle=tomselect]", ...)` wiring, which board/view.html's markup never
+            // had an equivalent of (the <select> and its REST endpoint both already existed;
+            // nothing on the client ever called it).
+            if(htElement.issueInfoWrap && htVar.sLabelsUrl){
+                htElement.issueInfoWrap.addEventListener("change", _onChangeLabelIds);
+            }
+        }
+
+        /**
+         * "change" handler of the post's label <select data-toggle="tomselect">.
+         * Sends the full current selection as a JSON array of label ids to urls.labels.
+         *
+         * @param weEvt
+         * @private
+         */
+        function _onChangeLabelIds(weEvt){
+            var elField = weEvt.target.closest("[data-toggle=tomselect]");
+            if(!elField || elField.id !== "labelIds"){
                 return;
             }
 
-            htElement.welBtnWatch.addEventListener("click", function(weEvt) {
-                var welTarget = weEvt.target;
-                var bWatched = (welTarget.getAttribute("data-watching") === "true");
+            var oTomSelect = elField.tomselect;
+            var aRawValues = oTomSelect ? oTomSelect.getValue() : Array.prototype.map.call(elField.selectedOptions, function(elOption){ return elOption.value; });
+            var aLabelIds = (aRawValues || []).map(Number).filter(function(nId){ return !isNaN(nId); });
 
-                $yona.sendForm({
-                    "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
-                    "fOnLoad": function(){
-                        welTarget.setAttribute("data-watching", !bWatched);
-                        welTarget.classList.toggle('ybtn-watching');
-                        welTarget.innerHTML = Messages(!bWatched ? "post.unwatch" : "post.watch");
-                        welTarget.blur();
-
-                        $yona.notify(Messages(bWatched ? "post.unwatch.start" : "post.watch.start"), 3000);
-                    }
-                });
+            fetch(htVar.sLabelsUrl, {
+                "method": "PUT",
+                "headers": {"Content-Type": "application/json"},
+                "credentials": "same-origin",
+                "body": JSON.stringify(aLabelIds)
+            }).then(function(response){
+                if(!response.ok){
+                    return Promise.reject(response);
+                }
+                $yona.notify(Messages("issue.update.labelIds"), 3000);
+            }).catch(function(oErr){
+                $yona.notify(Messages("error.failedTo", Messages("issue.update.labelIds"),
+                    oErr && oErr.status || "", oErr && oErr.statusText || ""), 3000);
             });
         }
 

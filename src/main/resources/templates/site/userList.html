@@ -94,7 +94,7 @@
                 <a class="ybtn ybtn-small" data-request-method="post" th:data-request-uri="@{/sites/toggleAccountLock(loginId=${user.loginId}, state=${userState.name()}, query=${query})}" th:text="${user.state.name() == 'LOCKED'} ? #{button.user.makeAccountUnlock.true} : #{button.user.makeAccountUnlock.false}">
                   계정 잠금/해제
                 </a>
-                <button th:id="${user.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:data-href="@{'/' + ${user.loginId}(action='resetPassword')}" th:text="#{title.resetPassword}">비밀번호 초기화</button>
+                <button th:id="${user.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:data-href="@{/sites/users/{loginId}/reset-password(loginId=${user.loginId})}" th:text="#{title.resetPassword}">비밀번호 초기화</button>
                 <a class="ybtn ybtn-small" th:classappend="${user.isSiteManager} ? 'ybtn-info' : 'label-info'" data-request-method="post" th:data-request-uri="@{/sites/toggleSiteAdminRole/{loginId}(loginId=${user.loginId}, state=${userState.name()}, query=${query})}">
                   <span th:if="${user.isSiteManager}" th:text="#{button.user.revoke.site.admin.role}">관리자 박탈</span>
                   <span th:if="${!user.isSiteManager}" th:text="#{button.user.upgrade.to.site.admin}">관리자 지정</span>
@@ -141,11 +141,16 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
 document.addEventListener("DOMContentLoaded", function(){
-    // $.tmpl은 jquery.tmpl.js(lib/, 미수정) 템플릿 플러그인 호출이라 의도적으로 유지한다 -
-    // 이 함수의 나머지(알림 제거, 부모 엘리먼트 계산)는 vanilla.
+    // 이전엔 jQuery의 $.tmpl(jquery.tmpl.js 플러그인)을 그대로 호출했으나, 저장소 전체가
+    // fetch 기반으로 전환되며 jQuery 코어 자체가 제거돼(site/layout.html의 scripts fragment
+    // 주석 참고) `$`가 정의되지 않은 상태였다 - 이 버튼을 클릭하면 fetch를 보내기도 전에
+    // ReferenceError로 죽어 있었다(비밀번호 초기화가 항상 404였던 것과는 별개의 원인).
+    // yona.Attachments.js._getFileItem()과 동일한 패턴으로 $yona.tmpl(vanilla, ${} 치환만
+    // 수행하고 HTML 문자열을 반환)로 교체.
     function _showRequestWaitingMessage(elAnchor){
         document.querySelectorAll(".alert").forEach(function(el){ el.remove(); });
-        $.tmpl(document.getElementById("dismissable-alerts-request").text, {}).appendTo(elAnchor.parentElement);
+        var sHtml = $yona.tmpl(document.getElementById("dismissable-alerts-request").text, {});
+        elAnchor.parentElement.insertAdjacentHTML("beforeend", sHtml);
     }
 
     var elAlertDeletionWrap = document.getElementById('alertDeletionWrap');
@@ -186,7 +191,8 @@ document.addEventListener("DOMContentLoaded", function(){
                             return response.json().then(function(data){
                                 document.querySelectorAll(".alert").forEach(function(el){ el.remove(); });
                                 if(data && data.isSuccess === true){
-                                    $.tmpl(document.getElementById('dismissable-alerts').text, data).appendTo(matchedReset.parentElement);
+                                    var sHtml = $yona.tmpl(document.getElementById('dismissable-alerts').text, data);
+                                    matchedReset.parentElement.insertAdjacentHTML("beforeend", sHtml);
                                 } else {
                                     $yona.alert("password change failed: " + data.reason);
                                 }

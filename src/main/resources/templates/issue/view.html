@@ -25,7 +25,7 @@
                     <div class="date" th:title="${templateHelper.getDateString(issue.createdDate)}" th:text="${templateHelper.agoOrDateString(issue.createdDate)}">
                         작성일
                     </div>
-                    <span class="badge" th:classappend="'badge-issue-' + ${#strings.toLowerCase(issue.state)}" th:text="${#messages.msg('issue.state.' + issue.state)}">상태</span>
+                    <span class="badge" th:classappend="'badge-issue-' + ${#strings.toLowerCase(issue.state)}" th:text="${#messages.msg('issue.state.' + #strings.toLowerCase(issue.state))}">상태</span>
                 </div>
                 <div class="title">
                     <strong class="board-id" th:text="'#' + ${issue.number}">#1</strong>
@@ -35,7 +35,7 @@
                     </span>
                     <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
                         <span class="date" th:title="${templateHelper.getDateString(issue.createdDate)}" th:text="${templateHelper.agoOrDateString(issue.createdDate)}">작성일</span>
-                        <span class="badge badge-small" th:classappend="'badge-issue-' + ${#strings.toLowerCase(issue.state)}" th:text="${#messages.msg('issue.state.' + issue.state)}">상태</span>
+                        <span class="badge badge-small" th:classappend="'badge-issue-' + ${#strings.toLowerCase(issue.state)}" th:text="${#messages.msg('issue.state.' + #strings.toLowerCase(issue.state))}">상태</span>
                     </div>
                 </div>
             </div>
@@ -107,7 +107,7 @@
                         </div>
                         <div id="vote" class="vote-wrap" th:classappend="${!issue.voters.isEmpty() ? 'voter-exists' : ''}">
                             <th:block th:with="hasVoted=${currentUser != null && issue.voters.![id].contains(currentUser.id)}">
-                                <a th:if="${currentUser != null}" th:href="@{/{owner}/{projectName}/issue/{issueNumber}/vote(owner=${project.owner}, projectName=${project.name}, issueNumber=${issue.number})}" 
+                                <a th:if="${currentUser != null}" th:href="@{/{owner}/{projectName}/issue/{issueNumber}/__${hasVoted ? 'unvote' : 'vote'}__(owner=${project.owner}, projectName=${project.name}, issueNumber=${issue.number})}"
                                    class="ybtn-watching-link" th:classappend="${hasVoted ? 'ybtn-watching' : ''}"
                                    data-request-method="post" data-toggle="tooltip" th:title="${hasVoted ? #messages.msg('issue.unvote.description') : #messages.msg('issue.vote.description')}">
                                     <span class="heart"><i class="yobicon-hearts"></i></span>
