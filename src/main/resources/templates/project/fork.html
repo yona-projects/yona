@@ -21,9 +21,6 @@
                 <div th:if="${error}" class="alert alert-danger" th:text="${error}">에러 메시지</div>
 
                 <form th:action="@{/{owner}/{name}/fork(owner=${project.owner}, name=${project.name})}" method="post" class="form-horizontal nm">
-                    <!-- legacy 원문 그대로: hidden owner 필드와 아래 select#project-owner가 동일하게
-                         name="owner"를 공유한다(legacy의 알려진 중복 name 특성을 그대로 이식). -->
-                    <input type="hidden" name="owner" th:value="${currentUser.loginId}" />
                     <fieldset>
                         <legend>
                             <h4 style="padding-top:10px;">

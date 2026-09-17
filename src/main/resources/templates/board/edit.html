@@ -58,7 +58,7 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<script type="text/javascript">
+<script type="text/javascript" th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("board.Write", {
             "sMode"     : "edit",
