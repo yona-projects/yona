@@ -37,8 +37,7 @@ document.addEventListener("DOMContentLoaded", function(){
             // Show input form
             var inputForm = parent.querySelector(".child-comment-input-form");
             if(inputForm){
-                // .child-comment-input-form도 CSS 기본값이 display:none이라 빈 문자열로는
-                // 다시 보이지 않는다 - block을 명시한다.
+                // 마찬가지로 CSS 기본값이 display:none이라 block을 명시해야 한다.
                 inputForm.style.display = (getComputedStyle(inputForm).display === "none") ? "block" : "none";
             }
 

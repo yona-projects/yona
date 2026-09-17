@@ -396,10 +396,7 @@ class PullRequestViewController(
         model.addAttribute("canApproveOrRequestChanges", loginUser != null && loginUser.id != pullRequest.contributor.id)
     }
 
-    // P3-69: viewPullRequest()/viewChangesInternal()/pullRequestState() 세 곳이 공통으로 필요로
-    // 하는 "attemptMerge()로 최신 충돌 상태 재계산 + addCommonPrAttributes() 호출" 순서를
-    // 한 곳으로 추출한 헬퍼. attemptMerge()가 예외를 던져도(JGit 오류 등) 화면을 깨뜨리지 않고
-    // mergeResult=null로 완화하는 기존 관례를 그대로 유지한다.
+    // attemptMerge()는 JGit 오류 시 예외를 던질 수 있어, 화면이 깨지지 않도록 null로 완화한다.
     private fun recomputeMergeResultAndCommonAttributes(
         model: Model,
         project: Project,
@@ -415,12 +412,8 @@ class PullRequestViewController(
         return mergeResult
     }
 
-    // P3-69: legacy service/yobi.git.View.js가 10초 간격으로 폴링하던
-    // GET /:owner/:project/pullRequest/:id/state(PullRequestApp.pullRequestState) 대응.
-    // viewPullRequest()와 동일하게 attemptMerge()로 충돌 상태를 재계산한 뒤
-    // addCommonPrAttributes()가 채우는 isAcceptable/disabledAcceptReason/canDeleteBranch/
-    // canRestoreBranch를 그대로 재사용해, #state 배너(partial_state)와 Accept 버튼
-    // (partial_info::acceptButton)을 한 번에 다시 렌더링하는 합성 프래그먼트를 반환한다.
+    // legacy service/yobi.git.View.js가 10초 간격으로 폴링하던
+    // PullRequestApp.pullRequestState 대응 — #state 배너와 Accept 버튼을 함께 갱신한다.
     @GetMapping("/{owner}/{projectName}/pull/{number}/state")
     fun pullRequestState(
         @PathVariable owner: String,

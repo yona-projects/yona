@@ -17,13 +17,11 @@ import org.thymeleaf.context.WebContext
 import org.thymeleaf.web.servlet.JakartaServletWebApplication
 import java.util.Locale
 
-// P3-52 항목4 — Twirl-vs-Thymeleaf 렌더링 감사 중 "code/diff.html에는 있던 diff 줄 클릭 -> 새
-// 리뷰 댓글 작성 폼 UI가 pullrequest/*.html(PR 코드리뷰 changes 탭)에는 없다"는 격차가 발견됐다
-// (기존 리뷰 스레드는 partial_diff_comment_on_line으로 잘 보이지만, 새 스레드를 "시작"하는 클릭
-// UI 자체가 없었음 — 백엔드 POST .../pullRequest/{id}/comments는 이미 codeRange를 받을 수
-// 있어 프론트엔드 배선만 빠져 있었다). 실제 git bare 저장소로 diff를 만들지 않고, FileDiff를
-// 직접 구성해 partial_filediff 프래그먼트 하나만 실제 Thymeleaf 엔진으로 렌더링해 검증한다
-// (BranchItemFragmentRenderingSpec과 동일한 패턴).
+// code/diff.html에는 있던 "diff 줄 클릭 -> 새 리뷰 댓글 작성 폼" UI가 pullrequest/*.html
+// (PR changes 탭)에는 없었다 - 기존 스레드는 partial_diff_comment_on_line으로 보이지만
+// 새 스레드를 "시작"하는 클릭 UI 자체가 빠져 있었다(백엔드는 이미 codeRange를 받을 수 있음).
+// 실제 git bare 저장소 없이 FileDiff를 직접 구성해 partial_filediff 프래그먼트만 렌더링해
+// 검증한다(BranchItemFragmentRenderingSpec과 동일한 패턴).
 class PullRequestDiffLineCommentUiFragmentRenderingSpec @Autowired constructor(
     private val templateEngine: ITemplateEngine,
     private val wac: WebApplicationContext

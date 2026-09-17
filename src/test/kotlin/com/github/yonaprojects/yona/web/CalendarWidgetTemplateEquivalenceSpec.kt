@@ -33,11 +33,8 @@ import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-// P3-46 #1: Pikaday -> Flatpickr 날짜 선택 위젯 교체.
-//
-// 이 스펙은 실제 달력 팝업의 동작(브라우저 JS 상호작용)은 검증하지 않는다 — MockMvc+Jsoup 하네스는
-// 렌더링된 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다. 대신 아래 "마크업 계약"이 회귀
-// 없이 유지되는지를 검증한다.
+// Pikaday -> Flatpickr 날짜 선택 위젯 교체 검증. MockMvc+Jsoup 하네스는 렌더링된 마크업과 로드되는
+// 스크립트/CSS 경로까지만 볼 수 있어, 실제 달력 팝업 동작이 아니라 아래 마크업 계약 유지만 검증한다.
 //
 // 대상 6개 화면(모두 common/calendar :: calendar 프래그먼트를 include):
 //   issue/create, issue/edit, issue/list, issue/view, milestone/create, milestone/edit

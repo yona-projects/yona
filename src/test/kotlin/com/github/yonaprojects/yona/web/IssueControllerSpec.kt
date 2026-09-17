@@ -1365,11 +1365,10 @@ class IssueControllerSpec : DescribeSpec({
             }
         }
 
-        // P3-52 항목1 — yona IssueApi.commentNotiRecivers() 대응. 이슈 댓글 작성 중(디바운스)
-        // "지금 이 내용으로 등록하면 누구에게 알림이 갈지" 미리보기. CommentServiceImpl.
-        // createIssueComment()의 실제 알림 수신자 계산(baseWatchers=이슈 작성자 +
-        // watchService.findActualWatchers(ISSUE_POST, NEW_COMMENT) + 멘션 - 본인)과 정확히
-        // 동일한 로직을 재사용해, 미리보기와 실제 알림 발행 결과가 어긋나지 않게 한다.
+        // 이슈 댓글 작성 중(디바운스) "지금 이 내용으로 등록하면 누구에게 알림이 갈지" 미리보기.
+        // CommentServiceImpl.createIssueComment()의 실제 알림 수신자 계산(baseWatchers=이슈
+        // 작성자 + watchService.findActualWatchers(ISSUE_POST, NEW_COMMENT) + 멘션 - 본인)과
+        // 정확히 동일한 로직을 재사용해, 미리보기와 실제 알림 발행 결과가 어긋나지 않게 한다.
         describe("POST /api/projects/{projectId}/issues/{issueId}/commentNotiReceivers") {
             it("이슈 작성자와 감시자를 알림 수신자로 반환해야 한다") {
                 val authoredIssue = Issue(

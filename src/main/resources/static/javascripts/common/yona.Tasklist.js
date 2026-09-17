@@ -12,10 +12,8 @@ document.addEventListener("DOMContentLoaded", function () {
     checkTasklistDoneCount(markdownWraps);
     disableCheckboxIfNeeds(markdownWraps);
 
-    // 레거시 버그 보존: 원본은 $this.closest()를 인자 없이 호출해 항상 빈 jQuery
-    // 컬렉션이 되므로("부모를 클릭/호버하면 체크박스가 토글된다"는 의도와 달리)
-    // 이 블록은 처음부터 아무 동작도 하지 않는 죽은 코드였다. 동작을 바꾸지 않기
-    // 위해 그대로 아무것도 바인딩하지 않는다.
+    // 레거시 버그 보존: 원본이 closest()를 인자 없이 호출해 항상 빈 컬렉션이 되므로
+    // 이 블록(부모 클릭/호버 시 체크박스 토글)은 원래부터 죽은 코드였다. 동작 유지를 위해 그대로 둔다.
 
     markdownWraps.forEach(function (wrap) {
         wrap.querySelectorAll(inputCheckBox).forEach(function (checkbox) {

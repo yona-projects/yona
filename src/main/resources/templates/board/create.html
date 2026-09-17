@@ -14,10 +14,9 @@
                 <div class="content-wrap frm-wrap">
                     <dl>
                         <dd>
-                            <!-- legacy board/create.scala.html의 titleMessage 대응 — README/이슈 템플릿
-                                 편집 진입점("만들기"/"편집" 버튼 둘 다 이 create 화면으로 옴, 기존 제목을
-                                 조회하지 않음)은 title을 고정 문자열로 미리 채워 매번 재입력하지 않아도
-                                 되게 한다. -->
+                            <!-- README/이슈 템플릿 편집도 이 create 화면을 재사용하는데(기존 제목을
+                                 조회하지 않음), title을 미리 채워 매번 재입력하지 않게 한다(legacy
+                                 titleMessage 대응). -->
                             <input type="text" id="title" autocomplete="off" name="title" th:value="${preparedTitle}" class="zen-mode text title" maxlength="250" tabindex="1" th:placeholder="#{title}"/>
                         </dd>
                         <dd style="position: relative;">
@@ -25,10 +24,7 @@
                         </dd>
                     </dl>
                     
-                    <!-- 파일 업로더 영역 -->
-                    <!-- Vue 3 SFC(components/vue-widgets, 2026-09-17 적용) - <yona-attachments>가
-                         드롭존/업로드 버튼/카드 목록/temporaryUploadFiles 히든 필드를 전부 자체
-                         소유한다. -->
+                    <!-- 파일 업로더 영역 - <yona-attachments> Vue 위젯이 대체 -->
                     <yona-attachments data-resource-type="BOARD_POST" id="upload"></yona-attachments>
 
                     <div class="right-txt mt10 mb10">

@@ -49,11 +49,9 @@
           <div id="commit" data-commit-origin="true" class="diff-body hide" th:text="${patch}">Patch Content</div>
         </div>
 
-        <!-- SVN 커밋 댓글 (legacy code/svnDiff.scala.html:100-138 board-comment-wrap 대응. Git 쪽
-             code/partial_nonrange_codecomment_thread.html과 동일한 컴포넌트 구성으로 통일한다:
-             마크다운 렌더링, 아바타, 권한기반 삭제+확인모달, 첨부파일, markdownEditor+uploadForm
-             폼(#24/#25/#26 그룹 프래그먼트 재사용) — TEMPLATE_BACKLOG 감사에서 발견된 격차(P3-56)
-             복구. -->
+        <!-- SVN 커밋 댓글 - Git 쪽 code/partial_nonrange_codecomment_thread.html과 동일한
+             컴포넌트 구성으로 통일한다: 마크다운 렌더링, 아바타, 권한기반 삭제+확인모달,
+             첨부파일, markdownEditor+uploadForm 폼. -->
         <div class="board-comment-wrap" style="margin-top: 30px;">
           <ul class="comments" th:if="${comments != null && !comments.isEmpty()}">
             <li th:each="comment : ${comments}" th:id="'comment-' + ${comment.id}" class="comment"
@@ -86,19 +84,14 @@
             </li>
           </ul>
 
-          <!-- SVN 커밋 댓글 작성 폼: legacy common/commentForm.scala.html과 동일하게, 이 폼
-               하나가 (1) board-comment-wrap 맨 아래에서는 범위 없는 일반 커밋 댓글 작성 폼으로,
-               (2) diff 특정 라인 클릭 시에는 yona.code.SvnDiff.js의
-               welEmptyCommentForm/_showCommentBox/_hideCommentBox가 이 <form id="comment-form">
-               자체를 클릭한 행 바로 다음으로 옮겨 라인별 인라인 댓글 폼으로 겸용한다(legacy
-               대조로 확인 - Spring Boot 이식 중 이 폼 자체가 통째로 빠져 라인 클릭이 항상
-               무반응이었다가, "일반 댓글용" 폼을 별도로 새로 만들면서 두 폼이 같은
-               id="upload"/data-editor-mode="comment-body"를 동시에 쓰는 중복 마크업이 됐던 것을
-               tmpl 카테고리 검증 중 발견해 legacy 구조(단일 폼 겸용)로 정리했다).
+          <!-- SVN 커밋 댓글 작성 폼: legacy와 동일하게 이 폼 하나가 (1) board-comment-wrap 맨
+               아래에서는 범위 없는 일반 커밋 댓글 작성 폼으로, (2) diff 특정 라인 클릭 시에는
+               yona.code.SvnDiff.js의 welEmptyCommentForm/_showCommentBox/_hideCommentBox가
+               이 <form id="comment-form"> 자체를 클릭한 행 바로 다음으로 옮겨 라인별 인라인
+               댓글 폼으로 겸용한다 - 별도 폼을 새로 만들면 id="upload" 등이 중복돼 충돌한다.
                ReviewViewController.newCommitComment()가 CodeRangeRequest(path/startSide/
-               startLine)로 바인딩하므로 hidden 필드 3개(path/startLine/startSide)는 JS가 이
-               form에 직접 append한다(라인이 선택되지 않은 일반 댓글 상태에서는 값 없이
-               제출되어 범위 없는 댓글로 처리된다 - CodeRangeRequest 필드는 전부 nullable).
+               startLine)로 바인딩하므로 hidden 필드 3개는 JS가 이 form에 직접 append한다
+               (선택 안 된 상태에선 값 없이 제출되어 범위 없는 댓글로 처리 - 필드는 전부 nullable).
           -->
           <form id="comment-form" th:if="${currentUser != null}"
                 th:action="@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commit.id})}"
@@ -123,10 +116,8 @@
                 data-toggle="button" th:text="#{notification.watch}">지켜보기</button>
         <a th:href="@{/{owner}/{name}/commits/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${selectedBranch}, path=${path})}" class="ybtn pull-right" th:text="#{button.list}">목록</a>
 
-        <!-- Spring Boot 이식 과정에서 누락됐던 마크업(v1.6 code/svnDiff.scala.html:148-153
-             대응) - yona.code.SvnDiff.js의 _initMiniMap()/_updateMiniMap()이 이 3개 요소를
-             찾지 못해 미니맵 자체가 항상 hide 상태였다(tmpl 카테고리 vanilla 전환 검증 중
-             실제 SVN 프로젝트를 만들어 Playwright로 재현). -->
+        <!-- 이 마크업이 빠져 있어 yona.code.SvnDiff.js의 _initMiniMap()/_updateMiniMap()이
+             대상 요소를 찾지 못해 미니맵이 항상 hide 상태였다(Playwright로 재현). -->
         <div id="minimap" class="minimap-outer">
             <div class="minimap-wrap">
                 <div class="minimap-curr"></div>
@@ -165,8 +156,8 @@
                 "sCodeURL"       : codeUrl
             });
         }
-        // 댓글 삭제는 이제 common/commentDeleteModal 프래그먼트(data-toggle="comment-delete" +
-        // data-request-uri 위임)가 처리한다 — 다른 댓글 화면들과 동일한 삭제 UX로 통일(P3-56).
+        // 댓글 삭제는 common/commentDeleteModal 프래그먼트(data-toggle="comment-delete" +
+        // data-request-uri 위임)가 처리한다 — 다른 댓글 화면들과 동일한 삭제 UX.
     });
 </script>
 </body>

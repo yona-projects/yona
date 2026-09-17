@@ -10,10 +10,9 @@ import io.kotest.matchers.string.shouldContain
 import org.slf4j.LoggerFactory
 import org.springframework.boot.DefaultApplicationArguments
 
-// 법적 컴플라이언스 감사 #2 대응 — 커밋된 placeholder 암호화 키가 그대로 운영에 올라가도
-// 애플리케이션 기동을 막지 않으면서(env var 없이 h2로 기동하는 이 저장소의 표준 검증
-// 워크플로/6,400여 건 테스트가 전부 이 기본값으로 컨텍스트를 띄움), 무시하기 어려운 ERROR
-// 로그로 알린다.
+// 커밋된 placeholder 암호화 키가 운영에 그대로 올라가도 애플리케이션 기동은 막지 않되
+// (env var 없이 h2로 기동하는 표준 테스트가 전부 이 기본값으로 컨텍스트를 띄움), 무시하기
+// 어려운 ERROR 로그로 알린다.
 class TotpEncryptionKeyGuardSpec : DescribeSpec({
     val logger = LoggerFactory.getLogger(TotpEncryptionKeyGuard::class.java) as Logger
     val appender = ListAppender<ILoggingEvent>()

@@ -130,10 +130,9 @@ class MarkdownServiceImpl(
             TablesExtension.create(),
             StrikethroughExtension.create(),
             AutolinkExtension.create(),
-            // P3-48: "- [ ]/- [x]" GFM tasklist 문법을 실제 <input type="checkbox"> 엘리먼트로
-            // 렌더링한다 — 새니타이저 allowlist(아래 SANITIZER_POLICY)는 이미 input[type,disabled,
-            // checked]를 허용해뒀는데 이 확장 자체가 빠져있어 체크박스가 그냥 "[ ] text" 리터럴
-            // 텍스트로 남아있었다(common/yona.Tasklist.js가 찾을 대상 자체가 없었음).
+            // 새니타이저 allowlist(아래 SANITIZER_POLICY)는 input[type,disabled,checked]를 이미
+            // 허용해뒀지만 이 확장이 빠져 있어 "- [ ]" GFM tasklist 문법이 <input type="checkbox">가
+            // 아닌 리터럴 텍스트로 남아있었다.
             TaskListItemsExtension.create()
         )
         val parser = Parser.builder().extensions(extensions).build()
@@ -149,14 +148,11 @@ class MarkdownServiceImpl(
         return sanitize(issueLinkTransformed)
     }
 
-    // commonmark-ext-task-list-items는 체크박스를 항상 disabled="" 로 렌더링한다(라이브러리에
-    // disabled 여부를 끄는 옵션이 없음). legacy(marked.js 서버사이드 렌더링)는 기본적으로
-    // disabled를 붙이지 않고, common/yona.Tasklist.js의 disableCheckboxIfNeeds()가 수정 권한이
-    // 없는 뷰어에게만 사후에(클라이언트에서) disabled를 붙이는 구조다 — 렌더러가 항상
-    // disabled로 내보내면 그 JS가 "허용된 경우 disabled를 벗기는" 로직을 갖고 있지 않아(원래
-    // 그럴 필요가 없었음) 권한이 있는 사용자도 체크박스를 클릭할 수 없게 된다(Playwright 실제
-    // 클릭 재현으로 확인). legacy와 동일한 기본값(비활성화 아님)으로 맞춰, "수정 권한 없음"
-    // 판단은 그대로 클라이언트 JS 책임으로 남긴다.
+    // commonmark-ext-task-list-items는 체크박스를 항상 disabled="" 로 렌더링한다(끄는 옵션이 없음).
+    // legacy는 기본 활성 상태로 렌더링하고 common/yona.Tasklist.js의 disableCheckboxIfNeeds()가
+    // 수정 권한 없는 뷰어에게만 클라이언트에서 disabled를 붙인다 — 그 JS는 "벗기는" 로직이 없어서,
+    // 렌더러가 항상 disabled로 내보내면 권한 있는 사용자도 체크박스를 클릭할 수 없다(Playwright로
+    // 재현 확인). legacy와 같은 기본값으로 맞추고 권한 판단은 클라이언트 JS 책임으로 남긴다.
     private fun enableTaskListCheckboxes(html: String): String {
         if (!html.contains("type=\"checkbox\"")) {
             return html

@@ -23,8 +23,7 @@
             <div th:text="#{label.copy.description}">설명</div>
             <div th:text="#{label.copy.description2}">설명2</div>
           </form>
-          <!-- Vue 3 SFC(components/vue-widgets, 2026-09-17 적용, yona.issue.LabelEditor.js
-               전체를 대체) -->
+          <!-- Vue 3 SFC 위젯(components/vue-widgets)로 대체, yona.issue.LabelEditor.js 미사용 -->
           <yona-new-label-form th:attr="data-action=@{/{owner}/{name}/issue/labels(owner=${project.owner}, name=${project.name})}"></yona-new-label-form>
 
           <div id="labelsList" class="issue-label-list-wrap">

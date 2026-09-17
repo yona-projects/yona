@@ -4,10 +4,10 @@
         단축키 도움말
     </a>
 
-    <!-- 네이티브 <dialog>(P3-70 라운드9, tabindex/role="dialog"는 <dialog> 엘리먼트 자체가
-         네이티브로 제공해 제거). data-toggle="modal"은 트리거에서 제거했다(아래 스크립트가
-         직접 showModal() 호출) - bootstrap.js(미수정) 자체의 전역 데이터 API 델리게이트와의
-         충돌(InvalidStateError, Playwright로 재현 확인) 회피. -->
+    <!-- 네이티브 <dialog>(tabindex/role="dialog"는 <dialog> 자체가 제공해 제거).
+         data-toggle="modal"은 트리거에서 제거했다(아래 스크립트가 직접 showModal() 호출) -
+         bootstrap.js 자체의 전역 데이터 API 델리게이트와의 충돌(InvalidStateError, Playwright로
+         재현 확인) 회피. -->
     <dialog id="helpKeys" class="modal keymap-help">
         <div class="row-fluid">
             <div class="span3">

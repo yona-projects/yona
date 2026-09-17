@@ -27,10 +27,10 @@
                 <tr th:each="notiType : ${notiTypes}">
                   <th th:text="#{${notiType.messageKey}}">알림 타입</th>
                   <td>
-                    <!-- Vue 3 SFC(components/vue-widgets switch 위젯, 2026-09-17 적용) -
-                         체크박스 자신이 진실의 원천이라 그대로 라이트 DOM 자식으로 둔다
-                         (service/yona.user.Setting.js가 .notiUpdate로 직접 찾아 change
-                         리스너를 건다 - <slot> 프로젝션이라 외부에서 계속 찾을 수 있다). -->
+                    <!-- Vue 3 SFC(components/vue-widgets switch 위젯) - 체크박스 자신이 진실의
+                         원천이라 그대로 라이트 DOM 자식으로 둔다(service/yona.user.Setting.js가
+                         .notiUpdate로 직접 찾아 change 리스너를 건다 - <slot> 프로젝션이라 외부에서
+                         계속 찾을 수 있다). -->
                     <yona-switch on-label="On" off-label="Off">
                       <input class="notiUpdate"
                              th:data-href="@{/noti/toggle/{projectId}/{notiType}(projectId=${project.id}, notiType=${notiType.name()})}"

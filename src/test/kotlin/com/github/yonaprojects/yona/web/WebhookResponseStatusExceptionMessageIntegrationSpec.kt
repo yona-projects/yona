@@ -35,19 +35,16 @@ private fun legacyHash(password: String, salt: String): String {
     return Base64.getEncoder().encodeToString(hashed)
 }
 
-// P3-68 — WebhookController.newWebhook()이 payloadUrl 누락 시 던지는
+// WebhookController.newWebhook()이 payloadUrl 누락 시 던지는
 // ResponseStatusException(BAD_REQUEST, "Payload URL은 필수 입력 항목입니다.")의 reason이 실제
 // HTTP 응답에 노출되는지 확인한다.
 //
-// mockk 기반 WebhookControllerSpec(standaloneSetup)이나 webAppContextSetup 기반 MockMvc로는 이
-// 문제를 재현/검증할 수 없다 — 둘 다 실제 서블릿 컨테이너가 아니라서, ResponseStatusException이
-// DispatcherServlet의 HandlerExceptionResolver에서 response.sendError(status, reason)까지만
-// 호출되고, 컨테이너 수준의 /error 포워딩(Boot의 ErrorPageFilter가 담당 — 실제 임베디드 톰캣에서만
-// 동작)이 전혀 일어나지 않는다(실측: webAppContextSetup MockMvc로 동일하게 요청해보면 상태코드는
-// 400으로 정확히 나오지만 응답 바디가 완전히 빈 문자열이었다 — BasicErrorController 자체가
-// 호출되지 않았다는 뜻). 그래서 RANDOM_PORT로 실제 임베디드 서버를 띄우고 java.net.http.HttpClient로
-// 직접 확인해야 한다(SessionCookieSecurityIntegrationSpec과 동일한 이유·동일한 로그인/CSRF 처리
-// 패턴).
+// mockk 기반 standaloneSetup이나 webAppContextSetup 기반 MockMvc로는 이 문제를 검증할 수 없다 —
+// 둘 다 실제 서블릿 컨테이너가 아니라서 ResponseStatusException이 response.sendError까지만
+// 호출되고, 컨테이너 수준의 /error 포워딩(Boot의 ErrorPageFilter, 실제 임베디드 톰캣에서만 동작)이
+// 일어나지 않는다(실측: webAppContextSetup MockMvc는 상태코드 400은 맞지만 응답 바디가 완전히
+// 빈 문자열이었다). 그래서 RANDOM_PORT로 실제 임베디드 서버를 띄우고 java.net.http.HttpClient로
+// 직접 확인한다(SessionCookieSecurityIntegrationSpec과 동일한 로그인/CSRF 처리 패턴).
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class WebhookResponseStatusExceptionMessageIntegrationSpec @Autowired constructor(
     private val userRepository: UserRepository,
@@ -83,8 +80,7 @@ class WebhookResponseStatusExceptionMessageIntegrationSpec @Autowired constructo
                         .followRedirects(HttpClient.Redirect.NEVER)
                         .build()
 
-                    // 1) 로그인 폼에서 CSRF 쿠키를 먼저 받아온다(SessionCookieSecurityIntegrationSpec와
-                    // 동일한 CookieCsrfTokenRepository 더블서브밋 패턴).
+                    // 로그인 폼에서 CSRF 쿠키를 먼저 받아온다(CookieCsrfTokenRepository 더블서브밋 패턴).
                     val loginCsrfProbe = client.send(
                         HttpRequest.newBuilder(URI.create("http://localhost:$port/users/loginform")).GET().build(),
                         HttpResponse.BodyHandlers.discarding()
@@ -94,7 +90,6 @@ class WebhookResponseStatusExceptionMessageIntegrationSpec @Autowired constructo
                     loginXsrf.shouldNotBeNull()
                     val loginXsrfToken = loginXsrf.substringAfter("XSRF-TOKEN=").substringBefore(";")
 
-                    // 2) 실제 로그인.
                     val loginForm = "loginIdOrEmail=$loginId&password=password1234"
                     val loginResponse = client.send(
                         HttpRequest.newBuilder()
@@ -111,9 +106,8 @@ class WebhookResponseStatusExceptionMessageIntegrationSpec @Autowired constructo
                         ?.substringBefore(";")
                     sessionCookie.shouldNotBeNull()
 
-                    // 3) 인증된 세션으로 웹훅 설정 화면을 GET해 그 세션에 유효한 CSRF 토큰을 다시
-                    // 받아온다(로그인 시 세션 고정 공격 방지를 위해 토큰이 재발급될 수 있어, 로그인 전
-                    // 토큰을 그대로 재사용하지 않고 새로 받는다).
+                    // 인증된 세션으로 웹훅 설정 화면을 GET해 그 세션의 CSRF 토큰을 다시 받아온다
+                    // (세션 고정 공격 방지로 로그인 시 토큰이 재발급될 수 있어 재사용하지 않는다).
                     val webhookPageProbe = client.send(
                         HttpRequest.newBuilder(
                             URI.create("http://localhost:$port/projects/${project.owner}/${project.name}/webhooks")
@@ -131,8 +125,7 @@ class WebhookResponseStatusExceptionMessageIntegrationSpec @Autowired constructo
                         ?.substringBefore(";")
                         ?: "XSRF-TOKEN=$loginXsrfToken"
 
-                    // 4) payloadUrl을 비운 채(클라이언트측 검증을 우회한 상황과 동일) 웹훅 등록 폼을
-                    // 직접 POST한다.
+                    // payloadUrl을 비운 채(클라이언트측 검증을 우회한 상황과 동일) 직접 POST한다.
                     val webhookForm = "payloadUrl=&webhookType=SIMPLE"
                     val webhookResponse = client.send(
                         HttpRequest.newBuilder()

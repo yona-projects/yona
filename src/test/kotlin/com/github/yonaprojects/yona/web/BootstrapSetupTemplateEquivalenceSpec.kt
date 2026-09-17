@@ -140,11 +140,10 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
                 doc.select("dt:has(label[for=email]) .label-important").text() shouldBe "올바른 이메일을 입력해 주세요."
             }
 
-            // 2026-09-17 정정 - legacy welcome/restart.scala.html의 "서버 재시작 필요" 안내는
-            // Play/Ebean 시절 application.secret 재기록 메커니즘의 잔재였다. 지금 구조(Spring
-            // Boot+JPA)엔 그 메커니즘이 없어 방금 만든 계정으로 재시작 없이 바로 로그인할 수
-            // 있음을 실측 확인했다 - 그래서 사실과 다른 안내를 보여주는 대신 로그인 폼으로
-            // 바로 리다이렉트하도록 바꿨다(bootstrap-restart.html/app.restart.* 메시지 키 삭제).
+            // legacy의 "서버 재시작 필요" 안내는 Play/Ebean 시절 application.secret 재기록
+            // 메커니즘의 잔재다. Spring Boot+JPA 구조엔 그 메커니즘이 없어 재시작 없이 바로 로그인
+            // 가능하므로, 안내 화면 대신 로그인 폼으로 바로 리다이렉트한다
+            // (bootstrap-restart.html/app.restart.* 메시지 키 삭제).
             it("모든 입력이 올바르면 SITE_ADMIN 계정이 생성되고 로그인 폼으로 리다이렉트되어야 한다") {
                 val result = mockMvc.perform(
                     post("/bootstrap-setup")

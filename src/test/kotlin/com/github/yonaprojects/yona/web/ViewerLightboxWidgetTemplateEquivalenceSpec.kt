@@ -34,19 +34,14 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-46 #4: 이미지 라이트박스(ViewerJS)의 jQuery 래퍼(jquery-viewer.js) 제거, 순정 Viewer.js API로 전환.
-//
-// 이 스펙은 실제 라이트박스 팝업 동작(브라우저 JS 상호작용)은 검증하지 않는다 — MockMvc+Jsoup
-// 하네스는 렌더링된 마크업과 로드되는 스크립트/CSS 경로, 인라인 초기화 스크립트의 텍스트까지만
-// 볼 수 있다. 대신 아래 "마크업 계약"이 회귀 없이 유지되는지를 검증한다:
+// 이미지 라이트박스(ViewerJS)의 jQuery 래퍼(jquery-viewer.js)를 제거하고 순정 Viewer.js API로
+// 전환했다. MockMvc+Jsoup 하네스는 실제 팝업 동작(브라우저 JS 상호작용)을 검증할 수 없으므로,
+// 대신 아래 "마크업 계약"이 회귀 없이 유지되는지만 검증한다:
 //   (1) jquery-viewer.js는 더 이상 로드되지 않는다.
 //   (2) viewer.js/viewer.css는 여전히 로드된다(site/layout.html이 전역으로 include).
-//   (3) 초기화 스크립트가 jQuery 플러그인 호출($that.viewer()) 대신 순정 API(new Viewer(...))를
-//       쓴다.
-//   (4) .markdown-wrap 컨테이너가 여러 개 있는 화면(issue/view — 본문 + 댓글들)에서 각 컨테이너가
-//       그대로 렌더링된다(각각에 독립 Viewer 인스턴스가 붙는 것은 브라우저에서만 확인 가능하지만,
-//       "컨테이너마다 순회한다"는 초기화 스크립트의 $(".markdown-wrap").each(...) 구조는 유지돼야
-//       한다).
+//   (3) 초기화 스크립트가 jQuery 플러그인 호출($that.viewer()) 대신 순정 API(new Viewer(...))를 쓴다.
+//   (4) .markdown-wrap 컨테이너가 여러 개 있는 화면(issue/view — 본문 + 댓글들)에서 "컨테이너마다
+//       순회한다"는 초기화 스크립트의 $(".markdown-wrap").each(...) 구조가 유지된다.
 //
 // 레이아웃은 전역이므로 markdown-wrap이 전혀 없는 화면(issue/list)에서도 viewer.js/css는 항상
 // 로드되고 jquery-viewer.js는 항상 로드되지 않아야 한다.
@@ -177,13 +172,10 @@ class ViewerLightboxWidgetTemplateEquivalenceSpec @Autowired constructor(
                 assertViewerJsStillLoaded(doc)
                 assertInitScriptUsesPlainViewerApi(doc)
 
-                // .markdown-wrap 클래스는 실제 이슈/댓글 본문("content markdown-wrap") 외에도
-                // markdownEditor 프래그먼트(각 댓글의 인라인 수정 폼 + 새 댓글 작성 폼)가 자체
-                // 제공하는 마크다운 문법 도움말 예시 블록과 미리보기(div.markdown-preview.markdown-wrap)
-                // 에도 붙어있어, 이 화면 전체의 .markdown-wrap 총 개수는 이 티켓과 무관한 다른
-                // 요소 수에 좌우돼 불안정하다(이슈 뷰: 도움말 예시 블록만 인스턴스당 9개). 이
-                // 스펙의 관심사인 "실제 렌더링된 이슈/댓글 본문 컨테이너"는 div.content.markdown-wrap
-                // 으로 좁혀 식별할 수 있다 — 본문 1개 + 댓글 2개 = 3개.
+                // .markdown-wrap 클래스는 실제 이슈/댓글 본문 외에도 markdownEditor 프래그먼트가
+                // 제공하는 문법 도움말/미리보기 블록에도 붙어있어 전체 개수가 불안정하다 — 실제
+                // 렌더링된 본문 컨테이너만 div.content.markdown-wrap으로 좁혀 식별한다(본문 1 +
+                // 댓글 2 = 3).
                 doc.select("div.content.markdown-wrap").size shouldBe 3
             }
 

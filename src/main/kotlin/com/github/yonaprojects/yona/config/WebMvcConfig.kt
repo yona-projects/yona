@@ -26,7 +26,7 @@ class WebMvcConfig(
         thymeleafViewResolver.addStaticVariable("feedbackUrl", feedbackUrl)
     }
 
-    // P3-51: Spring Boot 기본 AcceptHeaderLocaleResolver는 defaultLocale이 없으면
+    // Spring Boot 기본 AcceptHeaderLocaleResolver는 defaultLocale이 없으면
     // Accept-Language 헤더가 없는 요청의 로케일을 HttpServletRequest.getLocale()(서버 JVM/OS
     // 시스템 기본 로케일)로 되돌린다 — 배포 환경마다 달라지는 비결정적 동작이다. legacy
     // `application.langs="en-US, ko-KR, ..."`의 첫 값(en-US)이 진짜 기본값이었던 것과 동치가

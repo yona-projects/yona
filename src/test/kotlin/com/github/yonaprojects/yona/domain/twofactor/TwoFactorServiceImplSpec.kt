@@ -56,7 +56,6 @@ class TwoFactorServiceImplSpec : DescribeSpec({
             credential.enabled shouldBe false
             enrollment.rawSecret.isNotBlank() shouldBe true
             enrollment.qrCodeDataUri.startsWith("data:image/png;base64,") shouldBe true
-            // 저장된 secret은 원문이 아니라 암호문이어야 한다.
             (credential.encryptedSecret == enrollment.rawSecret) shouldBe false
             totpSecretEncryptor.decrypt(credential.encryptedSecret) shouldBe enrollment.rawSecret
         }
@@ -216,8 +215,8 @@ class TwoFactorServiceImplSpec : DescribeSpec({
             user.isTwoFactorEnabled shouldBe false
         }
 
-        // 법적 컴플라이언스 감사 #10 대응 — 계정 탈취 시나리오에서 공격자가 방어 수단을 끄는
-        // 것이 가장 민감한 이벤트라 본인/관리자 강제 여부와 무관하게 항상 알린다.
+        // 계정 탈취 시나리오에서 공격자가 방어 수단을 끄는 것이 가장 민감한 이벤트라
+        // 본인/관리자 강제 여부와 무관하게 항상 알린다.
         it("실제로 등록돼 있던 2FA를 비활성화하면 계정 소유자에게 알림 메일을 보내야 한다") {
             val notifyUser = User(id = 40L, loginId = "notifyme", name = "알림대상", email = "notifyme@example.com")
             val totp = TwoFactorTotpCredential(id = 32L, user = notifyUser, enabled = true)

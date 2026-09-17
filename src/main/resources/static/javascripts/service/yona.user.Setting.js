@@ -43,14 +43,10 @@
         /**
          * initialize elements
          *
-         * 이 모듈은 user/edit.html, user/edit_password.html, user/edit_notifications.html,
-         * user/edit_tokens*.html, user/edit_token.html, user/edit_emails.html 등 여러
-         * 화면에서 공통으로 $yona.loadModule("user.Setting")로 로드된다 - 화면마다 아래
-         * 요소 중 일부만 실제로 존재한다(예: #avatarCropWrap은 user/edit.html 프로필 탭에만
-         * 있음). 원본 jQuery 셀렉터는 매치가 없어도 빈 컬렉션(길이 0)을 반환해 이후
-         * .find()/.on() 호출이 조용히 no-op이 됐으므로, 네이티브 전환에서는 존재하지
-         * 않는 화면에서 null이 되도록 하고 사용처마다 null 가드를 둬 동일하게 no-op을
-         * 재현한다.
+         * 이 모듈은 user/edit*.html 여러 화면에서 공통으로 로드되어, 화면마다 아래 요소 중
+         * 일부만 실제로 존재한다. 원본 jQuery는 매치 없는 셀렉터도 빈 컬렉션을 반환해
+         * 이후 .find()/.on()이 조용히 no-op이었으므로, 없는 화면에서는 null이 되도록 하고
+         * 사용처마다 null 가드를 둬 동일하게 재현한다.
          */
         function _initElement(){
             htElement.welFormBasic = document.getElementById("frmBasic");
@@ -115,11 +111,7 @@
             if(htVar.bUseCropper && htElement.welAvatarCropWrap){
                 htElement.welBtnSubmitCrop.addEventListener("click", _onClickBtnSubmitCrop);
                 htElement.welAvatarCropImg.addEventListener("load", _onAvatarCropImageLoad);
-                // #avatarCropWrap은 user/edit.html(프로필 탭)에만 있다 - user.Setting.js가
-                // 로드되는 다른 탭(예: 비밀번호 변경)에는 없어 welAvatarCropWrap이 null이 된다
-                // (원본 jQuery는 빈 컬렉션에 .on()을 걸어도 조용히 no-op이었다 - 위 null 체크로
-                // 동일하게 재현).
-                // #avatarCropWrap은 네이티브 <dialog>로 바뀌었으니(data-backdrop="static"이라
+                // #avatarCropWrap이 네이티브 <dialog>로 바뀌면서(data-backdrop="static"이라
                 // 배경 클릭으로는 안 닫힘) Bootstrap의 "hidden" 대신 네이티브 "close" 이벤트를 쓴다.
                 htElement.welAvatarCropWrap.addEventListener("close", _clearCropper);
                 $yona.attachDialogDismiss(htElement.welAvatarCropWrap, true);
@@ -195,9 +187,9 @@
         function _showCropper(oRes){
             _clearCropper();
 
-            // Jcrop 시절부터 있던 기존 버그(P3-46 전환 중 발견, 사용자 확인 후 함께 수정):
-            // 크롭 결과를 canvas.toBlob()으로 인코딩할 때 원본 mimeType을 넘기지 않아 항상
-            // PNG로 고정 인코딩됐다 — 원본 형식을 기억해뒀다가 그대로 써서 원본 형식을 보존한다.
+            // Jcrop 시절부터 있던 기존 버그: 크롭 결과를 canvas.toBlob()으로 인코딩할 때 원본
+            // mimeType을 넘기지 않아 항상 PNG로 고정 인코딩됐다 - 원본 형식을 기억해뒀다가
+            // 그대로 써서 보존한다.
             htVar.sAvatarMimeType = oRes.mimeType;
 
             htElement.welAvatarCropImg.setAttribute("src", oRes.url);

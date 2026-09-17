@@ -78,15 +78,11 @@
             });
 
             // 원본 jQuery 코드는 .on("click", htElement.welMilestoneRefresh, _onReloadMilestone)로
-            // 델리게이트 셀렉터 자리에 문자열이 아니라 jQuery 객체를 넘겼다 - jQuery의 .on()
-            // 오버로드 해석 규칙상 이 경우 델리게이션이 성립하지 않고 (selector, data, fn) ->
-            // (undefined, welMilestoneRefresh, _onReloadMilestone)로 재해석되어, 결과적으로
-            // #options 컨테이너 전체에 바로 바인딩된다(전달한 값은 event.data로 들어가지만
-            // _onReloadMilestone은 인자를 쓰지 않는다). 즉 #options 안 어디를 클릭해도
-            // 마일스톤 갱신이 실행되는 기존 버그다 - 동작을 바꾸지 않기 위해 그대로 재현한다.
-            // 다만 #options 자체가 현재 issue/create.html, issue/edit.html 어디에도 없어(스테일
-            // 배선) jQuery에서도 원래 빈 선택자라 이 바인딩은 실제로는 무동작이었다 - null
-            // 가드로 동일하게 보존한다.
+            // 델리게이트 셀렉터 자리에 문자열이 아닌 jQuery 객체를 넘겼다 - jQuery의 .on() 오버로드
+            // 해석 규칙상 이는 (selector, data, fn) -> (undefined, ..., _onReloadMilestone)로
+            // 재해석돼 #options 전체에 바로 바인딩되는 기존 버그다(안 어디를 클릭해도 마일스톤
+            // 갱신이 실행됨) - 동작을 바꾸지 않기 위해 그대로 재현한다. 다만 #options 자체가
+            // 현재 어느 템플릿에도 없어 jQuery에서도 이미 무동작이었다 - null 가드로 보존한다.
             if(htElement.welIssueOptions){
                 htElement.welIssueOptions.addEventListener("click", _onReloadMilestone);
             }
@@ -100,11 +96,10 @@
 
             temporarySaveHandler(htElement.welTextarea);
 
-            // P3-46 #5: Select2(v3) -> Tom Select 교체. 인스턴스는 htElement.welAssignee.tomselect로
-            // 접근한다(yona.issue.Assginee.js가 생성). weEvt.val은 yona.ui.TomSelect.js의
-            // bridgeChangeEvent가 원본 select2 "change" 이벤트와 동일한 모양으로 채워 넣어준다.
-            // setValue의 두 번째 인자(silent:true)는 이 정규화 재설정이 또 다른 change를 유발해
-            // 무한루프로 이어지지 않도록 막는다.
+            // 인스턴스는 htElement.welAssignee.tomselect로 접근한다(yona.issue.Assginee.js가
+            // 생성). weEvt.val은 yona.ui.TomSelect.js의 bridgeChangeEvent가 원본 select2
+            // "change" 이벤트와 동일한 모양으로 채워 넣어준다. setValue의 두 번째 인자
+            // (silent:true)는 이 정규화 재설정이 또 다른 change로 무한루프에 빠지지 않게 막는다.
             htElement.welAssignee.addEventListener("change", function(weEvt){
                 var tomSelectInstance = htElement.welAssignee && htElement.welAssignee.tomselect;
                 if(tomSelectInstance){
@@ -112,15 +107,10 @@
                 }
             });
 
-            // 범위 밖 발견(최종 보고 참고): data("forceChange")는 어느 템플릿/JS에서도 설정된 적이
-            // 없어 이 분기는 원본(select2)에서도 이미 도달 불가능한 죽은 코드였다. Tom Select는
-            // 애초에 "select2-selecting" 이벤트를 발생시키지 않으므로 이 바인딩은 등록은 되지만
-            // 결코 실행되지 않는다 - 동작 변화가 없어 그대로 보존한다.
-            // 6단계(jQuery 완전 제거): jQuery.data(el, key) 정적 접근자를 순수 expando
-            // 프로퍼티 읽기로 바꿨다 - 무엇으로도 절대 설정된 적 없는 죽은 참조라 항상
-            // undefined였고(원본 jQuery .data()도 이 키를 설정하는 곳이 없으니 항상 undefined),
-            // 이 프로퍼티도 마찬가지로 항상 undefined다(완전 동치, 도달 불가능이라 실질적
-            // 영향 없음).
+            // data("forceChange")는 어느 템플릿/JS에서도 설정된 적이 없어 원본(select2)에서도
+            // 이미 도달 불가능한 죽은 코드였다. Tom Select는 애초에 "select2-selecting"
+            // 이벤트를 발생시키지 않으므로 이 바인딩은 등록만 되고 결코 실행되지 않는다 -
+            // 동작 변화가 없어 그대로 보존한다.
             htElement.welAssignee.addEventListener("select2-selecting", function(weEvt){
                 if(weEvt.object && weEvt.object.element._forceChange){
                     htElement.welAssignee.dispatchEvent(new Event("change"));

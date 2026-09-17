@@ -456,13 +456,10 @@ class IssueController(
         return ResponseEntity.ok(result)
     }
 
-    // P3-52 항목1 — legacy IssueApi.commentNotiRecivers() 대응. 댓글 작성 중(디바운스) "지금 이
-    // 내용으로 등록하면 누구에게 알림이 갈지" 미리보기. legacy는 임시 IssueComment를 만들어
-    // NotificationEvent.getMandatoryReceivers(comment, NEW_COMMENT)를 호출하지만, yona
-    // CommentServiceImpl.createIssueComment()는 이미 더 단순화된 대응 로직(baseWatchers=이슈
-    // 작성자 + watchService.findActualWatchers(ISSUE_POST, NEW_COMMENT) + 멘션 - 본인)으로
-    // 실제 알림을 발행한다 — 미리보기가 실제 발행 결과와 어긋나지 않도록 그 로직을 그대로
-    // 재사용한다(범위는 legacy와 동일하게 이슈 댓글 한정, 게시글/PR 댓글은 대상 아님).
+    // legacy IssueApi.commentNotiRecivers() 대응 — 댓글 작성 중 "지금 등록하면 누구에게 알림이
+    // 갈지" 미리보기. CommentServiceImpl.createIssueComment()가 실제 알림을 발행할 때 쓰는 것과
+    // 동일한 로직(baseWatchers=이슈 작성자 + findActualWatchers(ISSUE_POST, NEW_COMMENT) + 멘션 -
+    // 본인)을 그대로 재사용해 미리보기가 실제 발행 결과와 어긋나지 않게 한다.
     @PostMapping("/{number}/commentNotiReceivers")
     fun commentNotiReceivers(
         @PathVariable projectId: Long,

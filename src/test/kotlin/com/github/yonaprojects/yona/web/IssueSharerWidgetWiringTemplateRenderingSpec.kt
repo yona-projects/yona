@@ -30,12 +30,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// P3-66: legacy issue/view.scala.html의 이슈 공유자(Sharer) 위젯(hidden input #issueSharer +
-// service/yona.issue.Sharer.js + yonaIssueSharerModule(...) 초기화)이 yona issue/view.html에는
-// #issueSharer가 순수 텍스트 입력(type="text")으로 퇴화한 채, 스크립트 로드/초기화 호출이 아예
-// 없었다(yona.issue.Sharer.js는 이미 Tom Select로 이식돼 있었지만 어느 템플릿에서도 호출되지
-// 않는 죽은 코드였음 - P3-46 #5 당시 "범위 밖 발견"). 백엔드(IssueShareController의
-// findSharer/sharableUsers/share)는 이미 준비돼 있으므로, 이 스펙은 담당자(Assginee) 위젯과
+// legacy의 이슈 공유자(Sharer) 위젯(hidden input #issueSharer + yona.issue.Sharer.js +
+// yonaIssueSharerModule 초기화)이 yona에는 텍스트 입력으로 퇴화한 채 스크립트 로드/초기화가
+// 아예 빠져 있었다. 백엔드(findSharer/sharableUsers/share)는 준비돼 있으므로 담당자 위젯과
 // 동일한 패턴으로 배선이 복원됐는지만 검증한다.
 @Transactional
 class IssueSharerWidgetWiringTemplateRenderingSpec @Autowired constructor(

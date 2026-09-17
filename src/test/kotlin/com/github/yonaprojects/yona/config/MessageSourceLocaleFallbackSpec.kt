@@ -17,13 +17,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.util.Locale
 
-// P3-51: Spring Boot의 spring.messages.fallback-to-system-locale 기본값(true)은 요청 로케일
-// 전용 번들 파일(예: messages_en.properties)이 없으면 root(messages.properties, 영어) 이전에
-// "서버 JVM 시스템 기본 로케일" 번들을 먼저 시도한다. 이 개발 샌드박스처럼 JVM 기본 로케일이
-// ko_KR인 환경에서는 Locale.ENGLISH를 명시해도 한국어 메시지가 새어나온다 — 배포 환경마다
-// 달라지는 비결정적 버그(legacy `application.langs`의 결정적 첫 값 en-US와 동치가 아님).
-// application.yml에 spring.messages.fallback-to-system-locale: false를 추가해 root(영어)
-// 번들로만 결정적으로 폴백하도록 고정한다.
+// Spring Boot의 spring.messages.fallback-to-system-locale 기본값(true)은 요청 로케일 전용
+// 번들이 없으면 root(영어) 이전에 "서버 JVM 시스템 기본 로케일" 번들을 먼저 시도한다 — JVM
+// 기본 로케일이 ko_KR인 환경에서는 Locale.ENGLISH를 명시해도 한국어가 새어나오는, 배포 환경마다
+// 달라지는 비결정적 버그다. application.yml에 fallback-to-system-locale: false를 추가해
+// root(영어) 번들로만 결정적으로 폴백하도록 고정한다.
 class MessageSourceLocaleFallbackSpec @Autowired constructor(
     private val messageSource: MessageSource,
     private val wac: WebApplicationContext,

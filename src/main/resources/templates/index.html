@@ -137,8 +137,7 @@
 
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function(){
-        // _contentHeight: jQuery .height()(콘텐츠 박스 높이, padding/border 제외)와 동일 - 라운드5에서
-        // 확립한 헬퍼와 동일한 계산.
+        // _contentHeight: jQuery .height()(padding/border 제외한 콘텐츠 높이)와 동일하게 계산.
         function _contentHeight(el) {
             var style = getComputedStyle(el);
             return el.clientHeight - parseFloat(style.paddingTop || 0) - parseFloat(style.paddingBottom || 0);
@@ -218,9 +217,8 @@
         }
 
         // #setDefaultLoginPage는 data-toggle="popover" data-trigger="hover" 마크업이라
-        // Common.js가 이미 갖춘 네이티브 hover popover 구현(initHoverPopovers, registerModule이
-        // loadModule마다 자동으로 [data-toggle=popover]에 호출하는 것과 동일 메커니즘)을 그대로
-        // 재사용한다 - Bootstrap2 .popover() 플러그인 호출을 대체(P3-70 라운드9).
+        // Common.js의 네이티브 hover popover 구현(initHoverPopovers)으로 처리한다 -
+        // Bootstrap2 .popover() 플러그인 호출을 대체.
         $yona.initHoverPopovers("#setDefaultLoginPage");
         var elSetDefaultLoginPage = document.getElementById("setDefaultLoginPage");
         if (elSetDefaultLoginPage) {

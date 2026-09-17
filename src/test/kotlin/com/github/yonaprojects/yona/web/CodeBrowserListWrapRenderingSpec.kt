@@ -57,10 +57,10 @@ class CodeBrowserListWrapRenderingSpec @Autowired constructor(
                     Project(name = "cbw-proj", owner = "cbw-owner", projectScope = ProjectScope.PUBLIC, vcs = "GIT")
                 )
                 val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
-                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이
-                // 중단돼 objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다
-                // (실측 확인, 2026-09-07) — gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을
-                // 건너뛴다. 실제 초기화 완료 여부(HEAD 파일)로 판단해야 안전하다.
+                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이 중단돼
+                // objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다 —
+                // gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을 건너뛴다. 실제 초기화 완료
+                // 여부(HEAD 파일)로 판단해야 안전하다.
                 if (!File(gitDir, "HEAD").exists()) {
                     repositoryService.getRepository(project).create()
                     BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# cbw-proj", "테스트")
@@ -70,9 +70,8 @@ class CodeBrowserListWrapRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                // 폴더 목록 마크업 자체는 원래도 응답 본문에 있었다(버그가 아니었음) — 문제는 이걸
-                // 보이게 만드는 CSS가 렌더링되지 않던 것이므로, 목록 마크업이 아니라 그 CSS 규칙이
-                // 실제로 응답에 포함되는지를 검증해야 이 버그를 정확히 잡아낸다.
+                // 목록 마크업 자체는 원래도 응답 본문에 있었다 — 문제는 이걸 보이게 만드는 CSS가
+                // 렌더링되지 않던 것이므로, CSS 규칙이 응답에 포함되는지를 검증해야 이 버그를 잡는다.
                 body shouldContain "README.md"
                 body shouldContain ".list-wrap {"
             }
@@ -95,10 +94,10 @@ class CodeBrowserListWrapRenderingSpec @Autowired constructor(
                     Project(name = "cbw-proj", owner = "cbw-owner", projectScope = ProjectScope.PUBLIC, vcs = "GIT")
                 )
                 val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
-                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이
-                // 중단돼 objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다
-                // (실측 확인, 2026-09-07) — gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을
-                // 건너뛴다. 실제 초기화 완료 여부(HEAD 파일)로 판단해야 안전하다.
+                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이 중단돼
+                // objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다 —
+                // gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을 건너뛴다. 실제 초기화 완료
+                // 여부(HEAD 파일)로 판단해야 안전하다.
                 if (!File(gitDir, "HEAD").exists()) {
                     repositoryService.getRepository(project).create()
                     BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# cbw-proj", "테스트")
@@ -126,10 +125,10 @@ class CodeBrowserListWrapRenderingSpec @Autowired constructor(
                     Project(name = "cbw-proj", owner = "cbw-owner", projectScope = ProjectScope.PUBLIC, vcs = "GIT")
                 )
                 val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
-                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이
-                // 중단돼 objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다
-                // (실측 확인, 2026-09-07) — gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을
-                // 건너뛴다. 실제 초기화 완료 여부(HEAD 파일)로 판단해야 안전하다.
+                // gitBaseDir(기본값 /tmp/yona/git)은 세션을 넘나드는 고정 경로라, 예전 실행이 중단돼
+                // objects/refs만 있고 HEAD가 없는 반쪽짜리 bare 저장소가 남아 있을 수 있다 —
+                // gitDir.exists()만 보면 "이미 준비됨"으로 오판해 커밋을 건너뛴다. 실제 초기화 완료
+                // 여부(HEAD 파일)로 판단해야 안전하다.
                 if (!File(gitDir, "HEAD").exists()) {
                     repositoryService.getRepository(project).create()
                     BareCommit(project, owner, gitBaseDir).commitTextFile("README.md", "# cbw-proj", "테스트")

@@ -207,14 +207,10 @@
                             <div th:if="${diffs != null and !diffs.isEmpty()}" th:replace="~{pullrequest/partial_diff :: diff(${diffs}, ${commentThreads}, ${project}, ${pr.toProject}, ${pr.toProject})}"></div>
                             <div class="alert alert-info" th:if="${diffs == null or diffs.isEmpty()}" th:text="#{pullRequest.diff.noChanges}">변경 내역이 없습니다.</div>
                             <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-small"><i class="yobicon-post2"></i></button></div>
-                            <!-- 4단계 복원: legacy CodeCommentBox(플로팅 마크다운 에디터+첨부파일
-                                 팝업). code/diff.html과 동일한 이유로 되살린다 - 이전엔 매번 새
-                                 <textarea> 폼을 tr 뒤에 끼워 넣는 훨씬 단순화된 대체 구현이었다.
-                                 이 위 227~236줄 주석에 남아있던 "P3-55에서 CodeCommentBox.js를
-                                 완전히 제거하기로 결정했다"는 기록은 legacy 재조사 결과 뒤집혔다
-                                 (project_code_diff_restoration_plan 메모 4단계 참고, 사용자
-                                 확인 완료) - 단, "범위 없는 PR 전체 댓글"(common/commentForm)은
-                                 legacy에서도 이 팝업과 무관한 별개 상시 폼이라 그대로 둔다. -->
+                            <!-- legacy CodeCommentBox(플로팅 마크다운 에디터+첨부파일 팝업)를
+                                 code/diff.html과 동일한 이유로 복원한다 - "범위 없는 PR 전체
+                                 댓글"(common/commentForm)은 legacy에서도 이 팝업과 무관한 별개
+                                 상시 폼이라 그대로 둔다. -->
                             <th:block th:if="${canReviewComment}">
                                 <div th:replace="~{common/reviewForm :: reviewForm(${project}, ${reviewCommentResourceType}, ${reviewCommentPostUrl})}"></div>
                             </th:block>
@@ -222,32 +218,22 @@
 
                         <div class="board-comment-wrap">
                             <div class="non-ranged-threads-wrap">
-                                <!-- th:if와 th:replace를 같은 태그에 함께 쓰면 Thymeleaf의 처리
-                                     우선순위(fragment inclusion이 conditional evaluation보다
-                                     먼저 처리됨)상 th:if가 false여도 프래그먼트가 이미 삽입돼
-                                     버려서 ranged 스레드까지 이 영역에 중복 렌더링되는 버그가
-                                     있었다(스레드 중복 렌더링 원인) - th:if를 별도 th:block으로
-                                     감싸 분리해 수정. -->
+                                <!-- th:if와 th:replace를 같은 태그에 쓰면 Thymeleaf가 fragment
+                                     inclusion을 conditional evaluation보다 먼저 처리해 th:if가
+                                     false여도 프래그먼트가 삽입된다 - ranged 스레드까지 중복
+                                     렌더링되던 버그의 원인이라 th:if를 별도 th:block으로 분리했다. -->
                                 <th:block th:if="${commentThreads != null}" th:each="thread : ${commentThreads}">
                                     <th:block th:if="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.NonRangedCodeCommentThread)}">
                                         <div th:replace="~{pullrequest/partial_comment_thread :: thread(${thread}, ${project}, ${pr})}"></div>
                                     </th:block>
                                 </th:block>
                             </div>
-                            <!--
-                             P3-55: legacy 재조사 결과, board-comment-wrap 안에서 "범위 없는
-                             일반 댓글 작성"을 담당하던 것은 reviewForm이 아니라 완전히 별도
-                             파일인 common.commentForm(container, resourceType, action)이었다
-                             (legacy git/viewChanges.scala.html 145줄 - common/commentForm
-                             .scala.html 호출, non-ranged-threads-wrap 바로 다음). reviewForm은
-                             board-comment-wrap 밖의 "BlockComment" 섹션에서 diff 라인/스레드로
-                             yona.CodeCommentBox.js가 동적으로 옮겨 재사용하던 별개의 팝오버
-                             템플릿이었다(그래서 죽은 코드로 판단해 common/reviewForm.html +
-                             yona.CodeCommentBox.js를 완전히 제거했다 - code/diff.html이 이미
-                             별도 vanilla JS 패턴으로 대체한 것과 동일 판단, P3-52). 포팅
-                             과정에서 commentForm에 대응하는 파일이 통째로 누락돼 있던 것을
-                             새로 만들었다(common/commentForm.html) - legacy와 동일 위치에 배치.
-                            -->
+                            <!-- board-comment-wrap의 "범위 없는 일반 댓글 작성"은 reviewForm이
+                             아니라 별도 파일인 common/commentForm(container, resourceType,
+                             action)이 담당한다(legacy git/viewChanges.scala.html 참고) -
+                             reviewForm은 board-comment-wrap 밖에서 yona.CodeCommentBox.js가
+                             diff 라인 스레드로 동적으로 옮겨 재사용하는 별개의 팝오버 템플릿이다.
+                             포팅 시 commentForm 대응 파일이 누락돼 있어 새로 만들었다. -->
                             <th:block th:with="reviewCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT},
                                                commentFormAction=@{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}">
                                 <div th:replace="~{common/commentForm :: commentForm(${project}, ${reviewCommentResourceType}, ${commentFormAction}, ${currentUser}, ${canReviewComment}, ${commitId})}"></div>
@@ -293,9 +279,9 @@
         <div th:replace="~{common/commentDeleteModal :: commentDeleteModal(${commentsContainerSelector})}"></div>
     </th:block>
 
-    <!-- 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은 트리거에서 제거했다(아래
-         스크립트가 직접 showModal() 호출) - bootstrap.js(미수정) 자체의 전역 데이터 API
-         델리게이트와의 충돌(InvalidStateError, Playwright로 재현 확인) 회피. -->
+    <!-- 네이티브 <dialog>. data-toggle="modal"은 트리거에서 제거했다(아래 스크립트가 직접
+         showModal() 호출) - bootstrap.js(미수정)의 전역 데이터 API 델리게이트와 충돌해
+         InvalidStateError가 발생하는 것을 Playwright로 확인해 회피했다. -->
     <dialog id="helpMessage" class="modal pullreq-info" th:if="${tab == 'overview'}">
         <div class="modal-header">
             <h5 th:text="#{pullRequest.merge.help.1}">도움말</h5>
@@ -318,17 +304,16 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<!-- P3-46 #6+7: markdown fragment(yona.Markdown.js 로드 포함)를 반드시 scripts fragment
-     (yona-lib.js 포함, 구버전 yona.Markdown 사본이 박혀있음) 뒤로 옮겨야 새 정의가 번들의
-     구식 정의를 덮어쓴다 — 원래 이 페이지는 순서가 반대였다(다른 모든 페이지는 이미 scripts가
-     먼저였음). 자세한 경위는 site/layout.html::markdown(project) fragment의 주석 참고. -->
+<!-- markdown fragment(yona.Markdown.js 로드)는 scripts fragment(yona-lib.js, 구버전
+     yona.Markdown 사본 포함) 뒤에 와야 새 정의가 번들의 구식 정의를 덮어쓴다 - 이 페이지만
+     순서가 반대였다. 자세한 경위는 site/layout.html::markdown(project) fragment 주석 참고. -->
 <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
-<!-- 3단계: 드래그 다중행 범위선택 - common/yona.CodeCommentBlock.js는 이미 완전한 vanilla
-     포팅으로 존재했지만 어느 템플릿도 로드하지 않아 죽어 있었다. -->
+<!-- common/yona.CodeCommentBlock.js는 완전한 vanilla 포팅으로 이미 존재했지만 어느 템플릿도
+     로드하지 않아 죽어 있었다 - 여기서 로드해 드래그 다중행 범위선택을 되살린다. -->
 <script src="/javascripts/common/yona.CodeCommentBlock.js"></script>
 <script src="/javascripts/common/yona.CodeCommentBox.js"></script>
-<!-- P3-69: legacy service/yobi.git.View.js의 #state 폴링(10초 간격) 대응 — overview 탭에서만
+<!-- legacy service/yobi.git.View.js의 #state 폴링(10초 간격) 대응 — overview 탭에서만
      초기화한다(아래 loadModule 호출의 tab 분기 참고). -->
 <script src="/javascripts/service/yona.pullrequest.View.js"></script>
 <script type="text/javascript" th:inline="javascript">
@@ -337,8 +322,8 @@
       var prNumber = [[${pr.number}]];
       var tab = [[${tab}]];
 
-      // 도움말 모달 오픈(P3-70 라운드9) - data-toggle="modal"을 쓰지 않고 직접 showModal()을
-      // 호출한다(위 <dialog> 주석 참고, tab=='overview'일 때만 두 엘리먼트 모두 존재).
+      // 도움말 모달 오픈 - data-toggle="modal"을 쓰지 않고 직접 showModal()을 호출한다
+      // (위 <dialog> 주석 참고, tab=='overview'일 때만 두 엘리먼트 모두 존재).
       var elHelpMessage = document.getElementById("helpMessage");
       if (elHelpMessage) {
           $yona.attachDialogDismiss(elHelpMessage);
@@ -364,10 +349,9 @@
           }).join("&");
       }
 
-      // P3-69: legacy service/yobi.git.View.js의 _setStateUpdateTimer() 대응 — overview 탭에서만
+      // legacy service/yobi.git.View.js의 _setStateUpdateTimer() 대응 — overview 탭에서만
       // #state/#pr-accept-button을 10초 간격으로 폴링한다. PR이 이미 CLOSED/MERGED거나 병합
-      // 진행 중(isMerging)이면 shouldPoll=false로 넘겨 애초에 타이머를 만들지 않는다
-      // (partial_state.html의 최상위 조건 분기 참고 — 이 상태들에서는 더 이상 바뀌지 않는다).
+      // 진행 중(isMerging)이면 shouldPoll=false로 넘겨 타이머 자체를 만들지 않는다.
       if (tab === 'overview') {
           $yona.loadModule("pullrequest.View", {
               "stateUrl": [[@{/{owner}/{projectName}/pull/{number}/state(owner=${project.owner}, projectName=${project.name}, number=${pr.number})}]],
@@ -389,9 +373,9 @@
           });
       }
 
-      // legacy partial_info.scala.html의 accept 버튼(#btnAccept) 대응. P3-69: 폴링이 상태
-      // 갱신 시 이 버튼(#pr-accept-button 내부)을 통째로 다시 렌더링해 DOM에서 교체하므로,
-      // 폴링 이후에도 클릭이 계속 동작하도록 직접 바인딩이 아닌 위임(delegated) 방식으로 건다.
+      // legacy partial_info.scala.html의 accept 버튼(#btnAccept) 대응. 폴링이 상태 갱신 시
+      // 이 버튼(#pr-accept-button 내부)을 통째로 다시 렌더링해 DOM에서 교체하므로, 폴링
+      // 이후에도 클릭이 계속 동작하도록 직접 바인딩이 아닌 위임(delegated) 방식으로 건다.
       document.addEventListener("click", function(e) {
           var matched = e.target.closest("#btnAccept");
           if (!matched) { return; }
@@ -500,9 +484,9 @@
       if (elBtnReviewRequestChanges) { elBtnReviewRequestChanges.addEventListener('click', function() { submitPullRequestReview('REQUEST_CHANGES'); }); }
       if (elBtnReviewComment) { elBtnReviewComment.addEventListener('click', function() { submitPullRequestReview('COMMENT'); }); }
 
-      // [data-request-method] 범용 처리(닫기/다시열기/브랜치 삭제·복구 등). P3-69: 브랜치
-      // 삭제/복구 버튼은 #state 안(pullrequest/partial_state)에 있어 폴링이 갱신할 때마다
-      // DOM에서 새로 그려지므로, 위 #btnAccept와 동일한 이유로 위임 방식으로 건다.
+      // [data-request-method] 범용 처리(닫기/다시열기/브랜치 삭제·복구 등). 브랜치 삭제/복구
+      // 버튼은 #state 안(pullrequest/partial_state)에 있어 폴링이 갱신할 때마다 DOM에서 새로
+      // 그려지므로, 위 #btnAccept와 동일한 이유로 위임 방식으로 건다.
       document.addEventListener('click', function(e) {
           var matched = e.target.closest('[data-request-method]');
           if (!matched || matched.id === 'btnAccept') { return; }
@@ -527,17 +511,14 @@
           });
       });
 
-      // P3-52 항목4 — code/diff.html에는 있던 "diff 줄 클릭 -> 그 줄에 새 리뷰 댓글 작성 폼"
-      // UI가 PR 코드리뷰(changes 탭)에는 없었다(기존 스레드는 partial_diff_comment_on_line로
-      // 잘 보이지만 "시작"하는 UI 자체가 없었음 — 백엔드 POST .../pullRequest/{id}/comments는
-      // 이미 codeRange를 받을 수 있어 프론트엔드 배선만 빠져 있었다). code/diff.html과 동일한
-      // 패턴(네이티브 <form> 삽입 + 실제 POST/Redirect/GET, AJAX 아님 — ReviewViewController.
-      // newPullRequestComment()도 "redirect:..."를 반환하는 고전적 패턴)으로 이식한다.
+      // code/diff.html에는 있던 "diff 줄 클릭 -> 그 줄에 새 리뷰 댓글 작성 폼" UI가 PR
+      // 코드리뷰(changes 탭)에는 없었다(백엔드 POST .../pullRequest/{id}/comments는 이미
+      // codeRange를 받을 수 있어 프론트엔드 배선만 빠져 있었다). code/diff.html과 동일한
+      // 패턴(네이티브 <form> 삽입 + 실제 POST/Redirect/GET, AJAX 아님)으로 이식한다.
       var changesRoot = document.getElementById('changes');
-      // P3-70 라운드1: jQuery .data()는 문자열 "true"/"false"를 실제 boolean으로 자동 변환하지만
-      // 네이티브 dataset은 항상 문자열을 돌려준다 - data-can-review-comment="false"가 dataset
-      // 접근 시 그대로 truthy한 "false" 문자열이 되어 게이트가 깨지는 것을 막기 위해 명시적으로
-      // 문자열 "true"와 비교한다.
+      // jQuery .data()는 문자열 "true"/"false"를 boolean으로 자동 변환하지만 네이티브 dataset은
+      // 항상 문자열을 돌려준다 - data-can-review-comment="false"가 그대로 truthy한 문자열이 되어
+      // 게이트가 깨지는 것을 막기 위해 명시적으로 문자열 "true"와 비교한다.
       if (changesRoot && changesRoot.dataset.canReviewComment === 'true') {
           var reviewCommentCommitId = changesRoot.dataset.commitId;
 
@@ -549,14 +530,8 @@
               tr.addEventListener('mouseleave', function() { btnCell.style.color = 'transparent'; });
           });
 
-          // ===== 3~4단계 복원: 드래그 다중행 범위선택(CodeCommentBlock) + 플로팅 댓글 상자
-          // (CodeCommentBox) ===== code/diff.html과 완전히 동일한 이유·패턴으로 연결한다 -
-          // common/yona.CodeCommentBlock.js는 이미 완전한 vanilla 포팅으로 존재했지만 로드하는
-          // 템플릿이 없어 죽어 있었다. 위 224~234줄의 "P3-55에서 CodeCommentBox.js를 완전히
-          // 제거하기로 결정했다"는 기록은 legacy 재조사 결과 뒤집혔다(project_code_diff_
-          // restoration_plan 메모 4단계 참고, 사용자 확인 완료) - 매번 새 <textarea> 폼을 tr
-          // 뒤에 끼워 넣던 이전 구현(insertReviewCommentForm)을 legacy와 동일한 "단일 팝업
-          // 재사용" 아키텍처로 교체했다.
+          // 드래그 다중행 범위선택(CodeCommentBlock) + 플로팅 댓글 상자(CodeCommentBox) -
+          // code/diff.html과 동일한 패턴으로 연결한다(위 CodeCommentBox 복원 주석 참고).
           var diffBodyEl = changesRoot.querySelector('.diff-body');
           var btnPopEl = changesRoot.querySelector('.btnPop');
           if (diffBodyEl && btnPopEl && typeof yona !== 'undefined' && yona.CodeCommentBlock && yona.CodeCommentBox) {
@@ -665,11 +640,9 @@
           }
       }
 
-      // ===== code.Diff.js 1단계 복원: 미니맵/해시 딥링크/스레드 접기·펴기/리뷰 사이드바 sticky =====
-      // code/diff.html에 이식한 것과 동일한 기능 - "changes" 탭에서만 의미가 있다(다른 탭엔
-      // #minimap/.comment-thread-wrap/.review-container 자체가 없다). project_code_diff_
-      // restoration_plan 메모의 1단계, code/diff.html과 동일한 로직을 이 화면 구조(data-line/
-      // data-side는 partial_diff_line.html이 이미 legacy와 동일하게 갖추고 있다)에 맞춰 반복한다.
+      // 미니맵/해시 딥링크/스레드 접기·펴기/리뷰 사이드바 sticky - code/diff.html에 이식한 것과
+      // 동일한 기능이며 "changes" 탭에서만 의미가 있다(다른 탭엔 #minimap/.comment-thread-wrap/
+      // .review-container 자체가 없다).
       if ([[${tab == 'changes'}]]) {
         (function(){
           var elMiniMap = document.getElementById("minimap");
@@ -803,15 +776,11 @@
           if (location.hash) { onHashChange(); }
         })();
 
-        // position:sticky로는 부모 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어(기존
-        // 판단 그대로 유지) Bootstrap2 jQuery 플러그인 .affix()의 checkPosition() 알고리즘을
-        // bootstrap.js(v2.3.1, 미수정)에서 그대로 옮겨와 재현했다(P3-70 라운드9, code/diff.html의
-        // 동일 블록과 완전히 동일한 구현 - offset.top만 쓰는 호출이라 "top"/false 두 상태만
-        // 재현하면 완전 동치).
-        // P3-70 라운드10: setReviewListHeight 내부의 나머지 jQuery 코어 호출(.offset()/
-        // .position()/.outerHeight()/.css()/$(window)/$(document))도 제거했다 - code/diff.html과
-        // 완전히 동일한 방식으로 jQuery 3.3.1 core/offset.js의 .offset()/.position() 계산식을
-        // 그대로 이식했다.
+        // position:sticky로는 부모 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어
+        // Bootstrap2 .affix()의 checkPosition() 알고리즘을 bootstrap.js(v2.3.1)에서 그대로
+        // 옮겨와 재현했다(offset.top만 쓰므로 "top"/false 두 상태만 재현하면 동치).
+        // setReviewListHeight의 나머지 jQuery 코어 호출(.offset()/.position()/.outerHeight()
+        // 등)도 jQuery 3.3.1 core/offset.js의 계산식 그대로 네이티브로 옮겼다.
         (function(){
           function cssNum(el, sProp){
             var n = parseFloat(getComputedStyle(el)[sProp]);

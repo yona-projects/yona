@@ -4,33 +4,25 @@
 </head>
 <body>
 <!--
- legacy common/commentUpdateForm.scala.html 대응 (#25, 이번 그룹11 세션에서 실제 착수). 댓글
- 인라인 수정 폼 — 기본은 숨김(.comment-update-form은 CSS로 display:none, JS가 "수정" 버튼 클릭 시
- comment-body를 감추고 이 폼을 보여준다).
+ 댓글 인라인 수정 폼(legacy common/commentUpdateForm.scala.html 대응) - 기본은 숨김
+ (.comment-update-form은 CSS로 display:none, "수정" 버튼 클릭 시 JS가 comment-body를 감추고
+ 이 폼을 보여준다).
 
- legacy는 <form action="@action/@comment.id" method="post" enctype=multipart/form-data> 풀 페이지
- 제출 방식이지만, yona 백엔드는 REST(PUT /api/projects/{projectId}/issues|posts/{number}/comments/
- {commentId})만 제공하므로 이 폼은 실제 제출을 막고(JS가 preventDefault) fetch PUT으로 대체한다 —
- 필요한 AJAX 전환(정책 문서 "필요한 아키텍처 차이"에 해당, scope-cutting 아님).
+ legacy는 풀 페이지 POST 제출 방식이지만, yona 백엔드는 REST(PUT /api/projects/{projectId}/
+ issues|posts/{number}/comments/{commentId})만 제공하므로 이 폼은 실제 제출을 막고(JS가
+ preventDefault) fetch PUT으로 대체한다.
 
- P3-50: 새 글 작성용 범용 common/uploadForm 프래그먼트 재사용을 legacy 전용 마크업
- (.file-upload__input/.temporaryUploadFiles/.attachment-files)으로 되돌렸다 — 이미 이식돼 있던
- yona.CommentAttachmentsUpdate.js(이 파일 하단에서 issue/board view가 로드)가 바로 이 마크업의
- 클릭/드래그드롭/붙여넣기/삭제 이벤트를 담당하도록 원래 설계돼 있었다. "알림 메일 받기"
- 체크박스는 댓글 작성자 본인에게만 노출되고(legacy와 동일), CommentController의
- sendNotificationMail 필드로 전달돼 CommentServiceImpl이 COMMENT_UPDATED 알림을 실제로
- 발행한다(작성자가 아닌 사람이 수정하면 체크박스와 무관하게 항상 발행 — legacy
- IssueApp/BoardApp.saveComment()와 동일).
+ "알림 메일 받기" 체크박스는 댓글 작성자 본인에게만 노출되지만, 작성자가 아닌 사람이 수정하면
+ 체크박스와 무관하게 COMMENT_UPDATED 알림이 항상 발행된다(legacy IssueApp/BoardApp.saveComment()와
+ 동일 동작).
 -->
 <!--
- P3-60: th:action은 REST JSON API(apiBase, PUT + application/json 전체 댓글 수정용)가 아니라
- legacy 호환 bare 경로(CommentController.updateIssueCommentLegacyPath/updatePostingCommentLegacyPath,
- PUT/PATCH 둘 다 허용, {content, original} 필드명)를 가리켜야 한다 — yona.Tasklist.js가 댓글
- 본문의 체크박스를 클릭할 때 정확히 이 폼(`$this.closest("div[id]").prev().find("form")`가
- 찾는 폼)의 action으로 PATCH를 보내고 {content, original} JSON을 싣기 때문. 호출부(issue/board
- view)가 각자의 owner/project/issue-or-post 번호로 미리 계산해 contentPatchUrl로 넘긴다(이
- fragment는 issue/board 양쪽에서 재사용돼 URL 세그먼트 이름(issue vs post, comments vs comment)이
- 달라 여기서 직접 계산할 수 없음).
+ th:action은 REST JSON API(apiBase)가 아니라 legacy 호환 bare 경로
+ (CommentController.updateIssueCommentLegacyPath/updatePostingCommentLegacyPath, PUT/PATCH 허용,
+ {content, original} 필드명)를 가리켜야 한다 - yona.Tasklist.js가 댓글 본문 체크박스 클릭 시
+ 정확히 이 폼의 action으로 PATCH를 보내고 {content, original} JSON을 싣기 때문. 호출부(issue/board
+ view)가 owner/project/번호로 미리 계산해 contentPatchUrl로 넘긴다(issue/post 양쪽에서 URL
+ 세그먼트 이름이 달라 여기선 직접 계산할 수 없음).
 -->
 <div th:fragment="updateForm(comment, apiBase, isAllowedUpdate, resourceType, attachments, contentPatchUrl)" th:id="'comment-editform-' + ${comment.id}" class="comment-update-form">
     <form th:id="'comment-update-form-' + ${comment.id}" th:action="${contentPatchUrl}" th:data-api-base="${apiBase}" th:data-comment-id="${comment.id}" th:data-original="${comment.contents}">
@@ -38,15 +30,13 @@
             <div class="write-comment-wrap">
                 <div th:replace="~{site/layout :: markdownEditor('contents-' + ${comment.id}, ${comment.contents}, 'update-comment-body')}"></div>
 
-                <!-- Vue 3 SFC(components/vue-widgets, 2026-09-17 적용) - yona.CommentAttachmentsUpdate.js
-                     (240줄) 흡수. 드롭존/업로드 버튼/카드 목록을 <yona-attachments>가 자체 소유한다.
-                     기존 첨부파일은 resourceType/resourceId 기반 네트워크 조회 대신(백엔드
+                <!-- <yona-attachments>가 드롭존/업로드 버튼/카드 목록을 자체 소유한다. 기존
+                     첨부파일은 resourceType/resourceId 기반 네트워크 조회 대신(백엔드
                      AccessControl.isAllowedAttachment()가 ISSUE_COMMENT/NONISSUE_COMMENT를 지원하지
                      않아 항상 403) 서버가 이미 렌더링해둔 마커(common/attachmentFile.html, 화면엔
-                     안 보임)를 마운트 시점에 한 번만 읽어 채운다 - 추가 네트워크 요청 없음. 외부
-                     textarea 연결(붙여넣기/드래그/링크 삽입)은 "수정" 버튼 클릭 시 1회
-                     configure()로 지연 배선한다(issue/board view.html의 [data-toggle="comment-edit"]
-                     핸들러 참고). -->
+                     안 보임)를 마운트 시점에 한 번만 읽어 채운다. 외부 textarea 연결(붙여넣기/
+                     드래그/링크 삽입)은 "수정" 버튼 클릭 시 1회 configure()로 지연 배선한다
+                     (issue/board view.html의 [data-toggle="comment-edit"] 핸들러 참고). -->
                 <yona-attachments>
                     <th:block th:each="attachment : ${attachments}">
                         <div th:replace="~{common/attachmentFile :: attachmentFile(${attachment})}"></div>

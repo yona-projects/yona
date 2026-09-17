@@ -133,8 +133,7 @@ class BoardApiController(
         return ResponseEntity.status(HttpStatus.CREATED).body(created)
     }
 
-    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 해시 아님, v1.6
-    // BoardApi.updatePostingContent()로 확인).
+    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 해시 아님).
     data class LegacyUpdatePostingContentRequest(val content: String = "", val original: String = "")
     data class LegacyPostingAuthorRef(val loginId: String? = null)
     data class LegacyNewPostingItem(

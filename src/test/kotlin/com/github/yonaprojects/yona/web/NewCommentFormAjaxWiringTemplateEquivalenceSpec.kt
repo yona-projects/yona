@@ -27,13 +27,11 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-48 화면별 재현 세션에서 발견: issue/view.html·board/view.html의 새 댓글 등록 폼
-// (#comment-form)이 형제 폼들(.comment-update-form/.child-comment-form)과 달리 AJAX로 전환되지
-// 않은 채 legacy 스타일 풀페이지 multipart 제출로 남아있었는데, 그 th:action이 가리키는
-// "/{owner}/{projectName}/issue/{issueNumber}/comment" · ".../post/{postNumber}/comment" 경로
-// 자체가 어느 컨트롤러에도 매핑돼 있지 않아 실제로 댓글을 등록해보면 항상 404였다(Playwright로
-// 실제 재현). CSRF와는 무관한 별도 결함이지만 P3-48이 요구하는 화면별 실사용 검증 도중 발견해
-// 그 자리에서 함께 고쳤다 — 형제 폼들과 동일하게 REST(POST .../comments)로 전환.
+// issue/view.html·board/view.html의 새 댓글 등록 폼(#comment-form)이 형제 폼들
+// (.comment-update-form/.child-comment-form)과 달리 legacy 스타일 풀페이지 multipart 제출로
+// 남아있었는데, 그 th:action이 가리키는 경로가 어느 컨트롤러에도 매핑돼 있지 않아 실제로
+// 등록하면 항상 404였다(Playwright로 재현). 형제 폼들과 동일하게 REST(POST .../comments)로
+// 전환했다.
 class NewCommentFormAjaxWiringTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,

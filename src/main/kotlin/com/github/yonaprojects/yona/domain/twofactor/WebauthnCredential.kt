@@ -15,13 +15,10 @@ import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
 import java.time.Instant
 
-// Spring Security의 WebAuthnRelyingPartyOperations(WebAuthn4J 기반)가 요구하는
-// CredentialRecord(config/webauthn/WebauthnUserCredentialRepositoryAdapter.kt의
-// toCredentialRecord() 참고)를 왕복 저장하는 데 필요한 필드만 그대로 옮겨 담는다 —
-// attestationObject/attestationClientDataJSON은
-// 인증(assertion) 검증 시 서명 대상 재구성에 실제로 쓰이므로(라이브러리 내부 authenticate()가
-// 저장된 attestationObject에서 공개키를 다시 뽑아 서명을 검증) 저장이 필수다. 계정당 여러 개
-// (보안 키/기기별) 등록 가능 — ssh_key와 동일한 1:N 설계.
+// Spring Security WebAuthnRelyingPartyOperations가 요구하는 CredentialRecord
+// (config/webauthn/WebauthnUserCredentialRepositoryAdapter.kt의 toCredentialRecord() 참고)를
+// 왕복 저장하는 데 필요한 필드만 담는다. attestationObject/attestationClientDataJSON은 인증
+// 검증 시 라이브러리가 공개키를 다시 뽑아 서명을 검증하는 데 쓰이므로 저장이 필수다.
 @Entity
 @Table(name = "user_webauthn_credential")
 class WebauthnCredential(

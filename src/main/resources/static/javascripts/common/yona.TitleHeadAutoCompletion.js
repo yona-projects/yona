@@ -4,13 +4,8 @@
  * Copyright Yona Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
-// P3-46 #3: atjs(jquery.atwho.js) -> Tribute.js 교체.
-//
-// yona.Mention.js와 동일한 이유로 즉시(eager) 등록 방식으로 단순화했다 — atjs 시절엔 "[" 키가
-// 처음 눌렸을 때만 지연 등록했지만, 실제 드롭다운은 여전히 "[" 를 입력했을 때만 나타나므로
-// 사용자 입장에서 차이가 없다. 단, _initTribute()를 _attachEvent()(파이어폭스 IME 폴리필,
-// jQuery.browser 미로드로 인해 항상 TypeError가 발생하는 기존 버그 — 최종 보고 참고)보다 반드시
-// 먼저 호출해 자동완성 등록 자체는 그 크래시의 영향을 받지 않도록 한다.
+// atjs(jquery.atwho.js)를 Tribute.js로 교체. 즉시(eager) 등록 방식으로 단순화했지만, 드롭다운은
+// 여전히 "[" 입력 시에만 나타나므로 사용자 관점에서 동작 차이는 없다.
 function yonaTitleHeadModule(htOptions){
     var htVar = {};
     var htElement = {};
@@ -22,9 +17,8 @@ function yonaTitleHeadModule(htOptions){
     var MAX_QUERY_LEN = 20; // atjs DEFAULT_CALLBACKS.matcher의 maxLen(기본값 20) 이식
 
     /**
-     * atjs DEFAULT_CALLBACKS.highlighter 이식(yona.Mention.js 주석 참고) — Tribute의
-     * menuItemTemplate은 <li> 내부 콘텐츠만 돌려주므로, 원본과 동일한 경계 조건으로 검색어를
-     * <strong>으로 감싸기 위해 임시로 <li>...</li> 로 감쌌다가 다시 벗겨낸다.
+     * Tribute의 menuItemTemplate은 <li> 내부 콘텐츠만 돌려주므로, 검색어를 <strong>으로
+     * 감싸기 위해 임시로 <li>...</li>로 감쌌다가 다시 벗겨낸다.
      */
     function _highlight(innerHtml, query) {
         if (!query) {
@@ -49,9 +43,8 @@ function yonaTitleHeadModule(htOptions){
         _initTribute();
         _attachEvent();
 
-        // P3-46 #5: Select2(v3) -> Tom Select 교체. #labelIds는 yona.ui.TomSelect.js의 자동
-        // 초기화(data-toggle="tomselect")로 생성되므로 인스턴스는 DOM 요소의 .tomselect 프로퍼티로
-        // 접근한다. getValue()는 다중 선택일 때 배열을 돌려준다(select2("val")과 동일한 모양).
+        // #labelIds는 yona.ui.TomSelect.js가 자동 초기화(data-toggle="tomselect")하므로
+        // 인스턴스는 .tomselect 프로퍼티로 접근한다.
         var labelIdsEl = document.getElementById("labelIds");
         if (labelIdsEl && labelIdsEl.tomselect) {
             issueLabels = labelIdsEl.tomselect.getValue();
@@ -83,9 +76,8 @@ function yonaTitleHeadModule(htOptions){
     }
 
     /**
-     * "[" 트리거(이슈 라벨 접두어) 원격 검색. atjs 시절과 동일하게 300ms debounce 후 조회하며,
-     * 매 호출마다(디바운스 전) select2에서 현재 선택된 라벨 목록을 다시 읽어 issueLabels를
-     * 최신화한다(원본 remoteFilter의 순서를 그대로 유지).
+     * "[" 트리거 원격 검색. atjs와 동일하게 300ms debounce 후 조회하며, 호출마다 TomSelect에서
+     * 현재 선택된 라벨 목록을 다시 읽어 issueLabels를 최신화한다.
      */
     function _fetchTitleHeads(query, callback) {
         if (query.length > MAX_QUERY_LEN) {
@@ -108,10 +100,8 @@ function yonaTitleHeadModule(htOptions){
     }
 
     /**
-     * yona.TitleHeadAutoCompletion.js(atjs 버전)의 커스텀 sorter를 그대로 이식한 것 —
-     * searchKey(searchText)로 부분일치 필터링 후 frequency 내림차순 -> category 오름차순 ->
-     * name 오름차순으로 정렬한다. 다른 트리거와 달리 질의가 비어 있어도(빈 문자열이면 모든
-     * 항목이 부분일치하므로) 이 정렬을 그대로 적용한다 — 원본에 `if(!query)` 단락 처리가 없다.
+     * frequency 내림차순 -> category 오름차순 -> name 오름차순으로 정렬한다. 질의가 비어
+     * 있어도 빈 문자열은 모든 항목에 부분일치하므로 별도 처리 없이 그대로 정렬한다(원본 동작 유지).
      */
     function _sortLabels(query, items) {
         var results = [];
@@ -135,23 +125,20 @@ function yonaTitleHeadModule(htOptions){
 
     function _initTribute() {
         tribute = new Tribute({
-            // atjs suffix:"" (자동 공백 삽입 없음)를 그대로 재현 — selectTemplate이 최종 삽입
-            // 텍스트를 직접 반환하므로 Tribute의 전역 접미사는 비워둔다.
+            // selectTemplate이 최종 삽입 텍스트를 직접 반환하므로 전역 접미사는 비워둔다.
             replaceTextSuffix: "",
             collection: [
                 {
                     trigger: "[",
-                    // atjs startWithSpace:false 이식 — 다른 3개 트리거와 달리 공백 없이도
-                    // 바로 뒤에서 매칭을 시작한다.
+                    // 다른 트리거와 달리 공백 없이 바로 뒤에서 매칭을 시작한다.
                     requireLeadingSpace: false,
                     allowSpaces: false,
                     menuShowMinLength: 0,
                     searchOpts: { skip: true },
                     values: _fetchTitleHeads,
-                    // atjs beforeInsert 이식: #labelIds가 있는 화면(issue create/edit)에서는
-                    // 라벨을 select2 쪽에 바로 선택 처리하고 텍스트는 삽입하지 않는다(""를 반환).
-                    // #labelIds가 없는 화면(board create)에서는 "[name]" 텍스트를 그대로 삽입한다
-                    // (suffix가 ""라 뒤에 공백이 붙지 않는다).
+                    // #labelIds가 있는 화면(issue create/edit)에서는 라벨을 select 필드에
+                    // 선택 처리하고 텍스트는 삽입하지 않는다(""를 반환). 없는 화면(board create)
+                    // 에서는 "[name]"을 그대로 삽입한다.
                     selectTemplate: function(item) {
                         var original = item.original;
                         var category = original.category || "";
@@ -169,7 +156,6 @@ function yonaTitleHeadModule(htOptions){
                             }
 
                             issueLabels.push(selectedLabel.value);
-                            // P3-46 #5: Select2(v3) -> Tom Select 교체.
                             if(labelField.tomselect){
                                 labelField.tomselect.setValue(issueLabels);
                             }
@@ -191,8 +177,7 @@ function yonaTitleHeadModule(htOptions){
         if (htElement.elTarget) {
             var el = htElement.elTarget;
             tribute.attach(el);
-            // atjs TextareaController.insert()가 삽입 후 항상 $inputor.change()를 호출하던 것과
-            // 동일하게 유지한다.
+            // 원본이 삽입 후 항상 change 이벤트를 발생시키던 동작을 유지한다.
             el.addEventListener("tribute-replaced", function() {
                 el.dispatchEvent(new Event("change", { bubbles: true }));
             });
@@ -203,11 +188,9 @@ function yonaTitleHeadModule(htOptions){
      * attachEvent
      */
     function _attachEvent() {
-        // 파이어폭스 조합입력(IME) 대응 폴리필 — atjs 시절부터 있던 코드를 그대로 유지한다
-        // (결정 필요 사항: 최종 보고 참고). 예전엔 jQuery.browser가 이 페이지들에 로드되어
-        // 있지 않아 항상 TypeError가 발생해 이 분기가 실행조차 안 됐는데(범위 밖 발견, 최종
-        // 보고 참고), vanilla User-Agent 감지로 바꾸며 그 버그도 함께 고쳤다 — 파이어폭스에서
-        // 실제로 폴리필이 동작하는지 별도 검증 필요.
+        // 파이어폭스 IME 조합 입력 폴리필. 원래 jQuery.browser 미로드로 항상 TypeError가 나서
+        // 이 분기가 실행된 적이 없었는데, UA 감지로 바꾸며 그 버그를 고쳤다 — 파이어폭스에서
+        // 폴리필이 실제로 동작하는지는 아직 검증되지 않았다.
         if (/firefox/i.test(navigator.userAgent) && htElement.elTarget){
             htElement.elTarget.addEventListener("focus", _startKeyupEventGenerator);
             htElement.elTarget.addEventListener("blur", _stopKeyupEventGenerator);

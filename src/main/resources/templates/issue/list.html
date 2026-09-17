@@ -144,10 +144,8 @@
                                 </dd>
                             </dl>
 
-                            <!-- P3-61: legacy issue/partial_searchform.scala.html:106-113 대응 —
-                                 마일스톤으로 필터링 중이면(마일스톤 없음(-1) 제외) 그 마일스톤의
-                                 진행률 카드를 보여준다. project/home.html 사이드바가 이미 쓰는
-                                 것과 동일한 fragment 재사용. -->
+                            <!-- 마일스톤으로 필터링 중이면(마일스톤 없음 제외) 그 마일스톤의 진행률 카드를
+                                 보여준다. project/home.html 사이드바와 동일한 fragment 재사용. -->
                             <th:block th:if="${selectedMilestone != null}">
                                 <div th:replace="~{milestone/partial_status :: status(${selectedMilestone}, ${project})}"></div>
                                 <hr>
@@ -225,12 +223,9 @@
                         </li>
                         <li class="show-subtasks-li">
                             <!-- 자식이슈 펼쳐보기 -->
-                            <!-- 사용자 요청(2026-09-12)으로 정리: legacy common/showSubtasksCheckbox.scala.html
-                                 원본부터 이 wrapper div가 "2단 보기" 위젯과 동일한
-                                 id="two-column-mode-checkbox"를 중복 사용하는 버그가 있었다(legacy
-                                 원본 확인됨). Playwright 실측 결과 실제 popover/체크박스 동작에는
-                                 문제 없었지만(data-toggle 속성 기반 자동 초기화라 id 중복과 무관),
-                                 HTML id 유일성 위반 자체는 정리한다. -->
+                            <!-- legacy 원본부터 이 wrapper가 "2단 보기" 위젯과 동일한
+                                 id="two-column-mode-checkbox"를 중복 사용했다(동작엔 영향 없었으나
+                                 HTML id 유일성 위반이라 이름을 분리). -->
                             <div class="show-subtasks mr10" id="show-subtasks-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" th:title="#{common.show.subtasks}" th:data-content="#{common.show.subtasks.desc}">
                                 <label class="checkbox">
                                     <div class="show-subtasks-button-border">
@@ -249,12 +244,10 @@
 
                     <!-- 이슈 목록 -->
                     <th:block th:if="${!issuePage.content.isEmpty()}">
-                        <!-- P3-XX: position:sticky는 부모 컨테이너 범위를 벗어나
-                             고정될 수 없다(구 Bootstrap .affix()의 position:fixed와
-                             달리) - .mass-update-wrap이 .filter-wrap(필터 툴바만
-                             감싸는 좁은 컨테이너) 안에 있으면 스크롤 시 그 짧은 부모와
-                             함께 화면 밖으로 사라져버린다. 이슈 목록 전체를 감싸는
-                             이 wrapper로 sticky 대상을 옮겨 충분한 스크롤 여백을 준다. -->
+                        <!-- position:sticky는 부모 컨테이너 범위를 벗어나 고정될 수 없다(구 Bootstrap
+                             .affix()의 position:fixed와 달리) - .mass-update-wrap이 좁은 .filter-wrap
+                             안에 있으면 스크롤 시 그 짧은 부모와 함께 사라진다. 이슈 목록 전체를
+                             감싸는 이 wrapper로 sticky 대상을 옮긴다. -->
                         <div class="issue-list-scroll-area">
                             <div class="mass-update-wrap hide-in-mobile" th:if="${currentUser != null && currentUser.isMemberOf(project)}">
                                 <form id="mass-update-form" class="mass-update-form pull-left" th:action="@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}" method="post">
@@ -263,11 +256,10 @@
                                             <input type="checkbox" id="check-all" data-target="checked-issue"/>
                                         </label>
                                     </div>
-                                    <!-- 상태 변경 - Vue 3 SFC(components/vue-widgets dropdown 위젯,
-                                         2026-09-17 적용). 호스트 자신이 원본 .btn-group[data-name]
-                                         컨테이너를 그대로 대신한다(클래스/data-name 유지) - 버튼/목록은
-                                         전부 라이트 DOM 그대로, yona.ui.Dropdown.js가 하이브리드
-                                         어댑터로 getValue/onChange/selectByValue/selectItem을 위임한다. -->
+                                    <!-- 상태 변경 - yona-dropdown이 원본 .btn-group[data-name] 컨테이너를
+                                         그대로 대신한다(클래스/data-name 유지). 버튼/목록은 라이트 DOM
+                                         그대로 두고 yona.ui.Dropdown.js가 하이브리드 어댑터로
+                                         getValue/onChange/selectByValue/selectItem을 위임한다. -->
                                     <yona-dropdown id="state" class="btn-group" data-name="state">
                                         <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
                                             <span class="d-label" th:text="#{issue.update.state}">상태 변경</span>
@@ -392,13 +384,9 @@
                         </div>
                     </th:block>
 
-                    <!-- P3-57: TASK-0249가 board 2곳만 파라미터화된 help/keymap :: keymap(section, project)
-                         fragment로 교체하면서 issue/list.html은 리팩터 이전(하드코딩 복제) 상태로
-                         남아있었다 — 권한 게이트도 여기서 하드코딩된 채 틀려 있었다(설정 메뉴가
-                         매니저 여부와 무관하게 항상 노출, PR 메뉴가 project.vcs=='GIT' 대신
-                         isCodeEnabled로만 판단돼 SVN/Hg 프로젝트에서도 잘못 노출). 다른 화면들과
-                         동일한 fragment 재사용으로 통일한다(legacy issue/partial_list_wrap.scala.html:67,95
-                         두 분기 모두 동일한 @help.keymap("issueList", project) 호출이라 병합 가능). -->
+                    <!-- 하드코딩 복제였던 단축키 모달을 help/keymap :: keymap fragment로 교체.
+                         복제본은 권한 게이트도 틀려 있었다(설정 메뉴가 매니저 여부와 무관하게 노출,
+                         PR 메뉴가 project.vcs=='GIT' 대신 isCodeEnabled만 봐서 SVN/Hg에도 노출). -->
                     <div th:replace="~{help/keymap :: keymap('issueList', ${project})}"></div>
 
                 </div>
@@ -410,8 +398,7 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <th:block th:replace="~{common/calendar :: calendar}"></th:block>
-<!-- P3-70 라운드4: yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js
-     (lib/, 미수정) 의존이 제거됨 - 더 이상 로드하지 않는다. -->
+<!-- yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js 의존이 제거됨. -->
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
 <script type="text/javascript" src="/javascripts/service/yona.showSubtask.js"></script>
 <script type="text/javascript" th:inline="javascript">
@@ -419,13 +406,9 @@
         $yona.loadModule("issue.List");
     });
 </script>
-<!-- 부수 발견(P3-61 완료 로그 보고, 코디네이터가 직접 조사·수정): legacy
-     issue/partial_list_wrap.scala.html:61-71은 검색 결과가 없으면(isEmpty 분기) partial_massupdate
-     (마크업 + 이 초기화 스크립트가 같은 파일 안에 함께 있음) 자체를 렌더링하지 않는다 — 결과가
-     있고(else 분기) 프로젝트 멤버일 때만 마크업과 초기화가 함께 나온다. 이 스크립트를 무조건
-     실행되는 전역 블록에 둔 채로 있었어서, 결과 0건이면 #mass-update-form이 DOM에 없는데
-     yona.issue.MassUpdate._setMassUpdateFormAffixed()가 $('.mass-update-wrap').offset()을
-     불러 TypeError가 났다 — 마크업(248행)과 동일한 조건으로 감싸 legacy와 동치로 되돌린다. -->
+<!-- 마크업과 동일한 조건(결과 있음 + 프로젝트 멤버)으로 감싸야 한다 - 아니면 결과 0건일 때
+     #mass-update-form이 DOM에 없는 채로 MassUpdate._setMassUpdateFormAffixed()가
+     $('.mass-update-wrap').offset()을 호출해 TypeError가 난다. -->
 <script type="text/javascript" th:if="${!issuePage.content.isEmpty() && currentUser != null && currentUser.isMemberOf(project)}" th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function(){
         // 일괄 업데이트 초기화

@@ -294,10 +294,8 @@ class GitRepository(
         }
     }
 
-    // 위키 페이지별 diff 대응. 커밋 하나가 여러 파일을 건드렸어도 그 중 path 하나만
-    // 잘라낸 unified diff를 만든다 — 커밋 vs 부모(getPatch(commitId, path)) 또는 두 임의
-    // 리비전 사이(getPatch(revA, revB, path))의 그 파일 변경만 정확히 반영한다(PathFilter로
-    // treeWalk를 좁혀서 그 파일 외 변경은 애초에 diff 스캔 대상에 들어오지 않는다).
+    // 커밋 하나가 여러 파일을 건드렸어도 PathFilter로 treeWalk를 좁혀 path 하나만
+    // 잘라낸 unified diff를 만든다(그 외 파일 변경은 스캔 대상에서 제외).
     fun getPatchForPath(commitId: String, path: String): String {
         return useRepository { repo ->
             val objectId = repo.resolve(commitId) ?: return@useRepository ""

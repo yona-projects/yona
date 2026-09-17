@@ -15,12 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 
-// 계정 보안 설정 화면 — GitHub "Settings > Password and authentication"과 동일한 관례로
-// UserViewController의 tokens/ssh-keys 섹션과 같은 URL 패턴(/user/editform/*)을 따르되, 등록
-// 폼과 목록을 분리하는 그 파일들의 컨벤션과 별개로 이 기능은 TOTP QR 발급/WebAuthn JSON API/
-// 백업코드 1회 노출까지 얽혀 있어 이미 방대한 UserViewController에 더 얹지 않고 별도 파일로 둔다.
-// WebAuthn 등록의 navigator.credentials.create() JSON 왕복은 WebauthnRegistrationController
-// 참고 — 이 컨트롤러는 화면 렌더링과 TOTP/백업코드/비활성화 같은 일반 폼 흐름만 다룬다.
+// 계정 보안 설정 화면 — UserViewController의 tokens/ssh-keys와 같은 URL 패턴(/user/editform/*)을
+// 따르되, TOTP QR 발급/WebAuthn JSON API/백업코드 1회 노출까지 얽혀 있어 별도 파일로 둔다.
+// WebAuthn 등록(navigator.credentials.create() JSON 왕복)은 WebauthnRegistrationController 참고 —
+// 이 컨트롤러는 화면 렌더링과 TOTP/백업코드/비활성화 같은 일반 폼 흐름만 다룬다.
 @Controller
 @RequestMapping("/user/editform/security")
 class TwoFactorSettingsController(

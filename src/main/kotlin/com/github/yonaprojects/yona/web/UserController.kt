@@ -288,10 +288,8 @@ class UserController(
     // 비로그인 상태에서도 호출 가능한 API이므로 권한 검사는 세션/토큰 인증을 거친 currentUser로 직접
     // 판단한다(스프링 시큐리티 인가 규칙이 아닌 컨트롤러 내부 판단인 것도 legacy와 동일).
     //
-    // 원본 legacy 경로는 `-_-api/v1/users`다 — 포팅 당시 "Play 프레임워크 라우팅 아티팩트라 이식
-    // 대상 아님"으로 잘못 판단해 한동안 `/api/users`로 옮겨져 있었으나(다른 35개 legacy Open API
-    // 엔드포인트는 전부 경로까지 원본 그대로 이식한 것과 모순), `/api/users`를 실제로 쓰는 곳이
-    // 내부에 전혀 없어 잘못됐던 경로는 걷어내고 원본 경로만 남긴다.
+    // 원본 legacy 경로 `-_-api/v1/users`를 그대로 쓴다 — 다른 legacy Open API 엔드포인트와
+    // 마찬가지로 경로까지 원본 그대로 이식한다.
     @PostMapping("/-_-api/v1/users")
     fun newUser(
         @RequestBody request: NewUsersRequest,
@@ -425,9 +423,8 @@ class UserController(
 
     data class UpdateUserStateRequest(val state: String)
 
-    // 계정 잠금 등 관리자 개입 시 2FA를 강제로 끌 수 있는 경로 — 계정 소유자가
-    // 기기를 분실해 2FA 자격증명(WebAuthn/TOTP/백업코드)에 접근할 수 없게 됐을 때 관리자가
-    // 대신 풀어주는 유일한 수단이다. 위 PATCH 엔드포인트와 같은 관리자 전용 패턴(사이트관리자만).
+    // 계정 소유자가 기기를 분실해 2FA 자격증명(WebAuthn/TOTP/백업코드)에 접근할 수 없게 됐을 때
+    // 관리자가 대신 꺼줄 수 있는 유일한 수단이다.
     @PostMapping("/-_-api/v1/admin/users/{loginId}/disable-2fa")
     fun disableTwoFactorByAdmin(
         @PathVariable loginId: String,

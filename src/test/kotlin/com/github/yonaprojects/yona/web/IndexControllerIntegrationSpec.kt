@@ -48,14 +48,11 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                     .andExpect(content().string(Matchers.containsString("Feedback")))
             }
 
-            // 2026-09-17 갱신 - site/layout.html의 익명 사용자용 로그인 모달이 Vue 3
-            // SFC(<yona-login-dialog>)로 교체됐다. 이 컴포넌트는 순수 HTML <form action=...>
-            // 제출이 아니라 fetch(actionUrl, {...})로 직접 POST하므로(components/vue-widgets/
-            // src/login-dialog/YonaLoginDialog.vue의 onSubmit), 더 이상 CsrfRequestDataValueProcessor의
-            // 자동 히든 필드 주입 대상이 아니다 - 대신 사이트 전역 fetch 패치(아래
-            // "전역 CSRF fetch 인터셉터" 테스트가 검증)가 모든 fetch 호출에 CSRF 헤더를
-            // 자동으로 붙여준다. 여기서는 그 컴포넌트가 익명 사용자에게 실제로 렌더링되는지만
-            // 확인한다.
+            // site/layout.html의 로그인 모달은 Vue 3 SFC(<yona-login-dialog>)다. 이 컴포넌트는
+            // <form action=...> 제출이 아니라 fetch(actionUrl, {...})로 직접 POST하므로
+            // (YonaLoginDialog.vue의 onSubmit), CsrfRequestDataValueProcessor의 자동 히든 필드
+            // 주입 대상이 아니다 - 대신 아래 "전역 CSRF fetch 인터셉터" 테스트가 검증하는 전역
+            // fetch 패치가 CSRF 헤더를 붙여준다.
             it("익명 사용자에게는 <yona-login-dialog> 로그인 모달이 렌더링되어야 한다") {
                 val body = mockMvc.perform(get("/"))
                     .andExpect(status().isOk)
@@ -73,15 +70,8 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                // P3-48 화면별 재현 세션에서 jQuery.ajaxSetup(beforeSend)을 jQuery(document).ajaxSend로
-                // 교체했다 — 개별 $.ajax() 호출이 자기만의 beforeSend를 넘기면(예:
-                // yona.Tasklist.js) ajaxSetup의 beforeSend를 완전히 덮어써 CSRF 헤더가 빠지는
-                // 문제를 실제로 재현해서 고쳤다(GlobalCsrfAjaxHeaderTemplateEquivalenceSpec 참고).
-                // P3-70 라운드12 갱신: jQuery 코어 자체를 제거하면서 이 jQuery(document).ajaxSend
-                // 블록(도달 가능한 $.ajax 호출이 0건인 죽은 코드였다 - 라운드10~11에서 이미 확인)도
-                // 함께 제거했다 - $.ajax 호출 자체가 이제 저장소 전체에 없으므로(모두 fetch로
-                // 전환됨) "ajaxSend" 문자열 존재 여부는 더 이상 의미 있는 계약이 아니다. 실제
-                // CSRF 주입은 아래 window.fetch 패치 단독으로 담당한다.
+                // CSRF 주입은 전역 window.fetch 패치가 단독으로 담당한다(jQuery 기반 ajaxSetup/
+                // ajaxSend 메커니즘의 함정은 GlobalCsrfAjaxHeaderTemplateEquivalenceSpec 참고).
                 body shouldContain "X-XSRF-TOKEN"
                 body shouldContain "window.fetch = function"
             }

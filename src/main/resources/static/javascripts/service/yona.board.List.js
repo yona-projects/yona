@@ -115,11 +115,10 @@
                 newValue = labelId;
             }
 
-            // P3-46 #5 후속 버그 수정(2026-09-12): Select2 v3 시절 API(.data("select2").val(...))가
-            // Tom Select 교체 후에도 그대로 남아있어 target.data("select2")가 항상 undefined를
-            // 반환해 TypeError로 죽어있었다(실사용 경로 - 라벨 클릭 시 크래시). Tom Select 인스턴스는
-            // element.tomselect로 접근하고 값 반영은 setValue(value)로 한다(두 번째 인자 silent를
-            // 생략하면 change 이벤트가 발생해 Select2의 triggerChange=true와 동등하다).
+            // Select2 v3 시절 API(.data("select2").val(...))가 Tom Select 교체 후에도 남아있어
+            // 항상 undefined를 반환해 TypeError로 죽어있었다(라벨 클릭 시 크래시). Tom Select
+            // 인스턴스는 element.tomselect로 접근하고 setValue(value)로 값을 반영한다(silent
+            // 인자를 생략하면 change 이벤트가 발생해 Select2의 triggerChange=true와 동등하다).
             target.tomselect.setValue(newValue);
             console.log("labelId", labelId);
         }

@@ -4,19 +4,13 @@
  * Copyright Yona Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
-// P3-46 #5: Select2(v3) -> Tom Select 교체.
-//
-// P3-66에서 #issueSharer 배선이 복원되며 이 파일도 issue/view.html:559에서 실제로
-// <script src>로 로드되고 751행에서 yonaIssueSharerModule(...)이 호출된다 - 더 이상
-// 죽은 코드가 아니다(이 주석은 한동안 스테일 상태였다가 정정함, 2026-09-12). 원본의
-// malformed 템플릿(닫히지 않은 div, 아바타/로그인id 미표시)은 "완전히 일치" 원칙에 따라
-// 그대로 보존했다.
+// #issueSharer는 issue/view.html에서 실제로 로드/호출되는 코드다.
 function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUrl, updateSharingApiUrl, message){
   var MIN_INPUT_LENGTH = 1;
   var resultCache = {};
 
   // 원본 formatter를 그대로 이식한다 - 닫히지 않은 </div>, 아바타/로그인id 미표시 등 malformed한
-  // 부분까지 포함해 의도적으로 고치지 않았다(범위 밖 발견, 최종 보고 참고).
+  // 부분까지 포함해 "완전히 일치" 원칙에 따라 의도적으로 고치지 않았다.
   function formatter(data, escape){
     if(!data.avatarUrl){
       return "<div>" + escape(data.text) + "</div>";

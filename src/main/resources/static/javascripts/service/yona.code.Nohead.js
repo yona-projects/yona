@@ -62,9 +62,6 @@
             });
         }
 
-        /**
-         * _checkUpdate 에서 사용함
-         */
         function _onLoadList(){
             document.location.reload();
         }

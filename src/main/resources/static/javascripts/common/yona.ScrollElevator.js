@@ -5,12 +5,10 @@
  * https://yona.io
  **/
 
-// P3-66: 점진적 jQuery 제거 작업 - lib/elevator/jquery.elevator.js(jQuery 플러그인, "맨 위로/맨
-// 아래로 스크롤" 버튼)를 순수 vanilla JS로 대체. board/view.html·issue/view.html이 실제로
-// 사용하는 옵션 범위(shape/glass/tooltips)만 재현하며, navigation/item_top/item_bottom 등
-// 두 화면 모두 넘기지 않는(=기본값만 쓰는) 옵션은 다루지 않는다. jquery.elevator.css는 순수
-// 스타일이라 그대로 재사용하므로, 여기서 생성하는 DOM/클래스명은 원본 플러그인과 동일하게
-// 맞춘다.
+// lib/elevator/jquery.elevator.js(jQuery 플러그인, "맨 위로/맨 아래로 스크롤" 버튼)의
+// vanilla 대체. 실제로 쓰이는 옵션 범위(shape/glass/tooltips)만 재현한다. 원본의
+// jquery.elevator.css를 그대로 재사용하므로, 여기서 생성하는 DOM/클래스명은 원본 플러그인과
+// 동일하게 맞춘다.
 (function () {
     'use strict';
 
@@ -81,10 +79,8 @@
     function createScrollElevator(options) {
         var opts = Object.assign({}, DEFAULTS, options || {});
 
-        // 하이브리드 어댑터(2026-09-17, components/vue-widgets scroll-elevator 위젯 적용) -
-        // <yona-scroll-elevator>가 로드돼 있으면(원본처럼 감쌀 대상 엘리먼트 자체가 없으므로)
-        // 그 커스텀 엘리먼트를 직접 만들어 body에 붙이고, 옵션은 data-*로 넘긴다. 그렇지
-        // 않으면(격리 환경 등) 아래 원본 vanilla 구현으로 폴백한다.
+        // <yona-scroll-elevator>가 로드돼 있으면 그 커스텀 엘리먼트를 만들어 body에 붙이고
+        // 옵션은 data-*로 넘긴다. 없으면 아래 원본 vanilla 구현으로 폴백한다.
         if (typeof customElements !== 'undefined' && customElements.get('yona-scroll-elevator')) {
             var elVue = document.createElement('yona-scroll-elevator');
             elVue.setAttribute('data-align', opts.align);

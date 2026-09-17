@@ -55,11 +55,10 @@ yona.Markdown = (function(htOptions){
     function _initVar(htOptions){
         htVar.sMarkdownRendererUrl = htOptions.sMarkdownRendererUrl;
 
-        // P3-46 #6+7: marked.js(v0.7 전후) -> v18로 버전업하며 "highlight" 옵션 콜백 방식이
-        // 없어져서(marked v5+에서 제거), 커스텀 renderer.code()로 이식한다(marked.use()는 전역
-        // 싱글턴에 한 번 등록하면 이후 marked.parse() 호출마다 적용된다). 원본의
-        // langPrefix:''(클래스에 접두어 없음, "hljs" 클래스도 원래 안 붙였음) 동작을 그대로
-        // 재현: 언어가 있으면 <code class="lang">, 없으면 <code>만.
+        // marked v5+에서 "highlight" 옵션 콜백이 제거돼 커스텀 renderer.code()로 이식한다
+        // (marked.use()는 전역 싱글턴에 한 번 등록하면 이후 parse() 호출마다 적용된다).
+        // 원본의 langPrefix:''(클래스 접두어 없음) 동작을 그대로 재현: 언어가 있으면
+        // <code class="lang">, 없으면 <code>만.
         htVar.htMarkedOption = {
             "gfm"     : true,
             "pedantic": false
@@ -209,11 +208,9 @@ yona.Markdown = (function(htOptions){
             elPreview.style.minHeight = elTextarea.offsetHeight + 'px';
         });
 
-        // _tab()/_untab()은 이 파일 자신이 아니라 yona.KeyControl.js가 전역
-        // window._tab/window._untab로 정의한다(site/layout.html이 모든 화면에
-        // 항상 로드하므로 실제로 호출 가능하다) - 이전 주석은 "이 코드베이스 어디에도
-        // 정의돼 있지 않다"고 잘못 적혀 있었으나, 실제로는 정상 동작하는 기능이다
-        // (2026-09-17, widget-candidates.md 5번 항목에서 재확인).
+        // _tab()/_untab()은 이 파일이 아니라 yona.KeyControl.js가 전역 window._tab/
+        // window._untab로 정의한다(site/layout.html이 모든 화면에 항상 로드하므로
+        // 실제로 호출 가능하다).
         elTextarea.addEventListener("keydown", function(e) {
             if (e.shiftKey && e.key === 'Tab') {
                 e.preventDefault();

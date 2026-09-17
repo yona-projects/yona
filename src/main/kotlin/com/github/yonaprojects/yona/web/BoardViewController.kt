@@ -186,7 +186,7 @@ class BoardViewController(
         model.addAttribute("isWatching", isWatching)
         model.addAttribute("isAllowedUpdate", isAllowedUpdate)
         model.addAttribute("attachmentsJson", attachmentsJson)
-        // P3-50: 댓글 수정 폼(common/commentUpdateForm)이 "이미 첨부된 파일" 목록을 보여주려면
+        // 댓글 수정 폼(common/commentUpdateForm)이 "이미 첨부된 파일" 목록을 보여주려면
         // 댓글별 첨부파일 목록이 필요하다 — issue/view.html과 동일한 패턴.
         model.addAttribute(
             "commentAttachmentsByCommentId",
@@ -226,12 +226,9 @@ class BoardViewController(
 
         val isAllowedToNotice = loginUser != null && (projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) || accessControl.isAllowedIfGroupMember(project, loginUser))
 
-        // yona board/create.scala.html의 titleMessage 대응 — README/이슈 템플릿 편집 진입점은
-        // ("만들기"/"편집" 버튼 둘 다) 기존 게시글의 실제 제목을 조회하지 않고 항상 이 create
-        // 폼으로 온다(newFork()처럼 별도 "편집" 화면이 없다 — legacy도 동일한 구조). legacy는 그
-        // 대신 title 필드를 고정 문자열로 미리 채워둬 매번 다시 입력할 필요가 없게 했는데, 이
-        // 프리필이 빠져 있어 재편집할 때마다 필수 입력값을 새로 타이핑해야 했다(빈 문자열로는
-        // 저장 자체가 막힘).
+        // yona board/create.scala.html의 titleMessage 대응 — README/이슈 템플릿 진입점은 항상 이
+        // create 폼으로 오는데(별도 "편집" 화면 없음), legacy는 title을 고정 문자열로 미리
+        // 채워둔다. 이 프리필이 빠지면 title이 빈 문자열이라 저장이 막힌다.
         var preparedTitle = ""
         var preparedPostBody = ""
         if (readme == true) {

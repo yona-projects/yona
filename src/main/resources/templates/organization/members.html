@@ -46,9 +46,8 @@
                 </li>
             </ul>
 
-            <!-- Confirm to delete member - 네이티브 <dialog>(P3-70 라운드9). 트리거는
-                 .delete-member-btn(data-toggle="modal" 아님, sDeleteUserId를 먼저 세팅해야
-                 해서 아래 스크립트가 직접 showModal()을 호출한다). -->
+            <!-- Confirm to delete member - 네이티브 <dialog>. data-toggle="modal" 대신
+                 sDeleteUserId를 먼저 세팅해야 해서 스크립트가 직접 showModal()을 호출한다. -->
             <dialog id="alertDeletion" class="modal">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>

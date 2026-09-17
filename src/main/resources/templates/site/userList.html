@@ -111,9 +111,9 @@
           
           <div id="pagination"></div>
 
-          <!-- 네이티브 <dialog>(P3-70 라운드9). 트리거가 data-toggle="account-delete"
-               (bootstrap.js의 data-toggle="modal" 대상이 아님, userInfo/requestAs 데이터를
-               먼저 채워야 해서 아래 스크립트가 직접 showModal()을 호출한다). -->
+          <!-- 네이티브 <dialog>. data-toggle="account-delete"는 bootstrap.js의
+               data-toggle="modal" 자동 연결 대상이 아니다 - userInfo/requestAs 데이터를 먼저
+               채워야 해서 아래 스크립트가 직접 showModal()을 호출한다. -->
           <dialog id="alertDeletionWrap" class="modal">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal">×</button>
@@ -141,8 +141,8 @@
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <script type="text/javascript" th:inline="javascript">
 document.addEventListener("DOMContentLoaded", function(){
-    // $.tmpl은 jquery.tmpl.js(lib/, 미수정) 코어 템플릿 플러그인 호출이라 라운드10(코어 라이브러리
-    // 제거)까지 의도적으로 유지한다 - 이 함수의 나머지(알림 제거, 부모 엘리먼트 계산)는 vanilla.
+    // $.tmpl은 jquery.tmpl.js(lib/, 미수정) 템플릿 플러그인 호출이라 의도적으로 유지한다 -
+    // 이 함수의 나머지(알림 제거, 부모 엘리먼트 계산)는 vanilla.
     function _showRequestWaitingMessage(elAnchor){
         document.querySelectorAll(".alert").forEach(function(el){ el.remove(); });
         $.tmpl(document.getElementById("dismissable-alerts-request").text, {}).appendTo(elAnchor.parentElement);
@@ -156,15 +156,10 @@ document.addEventListener("DOMContentLoaded", function(){
         elUserListWrap.addEventListener('click', function(event) {
             var matchedDelete = event.target.closest('[data-toggle="account-delete"]');
             if (matchedDelete && elUserListWrap.contains(matchedDelete)) {
-                // P3-70 라운드10: jquery.requestAs.js 플러그인 호출을 $yona.requestAs로 전환.
-                // 원본은 매 클릭마다 jQuery `.data()`에 requestUri/requestMethod를 새로 심고
-                // 인자 없이 `.requestAs()`를 불렀지만, 실제로는 최초 1회만 인스턴스가 생성되고
-                // (jQuery 데이터 캐시의 "이미 있으면 재생성 안 함" 가드) 이후 클릭에서 새로 심은
-                // requestUri는 무시된 채 첫 클릭 때의 URL이 그대로 재사용되는 기존 동작이 있었다
-                // (한 페이지에서 삭제 확인을 취소하고 다른 사용자를 다시 열 때만 관찰되는 극히
-                // 드문 경로 - 성공/거절 시 항상 페이지가 새로고침되므로 보통은 드러나지 않는다).
-                // $yona.requestAs도 동일하게 el._yonaRequestAs를 최초 1회만 채우는 idempotent
-                // 가드라 이 기존 동작을 그대로 재현한다.
+                // $yona.requestAs는 el._yonaRequestAs를 최초 1회만 채우는 idempotent 가드다 -
+                // 삭제 확인을 취소하고 다른 사용자를 다시 열면 새 requestUri가 무시되고 첫 클릭
+                // 때의 URL이 재사용되는 기존 동작을 그대로 재현한다(성공/거절 시 페이지가 항상
+                // 새로고침되므로 실제로는 거의 드러나지 않는다).
                 $yona.requestAs(document.getElementById('accountToggleBtn'), {
                     "sMethod": "delete",
                     "sHref"  : matchedDelete.dataset.href,

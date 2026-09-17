@@ -28,11 +28,9 @@
                         </div>
                     </th:block>
 
-                    <!-- P3-59: legacy board/list.scala.html:45 @common.twoColumnModeCheckboxArea(false)
-                         대응 — issue/list.html 등 이미 이식된 6개 화면과 동일한 마크업(다른 화면들과
-                         호환되는 고정 id/class 구조). yona.twoColumnMode.js의 _initTwoColumnMode()는
-                         board/list.html이 이미 로드하는 $yona.loadModule("board.List", ...)가 호출한다
-                         (yona.board.List.js:28) — 마크업만 없어 죽은 include였다. -->
+                    <!-- yona.twoColumnMode.js의 _initTwoColumnMode()는 board.List 모듈 로드 시(yona.board.List.js:28)
+                         이미 호출되고 있었지만 이 마크업이 빠져 있어 죽은 include였다 - 이식된 다른 화면과
+                         동일한 구조로 채운다. -->
                     <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:data-content="#{common.two.column.mode.desc}">
                         <label class="checkbox">
                             <div class="two-column-icon-border">
@@ -153,8 +151,7 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
-<!-- P3-70 라운드4: yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js
-     (lib/, 미수정) 의존이 제거됨 - 더 이상 로드하지 않는다. -->
+<!-- yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js 의존이 제거됐다. -->
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
 <script type="text/javascript" th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function() {

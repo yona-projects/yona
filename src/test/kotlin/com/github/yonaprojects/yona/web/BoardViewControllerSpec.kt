@@ -727,8 +727,6 @@ class BoardViewControllerSpec : DescribeSpec({
                 every { postingCommentRepository.findByPostingIdOrderByCreatedDateAsc(5L) } returns listOf(parentComment, childComment)
                 every { watchService.isWatching(any(), any(), any()) } returns false
                 every { attachmentRepository.findByContainerTypeAndContainerId(ResourceType.BOARD_POST, "5") } returns listOf(attachNoId, attachWithId)
-                // P3-50: 댓글 수정 폼의 기존 첨부파일 목록(commentAttachmentsByCommentId)이
-                // 댓글마다 개별 조회한다.
                 every { attachmentRepository.findByContainerTypeAndContainerId(ResourceType.NONISSUE_COMMENT, "1") } returns emptyList()
                 every { attachmentRepository.findByContainerTypeAndContainerId(ResourceType.NONISSUE_COMMENT, "2") } returns emptyList()
 
@@ -884,9 +882,9 @@ class BoardViewControllerSpec : DescribeSpec({
                     .andExpect(model().attribute("canReadmefy", false))
             }
 
-            // legacy board/create.scala.html의 titleMessage 대응 — "README 만들기/편집" 버튼은
-            // 항상 이 create 폼으로 오고 기존 제목을 조회하지 않아, title을 미리 채워두지 않으면
-            // 매번 필수 입력값을 새로 타이핑해야 한다(사용자가 직접 재현·신고한 실사용 버그).
+            // legacy board/create.scala.html의 titleMessage 대응 - "README 만들기/편집" 버튼은 항상 이
+            // create 폼으로 오고 기존 제목을 조회하지 않아, title을 미리 채워두지 않으면 매번 필수
+            // 입력값을 새로 타이핑해야 하는 실사용 버그였다.
             it("readme=true면 title이 'Update README.md'로 미리 채워져야 한다") {
                 val gitProject = Project(id = 23L, name = "ReadmeTitleProj", owner = "owner", vcs = "GIT", projectScope = ProjectScope.PRIVATE)
                 val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")

@@ -29,8 +29,7 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-57: issue/view.html에는 키보드 단축키 도움말(help/keymap)이 아예 없었고, issue/list.html은
-// TASK-0249(#236)가 파라미터화하기 이전 방식(하드코딩 복제)이 남아 있어 권한 게이트가 틀려있었다
+// issue/list.html의 키맵 도움말이 하드코딩 복제본이라 권한 게이트가 틀려있었다
 // (PR 탭 노출조건이 project.vcs=='GIT' 대신 isCodeEnabled로 판단, 설정메뉴가 매니저 여부와 무관하게
 // 항상 노출). board/view.html·board/list.html과 동일한 파라미터화된 fragment로 통일했는지 검증한다.
 class IssueKeymapHelpTemplateRenderingSpec @Autowired constructor(

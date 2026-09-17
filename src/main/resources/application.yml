@@ -3,29 +3,18 @@ spring:
     active: mariadb
   web:
     error:
-      # P3-68 — 기본값 never라 ResponseStatusException(status, reason)의 reason이
-      # BasicErrorController 응답(JSON의 "message" 필드, 또는 /error로 자동 포워딩되는
-      # error/400·401·403·404.html의 렌더링 모델)에서 통째로 빠졌다.
-      # WebhookController.newWebhook()의 "Payload URL은 필수 입력 항목입니다."가 대표 사례.
-      # 전역으로 켜기 전에 현재 ResponseStatusException(...) 호출부 9개 파일 80곳 전수를
-      # 카테고리별로 표본 확인했다 — 전부 "Project not found"/"Forbidden"/"Login required"/
-      # 길이 초과 안내 같은 일반적인 문구뿐이고, 내부 구현 경로·DB 식별자·보안 판단 근거 등
-      # 노출하면 안 되는 내용은 없었다(근거는 docs/parity/tickets/p3-68.md 완료 로그 참고).
-      # 그래서 개별 컨트롤러/예외 종류별로 범위를 좁히는 대신 전역 설정으로 간단히 해소한다 —
-      # 향후 추가되는 ResponseStatusException에도 동일하게 일관되게 적용된다.
-      # 주의: Spring Boot 4에서 이 설정은 server.error.*가 아니라 spring.web.error.*로
-      # 이동했다(server.error.include-message는 이 버전에서 조용히 무시되는 존재하지 않는
-      # 키다 — 실제로 처음엔 server.error.include-message로 잘못 넣었다가 통합테스트가 계속
-      # RED로 남아있어서 spring-boot-autoconfigure-4.1.1.jar의
-      # META-INF/spring-configuration-metadata.json을 직접 까봐서 발견했다).
+      # 기본값(never)이면 ResponseStatusException(status, reason)의 reason이 에러 응답에서
+      # 빠진다. 기존 ResponseStatusException 호출부는 전부 일반적인 안내 문구뿐이라 전역으로
+      # 켜도 안전 — 새로 추가할 때도 reason에 내부 구현·DB 식별자 등 민감 정보를 넣지 말 것.
+      # 주의: Spring Boot 4에서는 server.error.*가 아니라 spring.web.error.*로 키가
+      # 이동했다(구 키 server.error.include-message는 조용히 무시된다).
       include-message: always
   messages:
     basename: messages/messages
     encoding: UTF-8
-    # P3-51: 기본값(true)은 요청 로케일 전용 번들이 없으면 root(영어)보다 먼저 서버 JVM의
-    # 시스템 기본 로케일 번들을 시도한다 — 배포 환경마다 i18n 메시지가 달라지는 비결정적
-    # 버그(legacy application.langs의 결정적 첫 값 en-US와 동치가 아님). 꺼서 root(영어)로만
-    # 결정적으로 폴백하게 한다.
+    # 기본값(true)은 요청 로케일 전용 번들이 없을 때 root(영어)보다 먼저 JVM 시스템 기본
+    # 로케일 번들을 시도해 배포 환경마다 메시지가 달라지는 비결정적 버그를 만든다. 꺼서
+    # root(영어)로만 결정적으로 폴백한다.
     fallback-to-system-locale: false
   mail:
     host: localhost
@@ -151,10 +140,10 @@ yona:
             client-id: dummy-client-id
             client-secret: dummy-client-secret
             scope: user:email,read:user
-    # 로컬 로그인 2FA(TOTP/WebAuthn). TOTP 시크릿은 로그인 시 원문 비교가 필요한 대칭 비밀이라
-    # 비밀번호 해시와 달리 단방향 해시가 아니라 암호화로 저장한다(TotpSecretEncryptor,
-    # Spring Security Encryptors.text 기반). password/salt 기본값은 개발 편의용 placeholder이므로
-    # 운영 배포 시 반드시 환경변수로 덮어써야 한다 — salt는 짝수 길이 hex 문자열이어야 한다.
+    # TOTP 시크릿은 로그인 시 원문 비교가 필요한 대칭 비밀이라 비밀번호 해시와 달리
+    # 암호화로 저장한다(TotpSecretEncryptor, Spring Security Encryptors.text 기반).
+    # password/salt 기본값은 개발용 placeholder이므로 운영 배포 시 반드시 환경변수로
+    # 덮어써야 한다 — salt는 짝수 길이 hex 문자열이어야 한다.
     totp:
       encryption-password: "${YONA_TOTP_ENCRYPTION_PASSWORD:yona-totp-dev-only-password}"
       encryption-salt: "${YONA_TOTP_ENCRYPTION_SALT:596f6e6132303236}"
@@ -175,7 +164,6 @@ yona:
           starttls:
             enable: false
 
-# 세션 쿠키 보안 속성을 프레임워크 기본값에 암묵적으로 맡기지 않고 명시한다.
 server:
   # 리버스 프록시가 TLS를 종료하는 배포에서 X-Forwarded-Proto를 인식해 세션 쿠키 Secure
   # 플래그가 올바르게 붙도록 한다(프록시 없는 로컬 h2 배포에서는 영향 없음).

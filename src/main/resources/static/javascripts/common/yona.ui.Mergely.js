@@ -19,17 +19,11 @@
  * limitations under the License.
  */
 /**
- * P3-70 라운드3: 착수 전 재확인 결과 이 모듈은 완전한 죽은 코드다 - 저장소 전체에서
- * "yona.ui.Mergely("(인스턴스화) 호출이 0건이고, 대상 마크업(#compare/#mergely)을 가진
- * 템플릿도 0건이다(grep으로 확인). 게다가 이 파일이 의존하는 jQuery 플러그인 $.fn.mergely
- * 자체가 static/javascripts/lib/ 어디에도 존재하지 않는다 - 즉 이 모듈은 jQuery 전환과
- * 무관하게 애초에 실행 불가능한 상태였다(인스턴스화되는 순간이 와도 .mergely()가 "not a
- * function"으로 즉시 실패했을 것). 원칙대로 삭제하지 않고 vanilla로 전환하되, 존재하지 않는
- * $.fn.mergely 플러그인 호출 자체는 대체 구현을 새로 작성하는 것(범위 밖의 새 기능 작성에
- * 해당)이 아니라 기존 그대로(jQuery 래핑) 남겨 원본과 동일하게 "플러그인 없음"으로 실패하도록
- * 뒀다 - 이 부분만 제외한 선택자/이벤트/DOM 조작은 전부 vanilla로 바꿨다. .modal()은 이 파일과
- * 무관하게 이미 완료된 별도 캠페인(레거시 Bootstrap2 모달 -> 네이티브 <dialog> 전환)의 관례를
- * 그대로 적용했다(round2의 organization.Member.js와 동일 판단).
+ * 이 모듈은 죽은 코드다 - "yona.ui.Mergely(" 호출도, 대상 마크업(#compare/#mergely)도 저장소에
+ * 없고, 의존하는 jQuery 플러그인 $.fn.mergely조차 존재하지 않아 애초에 실행 불가능했다. 삭제
+ * 대신 vanilla로 전환하되, 존재하지 않는 $.fn.mergely 호출부만은 원본 그대로(jQuery 래핑) 남겨
+ * "플러그인 없음"으로 동일하게 실패하도록 뒀다. .modal() -> 네이티브 <dialog> 전환은 다른
+ * 파일들과 동일한 관례를 따른다.
  */
 (function(ns){
 
@@ -56,8 +50,7 @@
         function _initMergely(){
             var htWrapSize = _getMergelyWrapSize();
 
-            // $.fn.mergely 플러그인 자체가 이 저장소에 존재하지 않는다(위 파일 헤더 설명 참고) -
-            // 원본과 동일하게 실패하도록 그대로 둔다.
+            // $.fn.mergely 플러그인이 저장소에 없다(파일 헤더 참고) - 원본과 동일하게 실패하도록 둔다.
             $(htElement.welMergely).mergely({
                 "width" : "auto",
                 // "height": "auto",

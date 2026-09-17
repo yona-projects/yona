@@ -62,9 +62,8 @@
                 <tr class="range"><td class="linenum"><div class="line-number"></div></td><td class="linenum"><div class="line-number"></div></td><td class="hunk" th:text="'@@ -0,0 +1,' + ${diff.b.size()} + ' @@'"></td></tr>
                 <th:block th:each="i : ${#numbers.sequence(0, diff.b.size() - 1)}">
                   <tr th:replace="~{pullrequest/partial_diff_line :: diffLine('add', '+', ${i+1}, null, ${i+1}, ${diff.b.getString(i)}, ${diff.pathB})}"></tr>
-                  <!-- commentsOnLine의 lineNum은 diffLine의 data-line(1-indexed, ${i+1})과 반드시
-                       같은 값이어야 스레드의 CodeRange.endLine과 매칭된다 - 0-indexed ${i}를 그대로
-                       넘기면 항상 한 줄 아래로 어긋나 스레드가 diff 테이블에서 매칭 실패한다. -->
+                  <!-- lineNum은 diffLine의 data-line(1-indexed, ${i+1})과 같아야 CodeRange.endLine과
+                       매칭된다 - 0-indexed ${i}를 넘기면 한 줄 어긋나 매칭에 실패한다. -->
                   <div th:replace="~{pullrequest/partial_diff_comment_on_line :: commentsOnLine(${threads}, ${diff}, ${project}, null, ${i+1}, 'B')}"></div>
                 </th:block>
               </th:block>
@@ -112,9 +111,8 @@
                                      num=${(line.numA != null ? line.numA : line.numB) + 1},
                                      pathVal=${line.kind.name() == 'REMOVE' ? diff.pathA : diff.pathB}">
                     <tr th:replace="~{pullrequest/partial_diff_line :: diffLine(${klass}, ${prefix}, ${num}, ${line.numA != null ? line.numA + 1 : null}, ${line.numB != null ? line.numB + 1 : null}, ${line.content}, ${pathVal})}"></tr>
-                    <!-- commentsOnLine의 lineNum은 diffLine의 data-line(${num})과 반드시 같은 값을
-                         써야 한다 - 이전엔 numA/numB(0-indexed)를 그대로 넘겨 한 줄 아래로 어긋나
-                         스레드가 diff 테이블에서 매칭 실패했다. -->
+                    <!-- lineNum은 diffLine의 data-line(${num})과 같아야 한다 - 0-indexed 값을
+                         넘기면 매칭이 한 줄 어긋난다. -->
                     <div th:replace="~{pullrequest/partial_diff_comment_on_line :: commentsOnLine(${threads}, ${diff}, ${project}, null, ${num}, ${side})}"></div>
                   </th:block>
                 </th:block>

@@ -63,8 +63,8 @@
          */
         function _initFileDownloader(){
             htElement.welAttachments.forEach(function(elContainer){
-                // 6단계(jQuery 완전 제거): isYonaAttachment는 yona.Attachments.js가 붙이는
-                // 순수 expando 프로퍼티다(공개 계약, 중복 초기화 가드).
+                // isYonaAttachment는 yona.Attachments.js가 붙이는 expando 프로퍼티다
+                // (공개 계약, 중복 초기화 가드).
                 if(!elContainer._isYonaAttachment){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }

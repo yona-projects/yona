@@ -30,10 +30,9 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-52 항목4 (프론트엔드 배선 레벨) — pullrequest/view.html의 changes 탭이 새 인라인 리뷰
-// 댓글 작성에 필요한 권한 플래그/POST URL/클릭 핸들러 스크립트를 실제로 내려주는지 확인한다.
-// 실제 diff 줄 렌더링 자체는 PullRequestDiffLineCommentUiFragmentRenderingSpec이 프래그먼트
-// 단위로 별도 검증한다(실제 git 저장소 diff 없이도 이 화면 자체가 200으로 렌더링됨을 확인).
+// pullrequest/view.html의 changes 탭이 새 인라인 리뷰 댓글 작성에 필요한 권한 플래그/POST
+// URL/클릭 핸들러 스크립트를 실제로 내려주는지 확인한다. 실제 diff 줄 렌더링은
+// PullRequestDiffLineCommentUiFragmentRenderingSpec이 프래그먼트 단위로 별도 검증한다.
 class PullRequestInlineReviewCommentWiringTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -93,29 +92,22 @@ class PullRequestInlineReviewCommentWiringTemplateRenderingSpec @Autowired const
                 doc.select("#changes").attr("data-review-comment-post-url") shouldBe
                     "/${project.owner}/${project.name}/pullRequest/${pr.id}/comments"
 
-                // code.Diff.js 4단계 복원(CodeCommentBox) - 매번 새 <textarea> 폼을 tr 뒤에
-                // 끼워 넣던 이전 구현(insertReviewCommentForm/pr-comment-form-tr)을 legacy와
-                // 동일한 "단일 팝업 재사용" 아키텍처로 교체했다.
+                // 매번 새 <textarea> 폼을 tr 뒤에 끼워 넣던 이전 구현(pr-comment-form-tr)을
+                // legacy와 동일한 "단일 팝업 재사용"(CodeCommentBox) 아키텍처로 교체했다.
                 body shouldContain "add-comment-btn-cell"
                 body shouldContain "id=\"review-form\""
                 body shouldContain "canReviewComment"
                 body shouldNotContain "pr-comment-form-tr"
             }
 
-            // P3-55 이후 code.Diff.js 4단계 복원 - 라인별(ranged) 리뷰 댓글 작성이 매번 새 폼을
-            // tr 뒤에 끼워 넣던 방식에서 legacy와 동일한 단일 CodeCommentBox 팝업(common/
-            // reviewForm.html)을 재사용하는 방식으로 바뀌었다. 그 팝업이 순수 <textarea>가 아니라
-            // <yona-markdown-editor>(CM6 에디터)+첨부파일 업로드폼을 쓰는지 확인한다. 실제
-            // 드래그 범위선택/팝업 표시/제출 흐름 자체는 Jsoup/MockMvc로 검증할 수 없어(브라우저
-            // 런타임 필요) Playwright로 별도 검증했다(project_code_diff_restoration_plan 메모
-            // 4단계 참고).
-            //
-            // 2026-09-17 갱신 - common/reviewForm.html이 Vue 3 SFC(<yona-review-form>)로
-            // 교체되면서, 에디터(<yona-markdown-editor-vue>)/첨부파일(<yona-attachments>)
-            // 마크업은 이제 서버 렌더링 시점이 아니라 그 커스텀 엘리먼트가 클라이언트에서
-            // 마운트될 때 생성된다 - 서버 응답 HTML에는 <yona-review-form> 태그와 그 데이터
-            // 속성만 남는다(components/vue-widgets/src/review-form/YonaReviewForm.vue의
-            // onMounted가 host.getAttribute(...)로 읽는 계약과 일치하는지 확인).
+            // 라인별(ranged) 리뷰 댓글 팝업(common/reviewForm.html)은 Vue 3 SFC
+            // (<yona-review-form>)로 구현돼 있다 - 에디터(<yona-markdown-editor-vue>)/
+            // 첨부파일(<yona-attachments>) 마크업은 서버 렌더링 시점이 아니라 그 커스텀
+            // 엘리먼트가 클라이언트에서 마운트될 때 생성되므로, 서버 응답 HTML에는
+            // <yona-review-form> 태그와 데이터 속성만 남는다(components/vue-widgets/src/
+            // review-form/YonaReviewForm.vue의 onMounted가 host.getAttribute(...)로 읽는
+            // 계약과 일치하는지 확인한다). 실제 드래그 범위선택/팝업 표시/제출 흐름은
+            // Jsoup/MockMvc로 검증할 수 없어(브라우저 런타임 필요) Playwright로 별도 검증했다.
             it("새 라인/범위 댓글 팝업(review-form)은 <yona-review-form> 커스텀 엘리먼트로 렌더링되고 필요한 data 속성을 내려줘야 한다") {
                 val result = mockMvc.perform(
                     get("/${project.owner}/${project.name}/pull/${pr.number}/changes").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))

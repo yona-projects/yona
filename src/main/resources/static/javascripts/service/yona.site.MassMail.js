@@ -94,11 +94,7 @@
         }
 
         /**
-         * Bootstrap 2 $.fn.button('loading'/'reset')를 대체 - yona-common.js에 번들된
-         * 벤더 플러그인(파일 자체는 미수정 대상)을 더 이상 호출하지 않도록 동일 동작을
-         * 직접 재현한다: 최초 호출 시 원래 innerHTML을 저장해두고, "loading"이면
-         * data-loading-text(없으면 Bootstrap 기본값 "loading...")로 교체 후 버튼을
-         * 비활성화하고, "reset"이면 저장해둔 원래 텍스트로 되돌리고 다시 활성화한다.
+         * Bootstrap 2 $.fn.button('loading'/'reset')를 대체하는 최소 재현.
          * 원본도 setTimeout(fn, 0)으로 상태 전환을 미뤘으므로 동일하게 유지한다.
          *
          * @param {Element} el

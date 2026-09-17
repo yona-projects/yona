@@ -22,11 +22,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// P3-52 항목2 — legacy issue/view.scala.html이 로드하던 service/yona.detectChange.js(폴링으로
-// 다른 사용자의 본문/댓글 변경을 감지해 "새로고침" 안내를 띄우는 UX 기능) 포팅. 백엔드 API
-// (POST /api/projects/{projectId}/issues/{number}/detectChange)는 이미 존재하므로(P1-102),
-// 이 스펙은 issue/view.html이 그 폴링을 실제로 시작하는 데 필요한 초기 상태값(hidden input)과
-// 스크립트 로드/호출 배선만 검증한다.
+// legacy issue/view.scala.html이 로드하던 service/yona.detectChange.js(폴링으로 다른 사용자의
+// 본문/댓글 변경을 감지해 "새로고침" 안내를 띄우는 UX 기능) 포팅. 백엔드 API
+// (POST /api/projects/{projectId}/issues/{number}/detectChange)는 이미 존재하므로, 이 스펙은
+// issue/view.html이 그 폴링을 실제로 시작하는 데 필요한 초기 상태값(hidden input)과 스크립트
+// 로드/호출 배선만 검증한다.
 @Transactional
 class IssueDetectChangePollingTemplateRenderingSpec @Autowired constructor(
     private val webApplicationContext: WebApplicationContext,

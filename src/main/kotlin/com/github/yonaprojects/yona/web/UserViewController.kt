@@ -91,9 +91,8 @@ class UserViewController(
     private val oAuthAppRegistrationService: OAuthAppRegistrationService,
     private val sshKeyService: SshKeyService,
     private val gpgKeyService: GpgKeyService,
-    // P3-62: /user/issues(cross-project "내 이슈") 화면에서 milestoneId로 진입했을 때 진행률 카드를
-    // 표시하기 위한 마일스톤 단건 조회용. 이 화면은 프로젝트 무관(cross-project)이라 project 스코프
-    // 없이 id로 직접 조회한다(legacy Milestone.findById와 동치).
+    // /user/issues(cross-project 내 이슈) 화면에서 milestoneId로 진입했을 때 진행률 카드를 표시하기
+    // 위한 마일스톤 단건 조회용 — project 스코프 없이 id로 직접 조회한다(legacy Milestone.findById와 동치).
     private val milestoneRepository: MilestoneRepository,
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
@@ -112,9 +111,9 @@ class UserViewController(
         @RequestParam(required = false) mentionId: Long?,
         @RequestParam(required = false) sharerId: Long?,
         @RequestParam(required = false) favoriteId: Long?,
-        // P3-62: legacy my_partial_search.scala.html:47-54 대응 — 이 화면엔 milestoneId로 이슈
-        // 목록을 필터링하는 기능이 legacy에도 없다(SearchCondition.asExpressionList() 무파라미터
-        // 버전은 milestoneId를 참조하지 않음). 오직 좌측 사이드바 진행률 카드 표시 목적으로만 쓴다.
+        // legacy my_partial_search.scala.html:47-54 대응 — milestoneId로 이슈 목록을 필터링하는
+        // 기능은 legacy에도 없다(SearchCondition.asExpressionList() 무파라미터 버전은 milestoneId
+        // 미참조). 좌측 사이드바 진행률 카드 표시 목적으로만 쓴다.
         @RequestParam(required = false) milestoneId: Long?,
         authentication: Authentication?,
         model: Model,

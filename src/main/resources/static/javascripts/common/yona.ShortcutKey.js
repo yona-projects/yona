@@ -34,12 +34,11 @@ yona.ShortcutKey = (function(htOptions){
     /**
      * initialize variables
      *
-     * destroy()가 beforeunload 시점에 htVar를 null로 만드는데, _getKeyString/_normalizeKeyString의
-     * "if(!htVar) _initVar()" 지연 재초기화 가드는 htVar가 이미 null이라는 것까지는 감지하면서도
-     * 정작 이 함수가 기존 htVar의 프로퍼티만 채우고 객체 자체를 새로 만들지는 않아서, null에
-     * 프로퍼티를 대입하려다 TypeError가 났다(project.Global.js의 $yona.loadModule 비동기 로딩이
-     * beforeunload보다 늦게 끝나는 레이스에서 재현 확인). 여기서 htVar 자체를 새로 만들어야
-     * 가드가 실제로 방어 역할을 한다.
+     * destroy()가 beforeunload 시점에 htVar를 null로 만든다. _getKeyString/_normalizeKeyString의
+     * "if(!htVar) _initVar()" 지연 재초기화 가드는 이 함수가 기존 htVar의 프로퍼티만 채울 뿐
+     * 객체 자체를 새로 만들지는 않으면 무력화돼, null에 프로퍼티를 대입하려다 TypeError가
+     * 난다(비동기 모듈 로딩이 beforeunload보다 늦게 끝나는 레이스로 재현). 가드가 실제로
+     * 방어 역할을 하려면 여기서 htVar 자체를 새로 만들어야 한다.
      */
     function _initVar(){
         htVar = {};
@@ -85,14 +84,12 @@ yona.ShortcutKey = (function(htOptions){
     /**
      * Resolve the element the keydown actually originated from.
      *
-     * P3-46(CM6 마크다운 에디터) 회귀 대응: this listener is bound on `window`, and
-     * `<yona-markdown-editor>`(2단계~)는 실제 타이핑이 Shadow DOM 안의 CodeMirror 6
-     * contenteditable에서 일어난다. Shadow DOM을 넘어 window까지 버블링된 이벤트는 브라우저가
-     * `event.target`을 shadow host(`<yona-markdown-editor>`, tagName이 INPUT/TEXTAREA가
-     * 아님)로 리타게팅하므로, `weEvt.target.tagName`만 보면 에디터 안에서 타이핑 중인데도
-     * "폼 입력 아님"으로 오판해 H/C/I/M/B/A/U/N 같은 전역 단축키(setKeymapLink)가 그대로
-     * 발동해 미저장 내용을 잃은 채 페이지를 이동시켰다. `composedPath()[0]`으로 실제 origin
-     * 엘리먼트를 구해야 한다(Shadow DOM 경계와 무관하게 진짜 이벤트 발생 지점을 반환).
+     * 이 리스너는 window에 바인딩돼 있는데, <yona-markdown-editor>는 실제 타이핑이 Shadow
+     * DOM 안의 CodeMirror 6 contenteditable에서 일어난다. Shadow DOM을 넘어 버블링된
+     * 이벤트는 브라우저가 event.target을 shadow host로 리타게팅하므로, weEvt.target.tagName만
+     * 보면 에디터 안에서 타이핑 중인데도 "폼 입력 아님"으로 오판해 전역 단축키가 그대로
+     * 발동해 미저장 내용을 잃은 채 페이지를 이동시켰다. composedPath()[0]으로 Shadow DOM
+     * 경계와 무관한 실제 origin 엘리먼트를 구해야 한다.
      *
      * @param {Wrapped Event} weEvt
      * @return {HTMLElement}

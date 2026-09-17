@@ -27,11 +27,10 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 
-// 1차 비밀번호 인증 통과 후 SecurityContext에 Pre2faAuthenticationToken이 심긴 상태에서만
-// 의미가 있는 2단계 인증 화면/검증 API. WebAuthn이 등록돼 있으면 먼저 시도하고, 실패/거부 시
-// "다시 시도"/"다른 방법 사용"(TOTP)을 보여주는 구글 로그인 방식 UX를 위해 이 컨트롤러는 검증
-// 방식과 무관하게 같은 대기 상태(Pre2faAuthenticationToken)를 유지한 채 method 파라미터로 화면만
-// 바꾼다 — 검증 성공 시에만 SecurityContext를 원래의 완전한 Authentication으로 교체한다.
+// 1차 비밀번호 인증 통과 후 SecurityContext에 심긴 Pre2faAuthenticationToken이 있어야만 동작하는
+// 2단계 인증 화면/검증 API. 검증 방식(WebAuthn/TOTP/백업코드)과 무관하게 같은 대기 상태를 유지한
+// 채 method 파라미터로 화면만 바꾸고, 검증 성공 시에만 SecurityContext를 완전한 Authentication으로
+// 교체한다.
 @Controller
 @RequestMapping("/users/login/2fa")
 class TwoFactorLoginController(

@@ -32,7 +32,7 @@ import org.springframework.web.context.WebApplicationContext
 // $.post(...)에 넘기는 문자열들이 "[[#{...}]]" / "[[@{...}]]"처럼 수동으로 따옴표를 감싼 채
 // 인라인 표현식을 썼다 - th:inline="javascript"가 String 타입 표현식 결과를 이미 JS 문자열
 // 리터럴로 자동 따옴표 처리하기 때문에, 수동 따옴표와 겹쳐 결과 JS 코드 자체가 깨진다
-// (issue/view.html에서 이미 한 번 겪은 것과 같은 회귀 클래스 - docs/parity/tickets/p3-49.md).
+// (issue/view.html에서 이미 한 번 겪은 것과 같은 회귀 클래스).
 // 예: "[[#{pullRequest.merge}]]?" -> ""코드 병합"?" (따옴표 뒤에 공백으로 구분된 두 토큰이
 // 바로 이어져 SyntaxError). 이 스크립트 블록 하나가 깨지면 watch 토글/담당자·라벨 변경/
 // 리뷰 등록/승인 등 이 페이지의 모든 버튼 핸들러가 통째로 죽는다.
@@ -90,9 +90,6 @@ class PullRequestViewInlineScriptSyntaxSpec @Autowired constructor(
                 // review/unreview POST URL - 중복 따옴표 시 fetch(""/api/...", ...) 형태로 깨진다.
                 // th:inline="javascript"의 자동 JSON 문자열 직렬화는 슬래시를 \/ 로 이스케이프하는데
                 // (유효한 JS 문자열 이스케이프, 브라우저는 런타임에 /로 해석) 이건 버그가 아니다.
-                // P3-70 라운드6: jQuery $("#btn-review").click(function(){ $.post(url, cb); })를
-                // 네이티브 elBtnReview.addEventListener("click", function(){ fetch(url,{...}).then(cb); })로
-                // 전환했으므로 마커 문자열도 이에 맞춰 갱신한다.
                 val reviewCall = body.substringAfter("elBtnReview.addEventListener(\"click\", function() {").substringBefore("});")
                 reviewCall.contains("\"\"") shouldBe false
                 reviewCall shouldContain "pullRequest\\/${pr.id}\\/review"

@@ -1,9 +1,5 @@
-// 점진적 jQuery 제거 - jQuery($) 없이 순수 DOM API/fetch로 재작성.
-//
-// 이 과정에서 저장형 XSS를 발견해 함께 고쳤다: watcher.name(WatchController가 반환하는
-// 사용자 표시 이름 - 서버가 이스케이프하지 않는 순수 JSON 필드)을 문자열로 이어붙여
-// $(".watcher-list").html(...)에 그대로 꽂고 있었다. mention.ts에서 고친 것과 동일한 유형의
-// 문제라, 문자열 조립 대신 createElement+textContent로 DOM을 직접 구성하도록 바꿨다.
+// watcher.name(WatchController가 반환, 서버가 이스케이프하지 않는 필드)을 문자열로 이어붙여
+// .html(...)에 꽂던 저장형 XSS가 있었다 - createElement+textContent로 DOM을 직접 구성해 제거.
 var apiUrlMemo;
 
 document.querySelectorAll(".show-watchers").forEach(function(el){

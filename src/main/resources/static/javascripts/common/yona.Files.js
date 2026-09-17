@@ -10,11 +10,8 @@ yona.Files = (function(){
     var htHandlers = {};
 
     /**
-     * P3-70 라운드3: elContainer/elTextarea는 이 모듈의 공개 API(yona.Files.getUploader)를 통해
-     * 여러 파일에서 넘어온다 - 이미 vanilla로 전환된 호출부(board.Write.js/milestone.View.js 등)는
-     * raw DOM element를, 아직 jQuery인 호출부(board.View.js/code.Diff.js/code.SvnDiff.js/
-     * issue.View.js, 라운드4/5 대상)는 jQuery 객체를 넘긴다. 양쪽을 다 받아주기 위한 정규화
-     * 헬퍼(milestone.Write.js의 _toElement와 동일한 관례, 셀렉터 문자열도 함께 지원).
+     * 호출부가 아직 jQuery 객체를 넘기는 곳과 raw DOM 엘리먼트를 넘기는 곳이 섞여 있어
+     * 양쪽에 셀렉터 문자열까지 함께 받아 정규화한다.
      *
      * @param {Variant} el
      * @return {HTMLElement|null}
@@ -185,12 +182,9 @@ yona.Files = (function(){
      * available in almost browsers, except Safari on OSX.
      * Reference: http://malsup.com/jquery/form/
      *
-     * P3-70 라운드3: htVar.bXHR2가 false인 구형 브라우저(XHR2/FormData/FileReader 미지원)에서만
-     * 호출되는 legacy 폴백 경로다. jQuery Form 플러그인(lib/jquery/jquery.form.js)의
-     * .ajaxForm()에 강하게 결합돼 있고, 이 플러그인은 이 티켓의 라운드10("코어 라이브러리
-     * 제거")이 명시적으로 다루기로 예정된 대상이라 - project.Delete.js의 .requestAs()를
-     * 라운드1에서 미룬 것과 동일한 판단으로 - 이번 라운드에서는 그대로 둔다. 현재 모든 현대
-     * 브라우저(및 Playwright/Chromium)는 bXHR2가 true라 이 경로 자체가 실행되지 않는다.
+     * htVar.bXHR2가 false인 구형 브라우저(XHR2/FormData/FileReader 미지원)에서만 호출되는
+     * legacy 폴백 경로다. jQuery Form 플러그인(.ajaxForm())에 강하게 결합돼 있어 그대로
+     * 두었다 - 현대 브라우저는 모두 bXHR2가 true라 이 경로 자체가 실행되지 않는다.
      *
      * @param {Number} nSubmitId
      * @param {HTMLElement} elFile
@@ -384,13 +378,10 @@ yona.Files = (function(){
             "sNamespace" : sNamespace
         });
 
-        // 하이브리드 어댑터(2026-09-17, components/vue-widgets attachments 위젯 적용) -
-        // <yona-attachments> 컨테이너는 drag/drop/paste/input-change를 전부 자기
-        // Shadow DOM 안에서 직접 소유한다 - 여기서 컨테이너 자체에 동일한 리스너를 또
-        // 걸면(dragover/drop은 Shadow DOM 경계를 넘어 전파되는 합성 이벤트라 실제로
-        // 발동한다) 업로드가 중복 실행될 뻔했다(실측 전 발견). data-namespace 설정과
-        // 반환값 모양은 호출부 흐름이 깨지지 않도록 그대로 유지하고 리스너 연결만
-        // 건너뛴다.
+        // <yona-attachments> 컨테이너는 drag/drop/paste/input-change를 자기 Shadow DOM
+        // 안에서 직접 소유한다 - dragover/drop은 Shadow DOM 경계를 넘어 전파되는 합성
+        // 이벤트라, 여기서 컨테이너에 동일한 리스너를 또 걸면 업로드가 중복 실행된다.
+        // data-namespace 설정과 반환값 모양은 그대로 유지하고 리스너 연결만 건너뛴다.
         if(elContainerNode && elContainerNode.tagName.toLowerCase() === "yona-attachments"){
             elContainerNode._yonaIsUploader = true;
             return [htElements[sNamespace].welContainer];
@@ -398,12 +389,9 @@ yona.Files = (function(){
 
         _attachEvent(sNamespace);
 
-        // P3-70 라운드10: 전수 재확인 결과(grep) 모든 호출부(board.View.js/board.Write.js/
-        // code.Diff.js x2/code.SvnDiff.js/issue.View.js/issue.Write.js/milestone.Write.js)가
-        // 이미 raw element 관례(oUploader[0].getAttribute(...))로 전환되어 있었다(round3가
-        // 예정한 "라운드5 완료 시점 정리"가 실제로는 누락된 채 남아있던 잔존 jQuery 래핑 -
-        // 이번 라운드에서 발견해 정리). .attr()로 접근하는 호출부는 더 이상 없어 jQuery
-        // 컬렉션일 필요가 없으므로, 동일한 [0] 인덱싱 계약만 유지한 채 순수 배열로 바꾼다.
+        // 모든 호출부가 이미 raw element 관례(oUploader[0].getAttribute(...))를 쓰고
+        // .attr()로 접근하는 곳이 없어, jQuery 컬렉션일 필요 없이 동일한 [0] 인덱싱
+        // 계약만 유지한 채 순수 배열로 바꾼다.
         return [htElements[sNamespace].welContainer];
     }
 

@@ -4,8 +4,8 @@ import com.github.yonaprojects.yona.AbstractIntegrationTest
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 
-// 법적 컴플라이언스 감사 #6 대응 — record()로 남긴 행이 실제 DB에 정확한 필드로
-// 저장/조회되는지 실제 Spring 컨텍스트(H2/MariaDB 등)에서 검증한다.
+// record()로 남긴 행이 실제 DB에 정확한 필드로 저장/조회되는지 실제 Spring 컨텍스트에서
+// 검증한다(AuditLogServiceSpec은 mock 기반 단위 테스트).
 class AuditLogServiceIntegrationSpec @Autowired constructor(
     private val auditLogService: AuditLogService,
     private val auditLogRepository: AuditLogRepository

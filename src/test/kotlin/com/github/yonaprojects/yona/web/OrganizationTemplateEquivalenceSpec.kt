@@ -157,9 +157,8 @@ class OrganizationTemplateEquivalenceSpec @Autowired constructor(
                 }
 
                 it("조직 관리자/멤버 목록이 역할별로 분리되어 노출되고, 관리자에게는 탈퇴 버튼이 노출되어야 한다") {
-                    // P3-51: 이 테스트는 legacy와의 한국어 UI 문구 동치성 자체를 검증하는 목적이라
-                    // (h3 라벨 문구 확인), Accept-Language 헤더 없는 요청이 이제 root(영어)로
-                    // 결정적으로 폴백하는 것과 무관하게 한국어 로케일을 명시적으로 요청한다.
+                    // 한국어 UI 문구 동치성 자체가 검증 대상(h3 라벨)이므로, 기본 로케일 폴백과
+                    // 무관하게 한국어 로케일을 명시적으로 요청한다.
                     val doc = Jsoup.parse(
                         mockMvc.perform(
                             get("/organizations/${org.name}")

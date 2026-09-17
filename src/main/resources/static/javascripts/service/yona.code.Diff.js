@@ -27,12 +27,9 @@
         var htElement = {};
 
         /**
-         * P3-70 라운드5: 이 파일은 "죽은 코드" 감사에서 어느 템플릿도
-         * `$yona.loadModule("code.Diff", ...)`를 실제로 호출하지 않는 것으로 확인됐다
-         * (code/diff.html 등이 자체 vanilla 재구현으로 이미 대체). 실행되는 화면이 없어
-         * Playwright 실측 검증은 불가능하지만, "완전 동치 보장 하에 vanilla로 전환"
-         * 원칙(라운드2/3의 organization.Member.js/ui.Mergely.js와 동일한 판단)에 따라
-         * 삭제하지 않고 1:1로 전환한다.
+         * 이 파일은 어느 템플릿도 `$yona.loadModule("code.Diff", ...)`로 로드하지 않는
+         * 죽은 코드다(code/diff.html 등은 자체 vanilla 재구현으로 대체됨). 실행 경로가 없어
+         * 검증할 수 없지만, 동치 보장을 위해 삭제 대신 1:1로 전환해 둔다.
          */
 
         /**
@@ -91,7 +88,7 @@
         }
 
         /**
-         * jQuery `:visible`(레이아웃 유무로 판단) 근사 - 라운드4에서 확립한 패턴.
+         * jQuery `:visible`(레이아웃 유무로 판단) 근사.
          */
         function _isVisible(el){
             return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
@@ -116,7 +113,7 @@
         }
 
         /**
-         * 위임 클릭/이벤트 바인딩 - 라운드2~4에서 확립한 관례(closest + contains 가드).
+         * 위임 클릭/이벤트 바인딩 - closest + contains 가드로 실제 타겟만 처리.
          */
         function _delegate(container, sEventType, sSelector, fHandler){
             if(!container){
@@ -200,7 +197,7 @@
             htElement.welMiniMapLinks = htElement.welMiniMapWrap ? htElement.welMiniMapWrap.querySelector(".minimap-links") : null;
 
             // 코드받기 - #btnAccept는 [data-request-method]라 Common.js의 전역 auto-init이
-            // 페이지 로드시 이미 $yona.requestAs()로 초기화해둔다(P3-70 라운드10).
+            // 페이지 로드시 이미 $yona.requestAs()로 초기화해둔다.
             htElement.welBtnAccept = document.getElementById("btnAccept");
         }
 
@@ -241,8 +238,8 @@
 
             window.addEventListener("hashchange", _onHashChange);
 
-            // P3-70 라운드10: el._yonaRequestAs는 Common.js의 전역 auto-init이 페이지 로드시
-            // 이미 채워뒀을 것이다(원본 jQuery `.data("requestAs")`와 동일한 존재 확인 가드).
+            // el._yonaRequestAs는 Common.js의 전역 auto-init이 페이지 로드시 채워둔다
+            // (원본 jQuery `.data("requestAs")`와 동일한 존재 확인 가드).
             if(htElement.welBtnAccept && htElement.welBtnAccept._yonaRequestAs){
                 htElement.welBtnAccept._yonaRequestAs.on("beforeRequest", function(){
                     htElement.welBtnAccept.setAttribute('disabled', 'disabled');
@@ -408,8 +405,8 @@
             var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                // yona.Files.getUploader()는 [elContainer] 형태의 순수 배열을 반환한다
-                // (P3-70 라운드10에서 jQuery 래핑 제거) - oUploader[0]로 raw element를 꺼낸다.
+                // yona.Files.getUploader()는 [elContainer] 형태의 순수 배열을 반환하므로
+                // oUploader[0]로 raw element를 꺼낸다.
                 (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
@@ -440,8 +437,8 @@
          */
         function _initFileDownloader(){
             document.querySelectorAll(".attachments").forEach(function(elContainer){
-                // 6단계(jQuery 완전 제거): isYonaAttachment는 yona.Attachments.js가 붙이는
-                // 순수 expando 프로퍼티다(공개 계약, 중복 초기화 가드).
+                // isYonaAttachment는 yona.Attachments.js가 붙이는 expando 프로퍼티다
+                // (공개 계약, 중복 초기화 가드).
                 if(!elContainer._isYonaAttachment){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }
@@ -608,8 +605,8 @@
             var welContainer = document.querySelector('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
             var welTR = welContainer ? welContainer.querySelector('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]') : null;
             if(welTR){
-                // 이 값은 원본에서도 이후 어디서도 다시 읽히지 않는 내부 전용 기록이다(전수
-                // 조사 완료) - jQuery `.data()` 캐시 대신 커스텀 expando로 그대로 보존한다.
+                // 이 값은 원본에서도 이후 어디서도 다시 읽히지 않는 내부 전용 기록이다 -
+                // jQuery `.data()` 캐시 대신 커스텀 expando로 그대로 보존한다.
                 welTR.__blockInfo = htBlockInfo;
             }
 

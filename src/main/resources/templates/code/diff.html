@@ -50,20 +50,17 @@
 
           <!-- Diff Body -->
           <div class="diff-body discommentable">
-            <!-- yona.CodeCommentBlock.js(드래그 다중행 범위선택, 3단계 복원)가 선택 범위 끝에
-                 띄우는 "댓글 달기" 팝업 버튼. pullrequest/view.html에는 이미 있었는데 이
-                 화면엔 없었다 - yona.css의 .diff-body .btnPop이 이미 기본 display:none을
+            <!-- yona.CodeCommentBlock.js(드래그 다중행 범위선택)가 선택 범위 끝에 띄우는
+                 "댓글 달기" 팝업 버튼. yona.css의 .diff-body .btnPop이 기본 display:none을
                  정의해두고 있어 마크업만 추가하면 된다. -->
             <div class="btnPop" th:if="${currentUser != null}"><button type="button" class="ybtn ybtn-info ybtn-small"><i class="yobicon-post2"></i></button></div>
-            <!-- 4단계 복원: legacy CodeCommentBox(플로팅 마크다운 에디터+첨부파일 팝업).
-                 페이지당 하나만 존재하며 yona.CodeCommentBox.js가 필요한 위치로 옮겨 재사용한다
-                 (project_code_diff_restoration_plan 메모 4단계 참고). action은 이 화면의 새
-                 라인/범위 댓글과 기존 스레드 답글이 공유하는 단일 URL - hidden thread.id 유무로
-                 서버(ReviewViewController.newCommitComment)가 신규/답글을 구분한다. -->
+            <!-- legacy CodeCommentBox(플로팅 마크다운 에디터+첨부파일 팝업). action은 이 화면의
+                 새 라인/범위 댓글과 기존 스레드 답글이 공유하는 단일 URL - hidden thread.id
+                 유무로 서버(ReviewViewController.newCommitComment)가 신규/답글을 구분한다. -->
             <!-- th:if와 th:replace를 같은 태그에 함께 쓰면 Thymeleaf 처리 우선순위(fragment
                  inclusion이 conditional evaluation보다 먼저 처리됨) 때문에 th:if가 false여도
-                 프래그먼트가 삽입될 수 있어(pullrequest/view.html에서 실제 발견·수정한 버그
-                 참고) th:block으로 분리한다. -->
+                 프래그먼트가 삽입될 수 있어(pullrequest/view.html에서 실제 발견한 버그) th:block으로
+                 분리한다. -->
             <th:block th:if="${currentUser != null}"
                       th:with="reviewFormAction=@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commit.id})},
                                reviewFormResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).COMMIT_COMMENT}">
@@ -75,10 +72,8 @@
                   <span th:text="${diff.pathB != null ? diff.pathB : diff.pathA}">파일명</span>
                 </div>
                 <div class="diff-partial-code" style="border: 1px solid #d1d5da; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; overflow: auto; margin-bottom: 20px;">
-                  <!-- data-path-a/data-path-b/data-file-path는 yona.CodeCommentBlock.js(드래그
-                       다중행 범위선택, 3단계 복원)가 _getElementsByOffsetOptions()에서 파일
-                       스코프를 좁히는 데 쓴다 - pullrequest/partial_filediff.html에는 이미
-                       있었는데 이 화면엔 없었다. -->
+                  <!-- data-path-a/data-path-b/data-file-path는 yona.CodeCommentBlock.js가
+                       _getElementsByOffsetOptions()에서 파일 스코프를 좁히는 데 쓴다. -->
                   <table class="diff-container show-comments" style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;"
                          th:data-path-a="${diff.pathA}" th:data-path-b="${diff.pathB}"
                          th:data-file-path="${diff.pathB != null ? diff.pathB : diff.pathA}">
@@ -235,9 +230,8 @@
               data-toggle="button" th:data-watching="${isWatching}" th:text="#{notification.watch}">지켜보기</button>
       <a th:href="@{/{owner}/{name}/commits/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${selectedBranch}, path=${path})}" class="ybtn pull-right" th:text="#{button.list}">목록</a>
 
-      <!-- code.Diff.js의 미니맵(스크롤 위치에 댓글 표시) - code/svnDiff.html에서 이미 이식한
-           것과 동일한 마크업(#minimap/.minimap-wrap/.minimap-curr/.minimap-links). legacy
-           code/diff.scala.html에는 있었는데 Spring Boot 이식 시 통째로 빠져있었다. -->
+      <!-- code.Diff.js의 미니맵(스크롤 위치에 댓글 표시) - code/svnDiff.html과 동일한 마크업
+           (#minimap/.minimap-wrap/.minimap-curr/.minimap-links). -->
       <div id="minimap" class="minimap-outer">
         <div class="minimap-wrap">
           <div class="minimap-curr"></div>
@@ -253,8 +247,8 @@
 
 <div th:replace="~{site/layout :: scripts}"></div>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
-<!-- 3단계: 드래그 다중행 범위선택 - yona.CodeCommentBlock.js는 이미 완전한 vanilla 포팅으로
-     존재했지만(common/yona.CodeCommentBlock.js) 어느 템플릿도 로드하지 않아 죽어 있었다. -->
+<!-- 드래그 다중행 범위선택 - yona.CodeCommentBlock.js는 이미 완전한 vanilla 포팅으로
+     존재했지만 어느 템플릿도 로드하지 않아 죽어 있었다. -->
 <script src="/javascripts/common/yona.CodeCommentBlock.js"></script>
 <script src="/javascripts/common/yona.CodeCommentBox.js"></script>
 <script th:inline="javascript">
@@ -292,15 +286,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 
-  // ===== 3~4단계 복원: 드래그 다중행 범위선택(CodeCommentBlock) + 플로팅 댓글 상자(CodeCommentBox) =====
-  // common/yona.CodeCommentBlock.js는 이미 완전한 vanilla 포팅으로 존재했지만 어느 템플릿도
-  // 로드하지 않아 죽어 있었다 - 로드 + 연결만 하면 됐다. 4단계에서는 legacy와 동일하게
-  // yona.CodeCommentBox.js(플로팅 마크다운 에디터+첨부파일 팝업)까지 되살려, 새 라인/범위
-  // 댓글과 기존 스레드 답글이 모두 이 하나의 팝업을 공유하도록 통일했다(이전엔 매번 새
-  // <textarea> 폼을 tr 뒤에 끼워 넣는 훨씬 단순화된 대체 구현이었다 - 마크다운 에디터도
-  // 첨부파일도 없었음). pullrequest/view.html:217-229의 "P3-55에서 CodeCommentBox.js를 이미
-  // 제거하기로 결정했다"는 이전 기록은, legacy 재조사 결과 뒤집혔다(project_code_diff_
-  // restoration_plan 메모 4단계 참고, 사용자 확인 완료).
+  // ===== 드래그 다중행 범위선택(CodeCommentBlock) + 플로팅 댓글 상자(CodeCommentBox) =====
+  // 둘 다 이미 완전한 vanilla 포팅으로 존재했지만 어느 템플릿도 로드하지 않아 죽어 있었다.
+  // legacy와 동일하게 새 라인/범위 댓글과 기존 스레드 답글이 CodeCommentBox 하나를 공유하도록
+  // 되살린다(이전엔 매번 새 <textarea> 폼을 tr 뒤에 끼워 넣는 단순화된 대체 구현이었음).
   if (currentUser) {
     const diffBody = document.querySelector(".diff-body");
     const btnPop = diffBody ? diffBody.querySelector(".btnPop") : null;
@@ -392,19 +381,15 @@ document.addEventListener("DOMContentLoaded", function() {
         });
       });
 
-      // 기존 스레드에 대한 답글은 legacy처럼 팝업을 재사용하지 않고, 이미 마크다운
-      // 에디터+첨부파일을 갖춘 상시 노출 답글 폼(renderLineComments 프래그먼트,
-      // code/compare.html과 공유)을 그대로 유지한다 - CodeCommentBox는 "새 라인/범위
-      // 댓글 작성"에만 적용한다(사용자에게 보이는 기능은 동등, 클릭 한 번 덜 드는
-      // 실용적 차이만 있음).
+      // 기존 스레드에 대한 답글은 CodeCommentBox를 재사용하지 않고, 이미 마크다운 에디터+첨부파일을
+      // 갖춘 상시 노출 답글 폼(renderLineComments 프래그먼트, code/compare.html과 공유)을 그대로
+      // 유지한다 - CodeCommentBox는 "새 라인/범위 댓글 작성"에만 적용한다.
     }
   }
 
-  // ===== code.Diff.js 1단계 복원: 미니맵/해시 딥링크/스레드 접기·펴기/리뷰 사이드바 sticky =====
-  // "죽은 코드" 감사 중 code.Diff.js 자체가 어느 템플릿도 로드하지 않는 걸 발견했고, 그 화면이
-  // legacy보다 훨씬 축소된 별도 구현으로 대체돼 있던 것을 확인해 legacy와 동일하게 되돌리는
-  // 작업(project_code_diff_restoration_plan 메모 참고)의 1단계 - 댓글 제출 흐름은 안 건드리고
-  // 상대적으로 독립적인 기능들만 먼저 복원한다.
+  // ===== code.Diff.js에서 복원: 미니맵/해시 딥링크/스레드 접기·펴기/리뷰 사이드바 sticky =====
+  // 이 기능들은 code.Diff.js 자체가 어느 템플릿도 로드하지 않아 legacy보다 축소된 별도 구현으로
+  // 대체돼 있었다 - 댓글 제출 흐름은 건드리지 않고 legacy와 동일하게 복원한다.
 
   // --- 미니맵 (code/svnDiff.html에서 이미 이식한 것과 동일 패턴, li.comment 대신
   //     .comment-thread-wrap을 대상으로 한다는 것만 다르다 - legacy code.Diff.js도
@@ -558,9 +543,8 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     }
 
-    // 리뷰카드 클릭 시 해당 스레드로 이동(legacy _onClickReviewCardLink/_getHashFromLinkString/
-    // _isThreadExistOnCurrentPage) - 2단계 항목이지만 review-card 마크업이 이미 #thread-N
-    // href로 존재해 hashchange 리스너 하나로 자연스럽게 같이 해결된다.
+    // 리뷰카드 클릭 시 해당 스레드로 이동(legacy _onClickReviewCardLink) - review-card 마크업이
+    // 이미 #thread-N href로 존재해 hashchange 리스너 하나로 해결된다.
     document.querySelectorAll("a.review-card").forEach(function(elCard){
       elCard.addEventListener("click", function(weEvt){
         var sThreadId = elCard.getAttribute("href").split("#").pop();
@@ -580,16 +564,12 @@ document.addEventListener("DOMContentLoaded", function() {
   })();
 
   // --- 리뷰 사이드바 sticky(legacy _setReviewWrapAffixed/_setReviewListHeight) -------------
-  // position:sticky로는 부모 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어(기존
-  // 판단 그대로 유지) Bootstrap2 jQuery 플러그인 .affix()의 checkPosition() 알고리즘을
-  // bootstrap.js(v2.3.1, 미수정)에서 그대로 옮겨와 재현했다(P3-70 라운드9) - offset.bottom을
-  // 쓰지 않는 이 호출(offset.top만 지정)에서는 원본이 늘 scrollTop<=offsetTop이면 "top",
-  // 아니면 false 상태만 오가므로 그 두 상태만 구현하면 완전 동치다.
-  // P3-70 라운드10: setReviewListHeight 내부의 나머지 jQuery 코어 호출(.offset()/.position()/
-  // .outerHeight()/.css()/$(window)/$(document))도 제거했다 - jQuery 3.3.1 core/offset.js의
-  // .offset()/.position() 계산식(오프셋 부모 체인을 거슬러 올라가며 static position인
-  // body/html은 건너뛰고, 부모의 border-top/left와 자신의 margin-top/left를 보정하는 알고리즘)을
-  // 근사가 아니라 그대로 이식했다.
+  // position:sticky로는 부모 컨테이너(.codediff-wrap) 범위를 벗어나 고정될 수 없어 Bootstrap2
+  // jQuery 플러그인 .affix()의 checkPosition() 알고리즘을 bootstrap.js(v2.3.1, 미수정)에서
+  // 그대로 옮겨와 재현했다 - offset.bottom을 쓰지 않는 이 호출(offset.top만 지정)에서는 원본이
+  // 늘 scrollTop<=offsetTop이면 "top", 아니면 false 상태만 오가므로 그 두 상태만 구현하면
+  // 완전 동치다. setReviewListHeight 내부의 나머지 jQuery 코어 호출(.offset()/.position()/
+  // .outerHeight()/.css())도 jQuery 3.3.1 core/offset.js의 계산식을 근사가 아니라 그대로 이식했다.
   (function(){
     function cssNum(el, sProp){
       var n = parseFloat(getComputedStyle(el)[sProp]);

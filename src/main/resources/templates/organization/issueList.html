@@ -18,8 +18,7 @@
     <footer th:replace="~{site/layout :: footer}"></footer>
     <div th:replace="~{site/layout :: scripts}"></div>
 </div>
-<!-- P3-70 라운드4: yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js
-     (lib/, 미수정) 의존이 제거됨 - 더 이상 로드하지 않는다. -->
+<!-- yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js 의존이 제거됨 -->
 <script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript" th:inline="javascript">
@@ -31,10 +30,9 @@
             elProjects.addEventListener("change", function(){
                 var elSearch = document.getElementById("search");
                 if(elSearch){
-                    // yona.issue.List.js의 pjax 가로채기(document 레벨 delegated submit
-                    // 리스너)가 이 폼(form[name="search"])의 진짜 "submit" 이벤트만 감지하므로,
-                    // elSearch.submit()을 직접 부르면 pjax를 건너뛰게 된다 - 이벤트를 먼저
-                    // 발생시키고 아무도 막지 않을 때만 실제 제출하는 동일한 흐름을 재현한다.
+                    // yona.issue.List.js의 pjax 가로채기는 이 폼의 진짜 "submit" 이벤트만
+                    // 감지한다 - elSearch.submit()을 직접 부르면 pjax를 건너뛰므로, 이벤트를
+                    // 먼저 발생시켜 막히지 않을 때만 제출한다.
                     var weEvt = new Event("submit", {"bubbles": true, "cancelable": true});
                     var bNotPrevented = elSearch.dispatchEvent(weEvt);
                     if(bNotPrevented){

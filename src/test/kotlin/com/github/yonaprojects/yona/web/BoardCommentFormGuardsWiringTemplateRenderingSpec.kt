@@ -22,9 +22,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// P3-52 항목3 — issue/view.html과 동일한 이유로 board/view.html의 #comment-form에도 동일한 가드
-// (빈값 제출 방지/Ctrl+Shift+Enter/beforeunload/임시저장)를 재구현했다.
-// (CommentFormGuardsWiringTemplateRenderingSpec의 board 버전 — 같은 결함/같은 해법의 자매 화면)
+// issue/view.html과 동일한 이유로 board/view.html의 #comment-form에도 같은 가드(빈값 제출 방지/
+// Ctrl+Shift+Enter/beforeunload/임시저장)를 재구현했다 — CommentFormGuardsWiringTemplateRenderingSpec의
+// board 버전(자매 화면).
 @Transactional
 class BoardCommentFormGuardsWiringTemplateRenderingSpec @Autowired constructor(
     private val webApplicationContext: WebApplicationContext,

@@ -115,13 +115,10 @@ class IssueViewController(
                 return "error/404"
             }
 
-        // State는 이름(OPEN/CLOSED)이 아니라 소문자 커스텀 값(open/closed)으로
-        // 직렬화되는 enum이라(State.state()), Spring 기본 enum 바인딩(Enum.valueOf)에
-        // 맡기면 안 된다 - issue/list.html의 상태 탭(state="open"/"closed")을 클릭할
-        // 때마다 MethodArgumentTypeMismatchException으로 400이 나던 것을(pjax를
-        // vanilla로 전환하며 실제 클릭 흐름을 처음 검증하다 발견) State.getValue()로
-        // 직접 변환해 해결 - 다른 컨트롤러(UserViewController/SiteViewController 등)도
-        // 전부 이 방식을 쓴다.
+        // State는 이름(OPEN/CLOSED)이 아니라 소문자 커스텀 값(open/closed)으로 직렬화되는
+        // enum이라, Spring 기본 enum 바인딩(Enum.valueOf)에 맡기면 issue/list.html의 상태 탭
+        // (state="open"/"closed") 클릭마다 MethodArgumentTypeMismatchException으로 400이 난다 -
+        // State.getValue()로 직접 변환해야 한다(다른 컨트롤러도 전부 이 방식을 쓴다).
         val state = State.getValue(stateParam.lowercase())
 
         // 권한 체크
@@ -269,10 +266,9 @@ class IssueViewController(
 
         model.addAttribute("milestones", milestones)
         model.addAttribute("closedMilestones", closedMilestones)
-        // P3-61: legacy issue/partial_searchform.scala.html:106-113 대응 — milestoneId가 선택돼
-        // 있으면(단, -1은 "마일스톤 없음" 센티널이라 실제 마일스톤이 아님) milestone/partial_status
-        // 진행률 카드를 표시하기 위해 선택된 마일스톤 엔티티 자체를 모델에 담는다. 이미 위에서
-        // 조회해둔 open/closed 마일스톤 목록에서 찾으면 충분해 별도 리포지토리 조회가 필요 없다.
+        // legacy issue/partial_searchform.scala.html 대응 — milestoneId가 선택돼 있으면(단, -1은
+        // "마일스톤 없음" 센티널이라 실제 마일스톤이 아님) milestone/partial_status 진행률 카드
+        // 표시를 위해 이미 조회해둔 open/closed 목록에서 찾아 모델에 담는다.
         val selectedMilestone = if (milestoneId != null && milestoneId > 0) {
             (milestones + closedMilestones).find { it.id == milestoneId }
         } else {
@@ -368,9 +364,9 @@ class IssueViewController(
         model.addAttribute("openMilestones", openMilestones)
         model.addAttribute("closedMilestones", closedMilestonesForIssue)
 
-        // P3-52 항목2 — service/yona.detectChange.js(폴링으로 본문/댓글 변경 감지) 배선용
-        // 초기 상태값. IssueController.detectChange()가 매 폴링마다 비교하는 것과 동일한 값을
-        // 최초 페이지 로드 시점에 hidden input으로 심어둔다.
+        // service/yona.detectChange.js(폴링으로 본문/댓글 변경 감지) 배선용 초기 상태값.
+        // IssueController.detectChange()가 매 폴링마다 비교하는 것과 동일한 값을 최초 페이지
+        // 로드 시점에 hidden input으로 심어둔다.
         model.addAttribute("issueBodyChecksum", sha1Hex(issue.body ?: ""))
         model.addAttribute("numOfComments", comments.size)
         model.addAttribute("issueUpdateDate", (issue.updatedDate ?: issue.createdDate)?.toEpochMilli())
@@ -439,10 +435,9 @@ class IssueViewController(
         model.addAttribute("isProjectManager", isProjectManager)
         model.addAttribute("commentApiBase", "/api/projects/${project.id}/issues/${issue.number}/comments")
         model.addAttribute("timeline", timeline)
-        // P3-50: 댓글 수정 폼(common/commentUpdateForm)이 "이미 첨부된 파일" 목록을 보여주려면
-        // 댓글별 첨부파일 목록이 필요하다 — findByContainerTypeAndContainerId 자체가
-        // @Cacheable(컨테이너 단위)이라 댓글마다 개별 호출해도 ProjectApiController의
-        // composeCommentNode()와 동일한 패턴(N+1이지만 캐시로 상쇄)을 재사용한다.
+        // 댓글 수정 폼(common/commentUpdateForm)이 "이미 첨부된 파일" 목록을 보여주려면 댓글별
+        // 첨부파일 목록이 필요하다 — findByContainerTypeAndContainerId가 @Cacheable(컨테이너
+        // 단위)이라 댓글마다 개별 호출해도(N+1) 캐시로 상쇄되므로 그대로 재사용한다.
         model.addAttribute(
             "commentAttachmentsByCommentId",
             comments.associate { comment ->

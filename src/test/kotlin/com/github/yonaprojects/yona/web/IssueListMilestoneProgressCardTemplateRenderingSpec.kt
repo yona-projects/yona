@@ -23,10 +23,8 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-61: 프로젝트 범위 이슈 목록(issue/list.html)에서 마일스톤으로 필터링해도 진행률 카드
-// (milestone/partial_status, 이미 project/home.html 사이드바에서 쓰이는 fragment)가 보이지
-// 않았다. TASK-0253이 "cross-project 전용이라 범위 밖"이라 잘못 내린 제외 판단을 정정하고
-// 실제로 배선했는지 검증한다.
+// 이슈 목록에서 마일스톤으로 필터링해도 진행률 카드(milestone/partial_status,
+// project/home.html 사이드바와 동일 fragment)가 빠져 있었다 - 배선이 복원됐는지 검증한다.
 class IssueListMilestoneProgressCardTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,

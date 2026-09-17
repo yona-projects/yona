@@ -333,13 +333,9 @@ class MarkdownServiceImplSpec : DescribeSpec({
             output.shouldContain("val x = 1")
         }
 
-        // P3-48 화면별 재현 세션에서 발견: commonmark 확장 목록에 task-list-items가 빠져있어
-        // "- [ ] task" GFM tasklist 문법이 실제 <input type="checkbox">로 렌더링되지 않고 그냥
-        // "[ ] task"라는 리터럴 텍스트로 남아있었다 — 그 결과 common/yona.Tasklist.js가
-        // $(".markdown-wrap").find("input[type=checkbox]")로 아무 것도 찾지 못해 이슈/게시글
-        // 본문의 체크박스 토글 기능 자체가 완전히 죽어있었다(Playwright로 실제 이슈 화면을
-        // 열어 재현). 새니타이저 allowlist(HtmlPolicyBuilder)는 이미 input[type,disabled,checked]를
-        // 허용해뒀던 것으로 보아, 이 확장 자체가 통째로 빠진 것으로 보인다.
+        // commonmark 확장 목록에 task-list-items가 빠지면 "- [ ] task"가 <input type="checkbox">가
+        // 아니라 리터럴 텍스트로 남아, common/yona.Tasklist.js가 체크박스를 찾지 못해 토글 기능이
+        // 죽는다(Playwright로 재현). 새니타이저 allowlist는 이미 input을 허용하므로 확장 누락이 원인이었다.
         it("GFM tasklist 문법(- [ ]/- [x])은 실제 checkbox input으로 렌더링되어야 한다 (P3-48)") {
             val output = markdownService.render("- [ ] task one\n- [x] task two")
             output.shouldContain("<input")
@@ -347,13 +343,10 @@ class MarkdownServiceImplSpec : DescribeSpec({
             output.shouldContain("checked")
         }
 
-        // commonmark-ext-task-list-items는 항상 disabled="" 를 붙여 렌더링한다(체크박스가 항상
-        // 읽기전용). legacy(marked.js, Nashorn 기반 서버사이드 렌더링)는 기본적으로 disabled를
-        // 붙이지 않고, 대신 common/yona.Tasklist.js의 disableCheckboxIfNeeds()가 수정 권한이 없는
-        // 뷰어에게만 사후에 disabled를 붙이는 구조다 — 렌더러가 항상 disabled를 붙이면 그 JS가
-        // "허용된" 경우에도 disabled를 벗겨내는 로직이 없어(원래 그럴 필요가 없었으므로) 아무도
-        // 체크박스를 클릭할 수 없게 된다(Playwright 실제 클릭으로 재현 확인). legacy와 동일하게
-        // 렌더러 출력에서는 disabled를 제거해, "허용 안 됨" 판단은 여전히 JS 쪽 책임으로 남긴다.
+        // commonmark-ext-task-list-items는 항상 disabled=""를 붙인다. legacy(marked.js)는 붙이지
+        // 않고 common/yona.Tasklist.js가 수정 권한 없는 뷰어에게만 사후에 disabled를 붙이는데,
+        // 그 JS는 disabled를 벗겨내는 로직이 없어 렌더러가 항상 붙이면 아무도 클릭할 수 없다
+        // (Playwright로 확인). legacy처럼 렌더러 출력에서 disabled를 제거해 권한 판단은 JS에 맡긴다.
         it("tasklist checkbox는 legacy(marked.js)와 동일하게 기본적으로 disabled가 없어야 한다 (P3-48)") {
             val output = markdownService.render("- [ ] task one")
             output.shouldContain("<input")

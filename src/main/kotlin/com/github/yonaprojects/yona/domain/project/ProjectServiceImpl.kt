@@ -132,10 +132,8 @@ class ProjectServiceImpl(
         // 개명 검사를 가장 먼저 수행해, 다른 필드가 바뀌기 전에 실패하면 아무 것도 반영되지
         // 않게 한다.
         if (param.name != null && param.name != project.name) {
-            // legacy yobi.project.Setting.js._onClickBtnSave()의 aReservedWords 검사 대응 -
-            // 클라이언트 검증(project/setting.html)이 뚫리는 경우를 막는 최종 방어선. legacy도
-            // 서버 사이드에서는 이 예약어 검사만 했고(rxPrjName 형식 검사는 클라이언트 전용이었다 -
-            // git 이력에 서버 쪽 대응 검사가 없음을 확인), createProject()와 동일한 검증을 적용한다.
+            // legacy도 서버 사이드에서는 예약어 검사만 했다(rxPrjName 형식 검사는 클라이언트
+            // 전용) - 클라이언트 검증이 뚫려도 막히도록 createProject()와 동일한 검증을 적용한다.
             if (ProjectNameValidator.isRestricted(param.name)) {
                 throw IllegalArgumentException("Project name is restricted: ${param.name}")
             }
@@ -469,12 +467,9 @@ class ProjectServiceImpl(
         val destOwner = if (destinationOwner.isNotBlank()) destinationOwner else forker.loginId
         val destName = if (destinationName.isNotBlank()) destinationName else original.name
 
-        // destinationOwner가 임의의 문자열이면(호출자가 폼/REST 바디로 직접 지정) 이름 충돌 검사 전에
-        // 먼저 forker가 그 이름으로 fork할 권한이 있는지 확인한다 — 이 검증이 없으면 아무 로그인
-        // 사용자나 자신이 속하지 않은 조직(또는 다른 사용자)의 이름을 destinationOwner로 지정해
-        // 그 네임스페이스에 프로젝트를 만들고 스스로 MANAGER가 될 수 있었다(그 이름에 아직 프로젝트가
-        // 없기만 하면 충돌 검사를 통과함). acceptTransfer()와 동일한 규칙(본인 계정이거나 ORG_ADMIN인
-        // 조직만 허용)을 재사용한다.
+        // destinationOwner는 호출자가 폼/REST 바디로 직접 지정하는 임의 문자열이다 — 이 권한
+        // 검사가 없으면 자신이 속하지 않은 조직/타인의 이름을 지정해 그 네임스페이스에 프로젝트를
+        // 만들고 스스로 MANAGER가 될 수 있다. acceptTransfer()와 동일한 규칙을 재사용한다.
         if (!isAuthorizedToAcceptTransfer(destOwner, forker)) {
             throw IllegalArgumentException("'$destOwner' 이름으로 포크할 권한이 없습니다 — 본인 계정이거나 관리자(ORG_ADMIN)로 속한 조직만 목적지로 지정할 수 있습니다.")
         }

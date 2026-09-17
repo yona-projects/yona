@@ -19,11 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam
 // GitHub/Forgejo 스타일 프로젝트 위키 웹 UI. 페이지는 DB가 아니라
 // `<owner>/<project>.wiki.git` bare 저장소의 마크다운 파일이다(WikiService/WikiServiceImpl 참고).
 //
-// 라우팅: "{*title}"(Spring PathPattern의 나머지-경로 캡처, 슬래시로 중첩 페이지 표현)은
-// 패턴 맨 끝에만 올 수 있어, "_new"/"_edit"/"_delete"/"_history"/"_search"를 title보다 앞에 오는
-// 예약 리터럴 세그먼트로 두었다(GitHub/Forgejo 위키도 동일하게 "_new"/"_history" 등을
-// 예약어로 쓴다) — WikiServiceImpl.titleToPath()가 이 예약어를 페이지 제목 첫 세그먼트로
-// 거부해 라우팅과 페이지 제목이 절대 충돌하지 않는다.
+// 라우팅: "{*title}"(나머지-경로 캡처)은 패턴 맨 끝에만 올 수 있어 "_new"/"_edit"/"_delete"/
+// "_history"/"_search"를 title보다 앞에 오는 예약 리터럴 세그먼트로 뒀다 —
+// WikiServiceImpl.titleToPath()가 이 예약어를 페이지 제목 첫 세그먼트로 거부해 라우팅과 페이지
+// 제목이 충돌하지 않는다.
 @Controller
 class WikiViewController(
     private val projectRepository: ProjectRepository,
@@ -69,9 +68,8 @@ class WikiViewController(
         }
     }
 
-    // 위키 홈. 페이지가 하나도 없으면 "Home 페이지 만들기"로 유도한다(조회만으로 부작용 있는
-    // 자동 생성 커밋을 만들지 않기 위해 자동 생성 대신 이 방식을 택함). Home이 있으면 곧바로
-    // 그 내용을 보여준다.
+    // 위키 홈. 페이지가 없으면 "Home 페이지 만들기"로 유도한다 — 조회만으로 부작용 있는 자동 생성
+    // 커밋을 만들지 않기 위해 자동 생성 대신 이 방식을 택했다.
     @GetMapping("/{owner}/{projectName}/wiki")
     fun home(
         @PathVariable owner: String,
@@ -253,8 +251,6 @@ class WikiViewController(
         return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/wiki"
     }
 
-    // 페이지별 히스토리 — 리비전 목록. ?rev=<commitId>를 주면 그 리비전의 diff를 함께
-    // 보여주고(부모 커밋과 비교), ?revA=&revB=를 함께 주면 두 임의 리비전 사이의 diff를 보여준다.
     @GetMapping("/{owner}/{projectName}/wiki/_history/{*title}")
     fun history(
         @PathVariable owner: String,
@@ -289,9 +285,8 @@ class WikiViewController(
         return "wiki/history"
     }
 
-    // 위키 페이지 뷰(제목에 슬래시로 중첩 경로 표현 가능). 선언 순서와 무관하게 Spring의
-    // PathPattern 특이도 비교로 "_new"/"_search" 등 리터럴 세그먼트를 가진 매핑이 이
-    // 와일드카드보다 항상 먼저 매치된다.
+    // Spring PathPattern은 선언 순서와 무관하게 특이도로 매칭하므로 "_new"/"_search" 등 리터럴
+    // 세그먼트를 가진 매핑이 이 와일드카드보다 항상 먼저 매치된다.
     @GetMapping("/{owner}/{projectName}/wiki/{*title}")
     fun view(
         @PathVariable owner: String,

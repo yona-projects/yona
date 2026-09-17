@@ -334,8 +334,7 @@ class IssueApiController(
     }
 
     // legacy 필드명은 `content`/`original`(수정 시도 직전 화면에 있던 원문 그 자체 — 미리 계산한
-    // 해시 아님, v1.6 IssueApi.updateIssueContent()로 확인). 서버가 현재 값과 이 원문을 각각
-    // 해시해서 비교한다(isModifiedByOthers()).
+    // 해시 아님). 서버가 현재 값과 이 원문을 각각 해시해서 비교한다(isModifiedByOthers()).
     data class LegacyUpdateIssueContentRequest(val content: String = "", val original: String = "")
     data class LegacyUpdateIssueStateRequest(val state: String? = null)
     data class LegacyAssigneeRef(val loginId: String? = null)

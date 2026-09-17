@@ -23,8 +23,8 @@ class YonaUserDetails @JsonCreator constructor(
     // 뿐이라 그 값들로는 원래의 UserState(ACTIVE/LOCKED/DELETED)를 복원할 수 없다 — state 자체를
     // public 프로퍼티(getState())로 노출해 직렬화/역직렬화가 같은 프로퍼티명("state")을 왕복하게 한다.
     @JsonProperty("state") val state: UserState = UserState.ACTIVE,
-    // 법적 컴플라이언스 감사 #4 대응(브루트포스 방어) — YonaAuthenticationProvider가 매 로그인
-    // 시도마다 User를 다시 조회하지 않고도 일시 잠금 여부를 판단할 수 있도록 스냅샷으로 들고 있다.
+    // YonaAuthenticationProvider가 매 로그인 시도마다 User를 다시 조회하지 않도록
+    // 잠금 시각을 스냅샷으로 들고 있다.
     @JsonProperty("lockedUntil") val lockedUntil: Instant? = null
 ) : UserDetails {
     override fun getAuthorities(): Collection<GrantedAuthority> = authoritiesVal

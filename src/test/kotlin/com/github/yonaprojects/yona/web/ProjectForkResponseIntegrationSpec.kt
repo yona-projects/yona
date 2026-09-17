@@ -28,13 +28,10 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// ProjectController.forkProject()(`/api/{owner}/{projectName}/fork`)와 이를 그대로 위임 호출하는
-// ProjectRestApiController.fork()(`/api/v1/projects/{owner}/{project}/fork`)가 성공 시
-// forkedProject(JPA Project 엔티티)를 가공 없이 그대로 반환했다. Project.projectUsers[].user
-// (User.projectUsers와의 양방향 연관)를 따라가며 Jackson이 순환 직렬화를 시도하는 과정에서
-// User.password/passwordSalt 해시값까지 응답 바이트에 그대로 노출된다 — 단순 파싱 실패가 아니라
-// 보안 문제. IssueAndPullRequestCircularSerializationIntegrationSpec.kt와 동일하게 mockk가 아닌
-// 실제 DB + MockMvc로 실제 연관관계 그래프를 직렬화해 재현한다.
+// ProjectController.forkProject()/ProjectRestApiController.fork()가 성공 시 forkedProject(JPA
+// 엔티티)를 가공 없이 반환했다. Project.projectUsers[].user의 양방향 연관을 따라가며 Jackson이
+// 순환 직렬화를 시도하는 과정에서 User.password/passwordSalt 해시값까지 응답에 노출된다 - 단순
+// 파싱 실패가 아니라 보안 문제라, mockk가 아닌 실제 DB + MockMvc로 연관관계 그래프를 재현한다.
 class ProjectForkResponseIntegrationSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,

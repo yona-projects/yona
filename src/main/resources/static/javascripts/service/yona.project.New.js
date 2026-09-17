@@ -16,10 +16,9 @@
          * jQuery UI `.toggle("slide")`(가로 슬라이드 show/hide)의 최소 vanilla 재현.
          * `#repoAuth`(repo-auth-wrap)에만 쓰이는 단일 용도 헬퍼라 이 파일 안에 둔다.
          *
-         * P3-71: 원래 `.toggle()`처럼 "지금 보이는지"만 보고 반대로 뒤집었는데, 이 페이지에서
-         * 같은 change 이벤트에 걸린 다른 핸들러가 먼저 display를 바꿔놓으면 그 바뀐 상태를
-         * "지금 상태"로 오인해 반대 방향(반전)으로 애니메이션했다. bShow로 목표 상태를 직접
-         * 받아 판단하도록 바꿔 호출부(체크박스 checked 여부)와 항상 일치하게 한다.
+         * "지금 보이는지"로 방향을 정하면, 같은 change 이벤트의 다른 핸들러가 먼저 display를
+         * 바꿔놓았을 때 반대 방향으로 애니메이션하는 버그가 있었다. bShow로 목표 상태를 직접
+         * 받아 호출부(체크박스 checked 여부)와 항상 일치하게 한다.
          */
         function _toggleSlide(el, bShow){
             if(!el){
@@ -35,10 +34,9 @@
 
             if(bShow){
                 // `.form-wrap.new-project .repo-auth-wrap { display: none; }`(yona.css)처럼
-                // 클래스 기반 display:none 규칙이 있으면 인라인 스타일을 빈 문자열로만
-                // 비워서는 그 규칙이 그대로 이겨 패널이 절대 열리지 않는다(Playwright 실측
-                // 회귀 발견) - jQuery `.show()`가 태그 기본 표시값을 명시적으로 세팅해 CSS
-                // 규칙을 오버라이드하던 것과 동일하게, 명시적 값("block")을 넣어야 한다.
+                // 클래스 기반 display:none 규칙이 있으면 인라인 스타일을 빈 문자열로 비워서는
+                // 그 규칙이 이겨 패널이 열리지 않는다(Playwright 실측) - jQuery `.show()`처럼
+                // 명시적 값("block")을 넣어야 CSS 규칙을 오버라이드한다.
                 el.style.display = "block";
                 var nWidth = el.offsetWidth;
                 el.style.overflow = "hidden";
@@ -294,11 +292,10 @@
                 if(htElement.welMenuSettingPullRequest){ htElement.welMenuSettingPullRequest.checked = false; }
                 if(htElement.welMenuSettingReview){ htElement.welMenuSettingReview.checked = false; }
 
-                // 원본 그대로 보존: welReviewerCountSettingPanel/welDefaultBranceSettingPanel/
-                // welSubMenuProjectChangeVCS는 _initElement에서 단 한 번도 할당되지 않는
-                // pre-existing 미완성 상태다(전수 조사 완료) - "코드" 체크박스를 실제로
-                // 해제하면 원본도 이 지점에서 TypeError를 던지며 멈췄을 것이다(Playwright로
-                // 실측 예정). jQuery 전환과 무관한 기존 버그라 고치지 않고 그대로 보존한다.
+                // welReviewerCountSettingPanel/welDefaultBranceSettingPanel/welSubMenuProjectChangeVCS는
+                // _initElement에서 할당되지 않는 pre-existing 미완성 상태다 - "코드" 체크박스를
+                // 해제하면 원본도 여기서 TypeError로 멈췄을 것이다. jQuery 전환과 무관한 기존
+                // 버그라 고치지 않고 그대로 보존한다.
                 htElement.welReviewerCountSettingPanel.style.display = "none";
                 htElement.welDefaultBranceSettingPanel.style.display = "none";
                 htElement.welSubMenuProjectChangeVCS.style.display = "none";

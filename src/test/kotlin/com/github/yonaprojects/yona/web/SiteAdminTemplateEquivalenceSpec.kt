@@ -131,8 +131,8 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
 
             describe("[SiteAdmin-2] <title> 메시지 키 정합성 (data/diagnostic/postList/issueList/userList/projectList/update, #211~220)") {
                 it("data 화면은 legacy가 넘기는 title.siteSetting('사이트 설정')을 <title>에 써야 한다") {
-                    // P3-51: <title> 문구가 legacy 한국어 값과 정확히 같은지(내용 동치성) 확인하는
-                    // 테스트라 Accept-Language 헤더 없는 요청의 새 기본값(영어)과 무관하게 한국어
+                    // <title> 문구가 legacy 한국어 값과 정확히 같은지 확인하는 테스트라
+                    // Accept-Language 헤더 없는 요청의 새 기본값(영어)과 무관하게 한국어
                     // 로케일을 명시적으로 요청한다.
                     val result = mockMvc.perform(
                         get("/sites/data").with(SecurityMockMvcRequestPostProcessors.user(siteAdminDetails)).locale(Locale.KOREAN)
@@ -197,7 +197,7 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
                 }
             }
 
-            // P3-54 — authorLoginId가 null인 게시글/이슈가 하나라도 있으면(작성자 탈퇴 등)
+            // authorLoginId가 null인 게시글/이슈가 하나라도 있으면(작성자 탈퇴 등)
             // site/postList.html·site/issueList.html의
             // "userRepository.findByLoginId(post.authorLoginId)" 호출이 그대로 null을 넘겨
             // UserRepository.findByLoginId(loginId: String)의 Kotlin 널 안전성 검사에 걸려

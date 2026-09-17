@@ -264,8 +264,6 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.contents").value("수정된이슈댓글"))
             }
 
-            // P3-50: commentUpdateForm의 "알림 메일 받기" 체크박스가 켜지면 요청 바디의
-            // sendNotificationMail 필드가 그대로 CommentService까지 전달돼야 한다.
             it("sendNotificationMail=true를 보내면 그 값 그대로 CommentService에 전달해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -1101,8 +1099,8 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isOk)
             }
 
-            // v1.6 원본 conf/routes에 controllers.api.IssueApi.updateIssueComment()가 -_-api/v1 PUT뿐
-            // 아니라 bare 경로 PATCH로도 이중 매핑돼 있던 것을 발견해 뒤늦게 이식(P3-38).
+            // v1.6 원본 conf/routes: controllers.api.IssueApi.updateIssueComment()는 -_-api/v1 PUT뿐
+            // 아니라 bare 경로 PATCH로도 이중 매핑돼 있다.
             it("PATCH /{owner}/{projectName}/issue/{number}/comments/{commentId} — legacy bare 경로(PATCH)로도 동일하게 수정된다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -1150,9 +1148,9 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isOk)
             }
 
-            // v1.6 원본 conf/routes에 controllers.api.BoardApi.updatePostingComment()가 -_-api/v1
+            // v1.6 원본 conf/routes: controllers.api.BoardApi.updatePostingComment()는 -_-api/v1
             // PUT뿐 아니라 bare 경로 PATCH("post"/"comment" 단수, 이슈 쪽과 다름 — 원본 그대로)로도
-            // 이중 매핑돼 있던 것을 발견해 뒤늦게 이식(P3-38).
+            // 이중 매핑돼 있다.
             it("PATCH /{owner}/{projectName}/post/{number}/comment/{commentId} — legacy bare 경로(PATCH)로도 동일하게 수정된다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)

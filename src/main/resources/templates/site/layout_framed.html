@@ -34,8 +34,7 @@
                 <span class="caret-text hide-in-mobile" th:text="${currentUser.name}">jiho</span>
             </a></span>
             <span class="user-menu"><a href="/user/editform" target="mainFrame" th:text="#{userinfo.accountSetting}">사용자 설정</a></span>
-            <!-- CSRF 재활성화 — site/layout.html의 동일 패턴 참고(js-logout-link 클래스로 표시해
-                 site/layout.html::scripts의 전역 핸들러가 클릭을 가로채 POST로 보내게 함). -->
+            <!-- site/layout.html의 js-logout-link 패턴 참고 - 전역 핸들러가 클릭을 가로채 POST로 보낸다. -->
             <a href="/users/logout" class="js-logout-link"><span class="user-menu logout label" th:text="#{title.logout}">로그아웃</span></a>
         </div>
         <ul class="nav nav-tabs nm">
@@ -336,16 +335,9 @@
              // 1. 초기 탭 렌더링 동기화
              initActiveMenu();
 
-             // 2. 비동기 usermenuTabContentList 데이터 덮어쓰기 완료 시점에 탭 active 재조정.
-             // P3-70 라운드10: $(document).ajaxComplete(...)(jQuery 코어 API, jQuery 자체의
-             // $.ajax 호출에만 반응하고 네이티브 fetch/XHR에는 대응 API가 없음) 호출을
-             // 제거했다 - 실제로 이 URL을 요청하는 코드(common/yona.Usermenu.js:25
-             // `fetch(UsermenuUrl)`)는 이미 완전히 fetch 기반이라, 이 핸들러는 jQuery가
-             // 로드돼 있던 지금까지도 단 한 번도 실행될 수 없는 죽은 등록이었다(grep으로
-             // yona.Usermenu.js 전체를 확인 - $.ajax 호출이 전혀 없다). 제거해도 관찰 가능한
-             // 동작 변화가 없다 - 오히려 jQuery 제거 후 이 줄이 "$ is not defined"로 예외를
-             // 던져 바로 아래 .refresh-button/사이드바 메뉴 클릭 바인딩까지 막는 회귀를
-             // 방지한다.
+             // 2. 비동기 usermenuTabContentList 데이터 덮어쓰기 완료 시점에 탭 active를 재조정하던
+             // $(document).ajaxComplete(...) 등록은 제거했다 - common/yona.Usermenu.js가 이미 완전히
+             // fetch 기반이라 $.ajax를 쓰지 않으므로 원래도 실행될 수 없는 죽은 등록이었다.
 
              document.querySelectorAll('.refresh-button').forEach(function(el){
                  el.addEventListener('click', function(){
@@ -366,8 +358,7 @@
                  });
              });
 
-             // Common.js가 이미 갖춘 네이티브 hover popover 구현(initHoverPopovers)을 그대로
-             // 재사용한다 - Bootstrap2 .popover() 플러그인 호출을 대체(P3-70 라운드9).
+             // Common.js의 네이티브 hover popover 구현으로 Bootstrap2 .popover() 플러그인 호출을 대체.
              $yona.initHoverPopovers('[data-toggle="popover"]');
          });
     </script>

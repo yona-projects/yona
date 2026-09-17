@@ -174,9 +174,8 @@ class TwoFactorServiceImpl(
         }
     }
 
-    // ensureBackupCodesInitialized()가 non-null을 반환하는 경우는 그 계정에 2FA가 "처음"
-    // 활성화된 순간뿐이다(이미 백업 코드가 있으면 null) — 이 신호를 그대로 재사용해 첫 등록일
-    // 때만 알리고, 두 번째 방식을 추가 등록하는 경우는 중복 알림이 되지 않도록 건너뛴다.
+    // ensureBackupCodesInitialized()는 2FA가 처음 활성화된 경우에만 non-null을 반환한다 —
+    // 이 값으로 첫 등록일 때만 알리고, 두 번째 방식 추가 등록 시 중복 알림을 막는다.
     private fun notifyTwoFactorEnabled(user: User) {
         if (user.email.isBlank()) return
         try {

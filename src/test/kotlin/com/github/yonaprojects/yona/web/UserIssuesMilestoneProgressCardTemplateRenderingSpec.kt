@@ -24,11 +24,10 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-62: legacy IssueApp.userIssues() cross-project "내 이슈" 화면(my_partial_search.scala.html:
-// 47-54)은 milestoneId가 URL 파라미터로 넘어오면(이슈 목록 필터링 목적이 아니라) 좌측 사이드바에
-// 그 마일스톤의 진행률 카드(milestone/partial_status)만 순수 표시 목적으로 보여준다. yona의
-// /user/issues에는 이 배선이 전혀 없었다(milestoneId RequestParam 자체가 없었음) — 이 스펙으로
-// 정정 여부를 검증한다.
+// legacy IssueApp.userIssues() cross-project "내 이슈" 화면은 milestoneId가 URL 파라미터로
+// 넘어오면(이슈 목록 필터링 목적이 아니라) 좌측 사이드바에 그 마일스톤의 진행률 카드
+// (milestone/partial_status)만 순수 표시 목적으로 보여준다. yona의 /user/issues에는 이
+// 배선이 전혀 없었다(milestoneId RequestParam 자체가 없었음) — 이 스펙으로 검증한다.
 class UserIssuesMilestoneProgressCardTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,

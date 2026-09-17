@@ -104,10 +104,9 @@
     </div>
 </div>
 
-<!-- 삭제 확인 모달 - 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은 트리거에서
-     제거했다(아래 스크립트가 직접 showModal() 호출) - bootstrap.js(미수정) 자체의 전역
-     데이터 API 델리게이트와 이중으로 반응해 InvalidStateError가 나는 실제 충돌을
-     Playwright로 재현해 확인했다. -->
+<!-- 삭제 확인 모달 - 네이티브 <dialog>. data-toggle="modal"은 트리거에서 제거했다(아래
+     스크립트가 직접 showModal() 호출) - bootstrap.js 전역 델리게이트와 이중 반응해
+     InvalidStateError가 나는 충돌을 피한다. -->
 <dialog id="deleteConfirm" class="modal">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">×</button>
@@ -169,8 +168,7 @@
             "sURLLabels"   : "/" + projectOwner + "/" + projectName + "/issues"
         });
 
-        // 삭제 확인 모달 오픈(P3-70 라운드9) - data-toggle="modal"을 쓰지 않고 직접
-        // showModal()을 호출한다(위 <dialog> 주석 참고).
+        // data-toggle="modal"을 쓰지 않고 직접 showModal()을 호출한다(위 <dialog> 주석 참고).
         var elDeleteConfirm = document.getElementById("deleteConfirm");
         if (elDeleteConfirm) {
             $yona.attachDialogDismiss(elDeleteConfirm);

@@ -68,8 +68,8 @@ class CommentDeleteModalInlineScriptSyntaxSpec @Autowired constructor(
 
                 val alertCall = body.substringAfter("alert(").substringBefore("+ ' failed');")
                 alertCall.contains("\"\"") shouldBe false
-                // Accept-Language 헤더 없는 요청은 P3-51 로케일 결정성 수정 이후 root(영어)
-                // 번들로 렌더링된다(common.comment.delete의 root 값은 "Delete comment").
+                // Accept-Language 헤더 없는 요청은 root(영어) 번들로 렌더링된다
+                // (common.comment.delete의 root 값은 "Delete comment").
                 body.contains("Delete comment") shouldBe true
             }
         }

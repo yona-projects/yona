@@ -21,11 +21,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// pullrequest/clone.html의 <script th:inline="javascript"> 블록도 pullrequest/view.html과 같은
-// 클래스의 버그였다 - cloneUrl/cloneParam/실패 alert 문구를 전부 수동으로 따옴표를 감싼 채
-// [[...]]로 썼다. th:inline="javascript"가 String 표현식 결과를 이미 JS 문자열 리터럴로
-// 자동 직렬화하므로 수동 따옴표와 겹쳐 SyntaxError가 난다 - 이 인터스티셜 화면은 3초 후
-// doClone()을 호출해 실제 포크를 완료해야 하는데, 스크립트 블록이 깨지면 그 호출 자체가
+// pullrequest/clone.html도 pullrequest/view.html과 같은 버그였다 - cloneUrl/cloneParam/alert
+// 문구에 [[...]]와 수동 따옴표를 같이 써서 SyntaxError가 난다(th:inline="javascript"가 String
+// 표현식을 이미 JS 리터럴로 직렬화하므로 중복). 스크립트가 깨지면 3초 후 doClone() 호출이
 // 실행되지 않아 "복제 중입니다" 화면에서 영원히 멈춘다.
 @Transactional
 class PullRequestCloneInlineScriptSyntaxSpec @Autowired constructor(

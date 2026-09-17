@@ -80,16 +80,10 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
                 body shouldContain ".code-browse-wrap .commitId {"
             }
 
-            // code/compare.html·code/diff.html의 인라인 댓글 폼은 Thymeleaf가 아니라 JS 템플릿
-            // 문자열로 런타임에 DOM에 삽입되는 진짜 네이티브 <form>이다(.submit()을 가로채는 JS
-            // 핸들러가 전혀 없음 — 클릭 시 브라우저가 그대로 전체 페이지 POST 내비게이션을
-            // 수행하고, 수신측 ReviewViewController도 "redirect:..."를 반환하는 고전적
-            // POST-Redirect-GET이라 th:action 자동 주입이 적용될 수 없다). 그래서 Thymeleaf의
-            // _csrf 요청 attribute 값을 JS 변수로 직접 심어 히든 필드를 수동 채운다 — 캐치올 체인이
-            // CSRF를 활성화했으므로(SecurityConfig) 실제 서버 필터 체인을 태우면 이 값이 채워져야
-            // 한다(webAppContextSetup, springSecurity() 미적용 — 이 파일은 필터 체인 없이
-            // DispatcherServlet만 태우지만 CsrfFilter 없이도 컨트롤러 코드 자체가 "_csrf가 있으면
-            // 그 값을 그대로 쓴다"는 걸 검증하기엔 충분하다).
+            // code/compare.html·code/diff.html의 인라인 댓글 폼은 JS 템플릿 문자열로 런타임에
+            // 삽입되는 네이티브 <form>이라 .submit()을 가로채는 JS 핸들러가 없고, POST-Redirect-GET
+            // 방식이라 th:action 자동 CSRF 주입이 적용되지 않는다. 그래서 _csrf 요청 attribute 값을
+            // JS 변수로 직접 심어 히든 필드를 수동으로 채운다.
             it("code/compare.html: _csrf 요청 attribute 값이 인라인 댓글 폼 히든 필드 JS 변수에 그대로 노출돼야 한다") {
                 val csrfToken = org.springframework.security.web.csrf.DefaultCsrfToken(
                     "X-XSRF-TOKEN", "_csrf", "compare-view-csrf-test-token"
@@ -106,24 +100,19 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
                 body shouldContain "const csrfTokenValue = \"compare-view-csrf-test-token\""
             }
 
-            // code.Diff.js 4단계 복원(CodeCommentBox)으로 이 화면의 새 라인/범위 댓글 폼이
-            // 더 이상 JS 템플릿 문자열로 즉석 삽입되는 순수 HTML action= 폼이 아니었다가,
-            // 2026-09-17 common/reviewForm.html이 Vue 3 SFC(<yona-review-form>)로 다시
-            // 바뀌면서 서버 렌더링 시점엔 <form> 태그 자체가 없다(그 컴포넌트가 클라이언트에서
-            // 마운트될 때 자신의 <form>을 만든다) - 그래서 CsrfRequestDataValueProcessor의
-            // 자동 히든 필드 주입 경로를 못 받는다. 대신 서버가 이미 아는 실제 토큰/파라미터명을
-            // data-csrf-param/data-csrf-token 속성으로 직접 내려주고, 컴포넌트가 그 값으로
-            // 히든 필드를 재현한다(components/vue-widgets/src/review-form/YonaReviewForm.vue).
+            // common/reviewForm.html은 Vue 3 SFC(<yona-review-form>)라 서버 렌더링 시점엔 <form>
+            // 태그가 없어(클라이언트 마운트 시 컴포넌트가 자체 <form>을 만듦)
+            // CsrfRequestDataValueProcessor의 자동 히든 필드 주입을 받지 못한다. 대신 서버가
+            // 토큰/파라미터명을 data-csrf-param/data-csrf-token 속성으로 내려주고, 컴포넌트가 그
+            // 값으로 히든 필드를 재현한다(components/vue-widgets/src/review-form/YonaReviewForm.vue).
             it("code/diff.html: review-form(CodeCommentBox 팝업)에 실제 _csrf 토큰이 data 속성으로 내려가야 한다") {
                 val log = repositoryService.getRepository(project).getHistory(0, 10, "main", null)
                 val headCommitId = log.first().getId()
 
                 // CsrfRequestDataValueProcessor(자동 hidden input 주입)는 Spring Security 필터
-                // 체인 컨텍스트에 의존한다 - 이 스펙의 공용 mockMvc(springSecurity() 미적용)로는
-                // 재현되지 않아 이 테스트에서만 로컬로 springSecurity()를 적용한 mockMvc를 쓴다.
-                // 실제 CsrfFilter가 요청마다 새 토큰을 발급하므로(수동으로 request attribute에
-                // 주입한 값은 필터가 덮어써버린다) 특정 값이 아니라 hidden input 자체가
-                // 실제로 주입됐는지만 확인한다.
+                // 체인에 의존해 공용 mockMvc(springSecurity() 미적용)로는 재현되지 않으므로, 이
+                // 테스트에서만 로컬로 springSecurity()를 적용한 mockMvc를 쓴다. 실제 CsrfFilter가
+                // 매 요청 새 토큰을 발급하므로 특정 값이 아니라 hidden input 존재 여부만 확인한다.
                 val secureMockMvc = org.springframework.test.web.servlet.setup.MockMvcBuilders
                     .webAppContextSetup(wac)
                     .apply<org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder>(

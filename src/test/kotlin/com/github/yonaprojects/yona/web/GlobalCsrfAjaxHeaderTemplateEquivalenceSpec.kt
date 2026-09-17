@@ -19,29 +19,16 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-48: raw $.ajax(PUT/DELETE/PATCH) 호출이 CSRF 토큰을 못 실어 403으로 거부되던 문제 대응.
+// CSRF는 쿠키 기반 더블서브밋 패턴(CookieCsrfTokenRepository + SpaCsrfTokenRequestHandler,
+// config/CsrfSupport.kt)으로 처리한다 — XSRF-TOKEN 쿠키를 읽어 fetch()에 X-XSRF-TOKEN 헤더를
+// 자동으로 붙인다.
 //
-// 2026-09-10 최초 수정: site/layout.html::head에 <meta name="_csrf">/<meta name="_csrf_header">를
-// 추가하고, 그 두 meta를 읽어 모든 $.ajax 호출에 CSRF 헤더를 붙이는 $.ajaxSetup(beforeSend)
-// 스크립트를 추가했다.
-//
-// 이후 별도 세션(P3-legal/P3-44, CSRF 보호 재활성화)에서 쿠키 기반 더블서브밋 패턴
-// (CookieCsrfTokenRepository + SpaCsrfTokenRequestHandler, config/CsrfSupport.kt)으로 CSRF
-// 아키텍처 자체가 더 완전한 형태로 교체됐다 — XSRF-TOKEN 쿠키를 읽어 $.ajax와 raw fetch() 양쪽
-// 모두에 X-XSRF-TOKEN 헤더를 자동으로 붙인다. 최초의 meta 태그 기반 $.ajaxSetup 블록은 이
-// 두번째 메커니즘에 의해 조용히 무력화됐다(jQuery.ajaxSetup의 beforeSend는 여러 번 호출해도
-// 체이닝되지 않고 마지막 등록이 이전 것을 완전히 대체한다) — 이번 P3-48 화면별 재현 세션에서
-// 이 사실을 확인하고 죽은 블록을 제거했다(메타 태그 자체는 남겨둠 — 아래 계약 검증 대상).
-//
-// 같은 세션에서 그 "beforeSend는 체이닝되지 않고 마지막 등록이 이긴다"는 성질 때문에 생기는
-// 진짜 살아있는 버그를 하나 더 발견했다: common/yona.Tasklist.js(이슈/게시글 본문 tasklist
-// 체크박스 토글, PATCH)가 자기 자신의 $.ajax() 호출에 개별 beforeSend 옵션
-// (NProgress.start() 호출용)을 넘기고 있었는데, 이게 전역 $.ajaxSetup(beforeSend)를 완전히
-// 대체해버려 CSRF 헤더가 아예 안 실렸다(Playwright로 실제 체크박스를 클릭해 403 Forbidden으로
-// 재현). 개별 파일을 고치는 대신(재발 방지 안 됨) 전역 메커니즘 자체를 jQuery의 전역 ajax
-// 이벤트(document의 ajaxSend)로 바꿔 이런 종류의 셰도잉이 구조적으로 불가능하게 만들었다 —
-// ajaxSend는 등록된 모든 핸들러가 모든 요청마다 실행되고, 개별 호출의 beforeSend 옵션과
-// 완전히 독립적이다.
+// 함정: jQuery.ajaxSetup(beforeSend)는 여러 번 호출해도 체이닝되지 않고 마지막 등록이 이전
+// 것을 완전히 대체한다. 그래서 개별 $.ajax() 호출이 자기만의 beforeSend 옵션(예:
+// common/yona.Tasklist.js의 NProgress.start() 호출용)을 넘기면 전역 CSRF 주입이 통째로
+// 사라진다(Playwright로 체크박스 클릭 -> 403 Forbidden 재현). 저장소 전체가 jQuery ajax에서
+// fetch로 전환되면서 이 문제 자체가 사라졌고, 지금은 전역 window.fetch 패치만이 CSRF 주입을
+// 담당한다.
 class GlobalCsrfAjaxHeaderTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository
@@ -94,15 +81,9 @@ class GlobalCsrfAjaxHeaderTemplateEquivalenceSpec @Autowired constructor(
                 (html.contains("window.fetch") && html.contains("originalFetch")) shouldBe true
             }
 
-            // P3-70 라운드12 갱신: jQuery 코어(jquery-3.3.1.js) 자체를 제거하면서, 이 테스트가
-            // 지키던 "개별 $.ajax() 호출의 beforeSend가 전역 주입을 셰도잉하는" 시나리오의
-            // 전제 자체가 사라졌다 — 저장소 전체에 $.ajax() 호출이 이제 0건이다(라운드10에서
-            // 전부 fetch로 전환 완료, 라운드10~11 로그로 재확인됨). 그 대체 메커니즘이었던
-            // `jQuery(document).ajaxSend(...)` 블록도 진짜 jQuery가 없으면 예외를 던지는 죽은
-            // 코드였음이 이번 라운드 Playwright 실측(사이트 전역 pageerror 재현)으로 드러나
-            // 블록 자체를 제거했다 - 남은 유일한 CSRF 메커니즘은 아래에서 확인하는 전역
-            // window.fetch 패치뿐이다. 그래서 "ajaxSend 이벤트를 써야 한다"는 이전 계약을
-            // "jQuery 기반 ajaxSend/ajaxSetup 호출 형태가 더 이상 없어야 한다"로 뒤집는다 -
+            // jQuery 코어 자체가 제거되어 저장소 전체에 $.ajax() 호출이 0건이다(모두 fetch로
+            // 전환). 예전 대체 메커니즘이던 `jQuery(document).ajaxSend(...)` 블록은 jQuery가 없으면
+            // 예외를 던지는 죽은 코드였음이 Playwright 실측(전역 pageerror)으로 드러나 제거했다 -
             // 다시 jQuery ajax 메커니즘으로 회귀하면 이 테스트가 잡아낸다.
             it("CSRF 헤더 주입에 더 이상 jQuery 기반 ajaxSend/ajaxSetup 호출을 쓰지 않아야 한다 (P3-48, P3-70 라운드12)") {
                 val html = Jsoup.parse(

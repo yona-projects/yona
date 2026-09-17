@@ -311,9 +311,9 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                     // 댓글 작성 폼과 업로드 드롭존 검증
                     doc.select("#comment-form").size shouldBe 1
-                    // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
-                    // 교체됐다. 파일 input은 이제 그 컴포넌트의 Shadow DOM 안에서 클라이언트
-                    // 마운트 시점에 만들어지므로 서버 렌더링 HTML(Jsoup 파싱 대상)에는 없다.
+                    // common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로 교체돼, 파일
+                    // input은 컴포넌트의 Shadow DOM 안에서 클라이언트 마운트 시점에 만들어진다
+                    // — 서버 렌더링 HTML에는 없다.
                     doc.select("yona-attachments[data-resource-type]").size shouldBe 1
                 }
 
@@ -358,9 +358,9 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val doc = Jsoup.parse(html)
 
                     doc.select("#comment-form").size shouldBe 1
-                    // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
-                    // 교체됐다. 파일 input은 이제 그 컴포넌트의 Shadow DOM 안에서 클라이언트
-                    // 마운트 시점에 만들어지므로 서버 렌더링 HTML(Jsoup 파싱 대상)에는 없다.
+                    // common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로 교체돼, 파일
+                    // input은 컴포넌트의 Shadow DOM 안에서 클라이언트 마운트 시점에 만들어진다
+                    // — 서버 렌더링 HTML에는 없다.
                     doc.select("yona-attachments[data-resource-type]").size shouldBe 1
                 }
 
@@ -474,16 +474,15 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val doc = Jsoup.parse(html)
 
                     doc.select("link[href*='lib/nprogress/nprogress.css']").size shouldBe 1
-                    // nprogress.js는 yona-layout.js 번들(support-script/js-bundle/minify-js.sh 재료
-                    // 목록 참고)에 포함돼 있으므로, 개별 <script src>로는 더 이상 로드하지 않는다
-                    // (site/layout.html에 남아있던 순수 중복 로드를 제거했다).
+                    // nprogress.js는 yona-layout.js 번들에 포함돼 개별 <script src>로는 더 이상
+                    // 로드하지 않는다(layout.html에 남아있던 중복 로드를 제거).
                     doc.select("script[src*='lib/nprogress/nprogress.js']").size shouldBe 0
                     html.contains("NProgress.configure(") shouldBe true
 
                     doc.select("link[href*='lib/viewerjs/viewer.css']").size shouldBe 1
                     doc.select("script[src*='lib/viewerjs/viewer.js']").size shouldBe 1
-                    // P3-46 #4: jQuery 래퍼(jquery-viewer.js)는 제거되고 순정 Viewer.js API로
-                    // 전환됐다 — ViewerLightboxWidgetTemplateEquivalenceSpec 참고.
+                    // jQuery 래퍼(jquery-viewer.js)는 제거되고 순정 Viewer.js API로 전환됐다
+                    // — ViewerLightboxWidgetTemplateEquivalenceSpec 참고.
                     doc.select("script[src*='lib/viewerjs/jquery-viewer.js']").size shouldBe 0
                     html.contains(".markdown-wrap").shouldBe(true)
                 }
@@ -511,9 +510,8 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("meta[property='og:url']").size shouldBe 1
                     doc.select("meta[name='twitter:card']").attr("content") shouldBe "summary"
                     doc.select("link[href*='lib/nprogress/nprogress.css']").size shouldBe 1
-                    // magnific-popup.css는 legacy에서도 본체(jquery.magnific-popup.js)가 어디서도
-                    // 로드되지 않는 죽은 참조였다(legacy HEAD/v1.6.1 모두 확인) - CSS만 남아 아무
-                    // 기능도 하지 않아 제거했다.
+                    // magnific-popup.css는 legacy에서도 본체(jquery.magnific-popup.js)가 로드되지
+                    // 않는 죽은 참조였다 - CSS만 남아 기능하지 않아 제거했다.
                     doc.select("link[href*='lib/magnific-popup/magnific-popup.css']").size shouldBe 0
                 }
 
@@ -653,9 +651,9 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val html = result.response.contentAsString
                     val doc = Jsoup.parse(html)
 
-                    // 2026-09-17 갱신 - 토스트 알림이 Vue 3 SFC(<yona-toast>)로 교체되면서
-                    // jQuery 템플릿(script#tplYonaToast)은 제거됐다 - yona.ui.Toast.js가
-                    // 하이브리드 어댑터로 push/clear를 이 엘리먼트에 위임한다.
+                    // 토스트 알림이 Vue 3 SFC(<yona-toast>)로 교체되면서 jQuery 템플릿
+                    // (script#tplYonaToast)은 제거됐다 - yona.ui.Toast.js가 하이브리드 어댑터로
+                    // push/clear를 이 엘리먼트에 위임한다.
                     doc.select("yona-toast#yonaToasts").size shouldBe 1
 
                     html.contains("\"U\":") shouldBe true
@@ -670,12 +668,9 @@ class TemplateEquivalenceSpec @Autowired constructor(
                 }
 
                 it("비로그인 사용자에게 렌더링되는 페이지가 더 이상 jquery-ui 스크립트를 로드하지 않아야 한다") {
-                    // P3-70 라운드12: jquery-ui-1.10.4.custom.min.js는 저장소 전체에 실 호출부가
-                    // 0건인 완전한 죽은 로드임을 재확인해(라운드11이 실험적 jQuery 코어 제거
-                    // 빌드에서 이미 발견해뒀던 것을 이번 라운드에서 grep으로 재확인) site/
-                    // layout.html의 <script src> 참조를 제거했다(magnific-popup.css 등 이전
-                    // 라운드의 확인된-죽은-벤더-자산 제거와 동일한 처리 - 벤더 파일 자체는
-                    // 삭제하지 않음). 이 테스트도 기대값을 1건 → 0건으로 갱신한다.
+                    // jquery-ui-1.10.4.custom.min.js는 저장소 전체에 실 호출부가 없는 죽은
+                    // 로드여서 site/layout.html의 <script src> 참조를 제거했다(벤더 파일 자체는
+                    // 삭제하지 않음).
                     val result = mockMvc.perform(get("/owner/public-proj"))
                         .andExpect(status().isOk)
                         .andReturn()
@@ -1188,10 +1183,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("footer.page-footer-outer").size shouldBe 1
                     doc.select(".project-header-outer").size shouldBe 1
                     doc.select("#subMenuIssueLabel.active").size shouldBe 1
-                    // 2026-09-17 갱신 - 새 라벨/카테고리·라벨 편집 폼이 Vue 3 SFC(<yona-new-label-form>/
+                    // 새 라벨/카테고리·라벨 편집 폼이 Vue 3 SFC(<yona-new-label-form>/
                     // <yona-category-edit-dialog>/<yona-label-edit-dialog>)로 교체되면서 프리셋
                     // 색상 버튼(29개)은 그 컴포넌트들의 Shadow DOM 안에서 클라이언트 마운트 시점에
-                    // 그려진다 - 서버 렌더링 HTML에는 더 이상 없다.
+                    // 그려진다 - 서버 렌더링 HTML에는 없다.
                     doc.select("yona-new-label-form").size shouldBe 1
                     doc.select("yona-category-edit-dialog").size shouldBe 1
                     doc.select("yona-label-edit-dialog").size shouldBe 1
@@ -1206,8 +1201,8 @@ class TemplateEquivalenceSpec @Autowired constructor(
                         ).andReturn().response.contentAsString
                     )
 
-                    // 2026-09-17 갱신 - yona.issue.LabelEditor.js는 Vue 3 SFC 커스텀 엘리먼트
-                    // 3종 + attachLabelListAdapter 모듈로 전면 대체되면서 삭제됐다.
+                    // yona.issue.LabelEditor.js는 Vue 3 SFC 커스텀 엘리먼트 3종 +
+                    // attachLabelListAdapter 모듈로 전면 대체되면서 삭제됐다.
                     doc.select("script[src='/lib/yona-vue-widgets/yona-new-label-form-element.js']").size shouldBe 1
                     doc.select("script[src='/lib/yona-vue-widgets/yona-category-edit-dialog-element.js']").size shouldBe 1
                     doc.select("script[src='/lib/yona-vue-widgets/yona-label-edit-dialog-element.js']").size shouldBe 1
@@ -1510,8 +1505,8 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("script[src*='lib/jquery/jquery-1.9.0.js']").size shouldBe 1
                     doc.select("script[src*='lib/jquery/jquery.browser.js']").size shouldBe 1
                     // jquery.pjax.js는 pjax 카테고리 vanilla 전환으로 제거됨 - 이 페이지의
-                    // yona.Migration.js는 애초에 $.pjax를 쓴 적이 없어(grep으로 확인) 로드만
-                    // 되고 쓰이지 않던 죽은 스크립트 태그였다.
+                    // yona.Migration.js는 애초에 $.pjax를 쓴 적이 없어 로드만 되고 쓰이지
+                    // 않던 죽은 스크립트 태그였다.
                     doc.select("script[src*='lib/jquery/jquery.pjax.js']").size shouldBe 0
                     doc.select("script[src*='common/yona.Common.js']").size shouldBe 1
                     doc.select("script[src*='lib/vendor.js']").size shouldBe 1
@@ -1814,12 +1809,11 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select(".gnb-search").size shouldBe 0
                 }
 
-                // 2026-09-17 갱신 - help/markdown.html이 Vue 3 SFC(<yona-help-markdown>)로
-                // 전면 교체되면서 아코디언 탭 10개(help-nav/markdown-help-item)는 그 컴포넌트의
-                // Shadow DOM 안에서 클라이언트 마운트 시점에 그려진다 - 서버 렌더링 HTML에는
-                // <yona-help-markdown> 태그만 남는다. 예시 콘텐츠(10개, demo.yobi.io href
-                // 포함) 자체의 동치성은 components/vue-widgets/src/help-markdown/examples.ts를
-                // 직접 확인해 유지되고 있음을 검증했다 - Jsoup으로는 Shadow DOM에 닿지 못한다.
+                // help/markdown.html이 Vue 3 SFC(<yona-help-markdown>)로 전면 교체되면서 아코디언
+                // 탭 10개는 그 컴포넌트의 Shadow DOM 안에서 클라이언트 마운트 시점에 그려진다 -
+                // 서버 렌더링 HTML에는 <yona-help-markdown> 태그만 남는다. 예시 콘텐츠의 동치성은
+                // components/vue-widgets/src/help-markdown/examples.ts로 직접 확인했다 - Jsoup으로는
+                // Shadow DOM에 닿지 못한다.
                 it("markdown.html(#235)은 이슈 작성 에디터에 포함되어 <yona-help-markdown> 커스텀 엘리먼트로 렌더링되어야 한다") {
                     val doc = Jsoup.parse(
                         mockMvc.perform(
@@ -1865,13 +1859,11 @@ class TemplateEquivalenceSpec @Autowired constructor(
                 }
             }
 
-            // P3-67 — legacy(app/views/project/setting_webhook.scala.html)는
-            // service/yona.project.Webhook.js를 로드해 payloadUrl 빈 값 제출 시
-            // $yona.alert(Messages("project.webhook.payloadUrl.empty"))로 즉시 안내했으나,
-            // 포팅된 project/setting_webhook.html에는 이 스크립트가 어디에도(<script src>,
-            // minify-js.sh 번들, $yona.loadModule 전부) 배선돼 있지 않았다. 서버측
-            // (WebhookController.kt payloadUrl.isBlank() 체크)이 최종 방어선으로 남아있어
-            // 데이터 무결성 문제는 없었지만, 클라이언트측 즉시 안내라는 UX가 빠져 있었다.
+            // legacy(setting_webhook.scala.html)는 service/yona.project.Webhook.js로 payloadUrl
+            // 빈 값 제출 시 즉시 안내했으나, 포팅된 setting_webhook.html에는 이 스크립트가
+            // 어디에도 배선돼 있지 않았다. 서버측(WebhookController payloadUrl.isBlank() 체크)이
+            // 최종 방어선으로 남아있어 데이터 무결성 문제는 없었지만 클라이언트측 즉시 안내
+            // UX가 빠져 있었다.
             describe("[Test-19-36] 웹훅 등록 폼(project/setting_webhook.html) 클라이언트측 스크립트 배선 검증") {
                 it("yona.project.Webhook.js를 로드하고 formNewWebhook을 대상으로 초기화해야 한다") {
                     val doc = Jsoup.parse(
@@ -1887,8 +1879,8 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     inlineScripts.contains("#formNewWebhook") shouldBe true
 
                     // 기존 동작(JSON 타입 선택 시 Git Push 강제 체크) 회귀 없이 유지돼야 한다.
-                    // P3-70 라운드6: jQuery $("#gitPush") 선택자 문자열을 네이티브
-                    // document.getElementById("gitPush")로 전환했으므로 "#" 접두사 없이 id만 확인한다.
+                    // jQuery $("#gitPush") 선택자를 네이티브 document.getElementById("gitPush")로
+                    // 전환했으므로 "#" 접두사 없이 id만 확인한다.
                     inlineScripts.contains("webhookType") shouldBe true
                     inlineScripts.contains("gitPush") shouldBe true
 

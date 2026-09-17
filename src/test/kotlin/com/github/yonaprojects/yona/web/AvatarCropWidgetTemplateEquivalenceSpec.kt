@@ -18,12 +18,9 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-46 #2: 프로필 사진 크롭 위젯(Jcrop -> Cropper.js) 교체.
-//
-// 이 스펙은 실제 크롭 UI 동작(브라우저 JS 상호작용, 128x128 렌더링 결과)은 검증하지 않는다 —
-// MockMvc+Jsoup 하네스는 렌더링된 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다. 대신
-// 아래 "마크업 계약"이 회귀 없이 유지되는지를 검증한다.
-//
+// 프로필 사진 크롭 위젯(Jcrop -> Cropper.js) 교체 검증. MockMvc+Jsoup 하네스는 렌더링된 마크업과
+// 로드되는 스크립트/CSS 경로까지만 볼 수 있어, 실제 크롭 UI 동작(브라우저 JS 상호작용, 128x128
+// 렌더링 결과)이 아니라 아래 마크업 계약 유지만 검증한다.
 // 대상 화면: user/edit(GET /user/editform) 단 하나 (yona.user.Setting.js에서 유일하게 참조).
 class AvatarCropWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
@@ -78,21 +75,19 @@ class AvatarCropWidgetTemplateEquivalenceSpec @Autowired constructor(
                     ).andExpect(status().isOk).andReturn().response.contentAsString
                 )
 
-                // P3-46 이후 <div class="modal">에서 네이티브 <dialog class="modal">로 전환됨
+                // <div class="modal">에서 네이티브 <dialog class="modal">로 전환됨
                 // (yona.user.Setting.js/yona.Common.js의 $yona.attachDialogDismiss 참고).
                 val modal = doc.select("dialog#avatarCropWrap.modal")
                 modal.size shouldBe 1
 
-                // 크롭 대상 원본 이미지 (htElement.welAvatarCropImg: ".modal-body > img")
+                // 아래 선택자는 각각 legacy JS 변수 htElement.welAvatarCropImg/welAvatarCropPreviewImg/
+                // elAvatarCropCanvas/welBtnSubmitCrop에 대응한다.
                 modal.select(".modal-body > img").size shouldBe 1
-                // 실시간 미리보기 썸네일 (htElement.welAvatarCropPreviewImg: ".avatar-wrap > img")
                 modal.select(".avatar-wrap > img").size shouldBe 1
-                // 최종 128x128 렌더링 캔버스 (htElement.elAvatarCropCanvas)
                 val canvas = modal.select(".modal-body canvas")
                 canvas.size shouldBe 1
                 canvas.attr("width") shouldBe "128"
                 canvas.attr("height") shouldBe "128"
-                // 적용 버튼 (htElement.welBtnSubmitCrop)
                 modal.select("button.btnSubmitCrop").size shouldBe 1
             }
         }

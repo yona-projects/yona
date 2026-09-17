@@ -59,11 +59,9 @@ class SessionCookieSecurityIntegrationSpec @Autowired constructor(
                     .build()
 
                 // CookieCsrfTokenRepository는 세션 없는 더블서브밋 쿠키 패턴이라, 로그인 POST 전에
-                // GET으로 XSRF-TOKEN 쿠키를 먼저 받아와야 한다(login.html은 th:action 폼이라
-                // 렌더링 시점에 토큰이 생성/저장됨).
-                // 받은 쿠키 값을 그대로 Cookie 헤더(서버가 "기대값"으로 비교)와 X-XSRF-TOKEN 헤더
-                // (SpaCsrfTokenRequestHandler가 XOR 복원 없이 그대로 비교하는 "제출값")에 실어 보낸다 —
-                // JS의 $.ajaxSetup 인터셉터가 실제로 하는 것과 동일한 매커니즘을 raw HttpClient로 재현.
+                // GET으로 XSRF-TOKEN 쿠키를 먼저 받아와야 한다. 받은 값을 그대로 Cookie 헤더
+                // (서버의 기대값)와 X-XSRF-TOKEN 헤더(SpaCsrfTokenRequestHandler가 XOR 복원 없이
+                // 그대로 비교하는 제출값) 양쪽에 실어 보낸다.
                 val csrfProbe = client.send(
                     HttpRequest.newBuilder(URI.create("http://localhost:$port/users/loginform")).GET().build(),
                     HttpResponse.BodyHandlers.discarding()

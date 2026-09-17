@@ -27,29 +27,15 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-46 #8 2단계: 마크다운 에디터 셸 교체(CodeMirror5 기반 구현 인스턴스 -> CM6 기반 Web
-// Component <yona-markdown-editor>, javascripts/lib/yona-markdown-editor/에 vendoring).
-//
-// 이 스펙은 실제 CM6/Shadow DOM의 렌더링·상호작용(브라우저 JS)은 검증하지 않는다 — MockMvc+
-// Jsoup 하네스는 서버가 내려주는 초기 마크업과 로드되는 스크립트/CSS 경로까지만 볼 수 있다(Shadow
-// DOM 내부 동작은 Playwright가 담당 - stateless-launching-ripple.md 테스트 전략 전환 참고). 대신
-// 아래 "마크업 계약"이 회귀 없이 유지되는지를 검증한다:
-//   1) <yona-markdown-editor> 커스텀 엘리먼트가 렌더링되고, 옛 CodeMirror5 기반 구현 리소스(CSS/JS)는 이제 0개,
-//      yona-markdown-editor.min.js 스크립트 로드는 1개여야 한다.
-//   2) 옛 탭 UI(ul.nav-tabs, data-mode=edit/preview)와 그 안의 체크리스트/알림수신자 마크업은
-//      사라져야 한다(1단계부터 이어진 사용자 확정 결정사항). "임시저장 지우기"는 애초에
-//      "4단계에서 재구현 예정"이었고 실제로 P3-55와 함께 재구현됐다(아래
-//      assertClearTemporaryButtonReimplemented 참고 - 더는 "사라져야 하는" 목록에 없다).
-//      서버가 렌더링하는 시점에는 <yona-markdown-editor> 안에 아직 실제 <textarea>가 없다(그건
-//      브라우저에서 connectedCallback이 만든다) - 이 스펙은 그 대신 <yona-markdown-editor>
-//      자체의 name/editor-mode 속성과 슬롯 콘텐츠(초기값)를 검증한다.
-//   3) name/editor-mode 속성값은 기존 textarea의 name/data-editor-mode 계약과 동일한 값이어야
-//      한다 - 폼 제출 시 서버가 받는 필드명, 컴포넌트가 재현할 data-editor-mode 등 다른 여러
-//      곳이 의존한다. textarea의 id(id^=editor-) 유일성 생성은 2단계부터 서버가 아니라
-//      컴포넌트(클라이언트) 책임으로 넘어갔으므로 이 스펙(서버 렌더링만 봄)에서는 검증하지 않는다.
-//   4) help/markdown 프래그먼트(마크다운 도움말)는 에디터와 독립적이므로 변경 없이 그대로
-//      렌더링되어야 한다.
-//   5) .editor-notice-label(임시저장 "Draft saved" 표시 - 살아있는 기능)은 DOM에 남아있어야 한다.
+// 마크다운 에디터 셸을 CodeMirror5 기반 구현에서 CM6 기반 Web Component(<yona-markdown-editor>)로
+// 교체했다. MockMvc+Jsoup 하네스는 서버가 내려주는 초기 마크업/스크립트 경로까지만 볼 수 있어
+// Shadow DOM 내부 동작(브라우저 JS)은 검증하지 않는다. 검증하는 마크업 계약:
+//   - 옛 에디터 리소스는 0개, yona-markdown-editor 번들 로드는 1개.
+//   - 옛 탭 UI(nav-tabs, data-mode)와 체크리스트/알림수신자 마크업은 사라져야 한다.
+//   - name/editor-mode 속성은 기존 textarea의 name/data-editor-mode 계약과 동일해야 한다 -
+//     폼 제출 필드명 등 여러 곳이 이 값에 의존한다. 실제 <textarea>는 브라우저에서
+//     connectedCallback이 만들므로 서버 렌더링 마크업에는 없어야 한다.
+//   - help/markdown, .editor-notice-label(임시저장 표시)은 그대로 유지되어야 한다.
 class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -118,13 +104,10 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
                 editorWrap.select("div.markdown-preview").size shouldBe 0
             }
 
-            // P3-55와 함께 처리: .editor-clear-temporary("임시저장 지우기")가 재구현됐는지 검증한다.
-            // legacy는 고정 id="button-clear-temporary"(페이지당 에디터가 하나뿐이라 문제없었음)를
-            // 썼지만, 이 포팅본은 한 페이지에 markdownEditor 인스턴스가 여럿일 수 있어(예: PR
-            // changes 탭의 여러 스레드 답글 폼) 고정 id를 재사용하면 중복 id 회귀가 생긴다 - 그래서
-            // class 기반(.editor-clear-temporary-button)으로만 다시 만들었다. .editor-notice-label
-            // "안"이 아니라 형제 요소여야 한다(temporarySaveHandler의 noticePanel.html(...)가 그
-            // 안의 내용을 통째로 갈아치우므로).
+            // legacy는 페이지당 에디터가 하나뿐이라 고정 id(#button-clear-temporary)를 썼지만,
+            // 이 포팅본은 한 페이지에 에디터가 여럿일 수 있어(PR changes 탭) 중복 id를 피해
+            // class 기반으로 만들었다. .editor-notice-label은 형제 요소여야 한다 -
+            // temporarySaveHandler의 noticePanel.html(...)이 그 안의 내용을 통째로 갈아치운다.
             fun assertClearTemporaryButtonReimplemented(editorWrap: org.jsoup.select.Elements) {
                 editorWrap.select("#button-clear-temporary").size shouldBe 0
 
@@ -140,26 +123,19 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
             }
 
             fun assertMarkdownEditorElementContractPreserved(editorWrap: org.jsoup.select.Elements, expectedName: String, expectedEditorMode: String) {
-                // 서버가 렌더링하는 시점에는 <yona-markdown-editor> 하나만 있고, 그 안의 실제
-                // <textarea>는 브라우저에서 connectedCallback이 만든다(컴포넌트 소스
-                // components/editor/src/YonaMarkdownEditor.ts 참고) - id(editor- 접두어) 유일성
-                // 생성도 그때 컴포넌트가 담당하므로 서버 렌더링 마크업에서는 검증할 대상이 없다.
                 val editorElement = editorWrap.select("yona-markdown-editor")
                 editorElement.size shouldBe 1
                 editorElement.attr("name") shouldBe expectedName
                 editorElement.attr("editor-mode") shouldBe expectedEditorMode
-                // 옛 textarea 계약 중 markdown="true"/textarea 자체는 이제 서버 마크업이 아니라
-                // 컴포넌트 책임이므로, 서버 쪽에서는 더 이상 <textarea>가 존재하지 않아야 한다.
+                // 실제 <textarea>는 브라우저 connectedCallback이 만드므로 서버 마크업엔 없어야 한다.
                 editorWrap.select("textarea").size shouldBe 0
             }
 
             fun assertHelpAndNoticeLabelPreserved(editorWrap: org.jsoup.select.Elements) {
-                // 2026-09-17 갱신 - help/markdown.html이 Vue 3 SFC(<yona-help-markdown>)로
-                // 전면 교체되면서 아코디언 마크업(div.markdown-help/[data-toggle=markdown-help])은
-                // 서버 렌더링 시점엔 없다(그 컴포넌트가 클라이언트 마운트 시점에 Shadow DOM
-                // 안에서 직접 그린다) - 이제 이 커스텀 엘리먼트 태그 자체의 존재만 확인한다.
+                // help/markdown.html이 Vue 3 SFC(<yona-help-markdown>)로 교체되면서 아코디언
+                // 마크업은 클라이언트 마운트 시점에 Shadow DOM 안에 그려지므로 서버 렌더링에는
+                // 없다 - 커스텀 엘리먼트 태그의 존재만 확인한다.
                 editorWrap.select("yona-help-markdown").size shouldBe 1
-                // 임시저장 "Draft saved" 표시 위치 - 살아있는 기능이라 DOM은 유지되어야 한다.
                 editorWrap.select(".editor-notice-label").size shouldBe 1
             }
 

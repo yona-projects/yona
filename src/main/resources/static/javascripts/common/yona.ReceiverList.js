@@ -5,12 +5,6 @@
  * https://yona.io
  **/
 
-/**
- * P3-70 라운드10: elTextarea는 이제 raw DOM 엘리먼트다(호출부 issue/view.html:723도 $(...)
- * 래핑을 제거했다) - jQuery `.on/.off/.closest/.find/.val/.html`을 각각 addEventListener(핸들러
- * 참조를 엘리먼트에 보관해 off에서 재사용)/removeEventListener/closest/querySelector/.value/
- * .innerHTML로 대체했다. 로직 자체(디바운스 시간, fetch 요청/에러 처리, 정렬)는 완전히 동일하다.
- */
 function findNotiReceiversHandler(elTextarea, url) {
     var MAX_DISPLAY = 10
     var DEBOUNCE_DURATION = 1000;
@@ -23,8 +17,7 @@ function findNotiReceiversHandler(elTextarea, url) {
         clearTimeout(window.displayTimeout);
         window.displayTimeout = setTimeout(findNotiReceivers, DEBOUNCE_DURATION);
     }
-    // unbindFindNotiReceiversHandler가 동일한 핸들러 참조로 해제할 수 있도록 엘리먼트에
-    // 보관한다(jQuery의 네임스페이스 이벤트 "keyup.receiverList"가 하던 역할과 동일).
+    // removeEventListener는 같은 함수 참조가 필요하므로 unbind에서 쓸 수 있게 엘리먼트에 보관한다.
     elTextarea._receiverListKeyupHandler = _onKeyup;
     elTextarea.addEventListener('keyup', _onKeyup);
 

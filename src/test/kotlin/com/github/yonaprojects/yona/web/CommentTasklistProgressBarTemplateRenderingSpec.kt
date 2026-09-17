@@ -30,11 +30,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 
-// P3-60: 이슈/게시글 댓글 본문에 GFM 체크리스트 진행률 바(.tasklist 셸)와 data-allowed-update
-// 속성이 본문에는 있지만 댓글에는 빠져 있었다(대칭적 격차). issue/view.html·board/view.html의
-// 댓글 렌더링 블록에 본문과 동일한 .tasklist 셸을 추가하고 댓글별 data-allowed-update를
-// 배선했는지, 그리고 체크박스 클릭 시 실제 PATCH 흐름(commentUpdateForm의 action)이 올바른
-// 엔드포인트를 가리키는지 검증한다.
+// 이슈/게시글 댓글 본문에 GFM 체크리스트 진행률 바(.tasklist 셸)와 data-allowed-update 속성이
+// 본문에는 있지만 댓글에는 빠져 있었다(대칭적 격차). issue/view.html·board/view.html의 댓글
+// 렌더링 블록에 본문과 동일한 .tasklist 셸을 추가하고 댓글별 data-allowed-update를 배선했는지,
+// 그리고 체크박스 클릭 시 실제 PATCH 흐름(commentUpdateForm의 action)이 올바른 엔드포인트를
+// 가리키는지 검증한다.
 class CommentTasklistProgressBarTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,

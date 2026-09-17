@@ -68,12 +68,8 @@ import java.util.regex.Pattern
  * PULL_REQUESTS:READ 둘 다 있어야 200, 하나라도 없으면 403.
  *
  * `/api/v1/search/{issues,prs,projects}`(전역 검색)와 `/api/v1/organizations` 이하 전체(조직)도
- * 특정 저장소 하나에 속하지 않는 계정 수준 리소스라 같은 `AccountLevelTarget` 메커니즘으로 판정한다 —
- * 이 URL들은 3세그먼트 스코프 모델(`/api/v1/projects/{owner}/{project}/{resource}`)과 자연스럽게
- * 맞지 않아 한동안 Fine-grained PAT이 아예 인증되지 않았는데(세션/레거시 전권 토큰만 가능),
- * 위 `user/status`가 이미 만들어둔 이 메커니즘을 확장하는 것만으로 해소됐다 — 검색 엔드포인트별로
- * 응답 타입이 균일해(issues→ISSUES, prs→PULL_REQUESTS, projects→ADMINISTRATION) `user/status`와
- * 달리 여러 그룹을 AND로 요구할 필요는 없다.
+ * 특정 저장소 하나에 속하지 않는 계정 수준 리소스라 같은 `AccountLevelTarget` 메커니즘으로 판정한다
+ * (패턴별 스코프 매핑은 아래 필드 선언부 주석 참고).
  *
  * `/mcp` 이하 요청(Streamable HTTP 단일 엔드포인트)은 이 필터가 스코프를 판정하지 않는다. 한 HTTP
  * 요청(JSON-RPC POST) 안에 어떤 도구(list_issues vs merge_pull_request 등)가 들어있는지는 URL만

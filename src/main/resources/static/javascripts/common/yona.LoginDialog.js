@@ -39,11 +39,9 @@ document.addEventListener("DOMContentLoaded", function(){
             return;
         }
 
-        // 하이브리드 어댑터(2026-09-17, components/vue-widgets login-dialog 위젯 적용) -
-        // #loginDialog 자리가 <yona-login-dialog>(태그명으로 판별)면 실제 표시/폼 제출/
-        // 에러 처리를 전부 그 커스텀 엘리먼트 자신이 담당한다(show(trigger)/hide()만
-        // 공개 계약) - 이 페이지 쪽 코드는 전역 트리거 델리게이트만 그대로 소유한다
-        // (Dropdown 이후 확립된 "트리거는 원래 살던 곳에 남는다" 경계와 동일).
+        // #loginDialog 자리가 <yona-login-dialog>면 표시/폼 제출/에러 처리를 전부 그
+        // 커스텀 엘리먼트가 담당한다(show(trigger)/hide()만 공개 계약) - 이 페이지 쪽
+        // 코드는 전역 트리거 델리게이트만 그대로 소유한다.
         if(elDialog.tagName.toLowerCase() === "yona-login-dialog"){
             document.body.addEventListener('click', function(weEvt){
                 var elTrigger = weEvt.target.closest('[data-login="required"]');

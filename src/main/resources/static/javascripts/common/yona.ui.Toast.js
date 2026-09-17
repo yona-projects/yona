@@ -51,10 +51,9 @@
         function _initElement(sContainer){
             htElement.elContainer = document.querySelector(sContainer);
 
-            // 하이브리드 어댑터(2026-09-17, components/vue-widgets toast 위젯 적용) -
             // #yonaToasts 자리가 <yona-toast>(태그명으로 판별)면 그 커스텀 엘리먼트의
-            // push/clear에 그대로 위임한다. 원본 vanilla 구현(cloneNode 템플릿)은 그
-            // 태그가 없을 때만 실행된다.
+            // push/clear에 위임한다. 원본 vanilla 구현(cloneNode 템플릿)은 그 태그가
+            // 없을 때만 실행된다.
             if(htElement.elContainer.tagName.toLowerCase() === "yona-toast"){
                 htVar.bIsVueToast = true;
                 return;

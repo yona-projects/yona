@@ -47,9 +47,8 @@
          * attach event handlers
          */
         function _attachEvent(htOptions){
-            // 체크박스 게이트 + 모달 열기/닫기는 project.Delete/ChangeVCS.js와 거의
-            // 동일하게 반복되던 부분이라 공용 헬퍼로 합쳤다(yona.Common.js 참고,
-            // widget-candidates.md 4번 항목).
+            // 체크박스 게이트 + 모달 열기/닫기는 project.Delete/ChangeVCS.js와 동일하게
+            // 반복되던 부분이라 공용 헬퍼로 합쳤다(yona.Common.js).
             $yona.attachCheckboxGatedConfirm(htElement.elBtnTransferPop, htElement.elChkAccept,
                 htElement.elAlertTransfer, Messages("project.transfer.alert"));
 

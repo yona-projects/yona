@@ -179,9 +179,8 @@ class CommentServiceImplSpec @Autowired constructor(
                     comment.contents shouldBe "@mentioned1 확인해주세요"
                 }
 
-                // P3-50 조사 중 발견: common/uploadForm.html(yona.Files.js)로 올린 파일은
-                // POST /files가 항상 NOT_A_RESOURCE(임시)에 저장하는데, 댓글 생성 경로가 그
-                // 파일을 실제 컨테이너로 옮기는 단계가 아예 없어 첨부파일이 영구히 미아가 됐다.
+                // 업로드 API(POST /files)는 항상 NOT_A_RESOURCE(임시)에 저장하므로, 댓글 생성
+                // 경로가 실제 컨테이너로 옮겨주지 않으면 첨부파일이 영구히 미아가 된다.
                 it("본문에 링크된 첨부파일을 NOT_A_RESOURCE에서 ISSUE_COMMENT로 옮겨야 한다") {
                     val issue = mkIssue(project, author)
                     val attachment = attachmentRepository.save(
@@ -379,8 +378,8 @@ class CommentServiceImplSpec @Autowired constructor(
                     }
                 }
 
-                // P3-50: legacy IssueApp.saveComment()의
-                // `isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(currentUser)` 대응.
+                // legacy IssueApp.saveComment()의
+                // `isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(currentUser)` 규칙과 동일.
                 it("작성자 본인이 sendNotificationMail=false로 수정하면 알림을 발행하지 않아야 한다") {
                     val issue = mkIssue(project, author)
                     val comment = commentService.createIssueComment(issue.id!!, "원본", author, null)
@@ -474,7 +473,7 @@ class CommentServiceImplSpec @Autowired constructor(
                     }
                 }
 
-                // P3-50: legacy BoardApp.saveComment()와 동일한 규칙.
+                // legacy BoardApp.saveComment()와 동일한 규칙.
                 it("작성자 본인이 sendNotificationMail=false로 수정하면 알림을 발행하지 않아야 한다") {
                     val posting = mkPosting(project, author)
                     val comment = commentService.createPostingComment(posting.id!!, "원본", author, null)

@@ -4,12 +4,10 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.string.shouldContain
 import java.io.File
 
-// P3-69: legacy service/yobi.git.View.js(10초 간격 폴링으로 #state + Accept 버튼 자동 갱신)에
-// 대응하는 클라이언트측 배선이 실제로 정적 자산에 존재하는지 검증한다. 이 스펙은
-// PullRequestViewControllerSpec처럼 컨트롤러/모델을 mockk로 검증하는 것과는 성격이 달라 —
-// "서버가 올바른 모델을 만드는가"가 아니라 "템플릿과 JS 파일이 서로 올바르게 연결돼 있는가"를
-// 원본 파일 텍스트로 직접 확인한다(GnbUserMenuDropdownColorSpec과 동일한 File(...).readText()
-// 패턴, Spring 컨텍스트 불필요).
+// legacy service/yobi.git.View.js(10초 간격 폴링으로 #state + Accept 버튼 자동 갱신)에
+// 대응하는 클라이언트측 배선이 실제로 정적 자산에 존재하는지 검증한다. 컨트롤러/모델을
+// mockk로 검증하는 게 아니라 "템플릿과 JS 파일이 서로 올바르게 연결돼 있는가"를 원본
+// 파일 텍스트로 직접 확인한다(GnbUserMenuDropdownColorSpec과 동일한 패턴, Spring 컨텍스트 불필요).
 class PullRequestStatePollingWiringSpec : DescribeSpec({
     val viewHtml = File("src/main/resources/templates/pullrequest/view.html").readText()
     val partialInfoHtml = File("src/main/resources/templates/pullrequest/partial_info.html").readText()
@@ -35,16 +33,14 @@ class PullRequestStatePollingWiringSpec : DescribeSpec({
         }
 
         it("#btnAccept 클릭 핸들러는 폴링에 의한 DOM 교체 이후에도 계속 동작하도록 위임(delegated) 방식으로 바인딩해야 한다") {
-            // P3-70 라운드6: jQuery $(document).on("click", "#btnAccept", ...) 위임 바인딩을
-            // 네이티브 document.addEventListener("click", ...) + e.target.closest("#btnAccept")
-            // 패턴으로 전환(동일하게 document 레벨 위임이라 폴링에 의한 DOM 교체와 무관하게 계속
-            // 동작한다).
+            // document 레벨 위임(document.addEventListener + e.target.closest)이므로
+            // 폴링에 의한 DOM 교체와 무관하게 계속 동작한다.
             viewHtml shouldContain "document.addEventListener(\"click\", function(e) {"
             viewHtml shouldContain "e.target.closest(\"#btnAccept\")"
         }
 
         it("#state 안의 [data-request-method] 버튼(브랜치 삭제/복구 등)도 폴링에 의한 DOM 교체 이후 계속 동작하도록 위임 방식이어야 한다") {
-            // P3-70 라운드6: 동일하게 네이티브 document 레벨 위임(closest + #btnAccept 제외)으로 전환.
+            // 동일하게 document 레벨 위임(closest + #btnAccept 제외)이다.
             viewHtml shouldContain "e.target.closest('[data-request-method]')"
             viewHtml shouldContain "matched.id === 'btnAccept'"
         }

@@ -271,11 +271,10 @@ class CommentController(
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
-    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 해시 아님, v1.6
-    // `yona.Tasklist.js`의 실제 AJAX 요청 바디로 재확인) — updateIssueComment()와 동일한 로직을
-    // 재사용한다. v1.6 원본은 이 메서드(controllers.api.IssueApi.updateIssueComment)를 두 경로로 이중 매핑해뒀다
-    // — 공식 `-_-api/v1` 경로(PUT)와, 아마도 웹 UI 자체 AJAX용으로 보이는 bare 경로
-    // `/:owner/:project/issue/:number/comments/:commentId`(PATCH). 후자가 이식에서 빠져있었다.
+    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 해시 아님) —
+    // updateIssueComment()와 동일한 로직을 재사용한다. v1.6 원본은 이 메서드를 공식 `-_-api/v1`
+    // 경로(PUT)와 bare 경로 `/:owner/:project/issue/:number/comments/:commentId`(PATCH, 웹 UI 자체
+    // AJAX용으로 추정) 둘 다로 매핑해뒀는데, 후자가 이식에서 빠져있었다.
     @RequestMapping(
         value = [
             "/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId}",
@@ -346,10 +345,9 @@ class CommentController(
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
-    // legacy 필드명은 `content`/`original`(원문 그 자체). v1.6 원본은 이 메서드
-    // (controllers.api.BoardApi.updatePostingComment)를 공식 `-_-api/v1` 경로(PUT)와 bare 경로
-    // `/:owner/:project/post/:number/comment/:commentId`(PATCH, "post"/"comment" 단수 — 이슈 쪽과
-    // 다름, 원본 그대로) 둘 다로 매핑해뒀다. 후자가 이식에서 빠져있었다.
+    // legacy 필드명은 `content`/`original`(원문 그 자체). v1.6 원본은 이 메서드를 공식 `-_-api/v1`
+    // 경로(PUT)와 bare 경로 `/:owner/:project/post/:number/comment/:commentId`(PATCH, "post"/
+    // "comment" 단수 — 이슈 쪽과 다름) 둘 다로 매핑해뒀는데, 후자가 이식에서 빠져있었다.
     @RequestMapping(
         value = [
             "/-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/comments/{commentId}",
@@ -396,10 +394,8 @@ class CommentController(
 
     data class LegacyIssueCommentRequest(val comment: String = "")
     data class LegacyPostingCommentRequest(val body: String = "")
-    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 SHA-1 해시가 아니다, v1.6
-    // 원본 IssueApi.java/BoardApi.java와 실제 클라이언트 JS(yona.Tasklist.js)로 재확인). 서버가
-    // 현재 값과 이 원문을 각각 해시해서 비교한다(isModifiedByOthers()) — 한때 별도의
-    // "클라이언트가 이미 해시를 보낸다"는 잘못된 함수를 썼던 결함을 정정했다.
+    // legacy 필드명은 `content`/`original`(원문 그 자체 — 미리 계산한 SHA-1 해시가 아니다). 서버가
+    // 현재 값과 이 원문을 각각 해시해서 비교한다(isModifiedByOthers()).
     data class LegacyUpdateCommentRequest(val content: String = "", val original: String = "")
 
     data class CommentRequest(
@@ -408,7 +404,7 @@ class CommentController(
         // 기존 호출자(원문을 안 보내는 클라이언트)와의 하위호환을 위해 충돌 검사를 건너뛴다.
         val original: String? = null,
         val parentCommentId: Long? = null,
-        // P3-50: legacy commentUpdateForm.scala.html의 "알림 메일 받기" 체크박스 대응 — 댓글
+        // legacy commentUpdateForm.scala.html의 "알림 메일 받기" 체크박스 대응 — 댓글
         // 생성 요청에서는 쓰이지 않고 updateIssueComment/updatePostingComment 쪽에서만 참조한다.
         val sendNotificationMail: Boolean = false
     )

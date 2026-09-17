@@ -41,14 +41,11 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 
-// P3-56: code/svnDiff.html의 댓글 기능이 legacy(commit/svnDiff.scala.html) 대비 축소된 즉석
-// 구현이었다(마크다운 에디터/파일첨부/멘션/권한기반삭제/삭제확인모달/마크다운렌더링/아바타 전부
-// 없음). Git 쪽 code/diff.html이 쓰는 공용 컴포넌트(site/layout::markdownEditor,
-// common/uploadForm, common/commentDeleteModal)로 통일했는지 실제 렌더링 결과로 검증한다.
+// code/svnDiff.html의 댓글 기능이 legacy 대비 축소된 즉석 구현이었다(마크다운 에디터/파일첨부/
+// 멘션/권한기반삭제/삭제확인모달/렌더링/아바타 없음). Git 쪽 code/diff.html과 동일한 공용
+// 컴포넌트(markdownEditor, uploadForm, commentDeleteModal)로 통일했는지 검증한다.
 //
-// 실제 svn 클라이언트/서버 없이 SVNKit 저수준 커밋 에디터로 로컬 저장소에 리비전을 하나 만든 뒤
-// (SvnRepositorySpec과 동일한 기법), 실제 컨트롤러(CodeViewController.showCommit)를 MockMvc로
-// 호출해 최종 HTML을 Jsoup으로 검사한다.
+// 실제 svn 클라이언트 없이 SVNKit 저수준 커밋 에디터로 리비전을 만든 뒤 컨트롤러를 MockMvc로 호출한다.
 class SvnCommitCommentTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -138,11 +135,9 @@ class SvnCommitCommentTemplateRenderingSpec @Autowired constructor(
                     )
                 )
 
-            // 주의: AttachmentRepository.findByContainerTypeAndContainerId는 @Cacheable이라(운영
-            // 코드는 AttachmentServiceImpl을 통해 저장/삭제 시 @CacheEvict로 무효화되지만, 이
-            // 테스트는 그 서비스를 거치지 않고 리포지토리에 직접 저장한다) 그 캐시드 조회로
-            // "존재 여부"를 먼저 확인하면 아직 없던 시점의 빈 결과가 캐시에 박제되어 저장 후에도
-            // 계속 빈 리스트를 돌려준다 — findAll()로 우회해 캐시를 건드리지 않는다.
+            // AttachmentRepository.findByContainerTypeAndContainerId는 @Cacheable인데, 이 테스트는
+            // 캐시 무효화를 담당하는 서비스를 거치지 않고 직접 저장한다. 그 메서드로 존재 여부를
+            // 먼저 확인하면 빈 결과가 캐시에 박제된다 — findAll()로 우회한다.
             val alreadyExists = attachmentRepository.findAll()
                 .any { it.containerType == ResourceType.COMMIT_COMMENT && it.containerId == comment.id.toString() }
             if (!alreadyExists) {
@@ -194,8 +189,8 @@ class SvnCommitCommentTemplateRenderingSpec @Autowired constructor(
                 editor.size shouldBe 1
                 editor.attr("name") shouldBe "contents"
 
-                // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
-                // 교체됐다(components/vue-widgets, 드롭존/업로드버튼/카드목록을 자체 소유).
+                // common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로 교체돼 드롭존/업로드버튼/
+                // 카드목록을 자체 소유한다.
                 val upload = doc.select("yona-attachments#upload")
                 upload.size shouldBe 1
                 upload.attr("data-resource-type") shouldBe "COMMIT_COMMENT"

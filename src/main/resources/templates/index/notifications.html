@@ -60,8 +60,8 @@
 
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function(){
-        // _contentHeight: jQuery .height()(콘텐츠 박스 높이, padding/border 제외)와 동일 - 라운드5에서
-        // 확립한 헬퍼와 동일한 계산(index.html과 동일 패턴).
+        // _contentHeight: jQuery .height()(padding/border 제외한 콘텐츠 높이)와 동일하게 계산
+        // (index.html과 동일 패턴).
         function _contentHeight(el) {
             var style = getComputedStyle(el);
             return el.clientHeight - parseFloat(style.paddingTop || 0) - parseFloat(style.paddingBottom || 0);

@@ -54,11 +54,10 @@ class SecurityConfig(
     // HTTPS Deploy Key 인증. `HttpSecurity.authenticationProvider()`를 한 번이라도 호출하면
     // AuthenticationManagerBuilder가 "이미 구성됨" 상태가 되어, Spring Boot가 컨텍스트의
     // AuthenticationProvider 빈들을 자동으로 긁어모으는 기본 동작
-    // (InitializeAuthenticationProviderBeanManagerConfigurer)이 더 이상 동작하지 않는다 — 실제로
-    // 이 provider 하나만 등록했다가 기존 YonaAuthenticationProvider(로컬/LDAP 로그인)가 통째로
-    // 빠지면서 로그인 관련 통합테스트가 깨지는 회귀를 겪었다. 그래서 기존에 자동으로 등록되던
-    // YonaAuthenticationProvider도 이 필드로 명시적으로 주입받아 아래 securityFilterChain()에서
-    // 둘 다 등록한다.
+    // (InitializeAuthenticationProviderBeanManagerConfigurer)이 더 이상 동작하지 않는다 — 이
+    // provider만 등록하면 기존 YonaAuthenticationProvider(로컬/LDAP 로그인)가 자동 등록 대상에서
+    // 빠져 로컬 로그인이 깨진다. 그래서 YonaAuthenticationProvider도 이 필드로 명시적으로
+    // 주입받아 아래 securityFilterChain()에서 둘 다 등록한다.
     //
     // 다만 위 "InitializeAuthenticationProviderBeanManagerConfigurer 비활성화" 대응은 절반짜리다.
     // HttpSecurity.authenticationProvider()는 @Bean securityFilterChain() 메서드 "실행 시점"에
@@ -121,9 +120,7 @@ class SecurityConfig(
     // 없어, 요청이 SvnAuthorizationFilter/SvnController에 도달하기도 전에
     // RequestRejectedException → 400으로 거부되고 있었다. 실제 svn checkout/update/info/log는
     // 전부 PROPFIND를 쓰므로 이 방화벽 기본값 아래에서는 SVN-over-HTTP 자체가 완전히 동작
-    // 불가능했다(실제 springSecurityFilterChain을 태우는 통합테스트를 작성하다가 발견 — 기존
-    // SVN 테스트는 전부 standaloneSetup()이거나 보안 필터 체인을 안 태워서 이 문제를 잡아낸 적이
-    // 없었음). HttpFirewall 빈을 노출하면 Spring Security의 WebSecurityConfiguration이 자동으로
+    // 불가능했다. HttpFirewall 빈을 노출하면 Spring Security의 WebSecurityConfiguration이 자동으로
     // 감지해 적용한다(별도 배선 불필요).
     @Bean
     fun httpFirewall(): HttpFirewall {
@@ -149,10 +146,9 @@ class SecurityConfig(
     @Order(5)
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            // CSRF는 포팅 과정에서 사유 없이 꺼진 채 방치돼 있었다(레거시 Play 앱도 원래 꺼져
-            // 있었을 뿐, 의도적 설계는 아니었음). 템플릿 폼 대부분은 이미 th:action이라 자동으로
-            // 보호되고, 나머지는 개별 대응했다(site/layout.html 로그인 모달, code/compare·
-            // diff.html 인라인 댓글 폼, site/layout.html::scripts의 전역 $.ajax/fetch 인터셉터).
+            // 템플릿 폼 대부분은 이미 th:action이라 자동으로 보호되고, 나머지는 개별 대응했다
+            // (site/layout.html 로그인 모달, code/compare·diff.html 인라인 댓글 폼,
+            // site/layout.html::scripts의 전역 $.ajax/fetch 인터셉터).
             // CookieCsrfTokenRepository(원문 토큰을 XSRF-TOKEN
             // 쿠키에 저장, withHttpOnlyFalse로 JS가 직접 읽게 함) + SpaCsrfTokenRequestHandler
             // (서버 렌더링 폼과 AJAX 양쪽을 함께 지원)는 Spring Security 공식 문서가 이 조합에

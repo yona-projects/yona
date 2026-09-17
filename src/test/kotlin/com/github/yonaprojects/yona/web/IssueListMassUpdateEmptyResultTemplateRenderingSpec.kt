@@ -28,15 +28,10 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// 부수 발견(P3-61 완료 로그에서 보고, 이번에 코디네이터가 직접 조사·수정): 이슈 검색 결과가
-// 0건이면 legacy issue/partial_list_wrap.scala.html:61-67은 @if(currentPage.getList.isEmpty)
-// 블록으로 들어가 partial_massupdate(마크업+"$yona.loadModule('issue.MassUpdate', ...)" 초기화
-// 스크립트가 그 파일 안에 함께 있음) 자체를 렌더링하지 않는다 - 결과가 있을 때(else 블록)만
-// 마크업과 초기화 스크립트가 함께 나온다. yona issue/list.html은 이 초기화 스크립트를
-// 페이지 최하단 전역 스크립트 블록으로 옮기면서 조건 없이 항상 실행하게 됐다 - 결과 0건이면
-// #mass-update-form이 DOM에 없는데 $('.mass-update-wrap').offset()을 호출해 TypeError가 난다.
-// MassUpdate 스크립트는 로그인한 프로젝트 멤버에게만 노출되는 마크업(#mass-update-form)에
-// 종속되므로, 두 케이스 모두 프로젝트 멤버로 인증한 요청으로 검증한다.
+// legacy는 검색 결과가 있을 때만 issue.MassUpdate 초기화 스크립트를 마크업과 함께 내보냈다.
+// yona는 이 스크립트를 페이지 하단 전역 블록으로 옮기며 무조건 실행하게 됐는데, 결과 0건이면
+// #mass-update-form이 DOM에 없어 $('.mass-update-wrap').offset() 호출 시 TypeError가 난다.
+// 해당 마크업은 프로젝트 멤버에게만 노출되므로 두 케이스 모두 멤버 인증으로 검증한다.
 class IssueListMassUpdateEmptyResultTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,

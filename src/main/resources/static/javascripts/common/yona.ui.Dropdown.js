@@ -73,12 +73,10 @@
                 return;
             }
 
-            // 하이브리드 어댑터(2026-09-17, components/vue-widgets dropdown 위젯 적용) -
             // 컨테이너가 <yona-dropdown>(태그명으로 판별)이면 그 위에 노출된
-            // getValue/onChange/selectByValue/selectItem으로 전부 위임한다. 아직
-            // 마이그레이션되지 않은 나머지 화면(평범한 div.btn-group)은 원본 vanilla
-            // 구현이 그대로 처리한다 - 두 경로 다 동일한 공개 계약을 반환하므로 호출부는
-            // 코드를 전혀 바꿀 필요가 없다.
+            // getValue/onChange/selectByValue/selectItem으로 전부 위임한다. 아직 마이그레이션
+            // 안 된 화면(평범한 div.btn-group)은 원본 vanilla 구현이 처리하며, 두 경로 다
+            // 동일한 공개 계약을 반환하므로 호출부는 코드를 바꿀 필요가 없다.
             if(htElement.welContainer.tagName.toLowerCase() === "yona-dropdown"){
                 htVar.bIsVueDropdown = true;
                 return;

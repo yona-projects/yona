@@ -227,20 +227,17 @@
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function() {
-      // P3-71: "인증정보 사용" 체크박스의 change 핸들러는 project.New.js의
-      // _onChangeRepoAuthCheck() 하나만 등록한다(전에는 여기서도 같은 change 이벤트에
-      // 단순 show/hide 핸들러를 하나 더 걸어뒀는데, 그게 먼저 display를 바꿔놓은 뒤
-      // project.New.js의 _toggleSlide()가 "이미 바뀐 상태"를 보고 반대 방향으로
-      // 애니메이션해 체크할 때마다 패널이 반전 동작했다 - docs/parity/tickets/p3-71.md
-      // 참고. 핸들러를 하나로 통합해 해소했다.
+      // "인증정보 사용" 체크박스의 change 핸들러는 project.New.js의 _onChangeRepoAuthCheck()
+      // 하나만 등록한다 - 여기서 show/hide 핸들러를 하나 더 걸면, 그게 먼저 display를 바꿔놓은
+      // 뒤 _toggleSlide()가 "이미 바뀐 상태"를 보고 반대로 애니메이션해 클릭마다 패널이
+      // 반전 동작하는 버그가 있었다.
 
       // 소유자가 조직(group)인 경우 protected 옵션을 노출
       var elProjectOwner = document.getElementById("project-owner");
       function _onChangeProjectOwnerVisibility() {
-          // jQuery Sizzle 전용 `:selected` 의사클래스는 네이티브 querySelector에서 유효하지
-          // 않은 셀렉터라 SyntaxError를 던진다(Playwright 실측으로 발견한 실제 회귀 - 이 예외가
-          // 이 함수 호출 직후의 $yona.loadModule("project.New", ...)까지 통째로 막아버렸다).
-          // HTML5 표준 `:checked`(option 요소의 선택 상태에도 적용됨)로 대체.
+          // jQuery Sizzle 전용 `:selected` 의사클래스는 네이티브 querySelector에서 SyntaxError를
+          // 던져 이후의 $yona.loadModule("project.New", ...)까지 막아버린다 - HTML5 표준
+          // `:checked`(option 요소에도 적용됨)로 대체.
           var elSelected = elProjectOwner ? elProjectOwner.querySelector("option:checked") : null;
           var selectedType = elSelected ? elSelected.getAttribute("data-type") : undefined;
           var elOptProtected = document.getElementById("opt-protected");

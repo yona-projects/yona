@@ -48,14 +48,11 @@
          * attach event handlers
          */
         function _attachEvent(htOptions){
-            // 체크박스 게이트 + 모달 열기/닫기는 project.Transfer/ChangeVCS.js와 거의
-            // 동일하게 반복되던 부분이라 공용 헬퍼로 합쳤다(yona.Common.js 참고,
-            // widget-candidates.md 4번 항목).
+            // 체크박스 게이트 + 모달 열기/닫기는 project.Transfer/ChangeVCS.js와 동일하게
+            // 반복되던 부분이라 공용 헬퍼로 합쳤다(yona.Common.js).
             $yona.attachCheckboxGatedConfirm(htElement.elBtnDeletePop, htElement.elChkAccept,
                 htElement.elAlertDeletion, Messages("project.delete.alert"));
 
-            // P3-70 라운드10: jquery.requestAs.js 플러그인 호출부를 $yona.requestAs(코어
-            // 라이브러리 제거를 위해 이번 라운드에서 신설된 네이티브 대체)로 전환.
             $yona.requestAs(htElement.elBtnDeletePrj, {
                 "sMethod" : "delete",
                 "sHref"   : htOptions.sDeleteURL,

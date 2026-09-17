@@ -72,10 +72,9 @@
   <footer th:replace="~{site/layout :: footer}"></footer>
 </div>
 
-<!-- Confirm to delete project - 네이티브 <dialog>(P3-70 라운드9). 트리거가
-     data-toggle="delete-project"(bootstrap.js의 data-toggle="modal" 대상이 아님,
-     project-name/requestAs 데이터를 먼저 채워야 해서 아래 스크립트가 직접 showModal()을
-     호출한다). -->
+<!-- Confirm to delete project - 네이티브 <dialog>. bootstrap.js의 data-toggle="modal" 자동
+     연결 대상이 아니다 - project-name/requestAs 데이터를 먼저 채워야 해서 아래 스크립트가
+     직접 showModal()을 호출한다. -->
 <dialog id="alertDeletionWrap" class="modal">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">×</button>
@@ -103,9 +102,6 @@ document.addEventListener("DOMContentLoaded", function(){
             var matched = event.target.closest('[data-toggle="delete-project"]');
             if (!matched || !elProjectListWrap.contains(matched)) { return; }
 
-            // P3-70 라운드10: jquery.requestAs.js 플러그인 호출을 $yona.requestAs로 전환
-            // (userList.html의 계정 삭제 버튼과 동일한 관례 - htOptions로 직접 넘겨 jQuery
-            // 데이터 캐시 간접 단계를 생략).
             $yona.requestAs(document.getElementById('projectDeleteBtn'), {
                 "sMethod": "delete",
                 "sHref"  : matched.dataset.href

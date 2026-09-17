@@ -17,14 +17,9 @@
                 <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" th:text="#{organization.delete.this}">Delete this organization</a>
             </div>
 
-            <!-- Confirm to delete organization - 네이티브 <dialog>(P3-70 라운드9). data-toggle=
-                 "modal" 속성은 제거했다 - bootstrap.js(미수정, static/bootstrap/js/) 자체의
-                 전역 [data-toggle="modal"] 데이터 API 델리게이트가 여전히 살아있어(플러그인 파일을
-                 못 건드리니 비활성화 불가) 속성을 남겨두면 그 델리게이트가 같은 클릭에 반응해
-                 $(target).modal()을 호출하다가 "dialog가 이미 모달로 열려있다"는
-                 InvalidStateError를 던지는 실제 충돌을 Playwright로 재현했다(project.Delete.js
-                 등 기존 라운드가 확립한 "속성 제거 + JS에서 직접 showModal()" 패턴과 동일하게
-                 맞춤). -->
+            <!-- Confirm to delete organization - 네이티브 <dialog>. data-toggle="modal"은 제거했다 -
+                 bootstrap.js(미수정)의 전역 데이터 API 델리게이트가 같은 클릭에 이중으로 반응해
+                 "이미 모달로 열려있다"는 InvalidStateError를 던지는 충돌을 Playwright로 확인했다. -->
             <dialog id="alertDeletion" class="modal">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>

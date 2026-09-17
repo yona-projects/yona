@@ -98,8 +98,8 @@
             var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                // yona.Files.getUploader()는 [elContainer] 형태의 순수 배열을 반환한다
-                // (P3-70 라운드10에서 jQuery 래핑 제거) - oUploader[0]로 raw element를 꺼낸다.
+                // yona.Files.getUploader()는 [elContainer] 형태의 순수 배열을 반환한다 -
+                // oUploader[0]로 raw element를 꺼낸다.
                 (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
@@ -114,8 +114,8 @@
          */
         function _initFileDownloader(){
             htElement.welAttachments.forEach(function(elContainer){
-                // 6단계(jQuery 완전 제거): isYonaAttachment는 yona.Attachments.js가 붙이는
-                // 순수 expando 프로퍼티다(공개 계약, 중복 초기화 가드).
+                // isYonaAttachment는 yona.Attachments.js가 붙이는 expando 프로퍼티다
+                // (공개 계약, 중복 초기화 가드).
                 if(!elContainer._isYonaAttachment){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }

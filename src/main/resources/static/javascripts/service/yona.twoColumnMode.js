@@ -17,12 +17,10 @@ var _pageslide = {
     lastCaller: null
 };
 
-// 하이브리드 어댑터(2026-09-17, components/vue-widgets page-slide 위젯 적용) - 실측으로
-// 확인된 함정: host에 원본과 같은 id="pageslide"를 주면 yona.css의 전역
+// host에 원본과 같은 id="pageslide"를 주면 yona.css의 전역
 // `#pageslide { display: none; }` 규칙이 host 자체에 적용돼 shadow 트리 전체가
 // 안 보이게 된다(컴포넌트 내부 인라인 스타일과 무관) - 그래서 host에는 그 id를
-// 아예 안 주고, 클로저 변수로 싱글턴 엘리먼트를 직접 캐싱한다(document.getElementById
-// 대신). 이 파일 밖에서 "#pageslide"를 참조하는 곳은 없음을 확인했다.
+// 아예 안 주고, 클로저 변수로 싱글턴 엘리먼트를 캐싱한다(document.getElementById 대신).
 var _pageslideVueEl = null;
 
 function _isVuePageSlide() {
@@ -265,11 +263,8 @@ function _initTwoColumnMode(){
                     postItem.classList.add('highlightBg');
                 }
 
-                // 하이브리드 - Vue 위젯이 활성화된 경우 host에 id="pageslide"를 안 주므로
-                // getElementById로는 못 찾는다(위 _getPageslideElement 주석 참고). 이 파일
-                // 안의 세 번째 getElementById('pageslide') 참조라 README가 "2곳뿐"이라고
-                // 기록했던 것과 달랐다(2026-09-17 실제 배포 중 재확인) - 캐시된 클로저
-                // 변수를 우선 사용하도록 함께 고친다.
+                // Vue 위젯이 활성화된 경우 host에 id="pageslide"를 안 주므로 getElementById로는
+                // 못 찾는다(위 _getPageslideElement 주석 참고) - 캐시된 클로저 변수를 쓴다.
                 var pageslideEl = _isVuePageSlide() ? _pageslideVueEl : document.getElementById('pageslide');
                 var userInfoBox = document.querySelector(".user-info-box");
                 var leftMenu = document.querySelector(".left-menu");

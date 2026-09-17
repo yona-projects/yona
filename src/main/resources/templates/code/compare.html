@@ -171,10 +171,9 @@
               th:with="reviewFormResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).COMMIT_COMMENT}">
       <tr class="comments board-comment-wrap" th:data-commit-id="${thread.commitId}">
         <td colspan="3" style="padding: 10px; background-color: #fafbfc; border-top: 1px solid #e1e4e8; border-bottom: 1px solid #e1e4e8;">
-          <!-- data-range-*/btn-thread-minimize/fold는 pullrequest/partial_comment_thread.html이
-               이미 갖추고 있던 legacy 마크업 계약과 동일하게 맞춘 것 - code.Diff.js의 스레드
-               접기/펴기(_onClickBtnFoldThread/_setBtnThreadHerePosition)와 드래그 범위 하이라이트
-               (_onMouseOverCodeCommentThread, 3단계에서 다룸)가 이 속성들을 필요로 한다. -->
+          <!-- data-range-*/btn-thread-minimize/fold는 pullrequest/partial_comment_thread.html과
+               동일한 legacy 마크업 계약 - code.Diff.js의 스레드 접기/펴기와 드래그 범위
+               하이라이트가 이 속성들을 필요로 한다. -->
           <div th:id="'thread-' + ${thread.id}"
                th:data-state="${thread.state.toString().toLowerCase()}"
                th:class="'comment-thread-wrap ' + ${thread.state.toString().toLowerCase()} + ${thread.state.name() == 'CLOSED' ? ' fold' : ''}"
@@ -222,18 +221,11 @@
               </li>
             </ul>
 
-            <!-- Thread reply form. class="review-form"은 legacy에서 CodeCommentBox 플로팅 팝업
-                 전용이라 yona.css의 .review-form이 기본 display:none(말풍선 팝업이 JS로 열릴 때만
-                 보이는 스타일)인데, 여기서는 이미 화면에 떠 있는 스레드 안의 일반 답글 폼으로
-                 재사용하면서 style="display:block"으로 덮어쓰는 걸 깜빡해 답글 폼 자체가
-                 완전히 숨겨져 있었다(pullrequest/partial_comment_form_on_thread.html은 이미
-                 이 오버라이드가 있었음 - 거기서 쓰던 동일한 수정을 여기도 반영).
-                 4단계 복원: 순수 textarea였던 자리를 markdownEditor+uploadForm(첨부파일)으로
-                 교체 - pullrequest/partial_comment_form_on_thread.html은 이미 이 조합을 쓰고
-                 있었는데 code 쪽만 훨씬 단순화된 대체 구현이었다. 새 라인/범위 댓글은
-                 CodeCommentBox 팝업으로 옮겼지만(code/diff.html 참고), 기존 스레드 답글은
-                 legacy처럼 팝업을 재사용하지 않고 이 상시 노출 폼을 그대로 유지한다(기능은
-                 동등, 클릭 한 번 덜 드는 실용적 차이). -->
+            <!-- class="review-form"은 yona.css에서 기본 display:none(CodeCommentBox 플로팅 팝업
+                 전용 스타일)이라, 여기 상시 노출 답글 폼에 재사용하려면 style="display:block"으로
+                 덮어써야 한다(빠뜨리면 폼이 완전히 숨겨짐 - pullrequest/partial_comment_form_on_thread.html의
+                 동일한 오버라이드 참고). 새 라인/범위 댓글은 CodeCommentBox 팝업을 쓰지만
+                 (code/diff.html), 기존 스레드 답글은 이 상시 노출 폼을 그대로 유지한다. -->
             <div class="write-comment-form" th:if="${currentUser != null}">
               <form th:action="@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commitB.getId()})}"
                     method="post" enctype="multipart/form-data" class="review-form" style="display:block;">
@@ -243,14 +235,10 @@
                   <div th:replace="~{common/uploadForm :: uploadForm(${reviewFormResourceType}, null, null)}"></div>
                   <div class="right-txt">
                     <button type="submit" class="ybtn ybtn-success ybtn-small">댓글달기</button>
-                    <!-- pullrequest/partial_comment_form_on_thread.html과 동일한 방식으로 교체 -
-                         이 fragment는 code/diff.html이 th:insert로 마크업만 가져다 쓰기 때문에,
-                         이 파일 하단의 페이지 전용 <script>(.btn-thread-state-toggle 커스텀
-                         fetch 핸들러)가 code/diff.html에서는 아예 로드되지 않아 버튼이 죽어
-                         있었다. site/layout::scripts가 전역으로 로드하는 jquery.requestAs.js가
-                         [data-request-method] 속성이 있는 요소를 자동으로 초기화하고 성공 시
-                         페이지를 새로고침하므로, 페이지별 JS 없이 어디서 재사용되든 항상
-                         동작한다. -->
+                    <!-- 이 fragment는 code/diff.html이 th:insert로 마크업만 가져다 쓰기 때문에,
+                         이 파일 하단의 페이지 전용 fetch 핸들러는 code/diff.html에서 로드되지
+                         않아 버튼이 죽어 있었다. 전역 jquery.requestAs.js가 [data-request-method]
+                         속성을 자동으로 초기화하므로, 페이지별 JS 없이 재사용돼도 항상 동작한다. -->
                     <button type="button" class="ybtn ybtn-default ybtn-small"
                             th:data-request-method="post"
                             th:data-request-uri="${thread.state.name() == 'OPEN'} ? @{/threads/{id}/close(id=${thread.id})} : @{/threads/{id}/open(id=${thread.id})}"

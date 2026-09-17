@@ -31,7 +31,7 @@
         /**
          * jQuery `.on(evt, selector, fn)` 위임 바인딩과 동일하게 재현한다:
          * addEventListener + closest(selector) + container.contains(...) 가드 +
-         * fn.call(matchedEl, e) (P3-70 라운드2에서 확립한 관례).
+         * fn.call(matchedEl, e).
          *
          * @private
          */
@@ -228,11 +228,10 @@
                 newValue = labelId;
             }
 
-            // P3-46 #5 후속 버그 수정(2026-09-12): Select2 v3 시절 API(.data("select2").val(...))가
-            // Tom Select 교체 후에도 그대로 남아있어 target.data("select2")가 항상 undefined를
-            // 반환해 TypeError로 죽어있었다(실사용 경로 - 라벨 클릭 시 크래시). Tom Select 인스턴스는
-            // element.tomselect로 접근하고 값 반영은 setValue(value)로 한다(두 번째 인자 silent를
-            // 생략하면 change 이벤트가 발생해 Select2의 triggerChange=true와 동등하다).
+            // Tom Select 인스턴스는 element.tomselect로 접근하고 값 반영은 setValue(value)로
+            // 한다(두 번째 인자 silent를 생략하면 change 이벤트가 발생해 Select2의
+            // triggerChange=true와 동등하다) - 옛 Select2 API(.data("select2").val(...))를
+            // 그대로 두면 undefined에서 TypeError가 나 라벨 클릭이 죽는다.
             target.tomselect.setValue(newValue);
         }
 
@@ -287,21 +286,13 @@
          * Initialize Pjax
          *
          * jquery.pjax 플러그인을 걷어내고 fetch + DOMParser + history.pushState로 직접
-         * 구현한다. 서버는 X-PJAX류 헤더를 전혀 보지 않고 항상 전체 페이지를 그대로
-         * 렌더링하므로(컨트롤러 쪽에 그런 분기가 없음을 확인함), 클라이언트가 응답
-         * 전체에서 div[pjax-container] 부분만 잘라 교체하면 기존과 동일하게 동작한다.
-         * 기존 jquery.pjax가 걸어두던 "Firefox/Safari의 bfcache 버그 우회(2013년대
-         * 그 라이브러리 특유의 이슈)"는 그 라이브러리 자체를 걷어내므로 더 이상 적용
-         * 대상이 아니다.
+         * 구현한다. 서버는 X-PJAX류 헤더를 보지 않고 항상 전체 페이지를 렌더링하므로,
+         * 클라이언트가 응답에서 div[pjax-container] 부분만 잘라 교체하면 기존과 동일하게
+         * 동작한다.
          *
-         * pjax-container(.issue-list-wrap)는 매번 innerHTML만 교체하고 그 컨테이너
-         * 엘리먼트 자체는 그대로 두므로, _attachEvent()가 이 컨테이너에 걸어둔 위임형
-         * 이벤트 리스너들은 재바인딩 없이 계속 유효하다(레거시 pjax도 같은 이유로
-         * 컨테이너 자체는 남기고 내용만 바꿨다).
-         *
-         * P3-70 라운드4: 이 파일의 나머지 `.submit()` 호출을 전부 _triggerSubmit()(진짜
-         * "submit" 이벤트를 bubbles:true로 발생시킴)으로 바꿨으므로, 여기서도 jQuery
-         * 위임 없이 순수 네이티브 위임(_delegate)만으로 동일하게 가로챌 수 있다.
+         * pjax-container(.issue-list-wrap)는 매번 innerHTML만 교체하고 컨테이너 엘리먼트
+         * 자체는 그대로 두므로, _attachEvent()가 걸어둔 위임형 리스너들은 재바인딩 없이
+         * 계속 유효하다.
          *
          * @private
          */
@@ -384,8 +375,8 @@
                     var elChildList = elPostItem.querySelector(".child-issue-list");
                     if(elChildList){
                         // .child-issue-list는 <div class="child-issue-list hide">라 CSS
-                        // .hide가 display:none을 강제한다 - P3-70 라운드1/2 관례대로
-                        // style.display = "block"으로 override한다.
+                        // .hide가 display:none을 강제한다 - style.display = "block"으로
+                        // override한다.
                         elChildList.style.display = "block";
                     }
                 });

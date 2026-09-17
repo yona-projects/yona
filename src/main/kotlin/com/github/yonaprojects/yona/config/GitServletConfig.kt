@@ -98,12 +98,10 @@ class GitServletConfig(
                 val repoFile = File(gitBaseDir, normalizedName)
 
                 // 위키 저장소("<owner>/<project>.wiki.git")는 웹 UI에서 첫 페이지를 저장할 때만
-                // 만들어진다(WikiServiceImpl.ensureRepository()) — 아직 페이지를 하나도 만들지 않은
-                // 상태에서 git clone/push로 먼저 접근하면 저장소 자체가 없어 push가 "unpacker
-                // error"로 거절된다(위 normalizedName 정규화 배경 참고 — 존재하지 않는 디렉터리는
-                // clone은 조용히 빈 저장소처럼 성공하지만 push는 실패). 실제로 그런 이름의
-                // 프로젝트가 있을 때만(임의 경로로 빈 저장소를 마구 생성하지 않도록) 빈 bare
-                // 저장소를 지연 생성해 이 문제를 없앤다.
+                // 만들어진다(WikiServiceImpl.ensureRepository()) — 페이지를 하나도 만들지 않은
+                // 상태에서 git clone/push로 먼저 접근하면 저장소가 없어 push가 위와 동일하게
+                // "unpacker error"로 거절된다. 실제로 그 이름의 프로젝트가 있을 때만(임의 경로에
+                // 빈 저장소를 마구 생성하지 않도록) bare 저장소를 지연 생성해 해소한다.
                 val nameWithoutExt = normalizedName.removeSuffix(".git")
                 if (nameWithoutExt.endsWith(".wiki") && !repoFile.exists()) {
                     val segments = nameWithoutExt.split("/")

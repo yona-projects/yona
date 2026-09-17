@@ -18,10 +18,9 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-59: board/list.html에 "2단 모드" 체크박스 마크업이 없어 yona.twoColumnMode.js가 로드는
-// 되지만 조작할 대상(#two-column-mode-checkbox / #two-column-mode)이 없는 죽은 include였다.
-// 이미 정상 이식된 issue/list.html 등 6개 화면과 동일한 마크업이 board/list.html에도 렌더링되고,
-// yona.twoColumnMode.js 스크립트도 여전히 로드되는지 검증한다.
+// board/list.html에 "2단 모드" 체크박스 마크업이 없어 yona.twoColumnMode.js가 로드는 되지만 조작할
+// 대상(#two-column-mode-checkbox / #two-column-mode)이 없는 죽은 include였다. 이미 이식된
+// issue/list.html 등과 동일한 마크업이 렌더링되고 스크립트도 계속 로드되는지 검증한다.
 class BoardListTwoColumnModeTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,

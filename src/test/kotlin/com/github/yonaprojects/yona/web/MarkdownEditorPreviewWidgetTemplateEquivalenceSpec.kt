@@ -38,28 +38,16 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-46 #8-2(미리보기 연동, 2단계 시점 갱신): site/layout.html::markdownEditor 프래그먼트가
-// project 컨텍스트가 있는 화면에서 data-markdown-render-url="/markdown/{owner}/{name}" 속성을
-// 노출해야 한다. 이 속성은 2단계 시점에서는 아직 아무도 읽지 않지만(CM6 컴포넌트에 미리보기
-// 자체가 없음 - 서버 렌더링 미리보기 재연동은 4단계 범위), 4단계에서 컴포넌트가 이 속성을 읽기
-// 시작할 수 있도록 마크업 계약 자체는 계속 유지·검증한다.
+// site/layout.html::markdownEditor 프래그먼트는 project 컨텍스트가 있는 화면에서
+// data-markdown-render-url="/markdown/{owner}/{name}" 속성을 노출해야 한다 - 아직 CM6 컴포넌트가
+// 읽지 않지만 향후 미리보기 재연동을 위해 마크업 계약을 유지한다.
 //
-// 이 스펙은 실제 브라우저 JS 실행(CM6 마운트/hljs 하이라이팅 등)은 검증하지 않는다 -- MockMvc+
-// Jsoup 하네스는 렌더링된 마크업까지만 볼 수 있다. 대신 아래 "마크업 계약"을 검증한다:
-//   1) project 컨텍스트가 있는 대표 화면들(issue/view, board/view, wiki/edit(_new), milestone/create,
-//      pullrequest/view-common/reviewForm)에서 data-markdown-render-url이 정확한 값으로
-//      렌더링돼야 한다.
-//   2) 2단계 depth로 중첩된 프래그먼트 호출(board/view -> common/commentUpdateForm ->
-//      markdownEditor)에서도 project 컨텍스트가 끊기지 않고 전달돼야 한다 -- Thymeleaf 프래그먼트는
-//      파라미터 시그니처가 있어도 호출 측 전체 모델 컨텍스트를 상속받는다는 것을 board/postform
-//      직접 렌더링 테스트로 사전에 확인했다(1단계 깊이). 이 스펙은 2단계 깊이에서도 동일함을
-//      검증한다.
-//   3) P3-46 8번 항목 2단계(셸 교체, CodeMirror5 기반 구현 -> CM6 Web Component): 옛 구현/
-//      yona.ui.MarkdownEditor.js 리소스 로드가 0개로 사라지고, yona-markdown-editor.min.js가
-//      1개 로드되는지. highlight.js(markdown(project) fragment의 hljs.highlightAll()이 여전히
-//      의존 - site/layout.html head::head/scripts 주석 참고)는 계속 1개 로드돼야 한다. 이
-//      단계에서는 에디터-highlight.js 간 로드 순서 제약이 없다(그 제약은 previewRender 때문이었고
-//      이제 previewRender 자체가 없음 - 4단계에서 재도입 시 다시 검토).
+// MockMvc+Jsoup 하네스는 렌더링된 마크업까지만 볼 수 있어 실제 브라우저 JS 실행은 검증하지
+// 않는다. Thymeleaf 프래그먼트는 파라미터 시그니처가 있어도 호출측 전체 모델 컨텍스트를
+// 상속받으므로, 2단계로 중첩된 호출(board/view -> commentUpdateForm -> markdownEditor)에서도
+// project 컨텍스트가 끊기지 않는지 검증한다. 옛 CodeMirror5 기반 에디터 리소스는 사라지고
+// yona-markdown-editor 번들이 그 자리를 대신하며, highlight.js는 hljs.highlightAll() SSR
+// 하이라이팅에 계속 쓰이므로 유지돼야 한다.
 class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -185,16 +173,12 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
             )
 
             fun assertEditorAndHighlightResourcesLoaded(doc: Document) {
-                // CodeMirror5 기반 구현 리소스는 2단계에서 완전히 사라져야 한다.
                 doc.select("link[href*='/javascripts/lib/easymde/'][rel=stylesheet]").size shouldBe 0
                 doc.select("script[src*='/javascripts/lib/easymde/']").size shouldBe 0
                 doc.select("script[src*='yona.ui.MarkdownEditor.js']").size shouldBe 0
-
-                // CM6 기반 Web Component 번들이 그 자리를 대신한다.
                 doc.select("script[src*='/javascripts/lib/yona-markdown-editor/']").size shouldBe 1
 
-                // markdown(project) fragment의 hljs.highlightAll()(SSR 콘텐츠 하이라이팅)이 여전히
-                // 의존하므로 highlight.js는 그대로 유지돼야 한다.
+                // hljs.highlightAll() SSR 하이라이팅이 여전히 의존하므로 유지돼야 한다.
                 doc.select("script[src='/javascripts/lib/highlight/highlight.pack.js']").size shouldBe 1
             }
 
@@ -206,8 +190,7 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
                 (editorWraps.size > 0) shouldBe true
                 editorWraps.forEach { it.attr("data-markdown-render-url") shouldBe expectedRenderUrl }
 
-                // 기존 댓글 인라인 수정 폼(issue/view.html -> common/commentUpdateForm ->
-                // markdownEditor - board/view와 동일한 2단계 깊이 중첩 케이스).
+                // 2단계 깊이 중첩: issue/view.html -> commentUpdateForm -> markdownEditor.
                 val updateFormEditor = doc.select("#comment-editform-${issueComment.id} [data-toggle=markdown-editor]")
                 updateFormEditor.size shouldBe 1
                 updateFormEditor.attr("data-markdown-render-url") shouldBe expectedRenderUrl
@@ -217,15 +200,13 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
                 val doc = fetchDoc("/${project.owner}/${project.name}/post/${posting.number}")
                 assertEditorAndHighlightResourcesLoaded(doc)
 
-                // 새 댓글 작성 폼(board/view.html이 markdownEditor를 직접 호출 - 1단계 깊이).
+                // 1단계 깊이: board/view.html이 markdownEditor를 직접 호출.
                 val newCommentEditor = doc.select("form#comment-form [data-toggle=markdown-editor]")
                 newCommentEditor.size shouldBe 1
                 newCommentEditor.attr("data-markdown-render-url") shouldBe expectedRenderUrl
 
-                // 기존 댓글 인라인 수정 폼(board/view.html -> common/commentUpdateForm ->
-                // markdownEditor - 2단계 깊이 중첩. commentUpdateForm은 project를 파라미터로
-                // 넘기지 않으므로, 이 케이스가 실패한다면 컨텍스트 상속이 중첩 깊이에 따라 끊긴다는
-                // 뜻이다).
+                // 2단계 깊이 중첩: commentUpdateForm은 project를 파라미터로 넘기지 않으므로,
+                // 이 케이스가 실패하면 컨텍스트 상속이 중첩 깊이에 따라 끊긴다는 뜻이다.
                 val updateFormEditor = doc.select("#comment-editform-${postingComment.id} [data-toggle=markdown-editor]")
                 updateFormEditor.size shouldBe 1
                 updateFormEditor.attr("data-markdown-render-url") shouldBe expectedRenderUrl
@@ -250,10 +231,8 @@ class MarkdownEditorPreviewWidgetTemplateEquivalenceSpec @Autowired constructor(
             }
 
             it("pullrequest/view(PR changes 탭, common/reviewForm을 통해 markdownEditor를 쓰는 화면) 화면은 올바른 data-markdown-render-url을 노출해야 한다") {
-                // common/reviewForm은 pullrequest/view.html의 tab=='changes' 블록 안에서만
-                // include되고, 이 블록은 /pull/{number}(overview 탭)가 아니라
-                // /pull/{number}/changes 전용 라우트(viewChangesInternal)에서만 tab="changes"로
-                // 채워진다(PullRequestViewController 확인).
+                // common/reviewForm은 tab=='changes' 블록 안에서만 include되는데, 이 tab 값은
+                // /pull/{number}/changes 전용 라우트(viewChangesInternal)에서만 채워진다.
                 val doc = fetchDoc("/${project.owner}/${project.name}/pull/${pr.number}/changes")
                 assertEditorAndHighlightResourcesLoaded(doc)
 

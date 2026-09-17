@@ -269,13 +269,8 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
             }
         }
 
-        // search/organizations는 저장소 단위 3세그먼트 모델에 맞지 않아 Fine-grained PAT이
-        // 그대로는 인증되지 않는 문제였으나, 정확히 이 문제를 풀기 위한 AccountLevelTarget
-        // 메커니즘이 이미 있어 새 설계 없이 그 메커니즘을 확장하는 것만으로 해소된다.
-        // 현재는 이 URL들이 ApiTokenAuthenticationFilter의 어떤 패턴과도 매칭되지 않아 PAT 헤더가
-        // 있어도 인증되지 않고(레거시 findByToken이 스코프 토큰의 원문을 모름), 그 결과 익명
-        // 취급되어 apiResourceServerSecurityFilterChain의 anyRequest().authenticated()에 막혀
-        // 401이 난다(스코프 부족의 403이 아니라 아예 인증 자체가 안 되는 401).
+        // search/organizations는 저장소 단위 3세그먼트 모델에 맞지 않아, 기존 AccountLevelTarget
+        // 메커니즘을 확장해 인식시켰다. 매칭 실패 시엔 익명 취급되어 403이 아니라 401이 난다.
         describe("search/organizations 네임스페이스(P3-36)의 스코프 인가") {
             it("GET /api/v1/search/issues는 ISSUES 스코프가 없는 토큰을 403으로 거부해야 한다") {
                 val owner = userRepository.save(
@@ -414,8 +409,7 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
                     get("/api/v1/organizations/no-such-org").header("Yona-Token", raw)
                 ).andReturn()
 
-                // 필터를 통과해 컨트롤러(get())까지 도달하면, 존재하지 않는 조직이라 404를 응답한다
-                // — 401/403이 아니라는 것으로 스코프 인가 필터를 실제로 통과했음을 확인한다.
+                // 필터를 통과해 컨트롤러까지 도달했다는 것을 404(존재하지 않는 조직)로 확인한다.
                 result.response.status shouldBe 404
             }
         }
@@ -480,10 +474,8 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
                 )
                 val project = projectRepository.save(Project(owner = owner.loginId, name = "legacy-member-repo1"))
 
-                // 인증 헤더/세션이 전혀 없어도 CSRF는 통과해야(진짜 브라우저 요청이면 로그인 여부와
-                // 무관하게 유효한 CSRF 쿠키/토큰을 늘 갖고 있음) 컨트롤러의 "로그인 사용자 없음"
-                // 401 처리까지 도달한다 — 그래야 이 테스트의 원래 목적(500이 아니라 401)이
-                // 유지된다.
+                // CSRF는 로그인 여부와 무관하게 통과해야 컨트롤러의 "로그인 사용자 없음" 401
+                // 처리까지 도달한다(이 테스트의 목적은 500이 아니라 401임을 확인하는 것).
                 val result = mockMvc.perform(
                     post("/api/projects/${project.id}/members").param("loginId", "someone").with(csrf())
                 ).andReturn()

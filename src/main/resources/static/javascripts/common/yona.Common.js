@@ -21,19 +21,11 @@
 window.yona = (typeof yona == "undefined") ? {} : yona;
 
 /**
- * 6단계(jQuery 완전 제거, yona-markdown-editor components 저장소와 연계): 라운드11이
- * 도입했던 `window.jQuery` WeakMap shim을 완전히 걷어냈다. 그 shim은
- * `lib/yona-markdown-editor/yona-markdown-editor.min.js`가 예전 버전에서 요구하던
- * jQuery API 표면(`.data(...)`)과, `common/yona.Attachments.js`가 쓰던
- * `window.jQuery.data(el, "isYonaAttachment", ...)` 정적 접근자를 흉내내기 위한 것이었다.
- *
- * 이제 두 계약 모두 jQuery 없는 형태로 바뀌었다: `<yona-markdown-editor>` 컴포넌트
- * 자신이(components/editor 저장소 6단계) `.value` getter/setter를 네이티브 프로퍼티로
- * 직접 노출하고(소비자는 `textarea.closest('yona-markdown-editor')`로 엘리먼트를 찾아
- * 바로 접근), `isYonaAttachment`는 `elContainer._isYonaAttachment` 순수 expando
- * 프로퍼티로 바뀌었다. `window.jQuery`를 흉내낼 이유 자체가 없어져 shim을 삭제한다 -
- * 이제 저장소 전체에 실행되는 코드 기준으로 "jQuery"는 완전히 사라졌다(벤더 파일/주석/
- * git 히스토리에만 이름이 남는다).
+ * 이전엔 `window.jQuery`를 WeakMap으로 흉내내는 shim이 있었다 - yona-markdown-editor의
+ * 구버전 `.data(...)` 요구와, yona.Attachments.js가 쓰던 `window.jQuery.data(el,
+ * "isYonaAttachment", ...)` 정적 접근자를 만족시키기 위한 것이었다. 이제 두 계약 모두
+ * jQuery 없는 형태(`.value` getter/setter, `_isYonaAttachment` expando 프로퍼티)로
+ * 바뀌어 shim이 필요 없어졌다 - 저장소 전체에 jQuery는 벤더 파일에만 남아 있다.
  */
 $yona = yona.Common = (function(){
 
@@ -212,21 +204,15 @@ $yona = yona.Common = (function(){
     }
 
     /**
-     * P3-70 라운드10: jquery.form.js(lib/, 미수정) 의존을 제거하고 fetch 기반으로 재작성했다.
-     * 원본은 실제 &lt;form&gt;을 만들어 .ajaxForm()으로 제출했지만(REST 메서드는 htData._method
-     * 히든 필드로 오버라이드하는 관례 - 실제 와이어 상 HTTP 메서드는 htOptForm.method(get/post)
-     * 그대로 유지해야 한다, PUT/DELETE를 fetch에 직접 지정하면 안 됨), 결과적으로 브라우저가
-     * 보내는 요청 모양(메서드/Content-Type/바디 인코딩)은 fetch로도 동일하게 재현 가능하다 -
-     * method가 get이면 쿼리스트링으로, 아니면 URLSearchParams(기본, application/x-www-form-
-     * urlencoded와 동일) 또는 FormData(enctype에 "multipart" 포함 시, 기존 캠페인이 이미
-     * fetch+FormData로 전환한 다른 파일들과 동일한 관례)로 바디를 구성한다.
+     * REST 메서드는 htData._method 히든 필드로 오버라이드하는 관례를 유지한다 - 실제
+     * 와이어 상 HTTP 메서드는 htOptForm.method(get/post) 그대로 둬야 한다(PUT/DELETE를
+     * fetch에 직접 지정하면 안 됨). method가 get이면 쿼리스트링으로, 아니면
+     * URLSearchParams(기본) 또는 FormData(enctype에 "multipart" 포함 시)로 바디를 구성한다.
      *
      * fOnLoad(responseText, statusText, xhr) 시그니처는 그대로 유지한다 - yona-lib.js의
      * site.search 캐시 로직이 세 번째 인자 xhr.getResponseHeader("Content-Range")를 실제로
-     * 읽으므로, fetch Response를 감싸 getResponseHeader/status/responseText를 제공하는 최소
-     * XHR 호환 shim을 만들어 넘긴다(두 번째 인자 statusText는 어느 호출부도 값 자체를 읽지
-     * 않고 즉시 재대입만 하는 것을 grep으로 확인했다 - jQuery.form의 textStatus 문자열
-     * "success"/"error"만 흉내내도 충분).
+     * 읽으므로, fetch Response를 감싸 getResponseHeader/status/responseText를 제공하는
+     * 최소 XHR 호환 shim을 만들어 넘긴다.
      *
      * @param {Hash Table} htOptions
      * @param {String}        htOptions.sURL 요청 URL
@@ -307,7 +293,7 @@ $yona = yona.Common = (function(){
     }
 
     /**
-     * P3-70 라운드10: jquery.requestAs.js(lib/, 미수정) 플러그인의 네이티브 대체.
+     * jquery.requestAs.js 플러그인의 네이티브 대체.
      *
      * 원본 플러그인 계약을 그대로 재현한다 - 엘리먼트당 한 번만 초기화되고(idempotent,
      * el._yonaRequestAs로 캐시 - jQuery `.data("requestAs")`와 동일한 "최초 1회만 생성" 동작,
@@ -470,10 +456,8 @@ $yona = yona.Common = (function(){
     });
 
     /**
-     * P3-70 라운드10: jquery.search.js(lib/, 미수정)의 네이티브 대체 - data-toggle="item-
-     * search" 입력창에 타이핑하면 data-items로 지정된 [data-item="..."] 목록을 data-value
-     * 부분일치로 실시간 필터링한다(현재 저장소 전체에서 유일한 사용처는
-     * organization/view.html의 "내 프로젝트만 보기" 검색창).
+     * jquery.search.js의 네이티브 대체 - data-toggle="item-search" 입력창에 타이핑하면
+     * data-items로 지정된 [data-item="..."] 목록을 data-value 부분일치로 실시간 필터링한다.
      */
     function _initItemSearch(el){
         if(el._yonaSearchBound){
@@ -509,8 +493,7 @@ $yona = yona.Common = (function(){
         });
     }
 
-    // jquery.search.js DATA-API(`$(document).on('focus', '[data-toggle="item-search"]', ...)`)와
-    // 동일 - focus는 버블링하지 않아 라운드6에서 확립한 캡처 단계 위임 관례를 사용한다.
+    // focus는 버블링하지 않으므로 캡처 단계에서 위임한다.
     document.addEventListener("focus", function(weEvt){
         var matched = weEvt.target.closest && weEvt.target.closest('[data-toggle="item-search"]');
         if(matched && document.contains(matched)){
@@ -573,8 +556,8 @@ $yona = yona.Common = (function(){
      *
      * @param {String} sMessage confirm message
      * @param {Hash Table} htAjaxOptions fetch 기반 설정 - {url, method, dataType, success, error}만
-     *        지원한다(원래 jQuery.ajax settings를 그대로 넘기던 것을 실제 호출부 1곳(현재
-     *        yona.project.Member.js)의 사용 범위에 맞춰 좁혔다 - 2026-09-12).
+     *        지원한다(원래 jQuery.ajax settings 전체를 넘기던 것을 실제 호출부의 사용 범위에
+     *        맞춰 좁혔다).
      * @param {String} sDescription Description string (optional)
      * @param {Hash Table} htConfirmOptions showConfirm options (optional)
      */
@@ -745,12 +728,10 @@ $yona = yona.Common = (function(){
 
     /**
      * "동의합니다" 체크박스로 게이트된 위험 작업 확인 다이얼로그 공용 헬퍼 -
-     * project.Delete/Transfer/ChangeVCS.js 세 파일이 거의 동일하게 반복 구현하던
-     * "체크 안 됐으면 경고 얼럿, 체크됐으면 모달 열기 + 배경/X 닫기" 부분만 하나로
-     * 합쳤다(2026-09-17, widget-candidates.md 4번 항목). 다이얼로그를 연 뒤 실제
-     * 실행(fetch 등)과 실패 시 처리(dialog.close() + 에러 얼럿)는 호출부마다 API
-     * 엔드포인트/에러 메시지가 달라 그대로 각 파일에 남겨둔다 - 이 헬퍼는 게이트
-     * 체크와 모달 열기/닫기만 담당한다.
+     * project.Delete/Transfer/ChangeVCS.js 세 파일이 반복 구현하던 "체크 안 됐으면
+     * 경고 얼럿, 체크됐으면 모달 열기 + 배경/X 닫기" 부분만 하나로 합쳤다. 다이얼로그를
+     * 연 뒤 실제 실행과 실패 처리는 호출부마다 API/메시지가 달라 각 파일에 남겨둔다 -
+     * 이 헬퍼는 게이트 체크와 모달 열기/닫기만 담당한다.
      *
      * @param {Element} elOpenButton 클릭 시 게이트를 통과하면 모달을 여는 트리거
      * @param {Element} elCheckbox "동의합니다" 체크박스
@@ -880,16 +861,6 @@ $yona = yona.Common = (function(){
     }
 
     /**
-     * data-toggle="popover"(+ data-trigger="hover") 마크업에 대해, hover 시
-     * data-content/data-original-title을 popover로 보여준다. Bootstrap 원본은
-     * $this.data("popover")로 이미 초기화된 요소를 걸러 재초기화를 막았는데,
-     * registerModule()이 loadModule마다 이 셀렉터로 재호출되므로 동일하게
-     * elTrigger 자체에 바인딩 여부를 표시해 중복 바인딩을 막는다.
-     *
-     * @param {String} sSelector
-     */
-    /**
-     * 하이브리드 어댑터(2026-09-17, components/vue-widgets popover 위젯 적용) -
      * 페이지에 <yona-popover> 싱글턴(site/layout.html 참고)이 있으면 그 커스텀
      * 엘리먼트에 위임하고, 없으면(격리된 스모크 테스트 등) null을 반환해 아래 각
      * 함수가 원본 vanilla 구현으로 폴백하게 한다.
@@ -898,6 +869,15 @@ $yona = yona.Common = (function(){
         return document.querySelector("yona-popover");
     }
 
+    /**
+     * data-toggle="popover"(+ data-trigger="hover") 마크업에 대해, hover 시
+     * data-content/data-original-title을 popover로 보여준다. Bootstrap 원본은
+     * $this.data("popover")로 이미 초기화된 요소를 걸러 재초기화를 막았는데,
+     * registerModule()이 loadModule마다 이 셀렉터로 재호출되므로 동일하게
+     * elTrigger 자체에 바인딩 여부를 표시해 중복 바인딩을 막는다.
+     *
+     * @param {String} sSelector
+     */
     function initHoverPopovers(sSelector){
         var elVuePopover = _getVuePopover();
         if(elVuePopover){
@@ -987,10 +967,8 @@ $yona = yona.Common = (function(){
 
     /**
      * data-toggle="tooltip" 마크업(title 또는 이미 옮겨진 data-original-title)에 대해
-     * hover/focus 시 즉시 tooltip을 표시한다(Bootstrap Tooltip 기본 옵션 delay:0과 동일 -
-     * 별도 지연 없음). site/layout.html이 document.body에 위임 바인딩(캡처 단계 -
-     * mouseenter/mouseleave/focus/blur는 버블링하지 않으므로 라운드6에서 확립한 캡처
-     * 단계 관례를 그대로 재사용)으로 호출한다.
+     * hover/focus 시 즉시 tooltip을 표시한다(Bootstrap Tooltip 기본 옵션 delay:0과 동일).
+     * mouseenter/mouseleave/focus/blur는 버블링하지 않으므로 캡처 단계에서 위임한다.
      *
      * @param {Element} elTrigger
      */
@@ -1011,7 +989,7 @@ $yona = yona.Common = (function(){
         }
         var sPlacement = elTrigger.getAttribute("data-placement") || "top";
         // jQuery .data("html")은 문자열 "true"를 boolean으로 자동 변환하지만 네이티브
-        // getAttribute는 항상 원본 문자열이라 명시 비교로 재현한다(라운드1 이후 확립된 관례).
+        // getAttribute는 항상 원본 문자열이라 명시 비교로 재현한다.
         var bHtml = elTrigger.getAttribute("data-html") === "true";
         var elContainer = _getPopoverContainer(elTrigger);
         var elTooltip = _createTooltipElement(sTitle, sPlacement, bHtml);
@@ -1154,30 +1132,17 @@ $yona = yona.Common = (function(){
     });
 
     /**
-     * P3-70 라운드11: Bootstrap 2 bootstrap-dropdown.js(static/bootstrap/js/bootstrap.js
-     * 640-803행, 미수정) DATA-API의 vanilla 재구현 - 코디네이터가 원본 소스를 라인 단위로
-     * 대조해 확인한 알고리즘 그대로 이식했다.
+     * Bootstrap 2 bootstrap-dropdown.js DATA-API의 vanilla 재구현.
      *
-     * - 원본은 document에 5개 핸들러를 등록한다: (1) 셀렉터 없는 clearMenus, (2)
-     *   '.dropdown form' 위임 stopPropagation, (3) 셀렉터 없는 stopPropagation(주석 참고),
-     *   (4) '[data-toggle=dropdown]' 위임 toggle, (5) keydown 위임.
-     * - (3)은 코드에 `.on('click.dropdown-menu', function(e){ e.stopPropagation() })`로
-     *   셀렉터 인자가 없다(bootstrap.js 799행 확인 - `.dropdown-menu`로 위임됐어야 하는데
-     *   안 된, 잘 알려진 Bootstrap 2.3.1의 결함). 셀렉터가 없으므로 document에 직접 바인딩된
-     *   것과 같아 등록 순서상 (1)보다 뒤에 실행되고, document가 버블링의 끝이라
-     *   stopPropagation을 호출해도 관찰 가능한 효과가 전혀 없다 - 즉 이 벤더 파일은 실제로
-     *   `.dropdown-menu` 안의 일반 링크를 클릭해도 (1) clearMenus가 그대로 실행돼 열린
-     *   메뉴를 전부 닫는다. 이 무의미한 (3)번 줄은 이식하지 않았다(재현해도 관찰 가능한
-     *   차이가 없음).
-     * - (4) toggle은 `clearMenus()`를 직접 호출(모든 메뉴를 먼저 닫음)한 뒤, 클릭 전에
-     *   자신이 닫혀 있었으면 다시 연다. `return false`(jQuery에서 preventDefault +
-     *   stopPropagation과 동일)로 이벤트 버블링을 끊어, 같은 document에 등록된 (1)
-     *   clearMenus가 뒤이어 다시 실행되며 방금 연 메뉴를 즉시 닫아버리는 것을 막는다 -
-     *   네이티브에서는 별도 핸들러 없이 이 함수 안에서 처리를 끝내고 return하는 것으로
-     *   동일한 효과를 낸다.
-     * - keydown(위/아래 화살표로 `[role=menu] li a` 탐색, ESC로 닫기)은 이 앱의 어떤
-     *   `.dropdown-menu`에도 `role="menu"`가 없어(grep 재확인, 0건) 원본에서도 `$items`가
-     *   항상 빈 컬렉션이라 죽은 경로다 - 이식하지 않았다.
+     * 원본은 document에 핸들러 여러 개를 등록하는데, 그중 `.on('click.dropdown-menu',
+     * function(e){ e.stopPropagation() })`은 셀렉터 없이 document에 직접 바인딩돼(원래는
+     * `.dropdown-menu`로 위임됐어야 하는 Bootstrap 2.3.1의 알려진 결함) document가
+     * 버블링의 끝이라 stopPropagation을 호출해도 관찰 가능한 효과가 없다 - 이 무의미한
+     * 줄은 이식하지 않았다. toggle은 clearMenus()로 모든 메뉴를 먼저 닫은 뒤 자신이
+     * 닫혀 있었으면 다시 열고, `return false`로 버블링을 끊어 같은 document의 clearMenus가
+     * 뒤이어 실행돼 방금 연 메뉴를 즉시 닫아버리는 것을 막는다. keydown(화살표로
+     * `[role=menu] li a` 탐색)은 이 앱 어디에도 `.dropdown-menu`에 `role="menu"`가 없어
+     * 원본에서도 죽은 경로였다 - 이식하지 않았다.
      */
     function _dropdownGetParent(el){
         var sSelector = el.getAttribute("data-target");
@@ -1199,34 +1164,17 @@ $yona = yona.Common = (function(){
     }
 
     /**
-     * P3-70 라운드11 코디네이터 확인 필요 사항(전수 조사 중 발견한 4번째 실의존):
-     * `user/edit_notifications.html`의 `.switch`(`data-toggle="switch"`) 알림 토글은
-     * `bootstrap-switch.js`(site/layout.html에서 yona-common.js와 별개로 로드되는 벤더
-     * 파일, 미수정)가 파일 맨 끝의 `$(function(){ $('.switch')['bootstrapSwitch'](); })`로
-     * **호출부 없이 스스로** DOMContentLoaded에 전부 초기화한다 - `$.fn.bootstrapSwitch`
-     * 등록 자체가 진짜 jQuery(`$.fn`)를 요구해 실 jQuery가 없으면 정의 시점에 즉시 예외를
-     * 던진다. 관련 시각 효과(`.has-switch`/`.switch-on`/`.switch-off` 등)는 이 플러그인이
-     * 만드는 래핑 마크업에 전적으로 의존하는 CSS(stylesheets/yona.css:11093-)라, jQuery
-     * 코어를 실제로 제거하면 이 화면의 토글 스위치가 평범한 체크박스로 깨진다(시각적
-     * 회귀). 이 위젯은 우리 코드의 명시적 "호출부"가 아니라 벤더 파일 자체의 자동 초기화라
-     * 라운드9(호출부 대체) 범위에서도 빠져 있었다 - 새 vanilla 위젯을 직접 만드는 것은
-     * "완전히 죽었다고 확신할 때만 제거" 원칙과 "새 기능 추가 금지" 원칙 사이에서 이번
-     * 라운드 범위를 벗어난다고 판단해 코디네이터 승인 없이 임의로 만들지 않았다.
+     * bootstrap-switch.js(벤더, 미수정)는 파일 맨 끝의
+     * `$(function(){ $('.switch')['bootstrapSwitch'](); })`로 호출부 없이 스스로
+     * DOMContentLoaded에 초기화하며, `$.fn.bootstrapSwitch` 등록 자체가 진짜 jQuery를
+     * 요구한다. 관련 시각 효과는 이 플러그인이 만드는 마크업에 전적으로 의존하는 CSS라
+     * jQuery 코어를 완전히 제거하면 이 화면(user/edit_notifications.html)의 토글
+     * 스위치가 깨진다 - 그래서 jQuery 코어(및 bootstrap.js)는 아직 제거하지 못했다.
      *
-     * 이 때문에 jQuery 코어(및 bootstrap.js)를 이번 라운드에서 실제로 제거하지 못했다 -
-     * 아래 두 DATA-API(dropdown/button)는 알고리즘 이식은 완료했지만, 진짜 jQuery +
-     * bootstrap.js가 계속 로드된 채 남아있는 한 그쪽의 동일한 전역 DATA-API 델리게이트와
-     * 중복 실행(더블 토글 등 새 회귀)을 피하기 위해 "진짜 jQuery가 이미 있으면 스스로
-     * 비활성화"하는 가드를 둔다 - 향후 이 스위치 위젯 문제가 별도로 해소돼 jQuery 코어가
-     * 실제로 제거되면 가드가 자동으로 풀리며 아래 구현이 그대로 살아난다.
-     *
-     * P3-70 라운드12 갱신: 위에서 "범위를 벗어난다"고 보류했던 vanilla 스위치 위젯을
-     * common/yona.ui.Switch.js로 새로 구현해 이 마지막 블로커를 해소했다(코디네이터 승인
-     * 하에 이번 라운드 범위로 편입). 아래 dropdown/button DATA-API와 yona.ui.Switch.js,
-     * 그리고 바로 아래 alert DATA-API 모두 이 함수(`_isRealJQueryStillLoaded`)를 공유
-     * 가드로 쓴다 - jQuery 코어를 실제로 제거한 뒤에는 이 함수가 항상 false를 반환하게 되어
-     * 가드 자체는 무해하게 남는다(제거하지 않았다 - 남겨둬도 기능에 영향 없고, 향후 어떤
-     * 경로로든 진짜 jQuery가 다시 로드되는 예외 상황에도 안전망 역할을 한다).
+     * 아래 dropdown/button/alert DATA-API와 yona.ui.Switch.js는 모두 이 함수로 "진짜
+     * jQuery가 이미 로드돼 있으면 스스로 비활성화"하는 가드를 공유한다 - bootstrap.js의
+     * 동일한 전역 DATA-API와 중복 실행(더블 토글 등)되는 것을 막기 위해서다. jQuery
+     * 코어가 실제로 제거되면 이 함수가 항상 false를 반환해 가드는 무해하게 남는다.
      */
     function _isRealJQueryStillLoaded(){
         return !!(window.jQuery && window.jQuery.fn);
@@ -1267,22 +1215,14 @@ $yona = yona.Common = (function(){
     });
 
     /**
-     * P3-70 라운드11: Bootstrap 2 bootstrap-button.js(static/bootstrap/js/bootstrap.js
-     * 183-266행, 미수정) `[data-toggle^=button]` DATA-API의 vanilla 재구현.
+     * Bootstrap 2 bootstrap-button.js `[data-toggle^=button]` DATA-API의 vanilla 재구현.
+     * 원본은 클릭된 엘리먼트에서 가장 가까운 `.btn`을 찾아, `[data-toggle="buttons-radio"]`
+     * 조상이 있으면 그 안의 `.active`를 전부 제거한 뒤 자신에 `.active`를 토글한다.
      *
-     * 원본: `$btn = $(e.target); if(!$btn.hasClass('btn')) $btn = $btn.closest('.btn');
-     * $btn.button('toggle')` → `Button.prototype.toggle`은 `[data-toggle="buttons-radio"]`
-     * 조상이 있으면 그 안의 `.active`를 전부 제거한 뒤 자신에 `.active`를 토글한다(라디오
-     * 그룹이 없으면 그냥 자기 자신만 토글).
-     *
-     * 이 앱의 실사용처(watch-button, code/svnDiff.html·code/diff.html·pullrequest/
-     * view.html 3곳, 전수 grep 재확인)는 전부 `class="ybtn"`(커스텀 클래스)이지 Bootstrap의
-     * `.btn`이 아니다 - `closest('.btn')`이 항상 매치 실패해 `$btn`이 빈 컬렉션이 되고
-     * `.button('toggle')` 호출 자체가 no-op이 된다(현재 jQuery+bootstrap.js 상태에서도
-     * 동일 - watch 토글의 실제 active/ybtn-watching 클래스 전환은 각 페이지 JS의
-     * `_onClickBtnWatchToggle` 등 별도 클릭 핸들러가 전담하고, 이 DATA-API는 관여하지
-     * 않는다). 원본 알고리즘은 그대로 이식해 향후 실제 `.btn` 클래스 엘리먼트가 추가돼도
-     * 동일하게 동작하도록 한다.
+     * 이 앱의 실사용처(watch-button 등)는 전부 `class="ybtn"`(커스텀 클래스)이라 `.btn`에
+     * 매치되지 않아 이 DATA-API 자체는 사실상 no-op이다 - watch 토글의 실제 클래스 전환은
+     * 각 페이지의 별도 클릭 핸들러가 전담한다. 원본 알고리즘은 향후 실제 `.btn` 클래스
+     * 엘리먼트가 추가될 경우에 대비해 그대로 이식해 둔다.
      */
     document.addEventListener("click", function(weEvt){
         if(_isRealJQueryStillLoaded()){
@@ -1311,42 +1251,25 @@ $yona = yona.Common = (function(){
     });
 
     /**
-     * P3-70 라운드12: Bootstrap 2 bootstrap-alert.js(static/bootstrap/js/bootstrap.js
-     * 90-161행, 미수정) `[data-dismiss="alert"]` DATA-API의 vanilla 재구현.
+     * Bootstrap 2 bootstrap-alert.js `[data-dismiss="alert"]` DATA-API의 vanilla 재구현.
+     * carousel/collapse/typeahead는 이 앱에 실사용처가 없어 이식하지 않았지만, 이
+     * DATA-API는 `templates/user/lostPassword.html`(비밀번호 재설정 성공/실패 알림
+     * 박스)에서 실제로 쓰인다.
      *
-     * 라운드10~11은 dropdown/button DATA-API만 다루고 alert/carousel/collapse/typeahead는
-     * "실사용 여부 재확인 필요"로 남겨뒀었다(tab은 이미 yona.Common.js의 tabShow가 자체
-     * vanilla 구현을 갖고 있어 제외) - 이번 라운드 착수 시 전수 grep한 결과 carousel/
-     * collapse/typeahead(bootstrap 자체 플러그인, bootstrap-better-typeahead.js와는 별개)는
-     * 이 앱 어디에도 실사용처가 0건(원래부터 죽은 로드)이었지만, `[data-dismiss="alert"]`는
-     * `templates/user/lostPassword.html`(비밀번호 재설정 성공/실패 알림 박스)에서 실제로
-     * 동작 중인 살아있는 의존으로 새로 발견했다 - bootstrap-switch.js에 이은 6번째(문서상
-     * "4번째"였던 것에서 라운드12 자체 조사로 하나 더) 실의존이라 코디네이터에게 보고하는
-     * 동시에, dropdown/button과 완전히 같은 패턴(원본 알고리즘 라인 단위 이식 + jQuery
-     * still-loaded 가드)이라 이번 라운드 안에서 함께 해소했다.
+     * (다른 두 곳의 `data-dismiss="alert"` 마크업은 실사용이 아니다: userList.html의
+     * 2곳은 `<script type="text/x-jquery-tmpl">` 안에 있어 이미 죽은 코드고,
+     * partial_recently_pushed_branches.html의 "×" 링크는 `data-request-method="delete"`도
+     * 함께 달려 있어 $yona.requestAs의 클릭 리스너가 먼저 stopPropagation()을 호출하는
+     * 바람에 이 DATA-API에 애초에 도달하지 못한다.)
      *
-     * (참고로 확인한 나머지 두 곳의 `data-dismiss="alert"` 마크업은 실사용이 아니다:
-     * `templates/site/userList.html`의 2곳은 `<script type="text/x-jquery-tmpl">` 안에
-     * 있어 라운드10 이전에 이미 jquery.tmpl.js가 빠지며 죽은 코드가 됐고(재확인, pre-existing),
-     * `templates/pullrequest/partial_recently_pushed_branches.html`의 "×" 링크는
-     * `data-request-method="delete"`도 함께 달려 있어 $yona.requestAs의 직접 클릭 리스너가
-     * document 위임보다 먼저 실행되며 stopPropagation()을 호출한다 - 이벤트가 document까지
-     * 버블링되지 못해 이 DATA-API에 원래부터 도달하지 못했다(라운드10이 문서화한 #btnAccept와
-     * 동일한 "requestAs가 먼저 실행되고 커스텀 델리게이트를 막는" 패턴).)
+     * 원본 알고리즘: data-target 속성이 있으면 그 셀렉터, 없으면 href의 "#..." 부분을
+     * 셀렉터로 쓴다 - lostPassword.html은 둘 다 없는 <button>이라 `$this.hasClass('alert')
+     * ? $this : $this.parent()`로 폴백한다. 취소 가능한 'close' 이벤트를 쏘고, 기본 동작이
+     * 막히지 않았으면 'in' 클래스 제거 후 'closed' 이벤트를 쏘고 DOM에서 제거한다.
      *
-     * 원본 Alert.prototype.close 알고리즘: data-target 속성이 있으면 그 셀렉터, 없으면
-     * href의 마지막 "#..." 부분을 셀렉터로 쓴다 - 이 앱 실사용처(lostPassword.html)는 둘 다
-     * 없는 <button>이라 매치되는 대상이 없고, `$this.hasClass('alert') ? $this :
-     * $this.parent()`로 폴백한다(실사용처는 버튼이 .alert의 직접 자식이라 .parent()가 바로
-     * 그 .alert 박스). 그 다음 취소 가능한 'close' 커스텀 이벤트를 쏘고(리스너 0건, grep
-     * 재확인), 기본 동작이 막히지 않았으면 'in' 클래스 제거 후(이 앱은 .alert에 .fade를 쓰지
-     * 않아 - grep 재확인 - $.support.transition 분기를 탈 일이 없다) 곧바로 'closed' 이벤트를
-     * 쏘고 DOM에서 제거한다.
-     *
-     * href="#"인 pullrequest 링크의 셀렉터 폴백(정규식이 "#"을 그대로 남김)은 jQuery의
-     * `$("#")`가 Sizzle에서 예외를 던질 수 있는 알려진 엣지케이스지만, 위에서 확인했듯 이
-     * 링크는 stopPropagation() 때문에 애초에 이 핸들러에 도달하지 않아 관찰 가능한 차이가
-     * 없다 - 예외를 그대로 재현하는 대신 안전하게 무시(fallback)하도록 구현했다.
+     * href="#"인 pullrequest 링크의 셀렉터 폴백은 jQuery라면 예외를 던질 수 있는 엣지케이스지만,
+     * 그 링크는 위에서 설명한 대로 stopPropagation() 때문에 이 핸들러에 도달하지 않으므로
+     * 예외를 재현하는 대신 안전하게 무시한다.
      */
     function _alertGetTargetSelector(el){
         var sSelector = el.getAttribute("data-target");

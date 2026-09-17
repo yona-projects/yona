@@ -26,9 +26,6 @@
         var htVar = {};
         var htElement = {};
 
-        /**
-         * 위임 클릭 바인딩 - 라운드2~4에서 확립한 관례(closest + contains 가드).
-         */
         function _delegate(container, sEventType, sSelector, fHandler){
             if(!container){
                 return;
@@ -64,16 +61,14 @@
          * initialize element
          */
         function _initElement(htOptions) {
-            // #plus-button-template 마크업 자체가 legacy(v1.6 yobi.project.Home.js)부터
-            // 존재하지 않았다(git grep으로 대조 확인) - 이 라벨 보드 위젯(#label-board) 전체가
-            // project/home.html에 이식되지 않은 도달 불가능 코드라, welBtnPlus도 원래부터
-            // 할당만 되고 쓰인 적이 없다.
+            // #plus-button-template 마크업이 legacy부터 없어 이 라벨 보드 위젯(#label-board)
+            // 전체가 project/home.html에 이식되지 않은 도달 불가능 코드다 - welBtnPlus도
+            // 원래부터 할당만 되고 쓰인 적이 없다.
             var welBtnPlus = null;
 
             htElement.welRepoURL = document.getElementById("repositoryURL");
 
-            // clone url - welBtnClone은 원본에서도 할당만 되고 이후 어디서도 읽지 않는
-            // 죽은 로컬 상태다(전수 조사 완료, 임의 축소 금지 원칙에 따라 그대로 보존).
+            // clone url - welBtnClone은 원본에서도 할당만 되고 어디서도 읽지 않는 죽은 코드다.
             htElement.welBtnClone = document.querySelector('[data-toggle="cloneURL"]');
 
             htElement.welInputCloneURL = document.getElementById("cloneURL");
@@ -102,12 +97,9 @@
                     e.clearSelection();
                 });
             } else {
-                // jquery.zclip.js(lib/, 수정 금지) 플러그인 호출부 - 라운드10(코어
-                // 라이브러리 제거)까지 전환을 미룬다(라운드1 project.Delete.js의
-                // .requestAs()와 동일한 판단). 이 지점만 예외적으로 jQuery로 감싼다.
-                // Flash 기반 폴백이라 ClipboardJS를 지원하는 브라우저에서는 도달하지
-                // 않는다(원본도 welBtnCopy가 없으면 빈 jQuery 컬렉션에 대한 무해한
-                // no-op이었다 - $(null)도 동일하게 빈 컬렉션이라 동치 유지).
+                // jquery.zclip.js(lib/, 수정 금지) 플러그인이라 이 지점만 jQuery로 감싼다.
+                // Flash 폴백이라 ClipboardJS 지원 브라우저에서는 도달하지 않는다 -
+                // welBtnCopy가 null이어도 $(null)은 빈 컬렉션이라 원본의 no-op과 동치.
                 $(htElement.welBtnCopy).zclip({
                     "path": htVar.sURLZeroClipboard,
                     "copy": htElement.welInputCloneURL ? htElement.welInputCloneURL.value : undefined,
@@ -234,15 +226,9 @@
 
         /**
          * 이하 라벨 보드(#label-board) 위젯 전체는 project/home.html에 실제로 이식되지 않은
-         * 도달 불가능 코드다(_init()이 이 함수들 중 어느 것도 호출하지 않고, welInputLabel/
-         * welLabelBoard/welNewCategory/welInputCategory/welBtnPlusLabel/welBtnPlusCategory/
-         * welInputCategoryBox/welInputLabelBox/aLabel/aBtnPlusLabel/htCategory 전부
-         * _initElement에서 단 한 번도 할당되지 않는다 - 전수 조사로 재확인). #plus-button-
-         * template/#label-delete-button-template/#label-template/#category-template
-         * 마크업 자체가 legacy부터 없었다. 삭제하지 않고 "완전 동치 보장 하에 vanilla로
-         * 전환"만 수행한다(라운드2 organization.Member.js/라운드3 ui.Mergely.js와 동일한
-         * 판단) - 실제로 실행될 일이 없어 100% 동일할 필요는 없다는 원본 주석의 판단을
-         * 그대로 유지한다.
+         * 도달 불가능 코드다(_init()이 이 함수들을 호출하지 않고, 관련 htElement 필드도
+         * _initElement에서 할당되지 않는다). 마크업도 legacy부터 없었다 - 삭제하지 않고
+         * 동치 보장 없이 vanilla로만 전환한다.
          */
 
         /**

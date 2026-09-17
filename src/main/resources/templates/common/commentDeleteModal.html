@@ -11,10 +11,10 @@
  DELETE 요청을 보내고 성공하면 해당 댓글의 <li>/<div id="comment-N">를 DOM에서 제거한다.
 -->
 <div th:fragment="commentDeleteModal(commentsContainer)">
-    <!-- 네이티브 <dialog>(P3-70 라운드9 - $yona.attachDialogDismiss로 배경 클릭/
-         [data-dismiss=modal] 닫기를 대체, data-toggle="comment-delete"는 이 모달 전용
-         트리거라 Common.js의 범용 [data-toggle="modal"] 델리게이트 대상이 아니다 - 아래
-         스크립트에서 직접 showModal()/close()를 호출한다) -->
+    <!-- 네이티브 <dialog> - $yona.attachDialogDismiss로 배경 클릭/[data-dismiss=modal] 닫기를
+         대체한다. data-toggle="comment-delete"는 이 모달 전용 트리거라 Common.js의 범용
+         [data-toggle="modal"] 델리게이트 대상이 아니므로 아래 스크립트에서 직접
+         showModal()/close()를 호출한다. -->
     <dialog id="comment-delete-modal" class="modal">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>

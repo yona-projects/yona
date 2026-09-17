@@ -85,9 +85,7 @@
                 var sListPath = elList.dataset.listpath;
                 var welTarget = document.querySelector('[data-path="' + sListPath + '"]');
 
-                // "content" data 키는 이 모듈 내부에서만 쓰는 값으로, 다른 파일이 읽지 않는
-                // 커스텀 상태다(전수 조사 완료) - dataset 문자열 변환 함정과 무관하게 커스텀
-                // expando로 그대로 보존.
+                // "content" data 키는 이 모듈 내부에서만 쓰는 값이라 커스텀 expando로 보존.
                 elList.__content = sListPath;
                 // "depth"는 이후 산술 연산(+1)에 쓰이므로 dataset(항상 문자열)로 옮기면
                 // 문자열 연결(예: "2"+1 === "21")로 깨진다 - 커스텀 expando로 숫자를 그대로 보존.
@@ -162,9 +160,9 @@
             if(waList.length > 0){
                 // jQuery의 인자 없는 `.toggle()`은 인라인 스타일이 아니라 실제 계산된 가시성
                 // (`:visible`)을 보고 반전한다 - `.list-wrap`의 CSS 기본값이 `display:none`이라
-                // 인라인 스타일만 비교하면(라운드1에서 발견된 Subtask.js와 동일한 함정) 최초
-                // 1회는 항상 "숨김→숨김"으로 잘못 판정된다. 라운드4에서 확립한 `:visible` 근사
-                // (offsetWidth||offsetHeight||getClientRects().length)로 실제 가시성을 판별한다.
+                // 인라인 스타일만 비교하면 최초 1회는 항상 "숨김→숨김"으로 잘못 판정된다.
+                // `:visible` 근사(offsetWidth||offsetHeight||getClientRects().length)로 실제
+                // 가시성을 판별한다.
                 waList.forEach(function(el){
                     var bVisible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
                     el.style.display = bVisible ? "none" : "block";
@@ -386,11 +384,10 @@
          * @require humanize.js
          */
         function _beautifyFileSize(){
-            // 원본 코드 그대로 보존: `htElement.welShowfile`(소문자 f)는 `_initElement`가 실제로
-            // 채우는 `htElement.welShowFile`(대문자 F)와 이름이 달라 항상 undefined다 - 이
-            // 함수가 실제로 호출되면 원본도 이 지점에서 TypeError를 던졌을 pre-existing 오타
-            // 버그다(이 파일 자체가 어느 템플릿에서도 로드되지 않는 죽은 코드라 실제로 발현된
-            // 적은 없다). jQuery 전환과 무관해 고치지 않고 동일하게 보존한다.
+            // 원본 오타 그대로 보존: `htElement.welShowfile`(소문자 f)는 `_initElement`가 채우는
+            // `htElement.welShowFile`(대문자 F)와 이름이 달라 항상 undefined다 - 이 파일 자체가
+            // 어느 템플릿에서도 로드되지 않는 죽은 코드라 실제로 발현된 적은 없는 pre-existing
+            // 버그이며, jQuery 전환과 무관하므로 고치지 않는다.
             htElement.welShowfile.querySelectorAll(".filesize").forEach(function(el){
                 el.innerHTML = humanize.filesize(el.textContent);
             });

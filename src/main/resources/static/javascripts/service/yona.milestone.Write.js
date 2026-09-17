@@ -108,7 +108,7 @@
 
         /**
          * initialize DatePicker
-         * @requires Flatpickr (https://flatpickr.js.org/) — Pikaday를 대체(P3-46 #1).
+         * @requires Flatpickr (https://flatpickr.js.org/) — Pikaday를 대체.
          *
          * 기존 Pikaday는 dueDate 입력 필드에 바인딩되지 않은("field" 옵션 없이 생성된) 독립
          * 인스턴스였다 — #datepicker 안에 항상 펼쳐진 상태로 렌더링되고, 값 동기화는 전부

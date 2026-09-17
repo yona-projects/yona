@@ -17,10 +17,9 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-58: 조직 범위 검색 결과 화면(search/list.html)이 조직 헤더/메뉴(organization/header,
-// organization/menu) fragment 대신 즉석 .org-header 블록을 쓰고 있어 조직 탐색 메뉴(홈/이슈/
-// 게시판/PR 탭)와 로고/브레드크럼/가입요청 드롭다운이 전부 사라져 있었다. 다른 조직 화면
-// (error/forbidden_organization.html)과 동일한 표준 fragment로 교체했는지 검증한다.
+// 조직 범위 검색 결과 화면(search/list.html)이 조직 헤더/메뉴 fragment 대신 즉석 .org-header
+// 블록을 쓰고 있어 조직 탐색 메뉴와 로고/브레드크럼/가입요청 드롭다운이 전부 사라져 있었다.
+// 다른 조직 화면(error/forbidden_organization.html)과 동일한 표준 fragment로 교체했는지 검증한다.
 class OrganizationSearchHeaderTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val organizationRepository: OrganizationRepository,

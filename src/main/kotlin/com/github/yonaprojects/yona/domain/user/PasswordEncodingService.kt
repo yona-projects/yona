@@ -6,12 +6,9 @@ import org.springframework.stereotype.Component
 import java.security.MessageDigest
 import java.util.Base64
 
-// 저장된 비밀번호 해시를 문자열 형태만으로 두 포맷 중 하나로
-// 구분한다 — Argon2 인코딩 결과는 항상 "$argon2id$..."로 시작하므로 별도 DB 컬럼/버전 필드
-// 없이 "$"로 시작하는지만으로 판별 가능하다. 레거시 포맷(SHA-256, salt 선행, 1024회 반복,
-// Base64, prefix 없음)은 기존 가입자의 저장된 해시를 검증하기 위해서만 남겨두고, 새 해시는
-// 항상 Argon2id로 생성한다 — 이 파일이 비밀번호 해싱/검증 로직의 유일한 진실 공급원이며, 예전에
-// 아홉 곳에 중복돼 있던 동일한 SHA-256 구현을 대체한다.
+// Argon2 인코딩 결과는 항상 "$argon2id$..."로 시작하므로 별도 DB 컬럼/버전 필드 없이 "$"로
+// 시작하는지만으로 포맷을 판별한다. 레거시 포맷(SHA-256, salt 선행, 1024회 반복)은 기존
+// 가입자의 저장된 해시를 검증하기 위해서만 남겨두고, 새 해시는 항상 Argon2id로 생성한다.
 @Component
 class PasswordEncodingService {
     private val argon2Encoder: PasswordEncoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()

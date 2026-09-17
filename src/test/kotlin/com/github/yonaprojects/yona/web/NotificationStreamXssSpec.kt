@@ -21,12 +21,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// index/partial_notifications.html은 알림 메시지를 th:utext(비이스케이프)로 렌더링한다. v1.6은
-// 같은 자리에서 @Html(HtmlUtil.defaultSanitize(...))로 반드시 새니타이즈를 거쳤는데
-// (app/views/index/partial_notifications.scala.html), 포팅본은 새니타이즈 없이 이벤트의
-// newValue(댓글 등 사용자가 직접 쓴 원문, NotificationEvent.newValue)를 그대로 utext에 넣는다.
-// NEW_COMMENT 알림의 newValue는 댓글 작성자가 그대로 입력한 텍스트라 <script> 등을 포함할 수 있어
-// 저장형 XSS로 이어진다.
+// index/partial_notifications.html은 알림 메시지를 th:utext(비이스케이프)로 렌더링한다. legacy는
+// 같은 자리에서 @Html(HtmlUtil.defaultSanitize(...))로 새니타이즈를 거쳤지만, 포팅본은 새니타이즈
+// 없이 NotificationEvent.newValue(댓글 등 사용자 원문)를 그대로 utext에 넣어 저장형 XSS로 이어진다.
 @Transactional
 class NotificationStreamXssSpec @Autowired constructor(
     private val wac: WebApplicationContext,

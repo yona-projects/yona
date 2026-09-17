@@ -241,12 +241,9 @@ class SvnHttpProtocolIntegrationSpec @Autowired constructor(
                 }
             }
 
-            // 사용자 요청(2026-09-09)으로 checkout/commit 왕복 하나만으로는 부족하다고 판단해
-            // 추가한 시나리오. 실제 svn 클라이언트가 자주 쓰는 표준 작업 전체(추가/수정/복사/
-            // 이름변경/삭제/되돌리기/속성/두 워킹카피 간 update/log/cat/export)를 하나의
-            // 프로젝트에 순서대로 실행해 SVNKit DAVServlet이 각 작업을 실제로 올바르게
-            // 처리하는지 확정 검증한다. 매번 서버를 수동으로 띄워 CLI로 확인하는 대신, 이
-            // 테스트가 그 역할을 영구적으로 대신한다.
+            // 실제 svn 클라이언트가 쓰는 표준 작업 전체(추가/수정/복사/이름변경/삭제/되돌리기/
+            // 속성/두 워킹카피 간 update/log/cat/export)를 하나의 프로젝트에서 순서대로 실행해
+            // SVNKit DAVServlet이 각 작업을 올바르게 처리하는지 검증한다.
             it("실제 svn 클라이언트로 추가/수정/복사/이름변경/삭제/되돌리기/속성/update/log/cat/export를 전부 왕복해야 한다") {
                 if (!svnAvailable()) return@it
 
@@ -287,42 +284,34 @@ class SvnHttpProtocolIntegrationSpec @Autowired constructor(
                 try {
                     svn(null, "checkout", checkoutUrl, wc1.absolutePath)
 
-                    // 1) 디렉터리 생성 + 파일 추가 + 최초 커밋
                     svn(wc1, "mkdir", "dir1")
                     File(wc1, "dir1/file1.txt").writeText("v1")
                     svn(wc1, "add", "dir1/file1.txt")
                     svn(wc1, "commit", "-m", "add dir1/file1.txt")
 
-                    // 2) 파일 수정 + 커밋
                     File(wc1, "dir1/file1.txt").writeText("v2")
                     svn(wc1, "commit", "-m", "edit file1.txt")
 
-                    // 3) 되돌리기(revert) — 커밋 전 로컬 변경을 취소하면 서버에 반영되지 않아야 한다
                     File(wc1, "dir1/file1.txt").writeText("uncommitted garbage")
                     svn(wc1, "revert", "dir1/file1.txt")
                     File(wc1, "dir1/file1.txt").readText() shouldBe "v2"
 
-                    // 4) 복사 + 커밋
                     svn(wc1, "copy", "dir1/file1.txt", "dir1/file1-copy.txt")
                     svn(wc1, "commit", "-m", "copy file1.txt")
 
-                    // 5) 이름변경(rename/move) + 커밋
                     svn(wc1, "move", "dir1/file1-copy.txt", "dir1/file1-renamed.txt")
                     svn(wc1, "commit", "-m", "rename file1-copy.txt")
                     File(wc1, "dir1/file1-copy.txt").exists() shouldBe false
                     File(wc1, "dir1/file1-renamed.txt").exists() shouldBe true
 
-                    // 6) 속성(property) 설정 + 커밋 + 조회
                     svn(wc1, "propset", "custom:label", "hello-prop", "dir1/file1.txt")
                     svn(wc1, "commit", "-m", "set custom property")
                     svn(wc1, "propget", "custom:label", "dir1/file1.txt").trim() shouldBe "hello-prop"
 
-                    // 7) 삭제 + 커밋
                     svn(wc1, "delete", "dir1/file1-renamed.txt")
                     svn(wc1, "commit", "-m", "delete file1-renamed.txt")
                     File(wc1, "dir1/file1-renamed.txt").exists() shouldBe false
 
-                    // 8) 두 번째 워킹카피에서 update로 반영 확인
                     svn(null, "checkout", checkoutUrl, wc2.absolutePath)
                     File(wc1, "dir1/file2.txt").writeText("added for update test")
                     svn(wc1, "add", "dir1/file2.txt")
@@ -332,18 +321,15 @@ class SvnHttpProtocolIntegrationSpec @Autowired constructor(
                     File(wc2, "dir1/file2.txt").exists() shouldBe true
                     File(wc2, "dir1/file2.txt").readText() shouldBe "added for update test"
 
-                    // 9) 로그(log -v)에 지금까지의 경로 변경이 실제로 기록됐는지 확인
                     val logOutput = svn(null, "log", "-v", checkoutUrl)
                     withClue(logOutput) {
                         logOutput.contains("dir1/file1.txt") shouldBe true
                         logOutput.contains("dir1/file2.txt") shouldBe true
                     }
 
-                    // 10) cat으로 과거 리비전(r1, 수정 전 v1) 내용을 그대로 읽어올 수 있는지 확인
                     val r1Content = svn(null, "cat", "-r", "1", "$checkoutUrl/dir1/file1.txt")
                     r1Content shouldBe "v1"
 
-                    // 11) export로 워킹카피 메타데이터(.svn) 없이 순수 파일 트리를 받아올 수 있는지 확인
                     exportDest.delete()
                     svn(null, "export", checkoutUrl, exportDest.absolutePath)
                     File(exportDest, "dir1/file1.txt").exists() shouldBe true

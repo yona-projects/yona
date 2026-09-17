@@ -20,16 +20,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// P3-64: legacy board/view.scala.html(208·211·294행)·issue/view.scala.html(487·491행)이 로드하는
-// jQuery elevator("맨 위로 스크롤" 버튼) 플러그인이 yona board/view.html·issue/view.html에는
-// 로드되지 않고 있었다. lib/elevator/* 파일 자체는 이미 vendoring돼 있으므로(정적 리소스 존재
-// 확인됨), 이 스펙은 두 화면이 CSS/JS를 로드하고 legacy와 동일한 옵션으로 $.elevator(...)를
-// 호출하는지만 검증한다(마크업 추가는 필요 없음 - 플러그인이 스스로 버튼을 주입).
-//
-// P3-66: 점진적 jQuery 제거 작업의 첫 항목 - jquery.elevator.js(jQuery 플러그인)를 순수 vanilla
-// JS(common/yona.ScrollElevator.js)로 교체했다. CSS(jquery.elevator.css)는 순수 스타일이라
-// jQuery와 무관하므로 그대로 유지한다. $.elevator(...) 호출은 yona.createScrollElevator(...)로
-// 대체됐다.
+// legacy board/view.scala.html·issue/view.scala.html이 로드하는 "맨 위로 스크롤" 엘리베이터
+// 버튼이 yona에는 빠져 있었다. jQuery 플러그인(jquery.elevator.js) 대신 순수 vanilla JS
+// (common/yona.ScrollElevator.js)로 이식했다 - CSS(jquery.elevator.css)는 순수 스타일이라
+// jQuery와 무관하므로 그대로 유지한다. 이 스펙은 두 화면이 CSS/JS를 로드하고 legacy와 동일한
+// 옵션으로 yona.createScrollElevator(...)를 호출하는지만 검증한다(마크업 추가는 불필요 -
+// 스크립트가 스스로 버튼을 주입).
 class ScrollToTopElevatorTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -63,7 +59,6 @@ class ScrollToTopElevatorTemplateRenderingSpec @Autowired constructor(
                 val body = mockMvc.perform(get("/${project.owner}/${project.name}/issue/${issue.number}"))
                     .andExpect(status().isOk).andReturn().response.contentAsString
 
-                // P3-66: CSS는 순수 스타일이라 jQuery와 무관하므로 그대로 유지, JS만 vanilla로 교체.
                 body shouldContain "/javascripts/lib/elevator/jquery.elevator.css"
                 body shouldContain "/javascripts/common/yona.ScrollElevator.js"
                 body shouldNotContain "/javascripts/lib/elevator/jquery.elevator.js"

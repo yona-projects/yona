@@ -32,10 +32,7 @@
                                     </dd>
                                 </dl>
 
-                                <!-- 파일 업로더 영역 -->
-                                <!-- Vue 3 SFC(components/vue-widgets, 2026-09-17 적용) - <yona-attachments>가
-                                     드롭존/업로드 버튼/카드 목록/temporaryUploadFiles 히든 필드를 전부
-                                     자체 소유한다. -->
+                                <!-- yona-attachments가 드롭존/업로드 버튼/카드 목록/temporaryUploadFiles 히든 필드를 전부 자체 소유한다. -->
                                 <yona-attachments sec:authorize="isAuthenticated()" data-resource-type="MILESTONE" id="upload"></yona-attachments>
 
                                 <div class="actrow right-txt">

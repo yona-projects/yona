@@ -8,12 +8,9 @@
     <div th:replace="~{project/header :: header(${project})}"></div>
     <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
     <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
-    <!-- P3-64: legacy board/view.scala.html(208·294행)의 "맨 위로 스크롤" 버튼(jQuery elevator).
-         마크업 없이 스스로 버튼을 주입하는 플러그인이라 css+js 로드와 초기화 호출만 legacy와
-         동일하게 이식한다.
-         P3-66: 초기화 호출은 jQuery 플러그인(jquery.elevator.js)에서 vanilla JS
-         (common/yona.ScrollElevator.js, yona.createScrollElevator(...))로 교체됐다. CSS는
-         순수 스타일이라 그대로 유지. -->
+    <!-- "맨 위로 스크롤" 버튼(legacy elevator) - 마크업 없이 스스로 버튼을 주입하는 방식이라
+         css+init 호출만 있으면 된다. 초기화는 jQuery 플러그인 대신 vanilla JS
+         (yona.createScrollElevator)를 쓰지만 CSS는 순수 스타일이라 그대로 유지. -->
     <link rel="stylesheet" href="/javascripts/lib/elevator/jquery.elevator.css" type="text/css" />
 
 
@@ -102,11 +99,9 @@
 
                     <div id="comments" class="board-comment-wrap">
                         <div id="timeline">
-                            <!-- P3-53 항목2: legacy board/partial_comments.scala.html의 <ul class="comments"> 대응.
-                                 yona.css의 숨김 규칙(.board-comment-wrap .comments .comment .add-a-comment 등)이
-                                 .board-comment-wrap과 .comment 사이에 .comments 조상 클래스를 요구하는데,
-                                 이 클래스가 없으면 그 선택자가 매치되지 않아 대댓글 입력창이 상시 펼쳐진 채로
-                                 보인다(브라우저 기본값 display:block). -->
+                            <!-- yona.css의 숨김 규칙(.board-comment-wrap .comments .comment .add-a-comment 등)이
+                                 .comments 조상 클래스를 요구한다 - 없으면 매치되지 않아 대댓글 입력창이
+                                 상시 펼쳐진 채로 보인다. -->
                             <div class="timeline-list comments">
                                 <div th:each="comment : ${comments}"
                                      th:with="children=${childCommentsByParentId != null ? childCommentsByParentId.get(comment.id) : null}, canEditThisComment=${currentUser != null and (comment.authorId == currentUser.id or isProjectManager)}, postingCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).NONISSUE_COMMENT}"
@@ -128,9 +123,8 @@
                                         </div>
                                         <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${postingCommentResourceType}, ${commentAttachmentsByCommentId != null ? commentAttachmentsByCommentId.get(comment.id) : null}, @{/{owner}/{projectName}/post/{number}/comment/{commentId}(owner=${project.owner}, projectName=${project.name}, number=${post.number}, commentId=${comment.id})})}"></div>
                                         <div th:id="'comment-body-' + ${comment.id}">
-                                            <!-- P3-60: legacy board/partial_comments.scala.html:67-70 대응 —
-                                                 본문(56-62행)에는 이미 있던 .tasklist 셸/data-allowed-update가
-                                                 댓글 쪽엔 빠져 있었다(issue/view.html과 동일한 대칭적 격차). -->
+                                            <!-- 본문에는 이미 있던 .tasklist 셸/data-allowed-update가 댓글 쪽엔
+                                                 빠져 있었다(issue/view.html과 동일한 격차). -->
                                             <div class="tasklist">
                                                 <div class="task-title">Tasks<span class="done-counter"></span></div>
                                                 <div class="task-progress">
@@ -209,10 +203,10 @@
         </div>
     </div>
 
-    <!-- Confirm to delete post - 네이티브 <dialog>(P3-70 라운드9). data-toggle="modal"은
-         트리거에서 제거했다(아래 스크립트가 직접 showModal() 호출) - bootstrap.js(미수정) 자체의
-         전역 데이터 API 델리게이트가 여전히 살아있어 속성을 남기면 같은 클릭에 이중으로 반응해
-         InvalidStateError가 나는 실제 충돌을 Playwright로 재현해 확인했다. -->
+    <!-- Confirm to delete post - 네이티브 <dialog>. data-toggle="modal"은 트리거에서 제거했다
+         (아래 스크립트가 직접 showModal() 호출) - bootstrap.js(미수정)의 전역 데이터 API
+         델리게이트가 여전히 살아있어 속성을 남기면 같은 클릭에 이중으로 반응해 InvalidStateError가
+         난다(Playwright로 재현). -->
     <dialog id="deleteConfirm" class="modal">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">×</button>
@@ -233,13 +227,11 @@
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
-<!-- P3-66: jQuery elevator 플러그인을 vanilla JS로 교체(jquery.elevator.css는 순수 스타일이라
-     그대로 유지). -->
 <script type="text/javascript" src="/javascripts/common/yona.ScrollElevator.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
-<!-- P3-53 항목2: 대댓글 입력창(.add-a-comment/.child-comment-input-form) hover 노출/클릭 토글 담당.
-     제출은 이미 아래 인라인 스크립트의 delegated .child-comment-form submit 핸들러가 AJAX로 처리하므로
-     이 파일은 순수 표시/토글 UI만 담당해 충돌하지 않는다. -->
+<!-- 대댓글 입력창(.add-a-comment/.child-comment-input-form) hover 노출/클릭 토글만 담당.
+     제출은 아래 인라인 스크립트의 delegated .child-comment-form submit 핸들러가 AJAX로 처리하므로
+     충돌하지 않는다. -->
 <script type="text/javascript" src="/javascripts/common/yona.SubComment.js"></script>
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function(){
@@ -251,7 +243,7 @@
             }
         });
 
-        // 삭제 확인/변경 이력 모달 오픈(P3-70 라운드9) - data-toggle="modal"을 쓰지 않고
+        // 삭제 확인/변경 이력 모달 오픈 - data-toggle="modal"을 쓰지 않고
         // 직접 showModal()을 호출한다(위 <dialog> 주석 참고).
         var elDeleteConfirm = document.getElementById("deleteConfirm");
         if (elDeleteConfirm) {
@@ -276,7 +268,7 @@
         }
         // jQuery 인자 없는 .submit()/.trigger('submit')은 실제 "submit" 이벤트를 발생시켜 같은
         // 폼에 바인딩된 다른 핸들러(delegated submit 리스너)를 먼저 호출하고, 아무도
-        // preventDefault를 안 하면 네이티브 제출로 폴백한다(라운드4에서 확립한 헬퍼).
+        // preventDefault를 안 하면 네이티브 제출로 폴백한다.
         function _triggerFormSubmit(form) {
             var evt = new Event("submit", {bubbles: true, cancelable: true});
             var notCancelled = form.dispatchEvent(evt);
@@ -307,12 +299,9 @@
                 if (elEditForm) { elEditForm.style.display = "block"; }
                 document.querySelectorAll(".add-a-comment").forEach(function(el){ el.style.display = "none"; });
                 autosize.update(document.querySelectorAll('textarea'));
-                // Vue 3 SFC(components/vue-widgets, 2026-09-17 적용) - <yona-attachments>는
-                // 댓글 폼과 별개 위치에 있는 실제 textarea 참조를 명령형으로 주입받아야
-                // 붙여넣기/드래그/링크 삽입/삭제-시-링크제거가 그 textarea를 대상으로
-                // 동작한다(드롭다운/다이얼로그와 동일한 configure() 관례) - "수정" 버튼을
-                // 눌러 폼이 실제로 열리는 시점에 지연 배선한다(폼이 접혀있는 동안 불필요한
-                // 배선을 피함, 여러 번 눌러도 configure()는 멱등).
+                // <yona-attachments>는 실제 textarea 참조를 명령형으로 주입받아야
+                // 붙여넣기/드래그/링크 삽입 등이 그 textarea를 대상으로 동작한다 - 폼이
+                // 실제로 열리는 시점에 지연 배선한다(configure()는 멱등).
                 if (elEditForm) {
                     var elAttachments = elEditForm.querySelector('yona-attachments');
                     var elEditTextarea = elEditForm.querySelector('textarea[data-editor-mode="update-comment-body"]');
@@ -333,19 +322,18 @@
                 autosize.update(document.querySelectorAll('textarea'));
             }
         });
-        // P3-48 화면별 재현 세션에서 발견: issue/view.html과 동일하게, 새 댓글 등록 폼
-        // (#comment-form)의 th:action이 가리키는 "/{owner}/{projectName}/post/{postNumber}/comment"
-        // 경로가 어느 컨트롤러에도 매핑돼 있지 않았다(Playwright로 실제 등록 시 항상 404 —
-        // CSRF와는 무관한 별도 결함). 형제 폼들과 동일하게 REST(POST .../comments)로 전환한다.
+        // 새 댓글 등록 폼(#comment-form)의 th:action이 가리키는
+        // "/{owner}/{projectName}/post/{postNumber}/comment" 경로는 어느 컨트롤러에도 매핑돼
+        // 있지 않아 항상 404였다(Playwright로 재현, CSRF와는 무관). 형제 폼들과 동일하게
+        // REST(POST .../comments)로 전환한다.
         //
-        // P3-52 항목3 — yona.CommentForm.js 대응(빈 값 제출 방지/Ctrl+Shift+Enter 단축 제출/
-        // beforeunload 이탈 경고/localStorage 임시저장). issue/view.html과 동일한 이유(legacy
-        // 원본의 네이티브 form.submit() 재스케줄링이 이미 검증된 AJAX 핸들러와 공존 불가)로
-        // 원본 파일을 로드하지 않고 이 AJAX 핸들러에 직접 재구현한다.
+        // yona.CommentForm.js의 기능(빈 값 제출 방지/Ctrl+Shift+Enter 단축 제출/beforeunload
+        // 이탈 경고/localStorage 임시저장)은, legacy 원본의 네이티브 form.submit() 재스케줄링이
+        // 이미 검증된 AJAX 핸들러와 공존할 수 없어 원본 파일을 로드하지 않고 여기 직접 재구현한다.
         var elCommentForm = document.getElementById('comment-form');
         var elCommentTextarea = elCommentForm ? elCommentForm.querySelector('textarea[name="contents"]') : null;
-        // $form.data('onsubmit', bool)은 DOM 속성이 아니라 jQuery 내부 캐시에만 저장되는 값이라(라운드4
-        // 확립 함정) 네이티브 dataset로 옮기지 않고 순수 클로저 변수로 대체한다(yona.CommentForm.js의
+        // $form.data('onsubmit', bool)은 DOM 속성이 아니라 jQuery 내부 캐시에만 저장되는 값이라
+        // 네이티브 dataset로 옮기지 않고 순수 클로저 변수로 대체한다(yona.CommentForm.js의
         // bOnSubmit과 동일한 관례).
         var bCommentFormOnSubmit = false;
         function isCommentFormBodyEmpty(){
@@ -414,7 +402,7 @@
                 var commentId = elForm.dataset.commentId;
                 var elTextarea = elForm.querySelector('textarea[data-editor-mode="update-comment-body"]');
                 var contents = elTextarea ? elTextarea.value : undefined;
-                // P3-50: "알림 메일 받기" 체크박스(작성자 본인에게만 노출) 상태를 함께 보낸다.
+                // "알림 메일 받기" 체크박스(작성자 본인에게만 노출) 상태를 함께 보낸다.
                 var elNotificationCheckbox = elForm.querySelector('.send-notification-checkbox');
                 var sendNotificationMail = !!(elNotificationCheckbox && elNotificationCheckbox.checked);
                 fetch(apiBase + '/' + commentId, {
@@ -455,25 +443,21 @@
             }
         });
 
-        // P3-64: legacy board/view.scala.html(294행)와 동일한 옵션으로 elevator 초기화.
-        // P3-66: jQuery 플러그인 호출을 vanilla JS yona.createScrollElevator(...)로 교체.
+        // legacy와 동일한 옵션으로 elevator 초기화(vanilla JS로 교체).
         yona.createScrollElevator({
             shape: 'rounded',
             glass: true
         });
     });
 </script>
-<!-- P3-70 라운드9 코디네이터 수정. 이 태그 자체가 th:if로 조건부이므로 세부 근거는 HTML
-     주석이 아니라 아래 JS 주석에 남긴다 - HTML 주석은 th:if와 무관하게 항상 렌더링되므로
-     여기 두면 대상 dialog id 문자열이 history 없는 화면에서도 새 버려 회귀가 재발한다(실측으로
-     직접 재현·확인했던 실수). -->
+<!-- 이 태그 자체가 th:if로 조건부이므로 세부 근거는 HTML 주석이 아니라 아래 JS 주석에 남긴다 -
+     HTML 주석은 th:if와 무관하게 항상 렌더링되므로 여기 두면 대상 dialog id 문자열이 history
+     없는 화면에서도 새 버려 회귀가 재발한다. -->
 <script type="text/javascript" th:if="${post.history != null and !#strings.isEmpty(post.history) and currentUser != null}">
     // <dialog>(common/partial_history)는 post.history가 있고 로그인 사용자일 때만
-    // 렌더링되는데(비로그인은 평범한 로그인 유도 링크만 표시 - 위 posting-history div의
-    // th:if 분기 참고), 이 배선이 원래 post.history 조건만으로(currentUser 무관) 위 공용
+    // 렌더링되는데, 이 배선이 원래 post.history 조건만으로(currentUser 무관) 위 공용
     // 스크립트 블록에 있어 history 없는 게시글 화면 및 비로그인 화면에서도 대상 id 리터럴이
-    // 응답 본문에 남아 PostingHistoryTemplateRenderingSpec의 "history 없으면/비로그인이면
-    // 전혀 렌더링하지 않는다" 계약을 깨뜨렸다(실측으로 재현·확인).
+    // 응답 본문에 남아 PostingHistoryTemplateRenderingSpec의 렌더링 계약을 깨뜨렸다.
     document.addEventListener("DOMContentLoaded", function(){
         var elPostingHistory = document.getElementById("-yona-posting-history");
         $yona.attachDialogDismiss(elPostingHistory);

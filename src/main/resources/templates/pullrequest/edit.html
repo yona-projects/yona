@@ -81,10 +81,8 @@
                         <div th:replace="~{site/layout :: markdownEditor('body', ${pr.body}, 'content-body')}"></div>
                     </div>
 
-                    <!-- 파일 업로더 영역: issue/create.html과 동일한 마크업 패턴(legacy common.fileUploader 대응) -->
-                    <!-- Vue 3 SFC(components/vue-widgets, 2026-09-17 적용) - <yona-attachments>가
-                         드롭존/업로드 버튼/카드 목록/temporaryUploadFiles 히든 필드를 전부 자체
-                         소유한다. -->
+                    <!-- Vue 3 SFC(components/vue-widgets) - <yona-attachments>가 드롭존/업로드
+                         버튼/카드 목록/temporaryUploadFiles 히든 필드를 전부 자체 소유한다. -->
                     <yona-attachments data-resource-type="PULL_REQUEST" id="upload"></yona-attachments>
 
                     <div class="actrow right-txt">

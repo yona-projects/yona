@@ -30,13 +30,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 
-// P3-53 항목2: common/childComments.html의 대댓글 입력창(.add-a-comment/.child-comment-input-form)이
-// yona.css의 숨김 규칙(.board-comment-wrap .comments .comment ...)과 매치되지 않아 페이지 로드 시부터
-// 상시 펼쳐진 채로 보이는 UI 회귀. legacy v1.6(app/views/issue|board/partial_comments.scala.html)은
-// <ul class="comments"><li class="comment">...</li></ul> 구조로 .comments가 .comment의 직계
-// 조상이었지만, 이식된 issue/view.html·board/view.html은 #comments.board-comment-wrap → #timeline →
-// .timeline-list(→ .comment) 구조라 그 .comments 조상이 없다. .timeline-list에 comments 클래스를
-// 추가해 legacy와 동치인 조상 관계를 복원하고, 토글 담당 스크립트 yona.SubComment.js를 로드한다.
+// 대댓글 입력창(.add-a-comment/.child-comment-input-form)이 yona.css의 숨김 선택자
+// (.board-comment-wrap .comments .comment ...)와 매치되지 않아 항상 펼쳐진 채로 보이던 회귀.
+// legacy는 .comments가 .comment의 직계 조상이었지만 이식된 구조는 #timeline → .timeline-list
+// (→ .comment)라 그 조상이 없었다. .timeline-list에 comments 클래스를 추가해 복원했다.
 class SubCommentToggleMarkupTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,

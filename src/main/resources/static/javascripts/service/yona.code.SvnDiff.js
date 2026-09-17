@@ -27,7 +27,7 @@
         var htElement = {};
 
         /**
-         * 위임 클릭 바인딩 - 라운드2~4에서 확립한 관례(closest + contains 가드).
+         * 위임 클릭 바인딩 - closest + contains 가드로 실제 타겟만 처리.
          */
         function _delegate(container, sEventType, sSelector, fHandler){
             if(!container){
@@ -87,7 +87,7 @@
         }
 
         /**
-         * jQuery `:visible`(레이아웃 유무로 판단) 근사 - 라운드4에서 확립한 패턴.
+         * jQuery `:visible`(레이아웃 유무로 판단) 근사.
          */
         function _isVisible(el){
             return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
@@ -147,9 +147,8 @@
 
             htElement.welDiff = document.getElementById("commit");
             // ReviewViewController.newCommitComment()는 CodeRangeRequest(path/startSide/
-            // startLine)로 바인딩한다 - 이 파일이 붙이던 hidden 필드명(line/side)이 서버
-            // 계약과 안 맞아 라인별 댓글 작성이 항상 400/무시됐던 것을 #comment-form 마크업
-            // 자체가 없어 크래시하는 것을 조사하다 함께 발견했다.
+            // startLine)로 바인딩하므로 hidden 필드명을 여기에 맞춘다 - 이름이 다르면 라인
+            // 댓글 저장이 400/무시로 실패한다.
             htElement.welEmptyCommentForm = document.getElementById("comment-form");
             if(htElement.welEmptyCommentForm){
                 htElement.welEmptyCommentForm.appendChild(_createHiddenInput("path"));
@@ -159,12 +158,11 @@
             htElement.welComments = document.querySelector("ul.comments");
 
             // #comment-icon-template/#linenum-column-template/#comment-button-template
-            // 마크업 자체가 Spring Boot 이식 과정에서 code/svnDiff.html에 누락돼(v1.6
-            // code/svnDiff.scala.html:160-167 대응 - 데이터 치환이 전혀 없는 정적 조각이라
-            // 별도 템플릿 스크립트 태그 없이 그대로 인라인한다.
-            // welIcon/welEmptyLineNumColumn은 원본에서도 생성만 되고 이후 어디서도 쓰이지
-            // 않는 완전한 dead 로컬 상태다(전수 조사 완료) - 임의 축소 금지 원칙에 따라
-            // 그대로 보존한다.
+            // 마크업이 Spring Boot 이식 과정에서 code/svnDiff.html에서 누락됐다(v1.6
+            // code/svnDiff.scala.html:160-167 대응) - 데이터 치환 없는 정적 조각이라 별도
+            // 템플릿 태그 없이 그대로 인라인한다.
+            // welIcon/welEmptyLineNumColumn은 원본에서도 생성만 되고 이후 쓰이지 않는 dead
+            // 로컬 상태이지만, 임의 축소 금지 원칙에 따라 그대로 보존한다.
             if (htVar.bCommentable) {
                 htElement.welIcon = _el("i", {"class": "yobicon-comments"});
             }
@@ -217,12 +215,10 @@
             var sDiff = htElement.welDiff.textContent;
 
             htElement.welDiff.textContent = "";
-            // 원본 `htElement.welDiff.append(_renderDiff(sDiff))`은 _renderDiff가 값을
-            // 반환하지 않아(항상 undefined) 사실상 no-op이었다 - 실제 렌더링은 _renderDiff
-            // 내부에서 `.diff-body`(= 이 #commit 엘리먼트 자신, class="diff-body")에 직접
-            // append하는 부수효과로 일어난다. 네이티브 appendChild(undefined)는 예외를
-            // 던지므로 의미 없는 바깥쪽 append 호출은 재현하지 않고, 실제 부수효과만 그대로
-            // 유지한다.
+            // 원본 `.append(_renderDiff(sDiff))`은 _renderDiff가 항상 undefined를 반환해
+            // no-op이었다 - 실제 렌더링은 _renderDiff 내부에서 `.diff-body`에 직접 append하는
+            // 부수효과로 일어난다. appendChild(undefined)는 예외를 던지므로 바깥쪽 append는
+            // 재현하지 않고 부수효과만 유지한다.
             _renderDiff(sDiff);
             htElement.welDiff.style.display = "block";
             if(htElement.welComments){
@@ -250,8 +246,7 @@
             var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
-                // P3-70 라운드5: yona.Files.getUploader()는 이 라운드 완료 시점까지 반환값을
-                // 아직 jQuery로 감싸둔 상태다 - 이미 vanilla인 다른 호출부와 동일하게
+                // yona.Files.getUploader()는 [elContainer] 형태의 배열을 반환하므로
                 // oUploader[0]로 raw element를 꺼내 네이티브로 읽는다.
                 (new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
@@ -267,8 +262,8 @@
          */
         function _initFileDownloader(){
             document.querySelectorAll(".attachments").forEach(function(elContainer){
-                // 6단계(jQuery 완전 제거): isYonaAttachment는 yona.Attachments.js가 붙이는
-                // 순수 expando 프로퍼티다(공개 계약, 중복 초기화 가드).
+                // isYonaAttachment는 yona.Attachments.js가 붙이는 expando 프로퍼티다
+                // (공개 계약, 중복 초기화 가드).
                 if(!elContainer._isYonaAttachment){
                     (new yona.Attachments({"elContainer": elContainer}));
                 }
@@ -309,9 +304,9 @@
          * @param {Element} welUl
          */
         function _appendCommentToggle(welTr, welUl) {
-            // welTd는 원본에서도 생성만 되고 이후 어디에도 append/참조되지 않는 완전한 dead
-            // 로컬 변수다(전수 조사 완료) - 임의 축소 금지 원칙에 따라 그대로 보존한다(내부
-            // 전용 상태라 jQuery `.data()` 캐시 대신 커스텀 expando로 옮긴다).
+            // welTd는 원본에서도 생성만 되고 이후 append/참조되지 않는 dead 로컬 변수이지만,
+            // 임의 축소 금지 원칙에 따라 그대로 보존한다(jQuery `.data()` 캐시 대신 커스텀
+            // expando로 옮김).
             var welTd = document.createElement("td");
             welTd.colSpan = 3;
             welTd.__line = welTr.dataset.line;
@@ -368,10 +363,9 @@
                 if(elStartLine){ elStartLine.removeAttribute("value"); }
                 if(elStartSide){ elStartSide.removeAttribute("value"); }
             }
-            // #comment-form은 legacy와 동일하게 board-comment-wrap 맨 아래(일반 댓글 작성
-            // 위치)로 돌아가며, 그 자리에서 범위 없는 일반 커밋 댓글 폼으로 계속 보인다(숨기지
-            // 않는다) - 별도의 write-comment-form이 존재하던 이전 구조에서만 필요했던 hide()
-            // 호출이었다(legacy 대조로 단일 폼 겸용 구조로 정리하며 제거).
+            // #comment-form은 board-comment-wrap 맨 아래(legacy와 동일)로 돌아가 범위 없는
+            // 일반 커밋 댓글 폼으로 계속 보인다 - 별도 write-comment-form이 있던 구조에서만
+            // 필요했던 hide() 호출은 단일 폼 겸용 구조라 제거했다.
             if(htElement.welComments && htElement.welEmptyCommentForm){
                 htElement.welComments.insertAdjacentElement("afterend", htElement.welEmptyCommentForm);
             }

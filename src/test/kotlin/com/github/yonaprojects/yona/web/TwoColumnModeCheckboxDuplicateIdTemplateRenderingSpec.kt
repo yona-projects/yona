@@ -20,13 +20,11 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// 사용자 요청(2026-09-12)으로 정리: legacy common/showSubtasksCheckbox.scala.html/
-// common/twoColumnModeCheckboxArea.scala.html 둘 다 원본부터 바깥 wrapper div에
-// id="two-column-mode-checkbox"를 중복 사용하는 버그를 갖고 있었다(legacy 원본 확인됨).
-// Playwright 실측 결과 실제 동작(popover 표시/체크박스 토글)에는 문제가 없었지만, HTML id
-// 유일성 위반 자체는 legacy 버그라도 정리하기로 결정 - "자식이슈 펼쳐보기" 위젯(.show-subtasks)
-// 쪽 id만 show-subtasks-checkbox로 고유하게 바꾼다("2단 보기" 위젯 쪽 id는
-// yona.twoColumnMode.js가 명시적으로 참조하므로 유지).
+// legacy common/showSubtasksCheckbox.scala.html/common/twoColumnModeCheckboxArea.scala.html
+// 둘 다 바깥 wrapper div에 id="two-column-mode-checkbox"를 중복 사용하는 버그가 있었다.
+// Playwright 실측상 동작(popover 표시/체크박스 토글)에는 문제가 없었지만 HTML id 유일성
+// 위반이라 정리한다 - "자식이슈 펼쳐보기" 위젯(.show-subtasks) 쪽만 show-subtasks-checkbox로
+// 바꾼다("2단 보기" 위젯 쪽 id는 yona.twoColumnMode.js가 명시적으로 참조하므로 유지).
 class TwoColumnModeCheckboxDuplicateIdTemplateRenderingSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository

@@ -5,11 +5,7 @@
  *  https://yona.io
  **/
 
-// P3-69: legacy service/yobi.git.View.js의 _updateState()/_setStateUpdateTimer() 대응.
-// PR 뷰(overview 탭)에서 10초 간격으로 GET .../pull/{number}/state를 폴링해 #state 배너와
-// Accept 버튼(#pr-accept-button)을 새로고침 없이 갱신한다. legacy와 동일하게 "받아온 HTML이
-// 이전과 같으면 DOM을 건드리지 않는다"는 최적화를 재현한다. PR이 CLOSED/MERGED거나
-// 병합 진행 중(isMerging)이면 폴링을 시작하지 않거나(shouldPoll=false) 중단한다.
+// legacy service/yobi.git.View.js의 _updateState()/_setStateUpdateTimer() 대응.
 (function(ns){
 
     "use strict";

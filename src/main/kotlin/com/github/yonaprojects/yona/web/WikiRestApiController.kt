@@ -24,19 +24,17 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 // `yona wiki` CLI/REST 클라이언트 및 MCP 위키 도구용 JSON API
-// (`/api/v1/projects/{owner}/{project}/wiki`). TagRestApiController와 동일하게 위임할 만한
-// 기존 세션/폼 컨트롤러가 없어(완전 신규 기능) AccessControl 판정을 이 컨트롤러가 직접 수행한다.
+// (`/api/v1/projects/{owner}/{project}/wiki`). 위임할 기존 세션/폼 컨트롤러가 없어 AccessControl
+// 판정을 이 컨트롤러가 직접 수행한다.
 //
-// 권한: 읽기는 프로젝트 읽기 권한과 동일(공개 프로젝트는 게스트 제외 누구나), 쓰기(생성/수정/
-// 삭제)는 "프로젝트 쓰기 권한(멤버)과 동일" — BoardViewController의 코드브라우저 온라인편집이
-// 쓰는 것과 동일한 "existsByProjectIdAndUserId" 멤버십 검사를 재사용한다(TagRestApiController
-// 처럼 매니저 전용 Operation.UPDATE를 쓰지 않는다 — 위키는 코드 push와 동일한 문턱이어야
-// 한다는 요구사항이므로 의도적으로 다른 임계값).
+// 권한: 읽기는 프로젝트 읽기 권한과 동일. 쓰기(생성/수정/삭제)는 BoardViewController의 코드브라우저
+// 온라인편집과 동일한 "existsByProjectIdAndUserId" 멤버십 검사를 쓴다 — TagRestApiController처럼
+// 매니저 전용 Operation.UPDATE가 아니라, 위키는 코드 push와 같은 문턱이어야 한다는 요구사항에
+// 따른 의도적 차이다.
 //
-// ApiTokenAuthenticationFilter의 resourceSegmentToResourceType에 이미 "wiki" ->
-// ResourceType.WIKI_PAGE(WIKI 스코프 그룹) 매핑이 있어(scopedApiPattern이 3번째 세그먼트 뒤
-// 나머지 경로는 통째로 허용하므로 /wiki/pages, /wiki/history/** 등 전부 이 매핑을 그대로 탄다),
-// 별도 스코프 배선 없이 바로 PAT 인증이 적용된다.
+// ApiTokenAuthenticationFilter.resourceSegmentToResourceType에 이미 "wiki" ->
+// ResourceType.WIKI_PAGE 매핑이 있어(3번째 세그먼트 뒤 나머지 경로를 통째로 허용) 별도 스코프
+// 배선 없이 PAT 인증이 바로 적용된다.
 @RestController
 @RequestMapping("/api/v1/projects/{owner}/{project}/wiki")
 class WikiRestApiController(
@@ -59,8 +57,7 @@ class WikiRestApiController(
 
     private fun canRead(user: User?, project: Project): Boolean = accessControl.isAllowedToReadProject(user, project)
 
-    // 위키 쓰기 권한 = 프로젝트 멤버(코드 push 권한과 동일 문턱). BoardViewController의 코드브라우저
-    // 온라인편집 커밋 경로가 쓰는 것과 동일한 판정 방식이다.
+    // 위키 쓰기 권한 = 프로젝트 멤버(코드 push와 동일 문턱, 클래스 상단 설명 참고).
     private fun canWrite(user: User?, project: Project): Boolean {
         if (user == null || user.isGuest) return false
         if (user.isSiteManager) return true

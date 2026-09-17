@@ -356,7 +356,7 @@ class PullRequestViewControllerSpec : DescribeSpec({
             }
         }
 
-        // P3-69: legacy service/yobi.git.View.js가 10초 간격으로 폴링하던
+        // legacy service/yobi.git.View.js가 10초 간격으로 폴링하던
         // GET .../pullRequest/:id/state(PullRequestApp.pullRequestState) 대응. viewPullRequest()와
         // 동일한 attemptMerge() 재계산 + addCommonPrAttributes() 계산을 재사용해 #state 배너
         // (partial_state)와 Accept 버튼(partial_info::acceptButton)을 한 번에 다시 렌더링하는

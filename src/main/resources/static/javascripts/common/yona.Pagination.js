@@ -124,13 +124,10 @@ yona.Pagination = (function(window, document) {
      */
     function updatePagination(elTarget, nTotalPages, htOptions) {
         // `nTotalPages <= 0`만으로는 undefined/NaN을 걸러내지 못한다(둘 다 모든 비교
-        // 연산자에서 false를 내므로 이 가드를 그냥 통과해버린다) - 결과가 0건이라
-        // #pagination 자체가 서버 렌더링에서 통째로 빠지는 화면(예: issue/list.html의
-        // th:if="${!issuePage.content.isEmpty()}")에서 elTarget이 빈 jQuery
-        // 셀렉션이 되고, .data("total")도 undefined를 반환해 이 가드를 통과한 뒤
-        // _toElement가 undefined를 내놔 "Cannot set properties of undefined"로
-        // 죽던 것을 실제 검증 중 발견했다 - target 부재와 undefined 총 페이지 수를
-        // 모두 명시적으로 걸러낸다.
+        // 연산자에서 false를 내 이 가드를 그냥 통과한다) - 결과가 0건이라 #pagination
+        // 자체가 서버 렌더링에서 빠지는 화면에서 elTarget이 없거나 총 페이지 수가
+        // undefined인 채로 넘어와 "Cannot set properties of undefined"로 죽던 것을
+        // 발견했다 - 둘 다 명시적으로 걸러낸다.
         if(!elTarget || !(nTotalPages > 0)){
             return;
         }
@@ -140,13 +137,11 @@ yona.Pagination = (function(window, document) {
             return;
         }
 
-        // 하이브리드 어댑터(2026-09-17, components/vue-widgets pagination 위젯 적용) -
-        // 대상 컨테이너 자체는 절대 교체하지 않는다(issue.List.js 등 일부 호출부가
+        // 대상 컨테이너 자체는 절대 교체하지 않는다 - issue.List.js 등 일부 호출부가
         // #pagination 참조를 캐싱해두고 update()를 여러 번 재호출하므로, 컨테이너를
-        // 교체해버리면 두 번째 호출부터 오래된 분리된 엘리먼트를 다시 교체하려다
-        // 실제로는 아무 효과도 없는 버그가 생긴다 - 원본이 매번 `innerHTML = ''`로
-        // 내부만 다시 그리던 것과 동일하게, 안에 <yona-pagination> 자식을 한 번만
-        // 만들고 이후로는 계속 재사용해 update()로 위임한다).
+        // 교체하면 두 번째 호출부터 이미 분리된 엘리먼트를 다시 건드리는 셈이라
+        // 아무 효과가 없다. 안에 <yona-pagination> 자식을 한 번만 만들고 이후로는
+        // 재사용해 update()로 위임한다.
         if(typeof customElements !== "undefined" && customElements.get("yona-pagination")){
             var elVue = (welTarget.tagName.toLowerCase() === "yona-pagination")
                 ? welTarget

@@ -43,28 +43,17 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.io.File
 
-// P3-46 #6+7: marked.js(v0.7 전후 구세대) -> v12+ 계열 메이저 버전업,
-// highlight.js(v9.11.0) -> v11+ 계열 메이저 버전업을 함께 진행한다(교체가 아니라 같은 라이브러리의
-// 버전업).
-//
-// 이 스펙은 실제 마크다운 렌더링 결과 HTML(코드블록에 hljs 클래스가 붙는지 등)은 검증하지 않는다
-// -- MockMvc+Jsoup 하네스는 로드되는 스크립트 경로/렌더링된 정적 마크업까지만 볼 수 있고, 실제
-// marked()/hljs 호출 결과는 클라이언트 JS 실행 결과라 서버 사이드 렌더링 검증으로는 단언할 수
-// 없다. 대신 아래 "마크업/소스 계약"이 회귀 없이 유지되는지를 검증한다:
-//   (1) marked.js/highlight.pack.js는 여전히 같은 경로(/javascripts/lib/marked.js,
-//       /javascripts/lib/highlight/highlight.pack.js)에서 로드된다(파일 위치는 그대로, 내용만
-//       최신 버전으로 교체).
-//   (2) 항목3(atjs->Tribute)에서 발견된 것과 동일한 함정 -- marked()/hljs.*를 실제로 호출하는
-//       common/yona.Markdown.js가 한때 *어느 템플릿에서도* <script src>로 로드되지 않고, 전역
-//       레거시 번들 yona-lib.js에 박혀있던 구버전 사본만 실행됐던 적이 있다(당시엔 개별
-//       override 로드로 정정). 이후 support-script/js-bundle/minify-js.sh(legacy 번들링 스크립트
-//       부활)로 yona-lib.js 자체를 최신 소스로 재생성해, 번들 안의 사본이 더 이상 구버전이
-//       아니게 됐으므로 그 개별 override 로드는 순수 중복이 되어 제거했다 -- 이제는 개별 로드가
-//       *없어야* 하는 쪽을 검증한다.
-//   (3) yona.Markdown.js의 소스 코드 자체가 신버전 API로 이식됐는지(구버전 API 호출이 남아있지
-//       않은지) 직접 소스 텍스트로 검증한다 -- 실제 실행 결과는 볼 수 없지만, "무엇을 호출하는
-//       코드가 배포됐는지"는 정적으로 검증 가능하고, 이게 이번 버전업의 핵심 회귀 지점이다
-//       (구버전 API 호출부가 신버전 라이브러리와 만나면 런타임에서 깨진다).
+// marked.js/highlight.js를 메이저 버전업했다(같은 라이브러리의 버전업, 교체가 아니다). MockMvc+
+// Jsoup 하네스는 로드되는 스크립트 경로/렌더링된 마크업까지만 볼 수 있어 실제 marked()/hljs
+// 호출 결과(클라이언트 JS 실행)는 검증하지 않는다. 대신:
+//   - marked.js/highlight.pack.js가 같은 경로에서 로드되는지(파일 위치는 그대로, 내용만 교체).
+//   - marked()/hljs.*를 실제로 호출하는 yona.Markdown.js가 한때 *어느 템플릿에서도* 로드되지
+//     않고 전역 레거시 번들(yona-lib.js) 안의 구버전 사본만 실행되던 함정이 있었다. 번들을
+//     최신 소스로 재생성한 뒤로는 개별 <script src> override가 순수 중복이 되어 제거했으므로,
+//     이제는 개별 로드가 없어야 하는 쪽을 검증한다.
+//   - yona.Markdown.js 소스 자체가 신버전 API로 이식됐는지 정적 텍스트로 검증한다 - 구버전
+//     API 호출부가 신버전 라이브러리와 만나면 런타임에서 깨지는 게 이번 버전업의 핵심 회귀
+//     지점이다.
 class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -117,10 +106,8 @@ class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
                 projectUserRepository.save(ProjectUser(project = project, user = member, role = roleMember))
             }
 
-            // pull/new는 브랜치가 하나도 없으면 pullrequest/create.html이 아니라 error/badrequest로
-            // 리다이렉트된다(PullRequestViewController.createPullRequestForm() 참고) -- 실제
-            // 브랜치 목록이 비어있지 않도록 물리 bare git 저장소를 만들고 커밋을 하나 심어둔다
-            // (MentionAutocompleteWidgetTemplateEquivalenceSpec의 기존 패턴 재사용).
+            // pull/new는 브랜치가 하나도 없으면 pullrequest/create.html 대신 error/badrequest로
+            // 리다이렉트되므로, 브랜치 목록이 비지 않도록 물리 bare git 저장소에 커밋을 심어둔다.
             run {
                 val gitDir = File(File(gitBaseDir), "${project.owner}/${project.name}.git")
                 if (!gitDir.exists()) {
@@ -197,10 +184,6 @@ class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
                 doc.select("link[href='/javascripts/lib/highlight/styles/default.css']").size shouldBe 1
             }
 
-            // support-script/js-bundle/minify-js.sh(legacy 번들링 스크립트 부활)로 yona-lib.js를
-            // 최신 소스로 재생성한 뒤에는, 번들 안의 yona.Markdown.js 사본이 더 이상 구버전이
-            // 아니므로 site/layout.html에서 override용 개별 <script src> 로드를 제거했다(순수
-            // 중복이었음). 이제는 개별 로드가 없어야 하는 쪽을 검증한다.
             fun assertMarkdownScriptNotLoadedIndividually(doc: Document) {
                 doc.select("script[src='/javascripts/common/yona.Markdown.js']").size shouldBe 0
             }
@@ -257,12 +240,10 @@ class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
                 (yonaLibIdx >= 0) shouldBe true
             }
 
-            // 범위 밖 발견(고치지 않고 보존) -- board/edit·create, board/view, issue/view, wiki/edit,
-            // code/diff는 markdownEditor 프래그먼트(에디터 UI)는 쓰면서도 site/layout.html ::
-            // markdown(project) 프래그먼트는 애초에 include하지 않는다. 즉 yona.Markdown.init()이
-            // 이 화면들에서는 한 번도 호출된 적이 없다(marked/highlight.js 버전과 무관한 기존
-            // 구조적 공백 -- 최종 보고 참고). 이번 버전업으로 새로 생기거나 없어지는 문제가
-            // 아니므로 현재 상태(스크립트 미로드)를 그대로 보존하는 회귀 가드만 남긴다.
+            // board/edit·create, board/view, issue/view, wiki/edit, code/diff는 markdownEditor
+            // 프래그먼트(에디터 UI)는 쓰면서도 markdown(project) 프래그먼트는 애초에 include하지
+            // 않아 yona.Markdown.init()이 호출된 적이 없다 - 버전업과 무관한 기존 구조적 공백이라
+            // 현재 상태(스크립트 미로드)를 그대로 보존하는 회귀 가드만 남긴다.
             it("board/view 화면은 (기존과 마찬가지로) markdown 프래그먼트를 include하지 않아 marked.js/yona.Markdown.js를 로드하지 않는다(범위 밖 기존 공백, 최종 보고 참고)") {
                 val doc = fetchDoc("/${project.owner}/${project.name}/post/${posting.number}")
                 doc.select("script[src='/javascripts/lib/marked.js']").size shouldBe 0
@@ -275,8 +256,6 @@ class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
                 doc.select("script[src='/javascripts/common/yona.Markdown.js']").size shouldBe 0
             }
 
-            // 소스 계약 검증 -- 실제 marked()/hljs 호출 결과(HTML)는 MockMvc로 볼 수 없으므로,
-            // "신버전 API를 호출하는 코드가 배포됐는지"를 정적 텍스트로 직접 검증한다.
             it("static/javascripts/lib/marked.js는 v12+ 계열로 교체되고 구버전 deprecation 경고 문자열이 사라져야 한다") {
                 val src = MarkdownRendererWidgetTemplateEquivalenceSpec::class.java
                     .getResourceAsStream("/static/javascripts/lib/marked.js")!!
@@ -328,8 +307,6 @@ class MarkdownRendererWidgetTemplateEquivalenceSpec @Autowired constructor(
 
                 src shouldContain "hljs.highlightAll()"
                 src shouldNotContain "hljs.initHighlightingOnLoad()"
-                // yona.Markdown.js를 markdown(project) 프래그먼트에서 개별 <script src>로 로드하던
-                // override는 yona-lib.js 번들 재생성 이후 순수 중복이 되어 제거했다.
                 src shouldNotContain "src=\"/javascripts/common/yona.Markdown.js\""
             }
         }

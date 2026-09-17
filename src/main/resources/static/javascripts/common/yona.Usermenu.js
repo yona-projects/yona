@@ -285,16 +285,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // jQuery의 기본 .toggle("fast")(200ms, 높이+투명도 애니메이션)에 대응하는
-    // 최소한의 CSS 트랜지션 기반 구현. 정확히 동일한 이징 알고리즘은 아니지만
-    // 시각적으로 동등한 펼침/접힘 효과를 낸다.
+    // jQuery .toggle("fast")를 대체하는 CSS 트랜지션 기반 구현.
     function toggleFast(el) {
         var isHidden = getComputedStyle(el).display === "none";
         el.style.transition = "none";
         if (isHidden) {
-            // 대상은 항상 <li class="user-li hide">(usermenu_tab_content_list.html) - Bootstrap
-            // .hide{display:none}가 강제되어 있어 빈 문자열로는 다시 안 보인다. <li>의 기본
-            // display는 list-item이라 block이 아니라 list-item을 명시해야 정확하다.
+            // 대상은 <li class="user-li hide"> - Bootstrap의 .hide{display:none}가 우선
+            // 적용되므로 빈 문자열로는 다시 안 보인다. list-item을 명시해야 한다.
             el.style.display = "list-item";
             el.style.overflow = "hidden";
             el.style.maxHeight = "0px";

@@ -21,16 +21,12 @@
 /**
  * yona.ui.TomSelect
  *
- * P3-46 #5: Select2(v3) -> Tom Select 교체. 사용자 결정(2026-09-12)으로 select2 관례(파일명/
- * 네임스페이스/data-toggle 속성/CSS 클래스)를 전부 tomselect로 바꿨다 - 17개 템플릿의 <script src>
- * 경로/fragment 참조와 data-toggle="tomselect" 속성값 33곳, .tomselect-without-searchbox 클래스
- * 2곳을 함께 갱신했다(SelectWidgetTemplateEquivalenceSpec 등 관련 테스트도 동기화).
+ * Select2(v3)를 Tom Select로 교체.
  *
- * Tom Select는 대상 <select>/<input>의 data-* 속성을 자동으로 읽어 옵션 데이터 객체에 그대로
- * 얹어준다(dataset 기반 - 예: data-avatar-url -> avatarUrl, data-category-id -> categoryId,
- * data-category-is-exclusive -> categoryIsExclusive). jQuery의 .data()와 달리 dataset은 값을
- * "true"/"false" 같은 문자열 그대로 돌려주고 boolean으로 변환해주지 않는다 - 아래 곳곳에서
- * categoryIsExclusive를 항상 === "true" 로 비교하는 이유다(문자열 "false"도 JS에서는 truthy라
+ * Tom Select는 대상 <select>/<input>의 data-* 속성을 dataset 기반으로 그대로 옵션 데이터에
+ * 얹어준다(예: data-avatar-url -> avatarUrl). jQuery의 .data()와 달리 dataset은 값을
+ * "true"/"false" 문자열 그대로 돌려주고 boolean으로 변환해주지 않는다 - 아래 곳곳에서
+ * categoryIsExclusive를 항상 === "true"로 비교하는 이유다(문자열 "false"도 JS에서는 truthy라
  * 그냥 if(...)로 쓰면 조용히 깨진다).
  *
  * @requires tom-select.complete.min.js (https://tom-select.js.org/)
@@ -137,8 +133,7 @@
             milestoneState = milestoneState.toLowerCase();
             var milestoneStateLabel = Messages("milestone.state." + milestoneState);
             // 원본의 "${name}".replace('<', '&lt;')를 그대로 재현한다 - 정규식이 아니라 String#replace라
-            // 문자열의 '첫 번째' '<' 문자만 치환하는 불완전한 이스케이프다(의도적으로 고치지 않음,
-            // 최종 보고 "범위 밖 발견" 참고).
+            // 문자열의 '첫 번째' '<' 문자만 치환하는 불완전한 이스케이프다(의도적으로 고치지 않음).
             var name = data.text.trim().replace('<', '&lt;');
 
             return '<div title="[' + milestoneStateLabel + '] ' + name + '">' + name + '</div>';
@@ -150,9 +145,8 @@
             return '<div><a class="label issue-label active static" data-label-id="' + escape(labelId) + '">' + text + '</a></div>';
         },
         "branch": function(data){
-            // 어떤 템플릿도 현재 data-format="branch"를 쓰지 않아(grep으로 재확인) 이 포맷은
-            // 실행 경로상 도달 불가능한 죽은 코드다 - 원본 동작을 그대로 이식만 해둔다(최종 보고
-            // "범위 밖 발견" 참고).
+            // 어떤 템플릿도 현재 data-format="branch"를 쓰지 않아 실행 경로상 도달 불가능한
+            // 죽은 코드다 - 원본 동작을 그대로 이식만 해둔다.
             var branchType = "unknown";
             var branchName = data.text.trim();
             var branchNameRegex = /refs\/(.[a-z]+)\/(.+)/i;
@@ -205,26 +199,18 @@
     }
 
     // ===== select2-selecting/change 이벤트 브릿지 =====
-    // Tom Select는 값이 바뀌어도 원본 <select>/<input> DOM에 native "change" 이벤트를 쏘지 않는다
-    // (내부 MicroEvent 시스템으로만 'change'를 trigger한다) - 그런데 이 프로젝트의 여러 곳
-    // (yona.project.New.js의 #vcs 핸들러, yona.issue.View.js의 이슈 인라인 수정 등)이 원본
-    // 요소의 "change"를 델리게이트로 구독하며 select2 시절처럼 evt.val을 읽는다. 이 브릿지가
-    // 없으면 그 기능들이 조용히 멈춘다 - data-toggle="tomselect"로 자동 초기화되는 인스턴스뿐
-    // 아니라(아래 자동 초기화 루프), 자동 초기화를 거치지 않고 별도 모듈에서 직접 TomSelect를
-    // 생성하는 #assignee(yona.issue.Assginee.js)/#issueSharer(yona.issue.Sharer.js)도 반드시
-    // 이 브릿지를 걸어야 한다 - 그래서 재사용 가능하도록 외부에 노출해둔다.
+    // Tom Select는 값이 바뀌어도 원본 <select>/<input>에 네이티브 change 이벤트를 쏘지 않는다
+    // (내부 시스템으로만 트리거) - 하지만 이 프로젝트의 여러 곳(yona.project.New.js,
+    // yona.issue.View.js의 인라인 수정 등)이 원본 요소의 change를 구독하며 evt.val을 읽으므로,
+    // 이 브릿지가 없으면 그 기능들이 조용히 멈춘다. data-toggle 자동 초기화 인스턴스뿐 아니라,
+    // 직접 TomSelect를 생성하는 #assignee(yona.issue.Assginee.js)/#issueSharer(yona.issue.Sharer.js)
+    // 도 반드시 이 브릿지를 걸어야 해서 외부에 노출해둔다.
     //
-    // P3-70 라운드10: jQuery `.trigger($.Event(...))` 의존을 제거했다 - jQuery의 trigger()는
-    // 네이티브 dispatchEvent를 거치지 않고 parentNode 체인을 직접 순회하며 "jQuery로 등록된"
-    // 핸들러만 호출하는 자체 시뮬레이션 방식이라, 라운드4에서 issue.View.js의 수신측 델리게이트
-    // (_delegate, 순수 addEventListener 기반)가 이미 vanilla로 전환된 지금은 jQuery의 이 시뮬레이션
-    // 버블링이 그 네이티브 리스너에 애초에 도달하지 못한다(jQuery 내부 이벤트 데이터 저장소에
-    // 없는 엘리먼트는 순회 대상에 없음) - 즉 이 상태로는 이슈 뷰의 담당자/마일스톤/상태 인라인
-    // 수정이 조용히 멈춰 있었다(코드 대조로 확인). 네이티브 `Event`에 커스텀 프로퍼티(val)를
-    // 얹어 real dispatchEvent(bubbles:true)로 발화하면 - 재감쌈 없이 같은 이벤트 객체가 그대로
-    // 버블링되므로 - evt.val이 그대로 보존된 채 네이티브 델리게이트에 도달한다(재감쌈 문제는
-    // 오직 "네이티브로 쏘고 jQuery .on()으로 받는" 조합에서만 발생하며, 지금은 반대로 양쪽 다
-    // 네이티브다).
+    // change는 jQuery trigger()가 아니라 네이티브 dispatchEvent로 쏴야 한다 - issue.View.js의
+    // 수신측 델리게이트가 순수 addEventListener 기반이라, jQuery trigger()의 자체 시뮬레이션
+    // 버블링은 거기 도달하지 못해 담당자/마일스톤/상태 인라인 수정이 조용히 멈추는 회귀가
+    // 실제로 있었다. 네이티브 Event에 커스텀 프로퍼티(val)를 얹어 dispatchEvent(bubbles:true)로
+    // 쏘면 evt.val이 보존된 채 그대로 전달된다.
     function bridgeChangeEvent(tomSelectInstance, targetElement){
         tomSelectInstance.on("change", function(value){
             var el = _toElement(targetElement);
@@ -267,13 +253,9 @@
     oNS.container[oNS.name] = function(element, options){
         _installMousewheelGuardOnce();
 
-        // P3-70 라운드3: element는 원래 $(element)로 감싸서 .data()를 읽었기 때문에 raw element
-        // 뿐 아니라 CSS 셀렉터 문자열(pullrequest/partial_search.html의
-        // yona.ui.TomSelect("#contributors") 호출)·jQuery 객체까지 받아들였다. new TomSelect(...)
-        // 자체와 bridgeChangeEvent 내부의 _toElement(targetElement)는 문자열/엘리먼트를 그대로
-        // 받아도 문제없지만(각각 라이브러리 자체 처리, 위에서 새로 정의한 로컬 정규화 헬퍼),
-        // .dataset 읽기는 실제 엘리먼트가 있어야 하므로 이 지점에서만 정규화한다
-        // (yona.Files.js/yona.Attachments.js의 _toElement와 동일한 관례).
+        // element는 raw 엘리먼트/CSS 셀렉터 문자열/jQuery 객체 어느 것으로나 넘어올 수 있다.
+        // new TomSelect(...)와 bridgeChangeEvent는 문자열/엘리먼트를 그대로 받아도 되지만,
+        // .dataset 읽기는 실제 엘리먼트가 필요하므로 이 지점에서만 정규화한다.
         var targetElement = (element && element.jquery) ? element[0] :
             (typeof element === "string" ? document.querySelector(element) : element);
 

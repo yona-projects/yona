@@ -17,7 +17,7 @@
         /**
          * jQuery `.on(evt, selector, fn)` 위임 바인딩과 동일하게 재현한다:
          * addEventListener + closest(selector) + container.contains(...) 가드 +
-         * fn.call(matchedEl, e) (P3-70 라운드2에서 확립한 관례).
+         * fn.call(matchedEl, e).
          *
          * @private
          */
@@ -35,7 +35,7 @@
 
         /**
          * issue/view.html 인라인 스크립트가 `$(document).on('submit', '#comment-form', ...)`로
-         * 댓글 폼 제출을 AJAX로 가로챈다(P3-48). jQuery의 인자 없는 `.submit()`은
+         * 댓글 폼 제출을 AJAX로 가로챈다. jQuery의 인자 없는 `.submit()`은
          * `.trigger("submit")`과 같아서 이 델리게이트를 실제로 호출하고, 아무도
          * preventDefault를 안 부르면 네이티브 elem.submit()으로 폴백한다 - 네이티브
          * form.submit()을 직접 부르면 이 AJAX 가로채기를 건너뛰게 되므로 동일한
@@ -166,16 +166,14 @@
             _delegate(elements.timelineWrap, "click", '[data-request-type="comment-vote"]', _onClickCommentVote);
 
             // Update issue info
-            // data-toggle 속성값이 select2->tomselect로 바뀌었으므로(사용자 결정 2026-09-12)
-            // 델리게이트 셀렉터도 함께 갱신 - 안 그러면 yona.ui.TomSelect.js의 bridgeChangeEvent가
-            // 쏘는 네이티브 change 이벤트를 이 델리게이트가 못 잡아 이슈 인라인 수정(담당자/
-            // 마일스톤/라벨)이 조용히 멈춘다.
+            // 델리게이트 셀렉터는 data-toggle="tomselect"를 봐야 한다 - 안 그러면
+            // yona.ui.TomSelect.js의 bridgeChangeEvent가 쏘는 네이티브 change 이벤트를 이
+            // 델리게이트가 못 잡아 이슈 인라인 수정(담당자/마일스톤/라벨)이 조용히 멈춘다.
             _delegate(elements.issueInfoWrap, "change", "[data-toggle=tomselect]", _onChangeIssueInfo);
             _delegate(elements.issueInfoWrap, "change", "[data-toggle=calendar]", _onChangeDueDate);
             // "select2-selecting"은 Select2 v3 전용 커스텀 이벤트라 Tom Select가 절대 발생시키지
-            // 않는다(P3-70 라운드1에서 issue.Write.js의 동일 분기 발견·문서화) - 이 바인딩과 아래
-            // _onSelectingAssignee는 도달 불가능한 죽은 코드다. 삭제하지 않고 문법만 그대로
-            // vanilla로 옮긴다.
+            // 않는다 - 이 바인딩과 아래 _onSelectingAssignee는 도달 불가능한 죽은 코드다.
+            // 삭제하지 않고 문법만 그대로 vanilla로 옮긴다(issue.Write.js도 동일).
             _delegate(elements.issueInfoWrap, "select2-selecting", '[name="assignee.user.id"]', _onSelectingAssignee);
 
             // Detect textarea events for autoUpdate timeline
@@ -235,10 +233,9 @@
             var targetElement = this;
             var selectedElement = targetElement.querySelector("option:checked");
             var isValueNotChanged = (targetElement.value === evt.val);
-            // P3-70 라운드1에서 issue.Write.js와 동일하게 확인: forceChange/nonMember는 어느
-            // 템플릿/JS도 설정한 적 없는 순수 죽은 참조라 항상 undefined다. 6단계(jQuery
-            // 완전 제거)에서 window.jQuery.data() 정적 접근자를 순수 expando 프로퍼티 읽기로
-            // 바꿨다 - 도달 불가능한 분기라 실질적 영향 없이 완전 동치.
+            // forceChange/nonMember는 어느 템플릿/JS도 설정한 적 없는 죽은 참조라 항상
+            // undefined다 - window.jQuery.data() 정적 접근자를 expando 프로퍼티 읽기로
+            // 바꿔도 도달 불가능한 분기라 완전 동치.
             var isForceChange = evt.object.element._forceChange;
             var isNonMember = selectedElement ? selectedElement._nonMember : undefined;
 
@@ -271,8 +268,7 @@
             }
 
             // "oval"(old value) 캐시는 이 두 줄 밖 어디에서도 읽히지 않는 자기참조 값이라
-            // (grep으로 확인) 사실상 관찰 가능한 효과가 없다 - 원본 그대로 순수 JS 캐시
-            // (expando)로 보존한다.
+            // 관찰 가능한 효과가 없다 - 원본 그대로 expando로 보존한다.
             if(element.__oval !== element.value){
                 element.__oval = element.value;
             }
@@ -308,9 +304,8 @@
          * @private
          */
         function _requestUpdateIssue(evt, callback){
-            // P3-46 #5: Select2(v3) -> Tom Select 교체. field.data("select2")로 인스턴스를 얻던
-            // 방식을 field.tomselect로 교체한다(현재 이 경로로 실제 도달하는 필드는 #milestone
-            // 하나뿐 - 최종 보고 "범위 밖 발견" 참고).
+            // field.data("select2")로 인스턴스를 얻던 방식을 field.tomselect로 교체한다
+            // (현재 이 경로로 실제 도달하는 필드는 #milestone 하나뿐).
             var field = evt.target;
             var fieldName = field.dataset.fieldName || field.name;
             var fieldTomSelect = field.tomselect;
@@ -451,9 +446,8 @@
             var oUploader = yona.Files.getUploader(elements.uploader, elements.textarea);
 
             if(oUploader){
-                // P3-70 라운드3/4: yona.Files.getUploader()는 code.Diff.js/code.SvnDiff.js
-                // (라운드5 대상)가 여전히 .attr()로 접근해야 해서 반환값을 jQuery로 감싸둔
-                // 상태다 - oUploader[0]로 raw element를 꺼내 네이티브로 읽는다.
+                // yona.Files.getUploader()는 [elContainer] 형태의 배열을 반환하므로
+                // oUploader[0]로 raw element를 꺼내 네이티브로 읽는다.
                 (new yona.Attachments({
                     "elContainer"  : elements.uploader,
                     "elTextarea"   : elements.textarea,
@@ -472,8 +466,8 @@
         function _initFileDownloader(target){
             var containers = target || document.querySelectorAll(".attachments");
             containers.forEach(function(container){
-                // 6단계(jQuery 완전 제거): isYonaAttachment는 yona.Attachments.js가 붙이는
-                // 순수 expando 프로퍼티다(공개 계약, 중복 초기화 가드).
+                // isYonaAttachment는 yona.Attachments.js가 붙이는 expando 프로퍼티다
+                // (공개 계약, 중복 초기화 가드).
                 if(!container._isYonaAttachment){
                     (new yona.Attachments({"elContainer": container}));
                 }
@@ -572,10 +566,9 @@
 
             _initFileDownloader(timelineList.querySelectorAll(".attachments"));
             yona.Markdown.enableMarkdown(timelineList.querySelectorAll("[markdown]"));
-            // P3-70 라운드10: 새로 렌더링된(아직 Common.js의 전역 DOMContentLoaded auto-init을
-            // 거치지 않은) 타임라인 조각 안의 [data-request-method] 엘리먼트(삭제 버튼)를 개별
-            // 초기화한다 - $yona.requestAs는 idempotent라 이미 초기화된 엘리먼트를 다시 넘겨도
-            // 안전하다.
+            // 새로 렌더링된(아직 Common.js의 전역 DOMContentLoaded auto-init을 거치지 않은)
+            // 타임라인 조각 안의 [data-request-method] 엘리먼트(삭제 버튼)를 개별 초기화한다 -
+            // $yona.requestAs는 idempotent라 이미 초기화된 엘리먼트를 다시 넘겨도 안전하다.
             timelineList.querySelectorAll("[data-request-method]").forEach(function(el){
                 $yona.requestAs(el);
             }); // delete button
@@ -658,8 +651,8 @@
                     if(elements.textarea.value.length > 0){
                         withStateTransitionInput.value = "true";
                         // issue/view.html 인라인 스크립트의 $(document).on('submit',
-                        // '#comment-form', ...) AJAX 핸들러(P3-48)를 그대로 타도록 진짜
-                        // "submit" 이벤트를 발생시킨다(위 _triggerFormSubmit 주석 참고).
+                        // '#comment-form', ...) AJAX 핸들러를 그대로 타도록 진짜 "submit"
+                        // 이벤트를 발생시킨다(위 _triggerFormSubmit 주석 참고).
                         _triggerFormSubmit(commentForm);
                     } else {
                         withStateTransitionInput.value = "";

@@ -30,13 +30,10 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
-// v1.6(Twirl) 대조 결과 발견된 두 결함 검증(P3-49 후속 — board/view.html은 원래 티켓 검토 범위
-// 밖이었다). issue/view.scala.html·board/view.scala.html은 새 댓글 작성 폼에
-// common.fileUploader(type, null)를 쓰는데, 이 헬퍼는 항상 formId="upload"를 하드코딩해
-// 넘긴다(app/views/common/fileUploader.scala.html) — yona.Files.js의 _initFileUploader()가
-// 전역 $("#upload")로 컨테이너를 찾으므로 이 id가 없으면 클릭 업로드/드롭존/textarea
-// 드래그드롭/붙여넣기가 전부 조용히 죽는다. 포팅본은 이 헬퍼 대신 raw uploadForm 프래그먼트를
-// formId=null로 직접 호출해 id 자체가 렌더링되지 않았다.
+// v1.6(Twirl) 대조로 발견한 결함: issue/view·board/view의 새 댓글 작성 폼이 쓰는
+// common.fileUploader(type, null)는 항상 formId="upload"를 하드코딩해 넘기는데,
+// yona.Files.js의 _initFileUploader()가 전역 $("#upload")로 컨테이너를 찾으므로 이 id가
+// 없으면 클릭 업로드/드롭존/드래그드롭/붙여넣기가 전부 조용히 죽는다.
 class CommentAttachmentUploadWidgetTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -100,10 +97,9 @@ class CommentAttachmentUploadWidgetTemplateEquivalenceSpec @Autowired constructo
             val posting = postingRepository.findAll().find { it.project.id == project.id && it.title == "댓글업로드 게시글" }
                 ?: postingRepository.save(Posting(title = "댓글업로드 게시글", body = "본문", project = project, number = 1L))
 
-            // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
-            // 교체되면서 id=upload 컨테이너 자체는 <div>가 아니라 <yona-attachments>가
-            // 됐다 - yona.Files.js는 이제 이 태그명을 보고 리스너 연결을 건너뛴다(그
-            // 컴포넌트가 드래그/드롭/붙여넣기를 Shadow DOM 안에서 직접 소유하므로).
+            // common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로 교체되면서 id=upload
+            // 컨테이너는 <div>가 아니라 <yona-attachments>다 - yona.Files.js는 이 태그명을 보고
+            // 리스너 연결을 건너뛴다(드래그/드롭/붙여넣기를 컴포넌트가 Shadow DOM 안에서 직접 소유).
             it("issue/view 화면의 새 댓글 폼은 id=upload 업로더 컨테이너(<yona-attachments>)를 갖춰야 한다") {
                 val doc = Jsoup.parse(
                     mockMvc.perform(

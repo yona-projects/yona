@@ -136,12 +136,9 @@ class BareCommit(
         return commitId
     }
 
-    // 위키 페이지 저장(생성/수정/이름변경 통합) 대응. Forgejo 위키 편집 폼처럼 제목(=경로)과
-    // 본문을 한 커밋으로 함께 반영한다. oldPath가 null이면 신규 생성, oldPath != newPath면 그
-    // 경로의 파일을 지우고 newPath에 새로 쓰는 이름변경까지 한 커밋에서 처리한다. 위 3-인자
-    // commitTextFile()과 달리 실제 파일시스템(bare 저장소 디렉터리)에 스크래치 파일을 쓰지 않고
-    // in-core DirCache만으로 처리한다 — 위키 저장소는 코드브라우저 온라인편집과 달리 동시에
-    // 여러 페이지가 저장될 수 있어, 디스크에 임시 파일을 남기는 기존 방식보다 안전하다.
+    // oldPath가 null이면 신규 생성, oldPath != newPath면 이름변경(경로 이동)까지 한 커밋에서
+    // 처리한다. commitTextFile()과 달리 디스크에 스크래치 파일을 쓰지 않고 in-core DirCache만
+    // 쓴다 — 위키는 여러 페이지가 동시에 저장될 수 있어 임시 파일 방식보다 안전하다.
     @Throws(IOException::class)
     fun commitPage(branchName: String, oldPath: String?, newPath: String, text: String, message: String): ObjectId? {
         var commitId: ObjectId? = null
@@ -166,7 +163,6 @@ class BareCommit(
         return commitId
     }
 
-    // 위키 페이지 삭제 대응. path에 해당하는 트리 엔트리만 제거한 새 커밋을 만든다.
     @Throws(IOException::class)
     fun deletePage(branchName: String, path: String, message: String): ObjectId? {
         var commitId: ObjectId? = null

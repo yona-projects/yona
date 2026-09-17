@@ -18,12 +18,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.util.Locale
 
-// site/layout.html의 tplAttachedFile/tplDropFilesHere는 <script type="text/x-jquery-tmpl">
-// 안이라 th:text 같은 속성 프로세서는 처리되지 않는다(스크립트 내용은 raw text) — 로케일과
-// 무관하게 항상 템플릿에 적힌 한국어 기본값이 노출되는 i18n 회귀가 있었다. v1.6(Twirl)은
-// 같은 위치에서 @Messages(...)를 순수 텍스트 치환으로 처리해 로케일별로 정상 동작했다
-// (app/views/common/fileUploader.scala.html). th:inline="text" + [[#{...}]] 인라인 토큰으로
-// 고쳤다 - 실제로 처리됐는지(원문 토큰이 그대로 남아있지 않은지)와 값이 채워지는지를 검증한다.
+// <script type="text/x-jquery-tmpl"> 내부는 raw text라 th:text 같은 속성 프로세서가 처리하지
+// 않아, 로케일과 무관하게 템플릿의 한국어 기본값이 항상 노출되는 i18n 버그가 있었다.
+// th:inline="text" + [[#{...}]] 인라인 토큰으로 고쳐, 원문 토큰이 남지 않고 값이 채워지는지 검증한다.
 class AttachmentJqueryTemplateI18nSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository
@@ -58,11 +55,8 @@ class AttachmentJqueryTemplateI18nSpec @Autowired constructor(
                         .with(SecurityMockMvcRequestPostProcessors.user(userDetails))
                 ).andExpect(status().isOk).andReturn().response.contentAsString
 
-                // th:inline="text"가 실제로 [[#{...}]] 토큰을 처리했다는 직접 증거 — 처리되지
-                // 않았다면 원문 토큰이 그대로 노출된다.
                 body.contains("[[#{common.attach.clickToPost}]]") shouldBe false
                 body.contains("[[#{common.attach.dropFilesHere}]]") shouldBe false
-                // th:text 속성 자체도 raw text라 처리되지 않은 채 그대로 노출되던 것이 과거 버그였다.
                 body.contains("th:text=\"#{common.attach.clickToPost}\"") shouldBe false
 
                 body.contains("본문에 넣기") shouldBe true

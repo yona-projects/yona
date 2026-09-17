@@ -1102,7 +1102,6 @@ class UserControllerSpec : DescribeSpec({
             }
         }
 
-        // 계정 잠금 시 관리자가 2FA를 강제로 끌 수 있어야 한다는 요구사항 대응.
         describe("POST /-_-api/v1/admin/users/{loginId}/disable-2fa") {
             val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
@@ -1140,7 +1139,6 @@ class UserControllerSpec : DescribeSpec({
             }
         }
 
-        // 법적 컴플라이언스 감사 #4(브루트포스 자동 잠금) 관리자 해제 경로 + #6(감사 로그) 대응.
         describe("POST /-_-api/v1/admin/users/{loginId}/unlock") {
             val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")

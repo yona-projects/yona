@@ -10,11 +10,8 @@ yona.Attachments = function(htOptions) {
     var htElements = {};
 
     /**
-     * P3-70 라운드3: elContainer/elTextarea/targetFormId 정규화 헬퍼(yona.Files.js의 _toElement와
-     * 동일한 관례) - raw element/jQuery 객체/셀렉터 문자열을 모두 받아준다. 이 생성자는 아직 jQuery인
-     * 여러 호출부(board.View.js/code.Diff.js/code.SvnDiff.js/issue.View.js, 라운드4/5 대상)와 이미
-     * vanilla인 호출부(board.Write.js/milestone.View.js/issue.Write.js/milestone.Write.js)에서 함께
-     * 쓰인다.
+     * 호출부가 아직 jQuery 객체를 넘기는 곳과 vanilla 엘리먼트를 넘기는 곳이 섞여 있어
+     * raw element/jQuery 객체/셀렉터 문자열을 모두 받아준다(yona.Files.js의 _toElement와 동일).
      *
      * @param {Variant} el
      * @return {HTMLElement|null}
@@ -94,12 +91,8 @@ yona.Attachments = function(htOptions) {
     function _initElement(htOptions){
         var elContainer = _toElement(htOptions.elContainer);
 
-        // 하이브리드 어댑터(2026-09-17, components/vue-widgets attachments 위젯 적용) -
-        // 컨테이너가 <yona-attachments>(태그명으로 판별)면 드롭존/업로드 버튼/카드 목록을
-        // 전부 그 커스텀 엘리먼트 자신이 담당한다 - configure()로 외부 textarea 참조만
-        // 주입하고, 이 파일의 나머지 vanilla DOM 조립/네트워크 로딩은 전혀 실행하지 않는다
-        // (resourceType/resourceId 기반 로딩도 configure() 내부에서 host의
-        // data-resource-type/data-resource-id 속성을 직접 읽어 처리한다).
+        // 컨테이너가 <yona-attachments>면 드롭존/업로드/카드 목록을 그 커스텀 엘리먼트가 전부
+        // 담당한다 - configure()로 textarea 참조만 넘기고 이 파일의 나머지 초기화는 건너뛴다.
         if(elContainer && elContainer.tagName.toLowerCase() === "yona-attachments"){
             htVar.bIsVueAttachments = true;
             elContainer._isYonaAttachment = true;
@@ -121,26 +114,18 @@ yona.Attachments = function(htOptions) {
         // welContainer
         htElements.welContainer = elContainer;
         if(elContainer){
-            // isYonaAttachment는 milestone.View.js/issue.View.js/code.Diff.js/code.SvnDiff.js/
-            // board.View.js가 읽는 공개 계약이다(중복 초기화 가드 - 이 컨테이너에 이미
-            // Attachments를 붙였는지). 6단계(jQuery 완전 제거)에서 window.jQuery.data() 정적
-            // 접근자를 걷어내고 순수 expando 프로퍼티로 바꿨다 - $yona.requestAs의
-            // el._yonaRequestAs, yona.ui.Switch의 el._yonaSwitch와 동일한 관례. 읽는 쪽 5개
-            // 파일도 전부 같은 프로퍼티로 갱신했다.
+            // _isYonaAttachment는 milestone.View.js/issue.View.js/code.Diff.js/code.SvnDiff.js/
+            // board.View.js가 중복 초기화 가드로 읽는 공개 계약이다 - 이름을 바꾸려면 그 5개
+            // 파일도 함께 갱신해야 한다.
             elContainer._isYonaAttachment = true;
         }
         htVar.sResourceId = htVar.sResourceId || (elContainer ? elContainer.dataset.resourceId : undefined);
         htVar.sResourceType = htVar.sResourceType || (elContainer ? elContainer.dataset.resourceType : undefined);
 
         if (!htVar.attachments) {
-            // P3-70 라운드3 함정 발견: data-attachments는 JSON 배열 문자열이다(예: issue/view.html의
-            // th:data-attachments="${attachmentsJson}"). jQuery .data()는 "["로 시작하는 문자열을
-            // 자동으로 JSON.parse해서 돌려주지만(내부 dataAttr 변환 - 라운드1에서 발견한 boolean
-            // 자동변환과 같은 계열의 함정), 네이티브 dataset은 항상 raw 문자열 그대로 돌려준다.
-            // 여기서 명시적으로 JSON.parse하지 않으면 htVar.attachments가 배열이 아니라 문자열이
-            // 되어(그래도 truthy라 아래 _init의 분기까지는 타지만) _updateAttachments()가 기대하는
-            // 모양이 아니게 되어 기존 첨부파일이 페이지 로드시 전혀 렌더링되지 않는 실제 회귀가
-            // 생긴다(milestone.View.js/board.View.js 등이 이 경로로 Attachments를 초기화함).
+            // data-attachments는 JSON 배열 문자열이다. jQuery .data()는 "["로 시작하는 문자열을
+            // 자동으로 JSON.parse했지만 네이티브 dataset은 raw 문자열 그대로 돌려준다 - 여기서
+            // 명시적으로 parse하지 않으면 기존 첨부파일이 페이지 로드시 렌더링되지 않는다.
             var sAttachmentsRaw = elContainer ? elContainer.dataset.attachments : undefined;
             htVar.attachments = sAttachmentsRaw ? JSON.parse(sAttachmentsRaw) : undefined;
         }
@@ -238,8 +223,6 @@ yona.Attachments = function(htOptions) {
             } else {
                 welItem.id = oFile.nSubmitId;
                 welItem.style.opacity = "0.2";
-                // progressBar 참조는 이 파일 내부에서만 쓰는 값이라(다른 파일이 읽지 않음) 코드베이스
-                // 관례대로 커스텀 expando 프로퍼티에 raw element를 그대로 보관한다.
                 welItem._yonaProgressBar = welItem.querySelector(".progress > .bar");
             }
 
@@ -254,8 +237,8 @@ yona.Attachments = function(htOptions) {
                 htElements.welFileList = elTplHolder.firstElementChild;
                 htElements.welContainer.appendChild(htElements.welFileList);
             }
-            // .upload-wrap .attached-files/.help는 CSS 기본값이 display:none이라(round2와 동일한
-            // 판단), jQuery .show()가 <ul>/<p> 기본 표시값(block)으로 복원하던 것과 동일하게 맞춘다.
+            // .attached-files/.help는 CSS 기본값이 display:none이라 jQuery .show()와
+            // 동일하게 block으로 명시해야 한다.
             htElements.welFileList.style.display = "block";
             if(htElements.welFileListHelp){
                 htElements.welFileListHelp.style.display = "block";
@@ -385,10 +368,9 @@ yona.Attachments = function(htOptions) {
             _setProgressBar(nSubmitId, 100);
         }
 
-        // 원본은 "#nSubmitId, .attached-file[data-id=oRes.id]" 콤보 셀렉터로 전체 문서에서 찾았다
-        // (welContainer로 스코핑하지 않음) - _updateFileItem이 정상 처리된 경우 두 조건 모두 같은
-        // 노드를 가리켜 결과가 같고, welItemExists 분기(기존 파일과 중복)로 임시 노드가 이미
-        // remove()된 경우엔 data-id 쪽만 남아 그걸 찾아준다. 동일하게 문서 전체에서 OR로 찾는다.
+        // welContainer로 스코핑하지 않고 문서 전체에서 OR로 찾는다 - 정상 처리시엔 두 조건이
+        // 같은 노드를 가리키고, 중복 파일이라 임시 노드가 이미 remove()된 경우엔 data-id
+        // 쪽만 남아 그걸로 찾는다.
         var welFileItem = document.getElementById(String(htData.nSubmitId)) ||
             document.querySelector('.attached-file[data-id="' + htData.oRes.id + '"]');
         var sTempLink = _getTempLinkText(htData.nSubmitId);
@@ -500,28 +482,13 @@ yona.Attachments = function(htOptions) {
     }
 
     /**
-     * P3-50: <yona-markdown-editor>가 감싼 textarea는 CodeMirror -> textarea 단방향
-     * 동기화만 있다 — 이 함수들처럼 raw textarea.val()을 직접 써서 프로그램적으로 내용을
-     * 바꾸는 코드는 CodeMirror가 전혀 인지하지 못해 실제로는 반영되지 않는다(첨부파일 업로드
-     * 성공 시 마크다운 링크가 삽입된 것처럼 보여도 실제 제출되는 내용에는 빠져있었음 —
-     * Playwright로 실제 재현). raw textarea 조작 결과를 계산한 뒤 그 최종 문자열을
-     * CodeMirror 쪽에도 강제로 밀어넣어야 한다 - 이 파일의 여러 호출 경로(클릭/드롭/붙여넣기/
-     * 성공콜백)마다 시점·컨텍스트가 달라 CodeMirror API 경로 자체를 타지 못하는 경우가
-     * 실측으로 발견됐기 때문에(예: 카드 클릭으로 링크를 넣은 직후엔 raw textarea에 정상
-     * 반영되지만, 이후 제출 버튼 클릭으로 포커스가 빠지는 순간 CodeMirror가 자신의 변경
-     * 없는 내부 버퍼를 textarea에 다시 밀어써 방금 넣은 값이 사라지는 것을 Playwright로
-     * 재현) raw textarea를 항상 최종 소스오브트루스로 강제 동기화한다.
-     *
-     * 6단계(jQuery 완전 제거): lib/yona-markdown-editor(수정 금지 대상)가 예전엔
-     * `window.jQuery(textarea).data(...)`로 노출하던 것을, 이제 커스텀 엘리먼트
-     * 자신의 네이티브 `value` getter/setter로 노출한다 - `textarea.closest(
-     * 'yona-markdown-editor')`로 그 엘리먼트를 직접 찾아 jQuery 없이 바로 접근한다(순수
-     * textarea만 쓰는 화면에서는 closest()가 null을 반환해 그대로 조용히 스킵된다).
-     * components/vue-widgets가 defineCustomElement로 빌드한 <yona-markdown-editor-vue>도
-     * 원본과 동일한 `.value` getter/setter 계약을 제공하므로(light DOM textarea까지
-     * 포함해 원본과 동일한 구조 - 실제 <form> 제출/첨부파일 클릭 삽입까지 실측 검증됨,
-     * components/vue-widgets/README.md 참고) 태그 셀렉터에 추가하는 것만으로 호환된다 -
-     * 원본만 쓰는 화면에서는 동작이 전혀 바뀌지 않는다(closest()가 여전히 같은 것을 찾음).
+     * <yona-markdown-editor>가 감싼 textarea는 CodeMirror -> textarea 단방향 동기화만
+     * 있어서, raw textarea.value를 직접 바꿔도 CodeMirror는 이를 인지하지 못한다 - 포커스가
+     * 빠지는 순간 CodeMirror가 자신의 버퍼로 값을 되돌려써 방금 삽입한 링크가 사라진다
+     * (Playwright로 재현). textarea.closest('yona-markdown-editor, yona-markdown-editor-vue')로
+     * 에디터를 찾아 value를 강제로 다시 밀어넣는다. 두 커스텀 엘리먼트 모두 같은 value
+     * getter/setter 계약을 제공하며, 순수 textarea 화면에서는 closest()가 null이라 조용히
+     * 스킵된다.
      */
     function _syncMarkdownEditor(welTextarea){
         var elEditor = welTextarea ? welTextarea.closest("yona-markdown-editor, yona-markdown-editor-vue") : null;

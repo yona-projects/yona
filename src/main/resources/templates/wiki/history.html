@@ -18,7 +18,6 @@
                 </h2>
             </div>
 
-            <!-- 리비전 목록 + 두 리비전을 골라 비교(리비전 간 diff). -->
             <form th:action="${wikiBase + '/_history/' + #uris.escapePath(historyTitle)}" method="get" id="compare-form">
                 <table class="table" style="width:100%;">
                     <thead>
@@ -53,8 +52,7 @@
                 <button type="submit" class="ybtn" th:text="#{wiki.compare}">Compare selected</button>
             </form>
 
-            <!-- 리비전(vs 부모) 또는 두 리비전 사이의 diff. 위키 커밋은 항상 페이지 파일 하나만
-                 바꾸므로 커밋 전체 patch가 곧 이 페이지의 변경분이다(WikiServiceImpl.diff/compare). -->
+            <!-- 위키 커밋은 항상 페이지 파일 하나만 바꾸므로 커밋 전체 patch가 곧 이 페이지의 변경분이다(WikiServiceImpl.diff/compare). -->
             <div th:if="${diffLines != null}" class="codediff-wrap" style="margin-top:20px;">
                 <h4 th:text="${diffLabel}">diff label</h4>
                 <pre class="wiki-diff" style="background:#f6f8fa;border:1px solid #d1d5da;padding:10px;overflow:auto;font-family:monospace;font-size:12px;line-height:1.5;"><th:block th:each="line : ${diffLines}"><span

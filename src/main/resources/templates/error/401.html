@@ -9,7 +9,7 @@
       <div class="project-page-wrap">
           <div class="error-wrap">
               <i class="ico ico-err2"></i>
-              <!-- P3-68: BasicErrorController의 /error 자동 포워딩으로 넘어오는 ResponseStatusException
+              <!-- BasicErrorController의 /error 자동 포워딩으로 넘어오는 ResponseStatusException
                    reason(message)에 대한 폴백. 400.html과 동일한 취지 — 자세한 설명은 그쪽 주석 참고. -->
               <p th:text="${messageKey != null} ? #{__${messageKey}__} : (${message} != null ? ${message} : '로그인이 필요한 서비스입니다.')">로그인이 필요합니다.</p>
               <a href="/login" class="ybtn ybtn-primary" th:text="#{title.login}">로그인</a>

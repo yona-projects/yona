@@ -175,21 +175,18 @@
             NProgress.configure({minimum: 0.7});
 
             /* Set side navigation */
-            // common/yona.Usermenu.js(site/layout::scripts로 이 화면에도 함께 로드됨)가
-            // #mySidenav/#sidebar-open-btn/.star-project 등 동일한 요소에 이미 자체 리스너를
-            // 붙인다 - 이 화면 전용 인라인 스크립트가 같은 요소에 한 번 더 리스너를 거는
-            // pre-existing 중복 구조(jQuery 시절부터 있던 구조, 이번 전환과 무관하다 - 아래
-            // "범위 밖 발견" 참고). 새로 합치거나 제거하지 않고 원본 동작 그대로 재현한다.
+            // common/yona.Usermenu.js가 #mySidenav/#sidebar-open-btn/.star-project 등 같은 요소에
+            // 이미 자체 리스너를 붙인다 - jQuery 시절부터 있던 중복 구조라 합치거나 제거하지 않고
+            // 원본 동작 그대로 재현한다.
             var sidebar = document.getElementById("mySidenav");
             var viewSize = document.documentElement.clientWidth;
 
             var elMain = document.getElementById("main");
             if (elMain) {
                 elMain.addEventListener("click", function(event){
-                    // 원본 $(event.target).parents("#mySidenav").length == 0 은 "target 자신이
-                    // sidebar 요소이거나 sidebar 밖일 때" true(.parents()는 자기 자신은 제외) -
-                    // contains(...) && target !== sidebar 로 동일하게 재현(common/yona.Usermenu.js
-                    // 가 이미 쓰는 것과 동일한 관용구).
+                    // jQuery의 $(event.target).parents("#mySidenav").length == 0 은 "자기 자신은
+                    // 제외"하는 검사라, target 자신이 sidebar일 때도 true다 - contains(...) &&
+                    // target !== sidebar 로 동치 재현한다.
                     if (sidebar && sidebar.offsetWidth !== 0 && !(sidebar.contains(event.target) && event.target !== sidebar)) {
                         closeSidebar(sidebar);
                     }

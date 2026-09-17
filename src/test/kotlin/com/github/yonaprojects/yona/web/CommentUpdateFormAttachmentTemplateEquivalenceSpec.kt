@@ -33,12 +33,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 
-// P3-50: common/commentUpdateForm.html이 새 댓글 작성 폼과 동일한 범용 common/uploadForm
-// 프래그먼트를 재사용해, 이미 첨부된 파일이 있는 댓글을 수정하려고 열어도 그 파일들이 전혀
-// 보이지 않았다(삭제도 불가능, 몇 개나 첨부돼 있는지도 알 수 없었음). v1.6 원본
-// commentUpdateForm.scala.html은 전용 마크업(.file-upload__input/.temporaryUploadFiles/
-// .attachment-files, attachmentFile(...) 파샬)을 쓰고 이미 이식된 yona.CommentAttachmentsUpdate.js가
-// 그 마크업의 클릭/드래그드롭/붙여넣기/삭제 이벤트를 담당한다.
+// common/commentUpdateForm.html이 새 댓글 작성 폼과 동일한 범용 common/uploadForm 프래그먼트를
+// 재사용해, 이미 첨부된 파일이 있는 댓글을 수정하려고 열어도 그 파일들이 전혀 보이지
+// 않았다(삭제도 불가능, 몇 개나 첨부돼 있는지도 알 수 없었음). v1.6 원본 commentUpdateForm.scala.html은
+// 전용 마크업(.file-upload__input/.temporaryUploadFiles/.attachment-files, attachmentFile(...)
+// 파샬)을 쓰고 yona.CommentAttachmentsUpdate.js가 그 마크업의 클릭/드래그드롭/붙여넣기/삭제
+// 이벤트를 담당한다.
 class CommentUpdateFormAttachmentTemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,
     private val userRepository: UserRepository,
@@ -104,8 +104,8 @@ class CommentUpdateFormAttachmentTemplateEquivalenceSpec @Autowired constructor(
             // 주의: AttachmentRepository.findByContainerTypeAndContainerId는 @Cacheable이다.
             // 여기서 "이미 있는지" 조회부터 하면(멱등성 가드) 그 조회 자체가 빈 결과를 캐시해버려
             // (raw repository.save()는 서비스 계층과 달리 @CacheEvict가 없다) 바로 뒤이은 save()가
-            // 무의미해진다(컨트롤러가 나중에 같은 캐시를 읽어 항상 빈 목록을 봄 — 실제로 이렇게
-            // 재현해 발견). 이슈/댓글마다 매번 새 ID이므로 멱등성 가드 없이 바로 저장한다.
+            // 무의미해진다(컨트롤러가 나중에 같은 캐시를 읽어 항상 빈 목록을 봄). 이슈/댓글마다
+            // 매번 새 ID이므로 멱등성 가드 없이 바로 저장한다.
             attachmentRepository.save(
                 Attachment(
                     name = "issue-comment-file.png", hash = "hash-issue-comment-1",
@@ -139,9 +139,9 @@ class CommentUpdateFormAttachmentTemplateEquivalenceSpec @Autowired constructor(
                 )
             )
 
-            // 2026-09-17 갱신 - common/commentUpdateForm.html이 Vue 3 SFC(<yona-attachments>)로
-            // 교체되면서 yona.CommentAttachmentsUpdate.js(240줄)를 흡수해 삭제했다. 이미 첨부된
-            // 파일은 이제 .attachment-files 래퍼 없이 <yona-attachments> 바로 아래 순수 데이터
+            // common/commentUpdateForm.html이 Vue 3 SFC(<yona-attachments>)로 교체되면서
+            // yona.CommentAttachmentsUpdate.js를 흡수해 삭제했다. 이미 첨부된 파일은 이제
+            // .attachment-files 래퍼 없이 <yona-attachments> 바로 아래 순수 데이터
             // 마커(.attached-file-marker, display:none, common/attachmentFile.html)로 내려가고,
             // 실제 카드/업로드버튼/temporaryUploadFiles 히든필드는 그 컴포넌트가 마운트 시점에
             // Shadow DOM/라이트 DOM에 직접 만든다 - 이름은 텍스트 노드가 아니라 data-name

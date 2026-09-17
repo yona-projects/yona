@@ -101,11 +101,9 @@
                         </div>
                     </div>
 
-                    <!-- id는 오타(Brance)를 legacy 그대로 유지한다 - yona.project.Setting.js가
-                         document.getElementById("defaultBranceSettingPanel")로 이 오타를 그대로
-                         참조하므로("코드 관리" 체크박스 해제 시 이 패널을 숨기는 용도), 포팅 시
-                         이 id만 "정상 철자"로 고쳤다가 JS와 어긋나 패널이 항상 안 숨겨지던 버그를
-                         이식 누락 전수 감사 중 발견해 원복했다. -->
+                    <!-- id의 오타(Brance)는 legacy 그대로 유지 - yona.project.Setting.js가
+                         getElementById("defaultBranceSettingPanel")로 이 오타를 그대로 참조하므로,
+                         "정상 철자"로 고치면 패널이 항상 안 숨겨지는 버그가 생긴다. -->
                     <div th:if="${(project.vcs ?: 'GIT').toUpperCase() == 'GIT' and branches != null and !branches.isEmpty()}" class="box-wrap middle" id="defaultBranceSettingPanel">
                         <div class="cu-label vmiddle" th:text="#{code.branches.defaultBranch}">Default Branch</div>
                         <div class="cu-desc">
@@ -168,10 +166,8 @@
       var rxPrjName = /^[0-9A-Za-z-_\.가-힣]+$/;
       var aReservedWords = [".", "..", ".git"];
 
-      // legacy yobi.project.Setting.js._onChangeLogoPath() 대응 - 이미지 파일인지 검증한 뒤
-      // 곧바로 업로드한다(죽은 코드 감사 중 발견 - 이 화면엔 원래 로고를 실제로 받는
-      // 컨트롤러가 전혀 없어 로고 변경이 완전히 먹통이었다. /api/projects/{id}/logo를
-      // 새로 만들어 연결).
+      // legacy yobi.project.Setting.js._onChangeLogoPath() 대응 - 이미지 파일 검증 후 업로드.
+      // 원래 로고를 받는 컨트롤러가 없어 완전히 먹통이었으므로 /api/projects/{id}/logo를 신설.
       var elLogoPath = document.getElementById("logoPath");
       if (elLogoPath) {
           elLogoPath.addEventListener("change", function(){

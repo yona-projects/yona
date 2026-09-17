@@ -4,12 +4,9 @@
  * Copyright Yona Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
-// P3-46 #5: Select2(v3) -> Tom Select 교체.
-//
-// #assignee(이슈 담당자, issue/view.html)는 data-toggle="tomselect" 자동 초기화 대상이 아니라
-// (그런 속성이 없다) 이 모듈이 직접 TomSelect를 생성한다 - 그래서 change 이벤트 브릿지도 여기서
-// 직접 걸어야 한다(yona.ui.TomSelect.js 상단 주석 참고, yona.issue.Write.js/yona.project.New.js처럼
-// evt.val을 읽는 코드와의 호환을 위해 필요).
+// #assignee는 data-toggle="tomselect" 자동 초기화 대상이 아니라 이 모듈이 직접 TomSelect를
+// 생성하므로, change 이벤트 브릿지도 여기서 직접 걸어야 한다(evt.val을 읽는 다른 코드와의
+// 호환을 위해 - yona.ui.TomSelect.js 상단 주석 참고).
 function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, message){
   var MIN_INPUT_LENGTH = 0;
   var resultCache = {};

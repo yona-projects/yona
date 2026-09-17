@@ -24,11 +24,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.context.WebApplicationContext
 
-// P3-52 항목1 — legacy issue/view.scala.html이 로드하던 common/yona.ReceiverList.js(댓글 작성 중
-// 디바운스 AJAX로 "지금 등록하면 알림 받을 사람" 미리보기)가 소스는 있었지만 어느 템플릿에서도
-// <script src>로 로드된 적이 없어 완전히 죽어있었다(대응 백엔드 API도 없었음, IssueController
-// #commentNotiReceivers로 이번에 이식). 이 스펙은 issue/view.html이 그 스크립트/마크업을 실제로
-// 배선하는지만 확인한다(디바운스 타이밍/실제 AJAX 응답 반영은 Playwright로 완료 시점에 확인).
+// legacy common/yona.ReceiverList.js(댓글 작성 중 디바운스 AJAX로 "지금 등록하면 알림 받을 사람"
+// 미리보기)는 소스는 있었지만 어느 템플릿에서도 <script src>로 로드된 적이 없어 완전히
+// 죽어있었다(대응 백엔드 API도 없었음, IssueController#commentNotiReceivers로 이번에 이식). 이
+// 스펙은 issue/view.html이 그 스크립트/마크업을 실제로 배선하는지만 확인한다(디바운스 타이밍/실제
+// AJAX 응답 반영은 Playwright로 확인).
 @Transactional
 class CommentNotiReceiverListWiringTemplateRenderingSpec @Autowired constructor(
     private val webApplicationContext: WebApplicationContext,

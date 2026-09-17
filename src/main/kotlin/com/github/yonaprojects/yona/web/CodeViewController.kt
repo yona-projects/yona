@@ -45,7 +45,7 @@ class CodeViewController(
     private val accessControl: AccessControl,
     private val markdownService: MarkdownService,
     private val watchService: WatchService,
-    // P3-56: code/svnDiff.html 댓글별 첨부파일 목록(legacy AttachmentApp.getFileList 대응) 렌더링용.
+    // code/svnDiff.html 댓글별 첨부파일 목록(legacy AttachmentApp.getFileList 대응) 렌더링용.
     private val attachmentRepository: AttachmentRepository,
     private val objectMapper: ObjectMapper,
     // yona utils.Config.getSiteName() 대응 — code/nohead(_svn).html의 안내 문구 {0} 자리에 채워 넣는다.
@@ -273,12 +273,8 @@ class CodeViewController(
 
     // legacy CodeApp.ajaxRequestWithBranch() 대응 - code.Browser.js의 AJAX 폴더 트리
     // 지연로딩(hash 기반 expand-in-place)이 한 단계 아래 폴더 내용을 가져올 때 호출한다.
-    // repository.getMetaDataFromPath(branch, path)가 이미 codeBrowserWithBranch()가 전체
-    // 조상 경로를 한 번에 렌더링할 때 쓰는 것과 동일한 메서드라, 여기서는 그 결과 ObjectNode
-    // 하나를 그대로 JSON으로 반환하기만 하면 된다 - "죽은 코드" 감사 중 이 AJAX 트리 기능
-    // 자체가 이식되지 않았던 것을 발견해 legacy와 동일하게 복원했다(이전 세션 P3-63에서는
-    // "페이지 이동 방식으로 충분하다"고 포팅을 보류했었으나, 이번 세션에 legacy 완전 동치화
-    // 방침에 따라 되돌린다).
+    // repository.getMetaDataFromPath(branch, path)는 codeBrowserWithBranch()가 전체 조상 경로를
+    // 렌더링할 때 쓰는 것과 동일한 메서드라, 그 결과 ObjectNode를 그대로 JSON으로 반환하면 된다.
     @GetMapping("/{owner}/{projectName}/code/{branch}/!")
     fun ajaxCodeBrowserRoot(
         @PathVariable owner: String,
@@ -609,7 +605,7 @@ class CodeViewController(
             }
             model.addAttribute("patch", patch)
             model.addAttribute("comments", comments)
-            // P3-56: legacy AttachmentApp.getFileList(COMMIT_COMMENT, comment.id) 대응 — 댓글별
+            // legacy AttachmentApp.getFileList(COMMIT_COMMENT, comment.id) 대응 — 댓글별
             // 첨부파일 목록을 board/issue 댓글과 동일한 {"attachments":[...]} JSON으로 미리 계산해
             // .attachments[data-attachments] 컨테이너에 심는다(렌더링은 yona.Attachments.js가 담당).
             model.addAttribute(
