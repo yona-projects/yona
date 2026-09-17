@@ -48,6 +48,26 @@
 포팅 진행 상황과 legacy 대비 의도적으로 남겨둔 차이점은 `docs/parity/index.md`,
 `docs/TEMPLATE_BACKLOG.md`, `docs/coverage/index.md`에 기록돼 있습니다.
 
+## 프론트엔드 위젯: Vue 3 Web Components로 점진 전환
+
+일부 화면 위젯은 jQuery 기반 vanilla JS에서 [Vue 3 Web Components](https://github.com/yona-projects/components)로
+옮겨가고 있습니다. 각 위젯은 하이브리드 어댑터 방식으로 적용됩니다 — 기존 vanilla `yona.*.js`
+파일이 대상 엘리먼트가 새 커스텀 엘리먼트인지 확인해 맞으면 그 컴포넌트에 위임하고, 아니면 원래
+로직을 그대로 씁니다. 그래서 화면 템플릿을 건드리지 않는 위젯(Typeahead/Pagination 등)도 있고,
+템플릿의 태그 하나만 바뀌는 위젯도 있습니다.
+
+- 위젯 소스: [`yona-projects/components`](https://github.com/yona-projects/components)
+  (Vue 3 SFC를 네이티브 커스텀 엘리먼트로 빌드, 위젯마다 자체 Shadow DOM을 가짐)
+- 빌드 산출물은 `src/main/resources/static/lib/yona-vue-widgets/`에 그대로 커밋돼 있어서,
+  components 저장소를 따로 클론/빌드하지 않아도 이 저장소만으로 바로 실행됩니다.
+- 현재 적용된 위젯(17개): Dialog, Toast, Popover, LoginDialog, Switch, Dropdown, Typeahead,
+  Pagination, Attachments, ScrollElevator, PageSlide, ReviewForm, 마크다운 도움말(HelpMarkdown),
+  라벨 편집기 3종(새 라벨 폼, 카테고리 편집 다이얼로그, 라벨 편집 다이얼로그)
+- 화면 전반에서 공유하는 마크다운 에디터 프래그먼트는 이번 전환 범위에서 제외했습니다 — 에디터의
+  `<textarea>`가 Shadow DOM에 완전히 캡슐화돼 있어, 그 프래그먼트를 참조하는 기존 JS(첨부파일
+  드래그드롭, 임시저장 등)가 여러 화면에서 깨지기 때문입니다. ReviewForm 안에서 쓰는 마크다운
+  에디터는 그 공용 프래그먼트와 무관한 별개 인스턴스라 이 문제가 없어 전환 대상에 포함했습니다.
+
 ## 요구 사항
 
 - JDK 21
@@ -287,6 +307,29 @@ Yona is a web-based project hosting software.
 
 Porting progress and deliberate differences from legacy are tracked in `docs/parity/index.md`,
 `docs/TEMPLATE_BACKLOG.md`, and `docs/coverage/index.md`.
+
+## Frontend widgets: gradual migration to Vue 3 Web Components
+
+Some UI widgets are being migrated from jQuery-based vanilla JS to
+[Vue 3 Web Components](https://github.com/yona-projects/components). Each widget is applied via a
+hybrid-adapter pattern — the existing vanilla `yona.*.js` file checks whether its target element is
+now the new custom element and delegates to it if so, otherwise falling back to the original logic
+unchanged. That means some widgets (Typeahead, Pagination, etc.) need no template changes at all,
+while others need only a single tag swap.
+
+- Widget source: [`yona-projects/components`](https://github.com/yona-projects/components)
+  (Vue 3 SFCs built as native custom elements, each with its own Shadow DOM)
+- The build output is committed as-is under `src/main/resources/static/lib/yona-vue-widgets/`, so
+  this repository runs on its own without cloning or building the components repo separately.
+- Widgets applied so far (17): Dialog, Toast, Popover, LoginDialog, Switch, Dropdown, Typeahead,
+  Pagination, Attachments, ScrollElevator, PageSlide, ReviewForm, the markdown help panel
+  (HelpMarkdown), and the 3-part label editor (new-label form, category-edit dialog, label-edit
+  dialog).
+- The shared markdown editor fragment used across many screens is excluded from this migration —
+  its `<textarea>` is fully encapsulated inside Shadow DOM, which would break the existing JS that
+  reaches into it from other screens (attachment drag-and-drop, draft autosave, etc.). ReviewForm's
+  own markdown editor instance is self-contained and unrelated to that shared fragment, so it does
+  not have this problem and is included.
 
 ## Requirements
 
