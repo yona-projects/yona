@@ -48,18 +48,11 @@
          * attach event handlers
          */
         function _attachEvent(htOptions){
-            // 원본은 #btnDelete의 data-toggle="modal"(Bootstrap 전역 델리게이트)이 모달을 열고,
-            // _onClickBtnDeletePrj가 체크 안 됐을 때 false를 반환해(stopPropagation) 그
-            // 델리게이트까지 이벤트가 안 번지게 막는 방식이었다 - 델리게이트를 없앴으니 여기서
-            // 직접 체크 후 열도록 동일한 게이트를 재현한다.
-            htElement.elBtnDeletePop.addEventListener('click', function(weEvt){
-                weEvt.preventDefault();
-                if(_onClickBtnDeletePrj()){
-                    htElement.elAlertDeletion.showModal();
-                }
-            });
-
-            $yona.attachDialogDismiss(htElement.elAlertDeletion);
+            // 체크박스 게이트 + 모달 열기/닫기는 project.Transfer/ChangeVCS.js와 거의
+            // 동일하게 반복되던 부분이라 공용 헬퍼로 합쳤다(yona.Common.js 참고,
+            // widget-candidates.md 4번 항목).
+            $yona.attachCheckboxGatedConfirm(htElement.elBtnDeletePop, htElement.elChkAccept,
+                htElement.elAlertDeletion, Messages("project.delete.alert"));
 
             // P3-70 라운드10: jquery.requestAs.js 플러그인 호출부를 $yona.requestAs(코어
             // 라이브러리 제거를 위해 이번 라운드에서 신설된 네이티브 대체)로 전환.
@@ -72,14 +65,6 @@
                     return false;
                 }
             });
-        }
-
-        function _onClickBtnDeletePrj(){
-            if(htElement.elChkAccept.checked === false){
-                $yona.alert(Messages("project.delete.alert"));
-                return false;
-            }
-            return true;
         }
 
         _init(htOptions || {});

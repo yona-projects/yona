@@ -48,27 +48,12 @@
          * attach event handlers
          */
         function _attachEvent(options){
-            // 원본은 #btnChangeVCS의 data-toggle="modal"(Bootstrap 전역 델리게이트)이 모달을
-            // 열고, showConfirmPopup은 체크 안 됐을 때 false를 반환해(stopPropagation) 그
-            // 델리게이트 핸들러까지 이벤트가 안 번지게 막는 방식이었다 - 델리게이트를 없앴으니
-            // 여기서 직접 체크 후 열도록 동일한 게이트를 재현한다.
-            elements.btnChangeVCS.addEventListener('click', function(weEvt){
-                weEvt.preventDefault();
-                if(showConfirmPopup()){
-                    elements.alertChangeVCS.showModal();
-                }
-            });
+            // 체크박스 게이트 + 모달 열기/닫기는 project.Delete/Transfer.js와 거의
+            // 동일하게 반복되던 부분이라 공용 헬퍼로 합쳤다(yona.Common.js 참고,
+            // widget-candidates.md 4번 항목).
+            $yona.attachCheckboxGatedConfirm(elements.btnChangeVCS, elements.acceptChangeVCS,
+                elements.alertChangeVCS, Messages("project.changeVCS.alert"));
             elements.btnChangeVCSExec.addEventListener("click", changeVCS);
-
-            $yona.attachDialogDismiss(elements.alertChangeVCS);
-        }
-
-        function showConfirmPopup() {
-            if(elements.acceptChangeVCS.checked === false){
-                $yona.alert(Messages("project.changeVCS.alert"));
-                return false;
-            }
-            return true;
         }
 
         function changeVCS() {

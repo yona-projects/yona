@@ -47,18 +47,11 @@
          * attach event handlers
          */
         function _attachEvent(htOptions){
-            // 원본은 #btnTransfer의 data-toggle="modal"(Bootstrap 전역 델리게이트)이 모달을 열고,
-            // _onClickBtnTransferPop이 체크 안 됐을 때 false를 반환해(stopPropagation) 그
-            // 델리게이트까지 이벤트가 안 번지게 막는 방식이었다 - 델리게이트를 없앴으니 여기서
-            // 직접 체크 후 열도록 동일한 게이트를 재현한다.
-            htElement.elBtnTransferPop.addEventListener('click', function(weEvt){
-                weEvt.preventDefault();
-                if(_onClickBtnTransferPop()){
-                    htElement.elAlertTransfer.showModal();
-                }
-            });
-
-            $yona.attachDialogDismiss(htElement.elAlertTransfer);
+            // 체크박스 게이트 + 모달 열기/닫기는 project.Delete/ChangeVCS.js와 거의
+            // 동일하게 반복되던 부분이라 공용 헬퍼로 합쳤다(yona.Common.js 참고,
+            // widget-candidates.md 4번 항목).
+            $yona.attachCheckboxGatedConfirm(htElement.elBtnTransferPop, htElement.elChkAccept,
+                htElement.elAlertTransfer, Messages("project.transfer.alert"));
 
             htElement.elBtnTransferPrj.addEventListener("click", function(){
                 fetch(htOptions.sTransferURL + "?owner=" + document.getElementById("owner").value, {"method": "put"})
@@ -80,14 +73,6 @@
                         $yona.alert(Messages("project.transfer.error"));
                     });
             }, {"once": true});
-        }
-
-        function _onClickBtnTransferPop(){
-            if(htElement.elChkAccept.checked === false){
-                $yona.alert(Messages("project.transfer.alert"));
-                return false;
-            }
-            return true;
         }
 
         _init(htOptions || {});

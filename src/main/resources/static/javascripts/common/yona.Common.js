@@ -744,6 +744,34 @@ $yona = yona.Common = (function(){
     }
 
     /**
+     * "동의합니다" 체크박스로 게이트된 위험 작업 확인 다이얼로그 공용 헬퍼 -
+     * project.Delete/Transfer/ChangeVCS.js 세 파일이 거의 동일하게 반복 구현하던
+     * "체크 안 됐으면 경고 얼럿, 체크됐으면 모달 열기 + 배경/X 닫기" 부분만 하나로
+     * 합쳤다(2026-09-17, widget-candidates.md 4번 항목). 다이얼로그를 연 뒤 실제
+     * 실행(fetch 등)과 실패 시 처리(dialog.close() + 에러 얼럿)는 호출부마다 API
+     * 엔드포인트/에러 메시지가 달라 그대로 각 파일에 남겨둔다 - 이 헬퍼는 게이트
+     * 체크와 모달 열기/닫기만 담당한다.
+     *
+     * @param {Element} elOpenButton 클릭 시 게이트를 통과하면 모달을 여는 트리거
+     * @param {Element} elCheckbox "동의합니다" 체크박스
+     * @param {Element} elDialog 네이티브 <dialog>
+     * @param {String} sAlertMessage 체크 안 됐을 때 보여줄 경고 메시지(이미 Messages()로
+     *        번역된 문자열 - 호출부가 넘긴다)
+     */
+    function attachCheckboxGatedConfirm(elOpenButton, elCheckbox, elDialog, sAlertMessage){
+        elOpenButton.addEventListener("click", function(weEvt){
+            weEvt.preventDefault();
+            if(elCheckbox.checked === false){
+                showAlert(sAlertMessage);
+                return;
+            }
+            elDialog.showModal();
+        });
+
+        attachDialogDismiss(elDialog);
+    }
+
+    /**
      * elTarget이 호출부에 따라 raw DOM 엘리먼트, jQuery 객체로 제각각 넘어오므로
      * 둘 다 raw DOM 엘리먼트로 정규화한다(yona.ui.Dropdown.js의 _toElement와 동일 패턴).
      */
@@ -1347,6 +1375,7 @@ $yona = yona.Common = (function(){
         "isImageFile": isImageFile,
         "xssClean" : xssClean,
         "attachDialogDismiss": attachDialogDismiss,
+        "attachCheckboxGatedConfirm": attachCheckboxGatedConfirm,
         "initHoverPopovers": initHoverPopovers,
         "showPopoverError": showPopoverError,
         "hidePopoverError": hidePopoverError,
