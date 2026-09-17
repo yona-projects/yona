@@ -96,15 +96,18 @@ class BootstrapSetupControllerSpec : DescribeSpec({
             verify(exactly = 0) { userService.createUser(any()) }
         }
 
-        it("모든 값이 유효하면 SITE_ADMIN 계정을 생성하고 재시작 화면을 반환해야 한다") {
+        // 2026-09-17 정정 - 재시작이 실제로 필요하지 않음을 확인(BootstrapSetupController.kt
+        // 주석 참고)하고, 재시작 안내 화면(bootstrap-restart) 대신 로그인 폼으로 바로
+        // 리다이렉트하도록 바꿨다.
+        it("모든 값이 유효하면 SITE_ADMIN 계정을 생성하고 로그인 폼으로 리다이렉트해야 한다") {
             every { userRepository.count() } returns 0L
             every { userRepository.findByEmail("admin@example.com") } returns Optional.empty()
             val userSlot = slot<User>()
             every { userService.createUser(capture(userSlot)) } returns mockk(relaxed = true)
 
             perform()
-                .andExpect(status().isOk)
-                .andExpect(view().name("bootstrap-restart"))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(view().name("redirect:/users/loginform"))
 
             userSlot.captured.loginId shouldBe "admin"
             userSlot.captured.name shouldBe "관리자"

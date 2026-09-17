@@ -92,7 +92,12 @@ class BootstrapSetupController(
         }
 
         userService.createUser(adminUser)
-        model.addAttribute("siteName", siteName)
-        return "bootstrap-restart"
+        // 2026-09-17 정정 - legacy(Play/Ebean)는 application.secret을 무작위 문자열로
+        // 재기록해야 해서 실제 서버 재시작이 필요했지만(welcome/restart.scala.html), 지금
+        // 구조(Spring Boot+JPA)엔 그런 메커니즘 자체가 없다 - 방금 만든 계정은 이 요청과
+        // 같은 트랜잭션으로 즉시 커밋되므로 재시작 없이 바로 로그인할 수 있다(실측 확인
+        // 완료). "서버를 재시작해야 합니다"라고 알리던 bootstrap-restart 화면은 사실과 다른
+        // 안내라 제거하고, 로그인 폼으로 바로 보낸다.
+        return "redirect:/users/loginform"
     }
 }

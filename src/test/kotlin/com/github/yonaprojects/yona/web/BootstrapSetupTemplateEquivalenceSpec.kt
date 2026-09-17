@@ -140,7 +140,12 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
                 doc.select("dt:has(label[for=email]) .label-important").text() shouldBe "올바른 이메일을 입력해 주세요."
             }
 
-            it("모든 입력이 올바르면 SITE_ADMIN 계정이 생성되고 legacy welcome/restart.scala.html과 동치인 재시작 안내 화면이 렌더링되어야 한다") {
+            // 2026-09-17 정정 - legacy welcome/restart.scala.html의 "서버 재시작 필요" 안내는
+            // Play/Ebean 시절 application.secret 재기록 메커니즘의 잔재였다. 지금 구조(Spring
+            // Boot+JPA)엔 그 메커니즘이 없어 방금 만든 계정으로 재시작 없이 바로 로그인할 수
+            // 있음을 실측 확인했다 - 그래서 사실과 다른 안내를 보여주는 대신 로그인 폼으로
+            // 바로 리다이렉트하도록 바꿨다(bootstrap-restart.html/app.restart.* 메시지 키 삭제).
+            it("모든 입력이 올바르면 SITE_ADMIN 계정이 생성되고 로그인 폼으로 리다이렉트되어야 한다") {
                 val result = mockMvc.perform(
                     post("/bootstrap-setup")
                         .with(csrf())
@@ -151,14 +156,9 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
                         .param("password", "pw12345!")
                         .param("retypedPassword", "pw12345!")
                 )
-                    .andExpect(status().isOk)
+                    .andExpect(status().is3xxRedirection)
+                    .andExpect(redirectedUrl("/users/loginform"))
                     .andReturn()
-
-                val doc = Jsoup.parse(result.response.contentAsString)
-                // legacy: <title>@Messages("app.restart.welcome")</title>, <h3>@Messages("app.restart.welcome")</h3>
-                doc.title() shouldBe "환영합니다!"
-                doc.select("h3").text() shouldBe "환영합니다!"
-                doc.select(".secret-box").text() shouldBe "서버를 재시작해야합니다."
 
                 val created = userRepository.findByLoginId("admin").orElse(null)
                 created shouldNotBe null
