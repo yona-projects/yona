@@ -209,9 +209,11 @@ yona.Markdown = (function(htOptions){
             elPreview.style.minHeight = elTextarea.offsetHeight + 'px';
         });
 
-        // _tab()/_untab()은 이 코드베이스 어디에도 정의되어 있지 않다(jQuery 시절부터의
-        // 미구현 참조로 확인됨) - Tab/Shift+Tab 들여쓰기 기능은 원래도 동작하지 않았으므로
-        // 동작을 바꾸지 않기 위해 호출부를 그대로 보존한다.
+        // _tab()/_untab()은 이 파일 자신이 아니라 yona.KeyControl.js가 전역
+        // window._tab/window._untab로 정의한다(site/layout.html이 모든 화면에
+        // 항상 로드하므로 실제로 호출 가능하다) - 이전 주석은 "이 코드베이스 어디에도
+        // 정의돼 있지 않다"고 잘못 적혀 있었으나, 실제로는 정상 동작하는 기능이다
+        // (2026-09-17, widget-candidates.md 5번 항목에서 재확인).
         elTextarea.addEventListener("keydown", function(e) {
             if (e.shiftKey && e.key === 'Tab') {
                 e.preventDefault();
