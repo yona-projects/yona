@@ -154,9 +154,11 @@ class MarkdownEditorShellWidgetTemplateEquivalenceSpec @Autowired constructor(
             }
 
             fun assertHelpAndNoticeLabelPreserved(editorWrap: org.jsoup.select.Elements) {
-                // help/markdown 프래그먼트 - 체크리스트 항목을 포함해 그대로 남아있어야 한다.
-                editorWrap.select("div.markdown-help").size shouldBe 1
-                (editorWrap.select("[data-toggle=markdown-help]").size > 0) shouldBe true
+                // 2026-09-17 갱신 - help/markdown.html이 Vue 3 SFC(<yona-help-markdown>)로
+                // 전면 교체되면서 아코디언 마크업(div.markdown-help/[data-toggle=markdown-help])은
+                // 서버 렌더링 시점엔 없다(그 컴포넌트가 클라이언트 마운트 시점에 Shadow DOM
+                // 안에서 직접 그린다) - 이제 이 커스텀 엘리먼트 태그 자체의 존재만 확인한다.
+                editorWrap.select("yona-help-markdown").size shouldBe 1
                 // 임시저장 "Draft saved" 표시 위치 - 살아있는 기능이라 DOM은 유지되어야 한다.
                 editorWrap.select(".editor-notice-label").size shouldBe 1
             }

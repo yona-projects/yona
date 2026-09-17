@@ -194,7 +194,9 @@ class SvnCommitCommentTemplateRenderingSpec @Autowired constructor(
                 editor.size shouldBe 1
                 editor.attr("name") shouldBe "contents"
 
-                val upload = doc.select(".upload-wrap#upload")
+                // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
+                // 교체됐다(components/vue-widgets, 드롭존/업로드버튼/카드목록을 자체 소유).
+                val upload = doc.select("yona-attachments#upload")
                 upload.size shouldBe 1
                 upload.attr("data-resource-type") shouldBe "COMMIT_COMMENT"
             }

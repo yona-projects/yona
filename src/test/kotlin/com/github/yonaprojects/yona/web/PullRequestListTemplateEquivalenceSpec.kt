@@ -217,8 +217,10 @@ class PullRequestListTemplateEquivalenceSpec @Autowired constructor(
                     // 이 테스트는 그 교체 이전의 스크립트 경로를 그대로 확인하고 있던 낡은 단언이었다
                     // (P3-51 로케일 작업 중 발견한 무관한 스테일 테스트, 즉시 수정).
                     doc.select("script[src*='tom-select.complete.min.js']").size shouldBe 1
-                    doc.select(".upload-wrap[data-resource-type=PULL_REQUEST]").size shouldBe 1
-                    doc.select("input[name='filePath']").size shouldBe 1
+                    // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
+                    // 교체됐다. 파일 input은 그 컴포넌트의 Shadow DOM 안에서 클라이언트 마운트
+                    // 시점에 만들어지므로 서버 렌더링 HTML(Jsoup 파싱 대상)에는 없다.
+                    doc.select("yona-attachments[data-resource-type=PULL_REQUEST]").size shouldBe 1
                     doc.select("[data-toggle=markdown-editor]").size shouldNotBe 0
                 }
             }

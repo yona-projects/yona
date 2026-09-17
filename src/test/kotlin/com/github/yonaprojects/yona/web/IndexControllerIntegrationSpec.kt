@@ -48,17 +48,21 @@ class IndexControllerIntegrationSpec @Autowired constructor(
                     .andExpect(content().string(Matchers.containsString("Feedback")))
             }
 
-            // site/layout.html의 익명 사용자용 로그인 모달이 순수 action= 속성이라 CSRF 자동
-            // 주입 대상이 아니었다. th:action으로 바꾼 뒤(SecurityConfig의 캐치올 체인이 CSRF를
-            // 활성화했으므로) 이 sitewide 모달에 _csrf 히든 필드가 실제로 붙는지 실제 보안 필터
-            // 체인으로 검증한다.
-            it("익명 사용자에게 렌더링되는 로그인 모달에 _csrf 히든 필드가 자동으로 붙어야 한다") {
+            // 2026-09-17 갱신 - site/layout.html의 익명 사용자용 로그인 모달이 Vue 3
+            // SFC(<yona-login-dialog>)로 교체됐다. 이 컴포넌트는 순수 HTML <form action=...>
+            // 제출이 아니라 fetch(actionUrl, {...})로 직접 POST하므로(components/vue-widgets/
+            // src/login-dialog/YonaLoginDialog.vue의 onSubmit), 더 이상 CsrfRequestDataValueProcessor의
+            // 자동 히든 필드 주입 대상이 아니다 - 대신 사이트 전역 fetch 패치(아래
+            // "전역 CSRF fetch 인터셉터" 테스트가 검증)가 모든 fetch 호출에 CSRF 헤더를
+            // 자동으로 붙여준다. 여기서는 그 컴포넌트가 익명 사용자에게 실제로 렌더링되는지만
+            // 확인한다.
+            it("익명 사용자에게는 <yona-login-dialog> 로그인 모달이 렌더링되어야 한다") {
                 val body = mockMvc.perform(get("/"))
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "action=\"/users/login\""
-                body shouldContain "name=\"_csrf\""
+                body shouldContain "<yona-login-dialog"
+                body shouldContain "id=\"loginDialog\""
             }
 
             // site/layout.html::scripts에 추가한 전역 fetch 인터셉터가 익명 사용자를 포함해

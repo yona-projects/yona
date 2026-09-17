@@ -109,17 +109,27 @@ class PullRequestInlineReviewCommentWiringTemplateRenderingSpec @Autowired const
             // 드래그 범위선택/팝업 표시/제출 흐름 자체는 Jsoup/MockMvc로 검증할 수 없어(브라우저
             // 런타임 필요) Playwright로 별도 검증했다(project_code_diff_restoration_plan 메모
             // 4단계 참고).
-            it("새 라인/범위 댓글 팝업(review-form)에는 순수 textarea 대신 yona-markdown-editor와 첨부파일 업로드폼이 있어야 한다") {
+            //
+            // 2026-09-17 갱신 - common/reviewForm.html이 Vue 3 SFC(<yona-review-form>)로
+            // 교체되면서, 에디터(<yona-markdown-editor-vue>)/첨부파일(<yona-attachments>)
+            // 마크업은 이제 서버 렌더링 시점이 아니라 그 커스텀 엘리먼트가 클라이언트에서
+            // 마운트될 때 생성된다 - 서버 응답 HTML에는 <yona-review-form> 태그와 그 데이터
+            // 속성만 남는다(components/vue-widgets/src/review-form/YonaReviewForm.vue의
+            // onMounted가 host.getAttribute(...)로 읽는 계약과 일치하는지 확인).
+            it("새 라인/범위 댓글 팝업(review-form)은 <yona-review-form> 커스텀 엘리먼트로 렌더링되고 필요한 data 속성을 내려줘야 한다") {
                 val result = mockMvc.perform(
                     get("/${project.owner}/${project.name}/pull/${pr.number}/changes").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
                 ).andReturn()
 
                 val body = result.response.contentAsString
+                val doc = Jsoup.parse(body)
+                val reviewForm = doc.select("yona-review-form#review-form")
 
-                body shouldContain "id=\"review-form\""
-                body shouldContain "<yona-markdown-editor name=\"contents\" editor-mode=\"code-review-body\">"
-                body shouldContain "data-toggle=\"markdown-editor\""
-                body shouldContain "upload-wrap"
+                reviewForm.isEmpty() shouldBe false
+                reviewForm.attr("data-resource-type") shouldBe "REVIEW_COMMENT"
+                reviewForm.attr("data-action") shouldNotContain "null"
+                reviewForm.hasAttr("data-csrf-param") shouldBe true
+                reviewForm.hasAttr("data-csrf-token") shouldBe true
                 body shouldNotContain "textarea name=\"contents\""
             }
         }

@@ -100,7 +100,11 @@ class CommentAttachmentUploadWidgetTemplateEquivalenceSpec @Autowired constructo
             val posting = postingRepository.findAll().find { it.project.id == project.id && it.title == "댓글업로드 게시글" }
                 ?: postingRepository.save(Posting(title = "댓글업로드 게시글", body = "본문", project = project, number = 1L))
 
-            it("issue/view 화면의 새 댓글 폼은 id=upload 업로더 컨테이너와 CommentAttachmentsUpdate.js 없이도 yona.Files.js 훅을 갖춰야 한다") {
+            // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
+            // 교체되면서 id=upload 컨테이너 자체는 <div>가 아니라 <yona-attachments>가
+            // 됐다 - yona.Files.js는 이제 이 태그명을 보고 리스너 연결을 건너뛴다(그
+            // 컴포넌트가 드래그/드롭/붙여넣기를 Shadow DOM 안에서 직접 소유하므로).
+            it("issue/view 화면의 새 댓글 폼은 id=upload 업로더 컨테이너(<yona-attachments>)를 갖춰야 한다") {
                 val doc = Jsoup.parse(
                     mockMvc.perform(
                         get("/${project.owner}/${project.name}/issue/${issue.number}")
@@ -108,10 +112,10 @@ class CommentAttachmentUploadWidgetTemplateEquivalenceSpec @Autowired constructo
                     ).andExpect(status().isOk).andReturn().response.contentAsString
                 )
 
-                doc.select("form#comment-form div#upload[data-resource-type=ISSUE_COMMENT]").size shouldBe 1
+                doc.select("form#comment-form yona-attachments#upload[data-resource-type=ISSUE_COMMENT]").size shouldBe 1
             }
 
-            it("board/view 화면의 새 댓글 폼도 동일하게 id=upload 업로더 컨테이너를 가져야 한다") {
+            it("board/view 화면의 새 댓글 폼도 동일하게 id=upload 업로더 컨테이너(<yona-attachments>)를 가져야 한다") {
                 val doc = Jsoup.parse(
                     mockMvc.perform(
                         get("/${project.owner}/${project.name}/post/${posting.number}")
@@ -119,7 +123,7 @@ class CommentAttachmentUploadWidgetTemplateEquivalenceSpec @Autowired constructo
                     ).andExpect(status().isOk).andReturn().response.contentAsString
                 )
 
-                doc.select("form#comment-form div#upload[data-resource-type=NONISSUE_COMMENT]").size shouldBe 1
+                doc.select("form#comment-form yona-attachments#upload[data-resource-type=NONISSUE_COMMENT]").size shouldBe 1
             }
 
             it("issue/view 화면의 담당자 지정 스크립트는 <th:block> 원문이 그대로 노출되지 않고 실제 JS 호출로 렌더링돼야 한다") {

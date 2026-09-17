@@ -11,6 +11,7 @@ import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import org.jsoup.Jsoup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.test.web.servlet.MockMvc
@@ -106,11 +107,14 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
             }
 
             // code.Diff.js 4단계 복원(CodeCommentBox)으로 이 화면의 새 라인/범위 댓글 폼이
-            // 더 이상 JS 템플릿 문자열로 즉석 삽입되는 순수 HTML action= 폼이 아니라, 진짜
-            // Thymeleaf <form th:action=...>(common/reviewForm.html)로 바뀌었다 - 그래서
-            // CsrfRequestDataValueProcessor가 자동으로 _csrf 히든 필드를 주입해준다(수동 JS
-            // 변수 주입이 더 이상 필요하지 않다).
-            it("code/diff.html: review-form(CodeCommentBox 팝업)에 _csrf 히든 필드가 자동 주입돼야 한다") {
+            // 더 이상 JS 템플릿 문자열로 즉석 삽입되는 순수 HTML action= 폼이 아니었다가,
+            // 2026-09-17 common/reviewForm.html이 Vue 3 SFC(<yona-review-form>)로 다시
+            // 바뀌면서 서버 렌더링 시점엔 <form> 태그 자체가 없다(그 컴포넌트가 클라이언트에서
+            // 마운트될 때 자신의 <form>을 만든다) - 그래서 CsrfRequestDataValueProcessor의
+            // 자동 히든 필드 주입 경로를 못 받는다. 대신 서버가 이미 아는 실제 토큰/파라미터명을
+            // data-csrf-param/data-csrf-token 속성으로 직접 내려주고, 컴포넌트가 그 값으로
+            // 히든 필드를 재현한다(components/vue-widgets/src/review-form/YonaReviewForm.vue).
+            it("code/diff.html: review-form(CodeCommentBox 팝업)에 실제 _csrf 토큰이 data 속성으로 내려가야 한다") {
                 val log = repositoryService.getRepository(project).getHistory(0, 10, "main", null)
                 val headCommitId = log.first().getId()
 
@@ -144,8 +148,13 @@ class CodeSwallowedStyleRenderingSpec @Autowired constructor(
                     .andExpect(status().isOk)
                     .andReturn().response.contentAsString
 
-                body shouldContain "id=\"review-form\""
-                body shouldContain Regex("<form[^>]*action=\"[^\"]*/commit/$headCommitId/comments\"[^>]*>\\s*<input type=\"hidden\" name=\"_csrf\"")
+                val doc = Jsoup.parse(body)
+                val reviewForm = doc.select("yona-review-form#review-form")
+
+                reviewForm.isEmpty() shouldBe false
+                reviewForm.attr("data-action") shouldContain "/commit/$headCommitId/comments"
+                reviewForm.attr("data-csrf-param") shouldBe "_csrf"
+                reviewForm.attr("data-csrf-token").isBlank() shouldBe false
             }
         }
 

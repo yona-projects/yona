@@ -139,7 +139,14 @@ class CommentUpdateFormAttachmentTemplateEquivalenceSpec @Autowired constructor(
                 )
             )
 
-            it("issue/view의 댓글 수정 폼은 이미 첨부된 파일을 legacy 마크업(.attachment-files/.attached-file-marker)으로 보여줘야 한다") {
+            // 2026-09-17 갱신 - common/commentUpdateForm.html이 Vue 3 SFC(<yona-attachments>)로
+            // 교체되면서 yona.CommentAttachmentsUpdate.js(240줄)를 흡수해 삭제했다. 이미 첨부된
+            // 파일은 이제 .attachment-files 래퍼 없이 <yona-attachments> 바로 아래 순수 데이터
+            // 마커(.attached-file-marker, display:none, common/attachmentFile.html)로 내려가고,
+            // 실제 카드/업로드버튼/temporaryUploadFiles 히든필드는 그 컴포넌트가 마운트 시점에
+            // Shadow DOM/라이트 DOM에 직접 만든다 - 이름은 텍스트 노드가 아니라 data-name
+            // 속성으로 전달된다.
+            it("issue/view의 댓글 수정 폼은 이미 첨부된 파일을 <yona-attachments> 아래 데이터 마커(.attached-file-marker)로 내려줘야 한다") {
                 val doc = Jsoup.parse(
                     mockMvc.perform(
                         get("/${project.owner}/${project.name}/issue/${issue.number}")
@@ -148,10 +155,8 @@ class CommentUpdateFormAttachmentTemplateEquivalenceSpec @Autowired constructor(
                 )
 
                 val editForm = doc.select("#comment-editform-${issueComment.id}")
-                editForm.select(".attachment-files .attached-file-marker").size shouldBe 1
-                editForm.select(".attachment-files .attached-file-marker .name").text() shouldBe "issue-comment-file.png"
-                editForm.select(".file-upload__input").size shouldBe 1
-                editForm.select("input.temporaryUploadFiles").size shouldBe 1
+                editForm.select("yona-attachments .attached-file-marker").size shouldBe 1
+                editForm.select("yona-attachments .attached-file-marker").attr("data-name") shouldBe "issue-comment-file.png"
             }
 
             it("board/view의 댓글 수정 폼도 동일하게 이미 첨부된 파일을 보여줘야 한다") {
@@ -163,13 +168,11 @@ class CommentUpdateFormAttachmentTemplateEquivalenceSpec @Autowired constructor(
                 )
 
                 val editForm = doc.select("#comment-editform-${postingComment.id}")
-                editForm.select(".attachment-files .attached-file-marker").size shouldBe 1
-                editForm.select(".attachment-files .attached-file-marker .name").text() shouldBe "board-comment-file.png"
-                editForm.select(".file-upload__input").size shouldBe 1
-                editForm.select("input.temporaryUploadFiles").size shouldBe 1
+                editForm.select("yona-attachments .attached-file-marker").size shouldBe 1
+                editForm.select("yona-attachments .attached-file-marker").attr("data-name") shouldBe "board-comment-file.png"
             }
 
-            it("issue/view.html·board/view.html은 yona.CommentAttachmentsUpdate.js를 로드해야 한다") {
+            it("issue/view.html·board/view.html은 더 이상 yona.CommentAttachmentsUpdate.js를 로드하지 않고 <yona-attachments> 커스텀 엘리먼트를 써야 한다") {
                 val issueBody = mockMvc.perform(
                     get("/${project.owner}/${project.name}/issue/${issue.number}")
                         .with(SecurityMockMvcRequestPostProcessors.user(authorDetails))
@@ -179,8 +182,10 @@ class CommentUpdateFormAttachmentTemplateEquivalenceSpec @Autowired constructor(
                         .with(SecurityMockMvcRequestPostProcessors.user(authorDetails))
                 ).andExpect(status().isOk).andReturn().response.contentAsString
 
-                issueBody.contains("/javascripts/common/yona.CommentAttachmentsUpdate.js") shouldBe true
-                boardBody.contains("/javascripts/common/yona.CommentAttachmentsUpdate.js") shouldBe true
+                issueBody.contains("/javascripts/common/yona.CommentAttachmentsUpdate.js") shouldBe false
+                boardBody.contains("/javascripts/common/yona.CommentAttachmentsUpdate.js") shouldBe false
+                issueBody.contains("<yona-attachments>") shouldBe true
+                boardBody.contains("<yona-attachments>") shouldBe true
             }
         }
     }

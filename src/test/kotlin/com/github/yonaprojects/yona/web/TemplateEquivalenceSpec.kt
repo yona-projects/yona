@@ -311,8 +311,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                     // 댓글 작성 폼과 업로드 드롭존 검증
                     doc.select("#comment-form").size shouldBe 1
-                    doc.select(".upload-wrap[data-resource-type]").size shouldBe 1
-                    doc.select("input[name='filePath']").size shouldBe 1
+                    // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
+                    // 교체됐다. 파일 input은 이제 그 컴포넌트의 Shadow DOM 안에서 클라이언트
+                    // 마운트 시점에 만들어지므로 서버 렌더링 HTML(Jsoup 파싱 대상)에는 없다.
+                    doc.select("yona-attachments[data-resource-type]").size shouldBe 1
                 }
 
                 it("비로그인 사용자가 상세 조회 시, 비활성화된 알림 메시지와 함께 댓글 등록 창이 제한되어야 한다") {
@@ -356,8 +358,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val doc = Jsoup.parse(html)
 
                     doc.select("#comment-form").size shouldBe 1
-                    doc.select(".upload-wrap[data-resource-type]").size shouldBe 1
-                    doc.select("input[name='filePath']").size shouldBe 1
+                    // 2026-09-17 갱신 - common/uploadForm.html이 Vue 3 SFC(<yona-attachments>)로
+                    // 교체됐다. 파일 input은 이제 그 컴포넌트의 Shadow DOM 안에서 클라이언트
+                    // 마운트 시점에 만들어지므로 서버 렌더링 HTML(Jsoup 파싱 대상)에는 없다.
+                    doc.select("yona-attachments[data-resource-type]").size shouldBe 1
                 }
 
                 it("비로그인 사용자가 이슈 조회 시, 댓글 폼이 차단되고 비로그인 대체 마크업이 표시되어야 한다") {
@@ -649,7 +653,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val html = result.response.contentAsString
                     val doc = Jsoup.parse(html)
 
-                    doc.select("script#tplYonaToast").size shouldBe 1
+                    // 2026-09-17 갱신 - 토스트 알림이 Vue 3 SFC(<yona-toast>)로 교체되면서
+                    // jQuery 템플릿(script#tplYonaToast)은 제거됐다 - yona.ui.Toast.js가
+                    // 하이브리드 어댑터로 push/clear를 이 엘리먼트에 위임한다.
+                    doc.select("yona-toast#yonaToasts").size shouldBe 1
 
                     html.contains("\"U\":") shouldBe true
                     html.contains("user\\/${member.loginId}") shouldBe true
@@ -1170,7 +1177,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                 val settingLabel = issueLabelRepository.findAll().find { it.category.id == settingCategory.id }
                     ?: issueLabelRepository.save(IssueLabel(name = "설정테스트라벨", color = "#2196f3", category = settingCategory, project = settingProj))
 
-                it("이슈 라벨 설정 화면은 site/layout 기반 전체 GNB/footer와 project/header, setting_menu 조각, 새 라벨/편집 폼의 프리셋 색상 29개(신규 17 + 수정모달 12)를 포함해야 한다") {
+                it("이슈 라벨 설정 화면은 site/layout 기반 전체 GNB/footer와 project/header, setting_menu 조각을 포함해야 한다") {
                     val result = mockMvc.perform(
                         get("/owner/${settingProj.name}/issue/labelsform")
                             .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
@@ -1181,11 +1188,17 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select("footer.page-footer-outer").size shouldBe 1
                     doc.select(".project-header-outer").size shouldBe 1
                     doc.select("#subMenuIssueLabel.active").size shouldBe 1
-                    doc.select("button.issue-label.btn-preset-color").size shouldBe 29
+                    // 2026-09-17 갱신 - 새 라벨/카테고리·라벨 편집 폼이 Vue 3 SFC(<yona-new-label-form>/
+                    // <yona-category-edit-dialog>/<yona-label-edit-dialog>)로 교체되면서 프리셋
+                    // 색상 버튼(29개)은 그 컴포넌트들의 Shadow DOM 안에서 클라이언트 마운트 시점에
+                    // 그려진다 - 서버 렌더링 HTML에는 더 이상 없다.
+                    doc.select("yona-new-label-form").size shouldBe 1
+                    doc.select("yona-category-edit-dialog").size shouldBe 1
+                    doc.select("yona-label-edit-dialog").size shouldBe 1
                     doc.select("script[src*='code.jquery.com']").size shouldBe 0
                 }
 
-                it("legacy partial_issuelabels_list.scala.html과 동일하게 카테고리별 라벨 목록·수정/삭제 버튼의 data-uri, 라벨 복사 폼, 수정 모달 2종을 렌더링해야 한다") {
+                it("legacy partial_issuelabels_list.scala.html과 동일하게 카테고리별 라벨 목록·수정/삭제 버튼의 data-uri, 라벨 복사 폼을 렌더링해야 한다") {
                     val doc = Jsoup.parse(
                         mockMvc.perform(
                             get("/owner/${settingProj.name}/issue/labelsform")
@@ -1193,8 +1206,12 @@ class TemplateEquivalenceSpec @Autowired constructor(
                         ).andReturn().response.contentAsString
                     )
 
-                    // legacy가 실제로 로드하는 정적 모듈(REST JSON 커스텀 구현이 아님)
-                    doc.select("script[src='/javascripts/service/yona.issue.LabelEditor.js']").size shouldBe 1
+                    // 2026-09-17 갱신 - yona.issue.LabelEditor.js는 Vue 3 SFC 커스텀 엘리먼트
+                    // 3종 + attachLabelListAdapter 모듈로 전면 대체되면서 삭제됐다.
+                    doc.select("script[src='/lib/yona-vue-widgets/yona-new-label-form-element.js']").size shouldBe 1
+                    doc.select("script[src='/lib/yona-vue-widgets/yona-category-edit-dialog-element.js']").size shouldBe 1
+                    doc.select("script[src='/lib/yona-vue-widgets/yona-label-edit-dialog-element.js']").size shouldBe 1
+                    doc.select("script[src='/javascripts/service/yona.issue.LabelEditor.js']").size shouldBe 0
 
                     val categoryWrap = doc.select("div.category-wrap[data-category-name='설정테스트카테고리']")
                     categoryWrap.size shouldBe 1
@@ -1207,9 +1224,8 @@ class TemplateEquivalenceSpec @Autowired constructor(
                         "/owner/${settingProj.name}/issue/label/category/${settingCategory.id}"
 
                     doc.select("form#copyLabel[action='/owner/${settingProj.name}/copyLabels']").size shouldBe 1
-                    doc.select("form#frmNewLabel[action='/owner/${settingProj.name}/issue/labels']").size shouldBe 1
-                    doc.select("#editCategory.yonaDialog").size shouldBe 1
-                    doc.select("#editLabel.yonaDialog select[name='category.id'] option").size shouldBe 1
+                    doc.select("yona-new-label-form").attr("data-action") shouldBe
+                        "/owner/${settingProj.name}/issue/labels"
                 }
             }
 
@@ -1798,17 +1814,20 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select(".gnb-search").size shouldBe 0
                 }
 
-                it("markdown.html(#235)은 이슈 작성 에디터에 포함되어 legacy와 동일하게 10개의 문법 탭을 제공해야 한다") {
+                // 2026-09-17 갱신 - help/markdown.html이 Vue 3 SFC(<yona-help-markdown>)로
+                // 전면 교체되면서 아코디언 탭 10개(help-nav/markdown-help-item)는 그 컴포넌트의
+                // Shadow DOM 안에서 클라이언트 마운트 시점에 그려진다 - 서버 렌더링 HTML에는
+                // <yona-help-markdown> 태그만 남는다. 예시 콘텐츠(10개, demo.yobi.io href
+                // 포함) 자체의 동치성은 components/vue-widgets/src/help-markdown/examples.ts를
+                // 직접 확인해 유지되고 있음을 검증했다 - Jsoup으로는 Shadow DOM에 닿지 못한다.
+                it("markdown.html(#235)은 이슈 작성 에디터에 포함되어 <yona-help-markdown> 커스텀 엘리먼트로 렌더링되어야 한다") {
                     val doc = Jsoup.parse(
                         mockMvc.perform(
                             get("/owner/public-proj/issueform").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
                         ).andExpect(status().isOk).andReturn().response.contentAsString
                     )
 
-                    doc.select(".markdown-help .markdown-help-nav li.help-nav").size shouldBe 10
-                    doc.select(".markdown-help .markdown-help-wrap li.markdown-help-item").size shouldBe 10
-                    doc.select(".markdown-help-item.markdownShortLinks .markdown-wrap a").first()?.attr("href") shouldBe
-                        "http://demo.yobi.io/yobi/yobi/issue/2"
+                    doc.select("yona-help-markdown").size shouldBe 1
                 }
 
                 it("keymap.html(#236)은 section 값에 따라 게시판 목록/상세에서 서로 다른 안내 항목을 노출해야 한다") {
