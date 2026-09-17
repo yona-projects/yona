@@ -14,7 +14,7 @@
 
 ## Yona란?
 
-- Git/SVN 저장소가 내장된 설치형 이슈 트래커 + 게시판 + 코드 리뷰 플랫폼
+- Git/SVN/Mercurial 저장소가 내장된 설치형 이슈 트래커 + 게시판 + 코드 리뷰 플랫폼
 - 네이버/네이버랩스를 비롯해 여러 기업·공공기관에서 수년간 실사용되며 다듬어진 애플리케이션
 
 ### 주요 기능
@@ -22,11 +22,19 @@
 - 서비스 종료나 데이터 종속 걱정 없는 설치형
 - 프로젝트 기반의 유연한 이슈 트래커와 게시판 — 프로젝트 간 이슈 이동, 서브 태스크, 본문 변경이력,
   이슈 템플릿
-- 내장 코드 저장소 — Git/SVN 선택 가능, 온라인 수정·커밋, 프로젝트 멤버 전용 접근 제어
+- 내장 코드 저장소 — **Git / SVN / Mercurial** 3종 선택 가능, 온라인 수정·커밋, HTTP(S)뿐 아니라
+  SSH로도 접근 가능, 프로젝트 멤버 전용 접근 제어, Git LFS 지원
 - 블록 기반 코드 리뷰 — 코드 블록 단위 리뷰 스레드, 리뷰 점수
 - 그룹(조직) 기능 — 그룹 단위 이슈/게시글 통합 관리, 그룹 프로젝트·멤버
 - 한글 기반 — 프로젝트 이름 및 그룹 이름에 한글 사용 가능
-- LDAP 지원 및 소셜 로그인(OAuth2)
+- 계정 보안 — LDAP 지원, 소셜 로그인(OAuth2), 2단계 인증(TOTP 앱 + WebAuthn/패스키), 백업 코드,
+  로그인 브루트포스 방지, 알려진 기기 인식
+- 저장소 접근/서명 — SSH 공개키 등록, GPG 커밋 서명 검증, 저장소별 Deploy Key
+- API 및 자동화 — 범위(scope) 지정 가능한 개인용 API 토큰(PAT), 서드파티 앱을 위한 OAuth2
+  Authorization Server(Dynamic Client Registration 포함), **MCP(Model Context Protocol) 서버
+  내장** — Claude 등 AI 에이전트가 OAuth2로 인증해 이슈/PR/위키에 직접 접근 가능
+  ([아래](#ai-에이전트-연동-mcp-서버) 참고)
+- 감사 로그 — 주요 보안/관리 이벤트 추적
 - 다른 서비스·다른 Yona 인스턴스로의 마이그레이션(GitHub 프로젝트 Import 등)
 
 ### 추가 읽을거리
@@ -44,9 +52,20 @@
 | 뷰 엔진 | Scala Template(`.scala.html`) | Thymeleaf |
 | JDK | Java 8 | Java 21 |
 | 지원 DB | MariaDB(기본) 또는 H2(내장형) | **MariaDB / PostgreSQL / MySQL / SQL Server / CUBRID / H2(내장형)** |
+| 지원 VCS | Git / SVN | **Git / SVN / Mercurial** |
 
 포팅 진행 상황과 legacy 대비 의도적으로 남겨둔 차이점은 `docs/parity/index.md`,
 `docs/TEMPLATE_BACKLOG.md`, `docs/coverage/index.md`에 기록돼 있습니다.
+
+이식 과정에서 legacy에는 없던 기능도 새로 추가됐습니다:
+
+- **Mercurial** 저장소 지원(기존 Git/SVN 2종에서 3종으로)
+- **2단계 인증**(TOTP 앱 + WebAuthn/패스키) 및 로그인 보안 강화(브루트포스 방지, 알려진 기기 인식)
+- **GPG 커밋 서명 검증**, 저장소별 **Deploy Key**
+- **범위 지정 API 토큰(PAT)** 및 **OAuth2 Authorization Server**(서드파티 앱 연동,
+  Dynamic Client Registration)
+- **MCP(Model Context Protocol) 서버** 내장 — 자세한 내용은 [아래](#ai-에이전트-연동-mcp-서버) 참고
+- **감사 로그**(보안/관리 이벤트 추적)
 
 ## 프론트엔드 위젯: Vue 3 Web Components로 점진 전환
 
@@ -67,6 +86,19 @@
   `<textarea>`가 Shadow DOM에 완전히 캡슐화돼 있어, 그 프래그먼트를 참조하는 기존 JS(첨부파일
   드래그드롭, 임시저장 등)가 여러 화면에서 깨지기 때문입니다. ReviewForm 안에서 쓰는 마크다운
   에디터는 그 공용 프래그먼트와 무관한 별개 인스턴스라 이 문제가 없어 전환 대상에 포함했습니다.
+
+## AI 에이전트 연동 (MCP 서버)
+
+yona는 [MCP(Model Context Protocol)](https://modelcontextprotocol.io) 서버를 내장하고 있어,
+Claude 같은 AI 에이전트가 이슈·PR·위키 페이지를 직접 조회·조작할 수 있습니다.
+
+- 엔드포인트는 `/mcp`(Streamable HTTP) 하나이며, `spring-ai-starter-mcp-server-webmvc`가
+  `@Tool`로 표시된 메서드를 자동으로 노출합니다(`IssueMcpTools`/`PullRequestMcpTools`/`WikiMcpTools`).
+- 인증은 **OAuth2**(yona 자체가 Dynamic Client Registration을 지원하는 OAuth2 Authorization
+  Server 역할을 겸함) 또는 **범위 지정 API 토큰(PAT)** 둘 다로 가능합니다 — 도구 호출마다
+  `McpScopeGuard`가 해당 토큰/토큰의 스코프로 실제 접근 가능한지 재검사합니다.
+- API 토큰 발급/스코프 관리는 사용자 설정 화면(API 토큰)에서, OAuth 앱 등록은 사용자 설정 화면
+  (OAuth 앱)에서 할 수 있습니다.
 
 ## 요구 사항
 
@@ -112,12 +144,12 @@ java -jar yona.jar --spring.profiles.active=postgres
 java -jar yona.jar --spring.profiles.active=h2
 ```
 
-통합 테스트는 실제 Docker 컨테이너(Testcontainers) 기준으로 5개 DB 전부 검증돼 있습니다.
-특정 DB로만 테스트를 돌리려면(**동시에 두 개 이상 돌리면 gradle 빌드 출력 디렉터리가
-꼬이니 항상 한 번에 하나씩만 실행하세요**):
+통합 테스트는 실제 Docker 컨테이너(Testcontainers) 기준으로 5개 서버 DB 전부 검증돼 있습니다
+(H2는 내장형이라 컨테이너가 필요 없습니다). 특정 DB로만 테스트를 돌리려면(**동시에 두 개 이상
+돌리면 gradle 빌드 출력 디렉터리가 꼬이니 항상 한 번에 하나씩만 실행하세요**):
 
 ```bash
-./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid
+./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid|h2
 ```
 
 ## 운영 환경 설정 (특히 Windows)
@@ -178,6 +210,11 @@ java -jar yona.jar --spring.profiles.active=h2
 
 - LDAP: `application.yml`의 `ldap` 섹션
 - 소셜 로그인(OAuth2): `application.yml`의 `spring.security.oauth2` 섹션
+- WebAuthn(패스키): `application.yml`의 `yona.security.webauthn.relying-party-id`/
+  `relying-party-name` — 배포 도메인에 맞게 반드시 재설정해야 합니다(기본값은 `localhost`).
+- SSH(Git/Mercurial 접근, SSH 키 등록): [SSH: 시스템 sshd 연동](docs/guide/ssh-system-sshd-setup.md)
+- GPG 커밋 서명 검증, Deploy Key, API 토큰/OAuth2 앱은 별도 설정 없이 기본 활성화되어 있으며,
+  사용자별 설정 화면에서 바로 쓸 수 있습니다.
 
 ## Google Analytics
 
@@ -204,8 +241,9 @@ java -jar yona.jar --spring.profiles.active=h2
 
 ## Contribution
 
-- 코드 기여의 기준이 되는 브랜치는 `main`입니다.
-- 저장소를 fork한 다음 `main` 브랜치를 기준으로 작업하신 다음 `main` 브랜치로 pull request를
+- 코드 기여의 기준이 되는 브랜치는 `next`입니다(`main`은 오래된 스냅샷이라 실제 개발은 전부
+  `next`에서 이루어지고 있습니다 — 저장소의 기본 브랜치도 `next`입니다).
+- 저장소를 fork한 다음 `next` 브랜치를 기준으로 작업하신 다음 `next` 브랜치로 pull request를
   보내주세요.
 
 ## 운영 가이드
@@ -270,8 +308,8 @@ Yona is a web-based project hosting software.
 
 ## What is Yona?
 
-- A self-hosted issue tracker + bulletin board + code review platform with an embedded Git/SVN
-  repository
+- A self-hosted issue tracker + bulletin board + code review platform with an embedded
+  Git/SVN/Mercurial repository
 - An application battle-tested for years at NAVER, NAVER LABS, and various companies and public
   institutions
 
@@ -280,13 +318,21 @@ Yona is a web-based project hosting software.
 - Self-hosted — no dependency on a third-party service that could shut down or lock in your data
 - A flexible, project-based issue tracker and bulletin board — issue transfer between projects,
   sub-tasks, body change history, issue templates
-- Embedded code repository — choose Git or SVN, online edit/commit, access restricted to project
-  members
+- Embedded code repository — choose **Git, SVN, or Mercurial**, online edit/commit, access over
+  SSH as well as HTTP(S), access restricted to project members, Git LFS support
 - Block-based code review — review threads per code block, review scores
 - Group (organization) features — unified management of issues/posts across a group, group
   projects and members
 - Korean-friendly — project and group names can use Korean characters
-- LDAP support and social login (OAuth2)
+- Account security — LDAP support, social login (OAuth2), two-factor authentication (TOTP apps +
+  WebAuthn/passkeys), backup codes, login brute-force protection, known-device recognition
+- Repository access/signing — SSH public keys, GPG commit signature verification, per-repository
+  deploy keys
+- API & automation — scoped personal access tokens (PATs), an OAuth2 Authorization Server for
+  third-party apps (including Dynamic Client Registration), and a **built-in MCP (Model Context
+  Protocol) server** — AI agents such as Claude can authenticate via OAuth2 and access issues,
+  pull requests, and wiki pages directly (see [below](#ai-agent-integration-mcp-server))
+- Audit log for key security/admin events
 - Migration to/from other services or Yona instances (GitHub project import, etc.)
 
 ### Further reading (original project resources)
@@ -304,9 +350,22 @@ Yona is a web-based project hosting software.
 | View engine | Scala Template (`.scala.html`) | Thymeleaf |
 | JDK | Java 8 | Java 21 |
 | Supported DB | MariaDB (default) or embedded H2 | **MariaDB / PostgreSQL / MySQL / SQL Server / CUBRID / embedded H2** |
+| Supported VCS | Git / SVN | **Git / SVN / Mercurial** |
 
 Porting progress and deliberate differences from legacy are tracked in `docs/parity/index.md`,
 `docs/TEMPLATE_BACKLOG.md`, and `docs/coverage/index.md`.
+
+Some features were added during the port that legacy never had:
+
+- **Mercurial** repository support (Git/SVN grew to three VCS types)
+- **Two-factor authentication** (TOTP apps + WebAuthn/passkeys) and stronger login security
+  (brute-force protection, known-device recognition)
+- **GPG commit signature verification** and per-repository **deploy keys**
+- **Scoped personal access tokens (PATs)** and an **OAuth2 Authorization Server** for third-party
+  apps (including Dynamic Client Registration)
+- A built-in **MCP (Model Context Protocol) server** — see
+  [below](#ai-agent-integration-mcp-server) for details
+- An **audit log** for security/admin events
 
 ## Frontend widgets: gradual migration to Vue 3 Web Components
 
@@ -330,6 +389,19 @@ while others need only a single tag swap.
   reaches into it from other screens (attachment drag-and-drop, draft autosave, etc.). ReviewForm's
   own markdown editor instance is self-contained and unrelated to that shared fragment, so it does
   not have this problem and is included.
+
+## AI agent integration (MCP server)
+
+yona has a built-in [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server, so AI
+agents such as Claude can directly query and act on issues, pull requests, and wiki pages.
+
+- A single `/mcp` endpoint (Streamable HTTP) exposes all methods annotated `@Tool` via
+  `spring-ai-starter-mcp-server-webmvc` (`IssueMcpTools`/`PullRequestMcpTools`/`WikiMcpTools`).
+- Authentication works with either **OAuth2** (yona itself acts as an OAuth2 Authorization Server
+  with Dynamic Client Registration support) or a **scoped personal access token (PAT)** — every
+  tool call is re-checked against the caller's actual scopes by `McpScopeGuard`.
+- Issue/manage API tokens from the user settings screen (API Tokens), and register OAuth apps from
+  the user settings screen (OAuth Apps).
 
 ## Requirements
 
@@ -448,6 +520,13 @@ Project Fork does not physically copy the repository — it clones via filesyste
 
 - LDAP: the `ldap` section of `application.yml`
 - Social login (OAuth2): the `spring.security.oauth2` section of `application.yml`
+- WebAuthn (passkeys): `yona.security.webauthn.relying-party-id`/`relying-party-name` in
+  `application.yml` — you must reconfigure these to match your deployment domain (the default is
+  `localhost`).
+- SSH (Git/Mercurial access, SSH key registration): see
+  [SSH: system sshd integration](docs/guide/ssh-system-sshd-setup.md) (Korean only for now).
+- GPG commit signature verification, deploy keys, and API tokens/OAuth apps need no extra setup —
+  they're enabled by default and available directly from each user's settings screens.
 
 ## Google Analytics
 
@@ -474,8 +553,9 @@ Project Fork does not physically copy the repository — it clones via filesyste
 
 ## Contribution
 
-- The branch for contributions is `main`.
-- Fork the repository, work on top of the `main` branch, then send a pull request to the `main`
+- The branch for contributions is `next` (`main` is a stale old snapshot — all active development
+  happens on `next`, which is also the repository's default branch).
+- Fork the repository, work on top of the `next` branch, then send a pull request to the `next`
   branch.
 
 ## Operations guide
