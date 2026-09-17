@@ -383,6 +383,19 @@ yona.Files = (function(){
             "elTextarea" : elTextareaNode,
             "sNamespace" : sNamespace
         });
+
+        // 하이브리드 어댑터(2026-09-17, components/vue-widgets attachments 위젯 적용) -
+        // <yona-attachments> 컨테이너는 drag/drop/paste/input-change를 전부 자기
+        // Shadow DOM 안에서 직접 소유한다 - 여기서 컨테이너 자체에 동일한 리스너를 또
+        // 걸면(dragover/drop은 Shadow DOM 경계를 넘어 전파되는 합성 이벤트라 실제로
+        // 발동한다) 업로드가 중복 실행될 뻔했다(실측 전 발견). data-namespace 설정과
+        // 반환값 모양은 호출부 흐름이 깨지지 않도록 그대로 유지하고 리스너 연결만
+        // 건너뛴다.
+        if(elContainerNode && elContainerNode.tagName.toLowerCase() === "yona-attachments"){
+            elContainerNode._yonaIsUploader = true;
+            return [htElements[sNamespace].welContainer];
+        }
+
         _attachEvent(sNamespace);
 
         // P3-70 라운드10: 전수 재확인 결과(grep) 모든 호출부(board.View.js/board.Write.js/

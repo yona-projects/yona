@@ -23,36 +23,9 @@
             <div th:text="#{label.copy.description}">설명</div>
             <div th:text="#{label.copy.description2}">설명2</div>
           </form>
-          <form id="frmNewLabel" th:action="@{/{owner}/{name}/issue/labels(owner=${project.owner}, name=${project.name})}" method="post" class="new-label-wrap">
-            <strong class="form-legend" th:text="#{label.new}">새 라벨</strong>
-            <div class="form-wrap">
-              <div>
-                <input type="text" name="category" class="input-label mr5" maxlength="250" data-provider="typeahead" autocomplete="off" th:placeholder="#{label.category}">
-                <input type="text" name="name" class="input-label" maxlength="250" autocomplete="off" th:placeholder="#{label.name}">
-              </div>
-              <div class="label-preset-colors">
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#f44336;"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#e91e63"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#9c27b0"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#3f51b5"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#2196f3"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#03a9f4"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#00bcd4"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#009688"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#4caf50"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#8bc34a"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#cddc39"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#ffeb3b"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#ffc107"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#ff9800"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#ff5722"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#795548"></button>
-                <button type="button" class="issue-label btn-preset-color" style="background-color:#9e9e9e"></button>
-                <input type="text" name="color" class="input-small input-label-color" th:placeholder="#{label.customColor}">
-              </div>
-            </div>
-            <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{label.add}">추가</button>
-          </form>
+          <!-- Vue 3 SFC(components/vue-widgets, 2026-09-17 적용, yona.issue.LabelEditor.js
+               전체를 대체) -->
+          <yona-new-label-form th:attr="data-action=@{/{owner}/{name}/issue/labels(owner=${project.owner}, name=${project.name})}"></yona-new-label-form>
 
           <div id="labelsList" class="issue-label-list-wrap">
             <div th:replace="~{project/partial_issuelabels_list :: list(${project}, ${labelsByCategory})}"></div>
@@ -60,25 +33,20 @@
         </div>
     </div>
 
-    <div th:replace="~{project/partial_issuelabels_editcategory :: editcategory}"></div>
-    <div th:replace="~{project/partial_issuelabels_editlabel :: editlabel(${labelsByCategory.keySet()})}"></div>
+    <yona-category-edit-dialog></yona-category-edit-dialog>
+    <yona-label-edit-dialog></yona-label-edit-dialog>
 
     <footer th:replace="~{site/layout :: footer}"></footer>
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
-<script type="text/javascript" src="/javascripts/service/yona.issue.LabelEditor.js"></script>
-<script type="text/javascript" th:inline="javascript">
-  document.addEventListener("DOMContentLoaded", function(){
-      $yona.loadModule("issue.LabelEditor", {
-          "form": "#frmNewLabel",
-          "list": "#labelsList",
-          "editCategoryForm": "#editCategory",
-          "editLabelForm"   : "#editLabel",
-          "listURL": /*[[@{/{owner}/{name}/issue/labels(owner=${project.owner}, name=${project.name})}]]*/ ""
-      });
-  });
+<script type="module" src="/lib/yona-vue-widgets/yona-new-label-form-element.js"></script>
+<script type="module" src="/lib/yona-vue-widgets/yona-category-edit-dialog-element.js"></script>
+<script type="module" src="/lib/yona-vue-widgets/yona-label-edit-dialog-element.js"></script>
+<script type="module">
+  import { attachLabelListAdapter } from "/lib/yona-vue-widgets/yona-label-list-adapter.js";
+  attachLabelListAdapter(document.getElementById("labelsList"));
 </script>
 </body>
 </html>

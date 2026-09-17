@@ -59,6 +59,10 @@ yona.Attachments = function(htOptions) {
         _initVar(htOptions);
         _initElement(htOptions);
 
+        if(htVar.bIsVueAttachments){
+            return;
+        }
+
         // Request attachments only if the container is specified.
         if (htVar.attachments) {
             _updateAttachments(htVar.attachments);
@@ -89,6 +93,19 @@ yona.Attachments = function(htOptions) {
      */
     function _initElement(htOptions){
         var elContainer = _toElement(htOptions.elContainer);
+
+        // 하이브리드 어댑터(2026-09-17, components/vue-widgets attachments 위젯 적용) -
+        // 컨테이너가 <yona-attachments>(태그명으로 판별)면 드롭존/업로드 버튼/카드 목록을
+        // 전부 그 커스텀 엘리먼트 자신이 담당한다 - configure()로 외부 textarea 참조만
+        // 주입하고, 이 파일의 나머지 vanilla DOM 조립/네트워크 로딩은 전혀 실행하지 않는다
+        // (resourceType/resourceId 기반 로딩도 configure() 내부에서 host의
+        // data-resource-type/data-resource-id 속성을 직접 읽어 처리한다).
+        if(elContainer && elContainer.tagName.toLowerCase() === "yona-attachments"){
+            htVar.bIsVueAttachments = true;
+            elContainer._isYonaAttachment = true;
+            elContainer.configure({"textarea": _toElement(htOptions.elTextarea)});
+            return;
+        }
 
         // parentForm
         htElements.welToAttach = _toElement(htOptions.targetFormId) || elContainer;
@@ -729,6 +746,10 @@ yona.Attachments = function(htOptions) {
     }
 
     function _destroy(){
+        if(htVar.bIsVueAttachments){
+            return;
+        }
+
         if(htOptions.sUploaderId){
             _detachUploaderEvent(htOptions.sUploaderId);
         }

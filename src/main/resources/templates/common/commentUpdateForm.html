@@ -38,17 +38,22 @@
             <div class="write-comment-wrap">
                 <div th:replace="~{site/layout :: markdownEditor('contents-' + ${comment.id}, ${comment.contents}, 'update-comment-body')}"></div>
 
-                <div class="upload-drop-here">
-                    <div class="msg-wrap">
-                        <div class="msg" th:text="#{common.attach.dropFilesHere}">여기에 파일을 끌어다 놓으면 업로드 됩니다</div>
-                    </div>
-                </div>
+                <!-- Vue 3 SFC(components/vue-widgets, 2026-09-17 적용) - yona.CommentAttachmentsUpdate.js
+                     (240줄) 흡수. 드롭존/업로드 버튼/카드 목록을 <yona-attachments>가 자체 소유한다.
+                     기존 첨부파일은 resourceType/resourceId 기반 네트워크 조회 대신(백엔드
+                     AccessControl.isAllowedAttachment()가 ISSUE_COMMENT/NONISSUE_COMMENT를 지원하지
+                     않아 항상 403) 서버가 이미 렌더링해둔 마커(common/attachmentFile.html, 화면엔
+                     안 보임)를 마운트 시점에 한 번만 읽어 채운다 - 추가 네트워크 요청 없음. 외부
+                     textarea 연결(붙여넣기/드래그/링크 삽입)은 "수정" 버튼 클릭 시 1회
+                     configure()로 지연 배선한다(issue/board view.html의 [data-toggle="comment-edit"]
+                     핸들러 참고). -->
+                <yona-attachments>
+                    <th:block th:each="attachment : ${attachments}">
+                        <div th:replace="~{common/attachmentFile :: attachmentFile(${attachment})}"></div>
+                    </th:block>
+                </yona-attachments>
 
-                <div class="right-txt comment-update-button upload-button-line">
-                    <span class="file-upload">
-                        <label th:for="'upload-' + ${comment.id}" class="file-upload__label ybtn" th:text="#{button.upload}">업로드</label>
-                        <input type="file" class="file-upload__input" th:id="'upload-' + ${comment.id}" name="filePath" multiple="multiple">
-                    </span>
+                <div class="right-txt comment-update-button">
                     <span th:if="${currentUser != null and comment.authorId == currentUser.id}" class="send-notification-check" data-toggle="popover" data-trigger="hover" data-placement="top" th:data-content="#{notification.send.mail.warning}">
                         <label class="checkbox inline">
                             <input type="checkbox" class="send-notification-checkbox" name="notificationMail" value="yes" checked="checked">
@@ -58,12 +63,6 @@
                     <button type="button" class="ybtn ybtn-cancel" th:data-comment-id="${comment.id}" th:text="#{button.cancel}">취소</button>
                     <button th:if="${isAllowedUpdate}" type="submit" class="ybtn ybtn-info" th:text="#{button.save}">저장</button>
                 </div>
-            </div>
-            <input type="hidden" name="temporaryUploadFiles" class="temporaryUploadFiles" value="">
-            <div class="attachment-files">
-                <th:block th:each="attachment : ${attachments}">
-                    <div th:replace="~{common/attachmentFile :: attachmentFile(${attachment})}"></div>
-                </th:block>
             </div>
         </div>
     </form>

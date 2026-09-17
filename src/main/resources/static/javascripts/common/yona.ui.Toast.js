@@ -50,6 +50,16 @@
          */
         function _initElement(sContainer){
             htElement.elContainer = document.querySelector(sContainer);
+
+            // 하이브리드 어댑터(2026-09-17, components/vue-widgets toast 위젯 적용) -
+            // #yonaToasts 자리가 <yona-toast>(태그명으로 판별)면 그 커스텀 엘리먼트의
+            // push/clear에 그대로 위임한다. 원본 vanilla 구현(cloneNode 템플릿)은 그
+            // 태그가 없을 때만 실행된다.
+            if(htElement.elContainer.tagName.toLowerCase() === "yona-toast"){
+                htVar.bIsVueToast = true;
+                return;
+            }
+
             var elTemplate = document.createElement("div");
             elTemplate.innerHTML = htVar.sTplToast;
             htElement.elToast = elTemplate.firstElementChild;
@@ -60,6 +70,11 @@
          * @param {Number} nDuration
          */
         function pushToast(sMessage, nDuration){
+            if(htVar.bIsVueToast){
+                htElement.elContainer.push(sMessage, nDuration);
+                return;
+            }
+
             var elToast = _getToast(sMessage);
             htElement.elContainer.prepend(elToast);
             elToast.style.opacity = "1";
@@ -102,6 +117,10 @@
         }
 
         function clearToasts(){
+            if(htVar.bIsVueToast){
+                htElement.elContainer.clear();
+                return;
+            }
             htElement.elContainer.innerHTML = "";
         }
 

@@ -3,36 +3,25 @@
 <head>
 </head>
 <body>
-<!-- legacy common/reviewForm.scala.html 대응(4단계 - code.Diff.js 복원 계획 참고). 페이지당
-     단 하나만 존재하는 "플로팅 코드리뷰 댓글 상자"다 - yona.CodeCommentBox.js가 새 라인/범위
-     댓글을 달 때든 기존 스레드에 답글을 달 때든 이 하나의 DOM을 필요한 위치로 옮겨 재사용한다
-     (매번 새 폼을 만들어 삽입하지 않음 - legacy와 동일한 아키텍처). action은 페이지당 고정된
-     하나의 URL(새 스레드 생성과 답글 모두 이 URL로 제출되며, hidden thread.id 유무로 서버가
-     구분한다 - ReviewViewController.newPullRequestComment/newCommitComment 참고). -->
-<div th:fragment="reviewForm(project, resourceType, action)" id="review-form" class="review-form">
-    <form th:action="${action}" method="post" enctype="multipart/form-data">
-        <div class="author-info-wrap pull-left hide-in-mobile" th:if="${currentUser != null}">
-            <div class="author-info">
-                <a th:href="@{/user/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap medium" th:title="${currentUser.name}" data-toggle="tooltip" data-placement="top">
-                    <img th:src="${currentUser.avatarUrl}" width="32" height="32">
-                </a>
-            </div>
-        </div>
-        <div class="write-comment-box">
-            <div class="write-comment-wrap">
-                <div class="pull-right"><button type="button" class="ybtn ybtn-default ybtn-small" data-toggle="close">&times;</button></div>
-
-                <div th:replace="~{site/layout :: markdownEditor('contents', '', 'code-review-body')}"></div>
-
-                <div th:if="${currentUser != null}" th:replace="~{common/uploadForm :: uploadForm(${resourceType}, null, null)}"></div>
-
-                <div class="right-txt">
-                    <button type="button" class="ybtn ybtn-small" data-toggle="close" th:text="#{button.cancel}">취소</button>
-                    <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}">댓글 등록</button>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
+<!-- 플로팅 코드리뷰 댓글 상자: Vue 3 SFC(components/vue-widgets, 2026-09-17 적용) -
+     <Teleport>로 diff 테이블의 필요한 위치에 실제 라이트 DOM으로 옮겨 그리고,
+     <yona-markdown-editor-vue>/<yona-attachments>를 자식으로 조합한다(이 review-form
+     전용 에디터 인스턴스는 site/layout.html의 공용 markdownEditor 프래그먼트와
+     무관한 별개 인스턴스라, 그 프래그먼트를 전역 스왑하지 않기로 한 결정과 충돌하지
+     않는다). th:fragment 시그니처를 그대로 유지해야 한다 - code/diff.html이 이
+     정확한 시그니처(project, resourceType, action)로 이 프래그먼트를 참조한다
+     (실측 확인된 함정: 시그니처가 없으면 로그인 사용자에게만 "template or fragment
+     could not be resolved" 예외가 남).
+     data-csrf-param/data-csrf-token: 원본 th:action 폼은 Spring의
+     RequestDataValueProcessor가 _csrf 히든 필드를 자동 주입했지만, 이 컴포넌트는
+     순수 :action 바인딩이라 그 자동 주입을 못 받는다 - 서버가 이미 아는 실제 토큰을
+     여기서 직접 넘겨 컴포넌트가 히든 필드로 재현한다(실측 확인된 함정: 없으면 실제
+     제출이 항상 403). -->
+<!-- 호출부(code/diff.html)가 th:if="${currentUser != null}"로 이 프래그먼트 전체를 이미
+     게이트하므로(익명 사용자는 애초에 호출하지 않음), 여기서는 currentUser가 항상
+     존재한다고 가정한다(원본과 동일한 전제). -->
+<yona-review-form th:fragment="reviewForm(project, resourceType, action)" id="review-form"
+    th:attr="data-action=${action},data-resource-type=${resourceType},data-avatar-url=${currentUser.avatarUrl},data-profile-url=@{/user/{loginId}(loginId=${currentUser.loginId})},data-csrf-param=${_csrf.parameterName},data-csrf-token=${_csrf.token}">
+</yona-review-form>
 </body>
 </html>

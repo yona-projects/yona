@@ -81,6 +81,29 @@
     function createScrollElevator(options) {
         var opts = Object.assign({}, DEFAULTS, options || {});
 
+        // 하이브리드 어댑터(2026-09-17, components/vue-widgets scroll-elevator 위젯 적용) -
+        // <yona-scroll-elevator>가 로드돼 있으면(원본처럼 감쌀 대상 엘리먼트 자체가 없으므로)
+        // 그 커스텀 엘리먼트를 직접 만들어 body에 붙이고, 옵션은 data-*로 넘긴다. 그렇지
+        // 않으면(격리 환경 등) 아래 원본 vanilla 구현으로 폴백한다.
+        if (typeof customElements !== 'undefined' && customElements.get('yona-scroll-elevator')) {
+            var elVue = document.createElement('yona-scroll-elevator');
+            elVue.setAttribute('data-align', opts.align);
+            elVue.setAttribute('data-shape', opts.shape);
+            elVue.setAttribute('data-glass', String(opts.glass));
+            elVue.setAttribute('data-tooltips', String(opts.tooltips));
+            elVue.setAttribute('data-margin', String(opts.margin));
+            document.body.appendChild(elVue);
+
+            return {
+                destroy: function () {
+                    elVue.destroy();
+                    if (elVue.parentNode) {
+                        elVue.parentNode.removeChild(elVue);
+                    }
+                }
+            };
+        }
+
         var container = document.createElement('div');
         container.className = CLASS_DIV;
 

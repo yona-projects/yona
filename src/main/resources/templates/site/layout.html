@@ -670,92 +670,23 @@
 
   <!-- 공통 스크립트 및 모달 다이얼로그 -->
   <th:block th:fragment="scripts">
-    <!-- yona.ui.Dialog: 네이티브 <dialog> - .modal 클래스는 그대로 유지해 기존 위치/테두리
-         CSS를 재사용한다(yona.ui.Dialog.js 상단 주석 참고). -->
-    <dialog id="yonaDialog" class="modal yonaDialog">
-        <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
-        <div class="message">
-            <div class="center-text">
-                <p class="msg"></p>
-                <p class="desc"></p>
-            </div>
-            <div class="center-txt buttons">
-                <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}">Confirm</button>
-            </div>
-        </div>
-    </dialog>
-    
-    <!-- yona.ui.Toast -->
-    <div id="yonaToasts" class="yonaToasts"></div>
-    <script type="text/x-jquery-tmpl" id="tplYonaToast">
-    <div class="toast" tabindex="-1">
-        <div class="btn-dismiss"><button type="button" class="btn-transparent">&times;</button></div>
-        <div class="center-text">
-            <span class="v"></span>
-            <div class="msg"></div>
-        </div>
-    </div>
-    </script>
+    <!-- yona.ui.Dialog: Vue 3 SFC(components/vue-widgets, 2026-09-17 적용,
+         yona.ui.Dialog.js가 하이브리드 어댑터로 show/hide를 위임). -->
+    <yona-dialog id="yonaDialog"></yona-dialog>
 
-    <!-- loginDialog (익명 사용자용) - 네이티브 <dialog>(yona.LoginDialog.js 참고) -->
-    <dialog sec:authorize="isAnonymous()" id="loginDialog" class="modal loginDialog">
-      <div class="modal-body">
-        <div class="pull-right">
-          <button type="button" class="close mr10" data-dismiss="modal" aria-hidden="true">&times;</button>
-        </div>
-        <!-- 익명 사용자에게 sitewide로 렌더링되는 유일한 순수 HTML action= 서버 렌더링 폼이었다.
-             th:action으로 바꾸면 Spring Security의 requestDataValueProcessor 빈 +
-             thymeleaf-spring6의 SpringActionTagProcessor가 _csrf 히든 필드를 자동으로
-             주입한다(추가 코드 불필요). -->
-        <form th:action="@{/users/login}" method="post" class="frm-wrap login-form-wrap">
-          <div class="btns-row nm" th:if="${useSocialLoginOnly}" th:text="#{app.warn.support.social.login.only}">소셜 로그인을 통한 로그인만 가능합니다.</div>
-          <th:block th:unless="${useSocialLoginOnly}">
-          <dl>
-            <dd>
-              <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" th:placeholder="#{user.login.key}">
-            </dd>
-            <dd>
-              <input id="passwordD" name="password" type="password" class="text password" autocomplete="off" th:placeholder="#{user.password}">
-            </dd>
-          </dl>
-          <div class="error" style="display: none;">
-            <i class="yobicon-error"></i>
-            <span class="error-message"></span>
-          </div>
-          <div class="btns-row nm">
-            <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{button.login}">로그인</button>
-          </div>
-          </th:block>
-          <div class="btns-row nm">
-            <div class="social-login-title-line" th:unless="${useSocialLoginOnly}"> or </div>
-            <a href="/authenticate/github" class="ybtn oauth-login-btn">
-              <span class="auth-provider-logo">
-                <span class="github">
-                  <svg aria-hidden="true" height="24" version="1.1" viewBox="0 0 16 16" width="19">
-                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59 0.4 0.07 0.55-0.17 0.55-0.38 0-0.19-0.01-0.82-0.01-1.49-2.01 0.37-2.53-0.49-2.69-0.94-0.09-0.23-0.48-0.94-0.82-1.13-0.28-0.15-0.68-0.52-0.01-0.53 0.63-0.01 1.08 0.58 1.23 0.82 0.72 1.21 1.87 0.87 2.33 0.66 0.07-0.52 0.28-0.87 0.51-1.07-1.78-0.2-3.64-0.89-3.64-3.95 0-0.87 0.31-1.59 0.82-2.15-0.08-0.2-0.36-1.02 0.08-2.12 0 0 0.67-0.21 2.2 0.82 0.64-0.18 1.32-0.27 2-0.27 0.68 0 1.36 0.09 2 0.27 1.53-1.04 2.2-0.82 2.2-0.82 0.44 1.1 0.16 1.92 0.08 2.12 0.51 0.56 0.82 1.27 0.82 2.15 0 3.07-1.87 3.75-3.65 3.95 0.29 0.25 0.54 0.73 0.54 1.48 0 1.07-0.01 1.93-0.01 2.2 0 0.21 0.15 0.46 0.55 0.38C13.71 14.53 16 11.53 16 8 16 3.58 12.42 0 8 0z"></path>
-                  </svg>
-                </span>
-                <span class="provider-name">Sign in with github</span>
-              </span>
-            </a>
-            <a href="/authenticate/google" class="ybtn oauth-login-btn">
-              <span class="auth-provider-logo">
-                <img src="/images/provider-logo/btn_google_light_normal_ios.svg" alt="login with Google"> Sign in with Google
-              </span>
-            </a>
-          </div>
-          <div class="act-row right-txt mt20" th:unless="${useSocialLoginOnly}">
-            <div class="pull-left">
-              <input id="remember-meD" type="checkbox" name="rememberMe" class="checkbox" checked>
-              <label for="remember-meD" class="bg-checkbox" th:text="#{title.rememberMe}">로그인 유지</label>
-            </div>
-            <a href="/lostPassword" th:text="#{title.resetPassword}">비밀번호 찾기</a>
-            <span class="gray-txt ml10 mr10">|</span>
-            <a href="/signup" th:text="#{title.signup}">회원가입</a>
-          </div>
-        </form>
-      </div>
-    </dialog>
+    <!-- yona.ui.Toast: Vue 3 SFC(components/vue-widgets, 2026-09-17 적용,
+         yona.ui.Toast.js가 하이브리드 어댑터로 push/clear를 위임). -->
+    <yona-toast id="yonaToasts"></yona-toast>
+
+    <!-- yona.Common.js의 툴팁/팝오버 시스템: Vue 3 SFC(components/vue-widgets, 2026-09-17
+         적용, yona.Common.js의 showTooltip/hideTooltip/showPopoverError/hidePopoverError/
+         initHoverPopovers가 하이브리드 어댑터로 위임) - 페이지당 싱글턴 하나만 필요. -->
+    <yona-popover id="yonaPopover"></yona-popover>
+
+    <!-- loginDialog (익명 사용자용) - Vue 3 SFC(components/vue-widgets, 2026-09-17 적용,
+         yona.LoginDialog.js가 하이브리드 어댑터로 트리거 델리게이트만 소유). -->
+    <yona-login-dialog sec:authorize="isAnonymous()" id="loginDialog"
+        th:attr="data-use-social-login-only=${useSocialLoginOnly}"></yona-login-dialog>
 
     <!-- 스크립트 라이브러리들 로드 -->
     <script type="text/javascript" src="/javascripts/yona-common.js"></script>
@@ -878,6 +809,34 @@
          블로커였다). 세 벤더 파일 모두 static/bootstrap/js·static/javascripts/lib/ 아래
          그대로 남아있다(수정 금지 원칙, 참조만 제거). -->
     <script type="text/javascript" src="/javascripts/yona-lib.js"></script>
+
+    <!-- components/vue-widgets(Vue 3 SFC) 커스텀 엘리먼트 - 2026-09-17 전면 적용. 각 vanilla
+         common/*.js 파일이 하이브리드 어댑터로 다시 쓰여 여기서 정의된 태그가 실제로
+         존재하면 그쪽에 위임하고, 없으면(격리 환경 등) 원본 동작으로 폴백한다 - 이 스크립트들
+         자체는 항상 전역으로 로드해도 안전하다(대상 태그가 없는 페이지에서는 자연히 아무
+         일도 안 일어남, markdownEditor와 동일한 관례). type="module"은 기본적으로 지연
+         실행(defer와 동일)되므로 물리적 위치와 무관하게 DOMContentLoaded 전에 전부 준비된다. -->
+    <script type="module" src="/lib/yona-vue-widgets/yona-dialog-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-toast-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-popover-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-login-dialog-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-switch-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-dropdown-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-typeahead-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-pagination-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-attachments-element.js"></script>
+    <!-- review-form이 내부적으로 자식 컴포넌트로 조합한다(사이트 전역 markdownEditor
+         프래그먼트 자체는 여전히 vendor <yona-markdown-editor>를 쓴다 - textarea가
+         Shadow DOM에 완전히 캡슐화돼 있어 그 프래그먼트를 전역 스왑하면 14곳의 직접
+         querySelector 소비처가 깨진다는 별도 위험 때문에 이번 라운드에서는 보류했다.
+         review-form 자신의 에디터 인스턴스는 그 공용 프래그먼트와 무관한 별개
+         인스턴스라 이 위험이 없다). -->
+    <script type="module" src="/lib/yona-vue-widgets/yona-markdown-editor-vue-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-review-form-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-scroll-elevator-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-page-slide-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-help-markdown-element.js"></script>
+
     <script type="text/javascript" src="/javascripts/lib/autosize/autosize.min.js"></script>
     <script type="text/javascript" src="/javascripts/common/yona.KeyControl.js"></script>
     <script type="text/javascript" src="/javascripts/lib/tippy/popper.min.js"></script>

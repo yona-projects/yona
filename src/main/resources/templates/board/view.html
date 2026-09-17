@@ -237,9 +237,6 @@
      그대로 유지). -->
 <script type="text/javascript" src="/javascripts/common/yona.ScrollElevator.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
-<!-- P3-50: 댓글 수정 폼(common/commentUpdateForm)의 기존 첨부파일 목록 클릭/드래그드롭/붙여넣기/
-     삭제를 담당 — legacy와 동일하게 issue/board view 두 화면에서만 로드한다. -->
-<script type="text/javascript" src="/javascripts/common/yona.CommentAttachmentsUpdate.js"></script>
 <!-- P3-53 항목2: 대댓글 입력창(.add-a-comment/.child-comment-input-form) hover 노출/클릭 토글 담당.
      제출은 이미 아래 인라인 스크립트의 delegated .child-comment-form submit 핸들러가 AJAX로 처리하므로
      이 파일은 순수 표시/토글 UI만 담당해 충돌하지 않는다. -->
@@ -310,6 +307,19 @@
                 if (elEditForm) { elEditForm.style.display = "block"; }
                 document.querySelectorAll(".add-a-comment").forEach(function(el){ el.style.display = "none"; });
                 autosize.update(document.querySelectorAll('textarea'));
+                // Vue 3 SFC(components/vue-widgets, 2026-09-17 적용) - <yona-attachments>는
+                // 댓글 폼과 별개 위치에 있는 실제 textarea 참조를 명령형으로 주입받아야
+                // 붙여넣기/드래그/링크 삽입/삭제-시-링크제거가 그 textarea를 대상으로
+                // 동작한다(드롭다운/다이얼로그와 동일한 configure() 관례) - "수정" 버튼을
+                // 눌러 폼이 실제로 열리는 시점에 지연 배선한다(폼이 접혀있는 동안 불필요한
+                // 배선을 피함, 여러 번 눌러도 configure()는 멱등).
+                if (elEditForm) {
+                    var elAttachments = elEditForm.querySelector('yona-attachments');
+                    var elEditTextarea = elEditForm.querySelector('textarea[data-editor-mode="update-comment-body"]');
+                    if (elAttachments && elEditTextarea) {
+                        elAttachments.configure({"textarea": elEditTextarea});
+                    }
+                }
                 return;
             }
             var matchedCancel = event.target.closest('.ybtn-cancel');

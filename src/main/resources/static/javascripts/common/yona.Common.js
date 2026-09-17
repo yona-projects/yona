@@ -888,7 +888,22 @@ $yona = yona.Common = (function(){
      *
      * @param {String} sSelector
      */
+    /**
+     * 하이브리드 어댑터(2026-09-17, components/vue-widgets popover 위젯 적용) -
+     * 페이지에 <yona-popover> 싱글턴(site/layout.html 참고)이 있으면 그 커스텀
+     * 엘리먼트에 위임하고, 없으면(격리된 스모크 테스트 등) null을 반환해 아래 각
+     * 함수가 원본 vanilla 구현으로 폴백하게 한다.
+     */
+    function _getVuePopover(){
+        return document.querySelector("yona-popover");
+    }
+
     function initHoverPopovers(sSelector){
+        var elVuePopover = _getVuePopover();
+        if(elVuePopover){
+            elVuePopover.initHoverPopovers(sSelector);
+            return;
+        }
         document.querySelectorAll(sSelector).forEach(function(elTrigger){
             if(elTrigger._yonaHoverPopoverBound){
                 return;
@@ -980,6 +995,12 @@ $yona = yona.Common = (function(){
      * @param {Element} elTrigger
      */
     function showTooltip(elTrigger){
+        var elVuePopover = _getVuePopover();
+        if(elVuePopover){
+            elVuePopover.showTooltip(elTrigger);
+            return;
+        }
+
         if(!elTrigger || elTrigger._yonaTooltipEl){
             return;
         }
@@ -1004,6 +1025,12 @@ $yona = yona.Common = (function(){
      * @param {Element} elTrigger
      */
     function hideTooltip(elTrigger){
+        var elVuePopover = _getVuePopover();
+        if(elVuePopover){
+            elVuePopover.hideTooltip(elTrigger);
+            return;
+        }
+
         var elTooltip = elTrigger && elTrigger._yonaTooltipEl;
         if(!elTooltip){
             return;
@@ -1036,6 +1063,12 @@ $yona = yona.Common = (function(){
             return;
         }
 
+        var elVuePopover = _getVuePopover();
+        if(elVuePopover){
+            elVuePopover.showPopoverError(el, sMessage, sPlacement);
+            return;
+        }
+
         hidePopoverError(el);
 
         el._yonaPopoverEl = _showPopoverOn(el, sMessage, "", sPlacement || "left");
@@ -1046,7 +1079,17 @@ $yona = yona.Common = (function(){
      */
     function hidePopoverError(elTarget){
         var el = _toElement(elTarget);
-        if(el && el._yonaPopoverEl){
+        if(!el){
+            return;
+        }
+
+        var elVuePopover = _getVuePopover();
+        if(elVuePopover){
+            elVuePopover.hidePopoverError(el);
+            return;
+        }
+
+        if(el._yonaPopoverEl){
             el._yonaPopoverEl.remove();
             el._yonaPopoverEl = null;
         }

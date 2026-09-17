@@ -57,7 +57,9 @@
             _initElement(htOptions);
             _attachEvent();
 
-            htVar.fOnChange = htOptions.fOnChange;
+            if(htOptions.fOnChange){
+                _setOnChange(htOptions.fOnChange);
+            }
 
             _selectDefault();
         }
@@ -70,13 +72,25 @@
             if(!htElement.welContainer){
                 return;
             }
+
+            // 하이브리드 어댑터(2026-09-17, components/vue-widgets dropdown 위젯 적용) -
+            // 컨테이너가 <yona-dropdown>(태그명으로 판별)이면 그 위에 노출된
+            // getValue/onChange/selectByValue/selectItem으로 전부 위임한다. 아직
+            // 마이그레이션되지 않은 나머지 화면(평범한 div.btn-group)은 원본 vanilla
+            // 구현이 그대로 처리한다 - 두 경로 다 동일한 공개 계약을 반환하므로 호출부는
+            // 코드를 전혀 바꿀 필요가 없다.
+            if(htElement.welContainer.tagName.toLowerCase() === "yona-dropdown"){
+                htVar.bIsVueDropdown = true;
+                return;
+            }
+
             htElement.welSelectedLabel = htElement.welContainer.querySelector(".d-label");
             htElement.welList = htElement.welContainer.querySelector(".dropdown-menu");
             htElement.waItems = htElement.welList.querySelectorAll("li");
         }
 
         function _attachEvent(){
-            if(!htElement.welContainer){
+            if(!htElement.welContainer || htVar.bIsVueDropdown){
                 return;
             }
             htElement.welList.addEventListener("click", function(weEvt){
@@ -181,6 +195,9 @@
          * @param {Function} fOnChange
          */
         function _setOnChange(fOnChange){
+            if(htVar.bIsVueDropdown){
+                return htElement.welContainer.onChange(fOnChange);
+            }
             htVar.fOnChange = fOnChange;
             return true;
         }
@@ -189,10 +206,16 @@
          * @return {String}
          */
         function _getValue(){
+            if(htVar.bIsVueDropdown){
+                return htElement.welContainer.getValue();
+            }
             return htVar.sValue;
         }
 
         function _selectDefault(){
+            if(htVar.bIsVueDropdown){
+                return true; // Vue 컴포넌트 자신의 onMounted가 이미 처리한다.
+            }
             return _selectItem("li[data-selected=true]");
         }
 
@@ -200,6 +223,9 @@
          * @param {String} sValue
          */
         function _selectByValue(sValue){
+            if(htVar.bIsVueDropdown){
+                return htElement.welContainer.selectByValue(sValue);
+            }
             return _selectItem("li[data-value='" + sValue + "']");
         }
 
@@ -209,6 +235,9 @@
         function _selectItem(sQuery){
             if(!htElement.welContainer){
                 return false;
+            }
+            if(htVar.bIsVueDropdown){
+                return htElement.welContainer.selectItem(sQuery);
             }
             var waFind = htElement.welContainer.querySelectorAll(sQuery);
             if(waFind.length <= 0){

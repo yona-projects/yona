@@ -19,12 +19,27 @@ yona.CodeCommentBox = (function(){
 
     function _initElement(){
         htElement.welCommentWrap = document.getElementById("review-form");
+
+        // 하이브리드 어댑터(2026-09-17, components/vue-widgets review-form 위젯 적용) -
+        // #review-form 자리가 <yona-review-form>(태그명으로 판별)이면 show/hide/toggle/
+        // isVisible/height/offset을 전부 그 커스텀 엘리먼트에 위임한다. 트리거 로직
+        // (yona.code.Diff.js 소유, 언제/어디에 뜰지 결정)은 그대로 두고 공개 계약만
+        // 유지한다.
+        if(htElement.welCommentWrap && htElement.welCommentWrap.tagName.toLowerCase() === "yona-review-form"){
+            htVar.bIsVueReviewForm = true;
+            return;
+        }
+
         htElement.welCommentForm = htElement.welCommentWrap.querySelector("form");
         htElement.welCommentTextarea = htElement.welCommentForm.querySelector('[data-toggle="markdown-editor"] textarea');
         htElement.welInitialParent = htElement.welCommentWrap.parentElement;
     }
 
     function _attachEvent(){
+        if(htVar.bIsVueReviewForm){
+            return;
+        }
+
         htElement.welCommentForm.addEventListener("click", function(weEvt){
             if(weEvt.target.closest('[data-toggle="close"]')){
                 _hide();
@@ -40,6 +55,11 @@ yona.CodeCommentBox = (function(){
      */
     function _show(welTarget, htOptions){
         htOptions = htOptions || {};
+
+        if(htVar.bIsVueReviewForm){
+            htElement.welCommentWrap.show(welTarget, htOptions);
+            return;
+        }
 
         var sPlacement = (htOptions.sPlacement || "bottom").toLowerCase();
         _setArrowPlacement(sPlacement);
@@ -246,6 +266,11 @@ yona.CodeCommentBox = (function(){
     }
 
     function _hide(){
+        if(htVar.bIsVueReviewForm){
+            htElement.welCommentWrap.hide();
+            return;
+        }
+
         htElement.welCommentWrap.style.display = "none";
         var welFormWrap = htElement.welCommentWrap.closest("tr.comment-form");
         // P3-73: 위 _placeReviewForm()과 동일한 이유로 실제 이동이 필요할 때만 appendChild한다.
@@ -270,6 +295,11 @@ yona.CodeCommentBox = (function(){
     }
 
     function _toggleVisibility(welTarget, htOptions){
+        if(htVar.bIsVueReviewForm){
+            htElement.welCommentWrap.toggle(welTarget, htOptions);
+            return;
+        }
+
         if(_isVisible()){
             _hide();
         } else {
@@ -278,15 +308,24 @@ yona.CodeCommentBox = (function(){
     }
 
     function _isVisible(){
+        if(htVar.bIsVueReviewForm){
+            return htElement.welCommentWrap.isVisible();
+        }
         return !!(htElement.welCommentWrap &&
                 htElement.welCommentWrap.style.display === "block");
     }
 
     function _getWrapHeight(){
+        if(htVar.bIsVueReviewForm){
+            return htElement.welCommentWrap.height();
+        }
         return htElement.welCommentWrap.offsetHeight;
     }
 
     function _getWrapOffset(){
+        if(htVar.bIsVueReviewForm){
+            return htElement.welCommentWrap.offset();
+        }
         var rect = htElement.welCommentWrap.getBoundingClientRect();
         return {
             "top": rect.top + window.scrollY,

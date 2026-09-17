@@ -88,6 +88,27 @@
                 return;
             }
 
+            // 하이브리드 어댑터(2026-09-17, components/vue-widgets typeahead 위젯 적용) -
+            // <yona-typeahead>가 로드돼 있으면 생성자 자신이 그 자리에서 기존 input을
+            // 감싸고(idempotent - 이미 감싸져 있으면 재사용) configure()로 위임한다.
+            // 호출부 5곳(project.Home/site.MassMail/project.Member/issue.LabelEditor/
+            // organization.Member) 코드는 전혀 안 바뀐다.
+            if(typeof customElements !== "undefined" && customElements.get("yona-typeahead")){
+                var elWrapper = htElement.elInput.closest("yona-typeahead");
+                if(!elWrapper){
+                    elWrapper = document.createElement("yona-typeahead");
+                    htElement.elInput.insertAdjacentElement("beforebegin", elWrapper);
+                    elWrapper.appendChild(htElement.elInput);
+                }
+                htVar.bIsVueTypeahead = true;
+                elWrapper.configure({
+                    "source": htVar.vSource,
+                    "minLength": htVar.nMinLength,
+                    "limit": htVar.nItems
+                });
+                return;
+            }
+
             htElement.elMenu = document.createElement("ul");
             htElement.elMenu.className = "typeahead dropdown-menu";
             htElement.elMenu.style.display = "none";

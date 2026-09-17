@@ -17,7 +17,27 @@ var _pageslide = {
     lastCaller: null
 };
 
+// 하이브리드 어댑터(2026-09-17, components/vue-widgets page-slide 위젯 적용) - 실측으로
+// 확인된 함정: host에 원본과 같은 id="pageslide"를 주면 yona.css의 전역
+// `#pageslide { display: none; }` 규칙이 host 자체에 적용돼 shadow 트리 전체가
+// 안 보이게 된다(컴포넌트 내부 인라인 스타일과 무관) - 그래서 host에는 그 id를
+// 아예 안 주고, 클로저 변수로 싱글턴 엘리먼트를 직접 캐싱한다(document.getElementById
+// 대신). 이 파일 밖에서 "#pageslide"를 참조하는 곳은 없음을 확인했다.
+var _pageslideVueEl = null;
+
+function _isVuePageSlide() {
+    return typeof customElements !== 'undefined' && customElements.get('yona-page-slide');
+}
+
 function _getPageslideElement() {
+    if (_isVuePageSlide()) {
+        if (!_pageslideVueEl) {
+            _pageslideVueEl = document.createElement('yona-page-slide');
+            document.body.appendChild(_pageslideVueEl);
+        }
+        return _pageslideVueEl;
+    }
+
     var el = document.getElementById("pageslide");
     if (!el) {
         el = document.createElement("div");
@@ -29,11 +49,20 @@ function _getPageslideElement() {
 }
 
 function _isPageslideVisible(el) {
+    if (_isVuePageSlide() && el === _pageslideVueEl) {
+        return el.isVisible();
+    }
     return getComputedStyle(el).display !== "none";
 }
 
 function _pageslideOpen(href, direction, speed) {
     var el = _getPageslideElement();
+
+    if (_isVuePageSlide() && el === _pageslideVueEl) {
+        el.show(href, direction);
+        return;
+    }
+
     var wasHidden = !_isPageslideVisible(el);
 
     // 원본과 동일: 이전 iframe은 즉시 제거하고, 새 iframe은 300ms 뒤에 채운다.
@@ -75,19 +104,28 @@ function _pageslideOpen(href, direction, speed) {
 }
 
 function _pageslideClose() {
-    var el = document.getElementById("pageslide");
-    if (!el || !_isPageslideVisible(el)) {
-        return;
-    }
-    var direction = el.dataset.pageslideDirection || "left";
-    var slideWidth = el.getBoundingClientRect().width;
-    if (direction === "left") {
-        el.style.right = -slideWidth + "px";
+    if (_isVuePageSlide()) {
+        if (!_pageslideVueEl || !_pageslideVueEl.isVisible()) {
+            return;
+        }
+        _pageslideVueEl.hide();
     } else {
-        el.style.left = -slideWidth + "px";
+        var el = document.getElementById("pageslide");
+        if (!el || !_isPageslideVisible(el)) {
+            return;
+        }
+        var direction = el.dataset.pageslideDirection || "left";
+        var slideWidth = el.getBoundingClientRect().width;
+        if (direction === "left") {
+            el.style.right = -slideWidth + "px";
+        } else {
+            el.style.left = -slideWidth + "px";
+        }
+        el.style.display = "none";
     }
-    el.style.display = "none";
 
+    // .left-menu 복원은 위젯이 모르는 페이지 고유 관심사라 하이브리드 여부와
+    // 무관하게 어댑터가 그대로 소유한다(원본과 동일).
     var leftMenu = document.querySelector(".left-menu");
     if (leftMenu) {
         leftMenu.style.display = "";
@@ -227,7 +265,12 @@ function _initTwoColumnMode(){
                     postItem.classList.add('highlightBg');
                 }
 
-                var pageslideEl = document.getElementById('pageslide');
+                // 하이브리드 - Vue 위젯이 활성화된 경우 host에 id="pageslide"를 안 주므로
+                // getElementById로는 못 찾는다(위 _getPageslideElement 주석 참고). 이 파일
+                // 안의 세 번째 getElementById('pageslide') 참조라 README가 "2곳뿐"이라고
+                // 기록했던 것과 달랐다(2026-09-17 실제 배포 중 재확인) - 캐시된 클로저
+                // 변수를 우선 사용하도록 함께 고친다.
+                var pageslideEl = _isVuePageSlide() ? _pageslideVueEl : document.getElementById('pageslide');
                 var userInfoBox = document.querySelector(".user-info-box");
                 var leftMenu = document.querySelector(".left-menu");
                 if (pageslideEl && _isPageslideVisible(pageslideEl)) {

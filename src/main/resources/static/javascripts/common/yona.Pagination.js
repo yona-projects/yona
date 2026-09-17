@@ -139,6 +139,27 @@ yona.Pagination = (function(window, document) {
         if(!welTarget){
             return;
         }
+
+        // 하이브리드 어댑터(2026-09-17, components/vue-widgets pagination 위젯 적용) -
+        // 대상 컨테이너 자체는 절대 교체하지 않는다(issue.List.js 등 일부 호출부가
+        // #pagination 참조를 캐싱해두고 update()를 여러 번 재호출하므로, 컨테이너를
+        // 교체해버리면 두 번째 호출부터 오래된 분리된 엘리먼트를 다시 교체하려다
+        // 실제로는 아무 효과도 없는 버그가 생긴다 - 원본이 매번 `innerHTML = ''`로
+        // 내부만 다시 그리던 것과 동일하게, 안에 <yona-pagination> 자식을 한 번만
+        // 만들고 이후로는 계속 재사용해 update()로 위임한다).
+        if(typeof customElements !== "undefined" && customElements.get("yona-pagination")){
+            var elVue = (welTarget.tagName.toLowerCase() === "yona-pagination")
+                ? welTarget
+                : welTarget.querySelector(":scope > yona-pagination");
+            if(!elVue){
+                elVue = document.createElement("yona-pagination");
+                welTarget.innerHTML = "";
+                welTarget.appendChild(elVue);
+            }
+            elVue.update(nTotalPages, htOptions || {});
+            return;
+        }
+
         var htData = htOptions || {};
 
         htData.url = htData.url || document.URL;

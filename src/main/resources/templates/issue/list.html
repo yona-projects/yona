@@ -263,8 +263,12 @@
                                             <input type="checkbox" id="check-all" data-target="checked-issue"/>
                                         </label>
                                     </div>
-                                    <!-- 상태 변경 -->
-                                    <div id="state" class="btn-group" data-name="state">
+                                    <!-- 상태 변경 - Vue 3 SFC(components/vue-widgets dropdown 위젯,
+                                         2026-09-17 적용). 호스트 자신이 원본 .btn-group[data-name]
+                                         컨테이너를 그대로 대신한다(클래스/data-name 유지) - 버튼/목록은
+                                         전부 라이트 DOM 그대로, yona.ui.Dropdown.js가 하이브리드
+                                         어댑터로 getValue/onChange/selectByValue/selectItem을 위임한다. -->
+                                    <yona-dropdown id="state" class="btn-group" data-name="state">
                                         <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
                                             <span class="d-label" th:text="#{issue.update.state}">상태 변경</span>
                                             <span class="d-caret"><span class="caret"></span></span>
@@ -273,7 +277,7 @@
                                             <li data-value="OPEN"><a th:text="#{issue.state.open}">열림</a></li>
                                             <li data-value="CLOSED"><a th:text="#{issue.state.closed}">닫힘</a></li>
                                         </ul>
-                                    </div>
+                                    </yona-dropdown>
                                     <!-- 담당자 변경 -->
                                     <div id="assignee" class="btn-group" data-name="assignee.id">
                                         <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">

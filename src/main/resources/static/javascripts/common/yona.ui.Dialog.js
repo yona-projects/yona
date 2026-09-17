@@ -60,6 +60,17 @@
          */
         function _initElement(sContainer){
             var elOriginal = document.querySelector(sContainer);
+
+            // 하이브리드 어댑터(2026-09-17, components/vue-widgets dialog 위젯 적용) -
+            // #yonaDialog 자리가 <yona-dialog>(태그명으로 판별)면 그 커스텀 엘리먼트에
+            // show/hide를 그대로 위임한다. 원본 vanilla 구현(cloneNode 싱글턴)은 그
+            // 태그가 없을 때만 실행된다.
+            if(elOriginal.tagName.toLowerCase() === "yona-dialog"){
+                htVar.bIsVueDialog = true;
+                htElement.elContainer = elOriginal;
+                return;
+            }
+
             htElement.elContainer = elOriginal.cloneNode(true);
             document.body.appendChild(htElement.elContainer);
             htElement.elMessage = htElement.elContainer.querySelector(".msg");
@@ -68,6 +79,9 @@
         }
 
         function _attachEvent(){
+            if(htVar.bIsVueDialog){
+                return;
+            }
             htElement.elContainer.addEventListener("close", _onHiddenDialog);
 
             htElement.elContainer.addEventListener("click", function(weEvt){
@@ -96,6 +110,13 @@
          * @param {String} sMessage
          */
         function showDialog(sMessage, sDescription, htOptions){
+            htOptions = htOptions || {};
+
+            if(htVar.bIsVueDialog){
+                htElement.elContainer.show(sMessage, sDescription, htOptions);
+                return;
+            }
+
             htVar.fOnAfterShow = htOptions.fOnAfterShow;
             htVar.fOnAfterHide = htOptions.fOnAfterHide;
             htVar.fOnClickButton = htOptions.fOnClickButton;
@@ -152,6 +173,10 @@
         }
 
         function hideDialog(){
+            if(htVar.bIsVueDialog){
+                htElement.elContainer.hide();
+                return;
+            }
             htElement.elContainer.close();
         }
 
