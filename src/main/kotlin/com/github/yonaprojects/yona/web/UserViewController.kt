@@ -498,10 +498,7 @@ class UserViewController(
         // - 참여함 (오너가 아니면서 멤버인 프로젝트)
         val joinmember = allUserProjects.filter { it.owner != loginUser.loginId }
 
-        // 4. 전체 조직 목록 (All 탭)
-        val allOrganizations = organizationRepository.findAll()
-
-        // 5. 최근 방문한 이슈/게시글 (yona User.getVisitedIssues() 대응)
+        // 4. 최근 방문한 이슈/게시글 (yona User.getVisitedIssues() 대응)
         val visitedIssues = recentIssueService.getRecentIssues(loginUser)
 
         model.addAttribute("currentUser", loginUser)
@@ -512,7 +509,6 @@ class UserViewController(
         model.addAttribute("createdByMe", createdByMe)
         model.addAttribute("watching", watching)
         model.addAttribute("joinmember", joinmember)
-        model.addAttribute("allOrganizations", allOrganizations)
         model.addAttribute("visitedIssues", visitedIssues)
 
         return "common/usermenu_tab_content_list"
@@ -556,9 +552,6 @@ class UserViewController(
         // 참여함 (오너가 아니면서 멤버인 프로젝트)
         val joinmember = allUserProjects.filter { it.owner != loginUser.loginId }
 
-        // 전체 조직 목록 (All 탭)
-        val allOrganizations = organizationRepository.findAll()
-
         // 최근 이슈 목록 (참여 프로젝트의 이슈 중 최근 업데이트된 10개)
         val recentIssues = if (allUserProjects.isNotEmpty()) {
             issueRepository.findByProjectIn(allUserProjects, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "updatedDate"))).content
@@ -575,7 +568,6 @@ class UserViewController(
         model.addAttribute("createdByMe", createdByMe)
         model.addAttribute("watching", watching)
         model.addAttribute("joinmember", joinmember)
-        model.addAttribute("allOrganizations", allOrganizations)
         model.addAttribute("recentIssues", recentIssues)
 
         return "site/layout_framed"

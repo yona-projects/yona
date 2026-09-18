@@ -159,9 +159,6 @@
               <li class="myRecentIssueList">
                 <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}">Recently visited issue</a>
               </li>
-              <li class="allProjectList">
-                <a href="#allProjectList" data-toggle="tab" th:text="#{common.order.all}">All</a>
-              </li>
             </ul>
             <div class="tab-content tab-box">
               <div id="usermenu-tab-content-list" class="tab-content">
@@ -286,9 +283,6 @@
               <li class="myRecentIssueList">
                 <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}">Recently visited issue</a>
               </li>
-              <li class="allProjectList">
-                <a href="#allProjectList" data-toggle="tab" th:text="#{common.order.all}">All</a>
-              </li>
             </ul>
             <div class="tab-content tab-box">
               <div id="usermenu-tab-content-list" class="tab-content">
@@ -297,7 +291,7 @@
             </div>
           </div>
         </div>
-  
+
         <!-- GNB 사용자 메뉴 -->
         <ul class="gnb-usermenu">
           <th:block sec:authorize="isAuthenticated()">
