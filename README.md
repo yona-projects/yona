@@ -212,6 +212,13 @@ java -jar yona.jar --spring.profiles.active=h2
 - 소셜 로그인(OAuth2): `application.yml`의 `spring.security.oauth2` 섹션
 - WebAuthn(패스키): `application.yml`의 `yona.security.webauthn.relying-party-id`/
   `relying-party-name` — 배포 도메인에 맞게 반드시 재설정해야 합니다(기본값은 `localhost`).
+- **2단계 인증(TOTP) 암호화 키**: 환경변수 `YONA_TOTP_ENCRYPTION_PASSWORD`/
+  `YONA_TOTP_ENCRYPTION_SALT`를 **배포 전 반드시 설정**해야 합니다. 기본값은 저장소에 커밋된
+  placeholder 값(`yona-totp-dev-only-password` 등)이라, 프로덕션에서 이 값을 그대로 쓰면 모든
+  사용자의 TOTP 시크릿이 소스코드로 노출된 키로 암호화되어 2단계 인증이 실질적인 보호 효과가
+  없어집니다. 이 값을 설정하지 않고 부팅하면 서버 로그에 `[SECURITY WARNING] TOTP encryption
+  key is still the committed placeholder default` 에러가 남으니, 배포 파이프라인에서 이 로그를
+  감시하는 것도 권장합니다(`TotpEncryptionKeyGuard`).
 - SSH(Git/Mercurial 접근, SSH 키 등록): [SSH: 시스템 sshd 연동](docs/guide/ssh-system-sshd-setup.md)
 - GPG 커밋 서명 검증, Deploy Key, API 토큰/OAuth2 앱은 별도 설정 없이 기본 활성화되어 있으며,
   사용자별 설정 화면에서 바로 쓸 수 있습니다.
@@ -523,6 +530,14 @@ Project Fork does not physically copy the repository — it clones via filesyste
 - WebAuthn (passkeys): `yona.security.webauthn.relying-party-id`/`relying-party-name` in
   `application.yml` — you must reconfigure these to match your deployment domain (the default is
   `localhost`).
+- **Two-factor authentication (TOTP) encryption key**: you **must** set the
+  `YONA_TOTP_ENCRYPTION_PASSWORD`/`YONA_TOTP_ENCRYPTION_SALT` environment variables before
+  deploying to production. The defaults are placeholder values committed to source control
+  (`yona-totp-dev-only-password`, etc.) — leaving them as-is in production means every user's TOTP
+  secret is encrypted with a key anyone can read from the repo, so two-factor authentication
+  provides no real protection. Booting without setting these logs a
+  `[SECURITY WARNING] TOTP encryption key is still the committed placeholder default` error, which
+  your deployment pipeline should monitor for (`TotpEncryptionKeyGuard`).
 - SSH (Git/Mercurial access, SSH key registration): see
   [SSH: system sshd integration](docs/guide/ssh-system-sshd-setup.md) (Korean only for now).
 - GPG commit signature verification, deploy keys, and API tokens/OAuth apps need no extra setup —
