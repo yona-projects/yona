@@ -10345,8 +10345,10 @@ span.issue-label:hover {
   color: #555;
 }
 /* 네이티브 <dialog>로 전환하며 .modal-backdrop 대신 ::backdrop 의사 엘리먼트를 쓴다
-   (yona.ui.Dialog.js 참고) - 불투명도는 기존 .modal-backdrop과 동일하게 맞춘다. */
-.yonaDialog::backdrop {
+   (yona.ui.Dialog.js 참고) - 불투명도는 기존 .modal-backdrop과 동일하게 맞춘다.
+   .yonaDialog에만 걸려 있어서 loginDialog/keymap-help/pullreq-info/voters-dialog 등
+   나머지 <dialog class="modal ..."> 전부 배경이 어두워지지 않던 문제라 공통 .modal로 일반화한다. */
+.modal::backdrop {
   background-color: #000000;
   opacity: 0.8;
 }
