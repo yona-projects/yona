@@ -17,8 +17,8 @@ UI 중 Vue 컴포넌트로 뽑아낼 만한 후보를 조사한 결과다. 코�
 | 5 | `yona.TitleHeadAutoCompletion.js` | 249줄 | 3곳: `board/create.html`, `issue/edit.html`, `issue/create.html` | 이슈/게시글 제목 자동완성 |
 | 6 | `yona.ReceiverList.js` + `yona.WatcherList.js` | 94+50줄 | 1곳: `issue/view.html` | 참여자/지켜보는 사람 목록. 재사용도 낮아 우선순위 낮음 |
 | 7 | `yona.ui.Calendar.js` | 94줄 | 1곳 | 날짜 선택기. 낮은 우선순위 |
-| 8 | `yona.ui.Mergely.js` | 169줄 | 0곳(템플릿에서 참조 못 찾음) | 죽은 코드일 가능성 — 포팅 전에 실제 사용 여부 재확인 필요 |
-| 9 | `yona.ui.Tabs.js` | 46줄 | 0곳 — **죽은 코드**(2026-09-18 재검증으로 정정: 이 파일을 로드하는 곳이 템플릿/JS 전체에 없음, `.nav-tabs` 마크업 31곳은 전부 부트스트랩 `data-toggle="tab"`으로 처리됨) | 파일 자체가 이미 안 쓰여서 "Vue로 뽑을 것"이 아니라 삭제 후보. 이번 세션에서 고친 사이드바 탭 버그도 이 죽은 파일과는 무관(부트스트랩 처리) |
+| 8 | ~~`yona.ui.Mergely.js`~~ | 169줄 | 0곳(진짜 죽은 코드, 확인 후 파일 삭제함 — 2026-09-18) | v0.5.4 release notes에 "Remove mergely.js"로 명시된, 그보다도 훨씨 전에 없어진 side-by-side diff 뷰어 기능의 잔해. `$.fn.mergely` 플러그인도 저장소에 없어 애초에 실행 불가능했다 |
+| 9 | `yona.ui.Tabs.js` | 46줄 | **살아있음**(2026-09-18 3차 재검증으로 정정 — 아래 참고) | 탭 클릭 시 마지막 선택 인덱스를 localStorage에 저장하는 로직뿐. 복원(`_restoreTab`)은 legacy부터 있던 버그로 의도적으로 no-op. 로직 자체가 얇아 Vue로 뽑을 실익은 낮음(우선순위는 낮게 유지) |
 
 ## 추천 착수 순서
 
@@ -59,12 +59,33 @@ UI 중 Vue 컴포넌트로 뽑아낼 만한 후보를 조사한 결과다. 코�
 
 markdownEditor 외에 이 문서의 다른 항목들도 다시 훑어서 확인했다.
 
-- **틀렸던 것**: `yona.ui.Tabs.js`(위 9번 항목, 수정 완료) — 죽은 코드인데 ".nav-tabs 마크업
-  31곳"이라고 적어 실사용처럼 보이게 서술했었다. `yona.ui.TomSelect.js`(위 3번 항목, 수정
-  완료) — 재사용 파일 목록에 실제로는 TomSelect를 호출하지 않는 `Subtask`/`TitleHeadAutoCompletion`이
-  끼어 있었고, 실제 소비 파일인 `project.New`/`issue.List`가 빠져 있었다.
+- **틀렸던 것**: `yona.ui.Tabs.js`(위 9번 항목, 수정 완료 — **하지만 이 정정 자체가 또 틀렸었다.
+  아래 3차 재검증 참고**) `yona.ui.TomSelect.js`(위 3번 항목, 수정 완료) — 재사용 파일 목록에
+  실제로는 TomSelect를 호출하지 않는 `Subtask`/`TitleHeadAutoCompletion`이 끼어 있었고, 실제
+  소비 파일인 `project.New`/`issue.List`가 빠져 있었다.
 - **맞았던 것**: `yona.Files.js`(919줄/8곳), `yona.CodeCommentBox.js`+`CodeCommentBlock.js`
   (322+529줄/5곳), `yona.Tasklist.js`(138줄/4곳) 줄수·재사용처는 `wc -l`/grep 재확인 결과
-  전부 정확했다. `yona.ui.Mergely.js`도 실제로 죽은 코드임을 재확인(참조 0건). 이번 세션에
-  고친 `usermenu.css`의 `.sidenav .nav-tabs.nm` 패딩도 다른 8곳의 `.nav-tabs.nm` 사용처(전부
-  `.sidenav` 조상이 없는 페이지 본문 탭)에는 안 걸리는 걸 재확인해 부작용 없음을 확인했다.
+  전부 정확했다. `yona.ui.Mergely.js`도 실제로 죽은 코드임을 재확인(참조 0건, 이후 3차
+  재검증에서 파일 삭제까지 진행). 이번 세션에 고친 `usermenu.css`의 `.sidenav .nav-tabs.nm`
+  패딩도 다른 8곳의 `.nav-tabs.nm` 사용처(전부 `.sidenav` 조상이 없는 페이지 본문 탭)에는
+  안 걸리는 걸 재확인해 부작용 없음을 확인했다.
+
+## 3차 재검증 (2026-09-18, 사용자가 "Tabs.js는 우리가 포팅한 걸로 아는데" 지적)
+
+**2차 재검증에서 "Tabs.js는 죽은 코드"라고 고친 것 자체가 틀렸다.** 근거로 든 "이 파일을
+로드하는 `<script src>`가 템플릿에 없다"는 검사 방법이 잘못됐다 - 이 프로젝트는 일부
+`common/yona.*.js` 소스를 별도 빌드 산출물인 `/javascripts/yona-lib.js`(개별 `<script>`
+태그 없이 미니파이된 번들, `site/layout.html:667`에서 로드)로 합쳐서 배포하는데, 파일명
+문자열만 grep해서는 이 번들 안에 로직이 들어있는지 알 수 없다.
+
+실제로 `yona-lib.js`에 `localStorage.setItem("yonatab-"+r,n)`(미니파이된 형태)가 그대로
+들어있어 `yona.ui.Tabs.js`의 `_init` 로직(탭 클릭 시 `localStorage.setItem("yonatab-" +
+sContainerId, nIndex)`)이 살아서 매 페이지에서 실행되고 있음을 확인했다(관련 리팩터
+커밋 `0eed3be55` "tab 카테고리를 vanilla JS로 전환" - jQuery `.tab()` 플러그인 제거
+작업의 일부로 이미 vanilla로 옮겨져 있었다). 반면 `yona.ui.Mergely.js`는 같은 번들에
+"mergely" 문자열이 0건이라 이 경로로도 죽은 코드임이 재확인됐다 - 그래서 Mergely만 삭제하고
+Tabs는 그대로 뒀다.
+
+**교훈**: 이 저장소에서 "어떤 JS 파일이 죽었는지" 판단할 때는 템플릿의 `<script src>`
+grep만으로 부족하고, `yona-lib.js`(및 다른 번들 산출물) 안에 해당 로직의 distinctive한
+문자열이 들어있는지까지 확인해야 한다.
