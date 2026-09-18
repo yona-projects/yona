@@ -164,18 +164,21 @@ class ProjectServiceImpl(
         }
 
         project.overview = param.overview
-        project.projectScope = param.projectScope
-        project.isCodeAccessibleMemberOnly = param.isCodeAccessibleMemberOnly
-        project.isUsingReviewerCount = param.isUsingReviewerCount
-        project.defaultReviewerCount = param.defaultReviewerCount
-        
-        project.isCodeEnabled = param.isCodeEnabled
-        project.isIssueEnabled = param.isIssueEnabled
-        project.isPullRequestEnabled = param.isPullRequestEnabled
-        project.isReviewEnabled = param.isReviewEnabled
-        project.isMilestoneEnabled = param.isMilestoneEnabled
-        project.isBoardEnabled = param.isBoardEnabled
-        project.isWikiEnabled = param.isWikiEnabled
+        // name과 동일한 규칙: null이면 이 필드는 손대지 않는다 -- 부분 업데이트 호출자(예:
+        // project/home.html의 설명 인라인 위젯, overview만 보냄)가 나머지 설정을 조용히
+        // 기본값으로 리셋하지 않도록 한다.
+        if (param.projectScope != null) project.projectScope = param.projectScope
+        if (param.isCodeAccessibleMemberOnly != null) project.isCodeAccessibleMemberOnly = param.isCodeAccessibleMemberOnly
+        if (param.isUsingReviewerCount != null) project.isUsingReviewerCount = param.isUsingReviewerCount
+        if (param.defaultReviewerCount != null) project.defaultReviewerCount = param.defaultReviewerCount
+
+        if (param.isCodeEnabled != null) project.isCodeEnabled = param.isCodeEnabled
+        if (param.isIssueEnabled != null) project.isIssueEnabled = param.isIssueEnabled
+        if (param.isPullRequestEnabled != null) project.isPullRequestEnabled = param.isPullRequestEnabled
+        if (param.isReviewEnabled != null) project.isReviewEnabled = param.isReviewEnabled
+        if (param.isMilestoneEnabled != null) project.isMilestoneEnabled = param.isMilestoneEnabled
+        if (param.isBoardEnabled != null) project.isBoardEnabled = param.isBoardEnabled
+        if (param.isWikiEnabled != null) project.isWikiEnabled = param.isWikiEnabled
 
         if (!param.defaultBranch.isNullOrBlank()) {
             try {

@@ -15,6 +15,10 @@
       <p th:text="#{title.signupConfirmDesc}">가입 후 사용을 위해서는 관리자의 승인이 필요합니다</p>
     </div>
 
+    <div class="center-txt" id="signupVerificationNotice" th:if="${requireEmailVerification}">
+      <p th:text="#{title.signupVerificationDesc}">인증 메일을 보내드렸습니다. 메일함을 확인하여 계정을 활성화해 주세요.</p>
+    </div>
+
     <div class="signup-form-wrap frm-wrap">
       <form th:action="@{/signup}" th:object="${user}" method="post" name="signup">
 

@@ -22,6 +22,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (document.querySelectorAll(".gnb-usermenu-dropdown").length !== 0) {
+        // iniNaviUserMenu()는 #sidebar-open-btn 클릭/바깥클릭/단축키 리스너만 등록하며, 전부
+        // 초기 HTML에 이미 있는 #mySidenav/#sidebar-open-btn/#main만 참조한다(그 안의 updateStar()도
+        // .star-project가 아직 없으면 조용히 no-op) -- 사이드바 AJAX 파셜 로드를 기다릴 이유가 없다.
+        // 예전에는 fetch().then() 안에서만 등록돼서, 그 fetch가 끝나기 전에 사용자가 사이드바 열기
+        // 버튼을 누르면 리스너가 아직 안 걸려있어 클릭이 그대로 무시되고 사이드바가 영원히 안
+        // 열렸다(느린 네트워크의 실사용자도 겪을 수 있는 버그, 실측 확인). 즉시 등록하도록 앞으로 뺌.
+        iniNaviUserMenu();
         fetch(UsermenuUrl)
             .then(function(response){
                 if(!response.ok){
@@ -31,7 +38,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(function (data) {
                 document.getElementById("usermenu-tab-content-list").innerHTML = data;
-                iniNaviUserMenu();
                 afterUsermenuLoaded();
             })
             .catch(function (data) {
@@ -291,7 +297,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
             sidebar.style.width = SIDE_BAR_DEFAULT_WIDTH;
             sidebar.style.border = "1px solid #ccc";
-            document.querySelector(".search-input").focus();
+            // .search-input lives inside the usermenu AJAX partial (common/usermenu_tab_content_list.html),
+            // fetched asynchronously on page load -- if the sidebar is opened before that fetch
+            // resolves, this element doesn't exist yet. Calling .focus() on null used to throw here,
+            // aborting the function before the .main-stream span12->span8 reflow below ever ran,
+            // leaving the sidebar visually widened but the main content not shrunk to make room for it.
+            var searchInput = document.querySelector(".search-input");
+            if (searchInput) {
+                searchInput.focus();
+            }
         } else {
             sidebar.style.width = "100vw";
             sidebar.style.border = "1px solid #ccc";

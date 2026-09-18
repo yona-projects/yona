@@ -186,7 +186,7 @@ class DataBackupServiceImpl(
             // export 이전에 이미 삭제된 행으로 생긴 시퀀스 갭까지는 보존하지 못하는
             // 알려진 제약이다(문서화된 한계, docs/PARITY_BACKLOG.md 참고).
             Dialect.H2 -> {
-                if (!hasIdColumn(table)) return null
+                if (!hasNumericIdColumn(table)) return null
                 jdbcTemplate.queryForObject(
                     "SELECT COALESCE(MAX(id), 0) + 1 FROM $table", JLong::class.java
                 )?.toLong()
@@ -204,6 +204,31 @@ class DataBackupServiceImpl(
             connection.metaData.getColumns(connection.catalog, connection.schema, table, null).use { rs ->
                 while (rs.next()) {
                     if (rs.getString("COLUMN_NAME").equals("id", ignoreCase = true)) return true
+                }
+                return false
+            }
+        }
+    }
+
+    // 버그#15: Spring Authorization Server가 만드는 OAUTH_AUTHORIZATION/
+    // OAUTH_AUTHORIZATION_CONSENT/OAUTH_REGISTERED_CLIENT 테이블은 "id" 컬럼이 있지만
+    // VARCHAR(UUID)라 정수가 아니다. hasIdColumn()만으로 통과시키면 H2 전용 MAX(id)+1
+    // 근사(위 주석 참고)가 COALESCE(MAX(id), 0) + 1을 그 UUID 문자열에 대해 실행하다가
+    // NumberFormatException(IllegalArgumentException의 서브타입)을 던지고, 이게
+    // SiteApiController의 인가 실패 전용 @ExceptionHandler(IllegalArgumentException)에
+    // 걸려 진짜 원인이 로그도 없이 403 "FORBIDDEN"으로 위장되던 것이 exportAll()이 항상
+    // 실패하던 진짜 원인이었다(실측: TEMP 로깅으로 확인). id 컬럼이 있어도 그 타입이
+    // 실제 정수 계열(INTEGER/BIGINT/SMALLINT/TINYINT)일 때만 MAX(id)+1을 시도한다.
+    private fun hasNumericIdColumn(table: String): Boolean {
+        dataSource.connection.use { connection ->
+            connection.metaData.getColumns(connection.catalog, connection.schema, table, null).use { rs ->
+                while (rs.next()) {
+                    if (rs.getString("COLUMN_NAME").equals("id", ignoreCase = true)) {
+                        return when (rs.getInt("DATA_TYPE")) {
+                            Types.INTEGER, Types.BIGINT, Types.SMALLINT, Types.TINYINT -> true
+                            else -> false
+                        }
+                    }
                 }
                 return false
             }

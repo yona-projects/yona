@@ -32,17 +32,20 @@ data class UpdateProjectParam(
     // 변경하지 않는다 — 지정되면 소유자는 그대로 두고 이름만 바꾼다(소유권 이전과는 다른 별개 경로).
     val name: String? = null,
     val overview: String,
-    val projectScope: ProjectScope,
-    val isCodeAccessibleMemberOnly: Boolean,
-    val isUsingReviewerCount: Boolean,
-    val defaultReviewerCount: Int,
-    val defaultBranch: String?,
-    val isCodeEnabled: Boolean,
-    val isIssueEnabled: Boolean,
-    val isPullRequestEnabled: Boolean,
-    val isReviewEnabled: Boolean,
-    val isMilestoneEnabled: Boolean,
-    val isBoardEnabled: Boolean,
-    val isWikiEnabled: Boolean
+    // name과 동일한 "null이면 현재 값 유지" 규칙 — /api/projects/{id} PUT을 부분 업데이트로도
+    // 호출하는 곳(project/home.html 설명 인라인 위젯)이 있어, 여기 없는 필드를 고정 기본값으로
+    // 채우면 그 호출 하나가 나머지 프로젝트 설정을 전부 조용히 리셋해버린다.
+    val projectScope: ProjectScope? = null,
+    val isCodeAccessibleMemberOnly: Boolean? = null,
+    val isUsingReviewerCount: Boolean? = null,
+    val defaultReviewerCount: Int? = null,
+    val defaultBranch: String? = null,
+    val isCodeEnabled: Boolean? = null,
+    val isIssueEnabled: Boolean? = null,
+    val isPullRequestEnabled: Boolean? = null,
+    val isReviewEnabled: Boolean? = null,
+    val isMilestoneEnabled: Boolean? = null,
+    val isBoardEnabled: Boolean? = null,
+    val isWikiEnabled: Boolean? = null
 )
 

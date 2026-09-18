@@ -24,10 +24,11 @@ legacy Yona의 `docs/ko/application-conf-desc.md`(`conf/application.conf` 설명
 | `yona.access.allows-anonymous-access` | `true` | `application.allowsAnonymousAccess` | 비로그인 접근 허용 여부 |
 | `yona.application.hide-project-listing` | `false` | `application.hide.project.listing` | 공개 프로젝트 전체 목록 숨김 |
 | `yona.signup.require-admin-confirm` | `false` | `signup.require.admin.confirm` | 가입 후 관리자 승인 필요 여부 |
+| `yona.signup.require-email-verification` | `false` | `application.use.email.verification` | 가입 후 이메일 인증 필요 여부. 켜면 `AuthController.signup()`이 계정을 `UserState.LOCKED`로 생성하고 `UserService.sendVerificationEmail()`을 호출한다 — `UserVerification`/`verifyUser()`/`/user/verify` 라우트는 이미 포팅되어 있었으나 이 플래그와의 배선만 빠져 있던 것을 e2e 감사로 발견하고 연결함(2026-09-18) |
 | `yona.signup.allowed-email-domains` | 빈 문자열(제한 없음) | `application.allowed.sending.mail.domains` | 가입 허용 이메일 도메인 allowlist |
 
 legacy의 `application.guest.user.login.id.prefix`(범용 게스트 접두사), `application.displayPrivateRepositories`,
-`project.default.scope.when.create`, `project.creation.default.menus`, `application.use.email.verification`은
+`project.default.scope.when.create`, `project.creation.default.menus`는
 현재 yona 코드베이스에서 대응하는 설정 키를 찾지 못했다 — 아직 설정 가능한 형태로 이식되지
 않았을 가능성이 있다(하드코딩되어 있거나 범위에서 빠졌을 수 있음). `docs/parity/index.md`에
 없다면 새 항목으로 등록이 필요하다.

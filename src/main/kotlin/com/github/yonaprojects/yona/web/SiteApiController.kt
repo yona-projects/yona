@@ -37,16 +37,25 @@ class SiteApiController(
     private val environment: Environment
 ) {
 
+    // 버그#15: 이 클래스는 원래 checkAdmin()의 인가 실패를 IllegalArgumentException으로 던지고
+    // 클래스 전역 @ExceptionHandler(IllegalArgumentException::class)로 403을 응답했는데, 이
+    // 예외 타입은 IllegalArgumentException의 서브타입인 NumberFormatException 등 완전히 무관한
+    // 진짜 서버 에러까지 전부 붙잡아 403 "FORBIDDEN"으로 위장해버렸다(exportData()에서 실제로
+    // 발생 — DataBackupServiceImpl 참고). 인가 실패만 정확히 구분해서 잡도록 전용 예외 타입으로
+    // 분리한다 — 그 외 IllegalArgumentException(및 그 서브타입)은 이제 이 핸들러를 거치지 않고
+    // Spring 기본 에러 처리(500)로 흘러가 로그에도 남는다.
+    class UnauthorizedAccessException(message: String) : RuntimeException(message)
+
     private fun checkAdmin(authentication: Authentication?): User {
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (loginUser == null || !loginUser.isSiteManager) {
-            throw IllegalArgumentException("Unauthorized access")
+            throw UnauthorizedAccessException("Unauthorized access")
         }
         return loginUser
     }
 
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun handleUnauthorized(e: IllegalArgumentException): ResponseEntity<Map<String, Any>> {
+    @ExceptionHandler(UnauthorizedAccessException::class)
+    fun handleUnauthorized(e: UnauthorizedAccessException): ResponseEntity<Map<String, Any>> {
         return ResponseEntity.status(403).body(mapOf("isSuccess" to false, "reason" to "FORBIDDEN"))
     }
 

@@ -379,6 +379,13 @@ class CodeViewController(
 
         val decodedBranch = URLDecoder.decode(branch, "UTF-8")
         val repository = repositoryService.getRepository(project)
+
+        // ProjectViewController.downloadCode()의 자매 라우트와 동일하게, 존재하지 않는 브랜치를
+        // getArchive()에 그대로 넘기면 예외 없이 200 + 빈(0바이트) zip이 나가버린다 — 스트리밍
+        // 시작 전에 먼저 존재 여부를 확인해 깔끔한 404로 응답한다.
+        repositoryService.getMetaDataFromAncestorDirectories(repository, decodedBranch, "")
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+
         val out = ByteArrayOutputStream()
         repository.getArchive(out, decodedBranch)
 

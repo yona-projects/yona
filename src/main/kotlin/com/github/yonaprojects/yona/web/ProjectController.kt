@@ -431,20 +431,23 @@ class ProjectController(
     }
 
     data class UpdateProjectRequest(
-        // 값이 없거나 현재 이름과 같으면 서비스 계층에서 무시된다.
+        // name과 동일하게, 이 값들도 요청 본문에 없으면(null) 서비스 계층이 현재 값을 그대로
+        // 둔다 -- project/home.html의 설명-인라인-수정 위젯(yona.project.Home.js)처럼
+        // `{overview: ...}`만 보내는 부분 업데이트 호출자가 이 엔드포인트를 함께 쓰기 때문에,
+        // 예전처럼 고정 기본값을 주면 그 호출마다 나머지 설정이 기본값으로 조용히 리셋된다.
         val name: String? = null,
         val overview: String,
-        val projectScope: ProjectScope,
-        val isCodeAccessibleMemberOnly: Boolean = false,
-        val isUsingReviewerCount: Boolean = false,
-        val defaultReviewerCount: Int = 1,
+        val projectScope: ProjectScope? = null,
+        val isCodeAccessibleMemberOnly: Boolean? = null,
+        val isUsingReviewerCount: Boolean? = null,
+        val defaultReviewerCount: Int? = null,
         val defaultBranch: String? = null,
-        val isCodeEnabled: Boolean = true,
-        val isIssueEnabled: Boolean = true,
-        val isPullRequestEnabled: Boolean = true,
-        val isReviewEnabled: Boolean = true,
-        val isMilestoneEnabled: Boolean = true,
-        val isBoardEnabled: Boolean = true,
-        val isWikiEnabled: Boolean = true
+        val isCodeEnabled: Boolean? = null,
+        val isIssueEnabled: Boolean? = null,
+        val isPullRequestEnabled: Boolean? = null,
+        val isReviewEnabled: Boolean? = null,
+        val isMilestoneEnabled: Boolean? = null,
+        val isBoardEnabled: Boolean? = null,
+        val isWikiEnabled: Boolean? = null
     )
 }

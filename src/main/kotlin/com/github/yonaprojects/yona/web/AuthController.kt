@@ -8,6 +8,7 @@ import com.github.yonaprojects.yona.domain.user.ReservedWordsValidator
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserService
 import com.github.yonaprojects.yona.domain.user.UserState
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -26,10 +27,27 @@ class AuthController(
     // yona UserApp.isUsingSignUpConfirm()(signup.require.admin.confirm) 대응.
     @Value("\${yona.signup.require-admin-confirm:false}")
     private val requireAdminConfirm: Boolean,
+    // legacy application.use.email.verification 대응. sendVerificationEmail()/verifyUser()/
+    // UserVerification 등 하부 구현은 Play->Spring 재작성 때 전부 포팅됐지만 이 플래그와 signup()의
+    // 실제 배선이 빠져 있었다(docs/guide/settings-reference.md가 이미 자체 기록한 갭). 기본값
+    // false로 기존 동작(가입 즉시 로그인 가능)을 그대로 유지한다.
+    @Value("\${yona.signup.require-email-verification:false}")
+    private val requireEmailVerification: Boolean,
     // 로그인 화면에 OIDC/SAML2 로그인 버튼을 조건부로 노출한다.
     private val ssoSettingsService: SsoSettingsService,
     private val passwordEncodingService: PasswordEncodingService
 ) {
+
+    private fun getServerUrl(request: HttpServletRequest): String {
+        val scheme = request.scheme
+        val serverName = request.serverName
+        val serverPort = request.serverPort
+        return if (serverPort == 80 || serverPort == 443) {
+            "$scheme://$serverName"
+        } else {
+            "$scheme://$serverName:$serverPort"
+        }
+    }
 
     @GetMapping("/login")
     fun redirectToLoginForm(
@@ -79,6 +97,7 @@ class AuthController(
     fun signupForm(model: Model): String {
         model.addAttribute("user", User())
         model.addAttribute("requireAdminConfirm", requireAdminConfirm)
+        model.addAttribute("requireEmailVerification", requireEmailVerification)
         return "signup"
     }
 
@@ -87,7 +106,8 @@ class AuthController(
         @ModelAttribute("user") user: User,
         @RequestParam("retypedPassword") retypedPassword: String,
         bindingResult: BindingResult,
-        model: Model
+        model: Model,
+        request: HttpServletRequest
     ): String {
         model.addAttribute("requireAdminConfirm", requireAdminConfirm)
         // yona User.LOGIN_ID_PATTERN(@Pattern) 대응.
@@ -118,15 +138,21 @@ class AuthController(
         // yona UserApp.createNewUser()의 "관리자 승인 대기면 State.LOCKED로 생성"
         // 대응. 로그인 시 LOCKED 계정 차단 자체는 이미 YonaAuthenticationProvider가
         // 이 설정과 무관하게 항상 수행하므로, 여기서는 가입 시점의 초기 상태 결정만 담당한다.
-        if (requireAdminConfirm) {
+        // 이메일 인증 대기도 별도 UserState 값 없이 같은 LOCKED를 재사용한다 -- "본인 확인 전까지
+        // 로그인 불가"라는 의미는 동일하고, UserServiceImpl.verifyUser()가 인증 성공 시 이미
+        // ACTIVE로 되돌려주므로 그대로 맞물린다.
+        if (requireAdminConfirm || requireEmailVerification) {
             user.state = UserState.LOCKED
         }
 
-        userService.createUser(user)
-        return if (requireAdminConfirm) {
-            "redirect:/users/loginform?signupRequested"
-        } else {
-            "redirect:/users/loginform?signupSuccess"
+        val savedUser = userService.createUser(user)
+        if (requireEmailVerification) {
+            userService.sendVerificationEmail(savedUser, getServerUrl(request))
+        }
+        return when {
+            requireAdminConfirm -> "redirect:/users/loginform?signupRequested"
+            requireEmailVerification -> "redirect:/users/loginform?signupVerificationSent"
+            else -> "redirect:/users/loginform?signupSuccess"
         }
     }
 

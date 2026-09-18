@@ -11,6 +11,7 @@ import com.github.yonaprojects.yona.domain.sshkey.SshKeyService
 import com.github.yonaprojects.yona.domain.sshkey.SshPublicKeyFingerprint.InvalidPublicKeyException
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.user.UserState
 import com.github.yonaprojects.yona.domain.watch.WatchRepository
 import com.github.yonaprojects.yona.domain.notification.UserProjectNotificationRepository
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
@@ -243,10 +244,17 @@ class UserViewController(
         @RequestParam(required = false, defaultValue = "14") daysAgo: Int,
         @RequestParam(required = false, defaultValue = "issues") selected: String,
         authentication: Authentication?,
+        response: HttpServletResponse,
         model: Model
     ): String {
-        val user = userRepository.findByLoginId(loginId).orElse(null)
-            ?: return "error/404"
+        // 버그#16: SiteService.deleteUser()는 논리삭제(state=DELETED)만 하는데, 여기서 state를
+        // 확인하지 않아 삭제된 계정의 프로필이 영원히 정상 렌더됨(실측: DB에서 state=DELETED
+        // 확인 후에도 /user/{loginId}가 200으로 그대로 보임). 존재하지 않는 유저와 동일하게 취급.
+        val user = userRepository.findByLoginId(loginId).orElse(null)?.takeIf { it.state != UserState.DELETED }
+        if (user == null) {
+            response.status = HttpServletResponse.SC_NOT_FOUND
+            return "error/404"
+        }
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
 

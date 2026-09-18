@@ -313,6 +313,12 @@
     <footer th:replace="~{site/layout :: footer}"></footer>
     <div th:replace="~{site/layout :: scripts}"></div>
 </div>
+<!-- yona.project.Home.js의 설명 인라인 저장 성공 핸들러가 yona.Markdown.render()로 저장된 설명을
+     새로고침 없이 다시 렌더링하는데, 그 함수가 fetch할 URL(sMarkdownRendererUrl)은 이 프래그먼트가
+     yona.Markdown.init()으로 세팅해준다 — 없으면 undefined인 채로 fetch(undefined, ...)가 되어
+     현재 페이지 자신에 POST(항상 405)하고 그 실패가 조용히 삼켜져, 저장은 되지만 화면은 새로고침
+     전까지 갱신 안 되는 버그가 있었다(e2e 감사로 발견). -->
+<th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
 <!-- legacy project/home.scala.html:165-177 대응 — 이 호출이 없으면 "주소복사"(ClipboardJS)/설명
      수정 저장/라벨 편집이 전부 죽은 버튼이 된다. ClipboardJS 자체는 site/layout::scripts가 이미
      불러오는 공용 yona-common.js에 번들돼 있어(legacy도 이 페이지에 clipboard.js를 별도로 로드하지
