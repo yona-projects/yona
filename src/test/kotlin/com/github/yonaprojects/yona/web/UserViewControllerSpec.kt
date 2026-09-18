@@ -20,6 +20,7 @@ import com.github.yonaprojects.yona.domain.user.FavoriteProjectRepository
 import com.github.yonaprojects.yona.domain.user.FavoriteOrganizationRepository
 import com.github.yonaprojects.yona.domain.organization.OrganizationUserRepository
 import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
+import jakarta.servlet.http.HttpServletResponse
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -84,6 +85,7 @@ class UserViewControllerSpec : DescribeSpec({
     val sshKeyService = mockk<com.github.yonaprojects.yona.domain.sshkey.SshKeyService>()
     val gpgKeyService = mockk<com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService>()
     val milestoneRepository = mockk<MilestoneRepository>()
+    val httpServletResponse = mockk<HttpServletResponse>(relaxed = true)
     val passwordEncodingService = com.github.yonaprojects.yona.domain.user.PasswordEncodingService()
 
     val userViewController = UserViewController(
@@ -307,7 +309,7 @@ class UserViewControllerSpec : DescribeSpec({
             val viewedUser = User(id = 20L, loginId = "viewed", name = "대상유저")
             every { userRepository.findByLoginId("viewed") } returns Optional.of(viewedUser)
 
-            hiddenController.userProfile(loginId = "viewed", daysAgo = 14, selected = "issues", authentication = null, model = model)
+            hiddenController.userProfile(loginId = "viewed", daysAgo = 14, selected = "issues", authentication = null, response = httpServletResponse, model = model)
 
             model.getAttribute("projects") shouldBe emptyList<Any>()
             model.getAttribute("issues") shouldBe emptyList<Any>()
@@ -325,7 +327,7 @@ class UserViewControllerSpec : DescribeSpec({
             every { pullRequestRepository.findByContributorAndUpdatedGreaterThanEqualOrderByUpdatedDescStateAsc(viewedUser, any()) } returns emptyList()
 
             val viewerModel = ExtendedModelMap()
-            hiddenController.userProfile(loginId = "viewed", daysAgo = 14, selected = "issues", authentication = viewerAuth, model = viewerModel)
+            hiddenController.userProfile(loginId = "viewed", daysAgo = 14, selected = "issues", authentication = viewerAuth, response = httpServletResponse, model = viewerModel)
 
             viewerModel.getAttribute("currentUser") shouldBe viewer
         }
@@ -1672,7 +1674,7 @@ class UserViewControllerSpec : DescribeSpec({
 
             val view = userViewController.userProfile(
                 loginId = "ghost", daysAgo = 14, selected = "issues",
-                authentication = null, model = ExtendedModelMap()
+                authentication = null, response = httpServletResponse, model = ExtendedModelMap()
             )
 
             view shouldBe "error/404"
@@ -1690,7 +1692,7 @@ class UserViewControllerSpec : DescribeSpec({
             } returns emptyList()
 
             val model = ExtendedModelMap()
-            userViewController.userProfile(loginId = "viewed2", daysAgo = 14, selected = "issues", authentication = staleAuth, model = model)
+            userViewController.userProfile(loginId = "viewed2", daysAgo = 14, selected = "issues", authentication = staleAuth, response = httpServletResponse, model = model)
 
             model.getAttribute("currentUser") shouldBe null
         }
@@ -1708,7 +1710,7 @@ class UserViewControllerSpec : DescribeSpec({
             } returns emptyList()
 
             val model = ExtendedModelMap()
-            userViewController.userProfile(loginId = "viewed3", daysAgo = 14, selected = "issues", authentication = null, model = model)
+            userViewController.userProfile(loginId = "viewed3", daysAgo = 14, selected = "issues", authentication = null, response = httpServletResponse, model = model)
 
             model.getAttribute("openIssuesCount") shouldBe 1
             model.getAttribute("closedIssuesCount") shouldBe 1
