@@ -67,11 +67,28 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // afterUsermenuLoaded()는 아래에서 두 번 호출된다: (1) 즉시(사이드바 AJAX 파셜이 아직 안 실린
+    // 시점 - 페이지 자체에 이미 서버렌더된 엘리먼트, 예: 이슈 상세 페이지 자신의 .favorite-issue 별
+    // 아이콘을 바인딩하기 위함), (2) UsermenuUrl fetch 완료 후(사이드바 파셜이 막 삽입된 시점 - 그
+    // 안의 동일 클래스 엘리먼트, 예: 사이드바 즐겨찾기 목록의 .favorite-issue를 바인딩하기 위함).
+    // 두 시점 모두에 이미 존재하는 엘리먼트(주로 페이지 자체에 서버렌더된 것들)는 두 호출에서 매번
+    // 다시 매치되어 리스너가 중복으로 붙는다 - 클릭 한 번에 fetch가 두 번 나가 두 번째 요청이 DB
+    // unique 제약 위반으로 500을 받고, 그 에러 핸들러가 여는 $yona.alert() 모달이 화면을 영구히
+    // 막는 원인이 됐다(#9). _bindOnce()로 엘리먼트당 한 번만 리스너가 붙도록 막는다.
+    function _bindOnce(el, sType, fHandler) {
+        var sMarker = "usermenuBound_" + sType;
+        if (el.dataset[sMarker]) {
+            return;
+        }
+        el.dataset[sMarker] = "1";
+        el.addEventListener(sType, fHandler);
+    }
+
     function afterUsermenuLoaded() {
         // used for new project list ui
         var rightMenu = document.querySelector(".right-menu");
         if (rightMenu) {
-            rightMenu.addEventListener("click", function (e) {
+            _bindOnce(rightMenu, "click", function (e) {
                 var match = e.target.closest(".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']");
                 if (!match || !rightMenu.contains(match)) {
                     return;
@@ -92,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         document.querySelectorAll('.myOrganizationList').forEach(function (el) {
-            el.addEventListener("click", function focusToOrgSearchInput() {
+            _bindOnce(el, "click", function focusToOrgSearchInput() {
                 setTimeout(function () {
                     var projectSearch = document.querySelector('.project-search');
                     var orgSearch = document.querySelector('.org-search');
@@ -107,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // search by keyword
         document.querySelectorAll(".search-input").forEach(function (searchInput) {
-            searchInput.addEventListener("keyup", function (event) {
+            _bindOnce(searchInput, "keyup", function (event) {
                 var value = this.value.toLowerCase().trim();
 
                 if (value !== "" || event.which === 8) {  // 8: backspace
@@ -119,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
                 }
             });
-            searchInput.addEventListener("keydown", function (e) {
+            _bindOnce(searchInput, "keydown", function (e) {
                 switch (e.keyCode) {
                     case 27:   // ESC
                         document.querySelector('.project-search').blur();
@@ -132,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         document.querySelectorAll(".project-list > .star-project, .project-breadcrumb > .user-project-list").forEach(function (el) {
-            el.addEventListener("click", function toggleProjectFavorite(e) {
+            _bindOnce(el, "click", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 var that = this;
                 fetch(UsermenuToggleFavoriteProjectUrl + that.dataset.projectId, {"method": "post"})
@@ -158,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         document.querySelectorAll(".favorite-issue").forEach(function (el) {
-            el.addEventListener("click", function toggleProjectFavorite(e) {
+            _bindOnce(el, "click", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 var that = this;
                 fetch(UsermenuToggleFavoriteIssueUrl + that.dataset.issueId, {"method": "post"})
@@ -186,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         document.querySelectorAll(".user-ul > .user-li, .project-ul > .user-li").forEach(function (el) {
-            el.addEventListener("click", function (e) {
+            _bindOnce(el, "click", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -213,7 +230,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         document.querySelectorAll(".org-list > .star-org").forEach(function (el) {
-            el.addEventListener("click", function toggleOrgFavorite(e) {
+            _bindOnce(el, "click", function toggleOrgFavorite(e) {
                 e.stopPropagation();
                 var that = this;
                 fetch(UsermenuToggleFoveriteOrganizationUrl + that.dataset.organizationId, {"method": "post"})
@@ -240,7 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         document.querySelectorAll(".all-orgs").forEach(function (el) {
-            el.addEventListener("click", function () {
+            _bindOnce(el, "click", function () {
                 var hidden = this.closest("li").querySelectorAll(".hide");
                 hidden.forEach(function (hiddenEl) {
                     toggleFast(hiddenEl);

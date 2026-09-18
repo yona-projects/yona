@@ -78,11 +78,20 @@ test('commit two real svn revisions into the seeded Subversion project', async (
   const checkoutUrl = `${url.protocol}//${url.host}/svn/${owner}/${name}`;
 
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yona-e2e-svn-'));
+  // TEST BUG (not a yona product bug), found while verifying #9's fix on a from-scratch run:
+  // this environment's system locale is ko_KR.UTF-8, and the svn CLI localizes its own output
+  // to Korean under that locale (confirmed live: `svn commit` prints something other than
+  // "Committed revision N." in Korean) -- the regex below is English-only, so it silently failed
+  // to match, `Number(undefined)` produced NaN, and `JSON.stringify(NaN)` serializes as `null` in
+  // seed.json, which requireSeed() then treats as "missing" for every downstream svn-diff spec.
+  // Pin LC_ALL=C for this subprocess so its output is always in parseable English regardless of
+  // the host's locale (hg is unaffected -- its `log --template` output used below is raw data,
+  // not localized natural-language text, so it needed no such pin).
   const run = (args: string[]) =>
     execFileSync(
       'svn',
       [...args, '--non-interactive', '--username', adminLoginId, '--password', adminPassword],
-      { cwd: workDir, stdio: 'pipe', timeout: 15_000 }
+      { cwd: workDir, stdio: 'pipe', timeout: 15_000, env: { ...process.env, LC_ALL: 'C', LANG: 'C' } }
     ).toString();
 
   run(['checkout', checkoutUrl, '.']);

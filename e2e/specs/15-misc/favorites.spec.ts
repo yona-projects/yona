@@ -99,28 +99,70 @@ test.describe('favorites (star) toggles', () => {
     const firstToggleBody = await toggleOnResponse.json();
     expect(firstToggleBody.favored).toBe(!wasStarred);
 
-    // PRODUCT BUG (confirmed live via document.elementFromPoint() at the star's own coordinates,
-    // not fixed per instruction): after the toggle's $yona.notify() toast fires, the shared
-    // <yona-dialog id="yonaDialog"> custom element (yona.ui.Dialog.js) is left permanently
-    // intercepting pointer events across the ENTIRE page -- its own host element reports a
-    // collapsed, off-screen bounding box (width 0, positioned past the right edge of the
-    // viewport), but elementFromPoint() at any on-screen coordinate (verified at the star icon's
-    // own position, well away from that box) still resolves to it, meaning its shadow-DOM content
-    // renders a full-viewport transparent backdrop that never re-disables pointer-events after
-    // use. This reproduces from a single notify() call, needs no actual dialog to have been
-    // opened, and does not go away on its own (checked at +200ms and +1700ms, still blocking) --
-    // a real user's next click anywhere on the page after seeing any toast/alert/confirm would
-    // silently fail the same way -- confirmed this is a genuine top-level hit-test issue, not
-    // just a Playwright actionability guard: `{force: true}` (which dispatches a real click at
-    // the target's screen coordinates, skipping only Playwright's own pre-click checks) still
-    // gets swallowed by the overlay, since the browser itself routes the click to whatever
-    // element is topmost at that pixel. Dispatch the click in-page instead, which invokes the
-    // registered listener directly without any screen-coordinate hit-testing.
+    // #9 fixed (see yona.Usermenu.js's _bindOnce()): this toggle used to need an in-page
+    // el.click() dispatch here to work around a permanent click-blocking overlay left by the
+    // shared <yona-dialog id="yonaDialog">. A real locator.click() now works -- see the
+    // dedicated repro below for what actually caused that overlay.
     const [toggleOffResponse] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/-_-api/v1/favoriteIssues/') && res.request().method() === 'POST'),
-      star.evaluate((el: HTMLElement) => el.click()),
+      star.click(),
     ]);
     const secondToggleBody = await toggleOffResponse.json();
     expect(secondToggleBody.favored).toBe(wasStarred);
+  });
+
+  // #9 repro/regression: a $yona.notify() toast (fired here by the issue-star toggle above) must
+  // never leave anything on the page intercepting clicks. Root cause turned out NOT to be
+  // notify()/Toast/Dialog CSS at all (a plain, standalone $yona.notify() call was confirmed live
+  // to leave the page fully clickable) -- it was yona.Usermenu.js's afterUsermenuLoaded()
+  // being invoked twice per page load (once immediately for elements already present in the
+  // initial HTML, once again after the GNB usermenu AJAX partial loads, for elements inside
+  // that partial). `.favorite-issue` is rendered both ways -- once directly on the issue page
+  // itself, and once inside the AJAX-loaded sidebar "favorite issues" list -- so it matched both
+  // afterUsermenuLoaded() passes and got a second, duplicate click listener. A single real click
+  // fired two POSTs to /-_-api/v1/favoriteIssues/{id}; the second lost the DB unique-constraint
+  // race (500), and its .catch() handler called $yona.alert(...), which opens the shared
+  // <yona-dialog id="yonaDialog"> as a real showModal() dialog. That native <dialog> promotes
+  // itself (and its full-viewport ::backdrop) to the browser's top layer -- elementFromPoint() at
+  // ANY on-screen coordinate resolved to it, even though the dialog's own host element reports a
+  // collapsed, off-screen bounding box -- and it never got dismissed, permanently swallowing every
+  // later click on the page. Fixed by making afterUsermenuLoaded()'s listener bindings idempotent
+  // per element (yona.Usermenu.js's _bindOnce()), so a single click never double-fires again.
+  test('a notify() toast from the favorite-issue toggle does not block a later real click elsewhere on the page', async ({ page }) => {
+    const owner = requireSeed('projectOwner');
+    const name = requireSeed('projectName');
+    const issueNumber = requireSeed('issueNumber');
+
+    await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
+    const star = page.locator('.favorite-issue');
+    await expect(star).toBeVisible();
+    const wasStarred = (await star.locator('i').getAttribute('class'))?.includes('starred') ?? false;
+
+    // Trigger the toast (and, pre-fix, the duplicate request + stray error dialog) via a real click.
+    const [toggleResponse] = await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/-_-api/v1/favoriteIssues/') && res.request().method() === 'POST'),
+      star.click(),
+    ]);
+    expect(toggleResponse.ok()).toBeTruthy();
+
+    // Give the toast (and, pre-fix, the stray dialog) time to fully appear.
+    await page.waitForTimeout(500);
+
+    // Now attempt a REAL locator.click() on a completely unrelated element -- the GNB sidebar
+    // toggle button -- and assert the click actually registered (the sidebar actually opens),
+    // rather than silently no-op'ing behind an invisible full-page overlay.
+    const sidebar = page.locator('#mySidenav');
+    await expect(sidebar).toHaveCSS('width', '0px');
+    await page.click('#sidebar-open-btn');
+    await expect(sidebar).not.toHaveCSS('width', '0px');
+
+    // Clean up: close the sidebar and restore the star's original state via real clicks too.
+    await page.click('#sidebar-open-btn');
+    const [restoreResponse] = await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/-_-api/v1/favoriteIssues/') && res.request().method() === 'POST'),
+      star.click(),
+    ]);
+    const restoreBody = await restoreResponse.json();
+    expect(restoreBody.favored).toBe(wasStarred);
   });
 });
