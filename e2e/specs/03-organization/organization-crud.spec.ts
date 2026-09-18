@@ -126,6 +126,50 @@ test('update organization name and description via the settings form', async ({ 
   writeSeed({ orgName: renamedTo });
 });
 
+test('issues/boards/pullrequests rollups actually show content from a real org-owned project', async ({ page }) => {
+  const orgName = requireSeed('orgName');
+  const projectName = `e2e-org-project-${uniqueSuffix()}`;
+
+  // #project-owner lists every organization the current user is ORG_ADMIN of
+  // (ProjectViewController.newProjectForm()) -- admin is auto-enrolled as ORG_ADMIN on the org it
+  // created earlier in this file, so it's selectable here the same way 00-project-create.spec.ts
+  // selects the admin's own loginId.
+  await page.goto('/projectform');
+  await page.selectOption('#project-owner', orgName);
+  await page.fill('#project-name', projectName);
+  await page.fill('#description', 'Org-owned project for rollup verification');
+  await page.check('#public');
+  await page.selectOption('#vcs', 'GIT');
+  await page.click('#newProjectForm button.ybtn-success');
+  await expect(page).toHaveURL(new RegExp(`/${orgName}/${projectName}`));
+
+  const issueTitle = `e2e org rollup issue ${uniqueSuffix()}`;
+  await page.goto(`/${orgName}/${projectName}/issueform`);
+  await page.fill('#title', issueTitle);
+  await page.locator('textarea[data-editor-mode="content-body"]').fill('Body for org rollup verification.', { force: true });
+  await page.click('#button-save');
+  await expect(page).toHaveURL(new RegExp(`/${orgName}/${projectName}/issue/\\d+`));
+
+  await page.goto(`/organizations/${orgName}/issues`);
+  await expect(page.locator('body')).toContainText(issueTitle);
+
+  const postTitle = `e2e org rollup post ${uniqueSuffix()}`;
+  await page.goto(`/${orgName}/${projectName}/postform`);
+  await page.fill('#title', postTitle);
+  await page.locator('textarea[data-editor-mode="content-body"]').fill('Body for org rollup verification.', { force: true });
+  await page.click('#post-form button[type=submit]');
+  await expect(page).toHaveURL(new RegExp(`/${orgName}/${projectName}/post/\\d+`));
+
+  await page.goto(`/organizations/${orgName}/boards`);
+  await expect(page.locator('body')).toContainText(postTitle);
+
+  // Pull requests require code (a real commit + a second branch) -- out of scope for a rollup
+  // content check; the zero-project-state test above already confirms this route itself doesn't
+  // 500 with a real member project present.
+  const pullRequestsResponse = await page.goto(`/organizations/${orgName}/pullrequests`);
+  expect(pullRequestsResponse?.status()).toBeLessThan(500);
+});
+
 test('delete-organization confirmation screen loads (not submitted -- later specs still need the org)', async ({ page }) => {
   const orgName = requireSeed('orgName');
   const response = await page.goto(`/organizations/${orgName}/deleteForm`);

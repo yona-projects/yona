@@ -55,6 +55,94 @@ test('add a secondary email address', async ({ page }) => {
   await expect(page.locator('body')).toContainText(`admin-secondary-${suffix}@yona-e2e.test`);
 });
 
+// mailpit (SMTP test catcher, same instance 01-auth/auth.spec.ts uses for its password-reset
+// flow) is already running at 127.0.0.1:1025 (SMTP, matching yona's application.yml)/8025
+// (HTTP API) for this suite. Duplicated locally rather than imported from auth.spec.ts to keep
+// this file self-contained.
+const MAILPIT_API = 'http://127.0.0.1:8025/api/v1';
+
+async function findMailTo(request: import('@playwright/test').APIRequestContext, toAddress: string, timeoutMs = 5000): Promise<{ ID: string }> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const res = await request.get(`${MAILPIT_API}/messages`);
+    const body = await res.json();
+    const match = (body.messages ?? []).find((m: any) => (m.To ?? []).some((t: any) => t.Address === toAddress));
+    if (match) return match;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error(`mailpit: no message arrived for ${toAddress} within ${timeoutMs}ms (is mailpit running on ${MAILPIT_API}?)`);
+}
+
+async function fetchMailText(request: import('@playwright/test').APIRequestContext, id: string): Promise<string> {
+  const res = await request.get(`${MAILPIT_API}/message/${id}`);
+  const body = await res.json();
+  return body.Text ?? body.HTML ?? '';
+}
+
+test('resending the validation email for an unverified secondary address, then confirming it, marks it verified', async ({ page, browser, request }) => {
+  // Dedicated throwaway account -- never add/verify emails on the shared admin account beyond
+  // what "add a secondary email address" above already does (that one is intentionally left
+  // unverified; other specs don't depend on its state either way, but a fresh account keeps
+  // this test fully self-contained and avoids ever touching admin's real inbox count).
+  const suffix = uniqueSuffix();
+  const loginId = `e2eemailverify${suffix}`;
+  const password = 'EmailVerifyPassw0rd!';
+  const secondaryEmail = `e2e-secondary-${suffix}@yona-e2e.test`;
+
+  const context = await browser.newContext();
+  await context.clearCookies();
+  const ownPage = await context.newPage();
+
+  await ownPage.goto('/signup');
+  await ownPage.fill('#loginId', loginId);
+  await ownPage.fill('#uname', `E2E EmailVerify ${suffix}`);
+  await ownPage.fill('#email', `${loginId}@yona-e2e.test`);
+  await ownPage.fill('#password', password);
+  await ownPage.fill('#retypedPassword', password);
+  await ownPage.click('form[action="/signup"] button[type=submit]');
+  await ownPage.goto('/users/loginform');
+  await ownPage.fill('#loginIdOrEmailD', loginId);
+  await ownPage.fill('#password', password);
+  await ownPage.click('form[action="/users/login"] button[type=submit]');
+  await expect(ownPage.locator('a[href="/login"]')).toHaveCount(0);
+
+  await ownPage.goto('/user/editform/emails');
+  await ownPage.fill('input[name="email"]', secondaryEmail);
+  await ownPage.click('form[action="/user/email"] button[type=submit]');
+  await expect(ownPage.locator('body')).toContainText(secondaryEmail);
+
+  // UserViewController.sendValidationEmail is POST, wired via the generic requestAs() delegate
+  // reading `href` (not `data-request-uri`, unlike the delete button in the same row).
+  const emailRow = ownPage.locator('tr', { hasText: secondaryEmail });
+  const resendButton = emailRow.locator('button[data-request-method="post"][href*="/sendValidationEmail/"]');
+  await expect(resendButton).toBeVisible();
+  await Promise.all([
+    ownPage.waitForResponse((res) => res.url().includes('/sendValidationEmail/') && res.request().method() === 'POST'),
+    resendButton.click(),
+  ]);
+
+  const message = await findMailTo(request, secondaryEmail);
+  const html = await fetchMailText(request, message.ID);
+  // UserServiceImpl.sendValidationEmail() builds the link as
+  // "$serverUrl/user/emails/$emailId/confirm?token=$token" inside an <a href="..."> (HTML body,
+  // not plain text -- sendHtmlMail is used here, unlike the password-reset email).
+  const linkMatch = html.match(/\/user\/emails\/(\d+)\/confirm\?token=([^\s"'<]+)/);
+  expect(linkMatch, `validation email body did not contain a confirm link:\n${html}`).toBeTruthy();
+  const [, emailId, token] = linkMatch!;
+
+  await ownPage.goto(`/user/emails/${emailId}/confirm?token=${token}`);
+  await expect(ownPage).toHaveURL(/\/user\/editform$/);
+
+  await ownPage.goto('/user/editform/emails');
+  // A verified email's row shows the "주 이메일로 지정"(set as main) button instead of the
+  // "인증메일 재발송"(resend) button (edit_emails.html's mail.valid branch).
+  const verifiedRow = ownPage.locator('tr', { hasText: secondaryEmail });
+  await expect(verifiedRow.locator('button[href*="/sendValidationEmail/"]')).toHaveCount(0);
+  await expect(verifiedRow.locator('button[href*="/setAsMain/"]')).toBeVisible();
+
+  await context.close();
+});
+
 test('notifications screen lists per-project toggles without erroring', async ({ page }) => {
   const response = await page.goto('/user/editform/notifications');
   expect(response?.status()).toBeLessThan(400);
@@ -286,14 +374,81 @@ test.describe('GPG keys', () => {
   });
 });
 
-test('uploaded-files screen loads (empty state included)', async ({ page }) => {
+// The two tests below need a real project+issue to show actual content in /user/files and
+// /user/issues -- but 02-user runs before 04-project/06-issue in folder execution order, so
+// seed.projectOwner/projectName do not exist yet at this point in the suite. Self-contained: each
+// creates its own disposable project (mirroring 04-project/00-project-create.spec.ts's own
+// pattern) rather than depending on later folders' seeds.
+test('uploaded-files screen actually lists a file this user uploaded (AttachmentController.uploadFile is unscoped to any project)', async ({ page }) => {
+  const adminLoginId = requireSeed('adminLoginId');
+  const projectName = `e2e-userfiles-${uniqueSuffix()}`;
+
+  await page.goto('/projectform');
+  await page.selectOption('#project-owner', adminLoginId);
+  await page.fill('#project-name', projectName);
+  await page.fill('#description', 'Throwaway project for /user/files verification');
+  await page.check('#public');
+  await page.selectOption('#vcs', 'GIT');
+  await page.click('#newProjectForm button.ybtn-success');
+  await expect(page).toHaveURL(new RegExp(`/${adminLoginId}/${projectName}`));
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'yona-e2e-userfiles-'));
+  const fileName = `e2e-userfile-${uniqueSuffix()}.txt`;
+  const filePath = path.join(dir, fileName);
+  fs.writeFileSync(filePath, 'uploaded for /user/files verification\n');
+
+  // POST /files (AttachmentController.uploadFile) is a global, project-unscoped endpoint keyed
+  // only by the uploader's principal -- the issue create form is just where the widget happens to
+  // be mounted in the UI.
+  await page.goto(`/${adminLoginId}/${projectName}/issueform`);
+  const widget = page.locator('yona-attachments#upload');
+  await widget.locator('input[type="file"]').setInputFiles(filePath);
+  await expect(widget.locator('.attached-file.complete', { hasText: fileName })).toBeVisible({ timeout: 15_000 });
+  fs.rmSync(dir, { recursive: true, force: true });
+
   const response = await page.goto('/user/files');
   expect(response?.status()).toBeLessThan(400);
+  await expect(page.locator('body')).toContainText(fileName);
 });
 
-test('cross-project "my issues" screen shows the seeded issue', async ({ page }) => {
+test('cross-project "my issues" screen shows an issue actually assigned to the current user', async ({ page }) => {
+  const adminLoginId = requireSeed('adminLoginId');
+  const projectName = `e2e-userissues-${uniqueSuffix()}`;
+  const issueTitle = `e2e user-issues ${uniqueSuffix()}`;
+
+  await page.goto('/projectform');
+  await page.selectOption('#project-owner', adminLoginId);
+  await page.fill('#project-name', projectName);
+  await page.fill('#description', 'Throwaway project for /user/issues verification');
+  await page.check('#public');
+  await page.selectOption('#vcs', 'GIT');
+  await page.click('#newProjectForm button.ybtn-success');
+  await expect(page).toHaveURL(new RegExp(`/${adminLoginId}/${projectName}`));
+
+  await page.goto(`/${adminLoginId}/${projectName}/issueform`);
+  await page.fill('#title', issueTitle);
+  await page.locator('textarea[data-editor-mode="content-body"]').fill('Body for /user/issues verification.', { force: true });
+  await page.click('#button-save');
+  await expect(page).toHaveURL(new RegExp(`/${adminLoginId}/${projectName}/issue/\\d+`));
+
+  // /user/issues with no filter params defaults to "assigned to me" (UserViewController.userIssues:
+  // effectiveAssigneeId = loginUser.id when no filter given) -- a freshly created issue has no
+  // assignee by default, so self-assign it first via the issue list's mass-update widget (same
+  // dropdown pattern as 06-issue/issue-management.spec.ts's "assign to me" test: the dropdown's
+  // second <li> is always "assign to me", right after "no assignee").
+  await page.goto(`/${adminLoginId}/${projectName}/issues`);
+  const issueRow = page.locator('li.post-item', { hasText: issueTitle });
+  await issueRow.locator('input[name="checked-issue"]').check();
+  await page.click('#assignee button.dropdown-toggle');
+  await Promise.all([
+    page.waitForURL(new RegExp(`/${adminLoginId}/${projectName}/issues$`)),
+    page.locator('#assignee ul.dropdown-menu > li').nth(1).locator('a').click(),
+  ]);
+  await page.waitForLoadState('networkidle');
+
   const response = await page.goto('/user/issues');
   expect(response?.status()).toBeLessThan(400);
+  await expect(page.locator('body')).toContainText(issueTitle);
 });
 
 test('/user/issues/new/mine (project-picker for "new issue") loads without erroring', async ({ page }) => {

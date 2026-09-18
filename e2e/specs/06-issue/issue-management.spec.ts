@@ -277,7 +277,7 @@ test.describe.serial('issue management actions', () => {
   // assign this specific milestone to any issue (10-milestone/milestone-crud.spec.ts or this
   // file's own "assign a milestone" test do it), then load that issue's view page with
   // DevTools open -- the querySelector error fires on load. Left as fixme; do not fix here.
-  test('post a comment, edit it, then delete it', async ({ page }) => {
+  test('post a comment, edit it, vote/unvote it, then delete it', async ({ page }) => {
     // This test's regression guard for the querySelector-crash bug adds a milestone-rename
     // round trip (editform load + submit) on top of the already-long post/edit/delete comment
     // flow (each step is itself a full page reload, per this screen's design), so the default
@@ -352,6 +352,29 @@ test.describe.serial('issue management actions', () => {
     ]);
     expect(updateResponse.ok()).toBeTruthy();
     await expect(page.locator('body')).toContainText(editedBody);
+
+    // Comment vote/unvote (VoteController.voteComment/unvoteComment) -- a previously untested
+    // route pair. The button toggles data-request-uri between .../vote and .../unvote server-side
+    // (issue/view.html's hasCommentVoted branch) and yona.issue.View.js's _onClickCommentVote
+    // does fetch(POST) then location.reload().
+    const commentId = await commentIdLocator.getAttribute('data-comment-id');
+    expect(commentId).toBeTruthy();
+    // Don't wait on networkidle after the click -- this page has enough incidental background
+    // activity post-reload that networkidle can hang well past the test timeout (confirmed
+    // live). Don't race a page.waitForResponse() against the click either -- confirmed flaky
+    // under full-suite load (a Promise.all([waitForResponse(...), click()]) pair timed out once
+    // in a 220-test run despite passing reliably in isolation; the response/reload/re-render
+    // sequence has no hard guarantee of completing within the observation window when the whole
+    // browser is under load). Click, then let Playwright's auto-retrying expect() alone ride out
+    // the fetch + reload + re-render with a generous explicit timeout -- no network-timing
+    // assumption at all, matching the more robust half of the issue-level vote test above.
+    const voteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/vote"]`);
+    await expect(voteButton).toBeVisible();
+    const unvoteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/unvote"]`);
+    await voteButton.click();
+    await expect(unvoteButton).toBeVisible({ timeout: 30_000 });
+    await unvoteButton.click();
+    await expect(voteButton).toBeVisible({ timeout: 30_000 });
 
     const deleteTrigger = page.locator('[data-toggle="comment-delete"]').last();
     await deleteTrigger.click();

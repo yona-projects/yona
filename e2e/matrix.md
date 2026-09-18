@@ -19,10 +19,9 @@
 |---|---|---|---|
 | GET /users/loginform | specs/01-auth/auth.spec.ts | done | 정상/오류 로그인, remember-me·lostPassword 링크 |
 | GET /signup | specs/01-auth/auth.spec.ts | done | 정상 가입+로그인, 비밀번호 불일치 거부 |
-| GET /lostPassword | specs/01-auth/auth.spec.ts | partial | 폼 존재만 확인, 실제 메일 발송 플로우 미검증 |
-| GET /user/reset-password | | todo | 유효 토큰 필요(메일 인프라 연동 필요) |
+| GET /lostPassword, /user/reset-password | specs/01-auth/auth.spec.ts | done | `mailpit`(SMTP 캐처, `127.0.0.1:1025`/API `:8025`)를 붙여 실제 메일 발송 플로우를 끝까지 검증 — 전용 계정 가입 → `/lostPassword` 제출(loginId+emailAddress 둘 다 일치해야 함, `PasswordResetController` 확인) → mailpit에서 실제 도착한 메일 본문에서 `/user/reset-password?hash=...` 링크 추출 → 방문해 새 비밀번호 설정 → 새 비밀번호로 로그인 성공까지 실측 |
 | GET /users/login/2fa | | todo | 2FA 활성 계정 필요 (14번 참고) |
-| GET /verify/{loginId}/{code} | | todo | 가입 인증코드 필요 |
+| GET /verify/{loginId}/{code}, /user/verify | specs/01-auth/auth.spec.ts | done | **제품 버그로 확정 후 TDD로 수정 완료(2026-09-18)**: `UserService.sendVerificationEmail()`/`verifyUser()`/`UserVerification`/두 verify 라우트는 Play→Spring 재작성 때 포팅됐으나 `AuthController.signup()`이 이를 호출하지 않아 완전히 죽은 코드였음(legacy `application.use.email.verification` 플래그의 배선 누락 — `docs/guide/settings-reference.md`가 이미 자체 기록해뒀던 갭). `yona.signup.require-admin-confirm`과 동일한 패턴으로 `yona.signup.require-email-verification`(기본값 `false`) 플래그를 신설해 `AuthController.signup()`에 배선함 — 켜면 `UserState.LOCKED`로 생성 후 실제 인증메일 발송, `verifyUser()`가 인증 성공 시 `ACTIVE`로 전환. mailpit으로 가입→메일수신→링크추출→인증→로그인 전 과정 실측(RED: 배선 전 즉시로그인 성공 확인 → GREEN: 배선 후 인증 전 로그인 차단·인증 후 로그인 성공 확인). 이 테스트는 서버가 `YONA_SIGNUP_REQUIRE_EMAIL_VERIFICATION=true`로 떠있을 때만 실제 검증하고, 기본 설정 서버에서는 `#signupVerificationNotice` DOM 존재 여부로 자동 스킵(다른 스펙들의 "가입 즉시 로그인" 전제와 충돌 안 함) — 임의 코드 404 확인은 기존 테스트 유지 |
 
 ## 2. 사용자 프로필/설정 (User)
 
@@ -30,7 +29,7 @@
 |---|---|---|---|
 | GET /user/{loginId} | specs/02-user/user-settings.spec.ts | done | |
 | GET /user/editform (기본정보 수정+저장, 최근방문 초기화) | specs/02-user/user-settings.spec.ts | done | |
-| GET /user/editform/emails (추가) | specs/02-user/user-settings.spec.ts | done | 삭제/대표이메일 지정 버튼은 미검증 |
+| GET /user/editform/emails (추가) | specs/02-user/user-settings.spec.ts | done | 삭제/대표이메일 지정 버튼은 미검증. **인증메일 재발송(`UserViewController.sendValidationEmail`, POST /user/email/sendValidationEmail/{id})은 라우트 전수대조로 발견된 갭이었으나 이번에 채움**: 전용 계정으로 미인증 보조이메일 추가 → "인증메일 재발송" 버튼(`button[href*="/sendValidationEmail/"]`, requestAs() 델리게이트가 `data-request-uri` 아닌 `href` 속성을 읽는 패턴) 클릭 → mailpit으로 실제 메일 수신 → 본문 링크(`/user/emails/{id}/confirm?token=`) 방문 → 인증 완료(재발송 버튼이 "주 이메일로 지정" 버튼으로 교체)까지 실측. 죽은 코드였던 가입인증(`/verify/*`)과 달리 이 라우트는 화면에 정상 연결된 기능임을 확인 |
 | GET /user/editform/notifications | specs/02-user/user-settings.spec.ts | partial | 화면 로드만 확인, 체크박스 토글 저장까지는 미검증 |
 | GET /user/editform/password | specs/02-user/user-settings.spec.ts | done | admin이 아닌 01-auth 시드 두번째 유저로 변경(관리자 세션 보호), 변경 후 재로그인까지 확인 |
 | GET /user/editform/token, /tokens, /tokens/new (발급) | specs/02-user/user-settings.spec.ts | done | 발급된 토큰이 목록에 뜨는지 확인 + revoke 버튼 실제 클릭(네이티브 confirm() 다이얼로그 승인 포함) 후 목록에서 사라지는지까지 확인. `ApiTokenServiceImpl.revoke()`는 소프트 삭제가 아니라 실제 row 삭제임을 확인 |
@@ -38,9 +37,9 @@
 | GET /user/editform/oauth-apps-owned(-new) (등록) | specs/02-user/user-settings.spec.ts | done | client name/redirect URI/scope 체크박스 입력 후 등록 확인 + 삭제 버튼 실제 클릭(confirm() 승인) 후 목록에서 사라지는지까지 확인 |
 | GET /user/editform/ssh-keys(-new) | specs/02-user/user-settings.spec.ts | done | 실제 ed25519 공개키로 정상 등록 + 잘못된 형식 거부 둘 다 확인 + 삭제 버튼 실제 클릭(confirm() 승인) 후 목록에서 사라지는지까지 확인 |
 | GET /user/editform/gpg-keys(-new) | specs/02-user/user-settings.spec.ts | done | **제품/테스트 갭 발견 및 수정**: GPG 키 등록은 UID 이메일이 계정의 인증된 이메일과 일치해야 성공하는데(`GpgKeyServiceImpl`), 기존 "정상 등록" 테스트는 매번 무작위 미인증 이메일을 써서 실제로는 항상 거부되고 있었고 URL만 보는 약한 단언(re-render와 성공 리다이렉트가 같은 URL로 귀결) 때문에 통과로 오판되고 있었음 — UID를 admin의 실제 인증 이메일(`admin@yona-e2e.test`)로 고치고 `.alert-success` 단언 추가로 진짜 성공을 확인하게 수정. 삭제 버튼도 실제 클릭(confirm() 승인) 후 목록에서 사라지는지까지 확인 |
-| GET /user/files | specs/02-user/user-settings.spec.ts | partial | 빈 상태 로드만 확인 |
-| GET /user/issues, /user/issues/new/mine | specs/02-user/user-settings.spec.ts | partial | 화면 로드만 확인(500 아님) |
-| GET /user/editform/security, /totp/new, /webauthn/new, /backup-codes/show | | todo | 14번(2FA)과 연계 — 이번 fork 범위 밖 |
+| GET /user/files | specs/02-user/user-settings.spec.ts | done | 자체 프로젝트+이슈 생성 후 실제 파일 업로드(`AttachmentController.uploadFile`, 프로젝트 비종속 전역 엔드포인트) → 목록에 실제로 뜨는지 확인 |
+| GET /user/issues, /user/issues/new/mine | specs/02-user/user-settings.spec.ts | done | 자체 프로젝트+이슈 생성 후 이슈 목록의 담당자 mass-update 위젯으로 "나에게 할당" → `/user/issues`(무필터=할당된 이슈 기본값) 목록에 실제로 뜨는지 확인 |
+| GET /user/editform/security, /totp/new, /webauthn/new, /backup-codes/show | specs/14-oauth2-2fa-sso/two-factor-settings.spec.ts | done | 14번(2FA/OAuth2/SSO) 섹션에서 실제 TOTP 활성화·WebAuthn 등록까지 완주 검증됨 — 이 행은 낡은 중복이라 14번 섹션 참고로 정리 |
 
 ## 3. 조직 (Organization)
 
@@ -50,30 +49,31 @@
 | GET /organizations/new → 생성 | specs/03-organization/organization-crud.spec.ts | done | 이름 공백 거부 포함 |
 | GET /organizations/{orgName} | specs/03-organization/organization-crud.spec.ts | done | |
 | .../members | specs/03-organization/organization-crud.spec.ts | done | 화면 로드 확인(생성자 자동 ORG_ADMIN 등록) + 실제 멤버 초대(`POST /api/organizations/{orgId}/members`) → 역할 드롭다운으로 org_admin(role.id=6)으로 변경(`PUT .../role`) → 삭제(`DELETE .../members/{userId}`, 네이티브 `<dialog>` confirm 포함)까지 왕복 확인, 끝에 초대분 제거해 부작용 없음. **테스트 인프라 주의점(제품 버그 아님)**: 역할 드롭다운의 `<li>` 옵션들은 이 페이지에서 Bootstrap dropdown이 실제로 열리지 않아(`.dropdown-menu`가 계속 `display:none`) 일반 클릭도 `{force:true}` 클릭도 통하지 않음 — `.role-apply-btn`은 어차피 페이지 로드시 `document.querySelectorAll(...).forEach(el=>el.addEventListener("click",...))`로 개별 배선되는 plain 리스너라, `elementHandle.evaluate(el=>el.click())`로 네이티브 DOM `.click()`을 직접 호출해 우회 |
-| .../issues, /boards, /pullrequests | specs/03-organization/organization-crud.spec.ts | partial | 하위 프로젝트가 없는 상태(500 아님)만 확인 — 실제 프로젝트를 조직 소유로 만든 뒤의 취합 결과는 미검증 |
+| .../issues, /boards, /pullrequests | specs/03-organization/organization-crud.spec.ts | done | 실제 조직 소유 프로젝트를 만들고 이슈/게시글을 각각 생성해 issues/boards 취합 화면에 실제로 반영되는지 확인(pullrequests는 코드/브랜치가 필요해 500 아님만 재확인) |
 | .../settingform → 저장(이름 변경 포함) | specs/03-organization/organization-crud.spec.ts | done | 로고 업로드는 미검증 |
-| .../deleteForm | specs/03-organization/organization-crud.spec.ts | partial | 화면 로드만, 실제 삭제는 의도적으로 미실행(뒤 스펙이 seed.orgName을 계속 참조) |
+| .../deleteForm | specs/03-organization/organization-crud.spec.ts (화면 로드), specs/03-organization/organization-delete.spec.ts (실제 삭제) | done | 공유 시드 조직은 여전히 화면 로드만(뒤 스펙이 seed.orgName 계속 참조) — 대신 전용 throwaway 조직을 새로 만들어 실제 DELETE까지 실행하고 목록에서 사라짐 + 삭제된 조직 접근 시 error/404 렌더까지 확인 |
 
 ## 4. 프로젝트 (Project)
 
 | URL | 스펙 파일 | 상태 | 비고 |
 |---|---|---|---|
 | GET /projectform → 홈 | specs/04-project/project-create.spec.ts | done | GIT/HG/SVN 세 VCS, PUBLIC/PRIVATE, 빈 이름 거부 |
-| GET /{owner}/{projectName} | specs/04-project/project-create.spec.ts | partial | 생성 후 리다이렉트만 확인, 홈 화면 위젯 전체는 미검증 |
+| GET /{owner}/{projectName} | specs/04-project/project-home.spec.ts | done | 홈 화면 인라인 설명 수정 위젯(취소 버튼), clone URL 박스, 멤버 추가 링크, 프로젝트 나가기 다이얼로그까지 실제 확인. **제품 버그 수정함**: 설명 수정 저장(`PUT /api/projects/{id}`)이 `overview`만 보내는데 `UpdateProjectRequest.projectScope`가 non-nullable 필수라 항상 400이던 것을, 이 필드뿐 아니라 `UpdateProjectRequest`/`UpdateProjectParam`의 `overview` 외 전 필드를 nullable로 바꾸고 `ProjectServiceImpl.updateProject()`가 null이면 기존 값을 유지하도록 수정(단순히 projectScope만 기본값을 주면 이 위젯을 쓸 때마다 메뉴 토글 등 나머지 설정이 조용히 리셋되는 더 심각한 문제가 있었음 — 회귀 테스트로 확인). **별개의 제품 버그도 수정함**: 저장 성공 후 화면 갱신 없이 즉시 반영하는 부분이 `yona.Markdown.render()`를 호출하는데, `project/home.html`이 `site/layout :: markdown(project)` 프래그먼트를 포함하지 않아 `sMarkdownRendererUrl`이 undefined라 렌더 요청이 항상 실패(`POST /admin/undefined` 405, 조용히 무시됨)하던 것을 그 프래그먼트를 추가해 수정(milestone/create.html 등과 동일한 패턴). 새로고침 없이 즉시 반영되는지까지 실제 테스트로 확인 |
+| GET /{owner}/{projectName} | specs/04-project/00-project-create.spec.ts | done | 생성 후 리다이렉트 확인(위 project-home.spec.ts와 상호보완) |
 | /members | specs/04-project/project-members.spec.ts | done | 소유자 표시 확인 + 실제 멤버 초대(POST /api/projects/{id}/members) → 역할 드롭다운으로 Member↔Manager 전환(PUT .../role) 실제 확인 → 별도 throwaway 계정 초대 후 삭제(DELETE .../{userId}, 네이티브 confirm() 처리)까지 확인. seed.secondUserLoginId는 Manager로 영구 유지(07-pull-request가 재사용) |
 | /setting | specs/04-project/project-settings.spec.ts | done | 설명 수정 후 AJAX 저장이 실제로 반영되는지 재조회로 확인 + 메뉴 토글(review) 실제로 끄고 저장→재조회로 반영 확인→다시 켜서 원복까지 확인(issue/wiki/board/milestone/pullRequest는 06-10이 의존해서 review로만 검증) |
-| /changeVCS | specs/04-project/project-change-vcs.spec.ts | partial | 화면 로드만(체크박스+버튼 존재) — 실제 VCS 전환은 되돌리기 어려워 미실행 |
-| /transfer | specs/04-project/project-transfer.spec.ts | partial | 화면 로드+입력만, 실제 이관은 미실행(owner가 05/06/07 시드) |
-| /deleteform | specs/04-project/project-delete.spec.ts | partial | 화면 로드만, 실제 삭제는 미실행(05/06/07 시드 보호) |
-| /issue/labelsform | specs/04-project/project-issue-labels.spec.ts | partial | copy-labels 폼(유일한 정적 `<form>`)만 검증 — 신규 라벨 생성 UI는 JS 위젯(`attachLabelListAdapter`)이 동적 렌더링해서 미검증 |
+| /changeVCS | specs/04-project/project-change-vcs.spec.ts (화면 로드), specs/04-project/project-vcs-change-real.spec.ts (실제 전환) | done | 전용 GIT 프로젝트를 새로 만들어 체크박스 동의→confirm 다이얼로그→실제 POST(204)까지 실행, 전환 후 changeVCS 화면의 현재 VCS 표시가 실제로 바뀌었는지까지 확인 |
+| /transfer | specs/04-project/project-transfer.spec.ts (화면 로드), specs/04-project/project-transfer-real.spec.ts (실제 이관) | done | `ProjectServiceImpl.acceptTransfer()`가 실제로는 메일로 발송되는 confirmKey 링크 기반 2자간 승인 플로우임을 확인(직접 수락 API 없음) — mailpit(로컬 SMTP 캐처, yona `application.yml`의 `spring.mail.host=localhost:1025`와 그대로 일치)으로 실제 이관 요청 메일을 받아 링크를 추출하고, 전용 목적지 유저로 로그인해 그 링크로 실제 수락까지 완주 확인 |
+| /deleteform | specs/04-project/project-delete.spec.ts (화면 로드), specs/04-project/project-delete-real.spec.ts (실제 삭제) | done | 전용 프로젝트를 새로 만들어 체크박스 동의→confirm 다이얼로그→실제 DELETE까지 실행, 목록에서 사라짐 + 삭제된 프로젝트 접근 시 error/404 렌더까지 확인 |
+| /issue/labelsform | specs/04-project/project-issue-labels.spec.ts | done | copy-labels 폼 + 실제 라벨 생성 위젯(`<yona-new-label-form>`, Vue 커스텀 엘리먼트)을 카테고리/이름 입력→포커스 시 색상 자동할당→제출→"신규 카테고리 유형" 확인 다이얼로그(전역 `<yona-dialog>`)까지 실제로 눌러서 라벨 생성 완료 및 목록 반영 확인 |
 | /newFork | specs/04-project/project-fork.spec.ts | done | 실제 포크 실행 + 3초 지연 AJAX 리다이렉트까지 확인, seed에 `forkedProjectOwner`/`forkedProjectName` 저장(07-pull-request가 재사용 가능) |
-| /pull/... clone 안내(pullrequest/clone.html) | specs/04-project/project-fork.spec.ts | partial | 포크 인터스티셜을 경유하지만 그 화면 자체(진행 메시지 등)는 별도 검증 안 함, 최종 리다이렉트 결과만 확인 |
+| /pull/... clone 안내(pullrequest/clone.html) | specs/04-project/project-fork.spec.ts | done | 인터스티셜 화면 자체의 진행 문구(원본/대상 프로젝트명 포함 legend, 안내 메시지)를 3초 리다이렉트 전에 스냅샷 확인 |
 | /projects/{owner}/{p}/branch-protections | specs/04-project/project-branch-protection.spec.ts | done | 모든 체크박스 on으로 규칙 추가 + 빈 패턴 서버측 400 거부(raw fetch로 검증, HTML5 required 우회) |
 | /projects/{owner}/{p}/deploy-keys | specs/04-project/project-deploy-keys.spec.ts | done | 더미 ed25519 공개키로 read-only 키 등록 + 삭제 폼(네이티브 `confirm()` 승인 포함, `<form method=post>` 실제 제출) 클릭 후 목록에서 사라지는지까지 확인 |
 | /projects/{owner}/{p}/webhooks | specs/04-project/project-webhooks.spec.ts | done | Slack 포맷 + git push 이벤트 포함으로 등록, 4개 포맷 옵션 존재 확인 + 삭제 버튼(`requestAs()` fetch DELETE) 실제 클릭 후 목록에서 사라지는지까지 확인 |
 | /{owner}/{projectName}/setting (로고 업로드, POST /api/projects/{id}/logo) | specs/04-project/project-logo.spec.ts | done | `#logoPath` change 이벤트 즉시 업로드(별도 저장 버튼 없음) → 업로드 응답 확인 후 `GET /projects/{id}/logo`로 실제 서빙되는 바이트가 업로드한 파일과 정확히 일치하는지 확인(같은 프로젝트에 재실행 시 이전 실행의 로고와 우연히 같아지는 "before/after 크기 비교" 방식은 오탐 가능성이 있어 바이트 단위 일치 비교로 설계) |
 | /watchers | specs/04-project/project-watchers.spec.ts | done | 화면 로드 확인 + 헤더의 실제 watch/unwatch 버튼(Bootstrap dropdown 안에 있어 `.down-arrow` 토글로 먼저 열어야 클릭 가능함을 확인) 클릭 → watcher count 증감과 `/watchers` 목록 반영까지 확인 → 마지막에 다시 watch로 원복(admin은 프로젝트 생성 시 자동 watch 상태라 다른 스펙에 부작용 안 남게) |
-| /statistics | specs/04-project/project-statistics.spec.ts | partial | 화면 로드만(200), 차트 렌더링 내용은 미검증 |
+| /statistics | specs/04-project/project-statistics.spec.ts | done | 템플릿을 직접 확인한 결과 실제로 "Under Construction" 스텁(차트 라이브러리도, 모델 데이터 바인딩도 전혀 없음) — 실제 동작 그대로("Under Construction" 텍스트) 검증, 실제 갭 아님 |
 | /new/import | specs/04-project/project-import.spec.ts | done | 필드 입력 확인 + 빈 URL 서버측 거부(재렌더링) 확인. 실제 외부 git clone은 네트워크 의존이라 미실행 |
 
 ## 5. 코드뷰어 (Code)
@@ -81,7 +81,7 @@
 | URL | 스펙 파일 | 상태 | 비고 |
 |---|---|---|---|
 | /code, /code/{branch}[/{path}] | specs/05-code/00-code-browser-empty.spec.ts | done | 0-commit 상태(빈 저장소 안내 문구)는 이 파일에서, 실제 커밋 이후 상태는 아래 code-diff.spec.ts에서 확인 |
-| /code/download/{branch} | | todo | ZIP 다운로드 |
+| /code/download/{branch} | specs/05-code/code-download.spec.ts | done | 코드뷰어의 실제 "ZIP 다운로드" 버튼(href) 클릭 → 응답이 진짜 ZIP(매직바이트 `PK\x03\x04`, Content-Disposition) 확인. **제품 버그 수정함**: `CodeViewController.download()`가 브랜치 존재 확인 없이 바로 아카이브를 시도해 존재하지 않는 브랜치 요청 시 200 + `application/zip` + 0바이트 빈 파일을 내려주던 것을, 자매 라우트(`ProjectViewController.downloadCode()`)가 이미 쓰던 `repositoryService.getMetaDataFromAncestorDirectories()` 존재 확인을 동일하게 추가해 404로 수정 |
 | /commits, /commits/{branch}[/{path}] | specs/05-code/code-diff.spec.ts | done | `01-code-git-setup.spec.ts`가 실제 git CLI로 main에 서로 다른 커밋 2개 push(DIFF_FIXTURE.md 추가→수정) → 히스토리 목록에 두 커밋 메시지 모두 렌더링되는지 확인 |
 | /commit/{commitId} | specs/05-code/code-diff.spec.ts | done | diff 본문(추가/삭제 라인) 렌더링 확인 + 커밋 댓글 작성(`textarea[data-editor-mode="commit-comment-body"]` → ReviewViewController.newCommitComment 실제 POST) 후 화면 반영까지 확인 |
 | /branches | specs/05-code/code-diff.spec.ts | done | 실제 main 브랜치가 목록에 뜨는지 확인(00-code-browser-empty.spec.ts는 0-commit 상태만 별도 확인) |
@@ -119,14 +119,16 @@
 | /issues (목록) | specs/06-issue/issue-crud.spec.ts | done | |
 | POST /api/projects/{id}/issues/{number}/comments (댓글) | specs/06-issue/issue-crud.spec.ts | done | `#comment-form`의 `th:action`은 죽은 라우트(템플릿 자체 주석에 명시)이고 실제로는 JS가 fetch AJAX로 이 REST 경로에 제출함을 확인 후 실제 댓글 작성·렌더링까지 확인 |
 | 이슈 작성 폼 첨부파일 업로드 (`<yona-attachments>`, POST /files) | specs/06-issue/issue-attachments.spec.ts | done | Vue 3 SFC 컴파일 커스텀 엘리먼트라 Shadow DOM일 가능성을 염두에 뒀으나 Playwright 로케이터가 그대로 뚫고 `input[type=file]`을 찾아냄 — 실제 파일 업로드 후 `.attached-file.complete` 상태로 렌더링되는지까지 확인 |
-| /issue/{number}/timeline (fragment) | | todo | ajax 폴링 |
-| /reviews (ReviewThreadController) | | todo | |
+| 첨부파일 삭제 (`AttachmentController.deleteFile`, POST /files/{id}) | specs/06-issue/issue-attachments.spec.ts | done | 라우트 전수대조로 발견된 갭. 위젯의 컴파일된 Vue 소스(`yona-attachments-element.js`)를 읽어 삭제 트리거가 `.btn-delete`이고 `POST` + `_method=delete` 폼 파라미터로 요청함을 확인 후, 실제 업로드→삭제 클릭→목록에서 사라짐까지 확인 |
+| /issue/{number}/timeline (fragment) | specs/06-issue/issue-timeline.spec.ts | done | 실제 이슈 생성+상태변경(닫기) 후 타임라인 fragment가 실제 이벤트를 반영하는지, 이슈 뷰 페이지에 임베드된 동일 fragment도 확인. 존재하지 않는 이슈 번호는 실제 404로 렌더됨을 확인(과거엔 200이었음 — 시스템 전반 `error/404` 상태코드 버그 수정 참고) |
+| /reviews (ReviewThreadController) | specs/04-project/project-reviews.spec.ts | done | **매트릭스 자체의 분류 오류 정정**: REST 전용이 아니라 실제 GET 화면(검색/필터 사이드바, OPEN/CLOSED 탭, 텍스트 필터, XLS 내보내기 링크)임을 확인 — 참여자/작성자 필터 탭, 상태 탭, 텍스트 필터, XLS 다운로드까지 전부 실제 클릭/제출로 검증 |
 | 이슈 목록의 일괄수정 위젯 — 담당자 지정 | specs/06-issue/issue-management.spec.ts | done | `#assignee` yona-dropdown에서 "나에게 할당" 옵션(항상 두 번째 `<li>`, 로케일 텍스트 대신 위치로 선택 — 이 환경은 영어로 렌더링됨을 실측) 클릭 → 실제 massupdate POST(`assignee.id=<currentUserId>`) → 이슈뷰의 담당자 hidden input(`#assignee[value]`)에 반영되는지까지 확인 |
 | 이슈 목록의 일괄수정 위젯 — 마일스톤 지정 | specs/06-issue/issue-management.spec.ts | done | `#milestone` 드롭다운에서 seed 마일스톤 선택 → massupdate POST(`milestone.id=<id>`) → 이슈뷰의 `<select id="milestone">` value로 반영 확인 |
 | 이슈 목록의 일괄수정 위젯 — 상태(열림/닫힘) 토글 | specs/06-issue/issue-management.spec.ts | done | CLOSED→OPEN 왕복 확인, 배지 텍스트("Closed"/"Open")까지 단언. **제품 버그#4 수정 완료(BUGFIXES.md 참고)**: 상태 배지 텍스트가 `#{'issue.state.' + issue.state}`로 원본(대문자) enum 이름을 그대로 메시지 키에 쓰던 것을 293행과 동일하게 `#strings.toLowerCase(issue.state)`로 감싸도록 수정 — 배지 텍스트가 `??issue.state.CLOSED_en_US??` 대신 정상 렌더링됨을 Playwright로 확인 |
 | 이슈 목록의 일괄수정 위젯 — 라벨 추가/제거 | specs/06-issue/issue-management.spec.ts | done | **제품 버그#3 수정 완료(BUGFIXES.md 참고)**: 원 추정(컨트롤러의 `attachingLabelIds`/`detachingLabelIds` 바인딩·저장 문제)은 틀렸음 — curl로 직접 확인한 결과 라벨은 실제로 DB에 정상 반영됨. 진짜 원인은 #6과 동일한 프론트엔드 버그(`yona.ui.TomSelect.js`의 milestone 렌더러가 `data.state` 없을 때 raw text를 반환 → Tom Select의 `getDom()`이 그 텍스트를 CSS 셀렉터로 오인해 크래시 → `[data-toggle="tomselect"]` 자동초기화 forEach가 `#milestone`에서 멈춰 `#labelIds`의 Tom Select 인스턴스가 아예 초기화되지 않아 라벨이 DB엔 있어도 화면엔 안 보였음) — 같은 한 군데(TomSelect.js milestone 렌더러)를 고쳐 해결, 이제 `.issue-label[data-label-id]` 뱃지가 정상 렌더링됨을 확인 |
 | 이슈 추천(vote)/추천취소 | specs/06-issue/issue-management.spec.ts | done | 추천과 추천취소 둘 다 실제 UI 클릭으로 왕복 확인(href/class 전환 포함). **제품 버그#5 수정 완료(BUGFIXES.md 참고)**: 추천취소 버튼의 `th:href`가 `hasVoted` 여부와 무관하게 항상 `/vote`로 고정되어 있던 것을 `hasVoted`에 따라 `/vote`·`/unvote`(`VoteController.kt`의 실제 별도 라우트)로 갈리도록 수정 — 더 이상 `/unvote`를 직접 호출하는 정리 코드 없이 UI 클릭만으로 취소됨을 확인 |
 | 댓글 수정/삭제 | specs/06-issue/issue-management.spec.ts | done | **제품 버그#6 수정 완료(BUGFIXES.md 참고)**: 원 진단의 증상(괄호 있는 마일스톤 제목에서 `querySelector` 크래시 → 인라인 스크립트 나머지 초기화 불발)은 맞았지만 원인 후보(`_toElement()`/`Assginee.js`/`Sharer.js`)는 전부 틀렸음 — 실제 호출부는 `yona.ui.TomSelect.js`의 milestone 렌더러: `data.state`가 없으면 `return data.text`로 가공 없는 원본 텍스트를 반환해 Tom Select 라이브러리의 `getDom()`이 이를 CSS 셀렉터로 오인, `document.querySelector(text)`를 호출함(괄호 등 셀렉터로 파싱 안 되는 문자가 있으면 SyntaxError, 아니면 null 반환 후 다음 줄 setAttribute가 null 참조로 크래시). 항상 `<div>...</div>` HTML을 반환하도록 수정해 해결 |
+| 댓글 추천(vote)/추천취소 (`VoteController.voteComment/unvoteComment`) | specs/06-issue/issue-management.spec.ts | done | 라우트 전수대조로 발견된 갭. 기존 "post a comment, edit it, then delete it" 테스트의 edit→delete 사이에 추가 — `button[data-request-type="comment-vote"]`가 `hasCommentVoted`에 따라 `.../vote`·`.../unvote`로 `data-request-uri`를 갈아끼우는 것을 실제 클릭 왕복으로 확인. 클릭 후 `location.reload()`를 기다릴 때 `waitForLoadState('networkidle')`이 이 페이지에서 종종 60초 넘게 멎는 것을 확인(이슈 자체 vote 테스트와 동일하게 auto-retry `expect()`로 대체) |
 | 이슈 삭제 (DELETE /api/projects/{id}/issues/{number}) | specs/06-issue/issue-management.spec.ts | done | 삭제 확인 모달(`#deleteConfirm`) 실제 클릭 → 목록에서 사라지는지까지 확인 |
 
 ## 7. Pull Request
@@ -146,6 +148,7 @@
 | 리뷰 판정 제출 (APPROVE/REQUEST_CHANGES/COMMENT, POST .../reviews) | specs/07-pull-request/02-pull-request-workflow.spec.ts | done | throwaway 리뷰어가 APPROVE 제출, admin(컨트리뷰터 본인)은 COMMENT만 제출 가능함을 확인(APPROVE/REQUEST_CHANGES 버튼 자체가 `canApproveOrRequestChanges=false`로 숨겨짐) |
 | PR 닫기/재오픈 (POST .../state?state=CLOSED\|OPEN) | specs/07-pull-request/02-pull-request-workflow.spec.ts | done | 실제 클릭으로 CLOSED→OPEN 왕복 확인(로케일 의존 텍스트 대신 `data-request-uri` 패턴으로 검증) |
 | /pull/mergeResult (fragment), 실제 머지 (POST .../merge) | specs/07-pull-request/02-pull-request-workflow.spec.ts | done | 클린 순차 전체 실행으로 재검증한 결과 애초 의심했던 "포크 간 git 충돌"은 사실이 아니었음(진짜 원인: 이 파일 자체의 리뷰어 등록취소 테스트가 리뷰어 수 0명을 남기는데 `isUsingReviewerCount`가 여전히 켜져 있어 `meetsReviewerCount`가 거짓이 된 것 — 실제 git 충돌 아님). 머지 직전 리뷰어수 강제 옵션을 다시 끄도록 수정 후 실제 병합 성공(`#btnAccept` 클릭 → confirm() → "Merged" 배지) 확인 |
+| PR 코드리뷰 라인댓글 작성/삭제 (diff 특정 라인에 댓글, `POST .../pullRequest/{id}/comments` with codeRange, `DELETE /comments/REVIEW_COMMENT/{id}`) | specs/07-pull-request/03-pull-request-review-comment.spec.ts | done | diff 라인의 `.add-comment-btn-cell` 클릭 → Vue `<yona-review-form>`(Teleport 대상인 `div#review-form`이 실제 렌더 위치, 커스텀 엘리먼트 자체는 hidden) 팝업에 작성 → 실제 스레드 생성 확인 → 네이티브 `<dialog>` 삭제 확인모달(`#comment-delete-modal`/`#comment-delete-confirm`, `window.confirm()` 아님) 거쳐 실제 삭제까지 확인. 삭제 후 "review cards" 사이드바 요약 패널은 즉시 안 지워지고 리로드해야 반영됨(제품 버그 아님 — 다른 AJAX-less 부분갱신과 동일한 패턴) |
 
 ## 8. 위키 (Wiki)
 
@@ -189,7 +192,7 @@
 |---|---|---|---|
 | GET /search (헤더 검색창 폼 제출 포함) | specs/11-search/search.spec.ts | done | 빈 키워드 400 거부, 06-issue가 만든 이슈 제목으로 실제 검색 적중 확인 |
 | GET /{owner}/{projectName}/search | specs/11-search/search.spec.ts | done | |
-| GET /org/{orgName}/search | specs/11-search/search.spec.ts | partial | 03-organization과 병행 작성이라 순서 보장 안 됨 — `seed.orgName` 없으면 `test.skip`. org 시드 있으면 로드만 확인(실제 조직 소속 콘텐츠 검색 적중까지는 미검증) |
+| GET /org/{orgName}/search | specs/11-search/search.spec.ts | done | 03(조직) < 11(검색) 폴더 실행 순서가 항상 보장됨을 확인하고 `test.skip` 가드 제거 — 실제 조직 소유 프로젝트를 키워드로 검색해 실제 적중까지 확인 |
 
 ## 12. 알림/기타 (Notifications & misc)
 
@@ -227,16 +230,21 @@
 | 관리자 권한 부여/회수 (POST /site/toggleSiteAdminRole) | specs/13-admin/site-admin.spec.ts | done | 부여→SITE_ADMIN 탭 반영 확인→즉시 회수(불필요한 admin 계정 남기지 않음)까지 실제 클릭으로 검증 |
 | 게스트 모드 토글 (POST /site/toggleGuestMode) | specs/13-admin/site-admin.spec.ts | done | **제품 버그 수정됨(BUGFIXES.md #7)**: `SiteService.toggleGuestMode()`가 `isGuest` 불리언만 뒤집고 `state` enum은 안 건드려서 "게스트 사용자" 탭 목록 쿼리(`UserRepository.findUsersForAdminQuery`, `state` 컬럼만 필터링)에 절대 반영되지 않던 버그. `toggleGuestMode()`가 이제 `toggleAccountLock()`/`toggleSiteAdminRole()`과 동일한 패턴으로 `state`를 ACTIVE↔GUEST로 함께 뒤집도록 수정(`isGuest`도 계속 동기화 — 실제 게스트 권한 판단 로직 전체가 `isGuest`를 직접 읽으므로). 테스트가 ACTIVE→GUEST 탭 이동을 재조회로 실제 검증하도록 강화됨 |
 | 관리자의 비밀번호 강제 초기화 (POST /site/users/{loginId}/reset-password) | specs/13-admin/site-admin.spec.ts | done | **제품 버그 수정됨(BUGFIXES.md #8)**: userList.html의 "비밀번호 초기화" 버튼 `data-href`가 `/{loginId}?action=resetPassword`로 잘못 빌드돼 매번 404였던 것과, 그 성공/대기 알림을 그리는 인라인 스크립트가 이미 제거된 jQuery의 `$.tmpl(...).appendTo(...)`를 여전히 호출해 `$ is not defined`로 fetch 이전에 죽어 있던 것(둘 다 수정) — data-href를 실제 라우트로 고치고 알림 렌더링을 `$yona.tmpl` vanilla 헬퍼로 교체. 실제 신규 비밀번호로 로그인 성공까지 확인 |
+| 관리자 강제 유저 삭제 (DELETE /sites/user/delete/{userId}) | specs/13-admin/site-admin.spec.ts | done | 전용 throwaway 계정으로 실제 삭제 → 목록에서 사라짐 확인. **관련 제품 버그(#16) 수정 완료**: `SiteService.deleteUser()`는 논리삭제(`state=DELETED`)만 하고 행을 안 지우는데, `UserViewController.userProfile()`이 `state`를 안 보고 행 존재 여부만 봐서 삭제된 계정의 공개 프로필이 영원히 200으로 계속 렌더되던 문제 — `userProfile()`에 DELETED 체크 추가(+ `response.status = 404`)로 수정, 삭제된 계정의 `/user/{loginId}`가 이제 실제 404 반환함을 확인 |
+| 관리자 강제 프로젝트 삭제 (DELETE /sites/project/delete/{projectId}) | specs/13-admin/site-admin.spec.ts | done | 전용 throwaway 프로젝트로 실제 삭제(302 확인, `deleteProject()`는 `ResponseEntity` 아닌 리다이렉트 `String` 반환이라 `response.ok()`가 아니라 상태코드 302로 검증) → 목록에서 사라짐 + DB 직접 조회로 행이 실제로 지워졌음을 확인. 삭제된 프로젝트 접근 시 이제 실제 404까지 확인(아래 시스템 전반 버그 수정 참고) |
+| 관리자 데이터 export 실행 (GET /sites/export) | specs/13-admin/site-admin.spec.ts | done | **제품 버그(#15) 수정 완료**: 실제 원인은 `DataBackupServiceImpl.nextSequenceValue()`의 H2 분기가 "id"라는 이름의 컬럼이면 무조건 `MAX(id)+1`을 시도하는데, Spring Authorization Server의 `OAUTH_AUTHORIZATION`/`OAUTH_AUTHORIZATION_CONSENT`/`OAUTH_REGISTERED_CLIENT` 테이블은 id가 VARCHAR(UUID)라 `NumberFormatException`(=`IllegalArgumentException`)이 발생 → `SiteApiController`의 컨트롤러 전역 `@ExceptionHandler(IllegalArgumentException::class)`(원래 `checkAdmin()` 인가실패 전용이었음)가 이걸 붙잡아 403으로 위장. id 컬럼이 실제 숫자 타입일 때만 MAX(id)+1을 시도하도록 수정 + `checkAdmin()`은 전용 `UnauthorizedAccessException`을 던지도록 분리해 향후 무관한 에러가 403으로 위장되지 않게 함. 실제 JSON 백업(84만 바이트) 다운로드 확인 |
+| "업데이트 알림 숨기기" 버튼 (POST /sites/unwatchUpdate) | specs/13-admin/site-admin.spec.ts | fixme | 재현 불가 확인됨(추측 아님): 버튼은 `isSiteManager && yonaUpdateService.isWatched() && isUpdateRequired()` 조건에서만 렌더되는데, `isUpdateRequired()`는 실제 `git ls-remote`로 GitHub 태그를 비교하는 백그라운드 스케줄러 결과라 블랙박스 e2e에서 강제할 방법이 없음(이 서버의 부팅 로그도 "Yona is up to date" 확인됨) |
+| **시스템 전반: `error/404` 뷰를 반환하는 라우트들이 실제 HTTP 404를 내지 않음** | 위 두 delete 테스트 + `03-organization/organization-delete.spec.ts`, `04-project/project-delete-real.spec.ts`, `06-issue/issue-timeline.spec.ts` | done | **제품 버그 수정됨(2026-09-18)**: `return "error/404"`(뷰 이름 문자열만 반환, `response.status`를 따로 설정 안 함)가 `src/main/kotlin/.../web/*.kt` 20개 파일에 91회 나타나 대부분 실제로는 HTTP 200으로 404 페이지 내용만 렌더되던 시스템 전역 버그. 91곳을 개별 수정하는 대신 `ErrorViewStatusInterceptor`(신규, `config/`) 하나를 추가해 Thymeleaf 뷰 렌더링 직전(`postHandle`)에 뷰 이름이 `error/404`이고 상태코드가 아직 기본값(200)이면 404로 보정하도록 중앙집중 처리(`WebMvcConfig`에 등록). RED(수정 전 `/nonexistent/project` 등이 200)→GREEN(수정 후 404) curl로 확인 + 위 4개 스펙 파일의 관련 테스트를 실제 404 기대값으로 갱신 후 Playwright로 재검증 완료. 다른 error/* 뷰(403/400/500 등)는 이번 수정 범위 밖 |
 
 ## 14. OAuth2 / 2FA / SSO — 전체 범위 포함(사용자 확정)
 
 | URL | 스펙 파일 | 상태 | 비고 |
 |---|---|---|---|
 | /user/editform/security | specs/14-oauth2-2fa-sso/two-factor-settings.spec.ts | done | 자격증명 0개 상태에서 로드, TOTP/WebAuthn 추가 링크 존재 확인 |
-| /user/editform/security/totp/new | specs/14-oauth2-2fa-sso/two-factor-settings.spec.ts | partial | QR코드+base32 시크릿 렌더 확인, 틀린 코드 제출 시 재표시까지 확인. **실제 활성화(올바른 TOTP 코드 제출)는 미검증** — RFC 6238 계산기를 직접 구현하거나 otplib 설치가 필요해 과설계로 판단, 화면/실패경로까지만(지시받은 스코프 그대로) |
-| /user/editform/security/webauthn/new | specs/14-oauth2-2fa-sso/two-factor-settings.spec.ts | partial | 화면 로드만 — 실제 인증기 없이 완주 불가(README 명시 제약) |
+| /user/editform/security/totp/new | specs/14-oauth2-2fa-sso/two-factor-settings.spec.ts | done | QR코드+base32 시크릿 렌더, 틀린 코드 재표시 확인에 더해 **실제 활성화까지 완주**: `e2e/support/totp.ts`에 RFC 6238 TOTP를 Node 내장 `crypto`만으로 직접 구현(RFC 4226 HOTP 공식 테스트 벡터 10개 + RFC 6238 base32 시크릿 왕복으로 검증)해서, 전용 throwaway 계정이 화면에 뜬 시크릿으로 실제 올바른 코드를 계산해 제출 → 활성화 성공까지 확인 |
+| /user/editform/security/webauthn/new | specs/14-oauth2-2fa-sso/two-factor-settings.spec.ts | done | Playwright의 CDP 세션(`WebAuthn.addVirtualAuthenticator`, ctap2/internal/`automaticPresenceSimulation`)으로 실제 하드웨어 없이 진짜 WebAuthn 등록 세리모니(navigator.credentials.create → 서버측 실제 attestation 검증)를 완주 — 목업이 아니라 Spring Security WebAuthnRelyingPartyOperations가 실제로 검증한 자격증명이 목록에 뜨는 것까지 확인 |
 | /user/editform/security/backup-codes/show | specs/14-oauth2-2fa-sso/two-factor-settings.spec.ts | done | "fresh 코드 없으면 설정화면으로 리다이렉트"라는 실제 동작을 그대로 검증(2FA 미활성 상태라 도달 자체가 안 됨 — 이것도 실제 동작) |
-| /users/login/2fa | specs/14-oauth2-2fa-sso/two-factor-login.spec.ts | partial | "2FA 활성 계정으로 실제 로그인 시도"는 미검증(위와 동일 이유) — 대신 `Pre2faAuthenticationToken` 없이(즉 2FA 안 켠 일반 로그인 상태로) 직접 URL 접근 시 `/users/loginform`으로 리다이렉트되는 실제 동작을 실측 확인 |
+| /users/login/2fa | specs/14-oauth2-2fa-sso/two-factor-login.spec.ts | done | 미활성 상태에서의 리다이렉트 확인에 더해 **실제 2FA 로그인 완주 2건**: (1) 전용 계정이 TOTP 활성화 후 로그아웃→재로그인해서 `/users/login/2fa`의 TOTP 단계까지 실제 도달, 계산한 코드로 로그인 성공까지 확인 (2) 전용 계정이 CDP virtual authenticator로 WebAuthn 등록 후 로그아웃→재로그인, 화면의 자동 `navigator.credentials.get()` 트리거로 클릭 없이 실제 로그인 성공까지 확인 |
 | /oauth2/consent | specs/14-oauth2-2fa-sso/oauth2-consent.spec.ts | done | 자체적으로 OAuth 앱을 셀프서비스 등록(다른 fork/영역에 의존 안 함) → `/oauth2/authorize` 전체 왕복 → consent 화면 도달 및 앱 이름 렌더까지 확인. 파라미터 누락(4xx) / 존재하지 않는 client_id(404) 케이스도 포함 |
 | /site/oauth-apps (관리자) | specs/13-admin/oauth-apps-admin.spec.ts | done | 13번 표 참고 |
 | /site/sso | specs/13-admin/sso-admin.spec.ts | done | 13번 표 참고 — SAML/OIDC 실제 IdP 연동은 스코프 밖, 설정 폼 저장/재렌더까지만 |

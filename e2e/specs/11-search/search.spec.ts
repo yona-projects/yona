@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { readSeed, requireSeed } from '../../support/seed-store';
+import { requireSeed } from '../../support/seed-store';
 
 /**
  * Screens: GET /search, GET /{owner}/{projectName}/search, GET /org/{orgName}/search
@@ -40,10 +40,18 @@ test('project-scoped search finds the seeded issue by title', async ({ page }) =
   await expect(page.locator('body')).toContainText(/E2E seed issue/);
 });
 
-test('organization-scoped search loads without erroring (skipped if no org seeded yet)', async ({ page }) => {
-  const orgName = readSeed().orgName;
-  test.skip(!orgName, '03-organization spec has not seeded an organization (parallel authoring, no ordering guarantee against this spec)');
+test('organization-scoped search finds a real project actually owned by that organization', async ({ page }) => {
+  // 03-organization always runs before 11-search in full-suite folder execution order (03 < 11
+  // alphabetically) -- seed.orgName is guaranteed to exist here. This was previously a
+  // `test.skip` guard written during this suite's concurrent multi-fork construction phase, when
+  // relative execution order across specs authored in parallel forks wasn't guaranteed; that
+  // phase is over, so require the seed instead of silently skipping when it's actually always
+  // present now. seed.orgName also names a real org-owned project by now
+  // (organization-crud.spec.ts's own rollup-verification test creates one), so search for it by
+  // its "e2e-org-" prefix and confirm a real hit, not just a non-500 response.
+  const orgName = requireSeed('orgName');
 
-  const response = await page.goto(`/org/${orgName}/search?keyword=e2e&searchType=auto`);
+  const response = await page.goto(`/org/${orgName}/search?keyword=e2e-org-&searchType=auto`);
   expect(response?.status()).toBeLessThan(500);
+  await expect(page.locator('body')).toContainText(/e2e-org-/);
 });

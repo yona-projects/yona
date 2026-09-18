@@ -48,7 +48,14 @@ test('fork the seeded Git project under a new name', async ({ page }) => {
   await page.click('form:has(#inputName) button[type=submit]');
 
   // POST response renders the "cloning..." interstitial at the same URL (template
-  // pullrequest/clone.html), whose JS waits ~3s then AJAX-calls doClone and redirects here.
+  // pullrequest/clone.html) BEFORE its JS's 3s setTimeout fires doClone() -- snapshot the
+  // interstitial's own content (progress legend naming the real owner/name/forkName, the two
+  // "this may take a while / redirects automatically" messages) while it's still up, then let the
+  // redirect proceed.
+  await expect(page.locator('.content-wrap.frm-wrap legend')).toContainText(name);
+  await expect(page.locator('.content-wrap.frm-wrap legend')).toContainText(forkName);
+  await expect(page.locator('.content-wrap.frm-wrap')).toContainText(/take a long time|시간이 걸릴 수 있습니다/i);
+
   await page.waitForURL(new RegExp(`/${owner}/${forkName}$`), { timeout: 15_000 });
 
   writeSeed({ forkedProjectOwner: owner, forkedProjectName: forkName });
