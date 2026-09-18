@@ -12,13 +12,13 @@ UI 중 Vue 컴포넌트로 뽑아낼 만한 후보를 조사한 결과다. 코�
 |---|---|---|---|---|
 | 1 | `yona.Files.js` | 919줄 | 8곳: `board.Write`/`milestone.Write`/`user.Setting`/`code.SvnDiff`/`issue.View`/`board.View`/`code.Diff`/`issue.Write` | 드래그앤드롭 업로드/첨부 위젯. 미포팅 컴포넌트 중 최대 규모. 이미 포팅된 `yona.Attachments.js`가 이 위에 얹혀 있을 수 있어 겹치는 부분 확인 필요 |
 | 2 | `yona.CodeCommentBox.js` + `yona.CodeCommentBlock.js` | 322+529=851줄 | 5곳: `pullrequest/view.html`, `code/compare.html`, `code/diff.html`, `common/commentForm.html`, `yona.code.Diff.js` | 코드/PR diff 줄별 인라인 댓글 팝업. 복잡도 최고(스레드 상태머신). diff 테이블 셀 위치에 포지셔닝이 강결합돼 있어 `ReviewForm`처럼 라이트 DOM 탈출구가 필요할 가능성 높음 |
-| 3 | `yona.ui.TomSelect.js` | 374줄 | 7곳: `issue.Write`/`issue.View`/`issue.Assginee`/`issue.Sharer`/`board.View`/`Subtask`/`TitleHeadAutoCompletion` | 서드파티 tom-select 래퍼. 재사용도 최고. 조상 `<form>` 제출과 얽혀 있어 로그인 위젯 때 겪은 "폼 참여" 함정 재현 가능성 |
+| 3 | `yona.ui.TomSelect.js` | 374줄 | 7곳: `yona.issue.Sharer.js`/`yona.issue.View.js`/`yona.board.View.js`/`yona.project.New.js`/`yona.issue.Assginee.js`/`yona.issue.Write.js`/`yona.issue.List.js`(2026-09-18 재검증으로 정정 — `Subtask`/`TitleHeadAutoCompletion`은 TomSelect를 직접 호출하지 않아 목록에서 뺐고, `project.New`/`issue.List`를 추가함) | 서드파티 tom-select 래퍼. 재사용도 최고. 조상 `<form>` 제출과 얽혀 있어 로그인 위젯 때 겪은 "폼 참여" 함정 재현 가능성 |
 | 4 | `yona.Tasklist.js` | 138줄 | 4곳: `board/view.html`, `common/commentUpdateForm.html`, `issue/view.html`, `site/layout.html` | 렌더링된 마크다운 안 체크박스 리스트 상호작용. 상태 단순, 이식 난이도 낮음 — **빠른 승리(quick win) 후보** |
 | 5 | `yona.TitleHeadAutoCompletion.js` | 249줄 | 3곳: `board/create.html`, `issue/edit.html`, `issue/create.html` | 이슈/게시글 제목 자동완성 |
 | 6 | `yona.ReceiverList.js` + `yona.WatcherList.js` | 94+50줄 | 1곳: `issue/view.html` | 참여자/지켜보는 사람 목록. 재사용도 낮아 우선순위 낮음 |
 | 7 | `yona.ui.Calendar.js` | 94줄 | 1곳 | 날짜 선택기. 낮은 우선순위 |
 | 8 | `yona.ui.Mergely.js` | 169줄 | 0곳(템플릿에서 참조 못 찾음) | 죽은 코드일 가능성 — 포팅 전에 실제 사용 여부 재확인 필요 |
-| 9 | `yona.ui.Tabs.js` | 46줄 | `.nav-tabs` 마크업이 템플릿 31곳 | 로직 자체는 매우 얇음(부트스트랩 `data-toggle=tab`). 이번 세션에서 고친 사이드바 탭 버그가 이 패턴이지만, Vue로 뽑을 상태/복잡도는 거의 없어 "분리 대상"으론 낮은 순위 |
+| 9 | `yona.ui.Tabs.js` | 46줄 | 0곳 — **죽은 코드**(2026-09-18 재검증으로 정정: 이 파일을 로드하는 곳이 템플릿/JS 전체에 없음, `.nav-tabs` 마크업 31곳은 전부 부트스트랩 `data-toggle="tab"`으로 처리됨) | 파일 자체가 이미 안 쓰여서 "Vue로 뽑을 것"이 아니라 삭제 후보. 이번 세션에서 고친 사이드바 탭 버그도 이 죽은 파일과는 무관(부트스트랩 처리) |
 
 ## 추천 착수 순서
 
@@ -55,3 +55,16 @@ UI 중 Vue 컴포넌트로 뽑아낼 만한 후보를 조사한 결과다. 코�
 무관, 별도 수정 필요)뿐이다. 다음 단계로는 (1) 실제로 프래그먼트를 `-vue`로 바꿔 e2e로
 검증, (2) `.content` 클래스 누락 버그를 별도로 수정하는 것을 추천한다.
 
+## 2차 재검증 (2026-09-18, "또 틀린 거 있나" 점검)
+
+markdownEditor 외에 이 문서의 다른 항목들도 다시 훑어서 확인했다.
+
+- **틀렸던 것**: `yona.ui.Tabs.js`(위 9번 항목, 수정 완료) — 죽은 코드인데 ".nav-tabs 마크업
+  31곳"이라고 적어 실사용처럼 보이게 서술했었다. `yona.ui.TomSelect.js`(위 3번 항목, 수정
+  완료) — 재사용 파일 목록에 실제로는 TomSelect를 호출하지 않는 `Subtask`/`TitleHeadAutoCompletion`이
+  끼어 있었고, 실제 소비 파일인 `project.New`/`issue.List`가 빠져 있었다.
+- **맞았던 것**: `yona.Files.js`(919줄/8곳), `yona.CodeCommentBox.js`+`CodeCommentBlock.js`
+  (322+529줄/5곳), `yona.Tasklist.js`(138줄/4곳) 줄수·재사용처는 `wc -l`/grep 재확인 결과
+  전부 정확했다. `yona.ui.Mergely.js`도 실제로 죽은 코드임을 재확인(참조 0건). 이번 세션에
+  고친 `usermenu.css`의 `.sidenav .nav-tabs.nm` 패딩도 다른 8곳의 `.nav-tabs.nm` 사용처(전부
+  `.sidenav` 조상이 없는 페이지 본문 탭)에는 안 걸리는 걸 재확인해 부작용 없음을 확인했다.
