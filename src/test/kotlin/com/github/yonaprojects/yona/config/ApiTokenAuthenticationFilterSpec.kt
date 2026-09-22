@@ -21,10 +21,10 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
 import java.util.Optional
 
-// P3-02 Step3에서 필터가 ApiTokenRepository/ProjectRepository를 추가로 의존하게 됐다 — 이 스펙의
-// 요청들은 전부 requestURI가 비어있어(MockHttpServletRequest 기본값) 신규 `/api/v1/projects/...`
-// 스코프 판정 경로를 타지 않고 기존 레거시 경로(UserRepository.findByToken)로만 흐른다. 스코프
-// 기반 인가(403) 검증은 별도 통합테스트(ApiTokenScopedAuthorizationIntegrationSpec)에서 다룬다.
+// 필터가 ApiTokenRepository/ProjectRepository를 의존한다 — 이 스펙의 요청들은 전부 requestURI가
+// 비어있어(MockHttpServletRequest 기본값) 신규 `/api/v1/projects/...` 스코프 판정 경로를 타지
+// 않고 기존 레거시 경로(UserRepository.findByToken)로만 흐른다. 스코프 기반 인가(403) 검증은
+// 별도 통합테스트(ApiTokenScopedAuthorizationIntegrationSpec)에서 다룬다.
 class ApiTokenAuthenticationFilterSpec : DescribeSpec({
     val userRepository = mockk<UserRepository>()
     val userDetailsService = mockk<UserDetailsService>()
@@ -180,6 +180,66 @@ class ApiTokenAuthenticationFilterSpec : DescribeSpec({
             filter.doFilter(request, response, filterChain)
 
             SecurityContextHolder.getContext().authentication?.principal shouldBe userDetails
+        }
+
+        // legacyProjectIdPattern("^/api/projects/(\d+)(?:/.*)?$")이 ProjectMemberController
+        // 하나만 겨냥하려고 만들어졌는데(주석 참고) 실제로는 "/api/projects/{id}/" 뒤에 뭐가 오든 다
+        // 매치해서, 같은 prefix를 쓰는 BoardController/PullRequestController까지 전부 ADMINISTRATION
+        // 스코프를 강제로 요구하게 만들고 있었다. 이 테스트들은 "멤버 관리가 아닌 리소스는 스코프
+        // 토큰 조회(authenticateScoped)를 타지 않고 레거시 전권 토큰 경로(authenticateLegacy)로
+        // 빠져야 한다"를 증명한다 — apiTokenRepository가 전혀 호출되지 않아야 한다.
+        it("멤버 관리가 아닌 레거시 숫자ID 경로(/posts)는 스코프 토큰 조회를 타지 않고 레거시 전권 토큰으로 인증해야 한다") {
+            val user = User(id = 1L, loginId = "gildong", name = "길동", token = "valid-token")
+            val userDetails = YonaUserDetails(
+                id = 1L, loginId = "gildong", passwordVal = "x", passwordSalt = "y",
+                authoritiesVal = listOf(SimpleGrantedAuthority("ROLE_ACTIVE"))
+            )
+            every { userRepository.findByToken("valid-token") } returns Optional.of(user)
+            every { userDetailsService.loadUserByUsername("gildong") } returns userDetails
+
+            val request = MockHttpServletRequest()
+            request.requestURI = "/api/projects/42/posts"
+            request.addHeader("Yona-Token", "valid-token")
+            val response = MockHttpServletResponse()
+
+            filter.doFilter(request, response, filterChain)
+
+            io.mockk.verify(exactly = 0) { apiTokenRepository.findByTokenHash(any()) }
+            SecurityContextHolder.getContext().authentication?.principal shouldBe userDetails
+        }
+
+        it("멤버 관리가 아닌 레거시 숫자ID 경로(/pullrequests)도 스코프 토큰 조회를 타지 않고 레거시 전권 토큰으로 인증해야 한다") {
+            val user = User(id = 1L, loginId = "gildong", name = "길동", token = "valid-token")
+            val userDetails = YonaUserDetails(
+                id = 1L, loginId = "gildong", passwordVal = "x", passwordSalt = "y",
+                authoritiesVal = listOf(SimpleGrantedAuthority("ROLE_ACTIVE"))
+            )
+            every { userRepository.findByToken("valid-token") } returns Optional.of(user)
+            every { userDetailsService.loadUserByUsername("gildong") } returns userDetails
+
+            val request = MockHttpServletRequest()
+            request.requestURI = "/api/projects/42/pullrequests"
+            request.addHeader("Yona-Token", "valid-token")
+            val response = MockHttpServletResponse()
+
+            filter.doFilter(request, response, filterChain)
+
+            io.mockk.verify(exactly = 0) { apiTokenRepository.findByTokenHash(any()) }
+            SecurityContextHolder.getContext().authentication?.principal shouldBe userDetails
+        }
+
+        it("실제 멤버 관리 경로(/members)는 계속 스코프 토큰(ADMINISTRATION)으로만 인증해야 한다 (회귀 방지)") {
+            val request = MockHttpServletRequest()
+            request.requestURI = "/api/projects/42/members"
+            request.addHeader("Yona-Token", "some-token")
+            val response = MockHttpServletResponse()
+            every { projectRepository.findById(42L) } returns Optional.empty()
+            every { apiTokenRepository.findByTokenHash(any()) } returns Optional.empty()
+
+            filter.doFilter(request, response, filterChain)
+
+            io.mockk.verify(exactly = 1) { apiTokenRepository.findByTokenHash(any()) }
+            io.mockk.verify(exactly = 0) { userRepository.findByToken(any()) }
         }
 
         it("현재 인증이 AnonymousAuthenticationToken이면 재인증을 시도해야 한다") {

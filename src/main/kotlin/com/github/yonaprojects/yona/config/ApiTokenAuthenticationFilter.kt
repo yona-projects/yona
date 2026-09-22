@@ -53,9 +53,12 @@ import java.util.regex.Pattern
  *   프로젝트 생성과 동일한 이유로 `allRepositories=true`를 요구한다. 실제 사이트 관리자 권한
  *   여부는 이 필터가 아니라 SecurityConfig의 `hasAnyRole("ADMIN","SITE_ADMIN")`이 검사한다 — 이
  *   필터는 신원만 세팅한다.
- * - `POST /api/projects/{id}/members`(레거시 숫자 ID 기반 프로젝트 멤버 관리) — owner/name이
- *   아니라 프로젝트 PK로 식별되는 유일한 API라 별도 패턴이 필요하다. PROJECT_SETTING
- *   (ADMINISTRATION 그룹)으로 취급하고 project는 ID로 조회해 repo scope를 그대로 검사한다.
+ * - `POST /api/projects/{id}/members` 등 `ProjectMemberController`의 멤버 관리 경로(레거시 숫자
+ *   ID 기반) — owner/name이 아니라 프로젝트 PK로 식별되는 유일한 API라 별도 패턴이 필요하다.
+ *   PROJECT_SETTING(ADMINISTRATION 그룹)으로 취급하고 project는 ID로 조회해 repo scope를 그대로
+ *   검사한다. 이 패턴은 `ProjectMemberController`가 실제로 매핑하는 하위 경로만 정확히 매치한다 —
+ *   같은 `/api/projects/{id}/...` prefix를 쓰는 다른 컨트롤러(BoardController 등)까지 덩달아
+ *   ADMINISTRATION을 요구했던 버그를 고쳤다(아래 legacyProjectIdPattern 주석 참고).
  * - `POST /projects/{owner}/{project}/webhooks`(세션/폼 기반 레거시 MVC, `/api` 밖) — URL
  *   접두어만 다를 뿐 리소스 세그먼트 구조는 신규 API와 동일해 기존 resourceSegmentToResourceType
  *   매핑을 그대로 재사용한다. 대부분의 세션 기반 웹 UI 요청엔 Authorization/Yona-Token 헤더가
@@ -304,9 +307,21 @@ class ApiTokenAuthenticationFilter(
         // 토큰의 신원 확인 + ADMINISTRATION 스코프 보유 여부만 판정한다.
         private val siteApiPattern = Pattern.compile("^/sites?(?:/.*)?$")
 
-        // 레거시 숫자 프로젝트 ID 기반 API(`/api/projects/{id}/...`, `ProjectMemberController`).
-        // owner/name이 아니라 PK로 프로젝트를 식별하는 유일한 경로라 별도 패턴으로 분리했다.
-        private val legacyProjectIdPattern = Pattern.compile("^/api/projects/(\\d+)(?:/.*)?$")
+        // 레거시 숫자 프로젝트 ID 기반 멤버 관리 API(`ProjectMemberController` — /members,
+        // /members/{id}(/accept|/reject), /enroll(/cancel), /assignableUsers). owner/name이 아니라
+        // PK로 프로젝트를 식별하는 유일한 경로라 별도 패턴으로 분리했다.
+        //
+        // 원래 정규식(`^/api/projects/(\d+)(?:/.*)?$`)은 "/api/projects/{id}/"
+        // 뒤에 뭐가 오든 다 매치해서, 같은 prefix를 쓰는 다른 컨트롤러(BoardController의 /posts,
+        // PullRequestController의 /pullrequests, IssueController의 /issues, MilestoneController의
+        // /milestones)까지 전부 ProjectMemberController용으로 의도했던 ADMINISTRATION 스코프 요구에
+        // 휩쓸려 들어갔다(회원 관리도 아닌데 admin 스코프가 없으면 403). 실제 ProjectMemberController가
+        // 매핑하는 하위 경로만 정확히 매치하도록 좁혔다 — 그 외 경로는 이 클래스 KDoc 첫 문단이
+        // 설명하는 일반 원칙(레거시 `/api/projects/{id}/...`는 UserRepository.findByToken 기반
+        // 레거시 전권 토큰)대로 authenticateLegacy()로 흘러간다.
+        private val legacyProjectIdPattern = Pattern.compile(
+            "^/api/projects/(\\d+)/(?:members(?:/[^/]+(?:/(?:accept|reject))?)?|enroll(?:/cancel)?|assignableUsers)/?$"
+        )
 
         // 세션/폼 기반 레거시 MVC 프로젝트 리소스(`/projects/{owner}/{project}/{resource}`, 예:
         // 웹훅 생성). `/api` 접두어만 다를 뿐 세그먼트 구조가 scopedApiPattern과 동일해 같은
@@ -447,9 +462,8 @@ class ApiTokenAuthenticationFilter(
         // 체크 등)은 전혀 건드리지 않는다 — OAuthApiScopeAuthorizationFilter가 이 함수만 재사용한다.
         //
         // 목록/개별 조회 계열(owner-only list)은 PAT과 마찬가지로 여기서 null을 반환해 "단일 스코프로
-        // 판단 불가"를 표시한다 — OAuth v1 토큰은 프로젝트 단위로 세분화되지 않으므로([[p3-07]]
-        // 완료 로그 "토큰 스코프 축" 참고) 이 경우 스코프 필터를 통과시키고 컨트롤러의 기본 동작에
-        // 맡긴다.
+        // 판단 불가"를 표시한다 — OAuth v1 토큰은 프로젝트 단위로 세분화되지 않으므로 이 경우
+        // 스코프 필터를 통과시키고 컨트롤러의 기본 동작에 맡긴다.
         fun resolveRequiredScope(request: HttpServletRequest): RequiredScope? {
             val requestUri = request.requestURI
             val permission = requiredPermissionFor(request.method)
