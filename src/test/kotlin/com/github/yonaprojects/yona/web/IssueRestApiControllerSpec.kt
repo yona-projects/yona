@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -134,6 +135,26 @@ class IssueRestApiControllerSpec : DescribeSpec({
                     .content("""{"title":"수정된 제목","body":"내용"}""")
             ).andExpect(status().isOk)
                 .andExpect(jsonPath("$.title").value("수정된 제목"))
+        }
+    }
+
+    describe("DELETE /api/v1/projects/{owner}/{project}/issues/{number}") {
+        it("IssueController.deleteIssue에 위임한다") {
+            every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
+            every { issueController.deleteIssue(1L, 5L, any()) } returns ResponseEntity.ok(mapOf("status" to "success"))
+
+            mockMvc.perform(delete("/api/v1/projects/yona/yona/issues/5"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.status").value("success"))
+
+            verify(exactly = 1) { issueController.deleteIssue(1L, 5L, any()) }
+        }
+
+        it("프로젝트가 없으면 404를 반환한다") {
+            every { projectRepository.findByOwnerAndName("yona", "unknown") } returns Optional.empty()
+
+            mockMvc.perform(delete("/api/v1/projects/yona/unknown/issues/5"))
+                .andExpect(status().isNotFound)
         }
     }
 
