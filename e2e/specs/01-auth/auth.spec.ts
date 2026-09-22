@@ -160,17 +160,15 @@ test.describe('email verification (legacy /verify route)', () => {
     expect(response?.status()).toBe(404);
   });
 
-  // FIXED (was previously documented as dead/unwired code): UserService.sendVerificationEmail()/
-  // verifyUser()/UserVerification were all ported from legacy Yobi/yona during the Play->Spring
-  // rewrite, and the legacy `application.use.email.verification` flag that gates them was tracked
-  // as "not yet ported" in docs/guide/settings-reference.md -- but nothing in signup() ever
-  // called sendVerificationEmail() or checked any such flag, so no UI path could ever reach
-  // GET /verify/{loginId}/{code} or /user/verify. AuthController now has a
-  // `yona.signup.require-email-verification` flag (default false, same shape as the existing
-  // `yona.signup.require-admin-confirm`) that wires this in: when on, signup() creates the user
-  // LOCKED (reusing the same UserState the admin-confirm path already uses -- verifyUser()
-  // already flips LOCKED back to ACTIVE on success, so the two paths compose for free) and sends
-  // the real verification email.
+  // UserService.sendVerificationEmail()/verifyUser()/UserVerification were ported from legacy
+  // Yobi/yona during the Play->Spring rewrite, but nothing in signup() ever called
+  // sendVerificationEmail() or checked the legacy `application.use.email.verification` flag, so
+  // no UI path could ever reach GET /verify/{loginId}/{code} or /user/verify. AuthController now
+  // has a `yona.signup.require-email-verification` flag (default false, same shape as the
+  // existing `yona.signup.require-admin-confirm`) that wires this in: when on, signup() creates
+  // the user LOCKED (reusing the same UserState the admin-confirm path already uses --
+  // verifyUser() already flips LOCKED back to ACTIVE on success, so the two paths compose for
+  // free) and sends the real verification email.
   //
   // This test only exercises real behavior when the server is running with
   // YONA_SIGNUP_REQUIRE_EMAIL_VERIFICATION=true (default is false, so the rest of this suite's

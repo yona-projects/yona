@@ -34,9 +34,8 @@ test('uploading a project logo persists and changes the served image', async ({ 
   expect(projectId).toBeTruthy();
 
   // The change handler's reload() only fires after its own fetch() resolves; page.waitForNavigation()
-  // does not reliably detect this same-URL JS-triggered reload (confirmed empirically elsewhere in
-  // this batch of specs), so wait for the actual upload response and re-fetch the logo directly
-  // instead of relying on a page reload at all.
+  // does not reliably detect this same-URL JS-triggered reload, so wait for the actual upload
+  // response and re-fetch the logo directly instead of relying on a page reload at all.
   const uploadedBuffer = fs.readFileSync(filePath);
   const [uploadResponse] = await Promise.all([
     page.waitForResponse((res) => res.url().includes('/logo') && res.request().method() === 'POST'),

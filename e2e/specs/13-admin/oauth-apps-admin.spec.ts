@@ -4,12 +4,11 @@ import { uniqueSuffix } from '../../support/unique';
 /**
  * Screen: OAuthAppsAdminController (@RequestMapping ["/site/oauth-apps", "/sites/oauth-apps"]).
  *
- * CORRECTION to the original plan: this controller used to also handle app *registration*, but
- * that was deliberately moved to user self-service (UserViewController's
- * /user/editform/oauth-apps-owned, see that controller's own comment) -- /site/oauth-apps is now
- * a read-only site-wide audit list plus a forced-delete action. There is no registration form
- * here to test; registering an app (needed for 14-oauth2-2fa-sso's consent flow) happens on the
- * user self-service screen instead, exercised there.
+ * This controller only handles a read-only site-wide audit list plus a forced-delete action --
+ * app *registration* is deliberately handled by user self-service instead
+ * (UserViewController's /user/editform/oauth-apps-owned, see that controller's own comment).
+ * There is no registration form here to test; registering an app (needed for 14-oauth2-2fa-sso's
+ * consent flow) happens on the user self-service screen instead, exercised there.
  */
 
 test('oauth apps audit list loads for a site admin', async ({ page }) => {

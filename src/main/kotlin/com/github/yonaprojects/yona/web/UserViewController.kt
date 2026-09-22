@@ -112,7 +112,7 @@ class UserViewController(
         @RequestParam(required = false) mentionId: Long?,
         @RequestParam(required = false) sharerId: Long?,
         @RequestParam(required = false) favoriteId: Long?,
-        // legacy my_partial_search.scala.html:47-54 대응 — milestoneId로 이슈 목록을 필터링하는
+        // legacy my_partial_search.scala.html 대응 — milestoneId로 이슈 목록을 필터링하는
         // 기능은 legacy에도 없다(SearchCondition.asExpressionList() 무파라미터 버전은 milestoneId
         // 미참조). 좌측 사이드바 진행률 카드 표시 목적으로만 쓴다.
         @RequestParam(required = false) milestoneId: Long?,
@@ -247,9 +247,8 @@ class UserViewController(
         response: HttpServletResponse,
         model: Model
     ): String {
-        // 버그#16: SiteService.deleteUser()는 논리삭제(state=DELETED)만 하는데, 여기서 state를
-        // 확인하지 않아 삭제된 계정의 프로필이 영원히 정상 렌더됨(실측: DB에서 state=DELETED
-        // 확인 후에도 /user/{loginId}가 200으로 그대로 보임). 존재하지 않는 유저와 동일하게 취급.
+        // SiteService.deleteUser()는 논리삭제(state=DELETED)만 하는데, 여기서 state를 확인하지
+        // 않으면 삭제된 계정의 프로필이 영원히 정상 렌더된다. 존재하지 않는 유저와 동일하게 취급.
         val user = userRepository.findByLoginId(loginId).orElse(null)?.takeIf { it.state != UserState.DELETED }
         if (user == null) {
             response.status = HttpServletResponse.SC_NOT_FOUND
@@ -937,7 +936,6 @@ class UserViewController(
             model.addAttribute("sshKeyError", e.message)
         }
 
-        // 검증 실패 시에는 목록이 아니라 방금 있던 등록 폼으로 되돌아가야 입력값을 잃지 않는다.
         model.addAttribute("user", loginUser)
         model.addAttribute("currentUser", loginUser)
         model.addAttribute("submittedTitle", title)
@@ -1015,7 +1013,6 @@ class UserViewController(
             model.addAttribute("gpgKeyError", e.message)
         }
 
-        // 검증 실패 시에는 목록이 아니라 방금 있던 등록 폼으로 되돌아가야 입력값을 잃지 않는다.
         model.addAttribute("user", loginUser)
         model.addAttribute("currentUser", loginUser)
         model.addAttribute("submittedArmoredPublicKey", armoredPublicKey)

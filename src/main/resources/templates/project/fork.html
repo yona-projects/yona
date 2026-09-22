@@ -56,11 +56,10 @@
                             <div class="controls">
                                 <!-- data-url: legacy는 newFork(owner, name, forkOwner) 3-arg 라우트로 목적지
                                      조직별 재조회 URL을 만들지만, yona newFork GET은 목적지 소유자를 경로
-                                     변수로 받지 않는다(컨트롤러 시그니처 확인 완료). 따라서 옵션이 바뀌어도
-                                     동일한 newFork URL을 가리키는 것으로 단순화했다 — 실제 목적지 전환은
-                                     컨트롤러에 forkOwner 경로변수가 추가돼야 동작한다(후속 작업 필요, out of
-                                     scope). project.Fork JS 모듈(yona.project.Fork.js)은 정적 자산으로 이미
-                                     존재하여 그대로 로드한다. -->
+                                     변수로 받지 않는다. 따라서 옵션이 바뀌어도 동일한 newFork URL을 가리키는
+                                     것으로 단순화했다 — 실제 목적지 전환은 컨트롤러에 forkOwner 경로변수가
+                                     추가돼야 동작한다(out of scope). project.Fork JS 모듈(yona.project.Fork.js)은
+                                     정적 자산으로 이미 존재하여 그대로 로드한다. -->
                                 <select id="project-owner" name="owner">
                                     <option th:value="${currentUser.loginId}"
                                             th:attr="data-url=@{/{owner}/{name}/newFork(owner=${project.owner}, name=${project.name})}"
@@ -88,7 +87,7 @@
                                 <!-- legacy는 Organization.findByName(forkProject.owner) != null 일 때만 PROTECTED를
                                      노출한다. yona 템플릿 범위에서는 forkProject.owner(선택된 목적지 소유자)를
                                      알 수 없으므로, "사용자가 관리하는 조직이 하나라도 있으면" 노출하는 것으로
-                                     단순화했다(템플릿 전용 결정, 문서화). -->
+                                     단순화했다. -->
                                 <th:block th:if="${organizations != null and !organizations.isEmpty()}">
                                     <input name="projectScope" type="radio" id="protected" value="PROTECTED" class="radio-btn">
                                     <label for="protected" class="bg-radiobtn label-protected" th:text="#{project.protected}">그룹 공개</label>

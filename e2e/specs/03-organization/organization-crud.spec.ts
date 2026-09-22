@@ -63,16 +63,15 @@ test('invite a member, change their role, then remove them', async ({ page }) =>
   // member's dropdown. Fires a PUT to /api/organizations/{orgId}/members/{userId}/role and
   // reloads. The option lives inside a Bootstrap-style dropdown-menu (display:none until the
   // toggle button opens it) -- clicking it directly without opening the dropdown first hangs
-  // forever on Playwright's actionability wait (confirmed live: the locator resolves to the
-  // exact right <a>, but it's never "visible, enabled and stable" because its menu is closed).
-  // members.html wires each .role-apply-btn with a plain
-  // `document.querySelectorAll(".role-apply-btn").forEach(el => el.addEventListener("click",
-  // ...))` -- a direct per-element listener, not a delegate keyed off the dropdown being open.
-  // The dropdown-menu itself stays CSS-hidden without a working Bootstrap dropdown toggle on
-  // this page, so neither a plain click nor a Playwright {force: true} click can land on it
-  // (both still require a non-zero bounding box in real Chromium). A native DOM .click() call
-  // fires the addEventListener handler directly regardless of visibility, which is all this
-  // needs -- confirmed live that this reaches the handler and fires the PUT.
+  // forever on Playwright's actionability wait, since the locator resolves to the right <a> but
+  // it's never "visible, enabled and stable" while its menu stays closed. members.html wires each
+  // .role-apply-btn with a plain `document.querySelectorAll(".role-apply-btn").forEach(el =>
+  // el.addEventListener("click", ...))` -- a direct per-element listener, not a delegate keyed
+  // off the dropdown being open. The dropdown-menu itself stays CSS-hidden without a working
+  // Bootstrap dropdown toggle on this page, so neither a plain click nor a Playwright
+  // {force: true} click can land on it (both still require a non-zero bounding box in real
+  // Chromium). A native DOM .click() call fires the addEventListener handler directly regardless
+  // of visibility, which is all this needs.
   await memberRow.locator('.role-apply-btn[data-role-id="6"]').evaluate((el: HTMLElement) => el.click());
   await page.waitForLoadState('load');
 

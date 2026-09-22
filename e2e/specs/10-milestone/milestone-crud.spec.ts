@@ -7,14 +7,13 @@ import { uniqueSuffix } from '../../support/unique';
  * GET /{owner}/{projectName}/milestone/{id}/editform (milestone/edit.html) ->
  * GET /{owner}/{projectName}/milestones (milestone/list.html). */
 
-// PRODUCT BEHAVIOR (real, not a bug): milestone titles must be unique per project
+// PRODUCT BEHAVIOR, not a bug: milestone titles must be unique per project
 // (MilestoneViewController rejects a duplicate title with "This milestone title already
 // exists."). This spec used to hardcode 'E2E seed milestone' with no suffix -- unlike every
 // other entity in this suite (projects/orgs/issues all use uniqueSuffix()) -- which broke the
 // very first time this file was re-run against the same persistent dev DB without a fresh
-// H2 reset (confirmed live: repeated local runs during this session's debugging eventually hit
-// the duplicate-title rejection deterministically). Suffixing it the same way as everything
-// else fixes that.
+// H2 reset, deterministically hitting the duplicate-title rejection. Suffixing it the same way
+// as everything else fixes that.
 const milestoneTitle = `E2E seed milestone ${uniqueSuffix()}`;
 
 test.describe.serial('milestone lifecycle', () => {
@@ -30,7 +29,7 @@ test.describe.serial('milestone lifecycle', () => {
     // _validateForm() blocks the actual submit client-side unless this field is non-empty --
     // and empirically, `.fill(..., {force:true})` on this specific textarea does not stick (the
     // value reads back empty immediately after), while a direct property set + dispatched
-    // input/change events does. Root cause not fully isolated; this is the verified workaround.
+    // input/change events does. Root cause not fully isolated; this workaround reliably avoids it.
     await page.locator('textarea[data-editor-mode="content-body"]').evaluate((el: HTMLTextAreaElement) => {
       el.value = 'Milestone description written by the e2e suite.';
       el.dispatchEvent(new Event('input', { bubbles: true }));

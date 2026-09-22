@@ -221,7 +221,7 @@
 
                                                     <!-- 네이티브 <dialog> - data-toggle="modal"을 트리거에서 제거했다.
                                                          bootstrap.js(미수정)의 전역 데이터 API 델리게이트와 이중으로 반응해
-                                                         InvalidStateError가 나는 것을 Playwright로 확인했다. 아래 스크립트가
+                                                         InvalidStateError가 난다. 아래 스크립트가
                                                          .vote-description-people에 위임 바인딩해 대신 연다. -->
                                                     <dialog th:id="'voters-' + ${comment.id}" class="modal voters-dialog">
                                                         <div class="modal-header">
@@ -665,7 +665,7 @@
             }
         });
         // #comment-form의 th:action이 가리키는 경로는 어느 컨트롤러에도 매핑돼 있지 않아
-        // 항상 404였다(Playwright로 확인). 형제 폼들과 동일하게 REST(POST .../comments)로 전환한다.
+        // 항상 404였다. 형제 폼들과 동일하게 REST(POST .../comments)로 전환한다.
         // yona.CommentForm.js(빈 값 제출 방지/Ctrl+Shift+Enter/beforeunload 경고/임시저장)는
         // 이 AJAX 흐름과 공존시킬 수 없어 로드하지 않고, 같은 기능을 아래 핸들러에 직접 재구현한다.
         var elCommentForm = document.getElementById('comment-form');

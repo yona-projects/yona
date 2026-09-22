@@ -53,7 +53,7 @@ class CodeViewController(
     private val siteName: String
 ) {
 
-    // yona code/{nohead,nohead_svn}.scala.html:46/33 "if(isAllowed(currentUser, project.asResource, UPDATE))"
+    // yona code/{nohead,nohead_svn}.scala.html "if(isAllowed(currentUser, project.asResource, UPDATE))"
     // 대응 — clone/init 안내 가이드는 UPDATE 권한 있는 사용자에게만 보여준다.
     private fun addNoHeadAttributes(model: Model, project: Project, loginUser: User?) {
         model.addAttribute("project", project)

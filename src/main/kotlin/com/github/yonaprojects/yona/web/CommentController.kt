@@ -136,7 +136,6 @@ class CommentController(
         }
 
         val updated = commentService.updateIssueComment(commentId, request.contents, user, request.sendNotificationMail)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.ok(updated.toResponse())
     }
 
@@ -194,7 +193,6 @@ class CommentController(
         }
 
         val savedComment = commentService.createPostingComment(posting.id!!, request.contents, user, request.parentCommentId)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
@@ -235,7 +233,6 @@ class CommentController(
         }
 
         val updated = commentService.updatePostingComment(commentId, request.contents, user, request.sendNotificationMail)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.ok(updated.toResponse())
     }
 
@@ -293,7 +290,6 @@ class CommentController(
         }
 
         val savedComment = commentService.createIssueComment(issue.id!!, request.comment, user, null)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
@@ -341,7 +337,6 @@ class CommentController(
         }
 
         val updated = commentService.updateIssueComment(commentId, request.content, user)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.ok(updated.toResponse())
     }
 
@@ -367,7 +362,6 @@ class CommentController(
         }
 
         val savedComment = commentService.createPostingComment(posting.id!!, request.body, user, null)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
@@ -414,7 +408,6 @@ class CommentController(
         }
 
         val updated = commentService.updatePostingComment(commentId, request.content, user)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지.
         return ResponseEntity.ok(updated.toResponse())
     }
 

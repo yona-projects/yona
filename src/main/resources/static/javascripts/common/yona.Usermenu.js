@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // .star-project가 아직 없으면 조용히 no-op) -- 사이드바 AJAX 파셜 로드를 기다릴 이유가 없다.
         // 예전에는 fetch().then() 안에서만 등록돼서, 그 fetch가 끝나기 전에 사용자가 사이드바 열기
         // 버튼을 누르면 리스너가 아직 안 걸려있어 클릭이 그대로 무시되고 사이드바가 영원히 안
-        // 열렸다(느린 네트워크의 실사용자도 겪을 수 있는 버그, 실측 확인). 즉시 등록하도록 앞으로 뺌.
+        // 열렸다(느린 네트워크에서 실사용자도 겪을 수 있는 버그). 즉시 등록하도록 앞으로 뺌.
         iniNaviUserMenu();
         fetch(UsermenuUrl)
             .then(function(response){
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // 두 시점 모두에 이미 존재하는 엘리먼트(주로 페이지 자체에 서버렌더된 것들)는 두 호출에서 매번
     // 다시 매치되어 리스너가 중복으로 붙는다 - 클릭 한 번에 fetch가 두 번 나가 두 번째 요청이 DB
     // unique 제약 위반으로 500을 받고, 그 에러 핸들러가 여는 $yona.alert() 모달이 화면을 영구히
-    // 막는 원인이 됐다(#9). _bindOnce()로 엘리먼트당 한 번만 리스너가 붙도록 막는다.
+    // 막는 원인이 됐다. _bindOnce()로 엘리먼트당 한 번만 리스너가 붙도록 막는다.
     function _bindOnce(el, sType, fHandler) {
         var sMarker = "usermenuBound_" + sType;
         if (el.dataset[sMarker]) {

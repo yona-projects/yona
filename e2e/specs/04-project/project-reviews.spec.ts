@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
 
-/** Screen: GET /{owner}/{projectName}/reviews (reviewthread/list.html), ReviewThreadController.kt:52.
- * matrix.md previously mis-classified this as REST-only (confused with CommentThreadController's
- * REST resolve/open endpoints) and marked it `todo` -- it is a real server-rendered screen with its
- * own search/filter sidebar (all/participant/author tabs), an OPEN/CLOSED state tab bar, a text
- * filter form, and an XLS export link, all driving real query params back through the same GET
- * route. This project has no CommentThread (diff-anchored review thread) records seeded anywhere
- * else in the suite -- PR general/commit comments are a different domain object -- so this
- * exercises the real empty-state + filter/tab wiring rather than list-item rendering. */
+/** Screen: GET /{owner}/{projectName}/reviews (reviewthread/list.html), ReviewThreadController.
+ * This is a real server-rendered screen (not REST-only -- distinct from CommentThreadController's
+ * REST resolve/open endpoints), with its own search/filter sidebar (all/participant/author tabs),
+ * an OPEN/CLOSED state tab bar, a text filter form, and an XLS export link, all driving real query
+ * params back through the same GET route. This project has no CommentThread (diff-anchored review
+ * thread) records seeded anywhere else in the suite -- PR general/commit comments are a different
+ * domain object -- so this exercises the real empty-state + filter/tab wiring rather than
+ * list-item rendering. */
 
 test('reviews screen loads with the default (all reviews) filter', async ({ page }) => {
   const owner = requireSeed('projectOwner');

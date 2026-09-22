@@ -42,13 +42,9 @@ test('project-scoped search finds the seeded issue by title', async ({ page }) =
 
 test('organization-scoped search finds a real project actually owned by that organization', async ({ page }) => {
   // 03-organization always runs before 11-search in full-suite folder execution order (03 < 11
-  // alphabetically) -- seed.orgName is guaranteed to exist here. This was previously a
-  // `test.skip` guard written during this suite's concurrent multi-fork construction phase, when
-  // relative execution order across specs authored in parallel forks wasn't guaranteed; that
-  // phase is over, so require the seed instead of silently skipping when it's actually always
-  // present now. seed.orgName also names a real org-owned project by now
-  // (organization-crud.spec.ts's own rollup-verification test creates one), so search for it by
-  // its "e2e-org-" prefix and confirm a real hit, not just a non-500 response.
+  // alphabetically), so seed.orgName is guaranteed to exist here and to already name a real
+  // org-owned project (organization-crud.spec.ts's rollup-verification test creates one) --
+  // search for it by its "e2e-org-" prefix to confirm a real hit, not just a non-500 response.
   const orgName = requireSeed('orgName');
 
   const response = await page.goto(`/org/${orgName}/search?keyword=e2e-org-&searchType=auto`);

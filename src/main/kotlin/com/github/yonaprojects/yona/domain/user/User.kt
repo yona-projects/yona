@@ -25,8 +25,8 @@ class User(
     @Column(nullable = false, unique = true)
     var loginId: String = "",
 
-    // 컨트롤러가 raw entity를 실수로 반환하는 경로(2026-09 감사에서 반복 발견)와 무관하게 항상
-    // 막히도록, 필드 자체에 최종 방어선을 둔다.
+    // 컨트롤러가 raw entity를 실수로 반환하는 경로와 무관하게 항상 막히도록, 필드 자체에
+    // 최종 방어선을 둔다.
     @JsonIgnore
     var password: String? = null,
     @JsonIgnore

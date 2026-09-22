@@ -82,11 +82,10 @@ test.describe.serial('issue lifecycle', () => {
   });
 });
 
-// PRODUCT GAP (confirmed live, not a test bug): #title has no `required` attribute and
-// IssueApiController has no server-side blank-title rejection either -- submitting with an
-// empty title actually creates an issue with an empty title (verified via the created issue's
-// <title> tag rendering " - Yona"). This test documents that real behavior rather than the
-// (wrong) assumption that it would be rejected -- see matrix.md's 06-issue row.
+// PRODUCT GAP, not a test bug: #title has no `required` attribute and IssueApiController has no
+// server-side blank-title rejection either -- submitting with an empty title actually creates an
+// issue with an empty title. This test documents that real behavior rather than the (wrong)
+// assumption that it would be rejected -- see matrix.md's 06-issue row.
 test('blank issue title is currently accepted (documents a validation gap, not desired behavior)', async ({ page }) => {
   const owner = requireSeed('projectOwner');
   const name = requireSeed('projectName');

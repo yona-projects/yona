@@ -56,20 +56,15 @@ test.describe.serial('issue management actions', () => {
     expect(dedicatedMilestoneId).toBeGreaterThan(0);
   });
 
-  // PRODUCT BUG (confirmed live via request/response tracing, not a test authoring mistake):
-  // attaching a label through this widget silently no-ops. The mass-update POST does carry
-  // the right data (`attachingLabelIds=<id>&issues[0].id=<id>`, verified with a network
-  // listener) and IssueViewController.massUpdate() (web/IssueViewController.kt:762) does
-  // 302-redirect back to /issues as if it succeeded, but the label never actually shows up on
-  // the issue afterward. Repro: check one issue's box on /{owner}/{projectName}/issues, open
-  // the "라벨 추가" dropdown, click any label -- reload the issue and the label is absent. The
-  // sibling state-toggle action on the very same form (`state=CLOSED&issues[0].id=...`) DOES
-  // persist correctly, which narrows this to something specific to
-  // `IssueMassUpdateForm.attachingLabelIds`/`detachingLabelIds` (web/IssueViewController.kt:1032-1033),
-  // both declared as bare top-level `List<Long>` -- unlike `state` (String) and
-  // `milestone`/`assignee` (nested single-id object), which both bind and apply fine from the
-  // same form submission. Left as fixme per instruction -- do not fix here, follow-up TDD work
-  // will address it; flip back to `test(...)` once fixed.
+  // PRODUCT BUG, not a test authoring mistake: attaching a label through this widget silently
+  // no-ops. The mass-update POST carries the right data
+  // (`attachingLabelIds=<id>&issues[0].id=<id>`) and IssueViewController.massUpdate() redirects
+  // back to /issues as if it succeeded, but the label never actually shows up on the issue
+  // afterward. The sibling state-toggle action on the very same form
+  // (`state=CLOSED&issues[0].id=...`) DOES persist correctly, which narrows this to something
+  // specific to `IssueMassUpdateForm.attachingLabelIds`/`detachingLabelIds`, both declared as a
+  // bare top-level `List<Long>` -- unlike `state` (String) and `milestone`/`assignee` (nested
+  // single-id object), which both bind and apply fine from the same form submission.
   test('attach a label via the issue list mass-update widget', async ({ page }) => {
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');
@@ -101,8 +96,8 @@ test.describe.serial('issue management actions', () => {
     // resolve immediately against the *current* (already-loaded) page before the click's
     // navigation even starts, racing ahead into the next page.goto() with a stale page. Even
     // after that, the redirect target keeps loading sub-resources for a moment -- an immediate
-    // page.goto() right after waitForURL resolves can still get net::ERR_ABORTED (verified
-    // live), so settle on networkidle first.
+    // page.goto() right after waitForURL resolves can still get net::ERR_ABORTED, so settle on
+    // networkidle first.
     await page.click('#attaching-label button.dropdown-toggle');
     await Promise.all([
       page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
@@ -124,18 +119,18 @@ test.describe.serial('issue management actions', () => {
 
     // `page.click(selector, {hasText})` silently ignores hasText (it isn't a valid click
     // option, only a Locator filter) and clicked the *first* <li>, "no assignee" (id -1)
-    // instead of "assign to me" -- confirmed live via network trace showing
-    // `assignee.id=-1` submitted. issue/list.html always renders "assign to me" as the
-    // *second* <li> in this dropdown (right after "no assignee", before the divider and the
-    // per-member list), so target it positionally instead of by (locale-dependent) text.
+    // instead of "assign to me" -- the mass-update POST carried `assignee.id=-1`.
+    // issue/list.html always renders "assign to me" as the *second* <li> in this dropdown
+    // (right after "no assignee", before the divider and the per-member list), so target it
+    // positionally instead of by (locale-dependent) text.
     await page.click('#assignee button.dropdown-toggle');
     await Promise.all([
       page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
       page.locator('#assignee ul.dropdown-menu > li').nth(1).locator('a').click(),
     ]);
     // waitForURL resolves as soon as the redirect target commits; its sub-resources are still
-    // loading for a moment, and an immediate page.goto() right after can hit net::ERR_ABORTED
-    // (confirmed live while debugging the mass-update flow) -- settle first.
+    // loading for a moment, and an immediate page.goto() right after can hit net::ERR_ABORTED --
+    // settle first.
     await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
@@ -190,7 +185,7 @@ test.describe.serial('issue management actions', () => {
     // BUG #4 (was: PRODUCT BUG, now fixed -- see BUGFIXES.md): issue/view.html's state badge did
     // `#{'issue.state.' + issue.state}` with the raw (uppercase) enum name, e.g.
     // "issue.state.CLOSED" -- but messages*.properties only define lowercase keys
-    // ("issue.state.closed"/"issue.state.open", confirmed via grep). In whatever locale this
+    // ("issue.state.closed"/"issue.state.open"). In whatever locale this
     // environment renders (English here, not Korean -- same surprise as the assignee/milestone
     // tests above), that was a genuine missing key: the badge's *text* rendered as the literal
     // "??issue.state.CLOSED_en_US??" placeholder. The CSS class (`badge-issue-closed`, built
@@ -239,11 +234,11 @@ test.describe.serial('issue management actions', () => {
     // to hardcode th:href to the `/vote` route unconditionally -- only its CSS class and tooltip
     // title changed based on `hasVoted` (`th:classappend="${hasVoted ? 'ybtn-watching' : ''}"`),
     // the href itself never switched to the `/unvote` route VoteController.unvote() exposes.
-    // Confirmed live before the fix: after voting, the visually-"already voted, click to remove"
-    // button still pointed at .../vote, so clicking it again re-POSTed to /vote (a no-op add to
-    // an already-containing set) instead of ever reaching /unvote -- there was no way to retract
-    // a vote through this UI. Assert the href now tracks hasVoted, then actually exercise the
-    // toggle through the real UI (no more bypassing it with a direct API cleanup call).
+    // Before the fix, after voting, the visually-"already voted, click to remove" button still
+    // pointed at .../vote, so clicking it again re-POSTed to /vote (a no-op add to an
+    // already-containing set) instead of ever reaching /unvote -- there was no way to retract a
+    // vote through this UI. Assert the href now tracks hasVoted, then exercise the toggle
+    // through the real UI rather than bypassing it with a direct API cleanup call.
     await expect(voteLink).toHaveAttribute('href', new RegExp(`/${owner}/${name}/issue/${issueNumber}/unvote$`));
 
     await Promise.all([
@@ -260,23 +255,18 @@ test.describe.serial('issue management actions', () => {
     );
   });
 
-  // PRODUCT BUG (confirmed live via a page.on('pageerror') listener, not fixed per
-  // instruction): loading /{owner}/{projectName}/issue/{number} for an issue that has the
-  // seeded milestone assigned ("E2E seed milestone (edited)" -- title contains spaces and
-  // parentheses) throws `Failed to execute 'querySelector' on 'Document': "E2E seed milestone
-  // (edited)" is not a valid selector` in the browser console. Something in the
-  // assignee/milestone/sharer TomSelect wiring (yona.ui.TomSelect.js's `_toElement()`, or
-  // yona.issue.Assginee.js/yona.issue.Sharer.js which build their own TomSelect instances
-  // outside the normal `[data-toggle=tomselect]` auto-init loop -- grep hint, exact call site
-  // not pinpointed within time budget) is passing an option's *display text* where a CSS
-  // selector or element reference was expected. The thrown exception appears to abort
-  // whatever inline `<script>` block was mid-execution, which in turn leaves later handler
-  // wiring in that same block unregistered -- concretely, `[data-toggle="comment-edit"]`
-  // click delegation with it, which is why this test would hang forever waiting for the edit
-  // button to become interactive (it's visible in a screenshot, just never wired up). Repro:
-  // assign this specific milestone to any issue (10-milestone/milestone-crud.spec.ts or this
-  // file's own "assign a milestone" test do it), then load that issue's view page with
-  // DevTools open -- the querySelector error fires on load. Left as fixme; do not fix here.
+  // PRODUCT BUG, not fixed here: loading /{owner}/{projectName}/issue/{number} for an issue
+  // that has a milestone assigned whose title contains parentheses (e.g. "E2E seed milestone
+  // (edited)") throws `Failed to execute 'querySelector' on 'Document': "..." is not a valid
+  // selector` in the browser console. Something in the assignee/milestone/sharer TomSelect
+  // wiring (yona.ui.TomSelect.js's `_toElement()`, or yona.issue.Assginee.js/yona.issue.Sharer.js
+  // which build their own TomSelect instances outside the normal `[data-toggle=tomselect]`
+  // auto-init loop) is passing an option's *display text* where a CSS selector or element
+  // reference was expected. The thrown exception aborts whatever inline `<script>` block was
+  // mid-execution, which leaves later handler wiring in that same block unregistered --
+  // concretely `[data-toggle="comment-edit"]` click delegation, which is why this test would
+  // hang forever waiting for the edit button to become interactive (it's visible in a
+  // screenshot, just never wired up).
   test('post a comment, edit it, vote/unvote it, then delete it', async ({ page }) => {
     // This test's regression guard for the querySelector-crash bug adds a milestone-rename
     // round trip (editform load + submit) on top of the already-long post/edit/delete comment
@@ -291,12 +281,11 @@ test.describe.serial('issue management actions', () => {
 
     // Rename the dedicated milestone (assigned to this file's issueNumber by "assign a
     // milestone to the issue via the mass-update widget" above) to include parentheses,
-    // mirroring the exact shape of the milestone title that originally triggered this bug
-    // ("E2E seed milestone (edited)" from 10-milestone/milestone-crud.spec.ts's own edit
-    // flow) -- a title with only spaces (no parens) does NOT reproduce the querySelector
-    // crash (confirmed: `document.querySelector("word word word")` is valid CSS syntax, just
-    // matches nothing; parentheses specifically are not valid outside a pseudo-class/function
-    // and make querySelector throw a SyntaxError).
+    // mirroring the shape of the milestone title that originally triggered this bug -- a title
+    // with only spaces (no parens) does NOT reproduce the querySelector crash:
+    // `document.querySelector("word word word")` is valid CSS syntax, just matches nothing,
+    // while parentheses are not valid outside a pseudo-class/function and make querySelector
+    // throw a SyntaxError.
     await page.goto(`/${owner}/${name}/milestone/${dedicatedMilestoneId}/editform`);
     await page.fill('#title', `E2E management milestone (edited) ${uniqueSuffix()}`);
     await page.click('#milestone-form button[type=submit]');
@@ -329,8 +318,8 @@ test.describe.serial('issue management actions', () => {
     // This screen's comment-form submit handler does a full `window.location.reload()` right
     // after the fetch resolves (issue/view.html's inline script), which races Playwright's CDP
     // body buffering for `createResponse` -- reading `.json()`/`.text()` on it after that
-    // point reliably hangs forever in this environment (confirmed via a standalone repro: the
-    // read never resolves or rejects, even past a 60s timeout) rather than racing cleanly. Skip
+    // point reliably hangs forever in this environment (it never resolves or rejects, even past
+    // a 60s timeout) rather than racing cleanly. Skip
     // parsing the response body and just use the last comment-edit trigger instead -- this test
     // works with its own dedicated issue, so the comment just posted is always the only one.
     await expect(page.locator('body')).toContainText(commentBody);
@@ -360,12 +349,11 @@ test.describe.serial('issue management actions', () => {
     const commentId = await commentIdLocator.getAttribute('data-comment-id');
     expect(commentId).toBeTruthy();
     // Don't wait on networkidle after the click -- this page has enough incidental background
-    // activity post-reload that networkidle can hang well past the test timeout (confirmed
-    // live). Don't race a page.waitForResponse() against the click either -- confirmed flaky
-    // under full-suite load (a Promise.all([waitForResponse(...), click()]) pair timed out once
-    // in a 220-test run despite passing reliably in isolation; the response/reload/re-render
-    // sequence has no hard guarantee of completing within the observation window when the whole
-    // browser is under load). Click, then let Playwright's auto-retrying expect() alone ride out
+    // activity post-reload that networkidle can hang well past the test timeout. Don't race a
+    // page.waitForResponse() against the click either -- that pairing is flaky under full-suite
+    // load, since the response/reload/re-render sequence has no hard guarantee of completing
+    // within the observation window when the whole browser is under load. Click, then let
+    // Playwright's auto-retrying expect() alone ride out
     // the fetch + reload + re-render with a generous explicit timeout -- no network-timing
     // assumption at all, matching the more robust half of the issue-level vote test above.
     const voteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/vote"]`);
@@ -406,9 +394,9 @@ test.describe.serial('issue management actions', () => {
 
     await page.goto(`/${owner}/${name}/issues`);
     // expect(...).not.toContainText() is an auto-retrying assertion re-polling this page over
-    // its timeout window; it reported a false positive here in testing even though a direct,
-    // single innerText() snapshot immediately after the same navigation confirms the title is
-    // genuinely gone (verified live, not just here). Assert directly on the snapshot instead.
+    // its timeout window; it produced a false positive here even though a direct, single
+    // innerText() snapshot immediately after the same navigation confirms the title is
+    // genuinely gone. Assert directly on the snapshot instead.
     const listText = await page.locator('body').innerText();
     expect(listText).not.toContain(issueTitle);
   });

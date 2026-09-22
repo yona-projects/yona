@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
 
-/** Screen: the "Download ZIP" button on code/view.html (CodeViewController.kt:361, GET
- * /{owner}/{projectName}/code/download/{branch}). Note: ProjectViewController.kt:415 also maps a
+/** Screen: the "Download ZIP" button on code/view.html (CodeViewController.download(), GET
+ * /{owner}/{projectName}/code/download/{branch}). Note: ProjectViewController also maps a
  * near-identical GET /{owner}/{projectName}/code/{branch}/download -- a second, differently-shaped
  * route implementing the same archive-download feature. Both work; the UI button only ever links
  * to the CodeViewController one, so that's what this test drives. */

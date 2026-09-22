@@ -121,10 +121,9 @@ test('assigning a label on a post persists across reload', async ({ page }) => {
 // race the page just sat on the deleted post's own URL. Fix: board/view.html no longer attaches
 // its own listener -- it calls the idempotent `$yona.requestAs(el)` (which returns the same
 // cached instance yona-common.js's auto-bind already created, so no second listener is added)
-// and hooks only its "load" event to do the /posts redirect. Test strengthened past the
-// original timeout-only repro with an explicit request-count assertion so a regression to
-// double-binding fails deterministically rather than only "sometimes" (the race was originally
-// observed at roughly 50% failure rate).
+// and hooks only its "load" event to do the /posts redirect. This test asserts the DELETE
+// request count explicitly, rather than relying on a timeout-based repro, so a regression to
+// double-binding fails deterministically rather than only intermittently.
 test('delete a post', async ({ page }) => {
   const owner = requireSeed('projectOwner');
   const name = requireSeed('projectName');
@@ -160,8 +159,8 @@ test('delete a post', async ({ page }) => {
   // rather than the whole `body` -- the GNB's user-menu "recently viewed" tab
   // (common/usermenu_tab_content_list.html) also renders visited-item titles+bodies concatenated
   // the same way and legitimately keeps history entries for deleted items, which made a
-  // body-wide text assertion here flaky/wrong (it was matching stale entries from earlier,
-  // unrelated debugging sessions, not this test's own post).
+  // body-wide text assertion here flaky/wrong (it could match a stale, unrelated
+  // recently-viewed entry instead of this test's own post).
   await expect(page.locator('ul.post-list-wrap li.post-item').filter({ hasText: title })).toHaveCount(0);
   expect(deleteRequestCount).toBe(1);
 

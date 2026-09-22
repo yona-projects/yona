@@ -40,12 +40,12 @@ test('compare view shows the diff between the two hg changesets', async ({ page 
 });
 
 test('branches screen is git-only and rejects hg projects with a real error message', async ({ page }) => {
-  // BranchViewController.branches() (line 58-69) hard-codes vcsType != "GIT" -> error/400 with
-  // messageKey "error.badrequest.only.available.for.git" -- this is not a gap in this VCS's
-  // support, it is the real, intentional legacy behavior (faithfully ported from
-  // @IsOnlyGitAvailableAction) being verified. Like /migration (see matrix.md's note on that
-  // screen), returning a view name doesn't set the HTTP status in this codebase, so the response
-  // is 200 even though it's rendering the "only available for git" error body -- confirmed live.
+  // BranchViewController.branches() hard-codes vcsType != "GIT" -> error/400 with messageKey
+  // "error.badrequest.only.available.for.git" -- this is not a gap in this VCS's support, it is
+  // the real, intentional legacy behavior (faithfully ported from @IsOnlyGitAvailableAction).
+  // Like /migration (see matrix.md's note on that screen), returning a view name doesn't set the
+  // HTTP status in this codebase, so the response is 200 even though it's rendering the "only
+  // available for git" error body.
   const owner = requireSeed('hgProjectOwner');
   const name = requireSeed('hgProjectName');
 

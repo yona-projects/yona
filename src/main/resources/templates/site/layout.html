@@ -605,9 +605,9 @@
          헤더 값은 XOR 복원 없이 그대로 비교 — config/CsrfSupport.kt 참고).
 
          jQuery의 ajaxSetup(beforeSend)으로 걸었을 때는 개별 $.ajax() 호출이 자기만의 beforeSend를
-         넘기면 jQuery가 완전히 대체해버려 CSRF 헤더가 조용히 빠지는 문제가 있었다(Playwright로
-         yona.Tasklist.js의 체크박스 토글에서 403 재현). 이후 저장소 전체가 fetch 기반으로
-         전환되고 jQuery 코어 자체가 제거되면서 이 문제는 더 이상 해당하지 않는다. -->
+         넘기면 jQuery가 완전히 대체해버려 CSRF 헤더가 조용히 빠지는 문제가 있었다(yona.Tasklist.js의
+         체크박스 토글에서 403). 이후 저장소 전체가 fetch 기반으로 전환되고 jQuery 코어 자체가
+         제거되면서 이 문제는 더 이상 해당하지 않는다. -->
     <script type="text/javascript">
     (function() {
         var CSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -775,7 +775,7 @@
             }, true);
 
             // jquery.placeholder.min.js 호출은 제거했다 - 'placeholder' 피처 디텍션이 참인 모든
-            // 현대 브라우저에서 이 폴리필은 스스로 no-op이 되므로(소스 확인) 이미 항상 아무 일도
+            // 현대 브라우저에서 이 폴리필은 스스로 no-op이 되므로 이미 항상 아무 일도
             // 하지 않고 있었다.
 
             // yona.Dropdown
@@ -886,7 +886,7 @@
             yona.OriginalMessage.hide(document.querySelectorAll("[data-via-email]"));
 
             // jQuery 네임스페이스 이벤트(click.progressbar)는 나중에 ".progressbar" 네임스페이스로만
-            // 선택 해제(off)하기 위한 것인데, 코드베이스 전체에 그런 .off() 호출이 없어(재확인 완료)
+            // 선택 해제(off)하기 위한 것인데, 코드베이스 전체에 그런 .off() 호출이 없어
             // 네임스페이스 없는 순수 "click" 리스너로 전환해도 완전히 동치다.
             document.querySelectorAll('.logo, .title > a, .project-menu-nav > li > a, .show-progress-bar, .project-breadcrumb > span > a, .project-name > a, a[class="title"]').forEach(function(el){
                 el.addEventListener('click', function(){

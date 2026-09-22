@@ -27,9 +27,9 @@ test.describe.serial('wiki page lifecycle', () => {
     // focus() on a display:none element is a silent no-op, so the fill's subsequent
     // select-all+type actually lands on whatever WAS focused (the title input above), appending
     // this text into the title instead of setting the real (still-empty) body textarea.
-    // Verified live (see e2e session notes) -- issue/board's own create forms happen not to hit
-    // this because of a CSS difference, but wiki/milestone's do. Setting the value directly and
-    // dispatching the events the editor listens for sidesteps focus() entirely.
+    // issue/board's own create forms happen not to hit this because of a CSS difference, but
+    // wiki/milestone's do. Setting the value directly and dispatching the events the editor
+    // listens for sidesteps focus() entirely.
     await page.locator('textarea[data-editor-mode="wiki-content"]').evaluate((el: HTMLTextAreaElement) => {
       el.value = 'Wiki body written by the e2e suite.';
       el.dispatchEvent(new Event('input', { bubbles: true }));

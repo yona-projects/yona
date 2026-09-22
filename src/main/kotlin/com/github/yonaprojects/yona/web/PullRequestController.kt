@@ -89,10 +89,9 @@ class PullRequestController(
             .let { list -> if (author != null) list.filter { it.contributor.loginId == author } else list }
             .let { list -> if (assignee != null) list.filter { it.assignee?.user?.loginId == assignee } else list }
             .let { list -> if (label != null) list.filter { pr -> pr.labels.any { it.name == label } } else list }
-        // 2026-09-22 발견/수정 — raw PullRequest 리스트를 그대로 반환하고 있어(단건 조회
-        // getPullRequest()는 이미 .toResponse()로 막아뒀는데 목록만 누락돼 있었다)
-        // contributor/toProject/fromProject 등을 통해 User.password까지 순환 노출되는 걸
-        // 실제 서버 호출로 확인했다.
+        // raw PullRequest 리스트를 그대로 반환하면(단건 조회 getPullRequest()는 이미
+        // .toResponse()로 막아뒀는데 목록만 누락돼 있었다) contributor/toProject/fromProject
+        // 등을 통해 User.password까지 순환 직렬화로 노출된다.
         return ResponseEntity.ok(filtered.map { it.toResponse() })
     }
 
@@ -136,9 +135,8 @@ class PullRequestController(
         val pullRequest = pullRequestService.getPullRequest(projectId, number)
             ?: return ResponseEntity.notFound().build()
 
-        // 2026-09-22 발견/수정 — raw PullRequestEvent 리스트를 그대로 반환하고 있어
-        // event->pullRequest->... 경유로 User.password까지 순환 노출되는 문제(IssueController.
-        // getTimeline()이 이미 겪고 고친 것과 동일)가 있었다.
+        // raw PullRequestEvent 리스트를 그대로 반환하면 event->pullRequest->... 경유로
+        // User.password까지 순환 직렬화로 노출된다(IssueController.getTimeline()과 동일한 문제).
         return ResponseEntity.ok(
             pullRequestEventRepository.findByPullRequestOrderByCreatedAsc(pullRequest).map { it.toResponse() }
         )
@@ -349,10 +347,9 @@ class PullRequestController(
             threadId = null,
             currentUser = user
         )
-        // 2026-09-22 발견/수정 — raw ReviewComment 엔티티를 그대로 반환하고 있어
-        // comment->thread->project/pullRequest를 통해 User.password까지 순환 노출되는 걸
-        // 실제 서버 호출로 확인했다. ReviewCommentResponse는 이미 있었는데(RestApiResponseDto.kt)
-        // 이 호출부만 안 쓰고 있었다.
+        // raw ReviewComment 엔티티를 그대로 반환하면 comment->thread->project/pullRequest를
+        // 통해 User.password까지 순환 직렬화로 노출된다. ReviewCommentResponse는 이미
+        // 있었는데(RestApiResponseDto.kt) 이 호출부만 안 쓰고 있었다.
         return ResponseEntity.status(HttpStatus.CREATED).body(comment.toResponse())
     }
 
@@ -402,7 +399,6 @@ class PullRequestController(
         }
 
         val updated = pullRequestService.restoreFromBranch(pullRequest.id!!)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지(getPullRequest() 참고).
         return ResponseEntity.ok(updated.toResponse())
     }
 
@@ -534,7 +530,6 @@ class PullRequestController(
             ?: return ResponseEntity.badRequest().build()
 
         val updated = pullRequestService.setAssignee(pullRequest.id!!, assigneeUser)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지(getPullRequest() 참고).
         return ResponseEntity.ok(updated.toResponse())
     }
 
@@ -606,7 +601,6 @@ class PullRequestController(
             ?: return ResponseEntity.notFound().build()
 
         val updated = pullRequestService.removeLabel(pullRequest.id!!, labelId)
-        // raw 엔티티 반환 시의 순환 직렬화/비밀번호 노출 방지(getPullRequest() 참고).
         return ResponseEntity.ok(updated.toResponse())
     }
 

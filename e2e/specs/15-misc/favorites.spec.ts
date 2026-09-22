@@ -9,7 +9,7 @@ test.describe('favorites (star) toggles', () => {
     await page.goto('/');
     // The GNB "Favorite" tab panel lives inside the collapsible sidebar (site/layout.html) --
     // without opening it first, its "Favorite" tab link is occluded by the main page content
-    // (confirmed live: clicking it directly times out with "<h3> ... intercepts pointer events").
+    // (clicking it directly times out with "<h3> ... intercepts pointer events").
     await page.click('#sidebar-open-btn');
     await page.click('a[href="#myOrganizationList"]');
 
@@ -99,10 +99,10 @@ test.describe('favorites (star) toggles', () => {
     const firstToggleBody = await toggleOnResponse.json();
     expect(firstToggleBody.favored).toBe(!wasStarred);
 
-    // #9 fixed (see yona.Usermenu.js's _bindOnce()): this toggle used to need an in-page
-    // el.click() dispatch here to work around a permanent click-blocking overlay left by the
-    // shared <yona-dialog id="yonaDialog">. A real locator.click() now works -- see the
-    // dedicated repro below for what actually caused that overlay.
+    // This toggle used to need an in-page el.click() dispatch here to work around a permanent
+    // click-blocking overlay left by the shared <yona-dialog id="yonaDialog">. A real
+    // locator.click() now works -- see the dedicated repro below for what actually caused that
+    // overlay.
     const [toggleOffResponse] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/-_-api/v1/favoriteIssues/') && res.request().method() === 'POST'),
       star.click(),
@@ -111,23 +111,22 @@ test.describe('favorites (star) toggles', () => {
     expect(secondToggleBody.favored).toBe(wasStarred);
   });
 
-  // #9 repro/regression: a $yona.notify() toast (fired here by the issue-star toggle above) must
-  // never leave anything on the page intercepting clicks. Root cause turned out NOT to be
-  // notify()/Toast/Dialog CSS at all (a plain, standalone $yona.notify() call was confirmed live
-  // to leave the page fully clickable) -- it was yona.Usermenu.js's afterUsermenuLoaded()
-  // being invoked twice per page load (once immediately for elements already present in the
-  // initial HTML, once again after the GNB usermenu AJAX partial loads, for elements inside
-  // that partial). `.favorite-issue` is rendered both ways -- once directly on the issue page
-  // itself, and once inside the AJAX-loaded sidebar "favorite issues" list -- so it matched both
-  // afterUsermenuLoaded() passes and got a second, duplicate click listener. A single real click
-  // fired two POSTs to /-_-api/v1/favoriteIssues/{id}; the second lost the DB unique-constraint
-  // race (500), and its .catch() handler called $yona.alert(...), which opens the shared
-  // <yona-dialog id="yonaDialog"> as a real showModal() dialog. That native <dialog> promotes
-  // itself (and its full-viewport ::backdrop) to the browser's top layer -- elementFromPoint() at
-  // ANY on-screen coordinate resolved to it, even though the dialog's own host element reports a
-  // collapsed, off-screen bounding box -- and it never got dismissed, permanently swallowing every
-  // later click on the page. Fixed by making afterUsermenuLoaded()'s listener bindings idempotent
-  // per element (yona.Usermenu.js's _bindOnce()), so a single click never double-fires again.
+  // A $yona.notify() toast (fired here by the issue-star toggle above) must never leave anything
+  // on the page intercepting clicks. Root cause turned out NOT to be notify()/Toast/Dialog CSS at
+  // all -- it was yona.Usermenu.js's afterUsermenuLoaded() being invoked twice per page load (once
+  // immediately for elements already present in the initial HTML, once again after the GNB
+  // usermenu AJAX partial loads, for elements inside that partial). `.favorite-issue` is rendered
+  // both ways -- once directly on the issue page itself, and once inside the AJAX-loaded sidebar
+  // "favorite issues" list -- so it matched both afterUsermenuLoaded() passes and got a second,
+  // duplicate click listener. A single real click fired two POSTs to
+  // /-_-api/v1/favoriteIssues/{id}; the second lost the DB unique-constraint race (500), and its
+  // .catch() handler called $yona.alert(...), which opens the shared <yona-dialog id="yonaDialog">
+  // as a real showModal() dialog. That native <dialog> promotes itself (and its full-viewport
+  // ::backdrop) to the browser's top layer -- elementFromPoint() at ANY on-screen coordinate
+  // resolved to it, even though the dialog's own host element reports a collapsed, off-screen
+  // bounding box -- and it never got dismissed, permanently swallowing every later click on the
+  // page. Fixed by making afterUsermenuLoaded()'s listener bindings idempotent per element
+  // (yona.Usermenu.js's _bindOnce()), so a single click never double-fires again.
   test('a notify() toast from the favorite-issue toggle does not block a later real click elsewhere on the page', async ({ page }) => {
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');

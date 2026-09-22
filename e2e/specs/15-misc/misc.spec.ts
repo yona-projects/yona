@@ -15,14 +15,13 @@ test('help page loads while logged out (no auth required)', async ({ page }) => 
 });
 
 // client_id/scope/state are required @RequestParam with no default -- Spring itself rejects a
-// bare request with 400 before the controller body runs. Confirmed live via curl:
-// `curl -o /dev/null -w '%{http_code}' http://localhost:8080/oauth2/consent` -> 400.
+// bare request with 400 before the controller body runs.
 test('consent screen without client_id/scope/state responds 400, not a crash', async ({ page }) => {
   const response = await page.goto('/oauth2/consent');
   expect(response?.status()).toBe(400);
 });
 
-// Confirmed live via curl: with no external migration source configured (default h2 profile),
+// With no external migration source configured (default h2 profile),
 // migrationService.isAllowMigration() is false, and the controller renders "error/403" -- as a
 // normal 200 response, not an actual HTTP 403 (the view name doesn't set the status code).
 test('migration screen renders the disabled-migration view when no migration source is configured', async ({ page }) => {

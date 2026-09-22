@@ -40,7 +40,7 @@
 
     // ===== 로케일 문자열 (select2_locale_ko.js/ja.js 대응) =====
     // common/tomselect.html이 로케일에 따라 window.YONA_TOMSELECT_I18N을 채워둔다. 없으면(영어 등)
-    // select2 v3 기본 영어 문구(select2.js:3203-3208)와 동일한 값으로 폴백한다.
+    // select2 v3 기본 영어 문구(select2.js)와 동일한 값으로 폴백한다.
     var I18N = window.YONA_TOMSELECT_I18N || {
         noResults: "No matches found",
         searching: "Searching...",

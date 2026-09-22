@@ -2,25 +2,25 @@ import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
 import { uniqueSuffix } from '../../support/unique';
 
-/** Screen: GET /{owner}/{projectName} (project/home.html), ProjectViewController.kt:88. Previously
+/** Screen: GET /{owner}/{projectName} (project/home.html), ProjectViewController. Previously
  * only verified via the post-creation redirect landing here (04-project/00-project-create.spec.ts) --
  * this covers the actual widgets on the page itself: the inline description edit (a SEPARATE
  * widget from project-settings.spec.ts's /setting page description field -- different ids,
  * #project-description-input here vs #project-desc there, both independently POST the same
  * overview field), the clone-URL box, and the member/leave-project affordances. */
 
-// FIXED (was: PRODUCT BUG -- fetch(sURLProject, {method:'put', body: JSON.stringify({overview})})
+// FIXED (was PRODUCT BUG): fetch(sURLProject, {method:'put', body: JSON.stringify({overview})})
 // sent only `overview`, but UpdateProjectRequest.projectScope had no default so Jackson 400'd
-// before the controller body ran). Root cause went deeper than projectScope alone: every other
+// before the controller body ran. Root cause went deeper than projectScope alone: every other
 // settable field in UpdateProjectRequest/UpdateProjectParam (isCodeEnabled, isWikiEnabled,
 // isUsingReviewerCount, etc.) was applied as an UNCONDITIONAL overwrite in
 // ProjectServiceImpl.updateProject() -- so naively giving projectScope a fixed default would have
 // fixed the 400 while silently resetting every other project setting (menu toggles, reviewer
 // count, code-access-member-only) back to their Kotlin defaults on every description save, since
-// this PUT /api/projects/{id} endpoint is used ONLY by this one widget (verified via grep -- no
-// other caller). Fixed by making every field except `overview` nullable with a null default in
-// both DTOs, and changing updateProject() to only overwrite a field when the param for it is
-// non-null (matching the existing `name`/`defaultBranch` "omit to leave unchanged" pattern).
+// this PUT /api/projects/{id} endpoint is used only by this one widget (no other caller). Fixed by
+// making every field except `overview` nullable with a null default in both DTOs, and changing
+// updateProject() to only overwrite a field when the param for it is non-null (matching the
+// existing `name`/`defaultBranch` "omit to leave unchanged" pattern).
 test('description inline-edit widget on the home page toggles and saves independently of /setting', async ({ page }) => {
   const owner = requireSeed('projectOwner');
   const name = requireSeed('projectName');
@@ -48,17 +48,16 @@ test('description inline-edit widget on the home page toggles and saves independ
   await expect(page.locator('#project-description')).toHaveText(overview);
 });
 
-// FIXED (was PRODUCT BUG, separate from the 400 fixed above, found while verifying that fix --
-// confirmed live via a response listener): the success handler also calls yona.Markdown.render()
-// to re-render the saved text as HTML in place (yona.project.Home.js:154), which internally does
-// `fetch(htVar.sMarkdownRendererUrl, ...)` (yona.Markdown.js's shared _render()). That URL is only
-// ever set by yona.Markdown.init() inside the `site/layout :: markdown(project)` fragment
-// (site/layout.html) -- and project/home.html never included that fragment, so
-// htVar.sMarkdownRendererUrl stayed undefined and fetch(undefined, ...) resolved against the
-// current page as a same-origin request for the literal string "undefined" (confirmed live:
-// `POST /admin/undefined` -> 405), silently swallowed by the render promise's .catch(). Fixed by
-// adding `<th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>` to
-// project/home.html (same pattern already used by milestone/create.html etc.).
+// FIXED (was PRODUCT BUG, separate from the 400 fixed above): the success handler also calls
+// yona.Markdown.render() to re-render the saved text as HTML in place (yona.project.Home.js),
+// which internally does `fetch(htVar.sMarkdownRendererUrl, ...)` (yona.Markdown.js's shared
+// _render()). That URL is only ever set by yona.Markdown.init() inside the
+// `site/layout :: markdown(project)` fragment (site/layout.html) -- and project/home.html never
+// included that fragment, so htVar.sMarkdownRendererUrl stayed undefined and fetch(undefined, ...)
+// resolved against the current page as a same-origin request for the literal string "undefined"
+// (a 405 response), silently swallowed by the render promise's .catch(). Fixed by adding
+// `<th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>` to project/home.html
+// (same pattern already used by milestone/create.html etc.).
 test('description inline-edit widget updates the DOM immediately without a reload', async ({ page }) => {
   const owner = requireSeed('projectOwner');
   const name = requireSeed('projectName');

@@ -28,11 +28,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.util.Optional
 
-// yona-wiki P3-02 Step4 — IssueRestApiController(/api/v1/projects/{owner}/{project}/issues)는
-// owner/project 이름으로 프로젝트를 찾아 기존 IssueController/CommentController에 위임하는 얇은
-// 어댑터라, 이 스펙은 "제대로 위임하는지"와 "프로젝트를 못 찾으면 404"만 검증한다(실제 업무 로직/
-// 권한 체크는 IssueControllerSpec/CommentController 쪽에서 이미 검증됨). 스코프 토큰 인가(403)는
-// 필터 레벨 검증이라 별도 통합테스트(ApiTokenScopedIssueAndPullRequestApiIntegrationSpec)에서 다룬다.
+// IssueRestApiController(/api/v1/projects/{owner}/{project}/issues)는 owner/project 이름으로
+// 프로젝트를 찾아 기존 IssueController/CommentController에 위임하는 얇은 어댑터라, 이 스펙은
+// "제대로 위임하는지"와 "프로젝트를 못 찾으면 404"만 검증한다(실제 업무 로직/권한 체크는
+// IssueControllerSpec/CommentController 쪽에서 이미 검증됨). 스코프 토큰 인가(403)는 필터 레벨
+// 검증이라 별도 통합테스트(ApiTokenScopedIssueAndPullRequestApiIntegrationSpec)에서 다룬다.
 class IssueRestApiControllerSpec : DescribeSpec({
     val projectRepository = mockk<ProjectRepository>()
     val issueController = mockk<IssueController>()
@@ -60,7 +60,7 @@ class IssueRestApiControllerSpec : DescribeSpec({
 
         it("존재하면 IssueController.getIssues에 위임한다") {
             val issue = Issue(id = 5L, number = 5L, title = "제목", project = project)
-            // P3-30 — IssueController.getIssues()는 이제 Page<IssueResponse>를 반환한다(raw Issue
+            // IssueController.getIssues()는 Page<IssueResponse>를 반환한다(raw Issue 반환 시
             // 순환 직렬화/비밀번호 노출 방지).
             val page = PageImpl(listOf(issue.toResponse()), PageRequest.of(0, 15), 1)
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
@@ -73,7 +73,7 @@ class IssueRestApiControllerSpec : DescribeSpec({
             verify(exactly = 1) { issueController.getIssues(1L, null, null, null, null, any<Pageable>(), any()) }
         }
 
-        // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `--assignee`/`--label`/`--author` 필터.
+        // gh issue list의 --assignee/--label/--author 필터에 대응.
         it("assignee/label/author 쿼리 파라미터를 IssueController.getIssues에 그대로 전달한다") {
             val issue = Issue(id = 5L, number = 5L, title = "제목", project = project)
             val page = PageImpl(listOf(issue.toResponse()), PageRequest.of(0, 15), 1)
@@ -189,7 +189,7 @@ class IssueRestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh issue reopen`.
+    // gh issue reopen에 대응.
     describe("POST /api/v1/projects/{owner}/{project}/issues/{number}/reopen") {
         it("IssueController.changeState를 OPEN으로 호출한다") {
             val issue = Issue(id = 5L, number = 5L, title = "제목", state = State.OPEN, project = project)
@@ -204,7 +204,7 @@ class IssueRestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh issue transfer`.
+    // gh issue transfer에 대응.
     describe("POST /api/v1/projects/{owner}/{project}/issues/{number}/transfer") {
         it("대상 프로젝트 이름을 ID로 변환해 IssueController.moveIssue에 위임한다") {
             val targetProject = Project(id = 2L, owner = "other", name = "target", projectScope = ProjectScope.PUBLIC)

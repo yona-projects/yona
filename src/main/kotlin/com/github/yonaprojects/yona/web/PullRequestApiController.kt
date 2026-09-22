@@ -50,7 +50,7 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        // 2026-09-22 — getPullRequests()가 이제 이미 List<PullRequestResponse>를 반환한다
+        // getPullRequests()가 이제 이미 List<PullRequestResponse>를 반환한다
         // (raw PullRequest 순환 직렬화/비밀번호 노출 방지로 컨트롤러에서 직접 변환했다). mapBody는
         // 이제 다시 변환하는 게 아니라 이 컨트롤러의 공통 반환 타입(ResponseEntity<Any>)에
         // 맞추는 용도로만 남긴다(예전엔 여기서 .toResponse()를 또 호출해 이중 변환이었다).
@@ -286,7 +286,7 @@ class PullRequestApiController(
     ): ResponseEntity<Any> {
         val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        // 2026-09-22 — addComment()가 이제 이미 ReviewCommentResponse를 반환한다(비밀번호 노출
+        // addComment()가 이제 이미 ReviewCommentResponse를 반환한다(비밀번호 노출
         // 방지). mapBody는 타입 적응용으로만 남긴다(예전엔 여기서 .toResponse()를 또 호출해
         // 이중 변환이었다 - ReviewCommentResponse에는 그런 메서드가 없어 컴파일도 안 됐다).
         return pullRequestController.addComment(found.id!!, number, request, authentication).mapBody { it }

@@ -130,8 +130,8 @@ class CodeHistoryController(
         )
         val saved = commitCommentRepository.save(comment)
 
-        // 2026-09-22 발견/수정 — raw CommitComment 엔티티를 그대로 반환하고 있어
-        // comment->project->projectUsers->user 순환으로 User.password까지 노출되던 문제.
+        // raw CommitComment 엔티티를 그대로 반환하면 comment->project->projectUsers->user
+        // 순환 참조로 User.password까지 직렬화되어 노출되므로 .toResponse()로 변환한다.
         return ResponseEntity.status(HttpStatus.CREATED).body(saved.toResponse())
     }
 
@@ -169,7 +169,7 @@ class CodeHistoryController(
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
-        // 2026-09-22 발견/수정 — 위 createComment()와 동일한 이유로 .toResponse() 변환.
+        // createComment()와 동일한 이유(password 노출 방지)로 .toResponse() 변환.
         return ResponseEntity.ok(
             commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(project, commitId)
                 .map { it.toResponse() }

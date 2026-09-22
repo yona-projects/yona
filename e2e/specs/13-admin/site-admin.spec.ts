@@ -192,9 +192,9 @@ test.describe.serial('admin user-management actions on a dedicated throwaway acc
     ]);
     // waitForLoadState('networkidle') alone can resolve before the requestAs() delegate's own
     // document.location.reload() actually starts (there is no navigation for it to track yet),
-    // letting the immediate page.goto() below race the reload and hit net::ERR_ABORTED (confirmed
-    // live) -- give the reload a moment to actually begin first, same workaround used elsewhere
-    // in this suite for the same fire-and-forget reload pattern (e.g. project-settings.spec.ts).
+    // letting the immediate page.goto() below race the reload and hit net::ERR_ABORTED -- give
+    // the reload a moment to actually begin first, same workaround used elsewhere in this suite
+    // for the same fire-and-forget reload pattern (e.g. project-settings.spec.ts).
     await page.waitForTimeout(500);
     await page.waitForLoadState('networkidle');
     await page.goto(`/site/userList?state=ACTIVE&query=${targetLoginId}`);
@@ -226,15 +226,15 @@ test.describe.serial('admin user-management actions on a dedicated throwaway acc
     await expect(page.locator('li.listitem', { hasText: targetLoginId })).toBeVisible();
   });
 
-  // FIXED (was a product bug -- see BUGFIXES.md #8): the "비밀번호 초기화" button's data-href
-  // used to be built by userList.html as `@{'/' + ${user.loginId}(action='resetPassword')}`,
-  // i.e. POST /{loginId}?action=resetPassword -- but the real reset endpoint
-  // (SiteApiController.kt's resetUserPasswordBySiteManager) is mapped at
-  // POST /site/users/{loginId}/reset-password, an entirely different path. No controller matched
-  // bare POST /{loginId}, so the button 404d every time; userList.html's own click handler for
-  // data-toggle="reset-password" surfaced this as a "password change failed" $yona.alert(). Fixed
-  // by pointing data-href at the real route. Verify a real behavioral effect, not just "no longer
-  // 404s": the old password must stop working and the newly issued one must log the account in.
+  // The "비밀번호 초기화" button's data-href used to be built by userList.html as
+  // `@{'/' + ${user.loginId}(action='resetPassword')}`, i.e. POST /{loginId}?action=resetPassword
+  // -- but the real reset endpoint (SiteApiController.kt's resetUserPasswordBySiteManager) is
+  // mapped at POST /site/users/{loginId}/reset-password, an entirely different path. No
+  // controller matched bare POST /{loginId}, so the button 404d every time; userList.html's own
+  // click handler for data-toggle="reset-password" surfaced this as a "password change failed"
+  // $yona.alert(). Fixed by pointing data-href at the real route. Verify a real behavioral
+  // effect, not just "no longer 404s": the old password must stop working and the newly issued
+  // one must log the account in.
   test('force-reset the target account password', async ({ page }) => {
     await page.goto(`/site/userList?state=ACTIVE&query=${targetLoginId}`);
     const row = page.locator('li.listitem', { hasText: targetLoginId });
@@ -316,11 +316,11 @@ test.describe.serial('admin force-delete actions on dedicated throwaway resource
     await page.goto(`/site/userList?state=ACTIVE&query=${deleteTargetLoginId}`);
     await expect(page.locator('li.listitem', { hasText: deleteTargetLoginId })).toHaveCount(0);
 
-    // FIXED (was PRODUCT BUG #16): `SiteService.deleteUser()` is a logical/soft delete (sets
-    // `UserState.DELETED`, never removes the row), and `UserViewController.userProfile()` used to
-    // only check "row exists at all", never `user.state` -- a "deleted" account's public profile
-    // kept rendering normally (200) forever. `userProfile()` now treats a DELETED user the same as
-    // a nonexistent one (404), matching every other "gone" resource in this app.
+    // `SiteService.deleteUser()` is a logical/soft delete (sets `UserState.DELETED`, never
+    // removes the row), and `UserViewController.userProfile()` used to only check "row exists at
+    // all", never `user.state` -- a "deleted" account's public profile kept rendering normally
+    // (200) forever. `userProfile()` now treats a DELETED user the same as a nonexistent one
+    // (404), matching every other "gone" resource in this app.
     const profileResponse = await page.goto(`/user/${deleteTargetLoginId}`);
     expect(profileResponse?.status()).toBe(404);
   });
@@ -349,8 +349,8 @@ test.describe.serial('admin force-delete actions on dedicated throwaway resource
 
     // Unlike deleteUser() (a @ResponseBody returning ResponseEntity.ok(...)), deleteProject()'s
     // Kotlin signature returns a plain `String` ("redirect:/sites/projectList") -- Spring resolves
-    // that as an actual 302 redirect for the DELETE request itself (confirmed live via the access
-    // log), not a 200. response.ok() is false for a 302; assert the real status instead.
+    // that as an actual 302 redirect for the DELETE request itself, not a 200. response.ok() is
+    // false for a 302; assert the real status instead.
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/project/delete/') && res.request().method() === 'DELETE'),
       page.click('#projectDeleteBtn'),
@@ -361,19 +361,18 @@ test.describe.serial('admin force-delete actions on dedicated throwaway resource
     await page.goto(`/site/projectList?projectName=${deleteProjectName}`);
     await expect(page.locator('li.listitem', { hasText: deleteProjectName })).toHaveCount(0);
 
-    // FIXED (was part of the systemic #14 bug): `ProjectViewController.projectHome()`'s
-    // `?: return "error/404"` used to return the Thymeleaf view name without ever setting the
-    // actual HTTP status, so a deleted project's page rendered the 404 template's content with a
-    // 200 status. That systemic issue (91 occurrences of the same pattern across 20 controller
-    // files) has since been fixed sitewide, so a genuinely deleted project now correctly 404s.
+    // `ProjectViewController.projectHome()`'s `?: return "error/404"` used to return the
+    // Thymeleaf view name without ever setting the actual HTTP status, so a deleted project's
+    // page rendered the 404 template's content with a 200 status. That systemic issue (91
+    // occurrences of the same pattern across 20 controller files) has since been fixed sitewide,
+    // so a genuinely deleted project now correctly 404s.
     const adminLoginId = requireSeed('adminLoginId');
     const projectResponse = await page.goto(`/${adminLoginId}/${deleteProjectName}`);
     expect(projectResponse?.status()).toBe(404);
   });
 });
 
-// FIXED (was PRODUCT BUG #15): GET /sites/export used to reliably 403 even for a genuine
-// SITE_ADMIN session. Root cause (found via temporary exception logging + a direct H2 query):
+// GET /sites/export used to reliably 403 even for a genuine SITE_ADMIN session. Root cause:
 // DataBackupServiceImpl.nextSequenceValue()'s H2 branch ran `SELECT COALESCE(MAX(id), 0) + 1`
 // against every table with a column literally named "id" -- but Spring Authorization Server's
 // own OAUTH_AUTHORIZATION/OAUTH_AUTHORIZATION_CONSENT/OAUTH_REGISTERED_CLIENT tables have a
@@ -395,8 +394,8 @@ test('data export downloads a real JSON backup file', async ({ page }) => {
 
   // Content-Disposition: attachment makes a real page.click() hand the response to the browser's
   // download manager, which detaches it from Playwright's network stack before response.body()
-  // can read it ("No resource with given identifier found" -- confirmed live). page.request
-  // shares the same authenticated session/cookies and lets us read the body directly instead.
+  // can read it ("No resource with given identifier found"). page.request shares the same
+  // authenticated session/cookies and lets us read the body directly instead.
   const response = await page.request.get('/sites/export');
   expect(response.status()).toBe(200);
   expect(response.headers()['content-type']).toContain('application/json');
@@ -406,22 +405,22 @@ test('data export downloads a real JSON backup file', async ({ page }) => {
   // A real backup, not an empty stub -- must at least mention the user table (DataBackupServiceImpl
   // dumps raw DB table names, e.g. n4user, not the domain-model name "users"). Casing is DB-engine
   // dependent -- H2 uppercases unquoted identifiers (N4USER), MariaDB preserves them as declared
-  // (n4user) -- confirmed live against both, so match case-insensitively instead of assuming H2's.
+  // (n4user) -- match case-insensitively instead of assuming H2's.
   expect(body.toString('utf-8').toLowerCase()).toContain('"n4user"');
 });
 
-// NOT reproducible in this environment (verified live, not a guess): the "Hide" button
-// (POST /sites/unwatchUpdate) only renders when
+// Not reproducible in this environment: the "Hide" button (POST /sites/unwatchUpdate) only
+// renders when
 // `currentUser.isSiteManager and yonaUpdateService.isWatched() and yonaUpdateService.isUpdateRequired()`
 // (site/layout.html) are ALL true. `isUpdateRequired()` is set only by
 // `YonaUpdateService.checkForUpdate()`, which does a real `git ls-remote` against
 // https://github.com/yona-projects/yona.git and compares the highest tag to the hardcoded
 // `yona.update.current-version` (default 1.15.0) -- there is no test-facing way to fake this from
-// the browser. The server's own boot log for this run confirms the real outcome:
-// "Yona is up to date (Current: 1.15.0)" -- so `isUpdateRequired()` is false and the button never
-// renders. Forcing it would require either a fake git remote with a lower-versioned tag set or a
-// build-time override of `yona.update.current-version`, both out of scope for a black-box e2e
-// test. Left as fixme rather than faked.
+// the browser. The server boots up to date ("Yona is up to date (Current: 1.15.0)"), so
+// `isUpdateRequired()` is false and the button never renders. Forcing it would require either a
+// fake git remote with a lower-versioned tag set or a build-time override of
+// `yona.update.current-version`, both out of scope for a black-box e2e test. Left as fixme
+// rather than faked.
 test.fixme('site admin can hide the update-available notification banner', async () => {
   // Not implemented -- see comment above.
 });

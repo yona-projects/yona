@@ -35,7 +35,7 @@ import javax.sql.DataSource
  * 역직렬화해 평범한 String이 된다. 이 String을 그대로 바인딩하면 MariaDB가 ISO-8601('T'/'Z')을
  * datetime으로 파싱하지 못해 `DataIntegrityViolationException`을 던진다(해당 컬럼이 NULL인
  * 행/테이블에서는 증상이 없어 "가끔 실패하는 flake"처럼 보였지만, 실제로는 datetime 컬럼에
- * 값이 있는 모든 테이블에서 100% 결정적으로 재현됐다). `insertRow()`가 각 테이블의 실제 JDBC
+ * 값이 있는 모든 테이블에서 항상 발생했다). `insertRow()`가 각 테이블의 실제 JDBC
  * 컬럼 타입(`dateTimeColumns()`)을 조회해 TIMESTAMP/DATE/TIME 계열이면 String을 다시
  * `Instant`→`Timestamp`로 변환해 바인딩하도록 수정했다. yona는 애초에 `DefaultExchanger`의
  * `putTimestamp()`/`timestamp()` 헬퍼로 각 필드를 타입 그대로 다루기 때문에 이 문제 자체가
@@ -210,14 +210,14 @@ class DataBackupServiceImpl(
         }
     }
 
-    // 버그#15: Spring Authorization Server가 만드는 OAUTH_AUTHORIZATION/
+    // Spring Authorization Server가 만드는 OAUTH_AUTHORIZATION/
     // OAUTH_AUTHORIZATION_CONSENT/OAUTH_REGISTERED_CLIENT 테이블은 "id" 컬럼이 있지만
     // VARCHAR(UUID)라 정수가 아니다. hasIdColumn()만으로 통과시키면 H2 전용 MAX(id)+1
     // 근사(위 주석 참고)가 COALESCE(MAX(id), 0) + 1을 그 UUID 문자열에 대해 실행하다가
     // NumberFormatException(IllegalArgumentException의 서브타입)을 던지고, 이게
     // SiteApiController의 인가 실패 전용 @ExceptionHandler(IllegalArgumentException)에
     // 걸려 진짜 원인이 로그도 없이 403 "FORBIDDEN"으로 위장되던 것이 exportAll()이 항상
-    // 실패하던 진짜 원인이었다(실측: TEMP 로깅으로 확인). id 컬럼이 있어도 그 타입이
+    // 실패하던 진짜 원인이었다. id 컬럼이 있어도 그 타입이
     // 실제 정수 계열(INTEGER/BIGINT/SMALLINT/TINYINT)일 때만 MAX(id)+1을 시도한다.
     private fun hasNumericIdColumn(table: String): Boolean {
         dataSource.connection.use { connection ->

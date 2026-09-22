@@ -64,7 +64,7 @@ test.describe.serial('branch and tag management', () => {
 
     // requestAs() calls document.location.reload() itself once its fetch() resolves -- calling
     // page.reload() ourselves on top of that races the app's own in-flight reload
-    // (net::ERR_ABORTED, confirmed empirically on the equivalent webhook-delete button in
+    // (net::ERR_ABORTED; same failure mode as the webhook-delete button in
     // project-webhooks.spec.ts), so navigate via page.goto() to the same URL instead, which
     // correctly supersedes it. NOTE: setAsDefault returns "redirect:/.../branches" (a real 3xx),
     // not a 200 -- fetch() follows it internally before the app's own JS ever sees the (200) final

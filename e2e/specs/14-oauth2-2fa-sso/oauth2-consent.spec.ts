@@ -34,8 +34,8 @@ test('a full authorization_code request for a freshly registered confidential ap
   // Spring Authorization Server's own consent logic (OAuth2AuthorizationConsentAuthenticationProvider)
   // treats a request for "openid" ALONE as nothing worth asking consent for (it's just
   // identity/sign-in, not a data-access grant) and auto-issues the code even with
-  // requireAuthorizationConsent=true -- confirmed live: with only "openid" requested, /oauth2/authorize
-  // 302s straight to redirect_uri with a code, never showing /oauth2/consent at all. Requesting an
+  // requireAuthorizationConsent=true: with only "openid" requested, /oauth2/authorize 302s
+  // straight to redirect_uri with a code, never showing /oauth2/consent at all. Requesting an
   // additional real scope ("profile") is what actually makes the consent screen appear.
   await page.check('#frmOAuthAppRegister input[name="scopes"][value="openid"]');
   await page.check('#frmOAuthAppRegister input[name="scopes"][value="profile"]');

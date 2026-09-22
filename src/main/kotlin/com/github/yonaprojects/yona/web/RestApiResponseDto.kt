@@ -194,10 +194,9 @@ fun IssueEvent.toResponse() = IssueEventResponse(
     created = created
 )
 
-// 2026-09-22 발견/수정 — PullRequestController.getTimeline()이 IssueEventResponse와 똑같은
-// 문제(List<PullRequestEvent>를 가공 없이 반환, PullRequestEvent.pullRequest(JsonIgnore
-// 없음)를 통해 User.password까지 순환 노출)를 갖고 있었다. IssueEventResponse와 동일한 필드
-// 선택 기준을 그대로 따른다.
+// PullRequestController.getTimeline()이 IssueEventResponse와 똑같은 문제(List<PullRequestEvent>를
+// 가공 없이 반환, PullRequestEvent.pullRequest(JsonIgnore 없음)를 통해 User.password까지 순환
+// 노출)를 갖고 있었다. IssueEventResponse와 동일한 필드 선택 기준을 그대로 따른다.
 data class PullRequestEventResponse(
     val id: Long?,
     val pullRequestId: Long?,
@@ -218,10 +217,10 @@ fun PullRequestEvent.toResponse() = PullRequestEventResponse(
     created = created
 )
 
-// 2026-09-22 발견/수정 — CodeHistoryController의 커밋 코멘트 생성/조회(createComment/
-// listComments)가 raw CommitComment 엔티티를 그대로 반환하고 있었다. CommitComment.project
-// (JsonIgnore 없음)를 통해 project->projectUsers->user로 순환 직렬화되며 User.password까지
-// 노출되는 걸 코드 추적으로 확인했다(IssueResponse/ReviewCommentResponse와 동일한 근본원인).
+// CodeHistoryController의 커밋 코멘트 생성/조회(createComment/listComments)가 raw
+// CommitComment 엔티티를 그대로 반환하고 있었다. CommitComment.project(JsonIgnore 없음)를
+// 통해 project->projectUsers->user로 순환 직렬화되며 User.password까지 노출된다
+// (IssueResponse/ReviewCommentResponse와 동일한 근본원인).
 data class CommitCommentResponse(
     val id: Long?,
     val commitId: String,

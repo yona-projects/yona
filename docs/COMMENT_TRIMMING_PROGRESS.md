@@ -2,12 +2,38 @@
 id: comment-trimming-progress
 type: tracking
 created: 2026-09-09
-updated: 2026-09-09
+updated: 2026-09-22
 status: complete
 relates_to: [comment-trimming-guidelines]
 ---
 
 # 주석 트리밍 진행 현황
+
+## 4차 (2026-09-22, 이번 세션)
+
+3차(dbb27d45f, 2026-09-17) 이후 변경된 파일 전부(git diff 기준 119개, 문서/락파일/설정파일
+제외 후 106개 + 이번 세션에 새로 추가된 파일 4개 = 110개)를 대상으로 다시 트리밍했다. 이번
+라운드부터는 처음으로 `e2e/`(Playwright TypeScript e2e 스위트) 디렉터리도 포함했다 — 3차까지는
+Kotlin/템플릿/JS/CSS만 대상이었다.
+
+**작업 방식**: 9개 그룹(Kotlin main 2개, Kotlin test 1개, JS/CSS/HTML 1개, e2e 5개)으로 나눠
+병렬 에이전트에게 위임. 각 에이전트는 가이드라인을 먼저 읽고 자기 담당 파일만 Read+Edit로
+편집했으며, gradle/npm/git 명령은 실행하지 않았다(다른 세션이 회귀 테스트를 백그라운드로 돌리고
+있어 동시 실행 인프라 이슈를 피하기 위함). 코디네이터가 이후 다음을 검증:
+
+- 전체 diff에서 comment-looking하지 않은 변경 라인을 스크립트로 걸러내 확인 — 실제 로직 변경
+  0건(플래그된 라인은 전부 별도로 진행 중이던 기능 수정 커밋의 코드이거나, 멀티라인 HTML/CSS
+  주석 블록의 연속 텍스트였음을 직접 확인).
+- `./gradlew compileKotlin compileTestKotlin` 1회, e2e `tsc --noEmit` 1회 — 둘 다 통과.
+- 가이드라인의 재확인 grep을 전체 대상 파일에 재실행 — 남은 매치는 전부 테스트명 문자열 리터럴
+  (`it("... (P1-92)")` 형태, 코드이지 주석이 아니므로 대상 아님), "재현"의 정상 동사 용법,
+  Thymeleaf `th:text` 날짜 포맷 샘플 값, 테스트 데이터 문자열(`'2099-12-31'`)뿐임을 확인.
+
+**이번 라운드에 새로 확인된 패턴**: 영문 e2e 스펙 특유의 "confirmed live", "verified via ...",
+"(#9 fixed)" 같은 영문 검증-시점/이슈번호 서술도 한국어 "실측 확인"/"(P#-##)"과 같은 성격으로
+간주해 제거 대상에 포함했다(가이드라인 문서는 한국어 예시만 들었으나 취지상 동일).
+
+1차~3차(326개 kt/java/템플릿) 기록은 아래 "완료" 절 참고.
 
 코드 전반의 티켓ID/날짜/작업일지성 주석을 정리하는 작업. 기준은 [[comment-trimming-guidelines]] 참고.
 

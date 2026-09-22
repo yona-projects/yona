@@ -12,9 +12,7 @@ import { uniqueSuffix } from '../../support/unique';
  * RealHgInteropTest suite: exercise the real client against the real server, not a mock) to push
  * a `main` commit and a `feature/e2e-pr` branch into the seeded GIT project over yona's smart-HTTP
  * endpoint (`/git/*`, GitServletConfig.kt), authenticating with HTTP Basic (SecurityConfig.kt
- * wires httpBasic() for /git/**). Verified manually against this suite's own server instance
- * before writing this file (clone -> commit -> push main -> branch -> push feature/e2e-pr all
- * succeeded) -- this is not a guess.
+ * wires httpBasic() for /git/**).
  *
  * baseURL comes from playwright.config.ts (defaults to http://localhost:8080); this test reads
  * it from process.env directly since it never opens a page.
@@ -35,9 +33,9 @@ test('push a main commit and a feature branch into the seeded git project', asyn
 
   // A unique-per-run marker in the content, not just --force on push: re-running this spec a
   // second time against a project whose `main` already has this exact README content (e.g. a
-  // prior full-suite run against the same seeded project) left `git commit` with an empty diff
-  // and nothing to commit -- reproduced live, `--force` only protects the push step, not the
-  // local commit. Same fix pattern as 04-project/project-fork.spec.ts's unique fork content.
+  // prior full-suite run against the same seeded project) leaves `git commit` with an empty diff
+  // and nothing to commit -- `--force` only protects the push step, not the local commit. Same
+  // fix pattern as 04-project/project-fork.spec.ts's unique fork content.
   const suffix = uniqueSuffix();
 
   run(['clone', cloneUrl, '.']);

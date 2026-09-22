@@ -22,12 +22,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.util.Optional
 
-// yona-wiki P3-02 4라운드(Step8.5 서버 보강) — UserIssueStatusRestApiController(GET
-// /api/v1/user/issues/status). `gh issue status`의 최소 버전(담당/작성 이슈 개수·목록)만 검증했었다.
-//
-// yona-wiki P3-02 Step8.6 항목2(2026-09-01, 우선순위 2위) — UserViewController.userIssues()가
-// 지원하는 mentioned/favorite/shared/commenter 필터와 페이지네이션/정렬 파라미터를 전부 노출하도록
-// 확장된 것을 검증한다.
+// UserIssueStatusRestApiController(GET /api/v1/user/issues/status). `gh issue status`의
+// 최소 버전(담당/작성 이슈 개수·목록)만 검증했었으나, UserViewController.userIssues()가
+// 지원하는 mentioned/favorite/shared/commenter 필터와 페이지네이션/정렬 파라미터를 전부
+// 노출하도록 확장된 것까지 함께 검증한다.
 class UserIssueStatusRestApiControllerSpec : DescribeSpec({
     val issueRepository = mockk<IssueRepository>()
     val userRepository = mockk<UserRepository>()
@@ -92,9 +90,8 @@ class UserIssueStatusRestApiControllerSpec : DescribeSpec({
                 .andExpect(jsonPath("$.assigned.openCount").value(1))
                 .andExpect(jsonPath("$.assigned.closedCount").value(3))
                 .andExpect(jsonPath("$.assigned.items[0].title").value("담당 이슈"))
-                // 2026-09-22 신규 — projectId(숫자)만으로는 owner/project 이름을 알 수 없어
-                // yonaco 같은 외부 클라이언트가 이 이슈로 /api/v1/projects/{owner}/{project}/...
-                // 엔드포인트를 호출할 수 없었다(yonaco 서버 API 요청사항 문서 1번).
+                // projectId(숫자)만으로는 owner/project 이름을 알 수 없어 외부 클라이언트가 이
+                // 이슈로 /api/v1/projects/{owner}/{project}/... 엔드포인트를 호출할 수 없었다.
                 .andExpect(jsonPath("$.assigned.items[0].projectOwner").value("yona"))
                 .andExpect(jsonPath("$.assigned.items[0].projectName").value("yona"))
                 .andExpect(jsonPath("$.created.openCount").value(2))
@@ -102,10 +99,9 @@ class UserIssueStatusRestApiControllerSpec : DescribeSpec({
                 .andExpect(jsonPath("$.created.items[0].title").value("작성 이슈"))
         }
 
-        // 2026-09-22 신규 — 이 컨트롤러가 raw Issue 엔티티를 그대로 응답에 담고 있어(수정 전
-        // page.content를 가공 없이 반환) issue->project->projectUsers[]->user로 순환 직렬화되며
-        // User.password(해시값)까지 노출되는 걸 실제 서버 호출로 확인했다(yonaco 서버 API
-        // 요청사항 문서 참고). IssueResponse로 변환한 뒤에는 이 필드가 응답에 나타나면 안 된다 -
+        // 이 컨트롤러가 raw Issue 엔티티를 그대로 응답에 담으면(page.content를 가공 없이 반환)
+        // issue->project->projectUsers[]->user로 순환 직렬화되며 User.password(해시값)까지
+        // 노출될 수 있다. IssueResponse로 변환한 뒤에는 이 필드가 응답에 나타나면 안 된다 -
         // 회귀 방지 테스트.
         it("응답에 다른 사용자의 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
             val assignedIssue = Issue(id = 1L, number = 1L, title = "담당 이슈", project = project)
@@ -125,7 +121,7 @@ class UserIssueStatusRestApiControllerSpec : DescribeSpec({
             body shouldNotContain "passwordSalt"
         }
 
-        // yona-wiki P3-02 Step8.6 항목2 — commented/mentioned/favorite/shared 4개 섹션 신규 노출.
+        // commented/mentioned/favorite/shared 4개 섹션 신규 노출.
         it("commented/mentioned/favorite/shared 섹션을 함께 반환한다") {
             val commentedIssue = Issue(id = 3L, number = 3L, title = "댓글단 이슈", project = project)
             val mentionedIssue = Issue(id = 4L, number = 4L, title = "멘션된 이슈", project = project)
@@ -157,8 +153,8 @@ class UserIssueStatusRestApiControllerSpec : DescribeSpec({
                 .andExpect(jsonPath("$.shared.items[0].title").value("공유된 이슈"))
         }
 
-        // yona-wiki P3-02 Step8.6 항목2 — 페이지네이션/정렬/검색 파라미터가 실제로 리포지토리
-        // 호출에 그대로 전달되는지 검증(신규 백엔드 로직 없이 파라미터만 추가 전달).
+        // 페이지네이션/정렬/검색 파라미터가 실제로 리포지토리 호출에 그대로 전달되는지
+        // 검증(신규 백엔드 로직 없이 파라미터만 추가 전달).
         it("pageNum/state/filter/orderBy/orderDir 파라미터를 리포지토리 조회에 그대로 전달한다") {
             every { userRepository.findByLoginId("tester") } returns Optional.of(user)
             stubAllSectionsEmptyForState(issueRepository, mentionService, 1L, State.CLOSED, "%bug%")
@@ -178,8 +174,8 @@ class UserIssueStatusRestApiControllerSpec : DescribeSpec({
             }
         }
 
-        // yona-wiki P3-02 Step8.6 항목2 — commenterId/mentionId/sharerId/favoriteId를 명시하면
-        // 로그인 사용자 자신이 아닌 다른 사용자 기준으로 조회할 수 있다(웹 UI와 동일한 유연성).
+        // commenterId/mentionId/sharerId/favoriteId를 명시하면 로그인 사용자 자신이 아닌 다른
+        // 사용자 기준으로 조회할 수 있다(웹 UI와 동일한 유연성).
         it("commenterId/mentionId/sharerId/favoriteId를 명시하면 해당 id 기준으로 조회한다") {
             every { userRepository.findByLoginId("tester") } returns Optional.of(user)
             stubAllSectionsEmpty(1L, mentionedFor = 1L)

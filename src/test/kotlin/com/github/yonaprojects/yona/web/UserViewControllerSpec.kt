@@ -178,7 +178,7 @@ class UserViewControllerSpec : DescribeSpec({
             }
         }
 
-        // yona Mention.getMentioningIssueIds() 대응 (P2-41) — LIKE 텍스트 검색 대신 멘션 인덱스
+        // legacy yona Mention.getMentioningIssueIds() 대응 — LIKE 텍스트 검색 대신 멘션 인덱스
         // 테이블 조회 결과(이슈 id 목록)를 그대로 이슈 조회에 사용해야 한다.
         describe("GET /user/issues?mentionId=... (P2-41)") {
             it("멘션 인덱스 조회 결과 이슈 id 목록을 findMentionedByState에 그대로 전달해야 한다") {
@@ -293,7 +293,7 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // yona UserApp.java:752 "!HIDE_PROJECT_LISTING || !currentUser().isAnonymous()" 대응 (P0-23).
+    // legacy yona UserApp의 "!HIDE_PROJECT_LISTING || !currentUser().isAnonymous()" 대응.
     describe("HIDE_PROJECT_LISTING=true일 때 GET /user/{loginId}") {
         val hiddenController = UserViewController(
             userRepository, projectUserRepository, issueRepository, pullRequestRepository, watchRepository,
@@ -333,9 +333,9 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // yona UserApp.java:811-846 getAclValidatedIssues()/getAclValidatedPullRequests()/
-    // collectProjects() 대응 (P0-25). 대상 사용자가 작성한 이슈/PR/소속 프로젝트 중 방문자가 [GL-controllers_UserApp-064]
-    // READ 권한이 없는 것은 프로필에서 감춰져야 한다.
+    // legacy yona UserApp의 getAclValidatedIssues()/getAclValidatedPullRequests()/
+    // collectProjects() 대응. 대상 사용자가 작성한 이슈/PR/소속 프로젝트 중 방문자가 READ
+    // 권한이 없는 것은 프로필에서 감춰져야 한다.
     describe("GET /user/{loginId} - 방문자의 프로젝트 READ 권한에 따른 필터링") {
         it("방문자가 READ 권한이 없는 프로젝트의 이슈/PR/소속 프로젝트는 감춰져야 한다") {
             val viewedUser = User(id = 20L, loginId = "viewed", name = "대상유저")
@@ -368,8 +368,8 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // yona UserApp.java:754-759 Issue.findRecentlyIssuesByDaysAgo/PullRequest.findOpendPullRequestsByDaysAgo
-    // 대응 (P2-38) — daysAgo 파라미터가 실제 쿼리에 반영되어야 한다. [GL-controllers_UserApp-060]
+    // legacy yona UserApp의 Issue.findRecentlyIssuesByDaysAgo/PullRequest.findOpendPullRequestsByDaysAgo
+    // 대응 — daysAgo 파라미터가 실제 쿼리에 반영되어야 한다.
     describe("GET /user/{loginId}?daysAgo=... (P2-38)") {
         it("daysAgo 파라미터로 지정한 기간을 findRecentlyByUser/findByContributorAndUpdatedGreaterThanEqual...에 전달해야 한다") {
             val viewedUser = User(id = 20L, loginId = "viewed", name = "대상유저")
@@ -581,8 +581,8 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 Step6.6 — Fine-grained API 토큰 발급/관리 화면(레거시 edit_token.html과는
-    // 별개). GitHub의 "Settings > Developer settings > Personal access tokens" 컨벤션대로 목록
+    // Fine-grained API 토큰 발급/관리 화면(레거시 edit_token.html과는 별개). GitHub의
+    // "Settings > Developer settings > Personal access tokens" 컨벤션대로 목록
     // (editApiTokensForm)과 발급 폼(newApiTokenForm)을 별개 페이지로 분리했다 —
     // issueApiToken(발급)은 성공 시 목록으로 리다이렉트 + 플래시 속성, 실패 시 발급 폼을 그대로
     // 다시 렌더링한다. revokeApiToken(폐기)의 미인증/성공 분기도 함께 검증한다.
@@ -703,7 +703,7 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-03 Step3 — SSH 키 등록/관리 화면. GitHub 컨벤션대로 목록(editSshKeysForm)과
+    // SSH 키 등록/관리 화면. GitHub 컨벤션대로 목록(editSshKeysForm)과
     // 등록 폼(newSshKeyForm)을 별개 페이지로 분리했다 — addSshKey(등록)는 성공 시 목록으로
     // 리다이렉트 + 플래시 성공 메시지, 실패 시 등록 폼을 입력값과 함께 다시 렌더링한다.
     describe("GET/POST /user/editform/ssh-keys (SSH 키)") {
@@ -798,7 +798,7 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-03 Step7 — GPG 키 등록/관리 화면. SSH 키와 동일한 컨벤션(목록/등록 폼 분리).
+    // GPG 키 등록/관리 화면. SSH 키와 동일한 컨벤션(목록/등록 폼 분리).
     describe("GET/POST /user/editform/gpg-keys (GPG 키)") {
         val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
         val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
@@ -889,9 +889,9 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-07(MCP 서버) Step6 — "Authorized OAuth Apps" 화면(GitHub의 "Settings >
-    // Applications > Authorized OAuth Apps"에 대응). editOAuthAuthorizedAppsForm(목록)/
-    // revokeOAuthAuthorizedApp(취소) 두 엔드포인트의 미인증/성공 분기.
+    // "Authorized OAuth Apps" 화면(GitHub의 "Settings > Applications > Authorized OAuth
+    // Apps"에 대응). editOAuthAuthorizedAppsForm(목록)/revokeOAuthAuthorizedApp(취소) 두
+    // 엔드포인트의 미인증/성공 분기.
     describe("GET/POST /user/editform/oauth-apps (Authorized OAuth Apps)") {
         val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
         val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
@@ -931,11 +931,10 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-17 — 사용자 셀프서비스 OAuth 앱 등록 화면(/user/editform/oauth-apps-owned).
-    // [[p3-14]] 1라운드의 사이트 관리자 전용 등록(OAuthAppsAdminController)을 GitHub 컨벤션대로
-    // 사용자 계정 단위 셀프서비스로 옮긴 것 — tokens/ssh-keys/gpg-keys와 동일한 목록/등록폼 분리
-    // 패턴이다. 가장 중요한 테스트는 "다른 사용자가 등록한 앱을 삭제하려는 시도가 거부돼야 한다"
-    // (IDOR 방지) 케이스다.
+    // 사용자 셀프서비스 OAuth 앱 등록 화면(/user/editform/oauth-apps-owned). 사이트 관리자 전용
+    // 등록(OAuthAppsAdminController)을 GitHub 컨벤션대로 사용자 계정 단위 셀프서비스로 옮긴 것
+    // — tokens/ssh-keys/gpg-keys와 동일한 목록/등록폼 분리 패턴이다. 가장 중요한 테스트는 "다른
+    // 사용자가 등록한 앱을 삭제하려는 시도가 거부돼야 한다"(IDOR 방지) 케이스다.
     describe("GET/POST /user/editform/oauth-apps-owned (사용자 셀프서비스 OAuth 앱 등록)") {
         val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
         val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")

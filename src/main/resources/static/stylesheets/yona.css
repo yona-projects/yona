@@ -3977,7 +3977,7 @@ label.inline-list:first-child {
 .badge.badge-issue-conflict {
   background-color: #C0392B;
 }
-/* yona-wiki P3-15(PR 승인/변경요청 워크플로) — PR 리뷰 판정(Approve/Request changes) 표시.
+/* PR 리뷰 판정(Approve/Request changes) 표시.
    GitHub PR 페이지의 초록 체크(승인)/빨간 X(변경요청) 관례를 그대로 따른다. */
 .review-verdict-badge {
   position: absolute;
@@ -7234,12 +7234,12 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   margin: 0;
   margin-left: 46px;
 }
-/* P3-73 후속: code diff에서 뜨는 리뷰 댓글 팝업은 화면 폭 대비 좁은 위치에 뜨고, 짧은
+/* code diff에서 뜨는 리뷰 댓글 팝업은 화면 폭 대비 좁은 위치에 뜨고, 짧은
    코드 코멘트 위주라 기본 --yona-md-min-height(300px, lib/yona-markdown-editor 기본값)는
    과하다 - 실측(13px 폰트 기준 한 줄 18.19px + .cm-content 상하 padding 4px씩)으로 계산한
    "5줄" 높이(약 100px)로 기본값을 줄인다. <yona-markdown-editor>는 에디터 컨테이너를
-   CSS Shadow Part로 "editor"라는 이름으로 노출해두고 있어(벤더 소스
-   setAttribute("part","editor") 확인), 벤더 파일을 건드리지 않고도 ::part()로 그 안쪽
+   CSS Shadow Part로 "editor"라는 이름으로 노출해두고 있어(벤더 소스의
+   setAttribute("part","editor")), 벤더 파일을 건드리지 않고도 ::part()로 그 안쪽
    요소에 직접 스타일을 줄 수 있다 - 네이티브 textarea의 resize:vertical과 동일한 사용자
    경험을 준다(세로로만, 최소 크기는 아래 --yona-md-min-height로 축소한 값). */
 .review-form yona-markdown-editor {
@@ -11883,7 +11883,7 @@ code {
   opacity: 50 / 100;
   /** default backdrop opacity is 80% **/
 }
-/** override tom-select (P3-46 #5: Select2 v3 -> Tom Select 교체) **/
+/** override tom-select (Select2 v3 -> Tom Select 교체) **/
 .ts-wrapper {
   text-align: left;
 }
@@ -12147,8 +12147,8 @@ input:-webkit-autofill:focus {
 .viewer-toolbar ul li {
   line-height: unset;
 }
-/** yona-markdown-editor 테마 계약 (P3-46 3단계, CM6-3단계) **/
-/* 옛 CodeMirror5 기반 에디터의 재스킨 CSS는 2단계에서 그 에디터 자체가 완전히 삭제되어
+/** yona-markdown-editor 테마 계약 **/
+/* 옛 CodeMirror5 기반 에디터의 재스킨 CSS는 그 에디터 자체가 완전히 삭제되어
    더 이상 어떤 마크업에도 매치되지 않는 죽은 규칙이 되었으므로 이번에 걷어내고, 그 자리를
    CM6 Web Component(<yona-markdown-editor>)의 ::part()/CSS 커스텀 프로퍼티 테마 계약으로
    대체한다. 색상/치수(툴바 배경 #fafafa, 테두리 rgba(0,0,0,.15), 포커스/hover 강조색 #51AACC,

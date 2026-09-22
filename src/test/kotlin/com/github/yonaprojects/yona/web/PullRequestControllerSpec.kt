@@ -145,10 +145,9 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(status().isNotFound)
             }
 
-            // 2026-09-22 신규 — raw List<PullRequest>를 그대로 반환하고 있어(단건 조회
-            // getPullRequest()는 이미 .toResponse()로 막아뒀는데 목록만 누락돼 있었다)
-            // contributor/toProject/fromProject를 통해 User.password까지 순환 노출되는 걸
-            // 실제 서버 호출로 확인했다(yonaco 서버 API 요청사항 문서 참고). 회귀 방지 테스트.
+            // raw List<PullRequest>를 그대로 반환하면(단건 조회 getPullRequest()는 이미
+            // .toResponse()로 막아뒀는데 목록만 누락돼 있었다) contributor/toProject/fromProject를
+            // 통해 User.password까지 순환 노출될 수 있다. 회귀 방지 테스트.
             it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -172,7 +171,7 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(status().isForbidden)
             }
 
-            // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr list --author` 대응.
+            // gh pr list --author 대응.
             it("author 파라미터가 있으면 contributor.loginId가 일치하는 PR만 반환해야 한다") {
                 val otherContributor = User(id = 30L, loginId = "othercontributor", name = "다른기여자")
                 val otherPr = PullRequest(
@@ -190,7 +189,7 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$[0].title").value("PR 제목"))
             }
 
-            // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — `gh pr list --assignee/--label` 대응.
+            // gh pr list --assignee/--label 대응.
             it("assignee 파라미터가 있으면 담당자 loginId가 일치하는 PR만 반환해야 한다") {
                 val assignedPr = PullRequest(
                     id = 52L, title = "담당자 있는 PR", toProject = project, fromProject = fromProject,
@@ -292,10 +291,10 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$[0].newValue").value("MERGED"))
             }
 
-            // 2026-09-22 신규 — raw List<PullRequestEvent>를 그대로 반환하고 있어
-            // event->pullRequest->contributor/toProject/fromProject를 통해 User.password까지
-            // 순환 노출되는 문제(IssueController.getTimeline()이 이미 겪고 고친 것과 동일)가
-            // 있었다. 회귀 방지 테스트.
+            // raw List<PullRequestEvent>를 그대로 반환하면 event->pullRequest->
+            // contributor/toProject/fromProject를 통해 User.password까지 순환 노출되는
+            // 문제(IssueController.getTimeline()이 이미 겪고 고친 것과 동일)가 있었다.
+            // 회귀 방지 테스트.
             it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
                 val prEvent = PullRequestEvent(
                     id = 1L, pullRequest = pullRequest,
@@ -369,9 +368,9 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(status().isCreated)
             }
 
-            // yona PullRequestApp.java:254 @IsCreatable(ResourceType.FORK) 대응 (P1-141) — 공개 프로젝트는
+            // legacy yona PullRequestApp @IsCreatable(ResourceType.FORK) 대응 — 공개 프로젝트는
             // 로그인한 비멤버도 PR을 보낼 수 있어야 하는데, checkWritePermission(멤버/그룹멤버 전용)만
-            // 쓰면 이 케이스가 차단돼 yona보다 과도하게 제한됐었다.
+            // 쓰면 이 케이스가 차단돼 legacy보다 과도하게 제한됐었다.
             it("공개 프로젝트는 로그인한 비멤버도 새 PR을 제출하면 201 Created를 반환해야 한다") {
                 val publicProject = Project(id = 3L, name = "PublicProject", projectScope = ProjectScope.PUBLIC)
                 val nonMember = User(id = 30L, loginId = "nonmember", name = "비멤버")
@@ -484,10 +483,10 @@ class PullRequestControllerSpec : DescribeSpec({
                 verify(exactly = 1) { pullRequestService.updatePullRequest(50L, "수정된 PR 제목", "수정된 PR 본문", "feature", "master") }
             }
 
-            // TASK-0420 — 실서버 재현: PR 생성 시 본문을 채우고 title만 바꾸는 `pr edit`을 실행하면
-            // yona-cli는 Body *string 필드가 nil이라 JSON에 "body" 키 자체를 아예 생략한다
-            // (`json:"body,omitempty"`). fromBranch/toBranch처럼 body도 null이면 기존 값으로
-            // 폴백해야 하는데 그 폴백이 없어 본문이 통째로 지워지던 버그.
+            // PR 생성 시 본문을 채우고 title만 바꾸는 `pr edit`을 실행하면 yona-cli는 Body
+            // *string 필드가 nil이라 JSON에 "body" 키 자체를 아예 생략한다(`json:"body,omitempty"`).
+            // fromBranch/toBranch처럼 body도 null이면 기존 값으로 폴백해야 하는데 그 폴백이 없어
+            // 본문이 통째로 지워지던 버그.
             it("요청 본문에 body가 아예 없으면(null) 기존 PR의 body를 그대로 유지해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -562,7 +561,7 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(status().isForbidden)
             }
 
-            // yona PullRequest.updateWith()의 from/toBranch 재할당 대응 (P1-68).
+            // legacy yona PullRequest.updateWith()의 from/toBranch 재할당 대응.
             it("요청에 fromBranch/toBranch가 포함되면 브랜치 재할당까지 서비스에 전달해야 한다") {
                 val rebranched = PullRequest(
                     id = 50L, title = "수정된 PR 제목", body = "수정된 PR 본문",
@@ -715,7 +714,8 @@ class PullRequestControllerSpec : DescribeSpec({
             }
         }
 
-        // yona AccessControl.isProjectResourceAllowed()의 PULL_REQUEST Operation.ACCEPT 분기 대응 (P1-78).
+        // legacy yona AccessControl.isProjectResourceAllowed()의 PULL_REQUEST Operation.ACCEPT
+        // 분기 대응.
         describe("POST /api/projects/{projectId}/pullrequests/{number}/reviewers") {
             it("로그인한 프로젝트 멤버가 리뷰어로 참여하면 200 OK를 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
@@ -832,8 +832,8 @@ class PullRequestControllerSpec : DescribeSpec({
             }
         }
 
-        // yona-wiki P3-15(PR 승인/변경요청 워크플로) — addReviewer/removeReviewer와 동일한 권한 체크
-        // (checkWritePermission) 패턴을 그대로 검증한다.
+        // addReviewer/removeReviewer와 동일한 권한 체크(checkWritePermission) 패턴을 그대로
+        // 검증한다.
         describe("POST /api/projects/{projectId}/pullrequests/{number}/reviews") {
             it("로그인한 프로젝트 멤버가 APPROVE 판정을 제출하면 201 Created를 반환해야 한다") {
                 val review = PullRequestReview(
@@ -858,7 +858,7 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.state").value("APPROVE"))
             }
 
-            // 설계 결정 3번(GitHub 방식 기본값) — 자기 자신의 PR은 승인/변경요청할 수 없다.
+            // 설계 결정(GitHub 방식 기본값) — 자기 자신의 PR은 승인/변경요청할 수 없다.
             it("자기 자신의 PR을 승인하려 하면 400 Bad Request를 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -970,8 +970,8 @@ class PullRequestControllerSpec : DescribeSpec({
             }
         }
 
-        // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 담당자 지정/해제.
-        // addReviewer/removeReviewer와 동일한 권한 체크(checkWritePermission) 패턴을 그대로 검증한다.
+        // PR 담당자 지정/해제. addReviewer/removeReviewer와 동일한 권한
+        // 체크(checkWritePermission) 패턴을 그대로 검증한다.
         describe("PUT /api/projects/{projectId}/pullrequests/{number}/assignee") {
             it("로그인한 프로젝트 멤버가 담당자를 지정하면 200 OK와 갱신된 PR을 반환해야 한다") {
                 val assigned = PullRequest(
@@ -1079,7 +1079,7 @@ class PullRequestControllerSpec : DescribeSpec({
             }
         }
 
-        // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 라벨 추가/제거.
+        // PR 라벨 추가/제거.
         describe("POST /api/projects/{projectId}/pullrequests/{number}/labels") {
             it("로그인한 프로젝트 멤버가 라벨을 추가하면 200 OK와 갱신된 PR을 반환해야 한다") {
                 val labeled = PullRequest(
@@ -1381,7 +1381,7 @@ class PullRequestControllerSpec : DescribeSpec({
             }
         }
 
-        // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr diff` 대응.
+        // gh pr diff 대응.
         describe("GET /api/projects/{projectId}/pullrequests/{number}/diff") {
             it("PR의 diff 목록을 반환해야 한다") {
                 val diffs = listOf(com.github.yonaprojects.yona.domain.vcs.FileDiff())
@@ -1397,7 +1397,7 @@ class PullRequestControllerSpec : DescribeSpec({
                 verify(exactly = 1) { pullRequestService.getDiff(pullRequest) }
             }
 
-            // TASK-0419 — FileDiff 엔티티를 그대로 반환하면 JGit 내부 타입(RawText/EditList/FileMode)이
+            // FileDiff 엔티티를 그대로 반환하면 JGit 내부 타입(RawText/EditList/FileMode)이
             // 노출된다(그중 RawText는 rawContent라는 이름의 byte[] 필드를 base64로 노출). 응답이
             // pathA/pathB/changeType/patch 같은 단순 필드로만 구성된 FileDiffResponse여야 하고,
             // JGit 내부 표현(rawContent/editList)은 응답에 아예 없어야 한다.
@@ -1445,7 +1445,7 @@ class PullRequestControllerSpec : DescribeSpec({
             }
         }
 
-        // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr comment` 대응.
+        // gh pr comment 대응.
         describe("POST /api/projects/{projectId}/pullrequests/{number}/comments") {
             it("로그인한 사용자는 PR에 댓글을 남길 수 있다(멤버십과 무관 - REVIEW_COMMENT는 항상 생성 가능)") {
                 val comment = com.github.yonaprojects.yona.domain.pullrequest.ReviewComment(id = 5L, contents = "댓글")
@@ -1465,11 +1465,11 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.id").value(5))
             }
 
-            // 2026-09-22 신규 — raw ReviewComment 엔티티를 그대로 반환하고 있어
-            // comment->thread->project/pullRequest를 통해 User.password까지 순환 노출되는 걸
-            // 실제 서버 호출로 확인했다. ReviewCommentResponse는 이미 있었는데(RestApiResponseDto.kt)
-            // 이 호출부만 안 쓰고 있었다. 회귀 방지 테스트 - thread가 pullRequest/project를 실제로
-            // 참조해야 순환 경로가 만들어지므로 위 테스트의 thread 없는 댓글로는 검증되지 않는다.
+            // raw ReviewComment 엔티티를 그대로 반환하면 comment->thread->project/pullRequest를
+            // 통해 User.password까지 순환 노출될 수 있다. ReviewCommentResponse는 이미
+            // 있었는데(RestApiResponseDto.kt) 이 호출부만 안 쓰고 있었다. 회귀 방지 테스트 - thread가
+            // pullRequest/project를 실제로 참조해야 순환 경로가 만들어지므로 위 테스트의 thread 없는
+            // 댓글로는 검증되지 않는다.
             it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
                 val thread = com.github.yonaprojects.yona.domain.pullrequest.NonRangedCodeCommentThread(
                     id = 200L, pullRequest = pullRequest, project = project

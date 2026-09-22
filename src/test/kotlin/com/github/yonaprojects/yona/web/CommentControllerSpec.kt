@@ -128,7 +128,7 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.contents").value("이슈댓글"))
             }
 
-            // yona models/Comment.java:45 parentCommentId 대응 (P1-112).
+            // legacy yona models/Comment.parentCommentId 대응.
             it("parentCommentId가 전달되면 commentService에 그대로 전달되어야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -147,7 +147,7 @@ class CommentControllerSpec : DescribeSpec({
                 verify(exactly = 1) { commentService.createIssueComment(50L, "답글", user, 100L) }
             }
 
-            // P2-34: AccessControl.isResourceCreatable() 이식 후, 프로젝트 READ 권한이 아니라
+            // AccessControl.isResourceCreatable() 이식 후, 프로젝트 READ 권한이 아니라
             // 이슈 작성자/담당자/공유대상 우회 + 프로젝트 생성권한으로 판단한다 — 이 이슈의 작성자도
             // 담당자도 공유대상도 아니고 프로젝트 멤버도 아닌 사용자는 403.
             it("이슈 작성자/담당자/공유대상도 아니고 프로젝트 멤버도 아닌 사용자가 호출 시 403 Forbidden을 반환해야 한다") {
@@ -164,7 +164,7 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isForbidden)
             }
 
-            // P2-34: yona AccessControl.java isAllowedIfAuthor() 우회 대응 — 프로젝트 비멤버라도
+            // yona AccessControl.isAllowedIfAuthor() 우회 대응 — 프로젝트 비멤버라도
             // 이슈 작성자라면 댓글을 달 수 있다.
             it("프로젝트 비멤버라도 이슈 작성자라면 201 Created를 반환해야 한다") {
                 val nonMemberAuthor = User(id = 30L, loginId = "issueauthor", name = "이슈작성자")
@@ -243,9 +243,9 @@ class CommentControllerSpec : DescribeSpec({
             }
         }
 
-        // 2026-09-22 신규 — 지금까지 이 리소스는 생성/수정/삭제뿐이라 PAT 클라이언트가 자기가
-        // 방금 쓴 댓글 하나만 알고 그 전에 달린 댓글 이력은 못 봤다(yonaco 서버 API 요청사항
-        // 문서 3번). 조회는 작성과 달리 이슈 작성자/담당자 우회 없이 일반 READ 권한만 확인한다.
+        // 지금까지 이 리소스는 생성/수정/삭제뿐이라 PAT 클라이언트가 자기가 방금 쓴 댓글 하나만
+        // 알고 그 전에 달린 댓글 이력은 못 봤다. 조회는 작성과 달리 이슈 작성자/담당자 우회 없이
+        // 일반 READ 권한만 확인한다.
         describe("GET /api/projects/{projectId}/issues/{number}/comments (이슈 댓글 조회)") {
             val secondComment = IssueComment(
                 id = 101L,
@@ -629,9 +629,6 @@ class CommentControllerSpec : DescribeSpec({
                 verify(exactly = 0) { commentService.deleteIssueComment(any(), any()) }
             }
 
-            // Role.id는 @Id(PK)라 실제 DB에서 조회되면 항상 non-null이지만, isManager 람다
-            // (it.role.id == RoleType.MANAGER.roleType)의 role.id가 null인 방어분기도 mockk로
-            // 직접 구성 가능해 함께 커버한다.
             it("역할 id가 null인 프로젝트 멤버가 삭제 시도하면 403 Forbidden을 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("memberuser") } returns Optional.of(memberUser)
@@ -694,7 +691,6 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(jsonPath("$.contents").value("게시판댓글"))
             }
 
-            // yona models/Comment.java:45 parentCommentId 대응 (P1-112).
             it("parentCommentId가 전달되면 commentService에 그대로 전달되어야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
@@ -713,7 +709,7 @@ class CommentControllerSpec : DescribeSpec({
                 verify(exactly = 1) { commentService.createPostingComment(60L, "답글", user, 200L) }
             }
 
-            // P2-34: AccessControl.isResourceCreatable() 이식 후, 프로젝트 READ 권한이 아니라
+            // AccessControl.isResourceCreatable() 이식 후, 프로젝트 READ 권한이 아니라
             // 게시글 작성자 우회 + 프로젝트 생성권한으로 판단한다 — 작성자도 아니고 프로젝트
             // 멤버도 아닌 사용자는 403.
             it("게시글 작성자도 아니고 프로젝트 멤버도 아닌 사용자가 호출 시 403 Forbidden을 반환해야 한다") {
@@ -730,7 +726,7 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isForbidden)
             }
 
-            // P2-34: yona AccessControl.java isAllowedIfAuthor() 우회 대응 — 프로젝트 비멤버라도
+            // yona AccessControl.isAllowedIfAuthor() 우회 대응 — 프로젝트 비멤버라도
             // 게시글 작성자라면 댓글을 달 수 있다.
             it("프로젝트 비멤버라도 게시글 작성자라면 201 Created를 반환해야 한다") {
                 val nonMemberAuthor = User(id = 31L, loginId = "postauthor", name = "게시글작성자")
@@ -954,7 +950,6 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isNotFound)
             }
 
-            // isManager 람다가 false를 반환하는 분기 커버.
             it("작성자도 매니저도 아닌 프로젝트 멤버가 수정 시 403 Forbidden을 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("memberuser") } returns Optional.of(memberUser)
@@ -973,9 +968,6 @@ class CommentControllerSpec : DescribeSpec({
                 verify(exactly = 0) { commentService.updatePostingComment(any(), any(), any()) }
             }
 
-            // Role.id는 @Id(PK)라 실제 DB에서 조회되면 항상 non-null이지만, isManager 람다
-            // (it.role.id == RoleType.MANAGER.roleType)의 role.id가 null인 방어분기도 mockk로
-            // 직접 구성 가능해 함께 커버한다.
             it("역할 id가 null인 프로젝트 멤버가 수정 시도하면 403 Forbidden을 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("memberuser") } returns Optional.of(memberUser)
@@ -994,7 +986,6 @@ class CommentControllerSpec : DescribeSpec({
                 verify(exactly = 0) { commentService.updatePostingComment(any(), any(), any()) }
             }
 
-            // isManager 람다가 true를 반환하는 분기 커버 — 매니저는 작성자가 아니어도 수정할 수 있다.
             it("매니저는 타인이 작성한 게시글 댓글도 수정할 수 있어야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("manageruser") } returns Optional.of(managerUser)
@@ -1087,7 +1078,6 @@ class CommentControllerSpec : DescribeSpec({
                     .andExpect(status().isNotFound)
             }
 
-            // isManager 람다가 false를 반환하는 분기 커버.
             it("작성자도 매니저도 아닌 프로젝트 멤버가 삭제 시 403 Forbidden을 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("memberuser") } returns Optional.of(memberUser)
@@ -1104,9 +1094,6 @@ class CommentControllerSpec : DescribeSpec({
                 verify(exactly = 0) { commentService.deletePostingComment(any(), any()) }
             }
 
-            // Role.id는 @Id(PK)라 실제 DB에서 조회되면 항상 non-null이지만, isManager 람다
-            // (it.role.id == RoleType.MANAGER.roleType)의 role.id가 null인 방어분기도 mockk로
-            // 직접 구성 가능해 함께 커버한다.
             it("역할 id가 null인 프로젝트 멤버가 삭제 시도하면 403 Forbidden을 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("memberuser") } returns Optional.of(memberUser)
@@ -1123,7 +1110,6 @@ class CommentControllerSpec : DescribeSpec({
                 verify(exactly = 0) { commentService.deletePostingComment(any(), any()) }
             }
 
-            // isManager 람다가 true를 반환하는 분기 커버 — 매니저는 작성자가 아니어도 삭제할 수 있다.
             it("매니저는 타인이 작성한 게시글 댓글도 삭제할 수 있어야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
                 every { userRepository.findByLoginId("manageruser") } returns Optional.of(managerUser)
@@ -1151,8 +1137,8 @@ class CommentControllerSpec : DescribeSpec({
             }
         }
 
-        // yona controllers/api/IssueApi.java newIssueComment()/updateIssueComment(),
-        // controllers/api/BoardApi.java newPostingComment()/updatePostingComment() 대응 (P2-56/57)
+        // legacy yona controllers/api/IssueApi.newIssueComment()/updateIssueComment(),
+        // controllers/api/BoardApi.newPostingComment()/updatePostingComment() 대응.
         describe("legacy Open API 경로 별칭 (-_-api/v1)") {
             it("POST /-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments — comment 필드로 이슈 댓글을 생성한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)

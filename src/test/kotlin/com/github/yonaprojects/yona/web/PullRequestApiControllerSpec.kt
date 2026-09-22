@@ -28,7 +28,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.util.Optional
 
-// yona-wiki P3-02 Step5 — PullRequestApiController(/api/v1/projects/{owner}/{project}/pull-requests)도
+// PullRequestApiController(/api/v1/projects/{owner}/{project}/pull-requests)도
 // IssueRestApiController와 동일하게 owner/project 이름을 숫자 projectId로 바꿔 기존
 // PullRequestController에 위임하는 얇은 어댑터다. 이 스펙은 위임/404 처리만 검증한다 — 머지/리뷰어
 // 등록 자체의 업무 로직(Git 머지, 리뷰어 수 검증 등)은 PullRequestControllerSpec/
@@ -132,8 +132,8 @@ class PullRequestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 12라운드(2026-09-01, 실측으로 발견한 실제 기능 갭) — addReviewer만 있고
-    // removeReviewer 어댑터가 없어 리뷰어 등록 취소를 v1 API/CLI로 할 방법이 없었다.
+    // addReviewer만 있고 removeReviewer 어댑터가 없어 리뷰어 등록 취소를 v1 API/CLI로 할 방법이
+    // 없었던 기능 갭.
     describe("DELETE /api/v1/projects/{owner}/{project}/pull-requests/{number}/reviewers") {
         it("PullRequestController.removeReviewer에 위임한다") {
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
@@ -146,8 +146,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-15(PR 승인/변경요청 워크플로) — GitHub의
-    // POST /repos/{owner}/{repo}/pulls/{number}/reviews 대응 v1 어댑터.
+    // GitHub의 POST /repos/{owner}/{repo}/pulls/{number}/reviews 대응 v1 어댑터.
     describe("POST /api/v1/projects/{owner}/{project}/pull-requests/{number}/reviews") {
         it("PullRequestController.submitReview에 위임한다") {
             val review = PullRequestReview(
@@ -191,9 +190,8 @@ class PullRequestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr edit`. 재검증 결과 서비스/컨트롤러 로직
-    // 자체는 이미 있었고(PullRequestController.updatePullRequest, PUT) 이 신규 REST API에 PATCH
-    // 위임 어댑터만 없었다.
+    // gh pr edit에 대응. 서비스/컨트롤러 로직 자체는 이미 있었고(PullRequestController.
+    // updatePullRequest, PUT) 이 REST API에 PATCH 위임 어댑터만 없었다.
     describe("PATCH /api/v1/projects/{owner}/{project}/pull-requests/{number}") {
         it("PullRequestController.updatePullRequest에 위임한다") {
             val pr = PullRequest(id = 3L, number = 1L, title = "수정된 PR", fromProject = project, toProject = project, contributor = contributor)
@@ -221,8 +219,8 @@ class PullRequestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr close`/`gh pr reopen`. 재검증 결과
-    // 서버에는 이미 범용 상태변경 API(PullRequestController.changeState)가 존재했다.
+    // gh pr close/gh pr reopen에 대응. 서버에는 이미 범용 상태변경
+    // API(PullRequestController.changeState)가 존재했다.
     describe("POST /api/v1/projects/{owner}/{project}/pull-requests/{number}/close") {
         it("PullRequestController.changeState(CLOSED)에 위임한다") {
             val pr = PullRequest(id = 3L, number = 1L, title = "PR", fromProject = project, toProject = project, contributor = contributor, state = State.CLOSED)
@@ -249,7 +247,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr diff`.
+    // gh pr diff에 대응.
     describe("GET /api/v1/projects/{owner}/{project}/pull-requests/{number}/diff") {
         it("PullRequestController.getDiff에 위임한다") {
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
@@ -262,7 +260,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 4라운드(Step8.5 서버 보강) — `gh pr comment`.
+    // gh pr comment에 대응.
     describe("POST /api/v1/projects/{owner}/{project}/pull-requests/{number}/comments") {
         it("PullRequestController.addComment에 위임한다") {
             val comment = ReviewComment(id = 9L, contents = "댓글")
@@ -280,7 +278,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — PR 담당자/라벨 CRUD 어댑터.
+    // PR 담당자/라벨 CRUD 어댑터.
     describe("PUT /api/v1/projects/{owner}/{project}/pull-requests/{number}/assignee") {
         it("PullRequestController.setAssignee에 위임한다") {
             val pr = PullRequest(id = 3L, number = 1L, title = "PR", fromProject = project, toProject = project, contributor = contributor)
@@ -349,7 +347,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         }
     }
 
-    // yona-wiki P3-02 Step8.6 항목4(2026-09-01, 우선순위 4위) — `gh pr list --assignee/--label` 위임 확인.
+    // gh pr list --assignee/--label 위임 확인.
     describe("GET /api/v1/projects/{owner}/{project}/pull-requests (assignee/label 필터)") {
         it("assignee/label 쿼리 파라미터를 PullRequestController.getPullRequests에 그대로 전달한다") {
             val pr = PullRequest(id = 3L, number = 1L, title = "PR", fromProject = project, toProject = project, contributor = contributor)

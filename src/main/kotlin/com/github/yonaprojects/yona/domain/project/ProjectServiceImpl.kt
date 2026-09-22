@@ -218,33 +218,33 @@ class ProjectServiceImpl(
             projectRepository.save(fork)
         }
 
-        // yona Project.delete():723-725 issues 루프 대응(댓글/이벤트/즐겨찾기/첨부파일/TitleHead까지
+        // yona Project.delete()의 issues 루프 대응(댓글/이벤트/즐겨찾기/첨부파일/TitleHead까지
         // IssueServiceImpl.deleteIssueCascade()가 함께 정리).
         issueRepository.findByProject(project).forEach { issueService.deleteIssueCascade(it) }
 
-        // yona Project.delete():727-729 IssueLabelCategory 삭제 대응(라벨 및 조인테이블까지 함께 정리).
+        // yona Project.delete()의 IssueLabelCategory 삭제 대응(라벨 및 조인테이블까지 함께 정리).
         issueLabelCategoryRepository.findByProject(project).forEach { category ->
             issueLabelService.deleteCategory(category.id!!)
         }
 
-        // yona Project.delete():731-733 assignees 루프 대응 — Issue.assignee의 cascade=ALL로 대부분
+        // yona Project.delete()의 assignees 루프 대응 — Issue.assignee의 cascade=ALL로 대부분
         // 이미 삭제되지만, 어떤 이슈에도 연결되지 않은 잔여 Assignee가 있을 경우를 대비한 방어적 정리.
         assigneeRepository.deleteAll(assigneeRepository.findByProjectId(projectId))
 
-        // yona Project.delete():735-737 webhooks 루프 대응 — WebhookThread.webhook_id FK가
+        // yona Project.delete()의 webhooks 루프 대응 — WebhookThread.webhook_id FK가
         // nullable=false라 웹훅을 지우기 전에 먼저 정리해야 한다.
         webhookRepository.findByProjectId(projectId).forEach { webhook ->
             webhookThreadRepository.deleteAll(webhookThreadRepository.findByWebhookId(webhook.id!!))
             webhookRepository.delete(webhook)
         }
 
-        // yona Project.delete():739-741 posts 루프 대응 — 프로젝트 전체가 삭제되는 상황이라
+        // yona Project.delete()의 posts 루프 대응 — 프로젝트 전체가 삭제되는 상황이라
         // 게시글 개수만큼 알림이 발행되지 않도록 deletePosting() 대신 알림을 발행하지 않는
         // deletePostingCascade()를 쓴다(legacy도 Project.delete()에서 posting.delete()를 직접
         // 호출할 뿐 알림 발행 경로를 타지 않는다).
         postingRepository.findByProject(project).forEach { postingService.deletePostingCascade(it) }
 
-        // yona Project.delete():743-746 labels 루프 대응 — yona의 Label은 project 소유 필드가 없는
+        // yona Project.delete()의 labels 루프 대응 — yona의 Label은 project 소유 필드가 없는
         // category+name 기반 공용 개체라 project_label 조인테이블 행은 Project 삭제 시 Hibernate가
         // 자동으로 정리한다(별도 unlink 호출 불필요).
 
@@ -507,10 +507,11 @@ class ProjectServiceImpl(
 
         // 물리 저장소를 하드링크(Hard Link) 방식으로 무복사 복제 — cloneHardLinkedRepository() 자체는
         // 디렉터리를 재귀적으로 훑어 모든 파일을 하드링크하는 범용 구현이라 git 전용이 아니다
-        // (SVN/Mercurial 저장소 디렉터리 구조에도 그대로 적용 가능). 다만 아래 sourceDir/targetDir이
-        // 1라운드까지는 vcs 종류와 무관하게 항상 ".git" 접미사를 붙이고 있어(acceptTransfer()와 동일한
-        // 결함), SvnRepository/HgRepository의 접미사 없는 실제 경로와 어긋나 SVN/Mercurial 프로젝트는
-        // sourceDir.exists()가 거짓이 되어 포크 시 물리 복제가 조용히 no-op됐다 — 2라운드에서 수정.
+        // (SVN/Mercurial 저장소 디렉터리 구조에도 그대로 적용 가능). 예전에는 sourceDir/targetDir이
+        // vcs 종류와 무관하게 항상 ".git" 접미사를 붙이고 있어(acceptTransfer()와 동일한 결함),
+        // SvnRepository/HgRepository의 접미사 없는 실제 경로와 어긋나 SVN/Mercurial 프로젝트는
+        // sourceDir.exists()가 거짓이 되어 포크 시 물리 복제가 조용히 no-op됐다 — 아래처럼 vcs
+        // 종류에 따라 접미사를 다르게 붙이도록 고쳤다.
         val vcsUpper = original.vcs?.uppercase()
         val baseDir = when (vcsUpper) {
             "SUBVERSION", "SVN" -> svnBaseDir

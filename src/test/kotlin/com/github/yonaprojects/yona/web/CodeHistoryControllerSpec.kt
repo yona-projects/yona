@@ -118,10 +118,10 @@ class CodeHistoryControllerSpec : DescribeSpec({
                     .andExpect(status().isNotFound)
             }
 
-            // 2026-09-22 신규 — raw CommitComment 엔티티를 그대로 반환하고 있어
-            // comment->project->projectUsers->user 순환으로 User.password까지 노출되는 걸
-            // 코드 추적으로 확인했다(IssueResponse/ReviewCommentResponse와 동일한 근본원인).
-            // 회귀 방지 테스트 - project에 실제로 다른 멤버가 있어야 순환 경로가 만들어진다.
+            // raw CommitComment 엔티티를 그대로 반환하면 comment->project->projectUsers->user
+            // 순환으로 User.password까지 노출될 수 있다(IssueResponse/ReviewCommentResponse와
+            // 동일한 근본원인). 회귀 방지 테스트 - project에 실제로 다른 멤버가 있어야 순환
+            // 경로가 만들어진다.
             it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
                 val memberWithPassword = User(id = 999L, loginId = "member2", name = "다른멤버")
                 val projectWithMember = Project(id = 1L, name = "TestProj", owner = "owner", projectScope = ProjectScope.PUBLIC)
@@ -229,8 +229,8 @@ class CodeHistoryControllerSpec : DescribeSpec({
                     .andExpect(status().isNotFound)
             }
 
-            // 2026-09-22 신규 — listComments()도 POST와 동일하게 raw List<CommitComment>를
-            // 그대로 반환하고 있어 순환 직렬화로 password가 노출될 수 있었다. 회귀 방지 테스트.
+            // listComments()도 POST와 동일하게 raw List<CommitComment>를 그대로 반환하고 있어
+            // 순환 직렬화로 password가 노출될 수 있었다. 회귀 방지 테스트.
             it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
                 val memberWithPassword = User(id = 998L, loginId = "member3", name = "또다른멤버")
                 val projectWithMember = Project(id = 1L, name = "TestProj", owner = "owner", projectScope = ProjectScope.PUBLIC)

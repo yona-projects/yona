@@ -228,18 +228,17 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
     await expect(page.locator('a[data-request-uri*="state=OPEN"]')).toHaveCount(0);
   });
 
-  // CORRECTED DIAGNOSIS (was previously mis-attributed to a cross-fork git conflict -- that
-  // theory does not hold under a clean sequential full-suite run, verified live): the real cause
-  // is this file's own "self-registers, approves, then un-registers" reviewer test above, which
-  // un-registers the only reviewer at its end while `project.isUsingReviewerCount` (enabled by
-  // the very first test in this file) is still on. PullRequestViewController.addCommonPrAttributes()
-  // computes `isAcceptable` as OPEN && !conflict && !merging && meetsReviewerCount, where
+  // #btnAccept fails to render here unless the reviewer-count requirement is disabled first: this
+  // file's own "self-registers, approves, then un-registers" reviewer test above un-registers the
+  // only reviewer at its end while `project.isUsingReviewerCount` (enabled by the very first test
+  // in this file) is still on. PullRequestViewController.addCommonPrAttributes() computes
+  // `isAcceptable` as OPEN && !conflict && !merging && meetsReviewerCount, where
   // meetsReviewerCount requires `pullRequest.reviewers.size >= project.defaultReviewerCount` --
   // with zero registered reviewers left, that gate fails and #btnAccept never renders (a disabled,
-  // id-less button shows instead), even though there is no actual git conflict (confirmed live:
-  // the state banner correctly shows `pullRequest.is.safe`, "This pull request can be merged
-  // safely"). Since this test's purpose is exercising merge, not reviewer-count enforcement,
-  // disable the reviewer-count requirement first so the merge gate reflects only mergeability.
+  // id-less button shows instead) even though there is no actual git conflict (the state banner
+  // correctly shows `pullRequest.is.safe`, "This pull request can be merged safely"). Since this
+  // test's purpose is exercising merge, not reviewer-count enforcement, disable the
+  // reviewer-count requirement first so the merge gate reflects only mergeability.
   test('PR can be merged', async ({ page }) => {
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');

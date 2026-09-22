@@ -24,11 +24,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder
 import java.util.Optional
 
-// yona-wiki P3-07(MCP 서버) Step5 — merge_pull_request는 계획 문서 리스크 표 1순위(AI 에이전트가
-// PR을 임의 머지할 위험)라, "스코프가 없으면 PullRequestController.mergePullRequest()가 절대
-// 호출되지 않는다"는 것을 다른 어떤 도구보다도 명확하게 검증한다. checkBranchProtectionForMerge()
-// 자체([[p3-04-branch-protection]])는 PullRequestServiceImplSpec에서 이미 검증돼 있으므로 여기서는
-// "이 도구가 그 경로를 그대로 타는지"(같은 컨트롤러 메서드 호출)만 확인한다.
+// merge_pull_request는 AI 에이전트가 PR을 임의 머지할 위험이 가장 큰 도구라, "스코프가
+// 없으면 PullRequestController.mergePullRequest()가 절대 호출되지 않는다"는 것을 다른 어떤
+// 도구보다도 명확하게 검증한다. checkBranchProtectionForMerge() 자체는
+// PullRequestServiceImplSpec에서 이미 검증돼 있으므로 여기서는 "이 도구가 그 경로를 그대로
+// 타는지"(같은 컨트롤러 메서드 호출)만 확인한다.
 class PullRequestMcpToolsSpec : DescribeSpec({
     val projectRepository = mockk<ProjectRepository>()
     val pullRequestController = mockk<PullRequestController>()
@@ -96,9 +96,9 @@ class PullRequestMcpToolsSpec : DescribeSpec({
         }
     }
 
-    // 2026-09-09 코디네이터 재작성(사용자 지시) — review_pull_request가 이제 실제 Approve/Request
-    // changes/Comment 판정(P3-15 submitReview())에 연결됐다(예전에는 addReviewer로만 매핑돼
-    // 실제 승인/변경요청을 전혀 못 냈었다 — 실제 기능 갭이었음).
+    // review_pull_request는 실제 Approve/Request changes/Comment 판정(submitReview())에
+    // 연결된다 — 예전에는 addReviewer로만 매핑돼 실제 승인/변경요청을 전혀 못 냈던 기능 갭이
+    // 있었다.
     describe("review_pull_request") {
         it("PULL_REQUESTS:WRITE 스코프를 검증한 뒤 submitReview에 실제 판정을 그대로 넘겨야 한다") {
             val review = PullRequestReviewResponse(
@@ -174,8 +174,8 @@ class PullRequestMcpToolsSpec : DescribeSpec({
         }
     }
 
-    // 2026-09-09 코디네이터 신설(사용자 지시) — review_pull_request가 예전에 하던 "판정 없이
-    // 리뷰어로만 등록" 동작을 하위 호환용으로 분리한 도구.
+    // review_pull_request가 예전에 하던 "판정 없이 리뷰어로만 등록" 동작을 하위 호환용으로
+    // 분리한 도구.
     describe("add_reviewer") {
         it("PULL_REQUESTS:WRITE 스코프를 검증한 뒤 addReviewer에 위임해야 한다") {
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)

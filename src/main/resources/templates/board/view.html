@@ -206,7 +206,7 @@
     <!-- Confirm to delete post - 네이티브 <dialog>. data-toggle="modal"은 트리거에서 제거했다
          (아래 스크립트가 직접 showModal() 호출) - bootstrap.js(미수정)의 전역 데이터 API
          델리게이트가 여전히 살아있어 속성을 남기면 같은 클릭에 이중으로 반응해 InvalidStateError가
-         난다(Playwright로 재현). -->
+         난다. -->
     <dialog id="deleteConfirm" class="modal">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">×</button>
@@ -334,7 +334,7 @@
         });
         // 새 댓글 등록 폼(#comment-form)의 th:action이 가리키는
         // "/{owner}/{projectName}/post/{postNumber}/comment" 경로는 어느 컨트롤러에도 매핑돼
-        // 있지 않아 항상 404였다(Playwright로 재현, CSRF와는 무관). 형제 폼들과 동일하게
+        // 있지 않아 항상 404였다(CSRF와는 무관). 형제 폼들과 동일하게
         // REST(POST .../comments)로 전환한다.
         //
         // yona.CommentForm.js의 기능(빈 값 제출 방지/Ctrl+Shift+Enter 단축 제출/beforeunload

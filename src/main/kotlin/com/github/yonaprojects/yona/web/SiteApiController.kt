@@ -37,7 +37,7 @@ class SiteApiController(
     private val environment: Environment
 ) {
 
-    // 버그#15: 이 클래스는 원래 checkAdmin()의 인가 실패를 IllegalArgumentException으로 던지고
+    // 이 클래스는 원래 checkAdmin()의 인가 실패를 IllegalArgumentException으로 던지고
     // 클래스 전역 @ExceptionHandler(IllegalArgumentException::class)로 403을 응답했는데, 이
     // 예외 타입은 IllegalArgumentException의 서브타입인 NumberFormatException 등 완전히 무관한
     // 진짜 서버 에러까지 전부 붙잡아 403 "FORBIDDEN"으로 위장해버렸다(exportData()에서 실제로
