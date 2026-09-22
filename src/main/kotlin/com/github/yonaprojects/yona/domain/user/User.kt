@@ -5,6 +5,7 @@ import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.organization.OrganizationUser
 import com.github.yonaprojects.yona.domain.organization.Organization
 import com.github.yonaprojects.yona.domain.role.RoleType
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.time.Instant
 import java.util.Locale
@@ -24,12 +25,19 @@ class User(
     @Column(nullable = false, unique = true)
     var loginId: String = "",
 
+    // 컨트롤러가 raw entity를 실수로 반환하는 경로(2026-09 감사에서 반복 발견)와 무관하게 항상
+    // 막히도록, 필드 자체에 최종 방어선을 둔다.
+    @JsonIgnore
     var password: String? = null,
+    @JsonIgnore
     var passwordSalt: String? = null,
 
     @Column(nullable = false)
     var email: String = "",
 
+    // 레거시 전권 API 토큰(ApiTokenAuthenticationFilter.authenticateLegacy) — password와
+    // 동급의 자격증명이라 동일하게 직렬화 금지.
+    @JsonIgnore
     var token: String? = null,
 
     var rememberMe: Boolean = false,

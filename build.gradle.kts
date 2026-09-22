@@ -187,6 +187,10 @@ dependencies {
 	// 서버 측 서명 검증까지 태우는 통합테스트에 쓴다. spring-security-webauthn이 끌어오는
 	// webauthn4j-core와 버전을 맞춰야 한다.
 	testImplementation("com.webauthn4j:webauthn4j-test:0.31.9.RELEASE")
+
+	// 2026-09-22 — @RestController가 raw JPA 엔티티를 반환하는 실수(password 노출 패턴)가
+	// 감사 때마다 새로 발견되는 걸 막기 위해, 그 실수를 빌드 타임에 강제로 잡는 아키텍처 테스트용.
+	testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }
 
 kotlin {
