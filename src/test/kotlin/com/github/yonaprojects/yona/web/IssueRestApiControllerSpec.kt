@@ -153,6 +153,28 @@ class IssueRestApiControllerSpec : DescribeSpec({
         }
     }
 
+    describe("GET /api/v1/projects/{owner}/{project}/issues/{number}/comments") {
+        it("프로젝트가 없으면 404를 반환한다") {
+            every { projectRepository.findByOwnerAndName("yona", "unknown") } returns Optional.empty()
+
+            mockMvc.perform(get("/api/v1/projects/yona/unknown/issues/5/comments"))
+                .andExpect(status().isNotFound)
+        }
+
+        it("CommentController.getIssueComments에 위임한다") {
+            val issue = Issue(id = 5L, number = 5L, title = "제목", project = project)
+            val comment = IssueComment(id = 9L, contents = "댓글", issue = issue)
+            every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
+            every { commentController.getIssueComments(1L, 5L, any()) } returns ResponseEntity.ok(listOf(comment.toResponse()))
+
+            mockMvc.perform(get("/api/v1/projects/yona/yona/issues/5/comments"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$[0].contents").value("댓글"))
+
+            verify(exactly = 1) { commentController.getIssueComments(1L, 5L, any()) }
+        }
+    }
+
     describe("POST /api/v1/projects/{owner}/{project}/issues/{number}/close") {
         it("IssueController.changeState를 CLOSED로 호출한다") {
             val issue = Issue(id = 5L, number = 5L, title = "제목", state = State.CLOSED, project = project)

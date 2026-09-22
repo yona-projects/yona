@@ -117,6 +117,18 @@ class IssueRestApiController(
         return commentController.createIssueComment(found.id!!, number, request, authentication)
     }
 
+    @GetMapping("/{number}/comments")
+    fun getComments(
+        @PathVariable owner: String,
+        @PathVariable project: String,
+        @PathVariable number: Long,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val found = projectRepository.findByOwnerAndName(owner, project).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+        return commentController.getIssueComments(found.id!!, number, authentication)
+    }
+
     @PostMapping("/{number}/close")
     fun close(
         @PathVariable owner: String,

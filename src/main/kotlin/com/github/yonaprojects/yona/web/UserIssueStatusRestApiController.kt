@@ -127,11 +127,16 @@ class UserIssueStatusRestApiController(
         )
     }
 
+    // 2026-09-22 발견/수정 — raw Issue 엔티티를 그대로 내려주고 있어(RestApiResponseDto.kt 상단
+    // 주석이 경고하는 정확히 그 문제) issue->project->projectUsers[]->user->projectUsers[]->...로
+    // 순환 직렬화되며 User.password(해시값)까지 응답에 노출되는 걸 실제 서버 호출로 확인했다.
+    // 다른 모든 이슈/PR API가 이미 쓰는 IssueResponse 변환 패턴으로 통일해 막는다 - 부수적으로
+    // projectOwner/projectName도 함께 내려가 클라이언트가 이 항목만으로 프로젝트를 식별할 수 있다.
     private fun sectionNode(page: Page<Issue>, openCount: Long, closedCount: Long): Map<String, Any?> {
         return mapOf(
             "openCount" to openCount,
             "closedCount" to closedCount,
-            "items" to page.content,
+            "items" to page.content.map { it.toResponse() },
             "totalElements" to page.totalElements,
             "totalPages" to page.totalPages,
             "page" to page.number + 1

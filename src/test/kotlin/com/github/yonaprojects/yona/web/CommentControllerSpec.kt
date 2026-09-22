@@ -243,6 +243,92 @@ class CommentControllerSpec : DescribeSpec({
             }
         }
 
+        // 2026-09-22 신규 — 지금까지 이 리소스는 생성/수정/삭제뿐이라 PAT 클라이언트가 자기가
+        // 방금 쓴 댓글 하나만 알고 그 전에 달린 댓글 이력은 못 봤다(yonaco 서버 API 요청사항
+        // 문서 3번). 조회는 작성과 달리 이슈 작성자/담당자 우회 없이 일반 READ 권한만 확인한다.
+        describe("GET /api/projects/{projectId}/issues/{number}/comments (이슈 댓글 조회)") {
+            val secondComment = IssueComment(
+                id = 101L,
+                contents = "두번째댓글",
+                issue = issue,
+                authorId = otherUser.id,
+                authorLoginId = otherUser.loginId,
+                authorName = otherUser.name
+            )
+
+            it("프로젝트 읽기 권한이 있으면 작성일 순으로 댓글 전체를 반환해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { issueRepository.findByProjectAndNumber(project, 5L) } returns issue
+                every { issueCommentRepository.findByIssueIdOrderByCreatedDateAsc(50L) } returns
+                    listOf(issueComment, secondComment)
+
+                mockMvc.perform(
+                    get("/api/projects/1/issues/5/comments")
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$[0].contents").value("이슈댓글"))
+                    .andExpect(jsonPath("$[0].authorLoginId").value("testuser"))
+                    .andExpect(jsonPath("$[1].contents").value("두번째댓글"))
+            }
+
+            it("댓글이 없으면 빈 배열을 반환해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { issueRepository.findByProjectAndNumber(project, 5L) } returns issue
+                every { issueCommentRepository.findByIssueIdOrderByCreatedDateAsc(50L) } returns emptyList()
+
+                mockMvc.perform(
+                    get("/api/projects/1/issues/5/comments")
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$").isArray)
+                    .andExpect(jsonPath("$").isEmpty)
+            }
+
+            it("존재하지 않는 프로젝트로 요청하면 404 Not Found를 반환해야 한다") {
+                every { projectRepository.findById(999L) } returns Optional.empty()
+
+                mockMvc.perform(
+                    get("/api/projects/999/issues/5/comments")
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isNotFound)
+            }
+
+            it("프로젝트 읽기 권한이 없는 사용자가 요청하면 403 Forbidden을 반환해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("otheruser") } returns Optional.of(otherUser)
+
+                mockMvc.perform(
+                    get("/api/projects/1/issues/5/comments")
+                        .principal(otherAuth)
+                )
+                    .andExpect(status().isForbidden)
+            }
+
+            it("존재하지 않는 이슈 번호로 요청하면 404 Not Found를 반환해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { issueRepository.findByProjectAndNumber(project, 999L) } returns null
+
+                mockMvc.perform(
+                    get("/api/projects/1/issues/999/comments")
+                        .principal(userAuth)
+                )
+                    .andExpect(status().isNotFound)
+            }
+
+            it("비로그인 사용자가 요청하면 403 Forbidden을 반환해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+
+                mockMvc.perform(get("/api/projects/1/issues/5/comments"))
+                    .andExpect(status().isForbidden)
+            }
+        }
+
         describe("PUT /api/projects/{projectId}/issues/{number}/comments/{commentId} (이슈 댓글 수정)") {
             it("작성자 본인이 수정 시 200 OK를 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)

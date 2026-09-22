@@ -8,6 +8,7 @@ import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.string.shouldNotContain
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -91,9 +92,37 @@ class UserIssueStatusRestApiControllerSpec : DescribeSpec({
                 .andExpect(jsonPath("$.assigned.openCount").value(1))
                 .andExpect(jsonPath("$.assigned.closedCount").value(3))
                 .andExpect(jsonPath("$.assigned.items[0].title").value("담당 이슈"))
+                // 2026-09-22 신규 — projectId(숫자)만으로는 owner/project 이름을 알 수 없어
+                // yonaco 같은 외부 클라이언트가 이 이슈로 /api/v1/projects/{owner}/{project}/...
+                // 엔드포인트를 호출할 수 없었다(yonaco 서버 API 요청사항 문서 1번).
+                .andExpect(jsonPath("$.assigned.items[0].projectOwner").value("yona"))
+                .andExpect(jsonPath("$.assigned.items[0].projectName").value("yona"))
                 .andExpect(jsonPath("$.created.openCount").value(2))
                 .andExpect(jsonPath("$.created.closedCount").value(5))
                 .andExpect(jsonPath("$.created.items[0].title").value("작성 이슈"))
+        }
+
+        // 2026-09-22 신규 — 이 컨트롤러가 raw Issue 엔티티를 그대로 응답에 담고 있어(수정 전
+        // page.content를 가공 없이 반환) issue->project->projectUsers[]->user로 순환 직렬화되며
+        // User.password(해시값)까지 노출되는 걸 실제 서버 호출로 확인했다(yonaco 서버 API
+        // 요청사항 문서 참고). IssueResponse로 변환한 뒤에는 이 필드가 응답에 나타나면 안 된다 -
+        // 회귀 방지 테스트.
+        it("응답에 다른 사용자의 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
+            val assignedIssue = Issue(id = 1L, number = 1L, title = "담당 이슈", project = project)
+            every { userRepository.findByLoginId("tester") } returns Optional.of(user)
+            stubAllSectionsEmpty(1L)
+            every { issueRepository.findByAssigneeAndState(1L, State.OPEN, null, any()) } returns
+                PageImpl(listOf(assignedIssue), PageRequest.of(0, 20), 1)
+            every { issueRepository.countByAssigneeAndState(1L, State.OPEN) } returns 1L
+            every { issueRepository.countByAssigneeAndState(1L, State.CLOSED) } returns 0L
+
+            val result = mockMvc.perform(get("/api/v1/user/issues/status").principal(auth))
+                .andExpect(status().isOk)
+                .andReturn()
+
+            val body = result.response.contentAsString
+            body shouldNotContain "password"
+            body shouldNotContain "passwordSalt"
         }
 
         // yona-wiki P3-02 Step8.6 항목2 — commented/mentioned/favorite/shared 4개 섹션 신규 노출.

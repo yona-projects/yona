@@ -74,6 +74,32 @@ class CommentController(
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
     }
 
+    // 이슈 댓글 목록 조회 — 지금까지 이 리소스는 생성/수정/삭제만 있고 조회가 없어서, PAT
+    // 클라이언트(yonaco 등)가 방금 자기가 쓴 댓글 하나만 알고 그 전에 달린 댓글 이력은 볼 수
+    // 없었다. createIssueComment와 동일하게 checkReadPermission으로 권한을 확인한다(코멘트
+    // 작성은 작성자/담당자/공유대상까지 넓게 허용하지만, 조회는 일반 READ 권한이면 충분).
+    @GetMapping("/api/projects/{projectId}/issues/{number}/comments")
+    fun getIssueComments(
+        @PathVariable projectId: Long,
+        @PathVariable number: Long,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findById(projectId).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication)
+        if (!checkReadPermission(project, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val issue = issueRepository.findByProjectAndNumber(project, number)
+            ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(
+            issueCommentRepository.findByIssueIdOrderByCreatedDateAsc(issue.id!!).map { it.toResponse() }
+        )
+    }
+
     // 이슈 댓글 수정 — request.original이 전달되면 저장 직전 화면 원문과 현재 DB 값을 비교해 그
     // 사이 다른 사용자가 이미 수정했는지 확인, 다르면 409(conflicted)로 거부한다.
     @PutMapping("/api/projects/{projectId}/issues/{number}/comments/{commentId}")
