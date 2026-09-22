@@ -18,6 +18,7 @@ import com.github.yonaprojects.yona.domain.vcs.Commit
 import com.github.yonaprojects.yona.domain.vcs.PlayRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.string.shouldNotContain
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -116,6 +117,36 @@ class CodeHistoryControllerSpec : DescribeSpec({
                 )
                     .andExpect(status().isNotFound)
             }
+
+            // 2026-09-22 신규 — raw CommitComment 엔티티를 그대로 반환하고 있어
+            // comment->project->projectUsers->user 순환으로 User.password까지 노출되는 걸
+            // 코드 추적으로 확인했다(IssueResponse/ReviewCommentResponse와 동일한 근본원인).
+            // 회귀 방지 테스트 - project에 실제로 다른 멤버가 있어야 순환 경로가 만들어진다.
+            it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
+                val memberWithPassword = User(id = 999L, loginId = "member2", name = "다른멤버")
+                val projectWithMember = Project(id = 1L, name = "TestProj", owner = "owner", projectScope = ProjectScope.PUBLIC)
+                projectWithMember.projectUsers.add(
+                    ProjectUser(id = 500L, user = memberWithPassword, project = projectWithMember, role = Role(id = RoleType.MEMBER.roleType))
+                )
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(projectWithMember)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                val commit = mockk<Commit>(relaxed = true)
+                val playRepo = mockk<PlayRepository>(relaxed = true)
+                every { repositoryService.getRepository(projectWithMember) } returns playRepo
+                every { playRepo.getCommit(commitId) } returns commit
+                every { commitCommentRepository.save(any()) } answers { firstArg() }
+
+                val result = mockMvc.perform(
+                    post("/api/vcs/owner/TestProj/commit/$commitId/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"contents": "좋은 커밋이네요"}""")
+                        .principal(userAuth)
+                ).andExpect(status().isCreated).andReturn()
+
+                val body = result.response.contentAsString
+                body.shouldNotContain("password")
+                body.shouldNotContain("passwordSalt")
+            }
         }
 
         describe("DELETE /api/vcs/{owner}/{projectName}/commit/{commitId}/comments/{id}") {
@@ -196,6 +227,28 @@ class CodeHistoryControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "NotFound") } returns Optional.empty()
                 mockMvc.perform(get("/api/vcs/owner/NotFound/commit/$commitId/comments"))
                     .andExpect(status().isNotFound)
+            }
+
+            // 2026-09-22 신규 — listComments()도 POST와 동일하게 raw List<CommitComment>를
+            // 그대로 반환하고 있어 순환 직렬화로 password가 노출될 수 있었다. 회귀 방지 테스트.
+            it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
+                val memberWithPassword = User(id = 998L, loginId = "member3", name = "또다른멤버")
+                val projectWithMember = Project(id = 1L, name = "TestProj", owner = "owner", projectScope = ProjectScope.PUBLIC)
+                projectWithMember.projectUsers.add(
+                    ProjectUser(id = 501L, user = memberWithPassword, project = projectWithMember, role = Role(id = RoleType.MEMBER.roleType))
+                )
+                val comment = CommitComment(id = 503L, project = projectWithMember, commitId = commitId, contents = "댓글1")
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(projectWithMember)
+                every {
+                    commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(projectWithMember, commitId)
+                } returns listOf(comment)
+
+                val result = mockMvc.perform(get("/api/vcs/owner/TestProj/commit/$commitId/comments"))
+                    .andExpect(status().isOk).andReturn()
+
+                val body = result.response.contentAsString
+                body.shouldNotContain("password")
+                body.shouldNotContain("passwordSalt")
             }
         }
 

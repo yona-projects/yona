@@ -10,6 +10,7 @@ import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
 import com.github.yonaprojects.yona.web.PullRequestReviewResponse
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.web.PullRequestController
+import com.github.yonaprojects.yona.web.toResponse
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -87,7 +88,7 @@ class PullRequestMcpToolsSpec : DescribeSpec({
             )
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
             every { scopeGuard.require(auth, ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.READ, project) } returns Unit
-            every { pullRequestController.getPullRequests(1L, null, null, null, null, auth) } returns ResponseEntity.ok(listOf(pr))
+            every { pullRequestController.getPullRequests(1L, null, null, null, null, auth) } returns ResponseEntity.ok(listOf(pr.toResponse()))
 
             tools.list_pull_requests("yona", "yona", null)
 

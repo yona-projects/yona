@@ -58,7 +58,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         it("PullRequestController.getPullRequests에 위임한다") {
             val pr = PullRequest(id = 3L, number = 1L, title = "PR", fromProject = project, toProject = project, contributor = contributor)
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
-            every { pullRequestController.getPullRequests(1L, null, null, null, null, any()) } returns ResponseEntity.ok(listOf(pr))
+            every { pullRequestController.getPullRequests(1L, null, null, null, null, any()) } returns ResponseEntity.ok(listOf(pr.toResponse()))
 
             mockMvc.perform(get("/api/v1/projects/yona/yona/pull-requests"))
                 .andExpect(status().isOk)
@@ -70,7 +70,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         it("author 쿼리 파라미터를 PullRequestController.getPullRequests에 그대로 전달한다") {
             val pr = PullRequest(id = 3L, number = 1L, title = "PR", fromProject = project, toProject = project, contributor = contributor)
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
-            every { pullRequestController.getPullRequests(1L, null, "contributor", null, null, any()) } returns ResponseEntity.ok(listOf(pr))
+            every { pullRequestController.getPullRequests(1L, null, "contributor", null, null, any()) } returns ResponseEntity.ok(listOf(pr.toResponse()))
 
             mockMvc.perform(get("/api/v1/projects/yona/yona/pull-requests").param("author", "contributor"))
                 .andExpect(status().isOk)
@@ -267,7 +267,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         it("PullRequestController.addComment에 위임한다") {
             val comment = ReviewComment(id = 9L, contents = "댓글")
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
-            every { pullRequestController.addComment(1L, 1L, any(), any()) } returns ResponseEntity.status(HttpStatus.CREATED).body(comment)
+            every { pullRequestController.addComment(1L, 1L, any(), any()) } returns ResponseEntity.status(HttpStatus.CREATED).body(comment.toResponse())
 
             mockMvc.perform(
                 post("/api/v1/projects/yona/yona/pull-requests/1/comments")
@@ -354,7 +354,7 @@ class PullRequestApiControllerSpec : DescribeSpec({
         it("assignee/label 쿼리 파라미터를 PullRequestController.getPullRequests에 그대로 전달한다") {
             val pr = PullRequest(id = 3L, number = 1L, title = "PR", fromProject = project, toProject = project, contributor = contributor)
             every { projectRepository.findByOwnerAndName("yona", "yona") } returns Optional.of(project)
-            every { pullRequestController.getPullRequests(1L, null, null, "assignee-login", "bug", any()) } returns ResponseEntity.ok(listOf(pr))
+            every { pullRequestController.getPullRequests(1L, null, null, "assignee-login", "bug", any()) } returns ResponseEntity.ok(listOf(pr.toResponse()))
 
             mockMvc.perform(
                 get("/api/v1/projects/yona/yona/pull-requests")

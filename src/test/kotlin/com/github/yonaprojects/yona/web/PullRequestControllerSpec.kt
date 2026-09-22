@@ -145,6 +145,25 @@ class PullRequestControllerSpec : DescribeSpec({
                     .andExpect(status().isNotFound)
             }
 
+            // 2026-09-22 신규 — raw List<PullRequest>를 그대로 반환하고 있어(단건 조회
+            // getPullRequest()는 이미 .toResponse()로 막아뒀는데 목록만 누락돼 있었다)
+            // contributor/toProject/fromProject를 통해 User.password까지 순환 노출되는 걸
+            // 실제 서버 호출로 확인했다(yonaco 서버 API 요청사항 문서 참고). 회귀 방지 테스트.
+            it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequests(1L, State.OPEN) } returns listOf(pullRequest)
+
+                val result = mockMvc.perform(get("/api/projects/1/pullrequests").param("state", "OPEN").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+                val body = result.response.contentAsString
+                body shouldNotContain "password"
+                body shouldNotContain "passwordSalt"
+            }
+
             // getLoginUser()의 authentication==null 분기와 checkReadPermission() false 분기를 함께 검증한다.
             it("비로그인 사용자가 비공개 프로젝트를 조회하면 403 Forbidden을 반환해야 한다") {
                 every { projectRepository.findById(1L) } returns Optional.of(project)
@@ -271,6 +290,31 @@ class PullRequestControllerSpec : DescribeSpec({
                 mockMvc.perform(get("/api/projects/1/pullrequests/1/timeline").principal(userAuth))
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$[0].newValue").value("MERGED"))
+            }
+
+            // 2026-09-22 신규 — raw List<PullRequestEvent>를 그대로 반환하고 있어
+            // event->pullRequest->contributor/toProject/fromProject를 통해 User.password까지
+            // 순환 노출되는 문제(IssueController.getTimeline()이 이미 겪고 고친 것과 동일)가
+            // 있었다. 회귀 방지 테스트.
+            it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
+                val prEvent = PullRequestEvent(
+                    id = 1L, pullRequest = pullRequest,
+                    eventType = EventType.PULL_REQUEST_STATE_CHANGED,
+                    oldValue = "OPEN", newValue = "MERGED"
+                )
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 1L) } returns pullRequest
+                every { pullRequestEventRepository.findByPullRequestOrderByCreatedAsc(pullRequest) } returns listOf(prEvent)
+
+                val result = mockMvc.perform(get("/api/projects/1/pullrequests/1/timeline").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andReturn()
+
+                val body = result.response.contentAsString
+                body shouldNotContain "password"
+                body shouldNotContain "passwordSalt"
             }
 
             it("존재하지 않는 프로젝트의 타임라인을 조회하면 404 Not Found를 반환해야 한다") {
@@ -1419,6 +1463,37 @@ class PullRequestControllerSpec : DescribeSpec({
                         .principal(userAuth)
                 ).andExpect(status().isCreated)
                     .andExpect(jsonPath("$.id").value(5))
+            }
+
+            // 2026-09-22 신규 — raw ReviewComment 엔티티를 그대로 반환하고 있어
+            // comment->thread->project/pullRequest를 통해 User.password까지 순환 노출되는 걸
+            // 실제 서버 호출로 확인했다. ReviewCommentResponse는 이미 있었는데(RestApiResponseDto.kt)
+            // 이 호출부만 안 쓰고 있었다. 회귀 방지 테스트 - thread가 pullRequest/project를 실제로
+            // 참조해야 순환 경로가 만들어지므로 위 테스트의 thread 없는 댓글로는 검증되지 않는다.
+            it("응답에 password/passwordSalt 등 민감 정보를 노출하지 않는다") {
+                val thread = com.github.yonaprojects.yona.domain.pullrequest.NonRangedCodeCommentThread(
+                    id = 200L, pullRequest = pullRequest, project = project
+                )
+                val comment = com.github.yonaprojects.yona.domain.pullrequest.ReviewComment(
+                    id = 5L, contents = "댓글", thread = thread
+                )
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { pullRequestService.getPullRequest(1L, 1L) } returns pullRequest
+                every {
+                    codeReviewService.createReviewComment(project, pullRequest, null, "댓글", null, null, user)
+                } returns comment
+
+                val result = mockMvc.perform(
+                    post("/api/projects/1/pullrequests/1/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"body":"댓글"}""")
+                        .principal(userAuth)
+                ).andExpect(status().isCreated).andReturn()
+
+                val body = result.response.contentAsString
+                body shouldNotContain "password"
+                body shouldNotContain "passwordSalt"
             }
 
             it("비로그인 사용자가 댓글을 시도하면 401 Unauthorized를 반환해야 한다") {

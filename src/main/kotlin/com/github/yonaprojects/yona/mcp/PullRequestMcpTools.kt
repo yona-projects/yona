@@ -52,9 +52,11 @@ class PullRequestMcpTools(
     ): Any {
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.READ, found)
-        val list = pullRequestController.getPullRequests(found.id!!, state, null, null, null, currentAuth())
+        // 2026-09-22 — getPullRequests()가 이제 이미 List<PullRequestResponse>를 반환해서
+        // (비밀번호 노출 방지) 여기서 다시 .toResponse()를 부르면 컴파일 에러가 난다(그런
+        // 메서드가 없음). 그대로 반환.
+        return pullRequestController.getPullRequests(found.id!!, state, null, null, null, currentAuth())
             .unwrapForMcp()
-        return list.map { it.toResponse() }
     }
 
     @Tool(description = "PR 번호로 풀 리퀘스트 하나를 조회합니다.")
@@ -145,9 +147,10 @@ class PullRequestMcpTools(
         val found = findProject(owner, project)
         scopeGuard.require(currentAuth(), ApiTokenScopeGroup.PULL_REQUESTS, ApiTokenPermission.WRITE, found)
         val request = PullRequestController.PullRequestCommentRequest(body = body)
+        // 2026-09-22 — addComment()가 이제 이미 ReviewCommentResponse를 반환한다. .toResponse()
+        // 재호출 제거(위와 동일한 이유).
         return pullRequestController.addComment(found.id!!, number, request, currentAuth())
             .unwrapForMcp("PR #$number 를 찾을 수 없습니다.")
-            .toResponse()
     }
 
     @Tool(description = "풀 리퀘스트를 머지합니다. 대상 브랜치가 보호된 브랜치라면 그 정책을 그대로 적용받습니다.")

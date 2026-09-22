@@ -12,12 +12,10 @@ import com.github.yonaprojects.yona.domain.pullrequest.CodeReviewService
 import com.github.yonaprojects.yona.domain.vcs.FileDiff
 import com.github.yonaprojects.yona.domain.pullrequest.LackingReviewerException
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequest
-import com.github.yonaprojects.yona.domain.pullrequest.PullRequestEvent
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestEventRepository
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestMergeResult
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestReview
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestService
-import com.github.yonaprojects.yona.domain.pullrequest.ReviewComment
 import com.github.yonaprojects.yona.domain.pullrequest.SelfReviewException
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.User
@@ -77,7 +75,7 @@ class PullRequestController(
         @RequestParam(required = false) assignee: String?,
         @RequestParam(required = false) label: String?,
         authentication: Authentication?
-    ): ResponseEntity<List<PullRequest>> {
+    ): ResponseEntity<List<PullRequestResponse>> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -91,7 +89,11 @@ class PullRequestController(
             .let { list -> if (author != null) list.filter { it.contributor.loginId == author } else list }
             .let { list -> if (assignee != null) list.filter { it.assignee?.user?.loginId == assignee } else list }
             .let { list -> if (label != null) list.filter { pr -> pr.labels.any { it.name == label } } else list }
-        return ResponseEntity.ok(filtered)
+        // 2026-09-22 발견/수정 — raw PullRequest 리스트를 그대로 반환하고 있어(단건 조회
+        // getPullRequest()는 이미 .toResponse()로 막아뒀는데 목록만 누락돼 있었다)
+        // contributor/toProject/fromProject 등을 통해 User.password까지 순환 노출되는 걸
+        // 실제 서버 호출로 확인했다.
+        return ResponseEntity.ok(filtered.map { it.toResponse() })
     }
 
     @GetMapping("/{number}")
@@ -122,7 +124,7 @@ class PullRequestController(
         @PathVariable projectId: Long,
         @PathVariable number: Long,
         authentication: Authentication?
-    ): ResponseEntity<List<PullRequestEvent>> {
+    ): ResponseEntity<List<PullRequestEventResponse>> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -134,7 +136,12 @@ class PullRequestController(
         val pullRequest = pullRequestService.getPullRequest(projectId, number)
             ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok(pullRequestEventRepository.findByPullRequestOrderByCreatedAsc(pullRequest))
+        // 2026-09-22 발견/수정 — raw PullRequestEvent 리스트를 그대로 반환하고 있어
+        // event->pullRequest->... 경유로 User.password까지 순환 노출되는 문제(IssueController.
+        // getTimeline()이 이미 겪고 고친 것과 동일)가 있었다.
+        return ResponseEntity.ok(
+            pullRequestEventRepository.findByPullRequestOrderByCreatedAsc(pullRequest).map { it.toResponse() }
+        )
     }
 
     @PostMapping
@@ -319,7 +326,7 @@ class PullRequestController(
         @PathVariable number: Long,
         @RequestBody request: PullRequestCommentRequest,
         authentication: Authentication?
-    ): ResponseEntity<ReviewComment> {
+    ): ResponseEntity<ReviewCommentResponse> {
         val project = projectRepository.findById(projectId).orElse(null)
             ?: return ResponseEntity.notFound().build()
 
@@ -342,7 +349,11 @@ class PullRequestController(
             threadId = null,
             currentUser = user
         )
-        return ResponseEntity.status(HttpStatus.CREATED).body(comment)
+        // 2026-09-22 발견/수정 — raw ReviewComment 엔티티를 그대로 반환하고 있어
+        // comment->thread->project/pullRequest를 통해 User.password까지 순환 노출되는 걸
+        // 실제 서버 호출로 확인했다. ReviewCommentResponse는 이미 있었는데(RestApiResponseDto.kt)
+        // 이 호출부만 안 쓰고 있었다.
+        return ResponseEntity.status(HttpStatus.CREATED).body(comment.toResponse())
     }
 
     data class PullRequestCommentRequest(

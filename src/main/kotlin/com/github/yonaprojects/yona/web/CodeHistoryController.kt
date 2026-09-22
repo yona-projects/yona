@@ -105,7 +105,7 @@ class CodeHistoryController(
         @PathVariable commitId: String,
         @RequestBody request: CreateCommitCommentRequest,
         authentication: Authentication?
-    ): ResponseEntity<CommitComment> {
+    ): ResponseEntity<CommitCommentResponse> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
@@ -130,7 +130,9 @@ class CodeHistoryController(
         )
         val saved = commitCommentRepository.save(comment)
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved)
+        // 2026-09-22 발견/수정 — raw CommitComment 엔티티를 그대로 반환하고 있어
+        // comment->project->projectUsers->user 순환으로 User.password까지 노출되던 문제.
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved.toResponse())
     }
 
     // yona CodeHistoryApp.deleteComment 대응
@@ -163,12 +165,14 @@ class CodeHistoryController(
         @PathVariable owner: String,
         @PathVariable projectName: String,
         @PathVariable commitId: String
-    ): ResponseEntity<List<CommitComment>> {
+    ): ResponseEntity<List<CommitCommentResponse>> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
+        // 2026-09-22 발견/수정 — 위 createComment()와 동일한 이유로 .toResponse() 변환.
         return ResponseEntity.ok(
             commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(project, commitId)
+                .map { it.toResponse() }
         )
     }
 }
