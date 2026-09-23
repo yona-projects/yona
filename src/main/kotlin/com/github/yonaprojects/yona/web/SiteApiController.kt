@@ -145,7 +145,7 @@ class SiteApiController(
         redirectAttributes: RedirectAttributes
     ): String {
         checkAdmin(authentication)
-        val targetLoginId = loginId ?: loginIdParam ?: throw IllegalArgumentException("Login ID is required")
+        val targetLoginId = loginId ?: loginIdParam ?: throw UnauthorizedAccessException("Login ID is required")
         siteService.toggleSiteAdminRole(targetLoginId)
         redirectAttributes.addAttribute("state", stateStr)
         redirectAttributes.addAttribute("query", query)
