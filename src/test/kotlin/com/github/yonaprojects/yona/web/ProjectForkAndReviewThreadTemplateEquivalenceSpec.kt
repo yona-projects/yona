@@ -113,7 +113,7 @@ class ProjectForkAndReviewThreadTemplateEquivalenceSpec @Autowired constructor(
                     doc.select(".project-menu-outer li.active a[href*='/pulls']").size shouldBe 1
                 }
 
-                it("폼 action은 fork POST 엔드포인트를 그대로 가리키고, hidden owner 필드는 기본 목적지(currentUser)로 채워져야 한다") {
+                it("폼 action은 fork POST 엔드포인트를 그대로 가리키고, 소유자 select는 기본 목적지(currentUser)로 선택되어야 한다") {
                     val doc = Jsoup.parse(
                         mockMvc.perform(
                             get("/pfr-owner/pfr-public-proj/newFork").with(SecurityMockMvcRequestPostProcessors.user(orgAdminDetails))
@@ -124,9 +124,11 @@ class ProjectForkAndReviewThreadTemplateEquivalenceSpec @Autowired constructor(
                     form.attr("action") shouldBe "/pfr-owner/pfr-public-proj/fork"
                     form.attr("method") shouldBe "post"
 
-                    val hiddenOwner = doc.select("input[type=hidden][name=owner]")
-                    hiddenOwner.size shouldBe 1
-                    hiddenOwner.attr("value") shouldBe orgAdminMember.loginId
+                    // owner는 hidden input이 아니라 select#project-owner의 selected 옵션으로
+                    // 기본 목적지를 나타낸다 — project/fork.html 참고.
+                    val selectedOwnerOption = doc.select("select#project-owner option[selected]")
+                    selectedOwnerOption.size shouldBe 1
+                    selectedOwnerOption.attr("value") shouldBe orgAdminMember.loginId
                 }
 
                 it("소유자 select#project-owner는 본인 계정 + 관리 조직 옵션을 legacy와 동일한 개수로 렌더링해야 한다") {

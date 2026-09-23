@@ -95,7 +95,10 @@ class SiteServiceSpec : DescribeSpec({
         }
 
         it("게스트인 사용자는 게스트 모드가 해제되어야 한다") {
-            val user = User(id = 23L, loginId = "guest-user", name = "게스트사용자", isGuest = true)
+            // toggleGuestMode()는 isGuest가 아니라 state(UserState.GUEST 여부)를 기준으로 토글한다
+            // — isGuest만 true로 두고 state를 기본값(ACTIVE)으로 남기면 "게스트 아님"으로 취급돼
+            // 토글이 반대로(GUEST로 전환) 동작한다.
+            val user = User(id = 23L, loginId = "guest-user", name = "게스트사용자", isGuest = true, state = UserState.GUEST)
             every { userRepository.findByLoginId("guest-user") } returns Optional.of(user)
             every { userRepository.save(any()) } answers { firstArg() }
 

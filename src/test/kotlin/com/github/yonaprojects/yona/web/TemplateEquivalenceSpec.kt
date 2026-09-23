@@ -487,12 +487,12 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     html.contains(".markdown-wrap").shouldBe(true)
                 }
 
-                it("sendYonaUsage 설정 기본값이 꺼져 있으면 메인 레이아웃에도 구글 애널리틱스 스크립트가 렌더링되지 않아야 한다") {
+                it("sendYonaUsage 설정 기본값(true)이면 메인 레이아웃에도 구글 애널리틱스 스크립트가 렌더링되어야 한다") {
                     val result = mockMvc.perform(get("/owner/public-proj"))
                         .andExpect(status().isOk)
                         .andReturn()
 
-                    result.response.contentAsString.contains("google-analytics.com/analytics.js") shouldBe false
+                    result.response.contentAsString.contains("google-analytics.com/analytics.js") shouldBe true
                 }
             }
 
@@ -542,7 +542,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     html.contains(".popover()").shouldBe(true)
                 }
 
-                it("sendYonaUsage 설정 기본값이 꺼져 있으면 구글 애널리틱스 스크립트가 렌더링되지 않아야 한다") {
+                it("sendYonaUsage 설정 기본값(true)이면 구글 애널리틱스 스크립트가 렌더링되어야 한다") {
                     val result = mockMvc.perform(
                         get("/user/sidebar")
                             .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
@@ -551,7 +551,7 @@ class TemplateEquivalenceSpec @Autowired constructor(
                         .andReturn()
 
                     val html = result.response.contentAsString
-                    html.contains("google-analytics.com/analytics.js") shouldBe false
+                    html.contains("google-analytics.com/analytics.js") shouldBe true
                 }
             }
 

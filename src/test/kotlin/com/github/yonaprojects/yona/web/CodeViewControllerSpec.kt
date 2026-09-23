@@ -422,6 +422,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("dlmember") } returns Optional.of(memberUser)
                 every { projectUserRepository.existsByProjectIdAndUserId(30L, 37L) } returns true
                 every { repositoryService.getRepository(memberProject) } returns dlPlayRepo
+                every { repositoryService.getMetaDataFromAncestorDirectories(dlPlayRepo, "main", "") } returns listOf(ObjectMapper().createObjectNode())
                 every { dlPlayRepo.getArchive(any(), "main") } just Runs
 
                 mockMvc.perform(get("/testowner/member-dl/code/download/main").principal(memberAuth))
@@ -442,6 +443,7 @@ class CodeViewControllerSpec : DescribeSpec({
                 every { userRepository.findByLoginId("dlgroupuser") } returns Optional.of(groupUser)
                 every { projectUserRepository.existsByProjectIdAndUserId(25L, 32L) } returns false
                 every { repositoryService.getRepository(groupProject) } returns dlPlayRepo
+                every { repositoryService.getMetaDataFromAncestorDirectories(dlPlayRepo, "main", "") } returns listOf(ObjectMapper().createObjectNode())
                 every { dlPlayRepo.getArchive(any(), "main") } just Runs
 
                 mockMvc.perform(get("/testowner/group-dl/code/download/main").principal(groupAuth))
@@ -455,6 +457,7 @@ class CodeViewControllerSpec : DescribeSpec({
 
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
                 every { repositoryService.getRepository(project) } returns dlPlayRepo
+                every { repositoryService.getMetaDataFromAncestorDirectories(dlPlayRepo, "dev", "") } returns listOf(ObjectMapper().createObjectNode())
                 every { dlPlayRepo.getArchive(any(), "dev") } just Runs
 
                 mockMvc.perform(get("/testowner/testproject/code/download/dev"))
