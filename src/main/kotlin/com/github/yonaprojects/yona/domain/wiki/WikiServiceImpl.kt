@@ -46,7 +46,7 @@ class WikiServiceImpl(
     }
 
     private fun bareCommit(project: Project, user: User): BareCommit {
-        val bare = BareCommit(project, user, gitBaseDir, gitDefaultBranch, repoNameOverride = wikiRepoName(project))
+        val bare = BareCommit(project, user, gitBaseDir, repoNameOverride = wikiRepoName(project))
         bare.setRefName(Constants.R_HEADS + gitDefaultBranch)
         return bare
     }

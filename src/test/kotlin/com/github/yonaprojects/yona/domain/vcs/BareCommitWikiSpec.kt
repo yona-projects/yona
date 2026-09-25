@@ -48,7 +48,7 @@ class BareCommitWikiSpec : DescribeSpec({
     describe("BareCommit.commitPage() — repoNameOverride로 위키 전용 bare 저장소에 커밋") {
         it("빈 저장소에 신규 페이지를 커밋하면 부모 없이 그 경로에 파일이 생긴다") {
             val (gitBaseDir, bareDir) = newRepoDir()
-            val bare = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare.setRefName(Constants.R_HEADS + "main")
 
             val commitId = bare.commitPage("main", null, "Home.md", "# Home\n내용", "Create Home")
@@ -65,7 +65,7 @@ class BareCommitWikiSpec : DescribeSpec({
 
         it("중첩 경로(슬래시 포함)로 페이지를 만들 수 있다") {
             val (gitBaseDir, bareDir) = newRepoDir()
-            val bare = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare.setRefName(Constants.R_HEADS + "main")
 
             val commitId = bare.commitPage("main", null, "Guides/Setup.md", "설치 방법", "Create Guides/Setup")
@@ -81,14 +81,14 @@ class BareCommitWikiSpec : DescribeSpec({
 
         it("기존 페이지를 수정하면 그 경로의 내용만 바뀌고 다른 페이지는 그대로 남는다") {
             val (gitBaseDir, bareDir) = newRepoDir()
-            val bare1 = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare1 = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare1.setRefName(Constants.R_HEADS + "main")
             bare1.commitPage("main", null, "Home.md", "v1", "Create Home")
-            val bare1b = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare1b = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare1b.setRefName(Constants.R_HEADS + "main")
             bare1b.commitPage("main", null, "_Sidebar.md", "sidebar", "Create sidebar")
 
-            val bare2 = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare2 = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare2.setRefName(Constants.R_HEADS + "main")
             val commitId = bare2.commitPage("main", "Home.md", "Home.md", "v2", "Update Home")
 
@@ -105,11 +105,11 @@ class BareCommitWikiSpec : DescribeSpec({
 
         it("oldPath != newPath면 이름변경까지 한 커밋으로 반영한다(옛 경로는 트리에서 사라짐)") {
             val (gitBaseDir, bareDir) = newRepoDir()
-            val bare1 = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare1 = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare1.setRefName(Constants.R_HEADS + "main")
             bare1.commitPage("main", null, "OldTitle.md", "본문", "Create OldTitle")
 
-            val bare2 = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare2 = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare2.setRefName(Constants.R_HEADS + "main")
             val commitId = bare2.commitPage("main", "OldTitle.md", "Guides/NewTitle.md", "본문", "Rename OldTitle to Guides/NewTitle")
 
@@ -126,7 +126,7 @@ class BareCommitWikiSpec : DescribeSpec({
 
         it("커밋 메시지를 그대로 반영한다(커밋 메시지 커스터마이징)") {
             val (gitBaseDir, _) = newRepoDir()
-            val bare = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare.setRefName(Constants.R_HEADS + "main")
             val commitId = bare.commitPage("main", null, "Home.md", "내용", "커스텀 커밋 메시지입니다")
 
@@ -146,14 +146,14 @@ class BareCommitWikiSpec : DescribeSpec({
     describe("BareCommit.deletePage()") {
         it("삭제한 페이지는 새 커밋의 트리에서 사라지고 다른 페이지는 남는다") {
             val (gitBaseDir, bareDir) = newRepoDir()
-            val bare1 = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare1 = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare1.setRefName(Constants.R_HEADS + "main")
             bare1.commitPage("main", null, "Home.md", "home", "Create Home")
-            val bare1b = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare1b = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare1b.setRefName(Constants.R_HEADS + "main")
             bare1b.commitPage("main", null, "Old.md", "old", "Create Old")
 
-            val bare2 = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main", repoNameOverride = "myproj.wiki")
+            val bare2 = BareCommit(project, user, gitBaseDir.absolutePath, repoNameOverride = "myproj.wiki")
             bare2.setRefName(Constants.R_HEADS + "main")
             val commitId = bare2.deletePage("main", "Old.md", "Delete Old")
 

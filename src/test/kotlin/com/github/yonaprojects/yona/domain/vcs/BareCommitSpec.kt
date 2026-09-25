@@ -42,6 +42,7 @@ private fun seedInitialCommit(bareDir: File, branch: String, filePath: String, c
     val tempWorkingDir = Files.createTempDirectory("yona-barecommit-seed").toFile()
     val git = Git.init().setDirectory(tempWorkingDir).call()
     try {
+        git.repository.config.setBoolean("core", null, "autocrlf", false)
         val file = File(tempWorkingDir, filePath)
         file.parentFile.mkdirs()
         file.writeText(content)
@@ -59,6 +60,7 @@ private fun seedInitialCommit(bareDir: File, branch: String, filePath: String, c
             .call()
     } finally {
         git.close()
+        tempWorkingDir.deleteRecursively()
     }
 }
 
@@ -203,13 +205,13 @@ class BareCommitSpec : DescribeSpec({
     }
 
     // yona BareCommit.java의 레거시 3-인자 commitTextFile(fileNameWithPath, contents, message) 오버로드 대응.
-    // setRefName()으로 지정한(기본값 refs/heads/master) 단일 브랜치의 "루트 트리"만 다루며, createTreeWith()가
+    // setRefName()으로 지정한(기본값 HEAD) 단일 브랜치의 "루트 트리"만 다루며, createTreeWith()가
     // 기존 루트 트리를 알파벳순으로 순회하면서 새/기존 파일을 병합한다(중첩 경로는 다루지 않는다 -- 파일명만 사용).
     describe("BareCommit.commitTextFile(fileNameWithPath, contents, message) - 레거시 3-인자 오버로드") {
         it("연속 커밋으로 createTreeWith()의 모든 병합 분기(신규 트리/중간 삽입/말미 삽입/덮어쓰기)를 거쳐야 한다") {
             val gitBaseDir = Files.createTempDirectory("yona-barecommit-legacy-test").toFile()
             val bareDir = File(gitBaseDir, "tester/repo.git")
-            Git.init().setDirectory(bareDir).setBare(true).call().close()
+            Git.init().setDirectory(bareDir).setBare(true).setInitialBranch("main").call().close()
 
             val project = Project(id = 1L, owner = "tester", name = "repo")
             val user = User(id = 1L, loginId = "tester", name = "테스터", email = "tester@yona.io")
@@ -251,22 +253,15 @@ class BareCommitSpec : DescribeSpec({
 
                 val files = readTreeFiles(repository, commit4!!)
                 files.size shouldBe 3
-                files["a.txt"] shouldBe "a content"
-                files["m.txt"] shouldBe "m content v2"
-                files["z.txt"] shouldBe "z content"
+                files["a.txt"] shouldBe "a content\n"
+                files["m.txt"] shouldBe "m content v2\n"
+                files["z.txt"] shouldBe "z content\n"
             } finally {
                 repository.close()
             }
         }
 
-        // 사용자 요청 — 새 프로젝트 기본 브랜치를 "master" 대신 "main"으로 만들고 싶어함. 호스트 git의
-        // init.defaultBranch 설정에 기대는 대신(GitRepositorySpec.kt의 defaultBranchRef 프로브 주석
-        // 참고 — 환경마다 달라져 깨질 수 있음), 애플리케이션 설정(yona.git.default-branch, 기본값 "main")
-        // 으로 결정론적으로 고정한다. BareCommit도 같은 값을 따라야 한다 — 그러지 않으면 새로 만든
-        // 저장소(HEAD가 refs/heads/main을 가리킴, 아직 커밋 없음)에 README 체크박스 등으로 첫 커밋을
-        // 올릴 때 setRefName() 없이 이 3-인자 오버로드를 쓰는 경로(BoardViewController)가 여전히
-        // refs/heads/master에 커밋해버려 main은 계속 비어있고 master만 생기는 불일치가 생긴다.
-        it("defaultBranch 생성자 인자를 지정하면 setRefName() 없이도 그 브랜치에 커밋해야 한다") {
+        it("unborn HEAD main receives the first README commit with a final LF") {
             val gitBaseDir = Files.createTempDirectory("yona-barecommit-defaultbranch-test").toFile()
             val bareDir = File(gitBaseDir, "tester/repo.git")
             Git.init().setDirectory(bareDir).setBare(true).setInitialBranch("main").call().close()
@@ -274,7 +269,7 @@ class BareCommitSpec : DescribeSpec({
             val project = Project(id = 1L, owner = "tester", name = "repo")
             val user = User(id = 1L, loginId = "tester", name = "테스터", email = "tester@yona.io")
 
-            val commitId = BareCommit(project, user, gitBaseDir.absolutePath, defaultBranch = "main")
+            val commitId = BareCommit(project, user, gitBaseDir.absolutePath)
                 .commitTextFile("README.md", "# repo", "initial commit")
 
             commitId shouldNotBe null
@@ -282,9 +277,106 @@ class BareCommitSpec : DescribeSpec({
             val repository = FileRepositoryBuilder().setGitDir(bareDir).build()
             try {
                 repository.resolve("refs/heads/main") shouldBe commitId
+                repository.resolve(Constants.HEAD) shouldBe commitId
+                RevWalk(repository).use { walk ->
+                    walk.parseCommit(commitId).parentCount shouldBe 0
+                }
+                readTreeFiles(repository, commitId!!)["README.md"] shouldBe "# repo\n"
                 repository.findRef("refs/heads/master") shouldBe null
             } finally {
                 repository.close()
+            }
+        }
+
+        it("HEAD develop advances with its parent and existing tree without creating main") {
+            val gitBaseDir = Files.createTempDirectory("yona-barecommit-head-test").toFile()
+            try {
+                val bareDir = File(gitBaseDir, "tester/repo.git")
+                Git.init().setDirectory(bareDir).setBare(true).setInitialBranch("develop").call().close()
+                seedInitialCommit(bareDir, "develop", "src/keep.txt", "keep me")
+                val project = Project(id = 1L, owner = "tester", name = "repo")
+                val user = User(id = 1L, loginId = "tester", name = "tester", email = "tester@yona.io")
+
+                FileRepositoryBuilder().setGitDir(bareDir).build().use { repository ->
+                    val parent = repository.resolve(Constants.HEAD)
+                    val commitId = BareCommit(project, user, gitBaseDir.absolutePath)
+                        .commitTextFile("README.md", "# updated", "update README")
+
+                    repository.resolve(Constants.HEAD) shouldBe commitId
+                    repository.resolve("refs/heads/develop") shouldBe commitId
+                    repository.findRef("refs/heads/main") shouldBe null
+                    RevWalk(repository).use { walk ->
+                        val commit = walk.parseCommit(commitId)
+                        commit.parentCount shouldBe 1
+                        commit.getParent(0).id shouldBe parent
+                    }
+                    readTreeFiles(repository, commitId!!) shouldBe mapOf(
+                        "README.md" to "# updated\n",
+                        "src/keep.txt" to "keep me"
+                    )
+                }
+            } finally {
+                gitBaseDir.deleteRecursively()
+            }
+        }
+
+        it("setRefName advances the explicit branch instead of HEAD") {
+            val gitBaseDir = Files.createTempDirectory("yona-barecommit-explicit-ref-test").toFile()
+            try {
+                val bareDir = File(gitBaseDir, "tester/repo.git")
+                Git.init().setDirectory(bareDir).setBare(true).setInitialBranch("develop").call().close()
+                seedInitialCommit(bareDir, "develop", "README.md", "HEAD readme\n")
+                seedInitialCommit(bareDir, "release", "release.txt", "release only")
+                val project = Project(id = 1L, owner = "tester", name = "repo")
+                val user = User(id = 1L, loginId = "tester", name = "tester", email = "tester@yona.io")
+
+                FileRepositoryBuilder().setGitDir(bareDir).build().use { repository ->
+                    val head = repository.resolve(Constants.HEAD)
+                    val parent = repository.resolve("refs/heads/release")
+                    val bare = BareCommit(project, user, gitBaseDir.absolutePath)
+                    bare.setRefName("refs/heads/release")
+                    val commitId = bare.commitTextFile("ISSUE_TEMPLATE.md", "# issue", "update template")
+
+                    repository.resolve(Constants.HEAD) shouldBe head
+                    repository.resolve("refs/heads/release") shouldBe commitId
+                    RevWalk(repository).use { walk ->
+                        val commit = walk.parseCommit(commitId)
+                        commit.parentCount shouldBe 1
+                        commit.getParent(0).id shouldBe parent
+                    }
+                    readTreeFiles(repository, commitId!!) shouldBe mapOf(
+                        "ISSUE_TEMPLATE.md" to "# issue\n",
+                        "release.txt" to "release only"
+                    )
+                }
+            } finally {
+                gitBaseDir.deleteRecursively()
+            }
+        }
+
+        for ((description, oldContents, contents, expected) in listOf(
+            listOf("existing LF converts CRLF input", "old\ntext\n", "new\r\ntext", "new\ntext\n"),
+            listOf("existing CRLF retains CRLF and appends CRLF", "old\r\ntext\r\n", "new\r\ntext", "new\r\ntext\r\n"),
+            listOf("existing CRLF leaves LF input unchanged like legacy", "old\r\ntext\r\n", "new\ntext", "new\ntext\n"),
+            listOf("existing final LF is not duplicated", "old\n", "new\n", "new\n")
+        )) {
+            it(description) {
+                val gitBaseDir = Files.createTempDirectory("yona-barecommit-line-ending-test").toFile()
+                try {
+                    val bareDir = File(gitBaseDir, "tester/repo.git")
+                    Git.init().setDirectory(bareDir).setBare(true).setInitialBranch("develop").call().close()
+                    seedInitialCommit(bareDir, "develop", "README.md", oldContents)
+                    val project = Project(id = 1L, owner = "tester", name = "repo")
+                    val user = User(id = 1L, loginId = "tester", name = "tester", email = "tester@yona.io")
+                    val commitId = BareCommit(project, user, gitBaseDir.absolutePath)
+                        .commitTextFile("README.md", contents, "update README")
+
+                    FileRepositoryBuilder().setGitDir(bareDir).build().use { repository ->
+                        readTreeFiles(repository, commitId!!)["README.md"] shouldBe expected
+                    }
+                } finally {
+                    gitBaseDir.deleteRecursively()
+                }
             }
         }
 
@@ -294,7 +386,7 @@ class BareCommitSpec : DescribeSpec({
         it("루트 트리에 디렉터리 엔트리가 있으면 TREE 파일모드로 인식해 그대로 보존해야 한다") {
             val gitBaseDir = Files.createTempDirectory("yona-barecommit-legacy-test").toFile()
             val bareDir = File(gitBaseDir, "tester/repo.git")
-            Git.init().setDirectory(bareDir).setBare(true).call().close()
+            Git.init().setDirectory(bareDir).setBare(true).setInitialBranch("main").call().close()
 
             seedInitialCommit(bareDir, "main", "src/foo.txt", "nested content")
 
@@ -309,7 +401,7 @@ class BareCommitSpec : DescribeSpec({
             val repository = FileRepositoryBuilder().setGitDir(bareDir).build()
             try {
                 val files = readTreeFiles(repository, commitId!!)
-                files["b.txt"] shouldBe "b content"
+                files["b.txt"] shouldBe "b content\n"
                 files["src/foo.txt"] shouldBe "nested content"
             } finally {
                 repository.close()
