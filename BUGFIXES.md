@@ -1,5 +1,16 @@
 # yona product bug fixes — TDD tracking
 
+## 2026-09-26 — v1.16 email mutation parity
+
+- Legacy `UserApp.editUserInfo` rejects empty/invalid primary addresses; `Email` requires a valid
+  secondary address. The 2.0 profile and secondary-email endpoints instead persisted malformed values.
+- Shared Jakarta Mail validation now rejects blank, malformed, display-name and multi-address input
+  before mutation. API/MVC profile edits preserve trimming and duplicate checks; signup policy is unchanged.
+- Regression: `UserServiceImplSpec`, `UserControllerSpec`, `UserViewControllerSpec` — **267 tests passed**.
+- Live H2 HTTP smoke: both APIs returned 400 for five invalid inputs each and accepted valid plus-tag
+  addresses; `/user/edit` and `/user/email` rejected invalid writes without changing the saved profile/emails.
+  The same API requests returned 200 and persisted malformed addresses before the fix.
+
 ## FINAL STATUS: all 9 bugs fixed and verified — full suite 187/187 passed, 0 failed, 0 fixme
 
 All 9 documented product bugs (#1-#9) are fixed, each individually TDD-verified (red confirmed

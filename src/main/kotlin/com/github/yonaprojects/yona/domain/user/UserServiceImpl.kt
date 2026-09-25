@@ -51,6 +51,7 @@ class UserServiceImpl(
     @Transactional
     override fun addEmail(userId: Long, newEmail: String): Email {
         val user = userRepository.findById(userId).orElseThrow { IllegalArgumentException("사용자를 찾을 수 없습니다.") }
+        require(EmailAddressValidator.isValid(newEmail)) { "올바른 이메일 주소를 입력해주세요." }
         
         if (isEmailExist(newEmail) || user.has(newEmail)) {
             throw IllegalArgumentException("이미 등록되었거나 등록 대기 중인 이메일입니다.")

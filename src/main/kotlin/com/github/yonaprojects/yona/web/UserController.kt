@@ -7,6 +7,7 @@ import com.github.yonaprojects.yona.domain.issue.RecentIssueService
 import com.github.yonaprojects.yona.domain.twofactor.TwoFactorService
 import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.user.Email
+import com.github.yonaprojects.yona.domain.user.EmailAddressValidator
 import com.github.yonaprojects.yona.domain.user.EmailDomainValidator
 import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.ReservedWordsValidator
@@ -206,13 +207,16 @@ class UserController(
                 return ResponseEntity.badRequest().body(mapOf("error" to "이름은 필수 항목입니다."))
             }
 
-            if (user.email != email && userService.isEmailExist(email)) {
+            val address = email.trim()
+            require(EmailAddressValidator.isValid(address)) { "올바른 이메일 주소를 입력해주세요." }
+
+            if (user.email != address && userService.isEmailExist(address)) {
                 return ResponseEntity.badRequest().body(mapOf("error" to "이미 사용 중인 이메일 주소입니다."))
             }
 
             val escapedName = HtmlUtils.htmlEscape(name.trim())
             user.name = escapedName
-            user.email = email.trim()
+            user.email = address
             userRepository.save(user)
 
             ResponseEntity.ok(mapOf("status" to "success"))

@@ -11,6 +11,7 @@ import com.github.yonaprojects.yona.domain.sshkey.SshKeyService
 import com.github.yonaprojects.yona.domain.sshkey.SshPublicKeyFingerprint.InvalidPublicKeyException
 import com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.user.EmailAddressValidator
 import com.github.yonaprojects.yona.domain.user.UserState
 import com.github.yonaprojects.yona.domain.watch.WatchRepository
 import com.github.yonaprojects.yona.domain.notification.UserProjectNotificationRepository
@@ -1105,17 +1106,18 @@ class UserViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "error/403"
 
-        if (name.isBlank()) {
+        val address = email.trim()
+        if (name.isBlank() || !EmailAddressValidator.isValid(address)) {
             return "redirect:/user/editform"
         }
 
         // 이메일 중복 체크
-        if (loginUser.email != email && userRepository.findByEmail(email).isPresent) {
+        if (loginUser.email != address && userRepository.findByEmail(address).isPresent) {
             return "redirect:/user/editform"
         }
 
         loginUser.name = name.trim()
-        loginUser.email = email.trim()
+        loginUser.email = address
 
         if (avatarId != null) {
             val attachment = attachmentRepository.findById(avatarId).orElse(null)
