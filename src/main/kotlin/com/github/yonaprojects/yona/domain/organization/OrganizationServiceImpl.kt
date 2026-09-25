@@ -4,15 +4,25 @@ import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
 import com.github.yonaprojects.yona.domain.notification.NotificationEventRecorder
+import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.role.RoleRepository
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.FavoriteOrganizationRepository
+import com.github.yonaprojects.yona.domain.user.FavoriteProjectRepository
 import com.github.yonaprojects.yona.domain.user.LoginIdFormatValidator
 import com.github.yonaprojects.yona.domain.user.ReservedWordsValidator
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.vcs.RepositoryService
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.time.Instant
 
 @Service
@@ -24,7 +34,12 @@ class OrganizationServiceImpl(
     private val roleRepository: RoleRepository,
     private val notificationEventRecorder: NotificationEventRecorder,
     // yona FavoriteOrganization.updateFavoriteOrganization() 대응.
-    private val favoriteOrganizationRepository: FavoriteOrganizationRepository
+    private val favoriteOrganizationRepository: FavoriteOrganizationRepository,
+    private val projectRepository: ProjectRepository,
+    private val favoriteProjectRepository: FavoriteProjectRepository,
+    private val repositoryService: RepositoryService,
+    @Value("\${yona.git.base-dir:/tmp/yona/git}") private val gitBaseDir: String,
+    @Value("\${yona.lfs.base-dir:/tmp/yona/lfs}") private val lfsBaseDir: String
 ) : OrganizationService {
 
     override fun findByName(name: String): Organization? {
@@ -81,26 +96,88 @@ class OrganizationServiceImpl(
         return savedOrg
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun updateOrganizationSettings(orgId: Long, name: String, descr: String?, updaterId: Long) {
         val organization = organizationRepository.findById(orgId)
             .orElseThrow { IllegalArgumentException("Organization with ID $orgId not found") }
 
         if (organization.name != name) {
+            if (!LoginIdFormatValidator.isValid(name)) {
+                throw IllegalArgumentException("Organization name format is invalid: $name")
+            }
+            if (ReservedWordsValidator.isReserved(name)) {
+                throw IllegalArgumentException("Organization name is a reserved word: $name")
+            }
             if (isNameExist(name) || userRepository.findByLoginId(name).isPresent) {
                 throw IllegalArgumentException("Target name already exists: $name")
             }
+            renameProjects(organization, name)
             organization.name = name
         }
         organization.descr = descr
         organizationRepository.save(organization)
 
-    // yona FavoriteOrganization.updateFavoriteOrganization() 대응 — 조직명이
+        // yona FavoriteOrganization.updateFavoriteOrganization() 대응 — 조직명이
         // 바뀌면 즐겨찾기 목록에 저장된 비정규화 organizationName도 함께 갱신한다(그대로 두면 즐겨찾기
         // 화면에 옛 조직명이 남는다).
         favoriteOrganizationRepository.findByOrganizationId(orgId).forEach {
             it.organizationName = organization.name
             favoriteOrganizationRepository.save(it)
+        }
+    }
+
+    private fun renameProjects(organization: Organization, newOwner: String) {
+        val moved = mutableListOf<Pair<File, File>>()
+        fun move(source: File, destination: File) {
+            check(!Files.exists(destination.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                "Repository destination already exists: $destination"
+            }
+            if (Files.exists(source.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                // Never replace an orphan or concurrently created destination.
+                Files.createDirectories(destination.parentFile.toPath())
+                Files.move(source.toPath(), destination.toPath())
+                moved.add(source to destination)
+            }
+        }
+        // Filesystem moves are not part of the DB transaction. Restore completed moves
+        // even when a later project or the database commit fails.
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            override fun afterCompletion(status: Int) {
+                if (status != TransactionSynchronization.STATUS_ROLLED_BACK) return
+                moved.asReversed().forEach { (source, destination) ->
+                    try {
+                        Files.move(destination.toPath(), source.toPath())
+                    } catch (e: Exception) {
+                        // Never delete either copy on recovery failure; retain the exact paths.
+                        LoggerFactory.getLogger(OrganizationServiceImpl::class.java).error(
+                            "Repository rollback failed: restore {} to {}", destination, source, e
+                        )
+                    }
+                }
+            }
+        })
+        organization.projects.forEach { project ->
+            val oldOwner = project.owner ?: ""
+            if (oldOwner == newOwner) return@forEach
+            val repository = repositoryService.getRepository(project)
+            val source = repository.getDirectory()
+            val destination = File(source.parentFile.parentFile, "$newOwner/${source.name}")
+            move(source, destination)
+            move(File(gitBaseDir, "$oldOwner/${project.name}.wiki.git"), File(gitBaseDir, "$newOwner/${project.name}.wiki.git"))
+            move(File(lfsBaseDir, "$oldOwner/${project.name}"), File(lfsBaseDir, "$newOwner/${project.name}"))
+            // Match the existing project rename/transfer old-URL retention policy.
+            val lastChanged = project.previousNameChangedTime
+            if (lastChanged == null || lastChanged.isBefore(Instant.now().minusSeconds(24 * 3600))) {
+                project.previousNameChangedTime = Instant.now()
+                project.previousName = project.name
+                project.previousOwnerLoginId = oldOwner
+            }
+            project.owner = newOwner
+            projectRepository.save(project)
+            favoriteProjectRepository.findByProjectId(project.id!!).forEach {
+                it.owner = newOwner
+                favoriteProjectRepository.save(it)
+            }
         }
     }
 
