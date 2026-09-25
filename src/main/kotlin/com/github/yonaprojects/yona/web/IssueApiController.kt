@@ -10,6 +10,7 @@ import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.issue.Issue
 import com.github.yonaprojects.yona.domain.issue.IssueComment
 import com.github.yonaprojects.yona.domain.issue.IssueCommentRepository
+import com.github.yonaprojects.yona.domain.issue.IssueEventRepository
 import com.github.yonaprojects.yona.domain.issue.IssueLabelCategoryRepository
 import com.github.yonaprojects.yona.domain.issue.IssueLabelRepository
 import com.github.yonaprojects.yona.domain.issue.IssueRepository
@@ -22,6 +23,8 @@ import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.support.isModifiedByOthers
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -52,7 +55,10 @@ class IssueApiController(
     private val accessControl: AccessControl,
     private val issueLabelRepository: IssueLabelRepository,
     private val issueLabelCategoryRepository: IssueLabelCategoryRepository,
-    private val milestoneRepository: MilestoneRepository
+    private val milestoneRepository: MilestoneRepository,
+    private val projectApiController: ProjectApiController,
+    private val issueEventRepository: IssueEventRepository,
+    private val messageSource: MessageSource
 ) {
 
     private fun getLoginUser(authentication: Authentication?): User? {
@@ -81,6 +87,30 @@ class IssueApiController(
     private fun resolveIssueState(state: String?): State =
         if (state?.equals("OPEN", ignoreCase = true) != false) State.OPEN else State.CLOSED
 
+    private fun getIssueResponse(issue: Issue): Map<String, Any?> {
+        val result = projectApiController.getIssueResult(issue)
+        val events = issueEventRepository.findByIssueOrderByCreatedAsc(issue)
+        if (events.isNotEmpty()) {
+            result["events"] = events.map { event ->
+                val actor = event.senderLoginId?.let { userRepository.findByLoginId(it).orElse(null) }
+                mapOf(
+                    "id" to event.id,
+                    "createdDate" to projectApiController.formatIsoDate(event.created),
+                    "eventType" to event.eventType.name,
+                    "eventDescription" to messageSource.getMessage(event.eventType.messageKey, null, LocaleContextHolder.getLocale()),
+                    "oldValue" to event.oldValue,
+                    "newValue" to event.newValue,
+                    "actor" to mapOf(
+                        "name" to actor?.getPureNameOnly(),
+                        "loginId" to actor?.loginId,
+                        "englishName" to actor?.englishName
+                    )
+                )
+            }
+        }
+        return mapOf("result" to result)
+    }
+
     // yona controllers/api/IssueApi.java getIssue() 대응.
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}")
     fun getIssueLegacyPath(
@@ -99,14 +129,7 @@ class IssueApiController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
 
-        // raw Issue 엔티티를 그대로 반환하면 project->projectUsers->user 순환 직렬화로
-        // User.password/passwordSalt까지 노출된다. 응답 필드명은 기존 IssueResponse
-        // (id/number/title/body/state/...)를 그대로 재사용한다 — 실제 legacy 응답은 이미
-        // {"result": {...}} 래핑이나 milestoneTitle/assignees[].loginId 같은 필드 매핑을 하지 않은
-        // 채(가공 없이 그대로 엔티티만 직렬화) 서비스 중이었으므로, "진짜" legacy Java 계약과는 이미
-        // 어긋나 있었다 — 여기서는 그 기존 관찰가능한 동작(감싸지 않은 평탄한 JSON, title/body/
-        // state/weight 등 필드명)만 유지하며 비밀번호 노출만 제거한다.
-        return ResponseEntity.ok(issue.toResponse())
+        return ResponseEntity.ok(getIssueResponse(issue))
     }
 
     // yona IssueApi.upvoteWeight() 대응.
@@ -207,8 +230,7 @@ class IssueApiController(
         }
 
         val updated = issueService.changeState(issue.id!!, resolveIssueState(request.state), user.loginId!!)
-        // 동일한 순환 직렬화/비밀번호 노출 문제 대응.
-        return ResponseEntity.ok(updated.toResponse())
+        return ResponseEntity.ok(getIssueResponse(updated))
     }
 
     // yona IssueApi.updateIssue()/updateIssueNode() 대응. legacy 필드명은
@@ -250,8 +272,7 @@ class IssueApiController(
             updated = issueService.changeState(issue.id!!, resolveIssueState(request.state), user.loginId!!)
         }
 
-        // 동일한 순환 직렬화/비밀번호 노출 문제 대응.
-        return ResponseEntity.ok(updated.toResponse())
+        return ResponseEntity.ok(getIssueResponse(updated))
     }
 
     // yona IssueApi.updateLabels()/updateIssueLabel() 대응. legacy는 요청 바디 전체가 라벨 ID 문자열 배열이다
