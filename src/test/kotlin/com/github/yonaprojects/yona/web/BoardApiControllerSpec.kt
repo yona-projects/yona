@@ -123,6 +123,19 @@ class BoardApiControllerSpec : DescribeSpec({
     }
 
     describe("POST /-_-api/v1/owners/{owner}/projects/{projectName}/posts (newPostings)") {
+        it("posts가 없거나 배열이 아니면 거부하고 명시적인 빈 배열은 허용한다") {
+            for (body in listOf("{}", """{"posts":null}""", """{"posts":{}}""")) {
+                mockMvc.perform(
+                    post("/-_-api/v1/owners/alice/projects/myproject/posts")
+                        .contentType(MediaType.APPLICATION_JSON).content(body).principal(auth)
+                ).andExpect(status().isBadRequest)
+            }
+            mockMvc.perform(
+                post("/-_-api/v1/owners/alice/projects/myproject/posts")
+                    .contentType(MediaType.APPLICATION_JSON).content("""{"posts":[]}""").principal(auth)
+            ).andExpect(status().isCreated).andExpect(jsonPath("$").isEmpty)
+        }
+
         it("게시글 배열을 벌크 생성한다") {
             val created = Posting(id = 70L, title = "새글", project = project, number = 9L)
             every { postingService.createPosting(1L, any(), 10L) } returns created

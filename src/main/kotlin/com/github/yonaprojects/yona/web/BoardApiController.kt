@@ -144,5 +144,5 @@ class BoardApiController(
         // 마이그레이션 시 과거 게시글 번호를 그대로 보존하기 위해 지정. 0 이하면 무시하고 자동 채번.
         val number: Long? = null
     )
-    data class LegacyNewPostingsRequest(val posts: List<LegacyNewPostingItem> = emptyList())
+    data class LegacyNewPostingsRequest(val posts: List<LegacyNewPostingItem>)
 }

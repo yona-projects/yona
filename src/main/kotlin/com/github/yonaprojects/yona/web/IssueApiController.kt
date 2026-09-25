@@ -360,7 +360,7 @@ class IssueApiController(
         val number: Long? = null
     )
     data class LegacyNewIssuesRequest(
-        val issues: List<LegacyNewIssueItem> = emptyList(),
+        val issues: List<LegacyNewIssueItem>,
         val sendNotification: Boolean = false
     )
 
