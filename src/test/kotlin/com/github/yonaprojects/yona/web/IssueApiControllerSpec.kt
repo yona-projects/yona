@@ -263,6 +263,19 @@ class IssueApiControllerSpec : DescribeSpec({
     }
 
     describe("POST /-_-api/v1/owners/{owner}/projects/{projectName}/issues (newIssues)") {
+        it("issues가 없거나 배열이 아니면 거부하고 명시적인 빈 배열은 허용한다") {
+            for (body in listOf("{}", """{"issues":null}""", """{"issues":{}}""")) {
+                mockMvc.perform(
+                    post("/-_-api/v1/owners/alice/projects/myproject/issues")
+                        .contentType(MediaType.APPLICATION_JSON).content(body).principal(auth)
+                ).andExpect(status().isBadRequest)
+            }
+            mockMvc.perform(
+                post("/-_-api/v1/owners/alice/projects/myproject/issues")
+                    .contentType(MediaType.APPLICATION_JSON).content("""{"issues":[]}""").principal(auth)
+            ).andExpect(status().isCreated).andExpect(jsonPath("$").isEmpty)
+        }
+
         it("이슈 배열을 벌크 생성한다") {
             val created = Issue(id = 60L, title = "새이슈", project = project, number = 8L)
             every {
