@@ -103,6 +103,10 @@ Claude 같은 AI 에이전트가 이슈·PR·위키 페이지를 직접 조회·
 ## 요구 사항
 
 - JDK 21
+- Node.js 22 이상과 npm 10 이상 (`PATH`에서 사용 가능해야 함). `./gradlew test`를 포함한
+  리소스 빌드는 `frontend/`에서 잠금 파일 기반 `npm ci`를 실행합니다. 최초 빌드에는 npm
+  레지스트리 접근 또는 미리 채운 npm 캐시가 필요합니다. 공식 `@hotwired/turbo` 배포 파일은
+  Gradle 빌드 출력에 복사되어 애플리케이션에 포함되며, 실행 시 Node.js나 CDN은 필요하지 않습니다.
 - 운영/테스트 DB 중 하나: MariaDB(기본), PostgreSQL, MySQL, SQL Server, CUBRID, H2(설치 없이 바로 써보기)
 
 ## 빌드 & 실행
@@ -413,6 +417,10 @@ agents such as Claude can directly query and act on issues, pull requests, and w
 ## Requirements
 
 - JDK 21
+- Node.js 22+ and npm 10+ available on `PATH`. Resource builds, including `./gradlew test`,
+  run lockfile-based `npm ci` in `frontend/`. The first build needs npm registry access or a
+  pre-populated npm cache. The official `@hotwired/turbo` distribution is copied into Gradle
+  build output and packaged with the application; Node.js and a CDN are not needed at runtime.
 - One of the supported/tested DBs: MariaDB (default), PostgreSQL, MySQL, SQL Server, CUBRID, or embedded H2 (no install needed)
 
 ## Build & Run

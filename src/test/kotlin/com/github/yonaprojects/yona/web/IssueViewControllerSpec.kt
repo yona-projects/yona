@@ -244,6 +244,90 @@ class IssueViewControllerSpec : DescribeSpec({
             }
         }
 
+        describe("selected issue on the list") {
+            val selectedIssue = Issue(id = 501L, number = 7L, title = "Selected", body = "Detail body", project = project)
+
+            fun prepareSelectedList() {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { issueRepository.findAll(any<Specification<Issue>>(), any<Pageable>()) } returns PageImpl(listOf(issue))
+                every { issueRepository.count(any<Specification<Issue>>()) } returns 1L
+                every { issueRepository.countByProjectAndState(project, any()) } returns 1L
+                every { milestoneService.getMilestones(any<Long>(), any<State>()) } returns emptyList()
+                every { projectUserRepository.findByProjectId(any<Long>()) } returns emptyList()
+                every { issueLabelRepository.findByProject(project) } returns emptyList()
+                every { issueRepository.findByProjectAndAuthorLoginIdAndIsDraftTrueOrderByNumberDesc(any(), any()) } returns emptyList()
+                every { issueRepository.findByProjectAndNumber(project, 7L) } returns selectedIssue
+                every { issueCommentRepository.findByIssueIdOrderByCreatedDateAsc(501L) } returns emptyList()
+                every { watchService.isWatching(any(), any(), any()) } returns false
+                every { favoriteIssueRepository.findByUserIdAndIssueId(10L, 501L) } returns Optional.empty()
+                every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            }
+
+            it("uses the public issue number and preserves the list model") {
+                prepareSelectedList()
+                mockMvc.perform(get("/owner/TestProj/issues").queryParam("selected", "7").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(view().name("issue/list"))
+                    .andExpect(model().attribute("selected", 7L))
+                    .andExpect(model().attribute("issue", selectedIssue))
+                    .andExpect(model().attributeExists("issuePage", "draftIssues", "state", "members", "labels", "openIssuesCount"))
+                verify(exactly = 0) { issueRepository.findById(any()) }
+            }
+
+            it("keeps all repeated and encoded query parameters except selected") {
+                prepareSelectedList()
+                val query = "state=closed&pageNum=2&filter=a%2Bb%20c&labelIds=2&labelIds=3&custom=x%26y&custom=&selected=7"
+                mockMvc.perform(get(java.net.URI("/owner/TestProj/issues?$query")).principal(userAuth))
+                    .andExpect(view().name("issue/list"))
+                    .andExpect(model().attribute("state", State.CLOSED))
+                    .andExpect(model().attribute("filter", "a+b c"))
+                    .andExpect(model().attribute("labelIds", listOf(2L, 3L)))
+                    .andExpect(model().attribute("selectionClearUrl", "/owner/TestProj/issues?" + query.substringBefore("&selected=")))
+                    .andExpect(model().attribute("selectionBaseUrl", "/owner/TestProj/issues?" + query.substringBefore("&selected=") + "&"))
+            }
+
+            it("keeps the unselected list without loading a detail") {
+                prepareSelectedList()
+                mockMvc.perform(get("/owner/TestProj/issues").principal(userAuth))
+                    .andExpect(view().name("issue/list"))
+                    .andExpect(model().attributeDoesNotExist("issue"))
+                    .andExpect(model().attribute("selectionClearUrl", "/owner/TestProj/issues"))
+                    .andExpect(model().attribute("selectionBaseUrl", "/owner/TestProj/issues?"))
+                verify(exactly = 0) { issueRepository.findByProjectAndNumber(any(), any()) }
+            }
+
+            it("uses the project notfound page for an absent public number") {
+                prepareSelectedList()
+                every { issueRepository.findByProjectAndNumber(project, 999L) } returns null
+                mockMvc.perform(get("/owner/TestProj/issues").queryParam("selected", "999").principal(userAuth))
+                    .andExpect(view().name("error/notfound"))
+                    .andExpect(model().attribute("project", project))
+                    .andExpect(model().attribute("targetType", "issue_post"))
+            }
+
+            it("uses the project notfound page for malformed or nonpositive selections") {
+                prepareSelectedList()
+                listOf("", "abc", "9223372036854775808", "0", "-1").forEach { selected ->
+                    mockMvc.perform(get("/owner/TestProj/issues").queryParam("selected", selected).principal(userAuth))
+                        .andExpect(view().name("error/notfound"))
+                        .andExpect(model().attribute("project", project))
+                        .andExpect(model().attribute("targetType", "issue_post"))
+                }
+                verify(exactly = 0) { issueRepository.findByProjectAndNumber(any(), any()) }
+            }
+
+            it("denies inaccessible selections without exposing a detail") {
+                prepareSelectedList()
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(nonMemberUser)
+                mockMvc.perform(get("/owner/TestProj/issues").queryParam("selected", "7").principal(userAuth))
+                    .andExpect(view().name("error/forbidden"))
+                    .andExpect(model().attribute("messageKey", "error.forbidden.or.notfound"))
+                    .andExpect(model().attributeDoesNotExist("issue", "comments"))
+                verify(exactly = 0) { issueRepository.findByProjectAndNumber(any(), any()) }
+            }
+        }
+
         describe("GET /{owner}/{projectName}/issue/{number}") {
             it("프로젝트 멤버가 이슈 조회를 요청하면 200 OK와 issue/view 뷰를 반환해야 한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)

@@ -1,4 +1,5 @@
-document.addEventListener("DOMContentLoaded", function(){
+window.yona = window.yona || {};
+yona.initSubComments = function(root) {
     // jQuery의 :visible 판정과 동일한 공식(jQuery 소스 그대로).
     function isVisible(el){
         return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
@@ -24,13 +25,15 @@ document.addEventListener("DOMContentLoaded", function(){
     }
 
     // timeline label text color adjusting
-    document.querySelectorAll(".event > .label").forEach(function(el){
+    root.querySelectorAll(".event > .label").forEach(function(el){
         el.classList.remove("dimgray", "white");
         el.classList.add($yona.getContrastColor(getComputedStyle(el).backgroundColor));
     });
 
     // Releated with one line sub-comment feature
-    document.querySelectorAll(".add-a-comment").forEach(function(el){
+    root.querySelectorAll(".add-a-comment").forEach(function(el){
+        if (el.yonaSubCommentBound) return;
+        el.yonaSubCommentBound = true;
         el.addEventListener("click", function(e){
             var parent = this.closest(".comment");
 
@@ -42,6 +45,9 @@ document.addEventListener("DOMContentLoaded", function(){
             }
 
             parent.querySelectorAll("textarea").forEach(function(textarea){
+                textarea.focus();
+                if (textarea.yonaSubCommentBound) return;
+                textarea.yonaSubCommentBound = true;
                 textarea.addEventListener('keypress', function(e) {
                     // Enter to submit
                     if ((e.metaKey || e.Control) && (e.keyCode || e.which) === 13) {
@@ -55,21 +61,22 @@ document.addEventListener("DOMContentLoaded", function(){
                 textarea.addEventListener('keyup', function(e) {
                     // Cancel input
                     if ((e.keyCode || e.which) === 27) {
-                        document.querySelectorAll(".child-comment-input-form").forEach(function(el){
+                        root.querySelectorAll(".child-comment-input-form").forEach(function(el){
                             el.style.display = "none";
                             el.style.visibility = "hidden";
                         });
-                        document.querySelectorAll(".add-a-comment").forEach(function(el){
+                        root.querySelectorAll(".add-a-comment").forEach(function(el){
                             el.style.display = "";
                         });
                     }
                 });
-                textarea.focus();
             });
         });
     });
 
-    document.querySelectorAll(".comment").forEach(function(comment){
+    root.querySelectorAll(".comment").forEach(function(comment){
+        if (comment.yonaSubCommentBound) return;
+        comment.yonaSubCommentBound = true;
         ["mouseenter", "tab"].forEach(function(eventType){
             comment.addEventListener(eventType, function () {
                 var textareaBox = comment.querySelector(".textarea-box > textarea");
@@ -94,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function(){
     });
 
     // Releated with one line sub-comment feature
-    document.querySelectorAll(".subcomment-author").forEach(function addAuthorToLastParagraphOfOnelineComment(el){
+    root.querySelectorAll(".subcomment-author").forEach(function addAuthorToLastParagraphOfOnelineComment(el){
         // append Author and addtionals to mardkown rendered contents
         // Remove spaces
         var trimmed = el.innerHTML.replace(/\s\s+/g, ' ');
@@ -111,4 +118,8 @@ document.addEventListener("DOMContentLoaded", function(){
             normalTextRenderedParagraph.insertAdjacentHTML('beforeend', trimmed);
         }
     });
+};
+
+document.addEventListener("DOMContentLoaded", function() {
+    yona.initSubComments(document);
 });

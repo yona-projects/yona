@@ -9,25 +9,37 @@ function findNotiReceiversHandler(elTextarea, url) {
     var MAX_DISPLAY = 10
     var DEBOUNCE_DURATION = 1000;
 
-    if (!window.displayTimeout) window.displayTimeout = 0;
+    unbindFindNotiReceiversHandler(elTextarea);
+    var displayTimeout;
+    var disposed = false;
+    var controller = new AbortController();
 
     findNotiReceivers();
 
     function _onKeyup() {
-        clearTimeout(window.displayTimeout);
-        window.displayTimeout = setTimeout(findNotiReceivers, DEBOUNCE_DURATION);
+        clearTimeout(displayTimeout);
+        displayTimeout = setTimeout(findNotiReceivers, DEBOUNCE_DURATION);
     }
     // removeEventListener는 같은 함수 참조가 필요하므로 unbind에서 쓸 수 있게 엘리먼트에 보관한다.
     elTextarea._receiverListKeyupHandler = _onKeyup;
     elTextarea.addEventListener('keyup', _onKeyup);
+    elTextarea._receiverListDispose = function() {
+        disposed = true;
+        clearTimeout(displayTimeout);
+        controller.abort();
+        elTextarea.removeEventListener("keyup", _onKeyup);
+    };
+    return elTextarea._receiverListDispose;
 
     function findNotiReceivers() {
+        if (disposed) return;
         var elForm = elTextarea.closest("form");
         var elParentCommentId = elForm ? elForm.querySelector(".parentCommentId") : null;
         var parentCommentId = elParentCommentId ? elParentCommentId.value : "";
 
         fetch(url, {
             method: "POST",
+            signal: controller.signal,
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ comment: elTextarea.value, parentCommentId: parentCommentId || "" })
         })
@@ -40,6 +52,7 @@ function findNotiReceiversHandler(elTextarea, url) {
             return response.json();
         })
         .then(function (data) {
+            if (disposed) return;
             NProgress.done();
             var receivers = "";
             if (!data && !data.receivers) {
@@ -64,6 +77,7 @@ function findNotiReceiversHandler(elTextarea, url) {
             }
         })
         .catch(function (err) {
+            if (disposed) return;
             var response = JSON.parse(err.responseText);
             var message = '[' + err.statusText + '] ' + response.message + '\n\nRefresh the page!';
             $yona.showAlert(message);
@@ -87,6 +101,10 @@ function findNotiReceiversHandler(elTextarea, url) {
 
 
 function unbindFindNotiReceiversHandler(elTextarea) {
+    if (elTextarea._receiverListDispose) {
+        elTextarea._receiverListDispose();
+        elTextarea._receiverListDispose = null;
+    }
     if (elTextarea._receiverListKeyupHandler) {
         elTextarea.removeEventListener('keyup', elTextarea._receiverListKeyupHandler);
         elTextarea._receiverListKeyupHandler = null;

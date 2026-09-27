@@ -91,19 +91,13 @@ test.describe.serial('issue management actions', () => {
     // yona-dropdown#attaching-label wires onChange -> _onChangeAttachingLabelField -> a real
     // native <form> submit (welForm.submit(), not fetch) to /{owner}/{projectName}/issues/massupdate
     // carrying issues[0].id + attachingLabelIds -- this is a full page navigation, not AJAX.
-    // IssueViewController.massUpdate() redirects to plain `/{owner}/{projectName}/issues` on
-    // success -- wait for that specific URL rather than waitForLoadState('load'), which can
-    // resolve immediately against the *current* (already-loaded) page before the click's
-    // navigation even starts, racing ahead into the next page.goto() with a stale page. Even
-    // after that, the redirect target keeps loading sub-resources for a moment -- an immediate
-    // page.goto() right after waitForURL resolves can still get net::ERR_ABORTED, so settle on
-    // networkidle first.
+    // The mutation redirects to the URL already open; wait for the new document, not
+    // a URL predicate that is true before submission or unrelated background traffic.
     await page.click('#attaching-label button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.click(`#attaching-label li[data-value="${labelId}"] a`),
     ]);
-    await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     await expect(page.locator(`.issue-label[data-label-id="${labelId}"]`)).toBeVisible();
@@ -123,15 +117,11 @@ test.describe.serial('issue management actions', () => {
     // issue/list.html always renders "assign to me" as the *second* <li> in this dropdown
     // (right after "no assignee", before the divider and the per-member list), so target it
     // positionally instead of by (locale-dependent) text.
-    await page.click('#assignee button.dropdown-toggle');
+    await page.click('#list-assignee button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
-      page.locator('#assignee ul.dropdown-menu > li').nth(1).locator('a').click(),
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.locator('#list-assignee ul.dropdown-menu > li').nth(1).locator('a').click(),
     ]);
-    // waitForURL resolves as soon as the redirect target commits; its sub-resources are still
-    // loading for a moment, and an immediate page.goto() right after can hit net::ERR_ABORTED --
-    // settle first.
-    await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     const owner2 = requireSeed('adminLoginId');
@@ -153,12 +143,11 @@ test.describe.serial('issue management actions', () => {
     // The dedicated milestone created above is OPEN by construction (#milestone-open checked),
     // so the mass-update widget's milestone dropdown is guaranteed to be rendered here -- no
     // need to guard against a closed/missing milestone the way a shared cross-file seed would.
-    await page.click('#milestone button.dropdown-toggle');
+    await page.click('#list-milestone button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
-      page.click(`#milestone li[data-value="${milestoneId}"] a`),
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click(`#list-milestone li[data-value="${milestoneId}"] a`),
     ]);
-    await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     // issue/view.html's <dt> label text is locale-dependent (this environment renders English,
@@ -177,10 +166,9 @@ test.describe.serial('issue management actions', () => {
     await issueRow.locator('input[name="checked-issue"]').check();
     await page.click('#state button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.click('#state li[data-value="CLOSED"] a'),
     ]);
-    await page.waitForLoadState('networkidle');
 
     // BUG #4 (was: PRODUCT BUG, now fixed -- see BUGFIXES.md): issue/view.html's state badge did
     // `#{'issue.state.' + issue.state}` with the raw (uppercase) enum name, e.g.
@@ -204,10 +192,9 @@ test.describe.serial('issue management actions', () => {
     await issueRow.locator('input[name="checked-issue"]').check();
     await page.click('#state button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.click('#state li[data-value="OPEN"] a'),
     ]);
-    await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     await expect(page.locator('.badge-issue-open').first()).toBeVisible();
@@ -384,15 +371,11 @@ test.describe.serial('issue management actions', () => {
     await expect(page.locator('dialog#deleteConfirm')).toBeVisible();
     const [deleteResponse] = await Promise.all([
       page.waitForResponse((res) => res.request().method() === 'DELETE' && res.url().includes(`/issues/${issueNumber}`)),
-      page.click('dialog#deleteConfirm button[data-request-method="delete"]'),
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('dialog#deleteConfirm button[data-issue-delete]'),
     ]);
     expect(deleteResponse.ok()).toBeTruthy();
-    // deleteIssue() returns a plain 200 (no Location header), so requestAs() just reloads the
-    // *current* page rather than redirecting -- give that reload a moment to land before
-    // navigating away, same race condition as the mass-update flows above.
-    await page.waitForLoadState('networkidle');
-
-    await page.goto(`/${owner}/${name}/issues`);
+    await expect(page).toHaveURL(new RegExp(`/${owner}/${name}/issues$`));
     // expect(...).not.toContainText() is an auto-retrying assertion re-polling this page over
     // its timeout window; it produced a false positive here even though a direct, single
     // innerText() snapshot immediately after the same navigation confirms the title is

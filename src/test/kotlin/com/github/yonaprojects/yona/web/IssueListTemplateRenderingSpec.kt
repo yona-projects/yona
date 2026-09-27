@@ -89,6 +89,32 @@ class IssueListTemplateRenderingSpec @Autowired constructor(
                 body shouldContain "이슈목록 마일스톤"
                 body shouldContain "자식 이슈"
             }
+
+            it("renders a selected public number with its detail even when the list filter excludes it") {
+                val author = userRepository.save(User(loginId = "selected-author", name = "Selected author", email = "selected-author@yona.io"))
+                val project = projectRepository.save(Project(name = "selected-project", owner = "selected-owner", projectScope = ProjectScope.PUBLIC))
+                issueRepository.save(
+                    Issue(title = "Listed open issue", body = "Open body", project = project, number = 31L,
+                        authorId = author.id, authorLoginId = author.loginId, authorName = author.name, state = State.OPEN)
+                )
+                issueRepository.save(
+                    Issue(title = "Selected closed issue", body = "Selected detail body outside the list filter",
+                        project = project, number = 47L, authorId = author.id, authorLoginId = author.loginId,
+                        authorName = author.name, state = State.CLOSED)
+                )
+
+                val body = mockMvc.perform(get("/${project.owner}/${project.name}/issues")
+                    .queryParam("state", "open").queryParam("selected", "47"))
+                    .andExpect(status().isOk)
+                    .andReturn().response.contentAsString
+
+                body shouldContain "<!DOCTYPE html>"
+                body shouldContain "id=\"issue-list\""
+                body shouldContain "id=\"issue-detail\""
+                body shouldContain "Listed open issue"
+                body shouldContain "Selected closed issue"
+                body shouldContain "Selected detail body outside the list filter"
+            }
         }
     }
 }

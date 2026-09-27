@@ -5,8 +5,9 @@
  * https://yona.io
  **/
 
-document.addEventListener("DOMContentLoaded", function () {
-    var markdownWraps = document.querySelectorAll(".markdown-wrap");
+window.yona = window.yona || {};
+yona.initTasklist = function(root) {
+    var markdownWraps = root.querySelectorAll(".markdown-wrap");
     var inputCheckBox = "input[type='checkbox']";
 
     checkTasklistDoneCount(markdownWraps);
@@ -17,6 +18,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     markdownWraps.forEach(function (wrap) {
         wrap.querySelectorAll(inputCheckBox).forEach(function (checkbox) {
+            if (checkbox.yonaTasklistBound) return;
+            checkbox.yonaTasklistBound = true;
             checkbox.addEventListener("click", function () {
                 var form = checkbox.closest("div[id]").previousElementSibling.querySelector("form");
                 var url = form.getAttribute("action");
@@ -135,4 +138,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // See: addTaskListButtonListener() at views/common/scripts.scala.html
+};
+
+document.addEventListener("DOMContentLoaded", function() {
+    yona.initTasklist(document);
 });
