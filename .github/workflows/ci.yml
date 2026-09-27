@@ -1,0 +1,231 @@
+name: CI
+
+on:
+  push:
+    branches: [next]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Kotest / suite
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/next' }}
+      - name: Install native test dependencies
+        run: sudo apt-get update && sudo apt-get install -y git gnupg mercurial subversion openssh-client python3
+      - name: Run existing Kotest suite
+        run: ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process test -Dyona.it.db=h2
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-reports
+          path: |
+            build/reports/tests/test/
+            build/test-results/test/
+            build/reports/jacoco/test/
+
+  database:
+    name: Database / ${{ matrix.db }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [mariadb, postgres, mysql, mssql, cubrid, h2]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/next' }}
+      - name: Install native test dependencies
+        run: sudo apt-get update && sudo apt-get install -y git gnupg mercurial subversion openssh-client python3
+      - name: Run existing tests against database
+        run: ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process test -Dyona.it.db=${{ matrix.db }}
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: database-${{ matrix.db }}-reports
+          path: |
+            build/reports/tests/test/
+            build/test-results/test/
+            build/reports/jacoco/test/
+
+  e2e:
+    name: Playwright / Chromium
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    services:
+      mailpit:
+        image: axllent/mailpit:v1
+        ports:
+          - 1025:1025
+          - 8025:8025
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/next' }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Install native test dependencies
+        run: sudo apt-get update && sudo apt-get install -y git gnupg mercurial subversion openssh-client python3
+      - name: Build application
+        run: ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process bootJar
+      - name: Install browser test dependencies
+        id: browser-dependencies
+        working-directory: e2e
+        run: npm ci && npx playwright install --with-deps chromium
+      - name: Start full-suite H2 application
+        id: full-app
+        run: |
+          mkdir -p build/e2e/full
+          java -Xmx2048m -jar "$(find build/libs -maxdepth 1 -name 'yona-*.jar' ! -name '*-plain.jar')" \
+            --spring.profiles.active=h2 \
+            '--spring.datasource.url=jdbc:h2:mem:yona-e2e;DB_CLOSE_DELAY=-1' \
+            --spring.mail.host=127.0.0.1 \
+            --yona.analytics.send-usage=false \
+            --management.tracing.sampling.probability=0.0 \
+            --yona.signup.require-email-verification=false \
+            --yona.data=./build/e2e/full/data \
+            --yona.git.base-dir=./build/e2e/full/git \
+            --yona.svn.base-dir=./build/e2e/full/svn \
+            --yona.hg.base-dir=./build/e2e/full/hg \
+            --yona.lfs.base-dir=./build/e2e/full/lfs \
+            --logging.file.name=./build/e2e/full/application.log \
+            > build/e2e/full/stdout.log 2>&1 &
+          echo $! > build/e2e/full/app.pid
+          for _ in $(seq 1 300); do
+            if curl --fail --silent http://127.0.0.1:8080/bootstrap-setup >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat build/e2e/full/stdout.log
+          exit 1
+      - name: Run existing browser tests
+        id: full-tests
+        if: ${{ steps.full-app.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: e2e
+        env:
+          YONA_BASE_URL: http://localhost:8080
+        run: npm test
+      - name: Save full-suite browser reports
+        if: always()
+        run: |
+          mkdir -p build/e2e/full
+          [ ! -d e2e/playwright-report ] || cp -R e2e/playwright-report build/e2e/full/
+          [ ! -d e2e/test-results ] || cp -R e2e/test-results build/e2e/full/
+      - name: Stop full-suite H2 application
+        if: always()
+        run: |
+          if [ -f build/e2e/full/app.pid ]; then
+            kill "$(cat build/e2e/full/app.pid)" || true
+            for _ in $(seq 1 30); do
+              curl --fail --silent http://127.0.0.1:8080/bootstrap-setup >/dev/null || exit 0
+              sleep 1
+            done
+            exit 1
+          fi
+      - name: Start email-verification H2 application
+        id: email-app
+        if: ${{ always() && steps.browser-dependencies.outcome == 'success' }}
+        run: |
+          mkdir -p build/e2e/email-verification
+          java -Xmx2048m -jar "$(find build/libs -maxdepth 1 -name 'yona-*.jar' ! -name '*-plain.jar')" \
+            --spring.profiles.active=h2 \
+            '--spring.datasource.url=jdbc:h2:mem:yona-e2e-email;DB_CLOSE_DELAY=-1' \
+            --spring.mail.host=127.0.0.1 \
+            --yona.analytics.send-usage=false \
+            --management.tracing.sampling.probability=0.0 \
+            --yona.signup.require-email-verification=true \
+            --yona.data=./build/e2e/email-verification/data \
+            --yona.git.base-dir=./build/e2e/email-verification/git \
+            --yona.svn.base-dir=./build/e2e/email-verification/svn \
+            --yona.hg.base-dir=./build/e2e/email-verification/hg \
+            --yona.lfs.base-dir=./build/e2e/email-verification/lfs \
+            --logging.file.name=./build/e2e/email-verification/application.log \
+            > build/e2e/email-verification/stdout.log 2>&1 &
+          echo $! > build/e2e/email-verification/app.pid
+          for _ in $(seq 1 300); do
+            if curl --fail --silent http://127.0.0.1:8080/bootstrap-setup >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat build/e2e/email-verification/stdout.log
+          exit 1
+      - name: Verify signup requiring email confirmation
+        id: email-tests
+        if: ${{ always() && steps.email-app.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: e2e
+        env:
+          YONA_BASE_URL: http://localhost:8080
+        run: npm test -- specs/01-auth/auth.spec.ts --grep 'when required, signup blocks login'
+      - name: Save email-verification browser reports
+        if: always()
+        run: |
+          mkdir -p build/e2e/email-verification
+          [ ! -d e2e/playwright-report ] || cp -R e2e/playwright-report build/e2e/email-verification/
+          [ ! -d e2e/test-results ] || cp -R e2e/test-results build/e2e/email-verification/
+      - name: Stop email-verification H2 application
+        if: always()
+        run: |
+          if [ -f build/e2e/email-verification/app.pid ]; then
+            kill "$(cat build/e2e/email-verification/app.pid)" || true
+            for _ in $(seq 1 30); do
+              curl --fail --silent http://127.0.0.1:8080/bootstrap-setup >/dev/null || exit 0
+              sleep 1
+            done
+            exit 1
+          fi
+      - name: Fail if browser tests failed
+        if: always()
+        run: |
+          test "${{ steps.browser-dependencies.outcome }}" = success
+          test "${{ steps.full-app.outcome }}" = success
+          test "${{ steps.full-tests.outcome }}" = success
+          test "${{ steps.email-app.outcome }}" = success
+          test "${{ steps.email-tests.outcome }}" = success
+      - name: Upload browser reports and application logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-reports
+          path: |
+            build/e2e/full/playwright-report/
+            build/e2e/full/test-results/
+            build/e2e/full/application.log
+            build/e2e/email-verification/playwright-report/
+            build/e2e/email-verification/test-results/
+            build/e2e/email-verification/application.log
