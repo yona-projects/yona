@@ -743,25 +743,25 @@
             // mouseleave뿐 아니라 focus/blur도 위임한다 - 넷 다 버블링하지 않는 이벤트라 캡처
             // 단계에서 리스닝한다.
             document.addEventListener("mouseenter", function(event){
-                var matched = event.target.closest("[data-toggle=tooltip]");
+                var matched = event.target.closest && event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
                     $yona.showTooltip(matched);
                 }
             }, true);
             document.addEventListener("mouseleave", function(event){
-                var matched = event.target.closest("[data-toggle=tooltip]");
+                var matched = event.target.closest && event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
                     $yona.hideTooltip(matched);
                 }
             }, true);
             document.addEventListener("focus", function(event){
-                var matched = event.target.closest("[data-toggle=tooltip]");
+                var matched = event.target.closest && event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
                     $yona.showTooltip(matched);
                 }
             }, true);
             document.addEventListener("blur", function(event){
-                var matched = event.target.closest("[data-toggle=tooltip]");
+                var matched = event.target.closest && event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
                     $yona.hideTooltip(matched);
                 }

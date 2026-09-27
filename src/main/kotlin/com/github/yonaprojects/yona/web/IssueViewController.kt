@@ -43,6 +43,8 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 import com.github.yonaprojects.yona.domain.project.RecentProjectRepository
 import com.github.yonaprojects.yona.domain.user.User
+import jakarta.servlet.http.HttpServletRequest
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
@@ -107,7 +109,8 @@ class IssueViewController(
         @RequestParam(required = false, defaultValue = "desc") orderDir: String,
         @RequestParam(required = false, defaultValue = "15") itemsPerPage: Int,
         authentication: Authentication?,
-        model: Model
+        model: Model,
+        request: HttpServletRequest
     ): Any {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: run {
@@ -128,8 +131,32 @@ class IssueViewController(
             // 프로젝트 헤더/메뉴가 붙는 컨텍스트 인지형 403으로 교체.
             model.addAttribute("project", project)
             model.addAttribute("messageKey", "error.forbidden.or.notfound")
+            model.addAttribute("turboFrameError", request.getHeader("Turbo-Frame") == "issue-detail")
             return "error/forbidden"
         }
+        val selectedParam = request.getParameter("selected")
+        val selected = selectedParam?.toLongOrNull()
+        if (selectedParam != null) {
+            val detailView = if (selected != null && selected > 0) {
+                viewIssue(owner, projectName, selected, authentication, model)
+            } else {
+                "error/notfound"
+            }
+            if (detailView != "issue/view") {
+                model.addAttribute("project", project)
+                model.addAttribute("targetType", "issue_post")
+                model.addAttribute("turboFrameError", request.getHeader("Turbo-Frame") == "issue-detail")
+                return "error/notfound"
+            }
+        }
+
+        val selectionQuery = request.queryString.orEmpty().split("&")
+            .filter { it.isNotEmpty() && URLDecoder.decode(it.substringBefore("="), StandardCharsets.UTF_8) != "selected" }
+            .joinToString("&")
+        val selectionClearUrl = request.requestURI + if (selectionQuery.isEmpty()) "" else "?$selectionQuery"
+        model.addAttribute("selected", selected)
+        model.addAttribute("selectionClearUrl", selectionClearUrl)
+        model.addAttribute("selectionBaseUrl", selectionClearUrl + if (selectionQuery.isEmpty()) "?" else "&")
 
         val actualPage = if (pageNum != null) {
             if (pageNum > 0) pageNum - 1 else 0

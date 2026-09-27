@@ -7,7 +7,8 @@
 // #assignee는 data-toggle="tomselect" 자동 초기화 대상이 아니라 이 모듈이 직접 TomSelect를
 // 생성하므로, change 이벤트 브릿지도 여기서 직접 걸어야 한다(evt.val을 읽는 다른 코드와의
 // 호환을 위해 - yona.ui.TomSelect.js 상단 주석 참고).
-function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, message){
+function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, message, root){
+  var lifecycle = new AbortController();
   var MIN_INPUT_LENGTH = 0;
   var resultCache = {};
 
@@ -34,7 +35,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
     };
   }
 
-  var assigneeElement = document.getElementById("assignee");
+  var assigneeElement = (root || document).querySelector("#assignee");
 
   var tomSelectInstance = new TomSelect(assigneeElement, {
     valueField: "loginId",
@@ -51,7 +52,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
         return;
       }
 
-      fetch(findAssignableUsersApiUrl + "?" + new URLSearchParams({ query: query }))
+      fetch(findAssignableUsersApiUrl + "?" + new URLSearchParams({ query: query }), {signal: lifecycle.signal})
         .then(function(response){
           if(!response.ok){
             return Promise.reject(response);
@@ -59,10 +60,12 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
           return response.json();
         })
         .then(function(data){
+          if(lifecycle.signal.aborted){ return; }
           resultCache[query] = data || [];
           callback(resultCache[query]);
         })
         .catch(function(){
+          if(lifecycle.signal.aborted){ return; }
           callback();
         });
     },
@@ -85,7 +88,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
   // 데이터로 비동기 갱신한다.
   var initialId = tomSelectInstance.items[0];
   if(initialId){
-    fetch(findAssignableUsersApiUrl + "?query=" + initialId + "&type=loginId")
+    fetch(findAssignableUsersApiUrl + "?query=" + initialId + "&type=loginId", {signal: lifecycle.signal})
       .then(function(response){
         if(!response.ok){
           return Promise.reject(response);
@@ -93,6 +96,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
         return response.json();
       })
       .then(function(data){
+        if(lifecycle.signal.aborted){ return; }
         if(data && data.length > 0){
           tomSelectInstance.updateOption(data[0].loginId, data[0]);
           tomSelectInstance.refreshItems();
@@ -108,6 +112,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
 
     if(updateAssgineesApiUrl){
       fetch(updateAssgineesApiUrl, {
+        signal: lifecycle.signal,
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)
@@ -119,6 +124,7 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
         return response.json();
       })
       .then(function(response){
+        if(lifecycle.signal.aborted){ return; }
         $yona.notify(message + ": " + response.assignee.name, 3000);
       })
       .catch(function(){
@@ -126,4 +132,8 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
       });
     }
   });
+  return function(){
+    lifecycle.abort();
+    tomSelectInstance.destroy();
+  };
 }

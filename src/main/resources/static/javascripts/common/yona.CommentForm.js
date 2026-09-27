@@ -49,7 +49,6 @@ document.addEventListener("DOMContentLoaded", function(){
      */
     function onSubmitCommentForm(event){
         removeCurrentPageTemprarySavedContent();
-        clearTimeout(window.draftSavingTimeout);
 
         event.preventDefault();
         var that = event.target;

@@ -10,9 +10,22 @@
 
     var oNS = $yona.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
+        options = options || {};
 
         var vars = {};
         var elements = {};
+        var root = options.root || document;
+        var lifecycle = new AbortController();
+        var timelineRenderTimer;
+        var uploaderId;
+        var uploaderAttachment;
+        var downloaders = [];
+        function listen(target, type, listener){
+            target.addEventListener(type, listener, {signal: lifecycle.signal});
+        }
+        function request(url, init){
+            return fetch(url, Object.assign({}, init, {signal: lifecycle.signal}));
+        }
 
         /**
          * jQuery `.on(evt, selector, fn)` 위임 바인딩과 동일하게 재현한다:
@@ -25,7 +38,7 @@
             if(!container){
                 return;
             }
-            container.addEventListener(sEventType, function(weEvt){
+            listen(container, sEventType, function(weEvt){
                 var matched = weEvt.target.closest(sSelector);
                 if(matched && container.contains(matched)){
                     fHandler.call(matched, weEvt);
@@ -34,8 +47,8 @@
         }
 
         /**
-         * issue/view.html 인라인 스크립트가 `$(document).on('submit', '#comment-form', ...)`로
-         * 댓글 폼 제출을 AJAX로 가로챈다. jQuery의 인자 없는 `.submit()`은
+         * yona.issue.Detail.js가 상세 영역의 submit 이벤트로 댓글을 AJAX 제출한다.
+         * jQuery의 인자 없는 `.submit()`은
          * `.trigger("submit")`과 같아서 이 델리게이트를 실제로 호출하고, 아무도
          * preventDefault를 안 부르면 네이티브 elem.submit()으로 폴백한다 - 네이티브
          * form.submit()을 직접 부르면 이 AJAX 가로채기를 건너뛰게 되므로 동일한
@@ -73,22 +86,13 @@
             return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
         }
 
-        /**
-         * `data-watching` 속성은 서버 렌더링 시점 값 그대로 유지되고(이 파일은 board.View.js와
-         * 달리 `.attr()`이 아니라 `.data()`로 읽고 쓴다), jQuery `.data(key, value)` setter는
-         * DOM 속성을 건드리지 않고 내부 캐시만 갱신한다 - 최초 1회는 속성값을 읽어 boolean으로
-         * 변환(coercion)하고, 그 다음부터는 순수 JS 캐시로만 토글되는 quirk를 재현한다.
-         *
-         * @private
-         */
+        // Keep the state in markup so a Turbo snapshot restores the current watch state.
         function _getWatchingState(el){
-            return Object.prototype.hasOwnProperty.call(el, "__watchingCache")
-                ? el.__watchingCache
-                : (el.getAttribute("data-watching") === "true");
+            return el.getAttribute("data-watching") === "true";
         }
 
         function _setWatchingState(el, value){
-            el.__watchingCache = value;
+            el.setAttribute("data-watching", String(value));
         }
 
         /**
@@ -114,17 +118,17 @@
          * @private
          */
         function _initElement(options){
-            elements.uploader = document.getElementById("upload");
-            elements.textarea = document.querySelector('textarea[data-editor-mode="comment-body"]');
+            elements.uploader = root.querySelector("#upload");
+            elements.textarea = root.querySelector('textarea[data-editor-mode="comment-body"]');
 
-            elements.btnWatch = document.getElementById('watch-button');
-            elements.issueInfoWrap = document.querySelector(".issue-info");
+            elements.btnWatch = root.querySelector('#watch-button');
+            elements.issueInfoWrap = root.querySelector(".issue-info");
             elements.dueDateStatus = elements.issueInfoWrap ? elements.issueInfoWrap.querySelector(".duedate-status") : null;
 
-            elements.timelineWrap = document.getElementById("timeline");
+            elements.timelineWrap = root.querySelector("#timeline");
             elements.timelineList = elements.timelineWrap ? elements.timelineWrap.querySelector(".timeline-list") : null;
 
-            elements.btnVoteComment = document.querySelectorAll(options.btnVoteComment || '[data-request-type="comment-vote"]');
+            elements.btnVoteComment = root.querySelectorAll(options.btnVoteComment || '[data-request-type="comment-vote"]');
         }
 
         /**
@@ -159,7 +163,7 @@
         function _attachEvent(){
             // Watch button
             if(elements.btnWatch){
-                elements.btnWatch.addEventListener("click", _onClickBtnWatch);
+                listen(elements.btnWatch, "click", _onClickBtnWatch);
             }
 
             // Vote button on comment
@@ -178,14 +182,15 @@
 
             // Detect textarea events for autoUpdate timeline
             if(elements.textarea){
-                elements.textarea.addEventListener("focus", _onFocusCommentTextarea);
-                elements.textarea.addEventListener("blur", _onBlurCommentTextarea);
+                listen(elements.textarea, "focus", _onFocusCommentTextarea);
+                listen(elements.textarea, "blur", _onBlurCommentTextarea);
             }
         }
 
         function _onClickCommentVote(){
-            fetch(this.dataset.requestUri, {"method": "post"})
+            request(this.dataset.requestUri, {"method": "post"})
                 .then(function(response){
+                    if(lifecycle.signal.aborted){ return; }
                     if(!response.ok){
                         return response.text().then(function(text){
                             return Promise.reject(text);
@@ -194,6 +199,7 @@
                     location.reload();
                 })
                 .catch(function(responseText){
+                    if(lifecycle.signal.aborted){ return; }
                     $yona.notify(Messages(responseText), 3000);
                 });
         }
@@ -312,7 +318,7 @@
             var fieldValue = fieldTomSelect ? fieldTomSelect.getValue() : field.value;
 
             // Send request to update issueInfo
-            fetch(vars.urls.massUpdate, {
+            request(vars.urls.massUpdate, {
                 "method": "post",
                 "body": _toJQueryStyleParams(_getUpdateIssueRequestData(fieldName, fieldValue, evt))
             })
@@ -323,6 +329,7 @@
                 return response.json();
             })
             .then(function(res){
+                if(lifecycle.signal.aborted){ return; }
                 _updateTimeline();
 
                 $yona.notify(Messages("issue.update." + fieldName), 3000);
@@ -336,6 +343,7 @@
                 }
             })
             .catch(function(res){
+                if(lifecycle.signal.aborted){ return; }
                 $yona.notify(Messages("error.failedTo",
                     Messages("issue.update." + fieldName),
                     res.status, res.statusText));
@@ -424,7 +432,8 @@
             var watching = _getWatchingState(button);
             var url = watching ? vars.urls.unwatch : vars.urls.watch;
 
-            fetch(url, {"method": "post"}).then(function(response){
+            request(url, {"method": "post"}).then(function(response){
+                if(lifecycle.signal.aborted){ return; }
                 if(!response.ok){
                     return Promise.reject(response);
                 }
@@ -434,6 +443,8 @@
                 button.blur();
 
                 $yona.notify(Messages(watching ? "issue.unwatch.start" : "issue.watch.start"), 3000);
+            }).catch(function(error){
+                if(!lifecycle.signal.aborted){ $yona.notify(error.message, 3000); }
             });
         }
 
@@ -443,17 +454,19 @@
          * @private
          */
         function _initFileUploader(){
+            if (!elements.uploader) { return; }
             var oUploader = yona.Files.getUploader(elements.uploader, elements.textarea);
 
             if(oUploader){
                 // yona.Files.getUploader()는 [elContainer] 형태의 배열을 반환하므로
                 // oUploader[0]로 raw element를 꺼내 네이티브로 읽는다.
-                (new yona.Attachments({
+                uploaderId = oUploader[0].getAttribute("data-namespace");
+                uploaderAttachment = new yona.Attachments({
                     "elContainer"  : elements.uploader,
                     "elTextarea"   : elements.textarea,
                     "sTplFileItem" : vars.tplFileItem,
-                    "sUploaderId"  : oUploader[0].getAttribute("data-namespace")
-                }));
+                    "sUploaderId"  : uploaderId
+                });
             }
         }
 
@@ -464,12 +477,12 @@
          * @private
          */
         function _initFileDownloader(target){
-            var containers = target || document.querySelectorAll(".attachments");
+            var containers = target || root.querySelectorAll(".attachments");
             containers.forEach(function(container){
                 // isYonaAttachment는 yona.Attachments.js가 붙이는 expando 프로퍼티다
                 // (공개 계약, 중복 초기화 가드).
                 if(!container._isYonaAttachment){
-                    (new yona.Attachments({"elContainer": container}));
+                    downloaders.push({container: container, attachment: new yona.Attachments({"elContainer": container})});
                 }
             });
         }
@@ -486,7 +499,7 @@
 
             vars.isTimelineUpdating = true;
 
-            fetch(vars.urls.timeline)
+            request(vars.urls.timeline)
              .then(function(response){
                  if(!response.ok){
                      return Promise.reject(response);
@@ -515,10 +528,13 @@
 
             var timelineList = _getRenderedTimeline(resultHTML);
 
-            setTimeout(function(){
+            timelineRenderTimer = setTimeout(function(){
+                if(lifecycle.signal.aborted){ return; }
+                if(options.beforeTimelineReplace){ options.beforeTimelineReplace(elements.timelineList); }
                 elements.timelineList.replaceWith(timelineList);
                 elements.timelineList = timelineList;
                 vars.timelineHTML = resultHTML;
+                if(options.onTimelineLoad){ options.onTimelineLoad(timelineList); }
 
                 var isChanged = (vars.timelineItems !== _countTimelineItems());
                 var isTimelineChangedOnTyping = vars.isTextareaOnFocused && isChanged;
@@ -634,25 +650,23 @@
          * @private
          */
         function _initCommentAndCloseButton(){
-            var commentForm = document.getElementById("comment-form");
-            var dynamicCommentBtn = document.getElementById("dynamic-comment-btn");
+            var commentForm = root.querySelector("#comment-form");
+            var dynamicCommentBtn = root.querySelector("#dynamic-comment-btn");
             var withStateTransitionInput = document.createElement("input");
             withStateTransitionInput.type = "hidden";
             withStateTransitionInput.name = "withStateTransition";
 
-            if(commentForm){
+            if(commentForm && dynamicCommentBtn){
                 commentForm.prepend(withStateTransitionInput);
             }
 
             if(dynamicCommentBtn){
                 dynamicCommentBtn.classList.remove("hidden");
                 dynamicCommentBtn.innerHTML = Messages("button.nextState." + vars.nextState);
-                dynamicCommentBtn.addEventListener("click", function(){
+                listen(dynamicCommentBtn, "click", function(){
                     if(elements.textarea.value.length > 0){
                         withStateTransitionInput.value = "true";
-                        // issue/view.html 인라인 스크립트의 $(document).on('submit',
-                        // '#comment-form', ...) AJAX 핸들러를 그대로 타도록 진짜 "submit"
-                        // 이벤트를 발생시킨다(위 _triggerFormSubmit 주석 참고).
+                        // 상세 영역의 AJAX submit 핸들러를 타도록 이벤트를 발생시킨다.
                         _triggerFormSubmit(commentForm);
                     } else {
                         withStateTransitionInput.value = "";
@@ -662,7 +676,7 @@
             }
 
             if(elements.textarea){
-                elements.textarea.addEventListener("keyup", function(){
+                listen(elements.textarea, "keyup", function(){
                     if(dynamicCommentBtn){
                         if(elements.textarea.value.length > 0){
                             dynamicCommentBtn.innerHTML = Messages("button.commentAndNextState." + vars.nextState);
@@ -673,14 +687,6 @@
                 });
             }
 
-            // if yona.ShortcutKey exists
-            if(yona.ShortcutKey){
-                yona.ShortcutKey.attach("CTRL+SHIFT+ENTER", function(htInfo){
-                    if(dynamicCommentBtn && elements.textarea === htInfo.elTarget){
-                        dynamicCommentBtn.click();
-                    }
-                });
-            }
         }
 
         function _affixIssueInfoWrap(){
@@ -691,5 +697,18 @@
 
         // initialize
         _init(options || {});
+        return function(){
+            lifecycle.abort();
+            _unsetTimelineUpdateTimer();
+            clearTimeout(timelineRenderTimer);
+            if (uploaderAttachment) { uploaderAttachment.destroy(); }
+            if (uploaderId) { yona.Files.destroyUploader(uploaderId); }
+            downloaders.forEach(function (item) {
+                item.attachment.destroy();
+                item.container.replaceChildren();
+                delete item.container._isYonaAttachment;
+            });
+            downloaders = [];
+        };
     };
 })("yona.issue.View");

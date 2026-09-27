@@ -7,12 +7,14 @@
     <li th:each="issue : ${issues}" class="post-item title" th:id="'issue-item-' + ${issue.id}" data-item="issue-item" th:data-value="${issue.authorName} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
         <div class="span9 span-hard-wrap">
             <!-- 일괄 수정을 위한 개별 체크박스 영역 -->
-            <label th:if="${currentUser != null && currentUser.isMemberOf(project)}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
-                <input th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:data-issue-id="${issue.id}" th:data-issue-labels="${templateHelper.getIssueLabelsString(issue.labels)}">
+            <label th:if="${currentUser != null && currentUser.isMemberOf(project)}" th:for="'list-issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
+                <input th:id="'list-issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:data-issue-id="${issue.id}" th:data-issue-labels="${templateHelper.getIssueLabelsString(issue.labels)}">
             </label>
-            <div th:for="'issue-' + ${issue.id}" class="issue-item-row">
+            <div th:for="'list-issue-' + ${issue.id}" class="issue-item-row">
                 <div class="title-wrap">
-                    <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" class="title">
+                    <a th:href="${selected != null && selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + issue.number} : @{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" class="title"
+                       th:data-selection-url="${selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + issue.number} : null"
+                       th:data-detail-url="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
                         <!-- yona partial_list.scala.html:33 대응 (그룹7 #119) — 초안 이슈는 실제 번호
                              대신 "#초안"으로 표시한다. -->
                         <span class="post-id" th:if="${issue.isDraft}"><span class="draft-number" th:text="'#' + #{issue.state.draft}">#초안</span></span>
@@ -26,7 +28,9 @@
                     </th:block>
                     &nbsp;
                     <span th:text="${templateHelper.showHeaderWordsInBracketsIfExist(issue.title)}" class="bracket-word"></span>
-                    <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" class="title" th:text="${templateHelper.removeHeaderWords(issue.title)}">
+                    <a th:href="${selected != null && selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + issue.number} : @{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" class="title" th:text="${templateHelper.removeHeaderWords(issue.title)}"
+                       th:data-selection-url="${selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + issue.number} : null"
+                       th:data-detail-url="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
                         이슈 제목
                     </a>
                 </div>
@@ -86,7 +90,9 @@
                             <!-- 열려 있는 하위 이슈 -->
                             <div th:each="child : ${openChildren}" class="issue-item child-issue" th:classappend="${child.id == issue.id} ? 'selected-child' : ''">
                                 <span class="state-label open"></span>
-                                <a class="twoColumeModeTarget" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${child.number})}">
+                                <a class="twoColumeModeTarget" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${child.number})}"
+                                   th:data-selection-url="${selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + child.number} : null"
+                                   th:data-detail-url="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${child.number})}">
                                     <span class="item-name">
                                         <span class="subtask-number" th:text="'#' + ${child.number}">#1</span>
                                         <span th:text="${child.title}">하위이슈 제목</span>
@@ -115,7 +121,9 @@
                             <!-- 닫혀 있는 하위 이슈 -->
                             <div th:each="child : ${closedChildren}" class="issue-item child-issue" th:classappend="${child.id == issue.id} ? 'selected-child' : ''">
                                 <span class="state-label closed"><i class="yobicon-checkmark"></i></span>
-                                <a class="twoColumeModeTarget" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${child.number})}">
+                                <a class="twoColumeModeTarget" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${child.number})}"
+                                   th:data-selection-url="${selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + child.number} : null"
+                                   th:data-detail-url="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${child.number})}">
                                     <span class="item-name">
                                         <span class="subtask-number" th:text="'#' + ${child.number}">#1</span>
                                         <span th:text="${child.title}">하위이슈 제목</span>
