@@ -29,10 +29,9 @@ test('the timeline fragment endpoint reflects a real state-change event', async 
   await issueRow.locator('input[name="checked-issue"]').check();
   await page.click('#state button.dropdown-toggle');
   await Promise.all([
-    page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
+    page.waitForNavigation({ waitUntil: 'load' }),
     page.click('#state li[data-value="CLOSED"] a'),
   ]);
-  await page.waitForLoadState('networkidle');
 
   const response = await page.request.get(`/${owner}/${name}/issue/${issueNumber}/timeline`);
   expect(response.status()).toBe(200);
