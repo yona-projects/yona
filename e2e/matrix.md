@@ -130,6 +130,8 @@
 | 댓글 수정/삭제 | specs/06-issue/issue-management.spec.ts | done | **제품 버그#6 수정 완료(BUGFIXES.md 참고)**: 원 진단의 증상(괄호 있는 마일스톤 제목에서 `querySelector` 크래시 → 인라인 스크립트 나머지 초기화 불발)은 맞았지만 원인 후보(`_toElement()`/`Assginee.js`/`Sharer.js`)는 전부 틀렸음 — 실제 호출부는 `yona.ui.TomSelect.js`의 milestone 렌더러: `data.state`가 없으면 `return data.text`로 가공 없는 원본 텍스트를 반환해 Tom Select 라이브러리의 `getDom()`이 이를 CSS 셀렉터로 오인, `document.querySelector(text)`를 호출함(괄호 등 셀렉터로 파싱 안 되는 문자가 있으면 SyntaxError, 아니면 null 반환 후 다음 줄 setAttribute가 null 참조로 크래시). 항상 `<div>...</div>` HTML을 반환하도록 수정해 해결 |
 | 댓글 추천(vote)/추천취소 (`VoteController.voteComment/unvoteComment`) | specs/06-issue/issue-management.spec.ts | done | 라우트 전수대조로 발견된 갭. 기존 "post a comment, edit it, then delete it" 테스트의 edit→delete 사이에 추가 — `button[data-request-type="comment-vote"]`가 `hasCommentVoted`에 따라 `.../vote`·`.../unvote`로 `data-request-uri`를 갈아끼우는 것을 실제 클릭 왕복으로 확인. 클릭 후 `location.reload()`를 기다릴 때 `waitForLoadState('networkidle')`이 이 페이지에서 종종 60초 넘게 멎는 것을 확인(이슈 자체 vote 테스트와 동일하게 auto-retry `expect()`로 대체) |
 | 이슈 삭제 (DELETE /api/projects/{id}/issues/{number}) | specs/06-issue/issue-management.spec.ts | done | 삭제 확인 모달(`#deleteConfirm`) 실제 클릭 → 목록에서 사라지는지까지 확인 |
+| 기존 이슈 two-column 탐색 | specs/06-issue/two-column-legacy.spec.ts | partial | `YONA_LEGACY_TWO_COLUMN=1` opt-in 특성화. 설정 on/off, A/B iframe, Back/Forward/reload 관찰 및 네트워크 기록. 관찰 테스트 통과는 history parity 성공을 뜻하지 않음 |
+| Turbo lifecycle·CSRF·draft 격리 실험 | specs/06-issue/turbo-lifecycle-probe.spec.ts | partial | `YONA_TURBO_PROBE=1` opt-in 음성 실험. 실제 Turbo+Thymeleaf 응답을 테스트 HTTP seam에서 결합. HTML 전송 성공, 상세 초기화 누락·selected URL 간 draft 혼입 재현, forms-off의 정상 POST/CSRF 거부 확인. 제품 selected endpoint나 전환 수용 테스트가 아님. [결과](../docs/TURBO_THYMELEAF_POC.md) |
 
 ## 7. Pull Request
 
