@@ -120,6 +120,7 @@ abstract class AbstractIntegrationTest : DescribeSpec() {
                 // CUBRIDDialect의 BOOLEAN→bit 매핑/타임존 지원이 CUBRID JDBC 드라이버 결함과
                 // 부딪히는 문제를 우회하는 커스텀 방언 — config/YonaCubridDialect.kt 주석 참고.
                 registry.add("spring.jpa.database-platform") { "com.github.yonaprojects.yona.config.YonaCubridDialect" }
+                registry.add("spring.jpa.mapping-resources") { "META-INF/orm-cubrid.xml" }
                 // CUBRID는 role 등 다른 DB에서는 평범한 테이블/컬럼명을 예약어로 취급해 DDL이
                 // 깨진다. globally_quoted_identifiers는 기본 물리 네이밍 전략(snake_case 변환)
                 // 자체를 무력화하는 부작용이 있어(실측 확인) 쓰지 않고, 예약어와 겹칠 때만

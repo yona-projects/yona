@@ -2,6 +2,8 @@ package com.github.yonaprojects.yona.domain.sshkey
 
 import com.github.yonaprojects.yona.domain.user.User
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcType
+import org.hibernate.type.descriptor.jdbc.VarcharJdbcType
 import java.time.Instant
 
 // GitHub "Settings > SSH and GPG keys" 화면과 동일한 사용자 전역 SSH
@@ -25,6 +27,7 @@ class SshKey(
     var title: String = "",
 
     @Column(name = "public_key", nullable = false, columnDefinition = "TEXT")
+    @JdbcType(VarcharJdbcType::class)
     var publicKey: String = "",
 
     @Column(name = "fingerprint", nullable = false, unique = true, length = 128)

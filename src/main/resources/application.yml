@@ -305,6 +305,7 @@ spring:
     # CUBRIDDialect는 hibernate-community-dialects 모듈에 있어 JDBC 메타데이터만으로 자동
     # 인식되지 않는다 — 명시적으로 지정해야 한다.
     database-platform: com.github.yonaprojects.yona.config.YonaCubridDialect
+    mapping-resources: META-INF/orm-cubrid.xml
     hibernate:
       ddl-auto: update
       # CUBRID는 role 등 다른 DB에서는 평범한 테이블/컬럼명을 예약어로 취급해 DDL이 "Syntax
@@ -318,6 +319,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc.use_get_generated_keys: false
 
 ---
 spring:
