@@ -5,6 +5,7 @@
   <title th:text="${titleMain} + ' - Yona'">어드민 관리 - Yona</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta th:if="${turboFrameError == true}" name="turbo-visit-control" content="reload">
   <!-- 실제 CSRF 헤더 주입은 XSRF-TOKEN 쿠키를 직접 읽는 방식(scripts 하단, config/CsrfSupport.kt)이
        담당하므로 이 meta 태그 자체는 더 이상 쓰이지 않지만 유지한다. _csrf 요청 속성은 CsrfFilter를
        거치지 않는 일부 경로(에러 페이지 포워딩 등)에서 없을 수 있어 안전 내비게이션(?.)이 필요하다 -
@@ -428,18 +429,10 @@
         // 한 페이지에 markdownEditor 인스턴스가 여러 개(예: PR changes 탭의 여러 스레드 답글 폼)
         // 있을 수 있으므로 각자의 [data-toggle="markdown-editor"] 안에서만 보이고 닫히도록 스코프를 준다.
         document.querySelectorAll('[data-toggle="markdown-editor"]').forEach(function(el){
-            if (localStorage.getItem(location.pathname) != null) {
+            if (localStorage.getItem(yonaDraftKey(el)) != null) {
                 var elClearTemporary = el.querySelector('.editor-clear-temporary');
                 if (elClearTemporary) { elClearTemporary.style.display = "block"; }
             }
-        });
-        document.addEventListener('click', function(event){
-            if (!event.target.closest('.editor-clear-temporary-button')) { return; }
-            // removeCurrentPageTemprarySavedContent()는 yona-lib.js에 번들된 사본이 제공한다
-            // (service/yona.temporarySaveHandler.js와 기능 동일).
-            removeCurrentPageTemprarySavedContent();
-            // "Draft saved" 표시와 이 버튼 자체가 함께 사라지도록 새로고침한다.
-            window.location.reload();
         });
     });
     </script>
@@ -749,25 +742,25 @@
             // tooltip - trigger:"hover focus"(Bootstrap 기본값)를 재현하기 위해 mouseenter/
             // mouseleave뿐 아니라 focus/blur도 위임한다 - 넷 다 버블링하지 않는 이벤트라 캡처
             // 단계에서 리스닝한다.
-            document.body.addEventListener("mouseenter", function(event){
+            document.addEventListener("mouseenter", function(event){
                 var matched = event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
                     $yona.showTooltip(matched);
                 }
             }, true);
-            document.body.addEventListener("mouseleave", function(event){
+            document.addEventListener("mouseleave", function(event){
                 var matched = event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
                     $yona.hideTooltip(matched);
                 }
             }, true);
-            document.body.addEventListener("focus", function(event){
+            document.addEventListener("focus", function(event){
                 var matched = event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
                     $yona.showTooltip(matched);
                 }
             }, true);
-            document.body.addEventListener("blur", function(event){
+            document.addEventListener("blur", function(event){
                 var matched = event.target.closest("[data-toggle=tooltip]");
                 if (matched && document.body.contains(matched)) {
                     $yona.hideTooltip(matched);

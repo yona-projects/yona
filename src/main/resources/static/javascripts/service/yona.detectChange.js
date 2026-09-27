@@ -17,18 +17,28 @@ function detectPageChange(url){
     var issueUpdateDate = document.getElementById("issueUpdateDate").value;
 
     var duration = 3000;
+    var timer;
+    var disposed = false;
+    var controller = new AbortController();
 
     runIntervalAction(detectChange, duration);
+    return function() {
+        disposed = true;
+        clearTimeout(timer);
+        controller.abort();
+    };
 
     ////////////////////////////////
 
     function runIntervalAction(fn, duration) {
+        if (disposed) return;
         if (duration > 60 * 5 * 1000) {
             duration = 60 * 5 * 1000; // 5 min
         } else {
             duration = duration * 1.2
         }
-        setTimeout(function(){
+        timer = setTimeout(function(){
+            if (disposed) return;
             fn();
             runIntervalAction(fn, duration);
         }, duration);
@@ -37,6 +47,7 @@ function detectPageChange(url){
     function detectChange(){
         fetch(url, {
             method: "POST",
+            signal: controller.signal,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 issueBodyChecksum: issueBodyChecksum,
@@ -46,6 +57,7 @@ function detectPageChange(url){
         })
             .then(function(response){ return response.json(); })
             .then(function (data) {
+                if (disposed) return;
                 if (data.numOfComments - numOfComments === 1) {
                     numOfComments = data.numOfComments;
                     $yona.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);
@@ -62,6 +74,9 @@ function detectPageChange(url){
                     favicon.badge('N');
                 }
             })
+            .catch(function(error) {
+                if (!disposed) console.error("Issue change detection failed", error);
+            });
     }
 }
 
