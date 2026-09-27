@@ -148,6 +148,14 @@ java -jar yona.jar --spring.profiles.active=postgres
 java -jar yona.jar --spring.profiles.active=h2
 ```
 
+`cubrid` 프로파일은 CUBRID에서 사용할 수 없는 `TEXT`와 `NOT NULL LOB` 보안 필드만
+`META-INF/orm-cubrid.xml`의 `VARCHAR`/`BIT VARYING` 매핑으로 대체합니다. 다른 DB의 컬럼 형식은
+변경하지 않습니다. 해당 필드에 수동으로 만든 기존 `CLOB`/`BLOB` 컬럼이 있으면 스키마 갱신 전에
+기동을 중단합니다. 원본 DB를 백업하고 값을 보존하는 별도 마이그레이션을 먼저 수행해야 하며,
+애플리케이션은 LOB를 자동 변환하거나 삭제하지 않습니다.
+메타데이터 조회는 설정된 Hibernate 스키마(미설정 시 DB 접속 사용자)로 제한해
+다른 소유자의 동명 테이블을 갱신 대상으로 오인하지 않습니다.
+
 통합 테스트는 실제 Docker 컨테이너(Testcontainers) 기준으로 5개 서버 DB 전부 검증돼 있습니다
 (H2는 내장형이라 컨테이너가 필요 없습니다). 특정 DB로만 테스트를 돌리려면(**동시에 두 개 이상
 돌리면 gradle 빌드 출력 디렉터리가 꼬이니 항상 한 번에 하나씩만 실행하세요**):
@@ -462,6 +470,14 @@ java -jar yona.jar --spring.profiles.active=postgres
 # Try it with zero setup (H2)
 java -jar yona.jar --spring.profiles.active=h2
 ```
+
+The `cubrid` profile overrides only security fields using unsupported `TEXT` or `NOT NULL LOB`
+storage with `VARCHAR`/`BIT VARYING` mappings in `META-INF/orm-cubrid.xml`. Column types on other
+databases are unchanged. Existing custom `CLOB`/`BLOB` columns in those fields stop startup
+before schema update. Back up the source database and migrate those values explicitly before
+starting the application; it never automatically converts or deletes existing LOBs.
+Metadata lookup is restricted to the configured Hibernate schema, or the database login owner
+when unspecified, so same-named tables belonging to another owner are not mistaken for application tables.
 
 Integration tests are verified against all 5 server DBs using real Docker containers
 (Testcontainers); H2 is embedded and needs no container. To run tests against a single DB

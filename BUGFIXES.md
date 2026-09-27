@@ -1,5 +1,25 @@
 # yona product bug fixes — TDD tracking
 
+## 2026-09-27 — CUBRID security column and schema-restart portability
+
+- CUBRID rejects literal `TEXT` and `NOT NULL` LOB columns. Profile-specific Hibernate mappings
+  now select scalar storage and JDBC binding without replacing entity relationships or constraints.
+  Other databases retain their existing column types, including PostgreSQL LOB/OID mappings.
+- CUBRID metadata lookup now uses lowercase unquoted identifiers and owner-qualified table patterns.
+  The driver's ignored `schemaPattern` no longer merges another owner's same-named table/columns into
+  the application schema. Native Hibernate extraction hooks cover tables, columns and key metadata.
+  Existing custom LOB security columns stop startup before schema update.
+- Explicit VARCHAR JDBC binding preserves SQL Server's existing `TEXT` key columns without attempting
+  the unsupported `TEXT`-to-NCHAR extraction used by globally nationalized mappings.
+- Regression: `SecurityColumnPortabilityTest` passed on MariaDB, PostgreSQL, MySQL, SQL Server,
+  CUBRID and persistent H2. Each run closes/reopens the full schema and verifies security values,
+  encryption roundtrip and WebAuthn delete cascade. CUBRID also verifies own-LOB refusal and preservation
+  of another owner's same-named LOB table throughout schema creation and reopening.
+- Actual CUBRID profile smoke: bootstrapped an administrator and registered an Ed25519 SSH key through
+  the browser, restarted the application, logged in again and verified the saved Korean title and fingerprint.
+  A colliding `DBA.deploy_key` CLOB retained its original value while the application-owned scalar table was created.
+  Browser DOM assertions passed; screenshot capture timed out, so no screenshot-based visual claim is made.
+
 ## 2026-09-26 — v1.16 email mutation parity
 
 - Legacy `UserApp.editUserInfo` rejects empty/invalid primary addresses; `Email` requires a valid

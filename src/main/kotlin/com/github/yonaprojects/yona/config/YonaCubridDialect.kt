@@ -1,18 +1,27 @@
 package com.github.yonaprojects.yona.config
 
 import org.hibernate.JDBCException
+import org.hibernate.boot.model.naming.Identifier
 import org.hibernate.community.dialect.CUBRIDDialect
 import org.hibernate.dialect.TimeZoneSupport
+import org.hibernate.engine.jdbc.env.spi.IdentifierCaseStrategy
+import org.hibernate.engine.jdbc.env.spi.IdentifierHelper
+import org.hibernate.engine.jdbc.env.spi.IdentifierHelperBuilder
+import org.hibernate.engine.jdbc.env.spi.NameQualifierSupport
 import org.hibernate.exception.ConstraintViolationException
 import org.hibernate.exception.spi.SQLExceptionConversionDelegate
+import org.hibernate.tool.schema.extract.internal.InformationExtractorJdbcDatabaseMetaDataImpl
+import org.hibernate.tool.schema.extract.spi.ExtractionContext
+import org.hibernate.tool.schema.extract.spi.ExtractionContext.ResultSetProcessor
+import org.hibernate.tool.schema.extract.spi.InformationExtractor
 import org.hibernate.type.SqlTypes
+import java.sql.DatabaseMetaData
 import java.sql.SQLException
 import java.sql.Types
 
 /**
- * CUBRID 지원용 커스텀 방언. org.hibernate.community.dialect.CUBRIDDialect를 그대로 쓰면
- * CUBRID JDBC 드라이버(11.3.2.0053)와 실제로 안 맞는 지점이 두 군데 있어 우회한다(방언은
- * 지원한다고 광고하지만 드라이버가 그 바인딩을 못 받는 유형의 결함).
+ * CUBRID JDBC 드라이버(11.3.2.0053)에 맞게 커뮤니티 방언의 타입 바인딩과
+ * 스키마 메타데이터 식별자 처리를 보완한다.
  *
  * 1. BOOLEAN을 CUBRID의 `bit` 타입으로 매핑하는데(getPreferredSqlTypeCodeForBoolean() ==
  *    Types.BIT), 드라이버가 이 bit 바인드 파라미터를 받아들이지 못해 "Cannot coerce host var
@@ -34,6 +43,69 @@ class YonaCubridDialect : CUBRIDDialect() {
     }
 
     override fun getTimeZoneSupport(): TimeZoneSupport = TimeZoneSupport.NONE
+
+    // CUBRID returns lowercase table/FK names; Hibernate's uppercase fallback recreates existing objects.
+    override fun buildIdentifierHelper(builder: IdentifierHelperBuilder, metadata: DatabaseMetaData?): IdentifierHelper {
+        builder.applyIdentifierCasing(metadata)
+        builder.setUnquotedCaseStrategy(IdentifierCaseStrategy.LOWER)
+        builder.applyReservedWords(keywords)
+        builder.setNameQualifierSupport(nameQualifierSupport)
+        return builder.build()
+    }
+
+    override fun getNameQualifierSupport(): NameQualifierSupport = NameQualifierSupport.SCHEMA
+
+    // JDBC ignores schema arguments. Its native owner.table argument scopes table/column patterns and key lookups.
+    override fun getInformationExtractor(context: ExtractionContext): InformationExtractor =
+        object : InformationExtractorJdbcDatabaseMetaDataImpl(context) {
+            private fun ownerQualified(schema: String?, table: String): String {
+                val owner = schema ?: extractionContext.defaultSchema?.text ?: jdbcDatabaseMetaData.userName
+                check(!owner.isNullOrBlank()) { "Cannot determine the CUBRID metadata owner" }
+                return "$owner.$table"
+            }
+
+            override fun <T> processTableResultSet(
+                catalog: String?, schemaPattern: String?, tableNamePattern: String?,
+                types: Array<out String>?, processor: ResultSetProcessor<T>,
+            ): T = super.processTableResultSet(
+                catalog, schemaPattern, ownerQualified(schemaPattern, tableNamePattern ?: "%"), types, processor,
+            )
+
+            override fun <T> processColumnsResultSet(
+                catalog: String?, schemaPattern: String?, tableNamePattern: String?,
+                columnNamePattern: String?, processor: ResultSetProcessor<T>,
+            ): T = super.processColumnsResultSet(
+                catalog, schemaPattern, ownerQualified(schemaPattern, tableNamePattern ?: "%"), columnNamePattern, processor,
+            )
+
+            override fun <T> processPrimaryKeysResultSet(
+                catalog: String?, schema: String?, table: Identifier, processor: ResultSetProcessor<T>,
+            ): T = super.processPrimaryKeysResultSet(catalog, schema, ownerQualified(schema, table.text), processor)
+
+            override fun <T> processPrimaryKeysResultSet(
+                catalog: String?, schema: String?, table: String?, processor: ResultSetProcessor<T>,
+            ): T = super.processPrimaryKeysResultSet(catalog, schema, table?.let { ownerQualified(schema, it) }, processor)
+
+            override fun <T> processIndexInfoResultSet(
+                catalog: String?, schema: String?, table: String?, unique: Boolean, approximate: Boolean,
+                processor: ResultSetProcessor<T>,
+            ): T = super.processIndexInfoResultSet(
+                catalog, schema, table?.let { ownerQualified(schema, it) }, unique, approximate, processor,
+            )
+
+            override fun <T> processImportedKeysResultSet(
+                catalog: String?, schema: String?, table: String?, processor: ResultSetProcessor<T>,
+            ): T = super.processImportedKeysResultSet(catalog, schema, table?.let { ownerQualified(schema, it) }, processor)
+
+            override fun <T> processCrossReferenceResultSet(
+                parentCatalog: String?, parentSchema: String?, parentTable: String,
+                foreignCatalog: String?, foreignSchema: String?, foreignTable: String,
+                processor: ResultSetProcessor<T>,
+            ): T = super.processCrossReferenceResultSet(
+                parentCatalog, parentSchema, ownerQualified(parentSchema, parentTable),
+                foreignCatalog, foreignSchema, ownerQualified(foreignSchema, foreignTable), processor,
+            )
+        }
 
     /**
      * CUBRID JDBC 드라이버(11.3.2.0053)는 NOT NULL 제약 위반 시 SQLState를 아예 안 주고

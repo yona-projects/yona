@@ -12,6 +12,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
+import org.hibernate.annotations.JdbcType
+import org.hibernate.type.descriptor.jdbc.VarcharJdbcType
 import java.time.Instant
 
 // secret은 로그인 시 원문 비교가 필요해 해시가 아닌 암호화로 저장한다(TotpSecretEncryptor).
@@ -35,6 +37,7 @@ class TwoFactorTotpCredential(
     var label: String = "",
 
     @Column(name = "encrypted_secret", nullable = false, columnDefinition = "TEXT")
+    @JdbcType(VarcharJdbcType::class)
     var encryptedSecret: String = "",
 
     @Column(name = "enabled", nullable = false)
