@@ -17,7 +17,11 @@ import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
+import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
+import jakarta.persistence.EntityManagerFactory
+import org.hibernate.SessionFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -42,7 +46,8 @@ class IssueListTemplateRenderingSpec @Autowired constructor(
     private val milestoneRepository: MilestoneRepository,
     private val issueLabelCategoryRepository: IssueLabelCategoryRepository,
     private val issueLabelRepository: IssueLabelRepository,
-    private val assigneeRepository: AssigneeRepository
+    private val assigneeRepository: AssigneeRepository,
+    private val entityManagerFactory: EntityManagerFactory
 ) : AbstractIntegrationTest() {
 
     private val mockMvc: MockMvc by lazy { MockMvcBuilders.webAppContextSetup(webApplicationContext).build() }
@@ -114,6 +119,76 @@ class IssueListTemplateRenderingSpec @Autowired constructor(
                 body shouldContain "Listed open issue"
                 body shouldContain "Selected closed issue"
                 body shouldContain "Selected detail body outside the list filter"
+            }
+
+            // P3-74 — Turbo가 `Turbo-Frame: issue-detail` 헤더로 "#issue-detail 프레임만 필요하다"고
+            // 명시하는데도 IssueViewController.listIssues()가 이를 무시하고 목록 전체를 다시 그려서
+            // (23 SQL) 상세 조회(18 SQL)에 15 SQL을 더 낭비하던 문제(docs/TURBO_THYMELEAF_POC.md
+            // "SQL" 절, PR #834가 알려진 한계로 명시). 위 테스트(헤더 없는 요청)는 그대로 전체
+            // 페이지가 렌더링됨을 계속 보장하고, 이 테스트는 헤더가 있을 때 상세 fragment만
+            // 돌아오는지를 검증한다.
+            it("a Turbo-Frame: issue-detail request for a selected issue returns only the detail fragment, not the full list page") {
+                val author = userRepository.save(User(loginId = "turbo-frame-author", name = "Turbo Frame Author", email = "turbo-frame-author@yona.io"))
+                val project = projectRepository.save(Project(name = "turbo-frame-project", owner = "turbo-frame-owner", projectScope = ProjectScope.PUBLIC))
+                issueRepository.save(
+                    Issue(title = "Other listed issue", body = "Other body", project = project, number = 1L,
+                        authorId = author.id, authorLoginId = author.loginId, authorName = author.name, state = State.OPEN)
+                )
+                issueRepository.save(
+                    Issue(title = "Turbo selected issue", body = "Turbo selected detail body",
+                        project = project, number = 2L, authorId = author.id, authorLoginId = author.loginId,
+                        authorName = author.name, state = State.OPEN)
+                )
+
+                val body = mockMvc.perform(
+                    get("/${project.owner}/${project.name}/issues")
+                        .queryParam("selected", "2")
+                        .header("Turbo-Frame", "issue-detail")
+                )
+                    .andExpect(status().isOk)
+                    .andReturn().response.contentAsString
+
+                body shouldContain "id=\"issue-detail\""
+                body shouldContain "Turbo selected issue"
+                body shouldContain "Turbo selected detail body"
+                // 프레임 전용 응답은 목록/전체 문서를 함께 그리지 않는다 — 그렸다면 아래 문자열이
+                // 섞여 들어온다(목록 프레임 id, 목록에만 있는 다른 이슈 제목, 전체 문서 선언).
+                body shouldNotContain "<!DOCTYPE html>"
+                body shouldNotContain "id=\"issue-list\""
+                body shouldNotContain "Other listed issue"
+            }
+
+            it("a Turbo-Frame: issue-detail request executes no more SQL than a plain single-issue detail view") {
+                val author = userRepository.save(User(loginId = "turbo-sql-author", name = "Turbo SQL Author", email = "turbo-sql-author@yona.io"))
+                val project = projectRepository.save(Project(name = "turbo-sql-project", owner = "turbo-sql-owner", projectScope = ProjectScope.PUBLIC))
+                issueRepository.save(
+                    Issue(title = "Other listed issue", body = "Other body", project = project, number = 1L,
+                        authorId = author.id, authorLoginId = author.loginId, authorName = author.name, state = State.OPEN)
+                )
+                issueRepository.save(
+                    Issue(title = "Turbo selected issue", body = "Turbo selected detail body",
+                        project = project, number = 2L, authorId = author.id, authorLoginId = author.loginId,
+                        authorName = author.name, state = State.OPEN)
+                )
+
+                val statistics = entityManagerFactory.unwrap(SessionFactory::class.java).statistics
+                statistics.setStatisticsEnabled(true)
+
+                statistics.clear()
+                mockMvc.perform(get("/${project.owner}/${project.name}/issue/2")).andExpect(status().isOk)
+                val normalDetailSqlCount = statistics.prepareStatementCount
+
+                statistics.clear()
+                mockMvc.perform(
+                    get("/${project.owner}/${project.name}/issues")
+                        .queryParam("selected", "2")
+                        .header("Turbo-Frame", "issue-detail")
+                ).andExpect(status().isOk)
+                val turboFrameSqlCount = statistics.prepareStatementCount
+
+                // 정상 상세 조회(viewIssue() 단독)와 동일한 쿼리만 실행되어야 한다 — 목록 조회
+                // (필터/페이지네이션/카운트/마일스톤/멤버/라벨 등)가 함께 실행되면 이 값을 넘어선다.
+                turboFrameSqlCount shouldBeLessThanOrEqualTo normalDetailSqlCount
             }
         }
     }

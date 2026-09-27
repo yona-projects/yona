@@ -148,6 +148,16 @@ class IssueViewController(
                 model.addAttribute("turboFrameError", request.getHeader("Turbo-Frame") == "issue-detail")
                 return "error/notfound"
             }
+            // Turbo가 Turbo-Frame: issue-detail 헤더로 "#issue-detail 프레임 안의 내용만 필요하다"고
+            // 명시하는 요청이다. 목록 프레임(templates/issue/list.html:16, data-turbo-permanent)은
+            // 어차피 Turbo가 갱신하지 않고 버리므로, 아래의 목록 조회(필터/페이지네이션/카운트/
+            // 마일스톤/멤버/라벨 등, P3-74 실측 SQL의 대부분)를 실행하지 않고 이미 채워진 상세
+            // model만으로 issue-detail 프레임 fragment를 바로 반환한다. 헤더가 없는 요청(직접 URL
+            // 접근·reload·no-JS)은 이 분기를 타지 않고 기존처럼 목록+상세 전체를 렌더링한다.
+            if (request.getHeader("Turbo-Frame") == "issue-detail") {
+                model.addAttribute("selected", selected)
+                return "issue/list :: issueDetailFrame"
+            }
         }
 
         val selectionQuery = request.queryString.orEmpty().split("&")
