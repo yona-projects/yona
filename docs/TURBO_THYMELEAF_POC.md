@@ -1,233 +1,181 @@
-# Turbo + Thymeleaf two-column PoC: compatibility gate result
+# Turbo + Thymeleaf two-column PoC result
 
-## Verdict
+## 요약
 
-**Stop before production cutover.** Official Turbo can extract real Thymeleaf HTML without an iframe, and its asset can be packaged reproducibly by Gradle. That does **not** establish issue-detail parity or justify replacing most client-side JavaScript.
+**공용 helper 변경을 허용한 뒤 실제 전환을 구현했다.** 앞선 “중단 조건 6” 결론은 더 이상 현재 상태가 아니다. 이슈별 초안이라는 1.x 의미론을 유지하면서, 목록의 iframe/pageslide 탐색을 실제 Turbo Frames로 대체했다.
 
-The experiment follows the supplied `PLAN-turbo-thymeleaf-poc.md` stop condition 6: preserving the existing detail surface requires shared lifecycle and draft-identity changes beyond the narrow list/two-column adapter. The strongest observed safety problem is an unsubmitted comment from issue A being restored into issue B when both use `/issues?selected=…` URLs. This occurs even with fresh full-document navigation, independently of Turbo frame mounting.
+- 선택 이슈는 `?selected=<공개 이슈 번호>`로 표현하고 Spring MVC + Thymeleaf가 직접 GET 상태를 재구성한다.
+- 2단 보기 설정은 기존 `localStorage["useTwoColumnMode"]`를 그대로 사용한다.
+- 댓글 초안은 **기존 상세 경로**(`/owner/project/issue/N`)를 키로 유지한다. 목록 pathname으로 저장하지 않는다.
+- 기존 초안의 실제 편집기 표시, 이슈 간 격리, 빠른 전환 시 저장, 복원 삭제 및 제출 후 제거를 브라우저에서 검증했다.
+- 전체 클라이언트 JS가 사라진 것은 아니다. 탐색은 Turbo가 맡고, 기존 위젯과 필요한 lifecycle helper는 유지한다.
 
-This is a scope decision, **not a claim that Turbo is technically incapable** of supporting Yona. A local initialization hook is possible; it does not fix draft identity, private polling timers, or shared ready-only initializers.
+## 브랜치와 커밋
 
-- Base: fetched `origin/next`, `1d04fe7` (`fix: require arrays in legacy bulk creation requests`).
+- 기준: 작업 시작 시 fetch한 `origin/next` `1d04fe7`.
 - Worktree: `/Users/senghyunjo/github/yona-turbo-poc`.
 - Branch: `poc/turbo-thymeleaf`.
-- Baseline characterization: `f3f7d9523`.
-- Asset pipeline: `38bf6a306`.
-- Compatibility probes: `d697b59ef`.
-- No PR was opened or pushed. This branch is an experiment, not a production replacement ready for a draft implementation PR.
+- `38bf6a306`: 공식 Turbo 자산 빌드 파이프라인.
+- `46d734d4c`: 기존 초안 키와 공용 mount/dispose helper.
+- `37e4c593d`: 실제 controller/template/JS 전환.
+- `7a7123409`: 실제 경로의 수용 테스트와 기존 회귀 테스트 갱신.
 
-## What is implemented, and what is not
+초기 특성화와 음성 실험은 `4825125d4`까지의 이력에 남아 있다. 현재 브랜치에서는 응답을 테스트 코드로 감싸던 probe와 legacy 전용 테스트를 제거했다. 현재 수용 테스트에는 HTTP 응답 재작성이나 가짜 상세 데이터가 없다. push/PR 생성은 하지 않았다.
 
-Implemented:
+## 유지한 의미론과 구현
 
-1. Opt-in browser characterization of the existing iframe path.
-2. Locked official `@hotwired/turbo` 8.0.23, self-hosted through Gradle production resources.
-3. Browser probes using real server-rendered issue HTML and the real Turbo runtime.
-4. A regular Thymeleaf POST/CSRF gate with Turbo Drive and Turbo forms disabled.
-5. A reproducible negative draft-isolation check for the proposed canonical URL shape.
-
-**No production controller, template, legacy navigation, or widget behavior was changed.** A selected-controller draft was removed when the compatibility gate failed. There is no unused selected endpoint, pretend read-only detail implementation, feature-flagged alternate production architecture, JSON screen API, custom application `fetch()+innerHTML` swap, or custom History API replacement.
-
-The probes use explicit **test-only HTTP seams**:
-
-- Frame probe: request the real issue detail route; wrap its rendered detail and unchanged inline ready callbacks in a matching frame in the intercepted HTML response. Turbo, not test code, performs the live DOM replacement. This does not claim a server-rendered production frame boundary.
-- Draft probe: alias two proposed `/issues?selected=N` URLs to the corresponding real issue detail responses. The real ready callbacks and real five-second autosave run on fresh documents. The aliases exist only in Playwright routing; they are not implemented Spring routes.
-
-These seams isolate migration risks before enabling a broken surface. They are **not** substitutes for the plan's end-to-end acceptance suite.
-
-## Observed behavior
-
-### Unchanged baseline
-
-The H2 application was started before production modifications. Existing project-create and issue CRUD tests passed: **11/11 including setup**.
-
-The opt-in legacy characterization observed:
-
-- `useTwoColumnMode` on/off persists across reload.
-- A and B open in an iframe (the current branch can host it inside `yona-page-slide`'s shadow DOM).
-- The parent URL becomes the normal `/issue/N` route, not a reconstructible selected list URL.
-- One captured Back state had URL A but highlighted row B and iframe B.
-- A completed characterization run showed Forward returning to B and reload replacing the list/iframe with B's full detail page.
-- Preference-off navigation opens a normal full detail page.
-
-History characterization is **not stable green**: subsequent runs hit `page.goForward: net::ERR_ABORTED` and a reload `Not attached to an active page` error during competing navigation. These are recorded as observed automation/navigation limitations, not automatically attributed to a Turbo regression. No application navigation code had changed. Do not report the successful observation run as history parity.
-
-Source explains why the standalone two-column script is not the sole history owner:
-
-- `service/yona.twoColumnMode.js:220-229` pushes/replaces history.
-- `templates/site/layout.html:39-41` also replaces the parent's state when an authenticated detail document loads.
-- `service/yona.issue.List.js:322-364` independently fetches on `popstate`, updates the PJAX container, and can fall back to document navigation.
-
-### Actual Turbo transport and detail initialization
-
-The final transport probe observed:
-
-| Check | Result |
+| 관심사 | 구현 |
 |---|---|
-| Official self-hosted runtime | Turbo 8.0.23 |
-| Browser detail request | One request with `Turbo-Frame: issue-detail` |
-| Server response | `text/html;charset=UTF-8`, real Thymeleaf issue detail |
-| Matching frame content | Actual issue header rendered |
-| iframe/page-slide in probe | None |
-| Full-page delete-dialog trigger | Opens its dialog |
-| Same unchanged trigger after frame insertion | Does not open its dialog |
+| 이슈 읽기 권한 | 기존 프로젝트 read gate와 정상 `viewIssue` 경로 재사용. 내부 DB id가 아닌 공개 번호로 조회 |
+| 목록 검색·정렬·페이지 | 선택 링크는 기존 query의 인코딩·순서·반복 파라미터를 유지하면서 `selected`만 교체 |
+| 목록과 상세 | `turbo-frame#issue-list`, `turbo-frame#issue-detail`; `issue/view :: detail`을 정상 상세 페이지와 공유 |
+| 선택 탐색 | `data-turbo-frame` / `data-turbo-action="advance"`; 앱의 custom fetch/HTML swap/History API 없음 |
+| 같은 이슈 재클릭 | 선택을 해제하는 목록 URL로 이동해 상세를 닫음 |
+| Back/Forward | Turbo가 복원. 목록과 프로젝트 shell은 permanent DOM으로 유지하고 상세만 다시 mount |
+| 목록 필터·pagination | 기존 컨트롤을 통한 정상 문서 탐색. 선택 변경 후 pagination도 현재 URL로 갱신하여 선택을 유지 |
+| 초안 | 서버가 제공한 `data-draft-key`를 binding 시 캡처. 기존 상세 경로 키와 호환 |
+| 편집기 표시 | 숨겨진 textarea만 수정하지 않고 기존 `<yona-markdown-editor>.value` 공개 API 사용 |
+| 빠른 전환 | 5초 autosave를 기다리지 않아도 pending 초안을 dispose 시 해당 이슈 키에 저장 |
+| 상세 수명 | 이벤트/폴링/알림수신자 요청 해제, 업로더 등록 및 위젯 참조 정리. 전역 DOMContentLoaded 재발행 없음 |
+| mutation | Turbo forms 비활성화. 기존 일반 폼과 fetch/XHR의 Spring Security CSRF 계약 유지 |
+| 모바일 | 직접 selected URL은 세로 배치로 읽을 수 있고, 목록 링크는 정상 전체 상세 탐색 사용 |
 
-`DOMContentLoaded` has already fired when frame content arrives. Merely retaining the existing callbacks does not run their initialization. Fixing that timing alone would not resolve the following deeper problems.
+잘못되거나 없는 선택 번호는 기존 프로젝트 `error/notfound` 뷰를 사용한다. 이 뷰의 현재 HTTP 200 동작까지 이번 PoC에서 바꾸지는 않았다. 프로젝트 접근 거부는 기존 forbidden gate를 따른다. 선택 frame의 오류 응답에는 Turbo의 declarative reload meta를 사용해 일반 오류 화면으로 전환한다.
 
-### Cross-issue draft restoration: browser-proven
+목록은 더 이상 `yona.twoColumnMode.js`를 로드하지 않는다. 해당 파일은 게시판 등 다른 소비자를 위해 남겼다. 목록 밖의 iframe/sidebar 기능까지 제거하지 않았다. Hover prefetch는 이 영역에서 꺼서, hover만으로 서버의 이슈 방문 기록이 생기지 않도록 했다.
 
-The draft probe:
+## 검증 결과
 
-1. Opens real issue A HTML at the test alias `/issues?selected=A`.
-2. Enters an unsubmitted comment and fires the editor's existing keyup autosave path.
-3. Waits for the real five-second save into localStorage.
-4. Opens real issue B HTML at `/issues?selected=B` in a fresh document.
-5. Asserts that B's comment textarea now contains A's draft.
+### 실제 브라우저
 
-Final captured run: A `#1`, B `#10`, shared key `/admin/e2e-git-mujerqcs85s7/issues`.
+기존 Playwright 기반으로 다음을 실행했다.
 
-No duplicate client domain state is needed to fix this: the existing helper needs a stable issue identity. The current helper is not query-state-safe:
+- **45/45 통과**: 프로젝트 생성·홈·멤버, 전체 이슈 스펙, 게시글 CRUD 및 신규 Turbo 수용 테스트.
+- **2/2 통과**: 별도 실행한 사용자별 “내 이슈” 소비자 회귀 + setup.
+- 신규 Turbo 스펙 단독 **6/6 통과**: setup + 다섯 개의 동작 시나리오.
 
-- `service/yona.temporarySaveHandler.js:17-55`: restore/save uses `location.pathname`; delayed save retains the textarea.
-- `service/yona.temporarySaveHandler.js:60-62`: draft removal uses the same pathname.
-- `templates/site/layout.html:428-442`: recovered-draft visibility and clear action also depend on this behavior.
-- The served copy comes from `javascripts/yona-lib.js`, so editing only the readable source would not fix the running application.
+신규 시나리오는 A/B 선택, 목록 DOM 유지, 실제 Turbo 요청 수, Back/Forward, reload, 복사한 URL, JS 비활성화, 익명 읽기, 기존 초안 키, **화면에 보이는 편집기** 복원, 빠른 전환, 초안 삭제, 빈 댓글 방지, 단축키 제출, 중복 제출 방지, CSRF 거부, 이전 이슈 폴링 종료, 즐겨찾기·사이드바 유지, 구독, 첨부 업로드/삭제, task 저장, **선택을 바꾼 뒤 pagination**, 필터, 같은 이슈 닫기, preference off 및 모바일을 포함한다.
 
-### Additional source-backed lifecycle constraints
+초기 통합에서 실제로 발견하고 수정한 것은 다음과 같다.
 
-These are code findings, not claims that all resulting failures were exercised:
+- DOM ready에 묶인 상세 초기화와 dispose 누락.
+- 숨겨진 textarea에는 초안이 있지만 실제 편집기에는 보이지 않는 불일치.
+- 상세 전환 시 남는 업로더 registry 참조.
+- favorite 이벤트 위임 때문에 사이드바가 닫히는 변화.
+- document 위임 tooltip의 비-Element target 처리.
+- Shadow DOM pagination의 링크가 이전 선택 이슈를 유지하던 문제.
 
-- `service/yona.detectChange.js:14-65`: recursively scheduled private `setTimeout`, no returned cleanup or exposed timer handle. **[INFERENCE]** Remounting A→B without changing this contract retains A's polling and notifications.
-- `common/yona.Tasklist.js:8-138`: checkbox persistence and permission-related disabling live in an anonymous ready callback; no scoped mount function.
-- `common/yona.SubComment.js:1-114`: anonymous ready-only setup for reply controls and timeline presentation.
-- `templates/issue/view.html:550-843`: document/window listeners and detail initialization need scoped mounting and disposal.
-- List and detail both use IDs such as `assignee` and `milestone`; a shared document needs list-local IDs adjusted.
-- The existing editor is a self-mounting custom element (`site/layout.html:361-367`). **No editor-internal rewrite was shown to be necessary.**
+기존 일부 E2E는 이미 같은 URL에 있는 상태에서 `waitForURL` 또는 `networkidle`로 폼 제출을 기다리고 있었다. 실제 mutation 완료 전에 다음 탐색이 시작되는 race를 재현했으며, 새 문서 navigation을 기다리도록 바꿨다. 기능 단언을 삭제하거나 실패를 무시하지 않았다.
 
-The minimum prerequisite is a bounded shared lifecycle change, not React, Stimulus, a global state store, or a new framework:
+데스크톱 1440×1000 및 모바일 390×844의 실제 렌더링도 캡처·확인했다. 픽셀 단위 1.x 디자인 동등성이나 모든 브라우저 호환성까지 주장하지는 않는다.
 
-1. Give the existing poller cleanup and ignore/abort in-flight results after disposal.
-2. Give draft save/remove a stable issue-route key and cancel pending saves on unmount; update its shipped bundle and clear-draft consumers.
-3. Expose scoped initialization for existing Tasklist/SubComment behavior without duplicating it or replaying global `DOMContentLoaded`.
-4. Then extract the detail markup/init once and verify A→B→A, cache restoration, and widget behavior.
+### Spring 및 production build
 
-Those changes were deliberately **not** smuggled into this navigation-only experiment.
+- 선택 번호/누락/잘못된 값/권한/기존 query 보존 controller 테스트.
+- 열림 목록에서 제외된 닫힌 이슈도 선택 상세로 렌더링하는 실제 Thymeleaf 테스트.
+- 전체 실행: `DOCKER_HOST=unix:///Users/senghyunjo/.orbstack/run/docker.sock ./gradlew test bootJar --continue`.
+- **6,723개 중 6,722 통과, 1 실패. 전체 green 아님.**
+- 실패는 전환 전 baseline에서도 관찰한 `LegacyIssueResponseIntegrationSpec:142`의 빈 attachments 배열 `.single()`이다. 해당 기능은 변경하지 않았으며 이 실패를 이번 작업에서 해결했다고 주장하지 않는다.
+- `./gradlew bootJar` 별도 실행 성공.
 
-## Build and CSRF gates
+외부 파일로 옮긴 JS의 함수 호출 문자열을 HTML 안에서 찾던 테스트는 새 문자열로 다시 고정하지 않고 제거했다. 초안·댓글·폴링·첨부 등은 실제 브라우저 동작으로 검증한다. 무관한 게시글 테스트는 보존했다. 이 checkout에는 WTR manifest/config가 없어 새 테스트 프레임워크를 추가하지 않았다.
 
-Spring Boot's official MVC and Thymeleaf starters and the Thymeleaf security extras remain unchanged. No server-side Turbo starter was added. Spring's [HTML fragment documentation](https://docs.spring.io/spring-framework/reference/web/webmvc-view/mvc-fragments.html) supports this HTML-over-the-wire approach; `FragmentsRendering` is not needed for the initial full-document extraction path.
+## 측정
 
-Build chain: `npmCi` → `copyTurbo` → `processResources` → `bootJar`.
+### JavaScript / 네트워크
 
-- Exact package version and npm integrity lockfile.
-- No CDN, pasted vendor JS, Vite, Gradle frontend plugin, or runtime Node dependency.
-- Generated file: `build/generated/turbo/turbo.es2017-esm.js`.
-- Packaged file: `BOOT-INF/classes/static/javascripts/turbo/turbo.es2017-esm.js`.
-- Node 22+/npm 10+ on `PATH` is an intentional, documented **build** prerequisite, including `./gradlew test`.
-- Exercised versions: Node 24.21.0, npm 11.19.0, Gradle 9.7.1.
-- `./gradlew processResources bootJar` succeeded.
-- Packaged bytes exactly matched the installed locked npm distribution: **203,701 bytes**, SHA-256 `b9d35d123a07614f55eaaf993f74d687a503ae41ba50ef835aafa18dbb265a13`.
-- The asset is packaged but not loaded by any production page.
-
-The CSRF probe loads Turbo, sets `Turbo.session.drive = false` and `Turbo.config.forms.mode = 'off'`, then proves:
-
-- A POST without a CSRF token returns **403**.
-- The real issue-create Thymeleaf form sends `_csrf` through native document navigation, receives **302**, and renders the created issue.
-- The request is not a Turbo frame submission.
-
-This establishes only the **forms-off** contract. It does not establish Turbo-driven mutation-form compatibility or authorize a site-wide rollout. No CSRF setting was weakened.
-
-## Measurements and limits
-
-| Metric | Observed result |
+| 항목 | 결과 |
 |---|---|
-| Production custom JS delta | +0 / −0 lines |
-| Legacy iframe/page-slide code removed | None; the replacement gate did not pass |
-| Production manual History API delta | 0; existing calls retained |
-| Application custom detail-swap fetch added | 0 |
-| Baseline A→B selection window | 2 detail document requests; 143 browser request events total |
-| Baseline event breakdown | 96 script, 24 stylesheet, 11 image, 6 fetch, 4 font, 2 document |
-| Turbo transport probe | 1 matching-frame request for one selection; not an A→B parity measurement |
-| Real upstream detail HTML | 94,694 decoded UTF-8 bytes in final probe |
-| Test-framed HTML response | 94,267 decoded UTF-8 bytes in final probe |
-| Added official runtime | 203,701 bytes uncompressed in jar |
-| Query increase for selected list rendering | Not measured: no production selected list controller remains |
-| Production direct selected URL / reload | Not implemented or claimed |
-| Turbo Back/Forward / filters / pagination / mobile | Not accepted or claimed |
-| Visual parity | Not achieved; diagnostic frame placement is not a two-column layout implementation |
+| 대상 경로가 사용하던 navigation 파일 | 292줄 legacy 모듈 → 104줄 Turbo adapter |
+| legacy 파일의 물리적 삭제 | 없음: 다른 화면의 소비자가 남아 있음 |
+| authored `.js` diff | +636 / −148줄, generated `yona-lib.js` 제외 |
+| 상세 inline JS | 277줄 → 0줄; 동작은 재사용 가능한 `yona.issue.Detail.js` 246줄로 추출 |
+| 공용 layout inline JS | 360줄 → 352줄 |
+| 합산 authored JS 순증 | **+203줄**. comments/blank lines 포함; 의존성·generated bundle·테스트 제외 |
+| 선택 시 custom History / custom detail fetch | 각각 0. 공용 shell의 기존 초기화 History 코드는 별개로 유지 |
+| A→B 상세 요청 | **2회**, 각각 `Turbo-Frame: issue-detail`, 서버 HTML 응답 |
+| iframe / page-slide 생성 | 없음 |
+| 최종 브라우저 HTML body | A 99,244 bytes / B 99,236 bytes, 인증 사용자·이슈 3개 fixture |
+| 공식 Turbo asset | 203,701 bytes, uncompressed |
 
-The baseline total counts request events, including cached resources, existing analytics, and blob URLs—not 143 server round trips. The two baseline selections and one diagnostic frame selection are not a like-for-like performance comparison. HTML sizes are decoded payload sizes, **not compressed transfer-byte measurements**. No query-performance or broad JavaScript-reduction claim follows from them.
+HTML 수치는 decoded body bytes이며 압축 wire bytes가 아니다. 앞선 baseline의 143개 browser request events에는 캐시·blob·기존 analytics 등이 섞여 있으므로 이를 그대로 서버 round-trip 감소율로 비교하지 않는다. 이 결과는 **탐색 책임의 이전**을 입증하지, “전체 custom JS 대부분 삭제”를 입증하지는 않는다. 목록에서 상세 의존성을 미리 로드하는 비용도 있다.
 
-## Verification record
+### SQL
 
-- Initial unchanged baseline: project creation + issue CRUD, **11 passed** including setup.
-- Scoped run with project-create/home/members and all issue specs: **37 passed, 1 failed**. The failed test was the new opt-in legacy history characterization; the existing scenarios and the three compatibility probes passed.
-- A prior scoped run needed the existing `secondUserLoginId` signup seed. After running that prerequisite, project-members and the three probes passed (**7/7 including setup**). This was a test prerequisite failure, not an application fix.
-- Final compatibility-only run: **4/4 including setup**. Passing here means reproducing the two negative findings and passing the forms-off CSRF check—not passing the plan's replacement acceptance suite.
-- Plain `./gradlew test`: Kotest initialization failed at `DockerClientProviderStrategy` before the suite could run.
-- `./gradlew test -Dyona.it.db=h2`: also failed during container initialization; the H2 switch does not eliminate every spec's container dependency.
-- With the active OrbStack socket explicitly supplied (`DOCKER_HOST=unix:///Users/senghyunjo/.orbstack/run/docker.sock ./gradlew test`), the full suite ran: **6,724 tests, 6,723 passed, 1 failed, 0 skipped**. Failure: untouched `LegacyIssueResponseIntegrationSpec`, “GET, PUT and state PATCH return mapped results and persisted events without user secrets”, line 142. The issue `attachments` array was empty and `.single()` threw `NoSuchElementException`. The case's cause was not isolated; do not claim a clean baseline or attribute it to Turbo. The full HTML report is under `build/reports/tests/test/index.html`.
-- No WTR manifest/configuration was present in this checkout; the tracked frontend test runner is the existing Playwright suite. No new test framework was added.
+임시 MockMvc 측정에서 공개 프로젝트·이슈 2개·익명 사용자 fixture를 만들고, 요청 전 persistence context와 Hibernate statistics를 초기화하여 `prepareStatementCount`를 기록했다. 측정 harness는 제거했다.
 
-## Reproduction
+| 요청 | SQL statements | HTML bytes |
+|---|---:|---:|
+| 목록 | 23 | 54,415 |
+| 정상 전체 상세 | 18 | 53,264 |
+| selected 목록 전체 GET | 33 | 73,698 |
+| 동일 selected URL의 frame GET | 33 | 73,698 |
 
-Use a disposable H2 instance and the branch's documented Node/npm prerequisites. Tests create projects/issues and do not target production data.
+전체 문서 응답을 사용하는 현재 PoC에서는 frame 선택 한 번이 정상 상세보다 **15 statements 더 수행**했다. 이 측정은 해당 fixture의 관찰값이며 운영 성능 보장이 아니다. 측정 후의 후속 최적화로 Thymeleaf fragment/`FragmentsRendering`을 검토할 근거는 생겼지만, 이번 구현에 별도 transport나 JSON 표현을 추가하지 않았다.
+
+## 빌드·보안 범위
+
+공식 `@hotwired/turbo` **8.0.23**과 lockfile을 사용한다. `npmCi → copyTurbo → processResources → bootJar`가 production assembly를 소유한다. output은 `build/generated/turbo/`, jar 내부 경로는 `static/javascripts/turbo/turbo.es2017-esm.js`다. Node 22+/npm 10+는 README에 명시한 빌드 전제이며 런타임 Node/CDN은 필요 없다. Spring MVC/Thymeleaf 공식 starter는 그대로다.
+
+`Turbo.session.drive = false`, `Turbo.config.forms.mode = 'off'`로 전역 Drive/form 전환을 하지 않는다. 정상 폼/댓글 제출과 토큰 없는 POST의 **403**을 확인했다. Turbo 자체가 mutation 폼을 제출하는 경로의 CSRF 호환성은 아직 검증 범위가 아니며, 보호를 약화시키지 않았다.
+
+## 재현
 
 ```sh
 ./gradlew bootRun --args='--spring.profiles.active=h2 --server.port=18080'
 ```
 
-In a second terminal:
+별도 터미널:
 
 ```sh
 cd e2e
 npm ci
 npx playwright install chromium
-YONA_BASE_URL=http://localhost:18080 npx playwright test specs/01-auth/auth.spec.ts --grep 'every required field'
-YONA_BASE_URL=http://localhost:18080 npx playwright test specs/04-project/00-project-create.spec.ts specs/06-issue/issue-crud.spec.ts
-YONA_TURBO_PROBE=1 YONA_BASE_URL=http://localhost:18080 npx playwright test turbo-lifecycle-probe.spec.ts
-YONA_LEGACY_TWO_COLUMN=1 YONA_BASE_URL=http://localhost:18080 npx playwright test two-column-legacy.spec.ts
+YONA_BASE_URL=http://localhost:18080 npx playwright test turbo-two-column.spec.ts
 ```
 
-The legacy command may fail during history navigation; stdout and Playwright attachments retain observations collected before the failure. The three compatibility probes are opt-in and skipped in ordinary runs. JSON evidence and a frame screenshot are attached to the Playwright HTML report. No positive feature acceptance is hidden behind expected-failure markers.
+넓은 기존 스위트를 함께 실행하려면 기존 signup seed를 먼저 만든다.
+
+```sh
+YONA_BASE_URL=http://localhost:18080 npx playwright test specs/01-auth/auth.spec.ts --grep 'every required field'
+YONA_BASE_URL=http://localhost:18080 npx playwright test specs/04-project/00-project-create.spec.ts specs/04-project/project-home.spec.ts specs/04-project/project-members.spec.ts specs/06-issue specs/09-board/board-crud.spec.ts
+```
+
+네트워크 JSON과 screenshot은 Playwright report에 첨부된다. 테스트는 폐기 가능한 로컬 H2 데이터로 실행해야 한다.
 
 ## Draft PR body
 
-**Suggested title:** `PoC: characterize Turbo Frames compatibility with issue detail`
+**Title:** `PoC: replace issue two-column iframe navigation with Turbo Frames`
 
-> This is an architecture experiment against `next`, not an approved Turbo adoption or a completed iframe replacement.
+> Thymeleaf remains the canonical renderer; this is not a SPA, visual redesign, or site-wide Turbo rollout. Issue selection uses a public issue number in the list URL. Real controller/template responses now support direct URLs, reload and Turbo history without a custom HTML swap or History API implementation.
 >
-> Thymeleaf remains the canonical renderer. There is no SPA migration, visual redesign, Tailwind migration, or broad Turbo rollout. Official Turbo is self-hosted through a minimal locked Gradle/npm resource pipeline.
+> Shared helpers preserve the existing per-issue draft keys, synchronize the visible editor, and clean up detail resources when the frame changes. Existing mutation forms stay outside Turbo. The issue-list legacy iframe entry point is retired, while unrelated consumers remain untouched.
 >
-> Real-browser probes show matching-frame HTML extraction works, and regular Thymeleaf POST forms retain CSRF enforcement with Turbo forms disabled. They also expose a cross-issue comment-draft collision at the proposed selected URLs and existing detail lifecycle constraints. The supplied plan's stop condition 6 was applied; legacy behavior was not removed and incomplete controller/template changes were not retained.
+> The scoped browser suite passes 45 tests. The full JVM suite retains one baseline attachment-response failure; this is not a full-green claim. Full-document frame rendering also incurs measured extra SQL, and authored JS increases slightly because safe widget lifecycle integration is explicit.
 >
-> The purpose is to provide concrete evidence for the subsequent frontend architecture discussion. Shared draft identity and mount/unmount contracts need an explicitly scoped prerequisite before a full two-column acceptance run. The PR may be revised or closed following maintainer feedback. This does not assert that Yona has decided to adopt Turbo.
+> This PoC supplies evidence for a later architecture discussion, not an approved project-wide frontend direction. It may be revised or closed after maintainer feedback.
 
-## Copyable follow-up issue evidence
+## Copyable architecture evidence
 
 ```text
 ### PoC result
-- target: issue-list two-column mode on next 1d04fe7
-- branch/commit: poc/turbo-thymeleaf; baseline f3f7d9523, build 38bf6a306, probes d697b59ef
-- result: stop condition 6; transport works, unchanged detail lifecycle/draft identity is not safe
-- custom JS delta: production +0/-0; official Turbo asset 203,701 uncompressed bytes
-- iframe removed from target path: no; zero iframes only in diagnostic frame probe
-- manual history code delta: 0; legacy retained
-- server/template changes: none retained; probe wraps/aliases real Thymeleaf responses at a test-only HTTP seam
-- request behavior: one Turbo-Frame request and HTML extraction in probe; no custom application detail swap
-- direct URL/reload: selected production path not implemented; canonical-URL alias probe reproduces cross-issue draft restoration on fresh document loads
-- back/forward: legacy URL/pane mismatch observed; intermittent navigation aborts recorded; Turbo parity not established
-- E2E result: final 3 compatibility probes + setup pass; broader scoped run 37 pass/1 legacy history characterization failure
-- full regression result: 6,723/6,724 passed, 1 untouched LegacyIssueResponseIntegrationSpec failure (empty attachments at line 142); active Docker socket required; not full green
-- CSRF findings: forms-off native POST with _csrf succeeds; missing token returns 403; Turbo mutation forms remain unproven
-- performance/query findings: probe framed HTML 94,267 decoded bytes; selected-list query increase unmeasured
-- limitations: no selected controller/frame cutover, no mobile/filter/pagination acceptance, no production JS reduction claim
+- target: issue-list two-column mode, next 1d04fe7
+- branch/commit: poc/turbo-thymeleaf; helpers 46d734d4c, integration 37e4c593d, tests 7a7123409
+- custom JS delta: navigation path 292 → 104 lines; net authored JS +203 including extracted inline code
+- iframe removed from target path: yes; shared legacy file retained for other consumers
+- manual history code: none added for selection; Turbo/browser owns selected navigation
+- server/template changes: optional public selected number; shared normal detail authorization/model; reusable detail fragment
+- request behavior: A→B is two Turbo-Frame requests, complete server HTML, no custom detail swap
+- direct URL/reload: passed, including JS-disabled reads
+- back/forward: passed with list/shell preservation and detail remount
+- draft semantics: legacy issue-path keys retained; visible restore, isolation, fast-switch save, clear and post-submit removal passed
+- E2E result: 45/45 scoped; additional cross-project consumer 2/2 including setup
+- full regression result: 6,722/6,723, one baseline LegacyIssueResponseIntegrationSpec failure at line 142
+- CSRF: existing forms/fetch preserved; tokenless POST 403; Turbo mutation forms not enabled
+- performance: authenticated three-issue fixture ~99 KB per frame response; anonymous two-issue fixture 33 SQL statements vs normal detail 18
+- limitations: no site-wide rollout, no whole-client-JS deletion claim, no production performance or pixel-parity claim
 ```
 
-Comparison implications:
+Compared with the current imperative-JS approach, this removes custom navigation ownership but not widget behavior. Unlike a full React SPA, it adds no JSON screen model or client domain store. It is consistent with server-rendered progressive enhancement, but no benchmark or code comparison of `yona-bun-temp`, Gitea or Forgejo was performed. The final architecture issue itself was not created.
 
-- **Current Thymeleaf + imperative JS:** Turbo can take over HTML transport; existing widget initialization, teardown, and draft identity do not disappear automatically.
-- **React SPA / `yona-bun-temp`:** this experiment adds no JSON screen model or client domain store. It does not benchmark or inspect that separate fork, so it makes no comparative performance or implementation-cost claim.
-- **Gitea/Forgejo-style server rendering:** server-owned HTML and progressive enhancement remain viable architectural directions. This experiment did not inspect or test those projects; the relevant local prerequisite is making Yona's widget lifecycle explicit.
-
-References: [Turbo Frames](https://turbo.hotwired.dev/handbook/frames), [Turbo application lifecycle and caching](https://turbo.hotwired.dev/handbook/building), [Spring MVC HTML fragments](https://docs.spring.io/spring-framework/reference/web/webmvc-view/mvc-fragments.html). The final architecture issue itself is not created here.
+References: [Turbo Frames](https://turbo.hotwired.dev/handbook/frames), [Turbo lifecycle and caching](https://turbo.hotwired.dev/handbook/building), [Spring MVC HTML fragments](https://docs.spring.io/spring-framework/reference/web/webmvc-view/mvc-fragments.html).
