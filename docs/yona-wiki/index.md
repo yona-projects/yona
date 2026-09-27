@@ -30,6 +30,7 @@
 | 11 | P3-14 | yona를 OAuth2 서버(Authorization Server)로 제공 | **1라운드 진행중(2026-09-07) — 리소스 레지스트리 일반화, `/api/v1/**` OAuth 지원, confidential 앱 관리자 등록 UI 완료. OIDC("Sign in with yona")는 2라운드로 이월** | P3-07(완료) | [[plans/p3-14-oauth2-provider]] |
 | 12 | P3-12 | Mercurial(hg4j) 저장소 지원 | **완료(2026-09-09, 2026-09-14 문서 동기화)** — 외부 블로커였던 `search5/hg4j`가 실제로 진행되어 착수 조건이 해소됨. HTTP/SSH 프로토콜 서빙, 브랜치/태그 CRUD, diff/patch 전부 구현 | 없음(해소됨) | [[plans/p3-12-mercurial-hg4j]] |
 | 13 | P3-13 | 프런트엔드 분리 (React/Vue3/Angular 등 SPA) | planned — 프레임워크/인증 방식 미결정 | P3-02(REST API·인증 토대, 약한 선행) | [[plans/p3-13-decoupled-spa-frontend]] |
+| 14 | P3-74 | 이슈 2단 보기(Turbo Frame) SQL 중복 실행 해소 | **완료(2026-09-27)** — PR #834가 알려진 한계로 명시한 성능 이슈(Turbo-Frame 요청도 목록+상세를 모두 조회하던 문제)를 헤더 분기로 해소, TDD로 검증(자체 fixture 실측 27→12 SQL, e2e 6/6, `./gradlew test` 6,720건 중 무관한 사전 존재 실패 2건 제외 전부 GREEN) | 없음(PR #834 병합 완료로 즉시 착수 가능) | [[plans/p3-74-issue-detail-fragment-sql-optimization]] |
 
 ## 우선순위 판단 근거
 
@@ -90,6 +91,10 @@
     프레임워크 선정부터 인증 방식·마이그레이션 전략까지 이 문서 작성 시점엔 전부 미결정 상태라 — 다른
     항목들과 달리 "설계가 이미 상당히 구체화된 신규 기능"이 아니라 "결정 자체가 남은 탐색적 항목"에
     가깝다.
+13. **P3-74(Turbo Frame SQL 최적화)를 14순위(맨 뒤)에 둔 이유(2026-09-27 신규 편입)**: PR #834가
+    이슈 2단 보기를 Turbo Frames로 대체하며 스스로 "알려진 한계"로 명시한 채 병합한 성능 이슈(선택
+    시 SQL 18→33건)의 후속 조치다. 완전히 독립적이고 착수 비용도 낮지만, 기능 결손이 아니라 순수
+    성능 최적화라 다른 신규 기능/설계 미결정 항목들보다 급하지 않다고 판단해 맨 뒤에 둔다.
 
 ## 의존성 그래프
 
@@ -103,6 +108,7 @@ P3-02 (CLI+API+Token) ─┬─────────► P3-05 (CI/Actions 러
 
 P3-04 (브랜치 보호) ──────► P3-03이 완료되면 require_signed_commits 실질화
 P3-06 (SSO) — 독립, P3-07의 로그인 화면이 나중에 상속(블로커 아님)
+P3-74 (Turbo Frame SQL 최적화) — 완전 독립, PR #834 병합 완료로 즉시 착수 가능
 ```
 
 ## 문서 규칙

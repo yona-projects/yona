@@ -398,7 +398,7 @@
             </div>
         </div>
         </turbo-frame>
-        <turbo-frame id="issue-detail" data-turbo-action="advance" data-turbo="false" target="_top"
+        <turbo-frame th:fragment="issueDetailFrame" id="issue-detail" data-turbo-action="advance" data-turbo="false" target="_top"
                      th:hidden="${selected == null}">
             <th:block th:if="${selected != null}">
                 <div th:replace="~{issue/view :: detail}"></div>
