@@ -14,6 +14,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUser
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.role.Role
+import com.github.yonaprojects.yona.domain.role.RoleRepository
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -46,7 +47,8 @@ class BoardRestApiControllerIntegrationSpec @Autowired constructor(
     private val projectRepository: ProjectRepository,
     private val apiTokenRepository: ApiTokenRepository,
     private val postingRepository: PostingRepository,
-    private val projectUserRepository: ProjectUserRepository
+    private val projectUserRepository: ProjectUserRepository,
+    private val roleRepository: RoleRepository
 ) : AbstractIntegrationTest() {
 
     override fun extensions() = listOf(SpringExtension)
@@ -69,8 +71,11 @@ class BoardRestApiControllerIntegrationSpec @Autowired constructor(
             // project.owner는 표시용 문자열일 뿐 AccessControl.isAllowed()의 실제 권한 판정은
             // ProjectUser 관계(user.isMemberOf(project))를 본다 — 직접 저장만으로는 소유자가
             // 멤버로 등록되지 않는다.
+            val managerRole = roleRepository.findById(RoleType.MANAGER.roleType).orElseGet {
+                roleRepository.save(Role(id = RoleType.MANAGER.roleType, name = "manager", active = true))
+            }
             projectUserRepository.save(
-                ProjectUser(user = owner, project = project, role = Role(id = RoleType.MANAGER.roleType))
+                ProjectUser(user = owner, project = project, role = managerRole)
             )
         }
 
