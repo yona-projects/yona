@@ -291,3 +291,21 @@ time, checking off as you go.
 - Before declaring all 9 done: one final full clean run — stop the server, optionally wipe
   `data/h2/`, `e2e/.auth`, `e2e/.seed` for a truly fresh bootstrap-through-admin-creation pass
   (see `e2e/README.md`), restart, run `npm test` end to end, report the final pass count.
+
+## CI shard regression fixes
+
+- **Secondary-email confirmation navigation:** the resend action follows its POST redirect,
+  consumes the response body, then reloads the page. Waiting only for the POST response let
+  the confirmation navigation race that reload and fail with `ERR_ABORTED`. The E2E test now
+  waits for the main-frame navigation and document load before following the real mailed link.
+  It retains the confirmation redirect and verified-email controls assertions, without retries.
+  The baseline CI passed this test; repeated failures after the workflow change must not be
+  dismissed as an equivalent baseline failure.
+- **SQL Server public-key persistence and fixture cleanup:** hard-coded `TEXT` columns for
+  `DeployKey.publicKey` and `GpgKey.armoredPublicKey` conflicted with Unicode JDBC reads.
+  The resulting `text`→`NCHAR` error also broke existing fixture cleanup, leaving key rows
+  that caused later project/user deletion to fail on foreign keys. Both columns now use the
+  existing dialect-selected large-string mapping (`length = 1_000_000`), which resolves to
+  `nvarchar(max)` on SQL Server. Commit behavior, foreign-key constraints, and cleanup
+  assertions are unchanged. Compare exact failed testcase identities across shards, not only
+  total failure counts or exception types.

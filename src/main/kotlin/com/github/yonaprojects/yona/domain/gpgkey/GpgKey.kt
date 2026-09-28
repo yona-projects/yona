@@ -26,7 +26,7 @@ class GpgKey(
     @Column(name = "fingerprint", nullable = false, unique = true, length = 64)
     var fingerprint: String = "",
 
-    @Column(name = "armored_public_key", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "armored_public_key", nullable = false, length = 1_000_000)
     var armoredPublicKey: String = "",
 
     // 마스터 키 + 서명 서브키를 포함한 모든 구성 키의 Key ID. 커밋 서명의 issuer key id로 이

@@ -36,7 +36,7 @@ class DeployKey(
     @Column(name = "title", nullable = false)
     var title: String = "",
 
-    @Column(name = "public_key", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "public_key", nullable = false, length = 1_000_000)
     var publicKey: String = "",
 
     @Column(name = "fingerprint", nullable = false, unique = true, length = 128)

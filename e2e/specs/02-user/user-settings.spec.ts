@@ -116,10 +116,14 @@ test('resending the validation email for an unverified secondary address, then c
   const emailRow = ownPage.locator('tr', { hasText: secondaryEmail });
   const resendButton = emailRow.locator('button[data-request-method="post"][href*="/sendValidationEmail/"]');
   await expect(resendButton).toBeVisible();
+  // requestAs reloads only after reading the redirected fetch response, not the POST's 302.
+  // Wait for the new document: waitForURL would resolve immediately at this same URL.
   await Promise.all([
     ownPage.waitForResponse((res) => res.url().includes('/sendValidationEmail/') && res.request().method() === 'POST'),
+    ownPage.waitForEvent('framenavigated', (frame) => frame === ownPage.mainFrame()),
     resendButton.click(),
   ]);
+  await ownPage.waitForLoadState('load');
 
   const message = await findMailTo(request, secondaryEmail);
   const html = await fetchMailText(request, message.ID);
