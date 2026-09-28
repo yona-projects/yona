@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [next, ci/automated-tests-parallel]
+    branches: [next]
   pull_request:
   workflow_dispatch:
 
