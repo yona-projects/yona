@@ -301,10 +301,15 @@ time, checking off as you go.
   It retains the confirmation redirect and verified-email controls assertions, without retries.
   The baseline CI passed this test; repeated failures after the workflow change must not be
   dismissed as an equivalent baseline failure.
+- **Comment-vote E2E readiness:** a server-rendered unvote button could be clicked before
+  the dynamically loaded `issue.View` module registered its handler, so no unvote request
+  was sent. The comment lifecycle test now waits for document load after observing each new
+  rendered state. Delaying delivery of the real handler script reproduced the old failure;
+  the corrected create/edit/vote/unvote/delete flow passed three repetitions under that delay.
 - **SQL Server public-key persistence and fixture cleanup:** hard-coded `TEXT` columns for
-  `DeployKey.publicKey` and `GpgKey.armoredPublicKey` conflicted with Unicode JDBC reads.
+  `DeployKey.publicKey`, `GpgKey.armoredPublicKey`, and `SshKey.publicKey` conflicted with Unicode JDBC reads.
   The resulting `text`→`NCHAR` error also broke existing fixture cleanup, leaving key rows
-  that caused later project/user deletion to fail on foreign keys. Both columns now use the
+  that caused later project/user deletion to fail on foreign keys. All three columns now use the
   existing dialect-selected large-string mapping (`length = 1_000_000`), which resolves to
   `nvarchar(max)` on SQL Server. Commit behavior, foreign-key constraints, and cleanup
   assertions are unchanged. Compare exact failed testcase identities across shards, not only

@@ -323,6 +323,9 @@ test.describe.serial('issue management actions', () => {
     // parsing the response body and just use the last comment-edit trigger instead -- this test
     // works with its own dedicated issue, so the comment just posted is always the only one.
     await expect(page.locator('body')).toContainText(commentBody);
+    // The new document can render before DOMContentLoaded loads issue.View and wires actions.
+    // Wait for its scripts after each rendered-state assertion, before the next interaction.
+    await page.waitForLoadState('load');
     const commentIdLocator = page.locator('[data-toggle="comment-edit"]').last();
 
     await commentIdLocator.click();
@@ -341,6 +344,7 @@ test.describe.serial('issue management actions', () => {
     ]);
     expect(updateResponse.ok()).toBeTruthy();
     await expect(page.locator('body')).toContainText(editedBody);
+    await page.waitForLoadState('load');
 
     // Comment vote/unvote (VoteController.voteComment/unvoteComment) -- a previously untested
     // route pair. The button toggles data-request-uri between .../vote and .../unvote server-side
@@ -348,21 +352,17 @@ test.describe.serial('issue management actions', () => {
     // does fetch(POST) then location.reload().
     const commentId = await commentIdLocator.getAttribute('data-comment-id');
     expect(commentId).toBeTruthy();
-    // Don't wait on networkidle after the click -- this page has enough incidental background
-    // activity post-reload that networkidle can hang well past the test timeout. Don't race a
-    // page.waitForResponse() against the click either -- that pairing is flaky under full-suite
-    // load, since the response/reload/re-render sequence has no hard guarantee of completing
-    // within the observation window when the whole browser is under load. Click, then let
-    // Playwright's auto-retrying expect() alone ride out
-    // the fetch + reload + re-render with a generous explicit timeout -- no network-timing
-    // assumption at all, matching the more robust half of the issue-level vote test above.
+    // Each toggle reloads the page. The changed button proves the new document has arrived;
+    // its load event also waits for the dynamically loaded issue.View click handlers.
     const voteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/vote"]`);
     await expect(voteButton).toBeVisible();
     const unvoteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/unvote"]`);
     await voteButton.click();
     await expect(unvoteButton).toBeVisible({ timeout: 30_000 });
+    await page.waitForLoadState('load');
     await unvoteButton.click();
     await expect(voteButton).toBeVisible({ timeout: 30_000 });
+    await page.waitForLoadState('load');
 
     const deleteTrigger = page.locator('[data-toggle="comment-delete"]').last();
     await deleteTrigger.click();
