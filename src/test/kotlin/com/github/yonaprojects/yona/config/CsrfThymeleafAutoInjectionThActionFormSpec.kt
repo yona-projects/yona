@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
@@ -26,6 +27,7 @@ import org.springframework.web.context.WebApplicationContext
 // "requestDataValueProcessor"(CsrfRequestDataValueProcessor) 빈을 thymeleaf-spring6의
 // SpringActionTagProcessor가 이름으로 조회해 getExtraHiddenFields()를 호출하는 것이다.
 // 프로덕션 SecurityConfig.kt는 건드리지 않는다(이 스펙 전용의 좁은 securityMatcher 체인만 추가).
+@DirtiesContext
 @Import(CsrfInvestigationThActionFormConfig::class)
 class CsrfThymeleafAutoInjectionThActionFormSpec @Autowired constructor(
     private val webApplicationContext: WebApplicationContext,

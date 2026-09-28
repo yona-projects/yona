@@ -1,16 +1,17 @@
 package com.github.yonaprojects.yona.domain.site
 
+import com.github.yonaprojects.yona.IntegrationTestDatabaseConfiguration
+import com.github.yonaprojects.yona.IntegrationTestEnvironmentInitializer
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.PostgreSQLContainer
+import org.springframework.test.context.ContextConfiguration
 import tools.jackson.databind.ObjectMapper
 import javax.sql.DataSource
 import com.github.yonaprojects.yona.domain.user.User
@@ -24,8 +25,10 @@ import com.github.yonaprojects.yona.domain.user.UserRepository
  * nextval()은 완전히 별개로 관리되기 때문에, 복원 직후의 첫 신규 insert가 이미 복원된
  * PK와 충돌할 수 있다. 이 테스트는 그 시나리오를 실제로 재현해 고정한다.
  */
-@SpringBootTest
+@SpringBootTest(properties = ["yona.it.db=postgres"])
 @ActiveProfiles("test")
+@Import(IntegrationTestDatabaseConfiguration::class)
+@ContextConfiguration(initializers = [IntegrationTestEnvironmentInitializer::class])
 class DataBackupServicePostgresIntegrationSpec @Autowired constructor(
     private val dataBackupService: DataBackupService,
     private val userRepository: UserRepository,
@@ -34,27 +37,6 @@ class DataBackupServicePostgresIntegrationSpec @Autowired constructor(
 ) : DescribeSpec() {
 
     override fun extensions() = listOf(SpringExtension)
-
-    companion object {
-        private val postgres = PostgreSQLContainer("postgres:16-alpine").apply {
-            withDatabaseName("yona")
-            withUsername("yona")
-            withPassword("yona_password")
-        }
-
-        init {
-            postgres.start()
-        }
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun registerProperties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url") { postgres.jdbcUrl }
-            registry.add("spring.datasource.username") { postgres.username }
-            registry.add("spring.datasource.password") { postgres.password }
-            registry.add("spring.datasource.driver-class-name") { postgres.driverClassName }
-        }
-    }
 
     private val jdbc: JdbcTemplate by lazy { JdbcTemplate(dataSource) }
 

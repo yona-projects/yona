@@ -15,10 +15,9 @@ import io.kotest.assertions.withClue
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -36,7 +35,8 @@ class HgHttpProtocolIntegrationSpec @Autowired constructor(
     private val projectRepository: ProjectRepository,
     private val repositoryService: RepositoryService,
     private val projectUserRepository: ProjectUserRepository,
-    private val roleRepository: RoleRepository
+    private val roleRepository: RoleRepository,
+    @Value("\${yona.hg.base-dir}") private val hgBaseDir: String
 ) : AbstractIntegrationTest() {
 
     private fun hashPassword(password: String, salt: String): String {
@@ -57,14 +57,6 @@ class HgHttpProtocolIntegrationSpec @Autowired constructor(
     private var port: Int = 0
 
     companion object {
-        private val hgBaseDirHolder = Files.createTempDirectory("hg-http-it-").toFile()
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun overrideHgBaseDir(registry: DynamicPropertyRegistry) {
-            registry.add("yona.hg.base-dir") { hgBaseDirHolder.absolutePath }
-        }
-
         private fun hgAvailable(): Boolean =
             try {
                 ProcessBuilder("hg", "--version").start().waitFor() == 0
@@ -95,7 +87,7 @@ class HgHttpProtocolIntegrationSpec @Autowired constructor(
                         Project(name = "hg-http-proj", owner = owner.loginId, projectScope = ProjectScope.PUBLIC, vcs = "MERCURIAL")
                     )
 
-                val repoDir = File(hgBaseDirHolder, "${project.owner}/${project.name}")
+                val repoDir = File(hgBaseDir, "${project.owner}/${project.name}")
                 if (!repoDir.exists()) {
                     repositoryService.getRepository(project).create()
                     File(repoDir, "README.md").writeText("# hg-http-proj")
@@ -142,7 +134,7 @@ class HgHttpProtocolIntegrationSpec @Autowired constructor(
                     projectUserRepository.save(ProjectUser(user = owner, project = project, role = managerRole))
                 }
 
-                val repoDir = File(hgBaseDirHolder, "${project.owner}/${project.name}")
+                val repoDir = File(hgBaseDir, "${project.owner}/${project.name}")
                 if (!repoDir.exists()) {
                     repositoryService.getRepository(project).create()
                     File(repoDir, "README.md").writeText("# hg-http-push-proj")

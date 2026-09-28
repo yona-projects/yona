@@ -11,16 +11,13 @@ import io.kotest.matchers.string.shouldContain
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.nio.file.Files
 
 private const val USER_PUBLIC_KEY =
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHFAhHu7wL23JgqJtpP8u/JUqCaLm1vcYoohMQFAdpXS tester@example.com"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGVxUQrbpyqJOGNDVD01ERVgveZBd/6L5XkPRRBfHWw+ ssh-internal-it@example.com"
 
 /**
  * yona-wiki P3-03/P3-18 — `ssh-auth.sh`(`docs/guide/ssh-system-sshd-setup.md`)가 호출할
@@ -40,16 +37,6 @@ class SshInternalControllerIntegrationSpec @Autowired constructor(
 
     override fun extensions() = listOf(SpringExtension)
 
-    companion object {
-        private val secretPathHolder = Files.createTempDirectory("ssh-internal-secret-it-").toFile()
-
-        @JvmStatic
-        @DynamicPropertySource
-        fun overrideProperties(registry: DynamicPropertyRegistry) {
-            registry.add("yona.ssh.internal-secret-path") { "${secretPathHolder.absolutePath}/internal-secret" }
-        }
-    }
-
     @LocalServerPort
     private var port: Int = 0
 
@@ -65,16 +52,21 @@ class SshInternalControllerIntegrationSpec @Autowired constructor(
         return httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString())
     }
 
+    private fun deleteFixture() {
+        userRepository.findByLoginId("internal-user").ifPresent { user ->
+            sshKeyRepository.deleteAll(sshKeyRepository.findByUserId(user.id!!))
+            userRepository.delete(user)
+        }
+    }
+
     init {
         describe("SshInternalController") {
             beforeEach {
-                sshKeyRepository.deleteAll()
-                userRepository.deleteAll()
+                deleteFixture()
             }
 
             afterSpec {
-                sshKeyRepository.deleteAll()
-                userRepository.deleteAll()
+                deleteFixture()
             }
 
             it("공유 시크릿 헤더가 없으면 403을 응답해야 한다") {

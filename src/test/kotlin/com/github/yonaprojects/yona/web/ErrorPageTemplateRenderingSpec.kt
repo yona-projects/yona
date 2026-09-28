@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -62,6 +63,7 @@ private class MaxUploadSizeExceededTestConfig {
 // 확인한다. 이 세션에서 mockk 테스트만 통과하고 실제 렌더링은 한 번도 검증 안 된 파샬에서
 // SpelEvaluationException이 실제로 발견된 전례가 있어(원인: 프래그먼트 인자 안의 T(...)/gathering
 // 제약) 반드시 이 방식으로 검증한다.
+@DirtiesContext
 @Transactional
 @Import(MaxUploadSizeExceededTestConfig::class)
 class ErrorPageTemplateRenderingSpec @Autowired constructor(

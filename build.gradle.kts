@@ -161,6 +161,10 @@ dependencies {
 	implementation("com.google.guava:guava:33.4.8-jre")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-testcontainers") {
+		// The DB modules (including CUBRID) still use the pinned Testcontainers 1.x API.
+		exclude(group = "org.testcontainers", module = "testcontainers")
+	}
 	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -224,13 +228,15 @@ fun resolveDockerHost(): String? {
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
-	// Gradle의 테스트 워커 기본 힙(512m)은, 각각 @DynamicPropertySource로 고유한 프로퍼티를 써서
-	// Spring TestContext 캐시가 재사용하지 못하는 별도 ApplicationContext를 만드는
-	// @SpringBootTest 스펙들이 많아지면서 전체 스위트(`./gradlew test`, 포크 없이 전부) 실행 시
-	// OutOfMemoryError로 이어진다 — 개별/배치 실행에서는 재현되지 않고 전체 스위트 단독 실행에서만
-	// 나타난다. gradle.properties의 데몬 힙(2048m)과 동일한 값으로 테스트 워커 힙을 올려 해소한다
-	// (운영 코드/성능에는 영향 없음, 테스트 실행 전용 설정).
+	val testGroup = System.getProperty("yona.test.group", "all")
+	useJUnitPlatform {
+		// Only Kotest specs inherit AbstractIntegrationTest; JUnit/ArchUnit run once in "other".
+		if (testGroup == "database") includeEngines("kotest")
+	}
+	systemProperty("yona.test.group", testGroup)
+	systemProperty("yona.test.shard", System.getProperty("yona.test.shard", "0"))
+	systemProperty("yona.test.shards", System.getProperty("yona.test.shards", "1"))
+	// Specs run sequentially within a worker; CI shards own independent databases and filesystems.
 	maxHeapSize = "2048m"
 	systemProperty("spring.profiles.active", "test")
 	systemProperty("testcontainers.host", "127.0.0.1")
@@ -239,7 +245,7 @@ tasks.withType<Test> {
 	// -Dyona.it.db=... 로 gradle CLI에 준 값을 포크된 테스트 JVM까지 그대로 전달한다.
 	systemProperty("yona.it.db", System.getProperty("yona.it.db", "mariadb"))
 	environment("DOCKER_API_VERSION", "1.44")
-	environment("TESTCONTAINERS_RYUK_DISABLED", "true")
+	// Keep Ryuk enabled: disabling it installs a JVM cleanup hook that races Spring's DDL shutdown.
 	environment("TESTCONTAINERS_CONTAINER_STARTUP_TIMEOUT", "120")
 	environment("TESTCONTAINERS_HOST_OVERRIDE", "127.0.0.1")
 	resolveDockerHost()?.let { environment("DOCKER_HOST", it) }

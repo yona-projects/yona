@@ -144,13 +144,29 @@ java -jar yona.jar --spring.profiles.active=postgres
 java -jar yona.jar --spring.profiles.active=h2
 ```
 
-통합 테스트는 실제 Docker 컨테이너(Testcontainers) 기준으로 5개 서버 DB 전부 검증돼 있습니다
-(H2는 내장형이라 컨테이너가 필요 없습니다). 특정 DB로만 테스트를 돌리려면(**동시에 두 개 이상
-돌리면 gradle 빌드 출력 디렉터리가 꼬이니 항상 한 번에 하나씩만 실행하세요**):
+통합 테스트는 Testcontainers로 5개 서버 DB를 선택해 실행합니다(H2는 내장형입니다).
+같은 checkout에서 Gradle 테스트를 동시에 실행하지 마세요. 빌드 출력과 일부 테스트 파일 경로를
+공유하므로 병렬 실행에는 CI처럼 별도 runner가 필요합니다.
 
 ```bash
 ./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid|h2
 ```
+
+CI는 `bootJar testClasses`를 한 번 빌드해 공유하고, DB matrix 밖의 테스트와 E2E를 각각 실행합니다.
+`AbstractIntegrationTest`를 상속한 spec만 6개 DB × 2개 shard로 나누며, 각 shard는 독립 runner의
+JVM·DB·파일시스템을 사용합니다. spec 내부의 실제 commit/동시성 테스트는 유지합니다.
+
+```bash
+# DB matrix 밖의 테스트: 단위 테스트와 전용 H2/PostgreSQL 복원 테스트 등
+./gradlew test -Dyona.it.db=h2 -Dyona.test.group=other
+# PostgreSQL matrix의 첫 번째 shard (전체 실행에는 shard=1도 필요)
+./gradlew test -Dyona.it.db=postgres -Dyona.test.group=database -Dyona.test.shard=0 -Dyona.test.shards=2
+```
+
+컨테이너는 Spring context가 소유하고 JPA 스키마 정리와 connection pool 종료 후 중지합니다.
+공통 context는 재사용하고, 일회성 설정을 가진 spec만 `@DirtiesContext`로 즉시 정리합니다.
+컨테이너 재사용은 context 간 스키마 충돌을 막기 위해 끄며, **Ryuk는 기본 활성 상태를 유지하세요**.
+`TESTCONTAINERS_RYUK_DISABLED=true`는 Spring 종료와 경쟁하는 JVM 정리 hook을 사용합니다.
 
 ## 운영 환경 설정 (특히 Windows)
 
@@ -455,14 +471,30 @@ java -jar yona.jar --spring.profiles.active=postgres
 java -jar yona.jar --spring.profiles.active=h2
 ```
 
-Integration tests are verified against all 5 server DBs using real Docker containers
-(Testcontainers); H2 is embedded and needs no container. To run tests against a single DB
-(**never run two or more at once — the gradle build output directory gets corrupted; always run
-one at a time**):
+Integration tests select one of five server databases through Testcontainers; H2 is embedded.
+Do not run Gradle tests concurrently in the same checkout: build outputs and some test paths are
+shared. Parallel execution requires separate runners, as used by CI.
 
 ```bash
 ./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid|h2
 ```
+
+CI builds `bootJar testClasses` once and shares the outputs with the non-matrix tests and E2E.
+Only specs extending `AbstractIntegrationTest` run across six databases and two shards per database.
+Each shard owns an independent runner, JVM, database and filesystem; real commit/concurrency tests
+remain intact.
+
+```bash
+# Tests outside the DB matrix, including dedicated H2/PostgreSQL restore tests
+./gradlew test -Dyona.it.db=h2 -Dyona.test.group=other
+# First PostgreSQL shard (run shard=1 as well for complete coverage)
+./gradlew test -Dyona.it.db=postgres -Dyona.test.group=database -Dyona.test.shard=0 -Dyona.test.shards=2
+```
+
+Spring contexts own their containers and stop them after JPA schema cleanup and connection pools.
+Common contexts are cached; specs with one-off configurations release theirs with `@DirtiesContext`.
+Container reuse is disabled to prevent cross-context schema conflicts. **Leave Ryuk enabled**:
+`TESTCONTAINERS_RYUK_DISABLED=true` installs a JVM cleanup hook that races Spring shutdown.
 
 ## Deployment configuration (especially on Windows)
 

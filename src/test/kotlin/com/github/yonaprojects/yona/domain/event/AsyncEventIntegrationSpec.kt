@@ -8,9 +8,11 @@ import io.mockk.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Import
+import org.springframework.test.annotation.DirtiesContext
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+@DirtiesContext
 @Import(AsyncEventTestConfig::class)
 class AsyncEventIntegrationSpec @Autowired constructor(
     private val eventPublisher: ApplicationEventPublisher,

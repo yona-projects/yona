@@ -8,6 +8,7 @@ import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.unmockkConstructor
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
@@ -29,6 +30,7 @@ import javax.naming.NamingEnumeration
 // 생성자의 LDAP simple bind)까지 커버한다. 생성자 자체는 mockkConstructor로 가로챌 수 없어서
 // (JNDI가 생성자 안에서 즉시 실제 bind를 수행) 실제 서버가 반드시 필요했다 — search() 결과만
 // 시나리오별로 mockkConstructor로 오버라이드해 세부 분기(검색결과 0/1/2건)를 만든다.
+@DirtiesContext
 @Transactional
 @TestPropertySource(properties = [
     "yona.ldap.enabled=true",
@@ -45,40 +47,40 @@ class LdapServiceSpec @Autowired constructor(
 ) : AbstractIntegrationTest() {
 
     companion object {
-        private val ldapContainer = GenericContainer("osixia/openldap:1.5.0").apply {
-            withExposedPorts(389)
-            withEnv("LDAP_ORGANISATION", "Yona")
-            withEnv("LDAP_DOMAIN", "yona.io")
-            withEnv("LDAP_ADMIN_PASSWORD", "admin")
-            withCopyToContainer(
-                Transferable.of(
-                    """
-                    dn: uid=testuser,dc=yona,dc=io
-                    objectClass: inetOrgPerson
-                    objectClass: posixAccount
-                    objectClass: shadowAccount
-                    uid: testuser
-                    cn: Test User
-                    sn: User
-                    givenName: Test
-                    mail: test@yona.io
-                    userPassword: password
-                    uidNumber: 10001
-                    gidNumber: 10001
-                    homeDirectory: /home/testuser
-                    """.trimIndent()
-                ),
-                "/tmp/testuser.ldif"
-            )
-            waitingFor(Wait.forListeningPort())
-        }
-
-        init {
-            ldapContainer.start()
-            val addResult = ldapContainer.execInContainer(
-                "ldapadd", "-x", "-D", "cn=admin,dc=yona,dc=io", "-w", "admin", "-f", "/tmp/testuser.ldif"
-            )
-            check(addResult.exitCode == 0) { "LDAP 테스트 유저 등록 실패: ${addResult.stderr}" }
+        // Kotest loads spec classes before applying filters; start LDAP only when its context needs it.
+        private val ldapContainer by lazy {
+            GenericContainer("osixia/openldap:1.5.0").apply {
+                withExposedPorts(389)
+                withEnv("LDAP_ORGANISATION", "Yona")
+                withEnv("LDAP_DOMAIN", "yona.io")
+                withEnv("LDAP_ADMIN_PASSWORD", "admin")
+                withCopyToContainer(
+                    Transferable.of(
+                        """
+                        dn: uid=testuser,dc=yona,dc=io
+                        objectClass: inetOrgPerson
+                        objectClass: posixAccount
+                        objectClass: shadowAccount
+                        uid: testuser
+                        cn: Test User
+                        sn: User
+                        givenName: Test
+                        mail: test@yona.io
+                        userPassword: password
+                        uidNumber: 10001
+                        gidNumber: 10001
+                        homeDirectory: /home/testuser
+                        """.trimIndent()
+                    ),
+                    "/tmp/testuser.ldif"
+                )
+                waitingFor(Wait.forListeningPort())
+                start()
+                val addResult = execInContainer(
+                    "ldapadd", "-x", "-D", "cn=admin,dc=yona,dc=io", "-w", "admin", "-f", "/tmp/testuser.ldif"
+                )
+                check(addResult.exitCode == 0) { "LDAP 테스트 유저 등록 실패: ${addResult.stderr}" }
+            }
         }
 
         @JvmStatic

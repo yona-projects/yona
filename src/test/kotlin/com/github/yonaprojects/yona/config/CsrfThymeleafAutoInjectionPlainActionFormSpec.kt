@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
@@ -25,6 +26,7 @@ import org.springframework.web.context.WebApplicationContext
 // JS 템플릿 문자열 폼이 실제로 이 패턴이다 — CSRF를 켜도 이런 폼은 자동 주입 대상이 아니므로,
 // 재활성화 시 개별적으로 손봐야 한다.
 // 프로덕션 SecurityConfig.kt는 건드리지 않는다(이 스펙 전용의 좁은 securityMatcher 체인만 추가).
+@DirtiesContext
 @Import(CsrfInvestigationPlainActionFormConfig::class)
 class CsrfThymeleafAutoInjectionPlainActionFormSpec @Autowired constructor(
     private val webApplicationContext: WebApplicationContext,
