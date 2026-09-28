@@ -218,10 +218,9 @@ test.describe.serial('issue management actions', () => {
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');
 
-    // The vote link is handled by yona.Common.js's generic requestAs() delegate: fetch POST,
-    // then document.location.reload() on success (same URL, not a new one) -- wait on the
-    // /vote response itself rather than a load-state race, then let the auto-retrying
-    // expect() below ride out the reload.
+    // requestAs follows the POST redirect and reloads this URL. The new vote state proves
+    // the new document committed; wait for its handlers before clicking unvote, otherwise
+    // the unwired anchor performs a GET instead of the required POST.
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     const voteLink = page.locator('#vote a[data-request-method="post"]');
     await Promise.all([
@@ -229,6 +228,7 @@ test.describe.serial('issue management actions', () => {
       voteLink.click(),
     ]);
     await expect(page.locator('#vote a.ybtn-watching')).toBeVisible();
+    await page.waitForLoadState('load');
 
     // BUG #5 (was: PRODUCT BUG, now fixed -- see BUGFIXES.md): issue/view.html's vote <a> used
     // to hardcode th:href to the `/vote` route unconditionally -- only its CSS class and tooltip
