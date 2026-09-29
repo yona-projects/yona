@@ -31,7 +31,7 @@
 | 12 | P3-12 | Mercurial(hg4j) 저장소 지원 | **완료(2026-09-09, 2026-09-14 문서 동기화)** — 외부 블로커였던 `search5/hg4j`가 실제로 진행되어 착수 조건이 해소됨. HTTP/SSH 프로토콜 서빙, 브랜치/태그 CRUD, diff/patch 전부 구현 | 없음(해소됨) | [[plans/p3-12-mercurial-hg4j]] |
 | 13 | P3-13 | 프런트엔드 분리 (React/Vue3/Angular 등 SPA) | planned — 프레임워크/인증 방식 미결정 | P3-02(REST API·인증 토대, 약한 선행) | [[plans/p3-13-decoupled-spa-frontend]] |
 | 14 | P3-74 | 이슈 2단 보기(Turbo Frame) SQL 중복 실행 해소 | **완료(2026-09-27)** — PR #834가 알려진 한계로 명시한 성능 이슈(Turbo-Frame 요청도 목록+상세를 모두 조회하던 문제)를 헤더 분기로 해소, TDD로 검증(자체 fixture 실측 27→12 SQL, e2e 6/6, `./gradlew test` 6,720건 중 무관한 사전 존재 실패 2건 제외 전부 GREEN) | 없음(PR #834 병합 완료로 즉시 착수 가능) | [[plans/p3-74-issue-detail-fragment-sql-optimization]] |
-| 15 | P3-75 | 2단 보기 iframe 잔존 6개 소비자 Turbo Frames 전환 | planned — 브랜치 `feat/p3-75-iframe-to-turbo-frames`, 사이드바 셸 iframe은 보류(2026-09-29 사용자 지시) | 없음(PR #834·P3-74 병합 완료) | [[plans/p3-75-iframe-to-turbo-frames]] |
+| 15 | P3-75 | 2단 보기 iframe 잔존 6개 소비자 Turbo Frames 전환 | **진행 중(2026-09-29)** — 브랜치 `feat/p3-75-iframe-to-turbo-frames`. 공용 어댑터 추출·게시판 목록 전환 완료, PR 목록·사용자 화면은 조사 완료(결정 대기), 조직 목록 2곳·내 이슈 남음. 사이드바 셸 iframe은 보류(사용자 지시) | 없음(PR #834·P3-74 병합 완료) | [[plans/p3-75-iframe-to-turbo-frames]] |
 
 ## 우선순위 판단 근거
 
