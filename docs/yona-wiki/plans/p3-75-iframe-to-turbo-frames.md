@@ -114,7 +114,7 @@ PR #834가 **이슈 목록**의 iframe/pageslide 2단 보기를 Turbo Frames로 
    - RED: `Turbo-Frame` 헤더 요청이 fragment만 반환하고 목록 조회 SQL을 생략하는지, 일반 요청은 기존과 동일한지
      (`BoardListTwoColumnModeTemplateRenderingSpec`, `IssueListTemplateRenderingSpec`의 P3-74 테스트를 모델로)
    - e2e: `e2e/specs/09-board/`에 `turbo-two-column.spec.ts` 추가(선택/Back·Forward/reload/no-JS/초안)
-3. **Step 3 — 복합 선택 키 공용 처리 (신규, 4곳의 선행 조건)** — ⏳ 미착수. 서버: `?<param>=<type>:<owner>/<project>/<번호>` 파싱→권한 확인→기존 상세 로직 위임(`Turbo-Frame` 헤더 시 목록 조회 생략). 클라이언트: 공용 어댑터의 선택 파라미터명·링크 생성 설정화. 기존 `TwoColumnSelection` 확장
+3. **Step 3 — 복합 선택 키 공용 처리 (신규, 4곳의 선행 조건)** — 🔶 기반 완료: `TwoColumnSelection.parseKey()`/`Key`(형식 `type:owner/project/번호`)와 선택 파라미터명 설정화(서버 `addToModel(param=)`, 클라이언트 `setupTwoColumn({param})`), `TwoColumnSelectionSpec` GREEN. 권한 확인·상세 위임은 첫 소비자(내 이슈)에서 구현·고정. 원래 범위: 서버: `?<param>=<type>:<owner>/<project>/<번호>` 파싱→권한 확인→기존 상세 로직 위임(`Turbo-Frame` 헤더 시 목록 조회 생략). 클라이언트: 공용 어댑터의 선택 파라미터명·링크 생성 설정화. 기존 `TwoColumnSelection` 확장
    **Step 4~7 — 내 이슈 → 조직 이슈 → 조직 게시판 → PR 목록 → 사용자 화면** — ⏳ 미착수(순서는 진행 로그의 계획 영향 참고, 번호는 아래 Step 7 이후로 재정렬) (소비자당 1스텝, 각 스텝이 독립 커밋/푸시 가능 단위)
    - 각각 Step 2와 동일한 RED→GREEN, 화면 고유 상세 기능(PR의 diff/리뷰 위젯 등) 초기화·해제 검증 포함
 4. **Step 7 — 2단 보기 레거시 삭제**

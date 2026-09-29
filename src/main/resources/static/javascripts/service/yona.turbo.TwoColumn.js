@@ -13,14 +13,18 @@ Turbo.config.forms.mode = 'off';
  *   detail:     상세 turbo-frame id
  *   detailRoot: 상세 루트 엘리먼트 id (없으면 상세 없음)
  *   mountDetail(root): 상세 초기화, dispose 함수를 반환
- *   searchField: (선택) 검색 폼 안에서 선택 번호를 실어 나르는 hidden input 셀렉터
- *                기본값 '#search input[name="selected"]'
+ *   param:      (선택) 선택 상태를 싣는 쿼리 파라미터명. 기본값 'selected'.
+ *               사용자 화면처럼 selected가 다른 뜻으로 쓰이면 다른 이름을 준다.
+ *               값은 문자열 그대로 비교하므로 번호뿐 아니라 복합 키(type:owner/project/번호)도 된다
+ *   searchField: (선택) 검색 폼 안에서 선택 값을 실어 나르는 hidden input 셀렉터
+ *                기본값 `#search input[name="<param>"]`
  * }
  */
 export function setupTwoColumn(config) {
     const layoutSelector = config.layout;
     const listId = config.list;
     const detailId = config.detail;
+    const param = config.param || 'selected';
     const mobile = window.matchMedia('(max-width: 720px)');
     let detailRoot;
     let disposeDetail;
@@ -34,7 +38,7 @@ export function setupTwoColumn(config) {
     function updateNavigation() {
         const layout = document.querySelector(layoutSelector);
         if (!layout) return;
-        const selected = new URL(location.href).searchParams.get('selected');
+        const selected = new URL(location.href).searchParams.get(param);
         const checkbox = document.getElementById('two-column-mode');
         const preferred = selected !== null || localStorage.getItem('useTwoColumnMode') === 'true';
         const enabled = !mobile.matches && preferred;
@@ -49,13 +53,13 @@ export function setupTwoColumn(config) {
                 }
             };
         }
-        const field = document.querySelector(config.searchField || '#search input[name="selected"]');
+        const field = document.querySelector(config.searchField || `#search input[name="${param}"]`);
         if (field) {
             field.value = selected || '';
             field.disabled = selected === null;
         }
         document.querySelectorAll('#' + listId + ' a[data-selection-url]').forEach(link => {
-            const number = new URL(link.dataset.selectionUrl, location.href).searchParams.get('selected');
+            const number = new URL(link.dataset.selectionUrl, location.href).searchParams.get(param);
             link.href = enabled ? (number === selected ? layout.dataset.selectionClearUrl : link.dataset.selectionUrl) : link.dataset.detailUrl;
             link.dataset.turbo = String(enabled);
             if (enabled) {
@@ -68,7 +72,7 @@ export function setupTwoColumn(config) {
         });
         document.querySelectorAll('#' + listId + ' .post-item').forEach(row => {
             const link = row.querySelector('a.title[data-selection-url]');
-            const number = link && new URL(link.dataset.selectionUrl, location.href).searchParams.get('selected');
+            const number = link && new URL(link.dataset.selectionUrl, location.href).searchParams.get(param);
             row.classList.toggle('highlightBg', selected !== null && number === selected);
         });
         const pagination = document.getElementById('pagination');
@@ -78,8 +82,8 @@ export function setupTwoColumn(config) {
         }
         document.querySelectorAll('#' + listId + ' .filter-wrap .filters a').forEach(link => {
             const url = new URL(link.href);
-            if (selected === null) url.searchParams.delete('selected');
-            else url.searchParams.set('selected', selected);
+            if (selected === null) url.searchParams.delete(param);
+            else url.searchParams.set(param, selected);
             link.href = url.href;
         });
     }
