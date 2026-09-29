@@ -127,7 +127,7 @@ class UserViewController(
             ?: return "redirect:/users/loginform"
 
         // 2단 보기: ?detail=issue:<owner>/<project>/<번호>가 있으면 기존 이슈 상세 로직으로 상세 model을 채운다.
-        crossProjectDetailResolver.handleIssueSelection(request, authentication, model, "issue/my_list :: issueDetailFrame")?.let { return it }
+        crossProjectDetailResolver.handleSelection(CrossProjectDetailResolver.Kind.ISSUE, request, authentication, model, "issue/my_list :: issueDetailFrame")?.let { return it }
 
         val page = if (pageNum < 1) 0 else pageNum - 1
         val sort = if (orderDir.equals("asc", ignoreCase = true)) {

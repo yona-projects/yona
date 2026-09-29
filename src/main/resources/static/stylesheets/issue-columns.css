@@ -10,3 +10,7 @@
     .issue-columns.has-detail, .board-columns.has-detail { grid-template-columns: minmax(0, 1fr); }
     #issue-detail, #post-detail { border-left: 0; border-top: 1px solid #ddd; padding: 12px 0 0; }
 }
+/* 목록 열이 반으로 좁아지면 검색 폼(프로젝트 선택 + 검색창)이 두 줄이 되는데, 기본 .search-wrap은 한 줄 기준으로
+   높이가 30px로 고정되어 있어 폼이 밖으로 넘치고 아래의 정렬 링크(.filter-wrap)와 겹친다. */
+.board-columns.has-detail .search-wrap { height: auto; }
+.board-columns.has-detail .search-wrap::after { content: ""; display: table; clear: both; }

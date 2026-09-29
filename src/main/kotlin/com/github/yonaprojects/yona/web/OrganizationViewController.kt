@@ -153,8 +153,8 @@ class OrganizationViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
 
         // 2단 보기: 조직의 프로젝트에 속한 이슈만 상세로 띄울 수 있다(조직 밖 프로젝트의 키는 거부).
-        crossProjectDetailResolver.handleIssueSelection(
-            request, authentication, model, "organization/issueList :: issueDetailFrame", allowedOwner = org.name
+        crossProjectDetailResolver.handleSelection(
+            CrossProjectDetailResolver.Kind.ISSUE, request, authentication, model, "organization/issueList :: issueDetailFrame", allowedOwner = org.name
         )?.let { return it }
 
         val visibleProjects = accessControl.getVisibleProjects(org, loginUser)
@@ -215,12 +215,18 @@ class OrganizationViewController(
         @RequestParam(value = "projectNames[]", required = false) projectNames: List<String>?,
         @PageableDefault(size = 25) pageable: Pageable,
         authentication: Authentication?,
-        model: Model
+        model: Model,
+        request: HttpServletRequest
     ): String {
         val org = organizationRepository.findByName(orgName).orElse(null)
             ?: return "error/404"
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+
+        // 2단 보기: 조직의 프로젝트에 속한 게시글만 상세로 띄울 수 있다(조직 밖 프로젝트의 키는 거부).
+        crossProjectDetailResolver.handleSelection(
+            CrossProjectDetailResolver.Kind.POST, request, authentication, model, "organization/boardList :: postDetailFrame", allowedOwner = org.name
+        )?.let { return it }
 
         val visibleProjects = accessControl.getVisibleProjects(org, loginUser)
         val projects = if (!projectNames.isNullOrEmpty()) {

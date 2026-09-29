@@ -12,6 +12,9 @@
          th:data-post-id="${post.id}"
          th:data-list-url="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name})}"
          th:data-labels-url="@{/api/projects/{projectId}/posts/{number}/labels(projectId=${project.id}, number=${post.number})}">
+    <!-- 프로젝트별 라벨 색상 CSS는 상세와 함께 와야 한다: 조직 게시판처럼 여러 프로젝트에 걸친 목록은
+         페이지 로드 시점에 프로젝트를 알 수 없고 프레임으로 불러오는 상세마다 프로젝트가 다르다. -->
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
     <div class="page-wrap-outer">
         <div class="project-page-wrap board-view">
             <!-- Post Info -->
@@ -227,7 +230,6 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:fragment="detailAssets">
-<link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
 <!-- "맨 위로 스크롤" 버튼(legacy elevator) - css는 순수 스타일이라 그대로 유지, 초기화는 yona.board.Detail.js가
      vanilla JS(yona.createScrollElevator)로 수행한다. -->
 <link rel="stylesheet" href="/javascripts/lib/elevator/jquery.elevator.css" type="text/css" />

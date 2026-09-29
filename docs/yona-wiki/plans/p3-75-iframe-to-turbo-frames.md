@@ -292,6 +292,20 @@ GREEN), e2e `09-board/turbo-two-column.spec.ts` 7건. 검증: 인증·사용자�
   두 번 냈기 때문이며 Step 2 이후 이 스펙을 돌리지 않아 숨어 있었다. 머리말 쪽을 제거했다.
 - **다음**: 조직 게시판(`post` 타입 위임을 리졸버에 추가, 게시글 상세 조각에도 프로젝트별 `labels.css`를 상세와 함께 싣기).
 
+### 2026-09-30 — Step 6(조직 게시판) 완료
+
+- **서버**: `CrossProjectDetailResolver`를 종류별(`Kind.ISSUE`/`Kind.POST`)로 일반화했다(`handleSelection`, 상세 프레임 id와 성공 뷰 이름을 종류가 결정).
+  `OrganizationViewController.organizationBoards`가 `?detail=post:<owner>/<project>/<번호>`를 `BoardViewController.viewPost`에 위임하고,
+  `Turbo-Frame: post-detail` 요청에는 `organization/boardList :: postDetailFrame`만 반환한다. 조직 밖 프로젝트의 키는 거부한다.
+- **클라이언트**: `yona.board.CrossProjectTurbo.js`(`param: 'detail'`, `searchField: '#option_form input[name="detail"]'`). `boardList.html`에서 `yona.twoColumnMode.js` 로드 제거.
+- **`labels.css` 배치**: 이슈에서 했던 것처럼 게시글 상세 조각(`board/view :: detail`) 안으로 옮기고 `detailAssets`에서는 뺐다. 프로젝트 게시판 목록은 선택이 없을 때만
+  머리말에서 링크한다(`th:unless="${selected != null}"`). 그래야 목록·단독 상세 어느 경우에도 링크가 정확히 1개다(`TemplateEquivalenceSpec`이 고정).
+- **발견·수정한 레이아웃 결함**: 조직 게시판의 2단 보기에서 검색 버튼이 클릭되지 않았다. 목록 열이 반으로 좁아지면 검색 폼(프로젝트 선택 + 검색창)이 두 줄이 되는데
+  `.search-wrap`이 한 줄 기준 `height: 30px` 고정이라 폼이 넘쳐 정렬 링크(`.filter-wrap`)와 겹쳤다(Playwright가 "intercepts pointer events"로 검출).
+  `issue-columns.css`에 `.board-columns.has-detail .search-wrap { height: auto }`와 float 정리를 추가했다(2단 보기 상태에서만 적용).
+- **검증**: `OrganizationBoardsTurboFrameRenderingSpec` 7건, e2e `09-board/turbo-two-column-org-boards.spec.ts` 4건, 이슈·내 이슈·조직 이슈·게시판·조직 게시판 Turbo e2e 24건을 5회 연속 실행해 전부 통과.
+- **다음**: PR 목록(결정 대기: PR 상세를 개요 탭만 프레임에 넣는 안) → 사용자 화면 → 레거시 삭제.
+
 ## 완료 기준 (Definition of Done)
 
 - [ ] 2단 보기 관련 iframe 생성/참조 0 (`yona.twoColumnMode.js` 계열). 남는 것은 B(보류), C(sanitizer allowlist), 벤더뿐
