@@ -179,6 +179,8 @@ def warning_metrics(path):
 
 def analyze(path):
     record = json.loads(path.read_text())
+    if 'strategy' not in record:
+        return None  # Separate runtime probes are not compilation samples.
     directory = path.parent
     reports, errors = compiler_reports(directory)
     diagnostics = [key for key in ('jfr', 'profile') if record.get(key)]
@@ -248,7 +250,7 @@ def main():
         return
     if not args.results or not args.results.is_dir():
         parser.error('--results must name an existing results directory')
-    runs = [analyze(path) for path in sorted(args.results.glob('*/*/result.json'))]
+    runs = [run for path in sorted(args.results.glob('*/*/result.json')) if (run := analyze(path)) is not None]
     groups = defaultdict(list)
     for run in runs:
         if run['valid']:

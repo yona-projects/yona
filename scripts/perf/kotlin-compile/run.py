@@ -125,6 +125,8 @@ def aggregate(root):
     rows = []
     for file in sorted(root.glob('*/*/result.json')):
         record = json.loads(file.read_text())
+        if 'strategy' not in record:
+            continue  # Separate runtime probes are not compilation samples.
         row = {key: record.get(key, '') for key in fields}
         row['compiler_pids'] = ';'.join(map(str, record.get('compiler_pids', [])))
         row['invalid_reasons'] = '; '.join(record.get('invalid_reasons', []))
@@ -182,6 +184,8 @@ def run_one(args, number, previous_pids):
             (gradle_jvm if args.strategy == 'in-process' else daemon_jvm).append(f'-XX:+Use{args.gc}GC')
         if args.compiler_arg:
             gradle_jvm.append('-Dyona.perf.compilerArgs=' + '|'.join(args.compiler_arg))
+        if args.test_compiler_arg:
+            gradle_jvm.append('-Dyona.perf.testCompilerArgs=' + '|'.join(args.test_compiler_arg))
         if args.warnings == 'suppress':
             gradle_jvm.append('-Dyona.perf.suppressWarnings=true')
         if args.jfr:
@@ -254,6 +258,11 @@ def run_one(args, number, previous_pids):
         try:
             if (args.repo / 'build/reports').is_dir():
                 shutil.copytree(args.repo / 'build/reports', directory / 'reports')
+            record['classfiles'] = {}
+            for source_set in ('main', 'test'):
+                files = list((args.repo / 'build/classes/kotlin' / source_set).rglob('*.class'))
+                record['classfiles'][source_set] = {
+                    'count': len(files), 'bytes': sum(path.stat().st_size for path in files)}
             events = read_events(task_file)
             record['tasks'] = [event for event in events if event['event'] == 'finish']
             record['gradle_pids'] = sorted({event['gradle_pid'] for event in events})
@@ -338,6 +347,8 @@ def main():
     parser.add_argument('--gc', choices=['G1', 'Parallel'])
     parser.add_argument('--compiler-arg', action='append', default=[],
                         help='Verified compiler argument, e.g. --compiler-arg=-Xbackend-threads=2')
+    parser.add_argument('--test-compiler-arg', action='append', default=[],
+                        help='Verified compiler argument applied only to compileTestKotlin')
     parser.add_argument('--disable-incremental', action='store_true',
                         help='Separate diagnostic condition; default preserves repository incremental settings')
     parser.add_argument('--property', action='append', default=[], help='Additional Gradle project property KEY=VALUE')

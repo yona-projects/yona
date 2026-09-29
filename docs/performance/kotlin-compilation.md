@@ -268,7 +268,7 @@ GC는 두 JVM이 존재하면 각 JVM pause 합계의 표본별 값이다.
 
 최초 baseline test 실행은 `/var/run/docker.sock` 부재로 LDAP 초기화가 실패했다. 실패 XML을 보존한 뒤 활성 Docker context가 가리키는 OrbStack socket을 `DOCKER_HOST`로 지정하여 해결했다. 다른 작업의 컨테이너나 Java 프로세스를 종료하지 않았다. 이 환경 준비 실패를 제품 회귀나 유효 성능 표본으로 분류하지 않았다.
 
-이번 조사로 개별 파일/표현식의 exclusive 비용, allocation 전체량, compiler plugin 각각의 비용, Kotlin 버전 회귀는 측정하지 못했다. GC pause/RSS/JFR sampling만으로 이를 추정하지 않는다. helper 추출과 warning 정리는 효과가 없었지만 모든 소스 패턴이 무관하다고 결론 내리지도 않는다. 로컬 arm64 수치와 CI x86 수치의 절대값은 직접 비교하지 않는다.
+위 1차 조사에서는 개별 파일/표현식의 exclusive 비용, allocation 전체량, compiler plugin 각각의 비용, Kotlin 버전 비교를 측정하지 않았다. 후속 버전 비교는 아래 별도 절에 기록한다. GC pause/RSS/JFR sampling만으로 미측정 비용을 추정하지 않는다. helper 추출과 warning 정리는 효과가 없었지만 모든 소스 패턴이 무관하다고 결론 내리지도 않는다. 로컬 arm64 수치와 CI x86 수치의 절대값은 직접 비교하지 않는다.
 
 ## 근거 자료
 
@@ -280,3 +280,167 @@ GC는 두 JVM이 존재하면 각 JVM pause 합계의 표본별 값이다.
 - [JDK 21 JFR CLI](https://docs.oracle.com/en/java/javase/21/docs/specs/man/jfr.html)
 
 옵션 지원은 문서뿐 아니라 설치된 2.4.10 compiler의 `-help`/`-X`와 KGP bytecode로 확인했다. `-Xbackend-threads` default는 1이다. file report만으로 사용한 단계 지표가 제공된다. 현재 문서와 달리 설치된 KGP의 JSON report는 별도 `kotlin.build.report.json.directory`를 요구하므로 file report를 사용했다. 보고서의 `Incremental compilation in daemon`이라는 metric 이름은 실제 in-process/non-incremental 실행에서도 나타나므로 실행 전략/증분 여부의 증거로 사용하지 않았다.
+
+## 후속 조사: suspend 사용량과 Kotlin 2.4.20
+
+### 기준과 결론
+
+후속 baseline은 `f329089a5a30ba3fe98ff93f4e245d2117538878`이다. 위 1차 조사에서 채택한
+backend 4 threads를 유지한 상태이며, 1차 baseline `96aeaba`와 다른 조건이다.
+별도 worktree `yona-kotlin-2420`와 로컬 Linux 컨테이너에서 실험했다.
+
+**이번 추가 실험에서는 채택할 컴파일 성능 개선을 확인하지 못했다.**
+Kotlin/KGP는 2.4.10, backend threads는 4를 유지한다.
+2.4.20 버전 변경·runtime 고정 설정·test-only no-optimize·소스 helper는 제품에 남기지 않는다.
+측정 도구에 test-only compiler argument와 classfile 크기 기록만 추가했다.
+이번 결과는 버그 수정이나 호환성을 목적으로 하는 별도 버전 업그레이드를 금지한다는 뜻은 아니다.
+
+### 애플리케이션과 테스트의 suspend는 구분해야 한다
+
+지정 baseline의 main Kotlin/Java 소스에는 명시적 `suspend`, `kotlinx.coroutines` 사용이 없다.
+테스트의 명시적 `suspend` 선언은 Kotest `afterSpec` override 3개다.
+하지만 Kotest 5.9.1의 `it`/중첩 `describe` 본문은 API 자체가 suspend lambda를 받는다.
+
+사용자가 제공한 classfile parser를 지정된 기존 Kotlin 출력 디렉터리에 그대로 실행했다.
+
+| Kotlin 생성물 | 전체 classfile | SuspendLambda 직접 상속 | ContinuationImpl 직접 상속 |
+|---|---:|---:|---:|
+| main | 823 | 0 | 0 |
+| test | 9,596 | 8,722 | 0 |
+
+의존성 JAR와 Java 출력은 이 classfile 표의 대상이 아니다. 직접 superclass 기준이며,
+클래스 수는 실제 suspension point나 실행 테스트 개수가 아니다.
+main Java 소스에 대해서도 coroutine/VT 관련 참조를 별도로 검색해 발견하지 못했다.
+
+SourceFile별 상위 예시는 `ProjectViewControllerSpec.kt` 271개/120,727 Code bytes,
+`IssueViewControllerSpec.kt` 132개/85,008 bytes, `WebhookServiceSpec.kt` 119개/47,267 bytes다.
+Code bytes는 해당 클래스의 모든 메서드 `Code` attribute 길이 합이며,
+state machine만의 크기나 컴파일 소요 시간이 아니다.
+
+같은 checkout의 lexical 조사에서는 Kotlin test 파일 473개, 직접 DescribeSpec 선언 299개,
+AbstractIntegrationTest 상속 168개를 확인했다. 여기에는 추상 base 선언도 포함된다.
+`describe(...)` 1,671개, `it(...)` 6,701개는 문자열 기반 callsite 수이지 런타임 테스트 수가 아니다.
+
+이 baseline의 `AsyncConfig.taskExecutor()`는 `ThreadPoolTaskExecutor`(core 5, max 10,
+queue 100)다. 저장소 기본 설정에서 전역 VT 활성화는 확인되지 않았으며 배포 환경의 외부 설정까지
+조사한 것은 아니다. 앱 executor를 VT로 바꾸어도 Kotest의 suspend 타입 계약과 생성 클래스는
+자동으로 없어지지 않는다. VT 전환이나 테스트 프레임워크 교체는 수행하지 않았다.
+
+### Linux 재현 조건
+
+- Docker image: `eclipse-temurin:21-jdk`,
+  manifest digest `sha256:4d06038800655fe1211760cd561de70ef2ed7a47f5d69255e9834414602b7026`.
+- Linux aarch64, OrbStack kernel `7.0.14-orbstack-00374-gbbca68e8d741`, glibc 2.43.
+- Temurin **21.0.12.1+1** 고정. 컨테이너는 CPU quota `400000/100000`(4 CPU),
+  memory 5,368,709,120 bytes(5 GiB), swap 0. Gradle workers 2, in-process heap 2 GiB,
+  backend threads 4.
+- 탐색은 quota 4/affinity 0–9, 최종 버전 비교는 affinity까지 0–3으로 제한했다.
+  두 단계의 통계를 합치지 않았다. `os.cpu_count()`의 10을 실제 CPU quota라고 해석하지 않았다.
+- 매 표본 새 JVM, 프로젝트 `build/.gradle/.kotlin` 제거, dependency warm,
+  offline, task output/configuration cache 비활성. 두 Kotlin task의 전체 컴파일 보고서 확인.
+- container 전 기간 memory events의 `max`, `oom`, `oom_kill`은 모두 0.
+  memory peak는 4,037,193,728 bytes였다. 다른 작업의 Java/컨테이너는 종료하지 않았다.
+
+원자료는 `/tmp/yona-kotlin-2420-results/`에 별도로 보존한다.
+유효 전체 컴파일 28회(탐색 12, 별도 JFR 진단 2, 최종 14), 온라인 준비/실패 기록,
+runtime probe 13회(준비 1회 제외 후 비교 12회)가 있다.
+runtime probe JSON은 컴파일 통계에서 구분한다.
+
+### 의존성 동일성 검증과 준비 실패
+
+KGP JVM/Spring/JPA plugin과 compiler 내부 라이브러리는 2.4.20으로 정렬하되,
+`compileClasspath`, `runtimeClasspath`, `testCompileClasspath`, `testRuntimeClasspath`는
+baseline과 **module·version·파일/classifier·SHA-256까지 완전히 일치**시켰다.
+stdlib/reflection/kotlin-test 계열은 모두 기존 2.4.10이다.
+
+준비 과정에서 전역 `kotlin.version=2.4.10` 고정은 compiler 내부까지 다운그레이드하여
+2.4.20 build-tools와 2.4.10 compiler가 섞였고 `InstantiationException`을 발생시켰다.
+또한 Gradle force와 scoped BOM만으로는 Spring dependency-management의 버전 선택을
+완전히 통제하지 못했다. 이 시도들은 표본에서 제외하고 graph JSON/stack trace를 남겼다.
+
+유효 비교에는 compiler용 전역 버전과 앱용 configuration-specific `dependencySet`을
+분리하고 `coreLibrariesVersion`을 명시한 패치를 사용했다.
+이는 [dependency-management 1.1.7의 configuration별 DSL](https://docs.spring.io/dependency-management-plugin/docs/current/reference/html/#dependency-management-configuration-specific)을 사용한다.
+복잡한 고정 설정까지 포함한 버전 패치는 원자료 `version.patch`에만 남기고 제품에서는 원복했다.
+실험용 pin 실패를 Kotlin 2.4.20 자체의 결함으로 분류하지 않는다.
+
+### 탐색: 각 조건 3회
+
+seed 2420으로 round별 순서를 섞었다. 각 전체 컴파일 직후 같은 생성물을 사용해
+WebhookServiceSpec 93개 + TwoFactorServiceImplSpec 16개를 별도 새 테스트 JVM에서 실행했다.
+모든 실행에서 109개 테스트가 통과했고 XML 이름·순서가 동일했다.
+runtime probe의 compile task 제외는 이미 생성한 bytecode의 실행 시간 측정에만 사용했으며,
+이를 전체 컴파일 표본으로 제출하지 않았다.
+
+| 조건 | main 중앙값 | test 중앙값 | 전체 중앙값 [범위] | 109개 test task 중앙값 |
+|---|---:|---:|---:|---:|
+| 2.4.10 baseline | 17.188 s | 33.135 s | 58.809 [56.238–76.340] s | 16.047 s |
+| compiler/plugin 2.4.20 | 25.003 s | 51.939 s | 85.589 [76.797–95.387] s | 16.242 s |
+| test-only `-Xno-optimize` | 19.934 s | 35.507 s | 66.988 [65.032–69.573] s | 16.587 s |
+| 실제 suspend 본문 helper | 22.465 s | 38.907 s | 71.673 [69.857–72.536] s | 14.820 s |
+
+변동이 크고, 소스/옵션이 그대로인 main도 흔들린다. 이 탐색만으로 버전 성능 회귀의 크기를
+확정하지 않고 아래 최종 교차 비교를 추가했다. 소스 helper의 작은 runtime 차이도 3회만으로
+재현된 전체-suite 개선이라 주장하지 않는다.
+
+**Test-only no-optimize:** compiler arguments에서 main에는 옵션이 없고 test에만 있음을 확인했다.
+test classfile 합계는 73,873,802 → 74,807,053 bytes(+1.26%)로 증가했다.
+Webhook SuspendLambda의 Code bytes도 47,267 → 48,502로 증가했다.
+컴파일 또는 대표 테스트 실행의 이득이 확인되지 않아 채택하지 않았다.
+필수 coroutine 변환을 제거한 실험이 아니다.
+
+**실제 suspend 본문:** 바깥 DescribeSpec 등록 lambda가 아니라 네 개의 큰 동기 `it` 본문
+(MockK stubbing/JSON 검증)을 private non-inline/non-suspend 함수로 옮겼다.
+동일한 실행 시점에 호출하며 모든 assertion과 null 방어 테스트를 유지했다.
+Webhook SuspendLambda 개수는 119로 같고, 해당 클래스들의 Code bytes는
+47,267 → 44,204(-6.48%)로 줄었다. 전체 test classfile 합은 73,858,336 bytes로
+15,466 bytes 감소했다. 변환 입력을 줄이는 메커니즘은 확인했지만 전체 컴파일 개선은
+입증하지 못했으므로 helper 네 개도 원복했다. 이 제한적인 실험으로 모든 DSL 패턴이
+무관하다고 결론 내리지 않는다.
+
+### 버전 최종 비교: 각 7회
+
+동일 CPU affinity 0–3, 같은 quota/heap/JDK/의존성/계측 조건에서 seed 2421로 pair 순서를 섞었다.
+테스트 실행을 사이에 넣지 않고 전체 컴파일만 교차했다. 진단 JFR 표본은 포함하지 않는다.
+
+| 지표 | 2.4.10 중앙값 [범위] | 2.4.20 중앙값 [범위] |
+|---|---:|---:|
+| 전체 wall | 75.318 [66.689–79.940] s | 75.622 [57.646–87.324] s |
+| main Kotlin | 22.610 [17.280–27.153] s | 21.598 [16.986–28.707] s |
+| test Kotlin | 41.027 [31.094–44.031] s | 41.174 [30.936–48.481] s |
+| Kotlin task 합 | 63.082 [53.802–66.640] s | 63.491 [48.675–76.006] s |
+| 동시 sampled JVM RSS peak | 2,877 MiB | 2,878 MiB |
+| sampled JVM CPU | 230 s | 235 s |
+| GC pause | 4.209 s | 4.248 s |
+
+전체 wall IQR는 7.151/10.673 s다. 중앙값 차이는 +0.304 s(+0.40%)이며,
+2.4.20은 7쌍 중 3쌍에서 빠르고 4쌍에서 느렸다.
+**개선도 확정적인 회귀도 입증하지 못했다.** 초기 3회 표본의 큰 차이를 최종 결론으로 유지하지 않는다.
+이 Linux ARM64 결과로 GitHub x86_64 runner의 개선율을 추정하지 않는다.
+
+[KT-87868](https://youtrack.jetbrains.com/issue/KT-87868)의 수정은 실제 설치된 두 compiler JAR를
+`javap`로 비교해 확인했다. 2.4.20은 `currentTime()`의 CPU/user-time 조회를 `detailedPerf`로
+제어한다. 하지만 별도 JFR 진단에서 이 clock 조회가 큰 hotspot으로 포착되지는 않았다.
+sampling의 부재가 비용 0의 증거는 아니며, 이 수정 하나의 효과를 버전 전체의 결과와 동일시하지 않는다.
+JFR에는 idle native I/O thread도 포함되므로 모든 sample을 컴파일 CPU로 합산하지 않았다.
+
+### 전달 상태와 재현 자료
+
+이번에는 추가 제품 변경을 채택하지 않았으므로 **추가 CI를 실행하지 않았다**.
+CI를 실험 반복 환경으로 사용하지 않았으며 기존 2.4.10/backend-4 설정을 유지한다.
+기존 기능 CI의 실패를 이번 실행 결과인 것처럼 재포장하지 않는다.
+앱의 coroutine/VT 구조, 테스트 프레임워크, warning 정책은 변경하지 않았다.
+
+- `version.patch`, `suspend-body.patch`: 원복한 실험 패치.
+- `dependencies-*.json`, `dependency-identity-check.json`: 정확한 runtime/classpath 동일성 및 실패한 pin 기록.
+- `exploration-schedule.json`, `final-schedule.json`, `final-environment.json`, `final-cgroup-events.json`.
+- `analysis.json`, `analysis.csv`, `analysis-runs.csv`, `final-statistics.json`, `paired-deltas.json`.
+- `regressions/*`: 실제 테스트 로그/XML/시간. 전체 compilation 표본과 별개다.
+- `webhook-bytecode-comparison.json`, `test-only-option-check.json`.
+- `diagnostic-*`, `PerformanceManager-*.javap.txt`, `profile-comparison.json`.
+- `experiment-drivers/`: Linux 준비, patch 적용/원복, 순서 고정, runtime probe, 사용자 parser 기반
+  bytecode 비교 스크립트. 대형 원자료와 JFR는 Git에 넣지 않는다.
+
+도구의 `--test-compiler-arg=-Xno-optimize`는 test task에만 적용한다.
+기본 실행에는 적용되지 않는다. classfile count/bytes는 `result.json`에 기록하며,
+runtime probe처럼 compiler strategy가 없는 별도 기록은 compilation CSV에서 제외한다.

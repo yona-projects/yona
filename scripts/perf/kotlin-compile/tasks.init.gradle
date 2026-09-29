@@ -18,6 +18,10 @@ gradle.projectsEvaluated {
             }
             def extra = System.getProperty('yona.perf.compilerArgs')
             if (extra) task.compilerOptions.freeCompilerArgs.addAll(extra.split('\\|').toList())
+            def testExtra = System.getProperty('yona.perf.testCompilerArgs')
+            if (task.name == 'compileTestKotlin' && testExtra) {
+                task.compilerOptions.freeCompilerArgs.addAll(testExtra.split('\\|').toList())
+            }
         }
     }
 }
