@@ -36,7 +36,7 @@ jobs:
           path: build/
           if-no-files-found: error
   unit:
-    name: Tests / DB-independent and dedicated integrations
+    name: Kotest / suite
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -56,12 +56,12 @@ jobs:
           path: build/
       - name: Install native test dependencies
         run: sudo apt-get update && sudo apt-get install -y git gnupg mercurial subversion openssh-client python3
-      - name: Run tests outside the database matrix
+      - name: Run existing Kotest suite
         run: |
           ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process test \
             -x classes -x testClasses -x compileKotlin -x compileJava -x processResources -x jar \
             -x compileTestKotlin -x compileTestJava -x processTestResources \
-            -Dyona.it.db=h2 -Dyona.test.group=other
+            -Dyona.it.db=h2
       - name: Upload test and coverage reports
         if: always()
         uses: actions/upload-artifact@v7
@@ -73,15 +73,14 @@ jobs:
             build/reports/jacoco/test/
 
   database:
-    name: Database / ${{ matrix.db }} / shard ${{ matrix.shard }}
+    name: Database / ${{ matrix.db }}
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
-        db: [h2, mariadb, postgres, mysql, mssql, cubrid]
-        shard: [0, 1]
+        db: [mariadb, postgres, mysql, mssql, cubrid]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
@@ -98,18 +97,17 @@ jobs:
           path: build/
       - name: Install native test dependencies
         run: sudo apt-get update && sudo apt-get install -y git gnupg mercurial subversion openssh-client python3
-      - name: Run isolated database test shard
+      - name: Run existing tests against database
         run: |
           ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process test \
             -x classes -x testClasses -x compileKotlin -x compileJava -x processResources -x jar \
             -x compileTestKotlin -x compileTestJava -x processTestResources \
-            -Dyona.it.db=${{ matrix.db }} -Dyona.test.group=database \
-            -Dyona.test.shard=${{ matrix.shard }} -Dyona.test.shards=2
+            -Dyona.it.db=${{ matrix.db }}
       - name: Upload test and coverage reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: database-${{ matrix.db }}-${{ matrix.shard }}-reports
+          name: database-${{ matrix.db }}-reports
           path: |
             build/reports/tests/test/
             build/test-results/test/

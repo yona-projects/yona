@@ -148,37 +148,21 @@ java -jar yona.jar --spring.profiles.active=postgres
 java -jar yona.jar --spring.profiles.active=h2
 ```
 
-`cubrid` 프로파일은 지원되지 않는 `TEXT`와 `NOT NULL LOB` 보안 필드를 `META-INF/orm-cubrid.xml`에서
-문자열은 CUBRID `STRING`(=`VARCHAR(1,073,741,823)`), 바이너리는 `BIT VARYING`으로 매핑합니다.
-`STRING`은 가변 길이 문자열이며 CLOB 같은 LOB 타입이 아닙니다. 다른 DB의 컬럼 형식은 바꾸지
-않습니다. 기존에 수동 생성된 `CLOB`/`BLOB` 컬럼은 값을 보존하는 별도 마이그레이션이 필요합니다.
-애플리케이션은 기존 LOB를 자동 변환하거나 삭제하지 않습니다.
+`cubrid` 프로파일은 CUBRID에서 사용할 수 없는 `TEXT`와 `NOT NULL LOB` 보안 필드만
+`META-INF/orm-cubrid.xml`의 `VARCHAR`/`BIT VARYING` 매핑으로 대체합니다. 다른 DB의 컬럼 형식은
+변경하지 않습니다. 해당 필드에 수동으로 만든 기존 `CLOB`/`BLOB` 컬럼이 있으면 스키마 갱신 전에
+기동을 중단합니다. 원본 DB를 백업하고 값을 보존하는 별도 마이그레이션을 먼저 수행해야 하며,
+애플리케이션은 LOB를 자동 변환하거나 삭제하지 않습니다.
 메타데이터 조회는 설정된 Hibernate 스키마(미설정 시 DB 접속 사용자)로 제한해
 다른 소유자의 동명 테이블을 갱신 대상으로 오인하지 않습니다.
 
-통합 테스트는 H2와 5개 서버 DB(MariaDB, PostgreSQL, MySQL, SQL Server, CUBRID)를 검증합니다.
-같은 checkout에서 Gradle 테스트를 동시에 실행하지 마세요. 빌드 출력과 일부 테스트 파일 경로를
-공유하므로, 병렬 검증은 각기 독립된 CI runner/worktree에서 실행합니다.
+통합 테스트는 실제 Docker 컨테이너(Testcontainers) 기준으로 5개 서버 DB 전부 검증돼 있습니다
+(H2는 내장형이라 컨테이너가 필요 없습니다). 특정 DB로만 테스트를 돌리려면(**동시에 두 개 이상
+돌리면 gradle 빌드 출력 디렉터리가 꼬이니 항상 한 번에 하나씩만 실행하세요**):
 
 ```bash
 ./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid|h2
 ```
-
-CI는 `bootJar testClasses`를 한 번 빌드해 공유하고, DB matrix 밖의 테스트와 E2E를 각각 실행합니다.
-`AbstractIntegrationTest`를 상속한 spec만 6개 DB × 2개 shard로 나누며, 각 shard는 독립 runner의
-JVM·DB·파일시스템을 사용합니다. spec 내부의 실제 commit/동시성 테스트는 유지합니다.
-
-```bash
-# DB matrix 밖의 테스트: 단위 테스트와 전용 H2/PostgreSQL 복원 테스트 등
-./gradlew test -Dyona.it.db=h2 -Dyona.test.group=other
-# PostgreSQL matrix의 첫 번째 shard (전체 실행에는 shard=1도 필요)
-./gradlew test -Dyona.it.db=postgres -Dyona.test.group=database -Dyona.test.shard=0 -Dyona.test.shards=2
-```
-
-컨테이너는 Spring context가 소유하고 JPA 스키마 정리와 connection pool 종료 후 중지합니다.
-공통 context는 재사용하고, 일회성 설정을 가진 spec만 `@DirtiesContext`로 즉시 정리합니다.
-컨테이너 재사용은 context 간 스키마 충돌을 막기 위해 끄며, **Ryuk는 기본 활성 상태를 유지하세요**.
-`TESTCONTAINERS_RYUK_DISABLED=true`는 Spring 종료와 경쟁하는 JVM 정리 hook을 사용합니다.
 
 ## 운영 환경 설정 (특히 Windows)
 
@@ -487,39 +471,22 @@ java -jar yona.jar --spring.profiles.active=postgres
 java -jar yona.jar --spring.profiles.active=h2
 ```
 
-The `cubrid` profile overrides only security fields that cannot use `TEXT` or `NOT NULL LOB` in
-`META-INF/orm-cubrid.xml`: character data uses CUBRID `STRING` (equivalent to
-`VARCHAR(1,073,741,823)`) and binary data uses `BIT VARYING`. `STRING` is a variable-length string,
-not a LOB such as CLOB. Column types on other databases are unchanged. Existing custom CLOB/BLOB
-columns in those fields require an explicit data-preserving migration; the application never converts
-or deletes them automatically.
+The `cubrid` profile overrides only security fields using unsupported `TEXT` or `NOT NULL LOB`
+storage with `VARCHAR`/`BIT VARYING` mappings in `META-INF/orm-cubrid.xml`. Column types on other
+databases are unchanged. Existing custom `CLOB`/`BLOB` columns in those fields stop startup
+before schema update. Back up the source database and migrate those values explicitly before
+starting the application; it never automatically converts or deletes existing LOBs.
 Metadata lookup is restricted to the configured Hibernate schema, or the database login owner
 when unspecified, so same-named tables belonging to another owner are not mistaken for application tables.
 
-Integration tests use Testcontainers for MariaDB, PostgreSQL, MySQL, SQL Server and CUBRID;
-H2 is embedded. Do not run Gradle tests concurrently in the same checkout because build outputs
-and some test paths are shared. Run parallel tests only in independent runners/worktrees.
+Integration tests are verified against all 5 server DBs using real Docker containers
+(Testcontainers); H2 is embedded and needs no container. To run tests against a single DB
+(**never run two or more at once — the gradle build output directory gets corrupted; always run
+one at a time**):
 
 ```bash
 ./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid|h2
 ```
-
-CI builds `bootJar testClasses` once and shares the outputs with the non-matrix tests and E2E.
-Only specs extending `AbstractIntegrationTest` run across six databases and two shards per database.
-Each shard owns an independent runner, JVM, database and filesystem; real commit/concurrency tests
-remain intact.
-
-```bash
-# Tests outside the DB matrix, including dedicated H2/PostgreSQL restore tests
-./gradlew test -Dyona.it.db=h2 -Dyona.test.group=other
-# First PostgreSQL shard (run shard=1 as well for complete coverage)
-./gradlew test -Dyona.it.db=postgres -Dyona.test.group=database -Dyona.test.shard=0 -Dyona.test.shards=2
-```
-
-Spring contexts own their containers and stop them after JPA schema cleanup and connection pools.
-Common contexts are cached; specs with one-off configurations release theirs with `@DirtiesContext`.
-Container reuse is disabled to prevent cross-context schema conflicts. **Leave Ryuk enabled**:
-`TESTCONTAINERS_RYUK_DISABLED=true` installs a JVM cleanup hook that races Spring shutdown.
 
 ## Deployment configuration (especially on Windows)
 
