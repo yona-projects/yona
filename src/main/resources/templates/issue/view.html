@@ -20,6 +20,9 @@
          th:data-find-sharer-url="@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/findSharer(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}"
          th:data-sharable-url="@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/sharableUsers(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}"
          th:data-share-url="@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/share(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
+    <!-- 프로젝트별 라벨 색상 CSS는 상세와 함께 와야 한다: 내 이슈처럼 여러 프로젝트에 걸친 목록은
+         페이지 로드 시점에 프로젝트를 알 수 없고, 프레임으로 불러오는 상세마다 프로젝트가 다르다. -->
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
     <div class="page-wrap-outer">
         <div class="project-page-wrap board-view">
             <!-- Post Info -->
@@ -540,7 +543,6 @@
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:fragment="detailAssets">
-<link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
 <link rel="stylesheet" href="/javascripts/lib/elevator/jquery.elevator.css" type="text/css" />
 <link rel="stylesheet" href="/javascripts/lib/videojs/video-js.min.css" type="text/css" />
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>

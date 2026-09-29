@@ -114,7 +114,7 @@ PR #834가 **이슈 목록**의 iframe/pageslide 2단 보기를 Turbo Frames로 
    - RED: `Turbo-Frame` 헤더 요청이 fragment만 반환하고 목록 조회 SQL을 생략하는지, 일반 요청은 기존과 동일한지
      (`BoardListTwoColumnModeTemplateRenderingSpec`, `IssueListTemplateRenderingSpec`의 P3-74 테스트를 모델로)
    - e2e: `e2e/specs/09-board/`에 `turbo-two-column.spec.ts` 추가(선택/Back·Forward/reload/no-JS/초안)
-3. **Step 3 — 복합 선택 키 공용 처리 (신규, 4곳의 선행 조건)** — 🔶 기반 완료: `TwoColumnSelection.parseKey()`/`Key`(형식 `type:owner/project/번호`)와 선택 파라미터명 설정화(서버 `addToModel(param=)`, 클라이언트 `setupTwoColumn({param})`), `TwoColumnSelectionSpec` GREEN. 권한 확인·상세 위임은 첫 소비자(내 이슈)에서 구현·고정. 원래 범위: 서버: `?<param>=<type>:<owner>/<project>/<번호>` 파싱→권한 확인→기존 상세 로직 위임(`Turbo-Frame` 헤더 시 목록 조회 생략). 클라이언트: 공용 어댑터의 선택 파라미터명·링크 생성 설정화. 기존 `TwoColumnSelection` 확장
+3. **Step 3 — 복합 선택 키 공용 처리 (신규, 4곳의 선행 조건)** — ✅ 완료(Step 4에서 `CrossProjectDetailResolver`로 권한·위임까지 고정). 기반: `TwoColumnSelection.parseKey()`/`Key`(형식 `type:owner/project/번호`)와 선택 파라미터명 설정화(서버 `addToModel(param=)`, 클라이언트 `setupTwoColumn({param})`), `TwoColumnSelectionSpec` GREEN. 원래 범위: 서버: `?<param>=<type>:<owner>/<project>/<번호>` 파싱→권한 확인→기존 상세 로직 위임(`Turbo-Frame` 헤더 시 목록 조회 생략). 클라이언트: 공용 어댑터의 선택 파라미터명·링크 생성 설정화. 기존 `TwoColumnSelection` 확장
    **Step 4~7 — 내 이슈 → 조직 이슈 → 조직 게시판 → PR 목록 → 사용자 화면** — ⏳ 미착수(순서는 진행 로그의 계획 영향 참고, 번호는 아래 Step 7 이후로 재정렬) (소비자당 1스텝, 각 스텝이 독립 커밋/푸시 가능 단위)
    - 각각 Step 2와 동일한 RED→GREEN, 화면 고유 상세 기능(PR의 diff/리뷰 위젯 등) 초기화·해제 검증 포함
 4. **Step 7 — 2단 보기 레거시 삭제**
@@ -254,6 +254,23 @@ GREEN), e2e `09-board/turbo-two-column.spec.ts` 7건. 검증: 인증·사용자�
 
 **결정 대기**: (1) PR 상세를 overview 탭만 프레임에 넣는 안(v1.6과 다른 동작, 위 참고), (2) 복합 선택 키 방식 확정(4곳 공용), (3) 상세가 열릴 때 좌측 패널(`.left-menu`, `.user-info-box`)을 숨길지(게시판 제외), (4) 사용자 화면 행 클릭 시 하위 이슈 펼치기와 상세 선택의 충돌 처리.
 **조사 완료**: 소비자 6곳 모두. 남은 것은 결정과 구현.
+
+### 2026-09-29 — Step 4(내 이슈) 완료
+
+- **서버**: `CrossProjectDetailResolver`(공용)가 `?detail=issue:<owner>/<project>/<번호>`를 `IssueViewController.viewIssue`에 위임한다.
+  권한 확인·방문 기록·오류 뷰 선택은 단독 상세와 동일하다(이 클래스는 권한을 판단하지 않는다). `UserViewController.userIssues`가
+  `Turbo-Frame: issue-detail` 헤더 시 목록 조회 없이 `issue/my_list :: issueDetailFrame`만 반환한다.
+  파라미터명은 `detail`(사용자 화면은 `selected`가 탭 이름이라 겹치지 않게 공통으로 `detail`).
+- **클라이언트**: `yona.myissue.Turbo.js`(`setupTwoColumn({param: 'detail'})`). `my_list.html`에서 `yona.twoColumnMode.js` 로드를 제거했다.
+- **`issue/view.html`**: 프로젝트별 `labels.css` `<link>`를 `detailAssets`에서 `detail` 조각 안으로 옮겼다. 여러 프로젝트에 걸친 목록은
+  페이지 로드 시점에 프로젝트를 알 수 없고 프레임으로 불러오는 상세마다 프로젝트가 다르기 때문이다.
+- **검증**: `MyIssuesTurboFrameRenderingSpec` 6건(프레임 fragment, SQL 상한, 비공개 프로젝트 키 거부, 잘못된 키, 비로그인),
+  `TwoColumnSelectionSpec`, `UserViewControllerSpec`, 기존 `IssueListTemplateRenderingSpec` GREEN.
+  e2e `06-issue/turbo-two-column-my-issues.spec.ts` 5건 GREEN(A/B 전환, Back/Forward, reload, no-JS, 클릭당 요청 1회, 선택 해제, 검색 폼 선택 유지, 잘못된 키).
+- **기존 e2e 불안정 발견(이번 변경과 무관)**: `06-issue/turbo-two-column.spec.ts`(및 `09-board`)의 "repeated mounts"/"filters…mobile" 테스트가
+  신선한 H2 서버에서 간헐 실패한다. `labels.css` 이동만 되돌린 상태에서 5회 중 4회, 어댑터만 Step 3 이전 버전으로 되돌린 상태에서 5회 중 4회
+  실패해 이번 변경이 원인이 아님을 확인했다. 원인(폴링 타이밍 등)은 미조사 — 별도 항목 후보.
+- **남은 작업**: Step 5~ 조직 이슈 → 조직 게시판 → PR 목록 → 사용자 화면. 좌측 패널(`.left-menu`) 숨김 여부는 내 이슈에서도 아직 미이식(결정 대기 (3)).
 
 ## 완료 기준 (Definition of Done)
 
