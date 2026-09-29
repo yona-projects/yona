@@ -5,8 +5,9 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.Lob
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 
 // Spring Authorization Server의 RegisteredClient를 저장하는 JPA 엔티티. 공식
@@ -42,25 +43,23 @@ class OAuthRegisteredClient(
     @Column(name = "client_name", nullable = false, length = 200)
     var clientName: String,
 
-    // OAuthAuthorization.kt와 동일한 이유(@Lob 단독이면 @Column.length 기본값 255가 그대로
-    // 적용돼 MariaDB/MySQL에서 TINYTEXT로 축소됨)로 아래 콤마 구분 문자열 컬럼 전부에 명시적으로
-    // 넉넉한 length를 지정한다 — scopes(현재 16개 스코프 문자열을 콤마로 이어붙이면 이미 190자
-    // 안팎이라, 스코프 그룹이 하나만 늘어도 255자 한계에 부딪힐 수 있었다.
+    // 긴 문자열 컬럼 매핑 이유는 OAuthAuthorization.kt 참고(@Lob을 쓰지 않는다). 아래 콤마 구분
+    // 문자열 컬럼은 scopes처럼 이미 190자 안팎이라 스코프 그룹이 하나만 늘어도 255자 한계에 부딪힌다.
     // 콤마 구분 문자열: 예) "client_secret_basic,none"
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     @Column(name = "client_authentication_methods", nullable = false, length = 1_000_000)
     var clientAuthenticationMethods: String,
 
     // 콤마 구분 문자열: 예) "authorization_code,refresh_token"
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     @Column(name = "authorization_grant_types", nullable = false, length = 1_000_000)
     var authorizationGrantTypes: String,
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     @Column(name = "redirect_uris", length = 1_000_000)
     var redirectUris: String? = null,
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     @Column(name = "scopes", nullable = false, length = 1_000_000)
     var scopes: String,
 

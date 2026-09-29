@@ -48,6 +48,58 @@
                 <column name="scopes" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
                 <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
             </basic>
+            <basic name="redirectUris">
+                <column name="redirect_uris" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+        </attributes>
+    </entity>
+    <entity class="com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorization" access="FIELD">
+        <attributes>
+            <basic name="authorizedScopes">
+                <column name="authorized_scopes" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="attributes">
+                <column name="attributes" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="authorizationCodeValue">
+                <column name="authorization_code_value" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="authorizationCodeMetadata">
+                <column name="authorization_code_metadata" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="accessTokenValue">
+                <column name="access_token_value" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="accessTokenMetadata">
+                <column name="access_token_metadata" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="accessTokenScopes">
+                <column name="access_token_scopes" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="refreshTokenValue">
+                <column name="refresh_token_value" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="refreshTokenMetadata">
+                <column name="refresh_token_metadata" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="oidcIdTokenValue">
+                <column name="oidc_id_token_value" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="oidcIdTokenMetadata">
+                <column name="oidc_id_token_metadata" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
         </attributes>
     </entity>
     <entity class="com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizationConsent" access="FIELD">
