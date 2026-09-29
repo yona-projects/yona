@@ -46,20 +46,20 @@ class OAuthRegisteredClient(
     // 긴 문자열 컬럼 매핑 이유는 OAuthAuthorization.kt 참고(@Lob을 쓰지 않는다). 아래 콤마 구분
     // 문자열 컬럼은 scopes처럼 이미 190자 안팎이라 스코프 그룹이 하나만 늘어도 255자 한계에 부딪힌다.
     // 콤마 구분 문자열: 예) "client_secret_basic,none"
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "client_authentication_methods", nullable = false, length = 1_000_000)
     var clientAuthenticationMethods: String,
 
     // 콤마 구분 문자열: 예) "authorization_code,refresh_token"
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "authorization_grant_types", nullable = false, length = 1_000_000)
     var authorizationGrantTypes: String,
 
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "redirect_uris", length = 1_000_000)
     var redirectUris: String? = null,
 
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "scopes", nullable = false, length = 1_000_000)
     var scopes: String,
 

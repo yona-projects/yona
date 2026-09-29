@@ -28,7 +28,7 @@ class OAuthAuthorizationConsent(
 
     // 긴 문자열 컬럼 매핑 이유는 OAuthAuthorization.kt 참고(@Lob을 쓰지 않는다).
     // 콤마 구분 문자열 — 예) "SCOPE_issues:read,SCOPE_issues:write"
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "authorities", nullable = false, length = 1_000_000)
     var authorities: String
 ) {
