@@ -361,6 +361,12 @@ spring:
       on-profile: test
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
+    # 스펙마다 프로퍼티가 달라 Spring 컨텍스트(와 커넥션 풀)가 여러 개 캐시된다. 기본값(10개씩)이면
+    # PostgreSQL 기본 max_connections(100)를 넘겨 "too many clients"로 뒤쪽 스펙의 컨텍스트 기동이
+    # 실패한다. 테스트는 소수의 커넥션이면 충분하다.
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
   jpa:
     hibernate:
       ddl-auto: create-drop
