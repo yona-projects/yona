@@ -3,7 +3,7 @@
 <head th:replace="~{site/layout :: head('Yona')}"></head>
 <body class="theme-default" id="html-body" data-turbo="false">
 <turbo-frame th:fragment="content" id="sidebar" class="sidebar" target="_top" data-turbo="false"
-             th:attr="data-sidebar-standalone=${sidebarStandalone ? 'true' : null}">
+             th:attr="data-sidebar-standalone=${sidebarStandalone ? 'true' : null},data-sidebar-user=${currentUser?.id}">
     <div class="row-fluid user-menu-wrap">
         <span class="user-menu"><a th:href="@{/{loginId}(loginId=${currentUser.loginId})}">
             <span class="avatar-wrap smaller">

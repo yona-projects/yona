@@ -43,7 +43,7 @@
 
   <turbo-frame th:fragment="sidebarHost" sec:authorize="isAuthenticated()"
                id="sidebar" class="sidebar" target="_top" data-turbo="false" hidden
-               role="complementary" aria-label="Sidebar">
+               role="complementary" aria-label="Sidebar" th:attr="data-sidebar-user=${currentUser?.id}">
     <button type="button" class="pin-in-sidebar" data-sidebar-close
             th:attr="aria-label=#{button.close}" title="Sidebar">
       <i class="yobicon-arrow-left" aria-hidden="true"></i>
