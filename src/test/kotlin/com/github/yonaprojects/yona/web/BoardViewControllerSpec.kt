@@ -1564,7 +1564,8 @@ class BoardViewControllerSpec : DescribeSpec({
                 every { postingService.getNotices(1L) } returns emptyList()
 
                 val result = boardViewController.listPosts(
-                    "owner", "TestProj", 0, null, null, "createdDate", "desc", emptyList(), userAuth, ExtendedModelMap()
+                    "owner", "TestProj", 0, null, null, "createdDate", "desc", emptyList(), userAuth, ExtendedModelMap(),
+                    org.springframework.mock.web.MockHttpServletRequest()
                 )
 
                 result shouldBe "board/list"

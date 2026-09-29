@@ -32,7 +32,6 @@
             _initPagination(htOptions);
             _initImplicitTitlePrefix();
             _listHoverEffect();
-            _initTwoColumnMode();
         }
 
         function _listHoverEffect(){

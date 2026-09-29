@@ -7,13 +7,11 @@
     <div th:replace="~{site/layout :: gnb}"></div>
     <div th:replace="~{project/header :: header(${project})}"></div>
     <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
-    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
-    <!-- "맨 위로 스크롤" 버튼(legacy elevator) - 마크업 없이 스스로 버튼을 주입하는 방식이라
-         css+init 호출만 있으면 된다. 초기화는 jQuery 플러그인 대신 vanilla JS
-         (yona.createScrollElevator)를 쓰지만 CSS는 순수 스타일이라 그대로 유지. -->
-    <link rel="stylesheet" href="/javascripts/lib/elevator/jquery.elevator.css" type="text/css" />
-
-
+    <div th:fragment="detail" id="post-detail-content"
+         th:data-draft-key="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${post.number})}"
+         th:data-post-id="${post.id}"
+         th:data-list-url="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name})}"
+         th:data-labels-url="@{/api/projects/{projectId}/posts/{number}/labels(projectId=${project.id}, number=${post.number})}">
     <div class="page-wrap-outer">
         <div class="project-page-wrap board-view">
             <!-- Post Info -->
@@ -223,262 +221,23 @@
 
     <div th:replace="~{common/commentDeleteModal :: commentDeleteModal('#comments')}"></div>
 
+    </div>
     <footer th:replace="~{site/layout :: footer}"></footer>
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:fragment="detailAssets">
+<link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+<!-- "맨 위로 스크롤" 버튼(legacy elevator) - css는 순수 스타일이라 그대로 유지, 초기화는 yona.board.Detail.js가
+     vanilla JS(yona.createScrollElevator)로 수행한다. -->
+<link rel="stylesheet" href="/javascripts/lib/elevator/jquery.elevator.css" type="text/css" />
 <script type="text/javascript" src="/javascripts/common/yona.ScrollElevator.js"></script>
 <script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
-<!-- 대댓글 입력창(.add-a-comment/.child-comment-input-form) hover 노출/클릭 토글만 담당.
-     제출은 아래 인라인 스크립트의 delegated .child-comment-form submit 핸들러가 AJAX로 처리하므로
-     충돌하지 않는다. -->
+<!-- 대댓글 입력창(.add-a-comment/.child-comment-input-form) hover 노출/클릭 토글만 담당. 제출은
+     yona.board.Detail.js의 scoped submit 핸들러가 처리한다. -->
 <script type="text/javascript" src="/javascripts/common/yona.SubComment.js"></script>
-<script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function(){
-        $yona.loadModule("board.View", {
-            "postId"  : "[[${post.id}]]",
-            "urls"     : {
-                "watch"     : "/watch",
-                "unwatch"   : "/unwatch",
-                "labels"    : "[[@{/api/projects/{projectId}/posts/{number}/labels(projectId=${project.id}, number=${post.number})}]]"
-            }
-        });
-
-        // 삭제 확인/변경 이력 모달 오픈 - data-toggle="modal"을 쓰지 않고
-        // 직접 showModal()을 호출한다(위 <dialog> 주석 참고).
-        var elDeleteConfirm = document.getElementById("deleteConfirm");
-        if (elDeleteConfirm) {
-            $yona.attachDialogDismiss(elDeleteConfirm);
-            var elBtnDeleteTrigger = document.querySelector('a[href="#deleteConfirm"]');
-            if (elBtnDeleteTrigger) {
-                elBtnDeleteTrigger.addEventListener("click", function(weEvt){
-                    weEvt.preventDefault();
-                    elDeleteConfirm.showModal();
-                });
-            }
-        }
-        // jQuery의 .text(null)/.html(null)가 빈 문자열로 취급되는 것과 달리 네이티브
-        // textContent/innerHTML = null은 문자열 "null"이 된다 - 응답 본문 파싱 실패시에도
-        // 항상 문자열을 반환하도록 helper로 감싼다(회귀 방지).
-        function _errorMessageFrom(text) {
-            try {
-                var parsed = JSON.parse(text);
-                if (parsed && parsed.message) { return parsed.message; }
-            } catch(e) {}
-            return text || '';
-        }
-        // jQuery 인자 없는 .submit()/.trigger('submit')은 실제 "submit" 이벤트를 발생시켜 같은
-        // 폼에 바인딩된 다른 핸들러(delegated submit 리스너)를 먼저 호출하고, 아무도
-        // preventDefault를 안 하면 네이티브 제출로 폴백한다.
-        function _triggerFormSubmit(form) {
-            var evt = new Event("submit", {bubbles: true, cancelable: true});
-            var notCancelled = form.dispatchEvent(evt);
-            if (notCancelled) { form.submit(); }
-        }
-
-        // yona-common.js(site/layout::scripts로 이 스크립트보다 먼저 로드됨)의
-        // DOMContentLoaded 리스너가 페이지의 모든 [data-request-method] 엘리먼트에 이미
-        // $yona.requestAs()를 호출해 클릭 핸들러를 붙여 놓는다. 여기서 별도로 독립된
-        // addEventListener("click", ...)를 또 붙이면 클릭 한 번에 DELETE가 두 번(먼저
-        // 도착한 요청은 200, 늦게 도착한 요청은 이미 삭제된 글이라 404) 나가는 레이스
-        // 컨디션이 생겼었다 - response.ok 게이트 때문에 하필 늦게 온(실패한) 응답이 이
-        // 핸들러의 응답이면 목록으로 리다이렉트가 안 됐음.
-        // requestAs()는 엘리먼트당 한 번만 클릭 리스너를 붙이는 idempotent 함수라, 여기서
-        // 다시 호출해도(이미 위 자동초기화 때 캐시됨) 새 리스너가 추가되지 않고 캐시된
-        // 인스턴스를 그대로 반환한다 - 그 인스턴스의 "load"(성공) 이벤트에만 걸어서 삭제
-        // 성공 시 글 목록으로 이동시킨다("load" 핸들러가 false를 반환하면 requestAs의
-        // 기본 동작(document.location.reload())을 건너뛴다).
-        var elBtnDeletePost = document.querySelector('dialog#deleteConfirm [data-request-method="delete"]');
-        if (elBtnDeletePost) {
-            $yona.requestAs(elBtnDeletePost).on("load", function(){
-                window.location = "[[@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name})}]]";
-                return false;
-            });
-        }
-
-        // ===== 댓글 인라인 수정/대댓글 AJAX 배선 =====
-        // legacy yobi.Comment.js의 _toggleEditForm이 열기/닫기 양쪽 클릭에서 공통으로
-        // 하던 부수 동작(.add-a-comment 숨김 + autosize 재계산)을 그대로 재현한다.
-        document.addEventListener('click', function(event){
-            var matched = event.target.closest('[data-toggle="comment-edit"]');
-            if (matched) {
-                var id = matched.dataset.commentId;
-                var elBody = document.getElementById('comment-body-' + id);
-                var elEditForm = document.getElementById('comment-editform-' + id);
-                if (elBody) { elBody.style.display = "none"; }
-                if (elEditForm) { elEditForm.style.display = "block"; }
-                document.querySelectorAll(".add-a-comment").forEach(function(el){ el.style.display = "none"; });
-                autosize.update(document.querySelectorAll('textarea'));
-                // <yona-attachments>는 실제 textarea 참조를 명령형으로 주입받아야
-                // 붙여넣기/드래그/링크 삽입 등이 그 textarea를 대상으로 동작한다 - 폼이
-                // 실제로 열리는 시점에 지연 배선한다(configure()는 멱등).
-                if (elEditForm) {
-                    var elAttachments = elEditForm.querySelector('yona-attachments');
-                    var elEditTextarea = elEditForm.querySelector('textarea[data-editor-mode="update-comment-body"]');
-                    if (elAttachments && elEditTextarea) {
-                        elAttachments.configure({"textarea": elEditTextarea});
-                    }
-                }
-                return;
-            }
-            var matchedCancel = event.target.closest('.ybtn-cancel');
-            if (matchedCancel) {
-                var cancelId = matchedCancel.dataset.commentId;
-                var elEditFormCancel = document.getElementById('comment-editform-' + cancelId);
-                var elBodyCancel = document.getElementById('comment-body-' + cancelId);
-                if (elEditFormCancel) { elEditFormCancel.style.display = "none"; }
-                if (elBodyCancel) { elBodyCancel.style.display = "block"; }
-                document.querySelectorAll(".add-a-comment").forEach(function(el){ el.style.display = "none"; });
-                autosize.update(document.querySelectorAll('textarea'));
-            }
-        });
-        // 새 댓글 등록 폼(#comment-form)의 th:action이 가리키는
-        // "/{owner}/{projectName}/post/{postNumber}/comment" 경로는 어느 컨트롤러에도 매핑돼
-        // 있지 않아 항상 404였다(CSRF와는 무관). 형제 폼들과 동일하게
-        // REST(POST .../comments)로 전환한다.
-        //
-        // yona.CommentForm.js의 기능(빈 값 제출 방지/Ctrl+Shift+Enter 단축 제출/beforeunload
-        // 이탈 경고/localStorage 임시저장)은, legacy 원본의 네이티브 form.submit() 재스케줄링이
-        // 이미 검증된 AJAX 핸들러와 공존할 수 없어 원본 파일을 로드하지 않고 여기 직접 재구현한다.
-        var elCommentForm = document.getElementById('comment-form');
-        var elCommentTextarea = elCommentForm ? elCommentForm.querySelector('textarea[name="contents"]') : null;
-        // $form.data('onsubmit', bool)은 DOM 속성이 아니라 jQuery 내부 캐시에만 저장되는 값이라
-        // 네이티브 dataset로 옮기지 않고 순수 클로저 변수로 대체한다(yona.CommentForm.js의
-        // bOnSubmit과 동일한 관례).
-        var bCommentFormOnSubmit = false;
-        function isCommentFormBodyEmpty(){
-            return !(elCommentTextarea && elCommentTextarea.value || '').trim().length;
-        }
-        if (elCommentTextarea) {
-            temporarySaveHandler(elCommentTextarea);
-
-            // issue/view.html과 동일한 이유(CodeMirror가 원본 textarea를 숨기고 실제
-            // 입력은 별도 DOM에서 일어남)로 document 레벨에서 활성 엘리먼트가 이 폼 안에 있을 때만
-            // 반응하도록 한다.
-            document.addEventListener('keydown', function(e){
-                var isSubmitCombo = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.keyCode === 13 || e.key === 'Enter');
-                // $.contains(container, el)은 container===el이면 false를 반환하는 "진짜 후손"
-                // 검사인 반면 네이티브 Node.contains()는 자기 자신도 true로 본다 - 동치 재현을
-                // 위해 자기 자신 케이스를 별도로 제외한다.
-                var isInsideForm = document.activeElement
-                    && document.activeElement !== elCommentForm
-                    && elCommentForm.contains(document.activeElement);
-                if (isSubmitCombo && isInsideForm) {
-                    e.preventDefault();
-                    _triggerFormSubmit(elCommentForm);
-                }
-            });
-
-            window.addEventListener('beforeunload', function(){
-                if (!isCommentFormBodyEmpty() && !bCommentFormOnSubmit) {
-                    return '[[#{common.comment.beforeunload.confirm}]]';
-                }
-            });
-        }
-
-        if (elCommentForm) {
-            elCommentForm.addEventListener('submit', function(e){
-                e.preventDefault();
-                if (isCommentFormBodyEmpty()) {
-                    $yona.notify('[[#{post.comment.empty}]]', 3000);
-                    if (elCommentTextarea) { elCommentTextarea.focus(); }
-                    return;
-                }
-                var apiBase = elCommentForm.dataset.apiBase;
-                var contents = elCommentTextarea.value;
-                bCommentFormOnSubmit = true;
-                fetch(apiBase, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: contents })
-                }).then(function(response) {
-                    if (response.ok) {
-                        removeCurrentPageTemprarySavedContent();
-                        window.location.reload();
-                    } else {
-                        return response.text().then(function(text) {
-                            bCommentFormOnSubmit = false;
-                            alert('[[#{button.comment.new}]] failed: ' + _errorMessageFrom(text));
-                        });
-                    }
-                });
-            });
-        }
-        document.addEventListener('submit', function(e){
-            var elForm = e.target.closest('.comment-update-form form');
-            if (elForm && document.contains(elForm)) {
-                e.preventDefault();
-                var apiBase = elForm.dataset.apiBase;
-                var commentId = elForm.dataset.commentId;
-                var elTextarea = elForm.querySelector('textarea[data-editor-mode="update-comment-body"]');
-                var contents = elTextarea ? elTextarea.value : undefined;
-                // "알림 메일 받기" 체크박스(작성자 본인에게만 노출) 상태를 함께 보낸다.
-                var elNotificationCheckbox = elForm.querySelector('.send-notification-checkbox');
-                var sendNotificationMail = !!(elNotificationCheckbox && elNotificationCheckbox.checked);
-                fetch(apiBase + '/' + commentId, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: contents, sendNotificationMail: sendNotificationMail })
-                }).then(function(response) {
-                    if (response.ok) {
-                        window.location.reload();
-                    } else {
-                        return response.text().then(function(text) {
-                            alert('[[#{common.comment.edit}]] failed: ' + _errorMessageFrom(text));
-                        });
-                    }
-                });
-                return;
-            }
-            var elChildForm = e.target.closest('.child-comment-form');
-            if (elChildForm && document.contains(elChildForm)) {
-                e.preventDefault();
-                var childApiBase = elChildForm.dataset.apiBase;
-                var parentCommentId = elChildForm.dataset.parentCommentId;
-                var elChildTextarea = elChildForm.querySelector('textarea[name="contents"]');
-                var childContents = elChildTextarea ? elChildTextarea.value : undefined;
-                fetch(childApiBase, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: childContents, parentCommentId: parentCommentId })
-                }).then(function(response) {
-                    if (response.ok) {
-                        window.location.reload();
-                    } else {
-                        return response.text().then(function(text) {
-                            alert('[[#{button.comment.new}]] failed: ' + _errorMessageFrom(text));
-                        });
-                    }
-                });
-            }
-        });
-
-        // legacy와 동일한 옵션으로 elevator 초기화(vanilla JS로 교체).
-        yona.createScrollElevator({
-            shape: 'rounded',
-            glass: true
-        });
-    });
-</script>
-<!-- 이 태그 자체가 th:if로 조건부이므로 세부 근거는 HTML 주석이 아니라 아래 JS 주석에 남긴다 -
-     HTML 주석은 th:if와 무관하게 항상 렌더링되므로 여기 두면 대상 dialog id 문자열이 history
-     없는 화면에서도 새 버려 회귀가 재발한다. -->
-<script type="text/javascript" th:if="${post.history != null and !#strings.isEmpty(post.history) and currentUser != null}">
-    // <dialog>(common/partial_history)는 post.history가 있고 로그인 사용자일 때만
-    // 렌더링되는데, 이 배선이 원래 post.history 조건만으로(currentUser 무관) 위 공용
-    // 스크립트 블록에 있어 history 없는 게시글 화면 및 비로그인 화면에서도 대상 id 리터럴이
-    // 응답 본문에 남아 PostingHistoryTemplateRenderingSpec의 렌더링 계약을 깨뜨렸다.
-    document.addEventListener("DOMContentLoaded", function(){
-        var elPostingHistory = document.getElementById("-yona-posting-history");
-        $yona.attachDialogDismiss(elPostingHistory);
-        var elHistoryTrigger = document.querySelector('a[href="#-yona-posting-history"]');
-        if (elHistoryTrigger) {
-            elHistoryTrigger.addEventListener("click", function(weEvt){
-                weEvt.preventDefault();
-                elPostingHistory.showModal();
-            });
-        }
-    });
-</script>
+<script type="text/javascript" src="/javascripts/service/yona.board.View.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.board.Detail.js"></script>
+</th:block>
 </body>
 </html>

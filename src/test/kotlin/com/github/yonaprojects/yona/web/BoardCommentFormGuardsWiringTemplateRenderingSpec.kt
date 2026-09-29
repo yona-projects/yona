@@ -17,6 +17,7 @@ import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfig
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.core.io.ClassPathResource
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.transaction.annotation.Transactional
@@ -60,12 +61,18 @@ class BoardCommentFormGuardsWiringTemplateRenderingSpec @Autowired constructor(
                 val body = mockMvc.perform(get("/${project.owner}/${project.name}/post/${post.number}").with(user(authorDetails)))
                     .andExpect(status().isOk).andReturn().response.contentAsString
 
-                body shouldContain "Comment should not be empty."
-                body shouldContain "isSubmitCombo"
-                body shouldContain "shiftKey"
-                body shouldContain "Would you like to exit this page without submitting comment?"
-                body shouldContain "temporarySaveHandler("
-                body shouldContain "removeCurrentPageTemprarySavedContent("
+                // P3-75: 가드는 2단 보기(Turbo Frame)에서도 재마운트되도록 인라인 스크립트에서
+                // yona.board.Detail.js(yona.mountBoardDetail)로 옮겨졌다 - 페이지는 그 스크립트를 로드하고,
+                // 가드 자체는 그 파일에 있어야 한다(브라우저 동작은 e2e turbo-two-column.spec.ts가 검증).
+                body shouldContain "/javascripts/service/yona.board.Detail.js"
+                val guards = ClassPathResource("static/javascripts/service/yona.board.Detail.js")
+                    .inputStream.readAllBytes().toString(Charsets.UTF_8)
+                guards shouldContain "Messages('post.comment.empty')"
+                guards shouldContain "isSubmitCombo"
+                guards shouldContain "shiftKey"
+                guards shouldContain "Messages('common.comment.beforeunload.confirm')"
+                guards shouldContain "temporarySaveHandler("
+                guards shouldContain "removeCurrentPageTemprarySavedContent("
             }
         }
     }

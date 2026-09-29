@@ -13,6 +13,8 @@ Turbo.config.forms.mode = 'off';
  *   detail:     상세 turbo-frame id
  *   detailRoot: 상세 루트 엘리먼트 id (없으면 상세 없음)
  *   mountDetail(root): 상세 초기화, dispose 함수를 반환
+ *   searchField: (선택) 검색 폼 안에서 선택 번호를 실어 나르는 hidden input 셀렉터
+ *                기본값 '#search input[name="selected"]'
  * }
  */
 export function setupTwoColumn(config) {
@@ -47,7 +49,7 @@ export function setupTwoColumn(config) {
                 }
             };
         }
-        const field = document.querySelector('#search input[name="selected"]');
+        const field = document.querySelector(config.searchField || '#search input[name="selected"]');
         if (field) {
             field.value = selected || '';
             field.disabled = selected === null;
@@ -70,7 +72,10 @@ export function setupTwoColumn(config) {
             row.classList.toggle('highlightBg', selected !== null && number === selected);
         });
         const pagination = document.getElementById('pagination');
-        if (pagination) yona.Pagination.update(pagination, Number(pagination.dataset.total), {url: location.href});
+        // 전체 개수를 data-total로 싣는 화면만 여기서 갱신한다(그렇지 않은 화면은 검색 폼 제출로 페이지 이동).
+        if (pagination && pagination.dataset.total !== undefined) {
+            yona.Pagination.update(pagination, Number(pagination.dataset.total), {url: location.href});
+        }
         document.querySelectorAll('#' + listId + ' .filter-wrap .filters a').forEach(link => {
             const url = new URL(link.href);
             if (selected === null) url.searchParams.delete('selected');

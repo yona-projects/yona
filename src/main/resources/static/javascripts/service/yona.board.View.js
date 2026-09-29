@@ -25,12 +25,19 @@
 
         var htVar = {};
         var htElement = {};
+        var elRoot = document;
+        var oUploaderAttachment = null;
+        var sUploaderId = null;
+        var aDownloaders = [];
 
         /**
          * initialize
          * @param {Hash Table} htOptions
          */
         function _init(htOptions){
+            // 2단 보기(Turbo Frame)에서는 상세 루트 안으로 범위를 한정하고, 이 모듈이 만든 것을 되돌릴 수
+            // 있도록 dispose 함수를 반환한다. root가 없으면 기존처럼 document 전체를 대상으로 한다.
+            elRoot = (htOptions && htOptions.root) || document;
             _initVar(htOptions || {});
             _initElement(htOptions || {});
             _attachEvent();
@@ -44,7 +51,7 @@
          * initialize variables except HTML Element
          */
         function _initVar(htOptions){
-            var tplFileItemEl = document.getElementById("tplAttachedFile");
+            var tplFileItemEl = elRoot.querySelector("#tplAttachedFile");
             // jQuery `$('#tplAttachedFile').text()`는 매치가 없어도 빈 문자열을
             // 반환한다(undefined가 아님) - 그 quirk를 그대로 재현.
             htVar.sTplFileItem = tplFileItemEl ? tplFileItemEl.textContent : "";
@@ -60,12 +67,12 @@
          * initialize HTML Element variables
          */
         function _initElement(htOptions){
-            htElement.welUploader = document.getElementById("upload");
-            htElement.welTextarea = document.querySelector('textarea[data-editor-mode="comment-body"]');
+            htElement.welUploader = elRoot.querySelector("#upload");
+            htElement.welTextarea = elRoot.querySelector('textarea[data-editor-mode="comment-body"]');
 
-            htElement.welAttachments = document.querySelectorAll(".attachments");
-            htElement.welBtnWatch = document.getElementById("watch-button");
-            htElement.issueInfoWrap = document.querySelector(".issue-info");
+            htElement.welAttachments = elRoot.querySelectorAll(".attachments");
+            htElement.welBtnWatch = elRoot.querySelector("#watch-button");
+            htElement.issueInfoWrap = elRoot.querySelector(".issue-info");
         }
 
         /**
@@ -140,17 +147,21 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
+            // 비로그인 화면에는 업로더(#upload)가 없다 - 가드가 없으면 아래에서 null.getAttribute로 죽어
+            // 이후 초기화(다운로더 등)와, 이 모듈을 부르는 호출부의 나머지 배선이 모두 중단된다.
+            if(!htElement.welUploader){ return; }
             var oUploader = yona.Files.getUploader(htElement.welUploader, htElement.welTextarea);
 
             if(oUploader){
                 // yona.Files.getUploader()는 [elContainer] 형태의 순수 배열을 반환한다 -
                 // oUploader[0]로 raw element를 꺼낸다.
-                (new yona.Attachments({
+                sUploaderId = oUploader[0].getAttribute("data-namespace");
+                oUploaderAttachment = new yona.Attachments({
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
-                    "sUploaderId"  : oUploader[0].getAttribute("data-namespace")
-                }));
+                    "sUploaderId"  : sUploaderId
+                });
             }
         }
 
@@ -162,7 +173,7 @@
                 // isYonaAttachment는 yona.Attachments.js가 붙이는 expando 프로퍼티다
                 // (공개 계약, 중복 초기화 가드).
                 if(!elContainer._isYonaAttachment){
-                    (new yona.Attachments({"elContainer": elContainer}));
+                    aDownloaders.push({container: elContainer, attachment: new yona.Attachments({"elContainer": elContainer})});
                 }
             });
         }
@@ -174,6 +185,19 @@
         }
 
         _init(htOptions);
+
+        return function(){
+            if(oUploaderAttachment){ oUploaderAttachment.destroy(); }
+            if(sUploaderId){ yona.Files.destroyUploader(sUploaderId); }
+            aDownloaders.forEach(function(oItem){
+                oItem.attachment.destroy();
+                oItem.container.replaceChildren();
+                delete oItem.container._isYonaAttachment;
+            });
+            oUploaderAttachment = null;
+            sUploaderId = null;
+            aDownloaders = [];
+        };
     };
 
 })("yona.board.View");

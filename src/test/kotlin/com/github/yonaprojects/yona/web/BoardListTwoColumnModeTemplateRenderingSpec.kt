@@ -58,11 +58,12 @@ class BoardListTwoColumnModeTemplateRenderingSpec @Autowired constructor(
                 checkboxArea.select("input#two-column-mode[type=checkbox]").size shouldBe 1
             }
 
-            it("yona.twoColumnMode.js 스크립트도 여전히 로드돼야 한다(마크업 추가로 include가 죽지 않았는지 확인)") {
+            it("P3-75: iframe/pageslide 대신 Turbo 어댑터(yona.board.Turbo.js)를 로드해야 한다") {
                 val html = mockMvc.perform(get("/${project.owner}/${project.name}/posts"))
                     .andExpect(status().isOk).andReturn().response.contentAsString
 
-                html.contains("/javascripts/service/yona.twoColumnMode.js") shouldBe true
+                html.contains("/javascripts/service/yona.board.Turbo.js") shouldBe true
+                html.contains("/javascripts/service/yona.twoColumnMode.js") shouldBe false
             }
         }
     }

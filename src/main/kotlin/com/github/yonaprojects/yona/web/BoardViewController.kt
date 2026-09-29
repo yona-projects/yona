@@ -10,6 +10,7 @@ import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.security.core.Authentication
@@ -66,7 +67,8 @@ class BoardViewController(
         @RequestParam(required = false, defaultValue = "desc") orderDir: String,
         @RequestParam(required = false) labelIds: List<Long>?,
         authentication: Authentication?,
-        model: Model
+        model: Model,
+        request: HttpServletRequest
     ): String {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return "error/404"
@@ -74,8 +76,33 @@ class BoardViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
         if (!accessControl.isAllowed(loginUser, project, Operation.READ)) {
             model.addAttribute("project", project)
+            model.addAttribute("turboFrameError", request.getHeader("Turbo-Frame") == POST_DETAIL_FRAME)
             return "error/forbidden"
         }
+
+        // 2단 보기: ?selected=<글번호>가 있으면 정상 상세 경로(viewPost)로 상세 model을 채운다.
+        val selectedParam = request.getParameter("selected")
+        val selected = selectedParam?.toLongOrNull()
+        if (selectedParam != null) {
+            val detailView = if (selected != null && selected > 0) {
+                viewPost(owner, projectName, selected, authentication, model)
+            } else {
+                "error/notfound"
+            }
+            if (detailView != "board/view") {
+                model.addAttribute("project", project)
+                model.addAttribute("targetType", "board_post")
+                model.addAttribute("turboFrameError", request.getHeader("Turbo-Frame") == POST_DETAIL_FRAME)
+                return "error/notfound"
+            }
+            // Turbo-Frame: post-detail 헤더는 "상세 프레임 안의 내용만 필요하다"는 뜻이다(P3-74와 동일한
+            // 패턴). 목록 프레임은 data-turbo-permanent라 어차피 버려지므로 목록 조회를 건너뛴다.
+            if (request.getHeader("Turbo-Frame") == POST_DETAIL_FRAME) {
+                model.addAttribute("selected", selected)
+                return "board/list :: postDetailFrame"
+            }
+        }
+        TwoColumnSelection.addToModel(request, model, selected)
 
         val actualPage = if (pageNum != null) {
             if (pageNum > 0) pageNum - 1 else 0
@@ -531,6 +558,9 @@ class BoardViewController(
     companion object {
         // yona AbstractPostingApp의 ITEMS_PER_PAGE 대응.
         private const val ITEMS_PER_PAGE = 15
+
+        // templates/board/list.html의 상세 turbo-frame id (Turbo-Frame 요청 헤더 값과 동일).
+        private const val POST_DETAIL_FRAME = "post-detail"
     }
 }
 

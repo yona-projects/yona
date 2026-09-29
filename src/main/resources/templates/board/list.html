@@ -2,20 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
 <head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{menu.board})}">
 </head>
-<body class="prj" id="html-body">
+<body class="prj" id="html-body" data-turbo="false">
 <div id="main" class="main">
+    <div id="board-project-shell" data-turbo-permanent style="display: contents">
     <div th:replace="~{site/layout :: gnb}"></div>
     <div th:replace="~{project/header :: header(${project})}"></div>
     <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
+    </div>
     <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+    <link rel="stylesheet" href="/stylesheets/issue-columns.css">
 
-
-    <div class="page-wrap-outer">
+    <div class="page-wrap-outer board-columns" th:classappend="${selected != null} ? 'has-detail' : ''"
+         th:data-selection-clear-url="${selectionClearUrl}">
+        <turbo-frame id="post-list" data-turbo-permanent data-turbo="false" data-turbo-prefetch="false">
         <div class="post-list project-page-wrap">
             <div class="search-wrap underline">
                 <form id="option_form" th:action="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name})}" method="get" class="pull-left">
                     <input type="hidden" name="orderBy" th:value="${orderBy}">
                     <input type="hidden" name="orderDir" th:value="${orderDir}">
+                    <!-- 2단 보기에서 선택된 글 번호를 검색/페이지 이동에도 유지한다(yona.turbo.TwoColumn.js가 값/disabled 갱신). -->
+                    <input type="hidden" name="selected" th:value="${selected}" th:disabled="${selected == null}">
                     <div class="search-bar">
                         <input name="filter" class="textbox" type="text" th:placeholder="#{project.searchPlaceholder}" th:value="${filter}">
                         <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
@@ -28,9 +34,7 @@
                         </div>
                     </th:block>
 
-                    <!-- yona.twoColumnMode.js의 _initTwoColumnMode()는 board.List 모듈 로드 시(yona.board.List.js:28)
-                         이미 호출되고 있었지만 이 마크업이 빠져 있어 죽은 include였다 - 이식된 다른 화면과
-                         동일한 구조로 채운다. -->
+                    <!-- 2단 보기 체크박스: yona.turbo.TwoColumn.js가 localStorage["useTwoColumnMode"]와 동기화한다. -->
                     <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:data-content="#{common.two.column.mode.desc}">
                         <label class="checkbox">
                             <div class="two-column-icon-border">
@@ -81,7 +85,9 @@
                         <div class="title-wrap">
                             <span class="label label-notice" th:text="#{post.notice}">공지</span>&nbsp;
                             <span class="bracket-word" th:text="${@templateHelper.showHeaderWordsInBracketsIfExist(notice.title)}"></span>
-                            <a th:href="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${notice.number})}" class="title" th:text="${@templateHelper.removeHeaderWords(notice.title)}">
+                            <a th:href="${selected != null and selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + notice.number} : @{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${notice.number})}" class="title"
+                               th:data-selection-url="${selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + notice.number} : null"
+                               th:data-detail-url="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${notice.number})}" th:text="${@templateHelper.removeHeaderWords(notice.title)}">
                                 공지 제목
                             </a>
                             <span th:each="label : ${notice.labels}" class="label issue-label list-label active" th:style="'background: ' + ${label.color} + '; color: #fff; padding: 1px 4px; border-radius: 2px; font-size: 11px; margin-left: 4px; display: inline-block;'" th:text="${label.name}">라벨</span>
@@ -114,7 +120,9 @@
                             <span th:if="${post.readme}" class="label label-important">README</span>&nbsp;
                             <span th:if="${!post.readme}" class="post-id" th:text="${post.number}">1</span>
                             <span class="bracket-word" th:text="${@templateHelper.showHeaderWordsInBracketsIfExist(post.title)}"></span>
-                            <a th:href="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${post.number})}" class="title" th:text="${@templateHelper.removeHeaderWords(post.title)}">
+                            <a th:href="${selected != null and selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + post.number} : @{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${post.number})}" class="title"
+                               th:data-selection-url="${selectionBaseUrl != null} ? ${selectionBaseUrl + 'selected=' + post.number} : null"
+                               th:data-detail-url="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${post.number})}" th:text="${@templateHelper.removeHeaderWords(post.title)}">
                                 게시글 제목
                             </a>
                             <span th:each="label : ${post.labels}" class="label issue-label list-label active" th:style="'background: ' + ${label.color} + '; color: #fff; padding: 1px 4px; border-radius: 2px; font-size: 11px; margin-left: 4px; display: inline-block;'" th:text="${label.name}">라벨</span>
@@ -146,13 +154,20 @@
                 <div th:replace="~{help/keymap :: keymap('boardList', ${project})}"></div>
             </div>
         </div>
+        </turbo-frame>
+        <turbo-frame th:fragment="postDetailFrame" id="post-detail" data-turbo-action="advance" data-turbo="false" target="_top"
+                     th:hidden="${selected == null}">
+            <th:block th:if="${selected != null}">
+                <div th:replace="~{board/view :: detail}"></div>
+            </th:block>
+        </turbo-frame>
     </div>
 </div>
 
 <th:block th:replace="~{site/layout :: scripts}"></th:block>
 <th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
-<!-- yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js 의존이 제거됐다. -->
-<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
+<th:block th:replace="~{board/view :: detailAssets}"></th:block>
+<script type="module" src="/javascripts/service/yona.board.Turbo.js"></script>
 <script type="text/javascript" th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function() {
         $yona.loadModule("board.List", {

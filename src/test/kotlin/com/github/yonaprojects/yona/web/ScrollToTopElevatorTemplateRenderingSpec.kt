@@ -60,10 +60,12 @@ class ScrollToTopElevatorTemplateRenderingSpec @Autowired constructor(
                 body shouldContain "/javascripts/lib/elevator/jquery.elevator.css"
                 body shouldContain "/javascripts/common/yona.ScrollElevator.js"
                 body shouldNotContain "/javascripts/lib/elevator/jquery.elevator.js"
-                body shouldContain "yona.createScrollElevator("
                 body shouldNotContain "\$.elevator("
-                body shouldContain "shape: 'rounded'"
-                body shouldContain "glass: true"
+                // P3-75: 초기화 호출은 인라인 스크립트에서 yona.board.Detail.js(2단 보기에서도 재마운트)로 이동.
+                body shouldContain "/javascripts/service/yona.board.Detail.js"
+                val detail = org.springframework.core.io.ClassPathResource("static/javascripts/service/yona.board.Detail.js")
+                    .inputStream.readAllBytes().toString(Charsets.UTF_8)
+                detail shouldContain "yona.createScrollElevator({shape: 'rounded', glass: true})"
             }
         }
     }
