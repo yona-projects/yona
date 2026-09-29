@@ -50,10 +50,13 @@ abstract class AbstractIntegrationTest : DescribeSpec() {
         // 로컬에서만 재현되는 새로운 실패가 날 수 있다.
         private val container: JdbcDatabaseContainer<*>? = when (selectedDb) {
             "h2" -> null
+            // 스위트 전체를 돌리면 캐시된 Spring 컨텍스트마다 커넥션 풀이 열려 기본 max_connections(100)를
+            // 넘긴다("too many clients already"). 이미지 기본 명령(fsync=off)은 유지한 채 상한만 올린다.
             "postgres" -> PostgreSQLContainer("postgres:16")
                 .withDatabaseName("yona")
                 .withUsername("yona")
                 .withPassword("yona_password")
+                .withCommand("postgres", "-c", "fsync=off", "-c", "max_connections=300")
                 .withReuse(true)
             "mysql" -> MySQLContainer("mysql:8.4")
                 .withDatabaseName("yona")
