@@ -117,11 +117,12 @@ class YonaCubridDialect : CUBRIDDialect() {
      * Postgres/MySQL/SQL Server는 모두 SQLState 23502를 정상 반환해 표준 분류가 동작하고
      * DataIntegrityViolationException으로 번역된다).
      *
-     * errorCode -631("SQL statement violated NOT NULL constraint.")만 좁게 매칭해
-     * ConstraintViolationException(NOT_NULL)으로 명시 변환한다 — 연결 끊김 등 다른 종류의
-     * SQLException(errorCode가 -631이 아님)까지 잘못 분류하지 않도록 이 코드 하나에만
-     * 한정한다. 이렇게 분류되면 Spring이 DataIntegrityViolationException으로 번역해 나머지
-     * 4개 DB와 동일한 예외 타입을 던지게 된다.
+     * errorCode -631("SQL statement violated NOT NULL constraint.")과 -670("Operation would have
+     * caused one or more unique constraint violations.")만 좁게 매칭해 ConstraintViolationException
+     * (NOT_NULL / UNIQUE)으로 명시 변환한다 — 연결 끊김 등 다른 종류의 SQLException까지 잘못
+     * 분류하지 않도록 이 코드들에만 한정한다. 이렇게 분류되면 Spring이 DataIntegrityViolation
+     * Exception으로 번역해 나머지 4개 DB와 동일한 예외 타입을 던지게 된다. PR 번호 채번 충돌 재시도
+     * (PullRequestController.createPullRequest)가 바로 이 예외 타입에 의존한다.
      */
     override fun buildSQLExceptionConversionDelegate(): SQLExceptionConversionDelegate =
         object : SQLExceptionConversionDelegate {
@@ -130,17 +131,18 @@ class YonaCubridDialect : CUBRIDDialect() {
                 message: String,
                 sql: String
             ): JDBCException? {
-                return if (sqlException.errorCode == CUBRID_NOT_NULL_VIOLATION_ERROR_CODE) {
-                    ConstraintViolationException(
-                        message,
-                        sqlException,
-                        sql,
-                        ConstraintViolationException.ConstraintKind.NOT_NULL,
-                        getViolatedConstraintNameExtractor().extractConstraintName(sqlException)
-                    )
-                } else {
-                    null
+                val kind = when (sqlException.errorCode) {
+                    CUBRID_NOT_NULL_VIOLATION_ERROR_CODE -> ConstraintViolationException.ConstraintKind.NOT_NULL
+                    CUBRID_UNIQUE_VIOLATION_ERROR_CODE -> ConstraintViolationException.ConstraintKind.UNIQUE
+                    else -> return null
                 }
+                return ConstraintViolationException(
+                    message,
+                    sqlException,
+                    sql,
+                    kind,
+                    getViolatedConstraintNameExtractor().extractConstraintName(sqlException)
+                )
             }
         }
 
@@ -148,5 +150,8 @@ class YonaCubridDialect : CUBRIDDialect() {
         // CUBRID JDBC 드라이버(11.3.2.0053)가 NOT NULL 제약 위반 시 실제로 던지는 errorCode.
         // (SQLState는 null이라 쓸 수 없다.)
         const val CUBRID_NOT_NULL_VIOLATION_ERROR_CODE = -631
+
+        // 유니크 제약 위반(ER_BTREE_UNIQUE_FAILED). 메시지에도 "unique constraint violations"가 실린다.
+        const val CUBRID_UNIQUE_VIOLATION_ERROR_CODE = -670
     }
 }

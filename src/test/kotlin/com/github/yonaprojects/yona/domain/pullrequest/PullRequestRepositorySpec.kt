@@ -88,6 +88,7 @@ class PullRequestRepositorySpec @Autowired constructor(
 
                 val closedFromBranchPr = pullRequestRepository.save(
                     PullRequest(
+                        number = 1L,
                         title = "닫힌 PR(from 매칭)",
                         body = "closed",
                         toProject = toProject,
@@ -102,6 +103,7 @@ class PullRequestRepositorySpec @Autowired constructor(
                 )
                 val openFromBranchPr = pullRequestRepository.save(
                     PullRequest(
+                        number = 2L,
                         title = "열린 PR(from 매칭)",
                         body = "open",
                         toProject = toProject,
@@ -131,13 +133,13 @@ class PullRequestRepositorySpec @Autowired constructor(
                 val otherProject = projectRepository.save(Project(name = "other-repo", owner = "owner-other"))
 
                 val matchedByProject = pullRequestRepository.save(
-                    PullRequest(title = "버그 수정", toProject = allowedProject, fromProject = allowedProject, contributor = otherContributor)
+                    PullRequest(number = 3L, title = "버그 수정", toProject = allowedProject, fromProject = allowedProject, contributor = otherContributor)
                 )
                 val matchedByContributor = pullRequestRepository.save(
-                    PullRequest(title = "버그 개선", toProject = otherProject, fromProject = otherProject, contributor = contributor)
+                    PullRequest(number = 4L, title = "버그 개선", toProject = otherProject, fromProject = otherProject, contributor = contributor)
                 )
                 pullRequestRepository.save(
-                    PullRequest(title = "무관한 PR", toProject = otherProject, fromProject = otherProject, contributor = otherContributor)
+                    PullRequest(number = 5L, title = "무관한 PR", toProject = otherProject, fromProject = otherProject, contributor = otherContributor)
                 )
 
                 val projectIds = listOf(allowedProject.id!!)
@@ -180,18 +182,21 @@ class PullRequestRepositorySpec @Autowired constructor(
 
                 val assignedOpenA = pullRequestRepository.save(
                     PullRequest(
+                        number = 6L,
                         title = "A 프로젝트 담당 PR", toProject = projectA, fromProject = projectA, contributor = other,
                         state = State.OPEN, assignee = com.github.yonaprojects.yona.domain.issue.Assignee(user = assignee, project = projectA)
                     )
                 )
                 pullRequestRepository.save(
                     PullRequest(
+                        number = 7L,
                         title = "B 프로젝트 담당 PR(닫힘)", toProject = projectB, fromProject = projectB, contributor = other,
                         state = State.CLOSED, assignee = com.github.yonaprojects.yona.domain.issue.Assignee(user = assignee, project = projectB)
                     )
                 )
                 pullRequestRepository.save(
                     PullRequest(
+                        number = 8L,
                         title = "무관한 PR", toProject = projectA, fromProject = projectA, contributor = other, state = State.OPEN
                     )
                 )
@@ -213,12 +218,14 @@ class PullRequestRepositorySpec @Autowired constructor(
 
                 val reviewedOpen = pullRequestRepository.save(
                     PullRequest(
+                        number = 9L,
                         title = "리뷰 요청된 PR", toProject = project, fromProject = project, contributor = contributor,
                         state = State.OPEN, reviewers = mutableSetOf(reviewer)
                     )
                 )
                 pullRequestRepository.save(
                     PullRequest(
+                        number = 10L,
                         title = "무관한 PR", toProject = project, fromProject = project, contributor = contributor, state = State.OPEN
                     )
                 )
