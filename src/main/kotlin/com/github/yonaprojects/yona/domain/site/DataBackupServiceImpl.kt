@@ -50,7 +50,7 @@ class DataBackupServiceImpl(
     private val logger = LoggerFactory.getLogger(DataBackupServiceImpl::class.java)
     private val jdbcTemplate = JdbcTemplate(dataSource)
 
-    private enum class Dialect { MYSQL_COMPATIBLE, POSTGRES, H2, OTHER }
+    private enum class Dialect { MYSQL_COMPATIBLE, POSTGRES, H2, CUBRID, OTHER }
 
     override fun exportAll(): ByteArray {
         val tables = listTables()
@@ -58,7 +58,7 @@ class DataBackupServiceImpl(
         val dump = LinkedHashMap<String, List<Map<String, Any?>>>()
         val sequences = LinkedHashMap<String, Long>()
         for (table in tables) {
-            dump[table] = jdbcTemplate.queryForList("SELECT * FROM $table")
+            dump[table] = jdbcTemplate.queryForList("SELECT * FROM ${exportTableRef(table, dialect)}")
             nextSequenceValue(table, dialect)?.let { sequences[table] = it }
         }
         logger.info("데이터 백업 완료: ${tables.size}개 테이블")
@@ -91,11 +91,26 @@ class DataBackupServiceImpl(
         }
     }
 
+    // CUBRID JDBC 드라이버는 Connection.getSchema()(JDBC 4.1)를 지원하지 않아 UnsupportedOperationException을
+    // (SQLException으로 감싸) 던진다. CUBRID는 접속 사용자가 곧 테이블 소유자(스키마)이므로 사용자 이름으로 대신한다.
+    private fun schemaOf(connection: java.sql.Connection): String? =
+        try {
+            connection.schema
+        } catch (e: UnsupportedOperationException) {
+            connection.metaData.userName
+        } catch (e: java.sql.SQLException) {
+            if (e is java.sql.SQLFeatureNotSupportedException || e.cause is UnsupportedOperationException) {
+                connection.metaData.userName
+            } else {
+                throw e
+            }
+        }
+
     private fun listTables(): List<String> {
         dataSource.connection.use { connection ->
             val meta = connection.metaData
             val tables = mutableListOf<String>()
-            meta.getTables(connection.catalog, connection.schema, "%", arrayOf("TABLE")).use { rs ->
+            meta.getTables(connection.catalog, schemaOf(connection), "%", arrayOf("TABLE")).use { rs ->
                 while (rs.next()) {
                     tables.add(rs.getString("TABLE_NAME"))
                 }
@@ -136,7 +151,7 @@ class DataBackupServiceImpl(
     private fun dateTimeColumns(table: String): Set<String> {
         dataSource.connection.use { connection ->
             val columns = mutableSetOf<String>()
-            connection.metaData.getColumns(connection.catalog, connection.schema, table, null).use { rs ->
+            connection.metaData.getColumns(connection.catalog, schemaOf(connection), table, null).use { rs ->
                 while (rs.next()) {
                     val jdbcType = rs.getInt("DATA_TYPE")
                     if (jdbcType == Types.TIMESTAMP || jdbcType == Types.DATE || jdbcType == Types.TIME ||
@@ -191,7 +206,7 @@ class DataBackupServiceImpl(
                     "SELECT COALESCE(MAX(id), 0) + 1 FROM $table", JLong::class.java
                 )?.toLong()
             }
-            Dialect.OTHER -> null
+            Dialect.CUBRID, Dialect.OTHER -> null
         }
     }
 
@@ -201,7 +216,7 @@ class DataBackupServiceImpl(
     // 받아온 뒤 대소문자 무관 비교로 직접 걸러낸다.
     private fun hasIdColumn(table: String): Boolean {
         dataSource.connection.use { connection ->
-            connection.metaData.getColumns(connection.catalog, connection.schema, table, null).use { rs ->
+            connection.metaData.getColumns(connection.catalog, schemaOf(connection), table, null).use { rs ->
                 while (rs.next()) {
                     if (rs.getString("COLUMN_NAME").equals("id", ignoreCase = true)) return true
                 }
@@ -221,7 +236,7 @@ class DataBackupServiceImpl(
     // 실제 정수 계열(INTEGER/BIGINT/SMALLINT/TINYINT)일 때만 MAX(id)+1을 시도한다.
     private fun hasNumericIdColumn(table: String): Boolean {
         dataSource.connection.use { connection ->
-            connection.metaData.getColumns(connection.catalog, connection.schema, table, null).use { rs ->
+            connection.metaData.getColumns(connection.catalog, schemaOf(connection), table, null).use { rs ->
                 while (rs.next()) {
                     if (rs.getString("COLUMN_NAME").equals("id", ignoreCase = true)) {
                         return when (rs.getInt("DATA_TYPE")) {
@@ -261,9 +276,14 @@ class DataBackupServiceImpl(
                 if (!hasIdColumn(table)) return
                 jdbcTemplate.execute("ALTER TABLE $table ALTER COLUMN id RESTART WITH $nextValue")
             }
-            Dialect.OTHER -> logger.warn("알 수 없는 DB 방언이라 $table 의 auto-increment/시퀀스를 재설정하지 않습니다")
+            Dialect.CUBRID, Dialect.OTHER -> logger.warn("알 수 없는 DB 방언이라 $table 의 auto-increment/시퀀스를 재설정하지 않습니다")
         }
     }
+
+    // role 같은 이름이 CUBRID 예약어라(테이블 이름을 만드는 YonaCubridNamingStrategy 참고) 인용하지 않으면
+    // SELECT가 문법 오류가 된다. 다른 DBMS는 기존처럼 이름을 그대로 쓴다.
+    private fun exportTableRef(table: String, dialect: Dialect): String =
+        if (dialect == Dialect.CUBRID) "\"$table\"" else table
 
     private fun detectDialect(): Dialect {
         dataSource.connection.use { connection ->
@@ -273,6 +293,7 @@ class DataBackupServiceImpl(
                     Dialect.MYSQL_COMPATIBLE
                 product.contains("PostgreSQL", ignoreCase = true) -> Dialect.POSTGRES
                 product.contains("H2", ignoreCase = true) -> Dialect.H2
+                product.contains("CUBRID", ignoreCase = true) -> Dialect.CUBRID
                 else -> Dialect.OTHER
             }
         }
@@ -284,7 +305,7 @@ class DataBackupServiceImpl(
             Dialect.POSTGRES -> jdbcTemplate.execute("SET session_replication_role = '${if (enabled) "origin" else "replica"}'")
             // SET REFERENTIAL_INTEGRITY — H2 고유 구문.
             Dialect.H2 -> jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY ${if (enabled) "TRUE" else "FALSE"}")
-            Dialect.OTHER -> logger.warn("알 수 없는 DB 방언이라 외래키 제약을 토글하지 않습니다")
+            Dialect.CUBRID, Dialect.OTHER -> logger.warn("알 수 없는 DB 방언이라 외래키 제약을 토글하지 않습니다")
         }
     }
 }
