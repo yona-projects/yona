@@ -50,6 +50,15 @@ python3 scripts/perf/kotlin-compile/summarize.py --results /tmp/yona-compile-res
 
 `--allow-clean`은 지정한 **실험용 checkout**의 세 디렉터리를 지우는 명시적 허가다. 작업 중인 일반 checkout에 사용하지 않는다. `--prepare`는 항상 통계에서 제외한다. `--disable-incremental`은 별도 진단용이며 기본 비교에는 사용하지 않았다.
 
+`--variant`는 결과 라벨이지 소스 revision을 바꾸는 옵션이 아니다. 기준 재현 시에는
+`git worktree add --detach /path/to/dedicated-checkout 96aeaba398f070d1b3b588b021c47262aef55826`
+으로 checkout을 먼저 고정하고, 측정 도구는 이 브랜치의 경로에서 실행한다.
+이 기준 checkout에 각각 `--tee`(W1), `--warnings suppress`(W2),
+`--strategy daemon`, `--gc Parallel`, `--compiler-arg=-Xbackend-threads=4`를
+단독 적용한다. W3/source-helper는 원자료의 해당 patch를 하나씩 적용한다.
+JFR 진단은 `--jfr --profile --info`, warning 이름 inventory는
+`--info --compiler-arg=-Xrender-internal-diagnostic-names`를 사용했다.
+
 두 ref의 최종 비교는 `compare.py --repo ... --baseline <SHA> --candidate <SHA> --gradle-user-home ... --results ... --java-home ... --pairs 5`로 실행한다. 이 명령은 소유하는 임시 worktree 두 개를 만들고 의존성을 사전 준비한 뒤 seed 837의 pair별 순서로 교차 실행한다. 다른 worktree는 제거하지 않는다.
 
 로컬 원자료: `/tmp/yona-kotlin-perf-results/`.
@@ -177,12 +186,85 @@ in-process Parallel GC의 pause 중앙값은 4.524 s로 W0 1.342 s보다 길었�
   - baseline: `51.317, 57.823, 48.874, 49.227, 49.393, 48.535, 51.656`.
   - candidate: `50.916, 48.927, 45.136, 47.731, 45.514, 45.235, 46.803`.
 - RSS는 sampling 결과로 true peak가 아니다. CPU는 약 3.4% 증가했다. 메모리 절감 자체를 최적화 효과로 주장하지 않는다.
-- parallel backend의 report backend 값은 main 5.370 s/test 15.163 s로 오히려 증가한다. task wall과 다른 병렬 측정 집계이므로 exclusive wall 단계로 합산하거나 성능 악화로 해석하지 않는다.
+- parallel backend의 report backend 값은 main 5.370 s/test 15.163 s로 오히려 증가한다. 정확한 2.4.10의 `JvmIrCodegenFactory`/`PerformanceManager` bytecode에서 **동시에 실행되는 각 파일 worker의 elapsed timer를 합산**함을 확인했다. exclusive wall이나 CPU 시간이 아니다. `CODE_GENERATION`도 이 집계를 포함하므로 task wall과 합산하거나 성능 악화로 해석하지 않는다. 근거는 원자료의 `yona-kotlin-2.4.10-parallel-metrics-javap.txt`와 `yona-kotlin-2.4.10-time-value-javap.txt`다.
 - 약 46.8 s 전체/37.8 s Kotlin task 합이 이번 후보에도 남는다. 이를 언어의 필연적인 하한으로 일반화하지 않는다. 분석·lowering·JVM/Gradle 초기화·패키징 및 아직 줄이지 못한 비용이다.
+
+### 최종 CI 확인
+
+로컬 검증 이후 승인받은 새 브랜치만 push했다. 제품 변경 commit은 `6ded9c787`,
+측정 workflow/도구를 포함해 CI가 실행한 후보 SHA는
+`b431f5787733022120a6214a7d13d7ae9792819b`다. 기존 PR 브랜치는 변경하지 않았다.
+
+- [성능 비교 36511088200](https://github.com/Clickin/yona-spring/actions/runs/36511088200): **성공**.
+  한 `ubuntu-24.04` runner에서 준비 실행 두 번을 제외하고 baseline/candidate 각각 5회 교차 측정했다.
+  runner는 x86_64 AMD EPYC 7763, logical CPU 4개(2 physical cores × SMT2), RAM 16,770,748,416 bytes,
+  Temurin 21.0.12.1+1이다. 확인한 cgroup 루트의 `cpu.max`/`memory.max` 파일은 없었다.
+  모든 표본에 같은 JDK/heap/worker 수/캐시 정책을 사용했다.
+- 10개 표본 모두 새 compiler PID와 main 484/test 473 Kotlin source를 확인했다.
+  output/configuration cache는 꺼져 있고, 두 task의 실제 전체 컴파일 report를 검증했다.
+  자료는 해당 실행의 `kotlin-full-compilation` artifact와 로컬 `ci/performance-results/`에 있다.
+
+| CI 지표 (각 5회) | baseline 중앙값 [범위] | 후보 중앙값 [범위] |
+|---|---:|---:|
+| 전체 명령 wall | 164.427 [162.986–167.792] s | 157.351 [151.942–160.715] s |
+| main Kotlin task | 51.310 [49.697–52.570] s | 50.153 [49.237–53.033] s |
+| test Kotlin task | 93.569 [91.866–94.762] s | 86.804 [81.536–87.296] s |
+| 두 Kotlin task 합 | 144.279 [142.527–147.331] s | 137.001 [130.773–139.837] s |
+| 동시 sampled JVM RSS peak | 2,933 MiB | 2,867 MiB |
+| sampled JVM 누적 CPU | 534 s | 530 s |
+| JVM 전체 GC pause | 5.819 s | 5.064 s |
+
+CI 전체 명령 wall 중앙값은 **7.076 s / 4.30%**, Kotlin task 합은 **7.279 s / 5.04%** 감소했다.
+wall IQR는 각각 1.271/4.338 s이며 이번 CI 표본의 전체 wall 범위는 겹치지 않는다.
+wall 원자료는 baseline `165.000, 167.792, 163.729, 162.986, 164.427`,
+candidate `153.779, 151.942, 157.351, 158.117, 160.715`다.
+로컬과 CI의 절대 시간을 비교하지 않았으며 각 환경 안에서만 개선량을 계산했다.
+이 결과로 **backend thread 옵션 한 줄만 최종 채택**했다.
+
+[전체 기능 CI 36511129389](https://github.com/Clickin/yona-spring/actions/runs/36511129389)는
+기존 workflow를 축소 없이 실행했다. DB-independent/dedicated integration **5,511개 통과**,
+Playwright **223개 통과·2개 skip**, 별도 이메일 인증 단계 **2개 통과**다.
+
+| DB | 통과 | 실패 | 기준 대비 새 실패 ID / 기존 통과 개수 손실 |
+|---|---:|---:|---:|
+| H2 | 1,196 | 0 | 0 / 0 |
+| MariaDB | 1,200 | 0 | 0 / 0 |
+| MySQL | 1,196 | 0 | 0 / 0 |
+| PostgreSQL | 1,180 | 16 | 0 / 0 |
+| MSSQL | 1,192 | 4 | 0 / 0 |
+| CUBRID | 1,156 | 47 | 0 / 0 |
+
+기준 실행 `36497731127`의 XML과 `(suite, testcase)`별 상태/개수를 대조했다.
+전체 CI는 기존 67개 DB 실패 때문에 **failure**이며 전체 통과로 표현하지 않는다.
+기능 workflow 전체 시간 12m20s는 이번 비증분 성능 비교의 지표가 아니며,
+이전 branch의 warm-cache 6m54s와 같은 조건이라고 보지 않는다.
+진행 출력은 `gh run watch`로 읽지 않고 완료 callback 후 로그/artifact만 수집했다.
+
+### 탐색 표본의 변동과 메모리
+
+각 조건은 3회다. 시간 단위는 초, RSS는 MiB이며 daemon 조건은 같은 시점의 Gradle+compiler 합이다.
+GC는 두 JVM이 존재하면 각 JVM pause 합계의 표본별 값이다.
+
+| 조건 | main 범위 | test 범위 | 전체 wall 범위 | sampled RSS 중앙값 | GC pause 중앙값 |
+|---|---:|---:|---:|---:|---:|
+| W0 | 14.98–15.68 | 25.96–29.29 | 49.17–53.39 | 2662 | 1.342 |
+| W1 | 15.04–15.49 | 25.57–30.31 | 49.05–54.50 | 2679 | 1.294 |
+| W2 | 14.94–17.83 | 25.55–29.14 | 48.92–55.53 | 2588 | 1.345 |
+| W3 | 15.04–18.77 | 25.70–28.99 | 49.56–57.04 | 2672 | 1.326 |
+| source-control | 15.13–16.68 | 25.94–27.25 | 49.85–53.45 | 2754 | 1.351 |
+| source-helper | 15.17–15.26 | 25.94–29.12 | 49.68–53.88 | 2619 | 1.376 |
+| cold-daemon | 15.29–15.73 | 24.02–26.34 | 47.73–51.10 | 3057 | 3.117 |
+| daemon-G1 | 15.51–15.65 | 26.15–32.07 | 50.19–56.41 | 3031 | 1.405 |
+| parallel-gc | 15.30–15.44 | 27.20–28.37 | 50.99–52.01 | 2490 | 4.524 |
+| backend-2 | 14.43–15.22 | 23.85–25.33 | 46.74–48.45 | 2663 | 1.320 |
+| backend-4 | 14.18–14.42 | 22.78–25.10 | 45.39–48.09 | 2664 | 1.325 |
+
 
 ## 기능 보존과 한계
 
 소스 A/B 후보를 함께 적용한 실제 테스트 실행과 baseline 실행 모두 Webhook 93개, TwoFactor 16개, LDAP 9개가 통과했다. XML testcase 이름과 순서를 비교해 동일함을 확인했다. null reflection 주입/HTTP 왕복/암호화 및 인증 관련 기존 assertion을 유지했다. Gradle engine의 상위 suite/test node 수를 leaf 테스트 수에 더하지 않았다.
+
+영구 backend 4-thread 설정을 build script에 반영한 뒤 별도 fresh 전체 컴파일 smoke도 유효 표본으로 완료했다. 추가 compiler argument 주입 없이 실제 설정을 사용했으며, 같은 118개 테스트를 다시 실행해 이름·순서와 통과 결과를 확인했다.
 
 최초 baseline test 실행은 `/var/run/docker.sock` 부재로 LDAP 초기화가 실패했다. 실패 XML을 보존한 뒤 활성 Docker context가 가리키는 OrbStack socket을 `DOCKER_HOST`로 지정하여 해결했다. 다른 작업의 컨테이너나 Java 프로세스를 종료하지 않았다. 이 환경 준비 실패를 제품 회귀나 유효 성능 표본으로 분류하지 않았다.
 
