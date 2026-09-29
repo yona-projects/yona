@@ -250,6 +250,13 @@
 | /site/oauth-apps (관리자) | specs/13-admin/oauth-apps-admin.spec.ts | done | 13번 표 참고 |
 | /site/sso | specs/13-admin/sso-admin.spec.ts | done | 13번 표 참고 — SAML/OIDC 실제 IdP 연동은 스코프 밖, 설정 폼 저장/재렌더까지만 |
 
+## 15. Scoped Turbo sidebar
+
+| 대상 | 스펙 파일 | 상태 | 비고 |
+|---|---|---|---|
+| Sidebar frame / `/user/sidebar` | `specs/15-misc/sidebar-turbo.spec.ts` | done | 모바일·데스크탑 무탐색 toggle, 입력/DOM/본문 너비 보존, lazy fetch·reuse·refresh, pending close, 실패/세션 만료, overflow 닫기, reload 선호 복구, no-JS 링크 |
+| 왼쪽 sidebar + 오른쪽 사용자 메뉴 | `specs/15-misc/sidebar-menus.spec.ts` | done | 검색/탭/Escape 격리, 중복 favorite POST 방지, breadcrumb 동기화, native 수정 키/새 탭/owner 링크, 원래의 비배지 링크 스타일 |
+
 ---
 
 **범례**: 이 저장소에는 REST 전용(JSON) 엔드포인트(`ReviewApiController`, `CommentThreadController`,

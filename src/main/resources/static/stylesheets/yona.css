@@ -1069,9 +1069,6 @@ input.white:-ms-input-placeholder {
   height: 8px;
   background-position: -157px -409px;
 }
-.framed-body {
-  overflow: hidden;
-}
 .main {
   width: 100%;
   background-color: #fff;
@@ -1118,9 +1115,6 @@ input.white:-ms-input-placeholder {
 }
 .sidebar .user-menu {
   padding: 5px;
-}
-#mainFrame {
-  width: 100%;
 }
 .loading-gif {
   background: #FFF url('../images/loading-gif-2.gif') no-repeat center;
@@ -9064,9 +9058,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   .content-container .main-stream {
     width: 100%;
   }
-  #mainFrame {
-    height: 100vh;
-  }
   .board-header .title {
     border-radius: 0 !important;
   }
@@ -9263,9 +9254,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   }
   .show-in-mobile-inline {
     display: inline-block !important;
-  }
-  .show-in-mobile-100vh {
-    height: 100vh;
   }
   .hide-in-mobile {
     display: none !important;

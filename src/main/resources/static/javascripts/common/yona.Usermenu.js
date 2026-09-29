@@ -1,8 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
-    /* Set side navigation */
-    // Also, see index.scala.html for home page menu sliding actions !!
     var sidebar = document.getElementById("mySidenav");
-    var viewSize = window.parent === window ? document.documentElement.clientWidth : window.parent.document.documentElement.clientWidth;
+    var viewSize = document.documentElement.clientWidth;
     var PIXEL_CRITERIA_FOR_SMALL_DEVICE = 720;  // Criteria to distinguish small devices
     var SIDE_BAR_DEFAULT_WIDTH = "360px";
 
@@ -21,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    if (document.querySelectorAll(".gnb-usermenu-dropdown").length !== 0) {
+    if (sidebar) {
         // iniNaviUserMenu()는 #sidebar-open-btn 클릭/바깥클릭/단축키 리스너만 등록하며, 전부
         // 초기 HTML에 이미 있는 #mySidenav/#sidebar-open-btn/#main만 참조한다(그 안의 updateStar()도
         // .star-project가 아직 없으면 조용히 no-op) -- 사이드바 AJAX 파셜 로드를 기다릴 이유가 없다.
@@ -38,14 +36,23 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(function (data) {
                 document.getElementById("usermenu-tab-content-list").innerHTML = data;
-                afterUsermenuLoaded();
+                afterUsermenuLoaded(sidebar);
             })
             .catch(function (data) {
                 console.log("Usermenu loading failed: " + data);
             });
     }
 
-    afterUsermenuLoaded();
+    if (sidebar) afterUsermenuLoaded(sidebar);
+    var leftSidebar = document.getElementById("sidebar");
+    if (leftSidebar) afterUsermenuLoaded(leftSidebar);
+    bindProjectFavorites(document);
+    document.addEventListener("turbo:frame-load", function (event) {
+        if (event.target.id === "sidebar") afterUsermenuLoaded(event.target);
+    });
+    document.addEventListener("turbo:before-frame-render", function (event) {
+        if (event.target.id === "sidebar") restoreActiveMenu(event.detail.newFrame);
+    });
     document.addEventListener("click", function(e) {
                 var that = e.target.closest(".favorite-issue[data-issue-id]");
                 if (!that) return;
@@ -60,11 +67,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         });
                     })
                     .then(function (data) {
-                        if (data.favored) {
-                            that.querySelector('i').classList.add("starred");
-                        } else {
-                            that.querySelector('i').classList.remove("starred");
-                        }
+                        document.querySelectorAll('.favorite-issue[data-issue-id="' + that.dataset.issueId + '"] i').forEach(function (icon) {
+                            icon.classList.toggle("starred", data.favored);
+                        });
                         $yona.notify(Messages(data.message), 3000);
                     })
                     .catch(function (data) {
@@ -78,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (isShortcutKeyPressed(event)) {
                 event.preventDefault();
                 openSidebar(sidebar);
-                updateStar();
+                updateStar(sidebar);
             }
         });
 
@@ -94,19 +99,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 closeSidebar(sidebar);
             } else {
                 openSidebar(sidebar);
-                updateStar();
+                updateStar(sidebar);
             }
         });
     }
 
-    // afterUsermenuLoaded()는 아래에서 두 번 호출된다: (1) 즉시(사이드바 AJAX 파셜이 아직 안 실린
-    // 시점 - 페이지 자체에 이미 서버렌더된 엘리먼트, 예: 이슈 상세 페이지 자신의 .favorite-issue 별
-    // 아이콘을 바인딩하기 위함), (2) UsermenuUrl fetch 완료 후(사이드바 파셜이 막 삽입된 시점 - 그
-    // 안의 동일 클래스 엘리먼트, 예: 사이드바 즐겨찾기 목록의 .favorite-issue를 바인딩하기 위함).
-    // 두 시점 모두에 이미 존재하는 엘리먼트(주로 페이지 자체에 서버렌더된 것들)는 두 호출에서 매번
-    // 다시 매치되어 리스너가 중복으로 붙는다 - 클릭 한 번에 fetch가 두 번 나가 두 번째 요청이 DB
-    // unique 제약 위반으로 500을 받고, 그 에러 핸들러가 여는 $yona.alert() 모달이 화면을 영구히
-    // 막는 원인이 됐다. _bindOnce()로 엘리먼트당 한 번만 리스너가 붙도록 막는다.
+    // The right menu loads once; Turbo replaces left-menu contents on refresh.
+    // Keep per-element bindings idempotent when either root is initialized again.
     function _bindOnce(el, sType, fHandler) {
         var sMarker = "usermenuBound_" + sType;
         if (el.dataset[sMarker]) {
@@ -116,125 +115,72 @@ document.addEventListener("DOMContentLoaded", function () {
         el.addEventListener(sType, fHandler);
     }
 
-    function afterUsermenuLoaded() {
-        // used for new project list ui
-        var rightMenu = document.querySelector(".right-menu");
-        if (rightMenu) {
-            _bindOnce(rightMenu, "click", function (e) {
-                var match = e.target.closest(".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']");
-                if (!match || !rightMenu.contains(match)) {
-                    return;
-                }
-                updateStar();
-                setTimeout(function focusToProjectSearchInput() {
-                    var projectSearch = document.querySelector('.project-search');
-                    var orgSearch = document.querySelector('.org-search');
-                    if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
-                        projectSearch.focus();
-                    }
-                    if (!projectSearch.value) {
-                        projectSearch.value = orgSearch.value;
-                    }
-                    orgSearch.value = "";
-                }, 200);
-            });
-        }
+    function afterUsermenuLoaded(root) {
+        _bindOnce(root, "click", function (event) {
+            var tab = event.target.closest('.nav-tabs [data-toggle="tab"], .nav-subtab [data-toggle="tab"]');
+            if (!tab || !root.contains(tab)) return;
 
-        document.querySelectorAll('.myOrganizationList').forEach(function (el) {
-            _bindOnce(el, "click", function focusToOrgSearchInput() {
-                setTimeout(function () {
-                    var projectSearch = document.querySelector('.project-search');
-                    var orgSearch = document.querySelector('.org-search');
-                    if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
-                        orgSearch.focus();
-                    }
-                    orgSearch.value = projectSearch.value;
-                    projectSearch.value = "";
-                }, 200);
-            });
+            var isOrganization = tab.parentElement.classList.contains("myOrganizationList");
+            var isProject = tab.parentElement.classList.contains("myProjectList");
+            if (!isOrganization && !isProject && !tab.closest(".nav-subtab")) return;
+
+            var projectSearch = root.querySelector(".project-search");
+            var orgSearch = root.querySelector(".org-search");
+            if (!projectSearch || !orgSearch) return;
+            var searchInput = isOrganization ? orgSearch : projectSearch;
+            var previousSearch = isOrganization ? projectSearch : orgSearch;
+            if (isOrganization || !searchInput.value) searchInput.value = previousSearch.value;
+            previousSearch.value = "";
+            filterMenu(searchInput);
+            if (!isOrganization) updateStar(root);
+            if (root.id === "sidebar" && (isOrganization || isProject)) {
+                localStorage.setItem("sidebarActiveMenu", isOrganization ? "myOrganizationList" : "myProjectList");
+            }
+            setTimeout(function () {
+                if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE && searchInput.isConnected) searchInput.focus();
+            }, 0);
         });
 
-        // search by keyword
-        document.querySelectorAll(".search-input").forEach(function (searchInput) {
-            _bindOnce(searchInput, "keyup", function (event) {
-                var value = this.value.toLowerCase().trim();
-
-                if (value !== "" || event.which === 8) {  // 8: backspace
-                    document.querySelectorAll(".user-li").forEach(function (el) {
-                        el.style.display = el.textContent.toLowerCase().indexOf(value) !== -1 ? "" : "none";
-                    });
-                    document.querySelectorAll(".org-li").forEach(function (el) {
-                        el.style.display = el.textContent.toLowerCase().indexOf(value) !== -1 ? "" : "none";
-                    });
-                }
-            });
-            _bindOnce(searchInput, "keydown", function (e) {
-                switch (e.keyCode) {
-                    case 27:   // ESC
-                        document.querySelector('.project-search').blur();
-                        closeSidebar(sidebar);
-                        break;
-                    default:
-                        break;
-                }
+        root.querySelectorAll(".search-input").forEach(function (searchInput) {
+            _bindOnce(searchInput, "input", function () {
+                filterMenu(this);
             });
         });
-
-        document.querySelectorAll(".project-list > .star-project, .project-breadcrumb > .user-project-list").forEach(function (el) {
-            _bindOnce(el, "click", function toggleProjectFavorite(e) {
-                e.stopPropagation();
-                var that = this;
-                fetch(UsermenuToggleFavoriteProjectUrl + that.dataset.projectId, {"method": "post"})
-                    .then(function(response){
-                        return response.text().then(function(text){
-                            if(!response.ok){
-                                return Promise.reject({"responseText": text});
-                            }
-                            return JSON.parse(text);
-                        });
-                    })
-                    .then(function (data) {
-                        if (data.favored) {
-                            that.querySelector('i').classList.add("starred");
-                        } else {
-                            that.querySelector('i').classList.remove("starred");
-                        }
-                    })
-                    .catch(function (data) {
-                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
-                    });
-            });
+        _bindOnce(root, "keydown", function (event) {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
+            if (root.id === "sidebar") {
+                var close = root.querySelector("[data-sidebar-close]");
+                if (close) close.click();
+            } else {
+                closeSidebar(root);
+            }
         });
 
+        bindProjectFavorites(root);
 
-        document.querySelectorAll(".user-ul > .user-li, .project-ul > .user-li").forEach(function (el) {
-            _bindOnce(el, "click", function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                var location = this.dataset.location;
-                if (e.metaKey || e.ctrlKey || e.shiftKey) {
-                   return window.location = location;
-                }
-
-                if (window.self.name !== 'mainFrame') {
-                    if (document.getElementById("mainFrame")) {
-                        window.open(location, 'mainFrame');
-                    } else {
-                        window.open(location, '_blank');
-                    }
+        root.querySelectorAll(".user-ul > .user-li[data-location], .project-ul > .user-li[data-location]").forEach(function (el) {
+            _bindOnce(el, "click", function (event) {
+                // Real links keep their href, target, and native modifier behavior.
+                if (event.defaultPrevented || event.button !== 0 || event.target.closest("a, button, input, select, textarea")) return;
+                event.preventDefault();
+                event.stopPropagation();
+                var modified = event.metaKey || event.ctrlKey || event.shiftKey;
+                if (root.id === "sidebar" ? !modified : modified) {
+                    window.location.assign(this.dataset.location);
                 } else {
-                    window.open(location, 'mainFrame');
+                    window.open(this.dataset.location, "_blank", "noopener");
                 }
-
-                document.querySelectorAll(".user-ul > .user-li, .project-ul > .user-li").forEach(function (li) {
+                root.querySelectorAll(".user-li.selected").forEach(function (li) {
                     li.classList.remove("selected");
                 });
                 this.classList.add("selected");
             });
         });
 
-        document.querySelectorAll(".org-list > .star-org").forEach(function (el) {
+        root.querySelectorAll(".org-list > .star-org[data-organization-id]").forEach(function (el) {
             _bindOnce(el, "click", function toggleOrgFavorite(e) {
                 e.stopPropagation();
                 var that = this;
@@ -248,11 +194,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         });
                     })
                     .then(function (data) {
-                        if (data.favored) {
-                            that.querySelector('i').classList.add("starred");
-                        } else {
-                            that.querySelector('i').classList.remove("starred");
-                        }
+                        document.querySelectorAll('.star-org[data-organization-id="' + that.dataset.organizationId + '"] i').forEach(function (icon) {
+                            icon.classList.toggle("starred", data.favored);
+                        });
                     })
                     .catch(function (data) {
                         $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
@@ -260,20 +204,61 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
 
-
-        document.querySelectorAll(".all-orgs").forEach(function (el) {
+        root.querySelectorAll(".all-orgs").forEach(function (el) {
             _bindOnce(el, "click", function () {
-                var hidden = this.closest("li").querySelectorAll(".hide");
-                hidden.forEach(function (hiddenEl) {
+                this.closest("li").querySelectorAll(".hide").forEach(function (hiddenEl) {
                     toggleFast(hiddenEl);
                 });
             });
         });
 
-        document.querySelectorAll(".sub-project-counter").forEach(function (el) {
-            var counter = el.closest(".org-li").querySelectorAll(".project-ul > .user-li").length || "";
+        root.querySelectorAll(".sub-project-counter").forEach(function (el) {
+            el.textContent = el.closest(".org-li").querySelectorAll(".project-ul > .user-li").length || "";
+        });
 
-            el.textContent = counter;
+        if (root.id === "sidebar") restoreActiveMenu(root);
+        $yona.initHoverPopovers("#" + root.id + " [data-toggle=popover]");
+    }
+
+    function restoreActiveMenu(root) {
+        var activeMenu = localStorage.getItem("sidebarActiveMenu");
+        if (activeMenu !== "myProjectList" && activeMenu !== "myOrganizationList") return;
+        root.querySelectorAll(".nav-tabs > li, .tab-pane.user-project-list").forEach(function (el) {
+            el.classList.toggle("active", el.classList.contains(activeMenu));
+        });
+    }
+
+    function filterMenu(searchInput) {
+        var value = searchInput.value.toLowerCase().trim();
+        searchInput.closest(".user-project-list").querySelectorAll(".user-li, .org-li").forEach(function (el) {
+            el.style.display = !value ? "" : el.textContent.toLowerCase().indexOf(value) !== -1 ? "list-item" : "none";
+        });
+    }
+
+    function bindProjectFavorites(root) {
+
+        root.querySelectorAll(".project-list > .star-project[data-project-id], .project-breadcrumb > .user-project-list[data-project-id]").forEach(function (el) {
+            _bindOnce(el, "click", function toggleProjectFavorite(e) {
+                e.stopPropagation();
+                var that = this;
+                fetch(UsermenuToggleFavoriteProjectUrl + that.dataset.projectId, {"method": "post"})
+                    .then(function(response){
+                        return response.text().then(function(text){
+                            if(!response.ok){
+                                return Promise.reject({"responseText": text});
+                            }
+                            return JSON.parse(text);
+                        });
+                    })
+                    .then(function (data) {
+                        document.querySelectorAll('.star-project[data-project-id="' + that.dataset.projectId + '"] i, .project-breadcrumb > .user-project-list[data-project-id="' + that.dataset.projectId + '"] i').forEach(function (icon) {
+                            icon.classList.toggle("starred", data.favored);
+                        });
+                    })
+                    .catch(function (data) {
+                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                    });
+            });
         });
     }
 
@@ -301,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // resolves, this element doesn't exist yet. Calling .focus() on null used to throw here,
             // aborting the function before the .main-stream span12->span8 reflow below ever ran,
             // leaving the sidebar visually widened but the main content not shrunk to make room for it.
-            var searchInput = document.querySelector(".search-input");
+            var searchInput = sidebar.querySelector(".tab-pane.active .search-input");
             if (searchInput) {
                 searchInput.focus();
             }
@@ -355,7 +340,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // This method intended to sync sub tab list of projects
-    function updateStar() {
+    function updateStar(root) {
         fetch(UsermenuGetFoveriteProjectsUrl)
             .then(function(response){
                 if(!response.ok){
@@ -364,7 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return response.json();
             })
             .then(function (data) {
-                document.querySelectorAll(".star-project").forEach(function (el) {
+                root.querySelectorAll(".star-project").forEach(function (el) {
                     if (data.projectIds.indexOf(Number(el.dataset.projectId)) !== -1) {
                         el.querySelector("i").classList.add("starred");
                     } else {

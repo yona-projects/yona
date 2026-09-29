@@ -1,0 +1,49 @@
+/* Keep the legacy rail and pin without resizing the current page or its widgets. */
+turbo-frame#sidebar {
+  position: fixed;
+  display: block;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 270px;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1100;
+}
+turbo-frame#sidebar[hidden] {
+  display: none;
+}
+body.left-sidebar-open [data-sidebar-toggle] {
+  visibility: hidden;
+}
+.pin,
+.pin:hover,
+.pin-in-sidebar,
+.pin-in-sidebar:hover {
+  text-decoration: none;
+}
+button.pin-in-sidebar {
+  border: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  line-height: inherit;
+}
+#sidebar .sidebar-status {
+  margin: 48px 10px 12px;
+}
+#sidebar .sidebar-status a {
+  color: #8cc9ef;
+}
+#sidebar .user-menu-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: inherit;
+}
+#sidebar .sidebar-refresh {
+  float: right;
+}
+.user-project-list .project-name > a,
+.user-project-list .issue-title > a {
+  color: inherit;
+}

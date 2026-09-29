@@ -1,4 +1,4 @@
-# Turbo + Thymeleaf two-column PoC result
+# Turbo + Thymeleaf scoped navigation
 
 ## 요약
 
@@ -43,6 +43,8 @@
 잘못되거나 없는 선택 번호는 기존 프로젝트 `error/notfound` 뷰를 사용한다. 이 뷰의 현재 HTTP 200 동작까지 이번 PoC에서 바꾸지는 않았다. 프로젝트 접근 거부는 기존 forbidden gate를 따른다. 선택 frame의 오류 응답에는 Turbo의 declarative reload meta를 사용해 일반 오류 화면으로 전환한다.
 
 목록은 더 이상 `yona.twoColumnMode.js`를 로드하지 않는다. 해당 파일은 게시판 등 다른 소비자를 위해 남겼다. 목록 밖의 iframe/sidebar 기능까지 제거하지 않았다. Hover prefetch는 이 영역에서 꺼서, hover만으로 서버의 이슈 방문 기록이 생기지 않도록 했다.
+
+후속 sidebar 전환은 아래 독립 PR 절을 따른다. 위 항목은 최초 이슈 2단 보기 PoC의 범위 기록이다.
 
 ## 검증 결과
 
@@ -179,3 +181,63 @@ YONA_BASE_URL=http://localhost:18080 npx playwright test specs/04-project/00-pro
 Compared with the current imperative-JS approach, this removes custom navigation ownership but not widget behavior. Unlike a full React SPA, it adds no JSON screen model or client domain store. It is consistent with server-rendered progressive enhancement, but no benchmark or code comparison of `yona-bun-temp`, Gitea or Forgejo was performed. The final architecture issue itself was not created.
 
 References: [Turbo Frames](https://turbo.hotwired.dev/handbook/frames), [Turbo lifecycle and caching](https://turbo.hotwired.dev/handbook/building), [Spring MVC HTML fragments](https://docs.spring.io/spring-framework/reference/web/webmvc-view/mvc-fragments.html).
+
+## 독립 PR — left sidebar Turbo Frame
+
+- 기준: `upstream/next` `a71722f`; branch `feat/turbo-sidebar`.
+- Markdown client renderer/editor 변경을 포함하지 않는다. 기존 서버 Markdown과 편집기를 그대로 사용한다.
+- 범위는 sidebar 열기·닫기·내부 목록/새로고침이다. 프로젝트·이슈 **본문 링크는 일반 페이지 탐색**이며 사이트 전체 Turbo Drive나 SPA 전환이 아니다.
+
+### 요청과 DOM 경계
+
+`site/layout :: sidebarHost`가 인증된 페이지에 숨겨진 `turbo-frame#sidebar`를 둔다.
+첫 열기에서만 `src=/user/sidebar`를 설정하고 `Turbo-Frame: sidebar` 요청으로 서버 HTML을 받는다.
+닫기는 iframe 탈출이나 문서 reload 대신 frame을 숨기며, 재열기는 기존 내용을 사용한다.
+새로고침 아이콘은 `frame.reload()`를 호출한다.
+
+Sidebar는 본문을 재배치하지 않는 overlay다. 현재 form DOM, 입력값, URL/query/hash, 본문 너비를 유지한다.
+이는 기존 페이지들의 `DOMContentLoaded` 초기화나 responsive viewport 가정을 바꾸지 않기 위한 범위 제한이다.
+`shallWeOpenLeftNavigation`은 일반 페이지 이동/명시적 reload 후의 열림 선호로 유지한다.
+
+`UserViewController.userSidebar`는 frame 요청에 `site/sidebar :: content`, 직접 요청에 standalone 문서를 반환한다.
+공용 `common/usermenu_tab_content_list.html`에 `sidebar-` ID prefix를 적용해 오른쪽 `#mySidenav`와 충돌하지 않게 한다.
+직접 방문한 sidebar는 JavaScript 없이도 프로젝트 링크를 읽고 이동할 수 있다.
+
+### 수명주기와 UI
+
+- 공식 기존 Turbo dependency만 사용하고 `Turbo.session.drive=false`, `Turbo.config.forms.mode='off'`를 유지한다.
+- `yona.sidebar.Turbo.js`는 열기/닫기/refresh/오류 상태만 소유한다. `yona.Usermenu.js`는 DOM root별 검색·탭·펼치기·즐겨찾기·popover를 초기화한다.
+- `turbo:before-frame-render`/`turbo:frame-load`로 준비·초기화하며 전역 `DOMContentLoaded`를 재발행하지 않는다.
+- Favorite 이벤트는 중복 등록하지 않으며, 한 메뉴의 검색은 다른 메뉴나 본문 목록을 변경하지 않는다.
+- 기존 파란색 오른쪽-edge 닫기 화살표를 유지한다. Header는 내부 overflow에서도 닫기 컨트롤이 보이도록 sticky 처리한다.
+- 일반 본문 링크는 native anchor다. 수정 키/새 탭 동작을 유지하며 `mainFrame` 이름으로 탐색하지 않는다.
+- 지연 응답은 이미 닫은 sidebar를 다시 열지 않는다. 실패/세션 만료는 현재 본문을 유지하고 Retry/Sign in을 제공한다.
+
+이 cutover에서 `layout_framed.html`, navigation iframe, `path/hash → iframePath` 모델,
+부모 window의 title/history 동기화와 iframe 전용 CSS를 제거했다.
+
+### 검증 경로
+
+```sh
+./gradlew processResources bootJar test -Dyona.it.db=h2 \
+  --tests 'com.github.yonaprojects.yona.web.UserViewControllerSpec' \
+  --tests 'com.github.yonaprojects.yona.web.TemplateEquivalenceSpec'
+
+cd e2e
+YONA_BASE_URL=http://localhost:8080 npx playwright test \
+  specs/04-project/00-project-create.spec.ts \
+  specs/15-misc/sidebar-turbo.spec.ts \
+  specs/15-misc/sidebar-menus.spec.ts
+```
+
+Browser 계약은 모바일/데스크탑 무탐색 toggle, 본문 input identity/값/너비 보존,
+첫 로드 1회·재열기 추가 요청 0회, pending close, 오류/로그인 redirect, overflow dismiss,
+명시적 reload 선호 복구, 두 메뉴의 검색/즐겨찾기 격리, native navigation, no-JS 링크다.
+
+### 이 브랜치의 실행 결과
+
+- `UserViewControllerSpec` 145개 + `TemplateEquivalenceSpec` 85개: 230개 통과.
+- Chromium 11개, Firefox/WebKit 21개: 합계 32개 통과(각 브라우저의 기능 시나리오 10개씩과 setup 2회 포함).
+- `processResources`/`bootJar` 통과. 별도 Markdown frontend dependency나 생성 bundle을 포함하지 않는다.
+- 실제 LAN 화면에서 desktop/mobile 열기·닫기, 입력값/동일 input node/URL 유지, 오른쪽-edge 화살표와 원래 plain menu label을 확인했다.
+- 이 결과는 sidebar 범위다. 기존 이슈 2단 보기 history/filter 회귀나 사이트 전체 Turbo navigation을 해결했다고 주장하지 않는다.

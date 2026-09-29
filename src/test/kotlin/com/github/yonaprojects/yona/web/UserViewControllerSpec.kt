@@ -1150,16 +1150,17 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // userSidebar()의 미인증 리다이렉트, hash 유무에 따른 iframePath 조립, 참여 프로젝트
-    // 유/무에 따른 최근 이슈 조회 분기.
     describe("GET /user/sidebar") {
         it("미인증 사용자는 로그인 폼으로 리다이렉트되어야 한다") {
             mockMvc.perform(get("/user/sidebar"))
                 .andExpect(status().is3xxRedirection)
                 .andExpect(redirectedUrl("/users/loginform"))
+            mockMvc.perform(get("/user/sidebar").header("Turbo-Frame", "sidebar"))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/users/loginform"))
         }
 
-        it("hash 파라미터가 있으면 iframePath에 #hash가 붙어야 한다") {
+        it("sidebar 프레임 요청은 조각을 반환하고 일반 요청은 독립 페이지를 반환해야 한다") {
             val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
             every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
             every { favoriteProjectRepository.findByUserId(10L) } returns emptyList()
@@ -1170,42 +1171,23 @@ class UserViewControllerSpec : DescribeSpec({
             every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
             every { organizationRepository.findAll() } returns emptyList()
 
-            val model = ExtendedModelMap()
-            userViewController.userSidebar(
-                path = "/user/issues", hash = "comment-1",
-                authentication = UsernamePasswordAuthenticationToken("testuser", "password"), model = model
-            )
-
-            model.getAttribute("iframePath") shouldBe "/user/issues#comment-1"
+            for ((header, expectedView) in listOf(
+                "sidebar" to "site/sidebar :: content",
+                null to "site/sidebar",
+                "other-frame" to "site/sidebar"
+            )) {
+                val model = ExtendedModelMap()
+                userViewController.userSidebar(
+                    turboFrame = header,
+                    authentication = UsernamePasswordAuthenticationToken("testuser", "password"), model = model
+                ) shouldBe expectedView
+                model.getAttribute("sidebarStandalone") shouldBe (header != "sidebar")
+                model.getAttribute("menuIdPrefix") shouldBe "sidebar-"
+                model.getAttribute("currentUser") shouldBe loginUser
+                model.containsAttribute("iframePath") shouldBe false
+            }
         }
 
-        it("소속 프로젝트가 있으면 최근 이슈를 조회해야 한다") {
-            val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
-            val project = Project(id = 1L, name = "proj1", owner = "testuser")
-            val memberRole = Role(id = RoleType.MEMBER.roleType)
-            val projectUser = ProjectUser(id = 1L, user = loginUser, project = project, role = memberRole)
-            val recentIssue = Issue(id = 1L, title = "최근 이슈", project = project)
-
-            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
-            every { favoriteProjectRepository.findByUserId(10L) } returns emptyList()
-            every { organizationUserRepository.findByUserId(10L) } returns emptyList()
-            every { favoriteOrganizationRepository.findByUserId(10L) } returns emptyList()
-            every { projectUserRepository.findByUserId(10L) } returns listOf(projectUser)
-            every { projectRepository.findByOwner("testuser") } returns emptyList()
-            every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
-            every { organizationRepository.findAll() } returns emptyList()
-            every { issueRepository.findByProjectIn(listOf(project), any()) } returns PageImpl(listOf(recentIssue))
-
-            val model = ExtendedModelMap()
-            val view = userViewController.userSidebar(
-                path = "/user/issues", hash = "",
-                authentication = UsernamePasswordAuthenticationToken("testuser", "password"), model = model
-            )
-
-            view shouldBe "site/layout_framed"
-            model.getAttribute("iframePath") shouldBe "/user/issues"
-            model.getAttribute("recentIssues") shouldBe listOf(recentIssue)
-        }
     }
 
     // userFiles()의 미인증/pageNum<1/filter 유무 분기.
@@ -1774,7 +1756,7 @@ class UserViewControllerSpec : DescribeSpec({
             every { userRepository.findByLoginId("ghostuser") } returns Optional.empty()
 
             val view = userViewController.userSidebar(
-                path = "/user/issues", hash = "",
+                turboFrame = "sidebar",
                 authentication = UsernamePasswordAuthenticationToken("ghostuser", "password"),
                 model = ExtendedModelMap()
             )
@@ -1802,7 +1784,7 @@ class UserViewControllerSpec : DescribeSpec({
 
             val model = ExtendedModelMap()
             userViewController.userSidebar(
-                path = "/user/issues", hash = "",
+                turboFrame = "sidebar",
                 authentication = UsernamePasswordAuthenticationToken("sidebaruser", "password"), model = model
             )
 
@@ -1823,11 +1805,10 @@ class UserViewControllerSpec : DescribeSpec({
             every { projectRepository.findByOwner("member1") } returns emptyList()
             every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
             every { organizationRepository.findAll() } returns emptyList()
-            every { issueRepository.findByProjectIn(listOf(otherProject), any()) } returns PageImpl(emptyList())
 
             val model = ExtendedModelMap()
             userViewController.userSidebar(
-                path = "/user/issues", hash = "",
+                turboFrame = null,
                 authentication = UsernamePasswordAuthenticationToken("member1", "password"), model = model
             )
 
