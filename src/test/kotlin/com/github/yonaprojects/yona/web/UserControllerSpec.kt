@@ -395,6 +395,40 @@ class UserControllerSpec : DescribeSpec({
         }
 
         describe("POST /api/users/profile/update") {
+            it("빈 값과 잘못된 이메일 수정은 400으로 거절하고 기존 프로필을 보존해야 한다") {
+                val user = User(id = 1L, loginId = "gildong", name = "original", email = "original@example.com")
+                every { userRepository.findByLoginId("gildong") } returns Optional.of(user)
+                every { userRepository.findById(1L) } returns Optional.of(user)
+                every { userService.isEmailExist(any()) } returns false
+                every { userRepository.save(any()) } answers { firstArg() }
+
+                for (invalid in listOf("", " \t ", "invalid-primary", "@example.com", "user@", "user@@example.com", "user name@example.com", "Name <user@example.com>", "a@example.com,b@example.com")) {
+                    mockMvc.perform(
+                        post("/api/users/profile/update")
+                            .param("name", "changed")
+                            .param("email", invalid)
+                            .principal(auth)
+                    )
+                        .andExpect(status().isBadRequest)
+                        .andExpect(jsonPath("$.error").exists())
+                    user.name shouldBe "original"
+                    user.email shouldBe "original@example.com"
+                }
+                verify(exactly = 0) { userRepository.save(any()) }
+
+                mockMvc.perform(
+                    post("/api/users/profile/update")
+                        .param("name", "changed")
+                        .param("email", " User+tag@Example.com ")
+                        .principal(auth)
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(jsonPath("$.status").value("success"))
+                user.name shouldBe "changed"
+                user.email shouldBe "User+tag@Example.com"
+                verify(exactly = 1) { userRepository.save(user) }
+            }
+
             it("프로필 정보를 정상 수정해야 한다") {
                 // Given
                 every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)

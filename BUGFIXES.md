@@ -1,5 +1,36 @@
 # yona product bug fixes — TDD tracking
 
+## 2026-09-27 — CUBRID security column and schema-restart portability
+
+- CUBRID rejects literal `TEXT` and `NOT NULL` LOB columns. Profile-specific Hibernate mappings
+  now select scalar storage and JDBC binding without replacing entity relationships or constraints.
+  Other databases retain their existing column types, including PostgreSQL LOB/OID mappings.
+- CUBRID metadata lookup now uses lowercase unquoted identifiers and owner-qualified table patterns.
+  The driver's ignored `schemaPattern` no longer merges another owner's same-named table/columns into
+  the application schema. Native Hibernate extraction hooks cover tables, columns and key metadata.
+  Existing custom LOB security columns stop startup before schema update.
+- Explicit VARCHAR JDBC binding preserves SQL Server's existing `TEXT` key columns without attempting
+  the unsupported `TEXT`-to-NCHAR extraction used by globally nationalized mappings.
+- Regression: `SecurityColumnPortabilityTest` passed on MariaDB, PostgreSQL, MySQL, SQL Server,
+  CUBRID and persistent H2. Each run closes/reopens the full schema and verifies security values,
+  encryption roundtrip and WebAuthn delete cascade. CUBRID also verifies own-LOB refusal and preservation
+  of another owner's same-named LOB table throughout schema creation and reopening.
+- Actual CUBRID profile smoke: bootstrapped an administrator and registered an Ed25519 SSH key through
+  the browser, restarted the application, logged in again and verified the saved Korean title and fingerprint.
+  A colliding `DBA.deploy_key` CLOB retained its original value while the application-owned scalar table was created.
+  Browser DOM assertions passed; screenshot capture timed out, so no screenshot-based visual claim is made.
+
+## 2026-09-26 — v1.16 email mutation parity
+
+- Legacy `UserApp.editUserInfo` rejects empty/invalid primary addresses; `Email` requires a valid
+  secondary address. The 2.0 profile and secondary-email endpoints instead persisted malformed values.
+- Shared Jakarta Mail validation now rejects blank, malformed, display-name and multi-address input
+  before mutation. API/MVC profile edits preserve trimming and duplicate checks; signup policy is unchanged.
+- Regression: `UserServiceImplSpec`, `UserControllerSpec`, `UserViewControllerSpec` — **267 tests passed**.
+- Live H2 HTTP smoke: both APIs returned 400 for five invalid inputs each and accepted valid plus-tag
+  addresses; `/user/edit` and `/user/email` rejected invalid writes without changing the saved profile/emails.
+  The same API requests returned 200 and persisted malformed addresses before the fix.
+
 ## FINAL STATUS: all 9 bugs fixed and verified — full suite 187/187 passed, 0 failed, 0 fixme
 
 All 9 documented product bugs (#1-#9) are fixed, each individually TDD-verified (red confirmed
@@ -291,28 +322,3 @@ time, checking off as you go.
 - Before declaring all 9 done: one final full clean run — stop the server, optionally wipe
   `data/h2/`, `e2e/.auth`, `e2e/.seed` for a truly fresh bootstrap-through-admin-creation pass
   (see `e2e/README.md`), restart, run `npm test` end to end, report the final pass count.
-
-## CI shard regression fixes
-
-- **Secondary-email confirmation navigation:** the resend action follows its POST redirect,
-  consumes the response body, then reloads the page. Waiting only for the POST response let
-  the confirmation navigation race that reload and fail with `ERR_ABORTED`. The E2E test now
-  waits for the main-frame navigation and document load before following the real mailed link.
-  It retains the confirmation redirect and verified-email controls assertions, without retries.
-  The baseline CI passed this test; repeated failures after the workflow change must not be
-  dismissed as an equivalent baseline failure.
-- **Issue/comment-vote E2E readiness:** server-rendered controls could be clicked before
-  their JavaScript handlers were ready. The comment button sent no request; the issue anchor
-  followed its URL with GET instead of POST and received 405. Both flows now wait for document
-  load after observing the changed vote state. Delaying delivery of real scripts reproduced
-  each old failure; each corrected flow passed three repetitions under its respective delay.
-- **SQL Server public-key persistence and fixture cleanup:** hard-coded `TEXT` columns for
-  `DeployKey.publicKey`, `GpgKey.armoredPublicKey`, and `SshKey.publicKey` conflicted with Unicode JDBC reads.
-  The resulting `text`→`NCHAR` error also broke existing fixture cleanup, leaving key rows
-  that caused later project/user deletion to fail on foreign keys. All three columns now use the
-  existing dialect-selected large-string mapping (`length = 1_000_000`), which resolves to
-  `nvarchar(max)` on SQL Server. Commit behavior, foreign-key constraints, and cleanup
-  assertions are unchanged. Compare exact failed testcase identities across shards, not only
-  total failure counts or exception types.
-  Previously, another cached context's schema recreation could erase leaked fixtures and mask
-  broken cleanup; context-owned databases no longer provide that accidental reset.

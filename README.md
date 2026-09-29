@@ -103,6 +103,10 @@ Claude 같은 AI 에이전트가 이슈·PR·위키 페이지를 직접 조회·
 ## 요구 사항
 
 - JDK 21
+- Node.js 22 이상과 npm 10 이상 (`PATH`에서 사용 가능해야 함). `./gradlew test`를 포함한
+  리소스 빌드는 `frontend/`에서 잠금 파일 기반 `npm ci`를 실행합니다. 최초 빌드에는 npm
+  레지스트리 접근 또는 미리 채운 npm 캐시가 필요합니다. 공식 `@hotwired/turbo` 배포 파일은
+  Gradle 빌드 출력에 복사되어 애플리케이션에 포함되며, 실행 시 Node.js나 CDN은 필요하지 않습니다.
 - 운영/테스트 DB 중 하나: MariaDB(기본), PostgreSQL, MySQL, SQL Server, CUBRID, H2(설치 없이 바로 써보기)
 
 ## 빌드 & 실행
@@ -144,9 +148,17 @@ java -jar yona.jar --spring.profiles.active=postgres
 java -jar yona.jar --spring.profiles.active=h2
 ```
 
-통합 테스트는 Testcontainers로 5개 서버 DB를 선택해 실행합니다(H2는 내장형입니다).
+`cubrid` 프로파일은 지원되지 않는 `TEXT`와 `NOT NULL LOB` 보안 필드를 `META-INF/orm-cubrid.xml`에서
+문자열은 CUBRID `STRING`(=`VARCHAR(1,073,741,823)`), 바이너리는 `BIT VARYING`으로 매핑합니다.
+`STRING`은 가변 길이 문자열이며 CLOB 같은 LOB 타입이 아닙니다. 다른 DB의 컬럼 형식은 바꾸지
+않습니다. 기존에 수동 생성된 `CLOB`/`BLOB` 컬럼은 값을 보존하는 별도 마이그레이션이 필요합니다.
+애플리케이션은 기존 LOB를 자동 변환하거나 삭제하지 않습니다.
+메타데이터 조회는 설정된 Hibernate 스키마(미설정 시 DB 접속 사용자)로 제한해
+다른 소유자의 동명 테이블을 갱신 대상으로 오인하지 않습니다.
+
+통합 테스트는 H2와 5개 서버 DB(MariaDB, PostgreSQL, MySQL, SQL Server, CUBRID)를 검증합니다.
 같은 checkout에서 Gradle 테스트를 동시에 실행하지 마세요. 빌드 출력과 일부 테스트 파일 경로를
-공유하므로 병렬 실행에는 CI처럼 별도 runner가 필요합니다.
+공유하므로, 병렬 검증은 각기 독립된 CI runner/worktree에서 실행합니다.
 
 ```bash
 ./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid|h2
@@ -429,6 +441,10 @@ agents such as Claude can directly query and act on issues, pull requests, and w
 ## Requirements
 
 - JDK 21
+- Node.js 22+ and npm 10+ available on `PATH`. Resource builds, including `./gradlew test`,
+  run lockfile-based `npm ci` in `frontend/`. The first build needs npm registry access or a
+  pre-populated npm cache. The official `@hotwired/turbo` distribution is copied into Gradle
+  build output and packaged with the application; Node.js and a CDN are not needed at runtime.
 - One of the supported/tested DBs: MariaDB (default), PostgreSQL, MySQL, SQL Server, CUBRID, or embedded H2 (no install needed)
 
 ## Build & Run
@@ -471,9 +487,18 @@ java -jar yona.jar --spring.profiles.active=postgres
 java -jar yona.jar --spring.profiles.active=h2
 ```
 
-Integration tests select one of five server databases through Testcontainers; H2 is embedded.
-Do not run Gradle tests concurrently in the same checkout: build outputs and some test paths are
-shared. Parallel execution requires separate runners, as used by CI.
+The `cubrid` profile overrides only security fields that cannot use `TEXT` or `NOT NULL LOB` in
+`META-INF/orm-cubrid.xml`: character data uses CUBRID `STRING` (equivalent to
+`VARCHAR(1,073,741,823)`) and binary data uses `BIT VARYING`. `STRING` is a variable-length string,
+not a LOB such as CLOB. Column types on other databases are unchanged. Existing custom CLOB/BLOB
+columns in those fields require an explicit data-preserving migration; the application never converts
+or deletes them automatically.
+Metadata lookup is restricted to the configured Hibernate schema, or the database login owner
+when unspecified, so same-named tables belonging to another owner are not mistaken for application tables.
+
+Integration tests use Testcontainers for MariaDB, PostgreSQL, MySQL, SQL Server and CUBRID;
+H2 is embedded. Do not run Gradle tests concurrently in the same checkout because build outputs
+and some test paths are shared. Run parallel tests only in independent runners/worktrees.
 
 ```bash
 ./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid|h2

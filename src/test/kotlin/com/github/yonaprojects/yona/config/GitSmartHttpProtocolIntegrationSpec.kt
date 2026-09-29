@@ -16,9 +16,10 @@ import io.kotest.assertions.withClue
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import java.io.File
 import java.nio.file.Files
 import java.nio.charset.StandardCharsets
@@ -47,7 +48,6 @@ class GitSmartHttpProtocolIntegrationSpec @Autowired constructor(
     private val repositoryService: RepositoryService,
     private val projectUserRepository: ProjectUserRepository,
     private val roleRepository: RoleRepository,
-    @Value("\${yona.git.base-dir}") private val gitBaseDir: String,
 ) : AbstractIntegrationTest() {
 
     private fun hashPassword(password: String, salt: String): String {
@@ -67,6 +67,16 @@ class GitSmartHttpProtocolIntegrationSpec @Autowired constructor(
     @LocalServerPort
     private var port: Int = 0
 
+    companion object {
+        private val gitBaseDirHolder = Files.createTempDirectory("git-smart-http-it-").toFile()
+
+        @JvmStatic
+        @DynamicPropertySource
+        fun overrideGitBaseDir(registry: DynamicPropertyRegistry) {
+            registry.add("yona.git.base-dir") { gitBaseDirHolder.absolutePath }
+        }
+    }
+
     init {
         describe("실제 git clone 커맨드로 검증하는 스마트 HTTP 프로토콜 (TASK-0416)") {
             it("PUBLIC 프로젝트를 실제 git clone 바이너리로 clone하면 성공하고 커밋된 파일이 있어야 한다") {
@@ -78,10 +88,10 @@ class GitSmartHttpProtocolIntegrationSpec @Autowired constructor(
                         Project(name = "git-proto-proj", owner = owner.loginId, projectScope = ProjectScope.PUBLIC, vcs = "GIT")
                     )
 
-                val gitDir = File(gitBaseDir, "${project.owner}/${project.name}.git")
+                val gitDir = File(gitBaseDirHolder, "${project.owner}/${project.name}.git")
                 if (!gitDir.exists()) {
                     repositoryService.getRepository(project).create()
-                    BareCommit(project, owner, gitBaseDir).commitTextFile(
+                    BareCommit(project, owner, gitBaseDirHolder.absolutePath).commitTextFile(
                         "README.md", "# git-proto-proj", "초기 커밋"
                     )
                 }
@@ -137,7 +147,7 @@ class GitSmartHttpProtocolIntegrationSpec @Autowired constructor(
                     projectUserRepository.save(ProjectUser(user = owner, project = project, role = managerRole))
                 }
 
-                val gitDir = File(gitBaseDir, "${project.owner}/${project.name}.git")
+                val gitDir = File(gitBaseDirHolder, "${project.owner}/${project.name}.git")
                 if (!gitDir.exists()) {
                     repositoryService.getRepository(project).create()
                 }

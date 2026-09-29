@@ -116,14 +116,10 @@ test('resending the validation email for an unverified secondary address, then c
   const emailRow = ownPage.locator('tr', { hasText: secondaryEmail });
   const resendButton = emailRow.locator('button[data-request-method="post"][href*="/sendValidationEmail/"]');
   await expect(resendButton).toBeVisible();
-  // requestAs reloads only after reading the redirected fetch response, not the POST's 302.
-  // Wait for the new document: waitForURL would resolve immediately at this same URL.
   await Promise.all([
     ownPage.waitForResponse((res) => res.url().includes('/sendValidationEmail/') && res.request().method() === 'POST'),
-    ownPage.waitForEvent('framenavigated', (frame) => frame === ownPage.mainFrame()),
     resendButton.click(),
   ]);
-  await ownPage.waitForLoadState('load');
 
   const message = await findMailTo(request, secondaryEmail);
   const html = await fetchMailText(request, message.ID);
@@ -443,12 +439,11 @@ test('cross-project "my issues" screen shows an issue actually assigned to the c
   await page.goto(`/${adminLoginId}/${projectName}/issues`);
   const issueRow = page.locator('li.post-item', { hasText: issueTitle });
   await issueRow.locator('input[name="checked-issue"]').check();
-  await page.click('#assignee button.dropdown-toggle');
+  await page.click('#list-assignee button.dropdown-toggle');
   await Promise.all([
-    page.waitForURL(new RegExp(`/${adminLoginId}/${projectName}/issues$`)),
-    page.locator('#assignee ul.dropdown-menu > li').nth(1).locator('a').click(),
+    page.waitForNavigation({ waitUntil: 'load' }),
+    page.locator('#list-assignee ul.dropdown-menu > li').nth(1).locator('a').click(),
   ]);
-  await page.waitForLoadState('networkidle');
 
   const response = await page.goto('/user/issues');
   expect(response?.status()).toBeLessThan(400);

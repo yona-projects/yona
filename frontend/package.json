@@ -1,0 +1,11 @@
+{
+  "name": "yona-frontend",
+  "private": true,
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "dependencies": {
+    "@hotwired/turbo": "8.0.23"
+  }
+}

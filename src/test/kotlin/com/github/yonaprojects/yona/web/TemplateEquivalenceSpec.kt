@@ -33,7 +33,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
 import org.springframework.web.context.WebApplicationContext
 import com.github.yonaprojects.yona.domain.issue.IssueLabelRepository
@@ -70,7 +69,6 @@ import org.thymeleaf.spring6.SpringTemplateEngine
 import org.thymeleaf.context.Context as ThymeleafContext
 import java.util.Locale
 
-@DirtiesContext
 @TestPropertySource(properties = ["github.allow.migration=true"])
 class TemplateEquivalenceSpec @Autowired constructor(
     private val wac: WebApplicationContext,

@@ -32,6 +32,7 @@ import io.mockk.just
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver
@@ -1313,6 +1314,42 @@ class UserViewControllerSpec : DescribeSpec({
 
     // editUserInfo()의 미인증/name blank/email 중복/avatar(없음, 첨부파일 없음, 비이미지, 이미지) 분기.
     describe("POST /user/edit (editUserInfo)") {
+        it("빈 값과 잘못된 이메일은 편집 화면으로 돌려보내고 기존 프로필과 아바타를 보존해야 한다") {
+            val user = User(id = 10L, loginId = "testuser", name = "original", email = "original@example.com")
+            val auth = UsernamePasswordAuthenticationToken("testuser", "password")
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+            every { userRepository.findByEmail(any()) } returns Optional.empty()
+            every { userRepository.save(any()) } answers { firstArg() }
+
+            for (invalid in listOf("", " \t ", "invalid-primary", "@example.com", "user@", "user@@example.com", "user name@example.com", "Name <user@example.com>", "a@example.com,b@example.com")) {
+                mockMvc.perform(
+                    post("/user/edit")
+                        .param("name", "changed")
+                        .param("email", invalid)
+                        .param("avatarId", "502")
+                        .principal(auth)
+                )
+                    .andExpect(status().is3xxRedirection)
+                    .andExpect(redirectedUrl("/user/editform"))
+                user.name shouldBe "original"
+                user.email shouldBe "original@example.com"
+            }
+            verify(exactly = 0) { userRepository.save(any()) }
+            verify(exactly = 0) { attachmentRepository.findById(any()) }
+
+            mockMvc.perform(
+                post("/user/edit")
+                    .param("name", "changed")
+                    .param("email", " User+tag@Example.com ")
+                    .principal(auth)
+            )
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/user/testuser"))
+            user.name shouldBe "changed"
+            user.email shouldBe "User+tag@Example.com"
+            verify(exactly = 1) { userRepository.save(user) }
+        }
+
         it("미인증 시 error/403을 반환해야 한다") {
             userViewController.editUserInfo("이름", "a@a.com", null, null) shouldBe "error/403"
         }

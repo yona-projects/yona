@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.domain.vcs
 
 import com.github.yonaprojects.yona.domain.project.Project
+import com.github.yonaprojects.yona.domain.support.LineEnding
 import com.github.yonaprojects.yona.domain.user.User
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException
@@ -24,7 +25,6 @@ class BareCommit(
     project: Project,
     user: User,
     gitBaseDir: String,
-    defaultBranch: String = "main",
     // 위키 저장소(`<owner>/<project>.wiki.git`)처럼 프로젝트의 실제 코드 저장소가 아닌 다른
     // bare 저장소에 커밋해야 하는 호출부를 위한 오버라이드. null이면 기존과 동일하게
     // "${project.name}.git"을 그대로 쓴다(기존 호출부 전부 무변경).
@@ -34,10 +34,7 @@ class BareCommit(
     private val personIdent: PersonIdent
     private var commitMessage: String? = null
     private var file: File? = null
-    // 새 프로젝트의 실제 초기 브랜치(GitRepository.create()가 만드는 것)와 일치해야 한다 — 안
-    // 그러면 setRefName() 없이 이 기본값으로 커밋하는 경로(README/ISSUE_TEMPLATE 등)가 실제 HEAD가
-    // 가리키는 빈 브랜치가 아니라 별도의 고아 브랜치를 만들어버린다.
-    private var refName: String = Constants.R_HEADS + defaultBranch
+    private var refName: String = Constants.HEAD
     private var headObjectId: ObjectId? = null
 
     init {
@@ -62,7 +59,10 @@ class BareCommit(
             val ref = repository.findRef(refName)
             this.headObjectId = ref?.objectId ?: ObjectId.zeroId()
             
-            val blobId = inserter.insert(Constants.OBJ_BLOB, contents.toByteArray(Charsets.UTF_8))
+            val text = LineEnding.addEOL(
+                LineEnding.changeLineEnding(contents, findFileLineEnding(fileNameWithPath))
+            )!!
+            val blobId = inserter.insert(Constants.OBJ_BLOB, text.toByteArray(Charsets.UTF_8))
             val treeId = createTreeWith(inserter, file!!.name, blobId)
             
             val commitBuilder = CommitBuilder().apply {
@@ -92,6 +92,19 @@ class BareCommit(
             repository.close()
         }
         return commitId
+    }
+
+    // Legacy BareRepository.findFileLineEnding reads the existing file from HEAD.
+    private fun findFileLineEnding(path: String): LineEnding.EndingType {
+        val head = repository.resolve(Constants.HEAD) ?: return LineEnding.EndingType.UNDEFINED
+        RevWalk(repository).use { walk ->
+            val tree = walk.parseCommit(head).tree
+            TreeWalk.forPath(repository, path, tree).use { fileWalk ->
+                if (fileWalk == null) return LineEnding.EndingType.UNDEFINED
+                val contents = repository.open(fileWalk.getObjectId(0)).bytes.toString(Charsets.UTF_8)
+                return LineEnding.findLineEnding(contents)
+            }
+        }
     }
 
     // yona BareCommit.java의 bare commit(https://gist.github.com/porcelli/3882505 인용) 대응.

@@ -117,6 +117,28 @@ class UserServiceImplSpec : DescribeSpec({
         }
 
         describe("addEmail") {
+            it("빈 값과 잘못된 주소는 기존 이메일을 변경하지 않고 거절하며 유효한 주소는 그대로 추가해야 한다") {
+                val user = User(id = 3L, loginId = "emailuser", email = "primary@example.com")
+                user.addEmail(Email(user = user, email = "pending@example.com"))
+                every { userRepository.findById(3L) } returns Optional.of(user)
+                every { userRepository.findByEmail(any()) } returns Optional.empty()
+                every { emailRepository.existsByEmailAndValid(any(), true) } returns false
+                every { emailRepository.save(any()) } answers { firstArg() }
+
+                for (invalid in listOf("", " \t ", "invalid-address", "@example.com", "user@", "user@@example.com", "user name@example.com", "Name <user@example.com>", "a@example.com,b@example.com", "Friends:a@example.com;")) {
+                    shouldThrow<IllegalArgumentException> { userService.addEmail(3L, invalid) }
+                    user.email shouldBe "primary@example.com"
+                    user.emails.map { it.email } shouldBe listOf("pending@example.com")
+                }
+                verify(exactly = 0) { emailRepository.save(any()) }
+
+                val saved = userService.addEmail(3L, "User+tag@Example.com")
+                saved.email shouldBe "User+tag@Example.com"
+                saved.valid shouldBe false
+                user.email shouldBe "primary@example.com"
+                user.emails.map { it.email } shouldBe listOf("pending@example.com", "User+tag@Example.com")
+            }
+
             it("사용자를 찾을 수 없으면 예외를 던져야 한다") {
                 every { userRepository.findById(999L) } returns Optional.empty()
 

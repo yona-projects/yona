@@ -209,6 +209,33 @@ allOpen {
 	annotation("jakarta.persistence.Embeddable")
 }
 
+val npmCi = tasks.register<Exec>("npmCi") {
+	workingDir("frontend")
+	commandLine(if (System.getProperty("os.name").startsWith("Windows")) "npm.cmd" else "npm",
+		"ci", "--ignore-scripts", "--no-audit", "--no-fund")
+	inputs.files("frontend/package.json", "frontend/package-lock.json")
+	outputs.dir("frontend/node_modules")
+}
+
+val turboResources = layout.buildDirectory.dir("generated/turbo")
+val copyTurbo = tasks.register<Copy>("copyTurbo") {
+	dependsOn(npmCi)
+	from("frontend/node_modules/@hotwired/turbo/dist/turbo.es2017-esm.js")
+	into(turboResources)
+}
+
+tasks.processResources {
+	dependsOn(copyTurbo)
+	from(turboResources) {
+		into("static/javascripts/turbo")
+	}
+	doFirst {
+		check(turboResources.get().file("turbo.es2017-esm.js").asFile.isFile) {
+			"Turbo distribution missing; npmCi and copyTurbo must provide turbo.es2017-esm.js"
+		}
+	}
+}
+
 // Docker가 없고 Podman만 있는 환경(예: macOS)에서는 표준 유닉스 소켓 탐색이 실패하므로,
 // 명령어 존재 여부를 확인해 Podman의 로컬 API 소켓을 DOCKER_HOST로 지정한다.
 fun resolveDockerHost(): String? {

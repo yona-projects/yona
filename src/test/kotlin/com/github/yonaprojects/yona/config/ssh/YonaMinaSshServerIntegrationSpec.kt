@@ -25,7 +25,6 @@ import io.kotest.assertions.withClue
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import java.io.File
@@ -41,7 +40,6 @@ import java.nio.file.Paths
  * yona.ssh.mina.enabled=true로 강제해(운영에서는 "auto"가 기본값 — 윈도우에서만 자동 활성화)
  * 리눅스 CI에서도 이 경로를 실제로 검증한다.
  */
-@DirtiesContext
 class YonaMinaSshServerIntegrationSpec @Autowired constructor(
     private val yonaMinaSshServer: YonaMinaSshServer,
     private val userRepository: UserRepository,

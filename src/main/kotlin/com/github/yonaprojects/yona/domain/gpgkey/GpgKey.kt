@@ -2,6 +2,8 @@ package com.github.yonaprojects.yona.domain.gpgkey
 
 import com.github.yonaprojects.yona.domain.user.User
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcType
+import org.hibernate.type.descriptor.jdbc.VarcharJdbcType
 import java.time.Instant
 
 // GitHub "Settings > SSH and GPG keys" 화면의 GPG 키 섹션과 동일한 사용자 전역 GPG 공개키.
@@ -26,7 +28,8 @@ class GpgKey(
     @Column(name = "fingerprint", nullable = false, unique = true, length = 64)
     var fingerprint: String = "",
 
-    @Column(name = "armored_public_key", nullable = false, length = 1_000_000)
+    @Column(name = "armored_public_key", nullable = false, columnDefinition = "TEXT")
+    @JdbcType(VarcharJdbcType::class)
     var armoredPublicKey: String = "",
 
     // 마스터 키 + 서명 서브키를 포함한 모든 구성 키의 Key ID. 커밋 서명의 issuer key id로 이

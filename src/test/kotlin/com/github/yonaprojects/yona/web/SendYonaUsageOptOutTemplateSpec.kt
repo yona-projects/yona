@@ -7,7 +7,6 @@ import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -19,7 +18,6 @@ import org.springframework.web.context.WebApplicationContext
 // TemplateEquivalenceSpec의 "sendYonaUsage 설정 기본값(true)이면 렌더링되어야 한다" 테스트와
 // 짝을 이룬다 — 배포자가 yona.analytics.send-usage=false로 명시적으로 꺼도 구글 애널리틱스
 // 스크립트가 렌더링되지 않아야 한다는 옵트아웃 경로를 별도 프로퍼티 오버라이드로 검증한다.
-@DirtiesContext
 @TestPropertySource(properties = ["yona.analytics.send-usage=false"])
 class SendYonaUsageOptOutTemplateSpec @Autowired constructor(
     private val wac: WebApplicationContext,

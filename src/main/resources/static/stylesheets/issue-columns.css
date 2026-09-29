@@ -1,0 +1,12 @@
+.issue-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.issue-columns.has-detail { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+#issue-list, #issue-detail { display: block; min-width: 0; }
+#issue-detail[hidden] { display: none; }
+#issue-detail { border-left: 1px solid #ddd; padding-left: 12px; overflow-wrap: anywhere; }
+#issue-detail .page-wrap-outer { padding: 0; }
+#issue-detail .board-header .title { white-space: normal; }
+#issue-detail pre { overflow-x: auto; }
+@media (max-width: 720px) {
+    .issue-columns.has-detail { grid-template-columns: minmax(0, 1fr); }
+    #issue-detail { border-left: 0; border-top: 1px solid #ddd; padding: 12px 0 0; }
+}

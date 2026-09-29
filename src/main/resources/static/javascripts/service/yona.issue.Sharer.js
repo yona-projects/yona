@@ -5,7 +5,9 @@
  * https://yona.io
  **/
 // #issueSharer는 issue/view.html에서 실제로 로드/호출되는 코드다.
-function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUrl, updateSharingApiUrl, message){
+function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUrl, updateSharingApiUrl, message, root){
+  root = root || document;
+  var lifecycle = new AbortController();
   var MIN_INPUT_LENGTH = 1;
   var resultCache = {};
 
@@ -29,7 +31,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
     };
   }
 
-  var issueSharerElement = document.getElementById("issueSharer");
+  var issueSharerElement = root.querySelector("#issueSharer");
 
   var tomSelectInstance = new TomSelect(issueSharerElement, {
     valueField: "loginId",
@@ -51,7 +53,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         return;
       }
 
-      fetch(findSharableUsersApiUrl + "?" + new URLSearchParams({ query: query }))
+      fetch(findSharableUsersApiUrl + "?" + new URLSearchParams({ query: query }), {signal: lifecycle.signal})
         .then(function(response){
           if(!response.ok){
             return Promise.reject(response);
@@ -59,10 +61,12 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
           return response.json();
         })
         .then(function(data){
+          if(lifecycle.signal.aborted){ return; }
           resultCache[query] = data || [];
           callback(resultCache[query]);
         })
         .catch(function(){
+          if(lifecycle.signal.aborted){ return; }
           callback();
         });
     },
@@ -87,7 +91,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
   // 뒤늦게 갱신됨).
   var initialIds = tomSelectInstance.items.join(",");
   if(initialIds !== ""){
-    fetch(findUsersByloginIdsApiUrl + "?query=" + initialIds)
+    fetch(findUsersByloginIdsApiUrl + "?query=" + initialIds, {signal: lifecycle.signal})
       .then(function(response){
         if(!response.ok){
           return Promise.reject(response);
@@ -95,6 +99,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         return response.json();
       })
       .then(function(data){
+        if(lifecycle.signal.aborted){ return; }
         if(data && data.length > 0){
           data.forEach(function(user){
             tomSelectInstance.updateOption(user.loginId, user);
@@ -116,6 +121,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
 
     if(updateSharingApiUrl){
       fetch(updateSharingApiUrl, {
+        signal: lifecycle.signal,
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(payload)
@@ -127,6 +133,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         return response.json();
       })
       .then(function(response){
+        if(lifecycle.signal.aborted){ return; }
         $yona.notify(response.action + ": " + response.sharer, 3000);
       })
       .catch(function(){
@@ -144,6 +151,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
 
     if(updateSharingApiUrl){
       fetch(updateSharingApiUrl, {
+        signal: lifecycle.signal,
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(payload)
@@ -155,6 +163,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
         return response.json();
       })
       .then(function(response){
+        if(lifecycle.signal.aborted){ return; }
         $yona.notify(response.action + ": " + response.sharer, 3000);
       })
       .catch(function(){
@@ -164,8 +173,12 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
   });
 
   issueSharerElement.addEventListener("change", function(){
-    document.querySelectorAll(".issue-sharer-count").forEach(function(el){
+    root.querySelectorAll(".issue-sharer-count").forEach(function(el){
       el.textContent = tomSelectInstance.items.length;
     });
-  });
+  }, {signal: lifecycle.signal});
+  return function(){
+    lifecycle.abort();
+    tomSelectInstance.destroy();
+  };
 }

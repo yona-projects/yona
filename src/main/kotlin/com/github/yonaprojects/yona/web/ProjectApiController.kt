@@ -320,7 +320,7 @@ class ProjectApiController(
         return node
     }
 
-    private fun getIssueResult(issue: Issue): Map<String, Any?> {
+    internal fun getIssueResult(issue: Issue): MutableMap<String, Any?> {
         val result = linkedMapOf<String, Any?>(
             "number" to issue.number,
             "id" to issue.id,
@@ -462,7 +462,7 @@ class ProjectApiController(
 
     // yona utils/JodaDateUtil.java:16 ISO_FORMAT("yyyy-MM-dd'T'HH:mm:ssZ") 대응 — issue/posting/comment의
     // createdAt/updatedAt에 쓰인다. null이면 legacy도 빈 문자열을 반환한다(JodaDateUtil.getDateString).
-    private fun formatIsoDate(instant: Instant?): String {
+    internal fun formatIsoDate(instant: Instant?): String {
         if (instant == null) return ""
         return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date.from(instant))
     }

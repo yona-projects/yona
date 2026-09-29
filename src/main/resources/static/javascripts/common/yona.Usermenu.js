@@ -46,6 +46,32 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     afterUsermenuLoaded();
+    document.addEventListener("click", function(e) {
+                var that = e.target.closest(".favorite-issue[data-issue-id]");
+                if (!that) return;
+                e.stopPropagation();
+                fetch(UsermenuToggleFavoriteIssueUrl + that.dataset.issueId, {"method": "post"})
+                    .then(function(response){
+                        return response.text().then(function(text){
+                            if(!response.ok){
+                                return Promise.reject({"responseText": text});
+                            }
+                            return JSON.parse(text);
+                        });
+                    })
+                    .then(function (data) {
+                        if (data.favored) {
+                            that.querySelector('i').classList.add("starred");
+                        } else {
+                            that.querySelector('i').classList.remove("starred");
+                        }
+                        $yona.notify(Messages(data.message), 3000);
+                    })
+                    .catch(function (data) {
+                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                    });
+
+        }, true);
 
     function iniNaviUserMenu() {
         document.addEventListener("keypress", function openFavoriteMenuWithShortcutKey(event) {
@@ -56,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        document.getElementById("main").addEventListener("click", function (event) {
+        document.addEventListener("click", function (event) {
             if (sidebar.offsetWidth !== 0 && !(sidebar.contains(event.target) && event.target !== sidebar)) {
                 closeSidebar(sidebar);
             }
@@ -180,33 +206,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
 
-        document.querySelectorAll(".favorite-issue").forEach(function (el) {
-            _bindOnce(el, "click", function toggleProjectFavorite(e) {
-                e.stopPropagation();
-                var that = this;
-                fetch(UsermenuToggleFavoriteIssueUrl + that.dataset.issueId, {"method": "post"})
-                    .then(function(response){
-                        return response.text().then(function(text){
-                            if(!response.ok){
-                                return Promise.reject({"responseText": text});
-                            }
-                            return JSON.parse(text);
-                        });
-                    })
-                    .then(function (data) {
-                        if (data.favored) {
-                            that.querySelector('i').classList.add("starred");
-                        } else {
-                            that.querySelector('i').classList.remove("starred");
-                        }
-                        $yona.notify(Messages(data.message), 3000);
-                    })
-                    .catch(function (data) {
-                        $yona.alert("Update failed: " + JSON.parse(data.responseText).reason);
-                    });
-
-            });
-        });
 
         document.querySelectorAll(".user-ul > .user-li, .project-ul > .user-li").forEach(function (el) {
             _bindOnce(el, "click", function (e) {

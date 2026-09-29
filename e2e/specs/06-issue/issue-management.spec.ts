@@ -91,19 +91,13 @@ test.describe.serial('issue management actions', () => {
     // yona-dropdown#attaching-label wires onChange -> _onChangeAttachingLabelField -> a real
     // native <form> submit (welForm.submit(), not fetch) to /{owner}/{projectName}/issues/massupdate
     // carrying issues[0].id + attachingLabelIds -- this is a full page navigation, not AJAX.
-    // IssueViewController.massUpdate() redirects to plain `/{owner}/{projectName}/issues` on
-    // success -- wait for that specific URL rather than waitForLoadState('load'), which can
-    // resolve immediately against the *current* (already-loaded) page before the click's
-    // navigation even starts, racing ahead into the next page.goto() with a stale page. Even
-    // after that, the redirect target keeps loading sub-resources for a moment -- an immediate
-    // page.goto() right after waitForURL resolves can still get net::ERR_ABORTED, so settle on
-    // networkidle first.
+    // The mutation redirects to the URL already open; wait for the new document, not
+    // a URL predicate that is true before submission or unrelated background traffic.
     await page.click('#attaching-label button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.click(`#attaching-label li[data-value="${labelId}"] a`),
     ]);
-    await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     await expect(page.locator(`.issue-label[data-label-id="${labelId}"]`)).toBeVisible();
@@ -123,15 +117,11 @@ test.describe.serial('issue management actions', () => {
     // issue/list.html always renders "assign to me" as the *second* <li> in this dropdown
     // (right after "no assignee", before the divider and the per-member list), so target it
     // positionally instead of by (locale-dependent) text.
-    await page.click('#assignee button.dropdown-toggle');
+    await page.click('#list-assignee button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
-      page.locator('#assignee ul.dropdown-menu > li').nth(1).locator('a').click(),
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.locator('#list-assignee ul.dropdown-menu > li').nth(1).locator('a').click(),
     ]);
-    // waitForURL resolves as soon as the redirect target commits; its sub-resources are still
-    // loading for a moment, and an immediate page.goto() right after can hit net::ERR_ABORTED --
-    // settle first.
-    await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     const owner2 = requireSeed('adminLoginId');
@@ -153,12 +143,11 @@ test.describe.serial('issue management actions', () => {
     // The dedicated milestone created above is OPEN by construction (#milestone-open checked),
     // so the mass-update widget's milestone dropdown is guaranteed to be rendered here -- no
     // need to guard against a closed/missing milestone the way a shared cross-file seed would.
-    await page.click('#milestone button.dropdown-toggle');
+    await page.click('#list-milestone button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
-      page.click(`#milestone li[data-value="${milestoneId}"] a`),
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click(`#list-milestone li[data-value="${milestoneId}"] a`),
     ]);
-    await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     // issue/view.html's <dt> label text is locale-dependent (this environment renders English,
@@ -177,10 +166,9 @@ test.describe.serial('issue management actions', () => {
     await issueRow.locator('input[name="checked-issue"]').check();
     await page.click('#state button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.click('#state li[data-value="CLOSED"] a'),
     ]);
-    await page.waitForLoadState('networkidle');
 
     // BUG #4 (was: PRODUCT BUG, now fixed -- see BUGFIXES.md): issue/view.html's state badge did
     // `#{'issue.state.' + issue.state}` with the raw (uppercase) enum name, e.g.
@@ -204,10 +192,9 @@ test.describe.serial('issue management actions', () => {
     await issueRow.locator('input[name="checked-issue"]').check();
     await page.click('#state button.dropdown-toggle');
     await Promise.all([
-      page.waitForURL(new RegExp(`/${owner}/${name}/issues$`)),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.click('#state li[data-value="OPEN"] a'),
     ]);
-    await page.waitForLoadState('networkidle');
 
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     await expect(page.locator('.badge-issue-open').first()).toBeVisible();
@@ -218,9 +205,10 @@ test.describe.serial('issue management actions', () => {
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');
 
-    // requestAs follows the POST redirect and reloads this URL. The new vote state proves
-    // the new document committed; wait for its handlers before clicking unvote, otherwise
-    // the unwired anchor performs a GET instead of the required POST.
+    // The vote link is handled by yona.Common.js's generic requestAs() delegate: fetch POST,
+    // then document.location.reload() on success (same URL, not a new one) -- wait on the
+    // /vote response itself rather than a load-state race, then let the auto-retrying
+    // expect() below ride out the reload.
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     const voteLink = page.locator('#vote a[data-request-method="post"]');
     await Promise.all([
@@ -228,7 +216,6 @@ test.describe.serial('issue management actions', () => {
       voteLink.click(),
     ]);
     await expect(page.locator('#vote a.ybtn-watching')).toBeVisible();
-    await page.waitForLoadState('load');
 
     // BUG #5 (was: PRODUCT BUG, now fixed -- see BUGFIXES.md): issue/view.html's vote <a> used
     // to hardcode th:href to the `/vote` route unconditionally -- only its CSS class and tooltip
@@ -323,9 +310,6 @@ test.describe.serial('issue management actions', () => {
     // parsing the response body and just use the last comment-edit trigger instead -- this test
     // works with its own dedicated issue, so the comment just posted is always the only one.
     await expect(page.locator('body')).toContainText(commentBody);
-    // The new document can render before DOMContentLoaded loads issue.View and wires actions.
-    // Wait for its scripts after each rendered-state assertion, before the next interaction.
-    await page.waitForLoadState('load');
     const commentIdLocator = page.locator('[data-toggle="comment-edit"]').last();
 
     await commentIdLocator.click();
@@ -344,7 +328,6 @@ test.describe.serial('issue management actions', () => {
     ]);
     expect(updateResponse.ok()).toBeTruthy();
     await expect(page.locator('body')).toContainText(editedBody);
-    await page.waitForLoadState('load');
 
     // Comment vote/unvote (VoteController.voteComment/unvoteComment) -- a previously untested
     // route pair. The button toggles data-request-uri between .../vote and .../unvote server-side
@@ -352,17 +335,21 @@ test.describe.serial('issue management actions', () => {
     // does fetch(POST) then location.reload().
     const commentId = await commentIdLocator.getAttribute('data-comment-id');
     expect(commentId).toBeTruthy();
-    // Each toggle reloads the page. The changed button proves the new document has arrived;
-    // its load event also waits for the dynamically loaded issue.View click handlers.
+    // Don't wait on networkidle after the click -- this page has enough incidental background
+    // activity post-reload that networkidle can hang well past the test timeout. Don't race a
+    // page.waitForResponse() against the click either -- that pairing is flaky under full-suite
+    // load, since the response/reload/re-render sequence has no hard guarantee of completing
+    // within the observation window when the whole browser is under load. Click, then let
+    // Playwright's auto-retrying expect() alone ride out
+    // the fetch + reload + re-render with a generous explicit timeout -- no network-timing
+    // assumption at all, matching the more robust half of the issue-level vote test above.
     const voteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/vote"]`);
     await expect(voteButton).toBeVisible();
     const unvoteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/unvote"]`);
     await voteButton.click();
     await expect(unvoteButton).toBeVisible({ timeout: 30_000 });
-    await page.waitForLoadState('load');
     await unvoteButton.click();
     await expect(voteButton).toBeVisible({ timeout: 30_000 });
-    await page.waitForLoadState('load');
 
     const deleteTrigger = page.locator('[data-toggle="comment-delete"]').last();
     await deleteTrigger.click();
@@ -384,15 +371,11 @@ test.describe.serial('issue management actions', () => {
     await expect(page.locator('dialog#deleteConfirm')).toBeVisible();
     const [deleteResponse] = await Promise.all([
       page.waitForResponse((res) => res.request().method() === 'DELETE' && res.url().includes(`/issues/${issueNumber}`)),
-      page.click('dialog#deleteConfirm button[data-request-method="delete"]'),
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('dialog#deleteConfirm button[data-issue-delete]'),
     ]);
     expect(deleteResponse.ok()).toBeTruthy();
-    // deleteIssue() returns a plain 200 (no Location header), so requestAs() just reloads the
-    // *current* page rather than redirecting -- give that reload a moment to land before
-    // navigating away, same race condition as the mass-update flows above.
-    await page.waitForLoadState('networkidle');
-
-    await page.goto(`/${owner}/${name}/issues`);
+    await expect(page).toHaveURL(new RegExp(`/${owner}/${name}/issues$`));
     // expect(...).not.toContainText() is an auto-retrying assertion re-polling this page over
     // its timeout window; it produced a false positive here even though a direct, single
     // innerText() snapshot immediately after the same navigation confirms the title is

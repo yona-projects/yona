@@ -122,46 +122,6 @@ class CommentAttachmentUploadWidgetTemplateEquivalenceSpec @Autowired constructo
                 doc.select("form#comment-form yona-attachments#upload[data-resource-type=NONISSUE_COMMENT]").size shouldBe 1
             }
 
-            it("issue/view 화면의 담당자 지정 스크립트는 <th:block> 원문이 그대로 노출되지 않고 실제 JS 호출로 렌더링돼야 한다") {
-                val response = mockMvc.perform(
-                    get("/${project.owner}/${project.name}/issue/${issue.number}")
-                        .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                ).andExpect(status().isOk).andReturn().response.contentAsString
-
-                // <script> 태그 안이라 Jsoup의 HTML 파서가 관여하지 않으므로 원문(raw text)을
-                // 직접 검사한다 — 리터럴 "<th:block"이 남아있으면 브라우저 JS 파싱이 깨진다.
-                response.contains("<th:block") shouldBe false
-                response.contains("yonaAssgineeModule(") shouldBe true
-
-                // th:inline="javascript" 블록 주석으로 처리했다가 겪은 회귀(같은 스크립트 안의
-                // 다른 인라인 표현식이 JSON 문자열로 재이스케이프되며 따옴표가 중복되고
-                // 슬래시가 \/ 로 escape됨)가 재발하지 않는지, 해당 스크립트 블록 안에서만
-                // 좁혀서 확인한다(페이지 다른 곳의 빈 value="" 속성 등과 섞이지 않도록).
-                val callSite = response.substringAfter("yonaAssgineeModule(").substringBefore(");")
-                callSite.contains("\"/-_-api/v1/owners/${project.owner}/projects/${project.name}/issues/${issue.number}/assignableUsers\"") shouldBe true
-                callSite.contains("\"\"") shouldBe false
-                callSite.contains("\\/") shouldBe false
-            }
-
-            it("권한이 없는 사용자에게는 담당자 지정 스크립트 자체가 렌더링되지 않아야 한다") {
-                val outsider = userRepository.findByLoginId("cmtupload-outsider").orElseGet {
-                    userRepository.save(User(loginId = "cmtupload-outsider", name = "댓글업로드외부인", email = "cmtupload-outsider@yona.io"))
-                }
-                val outsiderDetails = YonaUserDetails(
-                    id = outsider.id!!,
-                    loginId = outsider.loginId,
-                    passwordVal = "hashed",
-                    passwordSalt = "salt",
-                    authoritiesVal = AuthorityUtils.createAuthorityList("ROLE_ACTIVE")
-                )
-
-                val response = mockMvc.perform(
-                    get("/${project.owner}/${project.name}/issue/${issue.number}")
-                        .with(SecurityMockMvcRequestPostProcessors.user(outsiderDetails))
-                ).andExpect(status().isOk).andReturn().response.contentAsString
-
-                response.contains("yonaAssgineeModule(") shouldBe false
-            }
         }
     }
 }

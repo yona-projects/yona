@@ -112,7 +112,7 @@
             _initPjax();
             _initImplicitTitlePrefix();
             _listHoverEffect();
-            _initTwoColumnMode();
+            if (!document.getElementById("issue-list")) { _initTwoColumnMode(); }
             _initShowChildList();
 
             htInitialOptions = htOptions || {};
@@ -297,6 +297,8 @@
          * @private
          */
         function _initPjax(){
+            // Turbo owns selected-detail history; filters/pagination keep native document navigation.
+            if (document.getElementById("issue-list")) { return; }
             var elContainer = document.querySelector('div[pjax-container]');
             if(!elContainer){
                 return;
@@ -382,6 +384,7 @@
                 });
             });
 
+            if (document.getElementById("issue-list")) { return; }
             document.querySelectorAll(".title-wrap > .title").forEach(function(el){
                 el.addEventListener("click", function(e){
                     e.stopPropagation();

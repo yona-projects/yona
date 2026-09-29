@@ -43,6 +43,8 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 import com.github.yonaprojects.yona.domain.project.RecentProjectRepository
 import com.github.yonaprojects.yona.domain.user.User
+import jakarta.servlet.http.HttpServletRequest
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
@@ -107,7 +109,8 @@ class IssueViewController(
         @RequestParam(required = false, defaultValue = "desc") orderDir: String,
         @RequestParam(required = false, defaultValue = "15") itemsPerPage: Int,
         authentication: Authentication?,
-        model: Model
+        model: Model,
+        request: HttpServletRequest
     ): Any {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: run {
@@ -128,8 +131,42 @@ class IssueViewController(
             // 프로젝트 헤더/메뉴가 붙는 컨텍스트 인지형 403으로 교체.
             model.addAttribute("project", project)
             model.addAttribute("messageKey", "error.forbidden.or.notfound")
+            model.addAttribute("turboFrameError", request.getHeader("Turbo-Frame") == "issue-detail")
             return "error/forbidden"
         }
+        val selectedParam = request.getParameter("selected")
+        val selected = selectedParam?.toLongOrNull()
+        if (selectedParam != null) {
+            val detailView = if (selected != null && selected > 0) {
+                viewIssue(owner, projectName, selected, authentication, model)
+            } else {
+                "error/notfound"
+            }
+            if (detailView != "issue/view") {
+                model.addAttribute("project", project)
+                model.addAttribute("targetType", "issue_post")
+                model.addAttribute("turboFrameError", request.getHeader("Turbo-Frame") == "issue-detail")
+                return "error/notfound"
+            }
+            // Turbo가 Turbo-Frame: issue-detail 헤더로 "#issue-detail 프레임 안의 내용만 필요하다"고
+            // 명시하는 요청이다. 목록 프레임(templates/issue/list.html:16, data-turbo-permanent)은
+            // 어차피 Turbo가 갱신하지 않고 버리므로, 아래의 목록 조회(필터/페이지네이션/카운트/
+            // 마일스톤/멤버/라벨 등, P3-74 실측 SQL의 대부분)를 실행하지 않고 이미 채워진 상세
+            // model만으로 issue-detail 프레임 fragment를 바로 반환한다. 헤더가 없는 요청(직접 URL
+            // 접근·reload·no-JS)은 이 분기를 타지 않고 기존처럼 목록+상세 전체를 렌더링한다.
+            if (request.getHeader("Turbo-Frame") == "issue-detail") {
+                model.addAttribute("selected", selected)
+                return "issue/list :: issueDetailFrame"
+            }
+        }
+
+        val selectionQuery = request.queryString.orEmpty().split("&")
+            .filter { it.isNotEmpty() && URLDecoder.decode(it.substringBefore("="), StandardCharsets.UTF_8) != "selected" }
+            .joinToString("&")
+        val selectionClearUrl = request.requestURI + if (selectionQuery.isEmpty()) "" else "?$selectionQuery"
+        model.addAttribute("selected", selected)
+        model.addAttribute("selectionClearUrl", selectionClearUrl)
+        model.addAttribute("selectionBaseUrl", selectionClearUrl + if (selectionQuery.isEmpty()) "?" else "&")
 
         val actualPage = if (pageNum != null) {
             if (pageNum > 0) pageNum - 1 else 0

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping" version="7.0">
+    <!-- CUBRID has no TEXT and forbids NOT NULL LOBs. Override only storage/binding for these fields;
+         keep Java relationship, cascade, uniqueness, and all other dialect mappings unchanged. -->
+    <entity class="com.github.yonaprojects.yona.domain.deploykey.DeployKey" access="FIELD">
+        <attributes>
+            <basic name="publicKey">
+                <column name="public_key" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+        </attributes>
+    </entity>
+    <entity class="com.github.yonaprojects.yona.domain.gpgkey.GpgKey" access="FIELD">
+        <attributes>
+            <basic name="armoredPublicKey">
+                <column name="armored_public_key" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+        </attributes>
+    </entity>
+    <entity class="com.github.yonaprojects.yona.domain.sshkey.SshKey" access="FIELD">
+        <attributes>
+            <basic name="publicKey">
+                <column name="public_key" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+        </attributes>
+    </entity>
+    <entity class="com.github.yonaprojects.yona.domain.twofactor.TwoFactorTotpCredential" access="FIELD">
+        <attributes>
+            <basic name="encryptedSecret">
+                <column name="encrypted_secret" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+        </attributes>
+    </entity>
+    <entity class="com.github.yonaprojects.yona.domain.oauth2server.OAuthRegisteredClient" access="FIELD">
+        <attributes>
+            <basic name="clientAuthenticationMethods">
+                <column name="client_authentication_methods" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="authorizationGrantTypes">
+                <column name="authorization_grant_types" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+            <basic name="scopes">
+                <column name="scopes" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+        </attributes>
+    </entity>
+    <entity class="com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizationConsent" access="FIELD">
+        <attributes>
+            <basic name="authorities">
+                <column name="authorities" nullable="false" column-definition="VARCHAR(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarcharJdbcType</jdbc-type>
+            </basic>
+        </attributes>
+    </entity>
+    <entity class="com.github.yonaprojects.yona.domain.twofactor.WebauthnCredential" access="FIELD">
+        <attributes>
+            <basic name="publicKeyCose">
+                <column name="public_key_cose" nullable="false" column-definition="BIT VARYING(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarbinaryJdbcType</jdbc-type>
+            </basic>
+            <basic name="attestationObject">
+                <column name="attestation_object" nullable="false" column-definition="BIT VARYING(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarbinaryJdbcType</jdbc-type>
+            </basic>
+            <basic name="attestationClientDataJson">
+                <column name="attestation_client_data_json" nullable="false" column-definition="BIT VARYING(1073741823)" length="1073741823"/>
+                <jdbc-type>org.hibernate.type.descriptor.jdbc.VarbinaryJdbcType</jdbc-type>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

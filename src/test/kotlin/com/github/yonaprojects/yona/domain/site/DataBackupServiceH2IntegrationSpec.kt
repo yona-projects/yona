@@ -34,12 +34,10 @@ class DataBackupServiceH2IntegrationSpec @Autowired constructor(
     override fun extensions() = listOf(SpringExtension)
 
     companion object {
-        private val jdbcUrl = "jdbc:h2:mem:yona-backup-it-${System.nanoTime()};DB_CLOSE_DELAY=-1"
-
         @JvmStatic
         @DynamicPropertySource
         fun registerProperties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url") { jdbcUrl }
+            registry.add("spring.datasource.url") { "jdbc:h2:mem:yona-backup-it-${System.nanoTime()};DB_CLOSE_DELAY=-1" }
             registry.add("spring.datasource.username") { "sa" }
             registry.add("spring.datasource.password") { "" }
             registry.add("spring.datasource.driver-class-name") { "org.h2.Driver" }

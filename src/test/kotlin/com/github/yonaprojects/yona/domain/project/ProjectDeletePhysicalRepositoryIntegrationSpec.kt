@@ -6,7 +6,6 @@ import com.github.yonaprojects.yona.domain.user.UserRepository
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import java.io.File
 
 // TASK-0421(P3-02 11라운드, 버그9) — 실서버(H2 프로파일) + 실제 yona-cli 바이너리로 `project delete`
@@ -21,15 +20,16 @@ import java.io.File
 class ProjectDeletePhysicalRepositoryIntegrationSpec @Autowired constructor(
     private val userRepository: UserRepository,
     private val projectRepository: ProjectRepository,
-    private val projectService: ProjectService,
-    @Value("\${yona.git.base-dir}") private val gitBaseDir: String
+    private val projectService: ProjectService
 ) : AbstractIntegrationTest() {
 
     override fun extensions() = listOf(SpringExtension)
 
     private val ownerName = "del-phys-owner"
     private val projName = "del-phys-repo"
-    private val gitDir = File(gitBaseDir, "$ownerName/$projName.git")
+    // ProjectServiceImplSpec.kt의 물리 저장소 테스트들과 동일하게 @Value 기본값(설정 오버라이드가
+    // 없는 test 프로파일)을 그대로 가정한다.
+    private val gitDir = File("/tmp/yona/git/$ownerName/$projName.git")
 
     init {
         beforeTest {

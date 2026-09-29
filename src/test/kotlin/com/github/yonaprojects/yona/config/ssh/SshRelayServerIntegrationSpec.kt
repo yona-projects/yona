@@ -22,7 +22,6 @@ import io.kotest.assertions.withClue
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import java.io.File
@@ -45,7 +44,6 @@ import java.util.Base64
  * "인코딩된 principal" 문자열을 만들어 핸드셰이크에 흘려보낸다 — 실제 forced command(yona-cli,
  * 이번 작업 범위 밖)가 하는 일과 정확히 같다.
  */
-@DirtiesContext
 class SshRelayServerIntegrationSpec @Autowired constructor(
     private val sshRelayServer: SshRelayServer,
     private val sshAuthService: SshAuthService,

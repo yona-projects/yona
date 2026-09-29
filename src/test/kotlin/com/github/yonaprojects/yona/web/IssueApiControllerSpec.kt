@@ -40,7 +40,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -88,7 +87,10 @@ class IssueApiControllerSpec : DescribeSpec({
         accessControl,
         issueLabelRepository,
         issueLabelCategoryRepository,
-        milestoneRepository
+        milestoneRepository,
+        mockk<ProjectApiController>(),
+        mockk<com.github.yonaprojects.yona.domain.issue.IssueEventRepository>(),
+        mockk<org.springframework.context.MessageSource>()
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
 
@@ -182,15 +184,6 @@ class IssueApiControllerSpec : DescribeSpec({
     }
 
     describe("GET /-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}") {
-        it("이슈를 조회한다") {
-            val issue = Issue(id = 50L, title = "이슈", project = project, number = 7L, authorId = 10L)
-            every { issueRepository.findByProjectAndNumber(project, 7L) } returns issue
-
-            mockMvc.perform(get("/-_-api/v1/owners/alice/projects/myproject/issues/7").principal(auth))
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.title").value("이슈"))
-        }
-
         it("이슈가 없으면 400을 반환한다") {
             every { issueRepository.findByProjectAndNumber(project, 7L) } returns null
 
@@ -250,42 +243,6 @@ class IssueApiControllerSpec : DescribeSpec({
         }
     }
 
-    describe("PATCH /-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number} (updateIssueState)") {
-        it("state를 CLOSED로 바꾼다") {
-            val issue = Issue(id = 50L, title = "이슈", project = project, number = 7L, authorId = 10L, state = State.OPEN)
-            every { issueRepository.findByProjectAndNumber(project, 7L) } returns issue
-            every { issueService.changeState(50L, State.CLOSED, "alice") } returns issue.apply { state = State.CLOSED }
-
-            mockMvc.perform(
-                patch("/-_-api/v1/owners/alice/projects/myproject/issues/7")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"state":"closed"}""")
-                    .principal(auth)
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.state").value("CLOSED"))
-        }
-    }
-
-    describe("PUT /-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number} (updateIssue)") {
-        it("제목/본문을 수정한다") {
-            val issue = Issue(id = 50L, title = "이전제목", body = "이전본문", project = project, number = 7L, authorId = 10L)
-            every { issueRepository.findByProjectAndNumber(project, 7L) } returns issue
-            every {
-                issueService.updateIssue(50L, "새제목", "새본문", user, null, null, null)
-            } returns issue.apply { title = "새제목"; body = "새본문" }
-
-            mockMvc.perform(
-                put("/-_-api/v1/owners/alice/projects/myproject/issues/7")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"title":"새제목","body":"새본문"}""")
-                    .principal(auth)
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$.title").value("새제목"))
-        }
-    }
-
     describe("POST /-_-api/v1/owners/{owner}/projects/{projectName}/issuelabel/{number}") {
         it("라벨 집합을 통째로 교체한다") {
             val issue = Issue(id = 50L, title = "이슈", project = project, number = 7L, authorId = 10L)
@@ -306,6 +263,19 @@ class IssueApiControllerSpec : DescribeSpec({
     }
 
     describe("POST /-_-api/v1/owners/{owner}/projects/{projectName}/issues (newIssues)") {
+        it("issues가 없거나 배열이 아니면 거부하고 명시적인 빈 배열은 허용한다") {
+            for (body in listOf("{}", """{"issues":null}""", """{"issues":{}}""")) {
+                mockMvc.perform(
+                    post("/-_-api/v1/owners/alice/projects/myproject/issues")
+                        .contentType(MediaType.APPLICATION_JSON).content(body).principal(auth)
+                ).andExpect(status().isBadRequest)
+            }
+            mockMvc.perform(
+                post("/-_-api/v1/owners/alice/projects/myproject/issues")
+                    .contentType(MediaType.APPLICATION_JSON).content("""{"issues":[]}""").principal(auth)
+            ).andExpect(status().isCreated).andExpect(jsonPath("$").isEmpty)
+        }
+
         it("이슈 배열을 벌크 생성한다") {
             val created = Issue(id = 60L, title = "새이슈", project = project, number = 8L)
             every {

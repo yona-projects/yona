@@ -2,6 +2,8 @@ package com.github.yonaprojects.yona.domain.deploykey
 
 import com.github.yonaprojects.yona.domain.project.Project
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcType
+import org.hibernate.type.descriptor.jdbc.VarcharJdbcType
 import java.time.Instant
 
 // GitHub "Deploy keys"(SSH, read-only 체크박스) 화면과 동일한 저장소
@@ -36,7 +38,8 @@ class DeployKey(
     @Column(name = "title", nullable = false)
     var title: String = "",
 
-    @Column(name = "public_key", nullable = false, length = 1_000_000)
+    @Column(name = "public_key", nullable = false, columnDefinition = "TEXT")
+    @JdbcType(VarcharJdbcType::class)
     var publicKey: String = "",
 
     @Column(name = "fingerprint", nullable = false, unique = true, length = 128)

@@ -18,6 +18,8 @@ import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -64,9 +66,17 @@ class SvnHttpProtocolIntegrationSpec @Autowired constructor(
     private var port: Int = 0
 
     companion object {
+        private val svnBaseDirHolder = Files.createTempDirectory("svn-http-it-").toFile()
+
         // 실제 svn CLI가 로컬 사용자의 ~/.subversion 설정/인증 캐시를 건드리지 않도록(공유
         // 개발 환경에서 다른 세션이 svn을 쓰고 있을 수 있음) 이 스펙 전용 config-dir을 쓴다.
         private val svnConfigDirHolder = Files.createTempDirectory("svn-http-it-config-").toFile()
+
+        @JvmStatic
+        @DynamicPropertySource
+        fun overrideSvnBaseDir(registry: DynamicPropertyRegistry) {
+            registry.add("yona.svn.base-dir") { svnBaseDirHolder.absolutePath }
+        }
 
         private fun svnAvailable(): Boolean =
             try {

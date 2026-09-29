@@ -71,8 +71,21 @@ class BoardRestApiControllerIntegrationSpec @Autowired constructor(
             // project.owner는 표시용 문자열일 뿐 AccessControl.isAllowed()의 실제 권한 판정은
             // ProjectUser 관계(user.isMemberOf(project))를 본다 — 직접 저장만으로는 소유자가
             // 멤버로 등록되지 않는다.
+            // Role(id = ...)을 DB 조회 없이 transient 객체로 바로 참조하지 않는다 - P3-74 후속
+            // 조사에서, AbstractIntegrationTest의 @DynamicPropertySource가 매 통합테스트 클래스마다
+            // System.nanoTime() 기반 H2 URL을 등록해도 Spring의
+            // DynamicPropertiesContextCustomizer.equals()/hashCode()가 "등록된 메서드 시그니처"만
+            // 비교하고 그 반환값(URL)은 비교하지 않아, 서로 다른 통합테스트 클래스가 우연히 같은
+            // ApplicationContext를 캐시 히트로 공유하는 경우가 실측으로 확인됐다(예: 이 스펙이
+            // YonaApplicationTests의 컨텍스트를 그대로 재사용). 그 경우 DatabaseInitializer(앱 부팅
+            // 시 1회만 실행되는 CommandLineRunner)가 채워 넣었어야 할 role 기본 데이터가 이 스펙
+            // 실행 시점에는 아직 반영되지 않은 것처럼 보일 수 있어, transient Role 참조가
+            // TransientPropertyValueException으로 이어졌다(전체 스위트 실행에서만 간헐적으로
+            // 재현, 단독 실행에서는 재현 안 됨). LegacyIssueResponseIntegrationSpec이 이미 쓰는
+            // 대로 실제 저장된 Role을 조회하고 없으면 그때 채워 넣는 방어적 패턴으로 캐시 히트
+            // 여부와 무관하게 항상 안전하게 만든다.
             val managerRole = roleRepository.findById(RoleType.MANAGER.roleType).orElseGet {
-                roleRepository.save(Role(id = RoleType.MANAGER.roleType, name = "manager", active = true))
+                roleRepository.save(Role(id = RoleType.MANAGER.roleType, name = "MANAGER"))
             }
             projectUserRepository.save(
                 ProjectUser(user = owner, project = project, role = managerRole)
