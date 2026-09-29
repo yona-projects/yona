@@ -316,3 +316,20 @@ time, checking off as you go.
   total failure counts or exception types.
   Previously, another cached context's schema recreation could erase leaked fixtures and mask
   broken cleanup; context-owned databases no longer provide that accidental reset.
+
+## CI cache measurements
+
+- Gradle caches now persist on CI branches instead of being read-only outside `next`.
+  `setup-gradle` retains its native OS/job/workflow/matrix/commit cache keys; no second
+  Gradle User Home cache is configured. Only the shared `bootJar testClasses` invocation
+  enables `--build-cache`; database and browser tests still execute.
+- Commit `96aeaba39`: cold run [36502233585](https://github.com/Clickin/yona-spring/actions/runs/36502233585)
+  took 12m52s, including a 5m27s shared-build job. The subsequent same-commit warm run
+  [36503351830](https://github.com/Clickin/yona-spring/actions/runs/36503351830) took 6m54s,
+  including a 41s shared-build job. All four Kotlin/Java compilation tasks reported
+  `FROM-CACHE` on the warm run. This measures same-input reuse, not a guarantee for changed sources.
+- Both runs retained the PostgreSQL 16, SQL Server 4, and CUBRID 47 failing-test counts;
+  failed test identities in the job logs matched run `36497731127`.
+  Warm Playwright passed 223 tests with 2 skips, plus 2 passes in the email-verification stage.
+  Cold Playwright failed the milestone close/reopen case while waiting for the close button
+  after reopening; it passed on the warm run. Its cause is not established by these measurements.
