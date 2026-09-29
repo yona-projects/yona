@@ -68,6 +68,7 @@ import com.github.yonaprojects.yona.domain.user.UserIdent
 import org.thymeleaf.spring6.SpringTemplateEngine
 import org.thymeleaf.context.Context as ThymeleafContext
 import java.util.Locale
+import jakarta.servlet.http.Cookie
 
 @TestPropertySource(properties = ["github.allow.migration=true"])
 class TemplateEquivalenceSpec @Autowired constructor(
@@ -701,6 +702,92 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                     val doc = Jsoup.parse(result.response.contentAsString)
                     doc.select("#mySidenav a[href='#myRecentIssueList']").size shouldNotBe 0
+                }
+            }
+
+            describe("Sidebar first-response rendering") {
+                val sidebarIssue = issueRepository.findAll().find { it.title == "Sidebar first response" }
+                    ?: issueRepository.save(
+                        Issue(
+                            title = "Sidebar first response", body = "Sidebar render fixture",
+                            project = publicProj, authorId = owner.id!!,
+                            authorLoginId = owner.loginId, authorName = owner.name, number = 9099L
+                        )
+                    )
+                val issueUrl = "/owner/public-proj/issue/${sidebarIssue.number}"
+                val menuAttributes = listOf(
+                    "favoriteProjects", "favoriteOrganizations", "organizations", "recentlyVisited",
+                    "createdByMe", "watching", "joinmember", "visitedIssues", "menuIdPrefix"
+                )
+
+                it("an open preference embeds the authenticated menu in the first issue response without polluting its model") {
+                    val result = mockMvc.perform(
+                        get(issueUrl).cookie(Cookie("yona.sidebar.open", "true"))
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn()
+
+                    val doc = Jsoup.parse(result.response.contentAsString)
+                    val sidebar = doc.selectFirst("turbo-frame#sidebar")!!
+                    sidebar.attr("data-sidebar-loaded") shouldBe "true"
+                    sidebar.attr("data-sidebar-user") shouldBe member.id.toString()
+                    sidebar.hasAttr("src") shouldBe false
+                    sidebar.hasAttr("hidden") shouldBe false
+                    sidebar.select("a[href='/owner/memberonly-proj/go']").first()!!.text() shouldBe "memberonly-proj"
+                    doc.select("turbo-frame#sidebar").size shouldBe 1
+                    menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                }
+
+                it("a closed or non-true preference leaves menu content unloaded") {
+                    for (value in listOf(null, "false", "TRUE")) {
+                        val request = get(issueUrl)
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                        if (value != null) request.cookie(Cookie("yona.sidebar.open", value))
+                        val result = mockMvc.perform(request).andExpect(status().isOk).andReturn()
+                        val sidebar = Jsoup.parse(result.response.contentAsString).selectFirst("turbo-frame#sidebar")!!
+                        sidebar.hasAttr("hidden") shouldBe true
+                        sidebar.select("#sidebar-usermenu-tab-content-list").size shouldBe 0
+                        sidebar.hasAttr("data-sidebar-loaded") shouldBe false
+                        menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                    }
+                }
+
+                it("an anonymous open cookie cannot expose another user's sidebar") {
+                    val result = mockMvc.perform(get(issueUrl).cookie(Cookie("yona.sidebar.open", "true")))
+                        .andExpect(status().isOk).andReturn()
+                    val doc = Jsoup.parse(result.response.contentAsString)
+                    doc.select("turbo-frame#sidebar").size shouldBe 0
+                    doc.select("[data-sidebar-user]").size shouldBe 0
+                    menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                }
+
+                it("an issue-detail frame response never includes a global sidebar even with an open cookie") {
+                    val result = mockMvc.perform(
+                        get("/owner/public-proj/issues").param("selected", sidebarIssue.number.toString())
+                            .header("Turbo-Frame", "issue-detail")
+                            .cookie(Cookie("yona.sidebar.open", "true"))
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn()
+                    val doc = Jsoup.parse(result.response.contentAsString)
+                    doc.select("turbo-frame#issue-detail").size shouldBe 1
+                    doc.select("turbo-frame#sidebar").size shouldBe 0
+                    menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                }
+
+                it("both direct and frame sidebar requests render the same authenticated menu") {
+                    for (frameRequest in listOf(false, true)) {
+                        val request = get("/user/sidebar")
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                        if (frameRequest) request.header("Turbo-Frame", "sidebar")
+                        val result = mockMvc.perform(request).andExpect(status().isOk).andReturn()
+                        val doc = Jsoup.parse(result.response.contentAsString)
+                        val sidebar = doc.selectFirst("turbo-frame#sidebar")!!
+                        doc.select("turbo-frame#sidebar").size shouldBe 1
+                        sidebar.attr("data-sidebar-loaded") shouldBe "true"
+                        sidebar.attr("data-sidebar-user") shouldBe member.id.toString()
+                        sidebar.hasAttr("data-sidebar-standalone") shouldBe !frameRequest
+                        sidebar.select("a[href='/owner/memberonly-proj/go']").first()!!.text() shouldBe "memberonly-proj"
+                        menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                    }
                 }
             }
 

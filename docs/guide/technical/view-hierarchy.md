@@ -2,8 +2,9 @@
 
 ## Yona 2.0 sidebar
 
-왼쪽 sidebar는 현재 페이지 안의 `turbo-frame#sidebar`로 표시한다. 첫 열기와 명시적 refresh만
-`GET /user/sidebar`에서 서버 HTML을 받으며, 닫기/재열기는 현재 본문 DOM과 입력값을 유지한다.
+왼쪽 sidebar는 현재 페이지 안의 `turbo-frame#sidebar`로 표시한다. 열림 쿠키가 있으면 첫 HTML에
+내용을 서버 렌더링하고, 닫혀 있으면 처음 여는 시점에만 `GET /user/sidebar`로 불러온다.
+닫기/재열기는 현재 본문 DOM과 입력값을 유지하며, 이미 서버 렌더링한 sidebar를 다시 fetch하지 않는다.
 `layout_framed.html`/navigation iframe은 제거했다. Sidebar는 overlay이며 본문 너비를 바꾸지 않는다.
 프로젝트·이슈 링크의 본문 이동은 일반 navigation으로 유지한다.
 

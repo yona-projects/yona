@@ -190,17 +190,27 @@ References: [Turbo Frames](https://turbo.hotwired.dev/handbook/frames), [Turbo l
 
 ### 요청과 DOM 경계
 
-`site/layout :: sidebarHost`가 인증된 페이지에 숨겨진 `turbo-frame#sidebar`를 둔다.
-첫 열기에서만 `src=/user/sidebar`를 설정하고 `Turbo-Frame: sidebar` 요청으로 서버 HTML을 받는다.
-닫기는 iframe 탈출이나 문서 reload 대신 frame을 숨기며, 재열기는 기존 내용을 사용한다.
-새로고침 아이콘은 `frame.reload()`를 호출한다.
+`site/layout :: sidebarHost`는 `yona.sidebar.open=true` 쿠키가 있으면 인증된 사용자의 sidebar를 첫 HTML에 서버 렌더링한다.
+서버가 이미 채운 frame은 초기화 때 숨기거나 다시 요청하지 않는다.
+닫힌 상태에서는 빈 frame을 두고, 사용자가 처음 열 때 `src=/user/sidebar`로 HTML을 받는다.
+닫기/재열기는 본문을 교체하지 않으며, 명시적 refresh만 frame을 다시 불러온다.
 
 Sidebar는 본문을 재배치하지 않는 overlay다. 현재 form DOM, 입력값, URL/query/hash, 본문 너비를 유지한다.
 이는 기존 페이지들의 `DOMContentLoaded` 초기화나 responsive viewport 가정을 바꾸지 않기 위한 범위 제한이다.
-`shallWeOpenLeftNavigation`은 일반 페이지 이동/명시적 reload 후의 열림 선호로 유지한다.
+열림 선호는 `Path=/; SameSite=Lax`의 비민감 UI 쿠키로만 관리한다(HTTPS에서는 Secure).
+이전 `shallWeOpenLeftNavigation` localStorage 플래그는 사용하지 않는다. URL에 UI 상태를 추가하지 않으며,
+서버 세션 변경 POST도 필요하지 않다. 쿠키는 사용자 인증/권한의 근거로 사용하지 않는다.
 `sidebarActiveMenu`의 큰 탭 선호는 유지하고, 프로젝트 세부 탭과 검색어는 사용자 ID별 `sessionStorage`에 보관한다.
 일반 이슈 본문 이동으로 sidebar DOM이 다시 생성돼도 해당 브라우저 탭의 상태를 복원하며,
 다른 사용자나 오른쪽 사용자 메뉴의 검색과 섞지 않는다.
+
+`yona.SidebarState.js`를 head에서 준비하고 서버 markup 직후 실행해, deferred script나
+`DOMContentLoaded`를 기다리지 않고 탭과 검색을 복원한다. `UserMenuModel`은 실제 sidebar
+fragment가 렌더될 때만 조회하고 변수를 로컬로 묶는다. 닫힌 화면이나 본문 frame/API 요청에
+sidebar 데이터를 무조건 추가하지 않는다.
+
+일반 페이지 탐색 자체의 문서 교체는 남는다. 같은 DOM을 모든 페이지에서 영구 보존하는 전면 SPA 전환이 아니라,
+새 문서의 첫 페인트부터 동일한 sidebar를 제공해 숨김→재등장과 중복 요청을 없애는 경계다.
 
 `UserViewController.userSidebar`는 frame 요청에 `site/sidebar :: content`, 직접 요청에 standalone 문서를 반환한다.
 공용 `common/usermenu_tab_content_list.html`에 `sidebar-` ID prefix를 적용해 오른쪽 `#mySidenav`와 충돌하지 않게 한다.
@@ -232,7 +242,8 @@ YONA_BASE_URL=http://localhost:8080 npx playwright test \
   specs/06-issue/issue-crud.spec.ts \
   specs/15-misc/sidebar-turbo.spec.ts \
   specs/15-misc/sidebar-menus.spec.ts \
-  specs/15-misc/sidebar-issue-state.spec.ts
+  specs/15-misc/sidebar-issue-state.spec.ts \
+  specs/15-misc/sidebar-first-paint.spec.ts
 ```
 
 Browser 계약은 모바일/데스크탑 무탐색 toggle, 본문 input identity/값/너비 보존,
@@ -241,10 +252,11 @@ Browser 계약은 모바일/데스크탑 무탐색 toggle, 본문 input identity
 
 ### 이 브랜치의 실행 결과
 
-- `UserViewControllerSpec` 145개 + `TemplateEquivalenceSpec` 85개: 230개 통과.
-- Chromium 13개, Firefox/WebKit 25개: 합계 38개 통과(각 브라우저의 기능 시나리오 12개씩과 setup 2회 포함).
+- 선택한 `UserViewControllerSpec`/`TemplateEquivalenceSpec`: 235개 통과.
+- Chromium 15개, Firefox/WebKit 29개: 합계 44개 통과(각 브라우저 기능 시나리오 14개씩과 setup 2회 포함).
 - `processResources`/`bootJar` 통과. 별도 Markdown frontend dependency나 생성 bundle을 포함하지 않는다.
 - 실제 LAN 화면에서 desktop/mobile 열기·닫기, 입력값/동일 input node/URL 유지, 오른쪽-edge 화살표와 원래 plain menu label을 확인했다.
 - 이 결과는 sidebar 범위다. 기존 이슈 2단 보기 history/filter 회귀나 사이트 전체 Turbo navigation을 해결했다고 주장하지 않는다.
 - 이슈 33개·프로젝트 19개·댓글 9개가 있는 기존 검증 DB의 일관된 복제본과 연결된 저장소/첨부파일로 추가 검증했다. 원본 DB 및 기존 빈-이슈 Turbo 검증 DB는 보존했다.
 - 일반 이슈 목록→본문 이동에서 세부 탭/검색어가 사라지는 누락을 발견해 수정했다. 실제 이슈 본문, 이슈 2단 보기의 A→B 전환, sidebar refresh 중 미전송 댓글 유지까지 확인했다.
+- Sidebar 초기화 script를 의도적으로 지연한 이슈 본문 이동에서도 첫 HTML의 sidebar·탭·검색이 보이며, script 재개 뒤 추가 `/user/sidebar` 요청이 없음을 확인했다. 닫은 뒤의 다음 페이지는 lazy 상태로 유지한다.

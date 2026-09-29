@@ -13,7 +13,14 @@ turbo-frame#sidebar {
 turbo-frame#sidebar[hidden] {
   display: none;
 }
-body.left-sidebar-open [data-sidebar-toggle] {
+html:not(.sidebar-js) turbo-frame#sidebar:not([data-sidebar-standalone="true"]) {
+  display: none;
+}
+html.sidebar-js #sidebar[data-sidebar-pending] > .nav-tabs,
+html.sidebar-js #sidebar[data-sidebar-pending] > .tab-content {
+  visibility: hidden;
+}
+html.sidebar-js body.left-sidebar-open [data-sidebar-toggle] {
   visibility: hidden;
 }
 .pin,

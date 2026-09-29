@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+    var sidebarState = window.yonaSidebarState;
     var sidebar = document.getElementById("mySidenav");
     var viewSize = document.documentElement.clientWidth;
     var PIXEL_CRITERIA_FOR_SMALL_DEVICE = 720;  // Criteria to distinguish small devices
@@ -49,9 +50,6 @@ document.addEventListener("DOMContentLoaded", function () {
     bindProjectFavorites(document);
     document.addEventListener("turbo:frame-load", function (event) {
         if (event.target.id === "sidebar") afterUsermenuLoaded(event.target);
-    });
-    document.addEventListener("turbo:before-frame-render", function (event) {
-        if (event.target.id === "sidebar") restoreActiveMenu(event.detail.newFrame);
     });
     document.addEventListener("click", function(e) {
                 var that = e.target.closest(".favorite-issue[data-issue-id]");
@@ -131,17 +129,11 @@ document.addEventListener("DOMContentLoaded", function () {
             var previousSearch = isOrganization ? projectSearch : orgSearch;
             if (isOrganization || !searchInput.value) searchInput.value = previousSearch.value;
             previousSearch.value = "";
-            rememberSidebarSearch(root, searchInput);
-            rememberSidebarSearch(root, previousSearch);
-            filterMenu(searchInput);
+            sidebarState.rememberSearch(root, searchInput);
+            sidebarState.rememberSearch(root, previousSearch);
+            sidebarState.filter(searchInput);
             if (!isOrganization) updateStar(root);
-            if (root.id === "sidebar" && (isOrganization || isProject)) {
-                localStorage.setItem("sidebarActiveMenu", isOrganization ? "myOrganizationList" : "myProjectList");
-            }
-            var stateKey = sidebarSessionKey(root);
-            if (stateKey && tab.closest(".nav-subtab")) {
-                sessionStorage.setItem(stateKey + "projectTab", tab.getAttribute("href"));
-            }
+            sidebarState.rememberTab(root, tab);
             setTimeout(function () {
                 if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE && searchInput.isConnected) searchInput.focus();
             }, 0);
@@ -149,8 +141,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         root.querySelectorAll(".search-input").forEach(function (searchInput) {
             _bindOnce(searchInput, "input", function () {
-                filterMenu(this);
-                rememberSidebarSearch(root, this);
+                sidebarState.filter(this);
+                sidebarState.rememberSearch(root, this);
             });
         });
         _bindOnce(root, "keydown", function (event) {
@@ -223,56 +215,8 @@ document.addEventListener("DOMContentLoaded", function () {
             el.textContent = el.closest(".org-li").querySelectorAll(".project-ul > .user-li").length || "";
         });
 
-        if (root.id === "sidebar") restoreActiveMenu(root);
+        if (root.id === "sidebar") sidebarState.restore(root);
         $yona.initHoverPopovers("#" + root.id + " [data-toggle=popover]");
-    }
-
-    function sidebarSessionKey(root) {
-        return root.id === "sidebar" && root.dataset.sidebarUser
-            ? "yona.sidebar." + root.dataset.sidebarUser + "." : null;
-    }
-
-    function rememberSidebarSearch(root, input) {
-        var key = sidebarSessionKey(root);
-        if (key) sessionStorage.setItem(key + "query." + input.closest(".user-project-list").id, input.value);
-    }
-
-    function restoreActiveMenu(root) {
-        var activeMenu = localStorage.getItem("sidebarActiveMenu");
-        if (activeMenu === "myProjectList" || activeMenu === "myOrganizationList") {
-            root.querySelectorAll(".nav-tabs > li, .tab-pane.user-project-list").forEach(function (el) {
-                el.classList.toggle("active", el.classList.contains(activeMenu));
-            });
-        }
-        var key = sidebarSessionKey(root);
-        if (!key) return;
-        var projectTab = sessionStorage.getItem(key + "projectTab");
-        var link = Array.from(root.querySelectorAll(".nav-subtab a[data-toggle=tab]")).find(function (tab) {
-            return tab.getAttribute("href") === projectTab;
-        });
-        var pane = link && root.querySelector(link.getAttribute("href"));
-        if (pane) {
-            link.closest(".nav-subtab").querySelectorAll("li").forEach(function (item) {
-                item.classList.toggle("active", item.contains(link));
-            });
-            pane.parentElement.querySelectorAll(":scope > .tab-pane").forEach(function (item) {
-                item.classList.toggle("active", item === pane);
-            });
-        }
-        root.querySelectorAll(".search-input").forEach(function (input) {
-            var query = sessionStorage.getItem(key + "query." + input.closest(".user-project-list").id);
-            if (query !== null) {
-                input.value = query;
-                filterMenu(input);
-            }
-        });
-    }
-
-    function filterMenu(searchInput) {
-        var value = searchInput.value.toLowerCase().trim();
-        searchInput.closest(".user-project-list").querySelectorAll(".user-li, .org-li").forEach(function (el) {
-            el.style.display = !value ? "" : el.textContent.toLowerCase().indexOf(value) !== -1 ? "list-item" : "none";
-        });
     }
 
     function bindProjectFavorites(root) {

@@ -4,27 +4,28 @@ import * as Turbo from '/javascripts/turbo/turbo.es2017-esm.js';
 Turbo.session.drive = false;
 Turbo.config.forms.mode = 'off';
 
-const preference = 'shallWeOpenLeftNavigation';
+const sidebarState = window.yonaSidebarState;
 let restoreFocus = false;
 
 function setOpen(frame, open, focus) {
     frame.hidden = !open;
     document.body.classList.toggle('left-sidebar-open', open);
-    localStorage.setItem(preference, String(open));
+    sidebarState.setOpen(open);
     document.querySelectorAll('[data-sidebar-toggle]').forEach(toggle => {
         toggle.setAttribute('aria-expanded', String(open));
     });
-    if (open && !frame.hasAttribute('src')) frame.src = '/user/sidebar';
+    if (open && frame.dataset.sidebarLoaded !== 'true' && !frame.hasAttribute('src')) frame.src = '/user/sidebar';
     if (focus) {
         const target = open ? frame.querySelector('[data-sidebar-close]') : document.querySelector('[data-sidebar-toggle]');
         target?.focus({preventScroll: true});
     }
 }
 
-function restore() {
+function restore(fromHistory) {
     const frame = document.querySelector('turbo-frame#sidebar');
     if (!frame || frame.dataset.sidebarStandalone === 'true') return;
-    setOpen(frame, localStorage.getItem(preference) === 'true', false);
+    // The initial response already reflects the cookie; do not reset preloaded HTML.
+    setOpen(frame, fromHistory ? sidebarState.isOpen() : !frame.hidden, false);
 }
 
 function showFailure(frame, signIn) {
@@ -62,7 +63,7 @@ document.addEventListener('click', event => {
         event.preventDefault();
         setOpen(frame, frame.hidden, true);
     } else if (frame.contains(event.target) && event.target.closest('[data-sidebar-close]')) {
-        localStorage.setItem(preference, 'false');
+        sidebarState.setOpen(false);
         if (!standalone) {
             event.preventDefault();
             setOpen(frame, false, true);
@@ -75,10 +76,15 @@ document.addEventListener('click', event => {
 });
 
 document.addEventListener('turbo:before-frame-render', event => {
-    if (event.target.id === 'sidebar') restoreFocus = event.target.contains(document.activeElement);
+    if (event.target.id !== 'sidebar') return;
+    restoreFocus = event.target.contains(document.activeElement);
+    const newFrame = event.detail.newFrame;
+    sidebarState.restore(newFrame);
+    event.target.dataset.sidebarUser = newFrame.dataset.sidebarUser;
 });
 document.addEventListener('turbo:frame-load', event => {
     if (event.target.id !== 'sidebar') return;
+    event.target.dataset.sidebarLoaded = 'true';
     if (restoreFocus && !event.target.hidden) event.target.querySelector('[data-sidebar-close]')?.focus({preventScroll: true});
     restoreFocus = false;
 });
@@ -100,6 +106,10 @@ document.addEventListener('turbo:fetch-request-error', event => {
     event.preventDefault();
     showFailure(event.target, false);
 });
-document.addEventListener('DOMContentLoaded', restore, {once: true});
-document.addEventListener('turbo:load', restore);
-window.addEventListener('pageshow', event => { if (event.persisted) restore(); });
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => restore(false), {once: true});
+} else {
+    restore(false);
+}
+document.addEventListener('turbo:load', () => restore(true));
+window.addEventListener('pageshow', event => { if (event.persisted) restore(true); });

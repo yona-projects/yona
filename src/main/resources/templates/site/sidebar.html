@@ -2,8 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head th:replace="~{site/layout :: head('Yona')}"></head>
 <body class="theme-default" id="html-body" data-turbo="false">
-<turbo-frame th:fragment="content" id="sidebar" class="sidebar" target="_top" data-turbo="false"
-             th:attr="data-sidebar-standalone=${sidebarStandalone ? 'true' : null},data-sidebar-user=${currentUser?.id}">
+<th:block th:fragment="content" th:with="user=${currentUser}">
+<th:block th:fragment="embedded(user)"
+          th:with="menu=${@userMenuModel.load(user)},currentUser=${user},menuIdPrefix='sidebar-',
+                   favoriteProjects=${menu.favoriteProjects},favoriteOrganizations=${menu.favoriteOrganizations},
+                   organizations=${menu.organizations},recentlyVisited=${menu.recentlyVisited},
+                   createdByMe=${menu.createdByMe},watching=${menu.watching},
+                   joinmember=${menu.joinmember},visitedIssues=${menu.visitedIssues}">
+<turbo-frame id="sidebar" class="sidebar" target="_top" data-turbo="false"
+             data-sidebar-loaded="true" data-sidebar-pending
+             th:attr="data-sidebar-standalone=${sidebarStandalone == true ? 'true' : null},data-sidebar-user=${currentUser.id}">
     <div class="row-fluid user-menu-wrap">
         <span class="user-menu"><a th:href="@{/{loginId}(loginId=${currentUser.loginId})}">
             <span class="avatar-wrap smaller">
@@ -32,6 +40,9 @@
         </div>
     </div>
 </turbo-frame>
+</th:block>
+</th:block>
+<script>window.yonaSidebarState.restore(document.getElementById('sidebar'));</script>
 <noscript>
     <style>
         #sidebar .tab-pane { display: block; }
