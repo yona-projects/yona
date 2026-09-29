@@ -34,50 +34,51 @@ class OAuthAuthorization(
     @Column(name = "authorization_grant_type", nullable = false, length = 100)
     var authorizationGrantType: String,
 
-    // 긴 문자열 컬럼은 @Lob이 아니라 LONG32VARCHAR(MySQL/MariaDB longtext, PostgreSQL text, SQL Server
-    // varchar(max))로 매핑한다. PostgreSQL에서 @Lob String은 대용량 객체(oid)가 되어 트랜잭션 밖에서는
+    // 긴 문자열 컬럼은 @Lob이 아니라 LONG32NVARCHAR(MySQL/MariaDB longtext, PostgreSQL text, SQL Server
+    // nvarchar(max))로 매핑한다. NVARCHAR인 이유: SQL Server의 varchar(max)는 한글 같은 비ASCII 문자를
+    // '?'로 바꿔 저장해, ID 토큰 클레임(사용자 이름)이 /userinfo에서 깨진다. PostgreSQL에서 @Lob String은 대용량 객체(oid)가 되어 트랜잭션 밖에서는
     // 읽고 쓸 수 없고, 토큰 값으로 조회할 때(findByAccessTokenValue 등) 비교값도 새 대용량 객체로
     // 바인딩돼 절대 일치하지 않는다. CUBRID는 META-INF/orm-cubrid.xml이 VARCHAR로 덮어쓴다.
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "authorized_scopes", length = 1_000_000)
     var authorizedScopes: String? = null,
 
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "attributes", length = 1_000_000)
     var attributes: String? = null,
 
     @Column(name = "state", length = 500)
     var state: String? = null,
 
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "authorization_code_value", length = 1_000_000)
     var authorizationCodeValue: String? = null,
     var authorizationCodeIssuedAt: Instant? = null,
     var authorizationCodeExpiresAt: Instant? = null,
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "authorization_code_metadata", length = 1_000_000)
     var authorizationCodeMetadata: String? = null,
 
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "access_token_value", length = 1_000_000)
     var accessTokenValue: String? = null,
     var accessTokenIssuedAt: Instant? = null,
     var accessTokenExpiresAt: Instant? = null,
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "access_token_metadata", length = 1_000_000)
     var accessTokenMetadata: String? = null,
     @Column(name = "access_token_type", length = 50)
     var accessTokenType: String? = null,
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "access_token_scopes", length = 1_000_000)
     var accessTokenScopes: String? = null,
 
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "refresh_token_value", length = 1_000_000)
     var refreshTokenValue: String? = null,
     var refreshTokenIssuedAt: Instant? = null,
     var refreshTokenExpiresAt: Instant? = null,
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "refresh_token_metadata", length = 1_000_000)
     var refreshTokenMetadata: String? = null,
 
@@ -92,12 +93,12 @@ class OAuthAuthorization(
     // (JdbcOAuth2AuthorizationService 공식 구현의 oidc_id_token_value/issued_at/expires_at/metadata
     // 4컬럼 구성을 그대로 따른다 — claims는 metadata 맵 안에 CLAIMS_METADATA_NAME 키로 이미
     // 포함되어 있어 별도 컬럼이 필요 없다).
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "oidc_id_token_value", length = 1_000_000)
     var oidcIdTokenValue: String? = null,
     var oidcIdTokenIssuedAt: Instant? = null,
     var oidcIdTokenExpiresAt: Instant? = null,
-    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "oidc_id_token_metadata", length = 1_000_000)
     var oidcIdTokenMetadata: String? = null
 )
