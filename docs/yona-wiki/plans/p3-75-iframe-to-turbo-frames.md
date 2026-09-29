@@ -114,7 +114,8 @@ PR #834가 **이슈 목록**의 iframe/pageslide 2단 보기를 Turbo Frames로 
    - RED: `Turbo-Frame` 헤더 요청이 fragment만 반환하고 목록 조회 SQL을 생략하는지, 일반 요청은 기존과 동일한지
      (`BoardListTwoColumnModeTemplateRenderingSpec`, `IssueListTemplateRenderingSpec`의 P3-74 테스트를 모델로)
    - e2e: `e2e/specs/09-board/`에 `turbo-two-column.spec.ts` 추가(선택/Back·Forward/reload/no-JS/초안)
-3. **Step 3~6 — 조직 목록 → 내 이슈 → PR 목록 → 사용자 화면** — ⏳ 미착수(PR 목록·사용자 화면은 조사 완료, 아래 진행 로그) (소비자당 1스텝, 각 스텝이 독립 커밋/푸시 가능 단위)
+3. **Step 3 — 복합 선택 키 공용 처리 (신규, 4곳의 선행 조건)** — ⏳ 미착수. 서버: `?<param>=<type>:<owner>/<project>/<번호>` 파싱→권한 확인→기존 상세 로직 위임(`Turbo-Frame` 헤더 시 목록 조회 생략). 클라이언트: 공용 어댑터의 선택 파라미터명·링크 생성 설정화. 기존 `TwoColumnSelection` 확장
+   **Step 4~7 — 내 이슈 → 조직 이슈 → 조직 게시판 → PR 목록 → 사용자 화면** — ⏳ 미착수(순서는 진행 로그의 계획 영향 참고, 번호는 아래 Step 7 이후로 재정렬) (소비자당 1스텝, 각 스텝이 독립 커밋/푸시 가능 단위)
    - 각각 Step 2와 동일한 RED→GREEN, 화면 고유 상세 기능(PR의 diff/리뷰 위젯 등) 초기화·해제 검증 포함
 4. **Step 7 — 2단 보기 레거시 삭제**
    - `grep`으로 소비자 0 확인 후 `yona.twoColumnMode.js`, Vue page-slide 위젯(+빌드 산출물), `#pageslide` CSS,
@@ -190,8 +191,42 @@ GREEN), e2e `09-board/turbo-two-column.spec.ts` 7건. 검증: 인증·사용자�
 - 선행 관계: 이슈 상세 fragment는 있으나 PR 상세 fragment는 Step 5에서 생긴다 → **PR 목록 → 사용자 화면 순서**.
   `showSubtask.js`, 부트스트랩 탭 전환, 2단 시 좌측 정보 패널 숨김 동작도 함께 확인 필요.
 
-**결정 대기**: (1) PR 상세를 overview 탭만 프레임에 넣는 안, (2) 사용자 화면 복합 선택 키 방식.
-**아직 조사하지 않은 소비자**: 조직 게시판 목록, 조직 이슈 목록, 내 이슈(기존 게시판/이슈 상세 재사용 가정).
+#### 조직 게시판·조직 이슈·내 이슈 조사 결과 (2026-09-29, 기존 "상세 재사용, 게시판의 1/3 규모" 가정이 깨짐)
+- 세 화면 모두 **여러 프로젝트에 걸친 목록**: 조직 게시판은 행이 `post.project`별로, 조직 이슈는
+  `visibleProjects` 전체를 `IssueSpecification.filterOrganizationIssues`로 한 번에 조회, 내 이슈도 행 링크가
+  `/{issue.project.owner}/{issue.project.name}/issue/{number}`. `?selected=<번호>`만으로는 프로젝트를 알 수 없다.
+- **결론: 복합 선택 키(owner/project/번호)가 4곳(조직 게시판, 조직 이슈, 내 이슈, 사용자 화면)에 필요**하다.
+  서버에서 복합 키를 받아 기존 상세 로직(`viewIssue`/`viewPost`/PR 상세)으로 위임하는 **공용 처리를 먼저**
+  만들어야 하며, 한 번 만들면 4곳이 함께 해결된다. 공용 어댑터의 `selected` 파라미터명 하드코딩도 설정화 필요.
+- 검색 폼이 `href="#"` + 속성(`orderBy=…`) 기반 JS 제출이고 조직 이슈·내 이슈는 `issue.List` 모듈이
+  제출/페이지네이션을 맡는다 → 필터·정렬 링크에 선택 키를 싣는 방식이 게시판/이슈 목록과 다르다.
+- 조직 e2e: 기존 `03-organization` 스펙은 조직만 만들고 조직 소속 프로젝트는 만들지 않는다 → 조직 아래
+  프로젝트·게시글·이슈 시드가 새로 필요(프로젝트 폼 owner 선택에 조직이 나오는지는 미확인).
+
+#### 공통 조사 결과
+- **레거시 부수 동작**: `yona.twoColumnMode.js`는 패널이 열리면 `.left-menu`(필터 사이드 메뉴)와
+  `.user-info-box`(사용자 화면 좌측 정보 패널)를 숨긴다(`isLeftMenuHide`). 이슈·게시판 전환은 이 동작을
+  옮기지 않고 2열 그리드만 썼다 → 상세가 열릴 때 좌측 패널을 CSS로 숨길지 결정 필요(이슈·게시판도 재확인).
+- **사이드바 iframe 안 동작(실측)**: 사이드바 셸(`/user/sidebar?path=…`) 안에서 전환된 게시판은 프레임
+  상세가 정상 동작하지만 **최상위 URL·제목이 바뀌지 않는다**(Turbo `advance`가 iframe 자신의 History에만
+  기록; 레거시는 `layout.html`의 `window.parent.history` 코드가 부모 URL을 갱신). 사이드바는 보류 범위지만
+  사이드바 모드에서는 URL 동기화가 약해진다. 사이드바 안 Back 이동은 시간 초과로 결론 못 냄(원인 미확인).
+- **테스트 영향(Step 7)**: `twoColumn` 계열 단언은 `TwoColumnModeCheckboxDuplicateIdTemplateRenderingSpec`(8),
+  `PullRequestListTemplateEquivalenceSpec`(1) 정도로 작다(게시판 관련은 처리 완료). page-slide 위젯 소스는 이
+  저장소에 없고 삭제 대상은 빌드 산출물(`static/lib/yona-vue-widgets/yona-page-slide-element.js`)과
+  `layout.html:683` 로드 태그.
+- **v1.6 대조**: 이슈·내 이슈·게시판·조직 게시판·조직 이슈·사용자 화면·PR 목록 모두 v1.6에 2단 보기가
+  있었고 모두 동일한 iframe(pageslide) 방식. v1.6의 PR 2단 보기는 iframe 안에서 개요/코드 리뷰 탭이
+  모두 열렸다 → "PR은 개요 탭만 프레임" 안은 원본과 다른 동작이 된다(대안 (a): 프레임 안에서 코드 리뷰까지
+  지원 — changes 탭의 전역 리스너를 모두 mount/dispose 구조로 바꾸고 반쪽 폭 레이아웃을 새로 설계해야 해
+  비용 최대).
+
+**계획 영향**: 복합 키 공용 처리를 별도 스텝으로 먼저 수행하고, 남은 순서는 복합 키 공용화 → 내 이슈 →
+조직 이슈·게시판 → PR 목록 → 사용자 화면이 자연스럽다. 조직·내 이슈 3곳은 "화면당 1/3"이 아니라
+"공용화 1회 + 화면당 소규모"로 재추정한다.
+
+**결정 대기**: (1) PR 상세를 overview 탭만 프레임에 넣는 안(v1.6과 다른 동작, 위 참고), (2) 복합 선택 키 방식 확정(4곳 공용), (3) 상세가 열릴 때 좌측 패널(`.left-menu`, `.user-info-box`)을 숨길지.
+**조사 완료**: 소비자 6곳 모두. 남은 것은 결정과 구현.
 
 ## 완료 기준 (Definition of Done)
 
@@ -213,6 +248,9 @@ GREEN), e2e `09-board/turbo-two-column.spec.ts` 7건. 검증: 인증·사용자�
 | 방문 기록 부작용 | prefetch로 이슈/게시글 방문 기록이 hover만으로 생성 | 신규 frame 전부 `data-turbo-prefetch="false"` |
 | 에러 응답 | 선택 번호 오류/권한 없음이 frame 안에서 "Content missing" | PoC의 declarative reload meta 재사용, 화면별 오류 e2e |
 | dispose 누락으로 인한 중복 리스너 | 재마운트마다 핸들러가 늘어 요청이 중복됨(게시판에서 실제 발생) | 모든 상세 모듈의 리스너를 AbortController로 붙이고 dispose에서 abort, 소비자별 e2e에 '반복 마운트 후 클릭당 요청 1회' 포함 |
+| 복합 선택 키 | 4곳이 프로젝트를 넘나드는 목록이라 `?selected=<번호>` 불가 | Step 3에서 공용 처리, 프로젝트 읽기 게이트를 프레임 응답에서도 동일하게 거치는지 소비자별 테스트로 고정 |
+| 좌측 패널 숨김 | 레거시는 패널 오픈 시 `.left-menu`/`.user-info-box`를 숨김, Turbo 전환은 미이식 | 결정 후 `.has-detail` CSS로 처리, 이슈·게시판도 재확인 |
+| 사이드바 모드 URL 동기화 | 사이드바 iframe 안에서는 Turbo `advance`가 최상위 URL을 못 바꿈 | 사이드바 보류 범위와 함께 재검토(사이드바 결정 시 같이) |
 | 삭제 대상 테스트 | 레거시 전용 단언은 삭제하지만 기능 단언은 삭제 금지 | 삭제 사유를 커밋 메시지에 명시, 기능 동등성은 Playwright로 대체 검증 |
 
 ## 관련
