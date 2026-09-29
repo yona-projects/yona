@@ -91,7 +91,11 @@
         own(yona.board.View({
             root: root,
             postId: data.postId,
-            urls: {watch: '/watch', unwatch: '/unwatch', labels: data.labelsUrl}
+            // yona.board.View는 sWatchUrl/sUnwatchUrl을 읽는다(예전 템플릿은 urls.watch로 넘겨 URL이 항상
+            // undefined였다). 지켜보기 대상은 게시글(BOARD_POST)이고 리소스 id는 게시글 id다.
+            sWatchUrl: '/watch?' + new URLSearchParams({'resource.type': 'BOARD_POST', 'resource.id': data.postId}),
+            sUnwatchUrl: '/unwatch?' + new URLSearchParams({'resource.type': 'BOARD_POST', 'resource.id': data.postId}),
+            urls: {labels: data.labelsUrl}
         }));
 
         // 삭제 확인 성공 시 글 목록으로 이동. "load" 핸들러가 false를 반환하면 requestAs의 기본

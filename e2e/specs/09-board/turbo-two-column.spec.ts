@@ -110,7 +110,7 @@ test.describe.serial('Turbo board two-column semantics', () => {
     expect(await page.evaluate(key => localStorage.getItem(key), `${base}/post/${a.number}`)).toBe('Fast unsent draft A');
   });
 
-  test('selected detail retains dialogs, uploads, comment submission and tasks after repeated mounts', async ({ page }) => {
+  test('selected detail retains dialogs, watch, uploads, comment submission and tasks after repeated mounts', async ({ page }) => {
     const [a, b] = posts;
     await page.goto(`${base}/posts?selected=${a.number}`);
     for (const post of [b, a, b]) {
@@ -118,8 +118,12 @@ test.describe.serial('Turbo board two-column semantics', () => {
       await expect(page.locator('#post-detail .board-header')).toContainText(post.title);
       await expect(page.locator('#post-detail')).not.toHaveAttribute('aria-busy', 'true');
     }
-    // NOTE: 지켜보기 버튼은 검증하지 않는다 - yona.board.View.js가 htOptions.sWatchUrl을 읽는데 템플릿은
-    // urls.watch로 넘겨 원래부터 URL이 undefined인 기존 결함이다(2단 보기 전환과 무관, 별도 항목).
+    const watch = page.locator('#post-detail #watch-button');
+    const watching = await watch.getAttribute('data-watching');
+    await watch.click();
+    await expect(watch).not.toHaveAttribute('data-watching', watching!);
+    await watch.click();
+    await expect(watch).toHaveAttribute('data-watching', watching!);
     const upload = page.locator('#post-detail yona-attachments#upload');
     await upload.locator('input[type="file"]').setInputFiles({
       name: 'turbo-board-attachment.txt', mimeType: 'text/plain', buffer: Buffer.from('Frame attachment'),
@@ -180,5 +184,20 @@ test.describe.serial('Turbo board two-column semantics', () => {
     await expect(page.locator('#post-detail .board-header')).toContainText(a.title);
     await page.locator(`#post-list a.title[data-detail-url$="/post/${b.number}"]`).last().click();
     await expect(page).toHaveURL(new RegExp(`${base}/post/${b.number}$`));
+  });
+
+  test('watch toggles on the standalone post page and issues one request per click', async ({ page }) => {
+    const [, b] = posts;
+    const requests: string[] = [];
+    page.on('request', request => { if (/\/(un)?watch\?/.test(request.url())) requests.push(request.url()); });
+    await page.goto(`${base}/post/${b.number}`);
+    const watch = page.locator('#watch-button');
+    const watching = await watch.getAttribute('data-watching');
+    await watch.click();
+    await expect(watch).not.toHaveAttribute('data-watching', watching!);
+    await watch.click();
+    await expect(watch).toHaveAttribute('data-watching', watching!);
+    expect(requests).toHaveLength(2);
+    expect(requests[0]).toContain('resource.type=BOARD_POST');
   });
 });

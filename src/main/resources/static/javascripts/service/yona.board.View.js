@@ -29,6 +29,8 @@
         var oUploaderAttachment = null;
         var sUploaderId = null;
         var aDownloaders = [];
+        // dispose 시 이 모듈이 붙인 리스너를 한 번에 해제한다(상세가 재마운트돼도 중복 등록되지 않도록).
+        var oLifecycle = new AbortController();
 
         /**
          * initialize
@@ -95,7 +97,7 @@
                             $yona.notify(Messages(bWatched ? "post.unwatch.start" : "post.watch.start"), 3000);
                         }
                     });
-                });
+                }, {signal: oLifecycle.signal});
             }
 
             // Wire the label <select data-toggle="tomselect" id="labelIds"> (issue/
@@ -106,7 +108,7 @@
             // had an equivalent of (the <select> and its REST endpoint both already existed;
             // nothing on the client ever called it).
             if(htElement.issueInfoWrap && htVar.sLabelsUrl){
-                htElement.issueInfoWrap.addEventListener("change", _onChangeLabelIds);
+                htElement.issueInfoWrap.addEventListener("change", _onChangeLabelIds, {signal: oLifecycle.signal});
             }
         }
 
@@ -187,6 +189,7 @@
         _init(htOptions);
 
         return function(){
+            oLifecycle.abort();
             if(oUploaderAttachment){ oUploaderAttachment.destroy(); }
             if(sUploaderId){ yona.Files.destroyUploader(sUploaderId); }
             aDownloaders.forEach(function(oItem){
