@@ -267,9 +267,15 @@ GREEN), e2e `09-board/turbo-two-column.spec.ts` 7건. 검증: 인증·사용자�
 - **검증**: `MyIssuesTurboFrameRenderingSpec` 6건(프레임 fragment, SQL 상한, 비공개 프로젝트 키 거부, 잘못된 키, 비로그인),
   `TwoColumnSelectionSpec`, `UserViewControllerSpec`, 기존 `IssueListTemplateRenderingSpec` GREEN.
   e2e `06-issue/turbo-two-column-my-issues.spec.ts` 5건 GREEN(A/B 전환, Back/Forward, reload, no-JS, 클릭당 요청 1회, 선택 해제, 검색 폼 선택 유지, 잘못된 키).
-- **기존 e2e 불안정 발견(이번 변경과 무관)**: `06-issue/turbo-two-column.spec.ts`(및 `09-board`)의 "repeated mounts"/"filters…mobile" 테스트가
-  신선한 H2 서버에서 간헐 실패한다. `labels.css` 이동만 되돌린 상태에서 5회 중 4회, 어댑터만 Step 3 이전 버전으로 되돌린 상태에서 5회 중 4회
-  실패해 이번 변경이 원인이 아님을 확인했다. 원인(폴링 타이밍 등)은 미조사 — 별도 항목 후보.
+- **기존 e2e 불안정 발견·해결(이번 변경과 무관했음)**: `06-issue`/`09-board` Turbo 스펙이 신선한 H2 서버에서 간헐 실패했다(전체 스펙 8회 중 5회).
+  `labels.css` 이동만, 어댑터만 각각 되돌려 봐도 같은 비율로 실패해 이번 변경이 원인이 아님을 확인했고, 실패한 실행의 요청 로그를 비교해 원인을 찾았다.
+  **원인은 하이드레이션 경합**: 서버가 그린 목록/상세는 스크립트 초기화 전에도 화면에 보이는데, 테스트가 텍스트/URL이 보이자마자 조작했다.
+  (1) 페이지 이동 중 검색 버튼 클릭 → 핸들러 없음, (2) 선택된 행 재클릭 → 어댑터 초기화 전이라 프레임 이동 대신 문서 이동(서버가 낸 링크는 선택 URL),
+  (3) 댓글 등록 후 `location.reload()` 직후 태스크 체크 → 태스크리스트 초기화 전이라 PATCH 없음.
+  **수정**: `setupTwoColumn`이 초기화를 마치면 레이아웃에 `data-ready="true"`를 남기고, e2e는 `support/two-column.ts`의 `twoColumnReady(page)`로
+  새 문서가 뜰 때마다 이를 기다린다(이슈·게시판·내 이슈 스펙). 수정 후 세 스펙 16건을 10회 연속 실행해 전부 통과.
+  **남은 관찰(제품 측)**: 초기화 전에 선택된 행을 누르면 토글이 아니라 같은 선택 URL로 문서 이동한다(서버가 내는 href가 선택 URL이기 때문).
+  실사용에서는 ms 단위 창이라 지금은 두었다.
 - **남은 작업**: Step 5~ 조직 이슈 → 조직 게시판 → PR 목록 → 사용자 화면. 좌측 패널(`.left-menu`) 숨김 여부는 내 이슈에서도 아직 미이식(결정 대기 (3)).
 
 ## 완료 기준 (Definition of Done)

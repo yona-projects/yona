@@ -112,6 +112,9 @@ export function setupTwoColumn(config) {
             });
         }
         updateNavigation();
+        // 스크립트 초기화가 끝났다는 표지. 서버가 그린 목록/상세는 이 시점 전에도 화면에 보이지만
+        // 클릭 핸들러와 링크 갱신이 아직 없으므로, 자동화 테스트는 이 값을 기다린 뒤 조작해야 한다.
+        layout.dataset.ready = 'true';
         NProgress.done();
     }
 

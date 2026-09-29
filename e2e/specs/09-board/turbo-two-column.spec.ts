@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
 import { uniqueSuffix } from '../../support/unique';
+import { twoColumnReady } from '../../support/two-column';
 
 // P3-75: board two-column mode on real Turbo Frames (post-list / post-detail). Real routes only.
 test.describe.serial('Turbo board two-column semantics', () => {
@@ -36,8 +37,10 @@ test.describe.serial('Turbo board two-column semantics', () => {
   test('detail-only A/B navigation, browser history, reload and no-JS direct URL', async ({ page, browser }) => {
     const [a, b] = posts;
     await page.goto(`${base}/posts?filter=Turbo&orderBy=createdDate&orderDir=asc`);
+    await twoColumnReady(page);
     await page.evaluate(() => localStorage.setItem('useTwoColumnMode', 'true'));
     await page.reload();
+    await twoColumnReady(page);
     await expect(page.locator('#two-column-mode')).toBeChecked();
     const list = await page.locator('#post-list').elementHandle();
     const requests: string[] = [];
@@ -62,6 +65,7 @@ test.describe.serial('Turbo board two-column semantics', () => {
     await expect(page.locator('#post-detail .board-header')).toContainText(b.title);
     const selectedUrl = page.url();
     await page.reload();
+    await twoColumnReady(page);
     await expect(page.locator('#post-detail .board-header')).toContainText(b.title);
     const fallback = await browser.newContext({ storageState: './.auth/admin.json', javaScriptEnabled: false });
     try {
@@ -77,6 +81,7 @@ test.describe.serial('Turbo board two-column semantics', () => {
       const errors: string[] = [];
       tab.on('pageerror', error => errors.push(error.message));
       await tab.goto(selectedUrl);
+      await twoColumnReady(tab);
       await expect(tab.locator('#post-detail .board-header')).toContainText(b.title);
       await expect(tab.locator('#post-detail #comment-form')).toHaveCount(0);
       await tab.locator(`#post-list a.title[data-detail-url$="/post/${a.number}"]`).last().click();
@@ -88,8 +93,10 @@ test.describe.serial('Turbo board two-column semantics', () => {
   test('canonical draft keys survive A/B/Back and fast switches without cross-post restore', async ({ page }) => {
     const [a, b] = posts;
     await page.goto(`${base}/posts?selected=${a.number}`);
+    await twoColumnReady(page);
     await page.evaluate(({ key }) => localStorage.setItem(key, 'Existing draft A'), { key: `${base}/post/${a.number}` });
     await page.reload();
+    await twoColumnReady(page);
     const editor = page.locator('#post-detail #comment-form textarea[data-editor-mode="comment-body"]');
     const visibleEditor = page.locator('#post-detail #comment-form .cm-content');
     await expect(editor).toHaveValue('Existing draft A');
@@ -113,6 +120,7 @@ test.describe.serial('Turbo board two-column semantics', () => {
   test('selected detail retains dialogs, watch, uploads, comment submission and tasks after repeated mounts', async ({ page }) => {
     const [a, b] = posts;
     await page.goto(`${base}/posts?selected=${a.number}`);
+    await twoColumnReady(page);
     for (const post of [b, a, b]) {
       await page.locator(`#post-list a.title[data-detail-url$="/post/${post.number}"]`).last().click();
       await expect(page.locator('#post-detail .board-header')).toContainText(post.title);
@@ -145,6 +153,7 @@ test.describe.serial('Turbo board two-column semantics', () => {
     await visibleEditor.fill('Comment submitted from the real Turbo board detail');
     await visibleEditor.press('Control+Shift+Enter');
     await expect(page.locator('#post-detail #comments')).toContainText('Comment submitted from the real Turbo board detail');
+    await twoColumnReady(page);
     expect(posted).toHaveLength(1);
     await expect(editor).toHaveValue('');
     expect(await page.evaluate(key => localStorage.getItem(key), `${base}/post/${b.number}`)).toBeNull();
@@ -155,12 +164,14 @@ test.describe.serial('Turbo board two-column semantics', () => {
     ]);
     expect(taskResponse.ok()).toBe(true);
     await page.reload();
+    await twoColumnReady(page);
     await expect(page.locator('#post-detail .markdown-wrap input[type="checkbox"]').first()).toBeChecked();
   });
 
   test('filters, same-post close, preference off and mobile remain usable', async ({ page }) => {
     const [a, b] = posts;
     await page.goto(`${base}/posts?selected=${a.number}`);
+    await twoColumnReady(page);
     await page.locator(`#post-list a.title[data-detail-url$="/post/${b.number}"]`).last().click();
     await expect(page.locator('#post-detail .board-header')).toContainText(b.title);
     await expect(page.locator('#post-detail')).not.toHaveAttribute('aria-busy', 'true');
@@ -170,17 +181,20 @@ test.describe.serial('Turbo board two-column semantics', () => {
       page.locator('#option_form .search-btn').click(),
     ]);
     await expect(page).toHaveURL(/filter=Turbo/);
+    await twoColumnReady(page);
     await expect(page.locator('#post-detail .board-header')).toContainText(b.title);
     await page.locator(`#post-list a.title[data-detail-url$="/post/${b.number}"]`).last().click();
     await expect(page.locator('#post-detail')).toBeHidden();
     await expect(page).not.toHaveURL(/[?&]selected=/);
     await page.locator('#two-column-mode').uncheck();
     await page.reload();
+    await twoColumnReady(page);
     await expect(page.locator('#two-column-mode')).not.toBeChecked();
     await page.locator(`#post-list a.title[data-detail-url$="/post/${b.number}"]`).last().click();
     await expect(page).toHaveURL(new RegExp(`${base}/post/${b.number}$`));
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${base}/posts?selected=${a.number}`);
+    await twoColumnReady(page);
     await expect(page.locator('#post-detail .board-header')).toContainText(a.title);
     await page.locator(`#post-list a.title[data-detail-url$="/post/${b.number}"]`).last().click();
     await expect(page).toHaveURL(new RegExp(`${base}/post/${b.number}$`));

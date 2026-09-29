@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
 import { uniqueSuffix } from '../../support/unique';
+import { twoColumnReady } from '../../support/two-column';
 
 // P3-75 Step 4: 내 이슈(/user/issues) 2단 보기. 여러 프로젝트에 걸친 목록이라 선택 상태는
 // ?detail=issue:<owner>/<project>/<번호> 복합 키로 표현한다. 실제 라우트만 사용한다(모킹 없음).
@@ -50,8 +51,10 @@ test.describe.serial('Turbo two-column: my issues', () => {
   test('detail-only A/B navigation, Back/Forward, reload and no-JS direct URL', async ({ page, browser }) => {
     const [a, b] = issues;
     await page.goto(listUrl());
+    await twoColumnReady(page);
     await page.evaluate(() => localStorage.setItem('useTwoColumnMode', 'true'));
     await page.reload();
+    await twoColumnReady(page);
     await expect(page.locator('#two-column-mode')).toBeChecked();
     const list = await page.locator('#issue-list').elementHandle();
     const frameRequests: string[] = [];
@@ -80,6 +83,7 @@ test.describe.serial('Turbo two-column: my issues', () => {
 
     const selectedUrl = page.url();
     await page.reload();
+    await twoColumnReady(page);
     await expect(page.locator('#issue-list')).toContainText(a.title);
     await expect(page.locator('#issue-detail .board-header')).toContainText(b.title);
 
@@ -102,10 +106,12 @@ test.describe.serial('Turbo two-column: my issues', () => {
   test('search form and pagination keep the selected detail', async ({ page }) => {
     const [a] = issues;
     await page.goto(`${listUrl()}&detail=${encodeURIComponent(key(a.number))}`);
+    await twoColumnReady(page);
     await expect(page.locator('#issue-detail .board-header')).toContainText(a.title);
     await expect(page.locator('#search input[name="detail"]')).toHaveValue(key(a.number));
     await page.locator('#search input[name="filter"]').fill(`${tag} issue`);
     await Promise.all([page.waitForNavigation(), page.locator('#search .search-btn').click()]);
+    await twoColumnReady(page);
     expect(new URL(page.url()).searchParams.get('detail')).toBe(key(a.number));
     await expect(page.locator('#issue-detail .board-header')).toContainText(a.title);
   });
