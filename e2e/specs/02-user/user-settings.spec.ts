@@ -116,7 +116,11 @@ test('resending the validation email for an unverified secondary address, then c
   const emailRow = ownPage.locator('tr', { hasText: secondaryEmail });
   const resendButton = emailRow.locator('button[data-request-method="post"][href*="/sendValidationEmail/"]');
   await expect(resendButton).toBeVisible();
+  // The button's handler reloads the page after the POST. Wait for that navigation too: mailpit usually
+  // already has the message, so without this the test's own goto below raced the reload and was aborted
+  // (net::ERR_ABORTED).
   await Promise.all([
+    ownPage.waitForNavigation({ waitUntil: 'load' }),
     ownPage.waitForResponse((res) => res.url().includes('/sendValidationEmail/') && res.request().method() === 'POST'),
     resendButton.click(),
   ]);
