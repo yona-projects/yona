@@ -75,7 +75,7 @@ class OrganizationViewControllerMoreSpec : DescribeSpec({
     val controller = OrganizationViewController(
         organizationRepository, organizationUserRepository, userRepository, issueRepository,
         postingRepository, pullRequestRepository, organizationService, attachmentRepository,
-        attachmentService, accessControl, mentionService, roleRepository
+        attachmentService, accessControl, mentionService, roleRepository, noSelectionResolver()
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(controller)
         .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())

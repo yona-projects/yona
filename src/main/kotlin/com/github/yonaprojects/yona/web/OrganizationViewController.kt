@@ -57,6 +57,8 @@ class OrganizationViewController(
     private val accessControl: AccessControl,
     private val mentionService: MentionService,
     private val roleRepository: RoleRepository,
+    // /org/{orgName}/issues 2단 보기의 복합 선택 키(?detail=issue:owner/project/N)를 기존 이슈 상세 로직에 위임한다.
+    private val crossProjectDetailResolver: CrossProjectDetailResolver,
     // yona controllers/Application.java의 HIDE_PROJECT_LISTING 대응.
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
@@ -142,12 +144,18 @@ class OrganizationViewController(
         @RequestParam(value = "projectNames[]", required = false) projectNames: List<String>?,
         @PageableDefault(size = 25) pageable: Pageable,
         authentication: Authentication?,
-        model: Model
+        model: Model,
+        request: HttpServletRequest
     ): String {
         val org = organizationRepository.findByName(orgName).orElse(null)
             ?: return "error/404"
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+
+        // 2단 보기: 조직의 프로젝트에 속한 이슈만 상세로 띄울 수 있다(조직 밖 프로젝트의 키는 거부).
+        crossProjectDetailResolver.handleIssueSelection(
+            request, authentication, model, "organization/issueList :: issueDetailFrame", allowedOwner = org.name
+        )?.let { return it }
 
         val visibleProjects = accessControl.getVisibleProjects(org, loginUser)
         // yona group_issue_search_partial.scala.html:42-46 projectNames[] 다중선택 대응 — 선택되면

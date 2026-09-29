@@ -18,6 +18,8 @@
                 <input type="hidden" name="authorId" th:value="${authorId}" data-search="authorId">
                 <input type="hidden" name="assigneeId" th:value="${assigneeId}" data-search="assigneeId">
                 <input type="hidden" name="mentionId" th:value="${mentionId}" data-search="mentionId">
+                <!-- 2단 보기 선택 키(복합). 검색/정렬/탭 전환 시에도 선택 상태를 유지한다. -->
+                <input type="hidden" name="detail" th:value="${selected}" th:disabled="${selected == null}">
 
                 <div class="search">
                     <div class="search-bar">

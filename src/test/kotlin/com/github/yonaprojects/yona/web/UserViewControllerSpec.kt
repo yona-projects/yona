@@ -114,7 +114,7 @@ class UserViewControllerSpec : DescribeSpec({
         sshKeyService,
         gpgKeyService,
         milestoneRepository,
-        mockk<CrossProjectDetailResolver>(relaxed = true)
+        noSelectionResolver()
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(userViewController)
         .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())
@@ -303,7 +303,7 @@ class UserViewControllerSpec : DescribeSpec({
             favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
             organizationRepository, userService, passwordEncodingService, accessControl, mentionService, recentIssueService,
             apiTokenService, oAuthAuthorizedAppsService, oAuthAppRegistrationService, sshKeyService, gpgKeyService,
-            milestoneRepository, mockk<CrossProjectDetailResolver>(relaxed = true), hideProjectListing = true
+            milestoneRepository, noSelectionResolver(), hideProjectListing = true
         )
         val model = ExtendedModelMap()
 

@@ -37,7 +37,7 @@ class DirectControllerCoverageSpec : DescribeSpec({
         val controller = OrganizationViewController(
             organizationRepository, organizationUserRepository, userRepository, issueRepository,
             postingRepository, pullRequestRepository, organizationService, attachmentRepository,
-            attachmentService, accessControl, mentionService, roleRepository
+            attachmentService, accessControl, mentionService, roleRepository, noSelectionResolver()
         )
 
         it("covers organizationLogo with null attachment") {

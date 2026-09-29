@@ -9,7 +9,7 @@
     <div th:replace="~{project/header :: header(${project})}"></div>
     <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
     </div>
-    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+    <!-- 프로젝트별 라벨 색상 CSS는 아래 detailAssets가 링크한다(여기서 또 링크하면 두 번 로드된다). -->
     <link rel="stylesheet" href="/stylesheets/issue-columns.css">
 
     <div class="page-wrap-outer board-columns" th:classappend="${selected != null} ? 'has-detail' : ''"

@@ -261,7 +261,7 @@ GREEN), e2e `09-board/turbo-two-column.spec.ts` 7건. 검증: 인증·사용자�
   권한 확인·방문 기록·오류 뷰 선택은 단독 상세와 동일하다(이 클래스는 권한을 판단하지 않는다). `UserViewController.userIssues`가
   `Turbo-Frame: issue-detail` 헤더 시 목록 조회 없이 `issue/my_list :: issueDetailFrame`만 반환한다.
   파라미터명은 `detail`(사용자 화면은 `selected`가 탭 이름이라 겹치지 않게 공통으로 `detail`).
-- **클라이언트**: `yona.myissue.Turbo.js`(`setupTwoColumn({param: 'detail'})`). `my_list.html`에서 `yona.twoColumnMode.js` 로드를 제거했다.
+- **클라이언트**: `yona.issue.CrossProjectTurbo.js`(내 이슈·조직 이슈 공용)(`setupTwoColumn({param: 'detail'})`). `my_list.html`에서 `yona.twoColumnMode.js` 로드를 제거했다.
 - **`issue/view.html`**: 프로젝트별 `labels.css` `<link>`를 `detailAssets`에서 `detail` 조각 안으로 옮겼다. 여러 프로젝트에 걸친 목록은
   페이지 로드 시점에 프로젝트를 알 수 없고 프레임으로 불러오는 상세마다 프로젝트가 다르기 때문이다.
 - **검증**: `MyIssuesTurboFrameRenderingSpec` 6건(프레임 fragment, SQL 상한, 비공개 프로젝트 키 거부, 잘못된 키, 비로그인),
@@ -277,6 +277,20 @@ GREEN), e2e `09-board/turbo-two-column.spec.ts` 7건. 검증: 인증·사용자�
   **남은 관찰(제품 측)**: 초기화 전에 선택된 행을 누르면 토글이 아니라 같은 선택 URL로 문서 이동한다(서버가 내는 href가 선택 URL이기 때문).
   실사용에서는 ms 단위 창이라 지금은 두었다.
 - **남은 작업**: Step 5~ 조직 이슈 → 조직 게시판 → PR 목록 → 사용자 화면. 좌측 패널(`.left-menu`) 숨김 여부는 내 이슈에서도 아직 미이식(결정 대기 (3)).
+
+### 2026-09-30 — Step 5(조직 이슈) 완료
+
+- **서버**: `OrganizationViewController.organizationIssues`가 `CrossProjectDetailResolver.handleIssueSelection`을 조직 조회 직후(목록 조회 전)에 호출한다.
+  내 이슈와 공유하는 로직을 이 메서드로 모았고(`UserViewController`도 이를 사용), `allowedOwner = org.name`으로 **조직 밖 프로젝트의 키는 읽을 수 있어도 거부**한다.
+  `Turbo-Frame: issue-detail` 요청은 `organization/issueList :: issueDetailFrame`만 반환한다.
+- **클라이언트**: 내 이슈·조직 이슈가 같은 설정이라 모듈을 `yona.issue.CrossProjectTurbo.js` 하나로 합쳤다. 조직 화면에서 `common/tomselect`를 따로 로드하던 것은
+  `issue/view :: detailAssets`(tomselect 포함)로 대체했다.
+- **검증**: `OrganizationIssuesTurboFrameRenderingSpec` 7건(두 프로젝트 행 링크, 프레임 fragment, SQL, 비공개 프로젝트 키 거부, 조직 밖 키 거부, 잘못된 키),
+  e2e `06-issue/turbo-two-column-org-issues.spec.ts` 4건(조직 생성→프로젝트 2개→이슈 시드, A/B 전환·Back/Forward·reload·no-JS·클릭당 요청 1회·선택 해제, 검색 폼 선택 유지, 잘못된 키).
+  이슈·내 이슈·조직 이슈·게시판 Turbo e2e 20건을 5회 연속 실행해 전부 통과.
+- **Step 2에서 생긴 결함 정리**: `TemplateEquivalenceSpec`의 `labels.css` 링크 검증이 게시판 목록에서 2개로 실패했다. 게시판 목록이 머리말과 `detailAssets`로 같은 링크를
+  두 번 냈기 때문이며 Step 2 이후 이 스펙을 돌리지 않아 숨어 있었다. 머리말 쪽을 제거했다.
+- **다음**: 조직 게시판(`post` 타입 위임을 리졸버에 추가, 게시글 상세 조각에도 프로젝트별 `labels.css`를 상세와 함께 싣기).
 
 ## 완료 기준 (Definition of Done)
 

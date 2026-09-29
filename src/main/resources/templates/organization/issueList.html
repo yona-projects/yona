@@ -4,23 +4,37 @@
 </head>
 <body class="prj" id="html-body">
 <div id="main" class="main">
+    <div id="org-issues-shell" data-turbo-permanent style="display: contents">
     <div th:replace="~{site/layout :: gnb}"></div>
 
     <div th:replace="~{organization/header :: header(${org})}"></div>
     <div th:replace="~{organization/menu :: menu(${org}, 'issue')}"></div>
+    </div>
 
-    <div class="page-wrap-outer">
+    <!-- 2단 보기(P3-75): 목록은 permanent 프레임, 상세는 Turbo-Frame: issue-detail 요청으로 갱신되는 프레임이다.
+         조직 아래 여러 프로젝트의 이슈가 한 목록에 있으므로 선택 상태는 ?detail=issue:<owner>/<project>/<번호> 복합 키로 표현한다. -->
+    <link rel="stylesheet" href="/stylesheets/issue-columns.css">
+    <div class="page-wrap-outer issue-columns" th:classappend="${selected != null} ? 'has-detail' : ''"
+         th:data-selection-clear-url="${selectionClearUrl}">
+        <turbo-frame id="issue-list" data-turbo-permanent data-turbo="false" data-turbo-prefetch="false">
         <div class="page-wrap">
             <div th:replace="~{organization/issueSearch_partial :: issueSearch}"></div>
         </div>
+        </turbo-frame>
+        <turbo-frame th:fragment="issueDetailFrame" id="issue-detail" data-turbo-action="advance" data-turbo="false" target="_top"
+                     th:hidden="${selected == null}">
+            <th:block th:if="${selected != null}">
+                <div th:replace="~{issue/view :: detail}"></div>
+            </th:block>
+        </turbo-frame>
     </div>
 
     <footer th:replace="~{site/layout :: footer}"></footer>
     <div th:replace="~{site/layout :: scripts}"></div>
 </div>
-<!-- yona.twoColumnMode.js가 vanilla로 전환되며 jquery.pageslide.js 의존이 제거됨 -->
-<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
-<th:block th:replace="~{common/tomselect :: tomselect}"></th:block>
+<!-- 프로젝트 선택(tomselect)과 상세(이슈 화면 자산: tomselect 포함)를 함께 로드한다. -->
+<th:block th:replace="~{issue/view :: detailAssets}"></th:block>
+<script type="module" src="/javascripts/service/yona.issue.CrossProjectTurbo.js"></script>
 <script type="text/javascript" th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function(){
         $yona.loadModule("issue.List");

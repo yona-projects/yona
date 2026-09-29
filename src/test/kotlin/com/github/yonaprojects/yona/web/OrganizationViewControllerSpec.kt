@@ -93,7 +93,8 @@ class OrganizationViewControllerSpec : DescribeSpec({
         attachmentService,
         accessControl,
         mentionService,
-        roleRepository
+        roleRepository,
+        noSelectionResolver()
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(organizationViewController)
         .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())
@@ -340,7 +341,7 @@ class OrganizationViewControllerSpec : DescribeSpec({
             val hiddenController = OrganizationViewController(
                 organizationRepository, organizationUserRepository, userRepository, issueRepository,
                 postingRepository, pullRequestRepository, organizationService, attachmentRepository,
-                attachmentService, accessControl, mentionService, roleRepository, hideProjectListing = true
+                attachmentService, accessControl, mentionService, roleRepository, noSelectionResolver(), hideProjectListing = true
             )
 
             it("error/403 뷰를 반환해야 한다") {

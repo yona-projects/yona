@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.web
 
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import org.springframework.ui.Model
@@ -22,6 +23,38 @@ class CrossProjectDetailResolver(
         const val ISSUE_TYPE = "issue"
         const val ISSUE_VIEW = "issue/view"
         const val ISSUE_DETAIL_FRAME = "issue-detail"
+    }
+
+    /**
+     * 이슈 목록 핸들러가 맨 앞에서 호출하는 2단 보기 공용 처리.
+     * 반환값이 있으면 핸들러는 그 뷰 이름을 그대로 돌려주고(오류 뷰, 또는 `Turbo-Frame: issue-detail` 요청에 대한
+     * [detailFrameView]), null이면 목록을 계속 그린다(선택 없음, 또는 선택 상태가 model에 담긴 전체 페이지).
+     * [allowedOwner]가 있으면 그 소유자(조직) 밖 프로젝트의 키는 읽을 수 있어도 거부한다.
+     */
+    fun handleIssueSelection(
+        request: HttpServletRequest,
+        authentication: Authentication?,
+        model: Model,
+        detailFrameView: String,
+        allowedOwner: String? = null
+    ): String? {
+        val detailParam = request.getParameter(DETAIL_PARAM)
+        val turboFrameRequest = request.getHeader("Turbo-Frame") == ISSUE_DETAIL_FRAME
+        if (detailParam != null) {
+            val key = TwoColumnSelection.parseKey(detailParam)?.takeIf { allowedOwner == null || it.owner == allowedOwner }
+            val detailView = resolveIssue(key, authentication, model)
+            if (detailView != ISSUE_VIEW) {
+                model.addAttribute("turboFrameError", turboFrameRequest)
+                return detailView
+            }
+            // Turbo-Frame: issue-detail 헤더는 "상세 프레임 안의 내용만 필요하다"는 뜻이라 목록 조회를 건너뛴다.
+            if (turboFrameRequest) {
+                model.addAttribute("selected", detailParam)
+                return detailFrameView
+            }
+        }
+        TwoColumnSelection.addToModel(request, model, detailParam, DETAIL_PARAM)
+        return null
     }
 
     /** 키가 없거나 이슈 키가 아니면 프로젝트를 특정할 수 없으므로 제네릭 404(`error/404`)를 돌려준다. */

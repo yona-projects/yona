@@ -2,13 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <ul th:fragment="issueList(issues)" class="post-list-wrap">
-    <li th:each="issue : ${issues}" class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{/{owner}/{name}/issue/{number}(owner=${issue.project.owner}, name=${issue.project.name}, number=${issue.number})}">
+    <li th:each="issue : ${issues}" class="post-item title" th:id="'issue-item-' + ${issue.id}"
+        th:with="issueKey=${'issue:' + issue.project.owner + '/' + issue.project.name + '/' + issue.number}">
         <div class="span10 span-hard-wrap">
             <a th:href="@{/user/{loginId}(loginId=${issue.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${issue.authorLoginId}">
                 <img src="/images/default-avatar-128.png" width="32" height="32"/>
             </a>
             <div class="title-wrap">
-                <a th:href="@{/{owner}/{name}/issue/{number}(owner=${issue.project.owner}, name=${issue.project.name}, number=${issue.number})}" class="title" th:text="${issue.title}">issue title</a>
+                <a th:href="${selected != null && selectionBaseUrl != null} ? ${selectionBaseUrl + 'detail=' + issueKey} : @{/{owner}/{name}/issue/{number}(owner=${issue.project.owner}, name=${issue.project.name}, number=${issue.number})}" class="title" th:text="${issue.title}"
+                   th:data-selection-url="${selectionBaseUrl != null} ? ${selectionBaseUrl + 'detail=' + issueKey} : null"
+                   th:data-detail-url="@{/{owner}/{name}/issue/{number}(owner=${issue.project.owner}, name=${issue.project.name}, number=${issue.number})}">issue title</a>
             </div>
             <div class="infos">
                 <a th:if="${issue.authorName != null and !issue.authorName.isEmpty()}" th:href="@{/user/{loginId}(loginId=${issue.authorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${issue.authorLoginId}" th:text="${issue.authorName}">author</a>

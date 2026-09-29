@@ -127,21 +127,7 @@ class UserViewController(
             ?: return "redirect:/users/loginform"
 
         // 2단 보기: ?detail=issue:<owner>/<project>/<번호>가 있으면 기존 이슈 상세 로직으로 상세 model을 채운다.
-        val detailParam = request.getParameter(CrossProjectDetailResolver.DETAIL_PARAM)
-        val turboFrameRequest = request.getHeader("Turbo-Frame") == CrossProjectDetailResolver.ISSUE_DETAIL_FRAME
-        if (detailParam != null) {
-            val detailView = crossProjectDetailResolver.resolveIssue(TwoColumnSelection.parseKey(detailParam), authentication, model)
-            if (detailView != CrossProjectDetailResolver.ISSUE_VIEW) {
-                model.addAttribute("turboFrameError", turboFrameRequest)
-                return detailView
-            }
-            // Turbo-Frame: issue-detail 헤더는 "상세 프레임 안의 내용만 필요하다"는 뜻이라 목록 조회를 건너뛴다.
-            if (turboFrameRequest) {
-                model.addAttribute("selected", detailParam)
-                return "issue/my_list :: issueDetailFrame"
-            }
-        }
-        TwoColumnSelection.addToModel(request, model, detailParam, CrossProjectDetailResolver.DETAIL_PARAM)
+        crossProjectDetailResolver.handleIssueSelection(request, authentication, model, "issue/my_list :: issueDetailFrame")?.let { return it }
 
         val page = if (pageNum < 1) 0 else pageNum - 1
         val sort = if (orderDir.equals("asc", ignoreCase = true)) {
