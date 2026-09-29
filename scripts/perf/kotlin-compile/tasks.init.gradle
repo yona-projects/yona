@@ -1,0 +1,48 @@
+import groovy.json.JsonOutput
+import java.util.concurrent.ConcurrentHashMap
+
+// Configuration cache is intentionally disabled by the runner.
+def destination = new File(System.getProperty('yona.perf.tasks'))
+def starts = new ConcurrentHashMap<String, Long>()
+def details = new ConcurrentHashMap<String, Map>()
+def emit = { Map event ->
+    synchronized (destination) {
+        destination.append(JsonOutput.toJson(event) + '\n', 'UTF-8')
+    }
+}
+gradle.projectsEvaluated {
+    gradle.allprojects { project ->
+        project.tasks.matching { it.name in ['compileKotlin', 'compileTestKotlin'] }.configureEach { task ->
+            if (System.getProperty('yona.perf.suppressWarnings') == 'true') {
+                task.compilerOptions.suppressWarnings.set(true)
+            }
+            def extra = System.getProperty('yona.perf.compilerArgs')
+            if (extra) task.compilerOptions.freeCompilerArgs.addAll(extra.split('\\|').toList())
+        }
+    }
+}
+gradle.taskGraph.beforeTask { task ->
+    def data = [task: task.path, gradle_pid: ProcessHandle.current().pid()]
+    if (task.name in ['compileKotlin', 'compileTestKotlin']) {
+        try {
+            data.kotlin_sources = task.sources.files.count { it.name.endsWith('.kt') }
+            data.java_sources = task.javaSources.files.size()
+            data.classpath_entries = task.libraries.files.size()
+            data.suppress_warnings = task.compilerOptions.suppressWarnings.getOrElse(false)
+        } catch (Exception error) {
+            data.inventory_error = error.toString()
+        }
+    }
+    details[task.path] = data
+    starts[task.path] = System.nanoTime()
+    emit(data + [event: 'start'])
+}
+gradle.taskGraph.afterTask { task, state ->
+    def elapsed = (System.nanoTime() - starts.remove(task.path)) / 1_000_000_000d
+    emit(details.remove(task.path) + [
+        event: 'finish', seconds: elapsed, executed: state.executed,
+        did_work: state.didWork, skipped: state.skipped, up_to_date: state.upToDate,
+        no_source: state.noSource, skip_message: state.skipMessage,
+        failure: state.failure?.toString()
+    ])
+}
