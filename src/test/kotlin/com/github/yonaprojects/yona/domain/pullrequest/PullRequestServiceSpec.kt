@@ -1760,6 +1760,7 @@ class PullRequestServiceSpec @Autowired constructor(
             it("재할당하려는 브랜치 조합으로 이미 열려있는 PR이 있으면 DuplicatedPullRequestException을 던지고 변경하지 않아야 한다") {
                 pullRequestRepository.save(
                     PullRequest(
+                        number = 1L,
                         title = "기존에 열려있는 PR", body = "...",
                         toProject = toProject, fromProject = fromProject,
                         toBranch = "refs/heads/develop", fromBranch = "refs/heads/feature-b",
@@ -1768,6 +1769,7 @@ class PullRequestServiceSpec @Autowired constructor(
                 )
                 val pr = pullRequestRepository.save(
                     PullRequest(
+                        number = 2L,
                         title = "수정하려는 PR", body = "...",
                         toProject = toProject, fromProject = fromProject,
                         toBranch = "refs/heads/master", fromBranch = "refs/heads/feature-a",
@@ -1947,6 +1949,7 @@ class PullRequestServiceSpec @Autowired constructor(
             it("getPullRequests - state를 지정하지 않으면 대상 프로젝트의 모든 PR을, 지정하면 해당 상태의 PR만 반환해야 한다") {
                 pullRequestRepository.save(
                     PullRequest(
+                        number = 3L,
                         title = "OPEN PR", body = "...",
                         toProject = toProject, fromProject = fromProject,
                         toBranch = "refs/heads/master", fromBranch = "refs/heads/feature-open-list",
@@ -1955,6 +1958,7 @@ class PullRequestServiceSpec @Autowired constructor(
                 )
                 pullRequestRepository.save(
                     PullRequest(
+                        number = 4L,
                         title = "CLOSED PR", body = "...",
                         toProject = toProject, fromProject = fromProject,
                         toBranch = "refs/heads/master", fromBranch = "refs/heads/feature-closed-list",
@@ -2605,8 +2609,8 @@ class PullRequestServiceSpec @Autowired constructor(
                 val toBareDir = repositoryService.getRepository(toProject).getDirectory()
                 createCommit(toBareDir, "master", "test.txt", "hello common", "Initial commit")
 
-                val pr1 = pullRequestRepository.save(PullRequest(title = "Title 1", body = "Body", toProject = toProject, fromProject = fromProject, toBranch = "refs/heads/master", fromBranch = "refs/heads/feature", contributor = contributor, receiver = receiver, created = Instant.now(), state = State.OPEN))
-                val pr2 = pullRequestRepository.save(PullRequest(title = "Title 2", body = "Body", toProject = toProject, fromProject = fromProject, toBranch = "refs/heads/master", fromBranch = "refs/heads/feature2", contributor = contributor, receiver = receiver, created = Instant.now(), state = State.OPEN))
+                val pr1 = pullRequestRepository.save(PullRequest(number = 5L, title = "Title 1", body = "Body", toProject = toProject, fromProject = fromProject, toBranch = "refs/heads/master", fromBranch = "refs/heads/feature", contributor = contributor, receiver = receiver, created = Instant.now(), state = State.OPEN))
+                val pr2 = pullRequestRepository.save(PullRequest(number = 6L, title = "Title 2", body = "Body", toProject = toProject, fromProject = fromProject, toBranch = "refs/heads/master", fromBranch = "refs/heads/feature2", contributor = contributor, receiver = receiver, created = Instant.now(), state = State.OPEN))
                 
                 io.kotest.assertions.throwables.shouldThrow<DuplicatedPullRequestException> {
                     pullRequestService.updatePullRequest(pr2.id!!, "Title 2", "Body", "refs/heads/feature", "refs/heads/master")
