@@ -40,14 +40,18 @@ async function signUpAndInviteReviewer(adminPage: import('@playwright/test').Pag
   await signupPage.fill('#email', `${loginId}@yona-e2e.test`);
   await signupPage.fill('#password', password);
   await signupPage.fill('#retypedPassword', password);
-  await signupPage.click('form[action="/signup"] button[type=submit]');
-  await signupPage.waitForLoadState('networkidle');
+  await Promise.all([
+    signupPage.waitForNavigation({ waitUntil: 'load' }),
+    signupPage.click('form[action="/signup"] button[type=submit]'),
+  ]);
   await signupContext.close();
 
   await adminPage.goto(`/${owner}/${name}/members`);
   await adminPage.fill('#addNewMember #loginId', loginId);
-  await adminPage.click('#addNewMember button[type=submit]');
-  await adminPage.waitForLoadState('networkidle');
+  await Promise.all([
+    adminPage.waitForNavigation({ waitUntil: 'load' }),
+    adminPage.click('#addNewMember button[type=submit]'),
+  ]);
   await expect(adminPage.locator(`.member-id:text-is("@${loginId}")`)).toBeVisible();
 
   return { loginId, password };
@@ -64,8 +68,10 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
 
     await page.goto(`/${owner}/${name}/setting`);
     await page.check('#reviewerCountEnable');
-    await page.click('#saveSetting #save');
-    await page.waitForTimeout(500);
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('#saveSetting #save'),
+    ]);
 
     await page.goto(`/${owner}/${name}/setting`);
     await expect(page.locator('#reviewerCountEnable')).toBeChecked();
@@ -88,18 +94,22 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
     });
     expect(assigneeUserId).toBeTruthy();
 
-    await page.locator('#pr-assignee-select').evaluate((el: HTMLSelectElement, val: string) => {
-      el.value = val;
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    }, assigneeUserId!);
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.locator('#pr-assignee-select').evaluate((el: HTMLSelectElement, val: string) => {
+        el.value = val;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }, assigneeUserId!),
+    ]);
     await expect(page.locator('#pr-assignee-select')).toHaveValue(assigneeUserId!);
 
-    await page.locator('#pr-assignee-select').evaluate((el: HTMLSelectElement) => {
-      el.value = '';
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.locator('#pr-assignee-select').evaluate((el: HTMLSelectElement) => {
+        el.value = '';
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }),
+    ]);
     await expect(page.locator('#pr-assignee-select')).toHaveValue('');
   });
 
@@ -140,23 +150,27 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
 
     // Multi-select is also TomSelect-decorated (class="hide") -- toggle the option's .selected and
     // dispatch 'change' directly, same reasoning as the assignee select above.
-    await labelSelect.evaluate((el: HTMLSelectElement, id: string) => {
-      const opt = Array.from(el.options).find((o) => o.value === id);
-      if (opt) opt.selected = true;
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    }, labelId);
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      labelSelect.evaluate((el: HTMLSelectElement, id: string) => {
+        const opt = Array.from(el.options).find((o) => o.value === id);
+        if (opt) opt.selected = true;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }, labelId),
+    ]);
 
     await expect(page.locator(`#labelIds option[value="${labelId}"]`)).toHaveJSProperty('selected', true);
 
-    await page
-      .locator('#labelIds')
-      .evaluate((el: HTMLSelectElement, id: string) => {
-        const opt = Array.from(el.options).find((o) => o.value === id);
-        if (opt) opt.selected = false;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      }, labelId);
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page
+        .locator('#labelIds')
+        .evaluate((el: HTMLSelectElement, id: string) => {
+          const opt = Array.from(el.options).find((o) => o.value === id);
+          if (opt) opt.selected = false;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }, labelId),
+    ]);
 
     await expect(page.locator(`#labelIds option[value="${labelId}"]`)).toHaveJSProperty('selected', false);
   });
@@ -173,23 +187,32 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
       await page.goto('/users/loginform');
       await page.fill('#loginIdOrEmailD', reviewerCredentials.loginId);
       await page.fill('#password', reviewerCredentials.password);
-      await page.click('form[action="/users/login"] button[type=submit]');
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'load' }),
+        page.click('form[action="/users/login"] button[type=submit]'),
+      ]);
       await expect(page.locator('a[href="/login"]')).toHaveCount(0);
 
       await page.goto(`/${owner}/${name}/pull/${pullRequestNumber}`);
 
-      await page.click('#btn-review');
-      await page.waitForLoadState('networkidle');
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'load' }),
+        page.click('#btn-review'),
+      ]);
       await expect(page.locator('#btn-unreview')).toBeVisible();
 
       await page.fill('#pr-review-body', 'Looks good from the e2e suite.');
-      await page.click('#btn-review-approve');
-      await page.waitForLoadState('networkidle');
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'load' }),
+        page.click('#btn-review-approve'),
+      ]);
       // Locale-independent: assert via the verdict's CSS class, not its translated label text.
       await expect(page.locator('.review-verdict-approve').first()).toBeVisible();
 
-      await page.click('#btn-unreview');
-      await page.waitForLoadState('networkidle');
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'load' }),
+        page.click('#btn-unreview'),
+      ]);
       await expect(page.locator('#btn-review')).toBeVisible();
     });
   });
@@ -204,8 +227,10 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
     // contributor, but the comment verdict has no such restriction.
     await expect(page.locator('#btn-review-approve')).toHaveCount(0);
     await page.fill('#pr-review-body', 'Self-comment from the e2e suite.');
-    await page.click('#btn-review-comment');
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('#btn-review-comment'),
+    ]);
     // .first(): a re-run of this spec against the same PR leaves a matching comment from the
     // previous run too -- this only needs to confirm at least one landed.
     await expect(page.locator('.review-list-item').filter({ hasText: 'Self-comment from the e2e suite.' }).first()).toBeVisible();
@@ -217,13 +242,17 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
     const pullRequestNumber = requireSeed('pullRequestNumber');
 
     await page.goto(`/${owner}/${name}/pull/${pullRequestNumber}`);
-    await page.click('a[data-request-uri*="state=CLOSED"]');
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('a[data-request-uri*="state=CLOSED"]'),
+    ]);
     await expect(page.locator('a[data-request-uri*="state=OPEN"]')).toBeVisible();
     await expect(page.locator('a[data-request-uri*="state=CLOSED"]')).toHaveCount(0);
 
-    await page.click('a[data-request-uri*="state=OPEN"]');
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('a[data-request-uri*="state=OPEN"]'),
+    ]);
     await expect(page.locator('a[data-request-uri*="state=CLOSED"]')).toBeVisible();
     await expect(page.locator('a[data-request-uri*="state=OPEN"]')).toHaveCount(0);
   });
@@ -249,16 +278,20 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
     // radio in the same group"), so select the disable option directly instead.
     await page.goto(`/${owner}/${name}/setting`);
     await page.check('#reviewerCountDisable');
-    await page.click('#saveSetting #save');
-    await page.waitForTimeout(500);
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('#saveSetting #save'),
+    ]);
 
     await page.goto(`/${owner}/${name}/pull/${pullRequestNumber}`);
     await expect(page.locator('#btnAccept')).toBeVisible();
 
     // #btnAccept's click handler calls a native confirm() before firing the merge request.
     page.once('dialog', (d) => d.accept());
-    await page.click('#btnAccept');
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('#btnAccept'),
+    ]);
 
     await expect(page.locator('#btnAccept')).toHaveCount(0);
     // .badge also matches the unrelated "approved N" review-verdict-summary badge -- scope to the

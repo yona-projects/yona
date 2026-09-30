@@ -132,7 +132,11 @@ test('delete a post', async ({ page }) => {
   await page.goto(`/${owner}/${name}/postform`);
   await page.fill('#title', title);
   await page.locator('textarea[data-editor-mode="content-body"]').fill('This post exists only to be deleted.', { force: true });
-  await page.click('#post-form button[type=submit]');
+  // The redirected view installs its delete-dialog handler on DOMContentLoaded.
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'load' }),
+    page.click('#post-form button[type=submit]'),
+  ]);
   await expect(page).toHaveURL(new RegExp(`/${owner}/${name}/post/\\d+`));
   const postUrl = page.url();
 

@@ -82,10 +82,10 @@ test.describe.serial('milestone lifecycle', () => {
 
     // MilestoneViewController.closeMilestone/openMilestone both redirect (200, not
     // 204+Location) back to the same view page -- yona.Common.js's requestAs() treats any
-    // non-204 success as "reload current page", so clicking + waiting for load is enough.
+    // non-204 success as "reload current page"; wait for that new document to load.
     await page.goto(`/${owner}/${name}/milestone/${milestoneId}`);
     await Promise.all([
-      page.waitForLoadState('load'),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.click(`button[data-request-uri*="/milestone/${milestoneId}/close"]`),
     ]);
     await expect(page.locator(`button[data-request-uri*="/milestone/${milestoneId}/open"]`)).toBeVisible();
@@ -93,7 +93,7 @@ test.describe.serial('milestone lifecycle', () => {
     // Reopen so later specs (and re-runs) still find it under the "open" tab -- other specs
     // reference seed.milestoneId assuming it's the one live milestone.
     await Promise.all([
-      page.waitForLoadState('load'),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.click(`button[data-request-uri*="/milestone/${milestoneId}/open"]`),
     ]);
     await expect(page.locator(`button[data-request-uri*="/milestone/${milestoneId}/close"]`)).toBeVisible();
@@ -113,7 +113,11 @@ test.describe.serial('milestone lifecycle', () => {
       el.dispatchEvent(new Event('change', { bubbles: true }));
     });
     await page.check('#milestone-open');
-    await page.click('#milestone-form button[type=submit]');
+    // The redirected view installs its delete-dialog handler on DOMContentLoaded.
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('#milestone-form button[type=submit]'),
+    ]);
 
     await expect(page).toHaveURL(new RegExp(`/${owner}/${name}/milestone/\\d+`));
     const match = page.url().match(/\/milestone\/(\d+)/);

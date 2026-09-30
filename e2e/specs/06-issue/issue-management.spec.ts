@@ -205,14 +205,12 @@ test.describe.serial('issue management actions', () => {
     const owner = requireSeed('projectOwner');
     const name = requireSeed('projectName');
 
-    // The vote link is handled by yona.Common.js's generic requestAs() delegate: fetch POST,
-    // then document.location.reload() on success (same URL, not a new one) -- wait on the
-    // /vote response itself rather than a load-state race, then let the auto-retrying
-    // expect() below ride out the reload.
+    // requestAs() reloads after each mutation; wait for the new document's handlers,
+    // not just the fetch response or server-rendered vote button.
     await page.goto(`/${owner}/${name}/issue/${issueNumber}`);
     const voteLink = page.locator('#vote a[data-request-method="post"]');
     await Promise.all([
-      page.waitForResponse((res) => res.url().endsWith('/vote') && res.request().method() === 'POST'),
+      page.waitForNavigation({ waitUntil: 'load' }),
       voteLink.click(),
     ]);
     await expect(page.locator('#vote a.ybtn-watching')).toBeVisible();
@@ -229,7 +227,7 @@ test.describe.serial('issue management actions', () => {
     await expect(voteLink).toHaveAttribute('href', new RegExp(`/${owner}/${name}/issue/${issueNumber}/unvote$`));
 
     await Promise.all([
-      page.waitForResponse((res) => res.url().endsWith('/unvote') && res.request().method() === 'POST'),
+      page.waitForNavigation({ waitUntil: 'load' }),
       voteLink.click(),
     ]);
     // `.ybtn-watching` (a CSS class selector, matching the whole class token) rather than a
@@ -275,7 +273,10 @@ test.describe.serial('issue management actions', () => {
     // throw a SyntaxError.
     await page.goto(`/${owner}/${name}/milestone/${dedicatedMilestoneId}/editform`);
     await page.fill('#title', `E2E management milestone (edited) ${uniqueSuffix()}`);
-    await page.click('#milestone-form button[type=submit]');
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      page.click('#milestone-form button[type=submit]'),
+    ]);
     await expect(page).toHaveURL(new RegExp(`/${owner}/${name}/milestone/${dedicatedMilestoneId}`));
 
     const pageErrors: string[] = [];
@@ -299,16 +300,12 @@ test.describe.serial('issue management actions', () => {
     );
     const [createResponse] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/comments') && res.request().method() === 'POST'),
+      page.waitForNavigation({ waitUntil: 'load' }),
       page.locator('#comment-form button[type=submit]').click(),
     ]);
     expect(createResponse.ok()).toBeTruthy();
-    // This screen's comment-form submit handler does a full `window.location.reload()` right
-    // after the fetch resolves (issue/view.html's inline script), which races Playwright's CDP
-    // body buffering for `createResponse` -- reading `.json()`/`.text()` on it after that
-    // point reliably hangs forever in this environment (it never resolves or rejects, even past
-    // a 60s timeout) rather than racing cleanly. Skip
-    // parsing the response body and just use the last comment-edit trigger instead -- this test
-    // works with its own dedicated issue, so the comment just posted is always the only one.
+    // mountIssueDetail reloads after comment creation and editing. The dedicated issue
+    // has only this comment, so its edit trigger identifies the newly created comment.
     await expect(page.locator('body')).toContainText(commentBody);
     const commentIdLocator = page.locator('[data-toggle="comment-edit"]').last();
 
@@ -324,6 +321,7 @@ test.describe.serial('issue management actions', () => {
     );
     const [updateResponse] = await Promise.all([
       page.waitForResponse((res) => res.request().method() === 'PUT' && res.url().includes('/comments/')),
+      page.waitForNavigation({ waitUntil: 'load' }),
       editForm.locator('button[type=submit]').click(),
     ]);
     expect(updateResponse.ok()).toBeTruthy();
@@ -335,20 +333,18 @@ test.describe.serial('issue management actions', () => {
     // does fetch(POST) then location.reload().
     const commentId = await commentIdLocator.getAttribute('data-comment-id');
     expect(commentId).toBeTruthy();
-    // Don't wait on networkidle after the click -- this page has enough incidental background
-    // activity post-reload that networkidle can hang well past the test timeout. Don't race a
-    // page.waitForResponse() against the click either -- that pairing is flaky under full-suite
-    // load, since the response/reload/re-render sequence has no hard guarantee of completing
-    // within the observation window when the whole browser is under load. Click, then let
-    // Playwright's auto-retrying expect() alone ride out
-    // the fetch + reload + re-render with a generous explicit timeout -- no network-timing
-    // assumption at all, matching the more robust half of the issue-level vote test above.
     const voteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/vote"]`);
     await expect(voteButton).toBeVisible();
     const unvoteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/unvote"]`);
-    await voteButton.click();
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      voteButton.click(),
+    ]);
     await expect(unvoteButton).toBeVisible({ timeout: 30_000 });
-    await unvoteButton.click();
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'load' }),
+      unvoteButton.click(),
+    ]);
     await expect(voteButton).toBeVisible({ timeout: 30_000 });
 
     const deleteTrigger = page.locator('[data-toggle="comment-delete"]').last();
