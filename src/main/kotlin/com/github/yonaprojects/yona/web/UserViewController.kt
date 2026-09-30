@@ -19,7 +19,6 @@ import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.issue.Issue
-import com.github.yonaprojects.yona.domain.issue.RecentIssueService
 import com.github.yonaprojects.yona.config.security.AccessControl
 import com.github.yonaprojects.yona.domain.mention.MentionService
 import com.github.yonaprojects.yona.domain.apitoken.ApiTokenPermission
@@ -36,13 +35,10 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RequestHeader
 import com.github.yonaprojects.yona.domain.attachment.Attachment
 import com.github.yonaprojects.yona.domain.attachment.AttachmentRepository
 import com.github.yonaprojects.yona.domain.board.PostingRepository
-import com.github.yonaprojects.yona.domain.user.FavoriteProjectRepository
-import com.github.yonaprojects.yona.domain.user.FavoriteOrganizationRepository
-import com.github.yonaprojects.yona.domain.organization.OrganizationUserRepository
-import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Page
@@ -74,15 +70,11 @@ class UserViewController(
     private val userProjectNotificationRepository: UserProjectNotificationRepository,
     private val attachmentRepository: AttachmentRepository,
     private val postingRepository: PostingRepository,
-    private val favoriteProjectRepository: FavoriteProjectRepository,
-    private val favoriteOrganizationRepository: FavoriteOrganizationRepository,
-    private val organizationUserRepository: OrganizationUserRepository,
-    private val organizationRepository: OrganizationRepository,
+    private val userMenuModel: UserMenuModel,
     private val userService: UserService,
     private val passwordEncodingService: PasswordEncodingService,
     private val accessControl: AccessControl,
     private val mentionService: MentionService,
-    private val recentIssueService: RecentIssueService,
     // Fine-grained API 토큰 발급/관리 웹 UI.
     private val apiTokenService: ApiTokenService,
     // "Authorized OAuth Apps" 화면(사용자가 인가한 MCP OAuth 클라이언트 조회/취소).
@@ -472,105 +464,22 @@ class UserViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "common/usermenu_tab_content_list"
 
-        // 1. 즐겨찾기 프로젝트 목록
-        val favoriteProjects = favoriteProjectRepository.findByUserId(loginUser.id!!).map { it.project }
-
-        // 2. 사용자가 가입한 조직 목록
-        val organizations = organizationUserRepository.findByUserId(loginUser.id!!).map { it.organization }
-        val favoriteOrganizations = favoriteOrganizationRepository.findByUserId(loginUser.id!!).map { it.organization }
-
-        // 3. 참여한 프로젝트 목록
-        val projectUsers = projectUserRepository.findByUserId(loginUser.id!!)
-        val allUserProjects = projectUsers.map { it.project }
-
-        // - 최근 방문 프로젝트 (최근 활동 순서로 정렬)
-        val recentlyVisited = allUserProjects.sortedByDescending { it.createdDate }.take(10)
-
-        // - 내가 생성한 프로젝트
-        val createdByMe = projectRepository.findByOwner(loginUser.loginId!!)
-
-        // - 지켜보기 프로젝트
-        val watches = watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT)
-        val watching = watches.mapNotNull { 
-            projectRepository.findById(it.resourceId.toLongOrNull() ?: return@mapNotNull null).orElse(null) 
-        }
-
-        // - 참여함 (오너가 아니면서 멤버인 프로젝트)
-        val joinmember = allUserProjects.filter { it.owner != loginUser.loginId }
-
-        // 4. 최근 방문한 이슈/게시글 (yona User.getVisitedIssues() 대응)
-        val visitedIssues = recentIssueService.getRecentIssues(loginUser)
-
-        model.addAttribute("currentUser", loginUser)
-        model.addAttribute("favoriteProjects", favoriteProjects)
-        model.addAttribute("favoriteOrganizations", favoriteOrganizations)
-        model.addAttribute("organizations", organizations)
-        model.addAttribute("recentlyVisited", recentlyVisited)
-        model.addAttribute("createdByMe", createdByMe)
-        model.addAttribute("watching", watching)
-        model.addAttribute("joinmember", joinmember)
-        model.addAttribute("visitedIssues", visitedIssues)
-
+        model.addAllAttributes(userMenuModel.load(loginUser))
         return "common/usermenu_tab_content_list"
-     }
+    }
 
     @GetMapping("/user/sidebar")
     fun userSidebar(
-        @RequestParam(required = false, defaultValue = "/user/issues") path: String,
-        @RequestParam(required = false, defaultValue = "") hash: String,
+        @RequestHeader(name = "Turbo-Frame", required = false) turboFrame: String?,
         authentication: Authentication?,
         model: Model
     ): String {
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "redirect:/users/loginform"
 
-        val iframePath = if (hash.isBlank()) path else "$path#$hash"
-
-        // 즐겨찾기 프로젝트 목록
-        val favoriteProjects = favoriteProjectRepository.findByUserId(loginUser.id!!).map { it.project }
-
-        // 사용자가 가입한 조직 목록
-        val organizations = organizationUserRepository.findByUserId(loginUser.id!!).map { it.organization }
-        val favoriteOrganizations = favoriteOrganizationRepository.findByUserId(loginUser.id!!).map { it.organization }
-
-        // 참여한 프로젝트 목록
-        val projectUsers = projectUserRepository.findByUserId(loginUser.id!!)
-        val allUserProjects = projectUsers.map { it.project }
-
-        // 최근 방문 프로젝트 (최근 활동 순서로 정렬)
-        val recentlyVisited = allUserProjects.sortedByDescending { it.createdDate }.take(10)
-
-        // 내가 생성한 프로젝트
-        val createdByMe = projectRepository.findByOwner(loginUser.loginId!!)
-
-        // 지켜보기 프로젝트
-        val watches = watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT)
-        val watching = watches.mapNotNull { 
-            projectRepository.findById(it.resourceId.toLongOrNull() ?: return@mapNotNull null).orElse(null) 
-        }
-
-        // 참여함 (오너가 아니면서 멤버인 프로젝트)
-        val joinmember = allUserProjects.filter { it.owner != loginUser.loginId }
-
-        // 최근 이슈 목록 (참여 프로젝트의 이슈 중 최근 업데이트된 10개)
-        val recentIssues = if (allUserProjects.isNotEmpty()) {
-            issueRepository.findByProjectIn(allUserProjects, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "updatedDate"))).content
-        } else {
-            emptyList()
-        }
-
         model.addAttribute("currentUser", loginUser)
-        model.addAttribute("iframePath", iframePath)
-        model.addAttribute("favoriteProjects", favoriteProjects)
-        model.addAttribute("favoriteOrganizations", favoriteOrganizations)
-        model.addAttribute("organizations", organizations)
-        model.addAttribute("recentlyVisited", recentlyVisited)
-        model.addAttribute("createdByMe", createdByMe)
-        model.addAttribute("watching", watching)
-        model.addAttribute("joinmember", joinmember)
-        model.addAttribute("recentIssues", recentIssues)
-
-        return "site/layout_framed"
+        model.addAttribute("sidebarStandalone", turboFrame != "sidebar")
+        return if (turboFrame == "sidebar") "site/sidebar :: content" else "site/sidebar"
     }
 
     @GetMapping("/user/editform/password")

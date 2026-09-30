@@ -68,6 +68,7 @@ import com.github.yonaprojects.yona.domain.user.UserIdent
 import org.thymeleaf.spring6.SpringTemplateEngine
 import org.thymeleaf.context.Context as ThymeleafContext
 import java.util.Locale
+import jakarta.servlet.http.Cookie
 
 @TestPropertySource(properties = ["github.allow.migration=true"])
 class TemplateEquivalenceSpec @Autowired constructor(
@@ -496,62 +497,70 @@ class TemplateEquivalenceSpec @Autowired constructor(
                 }
             }
 
-            describe("[Test-19-6] framed 레이아웃(site/layout_framed.html) 동치성 검증") {
-                it("사이드바 프레임 페이지에 og/twitter 메타 태그와 nprogress 자산이 포함되어야 한다") {
-                    val result = mockMvc.perform(
-                        get("/user/sidebar")
-                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                    )
-                        .andExpect(status().isOk)
-                        .andReturn()
-
-                    val doc = Jsoup.parse(result.response.contentAsString)
-                    doc.select("meta[property='og:title']").size shouldBe 1
-                    doc.select("meta[property='og:url']").size shouldBe 1
-                    doc.select("meta[name='twitter:card']").attr("content") shouldBe "summary"
-                    doc.select("link[href*='lib/nprogress/nprogress.css']").size shouldBe 1
-                    // magnific-popup.css는 legacy에서도 본체(jquery.magnific-popup.js)가 로드되지
-                    // 않는 죽은 참조였다 - CSS만 남아 기능하지 않아 제거했다.
-                    doc.select("link[href*='lib/magnific-popup/magnific-popup.css']").size shouldBe 0
+            describe("Sidebar frame responses") {
+                it("인증되지 않은 프레임 요청은 로그인으로 이동해야 한다") {
+                    val response = mockMvc.perform(get("/user/sidebar").header("Turbo-Frame", "sidebar"))
+                        .andExpect(status().is3xxRedirection)
+                        .andReturn().response
+                    response.redirectedUrl!!.endsWith("/users/loginform") shouldBe true
                 }
 
-                it("사이드바 프레임 body 클래스는 theme-default와 framed-body를 모두 가져야 한다") {
-                    val result = mockMvc.perform(
-                        get("/user/sidebar")
+                it("프레임 콘텐츠는 현재 사용자의 목록과 일반 링크만 렌더링하고 오른쪽 메뉴의 ID와 겹치지 않아야 한다") {
+                    val response = mockMvc.perform(
+                        get("/user/sidebar").header("Turbo-Frame", "sidebar")
                             .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                    )
-                        .andExpect(status().isOk)
-                        .andReturn()
+                    ).andExpect(status().isOk).andReturn().response
+                    val doc = Jsoup.parse(response.contentAsString)
+                    val frame = doc.select("turbo-frame#sidebar").single()
+                    frame.attr("data-turbo") shouldBe "false"
+                    frame.hasAttr("data-sidebar-standalone") shouldBe false
+                    doc.select("iframe, script, #mySidenav, [target=mainFrame]").size shouldBe 0
+                    frame.select("a[href='/member']").size shouldBe 1
+                    frame.select("a[href='/user/editform']").size shouldBe 1
+                    frame.select("a.js-logout-link[href='/users/logout']").size shouldBe 1
+                    frame.select("a[data-sidebar-close][href='/'][aria-label=Close]").size shouldBe 1
+                    frame.select("a[data-sidebar-refresh][aria-label=Refresh]").size shouldBe 1
+                    val projectLink = frame.select("#sidebar-joinmember .project-name > a[href='/owner/memberonly-proj/go']").single()
+                    projectLink.attr("target") shouldBe "_self"
+                    projectLink.attr("data-turbo") shouldBe "false"
+                    frame.select("a[href^='#']").forEach { link ->
+                        frame.select(link.attr("href")).size shouldBe 1
+                    }
+                    val ids = frame.select("[id]").filter { it !== frame }.map { it.id() }
+                    ids.size shouldBe ids.toSet().size
+                    ids.all { it.startsWith("sidebar-") } shouldBe true
 
-                    val doc = Jsoup.parse(result.response.contentAsString)
-                    val bodyClass = doc.select("body#html-body").attr("class")
-                    bodyClass.contains("theme-default") shouldBe true
-                    bodyClass.contains("framed-body") shouldBe true
+                    val rightResponse = mockMvc.perform(
+                        get("/user/usermenuTabContentList")
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn().response
+                    val right = Jsoup.parse(rightResponse.contentAsString)
+                    val rightIds = right.select("[id]").map { it.id() }
+                    ids.toSet().intersect(rightIds.toSet()) shouldBe emptySet()
+                    right.select("#myOrganizationList").size shouldBe 1
+                    right.select("#joinmember .project-name > a[href='/owner/memberonly-proj/go']").attr("target") shouldBe "_blank"
+
+                    val otherResponse = mockMvc.perform(
+                        get("/user/sidebar").header("Turbo-Frame", "sidebar")
+                            .with(SecurityMockMvcRequestPostProcessors.user(nonMemberDetails))
+                    ).andExpect(status().isOk).andReturn().response
+                    val other = Jsoup.parse(otherResponse.contentAsString)
+                    other.select("#sidebar-joinmember a[href='/owner/memberonly-proj/go']").size shouldBe 0
+                    other.select(".user-menu a[href='/member']").size shouldBe 0
+                    other.select(".user-menu a[href='/nonmember']").size shouldBe 1
                 }
 
-                it("프로젝트/조직 목록의 popover 마크업이 실제로 초기화되는 스크립트가 포함되어야 한다") {
-                    val result = mockMvc.perform(
-                        get("/user/sidebar")
-                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                    )
-                        .andExpect(status().isOk)
-                        .andReturn()
-
-                    val html = result.response.contentAsString
-                    html.contains("[data-toggle=\"popover\"]").shouldBe(true)
-                    html.contains(".popover()").shouldBe(true)
-                }
-
-                it("sendYonaUsage 설정 기본값(true)이면 구글 애널리틱스 스크립트가 렌더링되어야 한다") {
-                    val result = mockMvc.perform(
-                        get("/user/sidebar")
-                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                    )
-                        .andExpect(status().isOk)
-                        .andReturn()
-
-                    val html = result.response.contentAsString
-                    html.contains("google-analytics.com/analytics.js") shouldBe true
+                it("직접 요청은 GNB나 iframe 없는 독립 문서와 탐색 가능한 링크를 반환해야 한다") {
+                    val response = mockMvc.perform(
+                        get("/user/sidebar").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn().response
+                    val doc = Jsoup.parse(response.contentAsString)
+                    doc.select("head title").size shouldBe 1
+                    doc.select("#sidebar").size shouldBe 1
+                    doc.select("turbo-frame#sidebar[data-sidebar-standalone=true]").size shouldBe 1
+                    doc.select("iframe, #mySidenav, [target=mainFrame]").size shouldBe 0
+                    doc.select("#sidebar a[data-sidebar-close]").attr("href") shouldBe "/"
+                    doc.select("#sidebar-joinmember .project-name > a[href='/owner/memberonly-proj/go']").attr("target") shouldBe "_self"
                 }
             }
 
@@ -640,32 +649,6 @@ class TemplateEquivalenceSpec @Autowired constructor(
             }
 
             describe("[Test-19-9] 공용 스크립트 조각(common/scripts.scala.html) 동치성 검증") {
-                it("토스트 알림 템플릿, U 단축키, pageshow NProgress 해제, iframe 히스토리 동기화 스크립트가 포함되어야 한다") {
-                    val result = mockMvc.perform(
-                        get("/owner/public-proj")
-                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                    )
-                        .andExpect(status().isOk)
-                        .andReturn()
-
-                    val html = result.response.contentAsString
-                    val doc = Jsoup.parse(html)
-
-                    // 토스트 알림이 Vue 3 SFC(<yona-toast>)로 교체되면서 jQuery 템플릿
-                    // (script#tplYonaToast)은 제거됐다 - yona.ui.Toast.js가 하이브리드 어댑터로
-                    // push/clear를 이 엘리먼트에 위임한다.
-                    doc.select("yona-toast#yonaToasts").size shouldBe 1
-
-                    html.contains("\"U\":") shouldBe true
-                    html.contains("user\\/${member.loginId}") shouldBe true
-
-                    html.contains("pageshow") shouldBe true
-                    html.contains("NProgress.done()") shouldBe true
-
-                    html.contains(".head-anchor") shouldBe true
-                    html.contains(".share-link") shouldBe true
-                    html.contains("window.parent.history.pushState") shouldBe true
-                }
 
                 it("비로그인 사용자에게 렌더링되는 페이지가 더 이상 jquery-ui 스크립트를 로드하지 않아야 한다") {
                     // jquery-ui-1.10.4.custom.min.js는 저장소 전체에 실 호출부가 없는 죽은
@@ -719,6 +702,92 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                     val doc = Jsoup.parse(result.response.contentAsString)
                     doc.select("#mySidenav a[href='#myRecentIssueList']").size shouldNotBe 0
+                }
+            }
+
+            describe("Sidebar first-response rendering") {
+                val sidebarIssue = issueRepository.findAll().find { it.title == "Sidebar first response" }
+                    ?: issueRepository.save(
+                        Issue(
+                            title = "Sidebar first response", body = "Sidebar render fixture",
+                            project = publicProj, authorId = owner.id!!,
+                            authorLoginId = owner.loginId, authorName = owner.name, number = 9099L
+                        )
+                    )
+                val issueUrl = "/owner/public-proj/issue/${sidebarIssue.number}"
+                val menuAttributes = listOf(
+                    "favoriteProjects", "favoriteOrganizations", "organizations", "recentlyVisited",
+                    "createdByMe", "watching", "joinmember", "visitedIssues", "menuIdPrefix"
+                )
+
+                it("an open preference embeds the authenticated menu in the first issue response without polluting its model") {
+                    val result = mockMvc.perform(
+                        get(issueUrl).cookie(Cookie("yona.sidebar.open", "true"))
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn()
+
+                    val doc = Jsoup.parse(result.response.contentAsString)
+                    val sidebar = doc.selectFirst("turbo-frame#sidebar")!!
+                    sidebar.attr("data-sidebar-loaded") shouldBe "true"
+                    sidebar.attr("data-sidebar-user") shouldBe member.id.toString()
+                    sidebar.hasAttr("src") shouldBe false
+                    sidebar.hasAttr("hidden") shouldBe false
+                    sidebar.select("a[href='/owner/memberonly-proj/go']").first()!!.text() shouldBe "memberonly-proj"
+                    doc.select("turbo-frame#sidebar").size shouldBe 1
+                    menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                }
+
+                it("a closed or non-true preference leaves menu content unloaded") {
+                    for (value in listOf(null, "false", "TRUE")) {
+                        val request = get(issueUrl)
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                        if (value != null) request.cookie(Cookie("yona.sidebar.open", value))
+                        val result = mockMvc.perform(request).andExpect(status().isOk).andReturn()
+                        val sidebar = Jsoup.parse(result.response.contentAsString).selectFirst("turbo-frame#sidebar")!!
+                        sidebar.hasAttr("hidden") shouldBe true
+                        sidebar.select("#sidebar-usermenu-tab-content-list").size shouldBe 0
+                        sidebar.hasAttr("data-sidebar-loaded") shouldBe false
+                        menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                    }
+                }
+
+                it("an anonymous open cookie cannot expose another user's sidebar") {
+                    val result = mockMvc.perform(get(issueUrl).cookie(Cookie("yona.sidebar.open", "true")))
+                        .andExpect(status().isOk).andReturn()
+                    val doc = Jsoup.parse(result.response.contentAsString)
+                    doc.select("turbo-frame#sidebar").size shouldBe 0
+                    doc.select("[data-sidebar-user]").size shouldBe 0
+                    menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                }
+
+                it("an issue-detail frame response never includes a global sidebar even with an open cookie") {
+                    val result = mockMvc.perform(
+                        get("/owner/public-proj/issues").param("selected", sidebarIssue.number.toString())
+                            .header("Turbo-Frame", "issue-detail")
+                            .cookie(Cookie("yona.sidebar.open", "true"))
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn()
+                    val doc = Jsoup.parse(result.response.contentAsString)
+                    doc.select("turbo-frame#issue-detail").size shouldBe 1
+                    doc.select("turbo-frame#sidebar").size shouldBe 0
+                    menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                }
+
+                it("both direct and frame sidebar requests render the same authenticated menu") {
+                    for (frameRequest in listOf(false, true)) {
+                        val request = get("/user/sidebar")
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                        if (frameRequest) request.header("Turbo-Frame", "sidebar")
+                        val result = mockMvc.perform(request).andExpect(status().isOk).andReturn()
+                        val doc = Jsoup.parse(result.response.contentAsString)
+                        val sidebar = doc.selectFirst("turbo-frame#sidebar")!!
+                        doc.select("turbo-frame#sidebar").size shouldBe 1
+                        sidebar.attr("data-sidebar-loaded") shouldBe "true"
+                        sidebar.attr("data-sidebar-user") shouldBe member.id.toString()
+                        sidebar.hasAttr("data-sidebar-standalone") shouldBe !frameRequest
+                        sidebar.select("a[href='/owner/memberonly-proj/go']").first()!!.text() shouldBe "memberonly-proj"
+                        menuAttributes.forEach { result.modelAndView!!.model.containsKey(it) shouldBe false }
+                    }
                 }
             }
 

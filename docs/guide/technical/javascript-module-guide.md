@@ -1,5 +1,16 @@
 # 자바스크립트 모듈 작성 가이드
 
+## Yona 2.0의 sidebar fragment
+
+`yona.sidebar.Turbo.js`는 sidebar 열기/닫기와 Turbo 요청·오류 상태만 소유한다.
+`yona.SidebarState.js`는 head에서 준비해 SSR markup 직후 탭/검색을 복원한다. 열림 상태는
+서버가 읽는 UI 쿠키, 세부 탭/검색어는 사용자별 sessionStorage로 관리하며 URL은 변경하지 않는다.
+`yona.Usermenu.js`는 왼쪽 frame과 오른쪽 사용자 메뉴를 각각 DOM root로 받아 초기화한다.
+동적으로 받은 HTML은 `turbo:before-frame-render`/`turbo:frame-load`에서 준비·초기화하며,
+전역 `DOMContentLoaded`를 다시 발생시키거나 본문의 기존 위젯을 재생성하지 않는다.
+Frame 내 ID는 `sidebar-` prefix로 구분하고 이벤트는 중복 바인딩하지 않는다.
+
+
 legacy Yona의 `docs/ko/technical/javascript-module-guide.md`를 옮김. **이 문서가 설명하는
 `yobi.*` 네임스페이스·모듈 패턴은 yona에도 그대로 남아 있다** — 화면(Thymeleaf 템플릿)을
 legacy `.scala.html`과 최대한 동일하게 옮기는 원칙에 따라, 정적 자산인

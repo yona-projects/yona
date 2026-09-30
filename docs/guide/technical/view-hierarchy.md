@@ -1,5 +1,16 @@
 # View Hierarchy
 
+## Yona 2.0 sidebar
+
+왼쪽 sidebar는 현재 페이지 안의 `turbo-frame#sidebar`로 표시한다. 열림 쿠키가 있으면 첫 HTML에
+내용을 서버 렌더링하고, 닫혀 있으면 처음 여는 시점에만 `GET /user/sidebar`로 불러온다.
+닫기/재열기는 현재 본문 DOM과 입력값을 유지하며, 이미 서버 렌더링한 sidebar를 다시 fetch하지 않는다.
+`layout_framed.html`/navigation iframe은 제거했다. Sidebar는 overlay이며 본문 너비를 바꾸지 않는다.
+프로젝트·이슈 링크의 본문 이동은 일반 navigation으로 유지한다.
+
+현재 구현과 검증 범위는 [Turbo 적용 기록](../../TURBO_THYMELEAF_POC.md#독립-pr--left-sidebar-turbo-frame)을 참고한다.
+
+
 legacy Yona의 `docs/ko/technical/view-hierarchy.md`를 옮김. **주의**: 이 문서는 legacy의
 242개 `.scala.html` 포함 관계를 그대로 옮긴 것이며, yona의 실제 템플릿(`templates/**/*.html`,
 Thymeleaf) 242개 전부와 파일 단위로 재대조하지는 않았다 — `docs/TEMPLATE_BACKLOG.md`가

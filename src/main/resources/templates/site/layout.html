@@ -33,27 +33,40 @@
   <link rel="stylesheet" type="text/css" href="/javascripts/lib/highlight/styles/default.css" />
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/usermenu.css">
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yona.css?v=20260614-2">
+  <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/sidebar.css">
+  <script src="/javascripts/common/yona.SidebarState.js"></script>
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/nprogress/nprogress.css">
   <link rel="stylesheet" href="/javascripts/lib/viewerjs/viewer.css">
   <script type="text/javascript" src="/javascripts/yona-layout.js"></script>
   <script type="text/javascript" src="/messages.js"></script>
-  <script type="text/javascript" sec:authorize="isAuthenticated()">
-    window.parent.document.title = window.document.title;
-    window.parent.history.replaceState('', window.document.title, window.location.href);
-
-    var shallWeOpenLeftNavigation = localStorage.getItem('shallWeOpenLeftNavigation');
-
-    if (window.parent === window) {
-        if (shallWeOpenLeftNavigation === "true") {
-            window.location.href = "/user/sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
-        }
-    }
-  </script>
 </head>
 <body>
 
+  <th:block th:fragment="sidebarHost" sec:authorize="isAuthenticated()" th:if="${currentUser != null}">
+    <th:block th:if="${sidebarOpen == true}">
+      <th:block th:replace="~{site/sidebar :: embedded(${currentUser})}"></th:block>
+    </th:block>
+    <turbo-frame th:unless="${sidebarOpen == true}" id="sidebar" class="sidebar"
+                 target="_top" data-turbo="false" hidden role="complementary" aria-label="Sidebar"
+                 th:attr="data-sidebar-user=${currentUser.id}">
+      <button type="button" class="pin-in-sidebar" data-sidebar-close
+              th:attr="aria-label=#{button.close}" title="Sidebar">
+        <i class="yobicon-arrow-left" aria-hidden="true"></i>
+      </button>
+      <p class="sidebar-status" data-sidebar-status role="status">Loading sidebar…</p>
+    </turbo-frame>
+    <script>
+      var sidebarHost = document.getElementById("sidebar");
+      if (sidebarHost && window.yonaSidebarState) {
+        window.yonaSidebarState.restore(sidebarHost);
+        document.body.classList.toggle("left-sidebar-open", !sidebarHost.hidden);
+      }
+    </script>
+  </th:block>
+
   <!-- GNB (공통 네비게이션 바) -->
   <th:block th:fragment="gnb">
+    <th:block th:replace="~{site/layout :: sidebarHost}"></th:block>
     <div sec:authorize="hasAuthority('ROLE_SITE_ADMIN')" class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">
       <span th:text="#{user.siteAdminLoggedInAffix}">관리자로 로그인 하였습니다!</span>
       <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}">- 큰 힘에는 큰 책임이 따릅니다</span>
@@ -75,7 +88,10 @@
 
     <header class="gnb-outer" th:classappend="${project != null or org != null} ? 'project-header' : ''">
       <div class="gnb-inner">
-        <div class="pin" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i><i class="yobicon-arrow-right" style="display: block;"></i></div>
+        <a class="pin" href="/user/sidebar" data-sidebar-toggle aria-controls="sidebar" aria-expanded="false"
+           aria-label="Sidebar" data-toggle="tooltip" data-placement="bottom" title="Sidebar">
+          <i class="yobicon-arrow-right" style="display: block;" aria-hidden="true"></i>
+        </a>
         <ul class="gnb-nav">
           <li>
             <a href="/" class="logo logo-letter">Y</a>
@@ -591,6 +607,8 @@
 
     <!-- 스크립트 라이브러리들 로드 -->
     <script type="text/javascript" src="/javascripts/yona-common.js"></script>
+    <script type="module" src="/javascripts/service/yona.sidebar.Turbo.js"
+            onerror="document.documentElement.classList.remove('sidebar-js'); document.body.classList.remove('left-sidebar-open');"></script>
 
     <!-- fetch()를 전역 패치해 CSRF 헤더를 주입한다(GET/HEAD/OPTIONS/TRACE 제외 - CsrfFilter가
          검증하지 않음). 토큰은 CookieCsrfTokenRepository.withHttpOnlyFalse()가 원문 그대로
@@ -827,31 +845,6 @@
                 });
             });
 
-            if (window.parent === window) {
-                // jQuery .show()가 <i>(기본 inline)에 명시적으로 쓰는 표시값 - CSS 클래스 규칙
-                // (display:none)이 인라인 스타일보다 우선순위가 낮아 밀리므로 "" 대신 명시값 사용.
-                document.querySelectorAll(".pin > .yobicon-arrow-right").forEach(function(el){ el.style.display = "inline"; });
-            }
-
-            document.querySelectorAll(".pin").forEach(function(el){
-                el.addEventListener("click", function () {
-                    if (window.parent === window) {
-                        localStorage.setItem('shallWeOpenLeftNavigation', "true");
-                        window.location.href = "/user/sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
-                    } else {
-                        localStorage.setItem('shallWeOpenLeftNavigation', "false");
-                        window.parent.location = window.location.href;
-                    }
-                });
-            });
-
-            var elParentSidebar = window.parent.document.querySelector("div#sidebar.sidebar");
-            if (elParentSidebar && getComputedStyle(elParentSidebar).display === "block") {
-                document.querySelectorAll("div.pin > i.yobicon-arrow-right").forEach(function(el){
-                    el.classList.remove("yobicon-arrow-right");
-                    el.classList.add("yobicon-arrow-left");
-                });
-            }
 
             if(navigator.userAgent.match(/MSIE ([0-9])\./)){
                document.querySelectorAll('.unsupported').forEach(function(el){ el.style.display = "block"; });
@@ -933,17 +926,6 @@
                 });
             }
 
-            if (window.parent !== window) {
-                document.querySelectorAll("a.ago, .head-anchor, .share-link").forEach(function(el){
-                    el.addEventListener("click", function () {
-                        if (!history.state) {
-                            window.parent.history.pushState({ startPath: location.pathname }, el.textContent, el.getAttribute("href"));
-                        } else {
-                            window.parent.history.replaceState(history.state, el.textContent, el.getAttribute("href"));
-                        }
-                    });
-                });
-            }
         });
     </script>
 

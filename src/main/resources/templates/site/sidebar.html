@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head('Yona')}"></head>
+<body class="theme-default" id="html-body" data-turbo="false">
+<th:block th:fragment="content" th:with="user=${currentUser}">
+<th:block th:fragment="embedded(user)"
+          th:with="menu=${@userMenuModel.load(user)},currentUser=${user},menuIdPrefix='sidebar-',
+                   favoriteProjects=${menu.favoriteProjects},favoriteOrganizations=${menu.favoriteOrganizations},
+                   organizations=${menu.organizations},recentlyVisited=${menu.recentlyVisited},
+                   createdByMe=${menu.createdByMe},watching=${menu.watching},
+                   joinmember=${menu.joinmember},visitedIssues=${menu.visitedIssues}">
+<turbo-frame id="sidebar" class="sidebar" target="_top" data-turbo="false"
+             data-sidebar-loaded="true" data-sidebar-pending
+             th:attr="data-sidebar-standalone=${sidebarStandalone == true ? 'true' : null},data-sidebar-user=${currentUser.id}">
+    <div class="row-fluid user-menu-wrap">
+        <span class="user-menu"><a th:href="@{/{loginId}(loginId=${currentUser.loginId})}">
+            <span class="avatar-wrap smaller">
+                <img th:src="${currentUser.avatarUrl != null ? currentUser.avatarUrl : '/images/default-avatar-128.png'}" alt="">
+            </span>
+            <span class="caret-text hide-in-mobile" th:text="${currentUser.name}">User</span>
+        </a></span>
+        <span class="user-menu"><a href="/user/editform" th:text="#{userinfo.accountSetting}">사용자 설정</a></span>
+        <a href="/users/logout" class="js-logout-link"><span class="user-menu logout label" th:text="#{title.logout}">로그아웃</span></a>
+        <a href="/" class="pin-in-sidebar" data-sidebar-close th:attr="aria-label=#{button.close}" title="Sidebar"><i class="yobicon-arrow-left" aria-hidden="true"></i></a>
+    </div>
+    <ul class="nav nav-tabs nm">
+        <li class="myOrganizationList active">
+            <a href="#sidebar-myOrganizationList" data-toggle="tab" data-sidebar-tab="myOrganizationList" th:text="#{title.favorite}">즐겨찾기</a>
+        </li>
+        <li class="myProjectList">
+            <a href="#sidebar-myProjectList" data-toggle="tab" data-sidebar-tab="myProjectList" th:text="#{title.project}">프로젝트</a>
+        </li>
+        <li class="sidebar-refresh">
+            <a href="/user/sidebar" class="refresh-button" data-sidebar-refresh aria-label="Refresh" title="Refresh"><i class="yobicon-refresh" aria-hidden="true"></i></a>
+        </li>
+    </ul>
+    <div class="tab-content tab-box">
+        <div id="sidebar-usermenu-tab-content-list" class="tab-content">
+            <th:block th:replace="~{common/usermenu_tab_content_list}"></th:block>
+        </div>
+    </div>
+</turbo-frame>
+</th:block>
+</th:block>
+<script>window.yonaSidebarState.restore(document.getElementById('sidebar'));</script>
+<noscript>
+    <style>
+        #sidebar .tab-pane { display: block; }
+        #sidebar .user-li.hide { display: list-item; }
+        #sidebar .search-input, #sidebar .bar { display: none; }
+    </style>
+</noscript>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

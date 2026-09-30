@@ -19,7 +19,6 @@ import com.github.yonaprojects.yona.domain.notification.UserProjectNotificationR
 import com.github.yonaprojects.yona.domain.user.FavoriteProjectRepository
 import com.github.yonaprojects.yona.domain.user.FavoriteOrganizationRepository
 import com.github.yonaprojects.yona.domain.organization.OrganizationUserRepository
-import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import jakarta.servlet.http.HttpServletResponse
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -75,7 +74,6 @@ class UserViewControllerSpec : DescribeSpec({
     val favoriteProjectRepository = mockk<FavoriteProjectRepository>()
     val favoriteOrganizationRepository = mockk<FavoriteOrganizationRepository>()
     val organizationUserRepository = mockk<OrganizationUserRepository>()
-    val organizationRepository = mockk<OrganizationRepository>()
     val userService = mockk<UserService>()
     val accessControl = mockk<AccessControl>()
     val mentionService = mockk<MentionService>(relaxed = true)
@@ -88,6 +86,10 @@ class UserViewControllerSpec : DescribeSpec({
     val milestoneRepository = mockk<MilestoneRepository>()
     val httpServletResponse = mockk<HttpServletResponse>(relaxed = true)
     val passwordEncodingService = com.github.yonaprojects.yona.domain.user.PasswordEncodingService()
+    val userMenuModel = UserMenuModel(
+        favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
+        projectUserRepository, projectRepository, watchRepository, recentIssueService
+    )
 
     val userViewController = UserViewController(
         userRepository,
@@ -99,15 +101,11 @@ class UserViewControllerSpec : DescribeSpec({
         userProjectNotificationRepository,
         attachmentRepository,
         postingRepository,
-        favoriteProjectRepository,
-        favoriteOrganizationRepository,
-        organizationUserRepository,
-        organizationRepository,
+        userMenuModel,
         userService,
         passwordEncodingService,
         accessControl,
         mentionService,
-        recentIssueService,
         apiTokenService,
         oAuthAuthorizedAppsService,
         oAuthAppRegistrationService,
@@ -148,7 +146,6 @@ class UserViewControllerSpec : DescribeSpec({
             favoriteProjectRepository,
             favoriteOrganizationRepository,
             organizationUserRepository,
-            organizationRepository,
             accessControl,
             mentionService,
             apiTokenService,
@@ -299,8 +296,7 @@ class UserViewControllerSpec : DescribeSpec({
         val hiddenController = UserViewController(
             userRepository, projectUserRepository, issueRepository, pullRequestRepository, watchRepository,
             projectRepository, userProjectNotificationRepository, attachmentRepository, postingRepository,
-            favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
-            organizationRepository, userService, passwordEncodingService, accessControl, mentionService, recentIssueService,
+            userMenuModel, userService, passwordEncodingService, accessControl, mentionService,
             apiTokenService, oAuthAuthorizedAppsService, oAuthAppRegistrationService, sshKeyService, gpgKeyService,
             milestoneRepository, hideProjectListing = true
         )
@@ -1138,7 +1134,6 @@ class UserViewControllerSpec : DescribeSpec({
             every { projectRepository.findByOwner("testuser") } returns listOf(ownedProject)
             every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns listOf(watchValid, watchInvalid)
             every { projectRepository.findById(7L) } returns Optional.of(watchedProject)
-            every { organizationRepository.findAll() } returns emptyList()
 
             val model = ExtendedModelMap()
             val view = userViewController.usermenuTabContentList(UsernamePasswordAuthenticationToken("testuser", "password"), model)
@@ -1150,16 +1145,17 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // userSidebar()의 미인증 리다이렉트, hash 유무에 따른 iframePath 조립, 참여 프로젝트
-    // 유/무에 따른 최근 이슈 조회 분기.
     describe("GET /user/sidebar") {
         it("미인증 사용자는 로그인 폼으로 리다이렉트되어야 한다") {
             mockMvc.perform(get("/user/sidebar"))
                 .andExpect(status().is3xxRedirection)
                 .andExpect(redirectedUrl("/users/loginform"))
+            mockMvc.perform(get("/user/sidebar").header("Turbo-Frame", "sidebar"))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/users/loginform"))
         }
 
-        it("hash 파라미터가 있으면 iframePath에 #hash가 붙어야 한다") {
+        it("sidebar 프레임 요청은 조각을 반환하고 일반 요청은 독립 페이지를 반환해야 한다") {
             val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
             every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
             every { favoriteProjectRepository.findByUserId(10L) } returns emptyList()
@@ -1168,44 +1164,23 @@ class UserViewControllerSpec : DescribeSpec({
             every { projectUserRepository.findByUserId(10L) } returns emptyList()
             every { projectRepository.findByOwner("testuser") } returns emptyList()
             every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
-            every { organizationRepository.findAll() } returns emptyList()
 
-            val model = ExtendedModelMap()
-            userViewController.userSidebar(
-                path = "/user/issues", hash = "comment-1",
-                authentication = UsernamePasswordAuthenticationToken("testuser", "password"), model = model
-            )
-
-            model.getAttribute("iframePath") shouldBe "/user/issues#comment-1"
+            for ((header, expectedView) in listOf(
+                "sidebar" to "site/sidebar :: content",
+                null to "site/sidebar",
+                "other-frame" to "site/sidebar"
+            )) {
+                val model = ExtendedModelMap()
+                userViewController.userSidebar(
+                    turboFrame = header,
+                    authentication = UsernamePasswordAuthenticationToken("testuser", "password"), model = model
+                ) shouldBe expectedView
+                model.getAttribute("sidebarStandalone") shouldBe (header != "sidebar")
+                model.getAttribute("currentUser") shouldBe loginUser
+                model.containsAttribute("iframePath") shouldBe false
+            }
         }
 
-        it("소속 프로젝트가 있으면 최근 이슈를 조회해야 한다") {
-            val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
-            val project = Project(id = 1L, name = "proj1", owner = "testuser")
-            val memberRole = Role(id = RoleType.MEMBER.roleType)
-            val projectUser = ProjectUser(id = 1L, user = loginUser, project = project, role = memberRole)
-            val recentIssue = Issue(id = 1L, title = "최근 이슈", project = project)
-
-            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
-            every { favoriteProjectRepository.findByUserId(10L) } returns emptyList()
-            every { organizationUserRepository.findByUserId(10L) } returns emptyList()
-            every { favoriteOrganizationRepository.findByUserId(10L) } returns emptyList()
-            every { projectUserRepository.findByUserId(10L) } returns listOf(projectUser)
-            every { projectRepository.findByOwner("testuser") } returns emptyList()
-            every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
-            every { organizationRepository.findAll() } returns emptyList()
-            every { issueRepository.findByProjectIn(listOf(project), any()) } returns PageImpl(listOf(recentIssue))
-
-            val model = ExtendedModelMap()
-            val view = userViewController.userSidebar(
-                path = "/user/issues", hash = "",
-                authentication = UsernamePasswordAuthenticationToken("testuser", "password"), model = model
-            )
-
-            view shouldBe "site/layout_framed"
-            model.getAttribute("iframePath") shouldBe "/user/issues"
-            model.getAttribute("recentIssues") shouldBe listOf(recentIssue)
-        }
     }
 
     // userFiles()의 미인증/pageNum<1/filter 유무 분기.
@@ -1765,16 +1740,12 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // userSidebar()의 "인증되었으나 사용자 없음" 분기, watch.resourceId 파싱 실패/미존재 프로젝트
-    // 제외 분기(editUserNotificationsForm/usermenuTabContentList에는 있었지만 userSidebar에는
-    // 없었음), joinmember 필터의 "오너가 아닌 멤버(참여함에 포함)" 분기(기존 테스트는 반대로
-    // "오너 본인(제외)" 케이스만 있었음).
-    describe("GET /user/sidebar - 추가 분기 커버리지") {
+    describe("Sidebar authentication and shared menu model") {
         it("인증되었으나 사용자를 찾을 수 없으면 로그인 폼으로 리다이렉트되어야 한다") {
             every { userRepository.findByLoginId("ghostuser") } returns Optional.empty()
 
             val view = userViewController.userSidebar(
-                path = "/user/issues", hash = "",
+                turboFrame = "sidebar",
                 authentication = UsernamePasswordAuthenticationToken("ghostuser", "password"),
                 model = ExtendedModelMap()
             )
@@ -1789,7 +1760,6 @@ class UserViewControllerSpec : DescribeSpec({
             val watchValid = Watch(id = 3L, user = loginUser, resourceType = ResourceType.PROJECT, resourceId = "12")
             val watchedProject = Project(id = 12L, name = "watched", owner = "someone")
 
-            every { userRepository.findByLoginId("sidebaruser") } returns Optional.of(loginUser)
             every { favoriteProjectRepository.findByUserId(50L) } returns emptyList()
             every { organizationUserRepository.findByUserId(50L) } returns emptyList()
             every { favoriteOrganizationRepository.findByUserId(50L) } returns emptyList()
@@ -1798,15 +1768,8 @@ class UserViewControllerSpec : DescribeSpec({
             every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns listOf(watchInvalid, watchMissing, watchValid)
             every { projectRepository.findById(9999L) } returns Optional.empty()
             every { projectRepository.findById(12L) } returns Optional.of(watchedProject)
-            every { organizationRepository.findAll() } returns emptyList()
 
-            val model = ExtendedModelMap()
-            userViewController.userSidebar(
-                path = "/user/issues", hash = "",
-                authentication = UsernamePasswordAuthenticationToken("sidebaruser", "password"), model = model
-            )
-
-            model.getAttribute("watching") shouldBe listOf(watchedProject)
+            userMenuModel.load(loginUser)["watching"] shouldBe listOf(watchedProject)
         }
 
         it("오너가 아닌 멤버로 참여한 프로젝트는 참여함(joinmember) 목록에 포함되어야 한다") {
@@ -1815,23 +1778,14 @@ class UserViewControllerSpec : DescribeSpec({
             val otherProject = Project(id = 13L, name = "other-proj", owner = "otherowner")
             val projectUser = ProjectUser(id = 2L, user = loginUser, project = otherProject, role = memberRole)
 
-            every { userRepository.findByLoginId("member1") } returns Optional.of(loginUser)
             every { favoriteProjectRepository.findByUserId(51L) } returns emptyList()
             every { organizationUserRepository.findByUserId(51L) } returns emptyList()
             every { favoriteOrganizationRepository.findByUserId(51L) } returns emptyList()
             every { projectUserRepository.findByUserId(51L) } returns listOf(projectUser)
             every { projectRepository.findByOwner("member1") } returns emptyList()
             every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
-            every { organizationRepository.findAll() } returns emptyList()
-            every { issueRepository.findByProjectIn(listOf(otherProject), any()) } returns PageImpl(emptyList())
 
-            val model = ExtendedModelMap()
-            userViewController.userSidebar(
-                path = "/user/issues", hash = "",
-                authentication = UsernamePasswordAuthenticationToken("member1", "password"), model = model
-            )
-
-            model.getAttribute("joinmember") shouldBe listOf(otherProject)
+            userMenuModel.load(loginUser)["joinmember"] shouldBe listOf(otherProject)
         }
     }
 
@@ -1874,7 +1828,6 @@ class UserViewControllerSpec : DescribeSpec({
             every { projectUserRepository.findByUserId(52L) } returns listOf(projectUser)
             every { projectRepository.findByOwner("owner1") } returns listOf(ownProject)
             every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
-            every { organizationRepository.findAll() } returns emptyList()
 
             val model = ExtendedModelMap()
             userViewController.usermenuTabContentList(UsernamePasswordAuthenticationToken("owner1", "password"), model)

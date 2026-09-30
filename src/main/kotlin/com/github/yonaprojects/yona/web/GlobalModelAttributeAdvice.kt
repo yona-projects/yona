@@ -36,6 +36,10 @@ class GlobalModelAttributeAdvice(
     @Value("\${yona.application.use-social-login-only:false}") private val useSocialLoginOnly: Boolean
 ) {
 
+    @ModelAttribute("sidebarOpen")
+    fun sidebarOpen(request: HttpServletRequest): Boolean =
+        request.cookies?.firstOrNull { it.name == "yona.sidebar.open" }?.value == "true"
+
     @ModelAttribute("currentUser")
     fun currentUser(): User? {
         val authentication = SecurityContextHolder.getContext().authentication

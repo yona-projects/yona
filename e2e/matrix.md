@@ -250,6 +250,15 @@
 | /site/oauth-apps (관리자) | specs/13-admin/oauth-apps-admin.spec.ts | done | 13번 표 참고 |
 | /site/sso | specs/13-admin/sso-admin.spec.ts | done | 13번 표 참고 — SAML/OIDC 실제 IdP 연동은 스코프 밖, 설정 폼 저장/재렌더까지만 |
 
+## 15. Scoped Turbo sidebar
+
+| 대상 | 스펙 파일 | 상태 | 비고 |
+|---|---|---|---|
+| Sidebar frame / `/user/sidebar` | `specs/15-misc/sidebar-turbo.spec.ts` | done | 모바일·데스크탑 무탐색 toggle, 입력/DOM/본문 너비 보존, lazy fetch·reuse·refresh, pending close, 실패/세션 만료, overflow 닫기, reload 선호 복구, no-JS 링크 |
+| 왼쪽 sidebar + 오른쪽 사용자 메뉴 | `specs/15-misc/sidebar-menus.spec.ts` | done | 검색/탭/Escape 격리, 중복 favorite POST 방지, breadcrumb 동기화, native 수정 키/새 탭/owner 링크, 원래의 비배지 링크 스타일 |
+| 실제 이슈 본문과 sidebar 상태 | `specs/15-misc/sidebar-issue-state.spec.ts` | done | 기존 issue fixture 사용. 일반 본문 이동/Back/refresh의 세부 탭·검색 복원, 이슈 detail frame과 sidebar DOM/미전송 댓글의 독립성 |
+| 페이지 이동 첫 페인트 | `specs/15-misc/sidebar-first-paint.spec.ts` | done | 초기화 module 전달을 막아도 열린 sidebar/탭/검색이 첫 HTML에서 보임. 재개 후 중복 fetch 없음, 닫힘 선호는 lazy 유지, URL 상태 추가 없음 |
+
 ---
 
 **범례**: 이 저장소에는 REST 전용(JSON) 엔드포인트(`ReviewApiController`, `CommentThreadController`,
