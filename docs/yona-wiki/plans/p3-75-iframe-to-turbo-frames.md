@@ -118,6 +118,10 @@ PR #834가 **이슈 목록**의 iframe/pageslide 2단 보기를 Turbo Frames로 
    **Step 4~7 — 내 이슈 → 조직 이슈 → 조직 게시판 → PR 목록 → 사용자 화면** — ⏳ 미착수(순서는 진행 로그의 계획 영향 참고, 번호는 아래 Step 7 이후로 재정렬) (소비자당 1스텝, 각 스텝이 독립 커밋/푸시 가능 단위)
    - 각각 Step 2와 동일한 RED→GREEN, 화면 고유 상세 기능(PR의 diff/리뷰 위젯 등) 초기화·해제 검증 포함
 4. **Step 7 — 2단 보기 레거시 삭제**
+   - `yona.issue.List.js`의 죽은 코드도 함께 정리: `_init` 115행과 `_onLoadIssueList` 405행의 `_initTwoColumnMode()` 호출,
+     그리고 `_initPjax`가 `#issue-list` 존재 시 즉시 return하므로 모든 페이지에서 도달하지 않는 pjax 블록(`_initPjax` 이후
+     `_pjaxNavigate`, `_onLoadIssueList`)(2026-09-30 실측, 아래 진행 로그). 정리 전에 이 모듈을 쓰는 3개 템플릿이 모두
+     `#issue-list`를 갖는지 다시 확인
    - `grep`으로 소비자 0 확인 후 `yona.twoColumnMode.js`, Vue page-slide 위젯(+빌드 산출물), `#pageslide` CSS,
      `TemplateEquivalenceSpec`/`TwoColumnModeCheckboxDuplicateIdTemplateRenderingSpec` 중 삭제 대상 기대값 정리
      (테스트 삭제는 "죽은 코드에 대한 단언"임을 근거로만, 기능 단언은 유지)
@@ -305,6 +309,18 @@ GREEN), e2e `09-board/turbo-two-column.spec.ts` 7건. 검증: 인증·사용자�
   `issue-columns.css`에 `.board-columns.has-detail .search-wrap { height: auto }`와 float 정리를 추가했다(2단 보기 상태에서만 적용).
 - **검증**: `OrganizationBoardsTurboFrameRenderingSpec` 7건, e2e `09-board/turbo-two-column-org-boards.spec.ts` 4건, 이슈·내 이슈·조직 이슈·게시판·조직 게시판 Turbo e2e 24건을 5회 연속 실행해 전부 통과.
 - **다음**: PR 목록(결정 대기: PR 상세를 개요 탭만 프레임에 넣는 안) → 사용자 화면 → 레거시 삭제.
+
+### 2026-09-30 — 전환된 화면의 옛 iframe 코드 잔존 여부 실측
+
+- **의문**: `yona.issue.List.js`의 `_initTwoColumnMode()` 호출 2곳(115행 `!#issue-list` 조건부, 405행 pjax 갱신 콜백)이 전환 완료된
+  화면에서 실행되는가. 이 호출은 이제 로드되지 않는 `yona.twoColumnMode.js`의 함수라 실행되면 ReferenceError이며, pjax 경로는
+  실패 시 조용히 전체 페이지 이동으로 폴백해 오류를 가릴 수도 있다.
+- **결과(Playwright 실측, 이슈 목록·게시판 목록·내 이슈·조직 이슈·조직 게시판 5화면)**: 옛 진입점 `_initTwoColumnMode` 미정의,
+  `yona.twoColumnMode.js` 미로드, `yona-page-slide`/`#pageslide`/`iframe` 0개(행 선택 후에도), 페이지·콘솔 오류 없음.
+  115행은 이 모듈을 쓰는 3개 템플릿(이슈 목록·내 이슈·조직 이슈)이 모두 `#issue-list`를 가져 실행되지 않고, 405행은
+  `_initPjax`가 `#issue-list` 존재 시 즉시 return해 pjax가 설치되지 않으므로 도달하지 않는다(필터 링크는 문서 전체 이동, `window`
+  마커가 유지되지 않음으로 확인). → pjax 블록은 현재 모든 페이지에서 사실상 죽은 코드(Step 7에서 정리).
+- **회귀 방지**: `e2e/specs/15-misc/converted-screens-no-legacy-iframe.spec.ts` 7건(위 5화면 단언).
 
 ## 완료 기준 (Definition of Done)
 
