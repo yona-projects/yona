@@ -20,6 +20,14 @@ yona의 모든 화면·버튼·입력을 브라우저로 실제 클릭/입력해
   — 프로젝트/이슈 번호가 순차 증가하는 화면들이라 병렬 실행 시 서로 경합한다), 뒷 번호
   폴더의 스펙은 앞 번호 폴더가 만든 seed 값을 전제로 작성한다.
 
+### 화면 전환 대기
+
+fetch 성공 후 전체 페이지를 새로고침하는 액션은 클릭 전에
+`page.waitForNavigation({ waitUntil: 'load' })`를 등록하고 `Promise.all`로 함께 기다린다.
+클릭 뒤 `waitForLoadState()`를 호출하면 이전 문서의 완료 상태로 즉시 반환할 수 있고,
+새 버튼이 보이더라도 `DOMContentLoaded`의 이벤트 핸들러 등록은 아직 끝나지 않을 수 있다.
+DOM만 갱신하는 액션에는 navigation 대기를 추가하지 않는다.
+
 ## 실행 방법
 
 1. yona를 H2 프로파일로 띄운다(Docker/Testcontainers 불필요, 기본 포트 8080):
