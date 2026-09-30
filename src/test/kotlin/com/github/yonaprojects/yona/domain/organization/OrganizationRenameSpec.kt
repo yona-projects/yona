@@ -216,7 +216,10 @@ class OrganizationRenameSpec @Autowired constructor(
                     seedRepository(File(repositoryRoot, "$oldOwner/${project.name}.wiki.git"), "original wiki")
                 }
 
-                shouldThrow<org.springframework.dao.DataIntegrityViolationException> {
+                // DB마다 "값이 너무 길다"를 다른 예외로 번역한다: MariaDB/PostgreSQL/MySQL은 DataIntegrityViolation,
+                // SQL Server(오류 2628)와 CUBRID는 번역되지 않은 일반 DataAccessException. 이 테스트가 검증하는 것은
+                // 예외 유형이 아니라 "DB 커밋 실패 시 이미 옮긴 저장소가 복원된다"는 점이다.
+                shouldThrow<org.springframework.dao.DataAccessException> {
                     // Organization.descr is varchar(255); failure occurs after repository moves.
                     organizationService.updateOrganizationSettings(organization.id!!, newOwner, "x".repeat(256), user.id!!)
                 }

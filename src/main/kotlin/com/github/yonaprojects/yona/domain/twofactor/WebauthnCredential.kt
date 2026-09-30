@@ -8,11 +8,12 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.Lob
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 
 // Spring Security WebAuthnRelyingPartyOperations가 요구하는 CredentialRecord
@@ -36,7 +37,11 @@ class WebauthnCredential(
     @Column(name = "credential_id", nullable = false, unique = true, length = 512)
     var credentialId: String = "",
 
-    @Lob
+    // @Lob이 아니라 LONG32VARBINARY(MySQL longblob, PostgreSQL bytea, SQL Server varbinary(max))로 매핑한다.
+
+    // PostgreSQL에서 @Lob ByteArray는 대용량 객체(oid)가 되어 트랜잭션 밖에서는 읽을 수 없다.
+
+    @JdbcTypeCode(SqlTypes.LONG32VARBINARY)
     @Column(name = "public_key_cose", nullable = false)
     var publicKeyCose: ByteArray = ByteArray(0),
 
@@ -58,11 +63,11 @@ class WebauthnCredential(
     @Column(name = "uv_initialized", nullable = false)
     var uvInitialized: Boolean = false,
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONG32VARBINARY)
     @Column(name = "attestation_object", nullable = false)
     var attestationObject: ByteArray = ByteArray(0),
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONG32VARBINARY)
     @Column(name = "attestation_client_data_json", nullable = false)
     var attestationClientDataJson: ByteArray = ByteArray(0),
 

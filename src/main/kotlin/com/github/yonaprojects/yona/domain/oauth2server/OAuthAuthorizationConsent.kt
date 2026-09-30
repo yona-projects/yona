@@ -3,8 +3,9 @@ package com.github.yonaprojects.yona.domain.oauth2server
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
-import jakarta.persistence.Lob
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 
 // Spring Authorization Server의 OAuth2AuthorizationConsent(사용자가 어떤 클라이언트에 어떤
 // 스코프까지 동의했는지)를 저장하는 JPA 엔티티. 자연키(registeredClientId + principalName)를
@@ -25,10 +26,9 @@ class OAuthAuthorizationConsent(
     @Column(name = "principal_name", nullable = false, length = 200)
     var principalName: String,
 
-    // OAuthAuthorization.kt/OAuthRegisteredClient.kt와 동일한 이유로 명시적 length를 지정한다
-    // (@Lob 단독이면 @Column.length 기본값 255가 적용돼 MariaDB/MySQL에서 TINYTEXT로 축소됨).
+    // 긴 문자열 컬럼 매핑 이유는 OAuthAuthorization.kt 참고(@Lob을 쓰지 않는다).
     // 콤마 구분 문자열 — 예) "SCOPE_issues:read,SCOPE_issues:write"
-    @Lob
+    @JdbcTypeCode(SqlTypes.LONG32NVARCHAR)
     @Column(name = "authorities", nullable = false, length = 1_000_000)
     var authorities: String
 ) {

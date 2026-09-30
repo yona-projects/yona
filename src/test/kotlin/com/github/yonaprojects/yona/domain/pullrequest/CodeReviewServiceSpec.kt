@@ -1291,6 +1291,7 @@ class CodeReviewServiceSpec @Autowired constructor(
                 it("커밋 댓글 스레드도 PullRequestCommit에 기록이 있으면 outdated가 아니어야 한다") {
                     val pr2 = pullRequestRepository.save(
                         PullRequest(
+                            number = 1L,
                             title = "outdated 커밋댓글 테스트", toProject = project, fromProject = project,
                             toBranch = "master", fromBranch = "feature", contributor = user,
                             mergedCommitIdFrom = "a", mergedCommitIdTo = "b"
@@ -1320,6 +1321,7 @@ class CodeReviewServiceSpec @Autowired constructor(
                 it("PR의 mergedCommitIdFrom이 없으면 outdated가 아니어야 한다") {
                     val pr2 = pullRequestRepository.save(
                         PullRequest(
+                            number = 2L,
                             title = "머지커밋프롬없음", toProject = project, fromProject = project,
                             toBranch = "master", fromBranch = "feature", contributor = user,
                             mergedCommitIdFrom = null, mergedCommitIdTo = "b"
@@ -1337,6 +1339,7 @@ class CodeReviewServiceSpec @Autowired constructor(
                 it("PR의 mergedCommitIdTo가 없으면 outdated가 아니어야 한다") {
                     val pr3 = pullRequestRepository.save(
                         PullRequest(
+                            number = 3L,
                             title = "머지커밋투없음", toProject = project, fromProject = project,
                             toBranch = "master", fromBranch = "feature", contributor = user,
                             mergedCommitIdFrom = "a", mergedCommitIdTo = null
