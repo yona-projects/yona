@@ -83,7 +83,7 @@
       if (twoColumn !== 'none') pageViewParams.screen = twoColumnScreen(location.pathname);
       gtag('event', 'page_view', pageViewParams);
       if (layout === 'left_sidebar' && !inFrame) {
-        gtag('event', 'feature_use', { feature: 'left_sidebar_open' });
+        gtag('event', 'feature_use', { feature: 'left_sidebar_open', two_column: twoColumn });
       }
 
       // 사용자가 2단 보기 체크박스를 직접 켜고 끈 경우만 센다(스크립트가 checked를 바꾸는 복원은 change를 일으키지 않는다).
@@ -93,7 +93,7 @@
         if (target && target.id === 'two-column-mode' && target.type === 'checkbox') {
           gtag('event', 'feature_use', {
             feature: target.checked ? 'two_column_on' : 'two_column_off',
-            screen: twoColumnScreen(location.pathname)
+            two_column: target.checked ? 'on' : 'off'
           });
         }
       });
