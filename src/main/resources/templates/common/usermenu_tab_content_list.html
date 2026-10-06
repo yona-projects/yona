@@ -22,7 +22,7 @@
                     <div class="star-org flex-item"></div>
                 </div>
                 <ul class="project-ul">
-                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${createdByMe}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${createdByMe}" th:data-location="'/' + ${project.owner} + '/' + ${project.name}">
                         <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:data-content="${project.overview}">
                             <div class="project-item project-item-container">
                                 <div class="flex-item site-logo all-project-names">
@@ -58,7 +58,7 @@
                 </div>
                 <ul class="project-ul">
                     <!-- 조직 하위 프로젝트 목록 루프 -->
-                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${org.projects}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${org.projects}" th:data-location="'/' + ${project.owner} + '/' + ${project.name}">
                         <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:data-content="${project.overview}">
                             <div class="project-item project-item-container">
                                 <div class="flex-item site-logo all-project-names">
@@ -94,7 +94,7 @@
                 </div>
                 <ul class="project-ul">
                     <!-- 조직 하위 프로젝트 목록 루프 -->
-                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${org.projects}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${org.projects}" th:data-location="'/' + ${project.owner} + '/' + ${project.name}">
                         <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:data-content="${project.overview}">
                             <div class="project-item project-item-container">
                                 <div class="flex-item site-logo all-project-names">
@@ -115,7 +115,7 @@
             <ul class="etc-favorites">
             </ul>
             <!-- 조직이 없으며, 오너가 본인이 아닌 즐겨찾기 프로젝트 목록 -->
-            <li class="user-li" th:each="project : ${favoriteProjects}" th:if="${project.organization == null and project.owner != currentUser.loginId}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+            <li class="user-li" th:each="project : ${favoriteProjects}" th:if="${project.organization == null and project.owner != currentUser.loginId}" th:data-location="'/' + ${project.owner} + '/' + ${project.name}">
                 <div class="project-list project-flex-container">
                     <div class="project-item project-item-container">
                         <div class="flex-item site-logo">
@@ -170,7 +170,7 @@
                 <div class="tab-content">
                     <!-- Recently Visited -->
                     <ul class="tab-pane user-ul active" id="recentlyVisited" th:if="${recentlyVisited != null and !recentlyVisited.isEmpty()}">
-                        <li class="user-li " th:each="project : ${recentlyVisited}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                        <li class="user-li " th:each="project : ${recentlyVisited}" th:data-location="'/' + ${project.owner} + '/' + ${project.name}">
                             <div class="project-list project-flex-container">
                                 <div class="project-item project-item-container">
                                     <div class="flex-item site-logo">
@@ -191,7 +191,7 @@
 
                     <!-- Watching -->
                     <ul class="tab-pane user-ul " id="watching" th:if="${watching != null and !watching.isEmpty()}">
-                        <li class="user-li " th:each="project : ${watching}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                        <li class="user-li " th:each="project : ${watching}" th:data-location="'/' + ${project.owner} + '/' + ${project.name}">
                             <div class="project-list project-flex-container">
                                 <div class="project-item project-item-container">
                                     <div class="flex-item site-logo">
@@ -212,7 +212,7 @@
 
                     <!-- Created By Me -->
                     <ul class="tab-pane user-ul " id="createdByMe" th:if="${createdByMe != null and !createdByMe.isEmpty()}">
-                        <li class="user-li " th:each="project : ${createdByMe}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                        <li class="user-li " th:each="project : ${createdByMe}" th:data-location="'/' + ${project.owner} + '/' + ${project.name}">
                             <div class="project-list project-flex-container">
                                 <div class="project-item project-item-container">
                                     <div class="flex-item site-logo">
@@ -233,7 +233,7 @@
 
                     <!-- Member (joinmember) -->
                     <ul class="tab-pane user-ul " id="joinmember" th:if="${joinmember != null and !joinmember.isEmpty()}">
-                        <li class="user-li " th:each="project : ${joinmember}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                        <li class="user-li " th:each="project : ${joinmember}" th:data-location="'/' + ${project.owner} + '/' + ${project.name}">
                             <div class="project-list project-flex-container">
                                 <div class="project-item project-item-container">
                                     <div class="flex-item site-logo">

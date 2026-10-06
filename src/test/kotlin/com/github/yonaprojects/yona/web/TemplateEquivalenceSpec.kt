@@ -724,6 +724,22 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     pane.select("li.user-li").text().contains("최근방문이슈테스트") shouldBe true
                 }
 
+                it("프로젝트 항목의 data-location은 존재하는 프로젝트 홈(/owner/name)이어야 하고 /go로 끝나면 안 된다") {
+                    // /{owner}/{project}/go는 이 앱에 매핑이 없어 404다 — 항목을 눌러도 새 탭에 404 페이지만 열렸다.
+                    val doc = Jsoup.parse(
+                        mockMvc.perform(
+                            get("/user/usermenuTabContentList").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                        ).andExpect(status().isOk).andReturn().response.contentAsString
+                    )
+                    val items = doc.select("#myProjectList li.user-li[data-location], #myOrganizationList li.user-li[data-location]")
+                    items.size shouldNotBe 0
+                    items.forEach { li ->
+                        val location = li.attr("data-location")
+                        location.endsWith("/go") shouldBe false
+                        Regex("^/[^/]+/[^/]+$").matches(location) shouldBe true
+                    }
+                }
+
                 it("GNB 사이드바 탭 메뉴에 최근 방문 이슈 탭 버튼이 노출되어야 한다") {
                     val result = mockMvc.perform(
                         get("/owner/public-proj")
