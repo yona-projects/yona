@@ -249,8 +249,9 @@ java -jar yona.jar --spring.profiles.active=h2
   ```
 
 - 수집 항목: 화면 종류만 담은 페이지뷰(`/:owner/:project/issue` 형태로 마스킹 — 소유자·프로젝트명·이슈 번호·
-  제목·쿼리스트링·리퍼러는 전송하지 않음)와 이 설치를 구분하는 익명 UUID(`yona.data/analytics/install-id`).
-  서버가 GA로 직접 보내는 이벤트는 없고, 사용자 식별자와 광고 신호는 사용하지 않습니다.
+  제목·쿼리스트링·리퍼러는 어떤 이벤트에도 전송하지 않음), 왼쪽 사이드바 사용 여부, 이슈·게시판·PR 목록 등의
+  "2단 보기" 켜짐/꺼짐과 토글 횟수, 이 설치를 구분하는 익명 UUID(`yona.data/analytics/install-id`).
+  입력한 데이터는 읽지 않으며, 서버가 GA로 직접 보내는 이벤트는 없고, 사용자 식별자와 광고 신호는 사용하지 않습니다.
 
 ## 마이그레이션
 
@@ -585,9 +586,10 @@ Project Fork does not physically copy the repository — it clones via filesyste
 
 - What is collected: page views carrying only the screen type (masked to shapes like
   `/:owner/:project/issue` — owner/project names, issue numbers, titles, query strings and referrers
-  are never sent) and an anonymous UUID that tells installations apart
-  (`yona.data/analytics/install-id`). The server sends nothing to GA by itself, and no user
-  identifiers or advertising signals are used.
+  are never sent with any event), whether the left sidebar is used, whether the "two-column view" of
+  issue/board/pull-request lists is on or off and how often it is toggled, and an anonymous UUID that
+  tells installations apart (`yona.data/analytics/install-id`). Nothing a user types is read, the
+  server sends nothing to GA by itself, and no user identifiers or advertising signals are used.
 
 ## Migration
 

@@ -9,7 +9,8 @@
     (function () {
       var RESERVED = ['_help', '_notifications', 'api', 'bootstrap-setup', 'categories', 'data', 'export', 'files',
         'git-lfs', 'history', 'issues', 'labels', 'login', 'members', 'meta', 'migration', 'notifications', 'orgs',
-        'pages', 'projectform', 'projects', 'prs', 'raw', 'search', 'site', 'admin', 'status', 'svn', 'user', 'users'];
+        'pages', 'projectform', 'projects', 'prs', 'raw', 'search', 'site', 'admin', 'status', 'svn', 'user', 'users',
+        'org', 'organizations'];
 
       // 예) /acme/secret-proj/issue/42 -> /:owner/:project/issue, /users/jiho -> /users, /acme -> /:owner
       function maskPath(pathname) {
@@ -37,23 +38,65 @@
         allow_ad_personalization_signals: false,
         install_id: [[${@analyticsSettings.installId}]]
       });
-      // 2단 보기(layout_framed)는 오른쪽 iframe 안에서도 같은 태그가 실행되어 페이지뷰가 두 번 잡히므로
-      // in_frame으로 구분한다. 2단 보기 "사용"은 최상위 창에서 framed 레이아웃이 열린 경우로 센다.
+      // 왼쪽 사이드바 레이아웃(layout_framed)은 오른쪽 iframe 안에서도 같은 태그가 실행되어 페이지뷰가 두 번
+      // 잡히므로 in_frame으로 구분한다. 사이드바 "사용"은 최상위 창에서 해당 레이아웃이 열린 경우로 센다.
       var layout = [[${layout}]];
       var inFrame = false;
       try { inFrame = window.self !== window.top; } catch (e) { inFrame = true; }
       var masked = maskPath(location.pathname);
-      gtag('event', 'page_view', {
+
+      // gtag는 모든 이벤트에 실제 URL·문서 제목·리퍼러를 자동으로 붙인다(사내 프로젝트명/이슈 제목이 들어 있다).
+      // 이벤트를 보내기 전에 전역 기본값을 마스킹된 값으로 덮어써서 어떤 이벤트에도 원본이 실리지 않게 한다.
+      gtag('set', {
         page_location: 'https://yona.local' + masked,
         page_path: masked,
         page_title: masked,
-        page_referrer: '',
-        layout: layout,
-        in_frame: inFrame ? 'yes' : 'no'
+        page_referrer: ''
       });
-      if (layout === 'framed' && !inFrame) {
-        gtag('event', 'feature_use', { feature: 'sidebar_two_column_open' });
+
+      // 이슈/게시판/PR 목록 등의 "2단 보기" 토글이 있는 화면인지, 켜져 있는지. 토글이 없으면 none.
+      // 저장소(localStorage)나 체크박스 읽기에 실패해도 수집이 깨지지 않도록 감싼다.
+      function twoColumnState() {
+        var box = document.getElementById('two-column-mode');
+        if (!box) return 'none';
+        var stored = false;
+        try { stored = localStorage.getItem('useTwoColumnMode') === 'true'; } catch (e) { stored = false; }
+        return (box.checked || stored) ? 'on' : 'off';
       }
+
+      // 2단 보기 토글이 있는 화면이 어디인지(라우트 종류만 반환, 식별자는 읽지 않는다). 이슈/게시판/PR 목록은 프로젝트별 경로라
+      // 마스킹된 경로만으로는 조직·사용자 화면과 구분되지 않아 라우트 패턴으로 직접 분류한다. 조직 패턴을 먼저 검사한다.
+      function twoColumnScreen(pathname) {
+        var p = (pathname || '/').replace(/\/+$/, '');
+        if (/^\/user\/issues$/.test(p)) return 'my_issues';
+        if (/^\/(org|organizations)\/[^\/]+\/issues$/.test(p)) return 'org_issues';
+        if (/^\/(org|organizations)\/[^\/]+\/boards$/.test(p)) return 'org_boards';
+        if (/^\/[^\/]+\/[^\/]+\/issues$/.test(p)) return 'project_issues';
+        if (/^\/[^\/]+\/[^\/]+\/posts$/.test(p)) return 'project_posts';
+        if (/^\/[^\/]+\/[^\/]+\/(pulls|closedPullRequests|sentPullRequests)$/.test(p)) return 'project_pulls';
+        if (/^\/user\/[^\/]+$/.test(p) || /^\/[^\/]+$/.test(p)) return 'user_profile';
+        return 'other';
+      }
+
+      var twoColumn = twoColumnState();
+      var pageViewParams = { layout: layout, in_frame: inFrame ? 'yes' : 'no', two_column: twoColumn };
+      if (twoColumn !== 'none') pageViewParams.screen = twoColumnScreen(location.pathname);
+      gtag('event', 'page_view', pageViewParams);
+      if (layout === 'left_sidebar' && !inFrame) {
+        gtag('event', 'feature_use', { feature: 'left_sidebar_open' });
+      }
+
+      // 사용자가 2단 보기 체크박스를 직접 켜고 끈 경우만 센다(스크립트가 checked를 바꾸는 복원은 change를 일으키지 않는다).
+      // 이벤트 값은 on/off 상수뿐이고, 입력값이나 화면 내용은 읽지 않는다.
+      document.addEventListener('change', function (event) {
+        var target = event.target;
+        if (target && target.id === 'two-column-mode' && target.type === 'checkbox') {
+          gtag('event', 'feature_use', {
+            feature: target.checked ? 'two_column_on' : 'two_column_off',
+            screen: twoColumnScreen(location.pathname)
+          });
+        }
+      });
     })();
   </script>
 </th:block>

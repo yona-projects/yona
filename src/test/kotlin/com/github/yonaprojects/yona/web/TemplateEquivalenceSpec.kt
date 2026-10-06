@@ -495,6 +495,12 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     result.response.contentAsString.contains("googletagmanager.com/gtag/js") shouldBe true
                     result.response.contentAsString.contains("G-CKTN17HLPP") shouldBe true
                     result.response.contentAsString.contains("var layout = \"normal\";") shouldBe true
+                    // 이슈/게시판 목록 등의 2단 보기 토글 사용을 수집하는 코드가 레이아웃에 포함되어야 한다.
+                    result.response.contentAsString.contains("two-column-mode") shouldBe true
+                    result.response.contentAsString.contains("two_column_on") shouldBe true
+                    // 2단 보기가 호출되는 화면을 식별하는 값(이슈/게시판/PR 목록, 조직, 내 이슈, 사용자 화면)이 모두 있어야 한다.
+                    listOf("project_issues", "project_posts", "project_pulls", "org_issues", "org_boards", "my_issues", "user_profile")
+                        .forEach { screen -> result.response.contentAsString.contains(screen) shouldBe true }
                     result.response.contentAsString.contains("google-analytics.com/analytics.js") shouldBe false
                 }
             }
@@ -556,8 +562,12 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     val html = result.response.contentAsString
                     html.contains("googletagmanager.com/gtag/js") shouldBe true
                     html.contains("G-CKTN17HLPP") shouldBe true
-                    // 2단 보기(layout_framed)는 layout=framed로 구분되어 일반 화면과 섞이지 않아야 한다.
-                    html.contains("var layout = \"framed\";") shouldBe true
+                    // 왼쪽 사이드바 레이아웃(layout_framed)은 layout=left_sidebar로 구분되어 일반 화면과 섞이지 않아야 한다.
+                    html.contains("var layout = \"left_sidebar\";") shouldBe true
+                    html.contains("left_sidebar_open") shouldBe true
+                    // gtag가 이벤트마다 붙이는 실제 URL·제목·리퍼러를 마스킹값으로 덮어쓰는 set이 첫 이벤트보다 앞서야 한다.
+                    val setAt = html.indexOf("gtag('set'")
+                    (setAt >= 0 && setAt < html.indexOf("gtag('event'")) shouldBe true
                     html.contains("google-analytics.com/analytics.js") shouldBe false
                 }
             }
