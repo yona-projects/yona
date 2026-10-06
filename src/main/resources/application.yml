@@ -54,6 +54,11 @@ application:
   noreferrer: "${YONA_NOREFERRER:false}"
 
 yona:
+  # 설치형 배포 사용 현황 집계(GA4 gtag). send-usage=false이면 태그가 렌더링되지 않는다.
+  # 서버가 GA로 직접 보내는 이벤트는 없다(브라우저 태그만).
+  analytics:
+    send-usage: ${YONA_ANALYTICS_SEND_USAGE:true}
+    measurement-id: "G-CKTN17HLPP"
   base-url: "${YONA_BASE_URL:http://localhost:8080}"
   hostname: "${YONA_HOSTNAME:localhost}"
   site-name: "${YONA_SITE_NAME:Yona}"

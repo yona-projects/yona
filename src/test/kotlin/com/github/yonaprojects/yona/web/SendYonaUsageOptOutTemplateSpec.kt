@@ -42,12 +42,13 @@ class SendYonaUsageOptOutTemplateSpec @Autowired constructor(
         }
 
         describe("sendYonaUsage 옵트아웃") {
-            it("yona.analytics.send-usage=false로 명시하면 구글 애널리틱스 스크립트가 렌더링되지 않아야 한다") {
+            it("yona.analytics.send-usage=false로 명시하면 GA4 gtag 스크립트가 렌더링되지 않아야 한다") {
                 val result = mockMvc.perform(get("/users/loginform"))
                     .andExpect(status().isOk)
                     .andReturn()
 
-                result.response.contentAsString.contains("google-analytics.com/analytics.js") shouldBe false
+                result.response.contentAsString.contains("googletagmanager.com") shouldBe false
+                result.response.contentAsString.contains("gtag(") shouldBe false
             }
         }
     }

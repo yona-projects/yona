@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* 설치형 배포 사용 현황(GA4 gtag). yona.analytics.send-usage=false이거나 measurement-id가 비면 아무것도 렌더링하지 않는다.
+       URL에는 소유자/프로젝트명/이슈 번호 등 사내 식별자가 들어 있으므로 원본 경로·제목·리퍼러는 보내지 않고
+       "화면 종류"만 보낸다(maskPath). */-->
+<th:block th:fragment="gtag(layout)" th:if="${@analyticsSettings.clientEnabled}">
+  <script th:inline="javascript">
+    (function () {
+      var RESERVED = ['_help', '_notifications', 'api', 'bootstrap-setup', 'categories', 'data', 'export', 'files',
+        'git-lfs', 'history', 'issues', 'labels', 'login', 'members', 'meta', 'migration', 'notifications', 'orgs',
+        'pages', 'projectform', 'projects', 'prs', 'raw', 'search', 'site', 'admin', 'status', 'svn', 'user', 'users'];
+
+      // 예) /acme/secret-proj/issue/42 -> /:owner/:project/issue, /users/jiho -> /users, /acme -> /:owner
+      function maskPath(pathname) {
+        var segs = (pathname || '/').split('/').filter(Boolean);
+        if (segs.length === 0) return '/';
+        if (RESERVED.indexOf(segs[0]) >= 0) return '/' + segs[0];
+        if (segs.length === 1) return '/:owner';
+        if (segs.length === 2) return '/:owner/:project';
+        return '/:owner/:project/' + segs[2];
+      }
+
+      var measurementId = [[${@analyticsSettings.measurementId}]];
+      var loader = document.createElement('script');
+      loader.async = true;
+      loader.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+      document.head.appendChild(loader);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', measurementId, {
+        send_page_view: false,
+        allow_google_signals: false,
+        allow_ad_personalization_signals: false,
+        install_id: [[${@analyticsSettings.installId}]]
+      });
+      // 2단 보기(layout_framed)는 오른쪽 iframe 안에서도 같은 태그가 실행되어 페이지뷰가 두 번 잡히므로
+      // in_frame으로 구분한다. 2단 보기 "사용"은 최상위 창에서 framed 레이아웃이 열린 경우로 센다.
+      var layout = [[${layout}]];
+      var inFrame = false;
+      try { inFrame = window.self !== window.top; } catch (e) { inFrame = true; }
+      var masked = maskPath(location.pathname);
+      gtag('event', 'page_view', {
+        page_location: 'https://yona.local' + masked,
+        page_path: masked,
+        page_title: masked,
+        page_referrer: '',
+        layout: layout,
+        in_frame: inFrame ? 'yes' : 'no'
+      });
+      if (layout === 'framed' && !inFrame) {
+        gtag('event', 'feature_use', { feature: 'sidebar_two_column_open' });
+      }
+    })();
+  </script>
+</th:block>
+</body>
+</html>

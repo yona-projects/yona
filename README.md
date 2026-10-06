@@ -237,17 +237,20 @@ java -jar yona.jar --spring.profiles.active=h2
 
 ## Google Analytics
 
-- legacy와 동일하게 Google Analytics 트래킹 스크립트가 실제로 구현되어 있습니다
-  (`GlobalModelAttributeAdvice`가 `sendYonaUsage` 모델 속성을 채우면 `templates/site/layout.html`이
-  그 값에 따라 GA 스크립트를 렌더링합니다).
-- **다만 기본값은 legacy(`application.send.yona.usage = true`, 기본 켜짐)와 반대로 꺼짐(`false`)
-  입니다.** 켜고 싶다면 `application.yml`에서 아래 항목을 `true`로 설정합니다.
+- 설치/사용 현황 집계용 Google Analytics 4(gtag) 태그가 포함되어 있습니다
+  (`templates/common/analytics.html`, 측정 ID는 `yona.analytics.measurement-id`).
+- **기본값은 켜짐입니다.** 원치 않으면 `application.yml`에서 아래처럼 끄면 태그가 렌더링되지 않습니다
+  (환경변수 `YONA_ANALYTICS_SEND_USAGE=false`도 동일).
 
   ```yaml
   yona:
     analytics:
-      send-usage: true
+      send-usage: false
   ```
+
+- 수집 항목: 화면 종류만 담은 페이지뷰(`/:owner/:project/issue` 형태로 마스킹 — 소유자·프로젝트명·이슈 번호·
+  제목·쿼리스트링·리퍼러는 전송하지 않음)와 이 설치를 구분하는 익명 UUID(`yona.data/analytics/install-id`).
+  서버가 GA로 직접 보내는 이벤트는 없고, 사용자 식별자와 광고 신호는 사용하지 않습니다.
 
 ## 마이그레이션
 
@@ -569,17 +572,22 @@ Project Fork does not physically copy the repository — it clones via filesyste
 
 ## Google Analytics
 
-- The Google Analytics tracking script is actually implemented, same as legacy
-  (`GlobalModelAttributeAdvice` populates a `sendYonaUsage` model attribute, and
-  `templates/site/layout.html` renders the GA script based on that value).
-- **Unlike legacy (`application.send.yona.usage = true`, on by default), the default here is
-  off (`false`).** To enable it, set the following to `true` in `application.yml`.
+- A Google Analytics 4 (gtag) tag for install/usage statistics is included
+  (`templates/common/analytics.html`, measurement ID via `yona.analytics.measurement-id`).
+- **It is on by default.** To turn it off, set the following (or the environment variable
+  `YONA_ANALYTICS_SEND_USAGE=false`); the tag is then not rendered at all.
 
   ```yaml
   yona:
     analytics:
-      send-usage: true
+      send-usage: false
   ```
+
+- What is collected: page views carrying only the screen type (masked to shapes like
+  `/:owner/:project/issue` — owner/project names, issue numbers, titles, query strings and referrers
+  are never sent) and an anonymous UUID that tells installations apart
+  (`yona.data/analytics/install-id`). The server sends nothing to GA by itself, and no user
+  identifiers or advertising signals are used.
 
 ## Migration
 
