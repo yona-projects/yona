@@ -15,8 +15,10 @@ import com.github.yonaprojects.yona.domain.watch.WatchRepository
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.time.Instant
 import java.util.Optional
 
@@ -54,6 +56,14 @@ class UserMenuServiceSpec : DescribeSpec({
         every { projectRepository.findByOwner("me") } returns emptyList()
         every { watchRepository.findByUserAndResourceType(me, ResourceType.PROJECT) } returns emptyList()
         every { recentIssueService.getRecentIssues(me) } returns emptyList()
+    }
+
+    // 목은 describe 범위에서 공유되므로 호출 기록이 테스트 사이에 쌓인다 — verify(exactly = 0)가 앞선 테스트의 호출까지 세지 않게 비운다.
+    beforeTest {
+        clearMocks(
+            favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
+            projectUserRepository, projectRepository, watchRepository, recentIssueService
+        )
     }
 
     describe("UserMenuService.load") {
@@ -138,17 +148,37 @@ class UserMenuServiceSpec : DescribeSpec({
             menu.joinmember.none { it.owner == "me" } shouldBe true
         }
 
-        it("지켜보는 프로젝트는 존재하는 숫자 ID만 조회해 담고, 잘못된 ID와 없는 프로젝트는 건너뛰어야 한다") {
+        it("지켜보는 프로젝트는 숫자 ID만 모아 한 번에 조회하고, 잘못된 ID와 없는 프로젝트는 건너뛰어야 한다") {
             stubEmpty()
             every { watchRepository.findByUserAndResourceType(me, ResourceType.PROJECT) } returns listOf(
                 Watch(user = me, resourceType = ResourceType.PROJECT, resourceId = "14"),
                 Watch(user = me, resourceType = ResourceType.PROJECT, resourceId = "abc"),
                 Watch(user = me, resourceType = ResourceType.PROJECT, resourceId = "999")
             )
-            every { projectRepository.findById(14L) } returns Optional.of(watched)
-            every { projectRepository.findById(999L) } returns Optional.empty()
+            // 항목마다 findById를 부르면 지켜보는 프로젝트 수만큼 쿼리가 나간다 — 한 번의 findAllById로 가져와야 한다.
+            every { projectRepository.findAllById(listOf(14L, 999L)) } returns listOf(watched)
 
             service.load(me).watching.map { it.name } shouldBe listOf("watched")
+            verify(exactly = 0) { projectRepository.findById(any()) }
+        }
+
+        it("지켜보는 프로젝트는 조회 결과의 순서와 무관하게 감시한 순서를 유지해야 한다") {
+            stubEmpty()
+            val first = Project(id = 21L, name = "first", owner = "someone")
+            val second = Project(id = 22L, name = "second", owner = "someone")
+            every { watchRepository.findByUserAndResourceType(me, ResourceType.PROJECT) } returns listOf(
+                Watch(user = me, resourceType = ResourceType.PROJECT, resourceId = "21"),
+                Watch(user = me, resourceType = ResourceType.PROJECT, resourceId = "22")
+            )
+            every { projectRepository.findAllById(listOf(21L, 22L)) } returns listOf(second, first)
+
+            service.load(me).watching.map { it.name } shouldBe listOf("first", "second")
+        }
+
+        it("지켜보는 프로젝트가 없으면 조회하지 않아야 한다") {
+            stubEmpty()
+            service.load(me).watching.shouldBeEmpty()
+            verify(exactly = 0) { projectRepository.findAllById(any<Iterable<Long>>()) }
         }
 
         it("최근 방문 이슈는 제목과 이동 주소만 담아야 한다") {

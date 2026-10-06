@@ -92,6 +92,39 @@ test.describe('left sidebar (<yona-sidebar>)', () => {
     await expect(page.locator('yona-sidebar .project-search')).toHaveValue(String(name).slice(0, 4));
   });
 
+  test('navigating shows the cached list at once and does not ask the server again within 15 seconds', async ({ page }) => {
+    const owner = requireSeed('projectOwner');
+    const name = requireSeed('projectName');
+    let apiCalls = 0;
+    await page.route('**/-_-api/v1/usermenu', async (route) => {
+      apiCalls += 1;
+      await route.continue();
+    });
+
+    await reset(page, '/');
+    await page.locator('.pin').click();
+    await page.locator('yona-sidebar [data-tab="myProjectList"]').click();
+    await page.locator('yona-sidebar [data-subtab="createdByMe"]').click();
+    await expect(page.locator('yona-sidebar #myProjectList a.project-list').first()).toBeVisible();
+    expect(apiCalls).toBe(1);
+
+    // Slow the API down a lot: the list must still be there immediately because it comes from the cache.
+    await page.unroute('**/-_-api/v1/usermenu');
+    await page.route('**/-_-api/v1/usermenu', async (route) => {
+      apiCalls += 1;
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await route.continue();
+    });
+    await page.goto(`/${owner}/${name}/issues`);
+    await expect(page.locator('yona-sidebar #myProjectList a.project-list').first()).toBeVisible({ timeout: 1500 });
+    await expect(page.locator('yona-sidebar .status')).toHaveCount(0);
+
+    // Two more navigations inside the 15 second window never reach the server.
+    await page.goto(`/${owner}/${name}`);
+    await expect(page.locator('yona-sidebar #myProjectList a.project-list').first()).toBeVisible({ timeout: 1500 });
+    expect(apiCalls).toBe(1);
+  });
+
   test('the legacy shallWeOpenLeftNavigation flag is migrated once', async ({ page }) => {
     await reset(page, '/');
     await page.evaluate((k) => localStorage.setItem(k, 'true'), LEGACY_KEY);

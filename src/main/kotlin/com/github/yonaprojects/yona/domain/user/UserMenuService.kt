@@ -66,8 +66,15 @@ class UserMenuService(
         val organizations = organizationUserRepository.findByUserId(userId).map { it.organization }
         val allUserProjects = projectUserRepository.findByUserId(userId).map { it.project }
         val createdByMe = projectRepository.findByOwner(loginId)
-        val watching = watchRepository.findByUserAndResourceType(user, ResourceType.PROJECT).mapNotNull {
-            projectRepository.findById(it.resourceId.toLongOrNull() ?: return@mapNotNull null).orElse(null)
+        // 항목마다 findById를 부르면 지켜보는 프로젝트 수만큼 쿼리가 나가므로 ID를 모아 한 번에 조회하고, 감시한 순서를 유지한다.
+        val watchedIds = watchRepository.findByUserAndResourceType(user, ResourceType.PROJECT)
+            .mapNotNull { it.resourceId.toLongOrNull() }
+            .distinct()
+        val watching = if (watchedIds.isEmpty()) {
+            emptyList()
+        } else {
+            val byId = projectRepository.findAllById(watchedIds).associateBy { it.id }
+            watchedIds.mapNotNull { byId[it] }
         }
 
         fun project(p: Project) = MenuProject(
