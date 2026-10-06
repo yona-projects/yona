@@ -494,7 +494,11 @@ class TemplateEquivalenceSpec @Autowired constructor(
 
                     result.response.contentAsString.contains("googletagmanager.com/gtag/js") shouldBe true
                     result.response.contentAsString.contains("G-CKTN17HLPP") shouldBe true
-                    result.response.contentAsString.contains("var layout = \"normal\";") shouldBe true
+                    // 왼쪽 사이드바는 iframe 레이아웃이 아니라 모든 페이지에 직접 들어가므로, 열림 상태와 열기 이벤트를 수집한다.
+                    result.response.contentAsString.contains("var layout") shouldBe false
+                    result.response.contentAsString.contains("sidebar: sidebarState") shouldBe true
+                    result.response.contentAsString.contains("yona-sidebar-toggle") shouldBe true
+                    result.response.contentAsString.contains("left_sidebar_open") shouldBe true
                     // 이슈/게시판 목록 등의 2단 보기 토글 사용을 수집하는 코드가 레이아웃에 포함되어야 한다.
                     result.response.contentAsString.contains("two-column-mode") shouldBe true
                     result.response.contentAsString.contains("two_column_on") shouldBe true
@@ -505,70 +509,64 @@ class TemplateEquivalenceSpec @Autowired constructor(
                 }
             }
 
-            describe("[Test-19-6] framed 레이아웃(site/layout_framed.html) 동치성 검증") {
-                it("사이드바 프레임 페이지에 og/twitter 메타 태그와 nprogress 자산이 포함되어야 한다") {
+            describe("[Test-19-6] 왼쪽 사이드바(<yona-sidebar>)가 iframe 없이 모든 페이지에 직접 들어가는지 검증") {
+                it("로그인한 사용자의 일반 화면에 <yona-sidebar>와 서버가 그린 헤더 슬롯(프로필/설정/로그아웃)이 있어야 한다") {
                     val result = mockMvc.perform(
-                        get("/user/sidebar")
-                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                    )
-                        .andExpect(status().isOk)
-                        .andReturn()
+                        get("/owner/public-proj").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn()
 
                     val doc = Jsoup.parse(result.response.contentAsString)
-                    doc.select("meta[property='og:title']").size shouldBe 1
-                    doc.select("meta[property='og:url']").size shouldBe 1
-                    doc.select("meta[name='twitter:card']").attr("content") shouldBe "summary"
-                    doc.select("link[href*='lib/nprogress/nprogress.css']").size shouldBe 1
-                    // magnific-popup.css는 legacy에서도 본체(jquery.magnific-popup.js)가 로드되지
-                    // 않는 죽은 참조였다 - CSS만 남아 기능하지 않아 제거했다.
-                    doc.select("link[href*='lib/magnific-popup/magnific-popup.css']").size shouldBe 0
+                    val sidebar = doc.select("yona-sidebar")
+                    sidebar.size shouldBe 1
+                    sidebar.attr("login-id") shouldBe memberDetails.username
+                    // 헤더는 라이트 DOM 슬롯 — 전역 .js-logout-link 클릭 델리게이트가 shadow 경계를 못 넘기 때문이다.
+                    sidebar.select("[slot=header] a[href='/${memberDetails.username}']").size shouldBe 1
+                    sidebar.select("[slot=header] a[href='/user/editform']").size shouldBe 1
+                    sidebar.select("[slot=header] a.js-logout-link[href='/users/logout']").size shouldBe 1
+                    // iframe 구조는 없어야 한다.
+                    doc.select("iframe#mainFrameId, #mainFrame").size shouldBe 0
                 }
 
-                it("사이드바 프레임 body 클래스는 theme-default와 framed-body를 모두 가져야 한다") {
-                    val result = mockMvc.perform(
-                        get("/user/sidebar")
-                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                    )
-                        .andExpect(status().isOk)
-                        .andReturn()
+                it("GNB 핀 버튼은 사이드바를 토글하는 요소여야 하고, 옛 /user/sidebar 이동 로직은 없어야 한다") {
+                    val html = mockMvc.perform(
+                        get("/owner/public-proj").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn().response.contentAsString
 
-                    val doc = Jsoup.parse(result.response.contentAsString)
-                    val bodyClass = doc.select("body#html-body").attr("class")
-                    bodyClass.contains("theme-default") shouldBe true
-                    bodyClass.contains("framed-body") shouldBe true
+                    val doc = Jsoup.parse(html)
+                    doc.select(".pin[data-sidebar-toggle]").size shouldBe 1
+                    // 옛 키는 첫 페인트 전에 "읽기만" 한다(옛 키로 저장한 사용자의 열림 상태 이전). 쓰거나 /user/sidebar로 이동시키면 안 된다.
+                    html.contains("getItem('shallWeOpenLeftNavigation')") shouldBe true
+                    html.contains("setItem('shallWeOpenLeftNavigation'") shouldBe false
+                    html.contains("/user/sidebar") shouldBe false
                 }
 
-                it("프로젝트/조직 목록의 popover 마크업이 실제로 초기화되는 스크립트가 포함되어야 한다") {
-                    val result = mockMvc.perform(
-                        get("/user/sidebar")
-                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
-                    )
-                        .andExpect(status().isOk)
-                        .andReturn()
+                it("첫 페인트 전에 열림 상태를 읽는 인라인 스크립트와 컴포넌트/연결 스크립트/스타일이 포함되어야 한다") {
+                    val html = mockMvc.perform(
+                        get("/owner/public-proj").with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andExpect(status().isOk).andReturn().response.contentAsString
 
-                    val html = result.response.contentAsString
-                    html.contains("[data-toggle=\"popover\"]").shouldBe(true)
-                    html.contains(".popover()").shouldBe(true)
+                    val doc = Jsoup.parse(html)
+                    // 폭을 미리 확보해 이동 때마다 본문이 밀리는 깜박임을 막는다(head 인라인 스크립트).
+                    doc.head().select("script").any { it.data().contains("yonaLeftSidebarOpen") && it.data().contains("left-sidebar-open") } shouldBe true
+                    doc.select("script[type=module][src*='yona-vue-widgets/yona-sidebar-element.js']").size shouldBe 1
+                    doc.select("script[src*='common/yona.LeftSidebar.js']").size shouldBe 1
+                    doc.select("link[href*='stylesheets/left-sidebar.css']").size shouldBe 1
                 }
 
-                it("sendYonaUsage 설정 기본값(true)이면 GA4 gtag 스크립트가 렌더링되고 옛 UA 스크립트는 없어야 한다") {
-                    val result = mockMvc.perform(
-                        get("/user/sidebar")
-                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                it("비로그인 사용자 화면에는 사이드바와 핀 버튼이 없어야 한다") {
+                    val doc = Jsoup.parse(
+                        mockMvc.perform(get("/owner/public-proj")).andExpect(status().isOk).andReturn().response.contentAsString
                     )
-                        .andExpect(status().isOk)
-                        .andReturn()
+                    doc.select("yona-sidebar").size shouldBe 0
+                    doc.select(".pin").size shouldBe 0
+                }
 
-                    val html = result.response.contentAsString
-                    html.contains("googletagmanager.com/gtag/js") shouldBe true
-                    html.contains("G-CKTN17HLPP") shouldBe true
-                    // 왼쪽 사이드바 레이아웃(layout_framed)은 layout=left_sidebar로 구분되어 일반 화면과 섞이지 않아야 한다.
-                    html.contains("var layout = \"left_sidebar\";") shouldBe true
-                    html.contains("left_sidebar_open") shouldBe true
-                    // gtag가 이벤트마다 붙이는 실제 URL·제목·리퍼러를 마스킹값으로 덮어쓰는 set이 첫 이벤트보다 앞서야 한다.
-                    val setAt = html.indexOf("gtag('set'")
-                    (setAt >= 0 && setAt < html.indexOf("gtag('event'")) shouldBe true
-                    html.contains("google-analytics.com/analytics.js") shouldBe false
+                it("옛 framed 레이아웃 템플릿은 더 이상 존재하지 않아야 한다") {
+                    org.springframework.core.io.ClassPathResource("templates/site/layout_framed.html").exists() shouldBe false
+                }
+
+                it("컴포넌트 번들이 벤더링되어 있어야 한다") {
+                    org.springframework.core.io.ClassPathResource("static/lib/yona-vue-widgets/yona-sidebar-element.js").exists() shouldBe true
                 }
             }
 

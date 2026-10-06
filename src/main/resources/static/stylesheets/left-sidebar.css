@@ -1,0 +1,85 @@
+/* 왼쪽 사이드바(<yona-sidebar>) 배치. 내부 스타일은 컴포넌트의 Shadow DOM 안에 있고, 여기서는 호스트의 위치와
+   본문을 밀어내는 규칙, 서버가 라이트 DOM 슬롯으로 그리는 사용자 헤더의 스타일만 둔다.
+   테마는 --yona-sidebar-* 변수로 바꾼다(기본값은 컴포넌트에 있다). */
+:root {
+  --yona-sidebar-width: 270px;
+}
+
+yona-sidebar {
+  display: none;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--yona-sidebar-width);
+  overflow-y: auto;
+  /* GNB(z-index 1000)와 부트스트랩 모달(1050) 아래에 둔다. 핀은 아래에서 따로 위로 올린다. */
+  z-index: 999;
+  background-color: var(--yona-sidebar-bg, #333333);
+}
+
+/* 열림 상태는 head의 인라인 스크립트가 첫 페인트 전에 <html>에 반영한다. 컴포넌트가 아직 정의되기 전에도 같은 폭의
+   빈 패널을 보여 본문이 밀리는 깜박임을 막는다. */
+html.left-sidebar-open yona-sidebar,
+yona-sidebar[open] {
+  display: block;
+}
+
+html.left-sidebar-open body {
+  padding-left: var(--yona-sidebar-width);
+}
+
+/* GNB가 프로젝트 화면에서 absolute + width:100%라 사이드바 아래로 깔리므로 폭만큼 비켜 준다. */
+html.left-sidebar-open .gnb-outer.project-header {
+  left: var(--yona-sidebar-width);
+  width: calc(100% - var(--yona-sidebar-width));
+}
+
+/* 핀은 GNB 왼쪽 끝에서 사이드바 가장자리에 걸쳐 있으므로, 열려 있어도 눌러서 닫을 수 있게 사이드바 위로 올린다. */
+.pin {
+  z-index: 1200;
+}
+
+/* 핀 화살표: 닫힘 → 오른쪽(열기), 열림 → 왼쪽(닫기). */
+.pin i.yobicon-arrow-left,
+html.left-sidebar-open .pin i.yobicon-arrow-right {
+  display: none;
+}
+.pin i.yobicon-arrow-right,
+html.left-sidebar-open .pin i.yobicon-arrow-left {
+  display: inline;
+}
+
+/* 서버가 그린 사용자 헤더(slot=header). 옛 .sidebar .user-menu-wrap 규칙과 같은 모양이다. */
+yona-sidebar .user-menu-wrap {
+  padding: 10px;
+  color: grey;
+  box-sizing: border-box;
+}
+yona-sidebar .user-menu-wrap a:hover {
+  color: white;
+}
+yona-sidebar .user-menu {
+  padding: 5px;
+}
+
+/* 이슈 2단 보기의 슬라이드 iframe 안에서는 사이드바와 핀을 쓰지 않는다. */
+html.in-frame yona-sidebar,
+html.in-frame .pin {
+  display: none !important;
+}
+
+/* 모바일은 기존처럼 사이드바를 쓰지 않는다. */
+@media all and (max-width: 720px) {
+  yona-sidebar,
+  .pin {
+    display: none !important;
+  }
+  html.left-sidebar-open body {
+    padding-left: 0;
+  }
+  html.left-sidebar-open .gnb-outer.project-header {
+    left: 0;
+    width: 100%;
+  }
+}

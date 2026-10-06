@@ -16,7 +16,8 @@ data class MenuProject(
     val name: String,
     val owner: String,
     val overview: String?,
-    // 사이드바 항목이 실제 하이퍼링크(<a href>)가 되도록 서버가 이동 주소를 확정해 내려준다.
+    // 사이드바 항목이 실제 하이퍼링크(<a href>)가 되도록 서버가 이동 주소(프로젝트 홈)를 확정해 내려준다.
+    // 옛 부분 뷰가 쓰던 /{owner}/{project}/go는 이 앱에 매핑이 없어 404라서 쓰지 않는다.
     val href: String,
     val favorite: Boolean
 )
@@ -71,7 +72,7 @@ class UserMenuService(
 
         fun project(p: Project) = MenuProject(
             id = p.id!!, name = p.name, owner = p.owner.orEmpty(), overview = p.overview,
-            href = "/${p.owner.orEmpty()}/${p.name}/go", favorite = p.id in favoriteProjectIds
+            href = "/${p.owner.orEmpty()}/${p.name}", favorite = p.id in favoriteProjectIds
         )
 
         fun organization(o: Organization, favorite: Boolean) =

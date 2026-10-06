@@ -33,6 +33,7 @@
   <link rel="stylesheet" type="text/css" href="/javascripts/lib/highlight/styles/default.css" />
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/usermenu.css">
   <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yona.css?v=20260614-2">
+  <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/left-sidebar.css">
   <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/nprogress/nprogress.css">
   <link rel="stylesheet" href="/javascripts/lib/viewerjs/viewer.css">
   <script type="text/javascript" src="/javascripts/yona-layout.js"></script>
@@ -41,19 +42,39 @@
     window.parent.document.title = window.document.title;
     window.parent.history.replaceState('', window.document.title, window.location.href);
 
-    var shallWeOpenLeftNavigation = localStorage.getItem('shallWeOpenLeftNavigation');
-
-    if (window.parent === window) {
-        if (shallWeOpenLeftNavigation === "true") {
-            window.location.href = "/user/sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
+    // 왼쪽 사이드바 열림 상태를 첫 페인트 전에 읽어 <html>에 반영한다. 페이지를 이동할 때마다 문서가 새로 로드되므로,
+    // 이렇게 폭을 미리 확보해야 컴포넌트가 준비되기 전에 본문이 밀리는 깜박임이 없다. 이슈 2단 보기의 슬라이드
+    // iframe 안(window.parent !== window)에서는 사이드바를 열지 않는다. 옛 키(shallWeOpenLeftNavigation)도 읽는다.
+    (function () {
+        if (window.parent !== window) {
+            document.documentElement.classList.add('in-frame');
+            return;
         }
-    }
+        try {
+            var open = localStorage.getItem('yonaLeftSidebarOpen');
+            if (open === null) open = localStorage.getItem('shallWeOpenLeftNavigation');
+            if (open === 'true') document.documentElement.classList.add('left-sidebar-open');
+        } catch (e) { /* 저장소가 막힌 환경에서는 닫힌 상태로 둔다 */ }
+    })();
   </script>
 </head>
 <body>
 
   <!-- GNB (공통 네비게이션 바) -->
   <th:block th:fragment="gnb">
+    <!-- 왼쪽 사이드바. 목록은 <yona-sidebar>(Shadow DOM)가 GET /-_-api/v1/usermenu로 그린다. 사용자 헤더(프로필/설정/로그아웃)는
+         전역 .js-logout-link 클릭 델리게이트가 shadow 경계를 못 넘으므로 서버가 라이트 DOM 슬롯으로 그린다. -->
+    <yona-sidebar sec:authorize="isAuthenticated()" th:if="${currentUser != null}" th:attr="login-id=${currentUser.loginId}">
+      <div slot="header" class="user-menu-wrap">
+        <span class="user-menu"><a th:href="@{/{loginId}(loginId=${currentUser.loginId})}">
+          <span class="avatar-wrap smaller"><img th:src="${currentUser.avatarUrl != null ? currentUser.avatarUrl : '/images/default-avatar-128.png'}" alt=""></span>
+          <span class="caret-text" th:text="${currentUser.name}">User</span>
+        </a></span>
+        <span class="user-menu"><a href="/user/editform" th:text="#{userinfo.accountSetting}">사용자 설정</a></span>
+        <a href="/users/logout" class="js-logout-link"><span class="user-menu logout label" th:text="#{title.logout}">로그아웃</span></a>
+      </div>
+    </yona-sidebar>
+
     <div sec:authorize="hasAuthority('ROLE_SITE_ADMIN')" class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">
       <span th:text="#{user.siteAdminLoggedInAffix}">관리자로 로그인 하였습니다!</span>
       <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}">- 큰 힘에는 큰 책임이 따릅니다</span>
@@ -75,7 +96,8 @@
 
     <header class="gnb-outer" th:classappend="${project != null or org != null} ? 'project-header' : ''">
       <div class="gnb-inner">
-        <div class="pin" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i><i class="yobicon-arrow-right" style="display: block;"></i></div>
+        <div class="pin" sec:authorize="isAuthenticated()" role="button" tabindex="0" data-sidebar-toggle aria-expanded="false"
+             data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i><i class="yobicon-arrow-right"></i></div>
         <ul class="gnb-nav">
           <li>
             <a href="/" class="logo logo-letter">Y</a>
@@ -591,6 +613,7 @@
 
     <!-- 스크립트 라이브러리들 로드 -->
     <script type="text/javascript" src="/javascripts/yona-common.js"></script>
+    <script type="text/javascript" src="/javascripts/common/yona.LeftSidebar.js"></script>
 
     <!-- fetch()를 전역 패치해 CSRF 헤더를 주입한다(GET/HEAD/OPTIONS/TRACE 제외 - CsrfFilter가
          검증하지 않음). 토큰은 CookieCsrfTokenRepository.withHttpOnlyFalse()가 원문 그대로
@@ -682,6 +705,7 @@
     <script type="module" src="/lib/yona-vue-widgets/yona-scroll-elevator-element.js"></script>
     <script type="module" src="/lib/yona-vue-widgets/yona-page-slide-element.js"></script>
     <script type="module" src="/lib/yona-vue-widgets/yona-help-markdown-element.js"></script>
+    <script type="module" src="/lib/yona-vue-widgets/yona-sidebar-element.js"></script>
 
     <script type="text/javascript" src="/javascripts/lib/autosize/autosize.min.js"></script>
     <script type="text/javascript" src="/javascripts/common/yona.KeyControl.js"></script>
@@ -827,32 +851,6 @@
                 });
             });
 
-            if (window.parent === window) {
-                // jQuery .show()가 <i>(기본 inline)에 명시적으로 쓰는 표시값 - CSS 클래스 규칙
-                // (display:none)이 인라인 스타일보다 우선순위가 낮아 밀리므로 "" 대신 명시값 사용.
-                document.querySelectorAll(".pin > .yobicon-arrow-right").forEach(function(el){ el.style.display = "inline"; });
-            }
-
-            document.querySelectorAll(".pin").forEach(function(el){
-                el.addEventListener("click", function () {
-                    if (window.parent === window) {
-                        localStorage.setItem('shallWeOpenLeftNavigation', "true");
-                        window.location.href = "/user/sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
-                    } else {
-                        localStorage.setItem('shallWeOpenLeftNavigation', "false");
-                        window.parent.location = window.location.href;
-                    }
-                });
-            });
-
-            var elParentSidebar = window.parent.document.querySelector("div#sidebar.sidebar");
-            if (elParentSidebar && getComputedStyle(elParentSidebar).display === "block") {
-                document.querySelectorAll("div.pin > i.yobicon-arrow-right").forEach(function(el){
-                    el.classList.remove("yobicon-arrow-right");
-                    el.classList.add("yobicon-arrow-left");
-                });
-            }
-
             if(navigator.userAgent.match(/MSIE ([0-9])\./)){
                document.querySelectorAll('.unsupported').forEach(function(el){ el.style.display = "block"; });
             }
@@ -986,7 +984,7 @@
     <div class="upload-drop-here"><div class="msg-wrap"><div class="msg">[[#{common.attach.dropFilesHere}]]</div></div></div>
   </script>
 
-  <th:block th:replace="~{common/analytics :: gtag('normal')}"></th:block>
+  <th:block th:replace="~{common/analytics :: gtag}"></th:block>
   </th:block>
 </body>
 </html>

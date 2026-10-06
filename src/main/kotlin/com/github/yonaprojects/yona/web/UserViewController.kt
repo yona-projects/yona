@@ -30,6 +30,7 @@ import com.github.yonaprojects.yona.domain.oauth2server.OAuthAppRegistrationServ
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.authentication.AnonymousAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -514,63 +515,21 @@ class UserViewController(
         return "common/usermenu_tab_content_list"
      }
 
+    // 왼쪽 사이드바는 iframe(layout_framed) 대신 모든 페이지에 직접 들어가는 <yona-sidebar> 컴포넌트가 됐다.
+    // 옛 /user/sidebar?path=…&hash=… 주소(북마크, 옛 localStorage 흐름)는 원래 페이지로 보내기만 한다.
+    // path/hash는 사용자 입력이므로 같은 사이트의 경로만 허용해 열린 리다이렉트와 헤더 주입을 막는다.
     @GetMapping("/user/sidebar")
     fun userSidebar(
-        @RequestParam(required = false, defaultValue = "/user/issues") path: String,
+        @RequestParam(required = false, defaultValue = "/") path: String,
         @RequestParam(required = false, defaultValue = "") hash: String,
-        authentication: Authentication?,
-        model: Model
+        authentication: Authentication?
     ): String {
-        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
-            ?: return "redirect:/users/loginform"
+        // 비로그인 방문자에게 Spring이 주는 AnonymousAuthenticationToken은 isAuthenticated=true라서 그 값으로는 거를 수 없다.
+        if (authentication == null || authentication is AnonymousAuthenticationToken) return "redirect:/users/loginform"
 
-        val iframePath = if (hash.isBlank()) path else "$path#$hash"
-
-        // 즐겨찾기 프로젝트 목록
-        val favoriteProjects = favoriteProjectRepository.findByUserId(loginUser.id!!).map { it.project }
-
-        // 사용자가 가입한 조직 목록
-        val organizations = organizationUserRepository.findByUserId(loginUser.id!!).map { it.organization }
-        val favoriteOrganizations = favoriteOrganizationRepository.findByUserId(loginUser.id!!).map { it.organization }
-
-        // 참여한 프로젝트 목록
-        val projectUsers = projectUserRepository.findByUserId(loginUser.id!!)
-        val allUserProjects = projectUsers.map { it.project }
-
-        // 최근 방문 프로젝트 (최근 활동 순서로 정렬)
-        val recentlyVisited = allUserProjects.sortedByDescending { it.createdDate }.take(10)
-
-        // 내가 생성한 프로젝트
-        val createdByMe = projectRepository.findByOwner(loginUser.loginId!!)
-
-        // 지켜보기 프로젝트
-        val watches = watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT)
-        val watching = watches.mapNotNull { 
-            projectRepository.findById(it.resourceId.toLongOrNull() ?: return@mapNotNull null).orElse(null) 
-        }
-
-        // 참여함 (오너가 아니면서 멤버인 프로젝트)
-        val joinmember = allUserProjects.filter { it.owner != loginUser.loginId }
-
-        // 최근 이슈 목록 (참여 프로젝트의 이슈 중 최근 업데이트된 10개)
-        val recentIssues = if (allUserProjects.isNotEmpty()) {
-            issueRepository.findByProjectIn(allUserProjects, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "updatedDate"))).content
-        } else {
-            emptyList()
-        }
-
-        model.addAttribute("currentUser", loginUser)
-        model.addAttribute("iframePath", iframePath)
-        model.addAttribute("favoriteProjects", favoriteProjects)
-        model.addAttribute("favoriteOrganizations", favoriteOrganizations)
-        model.addAttribute("organizations", organizations)
-        model.addAttribute("recentlyVisited", recentlyVisited)
-        model.addAttribute("createdByMe", createdByMe)
-        model.addAttribute("watching", watching)
-        model.addAttribute("joinmember", joinmember)
-        model.addAttribute("recentIssues", recentIssues)
-
-        return "site/layout_framed"
+        val safePath = if (path.length <= 2000 && SAFE_REDIRECT_PATH.matches(path)) path else "/"
+        val safeHash = if (hash.isNotEmpty() && hash.length <= 200 && SAFE_REDIRECT_HASH.matches(hash)) "#$hash" else ""
+        return "redirect:$safePath$safeHash"
     }
 
     @GetMapping("/user/editform/password")
@@ -1293,5 +1252,11 @@ class UserViewController(
             "newPassword" to newPassword,
             "isSuccess" to true
         ))
+    }
+
+    companion object {
+        // "/"로 시작하되 "//"(프로토콜 상대 URL)나 "/\\"는 아니고, 중괄호(URI 템플릿 확장)·공백·제어문자·쿼리/프래그먼트 기호는 없는 경로.
+        private val SAFE_REDIRECT_PATH = Regex("^/(?![/\\\\])[A-Za-z0-9\\-._~!$&'()*+,;=:@%/]*$")
+        private val SAFE_REDIRECT_HASH = Regex("^[A-Za-z0-9_\\-.:~]+$")
     }
 }

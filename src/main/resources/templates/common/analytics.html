@@ -4,7 +4,7 @@
 <!--/* 설치형 배포 사용 현황(GA4 gtag). yona.analytics.send-usage=false이거나 measurement-id가 비면 아무것도 렌더링하지 않는다.
        URL에는 소유자/프로젝트명/이슈 번호 등 사내 식별자가 들어 있으므로 원본 경로·제목·리퍼러는 보내지 않고
        "화면 종류"만 보낸다(maskPath). */-->
-<th:block th:fragment="gtag(layout)" th:if="${@analyticsSettings.clientEnabled}">
+<th:block th:fragment="gtag" th:if="${@analyticsSettings.clientEnabled}">
   <script th:inline="javascript">
     (function () {
       var RESERVED = ['_help', '_notifications', 'api', 'bootstrap-setup', 'categories', 'data', 'export', 'files',
@@ -38,11 +38,11 @@
         allow_ad_personalization_signals: false,
         install_id: [[${@analyticsSettings.installId}]]
       });
-      // 왼쪽 사이드바 레이아웃(layout_framed)은 오른쪽 iframe 안에서도 같은 태그가 실행되어 페이지뷰가 두 번
-      // 잡히므로 in_frame으로 구분한다. 사이드바 "사용"은 최상위 창에서 해당 레이아웃이 열린 경우로 센다.
-      var layout = [[${layout}]];
+      // in_frame: 이슈 목록 2단 보기의 슬라이드 iframe 안에서도 같은 태그가 실행되어 페이지뷰가 두 번 잡히므로 구분한다.
       var inFrame = false;
       try { inFrame = window.self !== window.top; } catch (e) { inFrame = true; }
+      // 왼쪽 사이드바 열림 상태는 head의 인라인 스크립트가 첫 페인트 전에 <html> 클래스로 반영해 둔다.
+      var sidebarState = document.documentElement.classList.contains('left-sidebar-open') ? 'open' : 'closed';
       var masked = maskPath(location.pathname);
 
       // gtag는 모든 이벤트에 실제 URL·문서 제목·리퍼러를 자동으로 붙인다(사내 프로젝트명/이슈 제목이 들어 있다).
@@ -79,12 +79,15 @@
       }
 
       var twoColumn = twoColumnState();
-      var pageViewParams = { layout: layout, in_frame: inFrame ? 'yes' : 'no', two_column: twoColumn };
+      var pageViewParams = { sidebar: sidebarState, in_frame: inFrame ? 'yes' : 'no', two_column: twoColumn };
       if (twoColumn !== 'none') pageViewParams.screen = twoColumnScreen(location.pathname);
       gtag('event', 'page_view', pageViewParams);
-      if (layout === 'left_sidebar' && !inFrame) {
-        gtag('event', 'feature_use', { feature: 'left_sidebar_open', two_column: twoColumn });
-      }
+      // 왼쪽 사이드바는 사용자가 직접 열 때만 센다(저장된 열림 상태로 복원되는 경우는 page_view의 sidebar 값으로 구분된다).
+      document.addEventListener('yona-sidebar-toggle', function (event) {
+        if (event.detail && event.detail.open) {
+          gtag('event', 'feature_use', { feature: 'left_sidebar_open', two_column: twoColumnState() });
+        }
+      });
 
       // 사용자가 2단 보기 체크박스를 직접 켜고 끈 경우만 센다(스크립트가 checked를 바꾸는 복원은 change를 일으키지 않는다).
       // 이벤트 값은 on/off 상수뿐이고, 입력값이나 화면 내용은 읽지 않는다.

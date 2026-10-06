@@ -1150,61 +1150,50 @@ class UserViewControllerSpec : DescribeSpec({
         }
     }
 
-    // userSidebar()의 미인증 리다이렉트, hash 유무에 따른 iframePath 조립, 참여 프로젝트
-    // 유/무에 따른 최근 이슈 조회 분기.
+    // 왼쪽 사이드바가 iframe(layout_framed) 대신 모든 페이지에 직접 들어가면서, 옛 /user/sidebar?path=…&hash=… 주소는
+    // 원래 페이지로 보내기만 한다(북마크와 옛 localStorage 흐름 보호). 사이드바 데이터 조립은 UserMenuServiceSpec이 검증한다.
+    // path/hash는 사용자 입력이라 열린 리다이렉트(open redirect)와 헤더 주입을 막아야 한다.
     describe("GET /user/sidebar") {
+        val auth = UsernamePasswordAuthenticationToken("testuser", "password")
+
         it("미인증 사용자는 로그인 폼으로 리다이렉트되어야 한다") {
             mockMvc.perform(get("/user/sidebar"))
                 .andExpect(status().is3xxRedirection)
                 .andExpect(redirectedUrl("/users/loginform"))
         }
 
-        it("hash 파라미터가 있으면 iframePath에 #hash가 붙어야 한다") {
-            val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
-            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
-            every { favoriteProjectRepository.findByUserId(10L) } returns emptyList()
-            every { organizationUserRepository.findByUserId(10L) } returns emptyList()
-            every { favoriteOrganizationRepository.findByUserId(10L) } returns emptyList()
-            every { projectUserRepository.findByUserId(10L) } returns emptyList()
-            every { projectRepository.findByOwner("testuser") } returns emptyList()
-            every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
-            every { organizationRepository.findAll() } returns emptyList()
-
-            val model = ExtendedModelMap()
-            userViewController.userSidebar(
-                path = "/user/issues", hash = "comment-1",
-                authentication = UsernamePasswordAuthenticationToken("testuser", "password"), model = model
+        it("익명 인증 토큰(isAuthenticated=true)도 로그인 폼으로 보내야 한다") {
+            val anonymous = org.springframework.security.authentication.AnonymousAuthenticationToken(
+                "key", "anonymousUser", org.springframework.security.core.authority.AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")
             )
-
-            model.getAttribute("iframePath") shouldBe "/user/issues#comment-1"
+            userViewController.userSidebar(path = "/user/issues", hash = "", authentication = anonymous) shouldBe "redirect:/users/loginform"
         }
 
-        it("소속 프로젝트가 있으면 최근 이슈를 조회해야 한다") {
-            val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
-            val project = Project(id = 1L, name = "proj1", owner = "testuser")
-            val memberRole = Role(id = RoleType.MEMBER.roleType)
-            val projectUser = ProjectUser(id = 1L, user = loginUser, project = project, role = memberRole)
-            val recentIssue = Issue(id = 1L, title = "최근 이슈", project = project)
+        it("인증된 사용자는 path로 리다이렉트되어야 한다") {
+            userViewController.userSidebar(path = "/user/issues", hash = "", authentication = auth) shouldBe "redirect:/user/issues"
+        }
 
-            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
-            every { favoriteProjectRepository.findByUserId(10L) } returns emptyList()
-            every { organizationUserRepository.findByUserId(10L) } returns emptyList()
-            every { favoriteOrganizationRepository.findByUserId(10L) } returns emptyList()
-            every { projectUserRepository.findByUserId(10L) } returns listOf(projectUser)
-            every { projectRepository.findByOwner("testuser") } returns emptyList()
-            every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
-            every { organizationRepository.findAll() } returns emptyList()
-            every { issueRepository.findByProjectIn(listOf(project), any()) } returns PageImpl(listOf(recentIssue))
+        it("path를 생략하면 루트로 리다이렉트되어야 한다") {
+            mockMvc.perform(get("/user/sidebar").principal(auth))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/"))
+        }
 
-            val model = ExtendedModelMap()
-            val view = userViewController.userSidebar(
-                path = "/user/issues", hash = "",
-                authentication = UsernamePasswordAuthenticationToken("testuser", "password"), model = model
-            )
+        it("hash가 있으면 #hash를 붙여야 한다") {
+            userViewController.userSidebar(path = "/user/issues", hash = "comment-1", authentication = auth) shouldBe "redirect:/user/issues#comment-1"
+        }
 
-            view shouldBe "site/layout_framed"
-            model.getAttribute("iframePath") shouldBe "/user/issues"
-            model.getAttribute("recentIssues") shouldBe listOf(recentIssue)
+        listOf(
+            "//evil.com/x", "http://evil.com", "https://evil.com", "/\\evil.com", "javascript:alert(1)", "evil.com",
+            "", "/a/{b}", "/a b", "/a\r\nSet-Cookie: x=1", "/" + "a".repeat(2100)
+        ).forEach { bad ->
+            it("안전하지 않은 path는 루트로 보내야 한다: ${bad.take(30).replace("\r", "\\r").replace("\n", "\\n")}") {
+                userViewController.userSidebar(path = bad, hash = "", authentication = auth) shouldBe "redirect:/"
+            }
+        }
+
+        it("안전하지 않은 hash는 버리고 path만으로 리다이렉트해야 한다") {
+            userViewController.userSidebar(path = "/user/issues", hash = "x\"><script>", authentication = auth) shouldBe "redirect:/user/issues"
         }
     }
 
@@ -1762,76 +1751,6 @@ class UserViewControllerSpec : DescribeSpec({
             mockMvc.perform(get("/user/issues").principal(UsernamePasswordAuthenticationToken("ghostuser", "password")))
                 .andExpect(status().is3xxRedirection)
                 .andExpect(redirectedUrl("/users/loginform"))
-        }
-    }
-
-    // userSidebar()의 "인증되었으나 사용자 없음" 분기, watch.resourceId 파싱 실패/미존재 프로젝트
-    // 제외 분기(editUserNotificationsForm/usermenuTabContentList에는 있었지만 userSidebar에는
-    // 없었음), joinmember 필터의 "오너가 아닌 멤버(참여함에 포함)" 분기(기존 테스트는 반대로
-    // "오너 본인(제외)" 케이스만 있었음).
-    describe("GET /user/sidebar - 추가 분기 커버리지") {
-        it("인증되었으나 사용자를 찾을 수 없으면 로그인 폼으로 리다이렉트되어야 한다") {
-            every { userRepository.findByLoginId("ghostuser") } returns Optional.empty()
-
-            val view = userViewController.userSidebar(
-                path = "/user/issues", hash = "",
-                authentication = UsernamePasswordAuthenticationToken("ghostuser", "password"),
-                model = ExtendedModelMap()
-            )
-
-            view shouldBe "redirect:/users/loginform"
-        }
-
-        it("watch의 resourceId 파싱 실패/미존재 프로젝트는 감시 목록에서 제외해야 한다") {
-            val loginUser = User(id = 50L, loginId = "sidebaruser", name = "사이드바유저")
-            val watchInvalid = Watch(id = 1L, user = loginUser, resourceType = ResourceType.PROJECT, resourceId = "not-a-number")
-            val watchMissing = Watch(id = 2L, user = loginUser, resourceType = ResourceType.PROJECT, resourceId = "9999")
-            val watchValid = Watch(id = 3L, user = loginUser, resourceType = ResourceType.PROJECT, resourceId = "12")
-            val watchedProject = Project(id = 12L, name = "watched", owner = "someone")
-
-            every { userRepository.findByLoginId("sidebaruser") } returns Optional.of(loginUser)
-            every { favoriteProjectRepository.findByUserId(50L) } returns emptyList()
-            every { organizationUserRepository.findByUserId(50L) } returns emptyList()
-            every { favoriteOrganizationRepository.findByUserId(50L) } returns emptyList()
-            every { projectUserRepository.findByUserId(50L) } returns emptyList()
-            every { projectRepository.findByOwner("sidebaruser") } returns emptyList()
-            every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns listOf(watchInvalid, watchMissing, watchValid)
-            every { projectRepository.findById(9999L) } returns Optional.empty()
-            every { projectRepository.findById(12L) } returns Optional.of(watchedProject)
-            every { organizationRepository.findAll() } returns emptyList()
-
-            val model = ExtendedModelMap()
-            userViewController.userSidebar(
-                path = "/user/issues", hash = "",
-                authentication = UsernamePasswordAuthenticationToken("sidebaruser", "password"), model = model
-            )
-
-            model.getAttribute("watching") shouldBe listOf(watchedProject)
-        }
-
-        it("오너가 아닌 멤버로 참여한 프로젝트는 참여함(joinmember) 목록에 포함되어야 한다") {
-            val loginUser = User(id = 51L, loginId = "member1", name = "멤버유저")
-            val memberRole = Role(id = RoleType.MEMBER.roleType)
-            val otherProject = Project(id = 13L, name = "other-proj", owner = "otherowner")
-            val projectUser = ProjectUser(id = 2L, user = loginUser, project = otherProject, role = memberRole)
-
-            every { userRepository.findByLoginId("member1") } returns Optional.of(loginUser)
-            every { favoriteProjectRepository.findByUserId(51L) } returns emptyList()
-            every { organizationUserRepository.findByUserId(51L) } returns emptyList()
-            every { favoriteOrganizationRepository.findByUserId(51L) } returns emptyList()
-            every { projectUserRepository.findByUserId(51L) } returns listOf(projectUser)
-            every { projectRepository.findByOwner("member1") } returns emptyList()
-            every { watchRepository.findByUserAndResourceType(loginUser, ResourceType.PROJECT) } returns emptyList()
-            every { organizationRepository.findAll() } returns emptyList()
-            every { issueRepository.findByProjectIn(listOf(otherProject), any()) } returns PageImpl(emptyList())
-
-            val model = ExtendedModelMap()
-            userViewController.userSidebar(
-                path = "/user/issues", hash = "",
-                authentication = UsernamePasswordAuthenticationToken("member1", "password"), model = model
-            )
-
-            model.getAttribute("joinmember") shouldBe listOf(otherProject)
         }
     }
 

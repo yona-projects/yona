@@ -217,15 +217,8 @@ document.addEventListener("DOMContentLoaded", function () {
                    return window.location = location;
                 }
 
-                if (window.self.name !== 'mainFrame') {
-                    if (document.getElementById("mainFrame")) {
-                        window.open(location, 'mainFrame');
-                    } else {
-                        window.open(location, '_blank');
-                    }
-                } else {
-                    window.open(location, 'mainFrame');
-                }
+                // 본문을 iframe(mainFrame)에 띄우던 구조는 없어졌으므로 항상 새 탭으로 연다.
+                window.open(location, '_blank');
 
                 document.querySelectorAll(".user-ul > .user-li, .project-ul > .user-li").forEach(function (li) {
                     li.classList.remove("selected");

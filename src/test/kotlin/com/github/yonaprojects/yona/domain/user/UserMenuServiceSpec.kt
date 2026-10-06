@@ -72,7 +72,7 @@ class UserMenuServiceSpec : DescribeSpec({
             menu.visitedIssues.shouldBeEmpty()
         }
 
-        it("프로젝트는 실제 하이퍼링크로 쓸 수 있는 href(/owner/name/go)와 즐겨찾기 여부를 가져야 한다") {
+        it("프로젝트는 실제 하이퍼링크로 쓸 수 있는 href(/owner/name, 존재하는 프로젝트 홈)와 즐겨찾기 여부를 가져야 한다") {
             stubEmpty()
             every { projectRepository.findByOwner("me") } returns listOf(mine)
             every { favoriteProjectRepository.findByUserId(1L) } returns listOf(FavoriteProject(user = me, project = mine))
@@ -82,7 +82,7 @@ class UserMenuServiceSpec : DescribeSpec({
             project.name shouldBe "mine"
             project.owner shouldBe "me"
             project.overview shouldBe "내 프로젝트"
-            project.href shouldBe "/me/mine/go"
+            project.href shouldBe "/me/mine"
             project.favorite shouldBe true
         }
 

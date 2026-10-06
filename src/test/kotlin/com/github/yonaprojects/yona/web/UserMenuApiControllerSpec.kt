@@ -25,7 +25,7 @@ class UserMenuApiControllerSpec : DescribeSpec({
 
     val me = User(id = 1L, loginId = "me", name = "나", email = "me@example.com")
     val auth = UsernamePasswordAuthenticationToken("me", "pw")
-    val project = MenuProject(10L, "mine", "me", "설명", "/me/mine/go", true)
+    val project = MenuProject(10L, "mine", "me", "설명", "/me/mine", true)
     val emptyMenu = UserMenu(
         loginId = "me", personal = emptyList(), favoriteOrganizations = emptyList(), organizations = emptyList(),
         favoriteProjects = emptyList(), recentlyVisited = emptyList(), createdByMe = emptyList(),
@@ -72,7 +72,7 @@ class UserMenuApiControllerSpec : DescribeSpec({
             mockMvc.perform(get("/-_-api/v1/usermenu").principal(auth))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.createdByMe[0].id").value(10))
-                .andExpect(jsonPath("$.createdByMe[0].href").value("/me/mine/go"))
+                .andExpect(jsonPath("$.createdByMe[0].href").value("/me/mine"))
                 .andExpect(jsonPath("$.createdByMe[0].favorite").value(true))
                 .andExpect(jsonPath("$.favoriteOrganizations[0].name").value("acme"))
                 .andExpect(jsonPath("$.favoriteOrganizations[0].projects[0].name").value("mine"))
