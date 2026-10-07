@@ -53,7 +53,8 @@ test.describe('left sidebar (<yona-sidebar>)', () => {
       const midSidebar = await sidebarX();
       expect(midSidebar).toBeGreaterThan(-270);
       expect(midSidebar).toBeLessThan(0);
-      await expect.poll(pinX).toBe(264);
+      // Flush against the sidebar's right edge: the pin must not overlap the sidebar (width 270).
+      await expect.poll(pinX).toBe(270);
       await expect.poll(sidebarX).toBe(0);
 
       await page.locator('.pin').click();
@@ -73,7 +74,7 @@ test.describe('left sidebar (<yona-sidebar>)', () => {
       sidebar: Math.round(document.querySelector('yona-sidebar')!.getBoundingClientRect().x),
       pin: Math.round(document.querySelector('.pin')!.getBoundingClientRect().x),
     }));
-    expect(first).toEqual({ sidebar: 0, pin: 264 });
+    expect(first).toEqual({ sidebar: 0, pin: 270 });
   });
 
   test('an open sidebar stays open across navigation and reload, with no iframe anywhere', async ({ page }) => {

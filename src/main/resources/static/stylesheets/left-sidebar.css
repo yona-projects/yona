@@ -68,8 +68,10 @@ html.left-sidebar-ready .gnb-outer.project-header {
   left: -6px;
   z-index: 1200;
 }
+/* 열린 핀은 사이드바 오른쪽 가장자리에 맞닿게 둔다(겹치지 않게). 닫힌 핀의 -6px는 화면 왼쪽 밖으로 6px 걸치게 해 손잡이 모양만
+   보이게 하려는 값이라 열린 위치에는 쓰지 않는다. */
 html.left-sidebar-open .pin {
-  left: calc(var(--yona-sidebar-width) - 6px);
+  left: var(--yona-sidebar-width);
 }
 html.left-sidebar-ready .pin {
   transition: left var(--yona-sidebar-slide) ease;
