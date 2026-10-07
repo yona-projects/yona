@@ -18,6 +18,7 @@ import com.github.yonaprojects.yona.domain.watch.WatchRepository
 import com.github.yonaprojects.yona.domain.notification.UserProjectNotificationRepository
 import com.github.yonaprojects.yona.domain.user.FavoriteProjectRepository
 import com.github.yonaprojects.yona.domain.user.FavoriteOrganizationRepository
+import com.github.yonaprojects.yona.domain.organization.Organization
 import com.github.yonaprojects.yona.domain.organization.OrganizationUserRepository
 import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import jakarta.servlet.http.HttpServletResponse
@@ -159,6 +160,8 @@ class UserViewControllerSpec : DescribeSpec({
         )
         every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
         every { accessControl.isAllowedToReadProject(any(), any()) } returns true
+        // userProfile은 사용자보다 조직 이름을 먼저 확인한다(#845). 기본은 "같은 이름의 조직 없음".
+        every { organizationRepository.findByName(any()) } returns Optional.empty()
     }
 
     describe("UserViewController 템플릿 연동 테스트") {
@@ -176,6 +179,87 @@ class UserViewControllerSpec : DescribeSpec({
                     .andExpect(status().isOk)
                     .andExpect(view().name("user/view"))
                     .andExpect(model().attributeExists("user", "projects", "issues", "pullRequests"))
+            }
+
+            // 조직 소유 프로젝트의 소유자 링크(breadcrumb, 프로젝트 목록, PR 화면 등)가 /user/{조직명}으로 나가 404가 났다
+            // (yona-projects/yona#845). 1.x는 사용자가 없을 때 같은 이름의 조직 페이지로 보냈다.
+            describe("소유자가 사용자가 아니라 조직인 경우(#845)") {
+                val org = Organization(id = 20L, name = "test-group")
+
+                it("/user/{조직명}은 조직 페이지로 리다이렉트해야 한다") {
+                    every { userRepository.findByLoginId("test-group") } returns Optional.empty()
+                    every { organizationRepository.findByName("test-group") } returns Optional.of(org)
+
+                    mockMvc.perform(get("/user/test-group"))
+                        .andExpect(status().is3xxRedirection)
+                        .andExpect(redirectedUrl("/organizations/test-group"))
+                }
+
+                it("루트 경로 /{조직명}도 조직 페이지로 리다이렉트해야 한다") {
+                    every { userRepository.findByLoginId("test-group") } returns Optional.empty()
+                    every { organizationRepository.findByName("test-group") } returns Optional.of(org)
+
+                    mockMvc.perform(get("/test-group"))
+                        .andExpect(status().is3xxRedirection)
+                        .andExpect(redirectedUrl("/organizations/test-group"))
+                }
+
+                it("같은 이름의 사용자가 있어도 조직 페이지가 우선해야 한다(1.6과 같은 순서)") {
+                    // 1.6 UserApp.userInfo는 조직을 먼저 확인했다. 이 앱의 가입(AuthController)은 조직 이름과의 중복을 아직 막지
+                    // 않으므로, 기존 조직과 같은 ID로 가입한 사용자가 /user/{조직}과 /{조직}, 그리고 조직 소유 프로젝트의 소유자
+                    // 링크를 가로채지 못하게 조직이 항상 이겨야 한다.
+                    val impostor = User(id = 12L, loginId = "test-group", name = "가짜")
+                    every { userRepository.findByLoginId("test-group") } returns Optional.of(impostor)
+                    every { organizationRepository.findByName("test-group") } returns Optional.of(org)
+
+                    mockMvc.perform(get("/user/test-group"))
+                        .andExpect(status().is3xxRedirection)
+                        .andExpect(redirectedUrl("/organizations/test-group"))
+                    mockMvc.perform(get("/test-group"))
+                        .andExpect(status().is3xxRedirection)
+                        .andExpect(redirectedUrl("/organizations/test-group"))
+                }
+
+                it("조직이 아닌 이름이면 사용자 프로필을 그대로 보여 줘야 한다") {
+                    every { organizationRepository.findByName("testuser") } returns Optional.empty()
+                    every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                    every { projectUserRepository.findByUserId(10L) } returns emptyList()
+                    every { issueRepository.findRecentlyByUser(10L, any()) } returns emptyList()
+                    every { pullRequestRepository.findByContributorAndUpdatedGreaterThanEqualOrderByUpdatedDescStateAsc(user, any()) } returns emptyList()
+
+                    mockMvc.perform(get("/user/testuser").principal(userAuth))
+                        .andExpect(status().isOk)
+                        .andExpect(view().name("user/view"))
+                }
+
+                it("삭제된 사용자(DELETED)는 존재하지 않는 것으로 보고 같은 이름의 조직으로 보내야 한다") {
+                    val deleted = User(id = 11L, loginId = "test-group", name = "삭제됨", state = UserState.DELETED)
+                    every { userRepository.findByLoginId("test-group") } returns Optional.of(deleted)
+                    every { organizationRepository.findByName("test-group") } returns Optional.of(org)
+
+                    mockMvc.perform(get("/user/test-group"))
+                        .andExpect(status().is3xxRedirection)
+                        .andExpect(redirectedUrl("/organizations/test-group"))
+                }
+
+                it("사용자도 조직도 없으면 여전히 404와 error/404 뷰를 반환해야 한다") {
+                    every { userRepository.findByLoginId("nobody") } returns Optional.empty()
+                    every { organizationRepository.findByName("nobody") } returns Optional.empty()
+
+                    mockMvc.perform(get("/user/nobody"))
+                        .andExpect(status().isNotFound)
+                        .andExpect(view().name("error/404"))
+                }
+
+                it("조직 이름에 URL에 쓸 수 없는 문자가 있어도 안전하게 인코딩해서 리다이렉트해야 한다") {
+                    val odd = Organization(id = 21L, name = "my group{x}")
+                    every { userRepository.findByLoginId("my group{x}") } returns Optional.empty()
+                    every { organizationRepository.findByName("my group{x}") } returns Optional.of(odd)
+
+                    mockMvc.perform(get("/user/{name}", "my group{x}"))
+                        .andExpect(status().is3xxRedirection)
+                        .andExpect(redirectedUrl("/organizations/my%20group%7Bx%7D"))
+                }
             }
         }
 
