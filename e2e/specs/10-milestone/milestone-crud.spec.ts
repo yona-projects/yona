@@ -122,6 +122,11 @@ test.describe.serial('milestone lifecycle', () => {
 
     // deleteMilestone responds 204 + Location: /{owner}/{name}/milestones -- requestAs()
     // follows that redirect directly (unlike close/open above, which just reload in place).
+    // The delete trigger's click handler is attached in a DOMContentLoaded listener, and this page loads
+    // several type="module" widget bundles, which defer DOMContentLoaded. toHaveURL() above does not wait for
+    // it, so on a cold/slow run the icon is already clickable but still has no handler: the click only changes
+    // the hash and the dialog never opens. Wait for the load event first.
+    await page.waitForLoadState('load');
     await page.click('a[href="#deleteConfirm"]');
     await expect(page.locator('dialog#deleteConfirm')).toBeVisible();
     await Promise.all([
