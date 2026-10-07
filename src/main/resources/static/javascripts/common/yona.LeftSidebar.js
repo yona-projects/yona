@@ -50,6 +50,12 @@
         sync(!!(event.detail && event.detail.open));
     });
 
+    // 저장된 열림 상태로 로드한 직후에는 슬라이드가 재생되지 않아야 하므로, 첫 두 프레임이 지난 뒤에야 전환(left-sidebar-ready)을
+    // 켠다. 그 뒤의 열기/닫기만 애니메이션된다.
+    requestAnimationFrame(function () {
+        requestAnimationFrame(function () { root.classList.add("left-sidebar-ready"); });
+    });
+
     // 첫 페인트 전 스크립트(head)가 정한 상태로 aria를 맞추고, 컴포넌트가 정의되면 실제 상태와 다시 맞춘다.
     sync(root.classList.contains("left-sidebar-open"));
     if (window.customElements) {

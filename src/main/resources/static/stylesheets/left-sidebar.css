@@ -3,10 +3,11 @@
    테마는 --yona-sidebar-* 변수로 바꾼다(기본값은 컴포넌트에 있다). */
 :root {
   --yona-sidebar-width: 270px;
+  --yona-sidebar-slide: 200ms;
 }
 
 yona-sidebar {
-  display: none;
+  display: block;
   position: fixed;
   top: 0;
   bottom: 0;
@@ -16,28 +17,68 @@ yona-sidebar {
   /* GNB(z-index 1000)와 부트스트랩 모달(1050) 아래에 둔다. 핀은 아래에서 따로 위로 올린다. */
   z-index: 999;
   background-color: var(--yona-sidebar-bg, #333333);
+  /* 닫힘: 왼쪽 밖으로 밀어 두고, visibility로 포커스와 스크린리더에서도 뺀다. */
+  transform: translateX(-100%);
+  visibility: hidden;
 }
 
-/* 열림 상태는 head의 인라인 스크립트가 첫 페인트 전에 <html>에 반영한다. 컴포넌트가 아직 정의되기 전에도 같은 폭의
-   빈 패널을 보여 본문이 밀리는 깜박임을 막는다. */
+/* 열림 상태는 head의 인라인 스크립트가 첫 페인트 전에 <html>에 반영한다. 컴포넌트가 아직 정의되기 전에도 같은 폭의 빈
+   패널을 보여 본문이 밀리는 깜박임을 막는다. */
 html.left-sidebar-open yona-sidebar,
 yona-sidebar[open] {
-  display: block;
+  transform: none;
+  visibility: visible;
+}
+
+/* 슬라이드 전환은 yona.LeftSidebar.js가 첫 프레임 뒤에 left-sidebar-ready를 붙인 다음부터만 켠다. 저장된 열림 상태로 페이지를
+   로드할 때마다 슬라이드가 재생되면 안 되기 때문이다. 닫힐 때는 visibility를 전환이 끝난 뒤에 바꿔서 슬라이드 아웃이 보이게 한다. */
+html.left-sidebar-ready yona-sidebar {
+  transition: transform var(--yona-sidebar-slide) ease, visibility 0s linear var(--yona-sidebar-slide);
+}
+html.left-sidebar-ready.left-sidebar-open yona-sidebar,
+html.left-sidebar-ready yona-sidebar[open] {
+  transition: transform var(--yona-sidebar-slide) ease, visibility 0s;
 }
 
 html.left-sidebar-open body {
   padding-left: var(--yona-sidebar-width);
 }
 
-/* GNB가 프로젝트 화면에서 absolute + width:100%라 사이드바 아래로 깔리므로 폭만큼 비켜 준다. */
+/* GNB가 프로젝트 화면에서 absolute + width:100%라 사이드바 아래로 깔리므로 폭만큼 비켜 준다. left를 전환하려면 auto가 아니라
+   값이 있어야 해서 기본값을 0으로 둔다. */
+.gnb-outer.project-header {
+  left: 0;
+}
 html.left-sidebar-open .gnb-outer.project-header {
   left: var(--yona-sidebar-width);
   width: calc(100% - var(--yona-sidebar-width));
 }
+html.left-sidebar-ready body {
+  transition: padding-left var(--yona-sidebar-slide) ease;
+}
+html.left-sidebar-ready .gnb-outer.project-header {
+  transition: left var(--yona-sidebar-slide) ease, width var(--yona-sidebar-slide) ease;
+}
 
-/* 핀은 GNB 왼쪽 끝에서 사이드바 가장자리에 걸쳐 있으므로, 열려 있어도 눌러서 닫을 수 있게 사이드바 위로 올린다. */
+/* 핀은 사이드바의 손잡이다. GNB 안의 absolute 위치는 화면마다 기준(위치 지정된 조상)이 달라서 일반 GNB에서는 열려도 제자리에
+   남았다. 화면에 고정(fixed)해 사이드바 오른쪽 가장자리를 따라 이동시키고, 열려 있어도 눌러서 닫을 수 있게 사이드바 위로 올린다. */
 .pin {
+  position: fixed;
+  top: 6px;
+  left: -6px;
   z-index: 1200;
+}
+html.left-sidebar-open .pin {
+  left: calc(var(--yona-sidebar-width) - 6px);
+}
+html.left-sidebar-ready .pin {
+  transition: left var(--yona-sidebar-slide) ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --yona-sidebar-slide: 0ms;
+  }
 }
 
 /* 핀 화살표: 닫힘 → 오른쪽(열기), 열림 → 왼쪽(닫기). */

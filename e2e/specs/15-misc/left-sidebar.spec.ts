@@ -30,12 +30,50 @@ test.describe('left sidebar (<yona-sidebar>)', () => {
     expect(await sidebarOpen(page)).toBe(true);
     expect(await stored(page, OPEN_KEY)).toBe('true');
     // The body is pushed right by the sidebar width instead of being covered by it.
-    expect(await page.evaluate(() => parseInt(getComputedStyle(document.body).paddingLeft, 10))).toBe(270);
+    // The body padding is transitioning (slide), so poll instead of reading the first value.
+    await expect.poll(() => page.evaluate(() => parseInt(getComputedStyle(document.body).paddingLeft, 10))).toBe(270);
 
     await page.locator('.pin').click();
     await expect(sidebar).toBeHidden();
     expect(await stored(page, OPEN_KEY)).toBe('false');
-    expect(await page.evaluate(() => parseInt(getComputedStyle(document.body).paddingLeft, 10))).toBe(0);
+    await expect.poll(() => page.evaluate(() => parseInt(getComputedStyle(document.body).paddingLeft, 10))).toBe(0);
+  });
+
+  for (const [label, path] of [['a plain page', () => '/'], ['a project page', () => `/${requireSeed('projectOwner')}/${requireSeed('projectName')}/issues`]] as const) {
+    test(`the sidebar slides and the pin follows its edge on ${label}`, async ({ page }) => {
+      await reset(page, path());
+      const pinX = () => page.evaluate(() => Math.round(document.querySelector('.pin')!.getBoundingClientRect().x));
+      const sidebarX = () => page.evaluate(() => Math.round(document.querySelector('yona-sidebar')!.getBoundingClientRect().x));
+      await page.waitForTimeout(400); // let the post-load "ready" frames pass so transitions are on
+
+      expect(await pinX()).toBe(-6);
+      await page.locator('.pin').click();
+      // Mid-slide: the sidebar is between fully hidden (-270) and fully open (0), and the pin has left its closed spot.
+      await page.waitForTimeout(60);
+      const midSidebar = await sidebarX();
+      expect(midSidebar).toBeGreaterThan(-270);
+      expect(midSidebar).toBeLessThan(0);
+      await expect.poll(pinX).toBe(264);
+      await expect.poll(sidebarX).toBe(0);
+
+      await page.locator('.pin').click();
+      await expect.poll(pinX).toBe(-6);
+      await expect(page.locator('yona-sidebar')).toBeHidden();
+    });
+  }
+
+  test('a stored open state is applied at once on load, without replaying the slide', async ({ page }) => {
+    await reset(page, '/');
+    await page.locator('.pin').click();
+    await expect.poll(() => page.evaluate(() => Math.round(document.querySelector('yona-sidebar')!.getBoundingClientRect().x))).toBe(0);
+    // Reload while open: right after commit the sidebar and the pin must already be in their open positions.
+    await page.reload({ waitUntil: 'commit' });
+    await page.waitForSelector('.pin', { state: 'attached' });
+    const first = await page.evaluate(() => ({
+      sidebar: Math.round(document.querySelector('yona-sidebar')!.getBoundingClientRect().x),
+      pin: Math.round(document.querySelector('.pin')!.getBoundingClientRect().x),
+    }));
+    expect(first).toEqual({ sidebar: 0, pin: 264 });
   });
 
   test('an open sidebar stays open across navigation and reload, with no iframe anywhere', async ({ page }) => {
