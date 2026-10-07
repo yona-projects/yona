@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
+import { afterReload, clickAndReload, documentReady } from '../../support/ready';
 import { uniqueSuffix } from '../../support/unique';
 
 /** Screen: GET /{owner}/{projectName}/members (project/members.html).
@@ -35,10 +36,10 @@ test('invite the seeded second user and promote them to manager', async ({ page 
   const alreadyMember = await page.locator(`.member-id:text-is("@${secondUserLoginId}")`).count();
   if (alreadyMember === 0) {
     await page.fill('#addNewMember #loginId', secondUserLoginId);
-    await page.click('#addNewMember button[type=submit]');
-    await page.waitForLoadState('networkidle');
+    await clickAndReload(page, page.locator('#addNewMember button[type=submit]'));
   }
   await expect(page.locator(`.member-id:text-is("@${secondUserLoginId}")`)).toBeVisible();
+  await documentReady(page);
 
   // Promote to manager via the per-member role dropdown (role-apply-btn, data-role-id="1"). The
   // dropdown-menu is display:none until the Bootstrap dropdown-toggle button is clicked open, AND
@@ -51,15 +52,14 @@ test('invite the seeded second user and promote them to manager', async ({ page 
   // left this member as MANAGER), then promote to MANAGER so the actual transition is exercised.
   const memberCard = page.locator('li.member', { has: page.locator(`.member-id:text-is("@${secondUserLoginId}")`) });
   await memberCard.locator('button.dropdown-toggle').click();
-  await memberCard.locator('ul.dropdown-menu a.role-apply-btn[data-role-id="2"]').click();
-  await page.waitForLoadState('networkidle');
+  await clickAndReload(page, memberCard.locator('ul.dropdown-menu a.role-apply-btn[data-role-id="2"]'));
 
   const normalizedCard = page.locator('li.member', { has: page.locator(`.member-id:text-is("@${secondUserLoginId}")`) });
   await expect(normalizedCard.locator('li[data-value="2"]')).toHaveClass(/active/);
+  await documentReady(page);
 
   await normalizedCard.locator('button.dropdown-toggle').click();
-  await normalizedCard.locator('ul.dropdown-menu a.role-apply-btn[data-role-id="1"]').click();
-  await page.waitForLoadState('networkidle');
+  await clickAndReload(page, normalizedCard.locator('ul.dropdown-menu a.role-apply-btn[data-role-id="1"]'));
 
   // The active message bundle in this environment renders the role label in English
   // ("Manager"/"Member"), not the Korean placeholder text visible in the .html source -- assert

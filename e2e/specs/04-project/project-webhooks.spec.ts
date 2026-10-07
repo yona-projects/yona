@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
+import { afterReload, clickAndReload, documentReady } from '../../support/ready';
 
 /** Screen: GET/POST /projects/{owner}/{projectName}/webhooks (project/setting_webhook.html). */
 
@@ -42,6 +43,7 @@ test('delete a webhook', async ({ page }) => {
 
   const row = page.locator('[data-webhook-id]', { hasText: payloadUrl });
   await expect(row).toBeVisible();
+  await documentReady(page);
   // No confirm() here -- the delete button is a data-request-method="delete" fetch (yona.Common.js
   // requestAs()), which calls document.location.reload() itself once the fetch resolves. Waiting
   // for the DELETE response confirms the mutation happened server-side; calling page.reload()

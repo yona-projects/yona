@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
+import { afterReload, clickAndReload, documentReady } from '../../support/ready';
 import { uniqueSuffix } from '../../support/unique';
 
 /** Screen: pullrequest/view.html action buttons NOT covered by 01-pull-request-crud.spec.ts --
@@ -181,12 +182,14 @@ test.describe.serial('pull request full workflow (assignee/labels/reviews/close/
       await page.click('#btn-review');
       await page.waitForLoadState('networkidle');
       await expect(page.locator('#btn-unreview')).toBeVisible();
+      await documentReady(page);
 
       await page.fill('#pr-review-body', 'Looks good from the e2e suite.');
       await page.click('#btn-review-approve');
       await page.waitForLoadState('networkidle');
       // Locale-independent: assert via the verdict's CSS class, not its translated label text.
       await expect(page.locator('.review-verdict-approve').first()).toBeVisible();
+      await documentReady(page);
 
       await page.click('#btn-unreview');
       await page.waitForLoadState('networkidle');

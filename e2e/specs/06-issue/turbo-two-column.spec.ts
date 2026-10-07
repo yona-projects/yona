@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { documentReady } from '../../support/ready';
 import { requireSeed } from '../../support/seed-store';
 import { uniqueSuffix } from '../../support/unique';
 
@@ -207,6 +208,10 @@ test.describe.serial('Turbo issue two-column semantics', () => {
     await page.locator('#pagination').getByRole('link', { name: 'Next page' }).click();
     await expect(page).toHaveURL(/pageNum=2/);
     await expect(page.locator('#issue-detail .board-header')).toContainText(b.title);
+    // The pagination click is a full navigation: finish loading the new document first, otherwise the filter
+    // submit below can run before its handler exists and waitForNavigation() resolves on this navigation's own
+    // load event instead of the filter submit's.
+    await documentReady(page);
     await page.locator('#search input[name="filter"]').fill('Turbo issue B');
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'load' }),
