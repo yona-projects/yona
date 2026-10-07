@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed } from '../../support/seed-store';
+import { afterReload, clickAndReload, documentReady } from '../../support/ready';
 import { uniqueSuffix } from '../../support/unique';
 
 /** Screens: issue/list.html's mass-update widget (label/assignee/milestone/state changes),
@@ -227,6 +228,7 @@ test.describe.serial('issue management actions', () => {
     // vote through this UI. Assert the href now tracks hasVoted, then exercise the toggle
     // through the real UI rather than bypassing it with a direct API cleanup call.
     await expect(voteLink).toHaveAttribute('href', new RegExp(`/${owner}/${name}/issue/${issueNumber}/unvote$`));
+    await documentReady(page);
 
     await Promise.all([
       page.waitForResponse((res) => res.url().endsWith('/unvote') && res.request().method() === 'POST'),
@@ -310,6 +312,7 @@ test.describe.serial('issue management actions', () => {
     // parsing the response body and just use the last comment-edit trigger instead -- this test
     // works with its own dedicated issue, so the comment just posted is always the only one.
     await expect(page.locator('body')).toContainText(commentBody);
+    await documentReady(page);
     const commentIdLocator = page.locator('[data-toggle="comment-edit"]').last();
 
     await commentIdLocator.click();
@@ -328,6 +331,7 @@ test.describe.serial('issue management actions', () => {
     ]);
     expect(updateResponse.ok()).toBeTruthy();
     await expect(page.locator('body')).toContainText(editedBody);
+    await documentReady(page);
 
     // Comment vote/unvote (VoteController.voteComment/unvoteComment) -- a previously untested
     // route pair. The button toggles data-request-uri between .../vote and .../unvote server-side
@@ -345,11 +349,14 @@ test.describe.serial('issue management actions', () => {
     // assumption at all, matching the more robust half of the issue-level vote test above.
     const voteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/vote"]`);
     await expect(voteButton).toBeVisible();
+    await documentReady(page);
     const unvoteButton = page.locator(`button[data-request-type="comment-vote"][data-request-uri*="/comment/${commentId}/unvote"]`);
     await voteButton.click();
     await expect(unvoteButton).toBeVisible({ timeout: 30_000 });
+    await documentReady(page);
     await unvoteButton.click();
     await expect(voteButton).toBeVisible({ timeout: 30_000 });
+    await documentReady(page);
 
     const deleteTrigger = page.locator('[data-toggle="comment-delete"]').last();
     await deleteTrigger.click();

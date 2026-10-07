@@ -20,6 +20,23 @@ yona의 모든 화면·버튼·입력을 브라우저로 실제 클릭/입력해
   — 프로젝트/이슈 번호가 순차 증가하는 화면들이라 병렬 실행 시 서로 경합한다), 뒷 번호
   폴더의 스펙은 앞 번호 폴더가 만든 seed 값을 전제로 작성한다.
 
+## 리로드 직후에는 먼저 문서가 준비되기를 기다린다 (`support/ready.ts`)
+
+yona의 많은 화면은 클릭 핸들러를 `DOMContentLoaded` 리스너에서 붙이고, 레이아웃은 `type="module"` 위젯 번들 여러 개를
+함께 로드한다. 모듈 스크립트는 `DOMContentLoaded`를 늦추므로, 느리거나 콜드한 환경(특히 CI)에서는 서버가 그린 버튼이
+이미 보이고 클릭도 되는데 아직 핸들러가 없는 구간이 생긴다. 그 구간의 클릭은 아무 일도 하지 않는다(해시만 바뀔 수도
+있다). Playwright의 actionability 검사는 이를 볼 수 없어서, 로컬에서는 통과하다가 CI에서 매번 다른 테스트가 실패한다.
+
+- `documentReady(page)` — 새 문서가 화면에 떴음을 단언으로 확인한 **직후**, 그 문서의 버튼을 누르기 **전에** 호출한다.
+- `afterReload(page, action)` / `clickAndReload(page, locator)` — 핸들러가 `fetch` 후 `location.reload()`를 하는 동작에
+  쓴다. **새** 문서의 `load`까지 기다린다.
+- 쓰지 말 것: `Promise.all([page.waitForLoadState('load'), page.click(...)])`. 이미 로드된 *현재* 문서의 `load`를
+  기다리므로 즉시 통과해 아무것도 보호하지 못한다. `waitForLoadState('networkidle')`도 리로드가 시작되기 전에
+  지나가 버릴 수 있다.
+
+새 테스트가 이 경쟁에 취약한지 확인하려면 위젯 모듈 응답(`/lib/yona-vue-widgets/*`)만 1초쯤 지연시키는 프록시를 앱 앞에
+두고 같은 스펙을 돌려 본다(지연 없이는 통과하고 지연 시 실패하면 이 경쟁이다).
+
 ## 실행 방법
 
 1. yona를 H2 프로파일로 띄운다(Docker/Testcontainers 불필요, 기본 포트 8080):

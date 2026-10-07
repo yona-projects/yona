@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed, writeSeed } from '../../support/seed-store';
+import { afterReload, clickAndReload, documentReady } from '../../support/ready';
 import { uniqueSuffix } from '../../support/unique';
 
 /** Screens: GET /orgs (list), /organizations/new -> create, /organizations/{orgName} (view),
@@ -50,13 +51,11 @@ test('invite a member, change their role, then remove them', async ({ page }) =>
   // /api/organizations/{orgId}/members?userLoginId=...&roleId=7 (roleId 7 == org member), then
   // reloads the page on success -- there's no `<form action>` navigation to wait on.
   await page.fill('#loginId', secondUserLoginId);
-  await Promise.all([
-    page.waitForLoadState('load'),
-    page.click('#addNewMember button[type=submit]'),
-  ]);
+  await clickAndReload(page, page.locator('#addNewMember button[type=submit]'));
 
   const memberRow = page.locator('ul.members li.member', { hasText: `@${secondUserLoginId}` });
   await expect(memberRow).toBeVisible();
+  await documentReady(page);
 
   // Role change: role id 6 == org_admin per members.html's inline ternary
   // (`role.id == 6 ? 'org_admin' : 'org_member'`) -- click that role option in the invited
@@ -72,8 +71,7 @@ test('invite a member, change their role, then remove them', async ({ page }) =>
   // {force: true} click can land on it (both still require a non-zero bounding box in real
   // Chromium). A native DOM .click() call fires the addEventListener handler directly regardless
   // of visibility, which is all this needs.
-  await memberRow.locator('.role-apply-btn[data-role-id="6"]').evaluate((el: HTMLElement) => el.click());
-  await page.waitForLoadState('load');
+  await afterReload(page, () => memberRow.locator('.role-apply-btn[data-role-id="6"]').evaluate((el: HTMLElement) => el.click()));
 
   const reloadedRow = page.locator('ul.members li.member', { hasText: `@${secondUserLoginId}` });
   await expect(reloadedRow.locator('.btn-group[data-name*="roleof"] li[data-selected="true"]')).toHaveAttribute(
@@ -84,12 +82,10 @@ test('invite a member, change their role, then remove them', async ({ page }) =>
   // Remove: opens the native <dialog id="alertDeletion"> confirm modal, #deleteBtn fires the
   // actual DELETE. Removing here undoes the invite so later specs don't inherit an extra org
   // member.
+  await documentReady(page);
   await reloadedRow.locator('.delete-member-btn').click();
   await expect(page.locator('#alertDeletion')).toBeVisible();
-  await Promise.all([
-    page.waitForLoadState('load'),
-    page.click('#alertDeletion #deleteBtn'),
-  ]);
+  await clickAndReload(page, page.locator('#alertDeletion #deleteBtn'));
 
   await expect(page.locator('ul.members li.member', { hasText: `@${secondUserLoginId}` })).toHaveCount(0);
 });

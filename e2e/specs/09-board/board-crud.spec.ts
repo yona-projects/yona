@@ -147,6 +147,11 @@ test('delete a post', async ({ page }) => {
   // board/view.html's own comment notes bootstrap's delegate double-fires if data-toggle="modal"
   // is left on the trigger, so a dedicated script calls showModal() instead); the "예" button
   // inside it is the actual data-request-method="delete" trigger.
+  // The delete trigger's click handler is attached in a DOMContentLoaded listener, and this page loads
+  // several type="module" widget bundles, which defer DOMContentLoaded. toHaveURL() above does not wait for
+  // it, so on a cold/slow run the icon is already clickable but still has no handler: the click only changes
+  // the hash and the dialog never opens. Wait for the load event first.
+  await page.waitForLoadState('load');
   await page.locator('a[href="#deleteConfirm"]').click();
   const dialog = page.locator('dialog#deleteConfirm');
   await expect(dialog).toBeVisible();

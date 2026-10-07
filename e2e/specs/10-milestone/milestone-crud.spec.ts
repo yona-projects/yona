@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { requireSeed, writeSeed } from '../../support/seed-store';
+import { afterReload, clickAndReload, documentReady } from '../../support/ready';
 import { uniqueSuffix } from '../../support/unique';
 
 /** Screens: GET /{owner}/{projectName}/milestone/new (milestone/create.html) ->
@@ -84,18 +85,12 @@ test.describe.serial('milestone lifecycle', () => {
     // 204+Location) back to the same view page -- yona.Common.js's requestAs() treats any
     // non-204 success as "reload current page", so clicking + waiting for load is enough.
     await page.goto(`/${owner}/${name}/milestone/${milestoneId}`);
-    await Promise.all([
-      page.waitForLoadState('load'),
-      page.click(`button[data-request-uri*="/milestone/${milestoneId}/close"]`),
-    ]);
+    await clickAndReload(page, page.locator(`button[data-request-uri*="/milestone/${milestoneId}/close"]`));
     await expect(page.locator(`button[data-request-uri*="/milestone/${milestoneId}/open"]`)).toBeVisible();
 
     // Reopen so later specs (and re-runs) still find it under the "open" tab -- other specs
     // reference seed.milestoneId assuming it's the one live milestone.
-    await Promise.all([
-      page.waitForLoadState('load'),
-      page.click(`button[data-request-uri*="/milestone/${milestoneId}/open"]`),
-    ]);
+    await clickAndReload(page, page.locator(`button[data-request-uri*="/milestone/${milestoneId}/open"]`));
     await expect(page.locator(`button[data-request-uri*="/milestone/${milestoneId}/close"]`)).toBeVisible();
   });
 
@@ -122,6 +117,11 @@ test.describe.serial('milestone lifecycle', () => {
 
     // deleteMilestone responds 204 + Location: /{owner}/{name}/milestones -- requestAs()
     // follows that redirect directly (unlike close/open above, which just reload in place).
+    // The delete trigger's click handler is attached in a DOMContentLoaded listener, and this page loads
+    // several type="module" widget bundles, which defer DOMContentLoaded. toHaveURL() above does not wait for
+    // it, so on a cold/slow run the icon is already clickable but still has no handler: the click only changes
+    // the hash and the dialog never opens. Wait for the load event first.
+    await page.waitForLoadState('load');
     await page.click('a[href="#deleteConfirm"]');
     await expect(page.locator('dialog#deleteConfirm')).toBeVisible();
     await Promise.all([
