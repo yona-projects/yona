@@ -18,13 +18,15 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.servlet.view.InternalResourceViewResolver
 import io.mockk.clearMocks
 import io.mockk.slot
+import com.github.yonaprojects.yona.domain.organization.OrganizationService
 import com.github.yonaprojects.yona.domain.user.UserState
 
 class AuthControllerSpec : DescribeSpec({
     val userService = mockk<UserService>()
+    val organizationService = mockk<OrganizationService>()
     val ssoSettingsService = mockk<SsoSettingsService>()
     val passwordEncodingService = PasswordEncodingService()
-    val authController = AuthController(userService, "", false, false, ssoSettingsService, passwordEncodingService)
+    val authController = AuthController(userService, organizationService, "", false, false, ssoSettingsService, passwordEncodingService)
     val viewResolver = InternalResourceViewResolver().apply {
         setPrefix("/templates/")
         setSuffix(".html")
@@ -34,7 +36,9 @@ class AuthControllerSpec : DescribeSpec({
         .build()
 
     beforeTest {
-        clearMocks(userService, ssoSettingsService)
+        clearMocks(userService, organizationService, ssoSettingsService)
+        // 가입 폼은 사용자 ID가 조직 이름과 겹치는지도 확인한다(#845). 기본은 "같은 이름의 조직 없음".
+        every { organizationService.isNameExist(any()) } returns false
         every { ssoSettingsService.getOidcSettings() } returns OidcSsoSettings()
         every { ssoSettingsService.getSaml2Settings() } returns Saml2SsoSettings()
     }
@@ -142,7 +146,7 @@ class AuthControllerSpec : DescribeSpec({
 
             // legacy yona UserApp.isUsingSignUpConfirm()/createNewUser() 대응.
             it("관리자 승인 대기 설정이 켜져 있으면 신규 유저가 LOCKED 상태로 생성되고 승인 대기 안내로 리다이렉트되어야 한다") {
-                val confirmController = AuthController(userService, "", true, false, ssoSettingsService, passwordEncodingService)
+                val confirmController = AuthController(userService, organizationService, "", true, false, ssoSettingsService, passwordEncodingService)
                 val confirmViewResolver = InternalResourceViewResolver().apply {
                     setPrefix("/templates/")
                     setSuffix(".html")
@@ -209,7 +213,7 @@ class AuthControllerSpec : DescribeSpec({
             }
 
             it("허용된 이메일 도메인 설정이 있고 그 목록에 없는 도메인이면 가입이 거부되어야 한다") {
-                val restrictedController = AuthController(userService, "allowed.com", false, false, ssoSettingsService, passwordEncodingService)
+                val restrictedController = AuthController(userService, organizationService, "allowed.com", false, false, ssoSettingsService, passwordEncodingService)
                 val restrictedViewResolver = InternalResourceViewResolver().apply {
                     setPrefix("/templates/")
                     setSuffix(".html")
@@ -282,6 +286,27 @@ class AuthControllerSpec : DescribeSpec({
                 )
                     .andExpect(status().isOk)
                     .andExpect(view().name("signup"))
+
+                verify(exactly = 0) { userService.createUser(any()) }
+            }
+
+            // v1.6 UserApp.validate()는 User.isLoginIdExist(loginId) || Organization.isNameExist(loginId)로 거부했다.
+            // 이 검사가 없으면 기존 조직과 같은 ID로 가입한 사용자가 조직 경로(/{이름}, /user/{이름})와 소유자 링크를 가린다.
+            it("조직 이름과 같은 아이디면 회원가입이 거부되어야 한다") {
+                every { userService.isLoginIdExist("test-group") } returns false
+                every { organizationService.isNameExist("test-group") } returns true
+
+                mockMvc.perform(
+                    post("/signup")
+                        .param("loginId", "test-group")
+                        .param("name", "홍길동")
+                        .param("email", "gildong@example.com")
+                        .param("password", "pass123")
+                        .param("retypedPassword", "pass123")
+                )
+                    .andExpect(status().isOk)
+                    .andExpect(view().name("signup"))
+                    .andExpect(model().attributeHasFieldErrorCode("user", "loginId", "duplicate"))
 
                 verify(exactly = 0) { userService.createUser(any()) }
             }

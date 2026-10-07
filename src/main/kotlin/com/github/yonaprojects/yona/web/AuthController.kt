@@ -6,6 +6,7 @@ import com.github.yonaprojects.yona.domain.user.LoginIdFormatValidator
 import com.github.yonaprojects.yona.domain.user.PasswordEncodingService
 import com.github.yonaprojects.yona.domain.user.ReservedWordsValidator
 import com.github.yonaprojects.yona.domain.user.User
+import com.github.yonaprojects.yona.domain.organization.OrganizationService
 import com.github.yonaprojects.yona.domain.user.UserService
 import com.github.yonaprojects.yona.domain.user.UserState
 import jakarta.servlet.http.HttpServletRequest
@@ -22,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes
 @Controller
 class AuthController(
     private val userService: UserService,
+    private val organizationService: OrganizationService,
     @Value("\${yona.signup.allowed-email-domains:}")
     private val allowedEmailDomains: String,
     // yona UserApp.isUsingSignUpConfirm()(signup.require.admin.confirm) 대응.
@@ -114,7 +116,8 @@ class AuthController(
         if (!LoginIdFormatValidator.isValid(user.loginId)) {
             bindingResult.rejectValue("loginId", "pattern", "아이디 형식이 올바르지 않습니다.")
         }
-        if (userService.isLoginIdExist(user.loginId)) {
+        // v1.6 UserApp.validate()처럼 조직 이름과 겹치는 ID도 거부한다(조직 경로 /{이름}을 사용자가 가리지 못하게).
+        if (userService.isLoginIdExist(user.loginId) || organizationService.isNameExist(user.loginId)) {
             bindingResult.rejectValue("loginId", "duplicate", "이미 존재하는 아이디입니다.")
         }
         if (ReservedWordsValidator.isReserved(user.loginId)) {
