@@ -42,6 +42,7 @@
             elements.btnChangeVCS = document.getElementById("btnChangeVCS");
             elements.btnChangeVCSExec = document.getElementById("btnChangeVCSExec");
             elements.alertChangeVCS = document.getElementById("alertChangeVCS");
+            elements.confirmProjectName = document.getElementById("confirmVcsProjectName");
         }
 
         /**
@@ -53,10 +54,27 @@
             $yona.attachCheckboxGatedConfirm(elements.btnChangeVCS, elements.acceptChangeVCS,
                 elements.alertChangeVCS, Messages("project.changeVCS.alert"));
             elements.btnChangeVCSExec.addEventListener("click", changeVCS);
+            elements.confirmProjectName.addEventListener("input", function() {
+                elements.btnChangeVCSExec.disabled =
+                    elements.confirmProjectName.value !== elements.confirmProjectName.dataset.projectName;
+            });
         }
 
         function changeVCS() {
-            fetch(options.sTransferURL, {"method": "post"})
+            if (!elements.acceptChangeVCS.checked ||
+                    elements.confirmProjectName.value !== elements.confirmProjectName.dataset.projectName) {
+                return;
+            }
+            fetch(options.sTransferURL, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    projectId: Number(elements.confirmProjectName.dataset.projectId),
+                    projectName: elements.confirmProjectName.value,
+                    expectedVcs: elements.confirmProjectName.dataset.currentVcs,
+                    accepted: elements.acceptChangeVCS.checked
+                })
+            })
                 .then(function(response){
                     // jQuery의 error 콜백은 HTTP 에러 상태(4xx/5xx)에서도 호출됐지만, fetch는
                     // 네트워크 레벨 실패만 reject하므로 response.ok를 직접 확인해야 동일하게

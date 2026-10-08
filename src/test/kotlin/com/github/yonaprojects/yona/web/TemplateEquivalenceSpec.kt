@@ -1111,6 +1111,14 @@ class TemplateEquivalenceSpec @Autowired constructor(
                     doc.select(".project-header-outer").size shouldBe 1
                     doc.select(".project-menu-outer").size shouldBe 1
                     doc.select("script[src*='service/yona.project.ChangeVCS.js']").size shouldBe 1
+                    doc.select("#acceptChangeVCS[type=checkbox]").size shouldBe 1
+                    doc.select("dialog#alertChangeVCS").size shouldBe 1
+                    doc.select("#btnChangeVCSExec[disabled]").size shouldBe 1
+                    doc.select("#confirmVcsProjectName").attr("data-project-name") shouldBe settingProj.name
+                    doc.select("#confirmVcsProjectName").attr("data-project-id") shouldBe settingProj.id.toString()
+                    doc.select("#confirmVcsProjectName").attr("data-current-vcs") shouldBe "GIT"
+                    doc.select(".cu-desc li.notice").size shouldBe 5
+                    doc.select("#alertChangeVCS .modal-body p").size shouldBe 5
                 }
             }
 

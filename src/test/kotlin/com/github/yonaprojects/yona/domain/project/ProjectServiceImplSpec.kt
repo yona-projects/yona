@@ -1,5 +1,7 @@
 package com.github.yonaprojects.yona.domain.project
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.LockModeType
 import com.github.yonaprojects.yona.domain.attachment.AttachmentService
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.watch.WatchService
@@ -78,6 +80,7 @@ class ProjectServiceImplSpec : DescribeSpec({
     val pullRequestCommitRepository = mockk<PullRequestCommitRepository>()
     val favoriteProjectRepository = mockk<FavoriteProjectRepository>(relaxed = true)
     val watchService = mockk<WatchService>(relaxed = true)
+    val entityManager = mockk<EntityManager>(relaxed = true)
 
     val projectService = ProjectServiceImpl(
         projectRepository,
@@ -106,7 +109,8 @@ class ProjectServiceImplSpec : DescribeSpec({
         watchService,
         "/tmp/yona/git",
         "/tmp/yona/svn",
-        "/tmp/yona/hg"
+        "/tmp/yona/hg",
+        entityManager
     )
 
     describe("ProjectServiceImpl.acceptTransfer") {
@@ -1962,7 +1966,7 @@ class ProjectServiceImplSpec : DescribeSpec({
             assigneeRepository, webhookRepository, webhookThreadRepository, postingRepository, postingService,
             commentThreadRepository, pullRequestRepository, pullRequestEventRepository, pullRequestCommitRepository,
             favoriteProjectRepository, watchService,
-            customGitBase.absolutePath, customSvnBase.absolutePath, "/tmp/yona/hg"
+            customGitBase.absolutePath, customSvnBase.absolutePath, "/tmp/yona/hg", entityManager
         )
 
         it("포크 시 하드코딩된 /tmp/yona/git이 아니라 주입된 gitBaseDir 설정을 따라야 한다") {
@@ -2035,11 +2039,17 @@ class ProjectServiceImplSpec : DescribeSpec({
     // fork 자식과의 연결은 모두 끊는다. yona-wiki P3-12(Mercurial 지원) 1라운드로 2지선다 토글이
     // GIT->SUBVERSION->MERCURIAL->GIT 3종 순환(nextVcsInCycle)으로 확장됨.
     describe("ProjectServiceImpl.changeVCS") {
+        beforeTest {
+            clearMocks(projectRepository, repositoryService, entityManager)
+            every { entityManager.find(Project::class.java, any<Long>(), LockModeType.PESSIMISTIC_WRITE) } answers {
+                projectRepository.findById(secondArg<Long>()).orElse(null)
+            }
+        }
         it("프로젝트를 찾을 수 없으면 예외가 발생해야 한다") {
             every { projectRepository.findById(9500L) } returns Optional.empty()
 
             shouldThrow<IllegalArgumentException> {
-                projectService.changeVCS(9500L)
+                projectService.changeVCS(9500L, VcsResetConfirmation(9500L, "missing", "GIT", true))
             }
         }
 
@@ -2050,6 +2060,8 @@ class ProjectServiceImplSpec : DescribeSpec({
                 id = 9560L, name = "vcs-switch", owner = "owner", vcs = "GIT",
                 forkingProjects = mutableListOf(fork1, fork2)
             )
+            fork1.originalProject = project
+            fork2.originalProject = project
             val vcsPlayRepository = mockk<PlayRepository>()
             every { projectRepository.findById(9560L) } returns Optional.of(project)
             every { projectRepository.save(fork1) } returns fork1
@@ -2059,9 +2071,10 @@ class ProjectServiceImplSpec : DescribeSpec({
             every { vcsPlayRepository.delete() } returns Unit
             every { vcsPlayRepository.create() } returns Unit
 
-            val result = projectService.changeVCS(9560L)
+            val result = projectService.changeVCS(9560L, VcsResetConfirmation(9560L, project.name, "GIT", true))
 
             result.vcs shouldBe "SUBVERSION"
+            result.id shouldBe 9560L
             fork1.originalProject shouldBe null
             fork2.originalProject shouldBe null
             project.forkingProjects.size shouldBe 0
@@ -2080,7 +2093,7 @@ class ProjectServiceImplSpec : DescribeSpec({
             every { vcsPlayRepository.create() } returns Unit
             every { projectRepository.save(project) } returns project
 
-            val result = projectService.changeVCS(9563L)
+            val result = projectService.changeVCS(9563L, VcsResetConfirmation(9563L, project.name, "GIT", true))
 
             result.vcs shouldBe "SUBVERSION"
         }
@@ -2094,7 +2107,7 @@ class ProjectServiceImplSpec : DescribeSpec({
             every { vcsPlayRepository.create() } returns Unit
             every { projectRepository.save(project) } returns project
 
-            val result = projectService.changeVCS(9564L)
+            val result = projectService.changeVCS(9564L, VcsResetConfirmation(9564L, project.name, "SVN", true))
 
             result.vcs shouldBe "MERCURIAL"
         }
@@ -2108,7 +2121,7 @@ class ProjectServiceImplSpec : DescribeSpec({
             every { vcsPlayRepository.create() } returns Unit
             every { projectRepository.save(project) } returns project
 
-            val result = projectService.changeVCS(9566L)
+            val result = projectService.changeVCS(9566L, VcsResetConfirmation(9566L, project.name, "HG", true))
 
             result.vcs shouldBe "GIT"
         }
@@ -2122,10 +2135,52 @@ class ProjectServiceImplSpec : DescribeSpec({
             every { vcsPlayRepository.create() } returns Unit
             every { projectRepository.save(project) } returns project
 
-            val result = projectService.changeVCS(9565L)
+            val result = projectService.changeVCS(9565L, VcsResetConfirmation(9565L, project.name, "GIT", true))
 
             result.vcs shouldBe "SUBVERSION"
             verify(exactly = 1) { vcsPlayRepository.create() }
+        }
+
+        listOf(
+            VcsResetConfirmation(),
+            VcsResetConfirmation(9570L, "current-name", "GIT", false),
+            VcsResetConfirmation(9571L, "current-name", "GIT", true),
+            VcsResetConfirmation(9570L, "old-name", "GIT", true),
+            VcsResetConfirmation(9570L, "current-name", null, true)
+        ).forEach { confirmation ->
+            it("잘못된 확인은 저장소와 fork를 변경하지 않는다: $confirmation") {
+                val project = Project(id = 9570L, name = "current-name", owner = "owner", vcs = "GIT")
+                val fork = Project(id = 9572L, name = "fork", owner = "forker", originalProject = project)
+                project.forkingProjects.add(fork)
+                every { projectRepository.findById(9570L) } returns Optional.of(project)
+
+                shouldThrow<InvalidVcsResetConfirmation> {
+                    projectService.changeVCS(9570L, confirmation)
+                }
+
+                project.vcs shouldBe "GIT"
+                fork.originalProject shouldBe project
+                project.forkingProjects shouldBe listOf(fork)
+                verify(exactly = 0) { repositoryService.getRepository(any()) }
+                verify(exactly = 0) { projectRepository.save(any()) }
+            }
+        }
+
+        it("확인 화면 이후 저장소 종류가 바뀌면 실제 변경 직전에 거부한다") {
+            val project = Project(id = 9573L, name = "stale", owner = "owner", vcs = "SUBVERSION")
+            every { projectRepository.findById(9573L) } returns Optional.of(project)
+            every { entityManager.find(Project::class.java, 9573L, LockModeType.PESSIMISTIC_WRITE) } answers {
+                project.vcs = "MERCURIAL"
+                project
+            }
+
+            shouldThrow<VcsResetConflict> {
+                projectService.changeVCS(9573L, VcsResetConfirmation(9573L, "stale", "GIT", true))
+            }
+
+            project.vcs shouldBe "MERCURIAL"
+            verify(exactly = 0) { repositoryService.getRepository(any()) }
+            verify(exactly = 0) { projectRepository.save(any()) }
         }
     }
 })

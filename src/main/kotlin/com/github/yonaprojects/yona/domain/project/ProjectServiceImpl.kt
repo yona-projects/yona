@@ -1,5 +1,7 @@
 package com.github.yonaprojects.yona.domain.project
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.LockModeType
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -73,7 +75,8 @@ class ProjectServiceImpl(
     @Value("\${yona.svn.base-dir:/tmp/yona/svn}")
     private val svnBaseDir: String,
     @Value("\${yona.hg.base-dir:/tmp/yona/hg}")
-    private val hgBaseDir: String
+    private val hgBaseDir: String,
+    private val entityManager: EntityManager
 ) : ProjectService {
 
     // 프로젝트가 이전/개명된 뒤에도 이 서비스 메서드를 쓰는 모든 호출부(SVN/Git 인가 필터 등)가
@@ -564,8 +567,13 @@ class ProjectServiceImpl(
     }
 
     @Transactional
-    override fun changeVCS(projectId: Long): Project {
-        val project = projectRepository.findById(projectId).orElseThrow { IllegalArgumentException("Project not found") }
+    override fun changeVCS(projectId: Long, confirmation: VcsResetConfirmation): Project {
+        val loaded = projectRepository.findById(projectId).orElseThrow { IllegalArgumentException("Project not found") }
+        // Reload only this OSIV-cached entity; refresh cascades through the permission-check graph.
+        entityManager.detach(loaded)
+        val project = entityManager.find(Project::class.java, projectId, LockModeType.PESSIMISTIC_WRITE)
+            ?: throw IllegalArgumentException("Project not found")
+        confirmation.validate(project)
 
         for (fork in project.forkingProjects) {
             fork.originalProject = null

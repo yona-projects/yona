@@ -6,12 +6,16 @@ import com.github.yonaprojects.yona.domain.enumeration.Operation
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.project.ProjectService
+import com.github.yonaprojects.yona.domain.project.VcsResetConfirmation
+import com.github.yonaprojects.yona.domain.project.InvalidVcsResetConfirmation
+import com.github.yonaprojects.yona.domain.project.VcsResetConflict
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUser
 import com.github.yonaprojects.yona.domain.role.RoleType
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import com.github.yonaprojects.yona.domain.vcs.nextVcsInCycle
+import com.github.yonaprojects.yona.domain.vcs.normalizeVcs
 import com.github.yonaprojects.yona.domain.organization.OrganizationUserRepository
 import com.github.yonaprojects.yona.domain.issue.IssueLabelService
 import com.github.yonaprojects.yona.domain.issue.DuplicateLabelCategoryNameException
@@ -382,6 +386,7 @@ class ProjectViewController(
         model.addAttribute("project", project)
         model.addAttribute("currentUser", loginUser)
         model.addAttribute("nextVcs", nextVcs)
+        model.addAttribute("currentVcs", normalizeVcs(project.vcs))
 
         return "project/change_vcs"
     }
@@ -391,7 +396,8 @@ class ProjectViewController(
     fun changeVCS(
         @PathVariable owner: String,
         @PathVariable projectName: String,
-        authentication: Authentication?
+        authentication: Authentication?,
+        @RequestBody(required = false) confirmation: VcsResetConfirmation?
     ): ResponseEntity<Void> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.notFound().build()
@@ -407,7 +413,15 @@ class ProjectViewController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        projectService.changeVCS(project.id!!)
+        if (confirmation == null) return ResponseEntity.badRequest().build()
+        try {
+            confirmation.validate(project)
+            projectService.changeVCS(project.id!!, confirmation)
+        } catch (_: InvalidVcsResetConfirmation) {
+            return ResponseEntity.badRequest().build()
+        } catch (_: VcsResetConflict) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build()
+        }
 
         return ResponseEntity.noContent().build()
     }
