@@ -27,6 +27,17 @@ class CommitIssueReferenceServiceSpec : DescribeSpec({
     }
 
     describe("record") {
+        it("records a commit without a Yona sender at its original time") {
+            val issue = Issue(id = 42L, project = project, number = 42L)
+            every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue
+            val original = Instant.parse("2007-05-06T07:08:09Z")
+            service.record(project, CommitReference("r7", "refs #42", sender = null, created = original))
+            saved.single().senderLoginId shouldBe null
+            saved.single().senderEmail shouldBe null
+            saved.single().created shouldBe original
+            saved.single().newValue shouldBe "r7"
+        }
+
         it("preserves the pusher, processing time and exact ID without deduplicating repeated processing") {
             val issue = Issue(id = 42L, project = project, number = 42L)
             every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue

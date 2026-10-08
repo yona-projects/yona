@@ -163,6 +163,8 @@ class WebhookServiceImpl(
                     buildPushPayload(webhook, sender, resource)
                 } else if (resource is PushedHgCommits) {
                     buildPushPayloadForHg(webhook, sender, resource)
+                } else if (resource is PushedVcsCommits) {
+                    buildPushPayloadForVcsCommits(webhook, sender, resource)
                 } else {
                     // Raw JSON 포맷
                     val root = objectMapper.createObjectNode()
@@ -398,6 +400,65 @@ class WebhookServiceImpl(
         return objectMapper.writeValueAsString(root)
     }
 
+    // Same field structure as buildPushPayload for commits that are not JGit/hg4j objects. A null
+    // sender (commits imported from another server) leaves sender and pusher null.
+    internal fun buildPushPayloadForVcsCommits(webhook: Webhook, sender: User?, pushed: PushedVcsCommits): String {
+        val objectMapper = ObjectMapper()
+        val root = objectMapper.createObjectNode()
+        val project = webhook.project
+
+        val refNodes = objectMapper.createArrayNode()
+        pushed.refNames.forEach { refNodes.add(it) }
+        root.set("ref", refNodes)
+
+        val commitNodes = objectMapper.createArrayNode()
+        for (commit in pushed.commits) {
+            val commitNode = objectMapper.createObjectNode()
+            commitNode.put("id", commit.id)
+            commitNode.put("message", commit.message)
+            commitNode.put("timestamp", commit.timestamp.atZone(ZoneId.systemDefault()).format(commitTimestampFormatter))
+            commitNode.put("url", "${projectUrl(project)}/commit/${commit.id}")
+            val authorNode = objectMapper.createObjectNode()
+            authorNode.put("name", commit.authorName)
+            authorNode.put("email", commit.authorEmail ?: "")
+            commitNode.set("author", authorNode)
+            commitNode.set("committer", authorNode.deepCopy())
+            commitNodes.add(commitNode)
+        }
+        root.set("commits", commitNodes)
+        if (commitNodes.size() > 0) {
+            root.set("head_commit", commitNodes.get(0))
+        }
+
+        if (sender == null) {
+            root.putNull("sender")
+            root.putNull("pusher")
+        } else {
+            val senderNode = objectMapper.createObjectNode()
+            senderNode.put("login", sender.loginId)
+            senderNode.put("id", sender.id ?: 0L)
+            senderNode.put("avatar_url", sender.avatarUrl)
+            senderNode.put("type", "User")
+            senderNode.put("site_admin", sender.isSiteManager)
+            root.set("sender", senderNode)
+            val pusherNode = objectMapper.createObjectNode()
+            pusherNode.put("name", sender.name)
+            pusherNode.put("email", sender.email ?: "")
+            root.set("pusher", pusherNode)
+        }
+
+        val repositoryNode = objectMapper.createObjectNode()
+        repositoryNode.put("id", project?.id ?: 0L)
+        repositoryNode.put("name", project?.name ?: "")
+        repositoryNode.put("owner", project?.owner ?: "")
+        repositoryNode.put("html_url", projectUrl(project))
+        repositoryNode.put("overview", project?.overview ?: "")
+        repositoryNode.put("private", project?.projectScope != ProjectScope.PUBLIC)
+        root.set("repository", repositoryNode)
+
+        return objectMapper.writeValueAsString(root)
+    }
+
     private fun buildTextMessage(
         webhook: Webhook,
         eventType: EventType,
@@ -428,6 +489,12 @@ class WebhookServiceImpl(
         }
         if (resource is PushedHgCommits) {
             val resourceInfo = "${resource.commits.size}개의 커밋을 ${resource.refNames.firstOrNull() ?: ""} 브랜치로 푸시했습니다"
+            return "[$projectName] ${sender.name}님이 $actionMessage. $resourceInfo"
+        }
+        if (resource is PushedVcsCommits) {
+            val branch = resource.refNames.firstOrNull()
+            val resourceInfo = if (branch == null) "${resource.commits.size}개의 커밋을 푸시했습니다"
+                else "${resource.commits.size}개의 커밋을 $branch 브랜치로 푸시했습니다"
             return "[$projectName] ${sender.name}님이 $actionMessage. $resourceInfo"
         }
 
@@ -473,6 +540,7 @@ class WebhookServiceImpl(
             is CommitComment -> ResourceType.COMMIT_COMMENT
             is PushedCommits -> ResourceType.COMMIT
             is PushedHgCommits -> ResourceType.COMMIT
+            is PushedVcsCommits -> ResourceType.COMMIT
             is PullRequest -> ResourceType.PULL_REQUEST
             else -> ResourceType.NOT_A_RESOURCE
         }
@@ -488,6 +556,7 @@ class WebhookServiceImpl(
             is CommitComment -> resource.id?.toString() ?: ""
             is PushedCommits -> resource.commits.firstOrNull()?.name ?: ""
             is PushedHgCommits -> resource.commits.firstOrNull()?.nodeId?.toHex() ?: ""
+            is PushedVcsCommits -> resource.commits.firstOrNull()?.id ?: ""
             is PullRequest -> resource.id?.toString() ?: ""
             else -> ""
         }
