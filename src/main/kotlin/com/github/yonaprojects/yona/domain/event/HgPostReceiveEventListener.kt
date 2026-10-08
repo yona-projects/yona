@@ -2,10 +2,7 @@ package com.github.yonaprojects.yona.domain.event
 
 import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
-import com.github.yonaprojects.yona.domain.issue.IssueEvent
-import com.github.yonaprojects.yona.domain.issue.IssueEventRepository
-import com.github.yonaprojects.yona.domain.issue.IssueReferenceParser
-import com.github.yonaprojects.yona.domain.issue.IssueRepository
+import com.github.yonaprojects.yona.domain.issue.CommitIssueReferenceService
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
 import com.github.yonaprojects.yona.domain.notification.NotificationEventRecorder
 import com.github.yonaprojects.yona.domain.project.Project
@@ -37,8 +34,7 @@ import java.time.Instant
 class HgPostReceiveEventListener(
     private val repositoryService: RepositoryService,
     private val notificationEventRecorder: NotificationEventRecorder,
-    private val issueRepository: IssueRepository,
-    private val issueEventRepository: IssueEventRepository,
+    private val commitIssueReferenceService: CommitIssueReferenceService,
     private val webhookService: WebhookService,
     private val watchService: WatchService,
     private val eventPublisher: ApplicationEventPublisher
@@ -138,25 +134,7 @@ class HgPostReceiveEventListener(
     // yona actors/IssueReferredFromCommitEventActor.java 대응.
     private fun processIssueReferredFromCommit(commits: List<NativeHgCommit>, project: Project, sender: User) {
         for (commit in commits) {
-            recordReferredIssues(commit.message ?: "", commit.nodeId.toHex(), project, sender)
-        }
-    }
-
-    internal fun recordReferredIssues(commitMessage: String, commitId: String, project: Project, sender: User) {
-        val issueNumbers = IssueReferenceParser.findReferredIssueNumbers(commitMessage)
-        for (number in issueNumbers) {
-            val issue = issueRepository.findByProjectAndNumber(project, number) ?: continue
-
-            val issueEvent = IssueEvent(
-                issue = issue,
-                senderLoginId = sender.loginId,
-                senderEmail = sender.email,
-                newValue = commitId,
-                created = Instant.now(),
-                eventType = EventType.ISSUE_REFERRED_FROM_COMMIT
-            )
-            issueEventRepository.save(issueEvent)
-            logger.info("[ISSUE REFER] Recorded issue #$number referred from Hg commit $commitId")
+            commitIssueReferenceService.record(project, sender, commit.nodeId.toHex(), commit.message ?: "")
         }
     }
 }
