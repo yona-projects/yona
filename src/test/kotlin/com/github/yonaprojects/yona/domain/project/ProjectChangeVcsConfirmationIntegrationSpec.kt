@@ -24,6 +24,7 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.context.WebApplicationContext
+import org.tmatesoft.svn.core.SVNException
 import java.nio.file.Files
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
@@ -131,6 +132,27 @@ class ProjectChangeVcsConfirmationIntegrationSpec @Autowired constructor(
                 projectRepository.findById(project.id!!).orElseThrow().vcs shouldBe "SUBVERSION"
                 marker.readText() shouldBe "must remain"
                 Files.exists(root.resolve("svn/${project.owner}/${project.name}")) shouldBe false
+            }
+
+            it("keeps the repository, VCS and forks when SVNKit cannot create the new repository") {
+                val project = fixture()
+                val fork = projectRepository.save(Project(owner = project.owner, name = "kept-fork", vcs = "GIT", originalProject = project))
+                val oldDirectory = repositoryService.getRepository(project).getDirectory()
+                oldDirectory.resolve("confirmation-marker").writeText("must remain")
+                // A plain file where the owner directory belongs makes the SVN create fail with a checked SVNException.
+                val blocker = root.resolve("svn/${project.owner}").toFile().apply { parentFile.mkdirs(); writeText("") }
+
+                shouldThrow<SVNException> {
+                    projectService.changeVCS(project.id!!, VcsResetConfirmation(project.id, project.name, "GIT", true))
+                }
+
+                TransactionTemplate(transactionManager).executeWithoutResult {
+                    projectRepository.findById(project.id!!).orElseThrow().vcs shouldBe "GIT"
+                    projectRepository.findById(fork.id!!).orElseThrow().originalProject?.id shouldBe project.id
+                }
+                oldDirectory.resolve("confirmation-marker").readText() shouldBe "must remain"
+                oldDirectory.parentFile.list()!!.filter { it.startsWith(".") } shouldBe emptyList()
+                blocker.delete()
             }
 
             it("reloads child forks added after the request cached the project association") {

@@ -4,8 +4,12 @@ import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.Instant
+import com.github.yonaprojects.yona.domain.vcs.PlayRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import com.github.yonaprojects.yona.domain.vcs.nextVcsInCycle
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -34,9 +38,11 @@ import com.github.yonaprojects.yona.domain.watch.WatchService
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.util.Optional
+import java.util.UUID
 
 @Service
 @Transactional(readOnly = true)
@@ -78,6 +84,8 @@ class ProjectServiceImpl(
     private val hgBaseDir: String,
     private val entityManager: EntityManager
 ) : ProjectService {
+
+    private val logger = LoggerFactory.getLogger(ProjectServiceImpl::class.java)
 
     // 프로젝트가 이전/개명된 뒤에도 이 서비스 메서드를 쓰는 모든 호출부(SVN/Git 인가 필터 등)가
     // 자동으로 예전 owner/name도 계속 찾을 수 있다.
@@ -566,7 +574,8 @@ class ProjectServiceImpl(
         }
     }
 
-    @Transactional
+    // Repository I/O throws checked exceptions (SVNException, GitAPIException); roll back on those too.
+    @Transactional(rollbackFor = [Exception::class])
     override fun changeVCS(projectId: Long, confirmation: VcsResetConfirmation): Project {
         val loaded = projectRepository.findById(projectId).orElseThrow { IllegalArgumentException("Project not found") }
         // Reload only this OSIV-cached entity; refresh cascades through the permission-check graph.
@@ -575,23 +584,53 @@ class ProjectServiceImpl(
             ?: throw IllegalArgumentException("Project not found")
         confirmation.validate(project)
 
+        val oldDirectory = repositoryService.getRepository(project).getDirectory()
+        project.vcs = nextVcsInCycle(project.vcs)
+        replaceRepository(oldDirectory, repositoryService.getRepository(project))
+
         for (fork in project.forkingProjects) {
             fork.originalProject = null
             projectRepository.save(fork)
         }
         project.forkingProjects.clear()
 
-        try {
-            repositoryService.getRepository(project).delete()
-        } catch (e: Exception) {
-            // ignore
-        }
-
-        project.vcs = nextVcsInCycle(project.vcs)
-
-        repositoryService.getRepository(project).create()
-
         return projectRepository.save(project)
+    }
+
+    // Create the new repository before touching the old one, and move the old one aside instead of
+    // deleting it. The aside copy is deleted only after the DB commit; on rollback the new
+    // repository is removed and the old one is moved back.
+    private fun replaceRepository(oldDirectory: File, newRepository: PlayRepository) {
+        val newDirectory = newRepository.getDirectory()
+        check(!Files.exists(newDirectory.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+            "Repository destination already exists: $newDirectory"
+        }
+        val aside = File(oldDirectory.parentFile, ".${oldDirectory.name}.reset-${UUID.randomUUID()}")
+        var movedAside = false
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            override fun afterCompletion(status: Int) {
+                if (status == TransactionSynchronization.STATUS_COMMITTED) {
+                    if (movedAside && !aside.deleteRecursively()) {
+                        logger.error("Repository reset left the previous repository at {}", aside)
+                    }
+                    return
+                }
+                newDirectory.deleteRecursively()
+                if (!movedAside) return
+                try {
+                    Files.move(aside.toPath(), oldDirectory.toPath())
+                } catch (e: Exception) {
+                    // Never delete the previous repository on recovery failure; keep the exact path.
+                    logger.error("Repository reset rollback failed: restore {} to {}", aside, oldDirectory, e)
+                }
+            }
+        })
+
+        newRepository.create()
+        if (Files.exists(oldDirectory.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+            Files.move(oldDirectory.toPath(), aside.toPath())
+            movedAside = true
+        }
     }
 
     override fun getProjectLabels(projectId: Long): Set<Label> {

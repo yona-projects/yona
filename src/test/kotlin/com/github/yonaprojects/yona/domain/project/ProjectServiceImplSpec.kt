@@ -51,9 +51,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.time.Instant
 import java.util.Optional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
 class ProjectServiceImplSpec : DescribeSpec({
     val projectRepository = mockk<ProjectRepository>()
@@ -2039,12 +2042,40 @@ class ProjectServiceImplSpec : DescribeSpec({
     // fork 자식과의 연결은 모두 끊는다. yona-wiki P3-12(Mercurial 지원) 1라운드로 2지선다 토글이
     // GIT->SUBVERSION->MERCURIAL->GIT 3종 순환(nextVcsInCycle)으로 확장됨.
     describe("ProjectServiceImpl.changeVCS") {
+        val storage = Files.createTempDirectory("yona-change-vcs-").toFile()
+
+        // The service registers a transaction synchronization; run it as the commit or rollback would.
+        fun complete(status: Int) {
+            val synchronizations = TransactionSynchronizationManager.getSynchronizations()
+            TransactionSynchronizationManager.clearSynchronization()
+            synchronizations.forEach { it.afterCompletion(status) }
+            TransactionSynchronizationManager.initSynchronization()
+        }
+
+        // Old and new repositories live in different directories, as with the default per-VCS base dirs.
+        fun repositories(project: Project): Triple<File, File, PlayRepository> {
+            val oldDirectory = File(storage, "old/${project.id}/repo").apply { mkdirs() }
+            File(oldDirectory, "HEAD").writeText("old")
+            val newDirectory = File(storage, "new/${project.id}/repo")
+            val oldRepository = mockk<PlayRepository>()
+            val newRepository = mockk<PlayRepository>()
+            every { oldRepository.getDirectory() } returns oldDirectory
+            every { newRepository.getDirectory() } returns newDirectory
+            every { newRepository.create() } answers { newDirectory.mkdirs(); Unit }
+            every { repositoryService.getRepository(project) } returnsMany listOf(oldRepository, newRepository)
+            return Triple(oldDirectory, newDirectory, newRepository)
+        }
+
         beforeTest {
             clearMocks(projectRepository, repositoryService, entityManager)
             every { entityManager.find(Project::class.java, any<Long>(), LockModeType.PESSIMISTIC_WRITE) } answers {
                 projectRepository.findById(secondArg<Long>()).orElse(null)
             }
+            TransactionSynchronizationManager.initSynchronization()
         }
+        afterTest { TransactionSynchronizationManager.clearSynchronization() }
+        afterSpec { storage.deleteRecursively() }
+
         it("프로젝트를 찾을 수 없으면 예외가 발생해야 한다") {
             every { projectRepository.findById(9500L) } returns Optional.empty()
 
@@ -2062,83 +2093,95 @@ class ProjectServiceImplSpec : DescribeSpec({
             )
             fork1.originalProject = project
             fork2.originalProject = project
-            val vcsPlayRepository = mockk<PlayRepository>()
             every { projectRepository.findById(9560L) } returns Optional.of(project)
             every { projectRepository.save(fork1) } returns fork1
             every { projectRepository.save(fork2) } returns fork2
             every { projectRepository.save(project) } returns project
-            every { repositoryService.getRepository(project) } returns vcsPlayRepository
-            every { vcsPlayRepository.delete() } returns Unit
-            every { vcsPlayRepository.create() } returns Unit
+            val (oldDirectory, newDirectory) = repositories(project)
 
             val result = projectService.changeVCS(9560L, VcsResetConfirmation(9560L, project.name, "GIT", true))
+            complete(TransactionSynchronization.STATUS_COMMITTED)
 
             result.vcs shouldBe "SUBVERSION"
             result.id shouldBe 9560L
             fork1.originalProject shouldBe null
             fork2.originalProject shouldBe null
             project.forkingProjects.size shouldBe 0
-            verify(exactly = 1) { vcsPlayRepository.delete() }
-            verify(exactly = 1) { vcsPlayRepository.create() }
             verify(exactly = 1) { projectRepository.save(fork1) }
             verify(exactly = 1) { projectRepository.save(fork2) }
+            oldDirectory.exists() shouldBe false
+            newDirectory.isDirectory shouldBe true
+            oldDirectory.parentFile.list()!!.toList() shouldBe emptyList()
         }
 
-        it("vcs가 null이면 기본값 GIT으로 취급해 SUBVERSION으로 전환돼야 한다") {
-            val project = Project(id = 9563L, name = "vcs-null", owner = "owner", vcs = null)
-            val vcsPlayRepository = mockk<PlayRepository>()
-            every { projectRepository.findById(9563L) } returns Optional.of(project)
-            every { repositoryService.getRepository(project) } returns vcsPlayRepository
-            every { vcsPlayRepository.delete() } returns Unit
-            every { vcsPlayRepository.create() } returns Unit
-            every { projectRepository.save(project) } returns project
+        listOf(
+            Triple(9563L, null, "SUBVERSION"),
+            Triple(9564L, "SUBVERSION", "MERCURIAL"),
+            Triple(9566L, "MERCURIAL", "GIT")
+        ).forEach { (id, vcs, next) ->
+            it("$vcs 프로젝트는 $next 로 전환돼야 한다") {
+                val project = Project(id = id, name = "vcs-$id", owner = "owner", vcs = vcs)
+                every { projectRepository.findById(id) } returns Optional.of(project)
+                every { projectRepository.save(project) } returns project
+                repositories(project)
 
-            val result = projectService.changeVCS(9563L, VcsResetConfirmation(9563L, project.name, "GIT", true))
+                val result = projectService.changeVCS(id, VcsResetConfirmation(id, project.name, vcs ?: "GIT", true))
 
-            result.vcs shouldBe "SUBVERSION"
+                result.vcs shouldBe next
+            }
         }
 
-        it("SUBVERSION 프로젝트는 MERCURIAL로 전환돼야 한다") {
-            val project = Project(id = 9564L, name = "vcs-svn", owner = "owner", vcs = "SUBVERSION")
-            val vcsPlayRepository = mockk<PlayRepository>()
-            every { projectRepository.findById(9564L) } returns Optional.of(project)
-            every { repositoryService.getRepository(project) } returns vcsPlayRepository
-            every { vcsPlayRepository.delete() } returns Unit
-            every { vcsPlayRepository.create() } returns Unit
-            every { projectRepository.save(project) } returns project
-
-            val result = projectService.changeVCS(9564L, VcsResetConfirmation(9564L, project.name, "SVN", true))
-
-            result.vcs shouldBe "MERCURIAL"
-        }
-
-        it("MERCURIAL 프로젝트는 다시 GIT으로 전환돼야 한다(순환)") {
-            val project = Project(id = 9566L, name = "vcs-hg", owner = "owner", vcs = "MERCURIAL")
-            val vcsPlayRepository = mockk<PlayRepository>()
-            every { projectRepository.findById(9566L) } returns Optional.of(project)
-            every { repositoryService.getRepository(project) } returns vcsPlayRepository
-            every { vcsPlayRepository.delete() } returns Unit
-            every { vcsPlayRepository.create() } returns Unit
-            every { projectRepository.save(project) } returns project
-
-            val result = projectService.changeVCS(9566L, VcsResetConfirmation(9566L, project.name, "HG", true))
-
-            result.vcs shouldBe "GIT"
-        }
-
-        it("기존 저장소 삭제 중 예외가 발생해도 무시하고 새 VCS로 저장소를 생성해야 한다") {
-            val project = Project(id = 9565L, name = "vcs-delete-fail", owner = "owner", vcs = "GIT")
-            val vcsPlayRepository = mockk<PlayRepository>()
+        it("새 저장소 생성이 실패하면 기존 저장소와 fork 연결을 건드리지 않는다") {
+            val project = Project(id = 9565L, name = "vcs-create-fail", owner = "owner", vcs = "GIT")
+            val fork = Project(id = 9567L, name = "fork", owner = "forker", originalProject = project)
+            project.forkingProjects.add(fork)
             every { projectRepository.findById(9565L) } returns Optional.of(project)
-            every { repositoryService.getRepository(project) } returns vcsPlayRepository
-            every { vcsPlayRepository.delete() } throws RuntimeException("delete failed")
-            every { vcsPlayRepository.create() } returns Unit
+            val (oldDirectory, newDirectory, newRepository) = repositories(project)
+            every { newRepository.create() } answers {
+                newDirectory.mkdirs()
+                throw IOException("create failed")
+            }
+
+            shouldThrow<IOException> {
+                projectService.changeVCS(9565L, VcsResetConfirmation(9565L, project.name, "GIT", true))
+            }
+            complete(TransactionSynchronization.STATUS_ROLLED_BACK)
+
+            File(oldDirectory, "HEAD").readText() shouldBe "old"
+            newDirectory.exists() shouldBe false
+            fork.originalProject shouldBe project
+            verify(exactly = 0) { projectRepository.save(any()) }
+        }
+
+        it("DB rollback이면 새 저장소를 지우고 기존 저장소를 제자리로 되돌린다") {
+            val project = Project(id = 9568L, name = "vcs-db-rollback", owner = "owner", vcs = "GIT")
+            every { projectRepository.findById(9568L) } returns Optional.of(project)
             every { projectRepository.save(project) } returns project
+            val (oldDirectory, newDirectory) = repositories(project)
 
-            val result = projectService.changeVCS(9565L, VcsResetConfirmation(9565L, project.name, "GIT", true))
+            projectService.changeVCS(9568L, VcsResetConfirmation(9568L, project.name, "GIT", true))
+            oldDirectory.exists() shouldBe false
+            complete(TransactionSynchronization.STATUS_ROLLED_BACK)
 
-            result.vcs shouldBe "SUBVERSION"
-            verify(exactly = 1) { vcsPlayRepository.create() }
+            File(oldDirectory, "HEAD").readText() shouldBe "old"
+            newDirectory.exists() shouldBe false
+            oldDirectory.parentFile.list()!!.toList() shouldBe listOf(oldDirectory.name)
+        }
+
+        it("새 저장소 경로가 이미 있으면 아무것도 바꾸지 않고 거부한다") {
+            val project = Project(id = 9569L, name = "vcs-target-exists", owner = "owner", vcs = "GIT")
+            every { projectRepository.findById(9569L) } returns Optional.of(project)
+            val (oldDirectory, newDirectory) = repositories(project)
+            File(newDirectory, "leftover").apply { parentFile.mkdirs() }.writeText("x")
+
+            shouldThrow<IllegalStateException> {
+                projectService.changeVCS(9569L, VcsResetConfirmation(9569L, project.name, "GIT", true))
+            }
+
+            File(oldDirectory, "HEAD").readText() shouldBe "old"
+            File(newDirectory, "leftover").readText() shouldBe "x"
+            TransactionSynchronizationManager.getSynchronizations() shouldBe emptyList()
+            verify(exactly = 0) { projectRepository.save(any()) }
         }
 
         listOf(
