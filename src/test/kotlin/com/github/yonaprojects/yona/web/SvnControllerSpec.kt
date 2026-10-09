@@ -29,7 +29,7 @@ class SvnControllerSpec : DescribeSpec({
 
     fun newTempBaseDir(): String = Files.createTempDirectory("yona-svnctrl-test").toFile().absolutePath
 
-    fun buildController(baseDir: String) = SvnController(baseDir, MockServletContext())
+    fun buildController(baseDir: String) = SvnController(baseDir, MockServletContext(), com.github.yonaprojects.yona.domain.vcs.SvnCommitTracker(baseDir, io.mockk.mockk(relaxed = true), io.mockk.mockk(relaxed = true), io.mockk.mockk(relaxed = true)))
 
     fun buildMockMvc(controller: SvnController) = MockMvcBuilders.standaloneSetup(controller).build()
 

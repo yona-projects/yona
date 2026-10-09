@@ -2,8 +2,16 @@ package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.AbstractIntegrationTest
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyService
+import com.github.yonaprojects.yona.domain.deploykey.DeployKeyRepository
+import com.github.yonaprojects.yona.domain.enumeration.EventType
+import com.github.yonaprojects.yona.domain.enumeration.ResourceType
+import com.github.yonaprojects.yona.domain.issue.Issue
+import com.github.yonaprojects.yona.domain.issue.IssueEventRepository
+import com.github.yonaprojects.yona.domain.issue.IssueRepository
+import com.github.yonaprojects.yona.domain.notification.NotificationEventRepository
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectService
 import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.project.ProjectUser
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
@@ -16,8 +24,10 @@ import io.kotest.assertions.withClue
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import java.io.File
@@ -26,6 +36,8 @@ import java.nio.file.Files
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.Base64
+
+private const val SVN_REF_DEPLOY_PUBLIC_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBiVHYDb/NytDhAZ1ilMC3Y8hp0bAQcWAD1OiBeayZbK svn-ref-test"
 
 private const val TEST_DEPLOY_PUBLIC_KEY =
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHFAhHu7wL23JgqJtpP8u/JUqCaLm1vcYoohMQFAdpXS svn-http-it@example.com"
@@ -45,7 +57,13 @@ class SvnHttpProtocolIntegrationSpec @Autowired constructor(
     private val repositoryService: RepositoryService,
     private val projectUserRepository: ProjectUserRepository,
     private val roleRepository: RoleRepository,
-    private val deployKeyService: DeployKeyService
+    private val deployKeyService: DeployKeyService,
+    private val issueRepository: IssueRepository,
+    private val issueEventRepository: IssueEventRepository,
+    private val projectService: ProjectService,
+    private val deployKeyRepository: DeployKeyRepository,
+    private val notificationEventRepository: NotificationEventRepository,
+    @Qualifier("taskExecutor") private val taskExecutor: ThreadPoolTaskExecutor
 ) : AbstractIntegrationTest() {
 
     private fun hashPassword(password: String, salt: String): String {
@@ -98,6 +116,38 @@ class SvnHttpProtocolIntegrationSpec @Autowired constructor(
     }
 
     init {
+        afterSpec {
+            // Wait for asynchronous post-processing before removing its projects and users.
+            val deadline = System.currentTimeMillis() + 15_000
+            while ((taskExecutor.activeCount != 0 || taskExecutor.threadPoolExecutor.queue.isNotEmpty()) &&
+                System.currentTimeMillis() < deadline) Thread.sleep(100)
+            taskExecutor.activeCount shouldBe 0
+            taskExecutor.threadPoolExecutor.queue.isEmpty() shouldBe true
+
+            val projects = listOf(
+                "svn-http-owner" to "svn-http-proj",
+                "svn-http-commit-owner" to "svn-http-commit-proj",
+                "svn-ref-committer" to "svn-ref-proj",
+                "svn-http-dk-owner" to "svn-http-dk-proj",
+                "svn-http-full-owner" to "svn-http-full-proj"
+            )
+            for ((owner, name) in projects) {
+                projectRepository.findByOwnerAndName(owner, name).ifPresent { project ->
+                    notificationEventRepository.deleteAll(notificationEventRepository.findAll().filter {
+                        it.resourceType == ResourceType.PROJECT && it.resourceId == project.id.toString()
+                    })
+                    deployKeyRepository.deleteAll(deployKeyRepository.findByProjectId(project.id!!))
+                    projectService.deleteProject(project.id!!)
+                    projectUserRepository.findByProjectId(project.id!!) shouldBe emptyList()
+                }
+                userRepository.findByLoginId(owner).ifPresent { userRepository.delete(it) }
+                projectRepository.findByOwnerAndName(owner, name).isPresent shouldBe false
+                userRepository.findByLoginId(owner).isPresent shouldBe false
+            }
+            svnBaseDirHolder.deleteRecursively()
+            svnConfigDirHolder.deleteRecursively()
+        }
+
         describe("실제 svn checkout/commit 커맨드로 검증하는 WebDAV/DeltaV 프로토콜 (P3-34)") {
             it("PUBLIC SVN 프로젝트를 실제 svn checkout 바이너리로 checkout하면 성공해야 한다") {
                 if (!svnAvailable()) return@it
@@ -192,6 +242,58 @@ class SvnHttpProtocolIntegrationSpec @Autowired constructor(
 
             // DeployKeySvnAuthorizationIntegrationSpec의 MockMvc 검증(HTTP 상태 코드만 확인)을
             // 대체하는 게 아니라, 그 위에 실제 svn 클라이언트 + 실제 서버로 왕복까지 되는지 보강한다.
+            it("records issue references for each revision of a real svn commit, credited to the committer and not to deploy keys") {
+                if (!svnAvailable()) return@it
+
+                val password = "pass123"
+                val salt = "saltsalt"
+                val committer = userRepository.save(User(
+                    loginId = "svn-ref-committer", name = "SVN ref committer", email = "svn-ref-committer@yona.io",
+                    password = hashPassword(password, salt), passwordSalt = salt
+                ))
+                val project = projectRepository.save(
+                    Project(name = "svn-ref-proj", owner = committer.loginId, projectScope = ProjectScope.PUBLIC, vcs = "SUBVERSION")
+                )
+                val managerRole = roleRepository.findById(1L).orElseGet { roleRepository.save(Role(id = 1L, name = "manager", active = true)) }
+                projectUserRepository.save(ProjectUser(user = committer, project = project, role = managerRole))
+                val issue = issueRepository.save(Issue(project = project, number = 1, title = "referenced from SVN"))
+                repositoryService.getRepository(project).create()
+                val deployKey = deployKeyService.create(project, "svn ref deploy key", SVN_REF_DEPLOY_PUBLIC_KEY, readOnly = false)
+
+                val url = "http://127.0.0.1:$port/svn/${project.owner}/${project.name}"
+                val workingCopy = Files.createTempDirectory("svn-ref-wc-").toFile()
+                fun svnOk(dir: File?, vararg args: String) {
+                    val (exit, output) = runSvn(dir, *args)
+                    withClue(output) { exit shouldBe 0 }
+                }
+                fun references() = issueEventRepository.findByIssueOrderByCreatedAsc(issue)
+                    .filter { it.eventType == EventType.ISSUE_REFERRED_FROM_COMMIT }
+                fun awaitReferences(count: Int) {
+                    val deadline = System.currentTimeMillis() + 15_000
+                    while (references().size < count && System.currentTimeMillis() < deadline) Thread.sleep(100)
+                }
+                try {
+                    svnOk(null, "checkout", "--username", committer.loginId, "--password", password, url, workingCopy.absolutePath)
+                    File(workingCopy, "a.txt").writeText("a")
+                    svnOk(workingCopy, "add", "a.txt")
+                    svnOk(workingCopy, "commit", "-m", "fix #1 and unknown #999", "--username", committer.loginId, "--password", password)
+                    awaitReferences(1)
+                    references().map { it.newValue to it.senderLoginId } shouldBe listOf("1" to committer.loginId)
+
+                    File(workingCopy, "a.txt").writeText("deploy key change")
+                    svnOk(workingCopy, "commit", "-m", "deploy key mentions #1",
+                        "--username", "x-access-deploykey", "--password", deployKey.rawHttpsToken)
+                    File(workingCopy, "a.txt").writeText("b")
+                    svnOk(workingCopy, "commit", "-m", "again #1", "--username", committer.loginId, "--password", password)
+                    awaitReferences(2)
+                    Thread.sleep(500)
+                    references().map { it.newValue to it.senderLoginId } shouldBe
+                        listOf("1" to committer.loginId, "3" to committer.loginId)
+                } finally {
+                    workingCopy.deleteRecursively()
+                }
+            }
+
             it("Deploy Key 인증으로 실제 svn checkout/commit 바이너리를 통해 읽기/쓰기를 왕복할 수 있어야 한다") {
                 if (!svnAvailable()) return@it
 

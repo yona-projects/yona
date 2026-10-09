@@ -6,6 +6,7 @@ import com.github.yonaprojects.yona.domain.issue.Issue
 import com.github.yonaprojects.yona.domain.issue.IssueEvent
 import com.github.yonaprojects.yona.domain.issue.IssueEventRepository
 import com.github.yonaprojects.yona.domain.issue.IssueRepository
+import com.github.yonaprojects.yona.domain.issue.CommitIssueReferenceService
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
 import com.github.yonaprojects.yona.domain.notification.NotificationEventRecorder
 import com.github.yonaprojects.yona.domain.project.GitService
@@ -38,6 +39,10 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.transport.ReceiveCommand
 import org.eclipse.jgit.transport.RefSpec
 import java.nio.file.Files
+import java.time.Instant
+import java.util.Date
+import java.util.TimeZone
+import io.mockk.verifyOrder
 
 // 실제 bare 저장소에 순차 커밋 2개를 만들고 (초기 커밋 objectId, 두번째 커밋 objectId, bare 저장소 디렉터리)를 반환한다.
 // handleGitPostReceiveEvent()는 gitService.getRepositoryPath()가 반환한 File로 RepositoryBuilder를 직접
@@ -52,7 +57,8 @@ private fun seedTwoCommits(branch: String = "main"): Triple<ObjectId, ObjectId, 
     val file = File(workingDir, "file.txt")
     file.writeText("first")
     git.add().addFilepattern("file.txt").call()
-    val firstCommit = git.commit().setSign(false).setAuthor("tester", "tester@yona.io").setMessage("fix #42 first commit").call()
+    val author = PersonIdent("tester", "tester@yona.io", Date(946684800000L), TimeZone.getTimeZone("UTC"))
+    val firstCommit = git.commit().setSign(false).setAuthor(author).setCommitter(author).setMessage("fix #42 first commit #42").call()
 
     file.writeText("second")
     git.add().addFilepattern("file.txt").call()
@@ -95,7 +101,7 @@ class GitPostReceiveEventListenerSpec : DescribeSpec({
     val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
 
     val listener = GitPostReceiveEventListener(
-        gitService, notificationEventRecorder, issueRepository, issueEventRepository, webhookService,
+        gitService, notificationEventRecorder, CommitIssueReferenceService(issueRepository, issueEventRepository), webhookService,
         watchService, eventPublisher
     )
 
@@ -142,49 +148,6 @@ class GitPostReceiveEventListenerSpec : DescribeSpec({
         }
     }
 
-    describe("GitPostReceiveEventListener.recordReferredIssues") {
-        it("커밋 메시지가 언급한 이슈가 프로젝트에 존재하면 IssueEvent를 기록해야 한다") {
-            val issue = Issue(id = 100L, title = "버그", body = "...", project = project, number = 42L)
-            every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue
-            val savedSlot = slot<IssueEvent>()
-            every { issueEventRepository.save(capture(savedSlot)) } answers { firstArg() }
-
-            listener.recordReferredIssues("fix #42 bug", "abc123commit", project, sender)
-
-            savedSlot.captured.issue shouldBe issue
-            savedSlot.captured.senderLoginId shouldBe "gildong"
-            savedSlot.captured.senderEmail shouldBe "gildong@example.com"
-            savedSlot.captured.newValue shouldBe "abc123commit"
-            savedSlot.captured.eventType shouldBe EventType.ISSUE_REFERRED_FROM_COMMIT
-        }
-
-        it("언급된 이슈 번호가 프로젝트에 존재하지 않으면 조용히 스킵해야 한다") {
-            every { issueRepository.findByProjectAndNumber(project, 999L) } returns null
-
-            listener.recordReferredIssues("close #999", "def456", project, sender)
-
-            verify(exactly = 0) { issueEventRepository.save(any()) }
-        }
-
-        it("커밋 메시지에 이슈 참조가 없으면 아무 것도 저장하지 않아야 한다") {
-            listener.recordReferredIssues("just a regular commit", "ghi789", project, sender)
-
-            verify(exactly = 0) { issueRepository.findByProjectAndNumber(any(), any()) }
-            verify(exactly = 0) { issueEventRepository.save(any()) }
-        }
-
-        it("커밋 메시지에 여러 이슈가 언급되면 각각에 대해 IssueEvent를 기록해야 한다") {
-            val issue1 = Issue(id = 1L, title = "A", body = "", project = project, number = 1L)
-            val issue2 = Issue(id = 2L, title = "B", body = "", project = project, number = 2L)
-            every { issueRepository.findByProjectAndNumber(project, 1L) } returns issue1
-            every { issueRepository.findByProjectAndNumber(project, 2L) } returns issue2
-            every { issueEventRepository.save(any()) } answers { firstArg() }
-
-            listener.recordReferredIssues("fixes #1 and #2", "jkl012", project, sender)
-
-            verify(exactly = 2) { issueEventRepository.save(any()) }
-        }
-    }
 
     describe("GitPostReceiveEventListener.processCommitsNotification (P1-25, yona Webhook.sendRequestToPayloadUrl(commits,...) 대응)") {
         it("push된 커밋이 있으면 NotificationEvent를 저장하고 NEW_COMMIT 웹훅을 발송해야 한다") {
@@ -257,6 +220,36 @@ class GitPostReceiveEventListenerSpec : DescribeSpec({
     // 직접 열어 RevWalk까지 실행하는 실제 코드라, isNewOrUpdateCommand/parseCommitsFrom/
     // processIssueReferredFromCommit의 분기는 실제 bare 저장소 없이는 태울 수 없다.
     describe("GitPostReceiveEventListener.handleGitPostReceiveEvent (실제 bare 저장소)") {
+        it("two CREATE refs preserve two events with the pusher and processing time") {
+            val (firstId, _, bareDir) = seedTwoCommits()
+            every { gitService.getRepositoryPath(any(), any()) } returns bareDir
+            val issue = Issue(id = 100L, title = "bug", project = project, number = 42L)
+            every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue
+            val saved = mutableListOf<IssueEvent>()
+            every { issueEventRepository.save(capture(saved)) } answers { firstArg() }
+            val before = Instant.now()
+            listener.handleGitPostReceiveEvent(GitPostReceiveEvent(project, sender, listOf(
+                ReceiveCommand(ObjectId.zeroId(), firstId, "refs/heads/a"),
+                ReceiveCommand(ObjectId.zeroId(), firstId, "refs/heads/b")
+            )))
+            val after = Instant.now()
+            saved.size shouldBe 2
+            saved.forEach {
+                it.issue shouldBe issue
+                it.senderLoginId shouldBe sender.loginId
+                it.senderEmail shouldBe sender.email
+                it.newValue shouldBe firstId.name
+                it.oldValue shouldBe null
+                it.eventType shouldBe EventType.ISSUE_REFERRED_FROM_COMMIT
+                (it.created >= before && it.created <= after) shouldBe true
+            }
+            verifyOrder {
+                notificationEventRecorder.record(any())
+                webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any())
+                issueEventRepository.save(any())
+                issueEventRepository.save(any())
+            }
+        }
         it("UPDATE 커맨드로 push된 커밋을 파싱해 알림·이슈참조·웹훅까지 전부 처리해야 한다") {
             val (firstId, secondId, bareDir) = seedTwoCommits()
             every { gitService.getRepositoryPath(any(), any()) } returns bareDir
