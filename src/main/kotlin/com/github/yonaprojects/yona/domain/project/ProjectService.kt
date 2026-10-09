@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.domain.project
 
 import com.github.yonaprojects.yona.domain.user.User
+import com.github.yonaprojects.yona.domain.vcs.normalizeVcs
 
 interface ProjectService {
     fun findByOwnerAndName(owner: String, name: String): Project?
@@ -13,13 +14,32 @@ interface ProjectService {
     fun requestNewTransfer(projectId: Long, senderId: Long, destination: String): ProjectTransfer
     fun acceptTransfer(transferId: Long, confirmKey: String, acceptorId: Long)
     fun forkProject(projectId: Long, forkerId: Long, destinationOwner: String = "", destinationName: String = ""): Project
-    fun changeVCS(projectId: Long): Project
+    fun changeVCS(projectId: Long, confirmation: VcsResetConfirmation): Project
 
     // yona ProjectApp.labels/attachLabel/detachLabel 대응
     fun getProjectLabels(projectId: Long): Set<Label>
     fun attachLabel(projectId: Long, category: String?, name: String): AttachLabelResult
     fun detachLabel(projectId: Long, labelId: Long): Boolean
 }
+
+data class VcsResetConfirmation(
+    val projectId: Long? = null,
+    val projectName: String? = null,
+    val expectedVcs: String? = null,
+    val accepted: Boolean = false
+) {
+    fun validate(project: Project) {
+        if (!accepted || projectId != project.id || projectName != project.name || expectedVcs.isNullOrBlank()) {
+            throw InvalidVcsResetConfirmation()
+        }
+        if (normalizeVcs(expectedVcs) != normalizeVcs(project.vcs)) {
+            throw VcsResetConflict()
+        }
+    }
+}
+
+class InvalidVcsResetConfirmation : IllegalArgumentException("Repository reset confirmation does not match")
+class VcsResetConflict : IllegalStateException("Repository type changed; reload the confirmation page")
 
 data class AttachLabelResult(
     val label: Label,
