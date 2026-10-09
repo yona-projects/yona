@@ -52,8 +52,11 @@ class ProjectChangeVcsConfirmationIntegrationSpec @Autowired constructor(
         }
     }
 
+    private val owners = mutableListOf<User>()
+
     private fun fixture(): Project {
         val owner = userRepository.save(User(loginId = "reset-${UUID.randomUUID().toString().take(8)}", name = "Reset test"))
+        owners.add(owner)
         return projectService.createProject(Project(owner = owner.loginId, name = "reset", vcs = "GIT"), owner)
     }
 
@@ -79,6 +82,15 @@ class ProjectChangeVcsConfirmationIntegrationSpec @Autowired constructor(
     }
 
     init {
+        // The database is shared with every other integration spec; leftover members break specs that
+        // clear and re-create roles in one transaction (ProjectUserServiceSpec).
+        afterEach {
+            owners.forEach { owner ->
+                projectRepository.findByOwner(owner.loginId).forEach { projectService.deleteProject(it.id!!) }
+                userRepository.deleteById(owner.id!!)
+            }
+            owners.clear()
+        }
         afterSpec { root.toFile().deleteRecursively() }
 
         describe("repository reset confirmation with real Spring, JPA and filesystem") {
