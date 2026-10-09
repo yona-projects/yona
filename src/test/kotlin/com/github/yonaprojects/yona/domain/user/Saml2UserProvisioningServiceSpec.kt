@@ -1,5 +1,7 @@
 package com.github.yonaprojects.yona.domain.user
 
+import com.github.yonaprojects.yona.domain.organization.Organization
+import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -7,6 +9,7 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal
 import java.util.Optional
 
@@ -15,10 +18,13 @@ import java.util.Optional
 // 직접 만들어 reconcile()에 넣는 순수 단위테스트. LdapUserProvisioningServiceSpec과 동일한 패턴.
 class Saml2UserProvisioningServiceSpec : DescribeSpec({
     val userRepository = mockk<UserRepository>()
-    val service = Saml2UserProvisioningService(userRepository)
+    val organizationRepository = mockk<OrganizationRepository>()
+    val service = Saml2UserProvisioningService(userRepository, organizationRepository)
 
     beforeTest {
         clearMocks(userRepository)
+        // 기본값: 신규 loginId는 조직 이름과 겹치지 않는다. 충돌 케이스만 개별 테스트에서 덮어쓴다.
+        every { organizationRepository.findByName(any()) } returns Optional.empty()
     }
 
     describe("Saml2UserProvisioningService.reconcile") {
@@ -72,6 +78,20 @@ class Saml2UserProvisioningServiceSpec : DescribeSpec({
 
             result.loginId shouldBe "noname"
             result.name shouldBe "noname"
+        }
+
+        it("신규 유저의 loginId가 기존 조직 이름과 같으면 생성하지 않고 예외를 던져야 한다") {
+            val principal = DefaultSaml2AuthenticatedPrincipal(
+                "orgclash@example.com",
+                mapOf("email" to listOf("orgclash@example.com"), "displayName" to listOf("조직명"))
+            )
+            every { userRepository.findByEmail("orgclash@example.com") } returns Optional.empty()
+            every { organizationRepository.findByName("orgclash") } returns Optional.of(Organization(id = 20L, name = "orgclash"))
+
+            shouldThrow<IllegalStateException> {
+                service.reconcile(principal, "email", "displayName")
+            }
+            verify(exactly = 0) { userRepository.save(any()) }
         }
 
         it("email 속성이 없고 NameID도 이메일 형식이 아니면 예외를 던져야 한다") {

@@ -1,5 +1,8 @@
 package com.github.yonaprojects.yona.domain.user
 
+import com.github.yonaprojects.yona.domain.organization.Organization
+import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -7,15 +10,20 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
+import org.springframework.security.authentication.AuthenticationServiceException
 import java.util.Optional
 
 class LdapUserProvisioningServiceSpec : DescribeSpec({
     val userRepository = mockk<UserRepository>()
     val passwordEncodingService = PasswordEncodingService()
-    val service = LdapUserProvisioningService(userRepository, passwordEncodingService)
+    val organizationRepository = mockk<OrganizationRepository>()
+    val service = LdapUserProvisioningService(userRepository, passwordEncodingService, organizationRepository)
 
     beforeTest {
         clearMocks(userRepository)
+        // 기본값: 신규 loginId는 조직 이름과 겹치지 않는다. 충돌 케이스만 개별 테스트에서 덮어쓴다.
+        every { organizationRepository.findByName(any()) } returns Optional.empty()
     }
 
     describe("LdapUserProvisioningService.reconcile") {
@@ -36,6 +44,17 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
             result.state shouldBe UserState.ACTIVE
             result.passwordSalt shouldBe null
             passwordEncodingService.matches("myPassword123!", result.password, null) shouldBe true
+        }
+
+        it("신규 유저의 loginId가 기존 조직 이름과 같으면 생성하지 않고 인증 예외를 던져야 한다") {
+            val ldapUser = LdapUser(displayName = "조직명", email = "orgclash@example.com", loginId = "orgclash")
+            every { userRepository.findByEmail("orgclash@example.com") } returns Optional.empty()
+            every { organizationRepository.findByName("orgclash") } returns Optional.of(Organization(id = 20L, name = "orgclash"))
+
+            shouldThrow<AuthenticationServiceException> {
+                service.reconcile(ldapUser, "myPassword123!")
+            }
+            verify(exactly = 0) { userRepository.save(any()) }
         }
 
         it("이메일로 기존 유저를 찾으면 비밀번호가 다를 때만 Argon2로 재발급하고 이름/게스트 여부를 동기화해야 한다") {
