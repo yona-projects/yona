@@ -22,7 +22,8 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
 
     beforeTest {
         clearMocks(userRepository)
-        // 기본값: 신규 loginId는 조직 이름과 겹치지 않는다. 충돌 케이스만 개별 테스트에서 덮어쓴다.
+        // 기본값: 신규 loginId는 사용자·조직 이름과 겹치지 않는다. 충돌 케이스만 개별 테스트에서 덮어쓴다.
+        every { userRepository.findByLoginId(any()) } returns Optional.empty()
         every { organizationRepository.findByName(any()) } returns Optional.empty()
     }
 
@@ -44,6 +45,18 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
             result.state shouldBe UserState.ACTIVE
             result.passwordSalt shouldBe null
             passwordEncodingService.matches("myPassword123!", result.password, null) shouldBe true
+        }
+
+        it("신규 유저의 loginId가 이미 있는 사용자와 같으면 생성하지 않고 인증 예외를 던져야 한다") {
+            val ldapUser = LdapUser(displayName = "중복", email = "taken@example.com", loginId = "taken")
+            every { userRepository.findByEmail("taken@example.com") } returns Optional.empty()
+            every { userRepository.findByLoginId("taken") } returns
+                Optional.of(User(id = 9L, loginId = "taken", name = "기존", email = "old@example.com", state = UserState.ACTIVE))
+
+            shouldThrow<AuthenticationServiceException> {
+                service.reconcile(ldapUser, "myPassword123!")
+            }
+            verify(exactly = 0) { userRepository.save(any()) }
         }
 
         it("신규 유저의 loginId가 기존 조직 이름과 같으면 생성하지 않고 인증 예외를 던져야 한다") {

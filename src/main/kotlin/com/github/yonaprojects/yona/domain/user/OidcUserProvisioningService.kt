@@ -54,6 +54,10 @@ class OidcUserProvisioningService(
 
     private fun createNewUser(email: String, oidcUser: OidcUser): User {
         val loginId = oidcUser.preferredUsername ?: email.substringBefore("@")
+        // 이미 있는 사용자 ID면 유니크 제약 위반으로 깨지지 않도록 막는다(연결은 이메일로만 한다).
+        if (userRepository.findByLoginId(loginId).isPresent) {
+            throw IllegalStateException("이미 존재하는 아이디($loginId)로는 SSO 가입을 할 수 없습니다.")
+        }
         // 조직 이름과 같은 loginId로 가입시키지 않는다(OAuth 신규 가입과 같은 기준). 조직 우선 리다이렉트에 가려진다.
         if (organizationRepository.findByName(loginId).isPresent) {
             throw IllegalStateException("조직 이름과 같은 아이디($loginId)로는 가입할 수 없습니다.")

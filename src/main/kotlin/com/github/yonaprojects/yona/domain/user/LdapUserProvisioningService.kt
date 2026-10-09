@@ -29,6 +29,10 @@ class LdapUserProvisioningService(
     private fun createNewUser(ldapUser: LdapUser, rawPassword: String): User {
         // 조직 이름과 같은 loginId로 가입시키지 않는다. 이 메서드는 AuthenticationProvider에서 호출되므로
         // 일반 예외 대신 인증 예외로 던져 로그인 실패로 처리되게 한다(그냥 던지면 500이 된다).
+        // 이미 있는 사용자 ID면 유니크 제약 위반으로 깨지지 않도록 막는다(이메일이 다른 사용자와 아이디가 겹치는 경우).
+        if (userRepository.findByLoginId(ldapUser.loginId).isPresent) {
+            throw AuthenticationServiceException("이미 존재하는 아이디(${ldapUser.loginId})로는 LDAP 가입을 할 수 없습니다.")
+        }
         if (organizationRepository.findByName(ldapUser.loginId).isPresent) {
             throw AuthenticationServiceException("조직 이름과 같은 아이디(${ldapUser.loginId})로는 가입할 수 없습니다.")
         }
