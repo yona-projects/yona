@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.config.oauth2
 
+import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.user.EmailDomainValidator
 import com.github.yonaprojects.yona.domain.user.LinkedAccount
 import com.github.yonaprojects.yona.domain.user.LinkedAccountRepository
@@ -31,6 +32,7 @@ class CustomOAuth2UserService(
     private val userRepository: UserRepository,
     private val linkedAccountRepository: LinkedAccountRepository,
     private val accountMergeService: OAuth2AccountMergeService,
+    private val organizationRepository: OrganizationRepository,
     private val delegate: DefaultOAuth2UserService = DefaultOAuth2UserService(),
     @Value("\${yona.signup.allowed-email-domains:}")
     private val allowedEmailDomains: String = ""
@@ -82,6 +84,14 @@ class CustomOAuth2UserService(
                         throw OAuth2AuthenticationException(
                             OAuth2Error("unacceptable_email_domain"),
                             "허용되지 않은 이메일 도메인입니다: ${userInfo.email}"
+                        )
+                    }
+                    // 조직 이름과 같은 loginId로 가입시키지 않는다. 조직 우선 리다이렉트(UserViewController)에 가려져
+                    // 이 사용자의 /user/{이름}, /{이름} 프로필에 닿을 수 없게 되기 때문. 가입 폼(AuthController)과 같은 기준이다.
+                    if (organizationRepository.findByName(userInfo.loginId).isPresent) {
+                        throw OAuth2AuthenticationException(
+                            OAuth2Error("login_id_conflicts_with_organization"),
+                            "조직 이름과 같은 아이디로는 가입할 수 없습니다: ${userInfo.loginId}"
                         )
                     }
                     userRepository.save(

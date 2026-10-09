@@ -205,9 +205,9 @@ class UserViewControllerSpec : DescribeSpec({
                 }
 
                 it("같은 이름의 사용자가 있어도 조직 페이지가 우선해야 한다(1.6과 같은 순서)") {
-                    // 1.6 UserApp.userInfo는 조직을 먼저 확인했다. 이 앱의 가입(AuthController)은 조직 이름과의 중복을 아직 막지
-                    // 않으므로, 기존 조직과 같은 ID로 가입한 사용자가 /user/{조직}과 /{조직}, 그리고 조직 소유 프로젝트의 소유자
-                    // 링크를 가로채지 못하게 조직이 항상 이겨야 한다.
+                    // 1.6 UserApp.userInfo는 조직을 먼저 확인했다. 가입 경로는 조직 이름과의 중복을 막지만, 그 검사 이전에 만들어진
+                    // 같은 이름의 사용자가 /user/{조직}과 /{조직}, 그리고 조직 소유 프로젝트의 소유자 링크를 가로채지 못하게
+                    // 조직이 항상 이겨야 한다.
                     val impostor = User(id = 12L, loginId = "test-group", name = "가짜")
                     every { userRepository.findByLoginId("test-group") } returns Optional.of(impostor)
                     every { organizationRepository.findByName("test-group") } returns Optional.of(org)

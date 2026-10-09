@@ -849,6 +849,12 @@ class UserControllerSpec : DescribeSpec({
             val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
+            beforeTest {
+                // 기본값: loginId는 사용자와도 조직과도 겹치지 않는다. 충돌 케이스만 개별 테스트에서 덮어쓴다.
+                every { userService.isLoginIdExist(any()) } returns false
+                every { organizationRepository.findByName(any()) } returns Optional.empty()
+            }
+
             it("사이트관리자가 아니면 400 Bad Request를 반환해야 한다") {
                 every { userRepository.findByLoginId("gildong") } returns Optional.of(testUser)
 
@@ -945,6 +951,40 @@ class UserControllerSpec : DescribeSpec({
                         .principal(adminAuth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""{"users": [{"loginId": "dup", "name": "중복", "email": "dup@example.com"}]}""")
+                )
+                    .andExpect(status().isCreated)
+                    .andExpect(jsonPath("$[0].status").value(409))
+
+                verify(exactly = 0) { userService.createUser(any()) }
+            }
+
+            it("이미 존재하는 loginId면 DB 유니크 위반으로 가지 않고 해당 항목에 409를 담아야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByEmail("taken@example.com") } returns Optional.empty()
+                every { userService.isLoginIdExist("gildong") } returns true
+
+                mockMvc.perform(
+                    post("/-_-api/v1/users")
+                        .principal(adminAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"users": [{"loginId": "gildong", "name": "중복아이디", "email": "taken@example.com"}]}""")
+                )
+                    .andExpect(status().isCreated)
+                    .andExpect(jsonPath("$[0].status").value(409))
+
+                verify(exactly = 0) { userService.createUser(any()) }
+            }
+
+            it("조직 이름과 같은 loginId면 사용자를 만들지 않고 해당 항목에 409를 담아야 한다") {
+                every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+                every { userRepository.findByEmail("org@example.com") } returns Optional.empty()
+                every { organizationRepository.findByName("someorg") } returns Optional.of(mockk<Organization>(relaxed = true))
+
+                mockMvc.perform(
+                    post("/-_-api/v1/users")
+                        .principal(adminAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"users": [{"loginId": "someorg", "name": "조직명", "email": "org@example.com"}]}""")
                 )
                     .andExpect(status().isCreated)
                     .andExpect(jsonPath("$[0].status").value(409))

@@ -323,6 +323,11 @@ class UserController(
         if (userRepository.findByEmail(item.email).isPresent) {
             return mapOf("status" to 409, "reason" to "Conflict", "message" to "Already exists!", "user" to item)
         }
+        // 가입 폼(AuthController)과 같은 기준: 기존 사용자 ID와 조직 이름은 쓸 수 없다. 여기서 막지 않으면 같은 loginId가
+        // DB 유니크 제약에 걸려 요청 전체가 500이 되고, 조직 이름과 겹치면 조직 페이지 경로를 가려버린다.
+        if (userService.isLoginIdExist(item.loginId) || organizationRepository.findByName(item.loginId).isPresent) {
+            return mapOf("status" to 409, "reason" to "Conflict", "message" to "Already exists!", "user" to item)
+        }
 
         val opaqueRandomPassword = Base64.getEncoder().encodeToString(SecureRandom().generateSeed(20))
         val user = User(
