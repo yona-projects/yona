@@ -74,16 +74,25 @@ class CustomOAuth2UserService(
             )
             currentUser
         } else {
-            // 2) 로그인하지 않은 상태에서 처음 보는 provider 계정이면 이메일/loginId로 기존 가입 사용자를
-            //    찾아 "연결"하거나, 없으면 신규 가입 처리 (신규 가입만 이메일 도메인 allowlist 적용 -
-            //    yona와 동일하게 이미 존재하는 계정의 로그인은 도메인 정책 변경 후에도 계속 허용한다)
+            // 2) 로그인하지 않은 상태에서 처음 보는 provider 계정이면 이메일이 같은 기존 가입 사용자와 "연결"하거나,
+            //    없으면 신규 가입 처리 (신규 가입만 이메일 도메인 allowlist 적용 -
+            //    yona와 동일하게 이미 존재하는 계정의 로그인은 도메인 정책 변경 후에도 계속 허용한다).
+            //    loginId가 같다는 것만으로는 연결하지 않는다. GitHub 사용자명이나 Gmail 로컬파트는 yona 계정 주인이
+            //    아닌 다른 사람도 가질 수 있어서, 연결하면 그 사람이 기존 계정으로 로그인하게 된다(계정 탈취).
             val resolvedUser = userRepository.findByEmail(userInfo.email).orElse(null)
-                ?: userRepository.findByLoginId(userInfo.loginId).orElse(null)
                 ?: run {
                     if (!EmailDomainValidator.isAllowed(userInfo.email, allowedEmailDomains)) {
                         throw OAuth2AuthenticationException(
                             OAuth2Error("unacceptable_email_domain"),
                             "허용되지 않은 이메일 도메인입니다: ${userInfo.email}"
+                        )
+                    }
+                    // 같은 loginId의 사용자가 있으면 가입도 연결도 하지 않는다(유니크 제약 위반을 막고, 기존 계정 탈취를 막는다).
+                    // 기존 계정은 그 계정으로 로그인한 뒤 연결해야 한다.
+                    if (userRepository.findByLoginId(userInfo.loginId).isPresent) {
+                        throw OAuth2AuthenticationException(
+                            OAuth2Error("login_id_conflicts_with_user"),
+                            "같은 아이디의 기존 계정이 있어 소셜 로그인으로 가입하거나 연결할 수 없습니다: ${userInfo.loginId}"
                         )
                     }
                     // 조직 이름과 같은 loginId로 가입시키지 않는다. 조직 우선 리다이렉트(UserViewController)에 가려져
