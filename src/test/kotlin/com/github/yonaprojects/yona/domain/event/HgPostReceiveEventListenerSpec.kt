@@ -6,6 +6,7 @@ import com.github.yonaprojects.yona.domain.issue.Issue
 import com.github.yonaprojects.yona.domain.issue.IssueEvent
 import com.github.yonaprojects.yona.domain.issue.IssueEventRepository
 import com.github.yonaprojects.yona.domain.issue.IssueRepository
+import com.github.yonaprojects.yona.domain.issue.CommitIssueReferenceService
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
 import com.github.yonaprojects.yona.domain.notification.NotificationEventRecorder
 import com.github.yonaprojects.yona.domain.project.Project
@@ -30,6 +31,8 @@ import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 import java.io.File
 import java.nio.file.Files
+import java.time.Instant
+import io.mockk.verifyOrder
 
 // yona-wiki P3-22 — GitPostReceiveEventListenerSpec와 대칭인 Mercurial 버전. parseCommitsFrom()이
 // 실제 changelog Revlog(파일시스템)를 여는 실제 코드라(BareCommitSpec/PullRequestServiceSpec과
@@ -46,7 +49,7 @@ private fun commitFile(repoDir: File, path: String, content: String, message: St
     file.writeText(content)
     return Hg.open(repoDir).use { hg ->
         hg.add().addFile(path).call()
-        val node = hg.commit().setAuthor(author).setMessage(message).call()
+        val node = hg.commit().setAuthor(author).setDate(946684800L, 0).setMessage(message).call()
         NodeId(node).toHex()
     }
 }
@@ -61,7 +64,7 @@ class HgPostReceiveEventListenerSpec : DescribeSpec({
     val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
 
     val listener = HgPostReceiveEventListener(
-        repositoryService, notificationEventRecorder, issueRepository, issueEventRepository, webhookService,
+        repositoryService, notificationEventRecorder, CommitIssueReferenceService(issueRepository, issueEventRepository), webhookService,
         watchService, eventPublisher
     )
 
@@ -81,25 +84,6 @@ class HgPostReceiveEventListenerSpec : DescribeSpec({
         } returns emptySet()
     }
 
-    describe("HgPostReceiveEventListener.recordReferredIssues") {
-        it("커밋 메시지가 언급한 이슈가 프로젝트에 존재하면 IssueEvent를 기록해야 한다") {
-            val issue = Issue(id = 100L, title = "버그", body = "...", project = project, number = 42L)
-            every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue
-            val savedSlot = slot<IssueEvent>()
-            every { issueEventRepository.save(capture(savedSlot)) } answers { firstArg() }
-
-            listener.recordReferredIssues("fix #42 bug", "abc123commit", project, sender)
-
-            savedSlot.captured.issue shouldBe issue
-            savedSlot.captured.eventType shouldBe EventType.ISSUE_REFERRED_FROM_COMMIT
-        }
-
-        it("커밋 메시지에 이슈 참조가 없으면 아무 것도 저장하지 않아야 한다") {
-            listener.recordReferredIssues("just a regular commit", "ghi789", project, sender)
-
-            verify(exactly = 0) { issueEventRepository.save(any()) }
-        }
-    }
 
     describe("HgPostReceiveEventListener.processCommitsNotification") {
         it("push된 커밋이 있으면 NotificationEvent를 저장하고 NEW_COMMIT 웹훅을 발송해야 한다") {
@@ -128,6 +112,42 @@ class HgPostReceiveEventListenerSpec : DescribeSpec({
     // handleHgPostReceiveEvent()는 RepositoryService.getRepository(project).getDirectory()로 실제
     // 로컬 hg 저장소를 열어 Revlog까지 실행하는 실제 코드라, mock으로 우회할 수 없다.
     describe("HgPostReceiveEventListener.handleHgPostReceiveEvent (실제 로컬 hg 저장소)") {
+        it("two CREATE bookmarks preserve two events with the pusher and processing time") {
+            val repoDir = newTempRepoDir()
+            val hex = commitFile(repoDir, "a.txt", "hello", "fix #42 #42", "author <author@example.com>")
+            val hgRepo = mockk<HgRepository>()
+            every { hgRepo.getDirectory() } returns repoDir
+            every { repositoryService.getRepository(project) } returns hgRepo
+            val issue = Issue(id = 100L, title = "bug", project = project, number = 42L)
+            every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue
+            val saved = mutableListOf<IssueEvent>()
+            every { issueEventRepository.save(capture(saved)) } answers { firstArg() }
+            val before = Instant.now()
+            for (bookmark in listOf("a", "b")) {
+                listener.handleHgPostReceiveEvent(HgPostReceiveEvent(
+                    project, sender, HgBookmarkMove(bookmark, "", hex, HgBookmarkChangeType.CREATE)
+                ))
+            }
+            val after = Instant.now()
+            saved.size shouldBe 2
+            saved.forEach {
+                it.issue shouldBe issue
+                it.senderLoginId shouldBe sender.loginId
+                it.senderEmail shouldBe sender.email
+                it.newValue shouldBe hex
+                it.oldValue shouldBe null
+                it.eventType shouldBe EventType.ISSUE_REFERRED_FROM_COMMIT
+                (it.created >= before && it.created <= after) shouldBe true
+            }
+            verifyOrder {
+                notificationEventRecorder.record(any())
+                webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedHgCommits>())
+                issueEventRepository.save(any())
+                notificationEventRecorder.record(any())
+                webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedHgCommits>())
+                issueEventRepository.save(any())
+            }
+        }
         it("UPDATE(북마크 갱신)로 push된 커밋을 파싱해 알림·이슈참조·웹훅까지 전부 처리해야 한다") {
             val repoDir = newTempRepoDir()
             val hex1 = commitFile(repoDir, "a.txt", "first", "first commit")
