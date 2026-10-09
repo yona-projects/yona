@@ -42,7 +42,7 @@ class CommitIssueReferenceServiceSpec : DescribeSpec({
             val issue = Issue(id = 42L, project = project, number = 42L)
             every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue
             val before = Instant.now()
-            repeat(2) { service.record(project, sender, "same-id", "#42 #42") }
+            repeat(2) { service.record(project, CommitReference("same-id", "#42 #42", sender)) }
             val after = Instant.now()
             saved.size shouldBe 2
             saved.forEach {
@@ -66,15 +66,15 @@ class CommitIssueReferenceServiceSpec : DescribeSpec({
             every { issueRepository.findByProjectAndNumber(project, 2L) } returns second
             every { issueRepository.findByProjectAndNumber(project, 999L) } returns null
             every { issueRepository.findByProjectAndNumber(otherProject, 1L) } returns other
-            service.record(project, sender, "unchanged-id", "#1 #2 #999 #1")
+            service.record(project, CommitReference("unchanged-id", "#1 #2 #999 #1", sender))
             saved.map { it.issue }.toSet() shouldBe setOf(first, second)
             saved.size shouldBe 2
             verify(exactly = 0) { issueRepository.findByProjectAndNumber(otherProject, any()) }
         }
 
         it("does not query or save when no issue is referenced") {
-            service.record(project, sender, "id", "ordinary commit")
-            service.record(project, sender, "id", "")
+            service.record(project, CommitReference("id", "ordinary commit", sender))
+            service.record(project, CommitReference("id", "", sender))
             verify(exactly = 0) { issueRepository.findByProjectAndNumber(any(), any()) }
             verify(exactly = 0) { issueEventRepository.save(any()) }
         }
@@ -84,7 +84,7 @@ class CommitIssueReferenceServiceSpec : DescribeSpec({
             val failure = IllegalStateException("save failed")
             every { issueEventRepository.save(any()) } throws failure
             shouldThrow<IllegalStateException> {
-                service.record(project, sender, "id", "#42")
+                service.record(project, CommitReference("id", "#42", sender))
             } shouldBe failure
             verify(exactly = 1) { issueEventRepository.save(any()) }
         }

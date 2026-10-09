@@ -26,9 +26,6 @@ class CommitIssueReferenceService(
 ) {
     private val logger = LoggerFactory.getLogger(CommitIssueReferenceService::class.java)
 
-    fun record(project: Project, sender: User, commitId: String, commitMessage: String) =
-        record(project, CommitReference(commitId, commitMessage, sender))
-
     fun record(project: Project, commit: CommitReference) {
         val issueNumbers = IssueReferenceParser.findReferredIssueNumbers(commit.message)
         for (number in issueNumbers) {

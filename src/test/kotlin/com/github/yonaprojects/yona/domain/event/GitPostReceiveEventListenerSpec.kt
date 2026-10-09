@@ -14,7 +14,7 @@ import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.watch.WatchService
 import com.github.yonaprojects.yona.domain.webhook.WebhookService
-import com.github.yonaprojects.yona.domain.event.GitPostReceiveEvent
+import com.github.yonaprojects.yona.domain.webhook.PushedVcsCommits
 import java.io.File
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -24,18 +24,9 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
-import org.eclipse.jgit.internal.storage.dfs.DfsRepositoryDescription
-import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository
-import org.eclipse.jgit.lib.CommitBuilder
-import org.eclipse.jgit.lib.Constants
-import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.lib.PersonIdent
-import org.eclipse.jgit.lib.TreeFormatter
-import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.transport.ReceiveCommand
 import org.eclipse.jgit.transport.RefSpec
 import java.nio.file.Files
@@ -58,7 +49,8 @@ private fun seedTwoCommits(branch: String = "main"): Triple<ObjectId, ObjectId, 
     file.writeText("first")
     git.add().addFilepattern("file.txt").call()
     val author = PersonIdent("tester", "tester@yona.io", Date(946684800000L), TimeZone.getTimeZone("UTC"))
-    val firstCommit = git.commit().setSign(false).setAuthor(author).setCommitter(author).setMessage("fix #42 first commit #42").call()
+    val committer = PersonIdent("committer", "committer@yona.io")
+    val firstCommit = git.commit().setSign(false).setAuthor(author).setCommitter(committer).setMessage("fix #42 first commit #42").call()
 
     file.writeText("second")
     git.add().addFilepattern("file.txt").call()
@@ -73,23 +65,6 @@ private fun seedTwoCommits(branch: String = "main"): Triple<ObjectId, ObjectId, 
     return Triple(firstCommit.id, secondCommit.id, bareDir)
 }
 
-private fun testCommit(message: String): RevCommit {
-    val repo = InMemoryRepository(DfsRepositoryDescription())
-    val inserter = repo.newObjectInserter()
-    val blobId = inserter.insert(Constants.OBJ_BLOB, "content".toByteArray())
-    val tree = TreeFormatter()
-    tree.append("file.txt", FileMode.REGULAR_FILE, blobId)
-    val treeId = inserter.insert(tree)
-    val commitBuilder = CommitBuilder()
-    commitBuilder.setTreeId(treeId)
-    val ident = PersonIdent("tester", "tester@yona.io")
-    commitBuilder.author = ident
-    commitBuilder.committer = ident
-    commitBuilder.message = message
-    val commitId = inserter.insert(commitBuilder)
-    inserter.flush()
-    return RevWalk(repo).use { it.parseCommit(commitId) }
-}
 
 class GitPostReceiveEventListenerSpec : DescribeSpec({
     val gitService = mockk<GitService>()
@@ -101,8 +76,10 @@ class GitPostReceiveEventListenerSpec : DescribeSpec({
     val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
 
     val listener = GitPostReceiveEventListener(
-        gitService, notificationEventRecorder, CommitIssueReferenceService(issueRepository, issueEventRepository), webhookService,
-        watchService, eventPublisher
+        gitService, CommitPostProcessingService(
+            notificationEventRecorder, CommitIssueReferenceService(issueRepository, issueEventRepository),
+            webhookService, watchService, eventPublisher
+        )
     )
 
     val project = Project(id = 1L, name = "yona-project", owner = "gildong")
@@ -149,76 +126,8 @@ class GitPostReceiveEventListenerSpec : DescribeSpec({
     }
 
 
-    describe("GitPostReceiveEventListener.processCommitsNotification (P1-25, yona Webhook.sendRequestToPayloadUrl(commits,...) 대응)") {
-        it("push된 커밋이 있으면 NotificationEvent를 저장하고 NEW_COMMIT 웹훅을 발송해야 한다") {
-            val commit = testCommit("fix bug")
-            val savedNotification = slot<NotificationEvent>()
-            every { notificationEventRecorder.record(capture(savedNotification)) } answers { firstArg() }
 
-            listener.processCommitsNotification(listOf(commit), listOf("refs/heads/master"), project, sender)
-
-            savedNotification.captured.eventType shouldBe EventType.NEW_COMMIT
-            savedNotification.captured.senderId shouldBe sender.id
-
-            verify(exactly = 1) {
-                webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any())
-            }
-        }
-
-        it("push된 커밋이 없으면 알림도 웹훅도 발생시키지 않아야 한다") {
-            listener.processCommitsNotification(emptyList(), listOf("refs/heads/master"), project, sender)
-
-            verify(exactly = 0) { notificationEventRecorder.record(any()) }
-            verify(exactly = 0) { webhookService.sendWebhook(any(), any(), any(), any()) }
-        }
-
-        it("record()가 null을 반환하면(이미 처리된 이벤트) publishEvent를 호출하지 않고도 웹훅은 발송해야 한다") {
-            val commit = testCommit("fix bug")
-            every { notificationEventRecorder.record(any()) } returns null
-
-            listener.processCommitsNotification(listOf(commit), listOf("refs/heads/master"), project, sender)
-
-            verify(exactly = 0) { eventPublisher.publishEvent(any()) }
-            verify(exactly = 1) { webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any()) }
-        }
-
-        it("push된 커밋이 있으면 프로젝트 워처를 수신자로 계산해 NotificationEvent를 publish해야 한다 (P1-46)") {
-            val watcher = User(id = 20L, loginId = "watcher1", name = "워처")
-            every {
-                watchService.findActualWatchers(
-                    baseWatchers = emptySet(),
-                    resourceType = ResourceType.PROJECT,
-                    resourceId = "1",
-                    projectId = 1L,
-                    eventType = EventType.NEW_COMMIT
-                )
-            } returns setOf(watcher, sender)
-
-            val commit = testCommit("fix bug")
-            val savedNotification = slot<NotificationEvent>()
-            every { notificationEventRecorder.record(capture(savedNotification)) } answers { firstArg() }
-
-            listener.processCommitsNotification(listOf(commit), listOf("refs/heads/master"), project, sender)
-
-            // 워처 목록에 발신자 본인이 섞여 있어도 자기 자신에게는 알림을 보내지 않는다(기존 다른 리스너들과 동일한 관례)
-            savedNotification.captured.receivers shouldBe setOf(watcher)
-            verify(exactly = 1) { eventPublisher.publishEvent(savedNotification.captured) }
-        }
-
-        it("ref가 2개 이상으로 push되면 제목에 개별 브랜치명 대신 총 커밋수 문구를 써야 한다") {
-            val commit = testCommit("fix bug")
-            val savedNotification = slot<NotificationEvent>()
-            every { notificationEventRecorder.record(capture(savedNotification)) } answers { firstArg() }
-
-            listener.processCommitsNotification(listOf(commit), listOf("refs/heads/a", "refs/heads/b"), project, sender)
-
-            savedNotification.captured.title shouldBe "[yona-project] 1개의 커밋이 푸시되었습니다."
-        }
-    }
-
-    // handleGitPostReceiveEvent()는 gitService.getRepositoryPath()가 반환한 File로 RepositoryBuilder를
-    // 직접 열어 RevWalk까지 실행하는 실제 코드라, isNewOrUpdateCommand/parseCommitsFrom/
-    // processIssueReferredFromCommit의 분기는 실제 bare 저장소 없이는 태울 수 없다.
+    // Exercise collection and conversion through real Git objects, not listener internals.
     describe("GitPostReceiveEventListener.handleGitPostReceiveEvent (실제 bare 저장소)") {
         it("two CREATE refs preserve two events with the pusher and processing time") {
             val (firstId, _, bareDir) = seedTwoCommits()
@@ -227,6 +136,8 @@ class GitPostReceiveEventListenerSpec : DescribeSpec({
             every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue
             val saved = mutableListOf<IssueEvent>()
             every { issueEventRepository.save(capture(saved)) } answers { firstArg() }
+            val pushed = slot<PushedVcsCommits>()
+            every { webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, capture(pushed)) } returns Unit
             val before = Instant.now()
             listener.handleGitPostReceiveEvent(GitPostReceiveEvent(project, sender, listOf(
                 ReceiveCommand(ObjectId.zeroId(), firstId, "refs/heads/a"),
@@ -242,6 +153,16 @@ class GitPostReceiveEventListenerSpec : DescribeSpec({
                 it.oldValue shouldBe null
                 it.eventType shouldBe EventType.ISSUE_REFERRED_FROM_COMMIT
                 (it.created >= before && it.created <= after) shouldBe true
+            }
+            pushed.captured.refNames shouldBe listOf("refs/heads/a", "refs/heads/b")
+            pushed.captured.commits.forEach {
+                it.id shouldBe firstId.name
+                it.message shouldBe "fix #42 first commit #42"
+                it.authorName shouldBe "tester"
+                it.authorEmail shouldBe "tester@yona.io"
+                it.committerName shouldBe "committer"
+                it.committerEmail shouldBe "committer@yona.io"
+                it.timestamp shouldBe Instant.parse("2000-01-01T00:00:00Z")
             }
             verifyOrder {
                 notificationEventRecorder.record(any())

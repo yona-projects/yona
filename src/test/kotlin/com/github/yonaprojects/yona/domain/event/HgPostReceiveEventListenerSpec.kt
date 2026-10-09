@@ -16,10 +16,9 @@ import com.github.yonaprojects.yona.domain.vcs.HgBookmarkMove
 import com.github.yonaprojects.yona.domain.vcs.HgRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import com.github.yonaprojects.yona.domain.watch.WatchService
-import com.github.yonaprojects.yona.domain.webhook.PushedHgCommits
+import com.github.yonaprojects.yona.domain.webhook.PushedVcsCommits
 import com.github.yonaprojects.yona.domain.webhook.WebhookService
 import io.github.search5.hg4j.api.Hg
-import io.github.search5.hg4j.api.HgCommit as NativeHgCommit
 import io.github.search5.hg4j.lib.NodeId
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -64,8 +63,10 @@ class HgPostReceiveEventListenerSpec : DescribeSpec({
     val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
 
     val listener = HgPostReceiveEventListener(
-        repositoryService, notificationEventRecorder, CommitIssueReferenceService(issueRepository, issueEventRepository), webhookService,
-        watchService, eventPublisher
+        repositoryService, CommitPostProcessingService(
+            notificationEventRecorder, CommitIssueReferenceService(issueRepository, issueEventRepository),
+            webhookService, watchService, eventPublisher
+        )
     )
 
     val project = Project(id = 1L, name = "yona-project", owner = "gildong")
@@ -85,29 +86,6 @@ class HgPostReceiveEventListenerSpec : DescribeSpec({
     }
 
 
-    describe("HgPostReceiveEventListener.processCommitsNotification") {
-        it("push된 커밋이 있으면 NotificationEvent를 저장하고 NEW_COMMIT 웹훅을 발송해야 한다") {
-            val repoDir = newTempRepoDir()
-            val hex = commitFile(repoDir, "a.txt", "hello", "fix bug")
-            val native: NativeHgCommit = Hg.open(repoDir).use { hg -> hg.log().call().first() }
-            val savedNotification = slot<NotificationEvent>()
-            every { notificationEventRecorder.record(capture(savedNotification)) } answers { firstArg() }
-
-            listener.processCommitsNotification(listOf(native), listOf("refs/heads/master"), project, sender)
-
-            savedNotification.captured.eventType shouldBe EventType.NEW_COMMIT
-            savedNotification.captured.senderId shouldBe sender.id
-            savedNotification.captured.resourceId shouldBe hex
-            verify(exactly = 1) { webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedHgCommits>()) }
-        }
-
-        it("push된 커밋이 없으면 알림도 웹훅도 발생시키지 않아야 한다") {
-            listener.processCommitsNotification(emptyList(), listOf("refs/heads/master"), project, sender)
-
-            verify(exactly = 0) { notificationEventRecorder.record(any()) }
-            verify(exactly = 0) { webhookService.sendWebhook(any(), any(), any(), any()) }
-        }
-    }
 
     // handleHgPostReceiveEvent()는 RepositoryService.getRepository(project).getDirectory()로 실제
     // 로컬 hg 저장소를 열어 Revlog까지 실행하는 실제 코드라, mock으로 우회할 수 없다.
@@ -122,6 +100,8 @@ class HgPostReceiveEventListenerSpec : DescribeSpec({
             every { issueRepository.findByProjectAndNumber(project, 42L) } returns issue
             val saved = mutableListOf<IssueEvent>()
             every { issueEventRepository.save(capture(saved)) } answers { firstArg() }
+            val pushed = mutableListOf<PushedVcsCommits>()
+            every { webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, capture(pushed)) } returns Unit
             val before = Instant.now()
             for (bookmark in listOf("a", "b")) {
                 listener.handleHgPostReceiveEvent(HgPostReceiveEvent(
@@ -139,12 +119,23 @@ class HgPostReceiveEventListenerSpec : DescribeSpec({
                 it.eventType shouldBe EventType.ISSUE_REFERRED_FROM_COMMIT
                 (it.created >= before && it.created <= after) shouldBe true
             }
+            pushed.map { it.refNames } shouldBe listOf(listOf("refs/heads/a"), listOf("refs/heads/b"))
+            pushed.forEach { push ->
+                val commit = push.commits.single()
+                commit.id shouldBe hex
+                commit.message shouldBe "fix #42 #42"
+                commit.authorName shouldBe "author"
+                commit.authorEmail shouldBe "author@example.com"
+                commit.committerName shouldBe commit.authorName
+                commit.committerEmail shouldBe commit.authorEmail
+                commit.timestamp shouldBe Instant.parse("2000-01-01T00:00:00Z")
+            }
             verifyOrder {
                 notificationEventRecorder.record(any())
-                webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedHgCommits>())
+                webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedVcsCommits>())
                 issueEventRepository.save(any())
                 notificationEventRecorder.record(any())
-                webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedHgCommits>())
+                webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedVcsCommits>())
                 issueEventRepository.save(any())
             }
         }
@@ -163,7 +154,7 @@ class HgPostReceiveEventListenerSpec : DescribeSpec({
             listener.handleHgPostReceiveEvent(HgPostReceiveEvent(project, sender, move))
 
             savedNotification.captured.eventType shouldBe EventType.NEW_COMMIT
-            verify(exactly = 1) { webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedHgCommits>()) }
+            verify(exactly = 1) { webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, any<PushedVcsCommits>()) }
         }
 
         it("CREATE(북마크 생성)로 새 커밋만 있으면 그 커밋 하나만 처리하고 이슈 참조도 기록해야 한다") {
