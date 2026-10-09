@@ -251,8 +251,9 @@ class UserViewController(
     ): String {
         // 조직이 소유한 프로젝트의 소유자 링크(breadcrumb, 프로젝트 목록, PR 화면 등)는 소유자가 사용자인지 조직인지 구분하지 않고
         // /user/{소유자} 또는 /{소유자}로 나간다. 1.6(UserApp.userInfo)처럼 같은 이름의 조직이 있으면 **먼저** 조직 페이지로
-        // 보낸다(yona-projects/yona#845). 조직을 먼저 보는 이유: 이 앱의 가입(AuthController)은 조직 이름과의 중복을 막지 않아서,
-        // 사용자를 먼저 보면 기존 조직과 같은 ID로 가입한 사람이 조직의 프로필 경로와 소유자 링크를 가로챌 수 있다.
+        // 보낸다(yona-projects/yona#845). 조직을 먼저 보는 이유: 가입 폼(AuthController)과 OAuth·벌크 생성 경로는 조직 이름과
+        // 겹치는 ID를 막지만, 그 검사가 생기기 전에 만들어진 사용자는 같은 이름을 가질 수 있다. 그런 사용자를 먼저 보면
+        // 조직의 프로필 경로와 소유자 링크를 가로채게 된다.
         organizationRepository.findByName(loginId).orElse(null)?.let { organization ->
             // redirect: 뷰는 {…}를 URI 템플릿 변수로 해석하므로 경로 조각으로 인코딩해서 넘긴다.
             return "redirect:/organizations/" + UriUtils.encodePathSegment(organization.name, Charsets.UTF_8)

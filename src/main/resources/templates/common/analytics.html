@@ -7,10 +7,21 @@
 <th:block th:fragment="gtag(layout)" th:if="${@analyticsSettings.clientEnabled}">
   <script th:inline="javascript">
     (function () {
-      var RESERVED = ['_help', '_notifications', 'api', 'bootstrap-setup', 'categories', 'data', 'export', 'files',
-        'git-lfs', 'history', 'issues', 'labels', 'login', 'members', 'meta', 'migration', 'notifications', 'orgs',
-        'pages', 'projectform', 'projects', 'prs', 'raw', 'search', 'site', 'admin', 'status', 'svn', 'user', 'users',
-        'org', 'organizations'];
+      // 가입 시 조직·사용자 이름으로 쓸 수 없는 단어(ReservedWordsValidator와 같은 목록)만 첫 조각으로 그대로 보낸다.
+      // 그 밖의 첫 조각은 이름일 수 있으므로 라우트 단어라도 /:owner로 가린다. 목록을 바꾸면 Kotlin 쪽과 함께 바꿔야 한다.
+      var RESERVED = ['new', 'projects', 'orgs', 'organizations', 'api', 'site', 'users', 'user', 'login', 'logout',
+        'signup', 'search', 'svn', 'git', 'git-lfs', 'files', 'images', 'javascripts', 'stylesheets', 'help', 'membership',
+        'members', 'settings', 'notifications', 'messages', 'watch', 'unwatch', 'labels', 'milestones', 'issues', 'pulls',
+        'pull', 'post', 'posts', 'board', 'project', 'org', 'data', 'export', 'import', 'migration', 'bootstrap-setup',
+        'diagnostic'];
+
+      // 프로젝트 하위 화면의 고정 단어만 세 번째 조각으로 남긴다. 그 밖의 값(프로젝트 식별자, 인증 코드, 파일 경로 등)은
+      // 사용자 데이터일 수 있으므로 :id로 가린다.
+      var PROJECT_PAGES = ['branches', 'changeVCS', 'closedPullRequests', 'code', 'commit', 'commits', 'compare',
+        'copyLabels', 'delete', 'deleteform', 'files', 'fork', 'image', 'issue', 'issueform', 'issues', 'labels', 'members',
+        'milestone', 'milestones', 'newFork', 'newMilestoneForm', 'newmilestoneform', 'objects', 'post', 'postform', 'posts',
+        'pull', 'pullRequest', 'pulls', 'rawcode', 'reviews', 'search', 'sentPullRequests', 'setting', 'settings',
+        'statistics', 'tags', 'transfer', 'unwatch', 'watch', 'watchers', 'wiki'];
 
       // 예) /acme/secret-proj/issue/42 -> /:owner/:project/issue, /users/jiho -> /users, /acme -> /:owner
       function maskPath(pathname) {
@@ -19,7 +30,7 @@
         if (RESERVED.indexOf(segs[0]) >= 0) return '/' + segs[0];
         if (segs.length === 1) return '/:owner';
         if (segs.length === 2) return '/:owner/:project';
-        return '/:owner/:project/' + segs[2];
+        return '/:owner/:project/' + (PROJECT_PAGES.indexOf(segs[2]) >= 0 ? segs[2] : ':id');
       }
 
       var measurementId = [[${@analyticsSettings.measurementId}]];

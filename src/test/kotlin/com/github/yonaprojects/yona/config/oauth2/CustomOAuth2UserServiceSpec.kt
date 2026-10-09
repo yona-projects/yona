@@ -1,5 +1,7 @@
 package com.github.yonaprojects.yona.config.oauth2
 
+import com.github.yonaprojects.yona.domain.organization.Organization
+import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.user.LinkedAccount
 import com.github.yonaprojects.yona.domain.user.LinkedAccountRepository
 import com.github.yonaprojects.yona.domain.user.User
@@ -27,12 +29,15 @@ class CustomOAuth2UserServiceSpec : DescribeSpec({
     val linkedAccountRepository = mockk<LinkedAccountRepository>()
     val delegate = mockk<DefaultOAuth2UserService>()
     val accountMergeService = mockk<OAuth2AccountMergeService>()
+    val organizationRepository = mockk<OrganizationRepository>()
     val customOAuth2UserService = CustomOAuth2UserService(
-        userRepository, linkedAccountRepository, accountMergeService, delegate, ""
+        userRepository, linkedAccountRepository, accountMergeService, organizationRepository, delegate, ""
     )
 
     beforeTest {
         clearMocks(userRepository, linkedAccountRepository, delegate, accountMergeService)
+        // 기본값: 조직 이름과 겹치는 loginId는 없다. 충돌 케이스만 개별 테스트에서 덮어쓴다.
+        every { organizationRepository.findByName(any()) } returns Optional.empty()
         SecurityContextHolder.clearContext()
     }
 
@@ -176,7 +181,7 @@ class CustomOAuth2UserServiceSpec : DescribeSpec({
 
         it("허용된 이메일 도메인 설정이 있고 신규 가입자의 이메일이 그 목록에 없으면 OAuth2AuthenticationException을 던져야 한다") {
             val restrictedService = CustomOAuth2UserService(
-                userRepository, linkedAccountRepository, accountMergeService, delegate, "allowed.com"
+                userRepository, linkedAccountRepository, accountMergeService, organizationRepository, delegate, "allowed.com"
             )
 
             val clientRegistration = ClientRegistration.withRegistrationId("google")
@@ -198,6 +203,31 @@ class CustomOAuth2UserServiceSpec : DescribeSpec({
                 restrictedService.loadUser(userRequest)
             }
             verify(exactly = 0) { userRepository.save(any()) }
+        }
+
+        it("신규 가입자의 loginId가 기존 조직 이름과 같으면 가입시키지 않고 OAuth2AuthenticationException을 던져야 한다") {
+            val clientRegistration = ClientRegistration.withRegistrationId("google")
+                .clientId("client-id").tokenUri("https://token.uri").authorizationUri("https://auth.uri")
+                .userInfoUri("https://user.info.uri").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("https://redirect.uri").build()
+            val userRequest = mockk<OAuth2UserRequest>()
+            every { userRequest.clientRegistration } returns clientRegistration
+
+            val attributes = mapOf("sub" to "google-sub-id", "name" to "홍길동", "email" to "gildong@example.com")
+            val defaultOAuth2User = DefaultOAuth2User(listOf(SimpleGrantedAuthority("ROLE_USER")), attributes, "sub")
+            every { delegate.loadUser(userRequest) } returns defaultOAuth2User
+
+            every { linkedAccountRepository.findByProviderKeyAndProviderUserId("google", "google-sub-id") } returns Optional.empty()
+            every { userRepository.findByEmail("gildong@example.com") } returns Optional.empty()
+            every { userRepository.findByLoginId("gildong") } returns Optional.empty()
+            every { organizationRepository.findByName("gildong") } returns Optional.of(Organization(id = 20L, name = "gildong"))
+
+            val exception = shouldThrow<OAuth2AuthenticationException> {
+                customOAuth2UserService.loadUser(userRequest)
+            }
+            exception.error.errorCode shouldBe "login_id_conflicts_with_organization"
+            verify(exactly = 0) { userRepository.save(any()) }
+            verify(exactly = 0) { linkedAccountRepository.save(any()) }
         }
 
         // yona YonaUserServicePlugin.link(oldUser, newUser) 대응 (P1-56). 로그인 중인 사용자가 아직
@@ -294,7 +324,9 @@ class CustomOAuth2UserServiceSpec : DescribeSpec({
             verify(exactly = 0) { linkedAccountRepository.save(any()) }
         }
 
-        it("이메일로 찾을 수 없지만 loginId가 일치하는 경우 기존 사용자 계정과 연결해야 한다") {
+        // 보안: loginId(GitHub 사용자명, Gmail 로컬파트)가 같다는 이유로 기존 계정에 연결하면, 같은 이름을 가진
+        // 다른 사람이 소셜 로그인만으로 그 계정에 들어간다(계정 탈취). 이메일이 다르면 연결하지 않고 거부해야 한다.
+        it("이메일은 다르고 loginId만 같은 기존 사용자가 있으면 연결하지 않고 거부해야 한다(계정 탈취 방지)") {
             val clientRegistration = ClientRegistration.withRegistrationId("github")
                 .clientId("client-id").tokenUri("https://token.uri").authorizationUri("https://auth.uri")
                 .userInfoUri("https://user.info.uri").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
@@ -302,23 +334,45 @@ class CustomOAuth2UserServiceSpec : DescribeSpec({
             val userRequest = mockk<OAuth2UserRequest>()
             every { userRequest.clientRegistration } returns clientRegistration
 
-            val attributes = mapOf("id" to 888, "login" to "gildong", "name" to "홍길동", "email" to "new-email@example.com")
+            val attributes = mapOf("id" to 888, "login" to "gildong", "name" to "홍길동", "email" to "attacker@example.com")
             val defaultOAuth2User = DefaultOAuth2User(listOf(SimpleGrantedAuthority("ROLE_USER")), attributes, "id")
             every { delegate.loadUser(userRequest) } returns defaultOAuth2User
 
-            val existingUser = User(id = 42L, loginId = "gildong", name = "홍길동", email = "old-email@example.com", state = UserState.ACTIVE)
+            val existingUser = User(id = 42L, loginId = "gildong", name = "홍길동", email = "victim@example.com", state = UserState.ACTIVE)
             every { linkedAccountRepository.findByProviderKeyAndProviderUserId("github", "888") } returns Optional.empty()
-            every { userRepository.findByEmail("new-email@example.com") } returns Optional.empty()
+            every { userRepository.findByEmail("attacker@example.com") } returns Optional.empty()
             every { userRepository.findByLoginId("gildong") } returns Optional.of(existingUser)
-            every { linkedAccountRepository.save(any()) } answers { firstArg() }
 
-            val oauth2User = customOAuth2UserService.loadUser(userRequest) as YonaOAuth2User
-
-            oauth2User.user.id shouldBe 42L
-            verify(exactly = 0) { userRepository.save(any()) }
-            verify(exactly = 1) {
-                linkedAccountRepository.save(match { it.providerKey == "github" && it.providerUserId == "888" && it.user.id == 42L })
+            val exception = shouldThrow<OAuth2AuthenticationException> {
+                customOAuth2UserService.loadUser(userRequest)
             }
+            exception.error.errorCode shouldBe "login_id_conflicts_with_user"
+            verify(exactly = 0) { userRepository.save(any()) }
+            verify(exactly = 0) { linkedAccountRepository.save(any()) }
+        }
+
+        it("신규 가입자의 loginId가 기존 사용자와 같으면 가입시키지 않고 OAuth2AuthenticationException을 던져야 한다") {
+            val clientRegistration = ClientRegistration.withRegistrationId("google")
+                .clientId("client-id").tokenUri("https://token.uri").authorizationUri("https://auth.uri")
+                .userInfoUri("https://user.info.uri").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("https://redirect.uri").build()
+            val userRequest = mockk<OAuth2UserRequest>()
+            every { userRequest.clientRegistration } returns clientRegistration
+
+            val attributes = mapOf("sub" to "google-sub-id", "name" to "홍길동", "email" to "gildong2@example.com")
+            val defaultOAuth2User = DefaultOAuth2User(listOf(SimpleGrantedAuthority("ROLE_USER")), attributes, "sub")
+            every { delegate.loadUser(userRequest) } returns defaultOAuth2User
+
+            val existingUser = User(id = 42L, loginId = "gildong2", name = "기존", email = "other@example.com", state = UserState.ACTIVE)
+            every { linkedAccountRepository.findByProviderKeyAndProviderUserId("google", "google-sub-id") } returns Optional.empty()
+            every { userRepository.findByEmail("gildong2@example.com") } returns Optional.empty()
+            every { userRepository.findByLoginId("gildong2") } returns Optional.of(existingUser)
+
+            val exception = shouldThrow<OAuth2AuthenticationException> {
+                customOAuth2UserService.loadUser(userRequest)
+            }
+            exception.error.errorCode shouldBe "login_id_conflicts_with_user"
+            verify(exactly = 0) { userRepository.save(any()) }
         }
     }
 })

@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.domain.user
 
+import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -12,7 +13,8 @@ import java.time.Instant
  */
 @Service
 class Saml2UserProvisioningService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val organizationRepository: OrganizationRepository
 ) {
     @Transactional
     fun reconcile(
@@ -39,6 +41,14 @@ class Saml2UserProvisioningService(
 
     private fun createNewUser(email: String, displayName: String): User {
         val loginId = email.substringBefore("@")
+        // 이미 있는 사용자 ID면 유니크 제약 위반으로 깨지지 않도록 막는다(연결은 이메일로만 한다).
+        if (userRepository.findByLoginId(loginId).isPresent) {
+            throw IllegalStateException("이미 존재하는 아이디($loginId)로는 SSO 가입을 할 수 없습니다.")
+        }
+        // 조직 이름과 같은 loginId로 가입시키지 않는다(OAuth 신규 가입과 같은 기준). 조직 우선 리다이렉트에 가려진다.
+        if (organizationRepository.findByName(loginId).isPresent) {
+            throw IllegalStateException("조직 이름과 같은 아이디($loginId)로는 가입할 수 없습니다.")
+        }
         val user = User(
             loginId = loginId,
             name = displayName,

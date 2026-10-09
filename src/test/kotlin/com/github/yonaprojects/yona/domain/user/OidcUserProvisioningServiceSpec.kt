@@ -1,5 +1,7 @@
 package com.github.yonaprojects.yona.domain.user
 
+import com.github.yonaprojects.yona.domain.organization.Organization
+import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -7,6 +9,7 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import java.time.Instant
@@ -16,10 +19,14 @@ import java.util.Optional
 // 없이 Spring Security가 파싱해서 넘겨주는 OidcUser 결과값을 직접 만들어 reconcile()에 넣는 순수 단위테스트.
 class OidcUserProvisioningServiceSpec : DescribeSpec({
     val userRepository = mockk<UserRepository>()
-    val service = OidcUserProvisioningService(userRepository)
+    val organizationRepository = mockk<OrganizationRepository>()
+    val service = OidcUserProvisioningService(userRepository, organizationRepository)
 
     beforeTest {
         clearMocks(userRepository)
+        // 기본값: 신규 loginId는 사용자·조직 이름과 겹치지 않는다. 충돌 케이스만 개별 테스트에서 덮어쓴다.
+        every { userRepository.findByLoginId(any()) } returns Optional.empty()
+        every { organizationRepository.findByName(any()) } returns Optional.empty()
     }
 
     fun oidcUser(claims: Map<String, Any>): DefaultOidcUser {
@@ -76,6 +83,29 @@ class OidcUserProvisioningServiceSpec : DescribeSpec({
 
             result.loginId shouldBe "noname"
             result.name shouldBe "noname"
+        }
+
+        it("신규 유저의 loginId가 이미 있는 사용자와 같으면 생성하지 않고 예외를 던져야 한다") {
+            val user = oidcUser(mapOf("sub" to "abc123", "email" to "taken@example.com", "name" to "중복"))
+            every { userRepository.findByEmail("taken@example.com") } returns Optional.empty()
+            every { userRepository.findByLoginId("taken") } returns
+                Optional.of(User(id = 7L, loginId = "taken", name = "기존", email = "old@example.com", state = UserState.ACTIVE))
+
+            shouldThrow<IllegalStateException> {
+                service.reconcile(user)
+            }
+            verify(exactly = 0) { userRepository.save(any()) }
+        }
+
+        it("신규 유저의 loginId가 기존 조직 이름과 같으면 생성하지 않고 예외를 던져야 한다") {
+            val user = oidcUser(mapOf("sub" to "abc123", "email" to "orgclash@example.com", "name" to "조직명"))
+            every { userRepository.findByEmail("orgclash@example.com") } returns Optional.empty()
+            every { organizationRepository.findByName("orgclash") } returns Optional.of(Organization(id = 20L, name = "orgclash"))
+
+            shouldThrow<IllegalStateException> {
+                service.reconcile(user)
+            }
+            verify(exactly = 0) { userRepository.save(any()) }
         }
 
         it("이메일 클레임이 없으면 예외를 던져야 한다") {
