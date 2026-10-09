@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { documentReady } from '../../support/ready';
+import { afterReload, documentReady } from '../../support/ready';
 import { requireSeed } from '../../support/seed-store';
 import { uniqueSuffix } from '../../support/unique';
 
@@ -181,7 +181,9 @@ test.describe.serial('Turbo issue two-column semantics', () => {
     await page.locator('#issue-detail #comment-form button[type="submit"]').click();
     const visibleEditor = page.locator('#issue-detail #comment-form .cm-content');
     await visibleEditor.fill('Comment submitted from the real Turbo detail');
-    await visibleEditor.press('Control+Shift+Enter');
+    // Posting reloads the page. The editor sits inside #comments, so the text check alone can match the old
+    // document; wait for the reloaded one before using its task-list handlers.
+    await afterReload(page, () => visibleEditor.press('Control+Shift+Enter'));
     await expect(page.locator('#issue-detail #comments')).toContainText('Comment submitted from the real Turbo detail');
     expect(posts).toHaveLength(1);
     const rejected = await page.request.post(`${base}/issues`, { form: { title: 'Missing CSRF must fail' } });
