@@ -41,7 +41,7 @@ class OrganizationControllerSpec : DescribeSpec({
         clearMocks(organizationService, organizationUserRepository, userRepository)
     }
 
-    val siteManager = User(id = 1L, loginId = "sitemanager", name = "사이트매니저", state = UserState.SITE_ADMIN)
+    val siteManager = User(id = 1L, loginId = "sitemanager", name = "사이트매니저", isSiteAdmin = true)
     val regularUser = User(id = 2L, loginId = "regular", name = "일반유저", state = UserState.ACTIVE)
     val siteManagerAuth = UsernamePasswordAuthenticationToken("sitemanager", "password")
     val regularAuth = UsernamePasswordAuthenticationToken("regular", "password")

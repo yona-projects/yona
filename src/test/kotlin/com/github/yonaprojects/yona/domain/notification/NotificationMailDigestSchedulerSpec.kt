@@ -121,8 +121,8 @@ class NotificationMailDigestSchedulerSpec : DescribeSpec({
         meterRegistry = SimpleMeterRegistry()
     }
 
-    fun receiver(id: Long, email: String = "u$id@yona.io", lang: String? = "ko", state: UserState = UserState.ACTIVE) =
-        User(id = id, loginId = "user$id", name = "사용자$id", email = email, state = state, lang = lang)
+    fun receiver(id: Long, email: String = "u$id@yona.io", lang: String? = "ko", state: UserState = UserState.ACTIVE, isSiteAdmin: Boolean = false, isGuest: Boolean = false) =
+        User(id = id, loginId = "user$id", name = "사용자$id", email = email, state = state, lang = lang, isSiteAdmin = isSiteAdmin, isGuest = isGuest)
 
     fun issueEvent(receivers: Set<User>, id: Long = 1L) = NotificationEvent(
         id = id, title = "제목", created = Instant.now(),
@@ -215,8 +215,8 @@ class NotificationMailDigestSchedulerSpec : DescribeSpec({
         // v1.6 filterInactiveUsers는 state != ACTIVE만 뺐지만, v1.6에서 사이트 관리자는 SiteAdmin 테이블, 게스트는 isGuest 불리언이라
         // state가 ACTIVE였다. next는 둘을 state(SITE_ADMIN/GUEST)로 옮겼으므로 "ACTIVE만"이 아니라 LOCKED/DELETED만 빼야 같은 동작이다.
         it("사이트 관리자(SITE_ADMIN)와 게스트(GUEST)는 수신자에 남기고 LOCKED/DELETED만 제외한다") {
-            val admin = receiver(4L, state = UserState.SITE_ADMIN)
-            val guest = receiver(5L, state = UserState.GUEST)
+            val admin = receiver(4L, isSiteAdmin = true)
+            val guest = receiver(5L, isGuest = true)
             val locked = receiver(6L, state = UserState.LOCKED)
             val deleted = receiver(7L, state = UserState.DELETED)
             val event = issueEvent(setOf(admin, guest, locked, deleted))

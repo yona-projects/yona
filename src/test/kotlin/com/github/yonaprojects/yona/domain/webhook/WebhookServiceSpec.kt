@@ -287,7 +287,7 @@ class WebhookServiceSpec : DescribeSpec({
                 )
                 val siteAdminSender = User(
                     id = 6L, loginId = "admin", name = "관리자", email = "admin@yona.io",
-                    state = UserState.SITE_ADMIN
+                    isSiteAdmin = true
                 )
                 val commit = testCommit("admin commit", authorName = "admin", authorEmail = "admin@yona.io")
                 val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))

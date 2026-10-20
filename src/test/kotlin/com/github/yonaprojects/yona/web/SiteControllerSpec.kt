@@ -103,13 +103,13 @@ class SiteControllerSpec : DescribeSpec({
     }
 
     describe("SiteViewController & SiteApiController 관리 기능 명세") {
-        var adminUser = User(id = 1L, loginId = "admin", name = "어드민", email = "admin@example.com", state = UserState.SITE_ADMIN)
+        var adminUser = User(id = 1L, loginId = "admin", name = "어드민", email = "admin@example.com", isSiteAdmin = true)
         var normalUser = User(id = 2L, loginId = "gildong", name = "홍길동", email = "gildong@example.com", state = UserState.ACTIVE)
         val adminAuth = UsernamePasswordAuthenticationToken("admin", "pass")
         val normalAuth = UsernamePasswordAuthenticationToken("gildong", "pass")
 
         beforeEach {
-            adminUser = User(id = 1L, loginId = "admin", name = "어드민", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            adminUser = User(id = 1L, loginId = "admin", name = "어드민", email = "admin@example.com", isSiteAdmin = true)
             normalUser = User(id = 2L, loginId = "gildong", name = "홍길동", email = "gildong@example.com", state = UserState.ACTIVE)
         }
 

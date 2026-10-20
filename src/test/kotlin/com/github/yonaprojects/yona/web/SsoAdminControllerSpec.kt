@@ -29,7 +29,7 @@ class SsoAdminControllerSpec : DescribeSpec({
     val mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
 
     val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
-    val adminUser = User(id = 1L, loginId = "admin", name = "admin", state = UserState.SITE_ADMIN)
+    val adminUser = User(id = 1L, loginId = "admin", name = "admin", isSiteAdmin = true)
     val normalAuth = UsernamePasswordAuthenticationToken("normal", "password")
     val normalUser = User(id = 2L, loginId = "normal", name = "normal", state = UserState.ACTIVE)
 

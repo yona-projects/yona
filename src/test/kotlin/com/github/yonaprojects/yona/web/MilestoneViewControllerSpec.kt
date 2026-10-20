@@ -1524,7 +1524,7 @@ class MilestoneViewControllerSpec : DescribeSpec({
     // URL의 프로젝트에 속하는지 확인했다.
     describe("마일스톤 쓰기 권한과 소속 검증") {
         val project = Project(id = 1L, name = "TestProj", owner = "owner", projectScope = ProjectScope.PRIVATE)
-        val siteAdmin = User(id = 11L, loginId = "siteadmin", name = "사이트관리자", state = com.github.yonaprojects.yona.domain.user.UserState.SITE_ADMIN)
+        val siteAdmin = User(id = 11L, loginId = "siteadmin", name = "사이트관리자", isSiteAdmin = true)
         val siteAdminAuth = UsernamePasswordAuthenticationToken("siteadmin", "password")
         val member = User(id = 10L, loginId = "testuser", name = "멤버")
         val memberAuth = UsernamePasswordAuthenticationToken("testuser", "password")

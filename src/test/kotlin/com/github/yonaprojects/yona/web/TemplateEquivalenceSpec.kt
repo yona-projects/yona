@@ -191,10 +191,10 @@ class TemplateEquivalenceSpec @Autowired constructor(
             )
 
             val siteAdmin = userRepository.findByLoginId("siteadmin").orElseGet {
-                userRepository.save(User(loginId = "siteadmin", name = "관리자", email = "siteadmin@yona.io", state = UserState.SITE_ADMIN))
+                userRepository.save(User(loginId = "siteadmin", name = "관리자", email = "siteadmin@yona.io", isSiteAdmin = true))
             }.let {
-                if (it.state != UserState.SITE_ADMIN) {
-                    it.state = UserState.SITE_ADMIN
+                if (!it.isSiteAdmin) {
+                    it.isSiteAdmin = true
                     userRepository.save(it)
                 } else it
             }

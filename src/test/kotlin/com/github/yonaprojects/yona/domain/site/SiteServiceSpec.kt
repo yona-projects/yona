@@ -43,19 +43,22 @@ class SiteServiceSpec : DescribeSpec({
     }
 
     // v1.6는 잠금(state)·게스트(isGuest)·사이트 관리자(SiteAdmin 테이블)가 서로 다른 축이라 한 토글이 다른 역할을 지우지 못했다.
-    // next는 셋이 모두 state 하나에 합쳐져 있어 토글이 서로를 덮어쓴다. 완전한 축 분리(스키마 변경) 전까지 덮어쓰기만 막는다.
-    describe("SiteService - state 축 상호작용") {
-        it("사이트 관리자는 잠금 토글로 관리자 권한을 잃지 않는다") {
-            val admin = User(id = 30L, loginId = "admin1", name = "관리자", state = UserState.SITE_ADMIN)
+    describe("SiteService - 세 축은 서로 독립이다") {
+        it("관리자를 잠그고 풀어도 관리자 권한이 남는다") {
+            val admin = User(id = 30L, loginId = "admin1", name = "관리자", state = UserState.ACTIVE, isSiteAdmin = true)
             every { userRepository.findByLoginId("admin1") } returns Optional.of(admin)
             every { userRepository.save(any()) } answers { firstArg() }
 
             service.toggleAccountLock("admin1")
+            admin.state shouldBe UserState.LOCKED
+            admin.isSiteAdmin shouldBe true
 
-            admin.state shouldBe UserState.SITE_ADMIN
+            service.toggleAccountLock("admin1")
+            admin.state shouldBe UserState.ACTIVE
+            admin.isSiteAdmin shouldBe true
         }
 
-        it("잠긴 사용자에게 게스트 전환을 해도 잠금이 풀리지 않는다") {
+        it("잠긴 사용자를 게스트로 전환해도 잠금이 유지되고 게스트 플래그만 바뀐다") {
             val locked = User(id = 31L, loginId = "locked1", name = "잠금", state = UserState.LOCKED)
             every { userRepository.findByLoginId("locked1") } returns Optional.of(locked)
             every { userRepository.save(any()) } answers { firstArg() }
@@ -63,18 +66,31 @@ class SiteServiceSpec : DescribeSpec({
             service.toggleGuestMode("locked1")
 
             locked.state shouldBe UserState.LOCKED
-            locked.isGuest shouldBe false
+            locked.isGuest shouldBe true
         }
 
-        it("게스트에게 관리자 권한을 주면 게스트 플래그가 해제된다") {
-            val guest = User(id = 32L, loginId = "guest1", name = "게스트", state = UserState.GUEST, isGuest = true)
+        it("게스트에게 관리자 권한을 줘도 게스트 플래그는 그대로이고 관리자 플래그만 켜진다") {
+            val guest = User(id = 32L, loginId = "guest1", name = "게스트", state = UserState.ACTIVE, isGuest = true)
             every { userRepository.findByLoginId("guest1") } returns Optional.of(guest)
             every { userRepository.save(any()) } answers { firstArg() }
 
             service.toggleSiteAdminRole("guest1")
 
-            guest.state shouldBe UserState.SITE_ADMIN
-            guest.isGuest shouldBe false
+            guest.isSiteAdmin shouldBe true
+            guest.isGuest shouldBe true
+            guest.state shouldBe UserState.ACTIVE
+        }
+
+        it("관리자 권한을 해제해도 잠금·게스트 상태는 그대로다") {
+            val u = User(id = 33L, loginId = "demoted", name = "강등", state = UserState.LOCKED, isGuest = true, isSiteAdmin = true)
+            every { userRepository.findByLoginId("demoted") } returns Optional.of(u)
+            every { userRepository.save(any()) } answers { firstArg() }
+
+            service.toggleSiteAdminRole("demoted")
+
+            u.isSiteAdmin shouldBe false
+            u.state shouldBe UserState.LOCKED
+            u.isGuest shouldBe true
         }
     }
 
@@ -131,10 +147,7 @@ class SiteServiceSpec : DescribeSpec({
         }
 
         it("게스트인 사용자는 게스트 모드가 해제되어야 한다") {
-            // toggleGuestMode()는 isGuest가 아니라 state(UserState.GUEST 여부)를 기준으로 토글한다
-            // — isGuest만 true로 두고 state를 기본값(ACTIVE)으로 남기면 "게스트 아님"으로 취급돼
-            // 토글이 반대로(GUEST로 전환) 동작한다.
-            val user = User(id = 23L, loginId = "guest-user", name = "게스트사용자", isGuest = true, state = UserState.GUEST)
+            val user = User(id = 23L, loginId = "guest-user", name = "게스트사용자", isGuest = true)
             every { userRepository.findByLoginId("guest-user") } returns Optional.of(user)
             every { userRepository.save(any()) } answers { firstArg() }
 
@@ -154,25 +167,26 @@ class SiteServiceSpec : DescribeSpec({
             verify(exactly = 0) { userRepository.save(any()) }
         }
 
-        it("ACTIVE 상태 사용자는 SITE_ADMIN으로 전환되어야 한다") {
+        it("일반 사용자는 사이트 관리자가 되어야 한다") {
             val user = User(id = 24L, loginId = "will-be-admin", name = "일반사용자", state = UserState.ACTIVE)
             every { userRepository.findByLoginId("will-be-admin") } returns Optional.of(user)
             every { userRepository.save(any()) } answers { firstArg() }
 
             service.toggleSiteAdminRole("will-be-admin")
 
-            user.state shouldBe UserState.SITE_ADMIN
+            user.isSiteAdmin shouldBe true
+            user.state shouldBe UserState.ACTIVE
             verify(exactly = 1) { userRepository.save(user) }
         }
 
-        it("SITE_ADMIN 상태 사용자는 ACTIVE로 강등되어야 한다") {
-            val user = User(id = 25L, loginId = "was-admin", name = "관리자", state = UserState.SITE_ADMIN)
+        it("사이트 관리자는 관리자 권한이 해제되어야 한다") {
+            val user = User(id = 25L, loginId = "was-admin", name = "관리자", isSiteAdmin = true)
             every { userRepository.findByLoginId("was-admin") } returns Optional.of(user)
             every { userRepository.save(any()) } answers { firstArg() }
 
             service.toggleSiteAdminRole("was-admin")
 
-            user.state shouldBe UserState.ACTIVE
+            user.isSiteAdmin shouldBe false
             verify(exactly = 1) { userRepository.save(user) }
         }
     }
@@ -393,7 +407,7 @@ class SiteServiceSpec : DescribeSpec({
         }
 
         it("SITE_ADMIN 상태 사용자도 대상에 포함되고, ACTIVE/SITE_ADMIN이 아닌 사용자는 제외되어야 한다") {
-            val admin = User(id = 3L, loginId = "adminNoAvatar", name = "관리자", state = UserState.SITE_ADMIN, email = "")
+            val admin = User(id = 3L, loginId = "adminNoAvatar", name = "관리자", isSiteAdmin = true, email = "")
             val locked = User(id = 4L, loginId = "lockedUser", name = "잠긴사용자", state = UserState.LOCKED)
             every { userRepository.findAll() } returns listOf(admin, locked)
             every { attachmentRepository.findByContainerTypeAndContainerId(ResourceType.USER_AVATAR, "3") } returns emptyList()

@@ -27,8 +27,9 @@ class UserDetailsServiceImplSpec : DescribeSpec({
             authorityNames.contains("ROLE_ADMIN") shouldBe false
         }
 
-        it("state가 SITE_ADMIN이면 loginId와 무관하게 ROLE_SITE_ADMIN/ROLE_ADMIN을 부여해야 한다") {
-            val user = User(id = 2L, loginId = "someone", name = "누군가", email = "someone@example.com", state = UserState.SITE_ADMIN)
+        // v1.6 isSiteManager() = SiteAdmin 테이블 소속. next는 state가 아니라 독립 축 isSiteAdmin으로 판단한다(잠금과 겹치지 않게).
+        it("isSiteAdmin이면 loginId와 무관하게 ROLE_SITE_ADMIN/ROLE_ADMIN을 부여하고 ACTIVE 권한도 유지해야 한다") {
+            val user = User(id = 2L, loginId = "someone", name = "누군가", email = "someone@example.com", state = UserState.ACTIVE, isSiteAdmin = true)
             every { userRepository.findByLoginId("someone") } returns Optional.of(user)
 
             val details = service.loadUserByUsername("someone")
@@ -36,6 +37,7 @@ class UserDetailsServiceImplSpec : DescribeSpec({
             val authorityNames = details.authorities.map { it.authority }
             authorityNames.contains("ROLE_SITE_ADMIN") shouldBe true
             authorityNames.contains("ROLE_ADMIN") shouldBe true
+            authorityNames.contains("ROLE_ACTIVE") shouldBe true
         }
 
         it("loginId로 못 찾으면 이메일로 조회해 로그인할 수 있어야 한다 (v1.6 User.findByLoginKey 대응)") {

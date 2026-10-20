@@ -105,8 +105,8 @@ class TemplateHelperBranchSpec : DescribeSpec({
     fun project(id: Long? = 1L, owner: String? = "gildong", name: String = "myproject", vcs: String? = "GIT"): Project =
         Project(id = id, name = name, owner = owner, vcs = vcs)
 
-    fun user(id: Long? = 1L, loginId: String = "user1", name: String = "사용자1", state: UserState = UserState.ACTIVE): User =
-        User(id = id, name = name, loginId = loginId, email = "$loginId@yona.io", state = state)
+    fun user(id: Long? = 1L, loginId: String = "user1", name: String = "사용자1", state: UserState = UserState.ACTIVE, isSiteAdmin: Boolean = false): User =
+        User(id = id, name = name, loginId = loginId, email = "$loginId@yona.io", state = state, isSiteAdmin = isSiteAdmin)
 
     fun role(type: RoleType): Role = Role(id = type.roleType, name = type.name)
 
@@ -923,7 +923,7 @@ class TemplateHelperBranchSpec : DescribeSpec({
             templateHelper.isOrganizationGuest(organization(), null) shouldBe false
         }
         it("사이트매니저면 false") {
-            val siteManager = user(1L, state = UserState.SITE_ADMIN)
+            val siteManager = user(1L, isSiteAdmin = true)
             templateHelper.isOrganizationGuest(organization(), siteManager) shouldBe false
         }
         it("조직에 속하지 않은 일반 사용자는 게스트(true)") {

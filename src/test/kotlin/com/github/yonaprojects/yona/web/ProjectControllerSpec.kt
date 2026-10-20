@@ -547,7 +547,7 @@ class ProjectControllerSpec : DescribeSpec({
                     .andDo(MockMvcResultHandlers.print()).andExpect(status().isUnauthorized)
             }
             it("siteManager는 모든 프로젝트를 검색할 수 있어야 한다") {
-                val adminUser = User(id = 30L, loginId = "admin", name = "Admin", state = UserState.SITE_ADMIN)
+                val adminUser = User(id = 30L, loginId = "admin", name = "Admin", isSiteAdmin = true)
                 every { userRepository.findByLoginId("admin") } returns Optional.of(adminUser)
                 val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
                 val page = PageImpl(listOf(project))

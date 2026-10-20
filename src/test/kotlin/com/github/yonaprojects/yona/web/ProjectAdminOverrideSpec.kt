@@ -71,7 +71,7 @@ class ProjectAdminOverrideSpec : DescribeSpec({
     val project = Project(id = 1L, name = "TestProject", owner = "owner", projectScope = ProjectScope.PRIVATE)
     val orgProject = Project(id = 2L, name = "OrgProject", owner = "corp", projectScope = ProjectScope.PUBLIC).also { it.organization = org }
 
-    val siteAdmin = User(id = 11L, loginId = "siteadmin", name = "사이트관리자", state = UserState.SITE_ADMIN)
+    val siteAdmin = User(id = 11L, loginId = "siteadmin", name = "사이트관리자", isSiteAdmin = true)
     val siteAdminAuth = UsernamePasswordAuthenticationToken("siteadmin", "password")
     val orgAdmin = User(id = 12L, loginId = "orgadmin", name = "조직관리자")
     val orgAdminAuth = UsernamePasswordAuthenticationToken("orgadmin", "password")

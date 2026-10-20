@@ -87,7 +87,7 @@ class BootstrapSetupController(
             this.email = email
             this.password = passwordEncodingService.encode(password)
             this.passwordSalt = null
-            this.state = UserState.SITE_ADMIN // 최초 가입자는 사이트 총괄 관리자 권한 부여
+            this.isSiteAdmin = true // 최초 가입자는 사이트 총괄 관리자 권한 부여
             this.isGuest = false
         }
 

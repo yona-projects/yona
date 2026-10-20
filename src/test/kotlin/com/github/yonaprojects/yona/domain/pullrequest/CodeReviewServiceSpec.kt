@@ -738,7 +738,7 @@ class CodeReviewServiceSpec @Autowired constructor(
             // 지울 수 없는 과도한 제한이었다.
             it("사이트관리자는 작성자도 프로젝트 매니저도 아니어도 타인의 리뷰 댓글을 삭제할 수 있어야 한다") {
                 val siteAdmin = userRepository.save(
-                    User(loginId = "siteadmin", name = "사이트관리자", email = "siteadmin@yona.io", state = UserState.SITE_ADMIN)
+                    User(loginId = "siteadmin", name = "사이트관리자", email = "siteadmin@yona.io", isSiteAdmin = true)
                 )
 
                 val codeRange = CodeRange(
@@ -769,7 +769,7 @@ class CodeReviewServiceSpec @Autowired constructor(
 
             it("사이트관리자는 작성자도 프로젝트 매니저도 아니어도 타인의 커밋 댓글을 삭제할 수 있어야 한다") {
                 val siteAdmin = userRepository.save(
-                    User(loginId = "siteadmin2", name = "사이트관리자2", email = "siteadmin2@yona.io", state = UserState.SITE_ADMIN)
+                    User(loginId = "siteadmin2", name = "사이트관리자2", email = "siteadmin2@yona.io", isSiteAdmin = true)
                 )
 
                 val comment = codeReviewService.createCommitComment(

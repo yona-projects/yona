@@ -1741,7 +1741,7 @@ class UserViewControllerSpec : DescribeSpec({
         }
 
         it("action이 resetPassword가 아니면 400 BAD_REQUEST를 반환해야 한다") {
-            val manager = User(id = 99L, loginId = "manager", name = "관리자", state = UserState.SITE_ADMIN)
+            val manager = User(id = 99L, loginId = "manager", name = "관리자", isSiteAdmin = true)
             every { userRepository.findByLoginId("manager") } returns Optional.of(manager)
 
             val response = userViewController.resetUserPasswordBySiteManager(
@@ -1752,7 +1752,7 @@ class UserViewControllerSpec : DescribeSpec({
         }
 
         it("대상 사용자가 존재하지 않으면 404 USER_NOT_FOUND를 반환해야 한다") {
-            val manager = User(id = 99L, loginId = "manager", name = "관리자", state = UserState.SITE_ADMIN)
+            val manager = User(id = 99L, loginId = "manager", name = "관리자", isSiteAdmin = true)
             every { userRepository.findByLoginId("manager") } returns Optional.of(manager)
             every { userRepository.findByLoginId("nouser") } returns Optional.empty()
 
@@ -1764,7 +1764,7 @@ class UserViewControllerSpec : DescribeSpec({
         }
 
         it("정상 요청이면 대상 사용자의 비밀번호를 초기화하고 200 OK를 반환해야 한다") {
-            val manager = User(id = 99L, loginId = "manager", name = "관리자", state = UserState.SITE_ADMIN)
+            val manager = User(id = 99L, loginId = "manager", name = "관리자", isSiteAdmin = true)
             val target = User(id = 20L, loginId = "target", name = "대상유저")
             every { userRepository.findByLoginId("manager") } returns Optional.of(manager)
             every { userRepository.findByLoginId("target") } returns Optional.of(target)

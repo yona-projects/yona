@@ -45,7 +45,7 @@ class UserRepositorySpec @Autowired constructor(
                     name = "임시관리자",
                     loginId = "tempadmin",
                     email = "tempadmin@yona.io",
-                    state = UserState.SITE_ADMIN,
+                    isSiteAdmin = true,
                     createdDate = Instant.now()
                 )
                 userRepository.save(adminUser)
@@ -60,7 +60,7 @@ class UserRepositorySpec @Autowired constructor(
                     name = "임시관리자",
                     loginId = "tempadmin",
                     email = "tempadmin@yona.io",
-                    state = UserState.SITE_ADMIN,
+                    isSiteAdmin = true,
                     createdDate = Instant.now()
                 )
                 userRepository.save(adminUser)

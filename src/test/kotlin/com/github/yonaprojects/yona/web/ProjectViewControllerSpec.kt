@@ -354,7 +354,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             }
 
             it("프로젝트 멤버가 아니어도 사이트 관리자라면 project/setting 뷰를 반환해야 한다 (v1.6 IsAllowed UPDATE PROJECT)") {
-                val siteAdmin = User(id = 11L, loginId = "siteadmin", name = "사이트관리자", state = com.github.yonaprojects.yona.domain.user.UserState.SITE_ADMIN)
+                val siteAdmin = User(id = 11L, loginId = "siteadmin", name = "사이트관리자", isSiteAdmin = true)
                 val siteAdminAuth = UsernamePasswordAuthenticationToken("siteadmin", "password")
                 val playRepository = mockk<PlayRepository>()
                 every { repositoryService.getRepository(project) } returns playRepository
@@ -1592,7 +1592,7 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("사이트매니저면 findProjectsForAdmin 결과를 반환해야 한다") {
-            val siteManager = User(id = 200L, loginId = "sitemanager", name = "사이트매니저", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 200L, loginId = "sitemanager", name = "사이트매니저", isSiteAdmin = true)
             val siteManagerAuth = UsernamePasswordAuthenticationToken("sitemanager", "password")
             every { userRepository.findByLoginId("sitemanager") } returns Optional.of(siteManager)
             every { projectRepository.findProjectsForAdmin("%admin-query%", any()) } returns
@@ -1604,7 +1604,7 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("query가 비어 있으면 filter 값을 검색어로 사용해야 한다") {
-            val siteManager = User(id = 202L, loginId = "sitemanager2", name = "사이트매니저2", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 202L, loginId = "sitemanager2", name = "사이트매니저2", isSiteAdmin = true)
             val siteManagerAuth = UsernamePasswordAuthenticationToken("sitemanager2", "password")
             every { userRepository.findByLoginId("sitemanager2") } returns Optional.of(siteManager)
             every { projectRepository.findProjectsForAdmin("%filter-value%", any()) } returns PageImpl(emptyList())
@@ -1853,7 +1853,7 @@ class ProjectViewControllerSpec : DescribeSpec({
     describe("GET /{owner}/{projectName}/issue/labelsform 추가 분기") {
         it("MANAGER가 아니어도 사이트매니저면 라벨 설정 화면에 접근할 수 있어야 한다") {
             val proj = Project(id = 160L, name = "SiteMgrLabelProj", owner = "owner")
-            val siteManager = User(id = 160L, loginId = "sitemgrlabel", name = "사이트매니저라벨", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 160L, loginId = "sitemgrlabel", name = "사이트매니저라벨", isSiteAdmin = true)
             val siteManagerAuth = UsernamePasswordAuthenticationToken("sitemgrlabel", "password")
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "SiteMgrLabelProj") } returns Optional.of(proj)
             every { userRepository.findByLoginId("sitemgrlabel") } returns Optional.of(siteManager)

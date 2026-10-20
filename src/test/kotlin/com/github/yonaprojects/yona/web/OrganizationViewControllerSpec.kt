@@ -110,7 +110,7 @@ class OrganizationViewControllerSpec : DescribeSpec({
 
     describe("OrganizationViewController 템플릿 연동 테스트") {
         val user = User(id = 10L, loginId = "testuser", name = "테스트유저", state = UserState.ACTIVE)
-        val siteManager = User(id = 20L, loginId = "admin", name = "관리자", state = UserState.SITE_ADMIN)
+        val siteManager = User(id = 20L, loginId = "admin", name = "관리자", isSiteAdmin = true)
         val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
         val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 

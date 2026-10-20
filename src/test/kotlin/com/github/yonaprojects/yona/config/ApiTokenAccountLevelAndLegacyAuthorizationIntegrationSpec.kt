@@ -221,7 +221,7 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
                 val owner = userRepository.save(
                     User(
                         loginId = "acct-export-owner1", name = "백업권한없음", email = "acct-export-owner1@example.com",
-                        state = UserState.SITE_ADMIN
+                        isSiteAdmin = true
                     )
                 )
                 val raw = "site-export-no-scope"
@@ -238,7 +238,7 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
                 val owner = userRepository.save(
                     User(
                         loginId = "acct-export-owner2", name = "백업권한있음", email = "acct-export-owner2@example.com",
-                        state = UserState.SITE_ADMIN
+                        isSiteAdmin = true
                     )
                 )
                 val raw = "site-export-allrepos-admin"
@@ -255,7 +255,7 @@ class ApiTokenAccountLevelAndLegacyAuthorizationIntegrationSpec @Autowired const
                 val owner = userRepository.save(
                     User(
                         loginId = "acct-export-owner3", name = "부분스코프", email = "acct-export-owner3@example.com",
-                        state = UserState.SITE_ADMIN
+                        isSiteAdmin = true
                     )
                 )
                 val raw = "site-export-scoped-only"

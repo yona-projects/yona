@@ -75,7 +75,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
             }
 
             it("이미 가입자가 존재하면 GET /bootstrap-setup 은 홈으로 리다이렉트해야 한다(legacy Global.java 진입 가드에 대응)") {
-                userRepository.save(User(loginId = "admin", name = "관리자", email = "admin@yona.io", state = UserState.SITE_ADMIN))
+                userRepository.save(User(loginId = "admin", name = "관리자", email = "admin@yona.io", isSiteAdmin = true))
 
                 mockMvc.perform(get("/bootstrap-setup"))
                     .andExpect(status().is3xxRedirection)
@@ -161,7 +161,7 @@ class BootstrapSetupTemplateEquivalenceSpec @Autowired constructor(
 
                 val created = userRepository.findByLoginId("admin").orElse(null)
                 created shouldNotBe null
-                created?.state shouldBe UserState.SITE_ADMIN
+                created?.isSiteAdmin shouldBe true
                 created?.email shouldBe "admin@yona.io"
             }
         }

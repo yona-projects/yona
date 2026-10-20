@@ -27,12 +27,12 @@ class SiteService(
     private val passwordEncodingService: PasswordEncodingService
 ) {
 
+    // v1.6는 잠금(state)·게스트(isGuest)·사이트 관리자(SiteAdmin 소속, 여기서는 isSiteAdmin)가 서로 독립된 축이다.
+    // 한 토글이 다른 축을 바꾸지 않는다.
     @Transactional
     fun toggleAccountLock(loginId: String) {
         val targetUser = userRepository.findByLoginId(loginId).orElse(null)
-        if (targetUser != null && targetUser.state != UserState.SITE_ADMIN) {
-            // v1.6에서는 SiteAdmin이 별도 축이라 잠금/해제가 관리자 권한을 지우지 못했다. next는 state 하나로 합쳐져 있어 잠금
-            // 토글이 SITE_ADMIN을 LOCKED→ACTIVE로 바꿔 권한이 영구 소실되므로, 관리자는 먼저 관리자 권한을 해제한 뒤 잠근다.
+        if (targetUser != null) {
             targetUser.state = if (targetUser.state == UserState.LOCKED) UserState.ACTIVE else UserState.LOCKED
             targetUser.lastStateModifiedDate = Instant.now()
             userRepository.save(targetUser)
@@ -43,15 +43,8 @@ class SiteService(
     fun toggleGuestMode(loginId: String) {
         val targetUser = userRepository.findByLoginId(loginId).orElse(null)
         if (targetUser != null) {
-            if (targetUser.state == UserState.LOCKED) return // 잠긴 계정은 게스트 전환으로 잠금이 풀리면 안 된다.
-            // state도 함께 뒤집어야 한다 - site/userList의 "게스트 사용자" 탭
-            // (UserRepository.findUsersForAdminQuery/countUsersForAdmin)은 isGuest 컬럼이 아니라
-            // state 컬럼만 필터링하므로(toggleAccountLock/toggleSiteAdminRole과 동일한 패턴),
-            // isGuest만 뒤집으면 탭 목록에 절대 반영되지 않는다. isGuest는 여전히 함께 유지한다 -
-            // RepoAccessPolicy/AccessControl 등 실제 게스트 권한 판단 로직 전체가 state가 아니라
-            // isGuest를 직접 읽는다.
-            targetUser.state = if (targetUser.state == UserState.GUEST) UserState.ACTIVE else UserState.GUEST
-            targetUser.isGuest = targetUser.state == UserState.GUEST
+            // RepoAccessPolicy/AccessControl 등 실제 게스트 권한 판단은 isGuest를 읽는다. 관리자 화면의 "게스트" 탭도 isGuest로 조회한다.
+            targetUser.isGuest = !targetUser.isGuest
             targetUser.lastStateModifiedDate = Instant.now()
             userRepository.save(targetUser)
         }
@@ -61,9 +54,7 @@ class SiteService(
     fun toggleSiteAdminRole(loginId: String) {
         val targetUser = userRepository.findByLoginId(loginId).orElse(null)
         if (targetUser != null) {
-            targetUser.state = if (targetUser.state == UserState.SITE_ADMIN) UserState.ACTIVE else UserState.SITE_ADMIN
-            // 게스트가 관리자가 되면 AccessControl이 isGuest를 먼저 거부해 일부 경로에서 읽기가 막히므로 게스트 플래그를 푼다.
-            if (targetUser.state == UserState.SITE_ADMIN) targetUser.isGuest = false
+            targetUser.isSiteAdmin = !targetUser.isSiteAdmin
             targetUser.lastStateModifiedDate = Instant.now()
             userRepository.save(targetUser)
         }
@@ -158,7 +149,7 @@ class SiteService(
     // yona SiteApp.noAvatarUsers() 대응. avatarId()가 null인(= USER_AVATAR 컨테이너에
     // 첨부파일이 없는) 사용자만 걸러낸다.
     fun getNoAvatarUsers(): List<Map<String, String>> {
-        val activeUsers = userRepository.findAll().filter { it.state == UserState.ACTIVE || it.state == UserState.SITE_ADMIN }
+        val activeUsers = userRepository.findAll().filter { it.state == UserState.ACTIVE }
         return activeUsers
             .filter { attachmentRepository.findByContainerTypeAndContainerId(ResourceType.USER_AVATAR, it.id.toString()).isEmpty() }
             .map {

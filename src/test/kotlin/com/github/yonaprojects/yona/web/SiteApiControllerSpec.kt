@@ -56,7 +56,7 @@ class SiteApiControllerSpec : DescribeSpec({
         )
     }
 
-    val adminUser = User(id = 1L, loginId = "admin", name = "Admin", state = UserState.SITE_ADMIN)
+    val adminUser = User(id = 1L, loginId = "admin", name = "Admin", isSiteAdmin = true)
     val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
     val normalUser = User(id = 2L, loginId = "user", name = "User")

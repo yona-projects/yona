@@ -17,7 +17,7 @@ import java.util.Locale
 class UserSpec : DescribeSpec({
     describe("User.isSiteManager") {
         it("state가 SITE_ADMIN이면 true여야 한다") {
-            val user = User(loginId = "someone", name = "누군가", email = "someone@example.com", state = UserState.SITE_ADMIN)
+            val user = User(loginId = "someone", name = "누군가", email = "someone@example.com", isSiteAdmin = true)
             user.isSiteManager shouldBe true
         }
 

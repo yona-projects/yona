@@ -1638,7 +1638,7 @@ class ProjectServiceImplSpec : DescribeSpec({
 
         it("사이트 관리자(SITE_ADMIN)이면 프로젝트 멤버가 아니어도 true를 반환해야 한다") {
             val project = Project(id = 9991L, name = "p", owner = "owner-x")
-            val siteAdmin = User(id = 950L, loginId = "admin", name = "관리자", state = UserState.SITE_ADMIN)
+            val siteAdmin = User(id = 950L, loginId = "admin", name = "관리자", isSiteAdmin = true)
             every { projectRepository.findById(9991L) } returns Optional.of(project)
             every { userRepository.findByLoginId("admin") } returns Optional.of(siteAdmin)
 

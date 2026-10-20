@@ -127,7 +127,7 @@ class BranchApiControllerSpec : DescribeSpec({
             }
 
             it("사이트 관리자는 프로젝트 멤버가 아니어도 기본 브랜치를 바꿀 수 있다") {
-                val siteAdmin = User(id = 12L, loginId = "siteadmin", name = "사이트관리자", state = com.github.yonaprojects.yona.domain.user.UserState.SITE_ADMIN)
+                val siteAdmin = User(id = 12L, loginId = "siteadmin", name = "사이트관리자", isSiteAdmin = true)
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
                 every { userRepository.findByLoginId("siteadmin") } returns Optional.of(siteAdmin)
                 every { repositoryService.getRepository(project) } returns playRepository

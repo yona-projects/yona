@@ -43,7 +43,7 @@ class SwaggerUiAccessIntegrationSpec @Autowired constructor(
             // 검증하게 된다 — 안 그러면 비로그인 테스트가 부트스트랩 리다이렉트(302)와 우연히
             // 같은 상태코드라 엉뚱한 이유로 통과해버린다(실제로 이 순서로 확인됨).
             val admin = userRepository.save(
-                User(loginId = "swagger-admin", name = "관리자", email = "swagger-admin@example.com", state = UserState.SITE_ADMIN)
+                User(loginId = "swagger-admin", name = "관리자", email = "swagger-admin@example.com", isSiteAdmin = true)
             )
             adminDetails = YonaUserDetails(
                 id = admin.id!!,

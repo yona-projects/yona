@@ -111,7 +111,8 @@ class BootstrapSetupControllerSpec : DescribeSpec({
             userSlot.captured.loginId shouldBe "admin"
             userSlot.captured.name shouldBe "관리자"
             userSlot.captured.email shouldBe "admin@example.com"
-            userSlot.captured.state shouldBe UserState.SITE_ADMIN
+            userSlot.captured.isSiteAdmin shouldBe true
+            userSlot.captured.state shouldBe UserState.ACTIVE
             userSlot.captured.isGuest shouldBe false
             userSlot.captured.password.isNullOrBlank() shouldBe false
             userSlot.captured.passwordSalt shouldBe null

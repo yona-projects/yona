@@ -126,7 +126,7 @@ class ProjectApiControllerSpec : DescribeSpec({
     describe("POST /api/projects/{owner} (P2-45)") {
         val siteManager = User(
             id = 1L, loginId = "admin", name = "관리자",
-            state = UserState.SITE_ADMIN
+            isSiteAdmin = true
         )
         val normalUser = User(id = 2L, loginId = "normal", name = "일반유저")
         val siteManagerAuth = UsernamePasswordAuthenticationToken("admin", "password")
@@ -813,7 +813,7 @@ class ProjectApiControllerSpec : DescribeSpec({
     }
 
     describe("addProjectMembers() 잔여 분기 (P2-45)") {
-        val siteManager2 = User(id = 60L, loginId = "admin2", name = "관리자2", state = UserState.SITE_ADMIN)
+        val siteManager2 = User(id = 60L, loginId = "admin2", name = "관리자2", isSiteAdmin = true)
         val siteManagerAuth2 = UsernamePasswordAuthenticationToken("admin2", "password")
         val sitemanagerRole2 = Role(id = RoleType.SITEMANAGER.roleType)
 

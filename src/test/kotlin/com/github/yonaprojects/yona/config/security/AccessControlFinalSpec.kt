@@ -99,7 +99,7 @@ class AccessControlFinalSpec : DescribeSpec({
     val privateProject = Project(id = 11L, name = "private", projectScope = ProjectScope.PRIVATE)
     val protectedProject = Project(id = 12L, name = "protected", projectScope = ProjectScope.PROTECTED, organization = org)
 
-    val siteManager = User(id = 1L, loginId = "site", name = "site", state = UserState.SITE_ADMIN)
+    val siteManager = User(id = 1L, loginId = "site", name = "site", isSiteAdmin = true)
     val guest = User(id = 2L, loginId = "guest", name = "guest", isGuest = true)
     val member = User(id = 3L, loginId = "member", name = "member")
     val stranger = User(id = 4L, loginId = "stranger", name = "stranger")

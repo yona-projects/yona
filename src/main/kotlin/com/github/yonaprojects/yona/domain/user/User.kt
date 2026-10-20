@@ -53,6 +53,11 @@ class User(
 
     var isGuest: Boolean = false,
 
+    // v1.6 SiteAdmin 테이블 소속 여부에 대응하는 독립 축. 잠금(state)·게스트(isGuest)와 서로 덮어쓰지 않는다.
+    // 기존 DB(행이 있는 테이블)에 컬럼이 추가될 때 NOT NULL 위반이 나지 않도록 기본값을 DDL에 둔다.
+    @org.hibernate.annotations.ColumnDefault("false")
+    var isSiteAdmin: Boolean = false,
+
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
     var projectUsers: MutableList<ProjectUser> = mutableListOf(),
 
@@ -132,7 +137,7 @@ class User(
     }
 
     val isSiteManager: Boolean
-        get() = state == UserState.SITE_ADMIN
+        get() = isSiteAdmin
 
     fun getDisplayName(): String {
         return name

@@ -218,7 +218,7 @@ class IssueShareServiceImplSpec : DescribeSpec({
         }
 
         it("사이트관리자이면 조직/멤버가 없어도 스스로를 후보에 포함한다") {
-            val siteManager = User(id = 60L, loginId = "siteadmin", name = "사이트관리자", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 60L, loginId = "siteadmin", name = "사이트관리자", isSiteAdmin = true)
             every { projectUserRepository.findByProjectId(1L) } returns emptyList()
             every { userRepository.findAllById(setOf(60L)) } returns listOf(siteManager)
 
@@ -355,7 +355,7 @@ class IssueShareServiceImplSpec : DescribeSpec({
         }
 
         it("사이트관리자가 조회하면 배정 가능 후보 목록 반복문이 자기 자신을 순회한다") {
-            val siteManager = User(id = 65L, loginId = "siteadmin2", name = "사이트관리자2", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 65L, loginId = "siteadmin2", name = "사이트관리자2", isSiteAdmin = true)
             val i = Issue(id = 121L, title = "이슈21", body = null, project = project, number = 21L, authorId = null, assignee = null)
             every { projectUserRepository.findByProjectId(1L) } returns emptyList()
             every { userRepository.findAllById(setOf(65L)) } returns listOf(siteManager)

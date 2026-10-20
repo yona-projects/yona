@@ -336,7 +336,7 @@ class WatchServiceSpec @Autowired constructor(
                 it("siteManager는 allowedWatchersOnly 필터에서 무조건 포함된다") {
                     val managerRole = roleRepository.findById(RoleType.MANAGER.roleType).orElseGet { roleRepository.save(Role(id = RoleType.MANAGER.roleType, name = "MANAGER")) }
                     val privateProject = projectRepository.save(Project(name = "private-project-3", owner = "user1", projectScope = ProjectScope.PRIVATE))
-                    val siteManagerUser = userRepository.save(User(loginId = "sitemanager", name = "관리자", email = "site@example.com").apply { state = UserState.SITE_ADMIN })
+                    val siteManagerUser = userRepository.save(User(loginId = "sitemanager", name = "관리자", email = "site@example.com").apply { isSiteAdmin = true })
                     
                     watchService.watch(siteManagerUser, ResourceType.ISSUE_POST, "999")
                     val watchers = watchService.findActualWatchers(emptySet(), ResourceType.ISSUE_POST, "999", privateProject.id, true)

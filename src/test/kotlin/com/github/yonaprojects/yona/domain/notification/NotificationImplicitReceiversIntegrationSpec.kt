@@ -174,7 +174,7 @@ class NotificationImplicitReceiversIntegrationSpec @Autowired constructor(
             it("잠긴 담당자(LOCKED)는 제외되고 게스트 공유자(GUEST)는 댓글 알림 수신자에 남는다") {
                 assignee.state = UserState.LOCKED
                 userRepository.save(assignee)
-                sharer.state = UserState.GUEST
+                sharer.isGuest = true
                 userRepository.save(sharer)
 
                 commentService.createIssueComment(issue.id!!, "댓글", actor)

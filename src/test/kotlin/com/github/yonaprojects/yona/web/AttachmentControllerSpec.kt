@@ -771,7 +771,7 @@ class AttachmentControllerSpec : DescribeSpec({
             }
 
             it("USER 타입 첨부는 업로더 본인이 아니어도 사이트관리자면 삭제할 수 있다") {
-                val siteAdmin = User(id = 2L, loginId = "admin", name = "관리자", state = UserState.SITE_ADMIN)
+                val siteAdmin = User(id = 2L, loginId = "admin", name = "관리자", isSiteAdmin = true)
                 val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
                 val userAttachment = Attachment(
                     id = 301L, name = "avatar2.png", hash = "userhash2",
@@ -1110,7 +1110,7 @@ class AttachmentControllerSpec : DescribeSpec({
             }
 
             it("정의되지 않은 그 외 리소스 타입(else 분기)은 업로더 본인이 아니어도 사이트관리자면 삭제할 수 있다") {
-                val siteAdmin = User(id = 2L, loginId = "admin", name = "관리자", state = UserState.SITE_ADMIN)
+                val siteAdmin = User(id = 2L, loginId = "admin", name = "관리자", isSiteAdmin = true)
                 val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
                 val etcAttachment = Attachment(
                     id = 802L, name = "etc-attach3.png", hash = "etchash3",

@@ -167,7 +167,7 @@ class YonaAuthenticationProviderSpec : DescribeSpec({
                 passwordVal = expectedHashed,
                 passwordSalt = salt,
                 authoritiesVal = listOf(SimpleGrantedAuthority("ROLE_SITE_ADMIN")),
-                state = UserState.SITE_ADMIN
+                state = UserState.ACTIVE
             )
 
             every { userDetailsService.loadUserByUsername("adminUser") } returns userDetails

@@ -846,7 +846,7 @@ class UserControllerSpec : DescribeSpec({
 
         // yona UserApi.java:218-241 newUser() 대응 (P1-118). [GL-controllers_api_UserApi-014]
         describe("POST /-_-api/v1/users") {
-            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", isSiteAdmin = true)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
             it("사이트관리자가 아니면 400 Bad Request를 반환해야 한다") {
@@ -1030,7 +1030,7 @@ class UserControllerSpec : DescribeSpec({
 
         // yona UserApi.java:320-339 users() 대응 (P1-118). [GL-controllers_api_UserApi-018;GL-controllers_api_UserApi-019]
         describe("GET /-_-api/v1/admin/users") {
-            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", isSiteAdmin = true)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
             it("사이트관리자가 아니면 403을 반환해야 한다") {
@@ -1057,7 +1057,7 @@ class UserControllerSpec : DescribeSpec({
 
         // yona UserApi.java:341-379 updateUserState() 대응 (P1-118). [GL-controllers_api_UserApi-020;GL-controllers_api_UserApi-021]
         describe("PATCH /-_-api/v1/admin/users/{loginId}") {
-            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", isSiteAdmin = true)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
             it("사이트관리자가 아니면 403을 반환해야 한다") {
@@ -1137,7 +1137,7 @@ class UserControllerSpec : DescribeSpec({
         }
 
         describe("POST /-_-api/v1/admin/users/{loginId}/disable-2fa") {
-            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", isSiteAdmin = true)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
             it("사이트관리자가 아니면 403을 반환해야 한다") {
@@ -1174,7 +1174,7 @@ class UserControllerSpec : DescribeSpec({
         }
 
         describe("POST /-_-api/v1/admin/users/{loginId}/unlock") {
-            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", isSiteAdmin = true)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
             it("사이트관리자가 아니면 403을 반환해야 한다") {
@@ -1215,7 +1215,7 @@ class UserControllerSpec : DescribeSpec({
         }
 
         describe("GET /-_-api/v1/admin/audit-logs") {
-            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 2L, loginId = "admin", name = "관리자", email = "admin@example.com", isSiteAdmin = true)
             val adminAuth = UsernamePasswordAuthenticationToken("admin", "password")
 
             it("사이트관리자가 아니면 403을 반환해야 한다") {

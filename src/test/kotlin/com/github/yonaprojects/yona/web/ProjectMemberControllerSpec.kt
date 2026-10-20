@@ -156,7 +156,7 @@ class ProjectMemberControllerSpec : DescribeSpec({
         }
 
         it("사이트관리자는 프로젝트/조직 멤버가 아니어도 후보에 포함되어야 한다") {
-            val siteManager = User(id = 30L, loginId = "siteadmin", name = "사이트관리자", state = UserState.SITE_ADMIN)
+            val siteManager = User(id = 30L, loginId = "siteadmin", name = "사이트관리자", isSiteAdmin = true)
             val siteManagerAuth = UsernamePasswordAuthenticationToken("siteadmin", "password")
             val project = Project(id = 12L, name = "no-group-project", owner = "owner", projectScope = ProjectScope.PRIVATE)
 
@@ -687,7 +687,7 @@ class ProjectMemberControllerSpec : DescribeSpec({
             val auth = UsernamePasswordAuthenticationToken("siteadmin2", "password")
             val authUser = User(id = 99L, loginId = "siteadmin2", name = "관리자로그인")
             // findById가 반환하는 currentUser는 별도 인스턴스로, id가 null인 방어적 케이스를 재현한다.
-            val currentUserWithNullId = User(id = null, loginId = "siteadmin2", name = "관리자", state = UserState.SITE_ADMIN)
+            val currentUserWithNullId = User(id = null, loginId = "siteadmin2", name = "관리자", isSiteAdmin = true)
             val project = Project(id = 24L, name = "proj24", owner = "owner", projectScope = ProjectScope.PRIVATE)
 
             every { userRepository.findByLoginId("siteadmin2") } returns Optional.of(authUser)

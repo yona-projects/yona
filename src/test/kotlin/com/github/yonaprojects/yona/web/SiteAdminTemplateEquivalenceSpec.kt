@@ -62,11 +62,11 @@ class SiteAdminTemplateEquivalenceSpec @Autowired constructor(
         describe("Thymeleaf 사이트 관리자 템플릿 동치성 회귀 검증") {
             val siteAdmin = userRepository.findByLoginId("site-admin-13").orElseGet {
                 userRepository.save(
-                    User(loginId = "site-admin-13", name = "관리자13", email = "site-admin-13@yona.io", state = UserState.SITE_ADMIN)
+                    User(loginId = "site-admin-13", name = "관리자13", email = "site-admin-13@yona.io", isSiteAdmin = true)
                 )
             }.let {
-                if (it.state != UserState.SITE_ADMIN) {
-                    it.state = UserState.SITE_ADMIN
+                if (!it.isSiteAdmin) {
+                    it.isSiteAdmin = true
                     userRepository.save(it)
                 } else it
             }
