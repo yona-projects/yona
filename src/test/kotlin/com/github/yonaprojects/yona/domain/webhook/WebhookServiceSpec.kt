@@ -66,6 +66,16 @@ private fun testCommit(message: String, authorName: String = "tester", authorEma
     return RevWalk(repo).use { it.parseCommit(commitId) }
 }
 
+private fun RevCommit.toPushedCommit() = PushedVcsCommit(
+    id = name ?: "",
+    message = fullMessage,
+    authorName = authorIdent?.name ?: "",
+    authorEmail = authorIdent?.emailAddress,
+    timestamp = authorIdent?.`when`?.toInstant(),
+    committerName = committerIdent?.name ?: "",
+    committerEmail = committerIdent?.emailAddress
+)
+
 // sender.name/project.name처럼 Kotlin 타입상 non-null인 필드라도, Hibernate가 프록시/리플렉션으로
 // 값을 null로 주입할 가능성에 대비해 방어적으로 `?: ""` 처리된 분기가 실제 코드에 존재한다. 이런
 // 분기는 Kotlin 컴파일러가 non-null 타입에 null을 대입하는 것 자체를 막기 때문에 일반적인 생성자
@@ -255,14 +265,14 @@ class WebhookServiceSpec : DescribeSpec({
 
         // yona Webhook.java의 push용 buildRequestBody(commits, refNames, sender) 대응 (P2-04).
         describe("buildPayload - JSON 포맷 push 페이로드에 커밋 목록이 포함돼야 한다") {
-            it("PushedCommits 리소스면 ref/commits/head_commit/sender/pusher/repository를 포함해야 한다") {
+            it("PushedVcsCommits 리소스면 ref/commits/head_commit/sender/pusher/repository를 포함해야 한다") {
                 val jsonWebhook = Webhook(
                     id = 30L, project = project, payloadUrl = "http://localhost:8080/hook",
                     gitPush = true, webhookType = WebhookType.JSON
                 )
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
                 val commit = testCommit("fix bug", authorName = "gildong", authorEmail = "gildong@yona.io")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -278,6 +288,37 @@ class WebhookServiceSpec : DescribeSpec({
                 json.get("repository").get("name").asText() shouldBe "test-project"
             }
 
+            it("preserves distinct Git author and committer identities and commit order") {
+                val webhook = Webhook(project = project, payloadUrl = "http://localhost/hook", webhookType = WebhookType.JSON)
+                val sender = User(id = 5L, loginId = "sender", name = "Sender")
+                val author = PersonIdent("Author", "author@yona.io")
+                val committer = PersonIdent("Committer", "committer@yona.io")
+                val nativeCommit = mockk<RevCommit>()
+                every { nativeCommit.name } returns "first"
+                every { nativeCommit.fullMessage } returns "first message\n\nbody"
+                every { nativeCommit.authorIdent } returns author
+                every { nativeCommit.committerIdent } returns committer
+                val first = nativeCommit.toPushedCommit()
+                val second = first.copy(id = "second", message = "second message")
+                val pushed = PushedVcsCommits(listOf(first, second), listOf("refs/heads/main", "refs/heads/topic"))
+
+                val json = ObjectMapper().readTree(webhookService.buildPayload(webhook, EventType.NEW_COMMIT, sender, pushed))
+
+                val refs = json.get("ref")
+                (0 until refs.size()).map { refs.get(it).asText() } shouldBe pushed.refNames
+                val commits = json.get("commits")
+                (0 until commits.size()).map { commits.get(it).get("id").asText() } shouldBe listOf("first", "second")
+                json.get("head_commit") shouldBe json.get("commits").get(0)
+                val commit = json.get("head_commit")
+                commit.get("message").asText() shouldBe "first message\n\nbody"
+                commit.get("author").get("name").asText() shouldBe "Author"
+                commit.get("author").get("email").asText() shouldBe "author@yona.io"
+                commit.get("committer").get("name").asText() shouldBe "Committer"
+                commit.get("committer").get("email").asText() shouldBe "committer@yona.io"
+                commit.get("timestamp").asText() shouldBe author.`when`.toInstant()
+                    .atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ssZ"))
+            }
+
             // yona Webhook.java의 buildSenderJSON()/buildRepositoryJSON()/buildJSONFromCommit() 필드
             // 4곳(site_admin/overview/절대 URL/timestamp 포맷) 대응 (P2-08).
             it("sender.site_admin/repository.overview/절대 URL/timestamp 포맷까지 legacy와 일치해야 한다") {
@@ -290,7 +331,7 @@ class WebhookServiceSpec : DescribeSpec({
                     state = UserState.SITE_ADMIN
                 )
                 val commit = testCommit("admin commit", authorName = "admin", authorEmail = "admin@yona.io")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, siteAdminSender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -314,7 +355,7 @@ class WebhookServiceSpec : DescribeSpec({
                 )
                 val normalSender = User(id = 7L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
                 val commit = testCommit("normal commit")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, normalSender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -323,12 +364,8 @@ class WebhookServiceSpec : DescribeSpec({
             }
         }
 
-        // yona-wiki P3-22 — buildPushPayload(PushedCommits)와 동일한 JSON 스키마를 Mercurial push에도
-        // 적용하는 buildPushPayloadForHg()/PushedHgCommits 검증. 실제 hg4j 저장소에 커밋 하나를 만들어
-        // 진짜 io.github.search5.hg4j.api.HgCommit 값 객체로 채운다(mock으로는 nodeId/author 등 값
-        // 필드 조합을 재현하기 번거롭고, 실제 페이로드 빌더가 그 값 객체를 어떻게 읽는지가 검증
-        // 대상이므로 진짜 객체를 쓰는 편이 더 정확하다).
-        describe("buildPayload - Mercurial push 페이로드(PushedHgCommits)도 동일한 JSON 스키마를 가져야 한다 (P3-22)") {
+        // Native Mercurial values retain the Git-compatible wire schema after normalization.
+        describe("buildPayload - Mercurial push 페이로드도 동일한 JSON 스키마를 가져야 한다 (P3-22)") {
             fun realHgCommit(repoDir: java.io.File, message: String, author: String = "gildong <gildong@yona.io>"): io.github.search5.hg4j.api.HgCommit {
                 val file = java.io.File(repoDir, "a.txt")
                 file.writeText(message)
@@ -349,7 +386,15 @@ class WebhookServiceSpec : DescribeSpec({
                     gitPush = true, webhookType = WebhookType.JSON
                 )
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
-                val pushed = PushedHgCommits(listOf(commit), listOf("refs/heads/main"))
+                val pushed = PushedVcsCommits(
+                    listOf(PushedVcsCommit(
+                        commit.nodeId.toHex(), commit.message ?: "",
+                        commit.author.substringBefore("<").trim(),
+                        com.github.yonaprojects.yona.domain.vcs.HgCommit.parseAuthorEmail(commit.author),
+                        Instant.ofEpochSecond(commit.timestamp)
+                    )),
+                    listOf("refs/heads/main")
+                )
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -380,13 +425,48 @@ class WebhookServiceSpec : DescribeSpec({
                     gitPush = true, webhookType = WebhookType.JSON
                 )
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
-                val pushed = PushedHgCommits(emptyList(), listOf("refs/heads/main"))
+                val pushed = PushedVcsCommits(emptyList(), listOf("refs/heads/main"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
 
                 json.get("commits").size() shouldBe 0
                 json.has("head_commit") shouldBe false
+            }
+        }
+
+        describe("buildPayload - PushedVcsCommits(SVN 등) push 페이로드") {
+            val commit = PushedVcsCommit("12", "fix #1 via svn", "svn-user", null, java.time.Instant.parse("2026-10-08T01:02:03Z"))
+            val svnProject = Project(id = 1L, name = "test-project", owner = "owner", vcs = "SVN")
+
+            it("uses the same JSON schema as Git pushes with an empty ref list for SVN") {
+                val jsonWebhook = Webhook(id = 70L, project = svnProject, payloadUrl = "http://localhost:8080/hook", gitPush = true, webhookType = WebhookType.JSON)
+                val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
+                val json = ObjectMapper().readTree(
+                    webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, PushedVcsCommits(listOf(commit), emptyList()))
+                )
+                json.get("ref").size() shouldBe 0
+                json.get("commits").get(0).get("id").asText() shouldBe "12"
+                json.get("commits").get(0).get("message").asText() shouldBe "fix #1 via svn"
+                json.get("commits").get(0).get("author").get("name").asText() shouldBe "svn-user"
+                json.get("commits").get(0).get("author").get("email").asText() shouldBe ""
+                json.get("commits").get(0).get("committer").get("name").asText() shouldBe "svn-user"
+                json.get("head_commit").get("id").asText() shouldBe "12"
+                json.get("sender").get("login").asText() shouldBe "gildong"
+                json.get("pusher").get("email").asText() shouldBe "gildong@yona.io"
+                json.get("repository").get("name").asText() shouldBe "test-project"
+            }
+
+            listOf("SVN", "svn", "SUBVERSION", "subversion").forEach { vcs ->
+                it("describes a $vcs push without a branch in text payloads") {
+                    val vcsProject = Project(id = 1L, name = "test-project", owner = "owner", vcs = vcs)
+                    val slackWebhook = Webhook(id = 72L, project = vcsProject, payloadUrl = "http://localhost:8080/hook", gitPush = true, webhookType = WebhookType.SIMPLE)
+                    val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
+                    val text = ObjectMapper().readTree(
+                        webhookService.buildPayload(slackWebhook, EventType.NEW_COMMIT, sender, PushedVcsCommits(listOf(commit), emptyList()))
+                    ).get("text").asText()
+                    text shouldBe "[test-project] 홍길동님이 커밋을 푸시했습니다. 1개의 커밋을 푸시했습니다"
+                }
             }
         }
 
@@ -763,7 +843,7 @@ class WebhookServiceSpec : DescribeSpec({
                     every { webhookRepository.findByProjectId(1L) } returns listOf(skippedWebhook, deliveredWebhook)
                     val sender = User(id = 2L, loginId = "sender", name = "송신자")
                     val commit = testCommit("push commit")
-                    val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                    val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                     webhookService.sendWebhook(project, EventType.NEW_COMMIT, sender, pushed)
 
@@ -849,9 +929,9 @@ class WebhookServiceSpec : DescribeSpec({
             }
         }
 
-        // 커버리지 보강: buildPayload()의 JSON 포맷 중 PushedCommits가 아닌 리소스(raw JSON) 분기.
+        // 커버리지 보강: buildPayload()의 JSON 포맷 중 push가 아닌 리소스(raw JSON) 분기.
         describe("buildPayload - JSON 포맷 raw JSON (push 아닌 리소스)") {
-            it("PushedCommits가 아닌 리소스는 event/sender/project/resourceId/resourceType을 담은 raw JSON을 반환해야 한다") {
+            it("push가 아닌 리소스는 event/sender/project/resourceId/resourceType을 담은 raw JSON을 반환해야 한다") {
                 val jsonWebhook = Webhook(
                     id = 91L, project = project, payloadUrl = "http://localhost:8080/hook",
                     webhookType = WebhookType.JSON
@@ -1022,8 +1102,7 @@ class WebhookServiceSpec : DescribeSpec({
             }
         }
 
-        // 커버리지 보강: buildPushPayload()의 빈 커밋 목록 / null author·committer / project null 분기,
-        // 그리고 buildTextMessage()의 refNames 빈 목록 분기.
+        // 커버리지 보강: buildPushPayload()의 빈 커밋 목록 / null author·committer / project null 분기.
         describe("buildPushPayload 추가 분기") {
             val jsonWebhook = Webhook(
                 id = 96L, project = project, payloadUrl = "http://localhost:8080/hook",
@@ -1032,7 +1111,7 @@ class WebhookServiceSpec : DescribeSpec({
             val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
 
             it("커밋이 없는 push면 head_commit 필드를 만들지 않아야 한다") {
-                val pushed = PushedCommits(emptyList(), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(emptyList(), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -1047,7 +1126,7 @@ class WebhookServiceSpec : DescribeSpec({
                 every { commitWithoutIdent.fullMessage } returns "메시지 없음 커밋"
                 every { commitWithoutIdent.authorIdent } returns null
                 every { commitWithoutIdent.committerIdent } returns null
-                val pushed = PushedCommits(listOf(commitWithoutIdent), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commitWithoutIdent.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -1066,7 +1145,7 @@ class WebhookServiceSpec : DescribeSpec({
                     webhookType = WebhookType.JSON
                 )
                 val commit = testCommit("no project commit")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhookNoProject, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -1080,19 +1159,6 @@ class WebhookServiceSpec : DescribeSpec({
                 repositoryNode.get("private").asBoolean() shouldBe true
             }
 
-            it("refNames가 비어있으면 텍스트 메시지에 브랜치명 없이 표시해야 한다") {
-                val simpleWebhook = Webhook(
-                    id = 98L, project = project, payloadUrl = "http://localhost:8080/hook",
-                    webhookType = WebhookType.SIMPLE
-                )
-                val commit = testCommit("no ref commit")
-                val pushed = PushedCommits(listOf(commit), emptyList())
-
-                val payload = webhookService.buildPayload(simpleWebhook, EventType.NEW_COMMIT, sender, pushed)
-                val json = ObjectMapper().readTree(payload)
-
-                json.get("text").asText() shouldBe "[test-project] 홍길동님이 커밋을 푸시했습니다. 1개의 커밋을  브랜치로 푸시했습니다"
-            }
         }
 
         // 커버리지 보강: Project.projectScope == PUBLIC이면 repository.private가 false여야 하는 분기.
@@ -1107,7 +1173,7 @@ class WebhookServiceSpec : DescribeSpec({
                 )
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동")
                 val commit = testCommit("public project commit")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -1327,7 +1393,7 @@ class WebhookServiceSpec : DescribeSpec({
             it("sender.id가 null이면 sender.id 필드는 0이어야 한다") {
                 val senderWithoutId = User(id = null, loginId = "noid", name = "아이디없음")
                 val commit = testCommit("no sender id commit")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, senderWithoutId, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -1343,7 +1409,7 @@ class WebhookServiceSpec : DescribeSpec({
                 )
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동")
                 val commit = testCommit("no project id/owner commit")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhookNoIdOwner, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -1361,7 +1427,7 @@ class WebhookServiceSpec : DescribeSpec({
                 )
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동")
                 val commit = testCommit("null project name commit")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhookNullName, EventType.NEW_COMMIT, sender, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -1379,7 +1445,7 @@ class WebhookServiceSpec : DescribeSpec({
                 every { commitWithNullFields.fullMessage } returns "필드 없음 커밋"
                 every { commitWithNullFields.authorIdent } returns identAllNull
                 every { commitWithNullFields.committerIdent } returns identAllNull
-                val pushed = PushedCommits(listOf(commitWithNullFields), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commitWithNullFields.toPushedCommit()), listOf("refs/heads/master"))
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동")
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
@@ -1397,7 +1463,7 @@ class WebhookServiceSpec : DescribeSpec({
                 val senderWithNullEmail = User(id = 5L, loginId = "gildong", name = "홍길동", email = "real@yona.io")
                 forceNullField(senderWithNullEmail, "email")
                 val commit = testCommit("null email commit")
-                val pushed = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, senderWithNullEmail, pushed)
                 val json = ObjectMapper().readTree(payload)
@@ -1406,7 +1472,7 @@ class WebhookServiceSpec : DescribeSpec({
             }
 
             // commit.authorIdent.when.toInstant() 이후의 ?.atZone()?.format() 체인은 java.time.Instant/
-            // ZonedDateTime의 JDK 계약(never null)에 의해 정상적으로는 도달 불가능하지만, mockk가 이
+            // ZonedDateTime의 JDK 동작(never null)에 의해 정상적으로는 도달 불가능하지만, mockk가 이
             // final JDK 클래스까지 모킹 가능한 것을 확인해 실제로 null을 주입해 검증한다.
             it("authorInstant.atZone()이 null을 반환하면(플랫폼 타입 방어 분기) timestamp가 빈 문자열이어야 한다") {
                 val instantWithNullZone = mockk<Instant>(relaxed = true)
@@ -1420,7 +1486,7 @@ class WebhookServiceSpec : DescribeSpec({
                 every { commitMock.fullMessage } returns "메시지1"
                 every { commitMock.authorIdent } returns identWithMockDate
                 every { commitMock.committerIdent } returns identWithMockDate
-                val pushed = PushedCommits(listOf(commitMock), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commitMock.toPushedCommit()), listOf("refs/heads/master"))
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동")
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
@@ -1443,7 +1509,7 @@ class WebhookServiceSpec : DescribeSpec({
                 every { commitMock.fullMessage } returns "메시지2"
                 every { commitMock.authorIdent } returns identWithMockDate
                 every { commitMock.committerIdent } returns identWithMockDate
-                val pushed = PushedCommits(listOf(commitMock), listOf("refs/heads/master"))
+                val pushed = PushedVcsCommits(listOf(commitMock.toPushedCommit()), listOf("refs/heads/master"))
                 val sender = User(id = 5L, loginId = "gildong", name = "홍길동")
 
                 val payload = webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, pushed)
@@ -1610,7 +1676,7 @@ class WebhookServiceSpec : DescribeSpec({
         }
 
         // 커버리지 최종 보강: getResourceId()의 각 리소스 타입별 id=null 분기. Posting/IssueComment/
-        // PostingComment/ReviewComment/PullRequest는 buildResourceLink 경로로, CommitComment/PushedCommits는
+        // PostingComment/ReviewComment/PullRequest는 buildResourceLink 경로로, CommitComment/PushedVcsCommits는
         // threadKeyOf(DETAIL_HANGOUT_CHAT) 경로로 도달한다. 후자는 resourceId가 빈 문자열이 되어
         // buildPayload의 스레드 조회 가드(resId.isNotBlank())에 걸려 저장소 조회 자체는 일어나지 않는다.
         describe("커버리지 최종 보강 - getResourceId() id=null 분기") {
@@ -1705,8 +1771,8 @@ class WebhookServiceSpec : DescribeSpec({
                 }
             }
 
-            it("PushedCommits는(threadKeyOf 경로) 커밋이 없으면 스레드 조회를 하지 않고, 있으면 첫 커밋 이름으로 조회해야 한다") {
-                val pushedEmpty = PushedCommits(emptyList(), listOf("refs/heads/master"))
+            it("PushedVcsCommits는(threadKeyOf 경로) 커밋이 없으면 스레드 조회를 하지 않고, 있으면 첫 커밋 이름으로 조회해야 한다") {
+                val pushedEmpty = PushedVcsCommits(emptyList(), listOf("refs/heads/master"))
 
                 webhookService.buildPayload(hangoutWebhook, EventType.NEW_COMMIT, sender, pushedEmpty)
 
@@ -1715,7 +1781,7 @@ class WebhookServiceSpec : DescribeSpec({
                 }
 
                 val commit = testCommit("threadkey push commit")
-                val pushedNonEmpty = PushedCommits(listOf(commit), listOf("refs/heads/master"))
+                val pushedNonEmpty = PushedVcsCommits(listOf(commit.toPushedCommit()), listOf("refs/heads/master"))
                 every {
                     webhookThreadRepository.findByWebhookIdAndResourceTypeAndResourceId(131L, ResourceType.COMMIT, commit.name)
                 } returns null
@@ -1730,10 +1796,10 @@ class WebhookServiceSpec : DescribeSpec({
             // RevCommit.getName()은 JGit 클래스의 메서드라 Kotlin이 플랫폼 타입(String!)으로 보고,
             // Long.toString()류의 JDK 표준 라이브러리 정적 메서드(항상 non-null 보장)와 달리 mockk로
             // null을 주입할 수 있다 — 커밋이 있어도 이름이 null이면 resourceId가 빈 문자열이어야 한다.
-            it("PushedCommits의 첫 커밋 이름(RevCommit.name)이 null이면 resourceId로 빈 문자열을 사용해야 한다") {
+            it("첫 커밋 이름이 없으면 중립 페이로드의 빈 id로 인해 스레드를 조회하지 않아야 한다") {
                 val commitWithNullName = mockk<RevCommit>(relaxed = true)
                 every { commitWithNullName.name } returns null
-                val pushedNullName = PushedCommits(listOf(commitWithNullName), listOf("refs/heads/master"))
+                val pushedNullName = PushedVcsCommits(listOf(commitWithNullName.toPushedCommit()), listOf("refs/heads/master"))
 
                 webhookService.buildPayload(hangoutWebhook, EventType.NEW_COMMIT, sender, pushedNullName)
 
