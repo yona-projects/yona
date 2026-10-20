@@ -280,6 +280,27 @@ class BoardViewControllerSpec : DescribeSpec({
             }
         }
 
+        // 코드 브라우저 "새 파일"은 path를 `dir/`로 넘기고 파일명은 폼의 new-file-name 입력이 이어 붙인다. 파일명이 비어 `dir/`(또는 루트의 `/`)가
+        // 그대로 오면 디렉터리 경로를 파일로 커밋하려 하므로 커밋하지 않고 폼으로 돌려보낸다.
+        describe("POST /{owner}/{projectName}/posts - 파일명 없는 path") {
+            it("path가 /로 끝나면(파일명 누락) 커밋하지 않고 새 파일 폼으로 되돌려 보낸다") {
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+                memberUser.projectUsers.add(ProjectUser(id = 900L, user = memberUser, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+
+                mockMvc.perform(
+                    post("/owner/TestProj/posts").principal(userAuth)
+                        .param("title", "t").param("body", "내용").param("path", "src/").param("branch", "master")
+                )
+                    .andExpect(status().is3xxRedirection)
+                    .andExpect(redirectedUrl("/owner/TestProj/post/new?path=src%2F&branch=master"))
+
+                verify(exactly = 0) { postingService.createPosting(any(), any(), any()) }
+            }
+        }
+
         describe("POST /{owner}/{projectName}/post/{number}/edit (P1-44)") {
             it("sendNotificationMail 옵션을 postingService.updatePosting에 그대로 전달해야 한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)

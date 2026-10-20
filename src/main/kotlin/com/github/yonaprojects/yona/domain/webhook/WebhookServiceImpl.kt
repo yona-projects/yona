@@ -408,6 +408,12 @@ class WebhookServiceImpl(
         val actionMessage = when (eventType) {
             EventType.NEW_ISSUE -> "새 이슈를 등록했습니다"
             EventType.ISSUE_STATE_CHANGED -> "이슈 상태를 변경했습니다"
+            EventType.ISSUE_ASSIGNEE_CHANGED -> "이슈 담당자를 변경했습니다"
+            EventType.ISSUE_MILESTONE_CHANGED -> "이슈 마일스톤을 변경했습니다"
+            EventType.ISSUE_BODY_CHANGED -> "이슈 본문을 수정했습니다"
+            EventType.ISSUE_MOVED -> "이슈를 다른 프로젝트로 옮겼습니다"
+            EventType.COMMENT_UPDATED -> "댓글을 수정했습니다"
+            EventType.RESOURCE_DELETED -> "이슈를 삭제했습니다"
             EventType.NEW_POSTING -> "새 게시글을 작성했습니다"
             EventType.NEW_COMMENT -> "새 댓글을 등록했습니다"
             EventType.NEW_REVIEW_COMMENT -> "새 리뷰 댓글을 등록했습니다"

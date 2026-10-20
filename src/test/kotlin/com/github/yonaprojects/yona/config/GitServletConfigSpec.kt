@@ -119,6 +119,24 @@ class GitServletConfigSpec : DescribeSpec({
             verify { mockLfsServlet.service(lfsRequest, lfsResponse) }
         }
         
+        // v1.6 GitApp.java:94-103: findByOwnerAndProjectName 실패 시 findByPreviousPlaceOf로 현재 Project를 찾아 그 저장소를 연다.
+        // next는 인가 필터만 옛 이름을 통과시키고, 리졸버는 URL의 옛 이름 그대로 File(baseDir, "$name.git")을 열어 개명·이전된 프로젝트의
+        // 기존 remote가 조용히 깨졌다(clone은 빈 저장소, push는 unpacker error).
+        it("개명·이전된 프로젝트의 옛 URL은 현재 이름의 저장소 경로로 해석한다") {
+            val renamed = Project(owner = "alice", name = "new-name", vcs = "GIT")
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("alice", "old-name") } returns Optional.of(renamed)
+
+            config.currentRepositoryName("alice/old-name.git") shouldBe "alice/new-name.git"
+            config.currentRepositoryName("alice/old-name") shouldBe "alice/new-name.git"
+            config.currentRepositoryName("alice/old-name.wiki.git") shouldBe "alice/new-name.wiki.git"
+        }
+
+        it("프로젝트를 찾을 수 없는 경로는 그대로 둔다") {
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("bob", "ghost") } returns Optional.empty()
+
+            config.currentRepositoryName("bob/ghost.git") shouldBe "bob/ghost.git"
+        }
+
         it("private 메서드 resolveProject, resolveCurrentUser 호출 커버리지") {
             val resolveProject = config.javaClass.getDeclaredMethod("resolveProject", HttpServletRequest::class.java)
             resolveProject.isAccessible = true
@@ -254,14 +272,15 @@ class GitServletConfigSpec : DescribeSpec({
             // synthetic 메서드 시그니처의 두 번째 파라미터로 GitServletConfig 인스턴스가 추가됐다.
             val lambda = GitServletConfig::class.java.getDeclaredMethod(
                 "gitServletRegistrationBean\$lambda\$0\$0",
-                File::class.java, GitServletConfig::class.java, HttpServletRequest::class.java, String::class.java
+                GitServletConfig::class.java, File::class.java, HttpServletRequest::class.java, String::class.java
             )
             lambda.isAccessible = true
 
             val gitBaseDir = File.createTempFile("resolver-base", "").apply { delete(); mkdirs() }
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace(any(), any()) } returns Optional.empty()
             val req = mockk<HttpServletRequest>(relaxed = true)
 
-            val repo = lambda.invoke(null, gitBaseDir, config, req, "some-repo.git") as Repository
+            val repo = lambda.invoke(null, config, gitBaseDir, req, "some-repo.git") as Repository
             repo shouldNotBe null
             repo.close()
 
@@ -276,18 +295,20 @@ class GitServletConfigSpec : DescribeSpec({
         it("저장소 리졸버 람다 - name에 \".git\" 접미어가 없어도 접미어를 붙인 것과 같은 경로로 resolve해야 한다") {
             val lambda = GitServletConfig::class.java.getDeclaredMethod(
                 "gitServletRegistrationBean\$lambda\$0\$0",
-                File::class.java, GitServletConfig::class.java, HttpServletRequest::class.java, String::class.java
+                GitServletConfig::class.java, File::class.java, HttpServletRequest::class.java, String::class.java
             )
             lambda.isAccessible = true
 
             val gitBaseDir = File.createTempFile("resolver-base-nosuffix", "").apply { delete(); mkdirs() }
+            // 리졸버는 URL의 owner/name을 현재 프로젝트 이름으로 바꾸려고 프로젝트를 조회한다(개명·이전 호환).
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace(any(), any()) } returns Optional.empty()
             val req = mockk<HttpServletRequest>(relaxed = true)
 
-            val repoWithSuffix = lambda.invoke(null, gitBaseDir, config, req, "owner/some-repo.git") as Repository
+            val repoWithSuffix = lambda.invoke(null, config, gitBaseDir, req, "owner/some-repo.git") as Repository
             val resolvedWithSuffix = repoWithSuffix.directory
             repoWithSuffix.close()
 
-            val repoWithoutSuffix = lambda.invoke(null, gitBaseDir, config, req, "owner/some-repo") as Repository
+            val repoWithoutSuffix = lambda.invoke(null, config, gitBaseDir, req, "owner/some-repo") as Repository
             val resolvedWithoutSuffix = repoWithoutSuffix.directory
             repoWithoutSuffix.close()
 

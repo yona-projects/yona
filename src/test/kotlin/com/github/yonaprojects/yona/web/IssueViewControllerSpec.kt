@@ -552,13 +552,13 @@ class IssueViewControllerSpec : DescribeSpec({
         // 실제 연관 데이터(댓글/이벤트/즐겨찾기/첨부파일/TitleHead) 정리는 P0-19로 IssueServiceImpl
         // .deleteIssueCascade()에 위임되며(검증은 IssueServiceSpec 참고), 여기서는 위임 호출만 검증한다.
         describe("POST /{owner}/{projectName}/issues/massupdate (delete=true)") {
-            it("일괄삭제 대상 이슈마다 issueService.deleteIssueCascade가 호출되어야 한다") {
+            it("일괄삭제 대상 이슈마다 issueService.deleteIssue가 호출되어야 한다") {
                 val toDelete = Issue(id = 7L, number = 7L, title = "[Bug] 지울 이슈", body = "본문", project = project, authorId = memberUser.id, state = State.OPEN)
 
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
                 every { issueRepository.findAllById(listOf(7L)) } returns listOf(toDelete)
-                every { issueService.deleteIssueCascade(toDelete) } returns Unit
+                every { issueService.deleteIssue(toDelete, any<User>()) } returns Unit
 
                 val form = IssueMassUpdateForm()
                 form.issues = listOf(IssueIdForm().apply { id = 7L })
@@ -574,7 +574,7 @@ class IssueViewControllerSpec : DescribeSpec({
                     model = ExtendedModelMap()
                 )
 
-                verify(exactly = 1) { issueService.deleteIssueCascade(toDelete) }
+                verify(exactly = 1) { issueService.deleteIssue(toDelete, any<User>()) }
             }
         }
 
@@ -1915,7 +1915,8 @@ class IssueViewControllerSpec : DescribeSpec({
                     authentication = userAuth, model = ExtendedModelMap()
                 )
 
-                localIssue.body shouldBe ""
+                // title/body 대입은 서비스(updateIssue)가 이전 값을 읽은 뒤 수행한다 - 컨트롤러는 null body를 빈 문자열로 넘긴다.
+                verify(exactly = 1) { issueService.updateIssue(5L, "새 제목", "", any(), any(), any(), any()) }
             }
 
             it("parentIssueId가 주어지면 부모 이슈로 연결되어야 한다") {
@@ -2069,7 +2070,7 @@ class IssueViewControllerSpec : DescribeSpec({
                 )
 
                 result shouldBe "redirect:/error/403"
-                verify(exactly = 0) { issueService.deleteIssueCascade(forbiddenIssue) }
+                verify(exactly = 0) { issueService.deleteIssue(forbiddenIssue, any<User>()) }
             }
 
             it("state 값이 유효하면 changeState가 호출되어야 한다") {

@@ -347,7 +347,7 @@ class IssueController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 
-        issueService.deleteIssueCascade(issue)
+        issueService.deleteIssue(issue, user)
         return ResponseEntity.ok(mapOf("status" to "success"))
     }
 

@@ -447,6 +447,12 @@ class BoardViewController(
         if (!request.path.isNullOrBlank() && projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!)) {
             val branch = request.branch ?: ""
             val path = request.path!!
+            // 코드 브라우저 "새 파일"은 path를 `dir/`로 넘기고 파일명은 폼의 new-file-name 입력이 이어 붙인다. 파일명이 비어 있으면(`/`로 끝남)
+            // 디렉터리 경로를 파일로 커밋하려 하므로 커밋하지 않고 새 파일 폼으로 되돌려 보낸다.
+            if (path.endsWith("/")) {
+                val enc = { v: String -> java.net.URLEncoder.encode(v, Charsets.UTF_8) }
+                return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/post/new?path=${enc(path)}&branch=${enc(branch)}"
+            }
             val body = LineEnding.changeLineEnding(request.body ?: "", request.lineEnding)
             // Mercurial 프로젝트는 BareCommit(JGit 전용, bare 저장소를 직접 다룬다)을 쓸 수 없으므로
             // HgRepository.commitTextFile()로 분기한다. request.namedBranch가 채워지면(코드 브라우저

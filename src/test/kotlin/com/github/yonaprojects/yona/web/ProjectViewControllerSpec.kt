@@ -2888,6 +2888,24 @@ class ProjectViewControllerSpec : DescribeSpec({
     }
 
     // newProject 최종 분기 — 인증은 있으나 사용자 레코드가 없는 경우.
+    // v1.6 ProjectApp.validateWhenNew: owner는 기존 사용자나 조직이어야 하고, 사용자라면 본인이어야 한다.
+    describe("newProject - owner 소유권 검사") {
+        it("다른 사용자의 loginId를 owner로 지정해 프로젝트를 만들 수 없다") {
+            val me = User(id = 77L, loginId = "ownerme", name = "나")
+            val meAuth = UsernamePasswordAuthenticationToken("ownerme", "password")
+            every { userRepository.findByLoginId("ownerme") } returns Optional.of(me)
+            every { organizationRepository.findByName("someoneelse") } returns Optional.empty()
+
+            mockMvc.perform(
+                MockMvcRequestBuilders.post("/projectform").principal(meAuth)
+                    .param("owner", "someoneelse").param("name", "stolen").param("overview", "설명")
+                    .param("projectScope", "PUBLIC").param("vcs", "GIT")
+            ).andExpect(status().isForbidden)
+
+            verify(exactly = 0) { projectService.createProject(any(), any()) }
+        }
+    }
+
     describe("newProject 최종 분기 보강") {
         it("인증 정보는 있지만 사용자 레코드를 찾을 수 없으면 로그인 폼으로 리다이렉트해야 한다") {
             val ghostAuth = UsernamePasswordAuthenticationToken("ghostnewprojectuser", "password")

@@ -961,7 +961,7 @@ class IssueControllerSpec : DescribeSpec({
                 every { issueRepository.findByProjectAndNumber(project, 5L) } returns issue
                 every { userRepository.findByLoginId("manageruser") } returns Optional.of(managerUser)
                 every { projectUserRepository.findByProjectIdAndUserId(1L, 20L) } returns Optional.of(projectManagerUser)
-                every { issueService.deleteIssueCascade(issue) } returns Unit
+                every { issueService.deleteIssue(issue, any<User>()) } returns Unit
 
                 mockMvc.perform(delete("/api/projects/1/issues/5").principal(managerAuth))
                     .andExpect(status().isOk)
@@ -979,7 +979,7 @@ class IssueControllerSpec : DescribeSpec({
                 every { issueRepository.findByProjectAndNumber(project, 6L) } returns assigneeIssue
                 every { userRepository.findByLoginId("otheruser") } returns Optional.of(otherUser)
                 every { projectUserRepository.findByProjectIdAndUserId(1L, 30L) } returns Optional.empty()
-                every { issueService.deleteIssueCascade(assigneeIssue) } returns Unit
+                every { issueService.deleteIssue(assigneeIssue, any<User>()) } returns Unit
 
                 mockMvc.perform(delete("/api/projects/1/issues/6").principal(otherAuth))
                     .andExpect(status().isOk)
@@ -994,12 +994,12 @@ class IssueControllerSpec : DescribeSpec({
                 every { issueRepository.findByProjectAndNumber(project, 5L) } returns issue
                 every { userRepository.findByLoginId("manageruser") } returns Optional.of(managerUser)
                 every { projectUserRepository.findByProjectIdAndUserId(1L, 20L) } returns Optional.of(projectManagerUser)
-                every { issueService.deleteIssueCascade(issue) } returns Unit
+                every { issueService.deleteIssue(issue, any<User>()) } returns Unit
 
                 mockMvc.perform(delete("/api/projects/1/issues/5").principal(managerAuth))
                     .andExpect(status().isOk)
 
-                verify(exactly = 1) { issueService.deleteIssueCascade(issue) }
+                verify(exactly = 1) { issueService.deleteIssue(issue, any<User>()) }
             }
 
             it("존재하지 않는 프로젝트면 404를 반환해야 한다") {

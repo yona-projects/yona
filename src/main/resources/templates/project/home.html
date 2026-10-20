@@ -38,7 +38,7 @@
                     </div>
                 </div>
                 <div th:if="${project.isCodeEnabled}" class="project-clone-wrap span3 hide-in-mobile">
-                    <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" th:value="'http://' + ${project.owner} + '@localhost:9091/' + ${project.owner} + '/' + ${project.name}">
+                    <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" th:value="${@templateHelper.getCloneUrl(project, currentUser)}">
                     <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}">Copy URL</button>
                 </div>
             </div>

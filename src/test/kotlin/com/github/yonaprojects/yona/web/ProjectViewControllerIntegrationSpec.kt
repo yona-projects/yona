@@ -130,6 +130,21 @@ class ProjectViewControllerIntegrationSpec @Autowired constructor(
                     .andExpect(content().string(containsString("/$ownerName/$projName/reviews")))
             }
 
+            // v1.6 project/home.scala.html: Git이면 CodeApp.getURLWithLoginId(project) — 설정된 호스트 + 로그인 사용자 + 실제 저장소 경로.
+            // next는 'http://<owner>@localhost:9091/<owner>/<name>' 개발용 값이 템플릿에 하드코딩돼 있어 복사한 URL로 clone할 수 없었다.
+            it("프로젝트 홈의 clone URL은 요청 호스트와 실제 git 경로(/git/owner/name.git)를 쓰고 개발용 주소를 담지 않는다") {
+                val memberUserObj = userRepository.findByLoginId("member1").get()
+                val memberDetails = YonaUserDetails(
+                    id = memberUserObj.id ?: 88L, loginId = memberUserObj.loginId, passwordVal = "hashed", passwordSalt = "salt",
+                    authoritiesVal = AuthorityUtils.createAuthorityList("ROLE_ACTIVE")
+                )
+
+                mockMvc.perform(get("/$ownerName/$projName").with(user(memberDetails)))
+                    .andExpect(status().isOk)
+                    .andExpect(content().string(containsString("value=\"http://member1@localhost/git/$ownerName/$projName.git\"")))
+                    .andExpect(content().string(not(containsString("localhost:9091"))))
+            }
+
             it("프로젝트 관리자(Manager)는 프로젝트 홈에서 설정 톱니바퀴 메뉴가 정상적으로 렌더링되어 보여야 한다") {
                 val ownerUserObj = userRepository.findByLoginId(ownerName).get()
                 val ownerDetails = YonaUserDetails(

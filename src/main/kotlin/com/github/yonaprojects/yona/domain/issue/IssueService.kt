@@ -6,6 +6,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
 interface IssueService {
+    // 사용자가 이슈를 삭제하는 경로(REST·화면·일괄 삭제)용. legacy IssueApp은 삭제 때 RESOURCE_DELETED 웹훅(이슈 한정)을 호출한 뒤 지웠다.
+    // 프로젝트 삭제처럼 웹훅을 보내면 안 되는 연쇄 삭제는 deleteIssueCascade를 그대로 쓴다.
+    fun deleteIssue(issue: Issue, deleter: User)
+
     // IssueSearchCondition 대응 — assigned/created/mentioned/favorite 필터는 해당 조건 하나만,
     // all은 넷을 합쳐(중복 제거) updatedDate desc로 반환한다.
     fun getIssuesByFilter(filter: IssueFilterType, user: User): List<Issue>

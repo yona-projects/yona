@@ -49,7 +49,9 @@ class IssueServiceImpl(
     // nextIssueNumber()의 원자적 채번 UPDATE 이후, 이미 영속성 컨텍스트에 관리 중인 project
     // 엔티티의 lastIssueNumber 필드를 DB의 최신 값으로 다시 동기화하는 데 쓴다(JPQL 벌크 UPDATE는
     // 1차 캐시를 자동으로 갱신하지 않는다).
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    // deleteIssue()가 삭제 전에 RESOURCE_DELETED 웹훅을 동기로 보낸다(삭제 후에는 리스너가 이슈를 조회할 수 없다).
+    private val webhookService: com.github.yonaprojects.yona.domain.webhook.WebhookService
 ) : IssueService {
 
     override fun getIssuesByFilter(filter: IssueFilterType, user: User): List<Issue> {
@@ -681,6 +683,13 @@ class IssueServiceImpl(
     // IssueComment/IssueEvent/FavoriteIssue는 issue FK가 nullable=false라 반드시 먼저 삭제해야
     // issueRepository.delete(issue)가 FK 제약 위반 없이 성공한다(assignee/sharers/labels/voters는
     // Issue 엔티티 자체의 cascade로 처리됨).
+    override fun deleteIssue(issue: Issue, deleter: User) {
+        // v1.6 NotificationEvent.afterResourceDeleted: item instanceof Issue이면 webhookRequest(RESOURCE_DELETED, issue) - 수신자와 무관.
+        // 페이로드는 동기로 만들어지고 HTTP 전송만 비동기라, 이슈를 지우기 전에 호출해야 한다.
+        webhookService.sendWebhook(issue.project, EventType.RESOURCE_DELETED, deleter, issue)
+        deleteIssueCascade(issue)
+    }
+
     override fun deleteIssueCascade(issue: Issue) {
         val comments = issueCommentRepository.findByIssueIdOrderByCreatedDateAsc(issue.id!!)
         for (comment in comments) {

@@ -42,6 +42,20 @@
                         <input type="hidden" id="issueTemplate" name="issueTemplate" th:value="${param.issueTemplate}">
                         <input type="hidden" id="branch" name="branch" th:value="${param.branch}">
                         <input type="hidden" id="path" name="path" th:value="${param.path}">
+                        <!-- v1.6 board/create.scala.html: 코드 브라우저 "새 파일"(path 지정, 편집 아님)에서는 파일명을 입력받아 path 뒤에 이어 붙인다. -->
+                        <span class="help file-path" th:if="${param.path != null and param.edit == null}">
+                            <span th:text="${param.branch} + ': /' + ${param.path}">branch: /path/</span>
+                            <input type="text" name="new-file-name" id="new-file-name" class="new-file-name" placeholder="filename..">
+                        </span>
+                        <script th:if="${param.path != null and param.edit == null}" th:inline="javascript">
+                            (function () {
+                                var dir = /*[[${param.path}]]*/ '';
+                                var input = document.getElementById('new-file-name');
+                                var pathField = document.getElementById('path');
+                                if (!input || !pathField) { return; }
+                                input.addEventListener('keyup', function () { pathField.value = dir + input.value; });
+                            })();
+                        </script>
                         <input type="hidden" id="lineEnding" name="lineEnding" value="LF">
                     </div>
 

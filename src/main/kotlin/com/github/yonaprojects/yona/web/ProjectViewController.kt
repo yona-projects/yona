@@ -525,6 +525,12 @@ class ProjectViewController(
                 HttpStatus.FORBIDDEN, "'${loginUser.name}' has no permission"
             )
         }
+        // v1.6 ProjectApp.validateWhenNew: owner가 사용자명이면 본인이어야 한다(다른 사용자의 이름공간에 프로젝트를 만들 수 없다).
+        if (organization == null && trimmedOwner != loginUser.loginId) {
+            throw ResponseStatusException(
+                HttpStatus.FORBIDDEN, "'${loginUser.name}' has no permission"
+            )
+        }
 
         try {
             val project = Project().apply {

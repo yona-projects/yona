@@ -74,6 +74,18 @@ class GitServletConfig(
     // 인가 필터와 push 훅이 같은 프로젝트를 가리키도록 보장한다.
     private val gitUriPattern = Pattern.compile("^/(git|git-lfs)/([^/]+)/([^/]+?)(?:\\.git)?(?:/.*)?$")
 
+    // v1.6 GitApp.java:94-103 - findByOwnerAndProjectName 실패 시 findByPreviousPlaceOf로 현재 Project를 찾아 그 저장소를 연다. URL의 owner/name이
+    // 개명·이전 전의 옛 이름이어도 현재 이름의 디렉터리로 해석한다(위키 저장소 접미어는 유지). 프로젝트를 찾을 수 없으면 그대로 둔다.
+    fun currentRepositoryName(name: String): String {
+        val normalized = if (name.endsWith(".git")) name else "$name.git"
+        val base = normalized.removeSuffix(".git")
+        val isWiki = base.endsWith(".wiki")
+        val segments = base.removeSuffix(".wiki").split("/")
+        if (segments.size != 2) return normalized
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(segments[0], segments[1]).orElse(null) ?: return normalized
+        return "${project.owner}/${project.name}${if (isWiki) ".wiki" else ""}.git"
+    }
+
     @Bean
     fun gitServletRegistrationBean(): ServletRegistrationBean<HttpServlet> {
         val gitBaseDir = File(baseDir)
@@ -94,7 +106,7 @@ class GitServletConfig(
                 // 디렉터리에 임시 팩 파일을 만들려다 IOException을 던져 "unpacker error"로
                 // 거절됐다(GitSmartHttpProtocolIntegrationSpec에 회귀 테스트 고정). ".git" 접미어를
                 // 정규화해 항상 같은 경로로 resolve한다.
-                val normalizedName = if (name.endsWith(".git")) name else "$name.git"
+                val normalizedName = currentRepositoryName(name)
                 val repoFile = File(gitBaseDir, normalizedName)
 
                 // 위키 저장소("<owner>/<project>.wiki.git")는 웹 UI에서 첫 페이지를 저장할 때만
