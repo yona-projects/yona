@@ -2,6 +2,9 @@ package com.github.yonaprojects.yona.web
 
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.VcsResetConfirmation
+import com.github.yonaprojects.yona.domain.project.InvalidVcsResetConfirmation
+import com.github.yonaprojects.yona.domain.project.VcsResetConflict
 import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.project.ProjectUser
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
@@ -435,10 +438,51 @@ class ProjectViewControllerSpec : DescribeSpec({
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
                 every { projectUserRepository.findByProjectIdAndUserId(1L, 10L) } returns Optional.of(projectUser)
-                every { projectService.changeVCS(1L) } returns project
+                val confirmation = VcsResetConfirmation(1L, "TestProj", "GIT", true)
+                every { projectService.changeVCS(1L, confirmation) } returns project
 
-                mockMvc.perform(MockMvcRequestBuilders.post("/owner/TestProj/changeVCS").principal(userAuth))
+                mockMvc.perform(MockMvcRequestBuilders.post("/owner/TestProj/changeVCS").principal(userAuth)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"projectId":1,"projectName":"TestProj","expectedVcs":"GIT","accepted":true}"""))
                     .andExpect(status().isNoContent)
+            }
+
+            listOf(
+                "" to 400,
+                "{}" to 400,
+                """{"projectId":1,"projectName":"TestProj","expectedVcs":"GIT"}""" to 400,
+                """{"projectId":1,"projectName":"TestProj","expectedVcs":"GIT","accepted":false}""" to 400,
+                """{"projectId":2,"projectName":"TestProj","expectedVcs":"GIT","accepted":true}""" to 400,
+                """{"projectId":1,"projectName":"testproj","expectedVcs":"GIT","accepted":true}""" to 400,
+                """{"projectId":1,"projectName":"OldName","expectedVcs":"GIT","accepted":true}""" to 400,
+                """{"projectId":1,"projectName":"TestProj","accepted":true}""" to 400,
+                """{"projectId":1,"projectName":"TestProj","expectedVcs":"SUBVERSION","accepted":true}""" to 409
+            ).forEach { (body, expectedStatus) ->
+                it("잘못되거나 오래된 확인을 서비스 호출 전에 거부한다: $body") {
+                    every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                    every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                    every { projectUserRepository.findByProjectIdAndUserId(1L, 10L) } returns Optional.of(projectUser)
+
+                    mockMvc.perform(MockMvcRequestBuilders.post("/owner/TestProj/changeVCS").principal(userAuth)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                        .andExpect(status().`is`(expectedStatus))
+
+                    verify(exactly = 0) { projectService.changeVCS(any(), any()) }
+                }
+            }
+
+            listOf(InvalidVcsResetConfirmation() to 400, VcsResetConflict() to 409).forEach { (failure, expectedStatus) ->
+                it("서비스 재검증 실패도 올바른 HTTP 상태로 반환한다: $expectedStatus") {
+                    every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                    every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                    every { projectUserRepository.findByProjectIdAndUserId(1L, 10L) } returns Optional.of(projectUser)
+                    every { projectService.changeVCS(any(), any()) } throws failure
+
+                    mockMvc.perform(MockMvcRequestBuilders.post("/owner/TestProj/changeVCS").principal(userAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"projectId":1,"projectName":"TestProj","expectedVcs":"GIT","accepted":true}"""))
+                        .andExpect(status().`is`(expectedStatus))
+                }
             }
         }
 
@@ -1962,7 +2006,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             val proj = Project(id = 182L, name = "AnyProj", owner = "owner")
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "AnyProj") } returns Optional.of(proj)
 
-            val response = projectViewController.changeVCS("owner", "AnyProj", null)
+            val response = projectViewController.changeVCS("owner", "AnyProj", null, null)
             response.statusCode shouldBe HttpStatus.UNAUTHORIZED
         }
 
@@ -1972,7 +2016,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             every { userRepository.findByLoginId("vcspostuser") } returns Optional.of(user)
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "NoSuchVCSPost") } returns Optional.empty()
 
-            val response = projectViewController.changeVCS("owner", "NoSuchVCSPost", auth)
+            val response = projectViewController.changeVCS("owner", "NoSuchVCSPost", auth, null)
             response.statusCode shouldBe HttpStatus.NOT_FOUND
         }
 
@@ -1984,7 +2028,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "VCSPostProj") } returns Optional.of(proj)
             every { projectUserRepository.findByProjectIdAndUserId(181L, 181L) } returns Optional.empty()
 
-            val response = projectViewController.changeVCS("owner", "VCSPostProj", auth)
+            val response = projectViewController.changeVCS("owner", "VCSPostProj", auth, null)
             response.statusCode shouldBe HttpStatus.FORBIDDEN
         }
     }
@@ -2762,7 +2806,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             every { projectUserRepository.findByProjectIdAndUserId(1060L, 1060L) } returns
                 Optional.of(ProjectUser(id = 10600L, user = member, project = proj, role = Role(id = RoleType.MEMBER.roleType)))
 
-            val response = projectViewController.changeVCS("owner", "MemberVCSPostProj", memberAuth)
+            val response = projectViewController.changeVCS("owner", "MemberVCSPostProj", memberAuth, null)
             response.statusCode shouldBe HttpStatus.FORBIDDEN
         }
     }
@@ -2849,7 +2893,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "GhostVCSPostProj") } returns Optional.of(proj)
             every { userRepository.findByLoginId("ghostvcspostuser") } returns Optional.empty()
 
-            val response = projectViewController.changeVCS("owner", "GhostVCSPostProj", ghostAuth)
+            val response = projectViewController.changeVCS("owner", "GhostVCSPostProj", ghostAuth, null)
             response.statusCode shouldBe HttpStatus.UNAUTHORIZED
         }
 
@@ -2862,7 +2906,7 @@ class ProjectViewControllerSpec : DescribeSpec({
             every { projectUserRepository.findByProjectIdAndUserId(2031L, 2031L) } returns
                 Optional.of(ProjectUser(id = 20310L, user = user2, project = proj, role = Role(id = null)))
 
-            val response = projectViewController.changeVCS("owner", "NullRoleVCSPostProj", auth2)
+            val response = projectViewController.changeVCS("owner", "NullRoleVCSPostProj", auth2, null)
             response.statusCode shouldBe HttpStatus.FORBIDDEN
         }
     }

@@ -7,13 +7,15 @@ package com.github.yonaprojects.yona.domain.vcs
 // POST)가 동일한 계산을 공유해야 화면에 보여준 대상과 실제로 바뀌는 대상이 어긋나지 않는다.
 private val VCS_CYCLE = listOf("GIT", "SUBVERSION", "MERCURIAL")
 
+fun normalizeVcs(currentVcs: String?): String = when (currentVcs?.uppercase()) {
+    "SVN" -> "SUBVERSION"
+    "HG" -> "MERCURIAL"
+    null -> "GIT"
+    else -> currentVcs.uppercase()
+}
+
 fun nextVcsInCycle(currentVcs: String?): String {
-    val normalized = when (currentVcs?.uppercase()) {
-        "SVN" -> "SUBVERSION"
-        "HG" -> "MERCURIAL"
-        null -> "GIT"
-        else -> currentVcs.uppercase()
-    }
+    val normalized = normalizeVcs(currentVcs)
     val index = VCS_CYCLE.indexOf(normalized)
     val nextIndex = if (index == -1) 0 else (index + 1) % VCS_CYCLE.size
     return VCS_CYCLE[nextIndex]
