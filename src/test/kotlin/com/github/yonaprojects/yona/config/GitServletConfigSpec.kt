@@ -137,6 +137,39 @@ class GitServletConfigSpec : DescribeSpec({
             config.currentRepositoryName("bob/ghost.git") shouldBe "bob/ghost.git"
         }
 
+        // v1.6에는 Deploy Key가 없었고 익명 push도 UserApp.currentUser()(익명 User)로 훅이 항상 돌았다. next는 pusher가 null이면 (Deploy Key push 포함)
+        // YonaPostReceiveHook을 아예 달지 않아 lastPushedDate·PushedBranch·NEW_COMMIT 알림/웹훅·PR 재검사가 모두 빠졌다.
+        describe("post-receive 훅의 pusher 결정") {
+            it("사용자 인증이면 그 사용자를 돌려준다") {
+                val user = User(id = 5L, loginId = "pusher", name = "푸셔")
+                every { userRepository.findByLoginId("pusher") } returns Optional.of(user)
+                val auth = org.springframework.security.authentication.UsernamePasswordAuthenticationToken("pusher", "pw", emptyList())
+
+                config.resolveHookPusher(auth) shouldBe user
+            }
+
+            it("Deploy Key 인증이면 키 이름을 담은 임시 사용자를 돌려준다(저장하지 않는다)") {
+                val project = Project(id = 1L, owner = "owner", name = "repo", vcs = "GIT")
+                val key = com.github.yonaprojects.yona.domain.deploykey.DeployKey(id = 9L, project = project, title = "CI 서버")
+                val auth = com.github.yonaprojects.yona.config.git.DeployKeyAuthenticationToken.authenticated(key)
+
+                val pusher = config.resolveHookPusher(auth)
+
+                pusher shouldNotBe null
+                pusher!!.id shouldBe null
+                pusher.name shouldBe "Deploy Key: CI 서버"
+            }
+
+            it("익명이거나 인증 정보가 없으면 null이다") {
+                config.resolveHookPusher(null) shouldBe null
+                config.resolveHookPusher(
+                    org.springframework.security.authentication.AnonymousAuthenticationToken(
+                        "key", "anon", listOf(org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))
+                    )
+                ) shouldBe null
+            }
+        }
+
         it("private 메서드 resolveProject, resolveCurrentUser 호출 커버리지") {
             val resolveProject = config.javaClass.getDeclaredMethod("resolveProject", HttpServletRequest::class.java)
             resolveProject.isAccessible = true

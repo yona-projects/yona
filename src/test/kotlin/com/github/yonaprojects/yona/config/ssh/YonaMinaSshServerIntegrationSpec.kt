@@ -24,6 +24,7 @@ import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import io.kotest.assertions.withClue
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -358,6 +359,80 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
             // 체이닝하는데, 이 SSH 경로(YonaSshGitCommand)는 처음 구현 시 전자만 걸고 후자를
             // 빠뜨려서 P3-04(브랜치 보호) 정책 전체가 SSH를 통하면 우회되는 실제 보안 결함이
             // 있었다 — 이 테스트는 그 결함을 고정하는 회귀 가드다.
+        // HTTPS(GitServletConfig)와 Hg SSH는 push 뒤 YonaPostReceiveHook(lastPushedDate·PushedBranch·NEW_COMMIT 알림/웹훅·PR 재검사)을 달지만,
+        // Git SSH 경로(GitSshProtocolHandler)에는 훅이 연결돼 있지 않았다. 같은 저장소를 HTTP와 SSH로 섞어 쓰면 상태가 어긋난다.
+        it("SSH 사용자 키로 push하면 마지막 push 시각과 최근 푸시 브랜치가 기록돼야 한다") {
+            val owner = userRepository.save(User(loginId = "mina-hook-owner", name = "미나훅오너", email = "mina-hook-owner@example.com"))
+            val project = projectRepository.save(Project(name = "mina-hook-repo", owner = owner.loginId, vcs = "GIT"))
+            repositoryService.getRepository(project).create()
+            BareCommit(project, owner, gitBaseDirHolder.absolutePath).commitTextFile("README.md", "# hook", "초기 커밋")
+            project.lastPushedDate = null
+            projectRepository.save(project)
+
+            val (privateKeyFile, publicKey) = generateKeyPair("hook-owner")
+            sshKeyService.create(owner, "훅오너 키", publicKey)
+
+            val port = yonaMinaSshServer.boundPort
+            val cloneUrl = "ssh://mina-hook-owner@127.0.0.1:$port/${project.owner}/${project.name}.git"
+            val cloneDest = Files.createTempDirectory("mina-ssh-it-hook-clone-").toFile()
+            try {
+                val (cloneExit, cloneOutput) = runGit("git", "clone", cloneUrl, cloneDest.absolutePath, privateKeyFile = privateKeyFile)
+                withClue(cloneOutput) { cloneExit shouldBe 0 }
+                File(cloneDest, "hooked.txt").writeText("push through ssh")
+                fun run(vararg cmd: String) {
+                    val (exit, out) = runGit(*cmd, dir = cloneDest, privateKeyFile = privateKeyFile)
+                    withClue(out) { exit shouldBe 0 }
+                }
+                run("git", "config", "user.email", "mina-hook-owner@example.com")
+                run("git", "config", "user.name", "mina-hook-owner")
+                run("git", "add", "hooked.txt")
+                run("git", "commit", "-m", "push through ssh")
+                run("git", "branch", "-M", "feature-ssh")
+                run("git", "push", cloneUrl, "feature-ssh")
+
+                projectRepository.findById(project.id!!).orElseThrow().lastPushedDate shouldNotBe null
+            } finally {
+                cloneDest.deleteRecursively()
+            }
+        }
+
+        it("Deploy Key로 SSH push해도 마지막 push 시각이 기록돼야 한다") {
+            val owner = userRepository.save(User(loginId = "mina-dkhook-owner", name = "미나DK훅오너", email = "mina-dkhook-owner@example.com"))
+            val project = projectRepository.save(
+                Project(name = "mina-dkhook-repo", owner = owner.loginId, projectScope = ProjectScope.PRIVATE, vcs = "GIT")
+            )
+            repositoryService.getRepository(project).create()
+            BareCommit(project, owner, gitBaseDirHolder.absolutePath).commitTextFile("README.md", "# dk hook", "초기 커밋")
+            project.lastPushedDate = null
+            projectRepository.save(project)
+
+            val (privateKeyFile, publicKey) = generateKeyPair("deploykey-hook")
+            deployKeyService.create(project, "훅 Deploy Key", publicKey, readOnly = false)
+
+            val port = yonaMinaSshServer.boundPort
+            val cloneUrl = "ssh://git@127.0.0.1:$port/${project.owner}/${project.name}.git"
+            val cloneDest = Files.createTempDirectory("mina-ssh-it-dkhook-clone-").toFile()
+            try {
+                val (cloneExit, cloneOutput) = runGit("git", "clone", cloneUrl, cloneDest.absolutePath, privateKeyFile = privateKeyFile)
+                withClue(cloneOutput) { cloneExit shouldBe 0 }
+                File(cloneDest, "dk-hooked.txt").writeText("push through deploy key")
+                fun run(vararg cmd: String) {
+                    val (exit, out) = runGit(*cmd, dir = cloneDest, privateKeyFile = privateKeyFile)
+                    withClue(out) { exit shouldBe 0 }
+                }
+                run("git", "config", "user.email", "dk@example.com")
+                run("git", "config", "user.name", "dk")
+                run("git", "add", "dk-hooked.txt")
+                run("git", "commit", "-m", "push through deploy key")
+                run("git", "branch", "-M", "main")
+                run("git", "push", cloneUrl, "main")
+
+                projectRepository.findById(project.id!!).orElseThrow().lastPushedDate shouldNotBe null
+            } finally {
+                cloneDest.deleteRecursively()
+            }
+        }
+
             it("브랜치 보호 정책(require_pull_request)이 SSH 직접 push에도 적용돼야 한다(HTTPS와 동일)") {
                 val owner = userRepository.save(User(loginId = "mina-bp-owner", name = "미나브랜치보호오너", email = "mina-bp-owner@example.com"))
                 val project = projectRepository.save(Project(name = "mina-bp-repo", owner = owner.loginId, vcs = "GIT"))

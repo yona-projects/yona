@@ -37,14 +37,22 @@ class YonaSshGitCommand(
     private val projectUserRepository: ProjectUserRepository,
     // BranchProtectionPreReceiveHook이 require_signed_commits를 실제로 검사하는 데 필요
     // (HTTPS 경로 GitServletConfig와 동일).
-    private val gpgSignatureVerifier: GpgSignatureVerifier
+    private val gpgSignatureVerifier: GpgSignatureVerifier,
+    private val projectRepository: com.github.yonaprojects.yona.domain.project.ProjectRepository,
+    private val pullRequestRepository: com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository,
+    private val pushedBranchRepository: com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository,
+    private val eventPublisher: org.springframework.context.ApplicationEventPublisher,
+    private val meterRegistry: io.micrometer.core.instrument.MeterRegistry
 ) : Command, CommandDirectInputStreamAware, CommandDirectOutputStreamAware, CommandDirectErrorStreamAware {
 
     private val logger = LoggerFactory.getLogger(YonaSshGitCommand::class.java)
 
     // GitServletConfig(HTTPS)와 동일한 훅 체이닝 로직을 공유 클래스로 뽑아내, 이 MINA 경로와
     // 유닉스 도메인 소켓 릴레이(SshRelayServer) 둘 다 같은 구현을 호출하도록 한다.
-    private val gitProtocolHandler = GitSshProtocolHandler(protectedBranchRepository, projectUserRepository, gpgSignatureVerifier)
+    private val gitProtocolHandler = GitSshProtocolHandler(
+        protectedBranchRepository, projectUserRepository, gpgSignatureVerifier,
+        projectRepository, pullRequestRepository, pushedBranchRepository, eventPublisher, meterRegistry
+    )
 
     private var inputStream: InputStream? = null
     private var outputStream: OutputStream? = null

@@ -152,10 +152,11 @@ class GitServletConfig(
                 }
                 receivePack.setPreReceiveHook(PreReceiveHookChain.newChain(preReceiveHooks))
 
-                if (project != null && pusher != null) {
+                val hookPusher = resolveHookPusher(SecurityContextHolder.getContext().authentication)
+                if (project != null && hookPusher != null) {
                     receivePack.setPostReceiveHook(
                         YonaPostReceiveHook(
-                            project, pusher, projectRepository, pullRequestRepository, pushedBranchRepository, eventPublisher, meterRegistry
+                            project, hookPusher, projectRepository, pullRequestRepository, pushedBranchRepository, eventPublisher, meterRegistry
                         )
                     )
                 } else {
@@ -239,6 +240,13 @@ class GitServletConfig(
         // yona GitApp.findByPreviousPlaceOf() 폴백 대응 — 프로젝트가
         // 이전/개명된 뒤에도 기존 git remote URL이 계속 동작해야 한다.
         return projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+    }
+
+    // post-receive 훅에 쓸 pusher. 사용자 인증이면 그 사용자, Deploy Key면 임시 사용자(asPusher), 익명이면 null.
+    fun resolveHookPusher(authentication: org.springframework.security.core.Authentication?): User? {
+        if (authentication == null || !authentication.isAuthenticated || authentication is AnonymousAuthenticationToken) return null
+        if (authentication is com.github.yonaprojects.yona.config.git.DeployKeyAuthenticationToken) return authentication.deployKey.asPusher()
+        return userRepository.findByLoginId(authentication.name).orElse(null)
     }
 
     private fun resolveCurrentUser(): User? {

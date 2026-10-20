@@ -75,7 +75,10 @@ class SshRelayServer(
 ) {
     private val logger = LoggerFactory.getLogger(SshRelayServer::class.java)
 
-    private val gitProtocolHandler = GitSshProtocolHandler(protectedBranchRepository, projectUserRepository, gpgSignatureVerifier)
+    private val gitProtocolHandler = GitSshProtocolHandler(
+        protectedBranchRepository, projectUserRepository, gpgSignatureVerifier,
+        projectRepository, pullRequestRepository, pushedBranchRepository, eventPublisher, meterRegistry
+    )
     private val hgProtocolHandler = HgSshProtocolHandler(
         protectedBranchRepository, projectUserRepository, gpgSignatureVerifier,
         projectRepository, pullRequestRepository, pushedBranchRepository, eventPublisher, meterRegistry

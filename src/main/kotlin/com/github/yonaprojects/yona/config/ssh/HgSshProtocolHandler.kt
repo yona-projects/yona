@@ -72,7 +72,7 @@ class HgSshProtocolHandler(
                         ).run(context)
                     }
                 )
-                val pusher = authorization.pusher
+                val pusher = authorization.pusher ?: authorization.deployKey?.asPusher()
                 if (pusher != null) {
                     server.registerPostPushkeyHook(
                         HgHook { context ->

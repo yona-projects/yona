@@ -26,7 +26,9 @@ data class SshCommandAuthorization(
     // 의미(익명 push와 동일하게 restrict_push_to는 여전히 적용되고 admins_can_bypass는
     // 적용되지 않음).
     val project: Project? = null,
-    val pusher: User? = null
+    val pusher: User? = null,
+    // Deploy Key로 인증된 push의 post-receive 훅 발신자(asPusher())를 만들 때 쓴다. pusher는 브랜치 보호 판정용이라 null로 유지한다.
+    val deployKey: com.github.yonaprojects.yona.domain.deploykey.DeployKey? = null
 ) {
     companion object {
         fun denied(reason: String): SshCommandAuthorization = SshCommandAuthorization(allowed = false, reason = reason)

@@ -33,7 +33,13 @@ class UnsupportedGitServiceException(service: String?) : Exception("지원하지
 class GitSshProtocolHandler(
     private val protectedBranchRepository: ProtectedBranchRepository,
     private val projectUserRepository: ProjectUserRepository,
-    private val gpgSignatureVerifier: GpgSignatureVerifier
+    private val gpgSignatureVerifier: GpgSignatureVerifier,
+    // HTTPS(GitServletConfig)와 Hg SSH(HgSshProtocolHandler)처럼 push 뒤 YonaPostReceiveHook을 달기 위한 의존성.
+    private val projectRepository: com.github.yonaprojects.yona.domain.project.ProjectRepository,
+    private val pullRequestRepository: com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository,
+    private val pushedBranchRepository: com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository,
+    private val eventPublisher: org.springframework.context.ApplicationEventPublisher,
+    private val meterRegistry: io.micrometer.core.instrument.MeterRegistry
 ) {
     /** authorization.allowed/repoDir/service는 호출부가 이미 검증했다고 가정한다(denied 케이스는
      * 호출부에서 처리) — 이 메서드는 오직 "허용된 요청을 실제로 처리"하는 데만 집중한다. */
@@ -61,6 +67,16 @@ class GitSshProtocolHandler(
                         )
                     }
                     receivePack.setPreReceiveHook(PreReceiveHookChain.newChain(preReceiveHooks))
+                    // lastPushedDate·PushedBranch·NEW_COMMIT 알림/웹훅·PR 재검사. Deploy Key push는 임시 사용자(asPusher)를 발신자로 쓴다.
+                    val hookPusher = authorization.pusher ?: authorization.deployKey?.asPusher()
+                    if (authorization.project != null && hookPusher != null) {
+                        receivePack.setPostReceiveHook(
+                            com.github.yonaprojects.yona.domain.vcs.YonaPostReceiveHook(
+                                authorization.project, hookPusher, projectRepository, pullRequestRepository,
+                                pushedBranchRepository, eventPublisher, meterRegistry
+                            )
+                        )
+                    }
                     receivePack.receive(input, output, error)
                 }
                 else -> throw UnsupportedGitServiceException(service)

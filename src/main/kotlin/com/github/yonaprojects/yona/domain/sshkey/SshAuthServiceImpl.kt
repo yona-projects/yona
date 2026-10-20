@@ -153,7 +153,7 @@ class SshAuthServiceImpl(
         }
         return SshCommandAuthorization(
             allowed = true, isWrite = !deployKey.readOnly, repoDir = hgRepoDirOf(project), service = "hg-serve",
-            project = project, pusher = null
+            project = project, pusher = null, deployKey = deployKey
         )
     }
 
@@ -204,7 +204,7 @@ class SshAuthServiceImpl(
         }
         return SshCommandAuthorization(
             allowed = true, isWrite = isWrite, repoDir = repoDirOf(project), service = service,
-            project = project, pusher = null
+            project = project, pusher = null, deployKey = deployKey
         )
     }
 

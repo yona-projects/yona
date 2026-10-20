@@ -37,6 +37,11 @@ final class YonaMinaSshServer(
     // YonaSshGitCommand가 BranchProtectionPreReceiveHook의 require_signed_commits 검사에 필요한
     // GpgSignatureVerifier를 HTTPS 경로와 동일하게 전달한다.
     private val gpgSignatureVerifier: GpgSignatureVerifier,
+    private val projectRepository: com.github.yonaprojects.yona.domain.project.ProjectRepository,
+    private val pullRequestRepository: com.github.yonaprojects.yona.domain.pullrequest.PullRequestRepository,
+    private val pushedBranchRepository: com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository,
+    private val eventPublisher: org.springframework.context.ApplicationEventPublisher,
+    private val meterRegistry: io.micrometer.core.instrument.MeterRegistry,
     @Value("\${yona.ssh.mina.enabled:auto}")
     private val enabledSetting: String,
     @Value("\${yona.ssh.mina.port:2222}")
@@ -87,7 +92,8 @@ final class YonaMinaSshServer(
             val principal = channel.session.getAttribute(PRINCIPAL_ATTRIBUTE)
                 ?: throw IOException("인증되지 않은 세션입니다.")
             YonaSshGitCommand(
-                command, principal, sshAuthService, protectedBranchRepository, projectUserRepository, gpgSignatureVerifier
+                command, principal, sshAuthService, protectedBranchRepository, projectUserRepository, gpgSignatureVerifier,
+                projectRepository, pullRequestRepository, pushedBranchRepository, eventPublisher, meterRegistry
             )
         }
 

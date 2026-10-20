@@ -57,4 +57,11 @@ class DeployKey(
 
     @Column(name = "last_used_at")
     var lastUsedAt: Instant? = null
-)
+) {
+    /**
+     * Deploy Key로 push할 때 post-receive 훅(lastPushedDate·PushedBranch·NEW_COMMIT 알림/웹훅·PR 재검사)에 넘길 발신자. 저장하지 않는 임시
+     * 사용자라 id가 없다 - 브랜치 보호 판정에는 쓰지 않고(그쪽은 pusher=null 유지) 알림/웹훅 표시 이름으로만 쓴다.
+     */
+    fun asPusher(): com.github.yonaprojects.yona.domain.user.User =
+        com.github.yonaprojects.yona.domain.user.User(loginId = "deploy-key-$id", name = "Deploy Key: $title")
+}
