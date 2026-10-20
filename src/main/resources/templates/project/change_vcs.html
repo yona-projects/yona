@@ -16,7 +16,7 @@
             <div class="bubble-wrap gray wp">
                 <div class="row-fluid">
                     <h3>
-                        <span th:text="${project.vcs}">VCS</span>
+                        <span th:text="${currentVcs}">VCS</span>
                         <i class="yobicon-right-2 vmiddle"></i>
                         <span th:text="${nextVcs}">NEXT_VCS</span>
                     </h3>
@@ -24,6 +24,9 @@
                         <ul>
                             <li class="notice"><strong th:text="#{project.changeVCS.description1(${nextVcs})}">설명1</strong></li>
                             <li class="notice"><strong th:text="#{project.changeVCS.description2}">설명2</strong></li>
+                            <li class="notice" th:text="#{project.changeVCS.reset}">저장소 초기화</li>
+                            <li class="notice" th:text="#{project.changeVCS.forks}">fork 연결 해제</li>
+                            <li class="notice" th:text="#{project.changeVCS.preserved}">협업 데이터 유지</li>
                         </ul>
                         <p>
                             <input id="acceptChangeVCS" type="checkbox" class="checkbox" autocomplete="off">
@@ -47,10 +50,16 @@
                 </div>
                 <div class="modal-body">
                     <p th:text="#{project.changeVCS.description2}">설명2</p>
+                    <p th:text="#{project.changeVCS.reset}">저장소 초기화</p>
+                    <p th:text="#{project.changeVCS.forks}">fork 연결 해제</p>
+                    <p th:text="#{project.changeVCS.preserved}">협업 데이터 유지</p>
+                    <label for="confirmVcsProjectName" th:text="#{project.changeVCS.confirmName(${project.name})}">현재 프로젝트명</label>
+                    <input id="confirmVcsProjectName" type="text" autocomplete="off" required
+                           th:attr="data-project-id=${project.id},data-project-name=${project.name},data-current-vcs=${currentVcs}">
                     <p th:text="#{project.changeVCS.reaccept}">다시 확인</p>
                 </div>
                 <div class="modal-footer">
-                    <button id="btnChangeVCSExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}">예</button>
+                    <button id="btnChangeVCSExec" type="button" class="ybtn ybtn-danger" disabled th:text="#{button.yes}">예</button>
                     <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니요</button>
                 </div>
             </dialog>
