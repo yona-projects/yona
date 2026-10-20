@@ -390,6 +390,47 @@ class WebhookServiceSpec : DescribeSpec({
             }
         }
 
+        describe("buildPayload - PushedVcsCommits(SVN 등) push 페이로드") {
+            val commit = PushedVcsCommit("12", "fix #1 via svn", "svn-user", null, java.time.Instant.parse("2026-10-08T01:02:03Z"))
+
+            it("uses the same JSON schema as Git pushes with an empty ref list for SVN") {
+                val jsonWebhook = Webhook(id = 70L, project = project, payloadUrl = "http://localhost:8080/hook", gitPush = true, webhookType = WebhookType.JSON)
+                val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
+                val json = ObjectMapper().readTree(
+                    webhookService.buildPayload(jsonWebhook, EventType.NEW_COMMIT, sender, PushedVcsCommits(listOf(commit), emptyList()))
+                )
+                json.get("ref").size() shouldBe 0
+                json.get("commits").get(0).get("id").asText() shouldBe "12"
+                json.get("commits").get(0).get("message").asText() shouldBe "fix #1 via svn"
+                json.get("commits").get(0).get("author").get("name").asText() shouldBe "svn-user"
+                json.get("commits").get(0).get("author").get("email").asText() shouldBe ""
+                json.get("commits").get(0).get("committer").get("name").asText() shouldBe "svn-user"
+                json.get("head_commit").get("id").asText() shouldBe "12"
+                json.get("sender").get("login").asText() shouldBe "gildong"
+                json.get("pusher").get("email").asText() shouldBe "gildong@yona.io"
+                json.get("repository").get("name").asText() shouldBe "test-project"
+            }
+
+            it("leaves sender and pusher null when no Yona account pushed the commits") {
+                val jsonWebhook = Webhook(id = 71L, project = project, payloadUrl = "http://localhost:8080/hook", gitPush = true, webhookType = WebhookType.JSON)
+                val json = ObjectMapper().readTree(
+                    webhookService.buildPushPayloadForVcsCommits(jsonWebhook, null, PushedVcsCommits(listOf(commit), listOf("refs/heads/main")))
+                )
+                json.get("sender").isNull shouldBe true
+                json.get("pusher").isNull shouldBe true
+                json.get("ref").get(0).asText() shouldBe "refs/heads/main"
+            }
+
+            it("describes an SVN push without a branch in text payloads") {
+                val slackWebhook = Webhook(id = 72L, project = project, payloadUrl = "http://localhost:8080/hook", gitPush = true, webhookType = WebhookType.SIMPLE)
+                val sender = User(id = 5L, loginId = "gildong", name = "홍길동", email = "gildong@yona.io")
+                val text = ObjectMapper().readTree(
+                    webhookService.buildPayload(slackWebhook, EventType.NEW_COMMIT, sender, PushedVcsCommits(listOf(commit), emptyList()))
+                ).get("text").asText()
+                text shouldBe "[test-project] 홍길동님이 커밋을 푸시했습니다. 1개의 커밋을 푸시했습니다"
+            }
+        }
+
         // yona Webhook.java:182-192 buildRequestMessage() 대응 (P1-132) — 텍스트 메시지에 리소스 링크가 [GL-models_Webhook-017;GL-models_Webhook-018]
         // 전혀 없던 것을 Slack 링크 문법(" <url|text>")으로 붙이도록 수정.
         describe("buildPayload - 텍스트 메시지 리소스 링크 (P1-132)") {

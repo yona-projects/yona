@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.web
 
+import com.github.yonaprojects.yona.domain.vcs.SvnCommitTracker
 import jakarta.servlet.ServletConfig
 import jakarta.servlet.ServletContext
 import jakarta.servlet.http.HttpServletRequest
@@ -18,7 +19,8 @@ import java.util.concurrent.ConcurrentHashMap
 class SvnController(
     @Value("\${yona.svn.base-dir:/tmp/yona/svn}")
     private val baseDir: String,
-    private val servletContext: ServletContext
+    private val servletContext: ServletContext,
+    private val svnCommitTracker: SvnCommitTracker
 ) {
 
     private val logger = LoggerFactory.getLogger(SvnController::class.java)
@@ -81,7 +83,12 @@ class SvnController(
         // 경우 등 DAVServlet 자체가 던지는 예외를 잡아 스택트레이스가 그대로 노출되지 않게 하고 로그를
         // 남긴다(실제 HTTP 상태 코드는 이전에도 500이었으므로 관찰 가능한 응답은 바뀌지 않는다).
         try {
-            davServlet.service(wrappedRequest, wrappedResponse)
+            // DAV commits finish with MERGE; post-commit processing needs the revisions it created.
+            if (request.method.equals("MERGE", ignoreCase = true)) {
+                svnCommitTracker.track(ownerName, segments[2]) { davServlet.service(wrappedRequest, wrappedResponse) }
+            } else {
+                davServlet.service(wrappedRequest, wrappedResponse)
+            }
         } catch (e: Exception) {
             logger.error("Failed to process a SVN request: {}", uri, e)
             if (!response.isCommitted) {
