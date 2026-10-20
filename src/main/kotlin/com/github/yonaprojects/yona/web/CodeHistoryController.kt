@@ -42,10 +42,12 @@ class CodeHistoryController(
         @RequestParam(required = false, defaultValue = "0") page: Int,
         @RequestParam(required = false, defaultValue = "20") size: Int,
         @RequestParam(required = false, defaultValue = "HEAD") branch: String,
-        @RequestParam(required = false) path: String?
+        @RequestParam(required = false) path: String?,
+        authentication: Authentication?
     ): ResponseEntity<List<CommitResponse>> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        if (!accessControl.isCodeReadable(getLoginUser(authentication), project)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
 
         val repository = repositoryService.getRepository(project)
         val history = repository.getHistory(page, size, branch, path)
@@ -72,10 +74,12 @@ class CodeHistoryController(
     fun getCommit(
         @PathVariable owner: String,
         @PathVariable projectName: String,
-        @PathVariable commitId: String
+        @PathVariable commitId: String,
+        authentication: Authentication?
     ): ResponseEntity<CommitResponse> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        if (!accessControl.isCodeReadable(getLoginUser(authentication), project)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
 
         val repository = repositoryService.getRepository(project)
         val commit = repository.getCommit(commitId)
@@ -151,6 +155,12 @@ class CodeHistoryController(
         val comment = commitCommentRepository.findById(id).orElse(null)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
+        // legacy IsAllowedAction은 댓글 id로 CommitComment를 읽어 댓글이 속한 실제 프로젝트로 권한을 판정했다. URL의 프로젝트와 다른
+        // 프로젝트의 댓글은 이 URL로 지울 수 없다(없는 것으로 취급).
+        if (comment.project?.id != project.id) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        }
+
         if (!accessControl.isAllowed(user, project, comment, Operation.DELETE)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
@@ -164,10 +174,12 @@ class CodeHistoryController(
     fun listComments(
         @PathVariable owner: String,
         @PathVariable projectName: String,
-        @PathVariable commitId: String
+        @PathVariable commitId: String,
+        authentication: Authentication?
     ): ResponseEntity<List<CommitCommentResponse>> {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        if (!accessControl.isCodeReadable(getLoginUser(authentication), project)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
 
         // createComment()와 동일한 이유(password 노출 방지)로 .toResponse() 변환.
         return ResponseEntity.ok(

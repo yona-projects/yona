@@ -109,6 +109,15 @@ class WatchServiceImpl(
         return actualWatchers
     }
 
+    override fun applyEventPreferences(receivers: Set<User>, projectId: Long?, eventType: EventType): Set<User> {
+        if (projectId == null) return receivers
+        val optedIn = userProjectNotificationRepository
+            .findByProjectIdAndNotificationTypeAndAllowed(projectId, eventType, true).map { it.user }
+        val optedOut = userProjectNotificationRepository
+            .findByProjectIdAndNotificationTypeAndAllowed(projectId, eventType, false).map { it.user.id }.toSet()
+        return (receivers + optedIn).filter { it.id !in optedOut }.toSet()
+    }
+
     private fun hasReadPermission(user: User, projectId: Long?): Boolean {
         if (user.isSiteManager) return true
         // 프로젝트에 속하지 않은 전역 리소스는 yona AccessControl에서도 누구나 읽을 수 있다고 본다.

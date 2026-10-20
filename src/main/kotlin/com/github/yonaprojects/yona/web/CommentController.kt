@@ -34,7 +34,9 @@ class CommentController(
     private val postingRepository: PostingRepository,
     private val issueCommentRepository: IssueCommentRepository,
     private val postingCommentRepository: PostingCommentRepository,
-    private val accessControl: AccessControl
+    private val accessControl: AccessControl,
+    // v1.6 IssueApp.newComment의 withStateTransition(댓글과 함께 닫기/다시 열기) 처리용.
+    private val issueService: com.github.yonaprojects.yona.domain.issue.IssueService
 ) {
 
     private fun getLoginUser(authentication: Authentication?): User? {
@@ -69,6 +71,21 @@ class CommentController(
         }
 
         val savedComment = commentService.createIssueComment(issue.id!!, request.contents, user, request.parentCommentId)
+        // legacy IssueApp.newComment의 containsStateTransitionRequest() 대응 — 댓글을 등록한 뒤 이슈 상태를 토글한다.
+        if (request.withStateTransition) {
+            val next = if (issue.state == com.github.yonaprojects.yona.domain.enumeration.State.OPEN) {
+                com.github.yonaprojects.yona.domain.enumeration.State.CLOSED
+            } else {
+                com.github.yonaprojects.yona.domain.enumeration.State.OPEN
+            }
+            issueService.changeState(issue.id!!, next, user.loginId)
+            val parent = issue.parent
+            if (next == com.github.yonaprojects.yona.domain.enumeration.State.OPEN && parent != null &&
+                parent.state == com.github.yonaprojects.yona.domain.enumeration.State.CLOSED
+            ) {
+                issueService.changeState(parent.id!!, com.github.yonaprojects.yona.domain.enumeration.State.OPEN, user.loginId)
+            }
+        }
         // raw IssueComment 엔티티를 그대로 반환하면 issue->project->projectUsers->user 순환
         // 직렬화로 User.password/passwordSalt까지 노출된다.
         return ResponseEntity.status(HttpStatus.CREATED).body(savedComment.toResponse())
@@ -425,6 +442,8 @@ class CommentController(
         val parentCommentId: Long? = null,
         // legacy commentUpdateForm.scala.html의 "알림 메일 받기" 체크박스 대응 — 댓글
         // 생성 요청에서는 쓰이지 않고 updateIssueComment/updatePostingComment 쪽에서만 참조한다.
-        val sendNotificationMail: Boolean = false
+        val sendNotificationMail: Boolean = false,
+        // legacy IssueApp.newComment의 withStateTransition 대응 — true면 댓글을 등록한 뒤 이슈 상태를 OPEN<->CLOSED로 토글한다.
+        val withStateTransition: Boolean = false
     )
 }

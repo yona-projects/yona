@@ -102,4 +102,22 @@ class PullRequest(
         inverseJoinColumns = [JoinColumn(name = "issue_label_id")]
     )
     var labels: MutableSet<IssueLabel> = mutableSetOf()
-)
+) {
+    // 브랜치 삭제 push 후크가 pullRequestRepository.deleteAll(related)로 PR을 지울 때 FK로 참조하는 자식 행이 남아 있으면
+    // 제약 위반으로 실패한다(v1.6 PullRequest.delete()는 이벤트를 먼저 정리했다).
+    @get:com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "pullRequest", cascade = [CascadeType.REMOVE])
+    var events: MutableList<PullRequestEvent> = mutableListOf()
+
+    @get:com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "pullRequest", cascade = [CascadeType.REMOVE])
+    var commits: MutableList<PullRequestCommit> = mutableListOf()
+
+    @get:com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "pullRequest", cascade = [CascadeType.REMOVE])
+    var reviews: MutableList<PullRequestReview> = mutableListOf()
+
+    @get:com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "pullRequest", cascade = [CascadeType.REMOVE])
+    var commentThreads: MutableList<CommentThread> = mutableListOf()
+}

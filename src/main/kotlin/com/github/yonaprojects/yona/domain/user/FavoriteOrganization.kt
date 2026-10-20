@@ -14,7 +14,7 @@ class FavoriteOrganization(
     @JoinColumn(name = "user_id", nullable = false)
     var user: User,
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = false)
     var organization: Organization,
 

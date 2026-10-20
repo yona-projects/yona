@@ -340,6 +340,59 @@ class CodeHistoryControllerSpec : DescribeSpec({
             }
         }
 
+        // v1.6 CodeHistoryApp.historyUntilHead/history/show는 @With(CodeAccessCheckAction) — READ + 코드 멤버 전용 검사를 통과해야 했다.
+        describe("GET 접근 제어 (v1.6 CodeAccessCheckAction)") {
+            val privateProject = Project(id = 2L, name = "priv", owner = "owner", projectScope = ProjectScope.PRIVATE)
+            val memberOnly = Project(id = 3L, name = "memonly", owner = "owner", projectScope = ProjectScope.PUBLIC, isCodeAccessibleMemberOnly = true)
+            val stranger = User(id = 20L, loginId = "stranger", name = "외부인")
+            val strangerAuth = UsernamePasswordAuthenticationToken("stranger", "pw")
+
+            beforeTest {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "priv") } returns Optional.of(privateProject)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "memonly") } returns Optional.of(memberOnly)
+                every { userRepository.findByLoginId("stranger") } returns Optional.of(stranger)
+                every { projectUserRepository.existsByProjectIdAndUserId(any(), any()) } returns false
+            }
+
+            for (path in listOf("history", "commit/abc123", "commit/abc123/comments")) {
+                it("/$path: 익명은 비공개 프로젝트에서 403이다") {
+                    mockMvc.perform(get("/api/vcs/owner/priv/$path")).andExpect(status().isForbidden)
+                    verify(exactly = 0) { repositoryService.getRepository(any()) }
+                    verify(exactly = 0) { commitCommentRepository.findByProjectAndCommitIdOrderByCreatedDateAsc(any(), any()) }
+                }
+                it("/$path: 로그인한 비멤버도 비공개 프로젝트에서 403이다") {
+                    mockMvc.perform(get("/api/vcs/owner/priv/$path").principal(strangerAuth)).andExpect(status().isForbidden)
+                    verify(exactly = 0) { repositoryService.getRepository(any()) }
+                }
+                it("/$path: 코드 멤버 전용 프로젝트는 공개여도 비멤버에게 403이다") {
+                    mockMvc.perform(get("/api/vcs/owner/memonly/$path").principal(strangerAuth)).andExpect(status().isForbidden)
+                    verify(exactly = 0) { repositoryService.getRepository(any()) }
+                }
+            }
+        }
+
+        // v1.6 CodeHistoryApp.deleteComment: @IsAllowed(DELETE, COMMIT_COMMENT) — IsAllowedAction이 댓글 id로 CommitComment를 읽어
+        // 댓글이 속한 실제 프로젝트(comment.asResource().getProject())로 권한을 판정했다. URL 프로젝트로만 판정하면 URL 프로젝트의 멤버가
+        // 다른 프로젝트의 댓글 id로 그 댓글을 지울 수 있다.
+        describe("DELETE 교차 프로젝트 댓글") {
+            it("URL 프로젝트와 다른 프로젝트에 속한 댓글은 삭제할 수 없다") {
+                val otherProject = Project(id = 2L, name = "Other", owner = "other", projectScope = ProjectScope.PRIVATE)
+                val otherAuthor = User(id = 99L, loginId = "someoneelse", name = "다른사람")
+                val foreign = CommitComment(id = 600L, project = otherProject, commitId = commitId, contents = "다른 프로젝트 댓글", author = UserIdent(otherAuthor))
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스터")
+                memberUser.projectUsers.add(ProjectUser(id = 910L, user = memberUser, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { commitCommentRepository.findById(600L) } returns Optional.of(foreign)
+                every { projectUserRepository.findByProjectIdAndUserId(any(), any()) } returns Optional.empty()
+
+                mockMvc.perform(delete("/api/vcs/owner/TestProj/commit/$commitId/comments/600").principal(userAuth))
+                    .andExpect(status().is4xxClientError)
+
+                verify(exactly = 0) { commitCommentRepository.delete(any()) }
+            }
+        }
+
         describe("추가 예외 케이스들") {
             it("POST /comments - 프로젝트가 없으면 404") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "NotFound") } returns Optional.empty()

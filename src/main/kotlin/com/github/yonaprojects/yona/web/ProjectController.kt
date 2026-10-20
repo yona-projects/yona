@@ -48,10 +48,15 @@ class ProjectController(
         return userRepository.findByLoginId(authentication.name).orElse(null)
     }
 
+    // v1.6 @IsAllowed(UPDATE|DELETE, PROJECT)는 프로젝트 MANAGER뿐 아니라 사이트 관리자와 조직 관리자도 통과시켰다.
     private fun isProjectManager(projectId: Long, userId: Long): Boolean {
-        return projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+        val byRole = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
             .map { it.role.id == RoleType.MANAGER.roleType }
             .orElse(false)
+        if (byRole) return true
+        val user = userRepository.findById(userId).orElse(null) ?: return false
+        val project = projectRepository.findById(projectId).orElse(null) ?: return false
+        return accessControl.isAllowed(user, project, Operation.UPDATE)
     }
 
     private fun isProjectMember(projectId: Long, userId: Long): Boolean {
@@ -247,6 +252,11 @@ class ProjectController(
         val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
             ?: return ResponseEntity.notFound().build()
+
+        // v1.6 @IsCreatable(ResourceType.FORK): 비공개 프로젝트는 멤버/관리자만 포크할 수 있다.
+        if (!accessControl.isProjectResourceCreatable(user, project, ResourceType.FORK)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
 
         return try {
             val forkedProject = projectService.forkProject(

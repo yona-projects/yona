@@ -24,6 +24,9 @@ import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.event.PullRequestMergeEvent
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
+import com.github.yonaprojects.yona.domain.notification.pullRequestImplicitReceivers
+import com.github.yonaprojects.yona.domain.vcs.LimitExceededException
+import com.github.yonaprojects.yona.domain.vcs.relatedAuthorEmails
 import com.github.yonaprojects.yona.domain.notification.NotificationEventRecorder
 import com.github.yonaprojects.yona.domain.watch.WatchService
 import com.github.yonaprojects.yona.domain.issue.Assignee
@@ -62,6 +65,8 @@ class PullRequestServiceImpl(
     private val issueRepository: IssueRepository,
     private val issueEventRepository: IssueEventRepository,
     private val commentService: CommentService,
+    private val userService: com.github.yonaprojects.yona.domain.user.UserService,
+    private val webhookService: com.github.yonaprojects.yona.domain.webhook.WebhookService,
     // PR 라벨 추가/제거용(addLabel/removeLabel).
     private val issueLabelRepository: IssueLabelRepository,
     // merge() 시 toBranch에 걸린 ProtectedBranch 규칙 검사용.
@@ -276,12 +281,14 @@ class PullRequestServiceImpl(
             newValue = state.state()
         )
         val receivers = watchService.findActualWatchers(
-            baseWatchers = setOf(pullRequest.contributor),
+            baseWatchers = pullRequestImplicitReceivers(pullRequest, userRepository),
             resourceType = ResourceType.PULL_REQUEST,
             resourceId = pullRequest.id.toString(),
             projectId = pullRequest.toProject.id,
             eventType = notificationEvent.eventType
         ).toMutableSet()
+        // legacy getDefaultReceivers(): PR 본문의 @멘션 대상도 수신자다.
+        receivers.addAll(commentService.extractMentionedUsers(pullRequest.body ?: ""))
         receivers.removeIf { it.id == sender.id }
         notificationEvent.receivers = receivers
         notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
@@ -302,12 +309,14 @@ class PullRequestServiceImpl(
             newValue = buildCommitChangedMessage(pullRequest)
         )
         val receivers = watchService.findActualWatchers(
-            baseWatchers = emptySet(),
+            baseWatchers = pullRequestImplicitReceivers(pullRequest, userRepository),
             resourceType = ResourceType.PULL_REQUEST,
             resourceId = pullRequest.id.toString(),
             projectId = pullRequest.toProject.id,
             eventType = notificationEvent.eventType
         ).toMutableSet()
+        // legacy getDefaultReceivers(): PR 본문의 @멘션 대상도 수신자다.
+        receivers.addAll(commentService.extractMentionedUsers(pullRequest.body ?: ""))
         receivers.removeIf { it.id == sender.id }
         notificationEvent.receivers = receivers
         notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
@@ -352,6 +361,7 @@ class PullRequestServiceImpl(
     override fun merge(pullRequestId: Long, updater: User): PullRequestMergeResult {
         val pullRequest = pullRequestRepository.findById(pullRequestId)
             .orElseThrow { IllegalArgumentException("PullRequest with ID $pullRequestId not found") }
+        val stateBeforeMerge = pullRequest.state
 
         // 이 가드가 없으면 이미 MERGED된 PR을 다시 merge할 때마다 새 머지 커밋을 만들어
         // refs/heads/{toBranch}에 중복으로 이어붙인다. 머지는 OPEN 상태에서만 의미가 있으므로 그 외
@@ -445,6 +455,10 @@ class PullRequestServiceImpl(
 
             pullRequestRepository.save(pullRequest)
             updatePullRequestCommits(pullRequest, diff)
+
+            // legacy PullRequest.merge(): NotificationEvent.afterPullRequestUpdated(sender, this, OPEN, MERGED) — 머지 결과를
+            // PR 기여자·리뷰어·감시자에게 알리고(웹훅 PULL_REQUEST_MERGED 포함), 머지한 사람은 제외한다.
+            notifyStateChanged(pullRequest, updater, stateBeforeMerge, State.MERGED)
 
             // 비동기 이벤트 발행
             eventPublisher.publishEvent(
@@ -886,6 +900,8 @@ class PullRequestServiceImpl(
         ).toMutableSet()
         // 신규 PR 본문의 @멘션도 수신자에 포함한다.
         receivers.addAll(commentService.extractMentionedUsers(saved.body ?: ""))
+        // legacy getReceiversWithRelatedAuthors(): 이 PR이 바꾸거나 지우는 줄을 마지막으로 쓴 사람(blame)도 수신자다.
+        receivers.addAll(relatedAuthorsOf(saved))
         receivers.removeIf { it.id == contributor.id }
         notificationEvent.receivers = receivers
 
@@ -992,36 +1008,71 @@ class PullRequestServiceImpl(
         val saved = pullRequestRepository.save(pr)
 
         val updater = userRepository.findByLoginId(updaterLoginId).orElse(null)
-        val title = "[${saved.toProject.name}] PR #${saved.number} 상태 변경: $oldState -> $state"
+        notifyStateChanged(saved, updater, oldState, state)
+
+        recordPullRequestEvent(saved, EventType.PULL_REQUEST_STATE_CHANGED, updaterLoginId, oldState.toString(), state.toString())
+
+        return saved
+    }
+
+    // yona NotificationEvent.getReceiversWithRelatedAuthors()의 관련 작성자 계산. 머지 검사로 mergedCommitIdFrom/To가 정해졌을 때만 계산하고,
+    // 변경 파일이 너무 많으면(LimitExceeded) 프로젝트 멤버 전원을, 그 밖의 Git 오류는 무시한다(legacy는 경고 로그만 남겼다).
+    private fun relatedAuthorsOf(pullRequest: PullRequest): Set<User> {
+        val from = pullRequest.mergedCommitIdFrom
+        val to = pullRequest.mergedCommitIdTo
+        if (from == null || to == null) return emptySet()
+        val playRepo = repositoryService.getRepository(pullRequest.toProject)
+        if (playRepo is HgRepository) return emptySet()
+        return try {
+            FileRepositoryBuilder().setGitDir(playRepo.getDirectory()).build().use { repo ->
+                relatedAuthorEmails(repo, from, to).mapNotNull { userService.findByEmail(it) }.toSet()
+            }
+        } catch (e: LimitExceededException) {
+            projectUserRepository.findByProjectId(pullRequest.toProject.id!!).map { it.user }.toSet()
+        } catch (e: Exception) {
+            emptySet()
+        }
+    }
+
+    // yona NotificationEvent.afterPullRequestUpdated(sender, pullRequest, oldState, newState) 대응 — 상태 변경(닫기/다시 열기/머지)
+    // 알림. 수신자는 pullRequest.getWatchers()(기여자 + 리뷰 댓글 작성자 + 감시자) - sender.
+    private fun notifyStateChanged(pullRequest: PullRequest, sender: User?, oldState: State, newState: State) {
+        val title = "[${pullRequest.toProject.name}] PR #${pullRequest.number} 상태 변경: $oldState -> $newState"
         val notificationEvent = NotificationEvent(
             title = title,
-            senderId = updater?.id,
+            senderId = sender?.id,
             created = Instant.now(),
             resourceType = ResourceType.PULL_REQUEST,
-            resourceId = saved.id.toString(),
+            resourceId = pullRequest.id.toString(),
             eventType = EventType.PULL_REQUEST_STATE_CHANGED,
             oldValue = oldState.toString(),
-            newValue = state.toString()
+            newValue = newState.toString()
         )
         // yona NotificationEvent.getReceivers(sender, pullRequest)(=pullRequest.getWatchers() - sender) 대응.
         // 기존에는 contributor 한 명만 고정 수신자였는데, PR을 실제로 감시 중인 다른 사용자에게는
         // 전혀 알림이 가지 않는 누락이 있었다.
         val receivers = watchService.findActualWatchers(
-            baseWatchers = setOf(saved.contributor),
+            baseWatchers = pullRequestImplicitReceivers(pullRequest, userRepository),
             resourceType = ResourceType.PULL_REQUEST,
-            resourceId = saved.id.toString(),
-            projectId = saved.toProject.id,
+            resourceId = pullRequest.id.toString(),
+            projectId = pullRequest.toProject.id,
             eventType = notificationEvent.eventType
         ).toMutableSet()
-        if (updater != null) {
-            receivers.removeIf { it.id == updater.id }
+        // legacy getDefaultReceivers(): PR 본문의 @멘션 대상도 수신자다.
+        receivers.addAll(commentService.extractMentionedUsers(pullRequest.body ?: ""))
+        if (sender != null) {
+            receivers.removeIf { it.id == sender.id }
         }
         notificationEvent.receivers = receivers
-        notificationEventRecorder.record(notificationEvent)?.let { eventPublisher.publishEvent(it) }
 
-        recordPullRequestEvent(saved, EventType.PULL_REQUEST_STATE_CHANGED, updaterLoginId, oldState.toString(), state.toString())
-
-        return saved
+        val recorded = notificationEventRecorder.record(notificationEvent)
+        if (recorded != null) {
+            // WebhookNotificationEventListener가 상태 변경(MERGED)을 PULL_REQUEST_MERGED 웹훅으로 보낸다.
+            eventPublisher.publishEvent(recorded)
+        } else if (newState == State.MERGED && sender != null) {
+            // legacy webhookRequest(PULL_REQUEST_MERGED)는 알림 수신자와 무관하게 호출됐다 — 수신자가 없어 알림이 저장되지 않아도 보낸다.
+            webhookService.sendWebhook(pullRequest.toProject, EventType.PULL_REQUEST_MERGED, sender, pullRequest)
+        }
     }
 
     // draft-time 병합/취소 최적화는 recordWithDraftMerge에서 처리한다.

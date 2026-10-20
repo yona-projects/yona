@@ -316,7 +316,10 @@ class ProjectViewController(
             ?: return "error/404"
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
-        if (loginUser == null || !projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!)) {
+        if (loginUser == null ||
+            (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) &&
+                !accessControl.isAllowed(loginUser, project, Operation.UPDATE))
+        ) {
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -324,7 +327,7 @@ class ProjectViewController(
         // 설정 권한 검사 (MANAGER인지 여부)
         val isManager = projectUserRepository.findByProjectIdAndUserId(project.id!!, loginUser.id!!)
             .map { it.role.id == RoleType.MANAGER.roleType }
-            .orElse(false)
+            .orElse(false) || accessControl.isAllowed(loginUser, project, Operation.UPDATE)
 
 
         if (!isManager) {
@@ -352,6 +355,28 @@ class ProjectViewController(
         return "project/setting"
     }
 
+    // legacy ProjectApp.goConventionMenu 대응: 이슈 메뉴가 켜져 있으면 이슈 목록, 아니면 게시판, 둘 다 꺼져 있으면 프로젝트 홈.
+    @GetMapping("/{owner}/{projectName}/go")
+    fun goConventionMenu(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "") state: String,
+        @RequestParam(required = false, defaultValue = "1") pageNum: Int
+    ): String {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return "error/404"
+        val base = "/${(project.owner ?: owner).encodePathSegment()}/${project.name.encodePathSegment()}"
+        if (project.isIssueEnabled) {
+            val query = buildList {
+                if (state.isNotBlank()) add("state=${state.encodePathSegment()}")
+                if (pageNum > 1) add("pageNum=$pageNum")
+            }
+            return "redirect:$base/issues" + if (query.isEmpty()) "" else "?" + query.joinToString("&")
+        }
+        if (project.isBoardEnabled) return "redirect:$base/posts"
+        return "redirect:$base"
+    }
+
     @GetMapping("/{owner}/{projectName}/changeVCS")
     fun projectChangeVCSForm(
         @PathVariable owner: String,
@@ -370,7 +395,7 @@ class ProjectViewController(
 
         val isManager = projectUserRepository.findByProjectIdAndUserId(project.id!!, loginUser.id!!)
             .map { it.role.id == RoleType.MANAGER.roleType }
-            .orElse(false)
+            .orElse(false) || accessControl.isAllowed(loginUser, project, Operation.UPDATE)
 
         if (!isManager) {
             model.addAttribute("project", project)
@@ -401,7 +426,7 @@ class ProjectViewController(
 
         val isManager = projectUserRepository.findByProjectIdAndUserId(project.id!!, loginUser.id!!)
             .map { it.role.id == RoleType.MANAGER.roleType }
-            .orElse(false)
+            .orElse(false) || accessControl.isAllowed(loginUser, project, Operation.UPDATE)
 
         if (!isManager) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
@@ -693,7 +718,7 @@ class ProjectViewController(
 
         val isManager = projectUserRepository.findByProjectIdAndUserId(project.id!!, loginUser.id!!)
             .map { it.role.id == RoleType.MANAGER.roleType }
-            .orElse(false)
+            .orElse(false) || accessControl.isAllowed(loginUser, project, Operation.UPDATE)
 
         if (!isManager) {
             model.addAttribute("project", project)
@@ -723,7 +748,7 @@ class ProjectViewController(
 
         val isManager = projectUserRepository.findByProjectIdAndUserId(project.id!!, loginUser.id!!)
             .map { it.role.id == RoleType.MANAGER.roleType }
-            .orElse(false)
+            .orElse(false) || accessControl.isAllowed(loginUser, project, Operation.UPDATE)
 
         if (!isManager) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
@@ -867,7 +892,7 @@ class ProjectViewController(
 
         val isManager = projectUserRepository.findByProjectIdAndUserId(project.id!!, loginUser.id!!)
             .map { it.role.id == RoleType.MANAGER.roleType }
-            .orElse(false)
+            .orElse(false) || accessControl.isAllowed(loginUser, project, Operation.UPDATE)
 
         if (!isManager) {
             model.addAttribute("project", project)
@@ -895,7 +920,7 @@ class ProjectViewController(
 
         val isManager = projectUserRepository.findByProjectIdAndUserId(project.id!!, loginUser.id!!)
             .map { it.role.id == RoleType.MANAGER.roleType }
-            .orElse(false)
+            .orElse(false) || accessControl.isAllowed(loginUser, project, Operation.UPDATE)
 
         if (!isManager) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
@@ -924,7 +949,7 @@ class ProjectViewController(
 
         val isManager = projectUserRepository.findByProjectIdAndUserId(project.id!!, loginUser.id!!)
             .map { it.role.id == RoleType.MANAGER.roleType }
-            .orElse(false)
+            .orElse(false) || accessControl.isAllowed(loginUser, project, Operation.UPDATE)
 
         if (!isManager && !loginUser.isSiteManager) {
             model.addAttribute("project", project)
@@ -1147,6 +1172,12 @@ class ProjectViewController(
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "redirect:/users/loginform"
 
+        // legacy @IsCreatable(ResourceType.FORK): 비공개 프로젝트는 멤버/관리자만 포크할 수 있다.
+        if (!accessControl.isProjectResourceCreatable(loginUser, originalProject, ResourceType.FORK)) {
+            model.addAttribute("project", originalProject)
+            return "error/forbidden"
+        }
+
         // 사용자가 관리하는 조직 목록 조회
         val orgUserList = organizationUserRepository.findByUserIdAndRoleId(loginUser.id!!, RoleType.ORG_ADMIN.roleType)
         val organizations = orgUserList.map { it.organization }
@@ -1186,6 +1217,11 @@ class ProjectViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "redirect:/users/loginform"
+
+        if (!accessControl.isProjectResourceCreatable(loginUser, originalProject, ResourceType.FORK)) {
+            model.addAttribute("project", originalProject)
+            return "error/forbidden"
+        }
 
         val destination = owner.trim()
         val forkedProjectName = name.trim()
@@ -1229,6 +1265,10 @@ class ProjectViewController(
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return ResponseEntity.ok(mapOf("status" to "failed", "url" to "/users/loginform"))
+
+        if (!accessControl.isProjectResourceCreatable(loginUser, originalProject, ResourceType.FORK)) {
+            return ResponseEntity.ok(mapOf("status" to "failed", "url" to "/"))
+        }
 
         val destination = owner.trim()
         val forkedProjectName = name.trim()

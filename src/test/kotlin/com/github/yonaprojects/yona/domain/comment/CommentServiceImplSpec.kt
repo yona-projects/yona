@@ -97,6 +97,21 @@ class CommentServiceImplSpec @Autowired constructor(
             }
 
             describe("createIssueComment") {
+                // v1.6 AbstractPosting.save()/update()는 numOfComments를 재계산하고 Comment.save()/delete()가 부모 글을 갱신(updatedDate)했다.
+                it("댓글 생성/삭제 후 이슈의 numOfComments와 updatedDate를 갱신해야 한다") {
+                    val issue = mkIssue(project, author)
+                    val before = issue.updatedDate
+                    val c1 = commentService.createIssueComment(issue.id!!, "댓글1", author, null)
+                    commentService.createIssueComment(issue.id!!, "댓글2", author, null)
+
+                    val afterCreate = issueRepository.findById(issue.id!!).orElseThrow()
+                    afterCreate.numOfComments shouldBe 2
+                    (afterCreate.updatedDate != null && afterCreate.updatedDate != before) shouldBe true
+
+                    commentService.deleteIssueComment(c1.id!!, author)
+                    issueRepository.findById(issue.id!!).orElseThrow().numOfComments shouldBe 1
+                }
+
                 it("기존 댓글이 없으면 이슈 본문을 인용해야 한다") {
                     val issue = mkIssue(project, author, body = "원본 이슈 본문")
                     val comment = commentService.createIssueComment(issue.id!!, "첫 댓글", author, null)

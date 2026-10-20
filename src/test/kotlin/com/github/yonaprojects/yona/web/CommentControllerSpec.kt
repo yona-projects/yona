@@ -39,6 +39,7 @@ import io.mockk.clearMocks
 
 class CommentControllerSpec : DescribeSpec({
     val commentService = mockk<CommentService>()
+    val issueService = mockk<com.github.yonaprojects.yona.domain.issue.IssueService>()
     val projectRepository = mockk<ProjectRepository>()
     val projectUserRepository = mockk<ProjectUserRepository>()
     val userRepository = mockk<UserRepository>()
@@ -72,7 +73,8 @@ class CommentControllerSpec : DescribeSpec({
         postingRepository,
         issueCommentRepository,
         postingCommentRepository,
-        accessControl
+        accessControl,
+        issueService
     )
 
     val mockMvc = MockMvcBuilders.standaloneSetup(commentController).build()
@@ -126,6 +128,26 @@ class CommentControllerSpec : DescribeSpec({
                 )
                     .andExpect(status().isCreated)
                     .andExpect(jsonPath("$.contents").value("이슈댓글"))
+            }
+
+            // legacy IssueApp.newComment: withStateTransition이 있으면 댓글 등록 후 이슈 상태를 토글한다(OPEN -> CLOSED).
+            it("withStateTransition=true면 댓글을 등록한 뒤 이슈 상태를 토글해야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { issueRepository.findByProjectAndNumber(project, 5L) } returns issue
+                every { commentService.createIssueComment(50L, "닫으면서", user, null) } returns issueComment
+                every { issueService.changeState(50L, com.github.yonaprojects.yona.domain.enumeration.State.CLOSED, "testuser") } returns issue
+
+                mockMvc.perform(
+                    post("/api/projects/1/issues/5/comments")
+                        .principal(userAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"contents\": \"닫으면서\", \"withStateTransition\": true}")
+                )
+                    .andExpect(status().isCreated)
+
+                verify(exactly = 1) { issueService.changeState(50L, com.github.yonaprojects.yona.domain.enumeration.State.CLOSED, "testuser") }
             }
 
             // legacy yona models/Comment.parentCommentId 대응.

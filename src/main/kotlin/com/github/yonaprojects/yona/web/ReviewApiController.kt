@@ -46,6 +46,9 @@ class ReviewApiController(
                 codeReviewService.deleteCommitComment(id, user)
             } else if (type.uppercase() == "REVIEW_COMMENT") {
                 codeReviewService.deleteReviewComment(id, user)
+            } else {
+                // v1.6 CommentApp.delete의 default: badRequest()
+                return ResponseEntity.badRequest().build()
             }
         } catch (e: IllegalArgumentException) {
             if (e.message == "Permission denied") {

@@ -93,6 +93,8 @@ class ProjectControllerSpec : DescribeSpec({
 
     beforeTest {
         clearMocks(projectService, projectRepository, projectUserRepository, userRepository, pushedBranchRepository, titleHeadService, issueLabelRepository)
+        // 비MANAGER 경로는 사이트/조직 관리자 여부 확인을 위해 사용자·프로젝트를 조회한다 (v1.6 IsAllowed UPDATE PROJECT).
+        every { userRepository.findById(any<Long>()) } returns Optional.empty()
     }
 
     describe("ProjectController 웹 API 테스트") {
@@ -706,7 +708,7 @@ class ProjectControllerSpec : DescribeSpec({
             }
             it("정상적으로 포크하면 200 OK를 반환해야 한다") {
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
-                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(Project(id = 1L, name = "TestProject", owner = "owner", projectScope = ProjectScope.PUBLIC))
                 every { projectService.forkProject(1L, 10L) } returns project
 
                 mockMvc.perform(post("/api/owner/TestProject/fork").principal(userAuth))
@@ -714,7 +716,7 @@ class ProjectControllerSpec : DescribeSpec({
             }
             it("IllegalArgumentException 발생 시 400을 반환해야 한다") {
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
-                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(Project(id = 1L, name = "TestProject", owner = "owner", projectScope = ProjectScope.PUBLIC))
                 every { projectService.forkProject(1L, 10L) } throws IllegalArgumentException("error")
 
                 mockMvc.perform(post("/api/owner/TestProject/fork").principal(userAuth))

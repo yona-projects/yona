@@ -252,6 +252,9 @@ class ProjectServiceImpl(
         val members = projectUserRepository.findByProjectId(projectId)
         projectUserRepository.deleteAll(members)
 
+        // ApiToken의 선택 저장소 범위(api_token_project)에서 이 프로젝트를 뺀다.
+        projectRepository.deleteApiTokenScopesByProjectId(projectId)
+
         watchService.deleteAll(ResourceType.PROJECT, projectId.toString())
 
         // DB Project 행만 지우고 물리 bare 저장소 디렉터리를 남겨두면, 같은 owner/name으로

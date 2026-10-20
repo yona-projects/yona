@@ -5,6 +5,9 @@ import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.Operation
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.issue.Issue
+import com.github.yonaprojects.yona.domain.notification.issueImplicitReceivers
+import com.github.yonaprojects.yona.domain.notification.postingImplicitReceivers
+import com.github.yonaprojects.yona.domain.user.UserState
 import com.github.yonaprojects.yona.domain.issue.IssueComment
 import com.github.yonaprojects.yona.domain.issue.IssueCommentRepository
 import com.github.yonaprojects.yona.domain.issue.IssueRepository
@@ -93,6 +96,43 @@ class CommentServiceImpl(
         )
     }
 
+    // yona NotificationEvent.getMandatoryReceivers(Comment) 대응 — 댓글의 암묵 수신자.
+    // 글 작성자·담당자·공유 대상이 기본이고, 답글이면 글 작성자 대신 부모 댓글 작성자(와 부모 댓글의 멘션 대상)에게 간다.
+    // 부모 댓글 작성자가 직접 답글을 쓰면 같은 부모의 형제 답글 작성자에게도 간다.
+    private fun issueCommentImplicitReceivers(issue: Issue, parentComment: IssueComment?, commenter: User): MutableSet<User> {
+        val users = issueImplicitReceivers(issue, userRepository)
+        if (parentComment != null) {
+            users.removeIf { it.id == issue.authorId }
+            parentComment.authorId?.let { userRepository.findById(it).orElse(null) }?.let { users.add(it) }
+            users.addAll(extractMentionedUsers(parentComment.contents))
+            if (parentComment.authorId == commenter.id) {
+                issueCommentRepository.findByIssueIdOrderByCreatedDateAsc(issue.id!!)
+                    .filter { it.parentComment?.id == parentComment.id }
+                    .mapNotNull { it.authorId }
+                    .distinct()
+                    .forEach { id -> userRepository.findById(id).orElse(null)?.let { users.add(it) } }
+            }
+        }
+        return users
+    }
+
+    private fun postingCommentImplicitReceivers(posting: Posting, parentComment: PostingComment?, commenter: User): MutableSet<User> {
+        val users = postingImplicitReceivers(posting, userRepository)
+        if (parentComment != null) {
+            users.removeIf { it.id == posting.authorId }
+            parentComment.authorId?.let { userRepository.findById(it).orElse(null) }?.let { users.add(it) }
+            users.addAll(extractMentionedUsers(parentComment.contents))
+            if (parentComment.authorId == commenter.id) {
+                postingCommentRepository.findByPostingIdOrderByCreatedDateAsc(posting.id!!)
+                    .filter { it.parentComment?.id == parentComment.id }
+                    .mapNotNull { it.authorId }
+                    .distinct()
+                    .forEach { id -> userRepository.findById(id).orElse(null)?.let { users.add(it) } }
+            }
+        }
+        return users
+    }
+
     // yona BoardApp/IssueApp의 AddPreviousContent()+getPrevious() 대응
     // — 새 댓글 알림의 oldValue("인용 이전 내용")를 채운다. 첫 댓글이면 원본 게시물/이슈 본문을,
     // 답글이면 같은 부모의 마지막 형제 답글(없으면 부모 댓글 자신)을, 그 외(최상위 새 댓글)면 게시물/
@@ -171,6 +211,10 @@ class CommentServiceImpl(
         val savedComment = issueCommentRepository.save(comment)
         attachUploadedFiles(contents, ResourceType.ISSUE_COMMENT, savedComment.id.toString(), author.loginId)
 
+        // yona AbstractPosting.save()/update()의 numOfComments = computeNumOfComments() 및 Comment.save()의
+        // getParent().update() 대응 — 목록의 댓글 수 배지·댓글순/최근갱신순 정렬이 이 값에 의존한다.
+        refreshIssueCommentStats(issue)
+
         val mentionedUsers = extractMentionedUsers(contents)
         // yona Comment.save()의 updateMention() 대응.
         mentionService.update(ResourceType.ISSUE_COMMENT, savedComment.id.toString(), mentionedUsers)
@@ -187,15 +231,20 @@ class CommentServiceImpl(
         )
 
         // 감시자(Watch) 추가
-        val authorUser = issue.authorId?.let { userRepository.findById(it).orElse(null) }
-        val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
-        val receivers = watchService.findActualWatchers(
+        val baseWatchers = issueCommentImplicitReceivers(issue, parentComment, author)
+        val receivers = watchService.applyEventPreferences(
+            watchService.findActualWatchers(
             baseWatchers = baseWatchers,
             resourceType = ResourceType.ISSUE_POST,
             resourceId = issue.id.toString(),
             projectId = issue.project.id,
             eventType = notificationEvent.eventType
+            ),
+            issue.project.id,
+            notificationEvent.eventType
         ).toMutableSet()
+        // legacy filterInactiveUsers(): ACTIVE가 아닌 사용자(잠김·탈퇴·게스트·사이트 관리자 상태 포함)는 댓글 알림에서 뺀다.
+        receivers.removeIf { it.state != UserState.ACTIVE }
         receivers.removeIf { it.id == author.id }
 
         // 멘션된 사용자들 추가
@@ -256,15 +305,20 @@ class CommentServiceImpl(
         )
 
         // 게시글(BOARD_POST) 감시 연동
-        val authorUser = posting.authorId?.let { userRepository.findById(it).orElse(null) }
-        val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
-        val receivers = watchService.findActualWatchers(
+        val baseWatchers = postingCommentImplicitReceivers(posting, parentComment, author)
+        val receivers = watchService.applyEventPreferences(
+            watchService.findActualWatchers(
             baseWatchers = baseWatchers,
             resourceType = ResourceType.BOARD_POST,
             resourceId = posting.id.toString(),
             projectId = posting.project.id,
             eventType = notificationEvent.eventType
+            ),
+            posting.project.id,
+            notificationEvent.eventType
         ).toMutableSet()
+        // legacy filterInactiveUsers(): ACTIVE가 아닌 사용자(잠김·탈퇴·게스트·사이트 관리자 상태 포함)는 댓글 알림에서 뺀다.
+        receivers.removeIf { it.state != UserState.ACTIVE }
         receivers.removeIf { it.id == author.id }
 
         receivers.addAll(mentionedUsers)
@@ -339,15 +393,20 @@ class CommentServiceImpl(
                 oldValue = previousContents,
                 newValue = contents
             )
-            val authorUser = issue.authorId?.let { userRepository.findById(it).orElse(null) }
-            val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
-            val receivers = watchService.findActualWatchers(
+            val baseWatchers = issueCommentImplicitReceivers(issue, saved.parentComment, author)
+            val receivers = watchService.applyEventPreferences(
+                watchService.findActualWatchers(
                 baseWatchers = baseWatchers,
                 resourceType = ResourceType.ISSUE_POST,
                 resourceId = issue.id.toString(),
                 projectId = issue.project.id,
                 eventType = notificationEvent.eventType
+                ),
+                issue.project.id,
+                notificationEvent.eventType
             ).toMutableSet()
+            // legacy filterInactiveUsers(): ACTIVE가 아닌 사용자(잠김·탈퇴·게스트·사이트 관리자 상태 포함)는 댓글 알림에서 뺀다.
+            receivers.removeIf { it.state != UserState.ACTIVE }
             receivers.removeIf { it.id == author.id }
             receivers.addAll(mentionedUsers)
             notificationEvent.receivers = receivers
@@ -364,7 +423,16 @@ class CommentServiceImpl(
         if (!accessControl.isAllowed(author, comment.issue.project, comment, Operation.DELETE)) {
             throw IllegalArgumentException("Permission denied")
         }
+        val issue = comment.issue
         issueCommentRepository.delete(comment)
+        issueCommentRepository.flush()
+        refreshIssueCommentStats(issue)
+    }
+
+    private fun refreshIssueCommentStats(issue: Issue) {
+        issue.numOfComments = issueCommentRepository.countByIssueId(issue.id!!)
+        issue.updatedDate = Instant.now()
+        issueRepository.save(issue)
     }
 
     override fun updatePostingComment(commentId: Long, contents: String, author: User, sendNotificationMail: Boolean): PostingComment {
@@ -397,15 +465,20 @@ class CommentServiceImpl(
                 oldValue = previousContents,
                 newValue = contents
             )
-            val authorUser = posting.authorId?.let { userRepository.findById(it).orElse(null) }
-            val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
-            val receivers = watchService.findActualWatchers(
+            val baseWatchers = postingCommentImplicitReceivers(posting, saved.parentComment, author)
+            val receivers = watchService.applyEventPreferences(
+                watchService.findActualWatchers(
                 baseWatchers = baseWatchers,
                 resourceType = ResourceType.BOARD_POST,
                 resourceId = posting.id.toString(),
                 projectId = posting.project.id,
                 eventType = notificationEvent.eventType
+                ),
+                posting.project.id,
+                notificationEvent.eventType
             ).toMutableSet()
+            // legacy filterInactiveUsers(): ACTIVE가 아닌 사용자(잠김·탈퇴·게스트·사이트 관리자 상태 포함)는 댓글 알림에서 뺀다.
+            receivers.removeIf { it.state != UserState.ACTIVE }
             receivers.removeIf { it.id == author.id }
             receivers.addAll(mentionedUsers)
             notificationEvent.receivers = receivers

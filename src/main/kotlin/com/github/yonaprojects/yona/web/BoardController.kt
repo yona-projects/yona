@@ -32,7 +32,8 @@ class BoardController(
     private val userRepository: UserRepository,
     private val postingRepository: PostingRepository,
     private val issueLabelRepository: IssueLabelRepository,
-    private val accessControl: AccessControl
+    private val accessControl: AccessControl,
+    private val attachmentService: com.github.yonaprojects.yona.domain.attachment.AttachmentService
 ) {
 
     private fun getLoginUser(authentication: Authentication?): User? {
@@ -154,6 +155,19 @@ class BoardController(
             sendNotificationMail = request.sendNotificationMail ?: false
         )
 
+        if (!request.temporaryUploadFiles.isNullOrBlank()) {
+            val fileIds = request.temporaryUploadFiles.split(",").mapNotNull { it.trim().toLongOrNull() }
+            // legacy AbstractPostingApp.attachUploadFilesToPost(original) 대응 — 이 로그인 사용자가 올린 임시 첨부만 옮긴다.
+            attachmentService.moveOnlySelected(
+                fromType = com.github.yonaprojects.yona.domain.enumeration.ResourceType.NOT_A_RESOURCE,
+                fromId = "",
+                toType = com.github.yonaprojects.yona.domain.enumeration.ResourceType.BOARD_POST,
+                toId = updated.id.toString(),
+                selectedIds = fileIds,
+                moverLoginId = user.loginId ?: ""
+            )
+        }
+
         return ResponseEntity.ok(updated.toResponse())
     }
 
@@ -249,7 +263,9 @@ class BoardController(
         val body: String,
         val notice: Boolean?,
         val readme: Boolean?,
-        val sendNotificationMail: Boolean? = null
+        val sendNotificationMail: Boolean? = null,
+        // <yona-attachments> 위젯이 만드는 hidden 필드(쉼표로 구분된 임시 첨부 id).
+        val temporaryUploadFiles: String? = null
     )
 
 

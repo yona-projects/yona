@@ -10,6 +10,11 @@ import org.springframework.data.repository.query.Param
 import java.util.Optional
 
 interface ProjectRepository : JpaRepository<Project, Long> {
+    // ApiToken.scopedProjects(조인테이블 api_token_project)는 ApiToken 쪽이 소유해 Project 삭제로는 정리되지 않는다.
+    @Modifying
+    @Query(value = "delete from api_token_project where project_id = :projectId", nativeQuery = true)
+    fun deleteApiTokenScopesByProjectId(@Param("projectId") projectId: Long)
+
     fun findByOwnerAndName(owner: String, name: String): Optional<Project>
     fun existsByOwnerAndName(owner: String, name: String): Boolean
     fun findByOwner(owner: String): List<Project>

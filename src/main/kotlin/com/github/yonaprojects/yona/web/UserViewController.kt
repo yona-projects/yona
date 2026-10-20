@@ -108,12 +108,12 @@ class UserViewController(
         @RequestParam(required = false) filter: String?,
         @RequestParam(required = false, defaultValue = "updatedDate") orderBy: String,
         @RequestParam(required = false, defaultValue = "desc") orderDir: String,
-        @RequestParam(required = false) authorId: Long?,
-        @RequestParam(required = false) commenterId: Long?,
-        @RequestParam(required = false) assigneeId: Long?,
+        @RequestParam(name = "authorId", required = false) authorIdFlag: Long?,
+        @RequestParam(name = "commenterId", required = false) commenterIdFlag: Long?,
+        @RequestParam(name = "assigneeId", required = false) assigneeIdFlag: Long?,
         @RequestParam(required = false) mentionId: Long?,
-        @RequestParam(required = false) sharerId: Long?,
-        @RequestParam(required = false) favoriteId: Long?,
+        @RequestParam(name = "sharerId", required = false) sharerIdFlag: Long?,
+        @RequestParam(name = "favoriteId", required = false) favoriteIdFlag: Long?,
         // legacy my_partial_search.scala.html 대응 — milestoneId로 이슈 목록을 필터링하는
         // 기능은 legacy에도 없다(SearchCondition.asExpressionList() 무파라미터 버전은 milestoneId
         // 미참조). 좌측 사이드바 진행률 카드 표시 목적으로만 쓴다.
@@ -124,6 +124,15 @@ class UserViewController(
     ): String {
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return "redirect:/users/loginform"
+
+        // v1.6 SearchCondition은 author/assignee/commenter/sharer/favorite 값을 "필터를 켠다"는 플래그로만 쓰고
+        // 항상 현재 로그인 사용자의 id(byUser.id)로 조회했다. 요청 파라미터의 임의 사용자 id를 그대로 쓰면 타인의
+        // (비공개 프로젝트 포함) 이슈를 열람할 수 있다.
+        val authorId = if (authorIdFlag != null) loginUser.id else null
+        val commenterId = if (commenterIdFlag != null) loginUser.id else null
+        val assigneeId = if (assigneeIdFlag != null) loginUser.id else null
+        val sharerId = if (sharerIdFlag != null) loginUser.id else null
+        val favoriteId = if (favoriteIdFlag != null) loginUser.id else null
 
         val page = if (pageNum < 1) 0 else pageNum - 1
         val sort = if (orderDir.equals("asc", ignoreCase = true)) {

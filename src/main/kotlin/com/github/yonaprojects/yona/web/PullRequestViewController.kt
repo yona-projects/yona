@@ -262,7 +262,7 @@ class PullRequestViewController(
     // ?tab=conversation/commits/changes 세 값을 받는 자체 확장 구조였으나(legacy에 없는 "commits" 탭
     // 포함), 이번 재작업에서 legacy 구조에 맞춰 tab 쿼리파라미터를 제거하고 항상 "overview"만 렌더링
     //하도록 되돌렸다 — "changes"는 /pull/{number}/changes 경로(viewChangesInternal)가 전담한다.
-    @GetMapping("/{owner}/{projectName}/pull/{number}")
+    @GetMapping("/{owner}/{projectName}/pull/{number}", "/{owner}/{projectName}/pullRequest/{number}")
     fun viewPullRequest(
         @PathVariable owner: String,
         @PathVariable projectName: String,

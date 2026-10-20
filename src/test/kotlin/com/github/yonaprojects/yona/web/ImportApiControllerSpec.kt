@@ -377,7 +377,7 @@ class ImportApiControllerSpec : DescribeSpec({
             // finally 블록의 clonedDir?.let { if (it.exists()) ... }와 defaultRepoDir.exists()는
             // 기존 테스트들이 전부 실제로 존재하지 않는 File 경로(mock 반환값)만 써서 항상 false만
             // 탔다 — 실제 임시 디렉터리를 만들어 true 쪽 분기(삭제 실행)를 닫는다.
-            it("성공 시 clonedDir와 기존 저장소 디렉터리가 실제로 존재하면 finally에서 삭제해야 한다") {
+            it("성공 시에는 방금 복제한 저장소 디렉터리를 지우지 않아야 한다 (UI 경로 ImportViewController와 동일)") {
                 val tempClonedDir = kotlin.io.path.createTempDirectory(prefix = "yona-import-cloned-").toFile()
                 val tempRepoDir = kotlin.io.path.createTempDirectory(prefix = "yona-import-repo-").toFile()
                 val savedProject = Project(id = 101L, name = "yona-imported2", owner = "testuser", overview = null)
@@ -398,6 +398,33 @@ class ImportApiControllerSpec : DescribeSpec({
                         .content(requestJson)
                 )
                     .andExpect(status().isOk)
+
+                tempClonedDir.exists() shouldBe true
+                tempRepoDir.exists() shouldBe true
+                tempClonedDir.deleteRecursively()
+                tempRepoDir.deleteRecursively()
+            }
+
+            it("프로젝트 생성이 실패하면 복제한 디렉터리를 삭제해야 한다") {
+                val tempClonedDir = kotlin.io.path.createTempDirectory(prefix = "yona-import-cloned-").toFile()
+                val tempRepoDir = kotlin.io.path.createTempDirectory(prefix = "yona-import-repo-").toFile()
+
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+                every { organizationRepository.findByName("testuser") } returns Optional.empty()
+                every { projectRepository.findByOwnerAndName("testuser", "yona-imported3") } returns Optional.empty()
+                every { gitService.cloneRepository("https://github.com/naver/yona.git", "testuser", "yona-imported3", null, null) } returns tempClonedDir
+                every { gitService.getRepositoryPath("testuser", "yona-imported3") } returns tempRepoDir
+                every { projectService.createProject(any(), loginUser) } throws IllegalStateException("db down")
+
+                val requestJson = """{"url": "https://github.com/naver/yona.git", "owner": "testuser", "name": "yona-imported3"}"""
+
+                mockMvc.perform(
+                    post("/api/new/import")
+                        .principal(userAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson)
+                )
+                    .andExpect(status().isBadRequest)
 
                 tempClonedDir.exists() shouldBe false
                 tempRepoDir.exists() shouldBe false

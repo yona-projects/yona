@@ -9,6 +9,7 @@ import com.github.yonaprojects.yona.domain.issue.IssueRepository
 import com.github.yonaprojects.yona.domain.mail.EmailAddressDetail
 import com.github.yonaprojects.yona.domain.mail.MailRecipient
 import com.github.yonaprojects.yona.domain.mail.MailService
+import com.github.yonaprojects.yona.domain.mail.resolveMailFromAddress
 import com.github.yonaprojects.yona.domain.organization.OrganizationRepository
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
@@ -66,7 +67,9 @@ class NotificationMailDigestScheduler(
     @Value("\${yona.mailbox.imap.address:}") private val imapAddress: String,
     @Value("\${yona.hostname:localhost}") private val hostname: String,
     @Value("\${yona.site-name:Yona}") private val siteName: String,
-    private val meterRegistry: MeterRegistry
+    private val meterRegistry: MeterRegistry,
+    @Value("\${yona.mail.from:}") private val mailFrom: String = "",
+    @Value("\${spring.mail.username:}") private val smtpUsername: String = ""
 ) {
     private val logger = LoggerFactory.getLogger(NotificationMailDigestScheduler::class.java)
 
@@ -197,7 +200,7 @@ class NotificationMailDigestScheduler(
     }
 
     private fun getToList(users: List<User>): List<MailRecipient> {
-        return if (hideAddress) listOf(MailRecipient("no-reply@yona.io", siteName)) else users.map { MailRecipient(it.email, it.name) }
+        return if (hideAddress) listOf(MailRecipient(resolveMailFromAddress(mailFrom, smtpUsername), siteName)) else users.map { MailRecipient(it.email, it.name) }
     }
 
     private fun getBccList(users: List<User>): List<MailRecipient> {

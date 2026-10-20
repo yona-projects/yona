@@ -352,6 +352,69 @@ class ProjectViewControllerSpec : DescribeSpec({
                 mockMvc.perform(get("/owner/TestProj/setting").principal(userAuth))
                     .andExpect(view().name("error/forbidden"))
             }
+
+            it("프로젝트 멤버가 아니어도 사이트 관리자라면 project/setting 뷰를 반환해야 한다 (v1.6 IsAllowed UPDATE PROJECT)") {
+                val siteAdmin = User(id = 11L, loginId = "siteadmin", name = "사이트관리자", state = com.github.yonaprojects.yona.domain.user.UserState.SITE_ADMIN)
+                val siteAdminAuth = UsernamePasswordAuthenticationToken("siteadmin", "password")
+                val playRepository = mockk<PlayRepository>()
+                every { repositoryService.getRepository(project) } returns playRepository
+                every { playRepository.getRefNames() } returns listOf("refs/heads/master")
+                every { playRepository.getDefaultBranch() } returns "refs/heads/master"
+
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("siteadmin") } returns Optional.of(siteAdmin)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 11L) } returns false
+                every { projectUserRepository.findByProjectIdAndUserId(1L, 11L) } returns Optional.empty()
+
+                mockMvc.perform(get("/owner/TestProj/setting").principal(siteAdminAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(view().name("project/setting"))
+            }
+        }
+
+        describe("GET /{ownerName}/{projectName}/newFork 권한") {
+            it("비공개 프로젝트의 비멤버는 포크 화면 대신 403 뷰를 받아야 한다 (v1.6 IsCreatable FORK)") {
+                val stranger = User(id = 14L, loginId = "forkstranger", name = "포크이방인")
+                val strangerAuth = UsernamePasswordAuthenticationToken("forkstranger", "password")
+                val privateProject = Project(id = 7L, name = "PrivFork", owner = "owner", projectScope = ProjectScope.PRIVATE)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "PrivFork") } returns Optional.of(privateProject)
+                every { userRepository.findByLoginId("forkstranger") } returns Optional.of(stranger)
+                every { organizationUserRepository.findByUserIdAndRoleId(14L, any()) } returns emptyList()
+                every { projectRepository.findByOwnerAndOriginalProject(any(), any()) } returns emptyList()
+
+                mockMvc.perform(get("/owner/PrivFork/newFork").principal(strangerAuth))
+                    .andExpect(view().name("error/forbidden"))
+            }
+        }
+
+        // v1.6 ProjectApp.goConventionMenu: 이슈 메뉴가 켜져 있으면 이슈 목록, 아니면 게시판, 둘 다 꺼져 있으면 프로젝트 홈.
+        describe("GET /{owner}/{projectName}/go") {
+            it("이슈 메뉴가 켜져 있으면 이슈 목록으로 이동해야 한다") {
+                val goProject = Project(id = 21L, name = "GoProj", owner = "owner", projectScope = ProjectScope.PUBLIC)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "GoProj") } returns Optional.of(goProject)
+                mockMvc.perform(get("/owner/GoProj/go"))
+                    .andExpect(status().is3xxRedirection)
+                    .andExpect(redirectedUrl("/owner/GoProj/issues"))
+            }
+            it("이슈 메뉴가 꺼져 있고 게시판이 켜져 있으면 게시판으로 이동해야 한다") {
+                val goProject = Project(id = 22L, name = "GoProj2", owner = "owner", projectScope = ProjectScope.PUBLIC, isIssueEnabled = false)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "GoProj2") } returns Optional.of(goProject)
+                mockMvc.perform(get("/owner/GoProj2/go"))
+                    .andExpect(status().is3xxRedirection)
+                    .andExpect(redirectedUrl("/owner/GoProj2/posts"))
+            }
+            it("이슈와 게시판이 모두 꺼져 있으면 프로젝트 홈으로 이동해야 한다") {
+                val goProject = Project(id = 23L, name = "GoProj3", owner = "owner", projectScope = ProjectScope.PUBLIC, isIssueEnabled = false, isBoardEnabled = false)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "GoProj3") } returns Optional.of(goProject)
+                mockMvc.perform(get("/owner/GoProj3/go"))
+                    .andExpect(status().is3xxRedirection)
+                    .andExpect(redirectedUrl("/owner/GoProj3"))
+            }
+            it("프로젝트가 없으면 404 뷰를 반환해야 한다") {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "NoGo") } returns Optional.empty()
+                mockMvc.perform(get("/owner/NoGo/go"))
+                    .andExpect(view().name("error/404"))
+            }
         }
 
         describe("GET /{owner}/{projectName}/changeVCS") {
@@ -1389,7 +1452,7 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("로그인하지 않았으면 status=failed, url=/users/loginform 을 반환해야 한다") {
-            val original = Project(id = 100L, name = "CloneOrigin", owner = "owner")
+            val original = Project(id = 100L, name = "CloneOrigin", owner = "owner", projectScope = ProjectScope.PUBLIC)
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "CloneOrigin") } returns Optional.of(original)
             val response = projectViewController.doClone("owner", "CloneOrigin", "dest", "name", null)
             response.body?.get("status") shouldBe "failed"
@@ -1397,7 +1460,7 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("정상적으로 fork되면 status=success와 새 프로젝트 URL을 반환해야 한다") {
-            val original = Project(id = 101L, name = "CloneOrigin2", owner = "owner")
+            val original = Project(id = 101L, name = "CloneOrigin2", owner = "owner", projectScope = ProjectScope.PUBLIC)
             val cloner = User(id = 100L, loginId = "cloner", name = "클로너")
             val clonerAuth = UsernamePasswordAuthenticationToken("cloner", "password")
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "CloneOrigin2") } returns Optional.of(original)
@@ -1411,7 +1474,7 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("fork 도중 예외가 발생하면 status=failed와 pulls 화면 URL을 반환해야 한다") {
-            val original = Project(id = 103L, name = "CloneOrigin3", owner = "owner")
+            val original = Project(id = 103L, name = "CloneOrigin3", owner = "owner", projectScope = ProjectScope.PUBLIC)
             val cloner = User(id = 101L, loginId = "cloner2", name = "클로너2")
             val clonerAuth = UsernamePasswordAuthenticationToken("cloner2", "password")
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "CloneOrigin3") } returns Optional.of(original)
@@ -1433,14 +1496,14 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("로그인하지 않았으면 로그인 폼으로 리다이렉트해야 한다") {
-            val original = Project(id = 110L, name = "ForkOrigin", owner = "owner")
+            val original = Project(id = 110L, name = "ForkOrigin", owner = "owner", projectScope = ProjectScope.PUBLIC)
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "ForkOrigin") } returns Optional.of(original)
             val result = projectViewController.fork("owner", "ForkOrigin", "dest", "name", "PUBLIC", null, ExtendedModelMap())
             result shouldBe "redirect:/users/loginform"
         }
 
         it("동일 소유자 아래 같은 이름의 프로젝트가 이미 있으면 project/fork 뷰에 에러를 담아 반환해야 한다") {
-            val original = Project(id = 111L, name = "ForkOrigin2", owner = "owner")
+            val original = Project(id = 111L, name = "ForkOrigin2", owner = "owner", projectScope = ProjectScope.PUBLIC)
             val forker = User(id = 110L, loginId = "forker", name = "포커")
             val forkerAuth = UsernamePasswordAuthenticationToken("forker", "password")
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "ForkOrigin2") } returns Optional.of(original)
@@ -1456,7 +1519,7 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("이름 충돌이 없으면 pullrequest/clone 뷰로 이동해야 한다") {
-            val original = Project(id = 112L, name = "ForkOrigin3", owner = "owner")
+            val original = Project(id = 112L, name = "ForkOrigin3", owner = "owner", projectScope = ProjectScope.PUBLIC)
             val forker = User(id = 111L, loginId = "forker2", name = "포커2")
             val forkerAuth = UsernamePasswordAuthenticationToken("forker2", "password")
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "ForkOrigin3") } returns Optional.of(original)
@@ -1481,14 +1544,14 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("로그인하지 않았으면 로그인 폼으로 리다이렉트해야 한다") {
-            val original = Project(id = 120L, name = "NewForkOrigin", owner = "owner")
+            val original = Project(id = 120L, name = "NewForkOrigin", owner = "owner", projectScope = ProjectScope.PUBLIC)
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "NewForkOrigin") } returns Optional.of(original)
             val result = projectViewController.newFork("owner", "NewForkOrigin", null, null, ExtendedModelMap())
             result shouldBe "redirect:/users/loginform"
         }
 
         it("forkOwner가 사용자가 관리하는 조직명과 일치하면 그 조직을 fork 대상으로 삼아야 한다") {
-            val original = Project(id = 121L, name = "NewForkOrigin2", owner = "owner")
+            val original = Project(id = 121L, name = "NewForkOrigin2", owner = "owner", projectScope = ProjectScope.PUBLIC)
             val forker = User(id = 120L, loginId = "forker3", name = "포커3")
             val forkerAuth = UsernamePasswordAuthenticationToken("forker3", "password")
             val org = Organization(id = 700L, name = "myorg2")
@@ -1507,7 +1570,7 @@ class ProjectViewControllerSpec : DescribeSpec({
         }
 
         it("forkOwner가 관리 조직이 아니면 로그인 사용자 본인을 fork 대상으로 삼아야 한다") {
-            val original = Project(id = 123L, name = "NewForkOrigin3", owner = "owner")
+            val original = Project(id = 123L, name = "NewForkOrigin3", owner = "owner", projectScope = ProjectScope.PUBLIC)
             val forker = User(id = 121L, loginId = "forker4", name = "포커4")
             val forkerAuth = UsernamePasswordAuthenticationToken("forker4", "password")
             every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "NewForkOrigin3") } returns Optional.of(original)

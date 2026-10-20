@@ -82,6 +82,7 @@ class ImportApiController(
         }
 
         var clonedDir: File? = null
+        var succeeded = false
         try {
             // JGit 복제
             clonedDir = gitService.cloneRepository(
@@ -112,6 +113,7 @@ class ImportApiController(
             }
 
             val savedProject = projectService.createProject(project, loginUser)
+            succeeded = true
 
             return ResponseEntity.ok(
                 ImportApiResponse(
@@ -145,14 +147,17 @@ class ImportApiController(
         } catch (e: Exception) {
             return ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Git Import Failed")))
         } finally {
-            clonedDir?.let {
-                if (it.exists()) {
-                    it.deleteRecursively()
+            // 성공 시 방금 복제한 저장소가 프로젝트의 실제 저장소이므로 지우면 안 된다(ImportViewController는 실패 경로에서만 정리한다).
+            if (!succeeded) {
+                clonedDir?.let {
+                    if (it.exists()) {
+                        it.deleteRecursively()
+                    }
                 }
-            }
-            val defaultRepoDir = gitService.getRepositoryPath(targetOwner, targetName)
-            if (defaultRepoDir.exists()) {
-                defaultRepoDir.deleteRecursively()
+                val defaultRepoDir = gitService.getRepositoryPath(targetOwner, targetName)
+                if (defaultRepoDir.exists()) {
+                    defaultRepoDir.deleteRecursively()
+                }
             }
         }
     }

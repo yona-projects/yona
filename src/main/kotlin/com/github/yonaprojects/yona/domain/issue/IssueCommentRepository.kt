@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository
 interface IssueCommentRepository : JpaRepository<IssueComment, Long> {
     fun findByIssueIdOrderByCreatedDateAsc(issueId: Long): List<IssueComment>
 
+    fun countByIssueId(issueId: Long): Int
+
     // 네이티브 쿼리를 쓰는 진짜 이유는 domain/support/Comment.kt의 contents 필드 주석 참고 —
     // Postgres + Hibernate 7.2.x에서 @Lob String 컬럼은 LIKE가 예외 없이 조용히 0건으로 실패했다
     // (원인은 @Lob 자체였고 지금은 제거함).

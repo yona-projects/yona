@@ -48,7 +48,7 @@ git push origin master</code></pre>
         var host = window.location.host;
 
         // clone URL 조립
-        var cloneUrl = protocol + "//" + (currentUser ? currentUser + "@" : "") + host + "/" + owner + "/" + name;
+        var cloneUrl = protocol + "//" + (currentUser ? currentUser + "@" : "") + host + "/git/" + owner + "/" + name;
 
         var cloneGuide = "git clone " + cloneUrl + " " + name + "\n" +
                          "cd " + name + "/\n" +

@@ -1,5 +1,7 @@
 package com.github.yonaprojects.yona.domain.support
 
+import com.github.yonaprojects.yona.config.security.AccessControl
+import com.github.yonaprojects.yona.domain.enumeration.Operation
 import com.github.yonaprojects.yona.domain.enumeration.SearchType
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
@@ -31,6 +33,8 @@ class SearchServiceImpl(
     private val reviewCommentRepository: ReviewCommentRepository,
     // `yona search prs` 대응.
     private val pullRequestRepository: PullRequestRepository,
+    // yona Search.*EL()의 AccessControl.isAllowed(user, project, READ) 대응 — 프로젝트 범위 검색의 읽기 권한 검사.
+    private val accessControl: AccessControl,
     // yona controllers/Application.java의 HIDE_PROJECT_LISTING 대응.
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
@@ -79,6 +83,10 @@ class SearchServiceImpl(
     }
 
     override fun searchInAProject(keyword: String, searchType: SearchType, user: User?, project: Project, pageable: Pageable): SearchResult {
+        // v1.6는 읽을 수 없는 프로젝트에서는 작성자/담당자 본인 항목만 노출했다. 여기서는 프로젝트 내용을 아예 노출하지 않는다.
+        if (!accessControl.isAllowed(user, project, Operation.READ)) {
+            return SearchResult(keyword = keyword, searchType = searchType)
+        }
         // 프로젝트 단일 검색 카운트 및 조회
         val result = SearchResult(keyword = keyword, searchType = searchType)
         val processedKeyword = "%${keyword.lowercase()}%"

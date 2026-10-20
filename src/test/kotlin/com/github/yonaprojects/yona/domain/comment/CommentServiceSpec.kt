@@ -76,7 +76,7 @@ class CommentServiceSpec @Autowired constructor(
                     User(loginId = "userb", name = "수신자", email = "userb@yona.io")
                 )
                 val project = projectRepository.save(
-                    Project(name = "comment-project", owner = "tester")
+                    Project(name = "comment-project", owner = "tester", projectScope = ProjectScope.PUBLIC)
                 )
 
                 val issue = Issue(
@@ -128,7 +128,7 @@ class CommentServiceSpec @Autowired constructor(
                 organizationUserRepository.save(OrganizationUser(user = orgMember1, organization = org, role = role))
                 organizationUserRepository.save(OrganizationUser(user = orgMember2, organization = org, role = role))
 
-                val project = projectRepository.save(Project(name = "org-mention-project", owner = "usera2"))
+                val project = projectRepository.save(Project(name = "org-mention-project", owner = "usera2", projectScope = ProjectScope.PUBLIC))
                 val issue = issueRepository.save(
                     Issue(
                         title = "조직 멘션 테스트", body = "본문", project = project,
@@ -158,7 +158,7 @@ class CommentServiceSpec @Autowired constructor(
                 val mentionedProject = projectRepository.save(Project(name = "target-project", owner = "someowner"))
                 projectUserRepository.save(ProjectUser(project = mentionedProject, user = projMember, role = role))
 
-                val hostProject = projectRepository.save(Project(name = "host-project", owner = "usera3"))
+                val hostProject = projectRepository.save(Project(name = "host-project", owner = "usera3", projectScope = ProjectScope.PUBLIC))
                 val issue = issueRepository.save(
                     Issue(
                         title = "프로젝트 멘션 테스트", body = "본문", project = hostProject,

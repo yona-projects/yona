@@ -16,7 +16,7 @@ class AttachmentCleanupScheduler(
 ) {
     private val log = LoggerFactory.getLogger(AttachmentCleanupScheduler::class.java)
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     fun cleanupTemporaryFiles() {
         log.info("Starting cleanup of temporary attachment files...")
         // yona Attachment.java의 cleanupTemporaryUploadFilesWithSchedule() 대응.

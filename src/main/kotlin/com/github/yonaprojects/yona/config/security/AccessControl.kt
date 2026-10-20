@@ -59,6 +59,18 @@ class AccessControl(
     /**
      * Checks if a user has a permission to read a project.
      */
+    // yona CodeAccessCheckAction(+AbstractProjectCheckAction) 대응 — 코드(저장소 내용·이력) 읽기 가능 여부.
+    // "코드 멤버 전용"(isCodeAccessibleMemberOnly) 프로젝트는 프로젝트 멤버(또는 공개/보호 프로젝트의 조직 멤버)만, 그 밖에는 프로젝트 READ 권한이면 된다.
+    fun isCodeReadable(user: User?, project: Project): Boolean {
+        if (project.isCodeAccessibleMemberOnly == true) {
+            return user != null && (
+                projectUserRepository.existsByProjectIdAndUserId(project.id!!, user.id!!) ||
+                    isAllowedIfGroupMember(project, user)
+                )
+        }
+        return isAllowed(user, project, Operation.READ)
+    }
+
     fun isAllowedToReadProject(user: User?, project: Project): Boolean {
         // public 프로젝트는 비로그인 사용자나 게스트가 아니라면 기본적으로 읽기 가능
         if (project.isPublic) {

@@ -19,6 +19,7 @@ import com.github.yonaprojects.yona.domain.user.UserRepository
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import io.mockk.verify
 import io.mockk.mockk
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -34,6 +35,10 @@ class SearchServiceSpec : DescribeSpec({
     val postingCommentRepository = mockk<PostingCommentRepository>()
     val reviewCommentRepository = mockk<ReviewCommentRepository>()
     val pullRequestRepository = mockk<PullRequestRepository>()
+    val accessControl = mockk<com.github.yonaprojects.yona.config.security.AccessControl>()
+    beforeTest {
+        every { accessControl.isAllowed(any<User>(), any<Project>(), any<com.github.yonaprojects.yona.domain.enumeration.Operation>()) } returns true
+    }
 
     val searchService = SearchServiceImpl(
         userRepository,
@@ -44,7 +49,8 @@ class SearchServiceSpec : DescribeSpec({
         issueCommentRepository,
         postingCommentRepository,
         reviewCommentRepository,
-        pullRequestRepository
+        pullRequestRepository,
+        accessControl
     )
 
     describe("SearchService 비즈니스 로직 테스트") {
@@ -73,6 +79,19 @@ class SearchServiceSpec : DescribeSpec({
 
             result.issuesCount shouldBe 1
             result.searchType shouldBe SearchType.ISSUE
+        }
+
+        // v1.6 Search.issuesEL() 등: AccessControl.isAllowed(user, project, READ)가 아니면 프로젝트 내용을 노출하지 않는다.
+        it("읽기 권한이 없는 프로젝트의 단일 프로젝트 검색은 어떤 저장소도 조회하지 않고 빈 결과여야 한다") {
+            val privateProject = Project(id = 9L, name = "Secret", owner = "owner")
+            every { accessControl.isAllowed(loginUser, privateProject, com.github.yonaprojects.yona.domain.enumeration.Operation.READ) } returns false
+
+            val result = searchService.searchInAProject("secret", SearchType.AUTO, loginUser, privateProject, pageable)
+
+            result.issuesCount shouldBe 0
+            result.postsCount shouldBe 0
+            verify(exactly = 0) { issueRepository.countSearchIssuesInProject(any(), any()) }
+            verify(exactly = 0) { issueRepository.searchIssuesInProject(any(), any(), any()) }
         }
 
         it("단일 프로젝트 검색 시 해당 프로젝트 내부의 게시글을 검색해야 한다") {
@@ -197,6 +216,7 @@ class SearchServiceSpec : DescribeSpec({
             postingCommentRepository,
             reviewCommentRepository,
             pullRequestRepository,
+            accessControl,
             hideProjectListing = true
         )
         val pageable = PageRequest.of(0, 20)

@@ -1517,6 +1517,26 @@ class IssueControllerSpec : DescribeSpec({
                 verify(exactly = 0) { issueRepository.save(any()) }
             }
 
+            // v1.6 IssueApi.updateIssueContent: 권한(UPDATE) 검사가 충돌 검사(409 + 저장된 본문)보다 먼저다.
+            it("수정 권한이 없는 사용자는 틀린 original로도 현재 본문을 얻을 수 없다(403, storedContent 없음)") {
+                val secretIssue = Issue(id = 17L, number = 17L, title = "비밀", body = "기밀 본문", project = project, authorId = 999L, state = State.OPEN)
+                val outsider = User(id = 55L, loginId = "outsider", name = "외부인")
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { issueRepository.findByProjectAndNumber(project, 17L) } returns secretIssue
+                every { userRepository.findByLoginId("outsider") } returns Optional.of(outsider)
+
+                mockMvc.perform(
+                    patch("/api/projects/1/issues/17/content")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""{ "content": "x", "original": "틀린 값" }""")
+                        .principal(UsernamePasswordAuthenticationToken("outsider", "pw"))
+                )
+                    .andExpect(status().isForbidden)
+                    .andExpect(jsonPath("$.storedContent").doesNotExist())
+
+                verify(exactly = 0) { issueRepository.save(any()) }
+            }
+
             it("익명 사용자면 401 Unauthorized를 반환해야 한다") {
                 val jsonContent = """{ "content": "내용", "original": "이슈 내용" }"""
 

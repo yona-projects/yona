@@ -301,7 +301,7 @@ test.describe.serial('issue management actions', () => {
     );
     const [createResponse] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/comments') && res.request().method() === 'POST'),
-      page.locator('#comment-form button[type=submit]').click(),
+      page.locator('#comment-form button[type=submit]:not([name="withStateTransition"])').click(),
     ]);
     expect(createResponse.ok()).toBeTruthy();
     // This screen's comment-form submit handler does a full `window.location.reload()` right

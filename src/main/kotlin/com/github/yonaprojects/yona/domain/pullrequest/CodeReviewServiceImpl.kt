@@ -10,6 +10,7 @@ import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.vcs.PlayRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
+import com.github.yonaprojects.yona.domain.notification.pullRequestImplicitReceivers
 import com.github.yonaprojects.yona.domain.notification.NotificationEventRecorder
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.enumeration.EventType
@@ -142,13 +143,15 @@ class CodeReviewServiceImpl(
             title = "[${pullRequest.toProject.name}] 풀 리퀘스트 #${pullRequest.number}에 새 리뷰 댓글이 등록되었습니다."
             receivers.addAll(
                 watchService.findActualWatchers(
-                    baseWatchers = emptySet(),
+                    baseWatchers = pullRequestImplicitReceivers(pullRequest, userRepository),
                     resourceType = ResourceType.PULL_REQUEST,
                     resourceId = pullRequest.id.toString(),
                     projectId = pullRequest.toProject.id,
                     eventType = EventType.NEW_REVIEW_COMMENT
                 )
             )
+            // legacy forNewComment(): getReceivers(sender, pullRequest)가 PR 본문의 @멘션 대상도 포함한다.
+            receivers.addAll(commentService.extractMentionedUsers(pullRequest.body ?: ""))
         } else {
             val commitId = thread.commitId
             title = "[${project.name}] 커밋 리뷰에 새 댓글이 등록되었습니다."
@@ -350,7 +353,7 @@ class CodeReviewServiceImpl(
         if (pullRequest != null) {
             title = "[${pullRequest.toProject.name}] 풀 리퀘스트 #${pullRequest.number}의 리뷰 스레드 상태가 변경되었습니다."
             watchers = watchService.findActualWatchers(
-                baseWatchers = emptySet(),
+                baseWatchers = pullRequestImplicitReceivers(pullRequest, userRepository),
                 resourceType = ResourceType.PULL_REQUEST,
                 resourceId = pullRequest.id.toString(),
                 projectId = pullRequest.toProject.id,

@@ -17,7 +17,8 @@ class IssueShareController(
     private val projectRepository: ProjectRepository,
     private val issueRepository: IssueRepository,
     private val userRepository: UserRepository,
-    private val issueService: IssueService
+    private val issueService: IssueService,
+    private val accessControl: com.github.yonaprojects.yona.config.security.AccessControl
 ) {
 
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/assignableUsers")
@@ -66,6 +67,11 @@ class IssueShareController(
             ?: return ResponseEntity.notFound().build()
         val issue = issueRepository.findByProjectAndNumber(project, number)
             ?: return ResponseEntity.notFound().build()
+
+        // legacy IssueApi.updateAssginees: AccessControl.isAllowed(currentUser, issue.asResource(), UPDATE)가 아니면 변경하지 않는다.
+        if (!accessControl.isAllowed(currentUser, project, issue, com.github.yonaprojects.yona.domain.enumeration.Operation.UPDATE)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(mapOf("message" to "Permission denied"))
+        }
 
         val assigneesList = body["assignees"] as? List<*> ?: return ResponseEntity.badRequest().build()
         if (assigneesList.isEmpty()) {
@@ -133,6 +139,11 @@ class IssueShareController(
             ?: return ResponseEntity.notFound().build()
         val issue = issueRepository.findByProjectAndNumber(project, number)
             ?: return ResponseEntity.notFound().build()
+
+        // legacy IssueApi.updateSharer: isAllowed(UPDATE)가 아니면 403 "Permission denied".
+        if (!accessControl.isAllowed(currentUser, project, issue, com.github.yonaprojects.yona.domain.enumeration.Operation.UPDATE)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(mapOf("message" to "Permission denied"))
+        }
 
         val sharerNode = body["sharer"] as? Map<*, *> ?: return ResponseEntity.badRequest().build()
         val loginId = sharerNode["loginId"]?.toString() ?: return ResponseEntity.badRequest().build()

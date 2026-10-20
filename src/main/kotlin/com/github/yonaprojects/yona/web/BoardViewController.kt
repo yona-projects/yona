@@ -360,7 +360,7 @@ class BoardViewController(
         val isReadme = request.readme ?: false
 
         // yona BoardApp.editPost의 isSelectedToSendNotificationMail() 대응 — 서비스 계층에 위임.
-        postingService.updatePosting(
+        val updated = postingService.updatePosting(
             projectId = project.id!!,
             number = number,
             title = request.title,
@@ -370,6 +370,19 @@ class BoardViewController(
             authorId = loginUser.id!!,
             sendNotificationMail = request.sendNotificationMail ?: false
         )
+
+        if (!request.temporaryUploadFiles.isNullOrBlank()) {
+            val fileIds = request.temporaryUploadFiles!!.split(",").mapNotNull { it.trim().toLongOrNull() }
+            // legacy AbstractPostingApp.attachUploadFilesToPost(original) 대응 — 이 로그인 사용자가 올린 임시 첨부만 옮긴다.
+            attachmentService.moveOnlySelected(
+                fromType = ResourceType.NOT_A_RESOURCE,
+                fromId = "",
+                toType = ResourceType.BOARD_POST,
+                toId = updated.id.toString(),
+                selectedIds = fileIds,
+                moverLoginId = loginUser.loginId ?: ""
+            )
+        }
 
         if (isReadme) {
             return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}"

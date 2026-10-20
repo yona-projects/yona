@@ -225,14 +225,14 @@ class ReviewApiControllerSpec : DescribeSpec({
             verify(exactly = 0) { codeReviewService.deleteReviewComment(any(), any()) }
         }
 
-        it("지원하지 않는 type이면 어떤 서비스도 호출하지 않고 200을 반환해야 한다") {
+        it("지원하지 않는 type이면 어떤 서비스도 호출하지 않고 400을 반환해야 한다 (v1.6 CommentApp.delete default: badRequest)") {
             every { userRepository.findByLoginId("gildong") } returns Optional.of(user)
 
             mockMvc.perform(
                 delete("/comments/UNKNOWN_TYPE/200")
                     .principal(auth)
             )
-                .andExpect(status().isOk)
+                .andExpect(status().isBadRequest)
 
             verify(exactly = 0) { codeReviewService.deleteReviewComment(any(), any()) }
             verify(exactly = 0) { codeReviewService.deleteCommitComment(any(), any()) }

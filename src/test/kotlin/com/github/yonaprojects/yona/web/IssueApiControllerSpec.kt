@@ -230,6 +230,25 @@ class IssueApiControllerSpec : DescribeSpec({
                 .andExpect(jsonPath("$.body").value("수정됨"))
         }
 
+        // v1.6 IssueApi.updateIssueContent: 로그인 → isAllowed(UPDATE) 403 → 그 다음에야 isModifiedByOthers 409(conflicted(issue.body)).
+        // 충돌 검사를 먼저 하면 권한 없는 사용자가 original에 아무 값이나 보내 409 응답의 storedContent로 비공개 이슈 본문을 읽는다.
+        it("수정 권한이 없는 사용자는 틀린 original로도 본문을 얻을 수 없다(403, storedContent 없음)") {
+            val secret = Issue(id = 51L, title = "비밀", body = "기밀 본문", project = project, number = 8L, authorId = 10L)
+            val mallory = User(id = 77L, loginId = "mallory", name = "외부인")
+            every { issueRepository.findByProjectAndNumber(project, 8L) } returns secret
+            every { userRepository.findByLoginId("mallory") } returns Optional.of(mallory)
+            every { projectUserRepository.existsByProjectIdAndUserId(1L, 77L) } returns false
+
+            mockMvc.perform(
+                patch("/-_-api/v1/owners/alice/projects/myproject/issues/8/content")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"content":"x","original":"틀린값"}""")
+                    .principal(UsernamePasswordAuthenticationToken("mallory", null, emptyList()))
+            )
+                .andExpect(status().isForbidden)
+                .andExpect(jsonPath("$.storedContent").doesNotExist())
+        }
+
         it("original(원문)이 현재 값과 다르면(다른 사람이 이미 수정) 409를 반환한다") {
             val issue = Issue(id = 50L, title = "이슈", body = "원문", project = project, number = 7L, authorId = 10L)
             every { issueRepository.findByProjectAndNumber(project, 7L) } returns issue
@@ -307,5 +326,43 @@ class IssueApiControllerSpec : DescribeSpec({
 
             verify { issueService.createIssue(any(), user, null, null, null, false, 42L, true) }
         }
+
+        // v1.6 IssueApi.newIssues: @IsCreatable(ResourceType.ISSUE_POST) — AccessControl.isProjectResourceCreatable(user, project, ISSUE_POST)가
+        // 아니면 403. 비공개 프로젝트의 비멤버·게스트는 이슈를 만들 수 없다(공개 프로젝트의 로그인 비멤버는 만들 수 있다).
+        it("비공개 프로젝트의 비멤버는 이슈를 일괄 생성할 수 없다(403)") {
+            // 앞선 테스트의 createIssue 호출 기록이 남아 있으면 verify(exactly = 0)이 오탐한다.
+            io.mockk.clearMocks(issueService, answers = false)
+            val mallory = User(id = 77L, loginId = "mallory", name = "외부인")
+            every { userRepository.findByLoginId("mallory") } returns Optional.of(mallory)
+            every { projectUserRepository.existsByProjectIdAndUserId(1L, 77L) } returns false
+
+            mockMvc.perform(
+                post("/-_-api/v1/owners/alice/projects/myproject/issues")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"issues":[{"title":"침입","body":"내용"}],"sendNotification":true}""")
+                    .principal(UsernamePasswordAuthenticationToken("mallory", null, emptyList()))
+            ).andExpect(status().isForbidden)
+
+            verify(exactly = 0) { issueService.createIssue(any(), any(), any(), any(), any(), any(), any(), any()) }
+        }
+
+        it("게스트 계정은 공개 프로젝트에서도 이슈를 일괄 생성할 수 없다(403)") {
+            io.mockk.clearMocks(issueService, answers = false)
+            val publicProject = Project(id = 2L, name = "pub", owner = "alice", projectScope = com.github.yonaprojects.yona.domain.project.ProjectScope.PUBLIC)
+            val guest = User(id = 78L, loginId = "guest1", name = "게스트", isGuest = true)
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("alice", "pub") } returns Optional.of(publicProject)
+            every { userRepository.findByLoginId("guest1") } returns Optional.of(guest)
+            every { projectUserRepository.existsByProjectIdAndUserId(2L, 78L) } returns false
+
+            mockMvc.perform(
+                post("/-_-api/v1/owners/alice/projects/pub/issues")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"issues":[{"title":"게스트","body":"내용"}]}""")
+                    .principal(UsernamePasswordAuthenticationToken("guest1", null, emptyList()))
+            ).andExpect(status().isForbidden)
+
+            verify(exactly = 0) { issueService.createIssue(any(), any(), any(), any(), any(), any(), any(), any()) }
+        }
     }
 })
+

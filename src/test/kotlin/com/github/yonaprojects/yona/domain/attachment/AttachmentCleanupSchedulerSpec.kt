@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.domain.attachment
 
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -15,6 +16,16 @@ class AttachmentCleanupSchedulerSpec : DescribeSpec({
 
     beforeTest {
         clearMocks(attachmentRepository, attachmentService, answers = false)
+    }
+
+    // v1.6 Attachment.cleanupTemporaryUploadFilesWithSchedule()은 24시간마다 한 번 실행됐다. 비교 방향이 "최근 업로드"를
+    // 지우는 레거시 동작이라, 실행 주기가 1시간으로 줄면 작성 중인 임시 업로드가 최대 1시간 안에 삭제된다.
+    describe("실행 주기") {
+        it("v1.6과 같이 하루에 한 번 실행되어야 한다") {
+            val scheduled = AttachmentCleanupScheduler::class.java.getMethod("cleanupTemporaryFiles")
+                .getAnnotation(org.springframework.scheduling.annotation.Scheduled::class.java)
+            scheduled.cron shouldBe "0 0 0 * * *"
+        }
     }
 
     describe("cleanupTemporaryFiles") {

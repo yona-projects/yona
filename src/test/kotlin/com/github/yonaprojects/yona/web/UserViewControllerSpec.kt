@@ -550,80 +550,80 @@ class UserViewControllerSpec : DescribeSpec({
             verify(exactly = 1) { issueRepository.findByAssigneeAndState(10L, State.OPEN, "%bug%", any()) }
         }
 
-        it("assigneeId를 명시적으로 지정하면 해당 담당자 기준으로 조회해야 한다") {
+        it("assigneeId는 플래그일 뿐 항상 로그인 사용자 기준으로 조회해야 한다 (v1.6 SearchCondition byUser.id)") {
             every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
             every { mentionService.getMentioningIssueIds(10L) } returns emptyList()
             every { issueRepository.countSharedByState(10L, State.OPEN) } returns 0L
             every { issueRepository.countFavoriteByState(10L, State.OPEN) } returns 0L
-            every { issueRepository.countByAssigneeAndState(77L, State.OPEN) } returns 0L
-            every { issueRepository.countByAssigneeAndState(77L, State.CLOSED) } returns 0L
-            every { issueRepository.findByAssigneeAndState(77L, State.OPEN, null, any()) } returns PageImpl(emptyList())
+            every { issueRepository.countByAssigneeAndState(10L, State.OPEN) } returns 0L
+            every { issueRepository.countByAssigneeAndState(10L, State.CLOSED) } returns 0L
+            every { issueRepository.findByAssigneeAndState(10L, State.OPEN, null, any()) } returns PageImpl(emptyList())
 
             mockMvc.perform(get("/user/issues").param("assigneeId", "77").principal(userAuth))
                 .andExpect(status().isOk)
-                .andExpect(model().attribute("assigneeId", 77L))
+                .andExpect(model().attribute("assigneeId", 10L))
 
-            verify(exactly = 1) { issueRepository.findByAssigneeAndState(77L, State.OPEN, null, any()) }
+            verify(exactly = 1) { issueRepository.findByAssigneeAndState(10L, State.OPEN, null, any()) }
         }
 
-        it("authorId가 지정되면 작성자 기준으로 조회해야 한다") {
+        it("authorId가 지정되어도 로그인 사용자 본인이 쓴 이슈만 조회해야 한다") {
             every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
             every { mentionService.getMentioningIssueIds(10L) } returns emptyList()
             every { issueRepository.countSharedByState(10L, State.OPEN) } returns 0L
             every { issueRepository.countFavoriteByState(10L, State.OPEN) } returns 0L
-            every { issueRepository.countByAuthorIdAndState(55L, State.OPEN) } returns 0L
-            every { issueRepository.countByAuthorIdAndState(55L, State.CLOSED) } returns 0L
-            every { issueRepository.findByAuthorIdAndState(55L, State.OPEN, null, any()) } returns PageImpl(emptyList())
+            every { issueRepository.countByAuthorIdAndState(10L, State.OPEN) } returns 0L
+            every { issueRepository.countByAuthorIdAndState(10L, State.CLOSED) } returns 0L
+            every { issueRepository.findByAuthorIdAndState(10L, State.OPEN, null, any()) } returns PageImpl(emptyList())
 
             mockMvc.perform(get("/user/issues").param("authorId", "55").principal(userAuth))
                 .andExpect(status().isOk)
 
-            verify(exactly = 1) { issueRepository.findByAuthorIdAndState(55L, State.OPEN, null, any()) }
+            verify(exactly = 1) { issueRepository.findByAuthorIdAndState(10L, State.OPEN, null, any()) }
         }
 
-        it("commenterId가 지정되면 댓글 작성자 기준으로 조회해야 한다") {
+        it("commenterId가 지정되어도 로그인 사용자 기준으로 조회해야 한다") {
             every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
             every { mentionService.getMentioningIssueIds(10L) } returns emptyList()
             every { issueRepository.countSharedByState(10L, State.OPEN) } returns 0L
             every { issueRepository.countFavoriteByState(10L, State.OPEN) } returns 0L
-            every { issueRepository.countCommentedByState(66L, State.OPEN) } returns 0L
-            every { issueRepository.countCommentedByState(66L, State.CLOSED) } returns 0L
-            every { issueRepository.findCommentedByState(66L, State.OPEN, null, any()) } returns PageImpl(emptyList())
+            every { issueRepository.countCommentedByState(10L, State.OPEN) } returns 0L
+            every { issueRepository.countCommentedByState(10L, State.CLOSED) } returns 0L
+            every { issueRepository.findCommentedByState(10L, State.OPEN, null, any()) } returns PageImpl(emptyList())
 
             mockMvc.perform(get("/user/issues").param("commenterId", "66").principal(userAuth))
                 .andExpect(status().isOk)
 
-            verify(exactly = 1) { issueRepository.findCommentedByState(66L, State.OPEN, null, any()) }
+            verify(exactly = 1) { issueRepository.findCommentedByState(10L, State.OPEN, null, any()) }
         }
 
-        it("favoriteId가 지정되면 즐겨찾기 기준으로 조회해야 한다") {
+        it("favoriteId가 지정되어도 로그인 사용자 기준으로 조회해야 한다") {
             every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
             every { mentionService.getMentioningIssueIds(10L) } returns emptyList()
             every { issueRepository.countSharedByState(10L, State.OPEN) } returns 0L
             every { issueRepository.countFavoriteByState(10L, State.OPEN) } returns 0L
-            every { issueRepository.countFavoriteByState(88L, State.OPEN) } returns 0L
-            every { issueRepository.countFavoriteByState(88L, State.CLOSED) } returns 0L
-            every { issueRepository.findFavoriteByState(88L, State.OPEN, null, any()) } returns PageImpl(emptyList())
+            every { issueRepository.countFavoriteByState(10L, State.OPEN) } returns 0L
+            every { issueRepository.countFavoriteByState(10L, State.CLOSED) } returns 0L
+            every { issueRepository.findFavoriteByState(10L, State.OPEN, null, any()) } returns PageImpl(emptyList())
 
             mockMvc.perform(get("/user/issues").param("favoriteId", "88").principal(userAuth))
                 .andExpect(status().isOk)
 
-            verify(exactly = 1) { issueRepository.findFavoriteByState(88L, State.OPEN, null, any()) }
+            verify(exactly = 1) { issueRepository.findFavoriteByState(10L, State.OPEN, null, any()) }
         }
 
-        it("sharerId가 지정되면 공유받은 이슈 기준으로 조회해야 한다") {
+        it("sharerId가 지정되어도 로그인 사용자 기준으로 조회해야 한다") {
             every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
             every { mentionService.getMentioningIssueIds(10L) } returns emptyList()
             every { issueRepository.countSharedByState(10L, State.OPEN) } returns 0L
             every { issueRepository.countFavoriteByState(10L, State.OPEN) } returns 0L
-            every { issueRepository.countSharedByState(99L, State.OPEN) } returns 0L
-            every { issueRepository.countSharedByState(99L, State.CLOSED) } returns 0L
-            every { issueRepository.findSharedByState(99L, State.OPEN, null, any()) } returns PageImpl(emptyList())
+            every { issueRepository.countSharedByState(10L, State.OPEN) } returns 0L
+            every { issueRepository.countSharedByState(10L, State.CLOSED) } returns 0L
+            every { issueRepository.findSharedByState(10L, State.OPEN, null, any()) } returns PageImpl(emptyList())
 
             mockMvc.perform(get("/user/issues").param("sharerId", "99").principal(userAuth))
                 .andExpect(status().isOk)
 
-            verify(exactly = 1) { issueRepository.findSharedByState(99L, State.OPEN, null, any()) }
+            verify(exactly = 1) { issueRepository.findSharedByState(10L, State.OPEN, null, any()) }
         }
     }
 

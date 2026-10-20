@@ -178,7 +178,7 @@ test.describe.serial('Turbo issue two-column semantics', () => {
     const editor = page.locator('#issue-detail #comment-form textarea[data-editor-mode="comment-body"]');
     const posts: string[] = [];
     page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/comments')) posts.push(request.url()); });
-    await page.locator('#issue-detail #comment-form button[type="submit"]').click();
+    await page.locator('#issue-detail #comment-form button[type="submit"]:not([name="withStateTransition"])').click();
     const visibleEditor = page.locator('#issue-detail #comment-form .cm-content');
     await visibleEditor.fill('Comment submitted from the real Turbo detail');
     await visibleEditor.press('Control+Shift+Enter');

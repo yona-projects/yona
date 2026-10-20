@@ -75,8 +75,11 @@ class CustomOAuth2UserService(
             // 2) 로그인하지 않은 상태에서 처음 보는 provider 계정이면 이메일/loginId로 기존 가입 사용자를
             //    찾아 "연결"하거나, 없으면 신규 가입 처리 (신규 가입만 이메일 도메인 allowlist 적용 -
             //    yona와 동일하게 이미 존재하는 계정의 로그인은 도메인 정책 변경 후에도 계속 허용한다)
+            // v1.6 YonaUserServicePlugin.save()/setStatusLoggedIn()은 이메일(User.findByEmail)로만 기존 계정을 찾았다.
+            // 제공자가 알려준 loginId가 로컬 계정과 같다는 이유만으로 연결하면 같은 이름의 소셜 계정으로 로컬 계정을
+            // 탈취할 수 있으므로 loginId 일치는 연결 근거로 쓰지 않는다.
             val resolvedUser = userRepository.findByEmail(userInfo.email).orElse(null)
-                ?: userRepository.findByLoginId(userInfo.loginId).orElse(null)
+                ?.also { ensureLoginAllowed(it) }
                 ?: run {
                     if (!EmailDomainValidator.isAllowed(userInfo.email, allowedEmailDomains)) {
                         throw OAuth2AuthenticationException(
@@ -87,7 +90,7 @@ class CustomOAuth2UserService(
                     userRepository.save(
                         User(
                             name = userInfo.name,
-                            loginId = userInfo.loginId,
+                            loginId = uniqueLoginId(userInfo.loginId),
                             email = userInfo.email,
                             state = UserState.ACTIVE,
                             createdDate = Instant.now()
@@ -101,9 +104,26 @@ class CustomOAuth2UserService(
             resolvedUser
         }
 
+        // v1.6 setStatusLoggedIn(): ACTIVE가 아니면 user.locked 경고 후 OAuth 로그아웃 처리했다.
+        ensureLoginAllowed(user)
+
         val authorities = listOf(SimpleGrantedAuthority("ROLE_${user.state.name}"))
 
         return YonaOAuth2User(user, attributes, authorities)
+    }
+
+    private fun ensureLoginAllowed(user: User) {
+        if (user.state == UserState.LOCKED || user.state == UserState.DELETED) {
+            throw OAuth2AuthenticationException(OAuth2Error("user_locked"), "잠겼거나 탈퇴한 계정입니다: ${user.loginId}")
+        }
+    }
+
+    // 제공자의 loginId가 이미 쓰이고 있으면(다른 사람의 로컬 계정) 숫자 접미사를 붙여 새 계정의 loginId를 정한다.
+    private fun uniqueLoginId(base: String): String {
+        if (userRepository.findByLoginId(base).isEmpty) return base
+        var suffix = 1
+        while (userRepository.findByLoginId("$base$suffix").isPresent) suffix++
+        return "$base$suffix"
     }
 
     // OAuth2 콜백 처리는 이 요청 스레드의 SecurityContext에 이전 로그인 세션이 그대로 남아있는 시점에

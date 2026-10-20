@@ -338,6 +338,12 @@
                                         <!-- yona.ReceiverList.js가 디바운스 AJAX로 채우는 알림 받을 사람 미리보기 목록. -->
                                         <span class="notification-receiver-list"></span>
                                         <div class="right-txt">
+                                            <!-- legacy IssueApp.nextState: 이슈 닫기/다시 열기 -->
+                                            <a class="ybtn" th:href="@{/{owner}/{projectName}/issue/{number}/nextstate(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}"
+                                               th:text="${issue.state.name() == 'OPEN'} ? #{button.nextState.closed} : #{button.nextState.open}">이슈 닫기</a>
+                                            <!-- legacy IssueApp.newComment의 withStateTransition: 댓글 등록과 함께 이슈 닫기/다시 열기 -->
+                                            <button type="submit" name="withStateTransition" value="true" class="ybtn" id="comment-and-next-state"
+                                                    th:text="${issue.state.name() == 'OPEN'} ? #{button.commentAndNextState.closed} : #{button.commentAndNextState.open}">댓글 등록하고 이슈 닫기</button>
                                             <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}">댓글 등록</button>
                                         </div>
                                     </div>

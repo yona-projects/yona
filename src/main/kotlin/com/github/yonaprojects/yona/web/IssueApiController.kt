@@ -193,13 +193,14 @@ class IssueApiController(
         val issue = issueRepository.findByProjectAndNumber(project, number)
             ?: return ResponseEntity.notFound().build()
 
-        if (isModifiedByOthers(issue.body ?: "", request.original)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(mapOf("message" to "Already modified by someone.", "storedContent" to issue.body))
-        }
+        // legacy 순서: 권한(403) → 충돌(409). 충돌 응답은 저장된 본문을 돌려주므로 권한 없는 사용자에게 먼저 내보내면 본문이 유출된다.
 
         if (!accessControl.isAllowed(user, project, issue, Operation.UPDATE)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+        if (isModifiedByOthers(issue.body ?: "", request.original)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(mapOf("message" to "Already modified by someone.", "storedContent" to issue.body))
         }
 
         issue.body = request.content
@@ -322,6 +323,11 @@ class IssueApiController(
             ?: return ResponseEntity.badRequest().build()
 
         val currentUser = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        // legacy IssueApi.newIssues: @IsCreatable(ResourceType.ISSUE_POST) — 프로젝트에 이슈를 만들 수 있는 사용자만(게스트·비공개 프로젝트 비멤버 제외).
+        if (!accessControl.isProjectResourceCreatable(currentUser, project, ResourceType.ISSUE_POST)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
 
         val created = request.issues.map { item ->
             val author = item.author?.loginId?.let { userRepository.findByLoginId(it).orElse(null) } ?: currentUser

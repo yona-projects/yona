@@ -14,7 +14,7 @@ class FavoriteIssue(
     @JoinColumn(name = "user_id", nullable = false)
     var user: User,
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_id", nullable = false)
     var issue: Issue
 )

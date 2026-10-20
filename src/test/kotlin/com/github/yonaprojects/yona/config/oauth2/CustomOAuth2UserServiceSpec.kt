@@ -294,31 +294,64 @@ class CustomOAuth2UserServiceSpec : DescribeSpec({
             verify(exactly = 0) { linkedAccountRepository.save(any()) }
         }
 
-        it("이메일로 찾을 수 없지만 loginId가 일치하는 경우 기존 사용자 계정과 연결해야 한다") {
+        fun githubRequest(): OAuth2UserRequest {
             val clientRegistration = ClientRegistration.withRegistrationId("github")
                 .clientId("client-id").tokenUri("https://token.uri").authorizationUri("https://auth.uri")
                 .userInfoUri("https://user.info.uri").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri("https://redirect.uri").build()
             val userRequest = mockk<OAuth2UserRequest>()
             every { userRequest.clientRegistration } returns clientRegistration
+            return userRequest
+        }
 
+        // v1.6 YonaUserServicePlugin.save()/setStatusLoggedIn()은 이메일(User.findByEmail)로만 기존 계정을 찾는다.
+        // 제공자가 알려준 loginId(예: GitHub 사용자명)가 로컬 계정의 loginId와 같다는 이유만으로 연결하면,
+        // 제3자가 같은 이름의 소셜 계정으로 로컬 계정(예: admin)을 탈취할 수 있다.
+        it("이메일은 다르지만 loginId가 일치하는 기존 로컬 계정에는 연결하지 않고 새 계정을 만들어야 한다") {
+            val userRequest = githubRequest()
             val attributes = mapOf("id" to 888, "login" to "gildong", "name" to "홍길동", "email" to "new-email@example.com")
-            val defaultOAuth2User = DefaultOAuth2User(listOf(SimpleGrantedAuthority("ROLE_USER")), attributes, "id")
-            every { delegate.loadUser(userRequest) } returns defaultOAuth2User
+            every { delegate.loadUser(userRequest) } returns
+                DefaultOAuth2User(listOf(SimpleGrantedAuthority("ROLE_USER")), attributes, "id")
 
             val existingUser = User(id = 42L, loginId = "gildong", name = "홍길동", email = "old-email@example.com", state = UserState.ACTIVE)
             every { linkedAccountRepository.findByProviderKeyAndProviderUserId("github", "888") } returns Optional.empty()
             every { userRepository.findByEmail("new-email@example.com") } returns Optional.empty()
             every { userRepository.findByLoginId("gildong") } returns Optional.of(existingUser)
+            every { userRepository.findByLoginId(neq("gildong")) } returns Optional.empty()
+            every { userRepository.save(any()) } answers { firstArg<User>().also { it.id = 100L } }
             every { linkedAccountRepository.save(any()) } answers { firstArg() }
 
             val oauth2User = customOAuth2UserService.loadUser(userRequest) as YonaOAuth2User
 
-            oauth2User.user.id shouldBe 42L
-            verify(exactly = 0) { userRepository.save(any()) }
-            verify(exactly = 1) {
-                linkedAccountRepository.save(match { it.providerKey == "github" && it.providerUserId == "888" && it.user.id == 42L })
-            }
+            oauth2User.user.id shouldBe 100L
+            (oauth2User.user.loginId != "gildong") shouldBe true
+            verify(exactly = 0) { linkedAccountRepository.save(match { it.user.id == 42L }) }
+        }
+
+        // v1.6 setStatusLoggedIn(): ACTIVE가 아니면 user.locked 경고 후 OAuth 로그아웃 처리했다.
+        it("이미 연결된 계정이 잠김(LOCKED) 상태면 로그인을 거부해야 한다") {
+            val userRequest = githubRequest()
+            val attributes = mapOf("id" to 888, "login" to "gildong", "name" to "홍길동", "email" to "g@example.com")
+            every { delegate.loadUser(userRequest) } returns
+                DefaultOAuth2User(listOf(SimpleGrantedAuthority("ROLE_USER")), attributes, "id")
+            val locked = User(id = 42L, loginId = "gildong", name = "홍길동", email = "g@example.com", state = UserState.LOCKED)
+            every { linkedAccountRepository.findByProviderKeyAndProviderUserId("github", "888") } returns
+                Optional.of(LinkedAccount(user = locked, providerKey = "github", providerUserId = "888"))
+
+            shouldThrow<OAuth2AuthenticationException> { customOAuth2UserService.loadUser(userRequest) }
+        }
+
+        it("이메일로 찾은 기존 계정이 삭제(DELETED) 상태면 연결·로그인을 거부해야 한다") {
+            val userRequest = githubRequest()
+            val attributes = mapOf("id" to 889, "login" to "gildong", "name" to "홍길동", "email" to "g@example.com")
+            every { delegate.loadUser(userRequest) } returns
+                DefaultOAuth2User(listOf(SimpleGrantedAuthority("ROLE_USER")), attributes, "id")
+            val deleted = User(id = 43L, loginId = "gildong", name = "홍길동", email = "g@example.com", state = UserState.DELETED)
+            every { linkedAccountRepository.findByProviderKeyAndProviderUserId("github", "889") } returns Optional.empty()
+            every { userRepository.findByEmail("g@example.com") } returns Optional.of(deleted)
+            every { linkedAccountRepository.save(any()) } answers { firstArg() }
+
+            shouldThrow<OAuth2AuthenticationException> { customOAuth2UserService.loadUser(userRequest) }
         }
     }
 })

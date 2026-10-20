@@ -8,6 +8,7 @@ import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.milestone.MilestoneRepository
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
+import com.github.yonaprojects.yona.domain.notification.issueImplicitReceivers
 import com.github.yonaprojects.yona.domain.notification.NotificationEventRecorder
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
@@ -202,7 +203,7 @@ class IssueServiceImpl(
         )
 
         val receivers = watchService.findActualWatchers(
-            baseWatchers = setOf(sender),
+            baseWatchers = issueImplicitReceivers(issue, userRepository),
             resourceType = ResourceType.ISSUE_POST,
             resourceId = issue.id.toString(),
             projectId = issue.project.id,
@@ -306,13 +307,20 @@ class IssueServiceImpl(
                 oldValue = oldBody,
                 newValue = body
             )
-            val bodyChangedReceivers = watchService.findActualWatchers(
-                baseWatchers = setOf(updater),
+            val bodyChangedReceivers = watchService.applyEventPreferences(
+                watchService.findActualWatchers(
+                baseWatchers = issueImplicitReceivers(savedIssue, userRepository),
                 resourceType = ResourceType.ISSUE_POST,
                 resourceId = savedIssue.id.toString(),
                 projectId = savedIssue.project.id,
                 eventType = bodyChangedEvent.eventType
+                ),
+                savedIssue.project.id,
+                bodyChangedEvent.eventType
             ).toMutableSet()
+            // legacy getReceiversForIssueBodyChanged(): getNewMentionedUsers(oldBody, newBody) — 이번 수정으로 새로 멘션된 사용자만 추가한다.
+            val previouslyMentioned = commentService.extractMentionedUsers(oldBody ?: "")
+            bodyChangedReceivers.addAll(commentService.extractMentionedUsers(body).filter { it !in previouslyMentioned })
             bodyChangedReceivers.removeIf { it.id == updater.id }
             bodyChangedEvent.receivers = bodyChangedReceivers
 
@@ -359,14 +367,17 @@ class IssueServiceImpl(
         )
 
         // 감시자(Watch) 추가
-        val authorUser = issue.authorId?.let { userRepository.findById(it).orElse(null) }
-        val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
-        val receivers = watchService.findActualWatchers(
+        val baseWatchers = issueImplicitReceivers(issue, userRepository)
+        val receivers = watchService.applyEventPreferences(
+            watchService.findActualWatchers(
             baseWatchers = baseWatchers,
             resourceType = ResourceType.ISSUE_POST,
             resourceId = savedIssue.id.toString(),
             projectId = issue.project.id,
             eventType = notificationEvent.eventType
+            ),
+            issue.project.id,
+            notificationEvent.eventType
         ).toMutableSet()
         if (updater != null) {
             receivers.removeIf { it.id == updater.id }
@@ -409,14 +420,19 @@ class IssueServiceImpl(
         )
 
         // 감시자(Watch) 추가
-        val authorUser = issue.authorId?.let { userRepository.findById(it).orElse(null) }
-        val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
-        val receivers = watchService.findActualWatchers(
+        val baseWatchers = issueImplicitReceivers(issue, userRepository)
+        // legacy getReceiversWhenAssigneeChanged(): 이전 담당자에게도 알린다.
+        oldAssignee?.let { baseWatchers.add(it) }
+        val receivers = watchService.applyEventPreferences(
+            watchService.findActualWatchers(
             baseWatchers = baseWatchers,
             resourceType = ResourceType.ISSUE_POST,
             resourceId = savedIssue.id.toString(),
             projectId = issue.project.id,
             eventType = notificationEvent.eventType
+            ),
+            issue.project.id,
+            notificationEvent.eventType
         ).toMutableSet()
         if (updater != null) {
             receivers.removeIf { it.id == updater.id }
@@ -460,14 +476,17 @@ class IssueServiceImpl(
         )
 
         // 감시자(Watch) 추가
-        val authorUser = issue.authorId?.let { userRepository.findById(it).orElse(null) }
-        val baseWatchers = if (authorUser != null) setOf(authorUser) else emptySet()
-        val receivers = watchService.findActualWatchers(
+        val baseWatchers = issueImplicitReceivers(issue, userRepository)
+        val receivers = watchService.applyEventPreferences(
+            watchService.findActualWatchers(
             baseWatchers = baseWatchers,
             resourceType = ResourceType.ISSUE_POST,
             resourceId = savedIssue.id.toString(),
             projectId = issue.project.id,
             eventType = notificationEvent.eventType
+            ),
+            issue.project.id,
+            notificationEvent.eventType
         ).toMutableSet()
         if (updater != null) {
             receivers.removeIf { it.id == updater.id }

@@ -43,6 +43,7 @@ import com.github.yonaprojects.yona.domain.issue.IssueLabel
 
 class BoardControllerSpec : DescribeSpec({
     val postingService = mockk<PostingService>()
+    val attachmentService = mockk<com.github.yonaprojects.yona.domain.attachment.AttachmentService>()
     val projectRepository = mockk<ProjectRepository>()
     val projectUserRepository = mockk<ProjectUserRepository>()
     val userRepository = mockk<UserRepository>()
@@ -72,7 +73,8 @@ class BoardControllerSpec : DescribeSpec({
         userRepository,
         postingRepository,
         issueLabelRepository,
-        accessControl
+        accessControl,
+        attachmentService
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(boardController)
         .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())
@@ -317,6 +319,30 @@ class BoardControllerSpec : DescribeSpec({
                         .principal(userAuth)
                 )
                     .andExpect(status().isOk)
+            }
+
+            // 화면(board/edit.html)이 실제로 쓰는 경로. v1.6 editPosting의 attachUploadFilesToPost 대응.
+            it("temporaryUploadFiles로 보낸 임시 첨부를 게시글(BOARD_POST) 컨테이너로 옮겨야 한다") {
+                every { projectRepository.findById(1L) } returns Optional.of(project)
+                every { postingService.getPosting(1L, 1L) } returns posting
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectUserRepository.findByProjectIdAndUserId(1L, 10L) } returns Optional.of(projectUser)
+                every { postingService.updatePosting(1L, 1L, "제목", "내용", false, false, 10L, false) } returns posting
+                every { attachmentService.moveOnlySelected(any(), any(), any(), any(), any(), any()) } returns 1
+
+                mockMvc.perform(
+                    put("/api/projects/1/posts/1").contentType(MediaType.APPLICATION_JSON)
+                        .content("""{"title":"제목","body":"내용","notice":false,"readme":false,"temporaryUploadFiles":"11"}""")
+                        .principal(userAuth)
+                ).andExpect(status().isOk)
+
+                verify(exactly = 1) {
+                    attachmentService.moveOnlySelected(
+                        fromType = com.github.yonaprojects.yona.domain.enumeration.ResourceType.NOT_A_RESOURCE, fromId = "",
+                        toType = com.github.yonaprojects.yona.domain.enumeration.ResourceType.BOARD_POST, toId = posting.id.toString(),
+                        selectedIds = listOf(11L), moverLoginId = "testuser"
+                    )
+                }
             }
 
             it("sendNotificationMail 옵션을 서비스로 그대로 전달해야 한다(P1-44)") {

@@ -54,7 +54,7 @@ test.describe.serial('issue lifecycle', () => {
 
     const [response] = await Promise.all([
       page.waitForResponse((res) => res.url().includes('/comments') && res.request().method() === 'POST'),
-      page.locator('#comment-form button[type=submit]').click(),
+      page.locator('#comment-form button[type=submit]:not([name="withStateTransition"])').click(),
     ]);
     expect(response.ok()).toBeTruthy();
     await expect(page.locator('body')).toContainText(commentBody);

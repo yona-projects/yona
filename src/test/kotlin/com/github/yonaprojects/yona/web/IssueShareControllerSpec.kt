@@ -10,6 +10,7 @@ import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import io.kotest.core.spec.style.DescribeSpec
 import io.mockk.every
+import io.mockk.verify
 import io.mockk.mockk
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -27,13 +28,16 @@ class IssueShareControllerSpec : DescribeSpec({
     val issueRepository = mockk<IssueRepository>()
     val userRepository = mockk<UserRepository>()
     val issueService = mockk<IssueService>()
+    val accessControl = mockk<com.github.yonaprojects.yona.config.security.AccessControl>()
+    // 기본값: 이슈를 수정할 수 있는 사용자(v1.6 isAllowed(UPDATE)). 거부 케이스에서만 false로 덮어쓴다.
 
     val controller = IssueShareController(
         issueShareService,
         projectRepository,
         issueRepository,
         userRepository,
-        issueService
+        issueService,
+        accessControl
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
 
@@ -43,8 +47,10 @@ class IssueShareControllerSpec : DescribeSpec({
             projectRepository,
             issueRepository,
             userRepository,
-            issueService
+            issueService,
+            accessControl
         )
+        every { accessControl.isAllowed(any<User>(), any<Project>(), any<Issue>(), any<com.github.yonaprojects.yona.domain.enumeration.Operation>()) } returns true
     }
 
     describe("IssueShareController 단위 테스트") {
@@ -231,6 +237,38 @@ class IssueShareControllerSpec : DescribeSpec({
                 )
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.assignee.name").value("지정 안 됨"))
+            }
+        }
+
+        // v1.6 IssueApi.updateAssginees/updateSharer는 AccessControl.isAllowed(currentUser, issue.asResource(), UPDATE)가 아니면 변경하지 않았다
+        // (updateSharer는 403 "Permission denied"). 검사가 없으면 로그인만 한 사용자가 비공개 이슈의 담당자·공유자를 바꿀 수 있고,
+        // 담당자/공유자가 되면 그 이슈의 READ/UPDATE 권한까지 얻는다.
+        describe("수정 권한 검사 (v1.6 isAllowed UPDATE)") {
+            beforeTest {
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("testowner", "testproject") } returns Optional.of(project)
+                every { issueRepository.findByProjectAndNumber(project, 1L) } returns issue
+                every { accessControl.isAllowed(user, project, issue, com.github.yonaprojects.yona.domain.enumeration.Operation.UPDATE) } returns false
+            }
+
+            it("수정 권한이 없는 사용자는 담당자를 바꿀 수 없다(403)") {
+                mockMvc.perform(
+                    post("/-_-api/v1/owners/testowner/projects/testproject/issues/1/assignees")
+                        .principal(auth).contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("""{"assignees": ["testuser"]}""")
+                ).andExpect(status().isForbidden)
+
+                verify(exactly = 0) { issueService.changeAssignee(any(), any(), any()) }
+            }
+
+            it("수정 권한이 없는 사용자는 공유자를 바꿀 수 없다(403)") {
+                mockMvc.perform(
+                    post("/-_-api/v1/owners/testowner/projects/testproject/issues/1/share")
+                        .principal(auth).contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("""{"sharer": {"loginId": "testuser", "type": "user"}, "action": "add"}""")
+                ).andExpect(status().isForbidden)
+
+                verify(exactly = 0) { issueShareService.changeSharer(any(), any(), any(), any(), any()) }
             }
         }
 

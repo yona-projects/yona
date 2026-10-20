@@ -4,6 +4,7 @@ import com.github.yonaprojects.yona.config.security.AccessControl
 import com.github.yonaprojects.yona.domain.project.ProjectScope
 import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
+import com.github.yonaprojects.yona.domain.enumeration.Operation
 import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.support.sha1Hex
 import com.github.yonaprojects.yona.domain.issue.Issue
@@ -552,6 +553,39 @@ class IssueViewController(
         return "issue/create"
     }
 
+    // legacy IssueApp.nextState (GET /:user/:project/issue/:number/nextstate, @IsAllowed(UPDATE, ISSUE_POST)):
+    // OPEN <-> CLOSED 토글. 닫힌 부모 이슈의 하위 이슈를 다시 열면 부모 이슈도 다시 연다.
+    @GetMapping("/{owner}/{projectName}/issue/{number}/nextstate")
+    fun nextState(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @PathVariable number: Long,
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return "error/404"
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "redirect:/users/loginform"
+        val issue = issueRepository.findByProjectAndNumber(project, number) ?: run {
+            model.addAttribute("project", project)
+            model.addAttribute("targetType", "issue_post")
+            return "error/notfound"
+        }
+        if (!accessControl.isAllowed(loginUser, project, issue, Operation.UPDATE)) {
+            model.addAttribute("project", project)
+            return "error/forbidden"
+        }
+
+        val next = if (issue.state == State.OPEN) State.CLOSED else State.OPEN
+        issueService.changeState(issue.id!!, next, loginUser.loginId)
+        val parent = issue.parent
+        if (next == State.OPEN && parent != null && parent.state == State.CLOSED) {
+            issueService.changeState(parent.id!!, State.OPEN, loginUser.loginId)
+        }
+        return "redirect:/${owner.encodePathSegment()}/${projectName.encodePathSegment()}/issue/$number"
+    }
+
     @GetMapping("/{owner}/{projectName}/issue/{number}/editform")
     fun editIssueForm(
         @PathVariable owner: String,
@@ -1022,8 +1056,8 @@ class IssueViewController(
             if (it.isNotBlank()) userRepository.findByLoginId(it).orElse(null) else null
         }
 
-        issue.title = request.title
-        issue.body = request.body ?: ""
+        // title/body는 서비스(updateIssue)가 이전 값을 읽은 뒤 바꾼다. 여기서 영속 엔티티에 먼저 대입하면 서비스가 "이전 값"을
+        // 새 값으로 읽어 본문 이력·ISSUE_BODY_CHANGED 이벤트·알림·TitleHead 갱신이 모두 사라진다(legacy editPosting은 original과 폼 객체를 분리).
 
         if (!request.dueDate.isNullOrBlank()) {
             try {
@@ -1049,6 +1083,19 @@ class IssueViewController(
             milestoneId = request.milestoneId,
             labelIds = request.labelIds
         )
+
+        if (!request.temporaryUploadFiles.isNullOrBlank()) {
+            val fileIds = request.temporaryUploadFiles!!.split(",").mapNotNull { it.trim().toLongOrNull() }
+            // legacy AbstractPostingApp.attachUploadFilesToPost(original) 대응 — 이 로그인 사용자가 올린 임시 첨부만 옮긴다.
+            attachmentService.moveOnlySelected(
+                fromType = ResourceType.NOT_A_RESOURCE,
+                fromId = "",
+                toType = ResourceType.ISSUE_POST,
+                toId = updated.id.toString(),
+                selectedIds = fileIds,
+                moverLoginId = loginUser.loginId ?: ""
+            )
+        }
 
         return "redirect:/${redirectProject.owner!!.encodePathSegment()}/${redirectProject.name.encodePathSegment()}/issue/${updated.number}"
     }
@@ -1091,5 +1138,7 @@ data class IssueForm(
     var labelIds: List<Long>? = null,
     var parentIssueId: Long? = null,
     // yona Issue.targetProjectId(transient 폼 필드) 대응.
-    var targetProjectId: Long? = null
+    var targetProjectId: Long? = null,
+    // <yona-attachments> 위젯이 만드는 hidden 필드(쉼표로 구분된 임시 첨부 id).
+    var temporaryUploadFiles: String? = null
 )

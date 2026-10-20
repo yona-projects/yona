@@ -1313,6 +1313,7 @@ class ProjectServiceImplSpec : DescribeSpec({
                 pullRequestRepository, pullRequestEventRepository, pullRequestCommitRepository,
                 answers = false
             )
+            every { projectRepository.deleteApiTokenScopesByProjectId(any()) } returns Unit
         }
 
         it("연관 데이터를 모두 정리한 뒤 프로젝트 자체를 삭제해야 한다") {

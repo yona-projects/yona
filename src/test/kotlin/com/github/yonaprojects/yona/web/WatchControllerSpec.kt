@@ -279,15 +279,30 @@ class WatchControllerSpec : DescribeSpec({
         }
 
         describe("GET /{owner}/{projectName}/watchers") {
-            it("프로젝트 감시자 뷰와 감시자 목록을 모델에 전달하여 200 OK를 반환해야 한다") {
+            // v1.6 ProjectApp.watchers(): @IsAllowed(Operation.READ) + Watch.findActualWatchers(findWatchers(...), resource, true)
+            // (READ 권한이 없는 감시자는 목록에서 뺀다).
+            it("읽을 수 있는 사용자에게는 실제 감시자 목록(읽기 권한 필터 적용)을 모델에 전달하여 200 OK를 반환해야 한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
-                every { watchService.findWatchers(ResourceType.PROJECT, "1") } returns setOf(user1)
+                every { accessControl.isAllowed(null, project, Operation.READ) } returns true
+                every { watchService.findWatchers(ResourceType.PROJECT, "1") } returns setOf(user1, user2)
+                every { watchService.findActualWatchers(setOf(user1, user2), ResourceType.PROJECT, "1", 1L, true) } returns setOf(user2)
 
                 mockMvc.perform(get("/owner/TestProj/watchers"))
                     .andExpect(status().isOk)
                     .andExpect(model().attributeExists("project"))
-                    .andExpect(model().attributeExists("watchers"))
+                    .andExpect(model().attribute("watchers", setOf(user2)))
                     .andExpect(view().name("project/watchers"))
+            }
+
+            it("읽기 권한이 없는 사용자(익명 포함)에게는 감시자 목록을 보여 주지 않고 403 뷰를 반환해야 한다") {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { accessControl.isAllowed(null, project, Operation.READ) } returns false
+
+                mockMvc.perform(get("/owner/TestProj/watchers"))
+                    .andExpect(view().name("error/forbidden"))
+                    .andExpect(model().attributeDoesNotExist("watchers"))
+
+                verify(exactly = 0) { watchService.findWatchers(any(), any()) }
             }
 
             it("존재하지 않는 프로젝트면 404를 반환해야 한다") {

@@ -94,7 +94,9 @@
                     body: body,
                     notice: notice,
                     readme: readme,
-                    sendNotificationMail: sendNotificationMail
+                    sendNotificationMail: sendNotificationMail,
+                    // <yona-attachments> 위젯이 폼 안에 만드는 hidden 필드(쉼표로 구분된 임시 첨부 id).
+                    temporaryUploadFiles: (new FormData(document.getElementById('post-form'))).get('temporaryUploadFiles') || null
                 };
 
                 fetch('/api/projects/' + projectId + '/posts/' + postId, {

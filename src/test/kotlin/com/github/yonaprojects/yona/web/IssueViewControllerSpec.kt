@@ -2462,4 +2462,54 @@ class IssueViewControllerSpec : DescribeSpec({
             }
         }
     }
+
+    // v1.6 IssueApp.nextState: @IsAllowed(UPDATE, ISSUE_POST). OPEN<->CLOSED 토글, 닫힌 부모 이슈의 하위 이슈를 다시 열면 부모도 다시 연다.
+    describe("GET /{owner}/{projectName}/issue/{number}/nextstate") {
+        val nsProject = Project(id = 1L, name = "TestProj", owner = "owner", projectScope = ProjectScope.PRIVATE)
+        val nsMember = User(id = 10L, loginId = "testuser", name = "멤버")
+        nsMember.projectUsers.add(ProjectUser(id = 910L, user = nsMember, project = nsProject, role = Role(id = RoleType.MEMBER.roleType)))
+        val nsAuth = UsernamePasswordAuthenticationToken("testuser", "password")
+
+        it("열린 이슈는 닫고 이슈 화면으로 이동해야 한다") {
+            val nsIssue = Issue(id = 5L, title = "열린", project = nsProject, number = 1L, state = State.OPEN)
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(nsProject)
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(nsMember)
+            every { issueRepository.findByProjectAndNumber(nsProject, 1L) } returns nsIssue
+            every { issueService.changeState(5L, State.CLOSED, "testuser") } returns nsIssue
+
+            mockMvc.perform(get("/owner/TestProj/issue/1/nextstate").principal(nsAuth))
+                .andExpect(status().is3xxRedirection)
+                .andExpect(redirectedUrl("/owner/TestProj/issue/1"))
+
+            verify(exactly = 1) { issueService.changeState(5L, State.CLOSED, "testuser") }
+        }
+
+        it("닫힌 부모의 하위 이슈를 다시 열면 부모 이슈도 다시 열어야 한다") {
+            val parent = Issue(id = 4L, title = "부모", project = nsProject, number = 2L, state = State.CLOSED)
+            val child = Issue(id = 6L, title = "자식", project = nsProject, number = 3L, state = State.CLOSED, parent = parent)
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(nsProject)
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(nsMember)
+            every { issueRepository.findByProjectAndNumber(nsProject, 3L) } returns child
+            every { issueService.changeState(any(), State.OPEN, "testuser") } returns child
+
+            mockMvc.perform(get("/owner/TestProj/issue/3/nextstate").principal(nsAuth))
+                .andExpect(status().is3xxRedirection)
+
+            verify(exactly = 1) { issueService.changeState(6L, State.OPEN, "testuser") }
+            verify(exactly = 1) { issueService.changeState(4L, State.OPEN, "testuser") }
+        }
+
+        it("수정 권한이 없는 사용자는 상태를 바꿀 수 없다") {
+            val outsider = User(id = 12L, loginId = "outsider", name = "외부인")
+            val nsIssue = Issue(id = 5L, title = "열린", project = nsProject, number = 1L, state = State.OPEN)
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(nsProject)
+            every { userRepository.findByLoginId("outsider") } returns Optional.of(outsider)
+            every { issueRepository.findByProjectAndNumber(nsProject, 1L) } returns nsIssue
+
+            mockMvc.perform(get("/owner/TestProj/issue/1/nextstate").principal(UsernamePasswordAuthenticationToken("outsider", "password")))
+                .andExpect(view().name("error/forbidden"))
+
+            verify(exactly = 0) { issueService.changeState(any(), any(), any()) }
+        }
+    }
 })

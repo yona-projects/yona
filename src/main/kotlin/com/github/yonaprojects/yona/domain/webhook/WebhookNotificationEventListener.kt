@@ -2,7 +2,9 @@ package com.github.yonaprojects.yona.domain.webhook
 
 import com.github.yonaprojects.yona.domain.board.PostingCommentRepository
 import com.github.yonaprojects.yona.domain.board.PostingRepository
+import com.github.yonaprojects.yona.domain.enumeration.EventType
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
+import com.github.yonaprojects.yona.domain.enumeration.State
 import com.github.yonaprojects.yona.domain.issue.IssueCommentRepository
 import com.github.yonaprojects.yona.domain.issue.IssueRepository
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
@@ -52,7 +54,13 @@ class WebhookNotificationEventListener(
             return
         }
 
-        webhookService.sendWebhook(project, event.eventType, sender, resource)
+        // legacy afterPullRequestUpdated(): 새 상태가 MERGED면 webhookRequest(PULL_REQUEST_MERGED)로 보낸다.
+        val webhookEventType = if (event.eventType == EventType.PULL_REQUEST_STATE_CHANGED && event.newValue == State.MERGED.toString()) {
+            EventType.PULL_REQUEST_MERGED
+        } else {
+            event.eventType
+        }
+        webhookService.sendWebhook(project, webhookEventType, sender, resource)
     }
 
     private fun resolveResource(resourceType: ResourceType, resourceId: String): Pair<Project, Any>? {

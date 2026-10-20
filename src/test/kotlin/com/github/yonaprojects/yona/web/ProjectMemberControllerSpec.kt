@@ -76,6 +76,7 @@ class ProjectMemberControllerSpec : DescribeSpec({
 
     beforeTest {
         clearMocks(projectUserService, projectRepository, projectUserRepository, userRepository, messageSource)
+        every { userRepository.findById(any<Long>()) } returns Optional.empty()
     }
 
     describe("GET /api/projects/{projectId}/assignableUsers") {

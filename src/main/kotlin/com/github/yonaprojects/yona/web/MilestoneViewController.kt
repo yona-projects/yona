@@ -9,8 +9,10 @@ import com.github.yonaprojects.yona.domain.milestone.Milestone
 import com.github.yonaprojects.yona.domain.milestone.MilestoneRepository
 import com.github.yonaprojects.yona.domain.milestone.MilestoneService
 import com.github.yonaprojects.yona.config.security.AccessControl
+import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
+import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.attachment.AttachmentRepository
 import com.github.yonaprojects.yona.domain.attachment.AttachmentService
@@ -56,6 +58,12 @@ class MilestoneViewController(
         val isOverdue: Boolean,
         val daysBetween: Long?
     )
+
+    // v1.6 @IsAllowed(UPDATE|DELETE, MILESTONE): 프로젝트 멤버·그룹 멤버뿐 아니라 사이트 관리자·조직 관리자도 쓸 수 있다.
+    private fun canWriteMilestone(project: Project, user: User): Boolean =
+        projectUserRepository.existsByProjectIdAndUserId(project.id!!, user.id!!) ||
+            accessControl.isAllowedIfGroupMember(project, user) ||
+            accessControl.isAllowedToUpdateMilestone(user, project)
 
     private fun toViewDto(milestone: Milestone): MilestoneViewDto {
         val allIssues = issueRepository.findByMilestone(milestone)
@@ -280,7 +288,7 @@ class MilestoneViewController(
                 return "error/forbidden"
             }
 
-        if (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser)) {
+        if (!canWriteMilestone(project, loginUser)) {
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -369,12 +377,17 @@ class MilestoneViewController(
                 return "error/forbidden"
             }
 
-        if (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser)) {
+        if (!canWriteMilestone(project, loginUser)) {
             model.addAttribute("project", project)
             return "error/forbidden"
         }
 
         val original = milestoneService.getMilestone(id) ?: run {
+            model.addAttribute("project", project)
+            model.addAttribute("targetType", "milestone")
+            return "error/notfound"
+        }
+        if (original.project.id != project.id) {
             model.addAttribute("project", project)
             model.addAttribute("targetType", "milestone")
             return "error/notfound"
@@ -473,7 +486,7 @@ class MilestoneViewController(
                 model.addAttribute("project", project)
                 return "error/forbidden"
             }
-        if (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser)) {
+        if (!canWriteMilestone(project, loginUser)) {
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -513,7 +526,7 @@ class MilestoneViewController(
                 model.addAttribute("project", project)
                 return "error/forbidden"
             }
-        if (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser)) {
+        if (!canWriteMilestone(project, loginUser)) {
             model.addAttribute("project", project)
             return "error/forbidden"
         }
@@ -550,7 +563,9 @@ class MilestoneViewController(
             ?: return ResponseEntity.notFound().build()
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
             ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-        if (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!)) {
+        if (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) &&
+            !accessControl.isAllowedToUpdateMilestone(loginUser, project)
+        ) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
         val milestone = milestoneService.getMilestone(id)

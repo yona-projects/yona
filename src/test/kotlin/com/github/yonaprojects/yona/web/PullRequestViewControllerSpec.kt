@@ -313,6 +313,23 @@ class PullRequestViewControllerSpec : DescribeSpec({
                     .andExpect(model().attributeExists("project", "pr", "mergeResult"))
             }
 
+            // v1.6 GET /:owner/:project/pullRequest/:id — next가 알림/활동 피드/리뷰 redirect 링크로 직접 생성하는 URL이다.
+            it("레거시 URL /pullRequest/{number}도 PR 상세 뷰를 반환해야 한다") {
+                val memberUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+                memberUser.projectUsers.add(ProjectUser(id = 904L, user = memberUser, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { pullRequestService.getPullRequest(1L, 1L) } returns pullRequest
+                every { pullRequestService.attemptMerge(50L) } returns PullRequestMergeResult(pullRequest = pullRequest)
+                every { commentThreadRepository.findByPullRequest(pullRequest) } returns emptyList()
+                every { pullRequestCommitRepository.findByPullRequest(pullRequest) } returns emptyList()
+
+                mockMvc.perform(get("/owner/TestProj/pullRequest/1").principal(userAuth))
+                    .andExpect(status().isOk)
+                    .andExpect(view().name("pullrequest/view"))
+            }
+
             // yona git/view.scala.html conversation 탭 + partial_pull_request_event.scala.html 대응
             // (P2-39, P1-106 범위 정정) — 대화 탭은 PullRequestEvent만 시간순으로 보여주고 댓글
             // 스레드는 렌더링하지 않는다(legacy 원본 범위, 사용자 확인 완료로 되돌림). 렌더링 대상이

@@ -36,6 +36,10 @@ class WatchController(
     private val accessControl: AccessControl
 ) {
 
+    // 익명도 공개 프로젝트의 감시자 목록은 볼 수 있으므로 401 대신 null을 돌려주는 조회.
+    private fun findLoginUserOrNull(authentication: Authentication?): User? =
+        authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+
     private fun getLoginUser(authentication: Authentication?): User {
         if (authentication == null) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.")
@@ -259,13 +263,23 @@ class WatchController(
     fun watchers(
         @PathVariable owner: String,
         @PathVariable projectName: String,
+        authentication: Authentication?,
         model: Model
     ): String {
         val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "프로젝트를 찾을 수 없습니다.")
         }
 
-        val watchers = watchService.findWatchers(ResourceType.PROJECT, project.id.toString())
+        // legacy ProjectApp.watchers(): @IsAllowed(Operation.READ) + Watch.findActualWatchers(findWatchers(...), resource, true).
+        if (!accessControl.isAllowed(findLoginUserOrNull(authentication), project, Operation.READ)) {
+            model.addAttribute("project", project)
+            return "error/forbidden"
+        }
+
+        val watchers = watchService.findActualWatchers(
+            watchService.findWatchers(ResourceType.PROJECT, project.id.toString()),
+            ResourceType.PROJECT, project.id.toString(), project.id, true
+        )
         model.addAttribute("project", project)
         model.addAttribute("watchers", watchers)
         return "project/watchers"

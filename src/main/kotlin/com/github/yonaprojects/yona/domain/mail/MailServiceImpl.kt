@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.JavaMailSenderImpl
 import org.springframework.mail.javamail.MimeMessageHelper
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.slf4j.LoggerFactory
 import java.util.Date
@@ -26,10 +27,14 @@ private class EventNotificationMimeMessage(session: Session, private val customM
 
 @Service
 class MailServiceImpl(
-    private val mailSender: JavaMailSender
+    private val mailSender: JavaMailSender,
+    @Value("\${yona.mail.from:}") configuredFrom: String = "",
+    @Value("\${spring.mail.username:}") smtpUsername: String = ""
 ) : MailService {
 
     private val logger = LoggerFactory.getLogger(MailServiceImpl::class.java)
+
+    private val fromAddress = resolveMailFromAddress(configuredFrom, smtpUsername)
 
     private fun mailSession(): Session =
         (mailSender as? JavaMailSenderImpl)?.session ?: Session.getInstance(Properties())
@@ -46,7 +51,7 @@ class MailServiceImpl(
             helper.setTo(toEmail)
             helper.setSubject(subject)
             helper.setText(htmlContent, true)
-            helper.setFrom("no-reply@yona.io")
+            helper.setFrom(fromAddress)
             if (!replyTo.isNullOrBlank()) {
                 helper.setReplyTo(replyTo)
             }
@@ -85,7 +90,7 @@ class MailServiceImpl(
             helper.setTo(toEmail)
             helper.setSubject(if (subject.lowercase().startsWith("re:")) subject else "Re: $subject")
             helper.setText(textContent, false)
-            helper.setFrom("no-reply@yona.io")
+            helper.setFrom(fromAddress)
             if (inReplyToMessageId.isNotBlank()) {
                 message.setHeader("In-Reply-To", inReplyToMessageId)
                 message.setHeader("References", inReplyToMessageId)
@@ -118,7 +123,7 @@ class MailServiceImpl(
             val message = EventNotificationMimeMessage(mailSession(), messageId)
             val helper = MimeMessageHelper(message, true, "UTF-8")
 
-            helper.setFrom("no-reply@yona.io", fromName)
+            helper.setFrom(fromAddress, fromName)
             for (recipient in toList) {
                 helper.addTo(recipient.email, recipient.name)
             }

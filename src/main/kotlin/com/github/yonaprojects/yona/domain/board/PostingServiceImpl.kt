@@ -6,6 +6,7 @@ import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.watch.WatchService
 import com.github.yonaprojects.yona.domain.notification.NotificationEvent
+import com.github.yonaprojects.yona.domain.notification.postingImplicitReceivers
 import com.github.yonaprojects.yona.domain.notification.NotificationEventRecorder
 import com.github.yonaprojects.yona.domain.enumeration.EventType
 import org.springframework.context.ApplicationEventPublisher
@@ -243,12 +244,16 @@ class PostingServiceImpl(
                     oldValue = originalBody,
                     newValue = saved.body
                 )
-                val receivers = watchService.findActualWatchers(
-                    baseWatchers = setOf(updater),
+                val receivers = watchService.applyEventPreferences(
+                    watchService.findActualWatchers(
+                    baseWatchers = postingImplicitReceivers(saved, userRepository),
                     resourceType = ResourceType.BOARD_POST,
                     resourceId = saved.id.toString(),
                     projectId = saved.project.id,
                     eventType = notificationEvent.eventType
+                    ),
+                    saved.project.id,
+                    notificationEvent.eventType
                 ).toMutableSet()
                 receivers.removeIf { it.id == updater.id }
                 notificationEvent.receivers = receivers

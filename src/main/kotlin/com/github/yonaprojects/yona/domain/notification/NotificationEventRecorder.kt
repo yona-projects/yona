@@ -30,7 +30,9 @@ class NotificationEventRecorder(
     private val notificationMailRepository: NotificationMailRepository,
     // record()는 전체 알림이 거치는 단일 지점이라
     // 여기 하나만 계측해도 시스템 전체 알림 활동량을 eventType/resourceType별로 볼 수 있다.
-    private val meterRegistry: MeterRegistry
+    private val meterRegistry: MeterRegistry,
+    // v1.6 NotificationEvent.filterReceivers() 대응 — 읽을 수 없는 수신자 제거.
+    private val receiverFilter: NotificationReceiverFilter
 ) {
     @Transactional
     fun record(event: NotificationEvent, skipWaypoint: Boolean = true): NotificationEvent? {
@@ -58,6 +60,9 @@ class NotificationEventRecorder(
                 return null
             }
         }
+
+        // 읽을 수 없는 수신자(멘션으로 추가된 비멤버 등)와 loginId 없는 수신자를 제거한다 — legacy filterReceivers().
+        receiverFilter.filter(event)
 
         if (event.receivers.isEmpty()) {
             return null

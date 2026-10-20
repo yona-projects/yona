@@ -38,8 +38,19 @@ class UserDetailsServiceImplSpec : DescribeSpec({
             authorityNames.contains("ROLE_ADMIN") shouldBe true
         }
 
+        it("loginId로 못 찾으면 이메일로 조회해 로그인할 수 있어야 한다 (v1.6 User.findByLoginKey 대응)") {
+            val user = User(id = 7L, loginId = "byemail", name = "이메일로그인", email = "byemail@example.com", state = UserState.ACTIVE)
+            every { userRepository.findByLoginId("byemail@example.com") } returns Optional.empty()
+            every { userRepository.findByEmail("byemail@example.com") } returns Optional.of(user)
+
+            val details = service.loadUserByUsername("byemail@example.com")
+
+            details.username shouldBe "byemail"
+        }
+
         it("사용자를 찾을 수 없으면 UsernameNotFoundException을 던져야 한다") {
             every { userRepository.findByLoginId("unknown") } returns Optional.empty()
+            every { userRepository.findByEmail("unknown") } returns Optional.empty()
             
             shouldThrow<UsernameNotFoundException> {
                 service.loadUserByUsername("unknown")

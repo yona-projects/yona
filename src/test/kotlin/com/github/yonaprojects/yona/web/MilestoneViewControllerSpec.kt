@@ -1519,4 +1519,61 @@ class MilestoneViewControllerSpec : DescribeSpec({
             }
         }
     }
+
+    // v1.6 MilestoneApp은 @IsAllowed(UPDATE|DELETE, MILESTONE)로 사이트 관리자/조직 관리자를 통과시키고, 편집 대상 마일스톤이
+    // URL의 프로젝트에 속하는지 확인했다.
+    describe("마일스톤 쓰기 권한과 소속 검증") {
+        val project = Project(id = 1L, name = "TestProj", owner = "owner", projectScope = ProjectScope.PRIVATE)
+        val siteAdmin = User(id = 11L, loginId = "siteadmin", name = "사이트관리자", state = com.github.yonaprojects.yona.domain.user.UserState.SITE_ADMIN)
+        val siteAdminAuth = UsernamePasswordAuthenticationToken("siteadmin", "password")
+        val member = User(id = 10L, loginId = "testuser", name = "멤버")
+        val memberAuth = UsernamePasswordAuthenticationToken("testuser", "password")
+        val milestone = Milestone(id = 2L, title = "m", project = project)
+
+        fun asSiteAdmin() {
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+            every { userRepository.findByLoginId("siteadmin") } returns Optional.of(siteAdmin)
+            every { projectUserRepository.existsByProjectIdAndUserId(1L, 11L) } returns false
+            every { milestoneService.getMilestone(2L) } returns milestone
+            every { milestoneService.updateMilestone(any(), any(), any(), any(), any()) } returns milestone
+            every { milestoneService.deleteMilestone(2L) } returns Unit
+        }
+
+        it("프로젝트 멤버가 아닌 사이트 관리자도 마일스톤을 열 수 있다") {
+            asSiteAdmin()
+            val result = milestoneViewController.openMilestone("owner", "TestProj", 2L, siteAdminAuth, ExtendedModelMap())
+            result shouldBe "redirect:/owner/TestProj/milestone/2"
+        }
+
+        it("프로젝트 멤버가 아닌 사이트 관리자도 마일스톤을 닫을 수 있다") {
+            asSiteAdmin()
+            val result = milestoneViewController.closeMilestone("owner", "TestProj", 2L, siteAdminAuth, ExtendedModelMap())
+            result shouldBe "redirect:/owner/TestProj/milestone/2"
+        }
+
+        it("프로젝트 멤버가 아닌 사이트 관리자도 마일스톤을 삭제할 수 있다") {
+            asSiteAdmin()
+            val response = milestoneViewController.deleteMilestone("owner", "TestProj", 2L, siteAdminAuth)
+            response.statusCode.value() shouldBe 204
+        }
+
+        it("다른 프로젝트의 마일스톤은 편집할 수 없다 (URL 프로젝트와 소속이 다르면 notfound)") {
+            val other = Project(id = 2L, name = "Other", owner = "owner", projectScope = ProjectScope.PRIVATE)
+            val foreign = Milestone(id = 3L, title = "foreign", project = other)
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(member)
+            every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+            every { milestoneService.getMilestone(3L) } returns foreign
+            every { milestoneRepository.findByProjectAndTitle(any(), any()) } returns null
+
+            val result = milestoneViewController.editMilestone(
+                owner = "owner", projectName = "TestProj", id = 3L, title = "hijacked", contents = null, dueDate = null,
+                state = com.github.yonaprojects.yona.domain.enumeration.State.OPEN, temporaryUploadFiles = null,
+                authentication = memberAuth, redirectAttributes = org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap(), model = ExtendedModelMap()
+            )
+
+            result shouldBe "error/notfound"
+            verify(exactly = 0) { milestoneService.updateMilestone(any(), any(), any(), any(), any()) }
+        }
+    }
 })

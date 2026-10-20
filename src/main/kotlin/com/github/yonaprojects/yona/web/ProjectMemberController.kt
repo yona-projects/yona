@@ -28,10 +28,15 @@ class ProjectMemberController(
     private val organizationUserRepository: OrganizationUserRepository
 ) {
 
+    // v1.6 @IsAllowed(UPDATE|DELETE, PROJECT)는 프로젝트 MANAGER뿐 아니라 사이트 관리자와 조직 관리자도 통과시켰다.
     private fun isProjectManager(projectId: Long, userId: Long): Boolean {
-        return projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+        val byRole = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
             .map { it.role.id == RoleType.MANAGER.roleType }
             .orElse(false)
+        if (byRole) return true
+        val user = userRepository.findById(userId).orElse(null) ?: return false
+        val project = projectRepository.findById(projectId).orElse(null) ?: return false
+        return accessControl.isAllowed(user, project, Operation.UPDATE)
     }
 
     // 인증 정보가 없거나(PAT 인식 실패 등으로 authentication이 null) 토큰 소유자를

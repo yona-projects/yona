@@ -69,6 +69,27 @@ class WebhookNotificationEventListenerSpec : DescribeSpec({
             verify(exactly = 1) { webhookService.sendWebhook(project, EventType.NEW_ISSUE, sender, issue) }
         }
 
+        // v1.6 NotificationEvent.afterPullRequestUpdated(): newState == MERGED이면 webhookRequest(PULL_REQUEST_MERGED, pullRequest).
+        // 상태 변경 알림(PULL_REQUEST_STATE_CHANGED)의 새 값이 MERGED면 웹훅 이벤트 종류도 PULL_REQUEST_MERGED여야 한다.
+        it("PULL_REQUEST 상태 변경 알림의 새 값이 MERGED면 PULL_REQUEST_MERGED 웹훅으로 발송해야 한다") {
+            val pr = com.github.yonaprojects.yona.domain.pullrequest.PullRequest(
+                id = 300L, title = "PR", toProject = project, fromProject = project, toBranch = "main", fromBranch = "f",
+                contributor = sender, number = 3L
+            )
+            every { pullRequestRepository.findById(300L) } returns Optional.of(pr)
+            val event = com.github.yonaprojects.yona.domain.notification.NotificationEvent(
+                title = "t", senderId = 9L, resourceType = com.github.yonaprojects.yona.domain.enumeration.ResourceType.PULL_REQUEST,
+                resourceId = "300", eventType = com.github.yonaprojects.yona.domain.enumeration.EventType.PULL_REQUEST_STATE_CHANGED,
+                oldValue = "OPEN", newValue = "MERGED"
+            )
+
+            listener.handleNotificationEvent(event)
+
+            verify(exactly = 1) {
+                webhookService.sendWebhook(project, com.github.yonaprojects.yona.domain.enumeration.EventType.PULL_REQUEST_MERGED, sender, pr)
+            }
+        }
+
         it("ISSUE_COMMENT 타입은 댓글이 속한 이슈의 project로 웹훅을 발송해야 한다") {
             val issue = Issue(id = 100L, title = "제목", body = "본문", project = project, number = 1L)
             val comment = IssueComment(id = 200L, contents = "댓글", issue = issue)

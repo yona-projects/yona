@@ -36,6 +36,8 @@ import com.github.yonaprojects.yona.domain.watch.WatchRepository
 import com.github.yonaprojects.yona.domain.issue.IssueEventRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldContain as shouldContainElement
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -83,7 +85,8 @@ class PullRequestServiceSpec @Autowired constructor(
     private val emailRepository: EmailRepository,
     // yona-wiki P3-15(PR 승인/변경요청 워크플로) — submitReview/getReviews/getLatestReviewStates 및
     // require_approvals 연결(checkApprovalsForMerge) 검증용.
-    private val pullRequestReviewRepository: PullRequestReviewRepository
+    private val pullRequestReviewRepository: PullRequestReviewRepository,
+    private val webhookService: com.github.yonaprojects.yona.domain.webhook.WebhookService
 ) : AbstractIntegrationTest() {
 
     init {
@@ -422,6 +425,107 @@ class PullRequestServiceSpec @Autowired constructor(
                 // 예전에는 이 ref가 전혀 움직이지 않아 pull해도 병합 내용이 보이지 않았다.
                 Git.open(toBareDir).use { git ->
                     git.repository.resolve("master")!!.name shouldBe mergedPr.mergedCommitIdTo
+                }
+            }
+
+            // v1.6 PullRequest.merge(): 병합 성공 시 NotificationEvent.afterPullRequestUpdated(sender, pr, OPEN, MERGED)로
+            // PR 기여자(감시자)에게 상태 변경 알림을 보냈다(+ 웹훅 PULL_REQUEST_MERGED). next는 merge()가 MERGED를 직접
+            // 저장하면서 알림을 만들지 않았다.
+            it("1-4. 머지 성공 시 PR 기여자에게 OPEN -> MERGED 상태 변경 알림이 발행되고 머지한 사람은 제외된다") {
+                val toBareDir = repositoryService.getRepository(toProject).getDirectory()
+                val fromBareDir = repositoryService.getRepository(fromProject).getDirectory()
+                createCommit(toBareDir, "master", "test.txt", "hello common", "Initial commit")
+                syncRepository(toBareDir, fromBareDir, "master")
+                createCommit(toBareDir, "master", "test2.txt", "target modification", "Update target")
+                createCommit(fromBareDir, "feature", "test3.txt", "source modification", "Update source")
+
+                val pr = pullRequestRepository.save(
+                    PullRequest(
+                        title = "머지 알림 PR", body = "본문", toProject = toProject, fromProject = fromProject,
+                        toBranch = "refs/heads/master", fromBranch = "refs/heads/feature",
+                        contributor = contributor, receiver = receiver, created = Instant.now(), state = State.OPEN
+                    )
+                )
+                notificationEventRepository.deleteAll()
+
+                pullRequestService.merge(pr.id!!, receiver)
+
+                val events = notificationEventRepository.findAll()
+                    .filter { it.eventType == EventType.PULL_REQUEST_STATE_CHANGED && it.resourceId == pr.id.toString() }
+                events.size shouldBe 1
+                events.first().oldValue shouldBe State.OPEN.toString()
+                events.first().newValue shouldBe State.MERGED.toString()
+                events.first().senderId shouldBe receiver.id
+                val receivers = events.first().receivers.map { it.loginId }
+                receivers shouldContainElement contributor.loginId
+                receivers shouldNotContain receiver.loginId
+            }
+
+            // v1.6 NotificationEvent.getDefaultReceivers(): PR 알림 수신자에는 PR 본문에서 @멘션된 사용자도 들어간다.
+            it("1-5. 머지 알림 수신자에 PR 본문에서 멘션된 사용자가 포함된다") {
+                val toBareDir = repositoryService.getRepository(toProject).getDirectory()
+                val fromBareDir = repositoryService.getRepository(fromProject).getDirectory()
+                createCommit(toBareDir, "master", "test.txt", "hello common", "Initial commit")
+                syncRepository(toBareDir, fromBareDir, "master")
+                createCommit(toBareDir, "master", "test2.txt", "target modification", "Update target")
+                createCommit(fromBareDir, "feature", "test3.txt", "source modification", "Update source")
+                val mentioned = userRepository.save(User(loginId = "pr-mentioned", name = "멘션", email = "pr-mentioned@yona.io"))
+
+                val pr = pullRequestRepository.save(
+                    PullRequest(
+                        title = "멘션 PR", body = "@pr-mentioned 확인 부탁드립니다", toProject = toProject, fromProject = fromProject,
+                        toBranch = "refs/heads/master", fromBranch = "refs/heads/feature",
+                        contributor = contributor, receiver = receiver, created = Instant.now(), state = State.OPEN
+                    )
+                )
+                notificationEventRepository.deleteAll()
+
+                pullRequestService.merge(pr.id!!, receiver)
+
+                val event = notificationEventRepository.findAll()
+                    .first { it.eventType == EventType.PULL_REQUEST_STATE_CHANGED && it.resourceId == pr.id.toString() }
+                event.receivers.map { it.loginId } shouldContainElement mentioned.loginId
+            }
+
+            // v1.6의 webhookRequest(PULL_REQUEST_MERGED)는 알림 수신자와 무관하게 호출됐다. 수신자가 없어 알림이 저장되지
+            // 않아도(본인이 본인 PR을 머지) 웹훅은 발송되어야 한다.
+            it("1-6. 수신자가 없어 알림이 저장되지 않아도 머지 웹훅은 발송된다") {
+                val toBareDir = repositoryService.getRepository(toProject).getDirectory()
+                val fromBareDir = repositoryService.getRepository(fromProject).getDirectory()
+                createCommit(toBareDir, "master", "test.txt", "hello common", "Initial commit")
+                syncRepository(toBareDir, fromBareDir, "master")
+                createCommit(toBareDir, "master", "test2.txt", "target modification", "Update target")
+                createCommit(fromBareDir, "feature", "test3.txt", "source modification", "Update source")
+
+                val received = java.util.concurrent.LinkedBlockingQueue<String>()
+                val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+                server.createContext("/hook") { exchange ->
+                    received.add(String(exchange.requestBody.readAllBytes()))
+                    exchange.sendResponseHeaders(200, -1)
+                    exchange.close()
+                }
+                server.start()
+                try {
+                    webhookService.createWebhook(
+                        toProject, "http://127.0.0.1:${server.address.port}/hook", null, false,
+                        com.github.yonaprojects.yona.domain.enumeration.WebhookType.JSON
+                    )
+                    val pr = pullRequestRepository.save(
+                        PullRequest(
+                            title = "자기 PR", body = "본문", toProject = toProject, fromProject = fromProject,
+                            toBranch = "refs/heads/master", fromBranch = "refs/heads/feature",
+                            contributor = receiver, receiver = receiver, created = Instant.now(), state = State.OPEN
+                        )
+                    )
+                    notificationEventRepository.deleteAll()
+
+                    pullRequestService.merge(pr.id!!, receiver)
+
+                    notificationEventRepository.findAll()
+                        .none { it.eventType == EventType.PULL_REQUEST_STATE_CHANGED && it.resourceId == pr.id.toString() } shouldBe true
+                    received.poll(10, java.util.concurrent.TimeUnit.SECONDS) shouldNotBe null
+                } finally {
+                    server.stop(0)
                 }
             }
 
@@ -1433,6 +1537,27 @@ class PullRequestServiceSpec @Autowired constructor(
                 prEvents.size shouldBe 1
                 prEvents.first().eventType shouldBe EventType.NEW_PULL_REQUEST
                 prEvents.first().senderLoginId shouldBe contributor.loginId
+            }
+
+            // v1.6 NotificationEvent.getReceiversWithRelatedAuthors(): 신규 PR의 수신자에 "이 PR이 바꾸거나 지우는 줄을 마지막으로
+            // 쓴 사람"(GitRepository.getRelatedAuthors — diff의 REPLACE/DELETE 구간을 blame)을 더한다. 병합 대상 브랜치가
+            // 바뀌는 줄의 원 작성자에게 알려 리뷰에 참여시키려는 기능이다.
+            it("신규 PR이 수정하는 줄의 원 작성자(blame)가 신규 PR 알림 수신자에 포함된다") {
+                val toBareDir = repositoryService.getRepository(toProject).getDirectory()
+                val fromBareDir = repositoryService.getRepository(fromProject).getDirectory()
+                // createCommit()의 커밋 작성자는 항상 tester@yona.io 이다.
+                val lineAuthor = userRepository.save(User(loginId = "blame-author", name = "원작성자", email = "tester@yona.io"))
+                createCommit(toBareDir, "master", "blame.txt", "line1\nline2\nline3\n", "Initial")
+                syncRepository(toBareDir, fromBareDir, "master")
+                createCommit(fromBareDir, "feature", "blame.txt", "line1\nCHANGED\nline3\n", "Change line2")
+
+                pullRequestService.createPullRequest(
+                    title = "blame PR", body = "본문", fromProjectId = fromProject.id!!, toProjectId = toProject.id!!,
+                    fromBranch = "refs/heads/feature", toBranch = "refs/heads/master", contributor = contributor
+                )
+
+                val event = notificationEventRepository.findAll().first { it.eventType == EventType.NEW_PULL_REQUEST }
+                event.receivers.map { it.loginId } shouldContainElement lineAuthor.loginId
             }
 
             // yona NotificationEvent.java:1425-1428 getDefaultReceivers(pullRequest)의

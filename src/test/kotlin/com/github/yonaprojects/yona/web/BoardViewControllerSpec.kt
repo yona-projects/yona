@@ -300,6 +300,31 @@ class BoardViewControllerSpec : DescribeSpec({
                 verify(exactly = 1) { postingService.updatePosting(1L, 1L, "수정 제목", "수정 본문", false, false, 10L, true) }
             }
 
+            // legacy AbstractPostingApp.editPosting 끝의 attachUploadFilesToPost(original) — 수정 때 새로 올린 임시 첨부를 게시글 컨테이너로 옮긴다.
+            it("temporaryUploadFiles로 보낸 임시 첨부를 게시글(BOARD_POST) 컨테이너로 옮겨야 한다") {
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { postingService.getPosting(1L, 1L) } returns posting
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
+                every { postingService.updatePosting(1L, 1L, "수정 제목", "수정 본문", false, false, 10L, false) } returns posting
+                every { attachmentService.moveOnlySelected(any(), any(), any(), any(), any(), any()) } returns 2
+
+                mockMvc.perform(
+                    post("/owner/TestProj/post/1/edit")
+                        .param("title", "수정 제목").param("body", "수정 본문")
+                        .param("temporaryUploadFiles", "7,8")
+                        .principal(userAuth)
+                ).andExpect(status().is3xxRedirection)
+
+                verify(exactly = 1) {
+                    attachmentService.moveOnlySelected(
+                        fromType = com.github.yonaprojects.yona.domain.enumeration.ResourceType.NOT_A_RESOURCE, fromId = "",
+                        toType = com.github.yonaprojects.yona.domain.enumeration.ResourceType.BOARD_POST, toId = "5",
+                        selectedIds = listOf(7L, 8L), moverLoginId = "testuser"
+                    )
+                }
+            }
+
             it("sendNotificationMail을 선택하지 않으면 false로 전달해야 한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProj") } returns Optional.of(project)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)

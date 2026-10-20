@@ -67,14 +67,15 @@ class NotificationMailDigestSchedulerSpec : DescribeSpec({
         hideAddress: Boolean = true,
         recipientLimit: Int = 0,
         allowedDomains: String = "",
-        imapAddress: String = ""
+        imapAddress: String = "",
+        mailFrom: String = ""
     ) = NotificationMailDigestScheduler(
         notificationMailRepository, notificationEventMerger, messageResolver, urlResolver, mailRenderer,
         markdownService, mailService, userRepository, issueRepository, postingRepository,
         issueCommentRepository, postingCommentRepository, pullRequestRepository, commitCommentRepository,
         reviewCommentRepository, commentThreadRepository, projectRepository, organizationRepository,
         enabled, hideAddress, recipientLimit, 180000L, allowedDomains, imapAddress, "yona.example.com", "Yona",
-        meterRegistry
+        meterRegistry, mailFrom
     )
 
     // resourceType/eventType을 자유롭게 조합할 수 있는 범용 이벤트 빌더.
@@ -232,6 +233,28 @@ class NotificationMailDigestSchedulerSpec : DescribeSpec({
             scheduler(hideAddress = true).sendMail()
 
             bccSlot.captured.map { it.email } shouldBe listOf("u2@yona.io")
+        }
+
+        it("hideAddress일 때 To 자리표시 주소는 설정된 발신 주소(yona.mail.from)를 쓴다") {
+            val receiverUser = receiver(2L)
+            val event = issueEvent(setOf(receiverUser))
+            val mail = NotificationMail(id = 100L, notificationEvent = event)
+            every { notificationMailRepository.findByNotificationEvent_CreatedBeforeOrderByNotificationEvent_CreatedAsc(any()) } returns listOf(mail)
+            every { notificationMailRepository.delete(mail) } returns Unit
+            every { notificationEventMerger.mergeEvents(listOf(event)) } returns listOf(MergedNotificationEvent(event))
+            every { issueRepository.existsById(1L) } returns true
+            every { messageResolver.getMessage(any<MergedNotificationEvent>(), any()) } returns "메시지"
+            every { messageResolver.getPlainMessage(any<MergedNotificationEvent>(), any()) } returns "평문 메시지"
+            every { issueRepository.findById(1L) } returns Optional.empty()
+
+            val toSlot = slot<List<MailRecipient>>()
+            every {
+                mailService.sendNotificationMail(capture(toSlot), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } returns Unit
+
+            scheduler(hideAddress = true, mailFrom = "noreply@corp.example").sendMail()
+
+            toSlot.captured.map { it.email } shouldBe listOf("noreply@corp.example")
         }
 
         it("허용 도메인 설정이 있으면 다른 도메인 수신자는 제외한다") {

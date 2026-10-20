@@ -81,6 +81,31 @@ class Project(
     )
     var labels: MutableSet<Label> = mutableSetOf()
 ) {
+    // v1.6 Project.delete()가 프로젝트를 FK로 참조하는 행을 먼저 정리하던 것의 대응 — 이 행들이 남아 있으면 프로젝트 삭제가 제약 위반으로 실패한다.
+    @get:JsonIgnore
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE])
+    var milestones: MutableList<com.github.yonaprojects.yona.domain.milestone.Milestone> = mutableListOf()
+
+    @get:JsonIgnore
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE])
+    var pushedBranches: MutableList<com.github.yonaprojects.yona.domain.vcs.PushedBranch> = mutableListOf()
+
+    @get:JsonIgnore
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE])
+    var userProjectNotifications: MutableList<com.github.yonaprojects.yona.domain.notification.UserProjectNotification> = mutableListOf()
+
+    @get:JsonIgnore
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE])
+    var favoriteProjects: MutableList<com.github.yonaprojects.yona.domain.user.FavoriteProject> = mutableListOf()
+
+    @get:JsonIgnore
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE])
+    var protectedBranches: MutableList<com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranch> = mutableListOf()
+
+    @get:JsonIgnore
+    @OneToMany(mappedBy = "project", cascade = [CascadeType.REMOVE])
+    var deployKeys: MutableList<com.github.yonaprojects.yona.domain.deploykey.DeployKey> = mutableListOf()
+
     val isPrivate: Boolean
         get() = projectScope == ProjectScope.PRIVATE
 

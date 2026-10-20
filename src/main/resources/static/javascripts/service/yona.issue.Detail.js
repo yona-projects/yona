@@ -33,10 +33,13 @@
                 alert(message + ' failed: ' + error.message);
             });
         }
-        function postComment(target, contents, parentCommentId) {
+        function postComment(target, contents, parentCommentId, withStateTransition) {
+            var payload = {contents: contents, parentCommentId: parentCommentId};
+            // legacy IssueApp.newComment의 withStateTransition: 댓글 등록과 함께 이슈를 닫거나 다시 연다.
+            if (withStateTransition) { payload.withStateTransition = true; }
             request(target.dataset.apiBase, {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({contents: contents, parentCommentId: parentCommentId})
+                body: JSON.stringify(payload)
             }, function () {
                 if (target === form) { removeCurrentPageTemprarySavedContent(textarea); }
                 window.location.reload();
@@ -183,7 +186,7 @@
                     return;
                 }
                 submitting = true;
-                postComment(form, textarea.value);
+                postComment(form, textarea.value, undefined, !!(event.submitter && event.submitter.name === 'withStateTransition'));
             } else if (target.matches('.comment-update-form form')) {
                 event.preventDefault();
                 var editTextarea = target.querySelector('textarea[data-editor-mode="update-comment-body"]');

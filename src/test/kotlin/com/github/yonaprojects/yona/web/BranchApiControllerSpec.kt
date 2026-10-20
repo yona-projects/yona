@@ -75,11 +75,13 @@ class BranchApiControllerSpec : DescribeSpec({
         val project = Project(id = 1L, name = "TestProject", owner = "owner", vcs = "git", projectScope = ProjectScope.PUBLIC)
         val user = User(id = 10L, loginId = "testuser", name = "테스트유저")
         val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
+        val managerUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+        managerUser.projectUsers.add(ProjectUser(id = 20L, user = managerUser, project = project, role = Role(id = RoleType.MANAGER.roleType)))
 
         describe("POST /{owner}/{projectName}/code/{branch}/setAsDefault") {
             it("성공 시 302 리다이렉트와 setDefaultBranch 메소드가 정상 호출되어야 한다") {
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
-                every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(managerUser)
                 every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns true
                 every { repositoryService.getRepository(project) } returns playRepository
                 every { playRepository.setDefaultBranch("feature-a") } returns Unit
@@ -93,26 +95,45 @@ class BranchApiControllerSpec : DescribeSpec({
                 verify { playRepository.setDefaultBranch("feature-a") }
             }
 
-            // yona AccessControl.isAllowedIfGroupMember() 대응 (P1-57)
-            it("직접 멤버가 아니어도 프로젝트가 속한 조직의 멤버라면 성공해야 한다") {
+            // v1.6 BranchApp.setAsDefault는 @IsAllowed(Operation.UPDATE) — AccessControl의 PROJECT UPDATE는 프로젝트 MANAGER와 조직 관리자
+            // (그리고 사이트 관리자)만 허용한다. 일반 멤버·조직 일반 멤버(isAllowedIfGroupMember)는 허용되지 않는다.
+            it("프로젝트 일반 멤버(MEMBER)는 기본 브랜치를 바꿀 수 없다") {
+                val memberUser = User(id = 11L, loginId = "member1", name = "일반멤버")
+                memberUser.projectUsers.add(ProjectUser(id = 21L, user = memberUser, project = project, role = Role(id = RoleType.MEMBER.roleType)))
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
+                every { userRepository.findByLoginId("member1") } returns Optional.of(memberUser)
+                every { projectUserRepository.existsByProjectIdAndUserId(1L, 11L) } returns true
+
+                mockMvc.perform(post("/owner/TestProject/code/feature-a/setAsDefault").principal(UsernamePasswordAuthenticationToken("member1", "pw")))
+                    .andExpect(view().name("error/forbidden"))
+
+                verify(exactly = 0) { playRepository.setDefaultBranch(any()) }
+            }
+
+            it("프로젝트 멤버가 아닌 조직의 일반 멤버(ORG_MEMBER)도 기본 브랜치를 바꿀 수 없다") {
                 val org = Organization(id = 1L, name = "org")
                 val groupProject = Project(id = 1L, name = "TestProject", owner = "owner", vcs = "git", projectScope = ProjectScope.PROTECTED, organization = org)
                 org.organizationUsers.add(
-                    OrganizationUser(
-                        id = 1L, user = user, organization = org,
-                        role = Role(id = RoleType.ORG_MEMBER.roleType)
-                    )
+                    OrganizationUser(id = 1L, user = user, organization = org, role = Role(id = RoleType.ORG_MEMBER.roleType))
                 )
-
                 every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(groupProject)
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
                 every { projectUserRepository.existsByProjectIdAndUserId(1L, 10L) } returns false
-                every { repositoryService.getRepository(groupProject) } returns playRepository
+
+                mockMvc.perform(post("/owner/TestProject/code/feature-a/setAsDefault").principal(userAuth))
+                    .andExpect(view().name("error/forbidden"))
+
+                verify(exactly = 0) { playRepository.setDefaultBranch(any()) }
+            }
+
+            it("사이트 관리자는 프로젝트 멤버가 아니어도 기본 브랜치를 바꿀 수 있다") {
+                val siteAdmin = User(id = 12L, loginId = "siteadmin", name = "사이트관리자", state = com.github.yonaprojects.yona.domain.user.UserState.SITE_ADMIN)
+                every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(project)
+                every { userRepository.findByLoginId("siteadmin") } returns Optional.of(siteAdmin)
+                every { repositoryService.getRepository(project) } returns playRepository
                 every { playRepository.setDefaultBranch("feature-a") } returns Unit
 
-                mockMvc.perform(
-                    post("/owner/TestProject/code/feature-a/setAsDefault").principal(userAuth)
-                )
+                mockMvc.perform(post("/owner/TestProject/code/feature-a/setAsDefault").principal(UsernamePasswordAuthenticationToken("siteadmin", "pw")))
                     .andExpect(status().is3xxRedirection)
 
                 verify { playRepository.setDefaultBranch("feature-a") }

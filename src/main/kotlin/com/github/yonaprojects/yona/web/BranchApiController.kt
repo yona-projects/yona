@@ -49,7 +49,9 @@ class BranchApiController(
         }
 
         val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
-        if (loginUser == null || (!projectUserRepository.existsByProjectIdAndUserId(project.id!!, loginUser.id!!) && !accessControl.isAllowedIfGroupMember(project, loginUser))) {
+        // legacy BranchApp.setAsDefault는 @IsAllowed(Operation.UPDATE) — 프로젝트 MANAGER·조직 관리자·사이트 관리자만 허용한다
+        // (일반 멤버와 조직 일반 멤버는 아니다. deleteBranch와 같은 기준).
+        if (loginUser == null || !accessControl.isAllowed(loginUser, project, Operation.UPDATE)) {
             // yona error/forbidden.scala.html 대응.
             model.addAttribute("project", project)
             return "error/forbidden"
