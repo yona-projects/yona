@@ -1065,7 +1065,9 @@ class PullRequestServiceImpl(
         }
         notificationEvent.receivers = receivers
 
-        val recorded = notificationEventRecorder.record(notificationEvent)
+        // 머지 웹훅은 수신자 유무와 무관하게, 병합 트랜잭션 안에서 동기로 보낸다(아래). 저장되지 않은 이벤트를 recorder가 비동기 리스너로
+        // 다시 publish하면 같은 웹훅이 두 번 나가므로 끈다.
+        val recorded = notificationEventRecorder.record(notificationEvent, publishWhenUnsaved = false)
         if (recorded != null) {
             // WebhookNotificationEventListener가 상태 변경(MERGED)을 PULL_REQUEST_MERGED 웹훅으로 보낸다.
             eventPublisher.publishEvent(recorded)

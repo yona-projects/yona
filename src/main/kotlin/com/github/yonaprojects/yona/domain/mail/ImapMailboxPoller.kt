@@ -294,7 +294,14 @@ class ImapMailboxPoller(
                         currentFolder = reopenFolder()
                         folder = currentFolder
                     }
-                    handleNewMessages(currentFolder)
+                    try {
+                        handleNewMessages(currentFolder)
+                    } finally {
+                        // v1.6 MailboxService.startEmailPolling은 사이클마다 folder.close(true)로 끝내 매번 새 SELECT로 시작했다.
+                        // angus-mail은 폴더가 열려 있는 동안 uidNext를 캐시하므로 닫지 않으면 기동 이후 도착한 메일이 영구히 범위 밖이다.
+                        // READ_ONLY라 expunge가 필요 없고, 다음 사이클의 !isOpen 분기가 재오픈한다.
+                        runCatching { currentFolder.close(false) }
+                    }
                 } catch (e: Exception) {
                     logger.error("IMAP 폴링 중 오류가 발생했습니다", e)
                 }

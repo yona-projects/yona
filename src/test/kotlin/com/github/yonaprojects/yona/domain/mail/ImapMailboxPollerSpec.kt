@@ -706,7 +706,9 @@ class ImapMailboxPollerSpec : DescribeSpec({
     }
 
     describe("ImapMailboxPoller.startEmailPolling") {
-        it("폴더가 열려 있으면 재접속 없이 바로 신규 메시지를 조회해야 한다") {
+        // v1.6 MailboxService.startEmailPolling은 사이클마다 handleNewMessages 뒤에 folder.close(true)를 호출해 매번 새 SELECT로 시작했다.
+        // angus-mail은 폴더가 열려 있는 동안 uidNext를 캐시하므로 닫지 않으면 기동 이후 도착한 메일이 영구히 범위 밖이다.
+        it("폴더가 열려 있으면 재접속 없이 신규 메시지를 조회하고 사이클 끝에 폴더를 닫아야 한다") {
             val taskScheduler = mockk<TaskScheduler>(relaxed = true)
             val propertyService = mockk<PropertyService>(relaxed = true)
             val p = freshPoller(taskScheduler = taskScheduler, propertyService = propertyService)
@@ -724,7 +726,7 @@ class ImapMailboxPollerSpec : DescribeSpec({
             runnableSlot.captured.run()
 
             verify(exactly = 1) { propertyService.set(PropertyName.MAILBOX_LAST_UID_VALIDITY, 1L) }
-            verify(exactly = 0) { folder.close(any()) }
+            verify(exactly = 1) { folder.close(any()) }
         }
 
         it("폴더가 닫혀 있으면 재접속 후 신규 메시지를 조회해야 한다") {

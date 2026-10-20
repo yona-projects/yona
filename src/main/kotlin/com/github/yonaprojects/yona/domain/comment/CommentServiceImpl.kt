@@ -8,6 +8,7 @@ import com.github.yonaprojects.yona.domain.issue.Issue
 import com.github.yonaprojects.yona.domain.notification.issueImplicitReceivers
 import com.github.yonaprojects.yona.domain.notification.postingImplicitReceivers
 import com.github.yonaprojects.yona.domain.user.UserState
+import com.github.yonaprojects.yona.domain.user.canReceiveNotifications
 import com.github.yonaprojects.yona.domain.issue.IssueComment
 import com.github.yonaprojects.yona.domain.issue.IssueCommentRepository
 import com.github.yonaprojects.yona.domain.issue.IssueRepository
@@ -244,7 +245,7 @@ class CommentServiceImpl(
             notificationEvent.eventType
         ).toMutableSet()
         // legacy filterInactiveUsers(): ACTIVE가 아닌 사용자(잠김·탈퇴·게스트·사이트 관리자 상태 포함)는 댓글 알림에서 뺀다.
-        receivers.removeIf { it.state != UserState.ACTIVE }
+        receivers.removeIf { !it.state.canReceiveNotifications() }
         receivers.removeIf { it.id == author.id }
 
         // 멘션된 사용자들 추가
@@ -318,7 +319,7 @@ class CommentServiceImpl(
             notificationEvent.eventType
         ).toMutableSet()
         // legacy filterInactiveUsers(): ACTIVE가 아닌 사용자(잠김·탈퇴·게스트·사이트 관리자 상태 포함)는 댓글 알림에서 뺀다.
-        receivers.removeIf { it.state != UserState.ACTIVE }
+        receivers.removeIf { !it.state.canReceiveNotifications() }
         receivers.removeIf { it.id == author.id }
 
         receivers.addAll(mentionedUsers)
@@ -406,7 +407,7 @@ class CommentServiceImpl(
                 notificationEvent.eventType
             ).toMutableSet()
             // legacy filterInactiveUsers(): ACTIVE가 아닌 사용자(잠김·탈퇴·게스트·사이트 관리자 상태 포함)는 댓글 알림에서 뺀다.
-            receivers.removeIf { it.state != UserState.ACTIVE }
+            receivers.removeIf { !it.state.canReceiveNotifications() }
             receivers.removeIf { it.id == author.id }
             receivers.addAll(mentionedUsers)
             notificationEvent.receivers = receivers
@@ -478,7 +479,7 @@ class CommentServiceImpl(
                 notificationEvent.eventType
             ).toMutableSet()
             // legacy filterInactiveUsers(): ACTIVE가 아닌 사용자(잠김·탈퇴·게스트·사이트 관리자 상태 포함)는 댓글 알림에서 뺀다.
-            receivers.removeIf { it.state != UserState.ACTIVE }
+            receivers.removeIf { !it.state.canReceiveNotifications() }
             receivers.removeIf { it.id == author.id }
             receivers.addAll(mentionedUsers)
             notificationEvent.receivers = receivers

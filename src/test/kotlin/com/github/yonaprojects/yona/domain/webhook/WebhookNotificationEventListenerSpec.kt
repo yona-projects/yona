@@ -69,6 +69,27 @@ class WebhookNotificationEventListenerSpec : DescribeSpec({
             verify(exactly = 1) { webhookService.sendWebhook(project, EventType.NEW_ISSUE, sender, issue) }
         }
 
+        // v1.6 afterStateChanged/afterAssigneeChanged/afterMilestoneChanged는 이슈를 리소스로 webhookRequest를 호출했다.
+        // next는 이 이벤트들의 resourceType이 ISSUE_STATE/ISSUE_ASSIGNEE/ISSUE_MILESTONE라 리스너가 리소스를 못 풀어 항상 건너뛰었다.
+        for ((resourceType, eventType) in listOf(
+            ResourceType.ISSUE_STATE to EventType.ISSUE_STATE_CHANGED,
+            ResourceType.ISSUE_ASSIGNEE to EventType.ISSUE_ASSIGNEE_CHANGED,
+            ResourceType.ISSUE_MILESTONE to EventType.ISSUE_MILESTONE_CHANGED
+        )) {
+            it("$resourceType 알림도 이슈로 웹훅을 발송해야 한다") {
+                val issue = Issue(id = 100L, title = "제목", body = "본문", project = project, number = 1L)
+                every { issueRepository.findById(100L) } returns Optional.of(issue)
+                val event = NotificationEvent(
+                    title = "변경", senderId = 9L, created = Instant.now(),
+                    resourceType = resourceType, resourceId = "100", eventType = eventType
+                )
+
+                listener.handleNotificationEvent(event)
+
+                verify(exactly = 1) { webhookService.sendWebhook(project, eventType, sender, issue) }
+            }
+        }
+
         // v1.6 NotificationEvent.afterPullRequestUpdated(): newState == MERGED이면 webhookRequest(PULL_REQUEST_MERGED, pullRequest).
         // 상태 변경 알림(PULL_REQUEST_STATE_CHANGED)의 새 값이 MERGED면 웹훅 이벤트 종류도 PULL_REQUEST_MERGED여야 한다.
         it("PULL_REQUEST 상태 변경 알림의 새 값이 MERGED면 PULL_REQUEST_MERGED 웹훅으로 발송해야 한다") {

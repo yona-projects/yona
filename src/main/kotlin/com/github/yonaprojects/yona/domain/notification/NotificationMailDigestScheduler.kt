@@ -22,6 +22,7 @@ import com.github.yonaprojects.yona.domain.user.EmailDomainValidator
 import com.github.yonaprojects.yona.domain.user.User
 import com.github.yonaprojects.yona.domain.user.UserRepository
 import com.github.yonaprojects.yona.domain.user.UserState
+import com.github.yonaprojects.yona.domain.user.canReceiveNotifications
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import org.slf4j.LoggerFactory
@@ -166,7 +167,7 @@ class NotificationMailDigestScheduler(
     // yona sendNotification(event) 대응 — 수신자 정리(비활성 사용자/도메인 제한 제외), 언어별 그룹핑,
     // 수신자 제한(recipientLimit) 분할까지 담당한다.
     private fun sendNotification(event: MergedNotificationEvent) {
-        val receivers = event.receivers.filterTo(mutableSetOf()) { it.state == UserState.ACTIVE }
+        val receivers = event.receivers.filterTo(mutableSetOf()) { it.state.canReceiveNotifications() }
 
         if (allowedDomains.isNotBlank()) {
             receivers.removeIf { !EmailDomainValidator.isAllowed(it.email, allowedDomains) }

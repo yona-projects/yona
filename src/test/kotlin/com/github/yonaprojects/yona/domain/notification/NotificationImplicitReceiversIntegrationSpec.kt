@@ -169,8 +169,9 @@ class NotificationImplicitReceiversIntegrationSpec @Autowired constructor(
                 receivers shouldNotContain "imp-oldmention"
             }
 
-            // v1.6 filterInactiveUsers(): state != ACTIVE인 수신자는 댓글 알림에서 제외한다.
-            it("ACTIVE가 아닌 담당자(GUEST/LOCKED)는 댓글 알림 수신자에서 제외된다") {
+            // v1.6 filterInactiveUsers()는 state != ACTIVE만 뺐다. v1.6에서 게스트(isGuest)·사이트 관리자(SiteAdmin)는 state가 ACTIVE였으므로
+            // next(GUEST/SITE_ADMIN을 state로 표현)에서는 LOCKED/DELETED만 빼야 같은 동작이다.
+            it("잠긴 담당자(LOCKED)는 제외되고 게스트 공유자(GUEST)는 댓글 알림 수신자에 남는다") {
                 assignee.state = UserState.LOCKED
                 userRepository.save(assignee)
                 sharer.state = UserState.GUEST
@@ -181,7 +182,7 @@ class NotificationImplicitReceiversIntegrationSpec @Autowired constructor(
                 val receivers = receiversOf(EventType.NEW_COMMENT)
                 receivers shouldContain "imp-author"
                 receivers shouldNotContain "imp-assignee"
-                receivers shouldNotContain "imp-sharer"
+                receivers shouldContain "imp-sharer"
             }
 
             it("다른 사람이 게시글을 수정하면 게시글 작성자가 수신자이다") {

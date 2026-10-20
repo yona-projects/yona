@@ -42,6 +42,42 @@ class SiteServiceSpec : DescribeSpec({
         clearMocks(userRepository, projectRepository, projectUserRepository, projectService, recentIssueService, attachmentRepository, answers = false)
     }
 
+    // v1.6는 잠금(state)·게스트(isGuest)·사이트 관리자(SiteAdmin 테이블)가 서로 다른 축이라 한 토글이 다른 역할을 지우지 못했다.
+    // next는 셋이 모두 state 하나에 합쳐져 있어 토글이 서로를 덮어쓴다. 완전한 축 분리(스키마 변경) 전까지 덮어쓰기만 막는다.
+    describe("SiteService - state 축 상호작용") {
+        it("사이트 관리자는 잠금 토글로 관리자 권한을 잃지 않는다") {
+            val admin = User(id = 30L, loginId = "admin1", name = "관리자", state = UserState.SITE_ADMIN)
+            every { userRepository.findByLoginId("admin1") } returns Optional.of(admin)
+            every { userRepository.save(any()) } answers { firstArg() }
+
+            service.toggleAccountLock("admin1")
+
+            admin.state shouldBe UserState.SITE_ADMIN
+        }
+
+        it("잠긴 사용자에게 게스트 전환을 해도 잠금이 풀리지 않는다") {
+            val locked = User(id = 31L, loginId = "locked1", name = "잠금", state = UserState.LOCKED)
+            every { userRepository.findByLoginId("locked1") } returns Optional.of(locked)
+            every { userRepository.save(any()) } answers { firstArg() }
+
+            service.toggleGuestMode("locked1")
+
+            locked.state shouldBe UserState.LOCKED
+            locked.isGuest shouldBe false
+        }
+
+        it("게스트에게 관리자 권한을 주면 게스트 플래그가 해제된다") {
+            val guest = User(id = 32L, loginId = "guest1", name = "게스트", state = UserState.GUEST, isGuest = true)
+            every { userRepository.findByLoginId("guest1") } returns Optional.of(guest)
+            every { userRepository.save(any()) } answers { firstArg() }
+
+            service.toggleSiteAdminRole("guest1")
+
+            guest.state shouldBe UserState.SITE_ADMIN
+            guest.isGuest shouldBe false
+        }
+    }
+
     describe("SiteService.toggleAccountLock") {
         it("대상 사용자가 없으면 아무 것도 하지 않아야 한다") {
             every { userRepository.findByLoginId("nobody") } returns Optional.empty()

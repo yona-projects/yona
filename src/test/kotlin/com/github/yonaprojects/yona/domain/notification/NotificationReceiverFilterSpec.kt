@@ -51,6 +51,8 @@ class NotificationReceiverFilterSpec : DescribeSpec({
 
     beforeTest {
         every { issueCommentRepository.findById(20L) } returns Optional.of(IssueComment(id = 20L, issue = issue))
+        every { accessControl.isAllowed(any<User>(), project, any<IssueComment>(), Operation.READ) } answers { accessControl.isAllowed(firstArg<User>(), project, Operation.READ) }
+        every { accessControl.isAllowed(any<User>(), project, any<Issue>(), Operation.READ) } answers { accessControl.isAllowed(firstArg<User>(), project, Operation.READ) }
         every { accessControl.isAllowed(member, project, Operation.READ) } returns true
         every { accessControl.isAllowed(outsider, project, Operation.READ) } returns false
         every { accessControl.isAllowed(blank, project, Operation.READ) } returns true
@@ -61,6 +63,25 @@ class NotificationReceiverFilterSpec : DescribeSpec({
             val event = commentEvent(member, outsider)
             filter.filter(event)
             event.receivers.map { it.loginId } shouldBe listOf("member")
+        }
+
+        // v1.6 filterReceivers는 AccessControl.isAllowed(receiver, event.getResource(), READ) — 리소스 단위 판정이라 비공개 프로젝트의 이슈
+        // 공유자(sharer)·작성자·담당자는 프로젝트 READ 권한이 없어도 통과했다. 프로젝트 READ만 보면 공유 알림이 통째로 사라진다.
+        it("프로젝트는 못 읽어도 이슈 자체는 읽을 수 있는 수신자(공유 대상 등)는 유지한다") {
+            val sharer = User(id = 4L, loginId = "sharer", name = "공유대상")
+            every { accessControl.isAllowed(sharer, project, Operation.READ) } returns false
+            every { accessControl.isAllowed(sharer, project, issue, Operation.READ) } returns true
+            every { accessControl.isAllowed(sharer, project, any<IssueComment>(), Operation.READ) } returns true
+            val event = NotificationEvent(
+                title = "t", senderId = 99L, resourceType = ResourceType.ISSUE_POST, resourceId = "10",
+                eventType = EventType.ISSUE_SHARER_CHANGED, receivers = mutableSetOf(sharer, outsider)
+            )
+            every { issueRepository.findById(10L) } returns Optional.of(issue)
+            every { accessControl.isAllowed(outsider, project, issue, Operation.READ) } returns false
+
+            filter.filter(event)
+
+            event.receivers.map { it.loginId } shouldBe listOf("sharer")
         }
 
         it("loginId가 비어 있는 수신자를 제거한다") {
@@ -86,7 +107,7 @@ class NotificationReceiverFilterSpec : DescribeSpec({
             every { eventRepo.findFirstByResourceTypeAndResourceIdAndCreatedAfterOrderByIdDesc(any(), any(), any()) } returns null
             val receiverFilter = mockk<NotificationReceiverFilter>()
             every { receiverFilter.filter(any()) } answers { firstArg<NotificationEvent>().receivers.clear() }
-            val recorder = NotificationEventRecorder(eventRepo, mailRepo, SimpleMeterRegistry(), receiverFilter)
+            val recorder = NotificationEventRecorder(eventRepo, mailRepo, SimpleMeterRegistry(), receiverFilter, mockk(relaxed = true))
 
             val result = recorder.record(commentEvent(outsider))
 

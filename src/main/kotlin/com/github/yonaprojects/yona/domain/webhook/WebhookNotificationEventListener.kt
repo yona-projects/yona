@@ -66,7 +66,8 @@ class WebhookNotificationEventListener(
     private fun resolveResource(resourceType: ResourceType, resourceId: String): Pair<Project, Any>? {
         val id = resourceId.toLongOrNull() ?: return null
         return when (resourceType) {
-            ResourceType.ISSUE_POST ->
+            // v1.6 afterStateChanged/afterAssigneeChanged/afterMilestoneChanged는 이슈를 리소스로 웹훅을 보냈다.
+            ResourceType.ISSUE_POST, ResourceType.ISSUE_STATE, ResourceType.ISSUE_ASSIGNEE, ResourceType.ISSUE_MILESTONE ->
                 issueRepository.findById(id).orElse(null)?.let { it.project to it }
 
             ResourceType.BOARD_POST ->

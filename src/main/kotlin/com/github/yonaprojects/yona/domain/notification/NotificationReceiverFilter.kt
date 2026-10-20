@@ -13,6 +13,7 @@ import com.github.yonaprojects.yona.domain.pullrequest.ReviewCommentRepository
 import com.github.yonaprojects.yona.domain.enumeration.Operation
 import com.github.yonaprojects.yona.domain.enumeration.ResourceType
 import com.github.yonaprojects.yona.domain.project.Project
+import com.github.yonaprojects.yona.domain.user.User
 import org.springframework.stereotype.Component
 
 /**
@@ -35,33 +36,37 @@ class NotificationReceiverFilter(
     fun filter(event: NotificationEvent) {
         event.receivers.removeIf { it.loginId.isBlank() }
 
-        val project = projectOf(event) ?: return
-        event.receivers.removeIf { !accessControl.isAllowed(it, project, Operation.READ) }
+        val id = event.resourceId.toLongOrNull() ?: return
+        val readable = readableBy(event.resourceType, id) ?: return
+        event.receivers.removeIf { !readable(it) }
     }
 
-    // 이벤트가 가리키는 리소스가 속한 프로젝트. 프로젝트를 알 수 없는 리소스(조직·사용자 등)는 null.
-    private fun projectOf(event: NotificationEvent): Project? {
-        val id = event.resourceId.toLongOrNull() ?: return null
-        return when (event.resourceType) {
-            ResourceType.ISSUE_POST, ResourceType.ISSUE_STATE ->
-                issueRepository.findById(id).orElse(null)?.project
-            ResourceType.ISSUE_COMMENT ->
-                issueCommentRepository.findById(id).orElse(null)?.issue?.project
-            ResourceType.BOARD_POST ->
-                postingRepository.findById(id).orElse(null)?.project
-            ResourceType.NONISSUE_COMMENT ->
-                postingCommentRepository.findById(id).orElse(null)?.posting?.project
-            ResourceType.COMMIT_COMMENT ->
-                commitCommentRepository.findById(id).orElse(null)?.project
-            ResourceType.PULL_REQUEST ->
-                pullRequestRepository.findById(id).orElse(null)?.toProject
-            ResourceType.REVIEW_COMMENT ->
-                reviewCommentRepository.findById(id).orElse(null)?.thread?.let { it.pullRequest?.toProject ?: it.project }
-            ResourceType.COMMENT_THREAD ->
-                commentThreadRepository.findById(id).orElse(null)?.let { it.pullRequest?.toProject ?: it.project }
-            ResourceType.PROJECT ->
-                projectRepository.findById(id).orElse(null)
-            else -> null
-        }
+    // v1.6 filterReceivers는 AccessControl.isAllowed(receiver, event.getResource(), READ) — 이벤트 리소스 단위 판정이다.
+    // 리소스 단위 규칙(작성자·담당자·공유자 예외)이 프로젝트 READ에는 없어서, 프로젝트만 보면 비공개 프로젝트의 이슈를 공유받은
+    // 사용자나 접근권을 잃은 작성자·담당자의 알림이 사라진다. 리소스를 알 수 없는 이벤트는 건드리지 않는다.
+    private fun readableBy(type: ResourceType, id: Long): ((User) -> Boolean)? = when (type) {
+        ResourceType.ISSUE_POST, ResourceType.ISSUE_STATE, ResourceType.ISSUE_ASSIGNEE, ResourceType.ISSUE_MILESTONE ->
+            issueRepository.findById(id).orElse(null)?.let { r -> { u: User -> accessControl.isAllowed(u, r.project, r, Operation.READ) } }
+        ResourceType.ISSUE_COMMENT ->
+            issueCommentRepository.findById(id).orElse(null)?.let { r -> { u: User -> accessControl.isAllowed(u, r.issue.project, r, Operation.READ) } }
+        ResourceType.BOARD_POST ->
+            postingRepository.findById(id).orElse(null)?.let { r -> { u: User -> accessControl.isAllowed(u, r.project, r, Operation.READ) } }
+        ResourceType.NONISSUE_COMMENT ->
+            postingCommentRepository.findById(id).orElse(null)?.let { r -> { u: User -> accessControl.isAllowed(u, r.posting.project, r, Operation.READ) } }
+        ResourceType.COMMIT_COMMENT ->
+            commitCommentRepository.findById(id).orElse(null)?.let { r -> r.project?.let { p -> { u: User -> accessControl.isAllowed(u, p, r, Operation.READ) } } }
+        ResourceType.PULL_REQUEST ->
+            pullRequestRepository.findById(id).orElse(null)?.let { r -> { u: User -> accessControl.isAllowed(u, r.toProject, r, Operation.READ) } }
+        ResourceType.REVIEW_COMMENT ->
+            reviewCommentRepository.findById(id).orElse(null)?.let { r ->
+                r.thread?.let { th -> th.pullRequest?.toProject ?: th.project }?.let { p -> { u: User -> accessControl.isAllowed(u, p, r, Operation.READ) } }
+            }
+        ResourceType.COMMENT_THREAD ->
+            commentThreadRepository.findById(id).orElse(null)?.let { r ->
+                (r.pullRequest?.toProject ?: r.project)?.let { p -> { u: User -> accessControl.isAllowed(u, p, r, Operation.READ) } }
+            }
+        ResourceType.PROJECT ->
+            projectRepository.findById(id).orElse(null)?.let { p -> { u: User -> accessControl.isAllowed(u, p, Operation.READ) } }
+        else -> null
     }
 }

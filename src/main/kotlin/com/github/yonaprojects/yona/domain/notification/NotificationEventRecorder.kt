@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.domain.notification
 
+import com.github.yonaprojects.yona.domain.enumeration.EventType
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -7,6 +8,16 @@ import java.time.Duration
 import java.time.Instant
 
 private val DRAFT_WINDOW: Duration = Duration.ofSeconds(30)
+
+// v1.6 NotificationEvent가 webhookRequest(...)를 호출하던 이벤트(알림 저장·수신자 유무와 무관). 저장하지 않은 이벤트는 이 목록만 웹훅으로 넘긴다.
+// 라벨·공유자·게시글 본문 변경 같은 이벤트는 v1.6에서 웹훅 대상이 아니었고, RESOURCE_DELETED는 v1.6이 이슈에만 보냈으며 삭제된 리소스는
+// 리스너가 조회하지 못한다. PR 병합(PULL_REQUEST_STATE_CHANGED→MERGED)은 PullRequestServiceImpl이 동기로 직접 보낸다.
+private val WEBHOOK_EVENT_TYPES: Set<EventType> = setOf(
+    EventType.NEW_ISSUE, EventType.NEW_COMMENT, EventType.ISSUE_STATE_CHANGED, EventType.ISSUE_ASSIGNEE_CHANGED,
+    EventType.ISSUE_MILESTONE_CHANGED, EventType.ISSUE_BODY_CHANGED, EventType.ISSUE_MOVED, EventType.NEW_POSTING,
+    EventType.NEW_PULL_REQUEST, EventType.PULL_REQUEST_COMMIT_CHANGED, EventType.NEW_REVIEW_COMMENT,
+    EventType.PULL_REQUEST_REVIEW_STATE_CHANGED, EventType.COMMENT_UPDATED
+)
 
 /**
  * yona `models/NotificationEvent.java`의 `add()`/`addWithoutSkipEvent()` 대응.
@@ -32,10 +43,13 @@ class NotificationEventRecorder(
     // 여기 하나만 계측해도 시스템 전체 알림 활동량을 eventType/resourceType별로 볼 수 있다.
     private val meterRegistry: MeterRegistry,
     // v1.6 NotificationEvent.filterReceivers() 대응 — 읽을 수 없는 수신자 제거.
-    private val receiverFilter: NotificationReceiverFilter
+    private val receiverFilter: NotificationReceiverFilter,
+    // v1.6 webhookRequest(...)는 알림 저장/수신자 유무와 무관하게 호출됐다. 저장하지 않은 이벤트(수신자 없음·상쇄)는 여기서 직접
+    // publish해 WebhookNotificationEventListener가 받게 한다(저장된 이벤트는 호출자가 publish한다).
+    private val eventPublisher: org.springframework.context.ApplicationEventPublisher
 ) {
     @Transactional
-    fun record(event: NotificationEvent, skipWaypoint: Boolean = true): NotificationEvent? {
+    fun record(event: NotificationEvent, skipWaypoint: Boolean = true, publishWhenUnsaved: Boolean = true): NotificationEvent? {
         meterRegistry.counter(
             "yona.notification.events",
             "eventType", event.eventType.name,
@@ -52,11 +66,13 @@ class NotificationEventRecorder(
                 notificationMailRepository.findByNotificationEvent(lastEvent)?.let { notificationMailRepository.delete(it) }
                 notificationEventRepository.delete(lastEvent)
                 if (event.oldValue == event.newValue) {
+                    publishUnsaved(event, publishWhenUnsaved)
                     return null
                 }
             } else if (event.oldValue == lastEvent.newValue && event.newValue == lastEvent.oldValue) {
                 notificationMailRepository.findByNotificationEvent(lastEvent)?.let { notificationMailRepository.delete(it) }
                 notificationEventRepository.delete(lastEvent)
+                publishUnsaved(event, publishWhenUnsaved)
                 return null
             }
         }
@@ -65,11 +81,16 @@ class NotificationEventRecorder(
         receiverFilter.filter(event)
 
         if (event.receivers.isEmpty()) {
+            publishUnsaved(event, publishWhenUnsaved)
             return null
         }
 
         val saved = notificationEventRepository.save(event)
         notificationMailRepository.save(NotificationMail(notificationEvent = saved))
         return saved
+    }
+
+    private fun publishUnsaved(event: NotificationEvent, enabled: Boolean) {
+        if (enabled && event.eventType in WEBHOOK_EVENT_TYPES) eventPublisher.publishEvent(event)
     }
 }

@@ -212,6 +212,32 @@ class NotificationMailDigestSchedulerSpec : DescribeSpec({
             verify(exactly = 0) { mailService.sendNotificationMail(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
         }
 
+        // v1.6 filterInactiveUsers는 state != ACTIVE만 뺐지만, v1.6에서 사이트 관리자는 SiteAdmin 테이블, 게스트는 isGuest 불리언이라
+        // state가 ACTIVE였다. next는 둘을 state(SITE_ADMIN/GUEST)로 옮겼으므로 "ACTIVE만"이 아니라 LOCKED/DELETED만 빼야 같은 동작이다.
+        it("사이트 관리자(SITE_ADMIN)와 게스트(GUEST)는 수신자에 남기고 LOCKED/DELETED만 제외한다") {
+            val admin = receiver(4L, state = UserState.SITE_ADMIN)
+            val guest = receiver(5L, state = UserState.GUEST)
+            val locked = receiver(6L, state = UserState.LOCKED)
+            val deleted = receiver(7L, state = UserState.DELETED)
+            val event = issueEvent(setOf(admin, guest, locked, deleted))
+            val mail = NotificationMail(id = 101L, notificationEvent = event)
+            every { notificationMailRepository.findByNotificationEvent_CreatedBeforeOrderByNotificationEvent_CreatedAsc(any()) } returns listOf(mail)
+            every { notificationMailRepository.delete(mail) } returns Unit
+            every { notificationEventMerger.mergeEvents(listOf(event)) } returns listOf(MergedNotificationEvent(event))
+            every { issueRepository.existsById(1L) } returns true
+            every { messageResolver.getMessage(any<MergedNotificationEvent>(), any()) } returns "메시지"
+            every { messageResolver.getPlainMessage(any<MergedNotificationEvent>(), any()) } returns "평문 메시지"
+            every { issueRepository.findById(1L) } returns Optional.empty()
+            val bccSlot = slot<List<MailRecipient>>()
+            every {
+                mailService.sendNotificationMail(any(), capture(bccSlot), any(), any(), any(), any(), any(), any(), any(), any())
+            } returns Unit
+
+            scheduler(hideAddress = true).sendMail()
+
+            bccSlot.captured.map { it.email }.sorted() shouldBe listOf("u4@yona.io", "u5@yona.io")
+        }
+
         it("비활성(UserState.LOCKED 등) 사용자는 수신자에서 제외한다") {
             val activeUser = receiver(2L, state = UserState.ACTIVE)
             val lockedUser = receiver(3L, state = UserState.LOCKED)
