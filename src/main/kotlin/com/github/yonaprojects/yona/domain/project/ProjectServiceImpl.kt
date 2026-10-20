@@ -88,6 +88,9 @@ class ProjectServiceImpl(
 
     @Transactional
     override fun createProject(project: Project, creator: User): Project {
+        if (!ProjectNameValidator.isValidFormat(project.name)) {
+            throw IllegalArgumentException("Project name has invalid characters: ${project.name}")
+        }
         if (ProjectNameValidator.isRestricted(project.name)) {
             throw IllegalArgumentException("Project name is restricted: ${project.name}")
         }
@@ -132,8 +135,10 @@ class ProjectServiceImpl(
         // 개명 검사를 가장 먼저 수행해, 다른 필드가 바뀌기 전에 실패하면 아무 것도 반영되지
         // 않게 한다.
         if (param.name != null && param.name != project.name) {
-            // legacy도 서버 사이드에서는 예약어 검사만 했다(rxPrjName 형식 검사는 클라이언트
-            // 전용) - 클라이언트 검증이 뚫려도 막히도록 createProject()와 동일한 검증을 적용한다.
+            if (!ProjectNameValidator.isValidFormat(param.name)) {
+                throw IllegalArgumentException("Project name has invalid characters: ${param.name}")
+            }
+            // v1.6 Project.name은 @Pattern 형식 검사 + @Restricted 예약어 검사를 모두 서버에서 적용했다.
             if (ProjectNameValidator.isRestricted(param.name)) {
                 throw IllegalArgumentException("Project name is restricted: ${param.name}")
             }
@@ -254,6 +259,8 @@ class ProjectServiceImpl(
 
         // ApiToken의 선택 저장소 범위(api_token_project)에서 이 프로젝트를 뺀다.
         projectRepository.deleteApiTokenScopesByProjectId(projectId)
+        projectRepository.deleteCommitCommentsByProjectId(projectId)
+        projectRepository.deleteEnrolledUserLinksByProjectId(projectId)
 
         watchService.deleteAll(ResourceType.PROJECT, projectId.toString())
 

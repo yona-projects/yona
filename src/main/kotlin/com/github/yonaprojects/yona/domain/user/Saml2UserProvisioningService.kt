@@ -41,7 +41,7 @@ class Saml2UserProvisioningService(
         val loginId = email.substringBefore("@")
         val user = User(
             loginId = loginId,
-            name = displayName,
+            name = com.github.yonaprojects.yona.domain.support.HtmlUtil.defaultSanitize(displayName),
             email = email,
             state = UserState.ACTIVE,
             createdDate = Instant.now()
@@ -50,7 +50,7 @@ class Saml2UserProvisioningService(
     }
 
     private fun syncExistingUser(user: User, displayName: String): User {
-        user.name = displayName
+        user.name = com.github.yonaprojects.yona.domain.support.HtmlUtil.defaultSanitize(displayName)
         return userRepository.save(user)
     }
 }

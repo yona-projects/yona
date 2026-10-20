@@ -78,6 +78,14 @@ class CustomOAuth2UserService(
             // v1.6 YonaUserServicePlugin.save()/setStatusLoggedIn()은 이메일(User.findByEmail)로만 기존 계정을 찾았다.
             // 제공자가 알려준 loginId가 로컬 계정과 같다는 이유만으로 연결하면 같은 이름의 소셜 계정으로 로컬 계정을
             // 탈취할 수 있으므로 loginId 일치는 연결 근거로 쓰지 않는다.
+            // v1.6 UserApp.createLocalUserWithOAuth: 이메일을 알 수 없으면(null 또는 "null") 계정을 만들지 않고 로그인을 거부했다.
+            // 빈 이메일로 findByEmail 하면 이메일 없는 다른 소셜 계정들이 서로 같은 로컬 계정에 연결된다.
+            if (userInfo.email.isBlank() || userInfo.email.equals("null", ignoreCase = true)) {
+                throw OAuth2AuthenticationException(
+                    OAuth2Error("email_not_provided"),
+                    "소셜 계정에서 이메일 정보를 가져올 수 없습니다. 이메일을 공개하거나 다른 방법으로 가입해 주세요."
+                )
+            }
             val resolvedUser = userRepository.findByEmail(userInfo.email).orElse(null)
                 ?.also { ensureLoginAllowed(it) }
                 ?: run {
@@ -89,7 +97,7 @@ class CustomOAuth2UserService(
                     }
                     userRepository.save(
                         User(
-                            name = userInfo.name,
+                            name = com.github.yonaprojects.yona.domain.support.HtmlUtil.defaultSanitize(userInfo.name),
                             loginId = uniqueLoginId(userInfo.loginId),
                             email = userInfo.email,
                             state = UserState.ACTIVE,

@@ -192,7 +192,7 @@ class AutoLinkRenderer(
                 val locale = LocaleContextHolder.getLocale()
                 val stateStr = issue.state.state()
                 val stateLocalized = messageSource.getMessage("issue.state.$stateStr", null, stateStr, locale)
-                var linkText = "#$issueNumber.${issue.title}"
+                var linkText = "#$issueNumber.${StringEscapeUtils.escapeHtml4(issue.title)}"
                 if (prefix.isNotEmpty()) {
                     linkText = prefix + linkText
                 }
@@ -242,7 +242,7 @@ class AutoLinkRenderer(
 
         if (orgOpt.isPresent) {
             val org = orgOpt.get()
-            return Link("/org/${org.name}", "<span class='org-link'>@${org.name}</span>")
+            return Link("/org/${org.name}", "<span class='org-link'>@${StringEscapeUtils.escapeHtml4(org.name)}</span>")
         }
 
         if (userOpt.isPresent) {
@@ -259,7 +259,8 @@ class AutoLinkRenderer(
             // 메일 배치 스레드처럼 HTTP 요청 컨텍스트가 없어 LocaleContextHolder가 수신자의 언어를 알 수
             // 없는 경우) 그 값을 그대로 쓰고, 없을 때만(일반 요청 처리 스레드) 현재 요청의 로케일로 대체한다.
             val effectiveLang = if (lang.isNullOrBlank()) LocaleContextHolder.getLocale().language else lang
-            val userName = user.getPureNameOnly(effectiveLang)
+            // 이름은 외부(가입·소셜·LDAP)에서 온 값이라 HTML 요소로 해석되지 않도록 이스케이프한다(Jsoup node.after가 이 문자열을 HTML로 파싱한다).
+            val userName = StringEscapeUtils.escapeHtml4(user.getPureNameOnly(effectiveLang))
             val escapeContent = StringEscapeUtils.escapeHtml4("$avatarImage${user.name} ${user.loginId}")
 
             return Link(
@@ -275,7 +276,7 @@ class AutoLinkRenderer(
         val projectOpt = projectRepository.findByOwnerAndName(ownerName, projectName)
         if (projectOpt.isPresent) {
             val project = projectOpt.get()
-            return Link("/$ownerName/$projectName", "<span class='project-link'>@${project.owner}/${project.name}</span>")
+            return Link("/$ownerName/$projectName", "<span class='project-link'>@${StringEscapeUtils.escapeHtml4(project.owner)}/${StringEscapeUtils.escapeHtml4(project.name)}</span>")
         }
         return Link()
     }

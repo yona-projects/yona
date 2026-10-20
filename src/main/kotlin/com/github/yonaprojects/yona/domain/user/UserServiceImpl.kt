@@ -33,7 +33,8 @@ class UserServiceImpl(
     @Transactional
     override fun createUser(user: User): User {
         user.createdDate = Instant.now()
-        user.name = user.name.trim()
+        // legacy User.create(): user.name = defaultSanitize(user.name)
+        user.name = com.github.yonaprojects.yona.domain.support.HtmlUtil.defaultSanitize(user.name.trim())
         return userRepository.save(user)
     }
 

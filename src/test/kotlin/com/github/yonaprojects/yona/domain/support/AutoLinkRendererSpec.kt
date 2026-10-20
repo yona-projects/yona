@@ -133,6 +133,43 @@ class AutoLinkRendererSpec : DescribeSpec({
         }
     }
 
+    // v1.6의 방어는 "저장되는 이름이 이미 정화돼 있다"는 입력 시점뿐이었고, next는 그 입력 정화가 사라졌다. 출력 시점에서도
+    // 이름·이슈 제목을 이스케이프해야 멘션/이슈 참조 렌더링으로 저장형 XSS가 열리지 않는다.
+    describe("render() - 사용자 이름·이슈 제목 이스케이프") {
+        it("@멘션의 표시 이름에 든 HTML은 요소로 살아나지 않는다") {
+            val evil = User(id = 1L, loginId = "evil", name = "<img src=x onerror=alert1>")
+            every { userRepository.findByLoginId("evil") } returns Optional.of(evil)
+            every { organizationRepository.findByName("evil") } returns Optional.empty()
+
+            val result = autoLinkRenderer.render("<p>@evil</p>", null, "ko")
+
+            org.jsoup.Jsoup.parse(result).select("img[onerror]").size shouldBe 0
+            result shouldNotContain "<img src=x"
+        }
+
+        it("영어 로케일에서 englishName에 든 HTML도 요소로 살아나지 않는다") {
+            val evil = User(id = 2L, loginId = "evil2", name = "홍길동", englishName = "<svg onload=1>", lang = "en")
+            every { userRepository.findByLoginId("evil2") } returns Optional.of(evil)
+            every { organizationRepository.findByName("evil2") } returns Optional.empty()
+
+            val result = autoLinkRenderer.render("<p>@evil2</p>", null, "en")
+
+            org.jsoup.Jsoup.parse(result).select("svg").size shouldBe 0
+        }
+
+        it("#번호 참조의 이슈 제목에 든 HTML은 요소로 살아나지 않는다") {
+            val project = Project(id = 30L, owner = "owner", name = "proj30")
+            val issue = Issue(title = "<img src=x onerror=alert1>", project = project, number = 3L, state = State.OPEN)
+            every { issueRepository.findByProjectAndNumber(project, 3L) } returns issue
+            every { messageSource.getMessage(any(), null, any(), any()) } returns "열림"
+
+            val result = autoLinkRenderer.render("<p>#3</p>", project)
+
+            org.jsoup.Jsoup.parse(result).select("a.issueLink img").size shouldBe 0
+            result shouldNotContain "onerror=alert1>"
+        }
+    }
+
     describe("render() - 이슈 자동 링크화") {
         it("경로 없이 #123만 있고 currentProject가 있으면 이슈 링크로 변환된다") {
             val project = Project(id = 20L, owner = "owner", name = "proj20")

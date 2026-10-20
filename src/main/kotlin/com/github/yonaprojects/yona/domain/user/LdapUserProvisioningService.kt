@@ -26,7 +26,7 @@ class LdapUserProvisioningService(
     private fun createNewUser(ldapUser: LdapUser, rawPassword: String): User {
         val user = User(
             loginId = ldapUser.loginId,
-            name = ldapUser.fullDisplayName,
+            name = com.github.yonaprojects.yona.domain.support.HtmlUtil.defaultSanitize(ldapUser.fullDisplayName),
             email = ldapUser.email,
             password = passwordEncodingService.encode(rawPassword),
             passwordSalt = null,
@@ -44,7 +44,7 @@ class LdapUserProvisioningService(
             user.password = passwordEncodingService.encode(rawPassword)
             user.passwordSalt = null
         }
-        user.name = ldapUser.fullDisplayName
+        user.name = com.github.yonaprojects.yona.domain.support.HtmlUtil.defaultSanitize(ldapUser.fullDisplayName)
         if (!ldapUser.englishName.isNullOrBlank()) {
             user.englishName = ldapUser.englishName
         }

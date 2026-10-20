@@ -103,6 +103,61 @@ class TwoFactorLoginFlowIntegrationSpec @Autowired constructor(
             }
         }
 
+        // 2FA는 v1.6에 없던 기능이라 next가 새로 만든 보호막이다. 폼 로그인 성공 핸들러에서만 걸려 있어, HTTP Basic과 remember-me 쿠키로는
+        // 비밀번호만으로 TOTP 없이 완전 인증을 얻을 수 있었다.
+        describe("2FA 등록 계정은 비밀번호만으로 우회할 수 없다") {
+            fun newUser(prefix: String, withTotp: Boolean): User {
+                val salt = "salt-$prefix"
+                val user = userRepository.save(
+                    User(
+                        loginId = "$prefix-${System.nanoTime()}", name = prefix, email = "$prefix-${System.nanoTime()}@example.com",
+                        password = legacyHash("password1234", salt), passwordSalt = salt
+                    )
+                )
+                if (withTotp) {
+                    totpCredentialRepository.save(
+                        TwoFactorTotpCredential(
+                            user = user, label = user.loginId,
+                            encryptedSecret = totpSecretEncryptor.encrypt("JBSWY3DPEHPK3PXP"),
+                            enabled = true, activatedAt = Instant.now()
+                        )
+                    )
+                }
+                return user
+            }
+            fun basic(user: User) = "Basic " + Base64.getEncoder().encodeToString("${user.loginId}:password1234".toByteArray())
+
+            it("HTTP Basic: 2FA 등록 계정은 비밀번호만으로 웹 화면에 접근할 수 없다(401)") {
+                val user = newUser("basic2fa", withTotp = true)
+                mockMvc.perform(get("/").header("Authorization", basic(user))).andExpect(status().isUnauthorized)
+            }
+
+            it("HTTP Basic: 2FA 미등록 계정은 기존처럼 동작한다") {
+                val user = newUser("basicplain", withTotp = false)
+                mockMvc.perform(get("/").header("Authorization", basic(user))).andExpect(status().isOk)
+            }
+
+            it("remember-me: 2FA 등록 계정에는 비밀번호 단계에서 remember-me 쿠키를 발급하지 않는다") {
+                val user = newUser("rm2fa", withTotp = true)
+                mockMvc.perform(
+                    post("/users/login").param("loginIdOrEmail", user.loginId).param("password", "password1234")
+                        .param("rememberMe", "on").session(MockHttpSession()).with(csrf())
+                )
+                    .andExpect(status().is3xxRedirection)
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie().doesNotExist("remember-me"))
+            }
+
+            it("remember-me: 2FA 미등록 계정은 기존처럼 쿠키가 발급된다") {
+                val user = newUser("rmplain", withTotp = false)
+                mockMvc.perform(
+                    post("/users/login").param("loginIdOrEmail", user.loginId).param("password", "password1234")
+                        .param("rememberMe", "on").session(MockHttpSession()).with(csrf())
+                )
+                    .andExpect(status().is3xxRedirection)
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie().exists("remember-me"))
+            }
+        }
+
         describe("TOTP가 등록된 계정 로그인") {
             it("비밀번호 인증 직후 완전한 로그인 대신 2FA 검증 화면으로 리다이렉트되고, 다른 페이지 접근이 차단되며, 올바른 TOTP 코드로만 완전히 로그인된다") {
                 val salt = "salt-totp"

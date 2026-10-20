@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.domain.project
 
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.engine.spec.tempdir
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import java.io.File
 
@@ -22,6 +23,20 @@ class GitServiceSpec : DescribeSpec({
             
             File(repoFile, "HEAD").exists() shouldBe true
             File(repoFile, "refs").exists() shouldBe true
+        }
+
+        // 형식 검증을 우회한 이름이 들어와도 저장소 경로가 저장소 루트(baseDir) 밖을 가리키면 안 된다(방어 심층화).
+        it("저장소 루트 밖을 가리키는 owner/name으로는 경로를 만들지 않고 기존 저장소를 건드리지 않는다") {
+            val tempGitBase = tempdir()
+            val gitService = GitServiceImpl(tempGitBase.absolutePath)
+            gitService.createRepository("victim", "secret")
+            File(tempGitBase, "attacker").mkdirs()
+
+            shouldThrow<IllegalArgumentException> { gitService.getRepositoryPath("attacker", "../victim/secret") }
+            shouldThrow<IllegalArgumentException> { gitService.cloneRepository("file:///nonexistent", "attacker", "../victim/secret", null, null) }
+            shouldThrow<IllegalArgumentException> { gitService.deleteRepository("attacker", "../victim/secret") }
+
+            File(tempGitBase, "victim/secret.git/HEAD").exists() shouldBe true
         }
 
         it("저장소 삭제를 요청하면 디렉터리가 물리적으로 지워져야 한다") {

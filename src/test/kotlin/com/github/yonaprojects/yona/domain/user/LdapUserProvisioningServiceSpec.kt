@@ -18,6 +18,24 @@ class LdapUserProvisioningServiceSpec : DescribeSpec({
         clearMocks(userRepository)
     }
 
+    // LDAP 표시 이름은 외부 디렉터리 값이라 신뢰할 수 없다. v1.6은 사용자 생성 시 defaultSanitize를 적용했다.
+    describe("LdapUserProvisioningService.reconcile - 표시 이름 정화") {
+        it("신규 유저의 표시 이름에 든 HTML은 저장 전에 제거된다") {
+            val ldapUser = LdapUser(
+                displayName = "<img src=x onerror=alert1>홍길동", email = "x@example.com", loginId = "xuser",
+                department = "개발팀", isGuestUser = false
+            )
+            every { userRepository.findByEmail("x@example.com") } returns Optional.empty()
+            every { userRepository.save(any()) } answers { firstArg() }
+
+            val result = service.reconcile(ldapUser, "pw-Strong123!")
+
+            result.name shouldNotBe null
+            (result.name.contains("<img")) shouldBe false
+            result.name.contains("홍길동") shouldBe true
+        }
+    }
+
     describe("LdapUserProvisioningService.reconcile") {
         it("이메일로 로컬 유저를 찾지 못하면 LDAP 정보로 신규 유저를 생성하고 비밀번호는 Argon2로 저장해야 한다") {
             val ldapUser = LdapUser(

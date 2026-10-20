@@ -189,6 +189,22 @@ class ProjectApiControllerSpec : DescribeSpec({
             verify(exactly = 0) { projectRepository.save(any()) }
         }
 
+        // v1.6 Project.java:55-58 @Pattern("^[a-zA-Z0-9-_\\.가-힣]+$") — 저장소 경로로 조립되는 이름에서 `/`나 `..`가 든 값을 서버가 거부한다.
+        it("프로젝트명에 경로 구분자가 있으면 400을 반환하고 저장하지 않는다") {
+            every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)
+
+            mockMvc.perform(
+                post("/api/projects/admin")
+                    .principal(siteManagerAuth)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"projectName": "../evil"}""")
+            )
+                .andExpect(status().isBadRequest)
+                .andExpect(jsonPath("$.message").value("Project name has invalid characters: ../evil"))
+
+            verify(exactly = 0) { projectRepository.save(any()) }
+        }
+
         it("이미 같은 owner/projectName 프로젝트가 있으면 HTTP 400에 status:409 바디를 담아 반환해야 한다(legacy 원문 그대로)") {
             val existed = Project(id = 50L, owner = "someowner", name = "newproj", overview = "기존", vcs = "GIT")
             every { userRepository.findByLoginId("admin") } returns Optional.of(siteManager)

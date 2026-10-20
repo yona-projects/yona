@@ -182,6 +182,13 @@ class ImportViewController(
             }
         }
 
+        // 이름은 저장소 경로($owner/$name.git)로 조립되고 cloneRepository는 이미 있는 경로를 지우고 덮어쓴다. 형식 검사는 그 전에 해야 한다.
+        if (!com.github.yonaprojects.yona.domain.project.ProjectNameValidator.isValidFormat(name) ||
+            com.github.yonaprojects.yona.domain.project.ProjectNameValidator.isRestricted(name)
+        ) {
+            bindingResult.rejectValue("name", "project.name.invalid")
+        }
+
         if (projectRepository.findByOwnerAndName(owner, name).isPresent) {
             bindingResult.rejectValue("name", "project.name.duplicate")
         }

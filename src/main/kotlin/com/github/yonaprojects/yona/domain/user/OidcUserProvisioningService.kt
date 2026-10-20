@@ -45,9 +45,11 @@ class OidcUserProvisioningService(
     }
 
     private fun resolveName(email: String, oidcUser: OidcUser): String {
-        return oidcUser.fullName
-            ?: oidcUser.preferredUsername
-            ?: email.substringBefore("@")
+        return com.github.yonaprojects.yona.domain.support.HtmlUtil.defaultSanitize(
+            oidcUser.fullName
+                ?: oidcUser.preferredUsername
+                ?: email.substringBefore("@")
+        )
     }
 
     private fun createNewUser(email: String, oidcUser: OidcUser): User {

@@ -137,6 +137,26 @@ class ImportViewControllerSpec : DescribeSpec({
                 verify(exactly = 1) { projectService.createProject(any(), loginUser) }
             }
 
+            // cloneRepository는 getRepositoryPath가 가리키는 곳이 이미 있으면 deleteRecursively()한 뒤 덮어쓴다. name에 `../`가 들어가면
+            // 다른 사용자의 저장소를 지우고 교체할 수 있으므로 형식이 잘못된 이름은 clone 전에 거부해야 한다.
+            it("프로젝트 이름에 경로 구분자가 있으면 name 오류로 400을 반환하고 복제하지 않는다") {
+                every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+                every { organizationUserRepository.findByUserIdAndRoleId(1L, RoleType.ORG_ADMIN.roleType) } returns emptyList()
+                every { organizationRepository.findByName("testuser") } returns Optional.empty()
+                every { projectRepository.findByOwnerAndName("testuser", "../victim/secret") } returns Optional.empty()
+
+                mockMvc.perform(
+                    post("/new/import").principal(userAuth)
+                        .param("url", "https://github.com/naver/yona.git")
+                        .param("owner", "testuser")
+                        .param("name", "../victim/secret")
+                )
+                    .andExpect(status().isBadRequest)
+                    .andExpect(model().attributeHasFieldErrors("importForm", "name"))
+
+                verify(exactly = 0) { gitService.cloneRepository(any(), any(), any(), any(), any()) }
+            }
+
             it("잘못된 Git 리포지토리 URL인 경우 wrong.url 에러와 함께 400 Bad Request를 반환해야 한다") {
                 every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
                 every { organizationUserRepository.findByUserIdAndRoleId(1L, RoleType.ORG_ADMIN.roleType) } returns emptyList()

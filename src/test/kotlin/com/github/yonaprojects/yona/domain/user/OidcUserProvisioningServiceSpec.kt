@@ -32,6 +32,23 @@ class OidcUserProvisioningServiceSpec : DescribeSpec({
         return DefaultOidcUser(emptyList(), idToken)
     }
 
+    describe("OidcUserProvisioningService.reconcile - 표시 이름 정화") {
+        it("신규·기존 유저 모두 name 클레임에 든 HTML이 저장 전에 제거된다") {
+            val user = oidcUser(mapOf("sub" to "abc123", "email" to "evil@example.com", "name" to "<script>x</script>홍길동"))
+            every { userRepository.findByEmail("evil@example.com") } returns Optional.empty()
+            every { userRepository.save(any()) } answers { firstArg() }
+            val created = service.reconcile(user)
+            created.name.contains("<script") shouldBe false
+            created.name.contains("홍길동") shouldBe true
+
+            val existing = User(id = 7L, loginId = "evil", name = "옛이름", email = "evil@example.com", state = UserState.ACTIVE)
+            every { userRepository.findByEmail("evil@example.com") } returns Optional.of(existing)
+            // 기존 계정에 연결하려면 email_verified가 true여야 한다(별도 계정 탈취 방지 규칙).
+            val verified = oidcUser(mapOf("sub" to "abc123", "email" to "evil@example.com", "email_verified" to true, "name" to "<script>x</script>홍길동"))
+            service.reconcile(verified).name.contains("<script") shouldBe false
+        }
+    }
+
     describe("OidcUserProvisioningService.reconcile") {
         it("이메일로 로컬 유저를 찾지 못하면 OIDC 클레임으로 신규 유저를 생성해야 한다") {
             val user = oidcUser(mapOf("sub" to "abc123", "email" to "gildong@example.com", "name" to "홍길동"))

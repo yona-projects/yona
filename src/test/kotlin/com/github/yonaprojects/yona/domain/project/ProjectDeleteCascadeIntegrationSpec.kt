@@ -34,7 +34,9 @@ class ProjectDeleteCascadeIntegrationSpec @Autowired constructor(
     private val deployKeyRepository: DeployKeyRepository,
     private val apiTokenRepository: ApiTokenRepository,
     private val favoriteService: FavoriteService,
-    private val titleHeadRepository: TitleHeadRepository
+    private val titleHeadRepository: TitleHeadRepository,
+    private val commitCommentRepository: com.github.yonaprojects.yona.domain.pullrequest.CommitCommentRepository,
+    private val jdbcTemplate: org.springframework.jdbc.core.JdbcTemplate
 ) : AbstractIntegrationTest() {
 
     private val ownerName = "del-casc-owner"
@@ -51,6 +53,7 @@ class ProjectDeleteCascadeIntegrationSpec @Autowired constructor(
         describe("ProjectServiceImpl.deleteProject — 프로젝트를 FK로 참조하는 행 정리") {
             afterEach {
                 apiTokenRepository.deleteAll()
+                userRepository.findByLoginId("casc-applicant").ifPresent { userRepository.delete(it) }
                 userRepository.findByLoginId(ownerName).ifPresent { userRepository.delete(it) }
             }
 
@@ -101,6 +104,35 @@ class ProjectDeleteCascadeIntegrationSpec @Autowired constructor(
                 apiTokenRepository.save(ApiToken(owner = owner, name = "t", tokenHash = "hash-casc", scopedProjects = mutableSetOf(project), expiresAt = Instant.now().plusSeconds(3600)))
                 projectService.deleteProject(project.id!!)
                 projectRepository.findById(project.id!!).isPresent shouldBe false
+            }
+
+            // v1.6 Project.java:112 `@OneToMany(cascade = REMOVE) codeComments` — 프로젝트를 지우면 커밋(코드) 댓글도 함께 지웠다.
+            it("커밋 댓글이 있는 프로젝트를 삭제할 수 있고 댓글도 함께 지워진다") {
+                val (owner, project) = newProject("casc-commitcomment")
+                val saved = commitCommentRepository.save(
+                    com.github.yonaprojects.yona.domain.pullrequest.CommitComment(
+                        project = project, commitId = "abc123", contents = "c",
+                        author = com.github.yonaprojects.yona.domain.user.UserIdent(owner)
+                    )
+                )
+                projectService.deleteProject(project.id!!)
+                projectRepository.findById(project.id!!).isPresent shouldBe false
+                commitCommentRepository.findById(saved.id!!).isPresent shouldBe false
+            }
+
+            // v1.6 User.enrolledProjects(조인테이블 user_enrolled_project, cascade ALL)는 Ebean이 삭제 때 교차 행을 같이 지웠다.
+            // next는 User 쪽이 소유하는 조인테이블이라 프로젝트 삭제로는 지워지지 않아 FK 위반이 난다.
+            it("가입 신청 대기 사용자가 있는 프로젝트를 삭제할 수 있다") {
+                val (_, project) = newProject("casc-enroll")
+                val applicant = userRepository.save(User(loginId = "casc-applicant", name = "신청자", email = "casc-applicant@example.com"))
+                applicant.enroll(project)
+                userRepository.save(applicant)
+
+                projectService.deleteProject(project.id!!)
+
+                projectRepository.findById(project.id!!).isPresent shouldBe false
+                // 트랜잭션 밖이라 지연 컬렉션(enrolledProjects)을 읽을 수 없으므로 조인 테이블 행을 직접 센다.
+                jdbcTemplate.queryForObject("select count(*) from user_enrolled_project where project_id = ?", Long::class.java, project.id) shouldBe 0L
             }
         }
     }

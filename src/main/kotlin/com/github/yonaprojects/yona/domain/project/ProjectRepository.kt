@@ -15,6 +15,18 @@ interface ProjectRepository : JpaRepository<Project, Long> {
     @Query(value = "delete from api_token_project where project_id = :projectId", nativeQuery = true)
     fun deleteApiTokenScopesByProjectId(@Param("projectId") projectId: Long)
 
+    // v1.6 Project.codeComments(@OneToMany cascade = REMOVE)는 프로젝트 삭제 때 커밋(코드) 댓글을 함께 지웠다.
+    // Project 쪽에 CommitComment 관계가 없어 commit_comment.project_id FK가 남으면 삭제가 제약 위반으로 실패한다.
+    @Modifying
+    @Query(value = "delete from commit_comment where project_id = :projectId", nativeQuery = true)
+    fun deleteCommitCommentsByProjectId(@Param("projectId") projectId: Long)
+
+    // User.enrolledProjects(조인테이블 user_enrolled_project)는 User 쪽이 소유해 Project 삭제로는 정리되지 않는다.
+    // v1.6은 Ebean이 삭제 때 교차 행(대기 중인 가입 신청)을 같이 지웠다.
+    @Modifying
+    @Query(value = "delete from user_enrolled_project where project_id = :projectId", nativeQuery = true)
+    fun deleteEnrolledUserLinksByProjectId(@Param("projectId") projectId: Long)
+
     fun findByOwnerAndName(owner: String, name: String): Optional<Project>
     fun existsByOwnerAndName(owner: String, name: String): Boolean
     fun findByOwner(owner: String): List<Project>

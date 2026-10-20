@@ -1135,7 +1135,7 @@ class UserViewController(
             return "redirect:/user/editform"
         }
 
-        loginUser.name = name.trim()
+        loginUser.name = com.github.yonaprojects.yona.domain.support.HtmlUtil.defaultSanitize(name.trim())
         loginUser.email = address
 
         if (avatarId != null) {

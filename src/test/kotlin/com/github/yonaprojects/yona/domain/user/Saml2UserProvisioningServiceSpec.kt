@@ -21,6 +21,25 @@ class Saml2UserProvisioningServiceSpec : DescribeSpec({
         clearMocks(userRepository)
     }
 
+    // IdP가 준 표시 이름도 신뢰할 수 없는 외부 값이다. v1.6은 사용자 생성 시 defaultSanitize를 적용했다.
+    describe("Saml2UserProvisioningService.reconcile - 표시 이름 정화") {
+        it("신규·기존 유저 모두 표시 이름에 든 HTML이 저장 전에 제거된다") {
+            val principal = DefaultSaml2AuthenticatedPrincipal(
+                "evil@example.com",
+                mapOf("email" to listOf("evil@example.com"), "displayName" to listOf("<img src=x onerror=alert1>홍길동"))
+            )
+            every { userRepository.findByEmail("evil@example.com") } returns Optional.empty()
+            every { userRepository.save(any()) } answers { firstArg() }
+            val created = service.reconcile(principal, "email", "displayName")
+            created.name.contains("<img") shouldBe false
+            created.name.contains("홍길동") shouldBe true
+
+            val existing = User(id = 3L, loginId = "evil", name = "옛이름", email = "evil@example.com", state = UserState.ACTIVE)
+            every { userRepository.findByEmail("evil@example.com") } returns Optional.of(existing)
+            service.reconcile(principal, "email", "displayName").name.contains("<img") shouldBe false
+        }
+    }
+
     describe("Saml2UserProvisioningService.reconcile") {
         it("이메일 속성으로 로컬 유저를 찾지 못하면 SAML 어서션 속성으로 신규 유저를 생성해야 한다") {
             val principal = DefaultSaml2AuthenticatedPrincipal(

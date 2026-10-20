@@ -5,6 +5,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.mockk.Runs
 import io.mockk.clearMocks
 import io.mockk.every
@@ -76,6 +78,20 @@ class UserServiceImplSpec : DescribeSpec({
                 created.name shouldBe "새사람"
                 created.createdDate shouldBe newUser.createdDate
                 verify(exactly = 1) { userRepository.save(newUser) }
+            }
+        }
+
+        // v1.6 User.create(): user.name = defaultSanitize(user.name) — 표시 이름은 멘션 렌더링 등에서 HTML로 다시 그려진다.
+        describe("createUser - 표시 이름 정화") {
+            it("script·img 같은 HTML은 저장 전에 제거된다") {
+                val evil = User(loginId = "evil", name = "<script>x</script><img src=x onerror=alert1>홍길동", email = "evil@example.com")
+                every { userRepository.save(any()) } answers { firstArg() }
+
+                val created = userService.createUser(evil)
+
+                created.name shouldNotContain "<script"
+                created.name shouldNotContain "<img"
+                created.name shouldContain "홍길동"
             }
         }
 

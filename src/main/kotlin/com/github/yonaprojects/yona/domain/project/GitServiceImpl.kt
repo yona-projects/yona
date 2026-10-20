@@ -27,8 +27,14 @@ class GitServiceImpl(
     }
 
     override fun getRepositoryPath(owner: String, name: String): File {
+        // 방어 심층화: 형식 검증을 우회한 값이 들어와도 저장소 경로가 $baseDir/$owner/$name.git 한 칸 구조를 벗어나지 못하게 한다.
+        // cloneRepository는 이 경로가 이미 있으면 deleteRecursively() 하므로 `..`이 섞이면 다른 사용자의 저장소를 지울 수 있다.
+        require(isSafeSegment(owner) && isSafeSegment(name)) { "Invalid repository path segment: $owner/$name" }
         return File(baseDir, "$owner/$name.git")
     }
+
+    private fun isSafeSegment(segment: String): Boolean =
+        segment.isNotEmpty() && segment != "." && segment != ".." && segment.none { it == '/' || it == '\\' || it == '\u0000' }
 
     override fun deleteRepository(owner: String, name: String): Boolean {
         val repoDir = getRepositoryPath(owner, name)

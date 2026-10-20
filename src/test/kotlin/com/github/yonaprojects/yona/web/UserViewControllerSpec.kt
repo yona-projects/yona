@@ -1397,6 +1397,26 @@ class UserViewControllerSpec : DescribeSpec({
     }
 
     // editUserInfo()의 미인증/name blank/email 중복/avatar(없음, 첨부파일 없음, 비이미지, 이미지) 분기.
+    // v1.6 UserApp.editUserInfo: user.name = defaultSanitize(user.name) — 프로필 이름 수정에도 같은 정화가 걸렸다.
+    describe("POST /user/edit - 표시 이름 정화") {
+        it("이름에 든 HTML은 저장 전에 제거된다") {
+            val user = User(id = 10L, loginId = "testuser", name = "original", email = "original@example.com")
+            val auth = UsernamePasswordAuthenticationToken("testuser", "password")
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(user)
+            every { userRepository.findByEmail(any()) } returns Optional.empty()
+            every { userRepository.save(any()) } answers { firstArg() }
+
+            mockMvc.perform(
+                post("/user/edit").param("name", "<script>x</script><img src=x onerror=alert1>홍길동")
+                    .param("email", "original@example.com").principal(auth)
+            ).andExpect(status().is3xxRedirection)
+
+            user.name.contains("<script") shouldBe false
+            user.name.contains("<img") shouldBe false
+            user.name.contains("홍길동") shouldBe true
+        }
+    }
+
     describe("POST /user/edit (editUserInfo)") {
         it("빈 값과 잘못된 이메일은 편집 화면으로 돌려보내고 기존 프로필과 아바타를 보존해야 한다") {
             val user = User(id = 10L, loginId = "testuser", name = "original", email = "original@example.com")

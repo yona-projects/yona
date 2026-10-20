@@ -94,7 +94,8 @@ class ProjectForkResponseIntegrationSpec @Autowired constructor(
                 )
             )
             val owner = userRepository.findByLoginId(ownerName).orElseThrow()
-            val project = projectRepository.save(Project(owner = ownerName, name = projName, vcs = "GIT"))
+            // v1.6 @IsCreatable(FORK): 비공개 프로젝트는 멤버만 포크할 수 있다. 이 스펙은 응답 직렬화를 보는 것이므로 비멤버도 포크 가능한 공개 프로젝트를 쓴다.
+            val project = projectRepository.save(Project(owner = ownerName, name = projName, vcs = "GIT", projectScope = com.github.yonaprojects.yona.domain.project.ProjectScope.PUBLIC))
 
             // 양방향 순환(User.projectUsers <-> ProjectUser.user <-> Project.projectUsers)이 실제로
             // 발생하려면 원본 프로젝트에도 최소 1명의 멤버가 있어야 한다.

@@ -97,6 +97,77 @@ class CustomOAuth2UserServiceSpec : DescribeSpec({
             }
         }
 
+        // 소셜 제공자가 준 이름은 신뢰할 수 없는 외부 값이다. v1.6은 사용자 생성 시 defaultSanitize를 적용했다.
+        it("신규 가입 사용자의 이름에 든 HTML은 저장 전에 제거된다") {
+            val clientRegistration = ClientRegistration.withRegistrationId("google")
+                .clientId("client-id").tokenUri("https://token.uri").authorizationUri("https://auth.uri")
+                .userInfoUri("https://user.info.uri").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("https://redirect.uri").build()
+            val userRequest = mockk<OAuth2UserRequest>()
+            every { userRequest.clientRegistration } returns clientRegistration
+            every { delegate.loadUser(userRequest) } returns DefaultOAuth2User(
+                listOf(SimpleGrantedAuthority("ROLE_USER")),
+                mapOf("sub" to "evil-sub", "name" to "<img src=x onerror=alert1>홍길동", "email" to "evil@example.com"), "sub"
+            )
+            every { linkedAccountRepository.findByProviderKeyAndProviderUserId("google", "evil-sub") } returns Optional.empty()
+            every { userRepository.findByEmail("evil@example.com") } returns Optional.empty()
+            every { userRepository.findByLoginId("evil") } returns Optional.empty()
+            every { userRepository.save(any()) } answers { firstArg<User>().also { it.id = 101L } }
+            every { linkedAccountRepository.save(any()) } answers { firstArg() }
+
+            val oauth2User = customOAuth2UserService.loadUser(userRequest) as YonaOAuth2User
+
+            oauth2User.user.name.contains("<img") shouldBe false
+            oauth2User.user.name.contains("홍길동") shouldBe true
+        }
+
+        // v1.6 UserApp.createLocalUserWithOAuth: email == null 또는 "null"이면 경고 후 크레덴셜을 지우고 로그아웃, 계정을 만들지 않았다.
+        // next는 빈 이메일("")로 User를 만들고 두 번째 비공개 이메일 계정이 findByEmail("")로 첫 번째 계정에 연결됐다.
+        describe("이메일을 알 수 없는 소셜 계정") {
+            fun githubRequest(): OAuth2UserRequest {
+                val reg = ClientRegistration.withRegistrationId("github")
+                    .clientId("client-id").tokenUri("https://token.uri").authorizationUri("https://auth.uri")
+                    .userInfoUri("https://user.info.uri").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                    .redirectUri("https://redirect.uri").build()
+                return mockk<OAuth2UserRequest>().also { every { it.clientRegistration } returns reg }
+            }
+            fun githubUser(id: Int, email: Any?) = DefaultOAuth2User(
+                listOf(SimpleGrantedAuthority("ROLE_USER")),
+                buildMap { put("id", id); put("login", "gh$id"); put("name", "GH$id"); if (email != null) put("email", email) }, "id"
+            )
+
+            for ((label, email) in listOf("이메일 속성 없음" to null, "빈 문자열" to "", "문자열 null" to "null", "공백" to "  ")) {
+                it("$label: 신규 가입도 기존 계정 연결도 하지 않고 로그인을 거부한다") {
+                    val req = githubRequest()
+                    every { delegate.loadUser(req) } returns githubUser(7, email)
+                    every { linkedAccountRepository.findByProviderKeyAndProviderUserId("github", "7") } returns Optional.empty()
+                    every { userRepository.findByEmail(any()) } returns Optional.of(User(id = 1L, loginId = "first", name = "첫째", email = ""))
+                    every { userRepository.findByLoginId(any()) } returns Optional.empty()
+                    every { userRepository.save(any()) } answers { firstArg() }
+                    every { linkedAccountRepository.save(any()) } answers { firstArg() }
+
+                    shouldThrow<org.springframework.security.oauth2.core.OAuth2AuthenticationException> {
+                        customOAuth2UserService.loadUser(req)
+                    }
+
+                    verify(exactly = 0) { userRepository.save(any()) }
+                    verify(exactly = 0) { linkedAccountRepository.save(any()) }
+                }
+            }
+
+            it("이미 연결된 계정의 재로그인은 이메일이 없어도 허용한다") {
+                val req = githubRequest()
+                val linked = User(id = 5L, loginId = "gh9", name = "GH9", email = "gh9@example.com", state = UserState.ACTIVE)
+                every { delegate.loadUser(req) } returns githubUser(9, null)
+                every { linkedAccountRepository.findByProviderKeyAndProviderUserId("github", "9") } returns
+                    Optional.of(LinkedAccount(user = linked, providerKey = "github", providerUserId = "9"))
+
+                val result = customOAuth2UserService.loadUser(req) as YonaOAuth2User
+
+                result.user.id shouldBe 5L
+            }
+        }
+
         it("이미 연결된 provider 계정으로 재로그인하면 신규 가입 없이 연결된 사용자로 로그인해야 한다") {
             val clientRegistration = ClientRegistration.withRegistrationId("google")
                 .clientId("client-id").tokenUri("https://token.uri").authorizationUri("https://auth.uri")

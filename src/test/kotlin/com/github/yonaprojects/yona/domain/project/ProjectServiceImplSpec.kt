@@ -1314,6 +1314,8 @@ class ProjectServiceImplSpec : DescribeSpec({
                 answers = false
             )
             every { projectRepository.deleteApiTokenScopesByProjectId(any()) } returns Unit
+            every { projectRepository.deleteCommitCommentsByProjectId(any()) } returns Unit
+            every { projectRepository.deleteEnrolledUserLinksByProjectId(any()) } returns Unit
         }
 
         it("연관 데이터를 모두 정리한 뒤 프로젝트 자체를 삭제해야 한다") {
@@ -1395,6 +1397,9 @@ class ProjectServiceImplSpec : DescribeSpec({
             verify(exactly = 1) { webhookRepository.delete(webhook) }
             verify(exactly = 1) { postingService.deletePostingCascade(posting) }
             verify(exactly = 1) { projectUserRepository.deleteAll(listOf(projectUser)) }
+            // v1.6 Project.codeComments cascade + User.enrolledProjects 교차 행 정리.
+            verify(exactly = 1) { projectRepository.deleteCommitCommentsByProjectId(1L) }
+            verify(exactly = 1) { projectRepository.deleteEnrolledUserLinksByProjectId(1L) }
             verify(exactly = 1) { projectRepository.delete(project) }
             // yona models/resource/ResourcePersistAdapter.java postDelete() 대응 (P1-147).
             verify(exactly = 1) { watchService.deleteAll(ResourceType.PULL_REQUEST, "77") }
@@ -1463,6 +1468,38 @@ class ProjectServiceImplSpec : DescribeSpec({
     }
 
     // yona Project.create() 대응 — 이름 중복 검사, 생성일/사이트URL 세팅, MANAGER 멤버 자동 등록.
+    describe("ProjectServiceImpl - 프로젝트 이름 형식 검증 (경로 이탈 방지)") {
+        val badNames = listOf("../evil", "a/b", "a\\b", "x y", "..%2Fx")
+
+        for (bad in badNames) {
+            it("createProject: '$bad'는 거부하고 저장소를 만들지 않는다") {
+                // 앞선 테스트의 호출 기록이 남아 있으면 verify(exactly = 0)이 오탐한다.
+                clearMocks(projectRepository, repositoryService, answers = false)
+                val creator = User(id = 910L, loginId = "alice", name = "앨리스")
+                shouldThrow<IllegalArgumentException> {
+                    projectService.createProject(Project(name = bad, owner = "alice"), creator)
+                }
+                verify(exactly = 0) { projectRepository.save(any()) }
+                verify(exactly = 0) { repositoryService.getRepository(any()) }
+            }
+        }
+
+        it("updateProject(개명): 형식이 잘못된 새 이름은 거부하고 아무것도 바꾸지 않는다") {
+            val project = Project(id = 77L, name = "old-name", owner = "owner1", vcs = "GIT")
+            every { projectRepository.findById(77L) } returns Optional.of(project)
+            val param = UpdateProjectParam(
+                name = "../evil", overview = "설명", projectScope = ProjectScope.PRIVATE,
+                isCodeAccessibleMemberOnly = false, isUsingReviewerCount = false, defaultReviewerCount = 1, defaultBranch = null,
+                isCodeEnabled = true, isIssueEnabled = true, isPullRequestEnabled = true, isReviewEnabled = true,
+                isMilestoneEnabled = true, isBoardEnabled = true, isWikiEnabled = true
+            )
+
+            shouldThrow<IllegalArgumentException> { projectService.updateProject(77L, param) }
+
+            project.name shouldBe "old-name"
+        }
+    }
+
     describe("ProjectServiceImpl.createProject") {
         it("이미 동일한 owner/name의 프로젝트가 있으면 예외가 발생해야 한다") {
             val creator = User(id = 900L, loginId = "creator", name = "생성자")

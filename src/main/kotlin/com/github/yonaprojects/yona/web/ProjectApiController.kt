@@ -95,6 +95,11 @@ class ProjectApiController(
                 .body(mapOf("message" to "User creation with api is allowed by Site admin only."))
         }
 
+        if (!ProjectNameValidator.isValidFormat(request.projectName)) {
+            return ResponseEntity.badRequest()
+                .body(mapOf("message" to "Project name has invalid characters: ${request.projectName}"))
+        }
+
         if (ProjectNameValidator.isRestricted(request.projectName)) {
             return ResponseEntity.badRequest()
                 .body(mapOf("message" to "Project name is restricted: ${request.projectName}"))

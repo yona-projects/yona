@@ -144,7 +144,7 @@ class SecurityConfig(
     // 않기 위해 명시적으로 선언했다.
     @Bean
     @Order(5)
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity, userDetailsService: org.springframework.security.core.userdetails.UserDetailsService): SecurityFilterChain {
         http
             // 템플릿 폼 대부분은 이미 th:action이라 자동으로 보호되고, 나머지는 개별 대응했다
             // (site/layout.html 로그인 모달, code/compare·diff.html 인라인 댓글 폼,
@@ -219,6 +219,7 @@ class SecurityConfig(
             }
             .rememberMe { rememberMe ->
                 rememberMe
+                    .rememberMeServices(TwoFactorAwareRememberMeServices("yonaRememberMeKey", userDetailsService, twoFactorService, userRepository).also { it.setParameter("rememberMe") })
                     .rememberMeParameter("rememberMe")
                     .key("yonaRememberMeKey")
             }
@@ -277,6 +278,7 @@ class SecurityConfig(
             .addFilterAfter(apiTokenAuthenticationFilter, BasicAuthenticationFilter::class.java)
             .addFilterAfter(accessLogFilter, BasicAuthenticationFilter::class.java)
             .addFilterAfter(pre2faGateFilter, BasicAuthenticationFilter::class.java)
+            .addFilterAfter(TwoFactorBasicGuardFilter(twoFactorService, userRepository), BasicAuthenticationFilter::class.java)
         return http.build()
     }
 
