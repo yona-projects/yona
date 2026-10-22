@@ -1,0 +1,67 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/partial_issuelabels_list.scala.html
+  매개변수: view(ProjectViewContext), groups(분류별로 묶은 라벨 목록: category, canUpdate, labels)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="page"><th:block th:replace="~{:: labelList(${projectView}, ${groups})}"></th:block></th:block>
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="labelList(view, groups)"
+          th:with="project=${view.project}, base=${'/' + view.project.owner + '/' + view.project.name}">
+<div th:if="${groups.isEmpty()}" class="error-wrap">
+    <i class="ico ico-err1"></i>
+    <p th:text="#{label.list.empty}"></p>
+</div>
+<th:block th:unless="${groups.isEmpty()}">
+  <div class="row-fluid list-head">
+    <div class="span3 category">
+      <strong th:text="#{label.category}"></strong>
+    </div>
+    <div class="span9 name">
+      <strong th:text="#{label.name}"></strong>
+    </div>
+  </div>
+
+  <div th:each="group : ${groups}" class="row-fluid list-item category-wrap" th:attr="data-category=${group.category.id}, data-category-name=${group.category.name}">
+    <div class="span3">
+      <h5 class="right-txt mr20">
+        <span class="category-name" th:text="${group.category.name}"></span>
+
+        <p class="mt5">
+          <i th:if="${group.category.exclusive}" class="category-exclusive yobicon-tag single"
+             data-toggle="tooltip" data-html="true"
+             th:title="#{label.category.option} + '&lt;br&gt;' + #{label.category.option.single}"></i>
+          <i th:unless="${group.category.exclusive}" class="category-exclusive yobicon-tags multiple"
+             data-toggle="tooltip" data-html="true"
+             th:title="#{label.category.option} + '&lt;br&gt;' + #{label.category.option.multiple}"></i>
+          <button th:if="${group.canUpdate}" type="button" class="ybtn ybtn-mini"
+                  th:attr="data-project-id=${project.id}, data-category-id=${group.category.id}, data-category-name=${group.category.name},
+                           data-category-is-exclusive=${group.category.exclusive}, data-category-update-uri=${base + '/issue/label/category/' + group.category.id}"
+                  th:text="#{label.category.edit}"></button>
+        </p>
+      </h5>
+    </div>
+    <div class="span9">
+      <table class="table nm">
+        <tr th:each="label : ${group.labels}" th:attr="data-label-id=${label.id}">
+          <td>
+            <span class="issue-label active" th:attr="data-label-id=${label.id}, data-label-name=${label.name}" th:text="${label.name}"></span>
+          </td>
+          <td class="actions">
+            <button th:if="${label.canDelete}" type="button" class="ybtn ybtn-danger ybtn-small"
+                    th:attr="data-category-name=${group.category.name}, data-label-id=${label.id}, data-delete-uri=${base + '/issue/label/' + label.id + '/delete'}"
+                    th:text="#{button.delete}"></button>
+            <button th:if="${label.canUpdate}" type="button" class="ybtn ybtn-small"
+                    th:attr="data-category-id=${group.category.id}, data-label-name=${label.name}, data-label-color=${label.color},
+                             data-update-uri=${base + '/issue/label/' + label.id}"
+                    th:text="#{button.edit}"></button>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <link rel="stylesheet" type="text/css" th:href="${base + '/issue/labels.css'}">
+</th:block>
+</th:block>

@@ -17,6 +17,7 @@
 - [최근 방문 기록](domain/recent-visits.md)
 - [마일스톤 진행 현황](domain/milestone-status.md)
 - [계정 설정과 첨부 올리기](web/account.md): 프로필, 비밀번호, 토큰, 이메일, 첨부
+- [이슈 라벨과 라벨 분류](web/issue-labels.md): 관리 화면, JSON, 분류, 복사, 색 스타일 시트
 - [가입, 인증, 비밀번호 재설정](web/signup-and-password.md)
 - [조직](web/organization.md): 생성, 홈, 목록, 설정, 구성원, 삭제, 가입 신청
 - [프로젝트 구성원](web/project-members.md): 목록, 추가, 역할, 탈퇴

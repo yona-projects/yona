@@ -26,6 +26,9 @@ object HttpPreference {
         return HTML
     }
 
+    /** `Accept` 헤더가 [type]을 받아들이면 `true`이다. 헤더가 없으면 모든 타입을 받아들인다 (Play `request().accepts`). */
+    fun acceptsType(acceptHeader: String?, type: String): Boolean = parseRanges(acceptHeader).any { accepts(it, type) }
+
     /** 클라이언트가 `application/json`을 `text/html`보다 선호하면 `true`이다. */
     fun isJsonPreferred(acceptHeader: String?): Boolean = preferredType(acceptHeader, HTML, JSON) == JSON
 
