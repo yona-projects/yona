@@ -20,6 +20,7 @@
 ## 서브시스템 (`subsystems/`)
 
 - [초기 데이터 적재](subsystems/initial-data.md): 관리자 계정, 사이트 관리자, 역할 7종
+- [접근 제어](subsystems/access-control.md): `@AnonymousCheck`, 앞으로 옮길 `AccessControl`
 - [인증](subsystems/authentication.md): v1.6 호환 패스워드 해시와 로컬 로그인 판정 규칙
 
 ## 기타

@@ -1,6 +1,8 @@
 package dev.yona.config
 
+import dev.yona.web.access.AnonymousCheckInterceptor
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
@@ -13,7 +15,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  * `/assets/` 경로를 제공한다. 여기서는 루트에 있어야 하는 favicon만 추가로 연결한다.
  */
 @Configuration(proxyBeanMethods = false)
-class WebConfig : WebMvcConfigurer {
+class WebConfig(private val anonymousCheckInterceptor: AnonymousCheckInterceptor) : WebMvcConfigurer {
+
+    override fun addInterceptors(registry: InterceptorRegistry) {
+        registry.addInterceptor(anonymousCheckInterceptor)
+    }
+
 
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
         registry.addResourceHandler("/favicon.ico")

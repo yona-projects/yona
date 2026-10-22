@@ -19,6 +19,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `application.navbar.custom.link.name` / `.url` | `yona.navbar-custom-link-name` / `-url` | 빈 문자열 | 사용 중 |
 | `application.login.page.loginId.placeholder` | `yona.login-page-login-id-placeholder` | 빈 문자열 | 사용 중 |
 | `application.login.page.password.placeholder` | `yona.login-page-password-placeholder` | 빈 문자열 | 사용 중 |
+| `application.allowsAnonymousAccess` | `yona.allows-anonymous-access` | `true` | 사용 중 |
 | `application.use.social.login.only` | `yona.social-login-only` | `false` | 화면에서만 사용(로그인 컨트롤러는 아직 반영 안 함) |
 | `application.maxFileSize` | `yona.max-file-size` | `2147483454` | 사용 중 |
 | `signup.require.admin.confirm` | `yona.signup.require-admin-confirm` | `false` | 사용 중 |

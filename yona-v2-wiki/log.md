@@ -61,3 +61,7 @@
 
 ## [2026-10-22] lint | 화면 캡처 도구 규칙
 - 선생님 지시로 화면 캡처와 브라우저 화면 검증은 Playwright로만 하도록 `AGENTS.md`와 `yona-v2-wiki/CLAUDE.md`에 명시했다.
+
+## [2026-10-22] ingest | 익명 접근 검사
+- TDD: `AnonymousCheckTest` 6건과 `AnonymousCheckClosedSiteTest` 2건을 먼저 실패(RED, 컴파일)시킨 뒤 `@AnonymousCheck`와 인터셉터로 통과(GREEN)시켰다.
+- 기록: [subsystems/access-control.md](subsystems/access-control.md)
