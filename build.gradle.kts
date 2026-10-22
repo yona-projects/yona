@@ -31,6 +31,7 @@ dependencies {
 	// Git 저장소 처리(D-15). v1.6의 4.5.0을 Java 21에서 쓸 수 있는 7.x로 올렸다.
 	implementation("org.eclipse.jgit:org.eclipse.jgit:7.8.0.202609011348-r")
 	implementation("org.eclipse.jgit:org.eclipse.jgit.http.server:7.8.0.202609011348-r")
+	implementation("org.eclipse.jgit:org.eclipse.jgit.archive:7.8.0.202609011348-r")
 
 	// 서버 측 마크다운 렌더링(D-17): CommonMark 구현과 GFM 확장, 결과 정화(OWASP)와 HTML 후처리(jsoup)
 	implementation("org.commonmark:commonmark:0.31.0")

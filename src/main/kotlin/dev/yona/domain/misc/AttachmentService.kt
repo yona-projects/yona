@@ -1,7 +1,7 @@
 package dev.yona.domain.misc
 
 import dev.yona.domain.enumeration.ResourceType
-import dev.yona.io.CharsetDetection
+import dev.yona.io.MediaTypes
 import dev.yona.repository.DataDirectory
 import org.apache.tika.Tika
 import org.apache.tika.metadata.Metadata
@@ -166,31 +166,12 @@ class AttachmentService(
         return target
     }
 
-    /**
-     * 이름과 내용으로 파일 종류를 감지한다 (v1.6 `FileUtil.detectMediaType`). 텍스트이면 문자셋을 덧붙인다.
-     * v1.6은 앞부분을 버퍼에 읽은 뒤의 스트림 나머지로 문자셋을 감지하므로, 8192바이트 이하의 파일은 항상 UTF-8이 된다
-     * ([refactoring-backlog.md] R-17).
-     */
-    private fun detectMediaType(file: File, name: String?): String {
-        val bytes = file.readBytes()
-        val metadata = Metadata()
-        name?.let { metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, it) }
-        val media = Tika().detector.detect(bytes.inputStream().buffered(), metadata)
-        return when {
-            media.type.lowercase() == "text" -> {
-                val rest = if (bytes.size > BUFFER_SIZE) bytes.copyOfRange(BUFFER_SIZE, bytes.size) else ByteArray(0)
-                "$media; charset=${CharsetDetection.detect(rest)}"
-            }
-            media.toString() == "audio/ogg" && name?.substringAfterLast('.', "")?.lowercase() == "ogv" -> "video/ogg"
-            else -> media.toString()
-        }
-    }
+    private fun detectMediaType(file: File, name: String?): String = MediaTypes.detect(file.readBytes(), name)
 
     private fun sha256(bytes: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
     private companion object {
         const val UPLOAD_DIRECTORY = "uploads"
-        const val BUFFER_SIZE = 8192
     }
 }

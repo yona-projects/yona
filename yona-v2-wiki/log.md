@@ -235,3 +235,6 @@
 
 ## [2026-10-23] ingest | Git smart-HTTP 서비스 (5단계 5a-1)
 - TDD: GitHttpTest 10(실제 JGit 클라이언트). A-66. 5단계를 5a~5f로 나눴다.
+
+## [2026-10-23] ingest | 코드 브라우저 (5단계 5b-1)
+- TDD: CodeBrowserServiceTest 11, CodeBrowserWebTest 14. A-67~A-70, R-38, R-39. jgit.archive 의존성 추가, MediaTypes와 UrlPaths 공용화.

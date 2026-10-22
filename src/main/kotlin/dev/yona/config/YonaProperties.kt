@@ -36,6 +36,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property notificationMailDelay 알림 이벤트를 만든 뒤 메일로 보내기까지 기다리는 시간(밀리초). 그 사이 연달아 일어난 알림을 묶을 수 있다 (`application.notification.bymail.delay`, 기본 180초)
  * @property smtp 보내는 메일 주소 설정이다. SMTP 접속 정보는 `spring.mail.*`로 설정한다
  * @property easymail 가입 안내 메일의 보내는 사람이다 (`play-easymail.from.*`)
+ * @property codeBrowserMaxFileSize 코드 브라우저가 내용을 보여 주는 텍스트 파일의 최대 크기(바이트). 넘으면 원본 보기 링크만 준다 (`application.codeBrowser.viewer.maxFileSize`, 기본 1MB)
  * @property issueEventDraftTime 같은 사용자가 같은 종류의 이슈 변경을 이 시간(밀리초) 안에 연달아 하면 하나로 합친다 (`application.issue-event.draft-time`, 기본 30초)
  * @property translationApi 번역 API 주소. 비우면 번역 단추를 숨긴다 (`application.extras.translation.api`)
  * @property translationHeaderKey 번역 API 요청에 붙일 인증 헤더 이름 (`application.extras.translation.headerKey`)
@@ -67,6 +68,7 @@ data class YonaProperties(
     val applicationContext: String = "",
     val parsersTextMaxLength: Long = 102_400L,
     val issueEventDraftTime: Long = 30_000L,
+    val codeBrowserMaxFileSize: Long = 1024L * 1024,
     val notificationMailEnabled: Boolean = true,
     val notificationMailHideAddress: Boolean = true,
     val notificationMailRecipientLimit: Int = 0,

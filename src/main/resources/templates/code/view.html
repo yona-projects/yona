@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/view.scala.html, partial_view_folder.scala.html, partial_view_file.scala.html
+  모델: title, projectView, page(CodePage), maxFileSize
+  항목(page.items)은 폴더 목록과 마지막 파일 보기를 순서대로 담는다.
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::viewPage})}">
+<th:block th:fragment="viewPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="code-browse-wrap">
+            <ul class="nav nav-tabs" th:if="${page.showTabs}">
+                <li class="active"><a th:href="${page.filesTabUrl}" th:text="#{code.files}"></a></li>
+                <li><a th:href="${page.commitsTabUrl}" th:text="#{code.commits}"></a></li>
+                <li th:if="${page.branchesTabUrl != null}"><a th:href="${page.branchesTabUrl}" th:text="#{title.branches}"></a></li>
+            </ul>
+
+            <div class="code-browse-header">
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="pull-left">
+                    <option th:each="b : ${page.branches}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
+                </select>
+                <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 pull-left">
+                    <a th:href="${page.rootUrl}" th:text="${page.projectName}"></a><th:block th:each="c : ${page.crumbs}"><a th:href="${c.href}" th:text="${c.text}"></a></th:block>
+                </div>
+                <div class="pull-right" th:if="${page.downloadUrl != null}">
+                    <a th:href="${page.downloadUrl}" class="ybtn" th:text="#{code.download}"></a>
+                </div>
+                <div class="pull-right" th:if="${page.newFileUrl != null}">
+                    <a id="new-file-link" th:href="${page.newFileUrl}" class="ybtn" th:text="#{code.new.file}"></a>
+                </div>
+            </div>
+
+            <div class="code-viewer-wrap">
+                <div id="spin" style="position:fixed; top:50%; left:50%"></div>
+                <th:block th:each="item : ${page.items}">
+                <th:block th:if="${item.folder != null}" th:with="folder=${item.folder}">
+                <div class="list-wrap" data-type="folder" th:attr="data-listPath=${folder.listPath != ''} ? ${folder.listPath}">
+                    <div class="row-fluid listhead">
+                        <div class="span6 filename"><strong th:text="#{code.filename}"></strong></div>
+                        <div class="span4 commitMsg"><strong th:text="#{code.commitMsg}"></strong></div>
+                        <div class="span2 commitDate"><strong th:text="#{code.commitDate}"></strong></div>
+                    </div>
+                    <div class="alert alert-warning nm" style="border-top:0; padding-left:23px;" th:if="${#lists.isEmpty(folder.entries)}" th:text="#{code.nofiles}"></div>
+                    <div th:each="e : ${folder.entries}" th:id="${e.id}" class="row-fluid listitem" th:attr="data-path=${e.dataPath}">
+                        <div class="span6 filename">
+                            <a th:href="${e.href}" th:class="${e.fileClass}" th:title="${e.name}" th:attr="data-type=${e.folder} ? 'folder', data-targetPath=${e.dataPath}">
+                                <span class="dynatree-icon vmiddle"></span><th:block th:text="${e.name}"></th:block>
+                            </a>
+                        </div>
+                        <div class="span5 commitMsg">
+                            <a th:href="${e.userHref}" class="avatar-wrap smaller"><img th:src="${e.avatarUrl}"></a>
+                            <span class="ml5"><a th:href="${e.commitUrl}" th:text="${e.msg}"></a></span>
+                        </div>
+                        <div class="span1 commitDate" th:text="${e.ago}"></div>
+                    </div>
+                </div>
+                <script id="tplFileListItem" type="text/x-jquery-tmpl">
+<div id="cb-${listPath}${fileName}" class="row-fluid listitem" data-path="${targetPath}">
+    <div class="span6 filename">
+        <a href="${path}" class="${fileClass}" title="${fileName}" data-targetPath="${targetPath}" data-type="${type}">
+            <span class="dynatree-icon vmiddle"></span>${fileName}
+        </a>
+    </div>
+    <div class="span5 commitMsg">
+        ${avatarImg}
+        <span class="ml5"><a href="${commitUrl}">${commitMsg}</a></span>
+    </div>
+    <div class="span1 commitDate">${commitDate}</div>
+</div>
+                </script>
+                </th:block>
+
+                <th:block th:if="${item.file != null}" th:with="f=${item.file}">
+                <div class="file-wrap" data-type="file">
+                    <div class="file-header nm">
+                        <div id="fileInfo" class="file-info">
+                            <span id="commiter" class="commiter">
+                                <a th:href="${f.userHref}" class="avatar-wrap smaller"><img th:src="${f.avatarUrl}"></a>
+                                <a th:href="${f.userHref}" class="ml5" th:text="${f.author}"></a>
+                            </span>
+                            <span id="commitDate" class="commitDate" th:text="${f.ago}"></span>
+                            <span id="revisionNo" class="revision">
+                                <a th:href="${f.commitUrl}">
+                                    <th:block th:text="${#strings.substring(f.revId, 0, 7)}"></th:block>
+                                    <span class="number-of-comments ml5" th:if="${f.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${f.commentCount}"></th:block></span>
+                                </a>
+                            </span>
+                            <span id="commitMessage" class="commitMsg" th:text="${f.commitMessage}"></span>
+                            <span th:text="${f.lineEnding}"></span>
+                        </div>
+                        <div class="pull-right">
+                            <th:block th:unless="${f.binary}">
+                            <a th:href="${f.rawUrl}" class="ybtn" target="_blank"><i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw</a>
+                            <a th:if="${f.editUrl != null}" th:href="${f.editUrl}" class="ybtn">Edit</a>
+                            </th:block>
+                            <a id="open-in-browser" th:href="${f.openUrl}" class="ybtn" target="_blank" th:attr="data-content=#{code.open.desc}">
+                                <i class="yobicon-download-alt yobicon-white vmiddle"></i> <th:block th:text="#{code.open}"></th:block>
+                            </a>
+                            <a th:href="${f.historyUrl}" class="ybtn" th:text="#{code.history}"></a>
+                        </div>
+                    </div>
+
+                    <div id="showImage" class="image-wrap" th:if="${f.mode == 'image'}"><img th:src="${f.rawUrl}"></div>
+                    <div id="showFile" class="file-wrap" th:if="${f.mode == 'binary'}">
+                        <p>
+                            <strong class="filename" th:text="${f.fileName}"></strong><br>
+                            <span class="filesize"></span><br>
+                            <a th:href="${f.rawUrl}" class="filehref ybtn"><i class="yobicon-download-alt yobicon-white vmiddle"></i> <th:block th:text="#{button.download}"></th:block></a>
+                        </p>
+                    </div>
+                    <p th:if="${f.mode == 'tooBig'}">
+                        <th:block th:text="#{code.tooBigFileForCodeBrowser(${f.maxFileSize})}"></th:block>
+                        <th:block th:if="${f.siteManager}"><br/><th:block th:text="#{code.looseFileSizeLimitForCodeBrowser}"></th:block></th:block>
+                        <br/><a th:href="${f.rawUrl}" target="_blank" class="filehref ybtn" th:text="#{code.viewRaw}"></a>
+                    </p>
+                    <div id="codeVal" class="markdown-wrap codebrowser-markdown" th:if="${f.mode == 'markdown'}" th:utext="${f.renderedMarkdown}"></div>
+                    <th:block th:if="${f.mode == 'code'}">
+                        <div id="codeVal" class="hidden" th:text="${f.data}"></div>
+                        <pre id="showCode" class="code-wrap" th:attr="data-mimeType=${f.mimeType}"></pre>
+                    </th:block>
+                </div>
+                <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+                <script type="text/javascript" th:src="@{/assets/javascripts/lib/ace/ace.js}"></script>
+                </th:block>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+
+<link rel="stylesheet" type="text/css" th:href="@{/assets/stylesheets/dynatree/skin/ui.dynatree.css}" />
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/moment-with-langs.min.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        $("#branches").on("change", function(event){
+            location.href= $(this).val();
+        });
+
+        // help popover at open with browser button
+        $("#open-in-browser").popover({trigger: "hover", placement: "top"});
+
+        $yobi.loadModule("code.Browser", {
+            "sProjectName": /*[[${page.projectName}]]*/ "",
+            "sInitialPath": /*[[${page.initialPath}]]*/ "",
+            "sMetaInfoURL": /*[[${page.metaInfoUrl}]]*/ "",
+            "sBasePathURL": /*[[${page.basePathUrl}]]*/ ""
+        });
+    });
+</script>
+</th:block>
+</html>

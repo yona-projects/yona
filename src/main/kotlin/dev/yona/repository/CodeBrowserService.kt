@@ -1,0 +1,226 @@
+package dev.yona.repository
+
+import dev.yona.config.YonaProperties
+import dev.yona.domain.project.Project
+import dev.yona.domain.user.UserRepository
+import dev.yona.io.CharsetDetection
+import dev.yona.security.AvatarService
+import dev.yona.util.SiteUrls
+import org.apache.tika.Tika
+import org.apache.tika.metadata.Metadata
+import org.apache.tika.metadata.TikaCoreProperties
+import org.eclipse.jgit.api.ArchiveCommand
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.archive.ZipFormat
+import org.eclipse.jgit.diff.RawText
+import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.treewalk.TreeWalk
+import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
+import org.springframework.stereotype.Service
+import java.io.OutputStream
+import java.util.SortedMap
+import java.util.TreeMap
+
+/**
+ * 코드 브라우저가 보여 줄 폴더와 파일의 정보를 저장소에서 읽는다. v1.6 `GitRepository.getMetaDataFromPath`, `treeAsJson`, `fileAsJson`,
+ * `ObjectFinder`, `extendPath`, `isIntermediateFolder`, `getRawFile`, `getArchive`와 `RepositoryService.getMetaDataFromAncestorDirectories`
+ * (`app/playRepository/GitRepository.java`, `RepositoryService.java`)에 해당한다.
+ *
+ * 결과는 화면과 JSON 응답이 함께 쓰는 맵이다. 항목마다 마지막으로 바꾼 커밋(작성자, 메시지, 시각)을 담는다. 이 커밋은 v1.6의 빠른 경로(커밋을
+ * 거슬러 오르며 개체가 바뀐 시점을 찾음)가 아니라 항목 경로로 한 번에 하나씩 `git log -1`로 찾는다. 결과는 같고 느린 경로로 처리한다.
+ */
+@Service
+class CodeBrowserService(
+    private val repositories: RepositoryService,
+    private val users: UserRepository,
+    private val avatars: AvatarService,
+    private val messages: MessageSource,
+    private val properties: YonaProperties,
+    private val siteUrls: SiteUrls
+) {
+
+    /** 저장소에 브랜치, 태그, 원격 참조가 하나도 없으면 `true`이다 (v1.6 `GitRepository.isEmpty`). */
+    fun isEmpty(project: Project): Boolean = repositories.refNames(project).isEmpty()
+
+    /**
+     * [path]의 폴더나 파일 정보이다. [branch]가 `null`이면 `HEAD`이다. 폴더는 `{"type": "folder", "data": {이름: {…}}}`, 파일은
+     * `{"type": "file", …}`이다. 저장소가 비었거나 브랜치와 경로가 없으면, 또는 항목이 없는 폴더이면 `null`이다.
+     */
+    fun metaData(project: Project, branch: String?, path: String): Map<String, Any?>? = repositories.openRepository(project).use { repository ->
+        val head = resolveCommit(repository, branch) ?: return null
+        if (path.isEmpty()) return folder(repository, project, "", repository.newTreeWalk(head), head)
+        val walk = TreeWalk.forPath(repository, path, head.tree) ?: return null
+        if (walk.isSubtree) {
+            val folderWalk = TreeWalk(repository)
+            folderWalk.addTree(walk.getObjectId(0))
+            folder(repository, project, path, folderWalk, head)
+        } else {
+            file(repository, walk, head)
+        }
+    }
+
+    /**
+     * [path]까지의 상위 폴더를 차례로 모은 메타데이터이다. 맨 앞은 루트(`path` 빈 값), 마지막은 [path] 자신이다.
+     * 비어 있는 중간 폴더(항목이 폴더 하나뿐)는 건너뛴다. 하나라도 읽지 못하면 `null`이다.
+     */
+    fun ancestors(project: Project, branch: String?, path: String): List<Map<String, Any?>>? {
+        val chain = ArrayList<Map<String, Any?>>()
+        chain += LinkedHashMap(metaData(project, branch, "") ?: return null).also { it["path"] = "" }
+        val parts = path.split("/")
+        val length = if (path.isEmpty()) 0 else parts.size
+        var partial = ""
+        for (i in 0 until length) {
+            partial = if (partial.isEmpty()) parts[i] else partial + "/" + parts[i]
+            val intermediate = repositories.openRepository(project).use { isIntermediateFolder(it, partial) }
+            if (!intermediate) chain += LinkedHashMap(metaData(project, branch, partial) ?: return null).also { it["path"] = partial }
+        }
+        return chain
+    }
+
+    /** [revision]의 [path] 파일 내용이다. 폴더이거나 없으면 `null`이다. */
+    fun rawFile(project: Project, revision: String, path: String): ByteArray? = repositories.openRepository(project).use { repository ->
+        val id = repository.resolve(revision) ?: return null
+        val tree = try { RevWalk(repository).use { it.parseTree(id) } } catch (e: Exception) { return null }
+        val walk = TreeWalk.forPath(repository, path, tree) ?: return null
+        if (walk.isSubtree) return null
+        repository.open(walk.getObjectId(0)).bytes
+    }
+
+    /** [branch]의 내용을 zip으로 [out]에 쓴다. 브랜치를 찾지 못하면 아무것도 쓰지 않는다. */
+    fun archive(project: Project, branch: String, out: OutputStream) {
+        repositories.openRepository(project).use { repository ->
+            val id = repository.resolve(branch) ?: return
+            synchronized(ARCHIVE_LOCK) {
+                ArchiveCommand.registerFormat("zip", ZipFormat())
+                try {
+                    Git(repository).archive().setTree(id).setFormat("zip").setOutputStream(out).call()
+                } finally {
+                    ArchiveCommand.unregisterFormat("zip")
+                }
+            }
+        }
+    }
+
+    // --- 폴더 ---
+
+    private fun Repository.newTreeWalk(commit: RevCommit): TreeWalk = TreeWalk(this).also { it.addTree(commit.tree) }
+
+    private fun folder(repository: Repository, project: Project, basePath: String, walk: TreeWalk, head: RevCommit): Map<String, Any?>? {
+        val found: SortedMap<String, Map<String, Any?>> = TreeMap()
+        Git(repository).use { git ->
+            while (walk.next()) {
+                val name = walk.nameString
+                val entry = linkedMapOf<String, Any?>("type" to if (walk.isSubtree) "folder" else "file")
+                val fullPath = if (basePath.isEmpty()) name else "$basePath/$name"
+                val commit = git.log().add(head).addPath(fullPath).setMaxCount(1).call().iterator().let { if (it.hasNext()) it.next() else null }
+                if (commit != null) describe(entry, commit, project)
+                found[extendPath(repository, basePath, name)] = entry
+            }
+        }
+        if (found.isEmpty()) return null
+        return linkedMapOf("type" to "folder", "data" to found)
+    }
+
+    /** 폴더 항목에 마지막으로 바꾼 커밋의 정보를 채운다. */
+    private fun describe(entry: MutableMap<String, Any?>, commit: RevCommit, project: Project) {
+        val email = commit.authorIdent.emailAddress
+        val user = users.findByEmail(email)
+        entry["msg"] = commit.shortMessage
+        entry["avatar"] = user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: avatars.gravatarUrl("", AVATAR_SIZE)
+        entry["userName"] = user?.name ?: messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale())
+        entry["userLoginId"] = user?.loginId.orEmpty()
+        entry["createdDate"] = commit.commitTime * 1000L
+        entry["author"] = commit.authorIdent.name
+        val shortId = commit.abbreviate(7).name()
+        entry["commitId"] = shortId
+        entry["commitUrl"] = siteUrls.path("/${project.owner}/${project.name}/commit/$shortId")
+    }
+
+    // --- 파일 ---
+
+    private fun file(repository: Repository, walk: TreeWalk, head: RevCommit): Map<String, Any?> {
+        val commit = Git(repository).use { git -> git.log().add(head).addPath(walk.pathString).call().iterator().next() }
+        val user = users.findByEmail(commit.authorIdent.emailAddress)
+        val time = commit.commitTime * 1000L
+        val result = linkedMapOf<String, Any?>("type" to "file", "msg" to commit.shortMessage)
+        result["author"] = commit.authorIdent.name
+        result["avatar"] = user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: avatars.gravatarUrl("", AVATAR_SIZE)
+        result["userName"] = user?.name ?: messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale())
+        result["userLoginId"] = user?.loginId.orEmpty()
+        result["createdDate"] = time
+        result["commitMessage"] = commit.shortMessage
+        result["commiter"] = commit.committerIdent.name
+        result["commitDate"] = time
+        result["commitId"] = head.name
+        val loader = repository.open(walk.getObjectId(0))
+        result["size"] = loader.size
+        val binary = loader.openStream().use { RawText.isBinary(it) }
+        result["isBinary"] = binary
+        if (!binary && loader.size <= properties.codeBrowserMaxFileSize) {
+            val bytes = loader.bytes
+            result["data"] = String(bytes, charset(CharsetDetection.detect(bytes)))
+        }
+        val metadata = Metadata().also { it.add(TikaCoreProperties.RESOURCE_NAME_KEY, walk.nameString) }
+        result["mimeType"] = loader.openStream().use { Tika().detector.detect(it.buffered(), metadata).toString() }
+        return result
+    }
+
+    // --- 경로 도우미 (v1.6은 브랜치가 아니라 HEAD의 트리로 판단한다) ---
+
+    /**
+     * 비어 있는 중간 폴더(항목이 폴더 하나뿐)를 건너뛰고 이어 붙인 경로이다. 예: `one`이 `two`만 담고 `two`가 `c.txt`를 담으면 `one/two`
+     * ("folder jumping").
+     */
+    private fun extendPath(repository: Repository, basePath: String, name: String): String {
+        var path = name
+        try {
+            val headId = repository.resolve(Constants.HEAD) ?: return path
+            val tree = RevWalk(repository).use { it.parseTree(headId) }
+            while (true) {
+                val fullPath = if (basePath.isEmpty()) path else "$basePath/$path"
+                val walk = TreeWalk.forPath(repository, fullPath, tree)
+                if (walk == null || !walk.isSubtree) return path
+                walk.enterSubtree()
+                walk.next()
+                if (!walk.isSubtree) return path
+                val next = path + "/" + walk.nameString
+                if (walk.next()) return path
+                path = next
+            }
+        } catch (e: java.io.IOException) {
+            return path
+        }
+    }
+
+    /** [path]가 폴더 하나만 담은 폴더이면 `true`이다. */
+    private fun isIntermediateFolder(repository: Repository, path: String): Boolean {
+        if (path.isEmpty()) return false
+        try {
+            val headId = repository.resolve(Constants.HEAD) ?: return false
+            val tree = RevWalk(repository).use { it.parseTree(headId) }
+            val walk = TreeWalk.forPath(repository, path, tree)
+            if (walk == null || !walk.isSubtree) return false
+            walk.enterSubtree()
+            walk.next()
+            if (!walk.isSubtree) return false
+            return !walk.next()
+        } catch (e: java.io.IOException) {
+            return false
+        }
+    }
+
+    private fun resolveCommit(repository: Repository, branch: String?): RevCommit? {
+        val id: ObjectId = (if (branch == null) repository.resolve(Constants.HEAD) else repository.resolve(branch)) ?: return null
+        return try { RevWalk(repository).use { it.parseCommit(id) } } catch (e: Exception) { null }
+    }
+
+    private companion object {
+        const val AVATAR_SIZE = 34
+        val ARCHIVE_LOCK = Any()
+    }
+}

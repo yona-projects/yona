@@ -58,7 +58,9 @@ updated: 2026-10-22
 | 4c | 홈의 알림 목록(More 포함) | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
 | 4d | 보관 기간 정리, 프로젝트 구독·해제·구독자 목록, 프로젝트별 알림 설정 탭 | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
 | 5a-1 | Git smart-HTTP(복제, 푸시), Basic 인증, 푸시 훅(마지막 푸시 시각, 최근 푸시 브랜치, 예약 ref 거부) | 완료 | [subsystems/git-http.md](subsystems/git-http.md) |
-| 5b | 코드 브라우저(폴더, 파일, 원본, 이미지, 다운로드), 브랜치 목록, 기본 브랜치, 브랜치 삭제, 커밋 이력, 커밋 보기, 비교 | 대기 | |
+| 5b-1 | 코드 브라우저(폴더, 파일, 원본, 이미지, 열기, 내려받기, 메타데이터 JSON) | 완료 | [web/code-browser.md](web/code-browser.md) |
+| 5b-2 | 브랜치 목록, 기본 브랜치, 브랜치 삭제 | 대기 | |
+| 5b-3 | 커밋 이력, 커밋 보기, 비교 | 대기 | |
 | 5c | 포크, 클론, 풀 리퀘스트(목록, 보기, 변경 내용, 만들기, 병합, 닫기와 열기, 수정, 댓글, 리뷰) | 대기 | |
 | 5d | 코드 리뷰 댓글(커밋 댓글, 리뷰 스레드), 푸시 후 알림 훅(새 커밋, 이슈 언급, 풀 리퀘스트 확인) | 대기 | |
 | 5e | 웹훅(설정 화면, 발송), 알림과 웹훅 연결 | 대기 | |

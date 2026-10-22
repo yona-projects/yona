@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.firewall.HttpFirewall
+import org.springframework.security.web.firewall.StrictHttpFirewall
 import org.springframework.security.web.context.SecurityContextHolderFilter
 
 /**
@@ -26,6 +28,17 @@ import org.springframework.security.web.context.SecurityContextHolderFilter
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 class SecurityConfig {
+
+    /**
+     * 주소에 `%25`(인코딩된 퍼센트)와 `%2F`를 허용한다. v1.6은 `/`가 든 브랜치 이름 같은 값을 두 번 인코딩해 링크를 만들어(`feature%252Fx`)
+     * 주소에 `%2F`가 직접 나오지 않게 한다. 기본 방화벽은 `%25`를 거부하므로 이 링크가 열리지 않는다.
+     */
+    @Bean
+    fun httpFirewall(): HttpFirewall = StrictHttpFirewall().apply {
+        setAllowUrlEncodedPercent(true)
+        // 두 번 인코딩해 디코딩하면 `%2F`가 남는다. 이 값을 검사에서 거부하지 않는다.
+        setAllowUrlEncodedSlash(true)
+    }
 
     @Bean
     fun securityFilterChain(http: HttpSecurity, users: UserRepository): SecurityFilterChain =

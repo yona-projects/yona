@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/nohead.scala.html
+  모델: title("프로젝트이름 - Code"), projectView, cloneUrl(복제 주소. 구성원이면 `로그인ID@`가 들어 있다), canUpdate
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::noheadPage})}">
+<th:block th:fragment="noheadPage" th:with="project=${projectView.project}, siteName=${site.siteName}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="row-fluid">
+            <div class="span12">
+                <th:block th:utext="#{code.nohead}"></th:block>
+                <th:block th:if="${canUpdate}">
+                <h5 th:text="#{code.nohead.clone(${siteName})}"></h5>
+                <pre><code th:text="'git clone ' + ${cloneUrl} + ' ' + ${project.name} + '
+cd ' + ${project.name} + '/
+echo &quot;# ' + ${project.name} + '&quot; > README.md
+git add README.md
+git commit -m &quot;Hello ' + ${siteName} + '&quot;
+git push origin master'"></code></pre>
+                <h5 th:text="#{code.nohead.init(${siteName})}"></h5>
+                <pre><code th:text="'mkdir ' + ${project.name} + '
+cd ' + ${project.name} + '/
+echo &quot;# ' + ${project.name} + '&quot; > README.md
+git init
+git add README.md
+git commit -m &quot;Hello ' + ${siteName} + '&quot;
+git remote add origin ' + ${cloneUrl} + '
+git push origin master'"></code></pre>
+                <h5 th:text="#{code.nohead.remote(${siteName})}"></h5>
+                <pre><code th:text="'git remote add origin ' + ${cloneUrl} + '
+git push origin master'"></code></pre>
+                <h5 th:text="#{code.nohead.pull.push}"></h5>
+                <pre><code>git pull origin master
+git push origin master</code></pre>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("code.Nohead", {
+            "sProjectName": /*[[${project.name}]]*/ ""
+        });
+    });
+</script>
+</th:block>
+</html>
