@@ -6,6 +6,7 @@ import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.project.Organization
 import dev.yona.domain.project.OrganizationUserRepository
 import dev.yona.domain.user.SiteAdminRepository
+import dev.yona.domain.user.UserSettingRepository
 import dev.yona.security.AvatarService
 import dev.yona.security.CurrentUser
 import java.util.Locale
@@ -21,7 +22,8 @@ class ViewerContext(
     private val siteAdmins: SiteAdminRepository,
     private val issues: IssueRepository,
     private val avatars: AvatarService,
-    private val organizationUsers: OrganizationUserRepository
+    private val organizationUsers: OrganizationUserRepository,
+    private val userSettings: UserSettingRepository
 ) {
 
     /** 로그인하지 않았으면 `true`이다. */
@@ -46,6 +48,11 @@ class ViewerContext(
     /** 담당자로 지정된 열린 이슈의 개수이다 (v1.6 `Issue.countOpenIssuesByUser`). */
     val openIssueCount: Long by lazy {
         current.user?.id?.let { issues.countByAssigneeUserIdAndState(it, State.OPEN) } ?: 0L
+    }
+
+    /** 로그인 후 처음 보여 줄 페이지로 지정한 경로이다. 지정하지 않았으면 `null`이다 (v1.6 `UserSetting.loginDefaultPage`). */
+    val loginDefaultPage: String? by lazy {
+        current.user?.id?.let { userSettings.findByUserId(it)?.loginDefaultPage }
     }
 
     /** 조직의 일반 구성원이면 `true`이다 (v1.6 `User.isMemberOf(Organization)`). */

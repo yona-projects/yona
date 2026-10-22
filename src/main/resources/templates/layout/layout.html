@@ -7,10 +7,11 @@
 
   이식 원본: app/views/layout.scala.html
   사용법: 페이지 템플릿의 <html>에 th:replace="~{layout/layout :: layout(제목키, 테마, 본문프래그먼트)}"를 건다.
+  제목키가 메시지에 없으면 그 문자열을 그대로 제목으로 쓴다(v1.6 Messages()와 같다).
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:fragment="layout(title, theme, content)"
-      th:with="titleText=#{${title}}, titleArray=${titleText.split(' [|]:[|] ')}"
+      th:with="titleText=${#messages.msgOrNull(title) ?: title}, titleArray=${titleText.split(' [|]:[|] ')}"
       th:lang="${currentUser.preferredLanguage}">
 <head>
 <meta charset="utf-8">

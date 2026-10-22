@@ -3,6 +3,7 @@ package dev.yona.web.layout
 import dev.yona.config.YonaProperties
 import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.project.OrganizationUserRepository
+import dev.yona.domain.user.UserSettingRepository
 import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.security.AvatarService
 import dev.yona.security.CurrentUserProvider
@@ -34,11 +35,12 @@ class LayoutModelAdvice(
     private val issues: IssueRepository,
     private val avatars: AvatarService,
     private val organizationUsers: OrganizationUserRepository,
+    private val userSettings: UserSettingRepository,
     private val flashTranslator: FlashMessageTranslator
 ) {
 
     @ModelAttribute("currentUser")
-    fun currentUser(): ViewerContext = ViewerContext(currentUserProvider.get(), siteAdmins, issues, avatars, organizationUsers)
+    fun currentUser(): ViewerContext = ViewerContext(currentUserProvider.get(), siteAdmins, issues, avatars, organizationUsers, userSettings)
 
     @ModelAttribute("site")
     fun site(): YonaProperties = properties

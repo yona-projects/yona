@@ -1,0 +1,68 @@
+<!--/*
+  이식 원본: app/views/index/partial_intro.scala.html
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="intro">
+<div class="siteintro-bg row">
+<div class="siteintro">
+    <div class="siteintro-cover">
+        <div class="siteintro-wrap">
+            <h1 class="site-heading">21st Century Software Development Platform</h1>
+            <ul class="site-features">
+                <li>Just focus on what you have to do</li>
+            </ul>
+        </div>
+        <div class="signup-btn">
+            <a th:href="@{/users/signupform}" class="ybtn ybtn-success ybtn-padding" th:text="#{button.signup(${site.siteName})}">
+            </a>
+        </div>
+    </div>
+</div>
+<div class="feature">
+    <h2><span th:text="#{title.features}"></span></h2>
+    <ul class="feature-wrap row">
+        <li>
+            <div class="feature-image"><i class="yobicon-cgicenter"></i></div>
+            <div class="feature-info">
+                <h3 class="feature-title" th:text="#{title.unlimitedProjects}"></h3>
+                <p class="feature-desc" th:text="#{site.features.unlimitedProjects}"></p>
+            </div>
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-code"></i></div>
+            <div class="feature-info">
+                <h3 class="feature-title" th:text="#{title.codeManagement}"></h3>
+                <p class="feature-desc" th:text="#{site.features.codeManagement}"></p>
+            </div>
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-articles"></i></div>
+            <div class="feature-info">
+                <h3 class="feature-title" th:text="#{title.issueTracker}"></h3>
+                <p class="feature-desc" th:text="#{site.features.issueTracker}"></p>
+            </div>
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-lock"></i></div>
+            <div class="feature-info">
+                <h3 class="feature-title" th:text="#{title.privateProject}"></h3>
+                <p class="feature-desc" th:text="#{site.features.privateRepositories}"></p>
+                </div>
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-preview"></i></div>
+            <div class="feature-info">
+                <h3 class="feature-title" th:text="#{title.codeReview}"></h3>
+                <p class="feature-desc" th:text="#{site.features.codeReview}"></p>
+            </div>
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-friends"></i></div>
+            <div class="feature-info">
+                <h3 class="feature-title" th:text="#{title.workTeam}"></h3>
+                <p class="feature-desc" th:text="#{site.features.workTeam}"></p>
+            </div>
+        </li>
+    </ul>
+</div>
+</div>
+</th:block>

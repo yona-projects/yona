@@ -65,3 +65,9 @@
 ## [2026-10-22] ingest | 익명 접근 검사
 - TDD: `AnonymousCheckTest` 6건과 `AnonymousCheckClosedSiteTest` 2건을 먼저 실패(RED, 컴파일)시킨 뒤 `@AnonymousCheck`와 인터셉터로 통과(GREEN)시켰다.
 - 기록: [subsystems/access-control.md](subsystems/access-control.md)
+
+## [2026-10-22] ingest | 홈 화면 (1단계)
+- 선생님이 "의존 방향 순으로 진행, 결정이 필요하면 물어볼 것"이라고 하셨다. 순서: 1) 홈 소개와 틀, 2) AccessControl과 프로젝트·조직, 3) 이슈·게시판·마일스톤, 4) 알림과 로그인 사용자용 홈, 5) 코드 저장소와 풀 리퀘스트.
+- TDD: `HomePageTest` 14건과 `NotificationEventQueryTest` 3건을 먼저 실패(RED, 컴파일)시킨 뒤 구현했다. 마지막 두 번의 실패는 테스트에 적은 영어 문구 추측(`Features`, `Unlimited Projects`)이 틀린 것이어서 메시지 파일의 실제 값으로 바로잡았다.
+- 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 116건 통과.
+- 기록: [web/home-page.md](web/home-page.md)

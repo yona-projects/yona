@@ -1,0 +1,11 @@
+<!--/*
+  이식 원본: app/views/index/partial_notifications.scala.html
+  매개변수: notifications(알림 목록)
+  알림 항목(아이콘, 제목 링크, 본문, 보낸 사람)과 More 버튼은 알림 서브시스템을 옮길 때 추가한다.
+  지금은 알림이 만들어지지 않으므로 항상 "알림 없음" 안내만 나온다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="list(notifications)">
+    <div class="warning-none" th:if="${#lists.isEmpty(notifications)}">
+        <i class="yobicon-danger"></i> <th:block th:text="#{notification.none}"></th:block>
+    </div>
+</th:block>

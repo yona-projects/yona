@@ -11,6 +11,7 @@
 ## 웹 (`web/`)
 
 - [정적 자원, LESS 빌드, 다국어 메시지](web/static-assets-and-i18n.md): `/assets/`, favicon, Less 1.7.5 빌드, Play 메시지 형식
+- [홈 화면](web/home-page.md): 소개, 환영 표, 내 활동 탭, 기본 로그인 페이지, 알림 조회
 - [레이아웃과 로그인 화면](web/layout-and-login-page.md): Scala -> Thymeleaf 변환 규칙, 공통 모델, 로그인 화면, `/messages.js`
 
 ## 도메인 (`domain/`)

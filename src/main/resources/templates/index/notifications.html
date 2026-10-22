@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/index/notifications.scala.html (홈 화면 index.scala.html이 이 템플릿을 그대로 부른다)
+  모델: notifications(알림 목록), menuTab(내 활동 탭 이름)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${site.siteName}, 'SITE_HOME', ~{::notificationsPage})}">
+<th:block th:fragment="notificationsPage">
+    <th:block th:if="${currentUser.anonymous}">
+    <th:block th:replace="~{index/partial-intro :: intro}"></th:block>
+    </th:block>
+    <th:block th:unless="${currentUser.anonymous}">
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div class="site-guide-outer hide">
+                <h3>
+                    <span th:text="#{app.welcome(${site.siteName})} + ' - ' + #{app.description}"></span>
+                </h3>
+                <table class="welcome-table table borderless">
+                    <tr>
+                        <td>
+                            <a th:href="@{/projectform}" class="ybtn ybtn-success" th:text="#{button.newProject}">
+                            </a>
+                        </td>
+                        <td th:text="#{app.welcome.project.desc}"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a th:href="@{/organizations/new}" class="ybtn ybtn-success" th:text="#{title.newOrganization}">
+                            </a>
+                        </td>
+                        <td th:text="#{app.welcome.group.desc}"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a th:href="@{/projects}" class="ybtn ybtn-success" th:text="#{title.projectList}">
+                            </a>
+                        </td>
+                        <td th:text="#{app.welcome.searchProject.desc}"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="guide-toggle">
+                <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
+            </div>
+            <div class="page on-fold-intro">
+                <div class="row-fluid content-container">
+                    <div class="span8 main-stream">
+                        <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
+                        <ul class="activity-streams notification-wrap unstyled">
+                            <th:block th:replace="~{index/partial-notifications :: list(${notifications})}"></th:block>
+                        </ul>
+        	        </div>
+                    <div class="span4 index-menu right-menu span-hard-wrap">
+        	       </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </th:block>
+    <script type="text/javascript" th:inline="javascript">
+        $(document).ready(function(){
+            $("#toggleIntro").click(function(){
+                var $outerGuide = $(".site-guide-outer");
+                $outerGuide.toggleClass("hide");
+                localStorage.setItem("yobi-intro", !$outerGuide.hasClass("hide"));
+            });
+
+            if(localStorage.getItem("yobi-intro") != "false"){
+                $(".site-guide-outer").removeClass("hide");
+            }
+
+            $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
+                var $this = $(this);
+                $this.find(".more").toggle();
+                var sTargetId = $this.data('target'),
+                    welMessage = $('#'+sTargetId),
+                    nHeight;
+
+                if(event.target.localName =='a' || event.target.localName =='img') {
+                    return ;
+                }
+
+                welMessage.toggleClass('nowrap');
+
+                nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
+
+                $(welMessage).css('min-height',nHeight);
+            });
+
+            function checkOverflow(el) {
+                var curOverflow = el.style.overflow;
+
+                if (!curOverflow || curOverflow === "visible")
+                    el.style.overflow = "hidden";
+
+                var isOverflowing = el.clientWidth < el.scrollWidth
+                        || el.clientHeight < el.scrollHeight;
+
+                el.style.overflow = curOverflow;
+
+                return isOverflowing;
+            }
+
+            $(".message-wrap").each(function(index, value){
+                var $this = $(this);
+                if(checkOverflow($this[0])){
+                    $this.after("<div class='more'>...</div>");
+                }
+            });
+
+            if ($(".admin-logged-in-affix").length === 1) {
+                $(".sidenav").css("top", "84px");
+            }
+
+            var $setDefaultLoginPage = $("#setDefaultLoginPage");
+            $setDefaultLoginPage.popover();
+            $setDefaultLoginPage.on('click', function(){
+                $.post([[@{/-_-api/v1/user/defultLoginPage}]] + "?path=" + $setDefaultLoginPage.data("url"))
+                        .done(function (data) {
+                            $yobi.notify("Set to default: " + data.defaultLoginPage, 3000);
+                            $setDefaultLoginPage.hide();
+                        })
+                        .fail(function (data) {
+                            $yobi.alert("set Default page failed: " + data);
+                        });
+            });
+        });
+    </script>
+</th:block>
+</html>
