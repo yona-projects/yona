@@ -71,12 +71,7 @@ class ProjectCreateService(
         val name = form.name
 
         // 입력 묶기 단계의 검사 (Required, Pattern, Restricted)
-        if (name.isNullOrEmpty()) {
-            errors.reject("name", "error.required")
-        } else {
-            if (!NAME_PATTERN.matches(name)) errors.reject("name", "error.pattern")
-            if (RESERVED_NAMES.any { it.equals(name, ignoreCase = true) }) errors.reject("name", "error.restricted")
-        }
+        ProjectNameRules.violations(name).forEach { errors.reject("name", it) }
         if (form.projectScope != null && form.scope() == null) errors.reject("projectScope", "error.invalid")
 
         // 폼 검증 단계 (validateWhenNew)
@@ -90,9 +85,9 @@ class ProjectCreateService(
         }
 
         // 이름 규칙 위반은 안내 문구로 바꾼다.
-        when (errors.first("name")) {
-            "error.pattern" -> { errors.clear("name"); errors.reject("name", "project.name.alert") }
-            "error.restricted" -> { errors.clear("name"); errors.reject("name", "project.name.reserved.alert") }
+        errors.first("name")?.let { first ->
+            val message = ProjectNameRules.toUserMessageKey(first)
+            if (message != first) { errors.clear("name"); errors.reject("name", message) }
         }
         return errors
     }
@@ -165,11 +160,5 @@ class ProjectCreateService(
     companion object {
         /** 사이트 관리자의 사용자 번호이다. 모든 프로젝트에 `SITEMANAGER` 역할로 들어간다 (v1.6 `User.SITE_MANAGER_ID`). */
         const val SITE_MANAGER_ID = 1L
-
-        /** 프로젝트 이름에 쓸 수 있는 문자이다 (v1.6 `Project.name`의 `@Pattern`). */
-        private val NAME_PATTERN = Regex("^[a-zA-Z0-9-_.가-힣]+$")
-
-        /** 프로젝트 이름으로 쓸 수 없는 예약어이다 (v1.6 `@Restricted`). */
-        private val RESERVED_NAMES = listOf(".", "..", ".git")
     }
 }

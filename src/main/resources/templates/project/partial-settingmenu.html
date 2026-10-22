@@ -1,0 +1,23 @@
+<!--/*
+  이식 원본: app/views/project/partial_settingmenu.scala.html
+  매개변수: view(ProjectViewContext), requestPath(요청 경로. 현재 화면의 하위 메뉴를 활성으로 표시한다)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="settingmenu(view, requestPath)"
+          th:with="base=${'/' + view.project.owner + '/' + view.project.name}">
+<ul class="nav nav-tabs">
+    <li id="subMenuProjectSetting" th:class="${requestPath == base + '/settingform'} ? 'active'">
+        <a th:href="${base + '/settingform'}" th:text="#{project.setting}"></a></li>
+    <li id="subMenuProjectMember" th:class="${requestPath == base + '/members'} ? 'active'">
+        <a th:href="${base + '/members'}"><th:block th:text="#{project.member}"></th:block><span th:if="${view.enrolledUserCount > 0}" class="num-badge" th:text="${view.enrolledUserCount}"></span></a></li>
+    <li id="subMenuIssueLabel" th:class="${requestPath == base + '/issue/labelsform'} ? 'active'">
+        <a th:href="${base + '/issue/labelsform'}" th:text="#{issue.label}"></a></li>
+    <li id="subMenuWebhook" th:class="${requestPath == base + '/webhooks'} ? 'active'">
+        <a th:href="${base + '/webhooks'}" th:text="#{project.webhook}"></a></li>
+    <li id="subMenuProjectTransfer" th:class="${requestPath == base + '/transfer'} ? 'active'">
+        <a th:href="${base + '/transfer'}" th:text="#{project.transfer}"></a></li>
+    <li id="subMenuProjectDelete" th:class="${requestPath == base + '/deleteform'} ? 'active'">
+        <a th:href="${base + '/deleteform'}" th:text="#{project.delete}"></a></li>
+    <li id="subMenuProjectChangeVCS" th:class="${requestPath == base + '/changeVCS'} ? 'active'" th:style="${view.menuSetting.code != true} ? 'display:none;'">
+        <a th:href="${base + '/changeVCS'}" th:text="#{project.changeVCS}"></a></li>
+</ul>
+</th:block>

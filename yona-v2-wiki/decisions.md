@@ -227,4 +227,5 @@ updated: 2026-10-22
 | A-20 | README 파일 인코딩 감지에 `juniversalchardet`의 유지되는 포크(`com.github.albfernandez:juniversalchardet` 2.5.1)를 사용 | v1.6이 쓰던 원본(1.0.3)은 갱신이 멈췄고 같은 `org.mozilla.universalchardet.UniversalDetector` API이다 | 원본 1.0.3으로 되돌릴 수 있다 |
 | A-21 | 통합 테스트의 연결 풀을 컨텍스트당 최대 3개, 놀고 있는 연결 0개로 제한 | `@TestPropertySource` 같은 속성 조합마다 스프링 컨텍스트가 따로 캐시되고, 컨텍스트마다 기본 풀(10개)이 PostgreSQL 최대 연결 수(100)를 넘겨 `too many clients already`로 일부 테스트가 컨텍스트를 못 띄웠다 | 컨테이너 쪽에서 `max_connections`를 올려도 되지만 컨테이너 설정에 의존하게 된다 |
 | A-22 | 파일 종류 감지에 Apache Tika(`tika-core` 3.3.3)를 사용하고 첨부 목록 캐시는 두지 않음 | v1.6도 Tika를 썼고(감지 결과를 같게 유지), 컨테이너별 첨부 목록 캐시(`AttachmentCache`)는 성능 최적화일 뿐 관찰 가능한 동작이 같다 | 목록 조회가 병목이면 Caffeine으로 추가할 수 있다 |
+| A-24 | 프로젝트 설정 저장에서 폼이 보내는 항목(이름, 설명, 공개 범위, 코드 접근 제한, 리뷰어 수, 기본 브랜치, 메뉴, 로고)만 받고, 대상 프로젝트는 주소로 정함 | v1.6은 요청을 `Project` 전체에 묶어서(mass assignment) 관리자가 `owner`, `vcs`, 다른 프로젝트의 `id`까지 바꿀 수 있었다. 정상 사용에서는 보이지 않는 차이이고 권한 상승 경로를 닫는다 | v1.6처럼 모두 받으려면 알려 주십시오. 보안 위험이 있다 |
 

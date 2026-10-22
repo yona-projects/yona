@@ -1,0 +1,219 @@
+package dev.yona.domain.project
+
+import dev.yona.domain.enumeration.ProjectScope
+import dev.yona.domain.enumeration.ResourceType
+import dev.yona.domain.misc.AttachmentService
+import dev.yona.domain.misc.FavoriteProjectRepository
+import dev.yona.repository.RepositoryService
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.io.InputStream
+
+/**
+ * 프로젝트 설정 폼의 입력값이다. 값은 요청에서 온 그대로(검증 전) 담는다. 보내지 않은 항목은 `null`이다.
+ *
+ * v1.6은 요청 파라미터를 `Project`에 직접 묶어서 폼이 보내지 않는 항목(`owner`, `vcs` 등)도 요청으로 바꿀 수 있었다.
+ * v2는 아래 항목만 받는다([decisions.md] A-24).
+ *
+ * @property name 프로젝트 이름
+ * @property overview 설명
+ * @property projectScope 공개 범위 이름
+ * @property isCodeAccessibleMemberOnly 코드를 구성원에게만 보일지 (`true`/`false` 문자열)
+ * @property isUsingReviewerCount 리뷰어 수를 쓸지 (`true`/`false` 문자열)
+ * @property defaultReviewerCount 기본 리뷰어 수
+ * @property defaultBranch 기본 브랜치 참조 이름 (예: `refs/heads/master`)
+ * @property menus 켜기로 한 메뉴 이름 모음. 체크하지 않은 메뉴는 꺼진다
+ */
+data class ProjectSettingForm(
+    val name: String? = null,
+    val overview: String? = null,
+    val projectScope: String? = null,
+    val isCodeAccessibleMemberOnly: String? = null,
+    val isUsingReviewerCount: String? = null,
+    val defaultReviewerCount: String? = null,
+    val defaultBranch: String? = null,
+    val menus: Set<String> = emptySet()
+)
+
+/**
+ * 업로드한 로고 파일이다.
+ *
+ * @property filename 원래 파일 이름. 파일을 고르지 않았으면 비어 있다
+ * @property size 크기(바이트)
+ * @property open 내용을 읽는 스트림을 연다
+ */
+class LogoUpload(val filename: String?, val size: Long, val open: () -> InputStream) {
+    /** 파일을 고르지 않았으면 `true`이다 (v1.6 `LogoUtil.isEmptyFilePart`). */
+    val isEmpty: Boolean get() = filename.isNullOrEmpty()
+}
+
+/**
+ * 설정 검증 결과이다.
+ *
+ * @property errors 필드별 오류
+ * @property warning 화면에 알릴 안내 메시지 키. v1.6의 `flash("warning", ...)`이며 마지막으로 정한 값이 남는다
+ */
+class SettingValidation(val errors: FormErrors, val warning: String?) {
+    fun hasErrors(): Boolean = errors.hasErrors()
+}
+
+/**
+ * 프로젝트 설정의 검증과 저장이다. v1.6 `ProjectApp.settingProject`, `validateWhenUpdate`,
+ * `saveProjectMenuSetting`(`app/controllers/ProjectApp.java:235-330`)에 해당한다.
+ */
+@Service
+class ProjectSettingService(
+    private val projects: ProjectRepository,
+    private val menuSettings: ProjectMenuSettingRepository,
+    private val favorites: FavoriteProjectRepository,
+    private val attachments: AttachmentService,
+    private val repositories: RepositoryService
+) {
+
+    /**
+     * 입력값을 검증한다. v1.6와 같은 순서로 안내를 정하므로 나중에 정한 안내가 앞의 안내를 덮는다.
+     *
+     * 1. 같은 소유자에 같은 이름(대소문자 무시)이 이미 있으면(자기 자신은 제외) `project.name.duplicate`
+     * 2. 로고가 있으면 이미지 확장자(`jpg`, `jpeg`, `png`, `gif`, `bmp`)가 아니거나 5MB를 넘을 때
+     * 3. 이름 규칙 위반(형식, 예약어)이 첫 오류이면 그 오류를 안내 문구로 바꾼다
+     */
+    fun validate(project: Project, form: ProjectSettingForm, logo: LogoUpload?): SettingValidation {
+        val errors = FormErrors()
+        var warning: String? = null
+
+        // 입력 묶기 단계의 검사
+        ProjectNameRules.violations(form.name).forEach { errors.reject("name", it) }
+        if (form.projectScope != null && scopeOf(form.projectScope) == null) errors.reject("projectScope", "error.invalid")
+        form.isCodeAccessibleMemberOnly?.let { if (booleanOf(it) == null) errors.reject("isCodeAccessibleMemberOnly", "error.invalid") }
+        form.isUsingReviewerCount?.let { if (booleanOf(it) == null) errors.reject("isUsingReviewerCount", "error.invalid") }
+        form.defaultReviewerCount?.let { if (it.toIntOrNull() == null) errors.reject("defaultReviewerCount", "error.invalid") }
+
+        // 폼 검증 단계 (validateWhenUpdate)
+        val name = form.name
+        if (name != null && !isNameChangeable(project, name)) {
+            warning = "project.name.duplicate"
+            errors.reject("name", "project.name.duplicate")
+        }
+
+        if (logo != null && !logo.isEmpty) {
+            if (!isImageFile(requireNotNull(logo.filename))) {
+                warning = "project.logo.alert"
+                errors.reject("logoPath", "project.logo.alert")
+            } else if (logo.size > LOGO_FILE_LIMIT_SIZE) {
+                warning = "project.logo.fileSizeAlert"
+                errors.reject("logoPath", "project.logo.fileSizeAlert")
+            }
+        }
+
+        errors.first("name")?.let { first ->
+            val message = ProjectNameRules.toUserMessageKey(first)
+            if (message != first) {
+                warning = message
+                errors.clear("name")
+                errors.reject("name", message)
+            }
+        }
+        return SettingValidation(errors, warning)
+    }
+
+    /**
+     * 설정을 저장한다. 검증을 통과한 입력만 받는다.
+     *
+     * 순서는 v1.6과 같다. 로고 교체 -> 기본 브랜치 -> 이름 변경(이전 위치 기록, 저장소 디렉터리 이동) -> 필드 저장 -> 메뉴 설정 ->
+     * 즐겨찾기 갱신. 저장소 디렉터리를 옮기지 못하면 예외를 던지고 트랜잭션은 취소된다.
+     *
+     * @param ownerLoginId 로고를 올린 사용자의 로그인 ID
+     */
+    @Transactional
+    fun update(project: Project, form: ProjectSettingForm, logo: LogoUpload?, ownerLoginId: String?) {
+        val projectId = requireNotNull(project.id)
+
+        if (logo != null && !logo.isEmpty) {
+            attachments.deleteAll(ResourceType.PROJECT, projectId)
+            attachments.store(logo.open(), logo.filename, ResourceType.PROJECT, projectId, ownerLoginId)
+        }
+
+        if (!form.defaultBranch.isNullOrEmpty()) repositories.setDefaultBranch(project, form.defaultBranch)
+
+        val newName = requireNotNull(form.name)
+        if (project.name != newName) {
+            recordPreviousPlaceIfLastChangePassed24Hours(project)
+            if (!repositories.renameRepository(project, newName)) {
+                throw IllegalStateException("fail repository rename to ${project.owner}/$newName")
+            }
+            project.name = newName
+        }
+
+        form.overview?.let { project.overview = it }
+        scopeOf(form.projectScope)?.let { project.projectScope = it }
+        form.isCodeAccessibleMemberOnly?.let { project.isCodeAccessibleMemberOnly = booleanOf(it) }
+        form.isUsingReviewerCount?.let { project.isUsingReviewerCount = booleanOf(it) }
+        form.defaultReviewerCount?.let { project.defaultReviewerCount = it.toInt() }
+        projects.save(project)
+
+        saveMenuSetting(project, form.menus)
+        updateFavorites(project)
+    }
+
+    /**
+     * 이전 이름이 없거나 마지막 이름 변경이 24시간(실제로는 25시간 이상)을 넘었으면 지금의 위치를 이전 위치로 기록한다
+     * (v1.6 `recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom`). 24시간 안에 다시 바꾸면 처음의 이전 위치를 유지한다.
+     */
+    private fun recordPreviousPlaceIfLastChangePassed24Hours(project: Project) {
+        val changedAt = project.previousNameChangedTime
+        if (changedAt == null || hasPassed24Hours(changedAt)) {
+            project.previousNameChangedTime = System.currentTimeMillis()
+            project.previousName = project.name
+            project.previousOwnerLoginId = project.owner
+        }
+    }
+
+    /** v1.6 `hasPassed24hoursFrom`: 경과 시간(시간 단위 내림)이 24보다 클 때, 즉 25시간 이상일 때이다. */
+    private fun hasPassed24Hours(time: Long): Boolean = (System.currentTimeMillis() - time) / MILLIS_PER_HOUR > 24
+
+    private fun saveMenuSetting(project: Project, menus: Set<String>) {
+        val setting = menuSettings.findFirstByProjectId(requireNotNull(project.id))
+            ?: ProjectMenuSetting(project = project)
+        setting.code = "code" in menus
+        setting.issue = "issue" in menus
+        setting.pullRequest = "pullRequest" in menus
+        setting.review = "review" in menus
+        setting.milestone = "milestone" in menus
+        setting.board = "board" in menus
+        menuSettings.save(setting)
+    }
+
+    private fun updateFavorites(project: Project) {
+        favorites.findByProjectId(requireNotNull(project.id)).forEach {
+            it.owner = project.owner
+            it.projectName = project.name
+            favorites.save(it)
+        }
+    }
+
+    private fun isNameChangeable(project: Project, name: String): Boolean {
+        val same = projects.findByOwnerIgnoreCaseAndNameIgnoreCase(project.owner.orEmpty(), name)
+        return same == null || same.id == project.id
+    }
+
+    private fun isImageFile(filename: String): Boolean = LOGO_TYPES.any { filename.lowercase().endsWith(it) }
+
+    private fun scopeOf(value: String?): ProjectScope? = value?.let { v -> ProjectScope.entries.firstOrNull { it.name == v } }
+
+    /** Play의 불리언 묶기와 같이 `true`/`on`/`yes`/`1`은 참, `false`/`off`/`no`/`0`은 거짓이고 나머지는 잘못된 값이다. */
+    private fun booleanOf(value: String): Boolean? = when (value.lowercase()) {
+        "true", "on", "yes", "1" -> true
+        "false", "off", "no", "0" -> false
+        else -> null
+    }
+
+    companion object {
+        /** 로고 파일의 최대 크기(바이트)이다 (v1.6 `LogoUtil.LOGO_FILE_LIMIT_SIZE`, 5M). */
+        const val LOGO_FILE_LIMIT_SIZE = 1024 * 1000 * 5
+
+        /** 로고로 쓸 수 있는 확장자이다 (v1.6 `LogoUtil.LOGO_TYPE`). */
+        private val LOGO_TYPES = listOf("jpg", "jpeg", "png", "gif", "bmp")
+
+        private const val MILLIS_PER_HOUR = 3_600_000L
+    }
+}

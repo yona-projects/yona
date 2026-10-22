@@ -1,5 +1,7 @@
 package dev.yona.repository
 
+import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.RefUpdate
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.storage.file.WindowCacheConfig
@@ -39,7 +41,50 @@ class GitRepositories(private val dataDirectory: DataDirectory) {
     fun open(owner: String, name: String): Repository =
         RepositoryBuilder().setGitDir(directoryOf(owner, name)).setMustExist(true).build()
 
+    /**
+     * 저장소 디렉터리를 다른 소유자나 이름의 위치로 옮긴다 (v1.6 `GitRepository.move`). 원래 디렉터리가 없으면 옮길 것이 없다고
+     * 보고 성공으로 처리한다. 옮기지 못하면 `false`이다.
+     *
+     * 이미 열었던 저장소가 파일을 붙들고 있을 수 있으므로 JGit의 창 캐시를 다시 설치한 뒤 옮긴다.
+     */
+    fun move(owner: String, name: String, newOwner: String, newName: String): Boolean {
+        WindowCacheConfig().install()
+        val source = directoryOf(owner, name)
+        val target = directoryOf(newOwner, newName)
+        source.setWritable(true)
+        return try {
+            if (source.exists()) {
+                target.parentFile.mkdirs()
+                java.nio.file.Files.move(source.toPath(), target.toPath())
+            }
+            true
+        } catch (e: java.io.IOException) {
+            false
+        }
+    }
+
+    /** 저장소의 브랜치, 태그, 원격 참조 이름을 이름순으로 돌려준다 (v1.6 `GitRepository.getRefNames`). */
+    fun refNames(owner: String, name: String): List<String> = open(owner, name).use { repository ->
+        repository.refDatabase.refs.map { it.name }.filter { ref -> WELL_KNOWN_PREFIXES.any { ref.startsWith(it) } }.sorted()
+    }
+
+    /** 저장소의 기본 브랜치(`HEAD`가 가리키는 참조) 이름이다. 예: `refs/heads/master`. */
+    fun defaultBranch(owner: String, name: String): String = open(owner, name).use { it.findRef(Constants.HEAD).target.name }
+
+    /** 저장소의 기본 브랜치를 [target]으로 바꾼다. 바꾸지 못하면 [java.io.IOException]이다. */
+    fun setDefaultBranch(owner: String, name: String, target: String) {
+        open(owner, name).use { repository ->
+            val result = repository.updateRef(Constants.HEAD).link(target)
+            if (result != RefUpdate.Result.NEW && result != RefUpdate.Result.FORCED && result != RefUpdate.Result.NO_CHANGE) {
+                throw java.io.IOException("Failed to update symbolic ref, got: $result")
+            }
+        }
+    }
+
     private companion object {
+        /** 브랜치, 태그, 원격 참조의 접두어이다. */
+        val WELL_KNOWN_PREFIXES = listOf(Constants.R_HEADS, Constants.R_TAGS, Constants.R_REMOTES)
+
         /** 데이터 디렉터리 아래의 Git 저장소 위치이다 (v1.6 `GitRepository.repoPrefix`). */
         const val REPO_PREFIX = "repo/git"
     }

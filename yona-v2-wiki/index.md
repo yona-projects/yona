@@ -16,6 +16,7 @@
 - [정적 자원, LESS 빌드, 다국어 메시지](web/static-assets-and-i18n.md): `/assets/`, favicon, Less 1.7.5 빌드, Play 메시지 형식
 - [최근 방문 기록](domain/recent-visits.md)
 - [마일스톤 진행 현황](domain/milestone-status.md)
+- [프로젝트 설정](web/project-setting.md): 폼, 저장, 이름 변경, 로고
 - [첨부 파일](web/attachments.md): 저장, 내려받기, 권한
 - [프로젝트 홈](web/project-home.md): README, 설명 수정, 구성원, 마일스톤 요약
 - [마크다운 렌더링](web/markdown.md): commonmark-java, v1.6 marked.js와의 비교 테스트

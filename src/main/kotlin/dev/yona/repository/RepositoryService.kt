@@ -40,6 +40,24 @@ class RepositoryService(private val git: GitRepositories) {
         return git.open(owner(project), name(project))
     }
 
+    /** 프로젝트 저장소 디렉터리를 새 이름으로 옮긴다. 옮기지 못하면 `false`이다 (v1.6 `PlayRepository.renameTo`). */
+    fun renameRepository(project: Project, newName: String): Boolean {
+        if (project.vcs != VCS_GIT) throw unsupported(project)
+        return git.move(owner(project), name(project), owner(project), newName)
+    }
+
+    /** 저장소의 브랜치, 태그, 원격 참조 이름이다 (v1.6 `getRefNames`). */
+    fun refNames(project: Project): List<String> {
+        if (project.vcs != VCS_GIT) throw unsupported(project)
+        return git.refNames(owner(project), name(project))
+    }
+
+    /** 저장소의 기본 브랜치를 [target]으로 바꾼다 (v1.6 `setDefaultBranch`). */
+    fun setDefaultBranch(project: Project, target: String) {
+        if (project.vcs != VCS_GIT) throw unsupported(project)
+        git.setDefaultBranch(owner(project), name(project), target)
+    }
+
     /**
      * 프로젝트 저장소의 기본 브랜치 이름이다. 예: `refs/heads/master`. 저장소를 열 수 없으면 `HEAD`이다
      * (v1.6 `Project.defaultBranch`).

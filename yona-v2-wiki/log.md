@@ -140,3 +140,7 @@
 
 ## [2026-10-22] ingest | 첨부 파일 핵심 (2단계 b-5c-3a)
 - 프로젝트 설정의 로고 업로드에 필요해 첨부 저장과 내려받기를 먼저 이식했다. TDD: 서비스 12건, 컨트롤러 13건을 먼저 쓰고 구현했다. 기록: [web/attachments.md](web/attachments.md)
+
+## [2026-10-22] ingest | 프로젝트 설정 (2단계 b-5c-3b)
+- TDD: `ProjectSettingTest` 34건을 먼저 쓰고(컴파일 오류 후 RED) 구현했다. 구현 중 알게 된 점: `th:with`에 `${}` 없이 쓰면 문자열 그대로 들어간다, 보안 필터가 감싼 요청은 `MultipartHttpServletRequest`로 형변환할 수 없어 `@RequestParam MultipartFile`을 쓴다.
+- v1.6의 mass assignment는 재현하지 않고 A-24로 기록했다. 기록: [web/project-setting.md](web/project-setting.md)
