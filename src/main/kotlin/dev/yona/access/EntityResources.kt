@@ -7,7 +7,9 @@ import dev.yona.domain.issue.Issue
 import dev.yona.domain.issue.IssueLabel
 import dev.yona.domain.issue.IssueLabelCategory
 import dev.yona.domain.issue.Milestone
+import dev.yona.domain.project.Organization
 import dev.yona.domain.pullrequest.PullRequest
+import dev.yona.domain.user.User
 
 /*
  * 엔티티를 권한 검사의 대상([Resource])으로 바꾸는 함수 모음이다. v1.6의 `asResource()`에 해당한다.
@@ -44,3 +46,12 @@ fun PullRequest.asResource(): ProjectResource =
  */
 fun CommitComment.asResource(): ProjectResource =
     ProjectResource(requireNotNull(id).toString(), ResourceType.COMMIT_COMMENT, project, authorId = authorId)
+
+/** 사용자 (`USER`). 임시 첨부의 컨테이너로 쓴다 (v1.6 `User.asResource`). */
+fun User.asResource(): GlobalResource = GlobalResource(requireNotNull(id).toString(), ResourceType.USER)
+
+/** 사용자 아바타 (`USER_AVATAR`). 아바타 첨부의 컨테이너로 쓴다 (v1.6 `User.avatarAsResource`). */
+fun User.avatarAsResource(): GlobalResource = GlobalResource(requireNotNull(id).toString(), ResourceType.USER_AVATAR)
+
+/** 조직 (`ORGANIZATION`) (v1.6 `Organization.asResource`). */
+fun Organization.asResource(): GlobalResource = GlobalResource(requireNotNull(id).toString(), ResourceType.ORGANIZATION)

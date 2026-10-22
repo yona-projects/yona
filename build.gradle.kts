@@ -41,6 +41,7 @@ dependencies {
 	implementation("org.commonmark:commonmark-ext-heading-anchor:0.31.0")
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1")
 	implementation("org.jsoup:jsoup:1.23.2")
+	implementation("org.apache.tika:tika-core:3.3.3")
 	implementation("com.github.albfernandez:juniversalchardet:2.5.1")
 	implementation("com.github.ben-manes.caffeine:caffeine")
 

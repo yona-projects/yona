@@ -1,12 +1,12 @@
 package dev.yona.repository
 
 import dev.yona.domain.project.Project
+import dev.yona.io.CharsetDetection
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.treewalk.filter.PathFilter
-import org.mozilla.universalchardet.UniversalDetector
 import org.springframework.stereotype.Service
 
 /**
@@ -27,7 +27,7 @@ class ProjectReadmeService(private val repositories: RepositoryService) {
     fun read(project: Project): String? = withRepository(project) { repository ->
         val name = CANDIDATES.firstOrNull { isFile(repository, it) } ?: return@withRepository null
         val bytes = rawFile(repository, name) ?: return@withRepository null
-        String(bytes, java.nio.charset.Charset.forName(charset(bytes)))
+        String(bytes, java.nio.charset.Charset.forName(CharsetDetection.detect(bytes)))
     }
 
     private fun <T> withRepository(project: Project, block: (Repository) -> T?): T? = try {
@@ -60,20 +60,7 @@ class ProjectReadmeService(private val repositories: RepositoryService) {
         }
     }
 
-    private fun charset(bytes: ByteArray): String {
-        val detector = UniversalDetector(null)
-        var offset = 0
-        do {
-            val size = minOf(DETECT_BLOCK, bytes.size - offset)
-            detector.handleData(bytes, offset, size)
-            offset += size
-        } while (offset < bytes.size)
-        detector.dataEnd()
-        return detector.detectedCharset ?: "UTF-8"
-    }
-
     private companion object {
         val CANDIDATES = listOf("README.md", "readme.md")
-        const val DETECT_BLOCK = 4096
     }
 }

@@ -226,4 +226,5 @@ updated: 2026-10-22
 | A-19 | `POST /markdown/:user/:project`에서 프로젝트를 찾지 못하면 프로젝트 문맥 없이 렌더링 | v1.6은 이 경우 동작이 정의되어 있지 않다(프로젝트 `null`을 자동 링크 변환기에 넘긴다). 미리보기가 오류로 끝나는 것보다 본문 변환 결과를 주는 편이 안전하다 | 오류 응답을 원하시면 알려 주십시오 |
 | A-20 | README 파일 인코딩 감지에 `juniversalchardet`의 유지되는 포크(`com.github.albfernandez:juniversalchardet` 2.5.1)를 사용 | v1.6이 쓰던 원본(1.0.3)은 갱신이 멈췄고 같은 `org.mozilla.universalchardet.UniversalDetector` API이다 | 원본 1.0.3으로 되돌릴 수 있다 |
 | A-21 | 통합 테스트의 연결 풀을 컨텍스트당 최대 3개, 놀고 있는 연결 0개로 제한 | `@TestPropertySource` 같은 속성 조합마다 스프링 컨텍스트가 따로 캐시되고, 컨텍스트마다 기본 풀(10개)이 PostgreSQL 최대 연결 수(100)를 넘겨 `too many clients already`로 일부 테스트가 컨텍스트를 못 띄웠다 | 컨테이너 쪽에서 `max_connections`를 올려도 되지만 컨테이너 설정에 의존하게 된다 |
+| A-22 | 파일 종류 감지에 Apache Tika(`tika-core` 3.3.3)를 사용하고 첨부 목록 캐시는 두지 않음 | v1.6도 Tika를 썼고(감지 결과를 같게 유지), 컨테이너별 첨부 목록 캐시(`AttachmentCache`)는 성능 최적화일 뿐 관찰 가능한 동작이 같다 | 목록 조회가 병목이면 Caffeine으로 추가할 수 있다 |
 
