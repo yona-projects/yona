@@ -5,7 +5,6 @@ import dev.yona.web.access.ProjectCheckInterceptor
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 /**
@@ -14,7 +13,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  * v1.6 `conf/routes`는 `public/` 폴더를 `/assets/` 아래로 제공하고(`GET /assets/:file`),
  * `/favicon.ico`를 `public/images/favicon.ico`에 연결한다. `public/`의 내용은
  * `src/main/resources/static/assets/`에 그대로 복사해 두었으므로, Spring Boot의 기본 정적 자원 처리가
- * `/assets/` 경로를 제공한다. 여기서는 루트에 있어야 하는 favicon만 추가로 연결한다.
+ * `/assets/` 경로를 제공한다. 루트에 있어야 하는 favicon은 `FaviconController`가 제공한다.
+ * (자원 처리기로 연결하면 `POST /{user}` 같은 한 구간 경로 매핑이 먼저 걸려 405로 처리되어 제공되지 않는다.)
  */
 @Configuration(proxyBeanMethods = false)
 class WebConfig(
@@ -29,11 +29,5 @@ class WebConfig(
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(anonymousCheckInterceptor)
         registry.addInterceptor(projectCheckInterceptor)
-    }
-
-
-    override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
-        registry.addResourceHandler("/favicon.ico")
-            .addResourceLocations("classpath:/static/assets/images/")
     }
 }

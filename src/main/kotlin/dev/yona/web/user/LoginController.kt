@@ -37,10 +37,10 @@ import java.net.URLEncoder
 class LoginController(
     private val authenticator: LocalAuthenticator,
     private val users: UserRepository,
-    private val flashTranslator: FlashMessageTranslator
+    private val flashTranslator: FlashMessageTranslator,
+    private val loginSession: dev.yona.security.LoginSessionService
 ) {
 
-    private val securityContextRepository = HttpSessionSecurityContextRepository()
 
     @PostMapping("/users/login")
     @Transactional
@@ -138,12 +138,7 @@ class LoginController(
         user.lang = LocaleContextHolder.getLocale().toLanguageTag()
         users.save(user)
 
-        // 로그인 전에 쓰던 세션 식별자를 버려 세션 고정 공격을 막는다.
-        if (request.getSession(false) != null) request.changeSessionId()
-        val context = SecurityContextHolder.createEmptyContext()
-        context.authentication = YonaAuthentication.of(user)
-        SecurityContextHolder.setContext(context)
-        securityContextRepository.saveContext(context, request, response)
+        loginSession.start(request, response, user)
     }
 
     /** 세션의 인증 정보와 remember-me 쿠키를 지운다 (v1.6 `processLogout`). */

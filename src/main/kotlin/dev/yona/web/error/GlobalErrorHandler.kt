@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.web.HttpRequestMethodNotSupportedException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.servlet.NoHandlerFoundException
 import org.springframework.web.servlet.resource.NoResourceFoundException
@@ -17,7 +19,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException
  * 처리하지 못한 예외를 v1.6의 오류 화면으로 바꾼다. `Global.onHandlerNotFound`, `onError`, `onBadRequest`
  * (`app/Global.java:385-411`)에 해당한다.
  *
- * - 일치하는 주소가 없으면 404 화면.
+ * - 일치하는 주소가 없으면 404 화면. 필수 파라미터가 없거나 타입이 맞지 않으면 400 화면.
  * - 그 밖의 처리하지 못한 예외는 500 화면. 쿼리 제한 시간을 넘긴 경우에는 전용 문구(`error.timeout`)를 쓴다.
  *   v1.6은 운영 모드에서만 이 화면을 보여 주고 개발 모드에서는 Play의 개발용 화면을 보여 준다. v2는 항상
  *   이 화면을 보여 주고 원인은 로그에 남긴다.
@@ -38,6 +40,13 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
     fun methodNotSupported(e: HttpRequestMethodNotSupportedException, request: HttpServletRequest): ModelAndView {
         log.warn("지원하지 않는 요청 방식: {}", e.message)
         return withLayout(ErrorViews.notFound(), request)
+    }
+
+    /** 필수 요청 파라미터가 없거나 경로 변수, 파라미터의 타입이 맞지 않으면 400 화면이다 (v1.6 `Global.onBadRequest`). */
+    @ExceptionHandler(MissingServletRequestParameterException::class, MethodArgumentTypeMismatchException::class)
+    fun badRequest(e: Exception, request: HttpServletRequest): ModelAndView {
+        log.warn("잘못된 요청: {}", e.message)
+        return withLayout(ErrorViews.badRequest(), request)
     }
 
     @ExceptionHandler(Exception::class)

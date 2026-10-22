@@ -16,6 +16,7 @@
 - [정적 자원, LESS 빌드, 다국어 메시지](web/static-assets-and-i18n.md): `/assets/`, favicon, Less 1.7.5 빌드, Play 메시지 형식
 - [최근 방문 기록](domain/recent-visits.md)
 - [마일스톤 진행 현황](domain/milestone-status.md)
+- [가입, 인증, 비밀번호 재설정](web/signup-and-password.md)
 - [조직](web/organization.md): 생성, 홈, 목록, 설정, 구성원, 삭제, 가입 신청
 - [프로젝트 구성원](web/project-members.md): 목록, 추가, 역할, 탈퇴
 - [프로젝트 이전과 저장소 종류 변경](web/project-transfer.md)

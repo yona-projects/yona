@@ -22,6 +22,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property hostname 서버 이름. 비우면 요청의 Host 헤더를 쓴다 (`application.hostname`)
  * @property port 서버 포트. 80이면 주소에 쓰지 않는다 (`application.port`)
  * @property scheme `http` 또는 `https`. 비우면 요청의 스킴을 쓴다 (`application.scheme`)
+ * @property useEmailVerification 가입한 사용자를 인증 메일의 링크를 열 때까지 잠가 둔다 (`application.use.email.verification`)
+ * @property allowedSendingMailDomains 가입과 메일 발송을 허용할 이메일 도메인을 쉼표로 이은 값. 비우면 모두 허용한다 (`application.allowed.sending.mail.domains`)
  * @property noreferrer 외부 링크에 `rel="noreferrer"`를 붙인다 (`application.noreferrer`)
  * @property applicationContext 서버를 하위 경로에 둘 때의 경로. 앞뒤 슬래시 없이 쓴다 (`application.context`)
  * @property allowsAnonymousAccess 익명 사용자의 접근을 허용한다. 끄면 `@AnonymousCheck` 화면이 모두 로그인을 요구한다 (`application.allowsAnonymousAccess`)
@@ -48,6 +50,8 @@ data class YonaProperties(
     val scheme: String = "",
     val applicationContext: String = "",
     val noreferrer: Boolean = false,
+    val useEmailVerification: Boolean = false,
+    val allowedSendingMailDomains: String = "",
     val allowsAnonymousAccess: Boolean = true,
     val socialLoginOnly: Boolean = false,
     val maxFileSize: Long = 2147483454L,

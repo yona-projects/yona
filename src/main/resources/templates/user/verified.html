@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/verified.scala.html
+  모델: title(빈 문자열), loginId
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::verifiedPage})}">
+<th:block th:fragment="verifiedPage">
+<div class="page full">
+  <div class="center-wrap tag-line-wrap reset-password">
+    <h1 class="title" th:utext="#{user.verified}">
+    </h1>
+    <p th:text="${loginId}"></p>
+    <hr />
+    <p class="tag-line" th:text="#{user.verified.detail}"></p>
+  </div>
+</div>
+</th:block>
+</html>

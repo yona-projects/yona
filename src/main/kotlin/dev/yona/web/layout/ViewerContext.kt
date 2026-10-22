@@ -33,6 +33,8 @@ class ViewerContext(
 
     val name: String? get() = current.user?.name
 
+    val email: String? get() = current.user?.email
+
     /** 게스트 계정이면 `true`이다 (v1.6 `User.isGuest`). */
     val guest: Boolean get() = current.user?.isGuest == true
 

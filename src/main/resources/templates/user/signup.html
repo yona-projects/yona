@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/signup.scala.html
+  모델: title, requiresConfirm(관리자 승인제), adminEmailReversed(사이트 관리자 이메일을 거꾸로 쓴 것)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::signupPage})}">
+<th:block th:fragment="signupPage">
+<div class="page full">
+  <div class="center-wrap tag-line-wrap signup">
+    <h1 class="title" th:utext="#{title.signupFor(${site.siteName})}">
+    </h1>
+    <p class="tag-line" th:text="#{app.description}"></p>
+  </div>
+
+  <div th:if="${requiresConfirm}" class="center-txt">
+    <p th:text="#{title.signupConfirmDesc}"></p>
+    <p th:utext="#{title.signupConfirmDesc2(${adminEmailReversed})}"></p>
+  </div>
+  <div class="signup-form-wrap frm-wrap">
+    <form th:action="@{/users/signup}" method="post" name="signup">
+    <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">
+    </div>
+    <th:block th:unless="${site.socialLoginOnly}">
+      <dl>
+        <dt>
+          <label for="loginId" th:text="#{user.signupId}"></label>
+        </dt>
+        <dd>
+          <input id="loginId" type="text" name="loginId" class="text password" placeholder="" autocomplete="off">
+        </dd>
+
+        <dt>
+          <label for="uname" th:text="#{user.name}"></label>
+        </dt>
+        <dd>
+          <input id="uname" type="text" name="name" class="text password" placeholder="" autocomplete="off">
+        </dd>
+
+        <dt>
+          <label for="email" th:text="#{user.email}"></label>
+        </dt>
+        <dd>
+          <input id="email" type="text" name="email" class="text password" placeholder="" autocomplete="off">
+        </dd>
+
+        <dt>
+          <label for="password" th:text="#{user.password}"></label>
+        </dt>
+        <dd>
+          <input id="password" type="password" name="password" class="text password" placeholder="" autocomplete="off">
+        </dd>
+
+        <dt>
+          <label for="retypedPassword" th:text="#{validation.retypePassword}"></label>
+        </dt>
+        <dd>
+          <input id="retypedPassword" type="password" name="retypedPassword" class="text password" placeholder="" autocomplete="off">
+        </dd>
+      </dl>
+
+      <div class="btns-row">
+        <button type="submit" class="ybtn ybtn-primary ybtn-large ybtn-fullsize" th:text="#{user.signupBtn}"></button>
+      </div>
+
+      <div class="act-row">
+        <th:block th:text="#{user.isAlreadySignupUser}"></th:block> <a th:href="@{/users/loginform}" class="go-login" th:text="#{title.login}"></a>
+      </div>
+    </th:block>
+    </form>
+  </div>
+</div>
+
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/validate.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("user.SignUp", {
+            "sLogindIdCheckUrl" : "/user/isUsed?name=",
+            "sEmailCheckUrl" : "/user/isEmailExist?email="
+        });
+    });
+</script>
+</th:block>
+</html>
