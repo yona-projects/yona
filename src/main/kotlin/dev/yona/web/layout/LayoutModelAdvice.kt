@@ -30,6 +30,7 @@ import org.springframework.web.util.HtmlUtils
  * | `helper` | 표시 도우미(상대 시간, 날짜, 복수형) | `utils.TemplateHelper` |
  * | `requestPath` | 요청 경로 | `request().path()` |
  * | `requestUri` | 쿼리 문자열을 포함한 요청 주소 | `requestHeader.uri` |
+ * | `isMac` | `User-Agent`에 `Macintosh`가 있는지 (단축키 안내가 쓴다) | `keymap`의 `isMac` |
  *
  * 컨트롤러가 그린 화면은 [LayoutModelAdvice]가, 예외 처리기가 그린 오류 화면은 [dev.yona.web.error.GlobalErrorHandler]가
  * 이 값을 채운다. `@ControllerAdvice`의 `@ModelAttribute`는 예외 처리기에는 적용되지 않기 때문이다.
@@ -54,6 +55,7 @@ class LayoutModelFactory(
         "flashMessages" to flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty()),
         "helper" to templateHelper,
         "requestPath" to request.requestURI,
+        "isMac" to (request.getHeader("User-Agent")?.contains("Macintosh") == true),
         "requestUri" to listOfNotNull(request.requestURI, request.queryString).joinToString("?")
     )
 

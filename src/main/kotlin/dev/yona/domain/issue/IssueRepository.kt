@@ -27,6 +27,9 @@ interface IssueRepository : JpaRepository<Issue, Long> {
     /** 마일스톤에 속한 전체 이슈 수이다 (v1.6 `Milestone.getNumTotalIssues`). */
     fun countByMilestoneId(milestoneId: Long): Long
 
+    /** 마일스톤에 속한 모든 이슈를 번호 내림차순으로 조회한다 (v1.6 `Milestone.sortedByNumberOfIssue`). */
+    fun findByMilestoneIdOrderByNumberDesc(milestoneId: Long): List<Issue>
+
     /** 마일스톤에 속한 이슈 중 지정한 상태인 것을 번호 순으로 조회한다 (v1.6 `Issue.findOpenIssuesByMilestone`, `findClosedIssuesByMilestone`). */
     fun findByMilestoneIdAndStateOrderById(milestoneId: Long, state: State): List<Issue>
 

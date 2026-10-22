@@ -1,0 +1,93 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_searchform.scala.html
+  모델: projectView, cond(IssueSearchCondition), search(SearchForm), currentUser
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="searchform" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<form id="search" name="search" th:action="${base + '/issues'}" method="get">
+    <input type="hidden" name="orderBy" th:value="${cond.orderBy}">
+    <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
+    <input type="hidden" name="state" th:value="${cond.state}">
+    <input type="hidden" name="commenterId" th:value="${cond.commenterId}" data-search="commenterId">
+    <hr class="hide-in-mobile">
+    <div class="search">
+        <div class="search-bar">
+            <input name="filter" class="textbox full" type="text" th:value="${cond.filter}" data-search="filter">
+            <button type="button" class="search-btn" data-submit="submit"><i class="yobicon-search"></i></button>
+        </div>
+    </div>
+
+    <div id="advanced-search-form" class="srch-advanced hide-in-mobile">
+        <dl class="issue-option">
+            <dt th:text="#{issue.author}"></dt>
+            <dd>
+                <select id="authorId" name="authorId" data-search="authorId"
+                        data-toggle="select2" data-format="user" data-container-css-class="fullsize">
+                    <option value="" th:text="#{common.order.all}"></option>
+                    <option th:if="${search.showAuthoredByMe}" th:value="${currentUser.id}" th:text="#{issue.list.authoredByMe}"></option>
+                    <option th:each="author : ${search.authors}" th:value="${author.id}"
+                            th:selected="${cond.authorId != null and cond.authorId == author.id}"
+                            th:attr="data-avatar-url=${author.avatarUrl}, data-login-id=${author.loginId}" th:text="${author.name}"></option>
+                </select>
+            </dd>
+        </dl>
+
+        <dl class="issue-option">
+            <dt th:text="#{issue.assignee}"></dt>
+            <dd>
+                <select id="assigneeId" name="assigneeId" data-search="assigneeId"
+                        data-toggle="select2" data-format="user" data-container-css-class="fullsize">
+                    <option value="" th:text="#{common.order.all}"></option>
+                    <option value="-1" th:selected="${cond.assigneeId != null and cond.assigneeId == -1}" th:text="#{issue.noAssignee}"></option>
+                    <option th:if="${projectView.projectMember}" th:value="${currentUser.id}" th:text="#{issue.list.assignedToMe}"></option>
+                    <option th:each="user : ${search.assignees}" th:value="${user.id}"
+                            th:selected="${cond.assigneeId != null and cond.assigneeId == user.id}"
+                            th:attr="data-avatar-url=${user.avatarUrl}, data-login-id=${user.loginId}" th:text="${user.displayName}"></option>
+                </select>
+            </dd>
+        </dl>
+
+        <dl th:if="${search.hasMilestones}" class="issue-option">
+            <dt th:text="#{milestone}"></dt>
+            <dd>
+                <select id="milestoneId" name="milestoneId" data-search="milestoneId"
+                        data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                    <option value="" th:text="#{milestone.state.all}"></option>
+                    <option value="-1" th:selected="${cond.milestoneId != null and cond.milestoneId == -1}" th:text="#{issue.noMilestone}"></option>
+                    <optgroup th:label="#{milestone.state.open}">
+                        <option th:each="milestone : ${search.openMilestones}" th:value="${milestone.id}" th:attr="data-state=${milestone.state}"
+                                th:selected="${cond.milestoneId != null and cond.milestoneId == milestone.id}" th:text="${milestone.title}"></option>
+                    </optgroup>
+                    <optgroup th:label="#{milestone.state.closed}">
+                        <option th:each="milestone : ${search.closedMilestones}" th:value="${milestone.id}" th:attr="data-state=${milestone.state}"
+                                th:selected="${cond.milestoneId != null and cond.milestoneId == milestone.id}" th:text="${milestone.title}"></option>
+                    </optgroup>
+                </select>
+                <th:block th:if="${search.selectedMilestone != null}">
+                    <th:block th:replace="~{milestone/partial-status :: status(${search.selectedMilestone}, ${project})}"></th:block>
+                    <hr>
+                </th:block>
+            </dd>
+        </dl>
+        <dl class="issue-option">
+            <dt th:text="#{issue.dueDate}"></dt>
+            <dd class="search search-bar">
+                <input id="issueDueDate" type="text" name="dueDate" class="textbox full" th:value="${cond.dueDateString}" data-toggle="calendar">
+                <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
+            </dd>
+        </dl>
+
+        <div class="labels-wrap">
+            <a th:if="${search.canManageLabels}" th:href="${base + '/issue/labelsform'}" class="ybtn ybtn-default ybtn-mini pull-right">
+                <i class="yobicon-cog vmiddle"></i>
+                <span th:if="${!search.hasLabels}" class="vmiddle" style="margin-left:2px;" th:text="#{label.manage}"></span>
+            </a>
+
+            <th:block th:replace="~{issue/partial-select-label :: selectLabel(${search.labels}, ${search.selectedLabelIds}, 'issue-option', ${projectView})}"></th:block>
+        </div>
+    </div>
+</form>
+</th:block>

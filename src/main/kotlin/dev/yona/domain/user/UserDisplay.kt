@@ -34,4 +34,20 @@ object UserDisplay {
         }
         return result
     }
+
+    /**
+     * 이름에서 부서를 뺀 순수한 이름이다 (v1.6 `User.getPureNameOnly`). 영문 이름이 있고 사용자의 언어가 설정되어 있으며 보는 사람의
+     * 언어가 영어이면 영문 이름이다. 보는 사람의 언어가 없으면 `ko-KR`로 본다.
+     */
+    fun pureName(target: User, viewerLang: String?): String {
+        val language = viewerLang ?: "ko-KR"
+        val english = target.englishName
+        if (!english.isNullOrBlank() && target.lang != null && language.startsWith("en")) return english
+        val name = target.name.orEmpty()
+        var pure = name
+        for (splitter in listOf("[", "(")) {
+            if (pure.contains(splitter)) pure = name.substring(0, name.indexOf(splitter)).trim()
+        }
+        return pure
+    }
 }

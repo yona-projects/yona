@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/list.scala.html
+  모델: title, projectView, cond, items, drafts, ... (partial-list-wrap 참고)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${projectView.project.name + ' - ' + #messages.msg(title)}, ${projectView}, 'ISSUE', ~{::listPage})}">
+<th:block th:fragment="listPage" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'ISSUE', 'main-menu-only')}"></th:block>
+<link rel="stylesheet" th:href="${base + '/issue/labels.css'}" type="text/css" />
+<div class="page-wrap-outer">
+  <div class="project-page-wrap">
+    <th:block th:replace="~{issue/partial-list-wrap :: listWrap}"></th:block>
+  </div>
+</div>
+
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/calendar :: calendar}"></th:block>
+
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery.pageslide.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.twoColumnMode.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.showSubtask.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+  $(function(){
+    // issue.List
+    $yobi.loadModule("issue.List");
+
+    // ShortcutKey
+    yobi.ShortcutKey.setKeymapLink({
+      "N": /*[[${base + '/issueform'}]]*/ ""
+    });
+
+    var $titlePrefix = $(".title-prefix");
+    $titlePrefix
+            .on("mouseover", function (e) {
+              $(".title-prefix:contains('" + e.target.innerText + "')")
+                      .addClass("title-prefix-hover");
+            })
+            .on("mouseleave", function (e) {
+              $titlePrefix.removeClass("title-prefix-hover");
+            });
+  });
+</script>
+</th:block>
+</html>

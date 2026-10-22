@@ -1,0 +1,121 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/help/keymap.scala.html
+  매개변수: section(`issueList`, `board`, `issueDetail` 등), view(ProjectViewContext. 없으면 null)
+  모델: isMac
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="keymap(section, view)" th:with="ctrl=${isMac ? '⌘' : 'CTRL'}">
+<div class="pull-left" style="padding:10px 0; margin-left: 55px;">
+    <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini" th:text="#{title.keymap}"></a>
+
+    <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
+        <div class="row-fluid">
+            <div class="span3">
+                <h5 th:text="#{project.projects}"></h5>
+
+                <span class="ybtn ybtn-small">H</span>
+                <span class="help-inline" th:text="#{menu.home}"></span><br>
+
+                <span class="ybtn ybtn-small">B</span>
+                <span class="help-inline" th:text="#{menu.board}"></span><br>
+
+                <span class="ybtn ybtn-small">I</span>
+                <span class="help-inline" th:text="#{menu.issue}"></span><br>
+
+                <span class="ybtn ybtn-small">C</span>
+                <span class="help-inline" th:text="#{menu.code}"></span><br>
+
+                <span class="ybtn ybtn-small">M</span>
+                <span class="help-inline" th:text="#{milestone}"></span><br>
+
+                <th:block th:if="${view != null and view.git}">
+                    <span class="ybtn ybtn-small">P</span>
+                    <span class="help-inline" th:text="#{menu.pullRequest}"></span><br>
+                </th:block>
+
+                <th:block th:if="${view != null and view.manager}">
+                    <span class="ybtn ybtn-small">Q</span>
+                    <span class="help-inline" th:text="#{project.setting}"></span><br>
+                </th:block>
+            </div>
+
+            <div class="span9">
+                <div class="row-fluid">
+                    <div class="span5">
+                        <h5 th:text="#{'title.' + ${section}}"></h5>
+
+                        <th:block th:if="${#strings.contains(section, 'board')}">
+                            <span class="ybtn ybtn-small">N</span>
+                            <span class="help-inline" th:text="#{post.write}"></span><br>
+                        </th:block>
+
+                        <th:block th:if="${#strings.contains(section, 'issue')}">
+                            <span class="ybtn ybtn-small">N</span>
+                            <span class="help-inline" th:text="#{issue.menu.new}"></span><br>
+                        </th:block>
+
+                        <th:block th:if="${#strings.contains(section, 'Detail')}">
+                            <span class="ybtn ybtn-small">L</span>
+                            <span class="help-inline" th:text="#{button.list}"></span><br>
+
+                            <span class="ybtn ybtn-small">E</span>
+                            <span class="help-inline" th:text="#{button.edit}"></span><br>
+                        </th:block>
+
+                        <th:block th:if="${#strings.contains(section, 'List')}">
+                            <span class="ybtn ybtn-small">←</span>
+                            <span class="help-inline" th:text="#{button.prevPage}"></span><br>
+
+                            <span class="ybtn ybtn-small">→</span>
+                            <span class="help-inline" th:text="#{button.nextPage}"></span><br>
+                        </th:block>
+
+                        <th:block th:if="${section == 'issueList'}">
+                            <span class="ybtn ybtn-small" th:text="${ctrl}"></span>+ <span class="ybtn ybtn-small">A</span>
+                            <span class="help-inline" th:text="#{button.selectAll}"></span><br>
+                        </th:block>
+                    </div>
+
+                    <div class="span7">
+                        <h5 th:text="#{site}"></h5>
+
+                        <span class="ybtn ybtn-small">A</span>
+                        <span class="help-inline" th:text="#{issue.myIssue}"></span><br>
+
+                        <span class="ybtn ybtn-small">U</span>
+                        <span class="help-inline" th:text="#{userinfo.profile}"></span><br>
+
+                        <span class="ybtn ybtn-small">F</span>
+                        <span class="help-inline" th:text="#{user.menu}"></span><br>
+
+                        <th:block th:if="${isMac}"><span class="ybtn ybtn-small">CTRL</span> +</th:block>
+                        <span class="ybtn ybtn-small">ALT</span> + <span class="ybtn ybtn-small">S</span>
+                        <span class="help-inline" th:text="#{site.search}"></span><br>
+
+                        <span class="ybtn ybtn-small" th:text="${ctrl}"></span> + <span class="ybtn ybtn-small">ENTER</span>
+                        <span class="help-inline" th:text="#{button.submitForm}"></span><br>
+                    </div>
+                </div>
+                <div class="row-fluid mt20">
+                    <div class="span12">
+                        <th:block th:if="${#strings.contains(section, 'issue') and #strings.contains(section, 'Detail')}">
+                            <h5 th:text="#{search.menu.issue.comments}"></h5>
+                            <span class="ybtn ybtn-small">SHIFT</span> +
+                            <span class="ybtn ybtn-small" th:text="${ctrl}"></span> +
+                            <span class="ybtn ybtn-small">ENTER</span>
+                            <span class="help-inline" th:text="#{button.commentAndNextState.closed}"></span><br>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="actrow">
+            <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}"></button>
+        </p>
+    </div>
+</div>
+</th:block>

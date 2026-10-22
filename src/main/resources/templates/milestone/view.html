@@ -6,7 +6,7 @@
 
   이식 원본: app/views/milestone/view.scala.html
   모델: title, projectView, milestone, status(MilestoneStatus), issueState, contentsHtml, attachmentsJson, canDelete, canUpdate
-  이슈 탭과 이슈 목록(`#issues`)은 이슈 화면을 옮길 때 더한다.
+  모델에 issueCounts(열림, 닫힘, 전체 이슈 수), items(보여 줄 이슈), massUpdate가 더해진다.
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::viewPage})}">
@@ -47,6 +47,28 @@
                     <button th:if="${milestone.state.name() == 'CLOSED'}" type="button" data-request-method="post" th:attr="data-request-uri=${base + '/milestone/' + milestone.id + '/open'}" class="ybtn" th:text="#{milestone.open}"></button>
                 </th:block>
             </div>
+
+            <div id="issues">
+                <ul class="nav nav-tabs">
+                    <li th:each="tab : ${ {'open', 'closed', 'all'} }" th:class="${issueState.state == tab} ? 'active'">
+                        <a th:href="${base + '/milestone/' + milestone.id + '?state=' + tab + '#issues'}">
+                            <th:block th:text="#{'issue.state.' + ${tab}}"></th:block>
+                            <span class="num-badge" th:text="${issueCounts.get(tab)}"></span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="issues">
+                    <div class="filter-wrap">
+                        <th:block th:replace="~{issue/partial-massupdate :: massupdate}"></th:block>
+                        <div class="pull-right search search-bar">
+                            <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="" data-toggle="item-search" data-items="issue-item">
+                            <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                        </div>
+                    </div>
+                    <th:block th:replace="~{issue/partial-list :: list(${items})}"></th:block>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -68,5 +90,23 @@
 
 <th:block th:replace="~{common/markdown :: markdown(${projectView.project})}"></th:block>
 <link rel="stylesheet" th:href="${base + '/issue/labels.css'}" type="text/css" />
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        // when a user click head of title, it works like issue filter
+        $(".title-prefix").on('click', function () {
+            $(".textbox").val($(this).text());
+            $(".post-item").hide();
+            $("li[data-value*='"+$(".textbox").val() + "']").show();
+            $(".textbox").focus();
+        });
+        $yobi.loadModule("milestone.View", {
+            "sMilestoneId" : /*[[${#strings.toString(milestone.id)}]]*/ "",
+            "sURLLabels"   : /*[[${base + '/issues'}]]*/ ""
+        });
+
+        // detect links contains mention at me
+        $(".user-link:contains('" + /*[[${currentUser.name}]]*/ "" + "')").addClass("me");
+    });
+</script>
 </th:block>
 </html>

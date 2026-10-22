@@ -72,6 +72,39 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
         return messages.getMessage(pluralKey, arrayOf(count.toString()), pluralKey, locale) ?: pluralKey
     }
 
+    // --- 제목 ---
+
+    /**
+     * 제목 맨 앞의 대괄호 머리말(`[버그][긴급] 제목`)을 클릭할 수 있는 링크 HTML로 만든다 (v1.6 `showHeaderWordsInBracketsIfExist`).
+     * 제목이 머리말뿐이면 빈 문자열이다. v1.6은 머리말을 이스케이프하지 않았지만 v2는 이스케이프한다([decisions.md] A-38).
+     */
+    fun headerWordsHtml(title: String?): String {
+        val text = title.orEmpty()
+        if (madeByHeaderWordsOnly(text)) return ""
+        return headerWords(text).joinToString("") {
+            "<a href='javascript:void(0)' class='title-prefix'>" + org.springframework.web.util.HtmlUtils.htmlEscape(it.trim()) + "</a>"
+        }
+    }
+
+    /** 제목에서 앞의 대괄호 머리말을 뺀다. 제목이 머리말뿐이면 그대로이다 (v1.6 `removeHeaderWords`). */
+    fun removeHeaderWords(title: String?): String {
+        val text = title.orEmpty()
+        return if (madeByHeaderWordsOnly(text)) text else text.replace(headerWords(text).joinToString(""), "")
+    }
+
+    /** 제목을 `=[`, `]` 뒤에서 잘라 `[`로 시작하고 `]`를 가진 조각만 고른다. */
+    private fun headerWords(title: String): List<String> =
+        title.split(Regex("(=\\[)|(?<=\\])")).filter { it.trim().indexOf("[") == 0 && it.contains("]") }
+
+    private fun madeByHeaderWordsOnly(title: String): Boolean =
+        title.trim().indexOf("]") + 1 == title.trim().length || title.replace(headerWords(title).joinToString(""), "").trim().isEmpty()
+
+    /** [unit]이 [total]의 몇 퍼센트인지 정수로 돌려준다. [total]이 0이면 0이다 (v1.6 `getPercent`). */
+    fun percent(unit: Number, total: Number): Int {
+        val ratio = unit.toDouble() / total.toDouble() * 100
+        return if (ratio.isNaN()) 0 else ratio.toInt()
+    }
+
     private fun message(key: String, locale: Locale): String = messages.getMessage(key, null, key, locale) ?: key
 
     private fun format(date: Date?, pattern: String, locale: Locale): String {

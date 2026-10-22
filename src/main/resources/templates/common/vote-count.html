@@ -1,0 +1,14 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/voteCount.scala.html
+  매개변수: linkUrl, countNumber, showColorAlways
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="voteCount(linkUrl, countNumber, showColorAlways)">
+<a th:href="${linkUrl}" class="vote-count" th:classappend="${showColorAlways} ? 'vote-color'">
+    <span class="count-groups item-icon">
+        <i class="yobicon-hearts"></i>
+    </span><span class="count-groups item-count strong" th:text="${countNumber}"></span></a>
+</th:block>

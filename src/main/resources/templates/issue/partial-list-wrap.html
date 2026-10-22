@@ -1,0 +1,74 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_list_wrap.scala.html
+  모델: projectView, cond, items, drafts, pageIndex, totalPageCount, openCount, closedCount, quick, excelUrl, search, canMassUpdate, massUpdate
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="listWrap" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<div pjax-container class="row-fluid issue-list-wrap">
+    <div class=" left-menu span2 span-hard-wrap">
+        <th:block th:replace="~{issue/partial-list-quicksearch :: quicksearch}"></th:block>
+        <th:block th:replace="~{issue/partial-searchform :: searchform}"></th:block>
+    </div>
+    <div class="span10 span-hard-wrap" id="span10">
+        <div class="pull-right">
+            <a th:href="${base + '/issueform'}" class="ybtn ybtn-success" th:text="#{issue.menu.new}"></a>
+        </div>
+        <ul class="nav nav-tabs nm">
+            <li th:class="${cond.state == 'open'} ? 'active'" data-pjax>
+                <a href="#" state="open"><th:block th:text="#{issue.state.open}"></th:block>
+                    <span class="num-badge" th:text="${openCount}"></span>
+                </a>
+            </li>
+            <li th:class="${cond.state == 'closed'} ? 'active'" data-pjax>
+                <a href="#" state="closed"><th:block th:text="#{issue.state.closed}"></th:block>
+                    <span class="num-badge" th:text="${closedCount}"></span>
+                </a>
+            </li>
+            <li><th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block></li>
+            <li class="show-subtasks-li"><th:block th:replace="~{common/show-subtasks-checkbox :: showSubtasksCheckbox}"></th:block></li>
+        </ul>
+
+        <th:block th:if="${items.isEmpty()}">
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p th:text="#{issue.is.empty}"></p>
+            </div>
+
+            <th:block th:replace="~{help/keymap :: keymap('issueList', ${projectView})}"></th:block>
+        </th:block>
+        <th:block th:unless="${items.isEmpty()}">
+            <div class="filter-wrap board">
+                <th:block th:if="${canMassUpdate}">
+                    <th:block th:replace="~{issue/partial-massupdate :: massupdate}"></th:block>
+                </th:block>
+
+                <div th:if="${items.size() > 1}" class="filters pull-right">
+                    <th:block th:each="field : ${ {'dueDate', 'updatedDate', 'createdDate', 'numOfComments'} }"
+                              th:with="label=${field == 'dueDate' ? 'common.order.dueDate' : (field == 'updatedDate' ? 'common.order.updatedDate' : (field == 'createdDate' ? 'common.order.date' : 'common.order.comments'))}">
+                        <a th:if="${cond.orderBy == field}" href="#" th:attr="orderBy=${cond.orderBy}, orderDir=${cond.orderDir == 'desc'} ? 'asc' : 'desc'" class="filter active"><i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? ' down'"></i><th:block th:text="#{${label}}"></th:block></a>
+                        <a th:unless="${cond.orderBy == field}" href="#" th:attr="orderBy=${field}" orderDir="desc" class="filter"><i class="ico btn-gray-arrow down"></i><th:block th:text="#{${label}}"></th:block></a>
+                    </th:block>
+                </div>
+            </div>
+
+            <th:block th:if="${!drafts.isEmpty()}">
+                <th:block th:replace="~{issue/partial-list :: draftList(${drafts})}"></th:block>
+            </th:block>
+            <th:block th:replace="~{issue/partial-list :: list(${items})}"></th:block>
+
+            <div class="pull-left" style="padding:10px;">
+                <a th:href="${excelUrl}" class="ybtn small">
+                    <i class="yobicon-file-excel"></i> <th:block th:text="#{issue.downloadAsExcel}"></th:block>
+                </a>
+            </div>
+
+            <th:block th:replace="~{help/keymap :: keymap('issueList', ${projectView})}"></th:block>
+
+            <div id="pagination" th:attr="data-total=${totalPageCount}"><!-- pagination.js will fill here. --></div>
+        </th:block>
+    </div>
+</div>
+</th:block>

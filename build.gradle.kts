@@ -42,6 +42,8 @@ dependencies {
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1")
 	implementation("org.jsoup:jsoup:1.23.2")
 	implementation("org.apache.tika:tika-core:3.3.3")
+	// v1.6과 같은 엑셀(xls) 라이브러리. 이슈 목록 내보내기에 쓴다.
+	implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
 	implementation("com.github.albfernandez:juniversalchardet:2.5.1")
 	implementation("com.github.ben-manes.caffeine:caffeine")
 

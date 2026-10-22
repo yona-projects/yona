@@ -1,0 +1,29 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_select_label.scala.html
+  매개변수: groups(분류별 라벨), selectedLabelIds, wrapperCSSClassName, additionalAttr, view(ProjectViewContext)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="selectLabel(groups, selectedLabelIds, wrapperCSSClassName, view)">
+<dl th:if="${!groups.isEmpty()}" th:class="${wrapperCSSClassName}">
+  <dt>
+      <th:block th:text="#{label}"></th:block> <a th:if="${view.manager}" th:href="${'/' + view.project.owner + '/' + view.project.name + '/issue/labelsform'}" target="_blank" class="label-edit">[<th:block th:text="#{button.edit}"></th:block>]</a>
+  </dt>
+  <dd>
+    <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
+            data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
+            data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
+            th:attr="data-placeholder=#{label.select}" class="hide">
+      <option></option>
+      <optgroup th:each="group : ${groups}" th:label="${group.name}"
+                th:attr="data-category-id=${group.id}, data-category-is-exclusive=${group.exclusive}">
+        <option th:each="label : ${group.labels}" th:value="${label.id}"
+                th:attr="data-category-id=${group.id}, data-category-is-exclusive=${group.exclusive}"
+                th:selected="${selectedLabelIds != null and selectedLabelIds.contains(label.id)}" th:text="${label.name}"></option>
+      </optgroup>
+    </select>
+  </dd>
+</dl>
+</th:block>

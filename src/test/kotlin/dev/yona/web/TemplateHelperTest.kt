@@ -100,4 +100,33 @@ class TemplateHelperTest {
         assertEquals("2 minutes ago", helper.plural("common.time.minute", 2, Locale.ENGLISH))
         assertEquals("0 minutes ago", helper.plural("common.time.minute", 0, Locale.ENGLISH))
     }
+
+    @Test
+    fun `제목 앞의 대괄호 머리말을 링크로 만들고 본문에서는 뺀다`() {
+        assertEquals(
+            "<a href='javascript:void(0)' class='title-prefix'>[버그]</a><a href='javascript:void(0)' class='title-prefix'>[긴급]</a>",
+            helper.headerWordsHtml("[버그][긴급] 로그인 오류")
+        )
+        assertEquals(" 로그인 오류", helper.removeHeaderWords("[버그][긴급] 로그인 오류"))
+        assertEquals("", helper.headerWordsHtml("대괄호 없음"))
+        assertEquals("대괄호 없음", helper.removeHeaderWords("대괄호 없음"))
+    }
+
+    @Test
+    fun `제목이 머리말뿐이면 머리말을 링크로 만들지 않고 제목을 그대로 둔다`() {
+        assertEquals("", helper.headerWordsHtml("[버그]"))
+        assertEquals("[버그]", helper.removeHeaderWords("[버그]"))
+    }
+
+    @Test
+    fun `머리말의 HTML은 이스케이프한다`() {
+        assertEquals("<a href='javascript:void(0)' class='title-prefix'>[&lt;b&gt;]</a>", helper.headerWordsHtml("[<b>] 제목"))
+    }
+
+    @Test
+    fun `비율은 정수로 내리고 전체가 0이면 0이다`() {
+        assertEquals(33, helper.percent(1, 3))
+        assertEquals(100, helper.percent(3, 3))
+        assertEquals(0, helper.percent(0, 0))
+    }
 }

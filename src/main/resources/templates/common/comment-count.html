@@ -1,0 +1,14 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/commentCount.scala.html
+  매개변수: linkUrl, countNumber, showColorAlways
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentCount(linkUrl, countNumber, showColorAlways)">
+<a th:href="${linkUrl}" class="comments-count" th:classappend="${showColorAlways} ? 'comments-count-color'">
+    <span class="count-groups item-icon">
+        <i class="yobicon-comment2"></i>
+    </span><span class="count-groups item-count" th:text="${countNumber}"></span></a>
+</th:block>

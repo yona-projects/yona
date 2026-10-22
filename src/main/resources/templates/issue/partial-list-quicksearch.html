@@ -1,0 +1,38 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_list_quicksearch.scala.html
+  모델: cond(IssueSearchCondition), quick(QuickSearch)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="quicksearch">
+<ul class="lst-stacked unstyled">
+    <li th:class="${cond.assigneeId == null and param.authorId == null and param.commenterId == null} ? 'active'">
+        <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-commenter-id="" th:attr="data-milestone-id=${cond.milestoneId}">
+            <th:block th:text="${cond.state == 'closed'} ? #{issue.list.all.closed} : #{issue.list.all.open}"></th:block>
+            <span class="num-badge pull-right" th:text="${quick.everyone}"></span>
+        </a>
+    </li>
+    <th:block th:if="${quick.meId != null}">
+    <li th:class="${cond.assigneeId == quick.meId} ? 'active'">
+        <a pjax-filter href="#" th:attr="data-assignee-id=${quick.meId}, data-milestone-id=${cond.milestoneId}" data-author-id="" data-commenter-id="">
+            <th:block th:text="#{issue.list.assignedToMe}"></th:block>
+            <span class="num-badge pull-right" th:text="${quick.assignedToMe}"></span>
+        </a>
+    </li>
+    <li th:class="${cond.authorId == quick.meId} ? 'active'">
+        <a pjax-filter href="#" data-assignee-id="" th:attr="data-author-id=${quick.meId}, data-milestone-id=${cond.milestoneId}" data-commenter-id="">
+            <th:block th:text="#{issue.list.authoredByMe}"></th:block>
+            <span class="num-badge pull-right" th:text="${quick.authoredByMe}"></span>
+        </a>
+    </li>
+    <li th:class="${cond.commenterId == quick.meId} ? 'active'">
+        <a pjax-filter href="#" data-assignee-id="" data-author-id="" th:attr="data-commenter-id=${quick.meId}, data-milestone-id=${cond.milestoneId}">
+            <th:block th:text="#{issue.list.commentedByMe}"></th:block>
+            <span class="num-badge pull-right" th:text="${quick.commentedByMe}"></span>
+        </a>
+    </li>
+    </th:block>
+</ul>
+</th:block>

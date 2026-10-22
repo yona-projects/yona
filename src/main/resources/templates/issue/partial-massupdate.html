@@ -1,0 +1,131 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_massupdate.scala.html
+  모델: projectView, massUpdate(MassUpdate), currentUser
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="massupdate" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<script type="text/x-jquery-tmpl" id="labelListItem" th:inline="none">
+<li data-value="${id}" data-category="${category}">
+    <a><span class="issue-label active list-label" data-label-id="${id}">${name}</span></a>
+</li>
+</script>
+
+<script id="labelCatetoryItem" type="text/x-jquery-tmpl" th:inline="none">
+<li class="disabled" data-category="${category}"><span>${category}</span></li>
+<li data-value="${id}" data-category="${category}">
+    <a>
+        <span class="issue-label active list-label" data-label-id="${id}">${name}</span>
+    </a>
+</li>
+<li class="divider" data-category="${category}"></li>
+</script>
+
+<div class="mass-update-wrap hide-in-mobile">
+    <form id="mass-update-form" class="mass-update-form pull-left" th:action="${base + '/issues'}" method="post">
+        <div class="btn-group check-all">
+            <label for="check-all">
+                <input type="checkbox" id="check-all" data-target="checked-issue"/>
+            </label>
+        </div>
+        <div id="state" class="btn-group" data-name="state">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label" th:text="#{issue.update.state}"></span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu mass-update-list">
+                <li data-value="OPEN"><a th:text="#{issue.state.open}"></a></li>
+                <li data-value="CLOSED"><a th:text="#{issue.state.closed}"></a></li>
+            </ul>
+        </div>
+
+        <div id="assignee" class="btn-group" data-name="assignee.id">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label" th:text="#{issue.update.assignee.id}"></span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu mass-update-list">
+                <li data-value="-1"><a th:text="#{issue.noAssignee}"></a></li>
+                <li th:if="${projectView.projectMember}" th:attr="data-value=${currentUser.id}"><a th:text="#{issue.assignToMe}"></a></li>
+                <li class="divider"></li>
+                <li th:each="user : ${massUpdate.assignable}" th:attr="data-value=${user.id}">
+                    <a class="usf-group">
+                        <span class="avatar-wrap smaller">
+                            <img th:src="${user.avatarUrl}" width="20" height="20">
+                        </span>
+                        <strong class="name" th:text="${user.displayName}"></strong>
+                        <span class="loginid"> <strong>@</strong><th:block th:text="${user.loginId}"></th:block></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <th:block th:if="${projectView.menuSetting.milestone and !massUpdate.openMilestones.isEmpty()}">
+        <div id="milestone" class="btn-group" data-name="milestone.id">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label" th:text="#{issue.update.milestone.id}"></span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu mass-update-list">
+                <li data-value="-1"><a th:text="#{issue.noMilestone}"></a></li>
+                <li class="divider"></li>
+                <li th:each="milestone : ${massUpdate.openMilestones}" th:attr="data-value=${milestone.id}"><a th:text="${milestone.title}"></a></li>
+            </ul>
+        </div>
+        </th:block>
+
+        <th:block th:if="${massUpdate.hasLabels}">
+        <div id="attaching-label" class="btn-group" data-name="attachingLabelIds">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label" th:text="#{issue.update.attachLabel}"></span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul id="attach-label-list" class="dropdown-menu mass-update-list">
+                <th:block th:replace="~{issue/partial-massupdate :: labelList}"></th:block>
+            </ul>
+        </div>
+
+        <div id="detaching-label" class="btn-group" data-name="detachingLabelIds">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label" th:text="#{issue.update.detachLabel}"></span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul id="delete-label-list" class="dropdown-menu mass-update-list">
+                <th:block th:replace="~{issue/partial-massupdate :: labelList}"></th:block>
+            </ul>
+        </div>
+        </th:block>
+    </form>
+</div>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        //issueList
+        $yobi.loadModule("issue.MassUpdate", {
+            "sURL": /*[[${base + '/issues'}]]*/ "",
+            "welMassUpdateForm": $('#mass-update-form'),
+            "welMassUpdateButtons": $('#mass-update-form button'),
+            "welState": $("#state"),
+            "welMilestone": $("#milestone"),
+            "welAssignee": $("#assignee"),
+            "welAttachingLabel": $("#attaching-label"),
+            "welDetachingLabel": $("#detaching-label"),
+            "welDeleteButton": $("#delete"),
+            "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]"
+        });
+    });
+</script>
+</th:block>
+
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="labelList">
+    <th:block th:each="group : ${massUpdate.labels}">
+        <li class="disabled" th:attr="data-category=${group.id}"><span th:text="${group.name}"></span></li>
+        <li th:each="label : ${group.labels}" th:attr="data-value=${label.id}, data-category=${group.id}">
+            <a>
+                <span class="issue-label active list-label" th:attr="data-label-id=${label.id}" th:text="${label.name}"></span>
+            </a>
+        </li>
+        <li class="divider" th:attr="data-category=${group.id}"></li>
+    </th:block>
+</th:block>

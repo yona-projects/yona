@@ -7,7 +7,7 @@ updated: 2026-10-22
 
 # 마일스톤
 
-구현은 `MilestoneController`, `MilestoneService`, `MilestoneStatusService`(진행 현황), 화면은 `milestone/{list,create,edit,view}.html`이다. 테스트 `MilestoneTest` 30건.
+구현은 `MilestoneController`, `MilestoneService`, `MilestoneStatusService`(진행 현황), 화면은 `milestone/{list,create,edit,view}.html`이다. 테스트 `MilestoneTest` 32건.
 
 ## 권한
 
@@ -15,7 +15,7 @@ updated: 2026-10-22
 |---|---|
 | 목록, 보기 | 프로젝트 읽기 |
 | 만들기 폼, 만들기 | 프로젝트 안에서 마일스톤을 만들 권한(구성원). 폼은 로그인을 요구한다 |
-| 수정 폼, 수정, 열기, 닫기 | 마일스톤 수정 권한(구성원). 폼은 로그인을 요구한다 |
+| 수정 폼, 수정, 열기, 닫기 | 마일스톤 수정 권한(프로젝트 구성원). 폼은 로그인을 요구한다 |
 | 삭제 | 마일스톤 삭제 권한(구성원) |
 
 ## 목록 (`GET milestones?state=&orderBy=&orderDir=`)
@@ -45,4 +45,6 @@ updated: 2026-10-22
 
 제목 링크, 마감일과 남은 기간(열린 마일스톤만), 상태 배지(`badge-issue-open|closed`), 진행 막대, 내용(마크다운, 없으면 빈 칸), 첨부 목록(`data-attachments` JSON), 목록/삭제/수정/열기·닫기 버튼(권한에 따라), 삭제 확인 대화상자. 로그인한 사용자는 최근 방문 프로젝트에 기록된다.
 
-**대기**: 이슈 탭과 이슈 목록(`#issues`)은 이슈 화면(로드맵 3c)을 옮길 때 더한다.
+### 이슈 영역 (`#issues`)
+
+열림/닫힘/전체 탭(`?state=open|closed|all#issues`, 개수는 이 마일스톤의 이슈를 하위 이슈를 뺀 채 센 값), 일괄 변경 막대(구성원 여부와 상관없이 항상 보인다), 이슈 검색 상자(`data-toggle="item-search"`), 이슈 목록이다. 목록은 마일스톤에 속한 모든 이슈(하위 이슈, 초안 포함)를 번호 내림차순으로 보여 주고 다른 사람의 초안은 뺀다. 이슈 줄은 [issue-list.md](issue-list.md)와 같다.

@@ -29,6 +29,9 @@ class ViewerContext(
     /** 로그인하지 않았으면 `true`이다. */
     val anonymous: Boolean get() = current.isAnonymous
 
+    /** 사용자 번호이다. 익명이면 `null`이다. */
+    val id: Long? get() = current.user?.id
+
     val loginId: String? get() = current.user?.loginId
 
     val name: String? get() = current.user?.name

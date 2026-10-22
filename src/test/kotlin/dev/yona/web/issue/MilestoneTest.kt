@@ -456,4 +456,38 @@ class MilestoneTest : AbstractIntegrationTest() {
         val m = newMilestone(project, "v1")
         mockMvc.perform(get("${base(project)}/milestone/${m.id}")).andExpect(status().isForbidden)
     }
+
+    // --- 보기 화면의 이슈 ---
+
+    @Test
+    fun `보기 화면은 이슈 탭의 개수와 해당 상태의 이슈 목록을 보인다`() {
+        val project = newProject()
+        val m = newMilestone(project, "v1")
+        val parent = newIssue(project, m, State.OPEN, 1)
+        newIssue(project, m, State.CLOSED, 2)
+        issues.save(Issue(project = project, number = 3, title = "자식", state = State.OPEN, milestone = m, parent = parent, createdDate = Date(), updatedDate = Date()))
+        newIssue(project, null, State.OPEN, 4)
+        entityManager.flush()
+        val doc = page("${base(project)}/milestone/${m.id}")
+        val tabs = doc.select("#issues ul.nav-tabs li")
+        assertEquals(listOf("Open1", "Closed1", "All2"), tabs.map { it.text().replace(" ", "") })
+        assertEquals("${base(project)}/milestone/${m.id}?state=open#issues", tabs[0].selectFirst("a")!!.attr("href"))
+        assertEquals("active", tabs[0].className().trim())
+        // 목록은 마일스톤의 열린 이슈를 번호 내림차순으로 모두 보인다(하위 이슈 포함).
+        assertEquals(listOf("#3", "#1"), doc.select("#issues li.post-item .post-id").map { it.text() })
+        assertEquals(listOf("#2"), page("${base(project)}/milestone/${m.id}?state=closed").select("#issues li.post-item .post-id").map { it.text() })
+        assertEquals(listOf("#3", "#2", "#1"), page("${base(project)}/milestone/${m.id}?state=all").select("#issues li.post-item .post-id").map { it.text() })
+    }
+
+    @Test
+    fun `보기 화면에는 일괄 변경 막대와 이슈 검색 상자가 있다`() {
+        val project = newProject()
+        val m = newMilestone(project, "v1")
+        newIssue(project, m, State.OPEN, 1)
+        val doc = page("${base(project)}/milestone/${m.id}")
+        assertTrue(doc.select("#issues .mass-update-wrap form#mass-update-form").isNotEmpty())
+        assertEquals("search at current milestone", doc.selectFirst("#issues input.textbox[data-toggle=item-search]")!!.attr("placeholder"))
+        assertEquals("issue-item", doc.selectFirst("#issues input.textbox")!!.attr("data-items"))
+        assertTrue(doc.select("script").any { "milestone.View" in it.data() && "\"${m.id}\"" in it.data() })
+    }
 }

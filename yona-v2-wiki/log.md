@@ -179,3 +179,7 @@
 - TDD: `MentionListTest` 13건, `TextBodyLimitFilterTest` 3건, `MilestoneTest` 30건. 편집기, 업로더, 마크다운 도움말 조각과 `AttachmentListing`, `PostAttachments`를 옮겼다.
 - v1.6 결함 R-23(멀티파트가 아니면 임시 첨부가 옮겨지지 않음)을 재현했고 A-35(멘션 후보 읽기 권한), A-36(폼 본문 한도 설정), A-37(정렬 항목 제한)을 기록했다.
 - 마일스톤 보기 화면의 이슈 탭은 이슈 화면(3c)을 옮길 때 채운다.
+
+## [2026-10-23] ingest | 이슈 목록과 검색 (3단계 c-1)
+- TDD: `IssueSearchServiceTest` 18건(세 DB), `IssueListTest` 20건, `IssueExcelTest` 3건, 마일스톤 보기의 이슈 영역 2건. 제목 머리말 도우미(`TemplateHelper.headerWordsHtml` 등)와 `UserDisplay.pureName`을 추가했다.
+- A-38(머리말 이스케이프), A-39(jxl), A-40(정렬 기준 제한), A-41(잘못된 조건은 400)을 기록했다.

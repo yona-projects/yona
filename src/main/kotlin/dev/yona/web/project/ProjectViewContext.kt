@@ -127,6 +127,14 @@ class ProjectViewContext(
     /** 보는 사용자가 프로젝트를 탈퇴할 때 호출하는 주소이다. 익명이면 `null`이다. */
     val leaveUrl: String? get() = viewerId?.let { "/${project.owner}/${project.name}/member/$it/delete" }
 
+    /** 사용자가 프로젝트에 역할을 가지고 있으면(역할 무관) `true`이다 (v1.6 `ProjectUser.isMember`). 일괄 처리 선택 상자를 보일지 정한다. */
+    val projectMember: Boolean by lazy { viewerId?.let { deps.projectUsers.existsByUserIdAndProjectId(it, projectId) } ?: false }
+
+    /** 사용자가 프로젝트 관리자이면 `true`이다 (v1.6 `User.isManagerOf`). */
+    val manager: Boolean by lazy {
+        viewerId?.let { deps.projectUsers.existsByUserIdAndProjectIdAndRoleId(it, projectId, dev.yona.domain.enumeration.RoleType.MANAGER.id) } ?: false
+    }
+
     /** 사용자가 프로젝트 구성원이면 `true`이다 (v1.6 `Project.hasMember`). */
     val member: Boolean by lazy { deps.projectService.hasMember(project, viewer) }
 

@@ -5,7 +5,10 @@ import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
+import dev.yona.domain.issue.IssueLabelService
 import dev.yona.domain.issue.IssueRepository
+import dev.yona.domain.issue.IssueSearchCondition
+import dev.yona.domain.issue.IssueSearchService
 import dev.yona.domain.issue.Milestone
 import dev.yona.domain.issue.MilestoneRepository
 import dev.yona.domain.issue.MilestoneService
@@ -64,7 +67,11 @@ class MilestoneController(
     private val attachmentListing: AttachmentListing,
     private val postAttachments: PostAttachments,
     private val attachments: dev.yona.domain.misc.AttachmentService,
-    private val flashTranslator: FlashMessageTranslator
+    private val flashTranslator: FlashMessageTranslator,
+    private val searchService: IssueSearchService,
+    private val assembler: IssueListAssembler,
+    private val formOptions: IssueFormOptions,
+    private val labelService: IssueLabelService
 ) {
 
     // --- 목록 ---
@@ -224,12 +231,26 @@ class MilestoneController(
         viewer?.let { recentVisits.record(it, project) }
         val resource = milestone.asResource()
         val contents = milestone.contents
+        val issueState = stateOf(state)
+        val shown = when (issueState) {
+            State.OPEN -> State.OPEN
+            State.CLOSED -> State.CLOSED
+            else -> null
+        }
+        val allIssues = issues.findByMilestoneIdOrderByNumberDesc(id)
+        val counts = listOf(State.OPEN, State.CLOSED, State.ALL).associateWith {
+            searchService.count(project, IssueSearchCondition(state = it.state, milestoneId = id), viewer)
+        }
+        val items = assembler.assemble(project, allIssues.filter { shown == null || it.state == shown }, viewer)
         return ModelAndView("milestone/view")
             .addObject("title", milestone.title)
             .addObject("projectView", views.of(project))
             .addObject("milestone", milestone)
             .addObject("status", statuses.statusOf(milestone))
-            .addObject("issueState", stateOf(state))
+            .addObject("issueState", issueState)
+            .addObject("issueCounts", counts.mapKeys { it.key.state })
+            .addObject("items", items)
+            .addObject("massUpdate", formOptions.massUpdate(project, viewer, labelService.labels(project)))
             .addObject("contentsHtml", if (contents.isNullOrEmpty()) null else markdown.render(contents, project))
             .addObject("attachmentsJson", if (contents.isNullOrEmpty()) null else attachmentListing.fileListJson(ResourceType.MILESTONE, id))
             .addObject("canDelete", accessControl.isAllowed(viewer, resource, Operation.DELETE))
