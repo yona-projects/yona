@@ -198,3 +198,6 @@
 
 ## [2026-10-23] ingest | 이슈 댓글과 추천 (3단계 c-3a)
 - TDD: `IssueCommentTest` 22건. R-26(댓글 삭제 시 멘션 기록 유지)을 재현했다.
+
+## [2026-10-23] ingest | 이슈 일괄 변경 (3단계 c-3b)
+- TDD: `IssueMassUpdateTest` 10건. 세 DB 1020건 통과.
