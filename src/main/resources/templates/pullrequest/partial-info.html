@@ -1,0 +1,46 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/git/partial_info.scala.html
+  모델: header(PullRequestHeader)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="info">
+<div class="board-header issue">
+    <div class="pull-right mr10 mt10">
+        <div class="date" th:title="${header.agoTitle}" th:text="${header.ago}"></div>
+        <span th:class="'badge nm ' + ${header.badgeClass}" th:text="#{${header.badgeKey}}"></span>
+    </div>
+    <div class="title">
+        <strong class="board-id" th:text="'#' + ${header.number}"></strong> <th:block th:text="${header.title}"></th:block>
+    </div>
+</div>
+
+<div class="pull-right">
+    <th:block th:if="${header.reviewers != null}">
+        <div id="reviewers" style="display:inline-block; margin-right:5px;">
+            <span style="font-size: 13px; vertical-align: middle; margin: 0 10px;" th:utext="${header.reviewers.labelHtml}"></span>
+            <th:block th:utext="${header.reviewers.avatarsHtml}"></th:block>
+        </div>
+        <a th:if="${header.reviewers.unreviewUrl != null}" data-request-method="post" class="ybtn ybtn-default" th:href="${header.reviewers.unreviewUrl}" th:text="#{pullRequest.unreview}"></a>
+        <a th:if="${header.reviewers.reviewUrl != null}" data-request-method="post" th:class="'ybtn ' + (${header.reviewers.reviewButtonSuccess} ? 'ybtn-success' : 'ybtn-default')" th:href="${header.reviewers.reviewUrl}" th:text="#{pullRequest.review}"></a>
+    </th:block>
+
+    <th:block th:if="${header.accept != null}">
+        <a th:if="${header.accept.enabled}" id="btnAccept" th:href="${header.accept.url}" data-request-method="post" class="ybtn ybtn-success" th:text="#{pullRequest.merge}"></a>
+        <button th:if="${!header.accept.enabled}" class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" th:title="${header.accept.disabledReason}" th:text="#{pullRequest.merge}"></button>
+    </th:block>
+</div>
+
+<ul class="nav nav-tabs nm">
+    <li th:class="${header.activeTab == 'overview'} ? 'active'">
+        <a th:href="${header.overviewUrl}" th:text="#{pullRequest.menu.overview}"></a>
+    </li>
+    <li th:class="${header.activeTab == 'changes'} ? 'active'">
+        <a th:href="${header.changesUrl}"><th:block th:text="#{pullRequest.menu.changes}"></th:block>
+            <span class="num-badge" th:if="${header.openThreadCount > 0}" th:text="${header.openThreadCount}"></span>
+        </a>
+    </li>
+</ul>
+</th:block>

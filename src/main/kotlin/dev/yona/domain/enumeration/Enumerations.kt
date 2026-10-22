@@ -90,6 +90,14 @@ enum class Side { A, B }
 /** 코드 리뷰 스레드의 상태이다. */
 enum class ThreadState { OPEN, CLOSED }
 
+/** 풀 리퀘스트 리뷰 동작이다. 리뷰를 마쳤거나(`DONE`) 취소했다(`CANCEL`) (v1.6 `PullRequestReviewAction`). */
+enum class PullRequestReviewAction {
+    DONE, CANCEL;
+
+    /** 반대 동작이다. */
+    val opposite: PullRequestReviewAction get() = if (this == DONE) CANCEL else DONE
+}
+
 /** 풀 리퀘스트 커밋의 상태이다. 이전 푸시의 커밋은 PRIOR, 현재 커밋은 CURRENT이다. */
 enum class PullRequestCommitState { PRIOR, CURRENT }
 

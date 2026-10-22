@@ -17,3 +17,10 @@ data class PullRequestCreatedActivity(val pullRequest: PullRequest, val actor: U
  *   `PULL_REQUEST_MERGED`(새 값은 `conflict`, `resolved`, `merged`)
  */
 data class PullRequestChangedActivity(val pullRequest: PullRequest, val type: EventType, val oldValue: String?, val newValue: String?, val actor: User)
+
+/**
+ * 풀 리퀘스트의 리뷰 상태가 바뀌었음을 알리는 애플리케이션 이벤트이다. v1.6 `NotificationEvent.afterReviewed`를 부르던 지점에서 발행한다.
+ *
+ * @property action 리뷰를 마쳤으면 `DONE`, 취소했으면 `CANCEL`
+ */
+data class PullRequestReviewedActivity(val pullRequest: PullRequest, val action: dev.yona.domain.enumeration.PullRequestReviewAction, val actor: User)

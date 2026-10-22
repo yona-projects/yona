@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/git/view.scala.html
+  모델: title, projectView, header, contributor, branchInfo, bodyHtml, attachments, state, canWatch, watching, watchUrl, unwatchUrl, stateUrl,
+        canEdit, editUrl, canClose, closeUrl, canReopen, reopenUrl, timeline, commentable, mentionUrl, viewerName
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'PULL_REQUEST', ~{::viewPage})}">
+<th:block th:fragment="viewPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <th:block th:replace="~{pullrequest/partial-info :: info}"></th:block>
+
+        <div class="board-body">
+            <div class="author-info left-txt" style="margin-top:20px;">
+                <a th:href="${contributor.href}" class="usf-group pull-left">
+                    <span class="avatar-wrap smaller">
+                        <img th:src="${contributor.avatarUrl}" width="32" height="32">
+                    </span>
+                    <strong class="name" th:text="${contributor.name}"></strong>
+                    <span class="loginid"> <strong>@</strong><th:block th:text="${contributor.loginId}"></th:block></span>
+                </a>
+                <th:block th:replace="~{pullrequest/partial-branch :: branch}"></th:block>
+            </div>
+            <div class="content markdown-wrap" th:utext="${bodyHtml}"></div>
+            <div class="attachments" th:attr="data-attachments=${attachments}"></div>
+        </div>
+
+        <div id="state" class="pullRequest-stateInfo">
+            <th:block th:replace="~{pullrequest/partial-state :: state}"></th:block>
+        </div>
+
+        <div class="board-footer board-actrow">
+            <div class="pull-left">
+                <button th:if="${canWatch}" id="watch-button" type="button" th:class="'ybtn' + (${watching} ? ' ybtn-watching' : '')" data-toggle="button" th:attr="data-watching=${watching}"
+                        th:text="${watching} ? #{project.unwatch} : #{project.watch}"></button>
+            </div>
+
+            <div class="mr5" style="display:inline-block;">
+                <a th:if="${canEdit}" th:href="${editUrl}" class="ybtn" th:text="#{button.edit}"></a>
+                <a th:if="${canClose}" data-request-method="post" th:href="${closeUrl}" class="ybtn" th:text="#{pullRequest.close}"></a>
+                <a th:if="${canReopen}" data-request-method="post" th:href="${reopenUrl}" class="ybtn" th:text="#{pullRequest.reopen}"></a>
+            </div>
+        </div>
+
+        <hr class="nm">
+
+        <div class="board-comment-wrap">
+            <ul class="comments" id="comments" th:if="${!#lists.isEmpty(timeline)}">
+                <th:block th:replace="~{pullrequest/partial-timeline :: timeline}"></th:block>
+            </ul>
+        </div>
+
+        <div class="right-txt">
+            <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" data-toggle="modal" th:text="#{title.help}"></a>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+<th:block th:replace="~{common/comment-delete-modal :: commentDeleteModal('#comments')}"></th:block>
+<div id="helpMessage" class="modal hide fade pullreq-info">
+    <div class="modal-header">
+        <h5 th:text="#{pullRequest.merge.help.1}"></h5>
+    </div>
+    <div class="modal-body">
+        <div class="row-fluid">
+            <div class="pull-left">
+                <img class="img-polaroid" th:src="@{/assets/images/fork-pull/merge.jpg}"><br>
+            </div>
+            <div class="pull-left help-messages mt10">
+                <p th:text="#{pullRequest.merge.help.2}"></p>
+                <p th:text="#{pullRequest.merge.help.3}"></p>
+                <p th:text="#{pullRequest.merge.help.4}"></p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="ybtn ybtn-info ybtn-small" data-dismiss="modal" th:text="#{button.confirm}"></button>
+    </div>
+</div>
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/diff.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.Interval.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.CodeCommentBox.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("git.View", {
+            "sWatchUrl"  : /*[[${watchUrl}]]*/ "",
+            "sUnwatchUrl": /*[[${unwatchUrl}]]*/ "",
+            "sStateUrl"  : /*[[${stateUrl}]]*/ "",
+            "bCommentable" : /*[[${commentable} ? 'true' : 'false']]*/ "false"
+        });
+
+        yobi.Mention({
+            target: 'textarea[id^=editor-]',
+            url : /*[[${mentionUrl}]]*/ ""
+        });
+
+        $("button.moreBtn").on("click", function(){
+            $(this).next("pre.commitMsg.desc").toggleClass("hidden");
+        });
+
+        // detect comment which contains mention at me
+        var viewerName = /*[[${viewerName}]]*/ "";
+        $(".comment-body:contains('" + viewerName + "')").closest(".comment").addClass("mentioned");
+        $(".user-link:contains('" + viewerName + "')").addClass("me");
+    });
+</script>
+</th:block>
+</html>

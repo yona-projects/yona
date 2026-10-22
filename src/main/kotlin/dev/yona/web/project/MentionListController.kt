@@ -96,6 +96,36 @@ class MentionListController(
         return ResponseEntity.ok().header(HttpHeaders.VARY, HttpHeaders.ACCEPT).contentType(MediaType.APPLICATION_JSON).body(result)
     }
 
+    /**
+     * 풀 리퀘스트 화면의 `@` 멘션 후보이다. v1.6 `ProjectApp.mentionListAtPullRequest`(`app/controllers/ProjectApp.java:541-581`)에 해당한다.
+     * `commitId`를 주면 보내는 프로젝트에서 그 커밋의 작성자를 후보에 더한다. 풀 리퀘스트나 커밋이 없으면 v1.6은 500이었고 v2는 404이다([decisions.md] A-72).
+     */
+    @GetMapping("/{user}/{project}/mentionListAtPullRequest")
+    @IsAllowed(Operation.READ)
+    fun mentionListAtPullRequest(
+        @PathVariable("user") owner: String,
+        @PathVariable("project") name: String,
+        @RequestParam(name = "commitId", defaultValue = "") commitId: String,
+        @RequestParam(name = "pullRequestId") pullRequestId: Long,
+        @RequestParam(name = "query", defaultValue = "") query: String,
+        @RequestParam(name = "mentionType", defaultValue = "") mentionType: String
+    ): Any {
+        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val pullRequest = pullRequests.findById(pullRequestId).orElse(null) ?: return ErrorViews.notFound()
+        val result = linkedMapOf<String, List<Map<String, String>>>()
+        if (mentionType.equals("user", ignoreCase = true)) {
+            val viewer = currentUserProvider.get().user
+            val commit = if (query.isEmpty() && commitId.isNotEmpty()) history.commit(requireNotNull(pullRequest.fromProject), commitId) ?: return ErrorViews.notFound() else null
+            result["result"] = userList(project, mentionService.usersAtPullRequest(project, pullRequest, commit?.authorEmail, query, viewer), viewer)
+        }
+        if (mentionType.equals("issue", ignoreCase = true)) {
+            result["result"] = mentionService.issues(project, query, ISSUE_MENTION_SHOW_LIMIT).map {
+                mapOf("name" to "${it.number}${it.title}", "issueNo" to it.number.toString(), "title" to it.title.orEmpty())
+            }
+        }
+        return ResponseEntity.ok().header(HttpHeaders.VARY, HttpHeaders.ACCEPT).contentType(MediaType.APPLICATION_JSON).body(result)
+    }
+
     /** 사용자 후보에 프로젝트 전체와 조직 전체 항목을 더한다. 열 명을 넘으면 열 번째 근처에 끼워 넣는다(v1.6 동작). */
     private fun userList(project: Project, candidates: List<User>, viewer: User?): List<Map<String, String>> {
         val list = candidates.filter { !it.loginId.isNullOrEmpty() && it.loginId != ADMIN_LOGIN_ID }.map {

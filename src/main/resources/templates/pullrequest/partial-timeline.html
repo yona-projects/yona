@@ -1,0 +1,29 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/git/partial_pull_request_event.scala.html
+  모델: timeline(TimelineEvent 목록)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="timeline">
+<li th:each="e : ${timeline}" class="event" th:id="'comment-' + ${e.id}">
+    <span th:class="'state ' + ${e.stateClass}" th:text="#{${e.stateKey}}"></span>
+    <th:block th:utext="${e.messageHtml}"></th:block>
+    <span class="date"><a th:href="'#event-' + ${e.id}" th:title="${e.agoTitle}" th:text="${e.ago}"></a></span>
+    <a th:if="${e.compareUrl != null}" th:href="${e.compareUrl}" class="ybtn ybtn-mini" th:text="#{pullRequest.additional.changes}"></a>
+    <ul class="commit-list" th:if="${!#lists.isEmpty(e.commits)}">
+        <li th:each="c : ${e.commits}" th:class="'comment-body commit-info' + (${c.outdated} ? ' outdated' : '')">
+            <a th:href="${c.commitUrl}" class="commit-id" th:text="${c.shortId}"></a>
+            <a th:if="${c.authorHref != null}" th:href="${c.authorHref}" class="avatar-wrap small hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${c.authorName}">
+                <img th:src="${c.avatarUrl}" th:alt="${c.authorName}"> <th:block th:text="${c.authorEmail}"></th:block>
+            </a>
+            <img th:if="${c.authorHref == null}" th:src="${c.avatarUrl}" class="avatar-wrap small hide-in-mobile">
+            <div class="date hide-in-mobile" th:title="${c.dateTitle}" th:text="${c.date}"></div>
+            <a th:href="${c.commitUrl}" class="commitMsg short" th:utext="${#strings.isEmpty(c.shortMessageHtml)} ? #{code.commitMsg.empty} : ${c.shortMessageHtml}"></a>
+            <button type="button" class="commitMsg moreBtn" th:if="${c.hasMore}"><span>&hellip;</span></button>
+            <pre class="commitMsg desc hidden" th:if="${c.hasMore}" th:utext="${c.moreHtml}"></pre>
+        </li>
+    </ul>
+</li>
+</th:block>

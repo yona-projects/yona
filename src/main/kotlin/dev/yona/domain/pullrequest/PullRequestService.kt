@@ -39,6 +39,7 @@ class PullRequestService(
     private val issueEvents: IssueEventRepository,
     private val pushedBranches: PushedBranchRepository,
     private val events: PullRequestEventService,
+    private val threadRepository: dev.yona.domain.comment.CommentThreadRepository,
     private val publisher: ApplicationEventPublisher
 ) {
 
@@ -46,6 +47,11 @@ class PullRequestService(
     @Transactional(readOnly = true)
     fun findOne(toProject: Project, number: Long): PullRequest? =
         if (number <= 0) null else pullRequests.findByToProjectIdAndNumber(requireNotNull(toProject.id), number)
+
+    /** 풀 리퀘스트에 달린 스레드를 만든 시각 순서로 돌려준다. */
+    @Transactional(readOnly = true)
+    fun threads(pullRequest: PullRequest): List<dev.yona.domain.comment.CommentThread> =
+        threadRepository.findByPullRequestId(requireNotNull(pullRequest.id)).sortedBy { it.createdDate }
 
     /** 받는 프로젝트의 다음 풀 리퀘스트 번호이다. 가장 큰 번호에 1을 더하고 없으면 1이다 (v1.6 `nextPullRequestNumber`). */
     @Transactional(readOnly = true)

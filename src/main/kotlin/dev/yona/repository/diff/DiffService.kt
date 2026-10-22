@@ -40,7 +40,7 @@ class DiffService(private val repositories: RepositoryService) {
     /** [revision]의 커밋이 첫 부모와 비교해 바꾼 파일들이다. 첫 커밋이면 모든 파일이 추가이다. 리비전을 풀 수 없으면 `null`이다. */
     fun commitDiff(project: Project, revision: String): List<FileDiff>? = repositories.openRepository(project).use { repository ->
         val id = repository.resolve(revision) ?: return null
-        val commit = RevWalk(repository).use { it.parseCommit(id) }
+        val commit = try { RevWalk(repository).use { it.parseCommit(id) } } catch (e: org.eclipse.jgit.errors.MissingObjectException) { return null }
         val parent = if (commit.parentCount > 0) commit.getParent(0).id else null
         fileDiffs(repository, repository, parent, id)
     }

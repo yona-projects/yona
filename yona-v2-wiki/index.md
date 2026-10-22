@@ -23,6 +23,8 @@
 - [diff 엔진](subsystems/diff.md): 커밋과 저장소 사이의 파일별 차이, 헝크
 - [풀 리퀘스트 병합](subsystems/pull-request-merge.md): JGit 병합기, 병합 검사 처리기, 실행기, 이벤트, 알림, 관련 작성자
 - [코드 브라우저](web/code-browser.md): 폴더와 파일 보기, 메타데이터 JSON, 원본, 내려받기
+- [풀 리퀘스트 보기](web/pull-request-view.md): 보기, 상태 조각, 타임라인, 변경 내용, 리뷰
+- [풀 리퀘스트 동작](web/pull-request-actions.md): 받아들이기, 닫기와 열기, 수정, 보낸 브랜치 삭제와 복원
 - [풀 리퀘스트 만들기](web/pull-request-create.md): 폼, 병합 결과 조각, 만들기, 병합 검사 시작
 - [풀 리퀘스트 목록](web/pull-request-list.md): 열림, 닫힘, 보냄 목록, 검색, 최근 푸시 브랜치
 - [포크](web/fork.md): 포크 폼, 복제 안내 화면, 복제(저장소 하드 링크 복제)

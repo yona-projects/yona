@@ -23,4 +23,14 @@ interface PullRequestRepository : JpaRepository<PullRequest, Long>, JpaSpecifica
     fun findFirstByFromProjectIdAndFromBranchAndToProjectIdAndToBranchAndState(
         fromProjectId: Long, fromBranch: String, toProjectId: Long, toBranch: String, state: State
     ): PullRequest?
+
+    /**
+     * 프로젝트의 브랜치와 관련된 아직 끝나지 않은 요청이다. 그 프로젝트의 브랜치에서 보낸 요청과 그 브랜치로 받는 요청 가운데 닫힘, 병합이 아닌 것이다
+     * (v1.6 `PullRequest.findRelatedPullRequests`).
+     */
+    @org.springframework.data.jpa.repository.Query(
+        "select r from PullRequest r where ((r.fromProject.id = :projectId and r.fromBranch = :branch) or (r.toProject.id = :projectId and r.toBranch = :branch)) " +
+            "and r.state <> dev.yona.domain.enumeration.State.CLOSED and r.state <> dev.yona.domain.enumeration.State.MERGED order by r.id"
+    )
+    fun findRelated(projectId: Long, branch: String): List<PullRequest>
 }

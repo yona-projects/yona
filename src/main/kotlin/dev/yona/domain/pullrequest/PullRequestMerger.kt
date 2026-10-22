@@ -169,7 +169,8 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
         update.setRefLogIdent(who)
         update.setRefLogMessage("merged", true)
         when (val result = update.update()) {
-            RefUpdate.Result.NEW, RefUpdate.Result.FAST_FORWARD, RefUpdate.Result.FORCED -> Unit
+            // v1.6은 NO_CHANGE(같은 초에 같은 병합 커밋을 다시 만든 경우)를 오류로 보았다. 결과가 같으므로 성공으로 본다 ([decisions.md] A-77).
+            RefUpdate.Result.NEW, RefUpdate.Result.FAST_FORWARD, RefUpdate.Result.FORCED, RefUpdate.Result.NO_CHANGE -> Unit
             else -> throw IllegalStateException("참조 $ref 를 갱신하지 못했다: $result")
         }
     }

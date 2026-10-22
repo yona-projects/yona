@@ -1,0 +1,60 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/git/partial_state.scala.html
+  모델: state(PullRequestStateView)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="state">
+<div th:if="${state.kind == 'safe'}" class="alert alert-success">
+    <i class="yobicon-check-circle-alt mr5"></i>
+    <span th:text="#{pullRequest.is.safe}"></span>
+</div>
+<div th:if="${state.kind == 'conflict'}" class="alert alert-error">
+    <i class="yobicon-error mr5"></i>
+    <span th:text="#{pullRequest.is.not.safe}"></span>
+
+    <div th:if="${state.conflictHelp != null}" class="howto-resolve-conflict">
+        <h6 th:text="#{pullRequest.resolve.conflict}"></h6>
+        <div class="help">
+            <ol>
+                <li><th:block th:text="#{pullRequest.resolver.step1}"></th:block> <code th:text="'git checkout ' + ${state.conflictHelp.fromBranch}"></code></li>
+                <li><th:block th:text="#{pullRequest.resolver.step2}"></th:block> <code th:text="'git remote add upstream ' + ${state.conflictHelp.codeUrl}"></code></li>
+                <li><th:block th:text="#{pullRequest.resolver.step3}"></th:block> <code>git fetch upstream</code></li>
+                <li><th:block th:text="#{pullRequest.resolver.step4}"></th:block> <code th:text="'git rebase upstream/' + ${state.conflictHelp.toBranch}"></code></li>
+                <li th:text="#{pullRequest.resolver.step5}"></li>
+                <li><th:block th:text="#{pullRequest.resolver.step6}"></th:block> <code>git add resolved_file</code></li>
+                <li><th:block th:text="#{pullRequest.resolver.step7}"></th:block> <code>git rebase --continue</code></li>
+                <li th:text="#{pullRequest.resolver.step8}"></li>
+                <li><th:block th:text="#{pullRequest.resolver.step9}"></th:block> <code th:text="'git push -f origin ' + ${state.conflictHelp.fromBranch}"></code></li>
+                <li><th:block th:text="#{pullRequest.resolver.step10}"></th:block> <a th:href="${state.conflictHelp.refreshUrl}" class="ybtn ybtn-mini ybtn-primary" th:text="#{button.page.refresh}"></a><th:block th:text="#{pullRequest.resolver.step11}"></th:block></li>
+            </ol>
+        </div>
+    </div>
+</div>
+<div th:if="${state.kind == 'merging'}" class="alert alert-warnning">
+    <i class="yobicon-supportrequest mr5"></i>
+    <span th:text="#{pullRequest.is.merging}"></span>
+</div>
+<div th:if="${state.kind == 'merged' and state.receiver != null}" class="alert alert-info">
+    <a th:href="${state.receiver.href}" class="usf-group">
+        <span class="avatar-wrap smaller">
+            <img th:src="${state.receiver.avatarUrl}" width="25" height="25">
+        </span>
+        <strong class="name" th:text="${state.receiver.name}"></strong>
+        <span class="loginid"> <strong>@</strong><th:block th:text="${state.receiver.loginId}"></th:block></span>
+    </a>
+    <th:block th:utext="${state.receiverMessageHtml}"></th:block>
+    <th:block th:if="${state.branchActions != null}">
+        <th:block th:if="${state.branchActions.deleteUrl != null}">
+            <code th:text="${state.branchActions.fromBranchFull}"></code> <th:block th:text="#{pullRequest.delete.frombranch.message}"></th:block>
+            <button class="ybtn ybtn-danger ybtn-mini pull-right" data-request-method="delete" th:attr="data-request-uri=${state.branchActions.deleteUrl}" th:text="#{pullRequest.delete.branch}"></button>
+        </th:block>
+        <th:block th:if="${state.branchActions.restoreUrl != null}">
+            <code th:text="${state.branchActions.fromBranchFull}"></code> <th:block th:text="#{pullRequest.restore.frombranch.message}"></th:block>
+            <a th:href="${state.branchActions.restoreUrl}" class="ybtn ybtn-info ybtn-mini pull-right" data-request-method="post" th:text="#{pullRequest.restore.branch}"></a>
+        </th:block>
+    </th:block>
+</div>
+</th:block>

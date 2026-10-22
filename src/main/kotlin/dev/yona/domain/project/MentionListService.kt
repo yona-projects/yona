@@ -97,6 +97,41 @@ class MentionListService(
         return ordered
     }
 
+    /**
+     * 풀 리퀘스트 화면의 사용자 후보이다. 검색어가 없으면 (1) 리뷰 댓글을 단 사용자(최근에 단 사람이 뒤로) (2) 프로젝트 구성원 (3) 조직 구성원 (4) 선택한 커밋의
+     * 작성자(`commit`이 있을 때) 순이고, 검색어가 있으면 활성 사용자를 검색한다. 풀 리퀘스트를 보낸 사람이 없으면 더하고, [viewer]를 한 번 빼고 다시 맨 뒤에 둔다
+     * (v1.6 `ProjectApp.mentionListAtPullRequest`).
+     */
+    @Transactional(readOnly = true)
+    fun usersAtPullRequest(project: Project, pullRequest: dev.yona.domain.pullrequest.PullRequest, commitAuthorEmail: String?, query: String, viewer: User?): List<User> {
+        val ordered = mutableListOf<User>()
+        fun add(user: User?) { if (user != null && ordered.none { it.id == user.id }) ordered += user }
+        if (query.isEmpty()) {
+            val comments = entityManager.createQuery(
+                "select c from ReviewComment c join c.thread t where t.pullRequest.id = :id order by c.id", dev.yona.domain.comment.ReviewComment::class.java
+            ).setParameter("id", pullRequest.id).resultList
+            for (comment in comments) {
+                val author = comment.authorLoginId?.let { users.findByLoginId(it) } ?: continue
+                ordered.removeAll { it.id == author.id }
+                ordered += author
+            }
+            projectMembers(project).forEach { add(it) }
+            groupMembers(project).forEach { add(it) }
+            commitAuthorEmail?.let { email ->
+                add(userLookup.findByEmail(email))
+                if (email.contains("@")) add(users.findByLoginId(email.substring(0, email.lastIndexOf("@"))))
+            }
+        } else {
+            searchActive(query).forEach { add(it) }
+        }
+        add(pullRequest.contributor)
+        if (viewer != null) {
+            ordered.removeAll { it.id == viewer.id }
+            ordered += viewer
+        }
+        return ordered
+    }
+
     /** 최근 이슈를 [limit]개까지 돌려준다. [query]가 있으면 제목에 들어 있거나 번호가 그 문자열로 시작하는 이슈만이다. */
     @Transactional(readOnly = true)
     fun issues(project: Project, query: String, limit: Int): List<Issue> {

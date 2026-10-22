@@ -38,6 +38,7 @@ class WatchController(
     private val issues: IssueRepository,
     private val comments: IssueCommentRepository,
     private val postings: PostingRepository,
+    private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository,
     private val views: ProjectViewFactory,
     private val messages: MessageSource
 ) {
@@ -92,6 +93,7 @@ class WatchController(
             ResourceType.ISSUE_POST -> "$base/issue/${issues.findById(resource.id.toLong()).orElse(null)?.number}"
             ResourceType.ISSUE_COMMENT -> comments.findById(resource.id.toLong()).orElse(null)?.let { "$base/issue/${it.issue?.number}#comment-${it.id}" }
             ResourceType.BOARD_POST -> postings.findById(resource.id.toLong()).orElse(null)?.let { "$base/post/${it.number}" }
+            ResourceType.PULL_REQUEST -> pullRequests.findById(resource.id.toLong()).orElse(null)?.let { "$base/pullRequest/${it.number}" }
             else -> null
         }
     }

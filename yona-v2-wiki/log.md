@@ -259,3 +259,6 @@
 
 ## [2026-10-23] ingest | 풀 리퀘스트 만들기 (5단계 5c-3)
 - TDD: PullRequestMergerTest 8, PullRequestCreateTest 14. A-75, R-42. `UserLookup`으로 커밋 작성자 조회를 v1.6 규칙(대표, 보조, 대소문자 무시)으로 바로잡았다.
+
+## [2026-10-23] ingest | 풀 리퀘스트 보기와 동작 (5단계 5c-4, 5c-5)
+- TDD: PullRequestViewTest 13, PullRequestActionTest 10. A-76~A-78, R-43. 풀 리퀘스트 댓글(5c-6)은 5d로 옮겼다.
