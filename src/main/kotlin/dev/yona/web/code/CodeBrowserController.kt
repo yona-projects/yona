@@ -5,10 +5,8 @@ import dev.yona.access.ProjectResource
 import dev.yona.config.YonaProperties
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
-import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
-import dev.yona.domain.project.ProjectUserRepository
 import dev.yona.io.MediaTypes
 import dev.yona.repository.CodeBrowserService
 import dev.yona.repository.RepositoryService
@@ -19,12 +17,9 @@ import dev.yona.web.access.CodeAccessCheck
 import dev.yona.web.access.IsAllowed
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
-import dev.yona.web.project.RepositoryUrls
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.apache.tika.Tika
-import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -50,12 +45,10 @@ class CodeBrowserController(
     private val assembler: CodePageAssembler,
     private val views: ProjectViewFactory,
     private val repositories: RepositoryService,
-    private val repositoryUrls: RepositoryUrls,
-    private val projectUsers: ProjectUserRepository,
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
     private val properties: YonaProperties,
-    private val messages: MessageSource
+    private val noheadViews: NoheadViews
 ) {
 
     /** 기본 브랜치의 코드 화면으로 보낸다. 저장소가 비었으면 처음 올리는 방법을 안내한다. */
@@ -70,13 +63,7 @@ class CodeBrowserController(
             return ErrorViews.forbidden("error.forbidden", views.of(project))
         }
         if (service.isEmpty(project)) {
-            val role = viewer?.id?.let { id -> projectUsers.findFirstByUserIdAndProjectIdAndRoleIdNot(id, requireNotNull(project.id), RoleType.SITEMANAGER.id)?.role?.id }
-            val loginId = if (role == RoleType.MANAGER.id || role == RoleType.MEMBER.id) viewer?.loginId else null
-            return ModelAndView("code/nohead")
-                .addObject("title", "${project.name} - " + messages.getMessage("menu.code", null, LocaleContextHolder.getLocale()))
-                .addObject("projectView", views.of(project))
-                .addObject("cloneUrl", repositoryUrls.urlFor(project, request, loginId))
-                .addObject("canUpdate", accessControl.isAllowed(viewer, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), Operation.UPDATE))
+            return noheadViews.of(project, request)
         }
         // 기본 브랜치 이름에서 `refs/heads/` 접두어를 뗀다. 알 수 없으면 HEAD이다.
         val defaultBranch = repositories.defaultBranch(project).let { if (it.split("/").size >= 3) it.split("/", limit = 3)[2] else it }

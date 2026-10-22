@@ -44,4 +44,4 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-37 | 외부 API 라벨 만들기 | 입력의 `isExclusive`를 읽기만 하고 쓰지 않아 분류가 항상 단일 선택이 아닌 상태로 만들어진다 | 같게 재현한다 | `ProjectApi.java:createLabelNode` |
 | R-38 | 코드 브라우저 폴더 목록 | 폴더 이동 주소에 `#cb-…` 앵커를 붙이려는 조건이 `" folder"`(앞 공백)와 비교해 항상 거짓이라 앵커가 붙지 않는다 | 같게 재현한다 | `partial_view_folder.scala.html:makeFileItem` |
 | R-39 | 코드 브라우저 이진 파일 안내 | 파일 크기를 문자열 값으로 읽는 도우미(`fieldText`)가 숫자 노드에는 비어 있어 크기가 표시되지 않는다 | 같게 재현한다 | `partial_view_file.scala.html`, `TemplateHelper.CodeBrowser.fieldText` |
-
+| R-40 | 커밋 이력의 쪽 나누기 | `page * size + size`개를 읽어 마지막 `size`개를 남기므로, 전체 커밋이 두 쪽보다 적으면 마지막 쪽이 앞 쪽과 겹친다(예: 30개일 때 1쪽은 가장 오래된 25개) | 같게 재현한다 | `GitRepository.java:getHistory` |

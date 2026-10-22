@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/history.scala.html, app/views/common/commitMsg.scala.html
+  모델: title, projectView, rows(HistoryRow 목록), hasPath, rootUrl, crumbs, branches, filesTabUrl, commitsTabUrl, branchesTabUrl, newerUrl, olderUrl
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::historyPage})}">
+<th:block th:fragment="historyPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="bubble-wrap dark-gray repo-wrap">
+            <div class="code-browse-wrap">
+                <div id="breadcrumbs" class="code-breadcrumb-wrap" th:if="${hasPath}">
+                    <a th:href="${rootUrl}" th:text="${project.name}"></a>
+                    <th:block th:each="c : ${crumbs}"><a th:href="${c.href}" th:text="${c.text}"></a></th:block>
+                </div>
+
+                <th:block th:unless="${hasPath}">
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="pull-right">
+                    <option th:each="b : ${branches}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
+                </select>
+
+                <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                    <li><a th:href="${filesTabUrl}" th:text="#{code.files}"></a></li>
+                    <li class="active"><a th:href="${commitsTabUrl}" th:text="#{code.commits}"></a></li>
+                    <li><a th:href="${branchesTabUrl}" th:text="#{title.branches}"></a></li>
+                </ul>
+                </th:block>
+
+                <div id="history" class="commit-wrap">
+                    <table class="code-table commits" th:classappend="${hasPath} ? 'mt10'">
+                        <thead class="thead">
+                            <tr>
+                                <td class="commit-id"><strong>@</strong></td>
+                                <td class="messages"><strong th:text="#{code.commitMsg}"></strong></td>
+                                <td class="browse" th:if="${hasPath}"></td>
+                                <td class="date"><strong th:text="#{code.authorDate}"></strong></td>
+                                <td class="author"><strong th:text="#{code.author}"></strong></td>
+                            </tr>
+                        </thead>
+                        <tbody class="tbody">
+                            <tr th:if="${#lists.isEmpty(rows)}"><td colspan="5" class="warning-none" th:text="#{code.nocommits}"></td></tr>
+                            <tr th:each="r : ${rows}">
+                                <td class="commit-id">
+                                    <button type="button" class="ybtn ybtn-mini btn-copy-commitId" th:title="#{code.copyCommitId}" th:attr="data-commitId=${r.id}">
+                                        <i class="yobicon-copy"></i>
+                                    </button>
+                                    <a th:href="${r.showUrl}" th:title="#{code.showCommit}" th:text="${r.shortId}"></a>
+                                </td>
+                                <td class="messages">
+                                    <a th:href="${r.showUrl}" class="commitMsg short" th:utext="${#strings.isEmpty(r.shortMessageHtml)} ? #{code.commitMsg.empty} : ${r.shortMessageHtml}"></a>
+                                    <button type="button" class="commitMsg moreBtn" th:if="${r.hasMore}"><span>&hellip;</span></button>
+                                    <pre class="commitMsg desc hidden" th:if="${r.hasMore}" th:utext="${r.moreHtml}"></pre>
+                                </td>
+                                <td class="browse" th:if="${hasPath}">
+                                    <a th:href="${r.browseUrl}" th:title="#{code.showCodeAtThisCommit}" class="ybtn" th:text="#{code.showCode}"></a>
+                                </td>
+                                <td class="date" th:text="${r.date}"></td>
+                                <td class="author">
+                                    <a th:if="${r.authorHref != null}" th:href="${r.authorHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${r.authorLoginId}">
+                                        <img th:src="${r.avatarUrl}" th:alt="${r.authorName}" width="32" height="32"/>
+                                    </a>
+                                    <span th:if="${r.authorHref == null and r.authorEmail != null}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${r.authorEmail}">
+                                        <img th:src="${r.avatarUrl}">
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="actrow margin-top-20">
+                <a th:if="${newerUrl != null}" th:href="${newerUrl}" class="ybtn pull-left" th:text="#{code.newer}"></a>
+                <a th:if="${olderUrl != null}" th:href="${olderUrl}" class="ybtn pull-left" th:text="#{code.older}"></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    $("button.moreBtn").on("click", function(){
+        $(this).next("pre.commitMsg.desc").toggleClass("hidden");
+    });
+
+    $("#branches").on("change", function(evt){
+        location.href = evt.val;
+    });
+
+    var clipboard;
+
+    // Copy CommitId
+    $("#history").find(".btn-copy-commitId").each(function(i, el){
+        var welBtnCopy = $(el);
+
+        welBtnCopy.on("mouseenter", function(){
+            if (typeof ClipboardJS !== "undefined" && ClipboardJS.isSupported()) {
+                if (clipboard) {
+                    clipboard.destroy();
+                }
+                clipboard = new Clipboard(this, {
+                    text: function() {
+                        return $(welBtnCopy).data("commitid");
+                    }
+                }).on('success', function(e) {
+                    $yobi.notify(/*[[#{code.copyCommitId.copied}]]*/ "", 1000);
+                    e.clearSelection();
+                });
+            }
+        });
+    });
+
+    var newerUrl = /*[[${newerUrl}]]*/ null;
+    var olderUrl = /*[[${olderUrl}]]*/ null;
+    var htKeyMap = {};
+    if (newerUrl) { htKeyMap.A = newerUrl; }
+    if (olderUrl) { htKeyMap.S = olderUrl; }
+    if(htKeyMap.A || htKeyMap.S){
+        yobi.ShortcutKey.setKeymapLink(htKeyMap);
+    }
+});
+</script>
+</th:block>
+</html>
