@@ -40,7 +40,7 @@ class SignupService(
         // 입력 묶기 단계: 로그인 ID는 필수이고 형식과 예약어를 지켜야 하며, 이메일은 있으면 형식이 맞아야 한다.
         if (loginId.isNullOrEmpty() || !LoginIdRules.isValidFormat(loginId) || LoginIdRules.isReserved(loginId)) return true
         val email = form.email
-        if (!email.isNullOrEmpty() && !EMAIL_PATTERN.matches(email)) return true
+        if (!email.isNullOrEmpty() && !isValidEmailFormat(email)) return true
 
         // 폼 검증 단계
         if (loginId.trim().isEmpty() || loginId.contains(" ")) return true
@@ -119,10 +119,13 @@ class SignupService(
         return loginId
     }
 
-    private companion object {
-        const val ONE_DAY_MILLIS = 60L * 60 * 24 * 1000
+    companion object {
+        private const val ONE_DAY_MILLIS = 60L * 60 * 24 * 1000
+
+        /** 이메일 형식이 Play `@Constraints.Email`과 같으면 `true`이다. */
+        fun isValidEmailFormat(email: String): Boolean = EMAIL_PATTERN.matches(email)
 
         /** Play `@Constraints.Email`와 같은 정규식이다. */
-        val EMAIL_PATTERN = Regex("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+        private val EMAIL_PATTERN = Regex("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
     }
 }

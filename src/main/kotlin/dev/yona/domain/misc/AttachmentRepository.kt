@@ -14,4 +14,7 @@ interface AttachmentRepository : JpaRepository<Attachment, Long> {
 
     /** 이름, 해시, 컨테이너가 모두 같은 첨부를 찾는다 (v1.6 `Attachment.findBy`). */
     fun findByNameAndHashAndContainerTypeAndContainerId(name: String, hash: String, containerType: ResourceType, containerId: Long): List<Attachment>
+
+    /** 컨테이너 종류가 같고 [from] 이후(포함)에 만든 첨부를 조회한다 (v1.6 임시 파일 정리의 조회 조건). */
+    fun findByContainerTypeAndCreatedDateGreaterThanEqual(containerType: ResourceType, from: java.util.Date): List<Attachment>
 }

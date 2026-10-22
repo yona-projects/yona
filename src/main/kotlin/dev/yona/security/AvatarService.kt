@@ -39,7 +39,8 @@ class AvatarService(
         return if (avatar == null) gravatarUrl(user.email, size) else "/files/${avatar.id}"
     }
 
-    private fun gravatarUrl(email: String?, size: Int): String {
+    /** 이메일 주소의 Gravatar 주소이다. Gravatar에 접속할 수 없으면 기본 아바타이다 (v1.6 `GravatarUtil.getAvatar`). */
+    fun gravatarUrl(email: String?, size: Int): String {
         if (!gravatarReachable) return DEFAULT_AVATAR_URL
         val hash = md5Hex(email ?: "")
         return "https://www.gravatar.com/avatar/$hash?s=$size&d=" + URLEncoder.encode(DEFAULT_GRAVATAR_IMAGE, Charsets.UTF_8)

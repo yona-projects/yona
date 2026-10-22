@@ -98,4 +98,7 @@ interface RecentProjectRepository : JpaRepository<RecentProject, Long> {
 
     /** 사용자의 방문 기록 개수이다. */
     fun countByUserId(userId: Long): Long
+
+    /** 사용자의 최근 방문 기록을 모두 지운다 (v1.6 `RecentProject.deleteAll`). */
+    fun deleteByUserId(userId: Long)
 }

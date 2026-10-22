@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/edit_emails.scala.html
+  모델: title, account, subEmails(AccountController.SubEmail 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::emailsPage})}">
+<th:block th:fragment="emailsPage">
+<div class="site-breadcrumb-outer">
+  <div class="site-breadcrumb-inner">
+    <h3 th:text="#{userinfo.accountSetting}"></h3>
+  </div>
+</div>
+<div class="page-wrap-outer">
+  <div class="page-wrap">
+    <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('emails')}"></th:block>
+
+    <form th:action="@{/user/email}" method="post" class="form-inline inner-bubble">
+      <input type="text" th:placeholder="#{user.email.new}" name="email" class="text uname">
+      <button type="submit" class="ybtn ybtn-success" th:text="#{button.add}"></button>
+    </form>
+
+    <hr>
+
+    <p>
+      <th:block th:text="#{emails.main.email.descr}"></th:block><br>
+      <th:block th:text="#{emails.sub.email.descr}"></th:block>
+    </p>
+
+    <table class="table mt20">
+      <tr>
+        <td>
+          <img th:src="${account.avatarUrl80}" width="40" height="40">
+          <strong class="ml10" th:text="${account.email}"></strong>
+          <span class="label-head vmiddle ml10" th:text="#{emails.main.email}"></span>
+        </td>
+        <td style="text-align:right;">
+        </td>
+      </tr>
+
+      <tr th:each="mail : ${subEmails}">
+        <td>
+          <img th:src="${mail.avatarUrl}" width="40" height="40">
+          <span class="ml10" th:text="${mail.email}"></span>
+        </td>
+        <td style="text-align:right; vertical-align: middle;">
+          <button type="button" data-request-method="delete" th:attr="data-request-uri='/user/email/delete/' + ${mail.id}" class="ybtn ybtn-small ybtn-danger" th:text="#{button.delete}">
+          </button>
+          <button th:if="${mail.valid}" type="button" data-request-method="put" th:href="@{/user/email/setAsMain/{id}(id=${mail.id})}" class="ybtn ybtn-small" style="width:150px;" th:text="#{emails.set.as.main}">
+          </button>
+          <button th:unless="${mail.valid}" type="button" data-request-method="post" th:href="@{/user/email/sendValidationEmail/{id}(id=${mail.id})}" class="ybtn ybtn-small" style="width:150px;">
+            <i class="yobicon-error2 orange-txt mr5" style="vertical-align: bottom;"></i><th:block th:text="#{emails.send.validatino.mail}"></th:block>
+          </button>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+</th:block>
+</html>

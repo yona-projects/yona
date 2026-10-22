@@ -35,7 +35,7 @@ updated: 2026-10-22
 | 2c | 조직(생성, 홈, 목록, 설정, 구성원, 삭제, 탈퇴)과 가입 신청(조직, 프로젝트) | 완료 | [web/organization.md](web/organization.md) |
 | 2d-1 | 가입, 이메일 인증, 사용 여부 확인 | 완료 | [web/signup-and-password.md](web/signup-and-password.md) |
 | 2d-2 | 비밀번호 재설정 | 완료 | [web/signup-and-password.md](web/signup-and-password.md) |
-| 2d-3 | 프로필 편집 탭(프로필, 비밀번호, 알림, 이메일, 토큰), 아바타, 방문 기록 초기화 | 다음 | |
+| 2d-3 | 계정 설정(프로필, 비밀번호, 이메일, 토큰), 아바타, 방문 목록 초기화, 첨부 올리기와 임시 첨부 정리 | 완료 | [web/account.md](web/account.md) |
 | 2d-4 | 사용자 페이지(`/:user`), 사용자 검색 API, 기본 로그인 페이지, 사용자 메뉴 탭, 파일 목록, 프로젝트 탈퇴 | 대기 | |
 | 3 | 이슈, 게시판, 마일스톤, 라벨, 첨부 | 대기 | |
 | 4 | 알림 서브시스템(이벤트 생성, 메시지, 링크, 메일)과 로그인 사용자용 홈 알림 목록 | 대기 | |

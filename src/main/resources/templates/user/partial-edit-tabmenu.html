@@ -1,0 +1,23 @@
+<!--/*
+  이식 원본: app/views/user/partial_edit_tabmenu.scala.html
+  매개변수: tabId(현재 탭: profile, password, notifications, emails, token)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="tabmenu(tabId)">
+<ul class="nav nav-tabs mt20">
+  <li th:class="${tabId == 'profile'} ? 'active'">
+    <a th:href="@{/user/editform}" th:text="#{userinfo.editProfile}"></a>
+  </li>
+  <li th:class="${tabId == 'password'} ? 'active'">
+    <a th:href="@{/user/editform/password}" th:text="#{userinfo.changePassword}"></a>
+  </li>
+  <li th:class="${tabId == 'notifications'} ? 'active'">
+    <a th:href="@{/user/editform/notifications}" th:text="#{userinfo.changeNotifications}"></a>
+  </li>
+  <li th:class="${tabId == 'emails'} ? 'active'">
+    <a th:href="@{/user/editform/emails}" th:text="#{userinfo.changeEmails}"></a>
+  </li>
+  <li th:class="${tabId == 'token'} ? 'active'">
+    <a th:href="@{/user/editform/token}" th:text="#{userinfo.token}"></a>
+  </li>
+</ul>
+</th:block>

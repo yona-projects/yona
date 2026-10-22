@@ -83,6 +83,13 @@ class AttachmentService(
         if (!attachments.existsByHash(hash)) Files.deleteIfExists(File(uploadDirectory(), hash).toPath())
     }
 
+    /** 첨부를 다른 컨테이너로 옮긴다 (v1.6 `Attachment.moveTo`). */
+    fun moveTo(attachment: Attachment, containerType: ResourceType, containerId: Long) {
+        attachment.containerType = containerType
+        attachment.containerId = containerId
+        attachments.save(attachment)
+    }
+
     /** 컨테이너에 붙은 첨부를 모두 지운다 (v1.6 `Attachment.deleteAll`). */
     fun deleteAll(containerType: ResourceType, containerId: Long) {
         findByContainer(containerType, containerId).forEach { delete(it) }

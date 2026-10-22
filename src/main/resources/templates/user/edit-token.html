@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/edit_token.scala.html
+  모델: title, account(토큰 포함)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::tokenPage})}">
+<th:block th:fragment="tokenPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{userinfo.token}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
+        <div class="token-generate">
+            <form id="frmBasic" method="post" th:action="@{/user/editform/token_reset}" class="pull-left" style="width:100%">
+                <div th:text="#{userinfo.token}"></div>
+                <div>
+                    <input onClick="this.setSelectionRange(0, this.value.length)" size="45" style="width: 90%" type="text" name="name" class="text" th:value="${account.token}" readonly>
+                </div>
+                <div>
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{userinfo.recreateToken}"></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+</th:block>
+</html>

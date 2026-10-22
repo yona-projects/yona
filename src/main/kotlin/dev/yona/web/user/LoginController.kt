@@ -142,11 +142,7 @@ class LoginController(
     }
 
     /** 세션의 인증 정보와 remember-me 쿠키를 지운다 (v1.6 `processLogout`). */
-    private fun processLogout(request: HttpServletRequest, response: HttpServletResponse) {
-        SecurityContextHolder.clearContext()
-        request.getSession(false)?.removeAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY)
-        YonaAuthenticationFilter.discardRememberMeCookie(response)
-    }
+    private fun processLogout(request: HttpServletRequest, response: HttpServletResponse) = loginSession.end(request, response)
 
     /** 로그인 폼 주소이다. 원래 가려던 `redirectUrl`을 그대로 이어 붙인다 (v1.6 `getLoginFormURLWithRedirectURL`). */
     private fun loginFormUrl(request: HttpServletRequest): String =

@@ -27,4 +27,11 @@ class LoginSessionService {
         SecurityContextHolder.setContext(context)
         securityContextRepository.saveContext(context, request, response)
     }
+
+    /** 세션의 인증 정보와 remember-me 쿠키를 지운다 (v1.6 `UserApp.processLogout`). */
+    fun end(request: HttpServletRequest, response: HttpServletResponse) {
+        SecurityContextHolder.clearContext()
+        request.getSession(false)?.removeAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY)
+        YonaAuthenticationFilter.discardRememberMeCookie(response)
+    }
 }
