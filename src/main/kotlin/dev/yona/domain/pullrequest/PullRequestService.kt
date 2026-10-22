@@ -39,6 +39,7 @@ class PullRequestService(
     private val issueEvents: IssueEventRepository,
     private val pushedBranches: PushedBranchRepository,
     private val events: PullRequestEventService,
+    private val pullRequestCommits: PullRequestCommitRepository,
     private val threadRepository: dev.yona.domain.comment.CommentThreadRepository,
     private val publisher: ApplicationEventPublisher
 ) {
@@ -108,6 +109,22 @@ class PullRequestService(
                     )
                 )
             }
+    }
+
+    /**
+     * 풀 리퀘스트를 지운다. 이슈 언급 이벤트, 커밋, 타임라인 이벤트, 리뷰어 연결을 함께 지운다 (v1.6 `PullRequest.delete`와 연쇄 삭제).
+     * 리뷰 스레드가 달려 있으면 외래 키 때문에 지워지지 않고 예외가 난다(v1.6도 같다).
+     */
+    @Transactional
+    fun delete(pullRequest: PullRequest) {
+        val id = requireNotNull(pullRequest.id)
+        deleteIssueEvents(pullRequest)
+        pullRequestCommits.deleteAll(pullRequestCommits.findByPullRequestId(id))
+        events.deleteAll(id)
+        pullRequest.reviewers.clear()
+        pullRequests.save(pullRequest)
+        pullRequests.delete(pullRequest)
+        pullRequests.flush()
     }
 
     /** 이 풀 리퀘스트가 남긴 "풀 리퀘스트에서 언급됨" 이벤트를 지운다 (v1.6 `deleteIssueEvents`). */

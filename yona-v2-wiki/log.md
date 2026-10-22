@@ -262,3 +262,6 @@
 
 ## [2026-10-23] ingest | 풀 리퀘스트 보기와 동작 (5단계 5c-4, 5c-5)
 - TDD: PullRequestViewTest 13, PullRequestActionTest 10. A-76~A-78, R-43. 풀 리퀘스트 댓글(5c-6)은 5d로 옮겼다.
+
+## [2026-10-23] ingest | 코드 리뷰 댓글과 푸시 뒤 일 (5단계 5d)
+- TDD: ReviewCommentTest 9, PostReceiveJobsTest 4. A-79, A-80, R-44. 실행기 이름을 `BackgroundJobRunner`, 설정 키를 `yona.background-async`로 일반화했다.

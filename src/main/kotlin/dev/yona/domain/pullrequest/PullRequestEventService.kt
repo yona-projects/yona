@@ -44,6 +44,12 @@ class PullRequestEventService(private val events: PullRequestEventRepository, pr
         }
     }
 
+    /** 풀 리퀘스트의 타임라인 이벤트를 모두 지운다. */
+    @Transactional
+    fun deleteAll(pullRequestId: Long) {
+        events.deleteAll(events.findByPullRequestIdOrderByCreatedAscIdAsc(pullRequestId))
+    }
+
     /** 상태가 바뀐 이벤트를 기록한다 (v1.6 `addStateEvent`). */
     @Transactional
     fun addState(sender: User, pullRequest: PullRequest, state: State) {

@@ -16,6 +16,10 @@ import dev.yona.domain.issue.IssueCommentActivity
 import dev.yona.domain.issue.IssueCreatedActivity
 import dev.yona.domain.issue.IssueDeletedActivity
 import dev.yona.domain.issue.IssueRepository
+import dev.yona.domain.comment.CodeCommentThread
+import dev.yona.domain.comment.NonRangedCodeCommentThread
+import dev.yona.domain.comment.ReviewCommentedActivity
+import dev.yona.domain.comment.ReviewThreadStateActivity
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.pullrequest.PullRequestChangedActivity
 import dev.yona.domain.pullrequest.PullRequestCommitRepository
@@ -42,7 +46,10 @@ class NotificationListener(
     private val watches: dev.yona.domain.misc.WatchRepository,
     private val unwatches: dev.yona.domain.misc.UnwatchRepository,
     private val pullRequestCommits: PullRequestCommitRepository,
-    private val messages: org.springframework.context.MessageSource
+    private val messages: org.springframework.context.MessageSource,
+    private val siteUrls: dev.yona.util.SiteUrls,
+    private val history: dev.yona.repository.CommitHistoryService,
+    private val mentionService: MentionService
 ) {
 
     // --- 이슈 ---
@@ -132,6 +139,97 @@ class NotificationListener(
             NewNotification(
                 activity.actor, ResourceType.NONISSUE_COMMENT, requireNotNull(comment.id).toString(), type, "Re: ${postingTitle(posting)}", activity.previousContents, comment.contents,
                 receivers.forPostingComment(posting, comment.authorId, comment.contents.orEmpty(), comment.parentComment, type, activity.actor)
+            )
+        )
+    }
+
+    // --- 프로젝트 ---
+
+    @EventListener
+    fun onCommitsPushed(activity: CommitsPushedActivity) {
+        val project = activity.project
+        val locale = java.util.Locale.getDefault()
+        val title = if (activity.refNames.size == 1) {
+            messages.getMessage("notification.pushed.commits.to", arrayOf<Any>(project.name.orEmpty(), activity.commits.size, activity.refNames[0]), locale)
+        } else {
+            messages.getMessage("notification.pushed.commits", arrayOf<Any>(project.name.orEmpty(), activity.commits.size), locale)
+        }
+        events.add(
+            NewNotification(
+                activity.sender, ResourceType.PROJECT, requireNotNull(project.id).toString(), EventType.NEW_COMMIT, title, null, newCommitsMessage(activity),
+                receivers.forProjectCommits(project, EventType.NEW_COMMIT, activity.sender)
+            )
+        )
+    }
+
+    /** 새 커밋 알림의 본문이다. 커밋 목록(코드 블록)과 푸시한 브랜치 링크 목록이다 (v1.6 `newCommitsMessage`). */
+    private fun newCommitsMessage(activity: CommitsPushedActivity): String {
+        val locale = java.util.Locale.getDefault()
+        val builder = StringBuilder()
+        if (activity.commits.isNotEmpty()) {
+            builder.append("### ").append(messages.getMessage("notification.pushed.newcommits", null, locale)).append("\n```\n")
+            activity.commits.forEach { (shortId, shortMessage, _) -> builder.append(shortId).append(' ').append(shortMessage).append('\n') }
+            builder.append("```\n\n")
+        }
+        if (activity.refNames.isNotEmpty()) {
+            builder.append("### ").append(messages.getMessage("notification.pushed.branches", null, locale)).append('\n')
+            val project = activity.project
+            activity.refNames.forEach { ref ->
+                builder.append('[').append(ref).append("](").append(siteUrls.path("/${project.owner}/${project.name}/commits/${dev.yona.util.UrlPaths.routeSegment(ref)}/")).append(")\n")
+            }
+        }
+        return builder.toString()
+    }
+
+    // --- 코드 리뷰 ---
+
+    /**
+     * 코드 리뷰 댓글 알림이다. 풀 리퀘스트의 댓글은 본문에서 멘션된 사용자와 풀 리퀘스트 수신자(구독자, 본문의 멘션)가, 커밋의 댓글은 커밋 구독자와 댓글에서 멘션된
+     * 사용자가 받는다. 댓글 작성자는 뺀다 (v1.6 `forNewComment`, `forNewCommitComment`).
+     */
+    @EventListener
+    fun onReviewCommented(activity: ReviewCommentedActivity) {
+        val comment = activity.comment
+        val pullRequest = activity.pullRequest
+        val receivers = LinkedHashMap<Long, User>()
+        fun add(list: Collection<User>) = list.forEach { u -> u.id?.let { receivers.putIfAbsent(it, u) } }
+        add(mentionService.mentionedUsers(comment.contents.orEmpty()))
+        val title: String
+        if (pullRequest != null) {
+            title = "Re: " + pullRequestTitle(pullRequest)
+            add(this.receivers.forPullRequest(pullRequest, activity.actor))
+        } else {
+            val project = requireNotNull(comment.thread?.project)
+            val commit = requireNotNull(history.commit(project, requireNotNull(activity.commitId)))
+            title = "Re: [${project.name}] ${commit.shortMessage} (${commit.shortId})"
+            add(this.receivers.commitWatchers(project, commit.id, commit.authorEmail, true))
+        }
+        // 댓글을 쓴 사람은 받지 않는다.
+        receivers.remove(comment.authorId ?: activity.actor.id)
+        events.add(NewNotification(activity.actor, ResourceType.REVIEW_COMMENT, requireNotNull(comment.id).toString(), EventType.NEW_REVIEW_COMMENT, title, null, comment.contents, receivers.values))
+    }
+
+    /** 코드 리뷰 스레드를 열거나 닫았을 때의 알림이다. 풀 리퀘스트의 구독자나 커밋의 구독자가 받고 바꾼 사람은 뺀다 (v1.6 `afterStateChanged(ThreadState, CommentThread)`). */
+    @EventListener
+    fun onReviewThreadState(activity: ReviewThreadStateActivity) {
+        val thread = activity.thread
+        val pullRequest = thread.pullRequest
+        val title: String
+        val receivers: Set<User>
+        if (pullRequest != null) {
+            title = "Re: " + pullRequestTitle(pullRequest)
+            receivers = this.receivers.pullRequestWatchers(pullRequest)
+        } else {
+            val project = requireNotNull(thread.project)
+            val commitId = (thread as? CodeCommentThread)?.commitId ?: (thread as NonRangedCodeCommentThread).commitId
+            val commit = requireNotNull(history.commit(project, requireNotNull(commitId)))
+            title = "Re: [${project.name}] ${commit.shortMessage} (${commit.shortId})"
+            receivers = this.receivers.commitWatchers(project, commit.id, commit.authorEmail, true)
+        }
+        events.add(
+            NewNotification(
+                activity.actor, ResourceType.COMMENT_THREAD, requireNotNull(thread.id).toString(), EventType.REVIEW_THREAD_STATE_CHANGED, title,
+                activity.previous.name, thread.state?.name, receivers.filter { it.id != activity.actor.id }
             )
         )
     }

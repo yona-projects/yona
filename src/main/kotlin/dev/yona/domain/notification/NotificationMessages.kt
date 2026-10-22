@@ -41,6 +41,11 @@ class NotificationMessages(
     private val postings: PostingRepository,
     private val postingComments: PostingCommentRepository,
     private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository,
+    private val reviewComments: dev.yona.domain.comment.ReviewCommentRepository,
+    private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
+    private val commentThreads: dev.yona.domain.comment.CommentThreadRepository,
+    private val reviewLinks: dev.yona.domain.comment.ReviewLinks,
+    private val diffs: dev.yona.repository.diff.DiffService,
     private val siteUrls: SiteUrls
 ) {
 
@@ -76,6 +81,14 @@ class NotificationMessages(
                 if (!new.isNullOrBlank()) users.findByLoginId(new)?.let { text("notification.issue.sharer.added", UserDisplay.of(it, it.lang)) }
                 else if (!old.isNullOrBlank()) text("notification.issue.sharer.deleted")
                 else null
+            EventType.NEW_REVIEW_COMMENT -> try {
+                event.resourceId?.toLongOrNull()?.let { reviewComments.findById(it).orElse(null) }?.let { commentedCode(it, locale) } ?: new
+            } catch (e: Exception) {
+                log.error("Failed to generate a notification message for a review comment", e)
+                new
+            }
+            EventType.REVIEW_THREAD_STATE_CHANGED ->
+                if (new == dev.yona.domain.enumeration.ThreadState.CLOSED.name) text("notification.reviewthread.closed") else text("notification.reviewthread.reopened")
             EventType.PULL_REQUEST_STATE_CHANGED ->
                 if (State.OPEN.state == new) text("notification.pullrequest.reopened") else text("notification.pullrequest.$new")
             EventType.PULL_REQUEST_COMMIT_CHANGED -> new
@@ -90,6 +103,49 @@ class NotificationMessages(
                 messages.getMessage(type.descrKey, null, locale)
             }
         }
+    }
+
+    /**
+     * 코드 범위 스레드의 첫 댓글이면 댓글이 달린 줄까지의 차이(diff) 조각과 댓글을 함께 보여 주는 문구를 만든다. 첫 댓글이 아니거나 파일 단위 스레드이거나
+     * 차이를 만들 수 없으면 댓글 내용만 돌려준다 (v1.6 `buildCommentedCodeMessage`).
+     */
+    private fun commentedCode(comment: dev.yona.domain.comment.ReviewComment, locale: Locale): String? {
+        val thread = comment.thread
+        val contents = comment.contents
+        if (thread !is dev.yona.domain.comment.CodeCommentThread) return contents
+        if (thread.reviewComments.minByOrNull { it.createdDate ?: java.util.Date(0) }?.id != comment.id) return contents
+        val project = thread.project ?: return contents
+        val commitId = thread.commitId ?: return contents
+        val files = (if (thread.prevCommitId == null) diffs.commitDiff(project, commitId) else diffs.diff(project, thread.prevCommitId!!, commitId)) ?: return contents
+        for (file in files) {
+            val onFile = when (thread.endSide) {
+                dev.yona.domain.enumeration.Side.B -> file.pathB == thread.path
+                dev.yona.domain.enumeration.Side.A -> file.pathA == thread.path
+                null -> true
+            }
+            if (!onFile) continue
+            val message = StringBuilder(messages.getMessage("notification.reviewthread.inTheFile", arrayOf<Any>(thread.path.orEmpty()), locale)).append('\n')
+            file.interestLine = thread.endLine
+            file.interestSide = thread.endSide
+            val hunks = file.hunks() ?: return message.append(contents).toString()
+            message.append("```diff\n")
+            for (hunk in hunks) {
+                message.append("> @@ -${hunk.beginA + 1}, ${hunk.endA - hunk.beginA} +${hunk.beginB + 1}, ${hunk.endB - hunk.beginB} @@\n")
+                for (line in hunk.lines) {
+                    message.append("> ").append(
+                        when (line.kind) {
+                            dev.yona.repository.diff.DiffLineType.CONTEXT -> " "
+                            dev.yona.repository.diff.DiffLineType.ADD -> "+"
+                            dev.yona.repository.diff.DiffLineType.REMOVE -> "-"
+                        }
+                    ).append(line.content).append('\n')
+                    val ends = (thread.endSide == dev.yona.domain.enumeration.Side.A && thread.endLine == line.numA) || (thread.endSide == dev.yona.domain.enumeration.Side.B && thread.endLine == line.numB)
+                    if (ends) message.append("```\n").append("\n").append(contents).append("\n\n").append("```diff\n")
+                }
+            }
+            return message.append("```\n").toString()
+        }
+        return contents
     }
 
     /** 메일 일반 텍스트 본문에 들어갈 문구이다. 본문 변경은 `---`, `+++` 접두어 형식이다. */
@@ -138,6 +194,9 @@ class NotificationMessages(
                 c.posting?.let { "/${it.project?.owner}/${it.project?.name}/post/${it.number}#comment-${c.id}" }
             }
             ResourceType.PROJECT -> projects.findById(id).orElse(null)?.let { "/${it.owner}/${it.name}" }
+            ResourceType.REVIEW_COMMENT -> reviewComments.findById(id).orElse(null)?.let { reviewLinks.relativeComment(it) }
+            ResourceType.COMMENT_THREAD -> commentThreads.findById(id).orElse(null)?.let { reviewLinks.relativeThread(it) }
+            ResourceType.COMMIT_COMMENT -> commitComments.findById(id).orElse(null)?.let { c -> c.project?.let { "/${it.owner}/${it.name}/commit/${c.commitId}#comment-${c.id}" } }
             ResourceType.PULL_REQUEST -> pullRequests.findById(id).orElse(null)?.let { r -> r.toProject?.let { "/${it.owner}/${it.name}/pullRequest/${r.number}" } }
             ResourceType.USER_AVATAR -> users.findById(id).orElse(null)?.let { "/${it.loginId}" }
             else -> null

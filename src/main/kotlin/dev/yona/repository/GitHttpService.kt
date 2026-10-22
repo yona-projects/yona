@@ -36,14 +36,14 @@ class GitHttpService(private val repositories: RepositoryService, private val ho
     }
 
     /** 클라이언트의 요청 [input]을 처리해 결과를 [out]에 쓴다. 푸시(`git-receive-pack`)는 푸시 전후 훅을 건다. */
-    fun rpc(project: Project, service: String, input: InputStream, out: OutputStream) {
+    fun rpc(project: Project, service: String, input: InputStream, out: OutputStream, sender: dev.yona.domain.user.User? = null) {
         repositories.openRepository(project).use { repository ->
             when (service) {
                 UPLOAD_PACK -> UploadPack(repository).apply { isBiDirectionalPipe = false }.upload(input, out, null)
                 RECEIVE_PACK -> ReceivePack(repository).apply {
                     isBiDirectionalPipe = false
                     preReceiveHook = hooks.preReceive()
-                    postReceiveHook = hooks.postReceive(project)
+                    postReceiveHook = hooks.postReceive(project, sender)
                 }.receive(input, out, null)
             }
         }

@@ -2,7 +2,9 @@ package dev.yona.access
 
 import dev.yona.domain.board.Posting
 import dev.yona.domain.board.PostingComment
+import dev.yona.domain.comment.CommentThread
 import dev.yona.domain.comment.CommitComment
+import dev.yona.domain.comment.ReviewComment
 import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.issue.Issue
@@ -69,6 +71,14 @@ fun PullRequest.asResource(): ProjectResource =
  */
 fun CommitComment.asResource(): ProjectResource =
     ProjectResource(requireNotNull(id).toString(), ResourceType.COMMIT_COMMENT, project, authorId = authorId)
+
+/** 코드 리뷰 스레드 (`COMMENT_THREAD`). 프로젝트에 속하고 스레드를 연 사람이 작성자이다 (v1.6 `CommentThread.asResource`). */
+fun CommentThread.asResource(): ProjectResource =
+    ProjectResource(requireNotNull(id).toString(), ResourceType.COMMENT_THREAD, project, authorId = authorId)
+
+/** 코드 리뷰 댓글 (`REVIEW_COMMENT`). 스레드의 프로젝트에 속하고 스레드가 컨테이너이다 (v1.6 `ReviewComment.asResource`). */
+fun ReviewComment.asResource(): ProjectResource =
+    ProjectResource(requireNotNull(id).toString(), ResourceType.REVIEW_COMMENT, thread?.project, container = thread?.asResource(), authorId = authorId)
 
 /** 사용자 (`USER`). 임시 첨부의 컨테이너로 쓴다 (v1.6 `User.asResource`). */
 fun User.asResource(): GlobalResource = GlobalResource(requireNotNull(id).toString(), ResourceType.USER)

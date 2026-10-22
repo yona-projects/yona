@@ -54,6 +54,7 @@ class PullRequestPageAssembler(
     private val commits: PullRequestCommitRepository,
     private val eventRepository: PullRequestEventRepository,
     private val changes: PullRequestChangesService,
+    private val reviewLinks: dev.yona.domain.comment.ReviewLinks,
     private val users: UserRepository,
     private val userLookup: UserLookup,
     private val avatars: AvatarService,
@@ -209,25 +210,7 @@ class PullRequestPageAssembler(
     }
 
     /** 스레드가 보이는 화면 주소와 `#thread-번호`이다 (v1.6 `urlToCommentThread`). */
-    fun threadUrl(thread: CommentThread): String {
-        val pullRequest = thread.pullRequest
-        val base = if (pullRequest != null) {
-            val project = requireNotNull(pullRequest.toProject)
-            val root = "/${project.owner}/${project.name}/pullRequest/${pullRequest.number}"
-            when {
-                thread is CodeCommentThread && !thread.commitId.isNullOrEmpty() && !thread.prevCommitId.isNullOrEmpty() ->
-                    "$root/changes/" + (if (changes.isOutdated(thread)) thread.commitId else "")
-                thread is CodeCommentThread && !thread.commitId.isNullOrEmpty() -> "$root/changes/${thread.commitId}"
-                thread is NonRangedCodeCommentThread && !thread.commitId.isNullOrEmpty() -> "$root/changes/${thread.commitId}"
-                else -> "$root/changes"
-            }
-        } else {
-            val project = requireNotNull(thread.project)
-            val commitId = (thread as? CodeCommentThread)?.commitId ?: (thread as? NonRangedCodeCommentThread)?.commitId
-            if (commitId != null) "/${project.owner}/${project.name}/commit/$commitId" else ""
-        }
-        return siteUrls.path(base) + "#thread-" + thread.id
-    }
+    fun threadUrl(thread: CommentThread): String = reviewLinks.thread(thread)
 
     /** 변경 내용의 커밋 선택 상자에 나올 현재 커밋 목록이다. */
     fun commitChoices(pullRequest: PullRequest): List<CommitChoice> {

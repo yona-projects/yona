@@ -13,7 +13,7 @@ updated: 2026-10-23
 |---|---|---|
 | `PullRequestMerger` | 받는 프로젝트의 저장소에서 가져오기(fetch)와 RECURSIVE 병합. `attempt`(시험), `update`(요청이 있는 동안의 결과), `merge`(받아들이기) | `PullRequest.Merger`, `attemptMerge`, `updateMerge`, `merge` |
 | `PullRequestMergeProcessor` | 병합 검사 결과를 풀 리퀘스트에 반영하는 상태 흐름(충돌, 새 커밋, 병합됨) | `PullRequestActor.processPullRequestMerging` |
-| `PullRequestMergeRunner` | 위 처리를 별개의 스레드에서 단계별 트랜잭션으로 실행 (`yona.pull-request-merge-async`) | Akka 액터 |
+| `BackgroundJobRunner` | 위 처리를 별개의 스레드에서 단계별 트랜잭션으로 실행 (`yona.background-async`) | Akka 액터 |
 | `PullRequestService` | 번호 매기기, 만들기, 이슈 언급 이벤트 | `PullRequest.save`, `createPullRequest` |
 | `PullRequestEventService` | 타임라인 이벤트 기록(리뷰 상태 중복 제거 포함) | `PullRequestEvent.add…` |
 | `RelatedAuthorsService` | 바뀐 줄의 마지막 작성자(blame) | `GitRepository.getRelatedAuthors` |

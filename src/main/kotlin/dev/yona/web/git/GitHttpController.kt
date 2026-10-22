@@ -94,7 +94,7 @@ class GitHttpController(
             user?.let { recentVisits.record(it, project) }
             response.contentType = "application/x-$service-result"
             val input = if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(request.inputStream) else request.inputStream
-            gitHttp.rpc(project, service, input, response.outputStream)
+            gitHttp.rpc(project, service, input, response.outputStream, user)
         }
         // 응답 본문을 직접 썼으므로 더 쓸 것이 없다.
         return null

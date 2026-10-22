@@ -6,6 +6,7 @@ import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.PushedBranch
 import dev.yona.domain.project.PushedBranchRepository
 import dev.yona.domain.pullrequest.PullRequestRepository
+import dev.yona.domain.user.User
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.transport.PostReceiveHook
 import org.eclipse.jgit.transport.PreReceiveHook
@@ -38,15 +39,16 @@ object ReceiveCommands {
  * (`app/playRepository/RepositoryService.java:253-270`)에 해당한다.
  *
  * 푸시 전: 내부용으로 예약된 `refs/yobi` 아래 ref에는 밀어 넣지 못하게 거부한다.
- * 푸시 뒤(순서대로): 프로젝트의 마지막 푸시 시각을 갱신하고, 최근 푸시한 브랜치를 기록한다.
- * 이슈 언급 이벤트, 풀 리퀘스트 확인, 새 커밋 알림은 해당 기능을 옮길 때 이 목록에 더한다.
+ * 푸시 뒤(순서대로): 프로젝트의 마지막 푸시 시각을 갱신하고, 최근 푸시한 브랜치를 기록하고, 이슈 언급 이벤트, 풀 리퀘스트 확인, 새 커밋 알림을
+ * 요청과 별개로 시작한다([PostReceiveJobs]).
  */
 @Component
 class GitHooks(
     private val projects: ProjectRepository,
     private val pushedBranches: PushedBranchRepository,
     private val pullRequests: PullRequestRepository,
-    private val transactions: TransactionTemplate
+    private val transactions: TransactionTemplate,
+    private val postReceiveJobs: PostReceiveJobs
 ) {
 
     /** 푸시 전 훅이다. */
@@ -60,10 +62,11 @@ class GitHooks(
     }
 
     /** 푸시 뒤 훅이다. 훅 하나가 실패해도 푸시는 이미 반영됐으므로 로그만 남기고 다음 훅을 계속 돌린다. */
-    fun postReceive(project: Project): PostReceiveHook = PostReceiveHook { _: ReceivePack, commands ->
+    fun postReceive(project: Project, sender: User?): PostReceiveHook = PostReceiveHook { _: ReceivePack, commands ->
         listOf<(Collection<ReceiveCommand>) -> Unit>(
             { updateLastPushedDate(project) },
-            { updateRecentlyPushedBranch(project, it) }
+            { updateRecentlyPushedBranch(project, it) },
+            { postReceiveJobs.afterPush(project, sender, it) }
         ).forEach { hook ->
             try { hook(commands) } catch (e: Exception) { org.slf4j.LoggerFactory.getLogger(javaClass).warn("푸시 뒤 훅이 실패했다: {}", project.name, e) }
         }

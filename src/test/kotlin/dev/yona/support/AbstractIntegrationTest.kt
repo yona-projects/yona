@@ -12,7 +12,7 @@ import org.springframework.test.context.DynamicPropertySource
  * 연결 풀은 컨텍스트 수가 늘어도 DB의 최대 연결 수를 넘지 않도록 작게 제한한다.
  * 스키마는 엔티티에서 생성하고(`create-drop`) 컨텍스트가 닫힐 때 지운다.
  */
-@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.pull-request-merge-async=false"])
+@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false", "yona.background-async=false"])
 abstract class AbstractIntegrationTest {
 
     companion object {

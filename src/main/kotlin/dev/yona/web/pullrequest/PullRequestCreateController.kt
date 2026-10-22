@@ -11,7 +11,7 @@ import dev.yona.domain.project.ProjectUserRepository
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.pullrequest.PullRequestForm
 import dev.yona.domain.pullrequest.PullRequestMergeProcessor
-import dev.yona.domain.pullrequest.PullRequestMergeRunner
+import dev.yona.domain.pullrequest.BackgroundJobRunner
 import dev.yona.domain.pullrequest.PullRequestMerger
 import dev.yona.domain.pullrequest.PullRequestService
 import dev.yona.domain.user.User
@@ -74,7 +74,7 @@ class PullRequestCreateController(
     private val merger: PullRequestMerger,
     private val pullRequestService: PullRequestService,
     private val processor: PullRequestMergeProcessor,
-    private val runner: PullRequestMergeRunner,
+    private val runner: BackgroundJobRunner,
     private val commitComments: CommitCommentRepository,
     private val users: UserRepository,
     private val avatars: AvatarService,

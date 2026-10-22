@@ -28,7 +28,10 @@ class ResourceLookup(
     private val milestones: MilestoneRepository,
     private val users: UserRepository,
     private val organizations: OrganizationRepository,
-    private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository
+    private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository,
+    private val reviewComments: dev.yona.domain.comment.ReviewCommentRepository,
+    private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
+    private val commentThreads: dev.yona.domain.comment.CommentThreadRepository
 ) {
 
     /** 리소스가 아직 있으면 `true`이다 (v1.6 `Resource.exists`). */
@@ -54,6 +57,9 @@ class ResourceLookup(
             ResourceType.PROJECT -> require(projects.findById(longId)).asResource()
             ResourceType.ORGANIZATION -> require(organizations.findById(longId)).asResource()
             ResourceType.PULL_REQUEST -> require(pullRequests.findById(longId)).asResource()
+            ResourceType.REVIEW_COMMENT -> require(reviewComments.findById(longId)).asResource()
+            ResourceType.COMMIT_COMMENT -> require(commitComments.findById(longId)).asResource()
+            ResourceType.COMMENT_THREAD -> require(commentThreads.findById(longId)).asResource()
             else -> throw IllegalArgumentException("Unsupported resource type $type")
         }
     }

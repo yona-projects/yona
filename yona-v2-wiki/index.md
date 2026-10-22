@@ -22,7 +22,9 @@
 - [이슈 보기, 다음 상태, 삭제](web/issue-view.md): 보기 화면, 타임라인, 댓글 표시, 다음 상태, 삭제
 - [diff 엔진](subsystems/diff.md): 커밋과 저장소 사이의 파일별 차이, 헝크
 - [풀 리퀘스트 병합](subsystems/pull-request-merge.md): JGit 병합기, 병합 검사 처리기, 실행기, 이벤트, 알림, 관련 작성자
+- [푸시 뒤 일](subsystems/post-receive.md): 이슈 언급 이벤트, 풀 리퀘스트 확인과 삭제, 새 커밋 알림
 - [코드 브라우저](web/code-browser.md): 폴더와 파일 보기, 메타데이터 JSON, 원본, 내려받기
+- [코드 리뷰 댓글](web/review-comments.md): 커밋과 풀 리퀘스트의 리뷰 댓글, 스레드 열기와 닫기, 삭제, 알림
 - [풀 리퀘스트 보기](web/pull-request-view.md): 보기, 상태 조각, 타임라인, 변경 내용, 리뷰
 - [풀 리퀘스트 동작](web/pull-request-actions.md): 받아들이기, 닫기와 열기, 수정, 보낸 브랜치 삭제와 복원
 - [풀 리퀘스트 만들기](web/pull-request-create.md): 폼, 병합 결과 조각, 만들기, 병합 검사 시작

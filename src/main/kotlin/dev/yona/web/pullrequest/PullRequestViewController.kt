@@ -194,7 +194,7 @@ class PullRequestViewController(
             .addObject("diffHtml", diffs?.let { diffHtml.render(it, codeThreads, requireNotNull(pullRequest.toProject), requireNotNull(pullRequest.toProject), threadHtml) }.orEmpty())
             .addObject("nonRangedHtml", threadHtml.renderAll(changes.nonRangedThreads(pullRequest, commitId)))
             .addObject("commentable", creatable)
-            .addObject("commentAction", "$base/comments" + (commitId?.let { "?commitId=$it" } ?: ""))
+            .addObject("commentAction", siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.id}/comments") + (commitId?.let { "?commitId=$it" } ?: ""))
             .addObject("openCards", assembler.cards(allThreads.filter { it.state == dev.yona.domain.enumeration.ThreadState.OPEN }))
             .addObject("closedCards", assembler.cards(allThreads.filter { it.state == dev.yona.domain.enumeration.ThreadState.CLOSED }))
             .addObject("openCount", allThreads.count { it.state == dev.yona.domain.enumeration.ThreadState.OPEN })

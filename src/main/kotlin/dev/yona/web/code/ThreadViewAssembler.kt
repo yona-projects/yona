@@ -58,8 +58,22 @@ class ThreadViewAssembler(
             },
             comments = thread.reviewComments.sortedBy { it.createdDate }.map { comment(it, viewer) },
             stateUrl = if (canChangeState) siteUrls.path("/threads/${thread.id}/" + if (open) "close" else "open") else null,
-            form = null
+            form = form(thread, project, viewer)
         )
+    }
+
+    /** 스레드 아래의 답글 입력 영역이다. 풀 리퀘스트의 스레드는 리뷰 댓글, 커밋의 스레드는 커밋 코멘트를 만들 권한이 있을 때만 나온다 (v1.6 `partial_comment_form_on_thread`). */
+    private fun form(thread: CommentThread, project: dev.yona.domain.project.Project, viewer: User?): ThreadFormView? {
+        val pullRequest = thread.pullRequest
+        val type = if (pullRequest != null) ResourceType.REVIEW_COMMENT else ResourceType.COMMIT_COMMENT
+        if (viewer == null || !accessControl.isProjectResourceCreatable(viewer, project, type)) return null
+        val commitId = (thread as? CodeCommentThread)?.commitId ?: (thread as? dev.yona.domain.comment.NonRangedCodeCommentThread)?.commitId.orEmpty()
+        val action = if (pullRequest != null) {
+            siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.id}/comments") + (if (commitId.isNotEmpty()) "?commitId=$commitId" else "?commitId=")
+        } else {
+            siteUrls.path("/${project.owner}/${project.name}/commit/$commitId/comments")
+        }
+        return ThreadFormView(action, requireNotNull(thread.id), type.name, avatars.avatarUrl(viewer, AVATAR_SIZE), siteUrls.path("/${viewer.loginId}"), viewer.name.orEmpty(), false)
     }
 
     private fun comment(comment: ReviewComment, viewer: User?): ThreadCommentView {

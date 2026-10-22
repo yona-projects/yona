@@ -139,6 +139,24 @@ class NotificationReceivers(
         return group.toSet()
     }
 
+    // --- 프로젝트 ---
+
+    /**
+     * 새 커밋 푸시를 받을 사용자이다. 프로젝트를 구독한 구성원에서 프로젝트 구독 해제자와 이 종류의 알림을 끈 사용자, 보낸 사람을 뺀다
+     * (v1.6 `getProjectCommitReceivers`).
+     */
+    @Transactional(readOnly = true)
+    fun forProjectCommits(project: Project, eventType: EventType, sender: User?): Set<User> {
+        val projectId = requireNotNull(project.id)
+        val members = projectUsers.findMembers(projectId, dev.yona.domain.enumeration.RoleType.SITEMANAGER.id).mapNotNull { it.user }.mapNotNull { it.id }.toSet()
+        return Group().also { group ->
+            group.addAll(watches.findByResourceTypeAndResourceId(ResourceType.PROJECT, projectId.toString()).mapNotNull { it.user }.filter { it.id in members })
+            group.removeAll(unwatches.findByResourceTypeAndResourceId(ResourceType.PROJECT, projectId.toString()).mapNotNull { it.user })
+            group.removeAll(eventUsers(projectId, eventType, false))
+            group.remove(sender)
+        }.toSet()
+    }
+
     // --- 이슈 ---
 
     /** 새 이슈를 받을 사용자이다. 실제 구독자와 본문에서 멘션된 사용자에서 [author]를 뺀다 (v1.6 `getReceivers(issue, author)`). */

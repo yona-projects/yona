@@ -1,0 +1,249 @@
+package dev.yona.web.code
+
+import dev.yona.domain.comment.CodeCommentThread
+import dev.yona.domain.comment.CommentThreadRepository
+import dev.yona.domain.comment.NonRangedCodeCommentThread
+import dev.yona.domain.comment.ReviewCommentRepository
+import dev.yona.domain.enumeration.EventType
+import dev.yona.domain.enumeration.ProjectScope
+import dev.yona.domain.enumeration.RoleType
+import dev.yona.domain.enumeration.Side
+import dev.yona.domain.enumeration.ThreadState
+import dev.yona.domain.enumeration.UserState
+import dev.yona.domain.notification.NotificationEventRepository
+import dev.yona.domain.notification.NotificationMessages
+import dev.yona.domain.project.Project
+import dev.yona.domain.project.ProjectMenuSetting
+import dev.yona.domain.project.ProjectMenuSettingRepository
+import dev.yona.domain.project.ProjectRepository
+import dev.yona.domain.project.ProjectUser
+import dev.yona.domain.project.ProjectUserRepository
+import dev.yona.domain.pullrequest.ForkService
+import dev.yona.domain.pullrequest.PullRequest
+import dev.yona.domain.pullrequest.PullRequestRepository
+import dev.yona.domain.user.RoleRepository
+import dev.yona.domain.user.User
+import dev.yona.domain.user.UserRepository
+import dev.yona.repository.RepositoryService
+import dev.yona.security.LegacyPasswordHasher
+import dev.yona.support.AbstractIntegrationTest
+import dev.yona.support.GitTestSupport
+import dev.yona.support.GitTestSupport.TestCommit
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.springframework.mock.web.MockHttpSession
+import org.springframework.test.context.TestPropertySource
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.transaction.annotation.Transactional
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+/**
+ * 코드 리뷰 댓글(커밋과 풀 리퀘스트), 스레드 열기와 닫기, 댓글 삭제를 검증한다.
+ *
+ * 원본: `app/controllers/CodeHistoryApp.java`(`newComment`), `PullRequestApp.java`(`newComment`), `CommentThreadApp.java`, `CommentApp.java`,
+ * `app/models/ReviewComment.java`, `NotificationEvent.java`(`forNewCommitComment`, `forNewComment`, `afterStateChanged`).
+ */
+@AutoConfigureMockMvc
+@Transactional
+@TestPropertySource(properties = ["yona.data-dir=build/tmp/it-code-browser"])
+class ReviewCommentTest : AbstractIntegrationTest() {
+
+    @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var projects: ProjectRepository
+    @Autowired private lateinit var projectUsers: ProjectUserRepository
+    @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
+    @Autowired private lateinit var roles: RoleRepository
+    @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var forks: ForkService
+    @Autowired private lateinit var pullRequests: PullRequestRepository
+    @Autowired private lateinit var threads: CommentThreadRepository
+    @Autowired private lateinit var reviewComments: ReviewCommentRepository
+    @Autowired private lateinit var notificationEvents: NotificationEventRepository
+    @Autowired private lateinit var notificationMessages: NotificationMessages
+
+    private var sequence = 0
+
+    private fun user(email: String? = null): User {
+        val n = ++sequence
+        val salt = LegacyPasswordHasher.generateSalt()
+        return users.save(User(loginId = "rc$n", name = "이름rc$n", email = email ?: "rc$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
+    }
+
+    private fun login(user: User): MockHttpSession = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", user.loginId!!).param("password", "1234")) }
+
+    private class Setup(val project: Project, val commitId: String, val committer: User, val manager: User, val managerSession: MockHttpSession)
+
+    /** 두 파일을 가진 커밋 하나가 있는 프로젝트이다. 커밋 작성자는 가입한 사용자이다. */
+    private fun commitSetup(): Setup {
+        val n = ++sequence
+        val project = projects.save(Project(owner = "rco$n", name = "rcp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(project)
+        val committer = user()
+        GitTestSupport.pushCommits(
+            repositories, project, TestCommit("커밋", mapOf("a.txt" to "line1\nline2\nline3\n".toByteArray()), authorName = "작성자", authorEmail = committer.email!!)
+        )
+        val commitId = repositories.openRepository(project).use { it.resolve("refs/heads/master")!!.name }
+        val manager = user()
+        projectUsers.save(ProjectUser(user = manager, project = project, role = roles.findById(RoleType.MANAGER.id).get()))
+        return Setup(project, commitId, committer, manager, login(manager))
+    }
+
+    private fun commentUrl(s: Setup) = "/${s.project.owner}/${s.project.name}/commit/${s.commitId}/comments"
+
+    private fun range(path: String = "a.txt") = mapOf(
+        "path" to path, "startSide" to "B", "startLine" to "2", "startColumn" to "0", "endSide" to "B", "endLine" to "2", "endColumn" to "5"
+    )
+
+    private fun send(url: String, session: MockHttpSession, contents: String, extra: Map<String, String> = emptyMap()) =
+        post(url).session(session).param("contents", contents).apply { extra.forEach { (k, v) -> param(k, v) } }
+
+    @Test
+    fun `커밋에 범위 없이 댓글을 달면 파일 단위 스레드가 열리고 커밋 보기에 나온다`() {
+        val s = commitSetup()
+        val mentioned = user()
+        val result = mockMvc.perform(send(commentUrl(s), s.managerSession, "전체 의견 @${mentioned.loginId}")).andExpect(status().isSeeOther).andReturn()
+        val thread = threads.findAll().single() as NonRangedCodeCommentThread
+        assertEquals(ThreadState.OPEN, thread.state); assertEquals(s.commitId, thread.commitId); assertNull(thread.prevCommitId)
+        assertEquals(s.manager.id, thread.authorId); assertEquals(s.project.id, thread.project?.id)
+        val comment = reviewComments.findAll().single()
+        assertEquals("/${s.project.owner}/${s.project.name}/commit/${s.commitId}#comment-${comment.id}", result.response.getHeader("Location"))
+        val doc: Document = Jsoup.parse(mockMvc.perform(get("/${s.project.owner}/${s.project.name}/commit/${s.commitId}").session(s.managerSession)).andReturn().response.contentAsString)
+        assertNotNull(doc.selectFirst(".non-ranged-threads-wrap #thread-${thread.id}"))
+        assertTrue(doc.selectFirst("#thread-${thread.id} .comment-body")!!.text().contains("전체 의견"))
+        val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
+        assertTrue(note.receivers.any { it.id == mentioned.id }); assertTrue(note.receivers.none { it.id == s.manager.id })
+        assertEquals("Re: [${s.project.name}] 커밋 (${s.commitId.take(7)})", note.title)
+    }
+
+    @Test
+    fun `범위가 있으면 코드 범위 스레드가 열리고 커밋 작성자가 코드 작성자로 들어가며 줄 사이에 나온다`() {
+        val s = commitSetup()
+        mockMvc.perform(send(commentUrl(s), s.managerSession, "이 줄이 이상해요", range())).andExpect(status().isSeeOther)
+        val thread = threads.findAll().single() as CodeCommentThread
+        assertEquals(listOf("a.txt", Side.B, 2, 0, Side.B, 2, 5), listOf(thread.path, thread.startSide, thread.startLine, thread.startColumn, thread.endSide, thread.endLine, thread.endColumn))
+        assertEquals(setOf(s.committer.id), thread.codeAuthors.map { it.id }.toSet())
+        val doc = Jsoup.parse(mockMvc.perform(get("/${s.project.owner}/${s.project.name}/commit/${s.commitId}").session(s.managerSession)).andReturn().response.contentAsString)
+        assertNotNull(doc.selectFirst(".diff-body #thread-${thread.id}[data-range-startline=2]"))
+    }
+
+    @Test
+    fun `범위의 숫자가 하나라도 없으면 파일 단위 스레드이다`() {
+        val s = commitSetup()
+        mockMvc.perform(send(commentUrl(s), s.managerSession, "의견", range() - "endColumn")).andExpect(status().isSeeOther)
+        assertTrue(threads.findAll().single() is NonRangedCodeCommentThread)
+    }
+
+    @Test
+    fun `thread_id를 주면 그 스레드에 이어 단다`() {
+        val s = commitSetup()
+        mockMvc.perform(send(commentUrl(s), s.managerSession, "첫 댓글", range())).andExpect(status().isSeeOther)
+        val thread = threads.findAll().single()
+        mockMvc.perform(send(commentUrl(s), login(user()), "답글", mapOf("thread.id" to thread.id.toString()))).andExpect(status().isSeeOther)
+        assertEquals(1, threads.count()); assertEquals(listOf("첫 댓글", "답글"), reviewComments.findAll().sortedBy { it.id }.map { it.contents })
+    }
+
+    @Test
+    fun `내용이 비었거나 커밋이 없거나 로그인하지 않았으면 만들지 않는다`() {
+        val s = commitSetup()
+        mockMvc.perform(send(commentUrl(s), s.managerSession, "")).andExpect(status().isBadRequest)
+        mockMvc.perform(send("/${s.project.owner}/${s.project.name}/commit/${"0".repeat(40)}/comments", s.managerSession, "의견")).andExpect(status().isNotFound)
+        mockMvc.perform(post(commentUrl(s)).param("contents", "의견")).andExpect(status().isForbidden)
+        assertEquals(0, threads.count())
+    }
+
+    @Test
+    fun `스레드를 닫고 다시 열 수 있고 알림이 남으며 권한이 없으면 403이다`() {
+        val s = commitSetup()
+        val watcher = user()
+        mockMvc.perform(send(commentUrl(s), login(watcher), "의견")).andExpect(status().isSeeOther)
+        val thread = threads.findAll().single()
+        mockMvc.perform(post("/threads/${thread.id}/close").session(login(user()))).andExpect(status().isForbidden)
+        mockMvc.perform(post("/threads/${thread.id}/close").session(s.managerSession)).andExpect(status().isOk)
+        assertEquals(ThreadState.CLOSED, threads.findById(thread.id!!).get().state)
+        val note = notificationEvents.findAll().single { it.eventType == EventType.REVIEW_THREAD_STATE_CHANGED }
+        assertEquals("OPEN", note.oldValue); assertEquals("CLOSED", note.newValue); assertTrue(note.receivers.any { it.id == watcher.id })
+        assertEquals(messageOf("notification.reviewthread.closed"), notificationMessages.message(note, LANG))
+        mockMvc.perform(post("/threads/${thread.id}/open").session(s.managerSession)).andExpect(status().isOk)
+        assertEquals(ThreadState.OPEN, threads.findById(thread.id!!).get().state)
+        mockMvc.perform(post("/threads/99999/open").session(s.managerSession)).andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `댓글을 지우고 마지막 댓글이면 스레드도 지워진다`() {
+        val s = commitSetup()
+        val author = user()
+        mockMvc.perform(send(commentUrl(s), login(author), "첫 댓글", range())).andExpect(status().isSeeOther)
+        val thread = threads.findAll().single()
+        mockMvc.perform(send(commentUrl(s), s.managerSession, "답글", mapOf("thread.id" to thread.id.toString()))).andExpect(status().isSeeOther)
+        val (first, second) = reviewComments.findAll().sortedBy { it.id }
+        mockMvc.perform(delete("/comments/review_comment/${first.id}").session(login(user()))).andExpect(status().isForbidden)
+        mockMvc.perform(delete("/comments/review_comment/${first.id}").session(login(author))).andExpect(status().isOk)
+        assertEquals(1, threads.count())
+        mockMvc.perform(delete("/comments/review_comment/${second.id}").session(s.managerSession)).andExpect(status().isOk)
+        assertEquals(0, threads.count()); assertEquals(0, reviewComments.count())
+        mockMvc.perform(delete("/comments/review_comment/99999").session(s.managerSession)).andExpect(status().isBadRequest)
+        mockMvc.perform(delete("/comments/issue_post/1").session(s.managerSession)).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `첫 댓글 알림 문구에는 댓글이 달린 줄까지의 차이가 함께 나온다`() {
+        val s = commitSetup()
+        GitTestSupport.appendCommits(repositories, s.project, TestCommit("수정", mapOf("a.txt" to "line1\nCHANGED\nline3\n".toByteArray()), authorEmail = s.committer.email!!))
+        val second = repositories.openRepository(s.project).use { it.resolve("refs/heads/master")!!.name }
+        mockMvc.perform(send("/${s.project.owner}/${s.project.name}/commit/$second/comments", s.managerSession, "여기 확인", range() + ("endLine" to "1"))).andExpect(status().isSeeOther)
+        val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
+        val message = notificationMessages.message(note, LANG)!!
+        assertTrue(message.startsWith(messageOf("notification.reviewthread.inTheFile", "a.txt") + "\n```diff\n> @@ -1, 3 +1, 3 @@\n>  line1\n> -line2\n> +CHANGED\n```\n\n여기 확인\n\n```diff\n>  line3\n```\n"), message)
+    }
+
+    @Test
+    fun `풀 리퀘스트에 댓글을 달면 풀 리퀘스트에 스레드가 붙고 변경 화면에 나온다`() {
+        val n = ++sequence
+        val origin = projects.save(Project(owner = "rpo$n", name = "rpp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = origin, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(origin)
+        GitTestSupport.pushCommits(repositories, origin, TestCommit("기반", mapOf("a.txt" to "line1\nline2\nline3\n".toByteArray())))
+        val manager = user(); projectUsers.save(ProjectUser(user = manager, project = origin, role = roles.findById(RoleType.MANAGER.id).get()))
+        val contributor = user()
+        val fork = forks.fork(origin, contributor.loginId!!, "rpf$n", ProjectScope.PUBLIC, contributor)
+        GitTestSupport.appendCommits(repositories, fork, TestCommit("새 파일", mapOf("b.txt" to "b\n".toByteArray())))
+        mockMvc.perform(
+            post("/${fork.owner}/${fork.name}/pullRequests").session(login(contributor)).param("fromProjectId", fork.id.toString()).param("toProjectId", origin.id.toString())
+                .param("fromBranch", "refs/heads/master").param("toBranch", "refs/heads/master").param("title", "요청").param("body", "본문")
+        ).andExpect(status().isSeeOther)
+        val pr: PullRequest = pullRequests.findAll().single()
+        val session = login(manager)
+
+        val result = mockMvc.perform(send("/${origin.owner}/${origin.name}/pullRequest/${pr.id}/comments", session, "전체 변경 의견")).andExpect(status().isSeeOther).andReturn()
+        val thread = threads.findAll().single() as NonRangedCodeCommentThread
+        assertEquals(pr.id, thread.pullRequest?.id); assertEquals(pr.mergedCommitIdTo, thread.commitId); assertEquals(pr.mergedCommitIdFrom, thread.prevCommitId)
+        assertEquals("/${origin.owner}/${origin.name}/pullRequest/${pr.number}/changes/${pr.mergedCommitIdTo}#comment-${reviewComments.findAll().single().id}", result.response.getHeader("Location"))
+        val doc = Jsoup.parse(mockMvc.perform(get("/${origin.owner}/${origin.name}/pullRequest/${pr.number}/changes").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertNotNull(doc.selectFirst("#thread-${thread.id}"))
+        assertEquals("/${origin.owner}/${origin.name}/pullRequest/${pr.id}/comments?commitId=${pr.mergedCommitIdTo}", doc.selectFirst("#thread-${thread.id} form")!!.attr("action"))
+        assertEquals(1, doc.select("#reviewcards-open a.review-card").size)
+        val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
+        assertTrue(note.receivers.any { it.id == contributor.id }); assertTrue(note.receivers.none { it.id == manager.id })
+    }
+
+    private fun messageOf(key: String, vararg args: Any) = messages.getMessage(key, args, java.util.Locale.forLanguageTag(LANG))
+
+    private companion object {
+        const val LANG = "ko-KR"
+    }
+
+    @Autowired private lateinit var messages: org.springframework.context.MessageSource
+}

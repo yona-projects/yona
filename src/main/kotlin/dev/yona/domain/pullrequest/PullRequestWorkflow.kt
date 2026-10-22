@@ -31,7 +31,7 @@ class PullRequestWorkflow(
     private val pullRequests: PullRequestRepository,
     private val merger: PullRequestMerger,
     private val processor: PullRequestMergeProcessor,
-    private val runner: PullRequestMergeRunner,
+    private val runner: BackgroundJobRunner,
     private val events: PullRequestEventService,
     private val service: PullRequestService,
     private val branches: PullRequestBranchService,
