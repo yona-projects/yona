@@ -27,6 +27,7 @@ import org.springframework.web.util.HtmlUtils
  * | `site` | 사이트 설정 | `Application.*` 상수, `utils.Config` |
  * | `flashMessages` | 이전 요청이 남긴 일회성 메시지(번역 끝남) | `Http.Context.flash()` |
  * | `siteAdminLoggedIn` | 기본 관리자 계정으로 로그인했는지 | `UserApp.isSiteAdminLoggedInSession()` |
+ * | `helper` | 표시 도우미(상대 시간, 날짜, 복수형) | `utils.TemplateHelper` |
  * | `requestPath` | 요청 경로 | `request().path()` |
  * | `requestUri` | 쿼리 문자열을 포함한 요청 주소 | `requestHeader.uri` |
  *
@@ -42,7 +43,8 @@ class LayoutModelFactory(
     private val avatars: AvatarService,
     private val organizationUsers: OrganizationUserRepository,
     private val userSettings: UserSettingRepository,
-    private val flashTranslator: FlashMessageTranslator
+    private val flashTranslator: FlashMessageTranslator,
+    private val templateHelper: dev.yona.web.TemplateHelper
 ) {
 
     fun attributes(request: HttpServletRequest): Map<String, Any> = mapOf(
@@ -50,6 +52,7 @@ class LayoutModelFactory(
         "site" to properties,
         "siteAdminLoggedIn" to (currentUserProvider.get().user?.loginId == DEFAULT_ADMIN_LOGIN_ID),
         "flashMessages" to flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty()),
+        "helper" to templateHelper,
         "requestPath" to request.requestURI,
         "requestUri" to listOfNotNull(request.requestURI, request.queryString).joinToString("?")
     )

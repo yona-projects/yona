@@ -1,9 +1,10 @@
 package dev.yona.domain.project
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 
 /** 프로젝트 저장소이다. */
-interface ProjectRepository : JpaRepository<Project, Long> {
+interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
 
     /** 소유자와 이름이 모두 일치하는 프로젝트를 대소문자 구별 없이 조회한다 (v1.6의 `ieq`). */
     fun findByOwnerIgnoreCaseAndNameIgnoreCase(owner: String, name: String): Project?

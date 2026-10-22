@@ -20,3 +20,6 @@ interface IssueLabelRepository : JpaRepository<IssueLabel, Long>
 
 /** 이슈 라벨 분류 저장소이다. */
 interface IssueLabelCategoryRepository : JpaRepository<IssueLabelCategory, Long>
+
+/** 전역 라벨(언어, 라이선스, OS 등) 저장소이다. */
+interface LabelRepository : JpaRepository<Label, Long>

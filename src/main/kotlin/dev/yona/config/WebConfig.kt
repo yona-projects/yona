@@ -2,6 +2,7 @@ package dev.yona.config
 
 import dev.yona.web.access.AnonymousCheckInterceptor
 import dev.yona.web.access.ProjectCheckInterceptor
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
@@ -20,6 +21,10 @@ class WebConfig(
     private val anonymousCheckInterceptor: AnonymousCheckInterceptor,
     private val projectCheckInterceptor: ProjectCheckInterceptor
 ) : WebMvcConfigurer {
+
+    /** 현재 시각을 알려 주는 시계이다. 시각에 의존하는 표시를 테스트에서 고정할 수 있게 주입해서 쓴다. */
+    @Bean
+    fun clock(): java.time.Clock = java.time.Clock.systemDefaultZone()
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(anonymousCheckInterceptor)

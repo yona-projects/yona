@@ -68,6 +68,9 @@ class ProjectViewContext(
         deps.attachments.findByContainerTypeAndContainerIdOrderById(ResourceType.PROJECT, projectId).firstOrNull()?.id
     }
 
+    /** 프로젝트에 올린 첨부(로고)가 있으면 `true`이다 (v1.6 `hasProjectLogo`). */
+    val hasLogo: Boolean get() = projectAttachmentId != null
+
     /** 프로젝트에 올린 첨부가 있으면 로고 이미지로 쓴다 (v1.6 `urlToProjectLogo`). */
     val logoUrl: String get() = projectAttachmentId?.let { "/files/$it" } ?: DEFAULT_LOGO
 

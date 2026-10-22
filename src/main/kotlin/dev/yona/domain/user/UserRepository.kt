@@ -22,6 +22,16 @@ interface UserRepository : JpaRepository<User, Long> {
     @Query("select count(u) from User u join u.enrolledProjects p where p.id = :projectId")
     fun countEnrolledUsers(projectId: Long): Long
 
+    /**
+     * 프로젝트의 구성원을 이름 순으로 조회한다. 사이트 관리자 행(모든 프로젝트에 자동으로 들어가는 `SITEMANAGER` 역할)은
+     * 제외한다 (v1.6 `User.findUsersByProject`).
+     */
+    @Query(
+        "select u from User u where u.id in (select pu.user.id from ProjectUser pu " +
+            "where pu.project.id = :projectId and pu.role.id <> :excludedRoleId) order by u.name asc"
+    )
+    fun findMembersOfProject(projectId: Long, excludedRoleId: Long): List<User>
+
     /** 로그인 ID로 정확히 일치하는 사용자를 조회한다 (v1.6 `User.findByLoginId`는 `eq`). */
     fun findByLoginId(loginId: String): User?
 

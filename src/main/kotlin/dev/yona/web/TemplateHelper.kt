@@ -1,0 +1,81 @@
+package dev.yona.web
+
+import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
+import org.springframework.stereotype.Component
+import java.text.SimpleDateFormat
+import java.time.Clock
+import java.time.Duration
+import java.time.ZoneId
+import java.util.Date
+import java.util.Locale
+
+/**
+ * 템플릿이 쓰는 표시 도우미이다. v1.6 `utils.TemplateHelper`(Scala)와 `JodaDateUtil.getDateString`의 일부이다.
+ * 템플릿에서는 모델 이름 `helper`로 접근한다.
+ *
+ * 메시지 언어를 받지 않는 오버로드는 현재 요청의 언어를 쓴다.
+ *
+ * @param clock 현재 시각과 시간대. 테스트에서는 고정한 시계를 넣는다
+ */
+@Component
+class TemplateHelper(private val messages: MessageSource, private val clock: Clock) {
+
+    private val zone: ZoneId get() = clock.zone
+
+    // --- 시간 ---
+
+    /** 기본 형식 `yyyy-MM-dd h:mm:ss a`로 날짜를 문자열로 바꾼다. 날짜가 없으면 빈 문자열이다 (v1.6 `JodaDateUtil.getDateString`). */
+    fun dateString(date: Date?): String = dateString(date, Locale.getDefault(Locale.Category.FORMAT))
+
+    fun dateString(date: Date?, locale: Locale): String = format(date, "yyyy-MM-dd h:mm:ss a", locale)
+
+    /**
+     * 지나간 시간을 사람이 읽는 문구로 바꾼다 (v1.6 `agoString`). 하루 이상은 일, 한 시간 이상은 시간, 1분 이상은 분,
+     * 1초 이상은 초 단위이고 그보다 짧으면 "방금"이다. 날짜가 없으면 빈 문자열이다.
+     */
+    fun agoString(date: Date?): String = agoString(date, LocaleContextHolder.getLocale())
+
+    fun agoString(date: Date?, locale: Locale): String {
+        if (date == null) return ""
+        val ago = Duration.between(date.toInstant(), clock.instant())
+        return when {
+            ago.seconds >= 86_400 -> plural("common.time.day", ago.toDays(), locale)
+            ago.seconds >= 3_600 -> plural("common.time.hour", ago.toHours(), locale)
+            ago.seconds >= 60 -> plural("common.time.minute", ago.toMinutes(), locale)
+            ago.seconds > 0 -> plural("common.time.second", ago.seconds, locale)
+            else -> message("common.time.just", locale)
+        }
+    }
+
+    /**
+     * 8일이 지나지 않았으면 [agoString], 같은 해이면 `MM-dd`, 해가 다르면 `yyyy-MM-dd`로 보여 준다
+     * (v1.6 `agoOrDateString`).
+     */
+    fun agoOrDateString(date: Date?): String = agoOrDateString(date, LocaleContextHolder.getLocale())
+
+    fun agoOrDateString(date: Date?, locale: Locale): String {
+        if (date == null) return ""
+        val ago = Duration.between(date.toInstant(), clock.instant())
+        return when {
+            ago.toDays() < 8 -> agoString(date, locale)
+            format(date, "yyyy", locale) == format(Date.from(clock.instant()), "yyyy", locale) -> format(date, "MM-dd", locale)
+            else -> format(date, "yyyy-MM-dd", locale)
+        }
+    }
+
+    // --- 메시지 ---
+
+    /** 개수가 1이 아니면 키에 `s`를 붙여 복수형 메시지를 고른다 (v1.6 `plural`). 개수는 문자열 인자로 넘긴다. */
+    fun plural(key: String, count: Number, locale: Locale = LocaleContextHolder.getLocale()): String {
+        val pluralKey = if (count.toLong() != 1L) key + "s" else key
+        return messages.getMessage(pluralKey, arrayOf(count.toString()), pluralKey, locale) ?: pluralKey
+    }
+
+    private fun message(key: String, locale: Locale): String = messages.getMessage(key, null, key, locale) ?: key
+
+    private fun format(date: Date?, pattern: String, locale: Locale): String {
+        if (date == null) return ""
+        return SimpleDateFormat(pattern, locale).apply { timeZone = java.util.TimeZone.getTimeZone(zone) }.format(date)
+    }
+}

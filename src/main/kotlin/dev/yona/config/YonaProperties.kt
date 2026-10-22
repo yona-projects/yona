@@ -15,6 +15,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property navbarCustomLinkUrl 상단 메뉴에 추가할 링크 주소 (`application.navbar.custom.link.url`)
  * @property loginPageLoginIdPlaceholder 로그인 화면 아이디 입력란의 안내 문구 (`application.login.page.loginId.placeholder`)
  * @property loginPagePasswordPlaceholder 로그인 화면 비밀번호 입력란의 안내 문구 (`application.login.page.password.placeholder`)
+ * @property displayPrivateRepositories 프로젝트 목록에 비공개 프로젝트도 보여 준다. 읽을 수 없으면 흐리게 표시한다 (`application.displayPrivateRepositories`)
  * @property dataDir 저장소와 첨부 파일을 둘 데이터 디렉터리. 비우면 JVM 시스템 속성 `yona.data`, 그것도 없으면 작업 디렉터리를 쓴다 (D-16)
  * @property hostname 서버 이름. 비우면 요청의 Host 헤더를 쓴다 (`application.hostname`)
  * @property port 서버 포트. 80이면 주소에 쓰지 않는다 (`application.port`)
@@ -34,6 +35,7 @@ data class YonaProperties(
     val navbarCustomLinkUrl: String = "",
     val loginPageLoginIdPlaceholder: String = "",
     val loginPagePasswordPlaceholder: String = "",
+    val displayPrivateRepositories: Boolean = false,
     val dataDir: String = "",
     val hostname: String = "",
     val port: Int? = null,

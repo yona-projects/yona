@@ -112,3 +112,8 @@
 ## [2026-10-22] ingest | Git 저장소 서비스 (2단계 b-4)
 - TDD: `GitRepositoryServiceTest` 9건과 `DataDirectoryTest` 4건을 먼저 실패(RED, 컴파일)시킨 뒤 구현해 한 번에 통과시켰다. 결정 D-15, D-16에 따라 JGit 7.8.0을 도입했다.
 - 기록: [subsystems/git-repository.md](subsystems/git-repository.md)
+
+## [2026-10-22] ingest | 프로젝트 목록 (2단계 b-5a)
+- TDD: `TemplateHelperTest` 11건, `ProjectListTest` 20건 등을 먼저 실패(RED, 컴파일)시킨 뒤 `TemplateHelper`, `ProjectListService`, 컨트롤러, 템플릿으로 구현했다. 비공개 표시 테스트는 v1.6의 `||` 조건 때문에 흐린 항목이 실행되지 않는다는 점을 확인하고 실제 동작에 맞게 바로잡았다.
+- 모든 화면 테스트가 하나의 트랜잭션 안에서 도는 탓에 지연 로딩 실수를 놓칠 수 있음을 발견해, 커밋된 데이터를 그리는 `CommittedDataRenderTest`를 추가했다.
+- 기록: [web/project-list.md](web/project-list.md)
