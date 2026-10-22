@@ -19,6 +19,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `application.navbar.custom.link.name` / `.url` | `yona.navbar-custom-link-name` / `-url` | 빈 문자열 | 사용 중 |
 | `application.login.page.loginId.placeholder` | `yona.login-page-login-id-placeholder` | 빈 문자열 | 사용 중 |
 | `application.login.page.password.placeholder` | `yona.login-page-password-placeholder` | 빈 문자열 | 사용 중 |
+| `-Dyona.data` (JVM 시스템 속성) | `yona.data-dir` (시스템 속성 `yona.data`도 계속 인식) | 빈 문자열(작업 디렉터리) | 사용 중(저장소 위치). D-16 |
 | `application.hostname` | `yona.hostname` | 빈 문자열(요청의 Host 헤더) | 사용 중(저장소 주소) |
 | `application.port` | `yona.port` | 없음 | 사용 중(80이면 주소에서 생략) |
 | `application.scheme` | `yona.scheme` | 빈 문자열(요청의 스킴) | 사용 중 |

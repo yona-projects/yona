@@ -105,3 +105,10 @@
 - TDD: `ProjectChecksTest` 26건을 먼저 실패(RED, 컴파일)시킨 뒤 애너테이션 7종, `ProjectCheckInterceptor`, `ProjectResourceLocator`로 구현했다. 실패 두 건은 구현 문제가 아니었다. 하나는 테스트가 일반 멤버의 프로젝트 수정을 허용된다고 잘못 가정한 것(v1.6 규칙은 매니저만)이었고, 다른 하나는 예외 처리기가 화면이 채운 `flashMessages`를 덮어쓴 구현 결함이어서 고쳤다.
 - v1.6 위키와 코드가 달라 코드를 따른 곳 1건(A-13)을 [decisions.md](decisions.md)에 기록했다.
 - 기록: [web/project-checks.md](web/project-checks.md)
+
+## [2026-10-22] query | Git 처리 방식과 데이터 디렉터리
+- 선생님께 두 가지를 여쭈어 둘 다 권장안으로 확정하셨다: D-15(JGit 7.x 프로세스 내 사용), D-16(`yona.data-dir` + `-Dyona.data`). 권장 이유는 [decisions.md](decisions.md)에 기록했다.
+
+## [2026-10-22] ingest | Git 저장소 서비스 (2단계 b-4)
+- TDD: `GitRepositoryServiceTest` 9건과 `DataDirectoryTest` 4건을 먼저 실패(RED, 컴파일)시킨 뒤 구현해 한 번에 통과시켰다. 결정 D-15, D-16에 따라 JGit 7.8.0을 도입했다.
+- 기록: [subsystems/git-repository.md](subsystems/git-repository.md)

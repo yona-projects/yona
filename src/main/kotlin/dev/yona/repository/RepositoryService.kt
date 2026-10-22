@@ -1,0 +1,57 @@
+package dev.yona.repository
+
+import dev.yona.domain.project.Project
+import org.eclipse.jgit.lib.Repository
+import org.springframework.stereotype.Service
+
+/**
+ * 프로젝트의 저장소를 만들고 지우고 여는 진입점이다. v1.6 `playRepository.RepositoryService`에 해당한다.
+ *
+ * 프로젝트의 `vcs` 값으로 저장소 종류를 고른다. 지금은 Git(`GIT`)만 지원한다. Subversion은 로드맵의
+ * 마지막 단계에서 SVNKit으로 추가한다 (D-13).
+ */
+@Service
+class RepositoryService(private val git: GitRepositories) {
+
+    /**
+     * 프로젝트의 저장소를 새로 만든다. 같은 위치에 이미 있으면 먼저 지운다 (v1.6 `createRepository`).
+     *
+     * @throws UnsupportedOperationException 지원하지 않는 VCS일 때
+     */
+    fun createRepository(project: Project) {
+        deleteRepository(project)
+        when (project.vcs) {
+            VCS_GIT -> git.create(owner(project), name(project))
+            else -> throw unsupported(project)
+        }
+    }
+
+    /** 프로젝트의 저장소 디렉터리를 지운다. 없으면 아무 일도 하지 않는다. */
+    fun deleteRepository(project: Project) {
+        when (project.vcs) {
+            VCS_GIT -> git.delete(owner(project), name(project))
+            else -> throw unsupported(project)
+        }
+    }
+
+    /** Git 프로젝트의 저장소를 연다. 호출한 쪽이 닫아야 한다. */
+    fun openRepository(project: Project): Repository {
+        if (project.vcs != VCS_GIT) throw unsupported(project)
+        return git.open(owner(project), name(project))
+    }
+
+    private fun owner(project: Project) = requireNotNull(project.owner) { "프로젝트의 소유자가 없습니다." }
+
+    private fun name(project: Project) = requireNotNull(project.name) { "프로젝트의 이름이 없습니다." }
+
+    private fun unsupported(project: Project) =
+        UnsupportedOperationException("지원하지 않는 VCS입니다: ${project.vcs}")
+
+    companion object {
+        /** `project.vcs`의 Git 값이다 (v1.6 `RepositoryService.VCS_GIT`). */
+        const val VCS_GIT = "GIT"
+
+        /** `project.vcs`의 Subversion 값이다 (v1.6 `RepositoryService.VCS_SUBVERSION`). */
+        const val VCS_SUBVERSION = "Subversion"
+    }
+}

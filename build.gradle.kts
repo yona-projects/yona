@@ -28,6 +28,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+	// Git 저장소 처리(D-15). v1.6의 4.5.0을 Java 21에서 쓸 수 있는 7.x로 올렸다.
+	implementation("org.eclipse.jgit:org.eclipse.jgit:7.8.0.202609011348-r")
+	implementation("org.eclipse.jgit:org.eclipse.jgit.http.server:7.8.0.202609011348-r")
+
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
