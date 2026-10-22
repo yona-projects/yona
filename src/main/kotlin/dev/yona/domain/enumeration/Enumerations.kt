@@ -36,6 +36,37 @@ enum class EventType {
     RESOURCE_DELETED, MEMBER_ENROLL_ACCEPT, ORGANIZATION_MEMBER_ENROLL_ACCEPT
 }
 
+/** 이벤트 종류의 설명 메시지 키이다 (v1.6 `EventType.getDescr`). 외부 API가 `eventDescription`으로 그대로 내보낸다. */
+val EventType.descr: String
+    get() = when (this) {
+        EventType.NEW_ISSUE -> "notification.type.new.issue"
+        EventType.NEW_POSTING -> "notification.type.new.posting"
+        EventType.NEW_PULL_REQUEST -> "notification.type.new.pullrequest"
+        EventType.ISSUE_STATE_CHANGED -> "notification.type.issue.state.changed"
+        EventType.ISSUE_ASSIGNEE_CHANGED -> "notification.type.issue.assignee.changed"
+        EventType.PULL_REQUEST_STATE_CHANGED -> "notification.type.pullrequest.state.changed"
+        EventType.NEW_COMMENT -> "notification.type.new.comment"
+        EventType.NEW_REVIEW_COMMENT -> "notification.type.new.simple.comment"
+        EventType.MEMBER_ENROLL_REQUEST -> "notification.type.member.enroll"
+        EventType.PULL_REQUEST_MERGED -> "notification.type.pullrequest.merged"
+        EventType.ISSUE_REFERRED_FROM_COMMIT -> "notification.type.issue.referred.from.commit"
+        EventType.PULL_REQUEST_COMMIT_CHANGED -> "notification.type.pullrequest.commit.changed"
+        EventType.NEW_COMMIT -> "notification.type.new.commit"
+        EventType.PULL_REQUEST_REVIEW_STATE_CHANGED -> "notification.type.pullrequest.review.action.changed"
+        EventType.ISSUE_BODY_CHANGED -> "notification.type.issue.body.changed"
+        EventType.ISSUE_REFERRED_FROM_PULL_REQUEST -> "notification.type.issue.referred.from.pullrequest"
+        EventType.REVIEW_THREAD_STATE_CHANGED -> "notification.type.review.state.changed"
+        EventType.ORGANIZATION_MEMBER_ENROLL_REQUEST -> "notification.organization.type.member.enroll"
+        EventType.COMMENT_UPDATED -> "notification.type.comment.updated"
+        EventType.ISSUE_MOVED -> "notification.type.issue.is.moved"
+        EventType.ISSUE_SHARER_CHANGED -> "notification.type.issue.sharer.changed"
+        EventType.ISSUE_LABEL_CHANGED -> "notification.type.issue.label.changed"
+        EventType.ISSUE_MILESTONE_CHANGED -> "notification.type.milestone.changed"
+        EventType.POSTING_BODY_CHANGED -> "notification.type.posting.body.changed"
+        EventType.RESOURCE_DELETED -> "notification.type.resource.deleted"
+        EventType.MEMBER_ENROLL_ACCEPT, EventType.ORGANIZATION_MEMBER_ENROLL_ACCEPT -> "notification.member.enroll.accept"
+    }
+
 /** 리소스 종류이다. 첨부, 관심, 멘션, 알림이 다형 참조에 사용한다. */
 enum class ResourceType(val resource: String) {
     ISSUE_POST("issue_post"), ISSUE_ASSIGNEE("issue_assignee"), ISSUE_STATE("issue_state"),

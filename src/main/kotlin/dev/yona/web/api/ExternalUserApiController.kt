@@ -6,8 +6,6 @@ import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.issue.Issue
 import dev.yona.domain.notification.MentionRepository
-import dev.yona.domain.user.SignupForm
-import dev.yona.domain.user.SignupService
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.CurrentUserProvider
@@ -15,9 +13,6 @@ import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.error.ErrorViews
 import jakarta.persistence.EntityManager
 import jakarta.servlet.http.HttpServletRequest
-import org.slf4j.LoggerFactory
-import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -44,16 +39,14 @@ import java.util.Base64
 class ExternalUserApiController(
     private val requests: ApiRequests,
     private val users: UserRepository,
-    private val signup: SignupService,
+    private val apiUsers: ApiUsers,
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
     private val mentions: MentionRepository,
     private val issueJson: IssueJson,
     private val properties: YonaProperties,
-    private val messages: MessageSource,
     private val entityManager: EntityManager
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
     private val random = SecureRandom()
 
     // --- 사용자 만들기 ---
@@ -70,32 +63,11 @@ class ExternalUserApiController(
         val list = json.findValue("users")
         if (list == null || !list.isArray) return requests.message(HttpStatus.BAD_REQUEST, "No users key exists or value must be array!")
         val created: List<Map<String, Any?>> = list.toList().map { node ->
-            val loginId = node.findValue("loginId")?.asString("").orEmpty()
-            val name = node.findValue("name")?.asString("").orEmpty()
-            val email = node.findValue("email")?.asString("").orEmpty()
-            val result = linkedMapOf<String, Any?>()
-            when {
-                !signup.isAllowedEmailDomain(email) -> {
-                    val message = messages.getMessage("user.unacceptable.email.domain", null, LocaleContextHolder.getLocale())
-                    log.warn("Rejected: {} with {} ({})", name, email, message)
-                    result["status"] = 403; result["reason"] = "Forbidden"; result["message"] = message; result["user"] = userNode(node.findValue("loginId"), name, email, loginId)
-                }
-                signup.isEmailExist(email) || signup.isLoginIdUsed(loginId) -> {
-                    log.warn("Rejected: {} with {} (Already exists!)", name, email)
-                    result["status"] = 409; result["reason"] = "Conflict"; result["message"] = "Already exists!"; result["user"] = userNode(null, name, email, loginId)
-                }
-                else -> {
-                    val user = signup.create(SignupForm(loginId, name, email, Base64.getEncoder().encodeToString(ByteArray(32).also(random::nextBytes))))
-                    result["status"] = 201; result["reason"] = "Created"
-                    result["user"] = linkedMapOf("id" to user.id, "loginId" to user.loginId, "name" to user.name, "email" to user.email)
-                }
-            }
-            result
+            apiUsers.create(node.findValue("loginId")?.asString("").orEmpty(), node.findValue("name")?.asString("").orEmpty(), node.findValue("email")?.asString("").orEmpty())
         }
         return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(created)
     }
 
-    private fun userNode(@Suppress("UNUSED_PARAMETER") raw: Any?, name: String, email: String, loginId: String) = linkedMapOf("loginId" to loginId, "name" to name, "email" to email)
 
     // --- 토큰 ---
 

@@ -42,6 +42,9 @@ interface MilestoneRepository : JpaRepository<Milestone, Long> {
     /** 프로젝트의 모든 상태의 마일스톤을 [sort] 순서로 조회한다. */
     fun findByProjectId(projectId: Long, sort: org.springframework.data.domain.Sort): List<Milestone>
 
+    /** 프로젝트에서 제목이 같은 마일스톤을 찾는다 (v1.6 `Milestone.findMilestoneByTitle`). */
+    fun findFirstByProjectIdAndTitle(projectId: Long, title: String): Milestone?
+
     /** 프로젝트에 같은 제목의 마일스톤이 있는지 확인한다 (v1.6 `Milestone.isUniqueProjectIdAndTitle`의 반대). */
     fun existsByProjectIdAndTitle(projectId: Long, title: String): Boolean
 }
