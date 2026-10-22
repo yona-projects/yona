@@ -14,7 +14,6 @@ import dev.yona.util.SiteUrls
 import jakarta.mail.Session
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
-import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.mail.javamail.MimeMessageHelper
@@ -30,7 +29,7 @@ import java.util.Properties
  * - 보조 이메일 확인 (v1.6 `actors.ValidationEmailSender`)
  * - 프로젝트 이전 요청 (v1.6 `ProjectApp.sendTransferRequestMail`)
  *
- * 문구는 요청한 사용자의 언어로 만든다. 만든 메일은 [MailDispatcher]가 비동기로 보낸다.
+ * 문구는 요청한 사용자의 언어로 만든다. 메일 만들기와 보내기는 [MailDispatcher]의 전용 스레드가 비동기로 한다(D-19).
  */
 @Service
 class SystemMails(
@@ -45,8 +44,6 @@ class SystemMails(
     private val notificationMailSender: NotificationMailSender
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
-    private val mailLog = LoggerFactory.getLogger("mail")
 
     private fun text(key: String, vararg args: Any?): String =
         messages.getMessage(key, arrayOf<Any?>(*args).map { it ?: "null" }.toTypedArray<Any>(), LocaleContextHolder.getLocale())
@@ -110,7 +107,17 @@ class SystemMails(
      * 프로젝트 이전 요청을 받는 쪽에 알린다. 받는 사람이 사용자이면 그 사용자에게, 조직이면 조직 관리자 모두에게 숨은참조로 보낸다.
      * 수락 링크는 한 번만 쓸 수 있는 키가 담긴 주소이다.
      */
-    fun projectTransfer(transfer: ProjectTransfer) = guarded("프로젝트 이전 요청 메일") {
+    fun projectTransfer(transfer: ProjectTransfer) {
+        // 받는 사람은 DB에서 찾아야 하므로 요청 스레드에서 구해 둔다. 본문 만들기와 발송은 전용 스레드가 한다.
+        val bccUsers = LinkedHashSet<User>()
+        transfer.destination?.let { users.findByLoginId(it) }?.let { bccUsers.add(it) }
+        transfer.destination?.let { organizations.findByNameIgnoreCase(it) }?.let { org ->
+            bccUsers.addAll(users.findUsersByOrganizationRole(requireNotNull(org.id), RoleType.ORG_ADMIN.id))
+        }
+        guarded("프로젝트 이전 요청 메일") { transferMessage(transfer, bccUsers) }
+    }
+
+    private fun transferMessage(transfer: ProjectTransfer, bccUsers: Collection<User>): MimeMessage {
         val project = requireNotNull(transfer.project)
         val sender = requireNotNull(transfer.sender)
         val acceptUrl = siteUrls.absolute(siteUrls.path("/project/transfer/${transfer.id}/${transfer.confirmKey}"))
@@ -120,25 +127,24 @@ class SystemMails(
         val helper = newMessage()
         helper.setFrom(InternetAddress(from(), sender.name, "UTF-8"))
         helper.addTo(InternetAddress(from(), "Yobi", "UTF-8"))
-        transfer.destination?.let { users.findByLoginId(it) }?.let { helper.addBcc(InternetAddress(requireNotNull(it.email), it.name, "UTF-8")) }
-        transfer.destination?.let { organizations.findByNameIgnoreCase(it) }?.let { org ->
-            users.findUsersByOrganizationRole(requireNotNull(org.id), RoleType.ORG_ADMIN.id).forEach { helper.addBcc(InternetAddress(requireNotNull(it.email), it.name, "UTF-8")) }
-        }
+        bccUsers.forEach { helper.addBcc(InternetAddress(requireNotNull(it.email), it.name, "UTF-8")) }
         helper.setSubject("[${project.name}] @${sender.loginId} wants to transfer project")
         helper.setText(message, markdown.render(message))
         transfer.requested?.let { helper.setSentDate(it) }
         helper.mimeMessage.addHeader("References", "<$acceptUrl@${hostname.name()}>")
-        helper.mimeMessage
+        return helper.mimeMessage
     }
 
-    /** 메일을 만들어 비동기로 보낸다. 만들다 실패하거나 보낼 필요가 없으면(`null`) 아무것도 하지 않는다. 요청을 실패시키지 않는다. */
+    /**
+     * 메일 만들기와 보내기를 전용 스레드에 맡긴다(D-19). 요청 스레드의 언어와 사이트 주소를 미리 구해 그 스레드에서 쓰게 한다.
+     * 만들 필요가 없으면([build]가 `null`) 보내지 않는다. 요청을 실패시키지 않는다.
+     */
     private fun guarded(description: String, build: () -> MimeMessage?) {
-        try {
-            val message = build() ?: return
-            dispatcher.dispatch(message, description)
-            mailLog.info("\"{}\" {}", (message.subject ?: "").replace("\"", "\\\""), message.allRecipients?.toList() ?: emptyList<Any>())
-        } catch (e: Exception) {
-            log.warn("{}을 만들지 못했다", description, e)
+        val locale = LocaleContextHolder.getLocale()
+        val origin = siteUrls.origin()
+        dispatcher.dispatch(description) {
+            LocaleContextHolder.setLocale(locale)
+            try { siteUrls.withOrigin(origin, build) } finally { LocaleContextHolder.resetLocaleContext() }
         }
     }
 }

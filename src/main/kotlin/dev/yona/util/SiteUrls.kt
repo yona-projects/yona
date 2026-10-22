@@ -23,8 +23,19 @@ class SiteUrls(private val properties: YonaProperties) {
     /** 애플리케이션 경로에 컨텍스트 경로를 붙인다. 예: `/a/b/issue/1` -> `/yona/a/b/issue/1`. */
     fun path(applicationPath: String): String = contextPath + applicationPath
 
+    private val originOverride = ThreadLocal<String?>()
+
+    /**
+     * 요청이 끝난 뒤 다른 스레드에서 주소를 만들 때 쓴다. 요청 스레드에서 구한 [origin]을 이 스레드의 `origin()`으로 쓰며,
+     * 요청 정보가 없어도 요청의 호스트와 스킴으로 주소를 만든다.
+     */
+    fun <T> withOrigin(origin: String, block: () -> T): T {
+        originOverride.set(origin)
+        try { return block() } finally { originOverride.remove() }
+    }
+
     /** `스킴://호스트[:포트]` 부분이다. */
-    fun origin(): String = "${properties.scheme.ifEmpty { currentRequest()?.scheme ?: "http" }}://${hostport()}"
+    fun origin(): String = originOverride.get() ?: "${properties.scheme.ifEmpty { currentRequest()?.scheme ?: "http" }}://${hostport()}"
 
     /** 컨텍스트 경로가 이미 붙은 [path]로 절대 주소를 만든다. */
     fun absolute(path: String): String = origin() + path

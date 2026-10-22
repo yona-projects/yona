@@ -50,8 +50,9 @@ import java.util.Locale
  * `newIssueComment`, `updateIssueLabel`, `imports`(`app/controllers/api/IssueApi.java:58-235, 246-476, 515-535, 637-672`)에 해당한다.
  *
  * 인증은 `Authorization: token <값>` 헤더의 개인 토큰이다. 이슈 만들기, 라벨 바꾸기, 가져오기는 마이그레이션 화면이 세션 로그인으로도 쓴다.
- * v1.6은 토큰만 확인하고 프로젝트 권한은 확인하지 않아 토큰이 있으면 비공개 프로젝트의 이슈도 읽고 고칠 수 있었다.
- * 이 API는 화면이 쓰지 않는 경로라 직접 만든 요청에만 해당하므로 읽기, 수정, 댓글, 가져오기 권한을 확인한다([decisions.md] A-63).
+ * 토큰으로만 인증하는 경로(조회, 수정, 상태 변경, 토큰 댓글)는 v1.6처럼 개인 토큰이 유효하면 프로젝트 권한을 확인하지 않는다.
+ * 토큰은 사용자가 외부 도구에 맡긴 보안 자격이라고 보기 때문이다([decisions.md] D-20). 세션이나 토큰 어느 쪽으로도 부르는 라벨 바꾸기와
+ * 글 가져오기는 v1.6에 인증 확인이 없었으므로 프로젝트 권한을 확인한다.
  */
 @Controller
 @AnonymousCheck
@@ -84,7 +85,6 @@ class ExternalIssueApiController(
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.BAD_REQUEST, "no project by request")
         val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), number) ?: return requests.message(HttpStatus.BAD_REQUEST, "no issue by request")
-        if (!accessControl.isAllowed(user, issue.asResource(), Operation.READ)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         return result(HttpStatus.OK, issue, user, request)
     }
 
@@ -132,7 +132,6 @@ class ExternalIssueApiController(
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
         val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
-        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val title = json.findValue("title")?.asString()
         val body = json.findValue("body")?.asString()
         val assignees = json.findValue("assignees")
@@ -148,7 +147,6 @@ class ExternalIssueApiController(
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
         val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
-        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         service.updateState(issue, user, state(json))
         return result(HttpStatus.OK, issue, user, request)
     }
@@ -168,7 +166,6 @@ class ExternalIssueApiController(
         val project = requireNotNull(issue.project)
         if (request.getHeader("Authorization") != null) {
             val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-            if (!accessControl.isResourceCreatable(user, issue.asResource(), ResourceType.ISSUE_COMMENT)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
             val text = json.findValue("comment")?.asString() ?: return requests.message(HttpStatus.BAD_REQUEST, "comment is required")
             service.addComment(issue, user, text, null)
             return result(HttpStatus.CREATED, issue, user, request)

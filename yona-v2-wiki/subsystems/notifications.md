@@ -66,7 +66,7 @@ updated: 2026-10-23
 
 ### 시스템 메일 (대기열 없이 즉시)
 
-`SystemMailListener`가 요청 이벤트를 받아 `SystemMails`가 메일을 만들고 `MailDispatcher`(전용 스레드)가 비동기로 보낸다. 요청한 사용자의 언어로 문구를 만든다.
+`SystemMailListener`가 요청 이벤트를 받아 `SystemMails`가 언어, 사이트 주소, 받는 사람처럼 요청 안에서만 구할 수 있는 값을 모으고, 메일 본문 만들기와 발송은 `MailDispatcher`의 전용 스레드가 비동기로 한다(D-19). 요청한 사용자의 언어로 문구를 만든다.
 
 | 이벤트 | 메일 | v1.6 |
 |---|---|---|
