@@ -308,6 +308,14 @@ class IssueApiTest : AbstractIntegrationTest() {
         json(post(api(project, "issues/9/commentNotiReceivers")), login(newUser()), """{"comment":"x"}""").andExpect(status().isNotFound)
     }
 
+    // --- 번역 ---
+
+    @Test
+    fun `번역 API를 설정하지 않았으면 412이다`() {
+        mockMvc.perform(post("/-_-api/v1/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"a","projectName":"b","type":"issue","number":1}"""))
+            .andExpect(status().isPreconditionFailed).andExpect(content().string("Precondition Failed"))
+    }
+
     // --- 가중치 ---
 
     @Test

@@ -28,6 +28,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property parsersTextMaxLength 폼(`application/x-www-form-urlencoded`) 본문의 최대 바이트. 넘으면 폼 값을 읽지 못한 것으로 처리한다 (`parsers.text.maxLength`, 기본 102400)
  * @property issueEventDraftTime 같은 사용자가 같은 종류의 이슈 변경을 이 시간(밀리초) 안에 연달아 하면 하나로 합친다 (`application.issue-event.draft-time`, 기본 30초)
  * @property translationApi 번역 API 주소. 비우면 번역 단추를 숨긴다 (`application.extras.translation.api`)
+ * @property translationHeaderKey 번역 API 요청에 붙일 인증 헤더 이름 (`application.extras.translation.headerKey`)
+ * @property translationHeaderValue 그 헤더의 값 (`application.extras.translation.headerValue`)
  * @property noreferrer 외부 링크에 `rel="noreferrer"`를 붙인다 (`application.noreferrer`)
  * @property applicationContext 서버를 하위 경로에 둘 때의 경로. 앞뒤 슬래시 없이 쓴다 (`application.context`)
  * @property allowsAnonymousAccess 익명 사용자의 접근을 허용한다. 끄면 `@AnonymousCheck` 화면이 모두 로그인을 요구한다 (`application.allowsAnonymousAccess`)
@@ -56,6 +58,8 @@ data class YonaProperties(
     val parsersTextMaxLength: Long = 102_400L,
     val issueEventDraftTime: Long = 30_000L,
     val translationApi: String = "",
+    val translationHeaderKey: String = "",
+    val translationHeaderValue: String = "",
     val noreferrer: Boolean = false,
     val temporaryFilesKeepUpTime: Long = 86_400_000L,
     val useEmailVerification: Boolean = false,

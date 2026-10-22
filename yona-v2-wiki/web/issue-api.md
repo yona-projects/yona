@@ -36,3 +36,7 @@ v1.6 `ProjectApi.getResult` 형식이다: `number, id, title, type(ISSUE_POST), 
 ## 댓글 알림 수신자 미리 보기
 
 `POST …/issues/:n/commentNotiReceivers`는 `{comment, parentCommentId}`로 `{"receivers": [사용자 노드]}`를 돌려준다(권한 확인 없음, JSON이 아니면 `400`). 계산은 `NotificationReceivers.forIssueComment`이다([decisions.md] A-54): 이슈 구독자, 작성자, 담당자와 프로젝트에서 이 이벤트를 받겠다고 한 사용자가 받고, 한 줄 댓글이면 이슈 작성자 대신 부모 댓글 작성자와 부모 댓글에서 멘션된 사용자가 받으며 부모 댓글 작성자가 답할 때는 앞의 한 줄 댓글 작성자도 받는다. 구독을 해제했거나 이 이벤트를 받지 않겠다고 했거나 활성이 아닌 사용자, 댓글을 쓰는 사람(로그인하지 않았으면 작성자)은 빠지고, 댓글에서 멘션된 사용자는 마지막에 더해진다. 테스트 `NotificationReceiversTest` 7건과 `IssueApiTest` 3건.
+
+## 번역 API
+
+`POST /-_-api/v1/translation`(`TranslationApiController`, `TranslationClient`). 로그인해야 한다. 본문 `{owner, projectName, type, number}`의 `type`은 `issue`, `posting`(글 번호), `issue-comment`, `post-comment`(댓글 번호). `yona.translation-api`가 비었으면 `412` `Precondition Failed`, 없는 대상은 `404`. 글은 `Title: 제목\r\n\r\n본문`, 댓글은 내용을 쓴다. `&`를 `%26`으로 바꿔 `\r\n`으로 줄을 나누고 4500자 안쪽 덩어리로 묶어 번역 서비스에 `source=ko&target=en&text=…`(인코딩하지 않는다)로 차례로 보낸다. 설정한 헤더(`yona.translation-header-key`, `-value`)로 인증하고 응답의 `result.translatedText`를 줄바꿈으로 이어 마크다운으로 그려 `{"translated": HTML}`로 돌려준다. 번역문이 없는 덩어리는 줄바꿈 하나이다. 테스트 `TranslationClientTest` 5건, `TranslationApiTest` 2건, `IssueApiTest` 1건.

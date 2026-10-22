@@ -216,3 +216,6 @@
 - Playwright 화면 검증으로 이슈, 게시판, 마일스톤, 라벨 화면 11곳을 캡처하고 상호작용을 점검했다. 타임리프 JS 인라인 뒤 `+`가 지워지는 오류를 고치고 `currentUser.pureName`을 도입했다.
 - TDD: `UserMenuTest` 16, `FavoriteApiTest` 5, `NotificationReceiversTest` 7, `IssueApiTest` +3. 세 DB 1183건 통과.
 - R-30, R-31, A-53~A-55.
+
+## [2026-10-23] ingest | 번역 API, 알림 비동기 결정 (D-18)
+- 선생님이 A-50을 위키에 기록하라고 하셨고 외부 REST API 작업을 빼먹지 말라고 하셨다. 알림 메일은 v1.6처럼 비동기 스케줄러로 보낸다(D-18).
