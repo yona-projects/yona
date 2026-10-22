@@ -33,3 +33,8 @@ conf/application-logger.xml
 migration-client
 conf/play-authenticate/mine.conf
 conf/social-login.conf
+
+# Gradle / Kotlin
+.gradle/
+build/
+.kotlin/

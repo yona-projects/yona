@@ -1,0 +1,42 @@
+# 프로젝트 목적
+
+이 프로젝트는 Play 2.3/MariaDB 기반의 프로젝트를 Kotlin/Srping Framework 3.5 H2/MariaDB/MySQL/PostgreSQL/Cubrid/MSSQL에서 동작할 수 있도록 재개발하는 것이다.
+
+## 프로젝트 구성
+
+Gradle
+Kotlin
+Spring Framework
+H2/PostgreSQL(pg는 컨테이너로 띄운다)
+mailpit (컨테이너 구성으로 사용하며 메일을 보내기 위한 용도)
+
+## Java 패키지 경로
+
+dev.yona
+
+## Yona 1.6 위키
+
+~/yona-convert/yona-v1.6-wiki
+
+## 주의사항
+
+Yona 위키에서 synthesis는 다른 위키에서 참고하는 것이므로 우선은 1.6 프로젝트를 그대로 재개발하는 것을 원칙으로 한다. DB 테이블은 v1.6과 같아야 하며, 임의로 판단해 새로운 기능을 넣거나 판단하지 않고 오로지 v1.6을 완전히 따라야 한다.
+기능, 동작, 요청 계약, 응답 계약 등 Java 코드와 템플릿, JS 구성 등 모두 같아야 한다.
+
+단, 아키텍처적으로 달라지는 부분은 왜 달라지는 지 별도로 구분하여 자체 LLM-WIKI에 작성한다. 그리고 프로그램을 개발하면서 만든 코드에 대해서도 llm-wiki를 같이 구성한다.
+
+## 주석
+
+코드에 주석은 API 레벨로 잘 작성된 오픈소스 수준으로 한글로 작성한다. 향후 javadoc 및 mkdocs로 문서를 만들 것이다.
+
+## 자체 LLM-WIKI
+
+개발 시작 후 현재 디렉터리(next) 하위에 안드레이 카파시의 LLM-WIKI 원문을 읽어 yona-v2-wiki를 만들면서 진행한다.
+
+## 샌드박스 관련
+
+gradle은 항상 샌드박스 바깥에서 실행한다.
+
+## 최중요
+
+단, 이 개발은 TDD로 개발한다.

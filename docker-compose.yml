@@ -1,0 +1,21 @@
+# Yona v2 개발용 인프라: PostgreSQL과 메일 확인용 mailpit
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: yona
+      POSTGRES_USER: yona
+      POSTGRES_PASSWORD: yona
+    ports:
+      - "25432:5432"
+    volumes:
+      - yona-pg-data:/var/lib/postgresql/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "21025:1025"
+      - "28025:8025"
+
+volumes:
+  yona-pg-data:

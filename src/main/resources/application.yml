@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: yona
+  datasource:
+    # 기본 프로파일은 개발과 테스트를 위한 인메모리 H2이다.
+    url: jdbc:h2:mem:yona;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      # 스키마는 엔티티에서 생성한다(v1.6의 Play evolutions를 대체). 구조는 V16Schema*Test가 보증한다.
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      # `value`처럼 DB마다 예약어인 컬럼 이름(property.value)을 자동으로 따옴표 처리한다.
+      hibernate.auto_quote_keyword: true
+
+---
+# PostgreSQL 프로파일: docker-compose.yml로 띄운 컨테이너에 연결한다.
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: jdbc:postgresql://localhost:25432/yona
+    username: yona
+    password: yona
+  mail:
+    host: localhost
+    port: 21025
