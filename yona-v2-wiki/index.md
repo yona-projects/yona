@@ -14,3 +14,8 @@
 ## 서브시스템 (`subsystems/`)
 
 - [초기 데이터 적재](subsystems/initial-data.md): 관리자 계정, 사이트 관리자, 역할 7종
+- [인증](subsystems/authentication.md): v1.6 호환 패스워드 해시와 로컬 로그인 판정 규칙
+
+## 기타
+
+- [v1.6 결함 재현 목록](refactoring-backlog.md): v1.6의 결함을 그대로 재현한 부분과 개선 후보
