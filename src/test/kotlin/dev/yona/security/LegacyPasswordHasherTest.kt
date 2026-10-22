@@ -21,6 +21,19 @@ class LegacyPasswordHasherTest {
         )
     }
 
+    /**
+     * v1.6 `conf/initial-data.yml`의 관리자 해시이다. 이 값은 Shiro를 적용한 커밋(f4166b38c, 2012-09-06)에서
+     * 평문 `admin00`을 해시로 바꾸며 들어왔다. 솔트 `[B@1032a4`는 바이트 배열의 `toString()` 결과지만
+     * 문자열 그대로 솔트로 쓰인다.
+     */
+    @Test
+    fun `v1_6 초기 관리자 해시는 평문 admin00으로 재현된다`() {
+        assertEquals(
+            "5v4TVjzLo1bqullT1CU4/bENUNOUfX97WpdunGLvJvw=",
+            LegacyPasswordHasher.hash("admin00", "[B@1032a4")
+        )
+    }
+
     @Test
     fun `실제 Shiro 구현과 여러 입력에서 결과가 같다`() {
         val samples = listOf(

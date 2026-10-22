@@ -86,4 +86,10 @@ v1.6의 구버전 키 `signup.require.confirm`은 아직 옮기지 않았다.
 
 ## 초기 관리자 계정과 비밀번호
 
-`initial-data.yml`의 관리자 해시(`5v4TVj...`)는 평문을 알 수 없다. 원래 솔트가 바이트 배열이었는데 YAML에는 `byte[].toString()` 결과(`[B@1032a4`)만 남았기 때문에, 문자열 솔트로는 어떤 평문으로도 재현되지 않는다(`admin`, `1234`, `yona`, `yobi` 등을 확인했다). v1.6은 최초 기동 시 `application.secret`이 기본값이면 관리자 비밀번호를 정하는 화면으로 유도해 이 값을 덮어쓴다(`Global.java:249-411`). 이 흐름은 아직 구현하지 않았다. 개발 환경에서 `admin / 1234`로 로그인하려면 이 흐름이나 개발용 설정이 필요하며 다음 단계의 과제다.
+`initial-data.yml`의 관리자 해시(`5v4TVj...`)의 평문은 **`admin00`**이다. 처음에는 평문을 알 수 없다고 잘못 판단했다(`admin`, `1234`, `yona` 등만 대입해 보았다). 선생님께서 v1.6 저장소 이력에서 찾아보라고 하셔서 확인했다.
+
+- Shiro를 적용한 커밋 `f4166b38c`(2012-09-06)가 `conf/initial-data.yml`의 `password: admin00`을 이 해시로 바꾸었다. 같은 커밋의 `hashedPassword`가 `Sha256Hash(평문, ByteSource.Util.bytes(솔트), 1024)`이므로 현재 구현과 같은 알고리즘이다.
+- 솔트 `[B@1032a4`는 바이트 배열의 `toString()` 결과지만 문자열 그대로 솔트로 쓰인다. 따라서 문자열 솔트로 재현된다.
+- 검증: `LegacyPasswordHasherTest`(해시 일치)와 `InitialDataLoaderTest`(`admin / admin00`으로 로그인 성공).
+
+v1.6은 최초 기동 시 `application.secret`이 기본값이면 관리자 비밀번호를 바꾸는 화면으로 유도한다(`Global.java:249-411`). 이 흐름은 아직 구현하지 않았다. 개발 환경에서 `admin / 1234`처럼 쓰려면 그 흐름으로 비밀번호를 바꾼다.

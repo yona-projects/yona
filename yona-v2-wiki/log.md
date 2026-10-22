@@ -49,3 +49,7 @@
 - 결정: 보안 기반(Spring Security)과 레이아웃 방식(Thymeleaf 기본 프래그먼트)을 선생님께 여쭈어 확정했다.
 - 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 65건 통과.
 - 기록: [subsystems/authentication.md](subsystems/authentication.md)
+
+## [2026-10-22] query | 초기 관리자 패스워드의 평문
+- 질문: 솔트의 바이트 배열을 v1.6에서 찾을 수 있는가. 확인한 근거: 저장소 이력 `f4166b38c`(`conf/initial-data.yml`, `UserApp.java`).
+- 결론: 평문은 `admin00`이고 문자열 솔트로 재현된다. 앞선 "재현 불가" 판단은 틀렸으며 [subsystems/authentication.md](subsystems/authentication.md)를 정정했다. R-03은 승인되었다.

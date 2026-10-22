@@ -2,9 +2,12 @@ package dev.yona.bootstrap
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import dev.yona.security.LocalAuthenticator
+import dev.yona.security.LoginResult
 import dev.yona.support.AbstractIntegrationTest
 import org.springframework.jdbc.core.JdbcTemplate
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 /**
  * v1.6의 `conf/initial-data.yml`(users, roles, siteAdmins)과 같은 초기 데이터가 적재되는지 확인한다.
@@ -18,6 +21,9 @@ class InitialDataLoaderTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var loader: InitialDataLoader
+
+    @Autowired
+    private lateinit var authenticator: LocalAuthenticator
 
     @Test
     fun `역할 7개가 v1_6과 같은 id와 이름으로 적재된다`() {
@@ -43,6 +49,13 @@ class InitialDataLoaderTest : AbstractIntegrationTest() {
         assertEquals("ACTIVE", admin["STATE"])
         assertEquals("project.yona@gmail.com", admin["EMAIL"])
         assertEquals(1, jdbc.queryForObject("select count(*) from site_admin where admin_id = 1", Int::class.java))
+    }
+
+    @Test
+    fun `초기 관리자는 v1_6의 기본 패스워드 admin00으로 로그인할 수 있다`() {
+        val result = authenticator.authenticate("admin", "admin00")
+        assertIs<LoginResult.Success>(result)
+        assertEquals(1L, result.user.id)
     }
 
     @Test
