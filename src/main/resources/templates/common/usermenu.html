@@ -1,0 +1,104 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/usermenu.scala.html
+  소셜 로그인(play-authenticate)이 세션에 남기는 원래 주소 처리는 소셜 로그인 단계에서 추가한다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="usermenu">
+<div id="mySidenav" class="sidenav">
+    <div class="span5 right-menu span-hard-wrap">
+        <div class="row-fluid user-menu-wrap">
+            <span class="user-menu"><a th:href="@{'/' + ${currentUser.loginId}}" th:text="#{userinfo.profile}"></a></span>
+            <span class="user-menu"><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}"></a></span>
+            <a th:href="@{/users/logout}"><span class="user-menu logout label" th:text="#{title.logout}"></span></a>
+        </div>
+        <ul class="nav nav-tabs nm">
+            <li class="myOrganizationList active">
+                <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}">
+                </a>
+            </li>
+            <li class="myProjectList">
+                <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}">
+                </a>
+            </li>
+            <li class="myRecentIssueList">
+                <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}">
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content tab-box">
+            <div id="usermenu-tab-content-list" class="tab-content">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+
+<ul class="gnb-usermenu">
+    <th:block th:if="${!currentUser.anonymous}">
+        <li class="gnb-usermenu-item" th:if="${!#strings.isEmpty(site.navbarCustomLinkName)}">
+            <a th:href="${site.navbarCustomLinkUrl}" class="user-item-btn loggged-in" th:text="${site.navbarCustomLinkName}"></a>
+        </li>
+       <li class="gnb-usermenu-item" data-toggle="tooltip" data-placement="bottom" th:title="#{title.shortcut} + ' (A)'">
+           <a th:href="@{/user/issues}" class="user-item-btn loggged-in"><th:block th:text="#{issue.myIssue}"></th:block><span th:if="${currentUser.openIssueCount > 0}" class="counter-badge" th:text="${currentUser.openIssueCount}"></span></a>
+        </li>
+        <li class="divider"></li>
+        <th:block th:if="${currentUser.siteManager}">
+        <li class="gnb-usermenu-item">
+            <a th:href="@{/sites/userList}" data-toggle="tooltip" th:title="#{menu.siteAdmin}" data-placement="bottom" class="usermenu-icon-button show-progress-bar">
+                <i class="yobicon-wrench"></i>
+            </a>
+        </li>
+        <li class="divider"></li>
+        </th:block>
+        <li class="gnb-usermenu-dropdown sidebar-open-btn" id="sidebar-open-btn">
+            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="tooltip" data-placement="bottom" th:title="#{user.menu} + ', ' + #{title.shortcut} + ' (F)'">
+                <span class="avatar-wrap smaller">
+                    <img th:src="${currentUser.avatarUrl(32)}" />
+                </span>
+                <span class="caret"></span>
+            </a>
+        </li>
+      <li class="gnb-usermenu-dropdown">
+          <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
+              <i class="yobicon-plus"></i>
+              <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu flat right">
+              <li>
+                  <a th:href="@{/user/issues/new}" th:text="#{issue.menu.new}">
+                  </a>
+              </li>
+              <li>
+                  <a th:href="@{/user/issues/new/mine}" th:text="#{issue.menu.new.mine}">
+                  </a>
+              </li>
+              <li>
+                  <hr class="no-margin"/>
+              </li>
+              <li>
+                  <a th:href="@{/projectform}" th:text="#{button.newProject}">
+                  </a>
+              </li>
+              <li th:if="${!currentUser.guest}">
+                  <a th:href="@{/organizations/new}" th:text="#{title.newOrganization}">
+                  </a>
+              </li>
+          </ul>
+      </li>
+    </th:block>
+    <th:block th:if="${currentUser.anonymous}">
+        <li class="gnb-usermenu-item" id="required-logged-in">
+          <a th:href="@{/users/loginform}" class="user-item-btn" data-login="required" th:text="#{title.login}">
+          </a>
+        </li>
+        <li class="divider"></li>
+        <li>
+            <a th:href="@{/users/signupform}" class="ybtn ybtn-success" th:text="#{title.signup}">
+            </a>
+        </li>
+    </th:block>
+</ul>
+</th:block>

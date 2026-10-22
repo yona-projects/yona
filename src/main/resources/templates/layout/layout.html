@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21c Project Hosting SW
+
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/layout.scala.html
+  사용법: 페이지 템플릿의 <html>에 th:replace="~{layout/layout :: layout(제목키, 테마, 본문프래그먼트)}"를 건다.
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(title, theme, content)"
+      th:with="titleText=#{${title}}, titleArray=${titleText.split(' [|]:[|] ')}"
+      th:lang="${currentUser.preferredLanguage}">
+<head>
+<meta charset="utf-8">
+<title th:text="${titleArray[0]}">Yona</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta property="og:title" th:content="${titleArray[0]}" />
+<meta property="og:url" th:content="${requestPath}" />
+<meta property="og:type" content="website" />
+<meta property="og:description" th:content="${titleArray[titleArray.length - 1]}" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" th:content="${titleArray[0]}" />
+<meta name="twitter:url" th:content="${requestPath}" />
+<meta name="twitter:description" th:content="${titleArray[titleArray.length - 1]}" />
+<link rel="shortcut icon" type="image/x-icon" th:href="@{/assets/images/favicon.ico}">
+<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/bootstrap/css/bootstrap.css}">
+<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/yobicon/style.css}">
+<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/javascripts/lib/select2/select2.css}"/>
+<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/javascripts/lib/pikaday/pikaday.css}" />
+<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/usermenu.css}">
+<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/yobi.css}">
+<link rel='stylesheet' th:href="@{/assets/javascripts/lib/nprogress/nprogress.css}"/>
+<link rel="stylesheet" th:href="@{/assets/javascripts/lib/viewerjs/viewer.css}" />
+<script type="text/javascript" th:src="@{/assets/javascripts/yona-layout.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+        window.parent.document.title = window.document.title;
+        window.parent.history.replaceState('', window.document.title, window.location.href);
+
+        var shallWeOpenLeftNavigation = localStorage.getItem('shallWeOpenLeftNavigation');
+
+        if (window.parent === window) {
+            if (shallWeOpenLeftNavigation === "true" && ![(${!currentUser.anonymous})]) {
+                window.location.href = [[@{/user/sidebar}]] + "?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
+            }
+        }
+
+</script>
+</head>
+
+<body th:class="${theme}" id="html-body">
+    <div id="main" class="main">
+    <div th:if="${siteAdminLoggedIn}" class="admin-logged-in-affix" data-spy="affix" data-offset-top="30"><th:block th:text="#{user.siteAdminLoggedInAffix}"></th:block> <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}"></span></div>
+<th:block th:replace="${content}"></th:block>
+<th:block th:replace="~{common/scripts :: scripts}"></th:block>
+    </div>
+
+    <script type="text/javascript">
+        $(function() {
+            NProgress.configure({minimum: 0.7});
+        });
+    </script>
+    <script type="text/javascript" th:inline="javascript">
+        //Following three values are used for common/yona.Usermenu.js
+        var UsermenuToggleFavoriteProjectUrl = [[@{/-_-api/v1/favoriteProjects/}]];
+        var UsermenuToggleFoveriteOrganizationUrl = [[@{/-_-api/v1/favoriteOrganizations/}]];
+        var UsermenuGetFoveriteProjectsUrl = [[@{/-_-api/v1/favoriteProjects}]];
+        var UsermenuToggleFavoriteIssueUrl = [[@{/-_-api/v1/favoriteIssues/}]];
+        var UsermenuGetFoveriteIssuesUrl = [[@{/-_-api/v1/favoriteIssues}]];
+        var UsermenuUrl = [[@{/user/usermenuTabContentList}]];
+    </script>
+    <script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Usermenu.js}"></script>
+    <script th:src="@{/assets/javascripts/lib/viewerjs/viewer.js}"></script>
+    <script th:src="@{/assets/javascripts/lib/viewerjs/jquery-viewer.js}"></script>
+
+    <script th:inline="javascript">
+        $(function () {
+            Viewer.setDefaults({
+                transition: false
+            })
+            $(".markdown-wrap").each(function () { // the containers for all your galleries
+                var $that = $(this);
+                $that.find("img").on("mouseover", function () {
+                    $(this).css("cursor", "pointer");
+                })
+                $that.viewer();
+            });
+
+            if (window.parent === window) {
+                $(".pin > .yobicon-arrow-right").show();
+            }
+
+            $(".pin").on("click", function () {
+                if (window.parent === window) {
+                    localStorage.setItem('shallWeOpenLeftNavigation', "true");
+                    window.location.href = [[@{/user/sidebar}]] + "?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
+                } else {
+                    localStorage.setItem('shallWeOpenLeftNavigation', "false");
+                    window.parent.location = window.location.href;
+                }
+            });
+
+            if ($("div#sidebar.sidebar", window.parent.document).css("display") === "block") {
+                $("div.pin > i.yobicon-arrow-right").removeClass("yobicon-arrow-right").addClass("yobicon-arrow-left");
+            }
+        });
+    </script>
+
+    <th:block th:if="${site.sendYonaUsage}">
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-102735758-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+    </th:block>
+</body>
+</html>

@@ -1,6 +1,8 @@
 package dev.yona
 
+import dev.yona.config.YonaProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 
 /**
@@ -10,6 +12,7 @@ import org.springframework.boot.runApplication
  * 그대로 재현하는 것을 목표로 한다.
  */
 @SpringBootApplication
+@EnableConfigurationProperties(YonaProperties::class)
 class YonaApplication
 
 fun main(args: Array<String>) {

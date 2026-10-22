@@ -1,0 +1,23 @@
+<!--/*
+  Yobi, Project Hosting SW
+
+  Copyright 2013 NAVER Corp.
+  http://yobi.io
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  이식 원본: app/views/siteLayout.scala.html
+  사용법: <html th:replace="~{layout/site-layout :: siteLayout(제목키, 메뉴종류, 본문프래그먼트)}">
+  메뉴종류는 v1.6 utils.MenuType의 이름(문자열)이다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="siteLayout(title, menu, content)"
+          th:replace="~{layout/layout :: layout(${title}, '', ~{layout/site-layout :: siteBody(${menu}, ${content})})}">
+</th:block>
+
+<th:block th:fragment="siteBody(menu, content)">
+    <th:block th:replace="~{common/navbar :: navbar(${menu}, null, null)}"></th:block>
+
+    <th:block th:replace="${content}"></th:block>
+
+    <th:block th:replace="~{common/footer :: footer}"></th:block>
+</th:block>

@@ -7,6 +7,7 @@ import dev.yona.security.YonaAuthentication
 import dev.yona.security.YonaAuthenticationFilter
 import dev.yona.web.HttpPreference
 import dev.yona.web.RedirectSupport
+import dev.yona.web.layout.FlashMessageTranslator
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -35,7 +36,8 @@ import java.net.URLEncoder
 @RestController
 class LoginController(
     private val authenticator: LocalAuthenticator,
-    private val users: UserRepository
+    private val users: UserRepository,
+    private val flashTranslator: FlashMessageTranslator
 ) {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
@@ -45,7 +47,7 @@ class LoginController(
     fun login(
         request: HttpServletRequest,
         response: HttpServletResponse
-    ): ResponseEntity<*> {
+    ): Any {
         noCache(response)
         return if (HttpPreference.isJsonPreferred(request.getHeader(HttpHeaders.ACCEPT))) {
             loginByAjax(request, response)
@@ -64,13 +66,14 @@ class LoginController(
 
     // --- 폼 로그인 ---
 
-    private fun loginByForm(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<*> {
+    private fun loginByForm(request: HttpServletRequest, response: HttpServletResponse): Any {
         val loginKey = request.getParameter("loginIdOrEmail")
         val password = request.getParameter("password")
         if (loginKey.isNullOrEmpty() || password.isNullOrEmpty()) {
-            // v1.6은 안내 문구와 함께 로그인 화면을 400으로 다시 그린다. 화면은 로그인 폼 이식 단계에서 연결한다.
-            RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "user.login.required"))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build<Void>()
+            // v1.6: 안내 문구(flash)와 함께 로그인 화면을 400으로 다시 그린다. 이 안내는 같은 요청의 화면에서 바로 보인다.
+            response.status = HttpStatus.BAD_REQUEST.value()
+            return LoginFormController.loginPage(request.getParameter("redirectUrl"))
+                .addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to "user.login.required")))
         }
 
         return when (val result = authenticator.authenticate(loginKey, password)) {

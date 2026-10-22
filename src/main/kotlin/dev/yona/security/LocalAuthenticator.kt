@@ -3,7 +3,7 @@ package dev.yona.security
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
-import org.springframework.beans.factory.annotation.Value
+import dev.yona.config.YonaProperties
 import org.springframework.stereotype.Service
 
 /** 로그인 시도의 판정 결과이다. 화면 쪽은 결과에 따라 v1.6과 같은 안내 문구를 고른다. */
@@ -43,12 +43,12 @@ sealed interface LoginResult {
  *
  * LDAP과 소셜 로그인은 이 클래스의 범위가 아니다.
  *
- * @property signUpConfirmRequired v1.6의 `signup.require.admin.confirm` 설정이다.
+ * @property properties `yona.signup.require-admin-confirm`(v1.6 `signup.require.admin.confirm`)을 읽는다.
  */
 @Service
 class LocalAuthenticator(
     private val users: UserRepository,
-    @Value("\${yona.signup.require-admin-confirm:false}") private val signUpConfirmRequired: Boolean
+    private val properties: YonaProperties
 ) {
 
     /**
@@ -60,7 +60,7 @@ class LocalAuthenticator(
     fun authenticate(loginIdOrEmail: String, password: String): LoginResult {
         val user = users.findByLoginKey(loginIdOrEmail) ?: return LoginResult.InvalidCredentials
 
-        if (signUpConfirmRequired && user.state == UserState.LOCKED) return LoginResult.Locked
+        if (properties.signup.requireAdminConfirm && user.state == UserState.LOCKED) return LoginResult.Locked
         if (user.state == UserState.DELETED) return LoginResult.Deleted
         if (!passwordMatches(user, password)) return LoginResult.InvalidCredentials
         if (user.state == UserState.LOCKED) return LoginResult.LockedAfterAuthentication

@@ -39,6 +39,9 @@ dependencies {
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+	// 렌더링된 HTML의 구조를 DOM으로 검증하는 데 쓴다(운영 코드는 쓰지 않는다).
+	testImplementation("org.jsoup:jsoup:1.21.1")
+
 	// v1.6이 패스워드 해시에 쓰던 Shiro와 결과가 같은지 교차 검증하기 위한 참조 구현이다(운영 코드는 쓰지 않는다).
 	testImplementation("org.apache.shiro:shiro-core:1.13.0")
 

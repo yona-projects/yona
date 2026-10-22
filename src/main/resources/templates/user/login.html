@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/login.scala.html
+  모델: redirectUrl(로그인 후 이동할 주소)
+  소셜 로그인 버튼 영역(currentAuth/forProviders)은 소셜 로그인 단계에서 추가한다.
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout('title.login', 'NONE', ~{::loginPage})}">
+<th:block th:fragment="loginPage"
+          th:with="loginIdPlaceHolder=${!#strings.isEmpty(site.loginPageLoginIdPlaceholder) ? site.loginPageLoginIdPlaceholder : #messages.msg('user.login.key')},
+                   passwordPlaceHolder=${!#strings.isEmpty(site.loginPagePasswordPlaceholder) ? site.loginPagePasswordPlaceholder : #messages.msg('user.password')}">
+<div class="page full">
+  <div class="center-wrap tag-line-wrap login">
+    <h1 class="title" th:utext="#{title.loginFor(${site.siteName})}"></h1>
+    <p class="tag-line" th:text="#{app.description}"></p>
+  </div>
+  <div class="login-form-wrap frm-wrap">
+    <form th:action="@{/users/login}" method="POST">
+      <input type="hidden" name="redirectUrl" th:value="${redirectUrl}" />
+      <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">
+      </div>
+      <th:block th:unless="${site.socialLoginOnly}">
+      <dl>
+        <dd>
+          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" th:placeholder="${loginIdPlaceHolder}">
+        </dd>
+        <dd>
+          <input id="password" name="password" type="password" class="text password" autocomplete="off" th:placeholder="${passwordPlaceHolder}">
+        </dd>
+      </dl>
+
+      <div class="btns-row">
+        <button type="submit" class="ybtn ybtn-primary ybtn-large ybtn-fullsize" th:text="#{button.login}"></button>
+      </div>
+      </th:block>
+
+      <div class="btns-row nm">
+      </div>
+      <div class="act-row mt5" th:unless="${site.socialLoginOnly}">
+        <div class="remember-me-wrap pull-left">
+          <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" checked>
+          <label for="remember-me" class="bg-checkbox" th:text="#{title.rememberMe}"></label>
+        </div>
+
+        <div class="links-wrap pull-right">
+          <a th:href="@{/lostPassword}" th:text="#{title.forgotpassword}"></a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+    $(function() {
+        $('#loginIdOrEmail').focus();
+    });
+</script>
+</th:block>
+</html>

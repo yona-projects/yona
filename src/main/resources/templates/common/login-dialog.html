@@ -1,0 +1,51 @@
+<!--/*
+  이식 원본: app/views/common/loginDialog.scala.html
+  소셜 로그인 버튼 영역(currentAuth/forProviders)은 소셜 로그인 단계에서 추가한다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="loginDialog">
+<div id="loginDialog" class="modal hide loginDialog" tabindex="-1" role="dialog">
+  <div class="modal-body">
+    <div class="pull-right">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    </div>
+    <form th:action="@{/users/login}" method="post" class="frm-wrap login-form-wrap">
+      <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">
+      </div>
+      <th:block th:unless="${site.socialLoginOnly}">
+      <dl>
+        <dd>
+          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" th:placeholder="#{user.login.key}">
+        </dd>
+        <dd>
+          <input id="passwordD" name="password" type="password" class="text password" autocomplete="off" th:placeholder="#{user.password}">
+        </dd>
+      </dl>
+
+      <div class="error">
+        <i class="yobicon-error"></i>
+        <span class="error-message"></span>
+      </div>
+
+      <div class="btns-row nm">
+        <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{button.login}"></button>
+      </div>
+      </th:block>
+
+      <div class="btns-row nm">
+      </div>
+      <div class="act-row right-txt mt20" th:unless="${site.socialLoginOnly}">
+        <div class="pull-left">
+          <input id="remember-meD" type="checkbox" name="rememberMe" class="checkbox" checked>
+          <label for="remember-meD" class="bg-checkbox" th:text="#{title.rememberMe}"></label>
+        </div>
+
+        <a th:href="@{/lostPassword}" th:text="#{title.resetPassword}"></a>
+        <span class="gray-txt ml10 mr10">|</span>
+        <a th:href="@{/users/signupform}" th:text="#{title.signup}"></a>
+      </div>
+      </form>
+  </div>
+</div>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.LoginDialog.js}"></script>
+</th:block>
