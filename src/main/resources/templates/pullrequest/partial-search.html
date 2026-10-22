@@ -1,0 +1,151 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/git/partial_search.scala.html, partial_list.scala.html, partial_recently_pushed_branches.scala.html
+  모델: categoryCode, filter, hasContributorFilter, searchAction, openAction, closedAction, sentAction, openCount, closedCount, sentLabel, forked,
+        newPullRequestUrl, contributors(ContributorOption), pushedBranches(PushedBranchRow), rows(PullRequestRow), totalPages
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search">
+<div pjax-container class="row-fluid cb">
+    <div class="left-menu span2 search-wrap hide-in-mobile" style="padding-top:0;">
+        <form id="search" name="search" th:action="${searchAction}" method="get">
+            <div class="search">
+                <div class="search-bar">
+                    <input name="filter" class="textbox full" type="text" th:value="${filter}">
+                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>
+            </div>
+            <div id="advanced-search-form" class="srch-advanced" th:if="${hasContributorFilter}">
+                <dl class="issue-option">
+                    <dt th:text="#{pullRequest.sender}"></dt>
+                    <dd>
+                        <select id="contributors" name="contributorId" data-format="user">
+                            <th:block th:each="c, st : ${contributors}">
+                                <option th:if="${c.value == ''}" value="" th:text="#{common.order.all}"></option>
+                                <option th:if="${c.value != '' and c.avatarUrl == null}" th:value="${c.value}" th:text="#{pullRequest.sentByMe}"></option>
+                                <option th:if="${c.avatarUrl != null}" th:value="${c.value}" th:attr="data-avatar-url=${c.avatarUrl}, data-login-id=${c.loginId}" th:selected="${c.selected}" th:text="${c.label}"></option>
+                            </th:block>
+                        </select>
+                    </dd>
+                </dl>
+            </div>
+        </form>
+    </div>
+    <div class="span10 span-hard-wrap" id="span10">
+        <th:block th:if="${!#lists.isEmpty(pushedBranches)}">
+            <h5 th:text="#{pullRequest.pushed.branches.title}"></h5>
+            <div class="alert alert-info">
+                <div th:each="b : ${pushedBranches}">
+                    <i class="yobicon-split"></i>
+                    <span style="margin-left:5px;font-weight:bold;"><th:block th:text="${b.label}"></th:block> ( <th:block th:text="${b.ago}"></th:block> )</span>
+                    &nbsp;-&nbsp;
+                    <a th:href="${b.newPullRequestUrl}" th:text="#{pullRequest}"></a>
+                    <a href="#" class="close" data-dismiss="alert" aria-hidden="true" data-request-method="delete" th:attr="data-request-uri=${b.deleteUrl}">&times;</a>
+                </div>
+            </div>
+        </th:block>
+        <div class="pull-right">
+            <a th:href="${newPullRequestUrl}" class="ybtn ybtn-success" th:text="#{pullRequest.new}"></a>
+        </div>
+        <ul class="nav nav-tabs nm pullrequeset-tab-menu">
+            <li th:class="${categoryCode == 'open'} ? 'active'">
+                <a href="#" th:attr="data-url=${openAction}" data-type="state"><th:block th:text="#{pullRequest.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
+            </li>
+            <li th:class="${categoryCode == 'closed'} ? 'active'">
+                <a href="#" th:attr="data-url=${closedAction}" data-type="state"><th:block th:text="#{pullRequest.state.closed}"></th:block> <span class="num-badge" th:text="${closedCount}"></span></a>
+            </li>
+            <li th:if="${forked}" th:class="${categoryCode == 'sent'} ? 'active'">
+                <a href="#" th:attr="data-url=${sentAction}" data-type="state"><th:block th:text="#{pullRequest.sent}"></th:block> <span class="num-badge" th:text="${sentLabel}"></span></a>
+            </li>
+            <li><th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block></li>
+        </ul>
+        <div class="tab-content" style="clear:both;padding-top:15px;">
+            <div id="list" class="row-fluid tab-pane active">
+                <ul class="post-list-wrap">
+                    <th:block th:if="${!#lists.isEmpty(rows)}">
+                        <li th:each="r : ${rows}" class="post-item title" th:attr="href=${r.href}">
+                            <div class="span10 span-hard-wrap">
+                                <a th:if="${r.contributor != null}" th:href="${r.contributor.href}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${r.contributor.loginId}">
+                                    <img th:src="${r.contributor.avatarUrl}" th:alt="${r.contributor.name}" width="32" height="32"/>
+                                </a>
+                                <div class="title-wrap">
+                                    <span class="post-id" th:text="${r.number}"></span>
+                                    <th:block th:utext="${r.headerWordsHtml}"></th:block>
+                                    <a th:href="${r.href}" th:class="'title' + (${r.conflict} ? ' conflict' : '')" th:text="${r.title}"></a>
+                                </div>
+                                <div class="infos">
+                                    <th:block th:if="${r.contributor != null}">
+                                        <a th:if="${!#strings.isEmpty(r.contributor.name)}" th:href="${r.contributor.href}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${r.contributor.loginId}" th:text="${r.contributor.displayName}"></a>
+                                        <span th:if="${#strings.isEmpty(r.contributor.name)}" class="infos-item" th:text="#{issue.noAuthor}"></span>
+                                    </th:block>
+                                    <span class="infos-item" th:title="${r.agoTitle}" th:text="${r.ago}"></span>
+                                    <div th:if="${r.progress != null}" class="infos-item" style="margin-right:10px;">
+                                        <i class="infos-icon yobicon-post2 vmiddle"></i>
+                                        <div class="upload-progress">
+                                            <div class="bar orange" th:style="'width: ' + ${r.progress.percent} + '%;'"></div>
+                                        </div>
+                                        <a th:href="${r.progress.href}" data-toggle="tooltip" th:title="#{pullRequest.review.closed} + ' / ' + #{pullRequest.review.total}">
+                                            <span th:text="${r.progress.closed}"></span>
+                                            <span class="gray-txt">/</span>
+                                            <span class="size total" th:text="${r.progress.total}"></span>
+                                        </a>
+                                    </div>
+                                    <div th:if="${r.reviewerCount != null}" th:class="'infos-item' + (${r.reviewedByMe} ? ' over' : '')" style="margin-top:-1px;">
+                                        <i class="infos-icon yobicon-preview vmiddle"></i>
+                                        <a th:href="${r.href + '#reviewers'}" data-toggle="tooltip" data-html="true" th:attr="data-title=${r.reviewerNames}">
+                                            <span class="vmiddle" th:text="${r.reviewerCount}"></span>
+                                        </a>
+                                    </div>
+                                    <span th:class="${r.toDefaultBranch} ? 'to-default-branch' : 'to-branch'" th:text="${r.toBranch}"></span>
+                                </div>
+                            </div>
+                            <div class="span2 hide-in-mobile">
+                                <div class="mt5 pull-right hide-in-mobile">
+                                    <a th:if="${r.receiver != null}" th:href="${r.receiver.href}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${r.receiver.name}">
+                                        <img th:src="${r.receiver.avatarUrl}" width="32" height="32" th:alt="${r.receiver.name}">
+                                    </a>
+                                    <div th:if="${r.receiver == null}" class="empty-avatar-wrap">&nbsp;</div>
+                                </div>
+                                <div th:class="'state ' + ${r.stateClass} + ' pull-right'" th:text="#{${r.stateKey}}"></div>
+                            </div>
+                        </li>
+                        <div id="pagination"></div>
+                    </th:block>
+                    <div th:if="${#lists.isEmpty(rows)}" class="error-wrap">
+                        <i class="ico ico-err1"></i>
+                        <p th:text="#{pullRequest.is.empty}"></p>
+                    </div>
+                </ul>
+                <script type="text/javascript" th:inline="javascript">
+                    $(function(){
+                        yobi.Pagination.update($("#pagination"), /*[[${totalPages}]]*/ 0);
+
+                        (function _initImplicitTitlePrefix() {
+                            $(".title-prefix").on("click", function(){
+                                var filterInput = $("input[name*='filter']");
+                                filterInput.val($(this).text());
+                                filterInput.closest("form").submit();
+                            });
+                        })();
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function(){
+            $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
+              $('#search').attr('action', $(this).data('url'));
+              $('#search').submit();
+              return false;
+            });
+
+            yobi.ui.Select2("#contributors").on("change", function(){
+                $('#search').submit();
+            });
+        });
+    </script>
+</div>
+</th:block>

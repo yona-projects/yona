@@ -33,4 +33,10 @@ interface CommentThreadRepository : JpaRepository<CommentThread, Long> {
     /** 풀 리퀘스트가 없는 프로젝트의 커밋 파일 단위 스레드이다. */
     @Query("select t from NonRangedCodeCommentThread t where t.project.id = :projectId and t.commitId = :commitId and t.pullRequest is null")
     fun findNonRangedThreadsNotOnPullRequest(projectId: Long, commitId: String): List<NonRangedCodeCommentThread>
+
+    /** 풀 리퀘스트에 달린 스레드 수이다 (v1.6 `PullRequest.commentThreads.size`). */
+    fun countByPullRequestId(pullRequestId: Long): Long
+
+    /** 풀 리퀘스트에 달린 스레드 중 [state]인 것의 수이다 (v1.6 `PullRequest.countCommentThreadsByState`). */
+    fun countByPullRequestIdAndState(pullRequestId: Long, state: ThreadState): Long
 }

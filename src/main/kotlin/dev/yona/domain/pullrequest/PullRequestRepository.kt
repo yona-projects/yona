@@ -2,9 +2,10 @@ package dev.yona.domain.pullrequest
 
 import dev.yona.domain.enumeration.State
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 
 /** 풀 리퀘스트 저장소이다. */
-interface PullRequestRepository : JpaRepository<PullRequest, Long> {
+interface PullRequestRepository : JpaRepository<PullRequest, Long>, JpaSpecificationExecutor<PullRequest> {
 
     /** 받는 프로젝트와 번호로 풀 리퀘스트를 조회한다 (v1.6 `PullRequest.findOne`). */
     fun findByToProjectIdAndNumber(projectId: Long, number: Long): PullRequest?

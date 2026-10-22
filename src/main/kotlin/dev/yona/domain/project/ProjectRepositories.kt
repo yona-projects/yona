@@ -128,6 +128,9 @@ interface PushedBranchRepository : JpaRepository<PushedBranch, Long> {
     /** 프로젝트에서 이름이 [name]인 푸시 기록이다 (v1.6 `PushedBranch.find.where().eq("project").eq("name")`). */
     fun findFirstByProjectIdAndName(projectId: Long, name: String): PushedBranch?
 
+    /** 프로젝트에서 [since] 이후에 푸시한 기록이다 (v1.6 `Project.getRecentlyPushedBranches`). */
+    fun findByProjectIdAndPushedDateAfter(projectId: Long, since: java.util.Date): List<PushedBranch>
+
     /** 프로젝트의 푸시 기록을 최근 순으로 조회한다. */
     fun findByProjectIdOrderByPushedDateDesc(projectId: Long): List<PushedBranch>
 }

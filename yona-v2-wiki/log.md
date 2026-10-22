@@ -253,3 +253,6 @@
 
 ## [2026-10-23] ingest | 포크 (5단계 5c-1)
 - TDD: ForkTest 12. A-73.
+
+## [2026-10-23] ingest | 풀 리퀘스트 목록 (5단계 5c-2)
+- TDD: PullRequestListTest 12. A-74.

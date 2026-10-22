@@ -23,6 +23,10 @@ interface UserRepository : JpaRepository<User, Long> {
     )
     fun search(query: String, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<User>
 
+    /** 프로젝트로 풀 리퀘스트를 보낸 적이 있는 사용자를 이름순으로 조회한다 (v1.6 `User.findPullRequestContributorsByProjectId`). */
+    @Query("select distinct u from PullRequest r join r.contributor u where r.toProject.id = :projectId order by u.name, u.id")
+    fun findPullRequestContributors(projectId: Long): List<User>
+
     /** 같은 대표 이메일의 사용자가 있는지 확인한다 (v1.6 `User.isEmailExist`의 첫 조건, `ieq`). */
     fun existsByEmailIgnoreCase(email: String): Boolean
 

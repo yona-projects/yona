@@ -64,7 +64,11 @@ updated: 2026-10-22
 | 5c-0a | diff 엔진(`DiffService`, `FileDiff`: 커밋, 두 리비전, 서로 다른 저장소 비교, 헝크 계산) | 완료 | [subsystems/diff.md](subsystems/diff.md) |
 | 5c-0b | 공용 diff 화면 조각(줄 그리기, 스레드 조각), 커밋 보기와 비교 화면(읽기), 커밋 구독, 커밋 diff 멘션 후보 | 완료 | [web/commit-view.md](web/commit-view.md). 댓글 등록과 스레드 상태 변경은 5d |
 | 5c-1 | 포크(`newFork`, `fork`, `clone`) | 완료 | [web/fork.md](web/fork.md) |
-| 5c | 풀 리퀘스트(목록, 보기, 변경 내용, 만들기, 병합, 닫기와 열기, 수정, 댓글, 리뷰) | 대기 | |
+| 5c-2 | 풀 리퀘스트 목록(열림, 닫힘, 보냄), 검색, 최근 푸시 브랜치 | 완료 | [web/pull-request-list.md](web/pull-request-list.md) |
+| 5c-3 | 풀 리퀘스트 만들기(`newPullRequestForm`, `mergeResult`, `newPullRequest`), 병합 시도, 커밋 동기화 | 대기 | |
+| 5c-4 | 풀 리퀘스트 보기, 상태 조각, 변경 내용 | 대기 | |
+| 5c-5 | 승인(병합), 닫기와 열기, 수정, 브랜치 삭제와 복원, 리뷰 표시 | 대기 | |
+| 5c-6 | 풀 리퀘스트 댓글 | 대기 | |
 | 5d | 코드 리뷰 댓글(커밋 댓글, 리뷰 스레드), 푸시 후 알림 훅(새 커밋, 이슈 언급, 풀 리퀘스트 확인) | 대기 | |
 | 5e | 웹훅(설정 화면, 발송), 알림과 웹훅 연결 | 대기 | |
 | 5f | 외부 저장소 가져오기(`/_import`) | 대기 | |
