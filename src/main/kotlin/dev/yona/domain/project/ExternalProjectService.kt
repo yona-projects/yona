@@ -44,10 +44,11 @@ class ExternalProjectService(
 
     /**
      * 프로젝트를 만든다. 저장소를 만들고, 메뉴를 모두 켜고, 구성원을 역할대로 넣는다. 이미 구성원이면 역할만 바꾼다.
-     * 소유자가 조직이면 조직 소속으로 만든다.
+     * 소유자가 조직이면 조직 소속으로 만든다. 구성원이 된 사용자의 가입 신청은 정리하며, 그 승인 알림의 처리자는 호출한 [actor]이다
+     * (v1.6 `cleanEnrolledUsers`가 현재 사용자를 쓴다).
      */
     @Transactional
-    fun create(spec: ExternalProject): Project {
+    fun create(spec: ExternalProject, actor: User): Project {
         val project = Project(owner = spec.owner, name = spec.name, overview = spec.overview, vcs = spec.vcs, projectScope = spec.scope, organization = organizations.findByNameIgnoreCase(spec.owner))
         project.siteurl = "http://localhost:9000/${project.name}"
         project.createdDate = Date()
@@ -64,7 +65,7 @@ class ExternalProjectService(
                 }
             }
             entityManager.flush()
-            memberService.cleanEnrolledUsers(project, null)
+            memberService.cleanEnrolledUsers(project, actor)
         }
         return project
     }

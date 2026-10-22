@@ -122,7 +122,8 @@ class ExternalProjectApiController(
             user to node.findValue("role")?.asString().orEmpty()
         }
         val project = externalProjects.create(
-            ExternalProject(owner, name, json.findValue("projectDescription")?.asString().orEmpty(), json.findValue("projectVcs")?.asString() ?: "GIT", scope(json), members)
+            ExternalProject(owner, name, json.findValue("projectDescription")?.asString().orEmpty(), json.findValue("projectVcs")?.asString() ?: "GIT", scope(json), members),
+            viewer
         )
         return created(projectNode(project))
     }
