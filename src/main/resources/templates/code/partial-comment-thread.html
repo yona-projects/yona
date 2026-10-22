@@ -1,0 +1,110 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/partial_comment_thread.scala.html, app/views/partial_comment_form_on_thread.scala.html
+  매개변수: thread(ThreadView). 스레드 하나를 그린다. diff 화면이 `DiffHtmlRenderer`를 거쳐 줄 사이에 끼워 넣는다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="thread(thread)">
+<div th:id="'thread-' + ${thread.id}" th:class="'comment-thread-wrap ' + ${thread.state} + (${thread.fold} ? ' fold' : '')"
+     th:attr="data-state=${thread.state}, data-toggle=${thread.range != null} ? 'CodeCommentThread', data-range-path=${thread.range?.get('path')},
+              data-range-startSide=${thread.range?.get('startSide')}, data-range-startLine=${thread.range?.get('startLine')}, data-range-startColumn=${thread.range?.get('startColumn')},
+              data-range-endSide=${thread.range?.get('endSide')}, data-range-endLine=${thread.range?.get('endLine')}, data-range-endColumn=${thread.range?.get('endColumn')}">
+    <div class="btn-thread-here btn-thread-minimize">
+        <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-post2"></i></button>
+    </div>
+
+    <div class="thread-header">
+        <span th:class="'badge state ' + ${thread.state}" th:text="#{'issue.state.' + ${thread.state}}"></span>
+        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
+    </div>
+
+    <ul class="comments">
+        <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" class="comment">
+            <div class="comment-avatar">
+                <a th:href="${c.userHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.name}">
+                    <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
+                </a>
+            </div>
+            <div class="media-body">
+                <div class="meta-info">
+                    <span class="comment_author pull-left">
+                        <a th:href="${c.userHref}" data-toggle="tooltip" data-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
+                    </span>
+                    <span class="ago"><a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a></span>
+                    <span class="edit pull-right" th:if="${c.deleteUrl != null}">
+                        <button class="btn-transparent pull-right close" data-toggle="comment-delete" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                    </span>
+                </div>
+                <div class="comment-body markdown-wrap" data-via-email="false" th:utext="${c.bodyHtml}"></div>
+                <div class="attachments" th:attr="data-attachments=${c.attachments}"></div>
+            </div>
+        </li>
+    </ul>
+
+    <th:block th:if="${thread.form != null}" th:with="f=${thread.form}">
+    <div class="write-comment-form">
+        <form th:action="${f.action}" method="post" enctype="multipart/form-data" class="review-form" style="display:block;">
+            <input type="hidden" name="thread.id" th:value="${f.threadId}">
+            <div class="author-info-wrap pull-left hide-in-mobile">
+                <div class="author-info">
+                    <a th:href="${f.userHref}" class="avatar-wrap medium" th:title="${f.userName}" data-toggle="tooltip" data-placement="top"><img th:src="${f.avatarUrl}" width="32" height="32"></a>
+                </div>
+            </div>
+            <div class="write-comment-box">
+                <div class="write-comment-wrap">
+                    <th:block th:replace="~{common/editor :: editor('contents', '', 'style=height:100px', 'code-review-body', false)}"></th:block>
+                    <th:block th:if="${!f.anonymous}">
+                        <th:block th:replace="~{common/upload-form :: uploadForm(${f.resourceType}, null, null)}"></th:block>
+                    </th:block>
+                    <div class="right-txt">
+                        <button th:if="${thread.stateUrl != null}" type="button" data-request-method="post" th:attr="data-request-uri=${thread.stateUrl}" class="ybtn ybtn-default ybtn-small"
+                                th:text="${thread.state == 'open'} ? #{commentThread.close} : #{commentThread.open}"></button>
+                        <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}"></button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    </th:block>
+    <p class="thread-actrow" th:if="${thread.form == null}">
+        <button th:if="${thread.stateUrl != null}" type="button" data-request-method="post" th:attr="data-request-uri=${thread.stateUrl}" class="ybtn ybtn-default ybtn-small"
+                th:text="${thread.state == 'open'} ? #{commentThread.close} : #{commentThread.open}"></button>
+    </p>
+</div>
+</th:block>
+
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="nonRanged(thread)">
+<div th:id="'thread-' + ${thread.id}" th:class="'comment-thread-wrap ' + ${thread.state}">
+    <div class="btn-thread-here btn-thread-minimize">
+        <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-comments"></i></button>
+    </div>
+    <ul class="comments">
+        <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" class="comment">
+            <div class="comment-avatar">
+                <a th:href="${c.userHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.name}">
+                    <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
+                </a>
+            </div>
+            <div class="media-body">
+                <div class="meta-info">
+                    <span class="comment_author pull-left">
+                        <a th:href="${c.userHref}" data-toggle="tooltip" data-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
+                    </span>
+                    <span class="ago"><a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a></span>
+                    <span class="edit pull-right" th:if="${c.deleteUrl != null}">
+                        <button class="btn-transparent pull-right close" data-request-method="delete" th:attr="data-request-uri=${c.deleteUrl}"><i class="yobicon-trash"></i></button>
+                    </span>
+                </div>
+                <div class="comment-body markdown-wrap" data-via-email="false" th:utext="${c.bodyHtml}"></div>
+                <div class="attachments" th:attr="data-attachments=${c.attachments}"></div>
+            </div>
+        </li>
+    </ul>
+    <p class="thread-actrow" th:if="${thread.stateUrl != null}">
+        <button type="button" data-request-method="post" th:attr="data-request-uri=${thread.stateUrl}" class="ybtn ybtn-default ybtn-small"
+                th:text="${thread.state == 'open'} ? #{commentThread.close} : #{commentThread.open}"></button>
+    </p>
+</div>
+</th:block>

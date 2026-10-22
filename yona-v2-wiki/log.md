@@ -247,3 +247,6 @@
 
 ## [2026-10-23] ingest | diff 엔진 (5단계 5c-0a)
 - TDD: DiffServiceTest 9.
+
+## [2026-10-23] ingest | 커밋 보기와 비교 (5단계 5c-0b)
+- TDD: DiffHtmlRendererTest 6, CommitViewTest 6. A-72, R-41. 스레드 표시는 읽기 전용이고 등록과 상태 변경은 5d에서 한다.

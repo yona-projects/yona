@@ -29,7 +29,7 @@ import java.net.URLEncoder
 /** 커밋 이력 한 줄의 화면 값이다. [messageHtml]은 첫 줄을 뺀 나머지 메시지이다(없으면 빈 값). */
 data class HistoryRow(
     val id: String, val shortId: String, val showUrl: String, val shortMessageHtml: String, val moreHtml: String, val hasMore: Boolean, val browseUrl: String?,
-    val date: String, val authorHref: String?, val authorLoginId: String?, val authorName: String?, val avatarUrl: String?, val authorEmail: String?
+    val commentCount: Int, val date: String, val authorHref: String?, val authorLoginId: String?, val authorName: String?, val avatarUrl: String?, val authorEmail: String?
 )
 
 /**
@@ -51,7 +51,8 @@ class CommitHistoryController(
     private val views: ProjectViewFactory,
     private val noheadViews: NoheadViews,
     private val helper: TemplateHelper,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val reviewThreads: dev.yona.domain.comment.ReviewThreadService
 ) {
 
     /** 기본 브랜치(`HEAD`)까지의 이력이다. */
@@ -135,7 +136,7 @@ class CommitHistoryController(
             id = commit.id, shortId = commit.shortId, showUrl = showUrl, shortMessageHtml = HtmlUtils.htmlEscape(commit.shortMessage),
             moreHtml = if (commit.message.split("\n").size > 1) autoLinks.render(HtmlUtils.htmlEscape(more), project, null) else "", hasMore = commit.message.split("\n").size > 1,
             browseUrl = path?.let { "$base/code/${UrlPaths.routeSegment(commit.shortId)}/${UrlPaths.encodeEach(it)}" },
-            date = helper.agoOrDateString(commit.authorDate),
+            commentCount = reviewThreads.count(commit.id, path), date = helper.agoOrDateString(commit.authorDate),
             authorHref = user?.let { "/${it.loginId}" }, authorLoginId = user?.loginId, authorName = user?.name ?: commit.authorName,
             avatarUrl = if (user != null) avatars.avatarUrl(user, AVATAR_SIZE) else avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE), authorEmail = commit.authorEmail
         )

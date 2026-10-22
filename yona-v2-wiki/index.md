@@ -22,6 +22,7 @@
 - [이슈 보기, 다음 상태, 삭제](web/issue-view.md): 보기 화면, 타임라인, 댓글 표시, 다음 상태, 삭제
 - [diff 엔진](subsystems/diff.md): 커밋과 저장소 사이의 파일별 차이, 헝크
 - [코드 브라우저](web/code-browser.md): 폴더와 파일 보기, 메타데이터 JSON, 원본, 내려받기
+- [커밋 보기와 비교](web/commit-view.md): 커밋 diff, 코드 리뷰 스레드 표시, 리뷰 카드, 커밋 구독, 두 커밋 비교
 - [Git smart-HTTP 서비스](subsystems/git-http.md): 복제, 푸시, Basic 인증, 푸시 훅
 - [외부 프로젝트, 게시판 REST API](web/external-project-api.md): 프로젝트, 라벨, 마일스톤, 내보내기, 구독자, 글, 글 댓글
 - [외부 이슈 REST API](web/external-issue-api.md): 이슈 조회, 등록, 수정, 상태, 댓글, 라벨, 글 가져오기

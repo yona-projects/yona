@@ -60,6 +60,42 @@ class MentionListService(
         return ordered
     }
 
+    /**
+     * 커밋 diff 화면(코드 리뷰 댓글)의 사용자 후보이다. 검색어가 없으면 (1) 커밋 작성자(이메일로 찾은 사용자와 이메일 앞부분을 로그인 ID로 쓰는 사용자)
+     * (2) 이 커밋에 코드 리뷰 댓글을 단 사용자(최근에 단 사람이 뒤로) (3) 프로젝트 구성원 (4) 조직 구성원 순이고, 검색어가 있으면 활성 사용자를 검색한다.
+     * 마지막에 [viewer]를 한 번 빼고 다시 맨 뒤에 둔다 (v1.6 `ProjectApp.mentionListAtCommitDiff`).
+     *
+     * @param fromProject 커밋이 있는 프로젝트(풀 리퀘스트이면 보내는 프로젝트)
+     */
+    @Transactional(readOnly = true)
+    fun usersAtCommitDiff(project: Project, fromProject: Project, commitAuthorEmail: String?, commitId: String, query: String, viewer: User?): List<User> {
+        val ordered = mutableListOf<User>()
+        fun add(user: User?) { if (user != null && ordered.none { it.id == user.id }) ordered += user }
+        if (query.isEmpty()) {
+            commitAuthorEmail?.let { email ->
+                add(users.findByEmail(email))
+                if (email.contains("@")) add(users.findByLoginId(email.substring(0, email.lastIndexOf("@"))))
+            }
+            val comments = entityManager.createQuery(
+                "select c from ReviewComment c join c.thread t where t.commitId = :commitId and t.project.id = :projectId and t.pullRequest is null", dev.yona.domain.comment.ReviewComment::class.java
+            ).setParameter("commitId", commitId).setParameter("projectId", fromProject.id).resultList
+            for (comment in comments) {
+                val author = comment.authorLoginId?.let { users.findByLoginId(it) } ?: continue
+                ordered.removeAll { it.id == author.id }
+                ordered += author
+            }
+            projectMembers(project).forEach { add(it) }
+            groupMembers(project).forEach { add(it) }
+        } else {
+            searchActive(query).forEach { add(it) }
+        }
+        if (viewer != null) {
+            ordered.removeAll { it.id == viewer.id }
+            ordered += viewer
+        }
+        return ordered
+    }
+
     /** 최근 이슈를 [limit]개까지 돌려준다. [query]가 있으면 제목에 들어 있거나 번호가 그 문자열로 시작하는 이슈만이다. */
     @Transactional(readOnly = true)
     fun issues(project: Project, query: String, limit: Int): List<Issue> {

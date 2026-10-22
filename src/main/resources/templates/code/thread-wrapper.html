@@ -1,0 +1,5 @@
+<!--/*
+  코드에서 스레드 하나를 렌더링할 때 쓰는 얇은 틀이다(`ThreadHtmlRenderer`). 모델: thread(ThreadView)
+  코드 범위 스레드는 `thread`, 파일 단위 스레드는 `nonRanged` 조각으로 그린다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org"><th:block th:if="${thread.code}" th:replace="~{code/partial-comment-thread :: thread(${thread})}"></th:block><th:block th:unless="${thread.code}" th:replace="~{code/partial-comment-thread :: nonRanged(${thread})}"></th:block></th:block>

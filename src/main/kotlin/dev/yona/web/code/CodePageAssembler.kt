@@ -23,7 +23,8 @@ class CodePageAssembler(
     private val repositories: RepositoryService,
     private val markdown: ProjectMarkdownRenderer,
     private val helper: TemplateHelper,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val reviewThreads: dev.yona.domain.comment.ReviewThreadService
 ) {
 
     /**
@@ -110,7 +111,7 @@ class CodePageAssembler(
             commitUrl = "$base/commit/${UrlPaths.routeSegment(revId)}" + (if (branch.isNotEmpty()) "?branch=${URLEncoder.encode(branch, Charsets.UTF_8)}" else "") + "#$path",
             userHref = userLink(info["userLoginId"] as? String ?: ""), avatarUrl = info["avatar"] as? String ?: "", author = info["author"] as? String ?: "",
             ago = (info["createdDate"] as? Long)?.let { helper.agoOrDateString(Date(it)) }.orEmpty(), commitMessage = info["commitMessage"] as? String ?: "",
-            lineEnding = if (binary) "" else LineEnding.find(data.orEmpty()).name, commentCount = 0, binary = binary, mode = mode, size = size, mimeType = mimeType,
+            lineEnding = if (binary) "" else LineEnding.find(data.orEmpty()).name, commentCount = reviewThreads.countOnCommit(project, revId, "/$path").toLong(), binary = binary, mode = mode, size = size, mimeType = mimeType,
             data = data, renderedMarkdown = if (mode == "markdown" && data != null) markdown.renderFileInCodeBrowser(data, project) else null,
             editUrl = if (loggedIn && !binary) "$base/postform?path=$path&branch=$itemName&edit=true" else null, maxFileSize = maxFileSize, siteManager = siteManager
         )

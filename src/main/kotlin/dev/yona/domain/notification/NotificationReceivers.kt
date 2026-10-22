@@ -13,6 +13,7 @@ import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.issue.Issue
+import dev.yona.domain.project.Project
 import dev.yona.domain.issue.IssueSharerRepository
 import dev.yona.domain.misc.UnwatchRepository
 import dev.yona.domain.misc.WatchRepository
@@ -40,7 +41,8 @@ class NotificationReceivers(
     private val postingComments: PostingCommentRepository,
     private val lookup: ResourceLookup,
     private val accessControl: AccessControl,
-    private val mentions: MentionService
+    private val mentions: MentionService,
+    private val commentThreads: dev.yona.domain.comment.CommentThreadRepository
 ) {
 
     /** 중복 없이 사용자를 모으는 집합이다. 사용자 번호가 같으면 같은 사용자이다. */
@@ -61,15 +63,29 @@ class NotificationReceivers(
      * 리소스의 구독 해제자를 뺀 뒤 리소스를 읽을 수 없는 사용자를 거른다.
      */
     @Transactional(readOnly = true)
-    fun actualWatchers(type: ResourceType, resourceId: String, base: Collection<User>): Set<User> {
+    fun actualWatchers(type: ResourceType, resourceId: String, base: Collection<User>, allowedOnly: Boolean = true): Set<User> {
         val resource = lookup.get(type, resourceId)
         val group = Group().also { it.addAll(base) }
         val project = if (resource is GlobalResource) null else resource.project
         project?.id?.let { group.addAll(watches.findByResourceTypeAndResourceId(ResourceType.PROJECT, it.toString()).mapNotNull { w -> w.user }) }
         group.addAll(watches.findByResourceTypeAndResourceId(type, resourceId).mapNotNull { it.user })
         group.removeAll(unwatches.findByResourceTypeAndResourceId(type, resourceId).mapNotNull { it.user })
-        group.retain { accessControl.isAllowed(it, resource, Operation.READ) }
+        if (allowedOnly) group.retain { accessControl.isAllowed(it, resource, Operation.READ) }
         return group.toSet()
+    }
+
+    /**
+     * 커밋의 실제 구독자이다. 커밋 작성자(알려진 사용자일 때)와 이 커밋에 코드 리뷰 댓글을 단 사용자에 프로젝트 구독자와 커밋 구독자를 더하고
+     * 구독 해제자를 뺀다 (v1.6 `Commit.getWatchers`). [allowedOnly]이면 커밋을 읽을 수 없는 사용자는 거른다.
+     */
+    @Transactional(readOnly = true)
+    fun commitWatchers(project: Project, commitId: String, authorEmail: String?, allowedOnly: Boolean): Set<User> {
+        val projectId = requireNotNull(project.id)
+        val base = ArrayList<User>()
+        authorEmail?.let { users.findByEmail(it) }?.let { base += it }
+        (commentThreads.findCodeThreadsNotOnPullRequest(projectId, commitId) + commentThreads.findNonRangedThreadsNotOnPullRequest(projectId, commitId))
+            .flatMap { it.reviewComments }.mapNotNull { c -> c.authorId?.let { users.findById(it).orElse(null) } }.forEach { base += it }
+        return actualWatchers(ResourceType.COMMIT, "$projectId:$commitId", base, allowedOnly)
     }
 
     /** 이슈의 실제 구독자이다(작성자 포함). 이슈를 옮기기 전에 구독자를 정할 때도 쓴다 (v1.6 `Issue.getWatchers`). */

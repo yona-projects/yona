@@ -1,0 +1,36 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/reviewForm.scala.html
+  매개변수: resourceType(리소스 종류 이름), action(등록 주소). 코드 블록에 리뷰 댓글을 다는 입력 영역이다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="reviewForm(resourceType, action)">
+<div id="review-form" class="review-form">
+    <form th:action="${action}" method="post" enctype="multipart/form-data">
+        <div class="author-info-wrap pull-left hide-in-mobile">
+            <div class="author-info">
+                <a th:href="@{/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap medium" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${currentUser.name}">
+                    <img th:src="${currentUser.avatarUrl(32)}" width="32" height="32">
+                </a>
+            </div>
+        </div>
+        <div class="write-comment-box">
+            <div class="write-comment-wrap">
+                <div class="pull-right"><button type="button" class="ybtn ybtn-default ybtn-small" data-toggle="close">&times;</button></div>
+
+                <th:block th:replace="~{common/editor :: editor('contents', '', '', 'code-review-body', false)}"></th:block>
+
+                <th:block th:if="${!currentUser.anonymous}">
+                    <th:block th:replace="~{common/upload-form :: uploadForm(${resourceType}, null, null)}"></th:block>
+                </th:block>
+
+                <div class="right-txt">
+                    <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}"></button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</th:block>

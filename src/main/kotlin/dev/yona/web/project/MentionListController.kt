@@ -35,7 +35,9 @@ class MentionListController(
     private val views: ProjectViewFactory,
     private val organizationViews: OrganizationViewFactory,
     private val avatars: AvatarService,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val history: dev.yona.repository.CommitHistoryService,
+    private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository
 ) {
 
     @GetMapping("/{user}/{project}/mentionList")
@@ -55,6 +57,36 @@ class MentionListController(
             val viewer = currentUserProvider.get().user
             val candidates = mentionService.users(project, number, resourceType, query, viewer)
             result["result"] = userList(project, candidates, viewer)
+        }
+        if (mentionType.equals("issue", ignoreCase = true)) {
+            result["result"] = mentionService.issues(project, query, ISSUE_MENTION_SHOW_LIMIT).map {
+                mapOf("name" to "${it.number}${it.title}", "issueNo" to it.number.toString(), "title" to it.title.orEmpty())
+            }
+        }
+        return ResponseEntity.ok().header(HttpHeaders.VARY, HttpHeaders.ACCEPT).contentType(MediaType.APPLICATION_JSON).body(result)
+    }
+
+    /**
+     * 커밋 diff 화면(코드 리뷰 댓글 편집기)의 `@` 멘션 후보이다. v1.6 `ProjectApp.mentionListAtCommitDiff`(`app/controllers/ProjectApp.java:500-538`)에 해당한다.
+     * `pullRequestId`를 주면 그 풀 리퀘스트의 보내는 프로젝트에서 커밋을 찾는다. 커밋이 없으면 v1.6은 `500`이었고 v2는 `404`이다([decisions.md] A-72).
+     */
+    @GetMapping("/{user}/{project}/mentionListAtCommitDiff")
+    @IsAllowed(Operation.READ)
+    fun mentionListAtCommitDiff(
+        @PathVariable("user") owner: String,
+        @PathVariable("project") name: String,
+        @RequestParam(name = "commitId", defaultValue = "") commitId: String,
+        @RequestParam(name = "pullRequestId", defaultValue = "-1") pullRequestId: Long,
+        @RequestParam(name = "query", defaultValue = "") query: String,
+        @RequestParam(name = "mentionType", defaultValue = "") mentionType: String
+    ): Any {
+        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val fromProject = (if (pullRequestId != -1L) pullRequests.findById(pullRequestId).orElse(null)?.fromProject else null) ?: project
+        val commit = history.commit(fromProject, commitId) ?: return ErrorViews.notFound()
+        val result = linkedMapOf<String, List<Map<String, String>>>()
+        if (mentionType.equals("user", ignoreCase = true)) {
+            val viewer = currentUserProvider.get().user
+            result["result"] = userList(project, mentionService.usersAtCommitDiff(project, fromProject, commit.authorEmail, commit.id, query, viewer), viewer)
         }
         if (mentionType.equals("issue", ignoreCase = true)) {
             result["result"] = mentionService.issues(project, query, ISSUE_MENTION_SHOW_LIMIT).map {

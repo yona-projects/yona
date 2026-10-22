@@ -53,6 +53,7 @@
                                     <a th:href="${r.showUrl}" th:title="#{code.showCommit}" th:text="${r.shortId}"></a>
                                 </td>
                                 <td class="messages">
+                                    <span class="number-of-comments" th:if="${r.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${r.commentCount}"></th:block></span>
                                     <a th:href="${r.showUrl}" class="commitMsg short" th:utext="${#strings.isEmpty(r.shortMessageHtml)} ? #{code.commitMsg.empty} : ${r.shortMessageHtml}"></a>
                                     <button type="button" class="commitMsg moreBtn" th:if="${r.hasMore}"><span>&hellip;</span></button>
                                     <pre class="commitMsg desc hidden" th:if="${r.hasMore}" th:utext="${r.moreHtml}"></pre>

@@ -68,7 +68,7 @@ class WatchController(
 
     private fun resolve(request: HttpServletRequest): Resource? {
         val type = ResourceType.entries.firstOrNull { it.resource == request.getParameter("resource.type") && it != ResourceType.NOT_A_RESOURCE } ?: return null
-        val id = request.getParameter("resource.id")?.takeIf { it.toLongOrNull() != null } ?: return null
+        val id = request.getParameter("resource.id")?.takeIf { if (type == ResourceType.COMMIT) Regex("\\d+:[0-9a-fA-F]+").matches(it) else it.toLongOrNull() != null } ?: return null
         return try { lookup.get(type, id) } catch (e: RuntimeException) { null }
     }
 

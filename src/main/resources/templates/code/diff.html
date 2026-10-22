@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/diff.scala.html
+  모델: title, projectView, commit, shortMessageHtml, moreMessageHtml, diffHtml, nonRangedHtml, canComment, commentAction, cards, openCount, closedCount,
+        watching, watchUrl, unwatchUrl, listUrl, mentionUrl, filesUrl, commitsUrl, branchesUrl
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::diffPage})}">
+<th:block th:fragment="diffPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div id="code-browse-wrap" class="code-browse-wrap">
+            <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                <li><a th:href="${filesUrl}" th:text="#{code.files}"></a></li>
+                <li class="active"><a th:href="${commitsUrl}" th:text="#{code.commits}"></a></li>
+                <li><a th:href="${branchesUrl}" th:text="#{title.branches}"></a></li>
+            </ul>
+
+            <div class="codediff-wrap">
+                <button type="button" class="ybtn ybtn-default btn-show-reviewcards"><i class="yobicon-restore"></i></button>
+                <div class="diffs-wrap">
+                    <div class="commitInfo">
+                        <div class="commitAuthor">
+                            <th:block th:if="${commit.known}">
+                                <a th:href="${commit.authorHref}" class="avatar-wrap smaller"><img th:src="${commit.avatarUrl}" th:alt="${commit.authorName}" width="32" height="32"/></a>
+                                <strong th:text="${commit.authorName}"></strong>
+                            </th:block>
+                            <th:block th:unless="${commit.known}">
+                                <th:block th:if="${commit.hasEmail}">
+                                    <span class="avatar-wrap smaller"><img th:src="${commit.avatarUrl}" width="32" height="32"></span>
+                                    <strong th:if="${commit.authorName != null}" th:text="${commit.authorName}"></strong>
+                                </th:block>
+                                <strong th:unless="${commit.hasEmail}" th:text="${commit.authorName}"></strong>
+                            </th:block>
+                            <span class="ago" th:title="${commit.agoTitle}" th:text="${commit.ago}"></span>
+                        </div>
+                        <div class="commitMsg-wrap">
+                            <span class="commitMsg short" th:utext="${#strings.isEmpty(shortMessageHtml)} ? #{code.commitMsg.empty} : ${shortMessageHtml}"></span>
+                            <pre class="commitMsg desc" th:if="${!#strings.isEmpty(moreMessageHtml)}" th:utext="${moreMessageHtml}"></pre>
+                        </div>
+                        <div class="commitId-wrap"><strong class="commitId" th:text="'@' + ${commit.id}"></strong></div>
+                    </div>
+
+                    <div class="diff-body">
+                        <th:block th:utext="${diffHtml}"></th:block>
+                        <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-small"><i class="yobicon-post2"></i></button></div>
+                    </div>
+
+                    <div class="board-comment-wrap">
+                        <div class="non-ranged-threads-wrap" th:utext="${nonRangedHtml}"></div>
+                        <th:block th:replace="~{common/comment-form :: commentForm(${canComment}, 'COMMIT_COMMENT', ${commentAction})}"></th:block>
+                    </div>
+
+                    <th:block th:if="${canComment}">
+                        <th:block th:replace="~{common/review-form :: reviewForm('COMMIT_COMMENT', ${commentAction})}"></th:block>
+                    </th:block>
+                </div>
+
+                <div class="review-wrap span-hard-wrap">
+                    <div class="review-container">
+                        <button type="button" class="ybtn ybtn-default btn-hide-reviewcards"><i class="yobicon-maximize"></i></button>
+                        <ul class="nav nav-tabs" style="margin-bottom:10px;">
+                            <li class="active"><a href="#reviewcards-open" data-toggle="tab"><th:block th:text="#{issue.state.open}"></th:block> <th:block th:text="${openCount}"></th:block></a></li>
+                            <li><a href="#reviewcards-closed" data-toggle="tab"><th:block th:text="#{issue.state.closed}"></th:block> <th:block th:text="${closedCount}"></th:block></a></li>
+                        </ul>
+                        <div class="tab-content review-list">
+                            <div id="reviewcards-open" class="tab-pane active">
+                                <a th:each="c : ${cards}" th:if="${c.state == 'open'}" th:href="'#thread-' + ${c.id}" th:class="'review-card ' + ${c.state}">
+                                    <p class="content" th:text="${c.content}"></p>
+                                    <span class="date" th:title="${c.agoTitle}">
+                                        <span class="comments"><th:block th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></th:block></span>
+                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="${c.avatarUrl}" alt=""/></span>
+                                        <th:block th:text="${c.ago}"></th:block>
+                                    </span>
+                                </a>
+                            </div>
+                            <div id="reviewcards-closed" class="tab-pane">
+                                <a th:each="c : ${cards}" th:if="${c.state == 'closed'}" th:href="'#thread-' + ${c.id}" th:class="'review-card ' + ${c.state}">
+                                    <p class="content" th:text="${c.content}"></p>
+                                    <span class="date" th:title="${c.agoTitle}">
+                                        <span class="comments"><th:block th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></th:block></span>
+                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="${c.avatarUrl}" alt=""/></span>
+                                        <th:block th:text="${c.ago}"></th:block>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="watch-button" type="button" th:class="'pull-left ybtn' + (${watching} ? ' active ybtn-watching' : '')" data-toggle="button" th:text="#{notification.watch}"></button>
+        <a th:href="${listUrl}" class="ybtn pull-right" th:text="#{button.list}"></a>
+    </div>
+</div>
+<th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+<th:block th:replace="~{common/comment-delete-modal :: commentDeleteModal('#code-browse-wrap')}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.CodeCommentBlock.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.CodeCommentBox.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery.cookie.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("code.Diff", {
+            "bCommentable": /*[[${canComment}]]*/ false,
+            "sWatchUrl"   : /*[[${watchUrl}]]*/ "",
+            "sUnwatchUrl" : /*[[${unwatchUrl}]]*/ ""
+        });
+
+        yobi.Mention({
+            target: 'textarea[id^=editor-]',
+            url: /*[[${mentionUrl}]]*/ ""
+        });
+
+        yobi.Mention({
+            target: 'review-editor',
+            url: /*[[${mentionUrl}]]*/ ""
+        });
+    });
+</script>
+</th:block>
+</html>

@@ -40,6 +40,7 @@ class ResourceLookup(
 
     /** [type]과 [id]에 해당하는 리소스를 찾는다. */
     fun get(type: ResourceType, id: String): Resource {
+        if (type == ResourceType.COMMIT) return commit(id)
         val longId = id.toLong()
         return when (type) {
             ResourceType.ISSUE_POST -> require(issues.findById(longId)).asResource()
@@ -76,6 +77,14 @@ class ResourceLookup(
             return ProjectResource(attachmentId, ResourceType.ATTACHMENT, project, container = container)
         }
         return GlobalResource(attachmentId, ResourceType.ATTACHMENT, container = container)
+    }
+
+    /**
+     * 커밋 리소스이다. 번호는 `프로젝트번호:커밋해시`이다 (v1.6 `Commit.getAsResource`). 프로젝트가 없으면 오류이고, 커밋이 저장소에 있는지는 보지 않는다.
+     */
+    private fun commit(id: String): Resource {
+        val project = projects.findById(id.substringBefore(':').toLong()).orElseThrow { NullPointerException("대상 리소스가 없습니다.") }
+        return ProjectResource(id, ResourceType.COMMIT, project)
     }
 
     private fun <T> require(found: java.util.Optional<T>): T =

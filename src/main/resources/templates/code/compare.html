@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/compare.scala.html
+  모델: title, projectView, range, empty, diffHtml
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::comparePage})}">
+<th:block th:fragment="comparePage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+<div class="project-page-wrap">
+    <div class="code-browse-wrap">
+        <p class="commitInfo"><strong class="commitId" th:text="'@' + ${range}"></strong></p>
+        <div class="alert" th:if="${empty}" th:text="#{code.noChanges}"></div>
+        <div class="diff-body discommentable" th:unless="${empty}" th:utext="${diffHtml}"></div>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery.cookie.js}"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("code.Diff", {
+            "bCommentable": false
+        });
+    });
+</script>
+</th:block>
+</html>
