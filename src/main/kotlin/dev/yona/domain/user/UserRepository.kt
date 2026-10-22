@@ -14,6 +14,15 @@ interface UserRepository : JpaRepository<User, Long> {
     /** 같은 로그인 ID의 사용자가 있는지 확인한다 (v1.6 `User.isLoginIdExist`, `ieq`). */
     fun existsByLoginIdIgnoreCase(loginId: String): Boolean
 
+    /**
+     * 로그인 ID나 이름에 [query]가 들어 있는 삭제되지 않은 사용자를 조회한다 (v1.6 `UserApp.users`, `icontains`).
+     */
+    @Query(
+        "select u from User u where u.state <> dev.yona.domain.enumeration.UserState.DELETED and " +
+            "(lower(u.loginId) like lower(concat('%', :query, '%')) or lower(u.name) like lower(concat('%', :query, '%'))) order by u.id"
+    )
+    fun search(query: String, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<User>
+
     /** 같은 대표 이메일의 사용자가 있는지 확인한다 (v1.6 `User.isEmailExist`의 첫 조건, `ieq`). */
     fun existsByEmailIgnoreCase(email: String): Boolean
 

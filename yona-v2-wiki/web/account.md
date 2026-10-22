@@ -42,6 +42,10 @@ updated: 2026-10-22
 
 (email, valid) 조합이 유일하므로 다른 사용자가 이미 같은 주소를 인증 전 상태로 갖고 있으면 추가가 DB 오류(500)가 된다. v1.6도 같다.
 
+## 사용자 검색 (`GET /-_-api/v1/users?query=`)
+
+구성원 추가 입력란의 자동 완성이 쓴다. 요청의 `Referer`가 `members`로 끝나고 JSON을 받겠다고 한 요청에만 답하고 아니면 `406`. 검색어가 비면 `[]`. 로그인 ID나 이름에 검색어가 들어 있는(대소문자 무시) 삭제되지 않은 사용자를 최대 10명 돌려주고, 더 있으면 `Content-Range: items 10/전체`를 붙인다. 항목은 `{"info": "<img class='mention_image' ...><b class='mention_name'>이름</b><span class='mention_username'> @아이디</span>", "loginId": ...}`이다(이름은 정화된 상태로 저장되어 있어 그대로 쓴다). 프로젝트와 조직의 구성원 화면은 이 주소(`/-_-api/v1/users`)를 `sActionURL`로 받는다. 기본 로그인 페이지 지정(`POST /-_-api/v1/user/defultLoginPage`)은 홈 화면 문서([home-page.md](home-page.md))에 있다.
+
 ## 알림 탭
 
 알림 서브시스템(4단계)에서 만든다. 그때까지 `GET /user/editform/notifications`는 오류이다. 탭 링크는 이미 있다.
@@ -55,4 +59,4 @@ updated: 2026-10-22
 
 ## 검증
 
-`ProfileEditTest` 23건, `EmailSettingsTest` 14건, `AttachmentUploadTest` 16건.
+`ProfileEditTest` 23건, `EmailSettingsTest` 14건, `AttachmentUploadTest` 16건, `UserApiTest` 6건.

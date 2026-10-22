@@ -126,7 +126,7 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
         assertEquals("/organizations/${org.name}/member/${member.id}/edit", row.selectFirst(".dropdown-menu a")?.attr("data-href"))
         assertEquals("/organizations/${org.name}/member/${member.id}/delete", row.selectFirst("a[data-action=delete]")?.attr("data-href"))
         assertEquals("Are you sure this user should leave this group?", page.selectFirst("#alertDeletion .modal-body p")?.text())
-        assertTrue(page.select("script").any { "organization.Member" in it.data() })
+        assertTrue(page.select("script").any { "organization.Member" in it.data() && "/-_-api/v1/users" in it.data().replace("\\/", "/") })
     }
 
     @Test
