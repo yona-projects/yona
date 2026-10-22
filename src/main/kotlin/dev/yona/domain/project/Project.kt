@@ -62,7 +62,22 @@ class Project(
         ]
     )
     var labels: MutableSet<Label> = mutableSetOf()
-)
+) {
+    /** 공개 프로젝트이면 `true`이다. */
+    fun isPublic(): Boolean = projectScope == ProjectScope.PUBLIC
+
+    /** 보호 프로젝트(같은 조직 구성원에게만 공개)이면 `true`이다. */
+    fun isProtected(): Boolean = projectScope == ProjectScope.PROTECTED
+
+    /** 비공개 프로젝트이면 `true`이다. */
+    fun isPrivate(): Boolean = projectScope == ProjectScope.PRIVATE
+
+    /** 조직에 속한 프로젝트이면 `true`이다. */
+    fun hasGroup(): Boolean = organization != null
+
+    /** 로그인 ID가 소유자 이름과 같으면(대소문자 무시) 소유자이다 (v1.6 `Project.isOwner`). */
+    fun isOwner(user: User): Boolean = owner?.lowercase() == user.loginId?.lowercase()
+}
 
 /** 조직이다. */
 @Entity

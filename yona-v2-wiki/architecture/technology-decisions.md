@@ -20,6 +20,8 @@ updated: 2026-10-22
 | 테스트 | JUnit 5, MockK, Testcontainers 2.0.5 | 선생님 (2026-10-22) | Kotest: Boot 4 호환 확인이 추가로 필요하다. |
 | 보안 기반 | Spring Security 필터 체인(모든 URL 허용, 인가는 애플리케이션 계층) | 선생님 (2026-10-22) | 자체 필터 + HttpSession: 세션 고정 방어와 보안 헤더를 직접 책임져야 한다. |
 | 레이아웃 방식 | Thymeleaf 기본 프래그먼트(`th:replace`에 본문을 인자로 전달) | 선생님 (2026-10-22) | thymeleaf-layout-dialect: 서드파티 의존성이고 Thymeleaf 3.1/Boot 4 호환 확인이 필요하다. |
+| 저장소(VCS) 범위 | Git(JGit) 먼저, Subversion(SVNKit)은 마지막 단계. `project.vcs` 필드는 처음부터 `GIT`/`Subversion`을 모두 담는다 | 선생님 (2026-10-22) | Git만 지원: v1.6과 기능이 달라지므로 명시 승인 필요. 둘을 동시에: 단계마다 작업량이 늘어난다. |
+| 비동기 처리 | Spring 이벤트(`ApplicationEventPublisher`) + `@Async`(Java 21 가상 스레드) + `@Scheduled` | 선생님 (2026-10-22) | Kotlin 코루틴: JPA 블로킹 트랜잭션과 섞기 위험하다. Akka(Pekko) 유지: 대형 의존성이 추가되고 Spring 트랜잭션 경계를 따로 관리해야 한다. |
 | LESS 빌드 | Gradle 빌드에서 `lessc`(Less 1.7.5) 실행, 생성물은 저장소에 두지 않음 | 선생님 (2026-10-22) | 결과물을 저장소에 포함: LESS를 고칠 때마다 다시 컴파일해야 하고 소스와 어긋날 수 있다. less4j(JVM 전용): Less 1.x 문법 일부만 지원해 v1.6 결과와 달라질 위험이 있다. |
 | 뷰 템플릿 | Thymeleaf | 선생님 (2026-10-22) | v1.6 `*.scala.html` 화면을 그대로 재현한다. |
 
