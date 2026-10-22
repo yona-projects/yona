@@ -11,3 +11,12 @@ interface IssueSharerRepository : JpaRepository<IssueSharer, Long> {
     /** 사용자가 이슈의 공유자인지 확인한다 (v1.6 `Issue.findSharerByUserId`). */
     fun existsByIssueIdAndUserId(issueId: Long, userId: Long): Boolean
 }
+
+/** 마일스톤 저장소이다. */
+interface MilestoneRepository : JpaRepository<Milestone, Long>
+
+/** 이슈 라벨 저장소이다. */
+interface IssueLabelRepository : JpaRepository<IssueLabel, Long>
+
+/** 이슈 라벨 분류 저장소이다. */
+interface IssueLabelCategoryRepository : JpaRepository<IssueLabelCategory, Long>

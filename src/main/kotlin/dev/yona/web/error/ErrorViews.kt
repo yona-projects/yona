@@ -1,6 +1,7 @@
 package dev.yona.web.error
 
 import dev.yona.web.project.ProjectViewContext
+import dev.yona.web.user.LoginFormController
 import org.springframework.http.HttpStatus
 import org.springframework.web.servlet.ModelAndView
 
@@ -52,6 +53,13 @@ object ErrorViews {
     fun badRequest(messageKey: String, project: ProjectViewContext, menuType: String): ModelAndView =
         view("error/badrequest", HttpStatus.BAD_REQUEST, messageKey)
             .addObject("projectView", project).addObject("menuType", menuType)
+
+    /**
+     * 403: 익명 사용자에게 로그인 화면을 보여 주고 로그인 뒤 [returnUrl]로 돌아오게 한다.
+     * v1.6 `ErrorViews.Forbidden.render(키, returnUrl)`이며 문서 제목 키는 오타(`error.fobidden`)까지 그대로 쓴다.
+     */
+    fun loginRequired(returnUrl: String): ModelAndView =
+        LoginFormController.loginPage(returnUrl, "error.fobidden").also { it.status = HttpStatus.FORBIDDEN }
 
     private fun view(name: String, status: HttpStatus, messageKey: String): ModelAndView =
         ModelAndView(name, status).addObject("messageKey", messageKey)

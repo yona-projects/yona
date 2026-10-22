@@ -15,3 +15,4 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-09 | AccessControl | 프로젝트 매니저 판정이 "코드(CODE)는 삭제할 수 없다" 규칙보다 먼저 평가되어 매니저는 코드도 삭제할 수 있다 | 같게 재현한다 | `AccessControl.java:244-248`, `:289-293` |
 | R-10 | AccessControl | 존재하지 않는 이슈를 ISSUE_POST 리소스로 검사하면 담당자 조회에서 NullPointerException이 난다 | 같게 재현한다(`NoSuchElementException`) | `AccessControl.java:403-405` |
 | R-11 | 프로젝트 메뉴 | 단축키 `Q`(설정 화면)가 "로그인 ID가 `manager`일 때"만 켜진다. 프로젝트 역할 이름과 로그인 ID를 혼동했다 | 같게 재현한다 | `projectMenu.scala.html`의 `case Some(role) if role.equals("manager")` |
+| R-12 | 프로젝트 검사 | 마일스톤, 이슈 라벨, 라벨 분류, 커밋 코멘트를 번호만으로 찾아 경로의 프로젝트와 달라도 통과한다. 숫자가 아닌 식별자는 500이다 | 같게 재현한다 | `Resource.java:226-247` |

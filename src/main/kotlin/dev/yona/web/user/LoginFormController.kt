@@ -45,8 +45,12 @@ class LoginFormController(private val currentUserProvider: CurrentUserProvider) 
     companion object {
         const val LOGIN_FORM_PATH = "/users/loginform"
 
-        /** 로그인 화면을 그린다. 입력이 빠진 로그인 요청의 400 응답에서도 쓴다. */
-        fun loginPage(redirectUrl: String?): ModelAndView =
-            ModelAndView("user/login").addObject("redirectUrl", redirectUrl ?: "")
+        /**
+         * 로그인 화면을 그린다. 입력이 빠진 로그인 요청의 400 응답과, 로그인해야 볼 수 있는 화면의 403 응답에서도 쓴다.
+         *
+         * @param titleKey 문서 제목으로 쓸 메시지 키
+         */
+        fun loginPage(redirectUrl: String?, titleKey: String = "title.login"): ModelAndView =
+            ModelAndView("user/login").addObject("redirectUrl", redirectUrl ?: "").addObject("title", titleKey)
     }
 }

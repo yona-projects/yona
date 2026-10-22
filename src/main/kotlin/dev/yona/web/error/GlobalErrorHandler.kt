@@ -28,6 +28,9 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    @ExceptionHandler(ViewResultException::class)
+    fun viewResult(e: ViewResultException, request: HttpServletRequest): ModelAndView = withLayout(e.view, request)
+
     @ExceptionHandler(NoHandlerFoundException::class, NoResourceFoundException::class)
     fun notFound(request: HttpServletRequest): ModelAndView = withLayout(ErrorViews.notFound(), request)
 
@@ -50,6 +53,8 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
     }
 
     /** 예외 처리기가 그린 화면에는 컨트롤러 어드바이스가 적용되지 않으므로 공통 모델 값을 직접 채운다. */
-    private fun withLayout(view: ModelAndView, request: HttpServletRequest): ModelAndView =
-        view.also { it.addAllObjects(layoutModelFactory.attributes(request)) }
+    private fun withLayout(view: ModelAndView, request: HttpServletRequest): ModelAndView = view.also { mav ->
+        // 화면이 직접 채운 값(예: 같은 응답에서 바로 보여 줄 flashMessages)은 덮어쓰지 않는다.
+        layoutModelFactory.attributes(request).forEach { (name, value) -> if (!mav.model.containsKey(name)) mav.addObject(name, value) }
+    }
 }

@@ -100,3 +100,8 @@
 - v1.6 결함 1건(R-11, 단축키 Q)을 재현해 기록했다.
 - 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 213건 통과.
 - 기록: [web/project-layout.md](web/project-layout.md)
+
+## [2026-10-22] ingest | 프로젝트 검사 애너테이션 (2단계 b-3)
+- TDD: `ProjectChecksTest` 26건을 먼저 실패(RED, 컴파일)시킨 뒤 애너테이션 7종, `ProjectCheckInterceptor`, `ProjectResourceLocator`로 구현했다. 실패 두 건은 구현 문제가 아니었다. 하나는 테스트가 일반 멤버의 프로젝트 수정을 허용된다고 잘못 가정한 것(v1.6 규칙은 매니저만)이었고, 다른 하나는 예외 처리기가 화면이 채운 `flashMessages`를 덮어쓴 구현 결함이어서 고쳤다.
+- v1.6 위키와 코드가 달라 코드를 따른 곳 1건(A-13)을 [decisions.md](decisions.md)에 기록했다.
+- 기록: [web/project-checks.md](web/project-checks.md)

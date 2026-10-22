@@ -5,11 +5,11 @@
   https://yona.io
 
   이식 원본: app/views/user/login.scala.html
-  모델: redirectUrl(로그인 후 이동할 주소)
+  모델: redirectUrl(로그인 후 이동할 주소), title(문서 제목 메시지 키)
   소셜 로그인 버튼 영역(currentAuth/forProviders)은 소셜 로그인 단계에서 추가한다.
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/site-layout :: siteLayout('title.login', 'NONE', ~{::loginPage})}">
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::loginPage})}">
 <th:block th:fragment="loginPage"
           th:with="loginIdPlaceHolder=${!#strings.isEmpty(site.loginPageLoginIdPlaceholder) ? site.loginPageLoginIdPlaceholder : #messages.msg('user.login.key')},
                    passwordPlaceHolder=${!#strings.isEmpty(site.loginPagePasswordPlaceholder) ? site.loginPagePasswordPlaceholder : #messages.msg('user.password')}">
