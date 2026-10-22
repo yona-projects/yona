@@ -18,6 +18,9 @@ interface UnwatchRepository : JpaRepository<Unwatch, Long> {
 
     /** 사용자가 리소스의 구독을 명시적으로 해제했는지 확인한다. */
     fun existsByUserIdAndResourceTypeAndResourceId(userId: Long, resourceType: ResourceType, resourceId: String): Boolean
+
+    /** 사용자의 구독 해제 기록을 조회한다. */
+    fun findByUserIdAndResourceTypeAndResourceId(userId: Long, resourceType: ResourceType, resourceId: String): List<Unwatch>
 }
 
 /** 즐겨찾기한 프로젝트 저장소이다. */

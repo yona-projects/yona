@@ -11,6 +11,9 @@ interface UserRepository : JpaRepository<User, Long> {
     /** 로그인 ID로 조회한다. v1.6의 `ieq`처럼 대소문자를 구별하지 않는다. */
     fun findByLoginIdIgnoreCase(loginId: String): User?
 
+    /** 같은 로그인 ID의 사용자가 있는지 확인한다 (v1.6 `User.isLoginIdExist`, `ieq`). */
+    fun existsByLoginIdIgnoreCase(loginId: String): Boolean
+
     /** 대표 이메일(`n4user.email`)로 정확히 일치하는 사용자를 조회한다. */
     fun findByEmail(email: String): User?
 

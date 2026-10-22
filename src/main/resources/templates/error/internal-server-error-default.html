@@ -10,7 +10,7 @@
     <div class="project-page-wrap">
         <div class="error-wrap">
             <i class="ico-404"></i>
-            <p th:text="#{${messageKey}}"></p>
+            <p th:text="${#messages.msgOrNull(messageKey) ?: messageKey}"></p>
             <a th:href="@{/}" class="ybtn ybtn-primary" th:text="#{menu.home}"></a>
         </div>
     </div>

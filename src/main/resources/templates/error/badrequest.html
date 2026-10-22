@@ -11,7 +11,7 @@
     <div class="project-page-wrap">
     	<div class="error-wrap">
     		<i class="ico ico-err2"></i>
-    		<p th:text="#{${messageKey}}"></p>
+    		<p th:text="${#messages.msgOrNull(messageKey) ?: messageKey}"></p>
     	</div>
     </div>
 </div>

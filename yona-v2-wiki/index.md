@@ -14,6 +14,7 @@
 ## 웹 (`web/`)
 
 - [정적 자원, LESS 빌드, 다국어 메시지](web/static-assets-and-i18n.md): `/assets/`, favicon, Less 1.7.5 빌드, Play 메시지 형식
+- [프로젝트 생성](web/project-create.md): `/projectform`, `POST /projects`, 검증, 표시 이름
 - [프로젝트 목록](web/project-list.md): `/projects`, 검색, 쪽 나누기, JSON, `TemplateHelper`
 - [프로젝트 검사 애너테이션](web/project-checks.md): `@IsAllowed`, `@IsCreatable`, `@GuestProhibit` 등과 URL로 리소스 찾기
 - [프로젝트 레이아웃](web/project-layout.md): 프로젝트 틀, 메뉴, 헤더, 프로젝트 안의 오류 화면, `ProjectViewContext`
