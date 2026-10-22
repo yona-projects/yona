@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+  https://yona.io
+
+  이식 원본: app/views/board/create.scala.html
+  모델: title, projectView, errors, titleValue, issueTemplate, hasIssueTemplate, branch, path, hasPath, isEdit, readmeRequested, preparedBody, lineEnding,
+        allowedToNotice, canCommit, isGit
+  이 화면은 게시글 작성과 저장소 파일 편집(README, 이슈 템플릿, 경로 지정)에 함께 쓰인다.
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'BOARD', ~{::createPage})}">
+<th:block th:fragment="createPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'BOARD', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+  <div class="project-page-wrap">
+    <form th:action="${base + '/posts'}" method="post" enctype="multipart/form-data" class="nm">
+      <div class="content-wrap frm-wrap">
+        <dl>
+          <dd>
+            <input type="text" id="title" autocomplete="off" name="title" class="zen-mode text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1"
+                   th:value="${titleValue}" th:placeholder="${hasPath} ? #{code.commitMsg} : #{title}"/>
+            <div th:if="${errors['title'] != null}" class="message">
+              <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
+            </div>
+          </dd>
+          <dd>
+            <div th:if="${hasIssueTemplate}" class="attach-wrap">
+              <span class="help help-droppable" th:text="#{issue.template.no.attachment.allow}"></span>
+            </div>
+            <div th:if="${hasPath}" class="file-path-wrap">
+              <span class="help file-path"><th:block th:text="${branch} + ': /' + ${path}"></th:block> <input th:unless="${isEdit}" type="text" name="new-file-name" class="new-file-name" value="" placeholder="filename.." tabindex="2"></span>
+            </div>
+          </dd>
+          <dd style="position: relative;">
+            <th:block th:replace="~{common/editor :: editor('body', ${preparedBody}, 'tabindex=3', 'content-body', false)}"></th:block>
+          </dd>
+        </dl>
+        <!--/* fileUploader */-->
+        <th:block th:if="${!hasIssueTemplate and !hasPath}">
+          <th:block th:if="${!currentUser.anonymous}">
+            <th:block th:replace="~{common/file-uploader :: fileUploader('BOARD_POST', null)}"></th:block>
+          </th:block>
+        </th:block>
+        <!--/* end of fileUploader */-->
+
+        <div class="right-txt mt10 mb10">
+          <label th:if="${allowedToNotice and !hasIssueTemplate and !hasPath}" class="checkbox">
+            <input type="checkbox" id="notice" name="notice">
+            <th:block th:text="#{post.notice.label}"></th:block>
+          </label>
+
+          <input type="hidden" id="issueTemplate" name="issueTemplate" th:value="${issueTemplate}">
+          <input type="hidden" id="branch" name="branch" th:value="${branch}">
+          <input type="hidden" id="path" name="path" th:value="${path}">
+          <input type="hidden" id="lineEnding" name="lineEnding" th:value="${lineEnding}">
+          <th:block th:if="${canCommit}">
+            <label th:if="${isGit and readmeRequested}" class="checkbox">
+              <input type="checkbox" id="readme" name="readme" th:checked="${readmeRequested}">
+              <th:block th:text="#{post.readmefy}"></th:block>
+            </label>
+          </th:block>
+        </div>
+
+        <div class="actions">
+          <button class="ybtn ybtn-success" tabindex="3" th:text="#{button.save}"></button><!--
+         --><a href="javascript:history.back();" class="ybtn" tabindex="4" th:text="#{button.cancel}"></a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/jAvascript" th:src="@{/assets/javascripts/common/yona.TitleHeadAutoCompletion.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+$(function(){
+    $yobi.loadModule("board.Write", {
+        "sMode"     : "new",
+        "elTextarea": 'textarea[data-editor-mode="content-body"]'
+    });
+
+    yobi.Mention({
+        "target": 'textarea[id^=editor-]',
+        "url"   : /*[[${base + '/mentionList'}]]*/ ""
+    });
+
+    // Followings are used for online commit
+    /*[# th:if="${hasPath}"]*/
+    var textarea = $(".textarea-box > textarea");
+    if (textarea.val() !== "") {
+        textarea.css("overflow", "hidden");
+        textarea.css("height", "1px");
+        var newHeight = (25 + textarea.prop('scrollHeight'));
+        var minHeight = 300;
+        console.log(newHeight);
+        textarea.css("height", (minHeight > newHeight ? minHeight: newHeight) + "px");
+        textarea.css("overflow", "auto");
+    }
+
+    $(".new-file-name").on("keyup", function () {
+        $("#path").val(/*[[${path}]]*/ "" + $(this).val());
+    });
+
+    $(".project-menu-gruop > li").removeClass("active");
+    $(".code-menu").addClass("active");
+    /*[/]*/
+
+    yonaTitleHeadModule({
+        "target": 'input[id=title]',
+        "url"   : /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/titleHeads'}]]*/ ""
+    });
+});
+</script>
+</th:block>
+</html>

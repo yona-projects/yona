@@ -1,11 +1,10 @@
 package dev.yona.web.api
 
-import dev.yona.domain.comment.IssueComment
+import dev.yona.domain.board.Posting
+import dev.yona.domain.board.PostingCommentRepository
 import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.issue.Issue
-import dev.yona.domain.misc.Attachment
-import dev.yona.domain.misc.AttachmentRepository
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.web.project.RepositoryUrls
@@ -25,7 +24,8 @@ import java.util.TimeZone
 class IssueJson(
     private val users: UserRepository,
     private val comments: IssueCommentRepository,
-    private val attachments: AttachmentRepository,
+    private val postingComments: PostingCommentRepository,
+    private val attachmentJson: dev.yona.web.AttachmentJson,
     private val urls: RepositoryUrls,
     private val clock: Clock
 ) {
@@ -46,30 +46,52 @@ class IssueJson(
         issue.milestone?.let { node["milestoneId"] = it.id; node["milestoneTitle"] = it.title }
         issue.dueDate?.let { node["dueDate"] = SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH).apply { timeZone = TimeZone.getTimeZone(clock.zone) }.format(it) }
         node["refUrl"] = "${urls.origin(request)}/${project.owner}/${project.name}/issue/${issue.number}"
-        val files = attachments.findByContainerTypeAndContainerIdOrderById(ResourceType.ISSUE_POST, requireNotNull(issue.id))
-        if (files.isNotEmpty()) node["attachments"] = files.map { attachment(it) }
+        val files = attachmentJson.list(ResourceType.ISSUE_POST, requireNotNull(issue.id))
+        if (files.isNotEmpty()) node["attachments"] = files
         val plain = plainComments(requireNotNull(issue.id))
         if (plain.isNotEmpty()) node["comments"] = plain
         return node
     }
 
+    /** 게시글 하나의 JSON이다. 이슈 항목(담당자, 상태, 라벨, 마일스톤, 마감일, `refUrl`)은 없다. */
+    fun ofPosting(posting: Posting): Map<String, Any?> {
+        val project = requireNotNull(posting.project)
+        val node = linkedMapOf<String, Any?>(
+            "number" to posting.number, "id" to posting.id, "title" to posting.title, "type" to ResourceType.BOARD_POST.name,
+            "author" to author(posting.authorId?.let { users.findById(it).orElse(null) }),
+            "createdAt" to iso(posting.createdDate), "updatedAt" to iso(posting.updatedDate), "body" to posting.body, "owner" to project.owner, "projectName" to project.name
+        )
+        val files = attachmentJson.list(ResourceType.BOARD_POST, requireNotNull(posting.id))
+        if (files.isNotEmpty()) node["attachments"] = files
+        val plain = plainComments(
+            postingComments.findByPostingIdOrderByCreatedDateAscIdAsc(requireNotNull(posting.id)).map { Row(it.id, it.authorId, it.createdDate, it.contents, it.parentComment?.id, ResourceType.NONISSUE_COMMENT) }
+        )
+        if (plain.isNotEmpty()) node["comments"] = plain
+        return node
+    }
+
+    /** 이슈 댓글과 게시글 댓글을 같은 모양으로 다루기 위한 값이다. */
+    private data class Row(val id: Long?, val authorId: Long?, val created: Date?, val contents: String?, val parentId: Long?, val type: ResourceType)
+
+    private fun plainComments(issueId: Long): List<Map<String, Any?>> =
+        plainComments(comments.findByIssueIdOrderByCreatedDateAscIdAsc(issueId).map { Row(it.id, it.authorId, it.createdDate, it.contents, it.parentComment?.id, ResourceType.ISSUE_COMMENT) })
+
     /** 부모 댓글에 한 줄 댓글을 `childComments`로 묶은 댓글 목록이다. */
-    private fun plainComments(issueId: Long): List<Map<String, Any?>> {
-        val all = comments.findByIssueIdOrderByCreatedDateAscIdAsc(issueId)
-        val nodes = all.filter { it.parentComment == null }.associate { requireNotNull(it.id) to comment(it) }
-        all.filter { it.parentComment != null }.groupBy { requireNotNull(it.parentComment?.id) }.forEach { (parentId, children) ->
+    private fun plainComments(all: List<Row>): List<Map<String, Any?>> {
+        val nodes = all.filter { it.parentId == null }.associate { requireNotNull(it.id) to comment(it) }
+        all.filter { it.parentId != null }.groupBy { requireNotNull(it.parentId) }.forEach { (parentId, children) ->
             nodes[parentId]?.set("childComments", children.map { comment(it) })
         }
         return nodes.toSortedMap().values.toList()
     }
 
-    private fun comment(comment: IssueComment): LinkedHashMap<String, Any?> {
+    private fun comment(row: Row): LinkedHashMap<String, Any?> {
         val node = linkedMapOf<String, Any?>(
-            "id" to comment.id, "type" to ResourceType.ISSUE_COMMENT.name, "author" to author(comment.authorId?.let { users.findById(it).orElse(null) }),
-            "createdAt" to iso(comment.createdDate), "body" to comment.contents
+            "id" to row.id, "type" to row.type.name, "author" to author(row.authorId?.let { users.findById(it).orElse(null) }),
+            "createdAt" to iso(row.created), "body" to row.contents
         )
-        val files = attachments.findByContainerTypeAndContainerIdOrderById(ResourceType.ISSUE_COMMENT, requireNotNull(comment.id))
-        if (files.isNotEmpty()) node["attachments"] = files.map { attachment(it) }
+        val files = attachmentJson.list(row.type, requireNotNull(row.id))
+        if (files.isNotEmpty()) node["attachments"] = files
         return node
     }
 
@@ -77,10 +99,6 @@ class IssueJson(
 
     private fun person(user: User): Map<String, Any?> = linkedMapOf("loginId" to user.loginId, "name" to user.name, "email" to user.email)
 
-    private fun attachment(a: Attachment): Map<String, Any?> = linkedMapOf(
-        "id" to a.id, "name" to a.name, "hash" to a.hash, "containerType" to a.containerType?.name, "mimeType" to a.mimeType, "size" to a.size,
-        "containerId" to a.containerId.toString(), "createdDate" to a.createdDate?.time, "ownerLoginId" to a.ownerLoginId
-    )
 
     /** `yyyy-MM-dd'T'HH:mm:ssZ` 형식이다 (v1.6 `JodaDateUtil.ISO_FORMAT`). */
     fun iso(date: Date?): String? = date?.let { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").apply { timeZone = TimeZone.getTimeZone(clock.zone) }.format(it) }

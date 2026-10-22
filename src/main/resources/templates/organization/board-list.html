@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/organization/group_board_list.scala.html, group_board_list_partial.scala.html
+  모델: title, orgView, cond(PostingSearchCondition), orderBy, items(PostingListItem. 프로젝트 이름 포함), totalRows, totalPageCount, sortLinks, projectOptions
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/organization-layout :: organizationLayout(${orgView.name}, 'NONE', ${orgView}, ~{::boardPage})}">
+<th:block th:fragment="boardPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
+<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="search-wrap underline">
+            <form id="option_form" method="get" class="pull-left">
+                <input type="hidden" name="orderBy" th:value="${orderBy}">
+                <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
+                <div class="project-selects span7">
+                    <select id="projects" name="projectNames[]" data-format="projects" multiple th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
+                        <option th:each="option : ${projectOptions}" th:value="${option.name}" th:selected="${option.selected}" th:attr="data-avatar-url=${option.logoUrl}" th:text="${option.name}"></option>
+                    </select>
+                </div>
+                <div class="search-bar span4">
+                    <input name="filter" class="textbox group-board" type="text" th:placeholder="#{title.searchByKeyword}" th:value="${cond.filter}">
+                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>
+                <th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block>
+            </form>
+        </div>
+
+        <div th:if="${totalRows == 0}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{post.is.empty}"></p>
+        </div>
+        <th:block th:unless="${totalRows == 0}">
+            <div th:if="${totalRows > 1}" class="filter-wrap board">
+                <div class="filters">
+                    <a th:each="link : ${sortLinks}" th:href="${link.href}" class="filter" th:classappend="${link.active} ? 'active'">
+                        <i class="ico btn-gray-arrow" th:classappend="${!link.active or link.descending} ? 'down'"></i><th:block th:text="#{${link.labelKey}}"></th:block></a>
+                </div>
+            </div>
+
+            <ul class="post-list-wrap">
+                <li th:each="post : ${items}" class="post-item title" th:href="${'/' + post.owner + '/' + post.projectName + '/post/' + post.number}">
+                    <a th:href="'/' + ${post.authorLoginId}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${post.authorLoginId}">
+                        <img th:src="${post.authorAvatarUrl}" th:alt="${post.authorName}" width="32" height="32"/>
+                    </a>
+                    <div class="title-wrap">
+                        <a th:href="${'/' + post.owner + '/' + post.projectName + '/post/' + post.number}" class="title" th:text="${post.titleWithoutHeaders}"></a>
+                    </div>
+                    <div class="infos">
+                        <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="'/' + ${post.authorLoginId}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${post.authorLoginId}" th:text="${post.authorDisplayName}"></a>
+                        <span th:unless="${post.authorName != null and !post.authorName.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}"></span>
+
+                        <a th:href="${'/' + post.owner + '/' + post.projectName}" class="infos-link-item group-project-name" th:text="${post.projectName}"></a>
+                        <span class="post-id" th:text="'#' + ${post.number}"></span>
+
+                        <span class="infos-item" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></span>
+
+                        <span th:if="${post.commentCount > 0}" class="infos-item item-count-groups">
+                            <th:block th:replace="~{common/comment-count :: commentCount(${'/' + post.owner + '/' + post.projectName + '/post/' + post.number + '#comments'}, ${post.commentCount}, true)}"></th:block>
+                        </span>
+                    </div>
+                </li>
+            </ul>
+        </th:block>
+
+        <div class="write-btn-wrap">
+        </div>
+
+        <div id="pagination">
+            <!-- pagination.js will fill here. -->
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery.pageslide.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.twoColumnMode.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("board.List", {
+            "elPagination": $('#pagination'),
+            "nTotalPages" : /*[[${totalPageCount}]]*/ 0
+        });
+
+        $("#projects").on("change", function(){
+            $("#option_form").submit();
+        }) ;
+    });
+</script>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+</th:block>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/board/list.scala.html
+  모델: title, projectView, cond(PostingSearchCondition), orderBy, items, notices, totalRows, totalPageCount, sortLinks, hasLabels, labelGroups, selectedLabelIds
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${projectView.project.name + ' - ' + #messages.msg(title)}, ${projectView}, 'BOARD', ~{::listPage})}">
+<th:block th:fragment="listPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'BOARD', 'main-menu-only')}"></th:block>
+<link rel="stylesheet" th:href="${base + '/issue/labels.css'}" type="text/css" />
+<div class="page-wrap-outer">
+    <div class="post-list project-page-wrap">
+        <div class="search-wrap underline">
+            <form id="option_form" th:action="${base + '/posts'}" method="get" class="pull-left">
+                <input type="hidden" name="orderBy" th:value="${orderBy}">
+                <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
+                <div class="search-bar">
+                    <input name="filter" class="textbox" type="text" th:placeholder="#{project.searchPlaceholder}" th:value="${cond.filter}">
+                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>
+                <div th:if="${hasLabels}" class="board-labels">
+                    <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelGroups}, ${selectedLabelIds}, '', ${projectView})}"></th:block>
+                </div>
+                <th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block>
+            </form>
+            <div class="pull-right">
+                <a th:href="${base + '/postform'}" class="ybtn ybtn-success" th:text="#{post.write}"></a>
+            </div>
+        </div>
+
+        <div th:if="${totalRows == 0 and notices.isEmpty()}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{post.is.empty}"></p>
+        </div>
+        <th:block th:unless="${totalRows == 0 and notices.isEmpty()}">
+            <div th:if="${totalRows > 1}" class="filter-wrap board">
+                <div class="filters">
+                    <a th:each="link : ${sortLinks}" th:href="${link.href}" class="filter" th:classappend="${link.active} ? 'active'">
+                        <i class="ico btn-gray-arrow" th:classappend="${!link.active or link.descending} ? 'down'"></i><th:block th:text="#{${link.labelKey}}"></th:block></a>
+                </div>
+            </div>
+
+            <ul th:if="${!notices.isEmpty()}" class="post-list-wrap notice-wrap">
+                <th:block th:each="post : ${notices}"><th:block th:replace="~{board/partial-list :: item(${post}, ${base})}"></th:block></th:block>
+            </ul>
+
+            <ul class="post-list-wrap">
+                <th:block th:each="post : ${items}"><th:block th:replace="~{board/partial-list :: item(${post}, ${base})}"></th:block></th:block>
+            </ul>
+        </th:block>
+
+        <div class="write-btn-wrap">
+        </div>
+
+        <div id="pagination">
+            <!-- pagination.js will fill here. -->
+        </div>
+
+        <th:block th:replace="~{help/keymap :: keymap('boardList', ${projectView})}"></th:block>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery.pageslide.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.twoColumnMode.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("board.List", {
+            "elPagination": $('#pagination'),
+            "nTotalPages" : /*[[${totalPageCount}]]*/ 0
+        });
+
+        /*[# th:if="${projectView.menuSetting.board}"]*/
+        yobi.ShortcutKey.setKeymapLink({
+            "N": /*[[${base + '/postform'}]]*/ ""
+        });
+        /*[/]*/
+
+        $('.board-labels select').on('change', function(e){
+            $("#option_form").submit();
+        });
+        var $titlePrefix = $(".title-prefix");
+        $titlePrefix
+                .on("mouseover", function (e) {
+                    $(".title-prefix:contains('" + e.target.innerText + "')")
+                            .addClass("title-prefix-hover");
+                })
+                .on("mouseleave", function (e) {
+                    $titlePrefix.removeClass("title-prefix-hover");
+                });
+    });
+</script>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+</th:block>
+</html>

@@ -87,6 +87,9 @@ allOpen {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	// 통합 테스트는 설정이 다른 스프링 컨텍스트를 테스트 클래스마다 따로 캐시한다. 컨텍스트가 30개를 넘으면서 기본 힙(512MB)이 모자라
+	// 컨텍스트 로딩이 연쇄 실패했으므로 힙을 넉넉히 잡는다.
+	maxHeapSize = "3g"
 	// 통합 테스트가 사용할 DB를 `-Dyona.it.db=h2|postgres|mariadb`로 고른다(기본값 h2).
 	systemProperty("yona.it.db", System.getProperty("yona.it.db") ?: "h2")
 	testLogging {

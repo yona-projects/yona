@@ -207,3 +207,7 @@
 
 ## [2026-10-23] ingest | 이슈 화면 JSON API (3단계 c-3c-2)
 - TDD: `IssueApiTest` 22건. `ApiUserNodes` 분리(A-48), `IssueJson`. 세 DB 1050건 통과.
+
+## [2026-10-23] ingest | 게시판과 온라인 커밋 (3단계 d)
+- TDD: BoardListTest 14, BoardViewTest 15, BoardWriteTest 31, BoardCommentTest 17, OrganizationBoardTest 10, OnlineCommitTest 8, LineEndingTest 5. 세 DB 1150건 통과.
+- R-27(줄바꿈 변환), R-28(정렬 링크 라벨), R-29(라벨 변경 시 머리말 개수), A-49~A-52. A-50은 선생님 확인 대기.

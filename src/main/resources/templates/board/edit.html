@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/board/edit.scala.html
+  모델: title, projectView, errors, number, postId, titleValue, bodyValue, notice, readme, allowedToNotice, canCommit, isGit, canUpdate, authoredByViewer
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'BOARD', ~{::editPage})}">
+<th:block th:fragment="editPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'BOARD', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+  <div class="project-page-wrap">
+    <form th:action="${base + '/post/' + number + '/edit'}" method="post" enctype="multipart/form-data" class="nm">
+      <div class="content-wrap frm-wrap">
+        <dl>
+          <dt>
+            <label for="title" th:text="#{title}"></label>
+          </dt>
+          <dd>
+            <input type="text" id="title" name="title" th:value="${titleValue}" class="zen-mode text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" autocomplete="off"/>
+            <div th:if="${errors['title'] != null}" class="message">
+              <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
+            </div>
+          </dd>
+          <dd style="position: relative;">
+            <th:block th:replace="~{common/editor :: editor('body', ${bodyValue}, 'tabindex=2', 'content-body', false)}"></th:block>
+          </dd>
+        </dl>
+
+        <!--/* fileUploader */-->
+        <th:block th:if="${!currentUser.anonymous}">
+          <th:block th:replace="~{common/file-uploader :: fileUploader('BOARD_POST', ${postId})}"></th:block>
+        </th:block>
+        <!--/* end of fileUploader */-->
+
+        <div class="right-txt mt10 mb10">
+          <label th:if="${allowedToNotice}" class="checkbox">
+            <input type="checkbox" id="notice" name="notice" th:checked="${notice}"/>
+            <th:block th:text="#{post.notice.label}"></th:block>
+          </label>
+
+          <label th:if="${isGit and canCommit}" class="checkbox">
+            <input type="checkbox" id="readme" name="readme" th:checked="${readme}"/>
+            <th:block th:text="#{post.readmefy}"></th:block>
+          </label>
+        </div>
+
+        <div class="actions">
+          <span th:if="${authoredByViewer and !readme}" class="send-notification-check">
+            <label class="checkbox inline">
+              <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked>
+              <strong th:text="#{notification.send.mail}"></strong>
+            </label>
+          </span>
+          <button th:if="${canUpdate}" class="ybtn ybtn-info" tabindex="3" th:text="#{button.save}"></button><!--
+         --><a href="javascript:history.back();" class="ybtn" tabindex="4" th:text="#{button.cancel}"></a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+$(function(){
+    $yobi.loadModule("board.Write", {
+        "sMode"     : "edit",
+        "elTextarea": 'textarea[data-editor-mode="content-body"]'
+    });
+
+    yobi.Mention({
+        "target": 'textarea[id^=editor-]',
+        "url"   : /*[[${base + '/mentionList?number=' + number + '&resourceType=board_post'}]]*/ ""
+    });
+});
+</script>
+</th:block>
+</html>

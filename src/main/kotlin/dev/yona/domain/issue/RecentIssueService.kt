@@ -30,6 +30,23 @@ class RecentIssueService(private val recentIssues: RecentIssueRepository) {
         recentIssues.findByUserIdOrderByIdAsc(userId).let { all -> all.take(maxOf(0, all.size - MAX_RECENT_ISSUES)).forEach { recentIssues.delete(it) } }
     }
 
+    /**
+     * [user]가 [posting]을 봤음을 기록한다 (v1.6 `User.visits(Posting)`, `RecentIssue.addVisitPostingHistory`). 이슈와 같은 목록에 남고
+     * 게시글 번호(`postingId`)와 주소로 구분한다.
+     */
+    @Transactional
+    fun visits(user: User?, posting: dev.yona.domain.board.Posting) {
+        val userId = user?.id ?: return
+        val postingId = requireNotNull(posting.id)
+        recentIssues.findByUserIdAndPostingId(userId, postingId).forEach { recentIssues.delete(it) }
+        recentIssues.flush()
+        val project = requireNotNull(posting.project)
+        recentIssues.save(
+            RecentIssue(user = user, postingId = postingId, title = posting.title, url = "/${project.owner}/${project.name}/post/${posting.number}", createdDate = Date())
+        )
+        recentIssues.findByUserIdOrderByIdAsc(userId).let { all -> all.take(maxOf(0, all.size - MAX_RECENT_ISSUES)).forEach { recentIssues.delete(it) } }
+    }
+
     companion object {
         /** 사용자당 보관하는 최근 본 이슈의 최대 개수이다 (v1.6 `RecentIssue.MAX_RECENT_LIST_PER_USER`). */
         const val MAX_RECENT_ISSUES = 100

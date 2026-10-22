@@ -30,6 +30,25 @@ class ProjectReadmeService(private val repositories: RepositoryService) {
         String(bytes, java.nio.charset.Charset.forName(CharsetDetection.detect(bytes)))
     }
 
+    /**
+     * 게시글 화면이 README 글의 본문으로 보여 주는 README이다 (v1.6 `BareRepository.readREADME`). `HEAD` 최상위에서 트리 순서로
+     * 처음 만나는 `README.md`, `readme.md`, `README.markdown`, `readme.markdown`을 읽는다. 없거나 읽을 수 없으면 `null`이다.
+     * 인코딩은 설정한 문자 집합(UTF-8)으로 읽는다.
+     */
+    fun readFirstFound(project: Project): String? = withRepository(project) { repository ->
+        val head = repository.resolve(Constants.HEAD) ?: return@withRepository null
+        RevWalk(repository).use { walk ->
+            TreeWalk(repository).use { treeWalk ->
+                treeWalk.addTree(walk.parseTree(head))
+                treeWalk.isRecursive = false
+                while (treeWalk.next()) {
+                    if (treeWalk.pathString in ANY_README) return@withRepository String(repository.open(treeWalk.getObjectId(0)).bytes, Charsets.UTF_8)
+                }
+                null
+            }
+        }
+    }
+
     private fun <T> withRepository(project: Project, block: (Repository) -> T?): T? = try {
         repositories.openRepository(project).use(block)
     } catch (e: Exception) {
@@ -62,5 +81,6 @@ class ProjectReadmeService(private val repositories: RepositoryService) {
 
     private companion object {
         val CANDIDATES = listOf("README.md", "readme.md")
+        val ANY_README = setOf("README.md", "readme.md", "README.markdown", "readme.markdown")
     }
 }

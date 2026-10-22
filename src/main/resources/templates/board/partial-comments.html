@@ -1,0 +1,55 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+  https://yona.io
+
+  이식 원본: app/views/board/partial_comments.scala.html
+  모델: projectView, post(PostDetail)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentList" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<div class="comment-header"><i class="yobicon-comments"></i> <strong th:text="#{common.comment}"></strong> <strong class="num" th:text="${post.commentCount}"></strong></div>
+<hr class="nm" />
+
+<ul class="comments">
+    <li th:each="c : ${post.comments}" class="comment" th:classappend="${c.own} ? 'author'" th:id="'comment-' + ${c.id}">
+        <th:block th:each="anchor : ${c.childAnchorIds}"><div th:id="'comment-' + ${anchor}"></div></th:block>
+        <div class="comment-avatar">
+            <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.author.name}">
+                <img th:src="${c.author.avatarUrl}" width="32" height="32" th:alt="${c.author.loginId}">
+            </a>
+        </div>
+        <div class="media-body">
+            <div class="meta-info">
+                <span class="comment_author">
+                    <span class="resp-comment-avatar">
+                        <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.author.name}">
+                            <img th:src="${c.author.avatarUrl}" width="32" height="32" th:alt="${c.author.name}">
+                        </a>
+                    </span>
+                    <a th:href="'/' + ${c.author.loginId}" data-toggle="tooltip" data-placement="top" th:title="${c.author.loginId}"><strong th:text="${c.author.name}"></strong></a>
+                </span>
+                <span class="ago-date">
+                    <a th:href="'#comment-' + ${c.id}" class="ago" th:title="${c.createdTitle}" th:text="${c.createdAgo}"></a>
+                    <a th:href="'#comment-' + ${c.id}" class="share-link" style="display: none">[Link]</a>
+                </span>
+                <span class="act-row pull-right">
+                    <button th:if="${site.translationApiConfigured}" type="button" class="icon btn-transparent ml10 comment-translate" data-toggle="tooltip" th:attr="data-comment-id=${c.id}" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+
+                    <button th:if="${c.canRead}" type="button" class="btn-transparent ml10" data-toggle="comment-edit" th:attr="data-comment-id=${c.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
+                    <button th:if="${c.canDelete}" type="button" class="btn-transparent ml6" data-toggle="comment-delete"
+                            th:attr="data-request-uri=${base + '/post/' + post.number + '/comment/' + c.id + '/delete'}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                </span>
+            </div>
+
+            <th:block th:replace="~{common/comment-update-form :: commentUpdateForm(${c}, ${base + '/post/' + post.number + '/comment'}, 'NONISSUE_COMMENT', ${c.canUpdate})}"></th:block>
+
+            <div th:id="'comment-body-' + ${c.id}">
+                <th:block th:replace="~{common/tasklist-bar :: tasklistBar}"></th:block>
+                <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}, data-allowed-update=${c.canUpdate}" th:utext="${c.contentsHtml}"></div>
+                <div class="attachments" th:attr="data-attachments=${c.attachmentsJson}"></div>
+            </div>
+        </div>
+        <th:block th:replace="~{common/child-comments :: childComments(${c}, ${base}, ${post.number}, 'post')}"></th:block>
+    </li>
+</ul>
+</th:block>

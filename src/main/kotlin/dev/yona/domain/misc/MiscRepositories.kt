@@ -53,6 +53,9 @@ interface RecentIssueRepository : JpaRepository<RecentIssue, Long> {
     /** 사용자가 이슈를 본 기록을 찾는다 (v1.6 `RecentIssue.deletePreviousIssue`). */
     fun findByUserIdAndIssueId(userId: Long, issueId: Long): List<RecentIssue>
 
+    /** 사용자가 게시글을 본 기록을 찾는다 (v1.6 `RecentIssue.deletePreviousPosting`). */
+    fun findByUserIdAndPostingId(userId: Long, postingId: Long): List<RecentIssue>
+
     /** 사용자의 기록을 오래된 것부터 조회한다. */
     fun findByUserIdOrderByIdAsc(userId: Long): List<RecentIssue>
 }

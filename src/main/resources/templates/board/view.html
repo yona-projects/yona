@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/board/view.scala.html
+  모델: title(문서 제목 |:| 본문 앞부분), projectView, post(PostDetail), listUrl
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'BOARD', ~{::viewPage})}">
+<th:block th:fragment="viewPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'BOARD', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap board-view">
+        <!--/* Post Info */-->
+        <div class="board-header issue">
+            <div class="pull-right mr10 mt10 hide-in-mobile">
+                <div class="date" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></div>
+            </div>
+            <div class="title">
+                <strong class="board-id" th:text="'#' + ${post.number}"></strong> <th:block th:text="${post.title}"></th:block>
+                <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
+                    <span class="date" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></span>
+                </div>
+            </div>
+        </div>
+
+        <!--/* Content body */-->
+        <div class="board-body row-fluid">
+            <div class="span9 span-left-pane">
+                <div class="author-info">
+                    <a th:href="'/' + ${post.authorLoginId}" class="usf-group">
+                        <span class="avatar-wrap smaller">
+                            <img th:src="${post.authorAvatarUrl}" width="20" height="20">
+                        </span>
+                        <th:block th:if="${post.authorLoginId != null}">
+                            <strong class="name" th:text="${post.authorName}"></strong>
+                            <span class="loginid"> <strong>@</strong><th:block th:text="${post.authorLoginId}"></th:block></span>
+                        </th:block>
+                        <strong th:unless="${post.authorLoginId != null}" class="name" th:text="#{common.noAuthor}"></strong>
+                    </a>
+                    <th:block th:if="${post.historyHtml != null}">
+                        <div th:if="${post.viewerAnonymous}" class="posting-history">
+                            <a th:href="'/users/loginform?redirectUrl=' + ${base + '/post/' + post.number}" data-toggle="modal" th:text="#{change.history}"></a>
+                        </div>
+                        <div th:unless="${post.viewerAnonymous}" class="posting-history">
+                            <a href="#-yona-posting-history" data-toggle="modal" th:text="#{change.history}"></a>
+                            <th:block th:replace="~{common/partial-history :: history(${post.historyHtml})}"></th:block>
+                        </div>
+                    </th:block>
+                </div>
+                <div th:if="${post.body.isEmpty()}" class="content empty-content"></div>
+                <th:block th:unless="${post.body.isEmpty()}">
+                    <div th:id="'post-' + ${post.number}" class="hide">
+                        <form th:action="${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/posts/' + post.number + '/content'}">
+                            <textarea th:text="${post.body}"></textarea>
+                        </form>
+                    </div>
+                    <div th:id="'post-body-' + ${post.number}">
+                        <th:block th:replace="~{common/tasklist-bar :: tasklistBar}"></th:block>
+                        <div class="content markdown-wrap" th:attr="data-allowed-update=${post.canUpdate}" th:utext="${post.bodyHtml}"></div>
+                    </div>
+                </th:block>
+                <div class="attachments" id="attachments" th:attr="data-attachments=${post.attachmentsJson}"></div>
+                <div class="board-actrow right-txt">
+                    <div class="pull-left">
+                        <div>
+                            <button th:if="${post.canWatch}" id="watch-button" type="button" class="ybtn" th:classappend="${post.watching} ? 'ybtn-watching'"
+                                    data-toggle="tooltip" data-placement="top" th:title="#{issue.watch.description}" th:attr="data-watching=${post.watching}"
+                                    th:text="${post.watching} ? #{post.unwatch} : #{post.watch}"></button>
+                        </div>
+                    </div>
+
+                    <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+                    <span class="">
+                        <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"
+                                th:attr="onclick=|window.location = '${base}/post/${post.number}/editform'|"><i class="yobicon-edit-2"></i></button>
+                        <a th:unless="${post.canUpdate}" th:href="${base + '/post/' + post.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+
+                        <a th:if="${post.canDelete}" href="#deleteConfirm" data-toggle="modal">
+                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
+                    </span>
+                </div>
+                <div class="watcher-list"></div>
+                <!--/* Comment */-->
+                <div id="comments" class="board-comment-wrap">
+                    <div id="timeline">
+                        <div class="timeline-list">
+                            <th:block th:replace="~{board/partial-comments :: commentList}"></th:block>
+                        </div>
+                    </div>
+                    <th:block th:replace="~{common/comment-form :: commentForm(${post.canComment}, 'NONISSUE_COMMENT', ${base + '/post/' + post.number + '/comment'})}"></th:block>
+                </div>
+                <!--/* // Comment */-->
+            </div>
+
+            <div class="span3 span-right-pane mb20">
+                <div class="issue-info board-labels">
+                    <dl>
+                        <dd th:if="${projectView.menuSetting.board}" class="project-btn-item">
+                            <a th:href="${base + '/postform'}" class="ybtn ybtn-success" th:text="#{post.write}"></a>
+                        </dd>
+                    </dl>
+                    <!--/* labels */-->
+                    <th:block th:if="${post.hasProjectLabels}">
+                        <th:block th:if="${post.canUpdate}">
+                            <th:block th:replace="~{issue/partial-select-label :: selectLabel(${post.labelGroups}, ${post.selectedLabelIds}, '', ${projectView})}"></th:block>
+                        </th:block>
+                        <th:block th:unless="${post.canUpdate}">
+                            <th:block th:replace="~{issue/partial-show-selected-label :: showSelectedLabel(${post.labels}, '')}"></th:block>
+                        </th:block>
+                    </th:block>
+                    <div class="right-menu-icons">
+                        <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"
+                                th:attr="onclick=|window.location='${base}/post/${post.number}/editform'|"><i class="yobicon-edit-2"></i></button>
+                        <a th:unless="${post.canUpdate}" th:href="${base + '/post/' + post.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+
+                        <a th:if="${post.canDelete}" href="#deleteConfirm" data-toggle="modal">
+                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="board-footer">
+            <th:block th:replace="~{help/keymap :: keymap('boardDetail', ${projectView})}"></th:block>
+        </div>
+    </div>
+
+    <script type="text/x-jquery-tmpl" id="tplAttachedFile" th:inline="none"><!--
+        --><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+        <strong>${fileName}(${fileSizeReadable})${notice}</strong><!--
+        --><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
+    </script>
+
+    <!--/* Confirm to delete post */-->
+    <div id="deleteConfirm" class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3 th:text="#{issue.delete}"></h3>
+        </div>
+        <div class="modal-body">
+            <p th:text="#{post.delete.confirm}"></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=${base + '/post/' + post.number + '/delete'}" th:text="#{button.yes}"></button>
+            <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+<th:block th:replace="~{common/comment-delete-modal :: commentDeleteModal('#comments')}"></th:block>
+
+<link rel="stylesheet" type="text/css" media="screen" th:href="${base + '/issue/labels.css'}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/elevator/jquery.elevator.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/elevator/jquery.elevator.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Sha1.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Tasklist.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.SubComment.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.CommentAttachmentsUpdate.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("board.View", {
+            "sWatchUrl"  : /*[[${'/watch?resource.type=board_post&resource.id=' + post.id}]]*/ "",
+            "sUnwatchUrl": /*[[${'/unwatch?resource.type=board_post&resource.id=' + post.id}]]*/ ""
+        });
+
+        // yobi.ShortcutKey
+        yobi.ShortcutKey.setKeymapLink({
+            "L": /*[[${listUrl}]]*/ ""
+            /*[# th:if="${projectView.menuSetting.board}"]*/
+            ,"N": /*[[${base + '/postform'}]]*/ ""
+            /*[/]*/
+            /*[# th:if="${post.canUpdate}"]*/
+            ,"E": /*[[${base + '/post/' + post.number + '/editform'}]]*/ ""
+            /*[/]*/
+        });
+
+        // yobi.Mention
+        yobi.Mention({
+            "target": 'textarea[id^=editor-], .editorSeries',
+            "url"   : /*[[${base + '/mentionList?number=' + post.number + '&resourceType=board_post'}]]*/ ""
+        });
+
+        $('.board-labels select').on('change', function(e){
+            var url = /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/postlabel/' + post.number}]]*/ "";
+            $.ajax({
+                url: url,
+                method: "POST",
+                data: JSON.stringify(e.val),
+                contentType: "application/json; charset=UTF-8"
+            }).done(function(response) {
+            }).error(function(response){
+            });
+        });
+
+        // detect comment which contains mention at me
+        $(".comment-body:contains('" + /*[[${post.viewerPureName}]]*/ "" + "')").closest(".comment").addClass("mentioned");
+        $(".user-link:contains('" + /*[[${post.viewerPureName}]]*/ "" + "')").addClass("me");
+
+        $('#translate').one('click', function (e) {
+            var data = {
+                owner: /*[[${project.owner}]]*/ "",
+                projectName: /*[[${project.name}]]*/ "",
+                type: "posting",
+                number: /*[[${#strings.toString(post.number)}]]*/ ""
+            };
+            $.ajax({
+                url: "/-_-api/v1/translation",
+                data: JSON.stringify(data),
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json"
+            }).done(function (data) {
+                $(".markdown-wrap").first().html(data.translated);
+                $(this).attr("disabled", true);
+            });
+        });
+
+        $('.comment-translate').one('click', function (e) {
+            var payload = {
+                owner: /*[[${project.owner}]]*/ "",
+                projectName: /*[[${project.name}]]*/ "",
+                type: "post-comment",
+                number: $(this).data("commentId")
+            };
+            $.ajax({
+                url: "/-_-api/v1/translation",
+                data: JSON.stringify(payload),
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json"
+            }).done(function (data) {
+                $("#comment-body-" + payload.number).find(".markdown-wrap").html(data.translated)
+                $(this).attr("disabled", true);
+            });
+        });
+
+        $.elevator({
+            shape: 'rounded',
+            glass: true
+        });
+    });
+</script>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+</th:block>
+</html>
