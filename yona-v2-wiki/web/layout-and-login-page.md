@@ -45,9 +45,9 @@ updated: 2026-10-22
 - 같은 속성이 두 번 있는 마크업(`class="a" class="b"`)은 파서가 거부한다. v1.6의 `loginDialog.scala.html`에 있던 중복 `class`는 브라우저가 쓰던 첫 번째 값만 남겼다.
 - JS 인라인의 `[[@{/path}]]`는 `"\/path"`처럼 `/`를 이스케이프한다. JS로는 같은 값이다. 테스트는 이스케이프를 풀어서 비교한다.
 
-## 공통 모델 (`LayoutModelAdvice`)
+## 공통 모델 (`LayoutModelFactory`, `LayoutModelAdvice`)
 
-모든 `@Controller`에 `currentUser`, `site`, `siteAdminLoggedIn`, `flashMessages`, `requestPath`를 채운다. DB가 필요한 값(`siteManager`, `openIssueCount`)은 템플릿이 쓸 때만 읽는다.
+모든 `@Controller`에 `currentUser`, `site`, `siteAdminLoggedIn`, `flashMessages`, `requestPath`를 채운다. 값은 `LayoutModelFactory`가 만들고, 컨트롤러 화면에는 `LayoutModelAdvice`가, 오류 화면에는 `GlobalErrorHandler`가 넣는다([error-pages.md](error-pages.md)). DB가 필요한 값(`siteManager`, `openIssueCount`)은 템플릿이 쓸 때만 읽는다.
 
 일회성(flash) 메시지는 v1.6처럼 메시지 **키**를 담고, 화면 맨 아래 스크립트가 번역해 `$yobi.notify`(`title` 키가 있으면 `$yobi.alert`)로 보여 준다. 번역한 문구는 v1.6처럼 HTML 이스케이프한다.
 

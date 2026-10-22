@@ -76,3 +76,8 @@
 - 선생님이 VCS 범위(Git 먼저, SVN은 마지막)와 비동기 처리(Spring 이벤트 + @Async/@Scheduled)를 정해 주셨다([architecture/technology-decisions.md](architecture/technology-decisions.md)).
 - TDD: `AccessControlTest` 38건과 `AccessControlClosedSiteTest` 1건을 먼저 실패(RED, 컴파일)시킨 뒤 구현했다. 4건은 테스트가 v1.6에서도 오류가 나는 입력(존재하지 않는 이슈 번호, 전역 컨테이너)을 쓴 것이었다. v1.6 동작을 그대로 재현하도록 테스트를 바로잡고 결함으로 기록했다(R-08~R-10).
 - 기록: [subsystems/access-control.md](subsystems/access-control.md)
+
+## [2026-10-22] ingest | 오류 화면 (2단계 b의 기반)
+- TDD: `ErrorPagesTest` 8건을 먼저 실패(RED, 컴파일)시킨 뒤 `ErrorViews`, `GlobalErrorHandler`, 템플릿 4개로 구현했다. 예외 처리기로 그린 화면에는 `@ControllerAdvice`의 `@ModelAttribute`가 적용되지 않아 공통 모델 생성을 `LayoutModelFactory`로 분리했다.
+- 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 163건 통과.
+- 기록: [web/error-pages.md](web/error-pages.md)

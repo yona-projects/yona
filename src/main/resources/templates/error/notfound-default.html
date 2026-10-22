@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--/*
+  이식 원본: app/views/error/notfound_default.scala.html
+  모델: messageKey(메시지 키)
+  이 화면은 사이트 레이아웃이 아니라 기본 레이아웃에 자체 상단 메뉴를 가진다.
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(${messageKey}, '', ~{::notFoundPage})}">
+<th:block th:fragment="notFoundPage">
+    <header class="gnb-outer">
+        <div class="gnb-inner">
+            <a th:href="@{/}" class="logo"><h1 class="blind" th:text="${site.siteName}"></h1></a>
+            <ul class="gnb-nav">
+                <li>
+                    <a th:href="@{/projects}" th:text="#{title.projectList}"></a>
+                </li>
+                <li>
+                    <a th:href="@{/_help}" th:text="#{title.help}"></a>
+                </li>
+                <li>
+                    <a href="https://github.com/nforge/yobi/issues?state=open" target="_blank" th:text="#{title.yobi.feedback}"></a>
+                </li>
+            </ul>
+            <th:block th:replace="~{common/usermenu :: usermenu}"></th:block>
+        </div>
+    </header>
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="error-wrap">
+                <i class="ico ico-err2"></i>
+                <p th:text="#{${messageKey}}"></p>
+                <a th:href="@{/}" class="ybtn ybtn-info" th:text="#{menu.home}"></a>
+            </div>
+        </div>
+    </div>
+    <footer class="page-footer-outer">
+        <div class="page-footer">
+            <span class="provider">Copyright © <a href="http://navercorp.com/" target="_blank">NAVER Corp.</a> Supported by <a href="https://developers.naver.com/d2/" target="_blank" class="d2-program"><span class="d2">D2</span><span class="program"> Program</span></a></span>
+        </div>
+    </footer>
+</th:block>
+</html>

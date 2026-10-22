@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!--/*
+  이식 원본: app/views/error/internalServerError_default.scala.html
+  모델: messageKey(메시지 키)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${messageKey}, 'SITE_HOME', ~{::errorPage})}">
+<th:block th:fragment="errorPage">
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="error-wrap">
+            <i class="ico-404"></i>
+            <p th:text="#{${messageKey}}"></p>
+            <a th:href="@{/}" class="ybtn ybtn-primary" th:text="#{menu.home}"></a>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

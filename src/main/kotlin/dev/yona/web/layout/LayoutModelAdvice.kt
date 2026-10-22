@@ -13,22 +13,27 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.servlet.support.RequestContextUtils
 import org.springframework.web.util.HtmlUtils
 
 /**
- * 모든 화면 템플릿이 공통으로 쓰는 모델 값을 채운다.
+ * 모든 화면 템플릿이 공통으로 쓰는 모델 값을 만든다.
  *
  * | 모델 이름 | 내용 | v1.6의 대응 |
  * |---|---|---|
  * | `currentUser` | 현재 사용자 뷰 | `UserApp.currentUser()` |
  * | `site` | 사이트 설정 | `Application.*` 상수, `utils.Config` |
- * | `flash` | 이전 요청이 남긴 일회성 메시지(번역 전 키) | `Http.Context.flash()` |
+ * | `flashMessages` | 이전 요청이 남긴 일회성 메시지(번역 끝남) | `Http.Context.flash()` |
  * | `siteAdminLoggedIn` | 기본 관리자 계정으로 로그인했는지 | `UserApp.isSiteAdminLoggedInSession()` |
+ * | `requestPath` | 요청 경로 | `request().path()` |
+ *
+ * 컨트롤러가 그린 화면은 [LayoutModelAdvice]가, 예외 처리기가 그린 오류 화면은 [dev.yona.web.error.GlobalErrorHandler]가
+ * 이 값을 채운다. `@ControllerAdvice`의 `@ModelAttribute`는 예외 처리기에는 적용되지 않기 때문이다.
  */
-@ControllerAdvice(annotations = [Controller::class])
-class LayoutModelAdvice(
+@Component
+class LayoutModelFactory(
     private val currentUserProvider: CurrentUserProvider,
     private val properties: YonaProperties,
     private val siteAdmins: SiteAdminRepository,
@@ -39,26 +44,27 @@ class LayoutModelAdvice(
     private val flashTranslator: FlashMessageTranslator
 ) {
 
-    @ModelAttribute("currentUser")
-    fun currentUser(): ViewerContext = ViewerContext(currentUserProvider.get(), siteAdmins, issues, avatars, organizationUsers, userSettings)
-
-    @ModelAttribute("site")
-    fun site(): YonaProperties = properties
-
-    @ModelAttribute("siteAdminLoggedIn")
-    fun siteAdminLoggedIn(): Boolean = currentUserProvider.get().user?.loginId == DEFAULT_ADMIN_LOGIN_ID
-
-    @ModelAttribute("flashMessages")
-    fun flashMessages(request: HttpServletRequest): FlashMessages =
-        flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty())
-
-    /** 현재 요청의 경로이다. 문서 머리의 `og:url` 등에 쓴다 (v1.6 `request().path()`). */
-    @ModelAttribute("requestPath")
-    fun requestPath(request: HttpServletRequest): String = request.requestURI
+    fun attributes(request: HttpServletRequest): Map<String, Any> = mapOf(
+        "currentUser" to ViewerContext(currentUserProvider.get(), siteAdmins, issues, avatars, organizationUsers, userSettings),
+        "site" to properties,
+        "siteAdminLoggedIn" to (currentUserProvider.get().user?.loginId == DEFAULT_ADMIN_LOGIN_ID),
+        "flashMessages" to flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty()),
+        "requestPath" to request.requestURI
+    )
 
     private companion object {
         /** 설치 직후 기본 관리자 계정의 로그인 ID이다 (v1.6 `SiteAdmin.SITEADMIN_DEFAULT_LOGINID`). */
         const val DEFAULT_ADMIN_LOGIN_ID = "admin"
+    }
+}
+
+/** 컨트롤러가 화면을 그릴 때 [LayoutModelFactory]의 값을 모델에 채운다. */
+@ControllerAdvice(annotations = [Controller::class])
+class LayoutModelAdvice(private val layoutModelFactory: LayoutModelFactory) {
+
+    @ModelAttribute
+    fun layout(model: Model, request: HttpServletRequest) {
+        model.addAllAttributes(layoutModelFactory.attributes(request))
     }
 }
 
