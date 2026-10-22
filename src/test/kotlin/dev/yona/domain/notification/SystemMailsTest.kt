@@ -104,6 +104,13 @@ class SystemMailsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `비밀번호 재설정 메일은 요청 안에서 동기로 보내 기다리지 않아도 나가 있다`() {
+        val u = user()
+        publisher.publishEvent(PasswordResetRequestedEvent(u, "sync-token"))
+        assertEquals(1, collected().size)
+    }
+
+    @Test
     fun `가입 인증 메일은 인증 링크와 계정 안내를 담는다`() {
         val u = user()
         publisher.publishEvent(UserVerificationRequestedEvent(u, UserVerification(user = u, loginId = u.loginId, verificationCode = "code-1", timestamp = 1L)))

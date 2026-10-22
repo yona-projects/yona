@@ -29,7 +29,8 @@ import java.util.Properties
  * - 보조 이메일 확인 (v1.6 `actors.ValidationEmailSender`)
  * - 프로젝트 이전 요청 (v1.6 `ProjectApp.sendTransferRequestMail`)
  *
- * 문구는 요청한 사용자의 언어로 만든다. 메일 만들기와 보내기는 [MailDispatcher]의 전용 스레드가 비동기로 한다(D-19).
+ * 문구는 요청한 사용자의 언어로 만든다. 만들고 보내는 방식은 v1.6을 따라 메일마다 다르다(D-19): 비밀번호 재설정과 프로젝트 이전 요청은
+ * 요청 안에서 동기, 가입 인증은 요청 안에서 만들고 발송만 비동기, 보조 이메일 확인은 만들기와 보내기 모두 비동기이다.
  */
 @Service
 class SystemMails(
@@ -53,7 +54,7 @@ class SystemMails(
     private fun from(): String = requireNotNull(notificationMailSender.fromAddress()) { "보내는 메일 주소(yona.smtp.user)가 설정되지 않았다" }
 
     /** 비밀번호 재설정 주소를 일반 텍스트로 보낸다. 제목은 `[사이트이름] 제목`이다. */
-    fun passwordReset(user: User, token: String) = guarded("비밀번호 재설정 메일") {
+    fun passwordReset(user: User, token: String) = syncInRequest("비밀번호 재설정 메일") {
         val helper = newMessage()
         helper.setFrom(from())
         helper.setSubject("[${properties.siteName}] " + text("site.resetPasswordEmail.title"))
@@ -66,8 +67,8 @@ class SystemMails(
      * 가입한 사용자에게 인증 링크와 계정 안내를 보낸다. 허용하지 않는 이메일 도메인이면 보내지 않는다.
      * 보내는 사람은 `yona.easymail`이고, 제목은 `가입 확인: 사이트 주소`이다.
      */
-    fun signup(user: User, verification: UserVerification) = guarded("가입 인증 메일") {
-        if (!MailRecipients.isAllowedDomain(user.email, properties.allowedSendingMailDomains)) return@guarded null
+    fun signup(user: User, verification: UserVerification) = asyncSendInRequest("가입 인증 메일") {
+        if (!MailRecipients.isAllowedDomain(user.email, properties.allowedSendingMailDomains)) return@asyncSendInRequest null
         val index = siteUrls.origin()
         val resetUrl = index + siteUrls.path("/lostPassword")
         val verifyUrl = index + siteUrls.path("/verify/${user.loginId}/${verification.verificationCode}")
@@ -108,13 +109,12 @@ class SystemMails(
      * 수락 링크는 한 번만 쓸 수 있는 키가 담긴 주소이다.
      */
     fun projectTransfer(transfer: ProjectTransfer) {
-        // 받는 사람은 DB에서 찾아야 하므로 요청 스레드에서 구해 둔다. 본문 만들기와 발송은 전용 스레드가 한다.
         val bccUsers = LinkedHashSet<User>()
         transfer.destination?.let { users.findByLoginId(it) }?.let { bccUsers.add(it) }
         transfer.destination?.let { organizations.findByNameIgnoreCase(it) }?.let { org ->
             bccUsers.addAll(users.findUsersByOrganizationRole(requireNotNull(org.id), RoleType.ORG_ADMIN.id))
         }
-        guarded("프로젝트 이전 요청 메일") { transferMessage(transfer, bccUsers) }
+        syncInRequest("프로젝트 이전 요청 메일") { transferMessage(transfer, bccUsers) }
     }
 
     private fun transferMessage(transfer: ProjectTransfer, bccUsers: Collection<User>): MimeMessage {
@@ -135,8 +135,26 @@ class SystemMails(
         return helper.mimeMessage
     }
 
+    /** 요청 안에서 만들고 요청 스레드에서 바로 보낸다(v1.6 비밀번호 재설정, 프로젝트 이전 요청). [build]가 `null`이면 보내지 않는다. */
+    private fun syncInRequest(description: String, build: () -> MimeMessage?) {
+        try {
+            build()?.let { dispatcher.sendNow(description, it) }
+        } catch (e: Exception) {
+            org.slf4j.LoggerFactory.getLogger(javaClass).warn("{}을 만들지 못했다", description, e)
+        }
+    }
+
+    /** 요청 안에서 만들고 발송만 전용 스레드에 맡긴다(v1.6 가입 인증). [build]가 `null`이면 보내지 않는다. */
+    private fun asyncSendInRequest(description: String, build: () -> MimeMessage?) {
+        try {
+            build()?.let { dispatcher.sendAsync(description, it) }
+        } catch (e: Exception) {
+            org.slf4j.LoggerFactory.getLogger(javaClass).warn("{}을 만들지 못했다", description, e)
+        }
+    }
+
     /**
-     * 메일 만들기와 보내기를 전용 스레드에 맡긴다(D-19). 요청 스레드의 언어와 사이트 주소를 미리 구해 그 스레드에서 쓰게 한다.
+     * 메일 만들기와 보내기를 모두 전용 스레드에 맡긴다(v1.6 보조 이메일 확인, D-19). 요청 스레드의 언어와 사이트 주소를 미리 구해 그 스레드에서 쓰게 한다.
      * 만들 필요가 없으면([build]가 `null`) 보내지 않는다. 요청을 실패시키지 않는다.
      */
     private fun guarded(description: String, build: () -> MimeMessage?) {
