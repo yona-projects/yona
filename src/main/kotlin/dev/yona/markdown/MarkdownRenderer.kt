@@ -20,10 +20,10 @@ import org.springframework.stereotype.Component
  * v2는 `commonmark-java`에 GFM 확장을 붙여 같은 역할을 수행한다([ 결정 D-17 ]). 줄바꿈은 `<br>`로 바꾸고(`breaks: true`),
  * 제목에는 `id`를 붙이며(`headerIds: true`), 결과는 v1.6과 같은 정화 정책을 거친다.
  *
- * 이 클래스는 스레드 안전하다. 프로젝트 문맥이 필요한 후처리(이슈 링크, 자동 링크)는 별도 단계에서 추가한다.
+ * 변환 결과는 [RenderedMarkdownCache]에 보관해 같은 원문을 다시 변환하지 않는다. 이 클래스는 스레드 안전하다. 프로젝트 문맥이 필요한 후처리(이슈 링크, 자동 링크)는 별도 단계에서 추가한다.
  */
 @Component
-class MarkdownRenderer {
+class MarkdownRenderer(private val cache: RenderedMarkdownCache) {
 
     private val extensions = listOf(
         TablesExtension.create(),
@@ -38,10 +38,10 @@ class MarkdownRenderer {
         .softbreak("<br>\n")
         .build()
 
-    /** 마크다운 [source]를 변환하고 정화한 HTML을 돌려준다. 빈 문자열은 그대로 돌려준다. */
+    /** 마크다운 [source]를 변환하고 정화한 HTML을 돌려준다. 결과는 캐시에 보관한다. 빈 문자열은 그대로 돌려준다. */
     fun render(source: String): String {
         if (source.isEmpty()) return source
-        return sanitize(matchYobiMarkup(htmlRenderer.render(parser.parse(source))))
+        return cache.getOrRender(source) { sanitize(matchYobiMarkup(htmlRenderer.render(parser.parse(source)))) }
     }
 
     /**

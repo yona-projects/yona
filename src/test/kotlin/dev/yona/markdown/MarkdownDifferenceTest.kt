@@ -12,7 +12,7 @@ import kotlin.test.assertEquals
  */
 class MarkdownDifferenceTest {
 
-    private val renderer = MarkdownRenderer()
+    private val renderer = MarkdownRenderer(RenderedMarkdownCache())
 
     private val corpus = linkedMapOf(
         "제목" to "# 제목1\n## 제목 둘\n### a b c",

@@ -41,6 +41,7 @@ dependencies {
 	implementation("org.commonmark:commonmark-ext-heading-anchor:0.31.0")
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1")
 	implementation("org.jsoup:jsoup:1.23.2")
+	implementation("com.github.ben-manes.caffeine:caffeine")
 
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("org.postgresql:postgresql")

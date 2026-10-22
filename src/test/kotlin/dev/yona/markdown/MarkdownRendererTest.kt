@@ -8,7 +8,8 @@ import kotlin.test.assertTrue
 /** [MarkdownRenderer]의 정화와 보안 동작을 검증한다. v1.6 `utils.Markdown`의 정책을 따른다. */
 class MarkdownRendererTest {
 
-    private val renderer = MarkdownRenderer()
+    private val cache = RenderedMarkdownCache(maximumSize = 100)
+    private val renderer = MarkdownRenderer(cache)
 
     @Test
     fun `빈 문자열은 그대로 돌려준다`() {
@@ -34,5 +35,15 @@ class MarkdownRendererTest {
     fun `비디오와 아이프레임은 허용 목록에 따라 유지한다`() {
         val html = renderer.render("<video controls src=\"http://a/b.mp4\"></video>")
         assertTrue(html.contains("<video"), html)
+    }
+
+    @Test
+    fun `같은 원문의 렌더링 결과를 캐시에서 재사용한다`() {
+        val first = renderer.render("# 캐시")
+        cache.cleanUp()
+        assertEquals(1L, cache.size())
+        assertEquals(first, renderer.render("# 캐시"))
+        cache.cleanUp()
+        assertEquals(1L, cache.size())
     }
 }

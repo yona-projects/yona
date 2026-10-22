@@ -24,6 +24,10 @@ v1.6의 `public/javascripts/lib/marked.js`는 원본이 아니라 커스터마�
 - 제목: `id`에 `yb-header-` 접두어를 붙이고, 끝에 `<a href="#id" class="head-anchor">#</a>`를 덧붙인다.
 - 작업 목록: `li`에 `task-list-item`, 체크박스에 `task-list-item-checkbox` 클래스를 주고 `disabled`는 붙이지 않는다.
 
+## 렌더 결과 캐시
+
+`RenderedMarkdownCache`는 v1.6 `CacheStore.renderedMarkdown`에 해당한다. 값은 deflate로 압축해 최대 10000건까지 보관하고 만료 시간은 없다. 키는 원문의 SHA-256이다(A-18, v1.6은 `hashCode()`라 충돌 시 결과가 뒤바뀔 수 있었다). 정화된 변환 결과만 캐시하고 `sanitize`는 캐시하지 않는다. 프로젝트 문맥 후처리(자동 링크)는 v1.6처럼 캐시 바깥에서 매번 수행한다. 테스트 5건과 렌더러 재사용 테스트 1건이 있다.
+
 ## 정화 정책
 
 v1.6 `Markdown.sanitizerPolicy`와 같다. OWASP `FORMATTING`, `IMAGES`, `STYLES`, `TABLES`, `BLOCKS`에 `video`, `source`, `input`, `iframe` 등을 더하고 프로토콜은 `http`, `https`, `mailto`, `file`, `zpl`만 허용한다.
@@ -35,5 +39,5 @@ v1.6 `Markdown.sanitizerPolicy`와 같다. OWASP `FORMATTING`, `IMAGES`, `STYLES
 ## 아직 이식하지 않은 부분
 
 - 프로젝트 문맥 후처리: `removeJavascriptInHref`(정화기가 막아 주지만 `#` 치환은 아직 없음), `checkReferrer`(`application.noreferrer`), `transformIssueLink`(이슈 링크를 `#번호.제목`과 상태 배지로), `AutoLinkRenderer`(`#이슈`, SHA, `@사용자`). 이슈와 저장소가 이식되는 3단계 이후에 추가한다.
-- 렌더 캐시(`CacheStore.renderedMarkdown`), 5초 제한(`Thread.stop`). commonmark-java는 정규식 폭주가 없어 5초 제한은 필요하지 않다고 판단하지만, 확정은 선생님의 결정이 필요하다.
+- 5초 제한은 두지 않기로 확정했다(D-17).
 - `renderFileInReadme`, `renderFileInCodeBrowser`의 상대 경로 치환.
