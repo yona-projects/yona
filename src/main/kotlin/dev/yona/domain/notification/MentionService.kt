@@ -17,6 +17,9 @@ interface MentionRepository : JpaRepository<Mention, Long> {
 
     /** 글이나 댓글에 걸린 멘션을 찾는다. */
     fun findByResourceTypeAndResourceId(resourceType: ResourceType, resourceId: String): List<Mention>
+
+    /** 사용자가 멘션된 [resourceType] 기록을 찾는다 (v1.6 `Mention.getMentioningIssueIds`). */
+    fun findByUserIdAndResourceType(userId: Long, resourceType: ResourceType): List<Mention>
 }
 
 /**

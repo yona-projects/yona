@@ -50,7 +50,7 @@ updated: 2026-10-22
 | 3c-3c-1 | 구독, 이슈 즐겨찾기 | 완료 | [web/watch-and-favorite.md](web/watch-and-favorite.md) |
 | 3c-3c-2 | 이슈 화면 API(담당자, 공유자, 가중치, 변경 감지, 본문과 댓글 갱신) | 완료 | [web/issue-api.md](web/issue-api.md) |
 | 3c-3c-3a | 번역 API | 완료 | [web/issue-api.md](web/issue-api.md) |
-| 3e | 외부 REST API(`/-_-api/v1`): 이슈(조회, 등록, 수정, 상태, 댓글, 라벨, 가져오기), 게시글, 마일스톤, 프로젝트, 사용자, 감시자 | 진행 중 | |
+| 3e | 외부 REST API(`/-_-api/v1`) | 일부 완료 | 사용자 API(만들기, 토큰, 내 이슈, 통계, 관리자)는 `ExternalUserApiController`로 완료. 이슈(조회, 등록, 수정, 상태, 댓글, 라벨, 가져오기), 게시글, 마일스톤, 프로젝트, 감시자는 4단계 뒤에 이어 한다 |
 | 3d | 게시판(목록, 보기, 작성, 수정, 삭제, 댓글, 라벨 API, 조직 게시판)과 온라인 커밋 | 완료 | [web/board.md](web/board.md) |
 | 2d-5 | 사용자 메뉴(사이드바 내용, 고정 사이드바), 프로젝트 바로가기, 프로젝트·조직 즐겨찾기 API | 완료 | [web/user-menu.md](web/user-menu.md) |
 | 4 | 알림 서브시스템(이벤트 생성, 메시지, 링크, 메일)과 로그인 사용자용 홈 알림 목록 | 대기 | |
