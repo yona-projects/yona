@@ -21,6 +21,10 @@ interface UserRepository : JpaRepository<User, Long> {
     @Query("select count(u) > 0 from User u join u.enrolledProjects p where u.id = :userId and p.id = :projectId")
     fun hasEnrolled(userId: Long, projectId: Long): Boolean
 
+    /** 프로젝트에 가입을 신청한 사용자이다 (v1.6 `project.enrolledUsers`). */
+    @Query("select u from User u join u.enrolledProjects p where p.id = :projectId")
+    fun findEnrolledUsers(projectId: Long): List<User>
+
     /** 프로젝트에 가입을 신청한 사용자 수이다 (v1.6 `project.enrolledUsers.size`). */
     @Query("select count(u) from User u join u.enrolledProjects p where p.id = :projectId")
     fun countEnrolledUsers(projectId: Long): Long

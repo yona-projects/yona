@@ -144,3 +144,7 @@
 ## [2026-10-22] ingest | 프로젝트 설정 (2단계 b-5c-3b)
 - TDD: `ProjectSettingTest` 34건을 먼저 쓰고(컴파일 오류 후 RED) 구현했다. 구현 중 알게 된 점: `th:with`에 `${}` 없이 쓰면 문자열 그대로 들어간다, 보안 필터가 감싼 요청은 `MultipartHttpServletRequest`로 형변환할 수 없어 `@RequestParam MultipartFile`을 쓴다.
 - v1.6의 mass assignment는 재현하지 않고 A-24로 기록했다. 기록: [web/project-setting.md](web/project-setting.md)
+
+## [2026-10-22] ingest | 구성원 관리와 프로젝트 삭제 (2단계 b-5c-3c, 3d)
+- TDD: 구성원 28건, 삭제 서비스 5건, 삭제 화면 8건을 먼저 쓰고 구현했다. 삭제 서비스는 v1.6 외래 키 그래프에서 프로젝트로부터 닿는 37개 테이블을 모두 처리하는지 구조 테스트로 확인한다.
+- 알림 이벤트는 Spring 이벤트로 발행만 한다(A-25). 기록: [web/project-members.md](web/project-members.md), [web/project-delete.md](web/project-delete.md)

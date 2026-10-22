@@ -29,7 +29,8 @@ updated: 2026-10-22
 | 2b-5c-2 | 마크다운 프로젝트 문맥 후처리(자동 링크, 이슈 링크, 캐시 동작) | 완료 | [web/markdown.md](web/markdown.md) |
 | 2b-5c-3a | 첨부 파일 핵심(저장, 내려받기) | 완료 | [web/attachments.md](web/attachments.md) |
 | 2b-5c-3b | 프로젝트 설정(로고 업로드, 이름 변경, 기본 브랜치) | 완료 | [web/project-setting.md](web/project-setting.md) |
-| 2b-5c-3c | 구성원 관리, 삭제 | 다음 | |
+| 2b-5c-3c | 구성원 관리 | 완료 | [web/project-members.md](web/project-members.md) |
+| 2b-5c-3d | 프로젝트 삭제 | 완료 | [web/project-delete.md](web/project-delete.md) |
 | 2c | 조직(Organization) 화면과 서비스 | 대기 | |
 | 2d | 사용자 화면(가입, 프로필, 설정, 이메일, 비밀번호 재설정) | 대기 | |
 | 3 | 이슈, 게시판, 마일스톤, 라벨, 첨부 | 대기 | |

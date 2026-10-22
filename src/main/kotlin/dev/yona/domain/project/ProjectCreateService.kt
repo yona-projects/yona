@@ -3,9 +3,7 @@ package dev.yona.domain.project
 import dev.yona.access.AccessControl
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.RoleType
-import dev.yona.domain.misc.UnwatchRepository
-import dev.yona.domain.misc.Watch
-import dev.yona.domain.misc.WatchRepository
+import dev.yona.domain.misc.WatchService
 import dev.yona.domain.user.RoleRepository
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
@@ -37,8 +35,7 @@ class ProjectCreateService(
     private val organizationUsers: OrganizationUserRepository,
     private val roles: RoleRepository,
     private val menuSettings: ProjectMenuSettingRepository,
-    private val watches: WatchRepository,
-    private val unwatches: UnwatchRepository,
+    private val watchService: WatchService,
     private val recentVisits: RecentVisitService,
     private val repositories: RepositoryService
 ) {
@@ -119,7 +116,7 @@ class ProjectCreateService(
         repositories.createRepository(project)
 
         saveMenuSetting(project, form.menus)
-        watch(creator, project)
+        watchService.watch(creator, ResourceType.PROJECT, requireNotNull(project.id).toString())
         recentVisits.record(creator, project)
         return project
     }
@@ -145,16 +142,6 @@ class ProjectCreateService(
                 review = "review" in menus, milestone = "milestone" in menus, board = "board" in menus
             )
         )
-    }
-
-    /** 만든 사람이 새 프로젝트를 구독한다. 이미 구독 중이면 중복으로 만들지 않고, 구독 해제 기록은 지운다 (v1.6 `Watch.watch`). */
-    private fun watch(user: User, project: Project) {
-        val userId = requireNotNull(user.id)
-        val resourceId = requireNotNull(project.id).toString()
-        if (!watches.existsByUserIdAndResourceTypeAndResourceId(userId, ResourceType.PROJECT, resourceId)) {
-            watches.save(Watch(user = user, resourceType = ResourceType.PROJECT, resourceId = resourceId))
-        }
-        unwatches.findByUserIdAndResourceTypeAndResourceId(userId, ResourceType.PROJECT, resourceId).forEach { unwatches.delete(it) }
     }
 
     companion object {

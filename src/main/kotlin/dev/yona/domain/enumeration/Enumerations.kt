@@ -11,6 +11,9 @@ enum class State(val state: String) {
     CONFLICT("conflict"), RESOLVED("resolved"), MERGED("merged"), DRAFT("draft")
 }
 
+/** 가입 신청 같은 요청의 처리 상태이다 (v1.6 `models.enumeration.RequestState`). */
+enum class RequestState { REQUEST, CANCEL, ACCEPT, REJECT }
+
 /** 프로젝트 공개 범위이다. */
 enum class ProjectScope { PRIVATE, PROTECTED, PUBLIC }
 

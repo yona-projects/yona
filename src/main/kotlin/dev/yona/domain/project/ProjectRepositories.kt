@@ -29,6 +29,23 @@ interface ProjectUserRepository : JpaRepository<ProjectUser, Long> {
 
     /** 사용자가 프로젝트에서 가진 역할(매니저 또는 멤버) 행을 조회한다 (v1.6 `Role.findRoleByIds`). */
     fun findFirstByUserIdAndProjectId(userId: Long, projectId: Long): ProjectUser?
+
+    /**
+     * 사용자의 프로젝트 소속 행 중 사이트 관리자 역할이 아닌 것을 찾는다 (v1.6 `ProjectUser.findByIds`).
+     * 사이트 관리자는 모든 프로젝트에 별도 행이 있으므로 구성원 처리에서는 제외한다.
+     */
+    fun findFirstByUserIdAndProjectIdAndRoleIdNot(userId: Long, projectId: Long, excludedRoleId: Long): ProjectUser?
+
+    /** 프로젝트의 모든 소속 행을 역할과 상관없이 조회한다. */
+    @org.springframework.data.jpa.repository.Query("select pu from ProjectUser pu join fetch pu.user where pu.project.id = :projectId")
+    fun findMembersIncludingSiteManager(projectId: Long): List<ProjectUser>
+
+    /** 프로젝트 구성원 행을 사이트 관리자 역할을 빼고 사용자 이름 오름차순으로 조회한다 (v1.6 `ProjectUser.findMemberListByProject`). */
+    @org.springframework.data.jpa.repository.Query(
+        "select pu from ProjectUser pu join fetch pu.user u join fetch pu.role r " +
+            "where pu.project.id = :projectId and r.id <> :excludedRoleId order by u.name asc"
+    )
+    fun findMembers(projectId: Long, excludedRoleId: Long): List<ProjectUser>
 }
 
 /** 조직 저장소이다. */

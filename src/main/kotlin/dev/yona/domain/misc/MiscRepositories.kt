@@ -29,6 +29,9 @@ interface FavoriteProjectRepository : JpaRepository<FavoriteProject, Long> {
     /** 사용자가 프로젝트를 즐겨찾기했는지 확인한다 (v1.6 `FavoriteProject.findByProjectId`). */
     fun existsByUserIdAndProjectId(userId: Long, projectId: Long): Boolean
 
+    /** 사용자가 프로젝트를 즐겨찾기한 행을 조회한다 (v1.6 `User.removeFavoriteProject`). */
+    fun findByUserIdAndProjectId(userId: Long, projectId: Long): List<FavoriteProject>
+
     /** 프로젝트를 즐겨찾기한 모든 행을 조회한다 (v1.6 `FavoriteProject.updateFavoriteProject`). */
     fun findByProjectId(projectId: Long): List<FavoriteProject>
 }
