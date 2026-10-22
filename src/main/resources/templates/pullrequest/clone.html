@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/git/clone.scala.html
+  모델: title, projectView(원본), originalOwner, originalName, forkOwner, forkName, forkScope, cloneUrl
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PULL_REQUEST', ~{::clonePage})}">
+<th:block th:fragment="clonePage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="content-wrap frm-wrap">
+            <legend th:text="#{fork.forking(${originalOwner}, ${originalName}, ${forkOwner}, ${forkName})}"></legend>
+            <p th:text="#{fork.forking.message.1}"></p>
+            <p th:text="#{fork.forking.message.2}"></p>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        NProgress.start();
+        setTimeout(function(){
+            var cloneUrl = /*[[${cloneUrl}]]*/ "";
+            var cloneParam = {owner: /*[[${forkOwner}]]*/ "", name: /*[[${forkName}]]*/ "", projectScope: /*[[${forkScope}]]*/ ""};
+
+            $.post(cloneUrl, cloneParam, function(data){
+                if(data.status === "failed") {
+                    $yobi.alert(/*[[#{fork.failed}]]*/ "", function(){
+                        location.replace(data.url);
+                    });
+                } else {
+                    location.replace(data.url);
+                }
+            });
+        }, 3000);
+    });
+</script>
+</th:block>
+</html>

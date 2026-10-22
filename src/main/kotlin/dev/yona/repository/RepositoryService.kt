@@ -51,6 +51,17 @@ class RepositoryService(private val git: GitRepositories) {
         return git.open(owner(project), name(project))
     }
 
+    /**
+     * [original]의 Git 저장소를 [fork]의 위치로 복제한다 (v1.6 `GitRepository.cloneLocalRepository`).
+     *
+     * @throws UnsupportedOperationException Git이 아닌 프로젝트일 때
+     */
+    fun cloneRepository(original: Project, fork: Project) {
+        if (original.vcs != VCS_GIT) throw unsupported(original)
+        if (fork.vcs != VCS_GIT) throw unsupported(fork)
+        git.cloneLocal(owner(original), name(original), owner(fork), name(fork))
+    }
+
     /** 프로젝트 저장소 디렉터리를 새 이름으로 옮긴다. 옮기지 못하면 `false`이다 (v1.6 `PlayRepository.renameTo`). */
     fun renameRepository(project: Project, newName: String): Boolean {
         if (project.vcs != VCS_GIT) throw unsupported(project)

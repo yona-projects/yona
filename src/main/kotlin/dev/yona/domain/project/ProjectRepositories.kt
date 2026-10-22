@@ -13,6 +13,9 @@ interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExec
     fun findByOriginalProjectId(originalProjectId: Long): List<Project>
 
 
+    /** 소유자(대소문자 구별)가 [originalProjectId]를 포크한 프로젝트이다 (v1.6 `Project.findByOwnerAndOriginalProject`, `eq`).*/
+    fun findByOwnerAndOriginalProjectId(owner: String, originalProjectId: Long): List<Project>
+
     /** 소유자가 만든 프로젝트 중 공개 범위가 [scope]인 것을 만든 날짜 내림차순으로 조회한다 (v1.6 `Project.findProjectsCreatedByUserAndScope`). */
     fun findByOwnerIgnoreCaseAndProjectScopeOrderByCreatedDateDesc(owner: String, scope: dev.yona.domain.enumeration.ProjectScope): List<Project>
 

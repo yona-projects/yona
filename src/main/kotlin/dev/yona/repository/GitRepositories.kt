@@ -63,6 +63,52 @@ class GitRepositories(private val dataDirectory: DataDirectory) {
         }
     }
 
+    /**
+     * 원본 저장소를 포크 저장소로 복제한다 (v1.6 `GitRepository.cloneLocalRepository`). 먼저 객체 파일을 하드 링크로 걸어 디스크를 아끼고
+     * 참조를 옮겨 오며, 하드 링크를 만들 수 없으면(파일 시스템이 다른 경우 등) 만들던 저장소를 지우고 전체를 복사해 복제한다.
+     *
+     * v1.6은 `info/alternates`만 복사하려고 비교했으나 비교 대상이 절대 경로로 풀려 늘 같지 않았다. 그래서 그 파일도 하드 링크로 걸린다.
+     * 같은 결과를 내려고 그대로 따른다.
+     */
+    fun cloneLocal(owner: String, name: String, forkOwner: String, forkName: String) {
+        try {
+            cloneHardLinked(owner, name, forkOwner, forkName)
+        } catch (e: Exception) {
+            delete(forkOwner, forkName)
+            org.eclipse.jgit.api.Git.cloneRepository()
+                .setURI(directoryOf(owner, name).toURI().toString()).setDirectory(directoryOf(forkOwner, forkName))
+                .setCloneAllBranches(true).setBare(true).call().close()
+        }
+    }
+
+    private fun cloneHardLinked(owner: String, name: String, forkOwner: String, forkName: String) {
+        open(owner, name).use { origin ->
+            RepositoryBuilder().setGitDir(directoryOf(forkOwner, forkName)).setBare().build().use { forked ->
+                forked.create(true)
+                val originObjects = java.nio.file.Paths.get(File(origin.directory, "objects").absolutePath)
+                val forkedObjects = java.nio.file.Paths.get(File(forked.directory, "objects").absolutePath)
+                java.nio.file.Files.walkFileTree(originObjects, object : java.nio.file.SimpleFileVisitor<java.nio.file.Path>() {
+                    override fun visitFile(file: java.nio.file.Path, attrs: java.nio.file.attribute.BasicFileAttributes): java.nio.file.FileVisitResult {
+                        val target = forkedObjects.resolve(originObjects.relativize(file.toAbsolutePath()))
+                        target.parent.toFile().mkdirs()
+                        java.nio.file.Files.deleteIfExists(target)
+                        java.nio.file.Files.createLink(target, file)
+                        return java.nio.file.FileVisitResult.CONTINUE
+                    }
+                })
+                for ((refName, ref) in origin.allRefs) {
+                    val update = forked.updateRef(refName)
+                    if (ref.isSymbolic) {
+                        update.link(ref.target.name)
+                    } else {
+                        update.setNewObjectId(ref.objectId)
+                        update.update()
+                    }
+                }
+            }
+        }
+    }
+
     /** 저장소의 브랜치, 태그, 원격 참조 이름을 이름순으로 돌려준다 (v1.6 `GitRepository.getRefNames`). */
     fun refNames(owner: String, name: String): List<String> = open(owner, name).use { repository ->
         repository.refDatabase.refs.map { it.name }.filter { ref -> WELL_KNOWN_PREFIXES.any { ref.startsWith(it) } }.sorted()
