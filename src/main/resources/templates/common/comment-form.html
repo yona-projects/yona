@@ -1,0 +1,41 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/commentForm.scala.html
+  매개변수: canCreate(댓글을 쓸 수 있는지), resourceType(리소스 종류 이름), action(등록 주소)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentForm(canCreate, resourceType, action)">
+<th:block th:if="${canCreate}">
+    <form id="comment-form" th:action="${action}" method="post" enctype="multipart/form-data">
+        <div class="write-comment-box">
+            <th:block th:replace="~{common/editor :: editor('contents', '', '', 'comment-body', false)}"></th:block>
+
+            <th:block th:if="${!currentUser.anonymous}">
+                <th:block th:replace="~{common/file-uploader :: fileUploader(${resourceType}, null)}"></th:block>
+            </th:block>
+
+            <div class="write-comment-wrap">
+                <div class="right-txt">
+                    <button type="button" class="ybtn hidden" id="dynamic-comment-btn"></button>
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}"></button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.CommentForm.js}"></script>
+</th:block>
+<th:block th:unless="${canCreate}">
+    <div class="write-comment-box mt20" th:title="#{error.auth.unauthorized.comment}" data-login="required">
+        <div class="write-comment-wrap">
+            <div class="textarea-box">
+                <textarea class="comment disabled" disabled="disabled" style="cursor:text;"></textarea>
+            </div>
+            <div class="right-txt mt10">
+                <span class="ybtn ybtn-disabled" th:text="#{button.comment.new}"></span>
+            </div>
+        </div>
+    </div>
+</th:block>
+</th:block>

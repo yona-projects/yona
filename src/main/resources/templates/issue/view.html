@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/view.scala.html
+  모델: title(문서 제목 |:| 본문 앞부분), projectView, issue(IssueDetail), listUrl, nextState
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'ISSUE', ~{::viewPage})}">
+<th:block th:fragment="viewPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'ISSUE', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap board-view">
+        <!--/* Post Info */-->
+        <div class="board-header issue">
+            <div class="pull-right mr10 mt10 hide-in-mobile">
+                <div class="date" th:title="${issue.createdTitle}" th:text="${issue.createdAgo}"></div>
+                <span class="badge" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
+            </div>
+            <div class="title">
+                <span th:if="${issue.hasParent}" class="subtask-mark">subtask</span>
+                <strong class="board-id"><span th:if="${issue.draft}" class="draft-number" th:text="'#' + #{issue.state.draft}"></span><th:block th:unless="${issue.draft}" th:text="${issue.number}"></th:block></strong>
+                <th:block th:text="${issue.title}"></th:block>
+                <span class="favorite-issue" th:attr="data-issue-id=${issue.id}">
+                    <i class="star material-icons va-text-top" th:classappend="${issue.favorite} ? 'starred'">star</i>
+                </span>
+                <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
+                    <span class="date" th:title="${issue.createdTitle}" th:text="${issue.createdAgo}"></span>
+                    <span class="badge badge-small" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
+                </div>
+            </div>
+            <div th:if="${issue.draft}" class="draft" th:text="#{issue.draft.description}"></div>
+        </div>
+        <!--/* Content body */-->
+        <!--board-body-->
+        <div class="board-body row-fluid">
+            <div class="span9 span-left-pane">
+                <div class="author-info">
+                    <a th:if="${issue.author != null}" th:href="'/' + ${issue.author.loginId}" class="usf-group">
+                        <span class="avatar-wrap smaller">
+                            <img th:src="${issue.author.avatarUrl}" width="20" height="20">
+                        </span>
+                        <strong class="name" th:text="${issue.author.displayName}"></strong>
+                        <span class="loginid"> <strong>@</strong><th:block th:text="${issue.author.loginId}"></th:block></span>
+                    </a>
+                    <a th:if="${issue.author == null}" href="/" class="usf-group">
+                        <strong class="name" th:text="#{issue.noAuthor}"></strong>
+                    </a>
+                    <th:block th:if="${issue.historyHtml != null}">
+                        <div th:if="${currentUser.anonymous}" class="posting-history">
+                            <a th:href="'/login?redirectUrl=' + ${base + '/issue/' + issue.number}" data-toggle="modal" th:text="#{change.history}"></a>
+                        </div>
+                        <div th:unless="${currentUser.anonymous}" class="posting-history">
+                            <a href="#-yona-posting-history" data-toggle="modal">
+                                <span th:if="${issue.updatedByName != null}" class="lastUpdatedBy">
+                                    <span th:text="${issue.updatedByName}"></span>
+                                    <span th:text="${issue.updatedAgo}"></span>
+                                </span>
+                                <span th:text="#{change.edited}"></span>
+                            </a>
+                            <th:block th:replace="~{common/partial-history :: history(${issue.historyHtml})}"></th:block>
+                        </div>
+                    </th:block>
+                </div>
+                <div th:if="${issue.bodyHtml == null}" class="content empty-content"></div>
+                <th:block th:unless="${issue.bodyHtml == null}">
+                    <div th:id="'issue-' + ${issue.number}" class="hide">
+                        <form th:action="${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/content'}">
+                            <textarea th:text="${issue.body}"></textarea>
+                        </form>
+                    </div>
+                    <div th:id="'issue-body-' + ${issue.number}">
+                        <th:block th:replace="~{common/tasklist-bar :: tasklistBar}"></th:block>
+                        <div class="content markdown-wrap" th:attr="data-allowed-update=${issue.canUpdate}" th:utext="${issue.bodyHtml}"></div>
+                    </div>
+                </th:block>
+                <div class="attachments" id="attachments" th:attr="data-attachments=${issue.attachmentsJson}"></div>
+                <div class="board-actrow right-txt">
+                    <div class="pull-left">
+                        <div>
+                            <button th:if="${issue.watchable}" id="watch-button" type="button" class="ybtn" th:classappend="${issue.watching} ? 'ybtn-watching'"
+                                    data-toggle="tooltip" data-placement="top" th:title="#{issue.watch.description}" th:attr="data-watching=${issue.watching}"
+                                    th:text="${issue.watching} ? #{issue.unwatch} : #{issue.watch}"></button>
+                            <button th:if="${issue.canUpdate}" id="issue-share-button" type="button" class="ybtn" data-toggle="popover" data-trigger="hover" data-placement="top"
+                                    th:attr="data-content=#{issue.sharer.description}" th:text="#{button.share.issue}"></button>
+                            <span class="project-btn-item hide show-in-mobile-inline ml4">
+                                <a th:href="${base + '/issueform?parentIssueId=' + issue.parentIssueId}" class="ybtn ybtn-success" th:text="#{button.newSubtask}"></a>
+                            </span>
+                            <span class="issue-weight"><span class="divider">|</span><button id="upvote-issue-weight" class="ybtn ybtn-small" data-toggle="tooltip" th:attr="title=#{issue.weight} + ': Upvote'"><i class="yobicon-arrow-up-alt"></i></button><button class="ybtn ybtn-small" id="down-vote-issue-weight" data-toggle="tooltip" th:attr="title=#{issue.weight} + ': Down vote'"><i class="yobicon-arrow-down-alt"></i></button><span class="weight-number" data-toggle="popover" data-trigger="hover" data-placement="top" th:attr="data-content=#{issue.weight.description}" th:text="${issue.weight}"></span></span>
+                        </div>
+                    </div>
+                    <div id="vote" class="vote-wrap" th:classappend="${!issue.voters.isEmpty()} ? 'voter-exists'">
+                        <a th:if="${issue.canVoteOrComment}" th:href="${base + '/issue/' + issue.number + '/' + (issue.votedByMe ? 'unvote' : 'vote')}" th:classappend="${issue.votedByMe} ? 'ybtn-watching'"
+                           th:title="${issue.votedByMe} ? #{issue.unvote.description} : #{issue.vote.description}" data-request-method="post" data-toggle="tooltip">
+                            <span class="heart"><i class="yobicon-hearts"></i></span>
+                        </a>
+                        <span th:unless="${issue.canVoteOrComment}" class="ybtn-disabled" style="color: #777;" data-toggle="tooltip" th:title="#{user.login.alert}" data-login="required">
+                            <span class="heart"><i class="yobicon-hearts"></i></span>
+                        </span>
+
+                        <th:block th:if="${!issue.voters.isEmpty()}"><th:block th:replace="~{issue/partial-voters :: voters(3, 5)}"></th:block></th:block>
+                    </div>
+
+                    <!--/* v1.6은 추천자 표시를 그린 뒤 같은 집합에서 현재 사용자를 뺀 채로 대화상자를 그린다([refactoring-backlog.md] R-25). */-->
+                    <th:block th:if="${!issue.votersExceptMe.isEmpty()}"><th:block th:replace="~{issue/partial-voter-list :: voterList('voters', ${issue.votersExceptMe})}"></th:block></th:block>
+
+                    <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+
+                    <span class="act-row">
+                        <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"
+                                th:attr="onclick='window.location=\'' + ${base + '/issue/' + issue.number + '/editform'} + '\''"><i class="yobicon-edit-2"></i></button>
+                        <a th:unless="${issue.canUpdate}" th:href="${base + '/issue/' + issue.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                        <th:block th:if="${issue.deletable}">
+                            <a th:if="${issue.canDelete}" href="#deleteConfirm" data-toggle="modal">
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
+                        </th:block>
+                        <button th:unless="${issue.deletable}" type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-toggle='popover' data-trigger="hover" data-placement="top"
+                                th:attr="data-content=#{issue.can.not.be.deleted}"><i class="yobicon-trash"></i></button>
+                    </span>
+                </div>
+                <dl class="sharer-list" th:classappend="${issue.sharers.isEmpty()} ? 'hideFromDisplayOnly'">
+                    <dt class="issue-share-title mb10">
+                        <th:block th:text="#{issue.sharer}"></th:block> <span class="num issue-sharer-count"><th:block th:if="${!issue.sharers.isEmpty()}" th:text="${issue.sharers.size()}"></th:block></span>
+                    </dt>
+                    <dd id="sharer-list" th:class="${issue.sharers.isEmpty()} ? 'hideFromDisplayOnly'">
+                        <input th:if="${issue.canUpdate}" type="hidden" class="bigdrop width100p" id="issueSharer" name="issueSharer" th:placeholder="#{issue.sharer.select}" th:value="${issue.sharerLoginIds}" title="">
+                        <th:block th:unless="${issue.canUpdate}">
+                            <div th:each="sharer : ${issue.sharers}" class="text-ellipsis sharer-item">
+                                <a th:href="'/' + ${sharer.loginId}" class="usf-group">
+                                    <strong class="name" th:text="${sharer.displayName}"></strong>
+                                </a>
+                            </div>
+                        </th:block>
+                    </dd>
+                </dl>
+                <div class="watcher-list"></div>
+                <div class="subtasks">
+                    <th:block th:replace="~{issue/partial-subtasks :: subtasks}"></th:block>
+                </div>
+                <!--/* Comment */-->
+                <div th:if="${!issue.draft}" id="comments" class="board-comment-wrap">
+                    <div id="timeline">
+                        <div class="timeline-list">
+                            <th:block th:replace="~{issue/partial-comments :: timelineList}"></th:block>
+                        </div>
+                    </div>
+                    <th:block th:replace="~{common/comment-form :: commentForm(${issue.canVoteOrComment}, 'ISSUE_COMMENT', ${base + '/issue/' + issue.number + '/comments'})}"></th:block>
+                </div>
+            </div>
+
+            <div class="span3 span-right-pane mb20">
+                <div class="issue-info">
+                    <form id="issueUpdateForm" th:action="${base + '/issues'}" method="post">
+                        <input type="hidden" name="issues[0].id" th:value="${issue.id}" />
+
+                        <!--/* assignee */-->
+                        <dl>
+                            <dd th:if="${projectView.menuSetting.issue}" class="project-btn-item">
+                                <a th:href="${base + '/issueform?parentIssueId=' + issue.parentIssueId}" class="ybtn ybtn-success" th:text="#{button.newSubtask}"></a>
+                            </dd>
+                            <dt th:text="#{issue.assignee}"></dt>
+
+                            <dd>
+                                <th:block th:if="${issue.canUpdate}">
+                                    <th:block th:replace="~{issue/partial-assignee :: assignee(${issue.assignee?.loginId})}"></th:block>
+                                </th:block>
+                                <th:block th:unless="${issue.canUpdate}">
+                                    <a th:if="${issue.assignee != null}" th:href="'/' + ${issue.assignee.loginId}" class="usf-group">
+                                        <span class="avatar-wrap smaller">
+                                            <img th:src="${issue.assignee.avatarUrl}" width="20" height="20">
+                                        </span>
+                                        <strong class="name" th:text="${issue.assignee.displayName}"></strong>
+                                        <span class="loginid"> <strong>@</strong><th:block th:text="${issue.assignee.loginId}"></th:block></span>
+                                    </a>
+                                    <div th:if="${issue.assignee == null}" th:text="#{issue.noAssignee}"></div>
+                                </th:block>
+                            </dd>
+                        </dl>
+
+                        <!--/* milestones */-->
+                        <dl th:if="${projectView.menuSetting.milestone}">
+                            <dt th:text="#{milestone}"></dt>
+                            <dd>
+                                <a th:if="${!issue.hasMilestones}" th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-small ybtn-fullsize" target="_blank" th:text="#{milestone.menu.new}"></a>
+                                <th:block th:if="${issue.hasMilestones}">
+                                    <select th:if="${issue.canUpdate}" id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                        <option value="-1" th:selected="${issue.milestoneId == null}" th:text="#{issue.noMilestone}"></option>
+                                        <optgroup th:label="#{milestone.state.open}">
+                                            <option th:each="m : ${issue.openMilestones}" th:value="${m.id}" th:attr="data-state=${m.state}" th:selected="${issue.milestoneId != null and issue.milestoneId == m.id}" th:text="${m.title}"></option>
+                                        </optgroup>
+                                        <optgroup th:label="#{milestone.state.closed}">
+                                            <option th:each="m : ${issue.closedMilestones}" th:value="${m.id}" th:attr="data-state=${m.state}" th:selected="${issue.milestoneId != null and issue.milestoneId == m.id}" th:text="${m.title}"></option>
+                                        </optgroup>
+                                    </select>
+                                    <th:block th:unless="${issue.canUpdate}">
+                                        <a th:if="${issue.milestoneId != null}" th:href="${base + '/milestone/' + issue.milestoneId}" th:text="${issue.milestoneTitle}"></a>
+                                        <th:block th:if="${issue.milestoneId == null}" th:text="#{issue.noMilestone}"></th:block>
+                                    </th:block>
+                                </th:block>
+                            </dd>
+                        </dl>
+
+                        <dl>
+                            <dt>
+                                <th:block th:text="#{issue.dueDate}"></th:block>
+                                <span class="duedate-status" th:classappend="${issue.dueOver} ? 'overdue'">
+                                    <th:block th:if="${issue.dueDateText != null}" th:text="'(' + ${issue.dueDateText} + ')'"></th:block>
+                                </span>
+                            </dt>
+                            <dd>
+                                <div th:if="${issue.canUpdate}" class="search search-bar">
+                                    <input type="text" name="dueDate" th:value="${issue.dueDateString}" class="textbox full" autocomplete="off" data-toggle="calendar">
+                                    <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
+                                </div>
+                                <th:block th:unless="${issue.canUpdate}">
+                                    <th:block th:if="${issue.dueDateString != null}" th:text="${issue.dueDateString}"></th:block>
+                                    <th:block th:if="${issue.dueDateString == null}" th:text="#{issue.noDuedate}"></th:block>
+                                </th:block>
+                            </dd>
+                        </dl>
+
+                        <!--/* labels */-->
+                        <th:block th:if="${!issue.projectLabels.isEmpty()}">
+                            <th:block th:if="${issue.canUpdate}"><th:block th:replace="~{issue/partial-select-label :: selectLabel(${issue.projectLabels}, ${issue.selectedLabelIds}, '', ${projectView})}"></th:block></th:block>
+                            <th:block th:unless="${issue.canUpdate}"><th:block th:replace="~{issue/partial-show-selected-label :: showSelectedLabel(${issue.labels}, ${base + '/issues?state=' + issue.state})}"></th:block></th:block>
+                        </th:block>
+                        <div class="act-row right-menu-icons">
+                            <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"
+                                    th:attr="onclick='window.location=\'' + ${base + '/issue/' + issue.number + '/editform'} + '\''"><i class="yobicon-edit-2"></i></button>
+                            <a th:unless="${issue.canUpdate}" th:href="${base + '/issue/' + issue.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                            <th:block th:if="${issue.deletable}">
+                                <a th:if="${issue.canDelete}" href="#deleteConfirm" data-toggle="modal">
+                                    <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
+                            </th:block>
+                            <button th:unless="${issue.deletable}" type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-toggle='popover' data-trigger="hover" data-placement="top"
+                                    th:attr="data-content=#{issue.can.not.be.deleted}"><i class="yobicon-trash"></i></button>
+                        </div>
+                    </form>
+                    <div id="comments" class="board-comment-wrap">
+                        <div id="timeline">
+                            <div class="timeline-list">
+                                <th:block th:replace="~{issue/partial-index-comments :: indexComments}"></th:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <input type="hidden" id="issueBodyChecksum" th:value="${issue.bodyChecksum}">
+            <input type="hidden" id="numOfComments" th:value="${issue.numOfComments}">
+            <input type="hidden" id="issueUpdateDate" th:value="${issue.updatedTime}">
+        </div>
+        <div class="board-footer">
+            <th:block th:replace="~{help/keymap :: keymap('issueDetail', ${projectView})}"></th:block>
+        </div>
+    </div>
+
+    <script type="text/x-jquery-tmpl" id="tplAttachedFile" th:inline="none"><!--
+        --><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+        <strong>${fileName}(${fileSizeReadable})${notice}</strong><!--
+        --><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
+    </script>
+
+    <!--/* Confirm to delete post */-->
+    <div id="deleteConfirm" class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3 th:text="#{issue.delete}"></h3>
+        </div>
+        <div class="modal-body">
+            <p th:text="#{post.delete.confirm}"></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=${base + '/issue/' + issue.number + '/delete'}" th:text="#{button.yes}"></button>
+            <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+<th:block th:replace="~{common/comment-delete-modal :: commentDeleteModal('#comments')}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/calendar :: calendar}"></th:block>
+
+<link rel="stylesheet" type="text/css" media="screen" th:href="${base + '/issue/labels.css'}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/elevator/jquery.elevator.css}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/videojs/video-js.min.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/elevator/jquery.elevator.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/videojs/video.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/favico/favico.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.issue.Assginee.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.issue.Sharer.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.detectChange.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Sha1.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Tasklist.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.SubComment.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.CommentAttachmentsUpdate.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.ReceiverList.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        // yobi.issue.View
+        $yobi.loadModule("issue.View", {
+            "issueId"  : /*[[${#strings.toString(issue.id)}]]*/ "",
+            "nextState": /*[[${nextState}]]*/ "",
+            "urls"     : {
+                "watch"     : /*[[${'/watch?resource.type=issue_post&resource.id=' + issue.id}]]*/ "",
+                "unwatch"   : /*[[${'/unwatch?resource.type=issue_post&resource.id=' + issue.id}]]*/ "",
+                "timeline"  : /*[[${base + '/issue/' + issue.number + '/timeline'}]]*/ "",
+                "nextState" : /*[[${base + '/issue/' + issue.number + '/nextstate'}]]*/ "",
+                "massUpdate": /*[[${base + '/issues'}]]*/ ""
+            }
+        });
+
+        // yobi.ShortcutKey
+        yobi.ShortcutKey.setKeymapLink({
+            "L": /*[[${listUrl}]]*/ ""
+            /*[# th:if="${projectView.menuSetting.issue}"]*/
+            ,"N": /*[[${base + '/issueform'}]]*/ ""
+            /*[/]*/
+            /*[# th:if="${issue.canUpdate}"]*/
+            ,"E": /*[[${base + '/issue/' + issue.number + '/editform'}]]*/ ""
+            /*[/]*/
+        });
+
+        // yobi.Mention
+        yobi.Mention({
+            "target": 'textarea[id^=editor-], .editorSeries',
+            "url"   : /*[[${base + '/mentionList?number=' + issue.number + '&resourceType=issue_post'}]]*/ ""
+        });
+
+        // detect comment which contains mention at me
+        $(".comment-body:contains('" + /*[[${currentUser.name}]]*/ "" + "')").closest(".comment").addClass("mentioned");
+        $(".user-link:contains('" + /*[[${currentUser.name}]]*/ "" + "')").addClass("me");
+    });
+
+    $(function () {
+        yonaAssgineeModule(
+                /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/assignableUsers'}]]*/ "",
+                /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/assignees'}]]*/ "",
+                /*[[#{issue.assignee}]]*/ ""
+        );
+
+        yonaIssueSharerModule(
+                /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/findSharer'}]]*/ "",
+                /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/sharableUsers'}]]*/ "",
+                /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/share'}]]*/ "",
+                /*[[#{issue.sharer}]]*/ ""
+        );
+
+        $('#issue-share-button').on('click', function () {
+            $('#sharer-list').show();
+            $('.sharer-list').show().addClass("sharer-list-border");
+            $('#sharer-list .select2-search-field > input').focus();
+        });
+
+        $('#translate').one('click', function (e) {
+            var data = {
+                owner: /*[[${project.owner}]]*/ "",
+                projectName: /*[[${project.name}]]*/ "",
+                type: "issue",
+                number: /*[[${#strings.toString(issue.number)}]]*/ ""
+            };
+            $.ajax({
+                url: "/-_-api/v1/translation",
+                data: JSON.stringify(data),
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json"
+            }).done(function (data) {
+                $(".markdown-wrap").first().html(data.translated);
+                $(this).attr("disabled", true);
+            });
+        });
+
+        $('.comment-translate').one('click', function (e) {
+            var payload = {
+                owner: /*[[${project.owner}]]*/ "",
+                projectName: /*[[${project.name}]]*/ "",
+                type: "issue-comment",
+                number: $(this).data("commentId")
+            };
+            $.ajax({
+                url: "/-_-api/v1/translation",
+                data: JSON.stringify(payload),
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json"
+            }).done(function (data) {
+                $("#comment-body-" + payload.number).find(".markdown-wrap").html(data.translated)
+                $(this).attr("disabled", true);
+            });
+        });
+
+        if (ClipboardJS.isSupported()) {
+            var clipboard = new ClipboardJS('#copyEmailBtn');
+
+            clipboard.on('success', function(e) {
+                $yobi.alert(/*[[#{button.copy.email.success.message}]]*/ "");
+            });
+        } else {
+            $yobi.notify(/*[[#{site.features.error.clipboard}]]*/ "", 1500);
+        }
+
+        // timeline label text color adjusting
+        $(".event > .label").each(function() {
+            var $this = $(this);
+            $this.removeClass("dimgray white")
+                    .addClass($yobi.getContrastColor($this.css('background-color')))
+        });
+
+        $.elevator({
+            shape: 'rounded',
+            tooltips: true
+        });
+
+        $("#upvote-issue-weight").on("click", function () {
+            $.ajax({
+                url: /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/upvoteWeight'}]]*/ "",
+                type: "POST",
+            }).done(function (data) {
+                $(".weight-number").html(data.weight);
+            });
+        });
+
+        $("#down-vote-issue-weight").on("click", function () {
+            $.ajax({
+                url: /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/downvoteWeight'}]]*/ "",
+                type: "POST",
+            }).done(function (data) {
+                $(".weight-number").html(data.weight);
+            });
+        });
+
+        $(".editorSeries")
+            .on("focus", function () {
+                $(this).closest("form").find(".notification-receiver").show()
+                findNotiReceiversHandler(
+                        $(this),
+                        /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/commentNotiReceivers'}]]*/ ""
+                )
+            })
+            .on("focusout", function () {
+                unbindFindNotiReceiversHandler($(this))
+            });
+
+        $(".index-comment").on("click", function(){
+            window.location = $(this).data("location");
+            if (!history.state) {
+                window.parent.history.pushState({ startPath: location.pathname }, document.title, window.location);
+            } else {
+                window.parent.history.replaceState(history.state, document.title, window.location);
+            }
+        });
+
+        detectPageChange(/*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/issues/' + issue.number + '/detectChange'}]]*/ "")
+    })
+</script>
+</th:block>
+</html>

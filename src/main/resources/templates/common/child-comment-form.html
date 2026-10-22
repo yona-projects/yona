@@ -1,0 +1,21 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/child_commentForm.scala.html
+  매개변수: action(등록 주소), parentCommentId
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="childCommentForm(action, parentCommentId)" th:with="ctrlKey=${isMac ? '⌘' : 'CTRL'}">
+<form th:action="${action}" method="post" enctype="multipart/form-data">
+    <input class="parentCommentId" type="hidden" name="parentCommentId" th:value="${parentCommentId}"/>
+    <div class="oneline-comment-box">
+        <textarea class="editorSeries" name="contents" markdown="true" rows="1" th:placeholder="#{comment.oneline.comment.placeholder} + ' (' + ${ctrlKey} + ' + ENTER)'"></textarea>
+        <button type="submit" class="ybtn ybtn-success">OK</button>
+    </div>
+    <div class="notification-receiver">
+        <span class="notification-receiver-title" th:text="#{notification.receiver.list.title}"></span>
+        <span class="notification-receiver-list"></span>
+    </div>
+</form>
+</th:block>

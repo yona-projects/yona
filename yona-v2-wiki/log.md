@@ -187,3 +187,8 @@
 ## [2026-10-23] ingest | 이슈 등록 (3단계 c-2a)
 - TDD: `IssueSearchServiceTest` 18건 외에 `TitleHeadServiceTest` 4건, `MentionServiceTest` 6건, `IssueEventServiceTest` 6건, `IssueServiceTest` 9건, `IssueCreateTest` 21건, `IssueFormApiTest` 8건.
 - MariaDB에서 이슈 댓글을 id로 읽을 때 조인 표가 61개를 넘는 문제가 드러나 `hibernate.max_fetch_depth: 2`를 적용했다(A-43). A-42를 기록했다.
+
+## [2026-10-23] ingest | 이슈 보기, 다음 상태, 삭제 (3단계 c-2b)
+- TDD: `IssueViewTest` 38건, `IssueActionsTest` 8건, `IssueServiceTest`에 상태 전환과 삭제 6건. 공용 댓글 템플릿 조각(`common/comment-*`, `child-comments`, `partial-history`, `attachment-file`)과 이벤트 HTML 생성기를 옮겼다.
+- Thymeleaf에서 `th:replace`가 `th:if`보다 먼저 처리되는 문제를 발견해 3c-1의 목록 템플릿까지 포함해 17곳을 중첩 블록으로 고쳤다.
+- R-24(삭제해도 멘션 기록 유지), R-25(추천자 대화상자에서 현재 사용자 제외)를 재현했다.

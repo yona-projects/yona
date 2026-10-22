@@ -1,0 +1,81 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_comment.scala.html
+  매개변수: c(CommentView), issue(IssueDetail), projectView
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="comment(c, issue)" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<li class="comment" th:classappend="${c.own} ? 'author'" th:id="'comment-' + ${c.id}">
+    <th:block th:each="anchor : ${c.childAnchorIds}"><div th:id="'comment-' + ${anchor}"></div></th:block>
+    <div class="comment-avatar">
+        <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.author.loginId}">
+            <img th:src="${c.author.avatarUrl}" width="32" height="32" th:alt="${c.author.name}">
+        </a>
+    </div>
+    <div class="media-body">
+        <div class="meta-info">
+            <span class="comment_author">
+                <span class="resp-comment-avatar">
+                    <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.author.name}">
+                        <img th:src="${c.author.avatarUrl}" width="32" height="32" th:alt="${c.author.loginId}">
+                    </a>
+                </span>
+                <a th:href="'/' + ${c.author.loginId}" data-toggle="tooltip" data-placement="top" th:title="${c.author.loginId}"><strong th:text="${c.author.displayName}"></strong></a>
+            </span>
+            <span class="ago-date">
+                <a th:href="'#comment-' + ${c.id}" class="ago" th:title="${c.createdTitle}" th:text="${c.createdAgo}"></a>
+                <a th:href="'#comment-' + ${c.id}" class="share-link" style="display: none">[Link]</a>
+            </span>
+            <span class="act-row pull-right">
+                <span class="new-issue-by">
+                    <a th:href="'/user/issues/new?commentId=' + ${c.id}" th:text="#{issue.menu.new.by}"></a>
+                </span>
+                <th:block th:if="${c.canRead}">
+                    <th:block th:if="${c.voters.size() > 5}">
+                        <span style="margin-right: 2px;" data-toggle="tooltip" data-html="true" th:attr="title=${#strings.listJoin(c.voters.subList(0, 5).![name], '<br>') + '<br>&hellip;'}">
+                            <a class="vote-description-people" th:href="'#voters-' + ${c.id}" data-toggle="modal"
+                               th:text="${c.voters.size() == 1} ? #{common.comment.vote.agreement(${c.voters.size()})} : #{common.comment.vote.agreements(${c.voters.size()})}"></a>
+                        </span>
+                        <th:block th:replace="~{issue/partial-voter-list :: voterList('voters-' + ${c.id}, ${c.voters})}"></th:block>
+                    </th:block>
+                    <th:block th:unless="${c.voters.size() > 5}">
+                        <a th:each="voter : ${c.voters}" th:href="'/' + ${voter.loginId}" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" th:title="${voter.name}">
+                            <img th:src="${voter.avatarUrl}">
+                        </a>
+                    </th:block>
+
+                    <button th:if="${c.votedByMe}" type="button" class="btn-transparent-with-fontsize-lineheight" th:title="#{common.comment.unvote}" data-request-type="comment-vote"
+                            th:attr="data-request-uri=${base + '/issue/' + issue.number + '/comment/' + c.id + '/unvote'}">
+                        <i class="yobicon-hearts vote-heart-on"></i>
+                    </button>
+                    <th:block th:unless="${c.votedByMe}">
+                        <i th:if="${c.viewerAnonymous}" class="yobicon-hearts vote-heart-off vote-heart-disable-hover"></i>
+                        <button th:unless="${c.viewerAnonymous}" type="button" class="btn-transparent-with-fontsize-lineheight" th:title="#{common.comment.vote}" data-request-type="comment-vote"
+                                th:attr="data-request-uri=${base + '/issue/' + issue.number + '/comment/' + c.id + '/vote'}">
+                            <i class="yobicon-hearts vote-heart-off"></i>
+                        </button>
+                    </th:block>
+                </th:block>
+
+                <button th:if="${site.translationApiConfigured}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 comment-translate" data-toggle="tooltip" th:attr="data-comment-id=${c.id}" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+
+                <button th:if="${c.canRead}" type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" th:attr="data-comment-id=${c.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
+
+                <button th:if="${c.canDelete}" type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete"
+                        th:attr="data-request-uri=${base + '/issue/' + issue.number + '/comment/' + c.id + '/delete'}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+            </span>
+        </div>
+
+        <th:block th:replace="~{common/comment-update-form :: commentUpdateForm(${c}, ${base + '/issue/' + issue.number + '/comments'}, 'ISSUE_COMMENT', ${c.canUpdate})}"></th:block>
+
+        <div th:id="'comment-body-' + ${c.id}">
+            <th:block th:replace="~{common/tasklist-bar :: tasklistBar}"></th:block>
+            <div class="comment-body markdown-wrap" th:attr="data-allowed-update=${c.canUpdate}, data-via-email=${c.viaEmail}" th:utext="${c.contentsHtml}"></div>
+            <div class="attachments pull-left" th:attr="data-attachments=${c.attachmentsJson}"></div>
+        </div>
+    </div>
+    <th:block th:replace="~{common/child-comments :: childComments(${c}, ${base}, ${issue.number}, 'issue')}"></th:block>
+</li>
+</th:block>

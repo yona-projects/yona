@@ -1,0 +1,17 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_show_selected_label.scala.html
+  매개변수: labels(IssueLabelTag 목록), listLink(이슈 목록 주소)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="showSelectedLabel(labels, listLink)">
+<dl th:if="${!labels.isEmpty()}">
+    <dt th:text="#{label}"></dt>
+    <dd>
+        <a th:each="label : ${labels}" th:href="${listLink} + '&labelIds=' + ${label.id}" class="label issue-label active static"
+           th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+    </dd>
+</dl>
+</th:block>

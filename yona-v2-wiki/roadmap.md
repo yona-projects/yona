@@ -43,7 +43,7 @@ updated: 2026-10-22
 | 3b | 마일스톤 | 완료 | [web/milestones.md](web/milestones.md) |
 | 3c-1 | 이슈 목록, 검색, 엑셀, 일괄 변경 막대(화면), 마일스톤 보기의 이슈 영역 | 완료 | [web/issue-list.md](web/issue-list.md) |
 | 3c-2a | 이슈 등록 폼과 등록, 제목 머리말, 멘션, 타임라인 이벤트 기록, 폼 자동 완성 API | 완료 | [web/issue-create.md](web/issue-create.md) |
-| 3c-2b | 이슈 보기(읽기), 다음 상태, 삭제 | 대기 | |
+| 3c-2b | 이슈 보기(읽기), 타임라인, 다음 상태, 삭제 | 완료 | [web/issue-view.md](web/issue-view.md) |
 | 3c-2c | 이슈 수정(프로젝트 이동, 초안 게시, 변경 이력) | 대기 | |
 | 3c-3 | 이슈 댓글, 타임라인(이벤트), 추천, 공유자, 하위 이슈, 일괄 변경 처리 | 대기 | |
 | 3d | 게시판 | 대기 | |

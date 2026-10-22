@@ -43,3 +43,13 @@ interface FavoriteOrganizationRepository : JpaRepository<FavoriteOrganization, L
     fun findByOrganizationId(organizationId: Long): List<FavoriteOrganization>
 }
 
+
+/** 최근 본 이슈와 게시글 저장소이다. */
+interface RecentIssueRepository : JpaRepository<RecentIssue, Long> {
+
+    /** 사용자가 이슈를 본 기록을 찾는다 (v1.6 `RecentIssue.deletePreviousIssue`). */
+    fun findByUserIdAndIssueId(userId: Long, issueId: Long): List<RecentIssue>
+
+    /** 사용자의 기록을 오래된 것부터 조회한다. */
+    fun findByUserIdOrderByIdAsc(userId: Long): List<RecentIssue>
+}

@@ -1,0 +1,25 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_voters.scala.html
+  매개변수: numOfAvatars(아바타 수), numOfNames(이름 수). 모델: issue(IssueDetail)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="voters(numOfAvatars, numOfNames)">
+<div class="voter-list-wrap">
+    <ul class="voter-list">
+        <li th:if="${issue.votedByMe}"><a th:href="'/' + ${issue.me.loginId}" class="usf-group" data-toggle="tooltip" data-placement="top" th:title="${issue.me.name}"><img th:src="${issue.me.avatarUrl}" class="avatar-wrap smaller"></a></li>
+
+        <th:block th:with="others=${issue.votersExceptMe}">
+            <li th:each="voter : ${others.size() > numOfAvatars ? others.subList(0, numOfAvatars) : others}">
+                <a th:href="'/' + ${voter.loginId}" class="usf-group" data-toggle="tooltip" data-placement="top" th:title="${voter.name}"><img th:src="${voter.avatarUrl}" class="avatar-wrap smaller"></a>
+            </li>
+            <li th:if="${others.size() > numOfAvatars}" data-toggle="tooltip" data-html="true"
+                th:attr="title=${#strings.listJoin(others.subList(numOfAvatars, others.size() > numOfAvatars + numOfNames ? numOfAvatars + numOfNames : others.size()).![name], ' <br> ')} + ' <br> ' + (${others.size() > numOfAvatars + numOfNames} ? '&hellip;' : '')">
+                <a href="#voters" data-toggle="modal" th:text="#{issue.voters.more(${others.size() - numOfAvatars})}"></a>
+            </li>
+        </th:block>
+    </ul>
+</div>
+</th:block>

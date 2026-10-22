@@ -93,7 +93,7 @@ class IssueListController(
             }
             "json" -> json(project, page, request.getParameter("exceptId"))
             else -> {
-                viewer?.let { recentVisits.record(it, project) }
+                recentVisits.visits(viewer, project)
                 listModel("issue/list", project, condition, page, viewer, request)
             }
         }

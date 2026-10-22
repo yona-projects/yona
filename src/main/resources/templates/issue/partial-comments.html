@@ -1,0 +1,20 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_comments.scala.html
+  모델: projectView, issue(IssueDetail)
+  `timelineList`는 보기 화면 안과 `GET issue/:number/timeline` 조각이 함께 쓴다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="timelineList">
+<div class="comment-header"><i></i><strong th:text="#{common.comment}"></strong> <strong class="num" th:text="${issue.commentCount}"></strong></div>
+<hr class="nm">
+
+<ul th:if="${!issue.timeline.isEmpty()}" class="comments">
+    <th:block th:each="entry : ${issue.timeline}">
+        <th:block th:if="${entry.comment != null}"><th:block th:replace="~{issue/partial-comment :: comment(${entry.comment}, ${issue})}"></th:block></th:block>
+        <th:block th:if="${entry.event != null}" th:utext="${entry.event.html}"></th:block>
+    </th:block>
+</ul>
+</th:block>

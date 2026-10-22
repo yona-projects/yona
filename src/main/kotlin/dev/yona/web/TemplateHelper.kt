@@ -72,6 +72,18 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
         return messages.getMessage(pluralKey, arrayOf(count.toString()), pluralKey, locale) ?: pluralKey
     }
 
+    // --- 크기 ---
+
+    /**
+     * 바이트 수를 읽기 쉽게 바꾼다 (v1.6 `humanize.Humanize.binaryPrefix`). 1024 미만은 `N bytes`, 그 이상은 소수점 한 자리의 `KB`, `MB`, `GB` 순이다.
+     */
+    fun binaryPrefix(size: Number): String {
+        val value = size.toDouble()
+        if (value < BINARY_BASE) return "${size.toLong()} bytes"
+        val exponent = minOf((Math.log(value) / Math.log(BINARY_BASE)).toInt(), BINARY_UNITS.length)
+        return String.format(Locale.ROOT, "%.1f %sB", value / Math.pow(BINARY_BASE, exponent.toDouble()), BINARY_UNITS[exponent - 1])
+    }
+
     // --- 제목 ---
 
     /**
@@ -103,6 +115,11 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
     fun percent(unit: Number, total: Number): Int {
         val ratio = unit.toDouble() / total.toDouble() * 100
         return if (ratio.isNaN()) 0 else ratio.toInt()
+    }
+
+    private companion object {
+        const val BINARY_BASE = 1024.0
+        const val BINARY_UNITS = "KMGTPE"
     }
 
     private fun message(key: String, locale: Locale): String = messages.getMessage(key, null, key, locale) ?: key

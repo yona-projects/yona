@@ -27,6 +27,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property temporaryFilesKeepUpTime 임시 첨부를 정리하는 주기(밀리초). 기본 하루 (`application.temporaryfiles.keep-up.time`)
  * @property parsersTextMaxLength 폼(`application/x-www-form-urlencoded`) 본문의 최대 바이트. 넘으면 폼 값을 읽지 못한 것으로 처리한다 (`parsers.text.maxLength`, 기본 102400)
  * @property issueEventDraftTime 같은 사용자가 같은 종류의 이슈 변경을 이 시간(밀리초) 안에 연달아 하면 하나로 합친다 (`application.issue-event.draft-time`, 기본 30초)
+ * @property translationApi 번역 API 주소. 비우면 번역 단추를 숨긴다 (`application.extras.translation.api`)
  * @property noreferrer 외부 링크에 `rel="noreferrer"`를 붙인다 (`application.noreferrer`)
  * @property applicationContext 서버를 하위 경로에 둘 때의 경로. 앞뒤 슬래시 없이 쓴다 (`application.context`)
  * @property allowsAnonymousAccess 익명 사용자의 접근을 허용한다. 끄면 `@AnonymousCheck` 화면이 모두 로그인을 요구한다 (`application.allowsAnonymousAccess`)
@@ -54,6 +55,7 @@ data class YonaProperties(
     val applicationContext: String = "",
     val parsersTextMaxLength: Long = 102_400L,
     val issueEventDraftTime: Long = 30_000L,
+    val translationApi: String = "",
     val noreferrer: Boolean = false,
     val temporaryFilesKeepUpTime: Long = 86_400_000L,
     val useEmailVerification: Boolean = false,
@@ -64,6 +66,9 @@ data class YonaProperties(
     val signup: Signup = Signup(),
     val gravatar: Gravatar = Gravatar()
 ) {
+    /** 번역 API가 설정되어 있으면 `true`이다. 화면의 번역 단추를 보일지 정한다. */
+    val translationApiConfigured: Boolean get() = translationApi.isNotBlank()
+
     /** 가입 정책 설정이다. */
     data class Signup(
         /** 가입 승인제: 신규 계정을 관리자가 승인하기 전까지 잠가 둔다 (`signup.require.admin.confirm`). */

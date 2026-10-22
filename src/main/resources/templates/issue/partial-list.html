@@ -47,9 +47,9 @@
                         </span>
 
                         <span th:if="${issue.commentCount > 0 or issue.voterCount > 0 or issue.sharerCount > 0}" class="infos-item item-count-groups">
-                            <th:block th:if="${issue.commentCount > 0}" th:replace="~{common/comment-count :: commentCount(${base + '/issue/' + issue.number + '#comments'}, ${issue.commentCount}, true)}"></th:block>
-                            <th:block th:if="${issue.voterCount > 0}" th:replace="~{common/vote-count :: voteCount(${base + '/issue/' + issue.number + '#vote'}, ${issue.voterCount}, true)}"></th:block>
-                            <th:block th:if="${issue.sharerCount > 0}" th:replace="~{common/sharer-count :: sharerCount(${issue.sharerCount}, true)}"></th:block>
+                            <th:block th:if="${issue.commentCount > 0}"><th:block th:replace="~{common/comment-count :: commentCount(${base + '/issue/' + issue.number + '#comments'}, ${issue.commentCount}, true)}"></th:block></th:block>
+                            <th:block th:if="${issue.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount(${base + '/issue/' + issue.number + '#vote'}, ${issue.voterCount}, true)}"></th:block></th:block>
+                            <th:block th:if="${issue.sharerCount > 0}"><th:block th:replace="~{common/sharer-count :: sharerCount(${issue.sharerCount}, true)}"></th:block></th:block>
                         </span>
 
                         <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
@@ -67,8 +67,8 @@
                                     </a>
                                     <span class="font12 no-border-at-child">
                                         <span th:if="${child.commentCount > 0 or child.voterCount > 0}" class="item-count-groups">
-                                            <th:block th:if="${child.commentCount > 0}" th:replace="~{common/comment-count :: commentCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#comments', ${child.commentCount}, true)}"></th:block>
-                                            <th:block th:if="${child.voterCount > 0}" th:replace="~{common/vote-count :: voteCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#vote', ${child.voterCount}, true)}"></th:block>
+                                            <th:block th:if="${child.commentCount > 0}"><th:block th:replace="~{common/comment-count :: commentCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#comments', ${child.commentCount}, true)}"></th:block></th:block>
+                                            <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#vote', ${child.voterCount}, true)}"></th:block></th:block>
                                         </span>
                                     </span>
                                     <a th:each="label : ${child.labels}" th:href="${base + '/issues?state=open&labelIds=' + label.id}" class="label issue-label list-label active twoColumeModeTarget" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
@@ -138,9 +138,9 @@
                         </span>
 
                         <span th:if="${issue.commentCount > 0 or issue.voterCount > 0 or issue.sharerCount > 0}" class="infos-item item-count-groups">
-                            <th:block th:if="${issue.commentCount > 0}" th:replace="~{common/comment-count :: commentCount(${base + '/issue/' + issue.number + '#comments'}, ${issue.commentCount}, true)}"></th:block>
-                            <th:block th:if="${issue.voterCount > 0}" th:replace="~{common/vote-count :: voteCount(${base + '/issue/' + issue.number + '#vote'}, ${issue.voterCount}, true)}"></th:block>
-                            <th:block th:if="${issue.sharerCount > 0}" th:replace="~{common/sharer-count :: sharerCount(${issue.sharerCount}, true)}"></th:block>
+                            <th:block th:if="${issue.commentCount > 0}"><th:block th:replace="~{common/comment-count :: commentCount(${base + '/issue/' + issue.number + '#comments'}, ${issue.commentCount}, true)}"></th:block></th:block>
+                            <th:block th:if="${issue.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount(${base + '/issue/' + issue.number + '#vote'}, ${issue.voterCount}, true)}"></th:block></th:block>
+                            <th:block th:if="${issue.sharerCount > 0}"><th:block th:replace="~{common/sharer-count :: sharerCount(${issue.sharerCount}, true)}"></th:block></th:block>
                         </span>
 
                         <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
@@ -158,8 +158,8 @@
                                     </a>
                                     <span class="font12 no-border-at-child">
                                         <span th:if="${child.commentCount > 0 or child.voterCount > 0}" class="item-count-groups">
-                                            <th:block th:if="${child.commentCount > 0}" th:replace="~{common/comment-count :: commentCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#comments', ${child.commentCount}, true)}"></th:block>
-                                            <th:block th:if="${child.voterCount > 0}" th:replace="~{common/vote-count :: voteCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#vote', ${child.voterCount}, true)}"></th:block>
+                                            <th:block th:if="${child.commentCount > 0}"><th:block th:replace="~{common/comment-count :: commentCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#comments', ${child.commentCount}, true)}"></th:block></th:block>
+                                            <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#vote', ${child.voterCount}, true)}"></th:block></th:block>
                                         </span>
                                     </span>
                                     <a th:each="label : ${child.labels}" th:href="${base + '/issues?state=open&labelIds=' + label.id}" class="label issue-label list-label active twoColumeModeTarget" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>

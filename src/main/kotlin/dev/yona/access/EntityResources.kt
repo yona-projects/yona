@@ -1,7 +1,9 @@
 package dev.yona.access
 
 import dev.yona.domain.board.Posting
+import dev.yona.domain.board.PostingComment
 import dev.yona.domain.comment.CommitComment
+import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.issue.Issue
 import dev.yona.domain.issue.IssueLabel
@@ -24,6 +26,14 @@ fun Issue.asResource(): ProjectResource =
 /** 게시글 (`BOARD_POST`). 작성자 권한이 있다. */
 fun Posting.asResource(): ProjectResource =
     ProjectResource(requireNotNull(id).toString(), ResourceType.BOARD_POST, project, authorId = authorId)
+
+/** 이슈 댓글 (`ISSUE_COMMENT`). 컨테이너는 이슈이고 작성자 권한이 있다 (v1.6 `IssueComment.asResource`). */
+fun IssueComment.asResource(): ProjectResource =
+    ProjectResource(requireNotNull(id).toString(), ResourceType.ISSUE_COMMENT, issue?.project, container = issue?.asResource(), authorId = authorId)
+
+/** 게시글 댓글 (`NONISSUE_COMMENT`). 컨테이너는 게시글이고 작성자 권한이 있다 (v1.6 `PostingComment.asResource`). */
+fun PostingComment.asResource(): ProjectResource =
+    ProjectResource(requireNotNull(id).toString(), ResourceType.NONISSUE_COMMENT, posting?.project, container = posting?.asResource(), authorId = authorId)
 
 /** 마일스톤 (`MILESTONE`). */
 fun Milestone.asResource(): ProjectResource =

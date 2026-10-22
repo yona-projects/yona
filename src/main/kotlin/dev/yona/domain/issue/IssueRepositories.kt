@@ -15,6 +15,9 @@ interface IssueEventRepository : JpaRepository<IssueEvent, Long> {
 
     /** 이슈의 이벤트 중 [since] 이후에 생긴 가장 마지막 것을 찾는다 (v1.6 `IssueEvent.add`가 합칠 대상). */
     fun findFirstByIssueIdAndCreatedAfterOrderByIdDesc(issueId: Long, since: java.util.Date): IssueEvent?
+
+    /** 이슈의 이벤트를 발생 시각 순으로 조회한다 (v1.6 `Issue.getTimeline`). */
+    fun findByIssueIdOrderByCreatedAscIdAsc(issueId: Long): List<IssueEvent>
 }
 
 /** 이슈 공유자 저장소이다. */

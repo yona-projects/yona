@@ -1,0 +1,45 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_view_childIssueList.scala.html, partial_view_child.scala.html
+  모델: issue(IssueDetail). `issue.subtasks`가 없으면 아무것도 그리지 않는다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="subtasks">
+<th:block th:if="${issue.subtasks != null}" th:with="sub=${issue.subtasks}">
+<div class="child-issues">
+    <div class="issue-item parent-issue">
+        <a th:href="'/' + ${sub.parentOwner} + '/' + ${sub.parentProject} + '/issue/' + ${sub.parentNumber}" th:classappend="${sub.parentIsCurrent} ? 'bold'"
+           th:text="'#' + ${sub.parentNumber} + ' ' + ${sub.parentTitle} + (${sub.parentAssigneeName != null} ? ' - ' + ${sub.parentAssigneeName} : '')"></a>
+        <div class="upload-progress" th:classappend="${sub.percent == 100} ? 'done-outline' : 'red-outline'">
+            <div class="bar" th:classappend="${sub.percent == 100} ? 'done' : 'red'" th:style="'width: ' + ${sub.percent} + '%;'" title="Subtask"></div>
+        </div>
+        <span th:classappend="${sub.percent == 100} ? 'txt-green'"><th:block th:if="${sub.percent != 100}" th:text="${sub.done} + '/'"></th:block><th:block th:text="${sub.total}"></th:block> </span>
+        <span class="parent-issue-state" th:classappend="${sub.parentState}" th:text="#{'issue.state.' + ${sub.parentState}}"></span>
+    </div>
+    <hr class="parent-issue-delimeter"/>
+    <div class="child-issues">
+        <div th:each="child : ${sub.children}" class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
+            <span class="state-label" th:classappend="${child.state}"><i th:if="${child.state == 'closed'}" class=" yobicon-checkmark"></i></span>
+            <a class="twoColumeModeTarget" th:href="'/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number}">
+                <span class="item-name">
+                    <span class="subtask-number"><span th:if="${child.draft}" class="draft-number" th:text="'#' + #{issue.state.draft}"></span><th:block th:unless="${child.draft}" th:text="'#' + ${child.number}"></th:block></span>
+                    <span th:text="${child.title}"></span>
+                    <span th:if="${child.assigneeName != null}" th:text="'- ' + ${child.assigneeName}"></span>
+                </span>
+            </a>
+            <span class="font12 no-border-at-child">
+                <span th:if="${child.commentCount > 0 or child.voterCount > 0}" class="item-count-groups">
+                    <th:block th:if="${child.commentCount > 0}"><th:block th:replace="~{common/comment-count :: commentCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#comments', ${child.commentCount}, true)}"></th:block></th:block>
+                    <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount('/' + ${child.owner} + '/' + ${child.project} + '/issue/' + ${child.number} + '#vote', ${child.voterCount}, true)}"></th:block></th:block>
+                </span>
+            </span>
+            <a th:each="label : ${child.labels}" th:href="'/' + ${child.owner} + '/' + ${child.project} + '/issues?state=open&labelIds=' + ${label.id}" class="label issue-label list-label active twoColumeModeTarget"
+               th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+            <span class="child-issue-date" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></span>
+        </div>
+    </div>
+</div>
+</th:block>
+</th:block>

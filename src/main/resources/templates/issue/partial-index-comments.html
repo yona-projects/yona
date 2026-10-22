@@ -1,0 +1,32 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_index_comments.scala.html, partial_index_comment.scala.html
+  모델: issue(IssueDetail)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="indexComments">
+<div class="comment-header"><strong th:text="#{common.comment}"></strong> <strong class="num" th:text="${issue.commentCount}"></strong></div>
+
+<ul th:if="${!issue.index.isEmpty()}" class="comments">
+    <li th:each="c : ${issue.index}" class="comment index-comment" th:classappend="(${c.mentioned} ? 'mentioned' : '') + ' ' + (${c.mentionedInChild} ? 'mentionedInChild' : '')"
+        th:id="'comment-' + ${c.id}" th:attr="data-location='#comment-' + ${c.id}">
+        <div>
+            <div th:id="'comment-body-' + ${c.id}">
+                <div class="comment-body"><a th:href="'#comment-' + ${c.id}" th:text="${c.ellipsis}"></a></div>
+            </div>
+            <div class="index-comment-author">
+                <span th:if="${c.childCount > 0}" class="comment-exists"><i class="yobicon-comment2"></i><th:block th:if="${c.childCount > 1}" th:text="${c.childCount}"></th:block></span>
+                <span class="comment_author">
+                    <a th:href="'/' + ${c.authorLoginId}" data-toggle="tooltip" data-placement="top" th:title="${c.authorLoginId}"><strong th:text="${c.authorPureName}"></strong></a>
+                </span>
+                <span class="ago-date">
+                    <a th:href="'#comment-' + ${c.id}" class="ago" th:title="${c.createdTitle}" th:text="${c.createdAgo}"></a>
+                    <a th:href="'#comment-' + ${c.id}" class="share-link" style="display: none">[Link]</a>
+                </span>
+            </div>
+        </div>
+    </li>
+</ul>
+</th:block>

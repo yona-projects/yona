@@ -1,0 +1,47 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/commentUpdateForm.scala.html
+  매개변수: comment(CommentView), action(댓글 등록 주소. 뒤에 /댓글번호를 붙인다), resourceType(ISSUE_COMMENT, NONISSUE_COMMENT), isAllowedUpdate
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentUpdateForm(comment, action, resourceType, isAllowedUpdate)">
+<div th:id="'comment-editform-' + ${comment.id}" class="comment-update-form">
+    <form th:action="${action} + '/' + ${comment.id}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="id" th:value="${comment.id}">
+        <div class="write-comment-box">
+            <div class="write-comment-wrap">
+                <th:block th:replace="~{common/editor :: editor('contents-' + ${comment.id}, ${comment.contents}, '', 'update-comment-body', false)}"></th:block>
+                <div class="upload-drop-here">
+                    <div class="msg-wrap">
+                        <div class="msg" th:text="#{common.attach.dropFilesHere}"></div>
+                    </div>
+                </div>
+                <div class="right-txt comment-update-button upload-button-line">
+                    <span class="file-upload">
+                        <label th:for="'upload-' + ${comment.id}" class="file-upload__label ybtn" th:text="#{button.upload}"></label>
+                        <input th:id="'upload-' + ${comment.id}" class="file-upload__input" type="file" name="filePath" multiple>
+                    </span>
+                    <span th:if="${comment.own}" class="send-notification-check" data-toggle='popover' data-trigger="hover" data-placement="top" th:attr="data-content=#{notification.send.mail.warning}">
+                        <label class="checkbox inline">
+                            <input type="checkbox" name="notificationMail" value="yes" checked>
+                            <strong th:text="#{notification.send.mail}"></strong>
+                        </label>
+                    </span>
+                    <button type="button" class="ybtn ybtn-cancel" th:attr="data-comment-id=${comment.id}" th:text="#{button.cancel}"></button>
+                    <button th:if="${isAllowedUpdate}" type="submit" class="ybtn ybtn-info" th:text="#{button.save}"></button>
+                </div>
+            </div>
+            <input type="hidden" name="temporaryUploadFiles" class="temporaryUploadFiles" value="">
+            <div th:class="'preview-' + ${comment.id}"></div>
+            <div class="attachment-files">
+                <th:block th:each="file : ${comment.attachments}">
+                    <th:block th:replace="~{common/attachment-file :: attachmentFile(${file})}"></th:block>
+                </th:block>
+            </div>
+            <div th:id="'upload-' + ${comment.id}" th:attr="data-resourceType=${resourceType}, data-resourceId=${comment.id}"></div>
+        </div>
+    </form>
+</div>
+</th:block>

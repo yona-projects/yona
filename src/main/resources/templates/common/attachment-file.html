@@ -1,0 +1,16 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/attachmentFile.scala.html
+  매개변수: file(첨부 정보 맵: id, name, mimeType, size)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="attachmentFile(file)">
+<div class="attached-file attached-file-marker" th:attr="data-name=${file.get('name')}, data-href='/files/' + ${file.get('id')}, data-mime=${file.get('mimeType')}">
+    <i class="mimetype"></i>
+    <strong class="name" th:text="${file.get('name')}"></strong>
+    <span class="size" th:text="${helper.binaryPrefix(T(java.lang.Double).parseDouble(file.get('size')))}"></span>
+    <button type="button" class="btn-transparent btn-delete" th:attr="data-id=${file.get('id')}">&times;</button>
+</div>
+</th:block>

@@ -148,4 +148,87 @@ class IssueServiceTest : AbstractIntegrationTest() {
         assertEquals(issue.id, published.issue.id); assertEquals(author.id, published.actor.id)
         assertTrue(EventType.NEW_ISSUE.name.isNotEmpty())
     }
+
+    // --- 다음 상태 ---
+
+    @Autowired private lateinit var entityManager: jakarta.persistence.EntityManager
+
+    private fun events(issue: Issue) = entityManager.createQuery("select e from IssueEvent e where e.issue.id = :id order by e.id", IssueEvent::class.java).setParameter("id", issue.id).resultList
+
+    @Test
+    fun `열림은 닫힘으로, 닫힘은 열림으로, 초안은 닫힘으로 바뀐다`() {
+        val project = project(); val actor = user()
+        val issue = service.create(project, actor, input())
+        assertEquals(State.CLOSED, service.toNextState(issue, actor))
+        assertEquals(State.CLOSED, issue.state)
+        assertEquals(State.OPEN, service.toNextState(issue, actor))
+        val draft = service.create(project, actor, input(draft = true))
+        assertEquals(State.CLOSED, service.toNextState(draft, actor))
+    }
+
+    @Test
+    fun `상태를 바꾸면 수정 시각과 타임라인 이벤트와 활동이 남는다`() {
+        val project = project(); val actor = user()
+        val issue = service.create(project, actor, input())
+        val before = issue.updatedDate!!
+        Thread.sleep(5)
+        service.toNextState(issue, actor)
+        assertTrue(issue.updatedDate!!.after(before))
+        val event = events(issue).single()
+        assertEquals(EventType.ISSUE_STATE_CHANGED, event.eventType); assertEquals("open", event.oldValue); assertEquals("closed", event.newValue); assertEquals(actor.loginId, event.senderLoginId)
+        val activity = events.stream(IssueChangedActivity::class.java).toList().single()
+        assertEquals(EventType.ISSUE_STATE_CHANGED, activity.type); assertEquals("closed", activity.newValue)
+    }
+
+    @Test
+    fun `하위 이슈를 다시 열면 닫힌 부모 이슈도 다시 열린다`() {
+        val project = project(); val actor = user()
+        val parent = service.create(project, actor, input("부모"))
+        val child = service.create(project, actor, input("자식", parent = parent.id))
+        service.toNextState(parent, actor); service.toNextState(child, actor)
+        assertEquals(State.CLOSED, parent.state)
+        service.toNextState(child, actor)
+        assertEquals(State.OPEN, child.state); assertEquals(State.OPEN, parent.state)
+    }
+
+    // --- 삭제 ---
+
+    @Test
+    fun `댓글이 없거나 작성자만 댓글을 썼으면 지울 수 있다`() {
+        val project = project(); val author = user(); val other = user()
+        val issue = service.create(project, author, input())
+        assertTrue(service.canBeDeleted(issue))
+        entityManager.persist(dev.yona.domain.comment.IssueComment(contents = "c", createdDate = java.util.Date(), authorLoginId = author.loginId, issue = issue, projectId = project.id!!)); entityManager.flush()
+        assertTrue(service.canBeDeleted(issue))
+        entityManager.persist(dev.yona.domain.comment.IssueComment(contents = "c", createdDate = java.util.Date(), authorLoginId = other.loginId, issue = issue, projectId = project.id!!)); entityManager.flush()
+        assertEquals(false, service.canBeDeleted(issue))
+    }
+
+    @Test
+    fun `이슈를 지우면 댓글, 이벤트, 머리말 개수와 하위 이슈의 부모 연결이 정리된다`() {
+        val project = project(); val author = user()
+        val parent = service.create(project, author, input("[버그] 부모"))
+        val child = service.create(project, author, input("자식", parent = parent.id))
+        entityManager.persist(dev.yona.domain.comment.IssueComment(contents = "c", createdDate = java.util.Date(), authorLoginId = author.loginId, issue = parent, projectId = project.id!!))
+        service.toNextState(parent, author)
+        entityManager.flush()
+        val parentId = parent.id!!
+        service.delete(parent, author)
+        entityManager.flush(); entityManager.clear()
+        assertNull(entityManager.find(Issue::class.java, parentId))
+        assertEquals(0, entityManager.createQuery("select c from IssueComment c where c.issue.id = :id").setParameter("id", parentId).resultList.size)
+        assertEquals(0, entityManager.createQuery("select e from IssueEvent e where e.issue.id = :id").setParameter("id", parentId).resultList.size)
+        assertNull(entityManager.find(Issue::class.java, child.id!!)!!.parent)
+        assertEquals(0, titleHeads.findAll().count { it.project?.id == project.id && it.headKeyword == "버그" })
+        val deleted = events.stream(IssueDeletedActivity::class.java).toList().single()
+        assertEquals(parent.number, deleted.issueNumber); assertEquals("[버그] 부모", deleted.title)
+    }
+
+    @Test
+    fun `초안을 지울 때는 삭제 활동을 발행하지 않는다`() {
+        val project = project(); val author = user()
+        val draft = service.create(project, author, input(draft = true))
+        service.delete(draft, author)
+        assertEquals(0, events.stream(IssueDeletedActivity::class.java).count())
+    }
 }

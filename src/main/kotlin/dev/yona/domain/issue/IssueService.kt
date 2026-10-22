@@ -1,7 +1,9 @@
 package dev.yona.domain.issue
 
+import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
+import dev.yona.domain.misc.AttachmentService
 import dev.yona.domain.notification.MentionService
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectRepository
@@ -51,7 +53,9 @@ class IssueService(
     private val titleHeads: TitleHeadService,
     private val mentions: MentionService,
     private val publisher: ApplicationEventPublisher,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val events: IssueEventService,
+    private val attachments: AttachmentService
 ) {
 
     /**
@@ -101,4 +105,87 @@ class IssueService(
     /** 이 프로젝트의 라벨만 골라 모은다. 다른 프로젝트의 라벨이나 없는 번호는 건너뛴다. */
     private fun projectLabels(project: Project, ids: Set<Long>): MutableSet<IssueLabel> =
         labels.findAllById(ids).filter { it.project?.id == project.id }.toMutableSet()
+
+    /**
+     * 이슈를 다음 상태로 바꾸고 새 상태를 돌려준다 (v1.6 `IssueApp.nextState`, `Issue.toNextState`). 열림은 닫힘, 닫힘은 열림,
+     * 초안은 닫힘이다. 수정 시각을 갱신하고 타임라인 이벤트를 남기며 [IssueChangedActivity]를 발행한다.
+     * 하위 이슈를 다시 열면 닫혀 있는 부모 이슈도 다시 연다.
+     */
+    @Transactional
+    fun toNextState(issue: Issue, actor: User): State {
+        val old = issue.state
+        val next = if (old == State.CLOSED) State.OPEN else State.CLOSED
+        changeState(issue, next, actor, old)
+        val parent = issue.parent
+        if (next == State.OPEN && parent != null && parent.state == State.CLOSED) {
+            changeState(parent, State.OPEN, null, State.CLOSED, record = false)
+        }
+        return next
+    }
+
+    private fun changeState(issue: Issue, next: State, actor: User?, old: State?, record: Boolean = true) {
+        issue.state = next
+        issue.updatedDate = Date()
+        issues.save(issue)
+        if (!record || actor == null) return
+        // v1.6은 "이전 상태"를 현재 상태의 짝(열림↔닫힘)으로 정한다. 초안에서 닫을 때도 이전 상태는 열림이다.
+        val previous = if (next == State.CLOSED) State.OPEN else State.CLOSED
+        events.record(issue, EventType.ISSUE_STATE_CHANGED, previous.state, next.state, actor.loginId)
+        publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_STATE_CHANGED, previous.state, next.state, actor))
+        @Suppress("UNUSED_VARIABLE") val unused = old
+    }
+
+    /**
+     * 이슈를 지울 수 있으면 `true`이다. 댓글이 없거나 모든 댓글을 이슈 작성자가 썼을 때만 지울 수 있다 (v1.6 `Issue.canBeDeleted`).
+     */
+    @Transactional(readOnly = true)
+    fun canBeDeleted(issue: Issue): Boolean =
+        entityManager.createQuery("select c.authorLoginId from IssueComment c where c.issue.id = :id", String::class.java).setParameter("id", issue.id).resultList
+            .all { it == issue.authorLoginId }
+
+    /**
+     * 이슈를 지운다 (v1.6 `IssueApp.deleteIssue`, `AbstractPosting.delete`). 댓글(첨부와 알림 이벤트 포함), 타임라인 이벤트, 제목 머리말 개수,
+     * 이슈의 첨부와 알림 이벤트를 지우고, 하위 이슈의 부모 연결은 끊는다. 초안이 아니면 [IssueDeletedActivity]를 발행한다.
+     * v1.6처럼 멘션 기록은 지우지 않는다([refactoring-backlog.md] R-24).
+     */
+    @Transactional
+    fun delete(issue: Issue, actor: User) {
+        val id = requireNotNull(issue.id)
+        val project = requireNotNull(issue.project)
+        if (issue.isDraft != true) {
+            publisher.publishEvent(IssueDeletedActivity(requireNotNull(project.id), issue.number ?: 0, issue.title, issue.body, actor))
+        }
+        // 한 줄 댓글(자식)이 부모 댓글을 가리키므로 연결을 먼저 끊고 모두 지운다.
+        val comments = entityManager.createQuery("select c from IssueComment c where c.issue.id = :id", dev.yona.domain.comment.IssueComment::class.java)
+            .setParameter("id", id).resultList
+        comments.forEach { it.parentComment = null }
+        entityManager.flush()
+        comments.forEach { comment ->
+            val commentId = requireNotNull(comment.id)
+            attachments.deleteAll(ResourceType.ISSUE_COMMENT, commentId)
+            deleteNotificationEvents(ResourceType.ISSUE_COMMENT, commentId.toString())
+            entityManager.remove(comment)
+        }
+        entityManager.createQuery("select e from IssueEvent e where e.issue.id = :id", IssueEvent::class.java).setParameter("id", id).resultList
+            .forEach { entityManager.remove(it) }
+        titleHeads.delete(project, issue.title)
+        attachments.deleteAll(ResourceType.ISSUE_POST, id)
+        deleteNotificationEvents(ResourceType.ISSUE_POST, id.toString())
+        entityManager.createQuery("select i from Issue i where i.parent.id = :id", Issue::class.java).setParameter("id", id).resultList
+            .forEach { it.parent = null }
+        entityManager.flush()
+        issue.labels.clear(); issue.voters.clear()
+        issues.delete(issue)
+        issues.flush()
+    }
+
+    private fun deleteNotificationEvents(type: ResourceType, resourceId: String) {
+        val ids = entityManager.createQuery(
+            "select e.id from NotificationEvent e where e.resourceType = :type and e.resourceId = :rid", java.lang.Long::class.java
+        ).setParameter("type", type).setParameter("rid", resourceId).resultList
+        if (ids.isEmpty()) return
+        entityManager.createNativeQuery("delete from notification_event_n4user where notification_event_id in (:ids)").setParameter("ids", ids).executeUpdate()
+        entityManager.createNativeQuery("delete from notification_mail where notification_event_id in (:ids)").setParameter("ids", ids).executeUpdate()
+        entityManager.createQuery("delete from NotificationEvent e where e.id in :ids").setParameter("ids", ids).executeUpdate()
+    }
 }

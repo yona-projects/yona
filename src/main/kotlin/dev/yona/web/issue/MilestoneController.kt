@@ -228,7 +228,7 @@ class MilestoneController(
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
         val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
-        viewer?.let { recentVisits.record(it, project) }
+        recentVisits.visits(viewer, project)
         val resource = milestone.asResource()
         val contents = milestone.contents
         val issueState = stateOf(state)

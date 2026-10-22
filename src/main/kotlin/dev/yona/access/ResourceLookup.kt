@@ -1,6 +1,7 @@
 package dev.yona.access
 
 import dev.yona.domain.board.PostingRepository
+import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.issue.MilestoneRepository
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component
 class ResourceLookup(
     private val projects: ProjectRepository,
     private val issues: IssueRepository,
+    private val issueComments: IssueCommentRepository,
     private val postings: PostingRepository,
     private val milestones: MilestoneRepository,
     private val users: UserRepository,
@@ -32,6 +34,7 @@ class ResourceLookup(
         val longId = id.toLong()
         return when (type) {
             ResourceType.ISSUE_POST -> require(issues.findById(longId)).asResource()
+            ResourceType.ISSUE_COMMENT -> require(issueComments.findById(longId)).asResource()
             ResourceType.BOARD_POST -> require(postings.findById(longId)).asResource()
             ResourceType.MILESTONE -> require(milestones.findById(longId)).asResource()
             ResourceType.USER -> require(users.findById(longId)).asResource()
