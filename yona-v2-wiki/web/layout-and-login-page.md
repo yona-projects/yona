@@ -69,7 +69,7 @@ updated: 2026-10-22
 ## 실제 기동으로 확인한 것
 
 앱을 실제로 띄워 로그인 화면이 참조하는 정적 자원 25개가 모두 200으로 응답함을 확인했다. 아직 구현하지 않은 화면으로 가는 링크(`/projects`, `/lostPassword`, `/users/signupform`, `/user/editform`)는 404다. 익명 사용자의 사용자 메뉴에 `/null` 링크가 있는 것은 v1.6도 같다(`userInfo(currentUser.loginId)`가 `null` 문자열이 된다).
-`admin / admin00`으로 로그인하면 `/`로 이동하며, 틀린 패스워드는 로그인 폼으로 돌아가 `Your log in ID, E-mail or password is not valid.` 알림이 나타난다. 브라우저 확장이 연결되지 않아 화면 캡처 비교는 하지 못했다.
+`admin / admin00`으로 로그인하면 `/`로 이동하며, 틀린 패스워드는 로그인 폼으로 돌아가 `Your log in ID, E-mail or password is not valid.` 알림이 나타난다. 화면 캡처 비교는 아직 하지 않았다. 캡처는 Playwright로만 진행한다(AGENTS.md).
 
 ## 아직 하지 않은 것
 
