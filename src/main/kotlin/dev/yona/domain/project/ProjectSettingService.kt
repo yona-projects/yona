@@ -137,7 +137,7 @@ class ProjectSettingService(
 
         val newName = requireNotNull(form.name)
         if (project.name != newName) {
-            recordPreviousPlaceIfLastChangePassed24Hours(project)
+            project.recordPreviousPlaceIfLastChangePassed24Hours()
             if (!repositories.renameRepository(project, newName)) {
                 throw IllegalStateException("fail repository rename to ${project.owner}/$newName")
             }
@@ -154,22 +154,6 @@ class ProjectSettingService(
         saveMenuSetting(project, form.menus)
         updateFavorites(project)
     }
-
-    /**
-     * 이전 이름이 없거나 마지막 이름 변경이 24시간(실제로는 25시간 이상)을 넘었으면 지금의 위치를 이전 위치로 기록한다
-     * (v1.6 `recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom`). 24시간 안에 다시 바꾸면 처음의 이전 위치를 유지한다.
-     */
-    private fun recordPreviousPlaceIfLastChangePassed24Hours(project: Project) {
-        val changedAt = project.previousNameChangedTime
-        if (changedAt == null || hasPassed24Hours(changedAt)) {
-            project.previousNameChangedTime = System.currentTimeMillis()
-            project.previousName = project.name
-            project.previousOwnerLoginId = project.owner
-        }
-    }
-
-    /** v1.6 `hasPassed24hoursFrom`: 경과 시간(시간 단위 내림)이 24보다 클 때, 즉 25시간 이상일 때이다. */
-    private fun hasPassed24Hours(time: Long): Boolean = (System.currentTimeMillis() - time) / MILLIS_PER_HOUR > 24
 
     private fun saveMenuSetting(project: Project, menus: Set<String>) {
         val setting = menuSettings.findFirstByProjectId(requireNotNull(project.id))
@@ -214,6 +198,5 @@ class ProjectSettingService(
         /** 로고로 쓸 수 있는 확장자이다 (v1.6 `LogoUtil.LOGO_TYPE`). */
         private val LOGO_TYPES = listOf("jpg", "jpeg", "png", "gif", "bmp")
 
-        private const val MILLIS_PER_HOUR = 3_600_000L
     }
 }

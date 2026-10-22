@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 /** 프로젝트 저장소이다. */
 interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
 
+    /** 이 프로젝트를 원본으로 둔 포크를 조회한다 (v1.6 `Project.forkingProjects`). */
+    fun findByOriginalProjectId(originalProjectId: Long): List<Project>
+
+
     /** 같은 소유자에 같은 이름의 프로젝트가 있는지 확인한다 (v1.6 `Project.exists`, `ieq` 두 번). */
     fun existsByOwnerIgnoreCaseAndNameIgnoreCase(owner: String, name: String): Boolean
 
@@ -59,7 +63,11 @@ interface OrganizationRepository : JpaRepository<Organization, Long> {
 }
 
 /** 프로젝트 이전 요청 저장소이다. */
-interface ProjectTransferRepository : JpaRepository<ProjectTransfer, Long>
+interface ProjectTransferRepository : JpaRepository<ProjectTransfer, Long> {
+
+    /** 같은 프로젝트, 보낸 사람, 받는 곳의 이전 요청을 찾는다 (v1.6 `ProjectTransfer.deleteExisting`, `requestNewTransfer`). */
+    fun findByProjectIdAndSenderIdAndDestination(projectId: Long, senderId: Long, destination: String): List<ProjectTransfer>
+}
 
 /** 프로젝트 메뉴 설정 저장소이다. */
 interface ProjectMenuSettingRepository : JpaRepository<ProjectMenuSetting, Long> {

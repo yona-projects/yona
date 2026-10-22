@@ -19,6 +19,7 @@ object RedirectSupport {
 
     /** 일회성 메시지의 키이다 (v1.6 `utils.Constants`). */
     const val WARNING = "warning"
+    const val INFO = "info"
     const val SUCCESS = "success"
     const val ERROR = "error"
 

@@ -31,6 +31,7 @@ updated: 2026-10-22
 | 2b-5c-3b | 프로젝트 설정(로고 업로드, 이름 변경, 기본 브랜치) | 완료 | [web/project-setting.md](web/project-setting.md) |
 | 2b-5c-3c | 구성원 관리 | 완료 | [web/project-members.md](web/project-members.md) |
 | 2b-5c-3d | 프로젝트 삭제 | 완료 | [web/project-delete.md](web/project-delete.md) |
+| 2b-5c-3e | 프로젝트 이전, 저장소 종류 변경 | 완료 | [web/project-transfer.md](web/project-transfer.md) |
 | 2c | 조직(Organization) 화면과 서비스 | 대기 | |
 | 2d | 사용자 화면(가입, 프로필, 설정, 이메일, 비밀번호 재설정) | 대기 | |
 | 3 | 이슈, 게시판, 마일스톤, 라벨, 첨부 | 대기 | |

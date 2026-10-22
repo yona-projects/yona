@@ -52,6 +52,20 @@ class ProjectService(
         ).firstOrNull()
 
     /**
+     * [loginId]가 소유한 프로젝트 중 [projectName]과 겹치지 않는 이름을 정한다. 겹치지 않으면 그대로, 겹치면 `이름-1`, `이름-2`처럼
+     * 번호를 붙인다 (v1.6 `Project.newProjectName`).
+     */
+    fun newProjectName(loginId: String, projectName: String): String {
+        if (findByOwnerAndProjectName(loginId, projectName) == null) return projectName
+        var i = 1
+        while (true) {
+            val candidate = "$projectName-$i"
+            if (findByOwnerAndProjectName(loginId, candidate) == null) return candidate
+            i++
+        }
+    }
+
+    /**
      * 사용자가 프로젝트의 구성원이면 `true`이다. 역할과 상관없이 `project_user`에 행이 있거나 매니저이거나
      * 사이트 관리자이면 구성원이다 (v1.6 `Project.hasMember`).
      */

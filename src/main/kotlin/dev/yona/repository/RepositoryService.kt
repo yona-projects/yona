@@ -30,8 +30,19 @@ class RepositoryService(private val git: GitRepositories) {
     fun deleteRepository(project: Project) {
         when (project.vcs) {
             VCS_GIT -> git.delete(owner(project), name(project))
+            // Subversion 저장소는 아직 만들 수 없으므로 지울 것도 없다. Subversion을 옮길 때(로드맵 8단계) 실제로 지운다.
+            VCS_SUBVERSION -> Unit
             else -> throw unsupported(project)
         }
+    }
+
+    /**
+     * 프로젝트 저장소 디렉터리를 다른 소유자나 이름의 위치로 옮긴다. 옮기지 못하면 `false`이다
+     * (v1.6 `PlayRepository.move`).
+     */
+    fun moveRepository(project: Project, newOwner: String, newName: String): Boolean {
+        if (project.vcs != VCS_GIT) throw unsupported(project)
+        return git.move(owner(project), name(project), newOwner, newName)
     }
 
     /** Git 프로젝트의 저장소를 연다. 호출한 쪽이 닫아야 한다. */

@@ -77,6 +77,28 @@ class Project(
 
     /** 로그인 ID가 소유자 이름과 같으면(대소문자 무시) 소유자이다 (v1.6 `Project.isOwner`). */
     fun isOwner(user: User): Boolean = owner?.lowercase() == user.loginId?.lowercase()
+
+    /**
+     * 이전 위치가 없거나 마지막 이름 변경이 24시간(실제로는 25시간 이상)을 넘었으면 지금의 위치를 이전 위치로 기록한다
+     * (v1.6 `recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom`). 24시간 안에 다시 바꾸면 처음의 이전 위치를 유지한다.
+     * 이름이나 소유자를 바꾸기 **전에** 부른다.
+     */
+    fun recordPreviousPlaceIfLastChangePassed24Hours(now: Long = System.currentTimeMillis()) {
+        val changedAt = previousNameChangedTime
+        // v1.6 `hasPassed24hoursFrom`: 경과 시간(시간 단위 내림)이 24보다 클 때이다.
+        if (changedAt == null || (now - changedAt) / MILLIS_PER_HOUR > 24) {
+            previousNameChangedTime = now
+            previousName = name
+            previousOwnerLoginId = owner
+        }
+    }
+
+    /** 저장소 종류를 바꿀 때 가는 종류이다. Git이면 Subversion, 아니면 Git이다 (v1.6 `nextVCS`). */
+    fun nextVcs(): String = if (vcs == "GIT") "Subversion" else "GIT"
+
+    private companion object {
+        const val MILLIS_PER_HOUR = 3_600_000L
+    }
 }
 
 /** 조직이다. */

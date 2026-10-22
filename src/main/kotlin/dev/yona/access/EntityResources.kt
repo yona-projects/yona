@@ -8,6 +8,7 @@ import dev.yona.domain.issue.IssueLabel
 import dev.yona.domain.issue.IssueLabelCategory
 import dev.yona.domain.issue.Milestone
 import dev.yona.domain.project.Organization
+import dev.yona.domain.project.ProjectTransfer
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.user.User
 
@@ -55,3 +56,7 @@ fun User.avatarAsResource(): GlobalResource = GlobalResource(requireNotNull(id).
 
 /** 조직 (`ORGANIZATION`) (v1.6 `Organization.asResource`). */
 fun Organization.asResource(): GlobalResource = GlobalResource(requireNotNull(id).toString(), ResourceType.ORGANIZATION)
+
+/** 프로젝트 이전 요청 (`PROJECT_TRANSFER`). 받는 쪽만 수락할 수 있다 (v1.6 `ProjectTransfer.asResource`). */
+fun ProjectTransfer.asResource(): ProjectResource =
+    ProjectResource(requireNotNull(id).toString(), ResourceType.PROJECT_TRANSFER, project)

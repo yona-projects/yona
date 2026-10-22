@@ -17,6 +17,7 @@
 - [최근 방문 기록](domain/recent-visits.md)
 - [마일스톤 진행 현황](domain/milestone-status.md)
 - [프로젝트 구성원](web/project-members.md): 목록, 추가, 역할, 탈퇴
+- [프로젝트 이전과 저장소 종류 변경](web/project-transfer.md)
 - [프로젝트 삭제](web/project-delete.md): 삭제 범위와 순서
 - [프로젝트 설정](web/project-setting.md): 폼, 저장, 이름 변경, 로고
 - [첨부 파일](web/attachments.md): 저장, 내려받기, 권한
