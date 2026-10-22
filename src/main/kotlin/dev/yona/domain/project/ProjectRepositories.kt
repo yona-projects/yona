@@ -3,7 +3,16 @@ package dev.yona.domain.project
 import org.springframework.data.jpa.repository.JpaRepository
 
 /** 프로젝트 저장소이다. */
-interface ProjectRepository : JpaRepository<Project, Long>
+interface ProjectRepository : JpaRepository<Project, Long> {
+
+    /** 소유자와 이름이 모두 일치하는 프로젝트를 대소문자 구별 없이 조회한다 (v1.6의 `ieq`). */
+    fun findByOwnerIgnoreCaseAndNameIgnoreCase(owner: String, name: String): Project?
+
+    /** 지정한 이전 소유자와 이전 이름이 남아 있는 프로젝트를 최근에 바뀐 순으로 조회한다. */
+    fun findByPreviousOwnerLoginIdIgnoreCaseAndPreviousNameIgnoreCaseOrderByPreviousNameChangedTimeDesc(
+        previousOwnerLoginId: String, previousName: String
+    ): List<Project>
+}
 
 /** 프로젝트 구성원 저장소이다. */
 interface ProjectUserRepository : JpaRepository<ProjectUser, Long> {

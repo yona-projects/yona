@@ -17,6 +17,7 @@
 
 ## 도메인 (`domain/`)
 
+- [프로젝트 조회와 메뉴 개수](domain/project-service.md): `ProjectService`
 - [v1.6 스키마와 JPA 엔티티 매핑](domain/schema-mapping.md): 기준 스키마 추출, 3개 DB 검증 테스트, 패키지 구성, 매핑 규칙, v1.6과 달라진 점
 
 ## 서브시스템 (`subsystems/`)

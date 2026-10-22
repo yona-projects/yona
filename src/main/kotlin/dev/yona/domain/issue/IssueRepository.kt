@@ -11,4 +11,10 @@ interface IssueRepository : JpaRepository<Issue, Long> {
      * v1.6 `Issue.countOpenIssuesByUser`는 `assignee.user.id`와 `state = OPEN`으로 센다.
      */
     fun countByAssigneeUserIdAndState(userId: Long, state: State): Long
+
+    /** 프로젝트의 최상위 이슈(부모가 없는 이슈) 중 지정한 상태의 개수이다 (v1.6 `Issue.countIssues`). */
+    fun countByProjectIdAndParentIsNullAndState(projectId: Long, state: State): Long
+
+    /** 프로젝트의 최상위 이슈 중 초안을 뺀 개수이다 (v1.6 `Issue.countIssues(projectId, State.ALL)`). */
+    fun countByProjectIdAndParentIsNullAndStateNot(projectId: Long, state: State): Long
 }

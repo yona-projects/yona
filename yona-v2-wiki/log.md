@@ -81,3 +81,7 @@
 - TDD: `ErrorPagesTest` 8건을 먼저 실패(RED, 컴파일)시킨 뒤 `ErrorViews`, `GlobalErrorHandler`, 템플릿 4개로 구현했다. 예외 처리기로 그린 화면에는 `@ControllerAdvice`의 `@ModelAttribute`가 적용되지 않아 공통 모델 생성을 `LayoutModelFactory`로 분리했다.
 - 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 163건 통과.
 - 기록: [web/error-pages.md](web/error-pages.md)
+
+## [2026-10-22] ingest | ProjectService (2단계 b-1)
+- TDD: `ProjectServiceTest` 14건을 먼저 실패(RED, 컴파일)시킨 뒤 `ProjectService`와 저장소 쿼리로 통과(GREEN)시켰다.
+- 기록: [domain/project-service.md](domain/project-service.md)
