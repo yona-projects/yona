@@ -40,6 +40,16 @@ class RepositoryService(private val git: GitRepositories) {
         return git.open(owner(project), name(project))
     }
 
+    /**
+     * 프로젝트 저장소의 기본 브랜치 이름이다. 예: `refs/heads/master`. 저장소를 열 수 없으면 `HEAD`이다
+     * (v1.6 `Project.defaultBranch`).
+     */
+    fun defaultBranch(project: Project): String = try {
+        openRepository(project).use { it.findRef(org.eclipse.jgit.lib.Constants.HEAD)?.target?.name ?: "HEAD" }
+    } catch (e: Exception) {
+        "HEAD"
+    }
+
     private fun owner(project: Project) = requireNotNull(project.owner) { "프로젝트의 소유자가 없습니다." }
 
     private fun name(project: Project) = requireNotNull(project.name) { "프로젝트의 이름이 없습니다." }

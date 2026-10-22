@@ -25,7 +25,9 @@ updated: 2026-10-22
 | 2b-4 | Git 저장소 서비스(JGit): 저장소 생성/삭제, 경로 설정 | 완료 | [subsystems/git-repository.md](subsystems/git-repository.md) |
 | 2b-5a | 프로젝트 목록(`/projects`) | 완료 | [web/project-list.md](web/project-list.md) |
 | 2b-5b | 프로젝트 생성(`/projectform`, `POST /projects`) | 완료 | [web/project-create.md](web/project-create.md) |
-| 2b-5c | 프로젝트 홈(`/:user/:project`), 설정, 멤버, 삭제 | 다음 | |
+| 2b-5c-1 | 프로젝트 홈(README, 설명 수정, 구성원, 마일스톤 요약), 마크다운 미리보기 | 완료 | [web/project-home.md](web/project-home.md) |
+| 2b-5c-2 | 마크다운 프로젝트 문맥 후처리(자동 링크, 이슈 링크) | 다음 | |
+| 2b-5c-3 | 프로젝트 설정, 구성원 관리, 삭제 | 대기 | |
 | 2c | 조직(Organization) 화면과 서비스 | 대기 | |
 | 2d | 사용자 화면(가입, 프로필, 설정, 이메일, 비밀번호 재설정) | 대기 | |
 | 3 | 이슈, 게시판, 마일스톤, 라벨, 첨부 | 대기 | |

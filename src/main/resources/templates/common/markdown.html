@@ -1,0 +1,25 @@
+<!--/*
+  이식 원본: app/views/common/markdown.scala.html
+  마크다운 편집기와 렌더링에 쓰는 하이라이트, marked.js를 불러오고 클라이언트 렌더러를 초기화한다.
+  매개변수: project(미리보기 요청을 보낼 프로젝트. 없으면 null)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="markdown(project)">
+<link rel="stylesheet" type="text/css" th:href="@{/assets/javascripts/lib/highlight/styles/default.css}" />
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/highlight/highlight.pack.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/marked.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    hljs.configure({languages: []});
+    hljs.initHighlightingOnLoad();
+    var htOptions = {};
+
+    /*[# th:if="${project != null}"]*/
+    htOptions.sMarkdownRendererUrl = [[${'/markdown/' + project.owner + '/' + project.name}]];
+    /*[/]*/
+
+    // Reusable markdown renderer
+    yobi.Markdown.init(htOptions);
+
+});
+</script>
+</th:block>

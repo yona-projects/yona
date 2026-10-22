@@ -1,0 +1,29 @@
+<!--/*
+  이식 원본: app/views/milestone/partial_status.scala.html
+  매개변수: status(MilestoneStatus), project
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="status(status, project)">
+<div class="milestone-info">
+    <div class="meta-info">
+        <a th:href="@{/{owner}/{name}/milestone/{id}(owner=${project.owner},name=${project.name},id=${status.id})}" class="title" th:text="${status.title}"></a>
+        <span th:if="${status.dueDateString != null}" class="due-date" th:classappend="${status.state?.name() != 'CLOSED' and status.overDue} ? 'over'">
+            <th:block th:text="#{label.dueDate}"></th:block>
+            <strong th:text="${status.dueDateString}"></strong>
+            <span th:if="${status.state?.name() != 'CLOSED'}" class="date">
+                (<th:block th:text="${status.until}"></th:block>)
+            </span>
+        </span>
+    </div>
+
+    <div class="progress-wrap">
+        <div class="progress progress-success nm">
+            <div class="bar" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
+        </div>
+        <div class="progress-info">
+            <span class="pull-right">
+                <strong th:text="${status.closedCount} + ' / ' + (${status.openCount} + ${status.closedCount})"></strong>
+            </span>
+        </div>
+    </div>
+</div>
+</th:block>

@@ -39,7 +39,7 @@ class ProjectCreateService(
     private val menuSettings: ProjectMenuSettingRepository,
     private val watches: WatchRepository,
     private val unwatches: UnwatchRepository,
-    private val recentProjects: RecentProjectRepository,
+    private val recentVisits: RecentVisitService,
     private val repositories: RepositoryService
 ) {
 
@@ -125,7 +125,7 @@ class ProjectCreateService(
 
         saveMenuSetting(project, form.menus)
         watch(creator, project)
-        recordVisit(creator, project)
+        recentVisits.record(creator, project)
         return project
     }
 
@@ -162,27 +162,9 @@ class ProjectCreateService(
         unwatches.findByUserIdAndResourceTypeAndResourceId(userId, ResourceType.PROJECT, resourceId).forEach { unwatches.delete(it) }
     }
 
-    /**
-     * 최근 방문한 프로젝트에 기록한다. 같은 프로젝트의 이전 기록은 지우고, 사용자당 [MAX_RECENT_PROJECTS]개를 넘으면
-     * 가장 오래된 것부터 지운다 (v1.6 `RecentProject.addVisitHistory`).
-     *
-     * v1.6은 이 작업을 비동기로 실행했다. v2는 요청 트랜잭션 안에서 처리한다([decisions.md] A-15).
-     */
-    fun recordVisit(user: User, project: Project) {
-        val userId = requireNotNull(user.id)
-        recentProjects.findByUserIdAndProjectId(userId, requireNotNull(project.id)).forEach { recentProjects.delete(it) }
-        recentProjects.flush()
-        recentProjects.save(RecentProject(userId = userId, owner = project.owner, project = project, projectName = project.name))
-        val all = recentProjects.findByUserIdOrderByIdDesc(userId)
-        all.drop(MAX_RECENT_PROJECTS).forEach { recentProjects.delete(it) }
-    }
-
     companion object {
         /** 사이트 관리자의 사용자 번호이다. 모든 프로젝트에 `SITEMANAGER` 역할로 들어간다 (v1.6 `User.SITE_MANAGER_ID`). */
         const val SITE_MANAGER_ID = 1L
-
-        /** 사용자당 보관하는 최근 방문 프로젝트의 최대 개수이다 (v1.6 `RecentProject.MAX_RECENT_LIST_PER_USER`). */
-        const val MAX_RECENT_PROJECTS = 30
 
         /** 프로젝트 이름에 쓸 수 있는 문자이다 (v1.6 `Project.name`의 `@Pattern`). */
         private val NAME_PATTERN = Regex("^[a-zA-Z0-9-_.가-힣]+$")

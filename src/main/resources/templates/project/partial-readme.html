@@ -1,0 +1,27 @@
+<!--/*
+  이식 원본: app/views/project/partial_readme.scala.html
+  매개변수: view(ProjectViewContext), readmeFileName, readmeHtml(렌더링한 README. 없으면 null)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="readme(view, readmeFileName, readmeHtml)">
+<div class="bubble-wrap gray readme">
+<th:block th:if="${readmeHtml == null}">
+  <p class="default">
+    <th:block th:if="${view.git}">
+      <span th:text="#{project.readme}"></span>
+      <br><br>
+      <a th:if="${view.canCreateCommit}" th:href="@{/{owner}/{name}/postform(owner=${view.project.owner},name=${view.project.name},readme=true)}" class="ybtn" th:text="#{project.readme.create}"></a>
+    </th:block>
+    <span th:unless="${view.git}" th:text="#{project.svn.readme}"></span>
+  </p>
+</th:block>
+<div th:if="${readmeHtml != null}" class="readme-wrap">
+    <header>
+      <i class="yobicon-book-open vmiddle"></i>
+      <strong class="vmiddle" th:text="${' ' + readmeFileName}"></strong>
+      <a th:if="${view.git and view.canCreateCommit}" th:href="@{/{owner}/{name}/postform(owner=${view.project.owner},name=${view.project.name},readme=true)}" class="ybtn vmiddle ml5" th:text="#{button.edit}"></a>
+    </header>
+    <div class="readme-body markdown-wrap" th:utext="${readmeHtml}"></div>
+</div>
+<th:block th:replace="~{common/markdown :: markdown(${view.project})}"></th:block>
+</div>
+</th:block>

@@ -14,6 +14,9 @@
 ## 웹 (`web/`)
 
 - [정적 자원, LESS 빌드, 다국어 메시지](web/static-assets-and-i18n.md): `/assets/`, favicon, Less 1.7.5 빌드, Play 메시지 형식
+- [최근 방문 기록](domain/recent-visits.md)
+- [마일스톤 진행 현황](domain/milestone-status.md)
+- [프로젝트 홈](web/project-home.md): README, 설명 수정, 구성원, 마일스톤 요약
 - [마크다운 렌더링](web/markdown.md): commonmark-java, v1.6 marked.js와의 비교 테스트
 - [프로젝트 생성](web/project-create.md): `/projectform`, `POST /projects`, 검증, 표시 이름
 - [프로젝트 목록](web/project-list.md): `/projects`, 검색, 쪽 나누기, JSON, `TemplateHelper`

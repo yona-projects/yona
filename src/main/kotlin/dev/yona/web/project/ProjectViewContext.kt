@@ -2,6 +2,7 @@ package dev.yona.web.project
 
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
+import dev.yona.access.labelsAsResource
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
@@ -113,6 +114,18 @@ class ProjectViewContext(
 
     /** 설정 메뉴를 보여도 되면 `true`이다 (`UPDATE` 권한). */
     val canUpdate: Boolean by lazy { deps.accessControl.isAllowed(viewer, project.asResource(), Operation.UPDATE) }
+
+    /** 저장소에 커밋을 만들 수 있으면 `true`이다. README를 만들고 고치는 링크를 보여 줄지 정한다 (v1.6 `isProjectResourceCreatable(COMMIT)`). */
+    val canCreateCommit: Boolean by lazy { deps.accessControl.isProjectResourceCreatable(viewer, project, ResourceType.COMMIT) }
+
+    /** 프로젝트의 라벨을 바꿀 수 있으면 `true`이다. 구성원 추가 링크를 보여 줄지 정한다 (v1.6 `labelsAsResource` `UPDATE`). */
+    val canUpdateLabels: Boolean by lazy { deps.accessControl.isAllowed(viewer, project.labelsAsResource(), Operation.UPDATE) }
+
+    /** 프로젝트를 탈퇴할 수 있으면 `true`이다 (`LEAVE` 권한). */
+    val canLeave: Boolean by lazy { deps.accessControl.isAllowed(viewer, project.asResource(), Operation.LEAVE) }
+
+    /** 보는 사용자가 프로젝트를 탈퇴할 때 호출하는 주소이다. 익명이면 `null`이다. */
+    val leaveUrl: String? get() = viewerId?.let { "/${project.owner}/${project.name}/member/$it/delete" }
 
     /** 사용자가 프로젝트 구성원이면 `true`이다 (v1.6 `Project.hasMember`). */
     val member: Boolean by lazy { deps.projectService.hasMember(project, viewer) }

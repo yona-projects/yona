@@ -20,4 +20,10 @@ interface IssueRepository : JpaRepository<Issue, Long> {
 
     /** 프로젝트의 최상위 이슈 중 초안을 뺀 개수이다 (v1.6 `Issue.countIssues(projectId, State.ALL)`). */
     fun countByProjectIdAndParentIsNullAndStateNot(projectId: Long, state: State): Long
+
+    /** 마일스톤에 속한 이슈 중 지정한 상태의 개수이다 (v1.6 `Milestone.getNumOpenIssues`, `getNumClosedIssues`). */
+    fun countByMilestoneIdAndState(milestoneId: Long, state: State): Long
+
+    /** 마일스톤에 속한 전체 이슈 수이다 (v1.6 `Milestone.getNumTotalIssues`). */
+    fun countByMilestoneId(milestoneId: Long): Long
 }

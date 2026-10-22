@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/home.scala.html
+  모델: title, projectView, tabId, overviewHtml, readmeFileName, readmeHtml, members, milestone
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_HOME', ~{::homePage})}">
+<th:block th:fragment="homePage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_HOME', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="project-breadcrumb hide show-in-mobile">
+            <span class="project-author"><a th:href="@{/{user}(user=${projectView.project.owner})}" th:text="${projectView.project.owner}"></a></span>
+            <span class="project-separator">/</span>
+            <span class="project-name"><a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name})}" th:text="${projectView.project.name}"></a></span>
+            <span th:if="${projectView.project.isPrivate()}" class="project-private">
+                <i class="yobicon-lock"></i>
+            </span>
+        </div>
+        <div class="project-home-header row-fluid">
+            <div class="project-overview span9 span-hard-wrap">
+                <div class="project-description" data-toggle="project-description-tab">
+                <h3><span id="project-description" class="markdown-wrap"><th:block th:if="${overviewHtml == null}" th:text="#{project.description.placeholder}"></th:block><th:block th:if="${overviewHtml != null}" th:utext="${overviewHtml}"></th:block></span>
+                    <button th:if="${projectView.canUpdate}" type="button" class="ybtn ybtn-minimum" data-toggle="description-edit"><i class="yobicon-edit"></i></button>
+                </h3>
+                </div>
+                <div class="project-description-edit hidden" data-toggle="project-description-tab">
+                    <form th:action="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name})}" onsubmit="return false">
+                    <input type="text" id="project-description-input" class="span6" th:placeholder="#{project.description.placeholder}" th:value="${projectView.project.overview}"/>
+                    <button type="button" class="ybtn ybtn-success" id="descriptionSaveBtn" th:text="#{button.save}"></button> <button type="button" class="ybtn" data-toggle="description-cancel" th:text="#{button.cancel}"></button>
+                    </form>
+                </div>
+            </div>
+            <div th:if="${projectView.menuSetting.code}" class="project-clone-wrap span3 hide-in-mobile">
+                <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" th:value="${projectView.repositoryUrl}">
+                <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}"></button>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span9 span-left-pane">
+                 <ul class="nav nav-tabs">
+                    <li th:class="${tabId == 'readme'} ? 'active'">
+                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name})}">README</a>
+                    </li>
+
+                    <li th:class="${tabId == 'history'} ? 'active'">
+                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name},tabId='history')}" th:text="#{project.history.recent}"></a>
+                    </li>
+
+                    <li th:class="${tabId == 'dashboard'} ? 'active'">
+                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name},tabId='dashboard')}" th:text="#{project.dashboard}"></a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane active">
+                      <th:block th:if="${tabId == 'readme'}">
+                        <th:block th:replace="~{project/partial-readme :: readme(${projectView}, ${readmeFileName}, ${readmeHtml})}"></th:block>
+                      </th:block>
+                    </div>
+                </div>
+            </div>
+
+            <div class="span3 span-right-pane">
+                <div class="bubble-wrap gray project-home">
+                    <div class="project-btn-wrap">
+                        <span th:if="${projectView.menuSetting.issue}" class="project-btn-item">
+                            <a th:href="@{/{owner}/{name}/issueform(owner=${projectView.project.owner},name=${projectView.project.name})}" class="ybtn ybtn-success" th:text="#{button.newIssue}"></a>
+                        </span>
+                        <th:block th:if="${projectView.menuSetting.code and projectView.git}">
+                            <span class="project-btn-item">
+                                <a th:href="@{/{owner}/{name}/newFork(owner=${projectView.project.owner},name=${projectView.project.name})}" class="ybtn ybtn-inverse" th:text="#{fork}"></a>
+                            </span>
+                        </th:block>
+                    </div>
+                    <th:block th:if="${milestone != null}">
+                        <th:block th:replace="~{milestone/partial-status :: status(${milestone}, ${projectView.project})}"></th:block>
+                    </th:block>
+                    <div class="inner member-info">
+                        <header>
+                            <h3 th:text="#{project.members}"></h3>
+                            <a th:if="${projectView.canUpdateLabels}" th:href="@{/{owner}/{name}/members(owner=${projectView.project.owner},name=${projectView.project.name})}" class="ybtn ybtn-minimum" id="member-add-link"><i class="yobicon-addfriend"></i> <th:block th:text="#{button.add}"></th:block></a>
+                        </header>
+                        <div class="member-wrap">
+                            <ul class="project-members">
+                                <li th:each="member : ${members}" class="member">
+                                    <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap img-rounded pull-left small">
+                                        <img th:src="${member.avatarUrl}" th:alt="${member.loginId}" width="24" height="24">
+                                    </a>
+                                    <a th:href="@{/{user}(user=${member.loginId})}" class="name">
+                                        <strong th:text="${member.displayName + ' (' + member.loginId + ')'}"></strong>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button th:if="${projectView.canLeave}" type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="projectLeaveBtn" th:data-href="${projectView.leaveUrl}" th:text="#{project.member.leave}"></button>
+                </div>
+            </div>
+        </div>
+        <!--/* Confirm to leave the project */-->
+        <div id="alertLeave" class="modal hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3 th:text="#{project.member.leave}"></h3>
+            </div>
+            <div class="modal-body">
+                <p th:text="#{project.member.leaveConfirm}"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn" th:text="#{button.yes}"></button>
+                <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}"></button>
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{common/markdown :: markdown(${projectView.project})}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    $yobi.loadModule("project.Home", {
+        "sURLProjectLabels": [[${'/' + projectView.project.owner + '/' + projectView.project.name + '/labels'}]],
+        "sURLLabels"       : "/labels",
+        "sURLLabelCategories": "/categories",
+        "welLabelBoard": $('#label-board'),
+        "welLabelEditorToggle": $('#label-editor-toggle'),
+        "nProjectId"     : [[${'' + projectView.project.id}]],
+        "sURLProject"       : [[${'/' + projectView.project.owner + '/' + projectView.project.name}]],
+        "sURLZeroClipboard" : "/assets/javascripts/lib/jquery/ZeroClipboard.swf"
+    });
+});
+</script>
+</th:block>
+</html>
