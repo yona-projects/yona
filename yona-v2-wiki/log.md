@@ -232,3 +232,6 @@
 
 ## [2026-10-23] ingest | 외부 프로젝트, 게시판 REST API (3e 마무리)
 - TDD: ExternalProjectApiTest 12, ExternalBoardApiTest 4. A-65, R-36, R-37. 3e 완료. 마이그레이션 화면(MigrationApp)은 별도 항목으로 남았다.
+
+## [2026-10-23] ingest | Git smart-HTTP 서비스 (5단계 5a-1)
+- TDD: GitHttpTest 10(실제 JGit 클라이언트). A-66. 5단계를 5a~5f로 나눴다.

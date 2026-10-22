@@ -118,3 +118,13 @@ interface TitleHeadRepository : JpaRepository<TitleHead, Long> {
     )
     fun search(projectId: Long, query: String): List<TitleHead>
 }
+
+/** 최근 푸시된 브랜치 저장소이다. */
+interface PushedBranchRepository : JpaRepository<PushedBranch, Long> {
+
+    /** 프로젝트에서 이름이 [name]인 푸시 기록이다 (v1.6 `PushedBranch.find.where().eq("project").eq("name")`). */
+    fun findFirstByProjectIdAndName(projectId: Long, name: String): PushedBranch?
+
+    /** 프로젝트의 푸시 기록을 최근 순으로 조회한다. */
+    fun findByProjectIdOrderByPushedDateDesc(projectId: Long): List<PushedBranch>
+}

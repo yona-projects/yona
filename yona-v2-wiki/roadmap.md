@@ -57,7 +57,12 @@ updated: 2026-10-22
 | 4b | 알림 메일 발송(스케줄러, 메시지, HTML 메일, 묶기)과 시스템 메일(비밀번호 재설정, 가입 인증, 이메일 확인, 이전 요청) | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
 | 4c | 홈의 알림 목록(More 포함) | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
 | 4d | 보관 기간 정리, 프로젝트 구독·해제·구독자 목록, 프로젝트별 알림 설정 탭 | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
-| 5 | 코드 저장소 화면(Git), 포크, 풀 리퀘스트, 코드 리뷰, 웹훅 | 대기 | |
+| 5a-1 | Git smart-HTTP(복제, 푸시), Basic 인증, 푸시 훅(마지막 푸시 시각, 최근 푸시 브랜치, 예약 ref 거부) | 완료 | [subsystems/git-http.md](subsystems/git-http.md) |
+| 5b | 코드 브라우저(폴더, 파일, 원본, 이미지, 다운로드), 브랜치 목록, 기본 브랜치, 브랜치 삭제, 커밋 이력, 커밋 보기, 비교 | 대기 | |
+| 5c | 포크, 클론, 풀 리퀘스트(목록, 보기, 변경 내용, 만들기, 병합, 닫기와 열기, 수정, 댓글, 리뷰) | 대기 | |
+| 5d | 코드 리뷰 댓글(커밋 댓글, 리뷰 스레드), 푸시 후 알림 훅(새 커밋, 이슈 언급, 풀 리퀘스트 확인) | 대기 | |
+| 5e | 웹훅(설정 화면, 발송), 알림과 웹훅 연결 | 대기 | |
+| 5f | 외부 저장소 가져오기(`/_import`) | 대기 | |
 | 6 | 검색, 통계, 도움말, 사이트 관리, 데이터 내보내기/가져오기 | 대기 | |
 | 7 | 소셜 로그인, LDAP, 이메일 수신 | 대기 | |
 | 8 | Subversion(SVNKit) | 마지막 | |
