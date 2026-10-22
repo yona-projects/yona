@@ -73,6 +73,29 @@ class AttachmentService(
     fun findByContainer(containerType: ResourceType, containerId: Long): List<Attachment> =
         attachments.findByContainerTypeAndContainerIdOrderById(containerType, containerId)
 
+    /** [fromType], [fromId] 컨테이너의 첨부를 모두 [toType], [toId]로 옮기고 옮긴 개수를 돌려준다 (v1.6 `Attachment.moveAll`). */
+    @Transactional
+    fun moveAll(fromType: ResourceType, fromId: Long, toType: ResourceType, toId: Long): Int {
+        val found = attachments.findByContainerTypeAndContainerIdOrderById(fromType, fromId)
+        found.forEach { moveTo(it, toType, toId) }
+        return found.size
+    }
+
+    /**
+     * 사용자의 임시 첨부 중 [selectedIds]에 든 것만 [toType], [toId]로 옮기고 찾은 첨부의 개수를 돌려준다
+     * (v1.6 `Attachment.moveOnlySelected`). 사이트 관리자는 임시 첨부가 아닌 것도 옮길 수 있고, 숫자가 아닌 번호는 건너뛴다.
+     */
+    @Transactional
+    fun moveOnlySelected(fromUserId: Long, selectedIds: List<String>, toType: ResourceType, toId: Long, siteManager: Boolean): Int {
+        val found = attachments.findAllById(selectedIds.mapNotNull { it.trim().toLongOrNull() })
+        for (attachment in found) {
+            if ((attachment.containerId == fromUserId && attachment.containerType == ResourceType.USER) || siteManager) {
+                moveTo(attachment, toType, toId)
+            }
+        }
+        return found.size
+    }
+
     /**
      * 첨부를 지운다. 같은 해시를 쓰는 다른 첨부가 없으면 업로드 디렉터리의 파일도 지운다.
      */

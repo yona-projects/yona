@@ -1,0 +1,62 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/editor.scala.html
+  매개변수:
+    editorName   입력란 이름. `이름-식별자` 형식이면 앞이 textarea의 name, 뒤가 영역 식별자이다. 식별자가 없으면 무작위 8자 영문이다.
+    textValue    처음 내용 (null이면 빈 내용)
+    additionalAttr  textarea에 더할 속성 문자열. v1.6 호출부가 쓰는 `tabindex=N`, `style=...`, `data-is-user-has-typed=true`를 읽는다
+    editorMode   `content-body` 등 편집 모드
+    viaEmail     이메일로 보이는 모양인지
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org"
+          th:fragment="editor(editorName, textValue, additionalAttr, editorMode, viaEmail)"
+          th:with="nameParts=${#strings.arraySplit(editorName, '-')},
+                   wrapId=${#arrays.length(nameParts) > 1 ? nameParts[1] : #strings.randomAlphanumeric(8)},
+                   textareaName=${nameParts[0]}">
+<div data-toggle="markdown-editor" class="mt10">
+    <ul class="nav nav-tabs nm small">
+        <li class="active">
+            <a th:href="'#edit-' + ${wrapId}" data-toggle="tab" data-mode="edit" th:text="#{common.editor.edit}"></a>
+        </li>
+        <li>
+            <a th:href="'#preview-' + ${wrapId}" data-toggle="tab" data-mode="preview" th:text="#{common.editor.preview}"></a>
+        </li>
+        <li>
+            <div class="task-list-button"><button type="button" class="add-task-list-button ybtn ybtn-small ybtn-danger-no-outline"><i class="yobicon-list task-list-icon"></i> <th:block th:text="#{button.add.checklist}"></th:block></button></div>
+        </li>
+        <li>
+            <div class="editor-clear-temporary">
+                <div class="editor-clear-temporary-button"><button type="button" id="button-clear-temporary" class="ybtn ybtn-small ybtn-warning" th:text="#{button.clear.temporary}"></button></div>
+            </div>
+        </li>
+        <li>
+            <div class="editor-notice-label"></div>
+        </li>
+    </ul>
+
+    <div class="tab-content" style="position:relative;overflow: visible;">
+        <th:block th:replace="~{help/markdown :: markdown}"></th:block>
+
+        <div th:id="'edit-' + ${wrapId}" class="tab-pane active">
+            <div class="textarea-box">
+                <textarea th:name="${textareaName}" class="editorSeries content comment nm" th:attr="data-editor-mode=${editorMode}" markdown="true" th:id="'editor-' + ${textareaName} + '-' + ${wrapId}"
+                    th:tabindex="${additionalAttr != null and #strings.startsWith(additionalAttr, 'tabindex=')} ? ${#strings.substringAfter(additionalAttr, 'tabindex=')}"
+                    th:style="${additionalAttr != null and #strings.startsWith(additionalAttr, 'style=')} ? ${#strings.substringAfter(additionalAttr, 'style=')}"
+                    th:data-is-user-has-typed="${additionalAttr != null and #strings.startsWith(additionalAttr, 'data-is-user-has-typed=')} ? ${#strings.substringAfter(additionalAttr, 'data-is-user-has-typed=')}"
+                    th:text="${textValue}"></textarea>
+            </div>
+        </div>
+
+        <div th:id="'preview-' + ${wrapId}" class="tab-pane">
+            <div class="markdown-preview markdown-wrap" th:classappend="${editorMode}" th:attr="data-via-email=${viaEmail}"></div>
+        </div>
+        <div class="notification-receiver">
+            <span class="notification-receiver-title" th:text="#{notification.receiver.list.title}"></span>
+            <span class="notification-receiver-list"></span>
+        </div>
+    </div>
+</div>
+</th:block>

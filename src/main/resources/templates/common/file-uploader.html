@@ -1,0 +1,28 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/fileUploader.scala.html
+  매개변수: resourceType(리소스 종류 이름), resourceId(수정할 때의 번호. 없으면 null)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="fileUploader(resourceType, resourceId)">
+<th:block th:replace="~{common/upload-form :: uploadForm(${resourceType}, ${resourceId}, 'upload')}"></th:block>
+
+<script type="text/x-jquery-tmpl" id="tplAttachedFile" th:inline="none">
+    <li class="attached-file" data-id="${fileId}" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+        <i class="yobicon-supportrequest"></i>
+        <i class="mimetype"></i>
+        <strong class="name">${fileName}</strong>
+        <span class="size">${fileSizeReadable}</span>
+        <div class="pull-right">
+            <div class="progress upload-progress"><div class="bar orange"></div></div>
+        </div>
+        <button type="button" class="btn-transparent btn-delete pull-right">&times;</button>
+        <span class="pull-right nbtn small white btn-insert" th:text="#{common.attach.clickToPost}"></span>
+    </li>
+</script>
+<script type="text/x-jquery-tmpl" id="tplDropFilesHere" th:inline="none">
+<div class="upload-drop-here"><div class="msg-wrap"><div class="msg" th:text="#{common.attach.dropFilesHere}"></div></div></div>
+</script>
+</th:block>

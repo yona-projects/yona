@@ -26,4 +26,12 @@ interface IssueRepository : JpaRepository<Issue, Long> {
 
     /** 마일스톤에 속한 전체 이슈 수이다 (v1.6 `Milestone.getNumTotalIssues`). */
     fun countByMilestoneId(milestoneId: Long): Long
+
+    /** 마일스톤에 속한 이슈 중 지정한 상태인 것을 번호 순으로 조회한다 (v1.6 `Issue.findOpenIssuesByMilestone`, `findClosedIssuesByMilestone`). */
+    fun findByMilestoneIdAndStateOrderById(milestoneId: Long, state: State): List<Issue>
+
+    /** 마일스톤을 지울 때 속한 이슈의 마일스톤을 비운다. */
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true, clearAutomatically = true)
+    @org.springframework.data.jpa.repository.Query("update Issue i set i.milestone = null where i.milestone.id = :milestoneId")
+    fun clearMilestone(milestoneId: Long): Int
 }

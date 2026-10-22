@@ -1,0 +1,28 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/uploadForm.scala.html
+  매개변수: resourceType(리소스 종류 이름, 예: MILESTONE), resourceId(수정할 때의 번호. 없으면 null), formId(영역의 id. 없으면 null)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="uploadForm(resourceType, resourceId, formId)">
+<div class="upload-wrap content-footer" th:attr="data-resource-type=${resourceType}, data-resource-id=${resourceId}, id=${formId}">
+    <div class="attach-wrap">
+        <span class="help help-droppable" th:text="#{common.attach.drophere}"></span>
+        <div class="btn-wrap">
+            <div class="nbtn medium white fake-file-wrap">
+                <i class="yobicon-upload"></i> <th:block th:text="#{button.upload}"></th:block>
+                <input type="file" class="file" name="filePath" multiple="multiple">
+            </div>
+        </div>
+        <span class="plain" th:text="#{common.attach.clickbutton}"></span>
+        <span class="help help-pastable" th:text="#{common.attach.pastehere}"></span>
+    </div>
+
+    <ul class="attached-files unstyled"></ul>
+    <p class="right-txt help">
+        <i class="yobicon-supportrequest"></i> <th:block th:text="#{common.attach.attachIfYouSave}"></th:block>
+    </p>
+</div>
+</th:block>

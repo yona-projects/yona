@@ -28,6 +28,12 @@ object ErrorViews {
     fun badRequest(messageKey: String = "error.badrequest"): ModelAndView =
         view("error/badrequest-default", HttpStatus.BAD_REQUEST, messageKey)
 
+    /**
+     * 413: 폼 본문이 한도를 넘어 값을 읽지 못했다. v1.6 `ErrorViews.RequestTextEntityTooLarge`이며 상태는 컨트롤러가
+     * `status(REQUEST_ENTITY_TOO_LARGE, ...)`로 따로 정했다.
+     */
+    fun requestTextEntityTooLarge(): ModelAndView = ModelAndView("error/request-text-entity-too-large", HttpStatus.PAYLOAD_TOO_LARGE)
+
     /** 500: 서버 오류이다. */
     fun internalServerError(messageKey: String = "error.internalServerError"): ModelAndView =
         view("error/internal-server-error-default", HttpStatus.INTERNAL_SERVER_ERROR, messageKey)

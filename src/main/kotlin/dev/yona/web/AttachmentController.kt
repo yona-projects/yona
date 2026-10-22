@@ -46,7 +46,8 @@ class AttachmentController(
     private val attachments: AttachmentService,
     private val resources: ResourceLookup,
     private val accessControl: AccessControl,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val listing: AttachmentListing
 ) {
 
     private val json = JsonMapper.builder().build()
@@ -114,14 +115,7 @@ class AttachmentController(
     ): ResponseEntity<String> {
         val body = linkedMapOf<String, Any>()
         if (!containerType.isNullOrEmpty() && !containerId.isNullOrEmpty()) {
-            val viewer = currentUserProvider.get().user
-            val items = attachments.findByContainer(ResourceType.valueOf(containerType), containerId.toLong()).map { attachment ->
-                if (!accessControl.isAllowed(viewer, resources.attachmentResource(attachment), Operation.READ)) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-                }
-                info(attachment, "/files/${attachment.id}", Normalizer.normalize(attachment.name.orEmpty(), Normalizer.Form.NFC))
-            }
-            body["attachments"] = items
+            body.putAll(listing.fileList(ResourceType.valueOf(containerType), containerId.toLong()) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build())
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json.writeValueAsString(body))
     }

@@ -245,7 +245,8 @@ class AccessControl(
 
     private fun findProject(resource: Resource): Project? = projects.findById(resource.id.toLong()).orElse(null)
 
-    private fun isSiteManager(user: User?): Boolean = user?.id?.let { siteAdmins.existsByAdminId(it) } ?: false
+    /** 사용자가 사이트 관리자이면 `true`이다. */
+    fun isSiteManager(user: User?): Boolean = user?.id?.let { siteAdmins.existsByAdminId(it) } ?: false
 
     /** 프로젝트에 속해 있으면(역할 무관) `true`이다 (v1.6 `User.isMemberOf(Project)`). */
     private fun isProjectMember(user: User?, project: Project): Boolean {

@@ -174,3 +174,8 @@
 ## [2026-10-22] ingest | 이슈 라벨과 분류 (3단계 a)
 - TDD: `IssueLabelTest` 31건. 관리 화면, 라벨 JSON, PJAX 목록, 만들기, 수정, 삭제, 분류 CRUD, 복사, 색 스타일 시트와 ETag.
 - v1.6 결함 R-22(3자리 색)를 재현했고 A-33(게시글 연결 정리), A-34(타 프로젝트 분류 거부)를 기록했다.
+
+## [2026-10-22] ingest | 공용 편집기 부품과 마일스톤 (3단계 b)
+- TDD: `MentionListTest` 13건, `TextBodyLimitFilterTest` 3건, `MilestoneTest` 30건. 편집기, 업로더, 마크다운 도움말 조각과 `AttachmentListing`, `PostAttachments`를 옮겼다.
+- v1.6 결함 R-23(멀티파트가 아니면 임시 첨부가 옮겨지지 않음)을 재현했고 A-35(멘션 후보 읽기 권한), A-36(폼 본문 한도 설정), A-37(정렬 항목 제한)을 기록했다.
+- 마일스톤 보기 화면의 이슈 탭은 이슈 화면(3c)을 옮길 때 채운다.

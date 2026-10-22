@@ -39,7 +39,8 @@ updated: 2026-10-22
 | 2d-4a | 사용자 검색 API(자동 완성) | 완료 | [web/account.md](web/account.md) |
 | 2d-4b | 사용자 페이지(`/:user`), 사용자 메뉴 탭, 내 파일 목록, 프로젝트 탈퇴(`/info/leave`) | 이슈(3단계)와 풀 리퀘스트(5단계) 뒤 | 이슈, 풀 리퀘스트 목록에 의존 |
 | 3a | 이슈 라벨과 분류 | 완료 | [web/issue-labels.md](web/issue-labels.md) |
-| 3b | 마일스톤 | 대기 | |
+| 3b-0 | 공용 편집기 부품(편집기, 업로더, 마크다운 도움말), 멘션 후보, 첨부 목록, 폼 본문 크기 한도 | 완료 | [web/editor-components.md](web/editor-components.md) |
+| 3b | 마일스톤 | 완료 (보기 화면의 이슈 목록은 3c) | [web/milestones.md](web/milestones.md) |
 | 3c | 이슈(목록, 검색, 등록, 보기, 수정, 댓글, 이벤트) | 대기 | |
 | 3d | 게시판 | 대기 | |
 | 4 | 알림 서브시스템(이벤트 생성, 메시지, 링크, 메일)과 로그인 사용자용 홈 알림 목록 | 대기 | |

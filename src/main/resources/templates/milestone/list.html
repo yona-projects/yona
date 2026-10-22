@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/milestone/list.scala.html
+  모델: title, projectView, rows(MilestoneRow: status, openIssues, closedIssues), state, orderBy, orderDir, canCreate
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::listPage})}">
+<th:block th:fragment="listPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}, urlToList=${'/' + projectView.project.owner + '/' + projectView.project.name + '/milestones'}">
+<link rel="stylesheet" th:href="${base + '/issue/labels.css'}" type="text/css" />
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'MILESTONE', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="tab-wrap">
+            <div th:if="${canCreate}" class="pull-right btns">
+                <a th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-success" th:text="#{milestone.menu.new}"></a>
+            </div>
+
+            <ul class="nav nav-tabs">
+                <li th:class="${state == 'open'} ? 'active'">
+                    <a th:href="${urlToList + '?state=open'}" th:text="#{milestone.state.open}"></a>
+                </li>
+                <li th:class="${state == 'closed'} ? 'active'">
+                    <a th:href="${urlToList + '?state=closed'}" th:text="#{milestone.state.closed}"></a>
+                </li>
+                <li th:class="${state == 'all'} ? 'active'">
+                    <a th:href="${urlToList + '?state=all'}" th:text="#{milestone.state.all}"></a>
+                </li>
+            </ul>
+        </div>
+
+        <div th:if="${rows.isEmpty()}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{milestone.is.empty}"></p>
+        </div>
+
+        <th:block th:unless="${rows.isEmpty()}">
+        <div class="filter-wrap milestone">
+            <th:block th:if="${rows.size() > 1}">
+            <div class="filters">
+                <th:block th:each="field : ${ {'dueDate', 'completionRate'} }">
+                    <a th:if="${orderBy == field}" class="filter active"
+                       th:href="${urlToList + '?orderBy=' + field + '&orderDir=' + (orderDir == 'desc' ? 'asc' : 'desc') + '&state=' + state}"><i class="ico btn-gray-arrow" th:classappend="${orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{${field == 'dueDate' ? 'common.order.dueDate' : 'common.order.completionRate'}}"></th:block></a>
+                    <a th:unless="${orderBy == field}" class="filter"
+                       th:href="${urlToList + '?orderBy=' + field + '&orderDir=asc&state=' + state}"><i class="ico btn-gray-arrow"></i><th:block th:text="#{${field == 'dueDate' ? 'common.order.dueDate' : 'common.order.completionRate'}}"></th:block></a>
+                </th:block>
+            </div>
+            <div class="pull-left search search-bar">
+                <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" value="">
+                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+            </div>
+            </th:block>
+        </div>
+
+        <div class="row-fluid">
+            <div>
+                <ul class="milestones">
+                    <li th:each="row : ${rows}" class="milestone" th:with="status=${row.status}">
+                        <div class="infos">
+                            <div class="meta-info">
+                                <strong class="version"></strong>
+                                <a th:href="${base + '/milestone/' + status.id}" class="milestone-name" th:text="${status.title}"></a>
+                                <span class="sp">|</span>
+                                <span class="issue-item" th:text="${status.closedCount} + ' / ' + (${status.openCount} + ${status.closedCount})"></span>
+                                <th:block th:if="${status.state.name() != 'CLOSED'}">
+                                    <th:block th:if="${state == 'all'}">
+                                        <span class="sp">|</span>
+                                        <span class="state nm open" th:text="#{'milestone.state.' + ${status.state.state}}"></span>
+                                    </th:block>
+                                    <th:block th:if="${status.dueDateString != null}">
+                                        <span class="sp">|</span>
+                                        <span class="due-date" th:classappend="${status.overDue} ? 'over'">
+                                            <th:block th:text="#{label.dueDate}"></th:block>
+                                            <strong th:text="${status.dueDateString}"></strong>
+                                            <span class="date">
+                                                (<th:block th:text="${status.until}"></th:block>)
+                                            </span>
+                                        </span>
+                                    </th:block>
+                                </th:block>
+                                <th:block th:unless="${status.state.name() != 'CLOSED'}">
+                                    <th:block th:if="${state == 'all'}">
+                                        <span class="sp">|</span>
+                                        <span class="state nm closed" th:text="#{'milestone.state.' + ${status.state.state}}"></span>
+                                    </th:block>
+                                    <th:block th:if="${status.dueDateString != null}">
+                                        <span class="sp">|</span>
+                                        <span class="due-date ml5">
+                                            <th:block th:text="#{label.dueDate}"></th:block>
+                                            <strong th:text="${status.dueDateString}"></strong>
+                                        </span>
+                                    </th:block>
+                                </th:block>
+                                <div class="pull-right">
+                                    <span class="number completion-rate"><th:block th:if="${status.openCount + status.closedCount > 0}"> <th:block th:text="${status.completionRate}"></th:block> % </th:block></span>
+                                </div>
+                            </div>
+
+                            <div class="progress-wrap">
+                                <div class="progress progress-success">
+                                    <div class="bar" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div></div>
+                            <div>
+                                <a th:each="issue : ${row.openIssues}" class="issue-link" th:href="${base + '/issue/' + issue.number}" target="_blank">
+                                    <div class="issue-item">
+                                        <span class="state-label open"></span>
+                                        <span class="item-name">
+                                            <span class="number" th:text="'#' + ${issue.number}"></span>
+                                            <th:block th:text="${issue.title}"></th:block>
+                                            <th:block th:if="${issue.assigneeName != null}"> - <th:block th:text="${issue.assigneeName}"></th:block></th:block>
+                                            <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                                        </span>
+                                    </div>
+                                </a>
+                            </div>
+                            <div></div>
+                            <div>
+                                <a th:each="issue : ${row.closedIssues}" class="issue-link" th:href="${base + '/issue/' + issue.number}" target="_blank">
+                                    <div class="issue-item">
+                                        <span class="state-label closed">
+                                            <i class=" yobicon-checkmark"></i>
+                                        </span>
+                                        <span class="item-name">
+                                            <span class="number" th:text="'#' + ${issue.number}"></span>
+                                            <th:block th:text="${issue.title}"></th:block>
+                                            <th:block th:if="${issue.assigneeName != null}"> - <th:block th:text="${issue.assigneeName}"></th:block></th:block>
+                                            <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                                        </span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        </th:block>
+    </div>
+</div>
+<script th:if="${projectView.menuSetting.milestone}" type="text/javascript" th:inline="javascript">
+    $(document).ready(function () {
+        // search by keyword
+        $(".textbox").on("keyup", function() {
+            var value = $(this).val().toLowerCase().trim();
+            $(".issue-link").each(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+            });
+        });
+        yobi.ShortcutKey.setKeymapLink({
+            "N": /*[[${base + '/newMilestoneForm'}]]*/ ""
+        });
+    });
+</script>
+</th:block>
+</html>

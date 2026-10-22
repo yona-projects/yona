@@ -23,6 +23,10 @@ object RedirectSupport {
     const val SUCCESS = "success"
     const val ERROR = "error"
 
+    /** 확인 대화상자로 보여 줄 일회성 메시지의 제목과 설명 키이다 (v1.6 `Constants.TITLE`, `DESCRIPTION`). */
+    const val TITLE = "title"
+    const val DESCRIPTION = "description"
+
     /**
      * 리다이렉트 없이 다음 요청에서 한 번만 읽을 수 있는 값을 저장한다. 응답은 JSON으로 이동할 주소만 알려 주고 브라우저가
      * 그 주소로 이동하는 Ajax 흐름에서 쓴다 (v1.6 `flash(...)` 뒤 `okWithLocation`).
