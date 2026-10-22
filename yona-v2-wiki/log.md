@@ -122,3 +122,6 @@
 - TDD: `ProjectCreateTest` 20건을 먼저 실패(RED, 컴파일)시킨 뒤 구현했다. 마지막 두 실패 중 하나는 `vcs` 없이 제출한 테스트 입력 오류(v1.6도 500)였고, 다른 하나는 템플릿이 null 소유자를 `null` 문자열로 출력한 구현 결함이어서 고쳤다.
 - 구현 중 판단한 것 3건(A-15~A-17)을 [decisions.md](decisions.md)에 기록했다. v1.6 결함 R-13을 재현했다.
 - 기록: [web/project-create.md](web/project-create.md)
+
+## [2026-10-22] query | 마크다운 라이브러리 조사
+- 선생님이 다른 추천 라이브러리를 조사해 달라고 하셔서 commonmark-java, flexmark, JetBrains markdown, GraalJS+marked.js를 비교했다. 선생님이 권장안 (a)를 확정하셨다: D-17.

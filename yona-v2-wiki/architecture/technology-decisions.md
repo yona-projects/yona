@@ -26,6 +26,7 @@ updated: 2026-10-22
 | 비동기 처리 | Spring 이벤트(`ApplicationEventPublisher`) + `@Async`(Java 21 가상 스레드) + `@Scheduled` | 선생님 (2026-10-22) | Kotlin 코루틴: JPA 블로킹 트랜잭션과 섞기 위험하다. Akka(Pekko) 유지: 대형 의존성이 추가되고 Spring 트랜잭션 경계를 따로 관리해야 한다. |
 | Git 처리 | JGit 7.x(7.8.0)를 프로세스 안에서 사용 (D-15) | 선생님 (2026-10-22) | git CLI와 `git http-backend`: 서버에 git 설치가 필수이고 push 훅 연동 구조가 크게 달라진다. |
 | 데이터 디렉터리 | `yona.data-dir` 설정, `-Dyona.data`도 인식 (D-16) | 선생님 (2026-10-22) | `-Dyona.data`만 인식: Spring 설정에서 바꿀 수 없다. |
+| 마크다운 렌더링 | 운영: commonmark-java(GFM 확장). 테스트: GraalJS+marked.js와 결과 비교 (D-17) | 선생님 (2026-10-22) | GraalJS로 marked.js를 운영에서 실행: 결과는 동일하지만 의존성과 시작 시간이 크다. JetBrains markdown: 사례가 적다. flexmark: 갱신이 멈췄다. |
 | LESS 빌드 | Gradle 빌드에서 `lessc`(Less 1.7.5) 실행, 생성물은 저장소에 두지 않음 | 선생님 (2026-10-22) | 결과물을 저장소에 포함: LESS를 고칠 때마다 다시 컴파일해야 하고 소스와 어긋날 수 있다. less4j(JVM 전용): Less 1.x 문법 일부만 지원해 v1.6 결과와 달라질 위험이 있다. |
 | 뷰 템플릿 | Thymeleaf | 선생님 (2026-10-22) | v1.6 `*.scala.html` 화면을 그대로 재현한다. |
 

@@ -149,6 +149,25 @@ updated: 2026-10-22
 - **결정(선생님)**: (a) 권장안 채택.
 - **상태**: 확정.
 
+### D-17. 서버 측 마크다운 렌더링 (2026-10-22)
+
+- **계기**: 프로젝트 홈(README), 이슈, 게시글, 댓글, 알림 메일이 서버에서 마크다운을 HTML로 바꾼다. v1.6은 JVM 내장 JavaScript 엔진(Nashorn)에서 `public/javascripts/lib/marked.js`(2021년판)를 실행하고 OWASP HTML Sanitizer로 정화했다. Nashorn은 Java 15에서 제거되어 Java 21에서는 쓸 수 없다.
+- **조사**(2026-10-22, 선생님이 다른 라이브러리도 조사해 달라고 요청하셨다):
+
+| 후보 | 상태 | 특징 |
+|---|---|---|
+| commonmark-java (`org.commonmark`) | 활발히 유지됨 (Maven 메타데이터가 조사일에 갱신됨) | CommonMark 공식 구현. 표, 취소선, 자동 링크, 작업 목록, 제목 앵커는 공식 확장. 줄바꿈을 `<br>`로 바꾸는 설정 지원. 의존성이 작고 스레드 안전 |
+| flexmark-java | 마지막 릴리스 2023-05 | 기능은 풍부하지만 갱신이 멈춤 |
+| JetBrains markdown | 유지됨 (최근 릴리스 2026-09) | Kotlin 파서와 GFM 방언. 확장 지점과 서버 측 렌더링 사례가 적음 |
+| GraalJS + marked.js | 가능 | v1.6과 같은 파일과 옵션이라 결과가 동일. 의존성이 크고 시작이 느리며 엔진 풀 관리 필요 |
+
+  출처: [libhunt 비교](https://www.libhunt.com/compare-commonmark-java-vs-flexmark-java), [Maven 마크다운 처리기 목록](https://mvnrepository.com/open-source/markdown-processors), [CommonMark와 GFM 차이](https://glukhov.org/documentation-tools/markdown/gfm-vs-commonmark-vs-pandoc-markdown/), Maven Central 메타데이터.
+- **선택지**: (a) commonmark-java를 운영에 쓰고 GraalJS+marked.js는 테스트에서만 써서 차이를 드러냄, (b) GraalJS로 marked.js를 운영에서 실행, (c) JetBrains markdown.
+- **권장안**: (a).
+- **권장 이유**: 운영 코드는 가볍고 안전하며 오래 유지된다. v1.6과 세부 결과가 다를 수 있다는 약점은, 같은 입력 모음을 `marked.js`에도 넣어 결과를 비교하는 테스트로 드러내고 차이를 항목별로 선생님이 승인하게 해서 보완한다. 결과가 완전히 같아야 한다는 원칙을 가장 엄격히 지키는 안은 (b)이지만 의존성 크기, 시작 시간, 엔진 풀 관리 비용을 운영 내내 치르게 된다.
+- **결정(선생님)**: (a) 권장안 채택.
+- **상태**: 확정. 차이 목록은 [web/markdown.md](web/markdown.md)에서 관리하고 항목별 승인을 받는다.
+
 ## 정책 결정
 
 ### P-01. v1.6을 그대로 따른다 (AGENTS.md)
