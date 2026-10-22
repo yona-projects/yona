@@ -9,6 +9,9 @@ interface WatchRepository : JpaRepository<Watch, Long> {
     /** 사용자가 리소스를 구독하고 있는지 확인한다. */
     fun existsByUserIdAndResourceTypeAndResourceId(userId: Long, resourceType: ResourceType, resourceId: String): Boolean
 
+    /** 사용자의 구독 행을 조회한다 (v1.6 `Watch.findBy`). */
+    fun findByUserIdAndResourceTypeAndResourceId(userId: Long, resourceType: ResourceType, resourceId: String): List<Watch>
+
     /** 리소스를 구독한 행의 개수이다 (v1.6 `Watch.countBy`). */
     fun countByResourceTypeAndResourceId(resourceType: ResourceType, resourceId: String): Long
 }
@@ -52,4 +55,14 @@ interface RecentIssueRepository : JpaRepository<RecentIssue, Long> {
 
     /** 사용자의 기록을 오래된 것부터 조회한다. */
     fun findByUserIdOrderByIdAsc(userId: Long): List<RecentIssue>
+}
+
+/** 즐겨찾기한 이슈 저장소이다. */
+interface FavoriteIssueRepository : JpaRepository<FavoriteIssue, Long> {
+
+    /** 사용자가 이슈를 즐겨찾기한 행을 조회한다 (v1.6 `User.removeFavoriteIssue`). */
+    fun findByUserIdAndIssueId(userId: Long, issueId: Long): List<FavoriteIssue>
+
+    /** 사용자의 즐겨찾기 이슈를 오래된 것부터 조회한다. */
+    fun findByUserIdOrderByIdAsc(userId: Long): List<FavoriteIssue>
 }

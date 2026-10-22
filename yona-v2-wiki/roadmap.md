@@ -47,7 +47,8 @@ updated: 2026-10-22
 | 3c-2c | 이슈 수정(프로젝트 이동, 초안 게시, 변경 이력) | 완료 | [web/issue-edit.md](web/issue-edit.md) |
 | 3c-3a | 이슈 댓글 등록, 수정, 삭제, 이슈와 댓글 추천 | 완료 | [web/issue-comments.md](web/issue-comments.md) |
 | 3c-3b | 일괄 변경(`POST issues`) | 완료 | [web/issue-mass-update.md](web/issue-mass-update.md) |
-| 3c-3c | 구독, 즐겨찾기, 이슈 API(담당자, 공유자, 가중치, 변경 감지, 내용 갱신, 번역) | 대기 | |
+| 3c-3c-1 | 구독, 이슈 즐겨찾기 | 완료 | [web/watch-and-favorite.md](web/watch-and-favorite.md) |
+| 3c-3c-2 | 이슈 화면 API(담당자, 공유자, 가중치, 변경 감지, 내용 갱신, 번역, 알림 수신자) | 대기 | |
 | 3d | 게시판 | 대기 | |
 | 4 | 알림 서브시스템(이벤트 생성, 메시지, 링크, 메일)과 로그인 사용자용 홈 알림 목록 | 대기 | |
 | 5 | 코드 저장소 화면(Git), 포크, 풀 리퀘스트, 코드 리뷰, 웹훅 | 대기 | |

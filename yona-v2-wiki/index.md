@@ -20,6 +20,7 @@
 - [이슈 라벨과 라벨 분류](web/issue-labels.md): 관리 화면, JSON, 분류, 복사, 색 스타일 시트
 - [공용 편집기 부품과 멘션 후보](web/editor-components.md): 편집기, 업로더, 첨부 목록, 멘션 후보, 폼 본문 크기 한도
 - [이슈 보기, 다음 상태, 삭제](web/issue-view.md): 보기 화면, 타임라인, 댓글 표시, 다음 상태, 삭제
+- [구독과 이슈 즐겨찾기](web/watch-and-favorite.md): `/watch`, `/unwatch`, `favoriteIssues`
 - [이슈 일괄 변경](web/issue-mass-update.md): `POST issues`, 상태·담당자·마일스톤·라벨·마감일·삭제
 - [이슈 댓글과 추천](web/issue-comments.md): 댓글 등록, 수정, 삭제, 이슈와 댓글 추천
 - [이슈 수정](web/issue-edit.md): 수정 폼, 변경 이력, 초안 게시, 프로젝트 이동
