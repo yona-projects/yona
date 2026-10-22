@@ -36,3 +36,9 @@
 - TDD: `LegacyPasswordHasherTest` 5건, `LocalAuthenticatorTest` 9건을 먼저 실패(RED)시킨 뒤 `LegacyPasswordHasher`, `UserRepository`, `LocalAuthenticator`로 통과(GREEN)시켰다.
 - 해시는 실제 Shiro 1.13.0과 교차 검증한다. 초기 관리자 해시는 평문을 재현할 수 없음을 확인했다(원인은 [subsystems/authentication.md](subsystems/authentication.md)).
 - 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 25건 통과.
+
+## [2026-10-22] ingest | 정적 자원, LESS 빌드, 다국어 메시지
+- TDD: `StaticAssetsTest` 6건과 `MessagesTest` 6건 중 11건이 먼저 실패(RED)했고, `public/` 복사, 메시지 파일 복사와 설정, `WebConfig`로 통과했다. CSS 2건은 v1.6이 LESS를 빌드 시점에 컴파일한다는 사실을 발견해 Gradle `compileLess`를 추가하며 통과(GREEN)했다.
+- 결정: LESS 빌드 방식을 선생님께 여쭈어 "Gradle 빌드에서 lessc 실행"으로 확정했다.
+- 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 37건 통과.
+- 기록: [web/static-assets-and-i18n.md](web/static-assets-and-i18n.md)

@@ -7,6 +7,10 @@
 - [v1.6과 달라지는 아키텍처 결정](architecture/differences-from-v16.md): 기술 스택 전환과 그 이유
 - [기술 스택 결정 기록](architecture/technology-decisions.md): 쿼리 계층, 스키마 관리, 검증 DB, 테스트 스택과 테스트 DB 운영 방식
 
+## 웹 (`web/`)
+
+- [정적 자원, LESS 빌드, 다국어 메시지](web/static-assets-and-i18n.md): `/assets/`, favicon, Less 1.7.5 빌드, Play 메시지 형식
+
 ## 도메인 (`domain/`)
 
 - [v1.6 스키마와 JPA 엔티티 매핑](domain/schema-mapping.md): 기준 스키마 추출, 3개 DB 검증 테스트, 패키지 구성, 매핑 규칙, v1.6과 달라진 점

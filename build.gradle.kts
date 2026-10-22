@@ -67,3 +67,47 @@ tasks.withType<Test> {
 		exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
 	}
 }
+
+// ---------------------------------------------------------------------------------------------
+// LESS 컴파일: v1.6은 sbt-less가 빌드 시점에 `app/assets/stylesheets/*.less`로 CSS를 만들었다.
+// 같은 방식으로 Less 1.7.5(`build-tools/less`)를 실행해 `/assets/stylesheets/*.css`로 제공한다.
+// ---------------------------------------------------------------------------------------------
+
+val lessToolDir = layout.projectDirectory.dir("build-tools/less")
+val lessSourceDir = layout.projectDirectory.dir("app/assets/stylesheets")
+val lessOutputDir = layout.buildDirectory.dir("generated/less")
+
+/** v1.6에서 `_`로 시작하지 않는 최상위 LESS 파일이 CSS 하나로 컴파일된다(`build.sbt`의 includeFilter/excludeFilter). */
+val lessEntries = listOf("yobi", "usermenu", "filetype")
+
+val installLess by tasks.registering(Exec::class) {
+	description = "LESS 컴파일러(npm less)를 설치한다."
+	workingDir = lessToolDir.asFile
+	commandLine("npm", "ci", "--no-audit", "--no-fund")
+	inputs.files(lessToolDir.file("package.json"), lessToolDir.file("package-lock.json"))
+	outputs.dir(lessToolDir.dir("node_modules"))
+}
+
+val compileLess by tasks.registering {
+	description = "LESS 소스를 /assets/stylesheets 아래의 CSS로 컴파일한다."
+	dependsOn(installLess)
+	inputs.dir(lessSourceDir)
+	outputs.dir(lessOutputDir)
+	doLast {
+		val outDir = lessOutputDir.get().dir("static/assets/stylesheets").asFile
+		outDir.mkdirs()
+		val lessc = lessToolDir.file("node_modules/.bin/lessc").asFile
+		lessEntries.forEach { name ->
+			val result = ProcessBuilder(lessc.absolutePath, "$name.less", File(outDir, "$name.css").absolutePath)
+				.directory(lessSourceDir.asFile)
+				.redirectErrorStream(true)
+				.start()
+			val output = result.inputStream.bufferedReader().readText()
+			check(result.waitFor() == 0) { "$name.less 컴파일 실패:\n$output" }
+		}
+	}
+}
+
+tasks.named<ProcessResources>("processResources") {
+	from(compileLess)
+}

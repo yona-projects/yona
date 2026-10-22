@@ -1,0 +1,11 @@
+Icon Set:	
+
+WebHostingHub Glyphs -- http://www.webhostinghub.com/glyphs/
+License:	CC BY 3.0 -- http://creativecommons.org/licenses/by/3.0/
+
+Font Awesome -- http://fortawesome.github.com/Font-Awesome/
+License SIL
+Font license info
+
+IconMoon -- http://icomoon.io/app/
+License CC BY 3.0 -- http://creativecommons.org/licenses/by/3.0/

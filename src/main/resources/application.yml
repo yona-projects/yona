@@ -6,6 +6,14 @@ spring:
     url: jdbc:h2:mem:yona;DB_CLOSE_DELAY=-1
     username: sa
     password: ""
+  messages:
+    # v1.6(Play 2.3)의 conf/messages* 파일을 그대로 쓴다. Play는 인자가 없는 메시지도 MessageFormat으로
+    # 해석하므로(작은따옴표는 두 번 쓴다) Spring도 모든 메시지를 MessageFormat으로 해석해야 한다.
+    basename: messages
+    encoding: UTF-8
+    always-use-message-format: true
+    # 번역이 없으면 서버의 시스템 로캘이 아니라 기본(영어) 메시지를 쓴다.
+    fallback-to-system-locale: false
   jpa:
     hibernate:
       # 스키마는 엔티티에서 생성한다(v1.6의 Play evolutions를 대체). 구조는 V16Schema*Test가 보증한다.

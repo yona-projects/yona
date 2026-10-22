@@ -1,0 +1,9 @@
+{
+  "name": "yona-less-build",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Yona v1.6의 sbt-less가 쓰던 Less 1.7 계열 컴파일러를 Gradle 빌드에서 쓰기 위한 도구 정의",
+  "dependencies": {
+    "less": "1.7.5"
+  }
+}
