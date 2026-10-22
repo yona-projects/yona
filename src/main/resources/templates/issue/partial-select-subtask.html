@@ -1,0 +1,30 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_select_subtask.scala.html
+  매개변수: showOption(펼칠지), hasChildIssue(수정 중인 이슈가 이미 부모인지)
+  모델: projectView, movableProjects, parentOptions, selectedParent
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="selectSubtask(showOption, hasChildIssue)" th:with="project=${projectView.project}">
+<div class="subtask-wrap" th:classappend="${showOption} ? 'show'">
+    <div class="span3">
+        <select id="targetProjectId" name="targetProjectId" data-format="projects" th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize" th:disabled="${!showOption}">
+            <option th:value="${project.id}" th:attr="data-avatar-url=${logoUrl}" th:text="${project.name}"></option>
+            <th:block th:each="movable : ${movableProjects}">
+                <option th:if="${movable.id != project.id}" th:value="${movable.id}" th:attr="data-owner=${movable.owner} + ' /', data-avatar-url=${movable.logoUrl}" th:text="${movable.name}"></option>
+            </th:block>
+        </select>
+    </div>
+    <div class="span6">
+        <select id="parentId" name="parentIssueId" data-format="issues" th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize" th:disabled="${!showOption}">
+            <option value="" selected th:text="${hasChildIssue} ? '이미 부모 이슈입니다.' : #{issue.subtask.select}"></option>
+            <option th:if="${selectedParent != null}" th:value="${selectedParent.id}" selected th:text="'#' + ${selectedParent.number} + '. ' + ${selectedParent.title}"></option>
+            <th:block th:unless="${hasChildIssue}">
+                <option th:each="candidate : ${parentOptions}" th:value="${candidate.id}" th:text="'#' + ${candidate.number} + '. ' + ${candidate.title} + ' '"></option>
+            </th:block>
+        </select>
+    </div>
+</div>
+</th:block>

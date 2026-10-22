@@ -4,7 +4,18 @@ import dev.yona.domain.enumeration.State
 import org.springframework.data.jpa.repository.JpaRepository
 
 /** 이슈 담당자 저장소이다. */
-interface AssigneeRepository : JpaRepository<Assignee, Long>
+interface AssigneeRepository : JpaRepository<Assignee, Long> {
+
+    /** 프로젝트에서 사용자를 담당자로 등록한 행을 찾는다 (v1.6 `Assignee.add`). */
+    fun findFirstByUserIdAndProjectId(userId: Long, projectId: Long): Assignee?
+}
+
+/** 이슈 타임라인 이벤트 저장소이다. */
+interface IssueEventRepository : JpaRepository<IssueEvent, Long> {
+
+    /** 이슈의 이벤트 중 [since] 이후에 생긴 가장 마지막 것을 찾는다 (v1.6 `IssueEvent.add`가 합칠 대상). */
+    fun findFirstByIssueIdAndCreatedAfterOrderByIdDesc(issueId: Long, since: java.util.Date): IssueEvent?
+}
 
 /** 이슈 공유자 저장소이다. */
 interface IssueSharerRepository : JpaRepository<IssueSharer, Long> {

@@ -245,3 +245,5 @@ updated: 2026-10-22
 | A-39 | 이슈 엑셀 내보내기에 v1.6과 같은 JExcelAPI(`net.sourceforge.jexcelapi:jxl:2.6.12`)를 쓴다 | v1.6 파일 형식(xls)과 서식을 그대로 낼 수 있고 "v1.6 기본" 원칙에 맞다. 대안으로 Apache POI(HSSF)가 있으나 같은 결과를 내려고 라이브러리를 바꿀 이유가 없다 | 단종된 라이브러리라 형식을 xlsx로 바꾸려면 다른 라이브러리가 필요하다 |
 | A-40 | 이슈 목록의 정렬 기준을 `id`, `number`, `title`, `state`, `weight`, `createdDate`, `updatedDate`, `dueDate`, `numOfComments`로 제한하고 그 밖은 `createdDate`로 본다 | 화면은 마감일, 수정일, 날짜, 댓글 수만 보낸다. v1.6은 요청 값을 그대로 질의에 넣었다(요청을 직접 만들어야만 닿는다, A-24) | 없음 |
 | A-41 | 이슈 목록의 숫자, 날짜 조건이 형식에 맞지 않으면 `400`으로 답한다 | v1.6은 폼 오류를 읽다 예외로 `500`이 됐다. 화면은 항상 올바른 값을 보낸다 | 없음 |
+| A-42 | `/user/issues/new`, `/user/issues/new/mine`에서 갈 프로젝트가 없을 때 같은 주소에서 첫 화면을 그리지 않고 안내와 함께 `/`로 `303` 이동한다 | v1.6은 `Application.index()`를 직접 불러 주소를 그대로 둔 채 첫 화면을 그렸다. 사용자에게 보이는 화면과 안내는 같고 주소만 다르다 | 주소창이 `/user/issues/new`가 아니라 `/`로 바뀐다 |
+| A-43 | Hibernate 설정 `hibernate.max_fetch_depth: 2`로 즉시 로딩(EAGER) 연관을 한 번의 조인으로 읽는 깊이를 제한한다 | 이슈 댓글처럼 연관이 깊은 엔티티를 id로 읽으면 조인 표가 61개를 넘어 MariaDB가 실패했다(`Too many tables; MariaDB can only use 61 tables in a join`). 깊이를 넘는 연관은 별도 조회로 읽으므로 결과는 같고 쿼리 수만 늘 수 있다 | 연관이 많은 화면에서 쿼리 수가 늘 수 있다. 성능 문제가 보이면 연관별 LAZY와 조회 최적화로 바꾼다 |

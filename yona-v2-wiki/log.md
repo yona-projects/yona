@@ -183,3 +183,7 @@
 ## [2026-10-23] ingest | 이슈 목록과 검색 (3단계 c-1)
 - TDD: `IssueSearchServiceTest` 18건(세 DB), `IssueListTest` 20건, `IssueExcelTest` 3건, 마일스톤 보기의 이슈 영역 2건. 제목 머리말 도우미(`TemplateHelper.headerWordsHtml` 등)와 `UserDisplay.pureName`을 추가했다.
 - A-38(머리말 이스케이프), A-39(jxl), A-40(정렬 기준 제한), A-41(잘못된 조건은 400)을 기록했다.
+
+## [2026-10-23] ingest | 이슈 등록 (3단계 c-2a)
+- TDD: `IssueSearchServiceTest` 18건 외에 `TitleHeadServiceTest` 4건, `MentionServiceTest` 6건, `IssueEventServiceTest` 6건, `IssueServiceTest` 9건, `IssueCreateTest` 21건, `IssueFormApiTest` 8건.
+- MariaDB에서 이슈 댓글을 id로 읽을 때 조인 표가 61개를 넘는 문제가 드러나 `hibernate.max_fetch_depth: 2`를 적용했다(A-43). A-42를 기록했다.

@@ -13,6 +13,9 @@ interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExec
     fun findByOriginalProjectId(originalProjectId: Long): List<Project>
 
 
+    /** 소유자가 만든 프로젝트 중 공개 범위가 [scope]인 것을 만든 날짜 내림차순으로 조회한다 (v1.6 `Project.findProjectsCreatedByUserAndScope`). */
+    fun findByOwnerIgnoreCaseAndProjectScopeOrderByCreatedDateDesc(owner: String, scope: dev.yona.domain.enumeration.ProjectScope): List<Project>
+
     /** 같은 소유자에 같은 이름의 프로젝트가 있는지 확인한다 (v1.6 `Project.exists`, `ieq` 두 번). */
     fun existsByOwnerIgnoreCaseAndNameIgnoreCase(owner: String, name: String): Boolean
 
@@ -101,4 +104,17 @@ interface RecentProjectRepository : JpaRepository<RecentProject, Long> {
 
     /** 사용자의 최근 방문 기록을 모두 지운다 (v1.6 `RecentProject.deleteAll`). */
     fun deleteByUserId(userId: Long)
+}
+
+/** 제목 머리말 키워드 저장소이다. */
+interface TitleHeadRepository : JpaRepository<TitleHead, Long> {
+
+    /** 프로젝트의 키워드를 찾는다 (v1.6 `TitleHead.findByHeadKeyword`). */
+    fun findFirstByProjectIdAndHeadKeyword(projectId: Long, headKeyword: String): TitleHead?
+
+    /** 프로젝트에서 키워드에 [query]가 들어 있는(대소문자 무시) 것을 찾는다 (v1.6 `TitleHead.findByProject`). */
+    @org.springframework.data.jpa.repository.Query(
+        "select t from TitleHead t where t.project.id = :projectId and lower(t.headKeyword) like lower(concat('%', :query, '%')) order by t.id"
+    )
+    fun search(projectId: Long, query: String): List<TitleHead>
 }

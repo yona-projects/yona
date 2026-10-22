@@ -1,0 +1,11 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/partial_assignee.scala.html
+  매개변수: assigneeLoginId(현재 담당자 로그인 ID. 없으면 null)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="assignee(assigneeLoginId)">
+<input type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}" th:value="${assigneeLoginId}" style="width: 100%" title="">
+</th:block>

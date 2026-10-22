@@ -94,7 +94,7 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
 
     /** 제목을 `=[`, `]` 뒤에서 잘라 `[`로 시작하고 `]`를 가진 조각만 고른다. */
     private fun headerWords(title: String): List<String> =
-        title.split(Regex("(=\\[)|(?<=\\])")).filter { it.trim().indexOf("[") == 0 && it.contains("]") }
+        dev.yona.domain.issue.TitleHeadWords.extract(title).filter { it.trim().indexOf("[") == 0 && it.contains("]") }
 
     private fun madeByHeaderWordsOnly(title: String): Boolean =
         title.trim().indexOf("]") + 1 == title.trim().length || title.replace(headerWords(title).joinToString(""), "").trim().isEmpty()

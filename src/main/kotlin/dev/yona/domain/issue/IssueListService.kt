@@ -116,4 +116,23 @@ class IssueListService(private val entityManager: EntityManager) {
         return entityManager.createQuery(jpql, Array<Any>::class.java).setParameter("ids", ids).resultList
             .associate { (it[0] as Number).toLong() to (it[1] as Number).toInt() }
     }
+
+    /**
+     * 이슈를 옮기거나 하위 이슈로 만들 때 고를 수 있는 프로젝트이다. 즐겨찾기한 프로젝트, 최근 방문한 프로젝트, 속한 프로젝트를
+     * 소유자, 이름 순(대소문자 무시)으로 모은다 (v1.6 `User.getIssueMovableProject`).
+     */
+    @Transactional(readOnly = true)
+    fun movableProjects(user: User): List<Project> =
+        entityManager.createQuery(
+            "select p from Project p where p.id in (select f.project.id from FavoriteProject f where f.user.id = :user) " +
+                "or p.id in (select r.project.id from RecentProject r where r.userId = :user) " +
+                "or p.id in (select pu.project.id from ProjectUser pu where pu.user.id = :user)", Project::class.java
+        ).setParameter("user", user.id).resultList
+            .sortedWith(compareBy<Project, String>(String.CASE_INSENSITIVE_ORDER) { it.owner.orEmpty() }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name.orEmpty() })
+
+    /** 하위 이슈의 부모로 고를 수 있는 이슈이다. 부모가 없는 이슈를 최근 것부터 [limit]개까지 돌려준다 (v1.6 `Issue.findParentIssueByProject`). */
+    @Transactional(readOnly = true)
+    fun parentCandidates(project: Project, limit: Int): List<Issue> =
+        entityManager.createQuery("select i from Issue i where i.project.id = :project and i.parent is null order by i.createdDate desc, i.id desc", Issue::class.java)
+            .setParameter("project", project.id).setMaxResults(limit).resultList
 }
