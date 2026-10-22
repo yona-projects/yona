@@ -63,6 +63,16 @@ class IssueCommentService(
         return comment
     }
 
+    /** 댓글 내용만 바꾼다 (v1.6 `IssueApi.updateIssueComment`, 체크리스트 갱신). 활동을 발행하지 않고 멘션 기록을 맞추며 이슈의 댓글 수를 다시 센다. */
+    @Transactional
+    fun replaceContents(comment: IssueComment, contents: String): IssueComment {
+        comment.contents = contents
+        comments.save(comment)
+        mentions.update(ResourceType.ISSUE_COMMENT, requireNotNull(comment.id).toString(), contents)
+        comment.issue?.let { syncCommentCount(it) }
+        return comment
+    }
+
     /**
      * 댓글을 지운다. 첨부와 알림 이벤트를 지우고, 이 댓글에 달린 한 줄 댓글은 일반 댓글로 남기며, 이슈의 댓글 수를 맞춘다.
      * v1.6처럼 멘션 기록은 지우지 않는다([refactoring-backlog.md] R-26).

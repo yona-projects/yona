@@ -204,3 +204,6 @@
 
 ## [2026-10-23] ingest | 구독과 이슈 즐겨찾기 (3단계 c-3c-1)
 - TDD: `WatchAndFavoriteTest` 8건.
+
+## [2026-10-23] ingest | 이슈 화면 JSON API (3단계 c-3c-2)
+- TDD: `IssueApiTest` 22건. `ApiUserNodes` 분리(A-48), `IssueJson`. 세 DB 1050건 통과.

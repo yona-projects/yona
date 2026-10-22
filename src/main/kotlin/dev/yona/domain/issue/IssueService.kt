@@ -282,6 +282,27 @@ class IssueService(
     }
 
     /** 이슈 하나가 같은 분류에서 라벨을 둘 이상 갖지 않는지 확인한다. 어긋나면 `true`이다 (v1.6 `Issue.checkLabels`). */
+    /** 이슈의 가중치를 [delta]만큼 바꾸고 새 값을 돌려준다 (v1.6 `IssueApi.upvoteWeight`, `downvoteWeight`). 수정 시각은 바꾸지 않는다. */
+    @Transactional
+    fun adjustWeight(issue: Issue, delta: Int): Int {
+        issue.weight = (issue.weight ?: 0) + delta
+        issues.save(issue)
+        return requireNotNull(issue.weight)
+    }
+
+    /**
+     * 본문만 바꾼다 (v1.6 `IssueApi.updateIssueContent`, 체크리스트 갱신). 이력과 이벤트를 남기지 않고 수정 시각도 바꾸지 않는다.
+     * 댓글 수를 다시 세고 멘션 기록을 새 본문에 맞춘다 (`AbstractPosting.update`).
+     */
+    @Transactional
+    fun replaceBody(issue: Issue, body: String) {
+        issue.body = body
+        issue.numOfComments = entityManager.createQuery("select count(c) from IssueComment c where c.issue.id = :id", java.lang.Long::class.java)
+            .setParameter("id", issue.id).singleResult.toInt()
+        issues.save(issue)
+        mentions.update(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), body)
+    }
+
     fun violatesExclusiveCategory(labelIds: Set<Long>): Boolean =
         labels.findAllById(labelIds).filter { it.category?.isExclusive == true }.groupBy { it.category?.id }.any { it.value.size > 1 }
 

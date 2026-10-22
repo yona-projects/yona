@@ -25,6 +25,12 @@ interface IssueSharerRepository : JpaRepository<IssueSharer, Long> {
 
     /** 사용자가 이슈의 공유자인지 확인한다 (v1.6 `Issue.findSharerByUserId`). */
     fun existsByIssueIdAndUserId(issueId: Long, userId: Long): Boolean
+
+    /** 이슈의 공유자 행 중 [loginIds]에 해당하는 것을 추가된 날짜 순으로 조회한다 (v1.6 `IssueApi.findSharerByloginIds`). */
+    fun findByIssueIdAndLoginIdInOrderByCreatedAscIdAsc(issueId: Long, loginIds: Collection<String>): List<IssueSharer>
+
+    /** 이슈에서 로그인 아이디로 공유자 행을 찾는다. */
+    fun findFirstByIssueIdAndLoginId(issueId: Long, loginId: String): IssueSharer?
 }
 
 /** 마일스톤 저장소이다. */
