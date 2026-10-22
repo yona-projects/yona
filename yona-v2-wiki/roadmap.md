@@ -32,7 +32,7 @@ updated: 2026-10-22
 | 2b-5c-3c | 구성원 관리 | 완료 | [web/project-members.md](web/project-members.md) |
 | 2b-5c-3d | 프로젝트 삭제 | 완료 | [web/project-delete.md](web/project-delete.md) |
 | 2b-5c-3e | 프로젝트 이전, 저장소 종류 변경 | 완료 | [web/project-transfer.md](web/project-transfer.md) |
-| 2c | 조직(Organization) 화면과 서비스 | 대기 | |
+| 2c | 조직(생성, 홈, 목록, 설정, 구성원, 삭제, 탈퇴)과 가입 신청(조직, 프로젝트) | 완료 | [web/organization.md](web/organization.md) |
 | 2d | 사용자 화면(가입, 프로필, 설정, 이메일, 비밀번호 재설정) | 대기 | |
 | 3 | 이슈, 게시판, 마일스톤, 라벨, 첨부 | 대기 | |
 | 4 | 알림 서브시스템(이벤트 생성, 메시지, 링크, 메일)과 로그인 사용자용 홈 알림 목록 | 대기 | |
@@ -49,8 +49,7 @@ updated: 2026-10-22
 |---|---|
 | 홈의 알림 항목 표시와 More 버튼, `GET /notification` | 4 |
 | `GET /user/sidebar`와 사이드바 목록, `GET /user/usermenuTabContentList` | 2b-5 이후 (프로젝트 목록 필요) |
-| `ErrorViews`의 조직 변형 | 2c |
-| 소셜 로그인 버튼 영역, 사이트 업데이트 알림 | 7, 6 |
+| `ErrorViews`의 조직 변형 | 소셜 로그인 버튼 영역, 사이트 업데이트 알림 | 7, 6 |
 | 최초 기동 시 관리자 비밀번호 설정 화면(`welcome/secret`) | 6 |
 | `AccessControl`의 엔티티별 `asResource()` | 각 엔티티의 화면 단계 |
 | Play 언어 쿠키(`PLAY_LANG`) | 2d |

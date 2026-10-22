@@ -24,6 +24,16 @@ object RedirectSupport {
     const val ERROR = "error"
 
     /**
+     * 리다이렉트 없이 다음 요청에서 한 번만 읽을 수 있는 값을 저장한다. 응답은 JSON으로 이동할 주소만 알려 주고 브라우저가
+     * 그 주소로 이동하는 Ajax 흐름에서 쓴다 (v1.6 `flash(...)` 뒤 `okWithLocation`).
+     */
+    fun saveFlash(request: HttpServletRequest, response: HttpServletResponse, flash: Map<String, Any>) {
+        val flashMap = FlashMap().apply { putAll(flash) }
+        RequestContextUtils.getFlashMapManager(request)?.saveOutputFlashMap(flashMap, request, response)
+        RequestContextUtils.getOutputFlashMap(request).putAll(flash)
+    }
+
+    /**
      * @param location 이동할 위치. 그대로 `Location` 헤더에 들어간다
      * @param flash 다음 요청에서 한 번만 읽을 수 있는 값
      */

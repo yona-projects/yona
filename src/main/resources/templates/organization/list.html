@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/organization/list.scala.html
+  모델: title, rows(OrganizationController.OrgRow 목록), totalElements, totalPages, filter
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'PROJECTS', ~{::orgListPage})}">
+<th:block th:fragment="orgListPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <div class="title_area">
+            <ul class="nav nav-tabs">
+                <li><a th:href="@{/projects}"><th:block th:text="#{project.public}"></th:block> <th:block th:text="#{title.projectList}"></th:block></a></li>
+                <li class='active'><a th:href="@{/orgs}" th:text="#{title.organization.list}"></a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+    	<div class="search-wrap">
+    		<div id="search" class="pull-left">
+    			<form th:action="@{/orgs}" method="get">
+    				<div class="search-bar">
+                        <input name="filter" class="textbox" type="text" th:placeholder="#{site.organization.filter}" th:value="${filter}" autofocus>
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+    			</form>
+             </div>
+        </div>
+        <div th:if="${totalElements == 0}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{organization.is.empty}"></p>
+        </div>
+        <th:block th:unless="${totalElements == 0}">
+    	<ul class="all-projects">
+        <th:block th:each="row : ${rows}">
+            <li class="project" th:if="${row.readable}" th:with="org=${row.view}">
+                <div class="info-wrap">
+                    <div class="owner-avatar-wrap">
+                        <a th:href="@{/organizations/{name}(name=${org.name})}">
+                            <img th:if="${org.hasLogo}" th:src="${org.logoUrl}" th:alt="${org.name}"/>
+                        </a>
+                    </div>
+                    <div style="float:left">
+                        <div class="header">
+                            <a th:href="@{/organizations/{name}(name=${org.name})}" class="black" th:text="${org.name}"></a>
+                        </div>
+                        <div class="desc" th:text="${org.descr}">
+                        </div>
+                        <p class="name-tag">
+                            created <strong th:title="${helper.dateString(org.organization.created)}" th:text="${helper.agoOrDateString(org.organization.created)}"></strong>
+                        </p>
+                    </div>
+                </div>
+            </li>
+            <li class="project" th:unless="${row.readable}" style="background-color: #fcfcfc;">
+                <div class="info-wrap" style="opacity: 0.3">
+                    <div class="owner-avatar-wrap">
+                        <img th:src="@{/assets/images/organization_default_logo.png}" th:alt="${row.view.name}"/>
+                    </div>
+                    <div style="float:left; color: gray">
+                        You do not have permission to view this project's information
+                    </div>
+                </div>
+            </li>
+        </th:block>
+    	</ul>
+
+    	<!-- pagination.js will fill here. -->
+    	<div id="pagination"></div>
+        </th:block>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    yobi.Pagination.update($("#pagination"), [[${totalPages}]]);
+});
+</script>
+</th:block>
+</html>

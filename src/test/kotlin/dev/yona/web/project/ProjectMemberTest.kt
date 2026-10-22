@@ -332,6 +332,16 @@ class ProjectMemberTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `프로젝트 역할이 아닌 번호는 거부한다`() {
+        val project = newProject()
+        val manager = join(newUser(), project, RoleType.MANAGER)
+        val member = join(newUser(), project, RoleType.MEMBER)
+        editMember(project, login(manager), member.id, RoleType.SITEMANAGER.id).andExpect(status().isBadRequest)
+        editMember(project, login(manager), member.id, null).andExpect(status().isBadRequest)
+        assertEquals(RoleType.MEMBER.id, roleOf(member, project))
+    }
+
+    @Test
     fun `소유자의 역할은 바꿀 수 없다`() {
         val owner = newUser()
         val project = newProject(owner = owner.loginId!!)

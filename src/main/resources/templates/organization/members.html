@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/organization/members.scala.html
+  모델: title, orgView, rows(OrganizationMemberController.Row), roles, applicants
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::membersPage})}">
+<th:block th:fragment="membersPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
+<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
+
+        <div class="inner-bubble">
+            <form class="nm" th:action="@{/organizations/{name}/members(name=${org.name})}" method="post" id="addNewMember">
+                <input type="text" class="text uname" id="loginId" name="loginId" required="required"
+                data-provider="typeahead" autocomplete="off"
+                th:placeholder="#{project.members.addMember}"
+                pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" th:title="#{user.wrongloginId.alert}" /><!--
+            --><button type="submit" class="ybtn ybtn-success"><i class="yobicon-addfriend"></i> <th:block th:text="#{button.add}"></th:block></button>
+            </form>
+        </div>
+
+        <ul class="members project row-fluid">
+            <li th:each="member : ${rows}" class="member span6 span-hard-wrap">
+                <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge pull-left mr10">
+                    <img th:src="${member.avatarUrl}" width="64" height="64">
+                </a>
+                <div class="member-name" th:text="${member.displayName}"></div>
+                <div class="member-id" th:text="'@' + ${member.loginId}"></div>
+                <div class="member-setting">
+                    <div class="btn-group" th:attr="data-name='roleof-' + ${member.loginId}">
+                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                            <span class="d-label" th:text="#{'user.role.' + ${member.roleName}}"></span>
+                            <span class="d-caret"><span class="caret"></span></span>
+                        </button>
+                        <ul class="dropdown-menu"><th:block th:each="role : ${roles}"><li th:attr="data-value=${role.id}" th:classappend="${role.name == member.roleName} ? 'active'" th:data-selected="${role.name == member.roleName} ? 'true'"><a href="javascript:void(0)" data-action="apply" th:attr="data-href='/organizations/' + ${org.name} + '/member/' + ${member.userId} + '/edit', data-loginId=${member.loginId}" th:text="#{'user.role.' + ${role.name}}"></a></li></th:block></ul>
+                    </div>
+                    <a href="javascript:void(0)" data-action="delete" th:attr="data-href='/organizations/' + ${org.name} + '/member/' + ${member.userId} + '/delete'" class="ybtn ybtn-danger ybtn-small">
+                        <th:block th:text="#{button.delete}"></th:block>
+                    </a>
+                </div>
+            </li>
+        </ul>
+        <!--/* Confirm to delete member */-->
+        <div id="alertDeletion" class="modal hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3 th:text="#{organization.member.delete}"></h3>
+            </div>
+            <div class="modal-body">
+                <p th:text="#{organization.member.deleteConfirm}"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ybtn ybtn-info ybtn-mini" id="deleteBtn" th:text="#{button.yes}"></button>
+                <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}"></button>
+            </div>
+        </div>
+        <!--/* Enrolled Users */-->
+        <th:block th:if="${!applicants.isEmpty()}">
+        <legend>
+            <h3><th:block th:text="#{project.member.enrollment.request}"></th:block> (<th:block th:text="${applicants.size()}"></th:block>)</h3>
+        </legend>
+        <div class="row-fluid">
+            <div th:each="user : ${applicants}" class="span2">
+                <div class="pull-left mr10">
+                    <a th:href="@{/{user}(user=${user.loginId})}">
+                        <img th:src="${user.avatarUrl}" height="65" width="65" class="img-circle"/>
+                    </a>
+                </div>
+                <div class="pull-left" style="width: 60px;">
+                    <span><a th:href="@{/{user}(user=${user.loginId})}"><strong th:text="${user.displayName}"></strong></a></span>
+                    <span>(<th:block th:text="${user.loginId}"></th:block>)</span>
+                    <button type="button" class="ybtn ybtn-info ybtn-mini blue enrollAcceptBtn" th:attr="data-loginId=${user.loginId}"><i class="yobicon-addfriend"></i><th:block th:text="#{button.add}"></th:block></button>
+                </div>
+            </div>
+        </div>
+        </th:block>
+    </div>
+</div>
+<link rel="stylesheet" type="text/css" media="screen" href="/assets/javascripts/lib/mentionjs/mention.css">
+<script type="text/javascript">
+$(document).ready(function(){
+    $yobi.loadModule("organization.Member", {
+    "sActionURL": "/users"
+    });
+});
+</script>
+</th:block>
+</html>

@@ -1,0 +1,45 @@
+<!--/*
+  이식 원본: app/views/organization/header.scala.html
+  매개변수: view(OrganizationViewContext)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="header(view)">
+<div class="project-header-outer" th:style="'background-image:url(\'' + ${view.logoUrl} + '\')'">
+    <div class="project-header-inner">
+        <div class="project-header-wrap">
+            <div class="project-header-avatar">
+                <img th:src="${view.logoUrl}" />
+            </div>
+            <div class="project-breadcrumb-wrap">
+                <div class="project-breadcrumb">
+                    <span class="project-author"><span class="group-title-head">group</span><a th:href="@{/organizations/{name}(name=${view.name})}" th:text="${view.name}"></a></span>
+                </div>
+            </div>
+            <div th:if="${view.guest}" class="project-util-wrap">
+                <ul class="project-util">
+                    <button class="ybtn ybtn-small dropdown-toggle" th:classappend="${view.enrolled} ? 'ybtn-info'" type="button" data-toggle="dropdown">
+                        <i class="yobicon-addfriend"></i> <th:block th:text="#{organization.member.enrollment.title}"></th:block>
+                    </button>
+                    <div class="dropdown-menu flat right title">
+                        <div class="pop-title" th:text="${view.enrolled} ? #{organization.you.want.to.be.a.member(${view.name})} : #{organization.you.may.want.to.be.a.member(${view.name})}"></div>
+                        <div class="pop-content" th:text="${view.enrolled} ? #{organization.member.enrollment.help.after} : #{organization.member.enrollment.help.before}">
+                        </div>
+                        <div class="pop-content btn-wrap">
+                            <a class="ybtn enrollBtn" th:classappend="${!view.enrolled} ? 'ybtn-info'"
+                               th:href="${view.enrolled} ? @{/organizations/{name}/cancel/enroll(name=${view.name})} : @{/organizations/{name}/enroll(name=${view.name})}" id="enrollBtn">
+                                <i th:class="${view.enrolled} ? 'yobicon-removefriend' : 'yobicon-addfriend'"></i>
+                                <th:block th:text="${view.enrolled} ? #{button.cancel.enrollment} : #{button.new.enrollment}"></th:block>
+                            </a>
+                        </div>
+                    </div>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script language="javascript">
+    $(function() {
+        $yobi.loadModule("organization.Global")
+    })
+</script>
+</th:block>

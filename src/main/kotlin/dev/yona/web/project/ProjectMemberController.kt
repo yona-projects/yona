@@ -3,6 +3,7 @@ package dev.yona.web.project
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
+import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.project.ProjectMemberService
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.user.User
@@ -121,8 +122,10 @@ class ProjectMemberController(
         if (project.isOwner(findUser(userId))) {
             return ErrorViews.forbidden("project.member.ownerMustBeAManager", views.of(project)).also { it.status = HttpStatus.BAD_REQUEST }
         }
-        // v1.6는 요청의 역할 번호를 그대로 쓴다. 번호가 없거나 숫자가 아니면 오류이다.
-        memberService.changeRole(project, userId, request.getParameter("id").toLong())
+        // 화면은 프로젝트 역할(관리자, 멤버)만 고르게 한다. 그 밖의 번호는 요청을 직접 만들어야만 보낼 수 있으므로 거부한다([decisions.md] A-24).
+        val roleId = request.getParameter("id")?.toLongOrNull()
+        if (roleId == null || roleId !in listOf(RoleType.MANAGER.id, RoleType.MEMBER.id)) return ErrorViews.badRequest()
+        memberService.changeRole(project, userId, roleId)
         return ResponseEntity.noContent().build<Void>()
     }
 

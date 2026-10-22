@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/organization/create.scala.html
+  모델: title, name(입력값), descr(입력값), warning(안내 문구. 번역 끝남)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout('app.name', 'NONE', ~{::createPage})}">
+<th:block th:fragment="createPage">
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="form-wrap new-project">
+            <form th:action="@{/organizations/new}" method="post" name="new-org" class="frm-wrap">
+                <legend th:text="#{title.newOrganization}">
+                </legend>
+                <dl>
+                    <dt>
+                        <div class="n-alert" data-errType="name">
+                            <div class="orange-txt">
+                                <span th:if="${warning != null}" class="warning" th:text="${warning}"></span>
+                                <span class="msg wrongName" style="display: none;"></span>
+                            </div>
+                        </div>
+                        <label for="name" th:text="#{organization.name.placeholder}"></label>
+                    </dt>
+                    <dd>
+                        <input id="name" type="text" name="name" class="text" placeholder="" maxlength="250" th:value="${name}" />
+                    </dd>
+
+                    <dt>
+                        <label for="descr" th:text="#{organization.description.placeholder}"></label>
+                    </dt>
+                    <dd>
+                        <textarea id="descr" name="descr" class="text textarea.span4" style="resize: vertical;" th:text="${descr}"></textarea>
+                    </dd>
+                </dl>
+                <div class="actions">
+                    <button class="ybtn ybtn-success">
+                        <i class="yobicon-friends"></i> <th:block th:text="#{organization.create}"></th:block>
+                    </button>
+                    <a href="/" class="ybtn" th:text="#{button.cancel}"></a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("organization.New", {
+            "sFormName" : "new-org"
+        });
+    });
+</script>
+</th:block>
+</html>

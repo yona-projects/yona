@@ -1,0 +1,15 @@
+<!--/*
+  이식 원본: app/views/organizationLayout.scala.html
+  사용법: <html th:replace="~{layout/organization-layout :: organizationLayout(제목, 메뉴종류, orgView, 본문프래그먼트)}">
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="organizationLayout(title, menu, view, content)"
+          th:replace="~{layout/layout :: layout(${title}, '', ~{layout/organization-layout :: organizationBody(${menu}, ${view}, ${content})})}">
+</th:block>
+
+<th:block th:fragment="organizationBody(menu, view, content)">
+    <th:block th:replace="~{common/navbar :: navbar(${menu}, null, ${view.organization})}"></th:block>
+
+    <th:block th:replace="${content}"></th:block>
+
+    <th:block th:replace="~{common/footer :: footer}"></th:block>
+</th:block>

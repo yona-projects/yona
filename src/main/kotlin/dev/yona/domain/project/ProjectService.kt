@@ -66,6 +66,15 @@ class ProjectService(
     }
 
     /**
+     * 프로젝트에 역할이 없는 로그인 사용자(게스트)이면 `true`이다. 사이트 관리자와 익명은 해당하지 않는다
+     * (v1.6 `ProjectUser.isGuest`, `roleOf`).
+     */
+    fun isGuest(project: Project, user: User?): Boolean {
+        val userId = user?.id ?: return false
+        return !siteAdmins.existsByAdminId(userId) && projectUsers.findFirstByUserIdAndProjectId(userId, requireNotNull(project.id)) == null
+    }
+
+    /**
      * 사용자가 프로젝트의 구성원이면 `true`이다. 역할과 상관없이 `project_user`에 행이 있거나 매니저이거나
      * 사이트 관리자이면 구성원이다 (v1.6 `Project.hasMember`).
      */

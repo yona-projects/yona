@@ -1,0 +1,35 @@
+<!--/*
+  이식 원본: app/views/organization/menu.scala.html
+  매개변수: view(OrganizationViewContext), requestPath(요청 경로. 현재 메뉴를 활성으로 표시한다)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="menu(view, requestPath)">
+<div class="project-menu-outer">
+    <div class="project-menu-inner">
+        <ul class="project-menu-nav project-menu-gruop">
+            <li th:class="${#strings.endsWith(requestPath, view.name)} ? 'active'">
+                <a th:href="@{/organizations/{name}(name=${view.name})}" th:text="#{title.organizationHome}"></a>
+            </li>
+            <li th:class="${#strings.contains(requestPath, view.name + '/issues')} ? 'active'">
+                <a th:href="@{/organizations/{name}/issues(name=${view.name})}" th:text="#{menu.issue}"></a>
+            </li>
+            <li th:class="${#strings.contains(requestPath, view.name + '/boards')} ? 'active'">
+                <a th:href="@{/organizations/{name}/boards(name=${view.name})}" th:text="#{menu.board}"></a>
+            </li>
+            <li th:class="${#strings.contains(requestPath, view.name + '/pullrequests')} ? 'active'">
+                <a th:href="@{/organizations/{name}/pullrequests(name=${view.name})}" th:text="#{menu.pullRequest}"></a>
+            </li>
+        </ul>
+        <div class="project-setting">
+            <ul class="project-menu-nav">
+                <li th:if="${view.canManage}" class="">
+                    <a th:href="@{/organizations/{name}/settingform(name=${view.name})}">
+                        <i class="yobicon-cog"></i>
+                        <span class="blind" th:text="#{menu.admin}"></span>
+                    </a>
+                </li>
+                <li th:if="${view.canManage}"></li>
+            </ul>
+        </div>
+    </div>
+</div>
+</th:block>

@@ -1,0 +1,18 @@
+<!--/*
+  이식 원본: app/views/organization/partial_settingmenu.scala.html
+  매개변수: view(OrganizationViewContext), requestPath(요청 경로)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="settingmenu(view, requestPath)"
+          th:with="base=${'/organizations/' + view.name}">
+<ul class="nav nav-tabs">
+    <li th:class="${requestPath == base + '/settingform'} ? 'active'">
+        <a th:href="${base + '/settingform'}" th:text="#{organization.settingFrom}"></a>
+    </li>
+    <li th:class="${requestPath == base + '/members'} ? 'active'">
+        <a th:href="${base + '/members'}" th:text="#{organization.member}"></a>
+    </li>
+    <li th:class="${requestPath == base + '/deleteForm'} ? 'active'">
+        <a th:href="${base + '/deleteForm'}" th:text="#{organization.delete}"></a>
+    </li>
+</ul>
+</th:block>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/organization/deleteForm.scala.html
+  모델: title, orgView
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::deletePage})}">
+<th:block th:fragment="deletePage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
+<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
+
+        <div class="box-wrap bottom">
+            <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" ><!--
+         --><th:block th:text="#{organization.delete.this}"></th:block></a>
+        </div>
+
+        <!--/* Confirm to delete organization */-->
+        <div id="alertDeletion" class="modal hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3 th:text="#{organization.delete.requestion}"></h3>
+            </div>
+            <div class="modal-body">
+                <p> <th:block th:text="#{organization.delete.reaccept}"></th:block> </p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
+                <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+            </div>
+        </div>
+        <!--/* // -- // */-->
+    </div>
+</div>
+<script language="javascript" th:inline="javascript">
+    $("#btnDeleteExec").on("click", function() {
+        $.ajax({
+            type: "delete",
+            url: [[${'/organizations/' + org.name}]],
+            success: function() {
+                location.href = "/";
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                $("#alertDeletion").modal("hide");
+                var sErrorMsg;
+                try{
+                    sErrorMsg = Messages($.parseJSON(jqXHR.responseText).errorMsg);
+                }catch(e){
+                    sErrorMsg = Messages("organization.delete.error");
+                }
+                $yobi.alert(sErrorMsg);
+                return false;
+            }
+        });
+    });
+</script>
+</th:block>
+</html>

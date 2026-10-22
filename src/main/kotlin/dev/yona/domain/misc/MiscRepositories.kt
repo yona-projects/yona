@@ -35,3 +35,11 @@ interface FavoriteProjectRepository : JpaRepository<FavoriteProject, Long> {
     /** 프로젝트를 즐겨찾기한 모든 행을 조회한다 (v1.6 `FavoriteProject.updateFavoriteProject`). */
     fun findByProjectId(projectId: Long): List<FavoriteProject>
 }
+
+/** 즐겨찾기한 조직 저장소이다. */
+interface FavoriteOrganizationRepository : JpaRepository<FavoriteOrganization, Long> {
+
+    /** 조직을 즐겨찾기한 모든 행을 조회한다 (v1.6 `FavoriteOrganization.updateFavoriteOrganization`). */
+    fun findByOrganizationId(organizationId: Long): List<FavoriteOrganization>
+}
+

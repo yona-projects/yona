@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 /** 프로젝트 저장소이다. */
 interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
 
+    /** 조직에 속한 프로젝트이다 (v1.6 `organization.projects`). */
+    fun findByOrganizationId(organizationId: Long): List<Project>
+
     /** 이 프로젝트를 원본으로 둔 포크를 조회한다 (v1.6 `Project.forkingProjects`). */
     fun findByOriginalProjectId(originalProjectId: Long): List<Project>
 
@@ -60,6 +63,14 @@ interface OrganizationRepository : JpaRepository<Organization, Long> {
 
     /** 같은 이름의 조직이 있는지 확인한다 (v1.6 `Organization.isNameExist`). */
     fun existsByNameIgnoreCase(name: String): Boolean
+
+    /**
+     * 이름이나 설명에 [name]이 들어 있는 조직을 최신순으로 쪽 단위로 조회한다 (v1.6 `Organization.findByNameLike`).
+     * v1.6의 운영 DB(MariaDB)는 `like`가 대소문자를 구별하지 않으므로 같게 대소문자를 무시한다.
+     */
+    fun findByNameContainingIgnoreCaseOrDescrContainingIgnoreCaseOrderByIdDesc(
+        name: String, descr: String, pageable: org.springframework.data.domain.Pageable
+    ): org.springframework.data.domain.Page<Organization>
 }
 
 /** 프로젝트 이전 요청 저장소이다. */
