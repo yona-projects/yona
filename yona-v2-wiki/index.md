@@ -2,6 +2,8 @@
 
 규약은 [CLAUDE.md](CLAUDE.md), 변경 이력은 [log.md](log.md)를 본다. v1.6 분석은 `~/yona-convert/yona-v1.6-wiki`를 참조한다.
 
+- [이식 로드맵과 진행 상태](roadmap.md): 단계별 진행과 비워 둔 연결 고리
+
 ## 아키텍처 (`architecture/`)
 
 - [설정 키 대응표](architecture/configuration-keys.md): `application.*` -> `yona.*`

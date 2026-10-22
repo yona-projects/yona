@@ -85,3 +85,6 @@
 ## [2026-10-22] ingest | ProjectService (2단계 b-1)
 - TDD: `ProjectServiceTest` 14건을 먼저 실패(RED, 컴파일)시킨 뒤 `ProjectService`와 저장소 쿼리로 통과(GREEN)시켰다.
 - 기록: [domain/project-service.md](domain/project-service.md)
+
+## [2026-10-22] lint | 로드맵 정리
+- 지금까지의 진행과 남은 단계를 [roadmap.md](roadmap.md)에 정리했다. 앞 단계에서 일부러 비워 둔 연결 고리 목록도 포함한다.
