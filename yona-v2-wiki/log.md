@@ -229,3 +229,6 @@
 
 ## [2026-10-23] ingest | 외부 이슈 REST API (3e)
 - TDD: ExternalIssueApiTest 16. A-63, A-64. EventType.descr를 descrKey로 바로잡았다(v1.6 getDescr는 번역 문구).
+
+## [2026-10-23] ingest | 외부 프로젝트, 게시판 REST API (3e 마무리)
+- TDD: ExternalProjectApiTest 12, ExternalBoardApiTest 4. A-65, R-36, R-37. 3e 완료. 마이그레이션 화면(MigrationApp)은 별도 항목으로 남았다.

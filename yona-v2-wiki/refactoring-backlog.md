@@ -40,4 +40,5 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-33 | 알림 메일의 일반 텍스트 본문 | 끝에 붙는 안내 문장("Yona 에서 자세히 보거나 혹은 이 메일에 직접 회신하실 수도 있습니다.")이 한국어로 고정이고 메일에 답장이 되지 않아도 붙는다 | 같게 재현한다 | `NotificationMail.java:getPlainMessage` |
 | R-34 | 프로젝트 이전 요청 메일 | 받는 사람(To)의 이름이 `Yobi`로 고정이고, 받는 사람이 사용자인지 조직인지에 따라 같은 메일에 Bcc만 달라진다 | 같게 재현한다 | `ProjectApp.java:sendTransferRequestMail` |
 | R-35 | 홈 알림 목록의 본문 언어 | 본문을 로그인한 사용자의 언어가 아니라 서버 기본 언어로 만든다 | 같게 재현한다 | `partial_notifications.scala.html` (`getMessage` 기본 언어) |
-
+| R-36 | 외부 API 프로젝트 만들기 | `projectCreatedDate`를 받아 두고도 `Project.create`가 만든 날짜를 지금으로 덮어써서 가져온 프로젝트의 날짜가 보존되지 않는다 | 같게 재현한다 | `ProjectApi.java:newProject`, `Project.java:142-149` |
+| R-37 | 외부 API 라벨 만들기 | 입력의 `isExclusive`를 읽기만 하고 쓰지 않아 분류가 항상 단일 선택이 아닌 상태로 만들어진다 | 같게 재현한다 | `ProjectApi.java:createLabelNode` |

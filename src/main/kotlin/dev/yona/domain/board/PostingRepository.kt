@@ -11,6 +11,9 @@ interface PostingRepository : JpaRepository<Posting, Long> {
     /** 프로젝트의 게시글 개수이다 (v1.6 `Posting.countPostings`). */
     fun countByProjectId(projectId: Long): Long
 
+    /** 프로젝트의 글을 번호 순서로 조회한다 (프로젝트 내보내기). */
+    fun findByProjectIdOrderByIdAsc(projectId: Long): List<Posting>
+
     /** 프로젝트의 README 게시글이다. 코드 메뉴를 끈 프로젝트가 홈에 보여 준다 (v1.6 `Posting.findREADMEPosting`). */
     fun findFirstByProjectIdAndReadmeTrue(projectId: Long): Posting?
 }

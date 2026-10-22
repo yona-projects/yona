@@ -8,6 +8,9 @@ interface AssigneeRepository : JpaRepository<Assignee, Long> {
 
     /** 프로젝트에서 사용자를 담당자로 등록한 행을 찾는다 (v1.6 `Assignee.add`). */
     fun findFirstByUserIdAndProjectId(userId: Long, projectId: Long): Assignee?
+
+    /** 프로젝트의 담당자 행을 번호 순으로 조회한다 (v1.6 `project.assignees`). */
+    fun findByProjectIdOrderByIdAsc(projectId: Long): List<Assignee>
 }
 
 /** 이슈 타임라인 이벤트 저장소이다. */

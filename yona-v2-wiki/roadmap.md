@@ -50,7 +50,7 @@ updated: 2026-10-22
 | 3c-3c-1 | 구독, 이슈 즐겨찾기 | 완료 | [web/watch-and-favorite.md](web/watch-and-favorite.md) |
 | 3c-3c-2 | 이슈 화면 API(담당자, 공유자, 가중치, 변경 감지, 본문과 댓글 갱신) | 완료 | [web/issue-api.md](web/issue-api.md) |
 | 3c-3c-3a | 번역 API | 완료 | [web/issue-api.md](web/issue-api.md) |
-| 3e | 외부 REST API(`/-_-api/v1`) | 일부 완료 | 사용자 API는 `ExternalUserApiController`, 이슈 API는 `ExternalIssueApiController`로 완료([web/external-issue-api.md](web/external-issue-api.md)). 남은 것: 게시글(newPostings, newPostingComment, getWatchers), 마일스톤, 프로젝트(newProject, newLabel, exports), hello |
+| 3e | 외부 REST API(`/-_-api/v1`) | 완료 | 사용자, 이슈, 프로젝트, 게시판, 마일스톤, 구독자, hello. [web/external-issue-api.md](web/external-issue-api.md), [web/external-project-api.md](web/external-project-api.md) |
 | 3d | 게시판(목록, 보기, 작성, 수정, 삭제, 댓글, 라벨 API, 조직 게시판)과 온라인 커밋 | 완료 | [web/board.md](web/board.md) |
 | 2d-5 | 사용자 메뉴(사이드바 내용, 고정 사이드바), 프로젝트 바로가기, 프로젝트·조직 즐겨찾기 API | 완료 | [web/user-menu.md](web/user-menu.md) |
 | 4a | 알림 이벤트 생성(활동 → 알림 이벤트, 수신자 계산, 합치기) | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |

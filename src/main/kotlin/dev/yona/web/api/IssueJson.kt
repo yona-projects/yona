@@ -44,7 +44,7 @@ class IssueJson(
             node["labels"] = issue.labels.sortedBy { it.id }.map { linkedMapOf("labelName" to it.name, "labelColor" to it.color, "category" to it.category?.name) }
         }
         issue.milestone?.let { node["milestoneId"] = it.id; node["milestoneTitle"] = it.title }
-        issue.dueDate?.let { node["dueDate"] = SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH).apply { timeZone = TimeZone.getTimeZone(clock.zone) }.format(it) }
+        issue.dueDate?.let { node["dueDate"] = longDate(it) }
         node["refUrl"] = "${urls.origin(request)}/${project.owner}/${project.name}/issue/${issue.number}"
         val files = attachmentJson.list(ResourceType.ISSUE_POST, requireNotNull(issue.id))
         if (files.isNotEmpty()) node["attachments"] = files
@@ -101,5 +101,8 @@ class IssueJson(
 
 
     /** `yyyy-MM-dd'T'HH:mm:ssZ` 형식이다 (v1.6 `JodaDateUtil.ISO_FORMAT`). */
+    /** 외부 API가 쓰는 긴 날짜 형식 `yyyy-MM-dd a hh:mm:ss Z`(영어)이다 (v1.6 `getDateString`). */
+    fun longDate(date: Date?): String? = date?.let { SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH).apply { timeZone = TimeZone.getTimeZone(clock.zone) }.format(it) }
+
     fun iso(date: Date?): String? = date?.let { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").apply { timeZone = TimeZone.getTimeZone(clock.zone) }.format(it) }
 }

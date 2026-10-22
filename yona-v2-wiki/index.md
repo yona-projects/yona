@@ -20,6 +20,7 @@
 - [이슈 라벨과 라벨 분류](web/issue-labels.md): 관리 화면, JSON, 분류, 복사, 색 스타일 시트
 - [공용 편집기 부품과 멘션 후보](web/editor-components.md): 편집기, 업로더, 첨부 목록, 멘션 후보, 폼 본문 크기 한도
 - [이슈 보기, 다음 상태, 삭제](web/issue-view.md): 보기 화면, 타임라인, 댓글 표시, 다음 상태, 삭제
+- [외부 프로젝트, 게시판 REST API](web/external-project-api.md): 프로젝트, 라벨, 마일스톤, 내보내기, 구독자, 글, 글 댓글
 - [외부 이슈 REST API](web/external-issue-api.md): 이슈 조회, 등록, 수정, 상태, 댓글, 라벨, 글 가져오기
 - [알림 서브시스템](subsystems/notifications.md): 활동 → 알림 이벤트, 수신자, 합치기, 메일 발송(알림 메일, 시스템 메일), 홈 알림 목록, 프로젝트 구독과 알림 설정
 - [사용자 메뉴와 사이드바](web/user-menu.md): `usermenuTabContentList`, `sidebar`, `go`, 프로젝트·조직 즐겨찾기

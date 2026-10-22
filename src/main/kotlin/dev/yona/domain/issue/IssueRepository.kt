@@ -9,6 +9,9 @@ interface IssueRepository : JpaRepository<Issue, Long> {
     /** 프로젝트 안의 번호로 이슈를 조회한다 (v1.6 `Issue.findByNumber`). */
     fun findByProjectIdAndNumber(projectId: Long, number: Long): Issue?
 
+    /** 프로젝트의 이슈를 번호 순서로 조회한다 (프로젝트 내보내기). */
+    fun findByProjectIdOrderByIdAsc(projectId: Long): List<Issue>
+
     /**
      * 사용자가 담당자인 이슈 중 지정한 상태의 개수를 센다.
      * v1.6 `Issue.countOpenIssuesByUser`는 `assignee.user.id`와 `state = OPEN`으로 센다.
