@@ -1,0 +1,365 @@
+assignee	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+assignee	user_id	2	bigint(20)	YES	NULL	MUL	
+assignee	project_id	3	bigint(20)	YES	NULL	MUL	
+attachment	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+attachment	name	2	varchar(255)	YES	NULL		
+attachment	hash	3	varchar(255)	YES	NULL		
+attachment	container_type	4	varchar(20)	YES	NULL	MUL	
+attachment	mime_type	5	varchar(255)	YES	NULL		
+attachment	size	6	bigint(20)	YES	NULL		
+attachment	container_id	7	bigint(20)	NO	<NULL>		
+attachment	created_date	8	datetime	YES	NULL	MUL	
+attachment	owner_login_id	9	varchar(255)	YES	NULL	MUL	
+comment_thread	dtype	1	varchar(10)	NO	<NULL>		
+comment_thread	id	2	bigint(20)	NO	<NULL>	PRI	auto_increment
+comment_thread	author_id	3	bigint(20)	YES	NULL		
+comment_thread	author_login_id	4	varchar(255)	YES	NULL		
+comment_thread	author_name	5	varchar(255)	YES	NULL		
+comment_thread	state	6	varchar(6)	YES	NULL		
+comment_thread	created_date	7	datetime	YES	NULL		
+comment_thread	pull_request_id	8	bigint(20)	YES	NULL	MUL	
+comment_thread	project_id	9	bigint(20)	YES	NULL	MUL	
+comment_thread	prev_commit_id	10	varchar(255)	YES	NULL		
+comment_thread	commit_id	11	varchar(255)	YES	NULL		
+comment_thread	path	12	varchar(255)	YES	NULL		
+comment_thread	start_side	13	varchar(1)	YES	NULL		
+comment_thread	start_line	14	int(11)	YES	NULL		
+comment_thread	start_column	15	int(11)	YES	NULL		
+comment_thread	end_side	16	varchar(1)	YES	NULL		
+comment_thread	end_line	17	int(11)	YES	NULL		
+comment_thread	end_column	18	int(11)	YES	NULL		
+comment_thread_n4user	comment_thread_id	1	bigint(20)	NO	<NULL>	PRI	
+comment_thread_n4user	n4user_id	2	bigint(20)	NO	<NULL>	PRI	
+commit_comment	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+commit_comment	project_id	2	bigint(20)	YES	NULL	MUL	
+commit_comment	path	3	varchar(255)	YES	NULL		
+commit_comment	line	4	int(11)	YES	NULL		
+commit_comment	side	5	varchar(1)	YES	NULL		
+commit_comment	contents	6	longtext	YES	NULL		
+commit_comment	created_date	7	datetime	YES	NULL		
+commit_comment	author_id	8	bigint(20)	YES	NULL		
+commit_comment	author_login_id	9	varchar(255)	YES	NULL		
+commit_comment	author_name	10	varchar(255)	YES	NULL		
+commit_comment	commit_id	11	varchar(255)	YES	NULL		
+email	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+email	user_id	2	bigint(20)	YES	NULL	MUL	
+email	email	3	varchar(255)	YES	NULL	MUL	
+email	valid	4	tinyint(1)	YES	0		
+email	token	5	varchar(255)	YES	NULL		
+favorite_issue	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+favorite_issue	user_id	2	bigint(20)	YES	NULL	MUL	
+favorite_issue	issue_id	3	bigint(20)	YES	NULL	MUL	
+favorite_organization	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+favorite_organization	user_id	2	bigint(20)	YES	NULL	MUL	
+favorite_organization	organization_id	3	bigint(20)	YES	NULL	MUL	
+favorite_organization	organization_name	4	varchar(255)	YES	NULL		
+favorite_project	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+favorite_project	user_id	2	bigint(20)	YES	NULL	MUL	
+favorite_project	project_id	3	bigint(20)	YES	NULL	MUL	
+favorite_project	owner	4	varchar(255)	YES	NULL		
+favorite_project	project_name	5	varchar(255)	YES	NULL		
+issue	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+issue	title	2	varchar(255)	YES	NULL		
+issue	body	3	longtext	YES	NULL		
+issue	created_date	4	datetime	YES	NULL	MUL	
+issue	updated_date	5	datetime	YES	NULL		
+issue	author_id	6	bigint(20)	YES	NULL	MUL	
+issue	author_login_id	7	varchar(255)	YES	NULL		
+issue	author_name	8	varchar(255)	YES	NULL		
+issue	project_id	9	bigint(20)	YES	NULL	MUL	
+issue	number	10	bigint(20)	YES	NULL		
+issue	num_of_comments	11	int(11)	YES	NULL		
+issue	state	12	int(11)	YES	NULL		
+issue	due_date	13	datetime	YES	NULL		
+issue	milestone_id	14	bigint(20)	YES	NULL	MUL	
+issue	assignee_id	15	bigint(20)	YES	NULL	MUL	
+issue	history	16	longtext	YES	NULL		
+issue	parent_id	17	bigint(20)	YES	NULL	MUL	
+issue	weight	18	tinyint(2)	YES	0	MUL	
+issue	updated_by_author_id	19	bigint(20)	YES	NULL		
+issue	is_draft	20	tinyint(1)	YES	0	MUL	
+issue_comment	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+issue_comment	contents	2	longtext	YES	NULL		
+issue_comment	created_date	3	datetime	YES	NULL		
+issue_comment	author_id	4	bigint(20)	YES	NULL	MUL	
+issue_comment	author_login_id	5	varchar(255)	YES	NULL		
+issue_comment	author_name	6	varchar(255)	YES	NULL		
+issue_comment	issue_id	7	bigint(20)	YES	NULL	MUL	
+issue_comment	project_id	8	bigint(20)	NO	<NULL>	MUL	
+issue_comment	parent_comment_id	9	bigint(20)	YES	NULL	MUL	
+issue_comment_voter	issue_comment_id	1	bigint(20)	NO	<NULL>	PRI	
+issue_comment_voter	user_id	2	bigint(20)	NO	<NULL>	PRI	
+issue_event	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+issue_event	created	2	datetime	YES	NULL		
+issue_event	sender_login_id	3	varchar(255)	YES	NULL		
+issue_event	sender_email	4	varchar(255)	YES	NULL		
+issue_event	issue_id	5	bigint(20)	YES	NULL	MUL	
+issue_event	event_type	6	varchar(34)	YES	NULL		
+issue_event	old_value	7	longtext	YES	NULL		
+issue_event	new_value	8	longtext	YES	NULL		
+issue_issue_label	issue_id	1	bigint(20)	NO	<NULL>	PRI	
+issue_issue_label	issue_label_id	2	bigint(20)	NO	<NULL>	PRI	
+issue_label	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+issue_label	category_id	2	bigint(20)	YES	NULL	MUL	
+issue_label	color	3	varchar(255)	YES	NULL		
+issue_label	name	4	varchar(255)	YES	NULL		
+issue_label	project_id	5	bigint(20)	YES	NULL	MUL	
+issue_label_category	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+issue_label_category	project_id	2	bigint(20)	YES	NULL	MUL	
+issue_label_category	name	3	varchar(255)	YES	NULL		
+issue_label_category	is_exclusive	4	tinyint(1)	YES	0		
+issue_sharer	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+issue_sharer	created	2	date	YES	NULL		
+issue_sharer	login_id	3	varchar(255)	YES	NULL	MUL	
+issue_sharer	user_id	4	bigint(20)	YES	NULL	MUL	
+issue_sharer	issue_id	5	bigint(20)	YES	NULL	MUL	
+issue_voter	issue_id	1	bigint(20)	NO	<NULL>	PRI	
+issue_voter	user_id	2	bigint(20)	NO	<NULL>	PRI	
+label	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+label	category	2	varchar(255)	YES	NULL	MUL	
+label	name	3	varchar(255)	YES	NULL		
+linked_account	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+linked_account	user_credential_id	2	bigint(20)	YES	NULL	MUL	
+linked_account	provider_user_id	3	varchar(255)	YES	NULL		
+linked_account	provider_key	4	varchar(255)	YES	NULL		
+mention	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+mention	resource_type	2	varchar(20)	YES	NULL	MUL	
+mention	resource_id	3	varchar(255)	YES	NULL		
+mention	user_id	4	bigint(20)	YES	NULL	MUL	
+milestone	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+milestone	title	2	varchar(255)	YES	NULL		
+milestone	due_date	3	datetime	YES	NULL		
+milestone	contents	4	longtext	YES	NULL		
+milestone	state	5	int(11)	YES	NULL		
+milestone	project_id	6	bigint(20)	YES	NULL	MUL	
+n4user	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+n4user	name	2	varchar(255)	YES	NULL		
+n4user	login_id	3	varchar(255)	YES	NULL	UNI	
+n4user	password	4	varchar(255)	YES	NULL		
+n4user	password_salt	5	varchar(255)	YES	NULL		
+n4user	email	6	varchar(255)	YES	NULL	MUL	
+n4user	remember_me	7	tinyint(1)	YES	0		
+n4user	state	8	varchar(7)	YES	NULL		
+n4user	last_state_modified_date	9	datetime	YES	NULL		
+n4user	created_date	10	datetime	YES	NULL		
+n4user	lang	11	varchar(255)	YES	NULL		
+n4user	token	12	varchar(255)	YES	NULL	UNI	
+n4user	is_guest	13	tinyint(1)	YES	0	MUL	
+n4user	english_name	14	varchar(255)	YES	NULL		
+notification_event	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+notification_event	title	2	varchar(255)	YES	NULL		
+notification_event	sender_id	3	bigint(20)	YES	NULL		
+notification_event	created	4	datetime	YES	NULL	MUL	
+notification_event	resource_type	5	varchar(20)	YES	NULL		
+notification_event	resource_id	6	varchar(255)	YES	NULL		
+notification_event	event_type	7	varchar(34)	YES	NULL		
+notification_event	old_value	8	longtext	YES	NULL		
+notification_event	new_value	9	longtext	YES	NULL		
+notification_event_n4user	notification_event_id	1	bigint(20)	NO	<NULL>	PRI	
+notification_event_n4user	n4user_id	2	bigint(20)	NO	<NULL>	PRI	
+notification_mail	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+notification_mail	notification_event_id	2	bigint(20)	YES	NULL	MUL	
+organization	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+organization	name	2	varchar(255)	YES	NULL		
+organization	created	3	datetime	YES	NULL		
+organization	descr	4	varchar(255)	YES	NULL		
+organization_user	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+organization_user	user_id	2	bigint(20)	YES	NULL	MUL	
+organization_user	organization_id	3	bigint(20)	YES	NULL	MUL	
+organization_user	role_id	4	bigint(20)	YES	NULL	MUL	
+original_email	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+original_email	message_id	2	varchar(255)	YES	NULL	UNI	
+original_email	resource_type	3	varchar(20)	YES	NULL	MUL	
+original_email	resource_id	4	varchar(255)	YES	NULL	MUL	
+original_email	handled_date	5	datetime	YES	NULL		
+posting	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+posting	title	2	varchar(255)	YES	NULL		
+posting	body	3	longtext	YES	NULL		
+posting	created_date	4	datetime	YES	NULL		
+posting	updated_date	5	datetime	YES	NULL		
+posting	author_id	6	bigint(20)	YES	NULL		
+posting	author_login_id	7	varchar(255)	YES	NULL		
+posting	author_name	8	varchar(255)	YES	NULL		
+posting	project_id	9	bigint(20)	YES	NULL	MUL	
+posting	number	10	bigint(20)	YES	NULL		
+posting	num_of_comments	11	int(11)	YES	NULL		
+posting	notice	12	tinyint(1)	YES	0		
+posting	readme	13	tinyint(1)	YES	0		
+posting	history	14	longtext	YES	NULL		
+posting	parent_id	15	bigint(20)	YES	NULL	MUL	
+posting	updated_by_author_id	16	bigint(20)	YES	NULL		
+posting_comment	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+posting_comment	contents	2	longtext	YES	NULL		
+posting_comment	created_date	3	datetime	YES	NULL		
+posting_comment	author_id	4	bigint(20)	YES	NULL	MUL	
+posting_comment	author_login_id	5	varchar(255)	YES	NULL		
+posting_comment	author_name	6	varchar(255)	YES	NULL		
+posting_comment	posting_id	7	bigint(20)	YES	NULL	MUL	
+posting_comment	project_id	8	bigint(20)	NO	<NULL>	MUL	
+posting_comment	parent_comment_id	9	bigint(20)	YES	NULL	MUL	
+posting_issue_label	posting_id	1	bigint(20)	NO	<NULL>	PRI	
+posting_issue_label	issue_label_id	2	bigint(20)	NO	<NULL>	PRI	
+project	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+project	name	2	varchar(255)	YES	NULL		
+project	overview	3	varchar(255)	YES	NULL		
+project	vcs	4	varchar(255)	YES	NULL		
+project	siteurl	5	varchar(255)	YES	NULL		
+project	owner	6	varchar(255)	YES	NULL		
+project	created_date	7	datetime	YES	NULL		
+project	last_issue_number	8	bigint(20)	YES	NULL		
+project	last_posting_number	9	bigint(20)	YES	NULL		
+project	original_project_id	10	bigint(20)	YES	NULL	MUL	
+project	last_pushed_date	11	datetime	YES	NULL		
+project	default_reviewer_count	12	int(11)	YES	NULL		
+project	is_using_reviewer_count	13	tinyint(1)	YES	0		
+project	organization_id	14	bigint(20)	YES	NULL	MUL	
+project	project_scope	15	varchar(9)	YES	NULL		
+project	previous_owner_login_id	16	varchar(255)	YES	NULL		
+project	previous_name	17	varchar(255)	YES	NULL		
+project	previous_name_changed_time	18	bigint(20)	YES	NULL		
+project	is_code_accessible_member_only	19	tinyint(1)	YES	0		
+project_label	project_id	1	bigint(20)	NO	<NULL>	PRI	
+project_label	label_id	2	bigint(20)	NO	<NULL>	PRI	
+project_menu_setting	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+project_menu_setting	project_id	2	bigint(20)	YES	NULL	MUL	
+project_menu_setting	code	3	tinyint(1)	YES	0		
+project_menu_setting	issue	4	tinyint(1)	YES	0		
+project_menu_setting	pull_request	5	tinyint(1)	YES	0		
+project_menu_setting	review	6	tinyint(1)	YES	0		
+project_menu_setting	milestone	7	tinyint(1)	YES	0		
+project_menu_setting	board	8	tinyint(1)	YES	0		
+project_pushed_branch	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+project_pushed_branch	pushed_date	2	datetime	YES	NULL		
+project_pushed_branch	name	3	varchar(255)	YES	NULL		
+project_pushed_branch	project_id	4	bigint(20)	YES	NULL	MUL	
+project_transfer	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+project_transfer	sender_id	2	bigint(20)	YES	NULL	MUL	
+project_transfer	destination	3	varchar(255)	YES	NULL		
+project_transfer	project_id	4	bigint(20)	YES	NULL	MUL	
+project_transfer	requested	5	datetime	YES	NULL		
+project_transfer	confirm_key	6	varchar(255)	YES	NULL		
+project_transfer	accepted	7	tinyint(1)	YES	0		
+project_transfer	new_project_name	8	varchar(255)	YES	NULL		
+project_user	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+project_user	user_id	2	bigint(20)	YES	NULL	MUL	
+project_user	project_id	3	bigint(20)	YES	NULL	MUL	
+project_user	role_id	4	bigint(20)	YES	NULL	MUL	
+project_visitation	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+project_visitation	project_id	2	bigint(20)	YES	NULL	MUL	
+project_visitation	recently_visited_projects_id	3	bigint(20)	YES	NULL	MUL	
+project_visitation	visited	4	datetime	YES	NULL		
+property	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+property	name	2	varchar(25)	YES	NULL		
+property	value	3	varchar(255)	YES	NULL		
+pull_request	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+pull_request	title	2	varchar(255)	YES	NULL		
+pull_request	body	3	longtext	YES	NULL		
+pull_request	to_project_id	4	bigint(20)	YES	NULL	MUL	
+pull_request	from_project_id	5	bigint(20)	YES	NULL	MUL	
+pull_request	to_branch	6	varchar(255)	YES	NULL		
+pull_request	from_branch	7	varchar(255)	YES	NULL		
+pull_request	contributor_id	8	bigint(20)	YES	NULL	MUL	
+pull_request	receiver_id	9	bigint(20)	YES	NULL	MUL	
+pull_request	created	10	datetime	YES	NULL		
+pull_request	updated	11	datetime	YES	NULL		
+pull_request	received	12	datetime	YES	NULL		
+pull_request	state	13	int(11)	YES	NULL		
+pull_request	is_conflict	14	tinyint(1)	YES	0		
+pull_request	is_merging	15	tinyint(1)	YES	0		
+pull_request	last_commit_id	16	varchar(255)	YES	NULL		
+pull_request	merged_commit_id_from	17	varchar(255)	YES	NULL		
+pull_request	merged_commit_id_to	18	varchar(255)	YES	NULL		
+pull_request	number	19	bigint(20)	YES	NULL	MUL	
+pull_request_commit	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+pull_request_commit	pull_request_id	2	bigint(20)	YES	NULL	MUL	
+pull_request_commit	commit_id	3	varchar(255)	YES	NULL		
+pull_request_commit	author_date	4	datetime	YES	NULL		
+pull_request_commit	created	5	datetime	YES	NULL		
+pull_request_commit	commit_message	6	longtext	YES	NULL		
+pull_request_commit	commit_short_id	7	varchar(255)	YES	NULL		
+pull_request_commit	author_email	8	varchar(255)	YES	NULL		
+pull_request_commit	state	9	varchar(7)	YES	NULL		
+pull_request_event	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+pull_request_event	sender_login_id	2	varchar(255)	YES	NULL		
+pull_request_event	pull_request_id	3	bigint(20)	YES	NULL	MUL	
+pull_request_event	event_type	4	varchar(34)	YES	NULL		
+pull_request_event	created	5	datetime	YES	NULL		
+pull_request_event	old_value	6	longtext	YES	NULL		
+pull_request_event	new_value	7	longtext	YES	NULL		
+pull_request_reviewers	pull_request_id	1	bigint(20)	NO	<NULL>	PRI	
+pull_request_reviewers	user_id	2	bigint(20)	NO	<NULL>	PRI	
+recently_visited_projects	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+recently_visited_projects	user_id	2	bigint(20)	YES	NULL	MUL	
+recent_issue	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+recent_issue	user_id	2	bigint(20)	YES	NULL	MUL	
+recent_issue	issue_id	3	bigint(20)	YES	NULL	MUL	
+recent_issue	posting_id	4	bigint(20)	YES	NULL		
+recent_issue	title	5	varchar(255)	YES	NULL		
+recent_issue	url	6	varchar(255)	YES	NULL		
+recent_issue	created_date	7	datetime	YES	NULL		
+recent_project	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+recent_project	user_id	2	bigint(20)	YES	NULL	MUL	
+recent_project	owner	3	varchar(255)	YES	NULL		
+recent_project	project_id	4	bigint(20)	YES	NULL	MUL	
+recent_project	project_name	5	varchar(255)	YES	NULL		
+review_comment	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+review_comment	contents	2	longtext	YES	NULL		
+review_comment	created_date	3	datetime	YES	NULL		
+review_comment	author_id	4	bigint(20)	YES	NULL		
+review_comment	author_login_id	5	varchar(255)	YES	NULL		
+review_comment	author_name	6	varchar(255)	YES	NULL		
+review_comment	thread_id	7	bigint(20)	YES	NULL	MUL	
+role	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+role	name	2	varchar(255)	YES	NULL		
+role	active	3	tinyint(1)	YES	0		
+site_admin	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+site_admin	admin_id	2	bigint(20)	YES	NULL	MUL	
+title_head	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+title_head	project_id	2	bigint(20)	YES	NULL	MUL	
+title_head	head_keyword	3	varchar(255)	YES	NULL	MUL	
+title_head	frequency	4	int(11)	YES	NULL		
+unwatch	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+unwatch	user_id	2	bigint(20)	YES	NULL	MUL	
+unwatch	resource_type	3	varchar(20)	YES	NULL		
+unwatch	resource_id	4	varchar(255)	YES	NULL	MUL	
+user_credential	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+user_credential	user_id	2	bigint(20)	YES	NULL	MUL	
+user_credential	login_id	3	varchar(255)	YES	NULL		
+user_credential	email	4	varchar(255)	YES	NULL		
+user_credential	name	5	varchar(255)	YES	NULL		
+user_credential	active	6	tinyint(1)	YES	0		
+user_credential	email_validated	7	tinyint(1)	YES	0		
+user_enrolled_organization	user_id	1	bigint(20)	NO	<NULL>	PRI	
+user_enrolled_organization	organization_id	2	bigint(20)	NO	<NULL>	PRI	
+user_enrolled_project	user_id	1	bigint(20)	NO	<NULL>	PRI	
+user_enrolled_project	project_id	2	bigint(20)	NO	<NULL>	PRI	
+user_project_notification	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+user_project_notification	user_id	2	bigint(20)	YES	NULL	MUL	
+user_project_notification	project_id	3	bigint(20)	YES	NULL	MUL	
+user_project_notification	notification_type	4	varchar(34)	YES	NULL		
+user_project_notification	allowed	5	tinyint(1)	YES	0		
+user_setting	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+user_setting	user_id	2	bigint(20)	YES	NULL	MUL	
+user_setting	login_default_page	3	varchar(255)	YES	NULL		
+user_verification	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+user_verification	user_id	2	bigint(20)	YES	NULL	MUL	
+user_verification	login_id	3	varchar(255)	YES	NULL	MUL	
+user_verification	verification_code	4	varchar(255)	YES	NULL		
+user_verification	timestamp	5	bigint(20)	YES	NULL		
+watch	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+watch	user_id	2	bigint(20)	YES	NULL	MUL	
+watch	resource_type	3	varchar(20)	YES	NULL		
+watch	resource_id	4	varchar(255)	YES	NULL	MUL	
+webhook	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+webhook	project_id	2	bigint(20)	YES	NULL	MUL	
+webhook	payload_url	3	varchar(2000)	YES	NULL		
+webhook	secret	4	varchar(250)	YES	NULL		
+webhook	created_at	5	datetime	YES	NULL		
+webhook	git_push	6	tinyint(1)	YES	NULL	MUL	
+webhook	webhook_type	7	tinyint(1)	YES	1	MUL	
+webhook_thread	id	1	bigint(20)	NO	<NULL>	PRI	auto_increment
+webhook_thread	webhook_id	2	bigint(20)	YES	NULL	MUL	
+webhook_thread	resource_type	3	varchar(20)	YES	NULL	MUL	
+webhook_thread	resource_id	4	varchar(255)	YES	NULL		
+webhook_thread	thread_id	5	varchar(2000)	YES	NULL		
+webhook_thread	created_at	6	datetime	YES	NULL		
