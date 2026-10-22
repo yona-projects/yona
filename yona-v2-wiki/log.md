@@ -244,3 +244,6 @@
 
 ## [2026-10-23] ingest | 커밋 이력 (5단계 5b-3)
 - TDD: CommitHistoryTest 6. A-71, R-40. 커밋 보기와 비교는 diff 엔진과 함께 5c-0으로 옮겼다.
+
+## [2026-10-23] ingest | diff 엔진 (5단계 5c-0a)
+- TDD: DiffServiceTest 9.
