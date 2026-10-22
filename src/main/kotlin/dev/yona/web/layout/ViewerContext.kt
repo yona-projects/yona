@@ -6,6 +6,7 @@ import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.project.Organization
 import dev.yona.domain.project.OrganizationUserRepository
 import dev.yona.domain.user.SiteAdminRepository
+import dev.yona.domain.user.UserDisplay
 import dev.yona.domain.user.UserSettingRepository
 import dev.yona.security.AvatarService
 import dev.yona.security.CurrentUser
@@ -23,7 +24,8 @@ class ViewerContext(
     private val issues: IssueRepository,
     private val avatars: AvatarService,
     private val organizationUsers: OrganizationUserRepository,
-    private val userSettings: UserSettingRepository
+    private val userSettings: UserSettingRepository,
+    private val anonymousName: String = ""
 ) {
 
     /** 로그인하지 않았으면 `true`이다. */
@@ -37,6 +39,12 @@ class ViewerContext(
     val name: String? get() = current.user?.name
 
     val email: String? get() = current.user?.email
+
+    /**
+     * 부서를 뺀 순수한 이름이다 (v1.6 `User.getPureNameOnly`). 댓글에서 내 이름이 들어간 것을 찾는 스크립트가 쓴다.
+     * 익명이면 "없는 사용자" 메시지(`user.notExists.name`)이다.
+     */
+    val pureName: String get() = current.user?.let { UserDisplay.pureName(it, it.lang) } ?: anonymousName
 
     /** 게스트 계정이면 `true`이다 (v1.6 `User.isGuest`). */
     val guest: Boolean get() = current.user?.isGuest == true

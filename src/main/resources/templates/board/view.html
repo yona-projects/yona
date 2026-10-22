@@ -200,8 +200,10 @@
         });
 
         // detect comment which contains mention at me
-        $(".comment-body:contains('" + /*[[${post.viewerPureName}]]*/ "" + "')").closest(".comment").addClass("mentioned");
-        $(".user-link:contains('" + /*[[${post.viewerPureName}]]*/ "" + "')").addClass("me");
+        // 인라인 표현식 바로 뒤에 덧셈이 이어지면 타임리프가 그 뒤까지 지우므로 값은 변수로 먼저 받는다.
+        var viewerName = /*[[${currentUser.pureName}]]*/ "";
+        $(".comment-body:contains('" + viewerName + "')").closest(".comment").addClass("mentioned");
+        $(".user-link:contains('" + viewerName + "')").addClass("me");
 
         $('#translate').one('click', function (e) {
             var data = {

@@ -32,3 +32,7 @@ v1.6 `ProjectApi.getResult` 형식이다: `number, id, title, type(ISSUE_POST), 
 - `POST …/issues/:n/commentNotiReceivers`(댓글 알림 수신자 미리 보기)는 알림 수신자 계산에 의존하므로 4단계에서 옮긴다.
 - `POST /-_-api/v1/translation`은 외부 번역 서비스를 부르는 일이라 따로 다룬다.
 - 외부 REST API(`getIssue`, `newIssues`, `imports`, `updateIssue`, `updateIssueState`, `updateIssueLabel`, `newIssueComment`)는 화면이 쓰지 않으므로 외부 API 단계에서 옮긴다. `IssueJson`은 그때 재사용한다.
+
+## 댓글 알림 수신자 미리 보기
+
+`POST …/issues/:n/commentNotiReceivers`는 `{comment, parentCommentId}`로 `{"receivers": [사용자 노드]}`를 돌려준다(권한 확인 없음, JSON이 아니면 `400`). 계산은 `NotificationReceivers.forIssueComment`이다([decisions.md] A-54): 이슈 구독자, 작성자, 담당자와 프로젝트에서 이 이벤트를 받겠다고 한 사용자가 받고, 한 줄 댓글이면 이슈 작성자 대신 부모 댓글 작성자와 부모 댓글에서 멘션된 사용자가 받으며 부모 댓글 작성자가 답할 때는 앞의 한 줄 댓글 작성자도 받는다. 구독을 해제했거나 이 이벤트를 받지 않겠다고 했거나 활성이 아닌 사용자, 댓글을 쓰는 사람(로그인하지 않았으면 작성자)은 빠지고, 댓글에서 멘션된 사용자는 마지막에 더해진다. 테스트 `NotificationReceiversTest` 7건과 `IssueApiTest` 3건.

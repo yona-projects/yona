@@ -18,7 +18,7 @@ data class SortLink(val field: String, val href: String, val active: Boolean, va
 data class PostDetail(
     val id: Long, val number: Long, val title: String, val body: String, val bodyHtml: String?, val historyHtml: String?,
     val createdTitle: String, val createdAgo: String, val authorLoginId: String?, val authorName: String?, val authorAvatarUrl: String,
-    val viewerAnonymous: Boolean, val viewerPureName: String, val canUpdate: Boolean, val canDelete: Boolean, val canWatch: Boolean, val watching: Boolean,
+    val viewerAnonymous: Boolean, val canUpdate: Boolean, val canDelete: Boolean, val canWatch: Boolean, val watching: Boolean,
     val canComment: Boolean, val labels: List<dev.yona.web.issue.IssueLabelTag>, val labelGroups: List<dev.yona.web.issue.LabelGroupOption>,
     val selectedLabelIds: Set<Long>, val hasProjectLabels: Boolean, val attachmentsJson: String,
     val comments: List<dev.yona.web.issue.CommentView>, val commentCount: Int

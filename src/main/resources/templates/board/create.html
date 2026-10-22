@@ -104,7 +104,8 @@ $(function(){
     }
 
     $(".new-file-name").on("keyup", function () {
-        $("#path").val(/*[[${path}]]*/ "" + $(this).val());
+        var basePath = /*[[${path}]]*/ "";
+        $("#path").val(basePath + $(this).val());
     });
 
     $(".project-menu-gruop > li").removeClass("active");

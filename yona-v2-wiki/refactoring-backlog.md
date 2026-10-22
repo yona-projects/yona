@@ -34,3 +34,5 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-27 | 줄바꿈 변환 | `LineEnding.changeLineEnding(…, DOS)`가 `\n`을 `\n`으로 바꾸는 코드라 DOS 변환이 아무것도 하지 않는다. 저장소 파일 온라인 편집에서 CRLF 파일을 고쳐도 LF로 저장된다 | 같게 재현한다 | `LineEnding.java:25-36` |
 | R-28 | 게시판 목록의 정렬 링크 | 라벨을 고른 채 정렬 링크를 누르면 링크의 `labelIds`에 자바 배열의 `toString()`(`[Ljava.lang.String;@…`)이 들어가 숫자 변환 오류로 `500`이 난다 | **고쳐서 구현했다**(고른 라벨을 이어 받는다). v1.6 그대로 오류를 내려면 [decisions.md] A-50을 되돌린다 | `board/list.scala.html:19-27`, `LabelApp.java:128-139` |
 | R-29 | 게시판 라벨 변경 | 라벨을 바꿀 때마다 `posting.save()`가 불려 제목 머리말 개수(`TitleHead`)가 한 번씩 늘어난다 | 같게 재현한다 | `BoardApi.java:42-63`, `AbstractPosting.java:113-125` |
+| R-30 | 게시판 보기의 라벨 변경 | 라벨을 고르면 요청은 성공하지만 `$.ajax(...).done(...).error(...)`의 `.error`가 jQuery 3에 없어 브라우저 콘솔에 `TypeError`가 난다 | 같게 재현한다 | `board/view.scala.html`(라벨 `change` 핸들러) |
+| R-31 | 사용자 메뉴의 즐겨찾기 탭 | 내 프로젝트도 조직도 없으면 즐겨찾기 프로젝트가 있어도 탭 전체가 "No results"이다(`etc-favorites`는 빈 `ul`이고 줄이 `ul` 바깥에 이어진다) | 같게 재현한다 | `index/myOrganizationList.scala.html:12` |

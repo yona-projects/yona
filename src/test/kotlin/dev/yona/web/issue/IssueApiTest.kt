@@ -278,6 +278,36 @@ class IssueApiTest : AbstractIntegrationTest() {
             .andExpect(jsonPath("$[0].type").value("project")).andExpect(jsonPath("$[0].name").value("${shared.owner}/${shared.name}")).andExpect(jsonPath("$[0].loginId").value(shared.id))
     }
 
+    // --- 댓글 알림 수신자 미리 보기 ---
+
+    @Test
+    fun `댓글 알림을 받을 사용자를 미리 보여 준다`() {
+        val project = newProject()
+        val author = join(newUser(), project); val commenter = join(newUser(), project); val mentioned = newUser()
+        issue(project, author = author)
+        json(post(api(project, "issues/1/commentNotiReceivers")), login(commenter), """{"comment":"확인 @${mentioned.loginId}","parentCommentId":""}""").andExpect(status().isOk)
+            .andExpect(jsonPath("$.receivers.length()").value(2)).andExpect(jsonPath("$.receivers[0].loginId").value(author.loginId)).andExpect(jsonPath("$.receivers[0].type").value("user"))
+            .andExpect(jsonPath("$.receivers[1].loginId").value(mentioned.loginId)).andExpect(jsonPath("$.receivers[0].pureNameOnly").isString)
+    }
+
+    @Test
+    fun `한 줄 댓글이면 부모 댓글 작성자가 수신자이다`() {
+        val project = newProject()
+        val author = join(newUser(), project); val parentAuthor = join(newUser(), project); val commenter = join(newUser(), project)
+        val i = issue(project, author = author)
+        val parent = comments.save(IssueComment(contents = "부모", createdDate = Date(), authorId = parentAuthor.id, authorLoginId = parentAuthor.loginId, authorName = parentAuthor.name, issue = i, projectId = project.id!!))
+        json(post(api(project, "issues/1/commentNotiReceivers")), login(commenter), """{"comment":"답","parentCommentId":"${parent.id}"}""")
+            .andExpect(jsonPath("$.receivers.length()").value(1)).andExpect(jsonPath("$.receivers[0].loginId").value(parentAuthor.loginId))
+    }
+
+    @Test
+    fun `수신자 미리 보기의 오류`() {
+        val project = newProject()
+        issue(project)
+        mockMvc.perform(post(api(project, "issues/1/commentNotiReceivers")).session(login(newUser())).contentType(MediaType.TEXT_PLAIN).content("x")).andExpect(status().isBadRequest)
+        json(post(api(project, "issues/9/commentNotiReceivers")), login(newUser()), """{"comment":"x"}""").andExpect(status().isNotFound)
+    }
+
     // --- 가중치 ---
 
     @Test

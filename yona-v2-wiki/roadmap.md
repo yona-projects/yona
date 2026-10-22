@@ -51,6 +51,7 @@ updated: 2026-10-22
 | 3c-3c-2 | 이슈 화면 API(담당자, 공유자, 가중치, 변경 감지, 본문과 댓글 갱신) | 완료 | [web/issue-api.md](web/issue-api.md) |
 | 3c-3c-3 | 번역 API, 외부 REST API(`getIssue`, `newIssues` 등) | 대기 | 알림 수신자 미리 보기는 4단계 |
 | 3d | 게시판(목록, 보기, 작성, 수정, 삭제, 댓글, 라벨 API, 조직 게시판)과 온라인 커밋 | 완료 | [web/board.md](web/board.md) |
+| 2d-5 | 사용자 메뉴(사이드바 내용, 고정 사이드바), 프로젝트 바로가기, 프로젝트·조직 즐겨찾기 API | 완료 | [web/user-menu.md](web/user-menu.md) |
 | 4 | 알림 서브시스템(이벤트 생성, 메시지, 링크, 메일)과 로그인 사용자용 홈 알림 목록 | 대기 | |
 | 5 | 코드 저장소 화면(Git), 포크, 풀 리퀘스트, 코드 리뷰, 웹훅 | 대기 | |
 | 6 | 검색, 통계, 도움말, 사이트 관리, 데이터 내보내기/가져오기 | 대기 | |
@@ -64,7 +65,7 @@ updated: 2026-10-22
 | 비워 둔 곳 | 채울 단계 |
 |---|---|
 | 홈의 알림 항목 표시와 More 버튼, `GET /notification` | 4 |
-| `GET /user/sidebar`와 사이드바 목록, `GET /user/usermenuTabContentList` | 2b-5 이후 (프로젝트 목록 필요) |
+| `GET /user/sidebar`와 사이드바 목록, `GET /user/usermenuTabContentList` | 2d-5에서 완료 |
 | `ErrorViews`의 조직 변형 | 소셜 로그인 버튼 영역, 사이트 업데이트 알림 | 7, 6 |
 | 최초 기동 시 관리자 비밀번호 설정 화면(`welcome/secret`) | 6 |
 | `AccessControl`의 엔티티별 `asResource()` | 각 엔티티의 화면 단계 |

@@ -211,3 +211,8 @@
 ## [2026-10-23] ingest | 게시판과 온라인 커밋 (3단계 d)
 - TDD: BoardListTest 14, BoardViewTest 15, BoardWriteTest 31, BoardCommentTest 17, OrganizationBoardTest 10, OnlineCommitTest 8, LineEndingTest 5. 세 DB 1150건 통과.
 - R-27(줄바꿈 변환), R-28(정렬 링크 라벨), R-29(라벨 변경 시 머리말 개수), A-49~A-52. A-50은 선생님 확인 대기.
+
+## [2026-10-23] ingest | 사용자 메뉴, 수신자 미리 보기, 화면 검증 (2d-5, 3단계 마무리)
+- Playwright 화면 검증으로 이슈, 게시판, 마일스톤, 라벨 화면 11곳을 캡처하고 상호작용을 점검했다. 타임리프 JS 인라인 뒤 `+`가 지워지는 오류를 고치고 `currentUser.pureName`을 도입했다.
+- TDD: `UserMenuTest` 16, `FavoriteApiTest` 5, `NotificationReceiversTest` 7, `IssueApiTest` +3. 세 DB 1183건 통과.
+- R-30, R-31, A-53~A-55.

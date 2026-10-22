@@ -1,0 +1,58 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/index/myOrganizationList.scala.html, myOrganizationList_partial.scala.html
+  모델: menu(UserMenuModel)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="myOrganizationList">
+<div class="search-result">
+    <div class="group">
+        <input class="search-input org-search" type="text" autocomplete="off" th:placeholder="#{title.type.name}">
+        <span class="bar"></span>
+    </div>
+    <div th:if="${menu.noOrganizations}" id="organizations" class="no-result tab-pane user-ul" th:text="#{title.no.results}"></div>
+    <ul th:unless="${menu.noOrganizations}" class="tab-pane user-ul" id="organizations">
+        <li class="org-li">
+            <div class="org-list project-flex-container all-orgs">
+                <div class="project-item project-item-container">
+                    <div class="flex-item site-logo">
+                        <i class="yobicon-angle-right"></i>
+                    </div>
+                    <div class="projectName-owner all-org-names flex-item">
+                        <div class="project-name org-name flex-item" th:text="${menu.loginId}"></div>
+                        <div class="project-owner flex-item sub-project-counter"></div>
+                    </div>
+                </div>
+                <div class="star-org flex-item"></div>
+            </div>
+            <ul class="project-ul">
+                <th:block th:each="project : ${menu.ownProjects}"><th:block th:replace="~{index/menu-project :: allProject(${project}, false)}"></th:block></th:block>
+            </ul>
+        </li>
+        <li th:each="org : ${menu.organizations}" class="org-li" th:classappend="${org.last} ? 'favored'">
+            <div class="org-list project-flex-container all-orgs">
+                <div class="project-item project-item-container">
+                    <div class="flex-item site-logo">
+                        <i class="yobicon-angle-right"></i>
+                    </div>
+                    <div class="projectName-owner all-org-names flex-item">
+                        <div class="project-name org-name flex-item" th:text="${org.name}"></div>
+                        <div class="project-owner flex-item"><th:block th:if="${org.projectCount != null}" th:text="${org.projectCount}"></th:block></div>
+                    </div>
+                </div>
+                <div class="star-org flex-item" th:attr="data-organization-id=${org.id}">
+                    <i class="star material-icons" th:classappend="${org.favored} ? 'starred'">star</i>
+                </div>
+            </div>
+            <ul class="project-ul">
+                <th:block th:each="project : ${org.projects}"><th:block th:replace="~{index/menu-project :: allProject(${project}, false)}"></th:block></th:block>
+            </ul>
+        </li>
+        <ul class="etc-favorites">
+        </ul>
+        <th:block th:each="project : ${menu.etcFavorites}"><th:block th:replace="~{index/menu-project :: myProject(${project}, false)}"></th:block></th:block>
+    </ul>
+</div>
+</th:block>

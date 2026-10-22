@@ -143,6 +143,15 @@ class BoardViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `내 이름을 찾는 스크립트가 올바른 자바스크립트로 그려진다`() {
+        val project = newProject(); val author = join(newUser(), project)
+        post(project, author)
+        val script = doc(project, session = login(author)).select("script").map { it.data() }.first { ".comment-body:contains(" in it }
+        assertTrue(script.contains("var viewerName = \"${author.name}\""), script.lines().first { "viewerName" in it })
+        assertTrue(script.contains("""$(".comment-body:contains('" + viewerName + "')")"""))
+    }
+
+    @Test
     fun `작성자가 없으면 작성자 없음이다`() {
         val project = newProject()
         post(project, null)

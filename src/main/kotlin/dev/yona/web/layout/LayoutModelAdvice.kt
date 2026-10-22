@@ -45,11 +45,15 @@ class LayoutModelFactory(
     private val organizationUsers: OrganizationUserRepository,
     private val userSettings: UserSettingRepository,
     private val flashTranslator: FlashMessageTranslator,
-    private val templateHelper: dev.yona.web.TemplateHelper
+    private val templateHelper: dev.yona.web.TemplateHelper,
+    private val messages: org.springframework.context.MessageSource
 ) {
 
     fun attributes(request: HttpServletRequest): Map<String, Any> = mapOf(
-        "currentUser" to ViewerContext(currentUserProvider.get(), siteAdmins, issues, avatars, organizationUsers, userSettings),
+        "currentUser" to ViewerContext(
+            currentUserProvider.get(), siteAdmins, issues, avatars, organizationUsers, userSettings,
+            messages.getMessage("user.notExists.name", null, "user.notExists.name", org.springframework.context.i18n.LocaleContextHolder.getLocale()).orEmpty()
+        ),
         "site" to properties,
         "siteAdminLoggedIn" to (currentUserProvider.get().user?.loginId == DEFAULT_ADMIN_LOGIN_ID),
         "flashMessages" to flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty()),

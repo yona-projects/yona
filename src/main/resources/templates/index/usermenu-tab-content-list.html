@@ -1,0 +1,19 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/usermenu_tab_content_list.scala.html
+  모델: menu(UserMenuModel). 레이아웃 없이 세 탭의 내용만 돌려준다(Ajax로 불러 넣는다).
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org">
+<div class="tab-pane user-project-list active" id="myOrganizationList">
+<th:block th:replace="~{index/my-organization-list :: myOrganizationList}"></th:block>
+</div>
+<div class="tab-pane user-project-list" id="myProjectList">
+<th:block th:replace="~{index/my-project-list :: myProjectList}"></th:block>
+</div>
+<div class="tab-pane user-project-list" id="myRecentIssueList">
+<th:block th:replace="~{index/my-recent-issue-list :: myRecentIssueList}"></th:block>
+</div>
+</th:block>

@@ -34,3 +34,10 @@ class OffsetPageRequest(private val offset: Long, private val limit: Int) : Page
     override fun withPage(pageNumber: Int): Pageable = OffsetPageRequest(pageNumber.toLong() * limit, limit)
     override fun hasPrevious(): Boolean = offset > 0
 }
+
+/** 사용자가 프로젝트에서 이벤트 종류별로 알림을 받겠다(또는 받지 않겠다)고 정한 설정의 저장소이다. */
+interface UserProjectNotificationRepository : JpaRepository<UserProjectNotification, Long> {
+
+    /** 프로젝트에서 [eventType] 알림을 받겠다([allowed]=`true`)거나 받지 않겠다(`false`)고 정한 설정이다 (v1.6 `UserProjectNotification.findByEventTypeAndOption`). */
+    fun findByProjectIdAndNotificationTypeAndAllowed(projectId: Long, notificationType: dev.yona.domain.enumeration.EventType, allowed: Boolean): List<UserProjectNotification>
+}

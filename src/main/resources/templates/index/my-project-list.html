@@ -1,0 +1,41 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/index/myProjectList.scala.html, displayProjects.scala.html
+  모델: menu(UserMenuModel)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectPane(id, projects, active)">
+    <div th:if="${projects.isEmpty()}" th:id="${id}" class="no-result tab-pane user-ul" th:classappend="${active} ? 'active'" th:text="#{title.no.results}"></div>
+    <ul th:unless="${projects.isEmpty()}" class="tab-pane user-ul" th:classappend="${active} ? 'active'" th:id="${id}">
+        <th:block th:each="project : ${projects}"><th:block th:replace="~{index/menu-project :: myProject(${project}, false)}"></th:block></th:block>
+    </ul>
+</th:block>
+
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="myProjectList">
+<div>
+    <div class="search-result">
+        <div class="tab-pane myproject-list-wrap">
+            <div class="group">
+                <input class="search-input project-search" type="text" id="query" autocomplete="off" th:placeholder="#{title.type.name}">
+                <span class="bar"></span>
+            </div>
+            <div class="subtab-wrap subtab-group">
+                <ul class="nav-subtab unstyled">
+                    <li class="active"><a href="#recentlyVisited" data-toggle="tab" th:text="#{title.recently.visited}"></a></li>
+                    <li><a href="#createdByMe" data-toggle="tab" th:text="#{title.createdByMe}"></a></li>
+                    <li><a href="#watching" data-toggle="tab" th:text="#{title.watching}"></a></li>
+                    <li><a href="#joinmember" data-toggle="tab" th:text="#{title.joinmember}"></a></li>
+                </ul>
+            </div>
+            <div class="tab-content">
+                <th:block th:replace="~{index/my-project-list :: projectPane('recentlyVisited', ${menu.recentlyVisited}, true)}"></th:block>
+                <th:block th:replace="~{index/my-project-list :: projectPane('watching', ${menu.watching}, false)}"></th:block>
+                <th:block th:replace="~{index/my-project-list :: projectPane('createdByMe', ${menu.createdByMe}, false)}"></th:block>
+                <th:block th:replace="~{index/my-project-list :: projectPane('joinmember', ${menu.joinMember}, false)}"></th:block>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>

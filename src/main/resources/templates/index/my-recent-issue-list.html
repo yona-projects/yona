@@ -1,0 +1,34 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/index/myRecentIssueList.scala.html, myRecentIssueList_partial.scala.html
+  모델: menu(UserMenuModel)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="myRecentIssueList">
+<div>
+    <div class="search-result">
+        <div class="tab-pane myproject-list-wrap">
+            <div class="group">
+                <input class="search-input project-search" type="text" id="query" autocomplete="off" th:placeholder="#{title.type.name}">
+                <span class="bar"></span>
+            </div>
+            <div class="tab-content">
+                <div th:if="${menu.recentIssues.isEmpty()}" id="recentlyVisitedIssues" class="no-result tab-pane user-ul active" th:text="#{title.no.results}"></div>
+                <ul th:unless="${menu.recentIssues.isEmpty()}" class="tab-pane user-ul active" id="recentlyVisitedIssues">
+                    <li th:each="recent : ${menu.recentIssues}" class="user-li" th:attr="data-location=${recent.url}">
+                        <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:attr="data-content=${recent.label}">
+                            <div class="project-item project-item-container">
+                                <div class="issue-item projectName-owner flex-item">
+                                    <div class="issue-title-start">-</div><div class="issue-title flex-item" th:text="${recent.title}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>

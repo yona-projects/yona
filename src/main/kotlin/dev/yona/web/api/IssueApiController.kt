@@ -61,6 +61,7 @@ class IssueApiController(
     private val massService: IssueMassUpdateService,
     private val listService: IssueListService,
     private val nodesOf: ApiUserNodes,
+    private val receivers: dev.yona.domain.notification.NotificationReceivers,
     private val issueJson: IssueJson,
     private val users: UserRepository,
     private val accessControl: AccessControl,
@@ -247,6 +248,26 @@ class IssueApiController(
         result["issueUpdateDate"] = issue.updatedDate?.time
         result["result"] = "ok"
         return nodesOf.json(result)
+    }
+
+    // --- 댓글 알림 수신자 미리 보기 ---
+
+    /**
+     * 댓글을 쓰는 중에 알림을 받을 사용자를 미리 보여 준다. 본문: `{"comment", "parentCommentId"}`(한 줄 댓글이면 부모 댓글 번호).
+     * 응답: `{"receivers": [사용자 노드]}`. v1.6은 권한을 확인하지 않는다.
+     */
+    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/commentNotiReceivers")
+    @Transactional(readOnly = true)
+    fun commentNotiReceivers(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val json = body(request) ?: return message(HttpStatus.BAD_REQUEST, "Expecting Json data")
+        val (_, issue) = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val viewer = currentUserProvider.get().user
+        val parentId = json.findValue("parentCommentId")?.asString("")?.takeIf { it.isNotBlank() }?.toLongOrNull()
+        val parent = parentId?.let { comments.findById(it).orElse(null) }
+        val set = receivers.forIssueComment(issue, viewer?.id, json.findValue("comment")?.asString("").orEmpty(), parent, dev.yona.domain.enumeration.EventType.NEW_COMMENT, viewer)
+        val nodes = mutableListOf<Map<String, Any?>>()
+        set.forEach { nodesOf.userNode(it, viewer, nodes) }
+        return nodesOf.json(linkedMapOf("receivers" to nodes))
     }
 
     // --- 본문, 댓글 갱신 ---

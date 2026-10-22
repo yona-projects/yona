@@ -105,7 +105,9 @@
         });
 
         // detect links contains mention at me
-        $(".user-link:contains('" + /*[[${currentUser.name}]]*/ "" + "')").addClass("me");
+        // 인라인 표현식 바로 뒤에 덧셈이 이어지면 타임리프가 그 뒤까지 지우므로 값은 변수로 먼저 받는다.
+        var viewerName = /*[[${currentUser.pureName}]]*/ "";
+        $(".user-link:contains('" + viewerName + "')").addClass("me");
     });
 </script>
 </th:block>

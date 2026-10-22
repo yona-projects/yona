@@ -26,8 +26,6 @@ import dev.yona.web.issue.IssueFormOptions
 import dev.yona.web.issue.IssueLabelTag
 import dev.yona.web.issue.PersonView
 import jakarta.persistence.EntityManager
-import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.stereotype.Component
 
 /** 게시글 보기 화면이 필요로 하는 값을 모은다. v1.6 `board/view.scala.html`, `partial_comments.scala.html`이 계산하던 값이다. */
@@ -46,7 +44,6 @@ class BoardViewAssembler(
     private val formOptions: IssueFormOptions,
     private val readme: ProjectReadmeService,
     private val helper: TemplateHelper,
-    private val messages: MessageSource,
     private val entityManager: EntityManager
 ) {
 
@@ -70,7 +67,6 @@ class BoardViewAssembler(
             createdTitle = helper.dateString(post.createdDate), createdAgo = helper.agoOrDateString(post.createdDate),
             authorLoginId = post.authorLoginId, authorName = author?.name ?: post.authorName, authorAvatarUrl = author?.let { avatars.avatarUrl(it) }.orEmpty(),
             viewerAnonymous = viewer == null,
-            viewerPureName = viewer?.let { UserDisplay.pureName(it, lang) } ?: message("user.notExists.name"),
             canUpdate = accessControl.isAllowed(viewer, resource, Operation.UPDATE), canDelete = accessControl.isAllowed(viewer, resource, Operation.DELETE),
             canWatch = accessControl.isAllowed(viewer, resource, Operation.WATCH), watching = viewer != null && isWatching(viewer, postId),
             canComment = accessControl.isResourceCreatable(viewer, resource, ResourceType.NONISSUE_COMMENT),
@@ -119,5 +115,4 @@ class BoardViewAssembler(
             !unwatches.existsByUserIdAndResourceTypeAndResourceId(userId, ResourceType.BOARD_POST, postId.toString())
     }
 
-    private fun message(key: String): String = messages.getMessage(key, null, key, LocaleContextHolder.getLocale()) ?: key
 }

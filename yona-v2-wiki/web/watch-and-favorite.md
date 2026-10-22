@@ -7,7 +7,7 @@ updated: 2026-10-23
 
 # 구독과 이슈 즐겨찾기
 
-구현은 `WatchController`, `WatchService`, `FavoriteIssueApiController`이다. 테스트 `WatchAndFavoriteTest` 8건.
+구현은 `WatchController`, `WatchService`, `FavoriteApiController`이다. 테스트 `WatchAndFavoriteTest` 8건.
 
 ## 구독 (`POST /watch`, `POST|GET /unwatch`)
 

@@ -1,0 +1,85 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/sidebar.scala.html
+  고정한 사이드바의 내용이다. 소셜 로그인 세션의 로그아웃은 소셜 로그인 단계에서 추가한다. 모델: menu(UserMenuModel)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
+<div class="row-fluid user-menu-wrap">
+    <span class="user-menu"><a th:href="'/' + ${currentUser.loginId}" target="mainFrame">
+        <span class="avatar-wrap smaller">
+            <img th:src="${currentUser.avatarUrl(32)}" />
+        </span>
+        <span class="caret-text hide-in-mobile" th:text="${currentUser.pureName}"></span>
+    </a></span>
+    <span class="user-menu"><a th:href="@{/user/editform}" target="mainFrame" th:text="#{userinfo.accountSetting}"></a></span>
+    <a th:href="@{/users/logout}"><span class="user-menu logout label" th:text="#{title.logout}"></span></a>
+    <div class="pin-in-sidebar" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i></div>
+</div>
+<ul class="nav nav-tabs nm">
+    <li class="myOrganizationList">
+        <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}"></a>
+    </li>
+    <li class="myProjectList">
+        <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}"></a>
+    </li>
+    <li class="myRecentIssueList">
+        <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}"></a>
+    </li>
+    <li>
+        <div class=""><i class="yobicon-refresh refresh-button"></i></div>
+    </li>
+</ul>
+<div class="tab-content tab-box">
+    <div id="usermenu-tab-content-list" class="tab-content">
+        <div class="tab-pane user-project-list" id="myOrganizationList">
+            <th:block th:replace="~{index/my-organization-list :: myOrganizationList}"></th:block>
+        </div>
+        <div class="tab-pane user-project-list" id="myProjectList">
+            <th:block th:replace="~{index/my-project-list :: myProjectList}"></th:block>
+        </div>
+        <div class="tab-pane user-project-list" id="myRecentIssueList">
+            <th:block th:replace="~{index/my-recent-issue-list :: myRecentIssueList}"></th:block>
+        </div>
+    </div>
+</div>
+<script>
+     $(function(){
+         var activeMenu = localStorage.getItem('sidebarActiveMenu')
+         if (activeMenu == null) {
+            $('.myOrganizationList').addClass('active');
+             $('#myOrganizationList').addClass('active');
+         } else {
+             $('.'+activeMenu).addClass('active');
+             $('#'+activeMenu).addClass('active');
+         }
+
+         $('.refresh-button').on('click', function(){
+             window.location.reload();
+         });
+
+         $('.myOrganizationList').on('click', function(){
+             localStorage.setItem('sidebarActiveMenu', 'myOrganizationList');
+             $(".sidebar-bottom").hide();
+         })
+         $('.myProjectList').on('click', function(){
+             localStorage.setItem('sidebarActiveMenu', 'myProjectList');
+             $(".sidebar-bottom").hide();
+         })
+         $('.myRecentIssueList').on('click', function(){
+             localStorage.setItem('sidebarActiveMenu', 'myRecentIssueList');
+             $(".sidebar-bottom").show();
+         })
+
+
+         // sidebar pin click
+         $(".pin-in-sidebar").on("click", function () {
+             localStorage.setItem('shallWeOpenLeftNavigation', "false");
+             window.location = window.location.href;
+         });
+
+     })
+</script>
+</th:block>

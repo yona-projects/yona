@@ -9,6 +9,12 @@ interface WatchRepository : JpaRepository<Watch, Long> {
     /** 사용자가 리소스를 구독하고 있는지 확인한다. */
     fun existsByUserIdAndResourceTypeAndResourceId(userId: Long, resourceType: ResourceType, resourceId: String): Boolean
 
+    /** 사용자가 구독한 [resourceType] 리소스의 행을 조회한다 (v1.6 `Watch.findBy(user, type)`). */
+    fun findByUserIdAndResourceType(userId: Long, resourceType: ResourceType): List<Watch>
+
+    /** 리소스를 구독한 행을 조회한다 (v1.6 `Watch.findBy(type, id)`). */
+    fun findByResourceTypeAndResourceId(resourceType: ResourceType, resourceId: String): List<Watch>
+
     /** 사용자의 구독 행을 조회한다 (v1.6 `Watch.findBy`). */
     fun findByUserIdAndResourceTypeAndResourceId(userId: Long, resourceType: ResourceType, resourceId: String): List<Watch>
 
@@ -21,6 +27,12 @@ interface UnwatchRepository : JpaRepository<Unwatch, Long> {
 
     /** 사용자가 리소스의 구독을 명시적으로 해제했는지 확인한다. */
     fun existsByUserIdAndResourceTypeAndResourceId(userId: Long, resourceType: ResourceType, resourceId: String): Boolean
+
+    /** 사용자가 구독을 해제한 [resourceType] 리소스의 행을 조회한다. */
+    fun findByUserIdAndResourceType(userId: Long, resourceType: ResourceType): List<Unwatch>
+
+    /** 리소스의 구독을 해제한 행을 조회한다 (v1.6 `Unwatch.findBy(type, id)`). */
+    fun findByResourceTypeAndResourceId(resourceType: ResourceType, resourceId: String): List<Unwatch>
 
     /** 사용자의 구독 해제 기록을 조회한다. */
     fun findByUserIdAndResourceTypeAndResourceId(userId: Long, resourceType: ResourceType, resourceId: String): List<Unwatch>
@@ -35,12 +47,21 @@ interface FavoriteProjectRepository : JpaRepository<FavoriteProject, Long> {
     /** 사용자가 프로젝트를 즐겨찾기한 행을 조회한다 (v1.6 `User.removeFavoriteProject`). */
     fun findByUserIdAndProjectId(userId: Long, projectId: Long): List<FavoriteProject>
 
+    /** 사용자의 즐겨찾기 프로젝트를 오래된 것부터 조회한다. */
+    fun findByUserIdOrderByIdAsc(userId: Long): List<FavoriteProject>
+
     /** 프로젝트를 즐겨찾기한 모든 행을 조회한다 (v1.6 `FavoriteProject.updateFavoriteProject`). */
     fun findByProjectId(projectId: Long): List<FavoriteProject>
 }
 
 /** 즐겨찾기한 조직 저장소이다. */
 interface FavoriteOrganizationRepository : JpaRepository<FavoriteOrganization, Long> {
+
+    /** 사용자가 조직을 즐겨찾기한 행을 조회한다 (v1.6 `User.removeFavoriteOrganization`). */
+    fun findByUserIdAndOrganizationId(userId: Long, organizationId: Long): List<FavoriteOrganization>
+
+    /** 사용자의 즐겨찾기 조직을 오래된 것부터 조회한다. */
+    fun findByUserIdOrderByIdAsc(userId: Long): List<FavoriteOrganization>
 
     /** 조직을 즐겨찾기한 모든 행을 조회한다 (v1.6 `FavoriteOrganization.updateFavoriteOrganization`). */
     fun findByOrganizationId(organizationId: Long): List<FavoriteOrganization>
@@ -58,6 +79,9 @@ interface RecentIssueRepository : JpaRepository<RecentIssue, Long> {
 
     /** 사용자의 기록을 오래된 것부터 조회한다. */
     fun findByUserIdOrderByIdAsc(userId: Long): List<RecentIssue>
+
+    /** 사용자의 기록을 최근 것부터 조회한다 (v1.6 `RecentIssue.getRecentIssues`). */
+    fun findByUserIdOrderByIdDesc(userId: Long): List<RecentIssue>
 }
 
 /** 즐겨찾기한 이슈 저장소이다. */
