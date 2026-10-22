@@ -32,6 +32,16 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit:7.8.0.202609011348-r")
 	implementation("org.eclipse.jgit:org.eclipse.jgit.http.server:7.8.0.202609011348-r")
 
+	// 서버 측 마크다운 렌더링(D-17): CommonMark 구현과 GFM 확장, 결과 정화(OWASP)와 HTML 후처리(jsoup)
+	implementation("org.commonmark:commonmark:0.31.0")
+	implementation("org.commonmark:commonmark-ext-gfm-tables:0.31.0")
+	implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.31.0")
+	implementation("org.commonmark:commonmark-ext-autolink:0.31.0")
+	implementation("org.commonmark:commonmark-ext-task-list-items:0.31.0")
+	implementation("org.commonmark:commonmark-ext-heading-anchor:0.31.0")
+	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1")
+	implementation("org.jsoup:jsoup:1.23.2")
+
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
@@ -44,7 +54,10 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	// 렌더링된 HTML의 구조를 DOM으로 검증하는 데 쓴다(운영 코드는 쓰지 않는다).
-	testImplementation("org.jsoup:jsoup:1.21.1")
+
+	// v1.6이 쓰던 marked.js를 JVM에서 실행해 commonmark-java의 결과와 비교한다(D-17, 테스트 전용).
+	testImplementation("org.graalvm.polyglot:polyglot:25.4.4.1.1")
+	testRuntimeOnly("org.graalvm.polyglot:js:25.4.4.1.1")
 
 	// v1.6이 패스워드 해시에 쓰던 Shiro와 결과가 같은지 교차 검증하기 위한 참조 구현이다(운영 코드는 쓰지 않는다).
 	testImplementation("org.apache.shiro:shiro-core:1.13.0")

@@ -125,3 +125,6 @@
 
 ## [2026-10-22] query | 마크다운 라이브러리 조사
 - 선생님이 다른 추천 라이브러리를 조사해 달라고 하셔서 commonmark-java, flexmark, JetBrains markdown, GraalJS+marked.js를 비교했다. 선생님이 권장안 (a)를 확정하셨다: D-17.
+
+## [2026-10-22] ingest | 마크다운 렌더러
+- TDD: 기준 구현(`MarkedReference`)을 먼저 만들고 차이 테스트로 RED를 확인한 뒤 `MarkdownRenderer`를 구현했다. 처음 4건이 달랐고(제목 앵커 3, 작업 목록 1) v1.6이 커스터마이즈된 marked.js를 쓴다는 사실을 발견해 후처리로 맞췄다. 기록: [web/markdown.md](web/markdown.md)
