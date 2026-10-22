@@ -205,7 +205,8 @@ class IssueService(
         issues.flush()
     }
 
-    private fun deleteNotificationEvents(type: ResourceType, resourceId: String) {
+    /** 리소스에 걸린 알림 이벤트를 수신자, 메일 대기열과 함께 지운다 (v1.6 `NotificationEvent.deleteBy`). */
+    fun deleteNotificationEvents(type: ResourceType, resourceId: String) {
         val ids = entityManager.createQuery(
             "select e.id from NotificationEvent e where e.resourceType = :type and e.resourceId = :rid", java.lang.Long::class.java
         ).setParameter("type", type).setParameter("rid", resourceId).resultList

@@ -195,3 +195,6 @@
 
 ## [2026-10-23] ingest | 이슈 수정 (3단계 c-2c)
 - TDD: `IssueEditTest` 17건, `IssueServiceTest`에 수정 12건. v1.6의 `diff_match_patch`를 그대로 가져와 변경 이력을 만든다(A-44). A-45, A-46을 기록했다.
+
+## [2026-10-23] ingest | 이슈 댓글과 추천 (3단계 c-3a)
+- TDD: `IssueCommentTest` 22건. R-26(댓글 삭제 시 멘션 기록 유지)을 재현했다.

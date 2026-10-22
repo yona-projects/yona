@@ -1,5 +1,6 @@
 package dev.yona.domain.issue
 
+import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.user.User
 
@@ -29,3 +30,14 @@ data class IssueChangedActivity(val issue: Issue, val type: EventType, val oldVa
  * 지워진 뒤에는 이슈를 읽을 수 없으므로 알림에 필요한 값을 함께 담는다. 초안은 발행하지 않는다.
  */
 data class IssueDeletedActivity(val projectId: Long, val issueNumber: Long, val title: String?, val body: String?, val actor: User)
+
+/**
+ * 이슈 댓글이 새로 달렸거나 수정되었음을 알리는 애플리케이션 이벤트이다. v1.6 `NotificationEvent.afterNewComment`,
+ * `afterCommentUpdated`를 부르던 지점에서 발행한다.
+ *
+ * @property comment 저장된 댓글
+ * @property previousContents 새 댓글일 때 메일 본문에 덧붙이는 "이전 내용"(원래 이슈 또는 이전 댓글의 내용). 수정이면 `null`
+ * @property created 새 댓글이면 `true`, 수정이면 `false`
+ * @property actor 쓰거나 고친 사용자
+ */
+data class IssueCommentActivity(val comment: IssueComment, val previousContents: String?, val created: Boolean, val actor: User)
