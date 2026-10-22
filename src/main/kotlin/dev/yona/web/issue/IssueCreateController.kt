@@ -180,7 +180,7 @@ class IssueCreateController(
             .addObject("commentId", commentId)
             .addObject("errors", errors)
             .addObject("fromGlobalMenu", fromGlobalMenu)
-        return formSupport.fill(mav, project, requireNotNull(viewer), null, parentIssueId)
+        return formSupport.fill(mav, project, viewer, null, parentIssueId)
     }
 
     private fun parseDate(value: String?, onError: () -> Unit): Date? {

@@ -23,6 +23,10 @@ class IssueLabelService(
     /** 프로젝트의 분류를 이름순으로 돌려준다. */
     fun categories(project: Project): List<IssueLabelCategory> = categories.findByProjectIdOrderByNameAsc(requireNotNull(project.id))
 
+    /** 프로젝트의 분류에서 이름이 같은 라벨을 찾는다. */
+    fun findLabel(project: Project, category: IssueLabelCategory, name: String): IssueLabel? =
+        labels.findByProjectIdOrderByCategoryNameAscNameAsc(requireNotNull(project.id)).firstOrNull { it.category?.id == category.id && it.name == name }
+
     /** 프로젝트에서 이름이 같은 분류를 찾는다. */
     fun findCategory(project: Project, name: String): IssueLabelCategory? = categories.findFirstByProjectIdAndName(requireNotNull(project.id), name)
 

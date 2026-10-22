@@ -23,6 +23,18 @@ import dev.yona.domain.user.User
 fun Issue.asResource(): ProjectResource =
     ProjectResource(requireNotNull(id).toString(), ResourceType.ISSUE_POST, project, authorId = authorId)
 
+/** 이슈의 상태 (`ISSUE_STATE`). 권한은 이슈를 따른다 (v1.6 `Issue.stateAsResource`). */
+fun Issue.stateAsResource(): ProjectResource = fieldAsResource(ResourceType.ISSUE_STATE)
+
+/** 이슈의 마일스톤 (`ISSUE_MILESTONE`). 권한은 이슈를 따른다 (v1.6 `Issue.milestoneAsResource`). */
+fun Issue.milestoneAsResource(): ProjectResource = fieldAsResource(ResourceType.ISSUE_MILESTONE)
+
+/** 이슈의 담당자 (`ISSUE_ASSIGNEE`). 권한은 이슈를 따른다 (v1.6 `Issue.assigneeAsResource`). */
+fun Issue.assigneeAsResource(): ProjectResource = fieldAsResource(ResourceType.ISSUE_ASSIGNEE)
+
+private fun Issue.fieldAsResource(type: ResourceType): ProjectResource =
+    ProjectResource(requireNotNull(id).toString(), type, project, container = asResource())
+
 /** 게시글 (`BOARD_POST`). 작성자 권한이 있다. */
 fun Posting.asResource(): ProjectResource =
     ProjectResource(requireNotNull(id).toString(), ResourceType.BOARD_POST, project, authorId = authorId)

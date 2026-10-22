@@ -6,6 +6,8 @@ import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.notification.MentionRepository
+import dev.yona.domain.project.ProjectUserRepository
+import dev.yona.domain.user.RoleRepository
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.TitleHeadRepository
@@ -44,6 +46,8 @@ class IssueServiceTest : AbstractIntegrationTest() {
     @Autowired private lateinit var titleHeads: TitleHeadRepository
     @Autowired private lateinit var mentions: MentionRepository
     @Autowired private lateinit var events: ApplicationEvents
+    @Autowired private lateinit var roles: RoleRepository
+    @Autowired private lateinit var projectUsers: ProjectUserRepository
 
     private var sequence = 0
 
@@ -230,5 +234,175 @@ class IssueServiceTest : AbstractIntegrationTest() {
         val draft = service.create(project, author, input(draft = true))
         service.delete(draft, author)
         assertEquals(0, events.stream(IssueDeletedActivity::class.java).count())
+    }
+
+    // --- 수정 ---
+
+    private fun edit(
+        title: String = "제목", body: String = "본문", dueDate: String? = null, state: State? = null, draft: Boolean = false, publish: Boolean = false, notify: Boolean = true,
+        parent: Long? = null, changeParent: Boolean = false, assignee: String? = null, milestoneId: Long? = null, labelIds: Set<Long> = emptySet()
+    ) = IssueEdit(title, body, dueDate?.let { SimpleDateFormat("yyyy-MM-dd").parse(it) }, state, draft, publish, notify, parent, changeParent, assignee, milestoneId, labelIds)
+
+    @Test
+    fun `수정하면 폼의 값이 모두 반영되고 작성 정보는 그대로이다`() {
+        val project = project(); val author = user(); val editor = user(); val assignee = user()
+        val milestone = milestones.save(Milestone(project = project, title = "v1", state = State.OPEN))
+        val category = categories.save(IssueLabelCategory(project = project, name = "c", isExclusive = false))
+        val label = labels.save(IssueLabel(project = project, category = category, name = "a", color = "#fff"))
+        val issue = service.create(project, author, input("처음", "처음 본문", dueDate = "2030-01-01"))
+        val created = issue.createdDate
+        Thread.sleep(5)
+        service.update(issue, editor, edit("고친 제목", "고친 본문", dueDate = "2031-02-03", state = State.CLOSED, assignee = assignee.loginId, milestoneId = milestone.id, labelIds = setOf(label.id!!)))
+        assertEquals("고친 제목", issue.title); assertEquals("고친 본문", issue.body); assertEquals(State.CLOSED, issue.state)
+        assertEquals("2031-02-03 23:59:59", SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(issue.dueDate!!))
+        assertEquals(assignee.id, issue.assignee?.user?.id); assertEquals(milestone.id, issue.milestone?.id); assertEquals(setOf(label.id), issue.labels.map { it.id }.toSet())
+        assertEquals(created, issue.createdDate); assertTrue(issue.updatedDate!!.after(created))
+        assertEquals(author.loginId, issue.authorLoginId); assertEquals(editor.id, issue.updatedByAuthorId)
+    }
+
+    @Test
+    fun `마감일, 담당자, 마일스톤, 라벨을 비우면 지워진다`() {
+        val project = project(); val author = user(); val assignee = user()
+        val milestone = milestones.save(Milestone(project = project, title = "v1", state = State.OPEN))
+        val issue = service.create(project, author, input(assignee = assignee.loginId, milestoneId = milestone.id, dueDate = "2030-01-01"))
+        service.update(issue, author, edit())
+        assertNull(issue.dueDate); assertNull(issue.assignee); assertNull(issue.milestone); assertTrue(issue.labels.isEmpty())
+    }
+
+    @Test
+    fun `상태를 보내지 않으면 현재 상태를 유지한다`() {
+        val project = project(); val author = user()
+        val issue = service.create(project, author, input())
+        service.toNextState(issue, author)
+        service.update(issue, author, edit(state = null))
+        assertEquals(State.CLOSED, issue.state)
+    }
+
+    @Test
+    fun `본문이 바뀌면 변경 이력이 앞에 쌓이고 같으면 그대로이다`() {
+        val project = project(); val author = user(); val editor = user()
+        val issue = service.create(project, author, input("t", "첫 본문"))
+        service.update(issue, editor, edit("t", "둘째 본문"))
+        val first = issue.history!!
+        assertTrue(first.startsWith("<div class='history-made-by'>${editor.name}(${editor.loginId}) <span class='added'>"), first)
+        assertTrue("<span class='diff-deleted'>" in first && "<span class='diff-added'>" in first && "</br>" in first)
+        service.update(issue, editor, edit("t", "둘째 본문"))
+        assertEquals(first, issue.history)
+        service.update(issue, editor, edit("t", "셋째 본문"))
+        assertTrue(issue.history!!.endsWith(first))
+        assertTrue(issue.history!!.length > first.length)
+    }
+
+    @Test
+    fun `변경 이력의 본문은 이스케이프한다`() {
+        val project = project(); val author = user()
+        val issue = service.create(project, author, input("t", "a"))
+        service.update(issue, author, edit("t", "<script>x</script>"))
+        assertTrue("&lt;script&gt;" in issue.history!!)
+        assertEquals(false, "<script>" in issue.history!!)
+    }
+
+    @Test
+    fun `제목 머리말 개수와 멘션이 고친 값으로 바뀐다`() {
+        val project = project(); val author = user(); val mentioned = user("who1")
+        val issue = service.create(project, author, input("[버그] 하나", "본문"))
+        service.update(issue, author, edit("[기능] 하나", "다시 @who1"))
+        assertEquals(0, titleHeads.findAll().count { it.project?.id == project.id && it.headKeyword == "버그" })
+        assertEquals(1, titleHeads.findAll().count { it.project?.id == project.id && it.headKeyword == "기능" })
+        assertEquals(listOf(mentioned.loginId), mentions.findAll().filter { it.resourceId == issue.id.toString() }.map { it.user?.loginId })
+    }
+
+    @Test
+    fun `작성자가 알림을 끄고 고치면 이벤트를 남기지 않고 다른 사람이 고치면 남긴다`() {
+        val project = project(); val author = user(); val other = user(); val assignee = user()
+        val issue = service.create(project, author, input("t", "본문"))
+        service.update(issue, author, edit("t", "고침1", state = State.CLOSED, assignee = assignee.loginId, notify = false))
+        assertEquals(0, events(issue).size)
+        service.update(issue, other, edit("t", "고침2", state = State.OPEN, assignee = null, notify = false))
+        assertEquals(setOf(EventType.ISSUE_STATE_CHANGED, EventType.ISSUE_ASSIGNEE_CHANGED, EventType.ISSUE_BODY_CHANGED), events(issue).map { it.eventType }.toSet())
+        val state = events(issue).first { it.eventType == EventType.ISSUE_STATE_CHANGED }
+        assertEquals("closed", state.oldValue); assertEquals("open", state.newValue)
+        val changed = events.stream(IssueChangedActivity::class.java).toList().map { it.type }
+        assertTrue(EventType.ISSUE_BODY_CHANGED in changed)
+    }
+
+    @Test
+    fun `알림을 켜고 고치면 작성자의 변경도 이벤트로 남는다`() {
+        val project = project(); val author = user()
+        val issue = service.create(project, author, input("t", "본문"))
+        service.update(issue, author, edit("t", "고침", notify = true))
+        assertEquals(listOf(EventType.ISSUE_BODY_CHANGED), events(issue).map { it.eventType })
+    }
+
+    @Test
+    fun `초안은 알림 이벤트를 남기지 않는다`() {
+        val project = project(); val author = user(); val other = user()
+        val issue = service.create(project, author, input("t", "본문", draft = true))
+        service.update(issue, other, edit("t", "고침", draft = true))
+        assertEquals(0, events(issue).size)
+        assertEquals(State.DRAFT, issue.state)
+    }
+
+    @Test
+    fun `초안을 게시하면 열린 이슈가 되고 새 번호와 시각을 받는다`() {
+        val project = project(); val author = user()
+        val first = service.create(project, author, input("첫째"))
+        val draft = service.create(project, author, input("초안", "본문", draft = true))
+        val oldCreated = draft.createdDate!!
+        Thread.sleep(5)
+        service.update(draft, author, edit("초안", "본문", publish = true))
+        assertEquals(State.OPEN, draft.state); assertEquals(false, draft.isDraft)
+        assertEquals(3L, draft.number)
+        assertTrue(draft.createdDate!!.after(oldCreated))
+        assertEquals("", draft.history)
+        assertEquals(1, events.stream(IssueCreatedActivity::class.java).toList().count { it.issue.id == draft.id })
+        assertEquals(1L, first.number)
+    }
+
+    @Test
+    fun `부모를 바꾸거나 지운다`() {
+        val project = project(); val author = user()
+        val parent = service.create(project, author, input("부모")); val other = service.create(project, author, input("다른 부모"))
+        val child = service.create(project, author, input("자식", parent = parent.id))
+        service.update(child, author, edit("자식", changeParent = false))
+        assertEquals(parent.id, child.parent?.id)
+        service.update(child, author, edit("자식", changeParent = true, parent = other.id))
+        assertEquals(other.id, child.parent?.id)
+        service.update(child, author, edit("자식", changeParent = true, parent = null))
+        assertNull(child.parent)
+    }
+
+    @Test
+    fun `다른 프로젝트로 옮기면 새 번호와 라벨 이전, 하위 이슈 이동, 이동 이벤트가 따른다`() {
+        val from = project(); val to = project(); val author = user(); val mover = user()
+        projectUsers.save(dev.yona.domain.project.ProjectUser(user = mover, project = to, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get()))
+        val category = categories.save(IssueLabelCategory(project = from, name = "종류", isExclusive = true))
+        val label = labels.save(IssueLabel(project = from, category = category, name = "버그", color = "#f00"))
+        val milestone = milestones.save(Milestone(project = from, title = "v1", state = State.OPEN))
+        val issue = service.create(from, author, input("옮길 이슈", labelIds = setOf(label.id!!), milestoneId = milestone.id))
+        val child = service.create(from, author, input("자식", parent = issue.id))
+        service.create(to, author, input("먼저 있던 이슈"))
+        entityManager.persist(dev.yona.domain.comment.IssueComment(contents = "c", createdDate = java.util.Date(), authorLoginId = author.loginId, issue = issue, projectId = from.id!!))
+        entityManager.flush()
+        service.update(issue, mover, edit("옮길 이슈", labelIds = setOf(label.id!!), milestoneId = milestone.id), target = to)
+        assertEquals(to.id, issue.project?.id); assertEquals(2L, issue.number)
+        assertNull(issue.milestone)
+        assertEquals(1, issue.labels.size)
+        val moved = issue.labels.single()
+        assertEquals(to.id, moved.project?.id); assertEquals("버그", moved.name); assertEquals("종류", moved.category?.name); assertEquals(true, moved.category?.isExclusive)
+        assertEquals(to.id, child.project?.id); assertEquals(3L, child.number)
+        assertEquals(to.id, entityManager.createQuery("select c.projectId from IssueComment c where c.issue.id = :id", java.lang.Long::class.java).setParameter("id", issue.id).singleResult.toLong())
+        val moveEvent = events(issue).single { it.eventType == EventType.ISSUE_MOVED }
+        assertEquals("${from.owner}/${from.name}", moveEvent.oldValue); assertEquals("${to.owner}/${to.name}", moveEvent.newValue)
+    }
+
+    @Test
+    fun `옮기는 사람이 대상 프로젝트의 구성원이 아니면 라벨을 이전하지 않는다`() {
+        val from = project(); val to = project(); val author = user()
+        val category = categories.save(IssueLabelCategory(project = from, name = "종류", isExclusive = false))
+        val label = labels.save(IssueLabel(project = from, category = category, name = "버그", color = "#f00"))
+        val issue = service.create(from, author, input(labelIds = setOf(label.id!!)))
+        service.update(issue, author, edit(labelIds = setOf(label.id!!)), target = to)
+        assertTrue(issue.labels.isEmpty())
     }
 }

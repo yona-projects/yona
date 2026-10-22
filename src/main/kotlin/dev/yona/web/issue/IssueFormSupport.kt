@@ -43,7 +43,7 @@ class IssueFormSupport(
      * @param selectedLabelIds 처음 선택해 둘 라벨
      */
     fun fill(
-        mav: ModelAndView, project: Project, viewer: User, currentIssueId: Long?, parentIssueId: Long?, selectedLabelIds: Set<Long> = emptySet()
+        mav: ModelAndView, project: Project, viewer: User?, currentIssueId: Long?, parentIssueId: Long?, selectedLabelIds: Set<Long> = emptySet()
     ): ModelAndView {
         val projectView = views.of(project)
         val parentOptions = listService.parentCandidates(project, PARENT_CANDIDATE_LIMIT)
@@ -55,9 +55,11 @@ class IssueFormSupport(
             .addObject("canAssign", accessControl.isProjectResourceCreatable(viewer, project, ResourceType.ISSUE_ASSIGNEE))
             .addObject("canMilestone", projectView.menuSetting.milestone == true && accessControl.isProjectResourceCreatable(viewer, project, ResourceType.ISSUE_MILESTONE))
             .addObject("openMilestones", milestoneService.list(project, State.OPEN, "dueDate", false).map { MilestoneOption(requireNotNull(it.id), it.title.orEmpty(), "OPEN") })
+            .addObject("closedMilestones", milestoneService.list(project, State.CLOSED, "dueDate", false).map { MilestoneOption(requireNotNull(it.id), it.title.orEmpty(), "CLOSED") })
+            .addObject("hasMilestones", milestoneService.list(project, State.ALL, "dueDate", false).isNotEmpty())
             .addObject("labelGroups", formOptions.labelGroups(labelService.labels(project)))
             .addObject("selectedLabelIds", java.util.LinkedHashSet(selectedLabelIds))
-            .addObject("movableProjects", listService.movableProjects(viewer).map {
+            .addObject("movableProjects", (viewer?.let { listService.movableProjects(it) } ?: emptyList()).map {
                 ProjectOption(requireNotNull(it.id), it.owner.orEmpty(), it.name.orEmpty(), views.of(it).logoUrl)
             })
             .addObject("parentOptions", parentOptions)

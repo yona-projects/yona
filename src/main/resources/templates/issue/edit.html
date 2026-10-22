@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/edit.scala.html
+  모델: title, projectView, errors, issueNumber, issueId, draft, titleValue, bodyValue, authorId, dueDateValue, stateName, assigneeLoginId, milestoneId,
+        hasChild, canUpdate, canUpdateState, canUpdateAssignee, canUpdateMilestone, authoredByViewer, openMilestones, labelGroups, selectedLabelIds,
+        movableProjects, parentOptions, selectedParent, showSubtask, logoUrl
+  오류로 다시 보여 줄 때 제목과 본문은 고치기 전의 값이다.
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'ISSUE', ~{::editPage})}">
+<th:block th:fragment="editPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'ISSUE', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="content-wrap frm-wrap">
+        <form th:action="${base + '/issue/' + issueNumber + '/edit'}" method="post" id="issue-form" enctype="multipart/form-data">
+            <input type="hidden" name="authorId" th:value="${authorId}">
+            <input type="hidden" id="isDraft" name="isDraft" value="false">
+            <input type="hidden" id="isPublish" name="isPublish" value="false">
+            <div class="row-fluid">
+            <div class="span12">
+                <dl>
+                    <dt>
+                        <span th:if="${draft}" class="draft" th:text="#{issue.state.draft}"></span>
+                        <label th:unless="${draft}" for="title"><strong class="secondary-txt" th:text="'#' + ${issueNumber}"></strong></label>
+                    </dt>
+                    <dd>
+                        <div class="span12">
+                            <div class="span11">
+                                <input type="text" id="title" name="title" th:value="${titleValue}" class="text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" th:placeholder="#{title}" autocomplete="off">
+                            </div>
+                            <div class="span1 subtask-message" th:text="#{issue.option}"></div>
+                        </div>
+                        <div th:if="${errors['title'] != null}" class="message">
+                            <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
+                        </div>
+                        <th:block th:replace="~{issue/partial-select-subtask :: selectSubtask(${showSubtask}, ${hasChild})}"></th:block>
+                    </dd>
+                </dl>
+            </div>
+            <div class="row-fluid">
+                <div class="span9 span-left-pane">
+                    <dl>
+                        <dd style="position: relative;">
+                            <th:block th:replace="~{common/editor :: editor('body', ${bodyValue}, 'tabindex=2', 'content-body', false)}"></th:block>
+                        </dd>
+                    </dl>
+
+                    <th:block th:if="${!currentUser.anonymous}">
+                        <th:block th:replace="~{common/file-uploader :: fileUploader('ISSUE_POST', ${issueId})}"></th:block>
+                    </th:block>
+
+                    <div class=" actrow right-txt">
+                        <span th:if="${!draft and authoredByViewer}" class="send-notification-check">
+                            <label class="checkbox inline">
+                                <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked>
+                                <strong th:text="#{notification.send.mail}"></strong>
+                            </label>
+                        </span>
+                        <th:block th:if="${canUpdate and draft}">
+                            <button type="submit" id="button-draft-publish" class="ybtn ybtn-info" th:text="#{button.draft.publish}"></button>
+                            <button type="button" id="draft-save-btn" class="ybtn ybtn-watching draft-save-btn" th:text="#{button.draft.save}"></button></th:block><!--
+                    --><th:block th:if="${canUpdate and !draft}">
+                            <button type="submit" id="button-save" class="ybtn ybtn-info" th:text="#{button.save}"></button></th:block><!--
+                     --><a href="javascript:history.back();" class="ybtn" th:text="#{button.cancel}"></a>
+                    </div>
+                </div>
+
+                <div class="span3 span-hard-wrap right-menu">
+                    <dl th:if="${canUpdateState}" class="issue-option">
+                        <dt th:text="#{issue.state}"></dt>
+                        <dd>
+                            <div id="state" class="btn-group auto" data-name="state">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label" th:text="#{issue.state}"></span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value="OPEN" th:attr="data-selected=${stateName == 'OPEN'} ? 'true'" th:classappend="${stateName == 'OPEN'} ? 'active'"><a th:text="#{issue.state.open}"></a></li>
+                                    <li data-value="CLOSED" th:attr="data-selected=${stateName == 'CLOSED'} ? 'true'" th:classappend="${stateName == 'CLOSED'} ? 'active'"><a th:text="#{issue.state.closed}"></a></li>
+                                </ul>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <dl th:if="${canUpdateAssignee}" class="issue-option">
+                        <dt th:text="#{issue.assignee}"></dt>
+                        <dd>
+                            <th:block th:replace="~{issue/partial-assignee :: assignee(${assigneeLoginId})}"></th:block>
+                        </dd>
+                    </dl>
+
+                    <dl th:if="${projectView.menuSetting.milestone and canUpdateMilestone}" id="milestoneOption" class="issue-option">
+                        <dt th:text="#{milestone}"></dt>
+                        <dd>
+                            <a th:if="${!hasMilestones}" th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-small ybtn-fullsize" target="_blank" th:text="#{milestone.menu.new}"></a>
+                            <select th:if="${hasMilestones}" id="milestoneId" name="milestoneId" data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                <option value="-1" th:selected="${milestoneId == null}" th:text="#{issue.noMilestone}"></option>
+                                <optgroup th:label="#{milestone.state.open}">
+                                    <option th:each="m : ${openMilestones}" th:value="${m.id}" th:attr="data-state=${m.state}" th:selected="${milestoneId != null and milestoneId == m.id}" th:text="${m.title}"></option>
+                                </optgroup>
+                                <optgroup th:label="#{milestone.state.closed}">
+                                    <option th:each="m : ${closedMilestones}" th:value="${m.id}" th:attr="data-state=${m.state}" th:selected="${milestoneId != null and milestoneId == m.id}" th:text="${m.title}"></option>
+                                </optgroup>
+                            </select>
+                        </dd>
+                    </dl>
+
+                    <dl class="issue-option">
+                        <dt th:text="#{issue.dueDate}"></dt>
+                        <dd>
+                            <div class="search search-bar">
+                                <input type="text" id="issueDueDate" data-toggle="calendar" name="dueDate" class="textbox full" th:value="${dueDateValue}">
+                                <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
+                            </div>
+                        </dd>
+                    </dl>
+
+                    <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelGroups}, ${selectedLabelIds}, 'issue-option', ${projectView})}"></th:block>
+                </div>
+            </div>
+        </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/calendar :: calendar}"></th:block>
+
+<link rel="stylesheet" type="text/css" media="screen" th:href="${base + '/issue/labels.css'}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Subtask.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.issue.Assginee.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/common/yona.TitleHeadAutoCompletion.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        // yobi.issue.Write
+        $yobi.loadModule("issue.Write", {
+            "sMode"             : "edit",
+            "sIssueId"          : /*[[${#strings.toString(issueNumber)}]]*/ "",
+            "sIssueFormURL"     : /*[[${base + '/issueform'}]]*/ "",
+            "sIssueListURL"     : /*[[${base + '/issues'}]]*/ "",
+            "elTextarea"        : 'textarea[data-editor-mode="content-body"]',
+            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
+            "elDueDate"         : $("#issueDueDate")
+        });
+
+        // yobi.Mention
+        yobi.Mention({
+            "target": "textarea[id^=editor-]",
+            "url"   : /*[[${base + '/mentionList'}]]*/ ""
+        });
+
+        yonaAssgineeModule(
+                /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/assignableUsers'}]]*/ "",
+                "",
+                /*[[#{issue.assignee}]]*/ ""
+        );
+
+        yonaTitleHeadModule({
+            "target": 'input[id=title]',
+            "url"   : /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/titleHeads'}]]*/ ""
+        });
+
+        if (localStorage.getItem(location.pathname) != null) {
+            $('.editor-clear-temporary').show();
+        }
+
+        $('.editor-clear-temporary-button').on('click', function(){
+            localStorage.removeItem(location.pathname);
+            window.location.reload();
+        });
+
+        tippy('#button-clear-temporary', {
+            content: /*[[#{button.clear.temporary.description}]]*/ "",
+            placement: 'top-start',
+            maxWidth: 'none',
+        });
+
+        tippy('#button-draft-publish', {
+            content: /*[[#{button.draft.publish.description}]]*/ "",
+            placement: 'top-start',
+            maxWidth: 'none',
+        });
+
+        tippy('#draft-save-btn', {
+            content: /*[[#{button.draft.save.description}]]*/ "",
+            placement: 'top',
+            maxWidth: 'none',
+        });
+
+        $('#button-save').on('click', function(){
+            var $this = $(this);
+            $this.prop('disabled', true);
+            setTimeout(function (){
+                $this.prop('disabled', false);
+            }, 3000);
+
+            $('#issue-form').submit();
+        });
+
+        $('#button-draft-publish').on('click', function(event){
+            event.preventDefault();
+            if (!confirm(/*[[#{button.draft.publish.description}]]*/ "")) return false;
+
+            var $this = $(this);
+            $this.prop('disabled', true);
+            setTimeout(function (){
+                $this.prop('disabled', false);
+            }, 3000);
+
+            $('#isPublish').val('true');
+            $('#issue-form').submit();
+        });
+
+        $('#draft-save-btn').on('click', function(){
+            var $this = $(this);
+            $this.prop('disabled', true);
+            setTimeout(function (){
+                $this.prop('disabled', false);
+            }, 3000);
+
+            $('#isDraft').val('true');
+            $('#issue-form').submit();
+        });
+    });
+</script>
+</th:block>
+</html>

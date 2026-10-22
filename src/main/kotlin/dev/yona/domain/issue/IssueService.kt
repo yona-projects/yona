@@ -39,6 +39,30 @@ data class NewIssue(
 )
 
 /**
+ * 이슈를 고칠 때 폼에서 받는 값이다. 폼의 값을 모두 반영하므로 비어 있는 마감일, 담당자, 마일스톤, 라벨은 지운다는 뜻이다.
+ *
+ * @property state 상태. `null`이면 현재 상태를 유지한다
+ * @property draft 초안으로 저장하는지
+ * @property publish 초안을 게시하는지
+ * @property notifyMail 작성자가 고칠 때도 변경 이벤트를 남기고 알릴지 (폼의 "알림 메일" 체크)
+ * @property changeParent `true`이면 [parentIssueId]로 부모를 바꾼다(폼이 하위 이슈 선택을 보냈을 때). 부모 번호가 없으면 부모를 지운다
+ */
+data class IssueEdit(
+    val title: String,
+    val body: String,
+    val dueDate: Date?,
+    val state: State?,
+    val draft: Boolean,
+    val publish: Boolean,
+    val notifyMail: Boolean,
+    val parentIssueId: Long?,
+    val changeParent: Boolean,
+    val assigneeLoginId: String?,
+    val milestoneId: Long?,
+    val labelIds: Set<Long>
+)
+
+/**
  * 이슈의 생성과 변경을 담당한다. v1.6 `IssueApp`의 이슈 처리와 `AbstractPosting.save`, `Issue`
  * (`app/controllers/IssueApp.java`, `app/models/AbstractPosting.java`)에 해당한다.
  */
@@ -55,7 +79,9 @@ class IssueService(
     private val publisher: ApplicationEventPublisher,
     private val entityManager: EntityManager,
     private val events: IssueEventService,
-    private val attachments: AttachmentService
+    private val attachments: AttachmentService,
+    private val labelService: IssueLabelService,
+    private val projectUsers: dev.yona.domain.project.ProjectUserRepository
 ) {
 
     /**
@@ -188,4 +214,135 @@ class IssueService(
         entityManager.createNativeQuery("delete from notification_mail where notification_event_id in (:ids)").setParameter("ids", ids).executeUpdate()
         entityManager.createQuery("delete from NotificationEvent e where e.id in :ids").setParameter("ids", ids).executeUpdate()
     }
+
+    /**
+     * 이슈를 고친다 (v1.6 `IssueApp.editIssue`, `AbstractPostingApp.editPosting`). 제목, 본문, 마감일, 상태, 담당자, 마일스톤, 라벨, 부모를
+     * 폼의 값으로 바꾸고 수정한 사람과 시각을 남긴다. 본문이 바뀌면 변경 이력을 앞에 쌓고, 제목 머리말 개수와 멘션을 맞춘다.
+     *
+     * - [target]이 이슈가 있는 프로젝트와 다르면 그 프로젝트로 옮긴다(새 번호, 하위 이슈도 함께, 마일스톤은 지움, 라벨은 [actor]가 대상
+     *   프로젝트의 구성원이면 옮기고 아니면 지움).
+     * - 초안 게시는 새 번호와 지금 시각을 받고 이력을 비우며 [IssueCreatedActivity]를 발행한다.
+     * - 초안이 아닐 때 [IssueEdit.notifyMail]이 켜져 있거나 [actor]가 작성자가 아니면 담당자, 상태, 본문 변경 이벤트를 남기고
+     *   [IssueChangedActivity]를 발행한다. 다른 프로젝트로 옮기면 이동 이벤트와 [IssueCreatedActivity]를 남긴다.
+     *
+     * @return 수정한 이슈(옮겼으면 대상 프로젝트의 이슈)
+     */
+    @Transactional
+    fun update(issue: Issue, actor: User, edit: IssueEdit, target: Project? = null): Issue {
+        val previousProject = requireNotNull(issue.project)
+        val moved = target != null && target.id != previousProject.id
+        val oldTitle = issue.title
+        val oldBody = issue.body.orEmpty()
+        val oldState = issue.state
+        val oldAssignee = issue.assignee?.user
+        val oldHistory = issue.history
+
+        if (moved) {
+            moveToProject(issue, requireNotNull(target), actor)
+        } else if (edit.changeParent) {
+            issue.parent = edit.parentIssueId?.let { issues.findById(it).orElse(null) }
+        }
+        if (edit.publish) {
+            val number = nextIssueNumber(requireNotNull(issue.project))
+            issue.createdDate = Date()
+            issue.number = number
+        }
+
+        val project = requireNotNull(issue.project)
+        issue.title = edit.title
+        issue.body = edit.body
+        issue.dueDate = MilestoneService.lastSecondOfDay(edit.dueDate)
+        issue.assignee = findOrCreateAssignee(project, edit.assigneeLoginId)
+        issue.milestone = if (moved) null else edit.milestoneId?.let { milestones.findById(it).orElse(null) }
+        if (!moved) issue.labels = projectLabels(project, edit.labelIds)
+        issue.isDraft = edit.draft
+        issue.state = when {
+            edit.draft -> State.DRAFT
+            edit.state != null -> edit.state
+            oldState == State.DRAFT -> State.OPEN
+            else -> oldState
+        }
+        issue.updatedDate = Date()
+        issue.updatedByAuthorId = actor.id
+        issue.history = when {
+            edit.publish -> ""
+            oldBody != edit.body -> IssueHistory.entry(oldBody, edit.body, actor, requireNotNull(issue.updatedDate)) + oldHistory.orEmpty()
+            else -> oldHistory
+        }
+        if (moved && previousProject.isPrivate() && previousProject.owner.equals(actor.loginId, ignoreCase = true)) issue.history = ""
+        issues.save(issue)
+
+        titleHeads.delete(previousProject, oldTitle)
+        titleHeads.save(project, issue.title)
+        mentions.update(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), issue.body)
+
+        recordChanges(issue, actor, edit, moved, previousProject, oldState, oldAssignee, oldBody)
+        return issue
+    }
+
+    /** 이슈 하나가 같은 분류에서 라벨을 둘 이상 갖지 않는지 확인한다. 어긋나면 `true`이다 (v1.6 `Issue.checkLabels`). */
+    fun violatesExclusiveCategory(labelIds: Set<Long>): Boolean =
+        labels.findAllById(labelIds).filter { it.category?.isExclusive == true }.groupBy { it.category?.id }.any { it.value.size > 1 }
+
+    private fun recordChanges(issue: Issue, actor: User, edit: IssueEdit, moved: Boolean, previous: Project, oldState: State?, oldAssignee: User?, oldBody: String) {
+        if (edit.publish) {
+            publisher.publishEvent(IssueCreatedActivity(issue, actor))
+            return
+        }
+        if (edit.draft) return
+        if (moved) {
+            val ownPrivate = previous.isPrivate() && previous.owner.equals(actor.loginId, ignoreCase = true)
+            if (!ownPrivate) {
+                val project = requireNotNull(issue.project)
+                events.record(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor.loginId)
+                publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor))
+                publisher.publishEvent(IssueCreatedActivity(issue, actor))
+            }
+        }
+        if (!(edit.notifyMail || issue.authorLoginId != actor.loginId)) return
+        val newAssignee = issue.assignee?.user
+        if (oldAssignee?.id != newAssignee?.id) {
+            events.record(issue, EventType.ISSUE_ASSIGNEE_CHANGED, oldAssignee?.loginId, newAssignee?.loginId, actor.loginId)
+            publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_ASSIGNEE_CHANGED, oldAssignee?.loginId, newAssignee?.loginId, actor))
+        }
+        if (issue.state != oldState) {
+            events.record(issue, EventType.ISSUE_STATE_CHANGED, oldState?.state, issue.state?.state, actor.loginId)
+            publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_STATE_CHANGED, oldState?.state, issue.state?.state, actor))
+        }
+        if (oldBody != issue.body.orEmpty()) {
+            events.record(issue, EventType.ISSUE_BODY_CHANGED, oldBody, issue.body, actor.loginId)
+            publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_BODY_CHANGED, oldBody, issue.body, actor))
+        }
+    }
+
+    /** 이슈와 그 하위 이슈를 [target] 프로젝트로 옮긴다 (v1.6 `IssueApp.moveIssueToOtherProject`). */
+    private fun moveToProject(issue: Issue, target: Project, actor: User) {
+        val subtasks = entityManager.createQuery("select i from Issue i where i.parent.id = :id", Issue::class.java).setParameter("id", issue.id).resultList
+        (listOf(issue) + subtasks).forEach { moved ->
+            // 번호를 먼저 받아야 한다. 번호를 올리는 중에 일어나는 flush가 (대상 프로젝트, 옛 번호)를 쓰면 번호가 겹친다.
+            val number = nextIssueNumber(target)
+            moved.project = target
+            moved.number = number
+            moved.createdDate = Date()
+            moved.updatedDate = moved.createdDate
+            moved.milestone = null
+            entityManager.createQuery("update IssueComment c set c.projectId = :project where c.issue.id = :id")
+                .setParameter("project", target.id).setParameter("id", moved.id).executeUpdate()
+            if (moved.labels.isNotEmpty() && projectUsers.existsByUserIdAndProjectId(requireNotNull(actor.id), requireNotNull(target.id))) {
+                moved.labels = transferLabels(moved, target)
+            } else {
+                moved.labels = mutableSetOf()
+            }
+            issues.save(moved)
+        }
+    }
+
+    /** 라벨을 [target] 프로젝트로 옮긴다. 같은 분류, 이름의 라벨이 있으면 그것을 쓰고 없으면 만든다. */
+    private fun transferLabels(issue: Issue, target: Project): MutableSet<IssueLabel> =
+        issue.labels.map { source ->
+            val categoryName = requireNotNull(source.category?.name)
+            val category = labelService.findCategory(target, categoryName)
+                ?: labelService.createCategory(target, categoryName, source.category?.isExclusive == true)!!
+            labelService.findLabel(target, category, requireNotNull(source.name)) ?: labels.save(IssueLabel(project = target, category = category, name = source.name, color = source.color))
+        }.toMutableSet()
 }
