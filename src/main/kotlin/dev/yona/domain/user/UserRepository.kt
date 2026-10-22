@@ -1,6 +1,7 @@
 package dev.yona.domain.user
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 
 /**
  * 사용자 저장소이다. 조회 규칙은 v1.6 `User.findByLoginKey`와 같다.
@@ -12,6 +13,14 @@ interface UserRepository : JpaRepository<User, Long> {
 
     /** 대표 이메일(`n4user.email`)로 정확히 일치하는 사용자를 조회한다. */
     fun findByEmail(email: String): User?
+
+    /** 사용자가 프로젝트에 가입을 신청한 상태인지 확인한다 (v1.6 `User.enrolled(project)`). */
+    @Query("select count(u) > 0 from User u join u.enrolledProjects p where u.id = :userId and p.id = :projectId")
+    fun hasEnrolled(userId: Long, projectId: Long): Boolean
+
+    /** 프로젝트에 가입을 신청한 사용자 수이다 (v1.6 `project.enrolledUsers.size`). */
+    @Query("select count(u) from User u join u.enrolledProjects p where p.id = :projectId")
+    fun countEnrolledUsers(projectId: Long): Long
 
     /** 로그인 ID로 정확히 일치하는 사용자를 조회한다 (v1.6 `User.findByLoginId`는 `eq`). */
     fun findByLoginId(loginId: String): User?

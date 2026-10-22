@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<!--/* 프로젝트 레이아웃을 확인하기 위한 테스트 전용 템플릿이다. 운영 코드에는 포함되지 않는다. */-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, ${menuType}, ~{::projectPageBody})}">
+<th:block th:fragment="projectPageBody">
+    <th:block th:replace="~{project/menu :: projectMenu(${projectView}, ${menuType}, '')}"></th:block>
+    <div id="project-test-body">본문</div>
+</th:block>
+</html>

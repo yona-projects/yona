@@ -94,3 +94,9 @@
 
 ## [2026-10-22] lint | v1.6 화면은 캡처하지 않는다
 - 선생님 지시: v1.6 화면은 여러 문제로 캡처할 수 없으니 새 화면만 캡처한다. `AGENTS.md`, [decisions.md](decisions.md) P-04, [roadmap.md](roadmap.md), 메모리를 갱신했다.
+
+## [2026-10-22] ingest | 프로젝트 레이아웃 (2단계 b-2)
+- TDD: `ProjectLayoutTest` 29건과 `ProjectErrorPagesTest` 7건을 먼저 실패(RED, 컴파일)시킨 뒤 `ProjectViewContext`, `RepositoryUrls`, 템플릿 6개로 구현했다. 테스트에 적은 영어 문구 두 곳이 실제 메시지(`This Project`)와 달라 바로잡았다.
+- v1.6 결함 1건(R-11, 단축키 Q)을 재현해 기록했다.
+- 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 213건 통과.
+- 기록: [web/project-layout.md](web/project-layout.md)

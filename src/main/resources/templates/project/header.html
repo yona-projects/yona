@@ -1,0 +1,108 @@
+<!--/*
+  이식 원본: app/views/project/header.scala.html
+  매개변수: view(ProjectViewContext)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="header(view)">
+<div class="project-header-outer" th:style="'background-image:url(' + ${view.backgroundUrl} + ')'">
+    <div class="project-header-inner">
+        <div class="project-header-wrap">
+            <div class="project-header-avatar">
+                <img th:src="${view.logoUrl}" />
+            </div>
+            <div class="project-breadcrumb-wrap" th:classappend="${view.forked} ? 'fork'">
+                <div class="project-breadcrumb">
+                    <span class="project-author hide-in-mobile"><a th:href="@{/{owner}(owner=${view.project.owner})}" th:text="${view.project.owner}"></a></span>
+                    <span class="project-separator hide-in-mobile">/</span>
+                    <span class="project-name"><a th:href="@{/{owner}/{name}(owner=${view.project.owner},name=${view.project.name})}" th:text="${view.project.name}"></a></span>
+                    <span class="user-project-list" th:data-project-id="${view.project.id}">
+                        <i class="star material-icons va-text-top" th:classappend="${view.favorite} ? 'starred'">star</i>
+                    </span>
+                    <span class="project-private" th:if="${view.project.isPrivate()}">
+                        <i class="yobicon-lock"></i>
+                    </span>
+                    <span class="project-protected" th:if="${view.project.isProtected()}" title="Group Project">
+                        G
+                    </span>
+                </div>
+                <div class="project-origin" th:if="${view.forked}">
+                    <span class="project-origin-title" th:text="#{fork.original}"></span>
+                    <a th:href="@{/{owner}/{name}(owner=${view.project.originalProject.owner},name=${view.project.originalProject.name})}" class="project-origin-name">
+                        <th:block th:text="${view.project.originalProject.owner} + ' / ' + ${view.project.originalProject.name}"></th:block>
+                    </a>
+                </div>
+            </div>
+            <div class="project-util-wrap">
+                <ul class="project-util">
+                    <li th:if="${view.guest}">
+                        <th:block th:if="${view.enrolled}">
+                        <button class="ybtn ybtn-small ybtn-info dropdown-toggle" type="button" data-toggle="dropdown">
+                            <i class="yobicon-addfriend"></i>
+                        </button>
+                        <div class="dropdown-menu flat right title">
+                            <div class="pop-title" th:text="#{project.you.want.to.be.a.member(${view.displayName})}"></div>
+                            <div class="pop-content" th:text="#{project.member.enrollment.help}">
+                            </div>
+                            <div class="pop-content btn-wrap">
+                                <a class="ybtn enrollBtn" th:href="@{/{owner}/{name}/cancel/enroll(owner=${view.project.owner},name=${view.project.name})}" id="enrollBtn">
+                                    <i class="yobicon-removefriend"></i>
+                                    <th:block th:text="#{button.cancel.enrollment}"></th:block>
+                                </a>
+                            </div>
+                        </div>
+                        </th:block>
+                        <th:block th:unless="${view.enrolled}">
+                        <button class="ybtn ybtn-small dropdown-toggle" type="button" data-toggle="dropdown">
+                            <i class="yobicon-addfriend"></i><th:block th:text="#{organization.member.enrollment.title}"></th:block>
+                        </button>
+                        <div class="dropdown-menu flat right title">
+                            <div class="pop-title" th:text="#{project.you.may.want.to.be.a.member(${view.displayName})}"></div>
+                            <div class="pop-content" th:text="#{project.member.enrollment.will.help}">
+                            </div>
+                            <div class="pop-content btn-wrap">
+                                <a class="ybtn ybtn-info enrollBtn" th:href="@{/{owner}/{name}/enroll(owner=${view.project.owner},name=${view.project.name})}" id="enrollBtn">
+                                    <i class="yobicon-addfriend"></i>
+                                    <th:block th:text="#{button.new.enrollment}"></th:block>
+                                </a>
+                            </div>
+                        </div>
+                        </th:block>
+                    </li>
+                    <li th:if="${view.canWatch}">
+                        <div class="btn-group dropdown watch-btn">
+                            <a class="btn watcher-count no-border" th:classappend="${view.watching} ? 'watch-on'" data-toggle="tooltip" th:title="#{project.watcher.number}" th:href="@{/{owner}/{name}/watchers(owner=${view.project.owner},name=${view.project.name})}" th:text="${view.watchingCount}"></a>
+                            <div class="dropdown-menu flat right title">
+                                <div class="pop-title" th:text="${view.watching} ? #{project.you.are.watching(${view.project.name})} : #{project.you.are.not.watching(${view.project.name})}"></div>
+                                <div class="pop-content">
+                                    <p th:text="#{notification.help}"></p>
+                                    <ul class="icons-ul">
+                                        <li><i class="yobicon-li yobicon-ok"></i><th:block th:text="#{notification.help.new}"></th:block></li>
+                                        <li><i class="yobicon-li yobicon-ok"></i><th:block th:text="#{notification.help.new.comment}"></th:block></li>
+                                        <li><i class="yobicon-li yobicon-ok"></i><th:block th:text="#{notification.help.update.issue}"></th:block></li>
+                                        <li><i class="yobicon-li yobicon-ok"></i><th:block th:text="#{notification.help.update.pullrequest}"></th:block></li>
+                                    </ul>
+                                </div>
+                                <div class="pop-content btn-wrap">
+                                    <a class="ybtn" th:href="@{/user/editform/notifications} + '#' + ${view.project.id}">
+                                        <i class="yobicon-alert2"></i>
+                                        <th:block th:text="#{userinfo.changeNotifications}"></th:block>
+                                    </a>
+                                    <a th:if="${view.watching}" class="ybtn ybtn-watching watchBtn" th:href="@{/{owner}/{name}/unwatch(owner=${view.project.owner},name=${view.project.name})}">
+                                        <i class="yobicon-eye-off"></i>
+                                        <th:block th:text="#{project.unwatch}"></th:block>
+                                    </a>
+                                    <a th:unless="${view.watching}" class="ybtn ybtn-watching watchBtn" th:href="@{/{owner}/{name}/watch(owner=${view.project.owner},name=${view.project.name})}">
+                                        <i class="yobicon-eye"></i>
+                                        <th:block th:text="#{project.watch}"></th:block>
+                                    </a>
+                                </div>
+                            </div>
+                            <button class="btn nofocus no-border down-arrow" type="button" data-toggle="dropdown" th:text="${view.watching} ? #{project.unwatch} : #{project.watch}">
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>

@@ -1,0 +1,96 @@
+<!--/*
+  이식 원본: app/views/projectMenu.scala.html
+  매개변수: view(ProjectViewContext), menuType(MenuType 이름), menuCSS(사용하지 않음, v1.6 시그니처 유지)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectMenu(view, menuType, menuCSS)">
+<div class="project-menu-outer">
+    <div class="project-menu-inner">
+        <ul class="project-menu-nav project-menu-gruop">
+            <li th:class="${menuType == 'PROJECT_HOME'} ? 'active'">
+                <a th:href="@{/{owner}/{name}(owner=${view.project.owner},name=${view.project.name})}">
+                    <span class="menu-name" th:text="#{title.projectHome}"></span><span class="short-menu">H</span>
+                </a>
+            </li>
+            <th:block th:if="${view.menuSetting.code}">
+                <li th:if="${view.codeAccessible}" class="code-menu" th:classappend="${menuType == 'CODE'} ? 'active'">
+                    <a th:href="@{/{owner}/{name}/code(owner=${view.project.owner},name=${view.project.name})}">
+                        <span class="menu-name" th:text="#{menu.code}"></span><span class="short-menu">C</span>
+                    </a>
+                </li>
+            </th:block>
+            <li th:if="${view.menuSetting.issue}" th:class="${menuType == 'ISSUE'} ? 'active'">
+                <a th:href="@{/{owner}/{name}/issues(owner=${view.project.owner},name=${view.project.name})}">
+                    <span class="menu-name" th:text="#{menu.issue}"></span><span class="short-menu">I</span> <span th:if="${view.openIssueCount > 0}" class="project-menu-count" th:text="${view.openIssueCount}"></span>
+                </a>
+            </li>
+            <th:block th:if="${view.menuSetting.pullRequest and view.git}">
+                <li th:if="${view.codeAccessible}" th:class="${menuType == 'PULL_REQUEST'} ? 'active'">
+                    <a th:href="@{${view.pullRequestPath}}">
+                        <span class="menu-name" th:text="#{menu.pullRequest}"></span><span class="short-menu">P</span> <span th:if="${view.openPullRequestCount > 0}" class="project-menu-count" th:text="${view.openPullRequestCount}"></span>
+                    </a>
+                </li>
+            </th:block>
+            <th:block th:if="${view.menuSetting.review}">
+                <li th:if="${view.codeAccessible}" th:class="${menuType == 'PROJECT_REVIEW'} ? 'active'">
+                    <a th:href="@{/{owner}/{name}/reviews(owner=${view.project.owner},name=${view.project.name})}">
+                        <span class="menu-name" th:text="#{menu.review}"></span><span class="short-menu">
+                        R</span> <span th:if="${view.openReviewCount > 0}" class="project-menu-count" th:text="${view.openReviewCount}"></span>
+                    </a>
+                </li>
+            </th:block>
+            <li th:if="${view.menuSetting.milestone}" th:class="${menuType == 'MILESTONE'} ? 'active'">
+                <a th:href="@{/{owner}/{name}/milestones(owner=${view.project.owner},name=${view.project.name})}">
+                    <span class="menu-name" th:text="#{milestone}"></span><span class="short-menu">M</span>
+                </a>
+            </li>
+            <li th:if="${view.menuSetting.board}" th:class="${menuType == 'BOARD'} ? 'active'">
+                <a th:href="@{/{owner}/{name}/posts(owner=${view.project.owner},name=${view.project.name})}">
+                    <span class="menu-name" th:text="#{menu.board}"></span><span class="short-menu">B</span>
+                    <span th:if="${view.postingCount > 0}" class="project-menu-count" th:text="${view.postingCount}"></span>
+                </a>
+            </li>
+        </ul>
+        <div class="project-setting" th:if="${view.canUpdate}">
+            <ul class="project-menu-nav">
+                <li th:class="${menuType == 'PROJECT_SETTING'} ? 'active'">
+                    <a th:href="@{/{owner}/{name}/settingform(owner=${view.project.owner},name=${view.project.name})}">
+                        <i class="yobicon-cog"></i>
+                        <span class="blind"><span class="menu-name" th:text="#{menu.admin}"></span></span>
+                        <span th:if="${view.enrolledUserCount > 0}" class="project-menu-count" th:text="${view.enrolledUserCount}"></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    var htKeyMap = {
+        "H": [[@{/{owner}/{name}(owner=${view.project.owner},name=${view.project.name})}]]
+        /*[# th:if="${view.menuSetting.board}"]*/
+        ,"B": [[@{/{owner}/{name}/posts(owner=${view.project.owner},name=${view.project.name})}]]
+        /*[/]*/
+        /*[# th:if="${view.menuSetting.code}"]*/
+        ,"C": [[@{/{owner}/{name}/code(owner=${view.project.owner},name=${view.project.name})}]]
+        /*[/]*/
+        /*[# th:if="${view.menuSetting.issue}"]*/
+        ,"I": [[@{/{owner}/{name}/issues(owner=${view.project.owner},name=${view.project.name},state='open')}]]
+        /*[/]*/
+        /*[# th:if="${view.menuSetting.milestone}"]*/
+        ,"M": [[@{/{owner}/{name}/milestones(owner=${view.project.owner},name=${view.project.name})}]]
+        /*[/]*/
+        /*[# th:if="${view.menuSetting.pullRequest and view.git}"]*/
+        ,"P": [[@{${view.pullRequestPath}}]]
+        /*[/]*/
+        /*[# th:if="${view.settingShortcutEnabled}"]*/
+        ,"Q": [[@{/{owner}/{name}/settingform(owner=${view.project.owner},name=${view.project.name})}]]
+        /*[/]*/
+    };
+
+    $yobi.loadModule("project.Global", {
+        "htKeyMap": htKeyMap,
+        "sRepoURL": [[${view.repositoryUrl}]]
+    });
+});
+</script>
+</th:block>

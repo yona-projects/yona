@@ -36,7 +36,7 @@ updated: 2026-10-22
 
 ## 아직 옮기지 않은 것
 
-- 프로젝트 화면 안에서 보여 주는 변형(`ErrorViews.Forbidden.render(키, project)`, `NotFound`, `BadRequest`의 프로젝트/조직 버전과 `forbidden.scala.html`의 로그인 유도 버튼)은 프로젝트 레이아웃(`projectLayout`, `projectMenu`)을 옮길 때 함께 옮긴다.
+- 프로젝트 화면 안의 변형은 [project-layout.md](project-layout.md)에 옮겼다. 조직 화면 안의 변형은 조직 화면을 옮길 때 추가한다.
 - 익명 사용자에게 로그인 화면을 보여 주는 `Forbidden.render(키, returnUrl)` 변형과 413(`requestTextEntityTooLarge`)도 사용하는 화면을 옮길 때 추가한다.
 
 ## 검증

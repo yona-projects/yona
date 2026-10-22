@@ -1,0 +1,23 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+
+  이식 원본: app/views/projectLayout.scala.html
+  사용법: <html th:replace="~{layout/project-layout :: projectLayout(제목키, projectView, 메뉴종류, 본문프래그먼트)}">
+  제목이 비어 있으면 "프로젝트이름 - 소유자", 있으면 "번역한 제목 - 소유자/프로젝트이름"이 문서 제목이 된다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectLayout(title, view, menu, content)"
+          th:with="titleText=${title == null or #strings.isEmpty(#strings.trim(title))
+              ? view.project.name + ' - ' + view.project.owner
+              : (#messages.msgOrNull(title) ?: title) + ' - ' + view.project.owner + '/' + view.project.name}">
+    <th:block th:replace="~{layout/layout :: layout(${titleText}, 'prj', ~{layout/project-layout :: projectBody(${view}, ${menu}, ${content})})}"></th:block>
+</th:block>
+
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectBody(view, menu, content)">
+    <th:block th:replace="~{common/navbar :: navbar(${menu}, ${view.project}, null)}"></th:block>
+
+    <th:block th:replace="~{project/header :: header(${view})}"></th:block>
+
+    <th:block th:replace="${content}"></th:block>
+
+    <th:block th:replace="~{common/footer :: footer}"></th:block>
+</th:block>

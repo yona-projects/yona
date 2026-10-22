@@ -46,7 +46,7 @@
                                 <a href="#" data-toggle="search-scope" th:data-action="@{'/' + ${project.owner} + '/' + ${project.name} + '/search'}" th:text="#{search.scope.project}">
                                 </a>
                             </li>
-                            <li th:if="${project.hasGroup}">
+                            <li th:if="${project.hasGroup()}">
                                 <a href="#" data-toggle="search-scope" th:data-action="@{'/organizations/' + ${project.owner} + '/search'}" th:text="#{search.scope.group}">
                                 </a>
                             </li>

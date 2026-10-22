@@ -22,6 +22,9 @@ interface ProjectUserRepository : JpaRepository<ProjectUser, Long> {
 
     /** 사용자가 프로젝트에서 지정한 역할인지 확인한다 (v1.6 `ProjectUser.isManager`는 역할 MANAGER). */
     fun existsByUserIdAndProjectIdAndRoleId(userId: Long, projectId: Long, roleId: Long): Boolean
+
+    /** 사용자가 프로젝트에서 가진 역할(매니저 또는 멤버) 행을 조회한다 (v1.6 `Role.findRoleByIds`). */
+    fun findFirstByUserIdAndProjectId(userId: Long, projectId: Long): ProjectUser?
 }
 
 /** 조직 저장소이다. */
@@ -33,3 +36,10 @@ interface OrganizationRepository : JpaRepository<Organization, Long> {
 
 /** 프로젝트 이전 요청 저장소이다. */
 interface ProjectTransferRepository : JpaRepository<ProjectTransfer, Long>
+
+/** 프로젝트 메뉴 설정 저장소이다. */
+interface ProjectMenuSettingRepository : JpaRepository<ProjectMenuSetting, Long> {
+
+    /** 프로젝트의 메뉴 설정을 조회한다. 프로젝트마다 하나가 있다. */
+    fun findFirstByProjectId(projectId: Long): ProjectMenuSetting?
+}

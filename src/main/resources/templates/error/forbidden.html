@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<!--/*
+  이식 원본: app/views/error/forbidden.scala.html
+  모델: messageKey(메시지 키), projectView(ProjectViewContext)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(#{${messageKey}}, ${projectView}, 'NONE', ~{::forbiddenPage})}">
+<th:block th:fragment="forbiddenPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_HOME', '')}"></th:block>
+<div class="page-wrap-outer">
+  <div class="project-page-wrap">
+    <div class="error-wrap">
+      <i class="ico ico-err2"></i>
+      <p th:text="#{${messageKey}}"></p>
+      <a th:if="${currentUser.anonymous}" th:href="@{/users/loginform(redirectUrl=${requestUri})}" class="ybtn ybtn-primary" data-login="required" th:text="#{title.login}"></a>
+    </div>
+  </div>
+</div>
+</th:block>
+</html>

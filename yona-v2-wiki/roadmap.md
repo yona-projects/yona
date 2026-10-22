@@ -20,8 +20,8 @@ updated: 2026-10-22
 | 1 | 홈 화면(소개, 환영 표, 기본 로그인 페이지) | 완료 | [web/home-page.md](web/home-page.md) |
 | 2a | `AccessControl` 권한 규칙 | 완료 | [subsystems/access-control.md](subsystems/access-control.md) |
 | 2b-1 | `ProjectService`(조회, 소속, 메뉴 개수) | 완료 | [domain/project-service.md](domain/project-service.md) |
-| 2b-2 | 프로젝트 화면 기반: `projectLayout`, `projectMenu`, 프로젝트 헤더, 프로젝트용 오류 화면 | 다음 | |
-| 2b-3 | 컨트롤러 검사 애너테이션: `@IsAllowed`, `@IsCreatable`, `@GuestProhibit`, `@IsOnlyGitAvailable`, 프로젝트 존재 검사, 이전 이름 리다이렉트 | 대기 | |
+| 2b-2 | 프로젝트 화면 기반: `projectLayout`, `projectMenu`, 프로젝트 헤더, 프로젝트용 오류 화면 | 완료 | [web/project-layout.md](web/project-layout.md) |
+| 2b-3 | 컨트롤러 검사 애너테이션: `@IsAllowed`, `@IsCreatable`, `@GuestProhibit`, `@IsOnlyGitAvailable`, 프로젝트 존재 검사, 이전 이름 리다이렉트 | 다음 | |
 | 2b-4 | Git 저장소 서비스(JGit): 저장소 생성/삭제, 경로 설정 | 대기 | |
 | 2b-5 | 프로젝트 목록(`/projects`), 생성(`/projectform`, `POST /projects`), 홈(`/:user/:project`), 설정, 멤버, 삭제 | 대기 | |
 | 2c | 조직(Organization) 화면과 서비스 | 대기 | |
@@ -41,7 +41,7 @@ updated: 2026-10-22
 |---|---|
 | 홈의 알림 항목 표시와 More 버튼, `GET /notification` | 4 |
 | `GET /user/sidebar`와 사이드바 목록, `GET /user/usermenuTabContentList` | 2b-5 이후 (프로젝트 목록 필요) |
-| `ErrorViews`의 프로젝트/조직 변형 | 2b-2 |
+| `ErrorViews`의 조직 변형 | 2c |
 | 소셜 로그인 버튼 영역, 사이트 업데이트 알림 | 7, 6 |
 | 최초 기동 시 관리자 비밀번호 설정 화면(`welcome/secret`) | 6 |
 | `AccessControl`의 엔티티별 `asResource()` | 각 엔티티의 화면 단계 |

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!--/*
+  이식 원본: app/views/error/badrequest.scala.html
+  모델: messageKey(메시지 키), projectView, menuType(활성으로 보여 줄 프로젝트 메뉴)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(#{${messageKey}}, ${projectView}, ${menuType}, ~{::badRequestPage})}">
+<th:block th:fragment="badRequestPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, ${menuType}, '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+    	<div class="error-wrap">
+    		<i class="ico ico-err2"></i>
+    		<p th:text="#{${messageKey}}"></p>
+    	</div>
+    </div>
+</div>
+</th:block>
+</html>

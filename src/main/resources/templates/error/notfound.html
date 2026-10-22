@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--/*
+  이식 원본: app/views/error/notfound.scala.html
+  모델: messageKey(메시지 키, 제목에도 쓴다), projectView, targetType(찾지 못한 리소스 종류 또는 null)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${messageKey}, ${projectView}, 'NONE', ~{::notFoundPage})}">
+<th:block th:fragment="notFoundPage"
+          th:with="menuType=${targetType == 'issue_post' ? 'ISSUE' : (targetType == 'board_post' ? 'BOARD' : (targetType == 'milestone' ? 'MILESTONE' : (targetType == 'code' ? 'CODE' : 'PROJECT_HOME')))},
+                   backUrl=${targetType == 'issue_post' ? '/' + projectView.project.owner + '/' + projectView.project.name + '/issues?state=all'
+                       : (targetType == 'board_post' ? '/' + projectView.project.owner + '/' + projectView.project.name + '/posts'
+                       : (targetType == 'milestone' ? '/' + projectView.project.owner + '/' + projectView.project.name + '/milestones'
+                       : (targetType == 'code' ? '/' + projectView.project.owner + '/' + projectView.project.name + '/settingform'
+                       : 'javascript:history.back();')))}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, ${menuType}, '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="error-wrap">
+            <i class="ico ico-err2"></i>
+            <p th:text="${#strings.isEmpty(targetType)} ? #{error.notfound} : #{'error.notfound.' + ${targetType}(${messageKey})}"></p>
+            <a th:href="${backUrl}" class="ybtn ybtn-primary" th:text="#{button.list}"></a>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>
