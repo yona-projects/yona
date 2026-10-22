@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class MentionListService(
     private val entityManager: EntityManager,
     private val users: UserRepository,
+    private val userLookup: dev.yona.domain.user.UserLookup,
     private val issues: IssueRepository,
     private val postings: PostingRepository
 ) {
@@ -73,7 +74,7 @@ class MentionListService(
         fun add(user: User?) { if (user != null && ordered.none { it.id == user.id }) ordered += user }
         if (query.isEmpty()) {
             commitAuthorEmail?.let { email ->
-                add(users.findByEmail(email))
+                add(userLookup.findByEmail(email))
                 if (email.contains("@")) add(users.findByLoginId(email.substring(0, email.lastIndexOf("@"))))
             }
             val comments = entityManager.createQuery(

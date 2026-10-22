@@ -65,7 +65,7 @@ updated: 2026-10-22
 | 5c-0b | 공용 diff 화면 조각(줄 그리기, 스레드 조각), 커밋 보기와 비교 화면(읽기), 커밋 구독, 커밋 diff 멘션 후보 | 완료 | [web/commit-view.md](web/commit-view.md). 댓글 등록과 스레드 상태 변경은 5d |
 | 5c-1 | 포크(`newFork`, `fork`, `clone`) | 완료 | [web/fork.md](web/fork.md) |
 | 5c-2 | 풀 리퀘스트 목록(열림, 닫힘, 보냄), 검색, 최근 푸시 브랜치 | 완료 | [web/pull-request-list.md](web/pull-request-list.md) |
-| 5c-3 | 풀 리퀘스트 만들기(`newPullRequestForm`, `mergeResult`, `newPullRequest`), 병합 시도, 커밋 동기화 | 대기 | |
+| 5c-3 | 풀 리퀘스트 만들기(`newPullRequestForm`, `mergeResult`, `newPullRequest`), 병합 시도, 커밋 동기화, 알림 | 완료 | [web/pull-request-create.md](web/pull-request-create.md), [subsystems/pull-request-merge.md](subsystems/pull-request-merge.md) |
 | 5c-4 | 풀 리퀘스트 보기, 상태 조각, 변경 내용 | 대기 | |
 | 5c-5 | 승인(병합), 닫기와 열기, 수정, 브랜치 삭제와 복원, 리뷰 표시 | 대기 | |
 | 5c-6 | 풀 리퀘스트 댓글 | 대기 | |

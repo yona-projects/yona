@@ -38,6 +38,7 @@ import java.util.TreeMap
 class CodeBrowserService(
     private val repositories: RepositoryService,
     private val users: UserRepository,
+    private val userLookup: dev.yona.domain.user.UserLookup,
     private val avatars: AvatarService,
     private val messages: MessageSource,
     private val properties: YonaProperties,
@@ -129,7 +130,7 @@ class CodeBrowserService(
     /** 폴더 항목에 마지막으로 바꾼 커밋의 정보를 채운다. */
     private fun describe(entry: MutableMap<String, Any?>, commit: RevCommit, project: Project) {
         val email = commit.authorIdent.emailAddress
-        val user = users.findByEmail(email)
+        val user = userLookup.findByEmail(email)
         entry["msg"] = commit.shortMessage
         entry["avatar"] = user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: avatars.gravatarUrl("", AVATAR_SIZE)
         entry["userName"] = user?.name ?: messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale())
@@ -145,7 +146,7 @@ class CodeBrowserService(
 
     private fun file(repository: Repository, walk: TreeWalk, head: RevCommit): Map<String, Any?> {
         val commit = Git(repository).use { git -> git.log().add(head).addPath(walk.pathString).call().iterator().next() }
-        val user = users.findByEmail(commit.authorIdent.emailAddress)
+        val user = userLookup.findByEmail(commit.authorIdent.emailAddress)
         val time = commit.commitTime * 1000L
         val result = linkedMapOf<String, Any?>("type" to "file", "msg" to commit.shortMessage)
         result["author"] = commit.authorIdent.name

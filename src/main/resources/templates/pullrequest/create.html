@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/git/create.scala.html
+  모델: title, projectView, action, mergeResultUrl, mentionUrl, fromProjects, toProjects(ProjectOption), fromBranches, toBranches(BranchChoice), state, body
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PULL_REQUEST', ~{::createPage})}">
+<th:block th:fragment="createPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PULL_REQUEST', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="content-wrap frm-wrap">
+            <form th:action="${action}" method="post" enctype="multipart/form-data" class="nm">
+                <div class="pull-request-wrap">
+                    <!-- from -->
+                    <div class="pull-left">
+                        <label for="fromProjectId" class="field-title" th:text="#{pullRequest.from}"></label>
+                        <select id="fromProjectId" name="fromProjectId" data-toggle="select2" class="mr5">
+                            <option></option>
+                            <option th:each="o : ${fromProjects}" th:value="${o.id}" th:selected="${o.selected}" th:text="${o.label}"></option>
+                        </select>
+                        <select id="fromBranch" name="fromBranch" data-toggle="select2" data-format="branch"
+                                data-dropdown-css-class="branches" th:attr="data-placeholder=#{pullRequest.select.branch}">
+                            <option></option>
+                            <option th:each="b : ${fromBranches}" th:value="${b.name}" th:selected="${b.selected}" th:text="${b.name}"></option>
+                        </select>
+                    </div>
+                    <!-- // -->
+
+                    <div class="arrow">
+                        <i class="yobicon-right-2"></i>
+                    </div>
+
+                    <!-- to -->
+                    <div class="pull-right">
+                        <label for="toProjectId" class="field-title" th:text="#{pullRequest.to}"></label>
+                        <select id="toProjectId" name="toProjectId" data-toggle="select2" class="mr5">
+                            <option></option>
+                            <option th:each="o : ${toProjects}" th:value="${o.id}" th:selected="${o.selected}" th:text="${o.label}"></option>
+                        </select>
+                        <select id="toBranch" name="toBranch" data-toggle="select2" data-format="branch"
+                                data-dropdown-css-class="branches" th:attr="data-placeholder=#{pullRequest.select.branch}">
+                            <option></option>
+                            <option th:each="b : ${toBranches}" th:value="${b.name}" th:selected="${b.selected}" th:text="${b.name}"></option>
+                        </select>
+                    </div>
+                    <!-- // -->
+                </div>
+
+                <span id="pullRequestState" th:attr="data-value=${state}"></span>
+                <div id="status" class="alert mt20 mb20" th:text="#{pullRequest.is.merging}"></div>
+
+                <div>
+                    <input type="text" id="title" name="title" maxlength="255" class="text" th:placeholder="#{title}">
+                    <div style="position: relative;">
+                        <th:block th:replace="~{common/editor :: editor('body', ${body}, '', 'content-body', false)}"></th:block>
+                    </div>
+                    <th:block th:replace="~{common/file-uploader :: fileUploader('PULL_REQUEST', null)}"></th:block>
+                    <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+
+                    <div class="actions">
+                        <button type="submit" class="ybtn ybtn-success" th:text="#{pullRequest.send}"></button>
+                        <a href="javascript:history.back();" class="ybtn" th:text="#{button.cancel}"></a>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs mt20">
+                    <li class="active">
+                        <a href="#__commits" data-toggle="tab">
+                            <span class="vmiddle-inline" th:text="#{pullRequest.menu.commit}"></span>
+                            <span id="numOfCommits" class="num-badge vmiddle-inline"></span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div id="__commits" class="code-browse-wrap tab-pane active">
+                    <!--/* 이 영역은 페이지를 불러온 뒤 yobi.git.Write.js가 병합 결과로 비동기로 바꾼다. */-->
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+$(function(){
+    $yobi.loadModule("git.Write", {
+        "mergeResultURL": /*[[${mergeResultUrl}]]*/ "",
+        "fromProject" : $("#fromProjectId"),
+        "toProject"   : $("#toProjectId"),
+        "fromBranch"  : $("#fromBranch"),
+        "toBranch"    : $("#toBranch"),
+        "state"       : $("#pullRequestState").data("value")
+    });
+
+    // yobi.Mention
+    yobi.Mention({
+        "target": "textarea[id^=editor-]",
+        "url"   : /*[[${mentionUrl}]]*/ ""
+    });
+});
+</script>
+</th:block>
+</html>

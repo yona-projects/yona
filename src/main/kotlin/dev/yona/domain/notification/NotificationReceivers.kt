@@ -36,13 +36,17 @@ class NotificationReceivers(
     private val unwatches: UnwatchRepository,
     private val projectNotifications: UserProjectNotificationRepository,
     private val users: UserRepository,
+    private val userLookup: dev.yona.domain.user.UserLookup,
     private val issueSharers: IssueSharerRepository,
     private val issueComments: IssueCommentRepository,
     private val postingComments: PostingCommentRepository,
     private val lookup: ResourceLookup,
     private val accessControl: AccessControl,
     private val mentions: MentionService,
-    private val commentThreads: dev.yona.domain.comment.CommentThreadRepository
+    private val commentThreads: dev.yona.domain.comment.CommentThreadRepository,
+    private val relatedAuthors: dev.yona.repository.RelatedAuthorsService,
+    private val repositories: dev.yona.repository.RepositoryService,
+    private val projectUsers: dev.yona.domain.project.ProjectUserRepository
 ) {
 
     /** 중복 없이 사용자를 모으는 집합이다. 사용자 번호가 같으면 같은 사용자이다. */
@@ -82,7 +86,7 @@ class NotificationReceivers(
     fun commitWatchers(project: Project, commitId: String, authorEmail: String?, allowedOnly: Boolean): Set<User> {
         val projectId = requireNotNull(project.id)
         val base = ArrayList<User>()
-        authorEmail?.let { users.findByEmail(it) }?.let { base += it }
+        authorEmail?.let { userLookup.findByEmail(it) }?.let { base += it }
         (commentThreads.findCodeThreadsNotOnPullRequest(projectId, commitId) + commentThreads.findNonRangedThreadsNotOnPullRequest(projectId, commitId))
             .flatMap { it.reviewComments }.mapNotNull { c -> c.authorId?.let { users.findById(it).orElse(null) } }.forEach { base += it }
         return actualWatchers(ResourceType.COMMIT, "$projectId:$commitId", base, allowedOnly)
@@ -91,6 +95,49 @@ class NotificationReceivers(
     /** 이슈의 실제 구독자이다(작성자 포함). 이슈를 옮기기 전에 구독자를 정할 때도 쓴다 (v1.6 `Issue.getWatchers`). */
     @Transactional(readOnly = true)
     fun issueWatchers(issue: Issue): Set<User> = actualWatchers(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), listOfNotNull(author(issue.authorLoginId)))
+
+    // --- 풀 리퀘스트 ---
+
+    /**
+     * 풀 리퀘스트의 실제 구독자이다. 보낸 사람과 리뷰 댓글을 단 사용자에 프로젝트 구독자와 풀 리퀘스트 구독자를 더하고 구독 해제자를 뺀다
+     * (v1.6 `PullRequest.getWatchers`).
+     */
+    @Transactional(readOnly = true)
+    fun pullRequestWatchers(pullRequest: dev.yona.domain.pullrequest.PullRequest, allowedOnly: Boolean = true): Set<User> {
+        val id = requireNotNull(pullRequest.id)
+        val base = ArrayList<User>()
+        pullRequest.contributor?.let { base += it }
+        commentThreads.findByPullRequestId(id).flatMap { it.reviewComments }.mapNotNull { c -> c.authorId?.let { users.findById(it).orElse(null) } }.forEach { base += it }
+        return actualWatchers(ResourceType.PULL_REQUEST, id.toString(), base, allowedOnly)
+    }
+
+    /** 풀 리퀘스트 변경을 받을 사용자이다. 구독자와 본문에서 멘션된 사용자에서 [sender]를 뺀다 (v1.6 `getReceivers(sender, pullRequest)`). */
+    @Transactional(readOnly = true)
+    fun forPullRequest(pullRequest: dev.yona.domain.pullrequest.PullRequest, sender: User?): Set<User> = Group().also {
+        it.addAll(pullRequestWatchers(pullRequest)); it.addAll(mentions.mentionedUsers(pullRequest.body.orEmpty())); it.remove(sender)
+    }.toSet()
+
+    /**
+     * 새 풀 리퀘스트와 병합을 받을 사용자이다. [forPullRequest]에 병합 대상 코드를 마지막으로 고친 사람들을 더한다. 병합 커밋이 아직 없으면 더하지 않는다.
+     * 바뀐 파일이 너무 많으면 프로젝트 구성원 모두를 더하고, 구하지 못하면 구한 만큼만 쓴다 (v1.6 `getReceiversWithRelatedAuthors`).
+     */
+    @Transactional(readOnly = true)
+    fun forPullRequestWithRelatedAuthors(pullRequest: dev.yona.domain.pullrequest.PullRequest, sender: User?): Set<User> {
+        val group = Group().also { it.addAll(pullRequestWatchers(pullRequest)); it.addAll(mentions.mentionedUsers(pullRequest.body.orEmpty())) }
+        val from = pullRequest.mergedCommitIdFrom
+        val to = pullRequest.mergedCommitIdTo
+        if (from != null && to != null) {
+            try {
+                repositories.openRepository(requireNotNull(pullRequest.toProject)).use { group.addAll(relatedAuthors.find(it, from, to)) }
+            } catch (e: dev.yona.repository.LimitExceededException) {
+                projectUsers.findMembers(requireNotNull(pullRequest.toProject?.id), dev.yona.domain.enumeration.RoleType.SITEMANAGER.id).mapNotNull { it.user }.forEach { group.add(it) }
+            } catch (e: Exception) {
+                org.slf4j.LoggerFactory.getLogger(javaClass).warn("Failed to get authors related to the pullrequest {}", pullRequest.id, e)
+            }
+        }
+        group.remove(sender)
+        return group.toSet()
+    }
 
     // --- 이슈 ---
 

@@ -1,0 +1,42 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/git/partial_merge_result.scala.html
+  모델: commitCount, suggestedTitle, suggestedBody, conflict, rows(MergeCommitRow)
+*/-->
+<div xmlns:th="http://www.thymeleaf.org" id="mergeResult" class="code-browser-wrap"
+     th:attr="data-commits=${commitCount}, data-pullrequest-title=${suggestedTitle ?: ''}, data-pullrequest-body=${suggestedBody ?: ''}, data-conflict=${commitCount > 0 ? conflict : null}">
+    <div th:if="${commitCount == 0}">
+        <h5 th:text="#{pullRequest.diff.noChanges}"></h5>
+    </div>
+    <div th:if="${commitCount > 0}" class="commit-wrap">
+        <table class="code-table commits">
+            <thead class="thead">
+            <tr>
+                <td class="commit-id"><strong>@</strong></td>
+                <td class="messages"><strong th:text="#{code.commitMsg}"></strong></td>
+                <td class="date"><strong th:text="#{code.commitDate}"></strong></td>
+                <td class="author"><strong th:text="#{code.author}"></strong></td>
+            </tr>
+            </thead>
+            <tbody class="tbody">
+            <tr th:each="r : ${rows}">
+                <td class="commit-id"><a th:href="${r.commitUrl}" th:text="${r.shortId}"></a></td>
+                <td class="messages">
+                    <span class="number-of-comments" th:if="${r.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${r.commentCount}"></th:block></span>
+                    <a th:href="${r.commitUrl}" class="commitMsg short" th:utext="${#strings.isEmpty(r.shortMessageHtml)} ? #{code.commitMsg.empty} : ${r.shortMessageHtml}"></a>
+                    <button type="button" class="commitMsg moreBtn" th:if="${r.hasMore}"><span>&hellip;</span></button>
+                    <pre class="commitMsg desc hidden" th:if="${r.hasMore}" th:utext="${r.moreHtml}"></pre>
+                </td>
+                <td class="date" th:title="${r.dateTitle}" th:text="${r.date}"></td>
+                <td th:class="'author ' + ${r.authorEmail}">
+                    <a th:if="${r.authorHref != null}" th:href="${r.authorHref}" class="avatar-wrap"><img th:src="${r.avatarUrl}" th:alt="${r.authorName}" width="32" height="32"/></a>
+                    <div th:if="${r.authorHref == null}" class="avatar-wrap"><img th:src="${r.avatarUrl}" width="32" height="32"/></div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

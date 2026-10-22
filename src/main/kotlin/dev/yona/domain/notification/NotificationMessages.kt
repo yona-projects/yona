@@ -27,7 +27,7 @@ import java.util.Locale
  * (`app/models/NotificationEvent.java:123-273, 535-575`)와 `utils.RouteUtil.getUrl`에 해당한다.
  *
  * 문구는 받는 사람의 언어로 만든다. 이벤트 종류마다 정해진 메시지 키를 쓰며, 새 글이나 댓글처럼 본문 자체가 문구인 것도 있다.
- * 풀 리퀘스트와 코드 리뷰, 커밋 이벤트는 5단계에서 더한다. 아직 모르는 종류는 v1.6처럼 경고를 남기고 종류 설명을 돌려준다.
+ * 코드 리뷰 댓글과 커밋 이벤트는 5단계의 뒷 단위에서 더한다. 아직 모르는 종류는 v1.6처럼 경고를 남기고 종류 설명을 돌려준다.
  */
 @Service
 class NotificationMessages(
@@ -40,6 +40,7 @@ class NotificationMessages(
     private val issueComments: IssueCommentRepository,
     private val postings: PostingRepository,
     private val postingComments: PostingCommentRepository,
+    private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository,
     private val siteUrls: SiteUrls
 ) {
 
@@ -75,6 +76,14 @@ class NotificationMessages(
                 if (!new.isNullOrBlank()) users.findByLoginId(new)?.let { text("notification.issue.sharer.added", UserDisplay.of(it, it.lang)) }
                 else if (!old.isNullOrBlank()) text("notification.issue.sharer.deleted")
                 else null
+            EventType.PULL_REQUEST_STATE_CHANGED ->
+                if (State.OPEN.state == new) text("notification.pullrequest.reopened") else text("notification.pullrequest.$new")
+            EventType.PULL_REQUEST_COMMIT_CHANGED -> new
+            EventType.PULL_REQUEST_MERGED -> text("notification.type.pullrequest.merged.$new") + "\n" + (old ?: "")
+            EventType.PULL_REQUEST_REVIEW_STATE_CHANGED -> {
+                val sender = event.senderId?.let { users.findById(it).orElse(null) }?.loginId
+                if (new == "DONE") text("notification.pullrequest.reviewed", sender) else text("notification.pullrequest.unreviewed", sender)
+            }
             EventType.RESOURCE_DELETED -> new?.let { users.findByLoginId(it) }?.let { text("notification.resource.deleted", UserDisplay.of(it, it.lang)) }
             else -> {
                 log.warn("알 수 없는 알림 이벤트 종류이다: {}. NotificationMessages.message를 확인한다", type)
@@ -129,6 +138,7 @@ class NotificationMessages(
                 c.posting?.let { "/${it.project?.owner}/${it.project?.name}/post/${it.number}#comment-${c.id}" }
             }
             ResourceType.PROJECT -> projects.findById(id).orElse(null)?.let { "/${it.owner}/${it.name}" }
+            ResourceType.PULL_REQUEST -> pullRequests.findById(id).orElse(null)?.let { r -> r.toProject?.let { "/${it.owner}/${it.name}/pullRequest/${r.number}" } }
             ResourceType.USER_AVATAR -> users.findById(id).orElse(null)?.let { "/${it.loginId}" }
             else -> null
         }

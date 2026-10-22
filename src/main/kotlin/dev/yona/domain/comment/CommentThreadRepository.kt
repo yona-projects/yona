@@ -39,4 +39,7 @@ interface CommentThreadRepository : JpaRepository<CommentThread, Long> {
 
     /** 풀 리퀘스트에 달린 스레드 중 [state]인 것의 수이다 (v1.6 `PullRequest.countCommentThreadsByState`). */
     fun countByPullRequestIdAndState(pullRequestId: Long, state: ThreadState): Long
+
+    /** 풀 리퀘스트에 달린 스레드를 모두 조회한다. */
+    fun findByPullRequestId(pullRequestId: Long): List<CommentThread>
 }

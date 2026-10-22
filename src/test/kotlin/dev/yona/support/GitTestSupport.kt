@@ -84,4 +84,41 @@ object GitTestSupport {
             work.deleteRecursively()
         }
     }
+
+    /**
+     * [project] 저장소의 [branch] 위에 [commits]를 이어서 쌓고 밀어 넣는다. 브랜치가 없으면 [baseBranch]에서 갈라져 나온다.
+     * 풀 리퀘스트처럼 이어지는 이력이 필요한 테스트에서 쓴다. 커밋 시각은 [startTime]부터 하루씩 늘어난다.
+     */
+    fun appendCommits(
+        repositories: RepositoryService, project: Project, vararg commits: TestCommit, branch: String = "master", baseBranch: String = "master",
+        startTime: Long = 1_750_000_000_000L
+    ) {
+        val bare = repositories.openRepository(project).use { it.directory }
+        val work: File = Files.createTempDirectory("yona-it-work").toFile()
+        try {
+            Git.cloneRepository().setURI(bare.toURI().toString()).setDirectory(work).setBranch("refs/heads/$baseBranch").call().use { git ->
+                if (branch != baseBranch) {
+                    val exists = git.repository.resolve("refs/remotes/origin/$branch") != null
+                    if (exists) git.checkout().setCreateBranch(true).setName(branch).setStartPoint("origin/$branch").call()
+                    else git.checkout().setCreateBranch(true).setName(branch).call()
+                }
+                var time = startTime
+                for (commit in commits) {
+                    commit.files.forEach { (path, bytes) ->
+                        val file = File(work, path)
+                        file.parentFile.mkdirs()
+                        file.writeBytes(bytes)
+                        git.add().addFilepattern(path).call()
+                    }
+                    commit.deleted.forEach { git.rm().addFilepattern(it).call() }
+                    val ident = PersonIdent(commit.authorName, commit.authorEmail, Date(time), TimeZone.getTimeZone("UTC"))
+                    git.commit().setMessage(commit.message).setAuthor(ident).setCommitter(ident).setAllowEmpty(true).call()
+                    time += 86_400_000L
+                }
+                git.push().setRemote(bare.toURI().toString()).setRefSpecs(RefSpec("refs/heads/$branch:refs/heads/$branch")).call()
+            }
+        } finally {
+            work.deleteRecursively()
+        }
+    }
 }

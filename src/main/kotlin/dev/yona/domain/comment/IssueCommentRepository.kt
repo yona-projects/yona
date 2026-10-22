@@ -16,4 +16,8 @@ interface IssueCommentRepository : JpaRepository<IssueComment, Long> {
 }
 
 /** 커밋 코멘트 저장소이다. */
-interface CommitCommentRepository : JpaRepository<CommitComment, Long>
+interface CommitCommentRepository : JpaRepository<CommitComment, Long> {
+
+    /** 프로젝트의 커밋에 달린 커밋 코멘트 수이다 (v1.6 `CommitComment.count(project, commitId, null)`). */
+    fun countByProjectIdAndCommitId(projectId: Long, commitId: String): Int
+}

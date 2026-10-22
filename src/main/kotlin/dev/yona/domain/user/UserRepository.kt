@@ -30,6 +30,9 @@ interface UserRepository : JpaRepository<User, Long> {
     /** 같은 대표 이메일의 사용자가 있는지 확인한다 (v1.6 `User.isEmailExist`의 첫 조건, `ieq`). */
     fun existsByEmailIgnoreCase(email: String): Boolean
 
+    /** 대표 이메일을 대소문자 구별 없이 비교해 가장 먼저 만든 사용자를 조회한다 (v1.6 `User.findByEmail`의 마지막 대체 조회). */
+    fun findFirstByEmailIgnoreCaseOrderById(email: String): User?
+
     /** 대표 이메일(`n4user.email`)로 정확히 일치하는 사용자를 조회한다. */
     fun findByEmail(email: String): User?
 

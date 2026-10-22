@@ -47,6 +47,7 @@ class CommitHistoryController(
     private val repositories: RepositoryService,
     private val autoLinks: AutoLinkRenderer,
     private val users: UserRepository,
+    private val userLookup: dev.yona.domain.user.UserLookup,
     private val avatars: AvatarService,
     private val views: ProjectViewFactory,
     private val noheadViews: NoheadViews,
@@ -129,7 +130,7 @@ class CommitHistoryController(
             if (path != null) url += "&path=$path#" + path.replace("/", "-").replace(".", "-")
             url
         } else "$base/commit/${UrlPaths.routeSegment(commit.id)}"
-        val user = users.findByEmail(commit.authorEmail)
+        val user = userLookup.findByEmail(commit.authorEmail)
         val first = commit.message.substringBefore('\n')
         val more = commit.message.removePrefix(first + "\n")
         return HistoryRow(

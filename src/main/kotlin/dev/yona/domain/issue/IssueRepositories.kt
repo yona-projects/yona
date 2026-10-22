@@ -19,6 +19,9 @@ interface IssueEventRepository : JpaRepository<IssueEvent, Long> {
     /** 이슈의 이벤트 중 [since] 이후에 생긴 가장 마지막 것을 찾는다 (v1.6 `IssueEvent.add`가 합칠 대상). */
     fun findFirstByIssueIdAndCreatedAfterOrderByIdDesc(issueId: Long, since: java.util.Date): IssueEvent?
 
+    /** 풀 리퀘스트 번호 [newValue]를 가리키는 [eventType] 이벤트 중 [senderLoginId]가 만든 것이다 (v1.6 `PullRequest.deleteIssueEvents`). */
+    fun findByNewValueAndSenderLoginIdAndEventType(newValue: String, senderLoginId: String, eventType: dev.yona.domain.enumeration.EventType): List<IssueEvent>
+
     /** 이슈의 이벤트를 발생 시각 순으로 조회한다 (v1.6 `Issue.getTimeline`). */
     fun findByIssueIdOrderByCreatedAscIdAsc(issueId: Long): List<IssueEvent>
 }

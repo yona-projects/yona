@@ -18,4 +18,9 @@ interface PullRequestRepository : JpaRepository<PullRequest, Long>, JpaSpecifica
 
     /** 보내는 프로젝트의 브랜치에서 나간 풀 리퀘스트 중 [states] 상태인 것이다 (v1.6 `PullRequest.findByFromProjectAndBranch`는 열림과 거절됨). */
     fun findByFromProjectIdAndFromBranchAndStateIn(projectId: Long, branch: String, states: Collection<State>): List<PullRequest>
+
+    /** 같은 두 프로젝트의 같은 두 브랜치 사이에 [state] 상태인 요청이다 (v1.6 `findDuplicatedPullRequest`). */
+    fun findFirstByFromProjectIdAndFromBranchAndToProjectIdAndToBranchAndState(
+        fromProjectId: Long, fromBranch: String, toProjectId: Long, toBranch: String, state: State
+    ): PullRequest?
 }

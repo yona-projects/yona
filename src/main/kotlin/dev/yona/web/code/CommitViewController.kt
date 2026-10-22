@@ -56,6 +56,7 @@ class CommitViewController(
     private val threadViews: ThreadViewAssembler,
     private val autoLinks: AutoLinkRenderer,
     private val users: UserRepository,
+    private val userLookup: dev.yona.domain.user.UserLookup,
     private val avatars: AvatarService,
     private val receivers: NotificationReceivers,
     private val accessControl: AccessControl,
@@ -86,7 +87,7 @@ class CommitViewController(
         val creatable = accessControl.isProjectResourceCreatable(viewer, project, ResourceType.COMMIT_COMMENT)
         val selectedBranch = branch?.ifBlank { null } ?: "HEAD"
         val selectedPath = path.orEmpty()
-        val author = users.findByEmail(commit.authorEmail)
+        val author = userLookup.findByEmail(commit.authorEmail)
         val watching = viewer != null && viewer.id in receivers.commitWatchers(project, commit.id, commit.authorEmail, false).mapNotNull { it.id }
 
         val commitUrl = "$base/commit/${commit.id}"

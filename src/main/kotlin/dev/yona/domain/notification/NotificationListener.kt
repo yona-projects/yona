@@ -16,6 +16,10 @@ import dev.yona.domain.issue.IssueCommentActivity
 import dev.yona.domain.issue.IssueCreatedActivity
 import dev.yona.domain.issue.IssueDeletedActivity
 import dev.yona.domain.issue.IssueRepository
+import dev.yona.domain.pullrequest.PullRequest
+import dev.yona.domain.pullrequest.PullRequestChangedActivity
+import dev.yona.domain.pullrequest.PullRequestCommitRepository
+import dev.yona.domain.pullrequest.PullRequestCreatedActivity
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import org.springframework.context.event.EventListener
@@ -36,6 +40,7 @@ class NotificationListener(
     private val users: UserRepository,
     private val watches: dev.yona.domain.misc.WatchRepository,
     private val unwatches: dev.yona.domain.misc.UnwatchRepository,
+    private val pullRequestCommits: PullRequestCommitRepository,
     private val messages: org.springframework.context.MessageSource
 ) {
 
@@ -129,6 +134,51 @@ class NotificationListener(
             )
         )
     }
+
+    // --- 풀 리퀘스트 ---
+
+    @EventListener
+    fun onPullRequestCreated(activity: PullRequestCreatedActivity) {
+        val pullRequest = activity.pullRequest
+        events.add(pullRequestNote(activity.actor, pullRequest, EventType.NEW_PULL_REQUEST, pullRequestTitle(pullRequest), null, pullRequest.body, receivers.forPullRequestWithRelatedAuthors(pullRequest, activity.actor)))
+    }
+
+    @EventListener
+    fun onPullRequestChanged(activity: PullRequestChangedActivity) {
+        val pullRequest = activity.pullRequest
+        val actor = activity.actor
+        val title = "Re: " + pullRequestTitle(pullRequest)
+        when (activity.type) {
+            EventType.PULL_REQUEST_STATE_CHANGED ->
+                events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequest(pullRequest, actor)))
+            EventType.PULL_REQUEST_COMMIT_CHANGED ->
+                events.add(pullRequestNote(actor, pullRequest, activity.type, title, null, currentCommitsMessage(pullRequest), receivers.forPullRequest(pullRequest, actor)))
+            EventType.PULL_REQUEST_MERGED -> {
+                val merged = activity.newValue == "merged"
+                events.add(
+                    pullRequestNote(
+                        actor, pullRequest, activity.type, title, null, activity.newValue,
+                        if (merged) receivers.forPullRequestWithRelatedAuthors(pullRequest, actor) else receivers.forPullRequest(pullRequest, actor)
+                    )
+                )
+            }
+            else -> Unit
+        }
+    }
+
+    /** 새 커밋 알림의 본문이다. 현재 커밋을 작성일 내림차순으로 `짧은 해시 짧은 메시지` 줄로 나열한다 (v1.6 `newPullRequestCommitChangedMessage`). */
+    private fun currentCommitsMessage(pullRequest: PullRequest): String {
+        val builder = StringBuilder("### ").append(messages.getMessage("notification.pullrequest.current.commits", null, java.util.Locale.getDefault())).append("\n")
+        pullRequestCommits.findByPullRequestId(requireNotNull(pullRequest.id))
+            .filter { it.state == dev.yona.domain.enumeration.PullRequestCommitState.CURRENT }.sortedByDescending { it.authorDate }
+            .forEach { builder.append(it.commitShortId).append(' ').append(it.commitMessage.orEmpty().substringBefore('\n')).append('\n') }
+        return builder.toString()
+    }
+
+    private fun pullRequestNote(sender: User, pullRequest: PullRequest, type: EventType, title: String, old: String?, new: String?, receivers: Collection<User>) =
+        NewNotification(sender, ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id).toString(), type, title, old, new, receivers)
+
+    private fun pullRequestTitle(pullRequest: PullRequest) = "[${pullRequest.toProject?.name}] ${pullRequest.title} (#${pullRequest.number})"
 
     // --- 가입 신청 ---
 
