@@ -17,6 +17,12 @@ interface NotificationEventRepository : JpaRepository<NotificationEvent, Long> {
     @Query("select e from NotificationEvent e join e.receivers r where r.id = :userId order by e.created desc, e.id desc")
     fun findByReceiverId(userId: Long, pageable: Pageable): List<NotificationEvent>
 
+    /** 리소스에 가장 최근에 만든 이벤트 가운데 [since] 이후의 것이다 (v1.6 `NotificationEvent.add`의 합치기 대상 조회). */
+    fun findFirstByResourceIdAndResourceTypeAndCreatedAfterOrderByIdDesc(resourceId: String, resourceType: dev.yona.domain.enumeration.ResourceType, since: java.util.Date): NotificationEvent?
+
+    /** 리소스에 걸린 이벤트를 모두 조회한다 (v1.6 `NotificationEvent.deleteBy`). */
+    fun findByResourceTypeAndResourceId(resourceType: dev.yona.domain.enumeration.ResourceType, resourceId: String): List<NotificationEvent>
+
     /** 사용자가 받는 알림 중 [from]번째(0부터)부터 [size]개를 최신순으로 돌려준다. */
     fun findByReceiver(user: User, from: Int, size: Int): List<NotificationEvent> =
         findByReceiverId(requireNotNull(user.id), OffsetPageRequest(from.toLong(), size))
@@ -39,5 +45,19 @@ class OffsetPageRequest(private val offset: Long, private val limit: Int) : Page
 interface UserProjectNotificationRepository : JpaRepository<UserProjectNotification, Long> {
 
     /** 프로젝트에서 [eventType] 알림을 받겠다([allowed]=`true`)거나 받지 않겠다(`false`)고 정한 설정이다 (v1.6 `UserProjectNotification.findByEventTypeAndOption`). */
+    fun findByUserIdAndProjectIdAndNotificationType(userId: Long, projectId: Long, notificationType: dev.yona.domain.enumeration.EventType): List<UserProjectNotification>
+
+    /** 프로젝트에서 [eventType] 알림을 받겠다([allowed]=`true`)거나 받지 않겠다(`false`)고 정한 설정이다 (v1.6 `UserProjectNotification.findByEventTypeAndOption`). */
     fun findByProjectIdAndNotificationTypeAndAllowed(projectId: Long, notificationType: dev.yona.domain.enumeration.EventType, allowed: Boolean): List<UserProjectNotification>
+}
+
+/** 메일로 보낼 알림 대기열 저장소이다. */
+interface NotificationMailRepository : JpaRepository<NotificationMail, Long> {
+
+    /** 이벤트에 걸린 대기열 행을 조회한다. */
+    fun findByNotificationEventId(eventId: Long): List<NotificationMail>
+
+    /** 만든 지 [until] 이전인 이벤트의 대기열 행을 이벤트가 오래된 순서로 조회한다 (v1.6 `NotificationMail.sendMail`의 조회). */
+    @Query("select m from NotificationMail m where m.notificationEvent.created < :until order by m.notificationEvent.created asc, m.id asc")
+    fun findCreatedBefore(until: java.util.Date): List<NotificationMail>
 }

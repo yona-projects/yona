@@ -24,6 +24,7 @@ class ResourceLookup(
     private val issues: IssueRepository,
     private val issueComments: IssueCommentRepository,
     private val postings: PostingRepository,
+    private val postingComments: dev.yona.domain.board.PostingCommentRepository,
     private val milestones: MilestoneRepository,
     private val users: UserRepository,
     private val organizations: OrganizationRepository
@@ -35,6 +36,7 @@ class ResourceLookup(
         return when (type) {
             ResourceType.ISSUE_POST -> require(issues.findById(longId)).asResource()
             ResourceType.ISSUE_COMMENT -> require(issueComments.findById(longId)).asResource()
+            ResourceType.NONISSUE_COMMENT -> require(postingComments.findById(longId)).asResource()
             ResourceType.BOARD_POST -> require(postings.findById(longId)).asResource()
             ResourceType.MILESTONE -> require(milestones.findById(longId)).asResource()
             ResourceType.USER -> require(users.findById(longId)).asResource()

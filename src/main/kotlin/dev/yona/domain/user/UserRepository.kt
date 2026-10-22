@@ -59,6 +59,14 @@ interface UserRepository : JpaRepository<User, Long> {
     )
     fun findMembersOfProject(projectId: Long, excludedRoleId: Long): List<User>
 
+    /** 프로젝트에서 [roleId] 역할인 사용자이다 (v1.6 `User.findUsersByProject(projectId, roleType)`). */
+    @Query("select u from User u where u.id in (select pu.user.id from ProjectUser pu where pu.project.id = :projectId and pu.role.id = :roleId) order by u.name asc")
+    fun findUsersByProjectRole(projectId: Long, roleId: Long): List<User>
+
+    /** 조직에서 [roleId] 역할인 사용자이다 (v1.6 `User.findUsersByOrganization(organizationId, roleType)`). */
+    @Query("select u from User u where u.id in (select ou.user.id from OrganizationUser ou where ou.organization.id = :organizationId and ou.role.id = :roleId) order by u.name asc")
+    fun findUsersByOrganizationRole(organizationId: Long, roleId: Long): List<User>
+
     /** 로그인 ID로 정확히 일치하는 사용자를 조회한다 (v1.6 `User.findByLoginId`는 `eq`). */
     fun findByLoginId(loginId: String): User?
 

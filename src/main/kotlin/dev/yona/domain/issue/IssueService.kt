@@ -81,7 +81,8 @@ class IssueService(
     private val events: IssueEventService,
     private val attachments: AttachmentService,
     private val labelService: IssueLabelService,
-    private val projectUsers: dev.yona.domain.project.ProjectUserRepository
+    private val projectUsers: dev.yona.domain.project.ProjectUserRepository,
+    private val notificationReceivers: dev.yona.domain.notification.NotificationReceivers
 ) {
 
     /**
@@ -237,6 +238,8 @@ class IssueService(
         val oldState = issue.state
         val oldAssignee = issue.assignee?.user
         val oldHistory = issue.history
+        // 이동 알림은 옮기기 전 프로젝트에서의 구독자가 받는다(v1.6 `fromWatchers`).
+        val fromWatchers = if (moved) notificationReceivers.issueWatchers(issue) else null
 
         if (moved) {
             moveToProject(issue, requireNotNull(target), actor)
@@ -277,7 +280,7 @@ class IssueService(
         titleHeads.save(project, issue.title)
         mentions.update(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), issue.body)
 
-        recordChanges(issue, actor, edit, moved, previousProject, oldState, oldAssignee, oldBody)
+        recordChanges(issue, actor, edit, moved, previousProject, oldState, oldAssignee, oldBody, fromWatchers)
         return issue
     }
 
@@ -306,7 +309,7 @@ class IssueService(
     fun violatesExclusiveCategory(labelIds: Set<Long>): Boolean =
         labels.findAllById(labelIds).filter { it.category?.isExclusive == true }.groupBy { it.category?.id }.any { it.value.size > 1 }
 
-    private fun recordChanges(issue: Issue, actor: User, edit: IssueEdit, moved: Boolean, previous: Project, oldState: State?, oldAssignee: User?, oldBody: String) {
+    private fun recordChanges(issue: Issue, actor: User, edit: IssueEdit, moved: Boolean, previous: Project, oldState: State?, oldAssignee: User?, oldBody: String, fromWatchers: Set<User>?) {
         if (edit.publish) {
             publisher.publishEvent(IssueCreatedActivity(issue, actor))
             return
@@ -317,7 +320,7 @@ class IssueService(
             if (!ownPrivate) {
                 val project = requireNotNull(issue.project)
                 events.record(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor.loginId)
-                publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor))
+                publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor, fromWatchers))
                 publisher.publishEvent(IssueCreatedActivity(issue, actor))
             }
         }

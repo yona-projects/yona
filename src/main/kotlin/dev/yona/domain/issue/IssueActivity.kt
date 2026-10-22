@@ -22,8 +22,11 @@ data class IssueCreatedActivity(val issue: Issue, val actor: User)
  * @property oldValue 이전 값(상태는 `open`처럼 소문자 이름, 담당자는 로그인 ID 등). 없으면 `null`
  * @property newValue 바뀐 값
  * @property actor 바꾼 사용자
+ * @property receivers 받을 사용자를 호출한 쪽이 이미 정했으면 그 집합이다. 이슈를 다른 프로젝트로 옮길 때 옮기기 전의 구독자가 받아야 해서 쓴다
  */
-data class IssueChangedActivity(val issue: Issue, val type: EventType, val oldValue: String?, val newValue: String?, val actor: User?)
+data class IssueChangedActivity(
+    val issue: Issue, val type: EventType, val oldValue: String?, val newValue: String?, val actor: User?, val receivers: Set<User>? = null
+)
 
 /**
  * 이슈가 지워졌음을 알리는 애플리케이션 이벤트이다. v1.6 `NotificationEvent.afterResourceDeleted`를 부르던 지점에서 발행한다.

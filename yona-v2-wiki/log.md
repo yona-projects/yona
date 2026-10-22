@@ -219,3 +219,6 @@
 
 ## [2026-10-23] ingest | 번역 API, 알림 비동기 결정 (D-18)
 - 선생님이 A-50을 위키에 기록하라고 하셨고 외부 REST API 작업을 빼먹지 말라고 하셨다. 알림 메일은 v1.6처럼 비동기 스케줄러로 보낸다(D-18).
+
+## [2026-10-23] ingest | 알림 이벤트 생성 (4단계 a)
+- TDD: NotificationEventsTest 11, NotificationListenerTest 11, NotificationMemberRequestTest 4. A-56, A-57. 외부 REST API 작업은 4단계 뒤로 미루고 이슈 외부 API 테스트와 서비스는 보관했다.
