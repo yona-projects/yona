@@ -31,6 +31,14 @@ class RenderedMarkdownCache(maximumSize: Long = DEFAULT_MAXIMUM_SIZE) {
         return rendered
     }
 
+    /** [source]의 보관된 결과이다. 없으면 `null`이다. */
+    fun getIfPresent(source: String): String? = cache.getIfPresent(digest(source))?.let { decompress(it) }
+
+    /** [source]의 결과를 보관한다. 이미 있으면 바꾼다. */
+    fun put(source: String, rendered: String) {
+        cache.put(digest(source), compress(rendered))
+    }
+
     /** 보관 중인 항목 수(근사값)이다. */
     fun size(): Long = cache.estimatedSize()
 

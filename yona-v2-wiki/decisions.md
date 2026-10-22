@@ -225,4 +225,5 @@ updated: 2026-10-22
 | A-18 | 렌더 결과 캐시의 키를 원문 `hashCode()`가 아니라 SHA-256으로, 구현은 Caffeine으로 | v1.6은 `String.hashCode()` 충돌 시 다른 원문의 결과를 보여 줄 수 있었다(`"Aa"`와 `"BB"`). 동작은 눈에 띄지 않게 같고 충돌 오류만 사라진다. Caffeine은 Spring Boot가 기본으로 관리하는 캐시 라이브러리이다(v1.6은 Guava). 압축(deflate), 최대 10000건, 무만료는 v1.6과 같다 | 해시 충돌까지 재현하려면 키를 `hashCode()`로 바꾼다 |
 | A-19 | `POST /markdown/:user/:project`에서 프로젝트를 찾지 못하면 프로젝트 문맥 없이 렌더링 | v1.6은 이 경우 동작이 정의되어 있지 않다(프로젝트 `null`을 자동 링크 변환기에 넘긴다). 미리보기가 오류로 끝나는 것보다 본문 변환 결과를 주는 편이 안전하다 | 오류 응답을 원하시면 알려 주십시오 |
 | A-20 | README 파일 인코딩 감지에 `juniversalchardet`의 유지되는 포크(`com.github.albfernandez:juniversalchardet` 2.5.1)를 사용 | v1.6이 쓰던 원본(1.0.3)은 갱신이 멈췄고 같은 `org.mozilla.universalchardet.UniversalDetector` API이다 | 원본 1.0.3으로 되돌릴 수 있다 |
+| A-21 | 통합 테스트의 연결 풀을 컨텍스트당 최대 3개, 놀고 있는 연결 0개로 제한 | `@TestPropertySource` 같은 속성 조합마다 스프링 컨텍스트가 따로 캐시되고, 컨텍스트마다 기본 풀(10개)이 PostgreSQL 최대 연결 수(100)를 넘겨 `too many clients already`로 일부 테스트가 컨텍스트를 못 띄웠다 | 컨테이너 쪽에서 `max_connections`를 올려도 되지만 컨테이너 설정에 의존하게 된다 |
 

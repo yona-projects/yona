@@ -41,7 +41,29 @@ class MarkdownRenderer(private val cache: RenderedMarkdownCache) {
     /** 마크다운 [source]를 변환하고 정화한 HTML을 돌려준다. 결과는 캐시에 보관한다. 빈 문자열은 그대로 돌려준다. */
     fun render(source: String): String {
         if (source.isEmpty()) return source
-        return cache.getOrRender(source) { sanitize(matchYobiMarkup(htmlRenderer.render(parser.parse(source)))) }
+        return cache.getOrRender(source) { sanitize(toHtml(source)) }
+    }
+
+    /** 마크다운을 정화하기 전의 HTML로 바꾼다. 빈 문자열은 그대로 돌려준다. */
+    private fun toHtml(source: String): String =
+        if (source.isEmpty()) source else matchYobiMarkup(htmlRenderer.render(parser.parse(source)))
+
+    /**
+     * 프로젝트 문맥의 렌더링 파이프라인이다. v1.6 `Markdown.renderWithHighlight`에 해당한다.
+     * 변환한 HTML에 [postProcess]를 적용하고 정화한 결과를 캐시에 보관한다.
+     *
+     * v1.6의 캐시 동작을 그대로 따른다. 이미 보관된 결과가 있으면 **그 결과를 돌려주되**, 같은 원문을 다시 변환해
+     * 캐시를 새 결과로 바꾼다. 따라서 원문이 같으면 변환 결과가 바뀌어도 한 번 늦게 반영된다. 또한 프로젝트 문맥이 없는
+     * [render]와 같은 캐시를 같은 키로 쓴다([refactoring-backlog.md] R-16).
+     */
+    fun renderWithPipeline(source: String, postProcess: (String) -> String): String {
+        val render = { sanitize(postProcess(toHtml(source))) }
+        val cached = cache.getIfPresent(source)
+        if (cached != null) {
+            cache.put(source, render())
+            return cached
+        }
+        return render().also { cache.put(source, it) }
     }
 
     /**

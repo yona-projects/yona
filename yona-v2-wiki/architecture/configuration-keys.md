@@ -24,6 +24,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `project.default.menus.when.create` | `yona.project-default-menus` | `code, issue, pullRequest, review, milestone, board` | 사용 중(프로젝트 생성 폼) |
 | `application.displayPrivateRepositories` | `yona.display-private-repositories` | `false` | 사용 중(프로젝트 목록) |
 | `application.context` | `yona.application-context` | 빈 문자열 | 사용 중(README 상대 경로 변환) |
+| `application.noreferrer` | `yona.noreferrer` | `false`(v1.6 기본 설정 파일 예시는 `true`) | 사용 중(마크다운 외부 링크) |
 | `application.hostname` | `yona.hostname` | 빈 문자열(요청의 Host 헤더) | 사용 중(저장소 주소) |
 | `application.port` | `yona.port` | 없음 | 사용 중(80이면 주소에서 생략) |
 | `application.scheme` | `yona.scheme` | 빈 문자열(요청의 스킴) | 사용 중 |
