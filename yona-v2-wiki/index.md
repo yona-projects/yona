@@ -2,6 +2,7 @@
 
 규약은 [CLAUDE.md](CLAUDE.md), 변경 이력은 [log.md](log.md)를 본다. v1.6 분석은 `~/yona-convert/yona-v1.6-wiki`를 참조한다.
 
+- [결정 기록](decisions.md): 기술 스택과 정책 결정의 선택지, 권장안과 이유, 결정자
 - [이식 로드맵과 진행 상태](roadmap.md): 단계별 진행과 비워 둔 연결 고리
 
 ## 아키텍처 (`architecture/`)
