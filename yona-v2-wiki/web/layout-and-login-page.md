@@ -75,4 +75,4 @@ updated: 2026-10-22
 
 - 소셜 로그인 버튼 영역(`currentAuth`, `forProviders`), 사이트 업데이트 알림(`partial_update_notification`, `YobiUpdate`).
 - 홈(`GET /`), 사이드바(`/user/sidebar`), 사용자 메뉴 탭(`/user/usermenuTabContentList`).
-- v1.6 화면과의 시각 비교(`llm-wiki/ui-diff` 방식).
+- v2 화면 캡처(Playwright). v1.6 화면은 캡처할 수 없어 나란히 비교하지 않는다. 일치 여부는 템플릿 소스 대조와 DOM 테스트로 확인한다.
