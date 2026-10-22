@@ -5,7 +5,7 @@ import dev.yona.domain.board.PostingRepository
 import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.RequestState
-import dev.yona.domain.enumeration.descr
+import dev.yona.domain.enumeration.descrKey
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.issue.IssueRepository
@@ -78,7 +78,7 @@ class NotificationMessages(
             EventType.RESOURCE_DELETED -> new?.let { users.findByLoginId(it) }?.let { text("notification.resource.deleted", UserDisplay.of(it, it.lang)) }
             else -> {
                 log.warn("알 수 없는 알림 이벤트 종류이다: {}. NotificationMessages.message를 확인한다", type)
-                type.descr
+                messages.getMessage(type.descrKey, null, locale)
             }
         }
     }

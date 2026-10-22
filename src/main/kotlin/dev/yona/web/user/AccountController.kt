@@ -4,7 +4,7 @@ import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
-import dev.yona.domain.enumeration.descr
+import dev.yona.domain.enumeration.descrKey
 import dev.yona.domain.enumeration.notiTypes
 import dev.yona.domain.misc.WatchRepository
 import dev.yona.domain.notification.ProjectNotificationService
@@ -207,7 +207,7 @@ class AccountController(
         val items = watches.findByUserIdAndResourceType(requireNotNull(user.id), ResourceType.PROJECT).mapNotNull { watch ->
             val project = watch.resourceId?.toLongOrNull()?.let { projects.findById(it).orElse(null) } ?: return@mapNotNull null
             val id = requireNotNull(project.id)
-            NotificationSettingProject(id, project.owner.orEmpty(), project.name.orEmpty(), notiTypes.map { NotificationSettingRow(it.name, it.descr, projectNotifications.isEnabled(settings, id, it)) })
+            NotificationSettingProject(id, project.owner.orEmpty(), project.name.orEmpty(), notiTypes.map { NotificationSettingRow(it.name, it.descrKey, projectNotifications.isEnabled(settings, id, it)) })
         }
         return tabView("user/edit-notifications", user, "notifications").addObject("notificationProjects", items)
     }

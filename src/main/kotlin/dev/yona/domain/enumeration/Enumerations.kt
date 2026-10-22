@@ -36,8 +36,11 @@ enum class EventType {
     RESOURCE_DELETED, MEMBER_ENROLL_ACCEPT, ORGANIZATION_MEMBER_ENROLL_ACCEPT
 }
 
-/** 이벤트 종류의 설명 메시지 키이다 (v1.6 `EventType.getDescr`). 외부 API가 `eventDescription`으로 그대로 내보낸다. */
-val EventType.descr: String
+/**
+ * 이벤트 종류의 설명 메시지 키이다. v1.6 `EventType.getDescr()`는 이 키를 요청 언어로 번역한 문구를 돌려주므로,
+ * 문구가 필요하면 `MessageSource`로 번역한다(외부 API의 `eventDescription`, 알림 문구의 기본값).
+ */
+val EventType.descrKey: String
     get() = when (this) {
         EventType.NEW_ISSUE -> "notification.type.new.issue"
         EventType.NEW_POSTING -> "notification.type.new.posting"

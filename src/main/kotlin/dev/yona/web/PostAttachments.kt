@@ -43,6 +43,15 @@ class PostAttachments(
         )
     }
 
+    /**
+     * JSON 본문으로 받은 임시 첨부 번호 [ids]를 [toType], [toId]로 옮긴다 (v1.6 `attachUploadFilesToPost(JsonNode, Resource)`).
+     * 번호가 없으면 아무것도 하지 않는다.
+     */
+    fun attachIds(user: User, ids: List<String>, toType: ResourceType, toId: Long) {
+        if (ids.isEmpty()) return
+        attachments.moveOnlySelected(requireNotNull(user.id), ids, toType, toId, accessControl.isSiteManager(user))
+    }
+
     private fun temporaryFileIds(request: HttpServletRequest): List<String> {
         if (request.contentType?.startsWith("multipart/") != true) return emptyList()
         return request.getParameter(TAG_NAME)?.split(",") ?: emptyList()
