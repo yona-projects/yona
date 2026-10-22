@@ -1,0 +1,175 @@
+package dev.yona.web.user
+
+import dev.yona.domain.user.UserRepository
+import dev.yona.security.LocalAuthenticator
+import dev.yona.security.LoginResult
+import dev.yona.security.YonaAuthentication
+import dev.yona.security.YonaAuthenticationFilter
+import dev.yona.web.HttpPreference
+import dev.yona.web.RedirectSupport
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.context.i18n.LocaleContextHolder
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RestController
+import java.net.URLEncoder
+
+/**
+ * 로그인과 로그아웃이다. v1.6 `UserApp.login`, `loginByFormRequest`, `loginByAjaxRequest`, `logout`에 해당한다
+ * (`app/controllers/UserApp.java:154-345`).
+ *
+ * 폼 요청과 AJAX 요청은 `Accept` 헤더로 구분하며([HttpPreference]), 판정 규칙은 [LocalAuthenticator]를 공유한다.
+ * 안내 문구는 v1.6처럼 메시지 **키**(`user.login.invalid` 등)로 전달하고 화면에서 번역한다.
+ *
+ * 아직 구현하지 않은 부분: LDAP 인증, 소셜 로그인 전용 모드(`application.use.social.login.only`).
+ */
+@RestController
+class LoginController(
+    private val authenticator: LocalAuthenticator,
+    private val users: UserRepository
+) {
+
+    private val securityContextRepository = HttpSessionSecurityContextRepository()
+
+    @PostMapping("/users/login")
+    @Transactional
+    fun login(
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<*> {
+        noCache(response)
+        return if (HttpPreference.isJsonPreferred(request.getHeader(HttpHeaders.ACCEPT))) {
+            loginByAjax(request, response)
+        } else {
+            loginByForm(request, response)
+        }
+    }
+
+    @GetMapping("/users/logout")
+    fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Void> {
+        processLogout(request, response)
+        // v1.6은 Referer가 없으면 null 리다이렉트로 오류가 난다. 홈으로 보낸다([refactoring-backlog.md] R-03).
+        val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "/"
+        return RedirectSupport.see(request, response, referer, mapOf(RedirectSupport.SUCCESS to "user.logout.success"))
+    }
+
+    // --- 폼 로그인 ---
+
+    private fun loginByForm(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<*> {
+        val loginKey = request.getParameter("loginIdOrEmail")
+        val password = request.getParameter("password")
+        if (loginKey.isNullOrEmpty() || password.isNullOrEmpty()) {
+            // v1.6은 안내 문구와 함께 로그인 화면을 400으로 다시 그린다. 화면은 로그인 폼 이식 단계에서 연결한다.
+            RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "user.login.required"))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build<Void>()
+        }
+
+        return when (val result = authenticator.authenticate(loginKey, password)) {
+            is LoginResult.Success -> {
+                completeLogin(request, response, result)
+                val redirectUrl = request.getParameter("redirectUrl")
+                RedirectSupport.see(
+                    request, response, if (redirectUrl.isNullOrEmpty()) "/" else encodedPath(redirectUrl)
+                )
+            }
+            LoginResult.Locked ->
+                RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "user.locked"))
+            LoginResult.Deleted ->
+                RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "user.deleted"))
+            LoginResult.LockedAfterAuthentication -> {
+                // v1.6: 안내 문구를 남기고 logout()을 호출한다. logout()이 성공 문구를 덧붙이고 Referer로 돌려보낸다.
+                processLogout(request, response)
+                val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "/"
+                RedirectSupport.see(
+                    request, response, referer,
+                    mapOf(RedirectSupport.WARNING to "user.locked", RedirectSupport.SUCCESS to "user.logout.success")
+                )
+            }
+            LoginResult.InvalidCredentials ->
+                RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "user.login.invalid"))
+        }
+    }
+
+    // --- AJAX 로그인 ---
+
+    private fun loginByAjax(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<*> {
+        val loginKey = request.getParameter("loginIdOrEmail")
+        val password = request.getParameter("password")
+        if (loginKey.isNullOrEmpty() || password.isNullOrEmpty()) return message(HttpStatus.BAD_REQUEST, "user.login.required")
+
+        return when (val result = authenticator.authenticate(loginKey, password)) {
+            is LoginResult.Success -> {
+                completeLogin(request, response, result)
+                // v1.6의 `ok("{}")`는 문자열이라 Content-Type이 text/plain이다.
+                ResponseEntity.ok().contentType(MediaType("text", "plain", Charsets.UTF_8)).body("{}")
+            }
+            LoginResult.Locked, LoginResult.LockedAfterAuthentication -> message(HttpStatus.FORBIDDEN, "user.locked")
+            LoginResult.Deleted -> message(HttpStatus.NOT_FOUND, "user.deleted")
+            LoginResult.InvalidCredentials -> message(HttpStatus.FORBIDDEN, "user.login.invalid")
+        }
+    }
+
+    private fun message(status: HttpStatus, key: String): ResponseEntity<Map<String, String>> =
+        ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(mapOf("message" to key))
+
+    // --- 공통 ---
+
+    /** 로그인 성공 처리: 세션에 기록하고, 로그인 유지를 켰으면 쿠키를 만들고, 사용자의 언어를 갱신한다. */
+    private fun completeLogin(request: HttpServletRequest, response: HttpServletResponse, result: LoginResult.Success) {
+        val user = result.user
+        if (request.getParameter("rememberMe").toBoolean()) {
+            response.addCookie(Cookie(YonaAuthenticationFilter.REMEMBER_ME_COOKIE, "${user.loginId}:${user.password}").apply {
+                maxAge = YonaAuthenticationFilter.REMEMBER_ME_MAX_AGE
+                path = "/"
+            })
+        }
+        user.lang = LocaleContextHolder.getLocale().toLanguageTag()
+        users.save(user)
+
+        // 로그인 전에 쓰던 세션 식별자를 버려 세션 고정 공격을 막는다.
+        if (request.getSession(false) != null) request.changeSessionId()
+        val context = SecurityContextHolder.createEmptyContext()
+        context.authentication = YonaAuthentication.of(user)
+        SecurityContextHolder.setContext(context)
+        securityContextRepository.saveContext(context, request, response)
+    }
+
+    /** 세션의 인증 정보와 remember-me 쿠키를 지운다 (v1.6 `processLogout`). */
+    private fun processLogout(request: HttpServletRequest, response: HttpServletResponse) {
+        SecurityContextHolder.clearContext()
+        request.getSession(false)?.removeAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY)
+        YonaAuthenticationFilter.discardRememberMeCookie(response)
+    }
+
+    /** 로그인 폼 주소이다. 원래 가려던 `redirectUrl`을 그대로 이어 붙인다 (v1.6 `getLoginFormURLWithRedirectURL`). */
+    private fun loginFormUrl(request: HttpServletRequest): String =
+        "/users/loginform?redirectUrl=" + (request.getParameter("redirectUrl") ?: "")
+
+    /**
+     * 경로의 각 구간을 URL 인코딩한다 (v1.6 `encodedPath`).
+     *
+     * `//example.com`처럼 `/`로 시작하는 값은 그대로 외부 주소로 이동한다. v1.6의 결함이며 그대로 따른다
+     * ([refactoring-backlog.md] R-06).
+     */
+    private fun encodedPath(path: String): String {
+        val segments = path.split("/")
+        if (segments.all { it.isEmpty() }) return "/"
+        return segments.joinToString("/") { URLEncoder.encode(it, Charsets.UTF_8).replace("+", "%20") }
+    }
+
+    /** 캐시를 막는 응답 헤더를 붙인다 (v1.6 `UserApp.noCache`). */
+    private fun noCache(response: HttpServletResponse) {
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+        response.setHeader(HttpHeaders.PRAGMA, "no-cache")
+        response.setHeader(HttpHeaders.EXPIRES, "0")
+    }
+}

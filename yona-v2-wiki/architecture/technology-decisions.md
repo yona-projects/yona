@@ -18,6 +18,8 @@ updated: 2026-10-22
 | 스키마 관리 | Hibernate가 엔티티에서 생성(`ddl-auto`) + v1.6 기준 스키마 대조 테스트 | 선생님 (2026-10-22) | Liquibase, Flyway: DB별 스크립트를 유지해야 하고 Cubrid는 공식 지원이 없다. |
 | 검증 대상 DB | H2, PostgreSQL 16, MariaDB 10.11 | 선생님 (2026-10-22) | MySQL, Cubrid, MSSQL은 뒤로 미룬다. |
 | 테스트 | JUnit 5, MockK, Testcontainers 2.0.5 | 선생님 (2026-10-22) | Kotest: Boot 4 호환 확인이 추가로 필요하다. |
+| 보안 기반 | Spring Security 필터 체인(모든 URL 허용, 인가는 애플리케이션 계층) | 선생님 (2026-10-22) | 자체 필터 + HttpSession: 세션 고정 방어와 보안 헤더를 직접 책임져야 한다. |
+| 레이아웃 방식 | Thymeleaf 기본 프래그먼트(`th:replace`에 본문을 인자로 전달) | 선생님 (2026-10-22) | thymeleaf-layout-dialect: 서드파티 의존성이고 Thymeleaf 3.1/Boot 4 호환 확인이 필요하다. |
 | LESS 빌드 | Gradle 빌드에서 `lessc`(Less 1.7.5) 실행, 생성물은 저장소에 두지 않음 | 선생님 (2026-10-22) | 결과물을 저장소에 포함: LESS를 고칠 때마다 다시 컴파일해야 하고 소스와 어긋날 수 있다. less4j(JVM 전용): Less 1.x 문법 일부만 지원해 v1.6 결과와 달라질 위험이 있다. |
 | 뷰 템플릿 | Thymeleaf | 선생님 (2026-10-22) | v1.6 `*.scala.html` 화면을 그대로 재현한다. |
 

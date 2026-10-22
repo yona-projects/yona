@@ -36,6 +36,42 @@ Shiro의 `Sha256Hash(평문, 솔트, 1024).toBase64()`와 비트 단위로 같�
 
 이 판정은 화면과 독립이다. 결과를 안내 문구(`user.locked`, `user.deleted`, `user.login.invalid`)로 바꾸는 일은 로그인 컨트롤러가 맡는다(다음 단계).
 
+## 현재 사용자 식별과 로그인 엔드포인트
+
+선생님께서 "Spring Security 필터 체인"을 선택하셨다(2026-10-22). v1.6처럼 인가는 URL이 아니라 컨트롤러(`AccessControl`)에서 판단하므로 `SecurityConfig`는 모든 URL을 허용하고, 사용자 식별과 보안 헤더만 맡는다.
+
+| 클래스 | 역할 | 대응하는 v1.6 코드 |
+|---|---|---|
+| `YonaAuthenticationFilter` | 세션 -> API 토큰 헤더 -> remember-me 쿠키 순으로 사용자를 찾아 보안 컨텍스트에 채운다 | `UserApp.currentUser`, `getUserFromToken`, `User.findUserIfTokenExist` |
+| `YonaAuthentication`, `YonaPrincipal` | 세션에 저장되는 직렬화 가능한 최소 정보(`userId`, `loginId`, `name`) | `addUserInfoToSession`의 세션 값 |
+| `CurrentUserProvider`, `CurrentUser` | 요청마다 사용자 정보를 DB에서 읽어 한 번만 캐시. 익명이면 `user == null` | `UserApp.currentUser()`, `User.anonymous` |
+| `LoginController` | `POST /users/login`(폼, AJAX), `GET /users/logout` | `UserApp.login`, `loginByFormRequest`, `loginByAjaxRequest`, `logout` |
+| `HttpPreference` | Accept 헤더로 JSON 선호 여부 판단 | `HttpUtil.getPreferType`, `isJSONPreferred` |
+| `RedirectSupport` | `303 See Other` + 일회성(flash) 메시지 | Play `redirect(...)`, `flash(...)` |
+
+### 동작 규칙
+
+- 폼 로그인 성공: `redirectUrl`이 있으면 각 경로 구간을 URL 인코딩해 `303`으로 이동, 없으면 `/`. 실패는 `/users/loginform?redirectUrl=<원래 값>`으로 돌아가며 flash `warning`에 메시지 키(`user.login.invalid`, `user.locked`, `user.deleted`)를 담는다.
+- 패스워드가 맞아도 LOCKED인 경우는 flash `warning=user.locked`와 `success=user.logout.success`를 남기고 Referer로 돌려보낸다(`LoginResult.LockedAfterAuthentication`).
+- AJAX(`Accept`가 JSON 우선): 성공 `200 {}`(Content-Type은 v1.6처럼 `text/plain`), 입력 누락 `400`, 잠김 `403`, 삭제 `404`, 인증 실패 `403`. 본문은 `{"message":"<메시지 키>"}`.
+- `rememberMe=true`이면 쿠키 `yobi.token=<로그인ID>:<해시된 패스워드>`(30일). 요청에 이 쿠키만 있어도 사용자가 복원되며 세션에도 기록된다. 잘못된 값이면 쿠키를 지운다.
+- API 토큰: `Authorization: token <값>` 또는 `Yona-Token`. 세션에는 기록하지 않는다.
+- 로그인 응답에는 `Cache-Control: no-cache, no-store, must-revalidate`, `Pragma: no-cache`, `Expires: 0`을 붙인다.
+- 로그인 직후 사용자의 `lang`을 요청 로캘로 갱신한다.
+
+### Spring Security 설정에서 v1.6과 달라지는 점
+
+- CSRF 보호를 끈다. v1.6의 폼과 JS는 CSRF 토큰을 보내지 않는다.
+- `X-Frame-Options: SAMEORIGIN`. 레이아웃의 사이드바가 같은 출처 iframe을 쓴다.
+- 캐시 방지 헤더를 전역으로 켜지 않는다. `/assets/`까지 캐시되지 않기 때문이다.
+- 로그아웃 시 세션을 무효화하지 않고 인증 정보만 지운다. 일회성 메시지(flash)가 세션에 저장되기 때문이다. Play는 flash를 세션과 별도 쿠키에 저장했다.
+
+### 아직 구현하지 않은 부분
+
+- 입력 누락 시 400과 함께 로그인 화면을 다시 그리는 동작: 로그인 화면(Thymeleaf)을 이식할 때 연결한다.
+- LDAP 인증, 소셜 로그인, 소셜 로그인 전용 모드, HTTP Basic 인증(Git/SVN).
+- Play의 언어 결정 규칙(쿠키 `PLAY_LANG`, `Accept-Language`).
+
 ## 설정 키 대응
 
 | v1.6 키 | v2 키 | 기본값 |

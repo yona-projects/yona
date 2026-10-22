@@ -11,8 +11,17 @@ sealed interface LoginResult {
     /** 인증에 성공했다. */
     data class Success(val user: User) : LoginResult
 
-    /** 계정이 잠겼다(`user.locked`). 가입 승인 대기 계정도 여기에 해당한다. */
+    /**
+     * 가입 승인제에서 승인 대기(LOCKED) 계정이다(`user.locked`). 패스워드를 보기 전에 거부하며,
+     * 로그인 폼으로 돌려보낸다.
+     */
     data object Locked : LoginResult
+
+    /**
+     * 패스워드는 맞았지만 계정이 LOCKED이다(`user.locked`). v1.6은 이 경우 로그아웃 처리까지 하고
+     * 이전 화면으로 돌려보낸다(`UserApp.java:225-228`).
+     */
+    data object LockedAfterAuthentication : LoginResult
 
     /** 계정이 삭제되었다(`user.deleted`). */
     data object Deleted : LoginResult
@@ -30,7 +39,7 @@ sealed interface LoginResult {
  * 2. 가입 승인제이고 계정이 LOCKED이면 패스워드를 보기 전에 [LoginResult.Locked]이다.
  * 3. 계정이 DELETED이면 [LoginResult.Deleted]이다.
  * 4. 패스워드가 틀리면 [LoginResult.InvalidCredentials]이다.
- * 5. 패스워드가 맞아도 계정이 LOCKED이면 [LoginResult.Locked]이다.
+ * 5. 패스워드가 맞아도 계정이 LOCKED이면 [LoginResult.LockedAfterAuthentication]이다.
  *
  * LDAP과 소셜 로그인은 이 클래스의 범위가 아니다.
  *
@@ -54,7 +63,7 @@ class LocalAuthenticator(
         if (signUpConfirmRequired && user.state == UserState.LOCKED) return LoginResult.Locked
         if (user.state == UserState.DELETED) return LoginResult.Deleted
         if (!passwordMatches(user, password)) return LoginResult.InvalidCredentials
-        if (user.state == UserState.LOCKED) return LoginResult.Locked
+        if (user.state == UserState.LOCKED) return LoginResult.LockedAfterAuthentication
         return LoginResult.Success(user)
     }
 

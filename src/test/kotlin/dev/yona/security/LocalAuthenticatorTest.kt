@@ -75,9 +75,9 @@ class LocalAuthenticatorTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `잠긴 계정은 패스워드가 맞으면 잠김으로 알린다`() {
+    fun `잠긴 계정은 패스워드가 맞으면 인증 후 잠김으로 알린다`() {
         newUser("locked", "locked@example.com", state = UserState.LOCKED)
-        assertEquals(LoginResult.Locked, authenticator.authenticate("locked", "1234"))
+        assertEquals(LoginResult.LockedAfterAuthentication, authenticator.authenticate("locked", "1234"))
     }
 
     @Test

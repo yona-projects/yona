@@ -42,3 +42,10 @@
 - 결정: LESS 빌드 방식을 선생님께 여쭈어 "Gradle 빌드에서 lessc 실행"으로 확정했다.
 - 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 37건 통과.
 - 기록: [web/static-assets-and-i18n.md](web/static-assets-and-i18n.md)
+
+## [2026-10-22] ingest | 로그인, 로그아웃, 현재 사용자 식별
+- TDD: `HttpPreferenceTest` 7건과 `LoginControllerTest` 21건을 먼저 실패(RED, 컴파일)시킨 뒤 구현해 통과(GREEN)시켰다. 판정 결과에 `LockedAfterAuthentication`을 추가하면서 `LocalAuthenticatorTest`를 함께 고쳤다.
+- v1.6 코드를 읽다 확인한 결함 5건을 [refactoring-backlog.md](refactoring-backlog.md)에 올렸다(R-02~R-06). R-03은 재현하지 않고 홈으로 보내므로 선생님 확인이 필요하다.
+- 결정: 보안 기반(Spring Security)과 레이아웃 방식(Thymeleaf 기본 프래그먼트)을 선생님께 여쭈어 확정했다.
+- 결과: `./gradlew test`가 H2, PostgreSQL, MariaDB 각각에서 65건 통과.
+- 기록: [subsystems/authentication.md](subsystems/authentication.md)
