@@ -222,3 +222,7 @@
 
 ## [2026-10-23] ingest | 알림 이벤트 생성 (4단계 a)
 - TDD: NotificationEventsTest 11, NotificationListenerTest 11, NotificationMemberRequestTest 4. A-56, A-57. 외부 REST API 작업은 4단계 뒤로 미루고 이슈 외부 API 테스트와 서비스는 보관했다.
+
+## [2026-10-23] ingest | 알림 메일 발송, 홈 알림 목록, 프로젝트 구독과 알림 설정 (4단계 b~d)
+- TDD: MailDiffTest 6, NotificationMessagesTest 9, NotificationMergerTest 4, MailRecipientsTest 5, MailHtmlTest 6, NotificationMailSenderTest 8, NotificationMailSchedulerTest 4, SystemMailsTest 5, NotificationCleanerTest 2, NotificationListTest 8, ProjectWatchTest 10. A-58~A-61, R-32~R-35.
+- 프로젝트 구독(watch/unwatch/toggle)과 구독자 목록이 v2에 없던 것을 이 단계에서 채웠다.

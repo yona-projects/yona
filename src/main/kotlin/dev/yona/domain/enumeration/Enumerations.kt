@@ -107,3 +107,46 @@ enum class Operation(val value: String) {
         fun fromValue(value: String?): Operation = entries.firstOrNull { it.value == value } ?: READ
     }
 }
+
+/**
+ * 새로 만들어지는 것(새 글, 새 이슈, 새 풀 리퀘스트, 새 댓글)이면 `true`이다 (v1.6 `EventType.isCreating`).
+ * 이 알림 메일은 리소스 자체를 메시지 식별자로 가져 이후 메일이 같은 대화로 묶인다. 새 커밋은 프로젝트를 갱신하는 것으로 보아 제외한다.
+ */
+val EventType.isCreating: Boolean
+    get() = this == EventType.NEW_ISSUE || this == EventType.NEW_POSTING || this == EventType.NEW_PULL_REQUEST ||
+        this == EventType.NEW_COMMENT || this == EventType.NEW_REVIEW_COMMENT
+
+/** 알림 설정 화면에서 이벤트 종류를 나열하는 순서이다 (v1.6 `EventType.getOrder`). 번호가 작을수록 앞에 나온다. */
+val EventType.order: Int
+    get() = when (this) {
+        EventType.NEW_ISSUE -> 1
+        EventType.NEW_POSTING -> 2
+        EventType.NEW_PULL_REQUEST -> 3
+        EventType.ISSUE_STATE_CHANGED -> 4
+        EventType.ISSUE_ASSIGNEE_CHANGED -> 5
+        EventType.PULL_REQUEST_STATE_CHANGED -> 6
+        EventType.NEW_COMMENT -> 7
+        EventType.NEW_REVIEW_COMMENT -> 8
+        EventType.MEMBER_ENROLL_REQUEST -> 9
+        EventType.PULL_REQUEST_MERGED -> 10
+        EventType.ISSUE_REFERRED_FROM_COMMIT -> 11
+        EventType.PULL_REQUEST_COMMIT_CHANGED -> 12
+        EventType.NEW_COMMIT -> 13
+        EventType.PULL_REQUEST_REVIEW_STATE_CHANGED -> 14
+        EventType.ISSUE_BODY_CHANGED -> 17
+        EventType.ISSUE_REFERRED_FROM_PULL_REQUEST -> 16
+        EventType.REVIEW_THREAD_STATE_CHANGED -> 18
+        EventType.ORGANIZATION_MEMBER_ENROLL_REQUEST -> 19
+        EventType.COMMENT_UPDATED -> 20
+        EventType.ISSUE_MOVED -> 21
+        EventType.ISSUE_SHARER_CHANGED -> 22
+        EventType.ISSUE_LABEL_CHANGED -> 23
+        EventType.ISSUE_MILESTONE_CHANGED -> 24
+        EventType.POSTING_BODY_CHANGED -> 25
+        EventType.RESOURCE_DELETED -> 26
+        EventType.MEMBER_ENROLL_ACCEPT -> 27
+        EventType.ORGANIZATION_MEMBER_ENROLL_ACCEPT -> 28
+    }
+
+/** 알림 설정 화면에 나열하는 이벤트 종류이다. 모든 종류를 [order] 순서로 놓는다 (v1.6 `EventType.notiTypes`). */
+val notiTypes: List<EventType> = EventType.entries.sortedBy { it.order }

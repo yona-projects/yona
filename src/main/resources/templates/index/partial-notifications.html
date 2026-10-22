@@ -1,11 +1,76 @@
 <!--/*
   이식 원본: app/views/index/partial_notifications.scala.html
-  매개변수: notifications(알림 목록)
-  알림 항목(아이콘, 제목 링크, 본문, 보낸 사람)과 More 버튼은 알림 서브시스템을 옮길 때 추가한다.
-  지금은 알림이 만들어지지 않으므로 항상 "알림 없음" 안내만 나온다.
+  매개변수: notifications(NotificationItem 목록), from(시작 위치), size(개수)
+  홈 화면의 첫 20개와 `GET /notification`(더 보기)이 함께 쓴다. 목록이 비어 있지 않으면 More 단추와 그 스크립트를 덧붙인다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="list(notifications)">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="list(notifications, from, size)">
     <div class="warning-none" th:if="${#lists.isEmpty(notifications)}">
         <i class="yobicon-danger"></i> <th:block th:text="#{notification.none}"></th:block>
     </div>
+
+    <li class="notification-stream" th:each="noti : ${notifications}">
+        <div class="stream-type updated" th:if="${noti.edit}">
+            Edit
+        </div>
+        <div th:unless="${noti.edit}" th:class="'stream-type ' + ${noti.iconClass}">
+            <i th:class="'yobicon-' + ${noti.iconClass}"></i>
+        </div>
+        <div class="stream-desc" th:attr="data-target='message-' + ${noti.id}" data-toggle="learnmore">
+            <div class="stream-info">
+                <div class="title">
+                    <a th:if="${noti.url != null}" th:href="@{${noti.url}}" th:text="${noti.title}"></a>
+                    <th:block th:if="${noti.url == null}" th:text="${noti.title}"></th:block>
+                </div>
+                <div class="message-wrap nowrap" th:id="'message-' + ${noti.id}">
+                    <div class="message" th:utext="${noti.messageHtml}"></div>
+                </div>
+                <div class="meta">
+                    <a th:if="${noti.sender != null}" class="avatar-wrap smaller" th:href="@{'/' + ${noti.sender.loginId}}">
+                        <img th:src="${noti.avatarUrl}">
+                    </a>
+                    <div th:if="${noti.sender == null}" class="smaller">
+                        <img th:src="@{/assets/images/default-avatar-64.png}" width="42" height="42">
+                    </div>
+                    <th:block th:if="${noti.sender != null}"><a th:href="@{'/' + ${noti.sender.loginId}}" class="author" th:text="${noti.senderName}"></a>@<th:block th:text="${noti.sender.loginId}"></th:block></th:block>
+                    <span class="ago pull-right" th:title="${helper.dateString(noti.created)}" th:text="${helper.agoOrDateString(noti.created)}"></span>
+                </div>
+            </div>
+        </div>
+    </li>
+
+    <th:block th:unless="${#lists.isEmpty(notifications)}">
+    <li><a href="javascript:void(0);" id="notification-more" class="ybtn">More</a></li>
+    <script type="text/javascript" th:inline="javascript">
+        $(document).ready(function(){
+            function checkOverflow(el) {
+                var curOverflow = el.style.overflow;
+
+                if (!curOverflow || curOverflow === "visible")
+                    el.style.overflow = "hidden";
+
+                var isOverflowing = el.clientWidth < el.scrollWidth
+                        || el.clientHeight < el.scrollHeight;
+
+                el.style.overflow = curOverflow;
+
+                return isOverflowing;
+            }
+
+            var moreUrl = /*[[@{/notification(from=${from + size},limit=${size})}]]*/ "";
+            $("#notification-more").click(function() {
+                $("#notification-more").remove();
+                $.get(moreUrl, function(data) {
+                    $('.activity-streams').append(data);
+                    $(".more").remove();
+                    $(".message-wrap").each(function(index, value){
+                        var $this = $(this);
+                        if(checkOverflow($this[0])){
+                            $this.after("<div class='more'>...</div>");
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+    </th:block>
 </th:block>

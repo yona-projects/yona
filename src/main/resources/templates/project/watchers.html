@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/watchers.scala.html
+  모델: title, projectView, watchers(WatcherItem 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::watchersPage})}">
+<th:block th:fragment="watchersPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'NONE', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <h4><strong th:text="#{project.watcher.title}"></strong></h4>
+        <p th:text="#{project.watcher.description}"></p>
+        <ul class="members project row-fluid">
+            <li th:each="member : ${watchers}" class="member span6 span-hard-wrap">
+                <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge pull-left mr10">
+                    <img th:src="${member.avatarUrl}" width="64" height="64">
+                </a>
+                <div class="member-name" th:text="${member.displayName}"></div>
+                <div class="member-id">@<th:block th:text="${member.loginId}"></th:block></div>
+            </li>
+        </ul>
+    </div>
+</div>
+</th:block>
+</html>

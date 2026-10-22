@@ -52,7 +52,7 @@
                     <div class="span8 main-stream">
                         <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
                         <ul class="activity-streams notification-wrap unstyled">
-                            <th:block th:replace="~{index/partial-notifications :: list(${notifications})}"></th:block>
+                            <th:block th:replace="~{index/partial-notifications :: list(${notifications}, 0, 20)}"></th:block>
                         </ul>
         	        </div>
                     <div class="span4 index-menu right-menu span-hard-wrap">

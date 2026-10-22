@@ -8,10 +8,11 @@ import org.springframework.test.context.DynamicPropertySource
  * 실제 DB를 쓰는 통합 테스트의 공통 부모이다.
  *
  * 모든 통합 테스트가 같은 설정을 쓰므로 스프링 컨텍스트와 DB 스키마를 한 번만 만들어 공유한다.
+ * 알림 메일 스케줄러는 끈다(`yona.notification-mail-enabled=false`). 테스트가 만든 데이터를 몰래 처리하지 않도록, 발송 테스트는 `NotificationMailScheduler.sendDue`를 직접 부른다.
  * 연결 풀은 컨텍스트 수가 늘어도 DB의 최대 연결 수를 넘지 않도록 작게 제한한다.
  * 스키마는 엔티티에서 생성하고(`create-drop`) 컨텍스트가 닫힐 때 지운다.
  */
-@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop"])
+@SpringBootTest(properties = ["spring.jpa.hibernate.ddl-auto=create-drop", "yona.notification-mail-enabled=false"])
 abstract class AbstractIntegrationTest {
 
     companion object {

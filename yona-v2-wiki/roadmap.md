@@ -54,8 +54,9 @@ updated: 2026-10-22
 | 3d | 게시판(목록, 보기, 작성, 수정, 삭제, 댓글, 라벨 API, 조직 게시판)과 온라인 커밋 | 완료 | [web/board.md](web/board.md) |
 | 2d-5 | 사용자 메뉴(사이드바 내용, 고정 사이드바), 프로젝트 바로가기, 프로젝트·조직 즐겨찾기 API | 완료 | [web/user-menu.md](web/user-menu.md) |
 | 4a | 알림 이벤트 생성(활동 → 알림 이벤트, 수신자 계산, 합치기) | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
-| 4b | 알림 메일 발송(스케줄러, 메시지, HTML 메일, 합치기) | 대기 | |
-| 4c | 홈의 알림 목록과 보관 기간 정리 | 대기 | |
+| 4b | 알림 메일 발송(스케줄러, 메시지, HTML 메일, 묶기)과 시스템 메일(비밀번호 재설정, 가입 인증, 이메일 확인, 이전 요청) | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
+| 4c | 홈의 알림 목록(More 포함) | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
+| 4d | 보관 기간 정리, 프로젝트 구독·해제·구독자 목록, 프로젝트별 알림 설정 탭 | 완료 | [subsystems/notifications.md](subsystems/notifications.md) |
 | 5 | 코드 저장소 화면(Git), 포크, 풀 리퀘스트, 코드 리뷰, 웹훅 | 대기 | |
 | 6 | 검색, 통계, 도움말, 사이트 관리, 데이터 내보내기/가져오기 | 대기 | |
 | 7 | 소셜 로그인, LDAP, 이메일 수신 | 대기 | |
@@ -64,6 +65,7 @@ updated: 2026-10-22
 ## 화면 검증 기록
 
 - 2026-10-23, 3단계(이슈, 마일스톤, 라벨, 게시판, 사용자 메뉴): Playwright로 새 v2 화면 14곳(이슈 목록, 보기, 수정, 등록, 마일스톤 목록과 보기, 라벨, 게시판 목록, 보기, 작성, 수정, 사용자 메뉴 세 탭, 고정 사이드바)을 캡처하고 체크리스트, 구독, 댓글, 일괄 변경, 라벨, 즐겨찾기 상호작용을 확인했다. 이 과정에서 타임리프 JS 인라인 뒤 덧셈이 지워지는 오류, `commentNotiReceivers` 404, `usermenuTabContentList` 403을 찾아 고쳤다. 남은 콘솔 오류는 v1.6 코드 자체의 R-30뿐이다.
+- 2026-10-23, 4단계(알림 서브시스템): Playwright로 새 v2 화면 3곳(홈 알림 목록, 알림 설정 탭, 프로젝트 구독자)을 캡처하고, 사용자 가입, 프로젝트 구독, 이슈와 글 작성, 이슈 닫기로 알림 3건이 홈에 쌓이는 것, 설정 스위치가 저장되는 것, 구독 해제 시 설정 탭이 비는 것, 스케줄러가 알림 메일 3통(To=사이트 주소, Bcc=구독자, 새 이슈와 새 글의 Message-ID, 멘션 링크, 절대 주소)을 간이 SMTP 수신기로 보낸 것을 확인했다. 브라우저 콘솔 오류는 없었다. 이 과정에서 영어 사용자에게 누락 메시지 키가 `??키_en_US??`로 보이는 것을 찾아 A-62로 고쳤다.
 
 ## 단계별로 남겨 둔 연결 고리
 
@@ -71,7 +73,7 @@ updated: 2026-10-22
 
 | 비워 둔 곳 | 채울 단계 |
 |---|---|
-| 홈의 알림 항목 표시와 More 버튼, `GET /notification` | 4 |
+| 홈의 알림 항목 표시와 More 버튼, `GET /notification` | 4에서 완료 |
 | `GET /user/sidebar`와 사이드바 목록, `GET /user/usermenuTabContentList` | 2d-5에서 완료 |
 | `ErrorViews`의 조직 변형 | 소셜 로그인 버튼 영역, 사이트 업데이트 알림 | 7, 6 |
 | 최초 기동 시 관리자 비밀번호 설정 화면(`welcome/secret`) | 6 |

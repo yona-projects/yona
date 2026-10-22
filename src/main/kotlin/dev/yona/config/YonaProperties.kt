@@ -28,6 +28,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property parsersTextMaxLength 폼(`application/x-www-form-urlencoded`) 본문의 최대 바이트. 넘으면 폼 값을 읽지 못한 것으로 처리한다 (`parsers.text.maxLength`, 기본 102400)
  * @property notificationDraftTime 같은 사용자가 같은 리소스에 같은 종류의 알림을 이 시간(밀리초) 안에 연달아 만들면 하나로 합친다 (`application.notification.draft-time`, 기본 30초)
  * @property notificationKeepTime 알림 이벤트를 보관하는 일수. 0 이하이면 지우지 않는다 (`application.notification.keep-time`, 기본 -1)
+ * @property notificationMailEnabled 알림 메일을 보낸다. 끄면 발송 스케줄러를 시작하지 않는다 (`notification.bymail.enabled`, 기본 켬)
+ * @property notificationMailHideAddress 받는 사람 주소를 서로 숨긴다. 켜면 받는 사람(To)에는 사이트 발신 주소를 쓰고 사용자는 숨은참조(Bcc)에 넣는다 (`application.notification.bymail.hideAddress`, 기본 켬)
+ * @property notificationMailRecipientLimit 메일 한 통에 넣을 수 있는 받는 사람 수. 0이면 제한이 없다 (`application.notification.bymail.recipientLimit`, 기본 0)
+ * @property notificationMailInitDelay 기동 후 첫 발송까지 기다리는 시간(밀리초) (`application.notification.bymail.initdelay`, 기본 5초)
+ * @property notificationMailInterval 발송 주기(밀리초) (`application.notification.bymail.interval`, 기본 60초)
+ * @property notificationMailDelay 알림 이벤트를 만든 뒤 메일로 보내기까지 기다리는 시간(밀리초). 그 사이 연달아 일어난 알림을 묶을 수 있다 (`application.notification.bymail.delay`, 기본 180초)
+ * @property smtp 보내는 메일 주소 설정이다. SMTP 접속 정보는 `spring.mail.*`로 설정한다
+ * @property easymail 가입 안내 메일의 보내는 사람이다 (`play-easymail.from.*`)
  * @property issueEventDraftTime 같은 사용자가 같은 종류의 이슈 변경을 이 시간(밀리초) 안에 연달아 하면 하나로 합친다 (`application.issue-event.draft-time`, 기본 30초)
  * @property translationApi 번역 API 주소. 비우면 번역 단추를 숨긴다 (`application.extras.translation.api`)
  * @property translationHeaderKey 번역 API 요청에 붙일 인증 헤더 이름 (`application.extras.translation.headerKey`)
@@ -59,6 +67,14 @@ data class YonaProperties(
     val applicationContext: String = "",
     val parsersTextMaxLength: Long = 102_400L,
     val issueEventDraftTime: Long = 30_000L,
+    val notificationMailEnabled: Boolean = true,
+    val notificationMailHideAddress: Boolean = true,
+    val notificationMailRecipientLimit: Int = 0,
+    val notificationMailInitDelay: Long = 5_000L,
+    val notificationMailInterval: Long = 60_000L,
+    val notificationMailDelay: Long = 180_000L,
+    val smtp: Smtp = Smtp(),
+    val easymail: Easymail = Easymail(),
     val notificationDraftTime: Long = 30_000L,
     val notificationKeepTime: Int = -1,
     val translationApi: String = "",
@@ -76,6 +92,24 @@ data class YonaProperties(
 ) {
     /** 번역 API가 설정되어 있으면 `true`이다. 화면의 번역 단추를 보일지 정한다. */
     val translationApiConfigured: Boolean get() = translationApi.isNotBlank()
+
+    /**
+     * 보내는 메일 주소 설정이다 (v1.6 `smtp.user`, `smtp.domain`과 `Config.getEmailFromSmtp()`).
+     * 주소는 `user`에 `@`가 있으면 그 값이고, 없으면 `user@domain`이다. `domain`이 비면 사이트 호스트 이름을 쓴다.
+     */
+    data class Smtp(
+        val user: String = "",
+        val domain: String = ""
+    )
+
+    /**
+     * 가입 안내 메일의 보내는 사람이다 (v1.6 `play-easymail.from.email`, `play-easymail.from.name`).
+     * `fromEmail`을 비우면 알림 메일과 같은 보내는 주소(`smtp`)를 쓴다.
+     */
+    data class Easymail(
+        val fromEmail: String = "",
+        val fromName: String = "yona-no-reply"
+    )
 
     /** 가입 정책 설정이다. */
     data class Signup(

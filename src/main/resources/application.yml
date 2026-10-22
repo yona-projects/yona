@@ -1,3 +1,9 @@
+yona:
+  smtp:
+    # 알림 메일의 보내는 주소: `user@domain`(domain을 비우면 사이트 호스트 이름). 접속 정보는 spring.mail.*로 설정한다.
+    user: yona
+    domain: yona.local
+
 spring:
   application:
     name: yona
@@ -13,6 +19,8 @@ spring:
     basename: messages,messages-play
     encoding: UTF-8
     always-use-message-format: true
+    # 메시지 키가 없으면 Play처럼 키 이름을 그대로 보여 준다(Spring 기본은 `??키_로캘??`). v1.6 영어 메시지에 없는 키가 있다.
+    use-code-as-default-message: true
     # 번역이 없으면 서버의 시스템 로캘이 아니라 기본(영어) 메시지를 쓴다.
     fallback-to-system-locale: false
   jpa:

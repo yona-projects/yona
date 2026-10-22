@@ -20,6 +20,9 @@ interface NotificationEventRepository : JpaRepository<NotificationEvent, Long> {
     /** 리소스에 가장 최근에 만든 이벤트 가운데 [since] 이후의 것이다 (v1.6 `NotificationEvent.add`의 합치기 대상 조회). */
     fun findFirstByResourceIdAndResourceTypeAndCreatedAfterOrderByIdDesc(resourceId: String, resourceType: dev.yona.domain.enumeration.ResourceType, since: java.util.Date): NotificationEvent?
 
+    /** 만든 지 [threshold] 이전인 이벤트를 조회한다 (보관 기간 정리). */
+    fun findByCreatedBefore(threshold: java.util.Date): List<NotificationEvent>
+
     /** 리소스에 걸린 이벤트를 모두 조회한다 (v1.6 `NotificationEvent.deleteBy`). */
     fun findByResourceTypeAndResourceId(resourceType: dev.yona.domain.enumeration.ResourceType, resourceId: String): List<NotificationEvent>
 
@@ -44,7 +47,13 @@ class OffsetPageRequest(private val offset: Long, private val limit: Int) : Page
 /** 사용자가 프로젝트에서 이벤트 종류별로 알림을 받겠다(또는 받지 않겠다)고 정한 설정의 저장소이다. */
 interface UserProjectNotificationRepository : JpaRepository<UserProjectNotification, Long> {
 
-    /** 프로젝트에서 [eventType] 알림을 받겠다([allowed]=`true`)거나 받지 않겠다(`false`)고 정한 설정이다 (v1.6 `UserProjectNotification.findByEventTypeAndOption`). */
+    /** 사용자가 정한 모든 프로젝트 알림 설정이다. */
+    fun findByUserId(userId: Long): List<UserProjectNotification>
+
+    /** 사용자가 한 프로젝트에 정한 알림 설정이다. */
+    fun findByUserIdAndProjectId(userId: Long, projectId: Long): List<UserProjectNotification>
+
+    /** 사용자가 프로젝트에서 [notificationType] 알림에 정한 설정이다. */
     fun findByUserIdAndProjectIdAndNotificationType(userId: Long, projectId: Long, notificationType: dev.yona.domain.enumeration.EventType): List<UserProjectNotification>
 
     /** 프로젝트에서 [eventType] 알림을 받겠다([allowed]=`true`)거나 받지 않겠다(`false`)고 정한 설정이다 (v1.6 `UserProjectNotification.findByEventTypeAndOption`). */

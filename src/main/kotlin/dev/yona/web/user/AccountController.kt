@@ -3,6 +3,12 @@ package dev.yona.web.user
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
+import dev.yona.domain.enumeration.ResourceType
+import dev.yona.domain.enumeration.descr
+import dev.yona.domain.enumeration.notiTypes
+import dev.yona.domain.misc.WatchRepository
+import dev.yona.domain.notification.ProjectNotificationService
+import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.user.AccountService
 import dev.yona.domain.user.EmailRepository
 import dev.yona.domain.user.User
@@ -46,11 +52,20 @@ class AccountController(
     private val accessControl: AccessControl,
     private val avatars: AvatarService,
     private val loginSession: LoginSessionService,
-    private val flashTranslator: FlashMessageTranslator
+    private val flashTranslator: FlashMessageTranslator,
+    private val projectNotifications: ProjectNotificationService,
+    private val watches: WatchRepository,
+    private val projects: ProjectRepository
 ) {
 
     /** 화면에 보일 계정 정보이다. */
     data class AccountView(val loginId: String, val name: String, val rawName: String, val email: String, val token: String?, val avatarUrl80: String, val avatarUrl256: String)
+
+    /** 알림 설정 탭의 프로젝트 한 칸이다. */
+    data class NotificationSettingProject(val id: Long, val owner: String, val name: String, val rows: List<NotificationSettingRow>)
+
+    /** 알림 설정 탭에서 이벤트 종류 하나의 스위치이다. [descrKey]는 종류 설명의 메시지 키이다. */
+    data class NotificationSettingRow(val type: String, val descrKey: String, val enabled: Boolean)
 
     /** 보조 이메일 한 줄이다. */
     data class SubEmail(val id: Long, val email: String, val valid: Boolean, val avatarUrl: String)
@@ -73,7 +88,7 @@ class AccountController(
                 tabView("user/edit-token", user, "token")
             }
             "profile" -> profileView(user, null)
-            "notifications" -> throw UnsupportedOperationException("알림 탭은 알림 서브시스템을 옮길 때 만든다.")
+            "notifications" -> notificationsView(user)
             else -> throw IllegalArgumentException("Invalid tabId")
         }
     }
@@ -184,6 +199,17 @@ class AccountController(
         val view = tabView("user/edit", user, "profile")
         warningKey?.let { view.addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to it))) }
         return view
+    }
+
+    /** 구독한 프로젝트마다 이벤트 종류별 알림 스위치를 보여 주는 탭이다 (v1.6 `edit_notifications`). */
+    private fun notificationsView(user: User): ModelAndView {
+        val settings = projectNotifications.byProject(user)
+        val items = watches.findByUserIdAndResourceType(requireNotNull(user.id), ResourceType.PROJECT).mapNotNull { watch ->
+            val project = watch.resourceId?.toLongOrNull()?.let { projects.findById(it).orElse(null) } ?: return@mapNotNull null
+            val id = requireNotNull(project.id)
+            NotificationSettingProject(id, project.owner.orEmpty(), project.name.orEmpty(), notiTypes.map { NotificationSettingRow(it.name, it.descr, projectNotifications.isEnabled(settings, id, it)) })
+        }
+        return tabView("user/edit-notifications", user, "notifications").addObject("notificationProjects", items)
     }
 
     private fun tabView(template: String, user: User, tabId: String): ModelAndView = ModelAndView(template)

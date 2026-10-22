@@ -32,6 +32,14 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `application.use.social.login.only` | `yona.social-login-only` | `false` | 화면에서만 사용(로그인 컨트롤러는 아직 반영 안 함) |
 | `application.maxFileSize` | `yona.max-file-size` | `2147483454` | 사용 중 |
 | `signup.require.admin.confirm` | `yona.signup.require-admin-confirm` | `false` | 사용 중 |
+| `notification.bymail.enabled` | `yona.notification-mail-enabled` | `true` | 사용 중(알림 메일 스케줄러) |
+| `application.notification.bymail.hideAddress` | `yona.notification-mail-hide-address` | `true` | 사용 중 |
+| `application.notification.bymail.recipientLimit` | `yona.notification-mail-recipient-limit` | `0`(제한 없음) | 사용 중 |
+| `application.notification.bymail.initdelay` / `.interval` / `.delay` | `yona.notification-mail-init-delay` / `-interval` / `-delay` (밀리초) | `5000` / `60000` / `180000` | 사용 중 |
+| `application.notification.keep-time` | `yona.notification-keep-time` (일) | `-1` (지우지 않음) | 사용 중(알림 정리) |
+| `application.notification.draft-time` | `yona.notification-draft-time` (밀리초) | `30000` | 사용 중(알림 합치기) |
+| `play-easymail.from.email` / `.name` | `yona.easymail.from-email` / `from-name` | 빈 문자열(smtp 주소) / `yona-no-reply` | 사용 중(가입 안내 메일). A-58 |
+| `smtp.user` / `smtp.domain` | `yona.smtp.user` / `yona.smtp.domain` | 빈 문자열 | 사용 중(보내는 주소). 접속 정보(`smtp.host` 등)는 `spring.mail.*`로 옮겼다 |
 | (v2 신규) | `yona.gravatar.check` | `true` | 사용 중. 끄면 기동 시 Gravatar 접속 검사를 건너뛰고 기본 아바타를 쓴다 |
 
 아직 옮기지 않은 v1.6 키는 해당 기능을 이식할 때 이 표에 추가한다.

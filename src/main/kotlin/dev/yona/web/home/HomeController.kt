@@ -22,15 +22,15 @@ import org.springframework.web.servlet.ModelAndView
  * - 익명 사용자에게는 사이트 소개를, 로그인한 사용자에게는 환영 표와 알림 목록을 보여 준다.
  * - 홈(`/`)은 사용자가 기본 로그인 페이지를 정해 두었으면 그곳으로 보낸다. 알림 화면(`/notifications`)은 보내지 않는다.
  *
- * 알림 항목(제목, 본문, 링크)의 표시는 알림 서브시스템을 옮길 때 추가한다. 이 화면은 아직 알림이 하나도
- * 만들어지지 않은 상태에서 동작한다.
+ * 알림 항목은 [NotificationItemAssembler]가 만든다. 더 보기는 [NotificationController]가 맡는다.
  */
 @Controller
 @AnonymousCheck
 class HomeController(
     private val currentUserProvider: CurrentUserProvider,
     private val userSettings: UserSettingRepository,
-    private val notificationEvents: NotificationEventRepository
+    private val notificationEvents: NotificationEventRepository,
+    private val items: NotificationItemAssembler
 ) {
 
     @GetMapping("/")
@@ -65,7 +65,7 @@ class HomeController(
 
     private fun notificationsPage(): ModelAndView {
         val user = currentUserProvider.get().user
-        val notifications = user?.let { notificationEvents.findByReceiver(it, 0, PAGE_SIZE) }.orEmpty()
+        val notifications = user?.let { items.assemble(notificationEvents.findByReceiver(it, 0, PAGE_SIZE), it) }.orEmpty()
         return ModelAndView("index/notifications")
             .addObject("notifications", notifications)
             .addObject("menuTab", "TAB_NOTI")

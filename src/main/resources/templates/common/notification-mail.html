@@ -1,0 +1,17 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/common/notificationMail.scala.html
+  모델: message(HTML), urlToView(이동 주소 또는 null), siteName, acceptsReply, unwatchUrl, settingsUrl
+  메일 본문 틀이다. 요청 없이 스케줄러에서 렌더링하므로 웹 전용 표현식(@{}, #request)은 쓰지 않는다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org"><div style="font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;" th:utext="${message}"></div>
+
+<hr style="border:0; border-bottom:1px solid #ddd; margin:20px 0;">
+
+<th:block th:if="${urlToView != null}"><th:block th:utext="${acceptsReply} ? #{notification.replyOrLinkToViewHtml(${siteName},${urlToView},'_blank')} : #{notification.linkToViewHtml(${siteName},${urlToView},'_blank')}"></th:block></th:block>
+
+<div style="max-width:410px;margin-top:20px;color:#989898;text-align:justify;word-break:break-all;font-size:11px;font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;"><th:block th:utext="#{notification.off.unwatch(${unwatchLink})}"></th:block><br><th:block th:utext="#{notification.off.settings(${settingsLink})}"></th:block></div>
+</th:block>

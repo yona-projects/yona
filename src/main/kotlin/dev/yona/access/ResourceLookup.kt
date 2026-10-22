@@ -30,6 +30,14 @@ class ResourceLookup(
     private val organizations: OrganizationRepository
 ) {
 
+    /** 리소스가 아직 있으면 `true`이다 (v1.6 `Resource.exists`). */
+    fun exists(type: ResourceType, id: String): Boolean = try {
+        get(type, id)
+        true
+    } catch (e: RuntimeException) {
+        false
+    }
+
     /** [type]과 [id]에 해당하는 리소스를 찾는다. */
     fun get(type: ResourceType, id: String): Resource {
         val longId = id.toLong()

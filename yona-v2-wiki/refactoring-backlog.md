@@ -36,3 +36,8 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-29 | 게시판 라벨 변경 | 라벨을 바꿀 때마다 `posting.save()`가 불려 제목 머리말 개수(`TitleHead`)가 한 번씩 늘어난다 | 같게 재현한다 | `BoardApi.java:42-63`, `AbstractPosting.java:113-125` |
 | R-30 | 게시판 보기의 라벨 변경 | 라벨을 고르면 요청은 성공하지만 `$.ajax(...).done(...).error(...)`의 `.error`가 jQuery 3에 없어 브라우저 콘솔에 `TypeError`가 난다 | 같게 재현한다 | `board/view.scala.html`(라벨 `change` 핸들러) |
 | R-31 | 사용자 메뉴의 즐겨찾기 탭 | 내 프로젝트도 조직도 없으면 즐겨찾기 프로젝트가 있어도 탭 전체가 "No results"이다(`etc-favorites`는 빈 `ul`이고 줄이 `ul` 바깥에 이어진다) | 같게 재현한다 | `index/myOrganizationList.scala.html:12` |
+| R-32 | 알림 메일의 "마일스톤 없음" 문구 | 마일스톤 변경 알림에서 마일스톤이 없을 때의 문구를 받는 사람의 언어가 아니라 서버 기본 언어로 만든다 | 같게 재현한다 | `NotificationEvent.java:132-136` |
+| R-33 | 알림 메일의 일반 텍스트 본문 | 끝에 붙는 안내 문장("Yona 에서 자세히 보거나 혹은 이 메일에 직접 회신하실 수도 있습니다.")이 한국어로 고정이고 메일에 답장이 되지 않아도 붙는다 | 같게 재현한다 | `NotificationMail.java:getPlainMessage` |
+| R-34 | 프로젝트 이전 요청 메일 | 받는 사람(To)의 이름이 `Yobi`로 고정이고, 받는 사람이 사용자인지 조직인지에 따라 같은 메일에 Bcc만 달라진다 | 같게 재현한다 | `ProjectApp.java:sendTransferRequestMail` |
+| R-35 | 홈 알림 목록의 본문 언어 | 본문을 로그인한 사용자의 언어가 아니라 서버 기본 언어로 만든다 | 같게 재현한다 | `partial_notifications.scala.html` (`getMessage` 기본 언어) |
+

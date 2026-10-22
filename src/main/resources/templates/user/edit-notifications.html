@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/edit_notifications.scala.html
+  모델: title, notificationProjects(NotificationSettingProject 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::notificationsPage})}">
+<th:block th:fragment="notificationsPage">
+<div class="site-breadcrumb-outer">
+  <div class="site-breadcrumb-inner">
+    <h3 th:text="#{userinfo.accountSetting}"></h3>
+  </div>
+</div>
+<div class="page-wrap-outer">
+  <div class="page-wrap">
+    <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('notifications')}"></th:block>
+
+    <div>
+      <ul id="notification-projects" class="unstyled lst-stacked span3 mr20">
+        <li th:each="project, stat : ${notificationProjects}" th:class="${stat.first} ? 'active'">
+          <a th:href="'#' + ${project.id}" data-toggle="tab"><th:block th:text="${project.owner}"></th:block> / <th:block th:text="${project.name}"></th:block></a>
+        </li>
+      </ul>
+      <div class="tab-content">
+        <div th:each="project, stat : ${notificationProjects}" th:id="${project.id}" th:class="'tab-pane ' + (${stat.first} ? 'active' : '')">
+          <table class="table table-striped table-bordered">
+            <tr th:each="row : ${project.rows}">
+              <th th:text="#{${row.descrKey}}"></th>
+              <td>
+                <div class="switch" data-on-label="On" data-off-label="Off">
+                  <input class="notiUpdate" th:attr="data-href=@{/noti/toggle/{id}/{type}(id=${project.id},type=${row.type})}" type="checkbox" data-toggle="switch" th:checked="${row.enabled}">
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+</th:block>
+</html>
