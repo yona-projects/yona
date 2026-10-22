@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/branches.scala.html, partial_branchrow.scala.html
+  모델: title, projectView, filesTabUrl, commitsTabUrl, showActions, rows(BranchRow 목록. 첫 줄이 기본 브랜치)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::branchesPage})}">
+<th:block th:fragment="branchesPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="bubble-wrap dark-gray repo-wrap">
+            <div class="code-browse-wrap">
+                <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                    <li><a th:href="${filesTabUrl}" th:text="#{code.files}"></a></li>
+                    <li><a th:href="${commitsTabUrl}" th:text="#{code.commits}"></a></li>
+                    <li class="active"><a th:href="@{/{owner}/{name}/branches(owner=${project.owner},name=${project.name})}" th:text="#{title.branches}"></a></li>
+                </ul>
+
+                <table class="table branch-list-wrap">
+                    <thead class="thead">
+                        <tr>
+                            <th th:text="#{title.branches}"></th>
+                            <th th:text="#{code.branches.commit}"></th>
+                            <th th:text="#{code.branches.pullRequest}"></th>
+                            <th th:if="${showActions}"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="b : ${rows}" th:class="${b.head} ? 'head'">
+                            <td class="branchName">
+                                <a th:href="${b.codeUrl}" th:text="${b.shortName}"></a>
+                                <span th:if="${b.head}" class="headBranch ml10" th:text="#{code.branches.defaultBranch}"></span>
+                            </td>
+                            <td class="commit">
+                                <a th:href="${b.historyUrl}" class="commitId" th:title="${b.commitId}" th:text="${b.commitShortId}"></a>
+                                <span class="date" data-toggle="tooltip" data-placement="top" th:title="${b.dateTitle}" th:text="${b.date}"></span>
+                            </td>
+                            <td class="pullRequest">
+                                <a th:if="${b.pullRequestUrl != null}" th:href="${b.pullRequestUrl}" th:class="'blue-txt pullrequest-state ' + ${b.pullRequestState}"
+                                   data-toggle="tooltip" data-placement="top" th:title="#{'pullRequest.state.' + ${b.pullRequestState}}" th:text="${b.pullRequestLabel}"></a>
+                                <span th:if="${b.pullRequestUrl == null}" class="disabled" th:text="#{code.branches.noPullRequest}"></span>
+                            </td>
+                            <td class="actions" th:if="${showActions}">
+                                <button th:if="${b.setDefaultUrl != null}" type="button" class="ybtn ybtn-default ybtn-small" data-request-method="post"
+                                        th:attr="data-request-uri=${b.setDefaultUrl}" th:text="#{code.branches.setAsDefault}"></button>
+                                <a th:if="${b.deleteUrl != null}" th:href="${b.deleteUrl}" class="ybtn ybtn-danger ybtn-small" data-request-method="delete" th:text="#{button.delete}"></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("button.moreBtn").on("click", function(){
+            $(this).next("pre.commitMsg.desc").toggleClass("hidden");
+        });
+    });
+</script>
+</th:block>
+</html>

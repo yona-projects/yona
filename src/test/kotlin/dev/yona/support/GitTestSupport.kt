@@ -60,12 +60,12 @@ object GitTestSupport {
      * 임시 작업 저장소에서 [commits]를 차례로 만들어 [project] 저장소의 [branch] 브랜치로 밀어 넣는다. 커밋 시각은 2023-11-14부터 하루씩 늘어난다.
      * 저장소가 비어 있으면 `HEAD`가 [branch]를 가리키게 한다.
      */
-    fun pushCommits(repositories: RepositoryService, project: Project, vararg commits: TestCommit, branch: String = "master") {
+    fun pushCommits(repositories: RepositoryService, project: Project, vararg commits: TestCommit, branch: String = "master", startTime: Long = 1_700_000_000_000L) {
         val bare = repositories.openRepository(project).use { it.directory }
         val work: File = Files.createTempDirectory("yona-it-work").toFile()
         try {
             Git.init().setDirectory(work).setInitialBranch(branch).call().use { git ->
-                var time = 1_700_000_000_000L
+                var time = startTime
                 for (commit in commits) {
                     commit.files.forEach { (path, bytes) ->
                         val file = File(work, path)

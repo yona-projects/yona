@@ -36,10 +36,22 @@ updated: 2026-10-23
 - 파일 보기: 작성자, 시각, 리비전(7자), 커밋 메시지, 줄바꿈 종류, Raw와 Edit(로그인), 브라우저로 열기, 변경 이력. 본문은 이미지, 이진 파일 안내, 너무 큰 파일 안내, 마크다운 렌더링(`.md` 등), 코드(`#codeVal` 숨김 + `pre#showCode`, ace가 색을 입힌다)이다.
 - 브랜치와 리비전을 주소에 넣을 때는 v1.6처럼 두 번 인코딩한다(`feature/x` → `feature%252Fx`). 서버는 한 번 디코딩해 받은 값을 `decodePathSegment`로 한 번 더 디코딩한다. 그래서 `SecurityConfig`가 방화벽의 `%25`, `%2F` 거부를 푼다([decisions.md] A-69).
 
+## 브랜치 목록, 기본 브랜치, 삭제
+
+구현: `BranchController`(웹), `BranchService`(저장소), `code/branches.html`. Git 프로젝트에서만 동작한다(`@IsOnlyGitAvailable`, 아니면 `400`).
+
+| 요청 | 동작 |
+|---|---|
+| `GET /:user/:project/branches` | 기본 브랜치(HEAD가 가리키는 브랜치)를 맨 위에 두고 나머지는 머리 커밋이 최근인 순서. 열: 브랜치(링크, 기본 브랜치 표시), 최근 커밋(7자리 번호, 시각), 최근 풀 리퀘스트(없으면 "No pull request…"). 수정 권한이 있으면 기본이 아닌 브랜치마다 "Set as default branch", 삭제 권한이 있으면 기본이 아닌 브랜치마다 삭제 단추 |
+| `POST …/code/:branch/setAsDefault` | 수정 권한. `HEAD`를 브랜치로 바꾼다. 비동기 요청이면 `200`, 아니면 목록으로 `303` |
+| `DELETE …/code/:branch/` | 삭제 권한. 브랜치를 강제로 지우고 목록으로 `303` |
+
+브랜치 이름은 참조 전체 이름(`refs/heads/master`)으로 주소에 넣고 두 번 인코딩한다. 포크한 프로젝트의 브랜치는 원본으로 보낸 풀 리퀘스트도 "최근 풀 리퀘스트"로 찾는다. 태그와 원격 참조도 목록에 나온다(v1.6 그대로).
+
 ## v1.6과 다른 점과 재현한 결함
 
 [decisions.md] A-67(폴더 메타데이터를 캐시하지 않음), A-68(없는 원본 파일은 `404`), A-69(방화벽 설정), A-70(이동 경로 이스케이프). 재현한 결함은 [refactoring-backlog.md] R-38(폴더 이동 주소에 `#cb-…` 앵커가 붙지 않음), R-39(이진 파일 안내의 크기 표시가 비어 있음).
 
 ## 테스트
 
-`CodeBrowserServiceTest` 11건(실제 저장소에 커밋을 만들어 폴더, 파일, 중간 폴더 건너뛰기, 이진, 큰 파일, 브랜치, 상위 폴더, 원본, zip), `CodeBrowserWebTest` 14건.
+`CodeBrowserServiceTest` 11건(실제 저장소에 커밋을 만들어 폴더, 파일, 중간 폴더 건너뛰기, 이진, 큰 파일, 브랜치, 상위 폴더, 원본, zip), `CodeBrowserWebTest` 14건, `BranchesTest` 7건.

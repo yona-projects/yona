@@ -238,3 +238,6 @@
 
 ## [2026-10-23] ingest | 코드 브라우저 (5단계 5b-1)
 - TDD: CodeBrowserServiceTest 11, CodeBrowserWebTest 14. A-67~A-70, R-38, R-39. jgit.archive 의존성 추가, MediaTypes와 UrlPaths 공용화.
+
+## [2026-10-23] ingest | 브랜치 목록, 기본 브랜치, 삭제 (5단계 5b-2)
+- TDD: BranchesTest 7.
