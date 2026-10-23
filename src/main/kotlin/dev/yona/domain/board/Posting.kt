@@ -1,5 +1,6 @@
 package dev.yona.domain.board
 
+import org.hibernate.annotations.ColumnDefault
 import dev.yona.domain.LONG_TEXT
 import dev.yona.domain.issue.IssueLabel
 import dev.yona.domain.project.Project
@@ -41,7 +42,9 @@ class Posting(
     var number: Long? = null,
     @Column(name = "num_of_comments")
     var numOfComments: Int? = null,
+    @ColumnDefault("false")
     var notice: Boolean? = false,
+    @ColumnDefault("false")
     var readme: Boolean? = false,
     @Column(length = LONG_TEXT)
     var history: String? = null,

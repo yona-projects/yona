@@ -1,5 +1,6 @@
 package dev.yona.domain.issue
 
+import org.hibernate.annotations.ColumnDefault
 import dev.yona.domain.LONG_TEXT
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.State
@@ -48,7 +49,7 @@ class Issue(
     var authorLoginId: String? = null,
     @Column(name = "author_name")
     var authorName: String? = null,
-    @ManyToOne @OnDelete(action = OnDeleteAction.CASCADE) @JoinColumn(name = "project_id")
+    @ManyToOne @OnDelete(action = OnDeleteAction.CASCADE) @JoinColumn(name = "project_id", foreignKey = ForeignKey(foreignKeyDefinition = "foreign key (project_id) references project (id) on update cascade"))
     var project: Project? = null,
     var number: Long? = null,
     @Column(name = "num_of_comments")
@@ -58,17 +59,19 @@ class Issue(
     var dueDate: Date? = null,
     @ManyToOne @JoinColumn(name = "milestone_id")
     var milestone: Milestone? = null,
-    @ManyToOne @OnDelete(action = OnDeleteAction.SET_NULL) @JoinColumn(name = "assignee_id")
+    @ManyToOne @OnDelete(action = OnDeleteAction.SET_NULL) @JoinColumn(name = "assignee_id", foreignKey = ForeignKey(foreignKeyDefinition = "foreign key (assignee_id) references assignee (id) on update cascade"))
     var assignee: Assignee? = null,
     @Column(length = LONG_TEXT)
     var history: String? = null,
     @ManyToOne @OnDelete(action = OnDeleteAction.SET_NULL) @JoinColumn(name = "parent_id")
     var parent: Issue? = null,
     @JdbcTypeCode(SqlTypes.TINYINT)
+    @ColumnDefault("0")
     var weight: Int? = 0,
     @Column(name = "updated_by_author_id")
     var updatedByAuthorId: Long? = null,
     @Column(name = "is_draft")
+    @ColumnDefault("false")
     var isDraft: Boolean? = false,
     @ManyToMany @JoinTable(
         name = "issue_issue_label",
@@ -210,6 +213,7 @@ class IssueLabelCategory(
     var project: Project? = null,
     var name: String? = null,
     @Column(name = "is_exclusive")
+    @ColumnDefault("false")
     var isExclusive: Boolean? = false
 )
 

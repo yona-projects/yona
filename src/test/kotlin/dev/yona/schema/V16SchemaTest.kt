@@ -20,7 +20,10 @@ import kotlin.test.assertTrue
  * - 인덱스(이름, 컬럼 순서, 유니크 여부)
  * - 외래 키의 참조 대상과 삭제 규칙
  *
- * 컬럼 기본값은 비교하지 않는다. 기본값은 엔티티 생성자가 채우고 DB에는 두지 않는다.
+ * - 컬럼 기본값과 자동 증가 여부
+ * - 외래 키의 갱신(`ON UPDATE`) 규칙
+ *
+ * 비교하지 않는 항목은 외래 키 이름과 문자 집합이다.
  */
 class V16SchemaTest : AbstractIntegrationTest() {
 
@@ -107,5 +110,31 @@ class V16SchemaTest : AbstractIntegrationTest() {
         assertEquals(1, jdbc.queryForObject("select count(*) from property where name = 'FUTURE_KEY'", Int::class.java))
         assertEquals(1, jdbc.queryForObject("select count(*) from issue where state = 99", Int::class.java))
         assertEquals(1, jdbc.queryForObject("select count(*) from webhook where webhook_type = 99", Int::class.java))
+    }
+
+    @Test
+    fun `컬럼 기본값이 v1_6과 같다`() {
+        val actual = SchemaMetadata.actualDefaults(dataSource)
+        val problems = SchemaMetadata.v16Defaults().flatMap { (table, columns) ->
+            columns.mapNotNull { (c, expected) ->
+                val a = actual[table]?.get(c)
+                if (actual[table]?.containsKey(c) == true && a != expected) "$table.$c 기대=$expected 실제=$a" else null
+            }
+        }
+        assertTrue(problems.isEmpty(), "기본값 불일치 ${problems.size}건:\n" + problems.sorted().joinToString("\n"))
+    }
+
+    @Test
+    fun `자동 증가 컬럼이 v1_6과 같다`() {
+        assertEquals(SchemaMetadata.v16AutoIncrement(), SchemaMetadata.actualAutoIncrement(dataSource))
+    }
+
+    @Test
+    fun `외래 키의 갱신 규칙이 v1_6과 같다`() {
+        val actual = SchemaMetadata.actualUpdateRules(dataSource)
+        val problems = SchemaMetadata.v16UpdateRules().flatMap { (table, columns) ->
+            columns.mapNotNull { (c, expected) -> actual[table]?.get(c)?.takeIf { it != expected }?.let { "$table.$c 기대=$expected 실제=$it" } }
+        }
+        assertTrue(problems.isEmpty(), "갱신 규칙 불일치 ${problems.size}건:\n" + problems.sorted().joinToString("\n"))
     }
 }

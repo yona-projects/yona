@@ -1,5 +1,6 @@
 package dev.yona.domain.pullrequest
 
+import org.hibernate.annotations.ColumnDefault
 import dev.yona.domain.LONG_TEXT
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.PullRequestCommitState
@@ -44,8 +45,10 @@ class PullRequest(
     var received: Date? = null,
     var state: State? = null,
     @Column(name = "is_conflict")
+    @ColumnDefault("false")
     var isConflict: Boolean? = false,
     @Column(name = "is_merging")
+    @ColumnDefault("false")
     var isMerging: Boolean? = false,
     @Column(name = "last_commit_id")
     var lastCommitId: String? = null,

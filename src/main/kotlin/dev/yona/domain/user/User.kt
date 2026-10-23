@@ -1,5 +1,6 @@
 package dev.yona.domain.user
 
+import org.hibernate.annotations.ColumnDefault
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.Organization
@@ -32,6 +33,7 @@ class User(
     var passwordSalt: String? = null,
     var email: String? = null,
     @Column(name = "remember_me")
+    @ColumnDefault("false")
     var rememberMe: Boolean? = false,
     @Column(length = 7)
     var state: UserState? = null,
@@ -42,6 +44,7 @@ class User(
     var lang: String? = null,
     var token: String? = null,
     @Column(name = "is_guest")
+    @ColumnDefault("false")
     var isGuest: Boolean? = false,
     @Column(name = "english_name")
     var englishName: String? = null,
@@ -82,6 +85,7 @@ class Email(
     @ManyToOne @JoinColumn(name = "user_id")
     var user: User? = null,
     var email: String? = null,
+    @ColumnDefault("false")
     var valid: Boolean? = false,
     var token: String? = null
 )
@@ -103,8 +107,10 @@ class UserCredential(
     var loginId: String? = null,
     var email: String? = null,
     var name: String? = null,
+    @ColumnDefault("false")
     var active: Boolean? = false,
     @Column(name = "email_validated")
+    @ColumnDefault("false")
     var emailValidated: Boolean? = false
 )
 
@@ -187,5 +193,6 @@ class Role(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
     var name: String? = null,
+    @ColumnDefault("false")
     var active: Boolean? = false
 )

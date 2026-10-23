@@ -1,5 +1,6 @@
 package dev.yona.domain.project
 
+import org.hibernate.annotations.ColumnDefault
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.WebhookType
 import dev.yona.domain.issue.Label
@@ -40,6 +41,7 @@ class Project(
     @Column(name = "default_reviewer_count")
     var defaultReviewerCount: Int? = 1,
     @Column(name = "is_using_reviewer_count")
+    @ColumnDefault("false")
     var isUsingReviewerCount: Boolean? = false,
     @ManyToOne @JoinColumn(name = "organization_id")
     var organization: Organization? = null,
@@ -52,6 +54,7 @@ class Project(
     @Column(name = "previous_name_changed_time")
     var previousNameChangedTime: Long? = null,
     @Column(name = "is_code_accessible_member_only")
+    @ColumnDefault("false")
     var isCodeAccessibleMemberOnly: Boolean? = false,
     @ManyToMany @JoinTable(
         name = "project_label",
@@ -167,12 +170,18 @@ class ProjectMenuSetting(
     var id: Long? = null,
     @ManyToOne @JoinColumn(name = "project_id")
     var project: Project? = null,
+    @ColumnDefault("false")
     var code: Boolean? = false,
+    @ColumnDefault("false")
     var issue: Boolean? = false,
     @Column(name = "pull_request")
+    @ColumnDefault("false")
     var pullRequest: Boolean? = false,
+    @ColumnDefault("false")
     var review: Boolean? = false,
+    @ColumnDefault("false")
     var milestone: Boolean? = false,
+    @ColumnDefault("false")
     var board: Boolean? = false
 )
 
@@ -196,6 +205,7 @@ class ProjectTransfer(
     var requested: Date? = null,
     @Column(name = "confirm_key")
     var confirmKey: String? = null,
+    @ColumnDefault("false")
     var accepted: Boolean? = false,
     @Column(name = "new_project_name")
     var newProjectName: String? = null
@@ -236,7 +246,7 @@ class RecentProject(
     @Column(name = "user_id")
     var userId: Long? = null,
     var owner: String? = null,
-    @ManyToOne @OnDelete(action = OnDeleteAction.CASCADE) @JoinColumn(name = "project_id")
+    @ManyToOne @OnDelete(action = OnDeleteAction.CASCADE) @JoinColumn(name = "project_id", foreignKey = ForeignKey(foreignKeyDefinition = "foreign key (project_id) references project (id) on update cascade"))
     var project: Project? = null,
     @Column(name = "project_name")
     var projectName: String? = null
@@ -285,6 +295,7 @@ class Webhook(
     @Column(name = "git_push")
     var gitPush: Boolean? = null,
     @Column(name = "webhook_type")
+    @ColumnDefault("1")
     var webhookType: WebhookType? = WebhookType.DETAIL_SLACK
 )
 
@@ -345,7 +356,7 @@ class RecentlyVisitedProjects(
 class ProjectVisitation(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-    @ManyToOne @OnDelete(action = OnDeleteAction.CASCADE) @JoinColumn(name = "project_id")
+    @ManyToOne @OnDelete(action = OnDeleteAction.CASCADE) @JoinColumn(name = "project_id", foreignKey = ForeignKey(foreignKeyDefinition = "foreign key (project_id) references project (id) on update cascade"))
     var project: Project? = null,
     @ManyToOne @JoinColumn(name = "recently_visited_projects_id")
     var recentlyVisitedProjects: RecentlyVisitedProjects? = null,

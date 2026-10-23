@@ -193,4 +193,81 @@ object SchemaMetadata {
                 }
             }
         }
+
+    // --- 기본값, 자동 증가, 외래 키 갱신 규칙 ---
+
+    /** 기본값 문자열을 DB와 상관없이 비교할 수 있게 바꾼다. 불린은 `0`과 `1`로, 없음은 `null`로 본다. */
+    private fun normalizeDefault(value: String?): String? = when (value?.lowercase()?.removeSurrounding("'")) {
+        null, "null", "<null>" -> null
+        "false", "b'0'", "0" -> "0"
+        "true", "b'1'", "1" -> "1"
+        else -> value
+    }
+
+    private fun columnRows() = resource("v16-columns.tsv")
+
+    /** v1.6 컬럼의 기본값을 `테이블 -> (컬럼 -> 기본값)`으로 읽는다. 기본값이 없으면 `null`이다. 자동 증가 컬럼은 뺀다. */
+    fun v16Defaults(): Map<String, Map<String, String?>> =
+        columnRows().filter { !it[7].contains("auto_increment") }
+            .groupBy({ it[0].lowercase() }, { it[1].lowercase() to normalizeDefault(it[5]) }).mapValues { it.value.toMap() }
+
+    /** v1.6의 자동 증가 컬럼을 `테이블 -> 컬럼 집합`으로 읽는다. */
+    fun v16AutoIncrement(): Map<String, Set<String>> =
+        columnRows().filter { it[7].contains("auto_increment") }.groupBy({ it[0].lowercase() }, { it[1].lowercase() }).mapValues { it.value.toSet() }
+
+    /** v1.6 외래 키의 갱신(`ON UPDATE`) 규칙을 `테이블 -> (컬럼 -> 규칙)`으로 읽는다. */
+    fun v16UpdateRules(): Map<String, Map<String, String>> =
+        resource("v16-foreign-keys.tsv").groupBy({ it[0].lowercase() }, { it[2].lowercase() to it[6] }).mapValues { it.value.toMap() }
+
+    /** 실제 DB 컬럼의 기본값(자동 증가 컬럼 제외)을 읽는다. */
+    fun actualDefaults(dataSource: DataSource): Map<String, Map<String, String?>> =
+        dataSource.connection.use { c ->
+            c.tables { table ->
+                buildMap {
+                    c.metaData.getColumns(c.catalog, c.schema, table, "%").use { rs ->
+                        while (rs.next()) {
+                            if (rs.getString("IS_AUTOINCREMENT") == "YES") continue
+                            put(rs.getString("COLUMN_NAME").lowercase(), normalizeDefault(rs.getString("COLUMN_DEF")))
+                        }
+                    }
+                }
+            }
+        }
+
+    /** 실제 DB의 자동 증가 컬럼을 읽는다. */
+    fun actualAutoIncrement(dataSource: DataSource): Map<String, Set<String>> =
+        dataSource.connection.use { c ->
+            c.tables { table ->
+                buildSet {
+                    c.metaData.getColumns(c.catalog, c.schema, table, "%").use { rs ->
+                        while (rs.next()) if (rs.getString("IS_AUTOINCREMENT") == "YES") add(rs.getString("COLUMN_NAME").lowercase())
+                    }
+                }
+            }
+        }.filterValues { it.isNotEmpty() }
+
+    /**
+     * 실제 DB 외래 키의 갱신 규칙을 읽는다. `RESTRICT`와 `NO ACTION`은 PostgreSQL과 H2가 이름만 다르게 보고하는 같은 동작이므로
+     * `RESTRICT`로 합친다.
+     */
+    fun actualUpdateRules(dataSource: DataSource): Map<String, Map<String, String>> =
+        dataSource.connection.use { c ->
+            c.tables { table ->
+                buildMap {
+                    c.metaData.getImportedKeys(c.catalog, c.schema, table).use { rs ->
+                        while (rs.next()) {
+                            put(
+                                rs.getString("FKCOLUMN_NAME").lowercase(),
+                                when (rs.getInt("UPDATE_RULE")) {
+                                    java.sql.DatabaseMetaData.importedKeyCascade -> "CASCADE"
+                                    java.sql.DatabaseMetaData.importedKeySetNull -> "SET NULL"
+                                    java.sql.DatabaseMetaData.importedKeySetDefault -> "SET DEFAULT"
+                                    else -> "RESTRICT"
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
 }

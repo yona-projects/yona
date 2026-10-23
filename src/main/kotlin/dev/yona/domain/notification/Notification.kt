@@ -1,5 +1,6 @@
 package dev.yona.domain.notification
 
+import org.hibernate.annotations.ColumnDefault
 import dev.yona.domain.LONG_TEXT
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.ResourceType
@@ -80,6 +81,7 @@ class UserProjectNotification(
     var project: Project? = null,
     @Column(name = "notification_type", length = 34)
     var notificationType: EventType? = null,
+    @ColumnDefault("false")
     var allowed: Boolean? = false
 )
 
