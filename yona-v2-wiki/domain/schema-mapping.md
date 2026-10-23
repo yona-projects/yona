@@ -30,7 +30,9 @@ v1.6의 `conf/evolutions/default/1~32.sql`에서 `!Ups` 구간만 이어 붙여 
 | 외래 키 | 참조 대상 테이블과 삭제 규칙(`CASCADE`, `SET NULL`, `RESTRICT`) |
 | enum 값 제한 없음 | `property.name`, `issue.state`, `webhook.webhook_type`에 정의되지 않은 값을 저장할 수 있어야 한다 |
 
-비교하지 않는 항목: 컬럼 기본값(엔티티 생성자가 채운다), 외래 키 제약의 이름, 갱신 규칙(`ON UPDATE`), 문자 집합과 정렬 규칙.
+컬럼 기본값, 자동 증가 여부, 외래 키 갱신 규칙(`ON UPDATE`)도 비교한다(A-85). 불린 24개의 기본값은 `@ColumnDefault`로, `ON UPDATE CASCADE`가 필요한 외래 키 4개는 `foreignKeyDefinition`으로 맞췄다. PostgreSQL과 H2의 `NO ACTION`은 `RESTRICT`로 본다.
+
+비교하지 않는 항목: 외래 키 제약의 이름, 문자 집합과 정렬 규칙.
 
 테스트 도구 `SchemaMetadata`는 JDBC 메타데이터만 쓰므로 DB를 추가해도 그대로 재사용한다. H2가 외래 키마다 자동으로 만드는 인덱스(`fk...`)와 유니크 인덱스 이름 접미사(`_index_N`)는 H2 고유 동작이라 비교에서 제외한다.
 

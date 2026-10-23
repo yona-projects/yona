@@ -258,7 +258,7 @@ updated: 2026-10-22
 | A-01 | Kotlin 2.4.10, Testcontainers 2.0.5, jsoup 1.21.1 등 라이브러리 버전 | 이전에 다른 브랜치에서 쓰던 Kotlin 버전과 맞췄고 Docker 29와 호환되는 최신 Testcontainers를 골랐다 | 버전은 `build.gradle.kts` 한 곳에서 바꾼다 |
 | A-02 | Hibernate가 enum에 붙이는 `CHECK` 제약을 스키마 생성 직전에 리플렉션으로 제거(`EnumCheckConstraintRemover`) | D-07을 지키려면 제약을 막을 방법이 필요했는데 변환기, `@JdbcTypeCode`, `columnDefinition`으로는 막을 수 없었다 | Hibernate 내부 필드 이름에 의존한다. 버전이 바뀌어 필드 이름이 달라지면 스키마 테스트가 즉시 실패해 알려 준다. 대안은 DB별 방언 서브클래스 |
 | A-03 | PostgreSQL과 H2는 인덱스 이름이 스키마 전체에서 유일해야 해서 댓글 테이블의 인덱스 두 개 이름만 변경(`ix_issue_comment_parent_id`, `ix_posting_comment_parent_id`) | v1.6(MariaDB)은 같은 이름을 두 테이블에 만들었지만 PostgreSQL에서는 불가능하다 | 컬럼 구성은 같다. MariaDB 전용으로만 쓴다면 원래 이름으로 되돌릴 수 있다 |
-| A-04 | 스키마 대조에서 비교하지 않는 항목: 컬럼 기본값, 외래 키 이름, `ON UPDATE` 규칙, 문자 집합 | 기본값은 엔티티 생성자가 채우고 DB 종류마다 표현이 달라 비교 비용이 크다 | 필요하면 비교 항목을 늘릴 수 있다 |
+| A-04 | 스키마 대조에서 비교하지 않는 항목: 외래 키 이름, 문자 집합(컬럼 기본값, 자동 증가, `ON UPDATE` 규칙은 2026-10-23에 비교 대상으로 편입, A-85) | 기본값은 엔티티 생성자가 채우고 DB 종류마다 표현이 달라 비교 비용이 크다 | 필요하면 비교 항목을 늘릴 수 있다 |
 | A-05 | `issue.weight`를 1바이트 정수(`TINYINT`)로 매핑 | v1.6 DDL이 `tinyint(2)`다. PostgreSQL에는 `tinyint`가 없어 `smallint`가 된다 | |
 | A-06 | `yona.gravatar.check` 설정 추가(기본 true) | v1.6은 기동할 때 Gravatar 접속을 검사하는데, 테스트에서 네트워크에 의존하지 않으려고 끌 수 있게 했다 | v1.6에 없는 설정이다. 기본값은 v1.6과 같다 |
 | A-07 | 프로젝트 조회 결과를 캐시하지 않음(`CacheStore.projectMap` 미이식) | v1.6 캐시는 이름 변경 때 갱신을 빠뜨리기 쉬웠다 | 성능 문제가 확인되면 도입한다 |
@@ -338,3 +338,4 @@ updated: 2026-10-22
 | A-82 | 웹훅 삭제(`DELETE /:user/:project/webhooks/:id`)는 주소의 프로젝트에 속한 웹훅만 지운다. 다른 프로젝트의 번호이면 404이다 | v1.6은 번호만 보고 지워 다른 프로젝트의 웹훅도 지울 수 있었다(권한은 주소의 프로젝트 기준). 화면은 그 프로젝트의 웹훅만 보인다(A-24) | 없음 |
 | A-83 | 가져오기(`/_import`)에서 소유자가 올바르지 않을 때의 오류를 가져오기 폼에 보여 주고, 저장소 종류는 항상 Git으로 만든다 | v1.6은 소유자 오류를 가져오기가 아니라 새 프로젝트 만들기 폼으로 그려 보여 주었다. 소유자 선택지는 올바른 값만 담으므로 직접 만든 요청에서만 닿는다. 화면의 저장소 종류는 숨은 값 `GIT`이고, 다른 값을 직접 보내면 Git이 아닌 프로젝트에 Git 저장소를 만들게 된다(A-24) | 없음 |
 | A-84 | 포크와 저장소 가져오기는 복제하기 전에 같은 위치에 남은 디렉터리를 지운다 | 같은 이름의 프로젝트가 없는데 디렉터리가 남아 있으면 이전에 실패한 흔적이다. v1.6은 그대로 복제를 시도해 "저장소가 아니다" 같은 엉뚱한 오류로 막혔다. 프로젝트 만들기(`createRepository`)는 v1.6도 먼저 지운다 | 없음 |
+| A-85 | 스키마 대조에 컬럼 기본값, 자동 증가, 외래 키 `ON UPDATE` 규칙을 추가하고 어긋난 것을 v1.6에 맞춤: 기본값 24개(불린 `0`, `issue.weight` `0`, `webhook.webhook_type` `1`)는 `@ColumnDefault`로, `issue.project_id`, `issue.assignee_id`, `project_visitation.project_id`, `recent_project.project_id`의 `ON UPDATE CASCADE`는 `foreignKeyDefinition`으로 지정 | 선생님 요청(2026-10-23). 엔티티 생성자가 기본값을 채우므로 앱 동작은 같지만, DB에 직접 넣는 쪽(외부 SQL, 데이터 가져오기)은 v1.6 스키마와 같아야 한다 | `foreignKeyDefinition`에는 `on delete`를 쓰지 않는다: `@OnDelete`가 뒤에 같은 절을 붙여 DDL이 깨진다 |
