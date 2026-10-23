@@ -72,7 +72,7 @@ updated: 2026-10-22
 | 5d | 코드 리뷰 댓글(커밋 댓글, 풀 리퀘스트 댓글, 스레드 열기와 닫기, 댓글 삭제), 푸시 후 훅(새 커밋 알림, 이슈 언급, 풀 리퀘스트 확인과 삭제) | 완료 | [web/review-comments.md](web/review-comments.md), [subsystems/post-receive.md](subsystems/post-receive.md). Subversion 커밋 코멘트는 8단계 |
 | 5e | 웹훅(설정 화면, 발송), 이벤트와 웹훅 연결 | 완료 | [web/webhooks.md](web/webhooks.md), [subsystems/webhooks.md](subsystems/webhooks.md) |
 | 5f | 외부 저장소 가져오기(`/_import`) | 완료 | [web/import.md](web/import.md) |
-| 6 | 검색, 통계, 도움말, 사이트 관리, 데이터 내보내기/가져오기 | 대기 | |
+| 6 | 검색, 통계, 도움말, 사이트 관리, 이전(Migration) 화면(`/migration`, 프로젝트 데이터 JSON 내보내기), 데이터 내보내기/가져오기 | 대기 | 이전 화면은 사이트 관리 다음, 데이터 내보내기/가져오기 앞. 권한 규칙은 구현 전에 `MigrationApp`을 읽고 확인한다 |
 | 7 | 소셜 로그인, LDAP, 이메일 수신 | 대기 | |
 | 8 | Subversion(SVNKit) | 마지막 | |
 
