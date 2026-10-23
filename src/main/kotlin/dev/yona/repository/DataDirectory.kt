@@ -13,9 +13,12 @@ import java.io.File
 @Component
 class DataDirectory(private val properties: YonaProperties) {
 
-    /** 데이터 디렉터리의 루트이다. 아무것도 지정하지 않으면 작업 디렉터리를 가리키는 빈 경로이다. */
+    /**
+     * 데이터 디렉터리의 루트이다. 아무것도 지정하지 않으면 작업 디렉터리(`.`)이다. 빈 경로(`File("")`)를 부모로 쓰면 자식이 파일 시스템의 루트 아래로
+     * 해석되므로(`/repo/git/...`) 빈 값은 `.`로 바꾼다.
+     */
     fun root(): File {
         val configured = properties.dataDir.ifEmpty { System.getProperty("yona.data").orEmpty() }
-        return File(configured)
+        return File(configured.ifEmpty { "." })
     }
 }

@@ -19,13 +19,22 @@ import java.io.OutputStream
 @Service
 class GitHttpService(private val repositories: RepositoryService, private val hooks: GitHooks) {
 
+    /** 프로젝트의 Git 저장소가 디스크에 있으면 `true`이다. 없으면(만들다 만 프로젝트 등) 응답을 쓰기 전에 알 수 있게 한다. */
+    fun exists(project: Project): Boolean = try {
+        repositories.openRepository(project).close()
+        true
+    } catch (e: org.eclipse.jgit.errors.RepositoryNotFoundException) {
+        false
+    }
+
     /** `# service=…` 한 줄과 서비스가 광고하는 ref 목록을 [out]에 쓴다. */
     fun advertise(project: Project, service: String, out: OutputStream) {
-        val packetLine = PacketLineOut(out)
-        packetLine.writeString("# service=$service\n")
-        packetLine.end()
-        val advertiser = RefAdvertiser.PacketLineOutRefAdvertiser(packetLine)
+        // 저장소를 먼저 열어 본다. 없으면 응답을 쓰기 전에 오류가 나서 클라이언트가 잘린 응답을 받지 않는다.
         repositories.openRepository(project).use { repository ->
+            val packetLine = PacketLineOut(out)
+            packetLine.writeString("# service=$service\n")
+            packetLine.end()
+            val advertiser = RefAdvertiser.PacketLineOutRefAdvertiser(packetLine)
             if (service == UPLOAD_PACK) {
                 UploadPack(repository).apply { isBiDirectionalPipe = false }.sendAdvertisedRefs(advertiser)
             } else if (service == RECEIVE_PACK) {

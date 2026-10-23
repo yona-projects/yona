@@ -87,6 +87,8 @@ class GitHttpController(
             return forbidden(user, ownerName, projectName, request.getHeader("User-Agent"))
         }
 
+        if (!gitHttp.exists(project)) return ResponseEntity.notFound().build<Void>()
+
         if (advertise) {
             response.contentType = "application/x-$service-advertisement"
             gitHttp.advertise(project, service, response.outputStream)

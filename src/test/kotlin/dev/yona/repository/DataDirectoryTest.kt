@@ -37,6 +37,7 @@ class DataDirectoryTest {
 
     @Test
     fun `둘 다 없으면 작업 디렉터리를 쓴다`() {
-        assertEquals(File(""), DataDirectory(YonaProperties()).root())
+        assertEquals(File("."), DataDirectory(YonaProperties()).root())
+        assertEquals(File("./repo/git/a/b.git"), GitRepositories(DataDirectory(YonaProperties())).directoryOf("a", "b"))
     }
 }
