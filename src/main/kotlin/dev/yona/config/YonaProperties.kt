@@ -27,6 +27,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property temporaryFilesKeepUpTime 임시 첨부를 정리하는 주기(밀리초). 기본 하루 (`application.temporaryfiles.keep-up.time`)
  * @property parsersTextMaxLength 폼(`application/x-www-form-urlencoded`) 본문의 최대 바이트. 넘으면 폼 값을 읽지 못한 것으로 처리한다 (`parsers.text.maxLength`, 기본 102400)
  * @property backgroundAsync 풀 리퀘스트 병합 검사와 푸시 뒤 알림처럼 요청과 별개로 도는 일을 별개의 스레드에서 한다 (v1.6의 Akka 액터). 끄면 요청 안에서 바로 한다. 테스트가 결과를 기다리지 않도록 끌 수 있다
+ * @property slack 슬랙 웹훅의 첨부에 붙일 색이다. 키는 이벤트 종류 이름(`NEW_ISSUE` 등)이고 값은 색(`good`, `#ff0000`)이다 (`slack.<이벤트 종류>`)
  * @property notificationDraftTime 같은 사용자가 같은 리소스에 같은 종류의 알림을 이 시간(밀리초) 안에 연달아 만들면 하나로 합친다 (`application.notification.draft-time`, 기본 30초)
  * @property notificationKeepTime 알림 이벤트를 보관하는 일수. 0 이하이면 지우지 않는다 (`application.notification.keep-time`, 기본 -1)
  * @property notificationMailEnabled 알림 메일을 보낸다. 끄면 발송 스케줄러를 시작하지 않는다 (`notification.bymail.enabled`, 기본 켬)
@@ -80,6 +81,7 @@ data class YonaProperties(
     val easymail: Easymail = Easymail(),
     val notificationDraftTime: Long = 30_000L,
     val backgroundAsync: Boolean = true,
+    val slack: Map<String, String> = emptyMap(),
     val notificationKeepTime: Int = -1,
     val translationApi: String = "",
     val translationHeaderKey: String = "",

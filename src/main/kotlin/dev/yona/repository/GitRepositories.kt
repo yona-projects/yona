@@ -71,6 +71,8 @@ class GitRepositories(private val dataDirectory: DataDirectory) {
      * 같은 결과를 내려고 그대로 따른다.
      */
     fun cloneLocal(owner: String, name: String, forkOwner: String, forkName: String) {
+        // 같은 이름의 프로젝트가 없는데 디렉터리가 남아 있으면 이전에 실패한 흔적이므로 지우고 시작한다 (`createRepository`와 같다).
+        delete(forkOwner, forkName)
         try {
             cloneHardLinked(owner, name, forkOwner, forkName)
         } catch (e: Exception) {
@@ -107,6 +109,20 @@ class GitRepositories(private val dataDirectory: DataDirectory) {
                 }
             }
         }
+    }
+
+    /**
+     * 다른 Git 저장소를 통째로(모든 브랜치) bare 저장소로 복제한다 (v1.6 `GitRepository.cloneRepository(gitUrl, project[, id, pw])`).
+     * [authId]나 [authPw]가 있으면 사용자 이름과 비밀번호로 인증한다.
+     */
+    fun cloneRemote(owner: String, name: String, url: String, authId: String?, authPw: String?) {
+        // 같은 이름의 프로젝트가 없는데 디렉터리가 남아 있으면 이전에 실패한 흔적이므로 지우고 시작한다 (`createRepository`와 같다).
+        delete(owner, name)
+        val command = org.eclipse.jgit.api.Git.cloneRepository().setURI(url).setDirectory(directoryOf(owner, name)).setCloneAllBranches(true).setBare(true)
+        if (!authId.isNullOrEmpty() || !authPw.isNullOrEmpty()) {
+            command.setCredentialsProvider(org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider(authId.orEmpty(), authPw.orEmpty()))
+        }
+        command.call().close()
     }
 
     /** 저장소의 브랜치, 태그, 원격 참조 이름을 이름순으로 돌려준다 (v1.6 `GitRepository.getRefNames`). */

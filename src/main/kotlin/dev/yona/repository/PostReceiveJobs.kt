@@ -50,7 +50,10 @@ class PostReceiveJobs(
     class PushedCommits(val commits: List<CommitDetail>, val refNames: List<String>)
 
     /** 커밋 하나의 값이다. */
-    data class CommitDetail(val id: String, val shortId: String, val shortMessage: String, val message: String)
+    data class CommitDetail(
+        val id: String, val shortId: String, val shortMessage: String, val message: String, val authorName: String, val authorEmail: String,
+        val committerName: String, val committerEmail: String, val commitTime: Date
+    )
 
     private fun parse(repository: org.eclipse.jgit.lib.Repository, start: ObjectId, end: ObjectId): List<CommitDetail> = RevWalk(repository).use { walk ->
         walk.markStart(walk.parseCommit(end))
@@ -59,7 +62,10 @@ class PostReceiveJobs(
         walk.map { detail(it) }
     }
 
-    private fun detail(commit: RevCommit) = CommitDetail(commit.name, commit.abbreviate(SHORT_ID).name(), commit.shortMessage, commit.fullMessage)
+    private fun detail(commit: RevCommit) = CommitDetail(
+        commit.name, commit.abbreviate(SHORT_ID).name(), commit.shortMessage, commit.fullMessage, commit.authorIdent.name, commit.authorIdent.emailAddress,
+        commit.committerIdent.name, commit.committerIdent.emailAddress, Date(commit.commitTime * 1000L)
+    )
 
     /** 푸시 뒤 일을 시작한다. 명령 정보는 푸시가 끝나면 쓸 수 없으므로 필요한 값만 복사해 넘긴다. */
     fun afterPush(project: Project, sender: User?, commands: Collection<ReceiveCommand>) {
@@ -127,7 +133,7 @@ class PostReceiveJobs(
         val project = projects.findById(projectId).orElse(null) ?: return
         val sender = senderId?.let { users.findById(it).orElse(null) } ?: return
         val result = pushedCommits(projectId, pushed)
-        publisher.publishEvent(CommitsPushedActivity(project, sender, result.commits.map { Triple(it.shortId, it.shortMessage, it.id) }, result.refNames))
+        publisher.publishEvent(CommitsPushedActivity(project, sender, result.commits, result.refNames))
     }
 
     private companion object {

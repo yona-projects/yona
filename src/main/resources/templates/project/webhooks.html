@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/webhooks.scala.html, partial_webhooks_list.scala.html
+  모델: title, projectView, creatable, action, webhooks(WebhookRow 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::webhooksPage})}">
+<th:block th:fragment="webhooksPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap webhook-editor-wrap">
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${'/' + project.owner + '/' + project.name + '/webhooks'})}"></th:block>
+
+        <form th:if="${creatable}" id="formNewWebhook" th:action="${action}" method="post" class="new-webhook-wrap">
+            <strong class="form-legend" th:text="#{project.webhook.new}"></strong>
+            <div class="form-wrap form-actions">
+                <div>
+                    <input type="text" name="payloadUrl" class="input-webhook-payload" maxlength="2000" autocomplete="off" th:placeholder="#{project.webhook.payloadUrl}">
+                    <input type="text" name="secret" class="input-webhook-secret" maxlength="250" autocomplete="off" th:placeholder="#{project.webhook.secret}">
+                    <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{project.webhook.add}"></button>
+                </div>
+                <div>
+                    <label class="radio inline">
+                        <input type="radio" name="webhookType" value="SIMPLE" checked> Messenger (Only text)
+                    </label>
+                    <label class="radio inline">
+                        <input type="radio" name="webhookType" value="DETAIL_SLACK"> Slack (Meta)
+                    </label>
+                    <label class="radio inline">
+                        <input type="radio" name="webhookType" value="DETAIL_HANGOUT_CHAT"> Google Chat (Thread)
+                    </label>
+                    <label class="radio inline">
+                        <input type="radio" name="webhookType" value="JSON"> Continuous Integration tool (Only push event)
+                    </label>
+                    <label class="radio inline"> | </label><label class="radio inline"></label>
+                    <label class="checkbox inline" for="gitPush">
+                        <input type="checkbox" id="gitPush" name="gitPush" class="form-check-input"> <th:block th:text="#{project.webhook.includeGitPush}"></th:block>
+                    </label>
+                </div>
+            </div>
+            <div th:utext="#{project.webhook.help}"></div>
+        </form>
+        <div id="webhooksList" class="webhook-list-wrap">
+            <div th:if="${#lists.isEmpty(webhooks)}" class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p th:text="#{project.webhook.list.empty}"></p>
+            </div>
+            <th:block th:if="${!#lists.isEmpty(webhooks)}">
+                <div class="row-fluid list-head">
+                    <div class="span5 payload-url"><strong th:text="#{project.webhook.payloadUrl}"></strong></div>
+                    <div class="span2 secret text-center"><strong th:text="#{project.webhook.secret}"></strong></div>
+                    <div class="span2 secret text-center"><strong>Type of message</strong></div>
+                    <div class="span2 secret text-center"><strong>Include git push events</strong></div>
+                    <div class="span1 secret text-center"></div>
+                </div>
+                <div th:each="w : ${webhooks}" class="row-fluid list-item vertical-align" th:attr="data-webhook-id=${w.id}">
+                    <div class="span5"><h6 class="mr20 truncate" th:text="${w.payloadUrl}"></h6></div>
+                    <div class="span2 text-center"><h6 th:text="${#strings.isEmpty(w.secret)} ? 'NONE' : ${w.secret}"></h6></div>
+                    <div class="span2 text-center"><h6 th:text="${w.type}"></h6></div>
+                    <div class="span2 text-center"><input type="checkbox" th:checked="${w.gitPush}" onclick="return false;" /></div>
+                    <div class="span1 text-center">
+                        <button type="button" class="ybtn ybtn-danger ybtn-small" data-request-method="delete" th:attr="data-request-uri=${w.deleteUrl}" th:text="#{button.delete}"></button>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("project.Webhook", {
+            "form": "#formNewWebhook",
+            "list": "#webhooksList"
+        });
+        $('input[type=radio][name=webhookType]').change(function() {
+            if (this.value == 'JSON') {
+                $("input:checkbox[name=gitPush]").attr('checked', true);
+                $("input:checkbox[name=gitPush]").attr('onclick', 'return false;');
+            } else {
+                $("input:checkbox[name=gitPush]").attr('onclick', '');
+                $("input:checkbox[name=gitPush]").attr('checked', false);
+            }
+        });
+    });
+</script>
+</th:block>
+</html>

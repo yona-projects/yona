@@ -23,7 +23,10 @@
 - [diff 엔진](subsystems/diff.md): 커밋과 저장소 사이의 파일별 차이, 헝크
 - [풀 리퀘스트 병합](subsystems/pull-request-merge.md): JGit 병합기, 병합 검사 처리기, 실행기, 이벤트, 알림, 관련 작성자
 - [푸시 뒤 일](subsystems/post-receive.md): 이슈 언급 이벤트, 풀 리퀘스트 확인과 삭제, 새 커밋 알림
+- [웹훅 전송](subsystems/webhooks.md): 이벤트별 본문, 형식(간단, 슬랙, 구글 챗, 지속적 통합), 스레드, 헤더
 - [코드 브라우저](web/code-browser.md): 폴더와 파일 보기, 메타데이터 JSON, 원본, 내려받기
+- [저장소 가져오기](web/import.md): `/_import`로 외부 Git 저장소를 가져와 프로젝트 만들기
+- [웹훅 설정](web/webhooks.md): 웹훅 목록, 등록, 삭제
 - [코드 리뷰 댓글](web/review-comments.md): 커밋과 풀 리퀘스트의 리뷰 댓글, 스레드 열기와 닫기, 삭제, 알림
 - [풀 리퀘스트 보기](web/pull-request-view.md): 보기, 상태 조각, 타임라인, 변경 내용, 리뷰
 - [풀 리퀘스트 동작](web/pull-request-actions.md): 받아들이기, 닫기와 열기, 수정, 보낸 브랜치 삭제와 복원

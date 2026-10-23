@@ -168,7 +168,7 @@ class NotificationListener(
         val builder = StringBuilder()
         if (activity.commits.isNotEmpty()) {
             builder.append("### ").append(messages.getMessage("notification.pushed.newcommits", null, locale)).append("\n```\n")
-            activity.commits.forEach { (shortId, shortMessage, _) -> builder.append(shortId).append(' ').append(shortMessage).append('\n') }
+            activity.commits.forEach { builder.append(it.shortId).append(' ').append(it.shortMessage).append('\n') }
             builder.append("```\n\n")
         }
         if (activity.refNames.isNotEmpty()) {

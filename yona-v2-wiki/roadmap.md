@@ -70,8 +70,8 @@ updated: 2026-10-22
 | 5c-5 | 받아들이기(병합), 닫기와 열기, 수정, 브랜치 삭제와 복원 | 완료 | [web/pull-request-actions.md](web/pull-request-actions.md) |
 | 5c-6 | 풀 리퀘스트 댓글 | 5d로 이동 | 리뷰 스레드 생성 로직을 커밋 댓글과 함께 5d에서 옮긴다 |
 | 5d | 코드 리뷰 댓글(커밋 댓글, 풀 리퀘스트 댓글, 스레드 열기와 닫기, 댓글 삭제), 푸시 후 훅(새 커밋 알림, 이슈 언급, 풀 리퀘스트 확인과 삭제) | 완료 | [web/review-comments.md](web/review-comments.md), [subsystems/post-receive.md](subsystems/post-receive.md). Subversion 커밋 코멘트는 8단계 |
-| 5e | 웹훅(설정 화면, 발송), 알림과 웹훅 연결 | 대기 | |
-| 5f | 외부 저장소 가져오기(`/_import`) | 대기 | |
+| 5e | 웹훅(설정 화면, 발송), 이벤트와 웹훅 연결 | 완료 | [web/webhooks.md](web/webhooks.md), [subsystems/webhooks.md](subsystems/webhooks.md) |
+| 5f | 외부 저장소 가져오기(`/_import`) | 완료 | [web/import.md](web/import.md) |
 | 6 | 검색, 통계, 도움말, 사이트 관리, 데이터 내보내기/가져오기 | 대기 | |
 | 7 | 소셜 로그인, LDAP, 이메일 수신 | 대기 | |
 | 8 | Subversion(SVNKit) | 마지막 | |

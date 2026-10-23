@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/importing.scala.html
+  모델: title, form(ProjectImportForm), fieldErrors(필드별 번역된 오류), errorsJson(오류 JSON), ownerAvatarUrl,
+        organizations(관리하는 조직), ownerIsOrganization, privateIsDefault, repoAuthChecked
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'NEW_PROJECT', ~{::importPage})}">
+<th:block th:fragment="importPage">
+<div class="page-wrap-outer">
+  <div class="project-page-wrap">
+    <div class="form-wrap new-project">
+      <form id="importGit" th:action="@{/_import}" method="post" class="frm-wrap">
+        <legend>
+          <th:block th:text="#{project.import.from.git}"></th:block>
+          <span>
+            <small><th:block th:text="#{project.import.or}"></th:block> &nbsp; </small>
+            <a th:href="'/projectform?owner=' + ${form.owner ?: ''}" class="ybtn ybtn-small nm">
+              <strong th:text="#{title.newProject}"></strong>
+            </a>
+          </span>
+        </legend>
+
+        <dl>
+          <!-- Old Repository -->
+          <dt>
+            <label for="url">
+              <th:block th:text="#{project.git.repository.url}"></th:block>
+              <strong class="orange-txt">*</strong>
+            </label>
+          </dt>
+          <dd>
+            <input id="url" type="text" name="url" class="text" th:placeholder="#{project.git.url.alert}" th:value="${form.url}">
+          </dd>
+          <dd>
+            <label class="checkbox">
+              <input type="checkbox" id="useRepoAuth" th:attr="checked=${repoAuthChecked} ? 'checked'"> <th:block th:text="#{project.import.auth.required}"></th:block>
+            </label>
+
+            <div id="repoAuth" class="repo-auth-wrap" th:style="${repoAuthChecked} ? 'display:block;'">
+              <div class="row-fluid">
+              <dl class="span6">
+                <dt th:text="#{project.import.auth.userid}"></dt>
+                <dd>
+                  <input type="text" name="authId" class="text" th:value="${form.authId}" th:placeholder="#{project.import.auth.userid.desc}">
+                </dd>
+              </dl>
+              <dl class="span6">
+                <dt th:text="#{project.import.auth.userpw}"></dt>
+                <dd>
+                  <input type="password" name="authPw" class="text">
+                </dd>
+              </dl>
+              </div>
+            </div>
+          </dd>
+          <!-- // -->
+          <!-- ProjectOwner -->
+          <dt class="bordertop">
+            <label for="project-owner">
+              <th:block th:text="#{project.owner}"></th:block>
+              <strong class="orange-txt">*</strong>
+            </label>
+          </dt>
+          <dd>
+            <select id="project-owner" name="owner" data-toggle="select2" data-format="user" class="mb10" style="min-width: 220px;">
+                <option data-type="user"
+                        th:data-avatar-url="${ownerAvatarUrl}"
+                        th:value="${currentUser.loginId}"
+                        th:text="${currentUser.loginId}">
+                </option>
+
+                <option th:each="org : ${organizations}" data-type="group"
+                        th:data-avatar-url="${org.logoUrl}"
+                        th:value="${org.name}"
+                        th:selected="${form.owner == org.name}"
+                        th:text="${org.name}">
+                </option>
+            </select>
+            <span th:if="${fieldErrors['owner'] != null}" class="orange-text" th:text="${fieldErrors['owner'][0]}"></span>
+          </dd>
+          <!-- // -->
+
+          <!-- ProjectName -->
+          <dt>
+            <label for="project-name">
+              <th:block th:text="#{project.name}"></th:block>
+              <strong class="orange-txt">*</strong>
+            </label>
+          </dt>
+          <dd>
+            <input id="project-name" type="text" name="name" class="text" maxlength="250"
+                   th:value="${form.name}" th:placeholder="#{project.name.placeholder}"  >
+          </dd>
+          <!-- // -->
+
+          <!-- Description -->
+          <dt>
+            <label for="description" th:text="#{project.description}"></label>
+          </dt>
+          <dd>
+            <textarea id="description" name="overview" class="text textarea.span4" th:text="${form.overview}"></textarea>
+          </dd>
+          <!-- // -->
+        </dl>
+
+        <div class="advanced-options">
+          <!-- Access Scope -->
+          <div class="row-fluid">
+            <div class="span2 right-txt mt10" th:text="#{project.shareOption}">
+            </div>
+            <div class="span10">
+              <ul class="unstyled project-scopes mt10">
+                <li>
+                  <input type="radio" id="public" name="projectScope" value="PUBLIC" class="radio-btn pull-left" th:attr="checked=${form.projectScope == 'PUBLIC' or form.projectScope == null} ? 'checked'">
+                  <label for="public">
+                    <strong class="ml5" th:text="#{project.public}"></strong>
+                    <p class="note" th:utext="#{project.public.notice}">
+                    </p>
+                  </label>
+                </li>
+
+                <li id="opt-protected" class="mt10" th:style="${ownerIsOrganization} ? '' : 'display:none;'">
+                  <input type="radio" id="protected" name="projectScope" value="PROTECTED" class="radio-btn pull-left" th:attr="checked=${form.projectScope == 'PROTECTED'} ? 'checked'">
+                  <label for="protected">
+                    <strong class="ml5" th:text="#{project.protected}"></strong>
+                    <p class="note" th:utext="#{project.protected.notice}">
+                    </p>
+                  </label>
+                </li>
+
+                <li class="mt10">
+                  <input type="radio" id="private" name="projectScope" value="PRIVATE" class="radio-btn pull-left" th:attr="checked=${form.projectScope == 'PRIVATE' or privateIsDefault} ? 'checked'">
+                  <label for="private">
+                    <strong class="ml5" th:text="#{project.private}"></strong>
+                    <p class="note" th:utext="#{project.private.notice}">
+                    </p>
+                  </label>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <!-- // -->
+          <hr>
+          <!-- VCS -->
+          <div class="row-fluid">
+            <div class="span2 right-txt mt10">
+              <label for="vcs" th:text="#{project.vcs}">
+              </label>
+            </div>
+            <div class="span10 cu-desc">
+              <select data-toggle="select2" class="mb10 mt5" disabled>
+                <option selected th:text="#{project.new.vcsType.git}"></option>
+              </select>
+              <input type="hidden" name="vcs" value="GIT">
+            </div>
+          </div>
+          <hr>
+          <!-- Menu Setting -->
+          <div class="row-fluid">
+            <div class="span2 right-txt" th:text="#{project.menu.setting}">
+            </div>
+            <div class="span10">
+                <label for="menuSettingCode" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingCode" name="code" value="true" checked="checked">
+                  <th:block th:text="#{menu.code}"></th:block>
+                </label>
+                <label for="menuSettingIssue" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingIssue" name="issue" value="true" checked="checked">
+                  <th:block th:text="#{menu.issue}"></th:block>
+                </label>
+                <label for="menuSettingPullRequest" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingPullRequest" name="pullRequest" value="true" checked="checked">
+                  <th:block th:text="#{menu.pullRequest}"></th:block>
+                </label>
+                <label for="menuSettingReview" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingReview" name="review" value="true" checked="checked">
+                  <th:block th:text="#{menu.review}"></th:block>
+                </label>
+                <label for="menuSettingMilestone" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingMilestone" name="milestone" value="true" checked="checked">
+                  <th:block th:text="#{milestone}"></th:block>
+                </label>
+                <label for="menuSettingBoard" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingBoard" name="board" value="true" checked="checked">
+                  <th:block th:text="#{menu.board}"></th:block>
+                </label>
+            </div>
+          </div>
+          <!-- // -->
+        </div>
+
+        <div class="actions mt20">
+          <button class="ybtn ybtn-primary" th:text="#{project.create}">
+          </button>
+          <a href="/" class="ybtn" th:text="#{button.cancel}"></a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(function() {
+        $yobi.loadModule("project.New", {
+            "sFormId": "#importGit",
+            "htError": [(${errorsJson})]
+        });
+    });
+</script>
+</th:block>
+</html>

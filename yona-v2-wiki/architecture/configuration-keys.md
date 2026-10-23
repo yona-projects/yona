@@ -39,6 +39,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `application.notification.keep-time` | `yona.notification-keep-time` (일) | `-1` (지우지 않음) | 사용 중(알림 정리) |
 | `application.notification.draft-time` | `yona.notification-draft-time` (밀리초) | `30000` | 사용 중(알림 합치기) |
 | (없음, Akka 액터) | `yona.background-async` | `true` | 사용 중(풀 리퀘스트 병합 검사와 푸시 뒤 일을 별개의 스레드에서 실행. 테스트는 끔) |
+| `slack.<이벤트 종류>` | `yona.slack.<이벤트 종류>` (예: `yona.slack.NEW_ISSUE`) | 없음 | 사용 중(슬랙 웹훅 첨부의 색) |
 | `play-easymail.from.email` / `.name` | `yona.easymail.from-email` / `from-name` | 빈 문자열(smtp 주소) / `yona-no-reply` | 사용 중(가입 안내 메일). A-58 |
 | `smtp.user` / `smtp.domain` | `yona.smtp.user` / `yona.smtp.domain` | 빈 문자열 | 사용 중(보내는 주소). 접속 정보(`smtp.host` 등)는 `spring.mail.*`로 옮겼다 |
 | `application.codeBrowser.viewer.maxFileSize` | `yona.code-browser-max-file-size` | `1048576` | 사용 중(코드 브라우저) |

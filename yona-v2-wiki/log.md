@@ -265,3 +265,9 @@
 
 ## [2026-10-23] ingest | 코드 리뷰 댓글과 푸시 뒤 일 (5단계 5d)
 - TDD: ReviewCommentTest 9, PostReceiveJobsTest 4. A-79, A-80, R-44. 실행기 이름을 `BackgroundJobRunner`, 설정 키를 `yona.background-async`로 일반화했다.
+
+## [2026-10-23] ingest | 웹훅 (5단계 5e)
+- TDD: WebhookSettingsTest 6, WebhookDispatchTest 7. A-81, A-82, R-45.
+
+## [2026-10-23] ingest | 저장소 가져오기 (5단계 5f)
+- TDD: ImportTest 7. A-83, R-46. 5단계 완료.
