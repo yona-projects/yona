@@ -55,6 +55,10 @@
 <body th:class="${theme}" id="html-body">
     <div id="main" class="main">
     <div th:if="${siteAdminLoggedIn}" class="admin-logged-in-affix" data-spy="affix" data-offset-top="30"><th:block th:text="#{user.siteAdminLoggedInAffix}"></th:block> <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}"></span></div>
+<p th:if="${updateNotice != null}" class="center-txt">
+<a th:href="${updateNotice.url}" th:text="#{site.update.notification(${updateNotice.version})}"></a>
+<button type="button" data-request-method="post" th:attr="data-request-uri=@{/sites/unwatchUpdate}" class="ybtn ybtn-small" th:text="#{site.update.notification.hide(${updateNotice.version})}"></button>
+</p>
 <th:block th:replace="${content}"></th:block>
 <th:block th:replace="~{common/scripts :: scripts}"></th:block>
     </div>

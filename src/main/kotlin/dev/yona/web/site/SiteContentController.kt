@@ -6,6 +6,7 @@ import dev.yona.domain.project.ProjectDeletionService
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.site.SiteContentService
 import dev.yona.domain.user.User
+import dev.yona.domain.user.UserDisplay
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.AvatarService
 import dev.yona.web.RedirectSupport
@@ -42,7 +43,8 @@ class SiteContentController(
     private val users: UserRepository,
     private val avatars: AvatarService,
     private val projectViews: ProjectViewFactory,
-    private val helper: TemplateHelper
+    private val helper: TemplateHelper,
+    private val currentUserProvider: dev.yona.security.CurrentUserProvider
 ) {
 
     /** 프로젝트 목록의 한 줄이다. */
@@ -80,7 +82,7 @@ class SiteContentController(
         if (pageNum < 1) return ErrorViews.badRequest()
         val page = service.postings(pageNum - 1)
         val rows = page.items.map { post ->
-            contentRow(post.project, post.title, "/${post.project?.owner}/${post.project?.name}/post/${post.number}", post.authorLoginId, post.createdDate, post.numOfComments ?: 0)
+            contentRow(post.project, post.title, "/${post.project?.owner}/${post.project?.name}/post/${post.number}", post.authorLoginId, post.createdDate, post.numOfComments ?: 0) { it.name.orEmpty() }
         }
         return ModelAndView("site/post-list").addObject("title", "title.siteSetting").addObject("rows", rows).addObject("totalPageCount", page.totalPageCount)
     }
@@ -91,8 +93,9 @@ class SiteContentController(
         if (pageNum < 1) return ErrorViews.badRequest()
         val current = (if (state.isNullOrBlank()) State.OPEN else State.entries.firstOrNull { it.name == state.uppercase() }) ?: return ErrorViews.badRequest()
         val page = service.issues(current, pageNum - 1)
+        val viewerLang = currentUserProvider.get().user?.lang
         val rows = page.items.map { issue ->
-            contentRow(issue.project, issue.title, "/${issue.project?.owner}/${issue.project?.name}/issue/${issue.number}", issue.authorLoginId, issue.createdDate, issue.numOfComments ?: 0)
+            contentRow(issue.project, issue.title, "/${issue.project?.owner}/${issue.project?.name}/issue/${issue.number}", issue.authorLoginId, issue.createdDate, issue.numOfComments ?: 0) { UserDisplay.of(it, viewerLang) }
         }
         return ModelAndView("site/issue-list").addObject("title", "title.siteSetting").addObject("rows", rows)
             .addObject("currentState", current.name.lowercase()).addObject("totalPageCount", page.totalPageCount)
@@ -103,12 +106,13 @@ class SiteContentController(
         overview = project.overview, createdText = project.createdDate?.let { SimpleDateFormat("yyyy-MM-dd").format(it) }.orEmpty()
     )
 
-    private fun contentRow(project: Project?, title: String?, url: String, authorLoginId: String?, created: Date?, comments: Int): ContentRow {
+    /** 게시글 목록은 작성자의 이름을, 이슈 목록은 보는 사람의 언어에 맞춘 표시 이름을 쓴다(v1.6 `user.name`, `user.getDisplayName`). */
+    private fun contentRow(project: Project?, title: String?, url: String, authorLoginId: String?, created: Date?, comments: Int, label: (User) -> String): ContentRow {
         val author: User? = authorLoginId?.let { users.findByLoginIdIgnoreCase(it) }
         return ContentRow(
             projectOwner = project?.owner.orEmpty(), projectName = project?.name.orEmpty(), logoUrl = project?.let { projectViews.of(it).logoUrl }.orEmpty(),
             title = title.orEmpty(), url = url,
-            authorLoginId = author?.loginId ?: ANONYMOUS, authorName = author?.name ?: ANONYMOUS,
+            authorLoginId = author?.loginId ?: ANONYMOUS, authorName = author?.let(label) ?: ANONYMOUS,
             authorAvatarUrl = author?.let { avatars.avatarUrl(it, AUTHOR_AVATAR_SIZE) }.orEmpty(),
             createdTitle = helper.dateString(created), createdText = helper.agoOrDateString(created), commentCount = comments
         )

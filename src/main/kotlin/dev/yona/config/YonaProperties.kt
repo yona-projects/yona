@@ -36,6 +36,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property notificationMailInitDelay 기동 후 첫 발송까지 기다리는 시간(밀리초) (`application.notification.bymail.initdelay`, 기본 5초)
  * @property notificationMailInterval 발송 주기(밀리초) (`application.notification.bymail.interval`, 기본 60초)
  * @property notificationMailDelay 알림 이벤트를 만든 뒤 메일로 보내기까지 기다리는 시간(밀리초). 그 사이 연달아 일어난 알림을 묶을 수 있다 (`application.notification.bymail.delay`, 기본 180초)
+ * @property update 업데이트 확인 설정이다
  * @property smtp 보내는 메일 주소 설정이다. SMTP 접속 정보는 `spring.mail.*`로 설정한다
  * @property easymail 가입 안내 메일의 보내는 사람이다 (`play-easymail.from.*`)
  * @property codeBrowserMaxFileSize 코드 브라우저가 내용을 보여 주는 텍스트 파일의 최대 크기(바이트). 넘으면 원본 보기 링크만 준다 (`application.codeBrowser.viewer.maxFileSize`, 기본 1MB)
@@ -78,6 +79,7 @@ data class YonaProperties(
     val notificationMailInterval: Long = 60_000L,
     val notificationMailDelay: Long = 180_000L,
     val smtp: Smtp = Smtp(),
+    val update: Update = Update(),
     val easymail: Easymail = Easymail(),
     val notificationDraftTime: Long = 30_000L,
     val backgroundAsync: Boolean = true,
@@ -106,6 +108,23 @@ data class YonaProperties(
     data class Smtp(
         val user: String = "",
         val domain: String = ""
+    )
+
+    /**
+     * 업데이트 확인 설정이다 (v1.6 `application.update.*`).
+     *
+     * @property check 업데이트 화면에서 확인을 수행한다 (`application.update.check.use`)
+     * @property initDelay 서버를 시작한 뒤 첫 확인까지 기다리는 시간(밀리초) (`application.update.notification.initdelay`, 기본 5초)
+     * @property interval 확인 주기(밀리초). 0 이하이면 백그라운드 확인을 하지 않는다 (`application.update.notification.interval`, 기본 1시간)
+     * @property repositoryUrl 태그를 읽을 Git 저장소 (`application.update.repositoryUrl`)
+     * @property releaseUrlFormat 릴리스 페이지 주소 형식. `%s`가 버전이다 (`application.update.releaseUrlFormat`)
+     */
+    data class Update(
+        val check: Boolean = true,
+        val initDelay: Long = 5_000L,
+        val interval: Long = 3_600_000L,
+        val repositoryUrl: String = "http://repo.yona.io/yona/yona",
+        val releaseUrlFormat: String = "https://github.com/yona-projects/yona/releases/tag/v%s"
     )
 
     /**

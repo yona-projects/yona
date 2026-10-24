@@ -98,3 +98,10 @@ interface FavoriteIssueRepository : JpaRepository<FavoriteIssue, Long> {
     @Query("select count(f) from FavoriteIssue f where f.user.id = :userId and f.issue.state = dev.yona.domain.enumeration.State.OPEN")
     fun countOpen(userId: Long): Long
 }
+
+/** 시스템 속성 저장소이다. */
+interface PropertyRepository : JpaRepository<Property, Long> {
+
+    /** 이름이 같은 속성을 모두 조회한다 (v1.6 `Property.find.where().eq("name", name).findSet()`). */
+    fun findByName(name: dev.yona.domain.enumeration.PropertyName): List<Property>
+}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/site/update.scala.html
+  모델: title, currentVersion, versionToUpdate, releaseUrl, failure(스택 트레이스 문자열)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::updatePage})}">
+<th:block th:fragment="updatePage">
+    <div class="title_area">
+        <h2 class="pull-left" th:text="#{site.sidebar.update}"></h2>
+    </div>
+
+    <p th:if="${versionToUpdate != null}"><strong th:text="#{site.update.isAvailable(${versionToUpdate})}"></strong>
+      <a th:href="${releaseUrl}" class="ybtn ybtn-success" th:text="#{site.update.download}"></a></p>
+
+    <p th:if="${currentVersion != null}" th:text="#{site.update.currentVersion(${currentVersion})}"></p>
+
+    <p th:if="${versionToUpdate == null and failure == null}" th:text="#{site.update.isNotNecessary(${currentVersion})}"></p>
+
+    <th:block th:if="${failure != null}">
+      <p th:text="#{site.update.error}"></p>
+      <pre th:text="${failure}"></pre>
+    </th:block>
+</th:block>
+</html>

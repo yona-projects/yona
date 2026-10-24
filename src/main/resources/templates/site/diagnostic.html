@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/site/diagnostic.scala.html
+  모델: title, errors(문자열 목록)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::diagnosticPage})}">
+<th:block th:fragment="diagnosticPage">
+    <div class="title_area">
+        <h2 class="pull-left" th:text="#{site.sidebar.diagnostics}"></h2>
+    </div>
+
+    <p th:if="${errors.isEmpty()}" th:text="#{site.diagnostic.errorNotFound}"></p>
+    <th:block th:unless="${errors.isEmpty()}">
+        <p th:text="#{site.diagnostic.errorFound(${errors.size()})}"></p>
+        <ul>
+            <li th:each="error : ${errors}"><pre th:text="${error}"></pre></li>
+        </ul>
+    </th:block>
+</th:block>
+</html>

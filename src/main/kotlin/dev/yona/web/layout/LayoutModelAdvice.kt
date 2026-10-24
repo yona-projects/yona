@@ -46,10 +46,25 @@ class LayoutModelFactory(
     private val userSettings: UserSettingRepository,
     private val flashTranslator: FlashMessageTranslator,
     private val templateHelper: dev.yona.web.TemplateHelper,
-    private val messages: org.springframework.context.MessageSource
+    private val messages: org.springframework.context.MessageSource,
+    private val updates: dev.yona.domain.site.UpdateCheckService
 ) {
 
-    fun attributes(request: HttpServletRequest): Map<String, Any> = mapOf(
+    /** 업데이트 알림이다. [version]은 새 버전, [url]은 릴리스 페이지이다. */
+    data class UpdateNotice(val version: String, val url: String)
+
+    /** 새 버전이 있고 알림을 끄지 않았으며 사이트 관리자일 때만 알림을 만든다 (v1.6 `partial_update_notification`). */
+    private fun updateNotice(): UpdateNotice? {
+        val version = updates.versionToUpdate
+        if (version == null || !updates.shouldNotify()) return null
+        val userId = currentUserProvider.get().user?.id ?: return null
+        return if (siteAdmins.existsByAdminId(userId)) UpdateNotice(version, updates.releaseUrl(version)) else null
+    }
+
+    fun attributes(request: HttpServletRequest): Map<String, Any> = listOfNotNull<Pair<String, Any>>(
+        updates.versionToUpdate?.let { "versionToUpdate" to it },
+        updateNotice()?.let { "updateNotice" to it }
+    ).toMap() + mapOf(
         "currentUser" to ViewerContext(
             currentUserProvider.get(), siteAdmins, issues, avatars, organizationUsers, userSettings,
             messages.getMessage("user.notExists.name", null, "user.notExists.name", org.springframework.context.i18n.LocaleContextHolder.getLocale()).orEmpty()

@@ -142,3 +142,8 @@ val compileLess by tasks.registering {
 tasks.named<ProcessResources>("processResources") {
 	from(compileLess)
 }
+
+// 실행 중인 버전을 알 수 있게 빌드 정보(`META-INF/build-info.properties`)를 만든다. 업데이트 확인이 현재 버전으로 쓴다.
+springBoot {
+	buildInfo()
+}
