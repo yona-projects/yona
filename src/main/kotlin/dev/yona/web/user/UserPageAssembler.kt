@@ -93,7 +93,12 @@ class UserPageAssembler(
         return UserActivity(issueRows(recentIssues, viewer), recentPullRequests.map { pullRequestRow(it, viewer) }, memberProjects.map { projectRow(it, user, viewer) })
     }
 
-    private fun issueRows(list: List<Issue>, viewer: User?): List<UserIssueRow> {
+    /**
+     * 이슈를 사용자 페이지와 내 이슈가 쓰는 줄로 만든다. 다른 사람의 초안도 담는다.
+     *
+     * @param viewer 보는 사람. 없으면 익명이다
+     */
+    fun issueRows(list: List<Issue>, viewer: User?): List<UserIssueRow> {
         val items = issueItems.assemble(null, list, viewer, includeOthersDrafts = true).associateBy { it.id }
         val language = viewer?.lang
         return list.mapNotNull { issue ->

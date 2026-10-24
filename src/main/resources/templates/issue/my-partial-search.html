@@ -1,0 +1,104 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/my_partial_search.scala.html, my_partial_list_quicksearch.scala.html
+  모델: cond(IssueSearchCondition), items(UserIssueRow 목록), pageIndex, totalPageCount, openCount, closedCount, meId, quickCounts
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="mySearch">
+<div pjax-container class="row-fluid issue-list-wrap">
+    <div class="left-menu span2 span-hard-wrap">
+        <div class="inner advanced">
+            <ul class="lst-stacked unstyled">
+                <li th:class="${meId == cond.assigneeId} ? 'active'">
+                    <a pjax-filter href="#" data-author-id="" th:attr="data-assignee-id=${meId}, data-milestone-id=${cond.milestoneId}" data-commenter-id="" data-mention-id="" data-sharer-id="" data-favorite-id="">
+                        <span class="assigned-to-me"><i class="yobicon-user"></i> <th:block th:text="#{issue.list.assignedToMe}"></th:block></span>
+                    </a>
+                </li>
+                <li th:class="${meId == cond.authorId} ? 'active'">
+                    <a pjax-filter href="#" th:attr="data-author-id=${meId}, data-milestone-id=${cond.milestoneId}" data-assignee-id="" data-commenter-id="" data-mention-id="" data-sharer-id="" data-favorite-id="">
+                        <span class="authored-by-me"><i class="yobicon-pencil"></i> <th:block th:text="#{issue.list.authoredByMe}"></th:block></span>
+                    </a>
+                </li>
+                <li th:class="${meId == cond.commenterId} ? 'active'">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" th:attr="data-commenter-id=${meId}, data-milestone-id=${cond.milestoneId}" data-mention-id="" data-sharer-id="" data-favorite-id="">
+                        <span class="commented-by-me"><i class="yobicon-comments"></i> <th:block th:text="#{issue.list.commentedByMe}"></th:block></span>
+                    </a>
+                </li>
+                <li th:class="${meId == cond.mentionId} ? 'active'">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" th:attr="data-mention-id=${meId}, data-milestone-id=${cond.milestoneId}" data-sharer-id="" data-favorite-id="">
+                        <span class="mentioned-of-me"><i class="yobicon-at"></i> <th:block th:text="#{issue.list.mentionedOfMe}"></th:block></span>
+                        <th:block th:if="${#strings.isEmpty(cond.filter.trim())}" th:text="'(' + ${quickCounts.mentioned} + ')'"></th:block>
+                    </a>
+                </li>
+                <li th:class="${meId == cond.sharerId} ? 'active'">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" data-mention-id="" th:attr="data-sharer-id=${meId}, data-milestone-id=${cond.milestoneId}" data-favorite-id="">
+                        <span class="shared-with-me"><i class="yobicon-share"></i> <th:block th:text="#{issue.list.sharedWithMe}"></th:block></span>
+                        <th:block th:if="${#strings.isEmpty(cond.filter.trim())}" th:text="'(' + ${quickCounts.shared} + ')'"></th:block>
+                    </a>
+                </li>
+                <li th:class="${meId == cond.favoriteId} ? 'active'">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" data-mention-id="" data-sharer-id="" th:attr="data-favorite-id=${meId}, data-milestone-id=${cond.milestoneId}">
+                        <span class="favorite-issue"><i class="yobicon-favorite"></i> <th:block th:text="#{issue.list.favorite}"></th:block></span>
+                        <th:block th:if="${#strings.isEmpty(cond.filter.trim())}" th:text="'(' + ${quickCounts.favorite} + ')'"></th:block>
+                    </a>
+                </li>
+            </ul>
+
+            <form id="search" name="search" th:action="@{/user/issues}" method="get">
+                <input type="hidden" name="orderBy" th:value="${cond.orderBy}">
+                <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
+                <input type="hidden" name="state" th:value="${cond.state}">
+                <input type="hidden" name="authorId" th:value="${cond.authorId}" data-search="authorId">
+                <input type="hidden" name="commenterId" th:value="${cond.commenterId}" data-search="commenterId">
+                <input type="hidden" name="assigneeId" th:value="${cond.assigneeId}" data-search="assigneeId">
+                <input type="hidden" name="mentionId" th:value="${cond.mentionId}" data-search="mentionId">
+                <input type="hidden" name="sharerId" th:value="${cond.sharerId}" data-search="sharerId">
+                <input type="hidden" name="favoriteId" th:value="${cond.favoriteId}" data-search="favoriteId">
+                <div class="search myissues-search-input">
+                    <div class="search-bar">
+                        <input name="filter" class="textbox full" type="text" th:value="${cond.filter}" th:placeholder="#{issue.search}">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="span10 span-hard-wrap" id="span10">
+        <ul class="nav nav-tabs nm">
+            <li th:class="${cond.state == 'open'} ? 'active'" data-pjax>
+                <a href="#" state="open"><th:block th:text="#{issue.state.open}"></th:block>
+                    <span class="num-badge" th:text="${openCount}"></span>
+                </a>
+            </li>
+            <li th:class="${cond.state == 'closed'} ? 'active'" data-pjax>
+                <a href="#" state="closed"><th:block th:text="#{issue.state.closed}"></th:block>
+                    <span class="num-badge" th:text="${closedCount}"></span>
+                </a>
+            </li>
+            <li><th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block></li>
+            <li class="show-subtasks-li"><th:block th:replace="~{common/show-subtasks-checkbox :: showSubtasksCheckbox}"></th:block></li>
+        </ul>
+        <th:block th:if="${!items.isEmpty()}">
+            <div class="filter-wrap small-heights">
+                <div th:if="${items.size() > 1}" class="filters pull-right">
+                    <th:block th:each="field : ${ {'dueDate', 'updatedDate', 'createdDate', 'numOfComments'} }"
+                              th:with="label=${field == 'dueDate' ? 'common.order.dueDate' : (field == 'updatedDate' ? 'common.order.updatedDate' : (field == 'createdDate' ? 'common.order.date' : 'common.order.comments'))}">
+                        <a th:if="${cond.orderBy == field}" href="#" th:attr="orderBy=${cond.orderBy}, orderDir=${cond.orderDir == 'desc'} ? 'asc' : 'desc'" class="filter active"><i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{${label}}"></th:block></a>
+                        <a th:unless="${cond.orderBy == field}" href="#" th:attr="orderBy=${field}" orderDir="desc" class="filter"><i class="ico btn-gray-arrow down"></i><th:block th:text="#{${label}}"></th:block></a>
+                    </th:block>
+                </div>
+            </div>
+
+            <th:block th:replace="~{issue/my-partial-list :: myList}"></th:block>
+
+            <div id="pagination" th:attr="data-total=${totalPageCount}"><!-- pagination.js will fill here. --></div>
+        </th:block>
+        <div th:if="${items.isEmpty()}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{issue.is.empty}"></p>
+        </div>
+    </div>
+</div>
+</th:block>

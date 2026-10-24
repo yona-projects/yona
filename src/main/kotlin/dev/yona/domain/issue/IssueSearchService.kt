@@ -1,5 +1,6 @@
 package dev.yona.domain.issue
 
+import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.project.Project
 import dev.yona.domain.user.User
@@ -104,6 +105,55 @@ class IssueSearchService(private val entityManager: EntityManager) {
         return query.typed("select count(i) from Issue i ${query.where()}", java.lang.Long::class.java).singleResult.toLong()
     }
 
+    /**
+     * 프로젝트를 가리지 않고 [viewer]와 관련된 이슈 한 쪽을 찾는다. 내 이슈(`/user/issues`)가 쓴다 (v1.6 `SearchCondition.asExpressionList()`).
+     *
+     * 프로젝트 목록과 달리 읽기 권한을 따지지 않고, 하위 이슈도 담으며, 라벨과 마일스톤 조건은 쓰지 않는다.
+     * 작성자, 담당자, 댓글, 멘션, 공유, 즐겨찾기 조건은 값에 관계없이 **현재 사용자** 기준이다.
+     */
+    @Transactional(readOnly = true)
+    fun searchAll(condition: IssueSearchCondition, viewer: User, pageSize: Int): IssuePage {
+        val query = Query(null, condition, viewer)
+        val total = countAll(condition, viewer)
+        val items = query.typed("select i from Issue i ${query.where()} order by ${orderBy(condition)}", Issue::class.java)
+            .setFirstResult(condition.pageNum * pageSize).setMaxResults(pageSize).resultList
+        return IssuePage(items, condition.pageNum, pageSize, total)
+    }
+
+    /** 프로젝트를 가리지 않고 조건에 맞는 이슈 수이다 (v1.6 `Issue.countIssuesBy(SearchCondition)`). */
+    @Transactional(readOnly = true)
+    fun countAll(condition: IssueSearchCondition, viewer: User): Long {
+        val query = Query(null, condition, viewer)
+        return query.typed("select count(i) from Issue i ${query.where()}", java.lang.Long::class.java).singleResult.toLong()
+    }
+
+    /** 사용자가 멘션된 열린 이슈 수이다 (v1.6 `Issue.getCountOfMentionedOpenIssues`). */
+    @Transactional(readOnly = true)
+    fun countMentionedOpenIssues(userId: Long): Long {
+        val ids = mentioningIssueIds(userId)
+        if (ids.isEmpty()) return 0
+        return entityManager.createQuery("select count(i) from Issue i where i.id in :ids and i.state = :state", java.lang.Long::class.java)
+            .setParameter("ids", ids).setParameter("state", State.OPEN).singleResult.toLong()
+    }
+
+    /**
+     * 사용자가 멘션된 이슈 번호이다. 본문에서 멘션된 이슈와 멘션된 댓글이 달린 이슈를 모은다 (v1.6 `Mention.getMentioningIssueIds`).
+     */
+    private fun mentioningIssueIds(userId: Long): Set<Long> {
+        val ids = HashSet<Long>()
+        val commentIds = HashSet<Long>()
+        entityManager.createQuery("select m from Mention m where m.user.id = :user and m.resourceType in :types", dev.yona.domain.notification.Mention::class.java)
+            .setParameter("user", userId).setParameter("types", listOf(ResourceType.ISSUE_POST, ResourceType.ISSUE_COMMENT)).resultList.forEach { mention ->
+                val id = mention.resourceId?.toLongOrNull() ?: return@forEach
+                if (mention.resourceType == ResourceType.ISSUE_POST) ids += id else commentIds += id
+            }
+        if (commentIds.isNotEmpty()) {
+            ids += entityManager.createQuery("select c.issue.id from IssueComment c where c.id in :ids", java.lang.Long::class.java)
+                .setParameter("ids", commentIds).resultList.map { it.toLong() }
+        }
+        return ids
+    }
+
     private fun orderBy(condition: IssueSearchCondition): String {
         val direction = if (condition.orderDir.equals("asc", ignoreCase = true)) "asc" else "desc"
         val field = if (condition.orderBy in ORDERABLE) condition.orderBy else "createdDate"
@@ -112,27 +162,38 @@ class IssueSearchService(private val entityManager: EntityManager) {
     }
 
     /** 질의의 조건절과 매개변수를 모은다. */
-    private inner class Query(project: Project, private val condition: IssueSearchCondition, viewer: User?) {
-        private val clauses = mutableListOf("i.project.id = :project", "i.isDraft = false")
-        private val params = linkedMapOf<String, Any?>("project" to project.id)
+    private inner class Query(private val project: Project?, private val condition: IssueSearchCondition, viewer: User?) {
+        private val clauses = mutableListOf("i.isDraft = false")
+        private val params = linkedMapOf<String, Any?>()
 
         init {
+            if (project != null) {
+                clauses += "i.project.id = :project"
+                params["project"] = project.id
+            }
             val viewerId = viewer?.id ?: IssueSearchCondition.NO_VALUE
             if (condition.filter.isNotBlank()) {
                 clauses += "(lower(i.title) like :filter escape '!' or lower(cast(i.body as string)) like :filter escape '!' or exists " +
                     "(select 1 from IssueComment c where c.issue.id = i.id and lower(cast(c.contents as string)) like :filter escape '!'))"
                 params["filter"] = "%" + escapeLike(condition.filter.lowercase()) + "%"
             }
+            // 프로젝트를 가리지 않는 검색은 작성자, 담당자, 댓글 조건의 값을 보지 않고 현재 사용자를 쓴다 (v1.6 `byUser`).
             condition.authorId?.let {
-                if (it == IssueSearchCondition.NO_VALUE) clauses += "i.authorId is null" else { clauses += "i.authorId = :author"; params["author"] = it }
+                if (it == IssueSearchCondition.NO_VALUE && project != null) clauses += "i.authorId is null"
+                else { clauses += "i.authorId = :author"; params["author"] = if (project == null) viewerId else it }
             }
             condition.assigneeId?.let {
                 if (it == IssueSearchCondition.NO_VALUE) clauses += "i.assignee is null"
+                else if (project == null) { clauses += "i.assignee.user.id = :assignee"; params["assignee"] = viewerId }
                 else { clauses += "(i.assignee.user.id = :assignee and i.assignee.project.id = :project)"; params["assignee"] = it }
             }
-            if (condition.commenterId != null) {
-                clauses += "i.id in (select c.issue.id from IssueComment c where c.authorId = :commenter and c.projectId = :project)"
+            if (condition.commenterId != null && (project != null || condition.commenterId != IssueSearchCondition.NO_VALUE)) {
+                clauses += "i.id in (select c.issue.id from IssueComment c where c.authorId = :commenter" + (if (project != null) " and c.projectId = :project)" else ")")
                 params["commenter"] = viewerId
+            }
+            if (project == null && condition.mentionId != null && viewer != null) {
+                val ids = mentioningIssueIds(viewerId)
+                if (ids.isEmpty()) clauses += "1 = 0" else { clauses += "i.id in :mentioned"; params["mentioned"] = ids }
             }
             if (condition.sharerId != null && viewer != null) {
                 clauses += "i.id in (select s.issue.id from IssueSharer s where s.user.id = :sharer)"
@@ -143,13 +204,15 @@ class IssueSearchService(private val entityManager: EntityManager) {
                 params["favorite"] = viewerId
             }
             addState()
-            addLabels()
-            condition.milestoneId?.let {
-                if (it == IssueSearchCondition.NO_VALUE) clauses += "i.milestone is null" else { clauses += "i.milestone.id = :milestone"; params["milestone"] = it }
+            if (project != null) {
+                addLabels()
+                condition.milestoneId?.let {
+                    if (it == IssueSearchCondition.NO_VALUE) clauses += "i.milestone is null" else { clauses += "i.milestone.id = :milestone"; params["milestone"] = it }
+                }
             }
             if (condition.commentedCheck) clauses += "i.numOfComments >= 1"
             condition.dueDate?.let { clauses += "i.dueDate < :dueBefore"; params["dueBefore"] = nextDay(it) }
-            if (condition.authorId == null && condition.filter.isBlank() && condition.labelIds.isEmpty() && condition.assigneeId == null && condition.mentionId == null) {
+            if (project != null && condition.authorId == null && condition.filter.isBlank() && condition.labelIds.isEmpty() && condition.assigneeId == null && condition.mentionId == null) {
                 clauses += "i.parent is null"
             }
         }

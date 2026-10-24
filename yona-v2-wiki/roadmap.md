@@ -38,7 +38,7 @@ updated: 2026-10-22
 | 2d-3 | 계정 설정(프로필, 비밀번호, 이메일, 토큰), 아바타, 방문 목록 초기화, 첨부 올리기와 임시 첨부 정리 | 완료 | [web/account.md](web/account.md) |
 | 2d-4a | 사용자 검색 API(자동 완성) | 완료 | [web/account.md](web/account.md) |
 | 2d-4b | 사용자 페이지(`/:user`: 프로필 상자, 이슈·풀 리퀘스트·프로젝트 탭), 내 파일 목록(`/user/files`), 프로젝트 탈퇴(`/info/leave`) | 완료 | [web/user-page.md](web/user-page.md) |
-| 2d-4c | 내 이슈(`/user/issues`: 프로젝트를 가리지 않는 이슈 검색, pjax·JSON 응답) | 대기 | 처음 로드맵에서 빠져 있다가 2d-4b 때 발견했다. 내 이슈 탭의 목적지이며 v2에서는 아직 404이다 |
+| 2d-4c | 내 이슈(`/user/issues`: 프로젝트를 가리지 않는 이슈 검색, 빠른 검색 여섯 항목, pjax·JSON 응답) | 완료 | [web/my-issues.md](web/my-issues.md). 처음 로드맵에서 빠져 있다가 2d-4b 때 발견했다 |
 | 3a | 이슈 라벨과 분류 | 완료 | [web/issue-labels.md](web/issue-labels.md) |
 | 3b-0 | 공용 편집기 부품(편집기, 업로더, 마크다운 도움말), 멘션 후보, 첨부 목록, 폼 본문 크기 한도 | 완료 | [web/editor-components.md](web/editor-components.md) |
 | 3b | 마일스톤 | 완료 | [web/milestones.md](web/milestones.md) |

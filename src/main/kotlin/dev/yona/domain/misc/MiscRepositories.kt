@@ -1,5 +1,6 @@
 package dev.yona.domain.misc
 
+import org.springframework.data.jpa.repository.Query
 import dev.yona.domain.enumeration.ResourceType
 import org.springframework.data.jpa.repository.JpaRepository
 
@@ -92,4 +93,8 @@ interface FavoriteIssueRepository : JpaRepository<FavoriteIssue, Long> {
 
     /** 사용자의 즐겨찾기 이슈를 오래된 것부터 조회한다. */
     fun findByUserIdOrderByIdAsc(userId: Long): List<FavoriteIssue>
+
+    /** 사용자가 즐겨찾기한 열린 이슈 수이다 (v1.6 `FavoriteIssue.getNumberOpenFavoriteIssues`). */
+    @Query("select count(f) from FavoriteIssue f where f.user.id = :userId and f.issue.state = dev.yona.domain.enumeration.State.OPEN")
+    fun countOpen(userId: Long): Long
 }

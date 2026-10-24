@@ -1,0 +1,97 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/issue/my_partial_list.scala.html
+  모델: items(UserIssueRow 목록), cond, meId
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="myList" th:with="authoredTab=${meId == cond.authorId}, assignedTab=${meId == cond.assigneeId}">
+<ul class="post-list-wrap my-issues">
+<th:block th:each="row : ${items}" th:with="issue=${row.item}, base=${'/' + row.owner + '/' + row.project}, url=${'/' + row.owner + '/' + row.project + '/issue/' + row.item.number}">
+    <li class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{${url}}">
+        <div class="span12 span-hard-wrap">
+            <div class="span2 project-name-in-my-issues fixed-height-my-issues-list">
+                <span class="infos-item project-name">
+                    <a th:href="@{${base}}" class="title project" data-toggle="tooltip" data-placement="bottom" th:title="#{project.name}" th:text="${row.project}"></a>
+                </span>
+                <span class="infos-item post-id" th:text="'#' + ${issue.number}"></span>
+            </div>
+            <div class="title-wrap span6">
+                <span class="title-cell">
+                    <span th:if="${issue.weight > 0}" class="weight-up-arrow" data-toggle="tooltip" data-placement="right" th:title="#{issue.weight} + ' ' + ${issue.weight}"><i class="yobicon-angle-circled-up"></i></span>
+                    <span th:if="${issue.weight < 0}" class="weight-down-arrow" data-toggle="tooltip" data-placement="right" th:title="#{issue.weight} + ' ' + ${issue.weight}"><i class="yobicon-angle-circled-down"></i></span>
+                    <a th:href="@{${url}}" class="title" th:text="${issue.title}"></a>
+                    <span th:if="${issue.commentCount > 0 or issue.voterCount > 0}" class="item-count-groups">
+                        <th:block th:if="${issue.commentCount > 0}"><th:block th:replace="~{common/comment-count :: commentCount(@{${url + '#comments'}}, ${issue.commentCount}, false)}"></th:block></th:block>
+                        <th:block th:if="${issue.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount(@{${url + '#vote'}}, ${issue.voterCount}, false)}"></th:block></th:block>
+                    </span>
+                    <span class="for-subtask-progressbar">
+                        <th:block th:if="${issue.subtask != null}">
+                            <div class="subtask-progress upload-progress" th:classappend="${issue.subtask.percent == 100} ? 'done-outline' : 'red-outline'">
+                                <div class="bar" th:classappend="${issue.subtask.percent == 100} ? 'done' : 'red'" th:style="'width: ' + ${issue.subtask.percent} + '%;'" title="Subtask"></div>
+                            </div>
+                            <span class="subtask-progress completion-ratio" th:classappend="${issue.subtask.percent == 100} ? 'txt-green'"><th:block th:if="${issue.subtask.percent != 100}" th:text="${issue.subtask.closed} + '/'"></th:block><th:block th:text="${issue.subtask.total}"></th:block></span>
+                        </th:block>
+                        <span th:if="${issue.parent != null}" class="infos-item subtask">
+                            <a th:href="@{${'/' + issue.parent.owner + '/' + issue.parent.project + '/issue/' + issue.parent.number}}" th:text="${issue.parent.label}"></a>
+                        </span>
+                    </span>
+                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues&labelIds=' + label.id}}" class="label issue-label list-label twoColumeModeTarget" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+                    <div class="child-issue-list hide">
+                        <div th:if="${!issue.children.isEmpty()}" class="child-issues">
+                            <th:block th:each="child : ${issue.children}">
+                            <div class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
+                                <span class="state-label" th:classappend="${child.state}"><i th:if="${child.state == 'closed'}" class=" yobicon-checkmark"></i></span>
+                                <a class="twoColumeModeTarget" th:href="@{${'/' + child.owner + '/' + child.project + '/issue/' + child.number}}">
+                                    <span class="item-name">
+                                        <span class="subtask-number"><span th:if="${child.draft}" class="draft-number" th:text="'#' + #{issue.state.draft}"></span><th:block th:unless="${child.draft}" th:text="'#' + ${child.number}"></th:block></span>
+                                        <span th:text="${child.title}"></span>
+                                        <span th:if="${child.assigneeName != null}" th:text="'- ' + ${child.assigneeName}"></span>
+                                    </span>
+                                </a>
+                                <span class="child-issue-date" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></span>
+                            </div>
+                            </th:block>
+                        </div>
+                    </div>
+                </span>
+            </div>
+            <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
+                <th:block th:unless="${authoredTab}">
+                    <a th:if="${row.authorPureName != null}" th:href="@{/{u}(u=${issue.authorLoginId})}" class="infos-item infos-link-item author-cell" data-toggle="tooltip" data-placement="bottom" th:title="${issue.authorLoginId}" th:text="${row.authorPureName}"></a>
+                    <span th:unless="${row.authorPureName != null}" class="infos-item" th:text="#{issue.noAuthor}"></span>
+                </th:block>
+            </div>
+            <div class="infos meta" th:classappend="${!assignedTab and issue.assigneeName != null} ? 'span2' : 'span3'">
+                <span class="meta-cell">
+                <span class="hide show-in-mobile">
+                    <th:block th:unless="${authoredTab}">
+                        <a th:if="${row.authorPureName != null}" th:href="@{/{u}(u=${issue.authorLoginId})}" class="infos-item infos-link-item author-cell" data-toggle="tooltip" data-placement="bottom" th:title="${issue.authorLoginId}" th:text="${row.authorPureName}"></a>
+                        <span th:unless="${row.authorPureName != null}" class="infos-item" th:text="#{issue.noAuthor}"></span>
+                    </th:block>
+                </span>
+                <span class="infos-item" data-toggle="tooltip" data-placement="bottom" th:title="${row.timeTitle}" th:text="${row.timeText}"></span>
+
+                <span th:if="${row.milestoneVisible}" class="mileston-tag">
+                    <a th:href="@{${base + '/milestone/' + issue.milestoneId}}" data-toggle="tooltip" data-placement="bottom" th:title="#{milestone}" th:text="${issue.milestoneTitle}"></a>
+                </span>
+
+                <span th:if="${issue.due != null}" class="pull-right" th:classappend="${row.overdue} ? 'overdue'" data-toggle="tooltip" data-placement="top" th:title="'Due date: ' + ${row.dueDateString}">
+                    <i class="yobicon-clock2"></i>
+                    <th:block th:text="${issue.due.text}"></th:block>
+                </span>
+                </span>
+            </div>
+            <div th:if="${!assignedTab and issue.assigneeName != null}" class="span1 hide-in-mobile">
+                <div class="mt5 pull-right hide-in-mobile">
+                    <a th:href="@{/{u}(u=${issue.assigneeLoginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="bottom" th:title="#{issue.assignee} + ': ' + ${issue.assigneeName}">
+                        <img th:src="@{${issue.assigneeAvatarUrl}}" width="32" height="32" th:alt="${issue.assigneeName}">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </li>
+</th:block>
+</ul>
+</th:block>

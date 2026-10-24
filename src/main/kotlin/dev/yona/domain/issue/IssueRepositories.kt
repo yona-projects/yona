@@ -1,5 +1,6 @@
 package dev.yona.domain.issue
 
+import org.springframework.data.jpa.repository.Query
 import dev.yona.domain.enumeration.State
 import org.springframework.data.jpa.repository.JpaRepository
 
@@ -40,6 +41,10 @@ interface IssueSharerRepository : JpaRepository<IssueSharer, Long> {
 
     /** 이슈에서 로그인 아이디로 공유자 행을 찾는다. */
     fun findFirstByIssueIdAndLoginId(issueId: Long, loginId: String): IssueSharer?
+
+    /** 사용자가 공유받은 열린 이슈 수이다 (v1.6 `IssueSharer.getNumberOfIssuesSharedWithUser`). */
+    @Query("select count(s) from IssueSharer s where s.user.id = :userId and s.issue.state = dev.yona.domain.enumeration.State.OPEN")
+    fun countOpenSharedWith(userId: Long): Long
 }
 
 /** 마일스톤 저장소이다. */

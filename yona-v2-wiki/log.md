@@ -284,3 +284,6 @@
 - 알림 메일의 리소스 주소 변환(`resourceUrl`)을 `ResourceUrls`로 꺼내 내 파일의 위치 열과 함께 쓴다.
 - Playwright로 새 화면 3곳을 확인했다.
 
+## [2026-10-25] ingest | 내 이슈 (2단계 2d-4c)
+- TDD: MyIssuesTest 20. `IssueSearchService`에 프로젝트를 가리지 않는 검색(`searchAll`, `countAll`, `countMentionedOpenIssues`)을 더했다. R-49.
+

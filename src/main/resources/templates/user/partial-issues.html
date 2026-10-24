@@ -34,7 +34,7 @@
                             <a th:href="@{${'/' + issue.parent.owner + '/' + issue.parent.project + '/issue/' + issue.parent.number}}" th:text="${issue.parent.label}"></a>
                         </span>
                     </span>
-                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues?state=open'}(labelIds=${label.id})}" class="label issue-label list-label" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues&labelIds=' + label.id}}" class="label issue-label list-label" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
                     <div class="child-issue-list hide">
                         <div th:if="${!issue.children.isEmpty()}" class="child-issues">
                             <th:block th:each="child : ${issue.children}">
