@@ -1,0 +1,41 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/partial_pullRequests.scala.html
+  매개변수: pull(UserPullRequestRow)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="pullRequestRow(pull)"
+          th:with="base=${'/' + pull.projectOwner + '/' + pull.projectName}, url=${'/' + pull.projectOwner + '/' + pull.projectName + '/pullRequest/' + pull.number}">
+<li class="post-item">
+    <div class="span10">
+        <a th:href="@{${base}}" class="avatar-wrap mlarge">
+            <img th:src="@{${pull.projectLogoUrl}}" th:alt="${pull.projectOwner} + ' / ' + ${pull.projectName}">
+        </a>
+        <div class="title-wrap">
+            <a th:href="@{${base}}" class="title project" th:text="${pull.projectName}"></a>
+            <span class="post-id" th:text="${pull.number}"></span>
+            <a th:href="@{${url}}" class="title" th:classappend="${pull.conflict} ? 'conflict'" th:text="${pull.title}"></a>
+        </div>
+        <div class="infos">
+            <a th:if="${pull.contributorName != null}" th:href="@{/{u}(u=${pull.contributorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${pull.contributorLoginId}" th:text="${pull.contributorName}"></a>
+            <span th:unless="${pull.contributorName != null}" class="infos-item" th:text="#{issue.noAuthor}"></span>
+            <span class="infos-item" th:title="${pull.createdTitle}" th:text="${pull.createdText}"></span>
+            <a th:if="${pull.threadCount > 0}" th:href="@{${url + '#comments'}}" class="infos-item infos-icon-link">
+                <i class="yobicon-comments"></i>
+                <span class="size" th:text="${pull.threadCount}"></span>
+            </a>
+        </div>
+    </div>
+    <div class="span2">
+        <div class="mt5 pull-right">
+            <a th:if="${pull.receiverLoginId != null}" th:href="@{/{u}(u=${pull.receiverLoginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${pull.receiverName}">
+                <img th:src="@{${pull.receiverAvatarUrl}}" width="32" height="32" th:alt="${pull.receiverName}">
+            </a>
+            <div th:unless="${pull.receiverLoginId != null}" class="empty-avatar-wrap">&nbsp;</div>
+        </div>
+        <div class="state pull-right" th:classappend="${pull.stateClass}" th:text="#{${pull.stateKey}}"></div>
+    </div>
+</li>
+</th:block>

@@ -24,3 +24,17 @@ interface UserVerificationRepository : JpaRepository<UserVerification, Long> {
     /** 사용자의 인증 정보를 조회한다 (v1.6 `UserVerification.findbyUser`). */
     fun findFirstByUserId(userId: Long): UserVerification?
 }
+
+/** 소셜 로그인 자격 증명 저장소이다. */
+interface UserCredentialRepository : JpaRepository<UserCredential, Long> {
+
+    /** 사용자의 자격 증명을 조회한다 (v1.6 `UserCredential.findByUserId`). */
+    fun findByUserId(userId: Long): List<UserCredential>
+}
+
+/** 소셜 로그인 제공자별 연결 계정 저장소이다. */
+interface LinkedAccountRepository : JpaRepository<LinkedAccount, Long> {
+
+    /** 자격 증명에 연결된 계정을 조회한다. */
+    fun findByUserCredentialId(userCredentialId: Long): List<LinkedAccount>
+}

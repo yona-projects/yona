@@ -29,6 +29,10 @@ interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExec
     fun findByPreviousOwnerLoginIdIgnoreCaseAndPreviousNameIgnoreCaseOrderByPreviousNameChangedTimeDesc(
         previousOwnerLoginId: String, previousName: String
     ): List<Project>
+
+    /** 사용자가 구성원으로 등록된 프로젝트이다 (v1.6 `Project.findProjectsByMember`). 같은 프로젝트가 여러 번 나올 수 있다. */
+    @org.springframework.data.jpa.repository.Query("select pu.project from ProjectUser pu where pu.user.id = :userId order by pu.id")
+    fun findProjectsByMember(userId: Long): List<Project>
 }
 
 /** 프로젝트 구성원 저장소이다. */

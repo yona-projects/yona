@@ -1,0 +1,54 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/partial_projectlist.scala.html
+  매개변수: project(UserProjectRow)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectRow(project)" th:with="base=${'/' + project.owner + '/' + project.name}">
+<li class="project">
+    <div class="info-wrap">
+        <div class="pull-left">
+            <a th:href="@{${base}}" class="avatar-wrap small">
+                <img th:src="@{${project.logoUrl}}">
+            </a>
+        </div>
+        <div class="pull-left" style="margin-left: 10px;">
+            <div class="header">
+                <a th:href="@{${base}}" class="project-name" th:text="${project.name}"></a>
+                <i th:if="${project.private}" class="yobicon-lock yobicon-small"></i>
+                <th:block th:if="${project.originalOwner != null}">
+                    <i class="yobicon-split yobicon-white vmiddle"></i>
+                    <span> <a th:href="@{${'/' + project.originalOwner + '/' + project.originalName}}" th:text="${project.originalOwner} + '/' + ${project.originalName}"></a></span>
+                </th:block>
+            </div>
+            <div class="desc" th:text="${project.overview}"></div>
+            <div class="name-tag">
+                <th:block th:utext="#{project.onmember(${project.memberCount})}"></th:block> <a th:href="@{/{u}(u=${project.owner})}" class="owner-name-small" th:text="${project.owner}"></a> <span th:title="${project.createdTitle}" th:text="${project.createdText}"></span>
+                <th:block th:if="${project.lastPushedText != null}">, <th:block th:text="#{project.codeUpdate}"></th:block> <span th:title="${project.lastPushedTitle}" th:text="${project.lastPushedText}"></span></th:block>
+            </div>
+        </div>
+    </div>
+    <div class="stats-wrap pull-right">
+        <div class="stats">
+            <th:block th:if="${project.showWatchButton}">
+                <a th:if="${project.watching}" th:href="@{${base + '/unwatch'}}" class="ybtn watchBtn">
+                    <i class="yobicon-eye-open yobicon-middle yobicon-white"></i>
+                    <th:block th:text="#{notification.unwatch}"></th:block>
+                    <span class="num-badge" th:text="${project.watchingCount}"></span>
+                </a>
+                <a th:if="${!project.watching and project.publicScope}" th:href="@{${base + '/watch'}}" class="ybtn watchBtn">
+                    <i class="yobicon-eye-close yobicon-middle yobicon-white"></i>
+                    <th:block th:text="#{notification.watch}"></th:block>
+                    <span class="num-badge" th:text="${project.watchingCount}"></span>
+                </a>
+            </th:block>
+
+            <a th:if="${project.canLeave}" th:href="@{${'/info/leave/' + project.owner + '/' + project.name}}" th:attr="data-projectName=${project.name}" class="nbtn black medium last leaveProject">
+                <i class="yobicon-trash"></i> <th:block th:text="#{userinfo.leaveProject}"></th:block>
+            </a>
+        </div>
+    </div>
+</li>
+</th:block>

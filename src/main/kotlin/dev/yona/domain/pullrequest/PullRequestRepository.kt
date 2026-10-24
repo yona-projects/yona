@@ -3,6 +3,7 @@ package dev.yona.domain.pullrequest
 import dev.yona.domain.enumeration.State
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Query
 
 /** 풀 리퀘스트 저장소이다. */
 interface PullRequestRepository : JpaRepository<PullRequest, Long>, JpaSpecificationExecutor<PullRequest> {
@@ -33,4 +34,11 @@ interface PullRequestRepository : JpaRepository<PullRequest, Long>, JpaSpecifica
             "and r.state <> dev.yona.domain.enumeration.State.CLOSED and r.state <> dev.yona.domain.enumeration.State.MERGED order by r.id"
     )
     fun findRelated(projectId: Long, branch: String): List<PullRequest>
+
+    /**
+     * 사용자가 보낸 풀 리퀘스트 중 [from] 이후에 갱신된 것을 최근 갱신 순으로 조회한다. 같은 시각이면 상태 순이다
+     * (v1.6 `PullRequest.findOpendPullRequestsByDaysAgo`. 이름과 달리 상태는 가리지 않는다).
+     */
+    @Query("select r from PullRequest r where r.contributor.id = :userId and r.updated >= :from order by r.updated desc, r.state asc, r.id asc")
+    fun findRecentlyByContributor(userId: Long, from: java.util.Date): List<PullRequest>
 }

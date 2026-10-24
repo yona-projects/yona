@@ -69,9 +69,10 @@ class IssueListAssembler(
      * 초안은 쓴 사람에게만 보인다. 다른 사람이 쓴 초안은 목록에서 뺀다.
      *
      * @param viewer 보는 사람. 없으면 익명이다
+     * @param includeOthersDrafts 다른 사람이 쓴 초안도 담는다. 사용자 페이지가 쓴다(v1.6 `UserApp.userInfo`는 초안을 거르지 않는다)
      */
-    fun assemble(project: Project, issues: List<Issue>, viewer: User?): List<IssueListItem> {
-        val visible = issues.filter { !(it.isDraft == true && it.authorLoginId != viewer?.loginId) }
+    fun assemble(project: Project?, issues: List<Issue>, viewer: User?, includeOthersDrafts: Boolean = false): List<IssueListItem> {
+        val visible = issues.filter { includeOthersDrafts || !(it.isDraft == true && it.authorLoginId != viewer?.loginId) }
         val ids = visible.map { requireNotNull(it.id) }
         val comments = listService.commentCounts(ids)
         val voters = listService.voterCounts(ids)

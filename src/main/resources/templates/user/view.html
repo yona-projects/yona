@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/view.scala.html, partial_issues.scala.html, partial_pullRequests.scala.html, partial_projectlist.scala.html
+  모델: profile(UserProfileView), activity(UserActivity), daysAgo, selected, showStream, openIssueCount, closedIssueCount
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${profile.loginId}, 'USER', ~{::userPage})}">
+<th:block th:fragment="userPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="${profile.name}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <section class="user-box">
+            <div class="user-info-box">
+                <div class="whoami-wrap" th:style="'background-image:url(\'' + ${profile.avatarUrl} + '\')'">
+                    <div th:if="${profile.guest}" class="guest-user">
+                        <span class="left-mark">OUR GUEST</span>
+                    </div>
+                </div>
+                <div class="whoami usf-group">
+                    <span class="name" th:text="${profile.englishName}"></span>
+                    <span class="loginid" th:text="'@' + ${profile.loginId}"></span>
+                    <span th:if="${profile.email != null}" class="email" th:text="${profile.email}"></span>
+                    <div th:if="${profile.ownPage}" class="edit">
+                        <a th:href="@{/user/editform}" class="ybtn ybtn-default ybtn-mini"><i class="yobicon-edit"></i> <th:block th:text="#{userinfo.editProfile}"></th:block></a>
+                    </div>
+                </div>
+
+                <div class="user-status"><span th:if="${profile.siteManager}" class="badge label-success">SITE ADMIN</span></div>
+                <div class="user-status"><span th:if="${profile.locked}" class="badge label-important">BLOCKED</span></div>
+                <div class="user-since">
+                    <strong th:text="#{userinfo.since}"></strong>
+                    <span class="since" th:text="${profile.since}"></span>
+                </div>
+                <div class="user-since">
+                    <div>
+                        <strong th:text="#{user.connected.social.login}"></strong>
+                    </div>
+                    <div class="auth-provider-logo">
+                        <th:block th:each="logo : ${profile.providers}" th:utext="${logo}"></th:block>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-stream-box">
+                <th:block th:if="${showStream}">
+                <div class="pull-right">
+                    <th:block th:text="#{userinfo.daysAgo.prefix}"></th:block><input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" th:value="${daysAgo}" style="margin:0px 5px; vertical-align:bottom;"><th:block th:text="#{userinfo.daysAgo.suffix}"></th:block>
+                </div>
+
+                <ul class="nav nav-tabs">
+                    <li th:class="${selected == 'issues'} ? 'active'">
+                        <a href="#issues" data-toggle="tab">
+                            <th:block th:text="#{menu.issue}"></th:block> <span th:if="${!activity.issues.isEmpty()}" class="num-badge" th:text="${activity.issues.size()}"></span>
+                        </a>
+                    </li>
+                    <li th:class="${selected == 'pullRequests'} ? 'active'">
+                        <a href="#pullRequests" data-toggle="tab">
+                            <th:block th:text="#{menu.pullRequest}"></th:block> <span th:if="${!activity.pullRequests.isEmpty()}" class="num-badge" th:text="${activity.pullRequests.size()}"></span>
+                        </a>
+                    </li>
+                    <li th:class="${selected == 'projects'} ? 'active'">
+                        <a href="#projects" data-toggle="tab">
+                            <th:block th:text="#{project.projects}"></th:block> <span th:if="${!activity.projects.isEmpty()}" class="num-badge" th:text="${activity.projects.size()}"></span>
+                        </a>
+                    </li>
+                    <li><th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div id="issues" class="tab-pane" th:classappend="${selected == 'issues'} ? 'active'">
+                        <ul class="nav nav-tabs nm">
+                            <li class="active">
+                                <a href="#openIssues" data-toggle="tab">
+                                    <th:block th:text="#{issue.state.open}"></th:block>
+                                <span class="num-badge" th:text="${openIssueCount}"></span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#closedIssues" data-toggle="tab">
+                                    <th:block th:text="#{issue.state.closed}"></th:block>
+                                    <span class="num-badge" th:text="${closedIssueCount}"></span>
+                                </a>
+                            </li>
+                            <li><th:block th:replace="~{common/show-subtasks-checkbox :: showSubtasksCheckbox}"></th:block></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="openIssues" class="tab-pane active">
+                                <div th:if="${activity.issues.isEmpty()}" class="error-wrap">
+                                    <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
+                                </div>
+                                <ul class="post-list-wrap my-issues row-fluid">
+                                    <th:block th:each="row : ${activity.issues}" th:if="${row.open}">
+                                        <th:block th:replace="~{user/partial-issues :: issueRow(${row})}"></th:block>
+                                    </th:block>
+                                </ul>
+                            </div>
+                            <div id="closedIssues" class="tab-pane">
+                                <div th:if="${activity.issues.isEmpty()}" class="error-wrap">
+                                    <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
+                                </div>
+                                <ul class="post-list-wrap my-issues row-fluid">
+                                    <th:block th:each="row : ${activity.issues}" th:unless="${row.open}">
+                                        <th:block th:replace="~{user/partial-issues :: issueRow(${row})}"></th:block>
+                                    </th:block>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="pullRequests" class="tab-pane" th:classappend="${selected == 'pullRequests'} ? 'active'">
+                        <div th:if="${activity.pullRequests.isEmpty()}" class="error-wrap">
+                            <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{pullRequest.is.empty}"></th:block></p>
+                        </div>
+                        <ul class="post-list-wrap  row-fluid">
+                            <th:block th:each="pull : ${activity.pullRequests}">
+                                <th:block th:replace="~{user/partial-pull-requests :: pullRequestRow(${pull})}"></th:block>
+                            </th:block>
+                        </ul>
+                    </div>
+                    <div id="projects" class="tab-pane" th:classappend="${selected == 'projects'} ? 'active'">
+                        <div th:if="${activity.projects.isEmpty()}" class="error-wrap">
+                            <p th:text="#{project.is.empty}"></p>
+                        </div>
+                        <ul class="user-streams all-projects">
+                            <th:block th:each="project : ${activity.projects}">
+                                <th:block th:replace="~{user/partial-projectlist :: projectRow(${project})}"></th:block>
+                            </th:block>
+                        </ul>
+                    </div>
+                </div>
+                </th:block>
+            </div>
+        </section>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/parseuri.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery.pageslide.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.twoColumnMode.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.showSubtask.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    $yobi.loadModule("user.View", {
+        "sTabSelected": [[${selected}]]
+    });
+});
+</script>
+</th:block>
+</html>

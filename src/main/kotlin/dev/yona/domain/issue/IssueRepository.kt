@@ -2,6 +2,7 @@ package dev.yona.domain.issue
 
 import dev.yona.domain.enumeration.State
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 
 /** 이슈 저장소이다. */
 interface IssueRepository : JpaRepository<Issue, Long> {
@@ -40,4 +41,11 @@ interface IssueRepository : JpaRepository<Issue, Long> {
     @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true, clearAutomatically = true)
     @org.springframework.data.jpa.repository.Query("update Issue i set i.milestone = null where i.milestone.id = :milestoneId")
     fun clearMilestone(milestoneId: Long): Int
+
+    /**
+     * 사용자가 담당했거나 작성한 이슈 중 [from] 이후에 갱신된 것을 최근 갱신 순으로 조회한다. 같은 시각이면 상태 순이다
+     * (v1.6 `Issue.findRecentlyIssuesByDaysAgo`).
+     */
+    @Query("select i from Issue i left join i.assignee a where (a.user.id = :userId or i.authorId = :userId) and i.updatedDate >= :from order by i.updatedDate desc, i.state asc, i.id asc")
+    fun findRecentlyByUser(userId: Long, from: java.util.Date): List<Issue>
 }
