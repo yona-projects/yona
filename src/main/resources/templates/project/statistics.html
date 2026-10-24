@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/statistics.scala.html
+  모델: title(메시지 키 `statistics`), projectView
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'ISSUE', ~{::statisticsPage})}">
+<th:block th:fragment="statisticsPage">
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <h1>Under Construction</h1>
+    </div>
+</div>
+</th:block>
+</html>

@@ -74,7 +74,8 @@ updated: 2026-10-22
 | 5e | 웹훅(설정 화면, 발송), 이벤트와 웹훅 연결 | 완료 | [web/webhooks.md](web/webhooks.md), [subsystems/webhooks.md](subsystems/webhooks.md) |
 | 5f | 외부 저장소 가져오기(`/_import`) | 완료 | [web/import.md](web/import.md) |
 | 6a | 검색(전체, 조직, 프로젝트 범위: 이슈, 사용자, 프로젝트, 게시글, 마일스톤, 이슈 댓글, 게시글 댓글, 코드 리뷰 댓글) | 완료 | [web/search.md](web/search.md) |
-| 6 | 통계, 도움말, 사이트 관리, 이전(Migration) 화면(`/migration`, 프로젝트 데이터 JSON 내보내기), 데이터 내보내기/가져오기 | 대기 | 이전 화면은 사이트 관리 다음, 데이터 내보내기/가져오기 앞. 권한 규칙은 구현 전에 `MigrationApp`을 읽고 확인한다 |
+| 6b | 도움말(`/_help`), 프로젝트 통계(`/:user/:project/statistics`, v1.6도 "Under Construction"), UI 견본(`/_UIKit`) | 완료 | [web/help-statistics.md](web/help-statistics.md). `/restricted`는 소셜 로그인 세션이 필요해 7단계에서 옮긴다(A-88) |
+| 6 | 사이트 관리, 이전(Migration) 화면(`/migration`, 프로젝트 데이터 JSON 내보내기), 데이터 내보내기/가져오기 | 대기 | 이전 화면은 사이트 관리 다음, 데이터 내보내기/가져오기 앞. 권한 규칙은 구현 전에 `MigrationApp`을 읽고 확인한다 |
 | 7 | 소셜 로그인, LDAP, 이메일 수신 | 대기 | |
 | 8 | Subversion(SVNKit) | 마지막 | |
 

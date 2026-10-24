@@ -290,3 +290,6 @@
 ## [2026-10-25] ingest | 검색 (6단계 6a)
 - TDD: SearchTest 28, SearchSnippetsTest 7. `SearchService`(JPQL)와 `SearchRowAssembler`, 범위별 결과 화면 세 가지. A-87, R-50.
 
+## [2026-10-25] ingest | 도움말, 통계, UI 견본 (6단계 6b)
+- TDD: HelpAndStatisticsTest 6. A-88, R-51.
+
