@@ -24,9 +24,10 @@
       $(function(){
           $yobi.loadModule("issue.List");
 
+          var defaultLoginPageUrl = /*[[@{/-_-api/v1/user/defultLoginPage}]]*/ "";
           var $setDefaultLoginPage = $("#setDefaultLoginPage");
           $setDefaultLoginPage.on('click', function(){
-              $.post(/*[[@{/-_-api/v1/user/defultLoginPage}]]*/ "" + "?path=" + $setDefaultLoginPage.data("url"))
+              $.post(defaultLoginPageUrl + "?path=" + $setDefaultLoginPage.data("url"))
                       .done(function (data) {
                           $yobi.notify("Set to default: " + data.defaultLoginPage, 3000);
                           $setDefaultLoginPage.hide();

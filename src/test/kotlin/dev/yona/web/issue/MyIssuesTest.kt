@@ -267,4 +267,11 @@ class MyIssuesTest : AbstractIntegrationTest() {
         val assigned = page(login(me), "assigneeId" to me.id.toString())
         assertTrue(assigned.select("a.avatar-wrap.assinee").isEmpty())
     }
+
+    @Test
+    fun `기본 페이지 설정 스크립트는 주소를 변수로 받아 요청한다`() {
+        val html = mockMvc.perform(get("/user/issues").session(login(newUser()))).andReturn().response.contentAsString
+        assertTrue(html.contains("var defaultLoginPageUrl = \"\\/-_-api\\/v1\\/user\\/defultLoginPage\";"))
+        assertTrue(html.contains("\$.post(defaultLoginPageUrl + \"?path=\" + \$setDefaultLoginPage.data(\"url\"))"))
+    }
 }
