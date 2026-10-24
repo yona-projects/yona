@@ -129,4 +129,23 @@ class TemplateHelperTest {
         assertEquals(100, helper.percent(3, 3))
         assertEquals(0, helper.percent(0, 0))
     }
+
+    @Test
+    fun `지정한 형식으로 날짜를 문자열로 바꾼다`() {
+        assertEquals("2026-10-22 6:00 PM", helper.dateString(Date.from(now), "yyyy-MM-dd h:mm a", Locale.ENGLISH))
+        assertEquals("", helper.dateString(null, "yyyy-MM-dd h:mm a", Locale.ENGLISH))
+    }
+
+    @Test
+    fun `바이트 수를 1000 단위로 읽기 쉽게 바꾼다`() {
+        assertEquals("999 B", helper.humanReadableByteCount(999, true))
+        assertEquals("1.5 kB", helper.humanReadableByteCount(1500, true))
+        assertEquals("2.0 MB", helper.humanReadableByteCount(2_000_000, true))
+    }
+
+    @Test
+    fun `바이트 수를 1024 단위로 읽기 쉽게 바꾼다`() {
+        assertEquals("1023 B", helper.humanReadableByteCount(1023, false))
+        assertEquals("1.5 KiB", helper.humanReadableByteCount(1536, false))
+    }
 }

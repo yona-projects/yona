@@ -1,14 +1,10 @@
 package dev.yona.domain.notification
 
-import dev.yona.domain.board.PostingCommentRepository
-import dev.yona.domain.board.PostingRepository
-import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.RequestState
 import dev.yona.domain.enumeration.descrKey
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.State
-import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.issue.MilestoneRepository
 import dev.yona.domain.project.OrganizationRepository
 import dev.yona.domain.project.Project
@@ -36,15 +32,8 @@ class NotificationMessages(
     private val users: UserRepository,
     private val projects: ProjectRepository,
     private val organizations: OrganizationRepository,
-    private val issues: IssueRepository,
-    private val issueComments: IssueCommentRepository,
-    private val postings: PostingRepository,
-    private val postingComments: PostingCommentRepository,
-    private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository,
     private val reviewComments: dev.yona.domain.comment.ReviewCommentRepository,
-    private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
-    private val commentThreads: dev.yona.domain.comment.CommentThreadRepository,
-    private val reviewLinks: dev.yona.domain.comment.ReviewLinks,
+    private val resourceUrls: dev.yona.domain.misc.ResourceUrls,
     private val diffs: dev.yona.repository.diff.DiffService,
     private val siteUrls: SiteUrls
 ) {
@@ -172,7 +161,7 @@ class NotificationMessages(
             EventType.MEMBER_ENROLL_ACCEPT -> projectOf(event)?.let { siteUrls.path("/${it.owner}/${it.name}") }
             EventType.ORGANIZATION_MEMBER_ENROLL_REQUEST -> organization(resourceId)?.let { siteUrls.path("/organizations/${it.name}/members") }
             EventType.ORGANIZATION_MEMBER_ENROLL_ACCEPT -> organization(resourceId)?.let { siteUrls.path("/organizations/${it.name}") }
-            else -> resourceUrl(event.resourceType, resourceId)?.let { siteUrls.path(it) }
+            else -> resourceUrls.urlOf(event.resourceType, resourceId)?.let { siteUrls.path(it) }
         }
     }
 
@@ -180,26 +169,4 @@ class NotificationMessages(
         if (event.resourceType == ResourceType.PROJECT) event.resourceId?.toLongOrNull()?.let { projects.findById(it).orElse(null) } else null
 
     private fun organization(id: String) = id.toLongOrNull()?.let { organizations.findById(it).orElse(null) }
-
-    /** v1.6 `RouteUtil.getUrl(resourceType, resourceId)`이다. 지원하지 않는 종류와 없는 대상은 `null`이다. */
-    private fun resourceUrl(type: ResourceType?, resourceId: String): String? {
-        val id = resourceId.toLongOrNull() ?: return null
-        return when (type) {
-            ResourceType.ISSUE_POST -> issues.findById(id).orElse(null)?.let { "/${it.project?.owner}/${it.project?.name}/issue/${it.number}" }
-            ResourceType.ISSUE_COMMENT -> issueComments.findById(id).orElse(null)?.let { c ->
-                c.issue?.let { "/${it.project?.owner}/${it.project?.name}/issue/${it.number}#comment-${c.id}" }
-            }
-            ResourceType.BOARD_POST -> postings.findById(id).orElse(null)?.let { "/${it.project?.owner}/${it.project?.name}/post/${it.number}" }
-            ResourceType.NONISSUE_COMMENT -> postingComments.findById(id).orElse(null)?.let { c ->
-                c.posting?.let { "/${it.project?.owner}/${it.project?.name}/post/${it.number}#comment-${c.id}" }
-            }
-            ResourceType.PROJECT -> projects.findById(id).orElse(null)?.let { "/${it.owner}/${it.name}" }
-            ResourceType.REVIEW_COMMENT -> reviewComments.findById(id).orElse(null)?.let { reviewLinks.relativeComment(it) }
-            ResourceType.COMMENT_THREAD -> commentThreads.findById(id).orElse(null)?.let { reviewLinks.relativeThread(it) }
-            ResourceType.COMMIT_COMMENT -> commitComments.findById(id).orElse(null)?.let { c -> c.project?.let { "/${it.owner}/${it.name}/commit/${c.commitId}#comment-${c.id}" } }
-            ResourceType.PULL_REQUEST -> pullRequests.findById(id).orElse(null)?.let { r -> r.toProject?.let { "/${it.owner}/${it.name}/pullRequest/${r.number}" } }
-            ResourceType.USER_AVATAR -> users.findById(id).orElse(null)?.let { "/${it.loginId}" }
-            else -> null
-        }
-    }
 }

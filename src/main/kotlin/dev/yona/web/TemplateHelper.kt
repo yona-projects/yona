@@ -30,6 +30,10 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
 
     fun dateString(date: Date?, locale: Locale): String = format(date, "yyyy-MM-dd h:mm:ss a", locale)
 
+    /** 지정한 형식으로 날짜를 문자열로 바꾼다. 날짜가 없으면 빈 문자열이다 (v1.6 `JodaDateUtil.getDateString(date, format)`). */
+    @JvmOverloads
+    fun dateString(date: Date?, pattern: String, locale: Locale = Locale.getDefault(Locale.Category.FORMAT)): String = format(date, pattern, locale)
+
     /**
      * 지나간 시간을 사람이 읽는 문구로 바꾼다 (v1.6 `agoString`). 하루 이상은 일, 한 시간 이상은 시간, 1분 이상은 분,
      * 1초 이상은 초 단위이고 그보다 짧으면 "방금"이다. 날짜가 없으면 빈 문자열이다.
@@ -82,6 +86,18 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
         if (value < BINARY_BASE) return "${size.toLong()} bytes"
         val exponent = minOf((Math.log(value) / Math.log(BINARY_BASE)).toInt(), BINARY_UNITS.length)
         return String.format(Locale.ROOT, "%.1f %sB", value / Math.pow(BINARY_BASE, exponent.toDouble()), BINARY_UNITS[exponent - 1])
+    }
+
+    /**
+     * 바이트 수를 읽기 쉽게 바꾼다 (v1.6 `FileUtil.humanReadableByteCount`). [si]이면 1000 단위(`kB`, `MB`), 아니면 1024 단위(`KiB`, `MiB`)이다.
+     * 단위보다 작으면 `N B`이다.
+     */
+    fun humanReadableByteCount(bytes: Long, si: Boolean): String {
+        val unit = if (si) 1000 else 1024
+        if (bytes < unit) return "$bytes B"
+        val exponent = (Math.log(bytes.toDouble()) / Math.log(unit.toDouble())).toInt()
+        val prefix = (if (si) "kMGTPE" else "KMGTPE")[exponent - 1] + (if (si) "" else "i")
+        return String.format(Locale.ROOT, "%.1f %sB", bytes / Math.pow(unit.toDouble(), exponent.toDouble()), prefix)
     }
 
     // --- 제목 ---
