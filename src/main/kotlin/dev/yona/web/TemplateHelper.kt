@@ -76,6 +76,38 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
         return messages.getMessage(pluralKey, arrayOf(count.toString()), pluralKey, locale) ?: pluralKey
     }
 
+    /**
+     * 하루 안의 시각은 moment.js의 `fromNow`와 같은 상대 시간으로, 그보다 오래되었으면 `yyyy-MM-dd h:mm a`로 쓴다
+     * (v1.6 `JodaDateUtil.socialDate`). 날짜가 없으면 빈 문자열이다.
+     *
+     * v1.6은 moment.js를 자바스크립트 엔진으로 돌린다. 여기서는 영어와 한국어의 하루 안 표현을 같은 기준(45초, 90초, 45분, 90분, 22시간, 36시간)으로
+     * 직접 만든다. 그 밖의 언어는 영어이다(A-89).
+     */
+    @JvmOverloads
+    fun socialDate(date: Date?, locale: Locale = Locale.getDefault(Locale.Category.FORMAT)): String {
+        if (date == null) return ""
+        val now = clock.instant()
+        val millis = Duration.between(date.toInstant(), now).toMillis()
+        if (millis >= Duration.ofDays(1).toMillis()) return format(date, "yyyy-MM-dd h:mm a", locale)
+        return momentFromNow(millis, locale.language == "ko")
+    }
+
+    private fun momentFromNow(millis: Long, korean: Boolean): String {
+        val past = millis >= 0
+        val seconds = Math.abs(millis) / 1000.0
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        val text = when {
+            seconds < 45 -> if (korean) "몇 초" else "a few seconds"
+            seconds < 90 -> if (korean) "1분" else "a minute"
+            minutes < 45 -> Math.round(minutes).let { if (korean) "${it}분" else "$it minutes" }
+            minutes < 90 -> if (korean) "한 시간" else "an hour"
+            hours < 22 -> Math.round(hours).let { if (korean) "${it}시간" else "$it hours" }
+            else -> if (korean) "하루" else "a day"
+        }
+        return if (korean) text + if (past) " 전" else " 후" else if (past) "$text ago" else "in $text"
+    }
+
     // --- 크기 ---
 
     /**

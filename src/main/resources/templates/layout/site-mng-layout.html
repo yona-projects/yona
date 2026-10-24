@@ -1,0 +1,45 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/site/siteMngLayout.scala.html
+  사용법: <html th:replace="~{layout/site-mng-layout :: siteMngLayout(제목, 본문프래그먼트)}">
+  왼쪽 사이드바의 활성 항목은 현재 요청 경로(`requestPath`)와 링크가 같은 항목이다.
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="siteMngLayout(title, content)"
+          th:replace="~{layout/site-layout :: siteLayout(${title}, 'SITE_SETTING', ~{layout/site-mng-layout :: siteMngBody(${content})})}">
+</th:block>
+
+<th:block th:fragment="siteMngBody(content)">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{site.sidebar}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+        <div class="row-fluid">
+            <div class="span2">
+                <ul class="site-setting-nav">
+                    <li th:class="${requestPath == '/sites/userList'} ? 'active'"><a th:href="@{/sites/userList}" th:text="#{site.sidebar.userList}"></a></li>
+                    <li th:class="${requestPath == '/sites/postList'} ? 'active'"><a th:href="@{/sites/postList}" th:text="#{site.sidebar.postList}"></a></li>
+                    <li th:class="${requestPath == '/sites/issueList'} ? 'active'"><a th:href="@{/sites/issueList}" th:text="#{site.sidebar.issueList}"></a></li>
+                    <li th:class="${requestPath == '/sites/projectList'} ? 'active'"><a th:href="@{/sites/projectList}" th:text="#{site.sidebar.projectList}"></a></li>
+                    <li th:class="${requestPath == '/sites/mail'} ? 'active'"><a th:href="@{/sites/mail}" th:text="#{site.sidebar.mailSend}"></a></li>
+                    <li th:class="${requestPath == '/sites/massmail'} ? 'active'"><a th:href="@{/sites/massmail}" th:text="#{site.sidebar.massMail}"></a></li>
+                    <li th:class="${requestPath == '/sites/update'} ? 'active'">
+                        <a th:href="@{/sites/update}"><th:block th:text="#{site.sidebar.update}"></th:block>
+                            <span th:if="${versionToUpdate != null}" class="notification-badge">1</span>
+                        </a>
+                    </li>
+                    <li th:class="${requestPath == '/sites/diagnostic'} ? 'active'"><a th:href="@{/sites/diagnostic}" th:text="#{site.sidebar.diagnostics}"></a></li>
+                </ul>
+            </div>
+            <div class="span10">
+                <th:block th:replace="${content}"></th:block>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>

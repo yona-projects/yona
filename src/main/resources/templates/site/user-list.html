@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/site/userList.scala.html
+  모델: title, rows(SiteUserController.UserRow), userState, query, totalPageCount, siteAdminCount
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::userListPage})}">
+<th:block th:fragment="userListPage">
+    <div class="title_area">
+
+        <h2 class="pull-left" th:text="#{site.sidebar.userList}"></h2>
+        <form class="form-search pull-right" th:action="@{/sites/userList}">
+            <input type="hidden" name="state" th:value="${userState}" />
+            <div class="search-bar">
+                <input class="textbox" name="query" type="text" th:placeholder="#{site.userList.search}" th:value="${query}">
+                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+            </div>
+        </form>
+    </div>
+    <ul class="nav nav-tabs">
+      <li th:class="${userState == 'ACTIVE'} ? 'active'"><a th:href="@{/sites/userList(state='ACTIVE')}" th:text="#{site.userList.unlocked}"></a></li>
+      <li th:class="${userState == 'LOCKED'} ? 'active'"><a th:href="@{/sites/userList(state='LOCKED')}" th:text="#{site.userList.locked}"></a></li>
+      <li th:class="${userState == 'DELETED'} ? 'active'"><a th:href="@{/sites/userList(state='DELETED')}" th:text="#{site.userList.deleted}"></a></li>
+      <li th:class="${userState == 'GUEST'} ? 'active'"><a th:href="@{/sites/userList(state='GUEST')}" th:text="#{site.userList.guest}"></a></li>
+      <li th:class="${userState == 'SITE_ADMIN'} ? 'active'"><a th:href="@{/sites/userList(state='SITE_ADMIN')}"><th:block th:text="#{site.userList.siteAdmin}"></th:block><span class="num-badge" th:text="${siteAdminCount}"></span></a></li>
+    </ul>
+    <div class="row-fluid listhead">
+        <div class="span3 listhead-title">
+            <strong th:text="#{user.name}"></strong>
+        </div>
+        <div class="span3 listhead-title">
+            <strong th:text="#{user.email}"></strong>
+        </div>
+        <div class="span2 listhead-title">
+            <strong th:text="#{userinfo.since}"></strong>
+        </div>
+        <div th:if="${userState != 'DELETED'}" class="span4 listhead-title">
+            <strong>&nbsp;</strong>
+        </div>
+        <div th:if="${userState == 'DELETED'}" class="span4 listhead-title">
+            <strong th:text="#{userinfo.leave}"></strong>
+        </div>
+    </div>
+    <ul class="user-list-wrap">
+        <li th:each="row : ${rows}" class="row-fluid listitem">
+            <div class="span3 listitem-col">
+                <a th:href="@{/{u}(u=${row.loginId})}" class="avatar-wrap list-avatar">
+                    <img th:src="@{${row.avatarUrl}}" th:alt="${row.name}" width="32" height="32"/>
+                </a>
+                <a th:href="@{/{u}(u=${row.loginId})}" class="user-name" th:text="${row.name}"></a>
+                <a th:href="@{/{u}(u=${row.loginId})}" class="user-id" th:text="'@' + ${row.loginId}"></a>
+            </div>
+            <div class="span3 listitem-col">
+                <span class="email" th:text="${row.email}"></span>
+            </div>
+            <div class="span2 listitem-col created-date">
+                <span th:text="${row.createdText}"></span>
+            </div>
+            <div th:if="${userState != 'DELETED'}" class="span5 listitem-col action-buttons">
+                <a class="ybtn ybtn-small" th:classappend="${row.guest} ? 'ybtn-success'" data-request-method="post" th:attr="data-request-uri=@{${row.guestUrl}}"
+                   th:text="${row.guest} ? #{button.user.make.normal.mode} : #{button.user.make.guest.mode}"></a>
+                <a class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.lockUrl}}"
+                   th:text="#{'button.user.makeAccountUnlock.' + ${row.state == 'LOCKED'}}"></a>
+                <button th:id="${row.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:attr="data-href=@{${row.resetPasswordUrl}}"> <th:block th:text="#{title.resetPassword}"></th:block></button>
+                <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info' : 'label-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
+                   th:text="${row.siteManager} ? #{button.user.revoke.site.admin.role} : #{button.user.upgrade.to.site.admin}"></a>
+                <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" th:attr="data-href=@{${row.deleteUrl}}, data-user-id=${row.loginId}, data-user-name=${row.name}" th:text="#{button.delete}"></button>
+            </div>
+            <div th:if="${userState == 'DELETED'}" class="span4 listitem-col" th:text="${row.lastStateModified}"></div>
+        </li>
+    </ul>
+
+    <div id="pagination"></div>
+
+    <div id="alertDeletionWrap" class="modal fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <span id="userInfo"></span>
+            <span th:text="#{site.user.delete}"></span>
+        </div>
+        <div class="modal-body">
+            <p th:text="#{site.user.deleteConfirm}"></p>
+        </div>
+        <div class="modal-footer">
+            <a id="accountToggleBtn" class="ybtn ybtn-danger" th:text="#{button.yes}"></a>
+            <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+        </div>
+    </div>
+
+    <script type="text/javascript" th:inline="javascript">
+    $(function(){
+        function _showRequestWaitingMessage(that){
+            $(".alert").remove();
+            $.tmpl (document.getElementById("dismissable-alerts-request" ).text, {}).appendTo(that.parent());
+        }
+
+        $('.user-list-wrap').on('click','[data-toggle="account-delete"]',function(){
+            $('#accountToggleBtn')
+                .data("requestUri", $(this).data('href'))
+                .data("requestMethod","delete")
+                .requestAs({
+                        "fOnError": function(oRes) {
+                            if (oRes.oXHR.status == 403) {
+                                document.location.reload();
+                            }
+                        }
+                    });
+            $('#userInfo').html($(this).data('userName')+'('+$(this).data('userId')+')');
+            $('#alertDeletionWrap').modal('show');
+        })
+        .on('click','[data-toggle="reset-password"]',function(){
+            var that = $(this);
+            _showRequestWaitingMessage(that);
+            $.post(that.data("href"))
+                .done(function(data){
+                    $(".alert").remove();
+                    if(data && data.isSuccess === true){
+                        $.tmpl($('#dismissable-alerts').text(), data).appendTo(that.parent());
+                    } else {
+                        $yobi.alert("password change failed: " + data.reason);
+                    }
+                })
+                .fail(function(data){
+                    $yobi.alert("password change failed: " + JSON.parse(data.responseText).reason);
+                });
+
+        });
+
+        yobi.Pagination.update($("#pagination"), [[${totalPageCount}]]);
+    });
+    </script>
+    <script type="text/x-jquery-tmpl" id="dismissable-alerts">
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4>[[#{user.newPassword}]]: ${newPassword}</h4>
+        </div>
+    </script>
+    <script type="text/x-jquery-tmpl" id="dismissable-alerts-request">
+        <div class="alert alert-fail">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4>sending requestHeader...</h4>
+        </div>
+    </script>
+</th:block>
+</html>

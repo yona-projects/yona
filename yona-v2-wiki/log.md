@@ -293,3 +293,6 @@
 ## [2026-10-25] ingest | 도움말, 통계, UI 견본 (6단계 6b)
 - TDD: HelpAndStatisticsTest 6. A-88, R-51.
 
+## [2026-10-25] ingest | 사이트 관리: 틀과 사용자 관리 (6단계 6c-1)
+- TDD: SiteUserManagementTest 21, TemplateHelperTest 3 추가. `@SiteManagerOnly`, `SiteUserService`, `socialDate`. A-89, R-52. 사용자 페이지의 BLOCKED 배지가 삭제된 사용자에게도 붙도록 고쳤다(v1.6 `isLocked`).
+

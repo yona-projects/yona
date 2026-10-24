@@ -148,4 +148,28 @@ class TemplateHelperTest {
         assertEquals("1023 B", helper.humanReadableByteCount(1023, false))
         assertEquals("1.5 KiB", helper.humanReadableByteCount(1536, false))
     }
+
+    @Test
+    fun `하루 안의 시각은 moment 방식의 영어 상대 시간이다`() {
+        fun social(seconds: Long) = helper.socialDate(ago(seconds), Locale.ENGLISH)
+        assertEquals("a few seconds ago", social(10))
+        assertEquals("a minute ago", social(60))
+        assertEquals("5 minutes ago", social(5 * 60))
+        assertEquals("an hour ago", social(60 * 60))
+        assertEquals("3 hours ago", social(3 * 3600))
+        assertEquals("a day ago", social(23 * 3600))
+    }
+
+    @Test
+    fun `하루 안의 시각은 한국어 상대 시간으로도 나온다`() {
+        assertEquals("몇 초 전", helper.socialDate(ago(10), Locale.KOREAN))
+        assertEquals("5분 전", helper.socialDate(ago(5 * 60), Locale.KOREAN))
+        assertEquals("3시간 전", helper.socialDate(ago(3 * 3600), Locale.KOREAN))
+    }
+
+    @Test
+    fun `하루보다 오래된 시각은 날짜와 시각이다`() {
+        assertEquals("2026-10-20 6:00 PM", helper.socialDate(Date.from(now.minusSeconds(2 * 86_400)), Locale.ENGLISH))
+        assertEquals("", helper.socialDate(null, Locale.ENGLISH))
+    }
 }

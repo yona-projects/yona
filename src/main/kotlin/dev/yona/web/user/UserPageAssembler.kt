@@ -62,7 +62,7 @@ class UserPageAssembler(
         loginId = user.loginId.orEmpty(), name = user.name.orEmpty(), englishName = user.englishName,
         email = if (showEmail) user.email else null,
         avatarUrl = avatars.avatarUrl(user, AVATAR_SIZE), guest = user.isGuest == true,
-        siteManager = siteAdmins.existsByAdminId(requireNotNull(user.id)), locked = user.state == UserState.LOCKED,
+        siteManager = siteAdmins.existsByAdminId(requireNotNull(user.id)), locked = user.state == UserState.LOCKED || user.state == UserState.DELETED,
         since = user.createdDate?.let { SimpleDateFormat("MMM dd, yyyy", Locale.US).format(it) }.orEmpty(),
         providers = providerLogos(user), ownPage = viewer != null && viewer.loginId == user.loginId
     )

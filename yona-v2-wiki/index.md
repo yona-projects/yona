@@ -17,6 +17,7 @@
 - [최근 방문 기록](domain/recent-visits.md)
 - [마일스톤 진행 현황](domain/milestone-status.md)
 - [계정 설정과 첨부 올리기](web/account.md): 프로필, 비밀번호, 토큰, 이메일, 첨부
+- [사이트 관리](web/site-admin.md): `/sites/userList` 등 사용자 관리와 사이트 관리 틀
 - [도움말, 통계, UI 견본](web/help-statistics.md): `/_help`, `/:user/:project/statistics`, `/_UIKit`
 - [검색](web/search.md): `/search`, 조직·프로젝트 범위, 여덟 종류
 - [내 이슈](web/my-issues.md): `/user/issues`, 프로젝트를 가리지 않는 이슈 검색
