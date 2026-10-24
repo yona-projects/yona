@@ -299,3 +299,6 @@
 ## [2026-10-25] ingest | 사이트 관리: 프로젝트, 게시글, 이슈 목록 (6단계 6c-2)
 - TDD: SiteContentListsTest 12. `SiteContentService`, `SiteContentController`. R-53.
 
+## [2026-10-25] ingest | 사이트 관리: 메일 쓰기와 대량 메일 (6단계 6c-3)
+- TDD: SiteMailTest 13. `SiteMailService`, `SiteMailController`. A-90, R-54.
+

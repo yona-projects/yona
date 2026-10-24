@@ -7,7 +7,7 @@ updated: 2026-10-25
 
 # 사이트 관리
 
-코드: `web/access/SiteManagerOnly`(애너테이션과 인터셉터), `domain/site/SiteUserService`, `web/site/SiteUserController`. 템플릿은 `layout/site-mng-layout`, `site/user-list`. 이 문서는 6c-2(틀, 사용자 관리, 프로젝트·게시글·이슈 목록)까지이다. 메일, 업데이트, 진단, 데이터 내보내기는 이어서 더한다. 코드는 `domain/site/SiteContentService`, `web/site/SiteContentController`와 템플릿 `site/project-list`, `post-list`, `issue-list`가 더해졌다.
+코드: `web/access/SiteManagerOnly`(애너테이션과 인터셉터), `domain/site/SiteUserService`, `web/site/SiteUserController`. 템플릿은 `layout/site-mng-layout`, `site/user-list`. 이 문서는 6c-3(틀, 사용자 관리, 프로젝트·게시글·이슈 목록, 메일)까지이다. 업데이트, 진단, 데이터 내보내기는 이어서 더한다. 코드는 `domain/site/SiteContentService`, `web/site/SiteContentController`와 템플릿 `site/project-list`, `post-list`, `issue-list`가 더해졌다.
 
 ## 접근
 
@@ -45,3 +45,12 @@ updated: 2026-10-25
 | `DELETE /sites/project/delete/:id` | 프로젝트와 딸린 데이터를 지우고 `/sites/projectList`로 303. 저장소 디렉터리는 지우지 않는다(v1.6, R-53). 없는 프로젝트는 404(A-24) |
 | `GET /sites/postList?pageNum=` | 모든 프로젝트의 게시글(공지, 비공개 포함)을 만든 최근 순으로 한 쪽 30개. 쪽 번호는 1부터. 줄: 프로젝트 로고와 링크, 글 제목, 작성자(없는 사용자는 `anonymous`), 시각, 댓글 수 |
 | `GET /sites/issueList?pageNum=&state=` | 열림(기본)과 닫힘 탭. `state`는 대문자로 바꿔 읽고(`all`은 빈 목록, 모르는 값은 400) 한 쪽 30개, 만든 최근 순 |
+
+## 메일 쓰기와 대량 메일
+
+코드: `domain/site/SiteMailService`, `web/site/SiteMailController`. 템플릿은 `site/mail`, `site/mass-mail`. 대량 메일 화면은 `site.MassMail` 모듈(`yobi.site.MassMail.js`)을 쓴다.
+
+- `GET /sites/mail?errorMessage=&sended=`: 보내는 사람(사이트의 보내는 주소가 미리 채워짐), 받는 사람, 제목, 본문 폼. 메일 서버 설정(`spring.mail.host`, `username`, `password`) 중 빠진 것을 오류 안내로 나열한다(A-90). `errorMessage`는 오류 안내, `sended=true`는 성공 안내이다.
+- `POST /sites/mail`: 폼 `from`, `to`, `subject`, `body`를 UTF-8 일반 텍스트 한 통으로 보내고 **이동하지 않고** 같은 응답으로 메일 쓰기 화면을 성공 안내와 함께 그린다. 본문이 비었거나 주소가 올바르지 않으면 500이다. 보내지 못해도 성공으로 보인다(R-54).
+- `GET /sites/massmail`: 받는 사람 종류(전체, 프로젝트별)와 프로젝트 입력(`/projects` 자동 완성), 선택된 프로젝트 라벨, "메일 쓰기" 버튼이 있다. 서버는 메일을 보내지 않는다.
+- `POST /sites/mailList`(JSON): `all=true`이면 모든 사용자의 이메일, 폼에 `all`이 있으나 `true`가 아니면 빈 목록, 그 밖에는 폼의 모든 값을 `소유자/이름`으로 보고 그 프로젝트들의 구성원 이메일(사이트 관리자 역할 행은 뺌, 중복 없음). 폼이 비면 빈 목록, `Accept`가 JSON을 받지 않으면 406, 없는 프로젝트나 형식 오류는 500이다. 화면의 스크립트가 결과로 `mailto:` 주소를 만들어 메일 프로그램을 연다.
