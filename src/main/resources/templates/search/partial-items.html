@@ -1,0 +1,42 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/search/partial_issues.scala.html, partial_posts, partial_issue_comments, partial_post_comments, partial_reviews
+  모델: search(SearchView; rows는 SearchItemRow 목록)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="items">
+<ul th:if="${!search.rows.isEmpty()}" class="search-list-wrap">
+    <li th:each="row : ${search.rows}" class="search-list-item">
+        <div th:if="${row.postId != null}" class="title-wrap">
+            <span class="post-id" th:text="${row.postId}"></span>
+            <a th:if="${row.titleUrl != null}" th:href="@{${row.titleUrl}}" th:classappend="${row.titleClass} ? 'title'" th:text="${row.titleText}"></a>
+        </div>
+        <div class="search-content">
+            <a th:if="${row.snippetsUrl != null}" th:href="@{${row.snippetsUrl}}">
+                <p th:each="snippet : ${row.snippets}" class="search-content-body"><th:block th:text="${snippet.text}"></th:block> <th:block th:if="${snippet.truncated}">.....</th:block></p>
+            </a>
+            <th:block th:if="${row.snippetsUrl == null}">
+                <p th:each="snippet : ${row.snippets}" class="search-content-body"><th:block th:text="${snippet.text}"></th:block> <th:block th:if="${snippet.truncated}">.....</th:block></p>
+            </th:block>
+        </div>
+        <div class="search-meta-info">
+            <a th:if="${row.projectLabel != null}" th:href="@{${row.projectUrl}}" class="project-link meta-item" th:text="${row.projectLabel}"></a>
+            <a th:if="${row.authorName != null}" th:href="@{/{u}(u=${row.authorLoginId})}" class="meta-item" data-toggle="tooltip" data-placement="top" th:title="${row.authorLoginId}" th:text="${row.authorName}"></a>
+            <span th:unless="${row.authorName != null}" class="meta-item" th:text="${row.noAuthorText}"></span>
+            <span class="meta-item" th:title="${row.createdTitle}" th:text="${row.createdText}"></span>
+        </div>
+    </li>
+</ul>
+<th:block th:if="${!search.rows.isEmpty()}">
+    <!-- pagination.js will fill here. -->
+    <div id="pagination"></div>
+    <script type="text/javascript" th:inline="javascript">
+        $(document).ready(function(){
+            yobi.Pagination.update($("#pagination"), [[${search.totalPageCount}]]);
+        });
+    </script>
+</th:block>
+<div th:if="${search.rows.isEmpty()}" class="empty-result"></div>
+</th:block>

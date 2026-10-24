@@ -1,0 +1,34 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/search/partial_users.scala.html
+  모델: search(SearchView; rows는 SearchUserRow 목록)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="users">
+<ul th:if="${!search.rows.isEmpty()}" class="search-list-wrap">
+    <li th:each="row : ${search.rows}" class="search-list-item project">
+        <a th:href="@{/{u}(u=${row.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${row.loginId}">
+            <img th:src="@{${row.avatarUrl}}" th:alt="${row.name}" width="32" height="32"/>
+        </a>
+
+        <div class="title-wrap">
+            <a th:href="@{/{u}(u=${row.loginId})}" class="title user-link" th:text="${row.name} + ' (@' + ${row.loginId} + ')'"></a>
+        </div>
+        <div class="infos nm">
+            <span class="infos-item"><th:block th:text="#{userinfo.since}"></th:block> <th:block th:text="${row.since}"></th:block></span>
+        </div>
+    </li>
+</ul>
+<th:block th:if="${!search.rows.isEmpty()}">
+    <!-- pagination.js will fill here. -->
+    <div id="pagination"></div>
+    <script type="text/javascript" th:inline="javascript">
+        $(document).ready(function(){
+            yobi.Pagination.update($("#pagination"), [[${search.totalPageCount}]]);
+        });
+    </script>
+</th:block>
+<div th:if="${search.rows.isEmpty()}" class="empty-result"></div>
+</th:block>

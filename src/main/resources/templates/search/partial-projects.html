@@ -1,0 +1,41 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/search/partial_projects.scala.html
+  모델: search(SearchView; rows는 SearchProjectRow 목록). v1.6은 이 조각에만 쪽 이동 요소가 없다(R-50).
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projects">
+<ul th:if="${!search.rows.isEmpty()}" class="search-list-wrap">
+    <li th:each="row : ${search.rows}" class="search-list-item project">
+        <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="avatar-wrap">
+            <img th:src="@{${row.logoUrl}}">
+        </a>
+        <div class="title-wrap">
+            <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="title project-link" th:text="${row.owner} + '/' + ${row.name}"></a>
+        </div>
+        <div th:if="${row.originalOwner != null}" class="search-meta-info nm np">
+            <span>
+               <i class="yobicon-split yobicon-white vmiddle"></i>
+                <th:block th:text="#{fork.original}"></th:block>
+            </span>
+            <span>
+                <a th:href="@{/{o}/{n}(o=${row.originalOwner},n=${row.originalName})}" class="project-link" th:text="${row.originalOwner} + '/' + ${row.originalName}"></a>
+            </span>
+        </div>
+        <div class="search-content np">
+            <p class="search-content-body" th:text="${row.overview}"></p>
+        </div>
+        <div class="search-meta-info np">
+            <span class="meta-info"><th:block th:text="#{project.create}"></th:block>
+                <strong th:title="${row.createdTitle}" th:text="${row.createdText}"></strong>
+            </span>
+            <span th:if="${row.lastPushedText != null}" class="meta-info"><th:block th:text="#{project.codeUpdate}"></th:block>
+                <strong th:title="${row.lastPushedTitle}" th:text="${row.lastPushedText}"></strong>
+            </span>
+        </div>
+    </li>
+</ul>
+<div th:if="${search.rows.isEmpty()}" class="empty-result"></div>
+</th:block>

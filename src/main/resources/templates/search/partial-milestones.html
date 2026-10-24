@@ -1,0 +1,34 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/search/partial_milestones.scala.html
+  모델: search(SearchView; rows는 SearchMilestoneRow 목록)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="milestones">
+<ul th:if="${!search.rows.isEmpty()}" class="search-list-wrap">
+    <li th:each="row : ${search.rows}" class="search-list-item">
+        <div class="title-wrap">
+            <a th:href="@{${row.url}}" class="title" th:text="${row.title}"></a>
+        </div>
+        <div class="search-content">
+            <p th:each="snippet : ${row.snippets}" class="search-content-body"><th:block th:text="${snippet.text}"></th:block> <th:block th:if="${snippet.truncated}">.....</th:block></p>
+        </div>
+        <div class="search-meta-info">
+            <a th:if="${row.projectLabel != null}" th:href="@{${row.projectUrl}}" class="project-link meta-item" th:text="${row.projectLabel}"></a>
+            <span th:if="${row.dueDateString != null}" class="due-date meta-item"><th:block th:text="#{label.dueDate}"></th:block> <strong th:text="${row.dueDateString}"></strong> (<th:block th:text="${row.until}"></th:block>)</span>
+        </div>
+    </li>
+</ul>
+<th:block th:if="${!search.rows.isEmpty()}">
+    <!-- pagination.js will fill here. -->
+    <div id="pagination"></div>
+    <script type="text/javascript" th:inline="javascript">
+        $(document).ready(function(){
+            yobi.Pagination.update($("#pagination"), [[${search.totalPageCount}]]);
+        });
+    </script>
+</th:block>
+<div th:if="${search.rows.isEmpty()}" class="empty-result"></div>
+</th:block>

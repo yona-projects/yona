@@ -287,3 +287,6 @@
 ## [2026-10-25] ingest | 내 이슈 (2단계 2d-4c)
 - TDD: MyIssuesTest 20. `IssueSearchService`에 프로젝트를 가리지 않는 검색(`searchAll`, `countAll`, `countMentionedOpenIssues`)을 더했다. R-49.
 
+## [2026-10-25] ingest | 검색 (6단계 6a)
+- TDD: SearchTest 28, SearchSnippetsTest 7. `SearchService`(JPQL)와 `SearchRowAssembler`, 범위별 결과 화면 세 가지. A-87, R-50.
+
