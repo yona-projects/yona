@@ -278,3 +278,9 @@
 
 ## [2026-10-23] lint | 스키마 대조에 기본값, 자동 증가, ON UPDATE 추가
 - `V16SchemaTest`에 세 항목을 추가해 세 DB에서 비교했다. 기본값 24개가 비어 있었고 외래 키 4개의 `ON UPDATE CASCADE`가 빠져 있어 엔티티를 고쳤다(A-85). 자동 증가 51개는 처음부터 일치했다.
+
+## [2026-10-25] ingest | 사용자 페이지와 내 파일 (2단계 2d-4b)
+- TDD: UserPageTest 17, UserFilesTest 8, UserLeaveTest 3, TemplateHelperTest 3 추가. `/user/issues`(내 이슈)가 로드맵에서 빠져 있음을 발견해 2d-4c로 추가했다. A-86, R-48.
+- 알림 메일의 리소스 주소 변환(`resourceUrl`)을 `ResourceUrls`로 꺼내 내 파일의 위치 열과 함께 쓴다.
+- Playwright로 새 화면 3곳을 확인했다.
+
