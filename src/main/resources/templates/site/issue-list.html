@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/site/issueList.scala.html
+  모델: title, rows(SiteContentController.ContentRow), currentState, totalPageCount
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::listPage})}">
+<th:block th:fragment="listPage">
+    <div class="title_area">
+        <h2 class="pull-left" th:text="#{site.sidebar.issueList}"></h2>
+    </div>
+    <ul class="nav nav-tabs">
+        <li th:class="${currentState == 'open'} ? 'active'"><a th:href="@{/sites/issueList(state='open')}" th:text="#{issue.state.open}"></a></li>
+        <li th:class="${currentState == 'closed'} ? 'active'"><a th:href="@{/sites/issueList(state='closed')}" th:text="#{issue.state.closed}"></a></li>
+    </ul>
+    <ul class="post-list-wrap">
+        <li th:each="row : ${rows}" class="row-fluid listitem">
+            <a th:href="@{/{o}/{n}(o=${row.projectOwner},n=${row.projectName})}" class="avatar-wrap list-avatar">
+                <img th:src="@{${row.logoUrl}}" th:alt="${row.projectName}"/>
+            </a>
+            <div class="post-info-wrap">
+                <a th:href="@{/{o}/{n}(o=${row.projectOwner},n=${row.projectName})}" class="post-project" th:text="${row.projectOwner} + '/' + ${row.projectName}"></a>
+                <span class="post-info-separator">·</span>
+                <a th:href="@{${row.url}}" class="post-title" th:text="${row.title}"></a>
+            </div>
+            <div class="post-meta-wrap">
+                <a th:href="@{/{u}(u=${row.authorLoginId})}" class="avatar-wrap">
+                    <img th:src="@{${row.authorAvatarUrl}}" th:alt="${row.authorName}" width="16" height="16"/>
+                </a>
+                <a th:href="@{/{u}(u=${row.authorLoginId})}" class="post-meta-item" th:text="${row.authorName}"></a>
+                <span class="post-meta-item" th:title="${row.createdTitle}" th:text="${row.createdText}"></span>
+                <span class="post-comments post-meta-item">
+                    <a th:href="@{${row.url + '#comments'}}">
+                        <i class="yobicon-comments"></i>
+                        <th:block th:text="${row.commentCount}"></th:block>
+                    </a>
+                </span>
+            </div>
+        </li>
+    </ul>
+
+    <div id="pagination"></div>
+
+    <script type="text/javascript" th:inline="javascript">
+    $(function(){
+        yobi.Pagination.update($("#pagination"), [[${totalPageCount}]]);
+    });
+    </script>
+</th:block>
+</html>

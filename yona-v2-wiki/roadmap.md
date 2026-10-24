@@ -76,7 +76,7 @@ updated: 2026-10-22
 | 6a | 검색(전체, 조직, 프로젝트 범위: 이슈, 사용자, 프로젝트, 게시글, 마일스톤, 이슈 댓글, 게시글 댓글, 코드 리뷰 댓글) | 완료 | [web/search.md](web/search.md) |
 | 6b | 도움말(`/_help`), 프로젝트 통계(`/:user/:project/statistics`, v1.6도 "Under Construction"), UI 견본(`/_UIKit`) | 완료 | [web/help-statistics.md](web/help-statistics.md). `/restricted`는 소셜 로그인 세션이 필요해 7단계에서 옮긴다(A-88) |
 | 6c-1 | 사이트 관리 틀(`siteMngLayout`)과 사용자 관리(`/sites/userList`: 목록, 검색, 잠금, 게스트 전환, 관리자 권한, 삭제, 비밀번호 초기화) | 완료 | [web/site-admin.md](web/site-admin.md) |
-| 6c-2 | 사이트 관리: 프로젝트, 게시글, 이슈 목록과 프로젝트 삭제 | 대기 | |
+| 6c-2 | 사이트 관리: 프로젝트, 게시글, 이슈 목록과 프로젝트 삭제 | 완료 | [web/site-admin.md](web/site-admin.md) |
 | 6c-3 | 사이트 관리: 메일 쓰기와 대량 메일 | 대기 | |
 | 6c-4 | 사이트 관리: 업데이트 확인과 진단 | 대기 | |
 | 6 | 이전(Migration) 화면(`/migration`, 프로젝트 데이터 JSON 내보내기), 데이터 내보내기/가져오기(`/sites/data`, `/sites/export`, `/sites/import`) | 대기 | 이전 화면은 사이트 관리 다음, 데이터 내보내기/가져오기 앞. 선생님께서 결정 세 가지(이전 화면의 읽기 권한, 동등성 점검 단계, `/restricted` 정리)는 가장 뒤로 미루셨다 |

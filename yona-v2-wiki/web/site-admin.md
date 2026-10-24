@@ -7,7 +7,7 @@ updated: 2026-10-25
 
 # 사이트 관리
 
-코드: `web/access/SiteManagerOnly`(애너테이션과 인터셉터), `domain/site/SiteUserService`, `web/site/SiteUserController`. 템플릿은 `layout/site-mng-layout`, `site/user-list`. 이 문서는 6c-1(틀과 사용자 관리)까지이다. 프로젝트, 게시글, 이슈 목록, 메일, 업데이트, 진단, 데이터 내보내기는 이어서 더한다.
+코드: `web/access/SiteManagerOnly`(애너테이션과 인터셉터), `domain/site/SiteUserService`, `web/site/SiteUserController`. 템플릿은 `layout/site-mng-layout`, `site/user-list`. 이 문서는 6c-2(틀, 사용자 관리, 프로젝트·게시글·이슈 목록)까지이다. 메일, 업데이트, 진단, 데이터 내보내기는 이어서 더한다. 코드는 `domain/site/SiteContentService`, `web/site/SiteContentController`와 템플릿 `site/project-list`, `post-list`, `issue-list`가 더해졌다.
 
 ## 접근
 
@@ -36,3 +36,12 @@ updated: 2026-10-25
 | `POST /:user?action=resetPassword` | 사이트 관리자가 여섯 글자 임시 비밀번호를 만들어 JSON으로 알려 준다([signup-and-password.md](signup-and-password.md)) | JSON |
 
 삭제 처리는 상태를 `DELETED`로 바꾸고 이름 앞에 `[DELETED]`, 이메일을 `deleted-<ID>@noreply.yona.io`, 비밀번호와 소금을 빈 값으로 하며 사용자 행은 남긴다. 알림 수신 기록과 프로젝트 가입 신청을 지우고 담당 이슈의 담당자를 비운다.
+
+## 프로젝트, 게시글, 이슈 목록
+
+| 요청 | 규칙 |
+|---|---|
+| `GET /sites/projectList?filter=&pageNum=` | 한 쪽 25개. `filter`가 비면 만든 최근 순, 아니면 이름에 대소문자 구분 없이 포함된 프로젝트(정렬 없음, 번호 순). 소유자와 개요는 찾지 않는다. **`pageNum`은 0부터이다**(기본 0, R-53). 줄: 로고, `소유자/이름`, 개요, 만든 날짜(`yyyy-MM-dd`), 삭제 버튼(확인 모달) |
+| `DELETE /sites/project/delete/:id` | 프로젝트와 딸린 데이터를 지우고 `/sites/projectList`로 303. 저장소 디렉터리는 지우지 않는다(v1.6, R-53). 없는 프로젝트는 404(A-24) |
+| `GET /sites/postList?pageNum=` | 모든 프로젝트의 게시글(공지, 비공개 포함)을 만든 최근 순으로 한 쪽 30개. 쪽 번호는 1부터. 줄: 프로젝트 로고와 링크, 글 제목, 작성자(없는 사용자는 `anonymous`), 시각, 댓글 수 |
+| `GET /sites/issueList?pageNum=&state=` | 열림(기본)과 닫힘 탭. `state`는 대문자로 바꿔 읽고(`all`은 빈 목록, 모르는 값은 400) 한 쪽 30개, 만든 최근 순 |
