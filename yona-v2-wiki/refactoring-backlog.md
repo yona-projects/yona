@@ -76,6 +76,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-69 | 조직 이슈 목록 화면의 스크립트 | `yobi.issue.List.js`가 로드 마지막에 `_initShowSubtasks()`(`yona.showSubtask.js`)를 호출하는데, 이 화면은 그 스크립트를 불러오지 않아 페이지를 열 때마다 `_initShowSubtasks is not defined` 오류가 난다. 마지막 호출이라 다른 동작에는 영향이 없다(브라우저 점검 2026-10-25) | 재현함 |
 | R-70 | 변경 화면(`yobi.code.Diff.js`) | 리뷰 스레드가 하나도 없으면 `div.review-list`가 그려지지 않는데 `_setReviewListHeight`가 그 요소의 `position().top`을 읽어 화면을 열 때와 스크롤할 때마다 `Cannot read properties of undefined (reading 'top')` 오류가 난다. 다른 동작에는 영향이 없다(브라우저 점검 2026-10-25) | 재현함 |
 | R-71 | 변경 화면의 리뷰 카드 선택 | `$("a[href=#reviewcards-" + state + "]")`처럼 따옴표 없는 속성 선택자를 써서 jQuery 3에서 `Syntax error, unrecognized expression` 오류가 나고, 해당 스레드가 있는 탭으로 전환되지 않는다. `yona-layout.js`와 `Diff.js`가 v1.6과 같아 v1.6도 같다 | 재현함 |
+| R-72 | 러시아어 번들의 `project.you.are.watching` | `conf/messages.ru-RU:649`가 `Вы смотрите {-} проект.`라서 `{-}`가 올바른 `MessageFormat` 패턴이 아니다. 프로젝트 머리말(`project/header`)이 이 메시지를 인자와 함께 부르므로 러시아어 화면(`Accept-Language: ru`)은 프로젝트 화면마다 `IllegalArgumentException: can't parse argument number: -`로 500이 난다. v1.6 번들에도 같은 문구가 있고 Play도 메시지를 `MessageFormat`으로 해석하므로 v1.6도 같다(브라우저 점검 2026-10-25). 고치려면 `{-}`를 `{0}`으로 바꾼다 | 재현함(고칠지 선생님 결정 대기) |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 
