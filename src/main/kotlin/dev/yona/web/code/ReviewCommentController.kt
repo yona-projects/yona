@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.util.UriComponentsBuilder
+import org.springframework.web.util.UriUtils
 import tools.jackson.databind.json.JsonMapper
 
 /**
@@ -124,7 +126,8 @@ class ReviewCommentController(
         if (!threadBelongs(request, project)) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
 
         val author = requireNotNull(currentUserProvider.get().user)
-        val commitId = request.getParameter("commitId")?.takeIf { it.isNotEmpty() }
+        // v1.6는 `commitId`를 쿼리 문자열 인자(`commitId: String ?= null`)로만 받는다. 폼 본문의 같은 이름 값(전체 변경 화면이 숨겨 보낸다)은 쓰지 않는다.
+        val commitId = UriComponentsBuilder.newInstance().query(request.queryString).build().queryParams.getFirst("commitId")?.takeIf { it.isNotEmpty() }?.let { UriUtils.decode(it, Charsets.UTF_8) }
         val comment = service.commentOnPullRequest(project, pullRequest, commitId, author, contents, threadId(request), range(request))
         return RedirectSupport.see(request, response, links.comment(comment))
     }

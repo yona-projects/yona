@@ -44,6 +44,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -237,6 +238,52 @@ class ReviewCommentTest : AbstractIntegrationTest() {
         assertEquals(1, doc.select("#reviewcards-open a.review-card").size)
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
         assertTrue(note.receivers.any { it.id == contributor.id }); assertTrue(note.receivers.none { it.id == manager.id })
+    }
+
+    /** 포크에서 `b.txt`를 추가해 보낸 풀 리퀘스트와 그 원본의 관리자이다. */
+    private class PullSetup(val origin: Project, val pr: PullRequest, val session: MockHttpSession)
+
+    private fun pullSetup(): PullSetup {
+        val n = ++sequence
+        val origin = projects.save(Project(owner = "rpo$n", name = "rpp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = origin, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(origin)
+        GitTestSupport.pushCommits(repositories, origin, TestCommit("기반", mapOf("a.txt" to "line1\nline2\nline3\n".toByteArray())))
+        val manager = user(); projectUsers.save(ProjectUser(user = manager, project = origin, role = roles.findById(RoleType.MANAGER.id).get()))
+        val contributor = user()
+        val fork = forks.fork(origin, contributor.loginId!!, "rpf$n", ProjectScope.PUBLIC, contributor)
+        GitTestSupport.appendCommits(repositories, fork, TestCommit("새 파일", mapOf("b.txt" to "b1\nb2\n".toByteArray())))
+        mockMvc.perform(
+            post("/${fork.owner}/${fork.name}/pullRequests").session(login(contributor)).param("fromProjectId", fork.id.toString()).param("toProjectId", origin.id.toString())
+                .param("fromBranch", "refs/heads/master").param("toBranch", "refs/heads/master").param("title", "요청").param("body", "본문")
+        ).andExpect(status().isSeeOther)
+        return PullSetup(origin, pullRequests.findAll().single(), login(manager))
+    }
+
+    @Test
+    fun `풀 리퀘스트 변경 화면에서 줄에 단 댓글은 어긋남이 아니고 줄 사이에 나온다`() {
+        val s = pullSetup(); val pr = s.pr
+        val ranged = range("b.txt") + mapOf("startLine" to "1", "endLine" to "1", "prevCommitId" to pr.mergedCommitIdFrom!!, "commitId" to pr.mergedCommitIdTo!!)
+        mockMvc.perform(send("/${s.origin.owner}/${s.origin.name}/pullRequest/${pr.id}/comments", s.session, "이 줄을 확인해 주세요", ranged)).andExpect(status().isSeeOther)
+        val thread = threads.findAll().single() as CodeCommentThread
+        assertEquals(pr.id, thread.pullRequest?.id); assertEquals("b.txt", thread.path)
+        val doc = Jsoup.parse(mockMvc.perform(get("/${s.origin.owner}/${s.origin.name}/pullRequest/${pr.number}/changes").session(s.session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        val card = doc.selectFirst("#reviewcards-open a.review-card")!!
+        assertFalse(card.hasClass("outdated"), "병합 기준 커밋에 단 댓글이 어긋남으로 나온다: ${card.className()}")
+        assertNotNull(doc.selectFirst("#thread-${thread.id}"), "줄 사이 스레드가 나오지 않는다")
+    }
+
+    @Test
+    fun `쿼리의 commitId가 있으면 커밋 하나에 단 댓글이고 본문의 commitId는 쓰지 않는다`() {
+        val s = pullSetup(); val pr = s.pr
+        val base = "/${s.origin.owner}/${s.origin.name}/pullRequest/${pr.id}/comments"
+        mockMvc.perform(send("$base?commitId=${pr.mergedCommitIdTo}", s.session, "커밋 의견")).andExpect(status().isSeeOther)
+        val byQuery = threads.findAll().single() as NonRangedCodeCommentThread
+        assertEquals(pr.mergedCommitIdTo, byQuery.commitId); assertEquals("", byQuery.prevCommitId)
+
+        mockMvc.perform(send(base, s.session, "본문 값은 무시", mapOf("commitId" to "0000000000000000000000000000000000000000"))).andExpect(status().isSeeOther)
+        val byBody = threads.findAll().single { it.id != byQuery.id } as NonRangedCodeCommentThread
+        assertEquals(pr.mergedCommitIdTo, byBody.commitId); assertEquals(pr.mergedCommitIdFrom, byBody.prevCommitId)
     }
 
     private fun messageOf(key: String, vararg args: Any) = messages.getMessage(key, args, java.util.Locale.forLanguageTag(LANG))

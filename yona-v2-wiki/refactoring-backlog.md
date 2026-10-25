@@ -74,6 +74,8 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-67 | 이슈 엑셀의 머리글 | 댓글 작성 시각 열의 메시지 키 `common.comment.created`가 번들에 없어 머리글에 키 이름이 그대로 나온다 | 재현함 |
 | R-68 | 프로젝트 홈의 이력, 대시보드 탭 | (1) 대시보드의 담당자별, 라벨별 수는 하위 이슈를 포함하지만 비율의 분모는 하위 이슈를 뺀 열린 이슈 수라 100%를 넘을 수 있다. (2) 이력 항목의 주소는 프로젝트의 실제 소유자가 아니라 요청 주소에 쓴 소유자(대소문자 포함)를 쓴다. (3) 이슈 이력은 초안과 닫힌 이슈도 포함한다. (4) 알 수 없는 `tabId`는 v1.6에서 500이다. | 재현함 |
 | R-69 | 조직 이슈 목록 화면의 스크립트 | `yobi.issue.List.js`가 로드 마지막에 `_initShowSubtasks()`(`yona.showSubtask.js`)를 호출하는데, 이 화면은 그 스크립트를 불러오지 않아 페이지를 열 때마다 `_initShowSubtasks is not defined` 오류가 난다. 마지막 호출이라 다른 동작에는 영향이 없다(브라우저 점검 2026-10-25) | 재현함 |
+| R-70 | 변경 화면(`yobi.code.Diff.js`) | 리뷰 스레드가 하나도 없으면 `div.review-list`가 그려지지 않는데 `_setReviewListHeight`가 그 요소의 `position().top`을 읽어 화면을 열 때와 스크롤할 때마다 `Cannot read properties of undefined (reading 'top')` 오류가 난다. 다른 동작에는 영향이 없다(브라우저 점검 2026-10-25) | 재현함 |
+| R-71 | 변경 화면의 리뷰 카드 선택 | `$("a[href=#reviewcards-" + state + "]")`처럼 따옴표 없는 속성 선택자를 써서 jQuery 3에서 `Syntax error, unrecognized expression` 오류가 나고, 해당 스레드가 있는 탭으로 전환되지 않는다. `yona-layout.js`와 `Diff.js`가 v1.6과 같아 v1.6도 같다 | 재현함 |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 
