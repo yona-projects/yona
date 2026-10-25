@@ -49,8 +49,14 @@ class SiteDataTest : AbstractIntegrationTest() {
     @Autowired private lateinit var siteAdmins: SiteAdminRepository
     @Autowired private lateinit var attachments: AttachmentRepository
     @Autowired private lateinit var jdbc: JdbcTemplate
+    @Autowired private lateinit var dataSource: javax.sql.DataSource
 
     private var sequence = 0
+
+    /** 테스트 트랜잭션 밖의 새 연결로 읽는다. 가져오기는 다른 연결에서 커밋하므로, 반복 읽기 격리(MariaDB)에서는 테스트 트랜잭션이 그 결과를 보지 못한다. */
+    private fun labelNames(): List<String> = dataSource.connection.use { c ->
+        c.createStatement().use { st -> st.executeQuery("select name from label").use { rs -> generateSequence { if (rs.next()) rs.getString(1) else null }.toList() } }
+    }
 
     @AfterEach
     fun cleanUp() { jdbc.update("delete from label") }
@@ -110,7 +116,7 @@ class SiteDataTest : AbstractIntegrationTest() {
     @Test
     fun `올리기는 성공하면 처음 화면으로 이동한다`() {
         upload(admin(), """{"LABEL": [{"id": 1, "name": "uploaded", "category": "c"}], "LABEL_SEQ": 10}""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
-        assertEquals(listOf("uploaded"), jdbc.queryForList("select name from label", String::class.java))
+        assertEquals(listOf("uploaded"), labelNames())
     }
 
     @Test
