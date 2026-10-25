@@ -15,7 +15,11 @@ import java.util.concurrent.TimeUnit
  * 간격이 0 이하이면 시작하지 않는다. `application.update.check.use`와 관계없이 돌고(v1.6도 같다), 실패하면 경고만 남긴다.
  */
 @Component
-class UpdateCheckScheduler(private val properties: YonaProperties, private val updates: UpdateCheckService) {
+class UpdateCheckScheduler(
+    private val properties: YonaProperties,
+    private val updates: UpdateCheckService,
+    private val secret: dev.yona.security.SiteSecret
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private var executor: ScheduledExecutorService? = null
@@ -23,7 +27,8 @@ class UpdateCheckScheduler(private val properties: YonaProperties, private val u
     @PostConstruct
     fun start() {
         val interval = properties.update.interval
-        if (interval <= 0) return
+        // 비밀 키를 정하기 전에는 시작하지 않는다 (v1.6 `Global.onStart`).
+        if (interval <= 0 || secret.invalid) return
         executor = Executors.newSingleThreadScheduledExecutor { runnable -> Thread(runnable, "update-check").apply { isDaemon = true } }.also {
             it.scheduleWithFixedDelay({
                 try {

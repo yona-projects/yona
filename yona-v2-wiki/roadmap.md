@@ -80,7 +80,7 @@ updated: 2026-10-22
 | 6c-3 | 사이트 관리: 메일 쓰기와 대량 메일 | 완료 | [web/site-admin.md](web/site-admin.md) |
 | 6c-4 | 사이트 관리: 업데이트 확인과 진단, 모든 화면의 업데이트 알림 | 완료 | [web/site-admin.md](web/site-admin.md). 진단의 메일 수신 점검은 7단계(IMAP)에서 더한다 |
 | 6d | 데이터 내보내기와 가져오기(`/sites/data`, `/sites/export`, `/sites/import`: 47개 테이블 JSON), 아바타 없는 사용자 목록과 아바타 지정(`/sites/noAvatarUsers`, `/sites/setAttachmentToUserAvatar`) | 완료 | [web/site-admin.md](web/site-admin.md), [subsystems/data-exchange.md](subsystems/data-exchange.md) |
-| 6e | 최초 기동 시 기본 비밀 키 안내 화면(`welcome/secret`) | 대기 | |
+| 6e | 최초 기동 화면(`welcome/secret`, `welcome/restart`): 사이트 비밀 키가 기본값이면 모든 요청이 기본 관리자 계정을 정하는 화면 | 완료 | [web/welcome.md](web/welcome.md). D-22 |
 | 6 | 이전(Migration) 화면(`/migration`, 프로젝트 데이터 JSON 내보내기) | 대기 | 선생님께서 결정 세 가지(이전 화면의 읽기 권한, 동등성 점검 단계, `/restricted` 정리)는 가장 뒤로 미루셨다 |
 | 7 | 소셜 로그인, LDAP, 이메일 수신 | 대기 | |
 | 8 | Subversion(SVNKit) | 마지막 | |
@@ -100,7 +100,7 @@ updated: 2026-10-22
 | 홈의 알림 항목 표시와 More 버튼, `GET /notification` | 4에서 완료 |
 | `GET /user/sidebar`와 사이드바 목록, `GET /user/usermenuTabContentList` | 2d-5에서 완료 |
 | `ErrorViews`의 조직 변형 | 소셜 로그인 버튼 영역, 사이트 업데이트 알림 | 7, 6 |
-| 최초 기동 시 관리자 비밀번호 설정 화면(`welcome/secret`) | 6 |
+| 최초 기동 시 관리자 비밀번호 설정 화면(`welcome/secret`) | 6e에서 완료 |
 | `AccessControl`의 엔티티별 `asResource()` | 각 엔티티의 화면 단계 |
 | Play 언어 쿠키(`PLAY_LANG`) | 2d |
 

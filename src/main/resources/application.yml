@@ -7,6 +7,9 @@ yona:
 spring:
   application:
     name: yona
+  config:
+    # 최초 기동 화면(`welcome/secret`)이 정한 사이트 비밀 키(`yona.secret`)를 읽는다. 파일이 없으면 건너뛴다.
+    import: "optional:file:${yona.data-dir:${yona.data:.}}/config/secret.properties"
   datasource:
     # 기본 프로파일은 개발과 테스트를 위한 인메모리 H2이다.
     url: jdbc:h2:mem:yona;DB_CLOSE_DELAY=-1
