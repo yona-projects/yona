@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/organization/group_pullrequest_list.scala.html, group_pullrequest_list_partial.scala.html
+  모델: title, orgView, filter, open, openAction, closedAction, searchAction, openCount, closedCount, rows(OrganizationPullRequestRow 목록), totalPages
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/organization-layout :: organizationLayout(${orgView.name}, 'NONE', ${orgView}, ~{::pullRequestPage})}">
+<th:block th:fragment="pullRequestPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
+<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div pjax-container class="row-fluid cb">
+            <div class="left-menu span2 search-wrap hide-in-mobile" style="padding-top:0;">
+                <form id="search" name="search" th:action="${searchAction}" method="get">
+                    <div class="search">
+                        <div class="search-bar">
+                            <input name="filter" class="textbox full" type="text" th:value="${filter}">
+                            <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="span10 span-hard-wrap" id="span10">
+                <ul class="nav nav-tabs nm pullrequeset-tab-menu">
+                    <li th:class="${open} ? 'active'">
+                        <a href="#" th:attr="data-url=${openAction}" data-type="state"><th:block th:text="#{pullRequest.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
+                    </li>
+                    <li th:class="${!open} ? 'active'">
+                        <a href="#" th:attr="data-url=${closedAction}" data-type="state"><th:block th:text="#{pullRequest.state.closed}"></th:block> <span class="num-badge" th:text="${closedCount}"></span></a>
+                    </li>
+                </ul>
+                <div class="tab-content" style="clear:both;padding-top:15px;">
+                    <div id="list" class="row-fluid tab-pane active">
+                        <ul class="post-list-wrap">
+                        <th:block th:if="${!rows.isEmpty()}">
+                            <li th:each="req : ${rows}" class="post-item title" th:href="@{${req.href}}">
+                                <div class="span10 span-hard-wrap">
+                                    <a th:if="${req.contributor != null}" th:href="@{/{u}(u=${req.contributor.loginId})}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}">
+                                        <img th:src="${req.contributor.avatarUrl}" th:alt="${req.contributor.name}" width="32" height="32"/>
+                                    </a>
+                                    <div class="title-wrap">
+                                        <span class="post-id" th:text="${req.number}"></span>
+                                        <th:block th:utext="${req.headerWordsHtml}"></th:block>
+                                        <a th:href="@{${req.href}}" class="title" th:classappend="${req.conflict} ? 'conflict'" th:text="${req.title}"></a>
+                                    </div>
+                                    <div class="infos">
+                                        <a th:if="${req.contributor != null and req.contributor.name != null and !req.contributor.name.isEmpty()}" th:href="@{/{u}(u=${req.contributor.loginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}" th:text="${req.contributor.name}"></a>
+                                        <span th:unless="${req.contributor != null and req.contributor.name != null and !req.contributor.name.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}"></span>
+                                        <span class="infos-item" th:title="${req.agoTitle}" th:text="${req.ago}"></span>
+                                        <a th:href="@{${'/' + req.owner + '/' + req.project}}" class="infos-link-item group-project-name" th:text="${req.project}"></a>
+
+                                        <div th:if="${req.progress != null}" class="infos-item" style="margin-right:20px;">
+                                            <i class="infos-icon yobicon-post2 vmiddle"></i>
+                                            <div class="upload-progress">
+                                                <div class="bar orange" th:style="'width: ' + ${req.progress.percent} + '%;'"></div>
+                                            </div>
+                                            <a th:href="@{${req.progress.href}}" data-toggle="tooltip" th:title="#{pullRequest.review.closed} + ' / ' + #{pullRequest.review.total}">
+                                                <span th:text="${req.progress.closed}"></span>
+                                                <span class="gray-txt">/</span>
+                                                <span class="size total" th:text="${req.progress.total}"></span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span2 hide-in-mobile">
+                                    <div class="mt5 pull-right hide-in-mobile">
+                                        <a th:if="${req.receiver != null}" th:href="@{/{u}(u=${req.receiver.loginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${req.receiver.name}">
+                                            <img th:src="${req.receiver.avatarUrl}" width="32" height="32" th:alt="${req.receiver.name}">
+                                        </a>
+                                        <div th:unless="${req.receiver != null}" class="empty-avatar-wrap">&nbsp;</div>
+                                    </div>
+                                    <div class="state pull-right" th:classappend="${req.stateClass}" th:text="#{${req.stateKey}}"></div>
+                                </div>
+                            </li>
+                            <div id="pagination"></div>
+                        </th:block>
+                        <th:block th:if="${rows.isEmpty()}">
+                            <div class="error-wrap">
+                                <i class="ico ico-err1"></i>
+                                <p th:text="#{pullRequest.is.empty}"></p>
+                            </div>
+                        </th:block>
+                        </ul>
+                        <script type="text/javascript" th:inline="javascript">
+                          $(function() {
+                            yobi.Pagination.update($("#pagination"), /*[[${totalPages}]]*/ 0);
+                            (function _initImplicitTitlePrefix() {
+                              $(".title-prefix").on("click", function() {
+                                var filterInput = $("input[name*='filter']");
+                                filterInput.val($(this).text());
+                                filterInput.closest("form").submit();
+                              });
+                            })();
+                          });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            $(function(){
+                $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
+                    $('#search').attr('action', $(this).data('url'));
+                    $('#search').submit();
+                });
+            });
+        </script>
+    </div>
+</div>
+</th:block>
+</html>

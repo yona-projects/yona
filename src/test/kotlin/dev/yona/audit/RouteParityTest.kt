@@ -53,7 +53,6 @@ class RouteParityTest : AbstractIntegrationTest() {
         /** 아직 이식하지 못한 항목. */
         private val PENDING = listOf(
             "GET /-_-api", "GET /-_-api/v1/", "GET /_init", "GET /users/login",
-            "GET /organizations/{}/closedPullrequests", "GET /organizations/{}/issues", "GET /organizations/{}/pullrequests",
             "GET /{}/{}/code/!/", "GET /{}/{}/code/{}/!/",
             "GET /{}/{}/reviews",
         )

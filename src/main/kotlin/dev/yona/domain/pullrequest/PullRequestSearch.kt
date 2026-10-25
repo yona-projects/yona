@@ -33,13 +33,16 @@ enum class PullRequestCategory(val code: String, val projectField: String, val o
  * @property filter 제목, 본문, 병합 커밋, 리뷰 댓글, 현재 커밋의 메시지와 해시에서 찾는 글
  * @property contributorId 보낸 사람. 보낸 요청(`SENT`)에서는 화면이 쓰지 않는다
  * @property pageNum 1부터 시작하는 쪽 번호
+ * @property project 프로젝트를 지정하면 분류의 프로젝트 필드가 이 프로젝트인 요청만 찾는다. 조직 목록은 `null`이다
+ * @property organizationProjectIds 조직 목록이 쓴다. 받는 쪽과 보내는 쪽 프로젝트가 모두 이 목록에 있어야 한다 (v1.6 `condition.organization`)
  */
 data class PullRequestSearchCondition(
-    val project: Project,
+    val project: Project?,
     val category: PullRequestCategory,
     val filter: String? = null,
     val contributorId: Long? = null,
-    val pageNum: Int = 1
+    val pageNum: Int = 1,
+    val organizationProjectIds: List<Long>? = null
 ) {
     fun withCategory(category: PullRequestCategory) = copy(category = category)
 }
@@ -74,7 +77,14 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
 
     private fun specification(condition: PullRequestSearchCondition) = Specification<PullRequest> { root, query, cb ->
         val predicates = mutableListOf<Predicate>()
-        predicates += cb.equal(root.get<Project>(condition.category.projectField).get<Long>("id"), condition.project.id)
+        condition.project?.let { predicates += cb.equal(root.get<Project>(condition.category.projectField).get<Long>("id"), it.id) }
+        condition.organizationProjectIds?.let { ids ->
+            if (ids.isEmpty()) predicates += cb.disjunction()
+            else {
+                predicates += root.get<Project>("toProject").get<Long>("id").`in`(ids)
+                predicates += root.get<Project>("fromProject").get<Long>("id").`in`(ids)
+            }
+        }
         if (condition.category.states.isNotEmpty()) predicates += root.get<State>("state").`in`(condition.category.states.toList())
         condition.contributorId?.let { predicates += cb.equal(root.get<Any>("contributor").get<Long>("id"), it) }
 

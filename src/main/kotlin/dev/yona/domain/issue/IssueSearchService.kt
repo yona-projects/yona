@@ -30,6 +30,7 @@ import java.util.Date
  * @property favoriteId 지정하면 현재 사용자가 즐겨찾는 이슈만
  * @property mentionId 지정하면 현재 사용자가 멘션된 이슈만 (프로젝트 목록에서는 쓰지 않는다)
  * @property dueDate 지정한 날까지(그날 포함) 마감인 이슈
+ * @property projectNames 조직 이슈 목록이 고른 프로젝트 이름. 검색 질의는 쓰지 않고 화면의 선택 상태를 유지하는 데 쓴다
  */
 data class IssueSearchCondition(
     val state: String = State.OPEN.state,
@@ -46,7 +47,8 @@ data class IssueSearchCondition(
     val sharerId: Long? = null,
     val favoriteId: Long? = null,
     val mentionId: Long? = null,
-    val dueDate: Date? = null
+    val dueDate: Date? = null,
+    val projectNames: List<String> = emptyList()
 ) {
     /** 담당자, 작성자 조건 중 하나라도 있으면 `true`이다 (v1.6 `hasCondition`). 초안 목록을 보일지 정할 때 쓴다. */
     fun hasCondition(): Boolean = assigneeId != null || authorId != null || mentionId != null || commenterId != null || sharerId != null || favoriteId != null
@@ -127,6 +129,30 @@ class IssueSearchService(private val entityManager: EntityManager) {
         return query.typed("select count(i) from Issue i ${query.where()}", java.lang.Long::class.java).singleResult.toLong()
     }
 
+    /**
+     * [projectIds]에 속한 프로젝트의 이슈 한 쪽을 찾는다. 조직 이슈 목록이 쓴다 (v1.6 `SearchCondition.asExpressionList(Organization)`).
+     *
+     * 내 이슈와 같이 하위 이슈를 담고 라벨, 마일스톤, 댓글 단 사람 조건은 쓰지 않으며 작성자, 담당자, 멘션, 공유, 즐겨찾기 조건은
+     * 값에 관계없이 현재 사용자 기준이다. 내 이슈와 달리 조건이 없어도 담당자 조건을 자동으로 걸지 않는다.
+     *
+     * @param viewer 보는 사람. 없으면 익명이며 사용자 기준 조건은 걸리지 않는다
+     */
+    @Transactional(readOnly = true)
+    fun searchIn(projectIds: Collection<Long>, condition: IssueSearchCondition, viewer: User?, pageSize: Int): IssuePage {
+        val query = Query(null, condition.copy(commenterId = null), viewer, projectIds)
+        val total = countIn(projectIds, condition, viewer)
+        val items = query.typed("select i from Issue i ${query.where()} order by ${orderBy(condition)}", Issue::class.java)
+            .setFirstResult(condition.pageNum * pageSize).setMaxResults(pageSize).resultList
+        return IssuePage(items, condition.pageNum, pageSize, total)
+    }
+
+    /** [projectIds]에 속한 프로젝트에서 조건에 맞는 이슈 수이다 (v1.6 `Issue.countIssuesBy(Organization, SearchCondition)`). */
+    @Transactional(readOnly = true)
+    fun countIn(projectIds: Collection<Long>, condition: IssueSearchCondition, viewer: User?): Long {
+        val query = Query(null, condition.copy(commenterId = null), viewer, projectIds)
+        return query.typed("select count(i) from Issue i ${query.where()}", java.lang.Long::class.java).singleResult.toLong()
+    }
+
     /** 사용자가 멘션된 열린 이슈 수이다 (v1.6 `Issue.getCountOfMentionedOpenIssues`). */
     @Transactional(readOnly = true)
     fun countMentionedOpenIssues(userId: Long): Long {
@@ -162,7 +188,9 @@ class IssueSearchService(private val entityManager: EntityManager) {
     }
 
     /** 질의의 조건절과 매개변수를 모은다. */
-    private inner class Query(private val project: Project?, private val condition: IssueSearchCondition, viewer: User?) {
+    private inner class Query(
+        private val project: Project?, private val condition: IssueSearchCondition, viewer: User?, projectIds: Collection<Long>? = null
+    ) {
         private val clauses = mutableListOf("i.isDraft = false")
         private val params = linkedMapOf<String, Any?>()
 
@@ -170,6 +198,9 @@ class IssueSearchService(private val entityManager: EntityManager) {
             if (project != null) {
                 clauses += "i.project.id = :project"
                 params["project"] = project.id
+            }
+            if (projectIds != null) {
+                if (projectIds.isEmpty()) clauses += "1 = 0" else { clauses += "i.project.id in :projectIds"; params["projectIds"] = projectIds }
             }
             val viewerId = viewer?.id ?: IssueSearchCondition.NO_VALUE
             if (condition.filter.isNotBlank()) {
