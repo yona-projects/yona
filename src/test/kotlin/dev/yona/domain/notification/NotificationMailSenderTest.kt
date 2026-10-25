@@ -25,6 +25,8 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+import dev.yona.mailbox.MailboxAddress
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 import kotlin.test.assertEquals
@@ -47,6 +49,7 @@ class NotificationMailSenderTest : AbstractIntegrationTest() {
     @Autowired private lateinit var entityManager: EntityManager
     @Autowired private lateinit var hostname: SiteHostname
     @MockitoBean private lateinit var mailSender: JavaMailSender
+    @MockitoSpyBean private lateinit var mailboxAddress: MailboxAddress
 
     private var sequence = 0
 
@@ -162,5 +165,36 @@ class NotificationMailSenderTest : AbstractIntegrationTest() {
         sender.send(MergedNotification(second, mutableListOf(first, second)))
         val text = bodyParts(sent().single()).first { !it.contains("<") }
         assertTrue(text.contains("처음 댓글\n\n---\n\n"), text)
+    }
+
+    @Test
+    fun `수신 주소가 있으면 Reply-To에 리소스의 세부 주소를 달고 본문 안내가 회신 문구가 된다`() {
+        Mockito.doReturn("yona@yona.local").`when`(mailboxAddress).address()
+        val author = user(); val receiver = user(); val i = issue(author)
+        sender.send(MergedNotification(event(author, i, EventType.NEW_ISSUE, null, "본문", receiver)))
+        val mail = sent().single()
+        val expected = "yona+${i.project!!.owner}/${i.project!!.name}/issue_post/${i.id}@yona.local"
+        assertEquals(expected, (mail.replyTo.single() as jakarta.mail.internet.InternetAddress).address)
+        val html = bodyParts(mail).first { it.contains("<") }
+        assertTrue(html.contains("Reply to this email directly"), html)
+    }
+
+    @Test
+    fun `댓글 알림의 Reply-To는 댓글이 아니라 이슈를 가리킨다`() {
+        Mockito.doReturn("yona@yona.local").`when`(mailboxAddress).address()
+        val author = user(); val receiver = user(); val i = issue(author)
+        val comment = IssueComment(contents = "댓글", createdDate = Date(), authorId = author.id, authorLoginId = author.loginId, authorName = author.name, issue = i, projectId = i.project!!.id!!).also { entityManager.persist(it); entityManager.flush() }
+        sender.send(MergedNotification(event(author, i, EventType.NEW_COMMENT, "\n\n이전", "댓글", receiver, resourceType = ResourceType.ISSUE_COMMENT, resourceId = comment.id!!)))
+        val mail = sent().single()
+        assertEquals("yona+${i.project!!.owner}/${i.project!!.name}/issue_post/${i.id}@yona.local", (mail.replyTo.single() as jakarta.mail.internet.InternetAddress).address)
+    }
+
+    @Test
+    fun `수신 주소가 없으면 Reply-To가 없고 본문은 보기 링크만 안내한다`() {
+        val author = user(); val receiver = user(); val i = issue(author)
+        sender.send(MergedNotification(event(author, i, EventType.NEW_ISSUE, null, "본문", receiver)))
+        val mail = sent().single()
+        assertNull(mail.getHeader("Reply-To"))
+        assertTrue(!bodyParts(mail).first { it.contains("<") }.contains("Reply to this email directly"))
     }
 }

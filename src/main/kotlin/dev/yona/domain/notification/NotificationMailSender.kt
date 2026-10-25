@@ -37,10 +37,11 @@ import java.util.Properties
  * 주소를 숨기는 설정(기본)이면 받는 사람(To)에 사이트의 보내는 주소를 쓰고 사용자는 숨은참조(Bcc)에 넣는다.
  *
  * 새로 만들어지는 알림(새 이슈, 새 글, 새 댓글)은 리소스로 만든 `Message-ID`를 가지고, 댓글처럼 컨테이너가 있는 알림은
- * 컨테이너의 식별자를 `References`에 달아 메일 프로그램이 한 대화로 묶게 한다. `Reply-To`(메일로 답글)는 7단계(IMAP)에서 더한다.
+ * 컨테이너의 식별자를 `References`에 달아 메일 프로그램이 한 대화로 묶게 한다. 수신 주소가 있으면 `Reply-To`를 달아 답장이 댓글이 되게 한다([MailboxAddress]).
  */
 @Service
 class NotificationMailSender(
+    private val mailboxAddress: dev.yona.mailbox.MailboxAddress,
     private val mailSenderProvider: ObjectProvider<JavaMailSender>,
     private val properties: YonaProperties,
     private val notificationMessages: NotificationMessages,
@@ -122,12 +123,16 @@ class NotificationMailSender(
         to.forEach { helper.addTo(InternetAddress(it.email, it.name, "UTF-8")) }
         bcc.forEach { helper.addBcc(InternetAddress(it.email, it.name, "UTF-8")) }
         helper.setSubject(main.title.orEmpty())
+        // 수신 주소가 있으면 답장이 곧 댓글이 되도록 Reply-To를 단다 (v1.6 `getReplyTo`). 있으면 본문 안내도 "회신하거나 보기"가 된다.
+        val replyTo = mailboxAddress.replyTo(resource)
+        if (replyTo != null) helper.setReplyTo(InternetAddress(replyTo))
+        val acceptsReply = replyTo != null
 
         val joined = htmlText.joinToString(SEPARATOR)
         val html = if (main.eventType == EventType.ISSUE_BODY_CHANGED || main.eventType == EventType.POSTING_BODY_CHANGED) {
-            wrap(lang, joined, urlToView, base)
+            wrap(lang, joined, urlToView, base, acceptsReply)
         } else {
-            wrap(lang, renderMarkdown(joined, base, lang), urlToView, base)
+            wrap(lang, renderMarkdown(joined, base, lang), urlToView, base, acceptsReply)
         }
         helper.setText(plainText.joinToString(SEPARATOR) + PLAIN_FOOTER, html)
         main.created?.let { helper.setSentDate(it) }
@@ -143,14 +148,14 @@ class NotificationMailSender(
         return projectMarkdown.render(source, requireNotNull(resource.project), lang)
     }
 
-    private fun wrap(lang: String, message: String, urlToView: String?, resource: Resource): String {
+    private fun wrap(lang: String, message: String, urlToView: String?, resource: Resource, acceptsReply: Boolean): String {
         val locale = Locale.forLanguageTag(lang)
         val unwatch = siteUrls.path("/unwatch?resource.type=${resource.type.resource}&resource.id=${resource.id}")
         val context = Context(locale).apply {
             setVariable("message", message)
             setVariable("urlToView", urlToView)
             setVariable("siteName", properties.siteName)
-            setVariable("acceptsReply", false)
+            setVariable("acceptsReply", acceptsReply)
             setVariable("unwatchLink", footerLink(unwatch, messageSource.getMessage("notification.unwatch", null, locale)))
             setVariable("settingsLink", footerLink(siteUrls.path("/user/editform/notifications"), messageSource.getMessage("userinfo.changeNotifications", null, locale)))
         }

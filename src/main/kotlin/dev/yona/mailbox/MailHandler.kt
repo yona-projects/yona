@@ -14,7 +14,6 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserLookup
-import dev.yona.markdown.SiteHostname
 import jakarta.mail.Address
 import jakarta.mail.MessagingException
 import jakarta.mail.Session
@@ -54,7 +53,7 @@ class MailHandler(
     private val notificationMailSender: NotificationMailSender,
     private val properties: YonaProperties,
     private val messages: MessageSource,
-    private val hostname: SiteHostname,
+    private val mailboxAddress: MailboxAddress,
     private val transactions: TransactionTemplate
 ) {
 
@@ -162,9 +161,7 @@ class MailHandler(
         originalEmails.save(OriginalEmail(messageId = message.messageID, resourceType = type, resourceId = id.toString(), handledDate = Date()))
     }
 
-    private fun yonaAddress(): String = properties.imap.address.ifEmpty { emailOf(properties.imap.user, properties.imap.domain) }
-
-    private fun emailOf(user: String, domain: String): String = if (user.contains("@")) user else user + "@" + domain.ifEmpty { hostname.name() }
+    private fun yonaAddress(): String = mailboxAddress.address().orEmpty()
 
     private fun toYona(addresses: Array<Address>?): List<EmailAddressWithDetail> =
         addresses.orEmpty().map { EmailAddressWithDetail((it as InternetAddress).address) }.filter { it.isToYona(yonaAddress()) }

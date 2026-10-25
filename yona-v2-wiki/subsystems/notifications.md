@@ -61,7 +61,7 @@ updated: 2026-10-23
 - 제목: 알림 제목. 본문: `NotificationMessages`가 만든 문구를 마크다운으로 렌더링(본문 변경만 변경 차이 HTML 그대로)하고 `common/notification-mail.html` 틀(보기 링크, 구독 해제 링크, 설정 링크)로 감싼다. `MailHtml`이 모든 링크를 절대 주소로 바꾸고 외부 링크에 `rel="noreferrer"`(설정 시), 이미지는 최대 너비와 원본 링크로 감싼다.
 - 일반 텍스트 본문: 문구 + 고정 문장("Yona 에서 자세히 보거나…"). 본문 변경은 `---`/`+++` 접두어 형식(`MailDiff`).
 - `Message-ID`: 새로 만들어지는 알림(새 이슈, 새 글, 새 댓글)은 리소스로 만든 `<리소스종류/번호@호스트>`. `References`: 컨테이너(댓글의 이슈 등)의 식별자. 메일 프로그램이 한 대화로 묶는다.
-- `Reply-To`(메일로 답글)는 7단계(IMAP)에서 더한다.
+- `Reply-To`(메일로 답글): IMAP 수신 주소가 있으면 알림 메일에 `수신주소+세부@도메인`을 `Reply-To`로 단다(v1.6 `NotificationMail.getReplyTo`, `app/models/NotificationMail.java:582-615`). 세부 부분은 `소유자/프로젝트/종류/번호`이며 각 경로 조각을 URL 인코딩한다. 댓글(`ISSUE_COMMENT`, `NONISSUE_COMMENT`, `COMMIT_COMMENT`, `REVIEW_COMMENT`)은 컨테이너(이슈, 게시글 등)의 세부를, 이슈와 게시글과 커밋은 자기 세부를 쓴다. 그 밖의 종류는 `Reply-To`가 없다. `Reply-To`가 있으면 HTML 본문의 안내가 `notification.replyOrLinkToViewHtml`(보거나 회신)이 되고 없으면 `notification.linkToViewHtml`이다. 이 헤더가 없으면 알림 메일에 답장해도 `To`가 세부 없는 수신 주소라 프로젝트를 정할 수 없어 댓글이 되지 않는다(2026-10-25 IMAP 점검에서 누락을 발견해 더했다. `MailboxAddress`, `NotificationMailSenderTest`).
 - 기록: 로거 `mail.out`.
 
 ### 시스템 메일 (대기열 없이 즉시)

@@ -366,3 +366,9 @@
 - v1.6과 같아서 결함이 아닌 것: 가입 수락 알림(`MEMBER_ENROLL_ACCEPT`)의 "알 수 없는 알림 이벤트" 경고는 v1.6 `getMessage`의 기본 분기와 같다. POST 전용 주소를 GET으로 열면 포괄 라우트 때문에 404이다.
 - 브라우저로 확인하지 못한 것: 소셜 로그인(외부 IdP 필요), LDAP 인증, IMAP 메일 수신(mailpit은 SMTP만 받는다). 이 셋은 테스트로만 검증된다.
 
+## [2026-10-25] verify | LDAP, IMAP (컨테이너)
+- OpenLDAP(`osixia/openldap:1.5.0`, 포트 10389)와 GreenMail(`greenmail/standalone`, SMTP 3025, IMAP 3143)을 띄워 확인했다. 컨테이너는 `docker run`으로 띄웠다(이 환경에는 `docker compose`가 없다).
+- LDAP: 바인드 주체는 `<userNameProperty>=<입력한 이름>,<postfix>`이고 검색은 `<loginProperty>=<입력한 이름>`이라 DN의 이름과 로그인 속성 값이 같아야 한다(예: `cn=hong`, `uid=hong`). 사용자 생성(이름, 이메일), 틀린 비밀번호 거부, LDAP를 켜면 로컬 관리자도 `fallbackToLocalLogin` 없이는 로그인할 수 없음을 확인했다. 이메일을 입력하면 이메일 자체를 바인드 주체로 쓰므로(AD용) OpenLDAP에서는 거부된다(v1.6과 같다). OpenLDAP 기본 접근 규칙은 일반 사용자가 검색 기준 항목을 읽지 못하게 해서 `No Such Object`가 되므로 사용자 읽기 권한이 필요하다.
+- IMAP: 새 메일로 이슈 만들기, `In-Reply-To`로 댓글, 주소 세부(`소유자/프로젝트/종류/번호`, 종류는 `issue_post` 같은 `ResourceType.resource` 값)로 댓글, `help` 회신, 모르는 보낸 사람 무시, 없는 프로젝트 오류 회신, HTML 본문과 `cid:` 인라인 이미지(`/files/번호`)와 첨부 저장을 확인했다. 오류 회신의 "Hello, null"은 보낸 사람 표시 이름이 없을 때 v1.6도 같다.
+- 결함 1건(수정): 알림 메일에 `Reply-To`가 없었다. v1.6은 수신 주소가 있으면 `수신주소+소유자/프로젝트/종류/번호@도메인`을 `Reply-To`로 달아 메일의 회신이 곧 댓글이 되고, 본문 안내도 회신 문구(`notification.replyOrLinkToViewHtml`)가 된다. v2는 KDoc에 "7단계에서 더한다"고만 적고 더하지 않아 알림 메일에 답장해도 `To`에 세부가 없어 댓글이 되지 않았다. `MailboxAddress`(수신 주소와 `Reply-To` 계산, `MailHandler`와 공용)와 테스트 8건을 더했다.
+
