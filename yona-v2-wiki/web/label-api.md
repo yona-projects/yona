@@ -16,7 +16,7 @@ updated: 2026-10-25
 | `GET /labels` | `query`(이름), `category`, `limit`(필수) | JSON 이름 배열. 분류와 이름은 대소문자 없는 부분 일치. `limit`이 없으면 `400`과 본문 `No limit`, JSON을 받지 못하는 `Accept`는 `406`. 전체가 한도보다 많으면 한도만큼만 주고 `Content-Range: items 한도/전체` |
 | `GET /categories` | `query`, `limit`(필수) | JSON 분류 배열(겹치지 않게). 계약은 위와 같고 한도는 1000을 넘지 못한다 |
 | `GET /:user/:project/labels` | | JSON `{라벨id: {category, name}}`. JSON을 받지 못하면 `406` |
-| `POST /:user/:project/labels` | `category`, `name`(필수) | 라벨이 없어 새로 만들면 `201`, 있는 라벨을 붙이면 `200`(둘 다 위와 같은 맵), 이미 붙어 있으면 `204`. `name`이 비면 `400`(`Label name is missing.`) |
+| `POST /:user/:project/labels` | `category`, `name`(필수) | `category`를 보내지 않으면 v1.6 `HttpUtil.getFirstValueFromQuery`처럼 빈 문자열이라 분류가 `""`인 라벨을 만들고(2026-10-26 정정), 같은 요청을 다시 보내면 그 라벨을 붙인 채 `204`이다. 라벨이 없어 새로 만들면 `201`, 있는 라벨을 붙이면 `200`(둘 다 위와 같은 맵), 이미 붙어 있으면 `204`. `name`이 비면 `400`(`Label name is missing.`) |
 | `POST /:user/:project/labels/:id` | `_method=delete` | `204`. `_method`가 `delete`가 아니면 `400`, 라벨이 없으면 `404`. 프로젝트에서 떼고 그 라벨을 쓰는 프로젝트가 없어지면 라벨도 지운다 |
 
 ## 권한

@@ -174,6 +174,15 @@ class LabelApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `분류를 보내지 않으면 분류가 빈 문자열인 라벨을 만들고 다시 보내면 그 라벨을 붙인 채 204이다`() {
+        val p = project(); val s = login(manager(p)); val name = unique("nocat")
+        // v1.6 HttpUtil.getFirstValueFromQuery는 키가 없으면 ""를 돌려주므로 분류가 ""인 라벨이 만들어진다.
+        mockMvc.perform(post("/${p.owner}/${p.name}/labels").session(s).param("name", name)).andExpect(status().isCreated).andExpect(jsonPath("$.*.category").value(""))
+        mockMvc.perform(post("/${p.owner}/${p.name}/labels").session(s).param("name", name)).andExpect(status().isNoContent)
+        assertEquals(1, labels.findAll().count { it.name == name && it.category == "" })
+    }
+
+    @Test
     fun `이미 붙은 라벨을 다시 붙이면 204이다`() {
         val p = project(); val s = login(manager(p)); val l = label(unique("c"), "dup"); p.labels.add(l); projects.save(p)
         mockMvc.perform(post("/${p.owner}/${p.name}/labels").session(s).param("category", l.category!!).param("name", "dup")).andExpect(status().isNoContent)

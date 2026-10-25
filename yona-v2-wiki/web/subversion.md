@@ -20,7 +20,7 @@ updated: 2026-10-25
 - 커밋 보기(`commit/{리비전}`): 템플릿 `code/svn-diff`. 패치는 `#commit`에 담아 `code.SvnDiff` 스크립트가 그리고, 커밋 코멘트 목록, 구독 단추, 코멘트 입력란이 있다.
 - 비교(`compare/{A}..{B}`): 템플릿 `code/compare-svn`. 변경이 없으면 안내한다.
 - 커밋 코멘트: `POST commit/{리비전}/comments`(내용 필수 `400`, 쓸 권한 `403`, 없는 리비전 `404`)는 `CommitCommentService`가 만들고 작성자의 임시 첨부를 옮기며 알림(`NEW_COMMENT`, 수신자: 커밋 작성자, 이전 코멘트 작성자, 프로젝트와 커밋 구독자, 멘션된 사용자)을 낸다. `DELETE commit/{리비전}/comments/{번호}/delete`는 지울 권한이 있어야 하고 커밋 보기로 돌아간다. 프로젝트 구성원은 남의 코멘트도 지울 수 있다.
-- 멘션 후보(`mentionListAtCommitDiff`)는 커밋 작성자(로그인 ID), 코멘트 작성자, 구성원 순이다.
+- 멘션 후보(`mentionListAtCommitDiff`)는 코멘트 작성자와 커밋 작성자를 모아 뒤집은 순서(최근 코멘트 작성자, 커밋 작성자), 구성원 순이다(v1.6 `addCodeCommenters`의 `reverse`).
 
 ## HTTP(WebDAV) 접근 (`web/svn/SvnDavService`, `SvnDavFilter`, `JavaxServletBridge`)
 `/svn/소유자/프로젝트/…`로 `svn checkout`, `svn commit` 같은 클라이언트가 접근한다.

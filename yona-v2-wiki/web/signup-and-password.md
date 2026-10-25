@@ -28,7 +28,7 @@ updated: 2026-10-22
 ## 비밀번호 재설정
 
 - `GET /lostPassword`: 아이디와 이메일 입력. 로그인했으면 자기 정보로 채워진다.
-- `POST /lostPassword`: 아이디의 사용자가 있고 이메일이 **대소문자까지 같으면** 일회용 값(무작위 40자 16진수)을 만들어 기억하고 메일 요청을 이벤트로 알린다(`PasswordResetRequestedEvent`). 화면에 "Mail has been sent."를 보여 준다. 틀리면 "Failed to send mail." 아래에 "Invalid password reset request"를 보여 준다. 응답은 어느 쪽이든 `200`.
+- `POST /lostPassword`: 아이디의 사용자가 있고 이메일이 **대소문자까지 같으면** 일회용 값(무작위 40자 16진수)을 만들어 기억하고 메일 요청을 이벤트로 알린다(`PasswordResetRequestedEvent`). 화면에 "Mail has been sent."를 보여 준다. 메일을 보내지 못하면(메일 서버 오류, 설정 없음) v1.6 `isSent=false`처럼 성공 안내도 오류 문구도 없이 폼만 다시 보여 준다(2026-10-26 정정, `SystemMails.passwordReset`이 보냈는지를 돌려주고 이벤트의 `sent`에 담는다). 틀리면 "Failed to send mail." 아래에 "Invalid password reset request"를 보여 준다. 응답은 어느 쪽이든 `200`.
 - 일회용 값은 v1.6처럼 **메모리**에 두며 서버를 다시 시작하면 사라진다. 사용자마다 하나만 유효하고 새로 요청하면 이전 값은 쓸 수 없다. 한 시간이 지나면 만료된다.
 - `GET /resetPassword?s=값`: 새 비밀번호 입력 폼(값은 숨은 입력란). `s`가 없으면 `400`.
 - `POST /resetPassword`: 값이 유효하면 비밀번호를 바꾸고(기존 소금을 그대로 쓴다) 값을 지운 뒤 같은 응답으로 로그인 화면을 보여 준다(안내 `user.loginWithNewPassword`). 유효하지 않으면 `400` "Wrong url to reset password.". 비밀번호가 비어 있어도 v1.6처럼 받는다.

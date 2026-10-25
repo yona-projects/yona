@@ -52,8 +52,10 @@ class PasswordResetController(
         if (target == null || target.email != email) return lostPasswordView(sent = false, errorKey = "site.resetPasswordEmail.invalidRequest")
 
         val token = tokens.issue(requireNotNull(target.loginId))
-        events.publishEvent(PasswordResetRequestedEvent(target, token))
-        return lostPasswordView(sent = true, errorKey = null)
+        val event = PasswordResetRequestedEvent(target, token)
+        events.publishEvent(event)
+        // v1.6는 메일을 보내지 못하면 isSent=false이고 오류 문구는 없이 폼을 다시 보여 준다.
+        return lostPasswordView(sent = event.sent, errorKey = null)
     }
 
     @GetMapping("/resetPassword")

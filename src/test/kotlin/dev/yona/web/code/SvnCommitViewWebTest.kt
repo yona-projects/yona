@@ -277,7 +277,7 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     // --- 멘션 후보 ---
 
     @Test
-    fun `멘션 후보는 커밋 작성자와 코멘트를 단 사람과 구성원 순이고 나는 마지막이다`() {
+    fun `멘션 후보는 코멘트를 단 사람과 커밋 작성자 순으로 뒤집혀 나오고 구성원이 뒤따르며 나는 마지막이다`() {
         val p = project()
         val author = member(p, loginId = "mnauthor")
         val commenter = member(p, loginId = "mncommenter")
@@ -286,7 +286,8 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
         comment(p, "1", commenter, "코멘트")
         val body = mockMvc.perform(get("/${p.owner}/${p.name}/mentionListAtCommitDiff?commitId=1&mentionType=user").session(login(viewer))).andExpect(status().isOk).andReturn().response.contentAsString
         val order = Regex("\"loginid\"\\s*:\\s*\"(mn[a-z]+)\"").findAll(body).map { it.groupValues[1] }.toList().ifEmpty { Regex("(mnauthor|mncommenter|mnviewer)").findAll(body).map { it.value }.distinct().toList() }
-        assertEquals(listOf("mnauthor", "mncommenter", "mnviewer"), order.distinct(), body)
+        // v1.6 addCodeCommenters는 커밋 작성자까지 포함한 목록 전체를 뒤집는다
+        assertEquals(listOf("mncommenter", "mnauthor", "mnviewer"), order.distinct(), body)
         assertNotNull(author.id)
     }
 }

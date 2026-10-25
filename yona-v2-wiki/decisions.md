@@ -306,6 +306,12 @@ v1.6과 v2의 불일치 점검에서 나온 세 항목에 대한 결정이다.
 2. **`editIssue`, `deleteIssue`의 권한 확인 순서**: v2의 현재 동작을 유지하고 v1.6 결함을 [R-73](refactoring-backlog.md)에 올린다. 권장안과 같다. 이유: 권한 없는 사용자가 이슈를 옮기거나 삭제 알림을 보낼 수 있는 동작을 되살릴 이유가 없다.
 3. **댓글의 `withStateTransition`**: v1.6으로 맞춘다. 하위 이슈를 댓글로 다시 열어도 닫힌 부모 이슈는 열지 않는다. 구현: `IssueService.toNextState(reopenParent = false)`, 테스트 `IssueCommentTest`.
 
+### P-08. 점검 결과의 처리 기준 (2026-10-26, 선생님)
+
+- 화면에서 닿는 불일치는 v1.6 동작으로 맞추고 TDD로 고친다(기본값 v1.6, 별도 결정 대기 없음). 권장안과 같다. 이유: AGENTS.md가 v1.6 완전 재현을 원칙으로 한다.
+- v1.6이 오류를 내는 경우(500, NPE)는 v2의 현재 동작을 유지한다. 직접 만든 요청으로만 닿는 항목은 A-24에 따라 재현하지 않고 [hand-crafted-request-differences.md](architecture/hand-crafted-request-differences.md)에 근거를 남긴다.
+- 이번에 v1.6에 맞춘 화면 항목: 비밀번호 재설정 메일 실패 안내, 멘션 후보 순서 두 곳, `attachLabel` category, `newWebhook` 오류 화면, `massUpdate` 삭제 알림, `referCommentId` 파생 이슈 댓글, 첨부 목록 403의 Content-Type.
+
 ## 재결정 대기 (2026-10-23, 선생님 지시)
 
 에이전트가 단독으로 정했던 판단 가운데 선생님이 다시 결정할 사항이 있다고 하신 것이다. A-63은 D-20으로 확정해 이 목록에서 뺐다. A-60도 D-19로 확정했다. 결정이 나기 전까지 현재 구현은 그대로 두고, 결정이 나면 이 목록에서 옮겨 기록한다. 아래 선택지는 에이전트가 정리한 후보이며, 재결정의 쟁점은 선생님께서 알려 주시는 대로 갱신한다.

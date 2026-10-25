@@ -38,7 +38,7 @@ updated: 2026-10-23
 
 번호는 프로젝트의 마지막 이슈 번호 + 1이다. 초안도 번호를 쓰고 상태는 `DRAFT`이다. 저장하면 제목 머리말 개수(`title_head`)와 본문 멘션(`mention`)을 기록하고, 초안이 아니면 `IssueCreatedActivity`를 발행한다(알림 서브시스템이 받는다, D-14). 성공하면 `303`으로 `/소유자/프로젝트/issue/번호`(다른 프로젝트에 만들었으면 그 프로젝트)로 보낸다.
 
-**대기**: `referCommentId`로 원 댓글에 "파생 이슈" 댓글을 다는 일은 댓글 등록(3c-3)과 함께 옮긴다.
+`referCommentId`가 있고 초안이 아니면 원 댓글의 이슈에 `Derived issue: {scheme}://{Host}{context}/{owner}/{project}/issue/{번호}` 댓글을 그 댓글의 한 줄 댓글로 단다(v1.6 `newReferComment`, 2026-10-26 이식). 원 댓글의 이슈에 댓글을 쓸 권한이 없으면 아무것도 하지 않는다.
 
 ## 자동 완성 API
 

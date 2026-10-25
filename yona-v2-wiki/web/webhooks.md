@@ -10,7 +10,7 @@ updated: 2026-10-23
 | 주소 | 설명 |
 |---|---|
 | `GET /:user/:project/webhooks` | 목록과 등록 폼(웹훅 만들기 권한이 있을 때만 폼). 프로젝트 수정 권한 |
-| `POST /:user/:project/webhooks` | 등록. 목록으로 303. 입력이 올바르지 않으면 오류를 담은 400 |
+| `POST /:user/:project/webhooks` | 등록. 목록으로 303. 입력이 올바르지 않으면 오류 JSON(`{"payloadUrl":["This field is required"]}`)을 문구로 담은 오류 화면(HTML)의 400 |
 | `DELETE /:user/:project/webhooks/:id` | 삭제. 없으면 404 (A-82) |
 
 등록 값: `payloadUrl`(필수, 2000자 이하), `secret`(250자 이하, 없으면 빈 문자열), `webhookType`(`SIMPLE`, `DETAIL_SLACK`, `DETAIL_HANGOUT_CHAT`, `JSON`, 없으면 `SIMPLE`), `gitPush`(체크박스, 없으면 `false`).

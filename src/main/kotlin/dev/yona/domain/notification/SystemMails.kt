@@ -54,7 +54,7 @@ class SystemMails(
     private fun from(): String = requireNotNull(notificationMailSender.fromAddress()) { "보내는 메일 주소(yona.smtp.user)가 설정되지 않았다" }
 
     /** 비밀번호 재설정 주소를 일반 텍스트로 보낸다. 제목은 `[사이트이름] 제목`이다. */
-    fun passwordReset(user: User, token: String) = syncInRequest("비밀번호 재설정 메일") {
+    fun passwordReset(user: User, token: String): Boolean = syncInRequest("비밀번호 재설정 메일") {
         val helper = newMessage()
         helper.setFrom(from())
         helper.setSubject("[${properties.siteName}] " + text("site.resetPasswordEmail.title"))
@@ -135,12 +135,13 @@ class SystemMails(
         return helper.mimeMessage
     }
 
-    /** 요청 안에서 만들고 요청 스레드에서 바로 보낸다(v1.6 비밀번호 재설정, 프로젝트 이전 요청). [build]가 `null`이면 보내지 않는다. */
-    private fun syncInRequest(description: String, build: () -> MimeMessage?) {
+    /** 요청 안에서 만들고 요청 스레드에서 바로 보낸다(v1.6 비밀번호 재설정, 프로젝트 이전 요청). [build]가 `null`이면 보내지 않는다. 보냈으면 `true`이다. */
+    private fun syncInRequest(description: String, build: () -> MimeMessage?): Boolean {
         try {
-            build()?.let { dispatcher.sendNow(description, it) }
+            return build()?.let { dispatcher.sendNow(description, it) } ?: false
         } catch (e: Exception) {
             org.slf4j.LoggerFactory.getLogger(javaClass).warn("{}을 만들지 못했다", description, e)
+            return false
         }
     }
 

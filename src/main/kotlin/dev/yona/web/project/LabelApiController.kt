@@ -97,7 +97,7 @@ class LabelApiController(
         if (!canUpdate(project)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         val labelName = request.getParameter("name")
         if (labelName.isNullOrEmpty()) return ErrorViews.badRequest("Label name is missing.", views.of(project), "PROJECT_HOME")
-        val (label, created) = labelService.findOrCreate(request.getParameter("category"), labelName)
+        val (label, created) = labelService.findOrCreate(request.getParameter("category") ?: "", labelName) // v1.6 HttpUtil.getFirstValueFromQuery는 키가 없으면 ""
         if (!labelService.attach(project, label)) return ResponseEntity.noContent().build<Void>()
         return json(if (created) HttpStatus.CREATED else HttpStatus.OK, mapOf(requireNotNull(label.id) to labelMap(label)))
     }

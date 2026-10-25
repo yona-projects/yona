@@ -172,14 +172,14 @@ class IssueService(
 
     /**
      * 이슈를 지운다 (v1.6 `IssueApp.deleteIssue`, `AbstractPosting.delete`). 댓글(첨부와 알림 이벤트 포함), 타임라인 이벤트, 제목 머리말 개수,
-     * 이슈의 첨부와 알림 이벤트를 지우고, 하위 이슈의 부모 연결은 끊는다. 초안이 아니면 [IssueDeletedActivity]를 발행한다.
+     * 이슈의 첨부와 알림 이벤트를 지우고, 하위 이슈의 부모 연결은 끊는다. 초안이 아니고 [notify]가 참이면 [IssueDeletedActivity]를 발행한다(일괄 수정의 삭제는 v1.6 `issue.delete()`만 불러 알림과 웹훅이 없다).
      * v1.6처럼 멘션 기록은 지우지 않는다([refactoring-backlog.md] R-24).
      */
     @Transactional
-    fun delete(issue: Issue, actor: User) {
+    fun delete(issue: Issue, actor: User, notify: Boolean = true) {
         val id = requireNotNull(issue.id)
         val project = requireNotNull(issue.project)
-        if (issue.isDraft != true) {
+        if (notify && issue.isDraft != true) {
             publisher.publishEvent(IssueDeletedActivity(requireNotNull(project.id), issue.number ?: 0, issue.title, issue.body, actor))
         }
         // 한 줄 댓글(자식)이 부모 댓글을 가리키므로 연결을 먼저 끊고 모두 지운다.

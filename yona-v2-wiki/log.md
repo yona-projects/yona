@@ -388,3 +388,8 @@
 
 ## [2026-10-26] fix | v1.6 불일치 점검 결과 1차 반영
 - P-07(선생님): 외부 API 작성자 대체를 익명 사용자로, 권한 확인 순서는 v2 유지(R-73), 댓글 상태 전환은 부모를 열지 않도록 v1.6에 맞췄다. 테스트 추가: `ExternalIssueApiTest`, `IssueCommentTest`.
+
+## [2026-10-26] fix | 화면에서 닿는 v1.6 불일치 반영 (P-08)
+- 반영: 재설정 메일 실패 안내(U-24), 멘션 후보 순서(P-13, P-14), attachLabel category(P-27, R-63 정정), newWebhook 오류 화면(P-30), massUpdate 삭제 알림(I-09), referCommentId 파생 이슈 댓글(I-15, I-26), getFileList 403 Content-Type(B-17).
+- 기록만: 직접 만든 요청 항목 20건은 [hand-crafted-request-differences.md](architecture/hand-crafted-request-differences.md), changeVCS 롤백(P-20)은 R-74.
+- 이번에 다루지 않음: REST 쪽 항목(updateIssue* 부수 효과, issueWatchers 기본 구독자, findAssignableUsers, translate, newLabel isExclusive, accept/isMerging, editPullRequest, CompareApp, BranchApp 빈 저장소).

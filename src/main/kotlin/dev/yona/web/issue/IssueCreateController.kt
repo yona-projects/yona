@@ -1,6 +1,7 @@
 package dev.yona.web.issue
 
 import dev.yona.access.AccessControl
+import dev.yona.access.asResource
 import dev.yona.config.YonaProperties
 import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.ProjectScope
@@ -53,7 +54,9 @@ class IssueCreateController(
     private val recentProjects: RecentProjectRepository,
     private val comments: IssueCommentRepository,
     private val properties: YonaProperties,
-    private val flashTranslator: FlashMessageTranslator
+    private val flashTranslator: FlashMessageTranslator,
+    private val issueComments: dev.yona.domain.issue.IssueCommentService,
+    private val messages: org.springframework.context.MessageSource
 ) {
 
     @GetMapping("/{user}/{project}/issueform")
@@ -151,10 +154,29 @@ class IssueCreateController(
             )
         )
         val flash = postAttachments.attach(request, viewer, ResourceType.ISSUE_POST, requireNotNull(issue.id))
+        addReferComment(request, viewer, project, issue)
         return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/issue/${issue.number}", flash)
     }
 
     // --- 도우미 ---
+
+    /**
+     * 댓글에서 만든 이슈이면 원 댓글의 이슈에 `파생 이슈: 새 이슈 주소` 댓글을 그 댓글의 한 줄 댓글로 단다
+     * (v1.6 `IssueApp.newIssue` 끝의 `newReferComment`). 초안이면 달지 않고, 댓글을 쓸 수 없으면 아무것도 하지 않는다.
+     */
+    private fun addReferComment(request: HttpServletRequest, viewer: User, project: Project, issue: dev.yona.domain.issue.Issue) {
+        val referId = request.getParameter("referCommentId")?.toLongOrNull() ?: return
+        if (issue.isDraft == true) return
+        val parent = comments.findById(referId).orElse(null) ?: return
+        val origin = parent.issue ?: return
+        if (!accessControl.isResourceCreatable(viewer, origin.asResource(), ResourceType.ISSUE_COMMENT)) return
+        val scheme = properties.scheme.ifEmpty { request.scheme }
+        val host = request.getHeader("Host") ?: "${request.serverName}:${request.serverPort}"
+        val context = if (properties.applicationContext.isEmpty()) "" else "/" + properties.applicationContext.trim('/')
+        val content = messages.getMessage("issue.derived", null, org.springframework.context.i18n.LocaleContextHolder.getLocale()) +
+            ": $scheme://$host$context/${project.owner}/${project.name}/issue/${issue.number}"
+        issueComments.add(origin, viewer, content, referId, false)
+    }
 
     private fun formByComment(project: Project, commentId: Long, request: HttpServletRequest): Any {
         val comment = comments.findById(commentId).orElse(null) ?: return ErrorViews.notFound()

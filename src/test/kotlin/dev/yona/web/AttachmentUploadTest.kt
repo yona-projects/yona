@@ -184,6 +184,7 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
         val file = File.createTempFile("att-b", ".png").apply { writeBytes(png) }
         attachments.store(file, "b.png", ResourceType.PROJECT, project.id!!, "x")
         mockMvc.perform(get("/files").param("containerType", "PROJECT").param("containerId", project.id.toString())).andExpect(status().isForbidden)
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Content-Type", org.hamcrest.Matchers.startsWith("application/json")))
     }
 
     // --- 지우기 ---

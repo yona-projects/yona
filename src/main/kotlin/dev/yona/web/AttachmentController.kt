@@ -115,7 +115,7 @@ class AttachmentController(
     ): ResponseEntity<String> {
         val body = linkedMapOf<String, Any>()
         if (!containerType.isNullOrEmpty() && !containerId.isNullOrEmpty()) {
-            body.putAll(listing.fileList(ResourceType.valueOf(containerType), containerId.toLong()) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+            body.putAll(listing.fileList(ResourceType.valueOf(containerType), containerId.toLong()) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).build()) // v1.6는 403에도 Content-Type: application/json
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json.writeValueAsString(body))
     }

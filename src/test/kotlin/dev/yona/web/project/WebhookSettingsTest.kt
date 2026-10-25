@@ -114,6 +114,14 @@ class WebhookSettingsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `검증 오류는 오류 JSON을 문구로 담은 오류 화면으로 400이다`() {
+        val p = project(); val session = manager(p)
+        val body = mockMvc.perform(post("/${p.owner}/${p.name}/webhooks").session(session).param("payloadUrl", "")).andExpect(status().isBadRequest)
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().contentTypeCompatibleWith("text/html")).andReturn().response.contentAsString
+        assertTrue(body.contains("<html") && body.contains("payloadUrl") && body.contains("This field is required"), body)
+    }
+
+    @Test
     fun `보낼 주소가 없거나 너무 길면 400이고 만들지 않는다`() {
         val p = project(); val session = manager(p)
         mockMvc.perform(post("/${p.owner}/${p.name}/webhooks").session(session).param("payloadUrl", "")).andExpect(status().isBadRequest)

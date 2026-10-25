@@ -10,4 +10,7 @@ import dev.yona.domain.user.User
  * @property user 비밀번호를 재설정할 사용자
  * @property token 재설정 주소에 담을 값
  */
-data class PasswordResetRequestedEvent(val user: User, val token: String)
+data class PasswordResetRequestedEvent(val user: User, val token: String) {
+    /** 수신기가 메일을 보냈으면 `true`이다. v1.6 `sendPasswordResetMail`의 반환값이며 화면의 성공 안내를 정한다. */
+    var sent: Boolean = false
+}

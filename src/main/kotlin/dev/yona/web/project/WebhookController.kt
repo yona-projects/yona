@@ -14,6 +14,7 @@ import dev.yona.web.access.IsAllowed
 import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
@@ -41,7 +42,8 @@ class WebhookController(
     private val views: ProjectViewFactory,
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val messages: org.springframework.context.MessageSource
 ) {
 
     @GetMapping("/{user}/{project}/webhooks")
@@ -72,7 +74,8 @@ class WebhookController(
         else if (payloadUrl.length > MAX_URL) errors["payloadUrl"] = "project.webhook.payloadUrl.tooLong"
         if (secret != null && secret.length > MAX_SECRET) errors["secret"] = "project.webhook.secret.tooLong"
         val type = request.getParameter("webhookType")?.let { value -> WebhookType.entries.firstOrNull { it.name == value } ?: run { errors["webhookType"] = "error.invalid"; null } }
-        if (errors.isNotEmpty()) return ResponseEntity.badRequest().body(errors.entries.joinToString(",", "{", "}") { "\"${it.key}\":[\"${it.value}\"]" })
+        // v1.6는 `ErrorViews.BadRequest.render(errorsAsJson)`로 오류 JSON 문자열을 문구로 담은 오류 화면을 400으로 보여 준다.
+        if (errors.isNotEmpty()) return ErrorViews.badRequest(errors.entries.joinToString(",", "{", "}") { "\"${it.key}\":[\"${errorText(it.value)}\"]" })
 
         // 체크박스는 켜면 값(`on`)이 오고 끄면 아예 오지 않는다 (v1.6 폼 묶기의 불리언 변환).
         webhooks.create(project, requireNotNull(payloadUrl), secret, request.getParameter("gitPush")?.lowercase() in TRUE_VALUES, type)
@@ -85,6 +88,13 @@ class WebhookController(
     fun delete(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         return if (webhooks.delete(project, id)) ResponseEntity.ok().build<Void>() else ErrorViews.notFound()
+    }
+
+    /** Play `errorsAsJson`이 담는 문구이다. `error.required`와 `error.invalid`는 Play 기본 문구, 나머지는 메시지 번들이다. */
+    private fun errorText(key: String): String = when (key) {
+        "error.required" -> "This field is required"
+        "error.invalid" -> "Invalid value"
+        else -> messages.getMessage(key, null, key, LocaleContextHolder.getLocale()).orEmpty()
     }
 
     private companion object {

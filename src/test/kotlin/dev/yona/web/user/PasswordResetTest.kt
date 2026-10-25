@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -45,6 +46,7 @@ class PasswordResetTest : AbstractIntegrationTest() {
     @Autowired private lateinit var tokens: PasswordResetTokens
     @Autowired private lateinit var authenticator: LocalAuthenticator
     @Autowired private lateinit var events: ApplicationEvents
+    @MockitoBean private lateinit var mailSender: org.springframework.mail.javamail.JavaMailSender
 
     private var sequence = 0
 
@@ -104,6 +106,17 @@ class PasswordResetTest : AbstractIntegrationTest() {
         assertEquals(40, event.token.length)
         assertTrue(event.token.all { it in "0123456789abcdef" })
         assertTrue(tokens.isValid(event.token))
+    }
+
+    @Test
+    fun `메일을 보내지 못하면 성공 안내를 보이지 않고 오류 문구도 없이 폼만 다시 보여 준다`() {
+        org.mockito.Mockito.doThrow(org.springframework.mail.MailSendException("down")).`when`(mailSender).send(org.mockito.ArgumentMatchers.any(jakarta.mail.internet.MimeMessage::class.java))
+        val user = newUser()
+        val page = Jsoup.parse(request(user.loginId, user.email))
+        // v1.6 sendPasswordResetMail은 EmailException이면 false를 돌려주고 errorMessage는 null이다.
+        assertNull(page.selectFirst(".alert-success"))
+        assertNull(page.selectFirst(".alert-error"))
+        assertNotNull(page.selectFirst("input#emailAddress"))
     }
 
     @Test

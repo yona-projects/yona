@@ -61,6 +61,7 @@ import kotlin.test.assertTrue
  */
 @AutoConfigureMockMvc
 @Transactional
+@org.springframework.test.context.event.RecordApplicationEvents
 class IssueMassUpdateTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
@@ -99,6 +100,8 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
         projectUsers.save(ProjectUser(user = user, project = project, role = roles.findById(RoleType.MEMBER.id).get()))
         return user
     }
+
+    @Autowired private lateinit var events: org.springframework.test.context.event.ApplicationEvents
 
     private fun issue(project: Project, number: Long, author: User? = null, draft: Boolean = false, state: State = State.OPEN, assignee: User? = null, milestone: Milestone? = null, issueLabels: Set<IssueLabel> = emptySet()): Issue {
         project.lastIssueNumber = maxOf(project.lastIssueNumber ?: 0, number); projects.save(project)
@@ -199,6 +202,15 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
         post(project, login(member), "issues[0].id" to a.id.toString(), "delete" to "true").andExpect(status().isOk)
         entityManager.flush(); entityManager.clear()
         assertTrue(issues.findById(a.id!!).isEmpty)
+    }
+
+    @Test
+    fun `일괄 삭제는 삭제 알림과 웹훅을 만들지 않는다`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val a = issue(project, 1, author = member)
+        post(project, login(member), "issues[0].id" to a.id.toString(), "delete" to "true").andExpect(status().isOk)
+        // v1.6 massUpdate는 issue.delete()만 부르고 NotificationEvent.afterIssueDeleted, 웹훅은 deleteIssue 액션에만 있다.
+        assertEquals(0, events.stream(dev.yona.domain.issue.IssueDeletedActivity::class.java).count())
     }
 
     @Test

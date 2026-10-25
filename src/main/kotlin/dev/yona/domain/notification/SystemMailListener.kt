@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 class SystemMailListener(private val mails: SystemMails) {
 
     @EventListener
-    fun onPasswordReset(event: PasswordResetRequestedEvent) = mails.passwordReset(event.user, event.token)
+    fun onPasswordReset(event: PasswordResetRequestedEvent) { event.sent = mails.passwordReset(event.user, event.token) }
 
     @EventListener
     fun onUserVerification(event: UserVerificationRequestedEvent) = mails.signup(event.user, event.verification)

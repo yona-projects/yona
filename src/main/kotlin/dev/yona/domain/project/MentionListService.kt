@@ -63,7 +63,7 @@ class MentionListService(
 
     /**
      * 커밋 diff 화면(코드 리뷰 댓글)의 사용자 후보이다. 검색어가 없으면 (1) 커밋 작성자(이메일로 찾은 사용자와 이메일 앞부분을 로그인 ID로 쓰는 사용자)
-     * (2) 이 커밋에 코드 리뷰 댓글을 단 사용자(최근에 단 사람이 뒤로) (3) 프로젝트 구성원 (4) 조직 구성원 순이고, 검색어가 있으면 활성 사용자를 검색한다.
+     * (2) 이 커밋에 코드 리뷰 댓글을 단 사용자(최근에 단 사람이 앞으로) (3) 프로젝트 구성원 (4) 조직 구성원 순이고, 검색어가 있으면 활성 사용자를 검색한다.
      * 마지막에 [viewer]를 한 번 빼고 다시 맨 뒤에 둔다 (v1.6 `ProjectApp.mentionListAtCommitDiff`).
      *
      * @param fromProject 커밋이 있는 프로젝트(풀 리퀘스트이면 보내는 프로젝트)
@@ -84,7 +84,7 @@ class MentionListService(
                     .setParameter("commitId", commitId).setParameter("projectId", fromProject.id).resultList
             } else {
                 entityManager.createQuery(
-                    "select c.authorLoginId from ReviewComment c join c.thread t where t.commitId = :commitId and t.project.id = :projectId and t.pullRequest is null", String::class.java
+                    "select c.authorLoginId from ReviewComment c join c.thread t where t.commitId = :commitId and t.project.id = :projectId and t.pullRequest is null order by c.id", String::class.java
                 ).setParameter("commitId", commitId).setParameter("projectId", fromProject.id).resultList
             }
             for (loginId in commenterLoginIds) {
@@ -92,6 +92,8 @@ class MentionListService(
                 ordered.removeAll { it.id == author.id }
                 ordered += author
             }
+            // v1.6 `addCodeCommenters`는 커밋 작성자를 포함한 목록 전체를 뒤집는다(최근 코멘트 작성자가 먼저).
+            ordered.reverse()
             projectMembers(project).forEach { add(it) }
             groupMembers(project).forEach { add(it) }
         } else {
@@ -122,6 +124,8 @@ class MentionListService(
                 ordered.removeAll { it.id == author.id }
                 ordered += author
             }
+            // v1.6 `addCommentAuthors`는 마지막에 목록을 뒤집는다(최근에 리뷰한 사람이 먼저).
+            ordered.reverse()
             projectMembers(project).forEach { add(it) }
             groupMembers(project).forEach { add(it) }
             commitAuthorEmail?.let { email ->

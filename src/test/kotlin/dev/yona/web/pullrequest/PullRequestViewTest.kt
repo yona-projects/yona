@@ -55,6 +55,9 @@ class PullRequestViewTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var threads: dev.yona.domain.comment.CommentThreadRepository
+    @Autowired private lateinit var reviewComments: dev.yona.domain.comment.ReviewCommentRepository
+    @Autowired private lateinit var entityManager: jakarta.persistence.EntityManager
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
@@ -247,6 +250,19 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         assertTrue(body.contains("\"loginid\":\"${s.contributor.loginId}\""), body)
         assertTrue(body.contains("\"loginid\":\"${s.manager.loginId}\""), body)
         mockMvc.perform(get("/${s.origin.owner}/${s.origin.name}/mentionListAtPullRequest?pullRequestId=99999&mentionType=user")).andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `멘션 후보는 리뷰 댓글을 최근에 단 사람이 먼저 나온다`() {
+        val s = withCommit(setup()); val pr = open(s)
+        val first = user(); val second = user()
+        val thread = threads.save(dev.yona.domain.comment.NonRangedCodeCommentThread(commitId = "c").also { it.project = s.origin; it.pullRequest = pr; it.state = dev.yona.domain.enumeration.ThreadState.OPEN; it.createdDate = java.util.Date() })
+        listOf(first, second).forEach { u -> reviewComments.save(dev.yona.domain.comment.ReviewComment(contents = "c", createdDate = java.util.Date(), authorId = u.id, authorLoginId = u.loginId, authorName = u.name, thread = thread)) }
+        entityManager.flush(); entityManager.clear()
+        val body = mockMvc.perform(get("/${s.origin.owner}/${s.origin.name}/mentionListAtPullRequest?pullRequestId=${pr.id}&mentionType=user").session(login(s.manager)))
+            .andExpect(status().isOk).andReturn().response.contentAsString
+        // v1.6 addCommentAuthors는 마지막에 Collections.reverse를 부른다.
+        assertTrue(body.indexOf("\"loginid\":\"${second.loginId}\"") in 0 until body.indexOf("\"loginid\":\"${first.loginId}\""), body)
     }
 
     @Test

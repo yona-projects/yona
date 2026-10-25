@@ -49,19 +49,21 @@ class MailDispatcher(private val mailSenderProvider: ObjectProvider<JavaMailSend
 
     /**
      * 이미 만든 [message]를 호출한 스레드에서 바로 보낸다. v1.6 비밀번호 재설정과 프로젝트 이전 요청 메일처럼 요청 안에서 동기로 보내는 메일이다.
-     * 메일 서버를 설정하지 않았거나 보내지 못하면 경고만 남기고 요청은 그대로 진행한다.
+     * 메일 서버를 설정하지 않았거나 보내지 못하면 경고만 남기고 `false`를 돌려주며 요청은 그대로 진행한다.
      */
-    fun sendNow(description: String, message: MimeMessage) {
+    fun sendNow(description: String, message: MimeMessage): Boolean {
         val sender = mailSenderProvider.ifAvailable
         if (sender == null) {
             log.warn("메일 서버(spring.mail.host)가 설정되지 않아 메일을 보내지 않았다: {}", description)
-            return
+            return false
         }
-        try {
+        return try {
             sender.send(message)
             logSent(message)
+            true
         } catch (e: Exception) {
             log.warn("메일을 보내지 못했다: {}", description, e)
+            false
         }
     }
 
