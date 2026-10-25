@@ -1,7 +1,7 @@
 ---
 title: 프로젝트 홈 (GET /:user/:project, PUT /:user/:project)
 type: web
-sources: [app/controllers/ProjectApp.java:85-150, app/views/project/home.scala.html, app/views/project/partial_readme.scala.html, app/views/milestone/partial_status.scala.html, app/views/common/markdown.scala.html, app/controllers/MarkdownApp.java, app/models/Milestone.java:92-279, app/models/Project.java:330-383, app/models/User.java:856-862, app/utils/Markdown.java:352-376]
+sources: [app/controllers/ProjectApp.java:85-150, app/models/History.java, app/views/project/partial_history.scala.html, app/views/project/partial_dashboard*.scala.html, app/views/project/home.scala.html, app/views/project/partial_readme.scala.html, app/views/milestone/partial_status.scala.html, app/views/common/markdown.scala.html, app/controllers/MarkdownApp.java, app/models/Milestone.java:92-279, app/models/Project.java:330-383, app/models/User.java:856-862, app/utils/Markdown.java:352-376]
 updated: 2026-10-22
 ---
 
@@ -53,3 +53,32 @@ updated: 2026-10-22
 ## 아직 채우지 않은 부분
 
 - **이력 탭, 대시보드 탭**: 링크와 활성 표시만 있고 본문은 비어 있다. 이력은 커밋, 이슈, 게시글, 풀 리퀘스트가, 대시보드는 이슈 집계와 풀 리퀘스트 집계가 필요하므로 각 서브시스템을 옮길 때 채운다(로드맵 3, 5단계).
+
+## 이력 탭 (`tabId=history`) (동등성 점검 9a에서 추가)
+
+README가 아닌 탭(`history`, `dashboard`)이면 컨트롤러가 이력 목록을 만든다(`ProjectApp.getProjectHistory`). 제목 키는 `project.history.recent`(이력), `title.projectDashboard`(대시보드)이다.
+
+- 재료: 최근 커밋 10개(`getHistory(0, 10)`, 커밋이 하나도 없으면 비어 있다), 최근 만든 이슈 10개(상태, 초안 구분 없이 `createdDate` 내림차순), 최근 만든 게시글 10개, 최근 받은 풀 리퀘스트 10개(`toProject`, `created` 내림차순).
+- 한 줄(`History`): 누가(who), 사용자 페이지 주소와 아바타, 시각(when), 종류(what: `commit`, `issue`, `post`, `pullrequest`), 짧은 제목(`#번호`, 커밋은 7자리 번호), 내용(how: 제목, 커밋은 첫 줄), 주소(url). 주소는 `/요청 주소의 소유자/프로젝트/commit/번호`, `issue/번호`, `post/번호`, `pullRequest/번호`이고 앞에 컨텍스트 경로가 붙는다. 소유자는 프로젝트의 실제 소유자가 아니라 **요청 주소에 쓴 값**이다.
+- 사용자: 이슈, 게시글은 작성자 로그인 ID로, 풀 리퀘스트는 보낸 사람으로 사용자를 찾아 이름(who), `/로그인ID`, 아바타를 쓴다. 커밋은 작성자 이메일이 등록된 사용자이면 같게 쓰고, 아니면 who는 커밋 작성자 이름이고 주소는 `#`, 아바타는 기본 이미지(`images/default-avatar-64.png`)이다.
+- 정렬: 모두 모아 시각 내림차순(같은 시각은 커밋, 이슈, 게시글, 풀 리퀘스트 순서를 유지한다).
+- 화면(`partial_history`): `ul.activity-streams`의 `li.activity-stream`마다 아바타(32px, 사용자 페이지 링크), 머리글 `project.history.item`(HTML 메시지: `{0}` 사용자 링크(`a.actor`), `{1}` 종류 문구 `project.history.type.<what>`, `{2}` `span.whereis` 안에 짧은 제목 링크(`a.where`)와 내용 링크(`a.title`)), 시각(`agoOrDateString`, 툴팁은 날짜 문자열).
+
+## 대시보드 탭 (`tabId=dashboard`)
+
+`partial_dashboard`가 그린다. 열린 이슈 수 `openIssues`는 `Issue.countIssues(프로젝트, OPEN)`(하위 이슈 제외)이고, 아래 비율의 분모로 쓴다(`getPercent(수, 분모)` = `(수 / 분모 * 100)`의 정수 부분, 분모가 0이면 `0`).
+
+- **이슈 메뉴가 켜져 있을 때 왼쪽**: "담당자별 열린 이슈"(`project.dashboard.openIssuesByAssignee`), "마일스톤별 열린 이슈"(`project.dashboard.openIssuesByMilestone`).
+  - 담당자별: 열린 이슈(하위 이슈 제외)가 0이면 `issue.is.empty`와 새 이슈 링크(`issue.menu.new`, 새 창)를 보인다. 아니면 프로젝트의 담당자(`project.assignees`)마다 열린 이슈 수(하위 이슈 포함, 이슈의 담당자 기준)가 0보다 크면 한 줄(아바타 20px, 이름, `@로그인ID`, 수, 비율 막대 `progress-warning`, 비율이 0이면 `empty`, 링크는 이슈 목록 `?state=open&assigneeId=사용자번호`)을 보이고, 마지막에 항상 "담당자 없음" 줄(`issue.noAssignee`, 담당자가 없는 열린 이슈 수, 링크 `assigneeId=-1`)을 보인다.
+  - 마일스톤별: 열린 마일스톤(`findOpenMilestones`, 마감일 오름차순)이 없으면 `milestone.is.empty`와 새 마일스톤 링크(`milestone.menu.new`)이다. 있으면 마일스톤마다 열린 이슈 수가 0보다 크면 한 줄(제목 링크 `?state=open&milestoneId=번호`, 수, 완료율 막대 `progress-success`, 툴팁 `완료율%`)을 보이고, 마지막에 "마일스톤 없음" 줄(`issue.noMilestone`, 마일스톤이 없는 열린 이슈 수, 링크 `milestoneId=-1`, 막대 없음)을 보인다.
+- **풀 리퀘스트 메뉴가 켜져 있고 Git 프로젝트일 때 왼쪽 아래**(이슈 메뉴도 켜져 있으면 앞에 구분선): "풀 리퀘스트"(`project.dashboard.pullRequests`). 최근 받은 열린 풀 리퀘스트 10개를 한 줄씩(보낸 사람 아바타 링크 `pullRequests?contributorId=번호`, 제목 링크, 만든 시각)과 "더 보기"(`project.dashboard.more`, 열린 풀 리퀘스트 수가 인자이고 HTML 메시지) 링크를 보인다. 없으면 `pullRequest.is.empty`와 새 풀 리퀘스트 링크이다.
+- **이슈 메뉴가 켜져 있을 때 오른쪽**: "라벨별 열린 이슈"(`project.dashboard.openIssuesByLabel`). 프로젝트의 이슈 라벨 스타일 시트(`issue/labels.css`)를 불러오고, 분류별로 `dl.overview-label`에 분류 이름(`dt`)과 라벨마다 한 줄(라벨 링크 `?state=open&labelIds=번호`, 열린 이슈 수)을 보인다. v1.6은 분류 순서가 해시 순서이다(A-102는 이름순).
+- 이슈 목록 링크는 `/소유자/프로젝트/issues?state=open&키=값`이다(`makeIssuesLink`).
+
+### 알려진 v1.6 동작(R-68)
+
+1. 담당자 수와 라벨 수는 하위 이슈를 포함하지만 비율의 분모는 하위 이슈를 뺀 수라 100%를 넘을 수 있다.
+2. 마일스톤 이름 줄은 열린 이슈가 있는 마일스톤만 나오고, 완료율은 마일스톤의 전체 이슈(닫힘 포함) 대비 닫힌 이슈 비율이다.
+3. `tabId`가 `readme`, `history`, `dashboard`가 아니면 v1.6은 `MatchError`(500)이다(손으로 만든 주소, v2는 내용 없는 탭 화면이다).
+4. 이력 주소의 소유자는 요청 주소에 쓴 대소문자 그대로이다.
+

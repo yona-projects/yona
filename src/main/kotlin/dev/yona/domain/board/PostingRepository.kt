@@ -8,6 +8,9 @@ interface PostingRepository : JpaRepository<Posting, Long> {
     /** 프로젝트 안의 번호로 게시글을 조회한다 (v1.6 `Posting.findByNumber`). */
     fun findByProjectIdAndNumber(projectId: Long, number: Long): Posting?
 
+    /** 프로젝트에서 가장 최근에 만든 게시글이다 (v1.6 `Posting.findRecentlyCreated`). */
+    fun findByProjectId(projectId: Long, pageable: org.springframework.data.domain.Pageable): List<Posting>
+
     /** 프로젝트의 게시글 개수이다 (v1.6 `Posting.countPostings`). */
     fun countByProjectId(projectId: Long): Long
 

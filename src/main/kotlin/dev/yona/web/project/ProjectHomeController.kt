@@ -33,7 +33,7 @@ import tools.jackson.databind.JsonNode
  * 프로젝트 홈과 설명 수정이다. v1.6 `ProjectApp.project`, `projectOverviewUpdate`
  * (`app/controllers/ProjectApp.java:85-150`)에 해당한다.
  *
- * 홈에는 README, 이력, 대시보드 탭이 있다. 이력과 대시보드 탭은 이슈와 풀 리퀘스트를 옮길 때 채운다.
+ * 홈에는 README, 이력, 대시보드 탭이 있다. 이력 탭은 [ProjectHomeTabsAssembler.historyRows], 대시보드 탭은 [ProjectHomeTabsAssembler.dashboard]가 만든다.
  */
 @Controller
 @AnonymousCheck
@@ -48,7 +48,8 @@ class ProjectHomeController(
     private val currentUserProvider: CurrentUserProvider,
     private val accessControl: AccessControl,
     private val avatars: AvatarService,
-    private val messages: MessageSource
+    private val messages: MessageSource,
+    private val tabs: ProjectHomeTabsAssembler
 ) {
 
     @GetMapping("/{user}/{project}")
@@ -70,7 +71,7 @@ class ProjectHomeController(
         val readmeText = homeService.readmeText(project)
         val codeMenu = view.menuSetting.code == true
         val readmeBody = if (!codeMenu) homeService.readmePostingBody(project) else null
-        return ModelAndView("project/home")
+        val mav = ModelAndView("project/home")
             .addObject("title", "${project.name} - ${messages.getMessage("menu.home", null, LocaleContextHolder.getLocale())} |:| ${project.overview.orEmpty()}")
             .addObject("projectView", view)
             .addObject("tabId", tabId)
@@ -81,6 +82,12 @@ class ProjectHomeController(
                 MemberItem(it.loginId.orEmpty(), UserDisplay.of(it, viewerLang), avatars.avatarUrl(it, AvatarService.DEFAULT_SIZE))
             })
             .addObject("milestone", if (view.menuSetting.milestone == true) homeService.firstOpenMilestone(project) else null)
+        // v1.6은 README가 아닌 탭이면 이력을 만들고, 이력 탭에서만 쓴다. 대시보드는 자기 영역을 따로 그린다.
+        if (tabId == "history") mav.addObject("history", tabs.historyRows(ownerId, project))
+        if (tabId == "dashboard") {
+            mav.addObject("dashboard", tabs.dashboard(project, view.menuSetting.issue == true, view.menuSetting.pullRequest == true, view.git))
+        }
+        return mav
     }
 
     @PutMapping("/{user}/{project}")

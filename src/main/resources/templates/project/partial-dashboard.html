@@ -1,0 +1,135 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/partial_dashboard.scala.html, partial_dashboard_issuesbyassignee.scala.html, partial_dashboard_issuesbymilestone.scala.html,
+            partial_dashboard_issuesbylabel.scala.html, partial_dashboard_pullrequests.scala.html
+  모델: dashboard(DashboardView)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="dashboard(d)" th:with="base=${'/' + d.owner + '/' + d.name}">
+<div class="content-container nm">
+    <div class="project-overview-home row-fluid">
+        <div class="span6">
+            <th:block th:if="${d.issueMenu}">
+                <h5 th:text="#{project.dashboard.openIssuesByAssignee}"></h5>
+                <div class="overview-assignee">
+                    <div th:if="${d.assignee.empty}" class="empty">
+                        <p th:text="#{issue.is.empty}"></p>
+                        <a th:href="@{${base + '/issueform'}}" target="_blank" class="ybtn ybtn-small" th:text="#{issue.menu.new}"></a>
+                    </div>
+                    <th:block th:unless="${d.assignee.empty}">
+                        <div th:each="row : ${d.assignee.rows}" class="row-fluid">
+                            <div class="span6">
+                                <a th:href="${d.issueBase + '&assigneeId=' + row.user.id}" class="usf-group" th:title="${row.user.name + ' (@' + row.user.loginId + ')'}">
+                                    <span class="avatar-wrap smaller">
+                                        <img th:src="${d.assigneeAvatars[row.user.id]}" width="20" height="20">
+                                    </span>
+                                    <strong class="name" th:text="${row.user.name}"></strong>
+                                    <span class="loginid"> <strong>@</strong><th:block th:text="${row.user.loginId}"></th:block></span>
+                                </a>
+                            </div>
+                            <div class="span3 num"><strong th:text="${row.count}"></strong></div>
+                            <div class="span3 nm">
+                                <div class="progress progress-warning" th:classappend="${row.percent == 0} ? 'empty'" data-toggle="tooltip" th:title="${row.percent + '%'}">
+                                    <div class="bar" th:style="'width: ' + ${row.percent} + '%;'"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <a th:href="${d.issueBase + '&assigneeId=-1'}" class="usf-group">
+                                    <span class="avatar-wrap smaller"><i class="yobicon-blankstare"></i></span>
+                                    <span class="name" th:text="#{issue.noAssignee}"></span>
+                                </a>
+                            </div>
+                            <div class="span3 num"><strong th:text="${d.assignee.noAssigneeCount}"></strong></div>
+                            <div class="span3 nm">
+                                <div class="progress progress-warning" th:classappend="${d.assignee.noAssigneePercent == 0} ? 'empty'" data-toggle="tooltip" th:title="${d.assignee.noAssigneePercent + '%'}">
+                                    <div class="bar" th:style="'width: ' + ${d.assignee.noAssigneePercent} + '%;'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+
+                <hr>
+
+                <h5 th:text="#{project.dashboard.openIssuesByMilestone}"></h5>
+                <div class="overview-milestone">
+                    <div th:if="${d.milestone.empty}" class="empty">
+                        <p th:text="#{milestone.is.empty}"></p>
+                        <a th:href="@{${base + '/newMilestoneForm'}}" target="_blank" class="ybtn ybtn-small" th:text="#{milestone.menu.new}"></a>
+                    </div>
+                    <th:block th:unless="${d.milestone.empty}">
+                        <div th:each="row : ${d.milestone.rows}" class="row-fluid">
+                            <div class="span6">
+                                <a th:href="${d.issueBase + '&milestoneId=' + row.milestoneId}" th:text="${row.title}"></a>
+                            </div>
+                            <div class="span3 num"><strong th:text="${row.count}"></strong></div>
+                            <div class="span3 nm">
+                                <div class="progress progress-success" data-toggle="tooltip" th:title="${row.completionRate + '%'}">
+                                    <div class="bar bar-success" th:style="'width:' + ${row.completionRate} + '%'"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <a th:href="${d.issueBase + '&milestoneId=-1'}" th:text="#{issue.noMilestone}"></a>
+                            </div>
+                            <div class="span3 num"><strong th:text="${d.milestone.noMilestoneCount}"></strong></div>
+                            <div class="span3 nm"></div>
+                        </div>
+                    </th:block>
+                </div>
+            </th:block>
+
+            <th:block th:if="${d.pullRequestArea}">
+                <hr th:if="${d.issueMenu}">
+
+                <h5 th:text="#{project.dashboard.pullRequests}"></h5>
+                <div class="overview-pullrequest">
+                    <th:block th:if="${!d.pullRequests.isEmpty()}">
+                        <div th:each="pull : ${d.pullRequests}" class="row-fluid">
+                            <div class="span9 title">
+                                <a th:href="${pull.filterHref}" class="usf-group">
+                                    <span class="avatar-wrap smaller" data-toggle="tooltip" th:title="${pull.contributorName + ' (@' + pull.contributorLoginId + ')'}">
+                                        <img th:src="${pull.avatarUrl}" width="20" height="20">
+                                    </span>
+                                </a>
+                                <a th:href="${pull.href}" th:text="${pull.title}"></a>
+                            </div>
+                            <div class="span3 num right-txt" style="color:#999;" th:text="${pull.ago}"></div>
+                        </div>
+                        <div class="right-txt mt5" style="margin-right:17px;">
+                            <a th:href="@{${base + '/pullRequests'}}" th:utext="#{project.dashboard.more(${d.pullRequestOpenCount})}"></a>
+                        </div>
+                    </th:block>
+                    <div th:if="${d.pullRequests.isEmpty()}" class="empty">
+                        <p th:text="#{pullRequest.is.empty}"></p>
+                        <a th:href="@{${base + '/newPullRequestForm'}}" target="_blank" class="ybtn ybtn-small" th:text="#{pullRequest.new}"></a>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+
+        <div th:if="${d.issueMenu}" class="span6">
+            <h5 th:text="#{project.dashboard.openIssuesByLabel}"></h5>
+            <link rel="stylesheet" th:href="@{${base + '/issue/labels.css'}}" type="text/css" />
+            <dl th:each="group : ${d.labels}" class="dl-horizontal overview-label">
+                <dt th:text="${group.category}"></dt>
+                <dd>
+                    <div th:each="label : ${group.labels}" class="row-fluid">
+                        <div class="span10">
+                            <a th:href="${d.issueBase + '&labelIds=' + label.labelId}">
+                                <span class="issue-label list-label active" th:attr="data-label-id=${label.labelId}" th:text="${label.name}"></span>
+                            </a>
+                        </div>
+                        <div class="span2 num"><strong th:text="${label.count}"></strong></div>
+                    </div>
+                </dd>
+            </dl>
+        </div>
+    </div>
+</div>
+</th:block>

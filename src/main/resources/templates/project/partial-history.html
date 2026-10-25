@@ -1,0 +1,27 @@
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/project/partial_history.scala.html
+  모델: history(HistoryRow 목록)
+*/-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="history(history)">
+<div class="content-container nm">
+  <div class="main-stream" style="width:100%;">
+    <ul class="activity-streams unstyled">
+      <li th:each="item : ${history}" class="activity-stream">
+        <a th:href="${item.userPageUrl}" class="avatar-wrap pull-left mr10">
+          <img th:src="${item.avatarUrl}" width="32" height="32">
+        </a>
+        <div class="activity-desc">
+          <p class="header-text" style="margin-bottom:5px;" th:utext="${item.headerHtml}"></p>
+          <p class="others" style="padding-left:0;">
+            <span class="date" style="margin-left:0;" th:title="${item.agoTitle}" th:text="${item.ago}"></span>
+          </p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+</th:block>

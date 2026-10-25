@@ -337,3 +337,9 @@
 
 ## [2026-10-25] lint | 동등성 점검 9b: 메시지 키 대조
 - `MessageParityTest` 2건. 5개 언어 번들 키가 v1.6과 같고 템플릿이 참조하는 키가 모두 있다. 이슈 엑셀의 `common.comment.created`는 v1.6 번들에도 없어 머리글에 키 이름이 나온다(R-67).
+
+## [2026-10-25] ingest | 프로젝트 홈의 이력, 대시보드 탭 (동등성 점검 9d에서 발견)
+- 템플릿 대응 점검에서 `partial_history`, `partial_dashboard*`가 v2에 없음을 발견했다. 프로젝트 홈의 탭 링크는 있었지만 내용이 비어 있었다(같은 라우트에서 `tabId`로 갈리는 동작이라 9a 라우트 대조로는 드러나지 않는다).
+- 위키([web/project-home.md](web/project-home.md))에 v1.6 동작을 먼저 적고 `ProjectHomeTabsTest` 16건을 먼저 쓴 뒤 구현했다. `ProjectHistoryService`, `ProjectDashboardService`, `ProjectHomeTabsAssembler`, 템플릿 `project/partial-history`, `partial-dashboard`. A-102, R-68.
+- 컴파일된 v1.6 역방향 라우터(`legacy-yona/target/.../routes_reverseRouting.scala`)로 `issues(…, "open")`가 `?state=open`을 만든다는 것을 확인해, 이전에 "열리지 않는 주소"로 적은 R-49(4)를 바로잡고 내 이슈, 사용자 페이지, 조직 목록의 라벨 링크를 고쳤다.
+

@@ -61,6 +61,12 @@
                       <th:block th:if="${tabId == 'readme'}">
                         <th:block th:replace="~{project/partial-readme :: readme(${projectView}, ${readmeFileName}, ${readmeHtml})}"></th:block>
                       </th:block>
+                      <th:block th:if="${tabId == 'history'}">
+                        <th:block th:replace="~{project/partial-history :: history(${history})}"></th:block>
+                      </th:block>
+                      <th:block th:if="${tabId == 'dashboard'}">
+                        <th:block th:replace="~{project/partial-dashboard :: dashboard(${dashboard})}"></th:block>
+                      </th:block>
                     </div>
                 </div>
             </div>

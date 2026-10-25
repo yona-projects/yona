@@ -19,6 +19,25 @@ interface IssueRepository : JpaRepository<Issue, Long> {
      */
     fun countByAssigneeUserIdAndState(userId: Long, state: State): Long
 
+    /** 프로젝트에서 가장 최근에 만든 이슈이다. 상태와 초안을 가리지 않는다 (v1.6 `Issue.findRecentlyCreated`). */
+    fun findByProjectId(projectId: Long, pageable: org.springframework.data.domain.Pageable): List<Issue>
+
+    /** 담당자(프로젝트의 담당자 행)가 맡은 지정한 상태의 이슈 수이다. 하위 이슈도 센다 (v1.6 `Issue.countOpenIssuesByAssignee`). */
+    fun countByProjectIdAndAssigneeIdAndState(projectId: Long, assigneeId: Long, state: State): Long
+
+    /** 담당자가 없는 지정한 상태의 이슈 수이다 (v1.6 `countOpenIssuesByAssignee(project, null)`). */
+    fun countByProjectIdAndAssigneeIsNullAndState(projectId: Long, state: State): Long
+
+    /** 마일스톤이 없는 지정한 상태의 이슈 수이다 (v1.6 `countOpenIssuesByMilestone(project, null)`). */
+    fun countByProjectIdAndMilestoneIsNullAndState(projectId: Long, state: State): Long
+
+    /** 프로젝트에서 마일스톤이 [milestoneId]인 지정한 상태의 이슈 수이다 (v1.6 `Issue.countOpenIssuesByMilestone`). */
+    fun countByProjectIdAndMilestoneIdAndState(projectId: Long, milestoneId: Long, state: State): Long
+
+    /** 프로젝트에서 라벨이 붙은 지정한 상태의 이슈 수이다 (v1.6 `Issue.countOpenIssuesByLabel`). */
+    @Query("select count(i) from Issue i join i.labels l where i.project.id = :projectId and l.id = :labelId and i.state = :state")
+    fun countByLabel(projectId: Long, labelId: Long, state: State): Long
+
     /** 프로젝트의 최상위 이슈(부모가 없는 이슈) 중 지정한 상태의 개수이다 (v1.6 `Issue.countIssues`). */
     fun countByProjectIdAndParentIsNullAndState(projectId: Long, state: State): Long
 
