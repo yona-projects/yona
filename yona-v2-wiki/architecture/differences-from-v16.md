@@ -36,3 +36,13 @@ updated: 2026-10-25
 | 소셜 로그인, LDAP, 메일 수신 | play-authenticate, JNDI, JavaMail | `RestClient` 직접 구현, JNDI, Jakarta Mail(D-24) | Play 플러그인 대체. 전환 후보는 [../refactoring-backlog.md](../refactoring-backlog.md) T-1~T-3 |
 | 설정 | `application.conf`(Typesafe Config) | `yona.*` 속성(`YonaProperties`)과 `<데이터 디렉터리>/config/secret.properties`(A-93) | Spring Boot 설정 방식 |
 
+## 기존 v1.6 설치 위에서 쓰기 (2026-10-25 실제 점검)
+v1.6의 `conf/evolutions/default/1~32.sql`의 `Ups`를 새 MariaDB 10.11에 적용한 데이터베이스(61개 테이블)에 v2를 붙여 확인했다.
+
+- 기동: 오류 없이 올라오고 초기 데이터(역할 7개, 관리자)는 v1.6 `initial-data.yml`과 같다. 스키마 변화는 [decisions.md](../decisions.md) A-104의 두 가지(중복 인덱스 2개, `webhook_type` 폭)뿐이다.
+- 읽기: v1.6 형태로 넣은 사용자(v1.6 해시 비밀번호로 로그인, 잠긴 사용자 거부), 프로젝트(공개, 비공개), 이슈(상태 정수, 담당자는 `assignee` 테이블을 거친다), 댓글, 라벨, 마일스톤, 게시글, 추천, 이벤트, 첨부, 감시, 즐겨찾기가 화면에 맞게 나온다.
+- 쓰기: v2가 쓴 이슈, 댓글, 마일스톤, 게시글이 v1.6과 같은 형태이다(번호가 이어지고 `last_issue_number`가 늘며 상태는 정수 1=열림, 2=닫힘, 마일스톤 마감은 `23:59:59`).
+- 디스크: `repo/git/<소유자>/<이름>.git`과 `uploads/<SHA-256>`을 그대로 쓴다. 저장소 HEAD가 가리키는 브랜치가 실제 브랜치와 같아야 코드 화면이 열린다(JGit이 만든 v1.6 저장소는 `master`). v1.6 저장소를 복제하고 푸시할 수 있다.
+- 열거형: `issue.state`, `milestone.state`, `pull_request.state`, `webhook.webhook_type`은 선언 순서(서수)로 저장하므로 순서가 v1.6과 같아야 한다. `EnumOrdinalParityTest`가 지킨다.
+- 이전(Migration) 화면: 내보내기 JSON이 위 데이터에서 v1.6 모양으로 나오고, 화면에서 원본과 대상을 골라 마일스톤, 이슈, 게시글을 옮기면 GitHub로 나가는 요청(마일스톤 생성, `import/issues`)이 서버 내용과 같다. 단 토큰 교환이 폼 형식만 해석하는 v1.6 결함(R-58 1) 때문에 GitHub가 JSON으로 답하면 토큰이 비어 인증이 반복된다.
+
