@@ -38,7 +38,7 @@ class OrganizationController(
 ) {
 
     /** 홈의 프로젝트 한 줄이다. */
-    data class ProjectRow(val view: ProjectViewContext, val members: List<Person>)
+    data class ProjectRow(val view: ProjectViewContext, val members: List<Person>, val labels: List<dev.yona.domain.project.ProjectListItem.LabelView>)
 
     /** 프로젝트 구성원 한 사람이다. */
     data class Person(val loginId: String, val name: String, val avatarUrl: String)
@@ -47,10 +47,13 @@ class OrganizationController(
     fun home(@PathVariable organizationName: String): ModelAndView {
         val organization = organizationService.findByName(organizationName) ?: return ErrorViews.notFound("error.notfound.organization")
         val viewer = currentUserProvider.get().user
-        val rows = organizationService.visibleProjects(organization, viewer).map { project ->
+        val visible = organizationService.visibleProjects(organization, viewer)
+        val labels = organizationService.labelsOf(visible)
+        val rows = visible.map { project ->
             ProjectRow(
                 projectViews.of(project),
-                users.findMembersOfProject(requireNotNull(project.id), RoleType.SITEMANAGER.id).map { Person(it.loginId.orEmpty(), it.name.orEmpty(), avatars.avatarUrl(it)) }
+                users.findMembersOfProject(requireNotNull(project.id), RoleType.SITEMANAGER.id).map { Person(it.loginId.orEmpty(), it.name.orEmpty(), avatars.avatarUrl(it)) },
+                labels[project.id].orEmpty()
             )
         }
         return ModelAndView("organization/view")

@@ -5,6 +5,8 @@ import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.issue.Label
 import dev.yona.domain.issue.LabelRepository
+import dev.yona.domain.project.Organization
+import dev.yona.domain.project.OrganizationRepository
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectMenuSetting
 import dev.yona.domain.project.ProjectMenuSettingRepository
@@ -46,6 +48,7 @@ class CommittedDataRenderTest : AbstractIntegrationTest() {
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var labels: LabelRepository
+    @Autowired private lateinit var organizations: OrganizationRepository
 
     @Test
     fun `커밋된 데이터로 목록과 프로젝트 화면을 그린다`() {
@@ -87,6 +90,41 @@ class CommittedDataRenderTest : AbstractIntegrationTest() {
                 projects.deleteById(created.first)
                 labels.deleteById(created.third)
                 users.deleteAll(users.findAll().filter { it.loginId == "cdmember" })
+            }
+        }
+    }
+
+    @Test
+    fun `커밋된 데이터로 조직 홈과 조직 이슈 목록을 그린다`() {
+        val tx = TransactionTemplate(transactionManager)
+        lateinit var ids: List<Long>
+        tx.executeWithoutResult {
+            val label = labels.save(Label(category = "OS", name = "OrgCommittedLabel"))
+            val org = organizations.save(Organization(name = "cdorg", descr = "d", created = Date()))
+            val original = projects.save(Project(owner = "cdorg", name = "cdo-original", vcs = "GIT", projectScope = ProjectScope.PUBLIC, createdDate = Date(), organization = org))
+            val fork = projects.save(
+                Project(
+                    owner = "cdorg", name = "cdo-fork", vcs = "GIT", projectScope = ProjectScope.PUBLIC, createdDate = Date(), organization = org, originalProject = original
+                ).apply { labels.add(label) }
+            )
+            menuSettings.save(ProjectMenuSetting(project = fork, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+            ids = listOf(original.id!!, fork.id!!, label.id!!, org.id!!)
+        }
+        try {
+            val home = Jsoup.parse(mockMvc.perform(get("/organizations/cdorg")).andExpect(status().isOk).andReturn().response.contentAsString)
+            val row = home.select("li.project").first { it.selectFirst(".header a.black")?.text() == "cdo-fork" }
+            assertEquals("OrgCommittedLabel", row.selectFirst("a.project-label")?.text())
+            assertEquals("cdorg / cdo-original", row.selectFirst(".origin-title")?.text()?.trim())
+            mockMvc.perform(get("/organizations/cdorg/issues")).andExpect(status().isOk)
+            mockMvc.perform(get("/organizations/cdorg/pullrequests")).andExpect(status().isOk)
+            mockMvc.perform(get("/organizations/cdorg/boards")).andExpect(status().isOk)
+        } finally {
+            tx.executeWithoutResult {
+                menuSettings.deleteAll(menuSettings.findAll().filter { it.project?.id == ids[1] })
+                projects.deleteById(ids[1])
+                projects.deleteById(ids[0])
+                labels.deleteById(ids[2])
+                organizations.deleteById(ids[3])
             }
         }
     }

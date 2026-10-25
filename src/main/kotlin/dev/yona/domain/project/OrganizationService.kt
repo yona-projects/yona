@@ -69,6 +69,16 @@ class OrganizationService(
         organizations.findByNameContainingIgnoreCaseOrDescrContainingIgnoreCaseOrderByIdDesc(query, query, PageRequest.of(pageNum - 1, PAGE_SIZE))
 
     /**
+     * 프로젝트마다 붙은 라벨을 돌려준다. 라벨은 지연 로딩 연관이라 `open-in-view`가 꺼진 운영에서는 트랜잭션 밖(템플릿)에서
+     * `project.labels`를 읽을 수 없으므로, 화면은 이 메서드의 결과를 쓴다. 키는 프로젝트 번호이다.
+     */
+    @Transactional(readOnly = true)
+    fun labelsOf(list: List<Project>): Map<Long, List<ProjectListItem.LabelView>> =
+        projects.findAllById(list.mapNotNull { it.id }).associate { project ->
+            requireNotNull(project.id) to project.labels.map { ProjectListItem.LabelView(it.id, it.category.orEmpty(), it.name.orEmpty()) }
+        }
+
+    /**
      * [viewer]가 볼 수 있는 조직 프로젝트를 이름순으로 돌려준다 (v1.6 `Organization.getVisibleProjects`).
      *
      * - 조직 관리자와 사이트 관리자는 모두 본다.
