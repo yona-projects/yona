@@ -2,7 +2,7 @@
 title: v1.6과 달라지는 아키텍처 결정
 type: architecture
 sources: [build.sbt, conf/application.conf]
-updated: 2026-10-22
+updated: 2026-10-25
 ---
 
 # v1.6과 달라지는 아키텍처 결정
@@ -20,3 +20,19 @@ updated: 2026-10-22
 | 개발 인프라 | 없음 | `docker-compose.yml` (PostgreSQL 16, mailpit) | 메일 확인과 DB 구성 |
 
 테이블 구조는 v1.6의 `conf/evolutions/default/*.sql`과 같게 유지한다.
+
+## 구현하면서 확정된 차이
+
+위 표 이후 각 단계에서 구조가 달라진 부분이다. 동작과 요청, 응답 계약은 v1.6과 같고 결정의 자세한 이유는 [../decisions.md](../decisions.md)에 있다.
+
+| 항목 | v1.6 | v2 | 이유 |
+|---|---|---|---|
+| 풀 리퀘스트 병합 작업 위치 | 받는 프로젝트마다 병합용 복제 저장소(`repo/git-merging/<소유자>/<이름>.git`)를 만들고 대체 객체 디렉터리로 연결한다 | 받는 프로젝트의 저장소 안에서 보내는 브랜치를 `refs/yobi/pull/<번호>/head`로 가져와 JGit RECURSIVE 전략으로 작업 트리 없이 병합하고 결과를 `…/merged`에 둔다([../subsystems/pull-request-merge.md](../subsystems/pull-request-merge.md)) | JGit이 작업 트리 없이 병합할 수 있어 복제 저장소와 그 정리 작업이 필요 없다. 결과 커밋과 상태 흐름은 같다 |
+| 비동기 작업(Akka 액터) | 병합, 푸시 훅 후처리, 메일 수신 등을 액터로 처리 | `BackgroundJobRunner`와 Spring 이벤트(`yona.background-async`) | Play 전용 액터 시스템 대체 |
+| 알림 발행 | 모델 저장 시점에 `NotificationEvent`를 만든다 | 활동을 Spring 이벤트로 발행하고 리스너가 알림 이벤트를 저장한다 | 도메인 계층이 알림 계층에 의존하지 않게 한다 |
+| 라우팅 | `conf/routes` 한 파일과 맨 아래 포괄 라우트(끝 슬래시 제거) | 컨트롤러별 매핑과 `GlobalErrorHandler`의 처리기 없음 규칙(A-103). 대조는 `RouteParityTest`가 맡는다 | Spring MVC의 매핑 방식. 포괄 매핑은 정적 자원을 가린다 |
+| Subversion HTTP(WebDAV) | `sonia.svnkit:svnkit-dav` 서블릿을 Play 컨트롤러에서 파이프로 호출 | Maven Central의 `svnkit-dav` war에서 클래스를 꺼내 쓰고 Jakarta, javax 서블릿 어댑터와 필터(`SvnDavFilter`)로 처리한다(D-26, A-98) | 같은 jar를 공개 저장소에서 받을 수 없고 Spring 디스패처가 WebDAV 메서드를 거부한다 |
+| 마크다운 렌더링 | marked.js(서버에서 실행) | commonmark-java와 확장, 결과 정화(D-17) | JVM 안에서 같은 결과를 내는 구현으로 대체. 차이는 비교 테스트로 확인한다 |
+| 소셜 로그인, LDAP, 메일 수신 | play-authenticate, JNDI, JavaMail | `RestClient` 직접 구현, JNDI, Jakarta Mail(D-24) | Play 플러그인 대체. 전환 후보는 [../refactoring-backlog.md](../refactoring-backlog.md) T-1~T-3 |
+| 설정 | `application.conf`(Typesafe Config) | `yona.*` 속성(`YonaProperties`)과 `<데이터 디렉터리>/config/secret.properties`(A-93) | Spring Boot 설정 방식 |
+

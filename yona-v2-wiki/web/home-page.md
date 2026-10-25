@@ -29,11 +29,11 @@ v1.6 `GET /`(`Application.index`)와 `GET /notifications`(`Application.notificat
 
 `NotificationEventRepository.findByReceiver(user, from, size)`가 `notification_event_n4user`로 연결된 알림을 최신순(`created DESC`, 같은 시각이면 번호 내림차순)으로 `from`번째부터 `size`개 돌려준다. 첫 화면은 `(0, 20)`이다. v1.6은 같은 조회를 원시 SQL로 했다.
 
-**아직 구현하지 않은 부분**: 알림 항목의 표시(유형 아이콘, 제목 링크, 본문, 보낸 사람, 시각)와 "More" 버튼, `GET /notification?from&limit`. 이 부분은 `NotificationEvent.getMessage`/`getUrlToView`가 이슈, 마일스톤, 풀 리퀘스트, 코드 리뷰 등 거의 모든 도메인에 의존하므로 알림 서브시스템을 옮길 때 구현한다. 지금은 알림을 만드는 기능이 없어 목록이 항상 비어 있으므로 "알림 없음" 안내(`notification.none`)만 나온다.
+알림 항목의 표시(유형 아이콘, 제목 링크, 본문, 보낸 사람, 시각)와 "More" 버튼, `GET /notification?from&limit`은 알림 서브시스템에서 구현했다([../subsystems/notifications.md](../subsystems/notifications.md)).
 
 ## 사이드바
 
-`GET /user/sidebar`와 사이드바 목록(즐겨찾기, 프로젝트, 최근 이슈)은 프로젝트와 이슈 화면을 옮길 때 함께 구현한다. 레이아웃의 핀 버튼은 아직 404인 이 주소로 이동한다.
+`GET /user/sidebar`와 사이드바 목록(즐겨찾기, 프로젝트, 최근 이슈)은 구현했다(로드맵 2d-5).
 
 ## 검증
 

@@ -67,7 +67,7 @@ fun PullRequest.asResource(): ProjectResource =
 
 /**
  * 커밋 코멘트 (`COMMIT_COMMENT`). 작성자 권한이 있다.
- * v1.6은 컨테이너로 커밋 리소스를 돌려주지만, 커밋은 Git 저장소 서비스를 옮길 때 추가한다.
+ * v1.6은 컨테이너로 커밋 리소스(`COMMIT`, 아이디 `프로젝트번호:커밋번호`)를 돌려준다. 커밋 리소스는 커밋 화면이 만든다(`CommitViewController`).
  */
 fun CommitComment.asResource(): ProjectResource =
     ProjectResource(requireNotNull(id).toString(), ResourceType.COMMIT_COMMENT, project, authorId = authorId)

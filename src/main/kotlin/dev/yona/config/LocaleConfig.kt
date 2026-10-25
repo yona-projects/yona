@@ -12,7 +12,7 @@ import java.util.Locale
  * v1.6(Play 2.3)은 `application.langs`에 적은 언어 중에서 `Accept-Language` 헤더에 가장 알맞은 것을 고르고,
  * 맞는 것이 없으면 목록의 첫 번째 언어(`en-US`)를 쓴다. 같은 규칙을 Spring의 [AcceptHeaderLocaleResolver]로 구현한다.
  *
- * 아직 구현하지 않은 부분: Play의 언어 선택 쿠키(`PLAY_LANG`).
+ * Play의 언어 선택 쿠키(`PLAY_LANG`)는 읽지 않는다. v1.6 앱 코드는 `changeLang`을 부르지 않아 이 쿠키를 만들지 않으므로 화면에서 닿는 차이가 없다.
  */
 @Configuration(proxyBeanMethods = false)
 class LocaleConfig {

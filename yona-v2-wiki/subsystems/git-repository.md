@@ -25,7 +25,7 @@ v1.6 `playRepository.GitRepository`와 `RepositoryService`의 저장소 위치, 
 
 `<데이터 디렉터리>/repo/git/<소유자>/<이름>.git` (작업 트리가 없는 bare 저장소). v1.6과 같다. 소유자와 이름은 URL 디코딩이 끝난 값을 쓴다. 한글 이름도 그대로 디렉터리가 된다.
 
-아직 옮기지 않은 위치: 포크와 풀 리퀘스트 병합용 저장소(`repo/git-merging/<소유자>/<이름>.git`). 해당 기능을 옮길 때 추가한다. Subversion 저장소(`repo/svn/<소유자>/<이름>`)는 [web/subversion.md](../web/subversion.md)에 있다.
+v1.6의 병합용 저장소(`repo/git-merging/<소유자>/<이름>.git`)는 만들지 않는다. 병합이 받는 저장소 안에서 일어나기 때문이다([../architecture/differences-from-v16.md](../architecture/differences-from-v16.md)). Subversion 저장소(`repo/svn/<소유자>/<이름>`)는 [web/subversion.md](../web/subversion.md)에 있다.
 
 ## 동작
 
@@ -42,9 +42,9 @@ v1.6 `playRepository.GitRepository`와 `RepositoryService`의 저장소 위치, 
 | 삭제 | `FileUtil.rm_rf`(실패를 무시) | `deleteRecursively` | 같은 결과를 표준 라이브러리로 |
 | 저장소 닫기 | `delete()`가 자기 `repository`를 닫음 | 열린 `Repository`는 호출한 쪽이 `use`로 닫음 | 상태를 가진 객체를 없앴다 |
 
-## 아직 구현하지 않은 부분
+## 이후 구현된 부분
 
-smart-HTTP 서빙(`info/refs`, `git-upload-pack`, `git-receive-pack`), push 훅 체인, 포크 복제, 파일과 커밋 조회, 아카이브는 코드 저장소 화면을 옮길 때 구현한다(로드맵 5단계).
+smart-HTTP 서빙, push 훅 체인, 포크 복제, 파일과 커밋 조회, 아카이브는 모두 구현했다([../web/code-browser.md](../web/code-browser.md), [git-http.md](git-http.md) 등 5단계 문서).
 
 ## 검증
 

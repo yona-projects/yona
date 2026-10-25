@@ -13,7 +13,7 @@ import java.io.File
  * `getGitDirectory`, `create`, `delete`, `buildGitRepository`에 해당한다 (D-15).
  *
  * 저장소는 작업 트리가 없는 bare 저장소이며 위치는 `<데이터 디렉터리>/repo/git/<소유자>/<이름>.git`이다.
- * 포크와 풀 리퀘스트 병합용 저장소(`repo/git-merging/...`)는 해당 기능을 옮길 때 추가한다.
+ * v1.6의 병합용 저장소(`repo/git-merging/...`)는 만들지 않는다. 병합이 받는 저장소 안에서 일어난다(`PullRequestMerger`).
  */
 @Component
 class GitRepositories(private val dataDirectory: DataDirectory) {

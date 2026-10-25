@@ -64,12 +64,12 @@ updated: 2026-10-22
 
 ## 언어 결정
 
-`Accept-Language`와 지원 언어(`en-US, ko-KR, ja-JP, ru-RU, uz-UZ`)를 맞추고, 맞는 것이 없으면 `en-US`를 쓴다. Play의 언어 쿠키(`PLAY_LANG`)는 아직 구현하지 않았다. `<html lang>`은 v1.6처럼 사용자의 저장된 언어이고, 없으면 서버 기본 언어다.
+`Accept-Language`와 지원 언어(`en-US, ko-KR, ja-JP, ru-RU, uz-UZ`)를 맞추고, 맞는 것이 없으면 `en-US`를 쓴다. Play의 언어 쿠키(`PLAY_LANG`)는 읽지 않는다. v1.6 앱 코드는 `changeLang`을 부르지 않아 이 쿠키를 만들지 않으므로(손으로 넣은 쿠키에만 반응하는 Play 기본 동작이다) 화면에서 닿는 차이가 없다. `<html lang>`은 v1.6처럼 사용자의 저장된 언어이고, 없으면 서버 기본 언어다.
 
 ## 실제 기동으로 확인한 것
 
-앱을 실제로 띄워 로그인 화면이 참조하는 정적 자원 25개가 모두 200으로 응답함을 확인했다. 아직 구현하지 않은 화면으로 가는 링크(`/projects`, `/lostPassword`, `/users/signupform`, `/user/editform`)는 404다. 익명 사용자의 사용자 메뉴에 `/null` 링크가 있는 것은 v1.6도 같다(`userInfo(currentUser.loginId)`가 `null` 문자열이 된다).
-`admin / admin00`으로 로그인하면 `/`로 이동하며, 틀린 패스워드는 로그인 폼으로 돌아가 `Your log in ID, E-mail or password is not valid.` 알림이 나타난다. 화면 캡처 비교는 아직 하지 않았다. 캡처는 Playwright로만 진행한다(AGENTS.md).
+앱을 실제로 띄워 로그인 화면이 참조하는 정적 자원 25개가 모두 200으로 응답함을 확인했다. 이 점검 시점에는 화면이 없던 링크(`/projects`, `/lostPassword`, `/users/signupform`, `/user/editform`)는 404였고, 지금은 모두 구현되어 있다. 익명 사용자의 사용자 메뉴에 `/null` 링크가 있는 것은 v1.6도 같다(`userInfo(currentUser.loginId)`가 `null` 문자열이 된다).
+`admin / admin00`으로 로그인하면 `/`로 이동하며, 틀린 패스워드는 로그인 폼으로 돌아가 `Your log in ID, E-mail or password is not valid.` 알림이 나타난다. 캡처는 Playwright로만 하며 v1.6 화면은 캡처할 수 없어 새 화면만 캡처한다(AGENTS.md).
 
 ## 아직 하지 않은 것
 

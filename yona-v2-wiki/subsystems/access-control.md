@@ -90,8 +90,6 @@ v1.6의 접근 제어는 두 겹이다. (1) 컨트롤러 액션에 붙은 애너
 
 검증: `AccessControlTest` 38건, `AccessControlClosedSiteTest` 1건. 규칙 한 줄이 테스트 하나에 대응한다.
 
-## 아직 구현하지 않은 부분
+## 이후 구현된 부분
 
-- 컨트롤러 쪽 애너테이션 `@IsAllowed`, `@GuestProhibit`, `AbstractProjectCheckAction`은 프로젝트 화면을 옮길 때 구현한다.
-- `SiteManagerAuthAction`(사이트 관리자 전용 화면)은 사이트 관리 화면을 옮길 때 구현한다.
-- 엔티티별 `asResource()`는 해당 엔티티의 화면을 옮길 때 추가한다.
+컨트롤러 쪽 애너테이션(`@IsAllowed`, `@IsCreatable`, `@GuestProhibit`, 프로젝트 검사 인터셉터), `@SiteManagerOnly`, 엔티티별 `asResource()`는 각 화면 단계에서 구현했다.

@@ -66,11 +66,11 @@ Shiro의 `Sha256Hash(평문, 솔트, 1024).toBase64()`와 비트 단위로 같�
 - 캐시 방지 헤더를 전역으로 켜지 않는다. `/assets/`까지 캐시되지 않기 때문이다.
 - 로그아웃 시 세션을 무효화하지 않고 인증 정보만 지운다. 일회성 메시지(flash)가 세션에 저장되기 때문이다. Play는 flash를 세션과 별도 쿠키에 저장했다.
 
-### 아직 구현하지 않은 부분
+### 이후 구현된 부분
 
-- 입력 누락 시 400과 함께 로그인 화면을 다시 그리는 동작: 로그인 화면(Thymeleaf)을 이식할 때 연결한다.
-- LDAP 인증, 소셜 로그인, 소셜 로그인 전용 모드, HTTP Basic 인증(Git/SVN).
-- Play의 언어 결정 규칙(쿠키 `PLAY_LANG`, `Accept-Language`).
+- 입력 누락 시 400과 함께 로그인 화면을 다시 그리는 동작: [../web/layout-and-login-page.md](../web/layout-and-login-page.md).
+- LDAP 인증, 소셜 로그인, 소셜 로그인 전용 모드: [../web/ldap.md](../web/ldap.md), [../web/social-login.md](../web/social-login.md). HTTP Basic 인증(Git, SVN)은 `BasicCredentials`가 공유한다.
+- Play의 언어 결정 규칙: `Accept-Language`는 구현했고 `PLAY_LANG` 쿠키는 v1.6 앱이 만들지 않아 필요 없다.
 
 ## 설정 키 대응
 
@@ -92,4 +92,4 @@ v1.6의 구버전 키 `signup.require.confirm`은 아직 옮기지 않았다.
 - 솔트 `[B@1032a4`는 바이트 배열의 `toString()` 결과지만 문자열 그대로 솔트로 쓰인다. 따라서 문자열 솔트로 재현된다.
 - 검증: `LegacyPasswordHasherTest`(해시 일치)와 `InitialDataLoaderTest`(`admin / admin00`으로 로그인 성공).
 
-v1.6은 최초 기동 시 `application.secret`이 기본값이면 관리자 비밀번호를 바꾸는 화면으로 유도한다(`Global.java:249-411`). 이 흐름은 아직 구현하지 않았다. 개발 환경에서 `admin / 1234`처럼 쓰려면 그 흐름으로 비밀번호를 바꾼다.
+v1.6은 최초 기동 시 `application.secret`이 기본값이면 관리자 비밀번호를 바꾸는 화면으로 유도한다(`Global.java:249-411`). 이 흐름은 6e에서 구현했다([../web/welcome.md](../web/welcome.md)).
