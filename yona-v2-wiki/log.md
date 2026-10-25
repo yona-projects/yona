@@ -334,3 +334,6 @@
 - 리뷰 목록과 엑셀을 이식했다(위키 먼저, 테스트 15건 먼저). `ReviewListController`, `ReviewSearchService`, `ReviewExcelExporter`, 템플릿 `reviewthread/list`. [web/review-list.md](web/review-list.md). A-101, R-65.
 - 코드 메타데이터 AJAX 두 경로는 `{*path}` 패턴이 끝 슬래시 형태를 이미 처리하고 있어 대조 규칙의 오탐으로 판명했다(테스트 추가). 홈 화면 별칭 3건을 이식했다([web/home-page.md](web/home-page.md)).
 - `/_init`은 선생님이 v1.6 그대로 재현하라고 결정하셨다(D-27, R-66). `RepositoryInitController`, `RepositoryInitTest` 5건, [web/repository-init.md](web/repository-init.md). 라우트 대조(9a) 완료.
+
+## [2026-10-25] lint | 동등성 점검 9b: 메시지 키 대조
+- `MessageParityTest` 2건. 5개 언어 번들 키가 v1.6과 같고 템플릿이 참조하는 키가 모두 있다. 이슈 엑셀의 `common.comment.created`는 v1.6 번들에도 없어 머리글에 키 이름이 나온다(R-67).
