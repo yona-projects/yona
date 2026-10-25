@@ -36,6 +36,9 @@ interface UserRepository : JpaRepository<User, Long> {
     /** 대표 이메일(`n4user.email`)로 정확히 일치하는 사용자를 조회한다. */
     fun findByEmail(email: String): User?
 
+    /** 이메일이 [prefix]로 시작(대소문자 무시)하는 사용자를 찾는다. */
+    fun findByEmailStartingWithIgnoreCase(prefix: String): List<User>
+
     /** 사용자가 프로젝트에 가입을 신청한 상태인지 확인한다 (v1.6 `User.enrolled(project)`). */
     @Query("select count(u) > 0 from User u join u.enrolledProjects p where u.id = :userId and p.id = :projectId")
     fun hasEnrolled(userId: Long, projectId: Long): Boolean

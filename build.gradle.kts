@@ -26,6 +26,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
+	// 받은 메일 수신(IMAP IDLE, UID 조회)에 쓰는 IMAP 전용 클래스. 스타터는 실행 시점에만 포함한다
+	implementation("org.eclipse.angus:angus-mail")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
 	// Git 저장소 처리(D-15). v1.6의 4.5.0을 Java 21에서 쓸 수 있는 7.x로 올렸다.
@@ -42,6 +44,8 @@ dependencies {
 	implementation("org.commonmark:commonmark-ext-heading-anchor:0.31.0")
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1")
 	implementation("org.jsoup:jsoup:1.23.2")
+	// 받은 HTML 메일의 본문 정리(v1.6 `CreationViaEmail.postprocessForHTML`이 쓰던 라이브러리)
+	implementation("com.googlecode.htmlcompressor:htmlcompressor:1.5.2")
 	implementation("org.apache.tika:tika-core:3.3.3")
 	// v1.6과 같은 엑셀(xls) 라이브러리. 이슈 목록 내보내기에 쓴다.
 	implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
@@ -53,6 +57,8 @@ dependencies {
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 
 	testImplementation("com.unboundid:unboundid-ldapsdk:7.0.3")
+	// 받은 메일(IMAP) 테스트용 인메모리 메일 서버
+	testImplementation("com.icegreen:greenmail:2.1.3")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")

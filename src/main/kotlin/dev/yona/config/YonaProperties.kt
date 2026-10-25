@@ -39,6 +39,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property update 업데이트 확인 설정이다
  * @property github 이전(Migration) 화면의 GitHub 연동 설정이다
  * @property social 소셜 로그인(GitHub, Google) 설정이다
+ * @property imap 메일 수신(IMAP) 설정이다
+ * @property mailboxPollingInterval IDLE을 쓸 수 없을 때 새 메일을 확인하는 주기(밀리초) (`application.mailbox.polling.interval`, 기본 5분)
  * @property ldap LDAP 로그인 설정이다
  * @property protocol LDAP 접속 프로토콜(`ldap` 또는 `ldaps`). v1.6은 `ldap.protocol`이 아니라 접두어 없는 최상위 `protocol` 키를 읽는다. 같게 한다(R-60)
  * @property secret 사이트 비밀 키이다. 기본값이거나 비어 있으면 처음 기동한 것으로 보고 모든 요청에서 기본 관리자 계정을 정하는 화면을 보인다 (`application.secret`)
@@ -85,6 +87,8 @@ data class YonaProperties(
     val notificationMailDelay: Long = 180_000L,
     val github: Github = Github(),
     val social: Social = Social(),
+    val imap: Imap = Imap(),
+    val mailboxPollingInterval: Long = 5 * 60 * 1000L,
     val ldap: Ldap = Ldap(),
     val protocol: String = "ldap",
     val secret: String = DEFAULT_SECRET,
@@ -123,6 +127,31 @@ data class YonaProperties(
     data class Smtp(
         val user: String = "",
         val domain: String = ""
+    )
+
+    /**
+     * 메일 수신(IMAP) 설정이다 (v1.6 `imap.*`). 호스트, 사용자, 비밀번호가 모두 있어야 시작한다.
+     *
+     * @property use 메일 수신을 쓴다. 호스트를 설정해도 끌 수 있다 (`imap.use`, 기본 켬)
+     * @property host IMAP 서버 호스트. 비우면 시작하지 않는다
+     * @property user IMAP 사용자. `@`가 있으면 이 값이 곧 사이트의 수신 주소이다
+     * @property password IMAP 비밀번호
+     * @property domain 수신 주소의 도메인. `user`에 `@`가 없을 때 `user@domain`으로 쓰며 비우면 사이트 호스트 이름을 쓴다 (`imap.domain`)
+     * @property address 수신 주소. 비우면 `user`와 `domain`으로 만든다 (`imap.address`)
+     * @property port IMAP 서버 포트. 비우면 프로토콜의 기본 포트이다. v1.6에는 없는 설정으로 테스트와 비표준 포트용이다(A-97)
+     * @property ssl SSL로 연결한다 (`imap.ssl`)
+     * @property folder 받은 편지함 이름 (`imap.folder`, 기본 `inbox`)
+     */
+    data class Imap(
+        val use: Boolean = true,
+        val host: String = "",
+        val user: String = "",
+        val password: String = "",
+        val domain: String = "",
+        val address: String = "",
+        val port: Int? = null,
+        val ssl: Boolean = false,
+        val folder: String = "inbox"
     )
 
     /**

@@ -76,6 +76,34 @@ class ReviewCommentService(
     }
 
     /**
+     * 받은 메일로 기존 스레드에 리뷰 댓글을 단다 (v1.6 `CreationViaEmail.saveReviewComment`). 웹과 달리 작성자의 임시 첨부를 옮기지 않는다
+     * (첨부는 메일에서 받아 따로 저장한다). 알림은 풀 리퀘스트의 스레드이면 풀 리퀘스트 댓글로, 아니면 커밋 댓글로 내보낸다. 알림을 내보내지
+     * 못해도 댓글은 남기고 경고만 남긴다.
+     *
+     * @throws IllegalArgumentException 스레드가 커밋에 달린 스레드가 아니고 풀 리퀘스트의 스레드도 아닐 때
+     */
+    @Transactional
+    fun commentByMail(thread: CommentThread, author: User, contents: String): ReviewComment {
+        val comment = newComment(author, contents)
+        comment.thread = thread
+        val saved = reviewComments.save(comment)
+        thread.reviewComments.add(saved)
+        try {
+            val pullRequest = thread.pullRequest
+            val commitId = when (thread) {
+                is CodeCommentThread -> thread.commitId
+                is NonRangedCodeCommentThread -> thread.commitId
+                else -> null
+            }
+            if (pullRequest == null) requireNotNull(commitId) { "커밋에 달린 스레드가 아닙니다" }
+            publisher.publishEvent(ReviewCommentedActivity(saved, pullRequest, commitId, author))
+        } catch (e: Exception) {
+            org.slf4j.LoggerFactory.getLogger(javaClass).warn("Failed to send a notification", e)
+        }
+        return saved
+    }
+
+    /**
      * 스레드를 열거나 닫는다. 바뀐 상태가 같아도 v1.6처럼 알림을 내보낸다.
      */
     @Transactional

@@ -18,6 +18,7 @@
 - [마일스톤 진행 현황](domain/milestone-status.md)
 - [계정 설정과 첨부 올리기](web/account.md): 프로필, 비밀번호, 토큰, 이메일, 첨부
 - [이전(Migration) 화면](web/migration.md): GitHub로 옮길 프로젝트 데이터 JSON과 토큰 교환(D-23 접근 기준)
+- [이메일 수신(IMAP)](web/mailbox.md): 받은 메일로 이슈와 댓글 만들기, IMAP 연결과 UID 기록, 진단
 - [LDAP 인증](web/ldap.md): LDAP 로그인, 로컬 사용자 동기화, Git 기본 인증
 - [소셜 로그인](web/social-login.md): GitHub, Google OAuth 로그인, 계정 연결, 소셜 로그아웃, `/restricted`
 - [최초 기동 화면](web/welcome.md): `yona.secret`이 기본값일 때 기본 관리자 계정 설정과 재시작 안내

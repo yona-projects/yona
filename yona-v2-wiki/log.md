@@ -320,3 +320,6 @@
 
 ## [2026-10-25] ingest | LDAP 인증, 소셜 전용 모드 (7단계 7b)
 - TDD: JndiLdapDirectoryTest 8, LdapAuthServiceTest 11, LdapEmailLoginTest 4, LdapLoginTest 3, SocialLoginOnlyTest 2. `JndiLdapDirectory`, `LdapAuthService`, `LocalAuthenticator`(LDAP 분기, `authenticateBasic`), `LoginController`. D-24, A-96, R-60.
+
+## [2026-10-25] ingest | 이메일 수신 (7단계 7c)
+- TDD: MailParsingTest 14, MailResourceCreatorTest 11, MailHandlerTest 20, MailHandlerMultiProjectTest 1, MailboxServiceTest 13. `EmailAddressWithDetail`, `MessageIds`, `MailContent`, `MailResourceCreator`, `MailHandler`, `MailboxService`, `MailboxStarter`, `MailboxDiagnostic`, `NotificationExclusions`, `PropertyService`. D-25, A-97, R-61, T-4.

@@ -41,7 +41,8 @@ class NotificationEvents(
     private val projectNotifications: UserProjectNotificationRepository,
     private val lookup: ResourceLookup,
     private val accessControl: AccessControl,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val exclusions: NotificationExclusions
 ) {
 
     /**
@@ -60,9 +61,22 @@ class NotificationEvents(
             // A -> B 다음의 B -> A는 둘 다 지운다.
             if (oldValue == note.newValue) return null
         }
-        val receivers = filterReceivers(note)
+        val excluded = exclusions.current()
+        val receivers = filterReceivers(note).filter { it.id !in excluded }
         if (receivers.isEmpty()) return null
         return save(note, oldValue, receivers)
+    }
+
+    /**
+     * 리소스에 걸린 [eventType] 이벤트의 새 값을 바꾼다. 받은 메일의 본문을 정리한 뒤 알림 내용을 맞출 때 쓴다.
+     * 이벤트를 저장하지 않았으면(받을 사람이 없었으면) 아무 일도 하지 않는다.
+     */
+    @Transactional
+    fun replaceNewValue(type: ResourceType, resourceId: String, eventType: EventType, newValue: String?) {
+        events.findByResourceTypeAndResourceId(type, resourceId).filter { it.eventType == eventType }.forEach {
+            it.newValue = newValue
+            events.save(it)
+        }
     }
 
     /**

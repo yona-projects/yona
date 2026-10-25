@@ -84,7 +84,7 @@ updated: 2026-10-22
 | 6f | 이전(Migration) 화면(`/migration`, 프로젝트 데이터 JSON 내보내기, GitHub 토큰 교환) | 완료 | [web/migration.md](web/migration.md) |
 | 7a | 소셜 로그인(GitHub, Google), 로그인 화면 버튼, 소셜 로그아웃, `/restricted` | 완료 | [web/social-login.md](web/social-login.md). D-24 |
 | 7b | LDAP 인증(폼 로그인, Git HTTP 기본 인증), 소셜 로그인 전용 모드의 로그인 거부 | 완료 | [web/ldap.md](web/ldap.md). JNDI(D-24) |
-| 7c | 이메일 수신(IMAP), 진단의 "Email Receiver" 점검 | 대기 | Jakarta Mail(D-24) |
+| 7c | 이메일 수신(IMAP): 주소와 본문 읽기, 이슈와 댓글 만들기, 메일 처리기, IMAP 연결과 수신 대기, 진단의 "Email Receiver" 점검 | 완료 | [web/mailbox.md](web/mailbox.md). Jakarta Mail(D-24), D-25 |
 | 8 | Subversion(SVNKit) | 마지막 | |
 
 ## 화면 검증 기록

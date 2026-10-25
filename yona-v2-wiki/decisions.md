@@ -232,6 +232,18 @@ updated: 2026-10-22
 - **결정(선생님)**: 권장안(A)으로 1차 완성하고, (B) 전환은 향후 리팩터링 대상 항목으로 분류한다.
 - **상태**: 확정. 전환 후보는 [refactoring-backlog.md](refactoring-backlog.md)의 "전환 후보" 절에 둔다.
 
+### D-25. 메일 수신의 v1.6 결함은 첨부 저장은 고치고 여러 프로젝트 메일은 v1.6과 같게 둔다 (2026-10-25, 선생님)
+
+- **질문 1**: v1.6의 메일 첨부 저장(`Attachment.save`)은 HTTP 요청 문맥이 없는 메일 스레드에서 `UserApp.currentUser()`를 불러 항상 실패한다. 첨부가 있는 메일은 이슈나 댓글이 먼저 저장된 뒤 오류 회신이 가고 원본 메일 기록과 알림이 남지 않는다.
+  - **선택지**: (A) 첨부를 원래 의도대로 저장한다. (B) v1.6의 실패를 그대로 재현한다.
+  - **권장안**: (A). **권장 이유**: 코드와 문서(cid 치환, 첨부 저장)가 의도한 동작이고, 항상 실패하는 경로를 옮기면 첨부 관련 코드가 모두 죽은 코드가 된다.
+  - **결정(선생님)**: (A) 정상 저장. 결함은 R-61에 적는다.
+- **질문 2**: 한 메일을 프로젝트 여러 곳의 주소로 보내면 `original_email.message_id` 유일 제약 때문에 두 번째 프로젝트부터 원본 메일 기록이 실패한다. v1.6은 트랜잭션이 없어 이슈는 만들어진 채 기록만 빠지고 오류를 회신한다.
+  - **선택지**: (A) v1.6과 같게 한다. (B) 두 번째부터 롤백한다. (C) 유일 제약을 푼다.
+  - **권장안**: (A). **권장 이유**: DB 스키마를 v1.6과 같게 유지하라는 원칙에 맞고, 첫 프로젝트는 정상이며 두 번째도 이슈는 남고 이유를 알리는 회신이 간다.
+  - **결정(선생님)**: (A) v1.6과 같게 하고, 문서의 의도(한 메일이 여러 리소스를 만든다)를 포함해 리팩터링 대상으로 기록한다(T-4).
+- **상태**: 확정. 구현은 [web/mailbox.md](web/mailbox.md)에 기록한다.
+
 ### 보류 중인 결정 (2026-10-25, 선생님 지시)
 
 - **이전(Migration) 화면의 접근 범위**: D-23으로 확정했다(위).
@@ -383,4 +395,5 @@ updated: 2026-10-22
 | A-94 | 이전(Migration) 화면의 구현 판단: (1) GitHub 토큰은 로그에 남기지 않는다(v1.6은 오류 수준으로 남긴다). (2) 토큰 교환은 `GithubTokenClient` 인터페이스 뒤에 두어 테스트에서 바꿔 끼운다. (3) 없는 프로젝트는 500 대신 404이다(손으로 만든 요청 구멍, A-24). (4) 본문 안의 상대 링크 변환은 v1.6처럼 서버 주소가 `/`라 결과가 같다. (5) 내보내기 순서는 id 오름차순이다. | 에이전트 |
 | A-95 | 소셜 로그인의 구현 판단(원본은 `~/.ivy2/cache/com.feth/play-authenticate_2.10/jars/play-authenticate_2.10-0.6.9.jar`를 Fernflower로 디컴파일해 확인했다): (1) v1.6 기본 설정 파일의 시험용 클라이언트 ID와 비밀은 옮기지 않고 기본값을 비운다. (2) 허용 목록(`application.social.login.support`)에 있고 ID와 비밀이 설정된 제공자만 버튼과 주소(`/authenticate/:provider`)가 열린다(v1.6은 등록된 제공자면 목록과 무관하게 주소가 열린다, A-24). (3) `state`는 v1.6도 쓴다. v2는 한 번 쓰면 지운다(v1.6은 가입할 때만 지워 재사용할 수 있다). 값이 다르거나 없으면 400이다(v1.6은 500). 보낸 값이 사라졌으면 v1.6처럼 제공자로 다시 보낸다. (4) 접근 토큰은 주소의 `access_token` 인자 대신 `Authorization: Bearer` 헤더로 보낸다(GitHub가 인자를 더 이상 받지 않는다). (5) 소셜 세션이 있는 채로 연결되지 않은 다른 제공자로 인증하면 v1.6은 연결을 저장한 뒤 `link`가 null을 돌려줘 NPE(500)가 난다. v2는 연결하고 홈으로 보낸다(직접 만든 요청으로만 닿는 경로, A-24). (6) 돌아올 주소(`redirect_uri`)의 호스트는 `redirectHost` 설정이 있으면 그것을, 없으면 요청의 `Host` 헤더를 쓰고 `redirectSecure` 기본은 `false`이다(v1.6 기본 설정 파일과 같다). (7) 제공자 기본 주소는 v1.6 라이브러리의 값을 쓴다(Google은 구 `o/oauth2/auth`, `o/oauth2/token`, `v1/userinfo`와 구 권한 범위). (8) GitHub 이메일은 v1.6처럼 `/user`의 `email`만 쓴다(`/user/emails`는 부르지 않는다). | 에이전트 |
 | A-96 | LDAP의 구현 판단: (1) 테스트용 LDAP 서버로 UnboundID 인메모리 서버(`com.unboundid:unboundid-ldapsdk:7.0.3`)를 test 의존성에 더한다(운영 의존성은 없다). (2) 설정 키는 `yona.ldap.*`이고 켜는 키는 v1.6의 오타 키(`application.use.ldap.login.supoort`) 대신 `yona.ldap.enabled`이다. 프로토콜만 v1.6처럼 최상위 `yona.protocol`이다(R-60). (3) JNDI 컨텍스트는 쓰고 나서 닫는다(v1.6은 닫지 않는다). (4) 검색 결과가 없거나 이메일이 없어 로그인 ID를 만들 수 없는 경우는 v1.6의 NPE와 문자열 범위 오류 대신 `IllegalStateException`(HTTP 500)이다. (5) Git 기본 인증은 LDAP을 켜면 `LocalAuthenticator.authenticateBasic`이 LDAP으로 확인한다. (6) 소셜 로그인 전용 모드의 로그인 거부는 `HomeController.index`를 불러 홈 화면을 그린다(v1.6 `Application.index()`). | 에이전트 |
+| A-97 | 메일 수신의 구현 판단: (1) 테스트용 IMAP 서버로 GreenMail(`com.icegreen:greenmail:2.1.3`)을 test 의존성에 더한다. (2) IMAP 전용 클래스(`IMAPFolder`, `IMAPStore`)를 쓰려고 `org.eclipse.angus:angus-mail`을 직접 선언한다(스타터는 실행 시점에만 포함한다). (3) HTML 메일 본문 정리는 v1.6과 같은 `com.googlecode.htmlcompressor:htmlcompressor:1.5.2`를 쓴다. (4) v1.6에 없는 `yona.imap.port`(비우면 프로토콜 기본 포트)를 더한다. 테스트와 비표준 포트용이다. (5) 설정 키는 `yona.imap.*`이다(`use`, `host`, `user`, `password`, `domain`, `address`, `ssl`, `folder`)이며 폴링 주기는 `yona.mailbox-polling-interval`이다. (6) 리소스 경로 해석은 `ResourceLookup`을 쓴다. 지원하지 않는 종류는 v1.6의 `Resource.get`처럼 예외이다. (7) 이슈, 댓글, 리뷰 댓글을 만든 뒤 원본 메일 기록을 따로 남긴다(D-25). (8) 만든 리소스의 알림은 이벤트를 저장할 때 메일을 이미 받은 사람을 빼고, HTML 본문을 정리한 뒤 알림 본문도 같은 내용으로 고친다(v1.6은 정리한 뒤에 이벤트를 만든다). (9) 파일 이름이 없는 첨부 파트는 이름 없이 저장한다(v1.6은 `MimeUtility.decodeText(null)`로 NPE이다). (10) 폴링과 수신 대기의 시작은 `backgroundAsync` 설정이 꺼져 있으면 호출 스레드에서 한다(테스트용). (11) 리뷰 스레드에 메일로 댓글을 달 때(`ReviewCommentService.commentByMail`) 작성자의 임시 첨부를 옮기지 않는다. | 에이전트 |
 
