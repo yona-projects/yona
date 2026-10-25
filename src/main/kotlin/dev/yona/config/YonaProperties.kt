@@ -38,6 +38,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property notificationMailDelay 알림 이벤트를 만든 뒤 메일로 보내기까지 기다리는 시간(밀리초). 그 사이 연달아 일어난 알림을 묶을 수 있다 (`application.notification.bymail.delay`, 기본 180초)
  * @property update 업데이트 확인 설정이다
  * @property github 이전(Migration) 화면의 GitHub 연동 설정이다
+ * @property social 소셜 로그인(GitHub, Google) 설정이다
  * @property secret 사이트 비밀 키이다. 기본값이거나 비어 있으면 처음 기동한 것으로 보고 모든 요청에서 기본 관리자 계정을 정하는 화면을 보인다 (`application.secret`)
  * @property smtp 보내는 메일 주소 설정이다. SMTP 접속 정보는 `spring.mail.*`로 설정한다
  * @property easymail 가입 안내 메일의 보내는 사람이다 (`play-easymail.from.*`)
@@ -81,6 +82,7 @@ data class YonaProperties(
     val notificationMailInterval: Long = 60_000L,
     val notificationMailDelay: Long = 180_000L,
     val github: Github = Github(),
+    val social: Social = Social(),
     val secret: String = DEFAULT_SECRET,
     val smtp: Smtp = Smtp(),
     val update: Update = Update(),
@@ -117,6 +119,50 @@ data class YonaProperties(
     data class Smtp(
         val user: String = "",
         val domain: String = ""
+    )
+
+    /**
+     * 소셜 로그인 설정이다. v1.6 `application.social.login.*`와 `conf/social-login.conf`(play-authenticate)에 해당한다.
+     * v1.6의 기본 설정 파일에 들어 있던 시험용 클라이언트 ID와 비밀은 옮기지 않는다. 쓰려면 직접 발급해 넣는다(A-95).
+     *
+     * @property loginSupport 로그인 화면에 보이고 쓸 수 있는 제공자를 쉼표로 이은 값. 예: `github, google`. 비우면 쓰지 않는다 (`application.social.login.support`)
+     * @property nameSync 로그인할 때마다 소셜 계정의 이름으로 사용자 이름을 고친다 (`application.use.social.login.name.sync`)
+     * @property githubName 로그인 화면의 GitHub 버튼에 쓰는 이름 (`application.social.login.github.name`)
+     * @property github GitHub 제공자 설정이다. GitHub Enterprise는 주소 세 개를 바꿔 쓴다
+     * @property google Google 제공자 설정이다
+     */
+    data class Social(
+        val loginSupport: String = "",
+        val nameSync: Boolean = false,
+        val githubName: String = "github",
+        val github: OAuthProvider = OAuthProvider(),
+        val google: OAuthProvider = OAuthProvider()
+    ) {
+        /** 허용된 제공자 키 목록이다. 공백은 무시한다 (v1.6 `TemplateHelper.isAllowedOAuthProvider`). */
+        fun allowedProviders(): List<String> = loginSupport.replace(" ", "").split(",").filter { it.isNotEmpty() }
+    }
+
+    /**
+     * OAuth 제공자 한 곳의 설정이다 (v1.6 `play-authenticate.<제공자>`).
+     *
+     * @property clientId 발급받은 클라이언트 ID
+     * @property clientSecret 발급받은 클라이언트 비밀
+     * @property scope 요청할 권한 범위
+     * @property authorizationUrl 사용자를 보낼 인증 화면 주소
+     * @property accessTokenUrl 인증 코드를 접근 토큰으로 바꾸는 주소
+     * @property userInfoUrl 접근 토큰으로 사용자 정보를 읽는 주소
+     * @property redirectSecure 돌아올 주소(redirect_uri)를 `https`로 만든다. 기본은 `http`이다 (`redirectUri.secure`)
+     * @property redirectHost 돌아올 주소의 호스트. 비우면 요청의 호스트를 쓴다 (`redirectUri.host`)
+     */
+    data class OAuthProvider(
+        val clientId: String = "",
+        val clientSecret: String = "",
+        val scope: String = "",
+        val authorizationUrl: String = "",
+        val accessTokenUrl: String = "",
+        val userInfoUrl: String = "",
+        val redirectSecure: Boolean = false,
+        val redirectHost: String = ""
     )
 
     /**

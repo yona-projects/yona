@@ -6,7 +6,6 @@
 
   이식 원본: app/views/user/login.scala.html
   모델: redirectUrl(로그인 후 이동할 주소), title(문서 제목 메시지 키)
-  소셜 로그인 버튼 영역(currentAuth/forProviders)은 소셜 로그인 단계에서 추가한다.
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'NONE', ~{::loginPage})}">
@@ -39,6 +38,10 @@
       </th:block>
 
       <div class="btns-row nm">
+        <th:block th:if="${!socialLoggedIn}">
+          <div th:if="${socialLoginSupported and !site.socialLoginOnly}" class="social-login-title-line" th:text="' ' + #{title.or} + ' '"></div>
+          <a th:each="provider : ${socialProviders}" th:href="@{'/authenticate/' + ${provider.key}}" class="ybtn oauth-login-btn" th:utext="${provider.html}"></a>
+        </th:block>
       </div>
       <div class="act-row mt5" th:unless="${site.socialLoginOnly}">
         <div class="remember-me-wrap pull-left">

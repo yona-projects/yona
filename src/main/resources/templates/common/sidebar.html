@@ -4,9 +4,10 @@
   https://yona.io
 
   이식 원본: app/views/sidebar.scala.html
-  고정한 사이드바의 내용이다. 소셜 로그인 세션의 로그아웃은 소셜 로그인 단계에서 추가한다. 모델: menu(UserMenuModel)
+  고정한 사이드바의 내용이다. 모델: menu(UserMenuModel)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
+<th:block th:if="${currentUser.anonymous}" th:with="remembered=${@socialSession.rememberOriginalUrl()}"></th:block>
 <div class="row-fluid user-menu-wrap">
     <span class="user-menu"><a th:href="'/' + ${currentUser.loginId}" target="mainFrame">
         <span class="avatar-wrap smaller">
@@ -15,7 +16,7 @@
         <span class="caret-text hide-in-mobile" th:text="${currentUser.pureName}"></span>
     </a></span>
     <span class="user-menu"><a th:href="@{/user/editform}" target="mainFrame" th:text="#{userinfo.accountSetting}"></a></span>
-    <a th:href="@{/users/logout}"><span class="user-menu logout label" th:text="#{title.logout}"></span></a>
+    <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout label" th:text="#{title.logout}"></span></a>
     <div class="pin-in-sidebar" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i></div>
 </div>
 <ul class="nav nav-tabs nm">

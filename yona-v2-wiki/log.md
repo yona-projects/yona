@@ -314,3 +314,6 @@
 
 ## [2026-10-25] ingest | 이전(Migration) 화면 (6단계 6f)
 - TDD: MigrationExportTest 14, MigrationPageTest 5. `MigrationService`, `MigrationController`, `GithubTokenClient`, 템플릿 `migration/home`. D-23(접근 기준), A-94, R-58.
+
+## [2026-10-25] ingest | 소셜 로그인 (7단계 7a)
+- TDD: SocialAccountServiceTest 16, SocialAccountPolicyTest 3, SocialProviderTest 7, SocialLoginTest 26. `SocialAccountService`, `OAuth2SocialProvider`, `SocialProviders`, `SocialSession`, `SocialLoginController`, 템플릿 `restricted`. D-24, A-95, R-59.

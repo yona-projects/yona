@@ -16,10 +16,14 @@ import org.springframework.web.servlet.ModelAndView
  * - 이동 대상(`redirectUrl`)이 없고 Referer가 이 화면 자신이 아니면 Referer를 이동 대상으로 삼는다.
  * - 응답은 캐시하지 않는다.
  *
- * 아직 구현하지 않은 부분: 소셜 로그인 계정 연결 흐름(`PlayAuthenticate.isLoggedIn`).
  */
 @Controller
-class LoginFormController(private val currentUserProvider: CurrentUserProvider) {
+class LoginFormController(
+    private val currentUserProvider: CurrentUserProvider,
+    private val socialSession: dev.yona.web.social.SocialSession,
+    private val social: dev.yona.domain.social.SocialAccountService,
+    private val loginSession: dev.yona.security.LoginSessionService
+) {
 
     @GetMapping("/users/loginform")
     fun loginForm(request: HttpServletRequest, response: HttpServletResponse): Any {
@@ -32,6 +36,12 @@ class LoginFormController(private val currentUserProvider: CurrentUserProvider) 
         val referer = request.getHeader(HttpHeaders.REFERER)
         if (redirectUrl.isNullOrEmpty() && referer != LOGIN_FORM_PATH) {
             redirectUrl = referer
+        }
+        // 소셜 로그인은 마쳤지만 로컬 세션이 없는 상태이면 연결된 사용자를 이어받는다(v1.6 `linkWithExistedOrCreateLocalUser`).
+        // 이동할 주소가 없으면 v1.6은 오류가 난다. 홈으로 보낸다([refactoring-backlog.md] R-59).
+        socialSession.current(request)?.let { current ->
+            social.resume(dev.yona.domain.social.SocialIdentity(current.provider, current.providerUserId, null, null)).user?.let { loginSession.start(request, response, it) }
+            return RedirectSupport.see(request, response, if (redirectUrl.isNullOrEmpty()) "/" else redirectUrl)
         }
         return loginPage(redirectUrl)
     }

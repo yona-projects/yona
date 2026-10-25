@@ -82,7 +82,9 @@ updated: 2026-10-22
 | 6d | 데이터 내보내기와 가져오기(`/sites/data`, `/sites/export`, `/sites/import`: 47개 테이블 JSON), 아바타 없는 사용자 목록과 아바타 지정(`/sites/noAvatarUsers`, `/sites/setAttachmentToUserAvatar`) | 완료 | [web/site-admin.md](web/site-admin.md), [subsystems/data-exchange.md](subsystems/data-exchange.md) |
 | 6e | 최초 기동 화면(`welcome/secret`, `welcome/restart`): 사이트 비밀 키가 기본값이면 모든 요청이 기본 관리자 계정을 정하는 화면 | 완료 | [web/welcome.md](web/welcome.md). D-22 |
 | 6f | 이전(Migration) 화면(`/migration`, 프로젝트 데이터 JSON 내보내기, GitHub 토큰 교환) | 완료 | [web/migration.md](web/migration.md) |
-| 7 | 소셜 로그인, LDAP, 이메일 수신 | 대기 | |
+| 7a | 소셜 로그인(GitHub, Google), 로그인 화면 버튼, 소셜 로그아웃, `/restricted` | 완료 | [web/social-login.md](web/social-login.md). D-24 |
+| 7b | LDAP 인증(폼 로그인, Git HTTP 기본 인증) | 대기 | JNDI(D-24) |
+| 7c | 이메일 수신(IMAP), 진단의 "Email Receiver" 점검 | 대기 | Jakarta Mail(D-24) |
 | 8 | Subversion(SVNKit) | 마지막 | |
 
 ## 화면 검증 기록

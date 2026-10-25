@@ -47,10 +47,15 @@ class LayoutModelFactory(
     private val flashTranslator: FlashMessageTranslator,
     private val templateHelper: dev.yona.web.TemplateHelper,
     private val messages: org.springframework.context.MessageSource,
-    private val updates: dev.yona.domain.site.UpdateCheckService
+    private val updates: dev.yona.domain.site.UpdateCheckService,
+    private val socialProviders: dev.yona.domain.social.SocialProviders,
+    private val socialSession: dev.yona.web.social.SocialSession
 ) {
 
     /** 업데이트 알림이다. [version]은 새 버전, [url]은 릴리스 페이지이다. */
+    /** 로그인 화면의 소셜 로그인 버튼이다. [html]은 버튼 안에 넣을 로고와 문구이다. */
+    data class SocialButton(val key: String, val html: String)
+
     data class UpdateNotice(val version: String, val url: String)
 
     /** 새 버전이 있고 알림을 끄지 않았으며 사이트 관리자일 때만 알림을 만든다 (v1.6 `partial_update_notification`). */
@@ -73,6 +78,9 @@ class LayoutModelFactory(
         "siteAdminLoggedIn" to (currentUserProvider.get().user?.loginId == DEFAULT_ADMIN_LOGIN_ID),
         "flashMessages" to flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty()),
         "helper" to templateHelper,
+        "socialProviders" to socialProviders.available().map { SocialButton(it, dev.yona.web.ProviderLogos.signIn(it, properties.social.githubName, request.contextPath)) },
+        "socialLoginSupported" to socialProviders.available().isNotEmpty(),
+        "socialLoggedIn" to socialSession.hasKeys(request),
         "requestPath" to request.requestURI,
         "isMac" to (request.getHeader("User-Agent")?.contains("Macintosh") == true),
         "requestUri" to listOfNotNull(request.requestURI, request.queryString).joinToString("?")

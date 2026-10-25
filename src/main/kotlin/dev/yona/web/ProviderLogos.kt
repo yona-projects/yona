@@ -20,4 +20,15 @@ object ProviderLogos {
         provider.equals("google", ignoreCase = true) -> google(contextPath)
         else -> ""
     }
+
+    /**
+     * 로그인 화면의 소셜 로그인 버튼 안에 넣을 HTML이다 (v1.6 `TemplateHelper.providerWithLogo`). 알 수 없는 제공자는 빈 문자열이다.
+     *
+     * @param githubName GitHub 버튼에 쓰는 이름 (`application.social.login.github.name`)
+     */
+    fun signIn(provider: String, githubName: String, contextPath: String = ""): String = when (provider) {
+        "github" -> """<span class="auth-provider-logo">$GITHUB <span class="provider-name">Sign in with $githubName</span></span>"""
+        "google" -> """<span class="auth-provider-logo"><img src="$contextPath/assets/images/provider-logo/btn_google_light_normal_ios.svg" alt="login with Google"> Sign in with Google</span>"""
+        else -> ""
+    }
 }

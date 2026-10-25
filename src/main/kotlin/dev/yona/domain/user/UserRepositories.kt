@@ -30,6 +30,12 @@ interface UserCredentialRepository : JpaRepository<UserCredential, Long> {
 
     /** 사용자의 자격 증명을 조회한다 (v1.6 `UserCredential.findByUserId`). */
     fun findByUserId(userId: Long): List<UserCredential>
+
+    /** 제공자와 제공자 쪽 사용자 ID로 연결된 활성 자격 증명을 찾는다 (v1.6 `UserCredential.findByAuthUserIdentity`). */
+    @org.springframework.data.jpa.repository.Query(
+        "select c from LinkedAccount a join a.userCredential c where c.active = true and a.providerKey = :providerKey and a.providerUserId = :providerUserId order by c.id"
+    )
+    fun findActiveByProvider(providerKey: String, providerUserId: String): List<UserCredential>
 }
 
 /** 소셜 로그인 제공자별 연결 계정 저장소이다. */

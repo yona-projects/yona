@@ -1,6 +1,5 @@
 <!--/*
   이식 원본: app/views/common/loginDialog.scala.html
-  소셜 로그인 버튼 영역(currentAuth/forProviders)은 소셜 로그인 단계에서 추가한다.
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="loginDialog">
 <div id="loginDialog" class="modal hide loginDialog" tabindex="-1" role="dialog">
@@ -32,6 +31,14 @@
       </th:block>
 
       <div class="btns-row nm">
+        <th:block th:if="${!socialLoggedIn}">
+          <div th:if="${socialLoginSupported and !site.socialLoginOnly}" class="social-login-title-line" th:text="' ' + #{title.or} + ' '"></div>
+          <a th:each="provider : ${socialProviders}" th:href="@{'/authenticate/' + ${provider.key}}" class="ybtn oauth-login-btn" th:utext="${provider.html}"></a>
+        </th:block>
+        <th:block th:if="${socialLoggedIn}">
+          <div th:if="${currentUser.anonymous}" class="cache-warning" th:text="#{browser.cache.refresh.message}"></div>
+          <a th:href="@{/logout}" class="ybtn oauth-login-btn" th:text="#{title.logout}"></a>
+        </th:block>
       </div>
       <div class="act-row right-txt mt20" th:unless="${site.socialLoginOnly}">
         <div class="pull-left">

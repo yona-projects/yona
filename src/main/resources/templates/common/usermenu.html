@@ -4,15 +4,15 @@
   https://yona.io
 
   이식 원본: app/views/common/usermenu.scala.html
-  소셜 로그인(play-authenticate)이 세션에 남기는 원래 주소 처리는 소셜 로그인 단계에서 추가한다.
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="usermenu">
+<th:block th:if="${currentUser.anonymous}" th:with="remembered=${@socialSession.rememberOriginalUrl()}"></th:block>
 <div id="mySidenav" class="sidenav">
     <div class="span5 right-menu span-hard-wrap">
         <div class="row-fluid user-menu-wrap">
             <span class="user-menu"><a th:href="@{'/' + ${currentUser.loginId}}" th:text="#{userinfo.profile}"></a></span>
             <span class="user-menu"><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}"></a></span>
-            <a th:href="@{/users/logout}"><span class="user-menu logout label" th:text="#{title.logout}"></span></a>
+            <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout label" th:text="#{title.logout}"></span></a>
         </div>
         <ul class="nav nav-tabs nm">
             <li class="myOrganizationList active">

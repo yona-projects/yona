@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21c Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/restricted.scala.html
+  play-authenticate 예제에서 온 시험 화면이다. 소셜 로그인 세션이 있어야 열린다.
+  모델: credential(UserCredential), auth(SocialSession.Current)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${site.siteName}, 'SITE_HOME', ~{::restrictedPage})}">
+<th:block th:fragment="restrictedPage">
+    <h1>Sshhh...don't tell anyone!</h1>
+    <p>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/9bZkp7q19f0" frameborder="0" allowfullscreen></iframe>
+    </p>
+    <p>
+        Your name is <th:block th:text="${credential.name}"></th:block> and your email address is <th:block th:text="${credential.email}"></th:block>
+    <i><th:block th:if="${!credential.emailValidated}">(unverified)</th:block><th:block th:if="${credential.emailValidated}">(verified)</th:block></i>!
+
+    <br/>
+    Logged in with provider '<th:block th:text="${auth.provider}"></th:block>' and the user ID '<th:block th:text="${auth.providerUserId}"></th:block>'<br/>
+    Your session expires
+    <th:block th:if="${auth.expires == -1}">never</th:block>
+    <th:block th:unless="${auth.expires == -1}">at <th:block th:text="${auth.expires}"></th:block> (UNIX timestamp)</th:block>
+    </p>
+</th:block>
+</html>
