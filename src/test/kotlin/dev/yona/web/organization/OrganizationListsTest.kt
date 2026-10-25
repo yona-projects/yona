@@ -1,5 +1,9 @@
 package dev.yona.web.organization
 
+import dev.yona.domain.issue.IssueLabelRepository
+import dev.yona.domain.issue.IssueLabelCategoryRepository
+import dev.yona.domain.issue.IssueLabelCategory
+import dev.yona.domain.issue.IssueLabel
 import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.ProjectScope
@@ -61,6 +65,8 @@ class OrganizationListsTest : AbstractIntegrationTest() {
     @Autowired private lateinit var assignees: AssigneeRepository
     @Autowired private lateinit var comments: IssueCommentRepository
     @Autowired private lateinit var pullRequests: PullRequestRepository
+    @Autowired private lateinit var labelCategories: IssueLabelCategoryRepository
+    @Autowired private lateinit var issueLabels: IssueLabelRepository
 
     private var sequence = 0
     private var number = 0L
@@ -237,6 +243,17 @@ class OrganizationListsTest : AbstractIntegrationTest() {
         assertEquals("#${issue.number}", row.selectFirst("span.post-id")!!.text())
         assertEquals(author.loginId, row.selectFirst("a.avatar-wrap.mlarge")!!.attr("title"))
         assertEquals("/${worker.loginId}", row.selectFirst("a.avatar-wrap.assinee")!!.attr("href"))
+    }
+
+    @Test
+    fun `라벨 링크는 프로젝트 이슈 목록의 열린 이슈로 가는 주소이다`() {
+        val org = newOrg(); val a = orgProject(org, name = "labp")
+        val category = labelCategories.save(IssueLabelCategory(project = a, name = "종류", isExclusive = false))
+        val label = issueLabels.save(IssueLabel(project = a, category = category, name = "버그", color = "#f00"))
+        issue(a, "라벨 있음").also { it.labels.add(label); issues.save(it) }
+        val link = page("/organizations/${org.name}/issues").selectFirst("a.issue-label.list-label")!!
+        assertEquals("/${org.name}/labp/issues?state=open&labelIds=${label.id}", link.attr("href"))
+        assertEquals("버그", link.text())
     }
 
     @Test

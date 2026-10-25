@@ -111,7 +111,7 @@
                                     <a th:href="@{${base}}" class="infos-link-item group-project-name" th:text="${row.project}"></a>
                                     <span class="post-id margin-right-5" th:text="'#' + ${issue.number}"></span>
 
-                                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues&labelIds=' + label.id}}" class="label issue-label list-label" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+                                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues?state=open&labelIds=' + label.id}}" class="label issue-label list-label" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
                                 </div>
                             </div>
                             <div class="span2 hide-in-mobile">

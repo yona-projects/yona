@@ -1,5 +1,9 @@
 package dev.yona.web.issue
 
+import dev.yona.domain.issue.IssueLabelRepository
+import dev.yona.domain.issue.IssueLabelCategoryRepository
+import dev.yona.domain.issue.IssueLabelCategory
+import dev.yona.domain.issue.IssueLabel
 import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.ProjectScope
@@ -60,6 +64,8 @@ class MyIssuesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var sharers: IssueSharerRepository
     @Autowired private lateinit var favorites: FavoriteIssueRepository
     @Autowired private lateinit var mentions: MentionRepository
+    @Autowired private lateinit var labelCategories: IssueLabelCategoryRepository
+    @Autowired private lateinit var issueLabels: IssueLabelRepository
 
     private var sequence = 0
     private var number = 0L
@@ -273,5 +279,15 @@ class MyIssuesTest : AbstractIntegrationTest() {
         val html = mockMvc.perform(get("/user/issues").session(login(newUser()))).andReturn().response.contentAsString
         assertTrue(html.contains("var defaultLoginPageUrl = \"\\/-_-api\\/v1\\/user\\/defultLoginPage\";"))
         assertTrue(html.contains("\$.post(defaultLoginPageUrl + \"?path=\" + \$setDefaultLoginPage.data(\"url\"))"))
+    }
+
+    @Test
+    fun `라벨 링크는 프로젝트 이슈 목록의 열린 이슈로 가는 주소이다`() {
+        // v1.6은 `routes.IssueApp.issues(소유자, 이름, "open", "html", 1)`에 `&labelIds=`를 붙인다. state의 기본값이 빈 문자열이라 `?state=open`이 남는다.
+        val me = newUser(); val other = newUser(); val a = project(other, "a")
+        val category = labelCategories.save(IssueLabelCategory(project = a, name = "종류", isExclusive = false))
+        val label = issueLabels.save(IssueLabel(project = a, category = category, name = "버그", color = "#f00"))
+        issue(a, "라벨 있음", other, assignee = me).also { it.labels.add(label); issues.save(it) }
+        assertEquals("/${a.owner}/a/issues?state=open&labelIds=${label.id}", page(login(me)).selectFirst("a.issue-label.list-label")!!.attr("href"))
     }
 }
