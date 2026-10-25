@@ -305,3 +305,6 @@
 ## [2026-10-25] ingest | 사이트 관리: 업데이트 확인과 진단 (6단계 6c-4)
 - TDD: SemverTest 5, UpdateCheckServiceTest 8, DiagnosticServiceTest 3, SiteUpdateAndDiagnosticTest 10. `build.gradle.kts`에 `buildInfo()` 추가. A-91, R-55. 이슈 목록 작성자 이름을 v1.6처럼 표시 이름으로 고쳤다.
 
+## [2026-10-25] ingest | 데이터 내보내기와 가져오기 (6단계 6d)
+- TDD: DataTablesTest 4, DataExchangeTest 13, SiteDataTest 13. `DataTables`(47개 테이블 명세), `DataService`, `SiteDataController`. A-92, R-56. H2, PostgreSQL, MariaDB에서 모두 확인.
+

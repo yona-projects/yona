@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/site/data.scala.html
+  모델: title
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::dataPage})}">
+<th:block th:fragment="dataPage">
+    <div class="title_area">
+        <h2 class="pull-left" th:text="#{site.sidebar.data}"></h2>
+    </div>
+
+    <div class="cu-desc">
+        <ul>
+            <li class="notice"><strong th:text="#{site.data.warning1}"></strong></li>
+            <li class="notice"><strong th:text="#{site.data.warning2}"></strong></li>
+            <li class="notice"><strong th:text="#{site.data.warning3}"></strong></li>
+        </ul>
+    </div>
+
+    <h3 th:text="#{site.data.export}"></h3>
+    <p th:text="#{site.data.export.info}"></p>
+
+    <a th:href="@{/sites/export}" class="ybtn ybtn-primary">
+        <strong th:text="#{site.data.export}"></strong>
+    </a>
+
+    <h3 th:text="#{site.data.import}"></h3>
+    <p th:text="#{site.data.import.info}"></p>
+
+    <form th:action="@{/sites/import}" method="post" enctype="multipart/form-data">
+        <input type="file" name="data">
+        <p>
+            <input type="submit">
+        </p>
+    </form>
+</th:block>
+</html>

@@ -7,7 +7,7 @@ updated: 2026-10-25
 
 # 사이트 관리
 
-코드: `web/access/SiteManagerOnly`(애너테이션과 인터셉터), `domain/site/SiteUserService`, `web/site/SiteUserController`. 템플릿은 `layout/site-mng-layout`, `site/user-list`. 이 문서는 6c-4(틀, 사용자 관리, 프로젝트·게시글·이슈 목록, 메일, 업데이트와 진단)까지이다. 데이터 내보내기와 가져오기는 이어서 더한다. 코드는 `domain/site/SiteContentService`, `web/site/SiteContentController`와 템플릿 `site/project-list`, `post-list`, `issue-list`가 더해졌다.
+코드: `web/access/SiteManagerOnly`(애너테이션과 인터셉터), `domain/site/SiteUserService`, `web/site/SiteUserController`. 템플릿은 `layout/site-mng-layout`, `site/user-list`. 이 문서는 6c-4(틀, 사용자 관리, 프로젝트·게시글·이슈 목록, 메일, 업데이트와 진단)까지이다. 데이터 내보내기와 가져오기는 [../subsystems/data-exchange.md](../subsystems/data-exchange.md)에 있다. 코드는 `domain/site/SiteContentService`, `web/site/SiteContentController`와 템플릿 `site/project-list`, `post-list`, `issue-list`가 더해졌다.
 
 ## 접근
 
@@ -65,3 +65,13 @@ updated: 2026-10-25
 - 백그라운드: 서버를 시작하고 `init-delay` 뒤 `interval`마다 확인한다(`check`와 관계없음, R-55).
 - 알림: 새 버전이 있고 끄지 않았으며 사이트 관리자이면 모든 화면 위에 `p.center-txt`로 링크와 "숨기기" 버튼이 나온다. 버튼은 `POST /sites/unwatchUpdate`(빈 200)를 부르며 서버 전체에 적용된다. 사이드바 "업데이트" 항목에도 새 버전이 있으면 배지가 붙는다.
 - `GET /sites/diagnostic`: 등록된 점검을 모두 실행해 문제를 모은다. 지금 있는 점검은 포트만 정하고 호스트 이름이 없는 설정, 같은 이름의 속성이 둘 이상인 경우이다. 점검이 예외를 던지면 `Failed to diagnose: `와 스택 트레이스가 문제로 나온다. 메일 수신 점검은 7단계에서 더한다.
+
+## 데이터 화면, 아바타 도구
+
+코드: `web/site/SiteDataController`. 템플릿 `site/data`. 데이터 화면은 사이드바에 링크가 없다(v1.6도 같다).
+
+- `GET /sites/data`: 경고 세 줄, 내보내기 링크, 올리기 폼(multipart `data`)이 있다.
+- `GET /sites/export`: `yobi-data-<yyyyMMddHHmm>.json`을 `application/x-download`로 스트리밍한다.
+- `POST /sites/import`: 파일을 고르지 않았으면 `/sites/data`로, 처리했으면(테이블이 실패해도) `/`로 303, JSON이 깨졌으면 400이다.
+- `GET /sites/noAvatarUsers`: 아바타 첨부가 없는 활성 사용자의 `{"users":[{loginId, name, email}]}`이다(기본 관리자와 익명 사용자도 활성이면 담긴다).
+- `POST /sites/setAttachmentToUserAvatar`: 본문 `{"avatarFileId", "email"}`. 첨부가 이미지이고 사용자가 있을 때만 이전 아바타를 지우고 옮기며 어느 경우든 `{"status":200,"message":"OK"}`이다. JSON이 아니면 400 `{"message":"Expecting Json data"}`이다. 이 둘을 부르는 화면은 없다(v1.6도 같다).

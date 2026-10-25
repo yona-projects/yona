@@ -1,0 +1,503 @@
+package dev.yona.domain.site
+
+import dev.yona.domain.site.DataType.BOOLEAN
+import dev.yona.domain.site.DataType.CLOB
+import dev.yona.domain.site.DataType.DATE
+import dev.yona.domain.site.DataType.INT
+import dev.yona.domain.site.DataType.LONG
+import dev.yona.domain.site.DataType.STRING
+import dev.yona.domain.site.DataType.STRING_LONG
+import dev.yona.domain.site.DataType.TIMESTAMP
+
+/** 데이터 내보내기와 가져오기가 다루는 컬럼의 값 종류이다. */
+enum class DataType {
+    /** 정수(`long`). 가져올 때 JSON `null`은 0이다. 컬럼의 [DataColumn.nullableLong]이 참이면 SQL NULL이다. */
+    LONG,
+
+    /** `int`. 가져올 때 JSON `null`은 0이다. */
+    INT,
+
+    /** 문자열. JSON `null`이거나 문자열이 아니면 SQL NULL이다. */
+    STRING,
+
+    /** 불린. DB의 NULL은 `false`로 내보낸다. JSON `null`은 `false`이다. */
+    BOOLEAN,
+
+    /** 시각. 에폭 밀리초이며 0이거나 JSON `null`이면 SQL NULL이다. */
+    TIMESTAMP,
+
+    /** 날짜(`ATTACHMENT.created_date`만). 에폭 밀리초이며 0이거나 JSON `null`이면 SQL NULL이다. */
+    DATE,
+
+    /** 긴 문자열. JSON `null`이면 SQL NULL이다. */
+    CLOB,
+
+    /** DB는 정수이지만 JSON에는 문자열로 쓰는 컬럼이다(v1.6이 `getString`으로 읽는다). 가져올 때 숫자로 바꿔 넣는다. */
+    STRING_LONG
+}
+
+/**
+ * 테이블의 컬럼 하나이다.
+ *
+ * @property name DB 컬럼 이름(소문자)
+ * @property type 값 종류
+ * @property key JSON 키. 기본은 [name]이다(`ATTACHMENT.container_type`만 `content_type`이다)
+ * @property nullableLong 가져올 때 JSON `null`을 SQL NULL로 바인딩하는 정수 컬럼이다
+ */
+data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false)
+
+/**
+ * 내보내기와 가져오기의 테이블 하나이다. v1.6 `app/data/exchangers 아래 `DataExchanger` 클래스들`의 `getTable`, `getSelectSql`, `hasSequence`에 해당한다.
+ *
+ * @property name DB 테이블 이름(대문자). JSON 필드 이름이기도 하다. 사용자 테이블은 `N4USER`이다
+ * @property hasSequence 배열 뒤에 `<이름>_SEQ` 값을 함께 쓰는 테이블이다. 조인 테이블 9개는 거짓이다
+ * @property columns 컬럼 목록. 내보내기의 컬럼 순서이기도 하다
+ */
+class DataTable(val name: String, val hasSequence: Boolean, vararg columns: DataColumn) {
+    val columns: List<DataColumn> = columns.toList()
+
+    /** SQL에서 쓰는 테이블 이름(소문자)이다. */
+    val sqlName: String get() = name.lowercase()
+
+    /** 시퀀스 필드 이름이다. */
+    val sequenceName: String get() = name + "_SEQ"
+}
+
+/**
+ * 내보내고 가져오는 47개 테이블이다. v1.6 `DataService`의 Exchanger 목록과 같고 테이블 이름 순서(문자열 비교)로 정렬되어 있다.
+ *
+ * 엔티티에 있는 컬럼이어도 v1.6 Exchanger가 다루지 않는 것(예: `N4USER.is_guest`, `ISSUE.weight`)은 내보내지 않고 가져올 때 기본값이 된다.
+ * 이 목록에 없는 테이블(즐겨찾기, 웹훅, 소셜 로그인 등 14개)은 내보내기와 가져오기에서 빠진다.
+ */
+object DataTables {
+
+    val all: List<DataTable> = listOf(
+        DataTable(
+            "ASSIGNEE", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG),
+            DataColumn("project_id", LONG)
+        ),
+        DataTable(
+            "ATTACHMENT", true,
+            DataColumn("id", LONG),
+            DataColumn("name", STRING),
+            DataColumn("hash", STRING),
+            DataColumn("container_type", STRING, key = "content_type"),
+            DataColumn("mime_type", STRING),
+            DataColumn("size", LONG),
+            DataColumn("container_id", STRING_LONG),
+            DataColumn("created_date", DATE)
+        ),
+        DataTable(
+            "COMMENT_THREAD", true,
+            DataColumn("dtype", STRING),
+            DataColumn("id", LONG),
+            DataColumn("project_id", LONG),
+            DataColumn("author_id", LONG, nullableLong = true),
+            DataColumn("author_login_id", STRING),
+            DataColumn("author_name", STRING),
+            DataColumn("state", STRING),
+            DataColumn("commit_id", STRING),
+            DataColumn("path", STRING),
+            DataColumn("start_side", STRING),
+            DataColumn("start_line", LONG, nullableLong = true),
+            DataColumn("start_column", LONG, nullableLong = true),
+            DataColumn("end_side", STRING),
+            DataColumn("end_line", LONG, nullableLong = true),
+            DataColumn("end_column", LONG, nullableLong = true),
+            DataColumn("pull_request_id", LONG, nullableLong = true),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("prev_commit_id", STRING)
+        ),
+        DataTable(
+            "COMMENT_THREAD_N4USER", false,
+            DataColumn("comment_thread_id", LONG),
+            DataColumn("n4user_id", LONG)
+        ),
+        DataTable(
+            "COMMIT_COMMENT", true,
+            DataColumn("id", LONG),
+            DataColumn("project_id", LONG, nullableLong = true),
+            DataColumn("commit_id", STRING),
+            DataColumn("path", STRING),
+            DataColumn("line", LONG, nullableLong = true),
+            DataColumn("side", STRING),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("author_id", LONG, nullableLong = true),
+            DataColumn("author_login_id", STRING),
+            DataColumn("author_name", STRING),
+            DataColumn("contents", CLOB)
+        ),
+        DataTable(
+            "EMAIL", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG),
+            DataColumn("email", STRING),
+            DataColumn("token", STRING),
+            DataColumn("valid", BOOLEAN)
+        ),
+        DataTable(
+            "ISSUE", true,
+            DataColumn("id", LONG),
+            DataColumn("title", STRING),
+            DataColumn("body", CLOB),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("num_of_comments", INT),
+            DataColumn("milestone_id", LONG, nullableLong = true),
+            DataColumn("author_id", LONG),
+            DataColumn("author_login_id", STRING),
+            DataColumn("author_name", STRING),
+            DataColumn("state", INT),
+            DataColumn("project_id", LONG),
+            DataColumn("assignee_id", LONG, nullableLong = true),
+            DataColumn("number", LONG),
+            DataColumn("updated_date", TIMESTAMP),
+            DataColumn("due_date", TIMESTAMP)
+        ),
+        DataTable(
+            "ISSUE_COMMENT", true,
+            DataColumn("id", LONG),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("author_id", LONG),
+            DataColumn("author_login_id", STRING),
+            DataColumn("author_name", STRING),
+            DataColumn("issue_id", LONG),
+            DataColumn("contents", CLOB)
+        ),
+        DataTable(
+            "ISSUE_COMMENT_VOTER", false,
+            DataColumn("issue_comment_id", LONG),
+            DataColumn("user_id", LONG)
+        ),
+        DataTable(
+            "ISSUE_EVENT", true,
+            DataColumn("id", LONG),
+            DataColumn("created", TIMESTAMP),
+            DataColumn("sender_login_id", STRING),
+            DataColumn("issue_id", LONG, nullableLong = true),
+            DataColumn("event_type", STRING),
+            DataColumn("old_value", CLOB),
+            DataColumn("new_value", CLOB),
+            DataColumn("sender_email", STRING)
+        ),
+        DataTable(
+            "ISSUE_ISSUE_LABEL", false,
+            DataColumn("issue_id", LONG),
+            DataColumn("issue_label_id", LONG)
+        ),
+        DataTable(
+            "ISSUE_LABEL", true,
+            DataColumn("id", LONG),
+            DataColumn("color", STRING),
+            DataColumn("name", STRING),
+            DataColumn("project_id", LONG, nullableLong = true),
+            DataColumn("category_id", LONG)
+        ),
+        DataTable(
+            "ISSUE_LABEL_CATEGORY", true,
+            DataColumn("id", LONG),
+            DataColumn("project_id", LONG),
+            DataColumn("name", STRING),
+            DataColumn("is_exclusive", BOOLEAN)
+        ),
+        DataTable(
+            "ISSUE_VOTER", false,
+            DataColumn("issue_id", LONG),
+            DataColumn("user_id", LONG)
+        ),
+        DataTable(
+            "LABEL", true,
+            DataColumn("id", LONG),
+            DataColumn("name", STRING),
+            DataColumn("category", STRING)
+        ),
+        DataTable(
+            "MENTION", true,
+            DataColumn("id", LONG),
+            DataColumn("resource_type", STRING),
+            DataColumn("resource_id", STRING),
+            DataColumn("user_id", LONG, nullableLong = true)
+        ),
+        DataTable(
+            "MILESTONE", true,
+            DataColumn("id", LONG),
+            DataColumn("title", STRING),
+            DataColumn("due_date", TIMESTAMP),
+            DataColumn("contents", CLOB),
+            DataColumn("state", INT),
+            DataColumn("project_id", LONG, nullableLong = true)
+        ),
+        DataTable(
+            "N4USER", true,
+            DataColumn("id", LONG),
+            DataColumn("name", STRING),
+            DataColumn("login_id", STRING),
+            DataColumn("password", STRING),
+            DataColumn("password_salt", STRING),
+            DataColumn("email", STRING),
+            DataColumn("remember_me", BOOLEAN),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("state", STRING),
+            DataColumn("last_state_modified_date", TIMESTAMP),
+            DataColumn("lang", STRING)
+        ),
+        DataTable(
+            "NOTIFICATION_EVENT", true,
+            DataColumn("id", LONG),
+            DataColumn("title", STRING),
+            DataColumn("sender_id", LONG, nullableLong = true),
+            DataColumn("created", TIMESTAMP),
+            DataColumn("resource_type", STRING),
+            DataColumn("resource_id", STRING),
+            DataColumn("event_type", STRING),
+            DataColumn("old_value", CLOB),
+            DataColumn("new_value", CLOB)
+        ),
+        DataTable(
+            "NOTIFICATION_EVENT_N4USER", false,
+            DataColumn("notification_event_id", LONG),
+            DataColumn("n4user_id", LONG)
+        ),
+        DataTable(
+            "NOTIFICATION_MAIL", true,
+            DataColumn("id", LONG),
+            DataColumn("notification_event_id", LONG, nullableLong = true)
+        ),
+        DataTable(
+            "ORGANIZATION", true,
+            DataColumn("id", LONG),
+            DataColumn("name", STRING),
+            DataColumn("descr", STRING),
+            DataColumn("created", TIMESTAMP)
+        ),
+        DataTable(
+            "ORGANIZATION_USER", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG),
+            DataColumn("organization_id", LONG),
+            DataColumn("role_id", LONG)
+        ),
+        DataTable(
+            "ORIGINAL_EMAIL", true,
+            DataColumn("id", LONG),
+            DataColumn("message_id", STRING),
+            DataColumn("resource_type", STRING),
+            DataColumn("resource_id", STRING),
+            DataColumn("handled_date", TIMESTAMP)
+        ),
+        DataTable(
+            "POSTING", true,
+            DataColumn("id", LONG),
+            DataColumn("title", STRING),
+            DataColumn("body", CLOB),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("num_of_comments", INT),
+            DataColumn("author_id", LONG),
+            DataColumn("author_login_id", STRING),
+            DataColumn("author_name", STRING),
+            DataColumn("project_id", LONG),
+            DataColumn("number", LONG),
+            DataColumn("notice", BOOLEAN),
+            DataColumn("updated_date", TIMESTAMP),
+            DataColumn("readme", BOOLEAN)
+        ),
+        DataTable(
+            "POSTING_COMMENT", true,
+            DataColumn("id", LONG),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("author_id", LONG, nullableLong = true),
+            DataColumn("author_login_id", STRING),
+            DataColumn("author_name", STRING),
+            DataColumn("posting_id", LONG, nullableLong = true),
+            DataColumn("contents", CLOB)
+        ),
+        DataTable(
+            "PROJECT", true,
+            DataColumn("id", LONG),
+            DataColumn("name", STRING),
+            DataColumn("overview", STRING),
+            DataColumn("vcs", STRING),
+            DataColumn("siteurl", STRING),
+            DataColumn("owner", STRING),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("last_issue_number", LONG),
+            DataColumn("last_posting_number", LONG),
+            DataColumn("original_project_id", LONG, nullableLong = true),
+            DataColumn("last_pushed_date", TIMESTAMP),
+            DataColumn("is_using_reviewer_count", BOOLEAN),
+            DataColumn("default_reviewer_count", LONG),
+            DataColumn("organization_id", LONG, nullableLong = true),
+            DataColumn("project_scope", STRING)
+        ),
+        DataTable(
+            "PROJECT_LABEL", false,
+            DataColumn("project_id", LONG),
+            DataColumn("label_id", LONG)
+        ),
+        DataTable(
+            "PROJECT_MENU_SETTING", true,
+            DataColumn("id", LONG),
+            DataColumn("project_id", LONG),
+            DataColumn("code", BOOLEAN),
+            DataColumn("issue", BOOLEAN),
+            DataColumn("pull_request", BOOLEAN),
+            DataColumn("review", BOOLEAN),
+            DataColumn("milestone", BOOLEAN),
+            DataColumn("board", BOOLEAN)
+        ),
+        DataTable(
+            "PROJECT_PUSHED_BRANCH", true,
+            DataColumn("id", LONG),
+            DataColumn("pushed_date", TIMESTAMP),
+            DataColumn("name", STRING),
+            DataColumn("project_id", LONG)
+        ),
+        DataTable(
+            "PROJECT_TRANSFER", true,
+            DataColumn("id", LONG),
+            DataColumn("sender_id", STRING_LONG),
+            DataColumn("destination", STRING),
+            DataColumn("project_id", LONG),
+            DataColumn("requested", TIMESTAMP),
+            DataColumn("confirm_key", STRING),
+            DataColumn("accepted", BOOLEAN),
+            DataColumn("new_project_name", STRING)
+        ),
+        DataTable(
+            "PROJECT_USER", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG),
+            DataColumn("project_id", LONG),
+            DataColumn("role_id", LONG)
+        ),
+        DataTable(
+            "PROJECT_VISITATION", true,
+            DataColumn("id", LONG),
+            DataColumn("visited", TIMESTAMP),
+            DataColumn("project_id", LONG),
+            DataColumn("recently_visited_projects_id", LONG)
+        ),
+        DataTable(
+            "PROPERTY", true,
+            DataColumn("id", LONG),
+            DataColumn("name", STRING),
+            DataColumn("value", STRING)
+        ),
+        DataTable(
+            "PULL_REQUEST", true,
+            DataColumn("id", LONG),
+            DataColumn("title", STRING),
+            DataColumn("body", CLOB),
+            DataColumn("to_project_id", LONG),
+            DataColumn("from_project_id", LONG),
+            DataColumn("to_branch", STRING),
+            DataColumn("from_branch", STRING),
+            DataColumn("contributor_id", LONG, nullableLong = true),
+            DataColumn("receiver_id", LONG, nullableLong = true),
+            DataColumn("created", TIMESTAMP),
+            DataColumn("updated", TIMESTAMP),
+            DataColumn("received", TIMESTAMP),
+            DataColumn("state", INT),
+            DataColumn("last_commit_id", STRING),
+            DataColumn("merged_commit_id_from", STRING),
+            DataColumn("merged_commit_id_to", STRING),
+            DataColumn("number", LONG),
+            DataColumn("is_conflict", BOOLEAN),
+            DataColumn("is_merging", BOOLEAN)
+        ),
+        DataTable(
+            "PULL_REQUEST_COMMIT", true,
+            DataColumn("id", LONG),
+            DataColumn("pull_request_id", LONG),
+            DataColumn("commit_id", STRING),
+            DataColumn("commit_short_id", STRING),
+            DataColumn("commit_message", CLOB),
+            DataColumn("created", TIMESTAMP),
+            DataColumn("author_date", TIMESTAMP),
+            DataColumn("author_email", STRING),
+            DataColumn("state", STRING)
+        ),
+        DataTable(
+            "PULL_REQUEST_EVENT", true,
+            DataColumn("id", LONG),
+            DataColumn("pull_request_id", LONG),
+            DataColumn("created", TIMESTAMP),
+            DataColumn("sender_login_id", STRING),
+            DataColumn("event_type", STRING),
+            DataColumn("new_value", CLOB),
+            DataColumn("old_value", CLOB)
+        ),
+        DataTable(
+            "PULL_REQUEST_REVIEWERS", false,
+            DataColumn("pull_request_id", LONG),
+            DataColumn("user_id", LONG)
+        ),
+        DataTable(
+            "RECENTLY_VISITED_PROJECTS", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG)
+        ),
+        DataTable(
+            "REVIEW_COMMENT", true,
+            DataColumn("id", LONG),
+            DataColumn("contents", CLOB),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("author_id", LONG, nullableLong = true),
+            DataColumn("author_login_id", STRING),
+            DataColumn("author_name", STRING),
+            DataColumn("thread_id", LONG, nullableLong = true)
+        ),
+        DataTable(
+            "ROLE", true,
+            DataColumn("id", LONG),
+            DataColumn("name", STRING),
+            DataColumn("active", BOOLEAN)
+        ),
+        DataTable(
+            "SITE_ADMIN", true,
+            DataColumn("id", LONG),
+            DataColumn("admin_id", LONG, nullableLong = true)
+        ),
+        DataTable(
+            "UNWATCH", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG, nullableLong = true),
+            DataColumn("resource_type", STRING),
+            DataColumn("resource_id", STRING)
+        ),
+        DataTable(
+            "USER_ENROLLED_ORGANIZATION", false,
+            DataColumn("user_id", LONG),
+            DataColumn("organization_id", LONG)
+        ),
+        DataTable(
+            "USER_ENROLLED_PROJECT", false,
+            DataColumn("user_id", LONG),
+            DataColumn("project_id", LONG)
+        ),
+        DataTable(
+            "USER_PROJECT_NOTIFICATION", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG),
+            DataColumn("project_id", LONG),
+            DataColumn("notification_type", STRING),
+            DataColumn("allowed", BOOLEAN)
+        ),
+        DataTable(
+            "WATCH", true,
+            DataColumn("id", LONG),
+            DataColumn("user_id", LONG, nullableLong = true),
+            DataColumn("resource_type", STRING),
+            DataColumn("resource_id", STRING)
+        )
+    ).sortedBy { it.name }
+
+    private val byName: Map<String, DataTable> = all.associateBy { it.name }
+
+    /** 이름(대소문자 무시)에 해당하는 테이블이다. 없으면 `null`이다. */
+    fun find(name: String): DataTable? = byName[name.uppercase()]
+
+    /** `<이름>_SEQ` 필드 이름에 해당하는 테이블이다. 없으면 `null`이다. */
+    fun findBySequenceName(name: String): DataTable? = all.firstOrNull { it.hasSequence && it.sequenceName.equals(name, ignoreCase = true) }
+}

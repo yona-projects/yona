@@ -12,6 +12,11 @@ spring:
     url: jdbc:h2:mem:yona;DB_CLOSE_DELAY=-1
     username: sa
     password: ""
+  servlet:
+    multipart:
+      # 데이터 올리기(`/sites/import`)는 DB 전체 파일이라 크기를 제한하지 않는다(v1.6도 제한하지 않는다).
+      max-file-size: -1
+      max-request-size: -1
   messages:
     # v1.6(Play 2.3)의 conf/messages* 파일을 그대로 쓴다. Play는 인자가 없는 메시지도 MessageFormat으로
     # 해석하므로(작은따옴표는 두 번 쓴다) Spring도 모든 메시지를 MessageFormat으로 해석해야 한다.
