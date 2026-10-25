@@ -89,7 +89,7 @@ updated: 2026-10-22
 | 8b | Subversion 코드 브라우저(폴더, 파일, 원본, 내려받기), 빈 저장소 안내 | 완료 | [web/subversion.md](web/subversion.md) |
 | 8c | Subversion 커밋 이력, 커밋 보기, 비교, 커밋 코멘트(만들기, 지우기, 알림), 멘션 후보 | 완료 | [web/subversion.md](web/subversion.md) |
 | 8d | Subversion HTTP(WebDAV) 접근(`/svn/소유자/프로젝트`): SVNKit DAV 서블릿과 javax 서블릿 어댑터 | 완료 | [web/subversion.md](web/subversion.md). D-26 |
-| 9a | 동등성 점검: 라우트 대조(`conf/routes` 대 v2 요청 매핑). `RouteParityTest`가 알려진 누락 목록과 실제 누락을 비교한다 | 진행 중 | 누락 17건 발견. 라벨 API 5건은 이식 완료([web/label-api.md](web/label-api.md)). 조직 이슈와 PR 목록 3건도 이식 완료([web/organization-lists.md](web/organization-lists.md)). 리뷰 목록(`/:user/:project/reviews`, xls)도 이식 완료([web/review-list.md](web/review-list.md)). 코드 메타데이터 AJAX 2건은 끝 슬래시 변형으로 이미 처리되고 있었고(오탐, 테스트 추가), `/users/login`, `/-_-api`, `/-_-api/v1/`은 홈 화면 별칭으로 이식했다. 남은 1건: `/_init`(모든 프로젝트 저장소를 지우고 다시 만드는 동작이라 선생님 결정을 기다린다). 누락 항목은 위키에 v1.6 동작을 먼저 적고 구현하며, 구현할 때마다 테스트의 목록에서 지운다 |
+| 9a | 동등성 점검: 라우트 대조(`conf/routes` 대 v2 요청 매핑). `RouteParityTest`가 v1.6 라우트 스냅샷(`audit/v16-routes.txt`)과 v2 요청 매핑을 비교하고, 남은 차이는 의도적 제외(정적 자원, WebDAV 필터, Play 가짜 경로)뿐이다 | 완료 | 누락 17건 가운데 실제로 구현하지 않은 것은 라벨 API 5건([web/label-api.md](web/label-api.md)), 조직 이슈와 PR 목록 3건([web/organization-lists.md](web/organization-lists.md)), 리뷰 목록([web/review-list.md](web/review-list.md)), 홈 별칭 3건([web/home-page.md](web/home-page.md)), `/_init`([web/repository-init.md](web/repository-init.md), D-27)이었다. 코드 메타데이터 AJAX 2건은 오탐이었다 |
 | 9b | 동등성 점검: 메시지 키 대조 | 예정 | |
 | 9c | 동등성 점검: DB 스키마 대조 | 예정 | |
 | 9d | 동등성 점검: 템플릿과 JS 소스 대조 | 예정 | |
