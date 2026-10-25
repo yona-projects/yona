@@ -52,6 +52,7 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 
+	testImplementation("com.unboundid:unboundid-ldapsdk:7.0.3")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")

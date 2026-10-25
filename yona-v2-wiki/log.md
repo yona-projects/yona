@@ -317,3 +317,6 @@
 
 ## [2026-10-25] ingest | 소셜 로그인 (7단계 7a)
 - TDD: SocialAccountServiceTest 16, SocialAccountPolicyTest 3, SocialProviderTest 7, SocialLoginTest 26. `SocialAccountService`, `OAuth2SocialProvider`, `SocialProviders`, `SocialSession`, `SocialLoginController`, 템플릿 `restricted`. D-24, A-95, R-59.
+
+## [2026-10-25] ingest | LDAP 인증, 소셜 전용 모드 (7단계 7b)
+- TDD: JndiLdapDirectoryTest 8, LdapAuthServiceTest 11, LdapEmailLoginTest 4, LdapLoginTest 3, SocialLoginOnlyTest 2. `JndiLdapDirectory`, `LdapAuthService`, `LocalAuthenticator`(LDAP 분기, `authenticateBasic`), `LoginController`. D-24, A-96, R-60.

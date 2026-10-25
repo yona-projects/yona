@@ -147,7 +147,7 @@ class SocialAccountService(
             discard(credential)
             return null
         }
-        val created = signup.create(SignupForm(newLoginId(email.substringBefore('@')), credential.name, email, randomPassword()))
+        val created = signup.create(SignupForm(signup.generateLoginId(email.substringBefore('@')), credential.name, email, randomPassword()))
         created.state = UserState.ACTIVE
         users.save(created)
         credential.loginId = created.loginId
@@ -163,20 +163,6 @@ class SocialAccountService(
     }
 
     private fun randomPassword(): String = Base64.getEncoder().encodeToString(ByteArray(16).also { random.nextBytes(it) })
-
-    /** v1.6 `generateLoginId`: 겹치면 `-yona`를 붙이고, 또 겹치면 숫자를 이어 붙인다. */
-    private fun newLoginId(candidate: String): String {
-        if (users.findByLoginId(candidate) == null) return candidate
-        if (users.findByLoginId("$candidate-yona") == null) return "$candidate-yona"
-        // v1.6 `newLoginIdWithoutDup`: 번호를 바꾸는 것이 아니라 후보 뒤에 이어 붙인다(dup2, dup23, dup234).
-        var suggestion = candidate
-        var number = 2
-        while (true) {
-            suggestion = "$suggestion$number"
-            if (users.findByLoginId(suggestion) == null) return suggestion
-            number++
-        }
-    }
 
     /** 로그인한 소셜 신원([old])의 자격 증명에 새 신원([new])을 연결한다 (v1.6 `UserCredential.addLinkedAccount`). */
     fun link(old: SocialIdentity, new: SocialIdentity) {

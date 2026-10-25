@@ -31,14 +31,15 @@ import java.net.URLEncoder
  * 폼 요청과 AJAX 요청은 `Accept` 헤더로 구분하며([HttpPreference]), 판정 규칙은 [LocalAuthenticator]를 공유한다.
  * 안내 문구는 v1.6처럼 메시지 **키**(`user.login.invalid` 등)로 전달하고 화면에서 번역한다.
  *
- * 아직 구현하지 않은 부분: LDAP 인증, 소셜 로그인 전용 모드(`application.use.social.login.only`).
  */
 @RestController
 class LoginController(
     private val authenticator: LocalAuthenticator,
     private val users: UserRepository,
     private val flashTranslator: FlashMessageTranslator,
-    private val loginSession: dev.yona.security.LoginSessionService
+    private val loginSession: dev.yona.security.LoginSessionService,
+    private val properties: dev.yona.config.YonaProperties,
+    private val home: dev.yona.web.home.HomeController
 ) {
 
 
@@ -49,11 +50,23 @@ class LoginController(
         response: HttpServletResponse
     ): Any {
         noCache(response)
+        if (properties.socialLoginOnly) return socialLoginOnly(request, response)
         return if (HttpPreference.isJsonPreferred(request.getHeader(HttpHeaders.ACCEPT))) {
             loginByAjax(request, response)
         } else {
             loginByForm(request, response)
         }
+    }
+
+    /**
+     * 소셜 로그인만 허용하는 사이트에서 로그인 요청이 오면 안내와 함께 홈 화면을 그린다 (v1.6 `UserApp.login`의
+     * `useSocialLoginOnly` 분기: `flash(error)` 뒤 `Application.index()`). 안내는 이 화면에 바로 보이고 다음 요청에도 한 번 보인다.
+     */
+    private fun socialLoginOnly(request: HttpServletRequest, response: HttpServletResponse): Any {
+        val notice = mapOf<String, Any>(RedirectSupport.ERROR to "app.warn.support.social.login.only")
+        RedirectSupport.saveFlash(request, response, notice)
+        val page = home.index(request, response)
+        return if (page is org.springframework.web.servlet.ModelAndView) page.addObject("flashMessages", flashTranslator.translate(notice)) else page
     }
 
     @GetMapping("/users/logout")
@@ -81,7 +94,7 @@ class LoginController(
                 completeLogin(request, response, result)
                 val redirectUrl = request.getParameter("redirectUrl")
                 RedirectSupport.see(
-                    request, response, if (redirectUrl.isNullOrEmpty()) "/" else encodedPath(redirectUrl)
+                    request, response, if (redirectUrl.isNullOrEmpty()) "/" else encodedPath(redirectUrl), result.flash
                 )
             }
             LoginResult.Locked ->
@@ -99,6 +112,9 @@ class LoginController(
             }
             LoginResult.InvalidCredentials ->
                 RedirectSupport.see(request, response, loginFormUrl(request), mapOf(RedirectSupport.WARNING to "user.login.invalid"))
+            // LDAP이 남긴 안내(가입 승인 대기 등)에 인증 실패 안내가 더해진다.
+            is LoginResult.InvalidWithNotice ->
+                RedirectSupport.see(request, response, loginFormUrl(request), result.flash + (RedirectSupport.WARNING to "user.login.invalid"))
         }
     }
 
@@ -117,7 +133,7 @@ class LoginController(
             }
             LoginResult.Locked, LoginResult.LockedAfterAuthentication -> message(HttpStatus.FORBIDDEN, "user.locked")
             LoginResult.Deleted -> message(HttpStatus.NOT_FOUND, "user.deleted")
-            LoginResult.InvalidCredentials -> message(HttpStatus.FORBIDDEN, "user.login.invalid")
+            LoginResult.InvalidCredentials, is LoginResult.InvalidWithNotice -> message(HttpStatus.FORBIDDEN, "user.login.invalid")
         }
     }
 

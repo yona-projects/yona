@@ -11,7 +11,6 @@ import dev.yona.domain.user.User
 import dev.yona.repository.GitHttpService
 import dev.yona.security.CurrentUserProvider
 import dev.yona.security.LocalAuthenticator
-import dev.yona.security.LoginResult
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.MessageSource
@@ -111,7 +110,7 @@ class GitHttpController(
 
     /** Basic 자격으로 사용자를 찾는다. 틀렸으면 `null`(익명)이다. Basic 헤더가 없으면 세션, 토큰, 쿠키로 식별한 현재 사용자이다. */
     private fun authenticate(credentials: Credentials?): User? {
-        if (credentials != null) return (authenticator.authenticate(credentials.loginId, credentials.password) as? LoginResult.Success)?.user
+        if (credentials != null) return authenticator.authenticateBasic(credentials.loginId, credentials.password)
         return currentUserProvider.get().user
     }
 

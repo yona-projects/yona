@@ -39,6 +39,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property update 업데이트 확인 설정이다
  * @property github 이전(Migration) 화면의 GitHub 연동 설정이다
  * @property social 소셜 로그인(GitHub, Google) 설정이다
+ * @property ldap LDAP 로그인 설정이다
+ * @property protocol LDAP 접속 프로토콜(`ldap` 또는 `ldaps`). v1.6은 `ldap.protocol`이 아니라 접두어 없는 최상위 `protocol` 키를 읽는다. 같게 한다(R-60)
  * @property secret 사이트 비밀 키이다. 기본값이거나 비어 있으면 처음 기동한 것으로 보고 모든 요청에서 기본 관리자 계정을 정하는 화면을 보인다 (`application.secret`)
  * @property smtp 보내는 메일 주소 설정이다. SMTP 접속 정보는 `spring.mail.*`로 설정한다
  * @property easymail 가입 안내 메일의 보내는 사람이다 (`play-easymail.from.*`)
@@ -83,6 +85,8 @@ data class YonaProperties(
     val notificationMailDelay: Long = 180_000L,
     val github: Github = Github(),
     val social: Social = Social(),
+    val ldap: Ldap = Ldap(),
+    val protocol: String = "ldap",
     val secret: String = DEFAULT_SECRET,
     val smtp: Smtp = Smtp(),
     val update: Update = Update(),
@@ -119,6 +123,37 @@ data class YonaProperties(
     data class Smtp(
         val user: String = "",
         val domain: String = ""
+    )
+
+    /**
+     * LDAP 로그인 설정이다 (v1.6 `application.use.ldap.login.supoort`(키의 오타가 그대로 실제 키이다)와 `ldap.*`).
+     *
+     * @property enabled LDAP으로 로그인한다
+     * @property host LDAP 서버 호스트
+     * @property port LDAP 서버 포트(문자열)
+     * @property baseDn 사용자를 검색할 기준 DN
+     * @property distinguishedNamePostfix 로그인 이름으로 바인드 DN을 만들 때 뒤에 붙일 부분. `CN=이름,OU=user,DC=abc,DC=com`이면 `OU=user,DC=abc,DC=com`
+     * @property loginProperty 로그인 이름을 담은 속성
+     * @property displayNameProperty 표시 이름 속성
+     * @property userNameProperty 바인드 DN의 첫 속성 이름
+     * @property emailProperty 이메일 속성
+     * @property useEmailBaseLogin 이메일로 인증한다. 로그인 ID를 입력하면 그 사용자의 이메일로 바꿔 인증하고, 새 사용자의 로그인 ID는 이메일의 앞부분으로 만든다 (`ldap.options.useEmailBaseLogin`)
+     * @property fallbackToLocalLogin LDAP 서버에 연결하지 못하거나 인증에 실패하면 로컬 비밀번호로 다시 시도한다 (`ldap.options.fallbackToLocalLogin`)
+     * @property englishNameAttributeName 영문 이름 속성. 비우면 읽지 않는다 (`ldap.options.englishNameAttributeName`)
+     */
+    data class Ldap(
+        val enabled: Boolean = false,
+        val host: String = "127.0.0.1",
+        val port: String = "389",
+        val baseDn: String = "",
+        val distinguishedNamePostfix: String = "",
+        val loginProperty: String = "sAMAccountName",
+        val displayNameProperty: String = "displayName",
+        val userNameProperty: String = "CN",
+        val emailProperty: String = "mail",
+        val useEmailBaseLogin: Boolean = false,
+        val fallbackToLocalLogin: Boolean = false,
+        val englishNameAttributeName: String = ""
     )
 
     /**

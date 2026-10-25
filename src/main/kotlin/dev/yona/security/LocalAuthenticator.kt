@@ -8,8 +8,12 @@ import org.springframework.stereotype.Service
 
 /** 로그인 시도의 판정 결과이다. 화면 쪽은 결과에 따라 v1.6과 같은 안내 문구를 고른다. */
 sealed interface LoginResult {
-    /** 인증에 성공했다. */
-    data class Success(val user: User) : LoginResult
+    /**
+     * 인증에 성공했다.
+     *
+     * @property flash 다음 화면에 한 번만 보일 안내. LDAP 인증이 남긴 것이다
+     */
+    data class Success(val user: User, val flash: Map<String, String> = emptyMap()) : LoginResult
 
     /**
      * 가입 승인제에서 승인 대기(LOCKED) 계정이다(`user.locked`). 패스워드를 보기 전에 거부하며,
@@ -28,6 +32,12 @@ sealed interface LoginResult {
 
     /** 계정이 없거나 패스워드가 틀렸다(`user.login.invalid`). */
     data object InvalidCredentials : LoginResult
+
+    /**
+     * LDAP 인증이 실패하면서 안내를 남겼다(예: 가입 승인 대기 `user.signup.requested`). 화면은 [InvalidCredentials]와 같게 처리하되
+     * 이 안내를 함께 보인다.
+     */
+    data class InvalidWithNotice(val flash: Map<String, String>) : LoginResult
 }
 
 /**
@@ -41,14 +51,16 @@ sealed interface LoginResult {
  * 4. 패스워드가 틀리면 [LoginResult.InvalidCredentials]이다.
  * 5. 패스워드가 맞아도 계정이 LOCKED이면 [LoginResult.LockedAfterAuthentication]이다.
  *
- * LDAP과 소셜 로그인은 이 클래스의 범위가 아니다.
+ * LDAP을 쓰는 사이트(`yona.ldap.enabled`)에서는 계정이 없어도 LDAP으로 인증을 시도하고(v1.6에서는 처음 로그인하는 LDAP 사용자가
+ * 로컬에 없다), 비밀번호는 로컬이 아니라 LDAP이 판정한다. 소셜 로그인은 이 클래스의 범위가 아니다.
  *
  * @property properties `yona.signup.require-admin-confirm`(v1.6 `signup.require.admin.confirm`)을 읽는다.
  */
 @Service
 class LocalAuthenticator(
     private val users: UserRepository,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val ldap: dev.yona.domain.ldap.LdapAuthService
 ) {
 
     /**
@@ -58,14 +70,34 @@ class LocalAuthenticator(
      *   v1.6의 `UserApp.hashedPassword`가 같은 조건에서 같은 예외를 던진다(HTTP 500).
      */
     fun authenticate(loginIdOrEmail: String, password: String): LoginResult {
-        val user = users.findByLoginKey(loginIdOrEmail) ?: return LoginResult.InvalidCredentials
+        val source = users.findByLoginKey(loginIdOrEmail)
+        if (source == null && !ldap.enabled) return LoginResult.InvalidCredentials
 
-        if (properties.signup.requireAdminConfirm && user.state == UserState.LOCKED) return LoginResult.Locked
-        if (user.state == UserState.DELETED) return LoginResult.Deleted
-        if (!passwordMatches(user, password)) return LoginResult.InvalidCredentials
+        if (source != null) {
+            if (properties.signup.requireAdminConfirm && source.state == UserState.LOCKED) return LoginResult.Locked
+            if (source.state == UserState.DELETED) return LoginResult.Deleted
+        }
+
+        val user: User?
+        var flash: Map<String, String> = emptyMap()
+        if (ldap.enabled) {
+            val result = ldap.authenticate(loginIdOrEmail, password)
+            user = result.user
+            flash = result.flash
+        } else {
+            user = source?.takeIf { passwordMatches(it, password) }
+        }
+        if (user == null) return if (flash.isEmpty()) LoginResult.InvalidCredentials else LoginResult.InvalidWithNotice(flash)
         if (user.state == UserState.LOCKED) return LoginResult.LockedAfterAuthentication
-        return LoginResult.Success(user)
+        return LoginResult.Success(user, flash)
     }
+
+    /**
+     * Git HTTP 기본 인증으로 사용자를 찾는다 (v1.6 `BasicAuthAction.authenticate`). LDAP을 쓰면 LDAP으로, 아니면 로컬 비밀번호로 확인한다.
+     * 틀렸으면 `null`이다.
+     */
+    fun authenticateBasic(loginId: String, password: String): User? =
+        if (ldap.enabled) ldap.authenticate(loginId, password).user else (authenticate(loginId, password) as? LoginResult.Success)?.user
 
     private fun passwordMatches(user: User, password: String): Boolean {
         val salt = user.passwordSalt
