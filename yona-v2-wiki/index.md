@@ -30,6 +30,7 @@
 - [내 이슈](web/my-issues.md): `/user/issues`, 프로젝트를 가리지 않는 이슈 검색
 - [사용자 페이지와 내 파일](web/user-page.md): `/:user`(프로필, 이슈·풀 리퀘스트·프로젝트 탭), `/user/files`, `/info/leave`
 - [이슈 라벨과 라벨 분류](web/issue-labels.md): 관리 화면, JSON, 분류, 복사, 색 스타일 시트
+- [라벨 JSON API](web/label-api.md): 전역 라벨, 분류 검색과 프로젝트 라벨 붙이기, 떼기
 - [공용 편집기 부품과 멘션 후보](web/editor-components.md): 편집기, 업로더, 첨부 목록, 멘션 후보, 폼 본문 크기 한도
 - [이슈 보기, 다음 상태, 삭제](web/issue-view.md): 보기 화면, 타임라인, 댓글 표시, 다음 상태, 삭제
 - [diff 엔진](subsystems/diff.md): 커밋과 저장소 사이의 파일별 차이, 헝크

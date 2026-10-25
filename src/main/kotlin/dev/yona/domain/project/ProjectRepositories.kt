@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 /** 프로젝트 저장소이다. */
 interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
 
+    /** 라벨을 붙인 프로젝트의 수이다 (v1.6 `label.projects.size()`). */
+    fun countByLabelsId(labelId: Long): Long
+
     /** 조직에 속한 프로젝트이다 (v1.6 `organization.projects`). */
     fun findByOrganizationId(organizationId: Long): List<Project>
 

@@ -90,4 +90,24 @@ interface IssueLabelCategoryRepository : JpaRepository<IssueLabelCategory, Long>
 }
 
 /** 전역 라벨(언어, 라이선스, OS 등) 저장소이다. */
-interface LabelRepository : JpaRepository<Label, Long>
+interface LabelRepository : JpaRepository<Label, Long> {
+
+    /** 분류와 이름이 같은 라벨이다. [category]가 `null`이면 분류가 비어 있는 라벨을 찾는다(v1.6 `eq("category", null)`). */
+    fun findFirstByCategoryAndName(category: String?, name: String?): Label?
+
+    /** 분류와 이름에 [category], [query]가 대소문자 없이 들어 있는 라벨의 수이다 (v1.6 `icontains`). */
+    @Query("select count(l) from Label l where lower(l.category) like lower(concat('%', :category, '%')) and lower(l.name) like lower(concat('%', :query, '%'))")
+    fun countMatching(category: String, query: String): Long
+
+    /** [countMatching]과 같은 조건의 라벨을 아이디순으로 조회한다. */
+    @Query("select l from Label l where lower(l.category) like lower(concat('%', :category, '%')) and lower(l.name) like lower(concat('%', :query, '%')) order by l.id")
+    fun findMatching(category: String, query: String, pageable: org.springframework.data.domain.Pageable): List<Label>
+
+    /** 분류에 [query]가 대소문자 없이 들어 있는 겹치지 않는 분류의 수이다. */
+    @Query("select count(distinct l.category) from Label l where lower(l.category) like lower(concat('%', :query, '%'))")
+    fun countCategories(query: String): Long
+
+    /** [countCategories]와 같은 조건의 분류를 이름순으로 조회한다. */
+    @Query("select distinct l.category from Label l where lower(l.category) like lower(concat('%', :query, '%')) order by l.category")
+    fun findCategories(query: String, pageable: org.springframework.data.domain.Pageable): List<String>
+}

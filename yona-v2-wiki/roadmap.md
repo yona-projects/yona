@@ -89,7 +89,7 @@ updated: 2026-10-22
 | 8b | Subversion 코드 브라우저(폴더, 파일, 원본, 내려받기), 빈 저장소 안내 | 완료 | [web/subversion.md](web/subversion.md) |
 | 8c | Subversion 커밋 이력, 커밋 보기, 비교, 커밋 코멘트(만들기, 지우기, 알림), 멘션 후보 | 완료 | [web/subversion.md](web/subversion.md) |
 | 8d | Subversion HTTP(WebDAV) 접근(`/svn/소유자/프로젝트`): SVNKit DAV 서블릿과 javax 서블릿 어댑터 | 완료 | [web/subversion.md](web/subversion.md). D-26 |
-| 9a | 동등성 점검: 라우트 대조(`conf/routes` 대 v2 요청 매핑). `RouteParityTest`가 알려진 누락 목록과 실제 누락을 비교한다 | 진행 중 | 누락 17건 발견: 리뷰 목록(`/:user/:project/reviews`, xls), 조직 이슈와 PR 목록(`/organizations/:name/issues`, `pullrequests`, `closedPullrequests`), 프로젝트 라벨 API 3개, 전역 라벨과 카테고리 API 2개, 코드 메타데이터 AJAX 2개, `/_init`, `/users/login`, `/-_-api`, `/-_-api/v1/`. 구현할 때마다 테스트의 목록에서 지운다 |
+| 9a | 동등성 점검: 라우트 대조(`conf/routes` 대 v2 요청 매핑). `RouteParityTest`가 알려진 누락 목록과 실제 누락을 비교한다 | 진행 중 | 누락 17건 발견. 라벨 API 5건은 이식 완료([web/label-api.md](web/label-api.md)). 남은 12건: 리뷰 목록(`/:user/:project/reviews`, xls), 조직 이슈와 PR 목록(`/organizations/:name/issues`, `pullrequests`, `closedPullrequests`), 코드 메타데이터 AJAX 2개, `/_init`, `/users/login`, `/-_-api`, `/-_-api/v1/`. 누락 항목은 위키에 v1.6 동작을 먼저 적고 구현하며, 구현할 때마다 테스트의 목록에서 지운다 |
 | 9b | 동등성 점검: 메시지 키 대조 | 예정 | |
 | 9c | 동등성 점검: DB 스키마 대조 | 예정 | |
 | 9d | 동등성 점검: 템플릿과 JS 소스 대조 | 예정 | |

@@ -326,3 +326,7 @@
 
 ## [2026-10-25] ingest | Subversion (8단계 8a~8d)
 - TDD: SvnRepositoriesTest 11, SvnRepositoryServiceTest 6, SvnCodeBrowserTest 10, SvnCodeBrowserWebTest 9, SvnReadmeTest 5, SvnHistoryWebTest 6, SvnCommitViewWebTest 15, SvnDavTest 8(실제 SVNKit HTTP 클라이언트). `SvnRepositories`, `SvnCodeBrowser`, `CommitCommentService`, `JavaxServletBridge`, `SvnDavService`, `SvnDavFilter`. D-13, D-26, A-98, R-62.
+
+## [2026-10-25] ingest | 동등성 점검 9a: 라우트 대조와 라벨 JSON API
+- `RouteParityTest`로 v1.6 `conf/routes`와 v2 요청 매핑을 대조해 누락 17건을 찾았다(리뷰 목록, 조직 이슈와 PR 목록, 라벨 API 5건, 코드 메타데이터 AJAX 2건, 별칭 4건). 선생님 지시로 누락 항목은 위키에 v1.6 동작을 먼저 적고 구현한다.
+- 라벨 API 5건을 먼저 이식했다: `LabelApiController`, `LabelService`, `LabelApiTest` 20건, [web/label-api.md](web/label-api.md). A-99, R-63.
