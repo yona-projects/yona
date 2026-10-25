@@ -208,6 +208,17 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `작성자를 만들 수 없으면 익명 사용자가 작성자가 된다`() {
+        val (user, project) = member("g")
+        // 이미 있는 로그인 아이디라 사용자 생성이 거절된다 (v1.6 findAuthor는 이때 NullUser, id -1을 쓴다)
+        json(post(api(project, "issues")), user.token, """{"issues":[{"title":"t","author":{"loginId":"${user.loginId}","name":"중복","email":"dup-author@example.com"}}]}""").andExpect(status().isCreated)
+        entityManager.flush(); entityManager.clear()
+        val saved = issues.findAll().single { it.project?.id == project.id }
+        assertEquals(-1L, saved.authorId); assertEquals("", saved.authorLoginId)
+        assertEquals(null, users.findByEmail("dup-author@example.com"))
+    }
+
+    @Test
     fun `등록의 오류`() {
         val (user, project) = member("f")
         json(post(api(project, "issues")), user.token, """{"nope":1}""").andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("No issues key exists or value wasn't array!"))

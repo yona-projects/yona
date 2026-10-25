@@ -136,15 +136,15 @@ class IssueService(
     /**
      * 이슈를 다음 상태로 바꾸고 새 상태를 돌려준다 (v1.6 `IssueApp.nextState`, `Issue.toNextState`). 열림은 닫힘, 닫힘은 열림,
      * 초안은 닫힘이다. 수정 시각을 갱신하고 타임라인 이벤트를 남기며 [IssueChangedActivity]를 발행한다.
-     * 하위 이슈를 다시 열면 닫혀 있는 부모 이슈도 다시 연다.
+     * [reopenParent]가 참이면 하위 이슈를 다시 열 때 닫혀 있는 부모 이슈도 다시 연다(`nextState` 액션). 댓글의 상태 전환은 거짓이다.
      */
     @Transactional
-    fun toNextState(issue: Issue, actor: User): State {
+    fun toNextState(issue: Issue, actor: User, reopenParent: Boolean = true): State {
         val old = issue.state
         val next = if (old == State.CLOSED) State.OPEN else State.CLOSED
         changeState(issue, next, actor, old)
         val parent = issue.parent
-        if (next == State.OPEN && parent != null && parent.state == State.CLOSED) {
+        if (reopenParent && next == State.OPEN && parent != null && parent.state == State.CLOSED) {
             changeState(parent, State.OPEN, null, State.CLOSED, record = false)
         }
         return next

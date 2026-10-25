@@ -204,6 +204,26 @@ class IssueCommentTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `댓글로 하위 이슈를 다시 열어도 닫힌 상위 이슈는 열지 않는다`() {
+        val project = newProject()
+        val member = join(newUser(), project)
+        val parent = issue(project)
+        parent.state = State.CLOSED; issues.save(parent)
+        val child = issues.save(
+            Issue(
+                project = project, number = 2, title = "하위", body = "b", state = State.CLOSED, numOfComments = 0, weight = 0, parent = parent,
+                createdDate = Date(1_700_000_000_000L), updatedDate = Date(1_700_000_000_000L)
+            )
+        )
+        // v1.6 newComment는 Issue.toNextState만 부르고 상위 이슈를 열지 않는다 (nextState 액션만 연다).
+        mockMvc.perform(multipart("${base(project)}/issue/2/comments").session(login(member)).param("contents", "다시 엽니다").param("withStateTransition", "open"))
+            .andExpect(status().isSeeOther)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(State.OPEN, issues.findById(child.id!!).get().state)
+        assertEquals(State.CLOSED, issues.findById(parent.id!!).get().state)
+    }
+
+    @Test
     fun `임시 첨부는 댓글로 옮겨진다`() {
         val project = newProject()
         val member = join(newUser(), project)

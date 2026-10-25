@@ -47,12 +47,17 @@ class ApiUsers(
     }
 
     /**
-     * 가져오는 글의 작성자를 이메일로 찾고 없으면 만든다. 만들 수 없으면(허용하지 않는 도메인 등) 요청한 사용자 [fallback]을 쓴다
-     * (v1.6은 이때 익명 사용자가 작성자가 되었다).
+     * 가져오는 글의 작성자를 이메일로 찾고 없으면 만든다. 만들 수 없으면(허용하지 않는 도메인, 이미 있는 아이디 등)
+     * v1.6 `User.findByEmail`이 돌려주는 `NullUser`처럼 익명 사용자(번호 -1, 로그인 아이디 빈 문자열)를 돌려준다.
+     * 이 사용자는 저장되지 않으며 글의 작성자 열에만 -1이 기록된다.
      */
-    fun findOrCreateByEmail(loginId: String, name: String, email: String, fallback: User): User {
+    fun findOrCreateByEmail(loginId: String, name: String, email: String): User {
         users.findByEmail(email)?.let { return it }
         create(loginId, name, email)
-        return users.findByEmail(email) ?: fallback
+        return users.findByEmail(email) ?: anonymous(email)
     }
+
+    /** v1.6 `NullUser`에 해당하는 익명 사용자이다. 저장하지 않는 값 객체로만 쓴다. */
+    fun anonymous(email: String): User =
+        User(id = -1L, name = messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale()), loginId = "", email = email)
 }

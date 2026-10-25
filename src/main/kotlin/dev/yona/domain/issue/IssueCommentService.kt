@@ -125,7 +125,8 @@ class IssueCommentService(
 
     private fun touchOrTransition(issue: Issue, actor: User, withStateTransition: Boolean) {
         if (withStateTransition) {
-            issueService.toNextState(issue, actor)
+            // v1.6 newComment/editComment는 Issue.toNextState만 부르므로 닫힌 상위 이슈는 열지 않는다 (nextState 액션만 연다)
+            issueService.toNextState(issue, actor, reopenParent = false)
         } else {
             issue.updatedDate = Date()
             issues.save(issue)

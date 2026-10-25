@@ -65,7 +65,7 @@ class ExternalBoardApiController(
         val viewer = currentUserProvider.get().user ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val created = postsNode.toList().map { node ->
             val title = node.findValue("title")?.asString() ?: return requests.message(HttpStatus.BAD_REQUEST, "title is required")
-            val author = findAuthor(node.findValue("author"), viewer) ?: return requests.message(HttpStatus.BAD_REQUEST, "The author could not be found or created")
+            val author = findAuthor(node.findValue("author"), viewer)
             val posting = service.create(
                 project, author,
                 ExternalPosting(title, node.findValue("body")?.asString().orEmpty(), parseDate(node.findValue("createdAt")), parseDate(node.findValue("updatedAt")), node.findValue("number")?.asLong(0)?.takeIf { it > 0 })
@@ -88,7 +88,7 @@ class ExternalBoardApiController(
         val posting = postings.findByProjectIdAndNumber(requireNotNull(project.id), number) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
         if (!accessControl.isResourceCreatable(viewer, posting.asResource(), ResourceType.NONISSUE_COMMENT)) return ErrorViews.forbidden("error.forbidden", views.of(project))
-        val author = findAuthor(json.findValue("author"), requireNotNull(viewer)) ?: return requests.message(HttpStatus.BAD_REQUEST, "The author could not be found or created")
+        val author = findAuthor(json.findValue("author"), requireNotNull(viewer))
         val comment = service.addComment(posting, author, json.findValue("body")?.asString().orEmpty(), parseDate(json.findValue("createdAt")))
         attachments.attachIds(viewer, ids(json.findValue("temporaryUploadFiles")), ResourceType.NONISSUE_COMMENT, requireNotNull(comment.id))
         return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON)
@@ -102,12 +102,10 @@ class ExternalBoardApiController(
 
     private fun ids(node: JsonNode?): List<String> = if (node == null || !node.isArray) emptyList() else node.toList().map { it.asString("") }
 
-    /** 작성자를 정한다. `author`가 있으면 이메일로 찾고 없으면 사용자를 만든다. 없으면 요청한 사용자이다. 찾지도 만들지도 못하면 `null`이다. */
-    private fun findAuthor(node: JsonNode?, viewer: User): User? {
+    /** 작성자를 정한다. `author`가 있으면 이메일로 찾고 없으면 사용자를 만든다. 없으면 요청한 사용자이다. 찾지도 만들지도 못하면 익명 사용자(번호 -1)이다. */
+    private fun findAuthor(node: JsonNode?, viewer: User): User {
         if (node == null) return viewer
-        val email = node.findValue("email")?.asString() ?: return null
-        users.findByEmail(email)?.let { return it }
-        apiUsers.create(node.findValue("loginId")?.asString().orEmpty(), node.findValue("name")?.asString().orEmpty(), email)
-        return users.findByEmail(email)
+        val email = node.findValue("email")?.asString() ?: return apiUsers.anonymous("")
+        return apiUsers.findOrCreateByEmail(node.findValue("loginId")?.asString().orEmpty(), node.findValue("name")?.asString().orEmpty(), email)
     }
 }

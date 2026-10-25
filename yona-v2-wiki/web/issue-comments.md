@@ -17,7 +17,7 @@ updated: 2026-10-23
 2. `contents`가 비어 있으면 `400`과 `post.comment.empty`.
 3. `id`가 있으면 댓글 수정 권한(작성자, 구성원)을 확인하고(없으면 `403`, v1.6은 이때 작성자를 가로채 저장했지만 v2는 막는다, A-24) 내용을 바꾼다. 작성자가 `notificationMail=yes`를 보냈거나 작성자가 아닌 사람이 고치면 수정 활동을 발행한다.
 4. 새 댓글: `parentCommentId`가 있으면 한 줄 댓글. 댓글의 프로젝트 번호는 이슈의 프로젝트이다. 멘션을 기록하고 이슈의 댓글 수(`numOfComments`)를 실제 수에 맞춘다. 메일 본문에 덧붙일 "이전 내용"을 만들어 활동에 싣는다(첫 댓글은 `Original issue`, 한 줄 댓글은 앞의 한 줄 댓글이나 부모 댓글, 그 밖은 바로 앞의 댓글. 형식 `--- 제목 from @아이디  시각 ---` 뒤에 내용).
-5. `withStateTransition`(멀티파트, 비어 있지 않음)이면 이슈를 다음 상태로 바꾼다(상태 이벤트 포함). 아니면 이슈의 수정 시각만 갱신한다.
+5. `withStateTransition`(멀티파트, 비어 있지 않음)이면 이슈를 다음 상태로 바꾼다(상태 이벤트 포함). v1.6 `newComment`는 `Issue.toNextState`만 부르므로 하위 이슈를 다시 열어도 닫힌 부모 이슈는 열지 않는다(부모를 여는 곳은 `nextState` 액션뿐이다, 2026-10-26 정정). 아니면 이슈의 수정 시각만 갱신한다.
 6. 임시 첨부(`temporaryUploadFiles`)를 댓글로 옮긴다. `303`으로 `이슈 주소#comment-번호`에 보낸다.
 
 ## 삭제 (`DELETE issue/:number/comment/:commentId/delete`)
