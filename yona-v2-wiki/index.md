@@ -17,6 +17,7 @@
 - [최근 방문 기록](domain/recent-visits.md)
 - [마일스톤 진행 현황](domain/milestone-status.md)
 - [계정 설정과 첨부 올리기](web/account.md): 프로필, 비밀번호, 토큰, 이메일, 첨부
+- [이전(Migration) 화면](web/migration.md): GitHub로 옮길 프로젝트 데이터 JSON과 토큰 교환(D-23 접근 기준)
 - [최초 기동 화면](web/welcome.md): `yona.secret`이 기본값일 때 기본 관리자 계정 설정과 재시작 안내
 - [데이터 내보내기와 가져오기](subsystems/data-exchange.md): 47개 테이블 JSON, 교체 규칙, DB별 처리
 - [사이트 관리](web/site-admin.md): `/sites/userList` 등 사용자 관리와 사이트 관리 틀

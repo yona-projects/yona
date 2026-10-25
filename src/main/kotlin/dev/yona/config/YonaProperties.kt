@@ -37,6 +37,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property notificationMailInterval 발송 주기(밀리초) (`application.notification.bymail.interval`, 기본 60초)
  * @property notificationMailDelay 알림 이벤트를 만든 뒤 메일로 보내기까지 기다리는 시간(밀리초). 그 사이 연달아 일어난 알림을 묶을 수 있다 (`application.notification.bymail.delay`, 기본 180초)
  * @property update 업데이트 확인 설정이다
+ * @property github 이전(Migration) 화면의 GitHub 연동 설정이다
  * @property secret 사이트 비밀 키이다. 기본값이거나 비어 있으면 처음 기동한 것으로 보고 모든 요청에서 기본 관리자 계정을 정하는 화면을 보인다 (`application.secret`)
  * @property smtp 보내는 메일 주소 설정이다. SMTP 접속 정보는 `spring.mail.*`로 설정한다
  * @property easymail 가입 안내 메일의 보내는 사람이다 (`play-easymail.from.*`)
@@ -79,6 +80,7 @@ data class YonaProperties(
     val notificationMailInitDelay: Long = 5_000L,
     val notificationMailInterval: Long = 60_000L,
     val notificationMailDelay: Long = 180_000L,
+    val github: Github = Github(),
     val secret: String = DEFAULT_SECRET,
     val smtp: Smtp = Smtp(),
     val update: Update = Update(),
@@ -115,6 +117,21 @@ data class YonaProperties(
     data class Smtp(
         val user: String = "",
         val domain: String = ""
+    )
+
+    /**
+     * 이전(Migration) 화면의 GitHub 연동 설정이다 (v1.6 `github.*`).
+     *
+     * @property allowMigration 이전 화면(`GET /migration`)을 연다 (`github.allow.migration`, 기본 꺼짐). 내보내기 JSON 주소는 이 설정과 관계없이 열려 있다
+     * @property clientId GitHub OAuth 앱의 클라이언트 ID (`github.client.id`)
+     * @property clientSecret GitHub OAuth 앱의 비밀 (`github.client.secret`)
+     * @property accessTokenUrl 인증 코드를 토큰으로 바꾸는 주소
+     */
+    data class Github(
+        val allowMigration: Boolean = false,
+        val clientId: String = "TYPE YOUR GITHUB CILENT ID",
+        val clientSecret: String = "TYPE YOUR GITHUB CILENT SECRET",
+        val accessTokenUrl: String = "https://github.com/login/oauth/access_token"
     )
 
     /**

@@ -311,3 +311,6 @@
 ## [2026-10-25] ingest | 최초 기동 화면 (6단계 6e)
 - TDD: SiteSecretTest 11. `SiteSecret`, `SiteSecretInterceptor`, `FakeController`, 템플릿 `welcome/secret`, `welcome/restart`. D-22(선생님: B안), A-93, R-57. 새 서버로 기본 설정 기동, 입력, 재시작, 새 비밀번호 로그인까지 확인.
 
+
+## [2026-10-25] ingest | 이전(Migration) 화면 (6단계 6f)
+- TDD: MigrationExportTest 14, MigrationPageTest 5. `MigrationService`, `MigrationController`, `GithubTokenClient`, 템플릿 `migration/home`. D-23(접근 기준), A-94, R-58.
