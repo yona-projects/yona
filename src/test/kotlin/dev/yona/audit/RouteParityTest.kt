@@ -54,7 +54,6 @@ class RouteParityTest : AbstractIntegrationTest() {
         private val PENDING = listOf(
             "GET /-_-api", "GET /-_-api/v1/", "GET /_init", "GET /users/login",
             "GET /{}/{}/code/!/", "GET /{}/{}/code/{}/!/",
-            "GET /{}/{}/reviews",
         )
 
         val KNOWN_GAPS = INTENTIONAL + PENDING

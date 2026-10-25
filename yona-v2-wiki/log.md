@@ -331,3 +331,4 @@
 - `RouteParityTest`로 v1.6 `conf/routes`와 v2 요청 매핑을 대조해 누락 17건을 찾았다(리뷰 목록, 조직 이슈와 PR 목록, 라벨 API 5건, 코드 메타데이터 AJAX 2건, 별칭 4건). 선생님 지시로 누락 항목은 위키에 v1.6 동작을 먼저 적고 구현한다.
 - 라벨 API 5건을 먼저 이식했다: `LabelApiController`, `LabelService`, `LabelApiTest` 20건, [web/label-api.md](web/label-api.md). A-99, R-63.
 - 조직 이슈 목록과 풀 리퀘스트 목록 3건을 이식했다(위키를 먼저 쓰고 테스트 22건을 먼저 쓴 뒤 구현). `OrganizationListController`, `OrganizationListAssembler`, `IssueSearchService.searchIn/countIn`, `PullRequestSearchCondition.organizationProjectIds`. [web/organization-lists.md](web/organization-lists.md). A-100, R-64.
+- 리뷰 목록과 엑셀을 이식했다(위키 먼저, 테스트 15건 먼저). `ReviewListController`, `ReviewSearchService`, `ReviewExcelExporter`, 템플릿 `reviewthread/list`. [web/review-list.md](web/review-list.md). A-101, R-65.

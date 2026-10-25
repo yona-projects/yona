@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/reviewthread/list.scala.html, partial_list.scala.html
+  모델: title, projectView, cond(ReviewSearchCondition), rows(ReviewRow 목록), totalPageCount, meId, quick(ReviewQuickCounts), openCount, closedCount, excelUrl
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${projectView.project.name + ' - ' + #messages.msg(title)}, ${projectView}, 'PROJECT_REVIEW', ~{::reviewPage})}">
+<th:block th:fragment="reviewPage">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_REVIEW', '')}"></th:block>
+
+<div class="project-page-wrap">
+    <div class="row-fluid issue-list-wrap">
+        <div class="span2 search-wrap span-hard-wrap">
+            <div class="inner advanced">
+                <ul class="lst-stacked unstyled">
+                    <li th:class="${cond.participantId == null and cond.authorId == null} ? 'active'">
+                        <a href="#" data-toggle="filter"><th:block th:text="#{review.allReview}"></th:block>
+                            <span class="num-badge pull-right" th:text="${quick.everyone}"></span>
+                        </a>
+                    </li>
+                    <li th:class="${cond.participantId == meId} ? 'active'">
+                        <a href="#" data-toggle="filter" data-type="participantId" th:attr="data-value=${meId}"><th:block th:text="#{review.involvingYou}"></th:block>
+                            <span class="num-badge pull-right" th:text="${quick.participant}"></span>
+                        </a>
+                    </li>
+                    <li th:class="${cond.authorId == meId} ? 'active'">
+                        <a href="#" data-toggle="filter" data-type="authorId" th:attr="data-value=${meId}"><th:block th:text="#{review.createdByYou}"></th:block>
+                            <span class="num-badge pull-right" th:text="${quick.author}"></span>
+                        </a>
+                    </li>
+                </ul>
+                <form id="search" name="search" th:action="@{/{owner}/{name}/reviews(owner=${projectView.project.owner},name=${projectView.project.name})}" method="get">
+                    <input type="hidden" name="authorId" th:value="${cond.authorId}">
+                    <input type="hidden" name="participantId" th:value="${cond.participantId}">
+                    <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
+                    <input type="hidden" name="orderBy" th:value="${cond.orderBy}">
+                    <input type="hidden" name="state" th:value="${cond.state}">
+                    <hr class="hide-in-mobile">
+                    <div class="search-bar span-hard-wrap">
+                        <input name="filter" class="textbox full" type="text" th:value="${cond.filter}">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="span10 span-hard-wrap">
+            <div class="pull-right filters">
+                <a th:if="${cond.orderBy == 'createdDate'}" href="#" data-field="createdDate" th:attr="data-value=${cond.orderDir == 'asc'} ? 'desc' : 'asc'" class="filter" data-toggle="order">
+                    <i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{common.order.date}"></th:block>
+                </a>
+                <a th:unless="${cond.orderBy == 'createdDate'}" href="#" data-field="createdDate" data-value="desc" class="filter" data-toggle="order">
+                    <i class="ico btn-gray-arrow down"></i><th:block th:text="#{common.order.date}"></th:block>
+                </a>
+            </div>
+            <ul class="nav nav-tabs nm">
+                <li th:class="${cond.state == 'OPEN'} ? 'active'">
+                    <a href="#" data-type="state" data-value="OPEN" data-toggle="filter"><th:block th:text="#{issue.state.open}"></th:block>
+                        <span class="num-badge" th:text="${openCount}"></span>
+                    </a>
+                </li>
+                <li th:class="${cond.state == 'CLOSED'} ? 'active'">
+                    <a href="#" data-type="state" data-value="CLOSED" data-toggle="filter"><th:block th:text="#{issue.state.closed}"></th:block>
+                        <span class="num-badge" th:text="${closedCount}"></span>
+                    </a>
+                </li>
+            </ul>
+            <div class="review-list-wrap">
+                <ul th:if="${!rows.isEmpty()}" class="post-list-wrap">
+                    <li th:each="thread : ${rows}" class="post-item">
+                        <a th:if="${thread.authorLoginId != null}" th:href="@{/{u}(u=${thread.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${thread.authorLoginId}">
+                            <img th:src="${thread.authorAvatarUrl}" th:alt="${thread.authorName}" width="32" height="32"/>
+                        </a>
+                        <div class="title-wrap">
+                            <span class="post-id" th:text="${thread.id}"></span>
+                            <a th:href="${thread.href}" class="title" th:text="${thread.contents}"></a>
+                        </div>
+
+                        <div class="infos">
+                            <a th:if="${thread.authorName != null and !thread.authorName.isEmpty()}" th:href="@{/{u}(u=${thread.authorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${thread.authorLoginId}" th:text="${thread.authorDisplayName}"></a>
+                            <span th:unless="${thread.authorName != null and !thread.authorName.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}"></span>
+                            <span class="infos-item" th:title="${thread.createdTitle}" th:text="${thread.createdAgo}"></span>
+                            <span th:if="${thread.commentCount > 0}" class="infos-item item-count-groups">
+                                <th:block th:replace="~{common/comment-count :: commentCount(${thread.href}, ${thread.commentCount}, true)}"></th:block>
+                            </span>
+                        </div>
+                    </li>
+                </ul>
+                <div th:if="${rows.isEmpty()}" class="error-wrap">
+                    <i class="ico ico-err1"></i>
+                    <p th:text="#{review.is.empty}"></p>
+                </div>
+            </div>
+            <div class="pull-left" style="padding:10px;">
+                <a th:href="${excelUrl}" class="ybtn small">
+                    <i class="yobicon-file-excel"></i> <th:block th:text="#{issue.downloadAsExcel}"></th:block>
+                </a>
+            </div>
+            <div id="pagination"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        $yobi.loadModule("review.List", {
+            "elPagination": $("#pagination"),
+            "nTotalPages" : /*[[${totalPageCount}]]*/ 0,
+            "welSearchForm": $("form[name='search']")
+        });
+    });
+</script>
+</th:block>
+</html>
