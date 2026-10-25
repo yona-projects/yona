@@ -84,6 +84,7 @@ import kotlin.test.assertTrue
 class ExternalIssueApiTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var titleHeads: dev.yona.domain.project.TitleHeadRepository
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
@@ -262,6 +263,21 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
         json(patch(api(project, "issues/1")), null, """{"state":"open"}""").andExpect(status().isUnauthorized)
         entityManager.flush(); entityManager.clear()
         assertEquals(State.CLOSED, issues.findById(i.id!!).get().state)
+    }
+
+    @Test
+    fun `수정, 상태, 라벨 변경은 v1_6 save처럼 제목 머리말 개수를 늘린다`() {
+        val (user, project) = member("t")
+        val i = issue(project, user); i.title = "[버그] 제목"; issues.save(i)
+        val category = categories.save(IssueLabelCategory(project = project, name = "c", isExclusive = false))
+        val x = labels.save(IssueLabel(project = project, category = category, name = "x", color = "#fff"))
+        val frequency = { entityManager.flush(); entityManager.clear(); titleHeads.findFirstByProjectIdAndHeadKeyword(project.id!!, "버그")?.frequency ?: 0 }
+        json(patch(api(project, "issues/1")), user.token, """{"state":"closed"}""").andExpect(status().isOk)
+        assertEquals(1, frequency())
+        json(post(api(project, "issuelabel/1")), user.token, "[\"${x.id}\"]").andExpect(status().isOk)
+        assertEquals(2, frequency())
+        json(put(api(project, "issues/1")), user.token, """{"title":"[버그] 제목","body":"b","state":"OPEN","assignees":[]}""").andExpect(status().isOk)
+        assertEquals(3, frequency())
     }
 
     // --- 댓글 ---

@@ -7,6 +7,7 @@ import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.enumeration.UserState
+import dev.yona.domain.issue.Assignee
 import dev.yona.domain.issue.Issue
 import dev.yona.domain.issue.IssueLabel
 import dev.yona.domain.issue.IssueLabelCategory
@@ -235,6 +236,17 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
             .andExpect(jsonPath("$.watchers[?(@.name == '${watcher.name}')].url").value("/${watcher.loginId}"))
         mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).param("type", "posts")).andExpect(status().isNotFound)
         mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers"))).andExpect(status().isOk).andExpect(content().string(""))
+    }
+
+    @Test
+    fun `이슈의 구독자에는 담당자와 추천자가 기본으로 들어간다`() {
+        val project = newProject(); val author = member(project); val assigneeUser = member(project); val voter = member(project)
+        val assignee = Assignee(user = assigneeUser, project = project).also { entityManager.persist(it) }
+        issues.save(Issue(project = project, number = 1, title = "t", body = "b", state = State.OPEN, authorId = author.id, authorLoginId = author.loginId, authorName = author.name, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date(), assignee = assignee, voters = mutableSetOf(voter)))
+        entityManager.flush(); entityManager.clear()
+        // v1.6 Issue.getWatchers는 담당자와 추천자를 기본 구독자로 두고 작성자를 더한다.
+        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).param("type", "issues")).andExpect(status().isOk)
+            .andExpect(jsonPath("$.totalWatchers").value(3))
     }
 
     @Test

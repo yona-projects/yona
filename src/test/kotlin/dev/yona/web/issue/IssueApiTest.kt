@@ -134,6 +134,16 @@ class IssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `로그인하지 않아도 나에게 할당 항목이 로그인 아이디 빈 문자열로 들어간다`() {
+        val project = newProject()
+        val author = join(newUser(), project)
+        issue(project, author = author)
+        // v1.6 addUserToUsersWithCustomName(UserApp.currentUser(), ...)는 익명 사용자(loginId "")도 넣는다.
+        mockMvc.perform(get(api(project, "issues/1/assignableUsers")).accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].name").value("Assign to me")).andExpect(jsonPath("$[0].loginId").value(""))
+    }
+
+    @Test
     fun `담당자가 없으면 나와 작성자가 먼저이다`() {
         val project = newProject()
         val me = join(newUser(), project); val author = join(newUser(), project)

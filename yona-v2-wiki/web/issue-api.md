@@ -13,7 +13,7 @@ updated: 2026-10-23
 
 | 요청 | 동작 |
 |---|---|
-| `GET …/issues/:n/assignableUsers?query=&type=` | 검색어가 없으면 담당자가 있을 때 나에게 할당(담당자가 내가 아닐 때), 작성자(나도 담당자도 아닐 때), "담당자 없음"(`loginId` 빈 문자열), 현재 담당자, 담당 가능한 사용자 순. 담당자가 없으면 나에게 할당, 작성자(내가 아닐 때), 담당 가능한 사용자. 검색어가 있으면 활성 사용자 검색(최대 10명, 넘으면 `Content-Range`). JSON을 받지 않으면 `406`. |
+| `GET …/issues/:n/assignableUsers?query=&type=` | 로그인하지 않은 사용자도 "나에게 할당" 항목이 `loginId` 빈 문자열로 들어간다(v1.6 `UserApp.currentUser()`가 익명을 돌려준다, 2026-10-26 정정). 검색어가 없으면 담당자가 있을 때 나에게 할당(담당자가 내가 아닐 때), 작성자(나도 담당자도 아닐 때), "담당자 없음"(`loginId` 빈 문자열), 현재 담당자, 담당 가능한 사용자 순. 담당자가 없으면 나에게 할당, 작성자(내가 아닐 때), 담당 가능한 사용자. 검색어가 있으면 활성 사용자 검색(최대 10명, 넘으면 `Content-Range`). JSON을 받지 않으면 `406`. |
 | `POST …/issues/:n/assignees` | `{"assignees":["아이디"]}`. 수정 권한이 있을 때만 바꾼다(없으면 바꾸지 않고 `{"issue": 이슈 주소}`만). 빈 목록은 `400` `No assignee`. 없는 아이디나 빈 아이디는 담당자를 비우고 이름은 `None`. 응답 `{"assignee":{loginId,name},"issue":"/o/p/issue/n"}`. 담당자 변경 이벤트는 일괄 변경과 같은 서비스로 남긴다. |
 | `GET …/issues/:n/findSharer?query=a,b` | 로그인 아이디가 일치하는 공유자를 추가한 날짜 순으로. |
 | `GET …/issues/:n/sharableUsers?query=` | 활성 사용자와 공개 프로젝트(이름 검색). 합계가 10을 넘으면 각각 5개까지, `Content-Range`. 프로젝트 노드는 `loginId`가 프로젝트 번호, `name`이 `소유자/이름`, `type: project`. |

@@ -106,9 +106,10 @@ class NotificationReceivers(
         return actualWatchers(ResourceType.COMMIT, "$projectId:$commitId", base, allowedOnly)
     }
 
-    /** 이슈의 실제 구독자이다(작성자 포함). 이슈를 옮기기 전에 구독자를 정할 때도 쓴다 (v1.6 `Issue.getWatchers`). */
+    /** 이슈의 실제 구독자이다. 담당자와 추천자가 기본 구독자이고 작성자를 더한다. 이슈를 옮기기 전에 구독자를 정할 때도 쓴다 (v1.6 `Issue.getWatchers`). */
     @Transactional(readOnly = true)
-    fun issueWatchers(issue: Issue): Set<User> = actualWatchers(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), listOfNotNull(author(issue.authorLoginId)))
+    fun issueWatchers(issue: Issue): Set<User> =
+        actualWatchers(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), listOfNotNull(issue.assignee?.user) + issue.voters + listOfNotNull(author(issue.authorLoginId)))
 
     // --- 풀 리퀘스트 ---
 

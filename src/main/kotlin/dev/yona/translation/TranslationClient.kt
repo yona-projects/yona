@@ -31,8 +31,8 @@ class TranslationClient(private val properties: YonaProperties) {
         return json.readTree(response.body()).path("result").path("translatedText").takeIf { !it.isMissingNode && !it.isNull }?.asString()
     }
 
-    /** 줄 목록을 [LIMIT]자 안쪽 덩어리로 묶어 차례로 번역하고 번역문을 줄바꿈으로 이어 붙인다. 번역문이 없는 덩어리는 줄바꿈 하나이다. */
-    fun translateLines(lines: List<String>): String = merge(lines).joinToString(NEWLINE) { translate(it) ?: NEWLINE }
+    /** 줄 목록을 [LIMIT]자 안쪽 덩어리로 묶어 차례로 번역하고 번역문을 줄바꿈으로 이어 붙인다. 공백뿐인 덩어리는 줄바꿈 하나이고, 응답에 번역문이 없으면 v1.6 `String.join`처럼 문자열 `null`이 이어 붙는다. */
+    fun translateLines(lines: List<String>): String = merge(lines).joinToString(NEWLINE) { if (it.isBlank()) NEWLINE else translate(it) ?: "null" }
 
     companion object {
         /** 한 번에 보내는 글자 수의 한도이다 (v1.6 `TRANSLATE_TEXT_LENGTH_LIMIT`). */

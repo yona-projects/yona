@@ -94,12 +94,12 @@ class IssueApiController(
             val assignee = issue.assignee?.user
             val viewerLogin = viewer?.loginId.orEmpty()
             if (assignee != null) {
-                if (viewer != null && viewerLogin != assignee.loginId) nodesOf.customNode(viewerLogin, nodesOf.message("issue.assignToMe"), nodes)
+                if (viewerLogin != assignee.loginId) nodesOf.customNode(viewerLogin, nodesOf.message("issue.assignToMe"), nodes)
                 if (author != null && author.loginId != viewerLogin && author.loginId != assignee.loginId) nodesOf.customNode(author.loginId, nodesOf.message("issue.assignToAuthor"), nodes)
                 nodesOf.customNode("", nodesOf.message("issue.noAssignee"), nodes)
                 nodesOf.userNode(assignee, viewer, nodes)
             } else {
-                if (viewer != null) nodesOf.customNode(viewerLogin, nodesOf.message("issue.assignToMe"), nodes)
+                nodesOf.customNode(viewerLogin, nodesOf.message("issue.assignToMe"), nodes)
                 if (author != null && author.loginId != viewerLogin) nodesOf.customNode(author.loginId, nodesOf.message("issue.assignToAuthor"), nodes)
             }
             val assignable = listService.assignableUsers(project, viewer, accessControl.isSiteManager(viewer))

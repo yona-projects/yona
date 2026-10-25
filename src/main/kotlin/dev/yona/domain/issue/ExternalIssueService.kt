@@ -92,14 +92,26 @@ class ExternalIssueService(
         val old = issue.assignee?.user
         if (old?.loginId.orEmpty() != assignee?.loginId.orEmpty()) event(issue, actor, EventType.ISSUE_ASSIGNEE_CHANGED, old?.loginId, assignee?.loginId)
         issue.assignee = assignee?.let { issueService.findOrCreateAssignee(project, it.loginId) }
-        return issues.save(issue)
+        return saveLikeV16(issue)
     }
 
     /** 상태만 바꾼다. 바뀌면 이벤트를 남긴다(v1.6 `updateIssueState`). 수정 시각은 건드리지 않는다. */
     @Transactional
     fun updateState(issue: Issue, actor: User, state: State): Issue {
         changeState(issue, actor, state)
-        return issues.save(issue)
+        return saveLikeV16(issue)
+    }
+
+    /**
+     * v1.6 `AbstractPosting.save()`와 같은 부수 효과를 낸다. 댓글 수를 다시 세고 저장한 뒤 제목 머리말 개수를 한 번 더 늘리고
+     * 멘션 기록을 본문에 맞춘다([refactoring-backlog.md] R-29와 같은 동작).
+     */
+    private fun saveLikeV16(issue: Issue): Issue {
+        issue.numOfComments = comments.countByIssueId(requireNotNull(issue.id)).toInt()
+        val saved = issues.save(issue)
+        titleHeads.save(requireNotNull(saved.project), saved.title)
+        mentions.update(ResourceType.ISSUE_POST, requireNotNull(saved.id).toString(), saved.body.orEmpty())
+        return saved
     }
 
     private fun changeState(issue: Issue, actor: User, state: State) {
@@ -128,7 +140,7 @@ class ExternalIssueService(
     fun replaceLabels(issue: Issue, newLabels: Set<IssueLabel>) {
         issue.labels.clear()
         issue.labels.addAll(newLabels)
-        issues.save(issue)
+        saveLikeV16(issue)
     }
 
     /**

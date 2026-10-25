@@ -79,6 +79,9 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-72 | 러시아어 번들의 `project.you.are.watching` | `conf/messages.ru-RU:649`가 `Вы смотрите {-} проект.`라서 `{-}`가 올바른 `MessageFormat` 패턴이 아니다. 프로젝트 머리말(`project/header`)이 이 메시지를 인자와 함께 부르므로 러시아어 화면(`Accept-Language: ru`)은 프로젝트 화면마다 `IllegalArgumentException: can't parse argument number: -`로 500이 난다. v1.6 번들에도 같은 문구가 있고 Play도 메시지를 `MessageFormat`으로 해석하므로 v1.6도 같다(브라우저 점검 2026-10-25). 고치려면 `{-}`를 `{0}`으로 바꾼다 | 재현함(고칠지 선생님 결정 대기) |
 | R-73 | `IssueApp.editIssue`, `deleteIssue` | v1.6은 권한을 확인하기 전에 이슈 이동(`targetProjectId`)을 반영하거나 삭제 알림, 웹훅을 보낸다. 권한 없는 사용자가 이슈를 옮기거나 삭제 알림을 일으킬 수 있는 보안 결함이다. v2는 권한을 먼저 확인한다 | 재현하지 않음(선생님 승인 2026-10-26, P-07) |
 | R-74 | `ProjectApp.changeVCS` | v1.6은 `@Transactional`이 없어 저장소 생성이 실패하면 README 해제와 포크 분리는 이미 반영되고 저장소만 지워진 중간 상태로 남는다. v2는 데이터베이스 변경을 모두 되돌린다 | 재현하지 않음(실패 경로, 선생님 확인 대기) |
+| R-75 | 번역(`IssueApi.translate`) | 번역 서비스 응답에 `translatedText`가 없으면 `String.join`이 문자열 `null`을 이어 붙여 번역문에 "null"이 섞인다 | 재현함 |
+| R-76 | `PullRequestApp.accept` | 병합 중 예외가 나면 이미 커밋된 `isMerging=true`가 남아 고착된다. v2는 같은 트랜잭션이라 롤백된다 | 재현하지 않음(실패 경로, 선생님 확인 대기) |
+| R-77 | 외부 이슈 API 수정, 상태, 라벨 | 저장할 때마다 `save()`가 제목 머리말 개수를 한 번 더 늘린다(R-29와 같은 원인) | 재현함 |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

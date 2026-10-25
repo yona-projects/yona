@@ -58,6 +58,14 @@ class TranslationClientTest {
     }
 
     @Test
+    fun `번역문이 없는 덩어리는 문자열 null로 이어 붙고 공백 덩어리는 줄바꿈이다`() {
+        response = """{"result":{}}"""
+        // v1.6 getTranslations는 findPath("translatedText").textValue()가 null이면 String.join이 "null"을 붙인다.
+        assertEquals("null", client().translateLines(listOf("x")))
+        assertEquals("\r\n", client().translateLines(listOf("")))
+    }
+
+    @Test
     fun `긴 글은 4500자 안쪽 덩어리로 나눠 보내고 줄바꿈으로 잇는다`() {
         response = """{"result":{"translatedText":"T"}}"""
         val lines = List(10) { "x".repeat(1000) }

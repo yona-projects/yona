@@ -30,8 +30,15 @@ updated: 2026-10-26
 | B-03b | 게시글 `newPost` | `issueTemplate`이 없으면 NPE, 500. 권한 없는 사용자의 `notice`도 저장 | 오류 화면. 공지 권한이 없으면 무시(보안 보완) |
 | B-08 | 게시판 `newComment` | `parentCommentId`가 비숫자면 NFE, 빈 문자열이고 기존 댓글이 있으면 NPE, 500 | 400 또는 부모 없음으로 처리 |
 | P-03(4) | 프로젝트 홈 `tabId` | 알 수 없는 값은 `MatchError`, 500 ([R-68](../refactoring-backlog.md)(4)) | 내용 없는 탭 화면 |
+| REST-10 | `updateIssue` | 상태 문자열을 `toString()`과 비교해 소문자 `open`이면 `State.valueOf`로 500, 담당자 이벤트 새 값은 JSON의 loginId | 대소문자 무시, 이메일로 찾은 사용자의 loginId |
+| REST-29 | `newLabel` | `isExclusive` 키가 없으면 NPE, 500 | 키 없이도 성공 |
+| REST-22 | `translate` | 없는 이슈나 댓글은 NPE 500, 본문 JSON 누락은 NPE | 404, 400 |
+| REST-39 | `editPullRequest` | 폼 오류 검사 없이 `form.get()`, 오류면 500 | 제목이나 브랜치가 비면 400 |
+| REST-47 | `CompareApp.compare` | 없는 리비전은 `MissingObjectException`, 500 | 404 |
+| REST-48 | `BranchApp.branches` | 빈 저장소는 `parseCommit(null)` NPE, 500 (선생님 지시 2026-10-26: v1.6의 오류는 v2 유지) | 404 |
 
 ## 재현하지 않고 기록만 하는 실패 경로
 
 - [R-74](../refactoring-backlog.md) `changeVCS`: 저장소 생성 실패 시 v1.6은 README 해제와 포크 분리만 반영된 중간 상태가 남고, v2는 데이터베이스 변경을 모두 되돌린다.
+- [R-76](../refactoring-backlog.md) `accept`: 병합 중 예외 시 `isMerging` 고착을 v2는 롤백한다.
 - [R-73](../refactoring-backlog.md) `editIssue`, `deleteIssue`: 권한 확인 전에 먼저 반영하거나 발송하는 v1.6 결함을 v2는 고쳐 두었다(P-07).

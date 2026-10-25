@@ -393,3 +393,7 @@
 - 반영: 재설정 메일 실패 안내(U-24), 멘션 후보 순서(P-13, P-14), attachLabel category(P-27, R-63 정정), newWebhook 오류 화면(P-30), massUpdate 삭제 알림(I-09), referCommentId 파생 이슈 댓글(I-15, I-26), getFileList 403 Content-Type(B-17).
 - 기록만: 직접 만든 요청 항목 20건은 [hand-crafted-request-differences.md](architecture/hand-crafted-request-differences.md), changeVCS 롤백(P-20)은 R-74.
 - 이번에 다루지 않음: REST 쪽 항목(updateIssue* 부수 효과, issueWatchers 기본 구독자, findAssignableUsers, translate, newLabel isExclusive, accept/isMerging, editPullRequest, CompareApp, BranchApp 빈 저장소).
+
+## [2026-10-26] fix | REST 쪽 v1.6 불일치 반영
+- 반영: 이슈 구독자 기본값(담당자, 추천자), 외부 이슈 API 수정, 상태, 라벨의 save() 부수 효과(R-77), 비로그인 assignableUsers, 번역 응답 없음 "null"(R-75).
+- 기록만: newLabel, translate 오류, editPullRequest, CompareApp, BranchApp은 hand-crafted-request-differences.md, accept 고착은 R-76.
