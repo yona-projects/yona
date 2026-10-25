@@ -33,7 +33,8 @@ class HomeController(
     private val items: NotificationItemAssembler
 ) {
 
-    @GetMapping("/")
+    /** 홈 화면이다. v1.6은 `/users/login`, `/-_-api`, `/-_-api/v1/`의 GET도 같은 액션(`Application.index`)에 연결했다. */
+    @GetMapping("/", "/users/login", "/-_-api", "/-_-api/v1/")
     fun index(request: HttpServletRequest, response: HttpServletResponse): Any {
         val user = currentUserProvider.get().user
         val loginDefaultPage = user?.id?.let { userSettings.findByUserId(it)?.loginDefaultPage }

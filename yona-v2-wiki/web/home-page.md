@@ -38,3 +38,7 @@ v1.6 `GET /`(`Application.index`)와 `GET /notifications`(`Application.notificat
 ## 검증
 
 `HomePageTest` 14건(소개, 환영 표, 알림 없음 안내, 탭, 기본 로그인 페이지 설정과 이동, 저장 API)과 `NotificationEventQueryTest` 3건(받는 사람별, 최신순, 시작 위치와 개수)이 H2, PostgreSQL, MariaDB에서 통과한다.
+
+## 다른 주소 (동등성 점검 9a)
+
+v1.6 `conf/routes`는 `GET /users/login`, `GET /-_-api`, `GET /-_-api/v1/`도 같은 액션(`Application.index`)에 연결했다. 로그인 폼은 `/users/loginform`이므로 `/users/login`의 GET은 로그인 화면이 아니라 홈 화면(소개 또는 기본 로그인 페이지로 이동)이다. v2도 `HomeController.index`에 네 주소를 모두 매핑했다(`HomePageTest`).

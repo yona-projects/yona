@@ -189,6 +189,14 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `메타데이터 주소는 끝에 슬래시가 있어도 같은 결과이다`() {
+        // v1.6 routes: `code/!/`, `code/:branch/!/`는 경로가 빈 `code/!`, `code/:branch/!`와 같은 액션이다.
+        val p = filled()
+        mockMvc.perform(get("/${p.owner}/${p.name}/code/!/")).andExpect(status().isOk).andExpect(jsonPath("$.type").value("folder")).andExpect(jsonPath("$.data.src.type").value("folder"))
+        mockMvc.perform(get("/${p.owner}/${p.name}/code/master/!/")).andExpect(status().isOk).andExpect(jsonPath("$.data['README.md'].msg").value("처음"))
+    }
+
+    @Test
     fun `브랜치를 zip으로 내려받는다`() {
         val p = filled()
         val result = mockMvc.perform(get("/${p.owner}/${p.name}/code/master/download")).andExpect(status().isOk)

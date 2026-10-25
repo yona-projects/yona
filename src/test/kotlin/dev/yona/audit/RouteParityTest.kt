@@ -30,8 +30,12 @@ class RouteParityTest : AbstractIntegrationTest() {
     private fun v2Routes(): Set<Pair<String, String>> = mapping.handlerMethods.keys.flatMap { info ->
         val methods = info.methodsCondition.methods.map { it.name }.ifEmpty { listOf("ANY") }
         val patterns = info.pathPatternsCondition?.patternValues ?: emptySet()
-        methods.flatMap { m -> patterns.map { p -> m to normalize2(p) } }
+        methods.flatMap { m -> patterns.flatMap { p -> listOf(m to normalize2(p)) + slashForm(m, p) } }
     }.toSet()
+
+    /** `/경로/{*나머지}`는 나머지가 빈 끝 슬래시 주소(`/경로/`)도 처리한다. v1.6은 이를 따로 적었다. */
+    private fun slashForm(method: String, pattern: String): List<Pair<String, String>> =
+        if (Regex("""/\{\*[A-Za-z_]+\}$""").containsMatchIn(pattern)) listOf(method to normalize2(pattern.replace(Regex("""\{\*[A-Za-z_]+\}$"""), ""))) else emptyList()
 
     @Test
     fun `v1_6 라우트 중 v2에 없는 것은 알려진 누락 목록과 같다`() {
@@ -52,8 +56,7 @@ class RouteParityTest : AbstractIntegrationTest() {
 
         /** 아직 이식하지 못한 항목. */
         private val PENDING = listOf(
-            "GET /-_-api", "GET /-_-api/v1/", "GET /_init", "GET /users/login",
-            "GET /{}/{}/code/!/", "GET /{}/{}/code/{}/!/",
+            "GET /_init",
         )
 
         val KNOWN_GAPS = INTENTIONAL + PENDING

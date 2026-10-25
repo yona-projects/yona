@@ -332,3 +332,4 @@
 - 라벨 API 5건을 먼저 이식했다: `LabelApiController`, `LabelService`, `LabelApiTest` 20건, [web/label-api.md](web/label-api.md). A-99, R-63.
 - 조직 이슈 목록과 풀 리퀘스트 목록 3건을 이식했다(위키를 먼저 쓰고 테스트 22건을 먼저 쓴 뒤 구현). `OrganizationListController`, `OrganizationListAssembler`, `IssueSearchService.searchIn/countIn`, `PullRequestSearchCondition.organizationProjectIds`. [web/organization-lists.md](web/organization-lists.md). A-100, R-64.
 - 리뷰 목록과 엑셀을 이식했다(위키 먼저, 테스트 15건 먼저). `ReviewListController`, `ReviewSearchService`, `ReviewExcelExporter`, 템플릿 `reviewthread/list`. [web/review-list.md](web/review-list.md). A-101, R-65.
+- 코드 메타데이터 AJAX 두 경로는 `{*path}` 패턴이 끝 슬래시 형태를 이미 처리하고 있어 대조 규칙의 오탐으로 판명했다(테스트 추가). 홈 화면 별칭 3건을 이식했다([web/home-page.md](web/home-page.md)).

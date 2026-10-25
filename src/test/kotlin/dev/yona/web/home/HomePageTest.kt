@@ -208,4 +208,25 @@ class HomePageTest : AbstractIntegrationTest() {
         assertEquals("new", settings.findByUserId(user.id!!)?.loginDefaultPage)
         assertEquals(1, settings.findAll().count { it.user?.id == user.id })
     }
+
+    // --- 홈 화면의 다른 주소 ---
+
+    @Test
+    fun `users login과 api 루트 주소의 GET은 홈 화면과 같다`() {
+        // v1.6 routes: `GET /users/login`, `GET /-_-api`, `GET /-_-api/v1/`이 모두 `Application.index()`이다.
+        val home = page().selectFirst(".siteintro")!!.outerHtml()
+        listOf("/users/login", "/-_-api", "/-_-api/v1/").forEach { path ->
+            assertEquals("Yona", page(path).title(), path)
+            assertEquals(home, page(path).selectFirst(".siteintro")!!.outerHtml(), path)
+        }
+    }
+
+    @Test
+    fun `다른 주소로 들어와도 기본 로그인 페이지가 있으면 그리로 보낸다`() {
+        val (session, user) = login("homealias")
+        settings.save(UserSetting(user = user, loginDefaultPage = "/notifications"))
+        listOf("/users/login", "/-_-api", "/-_-api/v1/").forEach { path ->
+            mockMvc.perform(get(path).session(session)).andExpect(status().isSeeOther).andExpect(header().string("Location", "/notifications"))
+        }
+    }
 }
