@@ -65,6 +65,7 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var forks: ForkService
     @Autowired private lateinit var pullRequests: PullRequestRepository
+    @Autowired private lateinit var pushedBranches: dev.yona.domain.project.PushedBranchRepository
     @Autowired private lateinit var pullRequestEvents: PullRequestEventRepository
     @Autowired private lateinit var notificationEvents: NotificationEventRepository
     @Autowired private lateinit var issues: IssueRepository
@@ -178,6 +179,17 @@ class PullRequestActionTest : AbstractIntegrationTest() {
         mockMvc.perform(post(url(s, pr, "/open")).session(s.managerSession)).andExpect(status().isBadRequest)
         pr.state = State.MERGED; pullRequests.save(pr)
         mockMvc.perform(post(url(s, pr, "/open")).session(s.managerSession)).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `다시 열면 보내는 프로젝트의 같은 이름 최근 푸시 브랜치 기록을 지운다`() {
+        val s = setup(); addChange(s); val pr = open(s)
+        mockMvc.perform(post(url(s, pr, "/close")).session(s.managerSession)).andExpect(status().isSeeOther)
+        // 닫은 뒤 같은 브랜치에 다시 푸시하면 최근 푸시 브랜치 기록이 생긴다
+        pushedBranches.save(dev.yona.domain.project.PushedBranch(pushedDate = java.util.Date(), name = pr.fromBranch, project = pr.fromProject))
+        mockMvc.perform(post(url(s, pr, "/open")).session(s.managerSession)).andExpect(status().isSeeOther)
+        // v1.6 PullRequest.reopen은 PushedBranch.removeByPullRequestFrom을 부른다
+        assertNull(pushedBranches.findFirstByProjectIdAndName(pr.fromProject!!.id!!, pr.fromBranch!!))
     }
 
     @Test

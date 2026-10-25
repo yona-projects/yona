@@ -178,7 +178,8 @@ class WebhookPayloads(
         val commitNodes = mapper.createArrayNode()
         commits.forEach { commitNodes.add(commitJson(project, it)) }
         body.set("commits", commitNodes)
-        body.set("head_commit", commitNodes.get(0))
+        // 커밋이 없는 푸시(브랜치 삭제)는 v1.6 `ObjectNode.put("head_commit", null)`처럼 null이다
+        body.set("head_commit", commitNodes.get(0) ?: mapper.nullNode())
         body.set("sender", senderJson(sender))
         body.set("pusher", mapper.createObjectNode().also { it.put("name", sender.name); it.put("email", sender.email) })
         body.set("repository", mapper.createObjectNode().also {

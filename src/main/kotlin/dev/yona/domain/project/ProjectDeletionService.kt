@@ -1,5 +1,6 @@
 package dev.yona.domain.project
 
+import dev.yona.domain.enumeration.ResourceType
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Service
@@ -17,11 +18,15 @@ import org.springframework.transaction.annotation.Transactional
  * 구성원, 메뉴 설정, 푸시된 브랜치, 이전 요청, 알림 설정, 가입 신청, 즐겨찾기, 최근 방문, 제목 머리말, 코드 코멘트, 프로젝트 라벨 연결.
  * 포크는 지우지 않고 원본 연결만 끊는다. 다른 프로젝트 이슈의 부모 연결은 끊긴다(외래 키의 `SET NULL`).
  *
- * v1.6과 같이 첨부(로고 등), 구독 기록, 알림 이벤트는 지우지 않는다([refactoring-backlog.md] R-18).
+ * 이슈, 게시글, 댓글의 첨부와 알림 이벤트는 v1.6 `issue.delete()`, `posting.delete()`처럼 함께 지운다. v1.6과 같이 프로젝트 로고 같은
+ * 프로젝트 자체의 첨부와 구독 기록은 지우지 않는다([refactoring-backlog.md] R-18).
  */
 @Service
 @Transactional
-class ProjectDeletionService {
+class ProjectDeletionService(
+    private val attachments: dev.yona.domain.misc.AttachmentService,
+    private val issueService: dev.yona.domain.issue.IssueService
+) {
 
     @PersistenceContext
     private lateinit var em: EntityManager
@@ -99,6 +104,10 @@ class ProjectDeletionService {
     private fun deleteIssues(projectId: Long) {
         val issueIds = ids("select i.id from Issue i where i.project.id = :id", projectId)
         if (issueIds.isEmpty()) return
+        // v1.6 `issue.delete()`는 댓글과 이슈의 첨부, 알림 이벤트를 지운다 (`Comment.delete`, `AbstractPosting.delete`).
+        em.createQuery("select c.id from IssueComment c where c.issue.id in :ids", Long::class.javaObjectType).setParameter("ids", issueIds).resultList
+            .forEach { removeAttachmentsAndEvents(ResourceType.ISSUE_COMMENT, it) }
+        issueIds.forEach { removeAttachmentsAndEvents(ResourceType.ISSUE_POST, it) }
         em.createNativeQuery(
             "delete from issue_comment_voter where issue_comment_id in (select id from issue_comment where issue_id in (:ids))"
         ).setParameter("ids", issueIds).executeUpdate()
@@ -113,9 +122,18 @@ class ProjectDeletionService {
     }
 
     private fun deletePostings(projectId: Long) {
+        // v1.6 `posting.delete()`도 댓글과 게시글의 첨부, 알림 이벤트를 지운다.
+        ids("select c.id from PostingComment c where c.projectId = :id", projectId).forEach { removeAttachmentsAndEvents(ResourceType.NONISSUE_COMMENT, it) }
+        ids("select p.id from Posting p where p.project.id = :id", projectId).forEach { removeAttachmentsAndEvents(ResourceType.BOARD_POST, it) }
         native("delete from posting_issue_label where posting_id in (select id from posting where project_id = :id)", projectId)
         native("delete from posting_comment where project_id = :id", projectId)
         native("delete from posting where project_id = :id", projectId)
+    }
+
+    /** 컨테이너에 붙은 첨부(같은 해시가 남지 않으면 파일도)와 알림 이벤트를 지운다 (v1.6 `Attachment.deleteAll`, `NotificationEvent.deleteBy`). */
+    private fun removeAttachmentsAndEvents(type: ResourceType, id: Long) {
+        attachments.deleteAll(type, id)
+        issueService.deleteNotificationEvents(type, id.toString())
     }
 
     private fun ids(jpql: String, projectId: Long): List<Long> =

@@ -35,7 +35,8 @@ class PullRequestWorkflow(
     private val events: PullRequestEventService,
     private val service: PullRequestService,
     private val branches: PullRequestBranchService,
-    private val publisher: ApplicationEventPublisher
+    private val publisher: ApplicationEventPublisher,
+    private val pushedBranches: dev.yona.domain.project.PushedBranchRepository
 ) {
 
     /**
@@ -88,6 +89,8 @@ class PullRequestWorkflow(
         if (pullRequest.merged || pullRequest.open) return false
         val before = pullRequest.state ?: State.CLOSED
         change(pullRequest, State.OPEN, actor)
+        // v1.6 `PullRequest.reopen`은 `PushedBranch.removeByPullRequestFrom`을 불러 보내는 쪽의 최근 푸시 브랜치 기록을 지운다.
+        pushedBranches.findFirstByProjectIdAndName(requireNotNull(pullRequest.fromProject?.id), requireNotNull(pullRequest.fromBranch))?.let { pushedBranches.delete(it) }
         record(pullRequest, before, State.OPEN, actor)
         val id = requireNotNull(pullRequest.id)
         val actorId = requireNotNull(actor.id)

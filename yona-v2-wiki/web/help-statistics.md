@@ -18,7 +18,7 @@ updated: 2026-10-25
 
 ## 프로젝트 통계 (`GET /:user/:project/statistics`)
 
-- `@AnonymousCheck`와 `@DefaultProjectCheck`(프로젝트가 없거나 읽을 수 없으면 403, 이전 이름이면 리다이렉트).
+- `@AnonymousCheck`와 `@DefaultProjectCheck`(프로젝트가 없거나 읽을 수 없으면 403, 이전 이름으로 접근해도 v1.6의 `findByOwnerAndProjectName`이 이전 이름까지 찾아 그냥 열린다(A-13)).
 - 프로젝트 레이아웃 안에 `<h1>Under Construction</h1>` 한 줄뿐이다. 프로젝트 메뉴도 그리지 않는다. 제목은 `statistics - <소유자>/<이름>`이다(`statistics` 키가 메시지 파일에 없어 키 이름이 그대로 나온다).
 - 이 화면으로 가는 링크는 어디에도 없다.
 

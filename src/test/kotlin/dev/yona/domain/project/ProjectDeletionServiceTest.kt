@@ -177,6 +177,43 @@ class ProjectDeletionServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이슈, 게시글, 댓글의 첨부와 알림 이벤트는 지우고 프로젝트 로고는 남긴다`() {
+        val p = project(); val other = project(); val member = user()
+        val pid = p.id!!
+        val issue = persist(Issue(project = p, number = 1, title = "t", state = State.OPEN, authorId = member.id))
+        val comment = persist(IssueComment(contents = "c", createdDate = Date(), issue = issue, projectId = pid))
+        val posting = persist(Posting(project = p, number = 1, title = "post", body = "b", createdDate = Date()))
+        val postingComment = persist(PostingComment(contents = "c", createdDate = Date(), posting = posting, projectId = pid))
+        em.flush()
+        fun attach(type: ResourceType, id: Long) = persist(
+            dev.yona.domain.misc.Attachment(name = "f$type", hash = "h-$type-$id-${++sequence}", containerType = type, containerId = id, mimeType = "text/plain", size = 1L, createdDate = Date(), ownerLoginId = member.loginId)
+        )
+        fun event(type: ResourceType, id: Long) = persist(
+            dev.yona.domain.notification.NotificationEvent(title = "e", senderId = member.id, created = Date(), resourceType = type, resourceId = id.toString(), eventType = EventType.NEW_COMMENT)
+        )
+        val targets = listOf(
+            ResourceType.ISSUE_POST to issue.id!!, ResourceType.ISSUE_COMMENT to comment.id!!,
+            ResourceType.BOARD_POST to posting.id!!, ResourceType.NONISSUE_COMMENT to postingComment.id!!
+        )
+        targets.forEach { (type, id) -> attach(type, id); event(type, id) }
+        attach(ResourceType.PROJECT, pid)
+        val untouched = attach(ResourceType.ISSUE_POST, 99_999L)
+        em.flush()
+
+        service.delete(p)
+        em.flush(); em.clear()
+
+        // v1.6 Project.delete는 issue.delete()와 posting.delete()를 불러 이슈, 게시글, 댓글의 첨부와 알림 이벤트를 지운다. 프로젝트 로고는 지우지 않는다.
+        targets.forEach { (type, id) ->
+            assertEquals(0, count("attachment", "container_type = '${type.name}' and container_id = $id"), "$type 첨부")
+            assertEquals(0, count("notification_event", "resource_type = '${type.name}' and resource_id = '$id'"), "$type 알림 이벤트")
+        }
+        assertEquals(1, count("attachment", "container_type = 'PROJECT' and container_id = $pid"))
+        assertEquals(1, count("attachment", "id = ${untouched.id}"))
+        assertNotNull(other.id)
+    }
+
+    @Test
     fun `다른 프로젝트의 데이터는 건드리지 않는다`() {
         val p = project()
         val control = project()

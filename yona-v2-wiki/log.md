@@ -397,3 +397,9 @@
 ## [2026-10-26] fix | REST 쪽 v1.6 불일치 반영
 - 반영: 이슈 구독자 기본값(담당자, 추천자), 외부 이슈 API 수정, 상태, 라벨의 save() 부수 효과(R-77), 비로그인 assignableUsers, 번역 응답 없음 "null"(R-75).
 - 기록만: newLabel, translate 오류, editPullRequest, CompareApp, BranchApp은 hand-crafted-request-differences.md, accept 고착은 R-76.
+
+## [2026-10-26] fix | 5차 검증 결과의 v2 대조와 반영
+- 대조: 보안 13, 데이터 10, 풀 리퀘스트·알림 14, 기타 18개 항목을 v2 소스와 대조했다.
+- 코드 반영: 프로젝트 삭제 시 이슈, 게시글, 댓글의 첨부와 알림 이벤트 삭제(R-18 정정), 풀 리퀘스트 재오픈 시 최근 푸시 브랜치 기록 삭제, 지속적 통합 웹훅의 빈 커밋 푸시 전송, 임시 업로드 정리 기준을 오늘 0시로(R-20 정정).
+- 기록: R-78~R-85, 직접 만든 요청 항목 9건 추가, A-16 정정, R-55(4) 정정, project-delete.md 정정.
+- 브라우저 확인: `yobi.project.New.js` TypeError가 v2 화면에서 재현됨(R-78).

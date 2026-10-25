@@ -149,6 +149,18 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `새 커밋이 없는 푸시도 지속적 통합 형식에는 빈 커밋 목록으로 보낸다`() {
+        val p = project(); val sender = user()
+        service.create(p, url, null, true, WebhookType.JSON)
+        // 브랜치 삭제 푸시: v1.6 NotificationEvent.webhookRequest는 커밋 수와 관계없이 JSON 형식에 보낸다
+        publisher.publishEvent(CommitsPushedActivity(p, sender, emptyList(), listOf("refs/heads/gone")))
+        val body = json()
+        assertEquals(listOf("refs/heads/gone"), body.path("ref").items().map { it.asString("") })
+        assertEquals(0, body.path("commits").size())
+        assertTrue(body.path("head_commit").isNull)
+    }
+
+    @Test
     fun `지속적 통합 형식은 푸시만 받고 다른 형식은 푸시를 켠 경우에만 한 줄을 받는다`() {
         val p = project(); val sender = user()
         service.create(p, url, null, true, WebhookType.JSON)

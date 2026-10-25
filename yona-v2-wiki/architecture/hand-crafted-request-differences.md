@@ -36,6 +36,15 @@ updated: 2026-10-26
 | REST-39 | `editPullRequest` | 폼 오류 검사 없이 `form.get()`, 오류면 500 | 제목이나 브랜치가 비면 400 |
 | REST-47 | `CompareApp.compare` | 없는 리비전은 `MissingObjectException`, 500 | 404 |
 | REST-48 | `BranchApp.branches` | 빈 저장소는 `parseCommit(null)` NPE, 500 (선생님 지시 2026-10-26: v1.6의 오류는 v2 유지) | 404 |
+| S-7 | `getUserExpressionList` | 쿼리 `type`이 임의 컬럼 이름이어서 email, token 등 정확 일치 조회가 된다 | `loginId`, `name`, `email`, `englishName`만 받고 그 밖은 빈 목록 |
+| S-8 | `updateAssginees`, `updateSharer`, 가중치 API | 없는 프로젝트나 이슈면 NPE, 500 | 404 |
+| S-1 | `MarkdownApp.render` | JSON 본문이 없으면 NPE, 500 | 400 |
+| S-2 | 이슈 번역 | 없는 프로젝트의 댓글도 번역됨 | 404 |
+| D-7 | 즐겨찾기 토글 | 없는 프로젝트나 조직 id면 생성자에서 NPE, 500 | 400 `Wrong ... id` |
+| M-8b | `Comment.updateMention` | 본문이 null이면 NPE | 건너뜀 |
+| M-14 | `ProjectApp.mentionList`, `labels`, `IssueLabelApp.delete` | 없는 프로젝트, `_method` 없음, 없는 라벨이면 NPE, 500 | 403/404, 400/404 |
+| M-15 | `CodeHistoryApp`, `SiteApp` | 숫자가 아닌 `page`, 알 수 없는 `state`는 예외, 500 | 400 |
+| M-16 | `IssueApi.findAuthor` | `author`에 `email` 필드가 없으면 NPE, 500 | 익명 작성자(번호 -1) |
 
 ## 재현하지 않고 기록만 하는 실패 경로
 

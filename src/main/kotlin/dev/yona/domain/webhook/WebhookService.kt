@@ -144,7 +144,7 @@ class WebhookService(
     fun push(project: Project, sender: User, commits: List<PostReceiveJobs.CommitDetail>, refNames: List<String>) {
         for (hook in webhooks.findByProjectId(requireNotNull(project.id))) {
             if (hook.webhookType == WebhookType.JSON) {
-                if (commits.isNotEmpty()) this.sender.send(hook, payloads.pushJson(project, commits, refNames, sender))
+                this.sender.send(hook, payloads.pushJson(project, commits, refNames, sender))
             } else if (hook.gitPush == true && refNames.isNotEmpty()) {
                 this.sender.send(hook, payloads.textOnly(payloads.pushMessage(project, commits.size, refNames)))
             }
