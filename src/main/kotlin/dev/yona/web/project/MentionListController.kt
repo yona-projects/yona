@@ -86,7 +86,7 @@ class MentionListController(
         val result = linkedMapOf<String, List<Map<String, String>>>()
         if (mentionType.equals("user", ignoreCase = true)) {
             val viewer = currentUserProvider.get().user
-            result["result"] = userList(project, mentionService.usersAtCommitDiff(project, fromProject, commit.authorEmail, commit.id, query, viewer), viewer)
+            result["result"] = userList(project, mentionService.usersAtCommitDiff(project, fromProject, commit.authorEmail, commit.id, query, viewer, if (fromProject.vcs == "Subversion") commit.authorName else null), viewer)
         }
         if (mentionType.equals("issue", ignoreCase = true)) {
             result["result"] = mentionService.issues(project, query, ISSUE_MENTION_SHOW_LIMIT).map {

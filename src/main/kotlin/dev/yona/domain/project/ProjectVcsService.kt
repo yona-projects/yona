@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional
  *
  * 순서: README 게시글 표시를 끄고(저장소에 README가 있을 때) -> 포크의 원본 연결을 끊고 -> 기존 저장소를 지우고 -> 종류를
  * 바꿔 새 저장소를 만든다. 중간에 실패하면 DB 변경은 취소되지만 이미 지운 저장소 디렉터리는 돌아오지 않는다(v1.6도 같다).
- * Subversion 저장소는 아직 만들 수 없어서 Git에서 Subversion으로 바꾸는 요청은 실패한다(로드맵 8단계에서 지원한다).
  */
 @Service
 @Transactional

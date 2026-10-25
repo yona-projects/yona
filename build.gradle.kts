@@ -19,6 +19,24 @@ repositories {
 	mavenCentral()
 }
 
+// ---------------------------------------------------------------------------------------------
+// Subversion WebDAV(D-26): SVNKit의 DAV 서블릿(`DAVServlet`)은 Maven Central에 war로만 배포된다(v1.6은 SCM-Manager가 jar로 다시
+// 포장한 `sonia.svnkit:svnkit-dav`를 썼다). war의 `WEB-INF/classes`만 꺼내 jar로 묶어 클래스패스에 올린다.
+// ---------------------------------------------------------------------------------------------
+
+val svnDavWar by configurations.creating
+
+val svnDavClasses by tasks.registering(Jar::class) {
+	description = "svnkit-dav war의 WEB-INF/classes를 jar로 묶는다."
+	archiveFileName = "svnkit-dav-classes.jar"
+	destinationDirectory = layout.buildDirectory.dir("svn-dav")
+	from(zipTree(svnDavWar.elements.map { it.single().asFile })) {
+		include("WEB-INF/classes/**")
+		eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(2).toTypedArray()) }
+		includeEmptyDirs = false
+	}
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -44,6 +62,12 @@ dependencies {
 	implementation("org.commonmark:commonmark-ext-heading-anchor:0.31.0")
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1")
 	implementation("org.jsoup:jsoup:1.23.2")
+	// Subversion WebDAV(D-26): DAV 서블릿은 javax 서블릿 API를 쓰므로 Jakarta 서블릿 위에 변환 어댑터를 둔다.
+	svnDavWar("org.tmatesoft.svnkit:svnkit-dav:1.10.11@war")
+	implementation(files(svnDavClasses))
+	implementation("javax.servlet:javax.servlet-api:3.1.0")
+	// Subversion 저장소 처리(D-13). v1.6의 1.9.3을 현재 배포판인 1.10.11로 올렸다.
+	implementation("org.tmatesoft.svnkit:svnkit:1.10.11")
 	// 받은 HTML 메일의 본문 정리(v1.6 `CreationViaEmail.postprocessForHTML`이 쓰던 라이브러리)
 	implementation("com.googlecode.htmlcompressor:htmlcompressor:1.5.2")
 	implementation("org.apache.tika:tika-core:3.3.3")

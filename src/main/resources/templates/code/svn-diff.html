@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/svnDiff.scala.html
+  모델: title, projectView, commit(id, message, authorHref, authorName, avatarUrl, known, ago, agoTitle), patch, comments(SvnCommentView 목록),
+        canComment, commentAction, watching, watchUrl, unwatchUrl, listUrl, mentionUrl, filesUrl, commitsUrl, branches(BranchOption 목록), parentId
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::svnDiffPage})}">
+<th:block th:fragment="svnDiffPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div id="code-browse-wrap" class="code-browse-wrap">
+            <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
+                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                    <span class="d-label" th:text="${#lists.isEmpty(branches)} ? 'HEAD' : 'HEAD'"></span>
+                    <span class="d-caret"><span class="caret"></span></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li th:each="b : ${branches}" th:attr="data-value=${b.label}, data-selected=${b.selected} ? 'true' : null">
+                        <a th:href="${b.url}" th:text="${b.label}"></a>
+                    </li>
+                </ul>
+            </div>
+
+            <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                <li><a th:href="${filesUrl}" th:text="#{code.files}"></a></li>
+                <li class="active"><a th:href="${commitsUrl}" th:text="#{code.commits}"></a></li>
+            </ul>
+
+            <p class="commitInfo">
+                <th:block th:if="${commit.known}">
+                    <a th:href="${commit.authorHref}" class="avatar-wrap"><img th:src="${commit.avatarUrl}" th:alt="${commit.authorName}" width="32" height="32"/></a>
+                    <strong th:text="${commit.authorName}"></strong>
+                </th:block>
+                <th:block th:unless="${commit.known}">
+                    <strong th:if="${commit.authorName != null}" th:text="${commit.authorName}"></strong>
+                    <strong th:if="${commit.authorName == null}" th:text="#{user.notExists.name}"></strong>
+                </th:block>
+                <span class="ago" th:title="${commit.agoTitle}" th:text="${commit.ago}"></span>
+                <strong class="commitId pull-right" th:text="'@' + ${commit.id}"></strong>
+                <span class="pull-right mt5 mr10" th:if="${!#lists.isEmpty(comments)}">
+                    <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox">
+                    <label for="toggle-comments" class="form-label" th:text="#{code.showcomments}"></label>
+                </span>
+            </p>
+            <pre class="commitMsg" th:text="${commit.message}"></pre>
+            <div class="diff-wrap">
+                <div id="commit" data-commit-origin="true" class="diff-body hide" th:text="${patch}"></div>
+            </div>
+
+            <div class="board-comment-wrap">
+                <ul class="comments" th:if="${!#lists.isEmpty(comments)}">
+                    <li th:each="c : ${comments}" th:id="'comment-' + ${c.id}" th:attr="data-path=${c.path}, data-side=${c.side}, data-line=${c.line}" class="comment">
+                        <div class="comment-avatar">
+                            <a th:href="${c.authorHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.authorName}">
+                                <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.authorLoginId}">
+                            </a>
+                        </div>
+                        <div class="media-body">
+                            <div class="meta-info">
+                                <span class="comment_author pull-left">
+                                    <a th:href="${c.authorHref}" data-toggle="tooltip" data-placement="top" th:title="${c.authorName}">
+                                        <strong th:text="${c.authorLoginId} + ' '"></strong>
+                                    </a>
+                                </span>
+                                <span class="ago">
+                                    <a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a>
+                                </span>
+                                <span class="edit pull-right" th:if="${c.deletable}">
+                                    <button class="btn-transparent pull-right close" data-toggle="comment-delete" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                                </span>
+                            </div>
+                            <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}" th:utext="${c.bodyHtml}"></div>
+                            <div class="attachments" th:attr="data-attachments=${c.attachmentsJson}"></div>
+                        </div>
+                    </li>
+                </ul>
+                <th:block th:replace="~{common/comment-form :: commentForm(${canComment}, 'COMMIT_COMMENT', ${commentAction})}"></th:block>
+            </div>
+        </div>
+
+        <button id="watch-button" type="button" th:class="'ybtn' + (${watching} ? ' active' : '')" data-toggle="button" th:text="#{notification.watch}"></button>
+        <a th:href="${listUrl}" class="ybtn pull-right" th:text="#{button.list}"></a>
+
+        <div id="minimap" class="minimap-outer">
+            <div class="minimap-wrap">
+                <div class="minimap-curr"></div>
+                <div class="minimap-links"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
+<th:block th:replace="~{common/comment-delete-modal :: commentDeleteModal('#code-browse-wrap')}"></th:block>
+
+<script type="text/x-jquery-tmpl" id="comment-icon-template">
+    <i class="yobicon-comments"></i>
+</script>
+<script type="text/x-jquery-tmpl" id="linenum-column-template">
+    <td class="linenum"></td>
+</script>
+<script type="text/x-jquery-tmpl" id="comment-button-template">
+    <button class="ybtn medium btn-thread"></button>
+</script>
+
+<link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/diff.js}"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("code.SvnDiff", {
+            "bCommentable"   : /*[[${canComment}]]*/ false,
+            "sWatchUrl"      : /*[[${watchUrl}]]*/ "",
+            "sUnwatchUrl"    : /*[[${unwatchUrl}]]*/ "",
+            "sParentCommitId": /*[[${parentId}]]*/ "",
+            "sCommitId"      : /*[[${commit.id}]]*/ "",
+            "sCodeURL"       : /*[[${filesUrl}]]*/ ""
+        });
+
+        yobi.Mention({
+            target:'textarea[id^=editor-]',
+            url : /*[[${mentionUrl}]]*/ ""
+        });
+    });
+</script>
+</th:block>
+</html>

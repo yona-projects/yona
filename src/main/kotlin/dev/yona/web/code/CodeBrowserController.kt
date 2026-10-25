@@ -33,7 +33,7 @@ import org.springframework.web.servlet.ModelAndView
 /**
  * 코드 브라우저(폴더와 파일 보기, 메타데이터 JSON, 원본, 이미지, 내려받기)이다. v1.6 `CodeApp`(`app/controllers/CodeApp.java`)에 해당한다.
  *
- * Git만 지원한다. Subversion은 8단계에서 더한다(그때까지는 v1.6의 지원하지 않는 VCS 응답과 같은 `501`이다).
+ * Git과 Subversion을 지원하며 그 밖의 VCS는 v1.6의 지원하지 않는 VCS 응답(`501`)이다. Subversion은 브랜치가 `HEAD` 하나이고 내려받기는 빈 응답이다.
  * 코드를 구성원에게만 여는 프로젝트는 구성원이 아니면 `403`이다. 브랜치와 경로는 v1.6처럼 두 번 디코딩한다.
  * v1.6은 폴더 메타데이터를 프로젝트의 마지막 수정 시각을 키로 캐시했다. v2는 캐시하지 않는다([decisions.md] A-67).
  */
@@ -173,7 +173,7 @@ class CodeBrowserController(
         return bytes to path.substringAfterLast('/')
     }
 
-    /** Git이 아닌 프로젝트이면 v1.6의 지원하지 않는 VCS 응답(`501`)이다. */
+    /** Git도 Subversion도 아닌 프로젝트이면 v1.6의 지원하지 않는 VCS 응답(`501`)이다. */
     private fun notSupported(project: Project): ResponseEntity<String>? =
-        if (project.vcs == "GIT") null else ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).contentType(MediaType("text", "plain", Charsets.UTF_8)).body("${project.vcs} is not supported!")
+        if (project.vcs == "GIT" || project.vcs == "Subversion") null else ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).contentType(MediaType("text", "plain", Charsets.UTF_8)).body("${project.vcs} is not supported!")
 }

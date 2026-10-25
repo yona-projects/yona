@@ -11,6 +11,7 @@ import dev.yona.domain.user.User
 import dev.yona.repository.GitHttpService
 import dev.yona.security.CurrentUserProvider
 import dev.yona.security.LocalAuthenticator
+import dev.yona.web.access.BasicCredentials
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.MessageSource
@@ -52,8 +53,8 @@ class GitHttpController(
         @PathVariable ownerName: String, @PathVariable("project") projectName: String, @RequestParam(required = false) service: String?,
         request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
-        val credentials = parseCredentials(request)
-        if (credentials === MALFORMED) return ResponseEntity.badRequest().build<Void>()
+        val credentials = BasicCredentials.parse(request)
+        if (credentials === BasicCredentials.MALFORMED) return ResponseEntity.badRequest().build<Void>()
         // 서비스를 정하지 않으면 getanyfile 서비스이다. 지원하지 않는다.
         if (service == null) return text(HttpStatus.FORBIDDEN, "Unsupported service: getanyfile")
         return handle(ownerName, projectName, service, advertise = true, credentials, request, response)
@@ -65,13 +66,13 @@ class GitHttpController(
         @PathVariable ownerName: String, @PathVariable("project") projectName: String, @PathVariable service: String,
         request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
-        val credentials = parseCredentials(request)
-        if (credentials === MALFORMED) return ResponseEntity.badRequest().build<Void>()
+        val credentials = BasicCredentials.parse(request)
+        if (credentials === BasicCredentials.MALFORMED) return ResponseEntity.badRequest().build<Void>()
         return handle(ownerName, projectName, service, advertise = false, credentials, request, response)
     }
 
     private fun handle(
-        ownerName: String, projectName: String, service: String, advertise: Boolean, credentials: Credentials?, request: HttpServletRequest, response: HttpServletResponse
+        ownerName: String, projectName: String, service: String, advertise: Boolean, credentials: BasicCredentials?, request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
         if (!GitHttpService.isSupported(service)) return text(HttpStatus.FORBIDDEN, "Unsupported service: '$service'")
         val project = projectService.findByOwnerAndProjectName(ownerName, projectName) ?: return ResponseEntity.notFound().build<Void>()
@@ -109,7 +110,7 @@ class GitHttpController(
     }
 
     /** Basic 자격으로 사용자를 찾는다. 틀렸으면 `null`(익명)이다. Basic 헤더가 없으면 세션, 토큰, 쿠키로 식별한 현재 사용자이다. */
-    private fun authenticate(credentials: Credentials?): User? {
+    private fun authenticate(credentials: BasicCredentials?): User? {
         if (credentials != null) return authenticator.authenticateBasic(credentials.loginId, credentials.password)
         return currentUserProvider.get().user
     }
@@ -144,25 +145,7 @@ class GitHttpController(
     private fun text(status: HttpStatus, body: String): ResponseEntity<String> =
         ResponseEntity.status(status).header("Content-Type", "text/plain;charset=UTF-8").body(body)
 
-    // --- Basic 인증 ---
-
-    private class Credentials(val loginId: String, val password: String)
-
-    /**
-     * `Authorization: Basic …`의 자격이다. Basic 헤더가 아니면 `null`(다른 방식으로 식별), 사용자와 비밀번호를 가르는 `:`가 없으면
-     * [MALFORMED]이다. ISO-8859-1로 읽는다(v1.6 `BasicAuthAction`).
-     */
-    private fun parseCredentials(request: HttpServletRequest): Credentials? {
-        val header = request.getHeader("Authorization") ?: return null
-        if (!header.startsWith("Basic ")) return null
-        val decoded = try { String(Base64.getDecoder().decode(header.substring(6).trim()), Charsets.ISO_8859_1) } catch (e: IllegalArgumentException) { return MALFORMED }
-        val colon = decoded.indexOf(':')
-        if (colon < 0) return MALFORMED
-        return Credentials(decoded.substring(0, colon), decoded.substring(colon + 1))
-    }
-
     private companion object {
         val SEMVER = Regex("^(\\d+)\\.(\\d+)\\.(\\d+)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$")
-        val MALFORMED = Credentials("", "")
     }
 }

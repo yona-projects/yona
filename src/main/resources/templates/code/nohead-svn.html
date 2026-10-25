@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/nohead_svn.scala.html
+  모델: title(제목 메시지 키), projectView, cloneUrl(저장소 주소), loginId(현재 사용자), canUpdate
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::noheadPage})}">
+<th:block th:fragment="noheadPage" th:with="project=${projectView.project}, siteName=${site.siteName}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="row-fluid">
+            <div class="span12">
+                <th:block th:utext="#{code.nohead}"></th:block>
+                <th:block th:if="${canUpdate}">
+                <h5 th:text="#{code.nohead.svn.clone(${siteName})}"></h5>
+                <pre><code th:text="'svn co ' + ${cloneUrl} + ' --username ' + ${loginId} + '
+cd ' + ${project.name} + '/
+echo &quot;# ' + ${project.name} + '&quot; > README.md
+svn add README.md
+svn commit -m &quot;first commit&quot;'"></code></pre>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("code.Nohead", {
+            "sProjectName": /*[[${project.name}]]*/ ""
+        });
+    });
+</script>
+</th:block>
+</html>

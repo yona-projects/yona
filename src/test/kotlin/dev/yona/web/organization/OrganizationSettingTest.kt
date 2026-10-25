@@ -182,6 +182,21 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이름을 바꾸면 Subversion 프로젝트의 저장소 위치도 바뀐다`() {
+        val org = newOrg()
+        val oldName = org.name!!
+        val project = projects.save(Project(owner = oldName, name = "svnp1", vcs = "Subversion", projectScope = ProjectScope.PUBLIC, organization = org))
+        menuSettings.save(ProjectMenuSetting(project = project, code = true))
+        repositories.createRepository(project)
+        val newName = "svnrenamed${++sequence}"
+        save(org, login(admin(org)), "name" to newName, "descr" to "x")
+        projects.flush()
+        assertEquals(newName, projects.findById(project.id!!).get().owner)
+        assertTrue(File("build/tmp/it-org-setting/repo/svn/$newName/svnp1/format").isFile)
+        assertTrue(!File("build/tmp/it-org-setting/repo/svn/$oldName/svnp1").exists())
+    }
+
+    @Test
     fun `이름을 바꾸면 즐겨찾기한 조직 이름도 바뀐다`() {
         val org = newOrg()
         val fan = newUser()

@@ -87,7 +87,8 @@
                             <span id="commitDate" class="commitDate" th:text="${f.ago}"></span>
                             <span id="revisionNo" class="revision">
                                 <a th:href="${f.commitUrl}">
-                                    <th:block th:text="${#strings.substring(f.revId, 0, 7)}"></th:block>
+                                    <th:block th:if="${f.git}" th:text="${#strings.substring(f.revId, 0, 7)}"></th:block>
+                                    <th:block th:unless="${f.git}" th:text="'Revision ' + ${f.revId}"></th:block>
                                     <span class="number-of-comments ml5" th:if="${f.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${f.commentCount}"></th:block></span>
                                 </a>
                             </span>

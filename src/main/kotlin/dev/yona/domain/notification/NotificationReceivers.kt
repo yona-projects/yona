@@ -46,7 +46,8 @@ class NotificationReceivers(
     private val commentThreads: dev.yona.domain.comment.CommentThreadRepository,
     private val relatedAuthors: dev.yona.repository.RelatedAuthorsService,
     private val repositories: dev.yona.repository.RepositoryService,
-    private val projectUsers: dev.yona.domain.project.ProjectUserRepository
+    private val projectUsers: dev.yona.domain.project.ProjectUserRepository,
+    private val commitComments: dev.yona.domain.comment.CommitCommentRepository
 ) {
 
     /** 중복 없이 사용자를 모으는 집합이다. 사용자 번호가 같으면 같은 사용자이다. */
@@ -89,6 +90,19 @@ class NotificationReceivers(
         authorEmail?.let { userLookup.findByEmail(it) }?.let { base += it }
         (commentThreads.findCodeThreadsNotOnPullRequest(projectId, commitId) + commentThreads.findNonRangedThreadsNotOnPullRequest(projectId, commitId))
             .flatMap { it.reviewComments }.mapNotNull { c -> c.authorId?.let { users.findById(it).orElse(null) } }.forEach { base += it }
+        return actualWatchers(ResourceType.COMMIT, "$projectId:$commitId", base, allowedOnly)
+    }
+
+    /**
+     * Subversion 커밋의 실제 구독자이다. 커밋 작성자(로그인 ID로 찾은 사용자)와 이 커밋에 코멘트를 단 사용자에 프로젝트 구독자와 커밋 구독자를 더하고
+     * 구독 해제자를 뺀다 (v1.6 `Commit.getWatchers`의 Subversion 분기).
+     */
+    @Transactional(readOnly = true)
+    fun svnCommitWatchers(project: Project, commitId: String, authorLoginId: String?, allowedOnly: Boolean): Set<User> {
+        val projectId = requireNotNull(project.id)
+        val base = ArrayList<User>()
+        authorLoginId?.takeIf { it.isNotEmpty() }?.let { users.findByLoginId(it) }?.let { base += it }
+        commitComments.findByProjectIdAndCommitIdOrderByCreatedDateAscIdAsc(projectId, commitId).mapNotNull { c -> c.authorId?.let { users.findById(it).orElse(null) } }.forEach { base += it }
         return actualWatchers(ResourceType.COMMIT, "$projectId:$commitId", base, allowedOnly)
     }
 

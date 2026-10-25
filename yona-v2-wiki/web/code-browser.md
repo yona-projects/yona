@@ -7,7 +7,7 @@ updated: 2026-10-23
 
 # 코드 브라우저
 
-저장소의 폴더와 파일을 화면과 JSON으로 보여 준다. 구현: `CodeBrowserController`(웹), `CodePageAssembler`(화면 값), `CodeBrowserService`(저장소 읽기, JGit), 템플릿 `code/view.html`, `code/nohead.html`. Git만 지원하며 Subversion은 8단계에서 더한다(그때까지 `501`, `{vcs} is not supported!`).
+저장소의 폴더와 파일을 화면과 JSON으로 보여 준다. 구현: `CodeBrowserController`(웹), `CodePageAssembler`(화면 값), `CodeBrowserService`(저장소 읽기, JGit), 템플릿 `code/view.html`, `code/nohead.html`. Git과 Subversion을 지원하며 그 밖의 VCS는 `501`(`{vcs} is not supported!`)이다. Subversion은 [subversion.md](subversion.md)를 본다.
 
 | 요청 | 동작 |
 |---|---|

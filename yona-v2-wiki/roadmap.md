@@ -85,7 +85,10 @@ updated: 2026-10-22
 | 7a | 소셜 로그인(GitHub, Google), 로그인 화면 버튼, 소셜 로그아웃, `/restricted` | 완료 | [web/social-login.md](web/social-login.md). D-24 |
 | 7b | LDAP 인증(폼 로그인, Git HTTP 기본 인증), 소셜 로그인 전용 모드의 로그인 거부 | 완료 | [web/ldap.md](web/ldap.md). JNDI(D-24) |
 | 7c | 이메일 수신(IMAP): 주소와 본문 읽기, 이슈와 댓글 만들기, 메일 처리기, IMAP 연결과 수신 대기, 진단의 "Email Receiver" 점검 | 완료 | [web/mailbox.md](web/mailbox.md). Jakarta Mail(D-24), D-25 |
-| 8 | Subversion(SVNKit) | 마지막 | |
+| 8a | Subversion 저장소(SVNKit): 만들기, 지우기, 옮기기, 읽기, 이력, 패치, 프로젝트 만들기와 저장소 종류 바꾸기, README와 이슈 템플릿 | 완료 | [web/subversion.md](web/subversion.md). D-13, A-98 |
+| 8b | Subversion 코드 브라우저(폴더, 파일, 원본, 내려받기), 빈 저장소 안내 | 완료 | [web/subversion.md](web/subversion.md) |
+| 8c | Subversion 커밋 이력, 커밋 보기, 비교, 커밋 코멘트(만들기, 지우기, 알림), 멘션 후보 | 완료 | [web/subversion.md](web/subversion.md) |
+| 8d | Subversion HTTP(WebDAV) 접근(`/svn/소유자/프로젝트`): SVNKit DAV 서블릿과 javax 서블릿 어댑터 | 완료 | [web/subversion.md](web/subversion.md). D-26 |
 
 ## 화면 검증 기록
 

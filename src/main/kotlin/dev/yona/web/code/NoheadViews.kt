@@ -36,10 +36,13 @@ class NoheadViews(
         val viewer = currentUserProvider.get().user
         val role = viewer?.id?.let { id -> projectUsers.findFirstByUserIdAndProjectIdAndRoleIdNot(id, requireNotNull(project.id), RoleType.SITEMANAGER.id)?.role?.id }
         val loginId = if (role == RoleType.MANAGER.id || role == RoleType.MEMBER.id) viewer?.loginId else null
-        return ModelAndView("code/nohead")
-            .addObject("title", "${project.name} - " + messages.getMessage("menu.code", null, LocaleContextHolder.getLocale()))
+        val subversion = project.vcs == "Subversion"
+        return ModelAndView(if (subversion) "code/nohead-svn" else "code/nohead")
+            // v1.6의 Subversion 안내 화면은 제목에 "커밋 이력"을 쓴다.
+            .addObject("title", if (subversion) "title.commitHistory" else "${project.name} - " + messages.getMessage("menu.code", null, LocaleContextHolder.getLocale()))
             .addObject("projectView", views.of(project))
-            .addObject("cloneUrl", repositoryUrls.urlFor(project, request, loginId))
+            .addObject("cloneUrl", repositoryUrls.urlFor(project, request, if (subversion) null else loginId))
+            .addObject("loginId", viewer?.loginId.orEmpty())
             .addObject("canUpdate", accessControl.isAllowed(viewer, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), Operation.UPDATE))
     }
 }

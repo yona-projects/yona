@@ -220,8 +220,8 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `Git이 아닌 프로젝트는 지원하지 않는다`() {
-        val p = project(vcs = "Subversion")
+    fun `Git도 Subversion도 아닌 프로젝트는 지원하지 않는다`() {
+        val p = project(vcs = "Mercurial")
         mockMvc.perform(get("/${p.owner}/${p.name}/code")).andExpect(status().isNotImplemented)
     }
 }

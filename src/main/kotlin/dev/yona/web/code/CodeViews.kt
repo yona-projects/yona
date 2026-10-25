@@ -32,12 +32,13 @@ data class FolderView(val listPath: String, val entries: List<FolderEntry>)
  * @property lineEnding 줄바꿈 종류 이름(`DOS`, `UNIX`, `UNDEFINED`). 이진 파일이면 빈 값
  * @property commentCount 이 파일에 달린 코드 리뷰 스레드 수
  * @property mode 본문 표시 방식: `image`, `binary`, `tooBig`, `markdown`, `code`
+ * @property git Git 프로젝트이면 `true`. Subversion이면 리비전 번호를 `Revision N`으로 보인다
  */
 data class FileView(
     val fileName: String, val path: String, val revId: String, val rawUrl: String, val openUrl: String, val historyUrl: String, val commitUrl: String,
     val userHref: String, val avatarUrl: String?, val author: String, val ago: String, val commitMessage: String, val lineEnding: String,
     val commentCount: Long, val binary: Boolean, val mode: String, val size: Long, val mimeType: String, val data: String?, val renderedMarkdown: String?,
-    val editUrl: String?, val maxFileSize: Long, val siteManager: Boolean
+    val editUrl: String?, val maxFileSize: Long, val siteManager: Boolean, val git: Boolean = true
 )
 
 /** 화면에 순서대로 놓는 항목이다. 폴더이면 [folder], 파일이면 [file]이 있다. */

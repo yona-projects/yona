@@ -90,8 +90,11 @@ class CodePageAssembler(
     }
 
     private fun file(project: Project, info: Map<String, Any?>, branch: String, path: String, loggedIn: Boolean, siteManager: Boolean, maxFileSize: Long, base: String): FileView {
-        val revId = info["commitId"] as? String ?: ""
-        val revSegment = UrlPaths.routeSegment(branchItemName(branch))
+        val git = project.vcs != RepositoryService.VCS_SUBVERSION
+        // Git은 커밋 ID, Subversion은 리비전 번호가 파일의 리비전이다 (v1.6 `TemplateHelper.CodeBrowser.getFileRev`).
+        val revId = (if (git) info["commitId"] else info["revisionNo"]) as? String ?: ""
+        // 열기 주소의 리비전은 Git은 브랜치 이름, Subversion은 리비전 번호이다 (v1.6 `partial_view_file`의 `getRevIdString`).
+        val revSegment = if (git) UrlPaths.routeSegment(branchItemName(branch)) else UrlPaths.routeSegment(revId)
         val binary = info["isBinary"] == true
         val data = info["data"] as? String
         val size = (info["size"] as? Number)?.toLong() ?: 0L
@@ -111,9 +114,9 @@ class CodePageAssembler(
             commitUrl = "$base/commit/${UrlPaths.routeSegment(revId)}" + (if (branch.isNotEmpty()) "?branch=${URLEncoder.encode(branch, Charsets.UTF_8)}" else "") + "#$path",
             userHref = userLink(info["userLoginId"] as? String ?: ""), avatarUrl = info["avatar"] as? String ?: "", author = info["author"] as? String ?: "",
             ago = (info["createdDate"] as? Long)?.let { helper.agoOrDateString(Date(it)) }.orEmpty(), commitMessage = info["commitMessage"] as? String ?: "",
-            lineEnding = if (binary) "" else LineEnding.find(data.orEmpty()).name, commentCount = reviewThreads.countOnCommit(project, revId, "/$path").toLong(), binary = binary, mode = mode, size = size, mimeType = mimeType,
+            lineEnding = if (binary) "" else LineEnding.find(data.orEmpty()).name, commentCount = if (git) reviewThreads.countOnCommit(project, revId, "/$path").toLong() else 0L, binary = binary, mode = mode, size = size, mimeType = mimeType,
             data = data, renderedMarkdown = if (mode == "markdown" && data != null) markdown.renderFileInCodeBrowser(data, project) else null,
-            editUrl = if (loggedIn && !binary) "$base/postform?path=$path&branch=$itemName&edit=true" else null, maxFileSize = maxFileSize, siteManager = siteManager
+            editUrl = if (loggedIn && !binary) "$base/postform?path=$path&branch=$itemName&edit=true" else null, maxFileSize = maxFileSize, siteManager = siteManager, git = git
         )
     }
 

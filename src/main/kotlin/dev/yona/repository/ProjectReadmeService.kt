@@ -16,15 +16,38 @@ import org.springframework.stereotype.Service
  * 감지하며 감지하지 못하면 UTF-8로 읽는다(v1.6 `FileUtil.detectCharset`). 저장소가 없거나 커밋이 없으면 README도 없다.
  */
 @Service
-class ProjectReadmeService(private val repositories: RepositoryService) {
+class ProjectReadmeService(private val repositories: RepositoryService, private val svn: dev.yona.repository.svn.SvnRepositories) {
 
-    /** README 파일 이름이다. 없으면 `null`이다. */
-    fun fileName(project: Project): String? = withRepository(project) { repository ->
-        CANDIDATES.firstOrNull { isFile(repository, it) }
+    /** README 파일 이름이다. 없으면 `null`이다. Subversion은 `trunk` 아래도 찾는다. */
+    fun fileName(project: Project): String? {
+        if (project.vcs == RepositoryService.VCS_SUBVERSION) return svnFileName(project)
+        return withRepository(project) { repository -> CANDIDATES.firstOrNull { isFile(repository, it) } }
     }
 
     /** README 내용이다. 파일이 없거나 읽을 수 없으면 `null`이다. */
-    fun read(project: Project): String? = withRepository(project) { repository ->
+    fun read(project: Project): String? {
+        if (project.vcs == RepositoryService.VCS_SUBVERSION) return svnRead(project)
+        return gitRead(project)
+    }
+
+    /** Subversion의 README 파일 이름이다. `README.md`, `readme.md`, `/trunk/README.md`, `/trunk/readme.md` 순이다 (v1.6 `getReadmeFileName`). */
+    private fun svnFileName(project: Project): String? = try {
+        val owner = project.owner.orEmpty()
+        val name = project.name.orEmpty()
+        (CANDIDATES + CANDIDATES.map { "/trunk/$it" }).firstOrNull { svn.isFile(owner, name, it) }
+    } catch (e: Exception) {
+        null
+    }
+
+    private fun svnRead(project: Project): String? = try {
+        val fileName = svnFileName(project) ?: return null
+        val bytes = svn.rawFile(project.owner.orEmpty(), project.name.orEmpty(), "HEAD", fileName) ?: return null
+        String(bytes, java.nio.charset.Charset.forName(CharsetDetection.detect(bytes)))
+    } catch (e: Exception) {
+        null
+    }
+
+    private fun gitRead(project: Project): String? = withRepository(project) { repository ->
         val name = CANDIDATES.firstOrNull { isFile(repository, it) } ?: return@withRepository null
         val bytes = rawFile(repository, name) ?: return@withRepository null
         String(bytes, java.nio.charset.Charset.forName(CharsetDetection.detect(bytes)))

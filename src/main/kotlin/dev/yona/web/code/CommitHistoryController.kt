@@ -53,7 +53,8 @@ class CommitHistoryController(
     private val noheadViews: NoheadViews,
     private val helper: TemplateHelper,
     private val siteUrls: SiteUrls,
-    private val reviewThreads: dev.yona.domain.comment.ReviewThreadService
+    private val reviewThreads: dev.yona.domain.comment.ReviewThreadService,
+    private val commitComments: dev.yona.domain.comment.CommitCommentRepository
 ) {
 
     /** 기본 브랜치(`HEAD`)까지의 이력이다. */
@@ -97,6 +98,7 @@ class CommitHistoryController(
         return ModelAndView("code/history")
             .addObject("title", "title.commitHistory")
             .addObject("projectView", views.of(project))
+            .addObject("git", project.vcs != RepositoryService.VCS_SUBVERSION)
             .addObject("rows", rows)
             .addObject("hasPath", path != null)
             .addObject("rootUrl", "$base/commits/${UrlPaths.routeSegment(branch.orEmpty())}/")
@@ -130,17 +132,26 @@ class CommitHistoryController(
             if (path != null) url += "&path=$path#" + path.replace("/", "-").replace(".", "-")
             url
         } else "$base/commit/${UrlPaths.routeSegment(commit.id)}"
-        val user = userLookup.findByEmail(commit.authorEmail)
+        val subversion = project.vcs == RepositoryService.VCS_SUBVERSION
+        // Subversion은 작성자의 로그인 ID로 사용자를 찾고 이메일이 없다 (v1.6 `SvnCommit.getAuthor`, `getAuthorEmail`).
+        val user = if (subversion) commit.authorName.takeIf { it.isNotEmpty() }?.let { users.findByLoginId(it) } else userLookup.findByEmail(commit.authorEmail)
         val first = commit.message.substringBefore('\n')
         val more = commit.message.removePrefix(first + "\n")
         return HistoryRow(
             id = commit.id, shortId = commit.shortId, showUrl = showUrl, shortMessageHtml = HtmlUtils.htmlEscape(commit.shortMessage),
             moreHtml = if (commit.message.split("\n").size > 1) autoLinks.render(HtmlUtils.htmlEscape(more), project, null) else "", hasMore = commit.message.split("\n").size > 1,
             browseUrl = path?.let { "$base/code/${UrlPaths.routeSegment(commit.shortId)}/${UrlPaths.encodeEach(it)}" },
-            commentCount = reviewThreads.count(commit.id, path), date = helper.agoOrDateString(commit.authorDate),
-            authorHref = user?.let { "/${it.loginId}" }, authorLoginId = user?.loginId, authorName = user?.name ?: commit.authorName,
-            avatarUrl = if (user != null) avatars.avatarUrl(user, AVATAR_SIZE) else avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE), authorEmail = commit.authorEmail
+            commentCount = if (subversion) commentCount(project, commit.id, path) else reviewThreads.count(commit.id, path), date = helper.agoOrDateString(commit.authorDate),
+            authorHref = user?.let { "/${it.loginId}" }, authorLoginId = user?.loginId, authorName = user?.name ?: commit.authorName.takeIf { it.isNotEmpty() },
+            avatarUrl = if (user != null) avatars.avatarUrl(user, AVATAR_SIZE) else if (subversion) null else avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE),
+            authorEmail = if (subversion) null else commit.authorEmail
         )
+    }
+
+    /** Subversion 커밋의 코멘트 수이다. 경로를 정하면 그 경로의 것만 센다 (v1.6 `CommitComment.count`). */
+    private fun commentCount(project: Project, commitId: String, path: String?): Int {
+        val projectId = requireNotNull(project.id)
+        return if (path != null) commitComments.countByProjectIdAndCommitIdAndPath(projectId, commitId, path) else commitComments.countByProjectIdAndCommitId(projectId, commitId)
     }
 
     private companion object {

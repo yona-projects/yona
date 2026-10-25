@@ -25,14 +25,14 @@ v1.6 `playRepository.GitRepository`와 `RepositoryService`의 저장소 위치, 
 
 `<데이터 디렉터리>/repo/git/<소유자>/<이름>.git` (작업 트리가 없는 bare 저장소). v1.6과 같다. 소유자와 이름은 URL 디코딩이 끝난 값을 쓴다. 한글 이름도 그대로 디렉터리가 된다.
 
-아직 옮기지 않은 위치: 포크와 풀 리퀘스트 병합용 저장소(`repo/git-merging/<소유자>/<이름>.git`), Subversion 저장소(`repo/svn/<소유자>/<이름>`). 해당 기능을 옮길 때 추가한다.
+아직 옮기지 않은 위치: 포크와 풀 리퀘스트 병합용 저장소(`repo/git-merging/<소유자>/<이름>.git`). 해당 기능을 옮길 때 추가한다. Subversion 저장소(`repo/svn/<소유자>/<이름>`)는 [web/subversion.md](../web/subversion.md)에 있다.
 
 ## 동작
 
 - `createRepository(project)`: 같은 위치의 저장소를 먼저 지우고(v1.6 `RepositoryService.createRepository`) bare 저장소를 만든다.
 - `deleteRepository(project)`: JGit의 창 캐시(`WindowCacheConfig`)를 다시 설치해 pack 파일 참조를 비운 뒤 디렉터리를 재귀 삭제한다. 없으면 아무 일도 하지 않는다. v1.6의 `repository.close()` 호출은 저장소를 호출한 쪽이 `use { }`로 닫는 방식으로 바꿨다.
 - `openRepository(project)`: JGit `Repository`를 연다. 호출한 쪽이 닫아야 한다.
-- Git이 아닌 VCS는 `UnsupportedOperationException`이다. Subversion은 로드맵 8단계에서 SVNKit으로 추가한다(D-13).
+- 알 수 없는 VCS는 `UnsupportedOperationException`이다. Subversion은 `SvnRepositories`(SVNKit)가 맡는다(D-13). 열기, 복제, 가져오기는 Git만이다.
 
 ## v1.6과 달라진 점
 

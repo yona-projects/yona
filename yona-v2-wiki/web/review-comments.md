@@ -20,7 +20,7 @@ updated: 2026-10-23
 - 코드 범위(`path`, `startSide`, `startLine`, `startColumn`, `endSide`, `endLine`, `endColumn`)에서 줄과 열 네 값이 모두 숫자로 있으면 코드 범위 스레드, 아니면 파일 단위 스레드이다. 스레드는 열린 상태이고 커밋 작성자가 가입한 사용자이면 코드 작성자(`codeAuthors`)에 넣는다.
 - 커밋 댓글은 `prevCommitId`가 `null`이다. 풀 리퀘스트 댓글은 `commitId`가 없으면 병합 기준 커밋 쌍(`mergedCommitIdTo`, `mergedCommitIdFrom`)에, 있으면 그 커밋 하나(`prevCommitId`는 빈 문자열)에 단 것이다. 새 스레드는 풀 리퀘스트에 연결한다.
 - 작성자의 임시 첨부 전부를 댓글로 옮긴다. 존재하지 않는 커밋은 404.
-- Subversion 프로젝트의 커밋 코멘트(`newSVNComment`)는 8단계에서 옮긴다.
+- Subversion 프로젝트의 커밋 코멘트(`newSVNComment`)는 [web/subversion.md](subversion.md)에 있다.
 
 ## 알림
 

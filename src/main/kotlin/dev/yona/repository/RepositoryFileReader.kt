@@ -12,14 +12,16 @@ import org.springframework.stereotype.Component
  * v1.6 `PlayRepository.getRawFile("HEAD", path)`와 `FileUtil.detectCharset`에 해당한다.
  */
 @Component
-class RepositoryFileReader(private val repositories: RepositoryService) {
+class RepositoryFileReader(private val repositories: RepositoryService, private val svn: dev.yona.repository.svn.SvnRepositories) {
 
     /**
      * [path] 파일의 내용을 읽는다. 저장소를 열 수 없거나 파일이 없거나 디렉터리이면 `null`이다.
      * v1.6처럼 읽는 중 생긴 모든 오류는 파일이 없는 것으로 본다.
      */
     fun readText(project: Project, path: String): String? = try {
-        repositories.openRepository(project).use { repository ->
+        if (project.vcs == RepositoryService.VCS_SUBVERSION) {
+            svn.rawFile(project.owner.orEmpty(), project.name.orEmpty(), "HEAD", path)?.let { String(it, java.nio.charset.Charset.forName(CharsetDetection.detect(it))) }
+        } else repositories.openRepository(project).use { repository ->
             val head = repository.resolve(Constants.HEAD) ?: return@use null
             RevWalk(repository).use { walk ->
                 val treeWalk = TreeWalk.forPath(repository, path, walk.parseTree(head)) ?: return@use null

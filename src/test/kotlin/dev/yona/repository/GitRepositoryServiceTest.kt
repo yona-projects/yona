@@ -23,7 +23,7 @@ class GitRepositoryServiceTest {
     @TempDir
     lateinit var dataDir: File
 
-    private fun service() = RepositoryService(GitRepositories(DataDirectory(YonaProperties(dataDir = dataDir.path))))
+    private fun service() = DataDirectory(YonaProperties(dataDir = dataDir.path)).let { RepositoryService(GitRepositories(it), dev.yona.repository.svn.SvnRepositories(it)) }
 
     private fun project(owner: String = "alice", name: String = "demo", vcs: String = "GIT") =
         Project(owner = owner, name = name, vcs = vcs)
@@ -89,8 +89,8 @@ class GitRepositoryServiceTest {
     }
 
     @Test
-    fun `Subversion은 아직 지원하지 않는다`() {
-        // 로드맵 8단계에서 SVNKit으로 추가한다 (D-13).
-        assertFailsWith<UnsupportedOperationException> { service().createRepository(project(vcs = "Subversion")) }
+    fun `Subversion 저장소는 repo svn 아래에 만든다`() {
+        service().createRepository(project(vcs = "Subversion"))
+        assertTrue(File(dataDir, "repo/svn/alice/demo/format").isFile)
     }
 }

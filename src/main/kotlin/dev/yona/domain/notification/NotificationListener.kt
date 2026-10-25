@@ -209,6 +209,27 @@ class NotificationListener(
         events.add(NewNotification(activity.actor, ResourceType.REVIEW_COMMENT, requireNotNull(comment.id).toString(), EventType.NEW_REVIEW_COMMENT, title, null, comment.contents, receivers.values))
     }
 
+    /**
+     * Subversion 커밋에 코멘트를 달았을 때의 알림이다. 커밋 작성자, 이 커밋에 코멘트를 단 사용자, 프로젝트와 커밋 구독자, 본문에서 멘션된 사용자가
+     * 받고 작성자는 뺀다 (v1.6 `forNewSVNCommitComment`).
+     */
+    @EventListener
+    fun onCommitCommented(activity: dev.yona.domain.comment.CommitCommentedActivity) {
+        val comment = activity.comment
+        val project = requireNotNull(comment.project)
+        val commit = requireNotNull(history.commit(project, requireNotNull(comment.commitId)))
+        val watchers = LinkedHashMap<Long, User>()
+        (this.receivers.svnCommitWatchers(project, requireNotNull(comment.commitId), commit.authorName, true) + mentionService.mentionedUsers(comment.contents.orEmpty()))
+            .forEach { u -> u.id?.let { watchers.putIfAbsent(it, u) } }
+        watchers.remove(activity.author.id)
+        events.add(
+            NewNotification(
+                activity.author, ResourceType.COMMIT_COMMENT, requireNotNull(comment.id).toString(), EventType.NEW_COMMENT,
+                "Re: [${project.name}] ${commit.shortMessage} (${commit.shortId})", null, comment.contents, watchers.values
+            )
+        )
+    }
+
     /** 코드 리뷰 스레드를 열거나 닫았을 때의 알림이다. 풀 리퀘스트의 구독자나 커밋의 구독자가 받고 바꾼 사람은 뺀다 (v1.6 `afterStateChanged(ThreadState, CommentThread)`). */
     @EventListener
     fun onReviewThreadState(activity: ReviewThreadStateActivity) {

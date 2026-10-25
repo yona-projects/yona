@@ -323,3 +323,6 @@
 
 ## [2026-10-25] ingest | 이메일 수신 (7단계 7c)
 - TDD: MailParsingTest 14, MailResourceCreatorTest 11, MailHandlerTest 20, MailHandlerMultiProjectTest 1, MailboxServiceTest 13. `EmailAddressWithDetail`, `MessageIds`, `MailContent`, `MailResourceCreator`, `MailHandler`, `MailboxService`, `MailboxStarter`, `MailboxDiagnostic`, `NotificationExclusions`, `PropertyService`. D-25, A-97, R-61, T-4.
+
+## [2026-10-25] ingest | Subversion (8단계 8a~8d)
+- TDD: SvnRepositoriesTest 11, SvnRepositoryServiceTest 6, SvnCodeBrowserTest 10, SvnCodeBrowserWebTest 9, SvnReadmeTest 5, SvnHistoryWebTest 6, SvnCommitViewWebTest 15, SvnDavTest 8(실제 SVNKit HTTP 클라이언트). `SvnRepositories`, `SvnCodeBrowser`, `CommitCommentService`, `JavaxServletBridge`, `SvnDavService`, `SvnDavFilter`. D-13, D-26, A-98, R-62.

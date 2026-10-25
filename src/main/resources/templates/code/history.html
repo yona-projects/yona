@@ -5,7 +5,7 @@
   https://yona.io
 
   이식 원본: app/views/code/history.scala.html, app/views/common/commitMsg.scala.html
-  모델: title, projectView, rows(HistoryRow 목록), hasPath, rootUrl, crumbs, branches, filesTabUrl, commitsTabUrl, branchesTabUrl, newerUrl, olderUrl
+  모델: title, projectView, git(Git 프로젝트이면 true), rows(HistoryRow 목록), hasPath, rootUrl, crumbs, branches, filesTabUrl, commitsTabUrl, branchesTabUrl, newerUrl, olderUrl
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::historyPage})}">
@@ -28,7 +28,7 @@
                 <ul class="nav nav-tabs" style="margin-bottom:20px;">
                     <li><a th:href="${filesTabUrl}" th:text="#{code.files}"></a></li>
                     <li class="active"><a th:href="${commitsTabUrl}" th:text="#{code.commits}"></a></li>
-                    <li><a th:href="${branchesTabUrl}" th:text="#{title.branches}"></a></li>
+                    <li th:if="${git}"><a th:href="${branchesTabUrl}" th:text="#{title.branches}"></a></li>
                 </ul>
                 </th:block>
 
@@ -39,7 +39,7 @@
                                 <td class="commit-id"><strong>@</strong></td>
                                 <td class="messages"><strong th:text="#{code.commitMsg}"></strong></td>
                                 <td class="browse" th:if="${hasPath}"></td>
-                                <td class="date"><strong th:text="#{code.authorDate}"></strong></td>
+                                <td class="date"><strong th:text="${git} ? #{code.authorDate} : #{code.commitDate}"></strong></td>
                                 <td class="author"><strong th:text="#{code.author}"></strong></td>
                             </tr>
                         </thead>
@@ -69,6 +69,8 @@
                                     <span th:if="${r.authorHref == null and r.authorEmail != null}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${r.authorEmail}">
                                         <img th:src="${r.avatarUrl}">
                                     </span>
+                                    <span th:if="${r.authorHref == null and r.authorEmail == null and r.authorName != null}" th:text="${r.authorName}"></span>
+                                    <span th:if="${r.authorHref == null and r.authorEmail == null and r.authorName == null}" th:text="#{user.notExists.name}"></span>
                                 </td>
                             </tr>
                         </tbody>

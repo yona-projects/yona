@@ -167,7 +167,7 @@ class OrganizationManagementService(
         if (organization.name != name) {
             projects.findByOrganizationId(orgId).forEach { project ->
                 if (name != project.owner) {
-                    if (project.vcs == RepositoryService.VCS_GIT && !repositories.moveRepository(project, name, requireNotNull(project.name))) {
+                    if (!repositories.moveRepository(project, name, requireNotNull(project.name))) {
                         throw IllegalStateException("fail repository move to $name/${project.name}")
                     }
                 }

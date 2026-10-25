@@ -69,7 +69,7 @@ class MentionListService(
      * @param fromProject 커밋이 있는 프로젝트(풀 리퀘스트이면 보내는 프로젝트)
      */
     @Transactional(readOnly = true)
-    fun usersAtCommitDiff(project: Project, fromProject: Project, commitAuthorEmail: String?, commitId: String, query: String, viewer: User?): List<User> {
+    fun usersAtCommitDiff(project: Project, fromProject: Project, commitAuthorEmail: String?, commitId: String, query: String, viewer: User?, svnAuthorLoginId: String? = null): List<User> {
         val ordered = mutableListOf<User>()
         fun add(user: User?) { if (user != null && ordered.none { it.id == user.id }) ordered += user }
         if (query.isEmpty()) {
@@ -77,11 +77,18 @@ class MentionListService(
                 add(userLookup.findByEmail(email))
                 if (email.contains("@")) add(users.findByLoginId(email.substring(0, email.lastIndexOf("@"))))
             }
-            val comments = entityManager.createQuery(
-                "select c from ReviewComment c join c.thread t where t.commitId = :commitId and t.project.id = :projectId and t.pullRequest is null", dev.yona.domain.comment.ReviewComment::class.java
-            ).setParameter("commitId", commitId).setParameter("projectId", fromProject.id).resultList
-            for (comment in comments) {
-                val author = comment.authorLoginId?.let { users.findByLoginId(it) } ?: continue
+            // Subversion 커밋의 작성자는 로그인 ID로 찾는다 (v1.6 `SvnCommit.getAuthor`).
+            svnAuthorLoginId?.takeIf { it.isNotEmpty() }?.let { add(users.findByLoginId(it)) }
+            val commenterLoginIds = if (fromProject.vcs == "Subversion") {
+                entityManager.createQuery("select c.authorLoginId from CommitComment c where c.commitId = :commitId and c.project.id = :projectId order by c.id", String::class.java)
+                    .setParameter("commitId", commitId).setParameter("projectId", fromProject.id).resultList
+            } else {
+                entityManager.createQuery(
+                    "select c.authorLoginId from ReviewComment c join c.thread t where t.commitId = :commitId and t.project.id = :projectId and t.pullRequest is null", String::class.java
+                ).setParameter("commitId", commitId).setParameter("projectId", fromProject.id).resultList
+            }
+            for (loginId in commenterLoginIds) {
+                val author = loginId?.let { users.findByLoginId(it) } ?: continue
                 ordered.removeAll { it.id == author.id }
                 ordered += author
             }

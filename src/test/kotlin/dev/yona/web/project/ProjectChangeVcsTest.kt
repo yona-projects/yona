@@ -139,11 +139,15 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `아직 지원하지 않는 저장소 종류로 바꾸면 500이고 아무것도 바꾸지 않는다`() {
+    fun `Git 프로젝트를 Subversion으로 바꾸면 Git 저장소를 지우고 Subversion 저장소를 만든다`() {
         val project = newProject()
-        mockMvc.perform(post("/${project.owner}/${project.name}/changeVCS").session(login(manager(project)))).andExpect(status().isInternalServerError)
+        mockMvc.perform(post("/${project.owner}/${project.name}/changeVCS").session(login(manager(project))))
+            .andExpect(status().isNoContent)
+            .andExpect(header().string("Location", "/${project.owner}/${project.name}"))
         projects.flush()
-        assertEquals("GIT", projects.findById(project.id!!).get().vcs)
+        assertEquals("Subversion", projects.findById(project.id!!).get().vcs)
+        assertTrue(File("build/tmp/it-project-vcs/repo/svn/${project.owner}/${project.name}/format").isFile)
+        assertTrue(!File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git").exists())
     }
 
     @Test

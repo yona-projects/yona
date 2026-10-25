@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/code/compare_svn.scala.html
+  모델: title, projectView, commitA, commitB, patch, tplFileUrl, tplRawUrl
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::compareSvnPage})}">
+<th:block th:fragment="compareSvnPage" th:with="project=${projectView.project}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
+<div class="project-page-wrap">
+    <div class="code-browse-wrap">
+        <p class="commitInfo">
+            <strong class="commitId" th:text="'@' + ${commitA} + '..' + ${commitB}"></strong>
+        </p>
+        <div class="alert" th:if="${#strings.isEmpty(patch)}" th:text="#{code.noChanges}"></div>
+        <div class="diff-wrap" th:unless="${#strings.isEmpty(patch)}">
+            <div id="commit" data-commit-origin="true" class="diff-body hide" th:text="${patch}"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("code.SvnDiff", {
+            "bCommentable"   : false,
+            "sParentCommitId": /*[[${commitA}]]*/ "",
+            "sCommitId"      : /*[[${commitB}]]*/ "",
+            "sTplFileURL"    : /*[[${tplFileUrl}]]*/ "",
+            "sTplRawURL"     : /*[[${tplRawUrl}]]*/ ""
+        });
+    });
+</script>
+</th:block>
+</html>

@@ -38,6 +38,18 @@ import org.springframework.web.util.HtmlUtils
 data class ReviewCard(val id: Long, val state: String, val content: String, val commentCount: Int, val avatarUrl: String, val ago: String, val agoTitle: String)
 
 /**
+ * Subversion 커밋 보기의 코멘트 한 건의 화면 값이다. [agoTitle]은 v1.6처럼 코멘트가 아니라 커밋의 시각이다.
+ *
+ * @property side 코멘트를 단 쪽(`A`, `B`). 없으면 빈 값
+ * @property viaEmail 메일로 만든 코멘트이면 `true`
+ * @property attachmentsJson 첨부 목록의 JSON(`{"attachments": [...]}`)
+ */
+data class SvnCommentView(
+    val id: Long, val path: String, val side: String, val line: String, val authorLoginId: String, val authorName: String, val authorHref: String, val avatarUrl: String,
+    val ago: String, val agoTitle: String, val bodyHtml: String, val viaEmail: Boolean, val attachmentsJson: String, val deletable: Boolean, val deleteUrl: String
+)
+
+/**
  * 커밋 보기와 두 커밋 비교 화면이다. v1.6 `CodeHistoryApp.show`(`app/controllers/CodeHistoryApp.java:107-157`), `CompareApp.compare`와
  * `app/views/code/diff.scala.html`, `compare.scala.html`에 해당한다.
  *
@@ -64,8 +76,15 @@ class CommitViewController(
     private val views: ProjectViewFactory,
     private val helper: TemplateHelper,
     private val siteUrls: SiteUrls,
-    private val messages: org.springframework.context.MessageSource
+    private val messages: org.springframework.context.MessageSource,
+    private val svn: dev.yona.repository.svn.SvnRepositories,
+    private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
+    private val markdown: dev.yona.markdown.ProjectMarkdownRenderer,
+    private val attachmentListing: dev.yona.web.AttachmentListing,
+    private val originalEmails: dev.yona.domain.notification.OriginalEmailRepository
 ) {
+
+    private val json = tools.jackson.databind.json.JsonMapper.builder().build()
 
     @GetMapping("/{user}/{project}/commit/{id}")
     @CodeAccessCheck
@@ -78,6 +97,7 @@ class CommitViewController(
         val revision = UrlPaths.decodeSegmentOrSelf(id)
         val commit = history.commit(project, revision) ?: return ErrorViews.notFound("error.notfound.commit", views.of(project), null)
         val parent = history.parentOf(project, revision)
+        if (project.vcs == "Subversion") return showSvn(project, commit, parent, branch, path)
         val fileDiffs = diffs.commitDiff(project, revision) ?: return ErrorViews.notFound("error.notfound", views.of(project), null)
         val viewer = currentUserProvider.get().user
         val onCommit = threads.onCommit(project, commit.id)
@@ -115,6 +135,58 @@ class CommitViewController(
             .addObject("parent", parent != null)
     }
 
+    /**
+     * Subversion 커밋 보기이다 (v1.6 `CodeHistoryApp.show`의 Subversion 분기와 `svnDiff.scala.html`). 패치는 화면의 스크립트(`code.SvnDiff`)가
+     * 그리고, 커밋 코멘트와 구독 단추, 코멘트 입력란을 함께 보여 준다.
+     */
+    private fun showSvn(project: dev.yona.domain.project.Project, commit: CommitInfo, parent: CommitInfo?, branch: String?, path: String?): Any {
+        val owner = project.owner.orEmpty()
+        val name = project.name.orEmpty()
+        val projectId = requireNotNull(project.id)
+        val patch = svn.patch(owner, name, commit.id)
+        val viewer = currentUserProvider.get().user
+        val base = siteUrls.path("/$owner/$name")
+        val author = commit.authorName.takeIf { it.isNotEmpty() }?.let { users.findByLoginId(it) }
+        val selectedBranch = branch?.ifBlank { null } ?: "HEAD"
+        val selectedPath = path.orEmpty()
+        val commitUrl = "$base/commit/${commit.id}"
+        val resource = ProjectResource("$projectId:${commit.id}", ResourceType.COMMIT, project)
+        val comments = commitComments.findByProjectIdAndCommitIdOrderByCreatedDateAscIdAsc(projectId, commit.id).map { c ->
+            val commentId = requireNotNull(c.id)
+            val writer = c.authorLoginId?.let { users.findByLoginId(it) }
+            SvnCommentView(
+                id = commentId, path = c.path.orEmpty(), side = c.side?.name.orEmpty(), line = c.line?.toString().orEmpty(), authorLoginId = c.authorLoginId.orEmpty(), authorName = c.authorName.orEmpty(),
+                authorHref = "/${c.authorLoginId}", avatarUrl = writer?.let { avatars.avatarUrl(it) }.orEmpty(), ago = helper.agoOrDateString(c.createdDate),
+                agoTitle = helper.dateString(commit.authorDate), bodyHtml = markdown.render(c.contents.orEmpty(), project),
+                viaEmail = originalEmails.findByResourceTypeAndResourceId(ResourceType.COMMIT_COMMENT, commentId.toString()).isNotEmpty(),
+                attachmentsJson = json.writeValueAsString(attachmentListing.fileList(ResourceType.COMMIT_COMMENT, commentId)),
+                deletable = accessControl.isAllowed(viewer, dev.yona.access.ProjectResource(commentId.toString(), ResourceType.COMMIT_COMMENT, project, container = resource, authorId = c.authorId), Operation.DELETE),
+                deleteUrl = "$commitUrl/comments/$commentId/delete"
+            )
+        }
+        val watching = viewer != null && viewer.id in receivers.svnCommitWatchers(project, commit.id, commit.authorName, false).mapNotNull { it.id }
+        return ModelAndView("code/svn-diff")
+            .addObject("title", "${messages.getMessage("code.commits", null, "code.commits", LocaleContextHolder.getLocale())} @${commit.id}")
+            .addObject("projectView", views.of(project))
+            .addObject("commit", linkedMapOf<String, Any?>(
+                "id" to commit.id, "message" to commit.message, "authorHref" to author?.let { "/${it.loginId}" }, "authorName" to (author?.name ?: commit.authorName.takeIf { it.isNotEmpty() }),
+                "avatarUrl" to author?.let { avatars.avatarUrl(it, 32) }, "known" to (author != null), "ago" to helper.agoOrDateString(commit.authorDate), "agoTitle" to helper.dateString(commit.authorDate)
+            ))
+            .addObject("patch", patch)
+            .addObject("comments", comments)
+            .addObject("canComment", accessControl.isProjectResourceCreatable(viewer, project, ResourceType.COMMIT_COMMENT))
+            .addObject("commentAction", "$commitUrl/comments")
+            .addObject("watching", watching)
+            .addObject("watchUrl", siteUrls.path("/watch?resource.type=${resource.type.resource}&resource.id=${resource.id}"))
+            .addObject("unwatchUrl", siteUrls.path("/unwatch?resource.type=${resource.type.resource}&resource.id=${resource.id}"))
+            .addObject("listUrl", "$base/commits/${UrlPaths.routeSegment(selectedBranch)}/" + UrlPaths.encodeEach(selectedPath))
+            .addObject("mentionUrl", "$base/mentionListAtCommitDiff?commitId=${commit.id}")
+            .addObject("filesUrl", "$base/code")
+            .addObject("commitsUrl", "$base/commits")
+            .addObject("branches", svn.refNames().map { BranchOption("$base/commits/${UrlPaths.routeSegment(it)}/", it, it == selectedBranch) })
+            .addObject("parentId", parent?.id.orEmpty())
+    }
+
     /** 두 커밋 사이의 차이를 보여 준다. */
     @GetMapping("/{user}/{project}/compare/{revA}..{revB}")
     @IsAllowed(Operation.READ)
@@ -124,6 +196,16 @@ class CommitViewController(
         val commitA = history.commit(project, revA)
         val commitB = history.commit(project, revB)
         if (commitA == null || commitB == null) return ErrorViews.notFound("error.notfound.commit", views.of(project), null)
+        if (project.vcs == "Subversion") {
+            val patch = svn.patch(owner, name, commitA.id.toLong(), commitB.id.toLong())
+            return ModelAndView("code/compare-svn")
+                .addObject("title", "${commitA.id}..${commitB.id}")
+                .addObject("projectView", views.of(project))
+                .addObject("commitA", commitA.id).addObject("commitB", commitB.id)
+                .addObject("patch", patch)
+                .addObject("tplFileUrl", siteUrls.path("/$owner/$name/code/") + "\${commitId}/\${path}")
+                .addObject("tplRawUrl", siteUrls.path("/$owner/$name/rawcode/") + "\${commitId}/\${path}")
+        }
         val fileDiffs = diffs.diff(project, revA, revB)
         return ModelAndView("code/compare")
             .addObject("title", "${commitA.id}..${commitB.id}")

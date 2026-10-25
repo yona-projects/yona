@@ -42,17 +42,25 @@ class CodeBrowserService(
     private val avatars: AvatarService,
     private val messages: MessageSource,
     private val properties: YonaProperties,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val svnBrowser: dev.yona.repository.svn.SvnCodeBrowser,
+    private val svn: dev.yona.repository.svn.SvnRepositories
 ) {
 
+    private fun isSvn(project: Project) = project.vcs == RepositoryService.VCS_SUBVERSION
+
     /** 저장소에 브랜치, 태그, 원격 참조가 하나도 없으면 `true`이다 (v1.6 `GitRepository.isEmpty`). */
-    fun isEmpty(project: Project): Boolean = repositories.refNames(project).isEmpty()
+    fun isEmpty(project: Project): Boolean =
+        if (isSvn(project)) svn.isEmpty(project.owner.orEmpty(), project.name.orEmpty()) else repositories.refNames(project).isEmpty()
 
     /**
      * [path]의 폴더나 파일 정보이다. [branch]가 `null`이면 `HEAD`이다. 폴더는 `{"type": "folder", "data": {이름: {…}}}`, 파일은
      * `{"type": "file", …}`이다. 저장소가 비었거나 브랜치와 경로가 없으면, 또는 항목이 없는 폴더이면 `null`이다.
      */
-    fun metaData(project: Project, branch: String?, path: String): Map<String, Any?>? = repositories.openRepository(project).use { repository ->
+    fun metaData(project: Project, branch: String?, path: String): Map<String, Any?>? =
+        if (isSvn(project)) svnBrowser.metaData(project, branch, path) else gitMetaData(project, branch, path)
+
+    private fun gitMetaData(project: Project, branch: String?, path: String): Map<String, Any?>? = repositories.openRepository(project).use { repository ->
         val head = resolveCommit(repository, branch) ?: return null
         if (path.isEmpty()) return folder(repository, project, "", repository.newTreeWalk(head), head)
         val walk = TreeWalk.forPath(repository, path, head.tree) ?: return null
@@ -77,14 +85,23 @@ class CodeBrowserService(
         var partial = ""
         for (i in 0 until length) {
             partial = if (partial.isEmpty()) parts[i] else partial + "/" + parts[i]
-            val intermediate = repositories.openRepository(project).use { isIntermediateFolder(it, partial) }
+            // Subversion은 중간 폴더를 건너뛰지 않는다 (v1.6 `SVNRepository.isIntermediateFolder`).
+            val intermediate = !isSvn(project) && repositories.openRepository(project).use { isIntermediateFolder(it, partial) }
             if (!intermediate) chain += LinkedHashMap(metaData(project, branch, partial) ?: return null).also { it["path"] = partial }
         }
         return chain
     }
 
     /** [revision]의 [path] 파일 내용이다. 폴더이거나 없으면 `null`이다. */
-    fun rawFile(project: Project, revision: String, path: String): ByteArray? = repositories.openRepository(project).use { repository ->
+    fun rawFile(project: Project, revision: String, path: String): ByteArray? {
+        if (isSvn(project)) {
+            val number = if (revision == "HEAD") revision else revision.toLongOrNull()?.toString() ?: return null
+            return svn.rawFile(project.owner.orEmpty(), project.name.orEmpty(), number, path)
+        }
+        return gitRawFile(project, revision, path)
+    }
+
+    private fun gitRawFile(project: Project, revision: String, path: String): ByteArray? = repositories.openRepository(project).use { repository ->
         val id = repository.resolve(revision) ?: return null
         val tree = try { RevWalk(repository).use { it.parseTree(id) } } catch (e: Exception) { return null }
         val walk = TreeWalk.forPath(repository, path, tree) ?: return null
@@ -94,6 +111,8 @@ class CodeBrowserService(
 
     /** [branch]의 내용을 zip으로 [out]에 쓴다. 브랜치를 찾지 못하면 아무것도 쓰지 않는다. */
     fun archive(project: Project, branch: String, out: OutputStream) {
+        // Subversion은 내려받기를 지원하지 않는다. v1.6 `SVNRepository.getArchive`는 아무것도 쓰지 않는다(R-62).
+        if (isSvn(project)) return
         repositories.openRepository(project).use { repository ->
             val id = repository.resolve(branch) ?: return
             synchronized(ARCHIVE_LOCK) {

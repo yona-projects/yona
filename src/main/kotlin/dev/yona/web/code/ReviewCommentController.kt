@@ -1,6 +1,7 @@
 package dev.yona.web.code
 
 import dev.yona.access.AccessControl
+import dev.yona.access.ProjectResource
 import dev.yona.access.ResourceLookup
 import dev.yona.access.asResource
 import dev.yona.domain.comment.CodeRange
@@ -40,7 +41,7 @@ import tools.jackson.databind.json.JsonMapper
  * - 스레드 열기와 닫기: 각각 다시 열기, 닫기 권한이 필요하다. 성공하면 빈 `200`이다.
  * - 댓글 삭제: 커밋 코멘트와 리뷰 댓글만 지울 수 있다. 지울 권한이 필요하다.
  *
- * Subversion 프로젝트의 커밋 코멘트는 Subversion을 옮길 때 더한다.
+ * Subversion 프로젝트의 커밋 코멘트는 [CommitCommentService]로 만들고 `commit/{id}/comments/{id}/delete`로 지운다.
  */
 @Controller
 @AnonymousCheck
@@ -55,7 +56,9 @@ class ReviewCommentController(
     private val lookup: ResourceLookup,
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
-    private val views: ProjectViewFactory
+    private val views: ProjectViewFactory,
+    private val commitCommentService: dev.yona.domain.comment.CommitCommentService,
+    private val commitComments: dev.yona.domain.comment.CommitCommentRepository
 ) {
 
     @PostMapping("/{user}/{project}/commit/{commitId}/comments")
@@ -68,12 +71,43 @@ class ReviewCommentController(
         val contents = request.getParameter("contents")
         if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "CODE")
         if (history.commit(project, commitId) == null) return ErrorViews.notFound("error.notfound", views.of(project), null)
+        if (project.vcs == "Subversion") return newSvnComment(project, commitId, contents, request, response)
 
         if (!threadBelongs(request, project)) return ErrorViews.badRequest("error.validation", views.of(project), "CODE")
 
         val author = requireNotNull(currentUserProvider.get().user)
         val comment = service.commentOnCommit(project, commitId, author, contents, threadId(request), range(request))
         return RedirectSupport.see(request, response, links.comment(comment))
+    }
+
+    /**
+     * Subversion 프로젝트의 커밋 코멘트를 만든다 (v1.6 `CodeHistoryApp.newSVNComment`). 커밋(리소스 `프로젝트번호:리비전`) 아래에 코멘트를 만들 수 있어야 한다.
+     * 파일 경로, 줄, 쪽은 요청에 있으면 함께 저장한다. 끝나면 코멘트 위치로 303 이동한다.
+     */
+    private fun newSvnComment(project: dev.yona.domain.project.Project, commitId: String, contents: String, request: HttpServletRequest, response: HttpServletResponse): Any {
+        val author = currentUserProvider.get().user
+        val container = ProjectResource("${project.id}:$commitId", ResourceType.COMMIT, project)
+        if (!accessControl.isResourceCreatable(author, container, ResourceType.COMMIT_COMMENT)) return ErrorViews.forbidden("error.forbidden", views.of(project))
+        val side = request.getParameter("side")?.let { value -> Side.entries.firstOrNull { it.name == value } }
+        val comment = commitCommentService.add(
+            project, commitId, requireNotNull(author), contents, request.getParameter("path")?.takeIf { it.isNotEmpty() }, request.getParameter("line")?.toIntOrNull(), side
+        )
+        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/commit/$commitId#comment-${comment.id}")
+    }
+
+    /** Subversion 커밋 코멘트를 지우고 커밋 보기로 돌아간다 (v1.6 `CodeHistoryApp.deleteComment`). 지울 권한이 있어야 한다. */
+    @DeleteMapping("/{user}/{project}/commit/{commitId}/comments/{id}/delete")
+    @Transactional
+    fun deleteCommitComment(
+        @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable commitId: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse
+    ): Any {
+        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        val comment = commitComments.findById(id).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), null)
+        if (!accessControl.isAllowed(currentUserProvider.get().user, lookup.get(ResourceType.COMMIT_COMMENT, id.toString()), Operation.DELETE)) {
+            return ErrorViews.forbidden("error.forbidden", views.of(project))
+        }
+        service.deleteCommitComment(requireNotNull(comment.id))
+        return RedirectSupport.see(request, response, "/$owner/$name/commit/$commitId")
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{pullRequestId}/comments")
