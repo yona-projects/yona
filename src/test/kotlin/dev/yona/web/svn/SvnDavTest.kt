@@ -161,6 +161,16 @@ class SvnDavTest {
         assertTrue(response.headers().firstValue("DAV").isPresent, response.headers().toString())
     }
 
+    @Test
+    fun `응답의 href는 맨 앞에 슬래시가 있는 절대 경로이다`() {
+        // svn 명령줄 클라이언트는 맨 앞 슬래시가 빠진 href를 요청 주소로 쓰지 못한다.
+        val request = HttpRequest.newBuilder(URI.create(url(publicProject)))
+            .method("OPTIONS", HttpRequest.BodyPublishers.ofString("<?xml version=\"1.0\" encoding=\"utf-8\"?><D:options xmlns:D=\"DAV:\"><D:activity-collection-set/></D:options>"))
+            .header("Content-Type", "text/xml").build()
+        val body = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString()).body()
+        assertTrue(body.contains("<D:href>/svn/${publicProject.owner}/${publicProject.name}/!svn/act/</D:href>"), body)
+    }
+
     // --- 쓰기 ---
 
     @Test

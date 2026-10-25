@@ -34,15 +34,22 @@ object JavaxServletBridge {
         var characterEncoding: String? = null
         val attributes = HashMap<String, Any?>()
         val session = session()
+        // 서블릿 경로는 컨텍스트 경로 뒤 `/svn/소유자/`까지이다. 원본 주소에서 잘라 퍼센트 인코딩 길이에 영향을 받지 않게 한다.
+        val relative = real.requestURI.removePrefix(real.contextPath)
+        val servletPath = Regex("^/[^/]+/[^/]*/").find(relative)?.value ?: relative
+        // DAV 서블릿은 응답의 href를 `컨텍스트 경로 + 서블릿 경로(앞의 /를 뗀 것)`로 만든다. 컨텍스트 경로가 비어 있으면 `/`가 하나 더 있어야
+        // 절대 경로(`/svn/소유자/…`)가 남는다. svn 명령줄 클라이언트는 `/`가 빠진 href를 쓰지 못한다(v1.6은 이 보정이 없다, A-98).
+        val davServletPath = if (real.contextPath.isEmpty()) "/$servletPath" else servletPath
         return proxy(javax.servlet.http.HttpServletRequest::class.java) { method, args ->
             when (method.name) {
                 "getPathInfo" -> encodedPathInfo
                 "getRemoteUser" -> username
                 "getUserPrincipal" -> Principal { username }
-                "getServletPath" -> real.requestURI.let { it.substring(0, it.length - encodedPathInfo.length) }
+                "getServletPath" -> davServletPath
+
                 "getRequestURI" -> real.requestURI
                 "getRequestURL" -> StringBuffer(listOfNotNull(real.requestURI, real.queryString).joinToString("?"))
-                "getContextPath" -> ""
+                "getContextPath" -> real.contextPath
                 "getQueryString" -> real.queryString
                 "getMethod" -> real.method
                 "getHeader" -> real.getHeader(args[0] as String)
