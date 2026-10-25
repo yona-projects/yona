@@ -223,6 +223,15 @@ updated: 2026-10-22
 - **결정(선생님)**: (A) 권장안 수용.
 - **상태**: 확정. 구현은 [web/migration.md](web/migration.md)에 기록한다.
 
+### D-24. 7단계(소셜 로그인, LDAP, 이메일 수신)는 직접 구현과 표준 API로 1차 완성하고 라이브러리 전환은 리팩터링 후보로 둔다 (2026-10-25, 선생님)
+
+- **질문**: 소셜 로그인(GitHub, Google), LDAP, IMAP 수신을 어떤 방식으로 구현할 것인가.
+- **선택지**: 소셜 로그인은 (A) `RestClient`로 직접 구현, (B) Spring Security OAuth2 Client. LDAP과 IMAP은 (A) JNDI와 Jakarta Mail(spring-boot-starter-mail에 포함), (B) Spring LDAP과 Spring Integration.
+- **권장안**: 모두 (A).
+- **권장 이유**: v1.6의 `UserCredential`과 `LinkedAccount` 저장 규칙, `ldap.*` 설정, 마지막으로 읽은 UID 기록(`MAILBOX_LAST_SEEN_UID`) 같은 세부 동작을 그대로 옮기기 쉽고 새 의존성이 없다. (B)는 의존성과 어댑터 코드가 늘어 v1.6 일치 검증 비용이 커진다. LDAP은 v1.6이 131줄이라 이득이 작고, IMAP은 연결 관리 코드를 일부 덜지만 UID 기록과 점검 연동을 맞추는 코드가 더 든다.
+- **결정(선생님)**: 권장안(A)으로 1차 완성하고, (B) 전환은 향후 리팩터링 대상 항목으로 분류한다.
+- **상태**: 확정. 전환 후보는 [refactoring-backlog.md](refactoring-backlog.md)의 "전환 후보" 절에 둔다.
+
 ### 보류 중인 결정 (2026-10-25, 선생님 지시)
 
 - **이전(Migration) 화면의 접근 범위**: D-23으로 확정했다(위).
