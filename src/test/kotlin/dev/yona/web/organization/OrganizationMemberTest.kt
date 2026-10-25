@@ -395,4 +395,16 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
         val site = newUser().also { siteAdmins.save(SiteAdmin(admin = it)) }
         deleteOrg(org, login(site)).andExpect(status().isSeeOther)
     }
+
+    @Test
+    fun `구성원과 삭제 화면의 403은 조직 머리말과 메뉴가 있는 화면이다`() {
+        val org = newOrg()
+        val member = join(org, newUser(), RoleType.ORG_MEMBER)
+        listOf("members", "deleteForm").forEach { path ->
+            val doc = Jsoup.parse(mockMvc.perform(get("/organizations/${org.name}/$path").session(login(member))).andExpect(status().isForbidden).andReturn().response.contentAsString)
+            assertEquals(org.name, doc.selectFirst(".project-header-wrap .project-author a")!!.text(), path)
+            assertTrue(doc.select(".project-menu-nav").isNotEmpty(), path)
+            assertTrue(doc.select(".page-wrap-outer .error-wrap p").isNotEmpty(), path)
+        }
+    }
 }

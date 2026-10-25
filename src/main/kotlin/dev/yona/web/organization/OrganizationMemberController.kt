@@ -55,7 +55,7 @@ class OrganizationMemberController(
         val organization = organizationService.findByName(organizationName)
             ?: return ErrorViews.notFound("organization.member.unknownOrganization")
         val viewer = currentUserProvider.get().user
-        if (!accessControl.isAllowed(viewer, organization.asResource(), Operation.UPDATE)) return ErrorViews.forbidden("error.forbidden")
+        if (!accessControl.isAllowed(viewer, organization.asResource(), Operation.UPDATE)) return ErrorViews.forbidden("error.forbidden", orgViews.of(organization))
 
         val rows = orgViews.of(organization).let { _ ->
             management.members(organization).mapNotNull { ou ->

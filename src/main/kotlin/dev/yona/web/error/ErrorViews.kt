@@ -1,5 +1,6 @@
 package dev.yona.web.error
 
+import dev.yona.web.organization.OrganizationViewContext
 import dev.yona.web.project.ProjectViewContext
 import dev.yona.web.user.LoginFormController
 import org.springframework.http.HttpStatus
@@ -11,8 +12,7 @@ import org.springframework.web.servlet.ModelAndView
  * 컨트롤러가 `return ErrorViews.notFound("error.notfound.project")`처럼 돌려주면 응답 상태와 화면이 함께 정해진다.
  * v1.6은 `forbidden(ErrorViews.Forbidden.render(키))`처럼 상태와 화면을 따로 골랐다.
  *
- * 프로젝트 화면 안에서 보여 주는 변형은 [ProjectViewContext]를 함께 받는다. 조직 화면 안의 변형은 조직 화면을
- * 옮길 때 추가한다.
+ * 프로젝트 화면 안에서 보여 주는 변형은 [ProjectViewContext]를, 조직 화면 안의 변형은 [OrganizationViewContext]를 함께 받는다.
  */
 object ErrorViews {
 
@@ -59,6 +59,13 @@ object ErrorViews {
     fun badRequest(messageKey: String, project: ProjectViewContext, menuType: String): ModelAndView =
         view("error/badrequest", HttpStatus.BAD_REQUEST, messageKey)
             .addObject("projectView", project).addObject("menuType", menuType)
+
+    /**
+     * 403: 조직 화면 안에서 권한이 없음을 알린다. 조직 머리말과 메뉴를 함께 보여 준다
+     * (v1.6 `ErrorViews.Forbidden.render(키, organization)`, `error/forbidden_organization`).
+     */
+    fun forbidden(messageKey: String, organization: OrganizationViewContext): ModelAndView =
+        view("error/forbidden-organization", HttpStatus.FORBIDDEN, messageKey).addObject("orgView", organization)
 
     /**
      * 403: 익명 사용자에게 로그인 화면을 보여 주고 로그인 뒤 [returnUrl]로 돌아오게 한다.

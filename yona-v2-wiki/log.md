@@ -343,3 +343,8 @@
 - 위키([web/project-home.md](web/project-home.md))에 v1.6 동작을 먼저 적고 `ProjectHomeTabsTest` 16건을 먼저 쓴 뒤 구현했다. `ProjectHistoryService`, `ProjectDashboardService`, `ProjectHomeTabsAssembler`, 템플릿 `project/partial-history`, `partial-dashboard`. A-102, R-68.
 - 컴파일된 v1.6 역방향 라우터(`legacy-yona/target/.../routes_reverseRouting.scala`)로 `issues(…, "open")`가 `?state=open`을 만든다는 것을 확인해, 이전에 "열리지 않는 주소"로 적은 R-49(4)를 바로잡고 내 이슈, 사용자 페이지, 조직 목록의 라벨 링크를 고쳤다.
 
+## [2026-10-25] lint | 동등성 점검 9c~9e
+- 9c: `V16SchemaTest`가 이미 스키마를 대조하고 있어 새 작업이 없다.
+- 9d: v1.6 템플릿의 CSS 클래스와 id를 v2와 대조해 조직용 403 화면(`error/forbidden-organization`, `OrganizationSettingTest`, `OrganizationMemberTest`)과 로그인 화면의 이메일 인증 안내(`LoginEmailVerificationHelpTest`)를 이식했다. `public` 723개 파일과 LESS 20개는 v1.6과 같다. 호출이 없는 v1.6 템플릿 11개는 이식하지 않는다.
+- 9e: 요청 매개변수와 액션 이름을 대조했고, 라우트 대조에 가려졌던 포괄 라우트(끝 슬래시 제거 이동)를 `GlobalErrorHandler`에 구현했다(`TrailingSlashRedirectTest` 6건, A-103).
+

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<!--/*
+  이식 원본: app/views/error/forbidden_organization.scala.html
+  모델: messageKey(메시지 키), orgView(OrganizationViewContext)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/organization-layout :: organizationLayout(${orgView.name}, 'NONE', ${orgView}, ~{::forbiddenPage})}">
+<th:block th:fragment="forbiddenPage" th:with="org=${orgView}">
+<th:block th:replace="~{organization/header :: header(${org})}"></th:block>
+<th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="error-wrap">
+            <i class="ico ico-err2"></i>
+            <p th:text="${#messages.msgOrNull(messageKey) ?: messageKey}"></p>
+        </div>
+    </div>
+</div>
+</th:block>
+</html>

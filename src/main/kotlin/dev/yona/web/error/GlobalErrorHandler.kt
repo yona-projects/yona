@@ -2,7 +2,9 @@ package dev.yona.web.error
 
 import dev.yona.web.layout.LayoutModelFactory
 import jakarta.persistence.PersistenceException
+import dev.yona.web.RedirectSupport
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
@@ -33,8 +35,19 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
     @ExceptionHandler(ViewResultException::class)
     fun viewResult(e: ViewResultException, request: HttpServletRequest): ModelAndView = withLayout(e.view, request)
 
+    /**
+     * 일치하는 처리기가 없을 때이다. GET이고 경로가 `/`로 끝나면(경로가 `/`뿐인 경우는 제외) 마지막 슬래시를 뗀 경로로 `303` 이동한다.
+     * 쿼리 문자열은 넣지 않는다. 그 밖에는 404 화면이다. v1.6 `routes` 맨 아래의 포괄 라우트(`Application.removeTrailer`)와 같다.
+     */
     @ExceptionHandler(NoHandlerFoundException::class, NoResourceFoundException::class)
-    fun notFound(request: HttpServletRequest): ModelAndView = withLayout(ErrorViews.notFound(), request)
+    fun notFound(request: HttpServletRequest, response: HttpServletResponse): Any {
+        val path = request.requestURI
+        if (request.method == "GET" && path.length > 1 && path.endsWith("/")) {
+            log.debug("Trailing slash removed and redirected: {} to {}", path, path.dropLast(1))
+            return RedirectSupport.see(request, response, path.dropLast(1))
+        }
+        return withLayout(ErrorViews.notFound(), request)
+    }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
     fun methodNotSupported(e: HttpRequestMethodNotSupportedException, request: HttpServletRequest): ModelAndView {

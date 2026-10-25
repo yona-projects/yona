@@ -276,4 +276,29 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
         assertTrue(big.response.contentAsString.contains("Images should be less than 5MB in size."))
         assertTrue(attachments.findByContainer(ResourceType.ORGANIZATION, org.id!!).isEmpty())
     }
+
+    @Test
+    fun `설정 화면의 403은 조직 머리말과 메뉴가 있는 화면이다`() {
+        // v1.6 `ErrorViews.Forbidden.render("error.forbidden", organization)` -> `forbidden_organization`
+        val org = newOrg()
+        val member = join(org, newUser(), RoleType.ORG_MEMBER)
+        listOf(login(member), null).forEach { session ->
+            val result = mockMvc.perform(get("/organizations/${org.name}/settingform").apply { session?.let { session(it) } }).andExpect(status().isForbidden).andReturn()
+            val doc = Jsoup.parse(result.response.contentAsString)
+            assertEquals(org.name, doc.selectFirst(".project-header-wrap .project-author a")!!.text())
+            assertTrue(doc.select(".project-menu-nav").isNotEmpty())
+            assertEquals("You are not authorized", doc.selectFirst(".page-wrap-outer .error-wrap p")!!.text())
+        }
+    }
+
+    @Test
+    fun `설정 저장의 403도 조직 머리말과 메뉴가 있는 화면이고 경고가 보인다`() {
+        val org = newOrg()
+        val member = join(org, newUser(), RoleType.ORG_MEMBER)
+        val result = save(org, login(member), "name" to org.name!!, "descr" to "x")
+        assertEquals(403, result.response.status)
+        val doc = Jsoup.parse(result.response.contentAsString)
+        assertEquals(org.name, doc.selectFirst(".project-header-wrap .project-author a")!!.text())
+        assertTrue(doc.select(".project-menu-nav").isNotEmpty())
+    }
 }

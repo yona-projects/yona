@@ -226,4 +226,10 @@ class LoginFormPageTest : AbstractIntegrationTest() {
         assertEquals("Log in", doc.title())
         assertTrue(result.response.contentAsString.contains("\$yobi.notify("), "경고 알림")
     }
+
+    @Test
+    fun `이메일 인증을 쓰지 않는 사이트의 로그인 화면에는 확인 메일 안내가 없다`() {
+        val doc = org.jsoup.Jsoup.parse(mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/users/loginform")).andReturn().response.contentAsString)
+        kotlin.test.assertTrue(doc.select(".email-verification-help").isEmpty())
+    }
 }

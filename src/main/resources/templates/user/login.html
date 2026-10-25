@@ -18,6 +18,7 @@
     <p class="tag-line" th:text="#{app.description}"></p>
   </div>
   <div class="login-form-wrap frm-wrap">
+    <div th:if="${site.useEmailVerification}" class="email-verification-help" th:text="#{notification.confirm.mail.will.be.sent}"></div>
     <form th:action="@{/users/login}" method="POST">
       <input type="hidden" name="redirectUrl" th:value="${redirectUrl}" />
       <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">

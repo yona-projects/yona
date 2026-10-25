@@ -11,6 +11,8 @@ import kotlin.test.assertEquals
  *
  * `audit/v16-routes.txt`는 v1.6 라우트 파일에서 뽑은 스냅샷이다. 경로 매개변수는 이름과 정규식을 버리고 위치만 비교한다.
  * [KNOWN_GAPS]는 아직 이식하지 못했거나 의도적으로 매핑하지 않은 항목이며, 구현할 때마다 여기서 지운다.
+ * v1.6 라우트 맨 아래의 포괄 라우트(끝 슬래시 제거 이동)는 정규화하면 한 구간 주소와 같아져 이 대조로는 확인되지 않는다.
+ * 그 동작은 `TrailingSlashRedirectTest`가 따로 검증한다.
  * 목록이 실제 누락과 정확히 같아야 통과하므로 구현했는데 목록에 남아 있어도, 새로 누락돼도 실패한다.
  */
 class RouteParityTest : AbstractIntegrationTest() {

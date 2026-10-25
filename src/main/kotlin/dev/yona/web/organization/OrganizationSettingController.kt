@@ -65,7 +65,7 @@ class OrganizationSettingController(
             ?: return ErrorViews.notFound("organization.member.unknownOrganization")
         val viewer = currentUserProvider.get().user
         if (!accessControl.isAllowed(viewer, organization.asResource(), Operation.UPDATE)) {
-            return ErrorViews.forbidden("error.forbidden").addObject("flashMessages", warning("organization.member.needManagerRole"))
+            return ErrorViews.forbidden("error.forbidden", orgViews.of(organization)).addObject("flashMessages", warning("organization.member.needManagerRole"))
         }
 
         val name = request.getParameter("name")
@@ -122,8 +122,8 @@ class OrganizationSettingController(
     }
 
     private fun notFoundOrForbidden(name: String): ModelAndView =
-        if (organizationService.findByName(name) == null) ErrorViews.notFound("organization.member.unknownOrganization")
-        else ErrorViews.forbidden("error.forbidden")
+        organizationService.findByName(name)?.let { ErrorViews.forbidden("error.forbidden", orgViews.of(it)) }
+            ?: ErrorViews.notFound("organization.member.unknownOrganization")
 
     /** 설정 화면이다. [nameWarning]은 이름 입력란 아래, [flashKey]는 알림으로 같은 응답에서 보여 준다. */
     private fun settingView(organization: Organization, nameWarning: String?, flashKey: String?): ModelAndView {

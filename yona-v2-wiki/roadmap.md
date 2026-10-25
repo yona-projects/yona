@@ -91,9 +91,9 @@ updated: 2026-10-22
 | 8d | Subversion HTTP(WebDAV) 접근(`/svn/소유자/프로젝트`): SVNKit DAV 서블릿과 javax 서블릿 어댑터 | 완료 | [web/subversion.md](web/subversion.md). D-26 |
 | 9a | 동등성 점검: 라우트 대조(`conf/routes` 대 v2 요청 매핑). `RouteParityTest`가 v1.6 라우트 스냅샷(`audit/v16-routes.txt`)과 v2 요청 매핑을 비교하고, 남은 차이는 의도적 제외(정적 자원, WebDAV 필터, Play 가짜 경로)뿐이다 | 완료 | 누락 17건 가운데 실제로 구현하지 않은 것은 라벨 API 5건([web/label-api.md](web/label-api.md)), 조직 이슈와 PR 목록 3건([web/organization-lists.md](web/organization-lists.md)), 리뷰 목록([web/review-list.md](web/review-list.md)), 홈 별칭 3건([web/home-page.md](web/home-page.md)), `/_init`([web/repository-init.md](web/repository-init.md), D-27)이었다. 코드 메타데이터 AJAX 2건은 오탐이었다 |
 | 9b | 동등성 점검: 메시지 키 대조 | 완료 | `MessageParityTest`: 5개 언어 번들의 키가 v1.6과 같고(값은 설정 이름이 바뀐 `error.tooLargeText.admin` 하나만 다르다) 템플릿 참조 562개가 모두 번들에 있다. 코드가 쓰는 키 중 번들에 없는 것은 `common.comment.created`(이슈 엑셀 머리글)뿐이며 v1.6도 같다(R-67) |
-| 9c | 동등성 점검: DB 스키마 대조 | 예정 | |
-| 9d | 동등성 점검: 템플릿과 JS 소스 대조 | 진행 중 | v1.6 템플릿 242개 중 v2에서 이식 원본을 찾지 못한 17개를 v1.6 호출 관계로 확인하는 중. 프로젝트 홈의 이력, 대시보드 탭이 비어 있던 것을 찾아 이식했다([web/project-home.md](web/project-home.md)). 남은 확인 대상: `childCommentsAnchorDiv`, `commentAndVoterPairDisplay`, `forbidden_organization`, `allOrganizationList*`, `partial_index_event_timeline`, `partial_pagination*`, `partial_postings`, `uservoice`, `partial_forklist`, `help/experimental` |
-| 9e | 동등성 점검: 컨트롤러 점검표와 보강 테스트 | 예정 | |
+| 9c | 동등성 점검: DB 스키마 대조 | 완료 | 기존 `V16SchemaTest`가 v1.6 실제 스키마(TSV)와 세 DB의 테이블, 컬럼, 인덱스, 외래 키를 대조한다([domain/schema-mapping.md](domain/schema-mapping.md)). 새로 할 일이 없다 |
+| 9d | 동등성 점검: 템플릿과 JS 소스 대조 | 완료 | (1) v1.6 템플릿 242개의 CSS 클래스와 id가 v2 템플릿, 코드, JS에 나오는지 대조해 프로젝트 홈의 이력, 대시보드 탭, 조직용 403 화면, 로그인 화면의 이메일 인증 안내가 빠진 것을 찾아 이식했다. 호출이 없는 v1.6 죽은 템플릿 11개(`debug`, `uservoice`, `partial_forklist`, `experimental`, `allProjectList`, `allOrganizationList`(`_partial` 포함), `partial_pagination`, `partial_paginationForUserList`, `partial_postings`, `user/partial_milestones`)는 이식하지 않는다. (2) `public` 아래 723개 파일은 빌드 도구 `compiler.jar` 하나를 빼고 v1.6과 해시가 같고, LESS 소스(`app/assets`) 20개도 같다 |
+| 9e | 동등성 점검: 컨트롤러 액션 대조와 보강 테스트 | 완료 | 라우트가 있는 v1.6 액션 290개의 요청 매개변수 이름 58개가 모두 v2에 있고, 이름이 v2에 언급되지 않은 22개는 철자가 다른 이름이거나 이미 라우트 대조로 확인된 것이었다. 포괄 라우트(`removeTrailer`)가 라우트 대조의 정규화에 가려졌던 것을 찾아 구현했다([web/error-pages.md](web/error-pages.md)) |
 
 ## 화면 검증 기록
 
