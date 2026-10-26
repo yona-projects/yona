@@ -154,6 +154,8 @@ class DataService(private val dataSource: DataSource) {
                         TableOutcome.FAILED -> failed += table.name
                         TableOutcome.ABORTED -> { failed += table.name; return }
                     }
+                    // v1.6은 테이블 이름이 맞으면 먼저 TRUNCATE하고, 값이 배열이 아니면 건너뛰므로 테이블만 비워진다
+                    table != null -> { truncate(connection, ids, table); parser.skipChildren() }
                     sequenceOf != null && value.isNumeric -> restoreSequence(connection, product, ids, sequenceOf, parser.longValue)
                     else -> parser.skipChildren()
                 }
@@ -163,18 +165,32 @@ class DataService(private val dataSource: DataSource) {
         }
     }
 
+    /**
+     * 테이블을 비우고 바로 확정한다. v1.6의 `TRUNCATE`는 DDL이라 즉시 확정되어, 뒤이어 행을 넣다 실패해 되돌려도 테이블은 빈 채로 남는다.
+     * 비우는 데 실패해도 가져오기는 계속한다.
+     */
+    private fun truncate(connection: Connection, ids: Identifiers, table: DataTable): Boolean = try {
+        connection.createStatement().use { it.executeUpdate("delete from ${ids.table(table)}") }
+        connection.commit()
+        true
+    } catch (e: Exception) {
+        log.error("Failed to empty the table {}", table.name, e)
+        try { connection.rollback() } catch (r: Exception) { log.warn("Failed to roll back", r) }
+        false
+    }
+
     /** 테이블 하나를 가져온 결과이다. [ABORTED]는 파서가 깨져 남은 테이블을 읽을 수 없다는 뜻이다. */
     private enum class TableOutcome { IMPORTED, FAILED, ABORTED }
 
     /**
-     * 테이블을 비우고 파서가 가리키는 배열의 행을 넣는다. 행 오류가 나면 이 테이블의 변경을 되돌리고 배열의 남은 부분을 읽어 넘긴다.
+     * 테이블을 비워(즉시 확정) 파서가 가리키는 배열의 행을 넣는다. 행 오류가 나면 넣은 행을 되돌리고(테이블은 빈 채로 남는다) 배열의 남은 부분을 읽어 넘긴다.
      * 파서 자체가 깨지면 되돌리고 [TableOutcome.ABORTED]를 돌려준다.
      */
     private fun importTable(connection: Connection, ids: Identifiers, table: DataTable, parser: tools.jackson.core.JsonParser): TableOutcome {
         var failure: Exception? = null
         var statement: PreparedStatement? = null
         try {
-            connection.createStatement().use { it.executeUpdate("delete from ${ids.table(table)}") }
+            if (!truncate(connection, ids, table)) throw IllegalStateException("${table.name}을 비우지 못했습니다.")
             statement = connection.prepareStatement(
                 "insert into ${ids.table(table)} (" + table.columns.joinToString(", ") { ids.column(table, it.name) } + ") values (" + table.columns.joinToString(", ") { "?" } + ")"
             )

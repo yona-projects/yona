@@ -6,7 +6,7 @@ import org.mozilla.universalchardet.UniversalDetector
  * 바이트 내용을 보고 문자 인코딩을 추정한다. v1.6 `utils.FileUtil.detectCharset`에 해당한다.
  * 추정하지 못하면 UTF-8로 본다.
  *
- * v1.6의 juniversalchardet 1.0.3은 순수 ASCII에서 `null`을 돌려주어 UTF-8이 되었다. 2.x는 `US-ASCII`를 돌려주므로 UTF-8로 되돌린다.
+ * 감지기는 v1.6과 같은 juniversalchardet 1.0.3이다(A-112). 순수 ASCII는 `null`이라 UTF-8이 된다. 2.x로 올리면 `US-ASCII`가 나오므로 그 경우도 UTF-8로 되돌린다.
  */
 object CharsetDetection {
 

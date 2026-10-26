@@ -88,7 +88,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-81 | `10.sql` USER/USER_AVATAR 백필 | `a.id = b.id`로 첨부 id와 사용자 id를 비교해 엉뚱한 행이 갱신된다. v2는 evolutions를 실행하지 않고 `ddl-auto: update`를 쓰므로 기존 v1.6 DB를 붙이면 이미 적용된 결과를 읽을 뿐이고 새 DB에는 백필이 없다 | 재현하지 않음(해당 없음) |
 | R-82 | REST 프로젝트 생성(`ProjectApi`) | SITEMANAGER 역할 행이 두 번 INSERT된다(`Project.create` 안과 밖). 웹 생성은 1행이다. v2도 REST 경로에서 2행을 넣는다(웹 경로는 1행) | 재현함(선생님 결정 2026-10-26) |
 | R-83 | 조직 검색의 `HIDE_PROJECT_LISTING` | 조건이 `!isMemberOf || !isAdminOf`라 한 사용자가 조직당 역할 행 하나뿐이어서 항상 400이다(`SearchApp.java:127-131`). v2도 같다 | 재현함 |
-| R-84 | 임시 업로드 정리, import, welcome 화면 | `import`에서 TRUNCATE 뒤 값이 배열이 아니면 테이블만 비워지고 행이 채워지지 않는다(v2는 테이블을 그대로 둔다). 업데이트 확인과 IMAP 폴링은 `application.secret`이 기본값이 아닐 때만 등록된다(v2 비밀 키가 비어 있어도 같은 취급, `welcome.md:14`) | 일부 재현하지 않음(D3, A-92) |
+| R-84 | 임시 업로드 정리, import, welcome 화면 | `import`에서 TRUNCATE 뒤 값이 배열이 아니면 테이블만 비워지고 행이 채워지지 않는다(결정 5로 v2도 같게 테이블만 비운다). 업데이트 확인과 IMAP 폴링은 `application.secret`이 기본값이 아닐 때만 등록된다(v2 비밀 키가 비어 있어도 같은 취급, `welcome.md:14`) | 일부 재현하지 않음(D3, A-92) |
 | R-85 | `ProjectApp.addCommitAuthor` | 커밋 작성자 이메일에 `@`가 없으면 `StringIndexOutOfBoundsException`으로 500이다. v2는 `contains("@")` 가드로 정상 처리한다(선생님 지시 2026-10-26: v1.6의 오류는 v2 유지) | 재현하지 않음 |
 | R-86 | 첨부 업로드의 파일 종류 감지 | `Attachment.save`가 인자 `fileName`이 아니라 아직 비어 있는 필드 `name`으로 감지해 파일 이름 힌트 없이 내용만으로 MIME을 정한다. 예를 들어 `.css` 파일도 내용이 평문이면 `text/plain`이다. v2도 같게 내용만으로 감지한다(2026-10-26 수정, `AttachmentServiceTest`) | 재현함 |
 | R-87 | 5차 검증의 결함 후보 189건 | 항목별 v1.6 소스 줄, 기록 위치, v2 판정은 [v16-defect-catalog.md](architecture/v16-defect-catalog.md)에 있다. 기록이 없던 실제 결함(★ 105건)은 이 목록이 기록이며, v2는 같게 재현하거나(JS, 템플릿, 서버) 선생님 지시에 따라 v1.6의 오류를 오류 없이 처리한다 | 재현함 / 일부 재현하지 않음(목록의 v2 판정 열) |

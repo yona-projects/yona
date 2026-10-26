@@ -142,39 +142,48 @@ class SiteDataTest : AbstractIntegrationTest() {
 
     private fun seedOld() { upload(admin(), """{"LABEL": [{"id": 1, "name": "old", "category": "c"}]}""").andExpect(redirectedUrl("/")); assertEquals(listOf("old"), labelNames()) }
 
+    // v1.6은 테이블을 TRUNCATE로 비운다. TRUNCATE는 DDL이라 즉시 확정되므로, 행을 넣다 실패해 되돌려도 테이블은 빈 채로 남는다.
     @Test
-    fun `파일이 도중에 잘리면 그 테이블을 되돌리고 처음 화면으로 이동한다`() {
+    fun `파일이 도중에 잘리면 그 테이블의 행 넣기를 되돌리고 처음 화면으로 이동한다`() {
         seedOld()
         // v1.6 DefaultExchanger는 테이블마다 트랜잭션을 잡고 예외를 삼킨다. 실패한 테이블만 되돌리고 302 /이다.
         upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
-        assertEquals(listOf("old"), labelNames())
+        assertEquals(emptyList(), labelNames())
         // 되돌린 뒤 자동 커밋으로 바꿀 때 부분 행이 확정되지 않아야 한다(같은 입력을 한 번 더)
         upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(redirectedUrl("/"))
-        assertEquals(listOf("old"), labelNames())
+        assertEquals(emptyList(), labelNames())
     }
 
     @Test
-    fun `파일 중간의 구문 오류도 그 테이블을 되돌리고 처음 화면으로 이동한다`() {
+    fun `파일 중간의 구문 오류도 그 테이블의 행 넣기를 되돌리고 처음 화면으로 이동한다`() {
         seedOld()
         upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": ##}]}""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
-        assertEquals(listOf("old"), labelNames())
+        assertEquals(emptyList(), labelNames())
     }
 
     @Test
-    fun `행에 필수 값이 없거나 기본 키가 겹치면 그 테이블만 되돌린다`() {
+    fun `행에 필수 값이 없거나 기본 키가 겹치면 그 테이블은 빈 채로 남는다`() {
         seedOld()
         upload(admin(), """{"LABEL": [{"id": 1}]}""").andExpect(redirectedUrl("/"))
-        assertEquals(listOf("old"), labelNames())
+        assertEquals(emptyList(), labelNames())
+        seedOld()
         upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 1, "name": "b", "category": "c"}]}""").andExpect(redirectedUrl("/"))
-        assertEquals(listOf("old"), labelNames())
+        assertEquals(emptyList(), labelNames())
     }
 
     @Test
-    fun `앞서 끝낸 테이블은 남고 뒤에서 깨진 테이블은 되돌린다`() {
+    fun `테이블 이름의 값이 배열이 아니면 테이블만 비워진다 (v1_6 TRUNCATE)`() {
+        seedOld()
+        upload(admin(), """{"LABEL": 5}""").andExpect(redirectedUrl("/"))
+        assertEquals(emptyList(), labelNames())
+    }
+
+    @Test
+    fun `앞서 끝낸 테이블은 남고 뒤에서 깨진 테이블은 빈 채로 남는다`() {
         seedOld()
         upload(admin(), """{"MENTION": [{"id": 9001, "resource_type": "SD_TEST", "resource_id": "sd-new", "user_id": null}], "LABEL": [{"id": 1, "name": "x", "category": "c"}, {"id": 2, "name": """").andExpect(redirectedUrl("/"))
         assertEquals(listOf("sd-new"), mentionResources())
-        assertEquals(listOf("old"), labelNames())
+        assertEquals(emptyList(), labelNames())
     }
 
     // --- 아바타 없는 사용자 ---
