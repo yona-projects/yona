@@ -90,6 +90,13 @@ class AttachmentServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `파일 종류는 파일 이름을 힌트로 쓰지 않고 내용만으로 감지한다 (v1_6 동작)`() {
+        // v1.6 Attachment.save는 인자 fileName이 아니라 아직 비어 있는 필드 name으로 감지해서 이름 힌트가 없다 (R-86).
+        val mime = service.store(file("x.css", "body { color: red }".toByteArray()), "x.css", ResourceType.PROJECT, 1L, "a").attachment.mimeType!!
+        assertTrue(mime.startsWith("text/plain"), mime)
+    }
+
+    @Test
     fun `텍스트 파일은 문자셋을 덧붙인다`() {
         val mime = service.store(file("t.txt", "hello world".toByteArray()), "t.txt", ResourceType.PROJECT, 1L, "a").attachment.mimeType!!
         assertTrue(mime.startsWith("text/plain; charset="), mime)

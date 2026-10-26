@@ -48,6 +48,5 @@ updated: 2026-10-26
 
 ## 재현하지 않고 기록만 하는 실패 경로
 
-- [R-74](../refactoring-backlog.md) `changeVCS`: 저장소 생성 실패 시 v1.6은 README 해제와 포크 분리만 반영된 중간 상태가 남고, v2는 데이터베이스 변경을 모두 되돌린다.
-- [R-76](../refactoring-backlog.md) `accept`: 병합 중 예외 시 `isMerging` 고착을 v2는 롤백한다.
+- (2026-10-26 선생님 결정 P-09로 이 절의 R-74, R-76, R-82는 v1.6 상태를 재현한다. 더 이상 "재현하지 않는 항목"이 아니다.) [R-74](../refactoring-backlog.md) `changeVCS` 실패 시 중간 상태, [R-76](../refactoring-backlog.md) `accept`의 병합 중 표시 고착은 v2도 같다.
 - [R-73](../refactoring-backlog.md) `editIssue`, `deleteIssue`: 권한 확인 전에 먼저 반영하거나 발송하는 v1.6 결함을 v2는 고쳐 두었다(P-07).

@@ -44,16 +44,16 @@ class PullRequestWorkflow(
      * 충돌하면 병합하지 않고 표시만 끈다. 병합하면 상태를 `MERGED`로 바꾸고 병합 기준 커밋을 저장하며 상태 변경 알림과 타임라인을 남긴 뒤, 같은 브랜치와 관련된
      * 다른 요청의 병합 검사를 다시 시작한다.
      *
-     * v1.6은 리뷰어가 모자랄 때 병합 중 표시를 켠 채 오류를 돌려 요청이 계속 병합 중으로 남았다. 그 요청은 화면의 단추가 막고 있어 직접 만든 요청에서만 닿으므로
-     * 표시를 끄고 돌려준다([decisions.md] A-76).
+     * v1.6처럼 병합 중 표시를 가장 먼저 켜고 저장한다. 그래서 리뷰어가 모자라 400을 돌려줄 때나 병합 중 예외가 날 때도 표시가 꺼지지 않고
+     * 요청이 계속 병합 중으로 남는다([refactoring-backlog.md] R-76, 선생님 결정 2026-10-26). v1.6 `accept`의 병합은 트랜잭션 밖에서 돌고
+     * 저장이 즉시 반영되므로 이 메서드에도 일부러 트랜잭션을 걸지 않는다.
      */
-    @Transactional
     fun accept(pullRequest: PullRequest, accepter: User): AcceptResult {
         val toProject = requireNotNull(pullRequest.toProject)
-        if (toProject.isUsingReviewerCount == true && !pullRequest.reviewed) return AcceptResult.NOT_REVIEWED
-
         pullRequest.isMerging = true
         pullRequests.save(pullRequest)
+        if (toProject.isUsingReviewerCount == true && !pullRequest.reviewed) return AcceptResult.NOT_REVIEWED
+
         val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email))
         pullRequest.isMerging = false
         if (result == null) {

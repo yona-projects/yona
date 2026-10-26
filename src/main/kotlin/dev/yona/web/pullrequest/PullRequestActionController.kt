@@ -50,7 +50,7 @@ class PullRequestActionController(
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/accept")
     @IsAllowed(Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
-    @Transactional
+    // 트랜잭션을 걸지 않는다: 병합 중 예외가 나도 먼저 저장한 병합 중 표시가 남아야 v1.6과 같다 (R-76)
     fun accept(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         if (workflow.accept(pullRequest, requireNotNull(currentUserProvider.get().user)) == AcceptResult.NOT_REVIEWED) {

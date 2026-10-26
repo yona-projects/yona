@@ -13,7 +13,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-07 | 기본 로그인 페이지 | 로그인하지 않은 사용자가 `POST /-_-api/v1/user/defultLoginPage`를 호출하면 사용자 ID가 없어 오류(HTTP 500)가 난다 | 같게 재현한다(`IllegalArgumentException`) | `UserApp.java` `setDefaultLoginPage` |
 | R-08 | AccessControl | 컨테이너가 프로젝트가 아닌 전역 리소스(예: USER)이면 `isResourceCreatable`이 `container.getProject()`의 예외로 실패한다 | 같게 재현한다(`UnsupportedOperationException`) | `AccessControl.java:99-102` |
 | R-09 | AccessControl | 프로젝트 매니저 판정이 "코드(CODE)는 삭제할 수 없다" 규칙보다 먼저 평가되어 매니저는 코드도 삭제할 수 있다 | 같게 재현한다 | `AccessControl.java:244-248`, `:289-293` |
-| R-10 | AccessControl | 존재하지 않는 이슈를 ISSUE_POST 리소스로 검사하면 담당자 조회에서 NullPointerException이 난다 | 같게 재현한다(`NoSuchElementException`) | `AccessControl.java:403-405` |
+| R-10 | AccessControl | 존재하지 않는 이슈를 ISSUE_POST 리소스로 검사하면 담당자 조회에서 NullPointerException이 난다 | 같게 재현한다(`NoSuchElementException`) | `AccessControl.java:401-402` |
 | R-11 | 프로젝트 메뉴 | 단축키 `Q`(설정 화면)가 "로그인 ID가 `manager`일 때"만 켜진다. 프로젝트 역할 이름과 로그인 ID를 혼동했다 | 같게 재현한다 | `projectMenu.scala.html`의 `case Some(role) if role.equals("manager")` |
 | R-12 | 프로젝트 검사 | 마일스톤, 이슈 라벨, 라벨 분류, 커밋 코멘트를 번호만으로 찾아 경로의 프로젝트와 달라도 통과한다. 숫자가 아닌 식별자는 500이다 | 같게 재현한다 | `Resource.java:226-247` |
 | R-13 | 프로젝트 생성 | 이름 예약어(`.`, `..`, `.git`) 비교의 `ignoreCase` 분기가 거꾸로라 기본 설정에서 대소문자를 무시한다(`.GIT`도 거부) | 같게 재현한다 | `ExConstraints.java:62-77` |
@@ -78,18 +78,20 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-71 | 변경 화면의 리뷰 카드 선택 | `$("a[href=#reviewcards-" + state + "]")`처럼 따옴표 없는 속성 선택자를 써서 jQuery 3에서 `Syntax error, unrecognized expression` 오류가 나고, 해당 스레드가 있는 탭으로 전환되지 않는다. `yona-layout.js`와 `Diff.js`가 v1.6과 같아 v1.6도 같다 | 재현함 |
 | R-72 | 러시아어 번들의 `project.you.are.watching` | `conf/messages.ru-RU:649`가 `Вы смотрите {-} проект.`라서 `{-}`가 올바른 `MessageFormat` 패턴이 아니다. 프로젝트 머리말(`project/header`)이 이 메시지를 인자와 함께 부르므로 러시아어 화면(`Accept-Language: ru`)은 프로젝트 화면마다 `IllegalArgumentException: can't parse argument number: -`로 500이 난다. v1.6 번들에도 같은 문구가 있고 Play도 메시지를 `MessageFormat`으로 해석하므로 v1.6도 같다(브라우저 점검 2026-10-25). 고치려면 `{-}`를 `{0}`으로 바꾼다 | 재현함(고칠지 선생님 결정 대기) |
 | R-73 | `IssueApp.editIssue`, `deleteIssue` | v1.6은 권한을 확인하기 전에 이슈 이동(`targetProjectId`)을 반영하거나 삭제 알림, 웹훅을 보낸다. 권한 없는 사용자가 이슈를 옮기거나 삭제 알림을 일으킬 수 있는 보안 결함이다. v2는 권한을 먼저 확인한다 | 재현하지 않음(선생님 승인 2026-10-26, P-07) |
-| R-74 | `ProjectApp.changeVCS` | v1.6은 `@Transactional`이 없어 저장소 생성이 실패하면 README 해제와 포크 분리는 이미 반영되고 저장소만 지워진 중간 상태로 남는다. v2는 데이터베이스 변경을 모두 되돌린다 | 재현하지 않음(실패 경로, 선생님 확인 대기) |
+| R-74 | `ProjectApp.changeVCS` | v1.6은 `@Transactional`이 없어 저장소 생성이 실패하면 README 해제와 포크 분리는 이미 반영되고 저장소만 지워진 중간 상태로 남는다. v2도 서비스에 트랜잭션을 걸지 않아 같은 중간 상태가 남는다 | 재현함(선생님 결정 2026-10-26) |
 | R-75 | 번역(`IssueApi.translate`) | 번역 서비스 응답에 `translatedText`가 없으면 `String.join`이 문자열 `null`을 이어 붙여 번역문에 "null"이 섞인다 | 재현함 |
-| R-76 | `PullRequestApp.accept` | 병합 중 예외가 나거나 리뷰 수 검사로 400을 돌려주는 경로(`PullRequestApp.java:428-438`)에서도 이미 커밋된 `isMerging=true`가 남아 병합 중 상태로 고착된다(5차 검증 확인). v2는 같은 트랜잭션이라 롤백된다 | 재현하지 않음(실패 경로, 선생님 확인 대기) |
+| R-76 | `PullRequestApp.accept` | 병합 중 예외가 나거나 리뷰 수 검사로 400을 돌려주는 경로(`PullRequestApp.java:428-438`)에서도 이미 커밋된 `isMerging=true`가 남아 병합 중 상태로 고착된다(5차 검증 확인). v2도 병합 중 표시를 먼저 저장하고 트랜잭션을 걸지 않아 같은 상태가 남는다 | 재현함(선생님 결정 2026-10-26) |
 | R-77 | 외부 이슈 API 수정, 상태, 라벨 | 저장할 때마다 `save()`가 제목 머리말 개수를 한 번 더 늘린다(R-29와 같은 원인) | 재현함 |
 | R-78 | 프로젝트 생성 화면(`yobi.project.New.js`) | 코드 체크를 해제하면 `welReviewerCountSettingPanel` 등이 초기화되지 않아 `undefined.hide()`로 TypeError가 난다. VCS를 바꾸면 두 분기 모두 풀 리퀘스트 체크를 checked로 강제한다. JS가 v1.6과 같아 v2 화면에서도 재현된다(브라우저 확인 2026-10-26) | 재현함 |
 | R-79 | 사용자 설정 토큰 재발급(`token_reset`) | GET 요청만으로 토큰이 재발급된다. v2도 같다 | 재현함 |
 | R-80 | `MarkdownApp.render`, 이슈 번역 | 마크다운 미리보기에 프로젝트 읽기 권한 검사가 없고, 번역은 댓글 id만으로 조회해 비공개 프로젝트 내용이 번역으로 노출된다 | 재현함 |
 | R-81 | `10.sql` USER/USER_AVATAR 백필 | `a.id = b.id`로 첨부 id와 사용자 id를 비교해 엉뚱한 행이 갱신된다. v2는 evolutions를 실행하지 않고 `ddl-auto: update`를 쓰므로 기존 v1.6 DB를 붙이면 이미 적용된 결과를 읽을 뿐이고 새 DB에는 백필이 없다 | 재현하지 않음(해당 없음) |
-| R-82 | REST 프로젝트 생성(`ProjectApi`) | SITEMANAGER 역할 행이 두 번 INSERT된다(`Project.create` 안과 밖). 웹 생성은 1행이다. v2는 두 경로 모두 1행이다 | 재현하지 않음(선생님 확인 대기) |
+| R-82 | REST 프로젝트 생성(`ProjectApi`) | SITEMANAGER 역할 행이 두 번 INSERT된다(`Project.create` 안과 밖). 웹 생성은 1행이다. v2도 REST 경로에서 2행을 넣는다(웹 경로는 1행) | 재현함(선생님 결정 2026-10-26) |
 | R-83 | 조직 검색의 `HIDE_PROJECT_LISTING` | 조건이 `!isMemberOf || !isAdminOf`라 한 사용자가 조직당 역할 행 하나뿐이어서 항상 400이다(`SearchApp.java:127-131`). v2도 같다 | 재현함 |
 | R-84 | 임시 업로드 정리, import, welcome 화면 | `import`에서 TRUNCATE 뒤 값이 배열이 아니면 테이블만 비워지고 행이 채워지지 않는다(v2는 테이블을 그대로 둔다). 업데이트 확인과 IMAP 폴링은 `application.secret`이 기본값이 아닐 때만 등록된다(v2 비밀 키가 비어 있어도 같은 취급, `welcome.md:14`) | 일부 재현하지 않음(D3, A-92) |
 | R-85 | `ProjectApp.addCommitAuthor` | 커밋 작성자 이메일에 `@`가 없으면 `StringIndexOutOfBoundsException`으로 500이다. v2는 `contains("@")` 가드로 정상 처리한다(선생님 지시 2026-10-26: v1.6의 오류는 v2 유지) | 재현하지 않음 |
+| R-86 | 첨부 업로드의 파일 종류 감지 | `Attachment.save`가 인자 `fileName`이 아니라 아직 비어 있는 필드 `name`으로 감지해 파일 이름 힌트 없이 내용만으로 MIME을 정한다. 예를 들어 `.css` 파일도 내용이 평문이면 `text/plain`이다. v2도 같게 내용만으로 감지한다(2026-10-26 수정, `AttachmentServiceTest`) | 재현함 |
+| R-87 | 5차 검증의 결함 후보 189건 | 항목별 v1.6 소스 줄, 기록 위치, v2 판정은 [v16-defect-catalog.md](architecture/v16-defect-catalog.md)에 있다. 기록이 없던 실제 결함(★ 105건)은 이 목록이 기록이며, v2는 같게 재현하거나(JS, 템플릿, 서버) 선생님 지시에 따라 v1.6의 오류를 오류 없이 처리한다 | 재현함 / 일부 재현하지 않음(목록의 v2 판정 열) |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

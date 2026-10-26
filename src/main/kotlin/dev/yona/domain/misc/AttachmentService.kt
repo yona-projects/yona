@@ -129,7 +129,8 @@ class AttachmentService(
     fun fileOf(attachment: Attachment): File = File(uploadDirectory(), attachment.hash.orEmpty())
 
     private fun save(file: File, name: String?, containerType: ResourceType, containerId: Long, ownerLoginId: String?): Stored {
-        val mime = detectMediaType(file, name)
+        // v1.6 `Attachment.save`는 인자 `fileName`이 아니라 아직 비어 있는 필드 `name`으로 감지하므로 파일 이름 힌트 없이 내용만으로 정한다 (R-86).
+        val mime = detectMediaType(file, null)
         val attachment = Attachment(
             containerType = containerType,
             containerId = containerId,

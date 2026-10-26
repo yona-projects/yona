@@ -9,6 +9,7 @@
 
 - [설정 키 대응표](architecture/configuration-keys.md): `application.*` -> `yona.*`
 - [v1.6과 달라지는 아키텍처 결정](architecture/differences-from-v16.md): 기술 스택 전환과 그 이유
+- [v1.6 소스 결함 후보 전체 목록](architecture/v16-defect-catalog.md): 5차 검증의 결함 후보 189건과 v2 판정
 - [직접 만든 요청에서만 닿는 차이](architecture/hand-crafted-request-differences.md): A-24에 따라 재현하지 않는 v1.6 동작 목록
 - [기술 스택 결정 기록](architecture/technology-decisions.md): 쿼리 계층, 스키마 관리, 검증 DB, 테스트 스택과 테스트 DB 운영 방식
 

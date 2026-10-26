@@ -132,6 +132,18 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `REST로 만든 프로젝트에는 SITEMANAGER 역할 행이 두 개 들어간다 (v1_6 결함 재현)`() {
+        val a = admin()
+        json(post(api("owners/xpnew3/projects")), a.token, """{"projectName":"twice"}""").andExpect(status().isCreated)
+        entityManager.flush(); entityManager.clear()
+        val project = projects.findByOwnerIgnoreCaseAndNameIgnoreCase("xpnew3", "twice")!!
+        // v1.6 ProjectApi.newProject는 Project.create(안에서 assignRole)와 밖의 assignRole을 모두 부르고, findByIds가 SITEMANAGER 행을 제외해 매번 새 행이 들어간다 (R-82)
+        val rows = (entityManager.createNativeQuery("select count(*) from project_user where project_id = :id and role_id = :role")
+            .setParameter("id", project.id).setParameter("role", RoleType.SITEMANAGER.id).singleResult as Number).toInt()
+        assertEquals(2, rows)
+    }
+
+    @Test
     fun `범위를 정하지 않으면 비공개로 만든다`() {
         val a = admin()
         json(post(api("owners/xpnew2/projects")), a.token, """{"projectName":"plain"}""").andExpect(status().isCreated)

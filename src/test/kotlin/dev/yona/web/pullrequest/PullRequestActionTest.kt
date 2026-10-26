@@ -138,11 +138,12 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `리뷰어가 모자라면 400이고 리뷰하면 받아들일 수 있다`() {
+    fun `리뷰어가 모자라면 400이고 병합 중 표시가 남은 채로 리뷰하면 받아들일 수 있다`() {
         val s = setup(usingReviewers = true); addChange(s)
         val pr = open(s)
         mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isBadRequest)
-        assertEquals(State.OPEN, reload(pr).state); assertEquals(false, reload(pr).isMerging)
+        // v1.6 accept는 병합 중 표시를 먼저 켜고 저장한 뒤 400을 돌려 표시가 남는다 (R-76)
+        assertEquals(State.OPEN, reload(pr).state); assertEquals(true, reload(pr).isMerging)
         mockMvc.perform(post(url(s, pr, "/review")).session(s.managerSession)).andExpect(status().isSeeOther)
         mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isSeeOther)
         assertEquals(State.MERGED, reload(pr).state)
