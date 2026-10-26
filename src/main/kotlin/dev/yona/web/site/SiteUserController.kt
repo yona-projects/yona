@@ -45,7 +45,10 @@ class SiteUserController(
         val id: Long, val loginId: String, val name: String, val email: String, val avatarUrl: String, val createdText: String,
         val guest: Boolean, val state: String, val siteManager: Boolean, val lastStateModified: String,
         val guestUrl: String, val lockUrl: String, val siteAdminUrl: String, val resetPasswordUrl: String, val deleteUrl: String
-    )
+    ) {
+        /** 기본 아바타이면 `true`이다. v1.6은 이때 `alt`, `width`, `height` 없이 그림만 낸다. */
+        val defaultAvatar: Boolean get() = avatarUrl == dev.yona.security.AvatarService.DEFAULT_AVATAR_URL
+    }
 
     @GetMapping("/sites/userList")
     @Transactional(readOnly = true)

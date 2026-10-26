@@ -135,11 +135,13 @@ class CommitHistoryController(
         val subversion = project.vcs == RepositoryService.VCS_SUBVERSION
         // Subversion은 작성자의 로그인 ID로 사용자를 찾고 이메일이 없다 (v1.6 `SvnCommit.getAuthor`, `getAuthorEmail`).
         val user = if (subversion) commit.authorName.takeIf { it.isNotEmpty() }?.let { users.findByLoginId(it) } else userLookup.findByEmail(commit.authorEmail)
-        val first = commit.message.substringBefore('\n')
-        val more = commit.message.removePrefix(first + "\n")
+        // v1.6 commitMsg.scala.html: 자동 링크를 건 전체 메시지를 줄로 나눈다(Java split은 뒤쪽 빈 줄을 버린다). 두 줄 이상이면 첫 줄과 그 줄바꿈을 모두 지운 나머지를 숨은 본문으로 보인다.
+        val rendered = autoLinks.render(HtmlUtils.htmlEscape(commit.message), project, null)
+        val lines = rendered.split("\n").dropLastWhile { it.isEmpty() }
+        val hasMore = lines.size > 1
         return HistoryRow(
             id = commit.id, shortId = commit.shortId, showUrl = showUrl, shortMessageHtml = HtmlUtils.htmlEscape(commit.shortMessage),
-            moreHtml = if (commit.message.split("\n").size > 1) autoLinks.render(HtmlUtils.htmlEscape(more), project, null) else "", hasMore = commit.message.split("\n").size > 1,
+            moreHtml = if (hasMore) rendered.replace(lines[0] + "\n", "") else "", hasMore = hasMore,
             browseUrl = path?.let { "$base/code/${UrlPaths.routeSegment(commit.shortId)}/${UrlPaths.encodeEach(it)}" },
             commentCount = if (subversion) commentCount(project, commit.id, path) else reviewThreads.count(commit.id, path), date = helper.agoOrDateString(commit.authorDate),
             authorHref = user?.let { "/${it.loginId}" }, authorLoginId = user?.loginId, authorName = user?.name ?: commit.authorName.takeIf { it.isNotEmpty() },

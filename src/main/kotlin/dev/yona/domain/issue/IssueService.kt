@@ -110,10 +110,18 @@ class IssueService(
         return issue
     }
 
-    /** 프로젝트의 마지막 이슈 번호를 하나 올리고 새 번호를 돌려준다 (v1.6 `Project.increaseLastIssueNumber`). */
+    /**
+     * 프로젝트의 마지막 이슈 번호를 하나 올리고 새 번호를 돌려준다 (v1.6 `Project.increaseLastIssueNumber`).
+     * 카운터가 이슈 수보다 작으면 그 프로젝트의 가장 큰 이슈 번호로 먼저 바로잡는다(v1.6 `isLastIssueNumberCorrect`, `getLastIssueNumber`).
+     * 번호를 지정해 가져온 이슈는 카운터를 올리지 않으므로, 이 보정이 없으면 다음 새 이슈가 번호 충돌을 낸다.
+     */
     @Transactional
     fun nextIssueNumber(project: Project): Long {
         val id = requireNotNull(project.id)
+        entityManager.createQuery(
+            "update Project p set p.lastIssueNumber = coalesce((select max(i.number) from Issue i where i.project.id = p.id), 0) " +
+                "where p.id = :id and coalesce(p.lastIssueNumber, 0) < (select count(i2) from Issue i2 where i2.project.id = p.id)"
+        ).setParameter("id", id).executeUpdate()
         entityManager.createQuery("update Project p set p.lastIssueNumber = coalesce(p.lastIssueNumber, 0) + 1 where p.id = :id").setParameter("id", id).executeUpdate()
         entityManager.flush()
         val number = entityManager.createQuery("select p.lastIssueNumber from Project p where p.id = :id", java.lang.Long::class.java).setParameter("id", id).singleResult.toLong()
@@ -310,19 +318,20 @@ class IssueService(
         labels.findAllById(labelIds).filter { it.category?.isExclusive == true }.groupBy { it.category?.id }.any { it.value.size > 1 }
 
     private fun recordChanges(issue: Issue, actor: User, edit: IssueEdit, moved: Boolean, previous: Project, oldState: State?, oldAssignee: User?, oldBody: String, fromWatchers: Set<User>?) {
-        if (edit.publish) {
-            publisher.publishEvent(IssueCreatedActivity(issue, actor))
-            return
-        }
-        if (edit.draft) return
+        if (!edit.publish && edit.draft) return
         if (moved) {
             val ownPrivate = previous.isPrivate() && previous.owner.equals(actor.loginId, ignoreCase = true)
             if (!ownPrivate) {
                 val project = requireNotNull(issue.project)
                 events.record(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor.loginId)
                 publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor, fromWatchers))
-                publisher.publishEvent(IssueCreatedActivity(issue, actor))
+                // 게시와 이동이 함께면 v1.6은 새 이슈 알림(afterNewIssue)을 두 번 부른다. 같은 수신자에게 두 번 알리지 않도록 한 번만 보낸다 (A-105).
+                if (!edit.publish) publisher.publishEvent(IssueCreatedActivity(issue, actor))
             }
+        }
+        if (edit.publish) {
+            publisher.publishEvent(IssueCreatedActivity(issue, actor))
+            return
         }
         if (!(edit.notifyMail || issue.authorLoginId != actor.loginId)) return
         val newAssignee = issue.assignee?.user

@@ -24,7 +24,7 @@ class ApiUsers(
     private val random = SecureRandom()
 
     /**
-     * 사용자를 만들고 결과를 `{status, reason, user}`로 알린다. 허용하지 않는 메일 도메인은 `403`, 이미 있는 이메일이나 아이디는 `409`이다.
+     * 사용자를 만들고 결과를 `{status, reason, user}`로 알린다. 허용하지 않는 메일 도메인은 `403`, 이미 있는 이메일이나 사용자 아이디는 `409`이다. 조직 이름과 같은 아이디는 막지 않는다(v1.6 `UserApi.newUser`는 이메일만 보며, 아이디만 겹치면 DB 유일 제약으로 `500`이 나서 v2는 `409`로 알린다).
      * 비밀번호는 무작위이다. 가입 정책(관리자 승인, 메일 인증)은 가입 화면과 같다.
      */
     fun create(loginId: String, name: String, email: String): Map<String, Any?> {
@@ -35,7 +35,7 @@ class ApiUsers(
                 log.warn("Rejected: {} with {} ({})", name, email, message)
                 linkedMapOf("status" to 403, "reason" to "Forbidden", "message" to message, "user" to given)
             }
-            signup.isEmailExist(email) || signup.isLoginIdUsed(loginId) -> {
+            signup.isEmailExist(email) || users.existsByLoginIdIgnoreCase(loginId) -> {
                 log.warn("Rejected: {} with {} (Already exists!)", name, email)
                 linkedMapOf("status" to 409, "reason" to "Conflict", "message" to "Already exists!", "user" to given)
             }

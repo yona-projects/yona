@@ -37,12 +37,49 @@
                         <button class="btn-transparent pull-right close" data-toggle="comment-delete" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
                     </span>
                 </div>
-                <div class="comment-body markdown-wrap" data-via-email="false" th:utext="${c.bodyHtml}"></div>
+                <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}" th:utext="${c.bodyHtml}"></div>
                 <div class="attachments" th:attr="data-attachments=${c.attachments}"></div>
             </div>
         </li>
     </ul>
 
+    <th:block th:replace="~{::replyArea(${thread})}"></th:block>
+</div>
+</th:block>
+
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="nonRanged(thread)">
+<div th:id="'thread-' + ${thread.id}" th:class="'comment-thread-wrap ' + ${thread.state}">
+    <div class="btn-thread-here btn-thread-minimize">
+        <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-comments"></i></button>
+    </div>
+    <ul class="comments">
+        <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" class="comment">
+            <div class="comment-avatar">
+                <a th:href="${c.userHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.name}">
+                    <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
+                </a>
+            </div>
+            <div class="media-body">
+                <div class="meta-info">
+                    <span class="comment_author pull-left">
+                        <a th:href="${c.userHref}" data-toggle="tooltip" data-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
+                    </span>
+                    <span class="ago"><a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a></span>
+                    <span class="edit pull-right" th:if="${c.deleteUrl != null}">
+                        <button class="btn-transparent pull-right close" data-request-method="delete" th:attr="data-request-uri=${c.deleteUrl}"><i class="yobicon-trash"></i></button>
+                    </span>
+                </div>
+                <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}" th:utext="${c.bodyHtml}"></div>
+                <div class="attachments" th:attr="data-attachments=${c.attachments}"></div>
+            </div>
+        </li>
+    </ul>
+    <th:block th:replace="~{::replyArea(${thread})}"></th:block>
+</div>
+</th:block>
+
+<!--/* 스레드 아래의 답글 입력 영역이다. 댓글을 만들 수 없으면 상태 바꾸기 단추만 남는다 (v1.6 partial_comment_form_on_thread). */-->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="replyArea(thread)">
     <th:block th:if="${thread.form != null}" th:with="f=${thread.form}">
     <div class="write-comment-form">
         <form th:action="${f.action}" method="post" enctype="multipart/form-data" class="review-form" style="display:block;">
@@ -72,39 +109,4 @@
         <button th:if="${thread.stateUrl != null}" type="button" data-request-method="post" th:attr="data-request-uri=${thread.stateUrl}" class="ybtn ybtn-default ybtn-small"
                 th:text="${thread.state == 'open'} ? #{commentThread.close} : #{commentThread.open}"></button>
     </p>
-</div>
-</th:block>
-
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="nonRanged(thread)">
-<div th:id="'thread-' + ${thread.id}" th:class="'comment-thread-wrap ' + ${thread.state}">
-    <div class="btn-thread-here btn-thread-minimize">
-        <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-comments"></i></button>
-    </div>
-    <ul class="comments">
-        <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" class="comment">
-            <div class="comment-avatar">
-                <a th:href="${c.userHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.name}">
-                    <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
-                </a>
-            </div>
-            <div class="media-body">
-                <div class="meta-info">
-                    <span class="comment_author pull-left">
-                        <a th:href="${c.userHref}" data-toggle="tooltip" data-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
-                    </span>
-                    <span class="ago"><a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a></span>
-                    <span class="edit pull-right" th:if="${c.deleteUrl != null}">
-                        <button class="btn-transparent pull-right close" data-request-method="delete" th:attr="data-request-uri=${c.deleteUrl}"><i class="yobicon-trash"></i></button>
-                    </span>
-                </div>
-                <div class="comment-body markdown-wrap" data-via-email="false" th:utext="${c.bodyHtml}"></div>
-                <div class="attachments" th:attr="data-attachments=${c.attachments}"></div>
-            </div>
-        </li>
-    </ul>
-    <p class="thread-actrow" th:if="${thread.stateUrl != null}">
-        <button type="button" data-request-method="post" th:attr="data-request-uri=${thread.stateUrl}" class="ybtn ybtn-default ybtn-small"
-                th:text="${thread.state == 'open'} ? #{commentThread.close} : #{commentThread.open}"></button>
-    </p>
-</div>
 </th:block>

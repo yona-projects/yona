@@ -38,10 +38,17 @@ class PostingService(
     private val entityManager: EntityManager
 ) {
 
-    /** 프로젝트의 마지막 게시글 번호를 하나 올리고 새 번호를 돌려준다 (v1.6 `Project.increaseLastPostingNumber`). */
+    /**
+     * 프로젝트의 마지막 게시글 번호를 하나 올리고 새 번호를 돌려준다 (v1.6 `Project.increaseLastPostingNumber`).
+     * 카운터가 게시글 수보다 작으면 가장 큰 게시글 번호로 먼저 바로잡는다 (v1.6 `isLastPostingNumberCorrect`, `getLastPostingNumber`).
+     */
     @Transactional
     fun nextNumber(project: Project): Long {
         val id = requireNotNull(project.id)
+        entityManager.createQuery(
+            "update Project p set p.lastPostingNumber = coalesce((select max(g.number) from Posting g where g.project.id = p.id), 0) " +
+                "where p.id = :id and coalesce(p.lastPostingNumber, 0) < (select count(g2) from Posting g2 where g2.project.id = p.id)"
+        ).setParameter("id", id).executeUpdate()
         entityManager.createQuery("update Project p set p.lastPostingNumber = coalesce(p.lastPostingNumber, 0) + 1 where p.id = :id").setParameter("id", id).executeUpdate()
         entityManager.flush()
         val number = entityManager.createQuery("select p.lastPostingNumber from Project p where p.id = :id", java.lang.Long::class.java).setParameter("id", id).singleResult.toLong()

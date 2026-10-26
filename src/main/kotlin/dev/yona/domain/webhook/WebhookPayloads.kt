@@ -11,6 +11,7 @@ import dev.yona.domain.enumeration.WebhookType
 import dev.yona.domain.issue.Issue
 import dev.yona.domain.project.Project
 import dev.yona.domain.pullrequest.PullRequest
+import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.domain.user.User
 import dev.yona.repository.PostReceiveJobs
 import dev.yona.security.AvatarService
@@ -37,7 +38,8 @@ class WebhookPayloads(
     private val properties: YonaProperties,
     private val messages: MessageSource,
     private val siteUrls: SiteUrls,
-    private val avatars: AvatarService
+    private val avatars: AvatarService,
+    private val siteAdmins: SiteAdminRepository
 ) {
 
     private val mapper = JsonMapper.builder().build()
@@ -203,7 +205,8 @@ class WebhookPayloads(
 
     private fun senderJson(sender: User): ObjectNode = mapper.createObjectNode().also {
         it.put("login", sender.loginId); it.put("id", sender.id); it.put("avatar_url", avatars.avatarUrl(sender)); it.put("type", "User")
-        it.put("site_admin", false)
+        // v1.6 `sender.isSiteManager()`: 사이트 관리자 표에 있는 사용자인지이다
+        it.put("site_admin", sender.id?.let { id -> siteAdmins.existsByAdminId(id) } ?: false)
     }
 
     // --- 공통 ---

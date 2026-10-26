@@ -113,6 +113,15 @@ class BranchesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `일반 구성원에게는 기본 브랜치 지정과 삭제 단추가 나오지 않는다`() {
+        val p = twoBranches(); val m = member(p, RoleType.MEMBER)
+        // v1.6 BranchApp과 branches.scala.html은 project.asResource()(전역 리소스)로 판정한다. 사이트 관리자, 프로젝트 매니저, 조직 관리자만 통과한다.
+        val doc = page("/${p.owner}/${p.name}/branches", login(m))
+        assertNull(doc.selectFirst("td.actions")); assertNull(doc.selectFirst("button[data-request-method=post]")); assertNull(doc.selectFirst("a[data-request-method=delete]"))
+        mockMvc.perform(post("/${p.owner}/${p.name}/code/refs%2Fheads%2Ffeature/setAsDefault").session(login(m))).andExpect(status().isForbidden)
+    }
+
+    @Test
     fun `기본 브랜치를 바꾸면 HEAD가 그 브랜치를 가리킨다`() {
         val p = twoBranches(); val m = member(p)
         mockMvc.perform(post("/${p.owner}/${p.name}/code/refs%2Fheads%2Ffeature/setAsDefault").session(login(m))).andExpect(status().is3xxRedirection).andExpect(redirectedUrl("/${p.owner}/${p.name}/branches"))

@@ -8,7 +8,9 @@ data class PostingListItem(
     val number: Long, val titleHeadersHtml: String, val titleWithoutHeaders: String, val notice: Boolean, val readme: Boolean,
     val authorLoginId: String?, val authorName: String?, val authorDisplayName: String?, val authorAvatarUrl: String,
     val createdTitle: String, val createdAgo: String, val commentCount: Int, val labels: List<PostLabelTag>,
-    val owner: String? = null, val projectName: String? = null
+    val owner: String? = null, val projectName: String? = null,
+    /** 말머리를 떼지 않은 제목 전체이다. 조직 게시판 목록이 그대로 보인다 (v1.6 `group_board_list_partial`의 `@post.title`). */
+    val title: String = ""
 )
 
 /** 정렬 막대의 링크 한 개이다. */

@@ -46,6 +46,10 @@ updated: 2026-10-26
 | M-15 | `CodeHistoryApp`, `SiteApp` | 숫자가 아닌 `page`, 알 수 없는 `state`는 예외, 500 | 400 |
 | M-16 | `IssueApi.findAuthor` | `author`에 `email` 필드가 없으면 NPE, 500 | 익명 작성자(번호 -1) |
 
+## 9~11차 대조에서 추가된 항목 (2026-10-26)
+
+- 숨은 프로젝트 목록 설정(`HIDE_PROJECT_LISTING`)이 켜진 사이트에서 **없는 조직 이름**으로 조직 검색을 하면, v1.6은 본문 없는 `400`이고 v2는 오류 화면 `400`이다(`SearchApp.java:127-131`, `SearchController.kt:66`). 조직 검색 폼은 있는 조직의 화면에만 있고 이름을 만들어 내지 않으므로 주소를 직접 입력해야 닿는다.
+
 ## 재현하지 않고 기록만 하는 실패 경로
 
 - (2026-10-26 선생님 결정 P-09로 이 절의 R-74, R-76, R-82는 v1.6 상태를 재현한다. 더 이상 "재현하지 않는 항목"이 아니다.) [R-74](../refactoring-backlog.md) `changeVCS` 실패 시 중간 상태, [R-76](../refactoring-backlog.md) `accept`의 병합 중 표시 고착은 v2도 같다.

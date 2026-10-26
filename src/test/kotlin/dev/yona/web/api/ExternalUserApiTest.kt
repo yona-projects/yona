@@ -59,6 +59,7 @@ import dev.yona.domain.misc.FavoriteProjectRepository
 import dev.yona.domain.misc.FavoriteOrganizationRepository
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -77,6 +78,7 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var assignees: AssigneeRepository
     @Autowired private lateinit var siteAdmins: SiteAdminRepository
+    @Autowired private lateinit var organizations: OrganizationRepository
     @Autowired private lateinit var entityManager: EntityManager
 
     private var sequence = 0
@@ -111,6 +113,16 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
             .andExpect(status().isCreated).andExpect(jsonPath("$[0].status").value(409)).andExpect(jsonPath("$[0].reason").value("Conflict")).andExpect(jsonPath("$[0].message").value("Already exists!"))
             .andExpect(jsonPath("$[0].user.loginId").value("dup"))
         assertNull(users.findByLoginId("dup"))
+    }
+
+    @Test
+    fun `로그인 아이디가 조직 이름과 같아도 사용자를 만든다`() {
+        val a = admin()
+        organizations.save(Organization(name = "samename", descr = "d", created = Date()))
+        // v1.6 UserApi.newUser는 이메일만 중복으로 본다. 조직 이름은 확인하지 않으므로 201이다.
+        json(post("/-_-api/v1/users"), a.token, """{"users":[{"loginId":"samename","name":"같은 이름","email":"samename@example.com"}]}""")
+            .andExpect(status().isCreated).andExpect(jsonPath("$[0].status").value(201))
+        assertNotNull(users.findByLoginId("samename"))
     }
 
     @Test

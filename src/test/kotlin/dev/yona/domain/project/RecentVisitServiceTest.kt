@@ -69,6 +69,33 @@ class RecentVisitServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이슈나 게시글을 본 뒤 같은 프로젝트를 다시 열면 다시 기록한다 (v1_6 결함 재현)`() {
+        val user = user()
+        val first = project()
+        val second = project()
+        service.visits(user, first)
+        service.visits(user, second)
+        val before = recentProjects.findByUserIdAndProjectId(requireNotNull(user.id), requireNotNull(second.id)).single().id
+        // v1.6 User.visits(Issue)는 lastVisitedProjectId에 이슈 id를 넣으므로 직전 방문과 같다고 보지 않는다
+        service.markIssueOrPostingVisited(user, requireNotNull(second.id) + 1_000_000)
+        service.visits(user, second)
+        val after = recentProjects.findByUserIdAndProjectId(requireNotNull(user.id), requireNotNull(second.id)).single().id
+        assertTrue(requireNotNull(after) > requireNotNull(before))
+        assertEquals(listOf(second.id, first.id), visited(user))
+    }
+
+    @Test
+    fun `이슈 번호가 우연히 프로젝트 번호와 같으면 기록하지 않는다 (v1_6 결함 재현)`() {
+        val user = user()
+        val project = project()
+        service.visits(user, project)
+        service.markIssueOrPostingVisited(user, requireNotNull(project.id))
+        val before = recentProjects.findByUserIdAndProjectId(requireNotNull(user.id), requireNotNull(project.id)).single().id
+        service.visits(user, project)
+        assertEquals(before, recentProjects.findByUserIdAndProjectId(requireNotNull(user.id), requireNotNull(project.id)).single().id)
+    }
+
+    @Test
     fun `사용자당 30개를 넘으면 가장 오래된 것부터 지운다`() {
         val user = user()
         val all = (1..32).map { project() }

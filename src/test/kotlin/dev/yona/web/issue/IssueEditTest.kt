@@ -157,6 +157,7 @@ class IssueEditTest : AbstractIntegrationTest() {
         assertEquals(assignee.loginId, form.selectFirst("input#assignee[name=assigneeLoginId]")!!.attr("value"))
         assertEquals(milestone.id.toString(), form.selectFirst("select#milestoneId option[selected]")!!.attr("value"))
         assertTrue(form.selectFirst("select#labelIds option[value=${label.id}]")!!.hasAttr("selected"))
+        assertEquals("false", form.selectFirst("select#labelIds")!!.attr("data-close-on-select"))
         assertTrue(form.select("#subtask, .subtask-wrap.show").isNotEmpty())
     }
 
@@ -320,6 +321,20 @@ class IssueEditTest : AbstractIntegrationTest() {
         submit(project, login(user), 1, "title" to "t", "body" to "b", "targetProjectId" to target.id.toString()).andExpect(status().isSeeOther).andExpect(redirectedUrl("${base(target)}/issue/1"))
         entityManager.flush(); entityManager.clear()
         assertEquals(target.id, issues.findById(i.id!!).get().project?.id)
+    }
+
+    @Test
+    fun `초안을 다른 프로젝트로 옮기며 게시하면 이동 이벤트도 남는다`() {
+        val project = newProject(); val target = newProject()
+        val user = join(join(newUser(), project), target)
+        val draft = issue(project, 1, author = user, draft = true)
+        // v1.6 IssueApp.preUpdateHook: 이동 알림(addIssueMovedNotification)을 먼저 남기고 그 뒤에 게시 알림을 보낸다
+        submit(project, login(user), 1, "title" to "t", "body" to "b", "targetProjectId" to target.id.toString(), "isPublish" to "true").andExpect(status().isSeeOther)
+        entityManager.flush(); entityManager.clear()
+        val moved = issues.findById(draft.id!!).get()
+        assertEquals(target.id, moved.project?.id); assertEquals(State.OPEN, moved.state)
+        val types = entityManager.createQuery("select e from IssueEvent e where e.issue.id = :id", IssueEvent::class.java).setParameter("id", draft.id).resultList.map { it.eventType }
+        assertTrue(EventType.ISSUE_MOVED in types, types.toString())
     }
 
     @Test

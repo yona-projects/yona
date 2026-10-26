@@ -65,5 +65,7 @@ data class IssueDetail(
     val hasMilestones: Boolean, val openMilestones: List<MilestoneOption>, val closedMilestones: List<MilestoneOption>, val projectLabels: List<LabelGroupOption>,
     val dueDateString: String?, val dueDateText: String?, val dueOver: Boolean, val labels: List<IssueLabelTag>, val selectedLabelIds: Set<Long>,
     val attachmentsJson: String, val bodyChecksum: String, val numOfComments: Int, val nextStateName: String,
-    val subtasks: SubtaskView?, val timeline: List<TimelineEntry>, val commentCount: Int, val index: List<IndexCommentView>
+    val subtasks: SubtaskView?, val timeline: List<TimelineEntry>, val commentCount: Int, val index: List<IndexCommentView>,
+    /** 댓글과 이벤트의 합이 0보다 크면 `true`이다. 색인의 `ul.comments`를 그릴지 정한다 (v1.6 `issue.comments.size + issue.events.size > 0`). */
+    val hasCommentsOrEvents: Boolean = false
 )

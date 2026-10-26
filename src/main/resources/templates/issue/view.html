@@ -223,7 +223,7 @@
 
                         <!--/* labels */-->
                         <th:block th:if="${!issue.projectLabels.isEmpty()}">
-                            <th:block th:if="${issue.canUpdate}"><th:block th:replace="~{issue/partial-select-label :: selectLabel(${issue.projectLabels}, ${issue.selectedLabelIds}, '', ${projectView})}"></th:block></th:block>
+                            <th:block th:if="${issue.canUpdate}"><th:block th:replace="~{issue/partial-select-label :: selectLabel(${issue.projectLabels}, ${issue.selectedLabelIds}, '', null, ${projectView})}"></th:block></th:block>
                             <th:block th:unless="${issue.canUpdate}"><th:block th:replace="~{issue/partial-show-selected-label :: showSelectedLabel(${issue.labels}, ${base + '/issues?state=' + issue.state})}"></th:block></th:block>
                         </th:block>
                         <div class="act-row right-menu-icons">

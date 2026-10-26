@@ -317,6 +317,14 @@ v1.6과 v2의 불일치 점검에서 나온 세 항목에 대한 결정이다.
 - R-74(`changeVCS` 실패 시 README 해제와 포크 분리가 남는 중간 상태), R-76(`accept`의 병합 중 표시 고착), R-82(REST 프로젝트 생성의 SITEMANAGER 행 2개)는 v1.6 상태를 그대로 유지한다. 권장안은 v2의 롤백과 1행이었으나 선생님이 v1.6 재현을 택하셨다. 구현: `ProjectVcsService`와 `PullRequestWorkflow.accept`, `PullRequestActionController.accept`에서 트랜잭션을 제거하고, `ExternalProjectService.create`가 SITEMANAGER 행을 두 번 넣는다.
 - 5차 검증에서 나온 v1.6 결함 후보 전체는 [v16-defect-catalog.md](architecture/v16-defect-catalog.md)에 항목별로 기록한다. 가볍게 지나가지 않도록 후보마다 v1.6 소스 줄, v2 상태, 기록 위치를 남긴다.
 
+### P-10. v1.6 위키 9~11차 갱신분 대조의 처리 (2026-10-26, 선생님)
+
+v1.6 위키가 9차(Antigravity CLI 판정), 10차(소스 재검증), 11차(재확인)로 크게 바뀌어 GitHub의 위키로 로컬을 갱신하고, 바뀐 127개 페이지를 v2 소스와 대조하라고 하셨다. 처리 기준은 P-08과 같다(화면과 정상 호출로 닿는 불일치는 v1.6에 맞추고, v1.6의 오류는 v2 유지, 직접 만든 요청은 기록만).
+
+- 대조는 에이전트 18개가 후보를 냈고, 후보마다 다른 에이전트가 v1.6과 v2 소스를 다시 읽어 확정했다. 확정된 항목을 고쳤고 결과는 [v16-sync-9-11.md](architecture/v16-sync-9-11.md)에 있다.
+- **결정 대기 1: Git/SVN Basic 인증의 세션.** v1.6은 자격이 맞으면 세션 쿠키를 만들고(`BasicAuthAction`), 틀리면 세션이나 토큰 쿠키 사용자로 되돌아간다. v2는 둘 다 하지 않는다. 쿠키가 없는 git, svn 클라이언트에서는 차이가 없고 브라우저 같은 쿠키 클라이언트에서만 보인다. 권장안은 **v1.6대로 하는 것**이다(P-08의 기본값). 다만 쿠키가 없는 git 요청마다 서버 세션이 하나씩 생겨 CI처럼 요청이 많은 환경에서 세션 수가 늘 수 있다. 선생님이 정하시기 전에는 구현하지 않는다.
+- **결정 대기 2: 가져오기 API의 `createdAt`, `updatedAt` 생략.** v1.6은 NULL로 저장하고 v2는 현재 시각으로 채운다. 컬럼은 NULL을 허용한다. 다만 NULL일 때 v1.6 화면이 오류를 내는지 소스만으로는 확정하지 못했다. 오류를 낸다면 P-08에 따라 v2를 유지해야 한다. 권장안은 **v2 유지**이고, 이유는 NULL 날짜가 화면에서 깨질 가능성을 확인하지 못했기 때문이다. 확인되면 다시 여쭙는다.
+
 ## 재결정 대기 (2026-10-23, 선생님 지시)
 
 에이전트가 단독으로 정했던 판단 가운데 선생님이 다시 결정할 사항이 있다고 하신 것이다. A-63은 D-20으로 확정해 이 목록에서 뺐다. A-60도 D-19로 확정했다. 결정이 나기 전까지 현재 구현은 그대로 두고, 결정이 나면 이 목록에서 옮겨 기록한다. 아래 선택지는 에이전트가 정리한 후보이며, 재결정의 쟁점은 선생님께서 알려 주시는 대로 갱신한다.
@@ -440,4 +448,10 @@ v1.6과 v2의 불일치 점검에서 나온 세 항목에 대한 결정이다.
 | A-102 | 프로젝트 홈의 이력, 대시보드 탭의 구현 판단: (1) 대시보드의 라벨 분류 순서는 분류 이름, 라벨 이름 순이다(v1.6은 Scala `groupBy` 해시 순서라 정해져 있지 않다). (2) 프로젝트의 담당자 행은 번호 순으로 보이고(v1.6은 `Set`이라 순서가 정해져 있지 않다) 열린 이슈가 0인 담당자는 건너뛴다. (3) 이력의 같은 시각 항목은 커밋, 이슈, 게시글, 풀 리퀘스트 순서를 유지한다. (4) 커밋 작성자를 사용자로 찾을 때는 `UserLookup`(대표 이메일, 인증된 보조 이메일, 대소문자 무시 순)을 쓴다. | 에이전트 |
 | A-103 | 끝 슬래시 제거 이동(v1.6 `removeTrailer`)의 구현 판단: 포괄 요청 매핑 대신 처리기가 없을 때(`NoHandlerFoundException`, `NoResourceFoundException`)를 받는 `GlobalErrorHandler`에서 같은 규칙을 적용한다. 포괄 매핑은 정적 자원 처리기보다 앞서 정적 자원을 가리기 때문이다. 결과(다른 모든 라우트 다음에 평가됨, 쿼리 제외, GET만)는 v1.6과 같다 | 에이전트 |
 | A-104 | 기존 v1.6 DB에 v2를 붙일 때의 판단: 스키마는 `ddl-auto: update`로 맞추므로 v1.6 MariaDB에는 `issue_comment`, `posting_comment`의 `parent_comment_id` 인덱스가 이름만 다르게(`ix_issue_comment_parent_id`, `ix_posting_comment_parent_id`) 하나씩 더 생기고 `webhook.webhook_type`이 `tinyint(1)`에서 `tinyint(4)`로 바뀐다. v1.6은 두 테이블의 인덱스를 `ix_issue_parent_id`, `ix_posting_parent_id`로 이름 붙여 다른 테이블의 같은 이름과 겹치는데, H2와 PostgreSQL은 인덱스 이름이 스키마 전체에서 유일해야 해서 테스트 기준(`RENAMED_INDEXES`)이 이름을 바꿔 비교한다. 같은 컬럼의 중복 인덱스는 동작에 영향이 없어 그대로 둔다. 필요하면 이전 때 `DROP INDEX`로 정리한다 | 에이전트 |
+| A-105 | 초안을 다른 프로젝트로 옮기면서 게시할 때(G06-M01): v1.6은 이동 알림(`addIssueMovedNotification`) 안에서 새 이슈 알림(`afterNewIssue`)을 부르고 게시 알림도 한 번 더 불러 같은 알림이 두 번 만들어진다. v2는 이동 이벤트와 이전 구독자 알림을 남기되 새 이슈 알림은 한 번만 보낸다. 같은 수신자에게 같은 메일이 두 번 가는 것은 사용자에게 도움이 되지 않고, 두 번 호출이 메일을 합치는지 소스만으로 확정하지 못했다 | 에이전트 |
+| A-106 | 사용자 언어 갱신(`PreferredLanguageInterceptor`)의 구현 판단: (1) Play 언어 쿠키(`PLAY_LANG`)는 v2가 읽지 않으므로 `Accept-Language` 헤더가 있을 때만 갱신한다(v1.6 `updatePreferredLanguage`의 쿠키 조건 제외). (2) 인터셉터 가운데 첫 번째로 등록한다(v1.6 `Global.getDefaultAction`이 모든 액션 앞에서 부른다). (3) 저장에 실패해도 요청은 계속 처리하고 경고만 남긴다(v1.6도 예외를 삼킨다) | 에이전트 |
+| A-107 | 이슈와 글 번호 카운터의 보정은 번호를 받을 때 `UPDATE ... SET last = max(number) WHERE last < count(*)` 한 문장으로 한다(v1.6 `isLastIssueNumberCorrect`, `getLastIssueNumber`와 같은 조건). v1.6은 `AbstractPosting.save`가 번호 충돌 예외를 받아 보정하고 다시 저장하는 재시도도 갖고 있지만, v2는 번호를 받기 전에 보정하므로 재시도는 이식하지 않았다 | 에이전트 |
+| A-108 | 마일스톤 REST 생성의 `due_on`은 날짜만(`2030-01-02`), 오프셋 없는 시각, 오프셋 있는 시각을 받는다(Joda `new DateTime(text)`). 읽을 수 없는 문자열은 v1.6이 `IllegalArgumentException`으로 500이지만 v2는 마감일 없이 만든다(P-08) | 에이전트 |
+| A-109 | `PullRequestStartup`: v1.6 `PullRequest.onStart()`(번호가 빈 요청에 번호 붙이기, `REJECTED`를 `CLOSED`로)를 `ApplicationRunner`로 이식했다. v1.6 코드는 `REJECTED`를 만들지 않고 번호도 항상 붙이므로 새로 설치한 v2에서는 하는 일이 없고, A-104처럼 오래된 v1.6 DB를 이어받을 때만 일한다. 번호는 프로젝트별로 만든 시각 순으로 붙인다(v1.6은 순서가 정해져 있지 않다) | 에이전트 |
+| A-110 | 이슈 보기의 `L` 단축키 주소는 v1.6 `urlToList`처럼 Referer의 호스트, 포트, 경로를 기본 주소와 모두 비교한다. 상대 Referer와 스킴, 호스트가 빠진 값은 설정한 사이트 주소(`SiteUrls.origin()`)로 채워 비교한다 | 에이전트 |
 

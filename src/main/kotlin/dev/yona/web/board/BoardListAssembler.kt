@@ -30,7 +30,8 @@ class BoardListAssembler(
                 createdTitle = helper.dateString(post.createdDate), createdAgo = helper.agoOrDateString(post.createdDate),
                 commentCount = post.numOfComments ?: 0,
                 labels = post.labels.sortedBy { it.id }.map { PostLabelTag(requireNotNull(it.id), it.category?.id, it.name.orEmpty()) },
-                owner = if (withProject) post.project?.owner else null, projectName = if (withProject) post.project?.name else null
+                owner = if (withProject) post.project?.owner else null, projectName = if (withProject) post.project?.name else null,
+                title = title
             )
         }
     }

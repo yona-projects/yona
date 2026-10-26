@@ -35,7 +35,7 @@ class YonaAuthenticationFilter(private val users: UserRepository) : OncePerReque
     private fun hasValidSession(): Boolean {
         val authentication = SecurityContextHolder.getContext().authentication as? YonaAuthentication ?: return false
         val user = users.findById(authentication.principal.userId).orElse(null)
-        if (user == null || user.state == UserState.LOCKED) {
+        if (user == null || user.state.isLockedOut()) {
             SecurityContextHolder.clearContext()
             return false
         }
@@ -53,7 +53,7 @@ class YonaAuthenticationFilter(private val users: UserRepository) : OncePerReque
         val cookie = request.cookies?.firstOrNull { it.name == REMEMBER_ME_COOKIE } ?: return false
         val parts = cookie.value.split(TOKEN_SEPARATOR).filter { it.isNotEmpty() }
         val user = if (parts.size == TOKEN_LENGTH) users.findByLoginId(parts[0]) else null
-        val valid = user != null && user.password == parts[1] && user.state != UserState.LOCKED
+        val valid = user != null && user.password == parts[1] && !user.state.isLockedOut()
         if (!valid) {
             discardRememberMeCookie(response)
             return false

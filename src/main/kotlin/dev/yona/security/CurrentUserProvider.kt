@@ -32,7 +32,7 @@ class CurrentUserProvider(private val users: UserRepository) {
         val authentication = SecurityContextHolder.getContext().authentication as? YonaAuthentication
             ?: return CurrentUser.ANONYMOUS
         val user = users.findById(authentication.principal.userId).orElse(null) ?: return CurrentUser.ANONYMOUS
-        if (user.state == UserState.LOCKED && !authentication.viaToken) return CurrentUser.ANONYMOUS
+        if (user.state.isLockedOut() && !authentication.viaToken) return CurrentUser.ANONYMOUS
         return CurrentUser(user)
     }
 

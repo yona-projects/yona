@@ -141,6 +141,8 @@ class ProjectChecksTest : AbstractIntegrationTest() {
         val result = call("${base(project)}/__t/default", login(newUser()))
         assertEquals(403, result.response.status)
         assertEquals("Project does not exist or user unauthorized", doc(result).selectFirst(".error-wrap p")?.text())
+        // v1.6 AbstractProjectCheckAction은 읽기 권한이 없으면 로그인 여부와 관계없이 flash("failed")를 심고, 같은 응답에서 알림으로 보인다
+        assertTrue(result.response.contentAsString.contains("You are not authorized to access this page or not logged in."), "failed 안내")
     }
 
     @Test

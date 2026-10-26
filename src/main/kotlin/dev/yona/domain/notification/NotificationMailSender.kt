@@ -4,6 +4,8 @@ import dev.yona.access.GlobalResource
 import dev.yona.access.Resource
 import dev.yona.access.ResourceLookup
 import dev.yona.config.YonaProperties
+import dev.yona.access.asResource
+import dev.yona.domain.comment.ReviewCommentRepository
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.isCreating
@@ -53,7 +55,8 @@ class NotificationMailSender(
     private val siteUrls: SiteUrls,
     private val hostname: SiteHostname,
     private val messageSource: MessageSource,
-    private val users: UserRepository
+    private val users: UserRepository,
+    private val reviewComments: ReviewCommentRepository
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -168,8 +171,16 @@ class NotificationMailSender(
     /** 리소스로 만든 메시지 식별자이다 (v1.6 `Resource.getMessageId`). */
     private fun messageId(resource: Resource) = "<${resource.type.resource}/${resource.id}@${hostname.name()}>"
 
-    /** 컨테이너가 있으면 그 식별자를 `References`로 쓴다. */
-    private fun references(resource: Resource): String? = resource.container?.let { messageId(it) }
+    /**
+     * 컨테이너가 있으면 그 식별자를 `References`로 쓴다. 컨테이너가 코드 리뷰 스레드이면 스레드의 첫 리뷰 댓글의 식별자를 쓴다
+     * (스레드 자체의 식별자를 `Message-ID`로 가진 메일은 없다. v1.6 `NotificationMail`). 댓글이 없는 스레드는 `null`이다.
+     */
+    private fun references(resource: Resource): String? {
+        val container = resource.container ?: return null
+        if (container.type != ResourceType.COMMENT_THREAD) return messageId(container)
+        val first = reviewComments.findFirstByThreadIdOrderByCreatedDateAscIdAsc(container.id.toLong()) ?: return null
+        return messageId(first.asResource())
+    }
 
     /**
      * 새로 만들어지는 알림의 `Message-ID`를 고정하는 메시지이다. 보내기 직전의 저장 과정(`saveChanges`)이 식별자를 새로 만들므로

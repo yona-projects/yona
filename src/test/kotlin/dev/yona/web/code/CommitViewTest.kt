@@ -31,6 +31,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
+import kotlin.test.assertNull
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.mock.web.MockHttpSession
+import dev.yona.domain.enumeration.ResourceType
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -52,6 +56,7 @@ class CommitViewTest : AbstractIntegrationTest() {
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var threads: CommentThreadRepository
     @Autowired private lateinit var reviewComments: ReviewCommentRepository
+    @Autowired private lateinit var originalEmails: dev.yona.domain.notification.OriginalEmailRepository
 
     private var sequence = 0
 
@@ -129,6 +134,35 @@ class CommitViewTest : AbstractIntegrationTest() {
         assertNotNull(doc.selectFirst(".non-ranged-threads-wrap #thread-$flat"))
         assertEquals(setOf("#thread-$ranged", "#thread-$flat"), doc.select("#reviewcards-open a.review-card").map { it.attr("href") }.toSet())
         assertEquals(listOf("#thread-$closed"), doc.select("#reviewcards-closed a.review-card").map { it.attr("href") })
+    }
+
+    @Test
+    fun `파일 단위 스레드에도 로그인한 사용자에게는 답글 입력란이 나온다`() {
+        val p = project()
+        val (_, second) = twoCommits(p)
+        val author = user("flatreviewer")
+        val flat = thread(p, author, second, ThreadState.OPEN, false)
+        val session = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", author.loginId!!).param("password", "1234")) }
+        val html = mockMvc.perform(get("/${p.owner}/${p.name}/commit/$second").session(session)).andExpect(status().isOk).andReturn().response.contentAsString
+        val form = Jsoup.parse(html).selectFirst(".non-ranged-threads-wrap #thread-$flat form.review-form")
+        // v1.6 partial_nonrange_codecomment_thread는 partial_comment_form_on_thread를 그려 파일 단위 스레드에도 답글을 달 수 있다
+        assertNotNull(form); assertEquals("thread.id", form.selectFirst("input[type=hidden]")!!.attr("name"))
+        assertNull(page("/${p.owner}/${p.name}/commit/$second").selectFirst("#thread-$flat form.review-form"))
+    }
+
+    @Test
+    fun `메일 답장으로 단 리뷰 댓글은 인용 원문을 접도록 표시한다`() {
+        val p = project()
+        val (_, second) = twoCommits(p)
+        val author = user("mailreviewer")
+        val viaMail = thread(p, author, second, ThreadState.OPEN, true)
+        val normal = thread(p, author, second, ThreadState.OPEN, false)
+        val mailComment = reviewComments.findAll().single { it.thread?.id == viaMail }
+        originalEmails.save(dev.yona.domain.notification.OriginalEmail(messageId = "<m1@x>", resourceType = ResourceType.REVIEW_COMMENT, resourceId = mailComment.id.toString(), handledDate = Date()))
+        val doc = page("/${p.owner}/${p.name}/commit/$second")
+        // v1.6: data-via-email="@OriginalEmail.exists(comment.asResource)"
+        assertEquals("true", doc.selectFirst("#thread-$viaMail .comment-body")!!.attr("data-via-email"))
+        assertEquals("false", doc.selectFirst("#thread-$normal .comment-body")!!.attr("data-via-email"))
     }
 
     @Test

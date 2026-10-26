@@ -7,10 +7,11 @@ package dev.yona.web.code
  * @property deleteUrl 지울 수 있을 때만 있다
  * @property bodyHtml 마크다운을 렌더링한 본문
  * @property attachments 첨부 목록의 JSON 문자열(`data-attachments`)
+ * @property viaEmail 수신 메일의 답장으로 만든 댓글이면 `true`이다. 인용 원문을 접는 데 쓴다 (v1.6 `OriginalEmail.exists`)
  */
 data class ThreadCommentView(
     val id: Long, val loginId: String, val name: String, val avatarUrl: String, val userHref: String, val ago: String, val agoTitle: String,
-    val deleteUrl: String?, val bodyHtml: String, val attachments: String
+    val deleteUrl: String?, val bodyHtml: String, val attachments: String, val viaEmail: Boolean = false
 )
 
 /**

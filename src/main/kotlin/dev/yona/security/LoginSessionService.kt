@@ -18,9 +18,9 @@ class LoginSessionService {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
 
-    /** [user]를 현재 요청의 세션에 로그인시킨다. 잠긴 사용자이면 아무것도 하지 않는다. */
+    /** [user]를 현재 요청의 세션에 로그인시킨다. 잠겼거나 지워진 사용자이면 아무것도 하지 않는다. */
     fun start(request: HttpServletRequest, response: HttpServletResponse, user: User) {
-        if (user.state == dev.yona.domain.enumeration.UserState.LOCKED) return
+        if (user.state.isLockedOut()) return
         if (request.getSession(false) != null) request.changeSessionId()
         val context = SecurityContextHolder.createEmptyContext()
         context.authentication = YonaAuthentication.of(user)

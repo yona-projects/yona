@@ -95,6 +95,18 @@ class CommitHistoryTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `끝에 개행만 있는 한 줄 메시지에는 더 보기 단추가 없다`() {
+        val p = project()
+        // git commit -m 이 저장하는 메시지는 "제목\n"이다. v1.6 commitMsg는 Java split이 뒤쪽 빈 문자열을 버려 단추를 내지 않는다.
+        GitTestSupport.pushCommits(repositories, p,
+            TestCommit("끝 개행 한 줄\n", mapOf("a.txt" to "a".toByteArray())),
+            TestCommit("제목\n\n본문\n", mapOf("b.txt" to "b".toByteArray())))
+        val rows = page("/${p.owner}/${p.name}/commits/master/").select("tbody tr")
+        assertNotNull(rows[0].selectFirst("button.moreBtn")); assertEquals("본문", rows[0].selectFirst("pre.commitMsg.desc")!!.text().trim())
+        assertNull(rows[1].selectFirst("button.moreBtn")); assertNull(rows[1].selectFirst("pre.commitMsg.desc"))
+    }
+
+    @Test
     fun `여러 줄 메시지는 더 보기 단추와 숨은 본문을, 알려진 작성자는 사용자 링크를 보여 준다`() {
         val p = project(); val dev = user("dev@example.com", "devuser")
         GitTestSupport.pushCommits(repositories, p,

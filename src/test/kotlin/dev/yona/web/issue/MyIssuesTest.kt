@@ -207,6 +207,22 @@ class MyIssuesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `하위 이슈에는 댓글 수와 라벨 링크가 보인다`() {
+        val me = newUser(); val a = project(me, "a")
+        val parent = issue(a, "부모", me, assignee = me)
+        val child = issue(a, "하위", me, assignee = me, parent = parent)
+        repeat(2) { comments.save(IssueComment(contents = "c", authorId = me.id, authorLoginId = me.loginId, issue = child, projectId = a.id!!, createdDate = Date())) }
+        val category = labelCategories.save(IssueLabelCategory(project = a, name = "분류", isExclusive = false))
+        val label = issueLabels.save(IssueLabel(project = a, category = category, name = "버그", color = "#f00"))
+        child.labels.add(label); issues.save(child)
+        // v1.6 partial_view_child는 하위 이슈마다 댓글/추천 수와 라벨 링크를 그린다
+        val row = page(login(me)).selectFirst(".child-issue-list .child-issue")!!
+        assertTrue(row.select(".item-count-groups").isNotEmpty(), row.outerHtml())
+        assertEquals("버그", row.selectFirst("a.label.issue-label")!!.text())
+        assertTrue(row.selectFirst("a.label.issue-label")!!.attr("href").contains("labelIds=${label.id}"))
+    }
+
+    @Test
     fun `라벨과 마일스톤 조건은 쓰지 않는다`() {
         val me = newUser(); val other = newUser(); val a = project(other, "a")
         issue(a, "이슈", other, assignee = me)

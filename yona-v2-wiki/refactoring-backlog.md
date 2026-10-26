@@ -92,6 +92,9 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-85 | `ProjectApp.addCommitAuthor` | 커밋 작성자 이메일에 `@`가 없으면 `StringIndexOutOfBoundsException`으로 500이다. v2는 `contains("@")` 가드로 정상 처리한다(선생님 지시 2026-10-26: v1.6의 오류는 v2 유지) | 재현하지 않음 |
 | R-86 | 첨부 업로드의 파일 종류 감지 | `Attachment.save`가 인자 `fileName`이 아니라 아직 비어 있는 필드 `name`으로 감지해 파일 이름 힌트 없이 내용만으로 MIME을 정한다. 예를 들어 `.css` 파일도 내용이 평문이면 `text/plain`이다. v2도 같게 내용만으로 감지한다(2026-10-26 수정, `AttachmentServiceTest`) | 재현함 |
 | R-87 | 5차 검증의 결함 후보 189건 | 항목별 v1.6 소스 줄, 기록 위치, v2 판정은 [v16-defect-catalog.md](architecture/v16-defect-catalog.md)에 있다. 기록이 없던 실제 결함(★ 105건)은 이 목록이 기록이며, v2는 같게 재현하거나(JS, 템플릿, 서버) 선생님 지시에 따라 v1.6의 오류를 오류 없이 처리한다 | 재현함 / 일부 재현하지 않음(목록의 v2 판정 열) |
+| R-88 | 이슈, 게시글 방문 기록 | `User.visits(Issue)`, `visits(Posting)`이 `lastVisitedProjectId`에 이슈 또는 게시글의 `id`를 대입한다. 프로젝트 번호 자리에 다른 번호가 들어가서, 이슈를 본 뒤 같은 프로젝트를 다시 열면 "직전 방문과 같다"고 보지 않고 최근 방문 프로젝트에 다시 기록한다(우연히 번호가 같으면 기록하지 않는다). v2도 같게 한다(2026-10-26, `RecentVisitServiceTest`) | 재현함 |
+| R-89 | `Config.getSystemEmailAddress`의 사이트 관리자 분기 | SMTP 주소가 없을 때 `new SiteAdmin().admin`의 메일을 쓰려 하지만 새로 만든 객체의 `admin`은 항상 `null`이라 언제나 `yona@yona.io`이다. 사용처는 충돌 검사용 임시 병합 커밋의 작성자 한 곳이다. v2도 항상 `yona@yona.io`로 한다(`PullRequestIdentityTest`) | 재현함 |
+| R-90 | `UserApi.newUser`의 로그인 ID 중복 | 이메일만 중복으로 보므로, 로그인 ID만 겹치는 새 이메일은 DB 유일 제약(`uq_n4user_1`) 위반으로 요청 전체가 500이 되고 같은 요청의 앞선 항목도 롤백된다. v2는 그 항목만 409로 알린다(선생님 지시 2026-10-26: v1.6의 오류는 v2 유지). 로그인 ID가 조직 이름과 같은 경우는 v1.6이 만들어 주므로 v2도 만든다 | 재현하지 않음 |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

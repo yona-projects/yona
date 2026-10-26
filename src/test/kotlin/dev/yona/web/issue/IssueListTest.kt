@@ -239,6 +239,8 @@ class IssueListTest : AbstractIntegrationTest() {
         assertEquals(listOf("2", "1", "1", "0"), logged.map { it.selectFirst(".num-badge")!!.text() })
         assertEquals(me.id.toString(), logged[1].selectFirst("a")!!.attr("data-assignee-id"))
         assertEquals("active", page(project, "?assigneeId=${me.id}", login(me)).select(".left-menu .lst-stacked li")[1].className().trim())
+        // 검색 폼은 제출할 때마다 authorId=&commenterId= 를 빈 값으로 보낸다. v1.6은 바인딩된 조건 객체로 판정하므로 빈 값은 조건이 아니다.
+        assertEquals("active", page(project, "?authorId=&commenterId=&assigneeId=", login(me)).select(".left-menu .lst-stacked li")[0].className().trim())
     }
 
     @Test

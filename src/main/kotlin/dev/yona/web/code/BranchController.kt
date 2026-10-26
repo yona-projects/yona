@@ -1,7 +1,7 @@
 package dev.yona.web.code
 
 import dev.yona.access.AccessControl
-import dev.yona.access.ProjectResource
+import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.project.Project
@@ -67,7 +67,8 @@ class BranchController(
         val head = branchService.headBranch(project) ?: return ErrorViews.notFound("error.notfound", views.of(project), "code")
         val others = branchService.branches(project).filter { it.name != head.name }
         val viewer = currentUserProvider.get().user
-        val resource = ProjectResource(requireNotNull(project.id).toString(), ResourceType.PROJECT, project)
+        // v1.6 branches.scala.html은 project.asResource()(전역 리소스)로 판정한다. 요청 처리(@IsAllowed)와 같은 기준이다.
+        val resource = project.asResource()
         val canUpdate = accessControl.isAllowed(viewer, resource, Operation.UPDATE)
         val canDelete = accessControl.isAllowed(viewer, resource, Operation.DELETE)
         val shortDefault = head.name.let { if (it.lastIndexOf('/') > 0) it.substring(it.lastIndexOf('/') + 1) else it }

@@ -121,7 +121,7 @@ class SearchService(private val entityManager: EntityManager, private val proper
     private fun spec(type: SearchType): Spec = when (type) {
         SearchType.ISSUE -> Spec(Issue::class.simpleName!!, "i", "i.project", listOf("i.title", "i.body"), "i.authorId", "i.createdDate desc, i.id desc", assignee = true)
         SearchType.POST -> Spec(Posting::class.simpleName!!, "i", "i.project", listOf("i.title", "i.body"), "i.authorId", "i.createdDate desc, i.id desc")
-        SearchType.MILESTONE -> Spec(Milestone::class.simpleName!!, "i", "i.project", listOf("i.title", "i.contents"), null, "i.dueDate desc, i.id desc")
+        SearchType.MILESTONE -> Spec(Milestone::class.simpleName!!, "i", "i.project", listOf("i.title", "i.contents"), null, "i.dueDate desc nulls last, i.id desc")
         SearchType.ISSUE_COMMENT -> Spec(IssueComment::class.simpleName!!, "i", "i.issue.project", listOf("i.contents"), "i.authorId", "i.createdDate desc, i.id desc")
         SearchType.POST_COMMENT -> Spec(PostingComment::class.simpleName!!, "i", "i.posting.project", listOf("i.contents"), "i.authorId", "i.createdDate desc, i.id desc")
         SearchType.REVIEW -> Spec(ReviewComment::class.simpleName!!, "i", "i.thread.project", listOf("i.contents"), "i.authorId", "i.createdDate desc, i.id desc")

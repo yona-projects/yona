@@ -282,6 +282,15 @@ class SearchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `마감일이 없는 마일스톤은 맨 뒤에 둔다`() {
+        val owner = newUser(); val p = project(owner, "milenull")
+        milestones.save(Milestone(project = p, title = "nullneedle 없음", contents = "c", state = State.OPEN))
+        milestones.save(Milestone(project = p, title = "nullneedle 있음", contents = "c", state = State.OPEN, dueDate = Date(System.currentTimeMillis() + 86_400_000L * 3)))
+        // v1.6(MariaDB)은 desc("dueDate")에서 NULL을 맨 뒤에 둔다. PostgreSQL에서도 같게 nulls last로 맞춘다.
+        assertEquals(listOf("nullneedle 있음", "nullneedle 없음"), titles(all(null, "milestone", "nullneedle")))
+    }
+
+    @Test
     fun `이슈 댓글은 이슈 링크에 댓글 앵커를 달고 Re) 제목이다`() {
         val owner = newUser(); val p = project(owner, "icomment"); val one = issue(p, "원 이슈", owner)
         val c = issueComments.save(IssueComment(contents = "commentneedle 내용", authorId = owner.id, authorLoginId = owner.loginId, authorName = owner.name, issue = one, projectId = p.id!!, createdDate = Date()))

@@ -35,7 +35,8 @@ class ThreadViewAssembler(
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
     private val helper: TemplateHelper,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val originalEmails: dev.yona.domain.notification.OriginalEmailRepository
 ) {
 
     private val mapper = JsonMapper.builder().build()
@@ -86,7 +87,8 @@ class ThreadViewAssembler(
             ago = helper.agoOrDateString(comment.createdDate), agoTitle = helper.dateString(comment.createdDate),
             deleteUrl = if (accessControl.isAllowed(viewer, resource, Operation.DELETE)) siteUrls.path("/comments/${ResourceType.REVIEW_COMMENT.resource}/${comment.id}") else null,
             bodyHtml = markdown.render(comment.contents.orEmpty(), project, null),
-            attachments = mapper.writeValueAsString(attachmentJson.list(ResourceType.REVIEW_COMMENT, comment.id!!))
+            attachments = mapper.writeValueAsString(attachmentJson.list(ResourceType.REVIEW_COMMENT, comment.id!!)),
+            viaEmail = originalEmails.findByResourceTypeAndResourceId(ResourceType.REVIEW_COMMENT, comment.id.toString()).isNotEmpty()
         )
     }
 

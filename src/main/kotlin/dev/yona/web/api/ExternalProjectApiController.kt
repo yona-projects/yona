@@ -49,8 +49,9 @@ import org.springframework.web.bind.annotation.ResponseBody
 import tools.jackson.databind.JsonNode
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -191,8 +192,18 @@ class ExternalProjectApiController(
         return created(result)
     }
 
-    /** `due_on`의 ISO 시각(예: `2030-01-02T12:00:00Z`)이다. 읽을 수 없으면 `null`이다. */
-    private fun parseDueOn(text: String): Date? = try { Date.from(Instant.parse(text)) } catch (e: DateTimeParseException) { null }
+    /**
+     * `due_on`을 읽는다 (v1.6 `MilestoneApi`: Joda `new DateTime(text)`). 그날의 마지막 초로 맞추는 일은 [MilestoneService.create]가 한다.
+     * `2030-01-02`(시스템 시간대의 자정), `2030-01-02T12:00:00`(시스템 시간대), `2030-01-02T12:00:00Z`, `2030-01-02T12:00:00+09:00`을 받는다.
+     * 읽을 수 없으면 `null`이다. v1.6은 이 경우 `IllegalArgumentException`으로 `500`이 나므로 오류 없이 처리하는 쪽을 유지한다.
+     */
+    private fun parseDueOn(text: String): Date? {
+        val zone = ZoneId.systemDefault()
+        return try {
+            if (text.length <= 10) Date.from(LocalDate.parse(text).atStartOfDay(zone).toInstant())
+            else try { Date.from(OffsetDateTime.parse(text).toInstant()) } catch (e: DateTimeParseException) { Date.from(LocalDateTime.parse(text).atZone(zone).toInstant()) }
+        } catch (e: DateTimeParseException) { null }
+    }
 
     private fun milestoneNode(m: dev.yona.domain.issue.Milestone): Map<String, Any?> {
         val node = linkedMapOf<String, Any?>("id" to m.id, "title" to m.title, "state" to m.state?.state, "description" to m.contents)
@@ -235,11 +246,12 @@ class ExternalProjectApiController(
 
     private fun person(user: User) = linkedMapOf("loginId" to user.loginId, "name" to user.name, "email" to user.email)
 
-    /** 이슈나 글을 쓴 사용자이다. 풀 리퀘스트를 보낸 사용자는 5단계에서 더한다 (v1.6 `Project.findAuthors`). */
+    /** 이슈나 글을 쓴 사용자와 이 프로젝트로 풀 리퀘스트를 보낸 사용자이다 (v1.6 `Project.findAuthors`). */
     private fun authors(projectId: Long): List<User> {
         val ids = LinkedHashSet<Long>()
         entityManager.createQuery("select distinct i.authorId from Issue i where i.project.id = :id and i.authorId is not null order by i.authorId", java.lang.Long::class.java).setParameter("id", projectId).resultList.forEach { ids.add(it.toLong()) }
         entityManager.createQuery("select distinct p.authorId from Posting p where p.project.id = :id and p.authorId is not null order by p.authorId", java.lang.Long::class.java).setParameter("id", projectId).resultList.forEach { ids.add(it.toLong()) }
+        entityManager.createQuery("select distinct pr.contributor.id from PullRequest pr where pr.toProject.id = :id and pr.contributor is not null order by pr.contributor.id", java.lang.Long::class.java).setParameter("id", projectId).resultList.forEach { ids.add(it.toLong()) }
         return ids.mapNotNull { users.findById(it).orElse(null) }
     }
 

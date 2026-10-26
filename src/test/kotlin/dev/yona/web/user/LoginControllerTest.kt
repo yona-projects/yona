@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirec
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 /**
  * v1.6 `UserApp.login`, `UserApp.logout`과 현재 사용자 식별(세션, remember-me 쿠키, API 토큰)을 검증한다.
@@ -108,6 +109,38 @@ class LoginControllerTest : AbstractIntegrationTest() {
         val session = MockHttpSession()
         mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "erin").param("password", "1234"))
             .andExpect(flash().attribute("warning", "user.locked"))
+        assertEquals("anonymous", whoAmI(session))
+    }
+
+    @Test
+    fun `로그인한 사용자의 언어는 요청마다 Accept-Language에 맞춰 바뀐다`() {
+        val alice = newUser("langer")
+        val session = MockHttpSession()
+        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "langer").param("password", "1234").header("Accept-Language", "ko-KR"))
+        assertEquals("ko-KR", users.findById(alice.id!!).get().lang)
+        // v1.6 Global.getDefaultAction이 모든 요청에서 UserApp.updatePreferredLanguage()를 부른다
+        whoAmI(session, headers = mapOf("Accept-Language" to "ja-JP"))
+        assertEquals("ja-JP", users.findById(alice.id!!).get().lang)
+        // 헤더가 없으면 건드리지 않는다
+        whoAmI(session)
+        assertEquals("ja-JP", users.findById(alice.id!!).get().lang)
+    }
+
+    @Test
+    fun `익명 요청은 어떤 사용자의 언어도 바꾸지 않는다`() {
+        val bob = newUser("langer2")
+        whoAmI(headers = mapOf("Accept-Language" to "ru-RU"))
+        assertNull(users.findById(bob.id!!).get().lang)
+    }
+
+    @Test
+    fun `관리자가 지운 사용자의 세션은 다음 요청에서 무효가 된다`() {
+        val carol = newUser("carol2")
+        val session = MockHttpSession()
+        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "carol2").param("password", "1234"))
+        assertEquals("carol2", whoAmI(session))
+        // v1.6 User.isLocked() = LOCKED || DELETED. getUserFromSession이 이 값으로 세션을 비운다.
+        carol.state = UserState.DELETED; users.save(carol)
         assertEquals("anonymous", whoAmI(session))
     }
 

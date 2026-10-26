@@ -1,5 +1,6 @@
 package dev.yona.config
 
+import dev.yona.security.PreferredLanguageInterceptor
 import dev.yona.web.access.AnonymousCheckInterceptor
 import dev.yona.web.access.ProjectCheckInterceptor
 import dev.yona.web.access.SiteManagerOnlyInterceptor
@@ -23,7 +24,8 @@ class WebConfig(
     private val anonymousCheckInterceptor: AnonymousCheckInterceptor,
     private val projectCheckInterceptor: ProjectCheckInterceptor,
     private val siteManagerOnlyInterceptor: SiteManagerOnlyInterceptor,
-    private val siteSecretInterceptor: SiteSecretInterceptor
+    private val siteSecretInterceptor: SiteSecretInterceptor,
+    private val preferredLanguageInterceptor: PreferredLanguageInterceptor
 ) : WebMvcConfigurer {
 
     /** 현재 시각을 알려 주는 시계이다. 시각에 의존하는 표시를 테스트에서 고정할 수 있게 주입해서 쓴다. */
@@ -31,6 +33,7 @@ class WebConfig(
     fun clock(): java.time.Clock = java.time.Clock.systemDefaultZone()
 
     override fun addInterceptors(registry: InterceptorRegistry) {
+        registry.addInterceptor(preferredLanguageInterceptor)
         registry.addInterceptor(siteSecretInterceptor)
         registry.addInterceptor(anonymousCheckInterceptor)
         registry.addInterceptor(siteManagerOnlyInterceptor)

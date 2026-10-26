@@ -51,7 +51,8 @@ class IssueViewController(
     private val currentUserProvider: CurrentUserProvider,
     private val recentVisits: RecentVisitService,
     private val recentIssues: RecentIssueService,
-    private val messages: MessageSource
+    private val messages: MessageSource,
+    private val siteUrls: dev.yona.util.SiteUrls
 ) {
 
     @GetMapping("/{user}/{project}/issue/{number:[0-9]+}")
@@ -86,6 +87,7 @@ class IssueViewController(
 
         recentVisits.visits(viewer, project)
         recentIssues.visits(viewer, issue)
+        recentVisits.markIssueOrPostingVisited(viewer, requireNotNull(issue.id))
         if (json) {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(
                 linkedMapOf(
@@ -95,9 +97,7 @@ class IssueViewController(
             )
         }
         val detail = assembler.assemble(project, issue, viewer)
-        val referer = request.getHeader(HttpHeaders.REFERER)
-        val listPath = "/${project.owner}/${project.name}/issues"
-        val listUrl = if (referer != null && runCatching { java.net.URI(referer).path }.getOrNull() == listPath) referer else "$listPath?state=${issue.state?.state}"
+        val listUrl = listUrl(request.getHeader(HttpHeaders.REFERER), "/${project.owner}/${project.name}/issues", issue.state?.state)
         val body = issue.body.orEmpty()
         return ModelAndView("issue/view")
             .addObject("title", (issue.title.orEmpty()) + " |:| " + body.take(OG_BODY_LENGTH))
@@ -162,6 +162,25 @@ class IssueViewController(
         if (text == null || text.length <= max) text else text.substring(0, max - 3) + "..."
 
     private fun message(key: String): String = messages.getMessage(key, null, key, LocaleContextHolder.getLocale()) ?: key
+
+    /**
+     * `L` 단축키가 가는 목록 주소이다 (v1.6 `view.scala.html`의 `urlToIssues`, `TemplateHelper.urlToList`).
+     * Referer가 없으면 이슈의 상태와 관계없이 `state=open`이다. 있으면 호스트, 포트, 경로가 기본 주소(`state=이슈 상태`)와 모두 같을 때만
+     * Referer를 쓰고, 그렇지 않으면 기본 주소를 쓴다. 상대 주소는 설정한 사이트 주소로 채워 비교한다.
+     */
+    private fun listUrl(referer: String?, listPath: String, state: String?): String {
+        if (referer == null) return "$listPath?state=open"
+        val default = "$listPath?state=$state"
+        return if (sameResource(referer, default)) referer else default
+    }
+
+    private fun sameResource(a: String, b: String): Boolean = try {
+        val origin = java.net.URI(siteUrls.origin())
+        fun full(text: String): java.net.URI = java.net.URI(text).let { java.net.URI(it.scheme ?: origin.scheme, it.authority ?: origin.authority, it.path, it.query, it.fragment) }.normalize()
+        fun port(uri: java.net.URI) = if (uri.port != -1) uri.port else if (uri.scheme == "https") 443 else 80
+        val x = full(a); val y = full(b)
+        x.host == y.host && port(x) == port(y) && x.path == y.path
+    } catch (e: java.net.URISyntaxException) { false }
 
     private companion object {
         /** JSON 응답의 본문 요약 길이이다 (v1.6 `StringUtils.abbreviate(body, 200)`). */

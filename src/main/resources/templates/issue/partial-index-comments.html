@@ -9,7 +9,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="indexComments">
 <div class="comment-header"><strong th:text="#{common.comment}"></strong> <strong class="num" th:text="${issue.commentCount}"></strong></div>
 
-<ul th:if="${!issue.index.isEmpty()}" class="comments">
+<ul th:if="${issue.hasCommentsOrEvents}" class="comments">
     <li th:each="c : ${issue.index}" class="comment index-comment" th:classappend="(${c.mentioned} ? 'mentioned' : '') + ' ' + (${c.mentionedInChild} ? 'mentionedInChild' : '')"
         th:id="'comment-' + ${c.id}" th:attr="data-location='#comment-' + ${c.id}">
         <div>

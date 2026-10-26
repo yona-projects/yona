@@ -49,7 +49,7 @@
                         <img th:src="${post.authorAvatarUrl}" th:alt="${post.authorName}" width="32" height="32"/>
                     </a>
                     <div class="title-wrap">
-                        <a th:href="${'/' + post.owner + '/' + post.projectName + '/post/' + post.number}" class="title" th:text="${post.titleWithoutHeaders}"></a>
+                        <a th:href="${'/' + post.owner + '/' + post.projectName + '/post/' + post.number}" class="title" th:text="${post.title}"></a>
                     </div>
                     <div class="infos">
                         <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="'/' + ${post.authorLoginId}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${post.authorLoginId}" th:text="${post.authorDisplayName}"></a>

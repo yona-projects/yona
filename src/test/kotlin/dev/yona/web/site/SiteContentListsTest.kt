@@ -197,4 +197,16 @@ class SiteContentListsTest : AbstractIntegrationTest() {
         assertEquals("3", row.selectFirst(".post-comments")!!.text().trim())
         assertEquals("/${owner.loginId}/iss3", row.selectFirst("a.post-project")!!.attr("href"))
     }
+
+    @Test
+    fun `기본 아바타는 alt와 크기 없이 그림만 낸다`() {
+        val owner = newUser(); val p = project(owner, "avt"); issue(p, "아바타 확인", owner)
+        val img = page(admin(), "/sites/issueList").select("li.listitem").first { it.text().contains("아바타 확인") }.selectFirst(".post-meta-wrap a.avatar-wrap img")!!
+        // v1.6 issueList.scala.html: user.avatarUrl == DEFAULT_AVATAR_URL이면 src만 있고, 아니면 alt, width, height가 붙는다.
+        if (img.attr("src") == "/assets/images/default-avatar-128.png") {
+            assertTrue(!img.hasAttr("alt") && !img.hasAttr("width") && !img.hasAttr("height"), img.outerHtml())
+        } else {
+            assertEquals("16", img.attr("width")); assertTrue(img.hasAttr("alt"))
+        }
+    }
 }

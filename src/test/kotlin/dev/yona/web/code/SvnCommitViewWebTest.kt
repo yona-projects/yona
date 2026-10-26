@@ -229,6 +229,17 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     // --- 코멘트 지우기 ---
 
     @Test
+    fun `없는 코멘트를 지우면 커밋 댓글이 없다고 알린다`() {
+        val p = project()
+        val writer = member(p)
+        commit(p, "dev", "msg", mapOf("a.txt" to "x\n"))
+        // v1.6 IsAllowedAction: targetType이 code_comment라 "error.notfound.code_comment" 문구이다
+        val html = mockMvc.perform(delete("/${p.owner}/${p.name}/commit/1/comments/999999/delete").session(login(writer)))
+            .andExpect(status().isNotFound).andReturn().response.contentAsString
+        assertTrue(html.contains("Commit-comment does not exist"), html)
+    }
+
+    @Test
     fun `작성자는 코멘트를 지우고 커밋 보기로 돌아간다`() {
         val p = project()
         val writer = member(p)

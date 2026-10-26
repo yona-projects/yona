@@ -25,7 +25,8 @@
             </div>
             <div class="post-meta-wrap">
                 <a th:href="@{/{u}(u=${row.authorLoginId})}" class="avatar-wrap">
-                    <img th:src="@{${row.authorAvatarUrl}}" th:alt="${row.authorName}" width="16" height="16"/>
+                    <img th:if="${row.defaultAvatar}" th:src="@{${row.authorAvatarUrl}}"/>
+                    <img th:unless="${row.defaultAvatar}" th:src="@{${row.authorAvatarUrl}}" th:alt="${row.authorName}" width="16" height="16"/>
                 </a>
                 <a th:href="@{/{u}(u=${row.authorLoginId})}" class="post-meta-item" th:text="${row.authorName}"></a>
                 <span class="post-meta-item" th:title="${row.createdTitle}" th:text="${row.createdText}"></span>

@@ -54,7 +54,10 @@ class SiteContentController(
     data class ContentRow(
         val projectOwner: String, val projectName: String, val logoUrl: String, val title: String, val url: String,
         val authorLoginId: String, val authorName: String, val authorAvatarUrl: String, val createdTitle: String, val createdText: String, val commentCount: Int
-    )
+    ) {
+        /** 기본 아바타이면 `true`이다. v1.6은 이때 `alt`, `width`, `height` 없이 그림만 낸다. */
+        val defaultAvatar: Boolean get() = authorAvatarUrl == dev.yona.security.AvatarService.DEFAULT_AVATAR_URL
+    }
 
     @GetMapping("/sites/projectList")
     @Transactional(readOnly = true)

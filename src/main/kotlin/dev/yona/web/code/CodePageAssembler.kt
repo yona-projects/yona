@@ -58,14 +58,16 @@ class CodePageAssembler(
             else CodeItem(null, file(project, info, branch, path, loggedIn, siteManager, maxFileSize, base))
         }
         val itemName = branchItemName(branch)
+        // v1.6 code/view.scala.html은 `project.isGit`일 때만 브랜치 탭, 내려받기, 새 파일 링크를 낸다
+        val git = project.vcs == RepositoryService.VCS_GIT
         return CodePage(
             showTabs = chain.first()["type"] == "folder",
             filesTabUrl = codeUrl(branchSegment, path.substringBeforeLast('/', "")),
             commitsTabUrl = "$base/commits/$branchSegment/",
-            branchesTabUrl = "$base/branches",
+            branchesTabUrl = if (git) "$base/branches" else null,
             branches = branches, rootUrl = basePath, projectName = name, crumbs = crumbs,
-            downloadUrl = "$base/code/$branchSegment/download",
-            newFileUrl = if (loggedIn) "$base/postform?path=$dir&branch=$itemName" else null,
+            downloadUrl = if (git) "$base/code/$branchSegment/download" else null,
+            newFileUrl = if (git && loggedIn) "$base/postform?path=$dir&branch=$itemName" else null,
             items = items, initialPath = path,
             metaInfoUrl = "$base/code/$branchSegment/!/", basePathUrl = basePath
         )

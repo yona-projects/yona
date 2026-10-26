@@ -54,11 +54,14 @@ data class CurrentUser(val user: User?) {
     /** 로그인하지 않았으면 `true`이다 (v1.6 `isAnonymous`). */
     val isAnonymous: Boolean get() = user == null
 
-    /** 계정이 잠겼으면 `true`이다. */
-    val isLocked: Boolean get() = user?.state == UserState.LOCKED
+    /** 계정이 잠겼거나 지워졌으면 `true`이다 (v1.6 `User.isLocked()`는 `LOCKED || DELETED`이다). */
+    val isLocked: Boolean get() = user?.state.isLockedOut()
 
     companion object {
         /** 로그인하지 않은 사용자이다. */
         val ANONYMOUS = CurrentUser(null)
     }
 }
+
+/** 잠겼거나 지워진 계정이면 `true`이다. 이런 계정의 세션과 로그인 유지 쿠키는 쓰지 못한다 (v1.6 `User.isLocked()`). */
+fun UserState?.isLockedOut(): Boolean = this == UserState.LOCKED || this == UserState.DELETED

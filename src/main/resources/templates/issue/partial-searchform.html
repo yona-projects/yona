@@ -86,7 +86,7 @@
                 <span th:if="${!search.hasLabels}" class="vmiddle" style="margin-left:2px;" th:text="#{label.manage}"></span>
             </a>
 
-            <th:block th:replace="~{issue/partial-select-label :: selectLabel(${search.labels}, ${search.selectedLabelIds}, 'issue-option', ${projectView})}"></th:block>
+            <th:block th:replace="~{issue/partial-select-label :: selectLabel(${search.labels}, ${search.selectedLabelIds}, 'issue-option', null, ${projectView})}"></th:block>
         </div>
     </div>
 </form>

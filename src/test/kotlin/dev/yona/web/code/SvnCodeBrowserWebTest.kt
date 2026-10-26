@@ -115,6 +115,16 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `Subversion 코드 화면에는 브랜치 탭과 내려받기 링크와 새 파일 링크가 없다`() {
+        val p = filled()
+        val doc = page("/${p.owner}/${p.name}/code/HEAD/")
+        // v1.6 code/view.scala.html은 `project.isGit`일 때만 브랜치 탭, 내려받기, 새 파일을 낸다
+        assertTrue(doc.select("a[href\$='/branches']").isEmpty(), doc.select(".code-browse-wrap > ul.nav-tabs").outerHtml())
+        assertTrue(doc.select("a[href\$='/download']").isEmpty())
+        assertTrue(doc.select("#new-file-link").isEmpty())
+    }
+
+    @Test
     fun `파일 화면은 리비전 번호를 Revision으로 보이고 원본 주소에 리비전을 쓴다`() {
         val p = filled()
         val doc = page("/${p.owner}/${p.name}/code/HEAD/src/App.kt")

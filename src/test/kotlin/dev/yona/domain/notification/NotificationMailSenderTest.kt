@@ -1,6 +1,9 @@
 package dev.yona.domain.notification
 
 import dev.yona.domain.comment.IssueComment
+import dev.yona.domain.comment.NonRangedCodeCommentThread
+import dev.yona.domain.comment.ReviewComment
+import dev.yona.domain.enumeration.ThreadState
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.ResourceType
@@ -121,6 +124,20 @@ class NotificationMailSenderTest : AbstractIntegrationTest() {
         val mail = sent().single()
         assertEquals("<issue_comment/${comment.id}@${hostname.name()}>", mail.messageID)
         assertEquals("<issue_post/${i.id}@${hostname.name()}>", mail.getHeader("References")!!.single())
+    }
+
+    @Test
+    fun `코드 리뷰 스레드의 댓글 알림은 참조 헤더에 스레드의 첫 댓글을 단다`() {
+        val author = user(); val receiver = user(); val i = issue(author)
+        val thread = NonRangedCodeCommentThread(commitId = "c").also { it.project = i.project; it.state = ThreadState.OPEN; it.createdDate = Date() }.also { entityManager.persist(it) }
+        val first = ReviewComment(contents = "첫", createdDate = Date(1_000), authorId = author.id, authorLoginId = author.loginId, authorName = author.name, thread = thread).also { entityManager.persist(it) }
+        val second = ReviewComment(contents = "둘째", createdDate = Date(2_000), authorId = author.id, authorLoginId = author.loginId, authorName = author.name, thread = thread).also { entityManager.persist(it) }
+        entityManager.flush()
+        sender.send(MergedNotification(event(author, i, EventType.NEW_REVIEW_COMMENT, null, "둘째", receiver, resourceType = ResourceType.REVIEW_COMMENT, resourceId = second.id!!)))
+        val mail = sent().single()
+        assertEquals("<review_comment/${second.id}@${hostname.name()}>", mail.messageID)
+        // v1.6 NotificationMail: 컨테이너가 COMMENT_THREAD이면 스레드의 첫 리뷰 댓글의 메시지 식별자를 References에 단다
+        assertEquals("<review_comment/${first.id}@${hostname.name()}>", mail.getHeader("References")!!.single())
     }
 
     @Test

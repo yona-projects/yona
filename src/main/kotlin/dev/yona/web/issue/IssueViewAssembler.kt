@@ -111,7 +111,8 @@ class IssueViewAssembler(
             dueOver = overdue, labels = labels, selectedLabelIds = LinkedHashSet(labels.map { it.id }),
             attachmentsJson = attachmentListing.fileListJson(ResourceType.ISSUE_POST, issueId), bodyChecksum = sha1Hex(body),
             numOfComments = allComments.size, nextStateName = if (issue.state == State.CLOSED) "open" else "closed",
-            subtasks = subtasks(issue, viewer, sharedWithMe), timeline = timeline, commentCount = allComments.size, index = indexComments(project, allComments, viewer)
+            subtasks = subtasks(issue, viewer, sharedWithMe), timeline = timeline, commentCount = allComments.size, index = indexComments(project, allComments, viewer),
+            hasCommentsOrEvents = allComments.size + allEvents.size > 0
         )
     }
 

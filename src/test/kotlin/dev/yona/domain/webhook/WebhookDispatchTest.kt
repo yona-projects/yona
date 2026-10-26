@@ -22,6 +22,8 @@ import dev.yona.domain.pullrequest.PullRequestChangedActivity
 import dev.yona.domain.pullrequest.PullRequestCreatedActivity
 import dev.yona.domain.pullrequest.PullRequestRepository
 import dev.yona.domain.pullrequest.PullRequestReviewedActivity
+import dev.yona.domain.user.SiteAdmin
+import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.repository.PostReceiveJobs
@@ -59,6 +61,7 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
     @Autowired private lateinit var pullRequests: PullRequestRepository
     @Autowired private lateinit var service: WebhookService
     @Autowired private lateinit var threads: WebhookThreadRepository
+    @Autowired private lateinit var siteAdmins: SiteAdminRepository
 
     private val mapper = JsonMapper.builder().build()
     private val received = CopyOnWriteArrayList<Received>()
@@ -158,6 +161,18 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
         assertEquals(listOf("refs/heads/gone"), body.path("ref").items().map { it.asString("") })
         assertEquals(0, body.path("commits").size())
         assertTrue(body.path("head_commit").isNull)
+    }
+
+    @Test
+    fun `푸시 본문의 sender는 사이트 관리자 여부를 site_admin에 담는다`() {
+        val p = project(); val sender = user(); val admin = user()
+        siteAdmins.save(SiteAdmin(admin = admin))
+        service.create(p, url, null, true, WebhookType.JSON)
+        publisher.publishEvent(CommitsPushedActivity(p, sender, emptyList(), listOf("refs/heads/a")))
+        publisher.publishEvent(CommitsPushedActivity(p, admin, emptyList(), listOf("refs/heads/b")))
+        // v1.6 Webhook.buildSenderJSON: site_admin = sender.isSiteManager()
+        assertEquals(false, json(0).path("sender").path("site_admin").asBoolean(true))
+        assertEquals(true, json(1).path("sender").path("site_admin").asBoolean(false))
     }
 
     @Test

@@ -26,6 +26,8 @@ import dev.yona.domain.project.ProjectMenuSettingRepository
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.ProjectUser
 import dev.yona.domain.project.ProjectUserRepository
+import dev.yona.domain.pullrequest.PullRequest
+import dev.yona.domain.pullrequest.PullRequestRepository
 import dev.yona.domain.user.RoleRepository
 import dev.yona.domain.user.SiteAdmin
 import dev.yona.domain.user.SiteAdminRepository
@@ -76,6 +78,7 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var labels: IssueLabelRepository
     @Autowired private lateinit var categories: IssueLabelCategoryRepository
     @Autowired private lateinit var watches: WatchRepository
+    @Autowired private lateinit var pullRequests: PullRequestRepository
     @Autowired private lateinit var entityManager: EntityManager
 
     private var sequence = 0
@@ -203,6 +206,18 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `마감일은 날짜만 있거나 오프셋이 없는 시각도 받는다`() {
+        val project = newProject(); val m = member(project)
+        // v1.6 MilestoneApi는 Joda `new DateTime(text)`로 읽어 하루의 마지막 초로 맞춘다. 날짜만, 오프셋 없는 시각, 오프셋 있는 시각을 모두 받는다.
+        val body = """{"milestones":[{"title":"a","due_on":"2030-01-02"},{"title":"b","due_on":"2030-01-03T12:00:00"},{"title":"c","due_on":"2030-01-04T12:00:00+09:00"},{"title":"d","due_on":"엉터리"}]}"""
+        json(post(api("owners/${project.owner}/projects/${project.name}/milestones")), m.token, body).andExpect(status().isCreated)
+            .andExpect(jsonPath("$[0].due_on").value("2030-01-02T23:59:59Z"))
+            .andExpect(jsonPath("$[1].due_on").value("2030-01-03T23:59:59Z"))
+            .andExpect(jsonPath("$[2].due_on").exists())
+            .andExpect(jsonPath("$[3].due_on").doesNotExist())
+    }
+
+    @Test
     fun `마일스톤 만들기의 오류와 권한`() {
         val project = newProject(); val m = member(project)
         val path = api("owners/${project.owner}/projects/${project.name}/milestones")
@@ -228,6 +243,15 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
             .andExpect(jsonPath("$.labels[0].labelName").value("bug")).andExpect(jsonPath("$.labels[0].isExclusive").value(true))
             .andExpect(jsonPath("$.issues[0].title").value("이슈")).andExpect(jsonPath("$.posts[0].title").value("글")).andExpect(jsonPath("$.milestones[0].title").value("v1")).andExpect(jsonPath("$.milestones[0].dueDate").doesNotExist())
             .andExpect(jsonPath("$.authors[0].loginId").value(manager.loginId))
+    }
+
+    @Test
+    fun `내보내기의 authors에는 풀 리퀘스트를 보낸 사용자도 들어간다`() {
+        val project = newProject(); val manager = member(project, RoleType.MANAGER, "mgr-pr-tk"); val contributor = newUser()
+        // v1.6 Project.findAuthors = 이슈 작성자 + 글 작성자 + 이 프로젝트로 보낸 풀 리퀘스트의 보낸 사람
+        pullRequests.save(PullRequest(toProject = project, fromProject = newProject(), number = 1, state = State.OPEN, contributor = contributor))
+        json(get(api("owners/${project.owner}/projects/${project.name}/exports")), manager.token, null).andExpect(status().isOk)
+            .andExpect(jsonPath("$.authors.length()").value(1)).andExpect(jsonPath("$.authors[0].loginId").value(contributor.loginId))
     }
 
     @Test

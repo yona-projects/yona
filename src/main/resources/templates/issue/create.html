@@ -81,7 +81,7 @@
                         </dd>
                     </dl>
 
-                    <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelGroups}, ${selectedLabelIds}, 'issue-option', ${projectView})}"></th:block>
+                    <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelGroups}, ${selectedLabelIds}, 'issue-option', false, ${projectView})}"></th:block>
                     <input type="hidden" name="referCommentId" th:value="${commentId}">
                     <input type="hidden" id="isDraft" name="isDraft" value="false">
                 </div>

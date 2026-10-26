@@ -124,20 +124,26 @@ class ProjectCheckInterceptor(
             ErrorViews.notFound("error.forbidden.or.notfound").also { it.status = org.springframework.http.HttpStatus.FORBIDDEN }
         }
 
+    /**
+     * 읽기 권한이 없을 때의 응답: 익명에게는 로그인 화면, 로그인한 사용자에게는 오류 화면이다.
+     * [withFailedFlash]이면 어느 쪽에도 `failed` 안내를 붙인다 (v1.6 `AbstractProjectCheckAction`은 로그인 여부와 관계없이 flash를 심는다).
+     */
     private fun forbiddenOrLogin(request: HttpServletRequest, withFailedFlash: Boolean = false): ModelAndView =
         if (currentUserProvider.get().isAnonymous) {
             loginRequired(request, withFailedFlash)
         } else {
-            ErrorViews.forbidden("error.forbidden.or.notfound")
+            ErrorViews.forbidden("error.forbidden.or.notfound").also { if (withFailedFlash) addFailedFlash(it) }
         }
+
+    private fun addFailedFlash(view: ModelAndView) {
+        val message = messages.getMessage("error.auth.unauthorized.waringMessage", null, LocaleContextHolder.getLocale())
+        view.addObject("flashMessages", flashTranslator.translate(mapOf("failed" to message)))
+    }
 
     /** 로그인 화면을 403으로 보여 준다. 안내(`failed`)는 같은 응답에서 바로 보인다. */
     private fun loginRequired(request: HttpServletRequest, withFailedFlash: Boolean = true): ModelAndView {
         val view = ErrorViews.loginRequired(request.requestURI)
-        if (withFailedFlash) {
-            val message = messages.getMessage("error.auth.unauthorized.waringMessage", null, LocaleContextHolder.getLocale())
-            view.addObject("flashMessages", flashTranslator.translate(mapOf("failed" to message)))
-        }
+        if (withFailedFlash) addFailedFlash(view)
         return view
     }
 

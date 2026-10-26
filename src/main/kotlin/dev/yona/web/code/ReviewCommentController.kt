@@ -104,7 +104,7 @@ class ReviewCommentController(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable commitId: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
-        val comment = commitComments.findById(id).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), null)
+        val comment = commitComments.findById(id).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), ResourceType.COMMIT_COMMENT.resource)
         if (!accessControl.isAllowed(currentUserProvider.get().user, lookup.get(ResourceType.COMMIT_COMMENT, id.toString()), Operation.DELETE)) {
             return ErrorViews.forbidden("error.forbidden", views.of(project))
         }

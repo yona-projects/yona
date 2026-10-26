@@ -87,11 +87,12 @@ class ExternalBoardApiTest : AbstractIntegrationTest() {
         val body = """{"posts":[{"title":"가져온 글","body":"내용 @${user.loginId}","author":{"email":"${author.email}"},"createdAt":"$created","updatedAt":"$created","number":5},{"title":"다음 글"}]}"""
         json(post(api(project, "posts")), user.token, body).andExpect(status().isCreated)
             .andExpect(jsonPath("$[0].status").value(201)).andExpect(jsonPath("$[0].location").value("/${project.owner}/${project.name}/post/5"))
-            .andExpect(jsonPath("$[1].location").value("/${project.owner}/${project.name}/post/1"))
+            // 번호를 지정해 가져온 글은 카운터를 올리지 않는다. 다음 글은 v1.6 getLastPostingNumber 보정으로 가장 큰 번호 다음(6)을 받는다.
+            .andExpect(jsonPath("$[1].location").value("/${project.owner}/${project.name}/post/6"))
         entityManager.flush(); entityManager.clear()
         val saved = postings.findAll().filter { it.project?.id == project.id }.associateBy { it.number }
         assertEquals("가져온 글", saved[5]!!.title); assertEquals(author.loginId, saved[5]!!.authorLoginId); assertEquals(1_600_000_000_000L / 1000, saved[5]!!.createdDate!!.time / 1000)
-        assertEquals(user.loginId, saved[1]!!.authorLoginId)
+        assertEquals(user.loginId, saved[6]!!.authorLoginId)
         assertEquals(0, events.stream(dev.yona.domain.board.PostingCreatedActivity::class.java).count())
     }
 

@@ -149,6 +149,14 @@ class OrganizationBoardTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `제목의 말머리를 떼지 않고 그대로 보인다`() {
+        val org = newOrg(); val a = orgProject(org, name = "alpha")
+        post(a, "[공지] 회의록")
+        // v1.6 group_board_list_partial은 @post.title 전체를 출력한다(프로젝트 게시판과 달리 말머리를 분리하지 않는다)
+        assertEquals(listOf("[공지] 회의록"), titles(page("/organizations/${org.name}/boards")))
+    }
+
+    @Test
     fun `제목이나 본문으로 검색한다`() {
         val org = newOrg(); val a = orgProject(org)
         post(a, "Alpha"); post(a, "Beta", body = "has ALPHA inside"); post(a, "Gamma")

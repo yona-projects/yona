@@ -69,7 +69,8 @@ class IssueMassUpdateService(
         edit.milestoneId?.let { id ->
             val old = issue.milestone
             val new = if (id == MassEdit.NONE) null else milestones.findById(id).orElse(null)
-            if (old?.id != new?.id && (id != MassEdit.NONE || old != null)) {
+            // v1.6 isMilestoneChanged: 옛 마일스톤과 같은 번호만 변경이 아니다. "없음"(-1)은 번호가 -1인 마일스톤으로 들어오므로 이미 없는 이슈에도 변경이다.
+            if (id == MassEdit.NONE || new != null && old?.id != new.id) {
                 issue.milestone = new
                 record(issue, actor, EventType.ISSUE_MILESTONE_CHANGED, (old?.id ?: MassEdit.NONE).toString(), (new?.id ?: MassEdit.NONE).toString())
             }

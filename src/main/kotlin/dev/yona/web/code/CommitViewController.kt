@@ -116,7 +116,7 @@ class CommitViewController(
             .addObject("projectView", views.of(project))
             .addObject("commit", commitView(commit, author))
             .addObject("shortMessageHtml", messageHtml(commit.shortMessage, project))
-            .addObject("moreMessageHtml", commit.message.let { full -> if (full.split("\n").size > 1) messageHtml(full.removePrefix(full.substringBefore('\n') + "\n"), project) else "" })
+            .addObject("moreMessageHtml", moreMessageHtml(commit.message, project))
             .addObject("diffHtml", diffHtml.render(fileDiffs, codeThreads, project, project, threadHtml))
             .addObject("nonRangedHtml", threadHtml.renderAll(onCommit.filterIsInstance<NonRangedCodeCommentThread>().sortedBy { it.createdDate }))
             .addObject("canComment", creatable)
@@ -216,6 +216,13 @@ class CommitViewController(
     }
 
     private fun messageHtml(message: String, project: dev.yona.domain.project.Project): String = autoLinks.render(HtmlUtils.htmlEscape(message), project, null)
+
+    /** 첫 줄을 뺀 나머지이다. 자동 링크를 건 전체 메시지에서 첫 줄과 그 줄바꿈을 모두 지운다 (v1.6 `commitMsg.scala.html`). 한 줄뿐이면 빈 문자열이다. */
+    private fun moreMessageHtml(message: String, project: dev.yona.domain.project.Project): String {
+        val rendered = messageHtml(message, project)
+        val lines = rendered.split("\n").dropLastWhile { it.isEmpty() }
+        return if (lines.size > 1) rendered.replace(lines[0] + "\n", "") else ""
+    }
 
     private fun commitView(commit: CommitInfo, author: dev.yona.domain.user.User?): Map<String, Any?> = linkedMapOf(
         "id" to commit.id, "authorHref" to author?.let { "/${it.loginId}" }, "authorName" to (author?.name ?: commit.authorName),

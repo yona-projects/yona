@@ -49,7 +49,8 @@
         <li th:each="row : ${rows}" class="row-fluid listitem">
             <div class="span3 listitem-col">
                 <a th:href="@{/{u}(u=${row.loginId})}" class="avatar-wrap list-avatar">
-                    <img th:src="@{${row.avatarUrl}}" th:alt="${row.name}" width="32" height="32"/>
+                    <img th:if="${row.defaultAvatar}" th:src="@{${row.avatarUrl}}"/>
+                    <img th:unless="${row.defaultAvatar}" th:src="@{${row.avatarUrl}}" th:alt="${row.name}" width="32" height="32"/>
                 </a>
                 <a th:href="@{/{u}(u=${row.loginId})}" class="user-name" th:text="${row.name}"></a>
                 <a th:href="@{/{u}(u=${row.loginId})}" class="user-id" th:text="'@' + ${row.loginId}"></a>

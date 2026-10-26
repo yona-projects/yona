@@ -23,7 +23,7 @@
                     <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
                 </div>
                 <div th:if="${hasLabels}" class="board-labels">
-                    <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelGroups}, ${selectedLabelIds}, '', ${projectView})}"></th:block>
+                    <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelGroups}, ${selectedLabelIds}, '', null, ${projectView})}"></th:block>
                 </div>
                 <th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block>
             </form>

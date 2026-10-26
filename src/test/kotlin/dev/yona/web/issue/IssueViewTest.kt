@@ -123,6 +123,30 @@ class IssueViewTest : AbstractIntegrationTest() {
     private fun view(project: Project, number: Long = 1, session: MockHttpSession? = null): Document =
         Jsoup.parse(mockMvc.perform(get("${base(project)}/issue/$number").apply { session?.let { session(it) } }).andExpect(status().isOk).andReturn().response.contentAsString)
 
+    private fun listShortcut(project: Project, number: Long, referer: String?): String {
+        val html = mockMvc.perform(get("${base(project)}/issue/$number").apply { referer?.let { header("Referer", it) } }).andExpect(status().isOk).andReturn().response.contentAsString
+        return Regex("\"L\":\\s*\"([^\"]*)\"").find(html.replace("\\/", "/").replace("\\u0026", "&"))!!.groupValues[1]
+    }
+
+    @Test
+    fun `목록으로 가는 단축키는 Referer가 없으면 열린 이슈 목록이다`() {
+        val project = newProject()
+        issue(project, 1, state = State.CLOSED)
+        // v1.6 view.scala.html urlToIssues: Referer가 없으면 이슈 상태와 관계없이 state=open
+        assertEquals("${base(project)}/issues?state=open", listShortcut(project, 1, null))
+    }
+
+    @Test
+    fun `목록으로 가는 단축키는 같은 목록에서 왔을 때만 Referer를 쓴다`() {
+        val project = newProject()
+        issue(project, 1, state = State.CLOSED)
+        val list = "${base(project)}/issues?state=open&filter=abc"
+        assertEquals(list, listShortcut(project, 1, list))
+        // 경로만 같고 호스트가 다른 곳에서 오면 v1.6 resourceEquals가 아니라고 보고 기본 주소를 쓴다
+        assertEquals("${base(project)}/issues?state=closed", listShortcut(project, 1, "http://other.example.org${base(project)}/issues?state=open"))
+        assertEquals("${base(project)}/issues?state=closed", listShortcut(project, 1, "${base(project)}/boards"))
+    }
+
     // --- 머리와 본문 ---
 
     @Test
@@ -454,6 +478,17 @@ class IssueViewTest : AbstractIntegrationTest() {
         val i = issue(project)
         entityManager.persist(IssueEvent(created = Date(), senderLoginId = me.loginId, issue = i, eventType = EventType.ISSUE_BODY_CHANGED, oldValue = "a", newValue = "b")); entityManager.flush()
         assertTrue(view(project, session = login(me)).select("#timeline li.event").isEmpty())
+    }
+
+    @Test
+    fun `이벤트만 있는 이슈도 색인의 댓글 목록 상자를 그린다 (v1_6 comments + events가 0보다 크면)`() {
+        val project = newProject()
+        val me = join(newUser(), project)
+        val i = issue(project)
+        assertTrue(view(project, session = login(me)).select(".issue-info #timeline ul.comments").isEmpty())
+        entityManager.persist(IssueEvent(created = Date(), senderLoginId = me.loginId, issue = i, eventType = EventType.ISSUE_BODY_CHANGED, oldValue = "a", newValue = "b")); entityManager.flush()
+        val box = view(project, session = login(me)).selectFirst(".issue-info #timeline ul.comments")!!
+        assertTrue(box.select("li").isEmpty())
     }
 
     @Test

@@ -163,6 +163,17 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `마일스톤이 없는 이슈에 마일스톤 없음을 지정해도 변경 이벤트를 남긴다`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val a = issue(project, 1)
+        // v1.6 IssueApp.isMilestoneChanged는 새 마일스톤(-1)이 null이 아니고 옛 마일스톤이 null이면 변경으로 본다
+        post(project, login(member), "issues[0].id" to a.id.toString(), "milestone.id" to "-1").andExpect(status().isOk)
+        assertNull(reload(a).milestone)
+        val events = entityManager.createQuery("select e from IssueEvent e order by e.id", IssueEvent::class.java).resultList
+        assertEquals(listOf("-1" to "-1"), events.map { it.oldValue to it.newValue })
+    }
+
+    @Test
     fun `라벨을 붙이고 뗀다`() {
         val project = newProject(); val member = join(newUser(), project)
         val category = categories.save(IssueLabelCategory(project = project, name = "c", isExclusive = false))

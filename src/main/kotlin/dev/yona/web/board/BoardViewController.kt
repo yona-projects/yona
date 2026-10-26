@@ -71,6 +71,7 @@ class BoardViewController(
 
         recentVisits.visits(viewer, project)
         recentIssues.visits(viewer, post)
+        recentVisits.markIssueOrPostingVisited(viewer, requireNotNull(post.id))
         val detail = assembler.assemble(project, post, viewer)
         val title = post.title.orEmpty() + " |:| " + body.orEmpty().take(200)
         return ModelAndView("board/view")

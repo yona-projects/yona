@@ -31,6 +31,18 @@ class RecentVisitService(private val recentProjects: RecentProjectRepository) {
     }
 
     /**
+     * 이슈나 게시글을 본 뒤 "마지막 방문 번호"를 그 이슈 또는 게시글의 번호(`id`)로 바꾼다.
+     *
+     * v1.6 `User.visits(Issue)`, `User.visits(Posting)`은 `lastVisitedProjectId`에 이슈나 게시글의 `id`를 대입한다.
+     * 이름과 달리 프로젝트 번호 자리에 다른 번호가 들어가는 결함이며, 그 뒤 같은 프로젝트를 다시 열면 직전 방문과 다르다고 보고
+     * 최근 방문 프로젝트에 다시 기록한다 ([refactoring-backlog.md] R-88). 익명이면 아무것도 하지 않는다.
+     */
+    fun markIssueOrPostingVisited(user: User?, id: Long) {
+        val userId = user?.id ?: return
+        lastVisited.put(userId, id)
+    }
+
+    /**
      * 최근 방문한 프로젝트에 기록한다. 같은 프로젝트의 이전 기록은 지우고, 사용자당 [MAX_RECENT_PROJECTS]개를 넘으면
      * 가장 오래된 것부터 지운다 (v1.6 `RecentProject.addVisitHistory`).
      *
