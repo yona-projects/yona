@@ -63,5 +63,9 @@ object MailDiff {
 
     private fun tail(text: String) = escape(text.substring(text.length - EQUAL_TEXT_BASE_SIZE))
 
-    private fun escape(text: String) = HtmlUtils.htmlEscape(text)
+    /**
+     * HTML로 이스케이프한다. v1.6 `escapeHtml4`(commons-lang3)는 어포스트로피(`'`)를 바꾸지 않는데 Spring의 `htmlEscape`는 `&#39;`로 바꾼다.
+     * 일반 텍스트 메일에는 `&#39;`가 글자 그대로 보이므로, 입력의 `&`가 먼저 `&amp;`가 되는 점을 이용해 `&#39;`만 되돌린다.
+     */
+    private fun escape(text: String) = HtmlUtils.htmlEscape(text).replace("&#39;", "'")
 }

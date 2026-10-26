@@ -1,5 +1,6 @@
 package dev.yona.web.issue
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.access.ProjectResource
 import dev.yona.access.asResource
@@ -69,7 +70,7 @@ class IssueLabelController(
         response: HttpServletResponse
     ): Any {
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
-        if (request.getHeader("X-PJAX").toBoolean()) {
+        if (AjaxRequests.isPjax(request)) {
             response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
             return ModelAndView("project/partial-issue-labels-list :: page")
                 .addObject("projectView", views.of(project)).addObject("groups", groups(project))

@@ -1,5 +1,6 @@
 package dev.yona.web.pullrequest
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.domain.comment.CommentThreadRepository
 import dev.yona.domain.enumeration.Operation
@@ -123,7 +124,7 @@ class PullRequestListController(
         val projectView = views.of(project)
         val sentLabel = "${search.count(condition.withCategory(PullRequestCategory.ACCEPTED))} / ${search.count(condition.withCategory(PullRequestCategory.SENT))}"
 
-        val view = if (request.getHeader("X-PJAX").toBoolean()) "pullrequest/partial-search :: search" else "pullrequest/list"
+        val view = if (AjaxRequests.isPjax(request)) "pullrequest/partial-search :: search" else "pullrequest/list"
         if (view != "pullrequest/list") response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         return ModelAndView(view)
             .addObject("title", "menu.pullRequest")

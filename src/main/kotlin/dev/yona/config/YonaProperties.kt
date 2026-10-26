@@ -21,7 +21,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @property dataDir 저장소와 첨부 파일을 둘 데이터 디렉터리. 비우면 JVM 시스템 속성 `yona.data`, 그것도 없으면 작업 디렉터리를 쓴다 (D-16)
  * @property hostname 서버 이름. 비우면 요청의 Host 헤더를 쓴다 (`application.hostname`)
  * @property port 서버 포트. 80이면 주소에 쓰지 않는다 (`application.port`)
- * @property scheme `http` 또는 `https`. 비우면 요청의 스킴을 쓴다 (`application.scheme`)
+ * @property scheme `http` 또는 `https`. 비우면 `http`이다. v1.6은 요청이 https인지나 `X-Forwarded-Proto`를 보지 않으므로, HTTPS 뒤에서 운영하면 `https`로 설정해야
+ *   메일과 웹훅의 주소가 `https://`가 된다 (`application.scheme`)
  * @property useEmailVerification 가입한 사용자를 인증 메일의 링크를 열 때까지 잠가 둔다 (`application.use.email.verification`)
  * @property allowedSendingMailDomains 가입과 메일 발송을 허용할 이메일 도메인을 쉼표로 이은 값. 비우면 모두 허용한다 (`application.allowed.sending.mail.domains`)
  * @property temporaryFilesKeepUpTime 임시 첨부를 정리하는 주기(밀리초). 기본 하루 (`application.temporaryfiles.keep-up.time`)

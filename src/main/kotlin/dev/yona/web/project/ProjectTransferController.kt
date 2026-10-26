@@ -1,5 +1,6 @@
 package dev.yona.web.project
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
@@ -66,7 +67,7 @@ class ProjectTransferController(
 
         val url = "/$ownerId/$projectName"
         // Ajax 요청이면 303 대신 Location 헤더와 204를 돌려준다. 안내는 다음 화면에서 보인다.
-        if (request.getHeader("X-Requested-With") == "XMLHttpRequest") {
+        if (AjaxRequests.isXhr(request)) {
             RedirectSupport.see(request, response, url, mapOf(RedirectSupport.INFO to "project.transfer.is.requested"))
             return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, url).build<Void>()
         }

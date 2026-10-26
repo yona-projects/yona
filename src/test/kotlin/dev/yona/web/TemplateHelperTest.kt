@@ -158,11 +158,16 @@ class TemplateHelperTest {
         assertEquals("an hour ago", social(60 * 60))
         assertEquals("3 hours ago", social(3 * 3600))
         assertEquals("a day ago", social(23 * 3600))
+        // 반올림한 값으로 비교한다(moment 2.4.0): 44.5초부터 1분, 44분29.5초부터 1시간, 21시간29분29.5초부터 하루이다
+        assertEquals("a few seconds ago", social(44))
+        assertEquals("an hour ago", social(2670))
+        assertEquals("21 hours ago", social(77369))
+        assertEquals("a day ago", social(77370))
     }
 
     @Test
     fun `하루 안의 시각은 한국어 상대 시간으로도 나온다`() {
-        assertEquals("몇 초 전", helper.socialDate(ago(10), Locale.KOREAN))
+        assertEquals("몇초 전", helper.socialDate(ago(10), Locale.KOREAN))
         assertEquals("5분 전", helper.socialDate(ago(5 * 60), Locale.KOREAN))
         assertEquals("3시간 전", helper.socialDate(ago(3 * 3600), Locale.KOREAN))
     }

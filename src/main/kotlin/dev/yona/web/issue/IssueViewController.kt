@@ -1,5 +1,6 @@
 package dev.yona.web.issue
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
@@ -152,7 +153,7 @@ class IssueViewController(
         if (viewer == null || !accessControl.isAllowed(viewer, issue.asResource(), Operation.DELETE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         issueService.delete(issue, viewer)
         val list = "/${project.owner}/${project.name}/issues?state=${State.OPEN.state}"
-        if (request.getHeader("X-Requested-With") == "XMLHttpRequest") {
+        if (AjaxRequests.isXhr(request)) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, list).build<Void>()
         }
         return RedirectSupport.see(request, response, list)

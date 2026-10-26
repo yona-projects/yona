@@ -1,5 +1,6 @@
 package dev.yona.web.issue
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.comment.IssueCommentRepository
@@ -89,7 +90,7 @@ class IssueCommentController(
         if (!accessControl.isAllowed(viewer, comment.asResource(), Operation.DELETE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         commentService.delete(comment)
         val location = "/${project.owner}/${project.name}/issue/$number"
-        if (request.getHeader("X-Requested-With") == "XMLHttpRequest") {
+        if (AjaxRequests.isXhr(request)) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, location).build<Void>()
         }
         return RedirectSupport.see(request, response, location)

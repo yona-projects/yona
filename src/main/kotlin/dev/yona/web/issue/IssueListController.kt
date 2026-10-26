@@ -1,5 +1,7 @@
 package dev.yona.web.issue
 
+import dev.yona.web.QueryLinks
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
@@ -40,7 +42,6 @@ import org.springframework.web.servlet.ModelAndView
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
-import org.apache.tika.Tika
 
 /**
  * 프로젝트의 이슈 목록이다. v1.6 `IssueApp.issues`(`app/controllers/IssueApp.java:113-247`)에 해당한다.
@@ -82,7 +83,7 @@ class IssueListController(
         val condition = IssueConditionBinder.bind(request, maxOf(pageNum - 1, 0)) ?: return ErrorViews.badRequest()
 
         var format = request.getParameter("format") ?: "html"
-        if (request.getHeader("X-Requested-With") == "XMLHttpRequest") format = if (request.getHeader("X-PJAX").toBoolean()) "pjax" else "json"
+        if (AjaxRequests.isXhr(request)) format = if (AjaxRequests.isPjax(request)) "pjax" else "json"
 
         if (format == EXCEL_EXT) return excel(project, condition, viewer)
         val page = searchService.search(project, condition, viewer, itemsPerPage(request))
@@ -108,7 +109,7 @@ class IssueListController(
         val data = excelExporter.export(searchService.findAll(project, condition, viewer))
         val filename = "${project.name}_issues_${SimpleDateFormat("yyyyMMddHHmm").format(Date())}.$EXCEL_EXT"
         return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_TYPE, Tika().detect(filename))
+            .header(HttpHeaders.CONTENT_TYPE, dev.yona.io.MediaTypes.detectName(filename))
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; " + ContentDispositions.encodeFilename(filename))
             .body(data)
     }
@@ -154,10 +155,9 @@ class IssueListController(
         return mav
     }
 
-    private fun excelUrl(request: HttpServletRequest): String {
-        val query = request.queryString.orEmpty().split("&").filter { it.isNotEmpty() && !it.startsWith("pageNum=") } + "format=xls"
-        return request.requestURI + "?" + query.joinToString("&")
-    }
+    /** 엑셀 내려받기 링크이다. v1.6은 `addQueryString(removeQueryString(요청 URI, "pageNum"), "format=xls")`로 만든다 ([QueryLinks]). */
+    private fun excelUrl(request: HttpServletRequest): String =
+        QueryLinks.excelLink(request.requestURI + (request.queryString?.let { "?$it" } ?: ""))
 
     /** 왼쪽의 빠른 검색(전체, 내게 할당, 내가 작성, 내가 댓글)과 각 개수이다. */
     private fun quickSearch(condition: IssueSearchCondition, viewer: User?, count: (IssueSearchCondition) -> Long): QuickSearch {

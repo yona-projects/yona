@@ -1,0 +1,32 @@
+request.uri	v1.6 href (decoded)	v2 href	same?
+/o/p/issues	/o/p/issues?format=xls	/o/p/issues?format=xls	same
+/o/p/issues?state=open	/o/p/issues?state=open&format=xls	/o/p/issues?state=open&format=xls	same
+/o/p/issues?state=open&pageNum=2	/o/p/issues?state=open&format=xls	/o/p/issues?state=open&format=xls	same
+/o/p/issues?pageNum=2&state=open	/o/p/issues?state=open&format=xls	/o/p/issues?state=open&format=xls	same
+/o/p/issues?state=open&pageNum	/o/p/issues?state=open&format=xls	/o/p/issues?state=open&pageNum&format=xls	DIFF
+/o/p/issues?pageNum&state=open	/o/p/issues?state=open&format=xls	/o/p/issues?pageNum&state=open&format=xls	DIFF
+/o/p/issues?pageNum=&state=open	/o/p/issues?state=open&format=xls	/o/p/issues?state=open&format=xls	same
+/o/p/issues?filter=a%2Bb	/o/p/issues?filter=a+b&format=xls	/o/p/issues?filter=a%2Bb&format=xls	DIFF
+/o/p/issues?filter=a+b	/o/p/issues?filter=a+b&format=xls	/o/p/issues?filter=a+b&format=xls	same
+/o/p/issues?filter=a%20b	/o/p/issues?filter=a%20b&format=xls	/o/p/issues?filter=a%20b&format=xls	same
+/o/p/issues?filter=a%26b&state=open	/o/p/issues?filter=a&b&state=open&format=xls	/o/p/issues?filter=a%26b&state=open&format=xls	DIFF
+/o/p/issues?filter=%ED%95%9C%EA%B8%80	/o/p/issues?filter=한글&format=xls	/o/p/issues?filter=%ED%95%9C%EA%B8%80&format=xls	DIFF
+/o/p/issues?filter=a%3Db	/o/p/issues?filter=a=b&format=xls	/o/p/issues?filter=a%3Db&format=xls	DIFF
+/o/p/issues?filter=100%25	/o/p/issues?filter=100%25&format=xls	/o/p/issues?filter=100%25&format=xls	same
+/o/p/issues?filter=%2541	/o/p/issues?filter=%2541&format=xls	/o/p/issues?filter=%2541&format=xls	same
+/o/p/issues?filter=a%23b	/o/p/issues?filter=a%23b&format=xls	/o/p/issues?filter=a%23b&format=xls	same
+/o/p/issues?filter=a%3Fb	/o/p/issues?filter=a?b&format=xls	/o/p/issues?filter=a%3Fb&format=xls	DIFF
+/o/p/issues?filter=%22q%22	/o/p/issues?filter=%22q%22&format=xls	/o/p/issues?filter=%22q%22&format=xls	same
+/o/p/issues?filter=%3Cb%3E	/o/p/issues?filter=%3Cb%3E&format=xls	/o/p/issues?filter=%3Cb%3E&format=xls	same
+/o/p/issues?state=open&&milestoneId=1	/o/p/issues?state=open&&milestoneId=1&format=xls	/o/p/issues?state=open&milestoneId=1&format=xls	DIFF
+/o/p/issues?state=open&	/o/p/issues?state=open&format=xls	/o/p/issues?state=open&format=xls	same
+/o/p/issues?=x&state=open	/o/p/issues?=x&state=open&format=xls	/o/p/issues?=x&state=open&format=xls	same
+/o/p/issues?flag&state=open	/o/p/issues?flag&state=open&format=xls	/o/p/issues?flag&state=open&format=xls	same
+/o/p/issues?pageNum=2&pageNum=3	/o/p/issues?format=xls	/o/p/issues?format=xls	same
+/o/p/issues?PageNum=2	/o/p/issues?PageNum=2&format=xls	/o/p/issues?PageNum=2&format=xls	same
+/o/p/issues?filter=%	EXCEPTION URISyntaxException: Malformed escape pair at index 19: /o/p/issues?filter=%	/o/p/issues?filter=%&format=xls	DIFF
+/o/p/issues?pageNum=%	EXCEPTION URISyntaxException: Malformed escape pair at index 20: /o/p/issues?pageNum=%	/o/p/issues?format=xls	DIFF
+/o/%ED%95%9C/issues?state=open	/o/한/issues?state=open&format=xls	/o/%ED%95%9C/issues?state=open&format=xls	DIFF
+/o/p/issues?filter=a%2Fb	/o/p/issues?filter=a/b&format=xls	/o/p/issues?filter=a%2Fb&format=xls	DIFF
+/o/p/issues?filter=%5B1%5D	/o/p/issues?filter=[1]&format=xls	/o/p/issues?filter=%5B1%5D&format=xls	DIFF
+/o/p/issues?filter=a|b	EXCEPTION URISyntaxException: Illegal character in query at index 20: /o/p/issues?filter=a|b	/o/p/issues?filter=a|b&format=xls	DIFF

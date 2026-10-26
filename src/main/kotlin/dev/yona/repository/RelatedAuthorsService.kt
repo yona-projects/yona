@@ -3,10 +3,13 @@ package dev.yona.repository
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserLookup
 import org.eclipse.jgit.api.Git
+import dev.yona.repository.diff.V16DiffAlgorithm
+import org.eclipse.jgit.diff.DiffAlgorithm
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.diff.Edit
+import org.eclipse.jgit.lib.ConfigConstants
 import org.eclipse.jgit.lib.PersonIdent
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
@@ -60,8 +63,12 @@ class RelatedAuthorsService(private val userLookup: UserLookup) {
     private fun fromBlame(repository: Repository, diff: DiffEntry, start: RevCommit): List<User?> =
         DiffFormatter(NullOutputStream.INSTANCE).use { formatter ->
             formatter.setRepository(repository)
+            // v1.6(JGit 4.5)의 편집 위치를 재현한다: DiffFormatter와 blame이 같은 알고리즘을 쓰게 한다
+            val algorithm = V16DiffAlgorithm(DiffAlgorithm.getAlgorithm(
+                repository.config.getEnum(ConfigConstants.CONFIG_DIFF_SECTION, null, ConfigConstants.CONFIG_KEY_ALGORITHM, DiffAlgorithm.SupportedAlgorithm.HISTOGRAM)))
+            formatter.setDiffAlgorithm(algorithm)
             val edits = formatter.toFileHeader(diff).toEditList()
-            val blame = Git(repository).blame().setFilePath(diff.oldPath).setFollowFileRenames(true).setStartCommit(start).call()
+            val blame = Git(repository).blame().setDiffAlgorithm(algorithm).setFilePath(diff.oldPath).setFollowFileRenames(true).setStartCommit(start).call()
             val users = mutableListOf<User?>()
             for (edit in edits) {
                 if (edit.type == Edit.Type.REPLACE || edit.type == Edit.Type.DELETE) {

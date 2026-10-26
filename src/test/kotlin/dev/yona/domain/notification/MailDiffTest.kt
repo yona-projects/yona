@@ -30,6 +30,16 @@ class MailDiffTest {
     }
 
     @Test
+    fun `어포스트로피는 이스케이프하지 않는다 (v1_6 escapeHtml4)`() {
+        // commons-lang3 escapeHtml4는 '를 바꾸지 않는다. 일반 텍스트 메일에 &#39;가 그대로 보이지 않게 한다.
+        assertTrue(MailDiff.html("a'b", "a'c").contains("a'"), MailDiff.html("a'b", "a'c"))
+        assertTrue(!MailDiff.html("a'b", "a'c").contains("&#39;"))
+        assertTrue(MailDiff.plain("it's", "it's ok").contains("it's"))
+        // 입력에 이미 있던 &#39;는 &로 시작하므로 &amp;#39;가 되어 되돌리지 않는다
+        assertTrue(MailDiff.html("", "&#39; '").contains("&amp;#39; '"), MailDiff.html("", "&#39; '"))
+    }
+
+    @Test
     fun `일반 텍스트 차이는 삭제는 3개의 빼기, 추가는 3개의 더하기로 시작한다`() {
         assertEquals("--- c\n+++ d\n", MailDiff.plain("c", "d"))
         assertEquals("ab\n+++ c\n", MailDiff.plain("ab", "abc"))

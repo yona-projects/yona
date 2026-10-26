@@ -69,7 +69,7 @@ class SystemMails(
      */
     fun signup(user: User, verification: UserVerification) = asyncSendInRequest("가입 인증 메일") {
         if (!MailRecipients.isAllowedDomain(user.email, properties.allowedSendingMailDomains)) return@asyncSendInRequest null
-        val index = siteUrls.origin()
+        val index = siteUrls.signupMailOrigin()
         val resetUrl = index + siteUrls.path("/lostPassword")
         val verifyUrl = index + siteUrls.path("/verify/${user.loginId}/${verification.verificationCode}")
         val html = StringBuilder().apply {

@@ -18,8 +18,6 @@ import dev.yona.security.AvatarService
 import dev.yona.util.SiteUrls
 import org.springframework.context.MessageSource
 import org.springframework.stereotype.Component
-import org.springframework.web.context.request.RequestContextHolder
-import org.springframework.web.context.request.ServletRequestAttributes
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.node.ArrayNode
 import tools.jackson.databind.node.ObjectNode
@@ -47,7 +45,7 @@ class WebhookPayloads(
 
     /** 웹훅이 가리키는 서버 주소이다. 호스트 이름을 설정하지 않았으면 `localhost:9000`이다 (v1.6 `getBaseUrl`). */
     fun baseUrl(): String {
-        val scheme = properties.scheme.ifEmpty { (RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes)?.request?.scheme ?: "http" }
+        val scheme = properties.scheme.ifEmpty { "http" }
         val host = if (properties.hostname.isNotEmpty()) properties.hostname + (properties.port?.takeIf { it != 80 }?.let { ":$it" } ?: "") else "localhost:9000"
         return "$scheme://$host"
     }

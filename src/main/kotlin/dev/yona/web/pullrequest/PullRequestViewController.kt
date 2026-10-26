@@ -1,5 +1,6 @@
 package dev.yona.web.pullrequest
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.access.ProjectResource
 import dev.yona.domain.enumeration.Operation
@@ -126,7 +127,7 @@ class PullRequestViewController(
         val viewer = currentUserProvider.get().user
         val (canDelete, canRestore) = branchFlags(pullRequest)
         val state = assembler.state(pullRequest, viewer, canDelete, canRestore, request)
-        val isXhr = request.getHeader("X-Requested-With") == "XMLHttpRequest" && !request.getHeader("X-PJAX").toBoolean()
+        val isXhr = AjaxRequests.isXhr(request) && !AjaxRequests.isPjax(request)
         if (!isXhr) return ModelAndView("pullrequest/partial-state-page").addObject("state", state)
 
         val body = linkedMapOf<String, Any?>(

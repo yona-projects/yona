@@ -1,5 +1,6 @@
 package dev.yona.web.code
 
+import dev.yona.web.QueryLinks
 import dev.yona.domain.comment.CommentThread
 import dev.yona.domain.comment.ReviewComment
 import dev.yona.domain.comment.ReviewExcelExporter
@@ -22,7 +23,6 @@ import dev.yona.web.access.IsAllowed
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
 import jakarta.servlet.http.HttpServletRequest
-import org.apache.tika.Tika
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
@@ -110,16 +110,14 @@ class ReviewListController(
         val filename = "${project.name}_reviews_${SimpleDateFormat("yyyyMMddHHmm").format(Date())}.$EXCEL_EXT"
         val encoded = ContentDispositions.encodeFilename(filename)
         return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_TYPE, Tika().detect(encoded))
+            .header(HttpHeaders.CONTENT_TYPE, dev.yona.io.MediaTypes.detectName(encoded))
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; $encoded")
             .body(data)
     }
 
-    /** 현재 주소에서 `pageNum`을 빼고 `format=xls`를 붙인다. */
-    private fun excelUrl(request: HttpServletRequest): String {
-        val query = request.queryString.orEmpty().split("&").filter { it.isNotEmpty() && !it.startsWith("pageNum=") } + "format=$EXCEL_EXT"
-        return request.requestURI + "?" + query.joinToString("&")
-    }
+    /** 현재 주소에서 `pageNum`을 빼고 `format=xls`를 붙인다. v1.6 `addQueryString(removeQueryString(requestHeader.uri, "pageNum"), "format=xls")` ([QueryLinks]). */
+    private fun excelUrl(request: HttpServletRequest): String =
+        QueryLinks.excelLink(request.requestURI + (request.queryString?.let { "?$it" } ?: ""), EXCEL_EXT)
 
     private fun row(thread: CommentThread): ReviewRow {
         val first: ReviewComment? = thread.reviewComments.minWithOrNull(compareBy({ it.createdDate }, { it.id }))

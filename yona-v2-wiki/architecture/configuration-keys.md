@@ -27,7 +27,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `application.noreferrer` | `yona.noreferrer` | `false`(v1.6 기본 설정 파일 예시는 `true`) | 사용 중(마크다운 외부 링크) |
 | `application.hostname` | `yona.hostname` | 빈 문자열(요청의 Host 헤더) | 사용 중(저장소 주소) |
 | `application.port` | `yona.port` | 없음 | 사용 중(80이면 주소에서 생략) |
-| `application.scheme` | `yona.scheme` | 빈 문자열(요청의 스킴) | 사용 중 |
+| `application.scheme` | `yona.scheme` | 빈 문자열(`http`; 요청의 https 여부는 보지 않는다. HTTPS 뒤에서는 `https`로 설정) | 사용 중 |
 | `application.allowsAnonymousAccess` | `yona.allows-anonymous-access` | `true` | 사용 중 |
 | `application.use.social.login.only` | `yona.social-login-only` | `false` | 화면에서만 사용(로그인 컨트롤러는 아직 반영 안 함) |
 | `application.maxFileSize` | `yona.max-file-size` | `2147483454` | 사용 중 |

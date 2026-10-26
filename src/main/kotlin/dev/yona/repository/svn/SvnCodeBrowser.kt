@@ -73,7 +73,7 @@ class SvnCodeBrowser(
         } else {
             binary = dev.yona.io.RawTextBinary.isBinary(file.bytes)
             if (!binary) data = String(file.bytes, charset(CharsetDetection.detect(file.bytes)))
-            mimeType = MediaTypes.detect(file.bytes, path)
+            mimeType = MediaTypes.detectRaw(file.bytes, path)
         }
         val user = file.author?.let { users.findByLoginId(it) }
         return linkedMapOf(

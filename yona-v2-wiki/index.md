@@ -51,7 +51,7 @@
 - [풀 리퀘스트 동작](web/pull-request-actions.md): 받아들이기, 닫기와 열기, 수정, 보낸 브랜치 삭제와 복원
 - [풀 리퀘스트 만들기](web/pull-request-create.md): 폼, 병합 결과 조각, 만들기, 병합 검사 시작
 - [풀 리퀘스트 목록](web/pull-request-list.md): 열림, 닫힘, 보냄 목록, 검색, 최근 푸시 브랜치
-- [포크](web/fork.md): 포크 폼, 복제 안내 화면, 복제(저장소 하드 링크 복제)
+- [포크](web/fork.md): 포크 폼, 복제 안내 화면, 복제(저장소 bare 복제)
 - [커밋 보기와 비교](web/commit-view.md): 커밋 diff, 코드 리뷰 스레드 표시, 리뷰 카드, 커밋 구독, 두 커밋 비교
 - [Git smart-HTTP 서비스](subsystems/git-http.md): 복제, 푸시, Basic 인증, 푸시 훅
 - [외부 프로젝트, 게시판 REST API](web/external-project-api.md): 프로젝트, 라벨, 마일스톤, 내보내기, 구독자, 글, 글 댓글

@@ -6,9 +6,6 @@ import dev.yona.domain.user.UserRepository
 import dev.yona.io.CharsetDetection
 import dev.yona.security.AvatarService
 import dev.yona.util.SiteUrls
-import org.apache.tika.Tika
-import org.apache.tika.metadata.Metadata
-import org.apache.tika.metadata.TikaCoreProperties
 import org.eclipse.jgit.api.ArchiveCommand
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.archive.ZipFormat
@@ -183,8 +180,8 @@ class CodeBrowserService(
             val bytes = loader.bytes
             result["data"] = String(bytes, charset(CharsetDetection.detect(bytes)))
         }
-        val metadata = Metadata().also { it.add(TikaCoreProperties.RESOURCE_NAME_KEY, walk.nameString) }
-        result["mimeType"] = loader.openStream().use { Tika().detector.detect(it.buffered(), metadata).toString() }
+        // v1.6 getMetaDataFromPath: 이름과 내용으로 종류만 감지한다 (문자 집합 없음)
+        result["mimeType"] = dev.yona.io.MediaTypes.detectRaw(loader.bytes, walk.nameString)
         return result
     }
 

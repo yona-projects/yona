@@ -1,5 +1,6 @@
 package dev.yona.web.issue
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
@@ -190,7 +191,7 @@ class MilestoneController(
         if (milestone.project?.id != project.id) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build<Void>()
         milestoneService.delete(milestone)
         val list = "/${project.owner}/${project.name}/milestones"
-        if (request.getHeader("X-Requested-With") == "XMLHttpRequest") {
+        if (AjaxRequests.isXhr(request)) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, list).build<Void>()
         }
         return RedirectSupport.see(request, response, list)

@@ -37,7 +37,9 @@ class RepositoryUrls(private val properties: YonaProperties) {
     /** `<스킴>://<호스트[:포트]>`이다 (v1.6 `Config.getScheme() + "://" + Config.getHostport()`). */
     fun origin(request: HttpServletRequest): String = "${scheme(request)}://${hostPort(request)}"
 
-    private fun scheme(request: HttpServletRequest): String = properties.scheme.ifEmpty { request.scheme }
+    /** 설정이 없으면 요청의 스킴이 아니라 `http`이다 (v1.6 `Config.getScheme`). */
+    @Suppress("UNUSED_PARAMETER")
+    private fun scheme(request: HttpServletRequest): String = properties.scheme.ifEmpty { "http" }
 
     /** 설정한 호스트 이름이 있으면 `호스트[:포트]`(포트 80은 생략), 없으면 요청의 Host 헤더이다 (v1.6 `Config.getHostport`). */
     private fun hostPort(request: HttpServletRequest): String {

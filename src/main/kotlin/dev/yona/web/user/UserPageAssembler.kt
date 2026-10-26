@@ -28,7 +28,7 @@ import dev.yona.web.project.ProjectViewFactory
 import org.springframework.stereotype.Component
 import java.text.SimpleDateFormat
 import java.time.Clock
-import java.time.temporal.ChronoUnit
+import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 
@@ -85,7 +85,8 @@ class UserPageAssembler(
             allowed.getOrPut(requireNotNull(project.id)) { accessControl.isAllowed(viewer, project.asResource(), Operation.READ) }
 
         val userId = requireNotNull(user.id)
-        val since = Date.from(clock.instant().minus(daysAgo.toLong(), ChronoUnit.DAYS))
+        // v1.6 `JodaDateUtil.before(days)`: 오늘 0시에서 달력으로 N일 전 0시이다(현재 시각에서 24시간 x N이 아니다)
+        val since = Date.from(LocalDate.now(clock).minusDays(daysAgo.toLong()).atStartOfDay(clock.zone).toInstant())
         val memberProjects = projects.findProjectsByMember(userId).distinctBy { it.id }.filter { readable(it) }
             .sortedWith(PROJECT_ORDER)
         val recentIssues = issues.findRecentlyByUser(userId, since).filter { readable(it.project) }

@@ -130,9 +130,9 @@ class DiffService(private val repositories: RepositoryService) {
                 val a = fileDiff.a
                 val b = fileDiff.b
                 if (a != null && b != null && !(fileDiff.isBinaryA || fileDiff.isBinaryB) && entry.changeType in listOf(DiffEntry.ChangeType.MODIFY, DiffEntry.ChangeType.RENAME)) {
-                    val algorithm = DiffAlgorithm.getAlgorithm(
+                    val algorithm = V16DiffAlgorithm(DiffAlgorithm.getAlgorithm(
                         repositoryB.config.getEnum(ConfigConstants.CONFIG_DIFF_SECTION, null, ConfigConstants.CONFIG_KEY_ALGORITHM, DiffAlgorithm.SupportedAlgorithm.HISTOGRAM)
-                    )
+                    ))
                     fileDiff.editList = algorithm.diff(RawTextComparator.DEFAULT, a, b)
                     fileDiff.hunks()?.let { size += it.totalSize; lines += it.totalLines }
                 }

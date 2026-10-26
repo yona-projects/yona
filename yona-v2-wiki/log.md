@@ -419,3 +419,8 @@
 
 ## [2026-10-26] fix | 결정 대기 두 항목을 v1.6으로 반영
 - 선생님이 두 결정을 모두 v1.6으로 정하셨다. Git/SVN Basic 인증은 `BasicAuthResolver`로 세션을 만들고 틀린 자격이면 쿠키 사용자로 되돌아가며, 가져오기 API는 시각을 생략하면 NULL로 저장한다. 근거는 P-10. 두 경우 모두 화면은 오류 없이 그려지는 것을 테스트로 확인했다.
+
+
+## [2026-10-27] fix | 위키 갱신 후 v1.6 대조의 S2·S3 항목 반영
+- 접근 로그(`AccessLogFilter`, `logback-spring.xml`), 엑셀 링크 재조립(`QueryLinks`), `X-Requested-With` 비교(`AjaxRequests`), 경로 끝 슬래시(`UrlPaths.encodeEach`), 사이트 주소 스킴(`SiteUrls.scheme`), 상대 시각(`MomentRelativeTime`), 최근 N일의 자정 기준, 닫힌 이슈의 마감 문구, 메일 diff의 `'`를 v1.6에 맞췄다.
+- JGit diff 위치와 병합 판정은 `V16DiffAlgorithm`, `V16RecursiveMerger`로, 파일 종류 감지는 Tika 1.2 표와 `V16MimeDetector`로 맞췄다. 근거와 판단은 A-111~A-115, R-91~R-95. R-17의 8192는 65536으로 바로잡았고 포크 문서의 하드 링크 서술은 bare 복제로 고쳤다.

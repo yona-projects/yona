@@ -96,8 +96,9 @@ class IssueMassUpdateController(
         if (HttpPreference.isJsonPreferred(request.getHeader("Accept"))) {
             val first = targets.firstOrNull()
             if (dueChanged && first != null) {
-                val overdue = first.state == State.OPEN && first.dueDate?.before(Date.from(clock.instant())) == true
-                val message = if (overdue) message("issue.dueDate.overdue") else until(first.dueDate)
+                val open = first.state == State.OPEN
+                val overdue = open && first.dueDate?.before(Date.from(clock.instant())) == true
+                val message = if (overdue) message("issue.dueDate.overdue") else until(open, first.dueDate)
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body("""{"isOverDue":$overdue,"dueDateMsg":${if (message == null) "null" else quote(message)}}""")
             }
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body("{}")
@@ -116,12 +117,16 @@ class IssueMassUpdateController(
         (request.getParameterValues(name).orEmpty().toList() + request.getParameterValues("$name[]").orEmpty().toList() + indexed(request, name, ""))
             .mapNotNull { it.toLongOrNull() }
 
-    private fun until(due: Date?): String? {
+    /**
+     * 오늘이면 `common.time.today`, 아니면 남았거나 지난 날수이다 (v1.6 `Issue.until`). 지났다는 판단(`isOverDueDate`)은 열린 이슈에만 있으므로, 닫힌 이슈의 지난
+     * 마감일은 지난 날수가 아니라 오늘에서 마감일까지의 **부호 있는** 날수(`-3`)가 된다. v1.6이 그렇게 낸다.
+     */
+    private fun until(open: Boolean, due: Date?): String? {
         if (due == null) return null
         val dueDay = LocalDate.ofInstant(due.toInstant(), clock.zone)
         val today = LocalDate.now(clock)
         if (dueDay == today) return message("common.time.today")
-        val days = if (clock.instant().isAfter(due.toInstant())) ChronoUnit.DAYS.between(dueDay, today) else ChronoUnit.DAYS.between(today, dueDay)
+        val days = if (open && clock.instant().isAfter(due.toInstant())) ChronoUnit.DAYS.between(dueDay, today) else ChronoUnit.DAYS.between(today, dueDay)
         return messages.getMessage("common.time.default.day", arrayOf(days), LocaleContextHolder.getLocale())
     }
 

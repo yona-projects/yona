@@ -906,3 +906,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 END OF NOTICE FOR YOBI
+
+=======================================================================
+Apache Tika 1.2 mime type database (src/main/resources/mime/tika-mimetypes-1.2.xml)
+=======================================================================
+
+Copyright 2007-2012 The Apache Software Foundation. Licensed under the Apache License, Version 2.0.
+v1.6의 파일 종류 감지 결과를 그대로 내기 위해 Tika 1.2의 tika-mimetypes.xml을 변경 없이 포함한다.

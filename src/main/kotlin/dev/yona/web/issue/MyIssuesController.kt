@@ -1,5 +1,6 @@
 package dev.yona.web.issue
 
+import dev.yona.web.AjaxRequests
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.issue.IssuePage
 import dev.yona.domain.issue.IssueSearchCondition
@@ -52,7 +53,7 @@ class MyIssuesController(
         if (request.getParameter("orderBy").isNullOrBlank()) condition = condition.copy(orderBy = "updatedDate")
 
         var format = request.getParameter("format") ?: "html"
-        if (request.getHeader("X-Requested-With") == "XMLHttpRequest") format = if (request.getHeader("X-PJAX").toBoolean()) "pjax" else "json"
+        if (AjaxRequests.isXhr(request)) format = if (AjaxRequests.isPjax(request)) "pjax" else "json"
 
         val page = searchService.searchAll(condition, viewer, itemsPerPage(request))
         return when (format) {

@@ -199,6 +199,19 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `닫힌 이슈의 지난 마감일은 부호가 있는 날수로 돌려준다 (v1_6 Issue_until)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val closed = issue(project, 1, state = State.CLOSED); val open = issue(project, 2)
+        val threeDaysAgo = java.time.LocalDate.now().minusDays(3).toString()
+        // 닫힌 이슈는 isOverDueDate가 false라 until()이 오늘에서 마감일까지의 부호 있는 날수를 낸다
+        post(project, login(member), "issues[0].id" to closed.id.toString(), "dueDate" to threeDaysAgo, "isDueDateChanged" to "true")
+            .andExpect(status().isOk).andExpect(jsonPath("$.isOverDue").value(false)).andExpect(jsonPath("$.dueDateMsg").value("-3 days"))
+        // 열린 이슈는 지남(Overdue)이다
+        post(project, login(member), "issues[0].id" to open.id.toString(), "dueDate" to threeDaysAgo, "isDueDateChanged" to "true")
+            .andExpect(status().isOk).andExpect(jsonPath("$.isOverDue").value(true))
+    }
+
+    @Test
     fun `초안은 건너뛴다`() {
         val project = newProject(); val member = join(newUser(), project)
         val d = issue(project, 1, draft = true)

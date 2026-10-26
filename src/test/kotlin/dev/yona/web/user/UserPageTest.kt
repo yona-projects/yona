@@ -187,6 +187,18 @@ class UserPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `최근 N일의 시작은 오늘 0시에서 달력으로 N일 전 0시이다`() {
+        // v1.6 JodaDateUtil.before(days) = new DateTime(today()).minusDays(days): 현재 시각이 아니라 자정 기준이다
+        val u = newUser(); val other = newUser(); val p = project(other, "p")
+        val startOfToday = java.time.LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()
+        val boundary = startOfToday.minus(14, java.time.temporal.ChronoUnit.DAYS)
+        issue(p, "경계 직후", u, updated = Date.from(boundary.plusSeconds(60)))
+        issue(p, "경계 직전", u, updated = Date.from(boundary.minusSeconds(60)))
+        val doc = page("/${u.loginId}")
+        assertEquals(listOf("경계 직후"), titles(doc, "#openIssues"))
+    }
+
+    @Test
     fun `이슈 탭에는 최근 기간에 갱신된 담당 이슈와 작성 이슈가 상태별로 보인다`() {
         val u = newUser(); val other = newUser(); val p = project(other, "p")
         issue(p, "내가 쓴 열린 이슈", u); issue(p, "내게 할당된 닫힌 이슈", other, assignee = u, state = State.CLOSED)

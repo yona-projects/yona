@@ -8,7 +8,6 @@ import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.PersonIdent
 import org.eclipse.jgit.lib.RefUpdate
 import org.eclipse.jgit.lib.Repository
-import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.RefSpec
@@ -118,7 +117,7 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
 
     /** [left]와 [right] 참조를 병합한다. 충돌하지 않으면 병합 결과의 트리 번호를 함께 돌려준다. */
     private fun merge(repository: Repository, left: String, right: String): Pair<MergeAttempt, ObjectId?> {
-        val merger = MergeStrategy.RECURSIVE.newMerger(repository, true)
+        val merger = V16RecursiveMerger(repository)
         val leftParent = requireNotNull(repository.resolve(left)) { "Ref '$left' does not exist in Git repository '$repository'" }
         val rightParent = requireNotNull(repository.resolve(right)) { "Ref '$right' does not exist in Git repository '$repository'" }
         val merged = merger.merge(leftParent, rightParent)

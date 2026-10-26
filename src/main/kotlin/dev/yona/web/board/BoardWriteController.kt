@@ -1,5 +1,6 @@
 package dev.yona.web.board
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.board.Posting
@@ -109,7 +110,7 @@ class BoardWriteController(
         if (!path.isNullOrEmpty() && projectUsers.existsByUserIdAndProjectId(requireNotNull(viewer.id), requireNotNull(project.id))) {
             val branch = request.getParameter("branch").orEmpty()
             onlineCommit.commitTextFile(project, viewer, branch, path, LineEnding.change(body, request.getParameter("lineEnding")), title)
-            return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/code/${UriUtils.encodePathSegment(branch, Charsets.UTF_8)}/${encodeEach(path)}")
+            return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/code/${UriUtils.encodePathSegment(branch, Charsets.UTF_8)}/${dev.yona.util.UrlPaths.encodeEach(path)}")
         }
 
         // 공지는 공지를 올릴 수 있는 사용자만 지정한다.
@@ -183,7 +184,7 @@ class BoardWriteController(
         if (!accessControl.isAllowed(viewer, posting.asResource(), Operation.DELETE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         postingService.delete(posting, viewer)
         val location = "/${project.owner}/${project.name}/posts"
-        if (request.getHeader("X-Requested-With") == "XMLHttpRequest") return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, location).build<Void>()
+        if (AjaxRequests.isXhr(request)) return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, location).build<Void>()
         return RedirectSupport.see(request, response, location)
     }
 
@@ -209,9 +210,6 @@ class BoardWriteController(
             log.error("Online commit failed: {} {}", project.name, fileName, e)
         }
     }
-
-    /** 경로의 각 부분을 따로 퍼센트 인코딩한다 (`+` 대신 `%20`). v1.6 `HttpUtil.getEncodeEachPathName`. */
-    private fun encodeEach(path: String): String = path.split("/").joinToString("/") { java.net.URLEncoder.encode(it, Charsets.UTF_8).replace("+", "%20") }
 
     /** 공지를 올릴 수 있는지이다 (v1.6 `ProjectUser.isAllowedToNotice`). 익명은 아니고, 사이트 관리자나 구성원이다. */
     private fun allowedToNotice(viewer: User?, project: Project): Boolean {

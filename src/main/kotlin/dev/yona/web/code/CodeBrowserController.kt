@@ -19,7 +19,6 @@ import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.apache.tika.Tika
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -154,7 +153,7 @@ class CodeBrowserController(
     @Transactional(readOnly = true)
     fun showImageFile(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable rev: String, @PathVariable path: String): Any {
         val (bytes, _) = rawFile(owner, name, rev, path) ?: return ErrorViews.notFound()
-        return ResponseEntity.ok().header("Content-Type", Tika().detect(bytes)).body(bytes)
+        return ResponseEntity.ok().header("Content-Type", MediaTypes.detectRaw(bytes, null)).body(bytes)
     }
 
     /** 파일을 이름과 내용으로 감지한 종류 그대로 브라우저에서 연다. */

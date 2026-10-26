@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 접근 로그 설정. v1.6 conf/application-logger.xml.default 의 ACCESS_LOG_FILE 과 같다: 메시지만 기록하고 날짜별로 나누어 30일 보관한다. -->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <springProperty scope="context" name="YONA_DATA" source="yona.data-dir"/>
+
+    <appender name="ACCESS_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${YONA_DATA:-${yona.data:-.}}/logs/access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${YONA_DATA:-${yona.data:-.}}/logs/access.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder><pattern>%message%n</pattern></encoder>
+    </appender>
+
+    <root level="INFO"><appender-ref ref="CONSOLE"/></root>
+    <!-- additivity 를 끄지 않으므로 콘솔에도 나온다 (v1.6과 같다) -->
+    <logger name="access" level="INFO"><appender-ref ref="ACCESS_LOG_FILE"/></logger>
+</configuration>

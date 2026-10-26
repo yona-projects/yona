@@ -170,7 +170,7 @@ class IssueCreateController(
         val parent = comments.findById(referId).orElse(null) ?: return
         val origin = parent.issue ?: return
         if (!accessControl.isResourceCreatable(viewer, origin.asResource(), ResourceType.ISSUE_COMMENT)) return
-        val scheme = properties.scheme.ifEmpty { request.scheme }
+        val scheme = properties.scheme.ifEmpty { "http" }
         val host = request.getHeader("Host") ?: "${request.serverName}:${request.serverPort}"
         val context = if (properties.applicationContext.isEmpty()) "" else "/" + properties.applicationContext.trim('/')
         val content = messages.getMessage("issue.derived", null, org.springframework.context.i18n.LocaleContextHolder.getLocale()) +
@@ -180,7 +180,7 @@ class IssueCreateController(
 
     private fun formByComment(project: Project, commentId: Long, request: HttpServletRequest): Any {
         val comment = comments.findById(commentId).orElse(null) ?: return ErrorViews.notFound()
-        val scheme = properties.scheme.ifEmpty { request.scheme }
+        val scheme = properties.scheme.ifEmpty { "http" }
         val host = request.getHeader("Host") ?: "${request.serverName}:${request.serverPort}"
         val context = if (properties.applicationContext.isEmpty()) "" else "/" + properties.applicationContext.trim('/')
         val issue = comment.issue

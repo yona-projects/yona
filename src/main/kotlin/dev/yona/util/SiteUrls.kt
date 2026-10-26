@@ -11,7 +11,7 @@ import java.net.InetAddress
  * 요청 밖(스케줄러가 만드는 메일 등)에서 사이트의 절대 주소를 만든다. v1.6 `utils.Url.create(String)`과
  * `utils.Config.getScheme()`, `getHostport()`에 해당한다.
  *
- * 스킴은 설정 `yona.scheme`, 없으면 지금 처리 중인 요청의 스킴, 그것도 없으면 `http`이다. 호스트는 설정 `yona.hostname`(`yona.port`가
+ * 스킴은 설정 `yona.scheme`, 없으면 요청 안팎 모두 `http`이다(v1.6 `Config.getScheme`은 요청의 https 여부나 `X-Forwarded-Proto`를 보지 않는다). 호스트는 설정 `yona.hostname`(`yona.port`가
  * 80이 아니면 `:포트`를 붙인다), 없으면 요청의 `Host` 헤더, 그것도 없으면 서버의 주소이며 알 수 없으면 `localhost`이다. 서버를 하위 경로에 둔 경우 그 경로를 [path]가 붙여 준다.
  */
 @Component
@@ -34,8 +34,23 @@ class SiteUrls(private val properties: YonaProperties) {
         try { return block() } finally { originOverride.remove() }
     }
 
+    /** 주소의 스킴이다. 설정 `yona.scheme`이 있으면 그 값, 없으면 `http`이다 (v1.6 `Config.getScheme`). */
+    fun scheme(): String = properties.scheme.ifEmpty { "http" }
+
     /** `스킴://호스트[:포트]` 부분이다. */
-    fun origin(): String = originOverride.get() ?: "${properties.scheme.ifEmpty { currentRequest()?.scheme ?: "http" }}://${hostport()}"
+    fun origin(): String = originOverride.get() ?: "${scheme()}://${hostport()}"
+
+    /**
+     * 가입 인증 메일의 사이트 주소이다. v1.6 `UserApp.getServeIndexPageUrl`은 이 메일에서만 설정이 아니라 **요청이 https인지**(`request().secure()`)로
+     * 스킴을 고르고, 호스트는 설정 호스트 이름(없으면 `localhost:9000`)이다. Host 헤더를 쓰지 않는다.
+     */
+    fun signupMailOrigin(): String {
+        val scheme = if (currentRequest()?.isSecure == true) "https" else "http"
+        val host = if (properties.hostname.isNotEmpty()) {
+            properties.hostname + (properties.port?.takeIf { it != 80 }?.let { ":$it" } ?: "")
+        } else "localhost:9000"
+        return "$scheme://$host"
+    }
 
     /** 컨텍스트 경로가 이미 붙은 [path]로 절대 주소를 만든다. */
     fun absolute(path: String): String = origin() + path

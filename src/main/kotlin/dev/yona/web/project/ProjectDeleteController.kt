@@ -1,5 +1,6 @@
 package dev.yona.web.project
 
+import dev.yona.web.AjaxRequests
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.misc.FavoriteProjectRepository
 import dev.yona.domain.project.ProjectDeletionService
@@ -68,7 +69,7 @@ class ProjectDeleteController(
         repositories.deleteRepository(project)
 
         // v1.6은 Ajax 요청이면 303 대신 Location 헤더와 204를 돌려준다.
-        if (request.getHeader("X-Requested-With") == "XMLHttpRequest") {
+        if (AjaxRequests.isXhr(request)) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, "/").build<Void>()
         }
         return RedirectSupport.see(request, response, "/")

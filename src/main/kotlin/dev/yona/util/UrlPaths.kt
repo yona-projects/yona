@@ -12,10 +12,14 @@ object UrlPaths {
     /** 문자열 하나를 퍼센트 인코딩한다. 공백은 `+`가 아니라 `%20`이다 (v1.6 `HttpUtil.encodeUrlString`). */
     fun encode(value: String): String = URLEncoder.encode(value, Charsets.UTF_8).replace("+", "%20")
 
-    /** `/`로 나뉜 경로의 각 부분을 따로 인코딩한다. 비어 있으면 그대로이다 (v1.6 `HttpUtil.getEncodeEachPathName`). */
+    /**
+     * `/`로 나뉜 경로의 각 부분을 따로 인코딩한다. 비어 있으면 그대로이다 (v1.6 `HttpUtil.getEncodeEachPathName`).
+     * v1.6은 Java `String.split("/")`를 쓰므로 끝의 빈 조각을 버린다. `a/b/`는 `a/b`, `/`는 빈 문자열이 된다.
+     */
     fun encodeEach(path: String): String {
         if (path.isBlank()) return path
-        return path.split("/").joinToString("/") { encode(it) }
+        if (!path.contains('/')) return encode(path)
+        return path.split("/").dropLastWhile { it.isEmpty() }.joinToString("/") { encode(it) }
     }
 
     /**

@@ -1,5 +1,6 @@
 package dev.yona.web.code
 
+import dev.yona.web.AjaxRequests
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
@@ -113,7 +114,7 @@ class BranchController(
     fun setAsDefault(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable branch: String, request: HttpServletRequest): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         repositories.setDefaultBranch(project, UrlPaths.decodeSegmentOrSelf(branch))
-        if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"), ignoreCase = true)) return ResponseEntity.ok().build<Void>()
+        if (AjaxRequests.isXhr(request)) return ResponseEntity.ok().build<Void>()
         return RedirectView(siteUrls.path("/$owner/$name/branches"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
     }
 }
