@@ -139,10 +139,12 @@ class CommitHistoryTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `커밋이 없으면 처음 올리는 방법과 함께 찾을 수 없다고 답한다`() {
+    fun `커밋이 없으면 일반 찾을 수 없음 화면으로 404이다`() {
         val p = project()
+        // v1.6 CodeHistoryApp: 빈 저장소의 getHistory가 null이라 error.notfound 404이고, 처음 올리는 방법을 안내하는 nohead 분기에는 도달하지 않는다
         val response = mockMvc.perform(get("/${p.owner}/${p.name}/commits")).andExpect(status().isNotFound).andReturn().response
-        assertTrue(response.contentAsString.contains("alert-block"))
+        assertTrue(!response.contentAsString.contains("alert-block"), response.contentAsString)
+        mockMvc.perform(get("/${p.owner}/${p.name}/commits/HEAD/")).andExpect(status().isNotFound)
     }
 
     @Test

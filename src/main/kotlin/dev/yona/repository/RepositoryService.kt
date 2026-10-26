@@ -53,6 +53,12 @@ class RepositoryService(private val git: GitRepositories, private val svn: SvnRe
         return git.open(owner(project), name(project))
     }
 
+    /** Git 스마트 HTTP용으로 저장소를 연다. 디렉터리가 없어도 예외가 없다 ([GitRepositories.openForHttp]). */
+    fun openRepositoryForHttp(project: Project): Repository {
+        if (project.vcs != VCS_GIT) throw unsupported(project)
+        return git.openForHttp(owner(project), name(project))
+    }
+
     /**
      * [original]의 Git 저장소를 [fork]의 위치로 복제한다 (v1.6 `GitRepository.cloneLocalRepository`).
      *

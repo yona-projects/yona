@@ -40,7 +40,7 @@ class CommitHistoryService(private val repositories: RepositoryService, private 
 
     /**
      * [revision](없으면 `HEAD`)부터 거슬러 오르는 이력의 [page]번째 쪽(0부터)이다. [path]를 주면 그 경로를 바꾼 커밋만 모은다.
-     * 리비전을 풀 수 없으면 `null`이다. 저장소에 커밋이 하나도 없으면 [NoHeadException]이다.
+     * 리비전을 풀 수 없으면 `null`이다. 저장소에 커밋이 하나도 없어 `HEAD`를 풀 수 없을 때도 `null`이다(v1.6 `getHistory`가 null을 돌려주고 `NoHeadException` 분기는 도달하지 않는다).
      *
      * v1.6처럼 `page * size + size`개를 읽어 마지막 [size]개를 남긴다.
      */
@@ -51,7 +51,7 @@ class CommitHistoryService(private val repositories: RepositoryService, private 
     }
 
     private fun gitHistory(project: Project, page: Int, size: Int, revision: String?, path: String?): List<CommitInfo>? = repositories.openRepository(project).use { repository ->
-        val startId = (if (revision == null) repository.resolve(Constants.HEAD) else repository.resolve(revision)) ?: return if (revision == null) throw NoHeadException() else null
+        val startId = (if (revision == null) repository.resolve(Constants.HEAD) else repository.resolve(revision)) ?: return null
         val start = RevWalk(repository).use { it.parseCommit(startId) }
         val log = Git(repository).log().add(start)
         if (!path.isNullOrEmpty()) log.addPath(path)

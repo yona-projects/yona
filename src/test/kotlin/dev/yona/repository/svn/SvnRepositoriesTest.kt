@@ -155,4 +155,20 @@ class SvnRepositoriesTest {
     fun `없는 저장소는 예외이다`() {
         assertFailsWith<Exception> { svn.latestRevision("none", "none") }
     }
+
+    @Test
+    fun `shortMessage는 Java trim처럼 U+0020 이하의 문자만 앞뒤에서 지운다`() {
+        // v1.6 SvnCommit.getShortMessage: message.trim().split("\n")[0]. Kotlin trim()과 달리 NBSP와 전각 공백은 지우지 않는다.
+        fun short(message: String?) = SvnCommit("1", "u", message, null).shortMessage
+        assertEquals("\u00a0subject", short("\u00a0subject\nbody"))
+        assertEquals("subject", short("\u0001subject\nbody"))
+        assertEquals("\u3000title\r", short("\u3000title\r\nbody"))
+        assertEquals("x", short("\u0000\u0008x\ny"))
+        assertEquals("\u00a0em", short("\u00a0em\nz"))
+        assertEquals("fix bug ", short("  \tfix bug \n\n  body"))
+        assertEquals("", short("   "))
+        assertEquals("", short(""))
+        assertEquals("", short(null))
+        assertEquals("\u00a0", short("\u00a0"))
+    }
 }

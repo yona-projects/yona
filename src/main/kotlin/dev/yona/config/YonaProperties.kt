@@ -75,6 +75,8 @@ data class YonaProperties(
     val hostname: String = "",
     val port: Int? = null,
     val scheme: String = "",
+    /** SVNKit WebDAV 오류 본문의 `<address>`에 쓰는 서버 이름이다 (`application.server`, v1.6 기본 설정 파일의 값 `Play/2.3`). `Server` 헤더에는 쓰지 않는다. */
+    val server: String = "Play/2.3",
     val applicationContext: String = "",
     val parsersTextMaxLength: Long = 102_400L,
     val issueEventDraftTime: Long = 30_000L,

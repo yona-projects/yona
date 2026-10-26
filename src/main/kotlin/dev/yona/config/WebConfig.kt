@@ -1,9 +1,7 @@
 package dev.yona.config
 
 import dev.yona.security.PreferredLanguageInterceptor
-import dev.yona.web.access.AnonymousCheckInterceptor
-import dev.yona.web.access.ProjectCheckInterceptor
-import dev.yona.web.access.SiteManagerOnlyInterceptor
+import dev.yona.web.access.AccessChainInterceptor
 import dev.yona.web.welcome.SiteSecretInterceptor
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,9 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  */
 @Configuration(proxyBeanMethods = false)
 class WebConfig(
-    private val anonymousCheckInterceptor: AnonymousCheckInterceptor,
-    private val projectCheckInterceptor: ProjectCheckInterceptor,
-    private val siteManagerOnlyInterceptor: SiteManagerOnlyInterceptor,
+    private val accessChainInterceptor: AccessChainInterceptor,
     private val siteSecretInterceptor: SiteSecretInterceptor,
     private val preferredLanguageInterceptor: PreferredLanguageInterceptor
 ) : WebMvcConfigurer {
@@ -35,8 +31,7 @@ class WebConfig(
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(preferredLanguageInterceptor)
         registry.addInterceptor(siteSecretInterceptor)
-        registry.addInterceptor(anonymousCheckInterceptor)
-        registry.addInterceptor(siteManagerOnlyInterceptor)
-        registry.addInterceptor(projectCheckInterceptor)
+        // 접근 검사 어노테이션은 v1.6의 Play 순서(메서드가 바깥, 클래스가 안쪽)로 한 인터셉터에서 실행한다
+        registry.addInterceptor(accessChainInterceptor)
     }
 }

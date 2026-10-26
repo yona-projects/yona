@@ -25,6 +25,7 @@ import dev.yona.web.FragmentRenderer
 import dev.yona.web.RedirectSupport
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsAllowed
+import dev.yona.web.access.IsOnlyGitAvailable
 import dev.yona.web.code.DiffHtmlRenderer
 import dev.yona.web.code.ThreadHtmlRenderer
 import dev.yona.web.error.ErrorViews
@@ -79,6 +80,7 @@ class PullRequestViewController(
     @GetMapping("/{user}/{project}/pullRequest/{id}")
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
+    @IsOnlyGitAvailable
     fun view(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
@@ -118,6 +120,7 @@ class PullRequestViewController(
     @GetMapping("/{user}/{project}/pullRequest/{id}/state")
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
+    @IsOnlyGitAvailable
     fun state(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest): Any {
         val (_, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
@@ -137,12 +140,14 @@ class PullRequestViewController(
     @GetMapping("/{user}/{project}/pullRequest/{id}/changes")
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
+    @IsOnlyGitAvailable
     fun changes(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest): Any =
         changesView(owner, name, id, null, request)
 
     @GetMapping("/{user}/{project}/pullRequest/{id}/changes/{commitId}")
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
+    @IsOnlyGitAvailable
     fun specificChange(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, @PathVariable commitId: String, request: HttpServletRequest
     ): Any = changesView(owner, name, id, commitId, request)

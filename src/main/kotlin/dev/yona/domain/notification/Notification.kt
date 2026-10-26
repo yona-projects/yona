@@ -14,7 +14,7 @@ import java.util.Date
 @Table(
     name = "notification_event",
     indexes = [
-        Index(name = "ix_notification_event_created", columnList = "created")
+        Index(name = "ix_notification_event_created", columnList = "created DESC")
     ]
 )
 class NotificationEvent(

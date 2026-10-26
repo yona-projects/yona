@@ -229,4 +229,16 @@ class SvnDavTest {
         assertEquals(404, raw("GET", "/svn/${git.owner}/${git.name}").statusCode())
         assertEquals(403, raw("GET", "/svn/${member.loginId}").statusCode())
     }
+
+    @Test
+    fun `올바른 Basic 자격이면 404와 403 응답에도 세션 쿠키가 심기고 자격이 없으면 심기지 않는다`() {
+        // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션이 실린다
+        fun cookie(response: HttpResponse<String>) = response.headers().allValues("Set-Cookie").firstOrNull { it.startsWith("JSESSIONID=") }
+        val git = project(member, ProjectScope.PUBLIC, "GIT")
+        assertEquals(404, raw("GET", "/svn/${member.loginId}/none", member).statusCode())
+        assertTrue(cookie(raw("GET", "/svn/${member.loginId}/none", member)) != null)
+        assertTrue(cookie(raw("GET", "/svn/${git.owner}/${git.name}", member)) != null)
+        assertTrue(cookie(raw("GET", "/svn/${member.loginId}", member)) != null)
+        assertTrue(cookie(raw("GET", "/svn/${member.loginId}/none")) == null)
+    }
 }

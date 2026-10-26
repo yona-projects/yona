@@ -52,9 +52,11 @@ class GitHttpController(
     ): Any? {
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return ResponseEntity.badRequest().build<Void>()
+        // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션 쿠키가 실린다
+        val user = basicAuth.resolve(request, response, credentials)
         // 서비스를 정하지 않으면 getanyfile 서비스이다. 지원하지 않는다.
         if (service == null) return text(HttpStatus.FORBIDDEN, "Unsupported service: getanyfile")
-        return handle(ownerName, projectName, service, advertise = true, credentials, request, response)
+        return handle(ownerName, projectName, service, advertise = true, user, request, response)
     }
 
     /** 복제나 가져오기, 푸시의 요청 본문을 처리한다. */
@@ -65,17 +67,17 @@ class GitHttpController(
     ): Any? {
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return ResponseEntity.badRequest().build<Void>()
-        return handle(ownerName, projectName, service, advertise = false, credentials, request, response)
+        val user = basicAuth.resolve(request, response, credentials)
+        return handle(ownerName, projectName, service, advertise = false, user, request, response)
     }
 
     private fun handle(
-        ownerName: String, projectName: String, service: String, advertise: Boolean, credentials: BasicCredentials?, request: HttpServletRequest, response: HttpServletResponse
+        ownerName: String, projectName: String, service: String, advertise: Boolean, user: User?, request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
         if (!GitHttpService.isSupported(service)) return text(HttpStatus.FORBIDDEN, "Unsupported service: '$service'")
         val project = projectService.findByOwnerAndProjectName(ownerName, projectName) ?: return ResponseEntity.notFound().build<Void>()
         if (project.vcs != "GIT") return ResponseEntity.notFound().build<Void>()
 
-        val user = basicAuth.resolve(request, response, credentials)
         if (!isAllowed(project, user, service)) {
             if (user == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
@@ -84,7 +86,6 @@ class GitHttpController(
             return forbidden(user, ownerName, projectName, request.getHeader("User-Agent"))
         }
 
-        if (!gitHttp.exists(project)) return ResponseEntity.notFound().build<Void>()
 
         if (advertise) {
             response.contentType = "application/x-$service-advertisement"
@@ -106,14 +107,17 @@ class GitHttpController(
         return accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation)
     }
 
+    /**
+     * 로그인한 사용자의 권한 없음 응답이다. `git.error.permission`은 요청의 언어(`Accept-Language`)로, `git.error.notAllowedCharset`은
+     * 서버 JVM의 기본 로케일로 적는다 (v1.6 `GitApp`: 앞은 `Messages.get(키, …)`, 뒤는 `Messages.get(Lang.defaultLang(), 키, …)`).
+     */
     private fun forbidden(user: User, owner: String, project: String, userAgent: String?): ResponseEntity<String> {
-        val locale = Locale.getDefault()
         return if (isCharsetAllowed(userAgent)) {
             ResponseEntity.status(HttpStatus.FORBIDDEN).header("Content-Type", "text/plain;charset=UTF-8")
-                .body(messages.getMessage("git.error.permission", arrayOf<Any>(user.loginId.orEmpty(), owner, project), locale))
+                .body(messages.getMessage("git.error.permission", arrayOf<Any>(user.loginId.orEmpty(), owner, project), org.springframework.context.i18n.LocaleContextHolder.getLocale()))
         } else {
             ResponseEntity.status(HttpStatus.FORBIDDEN).header("Content-Type", "text/plain")
-                .body(messages.getMessage("git.error.notAllowedCharset", arrayOf<Any>(user.loginId.orEmpty(), owner, project), locale))
+                .body(messages.getMessage("git.error.notAllowedCharset", arrayOf<Any>(user.loginId.orEmpty(), owner, project), Locale.getDefault()))
         }
     }
 

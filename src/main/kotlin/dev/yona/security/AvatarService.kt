@@ -26,7 +26,7 @@ class AvatarService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     /** Gravatar 서버에 접속할 수 있는지 여부이다. 검사를 끄면 `false`로 본다. */
-    private val gravatarReachable: Boolean = properties.gravatar.check && checkGravatar()
+    internal var gravatarReachable: Boolean = properties.gravatar.check && checkGravatar()
 
     /**
      * @param user 아바타를 보여 줄 사용자
@@ -40,10 +40,10 @@ class AvatarService(
     }
 
     /** 이메일 주소의 Gravatar 주소이다. Gravatar에 접속할 수 없으면 기본 아바타이다 (v1.6 `GravatarUtil.getAvatar`). */
-    fun gravatarUrl(email: String?, size: Int): String {
+    fun gravatarUrl(email: String?, size: Int, defaultImage: String = DEFAULT_GRAVATAR_IMAGE): String {
         if (!gravatarReachable) return DEFAULT_AVATAR_URL
         val hash = md5Hex(email ?: "")
-        return "https://www.gravatar.com/avatar/$hash?s=$size&d=" + URLEncoder.encode(DEFAULT_GRAVATAR_IMAGE, Charsets.UTF_8)
+        return "https://www.gravatar.com/avatar/$hash?s=$size&d=" + URLEncoder.encode(defaultImage, Charsets.UTF_8)
     }
 
     /** v1.6 `MD5Util.md5Hex`: 문자열을 CP1252 바이트로 바꿔 MD5를 구하고 소문자 16진수로 표현한다. */
@@ -68,6 +68,12 @@ class AvatarService(
 
         private const val DEFAULT_GRAVATAR_IMAGE =
             "https://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png"
+
+        /**
+         * Subversion 코드 화면의 등록하지 않은 작성자에게 쓰는 기본 이미지이다. v1.6 `SVNRepository.java:143`에 문자열로 박혀 있고 `http`이다
+         * (SSL 혼합 콘텐츠 수정 커밋이 `GravatarUtil`의 상수만 `https`로 바꾸고 이 문자열을 놓쳤다). 그대로 따른다.
+         */
+        const val SVN_DEFAULT_GRAVATAR_IMAGE = "http://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png"
         private const val REACHABLE_TIMEOUT_MILLIS = 100
     }
 }

@@ -131,17 +131,8 @@ class CodeBrowserService(
     private fun Repository.newTreeWalk(commit: RevCommit): TreeWalk = TreeWalk(this).also { it.addTree(commit.tree) }
 
     private fun folder(repository: Repository, project: Project, basePath: String, walk: TreeWalk, head: RevCommit): Map<String, Any?>? {
-        val found: SortedMap<String, Map<String, Any?>> = TreeMap()
-        Git(repository).use { git ->
-            while (walk.next()) {
-                val name = walk.nameString
-                val entry = linkedMapOf<String, Any?>("type" to if (walk.isSubtree) "folder" else "file")
-                val fullPath = if (basePath.isEmpty()) name else "$basePath/$name"
-                val commit = git.log().add(head).addPath(fullPath).setMaxCount(1).call().iterator().let { if (it.hasNext()) it.next() else null }
-                if (commit != null) describe(entry, commit, project)
-                found[extendPath(repository, basePath, name)] = entry
-            }
-        }
+        // v1.6 `ObjectFinder`: git log -1 과 달리 객체 번호를 부모와 비교해 마지막으로 바뀐 커밋을 찾는다
+        val found = ObjectFinder(repository, basePath, walk, head.id, { entry, commit -> describe(entry, commit, project) }, { name -> extendPath(repository, basePath, name) }).find()
         if (found.isEmpty()) return null
         return linkedMapOf("type" to "folder", "data" to found)
     }
@@ -151,7 +142,7 @@ class CodeBrowserService(
         val email = commit.authorIdent.emailAddress
         val user = userLookup.findByEmail(email)
         entry["msg"] = commit.shortMessage
-        entry["avatar"] = user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: avatars.gravatarUrl("", AVATAR_SIZE)
+        entry["avatar"] = avatar(user, email)
         entry["userName"] = user?.name ?: messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale())
         entry["userLoginId"] = user?.loginId.orEmpty()
         entry["createdDate"] = commit.commitTime * 1000L
@@ -161,6 +152,13 @@ class CodeBrowserService(
         entry["commitUrl"] = siteUrls.path("/${project.owner}/${project.name}/commit/$shortId")
     }
 
+    /**
+     * 작성자 아바타 주소이다 (v1.6 `GitRepository.getAvatar`). 등록하지 않은 커미터는 **커밋 이메일**의 Gravatar(크기 34)이고, 등록한 사용자는
+     * 업로드한 아바타 또는 그 사용자 이메일의 Gravatar(크기 64, `User.avatarUrl()`의 기본값)이다.
+     */
+    private fun avatar(user: dev.yona.domain.user.User?, commitEmail: String?): String =
+        if (user == null) avatars.gravatarUrl(commitEmail, AVATAR_SIZE) else avatars.avatarUrl(user)
+
     // --- 파일 ---
 
     private fun file(repository: Repository, walk: TreeWalk, head: RevCommit): Map<String, Any?> {
@@ -169,7 +167,7 @@ class CodeBrowserService(
         val time = commit.commitTime * 1000L
         val result = linkedMapOf<String, Any?>("type" to "file", "msg" to commit.shortMessage)
         result["author"] = commit.authorIdent.name
-        result["avatar"] = user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: avatars.gravatarUrl("", AVATAR_SIZE)
+        result["avatar"] = avatar(user, commit.authorIdent.emailAddress)
         result["userName"] = user?.name ?: messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale())
         result["userLoginId"] = user?.loginId.orEmpty()
         result["createdDate"] = time
@@ -179,7 +177,7 @@ class CodeBrowserService(
         result["commitId"] = head.name
         val loader = repository.open(walk.getObjectId(0))
         result["size"] = loader.size
-        val binary = loader.openStream().use { RawText.isBinary(it) }
+        val binary = loader.openStream().use { dev.yona.io.RawTextBinary.isBinary(it) }
         result["isBinary"] = binary
         if (!binary && loader.size <= properties.codeBrowserMaxFileSize) {
             val bytes = loader.bytes

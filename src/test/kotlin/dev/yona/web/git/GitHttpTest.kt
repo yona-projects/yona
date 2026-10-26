@@ -241,4 +241,65 @@ class GitHttpTest {
         assertEquals(401, advertise(secret, basic(member, "wrong")).statusCode())
         assertEquals(200, advertise(secret, basic(member, "wrong"), cookie).statusCode())
     }
+
+    private fun raw(path: String, method: String = "GET", body: ByteArray? = null, vararg headers: Pair<String, String>): HttpResponse<ByteArray> =
+        HttpClient.newHttpClient().send(
+            HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
+                .method(method, if (body == null) HttpRequest.BodyPublishers.noBody() else HttpRequest.BodyPublishers.ofByteArray(body))
+                .apply { headers.forEach { (k, v) -> header(k, v) } }.build(),
+            HttpResponse.BodyHandlers.ofByteArray()
+        )
+
+    private fun sessionCookie(response: HttpResponse<ByteArray>) = response.headers().allValues("Set-Cookie").firstOrNull { it.startsWith("JSESSIONID=") }
+
+    @Test
+    fun `Basic 인증은 404와 403 응답에도 세션 쿠키를 심는다 (v1_6 BasicAuthAction이 가장 바깥)`() {
+        val noProject = raw("/${member.loginId}/nothing/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to basic(member)))
+        assertEquals(404, noProject.statusCode()); assertTrue(sessionCookie(noProject) != null)
+        val noService = raw("/${project.owner}/${project.name}/info/refs", headers = arrayOf("Authorization" to basic(member)))
+        assertEquals(403, noService.statusCode()); assertTrue(String(noService.body()).contains("Unsupported service: getanyfile")); assertTrue(sessionCookie(noService) != null)
+        // 자격이 틀리면 쿠키가 없고, 형식이 틀리면(콜론 없음) 400이다
+        val wrong = raw("/${member.loginId}/nothing/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to basic(member, "wrong")))
+        assertEquals(404, wrong.statusCode()); assertTrue(sessionCookie(wrong) == null)
+        val malformed = raw("/${project.owner}/${project.name}/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to "Basic bm9jb2xvbg=="))
+        assertEquals(400, malformed.statusCode()); assertTrue(sessionCookie(malformed) == null)
+    }
+
+    @Test
+    fun `저장소 디렉터리가 없어도 info refs는 빈 저장소와 같은 광고를 200으로 준다`() {
+        val n = counter.incrementAndGet()
+        val p = projects.save(Project(owner = member.loginId, name = "nodir$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = p, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        projectUsers.save(ProjectUser(user = member, project = p, role = roles.findById(RoleType.MANAGER.id).get()))
+        // v1.6 GitApp은 저장소 존재를 확인하지 않고 디렉터리를 만들지도 않는다
+        val upload = raw("/${p.owner}/${p.name}/info/refs?service=git-upload-pack")
+        assertEquals(200, upload.statusCode())
+        assertEquals("application/x-git-upload-pack-advertisement", upload.headers().firstValue("Content-Type").get())
+        val text = String(upload.body())
+        assertTrue(text.startsWith("001e# service=git-upload-pack\n0000"), text); assertTrue(text.contains("capabilities^{}"), text); assertTrue(text.endsWith("0000"), text)
+        val receive = raw("/${p.owner}/${p.name}/info/refs?service=git-receive-pack", headers = arrayOf("Authorization" to basic(member)))
+        assertEquals(200, receive.statusCode()); assertTrue(String(receive.body()).contains("capabilities^{}"))
+        assertTrue(!java.io.File(repositories.openRepositoryForHttp(p).use { it.directory.path }).exists())
+    }
+
+    @Test
+    fun `RPC 중 IOException은 밖으로 던지지 않고 200으로 끝난다`() {
+        // v1.6은 응답 200을 먼저 보내고 uploadPack failed를 로그로만 남긴다. 없는 객체를 want하면 ERR 패킷이 흐른다.
+        val want = "0032want ${"1".repeat(40)}\n00000009done\n".toByteArray()
+        val response = raw("/${project.owner}/${project.name}/git-upload-pack", "POST", want, "Content-Type" to "application/x-git-upload-pack-request")
+        assertEquals(200, response.statusCode())
+        assertTrue(String(response.body()).contains("ERR"), String(response.body()))
+    }
+
+    @Test
+    fun `권한 없음 메시지는 요청 언어로 쓰고 문자 집합을 못 쓰는 클라이언트의 메시지는 JVM 기본 로케일로 쓴다`() {
+        val secret = project(ProjectScope.PRIVATE)
+        val auth = "Authorization" to basic(outsider)
+        val ko = raw("/${secret.owner}/${secret.name}/info/refs?service=git-upload-pack", headers = arrayOf(auth, "User-Agent" to "git/2.30.0", "Accept-Language" to "ko-KR"))
+        assertEquals(403, ko.statusCode()); assertTrue(String(ko.body()).contains("권한이 없습니다"), String(ko.body()))
+        val en = raw("/${secret.owner}/${secret.name}/info/refs?service=git-upload-pack", headers = arrayOf(auth, "User-Agent" to "git/2.30.0"))
+        assertTrue(String(en.body()).contains("has no permission"), String(en.body()))
+        val old = raw("/${secret.owner}/${secret.name}/info/refs?service=git-upload-pack", headers = arrayOf(auth, "User-Agent" to "git/2.0.0", "Accept-Language" to "ko-KR"))
+        assertEquals("text/plain", old.headers().firstValue("Content-Type").get())
+    }
 }

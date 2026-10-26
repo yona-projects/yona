@@ -73,12 +73,12 @@ class SiteDataController(
     }
 
     /**
-     * 올린 파일로 DB를 교체한다. 파일을 고르지 않았으면 데이터 화면으로, 처리했으면(테이블 몇 개가 실패해도) 처음 화면으로 이동한다.
-     * JSON이 깨졌으면 400이다.
+     * 올린 파일로 DB를 교체한다. `data` 파트가 없으면 데이터 화면으로, 처리했으면(테이블 몇 개가 실패해도, 파일이 도중에 깨지거나 비어 있어도)
+     * 처음 화면으로 이동한다. 첫 토큰부터 JSON이 아니면 400이다(v1.6 `SiteApp.importData`).
      */
     @PostMapping("/sites/import")
     fun import(@RequestParam(name = "data", required = false) file: MultipartFile?, request: HttpServletRequest, response: HttpServletResponse): Any {
-        if (file == null || file.isEmpty) return RedirectSupport.see(request, response, "/sites/data")
+        if (file == null) return RedirectSupport.see(request, response, "/sites/data")
         return try {
             file.inputStream.use { data.import(it) }
             RedirectSupport.see(request, response, "/")

@@ -42,6 +42,14 @@ class GitRepositories(private val dataDirectory: DataDirectory) {
         RepositoryBuilder().setGitDir(directoryOf(owner, name)).setMustExist(true).build()
 
     /**
+     * Git 스마트 HTTP용으로 저장소를 연다. 디렉터리가 없어도 예외 없이 저장소를 돌려주고 디렉터리를 만들지도 않는다.
+     * v1.6 `GitRepository.buildGitRepository`가 `setMustExist`를 쓰지 않아, 프로젝트 행만 있고 디렉터리가 없을 때도 `info/refs`가
+     * 빈 저장소와 같은 광고를 200으로 돌려주기 때문이다.
+     */
+    fun openForHttp(owner: String, name: String): Repository =
+        RepositoryBuilder().setGitDir(directoryOf(owner, name)).build()
+
+    /**
      * 저장소 디렉터리를 다른 소유자나 이름의 위치로 옮긴다 (v1.6 `GitRepository.move`). 원래 디렉터리가 없으면 옮길 것이 없다고
      * 보고 성공으로 처리한다. 옮기지 못하면 `false`이다.
      *
@@ -64,49 +72,26 @@ class GitRepositories(private val dataDirectory: DataDirectory) {
     }
 
     /**
-     * 원본 저장소를 포크 저장소로 복제한다 (v1.6 `GitRepository.cloneLocalRepository`). 먼저 객체 파일을 하드 링크로 걸어 디스크를 아끼고
-     * 참조를 옮겨 오며, 하드 링크를 만들 수 없으면(파일 시스템이 다른 경우 등) 만들던 저장소를 지우고 전체를 복사해 복제한다.
+     * 원본 저장소를 포크 저장소로 복제한다 (v1.6 `GitRepository.cloneLocalRepository`).
      *
-     * v1.6은 `info/alternates`만 복사하려고 비교했으나 비교 대상이 절대 경로로 풀려 늘 같지 않았다. 그래서 그 파일도 하드 링크로 걸린다.
-     * 같은 결과를 내려고 그대로 따른다.
+     * v1.6은 먼저 객체 파일을 하드 링크로 거는 방법을 시도하지만, `Repository.create()`(= `create(false)`)가 이름이 `.git`으로 끝나지 않는
+     * 디렉터리에서 작업 트리가 없어 항상 `NoWorkTreeException`을 던진다. 그래서 모든 포크는 실제로는 폴백인 복제(`Git.cloneRepository()`,
+     * bare, 모든 브랜치)로 만들어진다. 결과는 `remote.origin`(원본의 canonical 절대 경로)과 원본 HEAD 브랜치의 `branch.<이름>` 설정이 붙은
+     * bare 저장소이고, `refs/heads/` 아래의 브랜치와 태그만 복사한다. `refs/yobi/` 아래의 PR용 ref는 복사하지 않는다 (2026-10-27 P-10 결정 4, S1 명세 8번).
+     * 하드 링크 시도는 실행된 적이 없는 코드이므로 옮기지 않는다.
      */
     fun cloneLocal(owner: String, name: String, forkOwner: String, forkName: String) {
         // 같은 이름의 프로젝트가 없는데 디렉터리가 남아 있으면 이전에 실패한 흔적이므로 지우고 시작한다 (`createRepository`와 같다).
         delete(forkOwner, forkName)
-        try {
-            cloneHardLinked(owner, name, forkOwner, forkName)
-        } catch (e: Exception) {
-            delete(forkOwner, forkName)
-            org.eclipse.jgit.api.Git.cloneRepository()
-                .setURI(directoryOf(owner, name).toURI().toString()).setDirectory(directoryOf(forkOwner, forkName))
-                .setCloneAllBranches(true).setBare(true).call().close()
-        }
-    }
-
-    private fun cloneHardLinked(owner: String, name: String, forkOwner: String, forkName: String) {
+        // v1.6 `getGitDirectoryURL`은 file: URI가 아니라 canonical 절대 경로 문자열이다
+        org.eclipse.jgit.api.Git.cloneRepository()
+            .setURI(directoryOf(owner, name).canonicalPath).setDirectory(directoryOf(forkOwner, forkName))
+            .setCloneAllBranches(true).setBare(true).call().close()
+        // 빈 원본을 복제하면 JGit 7.x는 init.defaultBranch를 따를 수 있다. 원본 HEAD가 가리키는 브랜치를 그대로 쓴다.
         open(owner, name).use { origin ->
-            RepositoryBuilder().setGitDir(directoryOf(forkOwner, forkName)).setBare().build().use { forked ->
-                forked.create(true)
-                val originObjects = java.nio.file.Paths.get(File(origin.directory, "objects").absolutePath)
-                val forkedObjects = java.nio.file.Paths.get(File(forked.directory, "objects").absolutePath)
-                java.nio.file.Files.walkFileTree(originObjects, object : java.nio.file.SimpleFileVisitor<java.nio.file.Path>() {
-                    override fun visitFile(file: java.nio.file.Path, attrs: java.nio.file.attribute.BasicFileAttributes): java.nio.file.FileVisitResult {
-                        val target = forkedObjects.resolve(originObjects.relativize(file.toAbsolutePath()))
-                        target.parent.toFile().mkdirs()
-                        java.nio.file.Files.deleteIfExists(target)
-                        java.nio.file.Files.createLink(target, file)
-                        return java.nio.file.FileVisitResult.CONTINUE
-                    }
-                })
-                for ((refName, ref) in origin.allRefs) {
-                    val update = forked.updateRef(refName)
-                    if (ref.isSymbolic) {
-                        update.link(ref.target.name)
-                    } else {
-                        update.setNewObjectId(ref.objectId)
-                        update.update()
-                    }
-                }
+            val target = origin.exactRef("HEAD")?.takeIf { it.isSymbolic }?.target?.name ?: return
+            open(forkOwner, forkName).use { forked ->
+                if (forked.exactRef("HEAD")?.target?.name != target) forked.updateRef("HEAD").link(target)
             }
         }
     }

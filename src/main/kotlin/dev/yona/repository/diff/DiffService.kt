@@ -103,7 +103,7 @@ class DiffService(private val repositories: RepositoryService) {
                     fileDiff.pathA = pathA
                     try {
                         rawA = repositoryA.open(TreeWalk.forPath(repositoryA, pathA, treeA).getObjectId(0)).bytes
-                        fileDiff.isBinaryA = RawText.isBinary(rawA)
+                        fileDiff.isBinaryA = dev.yona.io.RawTextBinary.isBinary(rawA)
                         fileDiff.a = if (fileDiff.isBinaryA) null else text(rawA)
                     } catch (e: LargeObjectException) {
                         fileDiff.addError(FileDiff.Error.A_SIZE_EXCEEDED)
@@ -114,7 +114,7 @@ class DiffService(private val repositories: RepositoryService) {
                     fileDiff.pathB = pathB
                     try {
                         rawB = repositoryB.open(TreeWalk.forPath(repositoryB, pathB, treeB).getObjectId(0)).bytes
-                        fileDiff.isBinaryB = RawText.isBinary(rawB)
+                        fileDiff.isBinaryB = dev.yona.io.RawTextBinary.isBinary(rawB)
                         fileDiff.b = if (fileDiff.isBinaryB) null else text(rawB)
                     } catch (e: LargeObjectException) {
                         fileDiff.addError(FileDiff.Error.B_SIZE_EXCEEDED)

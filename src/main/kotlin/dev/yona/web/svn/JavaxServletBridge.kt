@@ -28,12 +28,13 @@ object JavaxServletBridge {
      * @param real 실제 요청
      * @param pathInfo `소유자` 뒤의 경로(프로젝트 이름부터). URI 인코딩해서 넘긴다
      * @param username 인증한 사용자의 로그인 ID. 익명이면 빈 문자열
+     * @param serverInfo 서블릿 컨텍스트가 알려 줄 서버 이름 (`yona.server`)
      */
-    fun request(real: HttpServletRequest, pathInfo: String, username: String): javax.servlet.http.HttpServletRequest {
+    fun request(real: HttpServletRequest, pathInfo: String, username: String, serverInfo: String): javax.servlet.http.HttpServletRequest {
         val encodedPathInfo = SVNEncodingUtil.uriEncode(pathInfo)
         var characterEncoding: String? = null
         val attributes = HashMap<String, Any?>()
-        val session = session()
+        val session = session(serverInfo)
         // 서블릿 경로는 컨텍스트 경로 뒤 `/svn/소유자/`까지이다. 원본 주소에서 잘라 퍼센트 인코딩 길이에 영향을 받지 않게 한다.
         val relative = real.requestURI.removePrefix(real.contextPath)
         val servletPath = Regex("^/[^/]+/[^/]*/").find(relative)?.value ?: relative
@@ -138,8 +139,8 @@ object JavaxServletBridge {
     }
 
     /** 이름이 `SVNParentPath`이면 [parentPath]를, 그 밖의 초기화 값은 `null`로 돌려주는 서블릿 설정이다 (v1.6 `createDavServlet`). */
-    fun config(parentPath: String): javax.servlet.ServletConfig {
-        val context = context()
+    fun config(parentPath: String, serverInfo: String): javax.servlet.ServletConfig {
+        val context = context(serverInfo)
         return proxy(javax.servlet.ServletConfig::class.java) { method, args ->
             when (method.name) {
                 "getInitParameter" -> if (args[0] == "SVNParentPath") parentPath else null
@@ -149,15 +150,16 @@ object JavaxServletBridge {
         }
     }
 
-    private fun context(): javax.servlet.ServletContext = proxy(javax.servlet.ServletContext::class.java) { method, _ ->
+    private fun context(serverInfo: String): javax.servlet.ServletContext = proxy(javax.servlet.ServletContext::class.java) { method, _ ->
         when (method.name) {
-            "getServerInfo" -> "Yona"
+            // v1.6 `PlayServletContext.getServerInfo()`는 `application.server`를 돌려준다
+            "getServerInfo" -> serverInfo
             else -> throw UnsupportedOperationException(method.name)
         }
     }
 
-    private fun session(): javax.servlet.http.HttpSession {
-        val context = context()
+    private fun session(serverInfo: String): javax.servlet.http.HttpSession {
+        val context = context(serverInfo)
         val created = System.currentTimeMillis()
         return proxy(javax.servlet.http.HttpSession::class.java) { method, _ ->
             when (method.name) {

@@ -50,7 +50,6 @@ class CommitHistoryController(
     private val userLookup: dev.yona.domain.user.UserLookup,
     private val avatars: AvatarService,
     private val views: ProjectViewFactory,
-    private val noheadViews: NoheadViews,
     private val helper: TemplateHelper,
     private val siteUrls: SiteUrls,
     private val reviewThreads: dev.yona.domain.comment.ReviewThreadService,
@@ -85,11 +84,8 @@ class CommitHistoryController(
     private fun show(owner: String, name: String, branch: String?, path: String?, pageText: String?, request: HttpServletRequest): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val page = if (pageText.isNullOrEmpty()) 0 else pageText.toIntOrNull()?.takeIf { it >= 0 } ?: return ErrorViews.badRequest("error.badrequest", views.of(project), "CODE")
-        val commits = try {
-            history.history(project, page, PAGE_SIZE, branch, path)
-        } catch (e: CommitHistoryService.NoHeadException) {
-            return noheadViews.of(project, request).also { it.status = HttpStatus.NOT_FOUND }
-        } ?: return ErrorViews.notFound("error.notfound", views.of(project), null)
+        // 빈 저장소와 풀 수 없는 리비전은 모두 null이고 error.notfound 404이다 (v1.6 `CodeHistoryApp`: nohead 화면에는 도달하지 않는다)
+        val commits = history.history(project, page, PAGE_SIZE, branch, path) ?: return ErrorViews.notFound("error.notfound", views.of(project), null)
 
         val base = siteUrls.path("/$owner/$name")
         val branchSegment = branch?.let { UrlPaths.routeSegment(it) }

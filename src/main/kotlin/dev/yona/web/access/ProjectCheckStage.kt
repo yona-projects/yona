@@ -15,23 +15,22 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
-import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
-import org.springframework.web.method.HandlerMethod
-import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.ModelAndView
 
 /**
- * 프로젝트 화면의 검사 애너테이션을 처리한다. v1.6의 `actions` 패키지(`AbstractProjectCheckAction`과
+ * 프로젝트 화면의 검사 애너테이션 한 개를 실행한다. v1.6의 `actions` 패키지(`AbstractProjectCheckAction`과
  * 하위 액션, `NullProjectCheckAction`, `GuestProhibitAction`)에 해당한다.
  *
- * ## 처리 순서
- * 1. [GuestProhibit]: 게스트이면 홈으로 보낸다.
- * 2. [NullProjectCheck]만 있으면 프로젝트 존재만 확인한다.
- * 3. [IsAllowed], [IsCreatable], [IsOnlyGitAvailable], [DefaultProjectCheck], [CodeAccessCheck] 중 하나라도 있으면
- *    프로젝트를 찾고 읽기 권한을 확인한 뒤, 붙은 검사를 [IsAllowed], [IsCreatable], [IsOnlyGitAvailable],
- *    [CodeAccessCheck] 순으로 실행한다. v1.6은 여러 액션이 붙었을 때의 순서를 프레임워크가 정했다.
+ * ## 어노테이션 하나가 하는 일
+ * - [GuestProhibit]: 게스트이면 홈으로 보낸다.
+ * - [NullProjectCheck]: 프로젝트가 있는지만 확인한다.
+ * - [IsAllowed], [IsCreatable], [IsOnlyGitAvailable], [DefaultProjectCheck], [CodeAccessCheck]: 프로젝트를 찾고 읽기 권한을 확인한 뒤
+ *   자기 검사를 한다. v1.6의 `AbstractProjectCheckAction.call`이 하위 액션마다 공통으로 하는 일이다. 같은 요청에서 여러 개가 붙으면
+ *   읽기 확인은 한 번만 계산한다(결과가 같다).
+ *
+ * 어노테이션을 어떤 순서로 실행하는지는 [AccessChainInterceptor]가 정한다(v1.6의 Play 2.3 규칙).
  *
  * ## 프로젝트를 찾는 규칙
  * 경로의 첫 두 구간이 소유자와 프로젝트 이름이다. API 경로(`/-_-api/v1/`)는 `owners`와 `projects` 다음 구간이다.
@@ -41,7 +40,7 @@ import org.springframework.web.servlet.ModelAndView
  * 검사에 실패하면 [ViewResultException]으로 오류 화면을 전달한다.
  */
 @Component
-class ProjectCheckInterceptor(
+class ProjectCheckStage(
     private val currentUserProvider: CurrentUserProvider,
     private val projectService: ProjectService,
     private val accessControl: AccessControl,
@@ -49,44 +48,41 @@ class ProjectCheckInterceptor(
     private val projectViews: ProjectViewFactory,
     private val flashTranslator: FlashMessageTranslator,
     private val messages: MessageSource
-) : HandlerInterceptor {
+) {
 
-    override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        val method = (handler as? HandlerMethod) ?: return true
-
-        fun <A : Annotation> find(type: Class<A>): A? =
-            AnnotatedElementUtils.findMergedAnnotation(method.method, type) ?: AnnotatedElementUtils.findMergedAnnotation(method.beanType, type)
-
-        find(GuestProhibit::class.java)?.let { if (!guestPassed(it, request, response)) return false }
-
-        val isAllowed = find(IsAllowed::class.java)
-        val isCreatable = find(IsCreatable::class.java)
-        val onlyGit = find(IsOnlyGitAvailable::class.java)
-        val defaultCheck = find(DefaultProjectCheck::class.java)
-        val codeAccess = find(CodeAccessCheck::class.java)
-        val nullCheck = find(NullProjectCheck::class.java)
-
-        val needsReadCheck = isAllowed != null || isCreatable != null || onlyGit != null || defaultCheck != null || codeAccess != null
-        if (!needsReadCheck && nullCheck == null) return true
-
-        val segments = pathSegments(request)
-        val project = if (needsReadCheck) {
-            checkProjectReadable(request, segments)
-        } else {
-            findProject(segments, request).also { if (it == null) throw ViewResultException(projectNotFound(request)) }
-        } ?: return true
-
-        isAllowed?.let { checkAllowed(it, project, segments) }
-        isCreatable?.let { checkCreatable(it, project) }
-        if (onlyGit != null && project.vcs != "GIT") {
-            throw ViewResultException(ErrorViews.badRequest("error.badrequest.only.available.for.git"))
-        }
-        if (codeAccess != null && project.isCodeAccessibleMemberOnly == true &&
-            !projectService.hasMember(project, currentUserProvider.get().user)
-        ) {
-            throw ViewResultException(forbiddenOrLogin(request))
+    /** 통과하면 `true`, 응답을 이미 썼으면(리다이렉트) `false`이다. 실패하면 [ViewResultException]을 던진다. 프로젝트 검사가 아닌 어노테이션은 무시한다. */
+    fun run(annotation: Annotation, request: HttpServletRequest, response: HttpServletResponse): Boolean {
+        when (annotation) {
+            is GuestProhibit -> return guestPassed(annotation, request, response)
+            is NullProjectCheck -> {
+                findProject(pathSegments(request), request) ?: throw ViewResultException(projectNotFound(request))
+            }
+            is IsAllowed, is IsCreatable, is IsOnlyGitAvailable, is DefaultProjectCheck, is CodeAccessCheck -> {
+                val segments = pathSegments(request)
+                val project = readableProject(request, segments)
+                when (annotation) {
+                    is IsAllowed -> checkAllowed(annotation, project, segments)
+                    is IsCreatable -> checkCreatable(annotation, project)
+                    is IsOnlyGitAvailable -> if (project.vcs != "GIT") {
+                        throw ViewResultException(ErrorViews.badRequest("error.badrequest.only.available.for.git"))
+                    }
+                    is CodeAccessCheck -> if (project.isCodeAccessibleMemberOnly == true &&
+                        !projectService.hasMember(project, currentUserProvider.get().user)
+                    ) {
+                        throw ViewResultException(forbiddenOrLogin(request))
+                    }
+                    else -> Unit
+                }
+            }
+            else -> Unit
         }
         return true
+    }
+
+    /** 프로젝트를 찾고 읽을 수 있는지 한 번만 확인한다. 같은 요청의 다음 검사는 결과를 다시 쓴다. */
+    private fun readableProject(request: HttpServletRequest, segments: List<String>): Project {
+        (request.getAttribute(READABLE_PROJECT) as? Project)?.let { return it }
+        return checkProjectReadable(request, segments).also { request.setAttribute(READABLE_PROJECT, it) }
     }
 
     // --- 게스트 ---
@@ -185,5 +181,6 @@ class ProjectCheckInterceptor(
 
     private companion object {
         const val API_PREFIX = "/-_-api/v1/"
+        const val READABLE_PROJECT = "dev.yona.web.access.ReadableProject"
     }
 }

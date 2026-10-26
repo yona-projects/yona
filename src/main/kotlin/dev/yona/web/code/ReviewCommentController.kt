@@ -20,6 +20,7 @@ import dev.yona.security.CurrentUserProvider
 import dev.yona.web.RedirectSupport
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsCreatable
+import dev.yona.web.access.IsOnlyGitAvailable
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
 import jakarta.servlet.http.HttpServletRequest
@@ -115,6 +116,7 @@ class ReviewCommentController(
     @PostMapping("/{user}/{project}/pullRequest/{pullRequestId}/comments")
     @IsCreatable(ResourceType.REVIEW_COMMENT)
     @Transactional
+    @IsOnlyGitAvailable
     fun newPullRequestComment(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable pullRequestId: Long, request: HttpServletRequest, response: HttpServletResponse
     ): Any {

@@ -107,6 +107,10 @@ class DataService(private val dataSource: DataSource) {
     /**
      * 파일로 DB를 교체한다. 첫 토큰이 객체가 아니면 아무것도 하지 않는다. 모르는 필드는 건너뛴다. 파일의 필드 순서는 가리지 않는다(v1.6은 테이블 이름 순서가
      * 아니면 뒤쪽을 무시한다, A-92).
+     *
+     * 테이블마다 따로 확정하거나 되돌린다(v1.6 `DefaultExchanger.importData`는 테이블마다 트랜잭션을 잡고 모든 예외를 삼킨다). 파일이 도중에
+     * 잘렸거나 구문이 틀리면 그 테이블을 되돌리고, 파서를 더 믿을 수 없으므로 남은 테이블은 건드리지 않고 멈춘다. 앞서 끝낸 테이블은 그대로 남는다.
+     * 이 경우도 예외를 밖으로 던지지 않는다(v1.6은 302 `/`). 밖으로 나가는 구문 오류는 **첫 토큰**의 것뿐이다(v1.6은 400).
      */
     fun import(input: InputStream): DataImportResult {
         val started = System.currentTimeMillis()
@@ -123,19 +127,10 @@ class DataService(private val dataSource: DataSource) {
                 val ids = Identifiers(connection, product)
                 try {
                     connection.autoCommit = false
-                    while (parser.nextToken() == JsonToken.PROPERTY_NAME) {
-                        val name = parser.currentName()
-                        val value = parser.nextToken()
-                        val table = DataTables.find(name)
-                        val sequenceOf = DataTables.findBySequenceName(name)
-                        when {
-                            table != null && value == JsonToken.START_ARRAY ->
-                                if (importTable(connection, ids, table, parser)) imported += table.name else failed += table.name
-                            sequenceOf != null && value.isNumeric -> restoreSequence(connection, product, ids, sequenceOf, parser.longValue)
-                            else -> parser.skipChildren()
-                        }
-                    }
+                    readTables(connection, product, ids, parser, imported, failed)
                 } finally {
+                    // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
+                    try { connection.rollback() } catch (e: Exception) { log.warn("Failed to roll back the import", e) }
                     connection.autoCommit = true
                     restoreReferentialIntegrity(connection, product)
                 }
@@ -145,12 +140,37 @@ class DataService(private val dataSource: DataSource) {
         return DataImportResult(imported, failed)
     }
 
+    /** 파일의 필드를 차례로 읽어 테이블과 시퀀스를 처리한다. 파서가 깨지면 그 자리에서 멈춘다. */
+    private fun readTables(connection: Connection, product: String, ids: Identifiers, parser: tools.jackson.core.JsonParser, imported: MutableList<String>, failed: MutableList<String>) {
+        try {
+            while (parser.nextToken() == JsonToken.PROPERTY_NAME) {
+                val name = parser.currentName()
+                val value = parser.nextToken()
+                val table = DataTables.find(name)
+                val sequenceOf = DataTables.findBySequenceName(name)
+                when {
+                    table != null && value == JsonToken.START_ARRAY -> when (importTable(connection, ids, table, parser)) {
+                        TableOutcome.IMPORTED -> imported += table.name
+                        TableOutcome.FAILED -> failed += table.name
+                        TableOutcome.ABORTED -> { failed += table.name; return }
+                    }
+                    sequenceOf != null && value.isNumeric -> restoreSequence(connection, product, ids, sequenceOf, parser.longValue)
+                    else -> parser.skipChildren()
+                }
+            }
+        } catch (e: Exception) {
+            log.error("The data file is broken; the remaining tables were not imported", e)
+        }
+    }
+
+    /** 테이블 하나를 가져온 결과이다. [ABORTED]는 파서가 깨져 남은 테이블을 읽을 수 없다는 뜻이다. */
+    private enum class TableOutcome { IMPORTED, FAILED, ABORTED }
+
     /**
-     * 테이블을 비우고 파서가 가리키는 배열의 행을 넣는다. 오류가 나면 이 테이블의 변경을 되돌리고 배열의 남은 부분을 읽어 넘긴다.
-     *
-     * @return 성공이면 `true`
+     * 테이블을 비우고 파서가 가리키는 배열의 행을 넣는다. 행 오류가 나면 이 테이블의 변경을 되돌리고 배열의 남은 부분을 읽어 넘긴다.
+     * 파서 자체가 깨지면 되돌리고 [TableOutcome.ABORTED]를 돌려준다.
      */
-    private fun importTable(connection: Connection, ids: Identifiers, table: DataTable, parser: tools.jackson.core.JsonParser): Boolean {
+    private fun importTable(connection: Connection, ids: Identifiers, table: DataTable, parser: tools.jackson.core.JsonParser): TableOutcome {
         var failure: Exception? = null
         var statement: PreparedStatement? = null
         try {
@@ -162,33 +182,40 @@ class DataService(private val dataSource: DataSource) {
             failure = e
         }
         var pending = 0
-        while (true) {
-            val token = parser.nextToken() ?: break
-            if (token == JsonToken.END_ARRAY) break
-            if (token != JsonToken.START_OBJECT) { parser.skipChildren(); continue }
-            val row = parser.readValueAsTree<JsonNode>()
-            if (failure != null) continue
-            try {
-                bind(statement!!, table, row)
-                statement.addBatch()
-                if (++pending >= BATCH_SIZE) { statement.executeBatch(); pending = 0 }
-            } catch (e: Exception) {
-                failure = e
+        var aborted = false
+        try {
+            while (true) {
+                val token = parser.nextToken() ?: break
+                if (token == JsonToken.END_ARRAY) break
+                if (token != JsonToken.START_OBJECT) { parser.skipChildren(); continue }
+                val row = parser.readValueAsTree<JsonNode>()
+                if (failure != null) continue
+                try {
+                    bind(statement!!, table, row)
+                    statement.addBatch()
+                    if (++pending >= BATCH_SIZE) { statement.executeBatch(); pending = 0 }
+                } catch (e: Exception) {
+                    failure = e
+                }
             }
+        } catch (e: Exception) {
+            // 파일이 도중에 잘렸거나 구문이 틀렸다(v1.6: 이 테이블만 되돌리고 302 /).
+            aborted = true
+            failure = failure ?: e
         }
         try {
             if (failure == null && pending > 0) statement!!.executeBatch()
         } catch (e: Exception) {
             failure = e
         }
-        statement?.close()
+        try { statement?.close() } catch (e: Exception) { log.warn("Failed to close the statement", e) }
         return if (failure == null) {
             connection.commit()
-            true
+            TableOutcome.IMPORTED
         } else {
             log.error("Failed to import the table {}", table.name, failure)
             connection.rollback()
-            false
+            if (aborted) TableOutcome.ABORTED else TableOutcome.FAILED
         }
     }
 

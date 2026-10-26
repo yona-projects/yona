@@ -68,8 +68,11 @@ class V16SchemaTest : AbstractIntegrationTest() {
 
     @Test
     fun `인덱스의 이름과 컬럼 순서와 유니크 여부가 v1_6과 같다`() {
-        val actual = SchemaMetadata.actualIndexes(dataSource)
-        val expected = SchemaMetadata.v16Indexes()
+        // MariaDB 10.7 이하는 DESC 인덱스 문법을 받아도 무시하고 오름차순으로 만든다. v1.6의 MariaDB도 같으므로 방향은 H2와 PostgreSQL에서만 비교한다.
+        val directional = dataSource.connection.use { !it.metaData.databaseProductName.contains("MariaDB", ignoreCase = true) && !it.metaData.databaseProductName.contains("MySQL", ignoreCase = true) }
+        fun Map<String, Map<String, IndexInfo>>.normalized() = if (directional) this else mapValues { (_, v) -> v.mapValues { (_, i) -> i.copy(descending = emptySet()) } }
+        val actual = SchemaMetadata.actualIndexes(dataSource).normalized()
+        val expected = SchemaMetadata.v16Indexes().normalized()
         val problems = (expected.keys + actual.keys).sorted().flatMap { table ->
             val e = expected[table].orEmpty()
             val a = actual[table].orEmpty()

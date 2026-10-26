@@ -30,9 +30,9 @@ import java.util.Date
  */
 data class SvnCommit(val id: String, val authorName: String?, val message: String?, val date: Date?) {
 
-    /** 메시지의 첫 줄이다. 메시지가 없으면 빈 문자열이다. */
+    /** 메시지의 첫 줄이다. 메시지가 없으면 빈 문자열이다. 앞뒤는 Java `String.trim()`처럼 U+0020 이하의 문자만 지운다(Kotlin `trim()`은 NBSP, U+3000 등도 지운다). */
     val shortMessage: String
-        get() = if (message.isNullOrEmpty()) "" else message.trim().split("\n").firstOrNull().orEmpty()
+        get() = if (message.isNullOrEmpty()) "" else message.trim { it <= ' ' }.split("\n").firstOrNull().orEmpty()
 
     /** 리비전 번호를 줄여 쓰지 않는다(Subversion의 짧은 ID는 번호 그대로이다). */
     val shortId: String get() = id

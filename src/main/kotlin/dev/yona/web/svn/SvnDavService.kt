@@ -28,6 +28,7 @@ class SvnDavService(
     private val projectService: ProjectService,
     private val accessControl: AccessControl,
     private val basicAuth: dev.yona.web.access.BasicAuthResolver,
+    private val properties: dev.yona.config.YonaProperties,
     private val recentVisits: RecentVisitService,
     private val svn: SvnRepositories
 ) {
@@ -36,6 +37,8 @@ class SvnDavService(
     fun service(request: HttpServletRequest, response: HttpServletResponse) {
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return text(response, 400, null)
+        // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션 쿠키가 실린다
+        val user = basicAuth.resolve(request, response, credentials)
 
         // 컨텍스트 경로와 앞의 `/`를 떼고 `svn`, 소유자, 나머지 경로로 가른다.
         val path = java.net.URI(request.requestURI).path.removePrefix(request.contextPath).removePrefix("/")
@@ -48,7 +51,6 @@ class SvnDavService(
         val project = projectService.findByOwnerAndProjectName(owner, projectName)
         if (project == null || project.vcs != "Subversion") return text(response, 404, null)
 
-        val user = basicAuth.resolve(request, response, credentials)
         val operation = if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE
         if (!accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation)) {
             if (user == null) {
@@ -58,8 +60,8 @@ class SvnDavService(
             return text(response, 403, "You have no permission to access this repository.")
         }
 
-        val servlet = DAVServlet().apply { init(JavaxServletBridge.config(File(svn.rootDirectory(), "$owner/").absolutePath)) }
-        servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty()), JavaxServletBridge.response(response))
+        val servlet = DAVServlet().apply { init(JavaxServletBridge.config(File(svn.rootDirectory(), "$owner/").absolutePath, properties.server)) }
+        servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), JavaxServletBridge.response(response))
         response.flushBuffer()
         user?.let { recentVisits.record(it, project) }
     }

@@ -27,6 +27,7 @@ import dev.yona.web.RedirectSupport
 import dev.yona.web.TemplateHelper
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.access.IsCreatable
+import dev.yona.web.access.IsOnlyGitAvailable
 import dev.yona.web.code.CodePageAssembler
 import dev.yona.web.error.ErrorViews
 import dev.yona.web.project.ProjectViewFactory
@@ -90,6 +91,7 @@ class PullRequestCreateController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     @Transactional(readOnly = true)
+    @IsOnlyGitAvailable
     fun form(@PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val viewer = requireNotNull(currentUserProvider.get().user)
@@ -124,6 +126,7 @@ class PullRequestCreateController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     @Transactional(readOnly = true)
+    @IsOnlyGitAvailable
     fun mergeResult(@PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest, response: HttpServletResponse): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val viewer = requireNotNull(currentUserProvider.get().user)
@@ -150,6 +153,7 @@ class PullRequestCreateController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     @Transactional
+    @IsOnlyGitAvailable
     fun create(@PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest, response: HttpServletResponse): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val viewer = requireNotNull(currentUserProvider.get().user)

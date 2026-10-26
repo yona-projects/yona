@@ -58,8 +58,12 @@ class SiteDataTest : AbstractIntegrationTest() {
         c.createStatement().use { st -> st.executeQuery("select name from label").use { rs -> generateSequence { if (rs.next()) rs.getString(1) else null }.toList() } }
     }
 
+    private fun mentionResources(): List<String> = dataSource.connection.use { c ->
+        c.createStatement().use { st -> st.executeQuery("select resource_id from mention order by resource_id").use { rs -> generateSequence { if (rs.next()) rs.getString(1) else null }.toList() } }
+    }
+
     @AfterEach
-    fun cleanUp() { jdbc.update("delete from label") }
+    fun cleanUp() { jdbc.update("delete from label"); jdbc.update("delete from mention where resource_type = 'SD_TEST'") }
 
     private fun newUser(email: String? = null): User {
         val n = ++sequence
@@ -120,9 +124,10 @@ class SiteDataTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `파일을 고르지 않으면 데이터 화면으로 돌아간다`() {
+    fun `data 파트가 없으면 데이터 화면으로 돌아가고 빈 파일은 처음 화면으로 간다`() {
         upload(admin(), null).andExpect(status().isSeeOther).andExpect(redirectedUrl("/sites/data"))
-        upload(admin(), "").andExpect(status().isSeeOther).andExpect(redirectedUrl("/sites/data"))
+        // v1.6: getFile("data")가 null일 때만 /sites/data이다. 0바이트 파일은 첫 토큰이 없어 아무것도 하지 않고 302 /이다.
+        upload(admin(), "").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
     }
 
     @Test
@@ -131,8 +136,45 @@ class SiteDataTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `JSON이 깨진 파일은 400이다`() {
-        upload(admin(), "{\"LABEL\": [{\"id\": ").andExpect(status().isBadRequest)
+    fun `첫 토큰부터 JSON이 아니면 400이다`() {
+        upload(admin(), "abc").andExpect(status().isBadRequest)
+    }
+
+    private fun seedOld() { upload(admin(), """{"LABEL": [{"id": 1, "name": "old", "category": "c"}]}""").andExpect(redirectedUrl("/")); assertEquals(listOf("old"), labelNames()) }
+
+    @Test
+    fun `파일이 도중에 잘리면 그 테이블을 되돌리고 처음 화면으로 이동한다`() {
+        seedOld()
+        // v1.6 DefaultExchanger는 테이블마다 트랜잭션을 잡고 예외를 삼킨다. 실패한 테이블만 되돌리고 302 /이다.
+        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
+        assertEquals(listOf("old"), labelNames())
+        // 되돌린 뒤 자동 커밋으로 바꿀 때 부분 행이 확정되지 않아야 한다(같은 입력을 한 번 더)
+        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 2, "name": "b"""").andExpect(redirectedUrl("/"))
+        assertEquals(listOf("old"), labelNames())
+    }
+
+    @Test
+    fun `파일 중간의 구문 오류도 그 테이블을 되돌리고 처음 화면으로 이동한다`() {
+        seedOld()
+        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": ##}]}""").andExpect(status().isSeeOther).andExpect(redirectedUrl("/"))
+        assertEquals(listOf("old"), labelNames())
+    }
+
+    @Test
+    fun `행에 필수 값이 없거나 기본 키가 겹치면 그 테이블만 되돌린다`() {
+        seedOld()
+        upload(admin(), """{"LABEL": [{"id": 1}]}""").andExpect(redirectedUrl("/"))
+        assertEquals(listOf("old"), labelNames())
+        upload(admin(), """{"LABEL": [{"id": 1, "name": "a", "category": "c"}, {"id": 1, "name": "b", "category": "c"}]}""").andExpect(redirectedUrl("/"))
+        assertEquals(listOf("old"), labelNames())
+    }
+
+    @Test
+    fun `앞서 끝낸 테이블은 남고 뒤에서 깨진 테이블은 되돌린다`() {
+        seedOld()
+        upload(admin(), """{"MENTION": [{"id": 9001, "resource_type": "SD_TEST", "resource_id": "sd-new", "user_id": null}], "LABEL": [{"id": 1, "name": "x", "category": "c"}, {"id": 2, "name": """").andExpect(redirectedUrl("/"))
+        assertEquals(listOf("sd-new"), mentionResources())
+        assertEquals(listOf("old"), labelNames())
     }
 
     // --- 아바타 없는 사용자 ---

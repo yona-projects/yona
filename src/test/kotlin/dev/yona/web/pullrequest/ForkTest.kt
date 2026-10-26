@@ -161,6 +161,30 @@ class ForkTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `포크는 원본을 가리키는 bare 복제이고 PR용 ref는 복사하지 않는다 (v1_6 실제 결과)`() {
+        val p = project(); val me = user()
+        // PR 가져오기용 비표준 ref를 원본에 하나 둔다. v1.6 폴백 복제는 refs/heads/*와 태그만 가져온다.
+        val originDirectory = repositories.openRepository(p).use { origin ->
+            val head = origin.resolve("HEAD")
+            origin.updateRef("refs/yobi/pull/1/head").apply { setNewObjectId(head); update() }
+            origin.directory.canonicalPath
+        }
+        mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(login(me)).param("owner", me.loginId!!).param("name", "barefork").param("projectScope", "PUBLIC")).andExpect(status().isOk)
+        val fork = projects.findByOwnerIgnoreCaseAndNameIgnoreCase(me.loginId!!, "barefork")!!
+        repositories.openRepository(fork).use { forked ->
+            assertTrue(forked.isBare)
+            assertEquals(setOf("refs/heads/master", "refs/heads/feature"), forked.refDatabase.getRefsByPrefix("refs/heads/").map { it.name }.toSet())
+            assertTrue(forked.refDatabase.getRefsByPrefix("refs/yobi/").isEmpty())
+            val config = forked.config
+            // remote.origin은 file: URI가 아니라 원본 디렉터리의 canonical 절대 경로이다
+            assertEquals(originDirectory, config.getString("remote", "origin", "url"))
+            assertEquals("+refs/heads/*:refs/heads/*", config.getString("remote", "origin", "fetch"))
+            assertEquals("origin", config.getString("branch", "master", "remote"))
+            assertEquals("refs/heads/master", config.getString("branch", "master", "merge"))
+        }
+    }
+
+    @Test
     fun `조직 소유로 포크하면 조직이 프로젝트에 연결된다`() {
         val p = project(); val me = user(); val org = organization(me)
         mockMvc.perform(post("/${p.owner}/${p.name}/clone").session(login(me)).param("owner", org.name!!).param("name", "orgfork").param("projectScope", "PROTECTED")).andExpect(status().isOk)

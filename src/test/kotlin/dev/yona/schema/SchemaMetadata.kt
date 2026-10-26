@@ -9,7 +9,7 @@ import javax.sql.DataSource
 data class ColumnInfo(val nullable: Boolean, val type: ColumnType)
 
 /** 한 인덱스의 구조이다. 컬럼 순서가 의미를 가진다. */
-data class IndexInfo(val unique: Boolean, val columns: List<String>)
+data class IndexInfo(val unique: Boolean, val columns: List<String>, val descending: Set<String> = emptySet())
 
 /** 한 외래 키의 구조이다. 삭제 규칙은 `CASCADE`, `SET NULL`, `RESTRICT` 중 하나이다. */
 data class ForeignKeyInfo(val referencedTable: String, val deleteRule: String)
@@ -103,11 +103,17 @@ object SchemaMetadata {
         "posting_comment" to mapOf("ix_posting_parent_id" to "ix_posting_comment_parent_id")
     )
 
+    /**
+     * v1.6에서 내림차순으로 만든 인덱스이다(`테이블 -> 인덱스 이름 -> 내림차순 컬럼`). 1~32번 evolutions 전체에서 `DESC`가 있는 인덱스는 이 하나뿐이다
+     * (`conf/evolutions/default/3.sql:3`). 인덱스 목록 TSV는 MariaDB의 `information_schema`에서 뽑은 것이라 방향을 믿을 수 없어 따로 둔다.
+     */
+    private val V16_DESCENDING = mapOf("notification_event" to mapOf("ix_notification_event_created" to setOf("created")))
+
     /** v1.6의 PK를 제외한 인덱스를 `테이블 -> (인덱스 이름 -> 구조)`로 읽는다. */
     fun v16Indexes(): Map<String, Map<String, IndexInfo>> =
         resource("v16-indexes.tsv").filter { it[1] != "PRIMARY" }
             .groupBy { it[0].lowercase() to it[1].lowercase() }
-            .map { (key, rows) -> (key.first to (RENAMED_INDEXES[key.first]?.get(key.second) ?: key.second)) to IndexInfo(rows.first()[2] == "0", rows.sortedBy { it[3].toInt() }.map { it[4].lowercase() }) }
+            .map { (key, rows) -> (key.first to (RENAMED_INDEXES[key.first]?.get(key.second) ?: key.second)) to IndexInfo(rows.first()[2] == "0", rows.sortedBy { it[3].toInt() }.map { it[4].lowercase() }, V16_DESCENDING[key.first]?.get(key.second).orEmpty()) }
             .groupBy({ it.first.first }, { it.first.second to it.second })
             .mapValues { it.value.toMap() }
 
@@ -154,18 +160,21 @@ object SchemaMetadata {
                         while (rs.next()) add(rs.getString("COLUMN_NAME").lowercase())
                     }
                 }
-                val byName = linkedMapOf<String, MutableList<Triple<Int, String, Boolean>>>()
+                val byName = linkedMapOf<String, MutableList<Pair<Triple<Int, String, Boolean>, Boolean>>>()
                 c.metaData.getIndexInfo(c.catalog, c.schema, table, false, false).use { rs ->
                     while (rs.next()) {
                         val column = rs.getString("COLUMN_NAME") ?: continue
                         byName.getOrPut(rs.getString("INDEX_NAME").lowercase()) { mutableListOf() }
-                            .add(Triple(rs.getInt("ORDINAL_POSITION"), column.lowercase(), !rs.getBoolean("NON_UNIQUE")))
+                            .add(Triple(rs.getInt("ORDINAL_POSITION"), column.lowercase(), !rs.getBoolean("NON_UNIQUE")) to (rs.getString("ASC_OR_DESC") == "D"))
                     }
                 }
                 byName.filterKeys { !H2_FOREIGN_KEY_INDEX.matches(it) }
                     .mapKeys { (name, _) -> name.replace(H2_UNIQUE_INDEX_SUFFIX, "") }
                     .mapValues { (_, parts) ->
-                        IndexInfo(parts.first().third, parts.sortedBy { it.first }.map { it.second })
+                        IndexInfo(
+                            parts.first().first.third, parts.sortedBy { it.first.first }.map { it.first.second },
+                            parts.filter { it.second }.map { it.first.second }.toSet()
+                        )
                     }.filterValues { !(it.unique && it.columns == primaryKey) }
             }
         }

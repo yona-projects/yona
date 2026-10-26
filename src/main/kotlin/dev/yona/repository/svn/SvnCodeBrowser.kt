@@ -71,7 +71,7 @@ class SvnCodeBrowser(
             binary = true
             mimeType = "application/octet-stream"
         } else {
-            binary = RawText.isBinary(file.bytes)
+            binary = dev.yona.io.RawTextBinary.isBinary(file.bytes)
             if (!binary) data = String(file.bytes, charset(CharsetDetection.detect(file.bytes)))
             mimeType = MediaTypes.detect(file.bytes, path)
         }
@@ -84,7 +84,7 @@ class SvnCodeBrowser(
     }
 
     /** 사용자를 알면 그 아바타를, 모르면 이메일 없는 Gravatar 주소(크기 34)를 쓴다 (v1.6 `getAvatar`). */
-    private fun avatar(user: dev.yona.domain.user.User?): String = user?.let { avatars.avatarUrl(it) } ?: avatars.gravatarUrl("", AVATAR_SIZE)
+    private fun avatar(user: dev.yona.domain.user.User?): String = user?.let { avatars.avatarUrl(it) } ?: avatars.gravatarUrl("", AVATAR_SIZE, dev.yona.security.AvatarService.SVN_DEFAULT_GRAVATAR_IMAGE)
 
     private fun userName(user: dev.yona.domain.user.User?): String = user?.name ?: messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale())
 
