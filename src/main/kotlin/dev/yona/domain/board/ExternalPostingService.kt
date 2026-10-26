@@ -31,17 +31,16 @@ class ExternalPostingService(
 
     /**
      * 게시글을 만든다. 번호를 지정하지 않으면 다음 번호를 받고 제목 머리말 개수를 늘리며, 지정하면 그 번호로 저장하고 머리말은 건드리지 않는다
-     * (v1.6 `saveWithNumber`). 시각을 주지 않으면 지금이다.
+     * (v1.6 `saveWithNumber`). 시각을 주지 않으면 비운 채 저장한다(v1.6 `BoardApi`가 생성자의 기본값을 `null`로 덮어쓴다).
      */
     @Transactional
     fun create(project: Project, author: User, spec: ExternalPosting): Posting {
-        val now = Date()
         val numbered = spec.number != null && spec.number > 0
         val posting = postings.save(
             Posting(
                 project = project, number = if (numbered) spec.number else postingService.nextNumber(project), title = spec.title, body = spec.body,
                 authorId = author.id, authorLoginId = author.loginId, authorName = author.name, notice = false, readme = false, numOfComments = 0,
-                createdDate = spec.createdDate ?: now, updatedDate = spec.updatedDate ?: now
+                createdDate = spec.createdDate, updatedDate = spec.updatedDate
             )
         )
         if (!numbered) titleHeads.save(project, spec.title)
@@ -49,12 +48,12 @@ class ExternalPostingService(
         return posting
     }
 
-    /** 게시글에 댓글을 단다. 시각을 주지 않으면 지금이다. 글의 댓글 수를 맞춘다(v1.6 `PostingComment.save`). */
+    /** 게시글에 댓글을 단다. 시각을 주지 않으면 비운 채 저장한다(v1.6 `BoardApi`가 기본값을 `null`로 덮어쓴다). 글의 댓글 수를 맞춘다(v1.6 `PostingComment.save`). */
     @Transactional
     fun addComment(posting: Posting, author: User, contents: String, createdDate: Date?): PostingComment {
         val comment = postingComments.save(
             PostingComment(
-                contents = contents, createdDate = createdDate ?: Date(), authorId = author.id, authorLoginId = author.loginId, authorName = author.name,
+                contents = contents, createdDate = createdDate, authorId = author.id, authorLoginId = author.loginId, authorName = author.name,
                 posting = posting, projectId = requireNotNull(posting.project?.id)
             )
         )

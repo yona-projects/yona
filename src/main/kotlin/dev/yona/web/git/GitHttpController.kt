@@ -9,8 +9,6 @@ import dev.yona.domain.project.ProjectService
 import dev.yona.domain.project.RecentVisitService
 import dev.yona.domain.user.User
 import dev.yona.repository.GitHttpService
-import dev.yona.security.CurrentUserProvider
-import dev.yona.security.LocalAuthenticator
 import dev.yona.web.access.BasicCredentials
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -40,8 +38,7 @@ import java.util.zip.GZIPInputStream
 class GitHttpController(
     private val projectService: ProjectService,
     private val accessControl: AccessControl,
-    private val currentUserProvider: CurrentUserProvider,
-    private val authenticator: LocalAuthenticator,
+    private val basicAuth: dev.yona.web.access.BasicAuthResolver,
     private val gitHttp: GitHttpService,
     private val recentVisits: RecentVisitService,
     private val messages: MessageSource
@@ -78,7 +75,7 @@ class GitHttpController(
         val project = projectService.findByOwnerAndProjectName(ownerName, projectName) ?: return ResponseEntity.notFound().build<Void>()
         if (project.vcs != "GIT") return ResponseEntity.notFound().build<Void>()
 
-        val user = authenticate(credentials)
+        val user = basicAuth.resolve(request, response, credentials)
         if (!isAllowed(project, user, service)) {
             if (user == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"Yobi\"")
@@ -107,12 +104,6 @@ class GitHttpController(
         var operation = if (service == GitHttpService.UPLOAD_PACK) Operation.READ else Operation.UPDATE
         if (project.isCodeAccessibleMemberOnly == true && !projectService.hasMember(project, user)) operation = Operation.UPDATE
         return accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation)
-    }
-
-    /** Basic 자격으로 사용자를 찾는다. 틀렸으면 `null`(익명)이다. Basic 헤더가 없으면 세션, 토큰, 쿠키로 식별한 현재 사용자이다. */
-    private fun authenticate(credentials: BasicCredentials?): User? {
-        if (credentials != null) return authenticator.authenticateBasic(credentials.loginId, credentials.password)
-        return currentUserProvider.get().user
     }
 
     private fun forbidden(user: User, owner: String, project: String, userAgent: String?): ResponseEntity<String> {

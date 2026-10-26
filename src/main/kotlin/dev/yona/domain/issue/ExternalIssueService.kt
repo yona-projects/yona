@@ -55,16 +55,15 @@ class ExternalIssueService(
 
     /**
      * 이슈를 만든다. 번호를 지정하지 않으면 다음 번호를 받고 제목 머리말 개수를 늘리며, 지정하면 그 번호로 저장하고 머리말은 건드리지 않는다
-     * (v1.6 `saveWithNumber`). 시각을 주지 않으면 지금이다. [notify]이면 [IssueCreatedActivity]를 발행한다.
+     * (v1.6 `saveWithNumber`). 시각을 주지 않으면 비운 채 저장한다(v1.6 `IssueApi`가 생성자의 기본값을 `null`로 덮어쓴다). [notify]이면 [IssueCreatedActivity]를 발행한다.
      */
     @Transactional
     fun create(project: Project, author: User, spec: ExternalIssue, notify: Boolean): Issue {
-        val now = Date()
         val numbered = spec.number != null && spec.number > 0
         val issue = issues.save(
             Issue(
                 project = project, number = if (numbered) spec.number else issueService.nextIssueNumber(project), title = spec.title, body = spec.body, state = spec.state,
-                authorId = author.id, authorLoginId = author.loginId, authorName = author.name, createdDate = spec.createdDate ?: now, updatedDate = spec.updatedDate ?: now,
+                authorId = author.id, authorLoginId = author.loginId, authorName = author.name, createdDate = spec.createdDate, updatedDate = spec.updatedDate,
                 assignee = spec.assignee?.let { issueService.findOrCreateAssignee(project, it.loginId) },
                 milestone = spec.milestoneTitle?.let { milestones.findFirstByProjectIdAndTitle(requireNotNull(project.id), it) }, dueDate = spec.dueDate,
                 labels = spec.labels.mapNotNull { (name, category) -> labelService.findCategory(project, category)?.let { labelService.findLabel(project, it, name) } }.toMutableSet(),

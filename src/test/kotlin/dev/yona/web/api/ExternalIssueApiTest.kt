@@ -138,6 +138,18 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     // --- 조회 ---
 
     @Test
+    fun `시각을 생략한 이슈는 시각을 비운 채 저장하고 화면은 오류 없이 그린다`() {
+        val (user, project) = member("nulldate-tk")
+        json(post(api(project, "issues")), user.token, """{"issues":[{"title":"시각 없음","body":"내용","number":3}]}""").andExpect(status().isCreated)
+        entityManager.flush(); entityManager.clear()
+        val saved = issues.findAll().single { it.project?.id == project.id }
+        // v1.6 IssueApi는 createdAt, updatedAt을 생략하면 생성자의 기본값을 null로 덮어쓴다
+        assertNull(saved.createdDate); assertNull(saved.updatedDate)
+        mockMvc.perform(get("/${project.owner}/${project.name}/issue/3")).andExpect(status().isOk)
+        mockMvc.perform(get("/${project.owner}/${project.name}/issues")).andExpect(status().isOk)
+    }
+
+    @Test
     fun `토큰으로 이슈와 이벤트를 조회한다`() {
         val (user, project) = member("a")
         val i = issue(project, user)

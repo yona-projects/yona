@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -93,6 +94,10 @@ class ExternalBoardApiTest : AbstractIntegrationTest() {
         val saved = postings.findAll().filter { it.project?.id == project.id }.associateBy { it.number }
         assertEquals("가져온 글", saved[5]!!.title); assertEquals(author.loginId, saved[5]!!.authorLoginId); assertEquals(1_600_000_000_000L / 1000, saved[5]!!.createdDate!!.time / 1000)
         assertEquals(user.loginId, saved[6]!!.authorLoginId)
+        // v1.6 BoardApi는 createdAt, updatedAt을 생략하면 생성자의 기본값을 null로 덮어쓴다. v2도 비워 두되 화면은 오류 없이 그린다.
+        assertNull(saved[6]!!.createdDate); assertNull(saved[6]!!.updatedDate)
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/${project.owner}/${project.name}/post/6")).andExpect(status().isOk)
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/${project.owner}/${project.name}/posts")).andExpect(status().isOk)
         assertEquals(0, events.stream(dev.yona.domain.board.PostingCreatedActivity::class.java).count())
     }
 

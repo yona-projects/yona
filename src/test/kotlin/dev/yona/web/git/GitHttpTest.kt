@@ -212,4 +212,33 @@ class GitHttpTest {
         assertEquals("application/x-git-upload-pack-advertisement", response.headers().firstValue("Content-Type").get())
         assertTrue(String(response.body()).startsWith("001e# service=git-upload-pack\n"))
     }
+
+    private fun basic(u: User, password: String = "1234") = "Basic " + java.util.Base64.getEncoder().encodeToString("${u.loginId}:$password".toByteArray())
+
+    private fun advertise(p: Project, authorization: String? = null, cookie: String? = null): HttpResponse<ByteArray> =
+        HttpClient.newHttpClient().send(
+            HttpRequest.newBuilder(URI.create("${url(p)}/info/refs?service=git-upload-pack")).GET()
+                .apply { authorization?.let { header("Authorization", it) }; cookie?.let { header("Cookie", it) } }.build(),
+            HttpResponse.BodyHandlers.ofByteArray()
+        )
+
+    @Test
+    fun `Basic 인증에 성공하면 세션 쿠키를 심고 그 쿠키로 다시 인증된다 (v1_6 BasicAuthAction)`() {
+        val secret = project(ProjectScope.PRIVATE)
+        val first = advertise(secret, basic(member))
+        assertEquals(200, first.statusCode())
+        val cookie = first.headers().allValues("Set-Cookie").firstOrNull { it.startsWith("JSESSIONID=") }?.substringBefore(';')
+        assertTrue(cookie != null, first.headers().toString())
+        // 쿠키만 보내도 세션 사용자로 읽을 수 있고, 쿠키가 없으면 401이다
+        assertEquals(200, advertise(secret, cookie = cookie).statusCode())
+        assertEquals(401, advertise(secret).statusCode())
+    }
+
+    @Test
+    fun `틀린 Basic 자격이어도 세션 쿠키 사용자로 되돌아간다 (v1_6 UserApp_currentUser)`() {
+        val secret = project(ProjectScope.PRIVATE)
+        val cookie = advertise(secret, basic(member)).headers().allValues("Set-Cookie").first { it.startsWith("JSESSIONID=") }.substringBefore(';')
+        assertEquals(401, advertise(secret, basic(member, "wrong")).statusCode())
+        assertEquals(200, advertise(secret, basic(member, "wrong"), cookie).statusCode())
+    }
 }

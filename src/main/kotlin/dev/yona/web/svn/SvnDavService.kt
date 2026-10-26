@@ -8,8 +8,6 @@ import dev.yona.domain.project.ProjectService
 import dev.yona.domain.project.RecentVisitService
 import dev.yona.domain.user.User
 import dev.yona.repository.svn.SvnRepositories
-import dev.yona.security.CurrentUserProvider
-import dev.yona.security.LocalAuthenticator
 import dev.yona.web.access.BasicCredentials
 import java.io.File
 import jakarta.servlet.http.HttpServletRequest
@@ -29,8 +27,7 @@ import org.tmatesoft.svn.core.internal.server.dav.handlers.DAVHandlerFactory
 class SvnDavService(
     private val projectService: ProjectService,
     private val accessControl: AccessControl,
-    private val currentUserProvider: CurrentUserProvider,
-    private val authenticator: LocalAuthenticator,
+    private val basicAuth: dev.yona.web.access.BasicAuthResolver,
     private val recentVisits: RecentVisitService,
     private val svn: SvnRepositories
 ) {
@@ -51,7 +48,7 @@ class SvnDavService(
         val project = projectService.findByOwnerAndProjectName(owner, projectName)
         if (project == null || project.vcs != "Subversion") return text(response, 404, null)
 
-        val user = if (credentials != null) authenticator.authenticateBasic(credentials.loginId, credentials.password) else currentUserProvider.get().user
+        val user = basicAuth.resolve(request, response, credentials)
         val operation = if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE
         if (!accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation)) {
             if (user == null) {
