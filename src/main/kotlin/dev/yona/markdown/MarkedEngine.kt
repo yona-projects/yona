@@ -36,10 +36,17 @@ class MarkedEngine {
     fun render(source: String): String {
         if (source.isEmpty()) return source
         val options = engine.eval(OPTIONS)
-        return (engine as Invocable).invokeFunction("marked", source, options) as String
+        return try {
+            (engine as Invocable).invokeFunction("marked", source, options) as String
+        } catch (e: javax.script.ScriptException) {
+            // v1.6 `renderByMarked`는 변환 중 스크립트 오류가 나면 기록하고 원문을 이스케이프해 `<pre>`로 감싸 돌려준다
+            log.error("[Markdown] Failed to render: {}", source, e)
+            "<pre>" + org.apache.commons.lang.StringEscapeUtils.escapeHtml(source) + "</pre>"
+        }
     }
 
     private companion object {
+        val log: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(MarkedEngine::class.java)
         const val SCRIPT_RESOURCE = "/markdown/marked.js"
         const val ES5_SPLICE = "(function(){var s=Array.prototype.splice;Array.prototype.splice=function(a){return arguments.length===1?s.call(this,a,0):s.apply(this,arguments);};})();"
         const val OPTIONS = "new Object({gfm: true, tables: true, breaks: true, headerIds: true, pedantic: false, sanitize: false, smartLists: true})"

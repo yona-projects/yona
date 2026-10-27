@@ -70,4 +70,12 @@ class MarkdownRendererTest {
         val html = renderer.render("| a | b |\n|---|---|\n| 1 | 2 | 3 |\n")
         assertTrue(html.contains("<td>3</td>"), html)
     }
+
+    @Test
+    fun `변환 중 스크립트 오류가 나면 원문을 이스케이프해 pre로 감싼다 (v1_6 renderByMarked)`() {
+        // 참조 링크의 주소에 공백이 있으면 marked.js가 `Array.prototype.includes`(JDK 8 Nashorn에는 없다)를 불러 오류가 난다
+        val source = "[ref]: http://example.com \"T\"\n[ref2]: <http://x.y/a b>\n\n[link][ref] [link2][ref2] 한글 é \"q\" <b>\n"
+        val html = renderer.render(source)
+        assertTrue(html.startsWith("<pre>[ref]: http://example.com") && html.contains("&lt;b&gt;") && html.endsWith("</pre>"), html)
+    }
 }

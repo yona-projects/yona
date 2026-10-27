@@ -78,7 +78,7 @@ class BranchController(
         return ModelAndView("code/branches")
             .addObject("title", "title.branches")
             .addObject("projectView", views.of(project))
-            .addObject("filesTabUrl", "$base/code/${UrlPaths.encode(shortDefault)}/")
+            .addObject("filesTabUrl", "$base/code/${UrlPaths.encode(shortDefault)}")
             .addObject("commitsTabUrl", "$base/commits/${UrlPaths.encode(shortDefault)}/")
             .addObject("showActions", canDelete || canUpdate)
             .addObject("rows", (listOf(head to true) + others.map { it to false }).map { (b, isHead) -> row(project, b, isHead, head.name, canUpdate, canDelete) })
@@ -89,7 +89,7 @@ class BranchController(
         val segment = UrlPaths.routeSegment(b.name)
         val pr = b.pullRequest
         return BranchRow(
-            name = b.name, shortName = b.shortName, head = isHead, codeUrl = "$base/code/$segment/", historyUrl = "$base/commits/$segment/", commitId = b.headCommitId,
+            name = b.name, shortName = b.shortName, head = isHead, codeUrl = "$base/code/$segment", historyUrl = "$base/commits/$segment/", commitId = b.headCommitId,
             commitShortId = b.headCommitShortId, date = helper.agoOrDateString(b.committerDate), dateTitle = helper.dateString(b.committerDate),
             pullRequestUrl = pr?.let { siteUrls.path("/${it.toProject?.owner}/${it.toProject?.name}/pullRequest/${it.number}") },
             pullRequestLabel = pr?.let { "pullRequest-${it.number}" }, pullRequestState = pr?.state?.name?.lowercase(),

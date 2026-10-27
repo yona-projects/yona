@@ -87,7 +87,9 @@ VOLATILE = [
     # Ebean 시퀀스가 20개씩 번호를 받아 가므로 재시작 뒤 이슈 내부 번호가 서버마다 다르다
     (re.compile(r"(issue-item-|issue-|parentIssueId=|issueId=|issueId\"\s*:\s*\")\d+"), r"\1<n>"),
     (re.compile(r"(resource\.id=)\d+(?!:)"), r"\1<n>"),
-    (re.compile(r"(comment-|comments/|commentId=|editor-contents-|upload-)\d+"), r"\1<n>"),
+    (re.compile(r"(comment-|comments/|comment/|commentId=|editor-contents-|upload-|event-|comment-editform-|#edit-|#preview-|edit-|preview-)\d+"), r"\1<n>"),
+    (re.compile(r"\bJust now\b"), "<상대시간>"),
+    (re.compile(r"(comment-body-)\d+"), r"\1<n>"),
     # FileDiff.hashCode()는 enum의 신원 해시를 섞어 서버를 다시 띄울 때마다 값이 다르다
     (re.compile(r"(data-hashcode=\")-?\d+"), r"\1<해시>"),
     # 편집기가 만들 때마다 새로 정하는 8글자 영문 번호는 서버마다 다르다
@@ -120,7 +122,7 @@ def norm_headers(resp: requests.Response, base: str) -> dict:
         out["content-type"] = re.sub(r"\s+", "", ct.lower()).replace("charset=utf-8", "charset=utf-8")
     loc = h.get("location")
     if loc:
-        out["location"] = urllib.parse.unquote(re.sub(r"^https?://[^/]+", "", loc))
+        out["location"] = scrub(urllib.parse.unquote(re.sub(r"^https?://[^/]+", "", loc)))
     for k in ("content-disposition", "www-authenticate", "cache-control"):
         if k in h:
             out[k] = urllib.parse.unquote(h[k]) if k == "content-disposition" else h[k]
@@ -163,6 +165,10 @@ def html_lines(body: str, map_ids: bool = False) -> list[str]:
                         value = "<n>"
                     if k in ("data-issue-id", "data-posting-id") or (k == "value" and re.match(r"^(issues|postings)\[\d+\]\.id$", child.get("name", "") or "")):
                         value = "<n>"  # 이슈 내부 번호는 시퀀스 할당 탓에 서버마다 다르다
+                    if k == "data-resourceid" or (k == "value" and (child.get("name") in ("id", "parentCommentId") or "parentCommentId" in (child.get("class") or []))):
+                        value = "<n>"  # 댓글 내부 번호는 시퀀스 할당 탓에 서버마다 다르다
+                    if k == "data-hashcode":
+                        value = "<해시>"  # FileDiff.hashCode()는 enum의 신원 해시를 섞어 서버를 다시 띄울 때마다 다르다
                     if k == "method":
                         value = value.lower()  # 폼의 method는 대소문자를 가리지 않는다
                     if k in _BOOLEAN_ATTRS and value in ("", k):

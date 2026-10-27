@@ -116,6 +116,8 @@ dependencies {
 	// 서버 측 마크다운 렌더링(D-17): CommonMark 구현과 GFM 확장, 결과 정화(OWASP)와 HTML 후처리(jsoup)
 	// v1.6이 쓰던 marked.js를 그대로 실행하는 JavaScript 엔진(JDK 15에서 빠진 Nashorn의 독립 배포판, 결정 D-17 되돌림 A-151)
 	implementation("org.openjdk.nashorn:nashorn-core:15.4")
+	// v1.6이 변환 실패 때 원문을 감싸는 데 쓴 `StringEscapeUtils.escapeHtml`(commons-lang 2.x)
+	implementation("commons-lang:commons-lang:2.6")
 	implementation("org.commonmark:commonmark:0.31.0")
 	implementation("org.commonmark:commonmark-ext-gfm-tables:0.31.0")
 	implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.31.0")

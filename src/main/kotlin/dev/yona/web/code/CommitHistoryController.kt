@@ -102,15 +102,16 @@ class CommitHistoryController(
             .addObject("branches", repositories.refNames(project).map { ref ->
                 BranchOption("$base/commits/${UrlPaths.routeSegment(ref)}/", ref, branch != null && CodePageAssembler.branchItemName(ref) == CodePageAssembler.branchItemName(branch))
             })
-            .addObject("filesTabUrl", "$base/code/${if (branchSegment != null) branchSegment else "HEAD"}/")
-            .addObject("commitsTabUrl", if (path != null && branchSegment != null) "$base/commits/$branchSegment/${UrlPaths.encodeEach(path)}" else historyUrl)
+            // 역방향 라우트는 경로가 비면 끝에 `/`가 없다
+            .addObject("filesTabUrl", "$base/code/${if (branchSegment != null) branchSegment else "HEAD"}")
+            .addObject("commitsTabUrl", if (path != null && branchSegment != null) "$base/commits/$branchSegment/$path" else historyUrl)
             .addObject("branchesTabUrl", "$base/branches")
             .addObject("newerUrl", if (page > 0) pageUrl(historyUrl, path, branchSegment, page - 1) else null)
             .addObject("olderUrl", if (commits.isNotEmpty() && commits.last().parentCount > 0) pageUrl(historyUrl, path, branchSegment, page + 1) else null)
     }
 
     private fun pageUrl(historyUrl: String, path: String?, branchSegment: String?, page: Int): String =
-        (if (path != null && branchSegment != null) historyUrl + UrlPaths.encodeEach(path) else historyUrl) + "?page=$page"
+        (if (path != null && branchSegment != null) historyUrl + path else historyUrl) + "?page=$page"
 
     private fun breadcrumbs(base: String, branch: String?, path: String?): List<Crumb> {
         if (path == null) return emptyList()
@@ -138,7 +139,7 @@ class CommitHistoryController(
         return HistoryRow(
             id = commit.id, shortId = commit.shortId, showUrl = showUrl, shortMessageHtml = HtmlUtils.htmlEscape(commit.shortMessage),
             moreHtml = if (hasMore) rendered.replace(lines[0] + "\n", "") else "", hasMore = hasMore,
-            browseUrl = path?.let { "$base/code/${UrlPaths.routeSegment(commit.shortId)}/${UrlPaths.encodeEach(it)}" },
+            browseUrl = path?.let { "$base/code/${UrlPaths.routeSegment(commit.shortId)}/$it" },
             commentCount = if (subversion) commentCount(project, commit.id, path) else reviewThreads.count(commit.id, path), date = helper.agoOrDateString(commit.authorDate),
             authorHref = user?.let { "/${it.loginId}" }, authorLoginId = user?.loginId, authorName = user?.name ?: commit.authorName.takeIf { it.isNotEmpty() },
             avatarUrl = if (user != null) avatars.avatarUrl(user) else if (subversion) null else avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE),
