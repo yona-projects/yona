@@ -122,7 +122,7 @@ class IssueListController(
             val number = issue.number ?: continue
             if (number == exceptId) continue
             body[issue.id.toString()] = linkedMapOf(
-                "id" to number, "title" to issue.title, "state" to issue.state?.name, "createdDate" to issue.createdDate?.toString(),
+                "id" to number, "title" to issue.title, "state" to issue.state?.name, "createdDate" to dev.yona.util.JavaDates.toString(issue.createdDate),
                 "link" to "/${project.owner}/${project.name}/issue/$number"
             )
         }
@@ -159,7 +159,7 @@ class IssueListController(
 
     /** 엑셀 내려받기 링크이다. v1.6은 `addQueryString(removeQueryString(요청 URI, "pageNum"), "format=xls")`로 만든다 ([QueryLinks]). */
     private fun excelUrl(request: HttpServletRequest): String =
-        QueryLinks.excelLink(request.requestURI + (request.queryString?.let { "?$it" } ?: ""))
+        QueryLinks.excelLink(QueryLinks.requestUri(request))
 
     /** 왼쪽의 빠른 검색(전체, 내게 할당, 내가 작성, 내가 댓글)과 각 개수이다. */
     private fun quickSearch(condition: IssueSearchCondition, viewer: User?, count: (IssueSearchCondition) -> Long): QuickSearch {

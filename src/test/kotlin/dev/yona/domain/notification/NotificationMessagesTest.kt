@@ -76,16 +76,16 @@ class NotificationMessagesTest : AbstractIntegrationTest() {
         val p = project()
         val m = milestones.save(Milestone(project = p, title = "1.0 출시", contents = "", state = State.OPEN))
         assertEquals(msg("notification.milestone.changed", "1.0 출시"), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "-1", m.id.toString()), en))
-        assertEquals(msg("notification.milestone.changed", messages.getMessage("issue.noMilestone", null, Locale.forLanguageTag("en-US"))), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), en))
+        assertEquals(msg("notification.milestone.changed", messages.getMessage("issue.noMilestone", null, Locale.getDefault())), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), en))
     }
 
     @Test
-    fun `마일스톤 없음 문구는 받는 사람의 언어와 JVM 로캘이 아니라 application_langs의 첫 언어이다 (v1_6 Lang_defaultLang)`() {
+    fun `마일스톤 없음 문구는 받는 사람의 언어가 아니라 서버 JVM 기본 로캘이다 (v1_6 Lang_defaultLang, 공식 v1_16_0 실행으로 확인)`() {
         val before = Locale.getDefault()
         Locale.setDefault(Locale.KOREA)
         try {
-            val korean = notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), "ko-KR")
-            assertTrue(korean!!.contains(messages.getMessage("issue.noMilestone", null, Locale.forLanguageTag("en-US"))), korean)
+            val english = notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), "en-US")
+            assertTrue(english!!.contains(messages.getMessage("issue.noMilestone", null, Locale.KOREA)), english)
         } finally { Locale.setDefault(before) }
     }
 
@@ -160,15 +160,18 @@ class NotificationMessagesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `가입 승인 알림 본문은 받는 사람의 언어가 아니라 서버 기본 언어이다 (v1_6 default 분기의 Messages_get)`() {
+    fun `가입 승인 알림 본문은 받는 사람의 언어가 아니라 지금 요청의 언어이다 (v1_6 default 분기의 Messages_get)`() {
         val p = project()
-        val saved = Locale.getDefault()
+        val saved = org.springframework.context.i18n.LocaleContextHolder.getLocale()
         try {
-            Locale.setDefault(Locale.KOREA)
+            org.springframework.context.i18n.LocaleContextHolder.setLocale(Locale.KOREA)
             val ko = notificationMessages.message(event(EventType.MEMBER_ENROLL_ACCEPT, resourceType = ResourceType.PROJECT, resourceId = p.id.toString()), "ja-JP")
             assertEquals(messages.getMessage("notification.member.enroll.accept", null, Locale.KOREA), ko)
+            org.springframework.context.i18n.LocaleContextHolder.setLocale(Locale.ENGLISH)
+            val en = notificationMessages.message(event(EventType.MEMBER_ENROLL_ACCEPT, resourceType = ResourceType.PROJECT, resourceId = p.id.toString()), "ja-JP")
+            assertEquals(messages.getMessage("notification.member.enroll.accept", null, Locale.ENGLISH), en)
         } finally {
-            Locale.setDefault(saved)
+            org.springframework.context.i18n.LocaleContextHolder.setLocale(saved)
         }
     }
 }

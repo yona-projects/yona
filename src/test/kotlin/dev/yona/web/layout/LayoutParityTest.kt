@@ -37,6 +37,14 @@ class LayoutParityTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `넘겨 받은 요청의 og url은 처음 요청한 경로이다 (v1_6 request path는 go 같은 주소를 그대로 보인다)`() {
+        val request = get("/").requestAttr(jakarta.servlet.RequestDispatcher.FORWARD_REQUEST_URI, "/someone/proj/go")
+        val doc = Jsoup.parse(mockMvc.perform(request).andReturn().response.contentAsString)
+        assertEquals("/someone/proj/go", doc.selectFirst("meta[property=og:url]")?.attr("content"))
+        assertEquals("/someone/proj/go", doc.selectFirst("meta[name=twitter:url]")?.attr("content"))
+    }
+
+    @Test
     fun `익명 방문자의 사용자 메뉴에서 프로필 링크는 루트이다 (로그인 ID가 빈 문자열)`() {
         val doc = Jsoup.parse(home().contentAsString)
         val profile = doc.select(".user-menu a").firstOrNull { it.text().trim() == "Profile" }

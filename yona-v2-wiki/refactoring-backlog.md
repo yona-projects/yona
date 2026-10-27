@@ -114,7 +114,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-107 | 잠긴 계정의 로그인 유지 쿠키 | 잠기거나 지워진 계정도 `yobi.token` 쿠키가 유효하면 로그인 상태이다 | v2는 같게 따른다 (A-128) | `UserApp.java:658-690`, `Global.java:266` |
 | R-108 | 이슈 수정(`editIssue`)의 입력 처리 순서 | 권한 검사 전에 `assigneeLoginId` 폼 값의 첫 항목을 읽어 값이 없는 요청은 NPE(500)이다(`IssueApp.java`) | v2는 오류 없이 권한에 따라 303 또는 403을 돌려준다 | v1.6 시험 6건(`IssueAppTest.editIssue*`)이 이 입력을 쓴다 |
 | R-109 | `MarkdownApp.render`의 본문 읽기 | JSON 본문을 읽는데 v1.6 시험은 폼 본문을 보내 NPE이다 | v2는 두 형태 모두 오류 없이 처리한다 | `MarkdownAppTest` |
-| R-110 | `GET /user/isEmailExist` | `@BodyParser.Of(BodyParser.Json.class)`라 본문 없는 GET은 400이다. 가입 화면의 이메일 중복 안내는 v1.6에서 한 번도 뜨지 않는다 | v2도 같게 400이다(내용 형식이 JSON이고 본문이 JSON일 때만 답한다) | `UserApp.java:1015`, `SignupTest` |
+| R-110 | `GET /user/isEmailExist` | `@BodyParser.Of(BodyParser.Json.class)`가 붙어 있다. 공식 v1.16.0을 실행해 보니 내용 형식이 없거나 JSON이 아니면 본문을 해석하지 않고 `{"isExist":...}`를 돌려주며, 내용 형식이 `application/json`이나 `text/json`일 때만 본문이 비었거나 JSON이 아니면 400이다(2026-10-27 정정: 소스만 읽고 "본문 없는 GET은 늘 400"이라 적었으나 틀렸다). 이메일 인자가 없으면 400이다 | v2도 같게 동작한다 | `UserApp.java:1015`, `SignupTest` |
 | R-111 | 라벨 삭제, 추천 등 이슈를 `update()`로 저장하는 모든 경로 | `AbstractPosting.update()`가 저장 때마다 댓글 수 재계산과 멘션 행 맞춤을 한다. 라벨 삭제는 `issue.save()`라 제목 머리말 빈도도 올린다 | v2도 같게 한다(`IssueService.resync`, `deleteLabel`) | `AbstractPosting.java:114-160`, `IssueLabel.java:177` |
 | R-112 | 이슈 수정의 제목 머리말 개수 | 새 제목을 먼저 더하고 옛 제목을 나중에 빼며, 빼는 쪽 프로젝트는 이미 바뀐 프로젝트라 옮겨도 옛 프로젝트의 개수가 줄지 않는다 | 같게 재현한다(A-46 되돌림) | `AbstractPostingApp.java:124-125` |
 | R-113 | 초안 게시와 프로젝트 이동을 함께 할 때 | 새 이슈 알림(`afterNewIssue`)을 두 번 부른다. 알림 이벤트는 한 건으로 합쳐지지만 웹훅이 두 번 나간다 | 같게 두 번 발행한다(A-105 되돌림) | `IssueApp.java:730, 821` |

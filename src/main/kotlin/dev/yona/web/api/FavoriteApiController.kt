@@ -74,7 +74,8 @@ class FavoriteApiController(
     @ResponseBody
     @Transactional(readOnly = true)
     fun projects(): ResponseEntity<Any> {
-        val user = currentUserProvider.get().user ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        // 익명이면 빈 목록이다(v1.6 `currentUser()`는 즐겨찾기가 빈 NullUser)
+        val user = currentUserProvider.get().user ?: return ResponseEntity.ok(linkedMapOf("projectIds" to emptyList<Long>(), "projects" to emptyList<Any>()))
         val rows = favoriteProjects.findByUserIdOrderByIdAsc(requireNotNull(user.id))
         val items = rows.map { linkedMapOf("projectId" to it.project?.id, "projectName" to it.projectName, "owner" to it.owner) }
         return ResponseEntity.ok(linkedMapOf("projectIds" to rows.map { it.project?.id }, "projects" to items))
@@ -96,7 +97,7 @@ class FavoriteApiController(
     @ResponseBody
     @Transactional(readOnly = true)
     fun organizations(): ResponseEntity<Any> {
-        val user = currentUserProvider.get().user ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        val user = currentUserProvider.get().user ?: return ResponseEntity.ok(linkedMapOf("organizationIds" to emptyList<Long>(), "organizations" to emptyList<Any>()))
         val rows = favoriteOrganizations.findByUserIdOrderByIdAsc(requireNotNull(user.id))
         val items = rows.map { linkedMapOf("organizationId" to it.organization?.id, "organizationName" to it.organizationName) }
         return ResponseEntity.ok(linkedMapOf("organizationIds" to rows.map { it.organization?.id }, "organizations" to items))

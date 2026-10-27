@@ -93,7 +93,7 @@ class IssueViewController(
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(
                 linkedMapOf(
                     "id" to issue.number, "title" to issue.title, "state" to issue.state?.name, "body" to abbreviate(issue.body, SUMMARY_LENGTH),
-                    "createdDate" to issue.createdDate?.toString(), "link" to "/${project.owner}/${project.name}/issue/${issue.number}"
+                    "createdDate" to dev.yona.util.JavaDates.toString(issue.createdDate), "link" to "/${project.owner}/${project.name}/issue/${issue.number}"
                 )
             )
         }

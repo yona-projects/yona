@@ -188,7 +188,9 @@ class IssueEditTest : AbstractIntegrationTest() {
     @Test
     fun `없는 이슈는 404이고 읽을 수 없으면 403이다`() {
         val project = newProject()
-        mockMvc.perform(get("${base(project)}/issue/9/editform").session(login(newUser()))).andExpect(status().isNotFound)
+        val missing = mockMvc.perform(get("${base(project)}/issue/9/editform").session(login(newUser()))).andExpect(status().isNotFound).andReturn().response.contentAsString
+        // v1.6는 404 상태에 403 화면(`ErrorViews.Forbidden`)을 쓰므로 "목록" 단추가 아니라 일반 문구이다
+        assertTrue(missing.contains("Page not found") && !missing.contains("Issue does not exist"), missing.take(200))
         val secret = newProject(ProjectScope.PRIVATE)
         issue(secret)
         mockMvc.perform(get("${base(secret)}/issue/1/editform").session(login(newUser()))).andExpect(status().isForbidden)

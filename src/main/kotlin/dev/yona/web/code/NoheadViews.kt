@@ -1,9 +1,8 @@
 package dev.yona.web.code
 
 import dev.yona.access.AccessControl
-import dev.yona.access.ProjectResource
+import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
-import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectUserRepository
@@ -46,6 +45,6 @@ class NoheadViews(
             .addObject("projectView", views.of(project))
             .addObject("cloneUrl", repositoryUrls.urlFor(project, request, if (subversion) null else loginId))
             .addObject("loginId", viewer?.loginId.orEmpty())
-            .addObject("canUpdate", accessControl.isAllowed(viewer, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), Operation.UPDATE))
+            .addObject("canUpdate", accessControl.isAllowed(viewer, project.asResource(), Operation.UPDATE))
     }
 }

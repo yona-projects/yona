@@ -56,10 +56,9 @@
                 return isOverflowing;
             }
 
-            var moreUrl = /*[[@{/notification(from=${from + size},limit=${size})}]]*/ "";
             $("#notification-more").click(function() {
                 $("#notification-more").remove();
-                $.get(moreUrl, function(data) {
+                $.get("/notification?from=[(${from + size})]&amp;limit=[(${size})]", function(data) {
                     $('.activity-streams').append(data);
                     $(".more").remove();
                     $(".message-wrap").each(function(index, value){

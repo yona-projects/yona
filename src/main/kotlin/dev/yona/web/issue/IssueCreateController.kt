@@ -189,8 +189,14 @@ class IssueCreateController(
         return createView(project, "title.newIssue", reference, null, commentId.toString(), emptyMap(), fromGlobalMenu = true)
     }
 
-    private fun noProject(request: HttpServletRequest, response: HttpServletResponse): Any =
-        RedirectSupport.see(request, response, "/", mapOf(RedirectSupport.WARNING to "project.is.empty"))
+    /**
+     * 갈 프로젝트가 없으면 안내를 남기고 첫 화면을 그린다. v1.6은 `flash(...)` 뒤 `Application.index()`를 직접 불러
+     * 주소를 그대로 두고 첫 화면을 그리므로, 같은 주소에서 첫 화면(홈 액션)으로 넘긴다.
+     */
+    private fun noProject(request: HttpServletRequest, response: HttpServletResponse): Any {
+        RedirectSupport.saveFlash(request, response, mapOf(RedirectSupport.WARNING to "project.is.empty"))
+        return ModelAndView("forward:/")
+    }
 
     private fun createView(
         project: Project, title: String, bodyValue: String?, parentIssueId: Long?, commentId: String?, errors: Map<String, List<String>>, fromGlobalMenu: Boolean

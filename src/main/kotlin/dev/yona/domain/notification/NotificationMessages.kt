@@ -28,7 +28,6 @@ import java.util.Locale
  */
 @Service
 class NotificationMessages(
-    private val properties: dev.yona.config.YonaProperties,
     private val messages: MessageSource,
     private val milestones: MilestoneRepository,
     private val users: UserRepository,
@@ -59,8 +58,8 @@ class NotificationMessages(
                 if (new == null) text("notification.issue.unassigned") else text("notification.issue.assigned", new)
             EventType.ISSUE_MILESTONE_CHANGED -> {
                 val milestone = new?.toLongOrNull()?.let { milestones.findById(it).orElse(null) }
-                // v1.6은 "마일스톤 없음" 문구를 받는 사람의 언어가 아니라 Lang.defaultLang()(application.langs의 첫 언어)로 만든다.
-                text("notification.milestone.changed", milestone?.title ?: messages.getMessage("issue.noMilestone", null, dev.yona.config.SupportedLocales.of(properties.langs).first()))
+                // v1.6은 "마일스톤 없음" 문구를 받는 사람의 언어가 아니라 Lang.defaultLang()(서버 JVM 기본 로캘)로 만든다.
+                text("notification.milestone.changed", milestone?.title ?: messages.getMessage("issue.noMilestone", null, Locale.getDefault()))
             }
             EventType.NEW_ISSUE, EventType.NEW_POSTING, EventType.NEW_PULL_REQUEST, EventType.NEW_COMMIT, EventType.COMMENT_UPDATED -> new
             EventType.NEW_COMMENT -> "$new$old"
@@ -91,8 +90,9 @@ class NotificationMessages(
             EventType.RESOURCE_DELETED -> new?.let { users.findByLoginId(it) }?.let { text("notification.resource.deleted", UserDisplay.of(it, it.lang)) }
             else -> {
                 log.warn("알 수 없는 알림 이벤트 종류이다: {}. NotificationMessages.message를 확인한다", type)
-                // v1.6는 이 분기에서 요청 문맥이 없는 `Messages.get(key)`를 써서 받는 사람이 아니라 서버 기본 언어로 만든다
-                messages.getMessage(type.descrKey, null, Locale.getDefault())
+                // v1.6는 이 분기에서 `eventType.getDescr()`(= `Messages.get(key)`)를 써서 받는 사람이 아니라 지금 요청의 언어로 만든다
+                // (요청 밖이면 서버 기본 언어이다). 공식 v1.16.0 홈 화면에서 Accept-Language 영어 요청에 영어 문구가 나옴을 확인했다
+                messages.getMessage(type.descrKey, null, org.springframework.context.i18n.LocaleContextHolder.getLocale())
             }
         }
     }

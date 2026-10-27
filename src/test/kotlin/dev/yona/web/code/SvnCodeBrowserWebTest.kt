@@ -70,7 +70,7 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
         return p
     }
 
-    private fun member(p: Project): User = user().also { projectUsers.save(ProjectUser(user = it, project = p, role = roles.findById(RoleType.MEMBER.id).get())) }
+    private fun member(p: Project, role: RoleType = RoleType.MEMBER): User = user().also { projectUsers.save(ProjectUser(user = it, project = p, role = roles.findById(role.id).get())) }
 
     private fun commit(p: Project, author: String, message: String, files: Map<String, String>) =
         SvnFixtures.commit(svn.directoryOf(p.owner!!, p.name!!), author, message, files.mapValues { it.value.toByteArray() })
@@ -83,7 +83,7 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
     @Test
     fun `빈 저장소는 처음 올리는 방법을 svn 명령으로 안내한다`() {
         val p = project()
-        val writer = member(p)
+        val writer = member(p, RoleType.MANAGER) // v1.6 안내는 프로젝트 수정 권한(관리자)이 있을 때만 보인다
         val doc = page("/${p.owner}/${p.name}/code", login(writer))
         assertTrue(doc.text().contains("The repository is empty!"))
         val commands = doc.select("pre code").text()

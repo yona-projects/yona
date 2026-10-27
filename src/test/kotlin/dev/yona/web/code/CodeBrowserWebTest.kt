@@ -106,6 +106,9 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         assertTrue(commands.first().contains("git push origin master"))
         val anonymous = page("/${p.owner}/${p.name}/code")
         assertNotNull(anonymous.selectFirst(".alert.alert-block")); assertTrue(anonymous.select("pre code").isEmpty())
+        // v1.6는 `isAllowed(현재 사용자, project.asResource(), UPDATE)`라 프로젝트 수정 권한(관리자)이 있어야 하고, 일반 구성원에게는 안내만 보인다
+        val developer = member(p, RoleType.MEMBER)
+        assertTrue(page("/${p.owner}/${p.name}/code", login(developer)).select("pre code").isEmpty())
     }
 
     @Test

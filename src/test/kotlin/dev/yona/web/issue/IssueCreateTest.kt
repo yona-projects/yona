@@ -40,6 +40,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
@@ -372,8 +373,9 @@ class IssueCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `방문한 프로젝트가 없으면 안내와 함께 첫 화면으로 간다`() {
+    fun `방문한 프로젝트가 없으면 안내와 함께 주소는 그대로 첫 화면을 그린다 (v1_6 Application_index 직접 호출)`() {
         val session = login(newUser())
-        mockMvc.perform(get("/user/issues/new").session(session)).andExpect(status().is3xxRedirection).andExpect(redirectedUrl("/"))
+        mockMvc.perform(get("/user/issues/new").session(session)).andExpect(status().isOk).andExpect(forwardedUrl("/"))
+        mockMvc.perform(get("/user/issues/new/mine").session(session)).andExpect(status().isOk).andExpect(forwardedUrl("/"))
     }
 }

@@ -30,4 +30,16 @@ class QueryLinksTest {
         assertEquals("/o/p/issues?format=xls", QueryLinks.excelLink("/o/p/issues?pageNum=%"))
         assertEquals("/o/p/issues?filter=a|b&format=xls", QueryLinks.excelLink("/o/p/issues?filter=a|b"))
     }
+
+    @Test
+    fun `넘겨 받은 요청이면 처음 요청한 경로와 쿼리를 쓴다`() {
+        val request = org.springframework.mock.web.MockHttpServletRequest("GET", "/o/p/issues")
+        request.queryString = "state=open"
+        assertEquals("/o/p/issues?state=open", QueryLinks.requestUri(request))
+        request.setAttribute(jakarta.servlet.RequestDispatcher.FORWARD_REQUEST_URI, "/o/p/go")
+        request.setAttribute(jakarta.servlet.RequestDispatcher.FORWARD_QUERY_STRING, "pageNum=2")
+        assertEquals("/o/p/go?pageNum=2", QueryLinks.requestUri(request))
+        request.setAttribute(jakarta.servlet.RequestDispatcher.FORWARD_QUERY_STRING, null)
+        assertEquals("/o/p/go", QueryLinks.requestUri(request))
+    }
 }

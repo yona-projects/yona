@@ -66,6 +66,7 @@ class IssueViewTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var messageSource: org.springframework.context.MessageSource
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
@@ -172,7 +173,9 @@ class IssueViewTest : AbstractIntegrationTest() {
         issue(project, author = author)
         val script = view(project).select("script").map { it.data() }.first { ".comment-body:contains(" in it }
         // v1.6 `$(".comment-body:contains('@getPureNameOnly')")`와 같이 이름을 그 자리에 찍는다
-        assertTrue(script.contains("""$(".comment-body:contains('User exists not')")"""), script.lines().first { "comment-body:contains" in it })
+        // 익명 방문자의 이름은 요청 언어가 아니라 서버 기본 언어의 `user.notExists.name`이다(v1.6 `User.anonymous`)
+        val anonymousName = messageSource.getMessage("user.notExists.name", null, java.util.Locale.getDefault())
+        assertTrue(script.contains("""$(".comment-body:contains('$anonymousName')")"""), script.lines().first { "comment-body:contains" in it })
         assertTrue(!script.contains("viewerName"))
     }
 

@@ -48,7 +48,7 @@ class NotificationItemAssembler(
     @Transactional(readOnly = true)
     fun assemble(events: List<NotificationEvent>, viewer: User?): List<NotificationItem> = events.map { event ->
         val sender = event.senderId?.let { users.findById(it).orElse(null) }
-        val message = messages.message(event, Locale.getDefault().language).orEmpty()
+        val message = messages.message(event, Locale.getDefault().toLanguageTag()).orEmpty()
         NotificationItem(
             id = requireNotNull(event.id), iconClass = icon(requireNotNull(event.eventType), event.newValue),
             edit = event.eventType == EventType.ISSUE_BODY_CHANGED || event.eventType == EventType.COMMENT_UPDATED,

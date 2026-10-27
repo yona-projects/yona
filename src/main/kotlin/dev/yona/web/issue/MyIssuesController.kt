@@ -52,7 +52,8 @@ class MyIssuesController(
         if (!condition.hasCondition()) condition = condition.copy(assigneeId = viewer.id)
         if (request.getParameter("orderBy").isNullOrBlank()) condition = condition.copy(orderBy = "updatedDate")
 
-        var format = request.getParameter("format") ?: "html"
+        // v1.6 라우트가 `/user/issues`를 `userIssuesPage()`로 먼저 받아 format을 "html"로 고정하므로 `format` 쿼리는 무시한다
+        var format = "html"
         if (AjaxRequests.isXhr(request)) format = if (AjaxRequests.isPjax(request)) "pjax" else "json"
 
         val page = searchService.searchAll(condition, viewer, itemsPerPage(request))
@@ -78,7 +79,7 @@ class MyIssuesController(
             val number = issue.number ?: continue
             if (number == exceptId) continue
             body[issue.id.toString()] = linkedMapOf(
-                "id" to number, "title" to issue.title, "state" to issue.state?.name, "createdDate" to issue.createdDate?.toString()
+                "id" to number, "title" to issue.title, "state" to issue.state?.name, "createdDate" to dev.yona.util.JavaDates.toString(issue.createdDate)
             )
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body)

@@ -138,7 +138,7 @@ class SiteUserController(
             id = requireNotNull(user.id), loginId = loginId, name = user.name.orEmpty(), email = user.email.orEmpty(),
             avatarUrl = avatars.avatarUrl(user, AVATAR_SIZE), createdText = helper.socialDate(user.createdDate),
             guest = user.isGuest == true, state = state, siteManager = service.isSiteManager(user),
-            lastStateModified = user.lastStateModifiedDate?.toString().orEmpty(),
+            lastStateModified = dev.yona.util.JavaDates.toString(user.lastStateModifiedDate).orEmpty(),
             guestUrl = toggle("/sites/toggleGuestMode"), lockUrl = toggle("/sites/toggleAccountLock"),
             siteAdminUrl = "/sites/toggleSiteAdminRole/$loginId", resetPasswordUrl = "/$loginId?action=resetPassword",
             deleteUrl = "/sites/user/delete${user.id}"

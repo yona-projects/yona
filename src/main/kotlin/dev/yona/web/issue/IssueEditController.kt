@@ -69,8 +69,9 @@ class IssueEditController(
     fun editIssueForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("number") number: Long): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
+        // v1.6는 `notFound(ErrorViews.Forbidden.render("error.notfound", project))`라 403 화면 모양에 404 상태이다
         val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), number)
-            ?: return ErrorViews.notFound("error.notfound", views.of(project), ResourceType.ISSUE_POST.resource)
+            ?: return ErrorViews.forbidden("error.notfound", views.of(project)).also { it.status = HttpStatus.NOT_FOUND }
         if (!accessControl.isAllowed(viewer, issue.asResource(), Operation.READ)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         return editView(project, issue, viewer, "title.editIssue", emptyMap(), null)
     }

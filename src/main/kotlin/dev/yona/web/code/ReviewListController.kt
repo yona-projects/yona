@@ -117,7 +117,7 @@ class ReviewListController(
 
     /** 현재 주소에서 `pageNum`을 빼고 `format=xls`를 붙인다. v1.6 `addQueryString(removeQueryString(requestHeader.uri, "pageNum"), "format=xls")` ([QueryLinks]). */
     private fun excelUrl(request: HttpServletRequest): String =
-        QueryLinks.excelLink(request.requestURI + (request.queryString?.let { "?$it" } ?: ""), EXCEL_EXT)
+        QueryLinks.excelLink(QueryLinks.requestUri(request), EXCEL_EXT)
 
     private fun row(thread: CommentThread): ReviewRow {
         val first: ReviewComment? = thread.reviewComments.minWithOrNull(compareBy({ it.createdDate }, { it.id }))

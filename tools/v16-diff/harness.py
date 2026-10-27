@@ -85,7 +85,7 @@ VOLATILE = [
     (re.compile(r"\\/"), "/"),
     (re.compile(r'"\s*\+\s*"'), ""),
     # 편집기가 만들 때마다 새로 정하는 8글자 영문 번호는 서버마다 다르다
-    (re.compile(r"\b(edit|preview|editor-contents|editor-wrap|editor-toolbar|editor-help|help-nav|markdown-help)-[A-Za-z]{8}\b"), r"\1-<무작위>"),
+    (re.compile(r"\b(edit|preview|editor-[a-z]+|help-nav|markdown-help)-[A-Za-z]{8}\b"), r"\1-<무작위>"),
 ]
 
 

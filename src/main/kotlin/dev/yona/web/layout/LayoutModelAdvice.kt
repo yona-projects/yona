@@ -73,16 +73,19 @@ class LayoutModelFactory(
     ).toMap() + mapOf(
         "currentUser" to ViewerContext(
             currentUserProvider.get(), permissions, issues, avatars, userSettings,
-            messages.getMessage("user.notExists.name", null, "user.notExists.name", org.springframework.context.i18n.LocaleContextHolder.getLocale()).orEmpty()
+            // v1.6 `User.anonymous`는 클래스가 올라올 때 한 번 만들어져(`NullUser`가 `Messages.get`으로 이름을 정한다) 요청 언어가 아니라 서버 기본 언어이다
+            messages.getMessage("user.notExists.name", null, "user.notExists.name", java.util.Locale.getDefault()).orEmpty()
         ),
         "site" to properties,
         "siteAdminLoggedIn" to (currentUserProvider.get().user?.loginId == DEFAULT_ADMIN_LOGIN_ID),
-        "flashMessages" to flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty()),
+        // v1.6 `flash()`는 이 요청에서 심은 값도 같은 화면에 보이므로, 앞 요청이 남긴 값에 이 요청이 심은 값을 더해 보인다
+        "flashMessages" to flashTranslator.translate(RequestContextUtils.getInputFlashMap(request).orEmpty() + RequestContextUtils.getOutputFlashMap(request)),
         "helper" to templateHelper,
         "socialProviders" to socialProviders.available().map { SocialButton(it, dev.yona.web.ProviderLogos.signIn(it, properties.social.githubName, request.contextPath)) },
         "socialLoginSupported" to socialProviders.available().isNotEmpty(),
         "socialLoggedIn" to socialSession.hasKeys(request),
-        "requestPath" to request.requestURI,
+        // 안쪽으로 넘긴(forward) 요청도 처음 요청한 경로를 쓴다. v1.6 `request().path()`가 `/go` 같은 주소를 그대로 보여 주기 때문이다
+        "requestPath" to ((request.getAttribute(jakarta.servlet.RequestDispatcher.FORWARD_REQUEST_URI) as? String) ?: request.requestURI),
         "isMac" to (request.getHeader("User-Agent")?.contains("Macintosh") == true),
         "requestUri" to listOfNotNull(request.requestURI, request.queryString).joinToString("?")
     )

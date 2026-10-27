@@ -13,6 +13,18 @@ import java.net.URLDecoder
  */
 object QueryLinks {
 
+    /**
+     * 요청 주소(경로와 쿼리)이다. v1.6 `requestHeader.uri`는 `/go`처럼 안쪽으로 넘기기(forward) 전에 요청한 주소 그대로이므로,
+     * 넘겨 받은 요청이면 처음 요청한 경로와 쿼리를 쓴다.
+     */
+    fun requestUri(request: jakarta.servlet.http.HttpServletRequest): String {
+        val path = request.getAttribute(jakarta.servlet.RequestDispatcher.FORWARD_REQUEST_URI) as? String ?: request.requestURI
+        val query = if (request.getAttribute(jakarta.servlet.RequestDispatcher.FORWARD_REQUEST_URI) != null)
+            request.getAttribute(jakarta.servlet.RequestDispatcher.FORWARD_QUERY_STRING) as? String
+        else request.queryString
+        return path + (query?.let { "?$it" } ?: "")
+    }
+
     /** [url]의 쿼리에 이미 인코딩된 `키=값` 쌍들을 덧붙인다. 쿼리가 없으면 새로 만든다. */
     fun addQueryString(url: String, vararg encodedPairs: String): String {
         val uri = URI(url)

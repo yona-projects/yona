@@ -141,7 +141,9 @@ class FavoriteApiTest : AbstractIntegrationTest() {
     fun `익명이거나 잘못된 번호는 거절한다`() {
         val p = project()
         mockMvc.perform(post("/-_-api/v1/favoriteProjects/${p.id}")).andExpect(status().isForbidden)
-        mockMvc.perform(get("/-_-api/v1/favoriteProjects")).andExpect(status().isForbidden)
+        // v1.6는 익명의 `currentUser()`가 빈 즐겨찾기 목록을 가진 NullUser라 목록 조회는 200이다(공식 v1.16.0 실행으로 확인). 바꾸기는 오류(500)였다
+        mockMvc.perform(get("/-_-api/v1/favoriteProjects")).andExpect(status().isOk).andExpect(content().json("""{"projectIds":[],"projects":[]}""", true))
+        mockMvc.perform(get("/-_-api/v1/favoriteOrganizations")).andExpect(status().isOk).andExpect(content().json("""{"organizationIds":[],"organizations":[]}""", true))
         val session = login(newUser())
         mockMvc.perform(post("/-_-api/v1/favoriteProjects/abc").session(session)).andExpect(status().isBadRequest)
         mockMvc.perform(post("/-_-api/v1/favoriteProjects/999999").session(session)).andExpect(status().isBadRequest)

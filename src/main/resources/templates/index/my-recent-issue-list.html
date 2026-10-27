@@ -18,7 +18,7 @@
                 <div th:if="${menu.recentIssues.isEmpty()}" id="recentlyVisitedIssues" class="no-result tab-pane user-ul active" th:text="#{title.no.results}"></div>
                 <ul th:unless="${menu.recentIssues.isEmpty()}" class="tab-pane user-ul active" id="recentlyVisitedIssues">
                     <li th:each="recent : ${menu.recentIssues}" class="user-li" th:attr="data-location=${recent.url}">
-                        <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:attr="data-content=${recent.label}">
+                        <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="" th:attrappend="data-content=${recent.label}">
                             <div class="project-item project-item-container">
                                 <div class="issue-item projectName-owner flex-item">
                                     <div class="issue-title-start">-</div><div class="issue-title flex-item" th:text="${recent.title}"></div>
