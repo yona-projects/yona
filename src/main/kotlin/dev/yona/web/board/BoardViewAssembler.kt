@@ -56,7 +56,8 @@ class BoardViewAssembler(
         val author = post.authorLoginId?.let { users.findByLoginIdIgnoreCase(it) }
         val allComments = postingComments.findByPostingIdOrderByCreatedDateAscIdAsc(postId)
         val projectLabels = labelService.labels(project)
-        val tags = post.labels.sortedWith(compareBy({ it.category?.name }, { it.name })).map {
+        // v1.6 글 보기는 post.labels.toList를 정렬 없이 그대로 쓴다(DB 순서, 번호순)
+        val tags = post.labels.sortedBy { it.id }.map {
             IssueLabelTag(requireNotNull(it.id), it.category?.id, it.category?.name.orEmpty(), it.category?.isExclusive == true, it.name.orEmpty(), it.color.orEmpty())
         }
         val history = post.history

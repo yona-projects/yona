@@ -251,12 +251,12 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `공지는 공지 권한이 있는 사용자만 지정한다`() {
+    fun `공지 표시는 권한을 검사하지 않고 폼 값 그대로 저장한다 (v1_6 newPost는 BOARD_NOTICE를 확인하지 않는다, 공식 v1_16_0 실행 확인)`() {
         val project = newProject()
         val outsider = newUser()
         submit(project, "posts", login(outsider), "title" to "t", "body" to "b", "notice" to "on").andExpect(status().isSeeOther)
         entityManager.flush(); entityManager.clear()
-        assertEquals(false, postings.findByProjectIdAndNumber(project.id!!, 1)!!.notice)
+        assertEquals(true, postings.findByProjectIdAndNumber(project.id!!, 1)!!.notice)
     }
 
     @Test

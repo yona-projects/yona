@@ -467,4 +467,5 @@
 
 - 언어별 `/messages.js`를 공식 릴리스와 키와 값 단위로 대조하는 도구(`msgcompare.py`)로 일본어 `pullRequest.event.commit`(릴리스는 `commited`), 러시아어와 우즈베크어 메시지의 알 수 없는 역슬래시 이스케이프(Play는 역슬래시를 남긴다)를 맞췄다. 남은 한 키(`error.tooLargeText.admin`)는 설정 이름이 달라지는 의도한 차이이다.
 - 웹훅 요청(`hook1`와 풀 리퀘스트, 푸시 웹훅)을 HTTP 수신기로 받아 대조해 `Content-Type`에 `; charset=utf-8`이 붙도록 맞췄다. 본문 33건은 같다. 남은 차이는 `Authorization: token <값> `의 끝 공백(JDK HttpClient가 지운다)뿐이다. Git과 Subversion 인증 행렬(`proto1`)로 `Authorization` 헤더를 v1.6처럼 방식 이름 없이 읽도록 고쳤다(R-119).
+- 이슈 40여 개, 글 30여 개, 검색, 정렬, 쪽 나누기를 담은 `bulk1`로 대조해 공지 권한 검사, 글 목록 정렬 링크, 라벨 순서 세 곳을 고쳤다(A-165). v1.6(Ebean, H2)의 시퀀스 번호가 20개 묶음 단위로 뒤섞여 나오는 탓에 같은 값으로 정렬한 항목의 순서(`numOfComments` 동점 등)는 재현할 수 없다. 대조 도구의 사용자 번호 치환을 값이 번호 모양일 때로 좁혔다.
 

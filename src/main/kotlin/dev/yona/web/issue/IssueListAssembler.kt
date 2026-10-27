@@ -112,13 +112,15 @@ class IssueListAssembler(
         }
     }
 
-    /** 라벨을 분류 이름, 라벨 이름 순으로 정렬한다. */
-    fun labelTags(issue: Issue): List<IssueLabelTag> =
-        issue.labels.sortedWith(compareBy({ it.category?.name }, { it.name })).map {
-            IssueLabelTag(
-                requireNotNull(it.id), it.category?.id, it.category?.name.orEmpty(), it.category?.isExclusive == true, it.name.orEmpty(), it.color.orEmpty()
-            )
-        }
+    /** 라벨을 분류 이름, 라벨 이름 순으로 정렬한다 (v1.6 `partial_list`의 `sortBy(r => (r.category.name, r.name))`). */
+    fun labelTags(issue: Issue): List<IssueLabelTag> = tags(issue.labels.sortedWith(compareBy({ it.category?.name }, { it.name })))
+
+    /** 라벨을 번호순으로 돌려준다. v1.6 이슈 보기는 `issue.labels.toList`를 정렬 없이 그대로 쓴다(DB 순서). */
+    fun labelTagsById(issue: Issue): List<IssueLabelTag> = tags(issue.labels.sortedBy { it.id })
+
+    private fun tags(labels: List<dev.yona.domain.issue.IssueLabel>): List<IssueLabelTag> = labels.map {
+        IssueLabelTag(requireNotNull(it.id), it.category?.id, it.category?.name.orEmpty(), it.category?.isExclusive == true, it.name.orEmpty(), it.color.orEmpty())
+    }
 
     /** 일괄 처리 화면이 읽는 라벨 정보 문자열이다. 라벨마다 `분류이름,라벨번호,라벨이름,분류번호,단일여부|`를 이어 붙인다. */
     private fun labelsData(issue: Issue): String =

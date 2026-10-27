@@ -65,8 +65,8 @@ class IssueExcelTest : AbstractIntegrationTest() {
         menuSettings.save(ProjectMenuSetting(project = project, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         val milestone = milestones.save(Milestone(project = project, title = "v1", state = State.OPEN))
         val category = categories.save(IssueLabelCategory(project = project, name = "종류", isExclusive = false))
-        val a = labels.save(IssueLabel(project = project, category = category, name = "가", color = "#fff"))
-        val b = labels.save(IssueLabel(project = project, category = category, name = "나", color = "#fff"))
+        val a = labels.save(IssueLabel(project = project, category = category, name = "나", color = "#fff"))
+        val b = labels.save(IssueLabel(project = project, category = category, name = "가", color = "#fff"))
         val issue = issues.save(
             Issue(
                 project = project, number = 1, title = "엑셀 이슈", body = "본문", state = State.OPEN, assignee = assignees.save(Assignee(user = user, project = project)),
@@ -105,7 +105,8 @@ class IssueExcelTest : AbstractIntegrationTest() {
         val (project, _, _) = fixture()
         val sheet = workbook(project)
         val row = (0 until 10).map { sheet.getCell(it, 1).contents }
-        assertEquals(listOf("1", "OPEN", "엑셀 이슈", "담당자", "본문", "가, 나"), row.take(6))
+        // 라벨은 이름순이 아니라 번호순이다(v1.6 getIssueLabels는 issue.getLabels()를 그대로 돈다)
+        assertEquals(listOf("1", "OPEN", "엑셀 이슈", "담당자", "본문", "나, 가"), row.take(6))
         assertEquals("2026-10-01 09:30", row[6])
         assertEquals(listOf("2030-05-06", "v1", "/exo/exp/issue/1"), row.drop(7))
         assertEquals(listOf("첫 댓글", "갑"), listOf(sheet.getCell(10, 1).contents, sheet.getCell(11, 1).contents))

@@ -114,9 +114,8 @@ class BoardWriteController(
             return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/code/${UriUtils.encodePathSegment(branch, Charsets.UTF_8)}/${dev.yona.util.UrlPaths.encodeEach(path)}")
         }
 
-        // 공지는 공지를 올릴 수 있는 사용자만 지정한다.
-        val noticeAllowed = accessControl.isProjectResourceCreatable(viewer, project, ResourceType.BOARD_NOTICE)
-        val posting = postingService.create(project, viewer, form.copy(notice = form.notice && noticeAllowed))
+        // v1.6 `newPost`는 `notice` 폼 값을 권한 검사 없이 그대로 저장한다(화면에서만 공지 선택을 숨긴다)
+        val posting = postingService.create(project, viewer, form)
         val flash = postAttachments.attach(request, viewer, ResourceType.BOARD_POST, requireNotNull(posting.id))
         return RedirectSupport.see(request, response, if (form.readme) "/${project.owner}/${project.name}" else "/${project.owner}/${project.name}/post/${posting.number}", flash)
     }

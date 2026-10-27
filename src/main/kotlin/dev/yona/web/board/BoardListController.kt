@@ -63,7 +63,7 @@ class BoardListController(
             .addObject("notices", assembler.assemble(searchService.notices(project), viewer))
             .addObject("totalRows", page.totalRows)
             .addObject("totalPageCount", page.totalPageCount)
-            .addObject("sortLinks", sortLinks(base, condition))
+            .addObject("sortLinks", sortLinks(base, condition, pageNum))
             .addObject("hasLabels", labels.isNotEmpty())
             .addObject("labelGroups", formOptions.labelGroups(labels))
             .addObject("selectedLabelIds", java.util.LinkedHashSet(labelIds))
@@ -74,14 +74,17 @@ class BoardListController(
      * v1.6 템플릿은 라벨 배열을 `labelIds=@param.labelIds`로 그대로 출력하는데 Twirl이 배열 원소를 구분자 없이 이어 붙인다.
      * 그래서 라벨 하나는 번호 그대로이고 둘 이상이면 번호가 한 값으로 붙는다(예: 3과 5는 `35`) ([refactoring-backlog.md] R-28). 같게 따른다.
      */
-    private fun sortLinks(base: String, condition: PostingSearchCondition): List<SortLink> {
-        val filter = UriUtils.encodeQueryParam(condition.filter, Charsets.UTF_8).replace("%20", "+")
+    private fun sortLinks(base: String, condition: PostingSearchCondition, pageNum: Int): List<SortLink> {
+        // v1.6 `urlToList`는 `routes.BoardApp.posts(…, 쪽 번호)`라 쪽 번호가 1이 아니면 `?pageNum=N`이 붙은 채 `?filter=`가 이어 붙는다(물음표가 두 번 나온다).
+        // 검색어도 인코딩하지 않고 그대로 출력한다
+        val listUrl = if (pageNum == 1) base else "$base?pageNum=$pageNum"
+        val filter = condition.filter
         val labels = "labelIds=" + condition.labelIds.joinToString("")
         val descending = !condition.orderDir.equals("asc", ignoreCase = true)
         return listOf("updatedDate" to "common.order.updatedDate", "createdDate" to "common.order.date", "numOfComments" to "common.order.comments").map { (field, key) ->
             val current = condition.effectiveOrderBy == field
             val nextDir = if (current && descending) "asc" else "desc"
-            SortLink(field, "$base?filter=$filter&$labels&orderBy=$field&orderDir=$nextDir", current, descending, key)
+            SortLink(field, "$listUrl?filter=$filter&$labels&orderBy=$field&orderDir=$nextDir", current, descending, key)
         }
     }
 

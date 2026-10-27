@@ -67,7 +67,7 @@ class Server:
     def tokenize(self, text: str) -> str:
         """기억한 번호를 `<이름>`으로 바꿔 서버 간 번호 차이를 없앤다. 번호 모양의 문맥(앞이 `/ = #`)에서만 바꾼다."""
         for name, value in self.vars.items():
-            if value and value != "0" and name not in self.preset:
+            if value and value != "0" and name not in self.preset and not name.startswith(("lab_", "cat_")):
                 text = re.sub(rf"(?<=[/=#])(?<!\d)" + re.escape(value) + r"(?![\w])", f"<{name}>", text)
         return text
 
@@ -176,9 +176,12 @@ _ID_ATTR = re.compile(r"^(data-.*id|data-value|.*-id|id|value|href|data-href|dat
 
 
 def map_user_ids_text(text: str) -> str:
-    for old, new in USER_ID_MAP.items():
-        text = re.sub(rf"(?<![\w.]){old}(?![\w.])", new, text)
-    return text
+    """사용자 번호 모양만 바꾼다: 값 전체가 번호이거나 `...Id=33`, `user=33` 같은 쿼리 값일 때. 글 제목이나 이슈 번호(`/issue/35`)는 그대로 둔다."""
+    if text.strip() in USER_ID_MAP:
+        return USER_ID_MAP[text.strip()]
+    keys = "|".join(USER_ID_MAP)
+    text = re.sub(rf"(/member/)({keys})(?=/)", lambda m: m.group(1) + USER_ID_MAP[m.group(2)], text)
+    return re.sub(rf"((?:[?&]|^)(?:\w*[iI]d|\w*[uU]ser\w*)=)({keys})(?![\w.])", lambda m: m.group(1) + USER_ID_MAP[m.group(2)], text)
 
 
 def scrub(text: str) -> str:
@@ -263,10 +266,14 @@ def html_lines(body: str, map_ids: bool = False) -> list[str]:
 
 # 시나리오가 `NORMALIZE_ENTITY_IDS = True`를 두면 JSON의 `id` 숫자를 가린다(Ebean 시퀀스 할당 때문에 서버마다 내부 번호가 다르다)
 NORMALIZE_ENTITY_IDS = False
+NORMALIZE_NUMERIC_KEYS = False  # 시나리오가 `NORMALIZE_NUMERIC_KEYS = True`를 두면 키가 모두 숫자인 JSON 객체의 키를 가린다
 
 
 def norm_json(value, map_ids=False, key=""):
     if isinstance(value, dict):
+        # 키가 모두 숫자이면(이슈 내부 번호로 묶은 목록) 내부 번호는 서버마다 다르니 순서대로 이름을 새로 붙인다
+        if NORMALIZE_NUMERIC_KEYS and value and all(str(k).isdigit() for k in value):
+            return {f"<k{i}>": norm_json(v, map_ids, "") for i, v in enumerate(value.values())}
         return {k: norm_json(v, map_ids, k) for k, v in value.items()}
     if isinstance(value, list):
         return [norm_json(v, map_ids, key) for v in value]
@@ -276,7 +283,7 @@ def norm_json(value, map_ids=False, key=""):
         return "<타임스탬프>"  # 밀리초 시각
     if NORMALIZE_ENTITY_IDS and key == "id" and isinstance(value, int) and not isinstance(value, bool):
         return "<id>"
-    if map_ids and isinstance(value, int) and not isinstance(value, bool) and str(value) in USER_ID_MAP and key.lower().endswith("id"):
+    if map_ids and isinstance(value, int) and not isinstance(value, bool) and str(value) in USER_ID_MAP and key.lower().endswith("id") and key.lower() != "id":
         return int(USER_ID_MAP[str(value)])
     return value
 
@@ -285,6 +292,16 @@ def body_view(resp: requests.Response, step: Step, map_ids: bool = False, tok=la
     if not step.compare_body:
         return ("skip", None)
     ct = (resp.headers.get("content-type") or "").lower()
+    if "excel" in ct or ct.endswith("/xls"):
+        # 엑셀(.xls)은 xls2csv로 풀어 셀 값만 비교한다. 날짜 셀(엑셀 일련번호)과 깨진 이진 줄은 가린다
+        import subprocess
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".xls") as f:
+            f.write(resp.content)
+            f.flush()
+            out = subprocess.run(["xls2csv", "-d", "utf-8", f.name], capture_output=True, text=True).stdout
+        lines = [re.sub(r'"4\d{4}\.\d+"', '"<일련번호>"', l) for l in out.splitlines() if l.startswith('"')]
+        return ("text", [scrub(l) for l in lines])
     if "json" in ct:
         try:
             return ("json", norm_json(json.loads(tok(resp.text)), map_ids))
@@ -350,9 +367,10 @@ def load_scenario(name: str):
 
 
 def run(args):
-    global NORMALIZE_ENTITY_IDS
+    global NORMALIZE_ENTITY_IDS, NORMALIZE_NUMERIC_KEYS
     mod = load_scenario(args.scenario)
     NORMALIZE_ENTITY_IDS = getattr(mod, "NORMALIZE_ENTITY_IDS", False)
+    NORMALIZE_NUMERIC_KEYS = getattr(mod, "NORMALIZE_NUMERIC_KEYS", False)
     steps: list[Step] = mod.steps()
     a, b = Server("v1.6", args.v16), Server("v2", args.v2)
     same, diffs = 0, []

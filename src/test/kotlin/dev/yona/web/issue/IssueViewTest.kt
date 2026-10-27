@@ -132,6 +132,18 @@ class IssueViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이슈 보기의 라벨은 분류 이름순이 아니라 번호순이다 (v1_6 partial_show_selected_label은 issue_labels 그대로)`() {
+        val project = newProject()
+        val type = categories.save(IssueLabelCategory(project = project, name = "Type", isExclusive = false))
+        val area = categories.save(IssueLabelCategory(project = project, name = "Area", isExclusive = false))
+        val bug = labels.save(IssueLabel(project = project, category = type, name = "bug", color = "#f00"))
+        val ui = labels.save(IssueLabel(project = project, category = area, name = "ui", color = "#00f"))
+        issue(project, issueLabels = setOf(ui, bug))
+        val chips = view(project).select("a.issue-label.static").map { it.text() }
+        assertEquals(listOf("bug", "ui"), chips)
+    }
+
+    @Test
     fun `목록으로 가는 단축키는 Referer가 없으면 열린 이슈 목록이다`() {
         val project = newProject()
         issue(project, 1, state = State.CLOSED)

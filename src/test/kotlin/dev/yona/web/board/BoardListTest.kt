@@ -250,9 +250,13 @@ class BoardListTest : AbstractIntegrationTest() {
         val links = doc(project, null, "filter" to "x y", "orderBy" to "createdDate", "orderDir" to "desc").select(".filters a.filter")
         assertEquals(3, links.size)
         assertTrue(links[1].hasClass("active"))
-        assertEquals("/${project.owner}/${project.name}/posts?filter=x+y&labelIds=&orderBy=createdDate&orderDir=asc", links[1].attr("href"))
-        assertEquals("/${project.owner}/${project.name}/posts?filter=x+y&labelIds=&orderBy=updatedDate&orderDir=desc", links[0].attr("href"))
-        assertEquals("/${project.owner}/${project.name}/posts?filter=x+y&labelIds=&orderBy=numOfComments&orderDir=desc", links[2].attr("href"))
+        assertEquals("/${project.owner}/${project.name}/posts?filter=x y&labelIds=&orderBy=createdDate&orderDir=asc", links[1].attr("href"))
+        assertEquals("/${project.owner}/${project.name}/posts?filter=x y&labelIds=&orderBy=updatedDate&orderDir=desc", links[0].attr("href"))
+        assertEquals("/${project.owner}/${project.name}/posts?filter=x y&labelIds=&orderBy=numOfComments&orderDir=desc", links[2].attr("href"))
+        // v1.6 urlToList는 쪽 번호가 1이 아니면 `?pageNum=N`을 달고 그 뒤에 `?filter=`를 또 붙인다(물음표 두 개). 검색어는 인코딩하지 않는다
+        val many = newProject(); (1..17).forEach { post(many, "글 $it", it.toLong()) }
+        val second = doc(many, null, "pageNum" to "2", "filter" to "글").select(".filters a.filter")
+        assertEquals("/${many.owner}/${many.name}/posts?pageNum=2?filter=글&labelIds=&orderBy=updatedDate&orderDir=desc", second[0].attr("href"))
         // 글이 하나뿐이면 정렬 막대를 보이지 않는다.
         val single = newProject(); post(single, "only", 1)
         assertTrue(doc(single).select(".filters").isEmpty())

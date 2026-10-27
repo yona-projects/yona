@@ -79,7 +79,7 @@ class IssueViewAssembler(
         val milestone = issue.milestone
         val due = issue.dueDate
         val overdue = issue.state == State.OPEN && due != null && clock.instant().isAfter(due.toInstant())
-        val labels = listAssembler.labelTags(issue)
+        val labels = listAssembler.labelTagsById(issue)
         val history = issue.history
         val allMilestones = if (project.id != null) milestoneService.list(project, State.ALL, "dueDate", false) else emptyList()
 

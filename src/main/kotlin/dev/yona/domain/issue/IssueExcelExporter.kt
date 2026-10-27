@@ -63,7 +63,7 @@ class IssueExcelExporter(private val messages: MessageSource, private val entity
             text(issue.title)
             text(issue.assignee?.user?.name)
             text(issue.body)
-            text(issue.labels.sortedWith(compareBy({ it.category?.name }, { it.name })).joinToString(", ") { it.name.orEmpty() })
+            text(issue.labels.sortedBy { it.id }.joinToString(", ") { it.name.orEmpty() })
             sheet.addCell(jxl.write.DateTime(column++, line, issue.createdDate, date))
             text(issue.dueDate?.let { SimpleDateFormat("yyyy-MM-dd").format(it) })
             text(issue.milestone?.title)
