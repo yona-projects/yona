@@ -46,4 +46,34 @@ class BasicCredentialsTest {
     fun `콜론이 없으면 형식이 틀린 자격이다`() {
         assertSame(BasicCredentials.MALFORMED, parse(java.util.Base64.getEncoder().encodeToString("nocolon".toByteArray())))
     }
+
+    private fun parseHeader(value: String?): BasicCredentials? {
+        val request = MockHttpServletRequest().also { if (value != null) it.addHeader("Authorization", value) }
+        return BasicCredentials.parse(request)
+    }
+
+    @Test
+    fun `헤더가 없으면 null이다`() {
+        kotlin.test.assertNull(parseHeader(null))
+    }
+
+    @Test
+    fun `방식 이름은 보지 않고 앞 여섯 글자를 건너뛰어 읽는다 (v1_6 parseCredentials의 substring 6)`() {
+        val encoded = "dXNlcjpwYXNz"
+        for (header in listOf("Basic $encoded", "basic $encoded", "BASIC $encoded", "Bearer $encoded", "token $encoded")) {
+            val credentials = parseHeader(header)!!
+            assertEquals("user:pass", "${credentials.loginId}:${credentials.password}", header)
+        }
+    }
+
+    @Test
+    fun `방식 이름 뒤가 Base64가 아니거나 콜론이 없으면 형식이 틀린 자격이다`() {
+        assertSame(BasicCredentials.MALFORMED, parseHeader("Basic !!!"))
+        assertSame(BasicCredentials.MALFORMED, parseHeader("Bearer abc"))
+    }
+
+    @Test
+    fun `여섯 글자보다 짧은 헤더는 문자열 범위 오류이다 (v1_6은 500)`() {
+        kotlin.test.assertFailsWith<StringIndexOutOfBoundsException> { parseHeader("Basic") }
+    }
 }

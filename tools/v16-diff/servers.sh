@@ -27,8 +27,16 @@ start_sinks() {
       echo $! > "$WORK/sink-$port.pid"
     fi
   done
+  # 웹훅 수신기(HTTP)
+  for pair in "19226:hooks-v16.jsonl" "19326:hooks-v2.jsonl"; do
+    port=${pair%%:*}; file=${pair#*:}
+    if [ ! -f "$WORK/sink-$port.pid" ] || ! kill -0 "$(cat "$WORK/sink-$port.pid")" 2>/dev/null; then
+      nohup python3 "$R/yona/tools/v16-diff/httpsink.py" "$port" "$WORK/$file" > "$WORK/sink-$port.log" 2>&1 &
+      echo $! > "$WORK/sink-$port.pid"
+    fi
+  done
 }
-stop_sinks() { for port in 19225 19325; do [ -f "$WORK/sink-$port.pid" ] && kill "$(cat "$WORK/sink-$port.pid")" 2>/dev/null; rm -f "$WORK/sink-$port.pid"; done; }
+stop_sinks() { for port in 19225 19325 19226 19326; do [ -f "$WORK/sink-$port.pid" ] && kill "$(cat "$WORK/sink-$port.pid")" 2>/dev/null; rm -f "$WORK/sink-$port.pid"; done; }
 
 wait_http() { # 주소 이름
   for i in $(seq 1 80); do
@@ -95,6 +103,6 @@ case "${1:-}" in
   restart) stop_v16; stop_v2; start_sinks; start_v16; start_v2 ;;
   build) cd $R/yona && ./gradlew bootJar -q 2>&1 | grep -E "FAIL|error:" || true ;;
   snapshot) stop_v16; stop_v2; save_state "$2"; start_sinks; start_v16; start_v2 ;;
-  restore) stop_v16; stop_v2; restore_state "$2"; start_sinks; : > "$WORK/mails-v16.jsonl"; : > "$WORK/mails-v2.jsonl"; start_v16; start_v2 ;;
+  restore) stop_v16; stop_v2; restore_state "$2"; start_sinks; : > "$WORK/mails-v16.jsonl"; : > "$WORK/mails-v2.jsonl"; : > "$WORK/hooks-v16.jsonl"; : > "$WORK/hooks-v2.jsonl"; start_v16; start_v2 ;;
   *) echo "사용법: $0 start|stop|restart|build|snapshot <이름>|restore <이름>"; exit 1 ;;
 esac

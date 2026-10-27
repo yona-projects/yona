@@ -22,7 +22,7 @@ data class ThreadTarget(val type: ResourceType, val id: String)
 /**
  * 웹훅 주소로 본문을 POST한다. v1.6 `Webhook.sendRequest`(`app/models/Webhook.java:560-640`)에 해당한다.
  *
- * 헤더는 `Content-Type: application/json`, `User-Agent: Yobi-Hookshot`이고 토큰(`secret`)이 있으면 `Authorization: token <토큰> `(끝에 공백이 붙는다)이다.
+ * 헤더는 `Content-Type: application/json; charset=utf-8`(Play WS가 문자열 본문에 붙이는 값), `User-Agent: Yobi-Hookshot`이고 토큰(`secret`)이 있으면 `Authorization: token <토큰> `(끝에 공백이 붙는다)이다.
  * 응답은 기다리지 않고(`yona.background-async=false`이면 기다린다) 2xx가 아니면 상태와 본문을 로그로 남긴다. 연결하지 못해도 로그만 남긴다.
  * 구글 챗 형식은 응답이 2xx이고 이 리소스의 스레드가 아직 없으면 응답의 `thread.name`을 스레드로 저장해 다음 알림을 같은 스레드로 보낸다.
  */
@@ -46,7 +46,7 @@ class WebhookSender(
         val webhookId = requireNotNull(webhook.id)
         try {
             val builder = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS))
-                .header("Content-Type", "application/json").header("User-Agent", "Yobi-Hookshot").POST(HttpRequest.BodyPublishers.ofString(payload))
+                .header("Content-Type", "application/json; charset=utf-8").header("User-Agent", "Yobi-Hookshot").POST(HttpRequest.BodyPublishers.ofString(payload))
             if (!webhook.secret.isNullOrBlank()) builder.header("Authorization", "token ${webhook.secret} ")
             val request = builder.build()
             if (properties.backgroundAsync) {

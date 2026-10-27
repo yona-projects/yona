@@ -123,6 +123,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-116 | 게시판 글의 댓글 수 | 글의 `comments` 목록이 댓글 저장 전에 읽혀 있어, 댓글을 달 때 저장하는 `numOfComments`가 실제보다 하나 적다(첫 댓글만 맞다). 글 목록의 숫자가 어긋나다가 댓글을 지우거나 글을 고치면 바로잡힌다. 이슈는 해당 없다(실제 서버에서 확인) | v2도 같게 저장한다 | 공식 v1.16.0 실행 비교, `BoardCommentTest` |
 | R-117 | 즐겨찾기 이슈 목록 | `GET /-_-api/v1/favoriteIssues`는 즐겨찾기가 하나라도 있으면 `issue.author`가 불러오지 않은 필드라 `NullPointerException`, 500이다(없을 때만 200) | v2는 이슈의 작성자 이름으로 정상 JSON을 돌려준다 | `UserApi.java` `getFoveriteIssues` |
 | R-118 | 토큰 API의 잘못된 입력 | 없는 이슈, 글에 대한 수정, 숫자가 아닌 즐겨찾기 번호, 알 수 없는 `filter`, 로그인 없는 즐겨찾기 토글은 `NullPointerException`, `NumberFormatException`, `IllegalArgumentException`, 외래 키 위반으로 500이다 | v2는 각각 404, 400, 403으로 낸다. 정상 입력의 응답은 같다 | `IssueApi.java`, `BoardApi.java`, `UserApi.java` |
+| R-119 | 인증 헤더 처리 | `Authorization` 헤더의 방식 이름을 보지 않고 앞 여섯 글자를 건너뛰어 읽는다(`basic`, `Bearer`도 같은 자격으로 읽힌다). 여섯 글자보다 짧으면 문자열 범위 오류로 500이다 | 같게 재현한다. 짧은 헤더의 500은 Git에서는 오류 화면, `/svn` 필터에서는 컨테이너의 오류 응답이라 본문 모양이 다르다 | `BasicAuthAction.java` `parseCredentials` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

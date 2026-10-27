@@ -17,12 +17,12 @@ class BasicCredentials(val loginId: String, val password: String) {
         val MALFORMED = BasicCredentials("", "")
 
         /**
-         * `Authorization: Basic …`의 자격이다. Basic 헤더가 아니면 `null`(다른 방식으로 식별), 형식이 틀리면 [MALFORMED]이다.
-         * ISO-8859-1로 읽는다(v1.6은 RFC 2047이 아니라 ISO-8859-1만 쓴다).
+         * `Authorization` 헤더의 자격이다. 헤더가 없으면 `null`(다른 방식으로 식별), 형식이 틀리면 [MALFORMED]이다.
+         * v1.6은 방식 이름을 확인하지 않고 앞 여섯 글자를 건너뛰어 읽으므로(`credentials.substring(6)`) `basic`이나 `Bearer`도 같은 방식으로 읽고,
+         * 여섯 글자보다 짧으면 문자열 범위 오류(500)가 난다. ISO-8859-1로 읽는다(v1.6은 RFC 2047이 아니라 ISO-8859-1만 쓴다).
          */
         fun parse(request: HttpServletRequest): BasicCredentials? {
             val header = request.getHeader("Authorization") ?: return null
-            if (!header.startsWith("Basic ")) return null
             val decoded = String(lenientDecode(header.substring(6)), Charsets.ISO_8859_1)
             val colon = decoded.indexOf(':')
             if (colon < 0) return MALFORMED

@@ -16,7 +16,8 @@ v1.6의 소스를 읽어 맞추는 방식은 판단이 틀릴 수 있어(예: `i
 |---|---|
 | `servers.sh` | 두 서버(v1.6: 19200, v2: 19300) 시작, 종료, 데이터 저장(`snapshot`), 되돌리기(`restore`), v2 빌드(`build`). 프로세스는 pid 파일로만 다룬다 |
 | `harness.py` | 같은 `Step` 목록을 두 서버에 보내 상태 코드, 주요 헤더, 본문(JSON은 구조, HTML은 정규화한 요소 목록)을 비교하고 보고서를 쓴다 |
-| `scenarios/*.py` | `anon_basic`(익명 둘러보기), `data1`(사용자, 프로젝트, 이슈, 글 만들기), `pages1`(모든 사용자 x 화면 1200건), `repo1`(git 저장소 화면 366건), `md1`(마크다운 조각), `forms1`(폼과 변경 요청, 권한 행렬), `pr1a`/`pr1`(포크와 풀 리퀘스트, `pr1.sh`로 브랜치를 먼저 올린다), `svn1`(`svnprep.sh`로 8개 리비전을 올린 Subversion 프로젝트, data3 상태), `misc1`(추천 취소, 기본 브랜치, 초기화, 이메일 확인, 정적 파일), `site1`(사이트 관리자의 내보내기, 가져오기, 메일 대상, 삭제), `api1`(`-_-api/v1` 토큰 API, `NORMALIZE_ENTITY_IDS`로 JSON `id`를 가린다) |
+| `scenarios/*.py` | `anon_basic`(익명 둘러보기), `data1`(사용자, 프로젝트, 이슈, 글 만들기), `pages1`(모든 사용자 x 화면 1200건), `repo1`(git 저장소 화면 366건), `md1`(마크다운 조각), `forms1`(폼과 변경 요청, 권한 행렬), `pr1a`/`pr1`(포크와 풀 리퀘스트, `pr1.sh`로 브랜치를 먼저 올린다), `svn1`(`svnprep.sh`로 8개 리비전을 올린 Subversion 프로젝트, data3 상태), `mail1`/`gitpush.sh`(커밋 코멘트, 비밀번호 재설정, 푸시 알림), `hook0`/`hook1`(웹훅 네 종류의 요청 본문), `life1`(이름 바꾸기, 이전, 삭제), `proto1`(Git, Subversion 인증 행렬), `misc1`(추천 취소, 기본 브랜치, 초기화, 이메일 확인, 정적 파일), `site1`(사이트 관리자의 내보내기, 가져오기, 메일 대상, 삭제), `api1`(`-_-api/v1` 토큰 API, `NORMALIZE_ENTITY_IDS`로 JSON `id`를 가린다) |
+| `smtpsink.py`, `mailcompare.py`, `httpsink.py`, `hookcompare.py`, `msgcompare.py` | 두 서버가 보내는 알림 메일과 웹훅 요청, 언어별 메시지를 받아 짝지어 대조한다(`servers.sh start`가 수신기도 띄운다). 비교용 서버는 알림 메일 지연을 3초로 줄여 띄운다 |
 | `gitprep.sh`, `mkproject.py` | 같은 내용과 같은 시각의 git 저장소를 만들어 두 서버에 올린다. 커밋 해시가 같아 화면을 그대로 대조할 수 있다 |
 | `mdcompare.py`, `mdfuzz.py` | 마크다운 미리보기를 파일과 무작위 조각으로 직접 대조한다 |
 | `probe.py`, `show.py`, `formdump.py` | 요청 하나를 나란히 보여 주는 도구 |

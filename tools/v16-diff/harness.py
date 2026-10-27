@@ -50,7 +50,8 @@ class Server:
         self.sessions: dict[str, requests.Session] = {}
         # 가입 순서(tester, other, third)로 정해지는 사용자 번호는 서버마다 다르다. v1.6 H2는 33부터, v2는 2부터이다
         base = 33 if name == "v1.6" else 2
-        self.vars: dict[str, str] = {"uid_tester": str(base), "uid_other": str(base + 1), "uid_third": str(base + 2)}
+        self.vars: dict[str, str] = {"uid_tester": str(base), "uid_other": str(base + 1), "uid_third": str(base + 2),
+                                     "sinkport": "19226" if name == "v1.6" else "19326"}
         self.preset = set(self.vars)  # 사용자 번호는 USER_ID_MAP이 따로 맞추므로 `<이름>`으로 바꾸지 않는다
 
     def subst(self, obj):

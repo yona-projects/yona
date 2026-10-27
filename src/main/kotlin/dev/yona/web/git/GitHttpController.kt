@@ -53,12 +53,20 @@ class GitHttpController(
         request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
         val credentials = BasicCredentials.parse(request)
-        if (credentials === BasicCredentials.MALFORMED) return ResponseEntity.badRequest().build<Void>()
+        if (credentials === BasicCredentials.MALFORMED) return malformed(response)
         // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션 쿠키가 실린다
         val user = basicAuth.resolve(request, response, credentials)
         // 서비스를 정하지 않으면 getanyfile 서비스이다. 지원하지 않는다.
         if (service == null) return text(HttpStatus.FORBIDDEN, "Unsupported service: getanyfile")
         return handle(ownerName, projectName, service, advertise = true, user, request, response)
+    }
+
+    /**
+     * 자격 형식이 틀리면 본문 없는 400이다. v1.6 `BasicAuthAction`은 기본 액션 밖에서 직접 `badRequest()`를 내므로 `Cache-Control`이 붙지 않는다.
+     */
+    private fun malformed(response: HttpServletResponse): ResponseEntity<Void> {
+        response.setHeader("Cache-Control", null)
+        return ResponseEntity.badRequest().build()
     }
 
     /** 복제나 가져오기, 푸시의 요청 본문을 처리한다. */
@@ -68,7 +76,7 @@ class GitHttpController(
         request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
         val credentials = BasicCredentials.parse(request)
-        if (credentials === BasicCredentials.MALFORMED) return ResponseEntity.badRequest().build<Void>()
+        if (credentials === BasicCredentials.MALFORMED) return malformed(response)
         val user = basicAuth.resolve(request, response, credentials)
         return handle(ownerName, projectName, service, advertise = false, user, request, response)
     }

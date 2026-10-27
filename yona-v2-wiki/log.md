@@ -466,3 +466,5 @@
 - 이름 바꾸기, 이전, 삭제(`life1`)를 대조해 커밋 이력 화면이 주소가 아니라 프로젝트의 실제 이름으로 링크를 만들도록 고쳤다. 이전 요청이 쿼리 `owner`를 읽는 점을 시나리오가 틀리게 보내고 있던 것도 바로잡았다. 남은 차이: JGit 버전 문자열(`agent=JGit/…`), v1.6의 프로젝트 이름 캐시가 새로 고침 전까지 중간 이름에 응답하는 일.
 
 - 언어별 `/messages.js`를 공식 릴리스와 키와 값 단위로 대조하는 도구(`msgcompare.py`)로 일본어 `pullRequest.event.commit`(릴리스는 `commited`), 러시아어와 우즈베크어 메시지의 알 수 없는 역슬래시 이스케이프(Play는 역슬래시를 남긴다)를 맞췄다. 남은 한 키(`error.tooLargeText.admin`)는 설정 이름이 달라지는 의도한 차이이다.
+- 웹훅 요청(`hook1`와 풀 리퀘스트, 푸시 웹훅)을 HTTP 수신기로 받아 대조해 `Content-Type`에 `; charset=utf-8`이 붙도록 맞췄다. 본문 33건은 같다. 남은 차이는 `Authorization: token <값> `의 끝 공백(JDK HttpClient가 지운다)뿐이다. Git과 Subversion 인증 행렬(`proto1`)로 `Authorization` 헤더를 v1.6처럼 방식 이름 없이 읽도록 고쳤다(R-119).
+

@@ -272,6 +272,15 @@ class GitHttpTest {
             HttpResponse.BodyHandlers.ofByteArray()
         )
 
+    @Test
+    fun `형식이 틀린 자격의 400은 Cache-Control이 없고 방식 이름은 보지 않는다 (v1_6 BasicAuthAction은 기본 액션 밖이다)`() {
+        val malformed = raw("/${project.owner}/${project.name}/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to "Bearer abc"))
+        assertEquals(400, malformed.statusCode()); assertTrue(malformed.headers().firstValue("Cache-Control").isEmpty)
+        // 방식 이름이 소문자여도 앞 여섯 글자를 건너뛰어 같은 자격으로 읽는다
+        val lower = raw("/${project.owner}/${project.name}/info/refs?service=git-receive-pack", headers = arrayOf("Authorization" to basic(member).replaceFirst("Basic", "basic")))
+        assertEquals(200, lower.statusCode())
+    }
+
     private fun sessionCookie(response: HttpResponse<ByteArray>) = response.headers().allValues("Set-Cookie").firstOrNull { it.startsWith("JSESSIONID=") }
 
     @Test
