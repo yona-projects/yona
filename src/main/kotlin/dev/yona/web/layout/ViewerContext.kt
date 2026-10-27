@@ -36,6 +36,14 @@ class ViewerContext(
 
     val loginId: String? get() = current.user?.loginId
 
+    /**
+     * 화면의 "U" 단축키(내 정보로 이동)에 쓰는 로그인 ID이다. v1.6 `common/scripts`는 현재 사용자가 아니라 세션의 `loginId` 값을 쓰므로,
+     * 개인 API 토큰으로만 요청한 경우에는 현재 사용자가 있어도 `null`이다.
+     */
+    val sessionLoginId: String? get() =
+        if ((org.springframework.security.core.context.SecurityContextHolder.getContext().authentication as? dev.yona.security.YonaAuthentication)?.viaToken == true) null
+        else loginId
+
     val name: String? get() = current.user?.name
 
     val email: String? get() = current.user?.email

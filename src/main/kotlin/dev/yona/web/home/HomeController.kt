@@ -50,7 +50,8 @@ class HomeController(
     /**
      * 현재 화면을 기본 로그인 페이지로 저장한다. v1.6 `UserApp.setDefaultLoginPage`이다.
      *
-     * 로그인하지 않은 사용자의 요청은 v1.6에서도 오류(HTTP 500)가 된다([refactoring-backlog.md] R-07).
+     * 로그인하지 않은 사용자의 요청은 공식 v1.16.0 실행에서 오류가 아니라 받은 `path`를 그대로 알려 주는 200 JSON이다. 익명 사용자의 설정은
+     * 어느 사용자의 것도 아니므로 저장하지 않는다([refactoring-backlog.md] R-07).
      *
      * @param path 저장할 경로. 앞의 `/`를 뺀 값이다 (예: `notifications`)
      */
@@ -59,7 +60,7 @@ class HomeController(
     fun setDefaultLoginPage(request: jakarta.servlet.http.HttpServletRequest): Map<String, String?> {
         // v1.6은 `request().getQueryString("path")`라 쿼리 문자열만 본다(폼 본문의 `path`는 무시한다)
         val path = dev.yona.web.QueryLinks.queryValue(request, "path")
-        val user = requireNotNull(currentUserProvider.get().user) { "로그인이 필요합니다." }
+        val user = currentUserProvider.get().user ?: return mapOf("defaultLoginPage" to path)
         val setting = userSettings.findByUserId(requireNotNull(user.id)) ?: UserSetting(user = user)
         setting.loginDefaultPage = path
         userSettings.save(setting)

@@ -211,6 +211,16 @@ class HomePageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `로그인하지 않아도 200 JSON으로 알려 주고 저장은 하지 않는다 (공식 v1_16_0 실행 확인)`() {
+        val before = settings.findAll().size
+        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").queryParam("path", "issues"))
+            .andExpect(status().isOk).andExpect(jsonPath("$.defaultLoginPage").value("issues"))
+        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage"))
+            .andExpect(status().isOk).andExpect(jsonPath("$.defaultLoginPage").value(org.hamcrest.Matchers.nullValue()))
+        assertEquals(before, settings.findAll().size)
+    }
+
+    @Test
     fun `이미 설정이 있으면 값을 갱신한다`() {
         val (session, user) = login("home8")
         settings.save(UserSetting(user = user, loginDefaultPage = "old"))

@@ -81,9 +81,9 @@
                 $(htInfo.welTarget.parents("form").get(0)).submit();
             }
         });
-        /*[# th:if="${currentUser.loginId != null}"]*/
+        /*[# th:if="${currentUser.sessionLoginId != null}"]*/
         yobi.ShortcutKey.setKeymapLink({
-            "U": [[@{'/' + ${currentUser.loginId}}]]
+            "U": [[@{'/' + ${currentUser.sessionLoginId}}]]
         });
         /*[/]*/
 

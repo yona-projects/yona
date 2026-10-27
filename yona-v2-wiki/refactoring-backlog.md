@@ -10,7 +10,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-04 | API 토큰 | 토큰으로 식별된 사용자는 계정 상태(LOCKED)를 확인하지 않아 잠긴 계정도 API를 쓸 수 있다 | 같게 재현한다 | `User.java:306-316` |
 | R-05 | remember-me | 쿠키 값이 `로그인ID:해시된 패스워드`라서 쿠키가 유출되면 패스워드 없이 로그인된다. 패스워드를 바꿔도 해시가 바뀌므로 쿠키는 무효가 된다 | 같게 재현한다 | `UserApp.java:1227-1230` |
 | R-06 | 로그인 | `redirectUrl`을 검증하지 않아 `//example.com` 같은 값으로 외부 주소로 이동시킬 수 있다(열린 리다이렉트) | 같게 재현한다 | `UserApp.java:244-252` |
-| R-07 | 기본 로그인 페이지 | 로그인하지 않은 사용자가 `POST /-_-api/v1/user/defultLoginPage`를 호출하면 사용자 ID가 없어 오류(HTTP 500)가 난다 | 같게 재현한다(`IllegalArgumentException`) | `UserApp.java` `setDefaultLoginPage` |
+| R-07 | 기본 로그인 페이지 | 로그인하지 않은 사용자가 `POST /-_-api/v1/user/defultLoginPage`를 호출해도 공식 v1.16.0은 오류가 아니라 받은 `path`를 담은 200 JSON을 돌려주고(익명 사용자 설정을 사용자 없이 저장하려 한다) 소스만 읽고 500이라 적었던 이전 기록은 틀렸다 | 200 JSON을 같게 돌려주되 사용자 없는 설정 행은 저장하지 않는다 (A-161) | `UserApp.java` `setDefaultLoginPage` |
 | R-08 | AccessControl | 컨테이너가 프로젝트가 아닌 전역 리소스(예: USER)이면 `isResourceCreatable`이 `container.getProject()`의 예외로 실패한다 | 같게 재현한다(`UnsupportedOperationException`) | `AccessControl.java:99-102` |
 | R-09 | AccessControl | 프로젝트 매니저 판정이 "코드(CODE)는 삭제할 수 없다" 규칙보다 먼저 평가되어 매니저는 코드도 삭제할 수 있다 | 같게 재현한다 | `AccessControl.java:244-248`, `:289-293` |
 | R-10 | AccessControl | 존재하지 않는 이슈를 ISSUE_POST 리소스로 검사하면 담당자 조회에서 NullPointerException이 난다 | 같게 재현한다(`NoSuchElementException`) | `AccessControl.java:401-402` |
@@ -121,6 +121,8 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-114 | 버전 문자열 파서와 humanize | `java-semver`의 관대한 접두 파싱, `humanize` 1.2.2의 `binaryPrefix` 표기 | `LenientVersion`, `TemplateHelper.binaryPrefix`가 같은 결과를 내도록 옮겼다 | 옛 라이브러리를 직접 실행한 20만 건 대조 |
 | R-115 | 코드 보기와 원본 보기의 큰 파일 | JGit 4.5의 큰 객체 한도(50MB)를 넘는 파일을 `getBytes()`로 읽어 `LargeObjectException`, 500이다 | v2는 스트림으로 읽어 오류 없이 처리한다 (A-149) | `GitRepository.java:343-352` |
 | R-116 | 게시판 글의 댓글 수 | 글의 `comments` 목록이 댓글 저장 전에 읽혀 있어, 댓글을 달 때 저장하는 `numOfComments`가 실제보다 하나 적다(첫 댓글만 맞다). 글 목록의 숫자가 어긋나다가 댓글을 지우거나 글을 고치면 바로잡힌다. 이슈는 해당 없다(실제 서버에서 확인) | v2도 같게 저장한다 | 공식 v1.16.0 실행 비교, `BoardCommentTest` |
+| R-117 | 즐겨찾기 이슈 목록 | `GET /-_-api/v1/favoriteIssues`는 즐겨찾기가 하나라도 있으면 `issue.author`가 불러오지 않은 필드라 `NullPointerException`, 500이다(없을 때만 200) | v2는 이슈의 작성자 이름으로 정상 JSON을 돌려준다 | `UserApi.java` `getFoveriteIssues` |
+| R-118 | 토큰 API의 잘못된 입력 | 없는 이슈, 글에 대한 수정, 숫자가 아닌 즐겨찾기 번호, 알 수 없는 `filter`, 로그인 없는 즐겨찾기 토글은 `NullPointerException`, `NumberFormatException`, `IllegalArgumentException`, 외래 키 위반으로 500이다 | v2는 각각 404, 400, 403으로 낸다. 정상 입력의 응답은 같다 | `IssueApi.java`, `BoardApi.java`, `UserApi.java` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

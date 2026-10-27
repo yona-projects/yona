@@ -157,9 +157,9 @@ class ExternalUserApiController(
 
     /** 활성 사용자 목록이다(사이트 관리자만). */
     @GetMapping("/-_-api/v1/admin/users")
+    @dev.yona.web.access.SiteManagerOnly
     @Transactional(readOnly = true)
     fun adminUsers(): Any {
-        if (!accessControl.isSiteManager(currentUserProvider.get().user)) return ErrorViews.forbidden("error.auth.unauthorized.waringMessage")
         val list = entityManager.createQuery("select u from User u where u.state = :state order by u.id", User::class.java).setParameter("state", UserState.ACTIVE).resultList
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(
             list.map { linkedMapOf("id" to it.id, "login_id" to it.loginId, "name" to it.name, "email" to it.email, "state" to it.state?.name, "is_guest" to it.isGuest) }
@@ -168,9 +168,9 @@ class ExternalUserApiController(
 
     /** 사용자의 상태를 바꾼다(사이트 관리자만). 본문 `{"state": "locked"}`. `SITE_ADMIN`으로는 바꿀 수 없다(`403`). */
     @PatchMapping("/-_-api/v1/admin/users/{user}")
+    @dev.yona.web.access.SiteManagerOnly
     @Transactional
     fun updateUserState(@PathVariable("user") loginId: String, request: HttpServletRequest): Any {
-        if (!accessControl.isSiteManager(currentUserProvider.get().user)) return ErrorViews.forbidden("error.auth.unauthorized.waringMessage")
         val target = users.findByLoginIdIgnoreCase(loginId) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build<Void>()
         val json = requests.json(request) ?: return ResponseEntity.badRequest().body("Empty json body")
         val state = UserState.entries.firstOrNull { it.name.equals(json.findValue("state")?.asString("").orEmpty(), ignoreCase = true) } ?: return ResponseEntity.badRequest().build<Void>()

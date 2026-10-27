@@ -227,6 +227,10 @@ def html_lines(body: str, map_ids: bool = False) -> list[str]:
     return lines
 
 
+# 시나리오가 `NORMALIZE_ENTITY_IDS = True`를 두면 JSON의 `id` 숫자를 가린다(Ebean 시퀀스 할당 때문에 서버마다 내부 번호가 다르다)
+NORMALIZE_ENTITY_IDS = False
+
+
 def norm_json(value, map_ids=False, key=""):
     if isinstance(value, dict):
         return {k: norm_json(v, map_ids, k) for k, v in value.items()}
@@ -234,6 +238,8 @@ def norm_json(value, map_ids=False, key=""):
         return [norm_json(v, map_ids, key) for v in value]
     if isinstance(value, str):
         return scrub(map_user_ids_text(value) if map_ids else value)
+    if NORMALIZE_ENTITY_IDS and key == "id" and isinstance(value, int) and not isinstance(value, bool):
+        return "<id>"
     if map_ids and isinstance(value, int) and not isinstance(value, bool) and str(value) in USER_ID_MAP and key.lower().endswith("id"):
         return int(USER_ID_MAP[str(value)])
     return value
@@ -308,7 +314,9 @@ def load_scenario(name: str):
 
 
 def run(args):
+    global NORMALIZE_ENTITY_IDS
     mod = load_scenario(args.scenario)
+    NORMALIZE_ENTITY_IDS = getattr(mod, "NORMALIZE_ENTITY_IDS", False)
     steps: list[Step] = mod.steps()
     a, b = Server("v1.6", args.v16), Server("v2", args.v2)
     same, diffs = 0, []
