@@ -74,7 +74,7 @@ class ReviewCommentController(
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val contents = request.getParameter("contents")
-        if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "CODE")
+        if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "PROJECT_HOME")  // v1.6 newComment는 render(키, project)라 PROJECT_HOME이 활성화된다
         if (history.commit(project, commitId) == null) return ErrorViews.notFound("error.notfound", views.of(project), request.requestURI)
         if (project.vcs == "Subversion") return newSvnComment(project, commitId, contents, request, response)
 

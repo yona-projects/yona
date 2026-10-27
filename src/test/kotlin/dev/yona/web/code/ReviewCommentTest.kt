@@ -266,6 +266,11 @@ class ReviewCommentTest : AbstractIntegrationTest() {
         assertEquals("/${origin.owner}/${origin.name}/pullRequest/${pr.number}/changes#comment-${reviewComments.findAll().single().id}", result.response.getHeader("Location"))
         val doc = Jsoup.parse(mockMvc.perform(get("/${origin.owner}/${origin.name}/pullRequest/${pr.number}/changes").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertNotNull(doc.selectFirst("#thread-${thread.id}"))
+        // 스레드 하나는 한 번만 그린다 (코드 스레드용 조각과 파일 단위 스레드용 조각을 둘 다 그리지 않는다)
+        assertEquals(1, doc.select("#thread-${thread.id}").size)
+        // v1.6 풀 리퀘스트 변경 화면은 파일 단위 스레드도 상태 배지와 답글 입력란이 있는 전체 조각으로 그린다 (커밋 화면은 가벼운 조각)
+        assertEquals("open", doc.selectFirst("#thread-${thread.id}")!!.attr("data-state"))
+        assertNotNull(doc.selectFirst("#thread-${thread.id} .thread-header"))
         assertEquals("/${origin.owner}/${origin.name}/pullRequest/${pr.id}/comments?commitId=${pr.mergedCommitIdTo}", doc.selectFirst("#thread-${thread.id} form")!!.attr("action"))
         assertEquals(1, doc.select("#reviewcards-open a.review-card").size)
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }

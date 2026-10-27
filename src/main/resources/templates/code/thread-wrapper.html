@@ -1,5 +1,6 @@
 <!--/*
-  코드에서 스레드 하나를 렌더링할 때 쓰는 얇은 틀이다(`ThreadHtmlRenderer`). 모델: thread(ThreadView)
+  코드에서 스레드 하나를 렌더링할 때 쓰는 얇은 틀이다(`ThreadHtmlRenderer`). 모델: thread(ThreadView), full(true면 파일 단위 스레드도 코드 스레드 조각으로 그린다: 풀 리퀘스트 변경 화면)
   코드 범위 스레드는 `thread`, 파일 단위 스레드는 `nonRanged` 조각으로 그린다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org"><th:block th:if="${thread.code}" th:replace="~{code/partial-comment-thread :: thread(${thread})}"></th:block><th:block th:unless="${thread.code}" th:replace="~{code/partial-comment-thread :: nonRanged(${thread})}"></th:block></th:block>
+<!--/* th:replace는 th:if보다 먼저 실행되므로 같은 요소에 두면 두 조각이 모두 그려진다. 조건은 바깥 블록에 둔다 */-->
+<th:block xmlns:th="http://www.thymeleaf.org"><th:block th:if="${thread.code or full}"><th:block th:replace="~{code/partial-comment-thread :: thread(${thread})}"></th:block></th:block><th:block th:unless="${thread.code or full}"><th:block th:replace="~{code/partial-comment-thread :: nonRanged(${thread})}"></th:block></th:block></th:block>

@@ -24,12 +24,17 @@ class ThreadHtmlRenderer(
 
     override fun render(threads: List<CodeCommentThread>): String = renderAll(threads)
 
-    /** [threads]를 만든 시각 순서가 아니라 주어진 순서대로 그린다. */
-    fun renderAll(threads: List<CommentThread>): String {
+    /**
+     * [threads]를 만든 시각 순서가 아니라 주어진 순서대로 그린다.
+     *
+     * @param full 파일 단위 스레드도 코드 스레드와 같은 조각(상태 배지, 답글 입력란 포함)으로 그린다. v1.6 풀 리퀘스트 변경 화면이 그렇고,
+     *   커밋 화면은 가벼운 파일 단위 스레드 조각을 쓴다.
+     */
+    fun renderAll(threads: List<CommentThread>, full: Boolean = false): String {
         val attributes = RequestContextHolder.currentRequestAttributes() as ServletRequestAttributes
         val exchange = JakartaServletWebApplication.buildApplication(servletContext).buildExchange(attributes.request, requireNotNull(attributes.response))
         return threads.joinToString("") { thread ->
-            val context = WebContext(exchange, LocaleContextHolder.getLocale(), mapOf("thread" to assembler.view(thread)))
+            val context = WebContext(exchange, LocaleContextHolder.getLocale(), mapOf("thread" to assembler.view(thread), "full" to full))
             templates.process("code/thread-wrapper", context)
         }
     }
