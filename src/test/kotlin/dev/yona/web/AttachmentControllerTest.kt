@@ -132,9 +132,9 @@ class AttachmentControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `끝의 슬래시가 있어도 같은 주소이다`() {
+    fun `끝의 슬래시가 있으면 슬래시를 떼어 이동한다 (v1_6 라우트의 슬래시 표기는 닿지 않는다)`() {
         val attachment = attach(ResourceType.PROJECT, project().id!!)
-        mockMvc.perform(get("/files/${attachment.id}/")).andExpect(status().isOk)
+        mockMvc.perform(get("/files/${attachment.id}/")).andExpect(status().isSeeOther).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Location", "/files/${attachment.id}"))
     }
 
     @Test
