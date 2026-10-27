@@ -85,9 +85,28 @@ class Server:
                     pass
                 self.vars[name] = found
                 continue
+            if where == "mail":  # 서버가 SMTP 수신기에 보낸 마지막 메일들의 본문에서 정규식으로 값을 뽑는다(메일이 아직 안 왔으면 "0")
+                self.vars[name] = self._from_mail(regex)
+                continue
             source = resp.headers.get("location", "") if where == "location" else resp.text
             m = re.search(regex, source or "")
             self.vars[name] = m.group(1) if m else "0"
+
+    def _from_mail(self, regex: str) -> str:
+        import email
+        import email.policy
+        path = os.path.join("/home/jiho/yona-convert/yona-diff-work", "mails-v16.jsonl" if self.name == "v1.6" else "mails-v2.jsonl")
+        if not os.path.exists(path):
+            return "0"
+        for line in reversed(open(path, encoding="utf-8").read().splitlines()):
+            raw = json.loads(line)
+            msg = email.message_from_string(raw["data"], policy=email.policy.default)
+            for part in msg.walk():
+                if part.get_content_maintype() == "text":
+                    m = re.search(regex, part.get_content())
+                    if m:
+                        return m.group(1)
+        return "0"
 
     def session(self, actor: str) -> requests.Session:
         if actor not in self.sessions:

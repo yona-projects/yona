@@ -87,7 +87,8 @@ class CommitHistoryController(
         // 빈 저장소와 풀 수 없는 리비전은 모두 null이고 error.notfound 404이다 (v1.6 `CodeHistoryApp`: nohead 화면에는 도달하지 않는다)
         val commits = history.history(project, page, PAGE_SIZE, branch, path) ?: return ErrorViews.notFound("error.notfound")
 
-        val base = siteUrls.path("/$owner/$name")
+        // v1.6 템플릿은 주소가 아니라 프로젝트 모델의 소유자와 이름으로 링크를 만든다(이름을 바꾸기 전 주소나 대소문자가 다른 주소로 열어도 같다)
+        val base = siteUrls.path(UrlPaths.projectPath(project.owner, project.name))
         val branchSegment = branch?.let { UrlPaths.routeSegment(it) }
         val historyUrl = if (branchSegment != null) "$base/commits/$branchSegment/" else "$base/commits"
         val rows = commits.map { row(project, it, branch, path, base) }

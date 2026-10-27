@@ -96,6 +96,15 @@ class CommitHistoryTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `주소의 소유자와 프로젝트 이름은 대소문자가 달라도 링크는 프로젝트의 실제 이름으로 만든다 (v1_6 project 모델의 이름)`() {
+        val p = history(2)
+        val doc = page("/${p.owner!!.uppercase()}/${p.name!!.uppercase()}/commits/master/")
+        val links = doc.select("a[href], option[value]").map { it.attr("href").ifEmpty { it.attr("value") } }.filter { it.startsWith("/") && it.contains("/commits") }
+        assertTrue(links.isNotEmpty())
+        links.forEach { assertTrue(it.startsWith("/${p.owner}/${p.name}/"), it) }
+    }
+
+    @Test
     fun `끝에 개행만 있는 한 줄 메시지에는 더 보기 단추가 없다`() {
         val p = project()
         // git commit -m 이 저장하는 메시지는 "제목\n"이다. v1.6 commitMsg는 Java split이 뒤쪽 빈 문자열을 버려 단추를 내지 않는다.
