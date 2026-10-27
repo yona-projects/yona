@@ -105,17 +105,19 @@ $(document).ready(function(){
     $("#history").find(".btn-copy-commitId").each(function(i, el){
         var welBtnCopy = $(el);
 
+        // zclip() works only in visible element
         welBtnCopy.on("mouseenter", function(){
-            if (typeof ClipboardJS !== "undefined" && ClipboardJS.isSupported()) {
+            if (ClipboardJS && ClipboardJS.isSupported()) {
+                // Using clipboard.min.js if supports clipboard api.
                 if (clipboard) {
-                    clipboard.destroy();
+                    clipboard.destroy(); // Destroy previous instance before locate new instance.
                 }
                 clipboard = new Clipboard(this, {
                     text: function() {
                         return $(welBtnCopy).data("commitid");
                     }
                 }).on('success', function(e) {
-                    $yobi.notify(/*[[#{code.copyCommitId.copied}]]*/ "", 1000);
+                    $yobi.notify("[(${helper.escapedMessage('code.copyCommitId.copied')})]", 1000);
                     e.clearSelection();
                 });
             } else {
@@ -129,7 +131,7 @@ $(document).ready(function(){
                             return $(this).data("commitid");
                         },
                         "afterCopy": function(){
-                            $yobi.notify(/*[[#{code.copyCommitId.copied}]]*/ "", 1000);
+                            $yobi.notify("[(${helper.escapedMessage('code.copyCommitId.copied')})]", 1000);
                         }
                     });
                 }
@@ -137,11 +139,13 @@ $(document).ready(function(){
         });
     });
 
-    var newerUrl = /*[[${newerUrl}]]*/ null;
-    var olderUrl = /*[[${olderUrl}]]*/ null;
     var htKeyMap = {};
-    if (newerUrl) { htKeyMap.A = newerUrl; }
-    if (olderUrl) { htKeyMap.S = olderUrl; }
+    [# th:if="${newerUrl != null}"]
+    htKeyMap.A = "[(${newerUrl})]";
+    [/]
+    [# th:if="${olderUrl != null}"]
+    htKeyMap.S = "[(${olderUrl})]";
+    [/]
     if(htKeyMap.A || htKeyMap.S){
         yobi.ShortcutKey.setKeymapLink(htKeyMap);
     }

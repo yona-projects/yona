@@ -1,5 +1,6 @@
 package dev.yona.web.welcome
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.security.SiteSecret

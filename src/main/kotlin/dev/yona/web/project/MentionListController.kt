@@ -68,7 +68,8 @@ class MentionListController(
 
     /**
      * 커밋 diff 화면(코드 리뷰 댓글 편집기)의 `@` 멘션 후보이다. v1.6 `ProjectApp.mentionListAtCommitDiff`(`app/controllers/ProjectApp.java:500-538`)에 해당한다.
-     * `pullRequestId`를 주면 그 풀 리퀘스트의 보내는 프로젝트에서 커밋을 찾는다. 커밋이 없으면 v1.6은 `500`이었고 v2는 `404`이다([decisions.md] A-72).
+     * `pullRequestId`를 주면 그 풀 리퀘스트의 보내는 프로젝트에서 커밋을 찾는다. 커밋은 사용자 후보(`mentionType=user`)에서만 쓰이므로,
+     * 커밋이 없을 때 v1.6은 그 경우에만 `500`이었고 v2는 `404`이다([decisions.md] A-72). 다른 종류는 커밋 없이도 `200`이다.
      */
     @GetMapping("/{user}/{project}/mentionListAtCommitDiff")
     @IsAllowed(Operation.READ)
@@ -82,9 +83,11 @@ class MentionListController(
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val fromProject = (if (pullRequestId != -1L) pullRequests.findById(pullRequestId).orElse(null)?.fromProject else null) ?: project
-        val commit = history.commit(fromProject, commitId) ?: return ErrorViews.notFound()
+        val commit = history.commit(fromProject, commitId)
         val result = linkedMapOf<String, List<Map<String, String>>>()
         if (mentionType.equals("user", ignoreCase = true)) {
+            // 커밋이 없으면 v1.6은 커밋 작성자를 읽다가 널 참조로 500이다. 커밋이 필요한 사용자 후보에서만 404로 알린다(A-72)
+            if (commit == null) return ErrorViews.notFound()
             val viewer = currentUserProvider.get().user
             result["result"] = userList(project, mentionService.usersAtCommitDiff(project, fromProject, commit.authorEmail, commit.id, query, viewer, if (fromProject.vcs == "Subversion") commit.authorName else null), viewer)
         }

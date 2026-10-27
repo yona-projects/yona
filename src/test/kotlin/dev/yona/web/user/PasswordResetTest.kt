@@ -1,5 +1,6 @@
 package dev.yona.web.user
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.notification.PasswordResetRequestedEvent
 import dev.yona.domain.user.SiteAdmin

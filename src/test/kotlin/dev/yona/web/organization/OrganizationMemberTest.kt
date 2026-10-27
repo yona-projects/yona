@@ -1,5 +1,6 @@
 package dev.yona.web.organization
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.RequestState
 import dev.yona.domain.enumeration.RoleType

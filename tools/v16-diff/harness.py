@@ -84,6 +84,12 @@ VOLATILE = [
     # Thymeleaf의 자바스크립트 이스케이프(\/)와 문자열 이어 붙이기(" + ")는 같은 문자열을 만든다
     (re.compile(r"\\/"), "/"),
     (re.compile(r'"\s*\+\s*"'), ""),
+    # Ebean 시퀀스가 20개씩 번호를 받아 가므로 재시작 뒤 이슈 내부 번호가 서버마다 다르다
+    (re.compile(r"(issue-item-|issue-|parentIssueId=|issueId=|issueId\"\s*:\s*\")\d+"), r"\1<n>"),
+    (re.compile(r"(resource\.id=)\d+(?!:)"), r"\1<n>"),
+    (re.compile(r"(comment-|comments/|commentId=|editor-contents-|upload-)\d+"), r"\1<n>"),
+    # FileDiff.hashCode()는 enum의 신원 해시를 섞어 서버를 다시 띄울 때마다 값이 다르다
+    (re.compile(r"(data-hashcode=\")-?\d+"), r"\1<해시>"),
     # 편집기가 만들 때마다 새로 정하는 8글자 영문 번호는 서버마다 다르다
     (re.compile(r"\b(edit|preview|editor-[a-z]+|help-nav|markdown-help)-[A-Za-z]{8}\b"), r"\1-<무작위>"),
 ]
@@ -96,7 +102,7 @@ _ID_ATTR = re.compile(r"^(data-.*id|data-value|.*-id|id|value|href|data-href|dat
 
 def map_user_ids_text(text: str) -> str:
     for old, new in USER_ID_MAP.items():
-        text = re.sub(rf"(?<![\d.]){old}(?![\d.])", new, text)
+        text = re.sub(rf"(?<![\w.]){old}(?![\w.])", new, text)
     return text
 
 
@@ -153,6 +159,10 @@ def html_lines(body: str, map_ids: bool = False) -> list[str]:
                     if k == "value" and value == "" and child.name == "input":
                         continue  # 비어 있는 value는 없는 것과 같다
                     value = re.sub(chr(32) + "+", chr(32), value).strip()
+                    if k in ("data-comment-id",):
+                        value = "<n>"
+                    if k in ("data-issue-id", "data-posting-id") or (k == "value" and re.match(r"^(issues|postings)\[\d+\]\.id$", child.get("name", "") or "")):
+                        value = "<n>"  # 이슈 내부 번호는 시퀀스 할당 탓에 서버마다 다르다
                     if k == "method":
                         value = value.lower()  # 폼의 method는 대소문자를 가리지 않는다
                     if k in _BOOLEAN_ATTRS and value in ("", k):
@@ -197,7 +207,8 @@ def body_view(resp: requests.Response, step: Step, map_ids: bool = False):
         return ("html", html_lines(resp.text, map_ids))
     if ct.startswith("text/") or "javascript" in ct or "xml" in ct:
         return ("text", [l for l in scrub(resp.text).splitlines() if l.strip()])
-    return ("bytes", len(resp.content))
+    import hashlib
+    return ("bytes", f"{len(resp.content)}:{hashlib.md5(resp.content).hexdigest()}")
 
 
 def char_diff(x: str, y: str, width=70) -> str:

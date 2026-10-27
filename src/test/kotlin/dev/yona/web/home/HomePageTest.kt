@@ -1,5 +1,6 @@
 package dev.yona.web.home
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository

@@ -1,5 +1,7 @@
 package dev.yona.web.issue
 
+import dev.yona.support.selectFirst
+import dev.yona.support.wholeText
 import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.ProjectScope
@@ -544,9 +546,9 @@ class IssueViewTest : AbstractIntegrationTest() {
         val i = issue(project, assignee = assignee, milestone = milestone, issueLabels = setOf(label), dueDate = Date(System.currentTimeMillis() + 3 * 86_400_000L))
         val editable = view(project, session = login(member)).selectFirst("form#issueUpdateForm")!!
         assertEquals("${base(project)}/issues", editable.attr("action"))
-        assertEquals(i.id.toString(), editable.selectFirst("input[name='issues[0].id']")!!.attr("value"))
+        assertEquals(i.id.toString(), editable.selectFirst("input[name=issues[0].id]")!!.attr("value"))
         assertEquals(assignee.loginId, editable.selectFirst("input#assignee[name=assigneeLoginId]")!!.attr("value"))
-        assertEquals(milestone.id.toString(), editable.selectFirst("select#milestone[name='milestone.id'] option[selected]")!!.attr("value"))
+        assertEquals(milestone.id.toString(), editable.selectFirst("select#milestone[name=milestone.id] option[selected]")!!.attr("value"))
         assertTrue(editable.select("input[name=dueDate][data-toggle=calendar]").isNotEmpty())
         assertTrue(editable.selectFirst("select#labelIds option[value=${label.id}]")!!.hasAttr("selected"))
 

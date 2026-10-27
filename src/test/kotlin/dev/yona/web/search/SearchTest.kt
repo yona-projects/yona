@@ -1,5 +1,6 @@
 package dev.yona.web.search
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.board.Posting
 import dev.yona.domain.board.PostingComment
 import dev.yona.domain.board.PostingCommentRepository

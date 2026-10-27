@@ -24,10 +24,11 @@ class LinkPostProcessorTest {
     }
 
     @Test
-    fun `줄바꿈 태그 앞뒤에 줄바꿈이나 들여쓰기를 넣지 않는다 (jsoup 1_8_3 출력과 같다)`() {
+    fun `블록 요소는 jsoup 1_8_3의 들여쓰기 출력으로 쓴다 (v1_6 doc_body_html)`() {
         val html = "<p>a<br>b</p><ul><li>x<br>y</li></ul>"
-        assertEquals(html, processor().removeJavascriptInHref(html))
-        assertEquals(html, processor(noReferrer = true).checkReferrer(html))
+        val expected = "<p>a<br>b</p>\n<ul>\n <li>x<br>y</li>\n</ul>"
+        assertEquals(expected, processor().removeJavascriptInHref(html))
+        assertEquals(expected, processor(noReferrer = true).checkReferrer(html))
     }
 
     @Test
@@ -52,7 +53,8 @@ class LinkPostProcessorTest {
     @Test
     fun `같은 사이트의 링크와 상대 링크에는 붙이지 않는다`() {
         val html = "<a href=\"https://yona.example.com/a\">x</a><a href=\"/b\">y</a>"
-        assertEquals(html, processor(noReferrer = true).checkReferrer(html))
+        // jsoup 1.8.3의 기본 출력은 인라인 요소를 줄에 나눠 쓴다(v1.6 `doc.body().html()`)
+        assertEquals("<a href=\"https://yona.example.com/a\">x</a>\n<a href=\"/b\">y</a>", processor(noReferrer = true).checkReferrer(html))
     }
 
     @Test

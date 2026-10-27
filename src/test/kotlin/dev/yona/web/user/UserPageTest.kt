@@ -1,5 +1,6 @@
 package dev.yona.web.user
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.issue.IssueLabelRepository
 import dev.yona.domain.issue.IssueLabelCategoryRepository
 import dev.yona.domain.issue.IssueLabelCategory

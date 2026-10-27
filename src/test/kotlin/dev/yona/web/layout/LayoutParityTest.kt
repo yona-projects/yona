@@ -1,5 +1,6 @@
 package dev.yona.web.layout
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
@@ -33,7 +34,7 @@ class LayoutParityTest : AbstractIntegrationTest() {
     @Test
     fun `파비콘 링크는 역방향 라우트가 만든 루트 주소이다`() {
         val doc = Jsoup.parse(home().contentAsString)
-        assertEquals("/favicon.ico", doc.selectFirst("link[rel='shortcut icon']")?.attr("href"))
+        assertEquals("/favicon.ico", doc.selectFirst("link[rel=shortcut icon]")?.attr("href"))
     }
 
     @Test

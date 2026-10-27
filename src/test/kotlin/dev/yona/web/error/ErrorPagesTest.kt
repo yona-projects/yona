@@ -1,5 +1,6 @@
 package dev.yona.web.error
 
+import dev.yona.support.selectFirst
 import dev.yona.support.AbstractIntegrationTest
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document

@@ -114,14 +114,16 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit.archive:7.8.0.202609011348-r")
 
 	// 서버 측 마크다운 렌더링(D-17): CommonMark 구현과 GFM 확장, 결과 정화(OWASP)와 HTML 후처리(jsoup)
+	// v1.6이 쓰던 marked.js를 그대로 실행하는 JavaScript 엔진(JDK 15에서 빠진 Nashorn의 독립 배포판, 결정 D-17 되돌림 A-151)
+	implementation("org.openjdk.nashorn:nashorn-core:15.4")
 	implementation("org.commonmark:commonmark:0.31.0")
 	implementation("org.commonmark:commonmark-ext-gfm-tables:0.31.0")
 	implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.31.0")
 	implementation("org.commonmark:commonmark-ext-autolink:0.31.0")
 	implementation("org.commonmark:commonmark-ext-task-list-items:0.31.0")
 	implementation("org.commonmark:commonmark-ext-heading-anchor:0.31.0")
-	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20261011.1")
-	implementation("org.jsoup:jsoup:1.23.2")
+	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20190610.1")
+	implementation("org.jsoup:jsoup:1.8.3")
 	// Subversion WebDAV(D-26): DAV 서블릿은 javax 서블릿 API를 쓰므로 Jakarta 서블릿 위에 변환 어댑터를 둔다.
 	svnDavWar("org.tmatesoft.svnkit:svnkit-dav:1.10.11@war")
 	implementation(files(svnDavClasses))

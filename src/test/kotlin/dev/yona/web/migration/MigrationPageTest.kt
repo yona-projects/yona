@@ -1,5 +1,6 @@
 package dev.yona.web.migration
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.migration.GithubTokenClient
 import dev.yona.domain.user.User
@@ -74,7 +75,7 @@ class MigrationPageTest : AbstractIntegrationTest() {
         assertEquals("MigrationController as vm", root.attr("ng-controller"))
         assertEquals("vm.setUserToken('');vm.yobiUser = 'mgpage';vm.yobiUserEmail = 'mgpage@example.com'", root.attr("ng-init"))
         assertEquals("''", root.selectFirst(".header-pannel")!!.attr("ng-if"))
-        assertTrue(doc.select("script[src='/assets/javascripts/service/yona.Migration.js']").isNotEmpty())
+        assertTrue(doc.select("script[src=/assets/javascripts/service/yona.Migration.js]").isNotEmpty())
         Mockito.verifyNoInteractions(tokens)
     }
 

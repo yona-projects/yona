@@ -1,5 +1,7 @@
 package dev.yona.web.issue
 
+import dev.yona.support.selectFirst
+import dev.yona.support.wholeText
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.RoleType
@@ -190,7 +192,7 @@ class IssueCreateTest : AbstractIntegrationTest() {
         val select = doc.selectFirst("select#milestoneId")!!
         assertEquals(listOf("-1", milestone.id.toString()), select.select("option").map { it.attr("value") })
         assertTrue(doc.select("input#issueDueDate[name=dueDate]").isNotEmpty())
-        assertEquals(label.id.toString(), doc.selectFirst("select#labelIds option[value]:not([value=''])")!!.attr("value"))
+        assertEquals(label.id.toString(), doc.selectFirst("select#labelIds option[value]:not([value=])")!!.attr("value"))
         // v1.6 create.scala.html은 partial_select_label에 data-close-on-select=false를 넘겨 여러 라벨을 연달아 고르게 한다
         assertEquals("false", doc.selectFirst("select#labelIds")!!.attr("data-close-on-select"))
     }

@@ -1,5 +1,6 @@
 package dev.yona.web.home
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.ResourceType

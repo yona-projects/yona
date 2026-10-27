@@ -1,5 +1,6 @@
 package dev.yona.web.social
 
+import dev.yona.support.selectFirst
 import com.sun.net.httpserver.HttpServer
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.User

@@ -4,6 +4,7 @@ import dev.yona.domain.project.Project
 import dev.yona.io.LineEnding
 import dev.yona.markdown.ProjectMarkdownRenderer
 import dev.yona.repository.RepositoryService
+import dev.yona.util.JavaStrings
 import dev.yona.util.SiteUrls
 import dev.yona.util.UrlPaths
 import dev.yona.web.TemplateHelper
@@ -39,16 +40,19 @@ class CodePageAssembler(
         val name = project.name.orEmpty()
         val base = siteUrls.path("/$owner/$name")
         val branchSegment = UrlPaths.routeSegment(branch)
-        val codeUrl = { segment: String, rest: String -> "$base/code/$segment/${UrlPaths.encodeEach(rest)}" }
+        // v1.6 역방향 라우트는 경로가 비어 있으면 `path=""` 고정값을 가진 `/code/:branch` 라우트를 골라 끝에 `/`가 없다.
+        // `*path` 자리는 인코딩하지 않고 그대로 찍는다(한글, 공백, `#`, `?`가 든 이름도 그대로 나간다)
+        val codeUrl = { segment: String, rest: String -> if (rest.isEmpty()) "$base/code/$segment" else "$base/code/$segment/$rest" }
         val lastType = chain.last()["type"]
         val dir = if (lastType == "folder" && path.isNotEmpty()) "$path/" else path.substringBeforeLast('/', "").let { if (it.isEmpty()) "" else "$it/" }
         val branches = repositories.refNames(project).map { ref ->
             BranchOption(codeUrl(UrlPaths.routeSegment(branchItemName(ref)), path), ref, branchItemName(ref) == branchItemName(branch))
         }
         val basePath = codeUrl(branchSegment, "")
-        val crumbs = if (path.isEmpty()) emptyList() else {
+        // v1.6 `makeBreadCrumbs`는 `"".split("/")`가 빈 조각 하나를 돌려줘 경로가 비어도 글자 없는 링크 하나를 낸다
+        val crumbs = run {
             var partial = ""
-            path.split("/").map { part ->
+            JavaStrings.split(path, "/").map { part ->
                 partial = if (partial.isEmpty()) part else "$partial/$part"
                 Crumb(UrlPaths.join(basePath, partial), part)
             }
@@ -69,7 +73,7 @@ class CodePageAssembler(
             downloadUrl = if (git) "$base/code/$branchSegment/download" else null,
             newFileUrl = if (git && loggedIn) "$base/postform?path=$dir&branch=$itemName" else null,
             items = items, initialPath = path,
-            metaInfoUrl = "$base/code/$branchSegment/!/", basePathUrl = basePath
+            metaInfoUrl = "$base/code/$branchSegment/!", basePathUrl = basePath
         )
     }
 
@@ -110,9 +114,10 @@ class CodePageAssembler(
         val itemName = branchItemName(branch)
         return FileView(
             fileName = path.substringAfterLast('/'), path = path, revId = revId,
-            rawUrl = "$base/rawcode/${UrlPaths.routeSegment(revId)}/${UrlPaths.encodeEach(path)}",
-            openUrl = "$base/files/$revSegment/${UrlPaths.encodeEach(path)}",
-            historyUrl = "$base/commits/${UrlPaths.routeSegment(branch)}/${UrlPaths.encodeEach(path)}",
+            // 역방향 라우트의 `*path`는 인코딩하지 않는다(v1.6 `routes.CodeApp.showRawFile` 등)
+            rawUrl = "$base/rawcode/${UrlPaths.routeSegment(revId)}/$path",
+            openUrl = "$base/files/$revSegment/$path",
+            historyUrl = "$base/commits/${UrlPaths.routeSegment(branch)}/$path",
             commitUrl = "$base/commit/${UrlPaths.routeSegment(revId)}" + (if (branch.isNotEmpty()) "?branch=${URLEncoder.encode(branch, Charsets.UTF_8)}" else "") + "#$path",
             userHref = userLink(info["userLoginId"] as? String ?: ""), avatarUrl = info["avatar"] as? String ?: "", author = info["author"] as? String ?: "",
             ago = (info["createdDate"] as? Long)?.let { helper.agoOrDateString(Date(it)) }.orEmpty(), commitMessage = info["commitMessage"] as? String ?: "",

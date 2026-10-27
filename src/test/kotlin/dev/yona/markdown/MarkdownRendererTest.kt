@@ -46,4 +46,28 @@ class MarkdownRendererTest {
         cache.cleanUp()
         assertEquals(1L, cache.size())
     }
+
+    @Test
+    fun `v1_6의 marked_js 결과를 그대로 낸다 (공식 v1_16_0과 같은 입력으로 확인한 모양)`() {
+        // 강조 겹침 순서, 줄바꿈 처리, 제목 번호 매기기는 marked.js를 그대로 실행해야 같아진다
+        assertEquals("<p><strong><em>둘다</em></strong></p>", renderer.render("***둘다***").trim())
+        assertEquals("<p>줄바꿈<br />두번째줄</p>", renderer.render("줄바꿈  \n두번째줄").trim())
+        assertEquals("<p>세번째<br />네번째</p>", renderer.render("세번째\n네번째").trim())
+        val headings = renderer.render("# 한글 제목 & 특수 <b>\n# 제목1\n# 제목1\n")
+        assertTrue(headings.contains("""id="yb-header-한글-제목-특수-""""), headings)
+        assertTrue(headings.contains("""id="yb-header-제목1""""), headings)
+        assertTrue(headings.contains("""id="yb-header-제목1-1""""), headings)
+    }
+
+    @Test
+    fun `제목에는 id와 head-anchor 링크가 붙는다 (v1_6 marked_js 사용자 지정 판)`() {
+        val html = renderer.render("# 제목\n")
+        assertTrue(html.contains("""<h1 id="yb-header-제목">제목<a href="#yb-header-제목" class="head-anchor">#</a></h1>"""), html)
+    }
+
+    @Test
+    fun `표의 머리글보다 많은 칸은 남긴다 (v1_6 Nashorn의 ES5 splice)`() {
+        val html = renderer.render("| a | b |\n|---|---|\n| 1 | 2 | 3 |\n")
+        assertTrue(html.contains("<td>3</td>"), html)
+    }
 }

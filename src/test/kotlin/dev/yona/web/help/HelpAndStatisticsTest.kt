@@ -1,5 +1,6 @@
 package dev.yona.web.help
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.project.Project
@@ -102,6 +103,6 @@ class HelpAndStatisticsTest : AbstractIntegrationTest() {
         val doc = Jsoup.parse(mockMvc.perform(get("/_UIKit")).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals("Yobi UI", doc.title())
         assertEquals(listOf("Buttons", "Select", "Search Form", "Labels", "Avatar", "Tabs", "Switches"), doc.select("h3").map { it.text().trim() }.filter { it.isNotEmpty() }.take(7))
-        assertTrue(doc.select("script[src='/assets/javascripts/common/yobi.Common.js']").isNotEmpty())
+        assertTrue(doc.select("script[src=/assets/javascripts/common/yobi.Common.js]").isNotEmpty())
     }
 }

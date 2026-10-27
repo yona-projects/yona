@@ -1,5 +1,6 @@
 package dev.yona.web.user
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
@@ -55,7 +56,7 @@ class LoginFormPageTest : AbstractIntegrationTest() {
         assertEquals("Log in", doc.selectFirst("meta[property=og:title]")?.attr("content"))
         assertEquals("/users/loginform", doc.selectFirst("meta[property=og:url]")?.attr("content"))
         assertEquals("summary", doc.selectFirst("meta[name=twitter:card]")?.attr("content"))
-        assertTrue(doc.html().startsWith("<!doctype html>") || doc.documentType()?.name() == "html")
+        assertTrue(doc.html().startsWith("<!doctype html>") || doc.childNode(0) is org.jsoup.nodes.DocumentType)
     }
 
     @Test
@@ -71,15 +72,15 @@ class LoginFormPageTest : AbstractIntegrationTest() {
             ),
             styles
         )
-        assertEquals("/favicon.ico", doc.selectFirst("link[rel='shortcut icon']")?.attr("href"))
-        assertNotNull(doc.selectFirst("script[src='/assets/javascripts/yona-layout.js']"))
+        assertEquals("/favicon.ico", doc.selectFirst("link[rel=shortcut icon]")?.attr("href"))
+        assertNotNull(doc.selectFirst("script[src=/assets/javascripts/yona-layout.js]"))
     }
 
     // --- 본문 ---
 
     @Test
     fun `로그인 폼의 입력 필드와 전송 대상이 v1_6과 같다`() {
-        val form = page("/users/loginform?redirectUrl=/some/where").selectFirst(".login-form-wrap form[action='/users/login']")
+        val form = page("/users/loginform?redirectUrl=/some/where").selectFirst(".login-form-wrap form[action=/users/login]")
         assertNotNull(form)
         assertEquals("POST", form.attr("method").uppercase())
         assertEquals("/some/where", form.selectFirst("input[name=redirectUrl]")?.attr("value"))

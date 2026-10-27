@@ -1,5 +1,6 @@
 package dev.yona.web.site
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.board.Posting
 import dev.yona.domain.board.PostingRepository
 import dev.yona.domain.enumeration.ProjectScope

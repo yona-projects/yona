@@ -1,5 +1,6 @@
 package dev.yona.web.code
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.comment.CodeCommentThread
 import dev.yona.domain.comment.CommentThread
 import dev.yona.domain.comment.CommentThreadRepository

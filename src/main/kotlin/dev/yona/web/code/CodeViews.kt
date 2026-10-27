@@ -39,7 +39,13 @@ data class FileView(
     val userHref: String, val avatarUrl: String?, val author: String, val ago: String, val commitMessage: String, val lineEnding: String,
     val commentCount: Long, val binary: Boolean, val mode: String, val size: Long, val mimeType: String, val data: String?, val renderedMarkdown: String?,
     val editUrl: String?, val maxFileSize: Long, val siteManager: Boolean, val git: Boolean = true
-)
+) {
+    /**
+     * 코드 영역(`#showCode`)의 `data-mimeType` 값이다. v1.6 템플릿은 `@files.get("mimeType")`의 JSON 노드를 그대로 찍어 따옴표가 값에 들어간다
+     * (`"text/x-java-source"`).
+     */
+    val mimeTypeJson: String get() = "\"" + mimeType + "\""
+}
 
 /** 화면에 순서대로 놓는 항목이다. 폴더이면 [folder], 파일이면 [file]이 있다. */
 data class CodeItem(val folder: FolderView?, val file: FileView?)

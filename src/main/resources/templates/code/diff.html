@@ -113,19 +113,19 @@
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
-            "bCommentable": /*[[${canComment}]]*/ false,
+            "bCommentable": [(${canComment})],
             "sWatchUrl"   : "[(${#strings.replace(watchUrl, '&', '&amp;')})]",
             "sUnwatchUrl" : "[(${#strings.replace(unwatchUrl, '&', '&amp;')})]"
         });
 
         yobi.Mention({
-            target: 'textarea[id^=editor-]',
-            url: /*[[${mentionUrl}]]*/ ""
+            target:'textarea[id^=editor-]',
+            url : "[(${mentionUrl})]"
         });
-
+        
         yobi.Mention({
-            target: 'review-editor',
-            url: /*[[${mentionUrl}]]*/ ""
+            target:'review-editor',
+            url : "[(${mentionUrl})]"
         });
     });
 </script>

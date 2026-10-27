@@ -123,7 +123,7 @@
                     <div id="codeVal" class="markdown-wrap codebrowser-markdown" th:if="${f.mode == 'markdown'}" th:utext="${f.renderedMarkdown}"></div>
                     <th:block th:if="${f.mode == 'code'}">
                         <div id="codeVal" class="hidden" th:text="${f.data}"></div>
-                        <pre id="showCode" class="code-wrap" th:attr="data-mimeType=${f.mimeType}"></pre>
+                        <pre id="showCode" class="code-wrap" th:attr="data-mimeType=${f.mimeTypeJson}"></pre>
                     </th:block>
                 </div>
                 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>

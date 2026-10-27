@@ -1,5 +1,6 @@
 package dev.yona.web.code
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.UserState
@@ -111,7 +112,7 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
         val doc = page("/${p.owner}/${p.name}/code/HEAD/")
         assertEquals(listOf("src", "README.md"), doc.select(".listitem .filename a").map { it.text() })
         assertEquals(listOf("HEAD"), doc.select("select#branches option").map { it.text() })
-        assertTrue(doc.select("a[href='/${p.owner}/${p.name}/commit/1']").isNotEmpty(), doc.select(".listitem").outerHtml())
+        assertTrue(doc.select("a[href=/${p.owner}/${p.name}/commit/1]").isNotEmpty(), doc.select(".listitem").outerHtml())
     }
 
     @Test

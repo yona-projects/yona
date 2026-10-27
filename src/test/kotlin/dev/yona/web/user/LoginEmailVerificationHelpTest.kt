@@ -1,5 +1,6 @@
 package dev.yona.web.user
 
+import dev.yona.support.selectFirst
 import dev.yona.support.AbstractIntegrationTest
 import org.jsoup.Jsoup
 import org.junit.jupiter.api.Test

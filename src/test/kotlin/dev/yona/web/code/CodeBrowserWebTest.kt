@@ -1,5 +1,7 @@
 package dev.yona.web.code
 
+import dev.yona.support.selectFirst
+import dev.yona.support.wholeText
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.UserState
@@ -158,7 +160,8 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         val doc = page("/${p.owner}/${p.name}/code/master/")
         assertEquals(listOf("Files", "Commit", "Branches"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
         assertEquals(listOf("refs/heads/master"), doc.select("select#branches option").map { it.text() })
-        assertEquals("/${p.owner}/${p.name}/code/master/", doc.selectFirst("select#branches option")!!.attr("value"))
+        // v1.6 역방향 라우트는 경로가 비면 끝에 `/` 없는 `/code/:branch`를 만든다
+        assertEquals("/${p.owner}/${p.name}/code/master", doc.selectFirst("select#branches option")!!.attr("value"))
         assertEquals(listOf("src", "README.md", "data.bin", "logo.png"), doc.select(".listitem .filename a").map { it.text() })
         val folderLink = doc.selectFirst(".listitem a[data-type=folder]")!!
         assertEquals("/${p.owner}/${p.name}/code/master/src", folderLink.attr("href"))
@@ -189,7 +192,8 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         val p = filled()
         val code = page("/${p.owner}/${p.name}/code/master/src/App.kt")
         assertEquals("fun main() {}\n", code.selectFirst("#codeVal.hidden")!!.wholeText())
-        assertEquals("text/plain", code.selectFirst("pre#showCode")!!.attr("data-mimeType"))
+        // v1.6 템플릿은 JSON 노드를 그대로 찍어 값에 따옴표가 들어간다
+        assertEquals("\"text/plain\"", code.selectFirst("pre#showCode")!!.attr("data-mimeType"))
         assertEquals("UNIX", code.selectFirst("#fileInfo > span:last-child")!!.text())
         assertEquals("/${p.owner}/${p.name}/rawcode/${rev(code)}/src/App.kt", code.select(".file-header .pull-right a").first()!!.attr("href"))
         val md = page("/${p.owner}/${p.name}/code/master/README.md")
@@ -222,7 +226,7 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         GitTestSupport.pushCommits(repositories, p, TestCommit("기능", mapOf("only.txt" to "x".toByteArray())), branch = "feature/x")
         val doc = page("/${p.owner}/${p.name}/code/feature%252Fx/")
         assertTrue(doc.select(".listitem .filename a").any { it.text() == "only.txt" })
-        assertTrue(doc.select("select#branches option").any { it.attr("value") == "/${p.owner}/${p.name}/code/feature%252Fx/" })
+        assertTrue(doc.select("select#branches option").any { it.attr("value") == "/${p.owner}/${p.name}/code/feature%252Fx" })
     }
 
     @Test

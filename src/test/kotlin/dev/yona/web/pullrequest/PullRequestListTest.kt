@@ -1,5 +1,6 @@
 package dev.yona.web.pullrequest
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.comment.CommentThreadRepository
 import dev.yona.domain.comment.NonRangedCodeCommentThread
 import dev.yona.domain.comment.ReviewComment

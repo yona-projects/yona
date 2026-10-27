@@ -9,20 +9,21 @@ updated: 2026-10-22
 
 결정 근거는 [../decisions.md](../decisions.md) D-17이다.
 
-## 구성
+## 구성 (2026-10-27 갱신, A-154)
 
 | 구성 요소 | 역할 |
 |---|---|
-| `MarkdownRenderer` (운영) | commonmark-java 0.31.0 + GFM 확장(표, 취소선, 자동 링크, 작업 목록, 제목 앵커)으로 변환, 줄바꿈은 `<br>`, v1.6 마크업 맞춤 후처리, OWASP 정화 |
-| `MarkedReference` (테스트 전용) | GraalJS에서 v1.6의 `marked.js`를 같은 옵션(`gfm`, `tables`, `breaks`, `smartLists`)으로 실행하는 기준 구현 |
-| `MarkdownDifferenceTest` | 20개 입력 모음을 양쪽에 넣어 속성 순서와 공백을 무시하고 비교한다. 다르면 `build/markdown-differences.txt`를 남기고 실패한다 |
+| `MarkedEngine` | v1.6의 `public/javascripts/lib/marked.js`(소스 기준 판)를 Nashorn 독립 배포판(`org.openjdk.nashorn:nashorn-core:15.4`)에서 같은 옵션(`gfm`, `tables`, `breaks`, `headerIds`, `smartLists`)으로 실행한다. 엔진은 처음 쓸 때 만들고 호출을 직렬화한다. JDK 8 Nashorn의 ES5 `splice(시작)` 동작을 맞춘다 |
+| `MarkdownRenderer` | `MarkedEngine`의 출력을 v1.6과 같은 정책의 OWASP 정화(20190610.1)에 통과시키고 캐시한다 |
+| `HtmlDocuments` | jsoup 1.8.3 기본 출력 설정으로 읽는다(v1.6 `removeJavascriptInHref` 등과 같다) |
+| `MarkedReference`, `MarkdownDifferenceTest` | 테스트 전용 GraalJS 비교. 이제 운영도 같은 파일을 쓰므로 엔진 간 차이만 드러낸다 |
 
-## v1.6 마크업 맞춤
+이전의 commonmark-java 구성은 공식 v1.16.0과 160여 개 입력을 비교한 결과 강조 겹침(`***x***`), 줄바꿈, 제목 `id` 문자 처리, 표의 남는 칸이 달라 버렸다.
 
-v1.6의 `public/javascripts/lib/marked.js`는 원본이 아니라 커스터마이즈된 판이다. 후처리로 다음을 재현한다.
+## v1.6 마크업
 
-- 제목: `id`에 `yb-header-` 접두어를 붙이고, 끝에 `<a href="#id" class="head-anchor">#</a>`를 덧붙인다.
-- 작업 목록: `li`에 `task-list-item`, 체크박스에 `task-list-item-checkbox` 클래스를 주고 `disabled`는 붙이지 않는다.
+`marked.js`가 직접 만든다: 제목은 `id="yb-header-…"`에 `<a href="#id" class="head-anchor">#</a>`, 작업 목록은 `task-list-item` 클래스를 붙인다. 후처리나 변환 코드를 따로 두지 않는다.
+(공식 v1.16.0 릴리스의 `marked.js`는 소스 기준보다 세 커밋 앞서지 않아 제목 앵커가 없고 슬러그를 두 번 불러 `id`가 `-1`, `-3`으로 매겨진다. 비교 도구에서는 릴리스의 `marked.js`를 소스 기준으로 바꿔 쓴다, A-153.)
 
 ## 렌더 결과 캐시
 
@@ -32,7 +33,7 @@ v1.6의 `public/javascripts/lib/marked.js`는 원본이 아니라 커스터마�
 
 v1.6 `Markdown.sanitizerPolicy`와 같다. OWASP `FORMATTING`, `IMAGES`, `STYLES`, `TABLES`, `BLOCKS`에 `video`, `source`, `input`, `iframe` 등을 더하고 프로토콜은 `http`, `https`, `mailto`, `file`, `zpl`만 허용한다.
 
-## 비교 결과 (2026-10-22)
+## 비교 결과 (2026-10-22, commonmark 시절)
 
 20개 입력(제목, 강조, 줄바꿈, 목록, 작업 목록, 표, 코드, 인용, 링크, 이미지, 원시 HTML, 자바스크립트 링크, 한글 제목 등) 모두 일치한다. 입력 모음이 아직 작으므로 새로운 마크다운 사용처를 이식할 때 입력을 더하고, 차이가 발견되면 이 문서에 기록해 선생님의 승인을 받는다.
 

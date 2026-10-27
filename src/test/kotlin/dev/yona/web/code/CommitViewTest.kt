@@ -1,5 +1,6 @@
 package dev.yona.web.code
 
+import dev.yona.support.selectFirst
 import dev.yona.domain.comment.CodeCommentThread
 import dev.yona.domain.comment.CommentThreadRepository
 import dev.yona.domain.comment.NonRangedCodeCommentThread
@@ -28,6 +29,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
@@ -214,5 +216,15 @@ class CommitViewTest : AbstractIntegrationTest() {
         val body = mockMvc.perform(get("/${p.owner}/${p.name}/mentionListAtCommitDiff?commitId=$second&mentionType=user")).andExpect(status().isOk).andReturn().response.contentAsString
         assertTrue(body.contains("\"loginid\":\"tester\""), body)
         assertTrue(body.contains("${p.owner}/${p.name}"), body)
+    }
+
+    @Test
+    fun `없는 커밋이어도 멘션 종류가 사용자가 아니면 빈 JSON을 돌려준다 (공식 v1_16_0 실행 결과)`() {
+        val p = project()
+        twoCommits(p)
+        mockMvc.perform(get("/${p.owner}/${p.name}/mentionListAtCommitDiff?commitId=zzz")).andExpect(status().isOk).andExpect(content().json("{}", true))
+        mockMvc.perform(get("/${p.owner}/${p.name}/mentionListAtCommitDiff?commitId=zzz&mentionType=issue")).andExpect(status().isOk)
+        // 사용자 후보는 커밋 작성자가 필요하다. v1.6은 널 참조로 500이었고 v2는 404이다(A-72)
+        mockMvc.perform(get("/${p.owner}/${p.name}/mentionListAtCommitDiff?commitId=zzz&mentionType=user")).andExpect(status().isNotFound)
     }
 }
