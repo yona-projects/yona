@@ -35,7 +35,7 @@ class PullRequestEventService(private val events: PullRequestEventRepository, pr
             created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest, eventType = type, oldValue = oldValue, newValue = newValue
         )
         val last = events.findFirstByPullRequestIdAndCreatedAfterOrderByCreatedDescIdDesc(
-            requireNotNull(pullRequest.id), Date(System.currentTimeMillis() - properties.notificationDraftTime)
+            requireNotNull(pullRequest.id), Date(System.currentTimeMillis() - properties.notificationDraftTime.toMillis())
         )
         if (last != null && type == EventType.PULL_REQUEST_REVIEW_STATE_CHANGED && last.eventType == type && last.senderLoginId == event.senderLoginId) {
             events.delete(last)

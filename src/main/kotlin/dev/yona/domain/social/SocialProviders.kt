@@ -26,8 +26,12 @@ class SocialProviders(private val properties: YonaProperties) {
     /** 로그인 화면에 버튼으로 보일 제공자 키이다. v1.6 `forProviders`의 순서를 따른다(GitHub, Google). */
     fun available(): List<String> = all.filter { it.key in social.allowedProviders() && it.configured }.map { it.key }
 
-    /** 쓸 수 있는 제공자를 찾는다. 알 수 없거나 허용되지 않았거나 설정이 없으면 `null`이다. */
-    fun find(key: String): SocialProvider? = all.firstOrNull { it.key == key && it.key in social.allowedProviders() && it.configured }
+    /**
+     * 인증을 시작할 수 있는 제공자를 찾는다. 알 수 없거나 설정이 없으면 `null`이다.
+     * 허용 목록(`application.social.login.support`)은 보지 않는다. v1.6은 그 값을 화면의 버튼에만 쓰고
+     * `/authenticate/:provider`는 등록된 제공자면 목록과 무관하게 연다(A-95 (2)를 되돌림).
+     */
+    fun find(key: String): SocialProvider? = all.firstOrNull { it.key == key && it.configured }
 
     /**
      * 제공자가 인증을 마치고 돌아올 주소이다 (`play-authenticate.<제공자>.redirectUri`).

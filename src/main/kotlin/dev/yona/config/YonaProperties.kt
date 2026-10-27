@@ -1,6 +1,9 @@
 package dev.yona.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.convert.DurationUnit
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 
 /**
  * Yona의 애플리케이션 설정이다. v1.6의 `conf/application.conf`에서 `application.*` 키로 설정하던 값을
@@ -86,33 +89,33 @@ data class YonaProperties(
     val dataBatchSize: Int = 100,
     /** 지원하는 화면 언어이다. `Accept-Language`에 가장 알맞은 것을 고르고 맞는 것이 없으면 첫 번째를 쓴다 (`application.langs`). */
     val langs: List<String> = listOf("en-US", "ko-KR", "ja-JP", "ru-RU", "uz-UZ"),
-    val issueEventDraftTime: Long = 30_000L,
+    @DurationUnit(ChronoUnit.MILLIS) val issueEventDraftTime: Duration = Duration.ofSeconds(30),
     val codeBrowserMaxFileSize: Long = 1024L * 1024,
     val notificationMailEnabled: Boolean = true,
     val notificationMailHideAddress: Boolean = true,
-    val notificationMailRecipientLimit: Int = 0,
-    val notificationMailInitDelay: Long = 5_000L,
-    val notificationMailInterval: Long = 60_000L,
-    val notificationMailDelay: Long = 180_000L,
+    val notificationMailRecipientLimit: Int = 100,
+    @DurationUnit(ChronoUnit.MILLIS) val notificationMailInitDelay: Duration = Duration.ofSeconds(5),
+    @DurationUnit(ChronoUnit.MILLIS) val notificationMailInterval: Duration = Duration.ofSeconds(60),
+    @DurationUnit(ChronoUnit.MILLIS) val notificationMailDelay: Duration = Duration.ofSeconds(180),
     val github: Github = Github(),
     val social: Social = Social(),
     val imap: Imap = Imap(),
-    val mailboxPollingInterval: Long = 5 * 60 * 1000L,
+    @DurationUnit(ChronoUnit.MILLIS) val mailboxPollingInterval: Duration = Duration.ofMinutes(5),
     val ldap: Ldap = Ldap(),
     val protocol: String = "ldap",
     val secret: String = DEFAULT_SECRET,
     val smtp: Smtp = Smtp(),
     val update: Update = Update(),
     val easymail: Easymail = Easymail(),
-    val notificationDraftTime: Long = 30_000L,
+    @DurationUnit(ChronoUnit.MILLIS) val notificationDraftTime: Duration = Duration.ofSeconds(30),
     val backgroundAsync: Boolean = true,
     val slack: Map<String, String> = emptyMap(),
     val notificationKeepTime: Int = -1,
     val translationApi: String = "",
     val translationHeaderKey: String = "",
     val translationHeaderValue: String = "",
-    val noreferrer: Boolean = false,
-    val temporaryFilesKeepUpTime: Long = 86_400_000L,
+    val noreferrer: Boolean = true,
+    @DurationUnit(ChronoUnit.MILLIS) val temporaryFilesKeepUpTime: Duration = Duration.ofDays(1),
     val useEmailVerification: Boolean = false,
     val allowedSendingMailDomains: String = "",
     val allowsAnonymousAccess: Boolean = true,
@@ -257,15 +260,15 @@ data class YonaProperties(
      * 업데이트 확인 설정이다 (v1.6 `application.update.*`).
      *
      * @property check 업데이트 화면에서 확인을 수행한다 (`application.update.check.use`)
-     * @property initDelay 서버를 시작한 뒤 첫 확인까지 기다리는 시간(밀리초) (`application.update.notification.initdelay`, 기본 5초)
-     * @property interval 확인 주기(밀리초). 0 이하이면 백그라운드 확인을 하지 않는다 (`application.update.notification.interval`, 기본 1시간)
+     * @property initDelay 서버를 시작한 뒤 첫 확인까지 기다리는 시간 (`application.update.notification.initdelay`, 기본 5초)
+     * @property interval 확인 주기. `6h`, `30s` 같은 기간 문자열이나 단위 없는 숫자(밀리초)를 받는다. 0 이하이면 백그라운드 확인을 하지 않는다 (`application.update.notification.interval`, 기본 6시간)
      * @property repositoryUrl 태그를 읽을 Git 저장소 (`application.update.repositoryUrl`)
      * @property releaseUrlFormat 릴리스 페이지 주소 형식. `%s`가 버전이다 (`application.update.releaseUrlFormat`)
      */
     data class Update(
         val check: Boolean = true,
-        val initDelay: Long = 5_000L,
-        val interval: Long = 3_600_000L,
+        @DurationUnit(ChronoUnit.MILLIS) val initDelay: Duration = Duration.ofSeconds(5),
+        @DurationUnit(ChronoUnit.MILLIS) val interval: Duration = Duration.ofHours(6),
         val repositoryUrl: String = "http://repo.yona.io/yona/yona",
         val releaseUrlFormat: String = "https://github.com/yona-projects/yona/releases/tag/v%s"
     )

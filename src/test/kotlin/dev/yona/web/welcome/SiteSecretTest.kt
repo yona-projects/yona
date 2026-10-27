@@ -76,7 +76,8 @@ class SiteSecretTest : AbstractIntegrationTest() {
 
     @Test
     fun `비밀 키가 기본값이면 어떤 주소든 관리자 계정을 정하는 화면이다`() {
-        listOf("/", "/projects", "/_help", "/search", "/nobody").forEach { path ->
+        // v1.6 Global.onRouteRequest도 /svn/* 경로(SvnApp 액션)를 가로채므로 같은 화면이다
+        listOf("/", "/projects", "/_help", "/search", "/nobody", "/svn/owner/project").forEach { path ->
             val doc = page(path)
             assertEquals("Tada! Welcome to Yona!", doc.title())
             assertEquals("admin", doc.selectFirst("input#loginId")!!.attr("value"))

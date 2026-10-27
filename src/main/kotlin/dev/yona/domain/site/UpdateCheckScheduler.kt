@@ -26,7 +26,7 @@ class UpdateCheckScheduler(
 
     @PostConstruct
     fun start() {
-        val interval = properties.update.interval
+        val interval = properties.update.interval.toMillis()
         // 비밀 키를 정하기 전에는 시작하지 않는다 (v1.6 `Global.onStart`).
         if (interval <= 0 || secret.invalid) return
         executor = Executors.newSingleThreadScheduledExecutor { runnable -> Thread(runnable, "update-check").apply { isDaemon = true } }.also {
@@ -36,7 +36,7 @@ class UpdateCheckScheduler(
                 } catch (e: Exception) {
                     log.warn("Failed to fetch the latest Yona version to update", e)
                 }
-            }, properties.update.initDelay, interval, TimeUnit.MILLISECONDS)
+            }, properties.update.initDelay.toMillis(), interval, TimeUnit.MILLISECONDS)
         }
     }
 

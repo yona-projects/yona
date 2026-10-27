@@ -26,8 +26,8 @@ class TemporaryFileCleaner(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Scheduled(
-        initialDelayString = "\${yona.temporary-files-keep-up-time:86400000}",
-        fixedDelayString = "\${yona.temporary-files-keep-up-time:86400000}"
+        initialDelayString = "#{@schedulingDelays.temporaryFilesKeepUpMillis}",
+        fixedDelayString = "#{@schedulingDelays.temporaryFilesKeepUpMillis}"
     )
     fun scheduled() {
         try {
@@ -45,7 +45,7 @@ class TemporaryFileCleaner(
     @Transactional
     fun cleanUp(now: Long = System.currentTimeMillis()): Int {
         val targets = attachments.findByContainerTypeAndCreatedDateGreaterThanEqual(
-            ResourceType.USER, Date(startOfDay(now) - properties.temporaryFilesKeepUpTime)
+            ResourceType.USER, Date(startOfDay(now) - properties.temporaryFilesKeepUpTime.toMillis())
         )
         targets.forEach { attachmentService.delete(it) }
         return targets.size

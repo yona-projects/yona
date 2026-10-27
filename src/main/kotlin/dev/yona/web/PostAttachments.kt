@@ -36,7 +36,7 @@ class PostAttachments(
         val moved = attachments.moveOnlySelected(requireNotNull(user.id), ids, toType, toId, accessControl.isSiteManager(user))
         if (moved == ids.size) return emptyMap()
         val locale = LocaleContextHolder.getLocale()
-        val minutes = properties.temporaryFilesKeepUpTime / (60 * 1000L)
+        val minutes = properties.temporaryFilesKeepUpTime.toMillis() / (60 * 1000L)
         return mapOf(
             RedirectSupport.TITLE to messages.getMessage("post.popup.fileAttach.hasMissing", arrayOf(ids.size - moved), locale),
             RedirectSupport.DESCRIPTION to messages.getMessage("post.popup.fileAttach.hasMissing.description", arrayOf(minutes), locale)

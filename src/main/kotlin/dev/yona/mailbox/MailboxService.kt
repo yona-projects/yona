@@ -197,7 +197,7 @@ class MailboxService(
     /** IDLE을 쓸 수 없을 때 일정 간격으로 새 메일을 가져온다. */
     private fun startPolling() {
         polling = Executors.newSingleThreadScheduledExecutor { Thread(it, "mailbox-polling").apply { isDaemon = true } }.also {
-            it.scheduleWithFixedDelay({ pollOnce() }, 0, properties.mailboxPollingInterval, TimeUnit.MILLISECONDS)
+            it.scheduleWithFixedDelay({ pollOnce() }, 0, properties.mailboxPollingInterval.toMillis(), TimeUnit.MILLISECONDS)
         }
     }
 

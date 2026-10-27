@@ -323,6 +323,20 @@ class IssueViewTest : AbstractIntegrationTest() {
         assertEquals(5, doc.select("#voters .modal-body li").size)
     }
 
+    @Test
+    fun `이메일 복사 단추의 문구는 추천한 사람마다 이름 꺾쇠 이메일 세미콜론을 공백 없이 이어 붙인다 (v1_6 Twirl 반복은 구분자가 없다)`() {
+        val project = newProject()
+        val me = join(newUser(), project)
+        val i = issue(project)
+        val voters = (1..2).map { newUser("추천$it") }
+        i.voters.addAll(voters); issues.save(i); entityManager.flush()
+        val doc = view(project, session = login(me))
+        val text = doc.selectFirst("#copyEmailBtn")!!.attr("data-clipboard-text")
+        // 항목 사이에 공백이나 구분자가 없다. 항목의 순서는 목록이 정하므로 항목을 세미콜론 뒤에서 잘라 비교한다
+        assertEquals(voters.map { "${it.name} <${it.email}>;" }.toSet(), text.split(Regex("(?<=;)")).filter { it.isNotEmpty() }.toSet())
+        assertEquals(voters.sumOf { "${it.name} <${it.email}>;".length }, text.length)
+    }
+
     // --- 공유자, 하위 이슈 ---
 
     @Test

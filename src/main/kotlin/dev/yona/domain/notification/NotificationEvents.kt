@@ -102,7 +102,7 @@ class NotificationEvents(
     }
 
     private fun lastEvent(note: NewNotification): NotificationEvent? =
-        events.findFirstByResourceIdAndResourceTypeAndCreatedAfterOrderByIdDesc(note.resourceId, note.resourceType, Date(System.currentTimeMillis() - properties.notificationDraftTime))
+        events.findFirstByResourceIdAndResourceTypeAndCreatedAfterOrderByIdDesc(note.resourceId, note.resourceType, Date(System.currentTimeMillis() - properties.notificationDraftTime.toMillis()))
 
     private fun sameUserAndType(note: NewNotification, last: NotificationEvent) = last.eventType == note.eventType && last.senderId == note.sender.id
 

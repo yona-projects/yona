@@ -25,7 +25,7 @@ class IssueEventService(private val events: IssueEventRepository, private val pr
     @Transactional
     fun record(issue: Issue, type: EventType, oldValue: String?, newValue: String?, senderLoginId: String?, skipWaypoints: Boolean = true) {
         var old = oldValue
-        val since = Date(System.currentTimeMillis() - properties.issueEventDraftTime)
+        val since = Date(System.currentTimeMillis() - properties.issueEventDraftTime.toMillis())
         val last = events.findFirstByIssueIdAndCreatedAfterOrderByIdDesc(requireNotNull(issue.id), since)
         if (last != null && last.eventType == type && last.senderLoginId == senderLoginId) {
             if (skipWaypoints) {

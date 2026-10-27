@@ -15,7 +15,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `application.feedback.url` | `yona.feedback-url` | `https://github.com/yona-projects/yona/issues` | 사용 중 |
 | `application.hide.project.listing` | `yona.hide-project-listing` | `false` | 사용 중 |
 | `application.send.yona.usage` | `yona.send-yona-usage` | `true` | 사용 중 |
-| `application.show.user.email` | `yona.show-user-email` | `true` | 정의만 함 |
+| `application.show.user.email` | `yona.show-user-email` | `true` | 사용 중(투표자 이메일 복사 단추, 사용자 화면의 이메일) |
 | `application.navbar.custom.link.name` / `.url` | `yona.navbar-custom-link-name` / `-url` | 빈 문자열 | 사용 중 |
 | `application.login.page.loginId.placeholder` | `yona.login-page-login-id-placeholder` | 빈 문자열 | 사용 중 |
 | `application.login.page.password.placeholder` | `yona.login-page-password-placeholder` | 빈 문자열 | 사용 중 |
@@ -23,18 +23,18 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `project.default.scope.when.create` | `yona.project-default-scope` | `public` | 사용 중(프로젝트 생성 폼) |
 | `project.default.menus.when.create` | `yona.project-default-menus` | `code, issue, pullRequest, review, milestone, board` | 사용 중(프로젝트 생성 폼) |
 | `application.displayPrivateRepositories` | `yona.display-private-repositories` | `false` | 사용 중(프로젝트 목록) |
-| `application.context` | `yona.application-context` | 빈 문자열 | 사용 중(README 상대 경로 변환) |
-| `application.noreferrer` | `yona.noreferrer` | `false`(v1.6 기본 설정 파일 예시는 `true`) | 사용 중(마크다운 외부 링크) |
+| `application.context` | `yona.application-context` | 빈 문자열 | 사용 중(링크 접두어, README 상대 경로 변환, 그리고 서버의 컨텍스트 경로. `server.servlet.context-path`를 따로 정하지 않았으면 이 값이 컨텍스트 경로가 된다 `ApplicationContextCustomizer`) |
+| `application.noreferrer` | `yona.noreferrer` | `true`(v1.6 기본 설정 파일의 값. 코드의 기본값은 `false`이나 설치는 기본 파일에서 출발한다) | 사용 중(마크다운 외부 링크, 알림 메일 링크) |
 | `application.hostname` | `yona.hostname` | 빈 문자열(요청의 Host 헤더) | 사용 중(저장소 주소) |
 | `application.port` | `yona.port` | 없음 | 사용 중(80이면 주소에서 생략) |
 | `application.scheme` | `yona.scheme` | 빈 문자열(`http`; 요청의 https 여부는 보지 않는다. HTTPS 뒤에서는 `https`로 설정) | 사용 중 |
 | `application.allowsAnonymousAccess` | `yona.allows-anonymous-access` | `true` | 사용 중 |
-| `application.use.social.login.only` | `yona.social-login-only` | `false` | 화면에서만 사용(로그인 컨트롤러는 아직 반영 안 함) |
+| `application.use.social.login.only` | `yona.social-login-only` | `false` | 사용 중(로그인, 로그인 대화상자, 가입 화면과 `LoginController`의 POST 로그인) |
 | `application.maxFileSize` | `yona.max-file-size` | `2147483454` | 사용 중 |
 | `signup.require.admin.confirm` | `yona.signup.require-admin-confirm` | `false` | 사용 중 |
 | `notification.bymail.enabled` | `yona.notification-mail-enabled` | `true` | 사용 중(알림 메일 스케줄러) |
 | `application.notification.bymail.hideAddress` | `yona.notification-mail-hide-address` | `true` | 사용 중 |
-| `application.notification.bymail.recipientLimit` | `yona.notification-mail-recipient-limit` | `0`(제한 없음) | 사용 중 |
+| `application.notification.bymail.recipientLimit` | `yona.notification-mail-recipient-limit` | `100`(v1.6 기본 설정 파일의 값. 코드의 기본값 `0`은 제한 없음) | 사용 중 |
 | `application.notification.bymail.initdelay` / `.interval` / `.delay` | `yona.notification-mail-init-delay` / `-interval` / `-delay` (밀리초) | `5000` / `60000` / `180000` | 사용 중 |
 | `application.notification.keep-time` | `yona.notification-keep-time` (일) | `-1` (지우지 않음) | 사용 중(알림 정리) |
 | `application.notification.draft-time` | `yona.notification-draft-time` (밀리초) | `30000` | 사용 중(알림 합치기) |
@@ -48,3 +48,9 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 아직 옮기지 않은 v1.6 키는 해당 기능을 이식할 때 이 표에 추가한다.
 
 `application.langs`는 설정 `yona.langs`(쉼표 목록, 기본 `en-US, ko-KR, ja-JP, ru-RU, uz-UZ`)로 읽는다. `Accept-Language`에 가장 알맞은 언어를 고르고 맞는 것이 없으면 첫 번째를 쓰며, 요청 밖의 문구(알림 등)도 첫 번째 언어이다. 처음에는 이 목록을 코드에 고정했으나 v1.6 시험(`PasswordResetAppTest`)이 목록을 `ko-KR` 하나로 줄여 한국어 응답을 기대하는 운영 방식이 있어 2026-10-27에 설정으로 되돌렸다(A-134).
+
+## 기간 설정의 형식과 기본값 (2026-10-27)
+
+v1.6은 기간 설정을 `getMilliseconds`로 읽어 `60s`, `5m`, `6h`, `1d` 같은 문자열과 단위 없는 숫자(밀리초)를 모두 받는다. 기본 설정 파일도 `60s`, `180s`, `30s`, `6h`를 쓴다. v2도 같은 형식을 받는다(`java.time.Duration`, 단위 없는 숫자는 밀리초). 대상은 `notification-mail-init-delay`, `notification-mail-interval`, `notification-mail-delay`, `notification-draft-time`, `issue-event-draft-time`, `mailbox-polling-interval`, `temporary-files-keep-up-time`, `update.init-delay`, `update.interval`이다. `@Scheduled` 값은 `schedulingDelays` 빈이 밀리초로 바꿔 준다.
+
+설정이 없을 때의 기본값은 v1.6 기본 설정 파일의 값을 따른다(`noreferrer` true, 수신자 제한 100, 업데이트 확인 주기 6시간). v1.6은 기본 파일을 복사해 쓰는 설치가 표준이기 때문이다(A-136).

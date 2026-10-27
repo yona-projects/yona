@@ -86,7 +86,7 @@ class MailboxServiceTest : AbstractIntegrationTest() {
         propertyRepository.deleteAll()
         mailbox = MailboxService(
             dev.yona.config.YonaProperties(
-                backgroundAsync = false, mailboxPollingInterval = 3_600_000L,
+                backgroundAsync = false, mailboxPollingInterval = java.time.Duration.ofHours(1),
                 imap = dev.yona.config.YonaProperties.Imap(host = "127.0.0.1", user = "yona@mail.test", password = "pw", port = greenMail.imap.port)
             ),
             properties, handler, users

@@ -31,8 +31,8 @@ class NotificationMailScheduler(
 
     /** 설정에 따라 주기적으로 실행한다. `yona.notification-mail-enabled`가 꺼져 있으면 아무것도 하지 않는다. */
     @Scheduled(
-        initialDelayString = "\${yona.notification-mail-init-delay:5000}",
-        fixedRateString = "\${yona.notification-mail-interval:60000}"
+        initialDelayString = "#{@schedulingDelays.notificationMailInitDelayMillis}",
+        fixedRateString = "#{@schedulingDelays.notificationMailIntervalMillis}"
     )
     fun scheduled() {
         if (!properties.notificationMailEnabled) return
@@ -53,7 +53,7 @@ class NotificationMailScheduler(
      * @param now 기준 시각. 테스트에서 지정한다
      */
     fun sendDue(now: Date = Date()) {
-        val until = Date(now.time - properties.notificationMailDelay)
+        val until = Date(now.time - properties.notificationMailDelay.toMillis())
         val ids = transactions.execute { extractEventIdsAndDelete(until) }.orEmpty()
         if (ids.isEmpty()) return
         transactions.executeWithoutResult {

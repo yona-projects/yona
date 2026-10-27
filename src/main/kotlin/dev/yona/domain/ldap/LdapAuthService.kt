@@ -102,9 +102,11 @@ class LdapAuthService(
             ldapUser.loginId
         }
         val created = signup.create(SignupForm(loginId, ldapUser.displayNameWithDepartment, ldapUser.email, password))
-        if (created.state == UserState.LOCKED) return LdapAuthResult(null, mapOf("info" to "user.signup.requested"))
+        // v1.6 createNewUser: 게스트 여부는 사용자를 만들 때 함께 저장한다. 잠긴 사용자(가입 승인 대기)도 마찬가지이다
         created.isGuest = isGuestUser(ldapUser)
-        return LdapAuthResult(users.save(created))
+        users.save(created)
+        if (created.state == UserState.LOCKED) return LdapAuthResult(null, mapOf("info" to "user.signup.requested"))
+        return LdapAuthResult(created)
     }
 
     /**

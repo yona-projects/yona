@@ -202,7 +202,7 @@ v1.6 위키 5차 재검증(2026-10-26)에서 모인 결함 후보 189건을 항�
 
 | 번호 | 결함 요약 | v1.6 소스:줄 | 실제 여부 | 기록 | v2 판정 | v2 근거 | 닿는 경로 |
 |---|---|---|---|---|---|---|---|
-| C002 | 게스트 접두어 설정 키 `application.guest.user.login.id.prefix ` 끝에 공백이 있어 게스트 판정이 항상 거짓 | Application.java:38 | 실제 | R-60(3) | 재현(결과 동일) | LdapAuthService.kt:92-93 `local.isGuest = false`. v2에는 `GUEST_USER_LOGIN_ID_PREFIX` 상수가 없다 | 정상(LDAP 사용 시 설정으로 발현) |
+| C002 | 게스트 접두어 설정 키 `application.guest.user.login.id.prefix ` 끝에 공백이 있으나 Typesafe Config 1.2.1이 앞뒤 공백을 무시해 **결함이 아니다**(2026-10-27 실행으로 확인, 이전 판정은 틀렸다) | Application.java:38 | 오탐 | R-60(3) | 해당 없음 | LdapAuthService.kt:92-93 `local.isGuest = false`. v2에는 `GUEST_USER_LOGIN_ID_PREFIX` 상수가 없다 | 정상(LDAP 사용 시 설정으로 발현) |
 | C163★ | `application.temporaryfiles.keep-up.time` 주석 예시 `86400`(초 의도)을 `getMilliseconds`로 읽어 86.4초가 됨 | application.conf.default:228-229, AttachmentApp.java:39-40 | 실제 | 없음 (`configuration-keys.md`에 이 키 행도 없음) | 해결 | `YonaProperties.kt:27,106`이 밀리초 `Long`(기본 86_400_000)이고 문서 주석에 단위를 적었다. v2에 `86400` 예시 파일은 없다 | 정상(설정을 예시대로 쓴 경우) |
 
 ## 문서 (1건)
