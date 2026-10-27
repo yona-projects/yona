@@ -59,8 +59,8 @@ object JavaxServletBridge {
                 "getContextPath" -> real.contextPath
                 "getQueryString" -> real.queryString
                 "getMethod" -> real.method
-                "getHeader" -> real.getHeader(args[0] as String)
-                "getHeaders" -> real.getHeaders(args[0] as String)
+                "getHeader" -> lockDepth(real, args[0] as String) ?: real.getHeader(args[0] as String)
+                "getHeaders" -> lockDepth(real, args[0] as String)?.let { Collections.enumeration(listOf(it)) } ?: real.getHeaders(args[0] as String)
                 "getHeaderNames" -> real.headerNames
                 "getDateHeader" -> try { real.getDateHeader(args[0] as String) } catch (e: IllegalArgumentException) { -1L }
                 "getIntHeader" -> real.getHeader(args[0] as String)?.toInt() ?: -1
@@ -96,6 +96,14 @@ object JavaxServletBridge {
             }
         }
     }
+
+    /**
+     * `LOCK` 요청의 `Depth` 머리글이 없거나 `infinity`이면 `0`으로 바꿔 알린다. svn 명령줄 클라이언트는 `Depth` 없이 파일 하나를 잠그는데,
+     * 이 SVNKit 버전(1.10)의 `LOCK` 처리기는 깊이 `infinity`로 파일을 잠그려 하면 `400`으로 거절한다(v1.6의 1.8은 받았다).
+     * svn은 파일만 잠그므로 깊이 `0`과 결과가 같다.
+     */
+    private fun lockDepth(real: HttpServletRequest, name: String): String? =
+        if (real.method == "LOCK" && name.equals("Depth", ignoreCase = true) && real.getHeader("Depth").let { it == null || it.equals("infinity", ignoreCase = true) }) "0" else null
 
     /** 응답의 상태, 헤더, 본문을 실제 응답에 바로 쓴다. 헤더를 더할 때는 v1.6처럼 같은 이름의 앞선 값 뒤에 쉼표로 이어 붙인다. */
     fun response(real: HttpServletResponse): javax.servlet.http.HttpServletResponse {
@@ -177,12 +185,45 @@ object JavaxServletBridge {
         }
     }
 
+    /**
+     * 요청 본문 스트림이다. v1.6은 본문을 모두 받아 `ByteArrayInputStream`으로 넘겼으므로 `available()`이 남은 바이트 수이다.
+     * 길이 없이 쪼개 보내는(chunked) 본문은 톰캣 스트림의 `available()`이 아직 읽지 않은 동안 0이라, 그 값으로 본문이 있는지 보는
+     * SVNKit의 처리기(`LOCK` 등)가 빈 본문으로 오해한다. 첫 바이트를 먼저 읽어 두고 그만큼을 더해 알린다.
+     */
     private fun servletInput(stream: InputStream): javax.servlet.ServletInputStream = object : javax.servlet.ServletInputStream() {
         private var finished = false
+        private var peeked = false
+        private var head = -1
 
-        override fun read(): Int = stream.read().also { if (it < 0) finished = true }
-        override fun read(b: ByteArray, off: Int, len: Int): Int = stream.read(b, off, len).also { if (it < 0) finished = true }
-        override fun available(): Int = stream.available()
+        private fun peek() {
+            if (!peeked) { head = stream.read(); peeked = true; if (head < 0) finished = true }
+        }
+
+        override fun read(): Int {
+            if (peeked && head >= 0) return head.also { head = -1 }
+            peek()
+            if (head >= 0) return head.also { head = -1 }
+            return stream.read().also { if (it < 0) finished = true }
+        }
+
+        override fun read(b: ByteArray, off: Int, len: Int): Int {
+            if (len == 0) return 0
+            peek()
+            if (head >= 0) {
+                b[off] = head.toByte(); head = -1
+                if (len == 1) return 1
+                val more = stream.available().coerceAtMost(len - 1)
+                val n = if (more > 0) stream.read(b, off + 1, more) else 0
+                return 1 + n.coerceAtLeast(0)
+            }
+            return stream.read(b, off, len).also { if (it < 0) finished = true }
+        }
+
+        override fun available(): Int {
+            peek()
+            return (if (head >= 0) 1 else 0) + if (finished) 0 else stream.available()
+        }
+
         override fun close() = stream.close()
         override fun isFinished(): Boolean = finished
         override fun isReady(): Boolean = true

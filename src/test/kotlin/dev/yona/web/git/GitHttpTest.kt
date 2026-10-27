@@ -323,13 +323,11 @@ class GitHttpTest {
     }
 
     @Test
-    fun `RPC 본문이 102400바이트를 넘으면 413이고 그 이하는 처리한다 (v1_6 isMaxSizeExceeded)`() {
-        // v1.6 GitApp.serviceRpc: Play의 기본 본문 한도(parsers.text.maxLength 102400)를 넘으면 처리하지 않고 413이다
-        val big = ByteArray(102_401) { 'x'.code.toByte() }
-        val over = raw("/${project.owner}/${project.name}/git-upload-pack", "POST", big, "Content-Type" to "application/x-git-upload-pack-request")
-        assertEquals(413, over.statusCode())
-        val edge = raw("/${project.owner}/${project.name}/git-upload-pack", "POST", ByteArray(102_400) { 'x'.code.toByte() }, "Content-Type" to "application/x-git-upload-pack-request")
-        assertTrue(edge.statusCode() != 413, edge.statusCode().toString())
+    fun `RPC 본문이 102400바이트를 넘어도 413이 아니다 (공식 v1_16_0은 130MB 푸시도 받는다)`() {
+        // Play는 git 요청 본문을 원시 본문으로 받아 한도가 사실상 없다. 폼 본문의 한도(102400)와 다르다
+        val big = ByteArray(300_000) { 'x'.code.toByte() }
+        val response = raw("/${project.owner}/${project.name}/git-upload-pack", "POST", big, "Content-Type" to "application/x-git-upload-pack-request")
+        assertTrue(response.statusCode() != 413, response.statusCode().toString())
     }
 
     @Test

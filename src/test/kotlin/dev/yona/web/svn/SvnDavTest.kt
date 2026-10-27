@@ -187,6 +187,19 @@ class SvnDavTest {
     }
 
     @Test
+    fun `Depth 머리글 없이 파일을 잠그고 풀 수 있다 (svn 명령줄 클라이언트의 LOCK)`() {
+        val repository = client(publicProject, member)
+        commitOverHttp(repository, "lock.txt", "잠금\n")
+        // Depth 머리글이 없는 LOCK은 SVNKit 1.10이 깊이 infinity로 보고 400으로 거절하므로 0으로 바꿔 받는다
+        val body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><lockinfo xmlns=\"DAV:\"><lockscope><exclusive/></lockscope><locktype><write/></locktype><owner>l</owner></lockinfo>"
+        val request = HttpRequest.newBuilder(URI.create("${url(publicProject)}/lock.txt")).method("LOCK", HttpRequest.BodyPublishers.ofString(body))
+            .header("Content-Type", "text/xml").header("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("${member.loginId}:1234".toByteArray())).build()
+        val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, response.statusCode(), response.body())
+        assertTrue(response.headers().firstValue("Lock-Token").isPresent)
+    }
+
+    @Test
     fun `공백과 한글이 든 경로도 조회하고 읽을 수 있다 (v1_6 svnkit-dav 1_8은 pathInfo를 디코딩한다)`() {
         val repository = client(publicProject, member)
         assertEquals(1L, commitOverHttp(repository, "한글 a.txt", "내용\n"))

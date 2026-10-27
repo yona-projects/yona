@@ -21,8 +21,23 @@ class LocaleConfig(private val properties: YonaProperties) {
     val supportedLocales: List<Locale> get() = SupportedLocales.of(properties.langs)
 
     @Bean
-    fun localeResolver(): LocaleResolver = AcceptHeaderLocaleResolver().apply {
-        supportedLocales = this@LocaleConfig.supportedLocales
-        setDefaultLocale(this@LocaleConfig.supportedLocales.first())
+    fun localeResolver(): LocaleResolver {
+        val supported = supportedLocales
+        return object : AcceptHeaderLocaleResolver() {
+            /**
+             * Play의 `Lang.preferred`처럼 헤더의 언어를 우선순위대로 보며, 언어 코드가 같고 헤더에 나라가 없거나 나라도 같은 첫 지원 언어를 고른다
+             * (`ko`는 `ko-KR`을 고른다). 스프링의 기본 규칙은 나라가 없는 지원 언어에만 언어 코드 일치를 허용한다.
+             */
+            override fun resolveLocale(request: jakarta.servlet.http.HttpServletRequest): Locale {
+                if (request.getHeader("Accept-Language") == null) return supported.first()
+                for (candidate in request.locales) {
+                    supported.firstOrNull { it.language == candidate.language && (candidate.country.isEmpty() || it.country == candidate.country) }?.let { return it }
+                }
+                return supported.first()
+            }
+        }.apply {
+            supportedLocales = supported
+            setDefaultLocale(supported.first())
+        }
     }
 }

@@ -36,6 +36,18 @@ class LocaleConfigTest {
     }
 
     @Test
+    fun `언어 코드만 있는 헤더도 그 언어의 지원 언어를 고른다 (Play Lang_satisfies, git 클라이언트는 ko를 보낸다)`() {
+        val r = resolver(YonaProperties().langs)
+        assertEquals(Locale.forLanguageTag("ko-KR"), r.resolveLocale(request("ko")))
+        assertEquals(Locale.forLanguageTag("ko-KR"), r.resolveLocale(request("ko, en;q=0.9")))
+        assertEquals(Locale.forLanguageTag("ja-JP"), r.resolveLocale(request("ja")))
+        assertEquals(Locale.forLanguageTag("ko-KR"), r.resolveLocale(request("fr, ko;q=0.5")))
+        assertEquals(Locale.forLanguageTag("ko-KR"), r.resolveLocale(request("ko-KR, *;q=0.9")))
+        // 나라가 다르면 맞지 않는다
+        assertEquals(Locale.forLanguageTag("en-US"), r.resolveLocale(request("ko-JP")))
+    }
+
+    @Test
     fun `공백이 섞인 쉼표 목록도 읽는다 (v1_6 설정 형식)`() {
         val locales = SupportedLocales.parse("en-US, ko-KR , ja-JP")
         assertEquals(listOf("en-US", "ko-KR", "ja-JP"), locales.map { it.toLanguageTag() })

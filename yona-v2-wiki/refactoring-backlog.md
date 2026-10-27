@@ -101,7 +101,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-94 | 엑셀 내려받기 링크 | `URI.getQuery()`로 퍼센트 인코딩을 풀어 다시 조립해 `%2B`가 `+`로, `%26`이 `&`로 바뀌고 값 없는 `pageNum`이 빠지며 `&&`가 남는다. 잘못된 주소(`%`, `|`)는 500 | 같게 재현한다. 잘못된 주소는 오류 없이 처리 | `HttpUtil.addQueryString` |
 | R-95 | 접근 로그 | 로거 이름에 URI가 붙어 요청마다 로거 객체가 쌓이고, 접근 거부 요청은 두 줄이 남는다. `application-logger.xml`의 `WARNING` 레벨은 logback에 없어 `DEBUG`가 된다 | 재현하지 않는다 (A-111) | `AccessLogger.java` |
 | R-96 | 검색어의 `%`, `_` | Ebean 3.3.4 `icontains`는 키워드를 이스케이프하지 않아 `%`, `_`가 와일드카드이다(`_`만 넣으면 모든 비어 있지 않은 값에 맞는다) | 같게 재현한다 (A-116) | `Search.java`, Ebean `LikeExpression` |
-| R-97 | Git POST 본문 한도 | 기본 설정에서 100KB(102400바이트)를 넘는 푸시와 복제 요청이 413이다. `parsers.text.maxLength`를 올려야 큰 푸시가 된다 | 같게 재현한다 (A-120) | `GitApp.java:134-136` |
+| R-97 | (해소) Git POST 본문 한도 | 소스를 읽고 100KB 초과를 413으로 재현했으나 실제 릴리스는 130MB 푸시도 받는다. A-170에서 한도를 없앴다 | 해당 없음 | `GitApp.java:134-136` |
 | R-98 | 외부 API 작성자 | 모르는 이메일의 작성자를 익명 사용자(-1)로 저장하고 사용자를 만들지 않는다(`findByEmail`이 `NullUser`를 돌려주어 생성 분기에 닿지 않는다) | 같게 재현한다 (P-10 결정 8) | `IssueApi.java:694-711`, `User.java:337-356` |
 | R-99 | 이메일 형식 | Play `@Constraints.Email`의 정규식은 `\b...\b`라서 로컬 부분이 단어 문자가 아닌 문자(`+`, `.`, `-`)로 시작하는 주소를 거부한다 | 같게 재현한다 | Play 2.3.10 `Constraints$EmailValidator` |
 | R-100 | 최초 관리자 솔트 | 최초 관리자 설정의 솔트를 `Arrays.toString` 형식(`[12, -3, ...]`)으로 저장한다. 일반 가입은 Base64이다 | 같게 재현한다 | `SiteAdmin.java:41-53` |

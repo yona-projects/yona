@@ -101,9 +101,9 @@ class GitHttpController(
             response.contentType = "application/x-$service-advertisement"
             gitHttp.advertise(project, service, response.outputStream)
         } else {
-            // v1.6 GitApp.serviceRpc: 본문이 Play의 한도(parsers.text.maxLength, 기본 102400바이트)를 넘으면 처리하지 않고 413이다.
-            // 한도는 압축을 풀기 전의 전송 바이트로 센다. 길이를 모르는 본문(chunked)은 한도까지 읽어 본다.
-            val raw = readLimitedBody(request) ?: return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).build<Void>()
+            // v1.6 `GitApp.service`는 `isMaxSizeExceeded()`가 참이면 413이지만, Play가 이 요청(`application/x-git-*-request`)을 원시 본문으로 받아
+            // 한도가 사실상 없다. 공식 v1.16.0에 130MB를 푸시해 성공을 확인했다. 폼 본문의 한도(`parsers.text.maxLength`)와 다르다.
+            val raw = request.inputStream
             recentVisits.visits(user, project)
             response.contentType = "application/x-$service-result"
             val input = if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(raw) else raw
@@ -111,20 +111,6 @@ class GitHttpController(
         }
         // 응답 본문을 직접 썼으므로 더 쓸 것이 없다.
         return null
-    }
-
-    /**
-     * 요청 본문을 읽을 스트림이다. 한도([dev.yona.config.YonaProperties.parsersTextMaxLength])를 넘으면 `null`이다.
-     * 본문 길이를 알면 그 값으로 바로 판단하고, 모르면(chunked) 한도보다 한 바이트 더 읽어 보고 넘는지 가린다.
-     */
-    private fun readLimitedBody(request: HttpServletRequest): java.io.InputStream? {
-        val limit = properties.parsersTextMaxLength
-        val declared = request.contentLengthLong
-        if (declared > limit) return null
-        if (declared >= 0) return request.inputStream
-        val head = request.inputStream.readNBytes((limit + 1).toInt())
-        if (head.size > limit) return null
-        return head.inputStream()
     }
 
     /** 복제는 읽기, 푸시는 수정 권한이다. 코드를 구성원에게만 여는 프로젝트는 구성원이 아니면 수정 권한을 요구한다. */
