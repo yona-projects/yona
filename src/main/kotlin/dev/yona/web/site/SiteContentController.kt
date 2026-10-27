@@ -87,7 +87,7 @@ class SiteContentController(
         if (pageNum < 1) return ErrorViews.badRequest()
         val page = service.postings(pageNum - 1)
         val rows = page.items.map { post ->
-            contentRow(post.project, post.title, "/${post.project?.owner}/${post.project?.name}/post/${post.number}", post.authorLoginId, post.createdDate, post.numOfComments ?: 0) { it.name.orEmpty() }
+            contentRow(post.project, post.title, "${dev.yona.util.UrlPaths.projectPath(post.project?.owner, post.project?.name)}/post/${post.number}", post.authorLoginId, post.createdDate, post.numOfComments ?: 0) { it.name.orEmpty() }
         }
         return ModelAndView("site/post-list").addObject("title", "title.siteSetting").addObject("rows", rows).addObject("totalPageCount", page.totalPageCount)
     }
@@ -100,7 +100,7 @@ class SiteContentController(
         val page = service.issues(current, pageNum - 1)
         val viewerLang = currentUserProvider.get().user?.lang
         val rows = page.items.map { issue ->
-            contentRow(issue.project, issue.title, "/${issue.project?.owner}/${issue.project?.name}/issue/${issue.number}", issue.authorLoginId, issue.createdDate, issue.numOfComments ?: 0) { UserDisplay.of(it, viewerLang) }
+            contentRow(issue.project, issue.title, "${dev.yona.util.UrlPaths.projectPath(issue.project?.owner, issue.project?.name)}/issue/${issue.number}", issue.authorLoginId, issue.createdDate, issue.numOfComments ?: 0) { UserDisplay.of(it, viewerLang) }
         }
         return ModelAndView("site/issue-list").addObject("title", "title.siteSetting").addObject("rows", rows)
             .addObject("currentState", current.name.lowercase()).addObject("totalPageCount", page.totalPageCount)

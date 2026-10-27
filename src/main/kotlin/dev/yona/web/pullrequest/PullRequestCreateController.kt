@@ -107,7 +107,7 @@ class PullRequestCreateController(
         val fromBranch = request.getParameter("fromBranch").takeUnless { it.isNullOrBlank() } ?: fromBranches[0].name
         val toBranch = request.getParameter("toBranch").takeUnless { it.isNullOrBlank() } ?: repositories.defaultBranch(project)
         val associated = associationProjects(project)
-        val base = siteUrls.path("/${project.owner}/${project.name}")
+        val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
         return ModelAndView("pullrequest/create")
             .addObject("title", "title.newPullRequest")
             .addObject("projectView", views.of(project))
@@ -172,7 +172,7 @@ class PullRequestCreateController(
 
         val creation = pullRequestService.create(PullRequestForm(title, body, from, to, fromBranch, toBranch), viewer)
         val pullRequest = creation.pullRequest
-        val location = "/${pullRequest.toProject?.owner}/${pullRequest.toProject?.name}/pullRequest/${pullRequest.number}"
+        val location = "${dev.yona.util.UrlPaths.projectPath(pullRequest.toProject?.owner, pullRequest.toProject?.name)}/pullRequest/${pullRequest.number}"
         if (!creation.created) return RedirectSupport.see(request, response, siteUrls.path(location))
 
         val flash = postAttachments.attach(request, viewer, ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id))
@@ -234,7 +234,7 @@ class PullRequestCreateController(
         val lines = commit.message.split("\n").dropLastWhile { it.isEmpty() }
         val more = lines.size > 1
         return MergeCommitRow(
-            shortId = commit.shortId, commitUrl = siteUrls.path("/${from.owner}/${from.name}/commit/${commit.id}"),
+            shortId = commit.shortId, commitUrl = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(from.owner, from.name)}/commit/${commit.id}"),
             commentCount = commitComments.countByProjectIdAndCommitId(requireNotNull(from.id), commit.id),
             shortMessageHtml = HtmlUtils.htmlEscape(short), hasMore = more, moreHtml = HtmlUtils.htmlEscape(commit.message.replace(short + "\n", "")),
             date = helper.agoOrDateString(commit.authorDate), dateTitle = helper.dateString(commit.authorDate), authorEmail = commit.authorEmail,

@@ -12,7 +12,7 @@
     <div class="error-wrap">
       <i class="ico ico-err2"></i>
       <p th:text="${#messages.msgOrNull(messageKey) ?: messageKey}"></p>
-      <a th:if="${currentUser.anonymous}" th:href="@{/users/loginform(redirectUrl=${requestUri})}" class="ybtn ybtn-primary" data-login="required" th:text="#{title.login}"></a>
+      <a th:if="${currentUser.anonymous}" th:href="@{'/users/loginform?redirectUrl=' + ${requestUri}}" class="ybtn ybtn-primary" data-login="required" th:text="#{title.login}"></a>
     </div>
   </div>
 </div>

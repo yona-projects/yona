@@ -7,8 +7,8 @@
   매개변수: menu(MenuType 이름), project(프로젝트 또는 null), org(조직 또는 null)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="navbar(menu, project, org)"
-          th:with="searchLink=${project != null ? '/' + project.owner + '/' + project.name + '/search'
-                              : (org != null ? '/organizations/' + org.name + '/search' : '/search')}">
+          th:with="projectBase=${project != null ? #paths.project(project.owner, project.name) : null}, projectGroupBase=${project != null ? #paths.organization(project.owner) : null}, orgBase=${org != null ? #paths.organization(org.name) : null},
+                  searchLink=${project != null ? projectBase + '/search' : (org != null ? orgBase + '/search' : '/search')}">
 <div class="unsupported hidden">
     <div class="unsupported-inner">
         <p id="unsupported-content">
@@ -43,18 +43,18 @@
                         <ul class="dropdown-menu flat right">
                             <th:block th:if="${project != null}">
                             <li>
-                                <a href="#" data-toggle="search-scope" th:data-action="@{'/' + ${project.owner} + '/' + ${project.name} + '/search'}" th:text="#{search.scope.project}">
+                                <a href="#" data-toggle="search-scope" th:data-action="@{${projectBase} + '/search'}" th:text="#{search.scope.project}">
                                 </a>
                             </li>
                             <li th:if="${project.hasGroup()}">
-                                <a href="#" data-toggle="search-scope" th:data-action="@{'/organizations/' + ${project.owner} + '/search'}" th:text="#{search.scope.group}">
+                                <a href="#" data-toggle="search-scope" th:data-action="@{${projectGroupBase} + '/search'}" th:text="#{search.scope.group}">
                                 </a>
                             </li>
                             </th:block>
                             <th:block th:if="${org != null}">
                                 <th:block th:if="${site.hideProjectListing or currentUser.guest}">
                                     <li th:if="${currentUser.memberOf(org) or currentUser.adminOf(org)}">
-                                        <a href="#" data-toggle="search-scope" th:data-action="@{'/organizations/' + ${org.name} + '/search'}" th:text="#{search.scope.group}">
+                                        <a href="#" data-toggle="search-scope" th:data-action="@{${orgBase} + '/search'}" th:text="#{search.scope.group}">
                                         </a>
                                     </li>
                                 </th:block>

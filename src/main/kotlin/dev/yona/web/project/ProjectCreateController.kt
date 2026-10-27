@@ -74,7 +74,7 @@ class ProjectCreateController(
         }
 
         val project = createService.create(form, requireNotNull(creator))
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}")
+        return RedirectSupport.see(request, response, dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
     }
 
     // --- 입력과 화면 ---

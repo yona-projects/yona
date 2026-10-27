@@ -10,7 +10,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'ISSUE', ~{::createPage})}">
-<th:block th:fragment="createPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:fragment="createPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'ISSUE', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
@@ -126,14 +126,14 @@
         }
 
         yonaAssgineeModule(
-                /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/assignableUsers'}]]*/ "",
+                /*[[${'/-_-api/v1/owners/' + #paths.segment(project.owner) + '/projects/' + #paths.segment(project.name) + '/assignableUsers'}]]*/ "",
                 "",
                 /*[[#{issue.assignee}]]*/ ""
         );
 
         yonaTitleHeadModule({
             "target": 'input[id=title]',
-            "url"   : /*[[${'/-_-api/v1/owners/' + project.owner + '/projects/' + project.name + '/titleHeads'}]]*/ ""
+            "url"   : /*[[${'/-_-api/v1/owners/' + #paths.segment(project.owner) + '/projects/' + #paths.segment(project.name) + '/titleHeads'}]]*/ ""
         });
 
         $('#button-save').on('click', function(){

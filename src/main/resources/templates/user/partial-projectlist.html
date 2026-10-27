@@ -6,7 +6,7 @@
   이식 원본: app/views/user/partial_projectlist.scala.html
   매개변수: project(UserProjectRow)
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectRow(project)" th:with="base=${'/' + project.owner + '/' + project.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectRow(project)" th:with="base=${#paths.project(project.owner, project.name)}">
 <li class="project">
     <div class="info-wrap">
         <div class="pull-left">
@@ -45,7 +45,7 @@
                 </a>
             </th:block>
 
-            <a th:if="${project.canLeave}" th:href="@{${'/info/leave/' + project.owner + '/' + project.name}}" th:attr="data-projectName=${project.name}" class="nbtn black medium last leaveProject">
+            <a th:if="${project.canLeave}" th:href="@{${'/info/leave' + #paths.project(project.owner, project.name)}}" th:attr="data-projectName=${project.name}" class="nbtn black medium last leaveProject">
                 <i class="yobicon-trash"></i> <th:block th:text="#{userinfo.leaveProject}"></th:block>
             </a>
         </div>

@@ -56,7 +56,7 @@ class SvnCodeBrowser(
                 "type" to if (entry.directory) "folder" else "file", "msg" to entry.message, "author" to author, "avatar" to avatar(user),
                 "userName" to userName(user), "userLoginId" to user?.loginId.orEmpty(), "createdDate" to time, "commitMessage" to entry.message,
                 "commiter" to author, "commitDate" to time, "commitId" to entry.revision,
-                "commitUrl" to siteUrls.path("/${project.owner}/${project.name}/commit/${entry.revision}"), "size" to entry.size
+                "commitUrl" to siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/commit/${entry.revision}"), "size" to entry.size
             )
         }
         return linkedMapOf("type" to "folder", "data" to data)

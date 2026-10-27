@@ -102,7 +102,7 @@ class DiffHtmlRenderer(private val messages: MessageSource, private val siteUrls
 
     private fun commitLink(project: Project, commit: String?, path: String?): String {
         if (commit == null || path == null) return "&nbsp;"
-        val href = siteUrls.path("/${project.owner}/${project.name}/code/${UrlPaths.encode(commit)}/$path")  // 역방향 라우트의 `*path`는 인코딩하지 않는다
+        val href = siteUrls.path("${UrlPaths.projectPath(project.owner, project.name)}/code/${UrlPaths.encode(commit)}/$path")  // 역방향 라우트의 `*path`는 인코딩하지 않는다
         return "<a href=\"${esc(href)}\" title=\"${esc(commit)}\" target=\"_blank\">${esc(shortId(commit))}</a>"
     }
 

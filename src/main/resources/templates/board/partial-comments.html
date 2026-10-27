@@ -6,7 +6,7 @@
   이식 원본: app/views/board/partial_comments.scala.html
   모델: projectView, post(PostDetail)
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentList" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentList" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <div class="comment-header"><i class="yobicon-comments"></i> <strong th:text="#{common.comment}"></strong> <strong class="num" th:text="${post.commentCount}"></strong></div>
 <hr class="nm" />
 

@@ -93,7 +93,7 @@ class OrganizationListController(
             request.getParameter("contributorId")?.toLongOrNull(), request.getParameter("pageNum")?.toIntOrNull() ?: 1, ids
         )
         val page = pullRequestSearch.search(condition)
-        val base = "/organizations/${organization.name}"
+        val base = dev.yona.util.UrlPaths.organizationPath(organization.name)
         return ModelAndView("organization/pullrequest-list")
             .addObject("title", "title.pullrequest")
             .addObject("orgView", orgViews.of(organization))

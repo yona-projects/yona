@@ -96,7 +96,7 @@ class PullRequestActionController(
     fun editForm(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long): Any {
         val (toProject, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val from = requireNotNull(pullRequest.fromProject)
-        val fromBase = siteUrls.path("/${from.owner}/${from.name}")
+        val fromBase = siteUrls.path(dev.yona.util.UrlPaths.projectPath(from.owner, from.name))
         return ModelAndView("pullrequest/edit")
             .addObject("title", "title.editPullRequest")
             .addObject("projectView", views.of(toProject))
@@ -136,7 +136,7 @@ class PullRequestActionController(
             if (duplicate != null) {
                 // v1.6는 수정 화면 주소를 받는 프로젝트가 아니라 보내는 프로젝트로 만든다 ([refactoring-backlog.md] R-43).
                 return RedirectSupport.see(
-                    request, response, siteUrls.path("/${from.owner}/${from.name}/pullRequest/${pullRequest.number}/editform"), mapOf(RedirectSupport.WARNING to "pullRequest.duplicated")
+                    request, response, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(from.owner, from.name)}/pullRequest/${pullRequest.number}/editform"), mapOf(RedirectSupport.WARNING to "pullRequest.duplicated")
                 )
             }
         }
@@ -177,11 +177,11 @@ class PullRequestActionController(
 
     private fun base(pullRequest: PullRequest): String {
         val project = requireNotNull(pullRequest.toProject)
-        return siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.number}")
+        return siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}")
     }
 
     private fun redirect(request: HttpServletRequest, response: HttpServletResponse, project: Project, pullRequest: PullRequest) =
-        RedirectSupport.see(request, response, siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.number}"))
+        RedirectSupport.see(request, response, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}"))
 
     private companion object {
         const val MAX_TITLE = 255

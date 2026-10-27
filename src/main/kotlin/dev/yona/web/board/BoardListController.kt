@@ -53,7 +53,7 @@ class BoardListController(
         )
         val page = searchService.search(project, condition, ITEMS_PER_PAGE)
         val labels = labelService.labels(project)
-        val base = "/${project.owner}/${project.name}/posts"
+        val base = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/posts"
         return ModelAndView("board/list")
             .addObject("title", "menu.board")
             .addObject("projectView", views.of(project))

@@ -229,6 +229,16 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `개요가 없는 프로젝트 항목의 검색 값은 이름 뒤에 빈 문자열이 붙는다 (Twirl은 null을 빈 문자열로 쓴다)`() {
+        val org = newOrg()
+        val project = orgProject(org, name = "noover")
+        project.overview = null
+        projects.save(project)
+        val item = page("/organizations/${org.name}", login(join(org, newUser(), RoleType.ORG_ADMIN))).selectFirst("li.project")!!
+        assertEquals("noover ", item.attr("data-value"))
+    }
+
+    @Test
     fun `구성원 영역은 조직에 속한 사람과 사이트 관리자에게만 보인다`() {
         val org = newOrg()
         val admin = join(org, newUser("관리자"), RoleType.ORG_ADMIN)

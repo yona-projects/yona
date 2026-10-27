@@ -6,7 +6,7 @@
   이식 원본: app/views/issue/partial_massupdate.scala.html
   모델: projectView, massUpdate(MassUpdate), currentUser
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="massupdate" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="massupdate" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <script type="text/x-jquery-tmpl" id="labelListItem" th:inline="none">
 <li data-value="${id}" data-category="${category}">
     <a><span class="issue-label active list-label" data-label-id="${id}">${name}</span></a>

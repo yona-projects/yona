@@ -77,7 +77,7 @@ class OrganizationMemberController(
     @Transactional
     fun add(@PathVariable organizationName: String, request: HttpServletRequest, response: HttpServletResponse): Any {
         val organization = organizationService.findByName(organizationName)
-        val membersUrl = "/organizations/$organizationName/members"
+        val membersUrl = "${dev.yona.util.UrlPaths.organizationPath(organizationName)}/members"
         val denied = management.addMember(organization, currentUserProvider.get().user, request.getParameter("loginId"))
         return RedirectSupport.see(request, response, membersUrl, if (denied != null) mapOf(RedirectSupport.WARNING to denied) else emptyMap())
     }
@@ -111,7 +111,7 @@ class OrganizationMemberController(
         val denied = management.removeMember(organization, viewer, userId)
         if (denied != null) return rejected(request, response, organizationName, denied)
 
-        val location = if (viewer?.id == userId) "/organizations/$organizationName" else "/organizations/$organizationName/members"
+        val location = if (viewer?.id == userId) dev.yona.util.UrlPaths.organizationPath(organizationName) else "${dev.yona.util.UrlPaths.organizationPath(organizationName)}/members"
         return json(HttpStatus.OK, mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, location)))
     }
 
@@ -123,13 +123,13 @@ class OrganizationMemberController(
             ?: return json(HttpStatus.NOT_FOUND, mapOf("errorMsg" to "organization.member.unknownOrganization"))
         val denied = management.leave(organization, requireNotNull(currentUserProvider.get().user))
         if (denied != null) return json(HttpStatus.FORBIDDEN, mapOf("errorMsg" to denied))
-        return json(HttpStatus.OK, mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "/organizations/$organizationName")))
+        return json(HttpStatus.OK, mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, dev.yona.util.UrlPaths.organizationPath(organizationName))))
     }
 
     /** 거부 이유를 다음 화면의 안내로 남기고 구성원 화면 주소를 JSON으로 알린다. */
     private fun rejected(request: HttpServletRequest, response: HttpServletResponse, organizationName: String, key: String): ResponseEntity<Map<String, String>> {
         RedirectSupport.saveFlash(request, response, mapOf(RedirectSupport.WARNING to key))
-        return json(HttpStatus.OK, mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "/organizations/$organizationName/members")))
+        return json(HttpStatus.OK, mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "${dev.yona.util.UrlPaths.organizationPath(organizationName)}/members")))
     }
 
     private fun json(status: HttpStatus, body: Map<String, String>): ResponseEntity<Map<String, String>> =

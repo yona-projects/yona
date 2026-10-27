@@ -73,7 +73,7 @@ class ProjectHomeTabsAssembler(
         val pullRequestArea = pullRequestMenu && git
         val pulls = if (pullRequestArea) dashboard.pullRequests(project) else null
         return DashboardView(
-            issueMenu = issueMenu, pullRequestArea = pullRequestArea, owner = owner, name = name, issueBase = siteUrls.path("/$owner/$name/issues?state=open"),
+            issueMenu = issueMenu, pullRequestArea = pullRequestArea, owner = owner, name = name, issueBase = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(owner, name)}/issues?state=open"),
             assignee = assignee, assigneeAvatars = assignee?.rows?.associate { requireNotNull(it.user.id) to avatars.avatarUrl(it.user, SMALL_AVATAR) }.orEmpty(),
             milestone = if (issueMenu) dashboard.byMilestone(project) else null,
             pullRequests = pulls?.recent.orEmpty().map { row(it, owner, name) }, pullRequestOpenCount = pulls?.openCount ?: 0,
@@ -85,9 +85,9 @@ class ProjectHomeTabsAssembler(
         val to = requireNotNull(pr.toProject)
         val who = pr.contributor
         return DashboardPullRequestRow(
-            href = siteUrls.path("/${to.owner}/${to.name}/pullRequest/${pr.number}"), title = pr.title.orEmpty(), contributorId = who?.id, contributorLoginId = who?.loginId.orEmpty(),
+            href = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(to.owner, to.name)}/pullRequest/${pr.number}"), title = pr.title.orEmpty(), contributorId = who?.id, contributorLoginId = who?.loginId.orEmpty(),
             contributorName = who?.name.orEmpty(), avatarUrl = who?.let { avatars.avatarUrl(it, SMALL_AVATAR) }.orEmpty(),
-            filterHref = siteUrls.path("/$owner/$name/pullRequests?contributorId=${who?.id}"), ago = helper.agoOrDateString(pr.created)
+            filterHref = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(owner, name)}/pullRequests?contributorId=${who?.id}"), ago = helper.agoOrDateString(pr.created)
         )
     }
 

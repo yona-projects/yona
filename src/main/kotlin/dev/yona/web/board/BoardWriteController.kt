@@ -105,19 +105,19 @@ class BoardWriteController(
         }
         if (request.getParameter("issueTemplate") == "true") {
             commitRootFile(project, viewer, "ISSUE_TEMPLATE.md", form)
-            return RedirectSupport.see(request, response, "/${project.owner}/${project.name}")
+            return RedirectSupport.see(request, response, dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
         }
         val path = request.getParameter("path")
         if (!path.isNullOrEmpty() && projectUsers.existsByUserIdAndProjectId(requireNotNull(viewer.id), requireNotNull(project.id))) {
             val branch = request.getParameter("branch").orEmpty()
             onlineCommit.commitTextFile(project, viewer, branch, path, LineEnding.change(body, request.getParameter("lineEnding")), title)
-            return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/code/${UriUtils.encodePathSegment(branch, Charsets.UTF_8)}/${dev.yona.util.UrlPaths.encodeEach(path)}")
+            return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/code/${UriUtils.encodePathSegment(branch, Charsets.UTF_8)}/${dev.yona.util.UrlPaths.encodeEach(path)}")
         }
 
         // v1.6 `newPost`는 `notice` 폼 값을 권한 검사 없이 그대로 저장한다(화면에서만 공지 선택을 숨긴다)
         val posting = postingService.create(project, viewer, form)
         val flash = postAttachments.attach(request, viewer, ResourceType.BOARD_POST, requireNotNull(posting.id))
-        return RedirectSupport.see(request, response, if (form.readme) "/${project.owner}/${project.name}" else "/${project.owner}/${project.name}/post/${posting.number}", flash)
+        return RedirectSupport.see(request, response, if (form.readme) dev.yona.util.UrlPaths.projectPath(project.owner, project.name) else "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/post/${posting.number}", flash)
     }
 
     // --- 수정 ---
@@ -166,7 +166,7 @@ class BoardWriteController(
         }
         postingService.update(posting, viewer, form, request.getParameter("notificationMail") == "yes")
         val flash = postAttachments.attach(request, viewer, ResourceType.BOARD_POST, requireNotNull(posting.id))
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/post/${posting.number}", flash)
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/post/${posting.number}", flash)
     }
 
     // --- 삭제 ---
@@ -183,7 +183,7 @@ class BoardWriteController(
         val viewer = currentUserProvider.get().user ?: return ErrorViews.forbidden()
         if (!accessControl.isAllowed(viewer, posting.asResource(), Operation.DELETE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         postingService.delete(posting, viewer)
-        val location = "/${project.owner}/${project.name}/posts"
+        val location = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/posts"
         if (AjaxRequests.isXhr(request)) return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, location).build<Void>()
         return RedirectSupport.see(request, response, location)
     }

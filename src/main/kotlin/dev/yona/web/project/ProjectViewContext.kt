@@ -126,7 +126,7 @@ class ProjectViewContext(
     val canLeave: Boolean by lazy { deps.accessControl.isAllowed(viewer, project.asResource(), Operation.LEAVE) }
 
     /** 보는 사용자가 프로젝트를 탈퇴할 때 호출하는 주소이다. 익명이면 `null`이다. */
-    val leaveUrl: String? get() = viewerId?.let { "/${project.owner}/${project.name}/member/$it/delete" }
+    val leaveUrl: String? get() = viewerId?.let { "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/member/$it/delete" }
 
     /** 사용자가 프로젝트에 역할을 가지고 있으면(역할 무관) `true`이다 (v1.6 `ProjectUser.isMember`). 일괄 처리 선택 상자를 보일지 정한다. */
     val projectMember: Boolean by lazy { viewerId?.let { deps.projectUsers.existsByUserIdAndProjectId(it, projectId) } ?: false }
@@ -149,7 +149,7 @@ class ProjectViewContext(
      * v1.6 `routes.PullRequestApp`의 풀 리퀘스트 목록 주소이다. 포크한 프로젝트는 보낸 요청 목록으로 간다.
      */
     val pullRequestPath: String
-        get() = "/${project.owner}/${project.name}/" + if (forked) "sentPullRequests" else "pullRequests"
+        get() = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/" + if (forked) "sentPullRequests" else "pullRequests"
 
     /** Git 프로젝트이면 `true`이다. */
     val git: Boolean get() = project.vcs == "GIT"

@@ -66,7 +66,7 @@ class PullRequestPageAssembler(
 
     fun baseUrl(pullRequest: PullRequest): String {
         val project = requireNotNull(pullRequest.toProject)
-        return siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.number}")
+        return siteUrls.path("${UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}")
     }
 
     /**
@@ -125,11 +125,11 @@ class PullRequestPageAssembler(
     fun branchInfo(pullRequest: PullRequest): BranchInfoView {
         val from = requireNotNull(pullRequest.fromProject)
         val to = requireNotNull(pullRequest.toProject)
-        fun code(project: Project, branch: String) = siteUrls.path("/${project.owner}/${project.name}/code/${UrlPaths.routeSegment(branch)}")  // 역방향 라우트는 경로가 비면 끝에 `/`가 없다
+        fun code(project: Project, branch: String) = siteUrls.path("${UrlPaths.projectPath(project.owner, project.name)}/code/${UrlPaths.routeSegment(branch)}")  // 역방향 라우트는 경로가 비면 끝에 `/`가 없다
         return BranchInfoView(
-            siteUrls.path("/${from.owner}"), from.owner.orEmpty(), siteUrls.path("/${from.owner}/${from.name}"), from.name.orEmpty(), code(from, pullRequest.fromBranch.orEmpty()),
+            siteUrls.path("/${from.owner}"), from.owner.orEmpty(), siteUrls.path(UrlPaths.projectPath(from.owner, from.name)), from.name.orEmpty(), code(from, pullRequest.fromBranch.orEmpty()),
             CodePageAssembler.branchItemName(pullRequest.fromBranch.orEmpty()),
-            siteUrls.path("/${to.owner}"), to.owner.orEmpty(), siteUrls.path("/${to.owner}/${to.name}"), to.name.orEmpty(), code(to, pullRequest.toBranch.orEmpty()),
+            siteUrls.path("/${to.owner}"), to.owner.orEmpty(), siteUrls.path(UrlPaths.projectPath(to.owner, to.name)), to.name.orEmpty(), code(to, pullRequest.toBranch.orEmpty()),
             CodePageAssembler.branchItemName(pullRequest.toBranch.orEmpty())
         )
     }
@@ -180,13 +180,13 @@ class PullRequestPageAssembler(
             EventType.PULL_REQUEST_STATE_CHANGED ->
                 if (new == "merged") {
                     val commit = pullRequest.mergedCommitIdTo.orEmpty()
-                    val link = "<a class=\"link\" href=\"${siteUrls.path("/${to.owner}/${to.name}/commit/$commit")}\" title=\"${HtmlUtils.htmlEscape(text("code.showCommit"))}\">${commit.take(SHORT_ID)}</a>"
+                    val link = "<a class=\"link\" href=\"${siteUrls.path("${UrlPaths.projectPath(to.owner, to.name)}/commit/$commit")}\" title=\"${HtmlUtils.htmlEscape(text("code.showCommit"))}\">${commit.take(SHORT_ID)}</a>"
                     TimelineEvent(id, new, "pullRequest.event.$new", text("pullRequest.event.message.$new", user, link), ago, agoTitle, null, emptyList())
                 } else TimelineEvent(id, new.orEmpty(), "pullRequest.event.$new", text("pullRequest.event.message.$new", user), ago, agoTitle, null, emptyList())
             EventType.PULL_REQUEST_MERGED ->
                 TimelineEvent(id, new.orEmpty(), "pullRequest.event.$new", text("pullRequest.event.message.$new", user), ago, agoTitle, null, emptyList())
             EventType.PULL_REQUEST_COMMIT_CHANGED -> {
-                val compare = event.oldValue?.split(PullRequestEventService.DELIMITER)?.let { siteUrls.path("/${to.owner}/${to.name}/compare/${it[0]}..${it[1]}") }
+                val compare = event.oldValue?.split(PullRequestEventService.DELIMITER)?.let { siteUrls.path("${UrlPaths.projectPath(to.owner, to.name)}/compare/${it[0]}..${it[1]}") }
                 TimelineEvent(id, "changed", "pullRequest.event.commit", text("pullRequest.event.message.commit", user), ago, agoTitle, compare, commitsOf(pullRequest, event))
             }
             else -> null
@@ -200,7 +200,7 @@ class PullRequestPageAssembler(
                 val author = userLookup.findByEmail(commit.authorEmail)
                 val message = commit.commitMessage.orEmpty()
                 val short = message.split("\n")[0]
-                val url = siteUrls.path("/${to.owner}/${to.name}/pullRequest/${pullRequest.number}/changes/${commit.commitId}")
+                val url = siteUrls.path("${UrlPaths.projectPath(to.owner, to.name)}/pullRequest/${pullRequest.number}/changes/${commit.commitId}")
                 TimelineCommit(
                     commitUrl = url, shortId = commit.commitShortId.orEmpty(), outdated = commit.state == PullRequestCommitState.PRIOR,
                     authorHref = author?.let { siteUrls.path("/${it.loginId}") }, authorName = author?.name,
@@ -229,7 +229,7 @@ class PullRequestPageAssembler(
     fun commitChoices(pullRequest: PullRequest): List<CommitChoice> {
         val to = requireNotNull(pullRequest.toProject)
         return commits.findByPullRequestId(requireNotNull(pullRequest.id)).filter { it.state == PullRequestCommitState.CURRENT }.map {
-            CommitChoice(it.commitId.orEmpty(), it.commitShortId.orEmpty(), it.commitMessage.orEmpty().split("\n")[0], siteUrls.path("/${to.owner}/${to.name}/pullRequest/${pullRequest.number}/changes/${it.commitId}"))
+            CommitChoice(it.commitId.orEmpty(), it.commitShortId.orEmpty(), it.commitMessage.orEmpty().split("\n")[0], siteUrls.path("${UrlPaths.projectPath(to.owner, to.name)}/pullRequest/${pullRequest.number}/changes/${it.commitId}"))
         }
     }
 

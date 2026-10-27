@@ -102,7 +102,7 @@ class CommitViewController(
         val viewer = currentUserProvider.get().user
         val onCommit = threads.onCommit(project, commit.id)
         val codeThreads = onCommit.filterIsInstance<CodeCommentThread>()
-        val base = siteUrls.path("/$owner/$name")
+        val base = siteUrls.path(UrlPaths.projectPath(owner, name))
         val resource = ProjectResource("${project.id}:${commit.id}", ResourceType.COMMIT, project)
         val creatable = accessControl.isProjectResourceCreatable(viewer, project, ResourceType.COMMIT_COMMENT)
         val selectedBranch = branch?.ifBlank { null } ?: "HEAD"
@@ -145,7 +145,7 @@ class CommitViewController(
         val projectId = requireNotNull(project.id)
         val patch = svn.patch(owner, name, commit.id)
         val viewer = currentUserProvider.get().user
-        val base = siteUrls.path("/$owner/$name")
+        val base = siteUrls.path(UrlPaths.projectPath(owner, name))
         val author = commit.authorName.takeIf { it.isNotEmpty() }?.let { users.findByLoginId(it) }
         val selectedBranch = branch?.ifBlank { null } ?: "HEAD"
         val selectedPath = path.orEmpty()
@@ -203,8 +203,8 @@ class CommitViewController(
                 .addObject("projectView", views.of(project))
                 .addObject("commitA", commitA.id).addObject("commitB", commitB.id)
                 .addObject("patch", patch)
-                .addObject("tplFileUrl", siteUrls.path("/$owner/$name/code/") + "\$%7BcommitId%7D/\${path}")
-                .addObject("tplRawUrl", siteUrls.path("/$owner/$name/rawcode/") + "\$%7BcommitId%7D/\${path}")
+                .addObject("tplFileUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/code/") + "\$%7BcommitId%7D/\${path}")
+                .addObject("tplRawUrl", siteUrls.path("${UrlPaths.projectPath(owner, name)}/rawcode/") + "\$%7BcommitId%7D/\${path}")
         }
         val fileDiffs = diffs.diff(project, revA, revB)
         return ModelAndView("code/compare")

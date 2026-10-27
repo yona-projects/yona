@@ -9,11 +9,11 @@
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::changeVcsPage})}">
-<th:block th:fragment="changeVcsPage" th:with="project=${projectView.project}, nextVcs=${projectView.project.nextVcs()}">
+<th:block th:fragment="changeVcsPage" th:with="project=${projectView.project}, nextVcs=${projectView.project.nextVcs()}, projectBase=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${'/' + project.owner + '/' + project.name + '/changeVCS'})}"></th:block>
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${projectBase + '/changeVCS'})}"></th:block>
         <div class="bubble-wrap gray wp">
             <div class="row-fluid">
                 <h3><th:block th:text="${project.vcs}"></th:block> <i class="yobicon-right-2 vmiddle"></i> <th:block th:text="${nextVcs}"></th:block></h3>
@@ -56,7 +56,7 @@
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yobi.loadModule("project.ChangeVCS", {
-            "sTransferURL": [[${'/' + project.owner + '/' + project.name + '/changeVCS'}]]
+            "sTransferURL": [[${projectBase + '/changeVCS'}]]
         });
     });
 </script>

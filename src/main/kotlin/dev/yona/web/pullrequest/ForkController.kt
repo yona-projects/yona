@@ -64,7 +64,7 @@ class ForkController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val user = requireNotNull(currentUserProvider.get().user)
         val destination = forks.destination(forkOwner, user)
-        val base = siteUrls.path("/${project.owner}/${project.name}")
+        val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
         val organizations = adminOrganizations(user)
         return ModelAndView("pullrequest/fork")
             .addObject("title", "fork")
@@ -75,7 +75,7 @@ class ForkController(
             .addObject("forkOwner", destination)
             .addObject("forkName", forks.suggestName(project, destination))
             .addObject("owners", ownerOptions(project, user.loginId.orEmpty(), organizations, destination))
-            .addObject("existing", forks.existingForks(project, destination).map { ExistingFork("${it.owner} / ${it.name}", siteUrls.path("/${it.owner}/${it.name}")) })
+            .addObject("existing", forks.existingForks(project, destination).map { ExistingFork("${it.owner} / ${it.name}", siteUrls.path(dev.yona.util.UrlPaths.projectPath(it.owner, it.name))) })
             .addObject("protectedAllowed", forks.isOrganization(destination))
     }
 
@@ -93,7 +93,7 @@ class ForkController(
         val user = requireNotNull(currentUserProvider.get().user)
         val scope = bind(forkName, projectScope)
         val destination = forks.destination(request.getParameter("owner"), user)
-        val base = siteUrls.path("/${project.owner}/${project.name}")
+        val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
 
         if (forks.nameTaken(destination, forkName.orEmpty())) {
             return RedirectSupport.see(request, response, "$base/newFork?forkOwner=$destination", mapOf(RedirectSupport.WARNING to "project.name.duplicate"))
@@ -126,11 +126,11 @@ class ForkController(
         val user = requireNotNull(currentUserProvider.get().user)
         val scope = bind(forkName, projectScope)
         val destination = forks.destination(request.getParameter("owner"), user)
-        val failed = linkedMapOf("status" to "failed", "url" to siteUrls.path("/${original?.owner}/${original?.name}/pullRequests"))
+        val failed = linkedMapOf("status" to "failed", "url" to siteUrls.path("${dev.yona.util.UrlPaths.projectPath(original?.owner, original?.name)}/pullRequests"))
         if (original == null || forks.nameTaken(destination, forkName.orEmpty())) return failed
         return try {
             val fork = forks.fork(original, destination, requireNotNull(forkName), scope, user)
-            linkedMapOf("status" to "success", "url" to siteUrls.path("/${fork.owner}/${fork.name}"))
+            linkedMapOf("status" to "success", "url" to siteUrls.path(dev.yona.util.UrlPaths.projectPath(fork.owner, fork.name)))
         } catch (e: Exception) {
             log.error("Failed to fork \"{}/{}\"", original.owner, original.name, e)
             failed
@@ -147,7 +147,7 @@ class ForkController(
     private fun adminOrganizations(user: dev.yona.domain.user.User) = forks.adminOrganizationNames(user)
 
     private fun ownerOptions(project: Project, loginId: String, organizations: List<String>, destination: String): List<ForkOwnerOption> {
-        val base = siteUrls.path("/${project.owner}/${project.name}")
+        val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
         return listOf(ForkOwnerOption(loginId, "$base/newFork?forkOwner=$loginId", false)) +
             organizations.map { ForkOwnerOption(it, "$base/newFork?forkOwner=$it", it == destination) }
     }

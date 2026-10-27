@@ -8,7 +8,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="page"><th:block th:replace="~{:: labelList(${projectView}, ${groups})}"></th:block></th:block>
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="labelList(view, groups)"
-          th:with="project=${view.project}, base=${'/' + view.project.owner + '/' + view.project.name}">
+          th:with="project=${view.project}, base=${#paths.project(view.project.owner, view.project.name)}">
 <div th:if="${groups.isEmpty()}" class="error-wrap">
     <i class="ico ico-err1"></i>
     <p th:text="#{label.list.empty}"></p>

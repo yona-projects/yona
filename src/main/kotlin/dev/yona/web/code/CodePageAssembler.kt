@@ -38,7 +38,7 @@ class CodePageAssembler(
     fun assemble(project: Project, chain: List<Map<String, Any?>>, branch: String, path: String, loggedIn: Boolean, siteManager: Boolean, maxFileSize: Long): CodePage {
         val owner = project.owner.orEmpty()
         val name = project.name.orEmpty()
-        val base = siteUrls.path("/$owner/$name")
+        val base = siteUrls.path(UrlPaths.projectPath(owner, name))
         val branchSegment = UrlPaths.routeSegment(branch)
         // v1.6 역방향 라우트는 경로가 비어 있으면 `path=""` 고정값을 가진 `/code/:branch` 라우트를 골라 끝에 `/`가 없다.
         // `*path` 자리는 인코딩하지 않고 그대로 찍는다(한글, 공백, `#`, `?`가 든 이름도 그대로 나간다)

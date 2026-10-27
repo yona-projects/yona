@@ -93,12 +93,12 @@ class IssueViewController(
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(
                 linkedMapOf(
                     "id" to issue.number, "title" to issue.title, "state" to issue.state?.name, "body" to abbreviate(issue.body, SUMMARY_LENGTH),
-                    "createdDate" to dev.yona.util.JavaDates.toString(issue.createdDate), "link" to "/${project.owner}/${project.name}/issue/${issue.number}"
+                    "createdDate" to dev.yona.util.JavaDates.toString(issue.createdDate), "link" to "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}"
                 )
             )
         }
         val detail = assembler.assemble(project, issue, viewer)
-        val listUrl = listUrl(request.getHeader(HttpHeaders.REFERER), "/${project.owner}/${project.name}/issues", issue.state?.state)
+        val listUrl = listUrl(request.getHeader(HttpHeaders.REFERER), "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issues", issue.state?.state)
         val body = issue.body.orEmpty()
         return ModelAndView("issue/view")
             .addObject("title", (issue.title.orEmpty()) + " |:| " + body.take(OG_BODY_LENGTH))
@@ -133,7 +133,7 @@ class IssueViewController(
         val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), number) ?: return ErrorViews.notFound()
         val actor = currentUserProvider.get().user ?: return ErrorViews.forbidden()
         issueService.toNextState(issue, actor)
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/issue/$number")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/$number")
     }
 
     /**
@@ -152,7 +152,7 @@ class IssueViewController(
         if (!issueService.canBeDeleted(issue)) return ErrorViews.badRequest()
         if (viewer == null || !accessControl.isAllowed(viewer, issue.asResource(), Operation.DELETE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         issueService.delete(issue, viewer)
-        val list = "/${project.owner}/${project.name}/issues?state=${State.OPEN.state}"
+        val list = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issues?state=${State.OPEN.state}"
         if (AjaxRequests.isXhr(request)) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, list).build<Void>()
         }

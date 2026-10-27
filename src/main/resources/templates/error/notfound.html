@@ -7,10 +7,10 @@
       th:replace="~{layout/project-layout :: projectLayout(${messageKey}, ${projectView}, 'NONE', ~{::notFoundPage})}">
 <th:block th:fragment="notFoundPage"
           th:with="menuType=${targetType == 'issue_post' ? 'ISSUE' : (targetType == 'board_post' ? 'BOARD' : (targetType == 'milestone' ? 'MILESTONE' : (targetType == 'code' ? 'CODE' : 'PROJECT_HOME')))},
-                   backUrl=${targetType == 'issue_post' ? '/' + projectView.project.owner + '/' + projectView.project.name + '/issues?state=all'
-                       : (targetType == 'board_post' ? '/' + projectView.project.owner + '/' + projectView.project.name + '/posts'
-                       : (targetType == 'milestone' ? '/' + projectView.project.owner + '/' + projectView.project.name + '/milestones'
-                       : (targetType == 'code' ? '/' + projectView.project.owner + '/' + projectView.project.name + '/settingform'
+                   backUrl=${targetType == 'issue_post' ? #paths.project(projectView.project.owner, projectView.project.name) + '/issues?state=all'
+                       : (targetType == 'board_post' ? #paths.project(projectView.project.owner, projectView.project.name) + '/posts'
+                       : (targetType == 'milestone' ? #paths.project(projectView.project.owner, projectView.project.name) + '/milestones'
+                       : (targetType == 'code' ? #paths.project(projectView.project.owner, projectView.project.name) + '/settingform'
                        : 'javascript:history.back();')))}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, ${menuType}, '')}"></th:block>
 <div class="page-wrap-outer">

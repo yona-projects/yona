@@ -71,14 +71,14 @@ class WebhookPayloads(
             EventType.RESOURCE_DELETED -> builder.append(text("notification.type.issue.deleted"))
             else -> org.slf4j.LoggerFactory.getLogger(javaClass).warn("Unknown webhook event: {}", eventType)
         }
-        builder.append(link(type, siteUrls.path("/${project.owner}/${project.name}/issue/${issue.number}"), "#${issue.number}: ${issue.title}"))
+        builder.append(link(type, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}"), "#${issue.number}: ${issue.title}"))
         return builder.toString()
     }
 
     fun issueMovedMessage(type: WebhookType?, sender: User, issue: Issue, previous: String): String {
         val project = requireNotNull(issue.project)
         return "[${project.name}] ${sender.name} " + text("notification.type.issue.moved", previous, project.name) +
-            link(type, siteUrls.path("/${project.owner}/${project.name}/issue/${issue.number}"), "#${issue.number}: ${issue.title}")
+            link(type, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}"), "#${issue.number}: ${issue.title}")
     }
 
     /** 슬랙 상세 첨부: 이슈 본문과 마일스톤, 담당자, 상태 항목이다. */
@@ -96,20 +96,20 @@ class WebhookPayloads(
         val project = requireNotNull(posting.project)
         val builder = StringBuilder("[${project.name}] ${sender.name} ")
         if (eventType == EventType.NEW_POSTING) builder.append(text("notification.type.new.posting")) else org.slf4j.LoggerFactory.getLogger(javaClass).warn("Unknown webhook event: {}", eventType)
-        builder.append(link(type, siteUrls.path("/${project.owner}/${project.name}/post/${posting.number}"), "#${posting.number}: ${posting.title}"))
+        builder.append(link(type, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/post/${posting.number}"), "#${posting.number}: ${posting.title}"))
         return builder.toString()
     }
 
     fun issueCommentMessage(type: WebhookType?, eventType: EventType, sender: User, comment: IssueComment): String {
         val issue = requireNotNull(comment.issue)
         val project = requireNotNull(issue.project)
-        return commentMessage(type, eventType, sender, project, siteUrls.path("/${project.owner}/${project.name}/issue/${issue.number}#comment-${comment.id}"), issue.number, issue.title)
+        return commentMessage(type, eventType, sender, project, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}#comment-${comment.id}"), issue.number, issue.title)
     }
 
     fun postingCommentMessage(type: WebhookType?, eventType: EventType, sender: User, comment: PostingComment): String {
         val posting = requireNotNull(comment.posting)
         val project = requireNotNull(posting.project)
-        return commentMessage(type, eventType, sender, project, siteUrls.path("/${project.owner}/${project.name}/post/${posting.number}#comment-${comment.id}"), posting.number, posting.title)
+        return commentMessage(type, eventType, sender, project, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/post/${posting.number}#comment-${comment.id}"), posting.number, posting.title)
     }
 
     private fun commentMessage(type: WebhookType?, eventType: EventType, sender: User, project: Project, url: String, number: Long?, title: String?): String {
@@ -128,7 +128,7 @@ class WebhookPayloads(
 
     private fun pullRequestUrl(pullRequest: PullRequest): String {
         val project = requireNotNull(pullRequest.toProject)
-        return siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.number}")
+        return siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}")
     }
 
     fun pullRequestMessage(type: WebhookType?, eventType: EventType, sender: User, pullRequest: PullRequest): String {
@@ -185,7 +185,7 @@ class WebhookPayloads(
         body.set("pusher", mapper.createObjectNode().also { it.put("name", sender.name); it.put("email", sender.email) })
         body.set("repository", mapper.createObjectNode().also {
             it.put("id", project.id); it.put("name", project.name); it.put("owner", project.owner)
-            it.put("html_url", siteUrls.path("/${project.owner}/${project.name}")); it.put("overview", project.overview); it.put("private", project.isPrivate())
+            it.put("html_url", siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))); it.put("overview", project.overview); it.put("private", project.isPrivate())
         })
         return mapper.writeValueAsString(body)
     }
@@ -196,7 +196,7 @@ class WebhookPayloads(
         node.put("message", commit.message)
         // v1.6의 시각 형식은 12시간제(`hh`)라 오후 시각이 구별되지 않는다 (R-45).
         node.put("timestamp", SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ").format(commit.commitTime))
-        node.put("url", "${baseUrl()}${siteUrls.path("/${project.owner}/${project.name}")}/commit/${commit.id} ")
+        node.put("url", "${baseUrl()}${siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))}/commit/${commit.id} ")
         node.set("author", mapper.createObjectNode().also { it.put("name", commit.authorName); it.put("email", commit.authorEmail) })
         node.set("committer", mapper.createObjectNode().also { it.put("name", commit.committerName); it.put("email", commit.committerEmail) })
         return node

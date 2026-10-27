@@ -46,7 +46,7 @@ class IssueJson(
         }
         issue.milestone?.let { node["milestoneId"] = it.id; node["milestoneTitle"] = it.title }
         issue.dueDate?.let { node["dueDate"] = longDate(it) }
-        node["refUrl"] = "${urls.origin(request)}/${project.owner}/${project.name}/issue/${issue.number}"
+        node["refUrl"] = "${urls.origin(request)}${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}"
         val files = attachmentJson.list(ResourceType.ISSUE_POST, requireNotNull(issue.id))
         if (files.isNotEmpty()) node["attachments"] = files
         val plain = plainComments(requireNotNull(issue.id))

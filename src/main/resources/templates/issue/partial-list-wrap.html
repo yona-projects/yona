@@ -6,7 +6,7 @@
   이식 원본: app/views/issue/partial_list_wrap.scala.html
   모델: projectView, cond, items, drafts, pageIndex, totalPageCount, openCount, closedCount, quick, excelUrl, search, canMassUpdate, massUpdate
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="listWrap" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="listWrap" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <div pjax-container class="row-fluid issue-list-wrap">
     <div class=" left-menu span2 span-hard-wrap">
         <th:block th:replace="~{issue/partial-list-quicksearch :: quicksearch}"></th:block>

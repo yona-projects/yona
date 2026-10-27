@@ -3,7 +3,7 @@
   매개변수: view(ProjectViewContext), requestPath(요청 경로. 현재 화면의 하위 메뉴를 활성으로 표시한다)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="settingmenu(view, requestPath)"
-          th:with="base=${'/' + view.project.owner + '/' + view.project.name}">
+          th:with="base=${#paths.project(view.project.owner, view.project.name)}">
 <ul class="nav nav-tabs">
     <li id="subMenuProjectSetting" th:class="${requestPath == base + '/settingform'} ? 'active'">
         <a th:href="${base + '/settingform'}" th:text="#{project.setting}"></a></li>

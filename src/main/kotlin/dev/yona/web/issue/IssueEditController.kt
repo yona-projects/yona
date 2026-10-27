@@ -127,7 +127,7 @@ class IssueEditController(
         val updated = issueService.update(issue, viewer, edit, target)
         val flash = postAttachments.attach(request, viewer, ResourceType.ISSUE_POST, requireNotNull(updated.id))
         val place = requireNotNull(updated.project)
-        return RedirectSupport.see(request, response, "/${place.owner}/${place.name}/issue/${updated.number}", flash)
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(place.owner, place.name)}/issue/${updated.number}", flash)
     }
 
     private fun editView(project: Project, issue: Issue, viewer: User?, title: String, errors: Map<String, List<String>>, flashKey: String?): ModelAndView {

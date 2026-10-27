@@ -206,7 +206,7 @@ class PullRequestViewController(
             .addObject("diffHtml", diffs?.let { diffHtml.render(it, codeThreads, requireNotNull(pullRequest.toProject), requireNotNull(pullRequest.toProject), threadHtml) }.orEmpty())
             .addObject("nonRangedHtml", threadHtml.renderAll(changes.nonRangedThreads(pullRequest, commitId), full = true))
             .addObject("commentable", creatable)
-            .addObject("commentAction", siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.id}/comments") + (commitId?.let { "?commitId=$it" } ?: ""))
+            .addObject("commentAction", siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.id}/comments") + (commitId?.let { "?commitId=$it" } ?: ""))
             .addObject("openCards", assembler.cards(allThreads.filter { it.state == dev.yona.domain.enumeration.ThreadState.OPEN }))
             .addObject("closedCards", assembler.cards(allThreads.filter { it.state == dev.yona.domain.enumeration.ThreadState.CLOSED }))
             .addObject("openCount", allThreads.count { it.state == dev.yona.domain.enumeration.ThreadState.OPEN })
@@ -243,5 +243,5 @@ class PullRequestViewController(
 
     /** 멘션 후보 주소이다. 역방향 라우트는 기본값(빈 `commitId`)인 질의 값을 빼므로 커밋이 없으면 `?pullRequestId=번호`만 남는다. */
     private fun mentionUrl(project: Project, commitId: String?, pullRequestId: Long?): String =
-        siteUrls.path("/${project.owner}/${project.name}/mentionListAtPullRequest?" + (if (commitId.isNullOrEmpty()) "" else "commitId=$commitId&") + "pullRequestId=$pullRequestId")
+        siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/mentionListAtPullRequest?" + (if (commitId.isNullOrEmpty()) "" else "commitId=$commitId&") + "pullRequestId=$pullRequestId")
 }

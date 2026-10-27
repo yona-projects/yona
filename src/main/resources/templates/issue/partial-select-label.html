@@ -9,7 +9,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="selectLabel(groups, selectedLabelIds, wrapperCSSClassName, closeOnSelect, view)">
 <dl th:if="${!groups.isEmpty()}" th:class="${wrapperCSSClassName}">
   <dt>
-      <th:block th:text="#{label}"></th:block> <a th:if="${view.manager}" th:href="${'/' + view.project.owner + '/' + view.project.name + '/issue/labelsform'}" target="_blank" class="label-edit">[<th:block th:text="#{button.edit}"></th:block>]</a>
+      <th:block th:text="#{label}"></th:block> <a th:if="${view.manager}" th:href="${#paths.project(view.project.owner, view.project.name) + '/issue/labelsform'}" target="_blank" class="label-edit">[<th:block th:text="#{button.edit}"></th:block>]</a>
   </dt>
   <dd>
     <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"

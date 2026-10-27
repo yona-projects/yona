@@ -42,7 +42,7 @@
     $("#btnDeleteExec").on("click", function() {
         $.ajax({
             type: "delete",
-            url: [[${'/organizations/' + org.name}]],
+            url: [[${#paths.organization(org.name)}]],
             success: function() {
                 location.href = "/";
             },

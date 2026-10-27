@@ -28,12 +28,12 @@
                         </div>
                     </div>
                     <div th:if="${org.canManage}" class="pull-right">
-                        <a th:href="@{/projectform(owner=${org.name})}" class="ybtn ybtn-primary" th:text="#{button.newProject}"></a>
+                        <a th:href="@{'/projectform?owner=' + ${org.name}}" class="ybtn ybtn-primary" th:text="#{button.newProject}"></a>
                     </div>
                 </div>
                 <ul class="all-projects">
                     <li th:each="row : ${rows}" class="project" data-item="project-item"
-                        th:attr="data-value=${row.view.project.name + ' ' + row.view.project.overview}"
+                        th:attr="data-value=${row.view.project.name + ' ' + (row.view.project.overview ?: '')}"
                         th:with="project=${row.view.project}">
                         <div class="info-wrap">
                             <div class="owner-avatar-wrap hide-in-mobile">

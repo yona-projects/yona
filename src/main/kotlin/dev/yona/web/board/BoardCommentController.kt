@@ -72,7 +72,7 @@ class BoardCommentController(
             commentService.add(posting, viewer, contents, request.getParameter("parentCommentId")?.toLongOrNull())
         }
         val flash = postAttachments.attach(request, viewer, ResourceType.NONISSUE_COMMENT, requireNotNull(saved.id))
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/post/$number#comment-${saved.id}", flash)
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/post/$number#comment-${saved.id}", flash)
     }
 
     /** 댓글을 지운다. 삭제 권한이 없으면 `403`이다. Ajax 요청에는 `204`와 글 주소의 `Location`, 아니면 글로 `303`이다. */
@@ -88,7 +88,7 @@ class BoardCommentController(
         val viewer = currentUserProvider.get().user
         if (!accessControl.isAllowed(viewer, comment.asResource(), Operation.DELETE)) return ErrorViews.forbidden("error.forbidden", views.of(project))
         commentService.delete(comment)
-        val location = "/${project.owner}/${project.name}/post/$number"
+        val location = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/post/$number"
         if (AjaxRequests.isXhr(request)) return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, location).build<Void>()
         return RedirectSupport.see(request, response, location)
     }

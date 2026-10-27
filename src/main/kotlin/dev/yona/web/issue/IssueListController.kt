@@ -123,7 +123,7 @@ class IssueListController(
             if (number == exceptId) continue
             body[issue.id.toString()] = linkedMapOf(
                 "id" to number, "title" to issue.title, "state" to issue.state?.name, "createdDate" to dev.yona.util.JavaDates.toString(issue.createdDate),
-                "link" to "/${project.owner}/${project.name}/issue/$number"
+                "link" to "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/$number"
             )
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body)

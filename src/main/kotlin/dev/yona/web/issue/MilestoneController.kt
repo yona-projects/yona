@@ -134,7 +134,7 @@ class MilestoneController(
 
         val milestone = milestoneService.create(project, requireNotNull(input.title), input.contents, requireNotNull(result.state), result.dueDate)
         val flash = currentUserProvider.get().user?.let { postAttachments.attach(request, it, ResourceType.MILESTONE, requireNotNull(milestone.id)) }.orEmpty()
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/milestone/${milestone.id}", flash)
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/milestone/${milestone.id}", flash)
     }
 
     // --- 수정 ---
@@ -171,7 +171,7 @@ class MilestoneController(
         if (input.contents == null) return ErrorViews.requestTextEntityTooLarge()
         milestoneService.update(original, requireNotNull(input.title), input.contents, requireNotNull(result.state), result.dueDate)
         currentUserProvider.get().user?.let { attachments.moveAll(ResourceType.USER, requireNotNull(it.id), ResourceType.MILESTONE, id) }
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/milestone/$id")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/milestone/$id")
     }
 
     // --- 삭제, 열기, 닫기 ---
@@ -190,7 +190,7 @@ class MilestoneController(
         val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
         if (milestone.project?.id != project.id) return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build<Void>()
         milestoneService.delete(milestone)
-        val list = "/${project.owner}/${project.name}/milestones"
+        val list = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/milestones"
         if (AjaxRequests.isXhr(request)) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).header(HttpHeaders.LOCATION, list).build<Void>()
         }
@@ -203,7 +203,7 @@ class MilestoneController(
     fun open(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("id") id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
         milestoneService.open(milestone)
-        return RedirectSupport.see(request, response, "/$owner/$name/milestone/$id")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(owner, name)}/milestone/$id")
     }
 
     @PostMapping("/{user}/{project}/milestone/{id}/close")
@@ -212,7 +212,7 @@ class MilestoneController(
     fun close(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("id") id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val milestone = milestones.findById(id).orElse(null) ?: return ErrorViews.notFound()
         milestoneService.close(milestone)
-        return RedirectSupport.see(request, response, "/$owner/$name/milestone/$id")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(owner, name)}/milestone/$id")
     }
 
     // --- 보기 ---

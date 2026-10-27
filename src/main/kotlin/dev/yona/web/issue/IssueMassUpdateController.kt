@@ -103,7 +103,7 @@ class IssueMassUpdateController(
             }
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body("{}")
         }
-        return RedirectSupport.see(request, response, request.getHeader("Referer") ?: "/${project.owner}/${project.name}/issues")
+        return RedirectSupport.see(request, response, request.getHeader("Referer") ?: "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issues")
     }
 
     /** `이름[0].속성`, `이름[1].속성` 형태로 온 값을 순서대로 모은다. */

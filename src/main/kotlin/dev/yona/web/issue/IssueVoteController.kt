@@ -76,10 +76,10 @@ class IssueVoteController(
         val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), number) ?: return ErrorViews.notFound()
         val viewer = requireNotNull(currentUserProvider.get().user)
         if (vote) commentService.vote(issue, viewer) else commentService.unvote(issue, viewer)
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/issue/$number")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/$number")
     }
 
-    private fun commentUrl(owner: String?, name: String?, number: Long?, commentId: Long) = "/$owner/$name/issue/$number#comment-$commentId"
+    private fun commentUrl(owner: String?, name: String?, number: Long?, commentId: Long) = "${dev.yona.util.UrlPaths.projectPath(owner, name)}/issue/$number#comment-$commentId"
 
     private fun plain(text: String): ResponseEntity<String> =
         ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType("text", "plain", Charsets.UTF_8)).body(text)

@@ -97,7 +97,7 @@ class ReviewCommentController(
         val comment = commitCommentService.add(
             project, commitId, requireNotNull(author), contents, request.getParameter("path")?.takeIf { it.isNotEmpty() }, request.getParameter("line")?.toIntOrNull(), side
         )
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/commit/$commitId#comment-${comment.id}")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/commit/$commitId#comment-${comment.id}")
     }
 
     /** Subversion 커밋 코멘트를 지우고 커밋 보기로 돌아간다 (v1.6 `CodeHistoryApp.deleteComment`). 지울 권한이 있어야 한다. */
@@ -112,7 +112,7 @@ class ReviewCommentController(
             return ErrorViews.forbidden("error.forbidden", views.of(project))
         }
         service.deleteCommitComment(requireNotNull(comment.id))
-        return RedirectSupport.see(request, response, "/$owner/$name/commit/$commitId")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(owner, name)}/commit/$commitId")
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{pullRequestId}/comments")

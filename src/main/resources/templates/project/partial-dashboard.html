@@ -7,7 +7,7 @@
             partial_dashboard_issuesbylabel.scala.html, partial_dashboard_pullrequests.scala.html
   모델: dashboard(DashboardView)
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="dashboard(d)" th:with="base=${'/' + d.owner + '/' + d.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="dashboard(d)" th:with="base=${#paths.project(d.owner, d.name)}">
 <div class="content-container nm">
     <div class="project-overview-home row-fluid">
         <div class="span6">

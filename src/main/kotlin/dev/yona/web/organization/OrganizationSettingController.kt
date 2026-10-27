@@ -94,7 +94,7 @@ class OrganizationSettingController(
             if (hasLogo) logo!!.originalFilename else null, if (hasLogo) ({ logo!!.inputStream }) else null,
             viewer?.loginId
         )
-        return RedirectSupport.see(request, response, "/organizations/$name/settingform")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.organizationPath(name)}/settingform")
     }
 
     @GetMapping("/organizations/{organizationName}/deleteForm")

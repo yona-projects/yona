@@ -89,7 +89,7 @@ class ProjectTransferController(
             ProjectTransferService.AcceptResult.WrongKey -> ErrorViews.badRequest()
             ProjectTransferService.AcceptResult.Forbidden -> ErrorViews.forbidden()
             is ProjectTransferService.AcceptResult.Done ->
-                RedirectSupport.see(request, response, "/${result.project.owner}/${result.project.name}")
+                RedirectSupport.see(request, response, dev.yona.util.UrlPaths.projectPath(result.project.owner, result.project.name))
         }
     }
 

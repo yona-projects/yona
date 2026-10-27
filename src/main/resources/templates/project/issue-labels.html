@@ -9,7 +9,7 @@
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::labelsPage})}">
-<th:block th:fragment="labelsPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:fragment="labelsPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap label-editor-wrap">

@@ -46,7 +46,7 @@ class OrganizationCreateController(
             return formView(name, descr, error.messageKey).also { it.status = HttpStatus.BAD_REQUEST }
         }
         val organization = organizationService.create(requireNotNull(name), descr, requireNotNull(currentUserProvider.get().user))
-        return RedirectSupport.see(request, response, "/organizations/${organization.name}")
+        return RedirectSupport.see(request, response, dev.yona.util.UrlPaths.organizationPath(organization.name))
     }
 
     /** 폼 화면이다. [warningKey]가 있으면 알림으로 안내하고, 폼 위에는 앞 요청의 안내를 보인다(v1.6). */

@@ -9,11 +9,11 @@
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::webhooksPage})}">
-<th:block th:fragment="webhooksPage" th:with="project=${projectView.project}">
+<th:block th:fragment="webhooksPage" th:with="project=${projectView.project}, projectBase=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap webhook-editor-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${'/' + project.owner + '/' + project.name + '/webhooks'})}"></th:block>
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${projectBase + '/webhooks'})}"></th:block>
 
         <form th:if="${creatable}" id="formNewWebhook" th:action="${action}" method="post" class="new-webhook-wrap">
             <strong class="form-legend" th:text="#{project.webhook.new}"></strong>

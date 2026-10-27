@@ -70,9 +70,9 @@ class ThreadViewAssembler(
         if (viewer == null || !accessControl.isProjectResourceCreatable(viewer, project, type)) return null
         val commitId = (thread as? CodeCommentThread)?.commitId ?: (thread as? dev.yona.domain.comment.NonRangedCodeCommentThread)?.commitId.orEmpty()
         val action = if (pullRequest != null) {
-            siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.id}/comments") + (if (commitId.isNotEmpty()) "?commitId=$commitId" else "?commitId=")
+            siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.id}/comments") + (if (commitId.isNotEmpty()) "?commitId=$commitId" else "?commitId=")
         } else {
-            siteUrls.path("/${project.owner}/${project.name}/commit/$commitId/comments")
+            siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/commit/$commitId/comments")
         }
         return ThreadFormView(action, requireNotNull(thread.id), type.name, avatars.avatarUrl(viewer, AVATAR_SIZE), siteUrls.path("/${viewer.loginId}"), viewer.name.orEmpty(), false)
     }

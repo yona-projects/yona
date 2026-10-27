@@ -155,7 +155,7 @@ class IssueCreateController(
         )
         val flash = postAttachments.attach(request, viewer, ResourceType.ISSUE_POST, requireNotNull(issue.id))
         addReferComment(request, viewer, project, issue)
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/issue/${issue.number}", flash)
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}", flash)
     }
 
     // --- 도우미 ---
@@ -174,7 +174,7 @@ class IssueCreateController(
         val host = request.getHeader("Host") ?: "${request.serverName}:${request.serverPort}"
         val context = if (properties.applicationContext.isEmpty()) "" else "/" + properties.applicationContext.trim('/')
         val content = messages.getMessage("issue.derived", null, org.springframework.context.i18n.LocaleContextHolder.getLocale()) +
-            ": $scheme://$host$context/${project.owner}/${project.name}/issue/${issue.number}"
+            ": $scheme://$host$context${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}"
         issueComments.add(origin, viewer, content, referId, false, touchUpdated = false)
     }
 
@@ -184,7 +184,7 @@ class IssueCreateController(
         val host = request.getHeader("Host") ?: "${request.serverName}:${request.serverPort}"
         val context = if (properties.applicationContext.isEmpty()) "" else "/" + properties.applicationContext.trim('/')
         val issue = comment.issue
-        val url = "$scheme://$host$context/${issue?.project?.owner}/${issue?.project?.name}/issue/${issue?.number}#comment-${comment.id}"
+        val url = "$scheme://$host$context${dev.yona.util.UrlPaths.projectPath(issue?.project?.owner, issue?.project?.name)}/issue/${issue?.number}#comment-${comment.id}"
         val reference = "${comment.contents}\n\n_Originally posted by @${comment.authorLoginId} in $url"
         return createView(project, "title.newIssue", reference, null, commentId.toString(), emptyMap(), fromGlobalMenu = true)
     }

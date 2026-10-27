@@ -74,7 +74,7 @@ class OrganizationListAssembler(
     /** 풀 리퀘스트 행을 만든다. */
     fun pullRequestRows(list: List<PullRequest>, viewer: User?): List<OrganizationPullRequestRow> = list.map { pr ->
         val to = requireNotNull(pr.toProject)
-        val base = "/${to.owner}/${to.name}/pullRequest/${pr.number}"
+        val base = "${dev.yona.util.UrlPaths.projectPath(to.owner, to.name)}/pullRequest/${pr.number}"
         val id = requireNotNull(pr.id)
         val total = threads.countByPullRequestId(id)
         val closed = if (total > 0) threads.countByPullRequestIdAndState(id, ThreadState.CLOSED) else 0

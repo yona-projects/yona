@@ -44,7 +44,7 @@ class UserPageController(
         request: HttpServletRequest,
         response: HttpServletResponse
     ): Any {
-        organizations.findByNameIgnoreCase(loginId)?.let { return RedirectSupport.see(request, response, "/organizations/${it.name}") }
+        organizations.findByNameIgnoreCase(loginId)?.let { return RedirectSupport.see(request, response, dev.yona.util.UrlPaths.organizationPath(it.name)) }
 
         val days = resolveDaysAgo(daysAgo, request, response)
         val user = users.findByLoginIdIgnoreCase(loginId) ?: return ErrorViews.notFound("user.notExists.name")

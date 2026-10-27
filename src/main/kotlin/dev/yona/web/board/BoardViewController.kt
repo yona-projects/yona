@@ -79,7 +79,7 @@ class BoardViewController(
             .addObject("projectView", views.of(project))
             .addObject("post", detail)
             .addObject("title", title)
-            .addObject("listUrl", listUrl(request, "/${project.owner}/${project.name}/posts"))
+            .addObject("listUrl", listUrl(request, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/posts"))
     }
 
     /**

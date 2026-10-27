@@ -63,7 +63,7 @@ class SearchRowAssembler(
 
     private fun label(project: Project?, scoped: Boolean) = if (scoped || project == null) null else "${project.owner}/${project.name}"
 
-    private fun url(project: Project?, path: String) = "/${project?.owner}/${project?.name}$path"
+    private fun url(project: Project?, path: String) = "${dev.yona.util.UrlPaths.projectPath(project?.owner, project?.name)}$path"
 
     private fun message(key: String): String = messages.getMessage(key, null, key, LocaleContextHolder.getLocale()) ?: key
 

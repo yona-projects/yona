@@ -128,7 +128,7 @@ class ExternalUserApiController(
                 "author" to linkedMapOf("id" to issue.authorId, "loginId" to issue.authorLoginId, "name" to issue.authorName),
                 "assignee" to (issue.assignee?.let { linkedMapOf("id" to it.id, "loginId" to it.user?.loginId, "name" to it.user?.name) } ?: linkedMapOf<String, Any?>()),
                 "project" to linkedMapOf("id" to project.id, "name" to project.name), "owner" to project.owner,
-                "refUrl" to "$base/${project.owner}/${project.name}/issue/${issue.number}"
+                "refUrl" to "$base${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}"
             )
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("result" to result))

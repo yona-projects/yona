@@ -7,7 +7,7 @@
   매개변수: list(IssueListItem 목록). 초안 목록(`draftList`)은 번호 표시만 다르다.
   하위 이슈 줄은 각 이슈 아래에 접어 두는 `child-issue-list`에 들어 있다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="list(list)" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="list(list)" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
     <ul class="post-list-wrap row-fluid">
         <th:block th:each="issue : ${list}">
         <li class="post-item title" th:id="'issue-item-' + ${issue.id}" data-item="issue-item"
@@ -98,7 +98,7 @@
     </ul>
 </th:block>
 
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="draftList(list)" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="draftList(list)" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
     <ul class="post-list-wrap row-fluid">
         <th:block th:each="issue : ${list}">
         <li class="post-item title" th:id="'issue-item-' + ${issue.id}" data-item="issue-item"

@@ -131,7 +131,7 @@ class EnrollController(
 
     private fun acceptedBody(message: String, organizationName: String, request: HttpServletRequest): ResponseEntity<Map<String, String>> =
         ResponseEntity.status(HttpStatus.ACCEPTED).contentType(MediaType.APPLICATION_JSON)
-            .body(mapOf("message" to message, "statusMonitorUrl" to "http://${host(request)}" + dev.yona.util.UrlPaths.withContext(request.contextPath, "/organizations/$organizationName")))
+            .body(mapOf("message" to message, "statusMonitorUrl" to "http://${host(request)}" + dev.yona.util.UrlPaths.withContext(request.contextPath, dev.yona.util.UrlPaths.organizationPath(organizationName))))
 
     /** 요청의 `Host` 헤더 값이다 (v1.6 `request().host()`). 헤더가 없으면 서버 이름과, 기본 포트가 아닐 때 포트이다. */
     private fun host(request: HttpServletRequest): String =

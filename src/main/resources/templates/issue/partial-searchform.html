@@ -6,7 +6,7 @@
   이식 원본: app/views/issue/partial_searchform.scala.html
   모델: projectView, cond(IssueSearchCondition), search(SearchForm), currentUser
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="searchform" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="searchform" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <form id="search" name="search" th:action="${base + '/issues'}" method="get">
     <input type="hidden" name="orderBy" th:value="${cond.orderBy}">
     <input type="hidden" name="orderDir" th:value="${cond.orderDir}">

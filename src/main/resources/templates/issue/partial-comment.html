@@ -6,7 +6,7 @@
   이식 원본: app/views/issue/partial_comment.scala.html
   매개변수: c(CommentView), issue(IssueDetail), projectView
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="comment(c, issue)" th:with="base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="comment(c, issue)" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <li class="comment" th:classappend="${c.own} ? 'author'" th:id="'comment-' + ${c.id}">
     <th:block th:each="anchor : ${c.childAnchorIds}"><div th:id="'comment-' + ${anchor}"></div></th:block>
     <div class="comment-avatar">

@@ -51,7 +51,7 @@ class WebhookController(
     @Transactional(readOnly = true)
     fun list(@PathVariable("user") owner: String, @PathVariable("project") name: String): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
-        val base = siteUrls.path("/${project.owner}/${project.name}")
+        val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
         return ModelAndView("project/webhooks")
             .addObject("title", "project.webhook")
             .addObject("projectView", views.of(project))
@@ -79,7 +79,7 @@ class WebhookController(
 
         // 체크박스는 켜면 값(`on`)이 오고 끄면 아예 오지 않는다 (v1.6 폼 묶기의 불리언 변환).
         webhooks.create(project, requireNotNull(payloadUrl), secret, request.getParameter("gitPush")?.lowercase() in TRUE_VALUES, type)
-        return RedirectSupport.see(request, response, siteUrls.path("/${project.owner}/${project.name}/webhooks"))
+        return RedirectSupport.see(request, response, siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/webhooks"))
     }
 
     @DeleteMapping("/{user}/{project}/webhooks/{id}")

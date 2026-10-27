@@ -39,9 +39,9 @@
                             <span class="d-label" th:text="#{'user.role.' + ${member.roleName}}"></span>
                             <span class="d-caret"><span class="caret"></span></span>
                         </button>
-                        <ul class="dropdown-menu"><th:block th:each="role : ${roles}"><li th:attr="data-value=${role.id}" th:classappend="${role.name == member.roleName} ? 'active'" th:data-selected="${role.name == member.roleName} ? 'true'"><a href="javascript:void(0)" data-action="apply" th:attr="data-href='/organizations/' + ${org.name} + '/member/' + ${member.userId} + '/edit', data-loginId=${member.loginId}" th:text="#{'user.role.' + ${role.name}}"></a></li></th:block></ul>
+                        <ul class="dropdown-menu"><th:block th:each="role : ${roles}"><li th:attr="data-value=${role.id}" th:classappend="${role.name == member.roleName} ? 'active'" th:data-selected="${role.name == member.roleName} ? 'true'"><a href="javascript:void(0)" data-action="apply" th:data-href="${#paths.organization(org.name)} + '/member/' + ${member.userId} + '/edit'" th:data-loginId="${member.loginId}" th:text="#{'user.role.' + ${role.name}}"></a></li></th:block></ul>
                     </div>
-                    <a href="javascript:void(0)" data-action="delete" th:attr="data-href='/organizations/' + ${org.name} + '/member/' + ${member.userId} + '/delete'" class="ybtn ybtn-danger ybtn-small">
+                    <a href="javascript:void(0)" data-action="delete" th:data-href="${#paths.organization(org.name)} + '/member/' + ${member.userId} + '/delete'" class="ybtn ybtn-danger ybtn-small">
                         <th:block th:text="#{button.delete}"></th:block>
                     </a>
                 </div>

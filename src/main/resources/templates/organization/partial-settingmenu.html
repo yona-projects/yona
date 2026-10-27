@@ -3,7 +3,7 @@
   매개변수: view(OrganizationViewContext), requestPath(요청 경로)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="settingmenu(view, requestPath)"
-          th:with="base=${'/organizations/' + view.name}">
+          th:with="base=${#paths.organization(view.name)}">
 <ul class="nav nav-tabs">
     <li th:class="${requestPath == base + '/settingform'} ? 'active'">
         <a th:href="${base + '/settingform'}" th:text="#{organization.settingFrom}"></a>

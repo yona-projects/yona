@@ -36,7 +36,7 @@ class ProjectGoController(
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val menu = views.of(project).menuSetting
-        val base = "/${project.owner}/${project.name}"
+        val base = dev.yona.util.UrlPaths.projectPath(project.owner, project.name)
         return when {
             menu.issue == true -> ModelAndView("forward:$base/issues")
             menu.board == true -> RedirectView(if (pageNum == 1) "$base/posts" else "$base/posts?pageNum=$pageNum").also { it.setStatusCode(HttpStatus.SEE_OTHER) }

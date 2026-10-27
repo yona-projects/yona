@@ -70,7 +70,7 @@ class CodeBrowserController(
         val defaultBranch = repositories.defaultBranch(project).let { if (it.split("/").size >= 3) it.split("/", limit = 3)[2] else it }
         val segment = UrlPaths.routeSegment(defaultBranch)
         // v1.6은 `redirect(...)`(303)이고 경로가 빈 역방향 라우트라 끝 슬래시가 없다
-        return dev.yona.web.RedirectSupport.see(request, response, "/$owner/$name/code/$segment")
+        return dev.yona.web.RedirectSupport.see(request, response, "${UrlPaths.projectPath(owner, name)}/code/$segment")
     }
 
     /** 브랜치의 폴더나 파일을 화면으로 보여 준다. */

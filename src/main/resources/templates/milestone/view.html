@@ -10,7 +10,7 @@
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::viewPage})}">
-<th:block th:fragment="viewPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:fragment="viewPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'MILESTONE', '')}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap">

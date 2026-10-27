@@ -119,7 +119,7 @@ class PullRequestListController(
             request.getParameter("pageNum")?.toIntOrNull() ?: 1
         )
         val page = search.search(condition)
-        val base = siteUrls.path("/${project.owner}/${project.name}")
+        val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
         val defaultBranch = repositories.defaultBranch(project)
         val projectView = views.of(project)
         val sentLabel = "${search.count(condition.withCategory(PullRequestCategory.ACCEPTED))} / ${search.count(condition.withCategory(PullRequestCategory.SENT))}"
@@ -183,7 +183,7 @@ class PullRequestListController(
         }
         return branches.map { branch ->
             val from = requireNotNull(branch.project)
-            val base = siteUrls.path("/${from.owner}/${from.name}")
+            val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(from.owner, from.name))
             val target = repositories.defaultBranch(from.originalProject ?: from)
             PushedBranchRow(
                 "${from.owner}/${from.name}:${CodePageAssembler.branchItemName(branch.name.orEmpty())}", helper.agoOrDateString(branch.pushedDate),
@@ -197,7 +197,7 @@ class PullRequestListController(
 
     private fun row(pr: PullRequest, project: Project, defaultBranch: String, viewer: User?): PullRequestRow {
         val toProject = requireNotNull(pr.toProject)
-        val base = siteUrls.path("/${toProject.owner}/${toProject.name}/pullRequest/${pr.number}")
+        val base = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(toProject.owner, toProject.name)}/pullRequest/${pr.number}")
         val id = requireNotNull(pr.id)
         val total = threads.countByPullRequestId(id)
         val closed = if (total > 0) threads.countByPullRequestIdAndState(id, ThreadState.CLOSED) else 0

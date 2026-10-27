@@ -46,7 +46,7 @@ class OrganizationBoardController(
         val names: List<String> = (request.getParameterValues("projectNames[]").orEmpty().toList() + request.getParameterValues("projectNames").orEmpty().toList()).filter { it.isNotEmpty() }
         val targets = if (names.isEmpty()) visible else names.mapNotNull { name -> visible.firstOrNull { it.name.equals(name, ignoreCase = true) } }
         val page = searchService.searchInProjects(targets.map { requireNotNull(it.id) }, condition, ITEMS_PER_PAGE)
-        val base = "/organizations/${organization.name}/boards"
+        val base = "${dev.yona.util.UrlPaths.organizationPath(organization.name)}/boards"
         val descending = !condition.orderDir.equals("asc", ignoreCase = true)
         val sortLinks = listOf("updatedDate" to "common.order.updatedDate", "createdDate" to "common.order.date", "numOfComments" to "common.order.comments").map { (field, key) ->
             val current = condition.effectiveOrderBy == field

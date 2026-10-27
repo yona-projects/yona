@@ -53,7 +53,7 @@
                                         <a th:if="${req.contributor != null and req.contributor.name != null and !req.contributor.name.isEmpty()}" th:href="@{/{u}(u=${req.contributor.loginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}" th:text="${req.contributor.name}"></a>
                                         <span th:unless="${req.contributor != null and req.contributor.name != null and !req.contributor.name.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}"></span>
                                         <span class="infos-item" th:title="${req.agoTitle}" th:text="${req.ago}"></span>
-                                        <a th:href="@{${'/' + req.owner + '/' + req.project}}" class="infos-link-item group-project-name" th:text="${req.project}"></a>
+                                        <a th:href="@{${#paths.project(req.owner, req.project)}}" class="infos-link-item group-project-name" th:text="${req.project}"></a>
 
                                         <div th:if="${req.progress != null}" class="infos-item" style="margin-right:20px;">
                                             <i class="infos-icon yobicon-post2 vmiddle"></i>

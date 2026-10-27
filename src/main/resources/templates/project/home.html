@@ -128,13 +128,13 @@
 <script type="text/javascript" th:inline="javascript">
 $(document).ready(function(){
     $yobi.loadModule("project.Home", {
-        "sURLProjectLabels": [[${'/' + projectView.project.owner + '/' + projectView.project.name + '/labels'}]],
+        "sURLProjectLabels": [[${#paths.project(projectView.project.owner, projectView.project.name) + '/labels'}]],
         "sURLLabels"       : "/labels",
         "sURLLabelCategories": "/categories",
         "welLabelBoard": $('#label-board'),
         "welLabelEditorToggle": $('#label-editor-toggle'),
         "nProjectId"     : [[${'' + projectView.project.id}]],
-        "sURLProject"       : [[${'/' + projectView.project.owner + '/' + projectView.project.name}]],
+        "sURLProject"       : [[${#paths.project(projectView.project.owner, projectView.project.name)}]],
         "sURLZeroClipboard" : "/assets/javascripts/lib/jquery/ZeroClipboard.swf"
     });
 });

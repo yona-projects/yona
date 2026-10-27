@@ -74,7 +74,7 @@ class BranchController(
         val canUpdate = accessControl.isAllowed(viewer, resource, Operation.UPDATE)
         val canDelete = accessControl.isAllowed(viewer, resource, Operation.DELETE)
         val shortDefault = head.name.let { if (it.lastIndexOf('/') > 0) it.substring(it.lastIndexOf('/') + 1) else it }
-        val base = siteUrls.path("/$owner/$name")
+        val base = siteUrls.path(UrlPaths.projectPath(owner, name))
         return ModelAndView("code/branches")
             .addObject("title", "title.branches")
             .addObject("projectView", views.of(project))
@@ -85,13 +85,13 @@ class BranchController(
     }
 
     private fun row(project: Project, b: BranchInfo, isHead: Boolean, defaultName: String, canUpdate: Boolean, canDelete: Boolean): BranchRow {
-        val base = siteUrls.path("/${project.owner}/${project.name}")
+        val base = siteUrls.path(UrlPaths.projectPath(project.owner, project.name))
         val segment = UrlPaths.routeSegment(b.name)
         val pr = b.pullRequest
         return BranchRow(
             name = b.name, shortName = b.shortName, head = isHead, codeUrl = "$base/code/$segment", historyUrl = "$base/commits/$segment/", commitId = b.headCommitId,
             commitShortId = b.headCommitShortId, date = helper.agoOrDateString(b.committerDate), dateTitle = helper.dateString(b.committerDate),
-            pullRequestUrl = pr?.let { siteUrls.path("/${it.toProject?.owner}/${it.toProject?.name}/pullRequest/${it.number}") },
+            pullRequestUrl = pr?.let { siteUrls.path("${UrlPaths.projectPath(it.toProject?.owner, it.toProject?.name)}/pullRequest/${it.number}") },
             pullRequestLabel = pr?.let { "pullRequest-${it.number}" }, pullRequestState = pr?.state?.name?.lowercase(),
             setDefaultUrl = if (canUpdate && b.name != defaultName) "$base/code/$segment/setAsDefault" else null,
             deleteUrl = if (canDelete && !isHead) "$base/code/$segment/" else null
@@ -105,7 +105,7 @@ class BranchController(
     fun deleteBranch(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable branch: String): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         branchService.delete(project, UrlPaths.decodeSegmentOrSelf(branch))
-        return RedirectView(siteUrls.path("/$owner/$name/branches"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
+        return RedirectView(siteUrls.path("${UrlPaths.projectPath(owner, name)}/branches"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
     }
 
     /** 기본 브랜치를 바꾼다. 비동기 요청이면 `200`, 아니면 브랜치 목록으로 돌아간다. */
@@ -116,6 +116,6 @@ class BranchController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         repositories.setDefaultBranch(project, UrlPaths.decodeSegmentOrSelf(branch))
         if (AjaxRequests.isXhr(request)) return ResponseEntity.ok().build<Void>()
-        return RedirectView(siteUrls.path("/$owner/$name/branches"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
+        return RedirectView(siteUrls.path("${UrlPaths.projectPath(owner, name)}/branches"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
     }
 }

@@ -74,7 +74,7 @@ class SearchController(
         val type = SearchType.of(requested)
         if (type == SearchType.NA || organization == null) return ErrorViews.badRequest()
         val pageIndex = pageIndex(request) ?: return ErrorViews.badRequest()
-        val view = result(SearchScope(organization = organization), keyword, type, pageIndex, "/organizations/${organization.name}/search")
+        val view = result(SearchScope(organization = organization), keyword, type, pageIndex, "${dev.yona.util.UrlPaths.organizationPath(organization.name)}/search")
         return ModelAndView("search/result-organization").addObject("title", "title.search").addObject("search", view)
             .addObject("orgView", orgViews.of(organization))
     }
@@ -90,7 +90,7 @@ class SearchController(
         val type = SearchType.of(requested)
         if (type == SearchType.NA || type == SearchType.PROJECT) return ErrorViews.badRequest()
         val pageIndex = pageIndex(request) ?: return ErrorViews.badRequest()
-        val view = result(SearchScope(project = project), keyword, type, pageIndex, "/${project.owner}/${project.name}/search")
+        val view = result(SearchScope(project = project), keyword, type, pageIndex, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/search")
         return ModelAndView("search/result-project").addObject("title", "title.search").addObject("search", view)
             .addObject("projectView", projectViews.of(project))
     }

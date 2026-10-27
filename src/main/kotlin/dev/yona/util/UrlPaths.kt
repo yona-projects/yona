@@ -41,6 +41,9 @@ object UrlPaths {
      */
     fun projectPath(owner: String?, name: String?): String = "/${encode(owner.orEmpty())}/${encode(name.orEmpty())}"
 
+    /** 조직 주소의 앞부분 `/organizations/이름`이다. 이름은 인코딩한다(v1.6 역방향 라우트). */
+    fun organizationPath(name: String?): String = "/organizations/${encode(name.orEmpty())}"
+
     /** [value]를 [decodeSegment]로 디코딩한다. 올바르지 않은 퍼센트 인코딩이면 값을 그대로 돌려준다. */
     fun decodeSegmentOrSelf(value: String): String = try { decodeSegment(value) } catch (e: IllegalArgumentException) { value }
 

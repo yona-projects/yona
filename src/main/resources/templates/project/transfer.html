@@ -9,11 +9,11 @@
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::transferPage})}">
-<th:block th:fragment="transferPage" th:with="project=${projectView.project}">
+<th:block th:fragment="transferPage" th:with="project=${projectView.project}, projectBase=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${'/' + project.owner + '/' + project.name + '/transfer'})}"></th:block>
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${projectBase + '/transfer'})}"></th:block>
         <div class="bubble-wrap gray wp">
             <div class="row-fluid">
                 <div class="cu-label" th:text="#{project.transfer.new.owner}"></div>
@@ -66,7 +66,7 @@
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yobi.loadModule("project.Transfer", {
-            "sTransferURL": [[${'/' + project.owner + '/' + project.name + '/transfer'}]]
+            "sTransferURL": [[${projectBase + '/transfer'}]]
         });
     });
 </script>

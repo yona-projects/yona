@@ -74,7 +74,7 @@ class ProjectSettingController(
         }
 
         settingService.update(project, form, logo, currentUserProvider.get().user?.loginId)
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/settingform")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/settingform")
     }
 
     /** 폼이 보내는 항목만 묶는다. 메뉴 체크박스는 `true`, `on`, `yes`, `1`이면 켠 것으로 본다. */

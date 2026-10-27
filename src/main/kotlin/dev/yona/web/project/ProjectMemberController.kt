@@ -99,14 +99,14 @@ class ProjectMemberController(
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
                     .body(mapOf("loginId" to listOf(text)))
             }
-            return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/members", mapOf(RedirectSupport.WARNING to failure.messageKey))
+            return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/members", mapOf(RedirectSupport.WARNING to failure.messageKey))
         }
 
         if (json) {
             return ResponseEntity.ok().contentType(MediaType("text", "plain", Charsets.UTF_8)).body("{}")
         }
         memberService.watch(requireNotNull(result.newMember), project)
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/members")
+        return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/members")
     }
 
     @PostMapping("/{user}/{project}/member/{id}/edit")
@@ -152,8 +152,8 @@ class ProjectMemberController(
 
         val location = when {
             viewer?.id == userId ->
-                if (accessControl.isAllowed(viewer, project.asResource(), Operation.READ)) "/${project.owner}/${project.name}" else "/"
-            else -> "/${project.owner}/${project.name}/members"
+                if (accessControl.isAllowed(viewer, project.asResource(), Operation.READ)) dev.yona.util.UrlPaths.projectPath(project.owner, project.name) else "/"
+            else -> "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/members"
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, location)))
     }

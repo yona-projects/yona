@@ -175,7 +175,7 @@ class NotificationListener(
             builder.append("### ").append(messages.getMessage("notification.pushed.branches", null, locale)).append('\n')
             val project = activity.project
             activity.refNames.forEach { ref ->
-                builder.append('[').append(ref).append("](").append(siteUrls.path("/${project.owner}/${project.name}/commits/${dev.yona.util.UrlPaths.routeSegment(ref)}/")).append(")\n")
+                builder.append('[').append(ref).append("](").append(siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/commits/${dev.yona.util.UrlPaths.routeSegment(ref)}/")).append(")\n")
             }
         }
         return builder.toString()

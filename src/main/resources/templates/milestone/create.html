@@ -10,7 +10,7 @@
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'MILESTONE', ~{::createPage})}">
-<th:block th:fragment="createPage" th:with="project=${projectView.project}, base=${'/' + projectView.project.owner + '/' + projectView.project.name}">
+<th:block th:fragment="createPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'MILESTONE', '')}"></th:block>
 
 <div class="page-wrap-outer">
@@ -93,7 +93,7 @@
         // yobi.Mention
         yobi.Mention({
             "target": "textarea[id^=editor-]",
-            "url"   : /*[[${'/' + projectView.project.owner + '/' + projectView.project.name + '/mentionList'}]]*/ ""
+            "url"   : /*[[${#paths.project(projectView.project.owner, projectView.project.name) + '/mentionList'}]]*/ ""
         });
     });
 </script>

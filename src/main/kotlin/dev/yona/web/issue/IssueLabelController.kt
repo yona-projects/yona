@@ -199,7 +199,7 @@ class IssueLabelController(
         if (from != null && accessControl.isAllowed(currentUserProvider.get().user, labelsResource(from), Operation.READ)) {
             labelService.copyLabels(from, project)
         }
-        return dev.yona.web.RedirectSupport.see(request, response, "/${project.owner}/${project.name}/issue/labelsform")
+        return dev.yona.web.RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/labelsform")
     }
 
     // --- 분류 ---

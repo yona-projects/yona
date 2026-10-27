@@ -8,7 +8,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="myList" th:with="authoredTab=${meId == cond.authorId}, assignedTab=${meId == cond.assigneeId}">
 <ul class="post-list-wrap my-issues">
-<th:block th:each="row : ${items}" th:with="issue=${row.item}, base=${'/' + row.owner + '/' + row.project}, url=${'/' + row.owner + '/' + row.project + '/issue/' + row.item.number}">
+<th:block th:each="row : ${items}" th:with="issue=${row.item}, base=${#paths.project(row.owner, row.project)}, url=${#paths.project(row.owner, row.project) + '/issue/' + row.item.number}">
     <li class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{${url}}">
         <div class="span12 span-hard-wrap">
             <div class="span2 project-name-in-my-issues fixed-height-my-issues-list">
@@ -34,7 +34,7 @@
                             <span class="subtask-progress completion-ratio" th:classappend="${issue.subtask.percent == 100} ? 'txt-green'"><th:block th:if="${issue.subtask.percent != 100}" th:text="${issue.subtask.closed} + '/'"></th:block><th:block th:text="${issue.subtask.total}"></th:block></span>
                         </th:block>
                         <span th:if="${issue.parent != null}" class="infos-item subtask">
-                            <a th:href="@{${'/' + issue.parent.owner + '/' + issue.parent.project + '/issue/' + issue.parent.number}}" th:text="${issue.parent.label}"></a>
+                            <a th:href="@{${#paths.project(issue.parent.owner, issue.parent.project) + '/issue/' + issue.parent.number}}" th:text="${issue.parent.label}"></a>
                         </span>
                     </span>
                     <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues?state=open&labelIds=' + label.id}}" class="label issue-label list-label twoColumeModeTarget" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
@@ -43,7 +43,7 @@
                             <th:block th:each="child : ${issue.children}">
                             <div class="issue-item child-issue" th:classappend="${child.selected} ? 'selected-child'">
                                 <span class="state-label" th:classappend="${child.state}"><i th:if="${child.state == 'closed'}" class=" yobicon-checkmark"></i></span>
-                                <a class="twoColumeModeTarget" th:href="@{${'/' + child.owner + '/' + child.project + '/issue/' + child.number}}">
+                                <a class="twoColumeModeTarget" th:href="@{${#paths.project(child.owner, child.project) + '/issue/' + child.number}}">
                                     <span class="item-name">
                                         <span class="subtask-number"><span th:if="${child.draft}" class="draft-number" th:text="'#' + #{issue.state.draft}"></span><th:block th:unless="${child.draft}" th:text="'#' + ${child.number}"></th:block></span>
                                         <span th:text="${child.title}"></span>
@@ -56,7 +56,7 @@
                                         <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount(@{${base + '/issue/' + child.number + '#vote'}}, ${child.voterCount}, true)}"></th:block></th:block>
                                     </span>
                                 </span>
-                                <a th:each="label : ${child.labels}" th:href="@{${'/' + child.owner + '/' + child.project + '/issues?state=open'}(labelIds=${label.id})}" class="label issue-label list-label active twoColumeModeTarget" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+                                <a th:each="label : ${child.labels}" th:href="@{${#paths.project(child.owner, child.project) + '/issues?state=open'}(labelIds=${label.id})}" class="label issue-label list-label active twoColumeModeTarget" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
                                 <span class="child-issue-date" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></span>
                             </div>
                             </th:block>

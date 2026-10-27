@@ -67,7 +67,7 @@ class IssueExcelExporter(private val messages: MessageSource, private val entity
             sheet.addCell(jxl.write.DateTime(column++, line, issue.createdDate, date))
             text(issue.dueDate?.let { SimpleDateFormat("yyyy-MM-dd").format(it) })
             text(issue.milestone?.title)
-            text("/${issue.project?.owner}/${issue.project?.name}/issue/${issue.number}")
+            text("${dev.yona.util.UrlPaths.projectPath(issue.project?.owner, issue.project?.name)}/issue/${issue.number}")
             comments.forEachIndexed { offset, comment ->
                 sheet.addCell(Label(column, line + offset, comment.contents.orEmpty(), body))
                 sheet.addCell(Label(column + 1, line + offset, comment.authorName.orEmpty(), body))
