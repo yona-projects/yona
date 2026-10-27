@@ -58,7 +58,7 @@ class ExternalIssueService(
      * (v1.6 `saveWithNumber`). 시각을 주지 않으면 비운 채 저장한다(v1.6 `IssueApi`가 생성자의 기본값을 `null`로 덮어쓴다). [notify]이면 [IssueCreatedActivity]를 발행한다.
      */
     @Transactional
-    fun create(project: Project, author: User, spec: ExternalIssue, notify: Boolean): Issue {
+    fun create(project: Project, author: User, spec: ExternalIssue, notify: Boolean, actor: User = author): Issue {
         val numbered = spec.number != null && spec.number > 0
         val issue = issues.save(
             Issue(
@@ -72,7 +72,8 @@ class ExternalIssueService(
         )
         if (!numbered) titleHeads.save(project, spec.title)
         mentions.update(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), spec.body)
-        if (notify) publisher.publishEvent(IssueCreatedActivity(issue, author))
+        // v1.6 `afterNewIssue`는 JSON의 작성자가 아니라 로그인 사용자를 보낸 사람으로 쓴다
+        if (notify) publisher.publishEvent(IssueCreatedActivity(issue, actor))
         return issue
     }
 
@@ -183,9 +184,9 @@ class ExternalIssueService(
         posting.labels.clear()
         postings.delete(posting)
         postings.flush()
-        // v1.6는 글과 댓글을 지울 때 구독 기록도 함께 지운다
-        commentIds.forEach { issueService.deleteResourceRelations(ResourceType.NONISSUE_COMMENT, it.toString()) }
-        issueService.deleteResourceRelations(ResourceType.BOARD_POST, postingId.toString())
+        // v1.6 `deleteOnly()`는 구독 기록만 지우고 알림 이벤트는 남긴다
+        commentIds.forEach { issueService.deleteWatchRows(ResourceType.NONISSUE_COMMENT, it.toString()) }
+        issueService.deleteWatchRows(ResourceType.BOARD_POST, postingId.toString())
         return issue
     }
 

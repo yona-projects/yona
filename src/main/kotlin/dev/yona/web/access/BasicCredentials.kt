@@ -23,10 +23,27 @@ class BasicCredentials(val loginId: String, val password: String) {
         fun parse(request: HttpServletRequest): BasicCredentials? {
             val header = request.getHeader("Authorization") ?: return null
             if (!header.startsWith("Basic ")) return null
-            val decoded = try { String(Base64.getDecoder().decode(header.substring(6).trim()), Charsets.ISO_8859_1) } catch (e: IllegalArgumentException) { return MALFORMED }
+            val decoded = String(lenientDecode(header.substring(6)), Charsets.ISO_8859_1)
             val colon = decoded.indexOf(':')
             if (colon < 0) return MALFORMED
             return BasicCredentials(decoded.substring(0, colon), decoded.substring(colon + 1))
+        }
+
+        /**
+         * v1.6의 commons-codec `decodeBase64`처럼 관대하게 읽는다. URL 안전 문자(`-`, `_`)는 `+`, `/`로 보고, 알파벳 밖의 글자와 패딩(`=`)은
+         * 버린 뒤 패딩 없이 읽는다. 마지막에 한 글자만 남으면(6비트) 그 글자는 버린다.
+         */
+        private fun lenientDecode(value: String): ByteArray {
+            val cleaned = StringBuilder(value.length)
+            for (c in value) {
+                when {
+                    c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9' || c == '+' || c == '/' -> cleaned.append(c)
+                    c == '-' -> cleaned.append('+')
+                    c == '_' -> cleaned.append('/')
+                }
+            }
+            if (cleaned.length % 4 == 1) cleaned.setLength(cleaned.length - 1)
+            return Base64.getDecoder().decode(cleaned.toString())
         }
     }
 }

@@ -264,6 +264,18 @@ class MilestoneTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `제목이 겹치고 마감일 형식도 틀리면 경고는 마감일 문구가 남는다 (v1_6은 validateDueDate가 나중에 덮는다)`() {
+        val project = newProject()
+        newMilestone(project, "v1")
+        val html = mockMvc.perform(post("${base(project)}/milestones").session(login(manager(project))).param("title", "v1").param("dueDate", "2026-13-45").param("state", "OPEN"))
+            .andExpect(status().isOk).andReturn().response.contentAsString
+        val duplicated = "This milestone title already exists. Please enter a different title."
+        // 제목 입력란의 필드 오류로만 한 번 나오고, 경고 문구는 마감일 형식이다
+        assertEquals(1, Regex(Regex.escape(duplicated)).findAll(html).count())
+        assertTrue(html.contains("Invalid format. Enter the due date in YYYY-MM-DD format."))
+    }
+
+    @Test
     fun `마감일 형식이 틀리면 안내한다`() {
         val project = newProject()
         val doc = Jsoup.parse(

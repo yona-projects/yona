@@ -102,7 +102,7 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
     @Test
     fun `커밋이 있으면 코드 주소는 HEAD 코드 화면으로 보낸다`() {
         val p = filled()
-        mockMvc.perform(get("/${p.owner}/${p.name}/code")).andExpect(status().isFound).andExpect(header().string("Location", "/${p.owner}/${p.name}/code/HEAD/"))
+        mockMvc.perform(get("/${p.owner}/${p.name}/code")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/${p.owner}/${p.name}/code/HEAD"))
     }
 
     @Test

@@ -56,7 +56,7 @@ class ReviewCommentService(
     fun commentOnCommit(project: Project, commitId: String, author: User, contents: String, threadId: Long?, range: CodeRange?): ReviewComment {
         val comment = newComment(author, contents)
         comment.thread = threadId?.let { threads.findById(it).orElse(null) } ?: newThread(project, commitId, null, range, author, comment.createdDate)
-        return save(comment, author).also { publisher.publishEvent(ReviewCommentedActivity(it, null, commitId, author)) }
+        return save(comment, author, moveAll = true).also { publisher.publishEvent(ReviewCommentedActivity(it, null, commitId, author)) }
     }
 
     /**
@@ -72,7 +72,8 @@ class ReviewCommentService(
             val previous = if (commitId != null) "" else pullRequest.mergedCommitIdFrom
             newThread(project, requireNotNull(targetCommit), previous, range, author, comment.createdDate).also { it.pullRequest = pullRequest }
         }
-        return save(comment, author).also { publisher.publishEvent(ReviewCommentedActivity(it, pullRequest, commitId, author)) }
+        // 풀 리퀘스트 댓글의 첨부는 호출한 쪽이 폼에 적힌 것만 옮긴다(v1.6 `attachUploadFilesToPost`)
+        return save(comment, author, moveAll = false).also { publisher.publishEvent(ReviewCommentedActivity(it, pullRequest, commitId, author)) }
     }
 
     /**
@@ -141,12 +142,13 @@ class ReviewCommentService(
         contents = contents, createdDate = Date(), authorId = author.id, authorLoginId = author.loginId, authorName = author.name
     )
 
-    private fun save(comment: ReviewComment, author: User): ReviewComment {
+    /** [moveAll]이면 작성자의 임시 첨부를 모두 옮긴다. 커밋 댓글은 v1.6도 `moveAll`이고 풀 리퀘스트 댓글은 선택 이동이다. */
+    private fun save(comment: ReviewComment, author: User, moveAll: Boolean): ReviewComment {
         val thread = requireNotNull(comment.thread)
         if (thread.id == null) threads.save(thread)
         val saved = reviewComments.save(comment)
         thread.reviewComments.add(saved)
-        attachments.moveAll(ResourceType.USER, requireNotNull(author.id), ResourceType.REVIEW_COMMENT, requireNotNull(saved.id))
+        if (moveAll) attachments.moveAll(ResourceType.USER, requireNotNull(author.id), ResourceType.REVIEW_COMMENT, requireNotNull(saved.id))
         return saved
     }
 

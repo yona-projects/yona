@@ -161,7 +161,7 @@ class IssueService(
     private fun changeState(issue: Issue, next: State, actor: User?, old: State?, record: Boolean = true) {
         issue.state = next
         issue.updatedDate = Date()
-        issues.save(issue)
+        resync(issue)
         if (!record || actor == null) return
         // v1.6은 "이전 상태"를 현재 상태의 짝(열림↔닫힘)으로 정한다. 초안에서 닫을 때도 이전 상태는 열림이다.
         val previous = if (next == State.CLOSED) State.OPEN else State.CLOSED
@@ -219,9 +219,17 @@ class IssueService(
      * 알림 이벤트는 `NotificationEvent.deleteBy`가 지운다.
      */
     fun deleteResourceRelations(type: ResourceType, resourceId: String) {
+        deleteWatchRows(type, resourceId)
+        deleteNotificationEvents(type, resourceId)
+    }
+
+    /**
+     * 리소스의 구독, 구독 해제 기록만 지운다. v1.6 `ResourcePersistAdapter.postDelete`가 하는 일이며, `deleteOnly()`로 지우는 경로
+     * (글을 이슈로 가져온 뒤의 글 삭제)는 알림 이벤트를 남긴다.
+     */
+    fun deleteWatchRows(type: ResourceType, resourceId: String) {
         entityManager.createQuery("delete from Watch w where w.resourceType = :type and w.resourceId = :rid").setParameter("type", type).setParameter("rid", resourceId).executeUpdate()
         entityManager.createQuery("delete from Unwatch w where w.resourceType = :type and w.resourceId = :rid").setParameter("type", type).setParameter("rid", resourceId).executeUpdate()
-        deleteNotificationEvents(type, resourceId)
     }
 
     /** 리소스에 걸린 알림 이벤트를 수신자, 메일 대기열과 함께 지운다 (v1.6 `NotificationEvent.deleteBy`). */
@@ -294,8 +302,9 @@ class IssueService(
         if (moved && previousProject.isPrivate() && previousProject.owner.equals(actor.loginId, ignoreCase = true)) issue.history = ""
         issues.save(issue)
 
-        titleHeads.delete(previousProject, oldTitle)
+        // v1.6 `editPosting`: 새 제목을 먼저 더하고 옛 제목을 나중에 뺀다. 빼는 쪽의 프로젝트는 이미 바뀐 `original.project`(옮겼다면 새 프로젝트)이다
         titleHeads.save(project, issue.title)
+        titleHeads.delete(project, oldTitle)
         mentions.update(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), issue.body)
 
         recordChanges(issue, actor, edit, moved, previousProject, oldState, oldAssignee, oldBody, fromWatchers)
@@ -303,12 +312,39 @@ class IssueService(
     }
 
     /** 이슈 하나가 같은 분류에서 라벨을 둘 이상 갖지 않는지 확인한다. 어긋나면 `true`이다 (v1.6 `Issue.checkLabels`). */
-    /** 이슈의 가중치를 [delta]만큼 바꾸고 새 값을 돌려준다 (v1.6 `IssueApi.upvoteWeight`, `downvoteWeight`). 수정 시각은 바꾸지 않는다. */
+    /**
+     * 이슈의 가중치를 [delta]만큼 바꾸고 새 값을 돌려준다 (v1.6 `IssueApi.upvoteWeight`, `downvoteWeight`). 수정 시각은 바꾸지 않는다.
+     * v1.6의 `update()`처럼 댓글 수를 다시 세고 멘션 기록을 맞춘다.
+     */
     @Transactional
     fun adjustWeight(issue: Issue, delta: Int): Int {
         issue.weight = (issue.weight ?: 0) + delta
-        issues.save(issue)
+        resync(issue)
         return requireNotNull(issue.weight)
+    }
+
+    /**
+     * 라벨을 지운다. v1.6 `IssueLabel.delete()`는 라벨이 달린 이슈마다 `issue.save()`를 불러, 저장 때마다 하는 일(댓글 수 재계산, 제목 머리말 빈도 +1,
+     * 본문 멘션 맞춤)이 함께 일어난다. 게시글은 이 순회에 없다.
+     */
+    @Transactional
+    fun deleteLabel(label: IssueLabel) {
+        labelService.deleteLabel(label).forEach { issue ->
+            resync(issue)
+            titleHeads.save(requireNotNull(issue.project), issue.title)
+        }
+    }
+
+    /**
+     * v1.6 `AbstractPosting.update()`가 저장 때마다 하는 일이다: 댓글 수를 실제 수로 다시 세어 저장하고, 본문의 `@멘션`을 `mention` 행에 맞춘다.
+     * 수정 시각은 바꾸지 않는다. 이슈를 `update()`로 저장하는 경로(추천, 가중치, 상태 변경, 댓글 등록, 수정, 삭제)가 쓴다.
+     */
+    @Transactional
+    fun resync(issue: Issue) {
+        issue.numOfComments = entityManager.createQuery("select count(c) from IssueComment c where c.issue.id = :id", java.lang.Long::class.java)
+            .setParameter("id", issue.id).singleResult.toInt()
+        issues.save(issue)
+        mentions.update(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), issue.body)
     }
 
     /**
@@ -318,10 +354,7 @@ class IssueService(
     @Transactional
     fun replaceBody(issue: Issue, body: String) {
         issue.body = body
-        issue.numOfComments = entityManager.createQuery("select count(c) from IssueComment c where c.issue.id = :id", java.lang.Long::class.java)
-            .setParameter("id", issue.id).singleResult.toInt()
-        issues.save(issue)
-        mentions.update(ResourceType.ISSUE_POST, requireNotNull(issue.id).toString(), body)
+        resync(issue)
     }
 
     fun violatesExclusiveCategory(labelIds: Set<Long>): Boolean =
@@ -335,8 +368,9 @@ class IssueService(
                 val project = requireNotNull(issue.project)
                 events.record(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor.loginId)
                 publisher.publishEvent(IssueChangedActivity(issue, EventType.ISSUE_MOVED, "${previous.owner}/${previous.name}", "${project.owner}/${project.name}", actor, fromWatchers))
-                // 게시와 이동이 함께면 v1.6은 새 이슈 알림(afterNewIssue)을 두 번 부른다. 같은 수신자에게 두 번 알리지 않도록 한 번만 보낸다 (A-105).
-                if (!edit.publish) publisher.publishEvent(IssueCreatedActivity(issue, actor))
+                // v1.6은 이동 알림 뒤에 새 이슈 알림(afterNewIssue)을 부르고, 게시를 함께 하면 게시 분기에서 한 번 더 부른다. 알림 이벤트는 같은 자원, 종류,
+                // 보낸 사람의 직전 이벤트를 지우고 새로 저장하므로 한 건으로 남지만 웹훅은 두 번 나간다.
+                publisher.publishEvent(IssueCreatedActivity(issue, actor))
             }
         }
         if (edit.publish) {

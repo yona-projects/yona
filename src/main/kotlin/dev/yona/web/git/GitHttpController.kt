@@ -1,5 +1,6 @@
 package dev.yona.web.git
 
+import dev.yona.util.LenientVersion
 import dev.yona.access.AccessControl
 import dev.yona.access.ProjectResource
 import dev.yona.domain.enumeration.Operation
@@ -142,10 +143,9 @@ class GitHttpController(
     /** Git 2.1.0부터 Content-Type에 문자 집합을 허용한다. `User-Agent`의 버전이 올바른 세 자리 버전이 아니면 허용하지 않는다 (v1.6 `isCharsetAllowed`). */
     private fun isCharsetAllowed(userAgent: String?): Boolean {
         if (userAgent == null) return false
-        val match = SEMVER.matchEntire(semverize(userAgent.substringAfter('/'))) ?: return false
-        val major = match.groupValues[1].toInt()
-        val minor = match.groupValues[2].toInt()
-        return major > 2 || (major == 2 && minor >= 1)
+        // v1.6은 `java-semver`의 관대한 파서로 읽고, 읽지 못하면 거짓이다
+        val version = LenientVersion.parse(semverize(userAgent.substringAfter('/'))) ?: return false
+        return version >= LenientVersion.of(2, 1, 0)
     }
 
     /** v1.6 `Config.semverize`: `v` 접두어 제거, `.pre` 같은 문자 단계는 `-pre`로, 두 자리는 세 자리로 맞춘다. */
@@ -159,6 +159,5 @@ class GitHttpController(
         ResponseEntity.status(status).header("Content-Type", "text/plain;charset=UTF-8").body(body)
 
     private companion object {
-        val SEMVER = Regex("^(\\d+)\\.(\\d+)\\.(\\d+)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$")
     }
 }

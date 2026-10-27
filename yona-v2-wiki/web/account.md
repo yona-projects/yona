@@ -12,7 +12,7 @@ updated: 2026-10-22
 ## 프로필 (`GET /user/editform`, `POST /user/edit`)
 
 - 화면: 아이디(읽기 전용), 이름, 이메일(`type=email`), 아바타 영역(파일 선택, 자르기 대화상자), 최근 방문 목록 초기화 버튼. 아바타 폼은 이름과 이메일을 숨은 값으로 가진다. 스크립트 `user.Setting`이 아바타를 `/files`로 올린 뒤 `avatarId`를 담아 `POST /user/edit`로 저장한다.
-- 저장: 이메일이 비었으면 `user.wrongEmail.alert`, 바꾸는 이메일을 다른 곳에서 쓰고 있으면 `user.email.duplicate`로 `400`(안내와 함께 편집 화면). 이메일 **형식은 검사하지 않는다**. 이름은 서식 태그만 남기고 정화한다. 성공하면 `303`으로 `/로그인ID?daysAgo=14&selected=projects`.
+- 저장: 이메일이 비었으면 `user.wrongEmail.alert`, 바꾸는 이메일을 다른 곳에서 쓰고 있으면 `user.email.duplicate`로 `400`(안내와 함께 편집 화면). 이메일 **형식**도 검사한다(v1.6 `@Constraints.Email`, 틀리면 같은 `user.wrongEmail.alert`와 `400`; 2026-10-27 정정). 저장에 성공하면 서버 캐시 항목을 새로 만든다(`CacheStore.yonaUsers.put`). 이름은 서식 태그만 남기고 정화한다. 성공하면 `303`으로 `/로그인ID?daysAgo=14&selected=projects`.
 - 아바타: `avatarId`의 첨부가 **본인이 올린 임시 첨부**이고 이미지일 때만 바꾼다. 이전 아바타는 지운다. 1MB를 넘어도 v1.6처럼 거부하지 않는다(R-21). v1.6은 남의 첨부 번호도 받았지만 v2는 받지 않는다(A-31).
 - 새 이메일이 다른 사용자의 인증 전 보조 이메일과 같으면 그 행을 지운다.
 

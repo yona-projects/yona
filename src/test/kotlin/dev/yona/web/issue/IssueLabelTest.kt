@@ -3,6 +3,7 @@ package dev.yona.web.issue
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.State
+import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.issue.Issue
 import dev.yona.domain.issue.IssueLabel
@@ -65,6 +66,8 @@ class IssueLabelTest : AbstractIntegrationTest() {
     @Autowired private lateinit var categories: IssueLabelCategoryRepository
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var entityManager: EntityManager
+    @Autowired private lateinit var titleHeads: dev.yona.domain.project.TitleHeadRepository
+    @Autowired private lateinit var mentionRepository: dev.yona.domain.notification.MentionRepository
 
     private var sequence = 0
 
@@ -296,6 +299,22 @@ class IssueLabelTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `라벨을 지우면 이슈를 update로 저장한다 (v1_6 IssueLabel_delete의 issue_save, 제목 머리말 빈도와 멘션 재계산)`() {
+        val project = newProject()
+        val type = newCategory(project, "Type")
+        val bug = newLabel(project, type, "bug")
+        val mentioned = users.save(User(loginId = "lblm${++sequence}", name = "멘션", email = "lblm$sequence@example.com", state = UserState.ACTIVE))
+        val issue = issues.save(Issue(project = project, number = 1, title = "[버그] 제목", body = "확인 @${mentioned.loginId}", state = State.OPEN, createdDate = Date(), updatedDate = Date(), labels = mutableSetOf(bug)))
+        entityManager.flush()
+        mockMvc.perform(post("${base(project)}/issue/label/${bug.id}/delete").session(manager(project)).param("_method", "delete")).andExpect(status().isOk)
+        entityManager.flush(); entityManager.clear()
+        val heads = titleHeads.findAll().filter { it.project?.id == project.id && it.headKeyword == "버그" }
+        assertEquals(1, heads.size)
+        assertEquals(1, heads.single().frequency)
+        assertEquals(listOf(mentioned.loginId), mentionRepository.findAll().filter { it.resourceType == ResourceType.ISSUE_POST && it.resourceId == issue.id.toString() }.mapNotNull { it.user?.loginId })
+    }
+
+    @Test
     fun `분류에 다른 라벨이 남아 있으면 분류는 남는다`() {
         val project = newProject()
         val type = newCategory(project, "Type")
@@ -434,7 +453,7 @@ class IssueLabelTest : AbstractIntegrationTest() {
         val targetType = newCategory(target, "Type")
         newLabel(target, targetType, "bug", "#999")
         mockMvc.perform(post("${base(target)}/copyLabels").session(manager(target)).param("owner", source.owner!!).param("projectName", source.name!!))
-            .andExpect(status().is3xxRedirection).andExpect(redirectedUrl("${base(target)}/issue/labelsform"))
+            .andExpect(status().isSeeOther).andExpect(redirectedUrl("${base(target)}/issue/labelsform"))
         entityManager.flush(); entityManager.clear()
         val copied = labels.findAll().filter { it.project?.id == target.id }
         assertEquals(setOf("bug", "feature"), copied.map { it.name }.toSet())

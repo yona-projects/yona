@@ -73,7 +73,7 @@ class MarkdownRenderer(private val cache: RenderedMarkdownCache) {
      * - 작업 목록: 항목에 `task-list-item`, 체크박스에 `task-list-item-checkbox` 클래스를 주고 `disabled`는 붙이지 않는다.
      */
     private fun matchYobiMarkup(html: String): String {
-        val body = Jsoup.parseBodyFragment(html).body()
+        val body = HtmlDocuments.parseBodyFragment(html).body()
         body.select("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]").forEach { heading ->
             val id = HEADER_ID_PREFIX + heading.id()
             heading.attr("id", id)

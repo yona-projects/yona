@@ -41,6 +41,7 @@ import kotlin.test.assertTrue
 class EmailSettingsTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var sessionUsers: dev.yona.security.SessionUserCache
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var emails: EmailRepository
     @Autowired private lateinit var events: ApplicationEvents
@@ -166,6 +167,16 @@ class EmailSettingsTest : AbstractIntegrationTest() {
         val remaining = emails.findAll().single()
         assertEquals(oldMain, remaining.email)
         assertEquals(true, remaining.valid)
+    }
+
+    @Test
+    fun `대표 이메일을 바꾸면 서버 캐시 항목이 새것으로 바뀐다 (v1_6 removeEmail의 yonaUsers_put)`() {
+        val user = newUser()
+        val email = sub(user, "cache-main@example.com", true)
+        sessionUsers.remember(user.id!!)
+        val before = sessionUsers.memoOf(user.id!!)
+        mockMvc.perform(put("/user/email/setAsMain/${email.id}").session(login(user))).andExpect(status().isSeeOther)
+        org.junit.jupiter.api.Assertions.assertNotSame(before, sessionUsers.memoOf(user.id!!))
     }
 
     @Test

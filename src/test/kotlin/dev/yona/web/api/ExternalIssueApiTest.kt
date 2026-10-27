@@ -98,6 +98,7 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var categories: IssueLabelCategoryRepository
     @Autowired private lateinit var attachments: AttachmentRepository
     @Autowired private lateinit var events: ApplicationEvents
+    @Autowired private lateinit var notificationEvents: dev.yona.domain.notification.NotificationEventRepository
     @Autowired private lateinit var entityManager: EntityManager
     @Autowired private lateinit var messages: org.springframework.context.MessageSource
 
@@ -183,6 +184,15 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     // --- 등록 ---
 
     @Test
+    fun `한글 프로젝트 이름의 응답 주소는 퍼센트 인코딩한다 (v1_6 역방향 라우트)`() {
+        val (user, project) = member("kr")
+        project.name = "한글프로젝트"; projects.save(project)
+        val encodedName = java.net.URLEncoder.encode("한글프로젝트", Charsets.UTF_8)
+        json(post(java.net.URI.create("/-_-api/v1/owners/${project.owner}/projects/$encodedName/issues")), user.token, """{"issues":[{"title":"제목","body":"내용","number":3}]}""")
+            .andExpect(status().isCreated).andExpect(jsonPath("$[0].location").value("/${project.owner}/$encodedName/issue/3"))
+    }
+
+    @Test
     fun `이슈 여러 개를 모든 항목과 함께 등록한다`() {
         val (user, project) = member("c")
         val author = newUser(); val assignee = newUser()
@@ -199,6 +209,8 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
         assertEquals(7L, saved.number); assertEquals("가져온 이슈", saved.title); assertEquals(State.CLOSED, saved.state); assertEquals(author.loginId, saved.authorLoginId)
         assertEquals(assignee.id, saved.assignee?.user?.id); assertEquals(milestone.id, saved.milestone?.id); assertEquals(setOf(label.id), saved.labels.map { it.id }.toSet())
         assertEquals(1_600_000_000_000L / 1000, saved.createdDate!!.time / 1000); assertEquals(0, saved.numOfComments)
+        // v1.6 `afterNewIssue`는 JSON의 작성자가 아니라 요청을 보낸 로그인 사용자를 보낸 사람으로 쓴다
+        assertEquals(listOf(user.id), events.stream(IssueCreatedActivity::class.java).map { it.actor.id }.toList())
         assertEquals(1, events.stream(IssueCreatedActivity::class.java).count())
     }
 
@@ -368,6 +380,7 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
         entityManager.persist(parent); entityManager.flush()
         entityManager.persist(PostingComment(contents = "자식", createdDate = Date(1_700_000_002_000L), authorId = user.id, authorLoginId = user.loginId, authorName = user.name, posting = post, projectId = project.id!!, parentComment = parent))
         val file = attachments.save(Attachment(name = "a.txt", hash = "hash-import", containerType = ResourceType.BOARD_POST, containerId = post.id!!, mimeType = "text/plain", size = 1L, createdDate = Date(), ownerLoginId = user.loginId))
+        entityManager.persist(dev.yona.domain.notification.NotificationEvent(title = "t", senderId = user.id, created = Date(), resourceType = ResourceType.BOARD_POST, resourceId = post.id.toString(), eventType = dev.yona.domain.enumeration.EventType.NEW_POSTING))
         entityManager.flush(); entityManager.clear()
         json(post(api(project, "issues/imports?postNumber=1")), user.token, null).andExpect(status().isOk).andExpect(jsonPath("$.number").value(1))
         entityManager.flush(); entityManager.clear()
@@ -376,6 +389,8 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
         val copied = comments.findAll().filter { it.issue?.id == imported.id }.sortedBy { it.createdDate }
         assertEquals(listOf("부모", "자식"), copied.map { it.contents }); assertEquals(copied[0].id, copied[1].parentComment?.id)
         assertNull(postings.findById(post.id!!).orElse(null))
+        // v1.6 `posting.deleteOnly()`는 구독 기록만 지우고 알림 이벤트는 지우지 않는다
+        assertEquals(1, notificationEvents.findAll().count { it.resourceType == ResourceType.BOARD_POST && it.resourceId == post.id.toString() })
         val moved = attachments.findAll().single { it.hash == "hash-import" }
         assertEquals(ResourceType.ISSUE_POST, moved.containerType); assertEquals(imported.id, moved.containerId); assertNotNull(file.id)
     }

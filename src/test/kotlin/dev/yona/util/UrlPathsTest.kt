@@ -28,4 +28,10 @@ class UrlPathsTest {
         assertEquals("", UrlPaths.encodeEach(""))
         assertEquals(" ", UrlPaths.encodeEach(" "))
     }
+
+    @Test
+    fun `JSON 이동 주소는 컨텍스트 경로를 붙이고 한글을 인코딩한다`() {
+        kotlin.test.assertEquals("/yona/%ED%95%9C/p", UrlPaths.withContext("/yona", "/한/p"))
+        kotlin.test.assertEquals("/a/b", UrlPaths.withContext("", "/a/b"))
+    }
 }

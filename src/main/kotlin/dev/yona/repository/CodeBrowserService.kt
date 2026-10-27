@@ -112,10 +112,12 @@ class CodeBrowserService(
         if (isSvn(project)) return
         repositories.openRepository(project).use { repository ->
             val id = repository.resolve(branch) ?: return
+            // v1.6 JGit 4.5는 항목의 수정 시각을 내려받는 시각으로 쓴다. 7.x는 커밋 시각을 쓰므로 트리로 지정해 맞춘다
+            val tree = repository.resolve("$branch^{tree}") ?: id
             synchronized(ARCHIVE_LOCK) {
                 ArchiveCommand.registerFormat("zip", ZipFormat())
                 try {
-                    Git(repository).archive().setTree(id).setFormat("zip").setOutputStream(out).call()
+                    Git(repository).archive().setTree(tree).setFormat("zip").setOutputStream(out).call()
                 } finally {
                     ArchiveCommand.unregisterFormat("zip")
                 }

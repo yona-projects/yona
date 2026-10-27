@@ -222,10 +222,20 @@ class SignupTest : AbstractIntegrationTest() {
         val owner = existingUser()
         emails.save(Email(user = owner, email = "extra@example.com", valid = true))
         emails.save(Email(user = owner, email = "pending@example.com", valid = false))
-        mockMvc.perform(get("/user/isEmailExist").param("email", "USED@example.com")).andExpect(jsonPath("$.isExist").value(true))
-        mockMvc.perform(get("/user/isEmailExist").param("email", "extra@example.com")).andExpect(jsonPath("$.isExist").value(true))
-        mockMvc.perform(get("/user/isEmailExist").param("email", "pending@example.com")).andExpect(jsonPath("$.isExist").value(false))
-        mockMvc.perform(get("/user/isEmailExist").param("email", "free@example.com")).andExpect(jsonPath("$.isExist").value(false))
+        fun ask(email: String) = get("/user/isEmailExist").param("email", email).contentType("application/json").content("{}")
+        mockMvc.perform(ask("USED@example.com")).andExpect(jsonPath("$.isExist").value(true))
+        mockMvc.perform(ask("extra@example.com")).andExpect(jsonPath("$.isExist").value(true))
+        mockMvc.perform(ask("pending@example.com")).andExpect(jsonPath("$.isExist").value(false))
+        mockMvc.perform(ask("free@example.com")).andExpect(jsonPath("$.isExist").value(false))
+    }
+
+    @Test
+    fun `이메일 사용 여부는 JSON 본문이 없으면 400이다 (v1_6 BodyParser_Json이 GET에서도 돈다)`() {
+        existingUser(email = "used2@example.com")
+        mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com")).andExpect(status().isBadRequest)
+        mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("application/json")).andExpect(status().isBadRequest)
+        mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("text/plain").content("{}")).andExpect(status().isBadRequest)
+        mockMvc.perform(get("/user/isEmailExist").param("email", "used2@example.com").contentType("text/json").content("{}")).andExpect(jsonPath("$.isExist").value(true))
     }
 
     // --- 인증 링크 ---

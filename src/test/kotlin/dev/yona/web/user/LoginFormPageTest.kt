@@ -228,6 +228,13 @@ class LoginFormPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `입력이 빠진 로그인 요청은 이동 주소를 비운 화면을 다시 그린다 (v1_6은 redirectUrl에 null을 넘긴다)`() {
+        val result = mockMvc.perform(post("/users/login").param("loginIdOrEmail", "x").param("redirectUrl", "/a/b")).andExpect(status().isBadRequest).andReturn()
+        val doc = Jsoup.parse(result.response.contentAsString)
+        assertEquals("", doc.selectFirst("input[name=redirectUrl]")?.attr("value").orEmpty())
+    }
+
+    @Test
     fun `이메일 인증을 쓰지 않는 사이트의 로그인 화면에는 확인 메일 안내가 없다`() {
         val doc = org.jsoup.Jsoup.parse(mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/users/loginform")).andReturn().response.contentAsString)
         kotlin.test.assertTrue(doc.select(".email-verification-help").isEmpty())

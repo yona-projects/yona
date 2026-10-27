@@ -289,6 +289,15 @@ class ProjectMemberTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `사이트 관리자 행도 구성원으로 센다 (v1_6 isMemberOf는 역할을 가리지 않는다)`() {
+        val project = newProject()
+        val manager = join(newUser(), project, RoleType.MANAGER)
+        val admin = join(newUser(), project, RoleType.SITEMANAGER)
+        addMember(project, login(manager), admin.loginId)
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash().attribute("warning", "project.member.alreadyMember"))
+    }
+
+    @Test
     fun `JSON을 원하면 오류를 400과 JSON으로 알린다`() {
         val project = newProject()
         val manager = join(newUser(), project, RoleType.MANAGER)

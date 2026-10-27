@@ -38,7 +38,7 @@ object RedirectSupport {
     }
 
     /**
-     * @param location 이동할 위치. 그대로 `Location` 헤더에 들어간다
+     * @param location 이동할 위치. ASCII 바깥의 글자는 퍼센트 인코딩해 `Location` 헤더에 넣는다([dev.yona.util.UrlPaths.encodeLocation])
      * @param flash 다음 요청에서 한 번만 읽을 수 있는 값
      */
     fun see(
@@ -52,6 +52,6 @@ object RedirectSupport {
             RequestContextUtils.getFlashMapManager(request)?.saveOutputFlashMap(flashMap, request, response)
             RequestContextUtils.getOutputFlashMap(request).putAll(flash)
         }
-        return ResponseEntity.status(HttpStatus.SEE_OTHER).header(HttpHeaders.LOCATION, location).build()
+        return ResponseEntity.status(HttpStatus.SEE_OTHER).header(HttpHeaders.LOCATION, dev.yona.util.UrlPaths.encodeLocation(location)).build()
     }
 }

@@ -54,7 +54,9 @@ class CodeBrowserController(
     @GetMapping("/{user}/{project}/code")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
-    fun codeBrowser(@PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest): Any {
+    fun codeBrowser(
+        @PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest, response: jakarta.servlet.http.HttpServletResponse
+    ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         notSupported(project)?.let { return it }
         val viewer = currentUserProvider.get().user
@@ -67,7 +69,8 @@ class CodeBrowserController(
         // 기본 브랜치 이름에서 `refs/heads/` 접두어를 뗀다. 알 수 없으면 HEAD이다.
         val defaultBranch = repositories.defaultBranch(project).let { if (it.split("/").size >= 3) it.split("/", limit = 3)[2] else it }
         val segment = UrlPaths.routeSegment(defaultBranch)
-        return ModelAndView("redirect:/$owner/$name/code/$segment/")
+        // v1.6은 `redirect(...)`(303)이고 경로가 빈 역방향 라우트라 끝 슬래시가 없다
+        return dev.yona.web.RedirectSupport.see(request, response, "/$owner/$name/code/$segment")
     }
 
     /** 브랜치의 폴더나 파일을 화면으로 보여 준다. */
@@ -87,7 +90,8 @@ class CodeBrowserController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         notSupported(project)?.let { return it }
         val branch = UrlPaths.decodeSegmentOrSelf(rawBranch)
-        val path = UrlPaths.decodeSegmentOrSelf(rawPath)
+        // `{*path}`는 스프링이 이미 한 번 디코딩한 값이다. v1.6도 이 경로는 한 번만 디코딩하므로 다시 풀지 않는다
+        val path = rawPath
         val chain = service.ancestors(project, branch, path) ?: return ErrorViews.notFound(branch, views.of(project), "code")
         val viewer = currentUserProvider.get().user
         val page = assembler.assemble(project, chain, branch, path, viewer != null, accessControl.isSiteManager(viewer), properties.codeBrowserMaxFileSize)
@@ -117,7 +121,7 @@ class CodeBrowserController(
 
     private fun metaJson(owner: String, name: String, branch: String?, rawPath: String): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ResponseEntity.notFound().build<Void>()
-        val info = service.metaData(project, branch, UrlPaths.decodeSegmentOrSelf(rawPath)) ?: return ResponseEntity.notFound().build<Void>()
+        val info = service.metaData(project, branch, rawPath) ?: return ResponseEntity.notFound().build<Void>()
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(info)
     }
 
@@ -167,7 +171,7 @@ class CodeBrowserController(
 
     private fun rawFile(owner: String, name: String, rev: String, rawPath: String): Pair<ByteArray, String>? {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return null
-        val path = UrlPaths.decodeSegmentOrSelf(rawPath.removePrefix("/"))
+        val path = rawPath.removePrefix("/")
         val bytes = service.rawFile(project, UrlPaths.decodeSegmentOrSelf(rev), path) ?: return null
         return bytes to path.substringAfterLast('/')
     }

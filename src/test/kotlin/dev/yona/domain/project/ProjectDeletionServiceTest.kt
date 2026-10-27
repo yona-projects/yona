@@ -214,6 +214,23 @@ class ProjectDeletionServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `프로젝트와 풀 리퀘스트의 구독 기록도 지운다 (v1_6 ResourcePersistAdapter_postDelete)`() {
+        val p = project(); val member = user()
+        populate(p, project(), member)
+        val pid = p.id!!
+        val prIds = em.createNativeQuery("select id from pull_request where from_project_id = $pid or to_project_id = $pid").resultList.map { (it as Number).toLong() }
+        exec("insert into watch (user_id, resource_type, resource_id) values (${member.id}, 'PROJECT', '$pid')")
+        exec("insert into unwatch (user_id, resource_type, resource_id) values (${member.id}, 'PROJECT', '$pid')")
+        prIds.forEach { exec("insert into watch (user_id, resource_type, resource_id) values (${member.id}, 'PULL_REQUEST', '$it')") }
+        assertEquals(1 + prIds.size.toLong(), count("watch"))
+
+        service.delete(p)
+        em.flush(); em.clear()
+        assertEquals(0, count("watch", "resource_type in ('PROJECT', 'PULL_REQUEST')"))
+        assertEquals(0, count("unwatch", "resource_type = 'PROJECT'"))
+    }
+
+    @Test
     fun `다른 프로젝트의 데이터는 건드리지 않는다`() {
         val p = project()
         val control = project()

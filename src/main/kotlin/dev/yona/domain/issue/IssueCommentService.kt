@@ -95,33 +95,35 @@ class IssueCommentService(
     /** [user]가 이슈를 추천한다. 이미 추천했으면 그대로이다 (v1.6 `Issue.addVoter`). */
     @Transactional
     fun vote(issue: Issue, user: User) {
-        if (issue.voters.none { it.id == user.id }) { issue.voters.add(user); issues.save(issue) }
-        syncCommentCount(issue)
+        // v1.6 `Issue.addVoter`는 추천자가 실제로 바뀐 때만 `update()`를 부른다
+        if (issue.voters.none { it.id == user.id }) { issue.voters.add(user); syncCommentCount(issue) }
     }
 
     /** [user]의 이슈 추천을 취소한다. */
     @Transactional
     fun unvote(issue: Issue, user: User) {
-        if (issue.voters.removeIf { it.id == user.id }) issues.save(issue)
-        syncCommentCount(issue)
+        if (issue.voters.removeIf { it.id == user.id }) syncCommentCount(issue)
     }
 
     /** [user]가 댓글을 추천한다. */
     @Transactional
     fun voteComment(comment: IssueComment, user: User) {
-        if (comment.voters.none { it.id == user.id }) { comment.voters.add(user); comments.save(comment) }
+        // v1.6 `IssueComment.addVoter`는 바뀐 때만 `Comment.update()`를 불러 멘션 기록을 맞춘다
+        if (comment.voters.none { it.id == user.id }) { comment.voters.add(user); comments.save(comment); resyncMentions(comment) }
     }
 
     /** [user]의 댓글 추천을 취소한다. */
     @Transactional
     fun unvoteComment(comment: IssueComment, user: User) {
-        if (comment.voters.removeIf { it.id == user.id }) comments.save(comment)
+        if (comment.voters.removeIf { it.id == user.id }) { comments.save(comment); resyncMentions(comment) }
     }
+
+    private fun resyncMentions(comment: IssueComment) =
+        mentions.update(ResourceType.ISSUE_COMMENT, requireNotNull(comment.id).toString(), comment.contents)
 
     /** 이슈의 댓글 수를 실제 댓글 수에 맞춘다 (v1.6 `AbstractPosting.update`가 `numOfComments`를 다시 계산한다). */
     private fun syncCommentCount(issue: Issue) {
-        issue.numOfComments = comments.countByIssueId(requireNotNull(issue.id)).toInt()
-        issues.save(issue)
+        issueService.resync(issue)
     }
 
     private fun touchOrTransition(issue: Issue, actor: User, withStateTransition: Boolean) {

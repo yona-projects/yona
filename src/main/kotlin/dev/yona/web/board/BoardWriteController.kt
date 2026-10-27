@@ -117,8 +117,8 @@ class BoardWriteController(
         // 공지는 공지를 올릴 수 있는 사용자만 지정한다.
         val noticeAllowed = accessControl.isProjectResourceCreatable(viewer, project, ResourceType.BOARD_NOTICE)
         val posting = postingService.create(project, viewer, form.copy(notice = form.notice && noticeAllowed))
-        postAttachments.attach(request, viewer, ResourceType.BOARD_POST, requireNotNull(posting.id))
-        return RedirectSupport.see(request, response, if (form.readme) "/${project.owner}/${project.name}" else "/${project.owner}/${project.name}/post/${posting.number}")
+        val flash = postAttachments.attach(request, viewer, ResourceType.BOARD_POST, requireNotNull(posting.id))
+        return RedirectSupport.see(request, response, if (form.readme) "/${project.owner}/${project.name}" else "/${project.owner}/${project.name}/post/${posting.number}", flash)
     }
 
     // --- 수정 ---
@@ -166,8 +166,8 @@ class BoardWriteController(
             postingService.unmarkOtherReadme(project, requireNotNull(posting.number))
         }
         postingService.update(posting, viewer, form, request.getParameter("notificationMail") == "yes")
-        postAttachments.attach(request, viewer, ResourceType.BOARD_POST, requireNotNull(posting.id))
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/post/${posting.number}")
+        val flash = postAttachments.attach(request, viewer, ResourceType.BOARD_POST, requireNotNull(posting.id))
+        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/post/${posting.number}", flash)
     }
 
     // --- 삭제 ---

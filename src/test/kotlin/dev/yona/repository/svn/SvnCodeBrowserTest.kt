@@ -150,6 +150,14 @@ class SvnCodeBrowserTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `지난 리비전에만 있는 파일은 오류 없이 없다고 답한다 (v1_6은 500)`() {
+        val p = project()
+        commit(p, "dev", "하나", mapOf("old.txt" to "v1"))
+        commit(p, "dev", "둘", mapOf("new.txt" to "v2"), deletes = listOf("old.txt"))
+        assertNull(service.metaData(p, "1", "old.txt"))
+    }
+
+    @Test
     fun `원본 파일을 리비전으로 읽는다`() {
         val p = project()
         commit(p, "dev", "하나", mapOf("a.txt" to "v1"))

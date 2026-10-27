@@ -139,6 +139,23 @@ class SystemMailsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `보조 이메일 확인 메일의 언어는 요청 언어가 아니라 서버 기본 언어이다 (v1_6은 액터 스레드의 Messages_get)`() {
+        val savedDefault = java.util.Locale.getDefault()
+        try {
+            java.util.Locale.setDefault(java.util.Locale.KOREA)
+            LocaleContextHolder.setLocale(java.util.Locale.ENGLISH)
+            val u = user()
+            publisher.publishEvent(EmailValidationRequestedEvent(Email(user = u, email = "extra-lang@example.com", valid = false, token = "t2"), "/user/email/confirm/6/t2"))
+            val mail = sentMails().single()
+            assertEquals(messages.getMessage("emails.validation.email.title", arrayOf<Any>("Yona"), java.util.Locale.KOREA), mail.subject)
+            assertTrue(texts(mail).single().startsWith("<pre>" + messages.getMessage("emails.click.link", null, java.util.Locale.KOREA) + "</pre>"))
+        } finally {
+            java.util.Locale.setDefault(savedDefault)
+            LocaleContextHolder.resetLocaleContext()
+        }
+    }
+
+    @Test
     fun `프로젝트 이전 요청 메일은 받는 사용자에게 숨은참조로 수락 링크를 보낸다`() {
         val sender = user(); val dest = user()
         val p = projects.save(Project(owner = sender.loginId, name = "mv${++sequence}", vcs = "GIT", projectScope = ProjectScope.PUBLIC))

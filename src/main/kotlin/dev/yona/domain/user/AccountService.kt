@@ -42,7 +42,7 @@ class AccountService(
      * 첨부가 1MB를 넘어도 v1.6처럼 거부하지 않고 옮긴다([refactoring-backlog.md] R-21).
      */
     fun updateProfile(user: User, name: String?, email: String?, avatarId: String?): String? {
-        if (email.isNullOrEmpty()) return "user.wrongEmail.alert"
+        if (email.isNullOrEmpty() || !SignupService.isValidEmailFormat(email)) return "user.wrongEmail.alert"
         if (user.email != email && signup.isEmailExist(email)) return "user.email.duplicate"
 
         user.email = email

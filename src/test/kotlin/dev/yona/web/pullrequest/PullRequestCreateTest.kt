@@ -117,6 +117,15 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `게스트 오류 화면은 프로젝트 홈 메뉴가 활성이다 (v1_6 BadRequest 오버로드는 PROJECT_HOME)`() {
+        val s = setup()
+        val doc = org.jsoup.Jsoup.parse(mockMvc.perform(get("/${s.origin.owner}/${s.origin.name}/newPullRequestForm").session(login(user()))).andExpect(status().isForbidden).andReturn().response.contentAsString)
+        val active = doc.select(".project-menu-nav li.active")
+        assertEquals(1, active.size)
+        assertEquals("/${s.origin.owner}/${s.origin.name}", active.single().selectFirst("a")!!.attr("href"))
+    }
+
+    @Test
     fun `포크에서 열면 보내는 곳은 포크, 받는 곳은 원본이고 받는 브랜치는 현재 프로젝트의 기본 브랜치이다`() {
         val s = setup()
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("기능", mapOf("b.txt" to "b".toByteArray())), branch = "feature")

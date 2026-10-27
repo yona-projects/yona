@@ -156,9 +156,17 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `로그인 ID가 anonymous인 실제 사용자도 목록에 나온다 (v1_6은 로그인 ID가 빈 NullUser 행만 뺀다)`() {
+        val me = admin()
+        val salt = LegacyPasswordHasher.generateSalt()
+        users.save(User(loginId = "anonymous", name = "익명이름", email = "anon-real@example.com", state = UserState.ACTIVE, createdDate = Date(++clock), passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
+        assertTrue(names(userList(login(me), "query" to "anon-real")).contains("@anonymous"))
+    }
+
+    @Test
     fun `쪽은 30명씩이다`() {
         val me = admin(); repeat(35) { newUser() }
-        val total = users.findAll().count { it.state == UserState.ACTIVE && it.id != 1L && it.loginId != "anonymous" }
+        val total = users.findAll().count { it.state == UserState.ACTIVE && it.id != 1L && !it.loginId.isNullOrEmpty() }
         assertEquals(30, names(userList(login(me))).size)
         assertEquals(total - 30, names(userList(login(me), "pageNum" to "2")).size)
     }

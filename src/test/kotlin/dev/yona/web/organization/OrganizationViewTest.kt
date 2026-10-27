@@ -296,6 +296,16 @@ class OrganizationViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `검색어의 밑줄과 퍼센트는 like의 와일드카드로 동작한다 (v1_6은 이스케이프하지 않는다)`() {
+        val a = newOrg("wxa-team"); val b = newOrg("wyb-team")
+        val names = page("/orgs?filter=w_a-", login(newUser())).select("li.project .header a.black").map { it.text() }
+        assertEquals(listOf(a.name), names)
+        val all = Jsoup.parse(mockMvc.perform(get("/orgs").param("filter", "w%-team").session(login(newUser()))).andExpect(status().isOk).andReturn().response.contentAsString)
+            .select("li.project .header a.black").map { it.text() }
+        assertEquals(setOf(a.name, b.name), all.toSet())
+    }
+
+    @Test
     fun `조직이 없으면 안내를 보여 준다`() {
         val page = page("/orgs?filter=zzzz-no-match", login(newUser()))
         assertEquals("You do not belong to any group", page.selectFirst(".error-wrap p")?.text())

@@ -31,6 +31,8 @@ import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import dev.yona.domain.enumeration.ResourceType
+import dev.yona.domain.misc.Attachment
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -61,6 +63,7 @@ import kotlin.test.assertTrue
 class ReviewCommentTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var attachmentRepository: dev.yona.domain.misc.AttachmentRepository
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
@@ -208,6 +211,34 @@ class ReviewCommentTest : AbstractIntegrationTest() {
         val note = notificationEvents.findAll().single { it.eventType == EventType.NEW_REVIEW_COMMENT }
         val message = notificationMessages.message(note, LANG)!!
         assertTrue(message.startsWith(messageOf("notification.reviewthread.inTheFile", "a.txt") + "\n```diff\n> @@ -1, 3 +1, 3 @@\n>  line1\n> -line2\n> +CHANGED\n```\n\n여기 확인\n\n```diff\n>  line3\n```\n"), message)
+    }
+
+    @Test
+    fun `풀 리퀘스트 댓글은 폼에 적힌 임시 첨부만 옮기고 나머지는 남긴다 (v1_6 moveOnlySelected)`() {
+        val n = ++sequence
+        val origin = projects.save(Project(owner = "rao$n", name = "rap$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        menuSettings.save(ProjectMenuSetting(project = origin, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        repositories.createRepository(origin)
+        GitTestSupport.pushCommits(repositories, origin, TestCommit("기반", mapOf("a.txt" to "line1\n".toByteArray())))
+        val manager = user(); projectUsers.save(ProjectUser(user = manager, project = origin, role = roles.findById(RoleType.MANAGER.id).get()))
+        val contributor = user()
+        val fork = forks.fork(origin, contributor.loginId!!, "raf$n", ProjectScope.PUBLIC, contributor)
+        GitTestSupport.appendCommits(repositories, fork, TestCommit("새 파일", mapOf("b.txt" to "b\n".toByteArray())))
+        mockMvc.perform(
+            post("/${fork.owner}/${fork.name}/pullRequests").session(login(contributor)).param("fromProjectId", fork.id.toString()).param("toProjectId", origin.id.toString())
+                .param("fromBranch", "refs/heads/master").param("toBranch", "refs/heads/master").param("title", "요청").param("body", "본문")
+        ).andExpect(status().isSeeOther)
+        val pr: PullRequest = pullRequests.findAll().single()
+        fun temp(hash: String) = attachmentRepository.save(Attachment(name = "$hash.txt", hash = "$hash-$n", containerType = ResourceType.USER, containerId = manager.id!!, mimeType = "text/plain", size = 1L, createdDate = java.util.Date(), ownerLoginId = manager.loginId))
+        val selected = temp("sel"); val untouched = temp("untouched")
+        mockMvc.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/${origin.owner}/${origin.name}/pullRequest/${pr.id}/comments").session(login(manager))
+                .param("contents", "첨부 확인").param("temporaryUploadFiles", selected.id.toString())
+        ).andExpect(status().isSeeOther)
+        val comment = reviewComments.findAll().single()
+        assertEquals(ResourceType.REVIEW_COMMENT, attachmentRepository.findById(selected.id!!).get().containerType)
+        assertEquals(comment.id, attachmentRepository.findById(selected.id!!).get().containerId)
+        assertEquals(ResourceType.USER, attachmentRepository.findById(untouched.id!!).get().containerType)
     }
 
     @Test

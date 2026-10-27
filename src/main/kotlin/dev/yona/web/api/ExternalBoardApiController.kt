@@ -71,7 +71,7 @@ class ExternalBoardApiController(
                 ExternalPosting(title, node.findValue("body")?.asString().orEmpty(), parseDate(node.findValue("createdAt")), parseDate(node.findValue("updatedAt")), node.findValue("number")?.asLong(0)?.takeIf { it > 0 })
             )
             attachments.attachIds(viewer, ids(node.findValue("temporaryUploadFiles")), ResourceType.BOARD_POST, requireNotNull(posting.id))
-            linkedMapOf("status" to 201, "location" to "/${project.owner}/${project.name}/post/${posting.number}")
+            linkedMapOf("status" to 201, "location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "/${project.owner}/${project.name}/post/${posting.number}"))
         }
         return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(created)
     }
@@ -92,7 +92,7 @@ class ExternalBoardApiController(
         val comment = service.addComment(posting, author, json.findValue("body")?.asString().orEmpty(), parseDate(json.findValue("createdAt")))
         attachments.attachIds(viewer, ids(json.findValue("temporaryUploadFiles")), ResourceType.NONISSUE_COMMENT, requireNotNull(comment.id))
         return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON)
-            .body(linkedMapOf("status" to 201, "location" to "/${project.owner}/${project.name}/post/${posting.number}#comment-${comment.id}"))
+            .body(linkedMapOf("status" to 201, "location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "/${project.owner}/${project.name}/post/${posting.number}#comment-${comment.id}")))
     }
 
     private fun parseDate(node: JsonNode?): Date? {

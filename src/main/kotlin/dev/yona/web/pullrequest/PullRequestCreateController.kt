@@ -102,7 +102,7 @@ class PullRequestCreateController(
         val fromBranches = branches.branches(from)
         val toBranches = branches.branches(to)
         if (fromBranches.isEmpty()) return ErrorViews.badRequest("error.pullRequest.empty.from.repository", views.of(from), "PULL_REQUEST")
-        if (toBranches.isEmpty()) return ErrorViews.badRequest("error.pullRequest.empty.to.repository", views.of(to), "PULL_REQUEST")
+        if (toBranches.isEmpty()) return ErrorViews.badRequest("error.pullRequest.empty.to.repository", views.of(to), "PROJECT_HOME")
 
         val fromBranch = request.getParameter("fromBranch").takeUnless { it.isNullOrBlank() } ?: fromBranches[0].name
         val toBranch = request.getParameter("toBranch").takeUnless { it.isNullOrBlank() } ?: repositories.defaultBranch(project)
@@ -187,7 +187,7 @@ class PullRequestCreateController(
     /** 게스트(구성원이 아닌 로그인 사용자)는 풀 리퀘스트 화면을 쓸 수 없다. 403 오류 화면을 돌려준다 (v1.6 `validateBeforePullRequest`). */
     private fun guestError(project: Project, viewer: User): ModelAndView? =
         if (projectService.isGuest(project, viewer)) {
-            ErrorViews.badRequest("Guest is not allowed this request", views.of(project), "PULL_REQUEST").also { it.status = HttpStatus.FORBIDDEN }
+            ErrorViews.badRequest("Guest is not allowed this request", views.of(project), "PROJECT_HOME").also { it.status = HttpStatus.FORBIDDEN }
         } else null
 
     /** 현재 프로젝트, 그 포크, 포크이면 원본(코드와 풀 리퀘스트 메뉴를 켠 경우)이다 (v1.6 `Project.getAssociationProjects`). */

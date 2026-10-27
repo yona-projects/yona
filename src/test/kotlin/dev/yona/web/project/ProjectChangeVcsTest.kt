@@ -5,6 +5,7 @@ import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectMenuSetting
+import dev.yona.domain.project.TitleHeadRepository
 import dev.yona.domain.project.ProjectMenuSettingRepository
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.ProjectUser
@@ -52,6 +53,9 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var postings: dev.yona.domain.board.PostingRepository
+    @Autowired private lateinit var titleHeads: TitleHeadRepository
+    @Autowired private lateinit var mentionRepository: dev.yona.domain.notification.MentionRepository
 
     private var sequence = 0
 
@@ -127,6 +131,19 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
         projects.flush()
         assertEquals("GIT", projects.findById(project.id!!).get().vcs)
         assertTrue(File("build/tmp/it-project-vcs/repo/git/${project.owner}/${project.name}.git/HEAD").isFile)
+    }
+
+    @Test
+    fun `README 글의 표시를 풀 때 v1_6 posting_save처럼 제목 머리말을 더하고 멘션을 맞춘다`() {
+        val project = newProject()
+        dev.yona.support.GitTestSupport.pushCommits(repositories, project, dev.yona.support.GitTestSupport.TestCommit("readme", mapOf("README.md" to "# hi".toByteArray())))
+        val mentioned = newUser()
+        val posting = postings.save(dev.yona.domain.board.Posting(project = project, number = 1, title = "[문서] 소개", body = "연락 @${mentioned.loginId}", readme = true, createdDate = java.util.Date()))
+        mockMvc.perform(post("/${project.owner}/${project.name}/changeVCS").session(login(manager(project)))).andExpect(status().isNoContent)
+        projects.flush()
+        assertEquals(false, postings.findById(posting.id!!).get().readme)
+        assertEquals(1, titleHeads.findAll().single { it.project?.id == project.id && it.headKeyword == "문서" }.frequency)
+        assertEquals(listOf(mentioned.loginId), mentionRepository.findAll().filter { it.resourceType == dev.yona.domain.enumeration.ResourceType.BOARD_POST && it.resourceId == posting.id.toString() }.mapNotNull { it.user?.loginId })
     }
 
     @Test

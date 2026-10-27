@@ -1,5 +1,6 @@
 package dev.yona.domain.site
 
+import dev.yona.util.LegacyText
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.SiteAdmin
@@ -43,7 +44,7 @@ class SiteUserService(
             UserState.SITE_ADMIN -> clauses += "u.id in (select sa.admin.id from SiteAdmin sa where sa.id <> $DEFAULT_ADMIN_ID)"
             else -> { clauses += "u.state = :state"; params["state"] = state }
         }
-        if (!query.isNullOrBlank()) {
+        if ((query != null && LegacyText.isNotBlank(query))) {
             clauses += listOf("loginId", "name", "englishName", "email").joinToString(" or ", "(", ")") { "lower(u.$it) like :query" }
             params["query"] = "%" + query.lowercase() + "%"
         }
@@ -130,6 +131,7 @@ class SiteUserService(
         const val DEFAULT_ADMIN_ID = 1L
 
         /** 익명 사용자의 로그인 ID이다. */
-        const val ANONYMOUS_LOGIN_ID = "anonymous"
+        /** v1.6 `User.anonymous`는 `NullUser`이고 로그인 ID가 빈 문자열이라 목록에서 빼는 것은 그런 행뿐이다. 로그인 ID `anonymous`인 실제 사용자는 나온다. */
+        const val ANONYMOUS_LOGIN_ID = ""
     }
 }

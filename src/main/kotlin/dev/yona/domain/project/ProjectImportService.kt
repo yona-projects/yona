@@ -1,5 +1,6 @@
 package dev.yona.domain.project
 
+import dev.yona.util.LegacyText
 import dev.yona.access.AccessControl
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.user.RoleRepository
@@ -83,7 +84,7 @@ class ProjectImportService(
             return ImportResult.Forbidden
         }
         if (owner != null && name != null && projects.existsByOwnerIgnoreCaseAndNameIgnoreCase(owner, name)) errors.reject("name", "project.name.duplicate")
-        if (form.url.isNullOrBlank()) errors.reject("url", "project.import.error.empty.url")
+        if (LegacyText.isBlank(form.url)) errors.reject("url", "project.import.error.empty.url")
         if (errors.hasErrors()) {
             errors.reject("name", "project.name.alert")
             return ImportResult.Rejected(errors)

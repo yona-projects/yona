@@ -189,7 +189,7 @@ class MailResourceCreator(
     private fun postprocess(html: String, stored: Map<String, Attachment>): String = HtmlCompressor().compress(replaceCid(html, stored))
 
     private fun replaceCid(html: String, stored: Map<String, Attachment>): String {
-        val doc = Jsoup.parse(html)
+        val doc = Jsoup.parse(html).also { it.outputSettings().prettyPrint(false) }
         for (attribute in listOf("src", "href")) {
             for (tag in doc.select("*[$attribute]")) {
                 val uri = tag.attr(attribute).trim()

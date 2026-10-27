@@ -144,4 +144,31 @@ class NotificationMessagesTest : AbstractIntegrationTest() {
         assertNull(notificationMessages.urlToView(event(EventType.MEMBER_ENROLL_REQUEST, resourceType = ResourceType.PROJECT, resourceId = "999999")))
         assertNotNull(p.id)
     }
+
+    @Test
+    fun `새 커밋 알림의 보기 주소는 커밋 이력이다 (v1_6 historyUntilHead)`() {
+        val p = project()
+        assertEquals("/${p.owner}/${p.name}/commits", notificationMessages.urlToView(event(EventType.NEW_COMMIT, resourceType = ResourceType.PROJECT, resourceId = p.id.toString())))
+    }
+
+    @Test
+    fun `가입 신청 알림의 보기 주소는 한글 이름을 퍼센트 인코딩한다 (v1_6 역방향 라우트)`() {
+        val p = project(); p.owner = "홍길동"; p.name = "데모"; projects.save(p)
+        val o = "%ED%99%8D%EA%B8%B8%EB%8F%99"; val n = "%EB%8D%B0%EB%AA%A8"
+        assertEquals("/$o/$n/members", notificationMessages.urlToView(event(EventType.MEMBER_ENROLL_REQUEST, resourceType = ResourceType.PROJECT, resourceId = p.id.toString())))
+        assertEquals("/$o/$n", notificationMessages.urlToView(event(EventType.MEMBER_ENROLL_ACCEPT, resourceType = ResourceType.PROJECT, resourceId = p.id.toString())))
+    }
+
+    @Test
+    fun `가입 승인 알림 본문은 받는 사람의 언어가 아니라 서버 기본 언어이다 (v1_6 default 분기의 Messages_get)`() {
+        val p = project()
+        val saved = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.KOREA)
+            val ko = notificationMessages.message(event(EventType.MEMBER_ENROLL_ACCEPT, resourceType = ResourceType.PROJECT, resourceId = p.id.toString()), "ja-JP")
+            assertEquals(messages.getMessage("notification.member.enroll.accept", null, Locale.KOREA), ko)
+        } finally {
+            Locale.setDefault(saved)
+        }
+    }
 }

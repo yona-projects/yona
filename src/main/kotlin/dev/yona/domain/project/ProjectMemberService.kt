@@ -100,8 +100,9 @@ class ProjectMemberService(
             ?.let { projectUsers.delete(it) }
     }
 
+    /** v1.6 `user.isMemberOf(project)`는 `ProjectUser.isMember`이고 역할을 가리지 않고 행이 있으면 참이다. 사이트 관리자 행도 센다. */
     private fun isMember(user: User, project: Project): Boolean =
-        projectUsers.findFirstByUserIdAndProjectIdAndRoleIdNot(requireNotNull(user.id), requireNotNull(project.id), RoleType.SITEMANAGER.id) != null
+        projectUsers.existsByUserIdAndProjectId(requireNotNull(user.id), requireNotNull(project.id))
 
     private fun assignRole(userId: Long, project: Project, role: Role) {
         val existing = projectUsers.findFirstByUserIdAndProjectIdAndRoleIdNot(userId, requireNotNull(project.id), RoleType.SITEMANAGER.id)

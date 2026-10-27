@@ -85,7 +85,7 @@ class IssueMassUpdateService(
         }
         if (edit.dueDateChanged) issue.dueDate = MilestoneService.lastSecondOfDay(edit.dueDate)
         issue.updatedDate = Date()
-        issues.save(issue)
+        issueService.resync(issue)
     }
 
     private fun describe(label: IssueLabel) = "${label.category?.name} - ${label.name} ${label.color}"

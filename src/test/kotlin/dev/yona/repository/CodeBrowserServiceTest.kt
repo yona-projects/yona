@@ -157,6 +157,18 @@ class CodeBrowserServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `압축 파일 항목의 수정 시각은 내려받는 시각이다 (v1_6 JGit 4_5는 커밋 시각을 쓰지 않는다)`() {
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a.txt" to bytes("hello"))))
+        val out = java.io.ByteArrayOutputStream()
+        val before = System.currentTimeMillis() - 60_000
+        service.archive(p, "master", out)
+        val time = ZipInputStream(ByteArrayInputStream(out.toByteArray())).use { zip -> zip.nextEntry!!.time }
+        // 커밋 시각은 2023-11이다. v1.6은 내려받는 시각이므로 지금 가까이여야 한다
+        assertTrue(time >= before, "항목 시각이 커밋 시각이다: $time")
+    }
+
+    @Test
     fun `저장소가 비어 있는지 알려 준다`() {
         val p = project()
         assertTrue(service.isEmpty(p))

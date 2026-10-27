@@ -23,7 +23,7 @@ updated: 2026-10-22
 
 ## 사용 여부 확인 (`GET /user/isUsed?name=`, `GET /user/isEmailExist?email=`)
 
-`{"isExist": ..., "isReserved": ...}`와 `{"isExist": ...}`를 돌려준다. 아이디는 사용자 로그인 ID나 조직 이름과 겹치는지(대소문자 무시)를, 이메일은 대표 이메일이나 인증을 마친 보조 이메일과 겹치는지를 본다. 인증 전 보조 이메일은 "없음"이다.
+`{"isExist": ..., "isReserved": ...}`와 `{"isExist": ...}`를 돌려준다. 아이디는 사용자 로그인 ID나 조직 이름과 겹치는지(대소문자 무시)를, 이메일은 대표 이메일이나 인증을 마친 보조 이메일과 겹치는지를 본다. 인증 전 보조 이메일은 "없음"이다. **`isEmailExist`는 요청의 내용 형식이 `application/json`이나 `text/json`이고 본문이 JSON일 때만 답하고 아니면 `400`이다**(v1.6 `@BodyParser.Of(Json)`가 GET에서도 돈다, R-110). 가입 화면이 보내는 본문 없는 GET은 늘 400이라 이메일 중복 안내는 뜨지 않는다.
 
 ## 비밀번호 재설정
 

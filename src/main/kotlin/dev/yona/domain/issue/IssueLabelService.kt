@@ -50,18 +50,19 @@ class IssueLabelService(
     }
 
     /**
-     * 라벨을 지운다. 이슈와 게시글에 붙은 것도 함께 떼고, 그 분류에 남은 라벨이 없으면 분류도 지운다.
+     * 라벨을 지운다. 이슈와 게시글에 붙은 것도 함께 떼고, 그 분류에 남은 라벨이 없으면 분류도 지운다. 라벨이 떨어진 이슈를 돌려준다.
      */
     @Transactional
-    fun deleteLabel(label: IssueLabel) {
+    fun deleteLabel(label: IssueLabel): List<Issue> {
         val project = requireNotNull(label.project)
         val category = label.category
-        detach(label)
+        val detached = detach(label)
         labels.delete(label)
         labels.flush()
         if (category != null && labels.countByProjectIdAndCategoryId(requireNotNull(project.id), requireNotNull(category.id)) == 0L) {
             categories.delete(category)
         }
+        return detached
     }
 
     /** 분류를 지운다. 속한 라벨은 이슈와 게시글에서 떼고 함께 지운다. */
@@ -91,12 +92,13 @@ class IssueLabelService(
         }
     }
 
-    /** 라벨을 이슈와 게시글에서 뗀다. */
-    private fun detach(label: IssueLabel) {
-        entityManager.createQuery("select i from Issue i join i.labels l where l.id = :id", Issue::class.java)
-            .setParameter("id", label.id).resultList.forEach { it.labels.remove(label) }
+    /** 라벨을 이슈와 게시글에서 떼고, 라벨이 달려 있던 이슈를 돌려준다. */
+    private fun detach(label: IssueLabel): List<Issue> {
+        val detached = entityManager.createQuery("select i from Issue i join i.labels l where l.id = :id", Issue::class.java)
+            .setParameter("id", label.id).resultList.onEach { it.labels.remove(label) }
         entityManager.createQuery("select p from Posting p join p.labels l where l.id = :id", Posting::class.java)
             .setParameter("id", label.id).resultList.forEach { it.labels.remove(label) }
         entityManager.flush()
+        return detached
     }
 }

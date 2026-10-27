@@ -2,7 +2,6 @@ package dev.yona.web.svn
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil
 import java.io.File
 import java.io.InputStream
 import java.lang.reflect.InvocationHandler
@@ -25,13 +24,20 @@ object JavaxServletBridge {
     private val loader = JavaxServletBridge::class.java.classLoader
 
     /**
+     * 응답 헤더 값에서 ASCII 바깥의 글자를 UTF-8 퍼센트 인코딩으로 바꾼다. DAV 서블릿은 파일 이름이 든 `ETag`(`1//한글 a.txt`)를 그대로 쓰는데,
+     * Tomcat은 이런 헤더를 거부해 응답이 500이 된다(v1.6의 Netty는 오류 없이 내보냈다). 값은 ETag로 같은 항목을 구별하는 데만 쓰인다(A-137).
+     */
+    internal fun headerValue(value: String?): String? =
+        if (value == null || value.all { it.code in 0x20..0x7E || it == '\t' }) value
+        else buildString { value.forEach { c -> if (c.code in 0x20..0x7E || c == '\t') append(c) else c.toString().toByteArray(Charsets.UTF_8).forEach { append('%').append("%02X".format(it)) } } }
+
+    /**
      * @param real 실제 요청
-     * @param pathInfo `소유자` 뒤의 경로(프로젝트 이름부터). URI 인코딩해서 넘긴다
+     * @param pathInfo `소유자` 뒤의 경로(프로젝트 이름부터). 디코딩한 그대로 넘긴다. 1.10.11은 컨테이너가 디코딩한 값을 기대한다(v1.6의 1.8.15는 인코딩해서 받아 직접 디코딩했다)
      * @param username 인증한 사용자의 로그인 ID. 익명이면 빈 문자열
      * @param serverInfo 서블릿 컨텍스트가 알려 줄 서버 이름 (`yona.server`)
      */
     fun request(real: HttpServletRequest, pathInfo: String, username: String, serverInfo: String): javax.servlet.http.HttpServletRequest {
-        val encodedPathInfo = SVNEncodingUtil.uriEncode(pathInfo)
         var characterEncoding: String? = null
         val attributes = HashMap<String, Any?>()
         val session = session(serverInfo)
@@ -43,7 +49,7 @@ object JavaxServletBridge {
         val davServletPath = if (real.contextPath.isEmpty()) "/$servletPath" else servletPath
         return proxy(javax.servlet.http.HttpServletRequest::class.java) { method, args ->
             when (method.name) {
-                "getPathInfo" -> encodedPathInfo
+                "getPathInfo" -> pathInfo
                 "getRemoteUser" -> username
                 "getUserPrincipal" -> Principal { username }
                 "getServletPath" -> davServletPath
@@ -70,7 +76,8 @@ object JavaxServletBridge {
                 "getRemoteAddr" -> real.remoteAddr
                 "getRemoteHost" -> null
                 "getAuthType" -> null
-                "getPathTranslated" -> File(encodedPathInfo).absolutePath
+                // v1.6은 인코딩한 경로로 만든다
+                "getPathTranslated" -> File(org.tmatesoft.svn.core.internal.util.SVNEncodingUtil.uriEncode(pathInfo)).absolutePath
                 "getRealPath" -> File(args[0] as String).absolutePath
                 "getSession" -> session
                 "getAttribute" -> attributes[args[0] as String]
@@ -104,8 +111,8 @@ object JavaxServletBridge {
                 "getContentType" -> real.contentType
                 "setContentLength" -> { real.setContentLength(args[0] as Int); null }
                 "setContentLengthLong" -> { real.setContentLengthLong(args[0] as Long); null }
-                "setHeader" -> { real.setHeader(args[0] as String, args[1] as String?); null }
-                "addHeader" -> { addHeader(args[0] as String, args[1] as String); null }
+                "setHeader" -> { real.setHeader(args[0] as String, headerValue(args[1] as String?)); null }
+                "addHeader" -> { addHeader(args[0] as String, headerValue(args[1] as String)!!); null }
                 "addIntHeader" -> { addHeader(args[0] as String, (args[1] as Int).toString()); null }
                 "setIntHeader" -> { real.setIntHeader(args[0] as String, args[1] as Int); null }
                 "addDateHeader" -> { addHeader(args[0] as String, java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.Instant.ofEpochMilli(args[1] as Long).atZone(java.time.ZoneOffset.UTC))); null }

@@ -1,5 +1,6 @@
 package dev.yona.domain.project
 
+import dev.yona.util.LegacyText
 import dev.yona.config.YonaProperties
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.RoleType
@@ -55,7 +56,7 @@ class ProjectListService(
             criteriaQuery?.distinct(true)
             val predicates = mutableListOf<Predicate>()
 
-            if (!query.isNullOrBlank()) {
+            if ((query != null && LegacyText.isNotBlank(query))) {
                 val pattern = "%${query.lowercase()}%"
                 val labelJoin = root.join<Project, dev.yona.domain.issue.Label>("labels", JoinType.LEFT)
                 predicates += cb.or(

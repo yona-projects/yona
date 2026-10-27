@@ -54,7 +54,8 @@ class AccountController(
     private val flashTranslator: FlashMessageTranslator,
     private val projectNotifications: ProjectNotificationService,
     private val watches: WatchRepository,
-    private val projects: ProjectRepository
+    private val projects: ProjectRepository,
+    private val sessionUsers: dev.yona.security.SessionUserCache
 ) {
 
     /** 화면에 보일 계정 정보이다. */
@@ -99,6 +100,8 @@ class AccountController(
         val user = users.findById(requireNotNull(currentUserProvider.get().user?.id)).get()
         val denied = account.updateProfile(user, request.getParameter("name"), request.getParameter("email"), request.getParameter("avatarId"))
         if (denied != null) return profileView(user, denied).also { it.status = HttpStatus.BAD_REQUEST }
+        // v1.6 `editUserInfo`는 끝에서 `CacheStore.yonaUsers.put`으로 항목을 새로 만든다
+        sessionUsers.remember(requireNotNull(user.id))
         return RedirectSupport.see(request, response, "/${user.loginId}?daysAgo=14&selected=projects")
     }
 
@@ -159,6 +162,8 @@ class AccountController(
     fun setAsMain(@PathVariable emailId: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (user, email) = loadOwn(emailId, Operation.UPDATE) ?: return forbiddenNotFound()
         account.setAsMainEmail(users.findById(requireNotNull(user.id)).get(), email.second)
+        // v1.6 `User.removeEmail`이 `CacheStore.yonaUsers.put`으로 항목을 새로 만든다
+        sessionUsers.remember(requireNotNull(user.id))
         return RedirectSupport.see(request, response, "/user/editform")
     }
 

@@ -101,13 +101,21 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
     // --- 크기 ---
 
     /**
-     * 바이트 수를 읽기 쉽게 바꾼다 (v1.6 `humanize.Humanize.binaryPrefix`). 1024 미만은 `N bytes`, 그 이상은 소수점 한 자리의 `KB`, `MB`, `GB` 순이다.
+     * 바이트 수를 읽기 쉽게 바꾼다 (v1.6 `humanize.Humanize.binaryPrefix`, humanize 1.2.2). 1024 미만은 `N bytes`, 그 이상은 `KB`, `MB`, `GB`, `TB`, `PB`이다.
+     * `KB`는 소수 한 자리, 나머지는 두 자리까지 보이고 `.00`은 뗀다. 음수는 값을 그대로 문자열로 돌려준다.
+     * 소수점 기호는 v1.6처럼 JVM 기본 로캘을 따른다.
      */
     fun binaryPrefix(size: Number): String {
-        val value = size.toDouble()
-        if (value < BINARY_BASE) return "${size.toLong()} bytes"
-        val exponent = minOf((Math.log(value) / Math.log(BINARY_BASE)).toInt(), BINARY_UNITS.length)
-        return String.format(Locale.ROOT, "%.1f %sB", value / Math.pow(BINARY_BASE, exponent.toDouble()), BINARY_UNITS[exponent - 1])
+        val v = size.toLong()
+        if (v < 0) return size.toString()
+        for (i in BINARY_THRESHOLDS.indices) {
+            if (BINARY_THRESHOLDS[i] > v) continue
+            val format = java.text.DecimalFormat(BINARY_PATTERNS[i], java.text.DecimalFormatSymbols.getInstance(Locale.getDefault()))
+            val text = format.format(if (v >= 1024) v / BINARY_THRESHOLDS[i].toFloat() else v)
+            val separator = format.decimalFormatSymbols.decimalSeparator
+            return text.replace(Regex(Regex.escape(separator.toString()) + "00"), "")
+        }
+        return "0 bytes"
     }
 
     /**
@@ -164,8 +172,8 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
             return String(CharArray(length) { letters[random.nextInt(letters.length)] })
         }
 
-        const val BINARY_BASE = 1024.0
-        const val BINARY_UNITS = "KMGTPE"
+        private val BINARY_THRESHOLDS = longArrayOf(1125899906842624L, 1099511627776L, 1073741824L, 1048576L, 1024L, 0L)
+        private val BINARY_PATTERNS = arrayOf("#.## PB", "#.## TB", "#.## GB", "#.## MB", "#.# KB", "# bytes")
     }
 
     private fun message(key: String, locale: Locale): String = messages.getMessage(key, null, key, locale) ?: key

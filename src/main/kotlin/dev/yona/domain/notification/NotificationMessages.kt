@@ -1,5 +1,6 @@
 package dev.yona.domain.notification
 
+import dev.yona.util.UrlPaths
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.RequestState
 import dev.yona.domain.enumeration.descrKey
@@ -90,7 +91,8 @@ class NotificationMessages(
             EventType.RESOURCE_DELETED -> new?.let { users.findByLoginId(it) }?.let { text("notification.resource.deleted", UserDisplay.of(it, it.lang)) }
             else -> {
                 log.warn("알 수 없는 알림 이벤트 종류이다: {}. NotificationMessages.message를 확인한다", type)
-                messages.getMessage(type.descrKey, null, locale)
+                // v1.6는 이 분기에서 요청 문맥이 없는 `Messages.get(key)`를 써서 받는 사람이 아니라 서버 기본 언어로 만든다
+                messages.getMessage(type.descrKey, null, Locale.getDefault())
             }
         }
     }
@@ -158,10 +160,12 @@ class NotificationMessages(
     fun urlToView(event: NotificationEvent): String? {
         val resourceId = event.resourceId ?: return null
         return when (event.eventType) {
-            EventType.MEMBER_ENROLL_REQUEST -> projectOf(event)?.let { siteUrls.path("/${it.owner}/${it.name}/members") }
-            EventType.MEMBER_ENROLL_ACCEPT -> projectOf(event)?.let { siteUrls.path("/${it.owner}/${it.name}") }
-            EventType.ORGANIZATION_MEMBER_ENROLL_REQUEST -> organization(resourceId)?.let { siteUrls.path("/organizations/${it.name}/members") }
-            EventType.ORGANIZATION_MEMBER_ENROLL_ACCEPT -> organization(resourceId)?.let { siteUrls.path("/organizations/${it.name}") }
+            // v1.6 역방향 라우트는 경로 변수를 퍼센트 인코딩한다
+            EventType.NEW_COMMIT -> projectOf(event)?.let { siteUrls.path("${UrlPaths.projectPath(it.owner, it.name)}/commits") }
+            EventType.MEMBER_ENROLL_REQUEST -> projectOf(event)?.let { siteUrls.path("${UrlPaths.projectPath(it.owner, it.name)}/members") }
+            EventType.MEMBER_ENROLL_ACCEPT -> projectOf(event)?.let { siteUrls.path(UrlPaths.projectPath(it.owner, it.name)) }
+            EventType.ORGANIZATION_MEMBER_ENROLL_REQUEST -> organization(resourceId)?.let { siteUrls.path("/organizations/${UrlPaths.encode(it.name.orEmpty())}/members") }
+            EventType.ORGANIZATION_MEMBER_ENROLL_ACCEPT -> organization(resourceId)?.let { siteUrls.path("/organizations/${UrlPaths.encode(it.name.orEmpty())}") }
             else -> resourceUrls.urlOf(event.resourceType, resourceId)?.let { siteUrls.path(it) }
         }
     }

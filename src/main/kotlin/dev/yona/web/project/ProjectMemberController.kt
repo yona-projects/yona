@@ -135,7 +135,7 @@ class ProjectMemberController(
     fun deleteMember(
         @PathVariable("user") ownerId: String,
         @PathVariable("project") projectName: String,
-        @PathVariable("id") userId: Long
+        @PathVariable("id") userId: Long, request: jakarta.servlet.http.HttpServletRequest
     ): Any {
         val project = projectService.findByOwnerAndProjectName(ownerId, projectName) ?: return ErrorViews.notFound("error.notfound")
         val viewer = currentUserProvider.get().user
@@ -155,7 +155,7 @@ class ProjectMemberController(
                 if (accessControl.isAllowed(viewer, project.asResource(), Operation.READ)) "/${project.owner}/${project.name}" else "/"
             else -> "/${project.owner}/${project.name}/members"
         }
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("location" to location))
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, location)))
     }
 
     private fun findUser(userId: Long): User = memberService.user(userId)

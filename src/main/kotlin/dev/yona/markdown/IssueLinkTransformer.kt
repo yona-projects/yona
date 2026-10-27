@@ -38,7 +38,7 @@ class IssueLinkTransformer(
     /** [html]의 이슈 링크를 변환한다. */
     fun transform(html: String): String {
         val host = hostname.name()
-        val body = Jsoup.parse(html).body()
+        val body = HtmlDocuments.parse(html).body()
         for (element in body.getElementsByAttribute("href")) {
             val href = element.attr("href")
             val linkText = element.text()

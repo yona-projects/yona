@@ -387,6 +387,36 @@ class IssueServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `제목 머리말은 새 제목을 먼저 더하고 옛 제목을 나중에 뺀다 (v1_6 editPosting 순서, 같은 행이 유지된다)`() {
+        val project = project(); val author = user()
+        val issue = service.create(project, author, input("[A] 제목"))
+        val before = titleHeads.findAll().single { it.project?.id == project.id && it.headKeyword == "A" }
+        service.update(issue, author, edit("[A] 제목", "고친 본문"))
+        val after = titleHeads.findAll().single { it.project?.id == project.id && it.headKeyword == "A" }
+        assertEquals(before.id, after.id)
+        assertEquals(1, after.frequency)
+    }
+
+    @Test
+    fun `초안을 게시하면서 다른 프로젝트로 옮기면 새 이슈 활동을 두 번 발행한다 (v1_6 afterNewIssue 두 번, 웹훅도 두 번)`() {
+        val from = project(); val to = project(); val author = user()
+        projectUsers.save(dev.yona.domain.project.ProjectUser(user = author, project = to, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get()))
+        val draft = service.create(from, author, input("초안", draft = true))
+        service.update(draft, author, edit("초안", draft = false, publish = true), target = to)
+        assertEquals(2, events.stream(IssueCreatedActivity::class.java).count())
+    }
+
+    @Test
+    fun `다른 프로젝트로 옮겨도 옛 프로젝트의 머리말 개수는 줄지 않는다 (v1_6은 이미 바뀐 프로젝트로 뺀다)`() {
+        val from = project(); val to = project(); val author = user(); val mover = user()
+        projectUsers.save(dev.yona.domain.project.ProjectUser(user = mover, project = to, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get()))
+        val issue = service.create(from, author, input("[A] 제목"))
+        service.update(issue, mover, edit("[B] 제목"), target = to)
+        assertEquals(1, titleHeads.findAll().single { it.project?.id == from.id && it.headKeyword == "A" }.frequency)
+        assertEquals(1, titleHeads.findAll().single { it.project?.id == to.id && it.headKeyword == "B" }.frequency)
+    }
+
+    @Test
     fun `다른 프로젝트로 옮기면 새 번호와 라벨 이전, 하위 이슈 이동, 이동 이벤트가 따른다`() {
         val from = project(); val to = project(); val author = user(); val mover = user()
         projectUsers.save(dev.yona.domain.project.ProjectUser(user = mover, project = to, role = roles.findById(dev.yona.domain.enumeration.RoleType.MEMBER.id).get()))

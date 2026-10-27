@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service
 class ProjectVcsService(
     private val projects: ProjectRepository,
     private val postings: PostingRepository,
+    private val postingService: dev.yona.domain.board.PostingService,
     private val readme: ProjectReadmeService,
     private val repositories: RepositoryService
 ) {
@@ -25,10 +26,7 @@ class ProjectVcsService(
     fun change(project: Project) {
         val projectId = requireNotNull(project.id)
         if (readme.read(project) != null) {
-            postings.findFirstByProjectIdAndReadmeTrue(projectId)?.let {
-                it.readme = false
-                postings.save(it)
-            }
+            postings.findFirstByProjectIdAndReadmeTrue(projectId)?.let { postingService.unmarkReadmeOnVcsChange(it) }
         }
 
         projects.findByOriginalProjectId(projectId).forEach {

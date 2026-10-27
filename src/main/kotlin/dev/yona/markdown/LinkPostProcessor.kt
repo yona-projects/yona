@@ -17,7 +17,7 @@ class LinkPostProcessor(private val noReferrer: Boolean, private val hostname: S
      * 줄바꿈이나 공백으로 숨긴 `java\nscript:`도 막는다.
      */
     fun removeJavascriptInHref(html: String): String {
-        val body = Jsoup.parse(html).body()
+        val body = HtmlDocuments.parse(html).body()
         body.getElementsByAttribute("href").forEach { element ->
             val href = element.attr("href").replace(NON_WORD, "").lowercase()
             if (href.startsWith("javascript:")) element.attr("href", "#")
@@ -28,7 +28,7 @@ class LinkPostProcessor(private val noReferrer: Boolean, private val hostname: S
     /** 설정이 켜져 있으면 다른 호스트로 가는 링크에 `noreferrer`를 붙인다. */
     fun checkReferrer(html: String): String {
         if (!noReferrer) return html
-        val body = Jsoup.parse(html).body()
+        val body = HtmlDocuments.parse(html).body()
         body.getElementsByAttribute("href").forEach { element ->
             try {
                 val host = URI(element.attr("href")).host

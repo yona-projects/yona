@@ -77,7 +77,7 @@ class CommitHistoryController(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable branch: String, @PathVariable path: String,
         @RequestParam(required = false) page: String?, request: HttpServletRequest
     ): Any {
-        val decoded = UrlPaths.decodeSegmentOrSelf(path.removePrefix("/"))
+        val decoded = path.removePrefix("/")
         return show(owner, name, UrlPaths.decodeSegmentOrSelf(branch), decoded.ifEmpty { null }, page, request)
     }
 

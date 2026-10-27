@@ -50,6 +50,7 @@ import kotlin.test.assertTrue
 class ProfileEditTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var sessionUsers: dev.yona.security.SessionUserCache
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var emails: EmailRepository
     @Autowired private lateinit var attachments: AttachmentService
@@ -157,6 +158,24 @@ class ProfileEditTest : AbstractIntegrationTest() {
         assertEquals(400, result.response.status)
         assertTrue(result.response.contentAsString.contains("Wrong email address."))
         assertEquals(user.email, users.findById(user.id!!).get().email)
+    }
+
+    @Test
+    fun `이메일 형식이 틀리면 거부하고 안내한다 (v1_6 Constraints_Email)`() {
+        val user = newUser()
+        val result = edit(login(user), "x", "not-an-email")
+        assertEquals(400, result.response.status)
+        assertTrue(result.response.contentAsString.contains("Wrong email address."))
+        assertEquals(user.email, users.findById(user.id!!).get().email)
+    }
+
+    @Test
+    fun `프로필을 저장하면 서버 캐시 항목이 새것으로 바뀐다 (v1_6 editUserInfo의 yonaUsers_put)`() {
+        val user = newUser()
+        sessionUsers.remember(user.id!!)
+        val before = sessionUsers.memoOf(user.id!!)
+        assertEquals(303, edit(login(user), "새 이름", user.email).response.status)
+        org.junit.jupiter.api.Assertions.assertNotSame(before, sessionUsers.memoOf(user.id!!))
     }
 
     @Test

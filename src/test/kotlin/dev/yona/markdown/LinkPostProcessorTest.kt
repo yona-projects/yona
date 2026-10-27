@@ -24,6 +24,13 @@ class LinkPostProcessorTest {
     }
 
     @Test
+    fun `줄바꿈 태그 앞뒤에 줄바꿈이나 들여쓰기를 넣지 않는다 (jsoup 1_8_3 출력과 같다)`() {
+        val html = "<p>a<br>b</p><ul><li>x<br>y</li></ul>"
+        assertEquals(html, processor().removeJavascriptInHref(html))
+        assertEquals(html, processor(noReferrer = true).checkReferrer(html))
+    }
+
+    @Test
     fun `일반 링크는 그대로 둔다`() {
         assertEquals("<a href=\"https://yona.io\">x</a>", processor().removeJavascriptInHref("<a href=\"https://yona.io\">x</a>"))
     }

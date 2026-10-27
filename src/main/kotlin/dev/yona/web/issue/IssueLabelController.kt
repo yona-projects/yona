@@ -49,6 +49,7 @@ import org.springframework.web.servlet.ModelAndView
 class IssueLabelController(
     private val projectService: ProjectService,
     private val labelService: IssueLabelService,
+    private val issueService: dev.yona.domain.issue.IssueService,
     private val labels: IssueLabelRepository,
     private val categories: IssueLabelCategoryRepository,
     private val views: ProjectViewFactory,
@@ -134,7 +135,7 @@ class IssueLabelController(
     fun delete(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable("id") id: Long, request: HttpServletRequest): Any {
         if (request.getParameter("_method")?.lowercase() != "delete") return ErrorViews.badRequest("_method must be 'delete'.")
         val label = labels.findById(id).orElse(null) ?: return ErrorViews.notFound()
-        labelService.deleteLabel(label)
+        issueService.deleteLabel(label)
         return ResponseEntity.ok().build<Void>()
     }
 
@@ -186,7 +187,9 @@ class IssueLabelController(
     @PostMapping("/{user}/{project}/copyLabels")
     @IsCreatable(ResourceType.ISSUE_LABEL)
     @Transactional
-    fun copyLabels(@PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest): Any {
+    fun copyLabels(
+        @PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest, response: jakarta.servlet.http.HttpServletResponse
+    ): Any {
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
         val fromOwner = request.getParameter("owner")
         val fromName = request.getParameter("projectName")
@@ -194,7 +197,7 @@ class IssueLabelController(
         if (from != null && accessControl.isAllowed(currentUserProvider.get().user, labelsResource(from), Operation.READ)) {
             labelService.copyLabels(from, project)
         }
-        return ModelAndView("redirect:/${project.owner}/${project.name}/issue/labelsform")
+        return dev.yona.web.RedirectSupport.see(request, response, "/${project.owner}/${project.name}/issue/labelsform")
     }
 
     // --- 분류 ---

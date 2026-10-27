@@ -8,6 +8,7 @@ import dev.yona.security.CurrentUserProvider
 import dev.yona.security.LoginSessionService
 import dev.yona.web.RedirectSupport
 import dev.yona.web.layout.FlashMessageTranslator
+import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
@@ -83,9 +84,24 @@ class SignupController(
     fun isUsed(@RequestParam name: String): ResponseEntity<Map<String, Boolean>> =
         json(mapOf("isExist" to signupService.isLoginIdUsed(name), "isReserved" to dev.yona.domain.user.LoginIdRules.isReserved(name)))
 
+    /**
+     * 이메일이 쓰이는지 알린다. v1.6은 이 액션에 `@BodyParser.Of(BodyParser.Json.class)`가 있어 Play 2.3의 JSON 본문 해석기가 GET에서도 먼저 돈다.
+     * 내용 형식이 `application/json`이나 `text/json`이 아니거나 본문이 JSON이 아니면(비어 있어도) 400 화면이다. 그래서 가입 화면이 보내는
+     * 본문 없는 GET은 늘 400이고 중복 안내가 뜨지 않는다(v1.6 결함, [refactoring-backlog.md] R-110).
+     */
     @GetMapping("/user/isEmailExist")
-    fun isEmailExist(@RequestParam email: String): ResponseEntity<Map<String, Boolean>> =
-        json(mapOf("isExist" to signupService.isEmailExist(email)))
+    fun isEmailExist(@RequestParam email: String, request: HttpServletRequest): Any {
+        val type = request.contentType?.let { runCatching { org.springframework.http.MediaType.parseMediaType(it) }.getOrNull() }
+        val jsonType = type != null && ((type.type == "application" && type.subtype == "json") || (type.type == "text" && type.subtype == "json"))
+        if (!jsonType || !hasJsonBody(request)) return ErrorViews.badRequest()
+        return json(mapOf("isExist" to signupService.isEmailExist(email)))
+    }
+
+    private fun hasJsonBody(request: HttpServletRequest): Boolean = try {
+        tools.jackson.databind.json.JsonMapper.builder().build().readTree(request.inputStream).let { !it.isMissingNode }
+    } catch (e: Exception) {
+        false
+    }
 
     private fun signupView(): ModelAndView {
         val admin = users.findByLoginId("admin")

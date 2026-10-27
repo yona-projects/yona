@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
  * 포크는 지우지 않고 원본 연결만 끊는다. 다른 프로젝트 이슈의 부모 연결은 끊긴다(외래 키의 `SET NULL`).
  *
  * 이슈, 게시글, 댓글의 첨부와 알림 이벤트는 v1.6 `issue.delete()`, `posting.delete()`처럼 함께 지운다. v1.6과 같이 프로젝트 로고 같은
- * 프로젝트 자체의 첨부와 구독 기록은 지우지 않는다([refactoring-backlog.md] R-18).
+ * 프로젝트 자체의 첨부는 지우지 않는다([refactoring-backlog.md] R-18). 프로젝트와 풀 리퀘스트의 구독 기록은 v1.6 `ResourcePersistAdapter`처럼 지운다.
  */
 @Service
 @Transactional
@@ -38,6 +38,8 @@ class ProjectDeletionService(
         // 이 프로젝트와 포크(원본 연결이 이 프로젝트인 프로젝트)의 풀 리퀘스트를 지운다.
         val forkIds = ids("select p.id from Project p where p.originalProject.id = :id", projectId)
         deletePullRequests(listOf(projectId) + forkIds)
+        // v1.6 `ResourcePersistAdapter.postDelete`는 프로젝트(`Project.delete`)와 풀 리퀘스트(`PullRequest.delete`)의 구독, 구독 해제 기록도 지운다
+        issueService.deleteWatchRows(ResourceType.PROJECT, projectId.toString())
         if (forkIds.isNotEmpty()) update("update Project p set p.originalProject = null where p.originalProject.id = :id", projectId)
 
         deleteThreads(ids("select t.id from CommentThread t where t.project.id = :id", projectId))
@@ -76,6 +78,7 @@ class ProjectDeletionService(
         ).setParameter("ids", projectIds).resultList
         if (rows.isEmpty()) return
         val prIds = rows.map { it[0] as Long }
+        prIds.forEach { issueService.deleteWatchRows(ResourceType.PULL_REQUEST, it.toString()) }
 
         // 풀 리퀘스트를 가리키는 이슈 이벤트
         rows.forEach { (id, loginId) ->

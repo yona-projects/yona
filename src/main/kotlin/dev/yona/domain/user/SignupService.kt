@@ -1,5 +1,6 @@
 package dev.yona.domain.user
 
+import dev.yona.util.LegacyText
 import dev.yona.config.YonaProperties
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.notification.UserVerificationRequestedEvent
@@ -43,8 +44,8 @@ class SignupService(
         if (!email.isNullOrEmpty() && !isValidEmailFormat(email)) return true
 
         // 폼 검증 단계
-        if (loginId.trim().isEmpty() || loginId.contains(" ")) return true
-        if (form.password.isNullOrBlank()) return true
+        if (LegacyText.trim(loginId).isEmpty() || loginId.contains(" ")) return true
+        if (LegacyText.trim(form.password.orEmpty()).isEmpty()) return true
         if (users.existsByLoginIdIgnoreCase(loginId) || organizations.existsByNameIgnoreCase(loginId)) return true
         if (email != null && isEmailExist(email)) return true
         return false

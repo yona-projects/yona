@@ -111,6 +111,19 @@ class PostingService(
         mentions.update(ResourceType.BOARD_POST, posting.id.toString(), posting.body.orEmpty())
     }
 
+    /**
+     * README 글의 표시를 푼다 (v1.6 `ProjectApp.changeVCS`의 `posting.readme = false; posting.save()`). 글을 `save()`로 저장하므로 댓글 수를 다시 세고,
+     * 제목 머리말 개수를 늘리고, 멘션 기록을 맞춘다.
+     */
+    @Transactional
+    fun unmarkReadmeOnVcsChange(posting: Posting) {
+        posting.readme = false
+        posting.numOfComments = postingComments.countByPostingId(requireNotNull(posting.id)).toInt()
+        postings.save(posting)
+        titleHeads.save(requireNotNull(posting.project), posting.title)
+        mentions.update(ResourceType.BOARD_POST, posting.id.toString(), posting.body.orEmpty())
+    }
+
     /** 본문만 바꾼다(체크리스트 갱신). 이력과 이벤트를 남기지 않고 수정 시각도 바꾸지 않는다. 댓글 수를 다시 세고 멘션을 맞춘다. */
     @Transactional
     fun replaceBody(posting: Posting, body: String) {

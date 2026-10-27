@@ -122,4 +122,10 @@ class IssueLinkTransformerTest : AbstractIntegrationTest() {
     fun `링크가 없으면 내용이 그대로이다`() {
         assertEquals("<p>안녕</p>", transformer.transform("<p>안녕</p>"))
     }
+
+    @Test
+    fun `줄바꿈 태그 앞뒤에 줄바꿈이나 들여쓰기를 넣지 않는다 (jsoup 1_8_3 출력과 같다)`() {
+        val html = "<p>a<br>b</p>"
+        assertEquals(html, transformer.transform(html))
+    }
 }

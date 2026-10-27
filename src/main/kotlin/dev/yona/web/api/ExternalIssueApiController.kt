@@ -115,10 +115,10 @@ class ExternalIssueApiController(
                     updatedDate = parseDate(node.findValue("updatedAt")), assignee = assigneeByEmail(node.findValue("assignees")), milestoneTitle = node.findValue("milestoneTitle")?.asString(),
                     dueDate = parseDate(node.findValue("dueDate")), labels = labelPairs(node.findValue("labels")), number = node.findValue("number")?.asLong(0)?.takeIf { it > 0 }
                 ),
-                notify
+                notify, viewer
             )
             attachments.attachIds(viewer, ids(node.findValue("temporaryUploadFiles")), ResourceType.ISSUE_POST, requireNotNull(issue.id))
-            linkedMapOf("status" to 201, "location" to "/${project.owner}/${project.name}/issue/${issue.number}")
+            linkedMapOf("status" to 201, "location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "/${project.owner}/${project.name}/issue/${issue.number}"))
         }
         return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(created)
     }
@@ -176,7 +176,7 @@ class ExternalIssueApiController(
         val comment = service.addComment(issue, author, json.findValue("body")?.asString().orEmpty(), parseDate(json.findValue("createdAt")))
         attachments.attachIds(viewer, ids(json.findValue("temporaryUploadFiles")), ResourceType.ISSUE_COMMENT, requireNotNull(comment.id))
         return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON)
-            .body(linkedMapOf("status" to 201, "location" to "/${project.owner}/${project.name}/issue/${issue.number}#comment-${comment.id}"))
+            .body(linkedMapOf("status" to 201, "location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "/${project.owner}/${project.name}/issue/${issue.number}#comment-${comment.id}")))
     }
 
     // --- 라벨 ---

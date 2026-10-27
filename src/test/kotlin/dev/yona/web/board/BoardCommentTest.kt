@@ -213,6 +213,15 @@ class BoardCommentTest : AbstractIntegrationTest() {
         assertEquals(ResourceType.NONISSUE_COMMENT, attachments.findById(temp.id!!).get().containerType)
     }
 
+    @Test
+    fun `임시 첨부를 일부 옮기지 못하면 안내 메시지를 한 번 남긴다 (v1_6 moveOnlySelected 불일치의 flash)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        post(project, member)
+        send(project, login(member), "comment", "contents" to "댓글", "temporaryUploadFiles" to "99999999").andExpect(status().isSeeOther)
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash().attributeExists("title"))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash().attributeExists("description"))
+    }
+
     // --- 수정 ---
 
     @Test

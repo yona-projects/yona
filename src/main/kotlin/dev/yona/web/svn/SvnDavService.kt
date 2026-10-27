@@ -61,7 +61,10 @@ class SvnDavService(
         }
 
         val servlet = DAVServlet().apply { init(JavaxServletBridge.config(File(svn.rootDirectory(), "$owner/").absolutePath, properties.server)) }
-        servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), JavaxServletBridge.response(response))
+        // PROPFIND는 응답의 href를 인코딩하는 래퍼를 거친다(A-137). 나머지는 서블릿이 바로 쓴다.
+        val target = if (request.method == "PROPFIND") HrefEncodingResponse(response) else response
+        servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), JavaxServletBridge.response(target))
+        (target as? HrefEncodingResponse)?.finish()
         response.flushBuffer()
         recentVisits.visits(user, project)
     }

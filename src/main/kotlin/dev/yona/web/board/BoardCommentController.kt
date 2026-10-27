@@ -71,8 +71,8 @@ class BoardCommentController(
         } else {
             commentService.add(posting, viewer, contents, request.getParameter("parentCommentId")?.toLongOrNull())
         }
-        postAttachments.attach(request, viewer, ResourceType.NONISSUE_COMMENT, requireNotNull(saved.id))
-        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/post/$number#comment-${saved.id}")
+        val flash = postAttachments.attach(request, viewer, ResourceType.NONISSUE_COMMENT, requireNotNull(saved.id))
+        return RedirectSupport.see(request, response, "/${project.owner}/${project.name}/post/$number#comment-${saved.id}", flash)
     }
 
     /** 댓글을 지운다. 삭제 권한이 없으면 `403`이다. Ajax 요청에는 `204`와 글 주소의 `Location`, 아니면 글로 `303`이다. */

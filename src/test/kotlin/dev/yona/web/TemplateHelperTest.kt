@@ -191,4 +191,24 @@ class TemplateHelperTest {
     fun `무작위 문자열은 영문 대소문자뿐이다 (v1_6 randomAlphabetic)`() {
         repeat(50) { assertTrue(Regex("[A-Za-z]{8}").matches(TemplateHelper.randomAlphabetic(8))) }
     }
+
+    @Test
+    fun `바이트 수는 v1_6 humanize 1_2_2의 binaryPrefix와 같이 보인다`() {
+        val saved = java.util.Locale.getDefault()
+        try {
+            java.util.Locale.setDefault(java.util.Locale.KOREA)
+            assertEquals("0 bytes", helper.binaryPrefix(0))
+            assertEquals("1023 bytes", helper.binaryPrefix(1023))
+            assertEquals("1 KB", helper.binaryPrefix(1024))
+            assertEquals("2 KB", helper.binaryPrefix(2048))
+            assertEquals("100 KB", helper.binaryPrefix(102400))
+            assertEquals("1.5 MB", helper.binaryPrefix(1572864))
+            assertEquals("11.77 MB", helper.binaryPrefix(12345678.9))
+            assertEquals("1 GB", helper.binaryPrefix(1073741824L))
+            assertEquals("-1.0", helper.binaryPrefix(-1.0))
+            assertEquals("0 bytes", helper.binaryPrefix(Double.NaN))
+        } finally {
+            java.util.Locale.setDefault(saved)
+        }
+    }
 }

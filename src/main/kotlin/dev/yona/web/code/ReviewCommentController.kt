@@ -61,7 +61,8 @@ class ReviewCommentController(
     private val currentUserProvider: CurrentUserProvider,
     private val views: ProjectViewFactory,
     private val commitCommentService: dev.yona.domain.comment.CommitCommentService,
-    private val commitComments: dev.yona.domain.comment.CommitCommentRepository
+    private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
+    private val postAttachments: dev.yona.web.PostAttachments
 ) {
 
     @PostMapping("/{user}/{project}/commit/{commitId}/comments")
@@ -131,7 +132,8 @@ class ReviewCommentController(
         // v1.6는 `commitId`를 쿼리 문자열 인자(`commitId: String ?= null`)로만 받는다. 폼 본문의 같은 이름 값(전체 변경 화면이 숨겨 보낸다)은 쓰지 않는다.
         val commitId = UriComponentsBuilder.newInstance().query(request.queryString).build().queryParams.getFirst("commitId")?.takeIf { it.isNotEmpty() }?.let { UriUtils.decode(it, Charsets.UTF_8) }
         val comment = service.commentOnPullRequest(project, pullRequest, commitId, author, contents, threadId(request), range(request))
-        return RedirectSupport.see(request, response, links.comment(comment))
+        val flash = postAttachments.attach(request, author, ResourceType.REVIEW_COMMENT, requireNotNull(comment.id))
+        return RedirectSupport.see(request, response, links.comment(comment), flash)
     }
 
     @PostMapping("/threads/{id}/open")

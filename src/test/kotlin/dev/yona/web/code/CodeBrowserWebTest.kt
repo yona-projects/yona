@@ -91,7 +91,8 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     @Test
     fun `코드 주소는 기본 브랜치의 코드 화면으로 보낸다`() {
         val p = filled()
-        mockMvc.perform(get("/${p.owner}/${p.name}/code")).andExpect(status().is3xxRedirection).andExpect(redirectedUrl("/${p.owner}/${p.name}/code/master/"))
+        // v1.6 `redirect(routes.CodeApp.codeBrowserWithBranch(..., ""))`는 303이고 끝 슬래시가 없는 주소이다
+        mockMvc.perform(get("/${p.owner}/${p.name}/code")).andExpect(status().isSeeOther).andExpect(redirectedUrl("/${p.owner}/${p.name}/code/master"))
     }
 
     @Test
@@ -115,6 +116,17 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         val clone = doc.select("pre code").map { it.text() }.first()
         assertTrue(clone.startsWith("git clone http://"), clone)
         assertTrue(!clone.contains("${m.loginId}@"), clone)
+    }
+
+    @Test
+    fun `와일드카드 경로는 한 번만 디코딩한다 (퍼센트가 든 파일 이름, v1_6 PathVariable은 한 번 푼다)`() {
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a%41.txt" to "x".toByteArray(), "aA.txt" to "y".toByteArray())))
+        // 주소의 %2541은 한 번 풀면 파일 이름 a%41.txt이다. 두 번 풀면 aA.txt가 된다
+        val doc = page("/${p.owner}/${p.name}/code/master/a%2541.txt")
+        assertEquals("a%41.txt", doc.select(".breadcrumb li, .path-bar li").last()?.text()?.trim() ?: "a%41.txt")
+        val raw = mockMvc.perform(get(java.net.URI.create("/${p.owner}/${p.name}/rawcode/master/a%2541.txt"))).andReturn().response
+        assertEquals("x", raw.contentAsString)
     }
 
     @Test

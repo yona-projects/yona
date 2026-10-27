@@ -112,24 +112,24 @@ class OrganizationMemberController(
         if (denied != null) return rejected(request, response, organizationName, denied)
 
         val location = if (viewer?.id == userId) "/organizations/$organizationName" else "/organizations/$organizationName/members"
-        return json(HttpStatus.OK, mapOf("location" to location))
+        return json(HttpStatus.OK, mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, location)))
     }
 
     @DeleteMapping("/organizations/{organizationName}/member/leave")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
-    fun leave(@PathVariable organizationName: String): Any {
+    fun leave(@PathVariable organizationName: String, request: jakarta.servlet.http.HttpServletRequest): Any {
         val organization = organizationService.findByName(organizationName)
             ?: return json(HttpStatus.NOT_FOUND, mapOf("errorMsg" to "organization.member.unknownOrganization"))
         val denied = management.leave(organization, requireNotNull(currentUserProvider.get().user))
         if (denied != null) return json(HttpStatus.FORBIDDEN, mapOf("errorMsg" to denied))
-        return json(HttpStatus.OK, mapOf("location" to "/organizations/$organizationName"))
+        return json(HttpStatus.OK, mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "/organizations/$organizationName")))
     }
 
     /** 거부 이유를 다음 화면의 안내로 남기고 구성원 화면 주소를 JSON으로 알린다. */
     private fun rejected(request: HttpServletRequest, response: HttpServletResponse, organizationName: String, key: String): ResponseEntity<Map<String, String>> {
         RedirectSupport.saveFlash(request, response, mapOf(RedirectSupport.WARNING to key))
-        return json(HttpStatus.OK, mapOf("location" to "/organizations/$organizationName/members"))
+        return json(HttpStatus.OK, mapOf("location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "/organizations/$organizationName/members")))
     }
 
     private fun json(status: HttpStatus, body: Map<String, String>): ResponseEntity<Map<String, String>> =

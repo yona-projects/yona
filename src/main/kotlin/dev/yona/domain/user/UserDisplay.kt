@@ -1,5 +1,7 @@
 package dev.yona.domain.user
 
+import dev.yona.util.LegacyText
+
 /**
  * 사용자 이름을 화면에 보여 줄 형태로 만든다. v1.6 `User.getDisplayName(User forCurrentUser)`,
  * `User.extractDepartmentPart`이다.
@@ -16,7 +18,7 @@ object UserDisplay {
     fun of(target: User, viewerLang: String?): String {
         val name = target.name
         val english = target.englishName
-        return if (!english.isNullOrBlank() && target.lang != null && viewerLang?.startsWith("en") == true) {
+        return if ((english != null && LegacyText.isNotBlank(english)) && target.lang != null && viewerLang?.startsWith("en") == true) {
             "$english ${departmentPart(name.orEmpty())}"
         } else {
             name.orEmpty()
@@ -42,7 +44,7 @@ object UserDisplay {
     fun pureName(target: User, viewerLang: String?): String {
         val language = viewerLang ?: "ko-KR"
         val english = target.englishName
-        if (!english.isNullOrBlank() && target.lang != null && language.startsWith("en")) return english
+        if ((english != null && LegacyText.isNotBlank(english)) && target.lang != null && language.startsWith("en")) return english
         val name = target.name.orEmpty()
         var pure = name
         for (splitter in listOf("[", "(")) {

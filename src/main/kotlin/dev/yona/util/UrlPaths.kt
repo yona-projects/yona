@@ -47,4 +47,29 @@ object UrlPaths {
     /** [base] 뒤에 [name]을 붙인다. [base]가 `/`로 끝나지 않으면 `/`를 끼우고 [name]의 각 부분은 인코딩한다 (v1.6 `getCorrectedPath`). */
     fun join(base: String, name: String): String =
         if (base.isNotEmpty() && base.endsWith("/")) base + encodeEach(name) else base + "/" + encodeEach(name)
+
+    /**
+     * 이동 주소(`Location` 헤더)를 ASCII로 만든다. ASCII 바깥의 글자와 공백, 헤더에 둘 수 없는 글자(`"`, `<`, `>`, `\`, `^`, `` ` ``, `{`, `|`, `}`)를
+     * UTF-8 퍼센트 인코딩하고 구분자(`/`, `?`, `&`, `=`, `#`, `:`)와 이미 있는 `%XX`는 그대로 둔다.
+     * v1.6의 역방향 라우트가 한글 이름을 인코딩하던 것과 같다. 인코딩하지 않으면 Tomcat이 헤더를 통째로 지운다.
+     */
+    fun encodeLocation(location: String): String {
+        val out = StringBuilder(location.length + 16)
+        val bytes = location.toByteArray(Charsets.UTF_8)
+        var i = 0
+        while (i < bytes.size) {
+            val b = bytes[i].toInt() and 0xFF
+            val c = b.toChar()
+            val keep = b in 0x21..0x7E && c !in "\"<>\\^`{|}"
+            if (keep) out.append(c) else out.append('%').append("%02X".format(b))
+            i++
+        }
+        return out.toString()
+    }
+
+    /**
+     * 응답 본문(JSON)에 담는 이동 주소를 만든다. [encodeLocation]으로 인코딩하고 앞에 [contextPath]를 붙인다.
+     * v1.6의 역방향 라우트는 `application.context`를 붙이고 경로 변수를 인코딩한다.
+     */
+    fun withContext(contextPath: String, location: String): String = contextPath + encodeLocation(location)
 }

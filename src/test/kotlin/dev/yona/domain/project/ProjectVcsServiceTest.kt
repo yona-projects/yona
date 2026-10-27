@@ -25,9 +25,10 @@ class ProjectVcsServiceTest {
 
     private val projects = mock(ProjectRepository::class.java)
     private val postings = mock(PostingRepository::class.java)
+    private val postingService = mock(dev.yona.domain.board.PostingService::class.java)
     private val readme = mock(ProjectReadmeService::class.java)
     private val repositories = mock(RepositoryService::class.java)
-    private val service = ProjectVcsService(projects, postings, readme, repositories)
+    private val service = ProjectVcsService(projects, postings, postingService, readme, repositories)
 
     @Test
     fun `서비스에는 트랜잭션이 걸려 있지 않다`() {
@@ -47,8 +48,7 @@ class ProjectVcsServiceTest {
 
         assertFailsWith<IllegalStateException> { service.change(project) }
 
-        assertEquals(false, posting.readme)
-        verify(postings).save(posting)
+        verify(postingService).unmarkReadmeOnVcsChange(posting)
         assertNull(fork.originalProject)
         verify(projects).save(fork)
         verify(repositories).deleteRepository(project)

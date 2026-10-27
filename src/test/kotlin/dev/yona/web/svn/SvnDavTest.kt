@@ -187,6 +187,44 @@ class SvnDavTest {
     }
 
     @Test
+    fun `공백과 한글이 든 경로도 조회하고 읽을 수 있다 (v1_6 svnkit-dav 1_8은 pathInfo를 디코딩한다)`() {
+        val repository = client(publicProject, member)
+        assertEquals(1L, commitOverHttp(repository, "한글 a.txt", "내용\n"))
+        val reader = client(publicProject)
+        assertEquals(SVNNodeKind.FILE, reader.checkPath("한글 a.txt", -1))
+        val out = ByteArrayOutputStream()
+        reader.getFile("한글 a.txt", -1, null, out)
+        assertEquals("내용\n", out.toString(Charsets.UTF_8))
+        val names = mutableListOf<org.tmatesoft.svn.core.SVNDirEntry>()
+        reader.getDir("", -1, null, 0, names)
+        assertEquals(listOf("한글 a.txt"), names.map { it.name })
+    }
+
+    @Test
+    fun `자식 항목의 PROPFIND 응답 href도 퍼센트 인코딩되어 있다`() {
+        commitOverHttp(client(publicProject, member), "한글 b.txt", "x\n")
+        val request = HttpRequest.newBuilder(URI.create(url(publicProject) + "/!svn/bc/1/"))
+            .method("PROPFIND", HttpRequest.BodyPublishers.noBody()).header("Depth", "1").build()
+        val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(207, response.statusCode(), response.body())
+        assertTrue(response.body().contains("<D:href>/svn/${publicProject.owner}/${publicProject.name}/!svn/bc/1/%ED%95%9C%EA%B8%80%20b.txt</D:href>"), response.body())
+    }
+
+    @Test
+    fun `한글 프로젝트 이름의 PROPFIND 응답 href는 퍼센트 인코딩되어 있다`() {
+        val p = project(member, ProjectScope.PUBLIC)
+        val old = p.name!!
+        val renamed = projects.save(p.also { it.name = "한글 $old" })
+        repositories.createRepository(renamed)
+        val request = HttpRequest.newBuilder(URI.create(url(renamed).replace(renamed.name!!, java.net.URLEncoder.encode(renamed.name, Charsets.UTF_8).replace("+", "%20"))))
+            .method("PROPFIND", HttpRequest.BodyPublishers.noBody()).header("Depth", "0").build()
+        val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(207, response.statusCode(), response.body())
+        // 프로젝트 이름 구간의 인코딩은 v1.6 svnkit-dav 1.8.15가 정한다. 여기서는 오류 없이 207로 응답하고 한글이 그대로 나가지 않음만 확인한다
+        assertTrue(!response.body().contains("한글"), response.body())
+    }
+
+    @Test
     fun `익명이나 구성원이 아닌 사용자는 쓸 수 없다`() {
         val anonymous = assertFailsWith<SVNException> { commitOverHttp(client(publicProject), "a.txt", "x") }
         assertEquals(SVNErrorCode.RA_NOT_AUTHORIZED, anonymous.errorMessage.errorCode)

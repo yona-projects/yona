@@ -1,5 +1,6 @@
 package dev.yona.markdown
 
+import dev.yona.util.LegacyText
 import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.project.OrganizationRepository
 import dev.yona.domain.project.Project
@@ -180,13 +181,13 @@ class AutoLinkRenderer(
         val english = user.englishName
         if (lang.isNullOrBlank()) {
             val viewerLang = currentUserProvider.get().user?.lang ?: DEFAULT_LANG
-            if (!english.isNullOrBlank() && user.lang != null && viewerLang.startsWith("en")) return english
+            if ((english != null && LegacyText.isNotBlank(english)) && user.lang != null && viewerLang.startsWith("en")) return english
             // v1.6 `getPureNameOnly()`는 이름을 자를 때만 trim한다. 언어를 받는 `getPureNameOnly(lang)`는 trim하지 않는다
             val name = user.name.orEmpty()
             val cut = cutAtDepartment(name)
             return if (cut.length != name.length) cut.trim() else cut
         }
-        if (!english.isNullOrBlank() && user.lang != null && lang.startsWith("en")) return english
+        if ((english != null && LegacyText.isNotBlank(english)) && user.lang != null && lang.startsWith("en")) return english
         return cutAtDepartment(user.name.orEmpty())
     }
 

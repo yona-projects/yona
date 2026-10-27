@@ -155,14 +155,14 @@ class SystemMails(
     }
 
     /**
-     * 메일 만들기와 보내기를 모두 전용 스레드에 맡긴다(v1.6 보조 이메일 확인, D-19). 요청 스레드의 언어와 사이트 주소를 미리 구해 그 스레드에서 쓰게 한다.
+     * 메일 만들기와 보내기를 모두 전용 스레드에 맡긴다(v1.6 보조 이메일 확인, D-19). 요청 스레드의 사이트 주소를 미리 구해 그 스레드에서 쓰게 한다.
+     * 언어는 요청이 아니라 서버 기본 언어이다. v1.6은 액터 스레드에서 `Messages.get(key)`를 불러 HTTP 문맥이 없으면 `Locale.getDefault()`를 쓴다.
      * 만들 필요가 없으면([build]가 `null`) 보내지 않는다. 요청을 실패시키지 않는다.
      */
     private fun guarded(description: String, build: () -> MimeMessage?) {
-        val locale = LocaleContextHolder.getLocale()
         val origin = siteUrls.origin()
         dispatcher.dispatch(description) {
-            LocaleContextHolder.setLocale(locale)
+            LocaleContextHolder.setLocale(java.util.Locale.getDefault())
             try { siteUrls.withOrigin(origin, build) } finally { LocaleContextHolder.resetLocaleContext() }
         }
     }

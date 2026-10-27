@@ -85,7 +85,8 @@ class LoginController(
         if (loginKey.isNullOrEmpty() || password.isNullOrEmpty()) {
             // v1.6: 안내 문구(flash)와 함께 로그인 화면을 400으로 다시 그린다. 이 안내는 같은 요청의 화면에서 바로 보인다.
             response.status = HttpStatus.BAD_REQUEST.value()
-            return LoginFormController.loginPage(request.getParameter("redirectUrl"))
+            // v1.6 `login.render("title.login", authInfoForm, null)`은 이동 주소를 비운다
+            return LoginFormController.loginPage(null)
                 .addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to "user.login.required")))
         }
 

@@ -284,7 +284,8 @@ class MilestoneController(
         }
         if (checkTitle && !milestoneService.isUniqueTitle(project, input.title)) {
             errors.getOrPut("title") { mutableListOf() } += "milestone.title.duplicated"
-            flashKey = "milestone.title.duplicated"
+            // v1.6는 제목 검사를 먼저 하고 마감일 검사가 같은 경고 키를 나중에 덮으므로 마감일 문구가 이긴다
+            if (flashKey == null) flashKey = "milestone.title.duplicated"
         }
         return ValidationResult(errors, flashKey, state, dueDate)
     }
