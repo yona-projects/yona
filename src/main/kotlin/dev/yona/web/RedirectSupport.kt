@@ -23,6 +23,9 @@ object RedirectSupport {
     const val SUCCESS = "success"
     const val ERROR = "error"
 
+    /** flash 안에서 값을 넣은 순서를 `\u0001`로 이어 적어 두는 보조 키이다. 화면에 나오지 않는다. v1.6 flash 쿠키가 순서를 지키는 것과 맞춘다. */
+    const val ORDER = "\u0000order"
+
     /** 확인 대화상자로 보여 줄 일회성 메시지의 제목과 설명 키이다 (v1.6 `Constants.TITLE`, `DESCRIPTION`). */
     const val TITLE = "title"
     const val DESCRIPTION = "description"
@@ -32,10 +35,23 @@ object RedirectSupport {
      * 그 주소로 이동하는 Ajax 흐름에서 쓴다 (v1.6 `flash(...)` 뒤 `okWithLocation`).
      */
     fun saveFlash(request: HttpServletRequest, response: HttpServletResponse, flash: Map<String, Any>) {
-        val flashMap = FlashMap().apply { putAll(flash) }
+        val carried = carriedOver(request)
+        val flashMap = FlashMap().apply { putAll(carried); putAll(flash) }
+        val order = LinkedHashSet<String>()
+        (carried[ORDER] as? String)?.split('\u0001')?.filter { it in carried }?.let { order.addAll(it) }
+        order.addAll(carried.keys.filter { it != ORDER })
+        order.addAll(flash.keys)
+        flashMap[ORDER] = order.joinToString("\u0001")
         RequestContextUtils.getFlashMapManager(request)?.saveOutputFlashMap(flashMap, request, response)
-        RequestContextUtils.getOutputFlashMap(request).putAll(flash)
+        RequestContextUtils.getOutputFlashMap(request).putAll(flashMap)
     }
+
+    /**
+     * 앞 요청이 남긴 값이다. v1.6의 flash는 쿠키 하나라서, 새 값을 심는 응답은 앞 요청이 남긴 값을 그대로 이어 받아 다시 심는다.
+     * 새 값을 심지 않는 응답에서는 값이 사라진다.
+     */
+    private fun carriedOver(request: HttpServletRequest): Map<String, Any> =
+        RequestContextUtils.getInputFlashMap(request)?.mapNotNull { (k, v) -> v?.let { k to it } }?.toMap().orEmpty()
 
     /**
      * @param location 이동할 위치. ASCII 바깥의 글자는 퍼센트 인코딩해 `Location` 헤더에 넣는다([dev.yona.util.UrlPaths.encodeLocation])
@@ -48,9 +64,7 @@ object RedirectSupport {
         flash: Map<String, Any> = emptyMap()
     ): ResponseEntity<Void> {
         if (flash.isNotEmpty()) {
-            val flashMap = FlashMap().apply { putAll(flash) }
-            RequestContextUtils.getFlashMapManager(request)?.saveOutputFlashMap(flashMap, request, response)
-            RequestContextUtils.getOutputFlashMap(request).putAll(flash)
+            saveFlash(request, response, flash)
         }
         return ResponseEntity.status(HttpStatus.SEE_OTHER).header(HttpHeaders.LOCATION, dev.yona.util.UrlPaths.encodeLocation(location)).build()
     }

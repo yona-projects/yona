@@ -23,6 +23,18 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
 
     private val zone: ZoneId get() = clock.zone
 
+    // --- 이스케이프 ---
+
+    /**
+     * Twirl(`HtmlFormat.escape`)과 같은 방식으로 HTML 문자를 바꾼다: `&` `<` `>` `"` `'`을 각각 `&amp;` `&lt;` `&gt;` `&quot;` `&#x27;`로 바꾼다.
+     * 스크립트 안에 `'@Messages("키")'`처럼 메시지를 찍는 v1.6 화면과 글자까지 같게 그릴 때 쓴다. 값이 없으면 빈 문자열이다.
+     */
+    fun escape(text: String?): String = escapeHtml(text)
+
+    /** 현재 요청의 언어로 메시지를 찾아 [escape]한 문자열이다 (v1.6 `@Messages("키")`의 출력). 키가 없으면 키 자체를 쓴다. */
+    fun escapedMessage(key: String, vararg args: Any): String =
+        escape(messages.getMessage(key, args, key, org.springframework.context.i18n.LocaleContextHolder.getLocale()))
+
     // --- 시간 ---
 
     /** 기본 형식 `yyyy-MM-dd h:mm:ss a`로 날짜를 문자열로 바꾼다. 날짜가 없으면 빈 문자열이다 (v1.6 `JodaDateUtil.getDateString`). */
@@ -164,6 +176,24 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
     }
 
     companion object {
+        /** [escape]의 본체이다. 템플릿이 아닌 곳에서도 같은 이스케이프를 쓰려고 정적으로 둔다. */
+        @JvmStatic
+        fun escapeHtml(text: String?): String {
+            if (text == null) return ""
+            val out = StringBuilder(text.length + 16)
+            for (c in text) {
+                when (c) {
+                    '&' -> out.append("&amp;")
+                    '<' -> out.append("&lt;")
+                    '>' -> out.append("&gt;")
+                    '"' -> out.append("&quot;")
+                    '\'' -> out.append("&#x27;")
+                    else -> out.append(c)
+                }
+            }
+            return out.toString()
+        }
+
         /** 영문 대소문자로만 된 무작위 문자열이다 (v1.6 에디터의 `RandomStringUtils.randomAlphabetic(8)`). 템플릿에서 `T(...)`로 부른다. */
         @JvmStatic
         fun randomAlphabetic(length: Int): String {

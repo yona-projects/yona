@@ -31,6 +31,7 @@ class TemplateHelperTest {
             "common.time.second" to "{0} second ago", "common.time.seconds" to "{0} seconds ago",
             "common.time.just" to "Just now"
         ).forEach { (code, text) -> addMessage(code, Locale.ENGLISH, text) }
+        addMessage("test.quote", Locale.ENGLISH, "Don't <b>\"stop\"</b> & go")
     }
 
     private val helper = TemplateHelper(messages, clock)
@@ -185,6 +186,23 @@ class TemplateHelperTest {
         assertTrue(!helper.isDefaultAvatar("/files/3"))
         assertTrue(!helper.isDefaultAvatar("https://www.gravatar.com/avatar/x?s=64"))
         assertTrue(!helper.isDefaultAvatar(null))
+    }
+
+    @Test
+    fun `Twirl과 같은 방식으로 HTML 문자를 바꾼다 (작은따옴표는 x27)`() {
+        assertEquals("Don&#x27;t &lt;b&gt;&quot;stop&quot;&lt;/b&gt; &amp; go", helper.escape("Don't <b>\"stop\"</b> & go"))
+        assertEquals("", helper.escape(null))
+    }
+
+    @Test
+    fun `메시지를 Twirl과 같은 방식으로 바꿔 돌려준다`() {
+        val saved = org.springframework.context.i18n.LocaleContextHolder.getLocale()
+        org.springframework.context.i18n.LocaleContextHolder.setLocale(Locale.ENGLISH)
+        try {
+            assertEquals("Don&#x27;t &lt;b&gt;&quot;stop&quot;&lt;/b&gt; &amp; go", helper.escapedMessage("test.quote"))
+        } finally {
+            org.springframework.context.i18n.LocaleContextHolder.setLocale(saved)
+        }
     }
 
     @Test

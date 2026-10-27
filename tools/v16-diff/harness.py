@@ -84,12 +84,14 @@ VOLATILE = [
     # Thymeleaf의 자바스크립트 이스케이프(\/)와 문자열 이어 붙이기(" + ")는 같은 문자열을 만든다
     (re.compile(r"\\/"), "/"),
     (re.compile(r'"\s*\+\s*"'), ""),
+    # 편집기가 만들 때마다 새로 정하는 8글자 영문 번호는 서버마다 다르다
+    (re.compile(r"\b(edit|preview|editor-contents|editor-wrap|editor-toolbar|editor-help|help-nav|markdown-help)-[A-Za-z]{8}\b"), r"\1-<무작위>"),
 ]
 
 
 # v1.6 서버는 H2에서 사용자 번호를 33부터 매긴다(가입 순서: tester, other, third). v2는 2부터이다. 비교할 때 v1.6 쪽 번호를 v2 번호로 바꾼다.
 USER_ID_MAP = {"33": "2", "34": "3", "35": "4"}
-_ID_ATTR = re.compile(r"^(data-.*id|.*-id|id|value|href|data-href|data-request-uri|content)$")
+_ID_ATTR = re.compile(r"^(data-.*id|data-value|.*-id|id|value|href|data-href|data-request-uri|content)$")
 
 
 def map_user_ids_text(text: str) -> str:
@@ -126,6 +128,9 @@ def norm_headers(resp: requests.Response, base: str) -> dict:
     return out
 
 
+_BOOLEAN_ATTRS = {"checked", "selected", "disabled", "readonly", "multiple", "required", "autofocus", "hidden"}
+
+
 def html_lines(body: str, map_ids: bool = False) -> list[str]:
     soup = BeautifulSoup(body, "lxml")
     for c in soup.find_all(string=lambda t: isinstance(t, Comment)):
@@ -136,6 +141,7 @@ def html_lines(body: str, map_ids: bool = False) -> list[str]:
         for child in node.children:
             if getattr(child, "name", None) is None:
                 text = re.sub(r"\s+", " ", str(child)).strip()
+                text = text.replace("\\/", "/").replace("\\u0026", "&")  # 스크립트 안의 같은 뜻의 이스케이프
                 if text:
                     lines.append(("  " * depth) + scrub(text))
             else:
@@ -147,6 +153,10 @@ def html_lines(body: str, map_ids: bool = False) -> list[str]:
                     if k == "value" and value == "" and child.name == "input":
                         continue  # 비어 있는 value는 없는 것과 같다
                     value = re.sub(chr(32) + "+", chr(32), value).strip()
+                    if k == "method":
+                        value = value.lower()  # 폼의 method는 대소문자를 가리지 않는다
+                    if k in _BOOLEAN_ATTRS and value in ("", k):
+                        value = ""  # checked="checked"와 checked=""는 같은 뜻이다
                     if k == "class":
                         value = " ".join(sorted(value.split()))  # class는 순서가 의미 없는 집합이다
                     if k in ("href", "src", "action", "data-href", "data-request-uri"):
@@ -186,7 +196,7 @@ def body_view(resp: requests.Response, step: Step, map_ids: bool = False):
     if "html" in ct:
         return ("html", html_lines(resp.text, map_ids))
     if ct.startswith("text/") or "javascript" in ct or "xml" in ct:
-        return ("text", scrub(resp.text).splitlines())
+        return ("text", [l for l in scrub(resp.text).splitlines() if l.strip()])
     return ("bytes", len(resp.content))
 
 

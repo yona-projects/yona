@@ -121,6 +121,27 @@ class ProjectChecksTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `앞 요청이 남긴 안내는 failed 안내와 함께 보이고 다음 응답에도 남는다 (v1_6 flash는 응답이 다시 심는다)`() {
+        val session = MockHttpSession()
+        mockMvc.perform(get("/projectform").session(session)).andExpect(status().isSeeOther)
+        val first = mockMvc.perform(get("/nobody/nothing/__t/default").session(session)).andReturn().response.contentAsString
+        val warning = first.indexOf("Please log in.")
+        val failed = first.indexOf("You are not authorized to access this page or not logged in.")
+        assertTrue(warning in 0 until failed, "로그인 안내가 failed 안내보다 먼저 보인다")
+        val second = mockMvc.perform(get("/nobody/nothing/__t/default").session(session)).andReturn().response.contentAsString
+        assertTrue(second.contains("Please log in."), "다음 응답에도 남는다")
+    }
+
+    @Test
+    fun `새 안내를 심는 리다이렉트는 앞 요청의 안내를 이어 받는다`() {
+        val session = MockHttpSession()
+        mockMvc.perform(get("/nobody/nothing/__t/default").session(session)).andExpect(status().isForbidden)
+        mockMvc.perform(get("/projectform").session(session)).andExpect(status().isSeeOther)
+        val page = mockMvc.perform(get("/nobody/nothing/__t/default").session(session)).andReturn().response.contentAsString
+        assertTrue(page.contains("Please log in.") && page.contains("You are not authorized to access this page or not logged in."), "두 안내가 함께 보인다")
+    }
+
+    @Test
     fun `프로젝트가 없으면 로그인한 사용자에게는 찾을 수 없음을 403으로 알린다`() {
         val result = call("/nobody/nothing/__t/default", login(newUser()))
         assertEquals(403, result.response.status)

@@ -109,7 +109,7 @@ class UserPageAssembler(
             val author = issue.authorLoginId?.let { users.findByLoginIdIgnoreCase(it) }
             val changed = issue.createdDate != issue.updatedDate
             UserIssueRow(
-                item = item, owner = project.owner.orEmpty(), project = project.name.orEmpty(), open = issue.state == State.OPEN,
+                item = item, owner = project.owner.orEmpty(), project = project.name.orEmpty(), open = issue.state == State.OPEN, closed = issue.state == State.CLOSED,
                 authorLoginId = author?.loginId ?: dev.yona.web.NullUserDisplay.LOGIN_ID,
                 authorPureName = if (author == null) nullUser.name() else author.takeIf { !it.name.isNullOrEmpty() }?.let { UserDisplay.pureName(it, language) },
                 assigneePureName = issue.assignee?.user?.let { UserDisplay.pureName(it, language) },

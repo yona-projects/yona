@@ -92,8 +92,8 @@
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function() {
         $yobi.loadModule("git.View", {
-            "sWatchUrl"  : /*[[${watchUrl}]]*/ "",
-            "sUnwatchUrl": /*[[${unwatchUrl}]]*/ "",
+            "sWatchUrl"  : "[(${#strings.replace(watchUrl, '&', '&amp;')})]",
+            "sUnwatchUrl": "[(${#strings.replace(unwatchUrl, '&', '&amp;')})]",
             "sStateUrl"  : /*[[${stateUrl}]]*/ "",
             "bCommentable" : /*[[${commentable} ? 'true' : 'false']]*/ "false"
         });
@@ -108,9 +108,8 @@
         });
 
         // detect comment which contains mention at me
-        var viewerName = /*[[${viewerName}]]*/ "";
-        $(".comment-body:contains('" + viewerName + "')").closest(".comment").addClass("mentioned");
-        $(".user-link:contains('" + viewerName + "')").addClass("me");
+        $(".comment-body:contains('[(${helper.escape(viewerName)})]')").closest(".comment").addClass("mentioned");
+        $(".user-link:contains('[(${helper.escape(viewerName)})]')").addClass("me");
     });
 </script>
 </th:block>

@@ -108,6 +108,14 @@ class ProjectErrorPagesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `모르는 종류이면 문구 자리에 메시지 키가 그대로 보인다 (v1_6 Messages는 없는 키를 그대로 돌려준다)`() {
+        val project = project()
+        val doc = render("/__test/err/project-notfound/${project.id}?type=/errowner/errproj/commit/abc/comments", 404)
+        assertEquals("error.notfound./errowner/errproj/commit/abc/comments", doc.selectFirst(".error-wrap p")?.text())
+        assertEquals("javascript:history.back();", doc.selectFirst(".error-wrap a.ybtn-primary")?.attr("href"))
+    }
+
+    @Test
     fun `게시글과 마일스톤과 코드 종류도 각자의 목록으로 돌아간다`() {
         val project = project()
         val links = listOf("board_post", "milestone", "code").associateWith {

@@ -95,10 +95,10 @@ class CommitViewController(
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val revision = UrlPaths.decodeSegmentOrSelf(id)
-        val commit = history.commit(project, revision) ?: return ErrorViews.notFound("error.notfound.commit", views.of(project), null)
+        val commit = history.commit(project, revision) ?: return ErrorViews.notFound("error.notfound.commit")
         val parent = history.parentOf(project, revision)
         if (project.vcs == "Subversion") return showSvn(project, commit, parent, branch, path)
-        val fileDiffs = diffs.commitDiff(project, revision) ?: return ErrorViews.notFound("error.notfound", views.of(project), null)
+        val fileDiffs = diffs.commitDiff(project, revision) ?: return ErrorViews.notFound("error.notfound")
         val viewer = currentUserProvider.get().user
         val onCommit = threads.onCommit(project, commit.id)
         val codeThreads = onCommit.filterIsInstance<CodeCommentThread>()
@@ -195,7 +195,7 @@ class CommitViewController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val commitA = history.commit(project, revA)
         val commitB = history.commit(project, revB)
-        if (commitA == null || commitB == null) return ErrorViews.notFound("error.notfound.commit", views.of(project), null)
+        if (commitA == null || commitB == null) return ErrorViews.notFound("error.notfound.commit")
         if (project.vcs == "Subversion") {
             val patch = svn.patch(owner, name, commitA.id.toLong(), commitB.id.toLong())
             return ModelAndView("code/compare-svn")

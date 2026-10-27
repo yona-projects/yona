@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.servlet.support.RequestContextUtils
-import org.springframework.web.util.HtmlUtils
+import dev.yona.web.RedirectSupport
+import dev.yona.web.TemplateHelper
 
 /**
  * 모든 화면 템플릿이 공통으로 쓰는 모델 값을 만든다.
@@ -124,9 +125,13 @@ class FlashMessageTranslator(private val messages: MessageSource) {
         val locale = LocaleContextHolder.getLocale()
         // v1.6 템플릿은 `@Messages(...)`의 출력을 HTML 이스케이프한다. 같은 결과를 내려고 미리 이스케이프한다.
         fun text(value: Any?): String =
-            value?.toString()?.let { HtmlUtils.htmlEscape(messages.getMessage(it, null, it, locale) ?: it) } ?: ""
+            value?.toString()?.let { TemplateHelper.escapeHtml(messages.getMessage(it, null, it, locale) ?: it) } ?: ""
+        // v1.6의 flash는 쿠키 하나라 넣은 순서가 그대로 보인다. 순서 정보가 있으면 그 순서를 따른다.
+        val order = (flash[RedirectSupport.ORDER] as? String)?.split('\u0001').orEmpty()
+        val keys = flash.keys.filter { it != TITLE && it != DESCRIPTION && it != RedirectSupport.ORDER }
+            .sortedBy { order.indexOf(it).let { i -> if (i < 0) Int.MAX_VALUE else i } }
         return FlashMessages(
-            notices = flash.filterKeys { it != TITLE && it != DESCRIPTION }.values.map { text(it) },
+            notices = keys.map { text(flash[it]) },
             alertTitle = flash[TITLE]?.let { text(it) },
             alertDescription = text(flash[DESCRIPTION])
         )

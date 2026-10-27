@@ -107,7 +107,7 @@
                                     <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
                                 </div>
                                 <ul class="post-list-wrap my-issues row-fluid">
-                                    <th:block th:each="row : ${activity.issues}" th:unless="${row.open}">
+                                    <th:block th:each="row : ${activity.issues}" th:if="${row.closed}">
                                         <th:block th:replace="~{user/partial-issues :: issueRow(${row})}"></th:block>
                                     </th:block>
                                 </ul>

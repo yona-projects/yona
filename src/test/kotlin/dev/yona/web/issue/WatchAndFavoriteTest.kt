@@ -111,6 +111,16 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `화면이 보내는 주소의 앰퍼샌드 amp 세미콜론 구분도 질의 구분자로 받는다 (v1_6 Netty 질의 해석)`() {
+        val project = newProject(); val i = issue(project); val user = newUser()
+        val session = login(user)
+        mockMvc.perform(post("/watch?resource.type=issue_post&amp;resource.id=${i.id}").session(session)).andExpect(status().isOk)
+        assertEquals(1, watches.count())
+        mockMvc.perform(post("/unwatch?resource.type=issue_post&amp;resource.id=${i.id}").session(session).header("Accept", "application/json")).andExpect(status().isOk)
+        assertEquals(0, watches.count())
+    }
+
+    @Test
     fun `익명이거나 읽을 수 없으면 구독은 403이다`() {
         val project = newProject(ProjectScope.PRIVATE); val i = issue(project)
         mockMvc.perform(post("/watch").param("resource.type", "issue_post").param("resource.id", i.id.toString())).andExpect(status().isForbidden).andExpect(content().string("Anonymous cannot watch it."))

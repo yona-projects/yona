@@ -166,8 +166,8 @@
 <script type="text/javascript" th:inline="javascript">
     $(document).ready(function(){
         $yobi.loadModule("board.View", {
-            "sWatchUrl"  : /*[[${'/watch?resource.type=board_post&resource.id=' + post.id}]]*/ "",
-            "sUnwatchUrl": /*[[${'/unwatch?resource.type=board_post&resource.id=' + post.id}]]*/ ""
+            "sWatchUrl"  : "[(${'/watch?resource.type=board_post&amp;resource.id=' + post.id})]",
+            "sUnwatchUrl": "[(${'/unwatch?resource.type=board_post&amp;resource.id=' + post.id})]"
         });
 
         // yobi.ShortcutKey
@@ -200,10 +200,8 @@
         });
 
         // detect comment which contains mention at me
-        // 인라인 표현식 바로 뒤에 덧셈이 이어지면 타임리프가 그 뒤까지 지우므로 값은 변수로 먼저 받는다.
-        var viewerName = /*[[${currentUser.pureName}]]*/ "";
-        $(".comment-body:contains('" + viewerName + "')").closest(".comment").addClass("mentioned");
-        $(".user-link:contains('" + viewerName + "')").addClass("me");
+        $(".comment-body:contains('[(${helper.escape(currentUser.pureName)})]')").closest(".comment").addClass("mentioned");
+        $(".user-link:contains('[(${helper.escape(currentUser.pureName)})]')").addClass("me");
 
         $('#translate').one('click', function (e) {
             var data = {

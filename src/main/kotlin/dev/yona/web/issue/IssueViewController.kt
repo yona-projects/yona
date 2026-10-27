@@ -80,7 +80,7 @@ class IssueViewController(
             return ErrorViews.notFound("error.notfound", views.of(project), ResourceType.ISSUE_POST.resource)
         }
         if (issue.isDraft == true && issue.authorLoginId != viewer?.loginId) {
-            return ErrorViews.notFound("error.notfound", views.of(project), null).also { it.status = HttpStatus.FORBIDDEN }
+            return ErrorViews.notFound("error.notfound").also { it.status = HttpStatus.FORBIDDEN }
         }
         if (!accessControl.isAllowed(viewer, issue.asResource(), Operation.READ)) {
             return ErrorViews.forbidden("error.forbidden", views.of(project))

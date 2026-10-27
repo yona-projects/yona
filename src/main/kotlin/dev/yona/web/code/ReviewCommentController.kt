@@ -74,7 +74,7 @@ class ReviewCommentController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val contents = request.getParameter("contents")
         if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "CODE")
-        if (history.commit(project, commitId) == null) return ErrorViews.notFound("error.notfound", views.of(project), null)
+        if (history.commit(project, commitId) == null) return ErrorViews.notFound("error.notfound", views.of(project), request.requestURI)
         if (project.vcs == "Subversion") return newSvnComment(project, commitId, contents, request, response)
 
         if (!threadBelongs(request, project)) return ErrorViews.badRequest("error.validation", views.of(project), "CODE")
@@ -124,7 +124,7 @@ class ReviewCommentController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val contents = request.getParameter("contents")
         if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
-        val pullRequest = pullRequests.findById(pullRequestId).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), null)
+        val pullRequest = pullRequests.findById(pullRequestId).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), request.requestURI)
 
         if (!threadBelongs(request, project)) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
 

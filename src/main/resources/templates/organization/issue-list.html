@@ -20,16 +20,16 @@
                 <div class="inner advanced">
                     <ul class="lst-stacked unstyled" th:with="names=${cond.projectNames.isEmpty() ? '' : cond.projectNames}">
                         <li th:class="${cond.assigneeId == null and cond.authorId == null and cond.mentionId == null} ? 'active'">
-                            <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-mention-id="" th:attr="data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.all}"></a>
+                            <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-mention-id="" data-project-names="" data-milestone-id="" th:attrappend="data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.all}"></a>
                         </li>
                         <li th:if="${meId != null}" th:class="${cond.assigneeId == meId} ? 'active'">
-                            <a pjax-filter href="#" data-author-id="" data-mention-id="" th:attr="data-assignee-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.assignedToMe}"></a>
+                            <a pjax-filter href="#" data-author-id="" data-mention-id="" data-assignee-id="" data-project-names="" data-milestone-id="" th:attrappend="data-assignee-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.assignedToMe}"></a>
                         </li>
                         <li th:if="${meId != null}" th:class="${cond.authorId == meId} ? 'active'">
-                            <a pjax-filter href="#" data-assignee-id="" data-mention-id="" th:attr="data-author-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.authoredByMe}"></a>
+                            <a pjax-filter href="#" data-assignee-id="" data-mention-id="" data-author-id="" data-project-names="" data-milestone-id="" th:attrappend="data-author-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.authoredByMe}"></a>
                         </li>
                         <li th:if="${meId != null}" th:class="${cond.mentionId == meId} ? 'active'">
-                            <a pjax-filter href="#" data-assignee-id="" data-author-id="" th:attr="data-mention-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.mentionedOfMe}"></a>
+                            <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-mention-id="" data-project-names="" data-milestone-id="" th:attrappend="data-mention-id=${meId}, data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.mentionedOfMe}"></a>
                         </li>
                     </ul>
 
@@ -147,8 +147,8 @@
   $(function(){
     $yobi.loadModule("issue.List");
 
-    $("#projects").on("change", function(){
-        $("#search").submit();
+    $("#projects" ).on("change", function(){
+        $("#search" ).submit();
     });
   });
 </script>

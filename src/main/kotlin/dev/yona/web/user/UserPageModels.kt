@@ -6,7 +6,8 @@ import dev.yona.web.issue.IssueListItem
  * 사용자 페이지(`GET /:user`)의 이슈 탭 한 줄이다. v1.6 `app/views/user/partial_issues.scala.html`이 템플릿 안에서 구하던 값을 미리 담는다.
  *
  * @property item 이슈 목록과 같은 방식으로 만든 값(제목, 댓글과 추천 수, 하위 이슈 진행, 라벨, 하위 이슈 목록 등)
- * @property open 열린 이슈이면 `true`, 닫혔으면 `false`이다
+ * @property open 열린(`OPEN`) 이슈이면 `true`이다
+ * @property closed 닫힌(`CLOSED`) 이슈이면 `true`이다. 초안 같은 그 밖의 상태는 열린 탭에도 닫힌 탭에도 보이지 않는다(v1.6)
  * @property authorPureName 작성자의 이름에서 부서를 뺀 이름. 작성자의 이름이 비어 있으면 `null`이다
  * @property assigneePureName 담당자의 이름에서 부서를 뺀 이름. 담당자가 없으면 `null`이다
  * @property milestoneVisible 프로젝트가 마일스톤 메뉴를 쓰고 이슈에 마일스톤이 있으면 `true`이다
@@ -15,7 +16,7 @@ import dev.yona.web.issue.IssueListItem
  * @property dueDateString 마감일을 `yyyy-MM-dd`로 쓴 문자열이다. 마감일이 없으면 `null`이다
  */
 data class UserIssueRow(
-    val item: IssueListItem, val owner: String, val project: String, val open: Boolean,
+    val item: IssueListItem, val owner: String, val project: String, val open: Boolean, val closed: Boolean,
     val authorLoginId: String, val authorPureName: String?, val assigneePureName: String?, val milestoneVisible: Boolean,
     val timeTitle: String, val timeText: String, val dueDateString: String?
 ) {

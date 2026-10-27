@@ -116,8 +116,8 @@
     $(document).ready(function(){
         $yobi.loadModule("code.SvnDiff", {
             "bCommentable"   : /*[[${canComment}]]*/ false,
-            "sWatchUrl"      : /*[[${watchUrl}]]*/ "",
-            "sUnwatchUrl"    : /*[[${unwatchUrl}]]*/ "",
+            "sWatchUrl"      : "[(${#strings.replace(watchUrl, '&', '&amp;')})]",
+            "sUnwatchUrl"    : "[(${#strings.replace(unwatchUrl, '&', '&amp;')})]",
             "sParentCommitId": /*[[${parentId}]]*/ "",
             "sCommitId"      : /*[[${commit.id}]]*/ "",
             "sCodeURL"       : /*[[${filesUrl}]]*/ ""

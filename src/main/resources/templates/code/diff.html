@@ -114,8 +114,8 @@
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
             "bCommentable": /*[[${canComment}]]*/ false,
-            "sWatchUrl"   : /*[[${watchUrl}]]*/ "",
-            "sUnwatchUrl" : /*[[${unwatchUrl}]]*/ ""
+            "sWatchUrl"   : "[(${#strings.replace(watchUrl, '&', '&amp;')})]",
+            "sUnwatchUrl" : "[(${#strings.replace(unwatchUrl, '&', '&amp;')})]"
         });
 
         yobi.Mention({

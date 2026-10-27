@@ -29,7 +29,7 @@
 
             $.post(cloneUrl, cloneParam, function(data){
                 if(data.status === "failed") {
-                    $yobi.alert(/*[[#{fork.failed}]]*/ "", function(){
+                    $yobi.alert('[(${helper.escapedMessage('fork.failed')})]', function(){
                         location.replace(data.url);
                     });
                 } else {

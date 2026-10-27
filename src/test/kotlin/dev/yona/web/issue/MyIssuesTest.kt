@@ -303,10 +303,10 @@ class MyIssuesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `기본 페이지 설정 스크립트는 주소를 변수로 받아 요청한다`() {
+    fun `기본 페이지 설정 스크립트는 v1_6처럼 주소를 문자열로 이어 요청한다`() {
         val html = mockMvc.perform(get("/user/issues").session(login(newUser()))).andReturn().response.contentAsString
-        assertTrue(html.contains("var defaultLoginPageUrl = \"\\/-_-api\\/v1\\/user\\/defultLoginPage\";"))
-        assertTrue(html.contains("\$.post(defaultLoginPageUrl + \"?path=\" + \$setDefaultLoginPage.data(\"url\"))"))
+        assertTrue(html.contains("\$.post(\"/-_-api/v1/user/defultLoginPage?path=\" + \$setDefaultLoginPage.data(\"url\"))"))
+        assertTrue(!html.contains("defaultLoginPageUrl"))
     }
 
     @Test

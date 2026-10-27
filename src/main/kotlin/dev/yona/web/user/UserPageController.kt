@@ -57,7 +57,7 @@ class UserPageController(
             .addObject("selected", selected)
             .addObject("showStream", viewer?.isGuest != true)
             .addObject("openIssueCount", activity.issues.count { it.open })
-            .addObject("closedIssueCount", activity.issues.count { !it.open })
+            .addObject("closedIssueCount", activity.issues.count { it.closed })
     }
 
     /** 기간을 정하고 쿠키에 저장한다. 쿼리에 값이 없고 쿠키가 있으면 저장하지 않는다. */

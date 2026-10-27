@@ -171,9 +171,9 @@ class IssueViewTest : AbstractIntegrationTest() {
         val author = newUser("글쓴이")
         issue(project, author = author)
         val script = view(project).select("script").map { it.data() }.first { ".comment-body:contains(" in it }
-        // 타임리프가 `/*[[ ]]*/ ""` 뒤의 `+ "')"`를 지우면 선택자가 깨진다.
-        assertEquals("""        var viewerName = "User exists not";""", script.lines().first { "var viewerName" in it })
-        assertTrue(script.contains("""$(".comment-body:contains('" + viewerName + "')")"""))
+        // v1.6 `$(".comment-body:contains('@getPureNameOnly')")`와 같이 이름을 그 자리에 찍는다
+        assertTrue(script.contains("""$(".comment-body:contains('User exists not')")"""), script.lines().first { "comment-body:contains" in it })
+        assertTrue(!script.contains("viewerName"))
     }
 
     @Test

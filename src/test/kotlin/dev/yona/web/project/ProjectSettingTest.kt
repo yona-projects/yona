@@ -432,7 +432,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         val project = newProject()
         val result = save(project, login(manager(project)), "name" to ".git", *allMenus)
         assertEquals(400, result.response.status)
-        assertTrue(result.response.contentAsString.contains("You can&#39;t use reserved names.") || result.response.contentAsString.contains("You can't use reserved names."))
+        assertTrue(result.response.contentAsString.contains("You can&#x27;t use reserved names.") || result.response.contentAsString.contains("You can't use reserved names."))
     }
 
     @Test

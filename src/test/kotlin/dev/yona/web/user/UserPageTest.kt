@@ -211,6 +211,16 @@ class UserPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `초안 이슈는 열린 탭에도 닫힌 탭에도 보이지 않는다 (v1_6은 OPEN과 CLOSED만 거른다)`() {
+        val u = newUser(); val p = project(u, "p")
+        issue(p, "열린 이슈", u); issue(p, "초안 이슈", u, state = State.DRAFT)
+        val doc = page("/${u.loginId}")
+        assertEquals(listOf("열린 이슈"), titles(doc, "#openIssues"))
+        assertEquals(emptyList(), titles(doc, "#closedIssues"))
+        assertEquals(listOf("1", "0"), doc.select("#issues > ul.nav-tabs .num-badge").map { it.text() })
+    }
+
+    @Test
     fun `daysAgo를 늘리면 오래된 이슈도 보인다`() {
         val u = newUser(); val p = project(u, "p")
         issue(p, "오래된 이슈", u, updated = daysAgo(20))

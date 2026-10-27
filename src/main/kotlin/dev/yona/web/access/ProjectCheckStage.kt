@@ -17,7 +17,10 @@ import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import org.springframework.web.servlet.ModelAndView
+import org.springframework.web.servlet.support.RequestContextUtils
 
 /**
  * 프로젝트 화면의 검사 애너테이션 한 개를 실행한다. v1.6의 `actions` 패키지(`AbstractProjectCheckAction`과
@@ -128,18 +131,26 @@ class ProjectCheckStage(
         if (currentUserProvider.get().isAnonymous) {
             loginRequired(request, withFailedFlash)
         } else {
-            ErrorViews.forbidden("error.forbidden.or.notfound").also { if (withFailedFlash) addFailedFlash(it) }
+            ErrorViews.forbidden("error.forbidden.or.notfound").also { if (withFailedFlash) addFailedFlash(it, request) }
         }
 
-    private fun addFailedFlash(view: ModelAndView) {
+    /**
+     * `failed` 안내를 같은 응답에 보인다. v1.6는 앞 요청이 남긴 flash 위에 `failed`를 더해 응답에 다시 심으므로,
+     * 앞의 안내가 함께 보이고 다음 응답에도 남는다.
+     */
+    private fun addFailedFlash(view: ModelAndView, request: HttpServletRequest) {
         val message = messages.getMessage("error.auth.unauthorized.waringMessage", null, LocaleContextHolder.getLocale())
-        view.addObject("flashMessages", flashTranslator.translate(mapOf("failed" to message)))
+        val response = (RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes)?.response
+        if (response != null) RedirectSupport.saveFlash(request, response, mapOf("failed" to message))
+        // 저장한 값(앞 요청의 안내를 이어 받고 순서를 지킨다)을 그대로 이 응답에 보인다
+        val shown = if (response != null) RequestContextUtils.getOutputFlashMap(request) else mapOf("failed" to message)
+        view.addObject("flashMessages", flashTranslator.translate(shown))
     }
 
     /** 로그인 화면을 403으로 보여 준다. 안내(`failed`)는 같은 응답에서 바로 보인다. */
     private fun loginRequired(request: HttpServletRequest, withFailedFlash: Boolean = true): ModelAndView {
         val view = ErrorViews.loginRequired(request.requestURI)
-        if (withFailedFlash) addFailedFlash(view)
+        if (withFailedFlash) addFailedFlash(view, request)
         return view
     }
 

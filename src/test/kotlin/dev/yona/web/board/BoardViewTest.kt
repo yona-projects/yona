@@ -148,8 +148,9 @@ class BoardViewTest : AbstractIntegrationTest() {
         val project = newProject(); val author = join(newUser(), project)
         post(project, author)
         val script = doc(project, session = login(author)).select("script").map { it.data() }.first { ".comment-body:contains(" in it }
-        assertTrue(script.contains("var viewerName = \"${author.name}\""), script.lines().first { "viewerName" in it })
-        assertTrue(script.contains("""$(".comment-body:contains('" + viewerName + "')")"""))
+        // v1.6 `$(".comment-body:contains('@getPureNameOnly')")`와 같이 이름을 그 자리에 찍는다
+        assertTrue(script.contains("""$(".comment-body:contains('${author.name}')")"""), script.lines().first { "comment-body:contains" in it })
+        assertTrue(!script.contains("viewerName"))
     }
 
     @Test

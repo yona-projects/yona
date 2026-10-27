@@ -85,7 +85,7 @@ class CommitHistoryController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val page = if (pageText.isNullOrEmpty()) 0 else pageText.toIntOrNull()?.takeIf { it >= 0 } ?: return ErrorViews.badRequest("error.badrequest", views.of(project), "CODE")
         // 빈 저장소와 풀 수 없는 리비전은 모두 null이고 error.notfound 404이다 (v1.6 `CodeHistoryApp`: nohead 화면에는 도달하지 않는다)
-        val commits = history.history(project, page, PAGE_SIZE, branch, path) ?: return ErrorViews.notFound("error.notfound", views.of(project), null)
+        val commits = history.history(project, page, PAGE_SIZE, branch, path) ?: return ErrorViews.notFound("error.notfound")
 
         val base = siteUrls.path("/$owner/$name")
         val branchSegment = branch?.let { UrlPaths.routeSegment(it) }

@@ -25,7 +25,8 @@ class JsMessagesTest : AbstractIntegrationTest() {
     private fun body(acceptLanguage: String? = null): String {
         val request = get("/messages.js")
         acceptLanguage?.let { request.header("Accept-Language", it) }
-        return mockMvc.perform(request).andExpect(status().isOk).andReturn().response.contentAsString
+        // v1.6처럼 내용 형식에 문자 집합이 없어 본문을 UTF-8로 직접 읽는다
+        return String(mockMvc.perform(request).andExpect(status().isOk).andReturn().response.contentAsByteArray, Charsets.UTF_8)
     }
 
     @Test
@@ -63,6 +64,25 @@ class JsMessagesTest : AbstractIntegrationTest() {
         // 원본: "Wow, that''s huge!<br>Please submit file smaller than {0}." (작은따옴표 두 개 -> 하나)
         assertTrue(script.contains("Wow, that's huge!<br>Please submit file smaller than {0}."), "작은따옴표 해석 실패")
         assertTrue(!script.contains("''"), "작은따옴표 두 개가 남아 있다")
+    }
+
+    @Test
+    fun `play-jsmessages와 같은 모양의 함수이다 (배열 키와 첫 자리표시자만 치환)`() {
+        val script = body()
+        assertTrue(script.startsWith("Messages=(function(u){function f(k){\nvar m;\nif(typeof k==='object'){"), script.take(120))
+        assertTrue(script.contains("m=m.replace('{'+(i-1)+'}',arguments[i])"), "치환 방식")
+        assertTrue(script.endsWith("};\nreturn f})()"), script.takeLast(40))
+    }
+
+    @Test
+    fun `Play 기본 검증 메시지도 담는다`() {
+        assertTrue(body().contains("\"constraint.required\":"), "constraint.required 누락")
+        assertTrue(body().contains("\"error.invalid\":"), "error.invalid 누락")
+    }
+
+    @Test
+    fun `메시지 값의 끝 공백은 지운다 (v1_6 Play 파서)`() {
+        assertTrue(body().contains("\"post.comment.empty\":\"Comment should not be empty.\""), "끝 공백이 남았다")
     }
 
     @Test

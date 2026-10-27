@@ -309,8 +309,8 @@
             "issueId"  : /*[[${#strings.toString(issue.id)}]]*/ "",
             "nextState": /*[[${nextState}]]*/ "",
             "urls"     : {
-                "watch"     : /*[[${'/watch?resource.type=issue_post&resource.id=' + issue.id}]]*/ "",
-                "unwatch"   : /*[[${'/unwatch?resource.type=issue_post&resource.id=' + issue.id}]]*/ "",
+                "watch"     : "[(${'/watch?resource.type=issue_post&amp;resource.id=' + issue.id})]",
+                "unwatch"   : "[(${'/unwatch?resource.type=issue_post&amp;resource.id=' + issue.id})]",
                 "timeline"  : /*[[${base + '/issue/' + issue.number + '/timeline'}]]*/ "",
                 "nextState" : /*[[${base + '/issue/' + issue.number + '/nextstate'}]]*/ "",
                 "massUpdate": /*[[${base + '/issues'}]]*/ ""
@@ -335,10 +335,8 @@
         });
 
         // detect comment which contains mention at me
-        // 인라인 표현식 바로 뒤에 덧셈이 이어지면 타임리프가 그 뒤까지 지우므로 값은 변수로 먼저 받는다.
-        var viewerName = /*[[${currentUser.pureName}]]*/ "";
-        $(".comment-body:contains('" + viewerName + "')").closest(".comment").addClass("mentioned");
-        $(".user-link:contains('" + viewerName + "')").addClass("me");
+        $(".comment-body:contains('[(${helper.escape(currentUser.pureName)})]')").closest(".comment").addClass("mentioned");
+        $(".user-link:contains('[(${helper.escape(currentUser.pureName)})]')").addClass("me");
     });
 
     $(function () {
@@ -403,10 +401,10 @@
             var clipboard = new ClipboardJS('#copyEmailBtn');
 
             clipboard.on('success', function(e) {
-                $yobi.alert(/*[[#{button.copy.email.success.message}]]*/ "");
+                $yobi.alert('[(${helper.escapedMessage('button.copy.email.success.message')})]');
             });
         } else {
-            $yobi.notify(/*[[#{site.features.error.clipboard}]]*/ "", 1500);
+            $yobi.notify('[(${helper.escapedMessage('site.features.error.clipboard')})]', 1500);
         }
 
         // timeline label text color adjusting

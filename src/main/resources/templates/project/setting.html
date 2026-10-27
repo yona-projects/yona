@@ -84,7 +84,7 @@
                 </div>
 
                 <th:block th:if="${git}">
-                <div class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel" th:style="${projectView.menuSetting.code != true} ? 'display:none;'">
+                <div class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
                     <div class="cu-label vmiddle" th:text="#{project.reviewer.count}"></div>
                     <div class="cu-desc">
                         <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="show" type="radio" class="radio-btn" id="reviewerCountEnable" value="true" th:checked="${project.isUsingReviewerCount == true}">
@@ -107,7 +107,7 @@
                     </div>
                 </div>
 
-                <div class="box-wrap middle" id="defaultBranceSettingPanel" th:style="${projectView.menuSetting.code != true} ? 'display:none;'">
+                <div class="box-wrap middle" id="defaultBranceSettingPanel" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
                     <div class="cu-label vmiddle" th:text="#{code.branches.defaultBranch}"></div>
                     <div class="cu-desc">
                         <select id="project-default-branch" name="defaultBranch"

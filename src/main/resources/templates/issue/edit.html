@@ -180,19 +180,19 @@
         });
 
         tippy('#button-clear-temporary', {
-            content: /*[[#{button.clear.temporary.description}]]*/ "",
+            content: '[(${helper.escapedMessage('button.clear.temporary.description')})]',
             placement: 'top-start',
             maxWidth: 'none',
         });
 
         tippy('#button-draft-publish', {
-            content: /*[[#{button.draft.publish.description}]]*/ "",
+            content: '[(${helper.escapedMessage('button.draft.publish.description')})]',
             placement: 'top-start',
             maxWidth: 'none',
         });
 
         tippy('#draft-save-btn', {
-            content: /*[[#{button.draft.save.description}]]*/ "",
+            content: '[(${helper.escapedMessage('button.draft.save.description')})]',
             placement: 'top',
             maxWidth: 'none',
         });
@@ -209,7 +209,7 @@
 
         $('#button-draft-publish').on('click', function(event){
             event.preventDefault();
-            if (!confirm(/*[[#{button.draft.publish.description}]]*/ "")) return false;
+            if (!confirm('[(${helper.escapedMessage('button.draft.publish.description')})]')) return false;
 
             var $this = $(this);
             $this.prop('disabled', true);
