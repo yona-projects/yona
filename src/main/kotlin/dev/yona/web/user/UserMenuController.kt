@@ -1,5 +1,6 @@
 package dev.yona.web.user
 
+import dev.yona.web.access.AnonymousCheck
 import dev.yona.domain.user.UserSettingRepository
 import dev.yona.security.CurrentUserProvider
 import jakarta.servlet.http.HttpServletRequest
@@ -29,6 +30,7 @@ class UserMenuController(
         ModelAndView("index/usermenu-tab-content-list").addObject("menu", assembler.assemble(currentUserProvider.get().user))
 
     @GetMapping("/user/sidebar")
+    @AnonymousCheck
     @Transactional(readOnly = true)
     fun sidebar(request: HttpServletRequest): ModelAndView {
         val viewer = currentUserProvider.get().user

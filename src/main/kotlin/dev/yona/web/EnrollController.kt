@@ -44,8 +44,9 @@ class EnrollController(
     // --- 프로젝트 ---
 
     @PostMapping("/{user}/{project}/enroll")
-    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    // v1.6 EnrollProjectApp: 클래스의 @AnonymousCheck(requiresLogin)가 메서드의 @With(DefaultProjectCheckAction) 안쪽이다. 같은 순서로 맞춘다
     @DefaultProjectCheck
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
     fun enrollProject(@PathVariable("user") ownerId: String, @PathVariable("project") projectName: String): Any {
         val project = projectService.findByOwnerAndProjectName(ownerId, projectName) ?: return ErrorViews.notFound()
@@ -62,8 +63,9 @@ class EnrollController(
     }
 
     @PostMapping("/{user}/{project}/cancel/enroll")
-    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    // v1.6 EnrollProjectApp: 클래스의 @AnonymousCheck(requiresLogin)가 메서드의 @With(DefaultProjectCheckAction) 안쪽이다. 같은 순서로 맞춘다
     @DefaultProjectCheck
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
     fun cancelProjectEnroll(@PathVariable("user") ownerId: String, @PathVariable("project") projectName: String): Any {
         val project = projectService.findByOwnerAndProjectName(ownerId, projectName) ?: return ErrorViews.notFound()

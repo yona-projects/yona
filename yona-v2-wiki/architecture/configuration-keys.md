@@ -47,4 +47,4 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 
 아직 옮기지 않은 v1.6 키는 해당 기능을 이식할 때 이 표에 추가한다.
 
-`application.langs`는 설정이 아니라 `LocaleConfig.SUPPORTED_LOCALES`(`en-US, ko-KR, ja-JP, ru-RU, uz-UZ`)에 고정했다. 다른 언어를 지원하려면 메시지 파일과 이 목록을 함께 늘려야 하기 때문이다.
+`application.langs`는 설정 `yona.langs`(쉼표 목록, 기본 `en-US, ko-KR, ja-JP, ru-RU, uz-UZ`)로 읽는다. `Accept-Language`에 가장 알맞은 언어를 고르고 맞는 것이 없으면 첫 번째를 쓰며, 요청 밖의 문구(알림 등)도 첫 번째 언어이다. 처음에는 이 목록을 코드에 고정했으나 v1.6 시험(`PasswordResetAppTest`)이 목록을 `ko-KR` 하나로 줄여 한국어 응답을 기대하는 운영 방식이 있어 2026-10-27에 설정으로 되돌렸다(A-134).

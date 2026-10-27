@@ -85,6 +85,12 @@ updated: 2026-10-26
 | H-27 | API 경로의 `PathVariable` 해석 | 없는 키는 `null`이고 API 접두를 `startsWith`로 판정하며 빈 구간을 쪼갠 그대로 쓴다(`utils/PathVariable.java:16-55`) | 없는 키는 빈 문자열이고 접두를 `contains`로 판정하며 빈 구간을 모두 버린다(`web/access/ProjectCheckStage.kt:171-178`) | `owners`, `projects` 쌍이 없거나 이중 슬래시가 있는 직접 만든 URL에서만 달라진다 |
 | H-28 | 프로젝트 가져오기(`/_import`)의 조직 소유자 | 조직 관리자가 아니어도 이름 중복이나 URL 비어 있음이 겹치면 마지막 오류인 400 폼이 남는다(`ImportApp.java:52-130`) | 조직 관리자가 아니면 403(`domain/project/ProjectImportService.kt:82-83`, `web/project/ImportController.kt:68`) | 조직 관리자 목록에만 조직이 보여 직접 만든 요청에서만 닿는다 |
 | H-29 | 풀 리퀘스트 이벤트 목록에서 사용자 행이 없는 `loginId` | `User.findByLoginId`가 `NullUser`(loginId `""`)를 돌려줘 문자열 분기를 타고 "존재하지 않는 사용자" 이름으로 링크된다(`partial_pull_request_event.scala.html:36-46`, `User.java:283-291`) | 사용자 행이 없으면 리터럴 `Anonymous`(`web/pullrequest/PullRequestPageAssembler.kt:240-241`) | 탈퇴는 `DELETED` 상태 변경이라 사용자 행이 지워지는 정상 경로가 없어 DB를 직접 고친 데이터에서만 닿는다 |
+| H-30 | 포크 만들기 폼에 `projectScope`가 없는 요청 | v1.6 `PullRequestApp.fork`는 303으로 되돌린다 | v2 `ForkController.bind`가 500이다. 화면의 폼은 PUBLIC을 기본으로 골라 항상 값을 보낸다 |
+| H-31 | 커밋 댓글 수정 요청(`POST .../comment/:commentId`, `.../comments/:commentId`) | v1.6 `updateComment`는 `newComment`를 일반 메서드로 불러 그 메서드의 `@IsAllowed`와 프로젝트 검사가 실행되지 않고 클래스 로그인 검사만 걸린다 | v2는 한 핸들러로 합쳐 두 경로에도 권한 검사가 붙는다. 이 POST를 쓰는 화면은 없다 |
+| H-32 | 읽을 수 없는 프로젝트의 멘션 후보 목록 `GET .../mentionList` | v1.6은 `@AnonymousCheck`만 있어 후보를 돌려준다 | v2는 `@IsAllowed(READ)`가 더 붙어 403이다(v2 쪽 보강이며 유지) |
+| H-33 | 비공개 프로젝트 글의 구독자 목록 `GET .../posts/:number/watchers` | v1.6은 권한 검사가 없어 200이다 | v2는 `@IsAllowed(READ)`가 더 붙어 403이다(v2 쪽 보강이며 유지) |
+| H-34 | 프로젝트 구성원 추가 `POST .../members`의 검사 순서 | `@DefaultProjectCheck` 다음 `@IsAllowed(UPDATE)` | 반대 순서이나 둘 다 같은 프로젝트 읽기 단계를 먼저 거쳐 응답이 같다 |
+| H-35 | 권한 검색 서비스를 읽기 권한 없는 사용자로 직접 호출 | v1.6 모델은 작성자 조건만 붙여 0건 또는 자기 글만 돌려준다 | v2 서비스는 권한 검사를 하지 않고 라우트의 `@IsAllowed(READ)`가 막는다. 요청으로는 어느 쪽도 이 분기에 닿지 않는다 |
 
 ## 재현하지 않고 기록만 하는 실패 경로
 

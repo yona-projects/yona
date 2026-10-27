@@ -63,7 +63,6 @@ import java.util.Locale
  * `GlobalApi.hello`(`app/controllers/api/`)에 해당한다.
  */
 @Controller
-@AnonymousCheck
 @ResponseBody
 class ExternalProjectApiController(
     private val projectService: ProjectService,

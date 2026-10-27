@@ -34,8 +34,9 @@ import java.util.Date
  * 프로젝트 목록의 `pageNum`은 0부터이고 게시글, 이슈 목록은 1부터이다(v1.6의 어긋남을 그대로 둔다, R-53).
  */
 @Controller
-@AnonymousCheck
+// v1.6 SiteApp: @With(SiteManagerAuthAction) 다음 @AnonymousCheck 순서라 익명은 관리자 검사의 403을 먼저 받는다
 @SiteManagerOnly
+@AnonymousCheck
 class SiteContentController(
     private val service: SiteContentService,
     private val projects: ProjectRepository,

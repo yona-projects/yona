@@ -42,12 +42,12 @@ class Semver private constructor(
         private val PATTERN = Regex("""^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$""")
 
         /**
-         * 태그나 버전 문자열을 semver 모양으로 바꾼다 (v1.6 `Config.semverize`). 앞의 `v`를 떼고, `.<숫자가 아닌 글자>`는 `-`로 바꾸며,
+         * 태그나 버전 문자열을 semver 모양으로 바꾼다 (v1.6 `Config.semverize`). 앞의 `v`를 떼고, `.<숫자가 아닌 글자의 연속>`은 통째로 `-`로 바꾸며,
          * `숫자.숫자`로 끝나거나 그 뒤가 `-`이면 `.0`을 끼운다(`0.5` -> `0.5.0`, `0.4.0.pre` -> `0.4.0-pre`).
          */
         fun semverize(text: String): String {
             var version = text.removePrefix("v")
-            version = version.replace(Regex("""\.([^0-9])"""), "-$1")
+            version = version.replace(Regex("""\.([^0-9]+)"""), "-$1")
             return version.replace(Regex("""^(\d+\.\d+)($|-)"""), "$1.0$2")
         }
 

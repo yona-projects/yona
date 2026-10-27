@@ -16,8 +16,9 @@ import org.springframework.web.servlet.ModelAndView
  * 사이트 관리자만 쓴다.
  */
 @Controller
-@AnonymousCheck
+// v1.6 SiteApp: @With(SiteManagerAuthAction) 다음 @AnonymousCheck 순서라 익명은 관리자 검사의 403을 먼저 받는다
 @SiteManagerOnly
+@AnonymousCheck
 class SiteMaintenanceController(
     private val updates: UpdateCheckService,
     private val diagnostics: DiagnosticService,

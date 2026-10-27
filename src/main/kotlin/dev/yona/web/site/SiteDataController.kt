@@ -39,8 +39,9 @@ import java.util.Date
  * 데이터 화면은 사이드바에 링크가 없고 주소로만 들어간다(v1.6도 같다). 올리기는 기존 데이터를 교체하므로 [DataService]의 설명을 본다.
  */
 @Controller
-@AnonymousCheck
+// v1.6 SiteApp: @With(SiteManagerAuthAction) 다음 @AnonymousCheck 순서라 익명은 관리자 검사의 403을 먼저 받는다
 @SiteManagerOnly
+@AnonymousCheck
 class SiteDataController(
     private val data: DataService,
     private val users: UserRepository,

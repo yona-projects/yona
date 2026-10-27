@@ -35,9 +35,13 @@ import org.springframework.web.servlet.ModelAndView
  * 풀 리퀘스트의 받아들이기, 닫기, 다시 열기, 수정, 보내는 브랜치 삭제와 복원이다. v1.6 `PullRequestApp.accept`, `close`, `open`, `editPullRequestForm`,
  * `editPullRequest`, `deleteFromBranch`, `restoreFromBranch`(`app/controllers/PullRequestApp.java:384-560`)에 해당한다. 모두 로그인해야 하고 풀 리퀘스트에 대한
  * 권한(받아들이기 `ACCEPT`, 닫기 `CLOSE`, 다시 열기 `REOPEN`, 수정과 브랜치 삭제 `UPDATE`)이 필요하다. 끝나면 풀 리퀘스트 화면으로 303 이동한다.
+ *
+ * 로그인 검사(`@AnonymousCheck(requiresLogin = true)`)는 v1.6처럼 메서드마다 `@IsAllowed` 앞에 둔다. 클래스에만 달면 접근 검사가 안쪽에서
+ * 실행되어 로그인하지 않은 요청이 로그인 폼(303) 대신 권한 검사의 403을 먼저 받는다([AccessChainInterceptor]의 실행 순서). 클래스의
+ * `@AnonymousCheck`는 v1.6 `PullRequestApp`과 같은 기본값이다.
  */
 @Controller
-@AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+@AnonymousCheck
 class PullRequestActionController(
     private val projectService: ProjectService,
     private val pullRequestService: PullRequestService,
@@ -50,6 +54,7 @@ class PullRequestActionController(
 ) {
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/accept")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     // 트랜잭션을 걸지 않는다: 병합 중 예외가 나도 먼저 저장한 병합 중 표시가 남아야 v1.6과 같다 (R-76)
     @IsOnlyGitAvailable
@@ -62,6 +67,7 @@ class PullRequestActionController(
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/close")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.CLOSE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
     @IsOnlyGitAvailable
@@ -72,6 +78,7 @@ class PullRequestActionController(
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/open")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.REOPEN, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
     @IsOnlyGitAvailable
@@ -82,6 +89,7 @@ class PullRequestActionController(
     }
 
     @GetMapping("/{user}/{project}/pullRequest/{id}/editform")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)
     @IsOnlyGitAvailable
@@ -108,6 +116,7 @@ class PullRequestActionController(
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/edit")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
     @IsOnlyGitAvailable
@@ -139,6 +148,7 @@ class PullRequestActionController(
     }
 
     @DeleteMapping("/{user}/{project}/pullRequest/{id}/deletefrombranch")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
     @IsOnlyGitAvailable
@@ -149,6 +159,7 @@ class PullRequestActionController(
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/restorefrombranch")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     @Transactional
     @IsOnlyGitAvailable

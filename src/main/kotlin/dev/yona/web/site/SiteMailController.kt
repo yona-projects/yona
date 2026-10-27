@@ -23,8 +23,9 @@ import org.springframework.web.servlet.ModelAndView
  * 사용자의 메일 프로그램(`mailto:`)을 연다.
  */
 @Controller
-@AnonymousCheck
+// v1.6 SiteApp: @With(SiteManagerAuthAction) 다음 @AnonymousCheck 순서라 익명은 관리자 검사의 403을 먼저 받는다
 @SiteManagerOnly
+@AnonymousCheck
 class SiteMailController(private val service: SiteMailService) {
 
     @GetMapping("/sites/mail")

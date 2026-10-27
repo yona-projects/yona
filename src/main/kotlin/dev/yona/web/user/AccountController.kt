@@ -43,7 +43,6 @@ import org.springframework.web.servlet.ModelAndView
  * 알림 탭(`notifications`)은 알림 서브시스템을 옮길 때 만든다. 그때까지 그 탭 주소는 오류이다.
  */
 @Controller
-@AnonymousCheck
 class AccountController(
     private val account: AccountService,
     private val users: UserRepository,

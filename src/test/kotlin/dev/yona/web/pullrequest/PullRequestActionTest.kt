@@ -162,6 +162,17 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `로그인하지 않은 요청은 권한 검사보다 먼저 로그인 폼으로 303 이동한다 (v1_6 메서드 수준 AnonymousCheck가 IsAllowed 앞이다)`() {
+        val s = setup(); addChange(s); val pr = open(s)
+        val loginForm = { path: String -> "/users/loginform?redirectUrl=${url(s, pr, path)}" }
+        listOf("/accept", "/close", "/open", "/edit", "/restorefrombranch").forEach { tail ->
+            mockMvc.perform(post(url(s, pr, tail))).andExpect(status().isSeeOther).andExpect(redirectedUrl(loginForm(tail)))
+        }
+        mockMvc.perform(get(url(s, pr, "/editform"))).andExpect(status().isSeeOther).andExpect(redirectedUrl(loginForm("/editform")))
+        mockMvc.perform(delete(url(s, pr, "/deletefrombranch"))).andExpect(status().isSeeOther).andExpect(redirectedUrl(loginForm("/deletefrombranch")))
+    }
+
+    @Test
     fun `받아들일 권한이 없으면 403이다`() {
         val s = setup(); addChange(s); val pr = open(s)
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(user()))).andExpect(status().isForbidden)

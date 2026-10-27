@@ -34,7 +34,6 @@ import java.util.Base64
  * 토큰 인증은 `Authorization: token <값>` 헤더이다.
  */
 @Controller
-@AnonymousCheck
 @ResponseBody
 class ExternalUserApiController(
     private val requests: ApiRequests,

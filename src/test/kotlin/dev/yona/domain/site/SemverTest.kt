@@ -18,6 +18,13 @@ class SemverTest {
     }
 
     @Test
+    fun `점 뒤에 글자가 이어지는 부분은 한 덩어리로 하이픈 뒤에 둔다 (v1_6 정규식은 숫자가 아닌 문자의 연속을 잡는다)`() {
+        // v1.6 `\.([^\d]+)` -> `-$1`: ".rc.beta" 전체가 한 번에 "-rc.beta"가 된다
+        assertEquals("1.0.0-rc.beta", Semver.semverize("1.0.0.rc.beta"))
+        assertEquals("0.4.0-pre.release", Semver.semverize("v0.4.0.pre.release"))
+    }
+
+    @Test
     fun `버전을 크기 순으로 비교한다`() {
         assertTrue(Semver.parse("1.16.1") > Semver.parse("1.16.0"))
         assertTrue(Semver.parse("1.17.0") > Semver.parse("1.9.9"))

@@ -242,6 +242,13 @@ class PullRequestViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `로그인하지 않은 리뷰와 리뷰 취소는 권한 검사가 먼저라 403이다 (v1_6 ReviewApp은 클래스의 AnonymousCheck가 IsAllowed 안쪽이다)`() {
+        val s = withCommit(setup(usingReviewers = true)); val pr = open(s)
+        mockMvc.perform(post(url(s, pr, "/review"))).andExpect(status().isForbidden)
+        mockMvc.perform(post(url(s, pr, "/unreview"))).andExpect(status().isForbidden)
+    }
+
+    @Test
     fun `받아들일 권한이 없으면 리뷰할 수 없다`() {
         val s = withCommit(setup(usingReviewers = true)); val pr = open(s)
         mockMvc.perform(post(url(s, pr, "/review")).session(login(user()))).andExpect(status().isForbidden)

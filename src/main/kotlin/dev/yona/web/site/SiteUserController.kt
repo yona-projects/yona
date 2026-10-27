@@ -31,8 +31,9 @@ import java.net.URLEncoder
  * 모든 요청은 사이트 관리자만 쓴다([SiteManagerOnly]). 쪽 번호는 1부터이다.
  */
 @Controller
-@AnonymousCheck
+// v1.6 SiteApp: @With(SiteManagerAuthAction) 다음 @AnonymousCheck 순서라 익명은 관리자 검사의 403을 먼저 받는다
 @SiteManagerOnly
+@AnonymousCheck
 class SiteUserController(
     private val service: SiteUserService,
     private val users: UserRepository,

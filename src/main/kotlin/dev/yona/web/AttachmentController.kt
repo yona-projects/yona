@@ -1,5 +1,6 @@
 package dev.yona.web
 
+import dev.yona.web.access.AnonymousCheck
 import dev.yona.access.AccessControl
 import dev.yona.access.ResourceLookup
 import dev.yona.domain.enumeration.Operation
@@ -41,6 +42,7 @@ import tools.jackson.databind.json.JsonMapper
  * 목록의 첨부는 모두 읽을 수 있어야 하고, 지우려면 `DELETE` 권한이 있어야 한다.
  */
 @Controller
+@AnonymousCheck
 class AttachmentController(
     private val attachmentRepository: AttachmentRepository,
     private val attachments: AttachmentService,

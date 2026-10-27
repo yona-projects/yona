@@ -112,6 +112,8 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-105 | 이슈 참조 링크의 치환 문자열 | `appendReplacement`가 링크 HTML의 `$`, `\`를 치환 규칙으로 해석해 제목에 이 문자가 있으면 예외 | v2는 `quoteReplacement`로 오류 없이 처리 (A-125) | `AutoLinkRenderer.java:215` |
 | R-106 | 세션 사용자의 권한 판정 기억 | 사이트 관리자, 프로젝트 매니저, 조직 역할 판정이 로그인 동안 유지되어 승격과 해임이 반영되지 않는다. 항목이 최대 2000명을 넘어 밀려나면 세션이 무효가 된다 | v2는 같게 따른다 (A-127) | `User.java:564-577`, `UserApp.java:640-657`, `CacheStore.java:30` |
 | R-107 | 잠긴 계정의 로그인 유지 쿠키 | 잠기거나 지워진 계정도 `yobi.token` 쿠키가 유효하면 로그인 상태이다 | v2는 같게 따른다 (A-128) | `UserApp.java:658-690`, `Global.java:266` |
+| R-108 | 이슈 수정(`editIssue`)의 입력 처리 순서 | 권한 검사 전에 `assigneeLoginId` 폼 값의 첫 항목을 읽어 값이 없는 요청은 NPE(500)이다(`IssueApp.java`) | v2는 오류 없이 권한에 따라 303 또는 403을 돌려준다 | v1.6 시험 6건(`IssueAppTest.editIssue*`)이 이 입력을 쓴다 |
+| R-109 | `MarkdownApp.render`의 본문 읽기 | JSON 본문을 읽는데 v1.6 시험은 폼 본문을 보내 NPE이다 | v2는 두 형태 모두 오류 없이 처리한다 | `MarkdownAppTest` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

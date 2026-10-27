@@ -155,8 +155,9 @@ class PullRequestViewController(
     ): Any = changesView(owner, name, id, commitId, request)
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/review")
-    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    // v1.6 ReviewApp: 클래스의 @AnonymousCheck(requiresLogin)가 메서드의 @IsAllowed 안쪽이라 권한 검사가 먼저다. 같은 순서로 맞춘다
     @IsAllowed(Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
     fun review(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (_, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
@@ -165,8 +166,9 @@ class PullRequestViewController(
     }
 
     @PostMapping("/{user}/{project}/pullRequest/{id}/unreview")
-    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    // v1.6 ReviewApp: 클래스의 @AnonymousCheck(requiresLogin)가 메서드의 @IsAllowed 안쪽이라 권한 검사가 먼저다. 같은 순서로 맞춘다
     @IsAllowed(Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
     fun unreview(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (_, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()

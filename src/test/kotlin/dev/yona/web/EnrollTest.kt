@@ -144,6 +144,12 @@ class EnrollTest : AbstractIntegrationTest() {
         post("/nobody/nothing/enroll", login(newUser())).andExpect(status().is4xxClientError)
     }
 
+    @Test
+    fun `로그인하지 않아도 없는 프로젝트의 신청과 취소는 403이다 (v1_6 DefaultProjectCheck가 AnonymousCheck보다 바깥이다)`() {
+        post("/nobody/nothing/enroll", null).andExpect(status().isForbidden)
+        post("/nobody/nothing/cancel/enroll", null).andExpect(status().isForbidden)
+    }
+
     // --- 조직 ---
 
     @Test

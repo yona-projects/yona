@@ -84,6 +84,8 @@ data class YonaProperties(
     val parsersTextMaxLength: Long = 102_400L,
     /** 데이터 가져오기에서 한 번에 넣는 행 수이다 (`data.batch.size`, v1.6 `DefaultExchanger`의 숨은 설정). */
     val dataBatchSize: Int = 100,
+    /** 지원하는 화면 언어이다. `Accept-Language`에 가장 알맞은 것을 고르고 맞는 것이 없으면 첫 번째를 쓴다 (`application.langs`). */
+    val langs: List<String> = listOf("en-US", "ko-KR", "ja-JP", "ru-RU", "uz-UZ"),
     val issueEventDraftTime: Long = 30_000L,
     val codeBrowserMaxFileSize: Long = 1024L * 1024,
     val notificationMailEnabled: Boolean = true,
