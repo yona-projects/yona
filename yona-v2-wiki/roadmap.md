@@ -95,6 +95,24 @@ updated: 2026-10-22
 | 9d | 동등성 점검: 템플릿과 JS 소스 대조 | 완료 | (1) v1.6 템플릿 242개의 CSS 클래스와 id가 v2 템플릿, 코드, JS에 나오는지 대조해 프로젝트 홈의 이력, 대시보드 탭, 조직용 403 화면, 로그인 화면의 이메일 인증 안내가 빠진 것을 찾아 이식했다. 호출이 없는 v1.6 죽은 템플릿 11개(`debug`, `uservoice`, `partial_forklist`, `experimental`, `allProjectList`, `allOrganizationList`(`_partial` 포함), `partial_pagination`, `partial_paginationForUserList`, `partial_postings`, `user/partial_milestones`)는 이식하지 않는다. (2) `public` 아래 723개 파일은 빌드 도구 `compiler.jar` 하나를 빼고 v1.6과 해시가 같고, LESS 소스(`app/assets`) 20개도 같다 |
 | 9e | 동등성 점검: 컨트롤러 액션 대조와 보강 테스트 | 완료 | 라우트가 있는 v1.6 액션 290개의 요청 매개변수 이름 58개가 모두 v2에 있고, 이름이 v2에 언급되지 않은 22개는 철자가 다른 이름이거나 이미 라우트 대조로 확인된 것이었다. 포괄 라우트(`removeTrailer`)가 라우트 대조의 정규화에 가려졌던 것을 찾아 구현했다([web/error-pages.md](web/error-pages.md)) |
 
+## 추가 개발 항목 (v1.6에 없는 기능, D-28)
+
+v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`com.github.yonaprojects.yona`)에 구현이 있으므로 설계와 시험을 참고하되, 패키지(`dev.yona`)와 v1.6 계약은 `next2` 기준을 지킨다. 착수 전에 순서와 범위를 선생님께 묻는다.
+
+| # | 항목 | `next`의 참고 위치 | 상태 | 비고 |
+|---|---|---|---|---|
+| X-1 | OAuth2 Authorization Server(동적 클라이언트 등록 포함) | `domain/oauth2server`, `config/oauth2server` | 대기 | X-6 MCP 서버의 인증 기반 |
+| X-2 | 2단계 인증(TOTP, WebAuthn/패스키, 백업 코드, 알려진 기기) | `domain/twofactor` | 대기 | 로그인 흐름이 바뀌므로 v1.6 로그인 계약과 충돌하지 않게 선택 사용으로 둔다 |
+| X-3 | SSH 공개키 등록, SSH 접근, 저장소별 Deploy Key | `domain/sshkey`, `config/ssh` | 대기 | |
+| X-4 | GPG 커밋 서명 검증 | `domain/gpgkey` | 대기 | |
+| X-5 | 개인용 API 토큰(PAT, 범위 지정) | `domain/apitoken` | 대기 | v1.6의 사용자 토큰(`Authorization: token`)과 공존 |
+| X-6 | MCP 서버(OAuth2로 인증한 AI 에이전트의 이슈, 풀 리퀘스트, 위키 접근) | `mcp` | 대기 | X-1, X-5 이후 |
+| X-7 | Mercurial 저장소 | `domain/vcs` | 대기 | 저장소 종류 변경(v1.6 `changeVCS`)과 `vcs` 열 값에 영향 |
+| X-8 | Git LFS | `.well-known`, `git-lfs` 라우트 | 대기 | |
+| X-9 | 감사 로그(보안, 관리 이벤트) | `domain/event` | 대기 | |
+| X-10 | OpenTelemetry(추적, 지표) | `build.gradle.kts`의 opentelemetry 스타터 | 대기 | |
+| X-11 | 풀 리퀘스트 병합 시 `close(s/d)`, `fix(es/ed)`, `resolve(s/d) #번호`로 참조된 이슈 자동 닫기 | `domain/event/PullRequestMergeEventListener` | 대기 | v1.6에는 없다. v1.6의 자동 처리는 시작 때 `REJECTED` 풀 리퀘스트를 `CLOSED`로 바꾸는 것뿐이며 이미 이식했다(`PullRequestStartup`) |
+
 ## 화면 검증 기록
 
 - 2026-10-25, 2d-4b(사용자 페이지, 내 파일): Playwright로 새 v2 화면 3곳(사용자 페이지의 이슈 탭과 프로젝트 탭, 내 파일 목록)을 캡처하고, 가입, 프로젝트 만들기, 구성원 추가, 첨부가 있는 이슈 등록 뒤 이슈 탭의 항목, 프로젝트 탭의 구독과 탈퇴 버튼, 내 파일의 위치 링크를 확인했다. 콘솔 오류는 구성원 추가 폼의 `pattern` 속성 정규식(v1.6 템플릿 그대로) 하나뿐이다.
