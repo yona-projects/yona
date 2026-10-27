@@ -180,9 +180,11 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("첫째", mapOf("b.txt" to "b".toByteArray())), TestCommit("둘째\n상세", mapOf("c.txt" to "c".toByteArray())))
         val base = "/${s.fork.owner}/${s.fork.name}/newPullRequest/mergeResult?fromProjectId=${s.fork.id}&toProjectId=${s.origin.id}&fromBranch=refs/heads/master&toBranch=refs/heads/master"
         val doc = page(base, login(s.owner))
+        assertTrue(doc.selectFirst("#mergeResult")!!.hasAttr("data-pullrequest-title"), "비어 있어도 속성은 남는다 (v1.6)")
         assertEquals("", doc.selectFirst("#mergeResult")!!.attr("data-pullrequest-title"))
         assertEquals("둘째\n첫째", doc.selectFirst("#mergeResult")!!.attr("data-pullrequest-body"))
         val none = page("/${s.fork.owner}/${s.fork.name}/newPullRequest/mergeResult?fromProjectId=${s.origin.id}&toProjectId=${s.origin.id}&fromBranch=refs/heads/master&toBranch=refs/heads/master", login(s.owner))
+        assertTrue(none.selectFirst("#mergeResult")!!.hasAttr("data-pullrequest-body"), "본문 속성도 비어 있어도 남는다")
         assertNotNull(none.selectFirst("#mergeResult h5")); assertNull(none.selectFirst("#mergeResult")!!.attr("data-conflict").takeIf { it.isNotEmpty() })
     }
 

@@ -62,7 +62,8 @@ class ReviewCommentController(
     private val views: ProjectViewFactory,
     private val commitCommentService: dev.yona.domain.comment.CommitCommentService,
     private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
-    private val postAttachments: dev.yona.web.PostAttachments
+    private val postAttachments: dev.yona.web.PostAttachments,
+    private val siteUrls: dev.yona.util.SiteUrls
 ) {
 
     @PostMapping("/{user}/{project}/commit/{commitId}/comments")
@@ -123,7 +124,7 @@ class ReviewCommentController(
     ): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val contents = request.getParameter("contents")
-        if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
+        if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "PROJECT_HOME")  // v1.6 newComment는 메뉴 종류 없이 render(키, project)를 불러 PROJECT_HOME이 활성화된다
         val pullRequest = pullRequests.findById(pullRequestId).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), request.requestURI)
 
         if (!threadBelongs(request, project)) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
@@ -133,7 +134,10 @@ class ReviewCommentController(
         val commitId = UriComponentsBuilder.newInstance().query(request.queryString).build().queryParams.getFirst("commitId")?.takeIf { it.isNotEmpty() }?.let { UriUtils.decode(it, Charsets.UTF_8) }
         val comment = service.commentOnPullRequest(project, pullRequest, commitId, author, contents, threadId(request), range(request))
         val flash = postAttachments.attach(request, author, ResourceType.REVIEW_COMMENT, requireNotNull(comment.id))
-        return RedirectSupport.see(request, response, links.comment(comment), flash)
+        // v1.6 newComment: 쿼리의 commitId가 있을 때만 커밋 하나의 변경 화면(specificChange), 아니면 전체 변경 화면(pullRequestChanges)이다
+        val base = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}/changes"
+        val view = if (commitId != null) "$base/${dev.yona.util.UrlPaths.encode(commitId)}" else base
+        return RedirectSupport.see(request, response, siteUrls.path("$view#comment-${comment.id}"), flash)
     }
 
     @PostMapping("/threads/{id}/open")

@@ -7,7 +7,7 @@
   모델: commitCount, suggestedTitle, suggestedBody, conflict, rows(MergeCommitRow)
 */-->
 <div xmlns:th="http://www.thymeleaf.org" id="mergeResult" class="code-browser-wrap"
-     th:attr="data-commits=${commitCount}, data-pullrequest-title=${suggestedTitle ?: ''}, data-pullrequest-body=${suggestedBody ?: ''}, data-conflict=${commitCount > 0 ? conflict : null}">
+     th:attr="data-commits=${commitCount}, data-conflict=${commitCount > 0 ? conflict : null}" data-pullrequest-title="" data-pullrequest-body="" th:attrappend="data-pullrequest-title=${suggestedTitle}, data-pullrequest-body=${suggestedBody}">
     <div th:if="${commitCount == 0}">
         <h5 th:text="#{pullRequest.diff.noChanges}"></h5>
     </div>

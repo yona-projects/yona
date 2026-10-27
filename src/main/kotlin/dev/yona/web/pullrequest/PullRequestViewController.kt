@@ -68,7 +68,7 @@ class PullRequestViewController(
     private val threadHtml: ThreadHtmlRenderer,
     private val fragments: FragmentRenderer,
     private val markdown: ProjectMarkdownRenderer,
-    private val attachmentJson: AttachmentJson,
+    private val attachmentListing: dev.yona.web.AttachmentListing,
     private val recentVisits: RecentVisitService,
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
@@ -100,7 +100,7 @@ class PullRequestViewController(
             .addObject("contributor", assembler.contributor(pullRequest))
             .addObject("branchInfo", assembler.branchInfo(pullRequest))
             .addObject("bodyHtml", markdown.render(pullRequest.body.orEmpty(), project))
-            .addObject("attachments", json.writeValueAsString(attachmentJson.list(ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id))))
+            .addObject("attachments", attachmentListing.fileListJson(ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id)))
             .addObject("state", assembler.state(pullRequest, viewer, canDelete, canRestore, request))
             .addObject("canWatch", accessControl.isAllowed(viewer, resource, Operation.WATCH))
             .addObject("watching", watching)
@@ -115,8 +115,7 @@ class PullRequestViewController(
             .addObject("reopenUrl", "$base/open")
             .addObject("timeline", assembler.timeline(pullRequest))
             .addObject("commentable", accessControl.isProjectResourceCreatable(viewer, project, ResourceType.REVIEW_COMMENT))
-            .addObject("mentionUrl", siteUrls.path("/${project.owner}/${project.name}/mentionListAtPullRequest?commitId=${current.firstOrNull()?.commitId.orEmpty()}&pullRequestId=${pullRequest.id}"))
-            .addObject("viewerName", viewer?.let { dev.yona.domain.user.UserDisplay.pureName(it, it.lang) }.orEmpty())
+            .addObject("mentionUrl", mentionUrl(project, current.firstOrNull()?.commitId, pullRequest.id))
     }
 
     @GetMapping("/{user}/{project}/pullRequest/{id}/state")
@@ -212,7 +211,7 @@ class PullRequestViewController(
             .addObject("closedCards", assembler.cards(allThreads.filter { it.state == dev.yona.domain.enumeration.ThreadState.CLOSED }))
             .addObject("openCount", allThreads.count { it.state == dev.yona.domain.enumeration.ThreadState.OPEN })
             .addObject("closedCount", allThreads.count { it.state == dev.yona.domain.enumeration.ThreadState.CLOSED })
-            .addObject("mentionUrl", siteUrls.path("/${project.owner}/${project.name}/mentionListAtPullRequest?commitId=${current.firstOrNull()?.commitId.orEmpty()}&pullRequestId=${pullRequest.id}"))
+            .addObject("mentionUrl", mentionUrl(project, current.firstOrNull()?.commitId, pullRequest.id))
             .addObject("canComment", creatable)
             .addObject("resourceAllowed", accessControl.isAllowed(viewer, resource, Operation.READ))
     }
@@ -241,4 +240,8 @@ class PullRequestViewController(
     private companion object {
         const val SHORT_ID = 7
     }
+
+    /** 멘션 후보 주소이다. 역방향 라우트는 기본값(빈 `commitId`)인 질의 값을 빼므로 커밋이 없으면 `?pullRequestId=번호`만 남는다. */
+    private fun mentionUrl(project: Project, commitId: String?, pullRequestId: Long?): String =
+        siteUrls.path("/${project.owner}/${project.name}/mentionListAtPullRequest?" + (if (commitId.isNullOrEmpty()) "" else "commitId=$commitId&") + "pullRequestId=$pullRequestId")
 }

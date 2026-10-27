@@ -72,6 +72,8 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var issueEvents: IssueEventRepository
 
+    @jakarta.persistence.PersistenceContext private lateinit var entityManager: jakarta.persistence.EntityManager
+
     private var sequence = 0
 
     private fun user(): User {
@@ -126,6 +128,15 @@ class PullRequestActionTest : AbstractIntegrationTest() {
         assertTrue(pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).any { it.eventType == EventType.PULL_REQUEST_STATE_CHANGED && it.newValue == "merged" })
         val note = notificationEvents.findAll().single { it.eventType == EventType.PULL_REQUEST_STATE_CHANGED }
         assertEquals("open", note.oldValue); assertEquals("merged", note.newValue); assertTrue(note.receivers.any { it.id == mentioned.id })
+    }
+
+    @Test
+    fun `리뷰어는 트랜잭션 밖에서도 읽을 수 있도록 요청과 함께 불러온다 (v1_6 accept의 병합은 트랜잭션 밖이다)`() {
+        val s = setup(); addChange(s)
+        val pr = open(s)
+        entityManager.flush(); entityManager.clear()
+        val loaded = pullRequests.findById(pr.id!!).orElseThrow()
+        assertTrue(org.hibernate.Hibernate.isInitialized(loaded.reviewers), "reviewers가 지연 로딩이라 병합 커밋 메시지를 만들 때 LazyInitializationException이 난다")
     }
 
     @Test

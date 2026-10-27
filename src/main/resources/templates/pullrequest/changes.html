@@ -153,13 +153,13 @@
     $(document).ready(function() {
         // yobi.Mention
         yobi.Mention({
-            target: 'textarea[id^=editor-]',
-            url : /*[[${mentionUrl}]]*/ ""
+            target:'textarea[id^=editor-]',
+            url : "[(${mentionUrl})]"
         });
 
         // code.Diff
         $yobi.loadModule("code.Diff", {
-            "bCommentable" : /*[[${commentable}]]*/ false
+            "bCommentable" : [(${commentable})]
         });
 
         // commit message

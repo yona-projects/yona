@@ -6,7 +6,7 @@
 
   이식 원본: app/views/git/view.scala.html
   모델: title, projectView, header, contributor, branchInfo, bodyHtml, attachments, state, canWatch, watching, watchUrl, unwatchUrl, stateUrl,
-        canEdit, editUrl, canClose, closeUrl, canReopen, reopenUrl, timeline, commentable, mentionUrl, viewerName
+        canEdit, editUrl, canClose, closeUrl, canReopen, reopenUrl, timeline, commentable, mentionUrl
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'PULL_REQUEST', ~{::viewPage})}">
@@ -99,8 +99,8 @@
         });
 
         yobi.Mention({
-            target: 'textarea[id^=editor-]',
-            url : /*[[${mentionUrl}]]*/ ""
+            target:'textarea[id^=editor-]',
+            url : "[(${mentionUrl})]"
         });
 
         $("button.moreBtn").on("click", function(){
@@ -108,8 +108,8 @@
         });
 
         // detect comment which contains mention at me
-        $(".comment-body:contains('[(${helper.escape(viewerName)})]')").closest(".comment").addClass("mentioned");
-        $(".user-link:contains('[(${helper.escape(viewerName)})]')").addClass("me");
+        $(".comment-body:contains('[(${helper.escape(currentUser.pureName)})]')").closest(".comment").addClass("mentioned");
+        $(".user-link:contains('[(${helper.escape(currentUser.pureName)})]')").addClass("me");
     });
 </script>
 </th:block>

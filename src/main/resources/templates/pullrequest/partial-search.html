@@ -105,8 +105,7 @@
                             <div class="span2 hide-in-mobile">
                                 <div class="mt5 pull-right hide-in-mobile">
                                     <a th:if="${r.receiver != null}" th:href="${r.receiver.href}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${r.receiver.name}">
-                                        <img th:if="${helper.isDefaultAvatar(r.receiver.avatarUrl)}" th:src="${r.receiver.avatarUrl}">
-                                        <img th:unless="${helper.isDefaultAvatar(r.receiver.avatarUrl)}" th:src="${r.receiver.avatarUrl}" width="32" height="32" th:alt="${r.receiver.name}">
+                                        <img th:src="${r.receiver.avatarUrl}" width="32" height="32" th:alt="${r.receiver.name}">
                                     </a>
                                     <div th:if="${r.receiver == null}" class="empty-avatar-wrap">&nbsp;</div>
                                 </div>

@@ -125,7 +125,7 @@ class PullRequestPageAssembler(
     fun branchInfo(pullRequest: PullRequest): BranchInfoView {
         val from = requireNotNull(pullRequest.fromProject)
         val to = requireNotNull(pullRequest.toProject)
-        fun code(project: Project, branch: String) = siteUrls.path("/${project.owner}/${project.name}/code/${UrlPaths.routeSegment(branch)}/")
+        fun code(project: Project, branch: String) = siteUrls.path("/${project.owner}/${project.name}/code/${UrlPaths.routeSegment(branch)}")  // 역방향 라우트는 경로가 비면 끝에 `/`가 없다
         return BranchInfoView(
             siteUrls.path("/${from.owner}"), from.owner.orEmpty(), siteUrls.path("/${from.owner}/${from.name}"), from.name.orEmpty(), code(from, pullRequest.fromBranch.orEmpty()),
             CodePageAssembler.branchItemName(pullRequest.fromBranch.orEmpty()),

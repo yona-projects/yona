@@ -41,6 +41,7 @@ class Step:
     # 응답에서 값을 뽑아 서버마다 따로 기억한다: {이름: ("location"|"body", 정규식)}. 뒤 요청에서 `<<이름>>`으로 쓴다
     # (DB 내부 번호는 시퀀스 할당 탓에 서버마다 다르므로 번호를 직접 적을 수 없다)
     capture: dict = field(default_factory=dict)
+    delay: float = 0.0                        # 보내기 전에 기다릴 초(v1.6의 비동기 행위자가 끝나기를 기다릴 때 쓴다)
 
 
 class Server:
@@ -83,6 +84,9 @@ class Server:
         return self.sessions[actor]
 
     def send(self, step: Step) -> requests.Response:
+        if step.delay:
+            import time
+            time.sleep(step.delay)
         s = self.session(step.actor)
         url = self.base + self.subst(step.path)
         kwargs = dict(allow_redirects=step.follow, headers=self.subst(dict(step.headers)), timeout=120)
@@ -124,6 +128,9 @@ VOLATILE = [
     (re.compile(r"(comment-body-)\d+"), r"\1<n>"),
     # FileDiff.hashCode()는 enum의 신원 해시를 섞어 서버를 다시 띄울 때마다 값이 다르다
     (re.compile(r"(data-hashcode=\")-?\d+"), r"\1<해시>"),
+    (re.compile(r"(nProjectId\"\s*:\s*\")\d+"), r"\1<n>"),
+    (re.compile(r"(editform/notifications#)\d+"), r"\1<n>"),
+    (re.compile(r"(/sites/user/delete)\d+"), r"\1<n>"),
     # 편집기가 만들 때마다 새로 정하는 8글자 영문 번호는 서버마다 다르다
     (re.compile(r"\b(edit|preview|editor-[a-z]+|help-nav|markdown-help)-[A-Za-z]{8}\b"), r"\1-<무작위>"),
 ]
@@ -193,7 +200,7 @@ def html_lines(body: str, map_ids: bool = False) -> list[str]:
                     if k == "value" and value == "" and child.name == "input":
                         continue  # 비어 있는 value는 없는 것과 같다
                     value = re.sub(chr(32) + "+", chr(32), value).strip()
-                    if k in ("data-comment-id",):
+                    if k in ("data-comment-id", "data-project-id"):
                         value = "<n>"
                     if k in ("data-issue-id", "data-posting-id") or (k == "value" and re.match(r"^(issues|postings)\[\d+\]\.id$", child.get("name", "") or "")):
                         value = "<n>"  # 이슈 내부 번호는 시퀀스 할당 탓에 서버마다 다르다

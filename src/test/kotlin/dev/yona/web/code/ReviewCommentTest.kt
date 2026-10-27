@@ -263,7 +263,7 @@ class ReviewCommentTest : AbstractIntegrationTest() {
         val result = mockMvc.perform(send("/${origin.owner}/${origin.name}/pullRequest/${pr.id}/comments", session, "전체 변경 의견")).andExpect(status().isSeeOther).andReturn()
         val thread = threads.findAll().single() as NonRangedCodeCommentThread
         assertEquals(pr.id, thread.pullRequest?.id); assertEquals(pr.mergedCommitIdTo, thread.commitId); assertEquals(pr.mergedCommitIdFrom, thread.prevCommitId)
-        assertEquals("/${origin.owner}/${origin.name}/pullRequest/${pr.number}/changes/${pr.mergedCommitIdTo}#comment-${reviewComments.findAll().single().id}", result.response.getHeader("Location"))
+        assertEquals("/${origin.owner}/${origin.name}/pullRequest/${pr.number}/changes#comment-${reviewComments.findAll().single().id}", result.response.getHeader("Location"))
         val doc = Jsoup.parse(mockMvc.perform(get("/${origin.owner}/${origin.name}/pullRequest/${pr.number}/changes").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
         assertNotNull(doc.selectFirst("#thread-${thread.id}"))
         assertEquals("/${origin.owner}/${origin.name}/pullRequest/${pr.id}/comments?commitId=${pr.mergedCommitIdTo}", doc.selectFirst("#thread-${thread.id} form")!!.attr("action"))
@@ -309,13 +309,24 @@ class ReviewCommentTest : AbstractIntegrationTest() {
     fun `쿼리의 commitId가 있으면 커밋 하나에 단 댓글이고 본문의 commitId는 쓰지 않는다`() {
         val s = pullSetup(); val pr = s.pr
         val base = "/${s.origin.owner}/${s.origin.name}/pullRequest/${pr.id}/comments"
-        mockMvc.perform(send("$base?commitId=${pr.mergedCommitIdTo}", s.session, "커밋 의견")).andExpect(status().isSeeOther)
+        val byQueryResult = mockMvc.perform(send("$base?commitId=${pr.mergedCommitIdTo}", s.session, "커밋 의견")).andExpect(status().isSeeOther).andReturn()
+        // v1.6 newComment는 쿼리의 commitId가 있을 때만 커밋 하나의 변경 화면(specificChange)으로 돌려보낸다
+        assertTrue(byQueryResult.response.getHeader("Location")!!.contains("/pullRequest/${pr.number}/changes/${pr.mergedCommitIdTo}#comment-"), byQueryResult.response.getHeader("Location"))
         val byQuery = threads.findAll().single() as NonRangedCodeCommentThread
         assertEquals(pr.mergedCommitIdTo, byQuery.commitId); assertEquals("", byQuery.prevCommitId)
 
         mockMvc.perform(send(base, s.session, "본문 값은 무시", mapOf("commitId" to "0000000000000000000000000000000000000000"))).andExpect(status().isSeeOther)
         val byBody = threads.findAll().single { it.id != byQuery.id } as NonRangedCodeCommentThread
         assertEquals(pr.mergedCommitIdTo, byBody.commitId); assertEquals(pr.mergedCommitIdFrom, byBody.prevCommitId)
+    }
+
+    @Test
+    fun `풀 리퀘스트 댓글 내용이 비면 400이고 프로젝트 홈 메뉴가 활성이다 (v1_6 render(키, project))`() {
+        val s = pullSetup()
+        val html = mockMvc.perform(send("/${s.origin.owner}/${s.origin.name}/pullRequest/${s.pr.id}/comments", s.session, "")).andExpect(status().isBadRequest)
+            .andReturn().response.contentAsString
+        val active = org.jsoup.Jsoup.parse(html).select("ul.project-menu-nav > li.active a").attr("href")
+        assertEquals("/${s.origin.owner}/${s.origin.name}", active)
     }
 
     private fun messageOf(key: String, vararg args: Any) = messages.getMessage(key, args, java.util.Locale.forLanguageTag(LANG))

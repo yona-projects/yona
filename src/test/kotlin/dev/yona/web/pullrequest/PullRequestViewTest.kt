@@ -122,7 +122,7 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         assertEquals("/${s.contributor.loginId}", doc.selectFirst(".board-body .author-info a.usf-group")!!.attr("href"))
         val branches = doc.selectFirst(".pullRequest-branchInfo")!!
         assertEquals("${s.fork.owner}/${s.fork.name}:master", branches.selectFirst("code.from")!!.text().replace(" ", ""))
-        assertEquals("/${s.fork.owner}/${s.fork.name}/code/refs%252Fheads%252Fmaster/", branches.selectFirst("code.from a.branchName")!!.attr("href"))
+        assertEquals("/${s.fork.owner}/${s.fork.name}/code/refs%252Fheads%252Fmaster", branches.selectFirst("code.from a.branchName")!!.attr("href"))
         assertNotNull(doc.selectFirst("#state .alert-success"))
     }
 

@@ -57,7 +57,8 @@ class PullRequest(
     @Column(name = "merged_commit_id_to")
     var mergedCommitIdTo: String? = null,
     var number: Long? = null,
-    @ManyToMany @JoinTable(
+    // v1.6 Ebean은 트랜잭션 밖에서도 컬렉션을 읽을 수 있다. 병합 커밋 메시지(Reviewed-by)가 트랜잭션 밖에서 리뷰어를 읽으므로 즉시 불러온다.
+    @ManyToMany(fetch = jakarta.persistence.FetchType.EAGER) @JoinTable(
         name = "pull_request_reviewers",
         joinColumns = [JoinColumn(name = "pull_request_id")],
         inverseJoinColumns = [JoinColumn(name = "user_id")],

@@ -5,6 +5,8 @@ import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -14,6 +16,7 @@ import java.util.concurrent.Executors
  * `PullRequestMergingActor`, `RelatedPullRequestMergingActor`, 푸시 뒤 이슈 언급과 새 커밋 알림 `PostReceiveActor` 계열)이다. 메시지마다 새 액터를
  * 만들었으므로 여러 일이 동시에 돌 수 있고, 같은 저장소에 대한 가져오기와 병합은 [PullRequestMerger]가 직렬화한다.
  *
+ * 비동기일 때 호출한 트랜잭션이 있으면 커밋된 뒤에 시작한다(롤백되면 시작하지 않는다).
  * `yona.background-async=false`이면 호출한 스레드에서 바로 실행한다(테스트용). 단계는 각자 트랜잭션에서 실행하며 실패하면 오류만 남긴다.
  */
 @Component
@@ -29,7 +32,14 @@ class BackgroundJobRunner(private val properties: YonaProperties, transactionMan
      */
     fun run(description: String, vararg steps: () -> Unit) {
         if (properties.backgroundAsync) {
-            executor.execute { execute(description, steps) }
+            // 호출한 쪽 트랜잭션이 커밋되기 전에 다른 스레드가 시작하면 아직 저장되지 않은 행을 찾지 못해 일이 조용히 건너뛰어진다
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+                    override fun afterCommit() { executor.execute { execute(description, steps) } }
+                })
+            } else {
+                executor.execute { execute(description, steps) }
+            }
         } else {
             execute(description, steps)
         }

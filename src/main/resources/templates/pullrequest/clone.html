@@ -25,7 +25,7 @@
         NProgress.start();
         setTimeout(function(){
             var cloneUrl = /*[[${cloneUrl}]]*/ "";
-            var cloneParam = {owner: /*[[${forkOwner}]]*/ "", name: /*[[${forkName}]]*/ "", projectScope: /*[[${forkScope}]]*/ ""};
+            var cloneParam = {owner:"[(${helper.escape(forkOwner)})]", name:"[(${helper.escape(forkName)})]", projectScope:"[(${helper.escape(forkScope)})]"};
 
             $.post(cloneUrl, cloneParam, function(data){
                 if(data.status === "failed") {
