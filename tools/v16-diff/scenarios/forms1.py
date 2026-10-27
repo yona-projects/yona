@@ -25,6 +25,11 @@ def steps():
     for u in ("admin", "tester", "other", "third"):
         s.append(login(u, "admin1234" if u == "admin" else "pass1234"))
     s.append(Step("admin", "POST", "/sites/unwatchUpdate", note="업데이트 알림 숨기기"))
+    s += [
+        Step("tester", "GET", f"{B}/issue/labels", headers={"Accept": "application/json"}, capture={
+            "lab_bug": ("jsonfind", "name=bug:id"), "lab_ui": ("jsonfind", "name=ui:id"), "cat_type": ("jsonfind", "name=bug:categoryId"), "cat_area": ("jsonfind", "name=ui:categoryId")},
+            note="라벨 번호 읽기"),
+    ]
 
     # ---- 로그인과 가입 ----
     s += [
@@ -144,7 +149,7 @@ def steps():
         Step("tester", "POST", f"{B}/issues/latest", files=mp(title="날짜", body="본문", isDraft="false", dueDate="bad"), note="이슈 잘못된 날짜"),
         Step("tester", "POST", f"{B}/issues/latest", files=mp(title="담당자", body="본문", isDraft="false", assigneeLoginId="nobody"), note="이슈 없는 담당자"),
         Step("tester", "POST", f"{B}/issues/latest", files=mp(title="마일스톤", body="본문", isDraft="false", milestoneId="99"), note="이슈 없는 마일스톤"),
-        Step("tester", "POST", f"{B}/issues/latest", files=mp(title="라벨", body="본문", isDraft="false", labelIds="1"), note="이슈 라벨"),
+        Step("tester", "POST", f"{B}/issues/latest", files=mp(title="라벨", body="본문", isDraft="false", labelIds="<<lab_bug>>"), note="이슈 라벨"),
         Step("tester", "POST", f"{B}/issues/latest", files=mp(title="이동", body="본문", isDraft="false", targetProjectId="2"), note="이슈 다른 프로젝트로"),
         Step("tester", "POST", f"{B}/issues/latest", files=mp(title="상위", body="본문", isDraft="false", parentIssueId="1"), note="하위 이슈"),
         Step("tester", "POST", f"{B}/issues/latest", files=mp(title="공유", body="본문", isDraft="false", sharer="other"), note="이슈 공유자"),
@@ -181,22 +186,22 @@ def steps():
 
     # ---- 라벨 ----
     s += [
-        Step("tester", "POST", f"{B}/issue/labels", data={"category": "", "name": "", "color": ""}, note="라벨 빈 값"),
-        Step("tester", "POST", f"{B}/issue/labels", data={"category": "Type", "name": "bug", "color": "#d9534f"}, note="라벨 중복"),
-        Step("tester", "POST", f"{B}/issue/labels", data={"category": "Type", "name": "x" * 300, "color": "#d9534f"}, note="라벨 긴 이름"),
-        Step("tester", "POST", f"{B}/issue/labels", data={"category": "Type", "name": "badcolor", "color": "red"}, note="라벨 잘못된 색"),
-        Step("third", "POST", f"{B}/issue/labels", data={"category": "Type", "name": "nope", "color": "#fff"}, note="라벨 권한 없음"),
-        Step("tester", "POST", f"{B}/issue/labels", data={"category": "Type", "name": "docs", "color": "#123456"}, note="라벨 만들기"),
-        Step("tester", "PUT", f"{B}/issue/label/1", data={"category": "Type", "name": "bug2", "color": "#654321"}, note="라벨 수정"),
-        Step("tester", "PUT", f"{B}/issue/label/99", data={"category": "Type", "name": "x", "color": "#654321"}, note="라벨 수정 없는 것"),
+        Step("tester", "POST", f"{B}/issue/labels", data={"categoryName": "", "labelName": "", "labelColor": ""}, note="라벨 빈 값"),
+        Step("tester", "POST", f"{B}/issue/labels", data={"categoryName": "Type", "labelName": "bug", "labelColor": "#d9534f"}, note="라벨 중복"),
+        Step("tester", "POST", f"{B}/issue/labels", data={"categoryName": "Type", "labelName": "x" * 300, "labelColor": "#d9534f"}, note="라벨 긴 이름"),
+        Step("tester", "POST", f"{B}/issue/labels", data={"categoryName": "Type", "labelName": "badcolor", "labelColor": "red"}, note="라벨 잘못된 색"),
+        Step("third", "POST", f"{B}/issue/labels", data={"categoryName": "Type", "labelName": "nope", "labelColor": "#fff"}, note="라벨 권한 없음"),
+        Step("tester", "POST", f"{B}/issue/labels", data={"categoryName": "Type", "labelName": "docs", "labelColor": "#123456"}, note="라벨 만들기"),
+        Step("tester", "PUT", f"{B}/issue/label/<<lab_bug>>", data={"categoryName": "Type", "labelName": "bug2", "labelColor": "#654321"}, note="라벨 수정"),
+        Step("tester", "PUT", f"{B}/issue/label/99999", data={"categoryName": "Type", "labelName": "x", "labelColor": "#654321"}, note="라벨 수정 없는 것"),
         Step("tester", "POST", f"{B}/issue/label/categories", data={"name": "NewCat", "isExclusive": "true"}, note="분류 만들기"),
         Step("tester", "POST", f"{B}/issue/label/categories", data={"name": "NewCat", "isExclusive": "true"}, note="분류 중복"),
         Step("tester", "POST", f"{B}/issue/label/categories", data={"name": ""}, note="분류 빈 값"),
-        Step("tester", "PUT", f"{B}/issue/label/category/1", data={"name": "TypeRenamed", "isExclusive": "false"}, note="분류 수정"),
+        Step("tester", "PUT", f"{B}/issue/label/category/<<cat_type>>", data={"name": "TypeRenamed", "isExclusive": "false"}, note="분류 수정"),
         Step("tester", "POST", f"{B}/copyLabels", data={"fromProjectId": "2"}, note="라벨 복사"),
-        Step("tester", "POST", f"{B}/issue/label/3/delete", note="라벨 삭제"),
-        Step("tester", "DELETE", f"{B}/issue/label/category/99", note="분류 삭제 없는 것"),
-        Step("third", "DELETE", f"{B}/issue/label/category/2", note="분류 삭제 권한 없음"),
+        Step("tester", "POST", f"{B}/issue/label/<<lab_ui>>/delete", note="라벨 삭제"),
+        Step("tester", "DELETE", f"{B}/issue/label/category/99999", note="분류 삭제 없는 것"),
+        Step("third", "DELETE", f"{B}/issue/label/category/<<cat_area>>", note="분류 삭제 권한 없음"),
         Step("tester", "POST", f"{B}/labels", data={"label": "my-tag"}, note="프로젝트 태그 붙이기"),
         Step("tester", "POST", f"{B}/labels/1", note="프로젝트 태그 떼기"),
     ]

@@ -72,6 +72,19 @@ class Server:
 
     def remember(self, step: "Step", resp: requests.Response) -> None:
         for name, (where, regex) in step.capture.items():
+            if where == "jsonfind":  # "키=값:가져올키" - JSON 배열에서 키가 값인 객체의 가져올키 값을 기억한다
+                key, rest = regex.split("=", 1)
+                value, target = rest.split(":", 1)
+                found = "0"
+                try:
+                    for item in json.loads(resp.text):
+                        if str(item.get(key)) == value:
+                            found = str(item.get(target, "0"))
+                            break
+                except ValueError:
+                    pass
+                self.vars[name] = found
+                continue
             source = resp.headers.get("location", "") if where == "location" else resp.text
             m = re.search(regex, source or "")
             self.vars[name] = m.group(1) if m else "0"
@@ -109,6 +122,7 @@ class Server:
 VOLATILE = [
     (re.compile(r"(127\.0\.0\.1|localhost):19[23]00"), "<host>"),
     (re.compile(r"\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:?\d{2})?"), "<시각>"),
+    (re.compile(r"\b\d{1,2}:\d{2}:\d{2} ?(오전|오후|AM|PM)"), "<시각>"),
     (re.compile(r"\d{4}[./-]\d{1,2}[./-]\d{1,2}"), "<날짜>"),
     (re.compile(r"\b\d+\s+(second|minute|hour|day|week|month|year)s?\s+ago\b", re.I), "<상대시간>"),
     (re.compile(r"\b(a|an|\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago\b", re.I), "<상대시간>"),

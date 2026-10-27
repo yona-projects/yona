@@ -49,7 +49,7 @@ class SystemMails(
     private fun text(key: String, vararg args: Any?): String =
         messages.getMessage(key, arrayOf<Any?>(*args).map { it ?: "null" }.toTypedArray<Any>(), LocaleContextHolder.getLocale())
 
-    private fun newMessage(): MimeMessageHelper = MimeMessageHelper(MimeMessage(Session.getInstance(Properties())), true, "UTF-8")
+    private fun newMessage(): MimeMessageHelper = MimeMessageHelper(MimeMessage(Session.getInstance(Properties())), MimeMessageHelper.MULTIPART_MODE_MIXED, "UTF-8")
 
     private fun from(): String = requireNotNull(notificationMailSender.fromAddress()) { "보내는 메일 주소(yona.smtp.user)가 설정되지 않았다" }
 

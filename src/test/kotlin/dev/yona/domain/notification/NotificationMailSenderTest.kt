@@ -104,6 +104,19 @@ class NotificationMailSenderTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `메일의 MIME 구조는 mixed 안에 alternative(text, html)이고 related는 없다 (v1_6 commons-email HtmlEmail)`() {
+        val author = user(); val receiver = user(); val i = issue(author)
+        sender.send(MergedNotification(event(author, i, EventType.NEW_ISSUE, null, "본문", receiver)))
+        val types = mutableListOf<String>()
+        fun walk(p: jakarta.mail.Part) {
+            types += p.contentType.substringBefore(';').trim().lowercase()
+            if (p.isMimeType("multipart/*")) { val m = p.content as MimeMultipart; for (n in 0 until m.count) walk(m.getBodyPart(n)) }
+        }
+        walk(sent().single())
+        assertEquals(listOf("multipart/mixed", "multipart/alternative", "text/plain", "text/html"), types)
+    }
+
+    @Test
     fun `메일 본문은 마크다운을 렌더링하고 보기 링크와 구독 해제 링크를 덧붙인다`() {
         val author = user(); val receiver = user(); val i = issue(author)
         sender.send(MergedNotification(event(author, i, EventType.NEW_ISSUE, null, "**굵게** 본문", receiver)))

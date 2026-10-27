@@ -122,7 +122,7 @@ class NotificationMailSender(
 
         // 이슈 댓글은 이슈를 기준으로 프로젝트와 구독 해제 링크를 정한다.
         val base = if (resource.type == ResourceType.ISSUE_COMMENT) requireNotNull(resource.container) else resource
-        val helper = MimeMessageHelper(message, true, "UTF-8")
+        val helper = MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED, "UTF-8")
         helper.setFrom(InternetAddress(requireNotNull(fromAddress()) { "보내는 메일 주소(yona.smtp.user)가 설정되지 않았다" }, senderName(main), "UTF-8"))
         to.forEach { helper.addTo(InternetAddress(it.email, it.name, "UTF-8")) }
         bcc.forEach { helper.addBcc(InternetAddress(it.email, it.name, "UTF-8")) }
