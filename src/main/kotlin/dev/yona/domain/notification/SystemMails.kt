@@ -51,11 +51,14 @@ class SystemMails(
 
     private fun newMessage(): MimeMessageHelper = MimeMessageHelper(MimeMessage(Session.getInstance(Properties())), MimeMessageHelper.MULTIPART_MODE_MIXED, "UTF-8")
 
+    /** v1.6 `SimpleEmail`처럼 본문이 하나뿐인 일반 텍스트 메일(멀티파트 아님)을 만든다. */
+    private fun newPlainMessage(): MimeMessageHelper = MimeMessageHelper(MimeMessage(Session.getInstance(Properties())), "UTF-8")
+
     private fun from(): String = requireNotNull(notificationMailSender.fromAddress()) { "보내는 메일 주소(yona.smtp.user)가 설정되지 않았다" }
 
     /** 비밀번호 재설정 주소를 일반 텍스트로 보낸다. 제목은 `[사이트이름] 제목`이다. */
     fun passwordReset(user: User, token: String): Boolean = syncInRequest("비밀번호 재설정 메일") {
-        val helper = newMessage()
+        val helper = newPlainMessage()
         helper.setFrom(from())
         helper.setSubject("[${properties.siteName}] " + text("site.resetPasswordEmail.title"))
         helper.addTo(requireNotNull(user.email))

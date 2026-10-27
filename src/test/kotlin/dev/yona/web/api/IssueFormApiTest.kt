@@ -98,6 +98,19 @@ class IssueFormApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `프로젝트 라벨은 분류나 이름이 아니라 번호순으로 돌려준다 (v1_6 project_issueLabels의 DB 순서)`() {
+        val project = newProject()
+        val type = categories.save(IssueLabelCategory(project = project, name = "Type", isExclusive = false))
+        val area = categories.save(IssueLabelCategory(project = project, name = "Area", isExclusive = false))
+        labels.save(IssueLabel(project = project, category = type, name = "bug", color = "#f00"))
+        labels.save(IssueLabel(project = project, category = type, name = "feature", color = "#0f0"))
+        labels.save(IssueLabel(project = project, category = area, name = "ui", color = "#00f"))
+        mockMvc.perform(get(api(project, "titleHeads")).header(HttpHeaders.ACCEPT, "application/json"))
+            .andExpect(jsonPath("$.result.length()").value(3))
+            .andExpect(jsonPath("$.result[0].name").value("bug")).andExpect(jsonPath("$.result[1].name").value("feature")).andExpect(jsonPath("$.result[2].name").value("ui"))
+    }
+
+    @Test
     fun `JSON을 받지 못하면 406이고 비공개 프로젝트는 막힌다`() {
         val project = newProject()
         mockMvc.perform(get(api(project, "titleHeads")).header(HttpHeaders.ACCEPT, "text/html")).andExpect(status().isNotAcceptable)

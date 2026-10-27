@@ -28,12 +28,12 @@ def load(path):
     return out
 
 
-POSTID = re.compile(r"/(issue_post|board_post|issue_comment|nonissue_comment|commit|review_comment)/\d+@")
+POSTID = re.compile(r"(?<=[/<])(issue_post|board_post|issue_comment|nonissue_comment|commit|review_comment)/\d+@")
 TOKEN = re.compile(r"(confirm/\d+/|resetPassword\?s=)\w{16,}")
 
 
 def mask(text):
-    return POSTID.sub(r"/\1/<n>@", TOKEN.sub(r"\1<토큰>", text))
+    return POSTID.sub(r"\1/<n>@", TOKEN.sub(r"\1<토큰>", text))
 
 
 def part_lines(part):

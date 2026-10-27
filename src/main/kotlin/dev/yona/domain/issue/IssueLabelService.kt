@@ -20,6 +20,9 @@ class IssueLabelService(
     /** 프로젝트의 라벨을 분류 이름, 라벨 이름 순으로 돌려준다. */
     fun labels(project: Project): List<IssueLabel> = labels.findByProjectIdOrderByCategoryNameAscNameAsc(requireNotNull(project.id))
 
+    /** 프로젝트의 라벨을 번호순으로 돌려준다. v1.6 `project.issueLabels`(정렬 없는 일대다)가 DB 순서 그대로 돌려주는 곳에 쓴다. */
+    fun labelsById(project: Project): List<IssueLabel> = labels.findByProjectIdOrderByCategoryNameAscNameAsc(requireNotNull(project.id)).sortedBy { it.id }
+
     /** 프로젝트의 분류를 이름순으로 돌려준다. */
     fun categories(project: Project): List<IssueLabelCategory> = categories.findByProjectIdOrderByNameAsc(requireNotNull(project.id))
 

@@ -53,7 +53,7 @@ class IssueFormApiController(
         titleHeadService.search(project, query).forEach {
             nodes += linkedMapOf("name" to it.headKeyword, "frequency" to it.frequency, "category" to "", "searchText" to it.headKeyword)
         }
-        labelService.labels(project).forEach { label ->
+        labelService.labelsById(project).forEach { label ->
             nodes += linkedMapOf(
                 "name" to label.name, "frequency" to 0, "category" to label.category?.name, "categoryId" to label.category?.id, "id" to label.id,
                 "labelColor" to label.color, "isExclusive" to (label.category?.isExclusive == true), "searchText" to "${label.name}/${label.category?.name}"

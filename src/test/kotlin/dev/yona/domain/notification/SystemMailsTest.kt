@@ -97,6 +97,9 @@ class SystemMailsTest : AbstractIntegrationTest() {
         val mail = sentMails().single()
         assertEquals("[Yona] " + msg("site.resetPasswordEmail.title"), mail.subject)
         assertEquals(listOf(u.email), addresses(mail, Message.RecipientType.TO))
+        // v1.6 SimpleEmail은 멀티파트가 아닌 text/plain 하나이다
+        mail.saveChanges()
+        assertTrue(mail.isMimeType("text/plain"), mail.contentType)
         val body = texts(mail).single()
         assertTrue(body.startsWith(msg("site.resetPasswordEmail.mailContents") + "\n\n"), body)
         assertTrue(body.endsWith("/resetPassword?s=tokenvalue"), body)
