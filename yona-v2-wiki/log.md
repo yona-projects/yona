@@ -436,3 +436,6 @@
 
 ## [2026-10-27] decision | 추가 개발 항목 12개 확정 (D-28)
 - `next` 브랜치에만 있는 OAuth2 Authorization Server, 2단계 인증, SSH 공개키, GPG 서명 검증, 개인용 API 토큰, MCP 서버, Mercurial, Git LFS, 감사 로그, OpenTelemetry와 병합 시 이슈 자동 닫기를 `roadmap.md`의 추가 개발 항목(X-1~X-11)으로 올렸다. 착수 순서는 미정이다.
+
+## [2026-10-27] decision | 추가 개발 항목에 풀 리퀘스트 관련 4개 보충 (D-28)
+- `next`에만 있는 풀 리퀘스트 기능을 X-12(리뷰 판정), X-13(브랜치 보호), X-14(담당자, 라벨), X-15(REST API)로 올렸다. 총 15개이다.

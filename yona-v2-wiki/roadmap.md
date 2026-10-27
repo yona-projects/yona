@@ -112,6 +112,10 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-9 | 감사 로그(보안, 관리 이벤트) | `domain/event` | 대기 | |
 | X-10 | OpenTelemetry(추적, 지표) | `build.gradle.kts`의 opentelemetry 스타터 | 대기 | |
 | X-11 | 풀 리퀘스트 병합 시 `close(s/d)`, `fix(es/ed)`, `resolve(s/d) #번호`로 참조된 이슈 자동 닫기 | `domain/event/PullRequestMergeEventListener` | 대기 | v1.6에는 없다. v1.6의 자동 처리는 시작 때 `REJECTED` 풀 리퀘스트를 `CLOSED`로 바꾸는 것뿐이며 이미 이식했다(`PullRequestStartup`) |
+| X-12 | 풀 리퀘스트 리뷰 판정(Approve, Request changes, Comment). 같은 리뷰어의 재판정은 이력으로 쌓고 정책 판단에는 리뷰어별 최신 판정만 쓴다 | `domain/pullrequest/PullRequestReview`, `PullRequestServiceImpl` | 대기 | v1.6의 "리뷰 완료/취소"(`review`, `unreview`)와는 별개 개념이다. 새 테이블 `pull_request_review`가 필요하다 |
+| X-13 | 브랜치 보호 규칙(브랜치 패턴, 풀 리퀘스트 필수, 필요한 승인 수, 서명 커밋 필수, push 허용 사용자 제한, force push와 삭제 금지, 매니저 우회). push 훅과 병합 검사에 적용 | `domain/branchprotection`, `web/BranchProtectionController`, `domain/vcs/GitPushHooks` | 대기 | X-4(GPG), X-12(리뷰 판정)가 있어야 해당 규칙이 의미를 갖는다. 새 테이블 필요 |
+| X-14 | 풀 리퀘스트 담당자(assignee)와 라벨 | `PullRequest.assignee`, `PullRequest.labels` | 대기 | v1.6 `pull_request`에는 담당자, 라벨 열이 없다. 연결 테이블 추가 필요 |
+| X-15 | 풀 리퀘스트 REST API(조회, diff, 리뷰, 타임라인, 병합, 닫기, 다시 열기, 댓글, 리뷰어, 라벨, 담당자, 출발 브랜치 삭제) | `/api/projects/{}/pullrequests/**`, `/api/v1/projects/{}/{}/pull-requests/**` | 대기 | v1.6 외부 API(`/-_-api/v1`)에는 풀 리퀘스트 항목이 없다. 인증은 X-5, X-1을 쓴다 |
 
 ## 화면 검증 기록
 
