@@ -104,6 +104,16 @@ class TranslationApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `본문이 줄바꿈으로 끝나면 끝의 빈 줄은 보내지 않는다 (Java String_split)`() {
+        val project = projects.save(Project(owner = "tro2", name = "trp2", vcs = "GIT", projectScope = ProjectScope.PUBLIC, lastIssueNumber = 1))
+        issues.save(Issue(project = project, number = 1, title = "제목", body = "본문\r\n\r\n", state = State.OPEN, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date()))
+        org.mockito.Mockito.doReturn("x").`when`(client).translateLines(org.mockito.ArgumentMatchers.anyList())
+        mockMvc.perform(post("/-_-api/v1/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":1}"""))
+            .andExpect(status().isOk)
+        org.mockito.Mockito.verify(client).translateLines(listOf("Title: 제목", "", "본문"))
+    }
+
+    @Test
     fun `없는 대상은 404이고 로그인하지 않으면 거절한다`() {
         val project = projects.save(Project(owner = "tro2", name = "trp2", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
         mockMvc.perform(post("/-_-api/v1/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":9}"""))

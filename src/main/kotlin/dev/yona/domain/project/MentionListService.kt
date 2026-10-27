@@ -117,14 +117,14 @@ class MentionListService(
         fun add(user: User?) { if (user != null && ordered.none { it.id == user.id }) ordered += user }
         if (query.isEmpty()) {
             val comments = entityManager.createQuery(
-                "select c from ReviewComment c join c.thread t where t.pullRequest.id = :id order by c.id", dev.yona.domain.comment.ReviewComment::class.java
+                "select c from ReviewComment c join c.thread t where t.pullRequest.id = :id order by t.id, c.id", dev.yona.domain.comment.ReviewComment::class.java
             ).setParameter("id", pullRequest.id).resultList
             for (comment in comments) {
                 val author = comment.authorLoginId?.let { users.findByLoginId(it) } ?: continue
                 ordered.removeAll { it.id == author.id }
                 ordered += author
             }
-            // v1.6 `addCommentAuthors`는 마지막에 목록을 뒤집는다(최근에 리뷰한 사람이 먼저).
+            // v1.6 `addCommentAuthors`는 스레드를 저장된 순서로 돌고 스레드 안의 댓글도 저장된 순서로 훑은 뒤, 마지막에 목록을 뒤집는다(최근에 리뷰한 사람이 먼저).
             ordered.reverse()
             projectMembers(project).forEach { add(it) }
             groupMembers(project).forEach { add(it) }

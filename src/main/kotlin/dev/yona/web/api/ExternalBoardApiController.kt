@@ -106,6 +106,6 @@ class ExternalBoardApiController(
     private fun findAuthor(node: JsonNode?, viewer: User): User {
         if (node == null) return viewer
         val email = node.findValue("email")?.asString() ?: return apiUsers.anonymous("")
-        return apiUsers.findOrCreateByEmail(node.findValue("loginId")?.asString().orEmpty(), node.findValue("name")?.asString().orEmpty(), email)
+        return apiUsers.findAuthor(email)
     }
 }

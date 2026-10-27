@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 접근 로그 설정. v1.6 conf/application-logger.xml.default 의 ACCESS_LOG_FILE 과 같다: 메시지만 기록하고 날짜별로 나누어 30일 보관한다. -->
+<!--
+  로그 설정. v1.6 conf/application-logger.xml.default 와 같은 네 파일을 날짜별로 나누어 30일 보관한다.
+  - access.log: 접근 로그. 메시지만 기록한다 (로거 access)
+  - application.log: 애플리케이션 로그 (v1.6의 play, application 로거. v2는 패키지 dev.yona). v1.6은 레벨을 WARNING으로 적었지만 logback에 그 레벨이 없어 DEBUG로 해석되었다. 따르지 않고 WARN으로 쓴다 (R-95)
+  - mail.log: 메일 발송 기록 (로거 mail)
+  - root.log: 루트 로거의 ERROR (v1.6은 루트 레벨이 ERROR이다)
+-->
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
@@ -14,7 +20,37 @@
         <encoder><pattern>%message%n</pattern></encoder>
     </appender>
 
-    <root level="INFO"><appender-ref ref="CONSOLE"/></root>
+    <appender name="APPLICATION_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${YONA_DATA:-${yona.data:-.}}/logs/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${YONA_DATA:-${yona.data:-.}}/logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder><pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern></encoder>
+    </appender>
+
+    <appender name="MAIL_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${YONA_DATA:-${yona.data:-.}}/logs/mail.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${YONA_DATA:-${yona.data:-.}}/logs/mail.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder><pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern></encoder>
+    </appender>
+
+    <appender name="ROOT_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter"><level>ERROR</level></filter>
+        <file>${YONA_DATA:-${yona.data:-.}}/logs/root.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${YONA_DATA:-${yona.data:-.}}/logs/root.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder><pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern></encoder>
+    </appender>
+
+    <root level="INFO"><appender-ref ref="CONSOLE"/><appender-ref ref="ROOT_LOG_FILE"/></root>
+    <logger name="dev.yona" level="WARN"><appender-ref ref="APPLICATION_LOG_FILE"/></logger>
+    <logger name="mail" level="INFO"><appender-ref ref="MAIL_LOG_FILE"/></logger>
     <!-- additivity 를 끄지 않으므로 콘솔에도 나온다 (v1.6과 같다) -->
     <logger name="access" level="INFO"><appender-ref ref="ACCESS_LOG_FILE"/></logger>
 </configuration>

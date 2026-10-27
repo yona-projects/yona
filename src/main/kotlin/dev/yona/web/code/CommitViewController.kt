@@ -35,7 +35,7 @@ import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.util.HtmlUtils
 
 /** 커밋 보기 오른쪽의 리뷰 카드 한 장이다. */
-data class ReviewCard(val id: Long, val state: String, val content: String, val commentCount: Int, val avatarUrl: String, val ago: String, val agoTitle: String)
+data class ReviewCard(val id: Long, val state: String, val content: String, val commentCount: Int, val avatarUrl: String, val ago: String, val agoTitle: String, val authorName: String? = null)
 
 /**
  * Subversion 커밋 보기의 코멘트 한 건의 화면 값이다. [agoTitle]은 v1.6처럼 코멘트가 아니라 커밋의 시각이다.
@@ -170,7 +170,7 @@ class CommitViewController(
             .addObject("projectView", views.of(project))
             .addObject("commit", linkedMapOf<String, Any?>(
                 "id" to commit.id, "message" to commit.message, "authorHref" to author?.let { "/${it.loginId}" }, "authorName" to (author?.name ?: commit.authorName.takeIf { it.isNotEmpty() }),
-                "avatarUrl" to author?.let { avatars.avatarUrl(it, 32) }, "known" to (author != null), "ago" to helper.agoOrDateString(commit.authorDate), "agoTitle" to helper.dateString(commit.authorDate)
+                "avatarUrl" to author?.let { avatars.avatarUrl(it) }, "known" to (author != null), "ago" to helper.agoOrDateString(commit.authorDate), "agoTitle" to helper.dateString(commit.authorDate)
             ))
             .addObject("patch", patch)
             .addObject("comments", comments)
@@ -226,7 +226,7 @@ class CommitViewController(
 
     private fun commitView(commit: CommitInfo, author: dev.yona.domain.user.User?): Map<String, Any?> = linkedMapOf(
         "id" to commit.id, "authorHref" to author?.let { "/${it.loginId}" }, "authorName" to (author?.name ?: commit.authorName),
-        "avatarUrl" to (author?.let { avatars.avatarUrl(it, 32) } ?: avatars.gravatarUrl(commit.authorEmail, 32)), "known" to (author != null), "hasEmail" to commit.authorEmail.isNotEmpty(),
+        "avatarUrl" to (author?.let { avatars.avatarUrl(it) } ?: avatars.gravatarUrl(commit.authorEmail, 32)), "known" to (author != null), "hasEmail" to true,
         "ago" to helper.agoOrDateString(commit.authorDate), "agoTitle" to helper.dateString(commit.authorDate)
     )
 
@@ -235,8 +235,8 @@ class CommitViewController(
         val author = thread.authorLoginId?.let { users.findByLoginId(it) }
         return ReviewCard(
             id = requireNotNull(thread.id), state = (thread.state ?: ThreadState.OPEN).name.lowercase(), content = first?.contents.orEmpty(),
-            commentCount = if (thread.reviewComments.size > 1) thread.reviewComments.size else 0, avatarUrl = author?.let { avatars.avatarUrl(it, 32) }.orEmpty(),
-            ago = helper.agoOrDateString(thread.createdDate), agoTitle = helper.dateString(thread.createdDate)
+            commentCount = if (thread.reviewComments.size > 1) thread.reviewComments.size else 0, avatarUrl = author?.let { avatars.avatarUrl(it) }.orEmpty(),
+            ago = helper.agoOrDateString(thread.createdDate), agoTitle = helper.dateString(thread.createdDate), authorName = thread.authorName
         )
     }
 }

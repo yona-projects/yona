@@ -27,7 +27,8 @@ class IssueJson(
     private val postingComments: PostingCommentRepository,
     private val attachmentJson: dev.yona.web.AttachmentJson,
     private val urls: RepositoryUrls,
-    private val clock: Clock
+    private val clock: Clock,
+    private val nullUser: dev.yona.web.NullUserDisplay
 ) {
 
     /** 이슈 하나의 JSON이다. 값이 없는 항목(담당자, 라벨, 마일스톤, 마감일, 첨부, 댓글)은 키를 뺀다. */
@@ -95,14 +96,14 @@ class IssueJson(
         return node
     }
 
-    private fun author(user: User?): Map<String, Any?> = linkedMapOf("loginId" to user?.loginId.orEmpty(), "name" to user?.name, "email" to user?.email.orEmpty())
+    private fun author(user: User?): Map<String, Any?> = linkedMapOf("loginId" to user?.loginId.orEmpty(), "name" to (user?.name ?: nullUser.name()), "email" to user?.email.orEmpty())
 
     private fun person(user: User): Map<String, Any?> = linkedMapOf("loginId" to user.loginId, "name" to user.name, "email" to user.email)
 
 
-    /** `yyyy-MM-dd'T'HH:mm:ssZ` 형식이다 (v1.6 `JodaDateUtil.ISO_FORMAT`). */
     /** 외부 API가 쓰는 긴 날짜 형식 `yyyy-MM-dd a hh:mm:ss Z`(영어)이다 (v1.6 `getDateString`). */
     fun longDate(date: Date?): String? = date?.let { SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH).apply { timeZone = TimeZone.getTimeZone(clock.zone) }.format(it) }
 
-    fun iso(date: Date?): String? = date?.let { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").apply { timeZone = TimeZone.getTimeZone(clock.zone) }.format(it) }
+    /** `yyyy-MM-dd'T'HH:mm:ssZ` 형식이다 (v1.6 `JodaDateUtil.ISO_FORMAT`). 날짜가 없으면 빈 문자열이다 (`getDateString`은 `null`에서 `""`를 돌려준다). */
+    fun iso(date: Date?): String = date?.let { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").apply { timeZone = TimeZone.getTimeZone(clock.zone) }.format(it) }.orEmpty()
 }

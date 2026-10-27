@@ -71,6 +71,7 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
     @Autowired private lateinit var unwatches: dev.yona.domain.misc.UnwatchRepository
     @Autowired private lateinit var favorites: dev.yona.domain.misc.FavoriteIssueRepository
     @Autowired private lateinit var entityManager: EntityManager
+    @Autowired private lateinit var postings: dev.yona.domain.board.PostingRepository
 
     private var sequence = 0
 
@@ -126,6 +127,26 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
         // 이미 해제한 뒤에는 안내가 없다.
         mockMvc.perform(get("/unwatch").session(session).param("resource.type", "issue_post").param("resource.id", i.id.toString())).andExpect(status().isSeeOther)
         assertEquals(1, unwatches.count())
+    }
+
+    @Test
+    fun `프로젝트 구독 해제는 프로젝트 홈으로 돌아간다 (v1_6 Project_asResource의 getProject)`() {
+        val project = newProject(); val user = newUser()
+        mockMvc.perform(post("/unwatch").session(login(user)).param("resource.type", "project").param("resource.id", project.id.toString()))
+            .andExpect(status().isSeeOther).andExpect(header().string("Location", "/${project.owner}/${project.name}"))
+    }
+
+    @Test
+    fun `게시글 댓글과 커밋 코멘트 구독 해제는 v1_6 RouteUtil의 주소로 돌아간다`() {
+        val project = newProject(); val user = newUser(); val session = login(user)
+        val posting = postings.save(dev.yona.domain.board.Posting(project = project, number = 1, title = "글", body = "본문", authorLoginId = user.loginId, createdDate = Date()))
+        val comment = entityManager.let { em -> dev.yona.domain.board.PostingComment(contents = "c", createdDate = Date(), authorId = user.id, authorLoginId = user.loginId, authorName = user.name, posting = posting, projectId = project.id!!).also { em.persist(it); em.flush() } }
+        mockMvc.perform(post("/unwatch").session(session).param("resource.type", "nonissue_comment").param("resource.id", comment.id.toString()))
+            .andExpect(status().isSeeOther).andExpect(header().string("Location", "/${project.owner}/${project.name}/post/1#comment-${comment.id}"))
+        val commit = dev.yona.domain.comment.CommitComment(project = project, commitId = "abc", contents = "c", createdDate = Date(), authorId = user.id, authorLoginId = user.loginId, authorName = user.name)
+            .also { entityManager.persist(it); entityManager.flush() }
+        mockMvc.perform(post("/unwatch").session(session).param("resource.type", "code_comment").param("resource.id", commit.id.toString()))
+            .andExpect(status().isSeeOther).andExpect(header().string("Location", "/${project.owner}/${project.name}/commit/abc#comment-${commit.id}"))
     }
 
     @Test

@@ -45,7 +45,8 @@ class ExternalUserApiController(
     private val mentions: MentionRepository,
     private val issueJson: IssueJson,
     private val properties: YonaProperties,
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+    private val issueSearch: dev.yona.domain.issue.IssueSearchService
 ) {
     private val random = SecureRandom()
 
@@ -102,7 +103,8 @@ class ExternalUserApiController(
     ): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val userId = requireNotNull(user.id)
-        val mentioned = { mentions.findByUserIdAndResourceType(userId, ResourceType.ISSUE_POST).mapNotNull { it.resourceId?.toLongOrNull() }.ifEmpty { listOf(-1L) } }
+        // v1.6 Mention.getMentioningIssueIds: 본문에서 멘션된 이슈와 멘션된 댓글이 달린 이슈를 모두 모은다
+        val mentioned = { issueSearch.mentioningIssueIds(userId).toList().ifEmpty { listOf(-1L) } }
         val favorite = "select f.issue.id from FavoriteIssue f where f.user.id = :user"
         val (where, params) = when (filter) {
             "assigned" -> "a.user.id = :user" to mapOf<String, Any>("user" to userId)

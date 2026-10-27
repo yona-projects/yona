@@ -220,6 +220,18 @@ class MyIssuesTest : AbstractIntegrationTest() {
         assertTrue(row.select(".item-count-groups").isNotEmpty(), row.outerHtml())
         assertEquals("버그", row.selectFirst("a.label.issue-label")!!.text())
         assertTrue(row.selectFirst("a.label.issue-label")!!.attr("href").contains("labelIds=${label.id}"))
+        // v1.6 partial_view_child: 라벨 링크는 자기 색을 style로 가진다
+        assertEquals("background:#f00", row.selectFirst("a.label.issue-label")!!.attr("style").replace(" ", "").replace(";", ""))
+    }
+
+    @Test
+    fun `다른 프로젝트의 하위 이슈도 댓글 수 링크는 부모 프로젝트 주소이다 (v1_6 commentAndVoterPairDisplay)`() {
+        val me = newUser(); val a = project(me, "a"); val b = project(me, "b")
+        val parent = issue(a, "부모", me, assignee = me)
+        val child = issue(b, "다른 프로젝트 하위", me, assignee = me, parent = parent)
+        comments.save(IssueComment(contents = "c", authorId = me.id, authorLoginId = me.loginId, issue = child, projectId = b.id!!, createdDate = Date()))
+        val link = page(login(me)).selectFirst(".child-issue-list .child-issue .item-count-groups a")!!.attr("href")
+        assertEquals("/${a.owner}/${a.name}/issue/${child.number}#comments", link)
     }
 
     @Test

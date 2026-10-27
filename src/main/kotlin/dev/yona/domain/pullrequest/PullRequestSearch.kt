@@ -90,7 +90,7 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
 
         val filter = condition.filter
         if (!filter.isNullOrBlank()) {
-            val pattern = "%" + escapeLike(filter.lowercase()) + "%"
+            val pattern = "%" + filter.lowercase() + "%"
             fun likeIgnoreCase(path: jakarta.persistence.criteria.Expression<String>) = cb.like(cb.lower(path.`as`(String::class.java)), pattern, '!')
 
             val comments = query!!.subquery(Long::class.java).let { sub ->
@@ -113,5 +113,4 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
         cb.and(*predicates.toTypedArray())
     }
 
-    private fun escapeLike(text: String): String = text.replace("!", "!!").replace("%", "!%").replace("_", "!_")
 }

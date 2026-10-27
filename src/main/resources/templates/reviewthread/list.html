@@ -72,7 +72,8 @@
                 <ul th:if="${!rows.isEmpty()}" class="post-list-wrap">
                     <li th:each="thread : ${rows}" class="post-item">
                         <a th:if="${thread.authorLoginId != null}" th:href="@{/{u}(u=${thread.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${thread.authorLoginId}">
-                            <img th:src="${thread.authorAvatarUrl}" th:alt="${thread.authorName}" width="32" height="32"/>
+                            <img th:if="${helper.isDefaultAvatar(thread.authorAvatarUrl)}" th:src="${thread.authorAvatarUrl}"/>
+                            <img th:unless="${helper.isDefaultAvatar(thread.authorAvatarUrl)}" th:src="${thread.authorAvatarUrl}" th:alt="${thread.authorName}" width="32" height="32"/>
                         </a>
                         <div class="title-wrap">
                             <span class="post-id" th:text="${thread.id}"></span>

@@ -47,8 +47,9 @@ data class BranchRow(
  * 브랜치 이름은 주소에서 두 번 디코딩한다([UrlPaths.decodeSegmentOrSelf]).
  */
 @Controller
-@AnonymousCheck
+// v1.6 BranchApp: @IsOnlyGitAvailable이 @AnonymousCheck보다 먼저 선언되어 프로젝트 검사(Git 여부)가 익명 검사보다 바깥이다
 @IsOnlyGitAvailable
+@AnonymousCheck
 class BranchController(
     private val projectService: ProjectService,
     private val branchService: BranchService,

@@ -44,7 +44,8 @@ class SiteContentController(
     private val avatars: AvatarService,
     private val projectViews: ProjectViewFactory,
     private val helper: TemplateHelper,
-    private val currentUserProvider: dev.yona.security.CurrentUserProvider
+    private val currentUserProvider: dev.yona.security.CurrentUserProvider,
+    private val nullUser: dev.yona.web.NullUserDisplay
 ) {
 
     /** 프로젝트 목록의 한 줄이다. */
@@ -115,14 +116,13 @@ class SiteContentController(
         return ContentRow(
             projectOwner = project?.owner.orEmpty(), projectName = project?.name.orEmpty(), logoUrl = project?.let { projectViews.of(it).logoUrl }.orEmpty(),
             title = title.orEmpty(), url = url,
-            authorLoginId = author?.loginId ?: ANONYMOUS, authorName = author?.let(label) ?: ANONYMOUS,
-            authorAvatarUrl = author?.let { avatars.avatarUrl(it, AUTHOR_AVATAR_SIZE) }.orEmpty(),
+            authorLoginId = author?.loginId ?: dev.yona.web.NullUserDisplay.LOGIN_ID, authorName = author?.let(label) ?: nullUser.name(),
+            authorAvatarUrl = author?.let { avatars.avatarUrl(it, AUTHOR_AVATAR_SIZE) } ?: avatars.gravatarUrl("", AUTHOR_AVATAR_SIZE),
             createdTitle = helper.dateString(created), createdText = helper.agoOrDateString(created), commentCount = comments
         )
     }
 
     private companion object {
-        const val ANONYMOUS = "anonymous"
-        const val AUTHOR_AVATAR_SIZE = 16
+        const val AUTHOR_AVATAR_SIZE = 64
     }
 }

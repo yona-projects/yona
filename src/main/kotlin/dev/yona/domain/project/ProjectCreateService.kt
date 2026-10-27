@@ -117,7 +117,7 @@ class ProjectCreateService(
 
         saveMenuSetting(project, form.menus)
         watchService.watch(creator, ResourceType.PROJECT, requireNotNull(project.id).toString())
-        recentVisits.record(creator, project)
+        recentVisits.visits(creator, project)
         return project
     }
 

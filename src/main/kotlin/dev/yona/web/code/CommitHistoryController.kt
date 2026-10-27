@@ -141,7 +141,7 @@ class CommitHistoryController(
             browseUrl = path?.let { "$base/code/${UrlPaths.routeSegment(commit.shortId)}/${UrlPaths.encodeEach(it)}" },
             commentCount = if (subversion) commentCount(project, commit.id, path) else reviewThreads.count(commit.id, path), date = helper.agoOrDateString(commit.authorDate),
             authorHref = user?.let { "/${it.loginId}" }, authorLoginId = user?.loginId, authorName = user?.name ?: commit.authorName.takeIf { it.isNotEmpty() },
-            avatarUrl = if (user != null) avatars.avatarUrl(user, AVATAR_SIZE) else if (subversion) null else avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE),
+            avatarUrl = if (user != null) avatars.avatarUrl(user) else if (subversion) null else avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE),
             authorEmail = if (subversion) null else commit.authorEmail
         )
     }

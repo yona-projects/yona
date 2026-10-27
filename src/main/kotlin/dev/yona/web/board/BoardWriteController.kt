@@ -76,7 +76,8 @@ class BoardWriteController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
         var prepared = ""
-        if (request.getParameter("readme") != null && readmeService.readFirstFound(project) != null) prepared = readmeService.readFirstFound(project).orEmpty()
+        // v1.6 projectHasReadme는 README.md/readme.md만 확인하고, 읽을 때는 네 가지 이름 중 처음 찾은 파일을 읽는다
+        if (request.getParameter("readme") != null && readmeService.fileName(project) != null) prepared = readmeService.readFirstFound(project).orEmpty()
         if (request.getParameter("issueTemplate") != null) prepared = fileReader.readText(project, "ISSUE_TEMPLATE.md")?.ifBlank { null }.orEmpty()
         if (request.getParameter("path") != null) {
             if (!accessControl.isProjectResourceCreatable(viewer, project, ResourceType.COMMIT)) return ErrorViews.forbidden("error.forbidden", views.of(project))

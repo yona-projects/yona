@@ -71,11 +71,12 @@ class BoardListController(
 
     /**
      * 정렬 막대의 링크이다. 현재 기준이면 방향을 뒤집고, 아니면 내림차순으로 시작한다. 검색어와 선택한 라벨을 이어 받는다.
-     * v1.6은 라벨 배열의 `toString()`을 주소에 그대로 넣어 라벨을 고른 채 정렬하면 오류가 났다([refactoring-backlog.md] R-28). 여기서는 고른 라벨을 이어 받는다.
+     * v1.6 템플릿은 라벨 배열을 `labelIds=@param.labelIds`로 그대로 출력하는데 Twirl이 배열 원소를 구분자 없이 이어 붙인다.
+     * 그래서 라벨 하나는 번호 그대로이고 둘 이상이면 번호가 한 값으로 붙는다(예: 3과 5는 `35`) ([refactoring-backlog.md] R-28). 같게 따른다.
      */
     private fun sortLinks(base: String, condition: PostingSearchCondition): List<SortLink> {
         val filter = UriUtils.encodeQueryParam(condition.filter, Charsets.UTF_8).replace("%20", "+")
-        val labels = if (condition.labelIds.isEmpty()) "labelIds=" else condition.labelIds.joinToString("&") { "labelIds=$it" }
+        val labels = "labelIds=" + condition.labelIds.joinToString("")
         val descending = !condition.orderDir.equals("asc", ignoreCase = true)
         return listOf("updatedDate" to "common.order.updatedDate", "createdDate" to "common.order.date", "numOfComments" to "common.order.comments").map { (field, key) ->
             val current = condition.effectiveOrderBy == field

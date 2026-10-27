@@ -67,7 +67,7 @@
             </label>
           </dt>
           <dd>
-            <select id="project-owner" name="owner" data-toggle="select2" data-format="user" class="mb10" style="min-width: 220px;">
+            <select id="project-owner" name="owner" data-toggle="select2" data-format="user" class="mb10">
                 <option data-type="user"
                         th:data-avatar-url="${ownerAvatarUrl}"
                         th:value="${currentUser.loginId}"
@@ -94,7 +94,7 @@
           </dt>
           <dd>
             <input id="project-name" type="text" name="name" class="text" maxlength="250"
-                   th:value="${form.name}" th:placeholder="#{project.name.placeholder}"  >
+                   th:value="${form.name}" th:placeholder="#{project.name.alert}"  >
           </dd>
           <!-- // -->
 

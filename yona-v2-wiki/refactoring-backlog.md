@@ -32,7 +32,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-25 | 이슈 보기의 추천자 대화상자 | 추천자 아바타를 그리면서 같은 집합에서 현재 사용자를 빼기 때문에, 대화상자 목록에서 내가 빠지고 나만 추천했으면 대화상자가 없다 | 같게 재현한다 | `partial_voters.scala.html`, `VoteApp.java:129-132` |
 | R-26 | 이슈 댓글 삭제 | 댓글을 지워도 멘션 기록(`mention`)이 남아 고아 행이 된다 | 같게 재현한다 | `Comment.java:94-99` |
 | R-27 | 줄바꿈 변환 | `LineEnding.changeLineEnding(…, DOS)`가 `\n`을 `\n`으로 바꾸는 코드라 DOS 변환이 아무것도 하지 않는다. 저장소 파일 온라인 편집에서 CRLF 파일을 고쳐도 LF로 저장된다 | 같게 재현한다 | `LineEnding.java:25-36` |
-| R-28 | 게시판 목록의 정렬 링크 | 라벨을 고른 채 정렬 링크를 누르면 링크의 `labelIds`에 자바 배열의 `toString()`(`[Ljava.lang.String;@…`)이 들어가 숫자 변환 오류로 `500`이 난다 | **고쳐서 구현했다**(고른 라벨을 이어 받는다). v1.6 그대로 오류를 내려면 [decisions.md] A-50을 되돌린다 | `board/list.scala.html:19-27`, `LabelApp.java:128-139` |
+| R-28 | 게시판 목록의 정렬 링크 | 라벨을 고른 채 정렬 링크를 누르면 링크의 `labelIds`에 배열 원소가 구분자 없이 붙는다(Twirl `BaseScalaTemplate`이 배열을 `fill`로 출력, 바이트코드 확인). 라벨 하나는 정상이고 둘 이상(3과 5)이면 `35` 한 값이 되어 다른 라벨을 가리킨다. 이전 서술(`[Ljava.lang.String;@…`로 `500`)은 틀렸다 | **v1.6대로 이어 붙인다**(2026-10-27 정정) | `board/list.scala.html:19-27`, `LabelApp.java:128-139` |
 | R-29 | 게시판 라벨 변경 | 라벨을 바꿀 때마다 `posting.save()`가 불려 제목 머리말 개수(`TitleHead`)가 한 번씩 늘어난다 | 같게 재현한다 | `BoardApi.java:42-63`, `AbstractPosting.java:113-125` |
 | R-30 | 게시판 보기의 라벨 변경 | 라벨을 고르면 요청은 성공하지만 `$.ajax(...).done(...).error(...)`의 `.error`가 jQuery 3에 없어 브라우저 콘솔에 `TypeError`가 난다 | 같게 재현한다 | `board/view.scala.html`(라벨 `change` 핸들러) |
 | R-31 | 사용자 메뉴의 즐겨찾기 탭 | 내 프로젝트도 조직도 없으면 즐겨찾기 프로젝트가 있어도 탭 전체가 "No results"이다(`etc-favorites`는 빈 `ul`이고 줄이 `ul` 바깥에 이어진다) | 같게 재현한다 | `index/myOrganizationList.scala.html:12` |
@@ -100,6 +100,15 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-93 | 이름 없는 Ogg 첨부 | `FilenameUtils.getExtension(null).toLowerCase()`가 `NullPointerException`(500) | v2는 오류 없이 `audio/ogg` (A-113) | `FileUtil.java` |
 | R-94 | 엑셀 내려받기 링크 | `URI.getQuery()`로 퍼센트 인코딩을 풀어 다시 조립해 `%2B`가 `+`로, `%26`이 `&`로 바뀌고 값 없는 `pageNum`이 빠지며 `&&`가 남는다. 잘못된 주소(`%`, `|`)는 500 | 같게 재현한다. 잘못된 주소는 오류 없이 처리 | `HttpUtil.addQueryString` |
 | R-95 | 접근 로그 | 로거 이름에 URI가 붙어 요청마다 로거 객체가 쌓이고, 접근 거부 요청은 두 줄이 남는다. `application-logger.xml`의 `WARNING` 레벨은 logback에 없어 `DEBUG`가 된다 | 재현하지 않는다 (A-111) | `AccessLogger.java` |
+| R-96 | 검색어의 `%`, `_` | Ebean 3.3.4 `icontains`는 키워드를 이스케이프하지 않아 `%`, `_`가 와일드카드이다(`_`만 넣으면 모든 비어 있지 않은 값에 맞는다) | 같게 재현한다 (A-116) | `Search.java`, Ebean `LikeExpression` |
+| R-97 | Git POST 본문 한도 | 기본 설정에서 100KB(102400바이트)를 넘는 푸시와 복제 요청이 413이다. `parsers.text.maxLength`를 올려야 큰 푸시가 된다 | 같게 재현한다 (A-120) | `GitApp.java:134-136` |
+| R-98 | 외부 API 작성자 | 모르는 이메일의 작성자를 익명 사용자(-1)로 저장하고 사용자를 만들지 않는다(`findByEmail`이 `NullUser`를 돌려주어 생성 분기에 닿지 않는다) | 같게 재현한다 (P-10 결정 8) | `IssueApi.java:694-711`, `User.java:337-356` |
+| R-99 | 이메일 형식 | Play `@Constraints.Email`의 정규식은 `\b...\b`라서 로컬 부분이 단어 문자가 아닌 문자(`+`, `.`, `-`)로 시작하는 주소를 거부한다 | 같게 재현한다 | Play 2.3.10 `Constraints$EmailValidator` |
+| R-100 | 최초 관리자 솔트 | 최초 관리자 설정의 솔트를 `Arrays.toString` 형식(`[12, -3, ...]`)으로 저장한다. 일반 가입은 Base64이다 | 같게 재현한다 | `SiteAdmin.java:41-53` |
+| R-101 | 구독 프로젝트 정렬 | 사이드바의 구독 프로젝트는 Ebean 메모리 정렬이라 대소문자를 구분한다(`Zeta`가 `alpha`보다 앞) | 같게 재현한다 | `User.getWatchingProjects` |
+| R-102 | 하위 이슈의 댓글, 공감 링크 | 하위 이슈가 다른 프로젝트에 있으면 링크가 부모 프로젝트의 같은 번호 이슈를 가리킨다(`commentAndVoterPairDisplay(child, parent.project)`) | 같게 재현한다 | `partial_view_child.scala.html:23` |
+| R-103 | 게시판 정렬 링크의 라벨 | 라벨 둘 이상을 고르면 `labelIds`에 번호가 구분 없이 붙는다(R-28 정정) | 같게 재현한다 | Twirl `BaseScalaTemplate` |
+| R-104 | 최근 본 이슈의 이름표 | 컨텍스트 경로로 배포하면 주소 앞에 경로가 붙어 `프로젝트 #번호` 이름표가 어긋난다(`RecentIssue.getNumber`가 위치로 자른다) | 같게 재현한다 | `RecentIssue.java` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

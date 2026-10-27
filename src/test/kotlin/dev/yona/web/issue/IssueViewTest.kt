@@ -618,6 +618,17 @@ class IssueViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `최근 본 이슈의 주소는 리버스 라우트처럼 경로 조각을 인코딩한다 (v1_6 RecentIssue)`() {
+        val project = newProject()
+        project.name = "한글 이름"; projects.save(project)
+        val me = join(newUser(), project)
+        issue(project)
+        mockMvc.perform(get("/{o}/{n}/issue/1", project.owner, project.name).session(login(me))).andExpect(status().isOk)
+        val url = entityManager.createQuery("select r.url from RecentIssue r where r.user.id = :u", String::class.java).setParameter("u", me.id).singleResult
+        assertEquals("/${project.owner}/%ED%95%9C%EA%B8%80%20%EC%9D%B4%EB%A6%84/issue/1", url)
+    }
+
+    @Test
     fun `보면 방문 기록이 남는다`() {
         val project = newProject()
         val me = join(newUser(), project)

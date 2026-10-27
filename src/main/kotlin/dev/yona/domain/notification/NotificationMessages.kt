@@ -57,8 +57,8 @@ class NotificationMessages(
                 if (new == null) text("notification.issue.unassigned") else text("notification.issue.assigned", new)
             EventType.ISSUE_MILESTONE_CHANGED -> {
                 val milestone = new?.toLongOrNull()?.let { milestones.findById(it).orElse(null) }
-                // v1.6은 "마일스톤 없음" 문구를 받는 사람의 언어가 아니라 서버 기본 언어로 만든다.
-                text("notification.milestone.changed", milestone?.title ?: messages.getMessage("issue.noMilestone", null, Locale.getDefault()))
+                // v1.6은 "마일스톤 없음" 문구를 받는 사람의 언어가 아니라 Lang.defaultLang()(application.langs의 첫 언어)로 만든다.
+                text("notification.milestone.changed", milestone?.title ?: messages.getMessage("issue.noMilestone", null, dev.yona.config.LocaleConfig.SUPPORTED_LOCALES.first()))
             }
             EventType.NEW_ISSUE, EventType.NEW_POSTING, EventType.NEW_PULL_REQUEST, EventType.NEW_COMMIT, EventType.COMMENT_UPDATED -> new
             EventType.NEW_COMMENT -> "$new$old"

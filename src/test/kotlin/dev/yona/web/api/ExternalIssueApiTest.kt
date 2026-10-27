@@ -147,6 +147,9 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
         assertNull(saved.createdDate); assertNull(saved.updatedDate)
         mockMvc.perform(get("/${project.owner}/${project.name}/issue/3")).andExpect(status().isOk)
         mockMvc.perform(get("/${project.owner}/${project.name}/issues")).andExpect(status().isOk)
+        // 응답에서 비어 있는 시각은 JSON null이 아니라 빈 문자열이다 (v1.6 JodaDateUtil.getDateString(null) = "")
+        json(get(api(project, "issues/3")), user.token!!, null).andExpect(status().isOk)
+            .andExpect(jsonPath("$.result.createdAt").value("")).andExpect(jsonPath("$.result.updatedAt").value(""))
     }
 
     @Test
@@ -211,13 +214,23 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `모르는 작성자는 사용자를 만들어 작성자로 쓴다`() {
+    fun `모르는 작성자는 사용자를 만들지 않고 익명 사용자가 작성자가 된다 (v1_6 findByEmail은 null을 주지 않는다)`() {
         val (user, project) = member("e")
         json(post(api(project, "issues")), user.token, """{"issues":[{"title":"t","author":{"loginId":"imported","name":"가져온 사람","email":"imported@example.com"}}]}""").andExpect(status().isCreated)
         entityManager.flush(); entityManager.clear()
-        val created = users.findByEmail("imported@example.com")!!
-        assertEquals("imported", created.loginId)
-        assertEquals(created.id, issues.findAll().single { it.project?.id == project.id }.authorId)
+        // v1.6 IssueApi.findAuthor: User.findByEmail이 NullUser를 돌려주므로 createUserNode에 닿지 못한다
+        assertNull(users.findByEmail("imported@example.com"))
+        val saved = issues.findAll().single { it.project?.id == project.id }
+        assertEquals(-1L, saved.authorId); assertEquals("", saved.authorLoginId)
+    }
+
+    @Test
+    fun `보조 이메일이나 대소문자만 다른 이메일의 작성자도 기존 사용자로 찾는다 (v1_6 3단계 조회)`() {
+        val (user, project) = member("h")
+        val upper = user.email!!.uppercase()
+        json(post(api(project, "issues")), user.token, """{"issues":[{"title":"t","author":{"loginId":"x","name":"x","email":"$upper"}}]}""").andExpect(status().isCreated)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(user.id, issues.findAll().single { it.project?.id == project.id }.authorId)
     }
 
     @Test

@@ -156,7 +156,7 @@ class IssueEventHtml(
     private fun esc(value: String?): String = HtmlUtils.htmlEscape(value.orEmpty())
 
     private companion object {
-        const val AVATAR_SIZE = 32
+        const val AVATAR_SIZE = 64
         const val NO_MILESTONE = -1L
     }
 }

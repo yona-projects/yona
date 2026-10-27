@@ -106,6 +106,7 @@ class ProjectSettingController(
             .addObject("projectView", view)
             .addObject("branches", branches.filter { itemType(it) == "branch" })
             .addObject("defaultBranchName", itemName(defaultBranch))
+            .addObject("branchItemNames", branches.filter { itemType(it) == "branch" }.associateWith { itemName(it) })
             .addObject("oldPlaceHtml", oldPlace)
             .addObject("maxReviewerCount", if (memberCount > 1) memberCount else 1)
             .also { mav ->

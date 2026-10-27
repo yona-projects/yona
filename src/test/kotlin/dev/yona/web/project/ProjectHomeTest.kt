@@ -131,6 +131,12 @@ class ProjectHomeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `설명이 없으면 og 설명은 null 문자열이다 (v1_6 문자열 결합)`() {
+        val page = home(newProject(overview = null))
+        assertTrue(page.selectFirst("meta[property=og:description]")!!.attr("content").startsWith("null"), page.selectFirst("meta[property=og:description]")!!.attr("content"))
+    }
+
+    @Test
     fun `비공개 프로젝트는 구성원이 아니면 열 수 없다`() {
         val project = newProject(ProjectScope.PRIVATE)
         mockMvc.perform(get("/${project.owner}/${project.name}").session(login(newUser()))).andExpect(status().isForbidden)

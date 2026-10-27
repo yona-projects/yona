@@ -57,7 +57,8 @@ class TranslationApiController(
             "post-comment" -> postingComments.findById(number).orElse(null)?.contents
             else -> ""
         } ?: return ResponseEntity.notFound().build()
-        val translated = client.translateLines(text.replace("&", "%26").split(nl))
+        // v1.6 Java split은 끝의 빈 줄을 버린다
+        val translated = client.translateLines(dev.yona.util.JavaStrings.split(text.replace("&", "%26"), nl))
         val lang = currentUserProvider.get().user?.lang
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("translated" to markdown.render(translated, project, lang)))
     }

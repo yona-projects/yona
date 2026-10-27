@@ -5,6 +5,7 @@
 
   이식 원본: app/views/common/childComments.scala.html
   매개변수: comment(CommentView), baseUrl(/소유자/프로젝트), number(글 번호), commentsPath(`issue` 또는 `post`)
+  대댓글 등록 주소는 v1.6 라우트를 따른다: 이슈는 `/issue/N/comments`, 게시글은 `/post/N/comment`(단수)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="childComments(comment, baseUrl, number, commentsPath)">
 <div class="add-a-comment pull-right" th:text="#{comment.oneline.comment.placeholder}"></div>
@@ -22,7 +23,7 @@
         </div>
     </div>
     <div th:if="${comment.canReply}" class="child-comment-input-form">
-        <th:block th:replace="~{common/child-comment-form :: childCommentForm(${baseUrl + '/' + commentsPath + '/' + number + '/comments'}, ${comment.id})}"></th:block>
+        <th:block th:replace="~{common/child-comment-form :: childCommentForm(${baseUrl + '/' + commentsPath + '/' + number + (commentsPath == 'post' ? '/comment' : '/comments')}, ${comment.id})}"></th:block>
     </div>
 </div>
 </th:block>

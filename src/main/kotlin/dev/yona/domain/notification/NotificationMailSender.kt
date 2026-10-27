@@ -105,7 +105,8 @@ class NotificationMailSender(
             val message = buildMessage(notification, to, bcc, lang) ?: return
             sender.send(message)
             val title = (main.title ?: "").replace("\"", "\\\"")
-            mailOut.info("\"{}\" {}", title, (to + bcc).map { it.email })
+            // v1.6는 받는 사람, 참조, 숨은 참조의 InternetAddress 집합을 그대로 기록한다("이름 <주소>")
+            mailOut.info("\"{}\" {}", title, message.allRecipients.orEmpty().toCollection(LinkedHashSet()))
         } catch (e: Exception) {
             log.warn("알림 메일을 보내지 못했다: {}", main.title, e)
         }

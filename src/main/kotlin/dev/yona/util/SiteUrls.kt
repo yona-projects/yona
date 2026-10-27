@@ -64,9 +64,24 @@ class SiteUrls(private val properties: YonaProperties) {
         }
         currentRequest()?.let { request -> request.getHeader("Host")?.let { return it } }
         return try {
-            InetAddress.getLocalHost().hostAddress
+            ServerAddress.default().hostAddress
         } catch (e: Exception) {
             "localhost"
         }
     }
+
+    /**
+     * 두 주소가 같은 자원을 가리키는지 본다 (v1.6 `TemplateHelper.resourceEquals`): 호스트, 포트, 경로가 모두 같아야 한다.
+     * 스킴이나 호스트가 없는 상대 주소는 설정한 사이트 주소로 채워 비교하고, 주소 형식이 틀리면 같지 않은 것으로 본다.
+     */
+    fun sameResource(a: String, b: String): Boolean = try {
+        val origin = java.net.URI(origin())
+        fun full(text: String): java.net.URI = java.net.URI(text).let { java.net.URI(it.scheme ?: origin.scheme, it.authority ?: origin.authority, it.path, it.query, it.fragment) }.normalize()
+        fun port(uri: java.net.URI) = if (uri.port != -1) uri.port else if (uri.scheme == "https") 443 else 80
+        val x = full(a); val y = full(b)
+        x.host == y.host && port(x) == port(y) && x.path == y.path
+    } catch (e: java.net.URISyntaxException) { false }
+
+    /** 목록으로 돌아가는 주소이다. [referer]가 [default]와 같은 자원이면 [referer]를, 아니면 [default]를 돌려준다 (v1.6 `TemplateHelper.urlToList`). */
+    fun urlToList(referer: String, default: String): String = if (sameResource(referer, default)) referer else default
 }

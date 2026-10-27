@@ -50,6 +50,23 @@ class MigrationPageTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `전용 문서 껍데기를 쓴다 (v1_6 migrationPageLayout)`() {
+        val (_, session) = login()
+        val doc = Jsoup.parse(mockMvc.perform(get("/migration").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertEquals("width=device-width, initial-scale=1.0", doc.selectFirst("meta[name=viewport]")!!.attr("content"))
+        assertEquals("no-cache", doc.selectFirst("meta[http-equiv=cache-control]")!!.attr("content"))
+        assertEquals(listOf("Montserrat", "Indie+Flower", "Muli"), doc.select("link[href^=https://fonts.googleapis.com]").map { it.attr("href").substringAfter("family=") })
+        // head: jquery 1.9.0, vendor.js, yona.Migration.js (본문 안이 아니다)
+        val headScripts = doc.head().select("script[src]").map { it.attr("src") }
+        assertTrue("/assets/javascripts/lib/jquery/jquery-1.9.0.js" in headScripts && "/assets/javascripts/lib/vendor.js" in headScripts && "/assets/javascripts/service/yona.Migration.js" in headScripts, headScripts.toString())
+        // CSS 순서: yobi.css 다음에 usermenu.css
+        val css = doc.head().select("link[rel=stylesheet]").map { it.attr("href") }
+        assertTrue(css.indexOf("/assets/stylesheets/yobi.css") < css.indexOf("/assets/stylesheets/usermenu.css"), css.toString())
+        // 푸터가 없다
+        assertTrue(doc.select("footer, #footer, .footer").isEmpty())
+    }
+
+    @Test
     fun `코드가 없으면 토큰 없이 화면을 연다`() {
         val (_, session) = login()
         val doc = Jsoup.parse(mockMvc.perform(get("/migration").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)

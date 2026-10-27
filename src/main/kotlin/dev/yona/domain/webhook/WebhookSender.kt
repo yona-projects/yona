@@ -64,7 +64,8 @@ class WebhookSender(
     private fun handle(webhookId: Long, payload: String, response: HttpResponse<String>, target: ThreadTarget?) {
         val status = response.statusCode()
         if (status < 200 || status >= 300) {
-            log.info("[Webhook] Request responded code  {}: {}", status, response.body())
+            // v1.6는 두 번째 값으로 응답 본문이 아니라 상태 문구(getStatusText)를 기록한다
+            log.info("[Webhook] Request responded code  {}: {}", status, statusText(status))
             log.info("[Webhook] Request payload: {}", payload)
             return
         }
@@ -87,4 +88,7 @@ class WebhookSender(
         const val CONNECT_TIMEOUT_SECONDS = 10L
         const val REQUEST_TIMEOUT_SECONDS = 120L
     }
+
+    /** HTTP 상태 문구이다 (예: `Not Found`). 알 수 없는 코드는 빈 문자열이다 (v1.6 `WSResponse.getStatusText`). */
+    private fun statusText(status: Int): String = org.springframework.http.HttpStatus.resolve(status)?.reasonPhrase.orEmpty()
 }

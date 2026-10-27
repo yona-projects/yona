@@ -84,7 +84,7 @@ class SignupService(
     }
 
     /** 관리자 승인제이면 `true`이다 (`signup.require.admin.confirm`). */
-    fun requiresAdminConfirm(): Boolean = properties.signup.requireAdminConfirm
+    fun requiresAdminConfirm(): Boolean = properties.signup.required()
 
     /** 이메일 인증을 쓰면 `true`이다 (`application.use.email.verification`). */
     fun usesEmailVerification(): Boolean = properties.useEmailVerification
@@ -143,6 +143,6 @@ class SignupService(
         fun isValidEmailFormat(email: String): Boolean = EMAIL_PATTERN.matches(email)
 
         /** Play `@Constraints.Email`와 같은 정규식이다. */
-        private val EMAIL_PATTERN = Regex("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+        private val EMAIL_PATTERN = Regex("\\b[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\\b")
     }
 }

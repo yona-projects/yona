@@ -32,7 +32,8 @@ class MailHtml(private val siteUrls: SiteUrls, private val properties: YonaPrope
     }
 
     private fun handleLinks(doc: Document) {
-        val hostname = properties.hostname
+        // v1.6 Config.getHostname(): 설정이 없으면 서버의 기본 호스트 이름이다
+        val hostname = dev.yona.markdown.SiteHostname(properties).name()
         for (attrName in listOf("src", "href")) {
             for (tag in doc.select("*[$attrName]")) {
                 var noreferrerRequired = properties.noreferrer && attrName == "href"

@@ -139,10 +139,11 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `행에 컬럼 키가 없으면 그 테이블만 되돌리고 다른 테이블은 계속한다`() {
+    fun `행에 컬럼 키가 없으면 그 테이블은 빈 채로 남고 다른 테이블은 계속한다 (v1_6 TRUNCATE는 즉시 확정)`() {
         jdbc.update("insert into label(name, category) values ('stay', 'c')")
         import("""{"LABEL": [{"id": 1, "category": "x"}], "PROPERTY": [{"id": 1, "name": "MAILBOX_LAST_SEEN_UID", "value": "ok"}]}""")
-        assertEquals(listOf("stay"), jdbc.queryForList("select name from label", String::class.java))
+        // 비우기는 이미 확정되었고 행 넣기만 되돌려지므로 이전 행도 남지 않는다 (P-10 결정 5)
+        assertEquals(emptyList(), jdbc.queryForList("select name from label", String::class.java))
         assertEquals(listOf("ok"), jdbc.queryForList("select $value from property", String::class.java))
     }
 

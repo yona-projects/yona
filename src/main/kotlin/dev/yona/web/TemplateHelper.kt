@@ -83,6 +83,12 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
      * 하루의 기준은 Joda의 `DateTime.now().minusDays(1)`보다 엄격히 이전인지이다. 상대 시간은 [MomentRelativeTime]이 만들며 en, ko, ja, ru, uz의 문구와
      * 반올림 경계를 따른다. 언어는 요청 언어가 아니라 서버 JVM 기본 로캘의 언어이다(v1.6 `Locale.getDefault().getLanguage()`).
      */
+    /**
+     * 기본 아바타 주소인지 본다. v1.6 템플릿은 `user.avatarUrl == UserApp.DEFAULT_AVATAR_URL`이면 `alt`, `width`, `height` 없이 `<img src>`만 그리고,
+     * 아니면 속성을 모두 붙인다. Gravatar에 접속할 수 없을 때 아바타 주소가 기본 아바타가 된다.
+     */
+    fun isDefaultAvatar(avatarUrl: String?): Boolean = avatarUrl == dev.yona.security.AvatarService.DEFAULT_AVATAR_URL
+
     @JvmOverloads
     fun socialDate(date: Date?, locale: Locale = Locale.getDefault(Locale.Category.FORMAT)): String {
         if (date == null) return ""
@@ -149,7 +155,15 @@ class TemplateHelper(private val messages: MessageSource, private val clock: Clo
         return if (ratio.isNaN()) 0 else ratio.toInt()
     }
 
-    private companion object {
+    companion object {
+        /** 영문 대소문자로만 된 무작위 문자열이다 (v1.6 에디터의 `RandomStringUtils.randomAlphabetic(8)`). 템플릿에서 `T(...)`로 부른다. */
+        @JvmStatic
+        fun randomAlphabetic(length: Int): String {
+            val letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            val random = java.util.concurrent.ThreadLocalRandom.current()
+            return String(CharArray(length) { letters[random.nextInt(letters.length)] })
+        }
+
         const val BINARY_BASE = 1024.0
         const val BINARY_UNITS = "KMGTPE"
     }

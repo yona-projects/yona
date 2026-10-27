@@ -38,7 +38,7 @@ class ReviewLinks(private val changes: PullRequestChangesService, private val si
         val pullRequest = thread.pullRequest
         if (pullRequest != null) {
             val project = requireNotNull(pullRequest.toProject)
-            val root = "/${project.owner}/${project.name}/pullRequest/${pullRequest.number}"
+            val root = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}"
             return (
                 when {
                     thread is CodeCommentThread && !thread.commitId.isNullOrEmpty() && !thread.prevCommitId.isNullOrEmpty() ->
@@ -51,6 +51,6 @@ class ReviewLinks(private val changes: PullRequestChangesService, private val si
         }
         val project = requireNotNull(thread.project)
         val commitId = (thread as? CodeCommentThread)?.commitId ?: (thread as? NonRangedCodeCommentThread)?.commitId ?: return ""
-        return "/${project.owner}/${project.name}/commit/$commitId"
+        return "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/commit/$commitId"
     }
 }

@@ -74,7 +74,7 @@ class LocalAuthenticator(
         if (source == null && !ldap.enabled) return LoginResult.InvalidCredentials
 
         if (source != null) {
-            if (properties.signup.requireAdminConfirm && source.state == UserState.LOCKED) return LoginResult.Locked
+            if (properties.signup.required() && source.state == UserState.LOCKED) return LoginResult.Locked
             if (source.state == UserState.DELETED) return LoginResult.Deleted
         }
 
@@ -93,11 +93,15 @@ class LocalAuthenticator(
     }
 
     /**
-     * Git HTTP 기본 인증으로 사용자를 찾는다 (v1.6 `BasicAuthAction.authenticate`). LDAP을 쓰면 LDAP으로, 아니면 로컬 비밀번호로 확인한다.
+     * Git HTTP 기본 인증으로 사용자를 찾는다 (v1.6 `BasicAuthAction.authenticate`). LDAP을 쓰면 LDAP으로, 아니면 로그인 ID와 로컬 비밀번호로 확인한다.
      * 틀렸으면 `null`이다.
      */
-    fun authenticateBasic(loginId: String, password: String): User? =
-        if (ldap.enabled) ldap.authenticate(loginId, password).user else (authenticate(loginId, password) as? LoginResult.Success)?.user
+    fun authenticateBasic(loginId: String, password: String): User? {
+        if (ldap.enabled) return ldap.authenticate(loginId, password).user
+        // v1.6 authenticateWithPlainPassword는 로그인 ID로만 찾는다(이메일은 받지 않는다)
+        val source = users.findByLoginIdIgnoreCase(loginId) ?: return null
+        return (authenticate(requireNotNull(source.loginId), password) as? LoginResult.Success)?.user
+    }
 
     private fun passwordMatches(user: User, password: String): Boolean {
         val salt = user.passwordSalt

@@ -462,7 +462,7 @@ class IssueLabelTest : AbstractIntegrationTest() {
         val dark = newLabel(project, type, "dark", "#3f51b5")
         val short = newLabel(project, type, "short", "#000")
         val css = mockMvc.perform(get("${base(project)}/issue/labels.css")).andExpect(status().isOk)
-            .andExpect(header().string("Content-Type", "text/css;charset=UTF-8")).andReturn().response.contentAsString
+            .andExpect(header().string("Content-Type", "text/css")).andReturn().response.contentAsString
         assertTrue(".issue-label[data-label-id=\"${light.id}\"]{" in css)
         assertTrue("box-shadow: inset 2px 0 0px #ffeb3b;" in css)
         val active = { l: IssueLabel -> css.substringAfter(".issue-label.active[data-label-id=\"${l.id}\"]{").substringBefore("}") }

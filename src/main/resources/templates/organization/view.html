@@ -38,7 +38,7 @@
                         <div class="info-wrap">
                             <div class="owner-avatar-wrap hide-in-mobile">
                                 <a th:href="@{/{owner}/{name}(owner=${project.owner},name=${project.name})}">
-                                    <img th:if="${row.view.hasLogo}" th:src="${row.view.logoUrl}" th:alt="${project.name}"/>
+                                    <img th:if="${row.view.hasLogo}" th:src="${row.view.logoUrl}" th:alt="${project.owner + '/' + project.name}"/>
                                 </a>
                             </div>
                             <div style="float:left">

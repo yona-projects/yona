@@ -74,7 +74,7 @@ class PostingCommentService(
         val id = requireNotNull(comment.id)
         val posting = comment.posting
         attachments.deleteAll(ResourceType.NONISSUE_COMMENT, id)
-        issueService.deleteNotificationEvents(ResourceType.NONISSUE_COMMENT, id.toString())
+        issueService.deleteResourceRelations(ResourceType.NONISSUE_COMMENT, id.toString())
         postingComments.findByParentCommentIdOrderByIdAsc(id).forEach { it.parentComment = null }
         postingComments.flush()
         postingComments.delete(comment)

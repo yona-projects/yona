@@ -59,7 +59,7 @@ data class TimelineEvent(
 
 /** 오른쪽 리뷰 카드 한 장이다 (v1.6 `partial_reviewlist`). */
 data class PullRequestReviewCard(
-    val href: String, val state: String, val outdated: Boolean, val content: String, val commentCount: Int, val ago: String, val agoTitle: String, val avatarUrl: String
+    val href: String, val state: String, val outdated: Boolean, val content: String, val commentCount: Int, val ago: String, val agoTitle: String, val avatarUrl: String, val authorName: String? = null
 )
 
 /** 변경 내용의 커밋 선택 상자의 선택지이다. */

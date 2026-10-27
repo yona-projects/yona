@@ -133,7 +133,7 @@ class SearchService(private val entityManager: EntityManager, private val proper
     /** 질의의 조건절과 매개변수를 만든다. */
     private inner class Query(private val type: SearchType, private val scope: SearchScope, keyword: String, private val viewer: User?) {
         val spec = spec(type)
-        private val params = linkedMapOf<String, Any?>("kw" to "%" + escapeLike(keyword.lowercase()) + "%")
+        private val params = linkedMapOf<String, Any?>("kw" to "%" + keyword.lowercase() + "%")
         private val where: String = build()
 
         fun where(): String = "where $where"
@@ -145,7 +145,7 @@ class SearchService(private val entityManager: EntityManager, private val proper
         }
 
         private fun keywordMatches(): String =
-            spec.fields.joinToString(" or ", "(", ")") { "lower(cast($it as string)) like :kw escape '!'" }
+            spec.fields.joinToString(" or ", "(", ")") { "lower(cast($it as string)) like :kw" }
 
         private fun build(): String = when (type) {
             SearchType.USER -> userCondition()
@@ -232,7 +232,6 @@ class SearchService(private val entityManager: EntityManager, private val proper
             .setParameter("org", organizationId).setParameter("user", userId).singleResult > 0
 
     /** `like`의 특수 문자(`%`, `_`)와 이스케이프 문자(`!`)를 그대로 찾도록 이스케이프한다. */
-    private fun escapeLike(text: String): String = text.replace("!", "!!").replace("%", "!%").replace("_", "!_")
 
     companion object {
         private const val PAGE_SIZE = 20

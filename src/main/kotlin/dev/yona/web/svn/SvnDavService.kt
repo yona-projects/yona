@@ -63,7 +63,7 @@ class SvnDavService(
         val servlet = DAVServlet().apply { init(JavaxServletBridge.config(File(svn.rootDirectory(), "$owner/").absolutePath, properties.server)) }
         servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), JavaxServletBridge.response(response))
         response.flushBuffer()
-        user?.let { recentVisits.record(it, project) }
+        recentVisits.visits(user, project)
     }
 
     private fun text(response: HttpServletResponse, status: Int, body: String?) {

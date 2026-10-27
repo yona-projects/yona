@@ -67,20 +67,24 @@ class SearchRowAssembler(
 
     private fun message(key: String): String = messages.getMessage(key, null, key, LocaleContextHolder.getLocale()) ?: key
 
-    private fun author(loginId: String?, viewer: User?): Pair<User?, String?> {
-        val found = loginId?.let { users.findByLoginIdIgnoreCase(it) }
-        return found to found?.takeIf { !it.name.isNullOrEmpty() }?.let { UserDisplay.of(it, viewer?.lang) }
+    /**
+     * 작성자의 로그인 ID와 표시 이름이다. v1.6 `User.findByLoginId`는 사용자가 없으면 `NullUser`(이름 `user.notExists.name`, 로그인 ID 빈 문자열)를
+     * 돌려주므로 그 이름과 빈 로그인 ID로 링크를 그린다. 사용자는 있는데 이름이 비어 있으면 표시 이름이 없다(`noAuthor` 문구).
+     */
+    private fun author(loginId: String?, viewer: User?): Pair<String, String?> {
+        val found = loginId?.let { users.findByLoginIdIgnoreCase(it) } ?: return "" to message("user.notExists.name")
+        return found.loginId.orEmpty() to found.takeIf { !it.name.isNullOrEmpty() }?.let { UserDisplay.of(it, viewer?.lang) }
     }
 
     private fun row(
         postId: String?, titleUrl: String?, titleText: String?, titleClass: Boolean, contents: String?, keyword: String, snippetsUrl: String?,
         project: Project?, scoped: Boolean, authorLoginId: String?, created: java.util.Date?, viewer: User?, noAuthorKey: String = "issue.noAuthor"
     ): SearchItemRow {
-        val (user, name) = author(authorLoginId, viewer)
+        val (userLoginId, name) = author(authorLoginId, viewer)
         return SearchItemRow(
             postId = postId, titleUrl = titleUrl, titleText = titleText, titleClass = titleClass, snippets = snippets(contents, keyword), snippetsUrl = snippetsUrl,
             projectLabel = label(project, scoped), projectUrl = project?.let { url(it, "") },
-            authorLoginId = user?.loginId, authorName = name, noAuthorText = if (noAuthorKey == "posting.noAuthor") noAuthorKey else message(noAuthorKey),
+            authorLoginId = userLoginId, authorName = name, noAuthorText = if (noAuthorKey == "posting.noAuthor") noAuthorKey else message(noAuthorKey),
             createdTitle = helper.dateString(created), createdText = helper.agoOrDateString(created)
         )
     }
@@ -148,6 +152,6 @@ class SearchRowAssembler(
 
     private companion object {
         const val THRESHOLD = 40
-        const val AVATAR_SIZE = 32
+        const val AVATAR_SIZE = 64
     }
 }

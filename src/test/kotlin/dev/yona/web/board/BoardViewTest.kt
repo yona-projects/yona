@@ -71,6 +71,7 @@ class BoardViewTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var avatars: dev.yona.security.AvatarService
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
@@ -233,6 +234,33 @@ class BoardViewTest : AbstractIntegrationTest() {
         assertEquals(1, doc.select("ul.comments > li.comment").size)
         assertTrue(doc.select("button[data-toggle=comment-edit]").isNotEmpty())
         assertEquals("${base(project)}/post/1/comment/${parent.id}/delete", doc.selectFirst("button[data-toggle=comment-delete]")!!.attr("data-request-uri"))
+    }
+
+    @Test
+    fun `작성자 아바타는 32 크기이고 댓글 아바타는 64 크기이다 (v1_6 avatarUrl 인자)`() {
+        val before = avatars.gravatarReachable
+        avatars.gravatarReachable = true
+        try {
+            val project = newProject(); val author = join(newUser(), project)
+            val p = post(project, author)
+            comment(p, author, "댓글")
+            val doc = doc(project)
+            assertTrue(doc.selectFirst(".author-info .avatar-wrap img")!!.attr("src").contains("s=32&"), doc.select(".author-info").html())
+            assertTrue(doc.selectFirst("ul.comments .comment-avatar img")!!.attr("src").contains("s=64&"), doc.select("ul.comments").html())
+        } finally { avatars.gravatarReachable = before }
+    }
+
+    @Test
+    fun `대댓글 폼은 게시글 댓글 등록 주소로 보내고 작성자 이름은 댓글에 저장된 이름이다`() {
+        // v1.6: BoardApp.newComment는 POST /:user/:project/post/:number/comment (이슈와 달리 단수)이다
+        val project = newProject(); val author = join(newUser(), project); val other = join(newUser(), project)
+        val p = post(project, author)
+        val saved = other.name
+        comment(p, other, "부모")
+        other.name = "바뀐 이름"; users.save(other)
+        val doc = doc(project, session = login(author))
+        assertEquals("${base(project)}/post/1/comment", doc.selectFirst(".child-comment-input-form form")!!.attr("action"))
+        assertEquals(saved, doc.selectFirst("ul.comments > li.comment .comment_author strong")!!.text())
     }
 
     @Test

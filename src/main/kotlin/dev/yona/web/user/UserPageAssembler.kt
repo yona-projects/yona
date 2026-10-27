@@ -54,7 +54,8 @@ class UserPageAssembler(
     private val projectViews: ProjectViewFactory,
     private val avatars: AvatarService,
     private val helper: TemplateHelper,
-    private val clock: Clock
+    private val clock: Clock,
+    private val nullUser: dev.yona.web.NullUserDisplay
 ) {
 
     /** 프로필 상자의 값이다. [viewer]는 보는 사람이고 익명이면 `null`이다. */
@@ -109,7 +110,8 @@ class UserPageAssembler(
             val changed = issue.createdDate != issue.updatedDate
             UserIssueRow(
                 item = item, owner = project.owner.orEmpty(), project = project.name.orEmpty(), open = issue.state == State.OPEN,
-                authorPureName = author?.takeIf { !it.name.isNullOrEmpty() }?.let { UserDisplay.pureName(it, language) },
+                authorLoginId = author?.loginId ?: dev.yona.web.NullUserDisplay.LOGIN_ID,
+                authorPureName = if (author == null) nullUser.name() else author.takeIf { !it.name.isNullOrEmpty() }?.let { UserDisplay.pureName(it, language) },
                 assigneePureName = issue.assignee?.user?.let { UserDisplay.pureName(it, language) },
                 milestoneVisible = issue.milestone != null && projectViews.of(project).menuSetting.milestone == true,
                 timeTitle = if (changed) "Last Updated ${helper.dateString(issue.updatedDate)}" else "Created at ${helper.dateString(issue.createdDate)}",

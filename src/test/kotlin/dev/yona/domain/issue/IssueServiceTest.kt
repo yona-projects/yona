@@ -37,6 +37,8 @@ import kotlin.test.assertTrue
 class IssueServiceTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var service: IssueService
+    @Autowired private lateinit var watches: dev.yona.domain.misc.WatchRepository
+    @Autowired private lateinit var unwatches: dev.yona.domain.misc.UnwatchRepository
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var milestones: MilestoneRepository
@@ -226,6 +228,18 @@ class IssueServiceTest : AbstractIntegrationTest() {
         assertEquals(0, titleHeads.findAll().count { it.project?.id == project.id && it.headKeyword == "버그" })
         val deleted = events.stream(IssueDeletedActivity::class.java).toList().single()
         assertEquals(parent.number, deleted.issueNumber); assertEquals("[버그] 부모", deleted.title)
+    }
+
+    @Test
+    fun `이슈를 지우면 그 이슈의 구독과 구독 해제 기록도 지운다 (v1_6 ResourcePersistAdapter)`() {
+        val project = project(); val author = user(); val other = user()
+        val issue = service.create(project, author, input())
+        val id = issue.id.toString()
+        watches.save(dev.yona.domain.misc.Watch(user = other, resourceType = ResourceType.ISSUE_POST, resourceId = id))
+        unwatches.save(dev.yona.domain.misc.Unwatch(user = author, resourceType = ResourceType.ISSUE_POST, resourceId = id))
+        service.delete(issue, author)
+        assertEquals(0, watches.findByResourceTypeAndResourceId(ResourceType.ISSUE_POST, id).size)
+        assertEquals(0, unwatches.findByResourceTypeAndResourceId(ResourceType.ISSUE_POST, id).size)
     }
 
     @Test

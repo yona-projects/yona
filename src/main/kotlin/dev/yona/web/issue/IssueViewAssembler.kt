@@ -92,7 +92,7 @@ class IssueViewAssembler(
             createdTitle = helper.dateString(issue.createdDate), createdAgo = helper.agoOrDateString(issue.createdDate),
             updatedTime = issue.updatedDate?.time ?: 0, updatedByName = issue.updatedByAuthorId?.let { users.findById(it).orElse(null) }?.let { UserDisplay.pureName(it, lang) },
             updatedAgo = helper.agoOrDateString(issue.updatedDate),
-            me = viewer?.let { person(it, lang) }, author = author?.let { person(it, lang) }, favorite = viewer != null && isFavorite(viewer, issueId),
+            me = viewer?.let { person(it, lang) }, author = author?.let { person(it, lang).copy(avatarUrl = avatars.avatarUrl(it, 32)) }, favorite = viewer != null && isFavorite(viewer, issueId),
             watching = viewer != null && isWatching(viewer, issueId), watchable = accessControl.isAllowed(viewer, resource, Operation.WATCH),
             canUpdate = canUpdate, canDelete = accessControl.isAllowed(viewer, resource, Operation.DELETE),
             deletable = issueService.canBeDeleted(issue), canVoteOrComment = accessControl.isResourceCreatable(viewer, resource, ResourceType.ISSUE_COMMENT),

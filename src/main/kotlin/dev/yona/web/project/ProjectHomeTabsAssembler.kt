@@ -92,6 +92,6 @@ class ProjectHomeTabsAssembler(
     }
 
     private companion object {
-        const val SMALL_AVATAR = 20
+        const val SMALL_AVATAR = 64
     }
 }

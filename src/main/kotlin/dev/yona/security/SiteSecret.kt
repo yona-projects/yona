@@ -61,7 +61,8 @@ class SiteSecret(
     @Transactional
     fun configure(name: String?, email: String?, password: String) {
         val admin = requireNotNull(users.findByLoginIdIgnoreCase(DEFAULT_ADMIN_LOGIN_ID)) { "기본 관리자 계정이 없습니다." }
-        val salt = LegacyPasswordHasher.generateSalt()
+        // v1.6 SiteAdmin.updateDefaultSiteAdmin: 솔트를 16바이트 난수의 Arrays.toString 문자열("[12, -3, ...]")로 만든다. 일반 가입은 Base64이다
+        val salt = java.util.Arrays.toString(ByteArray(16).also { java.security.SecureRandom().nextBytes(it) })
         admin.name = name
         admin.email = email
         admin.passwordSalt = salt

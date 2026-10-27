@@ -29,6 +29,15 @@ class MailHtmlTest {
     }
 
     @Test
+    fun `호스트 이름 설정이 없으면 서버의 호스트 이름과 같은 링크는 noreferrer를 붙이지 않는다 (v1_6 Config_getHostname)`() {
+        val host = dev.yona.util.ServerAddress.default().hostName
+        val mail = MailHtml(SiteUrls(YonaProperties(scheme = "https", noreferrer = true)), YonaProperties(noreferrer = true))
+        val result = mail.finish("<a href=\"https://$host/x\">내부</a><a href=\"https://other.example.org/y\">외부</a>")
+        assertTrue(result.contains("<a href=\"https://$host/x\">"), result)
+        assertTrue(result.contains("rel=\" noreferrer\""), result)
+    }
+
+    @Test
     fun `noreferrer를 켜면 외부 링크에만 rel을 붙인다`() {
         val result = html(noreferrer = true).finish("<a href=\"https://other.com/x\">외부</a><a href=\"https://yona.example.com/y\">내부</a><a href=\"/z\">상대</a>")
         assertTrue(result.contains("<a href=\"https://other.com/x\" rel=\" noreferrer\">"), result)

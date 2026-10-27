@@ -16,7 +16,7 @@ class SiteHostname(private val properties: YonaProperties) {
     fun name(): String {
         if (properties.hostname.isNotEmpty()) return properties.hostname
         return try {
-            InetAddress.getLocalHost().hostName
+            dev.yona.util.ServerAddress.default().hostName
         } catch (e: Exception) {
             "localhost"
         }

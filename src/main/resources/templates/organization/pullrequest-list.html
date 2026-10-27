@@ -41,7 +41,8 @@
                             <li th:each="req : ${rows}" class="post-item title" th:href="@{${req.href}}">
                                 <div class="span10 span-hard-wrap">
                                     <a th:if="${req.contributor != null}" th:href="@{/{u}(u=${req.contributor.loginId})}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}">
-                                        <img th:src="${req.contributor.avatarUrl}" th:alt="${req.contributor.name}" width="32" height="32"/>
+                                        <img th:if="${helper.isDefaultAvatar(req.contributor.avatarUrl)}" th:src="${req.contributor.avatarUrl}"/>
+                                        <img th:unless="${helper.isDefaultAvatar(req.contributor.avatarUrl)}" th:src="${req.contributor.avatarUrl}" th:alt="${req.contributor.name}" width="32" height="32"/>
                                     </a>
                                     <div class="title-wrap">
                                         <span class="post-id" th:text="${req.number}"></span>
@@ -70,7 +71,8 @@
                                 <div class="span2 hide-in-mobile">
                                     <div class="mt5 pull-right hide-in-mobile">
                                         <a th:if="${req.receiver != null}" th:href="@{/{u}(u=${req.receiver.loginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${req.receiver.name}">
-                                            <img th:src="${req.receiver.avatarUrl}" width="32" height="32" th:alt="${req.receiver.name}">
+                                            <img th:if="${helper.isDefaultAvatar(req.receiver.avatarUrl)}" th:src="${req.receiver.avatarUrl}">
+                                            <img th:unless="${helper.isDefaultAvatar(req.receiver.avatarUrl)}" th:src="${req.receiver.avatarUrl}" width="32" height="32" th:alt="${req.receiver.name}">
                                         </a>
                                         <div th:unless="${req.receiver != null}" class="empty-avatar-wrap">&nbsp;</div>
                                     </div>

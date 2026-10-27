@@ -300,6 +300,26 @@ class SearchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `키워드의 퍼센트와 밑줄은 와일드카드이다 (v1_6 Ebean icontains는 이스케이프하지 않는다)`() {
+        val owner = newUser(); val p = project(owner, "wildcard")
+        issue(p, "wildxcard 제목", owner); issue(p, "wildcard 제목", owner); issue(p, "무관한 제목", owner)
+        // '_'는 한 글자 와일드카드라 wild_card는 wildxcard만 찾고 wildcard는 찾지 않는다
+        assertEquals(setOf("wildxcard 제목"), titles(all(null, "issue", "wild_card")).toSet())
+        // '%'는 임의 길이 와일드카드이다
+        assertEquals(setOf("wildxcard 제목", "wildcard 제목"), titles(all(null, "issue", "wild%card")).toSet())
+    }
+
+    @Test
+    fun `작성자 행이 없으면 NullUser의 이름 링크를 그린다 (v1_6 User_findByLoginId)`() {
+        val owner = newUser(); val p = project(owner, "nulluser"); val one = issue(p, "원 이슈", owner)
+        issueComments.save(IssueComment(contents = "ghostneedle 내용", authorId = -1, authorLoginId = "", authorName = "", issue = one, projectId = p.id!!, createdDate = Date()))
+        val meta = all(null, "issue_comment", "ghostneedle").selectFirst("li.search-list-item .search-meta-info a.meta-item[data-toggle=tooltip]")!!
+        // NullUser: 이름은 user.notExists.name, 로그인 ID는 빈 문자열이라 링크는 "/"이다
+        assertEquals("/", meta.attr("href"))
+        assertEquals("User exists not", meta.text().trim())
+    }
+
+    @Test
     fun `게시글과 게시글 댓글을 찾는다`() {
         val owner = newUser(); val p = project(owner, "board")
         val post = postings.save(Posting(project = p, number = ++number, title = "게시 제목", body = "postneedle 본문", authorId = owner.id, authorLoginId = owner.loginId, authorName = owner.name, createdDate = Date(), updatedDate = Date()))

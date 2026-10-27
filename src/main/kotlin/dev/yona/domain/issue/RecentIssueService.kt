@@ -15,7 +15,13 @@ import java.util.Date
  * v1.6은 이 작업을 비동기로 실행했다. v2는 요청 트랜잭션 안에서 처리한다([decisions.md] A-15).
  */
 @Service
-class RecentIssueService(private val recentIssues: RecentIssueRepository) {
+class RecentIssueService(private val recentIssues: RecentIssueRepository, private val siteUrls: dev.yona.util.SiteUrls) {
+
+    /**
+     * 이슈나 게시글의 주소이다. v1.6은 리버스 라우트(`routes.IssueApp.issue`)로 주소를 만들어 컨텍스트 경로를 앞에 붙이고 경로 조각을 퍼센트 인코딩한다.
+     */
+    private fun routeUrl(project: dev.yona.domain.project.Project, kind: String, number: Long?): String =
+        siteUrls.path("/" + listOf(project.owner.orEmpty(), project.name.orEmpty()).joinToString("/") { dev.yona.util.UrlPaths.encode(it) } + "/$kind/$number")
 
     /** [user]가 [issue]를 봤음을 기록한다. 익명이면 아무것도 하지 않는다. */
     @Transactional
@@ -25,7 +31,7 @@ class RecentIssueService(private val recentIssues: RecentIssueRepository) {
         recentIssues.flush()
         val project = requireNotNull(issue.project)
         recentIssues.save(
-            RecentIssue(user = user, issue = issue, title = issue.title, url = "/${project.owner}/${project.name}/issue/${issue.number}", createdDate = Date())
+            RecentIssue(user = user, issue = issue, title = issue.title, url = routeUrl(project, "issue", issue.number), createdDate = Date())
         )
         recentIssues.findByUserIdOrderByIdAsc(userId).let { all -> all.take(maxOf(0, all.size - MAX_RECENT_ISSUES)).forEach { recentIssues.delete(it) } }
     }
@@ -42,7 +48,7 @@ class RecentIssueService(private val recentIssues: RecentIssueRepository) {
         recentIssues.flush()
         val project = requireNotNull(posting.project)
         recentIssues.save(
-            RecentIssue(user = user, postingId = postingId, title = posting.title, url = "/${project.owner}/${project.name}/post/${posting.number}", createdDate = Date())
+            RecentIssue(user = user, postingId = postingId, title = posting.title, url = routeUrl(project, "post", posting.number), createdDate = Date())
         )
         recentIssues.findByUserIdOrderByIdAsc(userId).let { all -> all.take(maxOf(0, all.size - MAX_RECENT_ISSUES)).forEach { recentIssues.delete(it) } }
     }

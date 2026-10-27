@@ -50,6 +50,9 @@ class AttachmentController(
     private val listing: AttachmentListing
 ) {
 
+    private val log = org.slf4j.LoggerFactory.getLogger(AttachmentController::class.java)
+
+
     private val json = JsonMapper.builder().build()
 
 
@@ -136,11 +139,24 @@ class AttachmentController(
 
         attachments.delete(attachment)
         val hash = attachment.hash.orEmpty()
+        logIfOriginFileIsNotValid(hash)
         return text(
             HttpStatus.OK,
             if (attachments.fileExists(hash)) "The attachment is removed successfully, but its origin file still exists."
             else "Both the attachment and its origin file are removed successfully."
         )
+    }
+
+    /** 지운 뒤 DB 참조와 디스크 원본이 어긋나면 기록한다 (v1.6 `AttachmentApp.logIfOriginFileIsNotValid`). 응답에는 영향이 없다. */
+    private fun logIfOriginFileIsNotValid(hash: String) {
+        val fileExists = attachments.fileExists(hash)
+        val referred = attachments.exists(hash)
+        if (!fileExists && referred) {
+            log.error("The origin file '{}' cannot be found even if the file is still referred by some attachments.", hash)
+        }
+        if (fileExists && !referred) {
+            log.warn("The attachment is removed successfully, but its origin file '{}' still exists abnormally even if the file referred by nowhere.", hash)
+        }
     }
 
     private fun info(attachment: dev.yona.domain.misc.Attachment, url: String, name: String? = attachment.name): Map<String, String> = mapOf(

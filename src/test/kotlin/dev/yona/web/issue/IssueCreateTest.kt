@@ -244,7 +244,7 @@ class IssueCreateTest : AbstractIntegrationTest() {
     fun `댓글에서 만든 이슈는 원 댓글의 이슈에 파생 이슈 댓글을 단다`() {
         val project = newProject(); val user = join(newUser(), project)
         val originProject = newProject()
-        val origin = issues.save(Issue(project = originProject, number = 1, title = "원본", state = State.OPEN, numOfComments = 1, createdDate = Date(), updatedDate = Date()))
+        val origin = issues.save(Issue(project = originProject, number = 1, title = "원본", state = State.OPEN, numOfComments = 1, createdDate = Date(1_000), updatedDate = Date(1_000)))
         val comment = dev.yona.domain.comment.IssueComment(contents = "고쳐야 할 점", createdDate = Date(), authorLoginId = "someone", issue = origin, projectId = originProject.id!!)
         entityManager.persist(comment); entityManager.flush()
         mockMvc.perform(
@@ -256,6 +256,8 @@ class IssueCreateTest : AbstractIntegrationTest() {
             .setParameter("id", origin.id).setParameter("login", user.loginId).resultList.single()
         assertEquals("Derived issue: http://yona.test:9000${base(project)}/issue/1", added.contents)
         assertEquals(comment.id, added.parentComment?.id)
+        // v1.6 newReferComment는 newComment와 달리 이슈의 updatedDate를 바꾸지 않는다
+        assertEquals(Date(1_000), issues.findById(origin.id!!).get().updatedDate)
     }
 
     @Test

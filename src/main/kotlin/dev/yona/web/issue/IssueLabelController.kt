@@ -177,8 +177,9 @@ class IssueLabelController(
         if (request.getHeader(HttpHeaders.IF_NONE_MATCH) == etag) {
             return ResponseEntity.status(HttpStatus.NOT_MODIFIED).header(HttpHeaders.ETAG, etag).build<Void>()
         }
-        return ResponseEntity.ok().header(HttpHeaders.ETAG, etag).contentType(MediaType("text", "css", Charsets.UTF_8))
-            .body(IssueLabelStyles.css(projectLabels))
+        // v1.6 IssueLabelApp은 Content-Type을 charset 없이 text/css로 정한다. 바이트로 내보내면 문자열 변환기가 charset을 덧붙이지 않는다
+        return ResponseEntity.ok().header(HttpHeaders.ETAG, etag).contentType(MediaType("text", "css"))
+            .body(IssueLabelStyles.css(projectLabels).toByteArray(Charsets.UTF_8))
     }
 
     /** 다른 프로젝트의 라벨을 복사한다. 읽을 수 없는 프로젝트이거나 없는 프로젝트면 아무것도 하지 않는다. */

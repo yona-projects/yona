@@ -64,7 +64,8 @@
                                 <td class="date" th:text="${r.date}"></td>
                                 <td class="author">
                                     <a th:if="${r.authorHref != null}" th:href="${r.authorHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${r.authorLoginId}">
-                                        <img th:src="${r.avatarUrl}" th:alt="${r.authorName}" width="32" height="32"/>
+                                        <img th:if="${helper.isDefaultAvatar(r.avatarUrl)}" th:src="${r.avatarUrl}"/>
+                                        <img th:unless="${helper.isDefaultAvatar(r.avatarUrl)}" th:src="${r.avatarUrl}" th:alt="${r.authorName}" width="32" height="32"/>
                                     </a>
                                     <span th:if="${r.authorHref == null and r.authorEmail != null}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${r.authorEmail}">
                                         <img th:src="${r.avatarUrl}">
@@ -117,6 +118,21 @@ $(document).ready(function(){
                     $yobi.notify(/*[[#{code.copyCommitId.copied}]]*/ "", 1000);
                     e.clearSelection();
                 });
+            } else {
+                // Use zclipboard(Flash based) if not support clipboard api.
+                if (!welBtnCopy.data("zclipped")){
+                    welBtnCopy.data("zclipped", true);
+
+                    $(this).zclip({
+                        "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
+                        "copy": function(){
+                            return $(this).data("commitid");
+                        },
+                        "afterCopy": function(){
+                            $yobi.notify(/*[[#{code.copyCommitId.copied}]]*/ "", 1000);
+                        }
+                    });
+                }
             }
         });
     });

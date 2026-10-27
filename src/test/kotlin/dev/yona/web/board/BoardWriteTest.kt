@@ -187,6 +187,15 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `README_markdown만 있으면 README로 열어도 본문을 채우지 않는다 (v1_6 project_readme 존재 확인)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        GitTestSupport.commitFiles(repositories, project, mapOf("README.markdown" to "# 마크다운 확장자\n".toByteArray()))
+        val doc = Jsoup.parse(get(project, "postform?readme=", login(member)).andExpect(status().isOk).andReturn().response.contentAsString)
+        // v1.6은 존재 확인(readme())이 README.md/readme.md만 보므로 .markdown만 있으면 본문이 비어 있다
+        assertEquals("", doc.selectFirst("textarea[name=body]")!!.text())
+    }
+
+    @Test
     fun `이슈 템플릿으로 열면 안내가 있고 업로더가 없다`() {
         val project = newProject(); val member = join(newUser(), project)
         GitTestSupport.commitFiles(repositories, project, mapOf("ISSUE_TEMPLATE.md" to "템플릿 본문".toByteArray()))

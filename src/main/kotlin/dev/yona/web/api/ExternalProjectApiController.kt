@@ -79,6 +79,7 @@ class ExternalProjectApiController(
     private val postings: PostingRepository,
     private val assignees: AssigneeRepository,
     private val memberService: ProjectMemberService,
+    private val userLookup: dev.yona.domain.user.UserLookup,
     private val receivers: NotificationReceivers,
     private val issueJson: IssueJson,
     private val users: UserRepository,
@@ -119,7 +120,7 @@ class ExternalProjectApiController(
             return requests.message(HttpStatus.FORBIDDEN, "'${viewer.name}' has no permission")
         }
         val members = json.findValue("members")?.takeIf { it.isArray }?.toList().orEmpty().mapNotNull { node ->
-            val user = node.findValue("email")?.asString()?.let { users.findByEmail(it) } ?: return@mapNotNull null
+            val user = node.findValue("email")?.asString()?.let { userLookup.findByEmail(it) } ?: return@mapNotNull null
             user to node.findValue("role")?.asString().orEmpty()
         }
         val project = externalProjects.create(

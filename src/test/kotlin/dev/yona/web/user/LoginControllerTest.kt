@@ -87,6 +87,15 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `redirectUrl 끝의 슬래시는 버린다 (v1_6 encodedPath의 Java split)`() {
+        newUser("bob2")
+        mockMvc.perform(post("/users/login").param("loginIdOrEmail", "bob2").param("password", "1234").param("redirectUrl", "/bob/p/"))
+            .andExpect(redirectedUrl("/bob/p"))
+        mockMvc.perform(post("/users/login").param("loginIdOrEmail", "bob2").param("password", "1234").param("redirectUrl", "/"))
+            .andExpect(redirectedUrl("/"))
+    }
+
+    @Test
     fun `패스워드가 틀리면 redirectUrl을 유지한 채 로그인 폼으로 돌아간다`() {
         newUser("carol")
         mockMvc.perform(
@@ -163,6 +172,13 @@ class LoginControllerTest : AbstractIntegrationTest() {
             post("/users/login").param("loginIdOrEmail", "gina").param("password", "1234").param("rememberMe", "true")
         ).andExpect(cookie().value("yobi.token", "gina:${user.password}"))
             .andExpect(cookie().maxAge("yobi.token", 30 * 24 * 60 * 60))
+    }
+
+    @Test
+    fun `체크박스가 보내는 on도 로그인 유지로 읽는다 (Play 폼 바인딩)`() {
+        val user = newUser("gina2")
+        mockMvc.perform(post("/users/login").param("loginIdOrEmail", "gina2").param("password", "1234").param("rememberMe", "on"))
+            .andExpect(cookie().value("yobi.token", "gina2:${user.password}"))
     }
 
     @Test

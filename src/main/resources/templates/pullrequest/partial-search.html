@@ -68,7 +68,8 @@
                         <li th:each="r : ${rows}" class="post-item title" th:attr="href=${r.href}">
                             <div class="span10 span-hard-wrap">
                                 <a th:if="${r.contributor != null}" th:href="${r.contributor.href}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${r.contributor.loginId}">
-                                    <img th:src="${r.contributor.avatarUrl}" th:alt="${r.contributor.name}" width="32" height="32"/>
+                                    <img th:if="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}"/>
+                                    <img th:unless="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}" th:alt="${r.contributor.name}" width="32" height="32"/>
                                 </a>
                                 <div class="title-wrap">
                                     <span class="post-id" th:text="${r.number}"></span>
@@ -104,7 +105,8 @@
                             <div class="span2 hide-in-mobile">
                                 <div class="mt5 pull-right hide-in-mobile">
                                     <a th:if="${r.receiver != null}" th:href="${r.receiver.href}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${r.receiver.name}">
-                                        <img th:src="${r.receiver.avatarUrl}" width="32" height="32" th:alt="${r.receiver.name}">
+                                        <img th:if="${helper.isDefaultAvatar(r.receiver.avatarUrl)}" th:src="${r.receiver.avatarUrl}">
+                                        <img th:unless="${helper.isDefaultAvatar(r.receiver.avatarUrl)}" th:src="${r.receiver.avatarUrl}" width="32" height="32" th:alt="${r.receiver.name}">
                                     </a>
                                     <div th:if="${r.receiver == null}" class="empty-avatar-wrap">&nbsp;</div>
                                 </div>

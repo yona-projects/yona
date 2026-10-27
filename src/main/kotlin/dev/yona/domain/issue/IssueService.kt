@@ -198,14 +198,14 @@ class IssueService(
         comments.forEach { comment ->
             val commentId = requireNotNull(comment.id)
             attachments.deleteAll(ResourceType.ISSUE_COMMENT, commentId)
-            deleteNotificationEvents(ResourceType.ISSUE_COMMENT, commentId.toString())
+            deleteResourceRelations(ResourceType.ISSUE_COMMENT, commentId.toString())
             entityManager.remove(comment)
         }
         entityManager.createQuery("select e from IssueEvent e where e.issue.id = :id", IssueEvent::class.java).setParameter("id", id).resultList
             .forEach { entityManager.remove(it) }
         titleHeads.delete(project, issue.title)
         attachments.deleteAll(ResourceType.ISSUE_POST, id)
-        deleteNotificationEvents(ResourceType.ISSUE_POST, id.toString())
+        deleteResourceRelations(ResourceType.ISSUE_POST, id.toString())
         entityManager.createQuery("select i from Issue i where i.parent.id = :id", Issue::class.java).setParameter("id", id).resultList
             .forEach { it.parent = null }
         entityManager.flush()
@@ -214,8 +214,18 @@ class IssueService(
         issues.flush()
     }
 
+    /**
+     * 리소스를 지울 때 함께 지우는 관련 기록이다. 구독(Watch)과 구독 해제(Unwatch) 행은 v1.6 `ResourcePersistAdapter.postDelete`가 같은 트랜잭션에서,
+     * 알림 이벤트는 `NotificationEvent.deleteBy`가 지운다.
+     */
+    fun deleteResourceRelations(type: ResourceType, resourceId: String) {
+        entityManager.createQuery("delete from Watch w where w.resourceType = :type and w.resourceId = :rid").setParameter("type", type).setParameter("rid", resourceId).executeUpdate()
+        entityManager.createQuery("delete from Unwatch w where w.resourceType = :type and w.resourceId = :rid").setParameter("type", type).setParameter("rid", resourceId).executeUpdate()
+        deleteNotificationEvents(type, resourceId)
+    }
+
     /** 리소스에 걸린 알림 이벤트를 수신자, 메일 대기열과 함께 지운다 (v1.6 `NotificationEvent.deleteBy`). */
-    fun deleteNotificationEvents(type: ResourceType, resourceId: String) {
+    private fun deleteNotificationEvents(type: ResourceType, resourceId: String) {
         val ids = entityManager.createQuery(
             "select e.id from NotificationEvent e where e.resourceType = :type and e.resourceId = :rid", java.lang.Long::class.java
         ).setParameter("type", type).setParameter("rid", resourceId).resultList

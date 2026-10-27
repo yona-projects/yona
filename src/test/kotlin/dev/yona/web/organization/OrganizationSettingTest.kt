@@ -215,6 +215,8 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
         val byOrg = save(org, session, "name" to other.name!!.uppercase(), "descr" to "x")
         assertEquals(400, byOrg.response.status)
         assertEquals("Already existent user's login id or group name.", Jsoup.parse(byOrg.response.contentAsString).selectFirst(".warning")?.text())
+        // v1.6는 이름 중복이면 flash를 만들지 않아 알림은 뜨지 않고 이름 아래 문구만 보인다
+        assertTrue(byOrg.response.contentAsString.let { !it.contains("Already existent user's login id or group name.\", 1000") && !it.contains("\$yobi.notify(\"Already existent") }, "알림이 떴다")
         assertEquals(400, save(org, session, "name" to user.loginId!!, "descr" to "x").response.status)
         assertEquals(org.name, reload(org).name)
     }

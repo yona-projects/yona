@@ -39,11 +39,12 @@ class IssueSharerService(
         return Change(if (add) "added" else "deleted", dev.yona.domain.user.UserDisplay.of(user, viewerLang))
     }
 
-    /** 프로젝트의 구성원을 모두 공유자로 추가하거나 삭제한다. 프로젝트가 없으면 `null`이다. */
+    /** 프로젝트의 구성원을 모두 공유자로 추가하거나 삭제한다. 사이트 관리자 역할 행은 뺀다. 프로젝트가 없으면 `null`이다. */
     @Transactional
     fun changeByProject(issue: Issue, actor: User, projectId: Long, add: Boolean): Change? {
         val project = projects.findById(projectId).orElse(null) ?: return null
-        projectUsers.findMembersIncludingSiteManager(projectId).mapNotNull { it.user }.forEach { apply(issue, actor, it, add) }
+        // v1.6 ProjectUser.findMemberListByProject: 사이트 관리자 역할 행을 빼고 사용자 이름 오름차순이다
+        projectUsers.findMembers(projectId, dev.yona.domain.enumeration.RoleType.SITEMANAGER.id).mapNotNull { it.user }.forEach { apply(issue, actor, it, add) }
         return Change(if (add) "added" else "deleted", project.name)
     }
 

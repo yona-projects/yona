@@ -95,10 +95,10 @@ class ReviewSearchService(private val entityManager: EntityManager) {
             clauses += "t.state = :state"
             params["state"] = requireNotNull(condition.threadState) { "알 수 없는 상태: ${condition.state}" }
             if (condition.filter.isNotBlank()) {
-                clauses += "(exists (select 1 from ReviewComment fc where fc.thread.id = t.id and lower(cast(fc.contents as string)) like :filter escape '!')" +
-                    " or t.id in (select x.id from CodeCommentThread x where lower(x.commitId) like :filter escape '!' or lower(x.path) like :filter escape '!')" +
-                    " or t.id in (select y.id from NonRangedCodeCommentThread y where lower(y.commitId) like :filter escape '!' or lower(y.path) like :filter escape '!'))"
-                params["filter"] = "%" + escapeLike(condition.filter.lowercase()) + "%"
+                clauses += "(exists (select 1 from ReviewComment fc where fc.thread.id = t.id and lower(cast(fc.contents as string)) like :filter)" +
+                    " or t.id in (select x.id from CodeCommentThread x where lower(x.commitId) like :filter or lower(x.path) like :filter)" +
+                    " or t.id in (select y.id from NonRangedCodeCommentThread y where lower(y.commitId) like :filter or lower(y.path) like :filter))"
+                params["filter"] = "%" + condition.filter.lowercase() + "%"
             }
         }
 
@@ -112,7 +112,6 @@ class ReviewSearchService(private val entityManager: EntityManager) {
     }
 
     /** `like`의 특수 문자(`%`, `_`)와 이스케이프 문자(`!`)를 그대로 찾도록 이스케이프한다. */
-    private fun escapeLike(text: String): String = text.replace("!", "!!").replace("%", "!%").replace("_", "!_")
 
     companion object {
         /** 정렬 기준으로 쓸 수 있는 스레드 속성이다. 화면은 `createdDate`만 보낸다. */

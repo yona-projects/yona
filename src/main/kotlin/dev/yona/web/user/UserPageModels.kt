@@ -16,7 +16,7 @@ import dev.yona.web.issue.IssueListItem
  */
 data class UserIssueRow(
     val item: IssueListItem, val owner: String, val project: String, val open: Boolean,
-    val authorPureName: String?, val assigneePureName: String?, val milestoneVisible: Boolean,
+    val authorLoginId: String, val authorPureName: String?, val assigneePureName: String?, val milestoneVisible: Boolean,
     val timeTitle: String, val timeText: String, val dueDateString: String?
 ) {
     /** 마감이 지난 열린 이슈이면 `true`이다. */

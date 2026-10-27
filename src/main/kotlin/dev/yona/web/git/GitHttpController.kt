@@ -41,7 +41,8 @@ class GitHttpController(
     private val basicAuth: dev.yona.web.access.BasicAuthResolver,
     private val gitHttp: GitHttpService,
     private val recentVisits: RecentVisitService,
-    private val messages: MessageSource
+    private val messages: MessageSource,
+    private val properties: dev.yona.config.YonaProperties
 ) {
 
     /** 서비스(`service=git-upload-pack` 또는 `git-receive-pack`)가 광고하는 ref 목록이다. */
@@ -91,13 +92,30 @@ class GitHttpController(
             response.contentType = "application/x-$service-advertisement"
             gitHttp.advertise(project, service, response.outputStream)
         } else {
-            user?.let { recentVisits.record(it, project) }
+            // v1.6 GitApp.serviceRpc: 본문이 Play의 한도(parsers.text.maxLength, 기본 102400바이트)를 넘으면 처리하지 않고 413이다.
+            // 한도는 압축을 풀기 전의 전송 바이트로 센다. 길이를 모르는 본문(chunked)은 한도까지 읽어 본다.
+            val raw = readLimitedBody(request) ?: return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).build<Void>()
+            recentVisits.visits(user, project)
             response.contentType = "application/x-$service-result"
-            val input = if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(request.inputStream) else request.inputStream
+            val input = if ("gzip".equals(request.getHeader("Content-Encoding"), ignoreCase = true)) GZIPInputStream(raw) else raw
             gitHttp.rpc(project, service, input, response.outputStream, user)
         }
         // 응답 본문을 직접 썼으므로 더 쓸 것이 없다.
         return null
+    }
+
+    /**
+     * 요청 본문을 읽을 스트림이다. 한도([dev.yona.config.YonaProperties.parsersTextMaxLength])를 넘으면 `null`이다.
+     * 본문 길이를 알면 그 값으로 바로 판단하고, 모르면(chunked) 한도보다 한 바이트 더 읽어 보고 넘는지 가린다.
+     */
+    private fun readLimitedBody(request: HttpServletRequest): java.io.InputStream? {
+        val limit = properties.parsersTextMaxLength
+        val declared = request.contentLengthLong
+        if (declared > limit) return null
+        if (declared >= 0) return request.inputStream
+        val head = request.inputStream.readNBytes((limit + 1).toInt())
+        if (head.size > limit) return null
+        return head.inputStream()
     }
 
     /** 복제는 읽기, 푸시는 수정 권한이다. 코드를 구성원에게만 여는 프로젝트는 구성원이 아니면 수정 권한을 요구한다. */

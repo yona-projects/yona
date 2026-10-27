@@ -133,7 +133,7 @@ class ProjectDeletionService(
     /** 컨테이너에 붙은 첨부(같은 해시가 남지 않으면 파일도)와 알림 이벤트를 지운다 (v1.6 `Attachment.deleteAll`, `NotificationEvent.deleteBy`). */
     private fun removeAttachmentsAndEvents(type: ResourceType, id: Long) {
         attachments.deleteAll(type, id)
-        issueService.deleteNotificationEvents(type, id.toString())
+        issueService.deleteResourceRelations(type, id.toString())
     }
 
     private fun ids(jpql: String, projectId: Long): List<Long> =

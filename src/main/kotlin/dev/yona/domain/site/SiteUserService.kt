@@ -43,8 +43,8 @@ class SiteUserService(
             else -> { clauses += "u.state = :state"; params["state"] = state }
         }
         if (!query.isNullOrBlank()) {
-            clauses += listOf("loginId", "name", "englishName", "email").joinToString(" or ", "(", ")") { "lower(u.$it) like :query escape '!'" }
-            params["query"] = "%" + query.lowercase().replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%"
+            clauses += listOf("loginId", "name", "englishName", "email").joinToString(" or ", "(", ")") { "lower(u.$it) like :query" }
+            params["query"] = "%" + query.lowercase() + "%"
         }
         val where = clauses.joinToString(" and ")
         fun <T> typed(jpql: String, type: Class<T>) = entityManager.createQuery(jpql, type).also { q -> params.forEach { (k, v) -> if (Regex(":$k\\b").containsMatchIn(jpql)) q.setParameter(k, v) } }

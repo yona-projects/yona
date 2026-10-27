@@ -81,7 +81,8 @@
                         <li class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{${url}}">
                             <div class="span10 span-hard-wrap">
                                 <a th:if="${issue.authorLoginId != null}" th:href="@{/{u}(u=${issue.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${issue.authorLoginId}">
-                                    <img th:src="${row.authorAvatarUrl}" th:alt="${issue.authorName}" width="32" height="32"/>
+                                    <img th:if="${helper.isDefaultAvatar(row.authorAvatarUrl)}" th:src="${row.authorAvatarUrl}"/>
+                                    <img th:unless="${helper.isDefaultAvatar(row.authorAvatarUrl)}" th:src="${row.authorAvatarUrl}" th:alt="${issue.authorName}" width="32" height="32"/>
                                 </a>
                                 <div class="title-wrap">
                                     <a th:href="@{${url}}" class="title" th:text="${issue.title}"></a>

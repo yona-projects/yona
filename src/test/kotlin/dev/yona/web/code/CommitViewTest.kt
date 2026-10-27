@@ -114,6 +114,26 @@ class CommitViewTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이메일이 빈 Git 커밋도 아바타를 그린다 (v1_6 email != null 분기)`() {
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("메일 없음", mapOf("a.txt" to "x\n".toByteArray()), authorName = "no-mail", authorEmail = ""))
+        val id = page("/${p.owner}/${p.name}/commits").select(".btn-copy-commitId").map { it.attr("data-commitId") }.single()
+        val author = page("/${p.owner}/${p.name}/commit/$id").selectFirst(".commitAuthor")!!
+        assertNotNull(author.selectFirst("span.avatar-wrap img"), author.html())
+        assertEquals("no-mail", author.selectFirst("strong")!!.text())
+    }
+
+    @Test
+    fun `리뷰 댓글의 첨부 JSON은 attachments 키로 감싼다 (v1_6 AttachmentApp_getFileList)`() {
+        val p = project()
+        val (_, second) = twoCommits(p)
+        thread(p, user("reviewer2"), second, ThreadState.OPEN, true)
+        val json = page("/${p.owner}/${p.name}/commit/$second").selectFirst(".comment-thread-wrap .attachments")!!.attr("data-attachments")
+        // yobi.Attachments._updateAttachments는 oRes.attachments를 읽는다
+        assertEquals("""{"attachments":[]}""", json)
+    }
+
+    @Test
     fun `없는 커밋은 404이다`() {
         val p = project()
         twoCommits(p)

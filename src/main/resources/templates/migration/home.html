@@ -9,10 +9,8 @@
 */-->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/site-layout :: siteLayout(${site.siteName}, 'SITE_HOME', ~{::migrationPage})}">
+      th:replace="~{layout/migration-layout :: migrationLayout(${site.siteName}, ~{::migrationPage})}">
 <th:block th:fragment="migrationPage">
-<script type="text/javascript" th:src="@{/assets/javascripts/lib/vendor.js}"></script>
-<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.Migration.js}"></script>
     <div ng-app="yona.migration" ng-controller="MigrationController as vm" class="yobi-migration" th:attr="ng-init=|vm.setUserToken('${token}');vm.yobiUser = '${loginId}';vm.yobiUserEmail = '${email}'|">
         <div class="header-pannel" th:attr="ng-if=|'${token}'|">
             <div class="comeback-text pull-right">Yona to Github<span class="midium-font"></span></div>

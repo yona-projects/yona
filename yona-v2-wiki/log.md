@@ -424,3 +424,7 @@
 ## [2026-10-27] fix | 위키 갱신 후 v1.6 대조의 S2·S3 항목 반영
 - 접근 로그(`AccessLogFilter`, `logback-spring.xml`), 엑셀 링크 재조립(`QueryLinks`), `X-Requested-With` 비교(`AjaxRequests`), 경로 끝 슬래시(`UrlPaths.encodeEach`), 사이트 주소 스킴(`SiteUrls.scheme`), 상대 시각(`MomentRelativeTime`), 최근 N일의 자정 기준, 닫힌 이슈의 마감 문구, 메일 diff의 `'`를 v1.6에 맞췄다.
 - JGit diff 위치와 병합 판정은 `V16DiffAlgorithm`, `V16RecursiveMerger`로, 파일 종류 감지는 Tika 1.2 표와 `V16MimeDetector`로 맞췄다. 근거와 판단은 A-111~A-115, R-91~R-95. R-17의 8192는 65536으로 바로잡았고 포크 문서의 하드 링크 서술은 bare 복제로 고쳤다.
+
+## [2026-10-27] fix | 127쪽 전수 줄 대조와 불일치 92줄 처리
+- 장부 2,267줄에 모두 판정을 붙였다(누락 0). 불일치 92줄은 원인별로 모두 v1.6에 맞췄고, v1.6 위키 오류 36줄은 정정했으며, 직접 만든 요청 차이 51줄은 hand-crafted 문서에 보강했다. 결과는 [v16-sync-ledger.md](architecture/v16-sync-ledger.md).
+- 결정 A-116~A-124, 결함 R-96~R-104, P-10 결정 8~10(정정 알림 1건, 확인 대기 2건)을 적었다. R-28의 전제는 Twirl 바이트코드 확인으로 바로잡았다.

@@ -144,12 +144,12 @@ class PostingService(
         comments.forEach { comment ->
             val commentId = requireNotNull(comment.id)
             attachments.deleteAll(ResourceType.NONISSUE_COMMENT, commentId)
-            issueService.deleteNotificationEvents(ResourceType.NONISSUE_COMMENT, commentId.toString())
+            issueService.deleteResourceRelations(ResourceType.NONISSUE_COMMENT, commentId.toString())
             entityManager.remove(comment)
         }
         titleHeads.delete(project, posting.title)
         attachments.deleteAll(ResourceType.BOARD_POST, id)
-        issueService.deleteNotificationEvents(ResourceType.BOARD_POST, id.toString())
+        issueService.deleteResourceRelations(ResourceType.BOARD_POST, id.toString())
         entityManager.flush()
         posting.labels.clear()
         postings.delete(posting)

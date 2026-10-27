@@ -199,6 +199,18 @@ class UserMenuTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `구독 프로젝트는 이름을 대소문자 구분해 정렬한다 (v1_6 Ebean 메모리 정렬은 compareTo)`() {
+        val me = newUser()
+        listOf("alpha", "Zeta", "beta").forEachIndexed { i, name ->
+            val p = project("o$i", name)
+            watches.save(Watch(user = me, resourceType = ResourceType.PROJECT, resourceId = p.id.toString()))
+        }
+        val tab = fragment(login(me)).selectFirst("#myProjectList")!!
+        // 대문자가 소문자보다 앞선다
+        assertEquals(listOf("Zeta", "alpha", "beta"), tab.select("#watching li.user-li .project-name").map { it.text().trim() })
+    }
+
+    @Test
     fun `프로젝트 탭의 네 목록`() {
         val me = newUser(); val member = newUser()
         val visited = project("v1", "visited"); val created1 = project(me.loginId!!, "mine-old", created = 1_000L); val created2 = project(me.loginId!!, "mine-new", created = 2_000L)

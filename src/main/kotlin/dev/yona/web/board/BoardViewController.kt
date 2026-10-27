@@ -40,7 +40,8 @@ class BoardViewController(
     private val recentVisits: RecentVisitService,
     private val recentIssues: RecentIssueService,
     private val views: ProjectViewFactory,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val siteUrls: dev.yona.util.SiteUrls
 ) {
 
     @GetMapping("/{user}/{project}/post/{number:[0-9]+}")
@@ -87,6 +88,6 @@ class BoardViewController(
      */
     private fun listUrl(request: HttpServletRequest, default: String): String {
         val referer = request.getHeader("Referer") ?: return default
-        return if (runCatching { java.net.URI(referer).path }.getOrNull() == default) referer else default
+        return siteUrls.urlToList(referer, default)
     }
 }

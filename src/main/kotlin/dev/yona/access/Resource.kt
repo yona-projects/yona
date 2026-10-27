@@ -32,11 +32,19 @@ sealed class Resource(
  * 프로젝트에 속하지 않는 리소스(사용자, 조직, 프로젝트 자체, 라벨, 임시 첨부 등)이다.
  * 프로젝트를 물으면 v1.6처럼 [UnsupportedOperationException]이 발생한다.
  */
-class GlobalResource(id: String, type: ResourceType, container: Resource? = null, authorId: Long? = null) :
+open class GlobalResource(id: String, type: ResourceType, container: Resource? = null, authorId: Long? = null) :
     Resource(id, type, container, authorId) {
 
     override val project: Project?
         get() = throw UnsupportedOperationException("전역 리소스는 프로젝트가 없습니다: $type/$id")
+}
+
+/**
+ * 프로젝트 자체이다. 전역 리소스이지만 v1.6 `Project.asResource()`는 `getProject()`가 프로젝트 자신을 돌려주는 유일한 예외이다
+ * (구독 해제 화면이 이 리소스의 프로젝트로 권한 거절 화면을 그린다).
+ */
+class SelfProjectResource(id: String, private val self: Project) : GlobalResource(id, ResourceType.PROJECT) {
+    override val project: Project get() = self
 }
 
 /** 프로젝트에 속한 리소스(이슈, 게시글, 마일스톤, 코드 등)이다. */

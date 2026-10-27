@@ -19,7 +19,8 @@ import org.springframework.web.servlet.ModelAndView
 class UserMenuController(
     private val assembler: UserMenuAssembler,
     private val userSettings: UserSettingRepository,
-    private val currentUserProvider: CurrentUserProvider
+    private val currentUserProvider: CurrentUserProvider,
+    private val properties: dev.yona.config.YonaProperties
 ) {
 
     @GetMapping("/user/usermenuTabContentList")
@@ -36,7 +37,7 @@ class UserMenuController(
         val path = request.getParameter("path") ?: default
         val hash = request.getParameter("hash").orEmpty()
         return ModelAndView("layout/layout-framed")
-            .addObject("title", "Yona")
+            .addObject("title", properties.siteName)
             .addObject("menu", assembler.assemble(viewer))
             .addObject("iframePath", if (hash.isNotEmpty()) "$path#$hash" else path)
     }

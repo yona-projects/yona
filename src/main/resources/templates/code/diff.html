@@ -75,7 +75,7 @@
                                     <p class="content" th:text="${c.content}"></p>
                                     <span class="date" th:title="${c.agoTitle}">
                                         <span class="comments"><th:block th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></th:block></span>
-                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="${c.avatarUrl}" alt=""/></span>
+                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}"/></span>
                                         <th:block th:text="${c.ago}"></th:block>
                                     </span>
                                 </a>
@@ -85,7 +85,7 @@
                                     <p class="content" th:text="${c.content}"></p>
                                     <span class="date" th:title="${c.agoTitle}">
                                         <span class="comments"><th:block th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></th:block></span>
-                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="${c.avatarUrl}" alt=""/></span>
+                                        <span class="avatar-wrap smaller margin-right-5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}"/></span>
                                         <th:block th:text="${c.ago}"></th:block>
                                     </span>
                                 </a>

@@ -3,11 +3,8 @@ package dev.yona.web
 import dev.yona.access.AccessControl
 import dev.yona.access.Resource
 import dev.yona.access.ResourceLookup
-import dev.yona.domain.board.PostingRepository
-import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
-import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.misc.WatchService
 import dev.yona.security.CurrentUserProvider
 import dev.yona.web.error.ErrorViews
@@ -35,10 +32,7 @@ class WatchController(
     private val accessControl: AccessControl,
     private val watchService: WatchService,
     private val currentUserProvider: CurrentUserProvider,
-    private val issues: IssueRepository,
-    private val comments: IssueCommentRepository,
-    private val postings: PostingRepository,
-    private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository,
+    private val urls: dev.yona.domain.misc.ResourceUrls,
     private val views: ProjectViewFactory,
     private val messages: MessageSource
 ) {
@@ -64,7 +58,7 @@ class WatchController(
         val first = watchService.unwatch(user, resource.type, resource.id)
         if (HttpPreference.isJsonPreferred(request.getHeader("Accept"))) return ResponseEntity.ok().build<Void>()
         val flash = if (first) unwatchMessage(resource.type)?.let { mapOf<String, Any>(RedirectSupport.SUCCESS to it) }.orEmpty() else emptyMap()
-        return RedirectSupport.see(request, response, urlOf(resource) ?: "/", flash)
+        return RedirectSupport.see(request, response, urls.urlOf(resource.type, resource.id) ?: "/", flash)
     }
 
     private fun resolve(request: HttpServletRequest): Resource? {
@@ -82,20 +76,6 @@ class WatchController(
             else -> return null
         }
         return messages.getMessage(key, null, key, LocaleContextHolder.getLocale())
-    }
-
-    /** 리소스의 화면 주소이다 (v1.6 `RouteUtil.getUrl(type, id)`). */
-    private fun urlOf(resource: Resource): String? {
-        val project = resource.project ?: return null
-        val base = "/${project.owner}/${project.name}"
-        return when (resource.type) {
-            ResourceType.PROJECT -> base
-            ResourceType.ISSUE_POST -> "$base/issue/${issues.findById(resource.id.toLong()).orElse(null)?.number}"
-            ResourceType.ISSUE_COMMENT -> comments.findById(resource.id.toLong()).orElse(null)?.let { "$base/issue/${it.issue?.number}#comment-${it.id}" }
-            ResourceType.BOARD_POST -> postings.findById(resource.id.toLong()).orElse(null)?.let { "$base/post/${it.number}" }
-            ResourceType.PULL_REQUEST -> pullRequests.findById(resource.id.toLong()).orElse(null)?.let { "$base/pullRequest/${it.number}" }
-            else -> null
-        }
     }
 
     private fun text(status: HttpStatus, body: String): ResponseEntity<String> =

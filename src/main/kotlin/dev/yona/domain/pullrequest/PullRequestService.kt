@@ -41,7 +41,8 @@ class PullRequestService(
     private val events: PullRequestEventService,
     private val pullRequestCommits: PullRequestCommitRepository,
     private val threadRepository: dev.yona.domain.comment.CommentThreadRepository,
-    private val publisher: ApplicationEventPublisher
+    private val publisher: ApplicationEventPublisher,
+    private val watchService: dev.yona.domain.misc.WatchService
 ) {
 
     /** 받는 프로젝트 안에서 번호로 찾는다. 번호가 1보다 작으면 `null`이다 (v1.6 `findOne`). */
@@ -125,6 +126,7 @@ class PullRequestService(
         pullRequests.save(pullRequest)
         pullRequests.delete(pullRequest)
         pullRequests.flush()
+        watchService.removeAll(dev.yona.domain.enumeration.ResourceType.PULL_REQUEST, id.toString())
     }
 
     /** 이 풀 리퀘스트가 남긴 "풀 리퀘스트에서 언급됨" 이벤트를 지운다 (v1.6 `deleteIssueEvents`). */

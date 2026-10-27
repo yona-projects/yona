@@ -113,7 +113,7 @@
                         <select id="project-default-branch" name="defaultBranch"
                                 data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" style="min-width: 220px;">
                             <option th:each="branchName : ${branches}" th:value="${branchName}"
-                                    th:selected="${#strings.arraySplit(branchName, '/')[2] == defaultBranchName}"
+                                    th:selected="${branchItemNames.get(branchName) == defaultBranchName}"
                                     th:text="${branchName}">
                             </option>
                         </select>

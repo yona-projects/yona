@@ -32,7 +32,7 @@ data class DataImportResult(val imported: List<String>, val failed: List<String>
  * 테이블 단위 트랜잭션으로 처리하며, 한 테이블이 실패하면 그 테이블만 되돌리고 다음 테이블을 계속한다(A-92).
  */
 @Service
-class DataService(private val dataSource: DataSource) {
+class DataService(private val dataSource: DataSource, private val properties: dev.yona.config.YonaProperties) {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val mapper = JsonMapper.builder().build()
@@ -209,7 +209,7 @@ class DataService(private val dataSource: DataSource) {
                 try {
                     bind(statement!!, table, row)
                     statement.addBatch()
-                    if (++pending >= BATCH_SIZE) { statement.executeBatch(); pending = 0 }
+                    if (++pending >= maxOf(1, properties.dataBatchSize)) { statement.executeBatch(); pending = 0 }
                 } catch (e: Exception) {
                     failure = e
                 }
@@ -326,6 +326,5 @@ class DataService(private val dataSource: DataSource) {
 
     private companion object {
         /** 배치로 묶어 넣는 행 수이다 (v1.6 `data.batch.size` 기본값). */
-        const val BATCH_SIZE = 100
     }
 }

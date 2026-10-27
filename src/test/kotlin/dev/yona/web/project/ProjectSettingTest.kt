@@ -380,6 +380,18 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `슬래시가 있는 브랜치도 기본 브랜치로 선택되어 보인다 (v1_6 itemName)`() {
+        val project = newProject()
+        GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray()))
+        repositories.openRepository(project).use { repository ->
+            repository.updateRef("refs/heads/feature/x").apply { setNewObjectId(repository.resolve(Constants.HEAD)) }.update()
+        }
+        save(project, login(manager(project)), "name" to project.name!!, "defaultBranch" to "refs/heads/feature/x", *allMenus)
+        val selected = settingForm(project, login(manager(project))).select("select#project-default-branch option[selected]").map { it.attr("value") }
+        assertEquals(listOf("refs/heads/feature/x"), selected)
+    }
+
+    @Test
     fun `기본 브랜치를 바꾼다`() {
         val project = newProject()
         GitTestSupport.commitFiles(repositories, project, mapOf("a.txt" to "a".toByteArray()))

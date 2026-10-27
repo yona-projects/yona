@@ -67,6 +67,8 @@ data class YonaProperties(
     val showUserEmail: Boolean = true,
     val navbarCustomLinkName: String = "",
     val navbarCustomLinkUrl: String = "",
+    /** 게스트로 보는 LDAP 로그인 ID의 접두어를 쉼표로 이은 값이다. 대소문자를 가리지 않는다 (`application.guest.user.login.id.prefix`). 비우면 게스트가 없다. */
+    val guestUserLoginIdPrefix: String = "",
     val loginPageLoginIdPlaceholder: String = "",
     val loginPagePasswordPlaceholder: String = "",
     val projectDefaultScope: String = "public",
@@ -80,6 +82,8 @@ data class YonaProperties(
     val server: String = "Play/2.3",
     val applicationContext: String = "",
     val parsersTextMaxLength: Long = 102_400L,
+    /** 데이터 가져오기에서 한 번에 넣는 행 수이다 (`data.batch.size`, v1.6 `DefaultExchanger`의 숨은 설정). */
+    val dataBatchSize: Int = 100,
     val issueEventDraftTime: Long = 30_000L,
     val codeBrowserMaxFileSize: Long = 1024L * 1024,
     val notificationMailEnabled: Boolean = true,
@@ -275,9 +279,14 @@ data class YonaProperties(
 
     /** 가입 정책 설정이다. */
     data class Signup(
-        /** 가입 승인제: 신규 계정을 관리자가 승인하기 전까지 잠가 둔다 (`signup.require.admin.confirm`). */
-        val requireAdminConfirm: Boolean = false
-    )
+        /** 가입 승인제: 신규 계정을 관리자가 승인하기 전까지 잠가 둔다 (`signup.require.admin.confirm`). 설정하지 않으면 `null`이다. */
+        val requireAdminConfirm: Boolean? = null,
+        /** v1.1과의 호환을 위한 옛 키이다 (`signup.require.confirm`). [requireAdminConfirm]이 없을 때만 쓴다. */
+        val requireConfirm: Boolean = false
+    ) {
+        /** 가입 승인제를 쓰는지 본다 (v1.6 `UserApp.isUsingSignUpConfirm`). */
+        fun required(): Boolean = requireAdminConfirm ?: requireConfirm
+    }
 
     /** 아바타 서비스(Gravatar) 설정이다. */
     data class Gravatar(

@@ -160,11 +160,13 @@ class IssueSearchServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `검색어의 퍼센트와 밑줄은 그대로 찾는다`() {
+    fun `검색어의 퍼센트와 밑줄은 와일드카드이다 (v1_6 Ebean icontains)`() {
         setUp()
         issue(1, title = "100% 완료"); issue(2, title = "1000 완료"); issue(3, title = "a_b"); issue(4, title = "axb")
-        assertEquals(listOf(1L), numbers(IssueSearchCondition(filter = "100%")))
-        assertEquals(listOf(3L), numbers(IssueSearchCondition(filter = "a_b")))
+        // '%'는 임의 길이이므로 "100%"는 "100% 완료"와 "1000 완료"를 모두 찾는다
+        assertEquals(listOf(1L, 2L), numbers(IssueSearchCondition(filter = "100%")).sorted())
+        // '_'는 한 글자이므로 "a_b"는 "a_b"와 "axb"를 모두 찾는다
+        assertEquals(listOf(3L, 4L), numbers(IssueSearchCondition(filter = "a_b")).sorted())
     }
 
     @Test

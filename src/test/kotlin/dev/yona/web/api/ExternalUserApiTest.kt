@@ -173,6 +173,21 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `멘션된 이슈에는 본문 멘션뿐 아니라 멘션된 댓글이 달린 이슈도 있다 (v1_6 getMentioningIssueIds)`() {
+        val me = newUser(token = "metk-m"); val other = newUser()
+        val project = projects.save(Project(owner = "euo2", name = "eup2", vcs = "GIT", projectScope = ProjectScope.PUBLIC, lastIssueNumber = 2))
+        val bodyMention = issues.save(Issue(project = project, number = 1, title = "본문 멘션", body = "b", state = State.OPEN, authorId = other.id, authorLoginId = other.loginId, authorName = other.name, numOfComments = 0, weight = 0, createdDate = Date(1_700_000_000_000), updatedDate = Date(1_700_000_000_000)))
+        val commentMention = issues.save(Issue(project = project, number = 2, title = "댓글 멘션", body = "b", state = State.OPEN, authorId = other.id, authorLoginId = other.loginId, authorName = other.name, numOfComments = 1, weight = 0, createdDate = Date(1_700_000_100_000), updatedDate = Date(1_700_000_100_000)))
+        val comment = dev.yona.domain.comment.IssueComment(contents = "@${me.loginId}", createdDate = Date(), authorLoginId = other.loginId, issue = commentMention, projectId = project.id!!)
+        entityManager.persist(comment); entityManager.flush()
+        entityManager.persist(dev.yona.domain.notification.Mention(resourceType = dev.yona.domain.enumeration.ResourceType.ISSUE_POST, resourceId = bodyMention.id.toString(), user = me))
+        entityManager.persist(dev.yona.domain.notification.Mention(resourceType = dev.yona.domain.enumeration.ResourceType.ISSUE_COMMENT, resourceId = comment.id.toString(), user = me))
+        entityManager.flush()
+        json(get("/-_-api/v1/user/issues?filter=mentioned"), me.token, null).andExpect(jsonPath("$.result.length()").value(2))
+        json(get("/-_-api/v1/user/issues?filter=all"), me.token, null).andExpect(jsonPath("$.result.length()").value(2))
+    }
+
+    @Test
     fun `내 이슈는 토큰이 있어야 하고 쪽 나누기를 따른다`() {
         val me = newUser(token = "metk-2")
         json(get("/-_-api/v1/user/issues"), null, null).andExpect(status().isUnauthorized).andExpect(jsonPath("$.message").value("unauthorized request"))

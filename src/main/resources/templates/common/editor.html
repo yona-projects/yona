@@ -14,7 +14,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org"
           th:fragment="editor(editorName, textValue, additionalAttr, editorMode, viaEmail)"
           th:with="nameParts=${#strings.arraySplit(editorName, '-')},
-                   wrapId=${#arrays.length(nameParts) > 1 ? nameParts[1] : #strings.randomAlphanumeric(8)},
+                   wrapId=${#arrays.length(nameParts) > 1 ? nameParts[1] : T(dev.yona.web.TemplateHelper).randomAlphabetic(8)},
                    textareaName=${nameParts[0]}">
 <div data-toggle="markdown-editor" class="mt10">
     <ul class="nav nav-tabs nm small">

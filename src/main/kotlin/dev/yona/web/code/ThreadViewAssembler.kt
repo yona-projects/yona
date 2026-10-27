@@ -31,7 +31,7 @@ class ThreadViewAssembler(
     private val users: UserRepository,
     private val avatars: AvatarService,
     private val markdown: ProjectMarkdownRenderer,
-    private val attachmentJson: AttachmentJson,
+    private val attachmentListing: dev.yona.web.AttachmentListing,
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
     private val helper: TemplateHelper,
@@ -87,12 +87,12 @@ class ThreadViewAssembler(
             ago = helper.agoOrDateString(comment.createdDate), agoTitle = helper.dateString(comment.createdDate),
             deleteUrl = if (accessControl.isAllowed(viewer, resource, Operation.DELETE)) siteUrls.path("/comments/${ResourceType.REVIEW_COMMENT.resource}/${comment.id}") else null,
             bodyHtml = markdown.render(comment.contents.orEmpty(), project, null),
-            attachments = mapper.writeValueAsString(attachmentJson.list(ResourceType.REVIEW_COMMENT, comment.id!!)),
+            attachments = attachmentListing.fileListJson(ResourceType.REVIEW_COMMENT, comment.id!!),
             viaEmail = originalEmails.findByResourceTypeAndResourceId(ResourceType.REVIEW_COMMENT, comment.id.toString()).isNotEmpty()
         )
     }
 
     private companion object {
-        const val AVATAR_SIZE = 32
+        const val AVATAR_SIZE = 64
     }
 }

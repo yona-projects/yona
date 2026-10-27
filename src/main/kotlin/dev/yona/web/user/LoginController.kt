@@ -145,7 +145,8 @@ class LoginController(
     /** 로그인 성공 처리: 세션에 기록하고, 로그인 유지를 켰으면 쿠키를 만들고, 사용자의 언어를 갱신한다. */
     private fun completeLogin(request: HttpServletRequest, response: HttpServletResponse, result: LoginResult.Success) {
         val user = result.user
-        if (request.getParameter("rememberMe").toBoolean()) {
+        // Play 폼 바인딩(Spring DataBinder)은 체크박스가 보내는 on을 참으로 읽는다: true, on, yes, 1
+        if (request.getParameter("rememberMe")?.lowercase() in setOf("true", "on", "yes", "1")) {
             response.addCookie(Cookie(YonaAuthenticationFilter.REMEMBER_ME_COOKIE, "${user.loginId}:${user.password}").apply {
                 maxAge = YonaAuthenticationFilter.REMEMBER_ME_MAX_AGE
                 path = "/"
@@ -171,8 +172,9 @@ class LoginController(
      * ([refactoring-backlog.md] R-06).
      */
     private fun encodedPath(path: String): String {
-        val segments = path.split("/")
-        if (segments.all { it.isEmpty() }) return "/"
+        // Java split처럼 끝의 빈 구간을 버린다. 남는 구간이 없으면(/, //) "/"이다
+        val segments = path.split("/").dropLastWhile { it.isEmpty() }
+        if (segments.isEmpty()) return "/"
         return segments.joinToString("/") { URLEncoder.encode(it, Charsets.UTF_8).replace("+", "%20") }
     }
 

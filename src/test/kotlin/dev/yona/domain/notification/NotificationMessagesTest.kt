@@ -23,6 +23,7 @@ import org.springframework.context.MessageSource
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 import java.util.Locale
+import kotlin.test.assertTrue
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -75,7 +76,17 @@ class NotificationMessagesTest : AbstractIntegrationTest() {
         val p = project()
         val m = milestones.save(Milestone(project = p, title = "1.0 출시", contents = "", state = State.OPEN))
         assertEquals(msg("notification.milestone.changed", "1.0 출시"), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "-1", m.id.toString()), en))
-        assertEquals(msg("notification.milestone.changed", messages.getMessage("issue.noMilestone", null, Locale.getDefault())), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), en))
+        assertEquals(msg("notification.milestone.changed", messages.getMessage("issue.noMilestone", null, Locale.forLanguageTag("en-US"))), notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), en))
+    }
+
+    @Test
+    fun `마일스톤 없음 문구는 받는 사람의 언어와 JVM 로캘이 아니라 application_langs의 첫 언어이다 (v1_6 Lang_defaultLang)`() {
+        val before = Locale.getDefault()
+        Locale.setDefault(Locale.KOREA)
+        try {
+            val korean = notificationMessages.message(event(EventType.ISSUE_MILESTONE_CHANGED, "1", "-1"), "ko-KR")
+            assertTrue(korean!!.contains(messages.getMessage("issue.noMilestone", null, Locale.forLanguageTag("en-US"))), korean)
+        } finally { Locale.setDefault(before) }
     }
 
     @Test

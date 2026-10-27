@@ -73,7 +73,8 @@ class PullRequestViewController(
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
     private val views: ProjectViewFactory,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val history: dev.yona.repository.CommitHistoryService
 ) {
 
     private val json = JsonMapper.builder().build()
@@ -185,8 +186,12 @@ class PullRequestViewController(
         val base = assembler.baseUrl(pullRequest)
         val creatable = accessControl.isProjectResourceCreatable(viewer, project, ResourceType.REVIEW_COMMENT)
         val (canDelete, canRestore) = false to false
+        // v1.6 viewChanges: 커밋을 골랐고 그 커밋이 이 요청의 커밋일 때만 작성자와 메시지를 보여 준다
+        val commitInfo = commitId?.takeIf { c -> commits.findByPullRequestId(requireNotNull(pullRequest.id)).any { it.commitId == c } }
+            ?.let { c -> history.commit(requireNotNull(pullRequest.toProject), c) }?.let { assembler.commitInfo(it) }
         return ModelAndView("pullrequest/changes")
             .addObject("title", "menu.pullRequest")
+            .addObject("commitInfo", commitInfo)
             .addObject("projectView", views.of(project))
             .addObject("header", assembler.header(pullRequest, viewer, "changes"))
             .addObject("contributor", assembler.contributor(pullRequest))

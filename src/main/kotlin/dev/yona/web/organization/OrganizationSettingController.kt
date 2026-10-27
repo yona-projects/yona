@@ -125,15 +125,13 @@ class OrganizationSettingController(
         organizationService.findByName(name)?.let { ErrorViews.forbidden("error.forbidden", orgViews.of(it)) }
             ?: ErrorViews.notFound("organization.member.unknownOrganization")
 
-    /** 설정 화면이다. [nameWarning]은 이름 입력란 아래, [flashKey]는 알림으로 같은 응답에서 보여 준다. */
+    /** 설정 화면이다. [nameWarning]은 이름 입력란 아래에만 보이고, [flashKey]는 알림으로 같은 응답에서 보여 준다. */
     private fun settingView(organization: Organization, nameWarning: String?, flashKey: String?): ModelAndView {
         val view = ModelAndView("organization/setting")
             .addObject("title", organization.name)
             .addObject("orgView", orgViews.of(organization))
-        nameWarning?.let {
-            view.addObject("nameWarning", messages.getMessage(it, null, it, LocaleContextHolder.getLocale()))
-            view.addObject("flashMessages", warning(it))
-        }
+        // v1.6는 이름 중복이면 폼 오류만 만들고 flash는 만들지 않아 이름 아래 문구만 보인다 (OrganizationApp.java:404-407)
+        nameWarning?.let { view.addObject("nameWarning", messages.getMessage(it, null, it, LocaleContextHolder.getLocale())) }
         flashKey?.let { view.addObject("flashMessages", warning(it)) }
         return view
     }

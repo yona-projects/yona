@@ -165,7 +165,7 @@ class IssueSearchService(private val entityManager: EntityManager) {
     /**
      * 사용자가 멘션된 이슈 번호이다. 본문에서 멘션된 이슈와 멘션된 댓글이 달린 이슈를 모은다 (v1.6 `Mention.getMentioningIssueIds`).
      */
-    private fun mentioningIssueIds(userId: Long): Set<Long> {
+    fun mentioningIssueIds(userId: Long): Set<Long> {
         val ids = HashSet<Long>()
         val commentIds = HashSet<Long>()
         entityManager.createQuery("select m from Mention m where m.user.id = :user and m.resourceType in :types", dev.yona.domain.notification.Mention::class.java)
@@ -204,9 +204,9 @@ class IssueSearchService(private val entityManager: EntityManager) {
             }
             val viewerId = viewer?.id ?: IssueSearchCondition.NO_VALUE
             if (condition.filter.isNotBlank()) {
-                clauses += "(lower(i.title) like :filter escape '!' or lower(cast(i.body as string)) like :filter escape '!' or exists " +
-                    "(select 1 from IssueComment c where c.issue.id = i.id and lower(cast(c.contents as string)) like :filter escape '!'))"
-                params["filter"] = "%" + escapeLike(condition.filter.lowercase()) + "%"
+                clauses += "(lower(i.title) like :filter or lower(cast(i.body as string)) like :filter or exists " +
+                    "(select 1 from IssueComment c where c.issue.id = i.id and lower(cast(c.contents as string)) like :filter))"
+                params["filter"] = "%" + condition.filter.lowercase() + "%"
             }
             // 프로젝트를 가리지 않는 검색은 작성자, 담당자, 댓글 조건의 값을 보지 않고 현재 사용자를 쓴다 (v1.6 `byUser`).
             condition.authorId?.let {
@@ -280,7 +280,6 @@ class IssueSearchService(private val entityManager: EntityManager) {
     private fun nextDay(date: Date): Date = Calendar.getInstance().apply { time = date; add(Calendar.DAY_OF_MONTH, 1) }.time
 
     /** `like`의 특수 문자(`%`, `_`)와 이스케이프 문자(`!`)를 그대로 찾도록 이스케이프한다. */
-    private fun escapeLike(text: String): String = text.replace("!", "!!").replace("%", "!%").replace("_", "!_")
 
     companion object {
         /** 정렬 기준으로 쓸 수 있는 이슈 속성이다. 화면은 `dueDate`, `updatedDate`, `createdDate`, `numOfComments`를 보낸다. */

@@ -35,6 +35,12 @@ object UrlPaths {
      */
     fun routeSegment(value: String): String = encode(URLEncoder.encode(value, Charsets.UTF_8))
 
+    /**
+     * 프로젝트 주소의 앞부분 `/소유자/이름`이다. v1.6 리버스 라우트(`routes.IssueApp.issue` 등)는 경로 변수를 퍼센트 인코딩하므로
+     * 한글이나 공백이 든 이름은 인코딩해서 쓴다.
+     */
+    fun projectPath(owner: String?, name: String?): String = "/${encode(owner.orEmpty())}/${encode(name.orEmpty())}"
+
     /** [value]를 [decodeSegment]로 디코딩한다. 올바르지 않은 퍼센트 인코딩이면 값을 그대로 돌려준다. */
     fun decodeSegmentOrSelf(value: String): String = try { decodeSegment(value) } catch (e: IllegalArgumentException) { value }
 

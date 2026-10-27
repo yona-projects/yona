@@ -40,8 +40,7 @@ object QueryLinks {
      * Java `String.split(String)`과 같다. 구분자가 없으면 원문 한 조각(빈 문자열이어도 `[""]`)이고, 있으면 끝의 빈 조각을 버린다
      * (그래서 `"="`는 빈 목록이 된다).
      */
-    fun javaSplit(text: String, delimiter: String): List<String> =
-        if (!text.contains(delimiter)) listOf(text) else text.split(delimiter).dropLastWhile { it.isEmpty() }
+    fun javaSplit(text: String, delimiter: String): List<String> = dev.yona.util.JavaStrings.split(text, delimiter)
 
     /**
      * 엑셀 링크이다. [requestUri]는 쿼리를 포함한 원래의 요청 URI(컨텍스트 경로 포함)이다.

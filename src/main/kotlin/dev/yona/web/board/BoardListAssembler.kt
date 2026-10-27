@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component
 class BoardListAssembler(
     private val users: UserRepository,
     private val avatars: AvatarService,
-    private val helper: TemplateHelper
+    private val helper: TemplateHelper,
+    private val nullUser: dev.yona.web.NullUserDisplay
 ) {
 
     /** [posts]를 줄로 바꾼다. [viewer]의 언어로 작성자 이름을 보인다. 조직 게시판은 [withProject]로 프로젝트 이름도 담는다. */
@@ -25,8 +26,9 @@ class BoardListAssembler(
             PostingListItem(
                 number = requireNotNull(post.number), titleHeadersHtml = helper.headerWordsHtml(title), titleWithoutHeaders = helper.removeHeaderWords(title),
                 notice = post.notice == true, readme = post.readme == true,
-                authorLoginId = author?.loginId, authorName = author?.name, authorDisplayName = author?.let { UserDisplay.of(it, viewer?.lang) },
-                authorAvatarUrl = author?.let { avatars.avatarUrl(it) }.orEmpty(),
+                authorLoginId = author?.loginId ?: dev.yona.web.NullUserDisplay.LOGIN_ID, authorName = author?.name ?: nullUser.name(),
+                authorDisplayName = author?.let { UserDisplay.of(it, viewer?.lang) } ?: nullUser.name(),
+                authorAvatarUrl = author?.let { avatars.avatarUrl(it) } ?: avatars.gravatarUrl("", 64),
                 createdTitle = helper.dateString(post.createdDate), createdAgo = helper.agoOrDateString(post.createdDate),
                 commentCount = post.numOfComments ?: 0,
                 labels = post.labels.sortedBy { it.id }.map { PostLabelTag(requireNotNull(it.id), it.category?.id, it.name.orEmpty()) },

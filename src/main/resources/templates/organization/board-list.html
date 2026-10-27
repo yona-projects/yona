@@ -46,7 +46,8 @@
             <ul class="post-list-wrap">
                 <li th:each="post : ${items}" class="post-item title" th:href="${'/' + post.owner + '/' + post.projectName + '/post/' + post.number}">
                     <a th:href="'/' + ${post.authorLoginId}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${post.authorLoginId}">
-                        <img th:src="${post.authorAvatarUrl}" th:alt="${post.authorName}" width="32" height="32"/>
+                        <img th:if="${helper.isDefaultAvatar(post.authorAvatarUrl)}" th:src="${post.authorAvatarUrl}"/>
+                        <img th:unless="${helper.isDefaultAvatar(post.authorAvatarUrl)}" th:src="${post.authorAvatarUrl}" th:alt="${post.authorName}" width="32" height="32"/>
                     </a>
                     <div class="title-wrap">
                         <a th:href="${'/' + post.owner + '/' + post.projectName + '/post/' + post.number}" class="title" th:text="${post.title}"></a>

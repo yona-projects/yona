@@ -172,16 +172,8 @@ class IssueViewController(
     private fun listUrl(referer: String?, listPath: String, state: String?): String {
         if (referer == null) return "$listPath?state=open"
         val default = "$listPath?state=$state"
-        return if (sameResource(referer, default)) referer else default
+        return siteUrls.urlToList(referer, default)
     }
-
-    private fun sameResource(a: String, b: String): Boolean = try {
-        val origin = java.net.URI(siteUrls.origin())
-        fun full(text: String): java.net.URI = java.net.URI(text).let { java.net.URI(it.scheme ?: origin.scheme, it.authority ?: origin.authority, it.path, it.query, it.fragment) }.normalize()
-        fun port(uri: java.net.URI) = if (uri.port != -1) uri.port else if (uri.scheme == "https") 443 else 80
-        val x = full(a); val y = full(b)
-        x.host == y.host && port(x) == port(y) && x.path == y.path
-    } catch (e: java.net.URISyntaxException) { false }
 
     private companion object {
         /** JSON 응답의 본문 요약 길이이다 (v1.6 `StringUtils.abbreviate(body, 200)`). */

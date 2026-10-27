@@ -215,6 +215,20 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `원본 파일이 없는데 다른 첨부가 같은 해시를 쓰면 오류 로그를 남긴다 (v1_6 logIfOriginFileIsNotValid)`() {
+        val logger = org.slf4j.LoggerFactory.getLogger(dev.yona.web.AttachmentController::class.java) as ch.qos.logback.classic.Logger
+        val appender = ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>().also { it.start(); logger.addAppender(it) }
+        try {
+            val a = newUser(); val b = newUser()
+            upload(login(a)); upload(login(b))
+            val first = attachmentRepository.findAll().first { it.containerId == a.id }
+            attachments.fileOf(first).delete()
+            remove(first.id, login(a)).andExpect(status().isOk)
+            assertTrue(appender.list.any { it.level == ch.qos.logback.classic.Level.ERROR && it.formattedMessage.contains("cannot be found") }, appender.list.map { it.formattedMessage }.toString())
+        } finally { logger.detachAppender(appender) }
+    }
+
+    @Test
     fun `남이 올린 임시 첨부는 지울 수 없다`() {
         val owner = newUser()
         upload(login(owner))

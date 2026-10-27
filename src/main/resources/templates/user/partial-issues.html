@@ -49,11 +49,11 @@
                                 </a>
                                 <span class="font12 no-border-at-child">
                                     <span th:if="${child.commentCount > 0 or child.voterCount > 0}" class="item-count-groups">
-                                        <th:block th:if="${child.commentCount > 0}"><th:block th:replace="~{common/comment-count :: commentCount(@{${'/' + child.owner + '/' + child.project + '/issue/' + child.number + '#comments'}}, ${child.commentCount}, true)}"></th:block></th:block>
-                                        <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount(@{${'/' + child.owner + '/' + child.project + '/issue/' + child.number + '#vote'}}, ${child.voterCount}, true)}"></th:block></th:block>
+                                        <th:block th:if="${child.commentCount > 0}"><th:block th:replace="~{common/comment-count :: commentCount(@{${base + '/issue/' + child.number + '#comments'}}, ${child.commentCount}, true)}"></th:block></th:block>
+                                        <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount(@{${base + '/issue/' + child.number + '#vote'}}, ${child.voterCount}, true)}"></th:block></th:block>
                                     </span>
                                 </span>
-                                <a th:each="label : ${child.labels}" th:href="@{${'/' + child.owner + '/' + child.project + '/issues?state=open'}(labelIds=${label.id})}" class="label issue-label list-label active twoColumeModeTarget" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                                <a th:each="label : ${child.labels}" th:href="@{${'/' + child.owner + '/' + child.project + '/issues?state=open'}(labelIds=${label.id})}" class="label issue-label list-label active twoColumeModeTarget" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
                                 <span class="child-issue-date" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></span>
                             </div>
                             </th:block>
@@ -62,7 +62,7 @@
                 </span>
             </div>
             <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
-                <a th:if="${row.authorPureName != null}" th:href="@{/{u}(u=${issue.authorLoginId})}" class="infos-item infos-link-item author-cell" data-toggle="tooltip" data-placement="bottom" th:title="${issue.authorLoginId}" th:text="${row.authorPureName}"></a>
+                <a th:if="${row.authorPureName != null}" th:href="@{/{u}(u=${row.authorLoginId})}" class="infos-item infos-link-item author-cell" data-toggle="tooltip" data-placement="bottom" th:title="${row.authorLoginId}" th:text="${row.authorPureName}"></a>
                 <span th:unless="${row.authorPureName != null}" class="infos-item" th:text="#{issue.noAuthor}"></span>
             </div>
             <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">

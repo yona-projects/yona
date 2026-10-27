@@ -209,6 +209,11 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         val one = page(choice.selectFirst("a")!!.attr("href"), login(s.manager))
         assertEquals("새 파일", one.selectFirst("#commits .d-label span")!!.text())
         assertTrue(one.selectFirst(".diff-body")!!.text().contains("b.txt"))
+        // v1.6 viewChanges: 커밋 하나를 고르면 작성자, 시각, 커밋 메시지 블록이 나오고 전체 보기에는 없다
+        assertNotNull(one.selectFirst("p.commitInfo .ago"), one.select(".codediff-wrap").html())
+        assertTrue(one.selectFirst("pre.commitMsg.mt5")!!.text().startsWith("새 파일"), one.selectFirst("pre.commitMsg.mt5")!!.text())
+        assertNull(doc.selectFirst("p.commitInfo"))
+        assertNull(doc.selectFirst("pre.commitMsg.mt5"))
         mockMvc.perform(get(url(s, pr, "/changes/${"0".repeat(40)}")).session(login(s.manager))).andExpect(status().isNotFound)
     }
 
@@ -263,6 +268,22 @@ class PullRequestViewTest : AbstractIntegrationTest() {
             .andExpect(status().isOk).andReturn().response.contentAsString
         // v1.6 addCommentAuthors는 마지막에 Collections.reverse를 부른다.
         assertTrue(body.indexOf("\"loginid\":\"${second.loginId}\"") in 0 until body.indexOf("\"loginid\":\"${first.loginId}\""), body)
+    }
+
+    @Test
+    fun `멘션 후보는 스레드 순서로 훑고 스레드 안에서는 댓글 순서로 훑는다 (v1_6 addCommentAuthors)`() {
+        val s = withCommit(setup()); val pr = open(s)
+        val a = user(); val b = user(); val c = user()
+        fun newThread() = threads.save(dev.yona.domain.comment.NonRangedCodeCommentThread(commitId = "c").also { it.project = s.origin; it.pullRequest = pr; it.state = dev.yona.domain.enumeration.ThreadState.OPEN; it.createdDate = java.util.Date() })
+        fun comment(u: dev.yona.domain.user.User, t: dev.yona.domain.comment.CommentThread) = reviewComments.save(dev.yona.domain.comment.ReviewComment(contents = "c", createdDate = java.util.Date(), authorId = u.id, authorLoginId = u.loginId, authorName = u.name, thread = t))
+        val first = newThread(); val second = newThread()
+        // 저장 순서는 a(첫 스레드), b(둘째 스레드), c(첫 스레드)이다. 스레드별로 훑으면 a, c, b이고 뒤집으면 b, c, a이다
+        comment(a, first); comment(b, second); comment(c, first)
+        entityManager.flush(); entityManager.clear()
+        val body = mockMvc.perform(get("/${s.origin.owner}/${s.origin.name}/mentionListAtPullRequest?pullRequestId=${pr.id}&mentionType=user").session(login(s.manager)))
+            .andExpect(status().isOk).andReturn().response.contentAsString
+        val order = listOf(a, b, c).sortedBy { body.indexOf("\"loginid\":\"${it.loginId}\"") }.map { it.loginId }
+        assertEquals(listOf(b, c, a).map { it.loginId }, order, body)
     }
 
     @Test

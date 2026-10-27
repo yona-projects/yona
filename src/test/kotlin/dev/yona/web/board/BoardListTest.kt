@@ -162,10 +162,11 @@ class BoardListTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `검색어의 퍼센트는 글자로 찾는다`() {
+    fun `검색어의 퍼센트는 와일드카드이다 (v1_6 Ebean icontains)`() {
         val project = newProject()
         post(project, "100% done", 1); post(project, "other", 2)
-        assertEquals(listOf("100% done"), numbers(doc(project, null, "filter" to "%")))
+        // "%"만 넣으면 모든 글에 맞는다
+        assertEquals(setOf("100% done", "other"), numbers(doc(project, null, "filter" to "%")).toSet())
     }
 
     @Test
@@ -219,10 +220,26 @@ class BoardListTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `작성자가 없으면 작성자 없음으로 보인다`() {
+    fun `작성자 행이 없으면 NullUser의 이름 링크로 보인다 (v1_6 User_findByLoginId)`() {
         val project = newProject()
         post(project, "무명", 1)
-        assertEquals("No author", doc(project).selectFirst(".infos .infos-item")!!.text())
+        val item = doc(project).selectFirst(".infos .infos-item")!!
+        // NullUser: 이름은 user.notExists.name, 로그인 ID는 빈 문자열이라 링크는 "/"이다
+        assertEquals("User exists not", item.text())
+        assertEquals("/", item.attr("href"))
+    }
+
+    @Test
+    fun `라벨을 여럿 고르면 정렬 링크의 labelIds는 번호를 구분 없이 이어 붙인다 (v1_6 Twirl 배열 출력)`() {
+        val project = newProject()
+        val category = categories.save(IssueLabelCategory(project = project, name = "c", isExclusive = false))
+        val x = labels.save(IssueLabel(project = project, category = category, name = "x", color = "#fff"))
+        val y = labels.save(IssueLabel(project = project, category = category, name = "y", color = "#fff"))
+        val one = Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/posts?labelIds=${x.id}")).andReturn().response.contentAsString)
+        assertTrue(one.select(".filters a.filter").all { it.attr("href").contains("labelIds=${x.id}&") })
+        val both = Jsoup.parse(mockMvc.perform(get("/${project.owner}/${project.name}/posts?labelIds=${x.id}&labelIds=${y.id}")).andReturn().response.contentAsString)
+        // 배열을 그대로 출력하면 원소가 구분자 없이 붙는다: 두 라벨이 한 값이 된다
+        assertTrue(both.select(".filters a.filter").all { it.attr("href").contains("labelIds=${x.id}${y.id}&") }, both.select(".filters a.filter").map { it.attr("href") }.toString())
     }
 
     @Test

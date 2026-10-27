@@ -72,7 +72,7 @@ class ProjectHomeController(
         val codeMenu = view.menuSetting.code == true
         val readmeBody = if (!codeMenu) homeService.readmePostingBody(project) else null
         val mav = ModelAndView("project/home")
-            .addObject("title", "${project.name} - ${messages.getMessage("menu.home", null, LocaleContextHolder.getLocale())} |:| ${project.overview.orEmpty()}")
+            .addObject("title", "${project.name} - ${messages.getMessage("menu.home", null, LocaleContextHolder.getLocale())} |:| ${project.overview}")
             .addObject("projectView", view)
             .addObject("tabId", tabId)
             .addObject("overviewHtml", project.overview?.takeIf { it.isNotEmpty() }?.let { markdown.render(it) })

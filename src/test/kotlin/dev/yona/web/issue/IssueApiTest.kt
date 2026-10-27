@@ -256,6 +256,17 @@ class IssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `프로젝트를 공유자로 추가해도 사이트 관리자 역할 행은 빠진다 (v1_6 findMemberListByProject)`() {
+        val project = newProject(); val other = newProject()
+        val member = join(newUser(), project); val a = join(newUser(), other); val siteManager = newUser()
+        projectUsers.save(ProjectUser(user = siteManager, project = other, role = roles.findById(RoleType.SITEMANAGER.id).get()))
+        val i = issue(project, author = member)
+        json(post(api(project, "issues/1/share")), login(member), """{"sharer":{"loginId":"${other.id}","type":"project"},"action":"add"}""").andExpect(status().isOk)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(setOf(a.loginId), entityManager.createQuery("select s from IssueSharer s where s.issue.id = :id", IssueSharer::class.java).setParameter("id", i.id).resultList.map { it.loginId }.toSet())
+    }
+
+    @Test
     fun `공유자 변경의 오류`() {
         val project = newProject()
         val member = join(newUser(), project)

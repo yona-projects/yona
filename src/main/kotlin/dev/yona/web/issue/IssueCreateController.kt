@@ -175,7 +175,7 @@ class IssueCreateController(
         val context = if (properties.applicationContext.isEmpty()) "" else "/" + properties.applicationContext.trim('/')
         val content = messages.getMessage("issue.derived", null, org.springframework.context.i18n.LocaleContextHolder.getLocale()) +
             ": $scheme://$host$context/${project.owner}/${project.name}/issue/${issue.number}"
-        issueComments.add(origin, viewer, content, referId, false)
+        issueComments.add(origin, viewer, content, referId, false, touchUpdated = false)
     }
 
     private fun formByComment(project: Project, commentId: Long, request: HttpServletRequest): Any {

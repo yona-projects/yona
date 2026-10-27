@@ -118,6 +118,13 @@ class SiteSecretTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이메일 형식이 틀리면 오류이다 (v1_6 폼 바인딩의 Constraints_Email)`() {
+        val bad = Jsoup.parse(submit(*with("email", "+bad@example.com")).andExpect(status().isBadRequest).andReturn().response.contentAsString)
+        assertTrue(bad.select("dt:has(label[for=email]) span.label-important").isNotEmpty(), bad.select("form").html())
+        assertEquals(400, submit(*with("email", "no-at-sign")).andReturn().response.status)
+    }
+
+    @Test
     fun `오류이면 입력한 이름과 이메일을 다시 보여 준다`() {
         val doc = Jsoup.parse(submit(*with("retypedPassword", "different")).andReturn().response.contentAsString)
         assertEquals("새 관리자", doc.selectFirst("input#uname")!!.attr("value"))
@@ -136,6 +143,8 @@ class SiteSecretTest : AbstractIntegrationTest() {
         assertEquals("새 관리자", admin.name)
         assertEquals("new-admin@example.com", admin.email)
         assertEquals(LegacyPasswordHasher.hash("secret-pass", admin.passwordSalt!!), admin.password)
+        // v1.6 updateDefaultSiteAdmin: 솔트는 16바이트의 Arrays.toString 형식이다
+        assertTrue(Regex("""\[-?\d+(, -?\d+){15}]""").matches(admin.passwordSalt!!), admin.passwordSalt)
         val written = configFile().readText()
         assertTrue(Regex("yona\\.secret=[0-9a-v]{20,}").containsMatchIn(written), written)
         assertNotEquals(dev.yona.config.YonaProperties.DEFAULT_SECRET, written.substringAfter("yona.secret=").trim())

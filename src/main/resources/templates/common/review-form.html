@@ -12,7 +12,7 @@
         <div class="author-info-wrap pull-left hide-in-mobile">
             <div class="author-info">
                 <a th:href="@{/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap medium" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${currentUser.name}">
-                    <img th:src="${currentUser.avatarUrl(32)}" width="32" height="32">
+                    <img th:src="${currentUser.avatarUrl(64)}" width="32" height="32">
                 </a>
             </div>
         </div>

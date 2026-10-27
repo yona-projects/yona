@@ -74,6 +74,8 @@ class GitHttpTest {
     @Autowired private lateinit var pushedBranches: PushedBranchRepository
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var deletion: ProjectDeletionService
+    @Autowired private lateinit var recentVisits: dev.yona.domain.project.RecentVisitService
+    @Autowired private lateinit var recentProjects: dev.yona.domain.project.RecentProjectRepository
 
     @TempDir lateinit var work: File
 
@@ -139,6 +141,26 @@ class GitHttpTest {
         user?.let { command.setCredentialsProvider(credentials(it)) }
         command.call().close()
         return dir
+    }
+
+    @Test
+    fun `푸시는 마지막 방문 프로젝트를 갱신해 다시 열면 최근 방문 맨 앞이 된다 (v1_6 user_visits)`() {
+        val other = project(ProjectScope.PUBLIC)
+        recentVisits.visits(member, other)
+        push(project, member)
+        // git 요청이 visits로 마지막 방문 번호를 바꾸므로, 웹으로 other를 다시 열면 직전과 다르다고 보고 맨 앞에 다시 기록한다
+        recentVisits.visits(member, other)
+        assertEquals(other.id, recentProjects.findByUserIdOrderByIdDesc(member.id!!).first().project?.id)
+    }
+
+    @Test
+    fun `Basic 인증은 로그인 ID로만 찾고 이메일 사용자 이름은 받지 않는다 (v1_6 authenticateWithPlainPassword)`() {
+        val secret = project(ProjectScope.PRIVATE)
+        fun auth(name: String) = "Basic " + java.util.Base64.getEncoder().encodeToString("$name:1234".toByteArray())
+        val byLogin = raw("/${secret.owner}/${secret.name}/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to auth(member.loginId!!)))
+        assertEquals(200, byLogin.statusCode())
+        val byEmail = raw("/${secret.owner}/${secret.name}/info/refs?service=git-upload-pack", headers = arrayOf("Authorization" to auth(member.email!!)))
+        assertEquals(401, byEmail.statusCode())
     }
 
     @Test
@@ -289,6 +311,16 @@ class GitHttpTest {
         val response = raw("/${project.owner}/${project.name}/git-upload-pack", "POST", want, "Content-Type" to "application/x-git-upload-pack-request")
         assertEquals(200, response.statusCode())
         assertTrue(String(response.body()).contains("ERR"), String(response.body()))
+    }
+
+    @Test
+    fun `RPC 본문이 102400바이트를 넘으면 413이고 그 이하는 처리한다 (v1_6 isMaxSizeExceeded)`() {
+        // v1.6 GitApp.serviceRpc: Play의 기본 본문 한도(parsers.text.maxLength 102400)를 넘으면 처리하지 않고 413이다
+        val big = ByteArray(102_401) { 'x'.code.toByte() }
+        val over = raw("/${project.owner}/${project.name}/git-upload-pack", "POST", big, "Content-Type" to "application/x-git-upload-pack-request")
+        assertEquals(413, over.statusCode())
+        val edge = raw("/${project.owner}/${project.name}/git-upload-pack", "POST", ByteArray(102_400) { 'x'.code.toByte() }, "Content-Type" to "application/x-git-upload-pack-request")
+        assertTrue(edge.statusCode() != 413, edge.statusCode().toString())
     }
 
     @Test

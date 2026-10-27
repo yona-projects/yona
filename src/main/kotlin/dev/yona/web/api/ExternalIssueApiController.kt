@@ -255,7 +255,7 @@ class ExternalIssueApiController(
     private fun assigneeByEmail(node: JsonNode?): User? {
         if (node == null || !node.isArray || node.size() == 0) return null
         val email = node.get(0).findValue("email")?.asString() ?: return null
-        return users.findByEmail(email)
+        return apiUsers.lookup(email)
     }
 
     private fun labelPairs(node: JsonNode?): List<Pair<String, String>> {
@@ -276,6 +276,6 @@ class ExternalIssueApiController(
     private fun findAuthor(node: JsonNode?, viewer: User): User {
         if (node == null) return viewer
         val email = node.findValue("email")?.asString() ?: return apiUsers.anonymous("")
-        return apiUsers.findOrCreateByEmail(node.findValue("loginId")?.asString().orEmpty(), node.findValue("name")?.asString().orEmpty(), email)
+        return apiUsers.findAuthor(email)
     }
 }

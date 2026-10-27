@@ -65,7 +65,7 @@ class BoardViewAssembler(
             bodyHtml = if (body.isEmpty()) null else markdown.render(body, project, lang),
             historyHtml = if (history.isNullOrEmpty()) null else rawMarkdown.sanitize(history),
             createdTitle = helper.dateString(post.createdDate), createdAgo = helper.agoOrDateString(post.createdDate),
-            authorLoginId = post.authorLoginId, authorName = author?.name ?: post.authorName, authorAvatarUrl = author?.let { avatars.avatarUrl(it) }.orEmpty(),
+            authorLoginId = post.authorLoginId, authorName = author?.name ?: post.authorName, authorAvatarUrl = author?.let { avatars.avatarUrl(it, 32) }.orEmpty(),
             viewerAnonymous = viewer == null,
             canUpdate = accessControl.isAllowed(viewer, resource, Operation.UPDATE), canDelete = accessControl.isAllowed(viewer, resource, Operation.DELETE),
             canWatch = accessControl.isAllowed(viewer, resource, Operation.WATCH), watching = viewer != null && isWatching(viewer, postId),
@@ -86,7 +86,7 @@ class BoardViewAssembler(
             "select count(o) from OriginalEmail o where o.resourceType = :t and o.resourceId = :i", java.lang.Long::class.java
         ).setParameter("t", ResourceType.NONISSUE_COMMENT).setParameter("i", id.toString()).singleResult.toLong() > 0
         return CommentView(
-            id = id, author = author?.let { person(it, lang) } ?: PersonView(comment.authorLoginId, comment.authorName, comment.authorName.orEmpty(), comment.authorName.orEmpty(), "", null),
+            id = id, author = author?.let { person(it, lang).copy(name = comment.authorName) } ?: PersonView(comment.authorLoginId, comment.authorName, comment.authorName.orEmpty(), comment.authorName.orEmpty(), "", null),
             createdTitle = helper.dateString(comment.createdDate), createdAgo = helper.agoOrDateString(comment.createdDate),
             contents = comment.contents.orEmpty(), contentsHtml = markdown.render(comment.contents.orEmpty(), project, lang),
             own = viewer != null && comment.authorLoginId == viewer.loginId,

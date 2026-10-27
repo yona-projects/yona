@@ -8,6 +8,7 @@ import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * 템플릿 도우미(`TemplateHelper`)의 시간 표시 규칙을 검증한다.
@@ -176,5 +177,18 @@ class TemplateHelperTest {
     fun `하루보다 오래된 시각은 날짜와 시각이다`() {
         assertEquals("2026-10-20 6:00 PM", helper.socialDate(Date.from(now.minusSeconds(2 * 86_400)), Locale.ENGLISH))
         assertEquals("", helper.socialDate(null, Locale.ENGLISH))
+    }
+
+    @Test
+    fun `기본 아바타 주소만 기본 아바타로 본다 (v1_6 avatarUrl == DEFAULT_AVATAR_URL)`() {
+        assertTrue(helper.isDefaultAvatar(dev.yona.security.AvatarService.DEFAULT_AVATAR_URL))
+        assertTrue(!helper.isDefaultAvatar("/files/3"))
+        assertTrue(!helper.isDefaultAvatar("https://www.gravatar.com/avatar/x?s=64"))
+        assertTrue(!helper.isDefaultAvatar(null))
+    }
+
+    @Test
+    fun `무작위 문자열은 영문 대소문자뿐이다 (v1_6 randomAlphabetic)`() {
+        repeat(50) { assertTrue(Regex("[A-Za-z]{8}").matches(TemplateHelper.randomAlphabetic(8))) }
     }
 }

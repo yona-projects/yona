@@ -44,8 +44,8 @@ class PostingSearchService(private val entityManager: EntityManager) {
         val where = StringBuilder("where p.project.id = :project and p.notice = false")
         val params = linkedMapOf<String, Any>("project" to requireNotNull(project.id))
         if (condition.filter.isNotEmpty()) {
-            where.append(" and (lower(p.title) like :filter escape '!' or lower(cast(p.body as string)) like :filter escape '!')")
-            params["filter"] = "%" + escapeLike(condition.filter.lowercase()) + "%"
+            where.append(" and (lower(p.title) like :filter or lower(cast(p.body as string)) like :filter)")
+            params["filter"] = "%" + condition.filter.lowercase() + "%"
         }
         if (condition.labelIds.isNotEmpty()) {
             where.append(" and p.id in (select p2.id from Posting p2 join p2.labels l where l.id in :labelIds)")
@@ -72,8 +72,8 @@ class PostingSearchService(private val entityManager: EntityManager) {
         val where = StringBuilder("where p.project.id in :projects")
         val params = linkedMapOf<String, Any>("projects" to projectIds)
         if (condition.filter.isNotEmpty()) {
-            where.append(" and (lower(p.title) like :filter escape '!' or lower(cast(p.body as string)) like :filter escape '!')")
-            params["filter"] = "%" + escapeLike(condition.filter.lowercase()) + "%"
+            where.append(" and (lower(p.title) like :filter or lower(cast(p.body as string)) like :filter)")
+            params["filter"] = "%" + condition.filter.lowercase() + "%"
         }
         val field = if (condition.effectiveOrderBy in ORDERABLE) condition.effectiveOrderBy else "createdDate"
         val direction = if (condition.orderDir.equals("asc", ignoreCase = true)) "asc" else "desc"
@@ -92,7 +92,6 @@ class PostingSearchService(private val entityManager: EntityManager) {
             .setParameter("project", project.id).resultList
 
     /** `like`의 특수 문자(`%`, `_`)와 이스케이프 문자(`!`)를 그대로 찾도록 이스케이프한다. */
-    private fun escapeLike(text: String): String = text.replace("!", "!!").replace("%", "!%").replace("_", "!_")
 
     companion object {
         /** 정렬 기준으로 쓸 수 있는 게시글 속성이다. 화면은 `updatedDate`, `createdDate`, `numOfComments`를 보낸다. */

@@ -145,6 +145,6 @@ class SiteUserController(
     }
 
     private companion object {
-        const val AVATAR_SIZE = 32
+        const val AVATAR_SIZE = 64
     }
 }

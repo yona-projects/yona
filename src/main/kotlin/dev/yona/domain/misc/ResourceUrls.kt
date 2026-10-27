@@ -44,21 +44,23 @@ class ResourceUrls(
     fun urlOf(type: ResourceType?, resourceId: String): String? {
         val id = resourceId.toLongOrNull() ?: return null
         return when (type) {
-            ResourceType.ISSUE_POST -> issues.findById(id).orElse(null)?.let { "/${it.project?.owner}/${it.project?.name}/issue/${it.number}" }
+            ResourceType.ISSUE_POST -> issues.findById(id).orElse(null)?.let { "${pp(it.project)}/issue/${it.number}" }
             ResourceType.ISSUE_COMMENT -> issueComments.findById(id).orElse(null)?.let { c ->
-                c.issue?.let { "/${it.project?.owner}/${it.project?.name}/issue/${it.number}#comment-${c.id}" }
+                c.issue?.let { "${pp(it.project)}/issue/${it.number}#comment-${c.id}" }
             }
-            ResourceType.BOARD_POST -> postings.findById(id).orElse(null)?.let { "/${it.project?.owner}/${it.project?.name}/post/${it.number}" }
+            ResourceType.BOARD_POST -> postings.findById(id).orElse(null)?.let { "${pp(it.project)}/post/${it.number}" }
             ResourceType.NONISSUE_COMMENT -> postingComments.findById(id).orElse(null)?.let { c ->
-                c.posting?.let { "/${it.project?.owner}/${it.project?.name}/post/${it.number}#comment-${c.id}" }
+                c.posting?.let { "${pp(it.project)}/post/${it.number}#comment-${c.id}" }
             }
-            ResourceType.PROJECT -> projects.findById(id).orElse(null)?.let { "/${it.owner}/${it.name}" }
+            ResourceType.PROJECT -> projects.findById(id).orElse(null)?.let { pp(it) }
             ResourceType.REVIEW_COMMENT -> reviewComments.findById(id).orElse(null)?.let { reviewLinks.relativeComment(it) }
             ResourceType.COMMENT_THREAD -> commentThreads.findById(id).orElse(null)?.let { reviewLinks.relativeThread(it) }
-            ResourceType.COMMIT_COMMENT -> commitComments.findById(id).orElse(null)?.let { c -> c.project?.let { "/${it.owner}/${it.name}/commit/${c.commitId}#comment-${c.id}" } }
-            ResourceType.PULL_REQUEST -> pullRequests.findById(id).orElse(null)?.let { r -> r.toProject?.let { "/${it.owner}/${it.name}/pullRequest/${r.number}" } }
+            ResourceType.COMMIT_COMMENT -> commitComments.findById(id).orElse(null)?.let { c -> c.project?.let { "${pp(it)}/commit/${c.commitId}#comment-${c.id}" } }
+            ResourceType.PULL_REQUEST -> pullRequests.findById(id).orElse(null)?.let { r -> r.toProject?.let { "${pp(it)}/pullRequest/${r.number}" } }
             ResourceType.USER_AVATAR -> users.findById(id).orElse(null)?.let { "/${it.loginId}" }
             else -> null
         }
     }
+
+    private fun pp(project: dev.yona.domain.project.Project?) = dev.yona.util.UrlPaths.projectPath(project?.owner, project?.name)
 }

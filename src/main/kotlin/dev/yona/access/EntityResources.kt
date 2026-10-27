@@ -66,11 +66,14 @@ fun PullRequest.asResource(): ProjectResource =
     ProjectResource(requireNotNull(id).toString(), ResourceType.PULL_REQUEST, toProject, authorId = contributor?.id)
 
 /**
- * 커밋 코멘트 (`COMMIT_COMMENT`). 작성자 권한이 있다.
- * v1.6은 컨테이너로 커밋 리소스(`COMMIT`, 아이디 `프로젝트번호:커밋번호`)를 돌려준다. 커밋 리소스는 커밋 화면이 만든다(`CommitViewController`).
+ * 커밋 코멘트 (`COMMIT_COMMENT`). 작성자 권한이 있고 컨테이너는 커밋 리소스(`COMMIT`, 아이디 `프로젝트번호:커밋번호`)이다
+ * (v1.6 `CommitComment.asResource`, `Commit.getAsResource`). 알림 메일의 `Reply-To`와 `References`가 이 컨테이너로 만들어진다.
  */
 fun CommitComment.asResource(): ProjectResource =
-    ProjectResource(requireNotNull(id).toString(), ResourceType.COMMIT_COMMENT, project, authorId = authorId)
+    ProjectResource(
+        requireNotNull(id).toString(), ResourceType.COMMIT_COMMENT, project, authorId = authorId,
+        container = project?.let { ProjectResource("${it.id}:$commitId", ResourceType.COMMIT, it) }
+    )
 
 /** 코드 리뷰 스레드 (`COMMENT_THREAD`). 프로젝트에 속하고 스레드를 연 사람이 작성자이다 (v1.6 `CommentThread.asResource`). */
 fun CommentThread.asResource(): ProjectResource =

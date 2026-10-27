@@ -67,6 +67,21 @@
                         </ul>
                     </div>
 
+                    <th:block th:if="${commitInfo != null}">
+                    <p class="commitInfo">
+                        <th:block th:if="${commitInfo.known}">
+                            <a th:href="${commitInfo.authorHref}" class="avatar-wrap smaller"><img th:src="${commitInfo.avatarUrl}" th:alt="${commitInfo.authorName}" width="32" height="32"/></a>
+                            <strong th:text="${commitInfo.authorName}"></strong>
+                        </th:block>
+                        <th:block th:unless="${commitInfo.known}">
+                            <span class="avatar-wrap smaller"><img th:src="${commitInfo.avatarUrl}" width="32" height="32"></span>
+                            <strong th:if="${commitInfo.authorName != null}" th:text="${commitInfo.authorName}"></strong>
+                        </th:block>
+                        <span class="ago" th:title="${commitInfo.agoTitle}" th:text="${commitInfo.ago}"></span>
+                    </p>
+                    <pre class="commitMsg mt5" th:text="${commitInfo.message}"></pre>
+                    </th:block>
+
                     <div class="diff-body diffs-wrap-scroll">
                         <th:block th:replace="~{pullrequest/partial-state :: state}"></th:block>
                         <th:block th:utext="${diffHtml}"></th:block>
@@ -101,7 +116,7 @@
                                         <span class="comments pull-left" th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></span>
                                         <span class="outdated-label" th:text="#{review.outdated}"></span>
                                         <span class="date" th:title="${c.agoTitle}" th:text="${c.ago}"></span>
-                                        <span class="avatar-wrap smaller ml5"><img th:src="${c.avatarUrl}" alt="" /></span>
+                                        <span class="avatar-wrap smaller ml5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}" /></span>
                                     </p>
                                 </a>
                             </div>
@@ -112,7 +127,7 @@
                                         <span class="comments pull-left" th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></span>
                                         <span class="outdated-label" th:text="#{review.outdated}"></span>
                                         <span class="date" th:title="${c.agoTitle}" th:text="${c.ago}"></span>
-                                        <span class="avatar-wrap smaller ml5"><img th:src="${c.avatarUrl}" alt="" /></span>
+                                        <span class="avatar-wrap smaller ml5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}" /></span>
                                     </p>
                                 </a>
                             </div>

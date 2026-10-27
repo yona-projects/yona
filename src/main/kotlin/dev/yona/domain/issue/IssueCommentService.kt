@@ -31,10 +31,10 @@ class IssueCommentService(
 
     /**
      * 댓글을 단다. [parentCommentId]를 주면 그 댓글에 달리는 한 줄 댓글이다. 멘션을 기록하고 이슈의 댓글 수를 맞추며 [IssueCommentActivity]를
-     * 발행한다. [withStateTransition]이면 이슈를 다음 상태로 바꾸고, 아니면 이슈의 수정 시각만 갱신한다.
+     * 발행한다. [withStateTransition]이면 이슈를 다음 상태로 바꾸고, 아니면 [touchUpdated]일 때 이슈의 수정 시각만 갱신한다.
      */
     @Transactional
-    fun add(issue: Issue, author: User, contents: String, parentCommentId: Long?, withStateTransition: Boolean): IssueComment {
+    fun add(issue: Issue, author: User, contents: String, parentCommentId: Long?, withStateTransition: Boolean, touchUpdated: Boolean = true): IssueComment {
         val parent = parentCommentId?.let { comments.findById(it).orElse(null) }
         val previous = previousContents(issue, parent)
         val comment = comments.save(
@@ -46,7 +46,8 @@ class IssueCommentService(
         mentions.update(ResourceType.ISSUE_COMMENT, requireNotNull(comment.id).toString(), contents)
         syncCommentCount(issue)
         publisher.publishEvent(IssueCommentActivity(comment, previous, true, author))
-        touchOrTransition(issue, author, withStateTransition)
+        // 파생 이슈 댓글(v1.6 newReferComment)은 이슈의 수정 시각을 바꾸지 않는다
+        if (touchUpdated || withStateTransition) touchOrTransition(issue, author, withStateTransition)
         return comment
     }
 
@@ -82,7 +83,7 @@ class IssueCommentService(
         val id = requireNotNull(comment.id)
         val issue = comment.issue
         attachments.deleteAll(ResourceType.ISSUE_COMMENT, id)
-        issueService.deleteNotificationEvents(ResourceType.ISSUE_COMMENT, id.toString())
+        issueService.deleteResourceRelations(ResourceType.ISSUE_COMMENT, id.toString())
         comments.findByParentCommentIdOrderByIdAsc(id).forEach { it.parentComment = null }
         entityManager.flush()
         comment.voters.clear()

@@ -62,7 +62,7 @@ class IssueCommentController(
             return ErrorViews.forbidden("error.forbidden", views.of(project))
         }
         val contents = request.getParameter("contents")
-        if (contents.isNullOrEmpty()) return ErrorViews.badRequest("post.comment.empty", views.of(project), "ISSUE")
+        if (contents.isNullOrEmpty()) return ErrorViews.badRequest("post.comment.empty", views.of(project), "PROJECT_HOME")
 
         val withTransition = request.contentType?.startsWith("multipart/") == true && !request.getParameter("withStateTransition").isNullOrBlank()
         val existing = request.getParameter("id")?.toLongOrNull()?.let { comments.findById(it).orElse(null) }

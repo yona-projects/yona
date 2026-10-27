@@ -2,6 +2,7 @@ package dev.yona.domain.notification
 
 import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.comment.NonRangedCodeCommentThread
+import dev.yona.domain.comment.CommitComment
 import dev.yona.domain.comment.ReviewComment
 import dev.yona.domain.enumeration.ThreadState
 import dev.yona.domain.enumeration.EventType
@@ -138,6 +139,19 @@ class NotificationMailSenderTest : AbstractIntegrationTest() {
         assertEquals("<review_comment/${second.id}@${hostname.name()}>", mail.messageID)
         // v1.6 NotificationMail: 컨테이너가 COMMENT_THREAD이면 스레드의 첫 리뷰 댓글의 메시지 식별자를 References에 단다
         assertEquals("<review_comment/${first.id}@${hostname.name()}>", mail.getHeader("References")!!.single())
+    }
+
+    @Test
+    fun `커밋 코멘트의 알림은 참조 헤더에 커밋 리소스를 단다 (v1_6 CommitComment_getContainer)`() {
+        val author = user(); val receiver = user(); val i = issue(author)
+        val project = i.project!!
+        val comment = CommitComment(project = project, commitId = "abc123", contents = "코멘트", createdDate = Date(), authorId = author.id, authorLoginId = author.loginId, authorName = author.name)
+            .also { entityManager.persist(it); entityManager.flush() }
+        sender.send(MergedNotification(event(author, i, EventType.NEW_COMMENT, null, "코멘트", receiver, resourceType = ResourceType.COMMIT_COMMENT, resourceId = comment.id!!)))
+        val mail = sent().single()
+        assertEquals("<code_comment/${comment.id}@${hostname.name()}>", mail.messageID)
+        // 컨테이너 = 커밋 리소스(COMMIT, 아이디 "프로젝트번호:커밋")
+        assertEquals("<commit/${project.id}:abc123@${hostname.name()}>", mail.getHeader("References")!!.single())
     }
 
     @Test

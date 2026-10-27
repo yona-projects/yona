@@ -177,10 +177,15 @@ class ExternalIssueService(
 
         all.forEach { it.parentComment = null }
         entityManager.flush()
+        val postingId = requireNotNull(posting.id)
+        val commentIds = all.mapNotNull { it.id }
         all.forEach { postingComments.delete(it) }
         posting.labels.clear()
         postings.delete(posting)
         postings.flush()
+        // v1.6는 글과 댓글을 지울 때 구독 기록도 함께 지운다
+        commentIds.forEach { issueService.deleteResourceRelations(ResourceType.NONISSUE_COMMENT, it.toString()) }
+        issueService.deleteResourceRelations(ResourceType.BOARD_POST, postingId.toString())
         return issue
     }
 

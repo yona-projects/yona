@@ -69,6 +69,19 @@ class PullRequestPageAssembler(
         return siteUrls.path("/${project.owner}/${project.name}/pullRequest/${pullRequest.number}")
     }
 
+    /**
+     * 변경 화면에서 커밋 하나를 골랐을 때 보이는 작성자 정보이다 (v1.6 `viewChanges`의 `commitInfo`).
+     * 작성자 이메일로 사용자를 찾으면 사용자 아바타와 이름, 못 찾으면 이메일의 Gravatar와 커밋의 이름이다. Git 커밋의 이메일은 비어 있어도 이메일 분기이다.
+     */
+    fun commitInfo(commit: dev.yona.repository.CommitInfo): Map<String, Any?> {
+        val author = userLookup.findByEmail(commit.authorEmail)
+        return linkedMapOf(
+            "known" to (author != null), "authorHref" to author?.let { siteUrls.path("/${it.loginId}") }, "authorName" to (author?.name ?: commit.authorName),
+            "avatarUrl" to (author?.let { avatars.avatarUrl(it) } ?: avatars.gravatarUrl(commit.authorEmail, AVATAR_SIZE)),
+            "ago" to helper.agoOrDateString(commit.authorDate), "agoTitle" to helper.dateString(commit.authorDate), "message" to commit.message
+        )
+    }
+
     /** 공통 머리 영역이다. [activeTab]은 `overview` 또는 `changes`이다. */
     fun header(pullRequest: PullRequest, viewer: User?, activeTab: String): PullRequestHeader {
         val project = requireNotNull(pullRequest.toProject)
@@ -205,7 +218,7 @@ class PullRequestPageAssembler(
         PullRequestReviewCard(
             href = threadUrl(thread), state = (thread.state ?: ThreadState.OPEN).name.lowercase(), outdated = (thread as? CodeCommentThread)?.let { changes.isOutdated(it) } == true,
             content = first?.contents.orEmpty(), commentCount = (thread.reviewComments.size - 1).coerceAtLeast(0), ago = helper.agoOrDateString(thread.createdDate),
-            agoTitle = helper.dateString(thread.createdDate), avatarUrl = author?.let { avatars.avatarUrl(it) }.orEmpty()
+            agoTitle = helper.dateString(thread.createdDate), avatarUrl = author?.let { avatars.avatarUrl(it) }.orEmpty(), authorName = thread.authorName
         )
     }
 
@@ -238,6 +251,6 @@ class PullRequestPageAssembler(
     private companion object {
         const val SHORT_ID = 7
         const val AVATAR_SIZE = 32
-        const val RECEIVER_AVATAR = 25
+        const val RECEIVER_AVATAR = 64
     }
 }

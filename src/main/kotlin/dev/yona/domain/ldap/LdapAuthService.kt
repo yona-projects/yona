@@ -89,8 +89,7 @@ class LdapAuthService(
         }
         local.name = ldapUser.displayNameWithDepartment
         if (ldapUser.englishName.isNotBlank()) local.englishName = ldapUser.englishName
-        // v1.6 `LdapUser.isGuestUser`는 게스트 접두어 설정 키가 뒤에 공백이 붙은 오타라 항상 거짓이다(R-60).
-        local.isGuest = false
+        local.isGuest = isGuestUser(ldapUser)
         return LdapAuthResult(users.save(local))
     }
 
@@ -104,6 +103,17 @@ class LdapAuthService(
         }
         val created = signup.create(SignupForm(loginId, ldapUser.displayNameWithDepartment, ldapUser.email, password))
         if (created.state == UserState.LOCKED) return LdapAuthResult(null, mapOf("info" to "user.signup.requested"))
-        return LdapAuthResult(created)
+        created.isGuest = isGuestUser(ldapUser)
+        return LdapAuthResult(users.save(created))
+    }
+
+    /**
+     * LDAP 로그인 ID가 설정한 게스트 접두어로 시작하면 게스트이다 (v1.6 `LdapUser.isGuestUser`). 접두어는 쉼표로 나누고 공백을 없애 소문자로 비교하며
+     * 비어 있는 접두어는 버린다. 설정이 비어 있으면 게스트가 없다.
+     */
+    private fun isGuestUser(ldapUser: LdapUser): Boolean {
+        val prefixes = properties.guestUserLoginIdPrefix.replace(" ", "").split(",").map { it.lowercase().trim() }.filter { it.isNotBlank() }
+        val loginId = ldapUser.loginId.lowercase()
+        return prefixes.any { loginId.startsWith(it) }
     }
 }
