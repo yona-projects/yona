@@ -141,6 +141,19 @@ class MailResourceCreatorTest : AbstractIntegrationTest() {
         assertEquals(issue.body, event.newValue)
     }
 
+    @Test
+    fun `파일 이름이 없는 related 첨부도 오류 없이 저장한다 (v1_6은 decodeText(null)의 NPE)`() {
+        // JavaMail 1.4.1, 1.4.5, 1.5.2 모두 MimeUtility.decodeText(null)이 NullPointerException을 던진다(직접 실행해 확인).
+        // v1.6 CreationViaEmail.saveAttachment는 파일 이름을 검사하지 않고 넘기므로 이 메일은 v1.6에서 500이다.
+        val sender = user(); val p = project(sender); member(sender, p)
+        val html = MailFixtures.html("<html><body><p>그림</p><img src=\"cid:pic9\"></body></html>")
+        val related = MailFixtures.multipart("related", html, MailFixtures.inline("<pic9>", "PNG"))
+        val issue = creator.saveIssue(MailFixtures.mail("<m-noname@mail>", sender.email!!, listOf(to(p)), "이름 없는 첨부", related), p)
+        val stored = attachments.findAll().single { it.containerType == ResourceType.ISSUE_POST && it.containerId == issue.id }
+        assertTrue(!stored.name.isNullOrBlank(), "이름이 없으면 시각으로 이름을 만든다")
+        assertTrue(issue.body!!.contains("/files/${stored.id}"), issue.body)
+    }
+
     // --- 댓글 ---
 
     @Test
