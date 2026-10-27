@@ -90,4 +90,16 @@ class JsMessagesTest : AbstractIntegrationTest() {
         mockMvc.perform(get("/messages.js").header("Accept-Language", "ko-KR"))
             .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Vary", org.hamcrest.Matchers.containsString("Accept-Language")))
     }
+
+    @Test
+    fun `알 수 없는 역슬래시 이스케이프는 Play처럼 역슬래시를 남긴다 (공식 v1_16_0의 ru, uz 메시지)`() {
+        // 원본 파일의 `\N`, `\ n`은 자바 Properties라면 `N`, ` n`이 되지만 Play 파서는 역슬래시를 그대로 둔다
+        assertTrue(body("ru-RU").contains("Запрос недействителен. \\\\N Пожалуйста"), "ru")
+        assertTrue(body("uz-UZ").contains("sabablari bor: \\\\ n {1}"), "uz")
+    }
+
+    @Test
+    fun `일본어 메시지는 공식 릴리스 값을 따른다`() {
+        assertTrue(body("ja-JP").contains("\"pullRequest.event.commit\":\"commited\""))
+    }
 }

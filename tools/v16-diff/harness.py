@@ -111,7 +111,7 @@ class Server:
     def session(self, actor: str) -> requests.Session:
         if actor not in self.sessions:
             s = requests.Session()
-            s.headers["Accept-Language"] = "en-US,en;q=0.9"
+            s.headers["Accept-Language"] = os.environ.get("V16DIFF_LANG", "en-US,en;q=0.9")
             self.sessions[actor] = s
         return self.sessions[actor]
 
