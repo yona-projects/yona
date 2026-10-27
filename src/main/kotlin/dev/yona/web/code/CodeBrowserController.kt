@@ -135,7 +135,12 @@ class CodeBrowserController(
         val target = UrlPaths.decodeSegmentOrSelf(branch)
         if (service.ancestors(project, target, "") == null) return ErrorViews.notFound()
         response.contentType = "application/octet-stream"
-        response.setHeader("Content-Disposition", "attachment; filename=${project.name}-$branch.zip")
+        // v1.6은 이름을 그대로 헤더에 넣는다. ASCII이면 같고, 한글 이름은 Tomcat이 헤더를 지워 파일 이름이 사라지므로 RFC 5987 형태로 보낸다(A-147)
+        val fileName = "${project.name}-$branch.zip"
+        response.setHeader(
+            "Content-Disposition",
+            if (fileName.all { it.code in 0x20..0x7E }) "attachment; filename=$fileName" else "attachment; " + dev.yona.web.ContentDispositions.encodeFilename(fileName)
+        )
         service.archive(project, target, response.outputStream)
         return null
     }
@@ -144,7 +149,13 @@ class CodeBrowserController(
     @GetMapping("/{user}/{project}/rawcode/{rev}/{*path}")
     @CodeAccessCheck
     @Transactional(readOnly = true)
-    fun showRawFile(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable rev: String, @PathVariable path: String): Any {
+    fun showRawFile(
+        @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable rev: String, @PathVariable path: String, response: HttpServletResponse
+    ): Any? {
+        largeFile(owner, name, rev, path)?.let { (large, fileName) ->
+            val charset = MediaTypes.charset(MediaTypes.detect(large.prefix, fileName))
+            return streamed(large, "text/plain" + (charset?.let { "; charset=$it" } ?: ""), response)
+        }
         val (bytes, fileName) = rawFile(owner, name, rev, path) ?: return ErrorViews.notFound()
         val charset = MediaTypes.charset(MediaTypes.detect(bytes, fileName))
         val type = "text/plain" + (charset?.let { "; charset=$it" } ?: "")
@@ -155,7 +166,10 @@ class CodeBrowserController(
     @GetMapping("/{user}/{project}/image/{rev}/{*path}")
     @CodeAccessCheck
     @Transactional(readOnly = true)
-    fun showImageFile(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable rev: String, @PathVariable path: String): Any {
+    fun showImageFile(
+        @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable rev: String, @PathVariable path: String, response: HttpServletResponse
+    ): Any? {
+        largeFile(owner, name, rev, path)?.let { (large, _) -> return streamed(large, MediaTypes.detectRaw(large.prefix, null), response) }
         val (bytes, _) = rawFile(owner, name, rev, path) ?: return ErrorViews.notFound()
         return ResponseEntity.ok().header("Content-Type", MediaTypes.detectRaw(bytes, null)).body(bytes)
     }
@@ -164,9 +178,28 @@ class CodeBrowserController(
     @GetMapping("/{user}/{project}/files/{rev}/{*path}")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
-    fun openFile(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable rev: String, @PathVariable path: String): Any {
+    fun openFile(
+        @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable rev: String, @PathVariable path: String, response: HttpServletResponse
+    ): Any? {
+        largeFile(owner, name, rev, path)?.let { (large, fileName) -> return streamed(large, MediaTypes.detect(large.prefix, fileName), response) }
         val (bytes, fileName) = rawFile(owner, name, rev, path) ?: return ErrorViews.notFound()
         return ResponseEntity.ok().header("Content-Type", MediaTypes.detect(bytes, fileName)).body(bytes)
+    }
+
+    /** JGit의 큰 객체 한도를 넘는 Git 파일이면 흘려보낼 수 있는 형태로 돌려준다. 아니면 `null`이다. */
+    private fun largeFile(owner: String, name: String, rev: String, rawPath: String): Pair<dev.yona.repository.CodeBrowserService.LargeRawFile, String>? {
+        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return null
+        val path = rawPath.removePrefix("/")
+        val large = service.largeRawFile(project, UrlPaths.decodeSegmentOrSelf(rev), path) ?: return null
+        return large to path.substringAfterLast('/')
+    }
+
+    /** 큰 파일을 응답에 바로 흘려 쓴다. 본문을 직접 썼으므로 `null`을 돌려준다. */
+    private fun streamed(large: dev.yona.repository.CodeBrowserService.LargeRawFile, contentType: String, response: HttpServletResponse): Any? {
+        response.contentType = contentType
+        response.setContentLengthLong(large.size)
+        large.use { l -> l.open().use { it.copyTo(response.outputStream) } }
+        return null
     }
 
     private fun rawFile(owner: String, name: String, rev: String, rawPath: String): Pair<ByteArray, String>? {

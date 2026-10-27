@@ -211,6 +211,19 @@ class SvnDavTest {
     }
 
     @Test
+    fun `한글 프로젝트 이름의 저장소에도 HTTP로 커밋하고 읽을 수 있다`() {
+        val p = project(member, ProjectScope.PUBLIC)
+        val old = p.name!!
+        val renamed = projects.save(p.also { it.name = "한글 $old" })
+        repositories.createRepository(renamed)
+        val repository = client(renamed, member)
+        assertEquals(1L, commitOverHttp(repository, "hello.txt", "안녕\n"))
+        val out = ByteArrayOutputStream()
+        client(renamed).getFile("hello.txt", -1, null, out)
+        assertEquals("안녕\n", out.toString(Charsets.UTF_8))
+    }
+
+    @Test
     fun `한글 프로젝트 이름의 PROPFIND 응답 href는 퍼센트 인코딩되어 있다`() {
         val p = project(member, ProjectScope.PUBLIC)
         val old = p.name!!

@@ -169,6 +169,15 @@ class CodeBrowserServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `JGit의 큰 객체 한도(50MB)를 넘는 파일도 오류 없이 메타데이터를 만든다 (v1_6은 스트림으로 종류만 감지한다)`() {
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("큰 파일", mapOf("big.bin" to ByteArray(55 * 1024 * 1024))))
+        val info = assertNotNull(service.metaData(p, "master", "big.bin"))
+        assertEquals(true, info["isBinary"])
+        assertEquals(55L * 1024 * 1024, info["size"])
+    }
+
+    @Test
     fun `저장소가 비어 있는지 알려 준다`() {
         val p = project()
         assertTrue(service.isEmpty(p))

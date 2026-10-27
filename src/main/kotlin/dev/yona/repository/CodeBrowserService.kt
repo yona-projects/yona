@@ -98,6 +98,34 @@ class CodeBrowserService(
         return gitRawFile(project, revision, path)
     }
 
+    /**
+     * Git 파일이 JGit의 큰 객체 한도(`core.streamFileThreshold`, 50MB)를 넘으면 메모리에 올리지 않고 흘려보낼 수 있게 크기와 앞부분, 스트림 열기를 돌려준다.
+     * 한도 이하이거나 파일이 없으면 `null`이다(그때는 [rawFile]을 쓴다). v1.6은 `getBytes()`가 `LargeObjectException`을 던져 500이었다(R-115).
+     */
+    fun largeRawFile(project: Project, revision: String, path: String): LargeRawFile? {
+        if (isSvn(project)) return null
+        val repository = repositories.openRepository(project)
+        try {
+            val id = repository.resolve(revision) ?: return null.also { repository.close() }
+            val tree = try { RevWalk(repository).use { it.parseTree(id) } } catch (e: Exception) { return null.also { repository.close() } }
+            val walk = TreeWalk.forPath(repository, path, tree) ?: return null.also { repository.close() }
+            if (walk.isSubtree) return null.also { repository.close() }
+            val loader = repository.open(walk.getObjectId(0))
+            if (!loader.isLarge) return null.also { repository.close() }
+            val prefix = loader.openStream().use { it.readNBytes(MIME_SNIFF_BYTES) }
+            return LargeRawFile(loader.size, prefix, repository) { loader.openStream() }
+        } catch (e: Exception) {
+            repository.close()
+            throw e
+        }
+    }
+
+    /** 메모리에 올리지 않고 흘려보내는 큰 파일이다. 다 쓰면 [close]로 저장소를 닫는다. */
+    class LargeRawFile(val size: Long, val prefix: ByteArray, private val repository: Repository, private val opener: () -> java.io.InputStream) : java.io.Closeable {
+        fun open(): java.io.InputStream = opener()
+        override fun close() = repository.close()
+    }
+
     private fun gitRawFile(project: Project, revision: String, path: String): ByteArray? = repositories.openRepository(project).use { repository ->
         val id = repository.resolve(revision) ?: return null
         val tree = try { RevWalk(repository).use { it.parseTree(id) } } catch (e: Exception) { return null }
@@ -183,7 +211,8 @@ class CodeBrowserService(
             result["data"] = String(bytes, charset(CharsetDetection.detect(bytes)))
         }
         // v1.6 getMetaDataFromPath: 이름과 내용으로 종류만 감지한다 (문자 집합 없음)
-        result["mimeType"] = dev.yona.io.MediaTypes.detectRaw(loader.bytes, walk.nameString)
+        // v1.6 `new Tika().detect(file.openStream(), meta)`는 스트림의 앞부분만 읽는다. 전체를 읽으면 큰 파일에서 LargeObjectException이 난다
+        result["mimeType"] = dev.yona.io.MediaTypes.detectRaw(loader.openStream().use { it.readNBytes(MIME_SNIFF_BYTES) }, walk.nameString)
         return result
     }
 
@@ -239,5 +268,8 @@ class CodeBrowserService(
     private companion object {
         const val AVATAR_SIZE = 34
         val ARCHIVE_LOCK = Any()
+
+        /** 파일 종류를 감지할 때 읽는 앞부분의 바이트 수이다. Tika 1.x의 최소 길이(64KB)와 같다. */
+        const val MIME_SNIFF_BYTES = 65536
     }
 }

@@ -447,3 +447,6 @@
 - 소스에서 어노테이션 경로를 정규식으로 뽑으면 `{*path}`, 선택적 끝 슬래시, 필터가 받는 `/svn`, 클래스 단위 경로 때문에 누락이 크게 보인다(289 대 302). 정규식 대신 실제로 뜬 스프링의 핸들러 매핑에 v1.6 요청 306개를 하나씩 넣어 어떤 핸들러가 받는지 확인했다(`src/test/kotlin/dev/yona/web/RouteCoverageTest.kt`, 입력은 `src/test/resources/v16/routes.tsv`).
 - 결과: 304개는 의도한 컨트롤러가 받는다(표를 눈으로 대조했고 `build/route-coverage.tsv`에 남는다). 매핑이 없는 2개는 `GET /*paths`(`GlobalErrorHandler`가 끝 슬래시를 떼어 이동)와 `POST /!svn-fake/sevice/`(v1.6도 404)이며 시험으로 고정했다. 정적 자원 핸들러는 모든 경로에 맞으므로 `/assets/`가 아니면 일치로 세지 않는다.
 - 기존 `audit/RouteParityTest`는 같은 방식으로 `RequestMappingHandlerMapping`을 읽는다. 이번 시험은 요청을 실제로 넣어 `consumes`, `{*path}`까지 확인한다.
+
+## [2026-10-27] verify | 실제 git·svn 클라이언트로 한글 경로, 큰 저장소, 인증 흐름 검증
+- v2를 실제로 띄워 `git`, `svn`으로 확인했다([architecture/real-client-verification.md](architecture/real-client-verification.md)). 한글 프로젝트의 SVN 커밋 거부(A-148), 확장자에 따른 HTML 내용 형식 오류(A-150), 50MB 초과 Git 파일 500(A-149, R-115), 압축 파일 이름 헤더 소실(A-147)을 고쳤다.

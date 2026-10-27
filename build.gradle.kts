@@ -1,3 +1,11 @@
+import java.util.zip.ZipFile
+
+buildscript {
+	repositories { mavenCentral() }
+	// svnkit-dav의 클래스 한 곳을 빌드 때 고치는 데 쓴다(아래 patchedDavPathUtil)
+	dependencies { classpath("org.ow2.asm:asm:9.7") }
+}
+
 plugins {
 	kotlin("jvm") version "2.4.10"
 	kotlin("plugin.spring") version "2.4.10"
@@ -26,12 +34,64 @@ repositories {
 
 val svnDavWar by configurations.creating
 
+/**
+ * 한글이나 공백이 든 프로젝트 이름의 저장소에서 커밋이 늘 실패하는 svnkit-dav 1.10.11의 불일치를 고친다(A-148).
+ * 요청 본문이나 `Destination` 헤더의 주소를 `java.net.URI.getPath()`로 디코딩한 뒤, 퍼센트 인코딩한 저장소 컨텍스트
+ * (`DAVResourceURI.getContext()`, `DAVRepositoryManager.getResourceContext()`)와 비교하는 곳이 세 군데 있다.
+ * ASCII 이름에서는 같지만 `한글 프로젝트`는 `%ED%95%9C...`와 `한글 프로젝트`가 달라 `Unusable URI`나 `wrong context`로 거부된다.
+ * 컨텍스트도 디코딩해서 비교하도록 호출 한 줄(`SVNEncodingUtil.uriDecode`)을 끼워 넣는다. 응답 주소를 만드는 곳은 인코딩한 컨텍스트가 맞으므로 건드리지 않는다.
+ */
+val davContextPatches = listOf(
+	// 클래스, 고칠 메서드, 결과를 디코딩할 호출의 소유 클래스 끝, 호출 이름
+	listOf("org/tmatesoft/svn/core/internal/server/dav/DAVPathUtil", "simpleParseURI", "/DAVResourceURI", "getContext"),
+	listOf("org/tmatesoft/svn/core/internal/server/dav/handlers/DAVMergeHandler", "execute", "/DAVRepositoryManager", "getResourceContext"),
+	listOf("org/tmatesoft/svn/core/internal/server/dav/handlers/DAVCopyMoveHandler", "execute", "/DAVRepositoryManager", "getResourceContext")
+)
+
+val patchedDavClasses by tasks.registering {
+	val outputDir = layout.buildDirectory.dir("svn-dav/patched")
+	inputs.files(svnDavWar)
+	outputs.dir(outputDir)
+	doLast {
+		ZipFile(svnDavWar.singleFile).use { zip ->
+			for ((className, methodName, ownerSuffix, callName) in davContextPatches) {
+				val reader = org.objectweb.asm.ClassReader(zip.getInputStream(zip.getEntry("WEB-INF/classes/$className.class")).readBytes())
+				val writer = org.objectweb.asm.ClassWriter(reader, 0)
+				var patched = 0
+				reader.accept(object : org.objectweb.asm.ClassVisitor(org.objectweb.asm.Opcodes.ASM9, writer) {
+					override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): org.objectweb.asm.MethodVisitor {
+						val visitor = super.visitMethod(access, name, descriptor, signature, exceptions)
+						if (name != methodName) return visitor
+						return object : org.objectweb.asm.MethodVisitor(org.objectweb.asm.Opcodes.ASM9, visitor) {
+							override fun visitMethodInsn(opcode: Int, owner: String, mname: String, mdesc: String, isInterface: Boolean) {
+								super.visitMethodInsn(opcode, owner, mname, mdesc, isInterface)
+								if (owner.endsWith(ownerSuffix) && mname == callName) {
+									patched++
+									super.visitMethodInsn(
+										org.objectweb.asm.Opcodes.INVOKESTATIC, "org/tmatesoft/svn/core/internal/util/SVNEncodingUtil",
+										"uriDecode", "(Ljava/lang/String;)Ljava/lang/String;", false
+									)
+								}
+							}
+						}
+					}
+				}, 0)
+				check(patched == 1) { "$className.$methodName 에서 $callName 호출을 하나 찾아야 한다(찾은 수: $patched). svnkit-dav 버전이 바뀌었는지 확인한다." }
+				outputDir.get().file("$className.class").asFile.also { it.parentFile.mkdirs() }.writeBytes(writer.toByteArray())
+			}
+		}
+	}
+}
+
 val svnDavClasses by tasks.registering(Jar::class) {
-	description = "svnkit-dav war의 WEB-INF/classes를 jar로 묶는다."
-	archiveFileName = "svnkit-dav-classes.jar"
+	description = "svnkit-dav war의 WEB-INF/classes를 jar로 묶는다. 컨텍스트 비교를 고친 클래스 세 개를 대신 넣는다."
+	archiveFileName = "svn-dav-classes.jar".replace("svn-dav", "svnkit-dav")
 	destinationDirectory = layout.buildDirectory.dir("svn-dav")
+	dependsOn(patchedDavClasses)
+	from(layout.buildDirectory.dir("svn-dav/patched"))
 	from(zipTree(svnDavWar.elements.map { it.single().asFile })) {
 		include("WEB-INF/classes/**")
+		davContextPatches.forEach { exclude("${it[0].removePrefix("org/tmatesoft/svn/core/internal/server/dav/")}.class".let { n -> "**/internal/server/dav/$n" }) }
 		eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(2).toTypedArray()) }
 		includeEmptyDirs = false
 	}

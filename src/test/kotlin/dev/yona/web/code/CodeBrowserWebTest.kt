@@ -119,6 +119,26 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `JGit의 큰 객체 한도(50MB)를 넘는 파일도 원본 보기가 오류 없이 내려간다 (v1_6은 LargeObjectException으로 500)`() {
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("큰 파일", mapOf("big.bin" to ByteArray(55 * 1024 * 1024))))
+        for (route in listOf("rawcode", "files")) {
+            val result = mockMvc.perform(get("/${p.owner}/${p.name}/$route/master/big.bin")).andExpect(status().isOk).andReturn().response
+            assertEquals(55 * 1024 * 1024, result.contentLength.takeIf { it >= 0 } ?: result.contentAsByteArray.size, route)
+        }
+    }
+
+    @Test
+    fun `화면의 내용 형식은 주소의 확장자와 무관하게 HTML이다 (v1_6 Html 결과는 늘 text_html)`() {
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a.txt" to "x".toByteArray(), "b.json" to "{}".toByteArray(), "c.js" to "1".toByteArray(), "d.xml" to "<a/>".toByteArray())))
+        for (name in listOf("a.txt", "b.json", "c.js", "d.xml", "none.txt")) {
+            val type = mockMvc.perform(get("/${p.owner}/${p.name}/code/master/$name")).andReturn().response.contentType.orEmpty()
+            assertTrue(type.startsWith("text/html"), "$name => $type")
+        }
+    }
+
+    @Test
     fun `와일드카드 경로는 한 번만 디코딩한다 (퍼센트가 든 파일 이름, v1_6 PathVariable은 한 번 푼다)`() {
         val p = project()
         GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a%41.txt" to "x".toByteArray(), "aA.txt" to "y".toByteArray())))
@@ -218,6 +238,17 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         val p = filled()
         mockMvc.perform(get("/${p.owner}/${p.name}/code/!/")).andExpect(status().isOk).andExpect(jsonPath("$.type").value("folder")).andExpect(jsonPath("$.data.src.type").value("folder"))
         mockMvc.perform(get("/${p.owner}/${p.name}/code/master/!/")).andExpect(status().isOk).andExpect(jsonPath("$.data['README.md'].msg").value("처음"))
+    }
+
+    @Test
+    fun `한글 브랜치 이름의 압축 파일 이름은 ASCII만 담은 헤더로 보낸다 (Tomcat은 비 ASCII 헤더를 지운다)`() {
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a.txt" to "x".toByteArray())), branch = "한글브랜치")
+        val header = mockMvc.perform(get(java.net.URI.create("/${p.owner}/${p.name}/code/%ED%95%9C%EA%B8%80%EB%B8%8C%EB%9E%9C%EC%B9%98/download")))
+            .andExpect(status().isOk).andReturn().response.getHeader("Content-Disposition").orEmpty()
+        assertTrue(header.all { it.code in 0x20..0x7E }, header)
+        assertTrue(header.startsWith("attachment; filename*=UTF-8''"), header)
+        assertTrue(header.endsWith("-%ED%95%9C%EA%B8%80%EB%B8%8C%EB%9E%9C%EC%B9%98.zip"), header)
     }
 
     @Test
