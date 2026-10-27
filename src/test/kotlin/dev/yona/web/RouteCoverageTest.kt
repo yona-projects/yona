@@ -82,8 +82,10 @@ class RouteCoverageTest : AbstractIntegrationTest() {
     @Test
     fun `가짜 서브버전 경로는 404이다 (v1_6은 프로젝트 이름이 비어 404)`() {
         val mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup(context as org.springframework.web.context.WebApplicationContext).build()
-        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/!svn-fake/sevice/"))
-            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isNotFound)
+        val response = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/!svn-fake/sevice/"))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isNotFound).andReturn().response
+        // v1.6 `notFound()`는 본문이 없다
+        assertEquals(0, response.contentAsByteArray.size)
     }
 
     companion object {

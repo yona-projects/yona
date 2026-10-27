@@ -51,14 +51,12 @@ class RouteParityTest : AbstractIntegrationTest() {
     companion object {
         /**
          * 의도해서 매핑하지 않는 항목이다.
-         * - `/assets/` 아래 모든 경로(GET): 정적 자원 처리기가 맡는다.
+         * - `/assets/` 아래 모든 경로(GET): `AssetFilter`가 디스패처 앞에서 맡는다.
          * - `/svn/` 아래 모든 경로: 컨트롤러가 아니라 `SvnDavFilter`가 처리한다(WebDAV 메서드를 디스패처가 501로 거부한다, A-98).
-         * - `POST /!svn-fake/sevice/`: v1.6에서 `SvnApp.service`로 역방향 주소를 만들려는 가짜 경로이며 실제 저장소 주소가 아니다.
          */
         private val INTENTIONAL = listOf(
             "GET /assets/{}",
             "GET /svn/{}", "POST /svn/{}", "PUT /svn/{}", "DELETE /svn/{}", "HEAD /svn/{}", "OPTIONS /svn/{}",
-            "POST /!svn-fake/sevice/",
         )
 
         /** 아직 이식하지 못한 항목. */

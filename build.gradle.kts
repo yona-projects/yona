@@ -224,12 +224,29 @@ val compileLess by tasks.registering {
 		outDir.mkdirs()
 		val lessc = lessToolDir.file("node_modules/.bin/lessc").asFile
 		lessEntries.forEach { name ->
-			val result = ProcessBuilder(lessc.absolutePath, "$name.less", File(outDir, "$name.css").absolutePath)
+			// v1.6 sbt-less는 소스 맵(`name.css.map`)을 함께 만들고 CSS 끝에 `/*# sourceMappingURL=name.css.map */`를 붙인다
+			val result = ProcessBuilder(
+				lessc.absolutePath, "--source-map=${File(outDir, "$name.css.map").absolutePath}", "--source-map-url=$name.css.map",
+				"$name.less", File(outDir, "$name.css").absolutePath
+			)
 				.directory(lessSourceDir.asFile)
 				.redirectErrorStream(true)
 				.start()
 			val output = result.inputStream.bufferedReader().readText()
 			check(result.waitFor() == 0) { "$name.less 컴파일 실패:\n$output" }
+			// v1.6의 소스 맵은 `file`이 출력 파일 이름이고 `version` 바로 뒤에 온다(lessc는 절대 경로를 맨 끝에 쓴다)
+			val map = File(outDir, "$name.css.map")
+			val raw = map.readText()
+			val fileKey = Regex(",\"file\":\"[^\"]*\"\\}$").find(raw)
+			if (fileKey != null) {
+				map.writeText(raw.removeRange(fileKey.range.first, fileKey.range.last).replaceFirst("{\"version\":3,", "{\"version\":3,\"file\":\"$name.css\","))
+			}
+		}
+		// v1.6는 LESS 원본도 `/assets/stylesheets/` 아래에서 그대로 내려 준다(소스 맵이 가리킨다)
+		lessSourceDir.asFile.walkTopDown().filter { it.isFile && it.extension == "less" }.forEach {
+			val target = File(outDir, it.relativeTo(lessSourceDir.asFile).path)
+			target.parentFile.mkdirs()
+			it.copyTo(target, overwrite = true)
 		}
 	}
 }

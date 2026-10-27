@@ -16,7 +16,7 @@ v1.6의 소스를 읽어 맞추는 방식은 판단이 틀릴 수 있어(예: `i
 |---|---|
 | `servers.sh` | 두 서버(v1.6: 19200, v2: 19300) 시작, 종료, 데이터 저장(`snapshot`), 되돌리기(`restore`), v2 빌드(`build`). 프로세스는 pid 파일로만 다룬다 |
 | `harness.py` | 같은 `Step` 목록을 두 서버에 보내 상태 코드, 주요 헤더, 본문(JSON은 구조, HTML은 정규화한 요소 목록)을 비교하고 보고서를 쓴다 |
-| `scenarios/*.py` | `anon_basic`(익명 둘러보기), `data1`(사용자, 프로젝트, 이슈, 글 만들기), `pages1`(모든 사용자 x 화면 1200건), `repo1`(git 저장소 화면 366건), `md1`(마크다운 조각), `forms1`(폼과 변경 요청, 권한 행렬), `pr1a`/`pr1`(포크와 풀 리퀘스트, `pr1.sh`로 브랜치를 먼저 올린다), `svn1`(`svnprep.sh`로 8개 리비전을 올린 Subversion 프로젝트, data3 상태), `site1`(사이트 관리자의 내보내기, 가져오기, 메일 대상, 삭제), `api1`(`-_-api/v1` 토큰 API, `NORMALIZE_ENTITY_IDS`로 JSON `id`를 가린다) |
+| `scenarios/*.py` | `anon_basic`(익명 둘러보기), `data1`(사용자, 프로젝트, 이슈, 글 만들기), `pages1`(모든 사용자 x 화면 1200건), `repo1`(git 저장소 화면 366건), `md1`(마크다운 조각), `forms1`(폼과 변경 요청, 권한 행렬), `pr1a`/`pr1`(포크와 풀 리퀘스트, `pr1.sh`로 브랜치를 먼저 올린다), `svn1`(`svnprep.sh`로 8개 리비전을 올린 Subversion 프로젝트, data3 상태), `misc1`(추천 취소, 기본 브랜치, 초기화, 이메일 확인, 정적 파일), `site1`(사이트 관리자의 내보내기, 가져오기, 메일 대상, 삭제), `api1`(`-_-api/v1` 토큰 API, `NORMALIZE_ENTITY_IDS`로 JSON `id`를 가린다) |
 | `gitprep.sh`, `mkproject.py` | 같은 내용과 같은 시각의 git 저장소를 만들어 두 서버에 올린다. 커밋 해시가 같아 화면을 그대로 대조할 수 있다 |
 | `mdcompare.py`, `mdfuzz.py` | 마크다운 미리보기를 파일과 무작위 조각으로 직접 대조한다 |
 | `probe.py`, `show.py`, `formdump.py` | 요청 하나를 나란히 보여 주는 도구 |
@@ -51,3 +51,7 @@ v1.6의 소스를 읽어 맞추는 방식은 판단이 틀릴 수 있어(예: `i
 
 - 풀 리퀘스트, 포크, 리뷰 화면 전체, Subversion 저장소 화면, `-_-api/v1` 토큰 API, 사이트 관리자 POST 흐름, 알림 메일의 마크다운
 - 다음 시나리오는 조직과 사용자 변경 화면, 알림 메일 본문으로 만든다
+
+## 응답 헤더 집합의 알려진 차이
+v2 응답에는 v1.6에 없는 헤더가 붙는다: Spring Security의 `X-Content-Type-Options`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`(기술 결정: Spring Security 필터 체인), 스프링의 `Content-Language`, 컨테이너의 `Connection`, `Keep-Alive`, 길이를 모르는 본문의 `Transfer-Encoding: chunked`(v1.6은 `Content-Length`). `Content-Type`의 `; charset` 공백 표기도 Tomcat이 다시 쓰므로 다르다. 비교 도구는 이 헤더들을 대조하지 않는다.
+
