@@ -54,7 +54,8 @@ class SiteMailController(private val service: SiteMailService) {
         val emails: Collection<String> = when {
             form.isEmpty() -> emptyList()
             "all" in form -> if (form["all"]?.firstOrNull() == "true") service.allEmails() else emptyList()
-            else -> service.projectEmails(form.values.mapNotNull { it.firstOrNull() })
+            // v1.6는 폼 본문을 `HashMap`에 담아 `values()`로 훑으므로 프로젝트 순서는 파라미터 이름의 해시 순서이다
+            else -> service.projectEmails(HashMap<String, Array<String>>().also { map -> form.forEach { (k, v) -> map[k] = v } }.values.mapNotNull { it.firstOrNull() })
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(emails.toList())
     }

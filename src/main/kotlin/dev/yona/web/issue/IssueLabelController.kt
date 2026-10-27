@@ -113,7 +113,7 @@ class IssueLabelController(
         val labelName = request.getParameter("labelName")?.ifEmpty { null }
         val labelColor = request.getParameter("labelColor")?.ifEmpty { null }
         val categoryName = request.getParameter("categoryName")?.ifEmpty { null }
-        val errors = linkedMapOf<String, MutableList<String>>()
+        val errors = HashMap<String, MutableList<String>>()  // v1.6 Form.errors()는 HashMap이라 해시 순서이다
         if (labelName == null) errors.reject("labelName", "label.error.labelName.empty")
         else if (labelName.length > MAX_LENGTH) errors.reject("labelName", "label.error.labelName.tooLongSize")
         if (labelColor == null) errors.reject("labelColor", "label.error.color.empty")
@@ -150,7 +150,7 @@ class IssueLabelController(
         val labelName = request.getParameter("name")?.ifEmpty { null }
         val color = request.getParameter("color")?.ifEmpty { null }
         val categoryId = request.getParameter("category.id")?.ifEmpty { null }
-        val errors = linkedMapOf<String, MutableList<String>>()
+        val errors = HashMap<String, MutableList<String>>()  // v1.6 Form.errors()는 HashMap이라 해시 순서이다
         val category = categoryId?.toLongOrNull()?.let { categories.findById(it).orElse(null) }
         if (categoryId == null) errors.reject("category", "error.required")
         else if (category == null) errors.reject("category", "error.invalid")
@@ -301,7 +301,7 @@ class IssueLabelController(
 
     /** 분류 입력의 검사이다. 이름이 필요하고 255자를 넘지 않아야 하며, 화면이 보내는 `project.id`가 있어야 한다. */
     private fun categoryErrors(request: HttpServletRequest): Map<String, List<String>> {
-        val errors = linkedMapOf<String, MutableList<String>>()
+        val errors = HashMap<String, MutableList<String>>()  // v1.6 Form.errors()는 HashMap이라 해시 순서이다
         val categoryName = request.getParameter("name")?.ifEmpty { null }
         if (categoryName == null) errors.reject("name", "label.error.categoryName.empty")
         else if (categoryName.length > MAX_LENGTH) errors.reject("name", "label.error.categoryName.tooLongSize")

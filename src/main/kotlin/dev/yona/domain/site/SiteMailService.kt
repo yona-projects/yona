@@ -62,9 +62,9 @@ class SiteMailService(
         throw IllegalArgumentException("메일 주소가 올바르지 않습니다: $text", e)
     }
 
-    /** 모든 사용자의 이메일이다. 삭제되었거나 잠긴 사용자도 담는다. */
+    /** 모든 사용자의 이메일이다. 삭제되었거나 잠긴 사용자도 담는다. 순서는 v1.6 `HashSet`과 같다. */
     @Transactional(readOnly = true)
-    fun allEmails(): Set<String> = users.findAll().mapNotNull { it.email }.toSet()
+    fun allEmails(): Set<String> = HashSet<String>().also { set -> users.findAll().forEach { u -> u.email?.let { set.add(it) } } }
 
     /**
      * `소유자/이름` 형식의 프로젝트들의 구성원 이메일이다. 사이트 관리자 역할 행은 뺀다.
@@ -73,7 +73,8 @@ class SiteMailService(
      */
     @Transactional(readOnly = true)
     fun projectEmails(names: Collection<String>): Set<String> {
-        val emails = LinkedHashSet<String>()
+        // v1.6는 `HashSet<String>`에 하나씩 넣는다. 반복 순서는 해시와 넣은 순서가 정하므로 같은 컬렉션을 같은 방식으로 채운다
+        val emails = HashSet<String>()
         for (name in names) {
             val parts = name.split("/")
             require(parts.size >= 2) { "프로젝트 이름의 형식이 올바르지 않습니다: $name" }

@@ -36,7 +36,8 @@ data class ProjectForm(
  */
 class FormErrors {
 
-    private val errors = linkedMapOf<String, MutableList<String>>()
+    // v1.6 Play `Form.errors()`는 HashMap이라 오류가 생긴 순서가 아니라 필드 이름의 해시 순서로 나온다(화면의 htError JSON 순서)
+    private val errors = HashMap<String, MutableList<String>>()
 
     /** [field]에 오류 [messageKey]를 더한다. */
     fun reject(field: String, messageKey: String) {

@@ -159,6 +159,21 @@ class SiteMailTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이메일 순서는 HashSet 순서이고 프로젝트 이름은 파라미터 이름의 해시 순서로 훑는다 (v1_6 mailList)`() {
+        val owner = newUser()
+        val p1 = project(owner, "mq1"); val p2 = project(owner, "mq2")
+        val m1 = List(4) { newUser().also { u -> join(u, p1, RoleType.MEMBER) } }
+        val m2 = List(4) { newUser().also { u -> join(u, p2, RoleType.MEMBER) } }
+        val body = mailList(admin(), "application/json", "zeta" to "${owner.loginId}/mq1", "alpha" to "${owner.loginId}/mq2").andExpect(status().isOk).andReturn().response.contentAsString
+        // 기대 순서: 파라미터 이름의 해시 순서(HashMap)로 프로젝트를 훑고, 구성원 이메일을 기본 HashSet에 하나씩 넣은 순서
+        val params = HashMap<String, String>().also { it["zeta"] = "${owner.loginId}/mq1"; it["alpha"] = "${owner.loginId}/mq2" }
+        val byProject = mapOf("${owner.loginId}/mq1" to m1.map { it.email!! }, "${owner.loginId}/mq2" to m2.map { it.email!! })
+        val expected = HashSet<String>().also { set -> params.values.forEach { name -> byProject.getValue(name).forEach { e -> set.add(e) } } }.toList()
+        val actual = Regex("\"([^\"]+@[^\"]+)\"").findAll(body).map { it.groupValues[1] }.toList()
+        assertEquals(expected, actual, body)
+    }
+
+    @Test
     fun `all이 true가 아니면 빈 목록이다`() {
         mailList(admin(), "application/json", "all" to "false").andExpect(status().isOk).andExpect(jsonPath("$.length()").value(0))
     }
