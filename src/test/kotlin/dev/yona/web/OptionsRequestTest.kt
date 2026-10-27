@@ -43,4 +43,16 @@ class OptionsRequestTest : AbstractIntegrationTest() {
     fun `파일 주소의 끝 슬래시 GET은 슬래시를 떼어 이동하고 POST는 404이다`() {
         mockMvc.perform(get("/files/5/")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/files/5"))
     }
+
+    @Test
+    fun `다른 방식만 있는 주소의 GET도 404에 no-cache가 붙는다`() {
+        // /users/login은 POST만 있는 주소가 아니라 GET도 있으므로 POST만 있는 /lostPassword로 본다
+        mockMvc.perform(get("/files/5/x")).andExpect(header().string("Cache-Control", "no-cache"))
+        mockMvc.perform(get("/watch")).andExpect(status().isNotFound).andExpect(header().string("Cache-Control", "no-cache"))
+    }
+
+    @Test
+    fun `HEAD도 끝 슬래시를 떼어 이동한다`() {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head("/files/5/")).andExpect(status().isSeeOther)
+    }
 }

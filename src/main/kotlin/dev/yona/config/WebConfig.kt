@@ -21,6 +21,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class WebConfig(
     private val optionsNotFoundInterceptor: dev.yona.web.OptionsNotFoundInterceptor,
     private val emptyWildcardInterceptor: dev.yona.web.EmptyWildcardInterceptor,
+    private val pathBindingInterceptor: dev.yona.web.PathBindingInterceptor,
     private val accessChainInterceptor: AccessChainInterceptor,
     private val siteSecretInterceptor: SiteSecretInterceptor,
     private val preferredLanguageInterceptor: PreferredLanguageInterceptor,
@@ -49,6 +50,7 @@ class WebConfig(
         // Play는 라우트를 가장 먼저 고르므로 라우트가 없는 주소(끝 슬래시만 있는 와일드카드)는 모든 검사보다 먼저 가려낸다
         registry.addInterceptor(optionsNotFoundInterceptor)
         registry.addInterceptor(emptyWildcardInterceptor)
+        registry.addInterceptor(pathBindingInterceptor)
         registry.addInterceptor(preferredLanguageInterceptor)
         registry.addInterceptor(siteSecretInterceptor)
         // 접근 검사 어노테이션은 v1.6의 Play 순서(메서드가 바깥, 클래스가 안쪽)로 한 인터셉터에서 실행한다

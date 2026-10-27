@@ -28,14 +28,14 @@ class FlashMessageTranslatorTest {
     fun restore() = LocaleContextHolder.setLocale(saved)
 
     @Test
-    fun `알림은 순서 정보가 있으면 그 순서대로 보인다 (v1_6 쿠키는 넣은 순서를 지킨다)`() {
-        val flash = hashMapOf<String, Any?>("warning" to "user.login.alert", "failed" to "failed text", RedirectSupport.ORDER to "failed\u0001warning")
-        assertEquals(listOf("failed text", "Please log in."), translator.translate(flash).notices)
+    fun `알림 순서는 넣은 순서가 아니라 HashMap 키 순서이다 (v1_6 Http Flash는 HashMap이다)`() {
+        val flash = linkedMapOf<String, Any?>("failed" to "failed text", "info" to "info text", "warning" to "user.login.alert", "success" to "ok text")
+        assertEquals(listOf("ok text", "Please log in.", "failed text", "info text"), translator.translate(flash).notices)
     }
 
     @Test
-    fun `순서 정보는 알림에 나오지 않는다`() {
-        val flash = mapOf<String, Any?>("warning" to "user.login.alert", RedirectSupport.ORDER to "warning")
+    fun `제목이 없으면 확인 대화상자도 없다`() {
+        val flash = mapOf<String, Any?>("warning" to "user.login.alert")
         assertEquals(listOf("Please log in."), translator.translate(flash).notices)
         assertNull(translator.translate(flash).alertTitle)
     }

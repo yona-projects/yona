@@ -42,12 +42,15 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
     @ExceptionHandler(NoHandlerFoundException::class, NoResourceFoundException::class)
     fun notFound(request: HttpServletRequest, response: HttpServletResponse): Any {
         val path = request.requestURI
-        if (request.method == "GET" && path.length > 1 && path.endsWith("/")) {
+        // Play는 HEAD를 GET 라우트로 보내므로 HEAD도 GET처럼 다룬다
+        val readOnly = request.method == "GET" || request.method == "HEAD"
+        if (readOnly && path.length > 1 && path.endsWith("/")) {
             log.debug("Trailing slash removed and redirected: {} to {}", path, path.dropLast(1))
             return RedirectSupport.see(request, response, path.dropLast(1))
         }
-        // v1.6의 `Cache-Control: no-cache`는 맨 아래 포괄 라우트(GET)의 액션이 붙인다. 다른 방식의 라우트 없음은 액션 밖이라 붙지 않는다
-        if (request.method != "GET" && request.method != "HEAD" && !response.isCommitted) response.reset()
+        // v1.6의 `Cache-Control: no-cache`는 맨 아래 포괄 라우트(GET)의 액션이 붙인다. 다른 방식의 라우트 없음은 액션 밖이라 붙지 않는다.
+        // 주소는 있으나 방식이 맞지 않는 GET은 매핑 단계에서 예외가 나 인터셉터가 헤더를 붙이지 못하므로 여기서 붙인다
+        if (readOnly) response.setHeader("Cache-Control", "no-cache") else if (!response.isCommitted) response.reset()
         return withLayout(ErrorViews.notFound(), request)
     }
 
