@@ -57,6 +57,8 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
 
+    @Autowired private lateinit var siteAdmins: dev.yona.domain.user.SiteAdminRepository
+
     private var sequence = 0
 
     private fun user(): User {
@@ -103,6 +105,16 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         assertTrue(commands.first().contains("git push origin master"))
         val anonymous = page("/${p.owner}/${p.name}/code")
         assertNotNull(anonymous.selectFirst(".alert.alert-block")); assertTrue(anonymous.select("pre code").isEmpty())
+    }
+
+    @Test
+    fun `사이트 관리자는 구성원이어도 복제 주소에 로그인 아이디를 넣지 않는다 (v1_6 roleOf가 sitemanager를 먼저 돌려준다)`() {
+        val p = project(); val m = member(p, RoleType.MANAGER)
+        siteAdmins.save(dev.yona.domain.user.SiteAdmin(admin = m))
+        val doc = page("/${p.owner}/${p.name}/code", login(m))
+        val clone = doc.select("pre code").map { it.text() }.first()
+        assertTrue(clone.startsWith("git clone http://"), clone)
+        assertTrue(!clone.contains("${m.loginId}@"), clone)
     }
 
     @Test

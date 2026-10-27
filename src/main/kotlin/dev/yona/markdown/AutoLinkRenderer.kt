@@ -174,14 +174,17 @@ class AutoLinkRenderer(
 
     /**
      * 사용자 이름에서 부서 부분을 뗀 이름이다 (v1.6 `User.getPureNameOnly`). [lang]이 비어 있으면 현재 사용자의 언어(없으면 `ko-KR`)로
-     * 판단하고 이름을 다듬는다(`trim`).
+     * 판단하고 이름을 자른 경우에만 다듬는다(`trim`).
      */
     private fun pureName(user: User, lang: String?): String {
         val english = user.englishName
         if (lang.isNullOrBlank()) {
             val viewerLang = currentUserProvider.get().user?.lang ?: DEFAULT_LANG
             if (!english.isNullOrBlank() && user.lang != null && viewerLang.startsWith("en")) return english
-            return cutAtDepartment(user.name.orEmpty()).trim()
+            // v1.6 `getPureNameOnly()`는 이름을 자를 때만 trim한다. 언어를 받는 `getPureNameOnly(lang)`는 trim하지 않는다
+            val name = user.name.orEmpty()
+            val cut = cutAtDepartment(name)
+            return if (cut.length != name.length) cut.trim() else cut
         }
         if (!english.isNullOrBlank() && user.lang != null && lang.startsWith("en")) return english
         return cutAtDepartment(user.name.orEmpty())

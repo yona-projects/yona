@@ -185,6 +185,15 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `부서 구분 문자가 없는 이름은 앞뒤 공백을 다듬지 않는다 (v1_6 getPureNameOnly는 자를 때만 trim)`() {
+        val project = project()
+        user("gwen", " 그웬 ")
+        user("hank", "행크 (개발팀)")
+        assertTrue(render("<p>@gwen</p>", project).contains(">@ 그웬 </span>"), render("<p>@gwen</p>", project))
+        assertTrue(render("<p>@hank</p>", project).contains(">@행크</span>"), render("<p>@hank</p>", project))
+    }
+
+    @Test
     fun `영어 사용자에게는 영문 이름을 보여 준다`() {
         val project = project()
         user("erin", "에린", "Erin")

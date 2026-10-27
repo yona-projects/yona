@@ -54,7 +54,7 @@
                 </div>
             </div>
 
-            <th:block th:if="${!drafts.isEmpty()}">
+            <th:block th:if="${showDrafts}">
                 <th:block th:replace="~{issue/partial-list :: draftList(${drafts})}"></th:block>
             </th:block>
             <th:block th:replace="~{issue/partial-list :: list(${items})}"></th:block>

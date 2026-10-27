@@ -215,6 +215,15 @@ class IssueListTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `초안이 없어도 첫 쪽에는 빈 초안 목록 ul이 그려진다 (v1_6 partial_list_draft가 ul을 항상 연다)`() {
+        val project = newProject()
+        issue(project, 1); issue(project, 2, state = State.CLOSED)
+        assertEquals(2, page(project).select("ul.post-list-wrap").size, "초안 목록(빈 것)과 이슈 목록")
+        assertEquals(1, page(project, "?state=closed").select("ul.post-list-wrap").size, "닫힌 이슈 보기에는 초안 목록이 없다")
+        assertEquals(1, page(project, "?authorId=-1").select("ul.post-list-wrap").size, "담당자, 작성자 같은 조건이 있으면 초안 목록이 없다")
+    }
+
+    @Test
     fun `초안은 작성자에게만 첫 쪽 위쪽에 보인다`() {
         val project = newProject()
         val me = join(newUser(), project, RoleType.MEMBER)

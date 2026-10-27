@@ -143,6 +143,8 @@ class IssueListController(
             .addObject("cond", condition)
             .addObject("items", items)
             .addObject("drafts", drafts)
+            // v1.6 partial_list_wrap:84-86: 첫 쪽, 검색 조건 없음, 닫힘 아님이면 초안이 없어도 빈 ul을 그린다
+            .addObject("showDrafts", showDrafts)
             .addObject("pageIndex", page.pageIndex)
             .addObject("totalPageCount", page.totalPageCount)
             .addObject("openCount", count(condition.copy(state = State.OPEN.state)))
