@@ -27,7 +27,7 @@
 <meta name="twitter:title" th:content="${titleArray[0]}" />
 <meta name="twitter:url" th:content="${requestPath}" />
 <meta name="twitter:description" th:content="${titleArray[titleArray.length - 1]}" />
-<link rel="shortcut icon" type="image/x-icon" th:href="@{/assets/images/favicon.ico}">
+<link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/bootstrap/css/bootstrap.css}">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/yobicon/style.css}">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/javascripts/lib/select2/select2.css}"/>
@@ -44,7 +44,7 @@
         var shallWeOpenLeftNavigation = localStorage.getItem('shallWeOpenLeftNavigation');
 
         if (window.parent === window) {
-            if (shallWeOpenLeftNavigation === "true" && ![(${!currentUser.anonymous})]) {
+            if (shallWeOpenLeftNavigation === "true" && ![(${currentUser.anonymous})]) {
                 window.location.href = [[@{/user/sidebar}]] + "?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
             }
         }

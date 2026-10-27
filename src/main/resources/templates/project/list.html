@@ -103,6 +103,12 @@
 <script type="text/javascript" th:inline="javascript">
 $(document).ready(function(){
     yobi.Pagination.update($("#pagination"), [[${totalPages}]]);
+
+    /*
+	$(".btn-advanced").click(function(){
+		$(".inner").toggleClass("advanced");
+	});
+	*/
 });
 </script>
 </th:block>

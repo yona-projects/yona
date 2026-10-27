@@ -163,6 +163,24 @@ class BoardCommentTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `저장되는 댓글 수는 두 번째 댓글부터 실제보다 하나 적다 (v1_6 결함, 지우거나 글을 고치면 바로잡힌다)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val p = post(project, member)
+        val session = login(member)
+        val stored = mutableListOf<Int?>()
+        repeat(4) { n ->
+            send(project, session, "comment", "contents" to "댓글 ${n + 1}").andExpect(status().isSeeOther)
+            entityManager.flush(); entityManager.clear()
+            stored += postings.findById(p.id!!).get().numOfComments
+        }
+        assertEquals(listOf<Int?>(1, 1, 2, 3), stored)
+        val last = comments.findAll().maxByOrNull { it.id!! }!!
+        mockMvc.perform(delete("${base(project)}/post/1/comment/${last.id}/delete").session(session)).andExpect(status().is3xxRedirection)
+        entityManager.flush(); entityManager.clear()
+        assertEquals(3, postings.findById(p.id!!).get().numOfComments)
+    }
+
+    @Test
     fun `이전 내용을 활동에 싣는다`() {
         val project = newProject(); val member = join(newUser(), project)
         post(project, member)

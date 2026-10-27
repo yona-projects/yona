@@ -21,7 +21,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class WebConfig(
     private val accessChainInterceptor: AccessChainInterceptor,
     private val siteSecretInterceptor: SiteSecretInterceptor,
-    private val preferredLanguageInterceptor: PreferredLanguageInterceptor
+    private val preferredLanguageInterceptor: PreferredLanguageInterceptor,
+    private val defaultHeadersInterceptor: dev.yona.web.DefaultHeadersInterceptor
 ) : WebMvcConfigurer {
 
     /** 현재 시각을 알려 주는 시계이다. 시각에 의존하는 표시를 테스트에서 고정할 수 있게 주입해서 쓴다. */
@@ -46,5 +47,8 @@ class WebConfig(
         registry.addInterceptor(siteSecretInterceptor)
         // 접근 검사 어노테이션은 v1.6의 Play 순서(메서드가 바깥, 클래스가 안쪽)로 한 인터셉터에서 실행한다
         registry.addInterceptor(accessChainInterceptor)
+        // v1.6의 기본 헤더(Cache-Control)는 액션이 실행될 때만 붙는다. 접근 검사가 막은 응답(로그인 이동, 403)에는 붙지 않으므로 검사 뒤에 둔다.
+        // 정적 자원(/assets, 파비콘)은 자원 처리기가 자기 캐시 규칙을 정한다.
+        registry.addInterceptor(defaultHeadersInterceptor).excludePathPatterns("/assets/**", "/favicon.ico")
     }
 }

@@ -79,6 +79,8 @@ class IssueLabelController(
         if (!HttpPreference.acceptsType(request.getHeader(HttpHeaders.ACCEPT), "application/json")) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build<Void>()
         }
+        // v1.6는 문자열 본문에 `Content-Type: application/json`을 직접 정해 문자 집합이 없다
+        request.setAttribute(dev.yona.web.JsonCharsetFilter.RAW_ATTRIBUTE, true)
         return json(HttpStatus.OK, labelService.labels(project).map { labelMap(it) })
     }
 
@@ -209,6 +211,7 @@ class IssueLabelController(
     fun categories(@PathVariable("user") owner: String, @PathVariable("project") name: String, request: HttpServletRequest): Any {
         val project = findProject(owner, name) ?: return ErrorViews.notFound()
         if (!HttpPreference.acceptsType(request.getHeader(HttpHeaders.ACCEPT), "application/json")) return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build<Void>()
+        request.setAttribute(dev.yona.web.JsonCharsetFilter.RAW_ATTRIBUTE, true)
         return json(HttpStatus.OK, labelService.categories(project).map { categoryMap(it) })
     }
 

@@ -120,6 +120,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-113 | 초안 게시와 프로젝트 이동을 함께 할 때 | 새 이슈 알림(`afterNewIssue`)을 두 번 부른다. 알림 이벤트는 한 건으로 합쳐지지만 웹훅이 두 번 나간다 | 같게 두 번 발행한다(A-105 되돌림) | `IssueApp.java:730, 821` |
 | R-114 | 버전 문자열 파서와 humanize | `java-semver`의 관대한 접두 파싱, `humanize` 1.2.2의 `binaryPrefix` 표기 | `LenientVersion`, `TemplateHelper.binaryPrefix`가 같은 결과를 내도록 옮겼다 | 옛 라이브러리를 직접 실행한 20만 건 대조 |
 | R-115 | 코드 보기와 원본 보기의 큰 파일 | JGit 4.5의 큰 객체 한도(50MB)를 넘는 파일을 `getBytes()`로 읽어 `LargeObjectException`, 500이다 | v2는 스트림으로 읽어 오류 없이 처리한다 (A-149) | `GitRepository.java:343-352` |
+| R-116 | 게시판 글의 댓글 수 | 글의 `comments` 목록이 댓글 저장 전에 읽혀 있어, 댓글을 달 때 저장하는 `numOfComments`가 실제보다 하나 적다(첫 댓글만 맞다). 글 목록의 숫자가 어긋나다가 댓글을 지우거나 글을 고치면 바로잡힌다. 이슈는 해당 없다(실제 서버에서 확인) | v2도 같게 저장한다 | 공식 v1.16.0 실행 비교, `BoardCommentTest` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

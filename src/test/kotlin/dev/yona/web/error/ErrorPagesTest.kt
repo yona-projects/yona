@@ -102,6 +102,12 @@ class ErrorPagesTest : AbstractIntegrationTest() {
     // --- 서버 오류 ---
 
     @Test
+    fun `500 화면에는 Cache-Control이 붙지 않는다 (v1_6 Global_onError는 기본 액션 밖이다)`() {
+        val response = mockMvc.perform(get("/__test/err/boom")).andExpect(status().`is`(500)).andReturn().response
+        assertEquals(null, response.getHeader("Cache-Control"))
+    }
+
+    @Test
     fun `처리하지 못한 예외는 500 화면으로 보여 준다`() {
         val doc = render("/__test/err/boom", 500)
         assertEquals("Server error occurred; service is not available", doc.selectFirst(".error-wrap p")?.text())

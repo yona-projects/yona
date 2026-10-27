@@ -63,8 +63,10 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
     }
 
     @ExceptionHandler(Exception::class)
-    fun internalServerError(e: Exception, request: HttpServletRequest): ModelAndView {
+    fun internalServerError(e: Exception, request: HttpServletRequest, response: HttpServletResponse): ModelAndView {
         log.error("요청을 처리하지 못했습니다.", e)
+        // v1.6 `Global.onError`는 기본 액션(Cache-Control: no-cache를 붙인다) 밖에서 오류 화면을 만든다. 이미 붙은 헤더를 없앤다.
+        if (!response.isCommitted) response.reset()
         // v1.6는 예외 자체의 메시지만 봤다. Play가 원인의 메시지를 감싸 전달했기 때문에, 여기서는 원인의 메시지도 함께 본다.
         val cause = e.cause
         val timedOut = cause is PersistenceException &&

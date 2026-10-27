@@ -12,34 +12,34 @@
         <div class="inner advanced">
             <ul class="lst-stacked unstyled">
                 <li th:class="${meId == cond.assigneeId} ? 'active'">
-                    <a pjax-filter href="#" data-author-id="" th:attr="data-assignee-id=${meId}, data-milestone-id=${cond.milestoneId}" data-commenter-id="" data-mention-id="" data-sharer-id="" data-favorite-id="">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-milestone-id="" th:attrappend="data-assignee-id=${meId}, data-milestone-id=${cond.milestoneId}" data-commenter-id="" data-mention-id="" data-sharer-id="" data-favorite-id="">
                         <span class="assigned-to-me"><i class="yobicon-user"></i> <th:block th:text="#{issue.list.assignedToMe}"></th:block></span>
                     </a>
                 </li>
                 <li th:class="${meId == cond.authorId} ? 'active'">
-                    <a pjax-filter href="#" th:attr="data-author-id=${meId}, data-milestone-id=${cond.milestoneId}" data-assignee-id="" data-commenter-id="" data-mention-id="" data-sharer-id="" data-favorite-id="">
+                    <a pjax-filter href="#" data-author-id="" data-milestone-id="" th:attrappend="data-author-id=${meId}, data-milestone-id=${cond.milestoneId}" data-assignee-id="" data-commenter-id="" data-mention-id="" data-sharer-id="" data-favorite-id="">
                         <span class="authored-by-me"><i class="yobicon-pencil"></i> <th:block th:text="#{issue.list.authoredByMe}"></th:block></span>
                     </a>
                 </li>
                 <li th:class="${meId == cond.commenterId} ? 'active'">
-                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" th:attr="data-commenter-id=${meId}, data-milestone-id=${cond.milestoneId}" data-mention-id="" data-sharer-id="" data-favorite-id="">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" data-milestone-id="" th:attrappend="data-commenter-id=${meId}, data-milestone-id=${cond.milestoneId}" data-mention-id="" data-sharer-id="" data-favorite-id="">
                         <span class="commented-by-me"><i class="yobicon-comments"></i> <th:block th:text="#{issue.list.commentedByMe}"></th:block></span>
                     </a>
                 </li>
                 <li th:class="${meId == cond.mentionId} ? 'active'">
-                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" th:attr="data-mention-id=${meId}, data-milestone-id=${cond.milestoneId}" data-sharer-id="" data-favorite-id="">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" data-mention-id="" data-milestone-id="" th:attrappend="data-mention-id=${meId}, data-milestone-id=${cond.milestoneId}" data-sharer-id="" data-favorite-id="">
                         <span class="mentioned-of-me"><i class="yobicon-at"></i> <th:block th:text="#{issue.list.mentionedOfMe}"></th:block></span>
                         <th:block th:if="${#strings.isEmpty(cond.filter.trim())}" th:text="'(' + ${quickCounts.mentioned} + ')'"></th:block>
                     </a>
                 </li>
                 <li th:class="${meId == cond.sharerId} ? 'active'">
-                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" data-mention-id="" th:attr="data-sharer-id=${meId}, data-milestone-id=${cond.milestoneId}" data-favorite-id="">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" data-mention-id="" data-sharer-id="" data-milestone-id="" th:attrappend="data-sharer-id=${meId}, data-milestone-id=${cond.milestoneId}" data-favorite-id="">
                         <span class="shared-with-me"><i class="yobicon-share"></i> <th:block th:text="#{issue.list.sharedWithMe}"></th:block></span>
                         <th:block th:if="${#strings.isEmpty(cond.filter.trim())}" th:text="'(' + ${quickCounts.shared} + ')'"></th:block>
                     </a>
                 </li>
                 <li th:class="${meId == cond.favoriteId} ? 'active'">
-                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" data-mention-id="" data-sharer-id="" th:attr="data-favorite-id=${meId}, data-milestone-id=${cond.milestoneId}">
+                    <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-commenter-id="" data-mention-id="" data-sharer-id="" data-favorite-id="" data-milestone-id="" th:attrappend="data-favorite-id=${meId}, data-milestone-id=${cond.milestoneId}">
                         <span class="favorite-issue"><i class="yobicon-favorite"></i> <th:block th:text="#{issue.list.favorite}"></th:block></span>
                         <th:block th:if="${#strings.isEmpty(cond.filter.trim())}" th:text="'(' + ${quickCounts.favorite} + ')'"></th:block>
                     </a>

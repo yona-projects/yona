@@ -71,7 +71,7 @@ class LoginFormPageTest : AbstractIntegrationTest() {
             ),
             styles
         )
-        assertEquals("/assets/images/favicon.ico", doc.selectFirst("link[rel='shortcut icon']")?.attr("href"))
+        assertEquals("/favicon.ico", doc.selectFirst("link[rel='shortcut icon']")?.attr("href"))
         assertNotNull(doc.selectFirst("script[src='/assets/javascripts/yona-layout.js']"))
     }
 

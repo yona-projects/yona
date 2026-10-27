@@ -17,7 +17,7 @@
         <a th:href="${base + '/transfer'}" th:text="#{project.transfer}"></a></li>
     <li id="subMenuProjectDelete" th:class="${requestPath == base + '/deleteform'} ? 'active'">
         <a th:href="${base + '/deleteform'}" th:text="#{project.delete}"></a></li>
-    <li id="subMenuProjectChangeVCS" th:class="${requestPath == base + '/changeVCS'} ? 'active'" th:style="${view.menuSetting.code != true} ? 'display:none;'">
+    <li id="subMenuProjectChangeVCS" th:class="${requestPath == base + '/changeVCS'} ? 'active'" style="" th:styleappend="${view.menuSetting.code != true} ? 'display:none;'">
         <a th:href="${base + '/changeVCS'}" th:text="#{project.changeVCS}"></a></li>
 </ul>
 </th:block>

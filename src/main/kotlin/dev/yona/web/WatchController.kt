@@ -40,7 +40,7 @@ class WatchController(
     @PostMapping("/watch")
     @Transactional
     fun watch(request: HttpServletRequest): Any {
-        val resource = resolve(request) ?: return ResponseEntity.badRequest().build<Void>()
+        val resource = resolve(request) ?: return ErrorViews.badRequest()
         val user = currentUserProvider.get().user ?: return text(HttpStatus.FORBIDDEN, "Anonymous cannot watch it.")
         if (!accessControl.isAllowed(user, resource, Operation.READ)) return text(HttpStatus.FORBIDDEN, "You have no permission to watch it.")
         watchService.watch(user, resource.type, resource.id)
@@ -50,7 +50,7 @@ class WatchController(
     @RequestMapping("/unwatch", method = [RequestMethod.POST, RequestMethod.GET])
     @Transactional
     fun unwatch(request: HttpServletRequest, response: HttpServletResponse): Any {
-        val resource = resolve(request) ?: return ResponseEntity.badRequest().build<Void>()
+        val resource = resolve(request) ?: return ErrorViews.badRequest()
         val user = currentUserProvider.get().user
         val project = resource.project
         if (user == null) return ErrorViews.forbidden("issue.error.unwatch.anonymous", views.of(requireNotNull(project)))

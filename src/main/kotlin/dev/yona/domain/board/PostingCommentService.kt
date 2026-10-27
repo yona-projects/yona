@@ -35,6 +35,7 @@ class PostingCommentService(
     fun add(posting: Posting, author: User, contents: String, parentCommentId: Long?): PostingComment {
         val parent = parentCommentId?.let { postingComments.findById(it).orElse(null) }
         val previous = previousContents(posting, parent)
+        val before = postingComments.countByPostingId(requireNotNull(posting.id)).toInt()
         val comment = postingComments.save(
             PostingComment(
                 contents = contents, createdDate = Date(), authorId = author.id, authorLoginId = author.loginId, authorName = author.name,
@@ -43,7 +44,10 @@ class PostingCommentService(
         )
         mentions.update(ResourceType.NONISSUE_COMMENT, requireNotNull(comment.id).toString(), contents)
         posting.updatedDate = Date()
-        syncCount(posting)
+        // v1.6 결함(R-116): 글의 `comments` 목록이 댓글을 저장하기 전에 읽혀 있어 저장하는 댓글 수가 실제보다 하나 적다. 첫 댓글만 목록이 비어 있어 바로 맞는다.
+        // 댓글을 지우거나 글을 고치면 실제 수로 바로잡힌다.
+        posting.numOfComments = if (before == 0) 1 else before
+        postings.save(posting)
         publisher.publishEvent(PostingCommentActivity(comment, previous, true, author))
         return comment
     }
