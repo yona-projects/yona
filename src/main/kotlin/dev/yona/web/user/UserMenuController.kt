@@ -34,7 +34,9 @@ class UserMenuController(
     @Transactional(readOnly = true)
     fun sidebar(request: HttpServletRequest): ModelAndView {
         val viewer = currentUserProvider.get().user
-        // 경로를 주지 않으면 로그인 기본 화면(지정하지 않았으면 알림 화면)이다. v1.6은 `hash`가 없으면 예외로 `500`이었으나 빈 해시로 본다([decisions.md] A-47).
+        // 경로를 주지 않으면 로그인 기본 화면(지정하지 않았으면 알림 화면)이다. v1.6 `layout_framed`는 `request.getQueryString("hash").get`이라
+        // `hash`가 없으면 `NoSuchElementException`으로 `500`이다(빈 값 `hash=`은 괜찮다). 같게 재현한다([refactoring-backlog.md] R-123, 공식 v1.16.0으로 확인).
+        if (request.getParameter("hash") == null) throw NoSuchElementException("None.get")
         val default = viewer?.id?.let { userSettings.findByUserId(it)?.loginDefaultPage } ?: "/notifications"
         val path = request.getParameter("path") ?: default
         val hash = request.getParameter("hash").orEmpty()

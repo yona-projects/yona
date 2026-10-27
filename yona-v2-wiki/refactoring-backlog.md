@@ -126,7 +126,8 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-119 | 인증 헤더 처리 | `Authorization` 헤더의 방식 이름을 보지 않고 앞 여섯 글자를 건너뛰어 읽는다(`basic`, `Bearer`도 같은 자격으로 읽힌다). 여섯 글자보다 짧으면 문자열 범위 오류로 500이다 | 같게 재현한다. 짧은 헤더의 500은 Git에서는 오류 화면, `/svn` 필터에서는 컨테이너의 오류 응답이라 본문 모양이 다르다 | `BasicAuthAction.java` `parseCredentials` |
 | R-120 | 조직 구성원 역할 바꾸기의 잘못된 입력 | `POST /organizations/:name/member/:userId/edit`에서 알 수 없는 역할 번호(예: 99)는 v1.6이 그대로 저장하고 `204`로 답하며, 역할 번호가 없으면 `NullPointerException`으로 `500`이다 | v2는 두 경우 모두 `unknownRole` 안내와 함께 `200`으로 거절한다(R-118과 같은 부류의 정책 차이) |
 | R-121 | 첨부 올리기의 잘못된 요청 | 멀티파트가 아닌 `POST /files`(본문 없음, 폼 인코딩)는 `request().body().asMultipartFormData()`가 `null`이라 `NullPointerException`으로 `500`이다. 로그인하지 않은 요청도 `authorEmail`로 기존 사용자 명의로 올릴 수 있다(권한 검사가 없다) | v2는 멀티파트가 아니면 `400`이다(R-118과 같은 부류). 명의 지정은 v1.6대로 허용한다 |
-| R-122 | HEAD 요청과 라우트 없는 방식의 알림 순서 | (1) 일부 GET 라우트(`/restricted`, `/user/sidebar`, `/-_-api/v1/favorite*`, `issue/label/category/:id`)는 HEAD에서 v1.6이 `500`이거나 머리글이 다르다(Play의 HEAD 처리 차이). (2) 알림이 둘 이상 남아 있을 때 표시 순서가 페이지 종류마다 다르다(`GET /nope`는 경고, 실패 순이고 403 화면과 라우트 없는 방식의 404 화면은 실패, 경고 순이다). 규칙을 찾지 못했다 | v2는 GET과 같은 경로로 처리한다. 일반 사용자 흐름으로는 닿지 않는다 |
+| R-122 | 알림 둘 이상일 때의 표시 순서 | 알림이 둘 이상 남아 있을 때 표시 순서가 페이지 종류와 실행마다 다르다(`GET /nope`는 경고, 실패 순이고 403 화면과 라우트 없는 방식의 404 화면은 실패, 경고 순이다). 규칙을 찾지 못했다 | 넣은 순서로 둔다. (이전에 "HEAD 요청 차이"라고 적었던 항목은 잘못이었다. 같은 경로들이 익명 GET에서도 달랐고 아래 R-123과 A-172에서 고쳤다) | 템플릿 `scripts.scala.html` |
+| R-123 | 사이드바 `hash` 누락 | `GET /user/sidebar`는 `hash` 질의가 없으면 `layout_framed`의 `request.getQueryString("hash").get`이 `NoSuchElementException`이라 500이다(`hash=` 빈 값은 정상). 익명의 즐겨찾기 이슈 목록(`GET /-_-api/v1/favoriteIssues`)도 `NullPointerException`으로 500이다. 반면 익명의 프로젝트, 조직 즐겨찾기 목록은 v1.6 안의 공유 객체가 처음 한 번만 500이고 그다음부터 200이다 | v2는 `hash` 누락과 익명 즐겨찾기 이슈 목록을 500으로 재현한다. 프로젝트, 조직 목록은 안정된 상태인 200(빈 목록)으로 둔다 | `Application.sidebar`, `layout_framed.scala.html:22`, `UserApi.getFoveriteIssues` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 
@@ -136,4 +137,5 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | T-2 | LDAP 인증 | JNDI | Spring LDAP | D-24 |
 | T-3 | 이메일 수신 | Jakarta Mail IMAP 직접 연결 | Spring Integration IMAP 어댑터 | D-24 |
 | T-4 | 메일 수신: 한 메일이 프로젝트 여러 곳에 이슈를 만든다 | `original_email.message_id` 유일 제약 때문에 두 번째부터 원본 메일 기록 실패(v1.6과 같다) | 유일 제약을 (메시지 ID, 리소스)로 바꿔 문서의 의도대로 여러 리소스를 만든다. DB 스키마 변경이 필요하다 | D-25 |
+
 

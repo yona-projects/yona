@@ -144,6 +144,8 @@ class FavoriteApiTest : AbstractIntegrationTest() {
         // v1.6는 익명의 `currentUser()`가 빈 즐겨찾기 목록을 가진 NullUser라 목록 조회는 200이다(공식 v1.16.0 실행으로 확인). 바꾸기는 오류(500)였다
         mockMvc.perform(get("/-_-api/v1/favoriteProjects")).andExpect(status().isOk).andExpect(content().json("""{"projectIds":[],"projects":[]}""", true))
         mockMvc.perform(get("/-_-api/v1/favoriteOrganizations")).andExpect(status().isOk).andExpect(content().json("""{"organizationIds":[],"organizations":[]}""", true))
+        // 이슈 목록은 익명이면 NullPointerException으로 500이다(v1.6 익명의 favoriteIssues는 null)
+        mockMvc.perform(get("/-_-api/v1/favoriteIssues")).andExpect(status().isInternalServerError)
         val session = login(newUser())
         mockMvc.perform(post("/-_-api/v1/favoriteProjects/abc").session(session)).andExpect(status().isBadRequest)
         mockMvc.perform(post("/-_-api/v1/favoriteProjects/999999").session(session)).andExpect(status().isBadRequest)

@@ -93,7 +93,7 @@ class ProjectCreateController(
 
     private fun displayNameOf(user: dev.yona.domain.user.User?): String =
         if (user == null) {
-            messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale())
+            messages.getMessage("user.notExists.name", null, java.util.Locale.getDefault())  // v1.6 정적 `User.anonymous`의 이름은 서버가 뜰 때의 JVM 기본 언어로 굳는다
         } else {
             UserDisplay.of(user, user.lang)
         }

@@ -298,8 +298,15 @@ class SocialLoginTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `로그아웃에 이전 화면이 없으면 홈으로 보낸다`() {
-        mockMvc.perform(get("/logout")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/"))
+    fun `로그아웃에 이전 화면이 없으면 v1_6처럼 결과 객체의 문자열이 이동 주소가 된다 (결함 재현)`() {
+        mockMvc.perform(get("/logout")).andExpect(status().isSeeOther)
+            .andExpect(header().string("Location", "Result(200, Map(Content-Type -> text/html; charset=utf-8))"))
+            .andExpect(header().string("Cache-Control", "no-cache, no-store, must-revalidate")).andExpect(header().string("Pragma", "no-cache")).andExpect(header().string("Expires", "0"))
+    }
+
+    @Test
+    fun `소셜 세션이 없으면 restricted는 홈으로 보내고 Cache-Control이 없다`() {
+        mockMvc.perform(get("/restricted")).andExpect(status().isSeeOther).andExpect(header().string("Location", "/")).andExpect(header().doesNotExist("Cache-Control"))
     }
 
     // --- 원래 주소 기억 ---

@@ -49,7 +49,8 @@ class FavoriteApiController(
     @ResponseBody
     @Transactional(readOnly = true)
     fun list(): ResponseEntity<Any> {
-        val user = currentUserProvider.get().user ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        // v1.6 익명의 `favoriteIssues`는 null이라 `NullPointerException`으로 500이다(공식 v1.16.0으로 확인, 프로젝트와 조직 목록은 다르다)
+        val user = currentUserProvider.get().user ?: throw NullPointerException("favoriteIssues of the anonymous user")
         val rows = favorites.findByUserIdOrderByIdAsc(requireNotNull(user.id)).mapNotNull { it.issue }
         val items = rows.map { issue ->
             val author = issue.authorId?.let { users.findById(it).orElse(null) }

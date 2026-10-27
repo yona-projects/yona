@@ -226,7 +226,7 @@ class BoardListTest : AbstractIntegrationTest() {
         post(project, "무명", 1)
         val item = doc(project).selectFirst(".infos .infos-item")!!
         // NullUser: 이름은 user.notExists.name, 로그인 ID는 빈 문자열이라 링크는 "/"이다
-        assertEquals("User exists not", item.text())
+        assertEquals(java.util.ResourceBundle.getBundle("messages", java.util.Locale.getDefault()).getString("user.notExists.name"), item.text())
         assertEquals("/", item.attr("href"))
     }
 

@@ -68,6 +68,11 @@ class LoginControllerTest : AbstractIntegrationTest() {
     // --- 폼 로그인 -------------------------------------------------------------------------
 
     @Test
+    fun `Referer가 없는 로그아웃은 Location null로 이동한다 (v1_6 결함 재현)`() {
+        mockMvc.perform(get("/users/logout")).andExpect(status().isSeeOther).andExpect(header().string("Location", "null"))
+    }
+
+    @Test
     fun `로그인에 성공하면 홈으로 이동하고 이후 요청에서 사용자로 식별된다`() {
         newUser("alice")
         val session = MockHttpSession()

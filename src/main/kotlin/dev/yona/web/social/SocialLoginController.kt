@@ -58,7 +58,10 @@ class SocialLoginController(
         if (error == "access_denied") return RedirectSupport.see(request, response, "/authenticate/$provider/denied")
         if (error != null) return plainError(error)
         val redirectUri = providers.redirectUri(provider, request.getHeader(HttpHeaders.HOST) ?: hostOf(request), request.contextPath)
-        fun toProvider(): Any = RedirectSupport.see(request, response, found.authorizationUri(redirectUri, socialSession.newState(request, provider)))
+        fun toProvider(): Any {
+            noStore(response)
+            return RedirectSupport.see(request, response, found.authorizationUri(redirectUri, socialSession.newState(request, provider)))
+        }
         // v1.6: `code` 질의가 있으면(비어 있어도) 돌아온 요청으로 본다.
         if (!request.parameterMap.containsKey("code")) return toProvider()
         when (socialSession.checkState(request, provider, state)) {
@@ -89,13 +92,31 @@ class SocialLoginController(
         )
     }
 
-    /** 로컬 세션과 소셜 세션을 모두 지우고 이전 화면으로 돌려보낸다 (v1.6 `oAuthLogout`). */
+    /** play-authenticate가 붙이는 캐시 금지 머리글이다. */
+    private fun noStore(response: HttpServletResponse) {
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+        response.setHeader(HttpHeaders.PRAGMA, "no-cache")
+        response.setHeader(HttpHeaders.EXPIRES, "0")
+    }
+
+    /**
+     * 로컬 세션과 소셜 세션을 모두 지우고 이전 화면으로 돌려보낸다 (v1.6 `oAuthLogout`). `Referer`가 없으면 v1.6의 `returnToReferer()`가
+     * 돌려준 결과 객체의 문자열이 그대로 `Location`이 된다(결함 재현, R-03).
+     */
     @GetMapping("/logout")
     fun logout(request: HttpServletRequest, response: HttpServletResponse): Any {
         loginSession.end(request, response)
         socialSession.end(request)
-        val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "/"
-        return RedirectSupport.see(request, response, referer, mapOf(RedirectSupport.SUCCESS to "user.logout.success"))
+        noStore(response)
+        val flash = mapOf<String, Any>(RedirectSupport.SUCCESS to "user.logout.success")
+        val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() }
+            ?: run {
+                // 인코딩하지 않은 글자 그대로 `Location`에 쓴다
+                RedirectSupport.saveFlash(request, response, flash)
+                request.setAttribute(dev.yona.web.LocationEncodingFilter.RAW_ATTRIBUTE, true)
+                return ResponseEntity.status(HttpStatus.SEE_OTHER).header(HttpHeaders.LOCATION, "Result(200, Map(Content-Type -> text/html; charset=utf-8))").build<Void>()
+            }
+        return RedirectSupport.see(request, response, referer, flash)
     }
 
     /** 소셜 세션이 있어야 볼 수 있는 시험 화면이다 (v1.6 `Restricted.index`, play-authenticate 예제에서 온 것이다). */
@@ -105,6 +126,8 @@ class SocialLoginController(
         val current = socialSession.current(request)
         val credential = current?.let { credentials.findActiveByProvider(it.provider, it.providerUserId).firstOrNull() }
         if (current == null || credential == null) {
+            // v1.6 `@Security.Authenticated`의 거절 응답에는 기본 액션의 `Cache-Control: no-cache`가 붙지 않는다
+            response.reset()
             return RedirectSupport.see(request, response, "/", mapOf("message" to "Nice try, but you need to log in first!"))
         }
         return ModelAndView("restricted")

@@ -287,13 +287,19 @@ class UserMenuTest : AbstractIntegrationTest() {
     fun `해시가 없으면 경로만, 경로가 없으면 로그인 기본 화면이다`() {
         val me = newUser()
         val session = login(me)
-        assertEquals("/a/b", Jsoup.parse(mockMvc.perform(get("/user/sidebar").param("path", "/a/b").session(session)).andReturn().response.contentAsString).selectFirst("iframe#mainFrameId")!!.attr("src"))
-        assertEquals("/notifications", Jsoup.parse(mockMvc.perform(get("/user/sidebar").session(session)).andReturn().response.contentAsString).selectFirst("iframe#mainFrameId")!!.attr("src"))
+        assertEquals("/a/b", Jsoup.parse(mockMvc.perform(get("/user/sidebar").param("path", "/a/b").param("hash", "").session(session)).andReturn().response.contentAsString).selectFirst("iframe#mainFrameId")!!.attr("src"))
+        assertEquals("/notifications", Jsoup.parse(mockMvc.perform(get("/user/sidebar").param("hash", "").session(session)).andReturn().response.contentAsString).selectFirst("iframe#mainFrameId")!!.attr("src"))
+    }
+
+    @Test
+    fun `hash 파라미터가 없으면 500이다 (v1_6 layout_framed의 None_get)`() {
+        mockMvc.perform(get("/user/sidebar").param("path", "/a")).andExpect(status().isInternalServerError)
+        mockMvc.perform(get("/user/sidebar").param("path", "/a").param("hash", "")).andExpect(status().isOk)
     }
 
     @Test
     fun `익명은 사이드바 목록 없이 프레임만 본다`() {
-        val doc = Jsoup.parse(mockMvc.perform(get("/user/sidebar").param("path", "/projects")).andExpect(status().isOk).andReturn().response.contentAsString)
+        val doc = Jsoup.parse(mockMvc.perform(get("/user/sidebar").param("path", "/projects").param("hash", "")).andExpect(status().isOk).andReturn().response.contentAsString)
         assertTrue(doc.select("div#sidebar .user-menu-wrap").isEmpty())
         assertEquals("/projects", doc.selectFirst("iframe#mainFrameId")!!.attr("src"))
     }

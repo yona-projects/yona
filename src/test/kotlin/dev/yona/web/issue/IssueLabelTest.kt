@@ -392,6 +392,8 @@ class IssueLabelTest : AbstractIntegrationTest() {
             .andExpect(jsonPath("$[1].isExclusive").value("true"))
         mockMvc.perform(get("${base(project)}/issue/label/category/${type.id}").header(HttpHeaders.ACCEPT, "application/json"))
             .andExpect(status().isOk).andExpect(jsonPath("$.id").value(type.id.toString())).andExpect(jsonPath("$.name").value("Type"))
+            // v1.6는 `.as("application/json")`라 문자 집합이 없다
+            .andExpect(header().string("Content-Type", "application/json"))
         mockMvc.perform(get("${base(project)}/issue/label/categories").header(HttpHeaders.ACCEPT, "text/html")).andExpect(status().isNotAcceptable)
         mockMvc.perform(get("${base(project)}/issue/label/category/${type.id}").header(HttpHeaders.ACCEPT, "text/html")).andExpect(status().isNotAcceptable)
     }

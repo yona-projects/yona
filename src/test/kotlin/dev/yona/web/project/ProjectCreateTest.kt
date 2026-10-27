@@ -251,7 +251,8 @@ class ProjectCreateTest : AbstractIntegrationTest() {
     fun `로그인하지 않으면 403이다`() {
         val result = submit(null, "someone", "anon-proj")
         assertEquals(403, result.response.status)
-        assertEquals("'User exists not' has no permission", doc(result).selectFirst(".error-wrap p")?.text())
+        // v1.6 정적 anonymous의 이름은 서버 JVM 기본 언어로 굳는다
+        assertEquals("'${java.util.ResourceBundle.getBundle("messages", java.util.Locale.getDefault()).getString("user.notExists.name")}' has no permission", doc(result).selectFirst(".error-wrap p")?.text())
     }
 
     @Test

@@ -60,7 +60,7 @@ class ImportController(
     fun create(request: HttpServletRequest, response: HttpServletResponse): Any {
         val creator = currentUserProvider.get().user
         if (!accessControl.isGlobalResourceCreatable(creator)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("'${creator?.name ?: messages.getMessage("user.notExists.name", null, LocaleContextHolder.getLocale())}' has no permission")
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("'${creator?.name ?: messages.getMessage("user.notExists.name", null, java.util.Locale.getDefault())}' has no permission")
         }
         val form = ProjectImportForm(
             request.getParameter("owner"), request.getParameter("name"), request.getParameter("overview"), request.getParameter("projectScope"),

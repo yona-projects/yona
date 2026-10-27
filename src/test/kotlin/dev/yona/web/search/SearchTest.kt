@@ -317,7 +317,7 @@ class SearchTest : AbstractIntegrationTest() {
         val meta = all(null, "issue_comment", "ghostneedle").selectFirst("li.search-list-item .search-meta-info a.meta-item[data-toggle=tooltip]")!!
         // NullUser: 이름은 user.notExists.name, 로그인 ID는 빈 문자열이라 링크는 "/"이다
         assertEquals("/", meta.attr("href"))
-        assertEquals("User exists not", meta.text().trim())
+        assertEquals(java.util.ResourceBundle.getBundle("messages", java.util.Locale.getDefault()).getString("user.notExists.name"), meta.text().trim())
     }
 
     @Test

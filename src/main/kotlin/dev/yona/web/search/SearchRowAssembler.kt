@@ -72,7 +72,7 @@ class SearchRowAssembler(
      * 돌려주므로 그 이름과 빈 로그인 ID로 링크를 그린다. 사용자는 있는데 이름이 비어 있으면 표시 이름이 없다(`noAuthor` 문구).
      */
     private fun author(loginId: String?, viewer: User?): Pair<String, String?> {
-        val found = loginId?.let { users.findByLoginIdIgnoreCase(it) } ?: return "" to message("user.notExists.name")
+        val found = loginId?.let { users.findByLoginIdIgnoreCase(it) } ?: return "" to (messages.getMessage("user.notExists.name", null, "user.notExists.name", java.util.Locale.getDefault()) ?: "user.notExists.name")
         return found.loginId.orEmpty() to found.takeIf { !it.name.isNullOrEmpty() }?.let { UserDisplay.of(it, viewer?.lang) }
     }
 

@@ -11,8 +11,11 @@ import org.springframework.stereotype.Component
 @Component
 class NullUserDisplay(private val messages: MessageSource) {
 
-    /** 요청 언어의 `user.notExists.name` 문구이다. */
-    fun name(): String = messages.getMessage("user.notExists.name", null, "user.notExists.name", LocaleContextHolder.getLocale()).orEmpty()
+    /**
+     * `user.notExists.name` 문구이다. v1.6 `User.findByLoginId`는 정적 객체 `User.anonymous`를 돌려주고 그 이름은 클래스가 올라올 때의
+     * 언어, 곧 서버 JVM의 기본 언어로 굳는다. 요청의 언어가 아니다.
+     */
+    fun name(): String = messages.getMessage("user.notExists.name", null, "user.notExists.name", java.util.Locale.getDefault()).orEmpty()
 
     companion object {
         /** `NullUser.loginId`이다. 사용자 링크는 `/`가 된다. */
