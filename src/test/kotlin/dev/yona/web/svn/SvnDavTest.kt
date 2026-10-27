@@ -279,6 +279,9 @@ class SvnDavTest {
         assertEquals(404, raw("GET", "/svn/${member.loginId}/none").statusCode())
         assertEquals(404, raw("GET", "/svn/${git.owner}/${git.name}").statusCode())
         assertEquals(403, raw("GET", "/svn/${member.loginId}").statusCode())
+        // v1.6 SvnApp은 기본 액션 안에서 응답하므로 Cache-Control: no-cache가 붙고, 주소가 짧아 라우트가 없는 403에는 붙지 않는다
+        assertEquals("no-cache", raw("GET", "/svn/${member.loginId}/none").headers().firstValue("Cache-Control").orElse(null))
+        assertEquals(null, raw("GET", "/svn/${member.loginId}").headers().firstValue("Cache-Control").orElse(null))
     }
 
     @Test

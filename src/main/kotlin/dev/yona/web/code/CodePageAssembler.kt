@@ -80,7 +80,8 @@ class CodePageAssembler(
     private fun folder(project: Project, info: Map<String, Any?>, branchSegment: String, base: String): FolderView {
         val listPath = info["path"] as? String ?: ""
         @Suppress("UNCHECKED_CAST") val data = info["data"] as Map<String, Map<String, Any?>>
-        val filePath = "$base/code/$branchSegment/" + UrlPaths.encodeEach(listPath)
+        // v1.6 `routes.CodeApp.codeBrowserWithBranch(..., listPath)`는 와일드카드를 인코딩하지 않으므로 폴더 경로는 날것이고 파일 이름만 인코딩한다
+        val filePath = "$base/code/$branchSegment/" + listPath
         val rows = data.map { (fileName, file) ->
             val folder = file["type"] == "folder"
             val loginId = file["userLoginId"] as? String ?: ""

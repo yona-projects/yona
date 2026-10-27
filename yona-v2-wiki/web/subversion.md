@@ -28,3 +28,9 @@ updated: 2026-10-25
 - 가로채기: 디스패처 서블릿은 WebDAV 메서드를 `501`로 거부하므로 필터가 `/svn/` 아래 모든 요청을 처리한다. 보안 방화벽은 WebDAV 메서드를 허용하도록 설정했다.
 - 순서: Basic 자격 해석(형식 오류 `400`) → 주소를 `svn`, 소유자, 나머지로 가름(짧으면 `403`) → 프로젝트 찾기(없거나 Subversion이 아니면 `404`) → 사용자 확인(Basic 자격, 없으면 세션과 토큰) → 권한(`OPTIONS`, `PROPFIND`, `GET`, `REPORT`은 읽기, 그 밖에는 수정) → 권한이 없으면 익명은 `401`(`WWW-Authenticate: Basic realm="Yobi"`, 본문 `Invalid username or password`), 인증한 사용자는 `403`(`You have no permission to access this repository.`) → `DAVServlet`이 `<저장소 디렉터리>/<소유자>/`를 부모 경로로 처리 → 인증한 사용자의 최근 방문에 기록.
 - 검증: 실제 SVNKit HTTP 클라이언트로 읽기(익명), 커밋(구성원), 거부(익명, 비구성원, 틀린 비밀번호), 비공개 프로젝트, 주소 오류를 확인한다(`SvnDavTest`).
+
+## 공식 v1.16.0과 남은 차이
+- `/svn/…`의 안내 화면 쪽 `Powered by SVN/1.9.0 SVNKit/1.9.2 …` 문구와 오류 본문의 스택 줄은 라이브러리 버전(1.10.11, A-98)을 따르므로 다르다.
+- `Content-Type`의 문자 집합 표기(`text/html;charset="utf-8"` 대 `charset=utf-8`, 본문 `text/plain`의 `charset` 유무)는 서블릿 컨테이너가 다시 쓰는 부분이라 다르다.
+- 없는 리비전, 없는 경로, 알 수 없는 리비전 문자열은 v1.6이 500이고 v2는 404 또는 200이다(R-118과 같은 종류).
+

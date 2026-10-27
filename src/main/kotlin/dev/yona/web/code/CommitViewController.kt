@@ -203,8 +203,8 @@ class CommitViewController(
                 .addObject("projectView", views.of(project))
                 .addObject("commitA", commitA.id).addObject("commitB", commitB.id)
                 .addObject("patch", patch)
-                .addObject("tplFileUrl", siteUrls.path("/$owner/$name/code/") + "\${commitId}/\${path}")
-                .addObject("tplRawUrl", siteUrls.path("/$owner/$name/rawcode/") + "\${commitId}/\${path}")
+                .addObject("tplFileUrl", siteUrls.path("/$owner/$name/code/") + "\$%7BcommitId%7D/\${path}")
+                .addObject("tplRawUrl", siteUrls.path("/$owner/$name/rawcode/") + "\$%7BcommitId%7D/\${path}")
         }
         val fileDiffs = diffs.diff(project, revA, revB)
         return ModelAndView("code/compare")

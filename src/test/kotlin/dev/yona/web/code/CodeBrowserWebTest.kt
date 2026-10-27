@@ -82,6 +82,28 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     private fun member(p: Project, role: RoleType = RoleType.MEMBER): User = user().also { projectUsers.save(ProjectUser(user = it, project = p, role = roles.findById(role.id).get())) }
 
     /** `%25` 같은 인코딩을 다시 인코딩하지 않도록 [java.net.URI]로 요청한다. */
+    @Test
+    fun `와일드카드 경로가 비면 끝 슬래시를 뗀 주소로 303 이동한다 (v1_6의 와일드카드는 한 글자 이상이라 맨 아래 포괄 라우트로 간다)`() {
+        val p = filled()
+        val base = "/${p.owner}/${p.name}"
+        for (kind in listOf("code", "rawcode", "image", "files")) {
+            val result = mockMvc.perform(get("$base/$kind/master/")).andReturn()
+            assertEquals(303, result.response.status, kind)
+            assertEquals("$base/$kind/master", result.response.getHeader("Location"), kind)
+            assertEquals("no-cache", result.response.getHeader("Cache-Control"), kind)
+        }
+        // 비어 있어도 되는 주소는 그대로 보여 준다 (v1.6 라우트에 `!/`, `commits/:branch/`가 따로 있다)
+        mockMvc.perform(get("$base/code/master/!/")).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `폴더 안 항목의 링크는 폴더 경로를 인코딩하지 않고 파일 이름만 인코딩한다 (v1_6 와일드카드 역방향 라우트는 날것이다)`() {
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("한글 폴더/파일 이름.txt" to "x".toByteArray())))
+        val doc = page("/${p.owner}/${p.name}/code/master/%ED%95%9C%EA%B8%80%20%ED%8F%B4%EB%8D%94")
+        assertEquals("/${p.owner}/${p.name}/code/master/한글 폴더/%ED%8C%8C%EC%9D%BC%20%EC%9D%B4%EB%A6%84.txt", doc.selectFirst("a[title=파일 이름.txt]")!!.attr("href"))
+    }
+
     private fun page(path: String, session: MockHttpSession? = null): Document =
         Jsoup.parse(mockMvc.perform(get(java.net.URI.create(path)).apply { session?.let { session(it) } }).andExpect(status().isOk).andReturn().response.contentAsString)
 
@@ -157,7 +179,7 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     @Test
     fun `폴더 화면은 폴더를 앞세운 목록과 탭, 브랜치 선택, 내려받기를 보여 준다`() {
         val p = filled()
-        val doc = page("/${p.owner}/${p.name}/code/master/")
+        val doc = page("/${p.owner}/${p.name}/code/master")
         assertEquals(listOf("Files", "Commit", "Branches"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
         assertEquals(listOf("refs/heads/master"), doc.select("select#branches option").map { it.text() })
         // v1.6 역방향 라우트는 경로가 비면 끝에 `/` 없는 `/code/:branch`를 만든다
@@ -217,14 +239,14 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     fun `없는 경로나 브랜치는 코드를 찾을 수 없다고 답한다`() {
         val p = filled()
         mockMvc.perform(get("/${p.owner}/${p.name}/code/master/nope")).andExpect(status().isNotFound)
-        mockMvc.perform(get("/${p.owner}/${p.name}/code/nobranch/")).andExpect(status().isNotFound)
+        mockMvc.perform(get("/${p.owner}/${p.name}/code/nobranch")).andExpect(status().isNotFound)
     }
 
     @Test
     fun `브랜치 이름에 슬래시가 있어도 두 번 인코딩한 주소로 연다`() {
         val p = filled()
         GitTestSupport.pushCommits(repositories, p, TestCommit("기능", mapOf("only.txt" to "x".toByteArray())), branch = "feature/x")
-        val doc = page("/${p.owner}/${p.name}/code/feature%252Fx/")
+        val doc = page("/${p.owner}/${p.name}/code/feature%252Fx")
         assertTrue(doc.select(".listitem .filename a").any { it.text() == "only.txt" })
         assertTrue(doc.select("select#branches option").any { it.attr("value") == "/${p.owner}/${p.name}/code/feature%252Fx" })
     }
@@ -286,7 +308,7 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         val m = member(p); val outsider = user()
         mockMvc.perform(get("/${p.owner}/${p.name}/code").session(login(outsider))).andExpect(status().isForbidden)
         mockMvc.perform(get("/${p.owner}/${p.name}/code/master/!").session(login(outsider))).andExpect(status().isForbidden)
-        mockMvc.perform(get("/${p.owner}/${p.name}/code/master/").session(login(m))).andExpect(status().isOk)
+        mockMvc.perform(get("/${p.owner}/${p.name}/code/master").session(login(m))).andExpect(status().isOk)
     }
 
     @Test

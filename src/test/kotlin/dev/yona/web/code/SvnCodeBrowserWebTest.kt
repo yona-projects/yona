@@ -109,7 +109,7 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
     @Test
     fun `루트 폴더 목록은 폴더 먼저 항목마다 리비전 링크를 담는다`() {
         val p = filled()
-        val doc = page("/${p.owner}/${p.name}/code/HEAD/")
+        val doc = page("/${p.owner}/${p.name}/code/HEAD")
         assertEquals(listOf("src", "README.md"), doc.select(".listitem .filename a").map { it.text() })
         assertEquals(listOf("HEAD"), doc.select("select#branches option").map { it.text() })
         assertTrue(doc.select("a[href=/${p.owner}/${p.name}/commit/1]").isNotEmpty(), doc.select(".listitem").outerHtml())
@@ -118,7 +118,7 @@ class SvnCodeBrowserWebTest : AbstractIntegrationTest() {
     @Test
     fun `Subversion 코드 화면에는 브랜치 탭과 내려받기 링크와 새 파일 링크가 없다`() {
         val p = filled()
-        val doc = page("/${p.owner}/${p.name}/code/HEAD/")
+        val doc = page("/${p.owner}/${p.name}/code/HEAD")
         // v1.6 code/view.scala.html은 `project.isGit`일 때만 브랜치 탭, 내려받기, 새 파일을 낸다
         assertTrue(doc.select("a[href\$='/branches']").isEmpty(), doc.select(".code-browse-wrap > ul.nav-tabs").outerHtml())
         assertTrue(doc.select("a[href\$='/download']").isEmpty())

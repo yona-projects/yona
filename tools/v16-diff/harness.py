@@ -238,6 +238,8 @@ def norm_json(value, map_ids=False, key=""):
         return [norm_json(v, map_ids, key) for v in value]
     if isinstance(value, str):
         return scrub(map_user_ids_text(value) if map_ids else value)
+    if isinstance(value, int) and not isinstance(value, bool) and 10**12 <= value < 4 * 10**12:
+        return "<타임스탬프>"  # 밀리초 시각
     if NORMALIZE_ENTITY_IDS and key == "id" and isinstance(value, int) and not isinstance(value, bool):
         return "<id>"
     if map_ids and isinstance(value, int) and not isinstance(value, bool) and str(value) in USER_ID_MAP and key.lower().endswith("id"):

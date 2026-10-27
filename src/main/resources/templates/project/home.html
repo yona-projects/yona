@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div th:if="${projectView.menuSetting.code}" class="project-clone-wrap span3 hide-in-mobile">
-                <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" th:value="${projectView.repositoryUrl}">
+                <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" th:value="${projectView.cloneUrl}">
                 <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}"></button>
             </div>
         </div>

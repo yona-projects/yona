@@ -44,6 +44,8 @@ class SvnDavService(
         val path = java.net.URI(request.requestURI).path.removePrefix(request.contextPath).removePrefix("/")
         val segments = path.split("/", limit = 3)
         if (segments.size < 3) return text(response, 403, null)
+        // v1.6 SvnApp은 Play 기본 액션 안에서 응답하므로 이후의 모든 응답에 Cache-Control이 붙는다(주소가 짧은 403은 라우트 밖이라 붙지 않는다)
+        response.setHeader("Cache-Control", "no-cache")
         val owner = segments[1]
         val pathInfo = segments[2]
         val projectName = pathInfo.split("/", limit = 2)[0]

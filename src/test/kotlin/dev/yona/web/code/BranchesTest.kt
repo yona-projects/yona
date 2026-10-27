@@ -91,7 +91,7 @@ class BranchesTest : AbstractIntegrationTest() {
         assertEquals(listOf("master", "feature"), rows.map { it.selectFirst("td.branchName a")!!.text() })
         assertTrue(rows[0].hasClass("head")); assertNotNull(rows[0].selectFirst(".headBranch"))
         assertNull(rows[1].selectFirst(".headBranch"))
-        assertEquals("/${p.owner}/${p.name}/code/refs%252Fheads%252Fmaster/", rows[0].selectFirst("td.branchName a")!!.attr("href"))
+        assertEquals("/${p.owner}/${p.name}/code/refs%252Fheads%252Fmaster", rows[0].selectFirst("td.branchName a")!!.attr("href"))
         assertEquals(7, rows[1].selectFirst("a.commitId")!!.text().length)
         assertNotNull(rows[1].selectFirst("td.pullRequest .disabled"))
     }

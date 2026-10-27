@@ -163,6 +163,12 @@ class ProjectViewContext(
     /** 저장소 복제 주소이다. 로그인했으면 `사용자@`가 들어간다 (v1.6 `CodeApp.getURLWithLoginId`). */
     val repositoryUrl: String? get() = deps.repositoryUrls.urlFor(project, request, viewer?.loginId)
 
+    /**
+     * 프로젝트 홈의 복제 주소 입력란에 쓰는 주소이다. v1.6 `project/home`은 Git일 때만 로그인 아이디를 넣고(`getURLWithLoginId`) Subversion은
+     * 넣지 않는다(`getURL`). 메뉴 스크립트의 `sRepoURL`은 저장소 종류와 무관하게 로그인 아이디를 넣으므로 [repositoryUrl]을 쓴다.
+     */
+    val cloneUrl: String? get() = deps.repositoryUrls.urlFor(project, request, if (project.vcs == "Subversion") null else viewer?.loginId)
+
     // --- 메뉴의 개수 ---
 
     val openIssueCount: Long by lazy { deps.projectService.countIssues(project, State.OPEN) }

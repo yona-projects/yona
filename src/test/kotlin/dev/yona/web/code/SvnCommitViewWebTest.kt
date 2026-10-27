@@ -276,6 +276,8 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
         assertTrue(doc.selectFirst("#commit[data-commit-origin=true]")!!.wholeText().contains("+2"))
         val script = doc.select("script").joinToString("\n") { it.data() }.replace("\\/", "/")
         assertTrue(script.contains("code.SvnDiff") && script.contains("\"sParentCommitId\"") && script.contains("sTplFileURL"), script)
+        // v1.6 역방향 라우트는 경로 변수 자리(`${commitId}`)의 중괄호를 인코딩하고 와일드카드(`${path}`)는 그대로 둔다
+        assertTrue(script.contains("/code/\$%7BcommitId%7D/\${path}") && script.contains("/rawcode/\$%7BcommitId%7D/\${path}"), script)
     }
 
     @Test

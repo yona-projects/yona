@@ -193,6 +193,19 @@ class ProjectHomeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `로그인해도 Subversion 복제 주소에는 로그인 아이디를 넣지 않고 Git에만 넣는다 (v1_6 home은 isGit일 때만 getURLWithLoginId)`() {
+        val user = newUser()
+        val session = login(user)
+        val git = newProject()
+        assertTrue(home(git, session).selectFirst("#cloneURL")!!.attr("value").contains("://${user.loginId}@"))
+        val svn = newProject().also { it.vcs = "Subversion"; projects.save(it) }
+        val value = home(svn, session).selectFirst("#cloneURL")!!.attr("value")
+        assertTrue(value.endsWith("/svn/${svn.owner}/${svn.name}") && !value.contains("@"), value)
+        // 메뉴 스크립트의 sRepoURL은 저장소 종류와 무관하게 로그인 아이디를 넣는다 (v1.6 projectMenu)
+        assertTrue(home(svn, session).select("script").joinToString("\n") { it.data() }.replace("\\/", "/").contains("\"sRepoURL\": \"http://${user.loginId}@"))
+    }
+
+    @Test
     fun `코드 메뉴가 꺼져 있으면 복제 주소가 없다`() {
         assertNull(home(newProject { code = false }).selectFirst("#cloneURL"))
     }

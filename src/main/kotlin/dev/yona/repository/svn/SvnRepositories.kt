@@ -131,14 +131,14 @@ class SvnRepositories(private val dataDirectory: DataDirectory) {
     /** 커밋이 하나도 없으면 `true`이다 (v1.6 `isEmpty`). */
     fun isEmpty(owner: String, name: String): Boolean = latestRevision(owner, name) == 0L
 
-    /** [path]가 폴더이면 항목 목록(이름 순)을, 아니면 `null`이다. 항상 최신 리비전에서 읽는다 (v1.6 `getMetaDataFromPath`). */
+    /** [path]가 폴더이면 항목 목록(SVNKit가 돌려주는 순서 그대로, v1.6 `getMetaDataFromPath`처럼 정렬하지 않는다)을, 아니면 `null`이다. 항상 최신 리비전에서 읽는다 (v1.6 `getMetaDataFromPath`). */
     fun entries(owner: String, name: String, path: String): List<SvnEntry>? = session(owner, name) { repository ->
         if (repository.checkPath(path, -1) != SVNNodeKind.DIR) return null
         val found = repository.getDir(path, -1, SVNProperties(), SVNDirEntry.DIRENT_ALL, null as Collection<*>?)
         found.map { entry ->
             entry as SVNDirEntry
             SvnEntry(entry.name, entry.kind == SVNNodeKind.DIR, entry.revision, entry.author, entry.date, entry.commitMessage, entry.size)
-        }.sortedBy { it.name }
+        }
     }
 
     /** [path]의 종류이다. 리비전은 번호이고 `null`이면 최신이다. 없는 리비전이면 `NONE`이다. */

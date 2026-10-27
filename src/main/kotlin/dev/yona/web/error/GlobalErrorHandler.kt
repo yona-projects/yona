@@ -49,10 +49,14 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
         return withLayout(ErrorViews.notFound(), request)
     }
 
+    /**
+     * 주소는 있으나 요청 방식이 맞지 않을 때이다. Play는 방식이 맞는 라우트만 보므로 같은 주소의 다른 방식 라우트(예: `DELETE code/:branch/`)는 GET에
+     * 영향을 주지 않는다. 그래서 GET이면 일치하는 처리기가 없을 때와 똑같이 끝 슬래시를 떼어 이동하거나 404 화면이다.
+     */
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
-    fun methodNotSupported(e: HttpRequestMethodNotSupportedException, request: HttpServletRequest): ModelAndView {
+    fun methodNotSupported(e: HttpRequestMethodNotSupportedException, request: HttpServletRequest, response: HttpServletResponse): Any {
         log.warn("지원하지 않는 요청 방식: {}", e.message)
-        return withLayout(ErrorViews.notFound(), request)
+        return notFound(request, response)
     }
 
     /** 필수 요청 파라미터가 없거나 경로 변수, 파라미터의 타입이 맞지 않으면 400 화면이다 (v1.6 `Global.onBadRequest`). */
