@@ -200,6 +200,17 @@ class SvnDavTest {
     }
 
     @Test
+    fun `위치 구간 보고서의 경로는 앞 슬래시가 없다 (svn 1_14의 switch가 정규 상대 경로를 기대한다)`() {
+        val repository = client(publicProject, member)
+        commitOverHttp(repository, "seg.txt", "구간\n")
+        val body = "<S:get-location-segments xmlns:S=\"svn:\"><S:path></S:path><S:peg-revision>1</S:peg-revision><S:start-revision>1</S:start-revision><S:end-revision>0</S:end-revision></S:get-location-segments>"
+        val request = HttpRequest.newBuilder(URI.create("${url(publicProject)}/!svn/bc/1/")).method("REPORT", HttpRequest.BodyPublishers.ofString(body)).header("Content-Type", "text/xml").build()
+        val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
+        assertEquals(200, response.statusCode(), response.body())
+        assertTrue(response.body().contains("<S:location-segment path=\"\" ") || response.body().contains("location-segment path=\"") && !response.body().contains("path=\"/"), response.body())
+    }
+
+    @Test
     fun `공백과 한글이 든 경로도 조회하고 읽을 수 있다 (v1_6 svnkit-dav 1_8은 pathInfo를 디코딩한다)`() {
         val repository = client(publicProject, member)
         assertEquals(1L, commitOverHttp(repository, "한글 a.txt", "내용\n"))

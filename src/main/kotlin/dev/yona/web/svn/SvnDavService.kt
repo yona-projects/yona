@@ -64,9 +64,15 @@ class SvnDavService(
 
         val servlet = DAVServlet().apply { init(JavaxServletBridge.config(File(svn.rootDirectory(), "$owner/").absolutePath, properties.server)) }
         // PROPFIND는 응답의 href를 인코딩하는 래퍼를 거친다(A-137). 나머지는 서블릿이 바로 쓴다.
-        val target = if (request.method == "PROPFIND") HrefEncodingResponse(response) else response
+        // REPORT는 위치 구간(`get-location-segments-report`)의 경로에서 앞 슬래시를 뗀다(A-171)
+        val target = when (request.method) {
+            "PROPFIND" -> HrefEncodingResponse(response)
+            "REPORT" -> LocationSegmentResponse(response)
+            else -> response
+        }
         servlet.service(JavaxServletBridge.request(request, pathInfo, user?.loginId.orEmpty(), properties.server), JavaxServletBridge.response(target))
         (target as? HrefEncodingResponse)?.finish()
+        (target as? LocationSegmentResponse)?.finish()
         response.flushBuffer()
         recentVisits.visits(user, project)
     }
