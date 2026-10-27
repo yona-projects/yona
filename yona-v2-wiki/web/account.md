@@ -13,7 +13,7 @@ updated: 2026-10-22
 
 - 화면: 아이디(읽기 전용), 이름, 이메일(`type=email`), 아바타 영역(파일 선택, 자르기 대화상자), 최근 방문 목록 초기화 버튼. 아바타 폼은 이름과 이메일을 숨은 값으로 가진다. 스크립트 `user.Setting`이 아바타를 `/files`로 올린 뒤 `avatarId`를 담아 `POST /user/edit`로 저장한다.
 - 저장: 이메일이 비었으면 `user.wrongEmail.alert`, 바꾸는 이메일을 다른 곳에서 쓰고 있으면 `user.email.duplicate`로 `400`(안내와 함께 편집 화면). 이메일 **형식**도 검사한다(v1.6 `@Constraints.Email`, 틀리면 같은 `user.wrongEmail.alert`와 `400`; 2026-10-27 정정). 저장에 성공하면 서버 캐시 항목을 새로 만든다(`CacheStore.yonaUsers.put`). 이름은 서식 태그만 남기고 정화한다. 성공하면 `303`으로 `/로그인ID?daysAgo=14&selected=projects`.
-- 아바타: `avatarId`의 첨부가 **본인이 올린 임시 첨부**이고 이미지일 때만 바꾼다. 이전 아바타는 지운다. 1MB를 넘어도 v1.6처럼 거부하지 않는다(R-21). v1.6은 남의 첨부 번호도 받았지만 v2는 받지 않는다(A-31).
+- 아바타: `avatarId`의 첨부가 이미지일 때만 바꾼다. 이전 아바타는 지운다. 1MB를 넘어도 v1.6처럼 거부하지 않는다(R-21). v1.6처럼 첨부의 소유자는 검사하지 않아 남이 올린 첨부 번호도 받는다(A-31 철회, A-168).
 - 새 이메일이 다른 사용자의 인증 전 보조 이메일과 같으면 그 행을 지운다.
 
 ## 비밀번호 (`GET /user/editform/password`, `POST /user/resetPassword`)
@@ -52,7 +52,7 @@ updated: 2026-10-22
 
 # 첨부 올리기와 정리 (`AttachmentController`)
 
-- `POST /files` (필드 `filePath`): 로그인한 사용자(또는 `Yona-Token`)가 올리면 그 사용자의 임시 첨부(컨테이너 `USER`)로 저장한다. 파일 이름은 NFC로 정규화한다. 새로 만들면 `201`, 같은 첨부가 이미 있으면 `200`. 헤더 `Location: /files/id`, `Vary: Accept`, 본문은 JSON `{id, mimeType, name, url, size}`(모두 문자열)이고 JSON을 받을 수 없는 클라이언트에는 `Content-Type: text/html`로 알린다. 파일이 없으면 `400`, 익명이면 `403`. 폼의 `authorEmail`, `authorLoginId`로 다른 사용자 명의로 올리는 v1.6 기능은 받지 않는다(A-31).
+- `POST /files` (필드 `filePath`): 로그인한 사용자(또는 `Yona-Token`)가 올리면 그 사용자의 임시 첨부(컨테이너 `USER`)로 저장한다. 파일 이름은 NFC로 정규화한다. 새로 만들면 `201`, 같은 첨부가 이미 있으면 `200`. 헤더 `Location: /files/id`, `Vary: Accept`, 본문은 JSON `{id, mimeType, name, url, size}`(모두 문자열)이고 JSON을 받을 수 없는 클라이언트에는 `Content-Type: text/html`로 알린다. 파일이 없으면 `400`, 익명이면 `403`. 폼의 `authorEmail`(못 찾으면 `authorLoginId`)로 다른 사용자 명의로 올린다. 소유자 아이디는 명의가 아니라 요청한 로그인 사용자이다(v1.6 `findUploader`, A-31 철회, A-168). 필드는 `HashMap` 순서(`size, name, id, mimeType, url`)로 나가고, 파일 이름은 역슬래시 앞만 뗀다.
 - `GET /files?containerType=&containerId=`: 컨테이너의 첨부 목록 JSON `{"attachments": [...]}`. 하나라도 읽을 수 없으면 `403`. 파라미터가 없으면 `{}`.
 - `POST /files/:id` (멀티파트이면 `_method=delete` 필요): `DELETE` 권한이 있으면 지운다. 같은 해시를 쓰는 첨부가 남아 있으면 "원본 파일은 남아 있다" 문구, 아니면 "모두 지웠다" 문구. 없는 첨부 `404`, 권한 없음 `403`, `_method` 오류 `400`.
 - **임시 첨부 정리**(`TemporaryFileCleaner`): 서버가 뜬 뒤 보관 기간(`yona.temporary-files-keep-up-time`, 기본 하루)이 지나면 처음 실행하고 같은 주기로 반복한다. v1.6의 조회 조건이 `createdDate >= (지금 - 보관 기간)`이라 **오래된 것이 아니라 최근 보관 기간 안에 올린** 임시 첨부를 지운다. 같게 재현한다(R-20).

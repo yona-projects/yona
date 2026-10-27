@@ -82,9 +82,10 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
         mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", user.loginId!!).param("password", "1234"))
     }
 
-    private fun upload(session: MockHttpSession?, name: String = "사진.png", bytes: ByteArray = png, accept: String? = null, token: String? = null, field: String = "filePath"): ResultActions =
+    private fun upload(session: MockHttpSession?, name: String = "사진.png", bytes: ByteArray = png, accept: String? = null, token: String? = null, field: String = "filePath", params: Map<String, String> = emptyMap()): ResultActions =
         mockMvc.perform(
             multipart("/files").file(MockMultipartFile(field, name, "image/png", bytes)).apply {
+                params.forEach { (key, value) -> param(key, value) }
                 session?.let { session(it) }
                 accept?.let { accept(it) }
                 token?.let { header("Yona-Token", it) }
@@ -108,6 +109,48 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `만든 날짜는 시각이 없는 날짜이다 (v1_6 Ebean이 java util Date를 DATE로 저장한다)`() {
+        upload(login(newUser())).andExpect(status().isCreated)
+        val created = java.util.Calendar.getInstance().apply { time = attachmentRepository.findAll().single().createdDate!! }
+        assertEquals(listOf(0, 0, 0, 0), listOf(created.get(java.util.Calendar.HOUR_OF_DAY), created.get(java.util.Calendar.MINUTE), created.get(java.util.Calendar.SECOND), created.get(java.util.Calendar.MILLISECOND)))
+    }
+
+    @Test
+    fun `응답 JSON의 필드 순서는 v1_6의 HashMap 순서이다`() {
+        val body = upload(login(newUser()), accept = "application/json").andReturn().response.contentAsString
+        assertTrue(Regex("""^\{"size":"\d+","name":"[^"]+","id":"\d+","mimeType":"[^"]+","url":"/files/\d+"}$""").matches(body), body)
+    }
+
+    @Test
+    fun `파일 이름에서 역슬래시 앞의 경로만 뗀다 (Play 멀티파트는 슬래시를 그대로 둔다)`() {
+        val session = login(newUser())
+        upload(session, name = "dir\\back.txt", bytes = byteArrayOf(1)).andExpect(status().isCreated)
+        upload(session, name = "../evil.txt", bytes = byteArrayOf(2)).andExpect(status().isCreated)
+        assertEquals(setOf("back.txt", "../evil.txt"), attachmentRepository.findAll().map { it.name }.toSet())
+    }
+
+    @Test
+    fun `폼의 authorEmail로 다른 사용자 명의로 올린다 (v1_6 findUploader)`() {
+        val uploader = newUser()
+        val author = newUser()
+        upload(login(uploader), params = mapOf("authorEmail" to author.email!!)).andExpect(status().isCreated)
+        val stored = attachmentRepository.findAll().single()
+        assertEquals(author.id, stored.containerId)
+        // 소유자 아이디는 명의가 아니라 올린 요청의 로그인 사용자이다
+        assertEquals(uploader.loginId, stored.ownerLoginId)
+    }
+
+    @Test
+    fun `이메일을 못 찾으면 authorLoginId로 찾고 그래도 없으면 올린 사용자이다`() {
+        val uploader = newUser()
+        val author = newUser()
+        val session = login(uploader)
+        upload(session, bytes = byteArrayOf(1), params = mapOf("authorEmail" to "nobody@example.com", "authorLoginId" to author.loginId!!)).andExpect(status().isCreated)
+        upload(session, bytes = byteArrayOf(2), params = mapOf("authorEmail" to "nobody@example.com", "authorLoginId" to "nobody")).andExpect(status().isCreated)
+        assertEquals(setOf(author.id, uploader.id), attachmentRepository.findAll().map { it.containerId }.toSet())
+    }
+
+    @Test
     fun `응답에는 위치 헤더와 주소가 들어 있다`() {
         val result = upload(login(newUser()), accept = "application/json").andReturn()
         val id = attachmentRepository.findAll().single().id
@@ -120,8 +163,9 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
     fun `JSON을 원하지 않으면 본문은 JSON이지만 종류는 text html이다`() {
         upload(login(newUser()), accept = "text/html")
             .andExpect(status().isCreated)
-            .andExpect(header().string("Content-Type", org.hamcrest.Matchers.startsWith("text/html")))
-            .andExpect(jsonPath("$.name").value("사진.png"))
+            // v1.6는 Content-Type을 직접 정해 문자 집합이 없다. 본문은 UTF-8이다
+            .andExpect(header().string("Content-Type", "text/html"))
+            .andExpect { assertTrue(String(it.response.contentAsByteArray, Charsets.UTF_8).contains("\"name\":\"사진.png\"")) }
     }
 
     @Test
@@ -171,6 +215,13 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
             .andExpect(jsonPath("$.attachments[0].id").value("${stored.id}"))
             .andExpect(jsonPath("$.attachments[0].name").value("a.png"))
             .andExpect(jsonPath("$.attachments[0].url").value("/files/${stored.id}"))
+    }
+
+    @Test
+    fun `컨테이너 번호가 숫자가 아니면 빈 목록이다 (v1_6은 문자열로 조회한다)`() {
+        mockMvc.perform(get("/files").param("containerType", "ISSUE_POST").param("containerId", "abc"))
+            .andExpect(status().isOk)
+            .andExpect(content().json("""{"attachments":[]}"""))
     }
 
     @Test

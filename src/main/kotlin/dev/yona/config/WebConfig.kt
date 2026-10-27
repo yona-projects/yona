@@ -19,6 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  */
 @Configuration(proxyBeanMethods = false)
 class WebConfig(
+    private val optionsNotFoundInterceptor: dev.yona.web.OptionsNotFoundInterceptor,
     private val emptyWildcardInterceptor: dev.yona.web.EmptyWildcardInterceptor,
     private val accessChainInterceptor: AccessChainInterceptor,
     private val siteSecretInterceptor: SiteSecretInterceptor,
@@ -46,6 +47,7 @@ class WebConfig(
 
     override fun addInterceptors(registry: InterceptorRegistry) {
         // Play는 라우트를 가장 먼저 고르므로 라우트가 없는 주소(끝 슬래시만 있는 와일드카드)는 모든 검사보다 먼저 가려낸다
+        registry.addInterceptor(optionsNotFoundInterceptor)
         registry.addInterceptor(emptyWildcardInterceptor)
         registry.addInterceptor(preferredLanguageInterceptor)
         registry.addInterceptor(siteSecretInterceptor)

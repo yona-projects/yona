@@ -38,8 +38,8 @@ class AccountService(
      * 이름과 이메일, 아바타를 저장한다. 이메일이 비었으면 `user.wrongEmail.alert`, 바꾸는 이메일이 이미 쓰이고 있으면
      * `user.email.duplicate`로 거부한다. 이메일 형식은 검사하지 않는다(v1.6).
      *
-     * 아바타는 [avatarId]의 첨부가 **본인이 올린 임시 첨부**이고 이미지일 때만 바꾼다. 이전 아바타는 지운다.
-     * 첨부가 1MB를 넘어도 v1.6처럼 거부하지 않고 옮긴다([refactoring-backlog.md] R-21).
+     * 아바타는 [avatarId]의 첨부가 이미지일 때만 바꾼다. 이전 아바타는 지운다. v1.6은 첨부의 소유자를 검사하지 않으므로
+     * 남이 올린 첨부도 옮긴다(옮긴 첨부는 올린 사람의 임시 첨부에서 빠진다). 첨부가 1MB를 넘어도 v1.6처럼 거부하지 않고 옮긴다([refactoring-backlog.md] R-21).
      */
     fun updateProfile(user: User, name: String?, email: String?, avatarId: String?): String? {
         if (email.isNullOrEmpty() || !SignupService.isValidEmailFormat(email)) return "user.wrongEmail.alert"
@@ -50,9 +50,7 @@ class AccountService(
 
         avatarId?.toLongOrNull()?.let { id ->
             val attachment = attachmentRepository.findById(id).orElse(null)
-            if (attachment != null && attachment.containerType == ResourceType.USER && attachment.containerId == user.id &&
-                attachment.mimeType?.substringBefore('/')?.lowercase() == "image"
-            ) {
+            if (attachment != null && attachment.mimeType?.substringBefore('/')?.lowercase() == "image") {
                 attachments.deleteAll(ResourceType.USER_AVATAR, requireNotNull(user.id))
                 attachments.moveTo(attachment, ResourceType.USER_AVATAR, requireNotNull(user.id))
             }

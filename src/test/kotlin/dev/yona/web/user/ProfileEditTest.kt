@@ -226,19 +226,25 @@ class ProfileEditTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이미지가 아니거나 남의 첨부이거나 숫자가 아니면 아바타를 바꾸지 않는다`() {
+    fun `이미지가 아니거나 숫자가 아니면 아바타를 바꾸지 않는다`() {
         val user = newUser()
-        val other = newUser()
         val session = login(user)
         val text = File.createTempFile("avatar-tx", ".txt").apply { writeText("not an image") }
         val notImage = attachments.store(text, "a.txt", ResourceType.USER, user.id!!, user.loginId).attachment
-        val foreignFile = File.createTempFile("avatar-fo", ".png").apply { writeBytes(png + 5) }
-        val foreign = attachments.store(foreignFile, "f.png", ResourceType.USER, other.id!!, other.loginId).attachment
         edit(session, "x", user.email, notImage.id.toString())
-        edit(session, "x", user.email, foreign.id.toString())
         edit(session, "x", user.email, "abc")
         assertTrue(attachments.findByContainer(ResourceType.USER_AVATAR, user.id!!).isEmpty())
-        assertEquals(ResourceType.USER, attachments.findByContainer(ResourceType.USER, other.id!!).single().containerType)
+    }
+
+    @Test
+    fun `남이 올린 이미지 첨부도 아바타로 옮긴다 (v1_6은 소유자를 검사하지 않는다)`() {
+        val user = newUser()
+        val other = newUser()
+        val foreignFile = File.createTempFile("avatar-fo", ".png").apply { writeBytes(png + 5) }
+        val foreign = attachments.store(foreignFile, "f.png", ResourceType.USER, other.id!!, other.loginId).attachment
+        edit(login(user), "x", user.email, foreign.id.toString())
+        assertEquals(listOf("f.png"), attachments.findByContainer(ResourceType.USER_AVATAR, user.id!!).map { it.name })
+        assertTrue(attachments.findByContainer(ResourceType.USER, other.id!!).isEmpty())
     }
 
     @Test

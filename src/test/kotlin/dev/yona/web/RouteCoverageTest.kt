@@ -94,7 +94,9 @@ class RouteCoverageTest : AbstractIntegrationTest() {
             // 매핑이 없는 주소는 `GlobalErrorHandler.notFound`가 끝 슬래시를 떼어 이동하거나 404를 낸다(`TrailingSlashRedirectTest`)
             "GET /*paths",
             // v1.6에서 프로젝트 이름이 빈 문자열이라 404인 가짜 경로이다. v2도 매핑이 없어 404이다(아래 시험)
-            "POST /!svn-fake/sevice/"
+            "POST /!svn-fake/sevice/",
+            // Play 2.3 라우트의 `/?`는 물음표 글자 그대로라 요청으로는 닿지 않는다. 실제로 `GET /files/N/`은 끝 슬래시 제거 이동(303), `POST /files/N/`은 404이다
+            "GET /files/:id/?", "POST /files/:id/?"
         )
     }
 }

@@ -125,6 +125,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-118 | 토큰 API의 잘못된 입력 | 없는 이슈, 글에 대한 수정, 숫자가 아닌 즐겨찾기 번호, 알 수 없는 `filter`, 로그인 없는 즐겨찾기 토글은 `NullPointerException`, `NumberFormatException`, `IllegalArgumentException`, 외래 키 위반으로 500이다 | v2는 각각 404, 400, 403으로 낸다. 정상 입력의 응답은 같다 | `IssueApi.java`, `BoardApi.java`, `UserApi.java` |
 | R-119 | 인증 헤더 처리 | `Authorization` 헤더의 방식 이름을 보지 않고 앞 여섯 글자를 건너뛰어 읽는다(`basic`, `Bearer`도 같은 자격으로 읽힌다). 여섯 글자보다 짧으면 문자열 범위 오류로 500이다 | 같게 재현한다. 짧은 헤더의 500은 Git에서는 오류 화면, `/svn` 필터에서는 컨테이너의 오류 응답이라 본문 모양이 다르다 | `BasicAuthAction.java` `parseCredentials` |
 | R-120 | 조직 구성원 역할 바꾸기의 잘못된 입력 | `POST /organizations/:name/member/:userId/edit`에서 알 수 없는 역할 번호(예: 99)는 v1.6이 그대로 저장하고 `204`로 답하며, 역할 번호가 없으면 `NullPointerException`으로 `500`이다 | v2는 두 경우 모두 `unknownRole` 안내와 함께 `200`으로 거절한다(R-118과 같은 부류의 정책 차이) |
+| R-121 | 첨부 올리기의 잘못된 요청 | 멀티파트가 아닌 `POST /files`(본문 없음, 폼 인코딩)는 `request().body().asMultipartFormData()`가 `null`이라 `NullPointerException`으로 `500`이다. 로그인하지 않은 요청도 `authorEmail`로 기존 사용자 명의로 올릴 수 있다(권한 검사가 없다) | v2는 멀티파트가 아니면 `400`이다(R-118과 같은 부류). 명의 지정은 v1.6대로 허용한다 |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

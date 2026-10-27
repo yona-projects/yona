@@ -134,7 +134,8 @@ class AttachmentService(
         val attachment = Attachment(
             containerType = containerType,
             containerId = containerId,
-            createdDate = Date(),
+            // v1.6 Ebean은 애노테이션이 없는 java.util.Date를 DATE로 저장하므로 시각은 0시이다
+            createdDate = Date.from(java.time.LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()),
             hash = file.name,
             size = file.length(),
             ownerLoginId = ownerLoginId,

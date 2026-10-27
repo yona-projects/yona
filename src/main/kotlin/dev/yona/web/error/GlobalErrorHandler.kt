@@ -46,6 +46,8 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
             log.debug("Trailing slash removed and redirected: {} to {}", path, path.dropLast(1))
             return RedirectSupport.see(request, response, path.dropLast(1))
         }
+        // v1.6의 `Cache-Control: no-cache`는 맨 아래 포괄 라우트(GET)의 액션이 붙인다. 다른 방식의 라우트 없음은 액션 밖이라 붙지 않는다
+        if (request.method != "GET" && request.method != "HEAD" && !response.isCommitted) response.reset()
         return withLayout(ErrorViews.notFound(), request)
     }
 

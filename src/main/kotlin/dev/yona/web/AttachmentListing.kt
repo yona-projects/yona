@@ -35,16 +35,23 @@ class AttachmentListing(
             if (!accessControl.isAllowed(viewer, resources.attachmentResource(attachment), Operation.READ)) return null
             info(attachment)
         }
-        return mapOf("attachments" to items)
+        return HashMap<String, List<Map<String, String>>>().also { it["attachments"] = items }
+    }
+
+    /** 컨테이너 번호를 문자열로 받는다. v1.6은 문자열로 조회하므로 숫자가 아니면 붙은 첨부가 없다. */
+    fun fileList(containerType: ResourceType, containerId: String): Map<String, List<Map<String, String>>>? {
+        val id = containerId.toLongOrNull() ?: return HashMap<String, List<Map<String, String>>>().also { it["attachments"] = emptyList() }
+        return fileList(containerType, id)
     }
 
     /** [fileList]를 JSON 문자열로 돌려준다. 화면의 `data-attachments`에 쓴다. 읽을 수 없는 첨부가 있으면 오류이다. */
     fun fileListJson(containerType: ResourceType, containerId: Long): String =
         json.writeValueAsString(fileList(containerType, containerId) ?: throw IllegalStateException("읽을 수 없는 첨부가 있습니다."))
 
-    private fun info(attachment: Attachment): Map<String, String> = mapOf(
-        "id" to attachment.id.toString(), "mimeType" to attachment.mimeType.orEmpty(),
-        "name" to Normalizer.normalize(attachment.name.orEmpty(), Normalizer.Form.NFC),
-        "url" to "/files/${attachment.id}", "size" to attachment.size.toString()
-    )
+    /** v1.6은 `HashMap`이라 JSON 필드 순서가 해시 순서이다. */
+    private fun info(attachment: Attachment): Map<String, String> = HashMap<String, String>().also {
+        it["id"] = attachment.id.toString(); it["mimeType"] = attachment.mimeType.orEmpty()
+        it["name"] = Normalizer.normalize(attachment.name.orEmpty(), Normalizer.Form.NFC)
+        it["url"] = "/files/${attachment.id}"; it["size"] = attachment.size.toString()
+    }
 }

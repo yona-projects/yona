@@ -36,7 +36,8 @@ import tools.jackson.databind.json.JsonMapper
  *
  * ## 올리기 (`POST /files`)
  * 로그인한 사용자(또는 `Yona-Token` 헤더의 사용자)가 올리면 그 사용자의 임시 첨부(컨테이너 `USER`)로 저장한다. 글이나 프로필을 저장할 때
- * 실제 컨테이너로 옮긴다. v1.6은 폼의 `authorEmail`, `authorLoginId`로 다른 사용자 명의로 올릴 수 있었지만 v2는 받지 않는다([decisions.md] A-31).
+ * 실제 컨테이너로 옮긴다. 폼에 `authorEmail`(없거나 못 찾으면 `authorLoginId`)이 있으면 그 사용자의 임시 첨부로 저장한다. 소유자 아이디는
+ * 명의가 아니라 요청한 로그인 사용자이다(v1.6 `AttachmentApp.findUploader`).
  *
  * ## 목록 (`GET /files?containerType=&containerId=`), 지우기 (`POST /files/:id`)
  * 목록의 첨부는 모두 읽을 수 있어야 하고, 지우려면 `DELETE` 권한이 있어야 한다.
@@ -49,7 +50,9 @@ class AttachmentController(
     private val resources: ResourceLookup,
     private val accessControl: AccessControl,
     private val currentUserProvider: CurrentUserProvider,
-    private val listing: AttachmentListing
+    private val listing: AttachmentListing,
+    private val userLookup: dev.yona.domain.user.UserLookup,
+    private val users: dev.yona.domain.user.UserRepository
 ) {
 
     private val log = org.slf4j.LoggerFactory.getLogger(AttachmentController::class.java)
@@ -58,7 +61,7 @@ class AttachmentController(
     private val json = JsonMapper.builder().build()
 
 
-    @GetMapping("/files/{id}", "/files/{id}/")
+    @GetMapping("/files/{id}")
     fun getFile(@PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse) {
         val attachment = attachmentRepository.findById(id).orElse(null)
             ?: return text(response, HttpStatus.NOT_FOUND, "The file does not exist.")
@@ -98,9 +101,13 @@ class AttachmentController(
         response: HttpServletResponse
     ): Any {
         file ?: return ResponseEntity.badRequest().build<Void>()
-        val uploader = currentUserProvider.get().user ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
-        val name = Normalizer.normalize(file.originalFilename.orEmpty(), Normalizer.Form.NFC)
-        val stored = attachments.store(file.inputStream, name, ResourceType.USER, requireNotNull(uploader.id), uploader.loginId)
+        val requester = currentUserProvider.get().user
+        val uploader = findUploader(request) ?: requester ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Void>()
+        // Play 멀티파트는 IE가 보내는 `C:\dir\a.txt` 같은 경로만 역슬래시 기준으로 뗀다(슬래시는 그대로 둔다). 톰캣이 이미 슬래시 앞을 뗀 값이 아니라
+        // 요청 머리글의 원래 파일 이름을 쓴다
+        val submitted = (request as? org.springframework.web.multipart.MultipartHttpServletRequest)?.getMultipartHeaders("filePath")?.contentDisposition?.filename
+        val name = Normalizer.normalize((submitted ?: file.originalFilename).orEmpty().substringAfterLast('\\'), Normalizer.Form.NFC)
+        val stored = attachments.store(file.inputStream, name, ResourceType.USER, requireNotNull(uploader.id), requester?.loginId)
 
         val attachment = stored.attachment
         val url = "/files/${attachment.id}"
@@ -111,8 +118,21 @@ class AttachmentController(
         return ResponseEntity.status(if (stored.created) HttpStatus.CREATED else HttpStatus.OK)
             .header(HttpHeaders.LOCATION, url)
             .header(HttpHeaders.VARY, "Accept")
-            .contentType(if (contentType == "text/html") MediaType("text", "html", Charsets.UTF_8) else MediaType.APPLICATION_JSON)
+            .contentType(if (contentType == "text/html") MediaType.TEXT_HTML else MediaType.APPLICATION_JSON)
             .body(json.writeValueAsString(info(attachment, url)))
+    }
+
+    /**
+     * 폼에 본문 항목이 있으면 `authorEmail`로, 못 찾으면 `authorLoginId`로 올린 사람을 찾는다. 항목이 없거나 둘 다 못 찾으면 `null`이다
+     * (v1.6 `AttachmentApp.findUploader`). 쿼리 문자열의 값은 본문 항목이 아니므로 세지 않는다.
+     */
+    private fun findUploader(request: HttpServletRequest): dev.yona.domain.user.User? {
+        val queryNames = org.springframework.web.util.UriComponentsBuilder.newInstance().query(request.queryString).build().queryParams.keys
+        val body = request.parameterMap.filterKeys { it !in queryNames }
+        if (body.isEmpty()) return null
+        userLookup.findByEmail(body["authorEmail"]?.firstOrNull())?.let { return it }
+        val loginId = body["authorLoginId"]?.firstOrNull()
+        return if (loginId.isNullOrEmpty()) null else users.findByLoginId(loginId)
     }
 
     @GetMapping("/files")
@@ -122,14 +142,14 @@ class AttachmentController(
         request: HttpServletRequest
     ): ResponseEntity<String> {
         request.setAttribute(JsonCharsetFilter.RAW_ATTRIBUTE, true) // v1.6는 문자 집합 없는 `application/json`을 직접 정한다
-        val body = linkedMapOf<String, Any>()
+        val body = HashMap<String, Any>()
         if (!containerType.isNullOrEmpty() && !containerId.isNullOrEmpty()) {
-            body.putAll(listing.fileList(ResourceType.valueOf(containerType), containerId.toLong()) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).build()) // v1.6는 403에도 Content-Type: application/json
+            body.putAll(listing.fileList(ResourceType.valueOf(containerType), containerId) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).build()) // v1.6는 403에도 Content-Type: application/json
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(json.writeValueAsString(body))
     }
 
-    @PostMapping("/files/{id}", "/files/{id}/")
+    @PostMapping("/files/{id}")
     @Transactional
     fun delete(@PathVariable id: Long, request: HttpServletRequest): Any {
         // 멀티파트 요청은 `_method`가 `delete`여야 한다 (HTML 폼에서 DELETE를 흉내 내는 방식).
@@ -165,10 +185,11 @@ class AttachmentController(
         }
     }
 
-    private fun info(attachment: dev.yona.domain.misc.Attachment, url: String, name: String? = attachment.name): Map<String, String> = mapOf(
-        "id" to attachment.id.toString(), "mimeType" to attachment.mimeType.orEmpty(), "name" to name.orEmpty(),
-        "url" to url, "size" to attachment.size.toString()
-    )
+    /** 올리기 응답의 파일 정보이다. v1.6은 `HashMap`이라 JSON 필드 순서가 해시 순서이다(`size, name, id, mimeType, url`). */
+    private fun info(attachment: dev.yona.domain.misc.Attachment, url: String, name: String? = attachment.name): Map<String, String> = HashMap<String, String>().also {
+        it["id"] = attachment.id.toString(); it["mimeType"] = attachment.mimeType.orEmpty(); it["name"] = name.orEmpty()
+        it["url"] = url; it["size"] = attachment.size.toString()
+    }
 
     private fun text(status: HttpStatus, body: String): ResponseEntity<String> =
         ResponseEntity.status(status).contentType(MediaType("text", "plain", Charsets.UTF_8)).body(body)
