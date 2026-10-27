@@ -106,8 +106,8 @@ class AutoLinkRenderer(
         while (matcher.find()) {
             if (isWrappedNonCharacter(text, matcher)) continue
             val link = toLink.toLink(matcher)
-            // v1.6처럼 치환 문자열 규칙(`$`, `\`)을 그대로 적용한다.
-            if (link != null) matcher.appendReplacement(sb, link.toString())
+            // v1.6은 링크 HTML을 치환 문자열 규칙 그대로 넘겨 `$`나 `\`가 든 제목에서 예외가 난다(R-105). 오류는 v2가 처리하므로 글자 그대로 넣는다.
+            if (link != null) matcher.appendReplacement(sb, Matcher.quoteReplacement(link.toString()))
         }
         matcher.appendTail(sb)
         return sb.toString()

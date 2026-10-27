@@ -86,6 +86,14 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `제목에 달러와 역슬래시가 있어도 오류 없이 그대로 보인다 (v1_6은 appendReplacement 예외, 오류는 v2가 처리)`() {
+        val project = project()
+        issue(project, 5, title = "Cost \$5 and C:\\dir")
+        val rendered = render("<p>#5</p>", project)
+        assertTrue(rendered.contains("Cost \$5 and C:\\dir"), rendered)
+    }
+
+    @Test
     fun `없는 이슈 번호는 그대로 둔다`() {
         val project = project()
         assertEquals("<p>#99</p>", render("<p>#99</p>", project))

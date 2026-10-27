@@ -134,7 +134,8 @@ class IssueApiController(
                 result["assignee"] = linkedMapOf("loginId" to target?.loginId.orEmpty(), "name" to (target?.let { UserDisplay.of(it, viewer.lang) } ?: nodesOf.message("common.none")))
             }
         }
-        result["issue"] = "/${project.owner}/${project.name}/issue/$number"
+        // v1.6 IssueApi.updateAssginees: 요청 경로 변수로 역방향 라우트를 만들어 구간마다 퍼센트 인코딩한다
+        result["issue"] = dev.yona.util.UrlPaths.projectPath(owner, projectName) + "/issue/$number"
         return nodesOf.json(result)
     }
 

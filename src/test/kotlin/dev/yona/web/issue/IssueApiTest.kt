@@ -168,6 +168,16 @@ class IssueApiTest : AbstractIntegrationTest() {
     // --- 담당자 변경 ---
 
     @Test
+    fun `담당자 변경 응답의 이슈 경로는 요청 경로 변수를 구간마다 인코딩한다 (v1_6 역방향 라우트)`() {
+        val project = newProject()
+        project.name = "한글 프로젝트"; projects.save(project)
+        val member = join(newUser(), project)
+        issue(project, author = member)
+        json(post("/-_-api/v1/owners/{o}/projects/{p}/issues/1/assignees", project.owner, project.name), login(member), """{"assignees":[""]}""").andExpect(status().isOk)
+            .andExpect(jsonPath("$.issue").value("/${project.owner}/%ED%95%9C%EA%B8%80%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8/issue/1"))
+    }
+
+    @Test
     fun `담당자를 바꾸고 이벤트를 남긴다`() {
         val project = newProject()
         val member = join(newUser(), project); val target = join(newUser(), project)

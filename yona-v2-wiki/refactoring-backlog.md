@@ -109,6 +109,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-102 | 하위 이슈의 댓글, 공감 링크 | 하위 이슈가 다른 프로젝트에 있으면 링크가 부모 프로젝트의 같은 번호 이슈를 가리킨다(`commentAndVoterPairDisplay(child, parent.project)`) | 같게 재현한다 | `partial_view_child.scala.html:23` |
 | R-103 | 게시판 정렬 링크의 라벨 | 라벨 둘 이상을 고르면 `labelIds`에 번호가 구분 없이 붙는다(R-28 정정) | 같게 재현한다 | Twirl `BaseScalaTemplate` |
 | R-104 | 최근 본 이슈의 이름표 | 컨텍스트 경로로 배포하면 주소 앞에 경로가 붙어 `프로젝트 #번호` 이름표가 어긋난다(`RecentIssue.getNumber`가 위치로 자른다) | 같게 재현한다 | `RecentIssue.java` |
+| R-105 | 이슈 참조 링크의 치환 문자열 | `appendReplacement`가 링크 HTML의 `$`, `\`를 치환 규칙으로 해석해 제목에 이 문자가 있으면 예외 | v2는 `quoteReplacement`로 오류 없이 처리 (A-125) | `AutoLinkRenderer.java:215` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

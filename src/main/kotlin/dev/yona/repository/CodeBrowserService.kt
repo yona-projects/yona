@@ -146,7 +146,7 @@ class CodeBrowserService(
         entry["author"] = commit.authorIdent.name
         val shortId = commit.abbreviate(7).name()
         entry["commitId"] = shortId
-        entry["commitUrl"] = siteUrls.path("/${project.owner}/${project.name}/commit/$shortId")
+        entry["commitUrl"] = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name) + "/commit/$shortId")
     }
 
     /**

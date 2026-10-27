@@ -136,6 +136,16 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
     // --- 토큰 ---
 
     @Test
+    fun `토큰을 받으면 같은 응답으로 사이트에도 로그인된다 (v1_6 addUserInfoToSession)`() {
+        val u = newUser()
+        val result = json(post("/-_-api/v1/users/token"), null, """{"id":"${u.loginId}","password":"1234"}""").andExpect(status().isOk).andReturn()
+        // 세션이 만들어져 사용자가 기록된다. 쿠키를 유지하는 클라이언트는 이후 요청에서 로그인 상태이다
+        assertTrue(result.request.getSession(false) != null, "세션이 없다")
+        val context = result.request.getSession(false)!!.getAttribute(org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY)
+        assertTrue(context != null, "세션에 로그인 정보가 없다")
+    }
+
+    @Test
     fun `아이디나 이메일과 비밀번호로 토큰을 받는다`() {
         val u = newUser()
         val first = json(post("/-_-api/v1/users/token"), null, """{"id":"${u.loginId}","password":"1234"}""").andExpect(status().isOk).andExpect(jsonPath("$.access_token").isString)
