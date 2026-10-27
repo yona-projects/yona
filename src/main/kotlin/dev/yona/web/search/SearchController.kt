@@ -1,5 +1,7 @@
 package dev.yona.web.search
 
+import dev.yona.security.SessionPermissions
+import dev.yona.domain.enumeration.RoleType
 import dev.yona.config.YonaProperties
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.project.OrganizationService
@@ -39,7 +41,8 @@ class SearchController(
     private val orgViews: OrganizationViewFactory,
     private val projectViews: ProjectViewFactory,
     private val currentUserProvider: CurrentUserProvider,
-    private val properties: YonaProperties
+    private val properties: YonaProperties,
+    private val permissions: SessionPermissions
 ) {
 
     @GetMapping("/search")
@@ -64,8 +67,9 @@ class SearchController(
         val organization = organizations.findByName(organizationName)
         // v1.6은 조직이 있는지 보기 전에 구성원인지 먼저 물어, 이 검사에서는 조직 구성원이면서 관리자 역할도 가진 사용자만 통과한다.
         if (properties.hideProjectListing && organization != null) {
-            val view = orgViews.of(organization)
-            if (!view.member || !view.admin) return ResponseEntity.badRequest().build<Void>()
+            // v1.6 `user.isMemberOf(organization)`와 `isAdminOf`는 둘 다 세션 사용자에게 기억되는 판정이다
+            val viewerId = currentUserProvider.get().user?.id
+            if (!permissions.organizationRole(viewerId, organization.id, RoleType.ORG_MEMBER) || !permissions.organizationRole(viewerId, organization.id, RoleType.ORG_ADMIN)) return ResponseEntity.badRequest().build<Void>()
         }
         val type = SearchType.of(requested)
         if (type == SearchType.NA || organization == null) return ErrorViews.badRequest()

@@ -1,5 +1,6 @@
 package dev.yona.web.user
 
+import dev.yona.security.SessionPermissions
 import dev.yona.access.AccessControl
 import dev.yona.domain.notification.PasswordResetRequestedEvent
 import dev.yona.domain.user.UserRepository
@@ -34,9 +35,10 @@ class PasswordResetController(
     private val users: UserRepository,
     private val tokens: PasswordResetTokens,
     private val currentUserProvider: CurrentUserProvider,
-    private val siteAdmins: SiteAdminRepository,
+    private val permissions: SessionPermissions,
     private val flashTranslator: FlashMessageTranslator,
-    private val events: ApplicationEventPublisher
+    private val events: ApplicationEventPublisher,
+    private val sessionUsers: dev.yona.security.SessionUserCache
 ) {
 
     @GetMapping("/lostPassword")
@@ -73,6 +75,8 @@ class PasswordResetController(
         val user = requireNotNull(users.findByLoginId(loginId))
         user.password = LegacyPasswordHasher.hash(requireNotNull(newPassword), requireNotNull(user.passwordSalt))
         users.save(user)
+        // v1.6 User.resetPassword: 새로 읽은 사용자 인스턴스를 서버 캐시에 넣는다
+        sessionUsers.remember(requireNotNull(user.id))
         tokens.remove(hashString)
 
         // v1.6는 안내를 남기고 같은 응답으로 로그인 화면을 보여 준다.
@@ -88,12 +92,13 @@ class PasswordResetController(
 
         val actor = currentUserProvider.get().user
         val target = users.findByLoginId(loginId)
-        val isSiteManager = actor?.id?.let { siteAdmins.existsByAdminId(it) } ?: false
+        val isSiteManager = permissions.siteManager(actor?.id)
         if (target == null || !isSiteManager) return json(HttpStatus.FORBIDDEN, mapOf("isSuccess" to false, "reason" to "FORBIDDEN"))
 
         val newPassword = tokens.generate(loginId).substring(0, TEMPORARY_PASSWORD_LENGTH)
         target.password = LegacyPasswordHasher.hash(newPassword, requireNotNull(target.passwordSalt))
         users.save(target)
+        sessionUsers.remember(requireNotNull(target.id))
         return json(HttpStatus.OK, mapOf("loginId" to loginId, "name" to target.name.orEmpty(), "newPassword" to newPassword, "isSuccess" to true))
     }
 

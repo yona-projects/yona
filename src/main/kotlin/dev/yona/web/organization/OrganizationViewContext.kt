@@ -1,5 +1,6 @@
 package dev.yona.web.organization
 
+import dev.yona.security.SessionPermissions
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
@@ -34,7 +35,7 @@ class OrganizationViewContext(
         val attachments: AttachmentRepository,
         val organizationUsers: OrganizationUserRepository,
         val users: UserRepository,
-        val siteAdmins: SiteAdminRepository,
+        val permissions: SessionPermissions,
         val accessControl: AccessControl,
         val avatars: AvatarService
     )
@@ -59,13 +60,13 @@ class OrganizationViewContext(
     val logoUrl: String get() = logoId?.let { "/files/$it" } ?: DEFAULT_LOGO
 
     /** 사이트 관리자이면 `true`이다. */
-    val siteManager: Boolean by lazy { viewerId?.let { deps.siteAdmins.existsByAdminId(it) } ?: false }
+    val siteManager: Boolean by lazy { deps.permissions.siteManager(viewerId) }
 
     /** 조직 관리자이면 `true`이다 (v1.6 `OrganizationUser.isAdmin`). */
     val admin: Boolean by lazy { hasRole(RoleType.ORG_ADMIN) }
 
     /** 조직 구성원(관리자가 아닌 일반 구성원)이면 `true`이다 (v1.6 `OrganizationUser.isMember`). */
-    val member: Boolean by lazy { hasRole(RoleType.ORG_MEMBER) }
+    val member: Boolean by lazy { deps.permissions.organizationRole(viewerId, orgId, RoleType.ORG_MEMBER) }
 
     /**
      * 조직에 속하지 않은 로그인 사용자이면 `true`이다 (v1.6 `OrganizationUser.isGuest`). 사이트 관리자와 익명은 해당하지 않는다.
@@ -119,11 +120,11 @@ class OrganizationViewFactory(
     attachments: AttachmentRepository,
     organizationUsers: OrganizationUserRepository,
     users: UserRepository,
-    siteAdmins: SiteAdminRepository,
+    permissions: SessionPermissions,
     accessControl: AccessControl,
     avatars: AvatarService
 ) {
-    private val dependencies = OrganizationViewContext.Dependencies(attachments, organizationUsers, users, siteAdmins, accessControl, avatars)
+    private val dependencies = OrganizationViewContext.Dependencies(attachments, organizationUsers, users, permissions, accessControl, avatars)
 
     fun of(organization: Organization): OrganizationViewContext =
         OrganizationViewContext(organization, currentUserProvider.get().user, dependencies)

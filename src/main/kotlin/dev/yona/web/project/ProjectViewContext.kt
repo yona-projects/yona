@@ -1,5 +1,6 @@
 package dev.yona.web.project
 
+import dev.yona.security.SessionPermissions
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.access.labelsAsResource
@@ -48,7 +49,7 @@ class ProjectViewContext(
         val favorites: FavoriteProjectRepository,
         val projectUsers: ProjectUserRepository,
         val users: UserRepository,
-        val siteAdmins: SiteAdminRepository,
+        val permissions: SessionPermissions,
         val repositoryUrls: RepositoryUrls
     )
 
@@ -100,7 +101,7 @@ class ProjectViewContext(
      */
     val guest: Boolean by lazy {
         val userId = viewerId ?: return@lazy false
-        !deps.siteAdmins.existsByAdminId(userId) && deps.projectUsers.findFirstByUserIdAndProjectId(userId, projectId) == null
+        !deps.permissions.siteManager(userId) && deps.projectUsers.findFirstByUserIdAndProjectId(userId, projectId) == null
     }
 
     /** 가입을 신청한 상태이면 `true`이다 (v1.6 `User.enrolled(project)`). */
@@ -132,7 +133,7 @@ class ProjectViewContext(
 
     /** 사용자가 프로젝트 관리자이면 `true`이다 (v1.6 `User.isManagerOf`). */
     val manager: Boolean by lazy {
-        viewerId?.let { deps.projectUsers.existsByUserIdAndProjectIdAndRoleId(it, projectId, dev.yona.domain.enumeration.RoleType.MANAGER.id) } ?: false
+        deps.permissions.projectManager(viewerId, projectId)
     }
 
     /** 사용자가 프로젝트 구성원이면 `true`이다 (v1.6 `Project.hasMember`). */

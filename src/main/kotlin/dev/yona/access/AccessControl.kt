@@ -1,5 +1,6 @@
 package dev.yona.access
 
+import dev.yona.security.SessionPermissions
 import dev.yona.config.YonaProperties
 import dev.yona.domain.comment.IssueCommentRepository
 import dev.yona.domain.enumeration.Operation
@@ -43,7 +44,8 @@ class AccessControl(
     private val transfers: ProjectTransferRepository,
     private val issues: IssueRepository,
     private val issueComments: IssueCommentRepository,
-    private val issueSharers: IssueSharerRepository
+    private val issueSharers: IssueSharerRepository,
+    private val permissions: SessionPermissions
 ) {
 
     // --- 생성 권한 ---
@@ -245,8 +247,8 @@ class AccessControl(
 
     private fun findProject(resource: Resource): Project? = projects.findById(resource.id.toLong()).orElse(null)
 
-    /** 사용자가 사이트 관리자이면 `true`이다. */
-    fun isSiteManager(user: User?): Boolean = user?.id?.let { siteAdmins.existsByAdminId(it) } ?: false
+    /** 사용자가 사이트 관리자이면 `true`이다. 현재 세션 사용자는 v1.6 `User.isSiteManager`처럼 처음 계산한 값이 유지된다 ([SessionPermissions]). */
+    fun isSiteManager(user: User?): Boolean = permissions.siteManager(user?.id)
 
     /** 프로젝트에 속해 있으면(역할 무관) `true`이다 (v1.6 `User.isMemberOf(Project)`). */
     private fun isProjectMember(user: User?, project: Project): Boolean {
@@ -254,7 +256,8 @@ class AccessControl(
         return projectUsers.existsByUserIdAndProjectId(userId, requireNotNull(project.id))
     }
 
-    private fun isProjectManager(user: User?, project: Project): Boolean = isProjectManager(user, project.id)
+    /** v1.6 `user.isManagerOf(project)`: 현재 세션 사용자는 처음 계산한 값이 유지된다. 프로젝트 번호로 묻는 아래 중복 정의는 정적 `ProjectUser.isManager`에 해당해 기억하지 않는다. */
+    private fun isProjectManager(user: User?, project: Project): Boolean = permissions.projectManager(user?.id, project.id)
 
     private fun isProjectManager(user: User?, projectId: Long?): Boolean {
         val userId = user?.id ?: return false

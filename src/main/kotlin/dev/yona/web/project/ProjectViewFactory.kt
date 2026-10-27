@@ -1,5 +1,6 @@
 package dev.yona.web.project
 
+import dev.yona.security.SessionPermissions
 import dev.yona.access.AccessControl
 import dev.yona.domain.misc.AttachmentRepository
 import dev.yona.domain.misc.FavoriteProjectRepository
@@ -30,13 +31,13 @@ class ProjectViewFactory(
     favorites: FavoriteProjectRepository,
     projectUsers: ProjectUserRepository,
     users: UserRepository,
-    siteAdmins: SiteAdminRepository,
+    permissions: SessionPermissions,
     repositoryUrls: RepositoryUrls
 ) {
 
     private val dependencies = ProjectViewContext.Dependencies(
         projectService, accessControl, menuSettings, attachments, watches, unwatches, favorites,
-        projectUsers, users, siteAdmins, repositoryUrls
+        projectUsers, users, permissions, repositoryUrls
     )
 
     /** 현재 요청의 사용자가 보는 [project]의 화면 정보이다. */

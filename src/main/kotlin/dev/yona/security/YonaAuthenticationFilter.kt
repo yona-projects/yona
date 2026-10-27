@@ -13,14 +13,15 @@ import org.springframework.web.filter.OncePerRequestFilter
 /**
  * 요청을 보낸 사용자를 찾아 보안 컨텍스트에 채우는 필터이다. v1.6 `UserApp.currentUser()`의 확인 순서와 같다.
  *
- * 1. 세션: Spring Security가 세션에서 복원한 인증 정보. 사용자가 사라졌거나 LOCKED이면 무효로 보고 비운다.
+ * 1. 세션: Spring Security가 세션에서 복원한 인증 정보. 사용자가 사라졌거나 LOCKED이거나 서버 캐시([SessionUserCache])에 없으면 무효로 보고 비운다
+ *    (v1.6 `getUserFromSession`이 캐시에 없는 사용자를 무효 세션으로 처리한다).
  * 2. API 토큰: `Authorization: token <값>` 또는 `Yona-Token` 헤더. 세션에는 기록하지 않는다.
  * 3. remember-me 쿠키 `yobi.token`(`로그인ID:해시된패스워드`). 성공하면 세션에도 기록한다.
- *    값이 잘못되었거나 잠긴 계정이면 쿠키를 지운다.
+ *    값이 잘못되었으면 쿠키를 지운다. 잠기거나 지워진 계정은 v1.6처럼 쿠키가 유효한 동안 로그인 상태로 두되 세션에는 기록하지 않는다.
  *
  * 쿠키에 해시된 패스워드가 그대로 들어가는 것은 v1.6의 설계이며 그대로 따른다([refactoring-backlog.md] R-05).
  */
-class YonaAuthenticationFilter(private val users: UserRepository) : OncePerRequestFilter() {
+class YonaAuthenticationFilter(private val users: UserRepository, private val sessionUsers: SessionUserCache) : OncePerRequestFilter() {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
 
@@ -35,7 +36,7 @@ class YonaAuthenticationFilter(private val users: UserRepository) : OncePerReque
     private fun hasValidSession(): Boolean {
         val authentication = SecurityContextHolder.getContext().authentication as? YonaAuthentication ?: return false
         val user = users.findById(authentication.principal.userId).orElse(null)
-        if (user == null || user.state.isLockedOut()) {
+        if (user == null || user.state.isLockedOut() || !sessionUsers.contains(authentication.principal.userId)) {
             SecurityContextHolder.clearContext()
             return false
         }
@@ -53,16 +54,19 @@ class YonaAuthenticationFilter(private val users: UserRepository) : OncePerReque
         val cookie = request.cookies?.firstOrNull { it.name == REMEMBER_ME_COOKIE } ?: return false
         val parts = cookie.value.split(TOKEN_SEPARATOR).filter { it.isNotEmpty() }
         val user = if (parts.size == TOKEN_LENGTH) users.findByLoginId(parts[0]) else null
-        val valid = user != null && user.password == parts[1] && !user.state.isLockedOut()
-        if (!valid) {
+        if (user == null || user.password != parts[1]) {
             discardRememberMeCookie(response)
             return false
         }
-        val authentication = YonaAuthentication.of(requireNotNull(user))
+        val authentication = YonaAuthentication.of(user, viaCookie = true)
         val context = SecurityContextHolder.createEmptyContext()
         context.authentication = authentication
         SecurityContextHolder.setContext(context)
-        securityContextRepository.saveContext(context, request, response)
+        if (!user.state.isLockedOut()) {
+            securityContextRepository.saveContext(context, request, response)
+            // v1.6 initTokenUser: 세션이 비어 있는 쿠키 사용자는 addUserInfoToSession으로 서버 캐시에도 들어간다
+            sessionUsers.remember(requireNotNull(user.id))
+        }
         return true
     }
 

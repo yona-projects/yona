@@ -1,5 +1,6 @@
 package dev.yona.domain.webhook
 
+import dev.yona.security.SessionPermissions
 import dev.yona.config.YonaProperties
 import dev.yona.domain.comment.IssueComment
 import dev.yona.domain.board.PostingComment
@@ -37,7 +38,7 @@ class WebhookPayloads(
     private val messages: MessageSource,
     private val siteUrls: SiteUrls,
     private val avatars: AvatarService,
-    private val siteAdmins: SiteAdminRepository
+    private val permissions: SessionPermissions
 ) {
 
     private val mapper = JsonMapper.builder().build()
@@ -204,7 +205,7 @@ class WebhookPayloads(
     private fun senderJson(sender: User): ObjectNode = mapper.createObjectNode().also {
         it.put("login", sender.loginId); it.put("id", sender.id); it.put("avatar_url", avatars.avatarUrl(sender)); it.put("type", "User")
         // v1.6 `sender.isSiteManager()`: 사이트 관리자 표에 있는 사용자인지이다
-        it.put("site_admin", sender.id?.let { id -> siteAdmins.existsByAdminId(id) } ?: false)
+        it.put("site_admin", permissions.siteManager(sender.id))
     }
 
     // --- 공통 ---

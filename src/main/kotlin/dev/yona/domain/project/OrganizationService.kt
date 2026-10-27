@@ -1,5 +1,6 @@
 package dev.yona.domain.project
 
+import dev.yona.security.SessionPermissions
 import dev.yona.config.YonaProperties
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.user.LoginIdRules
@@ -25,7 +26,7 @@ class OrganizationService(
     private val projectUsers: ProjectUserRepository,
     private val users: UserRepository,
     private val roles: RoleRepository,
-    private val siteAdmins: SiteAdminRepository,
+    private val permissions: SessionPermissions,
     private val properties: YonaProperties
 ) {
 
@@ -93,7 +94,7 @@ class OrganizationService(
         fun isProjectMember(project: Project) = userId != null && projectUsers.existsByUserIdAndProjectId(userId, requireNotNull(project.id))
 
         val result = when {
-            userId != null && (organizationUsers.existsByOrganizationIdAndUserIdAndRoleId(orgId, userId, RoleType.ORG_ADMIN.id) || siteAdmins.existsByAdminId(userId)) -> all
+            userId != null && (organizationUsers.existsByOrganizationIdAndUserIdAndRoleId(orgId, userId, RoleType.ORG_ADMIN.id) || permissions.siteManager(userId)) -> all
             userId != null && organizationUsers.existsByOrganizationIdAndUserIdAndRoleId(orgId, userId, RoleType.ORG_MEMBER.id) ->
                 all.filter { !it.isPrivate() || isProjectMember(it) }
             properties.hideProjectListing -> emptyList()

@@ -23,8 +23,11 @@ data class YonaPrincipal(val userId: Long, val loginId: String?, val name: Strin
  *
  * @property viaToken API 토큰 헤더로 인증되었으면 `true`이다. v1.6은 이 경로에서 계정 상태(LOCKED)를
  *   확인하지 않는다([refactoring-backlog.md] R-04).
+ * @property viaCookie 로그인 유지 쿠키로 인증되었으면 `true`이다. v1.6은 요청마다 `Global`이 쿠키 사용자를 요청 캐시(`TOKEN_USER`)에
+ *   넣고 `getUserFromContext`가 그 값을 잠금 검사 없이 돌려주므로, 잠기거나 지워진 계정도 쿠키가 유효한 동안 로그인 상태이다.
+ *   이런 계정은 세션에는 기록되지 않는다(`addUserInfoToSession`이 건너뛴다).
  */
-class YonaAuthentication(val principalInfo: YonaPrincipal, val viaToken: Boolean = false) :
+class YonaAuthentication(val principalInfo: YonaPrincipal, val viaToken: Boolean = false, val viaCookie: Boolean = false) :
     AbstractAuthenticationToken(emptyList()) {
 
     init {
@@ -39,8 +42,8 @@ class YonaAuthentication(val principalInfo: YonaPrincipal, val viaToken: Boolean
         private const val serialVersionUID = 1L
 
         /** 사용자 엔티티로부터 인증 객체를 만든다. */
-        fun of(user: User, viaToken: Boolean = false) =
-            YonaAuthentication(YonaPrincipal(requireNotNull(user.id), user.loginId, user.name), viaToken)
+        fun of(user: User, viaToken: Boolean = false, viaCookie: Boolean = false) =
+            YonaAuthentication(YonaPrincipal(requireNotNull(user.id), user.loginId, user.name), viaToken, viaCookie)
     }
 }
 

@@ -1,5 +1,6 @@
 package dev.yona.web.layout
 
+import dev.yona.security.SessionPermissions
 import dev.yona.config.YonaProperties
 import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.project.OrganizationUserRepository
@@ -39,10 +40,9 @@ import org.springframework.web.util.HtmlUtils
 class LayoutModelFactory(
     private val currentUserProvider: CurrentUserProvider,
     private val properties: YonaProperties,
-    private val siteAdmins: SiteAdminRepository,
+    private val permissions: SessionPermissions,
     private val issues: IssueRepository,
     private val avatars: AvatarService,
-    private val organizationUsers: OrganizationUserRepository,
     private val userSettings: UserSettingRepository,
     private val flashTranslator: FlashMessageTranslator,
     private val templateHelper: dev.yona.web.TemplateHelper,
@@ -63,7 +63,7 @@ class LayoutModelFactory(
         val version = updates.versionToUpdate
         if (version == null || !updates.shouldNotify()) return null
         val userId = currentUserProvider.get().user?.id ?: return null
-        return if (siteAdmins.existsByAdminId(userId)) UpdateNotice(version, updates.releaseUrl(version)) else null
+        return if (permissions.siteManager(userId)) UpdateNotice(version, updates.releaseUrl(version)) else null
     }
 
     fun attributes(request: HttpServletRequest): Map<String, Any> = listOfNotNull<Pair<String, Any>>(
@@ -71,7 +71,7 @@ class LayoutModelFactory(
         updateNotice()?.let { "updateNotice" to it }
     ).toMap() + mapOf(
         "currentUser" to ViewerContext(
-            currentUserProvider.get(), siteAdmins, issues, avatars, organizationUsers, userSettings,
+            currentUserProvider.get(), permissions, issues, avatars, userSettings,
             messages.getMessage("user.notExists.name", null, "user.notExists.name", org.springframework.context.i18n.LocaleContextHolder.getLocale()).orEmpty()
         ),
         "site" to properties,

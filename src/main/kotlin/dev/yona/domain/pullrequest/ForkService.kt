@@ -1,5 +1,6 @@
 package dev.yona.domain.pullrequest
 
+import dev.yona.security.SessionPermissions
 import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.project.OrganizationRepository
@@ -35,7 +36,8 @@ class ForkService(
     private val organizationUsers: OrganizationUserRepository,
     private val users: UserRepository,
     private val roles: RoleRepository,
-    private val repositories: RepositoryService
+    private val repositories: RepositoryService,
+    private val permissions: SessionPermissions
 ) {
 
     /**
@@ -45,7 +47,7 @@ class ForkService(
     @Transactional(readOnly = true)
     fun destination(forkOwner: String?, user: User): String {
         val organization = forkOwner?.let { organizations.findByNameIgnoreCase(it) }
-        val admin = organization != null && organizationUsers.existsByOrganizationIdAndUserIdAndRoleId(requireNotNull(organization.id), requireNotNull(user.id), RoleType.ORG_ADMIN.id)
+        val admin = organization != null && permissions.organizationRole(user.id, organization.id, RoleType.ORG_ADMIN)
         return if (admin) requireNotNull(forkOwner) else requireNotNull(user.loginId)
     }
 

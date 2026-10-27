@@ -1,5 +1,6 @@
 package dev.yona.web.layout
 
+import dev.yona.security.SessionPermissions
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.issue.IssueRepository
@@ -20,10 +21,9 @@ import java.util.Locale
  */
 class ViewerContext(
     private val current: CurrentUser,
-    private val siteAdmins: SiteAdminRepository,
+    private val permissions: SessionPermissions,
     private val issues: IssueRepository,
     private val avatars: AvatarService,
-    private val organizationUsers: OrganizationUserRepository,
     private val userSettings: UserSettingRepository,
     private val anonymousName: String = ""
 ) {
@@ -50,7 +50,7 @@ class ViewerContext(
     val guest: Boolean get() = current.user?.isGuest == true
 
     /** 사이트 관리자이면 `true`이다 (v1.6 `User.isSiteManager`). */
-    val siteManager: Boolean by lazy { current.user?.id?.let { siteAdmins.existsByAdminId(it) } ?: false }
+    val siteManager: Boolean by lazy { permissions.siteManager(current.user?.id) }
 
     /**
      * 사용자가 선호하는 언어이다. 저장된 언어가 없으면 서버의 기본 언어를 쓴다
@@ -77,7 +77,7 @@ class ViewerContext(
     private fun hasRole(organization: Organization?, roleType: RoleType): Boolean {
         val organizationId = organization?.id ?: return false
         val userId = current.user?.id ?: return false
-        return organizationUsers.existsByOrganizationIdAndUserIdAndRoleId(organizationId, userId, roleType.id)
+        return permissions.organizationRole(userId, organizationId, roleType)
     }
 
     /** 아바타 이미지 주소이다. 로그인한 사용자에게만 쓴다. */

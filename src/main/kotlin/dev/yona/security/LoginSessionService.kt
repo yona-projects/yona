@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  * 잠긴 사용자는 로그인시키지 않는다.
  */
 @Component
-class LoginSessionService {
+class LoginSessionService(private val sessionUsers: SessionUserCache) {
 
     private val securityContextRepository = HttpSessionSecurityContextRepository()
 
@@ -26,6 +26,8 @@ class LoginSessionService {
         context.authentication = YonaAuthentication.of(user)
         SecurityContextHolder.setContext(context)
         securityContextRepository.saveContext(context, request, response)
+        // v1.6 addUserInfoToSession: 사용자를 서버 캐시에 넣는다. 같은 사용자가 다시 로그인하면 기억된 판정이 비워진다
+        sessionUsers.remember(requireNotNull(user.id))
     }
 
     /** 세션의 인증 정보와 remember-me 쿠키를 지운다 (v1.6 `UserApp.processLogout`). */

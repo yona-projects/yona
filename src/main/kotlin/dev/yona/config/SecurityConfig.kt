@@ -43,7 +43,7 @@ class SecurityConfig {
     }
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity, users: UserRepository): SecurityFilterChain =
+    fun securityFilterChain(http: HttpSecurity, users: UserRepository, sessionUsers: dev.yona.security.SessionUserCache): SecurityFilterChain =
         http
             .csrf { it.disable() }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
@@ -54,6 +54,6 @@ class SecurityConfig {
                 headers.frameOptions { it.sameOrigin() }
                 headers.cacheControl { it.disable() }
             }
-            .addFilterAfter(YonaAuthenticationFilter(users), SecurityContextHolderFilter::class.java)
+            .addFilterAfter(YonaAuthenticationFilter(users, sessionUsers), SecurityContextHolderFilter::class.java)
             .build()
 }

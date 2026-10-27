@@ -1,5 +1,6 @@
 package dev.yona.web.project
 
+import dev.yona.security.SessionPermissions
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.config.YonaProperties
@@ -39,7 +40,7 @@ class ProjectListController(
     private val projectViews: ProjectViewFactory,
     private val accessControl: AccessControl,
     private val avatars: AvatarService,
-    private val siteAdmins: SiteAdminRepository,
+    private val permissions: SessionPermissions,
     private val properties: YonaProperties
 ) {
 
@@ -55,7 +56,7 @@ class ProjectListController(
         if (properties.hideProjectListing) return ErrorViews.forbidden("error.auth.unauthorized.waringMessage")
 
         response.setHeader(HttpHeaders.VARY, "Accept")
-        val canSeeAll = currentUserProvider.get().user?.id?.let { siteAdmins.existsByAdminId(it) } ?: false
+        val canSeeAll = permissions.siteManager(currentUserProvider.get().user?.id)
         return if (HttpPreference.isJsonPreferred(request.getHeader(HttpHeaders.ACCEPT))) {
             namesAsJson(query, canSeeAll)
         } else {

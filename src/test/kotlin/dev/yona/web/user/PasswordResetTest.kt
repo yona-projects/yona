@@ -46,6 +46,7 @@ class PasswordResetTest : AbstractIntegrationTest() {
     @Autowired private lateinit var tokens: PasswordResetTokens
     @Autowired private lateinit var authenticator: LocalAuthenticator
     @Autowired private lateinit var events: ApplicationEvents
+    @Autowired private lateinit var sessionUsers: dev.yona.security.SessionUserCache
     @MockitoBean private lateinit var mailSender: org.springframework.mail.javamail.JavaMailSender
 
     private var sequence = 0
@@ -170,6 +171,28 @@ class PasswordResetTest : AbstractIntegrationTest() {
         val saved = users.findById(user.id!!).get()
         assertEquals(LegacyPasswordHasher.hash("brand-new", saved.passwordSalt!!), saved.password)
         assertTrue(!tokens.isValid(token))
+    }
+
+    @Test
+    fun `메일 주소로 비밀번호를 바꾸면 그 사용자의 서버 캐시 항목이 새것으로 바뀐다 (v1_6 User_resetPassword의 put)`() {
+        val user = newUser()
+        request(user.loginId, user.email)
+        val token = events.stream(PasswordResetRequestedEvent::class.java).toList().single().token
+        sessionUsers.remember(user.id!!)
+        val before = sessionUsers.memoOf(user.id!!)
+        mockMvc.perform(post("/resetPassword").param("hashString", token).param("password", "brand-new")).andExpect(status().isOk)
+        kotlin.test.assertNotSame(before, sessionUsers.memoOf(user.id!!))
+        assertTrue(sessionUsers.contains(user.id!!))
+    }
+
+    @Test
+    fun `사이트 관리자가 비밀번호를 초기화하면 대상의 서버 캐시 항목이 새것으로 바뀐다`() {
+        val manager = siteManager(); val target = newUser()
+        val session = login(manager)
+        sessionUsers.remember(target.id!!)
+        val before = sessionUsers.memoOf(target.id!!)
+        mockMvc.perform(post("/${target.loginId}").param("action", "resetPassword").session(session)).andExpect(status().isOk)
+        kotlin.test.assertNotSame(before, sessionUsers.memoOf(target.id!!))
     }
 
     @Test

@@ -24,7 +24,8 @@ class ProjectMemberService(
     private val users: UserRepository,
     private val roles: RoleRepository,
     private val watchService: WatchService,
-    private val events: ApplicationEventPublisher
+    private val events: ApplicationEventPublisher,
+    private val sessionUsers: dev.yona.security.SessionUserCache
 ) {
 
     /** 구성원 추가가 실패한 이유이다. [messageKey]는 사용자에게 보여 줄 메시지 키이다. */
@@ -62,6 +63,8 @@ class ProjectMemberService(
         enrolled.filter { it.id in memberIds }.forEach { user ->
             user.enrolledProjects.removeIf { it.id == project.id }
             users.save(user)
+            // v1.6 User.cancelEnroll(Project): 새로 읽은 사용자 인스턴스를 서버 캐시에 넣는다
+            sessionUsers.remember(requireNotNull(user.id))
             events.publishEvent(ProjectMemberRequestEvent(project, user, RequestState.ACCEPT, actor))
         }
     }

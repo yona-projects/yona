@@ -23,7 +23,8 @@ data class UserPage(val items: List<User>, val pageIndex: Int, val totalPageCoun
 class SiteUserService(
     private val entityManager: EntityManager,
     private val users: UserRepository,
-    private val siteAdmins: SiteAdminRepository
+    private val siteAdmins: SiteAdminRepository,
+    private val sessionUsers: dev.yona.security.SessionUserCache
 ) {
 
     /**
@@ -99,12 +100,16 @@ class SiteUserService(
             entityManager.createQuery("delete from Assignee a where a.user.id = :id").setParameter("id", id).executeUpdate()
         }
         users.save(user)
+        // v1.6 User.changeState: 새로 읽은 사용자 인스턴스를 서버 캐시에 넣어 기억된 판정이 비워진다
+        sessionUsers.remember(requireNotNull(user.id))
     }
 
     /** 게스트 여부를 뒤집는다 (v1.6 `SiteApp.toggleGuestMode`). */
     fun toggleGuest(user: User) {
         user.isGuest = user.isGuest != true
         users.save(user)
+        // v1.6 SiteApp.toggleGuestMode: 새로 읽은 인스턴스를 서버 캐시에 넣는다
+        sessionUsers.remember(requireNotNull(user.id))
     }
 
     /** 사이트 관리자이면 권한을 거두고 아니면 부여한다 (v1.6 `SiteApp.toggleSiteAdminRole`). */
@@ -113,6 +118,8 @@ class SiteUserService(
         siteAdmins.findAll().filter { it.admin?.id == id }.let { rows ->
             if (rows.isNotEmpty()) siteAdmins.deleteAll(rows) else siteAdmins.save(SiteAdmin(admin = user))
         }
+        // v1.6 SiteApp.toggleSiteAdminRole: 서버 캐시에서 지우므로 대상 사용자의 세션은 다음 요청에서 무효가 되어 다시 로그인해야 한다
+        sessionUsers.invalidate(id)
     }
 
     companion object {

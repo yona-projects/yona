@@ -39,7 +39,8 @@ class OrganizationManagementService(
     private val attachments: AttachmentService,
     private val favoriteOrganizations: FavoriteOrganizationRepository,
     private val repositories: RepositoryService,
-    private val events: ApplicationEventPublisher
+    private val events: ApplicationEventPublisher,
+    private val sessionUsers: dev.yona.security.SessionUserCache
 ) {
 
     @PersistenceContext
@@ -86,6 +87,8 @@ class OrganizationManagementService(
         users.findEnrolledUsersOfOrganization(orgId).filter { it.id in memberIds }.forEach { user ->
             user.enrolledOrganizations.removeIf { it.id == orgId }
             users.save(user)
+            // v1.6 User.cancelEnroll(Organization): 새로 읽은 사용자 인스턴스를 서버 캐시에 넣는다
+            sessionUsers.remember(requireNotNull(user.id))
             events.publishEvent(OrganizationMemberRequestEvent(organization, user, RequestState.ACCEPT, actor))
         }
     }

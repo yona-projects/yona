@@ -1,5 +1,6 @@
 package dev.yona.domain.project
 
+import dev.yona.security.SessionPermissions
 import dev.yona.domain.board.PostingRepository
 import dev.yona.domain.comment.CommentThreadRepository
 import dev.yona.domain.enumeration.RoleType
@@ -24,7 +25,7 @@ import java.net.URLDecoder
 class ProjectService(
     private val projects: ProjectRepository,
     private val projectUsers: ProjectUserRepository,
-    private val siteAdmins: SiteAdminRepository,
+    private val permissions: SessionPermissions,
     private val issues: IssueRepository,
     private val postings: PostingRepository,
     private val pullRequests: PullRequestRepository,
@@ -71,7 +72,7 @@ class ProjectService(
      */
     fun isGuest(project: Project, user: User?): Boolean {
         val userId = user?.id ?: return false
-        return !siteAdmins.existsByAdminId(userId) && projectUsers.findFirstByUserIdAndProjectId(userId, requireNotNull(project.id)) == null
+        return !permissions.siteManager(userId) && projectUsers.findFirstByUserIdAndProjectId(userId, requireNotNull(project.id)) == null
     }
 
     /**
@@ -82,8 +83,8 @@ class ProjectService(
         val userId = user?.id ?: return false
         val projectId = requireNotNull(project.id)
         return projectUsers.existsByUserIdAndProjectId(userId, projectId) ||
-            projectUsers.existsByUserIdAndProjectIdAndRoleId(userId, projectId, RoleType.MANAGER.id) ||
-            siteAdmins.existsByAdminId(userId)
+            permissions.projectManager(userId, projectId) ||
+            permissions.siteManager(userId)
     }
 
     /**

@@ -1,5 +1,6 @@
 package dev.yona.web
 
+import dev.yona.security.SessionPermissions
 import dev.yona.domain.enumeration.RequestState
 import dev.yona.domain.notification.OrganizationMemberRequestEvent
 import dev.yona.domain.notification.ProjectMemberRequestEvent
@@ -34,7 +35,7 @@ class EnrollController(
     private val projectService: ProjectService,
     private val organizationService: OrganizationService,
     private val organizationUsers: OrganizationUserRepository,
-    private val siteAdmins: SiteAdminRepository,
+    private val permissions: SessionPermissions,
     private val users: UserRepository,
     private val currentUserProvider: CurrentUserProvider,
     private val events: ApplicationEventPublisher
@@ -117,7 +118,7 @@ class EnrollController(
     /** 조직에 속하지 않은 로그인 사용자이면 `true`이다. 사이트 관리자와 익명은 해당하지 않는다 (v1.6 `OrganizationUser.isGuest`). */
     private fun isOrganizationGuest(organizationId: Long?, userId: Long?): Boolean {
         if (organizationId == null || userId == null) return false
-        return !siteAdmins.existsByAdminId(userId) && !organizationUsers.existsByOrganizationIdAndUserId(organizationId, userId)
+        return !permissions.siteManager(userId) && !organizationUsers.existsByOrganizationIdAndUserId(organizationId, userId)
     }
 
     private fun accepted(message: String, organizationName: String, request: HttpServletRequest): ResponseEntity<Map<String, String>> =

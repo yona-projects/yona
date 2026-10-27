@@ -1,5 +1,6 @@
 package dev.yona.web.user
 
+import dev.yona.security.SessionPermissions
 import dev.yona.access.AccessControl
 import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
@@ -21,7 +22,7 @@ class UserMenuAssembler(
     private val menu: UserMenuService,
     private val projects: ProjectRepository,
     private val attachments: AttachmentRepository,
-    private val organizationUsers: OrganizationUserRepository,
+    private val permissions: SessionPermissions,
     private val accessControl: AccessControl
 ) {
 
@@ -59,7 +60,7 @@ class UserMenuAssembler(
 
     private fun organization(viewer: User, org: Organization, favored: Boolean, last: Boolean, favoredIds: Set<Long>): MenuOrganization {
         val orgProjects = projects.findByOrganizationId(requireNotNull(org.id)).sortedBy { it.name.orEmpty().lowercase() }
-        val showCount = accessControl.isSiteManager(viewer) || organizationUsers.existsByOrganizationIdAndUserIdAndRoleId(org.id!!, requireNotNull(viewer.id), RoleType.ORG_ADMIN.id)
+        val showCount = accessControl.isSiteManager(viewer) || permissions.organizationRole(viewer.id, org.id, RoleType.ORG_ADMIN)
         return MenuOrganization(
             org.id!!, org.name.orEmpty(), if (showCount) orgProjects.size else null, favored, last,
             orgProjects.filter { readable(viewer, it) }.map { project(it, it.id in favoredIds) }

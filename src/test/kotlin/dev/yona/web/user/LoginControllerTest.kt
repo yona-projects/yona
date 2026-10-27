@@ -39,6 +39,12 @@ class LoginControllerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var users: UserRepository
 
+    @Autowired
+    private lateinit var sessionUsers: dev.yona.security.SessionUserCache
+
+    @Autowired
+    private lateinit var siteAdmins: dev.yona.domain.user.SiteAdminRepository
+
     private fun newUser(
         loginId: String, password: String = "1234", state: UserState = UserState.ACTIVE, token: String? = null
     ): User {
@@ -192,6 +198,75 @@ class LoginControllerTest : AbstractIntegrationTest() {
     fun `yobi_token 쿠키로 사용자가 복원된다`() {
         val user = newUser("ivan")
         assertEquals("ivan", whoAmI(null, Cookie("yobi.token", "ivan:${user.password}")))
+    }
+
+    @Test
+    fun `로그인 동안 사이트 관리자가 되어도 이미 판정한 화면에는 반영되지 않고 다시 로그인하면 반영된다 (v1_6 User_siteManager 기억)`() {
+        val user = newUser("sam")
+        val session = MockHttpSession()
+        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "sam").param("password", "1234"))
+        fun hasAdminLink() = mockMvc.perform(get("/projects").session(session)).andReturn().response.contentAsString.contains("/sites/userList")
+        assertEquals(false, hasAdminLink())
+        siteAdmins.save(dev.yona.domain.user.SiteAdmin(admin = user))
+        assertEquals(false, hasAdminLink(), "v1.6은 처음 계산한 사이트 관리자 여부를 로그인 동안 기억한다")
+        mockMvc.perform(post("/users/login").session(MockHttpSession().also { it.clearAttributes() }).param("loginIdOrEmail", "sam").param("password", "1234"))
+        assertEquals(true, hasAdminLink(), "다시 로그인하면 서버 캐시 항목이 새로 만들어져 반영된다")
+    }
+
+    @Test
+    fun `서버 캐시에서 사라진 사용자의 세션은 무효이다 (v1_6 getUserFromSession의 캐시 미스)`() {
+        val user = newUser("cora")
+        val session = MockHttpSession()
+        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "cora").param("password", "1234"))
+        assertEquals("cora", whoAmI(session))
+        sessionUsers.invalidate(requireNotNull(user.id))
+        assertEquals("anonymous", whoAmI(session))
+    }
+
+    @Test
+    fun `로그인하면 서버 캐시에 사용자가 기억된다`() {
+        val user = newUser("cora2")
+        // 다른 시험이 같은 번호의 사용자를 기억시켰을 수 있으므로 먼저 비운다
+        sessionUsers.invalidate(requireNotNull(user.id))
+        assertEquals(false, sessionUsers.contains(user.id!!))
+        mockMvc.perform(post("/users/login").session(MockHttpSession()).param("loginIdOrEmail", "cora2").param("password", "1234"))
+        assertEquals(true, sessionUsers.contains(user.id!!))
+    }
+
+    @Test
+    fun `로그인 유지 쿠키로 복원되면 서버 캐시에도 기억된다 (v1_6 initTokenUser의 addUserInfoToSession)`() {
+        val user = newUser("cora3")
+        whoAmI(null, Cookie("yobi.token", "cora3:${user.password}"))
+        assertEquals(true, sessionUsers.contains(requireNotNull(user.id)))
+    }
+
+    @Test
+    fun `잠기거나 지워진 계정도 yobi_token 쿠키로는 계속 로그인 상태이다 (v1_6 Global 초기화가 만든 요청 캐시)`() {
+        // v1.6은 요청마다 Global이 쿠키 사용자를 TOKEN_USER에 넣고 getUserFromContext가 그 캐시를 잠금 검사 없이 돌려준다
+        val locked = newUser("lara", state = UserState.LOCKED)
+        val deleted = newUser("dora", state = UserState.DELETED)
+        val result = mockMvc.perform(get("/__test/whoami").cookie(Cookie("yobi.token", "lara:${locked.password}"))).andReturn()
+        assertEquals("lara", result.response.contentAsString)
+        assertEquals(null, result.response.getCookie("yobi.token"), "유효한 쿠키는 지우지 않는다")
+        assertEquals("dora", whoAmI(null, Cookie("yobi.token", "dora:${deleted.password}")))
+    }
+
+    @Test
+    fun `잠긴 계정의 쿠키 로그인은 세션에 기록되지 않는다 (v1_6 addUserInfoToSession은 잠긴 계정을 건너뛴다)`() {
+        val locked = newUser("lena", state = UserState.LOCKED)
+        val result = mockMvc.perform(get("/__test/whoami").cookie(Cookie("yobi.token", "lena:${locked.password}"))).andReturn()
+        assertEquals("lena", result.response.contentAsString)
+        // 쿠키 없이 같은 세션으로 다시 요청하면 익명이다
+        assertEquals("anonymous", whoAmI(result.request.getSession(false) as MockHttpSession?))
+    }
+
+    @Test
+    fun `잠긴 사용자의 세션은 무효이지만 쿠키가 있으면 쿠키로 다시 식별된다`() {
+        val user = newUser("sara")
+        val session = MockHttpSession()
+        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", "sara").param("password", "1234"))
+        user.state = UserState.LOCKED; users.save(user)
+        assertEquals("sara", whoAmI(session, Cookie("yobi.token", "sara:${user.password}")))
     }
 
     @Test
