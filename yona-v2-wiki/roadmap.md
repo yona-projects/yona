@@ -102,20 +102,30 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | # | 항목 | `next`의 참고 위치 | 상태 | 비고 |
 |---|---|---|---|---|
 | X-1 | OAuth2 Authorization Server(동적 클라이언트 등록 포함) | `domain/oauth2server`, `config/oauth2server` | 대기 | X-6 MCP 서버의 인증 기반 |
-| X-2 | 2단계 인증(TOTP, WebAuthn/패스키, 백업 코드, 알려진 기기) | `domain/twofactor` | 대기 | 로그인 흐름이 바뀌므로 v1.6 로그인 계약과 충돌하지 않게 선택 사용으로 둔다 |
+| X-2 | 2단계 인증(TOTP, WebAuthn/패스키, 백업 코드, 알려진 기기) | `domain/twofactor` | 대기 | 로그인 흐름이 바뀌므로 v1.6 로그인 계약과 충돌하지 않게 선택 사용으로 둔다. `next`는 로그인 브루트포스 방지, 알려진 기기 인식(`user_known_device`), 사이트 관리자의 2단계 인증 해제도 함께 둔다 |
 | X-3 | SSH 공개키 등록, SSH 접근, 저장소별 Deploy Key | `domain/sshkey`, `config/ssh` | 대기 | |
 | X-4 | GPG 커밋 서명 검증 | `domain/gpgkey` | 대기 | |
 | X-5 | 개인용 API 토큰(PAT, 범위 지정) | `domain/apitoken` | 대기 | v1.6의 사용자 토큰(`Authorization: token`)과 공존 |
 | X-6 | MCP 서버(OAuth2로 인증한 AI 에이전트의 이슈, 풀 리퀘스트, 위키 접근) | `mcp` | 대기 | X-1, X-5 이후 |
-| X-7 | Mercurial 저장소 | `domain/vcs` | 대기 | 저장소 종류 변경(v1.6 `changeVCS`)과 `vcs` 열 값에 영향 |
+| X-7 | Mercurial 저장소(hg4j): 코드 보기, 커밋 이력, bookmark와 named branch, HTTP와 SSH 서빙, zip 내려받기, 브랜치 보호와 push 알림·웹훅, 풀 리퀘스트 병합, GPG 서명 | `domain/vcs`, `config/hg`, `HgController` | 대기 | 저장소 종류 변경(v1.6 `changeVCS`)과 `vcs` 열 값에 영향. hg4j는 `io.github.search5.hg4j` 별도 라이브러리 |
 | X-8 | Git LFS | `.well-known`, `git-lfs` 라우트 | 대기 | |
 | X-9 | 감사 로그(보안, 관리 이벤트) | `domain/event` | 대기 | |
-| X-10 | OpenTelemetry(추적, 지표) | `build.gradle.kts`의 opentelemetry 스타터 | 대기 | |
+| X-10 | 관측성: OpenTelemetry(추적), Actuator와 Prometheus(지표), JSON 로그(logstash) | `build.gradle.kts`의 opentelemetry, actuator, micrometer 스타터 (P3-01) | 대기 | |
 | X-11 | 풀 리퀘스트 병합 시 `close(s/d)`, `fix(es/ed)`, `resolve(s/d) #번호`로 참조된 이슈 자동 닫기 | `domain/event/PullRequestMergeEventListener` | 대기 | v1.6에는 없다. v1.6의 자동 처리는 시작 때 `REJECTED` 풀 리퀘스트를 `CLOSED`로 바꾸는 것뿐이며 이미 이식했다(`PullRequestStartup`) |
 | X-12 | 풀 리퀘스트 리뷰 판정(Approve, Request changes, Comment). 같은 리뷰어의 재판정은 이력으로 쌓고 정책 판단에는 리뷰어별 최신 판정만 쓴다 | `domain/pullrequest/PullRequestReview`, `PullRequestServiceImpl` | 대기 | v1.6의 "리뷰 완료/취소"(`review`, `unreview`)와는 별개 개념이다. 새 테이블 `pull_request_review`가 필요하다 |
 | X-13 | 브랜치 보호 규칙(브랜치 패턴, 풀 리퀘스트 필수, 필요한 승인 수, 서명 커밋 필수, push 허용 사용자 제한, force push와 삭제 금지, 매니저 우회). push 훅과 병합 검사에 적용 | `domain/branchprotection`, `web/BranchProtectionController`, `domain/vcs/GitPushHooks` | 대기 | X-4(GPG), X-12(리뷰 판정)가 있어야 해당 규칙이 의미를 갖는다. 새 테이블 필요 |
 | X-14 | 풀 리퀘스트 담당자(assignee)와 라벨 | `PullRequest.assignee`, `PullRequest.labels` | 대기 | v1.6 `pull_request`에는 담당자, 라벨 열이 없다. 연결 테이블 추가 필요 |
 | X-15 | 풀 리퀘스트 REST API(조회, diff, 리뷰, 타임라인, 병합, 닫기, 다시 열기, 댓글, 리뷰어, 라벨, 담당자, 출발 브랜치 삭제) | `/api/projects/{}/pullrequests/**`, `/api/v1/projects/{}/{}/pull-requests/**` | 대기 | v1.6 외부 API(`/-_-api/v1`)에는 풀 리퀘스트 항목이 없다. 인증은 X-5, X-1을 쓴다 |
+| X-16 | 엔터프라이즈 SSO(SAML2, 범용 OIDC) 사이트 관리자 설정과 로그인, 소셜 로그인 계정 병합 | `config/sso`, `domain/sso`, `SsoAdminController`, `OAuth2AccountMergeService` (P3-06) | 대기 | 테이블 `oidc_sso_settings`, `saml2_sso_settings` 필요. v1.6 소셜 로그인은 그대로 둔다 |
+| X-17 | 프로젝트 위키: 페이지 만들기, 고치기, 삭제, 이력, 비교, 검색, 사이드바. 프로젝트마다 bare git 저장소(`<소유자>/<프로젝트>.wiki.git`)에 저장 | `domain/wiki`, `WikiViewController`, `/api/v1/projects/{}/{}/wiki/**` (P3-42) | 대기 | v1.6에는 위키 기능이 없다 |
+| X-18 | Git 태그: 목록 화면, 삭제, API | `TagViewController`, `TagApiController` (P3-16) | 대기 | 주석 태그(annotated)로 커밋 이력을 열 때의 500(P3-40)도 함께 확인한다 |
+| X-19 | 일반 REST API(`/api/v1/**`: 이슈, 게시판, 라벨, 마일스톤, 조직, 프로젝트, 검색, 사용자 상태, 웹훅)와 Swagger/OpenAPI UI. 포크를 조직 대상으로 만드는 API 포함 | `*RestApi` 컨트롤러, `GlobalApiController` (P3-09, P3-35) | 대기 | v1.6의 `/-_-api/v1` 외부 API는 그대로 두고 별도 경로로 둔다. 인증은 X-5, X-1을 쓴다 |
+| X-20 | 프런트엔드 현대화: Vue 3 웹 컴포넌트 위젯 17개(대화상자, 토스트, 드롭다운, 자동 완성, 첨부, 리뷰 폼, 라벨 편집기 등), Tom Select, Flatpickr, CodeMirror 6와 EasyMDE 에디터, jQuery 제거(순수 JS), Hotwired Turbo(이슈 2단 목록) | `static/lib/yona-vue-widgets`, `frontend/`, `yona.issue.Turbo.js` (P3-46, P3-70) | 대기 | 화면 동작은 v1.6과 같게 둔다는 조건이 필요하다. `yona-v2-wiki`의 Vue 위젯 소스 위치 메모(components 저장소)와 이어진다 |
+| X-21 | 사용 현황 집계(GA4 gtag 브라우저 태그, 설치 ID 파일) | `config/analytics/AnalyticsSettings` | 대기 | 외부로 사용 정보를 보내므로 **기본값을 끈다**는 결정이 필요하다(`next`는 기본 켜짐) |
+| X-22 | 새 프로젝트의 기본 브랜치를 `main`으로 고정 | P3-11 | 대기 | v1.6 기본값과 달라지므로 착수 전에 결정이 필요하다 |
+| X-23 | yona CLI(Go 단일 바이너리, `gh`와 비슷한 사용법; 이슈, 풀 리퀘스트, 관리, 자동화) | `docs/yona-wiki/plans/p3-02-cli-and-rest-api.md` (P3-02) | 대기 | `next`에서도 **설계만 있고 코드는 없다** |
+| X-24 | CI/Actions(GitHub Actions 방식의 워크플로 YAML, 러너 등록과 폴링)와 프런트엔드 분리(SPA) | P3-05, P3-13 | 대기 | `next`에서도 **미착수 또는 계획서만 있다**. CI/Actions는 자동 진행 대상에서 제외하라는 기존 지시(P3-05)가 있다 |
+
 
 ## 화면 검증 기록
 
