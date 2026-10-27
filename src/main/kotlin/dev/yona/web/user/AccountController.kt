@@ -201,7 +201,7 @@ class AccountController(
 
     private fun profileView(user: User, warningKey: String?): ModelAndView {
         val view = tabView("user/edit", user, "profile")
-        warningKey?.let { view.addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to it))) }
+        warningKey?.let { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to it)) }
         return view
     }
 

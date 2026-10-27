@@ -66,7 +66,7 @@ class LoginController(
         val notice = mapOf<String, Any>(RedirectSupport.ERROR to "app.warn.support.social.login.only")
         RedirectSupport.saveFlash(request, response, notice)
         val page = home.index(request, response)
-        return if (page is org.springframework.web.servlet.ModelAndView) page.addObject("flashMessages", flashTranslator.translate(notice)) else page
+        return page
     }
 
     @GetMapping("/users/logout")
@@ -87,7 +87,7 @@ class LoginController(
             response.status = HttpStatus.BAD_REQUEST.value()
             // v1.6 `login.render("title.login", authInfoForm, null)`은 이동 주소를 비운다
             return LoginFormController.loginPage(null)
-                .addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to "user.login.required")))
+                .also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to "user.login.required")) }
         }
 
         return when (val result = authenticator.authenticate(loginKey, password)) {

@@ -38,12 +38,42 @@ class Step:
     follow: bool = False                      # 이동을 따라갈지
     raw_body: bytes | None = None
     compare_body: bool = True                 # 본문이 달라도 상관없는 요청이면 끈다
+    # 응답에서 값을 뽑아 서버마다 따로 기억한다: {이름: ("location"|"body", 정규식)}. 뒤 요청에서 `<<이름>>`으로 쓴다
+    # (DB 내부 번호는 시퀀스 할당 탓에 서버마다 다르므로 번호를 직접 적을 수 없다)
+    capture: dict = field(default_factory=dict)
 
 
 class Server:
     def __init__(self, name: str, base: str):
         self.name, self.base = name, base.rstrip("/")
         self.sessions: dict[str, requests.Session] = {}
+        # 가입 순서(tester, other, third)로 정해지는 사용자 번호는 서버마다 다르다. v1.6 H2는 33부터, v2는 2부터이다
+        base = 33 if name == "v1.6" else 2
+        self.vars: dict[str, str] = {"uid_tester": str(base), "uid_other": str(base + 1), "uid_third": str(base + 2)}
+        self.preset = set(self.vars)  # 사용자 번호는 USER_ID_MAP이 따로 맞추므로 `<이름>`으로 바꾸지 않는다
+
+    def subst(self, obj):
+        """`<<이름>>` 자리를 이 서버에서 기억한 값으로 바꾼다. 기억한 값이 없으면 0이다."""
+        if isinstance(obj, str):
+            return re.sub(r"<<(\w+)>>", lambda m: self.vars.get(m.group(1), "0"), obj)
+        if isinstance(obj, dict):
+            return {self.subst(k): self.subst(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return type(obj)(self.subst(v) for v in obj)
+        return obj
+
+    def tokenize(self, text: str) -> str:
+        """기억한 번호를 `<이름>`으로 바꿔 서버 간 번호 차이를 없앤다. 번호 모양의 문맥(앞이 `/ = #`)에서만 바꾼다."""
+        for name, value in self.vars.items():
+            if value and value != "0" and name not in self.preset:
+                text = re.sub(rf"(?<=[/=#])(?<!\d)" + re.escape(value) + r"(?![\w])", f"<{name}>", text)
+        return text
+
+    def remember(self, step: "Step", resp: requests.Response) -> None:
+        for name, (where, regex) in step.capture.items():
+            source = resp.headers.get("location", "") if where == "location" else resp.text
+            m = re.search(regex, source or "")
+            self.vars[name] = m.group(1) if m else "0"
 
     def session(self, actor: str) -> requests.Session:
         if actor not in self.sessions:
@@ -54,18 +84,20 @@ class Server:
 
     def send(self, step: Step) -> requests.Response:
         s = self.session(step.actor)
-        url = self.base + step.path
-        kwargs = dict(allow_redirects=step.follow, headers=dict(step.headers), timeout=120)
+        url = self.base + self.subst(step.path)
+        kwargs = dict(allow_redirects=step.follow, headers=self.subst(dict(step.headers)), timeout=120)
         if step.json_body is not None:
-            kwargs["json"] = step.json_body
+            kwargs["json"] = self.subst(step.json_body)
         elif step.files is not None:
-            kwargs["files"] = step.files
-            kwargs["data"] = step.data
+            kwargs["files"] = self.subst(step.files)
+            kwargs["data"] = self.subst(step.data)
         elif step.raw_body is not None:
             kwargs["data"] = step.raw_body
         elif step.data is not None:
-            kwargs["data"] = step.data
-        return s.request(step.method, url, **kwargs)
+            kwargs["data"] = self.subst(step.data)
+        resp = s.request(step.method, url, **kwargs)
+        self.remember(step, resp)
+        return resp
 
 
 # --- 정규화 ----------------------------------------------------------------------------------
@@ -200,19 +232,19 @@ def norm_json(value, map_ids=False, key=""):
     return value
 
 
-def body_view(resp: requests.Response, step: Step, map_ids: bool = False):
+def body_view(resp: requests.Response, step: Step, map_ids: bool = False, tok=lambda t: t):
     if not step.compare_body:
         return ("skip", None)
     ct = (resp.headers.get("content-type") or "").lower()
     if "json" in ct:
         try:
-            return ("json", norm_json(resp.json(), map_ids))
+            return ("json", norm_json(json.loads(tok(resp.text)), map_ids))
         except ValueError:
             pass
     if "html" in ct:
-        return ("html", html_lines(resp.text, map_ids))
+        return ("html", html_lines(tok(resp.text), map_ids))
     if ct.startswith("text/") or "javascript" in ct or "xml" in ct:
-        return ("text", [l for l in scrub(resp.text).splitlines() if l.strip()])
+        return ("text", [l for l in scrub(tok(resp.text)).splitlines() if l.strip()])
     import hashlib
     return ("bytes", f"{len(resp.content)}:{hashlib.md5(resp.content).hexdigest()}")
 
@@ -290,10 +322,13 @@ def run(args):
         if ra.status_code != rb.status_code:
             problems.append(f"상태 코드: v1.6={ra.status_code} v2={rb.status_code}")
         ha, hb = norm_headers(ra, a.base), norm_headers(rb, b.base)
+        for h_, srv in ((ha, a), (hb, b)):
+            if "location" in h_:
+                h_["location"] = srv.tokenize(h_["location"])
         for k in sorted(set(ha) | set(hb)):
             if ha.get(k) != hb.get(k):
                 problems.append(f"헤더 {k}: v1.6={ha.get(k)!r} v2={hb.get(k)!r}")
-        problems += diff_bodies(body_view(ra, step, True), body_view(rb, step, False))
+        problems += diff_bodies(body_view(ra, step, True, a.tokenize), body_view(rb, step, False, b.tokenize))
         if problems:
             for p_ in problems:
                 if p_.startswith(("-", "+")) and not p_.startswith(("---", "+++")):

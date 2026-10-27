@@ -132,7 +132,7 @@ class IssueCreateController(
             val target = targetId.toLongOrNull()?.let { projects.findById(it).orElse(null) }
             if (target == null) {
                 val mav = createView(pathProject, "title.newIssue", null, null, null, emptyMap(), fromGlobalMenu = false)
-                mav.addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to "error.notfound.project")))
+                mav.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to "error.notfound.project")) }
                 return mav.also { it.status = org.springframework.http.HttpStatus.BAD_REQUEST }
             }
             if (!accessControl.isProjectResourceCreatable(viewer, target, ResourceType.ISSUE_POST)) {

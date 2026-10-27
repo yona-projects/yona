@@ -47,6 +47,25 @@ object RedirectSupport {
     }
 
     /**
+     * 이 요청에서 화면을 그리면서 보여 줄 일회성 메시지를 심는다. v1.6의 `flash(...)` 뒤 `return badRequest(render(...))`와 같다:
+     * 이번 화면에 바로 보이고(레이아웃이 앞 요청이 남긴 값에 이번 요청이 심은 값을 더해 보인다), 응답이 앞 값을 이어서 다시 심으므로
+     * 다음 요청 한 번에도 보인다(v1.6 flash 쿠키의 동작).
+     */
+    fun flashNow(flash: Map<String, Any>) {
+        val attributes = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes()
+            as? org.springframework.web.context.request.ServletRequestAttributes ?: return
+        val response = attributes.response ?: return
+        saveFlash(attributes.request, response, flash)
+    }
+
+    /** 앞 요청이 남긴 flash이다(v1.6 `requestHeader.flash`). 이 요청이 심은 값은 들어 있지 않다. */
+    fun incomingFlash(): Map<String, Any> {
+        val request = (org.springframework.web.context.request.RequestContextHolder.getRequestAttributes()
+            as? org.springframework.web.context.request.ServletRequestAttributes)?.request ?: return emptyMap()
+        return carriedOver(request)
+    }
+
+    /**
      * 앞 요청이 남긴 값이다. v1.6의 flash는 쿠키 하나라서, 새 값을 심는 응답은 앞 요청이 남긴 값을 그대로 이어 받아 다시 심는다.
      * 새 값을 심지 않는 응답에서는 값이 사라진다.
      */

@@ -81,7 +81,7 @@ class PasswordResetController(
 
         // v1.6는 안내를 남기고 같은 응답으로 로그인 화면을 보여 준다.
         return LoginFormController.loginPage(null)
-            .addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to "user.loginWithNewPassword")))
+            .also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to "user.loginWithNewPassword")) }
     }
 
     /** 사이트 관리자가 [loginId]의 비밀번호를 여섯 글자 임시 값으로 바꾸고 그 값을 알려 준다. */

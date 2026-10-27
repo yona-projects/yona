@@ -53,7 +53,7 @@ class OrganizationSettingController(
         return settingView(organization, null, null)
     }
 
-    @PostMapping("/organizations/{organizationName}/setting", consumes = ["multipart/form-data"])
+    @PostMapping("/organizations/{organizationName}/setting")
     @Transactional
     fun save(
         @PathVariable organizationName: String,

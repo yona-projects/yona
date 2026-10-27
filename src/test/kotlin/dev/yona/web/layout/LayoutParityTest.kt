@@ -85,7 +85,7 @@ class LayoutParityTest : AbstractIntegrationTest() {
 
     @Test
     fun `리소스를 해석하지 못한 구독 요청은 빈 본문이 아니라 오류 화면이다 (v1_6 Global_onBadRequest)`() {
-        val response = mockMvc.perform(post("/watch").param("resource.type", "nothing").param("resource.id", "1")).andReturn().response
+        val response = mockMvc.perform(post("/watch").queryParam("resource.type", "nothing").queryParam("resource.id", "1")).andReturn().response
         assertEquals(400, response.status)
         assertTrue(response.contentAsString.contains("<title>"), "본문이 비어 있다")
     }

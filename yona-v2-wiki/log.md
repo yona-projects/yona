@@ -450,3 +450,7 @@
 
 ## [2026-10-27] verify | 실제 git·svn 클라이언트로 한글 경로, 큰 저장소, 인증 흐름 검증
 - v2를 실제로 띄워 `git`, `svn`으로 확인했다([architecture/real-client-verification.md](architecture/real-client-verification.md)). 한글 프로젝트의 SVN 커밋 거부(A-148), 확장자에 따른 HTML 내용 형식 오류(A-150), 50MB 초과 Git 파일 500(A-149, R-115), 압축 파일 이름 헤더 소실(A-147)을 고쳤다.
+
+## [2026-10-27] build | 공식 v1.16.0 실행 비교로 찾은 불일치를 고침
+- 공식 릴리스를 띄워 같은 요청을 v2에 보내 비교하는 도구(`tools/v16-diff/`)를 만들고, 익명, 데이터 생성, 모든 사용자 화면 1200건, git 저장소 화면 366건, 마크다운, 폼과 권한 행렬 시나리오를 돌렸다([architecture/v16-release-differential-test.md](architecture/v16-release-differential-test.md)).
+- 마크다운 변환기를 `marked.js` + Nashorn으로 바꾸고(A-154), jsoup, OWASP를 v1.6 버전에 맞췄다(A-155). 소스만 읽고 적었던 R-48, R-110, A-72, A-146의 설명을 정정했다.

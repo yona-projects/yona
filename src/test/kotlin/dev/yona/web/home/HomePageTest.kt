@@ -195,17 +195,26 @@ class HomePageTest : AbstractIntegrationTest() {
     @Test
     fun `기본 로그인 페이지를 저장하면 JSON으로 알려 준다`() {
         val (session, user) = login("home7")
-        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").session(session).param("path", "user/issues"))
+        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").session(session).queryParam("path", "user/issues"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.defaultLoginPage").value("user/issues"))
         assertEquals("user/issues", settings.findByUserId(user.id!!)?.loginDefaultPage)
     }
 
     @Test
+    fun `폼 본문의 path는 무시한다 (v1_6은 쿼리 문자열만 읽는다)`() {
+        val (session, user) = login("home7b")
+        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").session(session).param("path", "user/issues"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.defaultLoginPage").doesNotExist())
+        assertNull(settings.findByUserId(user.id!!)?.loginDefaultPage)
+    }
+
+    @Test
     fun `이미 설정이 있으면 값을 갱신한다`() {
         val (session, user) = login("home8")
         settings.save(UserSetting(user = user, loginDefaultPage = "old"))
-        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").session(session).param("path", "new"))
+        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").session(session).queryParam("path", "new"))
         assertEquals("new", settings.findByUserId(user.id!!)?.loginDefaultPage)
         assertEquals(1, settings.findAll().count { it.user?.id == user.id })
     }

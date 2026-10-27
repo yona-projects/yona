@@ -214,7 +214,7 @@ class BoardViewTest : AbstractIntegrationTest() {
         val p = post(project, member)
         val session = login(member)
         assertEquals("Watch", doc(project, session = session).selectFirst("#watch-button")!!.text().trim())
-        mockMvc.perform(post("/watch").session(session).param("resource.type", "board_post").param("resource.id", p.id.toString())).andExpect(status().isOk)
+        mockMvc.perform(post("/watch").session(session).queryParam("resource.type", "board_post").queryParam("resource.id", p.id.toString())).andExpect(status().isOk)
         val watching = doc(project, session = session).selectFirst("#watch-button")!!
         assertEquals("Stop watching", watching.text().trim()); assertEquals("true", watching.attr("data-watching")); assertTrue(watching.hasClass("ybtn-watching"))
         assertTrue(doc(project).select("#watch-button").isEmpty())

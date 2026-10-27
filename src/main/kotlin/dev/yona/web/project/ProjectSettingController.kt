@@ -53,7 +53,8 @@ class ProjectSettingController(
         return formView(project, null)
     }
 
-    @PostMapping("/{user}/{project}/setting", consumes = ["multipart/form-data"])
+    // v1.6은 폼 본문 종류를 가리지 않고 권한과 검증을 먼저 한다(multipart가 아니면 파일 읽기에서 널 참조 오류, v2는 그대로 저장한다)
+    @PostMapping("/{user}/{project}/setting")
     @IsAllowed(Operation.UPDATE)
     @Transactional
     fun save(
@@ -110,7 +111,7 @@ class ProjectSettingController(
             .addObject("oldPlaceHtml", oldPlace)
             .addObject("maxReviewerCount", if (memberCount > 1) memberCount else 1)
             .also { mav ->
-                if (warning != null) mav.addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to warning)))
+                if (warning != null) mav.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to warning)) }
             }
     }
 

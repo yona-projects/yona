@@ -101,3 +101,4 @@
 
 - [v1.6 결함 재현 목록](refactoring-backlog.md): v1.6의 결함을 그대로 재현한 부분과 개선 후보
 - [실제 git·svn 클라이언트 검증 기록](architecture/real-client-verification.md): 한글 경로, 큰 저장소, 인증 흐름을 실제 클라이언트로 확인한 결과
+- [architecture/v16-release-differential-test.md](architecture/v16-release-differential-test.md): 공식 v1.16.0을 띄워 v2와 응답을 대조하는 시험의 구성, 정규화, 찾아 고친 것

@@ -128,7 +128,7 @@ class FlashMessageTranslator(private val messages: MessageSource) {
         val locale = LocaleContextHolder.getLocale()
         // v1.6 템플릿은 `@Messages(...)`의 출력을 HTML 이스케이프한다. 같은 결과를 내려고 미리 이스케이프한다.
         fun text(value: Any?): String =
-            value?.toString()?.let { TemplateHelper.escapeHtml(messages.getMessage(it, null, it, locale) ?: it) } ?: ""
+            value?.toString()?.let { TemplateHelper.escapeHtml(lookup(it, locale)) } ?: ""
         // v1.6의 flash는 쿠키 하나라 넣은 순서가 그대로 보인다. 순서 정보가 있으면 그 순서를 따른다.
         val order = (flash[RedirectSupport.ORDER] as? String)?.split('\u0001').orEmpty()
         val keys = flash.keys.filter { it != TITLE && it != DESCRIPTION && it != RedirectSupport.ORDER }
@@ -139,6 +139,10 @@ class FlashMessageTranslator(private val messages: MessageSource) {
             alertDescription = text(flash[DESCRIPTION])
         )
     }
+
+    /** 메시지 키이면 번역하고 아니면 글자 그대로 쓴다. 키가 아닌 글을 `MessageFormat`으로 해석하면 `{`가 든 글에서 오류가 난다(Play의 `Messages`는 키가 없으면 키를 그대로 돌려준다). */
+    private fun lookup(code: String, locale: java.util.Locale): String =
+        try { messages.getMessage(code, null, locale) } catch (e: org.springframework.context.NoSuchMessageException) { code }
 
     private companion object {
         const val TITLE = "title"

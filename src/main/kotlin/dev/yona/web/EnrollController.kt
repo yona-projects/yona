@@ -123,7 +123,13 @@ class EnrollController(
         return !permissions.siteManager(userId) && !organizationUsers.existsByOrganizationIdAndUserId(organizationId, userId)
     }
 
-    private fun accepted(message: String, organizationName: String, request: HttpServletRequest): ResponseEntity<Map<String, String>> =
+    private fun accepted(message: String, organizationName: String, request: HttpServletRequest): ResponseEntity<Map<String, String>> {
+        // v1.6는 `response().setHeader("Content-Type", "application/json")`이라 문자 집합이 없다
+        request.setAttribute(JsonCharsetFilter.RAW_ATTRIBUTE, true)
+        return acceptedBody(message, organizationName, request)
+    }
+
+    private fun acceptedBody(message: String, organizationName: String, request: HttpServletRequest): ResponseEntity<Map<String, String>> =
         ResponseEntity.status(HttpStatus.ACCEPTED).contentType(MediaType.APPLICATION_JSON)
             .body(mapOf("message" to message, "statusMonitorUrl" to "http://${host(request)}" + dev.yona.util.UrlPaths.withContext(request.contextPath, "/organizations/$organizationName")))
 

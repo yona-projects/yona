@@ -61,7 +61,7 @@ class ProjectTransferController(
         when (transferService.request(project, sender, request.getParameter("owner"))) {
             ProjectTransferService.RequestResult.UnknownDestination -> return ErrorViews.badRequest()
             ProjectTransferService.RequestResult.SameOwner ->
-                return formView(project).addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.INFO to "project.transfer.has.same.owner")))
+                return formView(project).also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.INFO to "project.transfer.has.same.owner")) }
             is ProjectTransferService.RequestResult.Requested -> Unit
         }
 

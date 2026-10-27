@@ -140,11 +140,7 @@ class ProjectCheckStage(
      */
     private fun addFailedFlash(view: ModelAndView, request: HttpServletRequest) {
         val message = messages.getMessage("error.auth.unauthorized.waringMessage", null, LocaleContextHolder.getLocale())
-        val response = (RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes)?.response
-        if (response != null) RedirectSupport.saveFlash(request, response, mapOf("failed" to message))
-        // 저장한 값(앞 요청의 안내를 이어 받고 순서를 지킨다)을 그대로 이 응답에 보인다
-        val shown = if (response != null) RequestContextUtils.getOutputFlashMap(request) else mapOf("failed" to message)
-        view.addObject("flashMessages", flashTranslator.translate(shown))
+        dev.yona.web.RedirectSupport.flashNow(mapOf("failed" to message))
     }
 
     /** 로그인 화면을 403으로 보여 준다. 안내(`failed`)는 같은 응답에서 바로 보인다. */

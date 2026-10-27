@@ -44,4 +44,9 @@ class FlashMessageTranslatorTest {
     fun `작은따옴표는 Twirl처럼 x27로 이스케이프한다`() {
         assertEquals(listOf("Don&#x27;t &lt;stop&gt;"), translator.translate(mapOf("info" to "quote")).notices)
     }
+
+    @Test
+    fun `키가 아닌 글은 그대로 보인다 (중괄호가 있어도 오류가 나지 않는다)`() {
+        assertEquals(listOf("{title=third} 입니다"), translator.translate(mapOf("warning" to "{title=third} 입니다")).notices)
+    }
 }

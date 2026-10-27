@@ -310,7 +310,7 @@ class MilestoneController(
             .addObject("titleValue", input.title)
             .addObject("contentsValue", input.contents)
             .addObject("signedIn", currentUserProvider.get().user != null)
-        if (flashKey != null) mav.addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to flashKey)))
+        if (flashKey != null) mav.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to flashKey)) }
         return mav
     }
 

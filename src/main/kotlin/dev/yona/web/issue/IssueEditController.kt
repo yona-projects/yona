@@ -152,7 +152,7 @@ class IssueEditController(
             .addObject("canUpdateMilestone", accessControl.isAllowed(viewer, issue.milestoneAsResource(), Operation.UPDATE))
             .addObject("authoredByViewer", viewer != null && issue.authorLoginId == viewer.loginId)
             .addObject("allMilestones", true)
-        if (flashKey != null) mav.addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to flashKey)))
+        if (flashKey != null) mav.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to flashKey)) }
         val filled = formSupport.fill(mav, project, viewer, issue.id, issue.parent?.id, issue.labels.mapNotNull { it.id }.toSet())
         return filled
     }

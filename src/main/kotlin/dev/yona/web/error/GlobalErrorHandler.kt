@@ -56,9 +56,11 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
     }
 
     /** 필수 요청 파라미터가 없거나 경로 변수, 파라미터의 타입이 맞지 않으면 400 화면이다 (v1.6 `Global.onBadRequest`). */
-    @ExceptionHandler(MissingServletRequestParameterException::class, MethodArgumentTypeMismatchException::class)
-    fun badRequest(e: Exception, request: HttpServletRequest): ModelAndView {
+    @ExceptionHandler(MissingServletRequestParameterException::class, MethodArgumentTypeMismatchException::class, BindFailureException::class)
+    fun badRequest(e: Exception, request: HttpServletRequest, response: HttpServletResponse): ModelAndView {
         log.warn("잘못된 요청: {}", e.message)
+        // Play는 라우트 바인더 실패를 기본 액션 밖(`Global.onBadRequest`)에서 처리하므로 `Cache-Control: no-cache`가 붙지 않는다
+        if (!response.isCommitted) response.reset()
         return withLayout(ErrorViews.badRequest(), request)
     }
 

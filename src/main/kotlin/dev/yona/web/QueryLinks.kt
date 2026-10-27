@@ -14,6 +14,21 @@ import java.net.URLDecoder
 object QueryLinks {
 
     /**
+     * 질의 문자열에서 이름이 [name]인 첫 값을 찾는다. 폼 본문은 보지 않는다(v1.6 `request().getQueryString(...)`와 Play의 질의 바인더가 그렇다).
+     * v1.6의 Netty 질의 해석처럼 `&`뿐 아니라 `;`도 구분자로 본다. 화면이 스크립트에 찍어 주는 구독 주소가 `&amp;`로 구분되어 있어(Twirl의 이스케이프)
+     * 서버가 이를 받아들여야 같은 동작이 된다. 값이 없으면 `null`이다.
+     */
+    fun queryValue(request: jakarta.servlet.http.HttpServletRequest, name: String): String? {
+        val query = request.queryString ?: return null
+        for (pair in query.split('&', ';')) {
+            val eq = pair.indexOf('=')
+            val key = java.net.URLDecoder.decode(if (eq < 0) pair else pair.substring(0, eq), Charsets.UTF_8)
+            if (key == name) return if (eq < 0) "" else java.net.URLDecoder.decode(pair.substring(eq + 1), Charsets.UTF_8)
+        }
+        return null
+    }
+
+    /**
      * 요청 주소(경로와 쿼리)이다. v1.6 `requestHeader.uri`는 `/go`처럼 안쪽으로 넘기기(forward) 전에 요청한 주소 그대로이므로,
      * 넘겨 받은 요청이면 처음 요청한 경로와 쿼리를 쓴다.
      */

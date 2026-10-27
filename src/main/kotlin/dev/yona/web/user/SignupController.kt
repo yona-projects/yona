@@ -51,7 +51,7 @@ class SignupController(
         if (signupService.hasErrors(form)) return signupView().also { it.status = HttpStatus.BAD_REQUEST }
 
         if (!signupService.isAllowedEmailDomain(form.email)) {
-            return signupView().addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.INFO to "user.unacceptable.email.domain")))
+            return signupView().also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.INFO to "user.unacceptable.email.domain")) }
                 .also { it.status = HttpStatus.BAD_REQUEST }
         }
 
@@ -93,7 +93,7 @@ class SignupController(
     fun isEmailExist(@RequestParam email: String, request: HttpServletRequest): Any {
         val type = request.contentType?.let { runCatching { org.springframework.http.MediaType.parseMediaType(it) }.getOrNull() }
         val jsonType = type != null && ((type.type == "application" && type.subtype == "json") || (type.type == "text" && type.subtype == "json"))
-        if (jsonType && !hasJsonBody(request)) return ErrorViews.badRequest()
+        if (jsonType && !hasJsonBody(request)) throw dev.yona.web.error.BindFailureException("JSON body expected")
         return json(mapOf("isExist" to signupService.isEmailExist(email)))
     }
 

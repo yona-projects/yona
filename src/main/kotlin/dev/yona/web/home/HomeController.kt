@@ -56,7 +56,9 @@ class HomeController(
      */
     @PostMapping("/-_-api/v1/user/defultLoginPage")
     @ResponseBody
-    fun setDefaultLoginPage(@RequestParam(required = false) path: String?): Map<String, String?> {
+    fun setDefaultLoginPage(request: jakarta.servlet.http.HttpServletRequest): Map<String, String?> {
+        // v1.6은 `request().getQueryString("path")`라 쿼리 문자열만 본다(폼 본문의 `path`는 무시한다)
+        val path = dev.yona.web.QueryLinks.queryValue(request, "path")
         val user = requireNotNull(currentUserProvider.get().user) { "로그인이 필요합니다." }
         val setting = userSettings.findByUserId(requireNotNull(user.id)) ?: UserSetting(user = user)
         setting.loginDefaultPage = path

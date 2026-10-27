@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -69,6 +70,14 @@ class OrganizationCreateTest : AbstractIntegrationTest() {
 
     private fun doc(result: MvcResult): Document = Jsoup.parse(result.response.contentAsString)
 
+    /** v1.6 `create.scala.html`은 폼 위에 앞 요청이 남긴 안내(`requestHeader.flash`)를 보이므로, 같은 세션으로 폼을 다시 열어 읽는다. */
+    private fun warningOnNextForm(session: MockHttpSession): String? =
+        Jsoup.parse(mockMvc.perform(get("/organizations/new").session(session)).andReturn().response.contentAsString).selectFirst(".n-alert .warning")?.text()
+
+    /** 이번 응답이 알림(`$yobi.notify`)으로 보이는 안내이다. */
+    private fun notified(result: MvcResult): String? =
+        Regex("\\\$yobi\\.notify\\(\"([^\"]*)\"").find(result.response.contentAsString)?.groupValues?.get(1)
+
     // --- 폼 ---
 
     @Test
@@ -111,26 +120,33 @@ class OrganizationCreateTest : AbstractIntegrationTest() {
 
     @Test
     fun `이름이 없으면 거부하고 안내한다`() {
-        val result = submit(login(newUser()), null)
+        val session = login(newUser())
+        val result = submit(session, null)
         assertEquals(400, result.response.status)
-        assertEquals("This field is required", doc(result).selectFirst(".n-alert .warning")?.text())
+        assertEquals("This field is required", notified(result))
+        assertNull(doc(result).selectFirst(".n-alert .warning"))
+        assertEquals("This field is required", warningOnNextForm(session))
     }
 
     @Test
     fun `이름 형식이 틀리면 거부하고 입력값을 유지한다`() {
-        val result = submit(login(newUser()), "bad name", "내 설명")
+        val session = login(newUser())
+        val result = submit(session, "bad name", "내 설명")
         assertEquals(400, result.response.status)
         val page = doc(result)
-        assertEquals("Enter Valid ID", page.selectFirst(".n-alert .warning")?.text())
+        assertEquals("Enter Valid ID", notified(result))
+        assertEquals("Enter Valid ID", warningOnNextForm(session))
         assertEquals("bad name", page.selectFirst("input#name")?.attr("value"))
         assertEquals("내 설명", page.selectFirst("textarea#descr")?.text())
     }
 
     @Test
     fun `예약어 이름은 거부한다`() {
-        val result = submit(login(newUser()), "Projects")
+        val session = login(newUser())
+        val result = submit(session, "Projects")
         assertEquals(400, result.response.status)
-        assertEquals("This is a reserved system word.", doc(result).selectFirst(".n-alert .warning")?.text())
+        assertEquals("This is a reserved system word.", notified(result))
+        assertEquals("This is a reserved system word.", warningOnNextForm(session))
     }
 
     @Test
@@ -142,7 +158,8 @@ class OrganizationCreateTest : AbstractIntegrationTest() {
         submit(session, "firstorg")
         val again = submit(session, "FirstOrg")
         assertEquals(400, again.response.status)
-        assertEquals("Already existent user's login id or group name.", doc(again).selectFirst(".n-alert .warning")?.text())
+        assertEquals("Already existent user&#x27;s login id or group name.", notified(again))
+        assertEquals("Already existent user's login id or group name.", warningOnNextForm(session))
         assertNotNull(taken.id)
     }
 

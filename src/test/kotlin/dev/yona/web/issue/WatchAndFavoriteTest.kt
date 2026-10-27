@@ -102,11 +102,11 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
     fun `구독하면 기록하고 이전의 구독 해제는 지운다`() {
         val project = newProject(); val i = issue(project); val user = newUser()
         val session = login(user)
-        mockMvc.perform(post("/unwatch").session(session).param("resource.type", "issue_post").param("resource.id", i.id.toString()).header("Accept", "application/json")).andExpect(status().isOk)
+        mockMvc.perform(post("/unwatch").session(session).queryParam("resource.type", "issue_post").queryParam("resource.id", i.id.toString()).header("Accept", "application/json")).andExpect(status().isOk)
         assertEquals(1, unwatches.count())
-        mockMvc.perform(post("/watch").session(session).param("resource.type", "issue_post").param("resource.id", i.id.toString())).andExpect(status().isOk)
+        mockMvc.perform(post("/watch").session(session).queryParam("resource.type", "issue_post").queryParam("resource.id", i.id.toString())).andExpect(status().isOk)
         assertEquals(1, watches.count()); assertEquals(0, unwatches.count())
-        mockMvc.perform(post("/watch").session(session).param("resource.type", "issue_post").param("resource.id", i.id.toString())).andExpect(status().isOk)
+        mockMvc.perform(post("/watch").session(session).queryParam("resource.type", "issue_post").queryParam("resource.id", i.id.toString())).andExpect(status().isOk)
         assertEquals(1, watches.count())
     }
 
@@ -123,8 +123,8 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
     @Test
     fun `익명이거나 읽을 수 없으면 구독은 403이다`() {
         val project = newProject(ProjectScope.PRIVATE); val i = issue(project)
-        mockMvc.perform(post("/watch").param("resource.type", "issue_post").param("resource.id", i.id.toString())).andExpect(status().isForbidden).andExpect(content().string("Anonymous cannot watch it."))
-        mockMvc.perform(post("/watch").session(login(newUser())).param("resource.type", "issue_post").param("resource.id", i.id.toString()))
+        mockMvc.perform(post("/watch").queryParam("resource.type", "issue_post").queryParam("resource.id", i.id.toString())).andExpect(status().isForbidden).andExpect(content().string("Anonymous cannot watch it."))
+        mockMvc.perform(post("/watch").session(login(newUser())).queryParam("resource.type", "issue_post").queryParam("resource.id", i.id.toString()))
             .andExpect(status().isForbidden).andExpect(content().string("You have no permission to watch it."))
     }
 
@@ -132,17 +132,17 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
     fun `구독 해제는 JSON이면 200이고 아니면 리소스로 돌아가며 처음이면 안내를 남긴다`() {
         val project = newProject(); val i = issue(project); val user = newUser()
         val session = login(user)
-        mockMvc.perform(post("/unwatch").session(session).param("resource.type", "issue_post").param("resource.id", i.id.toString()))
+        mockMvc.perform(post("/unwatch").session(session).queryParam("resource.type", "issue_post").queryParam("resource.id", i.id.toString()))
             .andExpect(status().isSeeOther).andExpect(header().string("Location", "/${project.owner}/${project.name}/issue/1"))
         // 이미 해제한 뒤에는 안내가 없다.
-        mockMvc.perform(get("/unwatch").session(session).param("resource.type", "issue_post").param("resource.id", i.id.toString())).andExpect(status().isSeeOther)
+        mockMvc.perform(get("/unwatch").session(session).queryParam("resource.type", "issue_post").queryParam("resource.id", i.id.toString())).andExpect(status().isSeeOther)
         assertEquals(1, unwatches.count())
     }
 
     @Test
     fun `프로젝트 구독 해제는 프로젝트 홈으로 돌아간다 (v1_6 Project_asResource의 getProject)`() {
         val project = newProject(); val user = newUser()
-        mockMvc.perform(post("/unwatch").session(login(user)).param("resource.type", "project").param("resource.id", project.id.toString()))
+        mockMvc.perform(post("/unwatch").session(login(user)).queryParam("resource.type", "project").queryParam("resource.id", project.id.toString()))
             .andExpect(status().isSeeOther).andExpect(header().string("Location", "/${project.owner}/${project.name}"))
     }
 
@@ -151,23 +151,23 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
         val project = newProject(); val user = newUser(); val session = login(user)
         val posting = postings.save(dev.yona.domain.board.Posting(project = project, number = 1, title = "글", body = "본문", authorLoginId = user.loginId, createdDate = Date()))
         val comment = entityManager.let { em -> dev.yona.domain.board.PostingComment(contents = "c", createdDate = Date(), authorId = user.id, authorLoginId = user.loginId, authorName = user.name, posting = posting, projectId = project.id!!).also { em.persist(it); em.flush() } }
-        mockMvc.perform(post("/unwatch").session(session).param("resource.type", "nonissue_comment").param("resource.id", comment.id.toString()))
+        mockMvc.perform(post("/unwatch").session(session).queryParam("resource.type", "nonissue_comment").queryParam("resource.id", comment.id.toString()))
             .andExpect(status().isSeeOther).andExpect(header().string("Location", "/${project.owner}/${project.name}/post/1#comment-${comment.id}"))
         val commit = dev.yona.domain.comment.CommitComment(project = project, commitId = "abc", contents = "c", createdDate = Date(), authorId = user.id, authorLoginId = user.loginId, authorName = user.name)
             .also { entityManager.persist(it); entityManager.flush() }
-        mockMvc.perform(post("/unwatch").session(session).param("resource.type", "code_comment").param("resource.id", commit.id.toString()))
+        mockMvc.perform(post("/unwatch").session(session).queryParam("resource.type", "code_comment").queryParam("resource.id", commit.id.toString()))
             .andExpect(status().isSeeOther).andExpect(header().string("Location", "/${project.owner}/${project.name}/commit/abc#comment-${commit.id}"))
     }
 
     @Test
     fun `구독 해제를 익명이 하면 403 화면이다`() {
         val project = newProject(); val i = issue(project)
-        mockMvc.perform(post("/unwatch").param("resource.type", "issue_post").param("resource.id", i.id.toString())).andExpect(status().isForbidden)
+        mockMvc.perform(post("/unwatch").queryParam("resource.type", "issue_post").queryParam("resource.id", i.id.toString())).andExpect(status().isForbidden)
     }
 
     @Test
     fun `알 수 없는 리소스는 400이다`() {
-        mockMvc.perform(post("/watch").session(login(newUser())).param("resource.type", "nothing").param("resource.id", "1")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/watch").session(login(newUser())).queryParam("resource.type", "nothing").queryParam("resource.id", "1")).andExpect(status().isBadRequest)
         mockMvc.perform(post("/watch").session(login(newUser()))).andExpect(status().isBadRequest)
     }
 

@@ -49,15 +49,20 @@ class OrganizationCreateController(
         return RedirectSupport.see(request, response, "/organizations/${organization.name}")
     }
 
-    /** 폼 화면이다. [warningKey]가 있으면 폼 위와 알림으로 같은 응답에서 안내한다. */
+    /** 폼 화면이다. [warningKey]가 있으면 알림으로 안내하고, 폼 위에는 앞 요청의 안내를 보인다(v1.6). */
     private fun formView(name: String?, descr: String?, warningKey: String?): ModelAndView {
         val view = ModelAndView("organization/create")
             .addObject("title", "title.newOrganization")
             .addObject("name", name)
             .addObject("descr", descr)
+        // v1.6 `create.scala.html`은 `requestHeader.flash.get("warning")`, 곧 앞 요청이 남긴 안내를 폼 위에 보인다.
+        // 이번 요청의 안내는 알림(`$yobi.notify`)으로 보이고 다음 요청의 폼 위에 보인다.
+        val previous = RedirectSupport.incomingFlash()[RedirectSupport.WARNING]?.toString()
+        if (previous != null) {
+            view.addObject("warning", messages.getMessage(previous, null, previous, LocaleContextHolder.getLocale()))
+        }
         if (warningKey != null) {
-            view.addObject("warning", messages.getMessage(warningKey, null, warningKey, LocaleContextHolder.getLocale()))
-            view.addObject("flashMessages", flashTranslator.translate(mapOf(RedirectSupport.WARNING to warningKey)))
+            view.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to warningKey)) }
         }
         return view
     }

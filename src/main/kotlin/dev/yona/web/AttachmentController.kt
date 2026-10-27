@@ -106,6 +106,8 @@ class AttachmentController(
         val url = "/files/${attachment.id}"
         // IE에서 JSON을 파일로 내려받으려 하는 문제를 피하려고, JSON을 받을 수 없는 클라이언트에는 text/html로 알린다 (본문은 JSON이다).
         val contentType = HttpPreference.preferredType(request.getHeader(HttpHeaders.ACCEPT), "application/json", "text/html")
+        // v1.6는 `response().setHeader("Content-Type", ...)`이라 문자 집합이 없다
+        request.setAttribute(JsonCharsetFilter.RAW_ATTRIBUTE, true)
         return ResponseEntity.status(if (stored.created) HttpStatus.CREATED else HttpStatus.OK)
             .header(HttpHeaders.LOCATION, url)
             .header(HttpHeaders.VARY, "Accept")
@@ -116,8 +118,10 @@ class AttachmentController(
     @GetMapping("/files")
     fun list(
         @RequestParam(name = "containerType", required = false) containerType: String?,
-        @RequestParam(name = "containerId", required = false) containerId: String?
+        @RequestParam(name = "containerId", required = false) containerId: String?,
+        request: HttpServletRequest
     ): ResponseEntity<String> {
+        request.setAttribute(JsonCharsetFilter.RAW_ATTRIBUTE, true) // v1.6는 문자 집합 없는 `application/json`을 직접 정한다
         val body = linkedMapOf<String, Any>()
         if (!containerType.isNullOrEmpty() && !containerId.isNullOrEmpty()) {
             body.putAll(listing.fileList(ResourceType.valueOf(containerType), containerId.toLong()) ?: return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).build()) // v1.6는 403에도 Content-Type: application/json
