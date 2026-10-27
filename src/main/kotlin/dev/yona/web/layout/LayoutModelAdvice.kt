@@ -129,9 +129,10 @@ class FlashMessageTranslator(private val messages: MessageSource) {
         // v1.6 템플릿은 `@Messages(...)`의 출력을 HTML 이스케이프한다. 같은 결과를 내려고 미리 이스케이프한다.
         fun text(value: Any?): String =
             value?.toString()?.let { TemplateHelper.escapeHtml(lookup(it, locale)) } ?: ""
-        // v1.6 템플릿은 `Context.current().flash().keySet`을 돈다. `Http.Flash`는 `HashMap`이라 알림 순서는 키의 해시 순서이다
-        // (`success, warning, failed, error, info`). 넣은 순서와 무관하다.
-        val keys = HashMap<String, Unit>().also { map -> flash.keys.filter { it != TITLE && it != DESCRIPTION }.forEach { map[it] = Unit } }.keys.toList()
+        // v1.6의 flash는 쿠키 하나라 넣은 순서가 그대로 보인다. 순서 정보가 있으면 그 순서를 따른다.
+        val order = (flash[RedirectSupport.ORDER] as? String)?.split('\u0001').orEmpty()
+        val keys = flash.keys.filter { it != TITLE && it != DESCRIPTION && it != RedirectSupport.ORDER }
+            .sortedBy { order.indexOf(it).let { i -> if (i < 0) Int.MAX_VALUE else i } }
         return FlashMessages(
             notices = keys.map { text(flash[it]) },
             alertTitle = flash[TITLE]?.let { text(it) },
