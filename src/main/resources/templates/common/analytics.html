@@ -7,10 +7,11 @@
 <th:block th:fragment="gtag(layout)" th:if="${@analyticsSettings.clientEnabled}">
   <script th:inline="javascript">
     (function () {
-      var RESERVED = ['_help', '_notifications', 'api', 'bootstrap-setup', 'categories', 'data', 'export', 'files',
-        'git-lfs', 'history', 'issues', 'labels', 'login', 'members', 'meta', 'migration', 'notifications', 'orgs',
-        'pages', 'projectform', 'projects', 'prs', 'raw', 'search', 'site', 'admin', 'status', 'svn', 'user', 'users',
-        'org', 'organizations'];
+      // v1.6 conf/routes에서 첫 구간이 고정된 경로들이다. 이 밖의 첫 구간은 소유자 이름으로 보고 가린다.
+      var RESERVED = ['-_-api', '_help', '_import', '_init', '_UIKit', 'assets', 'authenticate', 'categories', 'comments',
+        'favicon.ico', 'files', 'info', 'labels', 'logout', 'lostPassword', 'markdown', 'messages.js', 'migration', 'noti',
+        'notification', 'notifications', 'organizations', 'orgs', 'project', 'projectform', 'projects', 'resetPassword',
+        'restricted', 'search', 'sites', 'svn', 'threads', 'unwatch', 'user', 'users', 'verify', 'watch'];
 
       // 예) /acme/secret-proj/issue/42 -> /:owner/:project/issue, /users/jiho -> /users, /acme -> /:owner
       function maskPath(pathname) {
@@ -63,17 +64,17 @@
         return (box.checked || stored) ? 'on' : 'off';
       }
 
-      // 2단 보기 토글이 있는 화면이 어디인지(라우트 종류만 반환, 식별자는 읽지 않는다). 이슈/게시판/PR 목록은 프로젝트별 경로라
-      // 마스킹된 경로만으로는 조직·사용자 화면과 구분되지 않아 라우트 패턴으로 직접 분류한다. 조직 패턴을 먼저 검사한다.
+      // 2단 보기 토글이 있는 화면이 어디인지(라우트 종류만 반환, 식별자는 읽지 않는다). v1.6 경로를 따른다.
+      // 프로젝트별 경로는 마스킹된 경로만으로는 조직·사용자 화면과 구분되지 않아 패턴으로 직접 분류한다.
       function twoColumnScreen(pathname) {
         var p = (pathname || '/').replace(/\/+$/, '');
         if (/^\/user\/issues$/.test(p)) return 'my_issues';
-        if (/^\/(org|organizations)\/[^\/]+\/issues$/.test(p)) return 'org_issues';
-        if (/^\/(org|organizations)\/[^\/]+\/boards$/.test(p)) return 'org_boards';
+        if (/^\/organizations\/[^\/]+\/issues$/.test(p)) return 'org_issues';
+        if (/^\/organizations\/[^\/]+\/boards$/.test(p)) return 'org_boards';
         if (/^\/[^\/]+\/[^\/]+\/issues$/.test(p)) return 'project_issues';
         if (/^\/[^\/]+\/[^\/]+\/posts$/.test(p)) return 'project_posts';
-        if (/^\/[^\/]+\/[^\/]+\/(pulls|closedPullRequests|sentPullRequests)$/.test(p)) return 'project_pulls';
-        if (/^\/user\/[^\/]+$/.test(p) || /^\/[^\/]+$/.test(p)) return 'user_profile';
+        if (/^\/[^\/]+\/[^\/]+\/(pullRequests|closedPullRequests|sentPullRequests)$/.test(p)) return 'project_pulls';
+        if (/^\/[^\/]+$/.test(p)) return 'user_profile';
         return 'other';
       }
 
@@ -86,13 +87,14 @@
       }
 
       // 사용자가 2단 보기 체크박스를 직접 켜고 끈 경우만 센다(스크립트가 checked를 바꾸는 복원은 change를 일으키지 않는다).
-      // 이벤트 값은 on/off 상수뿐이고, 입력값이나 화면 내용은 읽지 않는다.
+      // 이벤트 값은 on/off 상수와 화면 종류뿐이고, 입력값이나 화면 내용은 읽지 않는다.
       document.addEventListener('change', function (event) {
         var target = event.target;
         if (target && target.id === 'two-column-mode' && target.type === 'checkbox') {
           gtag('event', 'feature_use', {
             feature: target.checked ? 'two_column_on' : 'two_column_off',
-            two_column: target.checked ? 'on' : 'off'
+            two_column: target.checked ? 'on' : 'off',
+            screen: twoColumnScreen(location.pathname)
           });
         }
       });

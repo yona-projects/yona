@@ -509,3 +509,4 @@
 - X-21: `next`의 GA4 `gtag` 조각을 가져왔다(설치 ID는 선생님 지시로 뺐다). 선생님 지시로 별도 스위치 없이 v1.6의 `yona.send-yona-usage`를 유지하고 UA 태그를 GA4로 교체했다(A-186). 측정 ID는 `yona.analytics.measurement-id`이다.
 - X-22: `next` 기준으로 새 Git 저장소의 `HEAD`를 `yona.git-default-branch`(기본 `main`)로 고정했다(A-187). 설정 키는 `architecture/configuration-keys.md`에 적었다.
 - 로드맵의 X-23 번호가 Magpie와 CLI에 겹쳐 있어 CLI를 X-24, CI/Actions를 X-25로 바로잡았다.
+- X-21 후속: 2단 보기 측정을 유지하기로 하고, 토글 이벤트에도 화면 종류(`screen`)를 싣도록 했다. `next`의 화면 분류(`org`, `pulls`)와 예약어가 v1.6 경로와 달라 v1.6 `conf/routes` 기준으로 고쳤다. 스크립트 문법과 경로별 전송값은 node로 모의 실행해 확인했다(소유자·프로젝트 이름은 전송되지 않는다).
