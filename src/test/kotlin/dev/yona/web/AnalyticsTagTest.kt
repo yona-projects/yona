@@ -53,10 +53,11 @@ class AnalyticsTagTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `2단 보기가 켜진 채 목록 제목을 열면 two_column_open을 화면 종류와 프레임 여부와 함께 보낸다`() {
+    fun `2단 보기 창의 iframe이 실제로 읽혔을 때만 two_column_open을 보내고 단순 클릭은 세지 않는다`() {
         val html = login()
         assertTrue(html.contains("two_column_open"))
-        assertTrue(html.contains(".title, .twoColumeModeTarget"))
-        assertTrue(Regex("two_column_open.*?screen: twoColumnScreen\\(location.pathname\\).*?in_frame", RegexOption.DOT_MATCHES_ALL).containsMatchIn(html))
+        assertTrue(html.contains("#pageslide") || html.contains("'pageslide'"))
+        assertTrue(Regex("addEventListener\\('load'.*?two_column_open.*?screen: twoColumnScreen\\(location.pathname\\).*?in_frame", RegexOption.DOT_MATCHES_ALL).containsMatchIn(html))
+        assertFalse(html.contains(".title, .twoColumeModeTarget"), "제목 클릭으로는 세지 않는다")
     }
 }

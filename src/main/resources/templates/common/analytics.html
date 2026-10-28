@@ -99,20 +99,21 @@
         }
       });
 
-      // 2단 보기가 켜진 채 목록의 제목을 눌러 오른쪽 창에 열려는 경우를 센다(yona.twoColumnMode.js의 제목 클릭과 같은 선택자).
-      // iframe이 다 읽혔는지는 알 수 없어 "열기를 시도한 횟수"이다. 제목의 글자나 주소는 읽지 않는다.
-      document.addEventListener('click', function (event) {
+      // 2단 보기 창(#pageslide)의 iframe이 실제로 읽혔을 때만 센다. 제목을 누르기만 한 것은 세지 않는다.
+      // jquery.pageslide는 열 때마다 새 iframe을 만들어 붙이므로 iframe마다 한 번만 센다(창 안에서 다른 글로 이동해도 다시 세지 않는다).
+      // load는 거품이 일지 않아 캡처 단계에서 듣는다. 글의 제목이나 주소는 읽지 않는다.
+      document.addEventListener('load', function (event) {
         var target = event.target;
         var box = document.getElementById('two-column-mode');
-        if (!box || !box.checked || !target || !target.closest) return;
-        if (target.closest('.title, .twoColumeModeTarget')) {
-          gtag('event', 'feature_use', {
-            feature: 'two_column_open',
-            two_column: 'on',
-            screen: twoColumnScreen(location.pathname),
-            in_frame: inFrame ? 'yes' : 'no'
-          });
-        }
+        if (!box || !box.checked || !target || target.tagName !== 'IFRAME') return;
+        if (!target.parentNode || target.parentNode.id !== 'pageslide' || target.yonaOpenCounted) return;
+        target.yonaOpenCounted = true;
+        gtag('event', 'feature_use', {
+          feature: 'two_column_open',
+          two_column: 'on',
+          screen: twoColumnScreen(location.pathname),
+          in_frame: inFrame ? 'yes' : 'no'
+        });
       }, true);
     })();
   </script>
