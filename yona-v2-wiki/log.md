@@ -510,4 +510,4 @@
 - X-22: `next` 기준으로 새 Git 저장소의 `HEAD`를 `yona.git-default-branch`(기본 `main`)로 고정했다(A-187). 설정 키는 `architecture/configuration-keys.md`에 적었다.
 - 로드맵의 X-23 번호가 Magpie와 CLI에 겹쳐 있어 CLI를 X-24, CI/Actions를 X-25로 바로잡았다.
 - X-21 후속: 2단 보기 측정을 유지하기로 하고, 토글 이벤트에도 화면 종류(`screen`)를 싣도록 했다. `next`의 화면 분류(`org`, `pulls`)와 예약어가 v1.6 경로와 달라 v1.6 `conf/routes` 기준으로 고쳤다. 스크립트 문법과 경로별 전송값은 node로 모의 실행해 확인했다(소유자·프로젝트 이름은 전송되지 않는다).
-- X-21 후속: `two_column_open`을 제목 클릭이 아니라 2단 보기 창 iframe의 `load`(캡처 단계)로 집계하도록 바꿨다. 단순 클릭은 세지 않고, 한 iframe 안에서 이동해도 다시 세지 않으며, 다시 열면(새 iframe) 센다. `yona.twoColumnMode.js`는 v1.6 그대로이다. node 모의 실행으로 확인했다.
+- X-21 후속: 2단 보기를 켠 채 목록 제목을 눌러 오른쪽 창에 여는 경우를 `two_column_open`으로 집계하도록 했다(문서 수준 클릭 위임, `yona.twoColumnMode.js`는 v1.6 그대로). node 모의 실행으로 켜짐일 때만 한 건 나가는 것을 확인했다.
