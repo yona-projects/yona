@@ -273,6 +273,16 @@ updated: 2026-10-22
 - **항목**: OAuth2 Authorization Server, 2단계 인증(TOTP, WebAuthn), SSH 공개키, GPG 서명 검증, 개인용 API 토큰(PAT), MCP 서버, Mercurial, Git LFS, 감사 로그, OpenTelemetry, 풀 리퀘스트 병합 때 `close/fix/resolve #번호`로 이슈를 자동으로 닫는 기능. (2026-10-27 추가) 풀 리퀘스트 리뷰 판정, 브랜치 보호 규칙, 풀 리퀘스트 담당자와 라벨, 풀 리퀘스트 REST API. (2026-10-27 전수 보충) 엔터프라이즈 SSO, 프로젝트 위키, Git 태그, 일반 REST API와 Swagger, 프런트엔드 현대화, 사용 현황 집계, 기본 브랜치 main, CLI, CI/Actions와 SPA 분리. 총 X-1~X-24이며 최종 목록은 roadmap.md가 기준이다. X-21(외부 전송)과 X-22(기본값 변경)는 착수 전에 따로 결정한다.
 - **상태**: 확정(범위만). 상세 계획은 [roadmap.md](roadmap.md)의 "추가 개발 항목"에 적는다. 이 항목들은 v1.6에 없으므로 v1.6 대조의 불일치로 세지 않으며, 각 기능의 결정은 착수할 때 이 파일에 따로 적는다.
 
+### D-29. Apache Magpie 연동을 위한 읽기 전용 API (2026-10-28, 결정 대기)
+
+- **배경**: Apache Magpie(ASF의 AI 기반 저장소 유지보수 도구)의 이슈 트래커 계약 `contract:tracker`는 읽기 전용 동작 다섯 가지를 요구한다: `list_filed`, `list_triaged`, `list_commented`(사람과 기간 입력, 이슈 참조 목록 반환), `list_created`(기간 입력, 이슈 요약 반환), `first_reply`(이슈 id 입력, 첫 메인테이너 댓글 반환). 어댑터는 `tools/<tracker>/`에 두고 설정 파일의 `tracker_type`으로 고른다. 인증은 어댑터가 정한다.
+- **Yona 현황**: `GET /-_-api/v1/owners/:owner/projects/:projectName/issues/:number`가 라벨, 담당자, 첨부, 댓글을 담은 JSON을 돌려주고(토큰 인증), `POST /-_-api/v1/users/token`으로 토큰을 받는다. 기간·작성자·라벨 조건의 이슈 목록 REST와 댓글 목록 REST는 v1.6에 없다.
+- **선택지**: (A) v2는 바꾸지 않고 어댑터가 화면용 `issues?format=json`을 쪽 단위로 읽어 기간을 직접 거른다. (B) v1.6 동등성 점검이 끝난 뒤, D-28의 추가 개발 항목으로 읽기 전용 API(기간별 이슈 목록, 이슈 댓글 목록)를 더한다. 기존 경로와 응답 계약은 건드리지 않는다. (C) 개인용 API 토큰(PAT)과 MCP 서버(D-28 항목)가 먼저 들어간 뒤 그 위에서 연동한다.
+- **권장안**: (B).
+- **권장 이유**: (A)는 목록 조회 한 번에 전체 쪽을 읽어야 해서 느리고, 화면용 JSON은 계약이 아니라서 화면이 바뀌면 어댑터가 깨진다. (C)는 두 기능이 아직 일정에 없어 연동이 그만큼 늦어진다. (B)는 v1.6 경로를 바꾸지 않아 대조 기준을 지키면서 계약에 맞는 안정된 조회 경로를 얻는다.
+- **결정**: 대기(선생님).
+- **상태**: 확인 대기. 결정되면 [roadmap.md](roadmap.md)의 "추가 개발 항목"에 옮긴다.
+
 ### 보류 중인 결정 (2026-10-25, 선생님 지시)
 
 - **이전(Migration) 화면의 접근 범위**: D-23으로 확정했다(위).
