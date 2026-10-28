@@ -163,6 +163,17 @@ class IssueLabelTest : AbstractIntegrationTest() {
     // --- 목록 ---
 
     @Test
+    fun `라벨과 분류 JSON의 필드 순서는 v1_6의 HashMap 순서이다`() {
+        val project = newProject()
+        val area = newCategory(project, "Area")
+        newLabel(project, area, "api", "#111111")
+        val label = mockMvc.perform(get("${base(project)}/issue/labels").header(HttpHeaders.ACCEPT, "application/json")).andReturn().response.contentAsString
+        assertTrue(Regex("""^\[\{"color":"[^"]*","name":"[^"]*","id":"\d+","category":"[^"]*","categoryId":"\d+"}]$""").matches(label), label)
+        val category = mockMvc.perform(get("${base(project)}/issue/label/category/${area.id}").header(HttpHeaders.ACCEPT, "application/json")).andReturn().response.contentAsString
+        assertTrue(Regex("""^\{"isExclusive":"[a-z]+","name":"[^"]*","id":"\d+"}$""").matches(category), category)
+    }
+
+    @Test
     fun `JSON으로 라벨 목록을 받는다`() {
         val project = newProject()
         val area = newCategory(project, "Area")

@@ -293,14 +293,15 @@ class IssueLabelController(
 
     private fun labelsResource(project: Project) = ProjectResource(requireNotNull(project.id).toString(), ResourceType.ISSUE_LABEL, project)
 
-    private fun labelMap(label: IssueLabel): Map<String, String> = linkedMapOf(
-        "id" to label.id.toString(), "category" to label.category?.name.orEmpty(), "categoryId" to label.category?.id.toString(),
-        "color" to label.color.orEmpty(), "name" to label.name.orEmpty()
-    )
+    /** v1.6은 `HashMap`에 넣어 JSON으로 내보내므로 필드 순서가 해시 순서이다(`color, name, id, category, categoryId`). */
+    private fun labelMap(label: IssueLabel): Map<String, String> = HashMap<String, String>().also {
+        it["id"] = label.id.toString(); it["name"] = label.name.orEmpty(); it["color"] = label.color.orEmpty()
+        it["category"] = label.category?.name.orEmpty(); it["categoryId"] = label.category?.id.toString()
+    }
 
-    private fun categoryMap(category: IssueLabelCategory): Map<String, String> = linkedMapOf(
-        "id" to category.id.toString(), "name" to category.name.orEmpty(), "isExclusive" to (category.isExclusive == true).toString()
-    )
+    private fun categoryMap(category: IssueLabelCategory): Map<String, String> = HashMap<String, String>().also {
+        it["id"] = category.id.toString(); it["name"] = category.name.orEmpty(); it["isExclusive"] = (category.isExclusive == true).toString()
+    }
 
     /** 분류 입력의 검사이다. 이름이 필요하고 255자를 넘지 않아야 하며, 화면이 보내는 `project.id`가 있어야 한다. */
     private fun categoryErrors(request: HttpServletRequest): Map<String, List<String>> {
