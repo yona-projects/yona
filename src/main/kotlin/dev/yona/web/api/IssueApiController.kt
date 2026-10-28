@@ -168,7 +168,7 @@ class IssueApiController(
         val viewer = currentUserProvider.get().user
         val foundUsers = nodesOf.search(query, type)
         val foundProjects = entityManager.createQuery(
-            "select p from Project p where p.projectScope = :scope and lower(p.name) like lower(concat('%', :q, '%')) order by p.id", Project::class.java
+            "select p from Project p where p.projectScope = :scope and lower(p.name) like lower(concat('%', :q, '%')) escape '\\' order by p.id", Project::class.java
         ).setParameter("scope", ProjectScope.PUBLIC).setParameter("q", query).resultList
         val total = foundUsers.size + foundProjects.size
         val limit = if (total > ApiUserNodes.MAX_FETCH_USERS) ApiUserNodes.MAX_FETCH_USERS / 2 else Int.MAX_VALUE

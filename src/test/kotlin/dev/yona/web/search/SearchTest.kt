@@ -189,6 +189,14 @@ class SearchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `검색어의 역슬래시는 LIKE의 이스케이프 문자로 쓰인다 (v1_6 Ebean은 기본 이스케이프를 그대로 쓴다)`() {
+        // 패턴 `%\%`는 "퍼센트로 끝나는 글"이다. 역슬래시를 글자 그대로 찾는 것이 아니다
+        val owner = newUser(); val p = project(owner, "bslash")
+        issue(p, "끝이 퍼센트 100%", owner); issue(p, "역슬래시 a\\b", owner)
+        assertEquals(listOf("끝이 퍼센트 100%"), titles(all(null, "issue", "\\")))
+    }
+
+    @Test
     fun `구성원은 비공개 프로젝트의 이슈도 본다`() {
         val owner = newUser(); val member = newUser(); val priv = project(owner, "privmember", ProjectScope.PRIVATE)
         issue(priv, "secretneedle", owner); join(member, priv)

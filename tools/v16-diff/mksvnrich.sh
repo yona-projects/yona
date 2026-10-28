@@ -41,8 +41,7 @@ PY
   printf '#!/bin/sh\necho run\n' > trunk/src/run.sh; $S add -q trunk/src/run.sh; $S propset -q svn:executable '*' trunk/src/run.sh
   $S propset -q svn:keywords 'Id Rev' trunk/src/Main.java
   $S propset -q svn:ignore $'*.log\n*.tmp\nbuild' trunk
-  $S propset -q svn:externals 'ext http://example.org/ext' trunk/src
-  $S propset -q "속성:이름" '한글 값 <b>&' trunk/README.md
+  $S propset -q "custom:note" '한글 값 <b>&' trunk/README.md
   $S propset -q svn:mime-type text/plain trunk/bin/random.bin
   c "r3 속성 여러 가지"
   $S propset -q svn:needs-lock '*' trunk/text/utf8.txt; c "r4 속성만 바꾼 커밋"

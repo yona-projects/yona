@@ -23,6 +23,14 @@ v1.6의 소스를 읽어 맞추는 방식은 판단이 틀릴 수 있어(예: `i
 | `gitprep.sh`, `mkproject.py` | 같은 내용과 같은 시각의 git 저장소를 만들어 두 서버에 올린다. 커밋 해시가 같아 화면을 그대로 대조할 수 있다 |
 | `mdcompare.py`, `mdfuzz.py` | 마크다운 미리보기를 파일과 무작위 조각으로 직접 대조한다 |
 | `probe.py`, `show.py`, `formdump.py` | 요청 하나를 나란히 보여 주는 도구 |
+| `weird.py`, `remember.py` | 소켓으로 직접 보내는 변칙 요청 151건(경로 정규화, 머리글 한도, 깨진 질의와 멀티파트, 변칙 메서드)과 로그인 유지 쿠키 변형을 대조한다. 남은 차이는 서버 엔진 차이(G-33)와 관대함 차이(G-34, G-35) |
+| `cfg.sh`, `cfgs.tsv`, `cfgprobe.py`, `cfgmail.sh` | 설정 24종(언어, 이전 화면, 소셜 버튼, 업데이트 확인 등)을 켠 채로 두 서버를 다시 띄워 대조한다. `servers.sh`의 `cfg.v16`, `cfg.v2`, `cfg.jvm` 파일로 설정을 넘긴다 |
+| `ldap.sh`, `ldap.py`, `ldap/LdapServer.java` | UnboundID 기반 가짜 LDAP 서버를 두 서버가 보게 해 로그인, 가입 승인, 이메일 동기화를 대조한다 |
+| `social.sh`, `social.py`, `idp.py` | 가짜 OAuth 제공자(19700)로 GitHub, Google 로그인 40건을 대조한다(A-182) |
+| `mkrich.py`, `mksvnrich.sh`, `mkspecial.py`, `scenarios/rich1.py`, `svnrich1.py`, `specials1.py` | 풍부한 git·svn 저장소(많은 커밋, 이진 파일, 이모지, 특수 문자 경로)를 만들어 화면을 대조한다(A-183, A-184) |
+| `first.sh`, `upd.sh`, `sched.sh`, `xport.sh`, `xport1.sh` | 최초 설치 흐름, 업데이트 확인, 예약 작업(임시 첨부와 오래된 알림 정리), 내보내기·가져오기 교차(v2 -> v1.6, v1.6 -> v2) |
+| `coverage.py`, `assets.py`, `reportfilter.py` | 라우트 306개 전수 요청 확인, 정적 자원 755개 본문 대조, 번호만 다른 차이를 걸러 내는 보고서 필터 |
+| `browser/pageload.mjs`, `browser/clickall.mjs` | Playwright로 같은 화면을 두 서버에서 열고(714건) 눌러 보며(65화면) XHR, 콘솔 오류, 화면 글자를 대조한다 |
 
 상태는 `base`(최초 설정만), `data1`(데이터 생성 뒤), `data2`(저장소 올림 뒤)로 저장해 두고 시나리오마다 되돌려 쓴다.
 

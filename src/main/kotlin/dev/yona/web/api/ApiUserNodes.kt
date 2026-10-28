@@ -33,7 +33,7 @@ class ApiUserNodes(
     /** 활성 사용자를 로그인 ID, 이름, 영문 이름에서 찾는다. [type]이 있으면 그 항목이 [query]와 같은 사용자만이다. */
     fun search(query: String, type: String?): List<User> {
         val where = if (type.isNullOrBlank()) {
-            "(lower(u.loginId) like lower(concat('%', :q, '%')) or lower(u.name) like lower(concat('%', :q, '%')) or lower(u.englishName) like lower(concat('%', :q, '%')))"
+            "(lower(u.loginId) like lower(concat('%', :q, '%')) escape '\\' or lower(u.name) like lower(concat('%', :q, '%')) escape '\\' or lower(u.englishName) like lower(concat('%', :q, '%')) escape '\\')"
         } else {
             val field = TYPES[type] ?: return emptyList()
             "u.$field = :q"

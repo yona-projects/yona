@@ -204,8 +204,8 @@ class IssueSearchService(private val entityManager: EntityManager) {
             }
             val viewerId = viewer?.id ?: IssueSearchCondition.NO_VALUE
             if (condition.filter.isNotBlank()) {
-                clauses += "(lower(i.title) like :filter or lower(cast(i.body as string)) like :filter or exists " +
-                    "(select 1 from IssueComment c where c.issue.id = i.id and lower(cast(c.contents as string)) like :filter))"
+                clauses += "(lower(i.title) like :filter escape '\\' or lower(cast(i.body as string)) like :filter escape '\\' or exists " +
+                    "(select 1 from IssueComment c where c.issue.id = i.id and lower(cast(c.contents as string)) like :filter escape '\\'))"
                 params["filter"] = "%" + condition.filter.lowercase() + "%"
             }
             // 프로젝트를 가리지 않는 검색은 작성자, 담당자, 댓글 조건의 값을 보지 않고 현재 사용자를 쓴다 (v1.6 `byUser`).

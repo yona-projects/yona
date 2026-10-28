@@ -55,4 +55,10 @@ data class CodePage(
     val showTabs: Boolean, val filesTabUrl: String, val commitsTabUrl: String, val branchesTabUrl: String?, val branches: List<BranchOption>,
     val rootUrl: String, val projectName: String, val crumbs: List<Crumb>, val downloadUrl: String?, val newFileUrl: String?,
     val items: List<CodeItem>, val initialPath: String, val metaInfoUrl: String, val basePathUrl: String
-)
+) {
+    /** 스크립트 문자열에 그대로 쓰는 프로젝트 이름. v1.6은 Twirl 값을 JS 이스케이프 없이 넣어 HTML 이스케이프로 나온다. */
+    val scriptProjectName: String get() = dev.yona.web.TemplateHelper.escapeHtml(projectName)
+
+    /** 스크립트 문자열에 그대로 쓰는 처음 경로(위와 같다). */
+    val scriptInitialPath: String get() = dev.yona.web.TemplateHelper.escapeHtml(initialPath)
+}

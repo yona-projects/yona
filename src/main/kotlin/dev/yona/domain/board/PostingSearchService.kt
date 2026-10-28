@@ -44,7 +44,7 @@ class PostingSearchService(private val entityManager: EntityManager) {
         val where = StringBuilder("where p.project.id = :project and p.notice = false")
         val params = linkedMapOf<String, Any>("project" to requireNotNull(project.id))
         if (condition.filter.isNotEmpty()) {
-            where.append(" and (lower(p.title) like :filter or lower(cast(p.body as string)) like :filter)")
+            where.append(" and (lower(p.title) like :filter escape '\\' or lower(cast(p.body as string)) like :filter escape '\\')")
             params["filter"] = "%" + condition.filter.lowercase() + "%"
         }
         if (condition.labelIds.isNotEmpty()) {
@@ -72,7 +72,7 @@ class PostingSearchService(private val entityManager: EntityManager) {
         val where = StringBuilder("where p.project.id in :projects")
         val params = linkedMapOf<String, Any>("projects" to projectIds)
         if (condition.filter.isNotEmpty()) {
-            where.append(" and (lower(p.title) like :filter or lower(cast(p.body as string)) like :filter)")
+            where.append(" and (lower(p.title) like :filter escape '\\' or lower(cast(p.body as string)) like :filter escape '\\')")
             params["filter"] = "%" + condition.filter.lowercase() + "%"
         }
         val field = if (condition.effectiveOrderBy in ORDERABLE) condition.effectiveOrderBy else "createdDate"

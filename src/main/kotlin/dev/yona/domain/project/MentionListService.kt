@@ -150,8 +150,8 @@ class MentionListService(
         val jpql = if (query.isEmpty()) {
             "select i from Issue i where i.project.id = :project order by i.createdDate desc, i.id desc"
         } else {
-            "select i from Issue i where i.project.id = :project and (lower(i.title) like lower(concat('%', :query, '%')) " +
-                "or cast(i.number as string) like concat(:query, '%')) order by i.createdDate desc, i.id desc"
+            "select i from Issue i where i.project.id = :project and (lower(i.title) like lower(concat('%', :query, '%')) escape '\\' " +
+                "or cast(i.number as string) like concat(:query, '%') escape '\\') order by i.createdDate desc, i.id desc"
         }
         val typed = entityManager.createQuery(jpql, Issue::class.java).setParameter("project", projectId)
         if (query.isNotEmpty()) typed.setParameter("query", query)
@@ -230,8 +230,8 @@ class MentionListService(
     private fun searchActive(query: String): List<User> =
         entityManager.createQuery(
             "select u from User u where u.id <> :manager and u.loginId <> 'anonymous' and u.state = :state and (" +
-                "lower(u.loginId) like lower(concat('%', :q, '%')) or lower(u.name) like lower(concat('%', :q, '%')) or " +
-                "lower(u.englishName) like lower(concat('%', :q, '%')) or lower(u.email) like lower(concat('%', :q, '%'))) " +
+                "lower(u.loginId) like lower(concat('%', :q, '%')) escape '\\' or lower(u.name) like lower(concat('%', :q, '%')) escape '\\' or " +
+                "lower(u.englishName) like lower(concat('%', :q, '%')) escape '\\' or lower(u.email) like lower(concat('%', :q, '%')) escape '\\') " +
                 "order by u.createdDate desc, u.id desc", User::class.java
         ).setParameter("manager", SITE_MANAGER_ID).setParameter("state", UserState.ACTIVE).setParameter("q", query)
             .setMaxResults(USER_COUNT_PER_PAGE).resultList

@@ -60,10 +60,10 @@ class ProjectListService(
                 val pattern = "%${query.lowercase()}%"
                 val labelJoin = root.join<Project, dev.yona.domain.issue.Label>("labels", JoinType.LEFT)
                 predicates += cb.or(
-                    cb.like(cb.lower(root.get("owner")), pattern),
-                    cb.like(cb.lower(root.get("name")), pattern),
-                    cb.like(cb.lower(root.get("overview")), pattern),
-                    cb.like(cb.lower(labelJoin.get("name")), pattern)
+                    cb.like(cb.lower(root.get("owner")), pattern, '\\'),
+                    cb.like(cb.lower(root.get("name")), pattern, '\\'),
+                    cb.like(cb.lower(root.get("overview")), pattern, '\\'),
+                    cb.like(cb.lower(labelJoin.get("name")), pattern, '\\')
                 )
             }
             if (labelIds.isNotEmpty()) {

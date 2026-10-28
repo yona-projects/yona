@@ -91,7 +91,7 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
         val filter = condition.filter
         if (!filter.isNullOrBlank()) {
             val pattern = "%" + filter.lowercase() + "%"
-            fun likeIgnoreCase(path: jakarta.persistence.criteria.Expression<String>) = cb.like(cb.lower(path.`as`(String::class.java)), pattern, '!')
+            fun likeIgnoreCase(path: jakarta.persistence.criteria.Expression<String>) = cb.like(cb.lower(path.`as`(String::class.java)), pattern, '\\')
 
             val comments = query!!.subquery(Long::class.java).let { sub ->
                 val rc = sub.from(ReviewComment::class.java)

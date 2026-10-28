@@ -82,7 +82,7 @@ start_v2() {
   V2_ARGS=$(echo "--server.port=19300 --yona.data-dir=$V2D/data --spring.datasource.url=jdbc:h2:file:$V2D/db/yona;DB_CLOSE_DELAY=-1 \
     --yona.social.login-support=github,google --yona.social.github.client-id=id --yona.social.github.client-secret=secret \
     --yona.social.google.client-id=id --yona.social.google.client-secret=secret \
-    --yona.update.check=$(upd_check) --yona.update.repository-url=$(upd_repo) --yona.update.init-delay=1s --yona.update.interval=6h --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --yona.smtp.user=yona.mail --yona.smtp.domain=example.com $(imap_flags_v2) \
+    --yona.update.check=$(upd_check) --yona.update.repository-url=$(upd_repo) --yona.update.init-delay=1s --yona.update.interval=6h --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --spring.mail.username=yona.mail --spring.mail.password=pw --yona.smtp.user=yona.mail --yona.smtp.domain=example.com $(imap_flags_v2) \
     --yona.notification-mail-init-delay=1000 --yona.notification-mail-interval=2000 --yona.notification-mail-delay=3000 ${V2_EXTRA:-} $(cat "$WORK/cfg.v2" 2>/dev/null)" | dedupe_args)
   JAVA_TOOL_OPTIONS="$(cat "$WORK/cfg.jvm" 2>/dev/null)" nohup $J21/bin/java -jar "$JAR" $V2_ARGS > "$V2D/boot.log" 2>&1 &
   echo $! > "$V2D/v2.pid"

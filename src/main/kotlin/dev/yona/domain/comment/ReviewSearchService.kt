@@ -95,9 +95,9 @@ class ReviewSearchService(private val entityManager: EntityManager) {
             clauses += "t.state = :state"
             params["state"] = requireNotNull(condition.threadState) { "알 수 없는 상태: ${condition.state}" }
             if (condition.filter.isNotBlank()) {
-                clauses += "(exists (select 1 from ReviewComment fc where fc.thread.id = t.id and lower(cast(fc.contents as string)) like :filter)" +
-                    " or t.id in (select x.id from CodeCommentThread x where lower(x.commitId) like :filter or lower(x.path) like :filter)" +
-                    " or t.id in (select y.id from NonRangedCodeCommentThread y where lower(y.commitId) like :filter or lower(y.path) like :filter))"
+                clauses += "(exists (select 1 from ReviewComment fc where fc.thread.id = t.id and lower(cast(fc.contents as string)) like :filter escape '\\')" +
+                    " or t.id in (select x.id from CodeCommentThread x where lower(x.commitId) like :filter escape '\\' or lower(x.path) like :filter escape '\\')" +
+                    " or t.id in (select y.id from NonRangedCodeCommentThread y where lower(y.commitId) like :filter escape '\\' or lower(y.path) like :filter escape '\\'))"
                 params["filter"] = "%" + condition.filter.lowercase() + "%"
             }
         }

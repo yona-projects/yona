@@ -193,7 +193,8 @@ class DiffHtmlRenderer(private val messages: MessageSource, private val siteUrls
         for (i in 0 until raw.size()) {
             out.append("<tr class='$klass' data-line='${i + 1}' data-type='$klass' data-side='${if (klass == "remove") "A" else "B"}'><td class='linenum'><i class='yobicon-comments'></i><div class='line-number'></div></td>")
             out.append("<td class='linenum'><div class='line-number' data-line-num='${i + 1}'></div><span class='hidden'>${i + 1}</span></td><td class='code'><pre class='diff-partial-codeline'>")
-            out.append(prefix).append(esc(raw.getString(i)))
+            // v1.6은 전체 줄을 commons-lang 2.x `escapeHtml`로 바꾼다(글자마다 숫자 개체이고 서로게이트 쌍이 갈라진다). 범위 안의 줄은 Play의 기본 이스케이프이다
+            out.append(prefix).append(org.apache.commons.lang.StringEscapeUtils.escapeHtml(raw.getString(i)))
             if (i + 1 == raw.size() && raw.isMissingNewlineAtEnd) out.append(noNewlineAtEof())
             out.append("</pre></td></tr>")
             out.append(threadRows(lineThreads(threads, path, side, i + 1), renderer).trim())

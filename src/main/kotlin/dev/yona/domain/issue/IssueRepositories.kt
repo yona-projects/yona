@@ -96,18 +96,18 @@ interface LabelRepository : JpaRepository<Label, Long> {
     fun findFirstByCategoryAndName(category: String?, name: String?): Label?
 
     /** 분류와 이름에 [category], [query]가 대소문자 없이 들어 있는 라벨의 수이다 (v1.6 `icontains`). */
-    @Query("select count(l) from Label l where lower(l.category) like lower(concat('%', :category, '%')) and lower(l.name) like lower(concat('%', :query, '%'))")
+    @Query("select count(l) from Label l where lower(l.category) like lower(concat('%', :category, '%')) escape '\\' and lower(l.name) like lower(concat('%', :query, '%')) escape '\\'")
     fun countMatching(category: String, query: String): Long
 
     /** [countMatching]과 같은 조건의 라벨을 아이디순으로 조회한다. */
-    @Query("select l from Label l where lower(l.category) like lower(concat('%', :category, '%')) and lower(l.name) like lower(concat('%', :query, '%')) order by l.id")
+    @Query("select l from Label l where lower(l.category) like lower(concat('%', :category, '%')) escape '\\' and lower(l.name) like lower(concat('%', :query, '%')) escape '\\' order by l.id")
     fun findMatching(category: String, query: String, pageable: org.springframework.data.domain.Pageable): List<Label>
 
     /** 분류에 [query]가 대소문자 없이 들어 있는 겹치지 않는 분류의 수이다. */
-    @Query("select count(distinct l.category) from Label l where lower(l.category) like lower(concat('%', :query, '%'))")
+    @Query("select count(distinct l.category) from Label l where lower(l.category) like lower(concat('%', :query, '%')) escape '\\'")
     fun countCategories(query: String): Long
 
     /** [countCategories]와 같은 조건의 분류를 이름순으로 조회한다. */
-    @Query("select distinct l.category from Label l where lower(l.category) like lower(concat('%', :query, '%')) order by l.category")
+    @Query("select distinct l.category from Label l where lower(l.category) like lower(concat('%', :query, '%')) escape '\\' order by l.category")
     fun findCategories(query: String, pageable: org.springframework.data.domain.Pageable): List<String>
 }

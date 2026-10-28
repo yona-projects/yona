@@ -26,7 +26,7 @@ class SiteContentService(private val entityManager: EntityManager) {
     fun projects(name: String, pageIndex: Int): ContentPage<Project> =
         if (name.isBlank()) page("from Project p order by p.createdDate desc, p.id desc", "select count(p) from Project p", emptyMap(), PROJECT_PAGE_SIZE, pageIndex, Project::class.java)
         else page(
-            "from Project p where lower(p.name) like :name order by p.id", "select count(p) from Project p where lower(p.name) like :name",
+            "from Project p where lower(p.name) like :name escape '\\' order by p.id", "select count(p) from Project p where lower(p.name) like :name escape '\\'",
             mapOf("name" to "%" + name.lowercase() + "%"), PROJECT_PAGE_SIZE, pageIndex, Project::class.java
         )
 

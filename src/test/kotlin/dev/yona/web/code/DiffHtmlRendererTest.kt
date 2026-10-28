@@ -92,6 +92,15 @@ class DiffHtmlRendererTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `추가한 파일의 전체 줄은 v1_6처럼 글자마다 숫자 개체로 쓰고 이모지는 반쪽 둘로 깨진다`() {
+        // v1.6 renderRawFile은 commons-lang 2.x `escapeHtml`을 쓴다. 이 버전은 UTF-16 글자 하나씩 `&#n;`으로 바꿔 서로게이트 쌍이 갈라지고 브라우저는 대체 문자 둘을 보인다
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("e.txt" to "<b>한글</b> é 😀 'q' \"d\"\n".toByteArray())))
+        val raw = renderer.render(diffs.commitDiff(p, "master")!!, emptyList(), p, p) { "" }
+        assertTrue(raw.contains("+&lt;b&gt;&#54620;&#44544;&lt;/b&gt; &eacute; &#55357;&#56832; 'q' &quot;d&quot;"), raw.lines().first { it.contains("diff-partial-codeline") }.take(300))
+    }
+
+    @Test
     fun `이름을 바꾼 파일과 이진 파일을 알린다`() {
         val p = project()
         GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("old.txt" to lines("가", "나", "다", "라").toByteArray(), "bin.dat" to byteArrayOf(0, 1, 0, 2))),

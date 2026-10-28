@@ -45,7 +45,7 @@ class SiteUserService(
             else -> { clauses += "u.state = :state"; params["state"] = state }
         }
         if ((query != null && LegacyText.isNotBlank(query))) {
-            clauses += listOf("loginId", "name", "englishName", "email").joinToString(" or ", "(", ")") { "lower(u.$it) like :query" }
+            clauses += listOf("loginId", "name", "englishName", "email").joinToString(" or ", "(", ")") { "lower(u.$it) like :query escape '\\'" }
             params["query"] = "%" + query.lowercase() + "%"
         }
         val where = clauses.joinToString(" and ")

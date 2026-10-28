@@ -38,6 +38,8 @@ class SecurityConfig {
         setAllowUrlEncodedPercent(true)
         // 두 번 인코딩해 디코딩하면 `%2F`가 남는다. 이 값을 검사에서 거부하지 않는다.
         setAllowUrlEncodedSlash(true)
+        // svn 클라이언트는 파일 이름의 `;`를 `%3B`로 보내 커밋한다. 기본 방화벽은 세미콜론이 든 주소를 400으로 막아 이런 이름의 파일을 올릴 수 없다
+        setAllowSemicolon(true)
         // Subversion 클라이언트가 보내는 WebDAV 메서드(`PROPFIND`, `MKACTIVITY` 등)를 허용한다. 기본 방화벽은 표준 메서드만 받는다.
         setAllowedHttpMethods(listOf("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT") + dev.yona.web.svn.SvnDavService.WEBDAV_METHODS)
     }

@@ -104,6 +104,16 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         assertEquals("/${p.owner}/${p.name}/code/master/한글 폴더/%ED%8C%8C%EC%9D%BC%20%EC%9D%B4%EB%A6%84.txt", doc.selectFirst("a[title=파일 이름.txt]")!!.attr("href"))
     }
 
+    @Test
+    fun `스크립트의 프로젝트 이름과 처음 경로는 JS가 아니라 HTML 이스케이프로 나온다 (v1_6 view에서 따옴표 안에 곧바로 쓴다)`() {
+        // v1.6 code/view.scala.html은 `"sInitialPath": "@path"`처럼 Twirl 값을 문자열에 넣어 `&`, `<`, `'`가 `&amp;`, `&lt;`, `&#x27;`로 나온다
+        val p = project()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("처음", mapOf("a&b/it's <i>.txt" to "x".toByteArray())))
+        val html = mockMvc.perform(get(java.net.URI.create("/${p.owner}/${p.name}/code/master/a&b/it's%20%3Ci%3E.txt"))).andExpect(status().isOk).andReturn().response.contentAsString
+        assertTrue(html.contains(""""sInitialPath": "a&amp;b/it&#x27;s &lt;i&gt;.txt","""), html.lines().firstOrNull { it.contains("sInitialPath") })
+        assertTrue(html.contains(""""sProjectName": "${p.name}","""))
+    }
+
     private fun page(path: String, session: MockHttpSession? = null): Document =
         Jsoup.parse(mockMvc.perform(get(java.net.URI.create(path)).apply { session?.let { session(it) } }).andExpect(status().isOk).andReturn().response.contentAsString)
 

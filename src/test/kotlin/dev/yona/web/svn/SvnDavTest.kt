@@ -225,6 +225,17 @@ class SvnDavTest {
     }
 
     @Test
+    fun `세미콜론이나 퍼센트가 든 파일 이름도 HTTP로 커밋하고 읽을 수 있다`() {
+        // svn 클라이언트는 `;`를 `%3B`로 보낸다. 스프링 시큐리티의 방화벽이 이를 막으면 400으로 커밋이 실패한다
+        val repository = client(publicProject, member)
+        assertEquals(1L, commitOverHttp(repository, "semi;name.txt", "세미콜론\n"))
+        assertEquals(2L, commitOverHttp(repository, "100%.txt", "퍼센트\n"))
+        val reader = client(publicProject)
+        assertEquals(SVNNodeKind.FILE, reader.checkPath("semi;name.txt", -1))
+        assertEquals(SVNNodeKind.FILE, reader.checkPath("100%.txt", -1))
+    }
+
+    @Test
     fun `자식 항목의 PROPFIND 응답 href도 퍼센트 인코딩되어 있다`() {
         commitOverHttp(client(publicProject, member), "한글 b.txt", "x\n")
         val request = HttpRequest.newBuilder(URI.create(url(publicProject) + "/!svn/bc/1/"))

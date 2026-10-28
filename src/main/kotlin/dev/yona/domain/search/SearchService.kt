@@ -145,7 +145,7 @@ class SearchService(private val entityManager: EntityManager, private val proper
         }
 
         private fun keywordMatches(): String =
-            spec.fields.joinToString(" or ", "(", ")") { "lower(cast($it as string)) like :kw" }
+            spec.fields.joinToString(" or ", "(", ")") { "lower(cast($it as string)) like :kw escape '\\'" }
 
         private fun build(): String = when (type) {
             SearchType.USER -> userCondition()

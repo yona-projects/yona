@@ -149,8 +149,8 @@
         $("#open-in-browser").popover({trigger: "hover", placement: "top"});
 
         $yobi.loadModule("code.Browser", {
-            "sProjectName": /*[[${page.projectName}]]*/ "",
-            "sInitialPath": /*[[${page.initialPath}]]*/ "",
+            "sProjectName": "[(${page.scriptProjectName})]",
+            "sInitialPath": "[(${page.scriptInitialPath})]",
             "sMetaInfoURL": /*[[${page.metaInfoUrl}]]*/ "",
             "sBasePathURL": /*[[${page.basePathUrl}]]*/ ""
         });

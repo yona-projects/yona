@@ -27,6 +27,8 @@ PLAN=(
   "proto1:data3:"
   "mail1:data3:"
   "gap1:data3:pr"
+  "rich1:rich:"
+  "svnrich1:svnrich:"
 )
 want=" $* "
 for item in "${PLAN[@]}"; do
