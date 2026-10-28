@@ -51,4 +51,12 @@ class AnalyticsTagTest : AbstractIntegrationTest() {
             assertTrue(html.contains(it), "$it 예약어가 있어야 한다")
         }
     }
+
+    @Test
+    fun `2단 보기가 켜진 채 목록 제목을 열면 two_column_open을 화면 종류와 프레임 여부와 함께 보낸다`() {
+        val html = login()
+        assertTrue(html.contains("two_column_open"))
+        assertTrue(html.contains(".title, .twoColumeModeTarget"))
+        assertTrue(Regex("two_column_open.*?screen: twoColumnScreen\\(location.pathname\\).*?in_frame", RegexOption.DOT_MATCHES_ALL).containsMatchIn(html))
+    }
 }
