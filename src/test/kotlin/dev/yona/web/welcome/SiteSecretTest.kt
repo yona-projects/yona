@@ -90,6 +90,30 @@ class SiteSecretTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `일치하는 라우트가 없는 GET도 맨 아래 포괄 라우트의 액션이라 같은 화면이다`() {
+        // v1.6 `GET /*paths`(Application.removeTrailer)는 Java 액션이라 Global.onRequest가 가로챈다. 끝 슬래시도 이동하지 않는다
+        listOf("/nothing/here/at/all", "/nothing/here/", "/a/b/c/d/e").forEach { path ->
+            assertEquals("Tada! Welcome to Yona!", page(path).title(), path)
+        }
+        assertEquals("Tada! Welcome to Yona!", Jsoup.parse(mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head("/nothing/here/at/all")).andReturn().response.contentAsString.ifEmpty { "<title>Tada! Welcome to Yona!</title>" }).title())
+    }
+
+    @Test
+    fun `접근 검사가 붙은 라우트는 검사가 먼저이고 통과해야 비밀 키 화면이 나온다`() {
+        // v1.6 Play는 애너테이션 액션을 Global.onRequest 액션보다 바깥에서 실행한다. 익명이 열 수 없는 주소는 로그인 안내(403)이다
+        listOf("/sites/setting", "/nobody/none", "/nobody/none/issues").forEach { path ->
+            mockMvc.perform(get(path)).andExpect(status().isForbidden)
+        }
+    }
+
+    @Test
+    fun `아이콘 링크는 v1_6처럼 favicon_ico를 가리킨다`() {
+        assertEquals("/favicon.ico", page("/").selectFirst("link[rel=shortcut icon]")!!.attr("href"))
+        submit(*valid)
+        assertEquals("/favicon.ico", page("/").selectFirst("link[rel=shortcut icon]")!!.attr("href"))
+    }
+
+    @Test
     fun `정적 자원은 그대로 보낸다`() {
         mockMvc.perform(get("/assets/bootstrap/css/bootstrap.css")).andExpect(status().isOk)
     }
@@ -102,6 +126,34 @@ class SiteSecretTest : AbstractIntegrationTest() {
             val doc = Jsoup.parse(submit(*with("loginId", it)).andExpect(status().isBadRequest).andReturn().response.contentAsString)
             assertTrue(doc.select("label[for=loginId] ~ span.label-important, dt:has(label[for=loginId]) span.label-important").isNotEmpty())
         }
+    }
+
+    @Test
+    fun `ID 오류는 폼 바인딩 오류와 hasError 오류가 v1_6처럼 모두 쌓인다`() {
+        // 값 -> 보이는 오류 문구(순서 포함). 값이 ""이면 필수 오류 하나에 "admin이 아님" 계열 둘, 형식이 틀리면 형식 오류에 "admin이 아님" 하나가 더해진다
+        val valid = "Enter Valid ID"
+        mapOf(
+            "" to listOf("This field is required", valid, valid),
+            " " to listOf(valid, valid, valid),
+            "root!" to listOf(valid, valid),
+            "admin " to listOf(valid, valid),
+            "sites" to listOf("This is a reserved system word.", valid),
+            "root" to listOf(valid),
+            "ADMIN" to listOf(valid)
+        ).forEach { (value, expected) ->
+            val doc = Jsoup.parse(submit(*with("loginId", value)).andExpect(status().isBadRequest).andReturn().response.contentAsString)
+            assertEquals(expected, doc.select("dt:has(label[for=loginId]) span.label-important").map { it.text() }, "loginId='$value'")
+        }
+    }
+
+    @Test
+    fun `loginId나 password 항목이 아예 없으면 v1_6처럼 널 참조로 500이다`() {
+        // v1.6 hasError는 값이 비어 있어도 `.value().equals(...)`를 부른다. 항목이 아예 없으면 NPE가 난다
+        assertEquals(500, submit(*without("loginId")).andReturn().response.status)
+        assertEquals(500, submit().andReturn().response.status)
+        assertEquals(500, submit(*without("password")).andReturn().response.status)
+        // retypedPassword만 없으면 "다르다"는 오류이다
+        assertEquals(400, submit(*without("retypedPassword")).andReturn().response.status)
     }
 
     @Test

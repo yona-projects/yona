@@ -55,6 +55,23 @@ class StaticAssetsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `하위 폴더의 LESS도 CSS와 소스 맵으로 컴파일해 제공한다`() {
+        // v1.6 sbt-less는 less/font 아래 파일도 따로 컴파일했다(filetype.less가 가져다 쓰는 파일이다)
+        listOf("colours", "fonts", "icons").forEach { name ->
+            mockMvc.perform(get("/assets/stylesheets/less/font/$name.css"))
+                .andExpect(status().isOk).andExpect(content().string(org.hamcrest.Matchers.endsWith("/*# sourceMappingURL=$name.css.map */")))
+            mockMvc.perform(get("/assets/stylesheets/less/font/$name.css.map"))
+                .andExpect(status().isOk).andExpect(content().string(org.hamcrest.Matchers.startsWith("{\"version\":3,\"file\":\"$name.css\",\"sources\":[\"$name.less\"]")))
+        }
+    }
+
+    @Test
+    fun `public 폴더의 compiler jar도 v1_6처럼 내려 준다`() {
+        val size = mockMvc.perform(get("/assets/compiler.jar")).andExpect(status().isOk).andReturn().response.contentAsByteArray.size
+        assertEquals(6577863, size)
+    }
+
+    @Test
     fun `없는 자원은 404이다`() {
         mockMvc.perform(get("/assets/no/such/file.css")).andExpect(status().isNotFound)
     }

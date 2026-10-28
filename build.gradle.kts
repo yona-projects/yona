@@ -206,6 +206,9 @@ val lessOutputDir = layout.buildDirectory.dir("generated/less")
 /** v1.6에서 `_`로 시작하지 않는 최상위 LESS 파일이 CSS 하나로 컴파일된다(`build.sbt`의 includeFilter/excludeFilter). */
 val lessEntries = listOf("yobi", "usermenu", "filetype")
 
+/** 하위 폴더의 LESS도 sbt-less가 따로 CSS로 컴파일해 내려 준다(`/assets/stylesheets/less/font/icons.css` 등). 소스 맵의 `sources`는 그 파일이 있는 폴더 기준이다. */
+val lessNestedEntries = listOf("less/font/colours", "less/font/fonts", "less/font/icons")
+
 val installLess by tasks.registering(Exec::class) {
 	description = "LESS 컴파일러(npm less)를 설치한다."
 	workingDir = lessToolDir.asFile
@@ -223,19 +226,22 @@ val compileLess by tasks.registering {
 		val outDir = lessOutputDir.get().dir("static/assets/stylesheets").asFile
 		outDir.mkdirs()
 		val lessc = lessToolDir.file("node_modules/.bin/lessc").asFile
-		lessEntries.forEach { name ->
+		(lessEntries + lessNestedEntries).forEach { entry ->
+			val name = entry.substringAfterLast('/')
+			val sourceDir = File(lessSourceDir.asFile, entry.substringBeforeLast('/', ""))
+			val entryOut = File(outDir, entry.substringBeforeLast('/', "")).also { it.mkdirs() }
 			// v1.6 sbt-less는 소스 맵(`name.css.map`)을 함께 만들고 CSS 끝에 `/*# sourceMappingURL=name.css.map */`를 붙인다
 			val result = ProcessBuilder(
-				lessc.absolutePath, "--source-map=${File(outDir, "$name.css.map").absolutePath}", "--source-map-url=$name.css.map",
-				"$name.less", File(outDir, "$name.css").absolutePath
+				lessc.absolutePath, "--source-map=${File(entryOut, "$name.css.map").absolutePath}", "--source-map-url=$name.css.map",
+				"$name.less", File(entryOut, "$name.css").absolutePath
 			)
-				.directory(lessSourceDir.asFile)
+				.directory(sourceDir)
 				.redirectErrorStream(true)
 				.start()
 			val output = result.inputStream.bufferedReader().readText()
 			check(result.waitFor() == 0) { "$name.less 컴파일 실패:\n$output" }
 			// v1.6의 소스 맵은 `file`이 출력 파일 이름이고 `version` 바로 뒤에 온다(lessc는 절대 경로를 맨 끝에 쓴다)
-			val map = File(outDir, "$name.css.map")
+			val map = File(entryOut, "$name.css.map")
 			val raw = map.readText()
 			val fileKey = Regex(",\"file\":\"[^\"]*\"\\}$").find(raw)
 			if (fileKey != null) {

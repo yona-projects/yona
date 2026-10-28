@@ -1,5 +1,6 @@
 package dev.yona.web.layout
 
+import dev.yona.web.RedirectSupport
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component
@@ -21,6 +22,8 @@ class FlashDisplayInterceptor(private val translator: FlashMessageTranslator) : 
         val view = modelAndView ?: return
         val name = view.viewName
         if (name != null && (name.startsWith("redirect:") || name.startsWith("forward:"))) return
+        // forward 전의 요청이 심은 값을 이 요청이 입력으로 읽어 갔으므로, 다음 요청에도 보이도록 그대로 다시 심는다
+        if (request.getAttribute(RedirectSupport.CARRY_ATTRIBUTE) == true) RedirectSupport.saveFlash(request, response, emptyMap())
         val input = RequestContextUtils.getInputFlashMap(request).orEmpty()
         val output = RequestContextUtils.getOutputFlashMap(request)
         if (output.isEmpty()) return // 이번 요청이 심은 값이 없으면 어드바이스가 채운 값(앞 요청의 값)으로 충분하다

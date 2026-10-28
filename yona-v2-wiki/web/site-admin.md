@@ -59,7 +59,7 @@ updated: 2026-10-25
 
 코드: `domain/site/UpdateCheckService`, `UpdateCheckScheduler`, `Semver`, `RemoteTags`(JGit `ls-remote`), `DiagnosticService`, `ConfigDiagnostic`, `PropertyDiagnostic`, `web/site/SiteMaintenanceController`. 템플릿은 `site/update`, `site/diagnostic`, 레이아웃(`layout/layout`)의 알림.
 
-- 설정(`yona.update.*`): `check`(기본 켬), `init-delay`(5초), `interval`(1시간, 0 이하이면 백그라운드 확인 없음), `repository-url`(`http://repo.yona.io/yona/yona`), `release-url-format`(`https://github.com/yona-projects/yona/releases/tag/v%s`).
+- 설정(`yona.update.*`): `check`(기본 켬), `init-delay`(5초), `interval`(6시간, 0 이하이면 백그라운드 확인 없음), `repository-url`(`https://github.com/yona-projects/yona`), `release-url-format`(`https://github.com/yona-projects/yona/releases/tag/v%s`).
 - 확인: 저장소의 태그(브랜치 제외) 중 `v`로 시작하는 것을 버전으로 읽어 현재 버전보다 높은 가장 큰 버전을 고른다. 읽을 수 없는 태그는 경고만 남기고 건너뛴다. 현재 버전은 빌드 정보이다(A-91).
 - `GET /sites/update`: `check`가 켜져 있으면 요청 안에서 확인한다. 새 버전이 있으면 안내와 내려받기 링크(릴리스 주소), 현재 버전, 새 버전이 없으면 "필요 없음", 읽지 못하면 오류 안내와 스택 트레이스를 보인다. 꺼져 있으면 현재 버전을 알리지 않는다.
 - 백그라운드: 서버를 시작하고 `init-delay` 뒤 `interval`마다 확인한다(`check`와 관계없음, R-55).

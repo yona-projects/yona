@@ -28,7 +28,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException
  */
 @ControllerAdvice
 @Order(Ordered.LOWEST_PRECEDENCE)
-class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
+class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory, private val siteSecret: dev.yona.web.welcome.SiteSecretInterceptor) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -44,6 +44,11 @@ class GlobalErrorHandler(private val layoutModelFactory: LayoutModelFactory) {
         val path = request.requestURI
         // Play는 HEAD를 GET 라우트로 보내므로 HEAD도 GET처럼 다룬다
         val readOnly = request.method == "GET" || request.method == "HEAD"
+        // 비밀 키를 정하기 전에는 포괄 라우트의 액션도 Global.onRequest가 가로채 설정 화면(또는 재시작 안내)을 낸다. 끝 슬래시 이동도 하지 않는다
+        if (readOnly) siteSecret.pendingScreen(request)?.let {
+            if (!response.isCommitted) response.reset()
+            return withLayout(it, request)
+        }
         if (readOnly && path.length > 1 && path.endsWith("/")) {
             log.debug("Trailing slash removed and redirected: {} to {}", path, path.dropLast(1))
             return RedirectSupport.see(request, response, path.dropLast(1))

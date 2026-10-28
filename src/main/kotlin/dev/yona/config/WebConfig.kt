@@ -52,9 +52,11 @@ class WebConfig(
         registry.addInterceptor(emptyWildcardInterceptor)
         registry.addInterceptor(pathBindingInterceptor)
         registry.addInterceptor(preferredLanguageInterceptor)
-        registry.addInterceptor(siteSecretInterceptor)
         // 접근 검사 어노테이션은 v1.6의 Play 순서(메서드가 바깥, 클래스가 안쪽)로 한 인터셉터에서 실행한다
         registry.addInterceptor(accessChainInterceptor)
+        // 비밀 키 설정 화면은 접근 검사 뒤에 둔다. Play는 애너테이션 액션을 Global.onRequest 액션보다 바깥에서 실행하므로, 익명이 열 수 없는 주소는 검사가
+        // 먼저 막는다(로그인 안내 403)
+        registry.addInterceptor(siteSecretInterceptor)
         // v1.6의 기본 헤더(Cache-Control)는 액션이 실행될 때만 붙는다. 접근 검사가 막은 응답(로그인 이동, 403)에는 붙지 않으므로 검사 뒤에 둔다.
         // 정적 자원(/assets/…, 파비콘)은 AssetFilter가 디스패처 앞에서 모두 응답하므로 여기에 오지 않는다. `/assets`(슬래시 없음)는 v1.6에서도 일반 라우트이다.
         registry.addInterceptor(defaultHeadersInterceptor)

@@ -195,6 +195,8 @@ class IssueCreateController(
      */
     private fun noProject(request: HttpServletRequest, response: HttpServletResponse): Any {
         RedirectSupport.saveFlash(request, response, mapOf(RedirectSupport.WARNING to "project.is.empty"))
+        // 이동한 요청이 심어 둔 값을 곧바로 읽어 가므로, 이동한 쪽에서 다시 심어 다음 요청에도 보이게 한다(FlashDisplayInterceptor)
+        request.setAttribute(RedirectSupport.CARRY_ATTRIBUTE, true)
         return ModelAndView("forward:/")
     }
 

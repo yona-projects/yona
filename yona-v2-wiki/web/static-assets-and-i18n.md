@@ -16,13 +16,13 @@ updated: 2026-10-22
 | `public/` 폴더를 `GET /assets/:file`로 제공 (`conf/routes:31`) | `public/`을 `src/main/resources/static/assets/`에 그대로 복사. Spring Boot의 기본 정적 자원 처리가 `/assets/` 경로로 제공한다 |
 | `GET /favicon.ico`를 `images/favicon.ico`에 연결 (`conf/routes:30`) | `WebConfig`가 `/favicon.ico`를 `static/assets/images/`에 연결 |
 
-- 복사하지 않은 파일: `public/compiler.jar`(6.5MB). JS 번들을 만드는 Closure Compiler 도구이며 브라우저에 제공하는 자원이 아니다.
+- `public/compiler.jar`(6.5MB)는 JS 번들을 만드는 Closure Compiler 도구라 처음에는 복사하지 않았다. 그러나 v1.6이 `/assets/compiler.jar`로 그대로 내려 주므로 같은 주소와 같은 본문으로 제공한다(v1.6 정적 자원 755개 대조, `tools/v16-diff/assets.py`).
 - JS 번들(`yona-layout.js`, `yona-common.js`, `yona-lib.js`)은 v1.6도 `minify-js.sh`로 만든 결과물을 `public/javascripts/`에 저장소에 포함했으므로 그대로 복사했다. 번들 재생성 방법은 v1.6 `minify-js.sh`를 따른다.
 - 검증: `StaticAssetsTest` (레이아웃이 참조하는 CSS/JS, favicon, 404, 콘텐츠 형식).
 
 ## CSS는 LESS에서 컴파일한다
 
-v1.6은 `public/`에 CSS 결과물을 두지 않고, sbt-less가 빌드할 때 `app/assets/stylesheets/*.less`에서 `yobi.css`, `usermenu.css`, `filetype.css`를 만든다 (`build.sbt:83-84`: `_`로 시작하는 파일은 제외하는 `includeFilter`/`excludeFilter`).
+v1.6은 `public/`에 CSS 결과물을 두지 않고, sbt-less가 빌드할 때 `app/assets/stylesheets/*.less`에서 `yobi.css`, `usermenu.css`, `filetype.css`를 만든다 (`build.sbt:83-84`: `_`로 시작하는 파일은 제외하는 `includeFilter`/`excludeFilter`). `less/font` 아래의 `colours`, `fonts`, `icons`도 같은 방식으로 따로 컴파일되어 `/assets/stylesheets/less/font/*.css`와 `.css.map`으로 내려가므로, 같은 파일들을 하위 폴더 기준 소스 맵으로 만든다.
 
 v2도 같은 방식이다. 선생님께서 "Gradle 빌드에서 lessc 실행"을 선택하셨다(2026-10-22).
 

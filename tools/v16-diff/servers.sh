@@ -62,13 +62,17 @@ stop_v2() {
   fi
 }
 # 메일 수신(IMAP) 시험: `imap.sh start`가 $WORK/imap.on을 만들면 두 서버가 가짜 IMAP 서버(v1.6는 143번 포트 전달, v2는 19243번)에 연결한다
+# 업데이트 확인 시험: 기본은 태그가 없는 로컬 저장소를 보게 해 외부 사이트의 최신 버전 때문에 결과가 흔들리지 않게 한다.
+# `$WORK/upd.on`이 있으면 태그가 있는 저장소(`upd.sh`가 만든다)를 보고 화면 확인도 켠다.
+upd_repo() { if [ -f "$WORK/upd.on" ]; then echo "$WORK/update-tags.git"; else echo "$WORK/update-none.git"; fi; }
+upd_check() { [ -f "$WORK/upd.on" ] && echo true || echo false; }
 imap_flags_v16() { [ -f "$WORK/imap.on" ] && echo "-Dimap.use=true -Dimap.host=127.0.0.1 -Dimap.ssl=false -Dimap.user=yona-in@example.com -Dimap.password=pw -Dimap.address=yona-in@example.com -Dimap.folder=Inbox"; return 0; }
 imap_flags_v2() { if [ -f "$WORK/imap.on" ]; then echo "--yona.imap.use=true --yona.imap.host=127.0.0.1 --yona.imap.port=19243 --yona.imap.ssl=false --yona.imap.user=yona-in@example.com --yona.imap.password=pw --yona.imap.address=yona-in@example.com --yona.imap.folder=Inbox"; else echo "--yona.imap.use=false --yona.imap.address=your-yona-email-address@gmail.com --yona.imap.user=your-yona-email-address@gmail.com"; fi; }
 start_v16() {
   mkdir -p "$V16RUN"; cd "$V16RUN"
-  JAVA_HOME=$J8 PATH=$J8/bin:$PATH nohup ../yona-1.16.0/bin/yona -Dhttp.port=19200 -Dhttp.address=127.0.0.1 -Dapplication.update.check.use=false -J-Xmx768m \
+  JAVA_HOME=$J8 PATH=$J8/bin:$PATH nohup ../yona-1.16.0/bin/yona -Dhttp.port=19200 -Dhttp.address=127.0.0.1 -Dapplication.update.check.use=$(upd_check) -Dapplication.update.repositoryUrl=$(upd_repo) -Dapplication.update.notification.initdelay=1s -J-Xmx768m \
     -Dsmtp.host=127.0.0.1 -Dsmtp.port=19225 -Dsmtp.ssl=false -Dsmtp.tls=false -Dsmtp.mock=false -Dsmtp.user=yona.mail -Dsmtp.password=pw -Dsmtp.domain=example.com \
-    -Dapplication.notification.bymail.initdelay=1s -Dapplication.notification.bymail.interval=2s -Dapplication.notification.bymail.delay=3s $(imap_flags_v16) > "$V16RUN/run.log" 2>&1 &
+    -Dapplication.notification.bymail.initdelay=1s -Dapplication.notification.bymail.interval=2s -Dapplication.notification.bymail.delay=3s $(imap_flags_v16) ${V16_EXTRA:-} > "$V16RUN/run.log" 2>&1 &
   wait_http http://127.0.0.1:19200/ v1.6
 }
 start_v2() {
@@ -77,7 +81,7 @@ start_v2() {
     --spring.datasource.url="jdbc:h2:file:$V2D/db/yona;DB_CLOSE_DELAY=-1" \
     --yona.social.login-support="github, google" --yona.social.github.client-id=id --yona.social.github.client-secret=secret \
     --yona.social.google.client-id=id --yona.social.google.client-secret=secret \
-    --yona.update.check=false --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --yona.smtp.user=yona.mail --yona.smtp.domain=example.com $(imap_flags_v2) \
+    --yona.update.check=$(upd_check) --yona.update.repository-url=$(upd_repo) --yona.update.init-delay=1s --yona.update.interval=6h --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --yona.smtp.user=yona.mail --yona.smtp.domain=example.com $(imap_flags_v2) ${V2_EXTRA:-} \
     --yona.notification-mail-init-delay=1000 --yona.notification-mail-interval=2000 --yona.notification-mail-delay=3000 > "$V2D/boot.log" 2>&1 &
   echo $! > "$V2D/v2.pid"
   wait_http http://127.0.0.1:19300/ v2

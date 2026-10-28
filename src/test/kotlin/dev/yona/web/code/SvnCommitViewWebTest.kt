@@ -236,9 +236,12 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
         val writer = member(p)
         commit(p, "dev", "msg", mapOf("a.txt" to "x\n"))
         // v1.6 IsAllowedAction: targetType이 code_comment라 "error.notfound.code_comment" 문구이다
-        val html = mockMvc.perform(delete("/${p.owner}/${p.name}/commit/1/comments/999999/delete").session(login(writer)))
-            .andExpect(status().isNotFound).andReturn().response.contentAsString
+        val result = mockMvc.perform(delete("/${p.owner}/${p.name}/commit/1/comments/999999/delete").session(login(writer)))
+            .andExpect(status().isNotFound).andReturn().response
+        val html = result.contentAsString
         assertTrue(html.contains("Commit-comment does not exist"), html)
+        // v1.6 IsAllowedAction이 거절 화면을 직접 만들어 기본 액션의 Cache-Control이 붙지 않는다
+        assertNull(result.getHeader("Cache-Control"))
     }
 
     @Test

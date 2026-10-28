@@ -53,4 +53,4 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 
 v1.6은 기간 설정을 `getMilliseconds`로 읽어 `60s`, `5m`, `6h`, `1d` 같은 문자열과 단위 없는 숫자(밀리초)를 모두 받는다. 기본 설정 파일도 `60s`, `180s`, `30s`, `6h`를 쓴다. v2도 같은 형식을 받는다(`java.time.Duration`, 단위 없는 숫자는 밀리초). 대상은 `notification-mail-init-delay`, `notification-mail-interval`, `notification-mail-delay`, `notification-draft-time`, `issue-event-draft-time`, `mailbox-polling-interval`, `temporary-files-keep-up-time`, `update.init-delay`, `update.interval`이다. `@Scheduled` 값은 `schedulingDelays` 빈이 밀리초로 바꿔 준다.
 
-설정이 없을 때의 기본값은 v1.6 기본 설정 파일의 값을 따른다(`noreferrer` true, 수신자 제한 100, 업데이트 확인 주기 6시간). v1.6은 기본 파일을 복사해 쓰는 설치가 표준이기 때문이다(A-136).
+설정이 없을 때의 기본값은 v1.6 기본 설정 파일의 값을 따른다(`noreferrer` true, 수신자 제한 100, 업데이트 확인 주기 6시간, 업데이트 확인 저장소 `https://github.com/yona-projects/yona`, `imap.use` 끔, `imap.ssl` 켬, `imap.folder` `Inbox`, LDAP 예시 값). v1.6은 기본 파일을 복사해 쓰는 설치가 표준이기 때문이다(A-136, A-174).

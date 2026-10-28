@@ -144,26 +144,26 @@ data class YonaProperties(
     /**
      * 메일 수신(IMAP) 설정이다 (v1.6 `imap.*`). 호스트, 사용자, 비밀번호가 모두 있어야 시작한다.
      *
-     * @property use 메일 수신을 쓴다. 호스트를 설정해도 끌 수 있다 (`imap.use`, 기본 켬)
+     * @property use 메일 수신을 쓴다. 호스트를 설정해도 끌 수 있다 (`imap.use`). 코드의 기본은 켬이지만 v1.6 기본 설정 파일이 `false`로 시작하므로 기본은 끔이다(A-174)
      * @property host IMAP 서버 호스트. 비우면 시작하지 않는다
      * @property user IMAP 사용자. `@`가 있으면 이 값이 곧 사이트의 수신 주소이다
      * @property password IMAP 비밀번호
      * @property domain 수신 주소의 도메인. `user`에 `@`가 없을 때 `user@domain`으로 쓰며 비우면 사이트 호스트 이름을 쓴다 (`imap.domain`)
      * @property address 수신 주소. 비우면 `user`와 `domain`으로 만든다 (`imap.address`)
      * @property port IMAP 서버 포트. 비우면 프로토콜의 기본 포트이다. v1.6에는 없는 설정으로 테스트와 비표준 포트용이다(A-97)
-     * @property ssl SSL로 연결한다 (`imap.ssl`)
-     * @property folder 받은 편지함 이름 (`imap.folder`, 기본 `inbox`)
+     * @property ssl SSL로 연결한다 (`imap.ssl`, 기본 설정 파일의 값 `true`)
+     * @property folder 받은 편지함 이름 (`imap.folder`, 기본 설정 파일의 값 `Inbox`)
      */
     data class Imap(
-        val use: Boolean = true,
+        val use: Boolean = false,
         val host: String = "",
         val user: String = "",
         val password: String = "",
         val domain: String = "",
         val address: String = "",
         val port: Int? = null,
-        val ssl: Boolean = false,
-        val folder: String = "inbox"
+        val ssl: Boolean = true,
+        val folder: String = "Inbox"
     )
 
     /**
@@ -184,17 +184,17 @@ data class YonaProperties(
      */
     data class Ldap(
         val enabled: Boolean = false,
-        val host: String = "127.0.0.1",
+        val host: String = "ldap.forumsys.com",
         val port: String = "389",
-        val baseDn: String = "",
-        val distinguishedNamePostfix: String = "",
+        val baseDn: String = "ou=scientists,dc=example,dc=com",
+        val distinguishedNamePostfix: String = "OU=user,DC=abc,DC=com",
         val loginProperty: String = "sAMAccountName",
         val displayNameProperty: String = "displayName",
         val userNameProperty: String = "CN",
         val emailProperty: String = "mail",
         val useEmailBaseLogin: Boolean = false,
         val fallbackToLocalLogin: Boolean = false,
-        val englishNameAttributeName: String = ""
+        val englishNameAttributeName: String = "givenName"
     )
 
     /**
@@ -269,7 +269,7 @@ data class YonaProperties(
         val check: Boolean = true,
         @DurationUnit(ChronoUnit.MILLIS) val initDelay: Duration = Duration.ofSeconds(5),
         @DurationUnit(ChronoUnit.MILLIS) val interval: Duration = Duration.ofHours(6),
-        val repositoryUrl: String = "http://repo.yona.io/yona/yona",
+        val repositoryUrl: String = "https://github.com/yona-projects/yona",
         val releaseUrlFormat: String = "https://github.com/yona-projects/yona/releases/tag/v%s"
     )
 

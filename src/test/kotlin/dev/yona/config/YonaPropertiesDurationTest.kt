@@ -50,5 +50,13 @@ class YonaPropertiesDurationTest {
         assertEquals(6 * 3_600_000L, p.update.interval.toMillis(), "업데이트 확인 주기의 기본은 6시간이다")
         assertEquals(100, p.notificationMailRecipientLimit, "알림 메일 수신자 제한의 기본은 100명이다")
         assertEquals(true, p.noreferrer, "noreferrer의 기본은 true이다")
+        assertEquals("https://github.com/yona-projects/yona", p.update.repositoryUrl, "업데이트 확인 저장소의 기본은 기본 설정 파일의 값이다")
+        assertEquals(false, p.imap.use, "메일 수신(imap.use)의 기본은 꺼 두는 것이다")
+        assertEquals(true, p.imap.ssl)
+        assertEquals("Inbox", p.imap.folder)
+        assertEquals("ldap.forumsys.com", p.ldap.host)
+        assertEquals("ou=scientists,dc=example,dc=com", p.ldap.baseDn)
+        assertEquals("OU=user,DC=abc,DC=com", p.ldap.distinguishedNamePostfix)
+        assertEquals("givenName", p.ldap.englishNameAttributeName)
     }
 }

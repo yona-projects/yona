@@ -26,6 +26,9 @@ object RedirectSupport {
     /** flash 안에서 값을 넣은 순서를 `\u0001`로 이어 적어 두는 보조 키이다. 화면에 나오지 않는다. v1.6 flash 쿠키가 순서를 지키는 것과 맞춘다. */
     const val ORDER = "\u0000order"
 
+    /** `true`이면 `forward:`로 이동한 요청이 앞서 읽은 flash를 다시 심어 다음 요청에도 보이게 한다. */
+    const val CARRY_ATTRIBUTE = "dev.yona.web.RedirectSupport.carry"
+
     /** 확인 대화상자로 보여 줄 일회성 메시지의 제목과 설명 키이다 (v1.6 `Constants.TITLE`, `DESCRIPTION`). */
     const val TITLE = "title"
     const val DESCRIPTION = "description"

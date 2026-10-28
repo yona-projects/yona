@@ -19,6 +19,7 @@ import dev.yona.repository.CommitHistoryService
 import dev.yona.security.CurrentUserProvider
 import dev.yona.web.RedirectSupport
 import dev.yona.web.access.AnonymousCheck
+import dev.yona.web.access.IsAllowed
 import dev.yona.web.access.IsCreatable
 import dev.yona.web.access.IsOnlyGitAvailable
 import dev.yona.web.error.ErrorViews
@@ -102,16 +103,12 @@ class ReviewCommentController(
 
     /** Subversion 커밋 코멘트를 지우고 커밋 보기로 돌아간다 (v1.6 `CodeHistoryApp.deleteComment`). 지울 권한이 있어야 한다. */
     @DeleteMapping("/{user}/{project}/commit/{commitId}/comments/{id}/delete")
+    @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.COMMIT_COMMENT)
     @Transactional
     fun deleteCommitComment(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable commitId: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse
     ): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
-        val comment = commitComments.findById(id).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), ResourceType.COMMIT_COMMENT.resource)
-        if (!accessControl.isAllowed(currentUserProvider.get().user, lookup.get(ResourceType.COMMIT_COMMENT, id.toString()), Operation.DELETE)) {
-            return ErrorViews.forbidden("error.forbidden", views.of(project))
-        }
-        service.deleteCommitComment(requireNotNull(comment.id))
+        service.deleteCommitComment(id)
         return RedirectSupport.see(request, response, "${dev.yona.util.UrlPaths.projectPath(owner, name)}/commit/$commitId")
     }
 

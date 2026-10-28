@@ -1,6 +1,7 @@
 package dev.yona.web.welcome
 
 import dev.yona.config.YonaProperties
+import dev.yona.domain.user.LoginIdRules
 import dev.yona.domain.user.SignupService
 import dev.yona.security.SiteSecret
 import dev.yona.web.error.ViewResultException
@@ -28,25 +29,43 @@ class SiteSecretInterceptor(
 ) : HandlerInterceptor {
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        if (handler !is HandlerMethod || !secret.invalid) return true
-        if (secret.restartRequired) throw ViewResultException(restartView())
-        if (!request.method.equals("POST", ignoreCase = true)) throw ViewResultException(secretView(emptyMap(), request))
+        if (handler !is HandlerMethod) return true
+        throw ViewResultException(pendingScreen(request) ?: return true)
+    }
+
+    /**
+     * 비밀 키를 정하는 중이면 이 요청에 돌려줄 화면이다. 정한 상태이면 `null`이다. 라우트가 없는 GET(v1.6의 포괄 라우트)도 같은 화면을 받도록
+     * [dev.yona.web.error.GlobalErrorHandler]가 이 메서드를 부른다.
+     */
+    fun pendingScreen(request: HttpServletRequest): ModelAndView? {
+        if (!secret.invalid) return null
+        if (secret.restartRequired) return restartView()
+        if (!request.method.equals("POST", ignoreCase = true)) return secretView(emptyMap(), request)
 
         val errors = validate(request)
-        if (errors.isNotEmpty()) throw ViewResultException(secretView(errors, request).also { it.status = HttpStatus.BAD_REQUEST })
+        if (errors.isNotEmpty()) return secretView(errors, request).also { it.status = HttpStatus.BAD_REQUEST }
         secret.configure(request.getParameter("name"), request.getParameter("email"), request.getParameter("password"))
-        throw ViewResultException(restartView())
+        return restartView()
     }
 
     /** 입력을 검사한다. 항목마다 오류 메시지 키를 모은다 (v1.6 `hasError`). */
     private fun validate(request: HttpServletRequest): Map<String, List<String>> {
         val errors = LinkedHashMap<String, MutableList<String>>()
         fun reject(field: String, key: String) { errors.getOrPut(field) { mutableListOf() } += key }
-        val loginId = request.getParameter("loginId")
-        if (loginId.isNullOrBlank() || loginId != SiteSecret.DEFAULT_ADMIN_LOGIN_ID) reject("loginId", "user.wrongloginId.alert")
-        // v1.6은 비어 있는 ID를 "admin이 아니다" 검사에서 한 번 더 거절해 같은 오류가 두 번 쌓인다. 화면에는 같은 문구가 한 번만 보이도록 하나로 묶는다.
+        // v1.6 `hasError`는 값을 읽어 곧바로 `.equals(...)`를 부르므로 항목이 아예 없으면 NPE로 500이 난다(loginId, password). 값이 비어 있는 것과는 다르다.
+        val loginId = request.getParameter("loginId") ?: throw NullPointerException("loginId")
+        // 폼 바인딩 단계(`User.loginId`의 @Required, @Pattern, @ValidateWith)의 오류가 먼저 쌓이고, 이어서 `hasError`가 거절한 오류가 쌓인다.
+        // Play의 @Required는 빈 문자열만 값이 없다고 보고(공백은 값이다), @Pattern은 빈 문자열을 통과시킨다.
+        if (loginId.isEmpty()) reject("loginId", "error.required")
+        else {
+            if (!LoginIdRules.isValidFormat(loginId)) reject("loginId", "user.wrongloginId.alert")
+            if (LoginIdRules.isReserved(loginId)) reject("loginId", "validation.reservedWord")
+        }
+        if (loginId.isBlank()) reject("loginId", "user.wrongloginId.alert")
+        if (loginId != SiteSecret.DEFAULT_ADMIN_LOGIN_ID) reject("loginId", "user.wrongloginId.alert")
         val password = request.getParameter("password")
         if (password.isNullOrBlank()) reject("password", "user.wrongPassword.alert")
+        if (password == null) throw NullPointerException("password")
         if (password != request.getParameter("retypedPassword")) reject("retypedPassword", "user.confirmPassword.alert")
         val email = request.getParameter("email")
         if (email.isNullOrBlank()) reject("email", "validation.invalidEmail")
