@@ -61,11 +61,14 @@ stop_v2() {
     rm -f "$V2D/v2.pid"
   fi
 }
+# 메일 수신(IMAP) 시험: `imap.sh start`가 $WORK/imap.on을 만들면 두 서버가 가짜 IMAP 서버(v1.6는 143번 포트 전달, v2는 19243번)에 연결한다
+imap_flags_v16() { [ -f "$WORK/imap.on" ] && echo "-Dimap.use=true -Dimap.host=127.0.0.1 -Dimap.ssl=false -Dimap.user=yona-in@example.com -Dimap.password=pw -Dimap.address=yona-in@example.com -Dimap.folder=Inbox"; return 0; }
+imap_flags_v2() { if [ -f "$WORK/imap.on" ]; then echo "--yona.imap.use=true --yona.imap.host=127.0.0.1 --yona.imap.port=19243 --yona.imap.ssl=false --yona.imap.user=yona-in@example.com --yona.imap.password=pw --yona.imap.address=yona-in@example.com --yona.imap.folder=Inbox"; else echo "--yona.imap.use=false --yona.imap.address=your-yona-email-address@gmail.com --yona.imap.user=your-yona-email-address@gmail.com"; fi; }
 start_v16() {
   mkdir -p "$V16RUN"; cd "$V16RUN"
   JAVA_HOME=$J8 PATH=$J8/bin:$PATH nohup ../yona-1.16.0/bin/yona -Dhttp.port=19200 -Dhttp.address=127.0.0.1 -Dapplication.update.check.use=false -J-Xmx768m \
     -Dsmtp.host=127.0.0.1 -Dsmtp.port=19225 -Dsmtp.ssl=false -Dsmtp.tls=false -Dsmtp.mock=false -Dsmtp.user=yona.mail -Dsmtp.password=pw -Dsmtp.domain=example.com \
-    -Dapplication.notification.bymail.initdelay=1s -Dapplication.notification.bymail.interval=2s -Dapplication.notification.bymail.delay=3s > "$V16RUN/run.log" 2>&1 &
+    -Dapplication.notification.bymail.initdelay=1s -Dapplication.notification.bymail.interval=2s -Dapplication.notification.bymail.delay=3s $(imap_flags_v16) > "$V16RUN/run.log" 2>&1 &
   wait_http http://127.0.0.1:19200/ v1.6
 }
 start_v2() {
@@ -74,7 +77,7 @@ start_v2() {
     --spring.datasource.url="jdbc:h2:file:$V2D/db/yona;DB_CLOSE_DELAY=-1" \
     --yona.social.login-support="github, google" --yona.social.github.client-id=id --yona.social.github.client-secret=secret \
     --yona.social.google.client-id=id --yona.social.google.client-secret=secret \
-    --yona.update.check=false --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --yona.smtp.user=yona.mail --yona.smtp.domain=example.com --yona.imap.use=false --yona.imap.address=your-yona-email-address@gmail.com --yona.imap.user=your-yona-email-address@gmail.com \
+    --yona.update.check=false --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --yona.smtp.user=yona.mail --yona.smtp.domain=example.com $(imap_flags_v2) \
     --yona.notification-mail-init-delay=1000 --yona.notification-mail-interval=2000 --yona.notification-mail-delay=3000 > "$V2D/boot.log" 2>&1 &
   echo $! > "$V2D/v2.pid"
   wait_http http://127.0.0.1:19300/ v2
