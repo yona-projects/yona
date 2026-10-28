@@ -102,4 +102,5 @@
 - [v1.6 결함 재현 목록](refactoring-backlog.md): v1.6의 결함을 그대로 재현한 부분과 개선 후보
 - [실제 git·svn 클라이언트 검증 기록](architecture/real-client-verification.md): 한글 경로, 큰 저장소, 인증 흐름을 실제 클라이언트로 확인한 결과
 - [architecture/v16-release-differential-test.md](architecture/v16-release-differential-test.md): 공식 v1.16.0을 띄워 v2와 응답을 대조하는 시험의 구성, 정규화, 찾아 고친 것
+- [architecture/magpie-integration.md](architecture/magpie-integration.md): Apache Magpie가 요구하는 이슈·PR 계약과 Yona가 제공하는 것의 대조, 빠진 API
 - [architecture/v16-remaining-differences.md](architecture/v16-remaining-differences.md): v1.6과 아직 다른 점의 전체 목록. 고칠 수 없는 것, 의도해서 둔 것, v1.6 오류를 v2가 정상 처리하는 것(요청 단위 표), 권한 차이, 메일 수신 차이

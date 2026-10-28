@@ -497,3 +497,6 @@
 - 대조로 찾아 고친 불일치를 `decisions.md`와 이 로그에서 다시 세어 `v16-release-differential-test.md`에 집계했다(공식 v1.16.0 실행 대조 40건 결정, 번호를 붙인 수정 86건 이상). 앞서 건수를 추정으로 답했던 것을 기록으로 바로잡았다.
 
 - 동등성 점검 단계를 종료했다(`v16-release-differential-test.md`의 "동등성 점검 종료 판정"). 이후는 회귀 점검만 한다. 다음 단계는 D-28 추가 개발 항목이며 D-29(Magpie 연동)의 선택이 필요하다.
+
+## [2026-10-28] ingest | Apache Magpie 연동 분석
+- Magpie 문서(tracker, change-request, pr-management 계약)를 읽고 Yona의 이슈·PR REST와 대조해 `architecture/magpie-integration.md`에 정리했다. D-29에 PR 쪽 현황을 덧붙였다.

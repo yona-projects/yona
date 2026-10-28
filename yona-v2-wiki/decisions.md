@@ -275,11 +275,12 @@ updated: 2026-10-22
 
 ### D-29. Apache Magpie 연동을 위한 읽기 전용 API (2026-10-28, 결정 대기)
 
-- **배경**: Apache Magpie(ASF의 AI 기반 저장소 유지보수 도구)의 이슈 트래커 계약 `contract:tracker`는 읽기 전용 동작 다섯 가지를 요구한다: `list_filed`, `list_triaged`, `list_commented`(사람과 기간 입력, 이슈 참조 목록 반환), `list_created`(기간 입력, 이슈 요약 반환), `first_reply`(이슈 id 입력, 첫 메인테이너 댓글 반환). 어댑터는 `tools/<tracker>/`에 두고 설정 파일의 `tracker_type`으로 고른다. 인증은 어댑터가 정한다.
+- **배경**: 분석은 [magpie-integration.md](architecture/magpie-integration.md)에 있다. Magpie는 이슈 분류와 PR 리뷰를 모두 하므로 이슈 계약(`contract:tracker`)과 PR 계약(`contract:change-request`)이 둘 다 필요하다. 아래는 이슈 쪽 요약이다. Apache Magpie(ASF의 AI 기반 저장소 유지보수 도구)의 이슈 트래커 계약 `contract:tracker`는 읽기 전용 동작 다섯 가지를 요구한다: `list_filed`, `list_triaged`, `list_commented`(사람과 기간 입력, 이슈 참조 목록 반환), `list_created`(기간 입력, 이슈 요약 반환), `first_reply`(이슈 id 입력, 첫 메인테이너 댓글 반환). 어댑터는 `tools/<tracker>/`에 두고 설정 파일의 `tracker_type`으로 고른다. 인증은 어댑터가 정한다.
 - **Yona 현황**: `GET /-_-api/v1/owners/:owner/projects/:projectName/issues/:number`가 라벨, 담당자, 첨부, 댓글을 담은 JSON을 돌려주고(토큰 인증), `POST /-_-api/v1/users/token`으로 토큰을 받는다. 기간·작성자·라벨 조건의 이슈 목록 REST와 댓글 목록 REST는 v1.6에 없다.
 - **선택지**: (A) v2는 바꾸지 않고 어댑터가 화면용 `issues?format=json`을 쪽 단위로 읽어 기간을 직접 거른다. (B) v1.6 동등성 점검이 끝난 뒤, D-28의 추가 개발 항목으로 읽기 전용 API(기간별 이슈 목록, 이슈 댓글 목록)를 더한다. 기존 경로와 응답 계약은 건드리지 않는다. (C) 개인용 API 토큰(PAT)과 MCP 서버(D-28 항목)가 먼저 들어간 뒤 그 위에서 연동한다.
 - **권장안**: (B).
 - **권장 이유**: (A)는 목록 조회 한 번에 전체 쪽을 읽어야 해서 느리고, 화면용 JSON은 계약이 아니라서 화면이 바뀌면 어댑터가 깨진다. (C)는 두 기능이 아직 일정에 없어 연동이 그만큼 늦어진다. (B)는 v1.6 경로를 바꾸지 않아 대조 기준을 지키면서 계약에 맞는 안정된 조회 경로를 얻는다.
+- **PR 쪽 현황**: 목록, 상세와 diff, 토론을 JSON으로 읽는 경로가 없고, Yona의 `review`는 리뷰어 등록이라 Magpie의 `post_review`(판정과 본문)와 개념이 다르다. PR 경로의 토큰 인증도 확인하지 못했다. (B)로 가면 이슈 목록·댓글 목록과 함께 PR 목록·상세·토론 읽기와 판정이 있는 리뷰 쓰기 API가 범위에 든다.
 - **결정**: 대기(선생님).
 - **상태**: 확인 대기. 결정되면 [roadmap.md](roadmap.md)의 "추가 개발 항목"에 옮긴다.
 
