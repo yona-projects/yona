@@ -12,7 +12,7 @@ import java.time.temporal.ChronoUnit
  * @property siteName 사이트 이름. 화면 제목과 환영 문구에 쓰인다 (`application.siteName`)
  * @property feedbackUrl 상단 메뉴의 피드백 링크. 비우면 링크를 숨긴다 (`application.feedback.url`)
  * @property hideProjectListing 익명 사용자와 게스트에게 프로젝트 목록을 숨긴다 (`application.hide.project.listing`)
- * @property sendYonaUsage 사용 통계(Google Analytics)를 보낸다 (`application.send.yona.usage`)
+ * @property sendYonaUsage 사용 통계(Google Analytics 4)를 보낸다 (`application.send.yona.usage`). v1.6은 UA 태그였고 X-21에서 GA4로 바꿨다
  * @property showUserEmail 사용자 이메일을 화면에 보여 준다 (`application.show.user.email`)
  * @property navbarCustomLinkName 상단 메뉴에 추가할 링크 이름 (`application.navbar.custom.link.name`)
  * @property navbarCustomLinkUrl 상단 메뉴에 추가할 링크 주소 (`application.navbar.custom.link.url`)
@@ -60,7 +60,7 @@ import java.time.temporal.ChronoUnit
  * @property allowsAnonymousAccess 익명 사용자의 접근을 허용한다. 끄면 `@AnonymousCheck` 화면이 모두 로그인을 요구한다 (`application.allowsAnonymousAccess`)
  * @property socialLoginOnly 소셜 로그인만 허용한다 (`application.use.social.login.only`)
  * @property maxFileSize 첨부 파일의 최대 크기(바이트) (`application.maxFileSize`)
- * @property analytics 사용 현황 집계(GA4) 설정이다. v1.6에 없는 추가 항목이다 (X-21, `decisions.md` A-186)
+ * @property analytics 사용 현황 집계(GA4)의 측정 ID와 설치 ID 파일이다. 스위치는 [sendYonaUsage]이다 (X-21, `decisions.md` A-186)
  * @property gitDefaultBranch 새 Git 저장소의 기본 브랜치 이름이다. v1.6은 JGit 기본값(`master`)이었으나 `main`으로 고정한다 (X-22, `decisions.md` A-187)
  */
 @ConfigurationProperties(prefix = "yona")
@@ -246,15 +246,14 @@ data class YonaProperties(
     )
 
     /**
-     * 사용 현황 집계(GA4 `gtag`) 설정이다 (X-21, `decisions.md` A-186). 브라우저 태그만 쓰고 서버가 직접 보내는 이벤트는 없다.
+     * 사용 현황 집계(GA4 `gtag`) 설정이다 (X-21, `decisions.md` A-186). 켜고 끄는 스위치는 v1.6의 `yona.send-yona-usage`이다.
+     * 브라우저 태그만 쓰고 서버가 직접 보내는 이벤트는 없다.
      *
-     * @property sendUsage 태그를 낸다. 외부로 정보를 보내므로 기본은 꺼짐이다
-     * @property measurementId GA4 측정 ID(`G-...`). 비어 있으면 켜도 태그를 내지 않는다
+     * @property measurementId GA4 측정 ID(`G-...`). 비우면 `send-yona-usage`가 켜져 있어도 태그를 내지 않는다. 기본은 Yona 프로젝트의 ID이다(v1.6의 UA ID와 같은 자리)
      * @property installIdPath 설치 ID를 저장할 파일이다. 비우면 `<데이터 디렉터리>/analytics/install-id`이다
      */
     data class Analytics(
-        val sendUsage: Boolean = false,
-        val measurementId: String = "",
+        val measurementId: String = "G-CKTN17HLPP",
         val installIdPath: String = ""
     )
 

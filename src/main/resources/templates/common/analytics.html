@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<!--/* 설치형 배포 사용 현황(GA4 gtag, 로드맵 X-21). yona.analytics.send-usage가 켜져 있고 measurement-id가 있을 때만 렌더링한다(기본 꺼짐).
+<!--/* 설치형 배포 사용 현황(GA4 gtag, 로드맵 X-21). yona.send-yona-usage가 켜져 있고 yona.analytics.measurement-id가 있을 때만 렌더링한다(v1.6 UA 태그를 대체).
        URL에는 소유자/프로젝트명/이슈 번호 등 사내 식별자가 들어 있으므로 원본 경로·제목·리퍼러는 보내지 않고
        "화면 종류"만 보낸다(maskPath). */-->
 <th:block th:fragment="gtag(layout)" th:if="${@analyticsSettings.clientEnabled}">

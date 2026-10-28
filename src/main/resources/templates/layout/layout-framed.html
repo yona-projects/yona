@@ -75,17 +75,6 @@
     </script>
     <script type="text/javascript" th:src="@{/assets/javascripts/common/yona.Usermenu.js}"></script>
 
-    <th:block th:if="${site.sendYonaUsage}">
-    <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-        ga('create', 'UA-102735758-1', 'auto');
-        ga('send', 'pageview');
-    </script>
-    </th:block>
     <th:block th:replace="~{common/analytics :: gtag('left_sidebar')}"></th:block>
 </body>
 </html>

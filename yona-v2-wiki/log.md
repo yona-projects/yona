@@ -506,6 +506,6 @@
 - 라우트, 메시지, 정적 자원, 테이블을 v1.6과 소스 수준으로 대조해 `architecture/next-vs-next2-source-closeness.md`에 정리했다. 모든 항목에서 next2가 더 가깝다(라우트 95% 대 64%).
 
 ## [2026-10-28] implement | 로드맵 X-21 사용 현황 집계, X-22 기본 브랜치 main
-- X-21: `next`의 GA4 `gtag` 조각과 설치 ID를 가져와 `yona.analytics.*`로 추가했다. 외부 전송이므로 기본 꺼짐이며 측정 ID도 비워 두었다(A-186). v1.6의 UA 태그는 그대로다.
+- X-21: `next`의 GA4 `gtag` 조각과 설치 ID를 가져왔다. 선생님 지시로 별도 스위치 없이 v1.6의 `yona.send-yona-usage`를 유지하고 UA 태그를 GA4로 교체했다(A-186). 측정 ID는 `yona.analytics.measurement-id`이다.
 - X-22: `next` 기준으로 새 Git 저장소의 `HEAD`를 `yona.git-default-branch`(기본 `main`)로 고정했다(A-187). 설정 키는 `architecture/configuration-keys.md`에 적었다.
 - 로드맵의 X-23 번호가 Magpie와 CLI에 겹쳐 있어 CLI를 X-24, CI/Actions를 X-25로 바로잡았다.
