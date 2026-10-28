@@ -36,13 +36,14 @@ class PullRequestWorkflow(
     private val service: PullRequestService,
     private val branches: PullRequestBranchService,
     private val publisher: ApplicationEventPublisher,
-    private val pushedBranches: dev.yona.domain.project.PushedBranchRepository
+    private val pushedBranches: dev.yona.domain.project.PushedBranchRepository,
+    private val issueCloser: PullRequestIssueCloser
 ) {
 
     /**
      * 요청을 받아들여 받는 브랜치에 병합한다. 먼저 병합 중 표시를 켜서 다른 요청을 막고, 리뷰어 수를 쓰는 프로젝트에서 리뷰어가 모자라면 아무것도 하지 않는다.
      * 충돌하면 병합하지 않고 표시만 끈다. 병합하면 상태를 `MERGED`로 바꾸고 병합 기준 커밋을 저장하며 상태 변경 알림과 타임라인을 남긴 뒤, 같은 브랜치와 관련된
-     * 다른 요청의 병합 검사를 다시 시작한다.
+     * 다른 요청의 병합 검사를 다시 시작한다. 병합한 뒤에는 제목, 본문, 커밋 메시지에서 `closes #번호`로 가리킨 이슈를 닫는다([PullRequestIssueCloser], X-11).
      *
      * v1.6처럼 병합 중 표시를 가장 먼저 켜고 저장한다. 그래서 리뷰어가 모자라 400을 돌려줄 때나 병합 중 예외가 날 때도 표시가 꺼지지 않고
      * 요청이 계속 병합 중으로 남는다([refactoring-backlog.md] R-76, 선생님 결정 2026-10-26). v1.6 `accept`의 병합은 트랜잭션 밖에서 돌고
@@ -69,6 +70,7 @@ class PullRequestWorkflow(
         pullRequests.save(pullRequest)
         publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_STATE_CHANGED, State.OPEN.state, State.MERGED.state, accepter))
         events.addState(accepter, pullRequest, State.MERGED)
+        issueCloser.closeReferenced(pullRequest, accepter)
         recheckRelated(toProject.id!!, requireNotNull(pullRequest.toBranch), requireNotNull(accepter.id))
         return AcceptResult.MERGED
     }

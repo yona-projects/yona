@@ -2,7 +2,7 @@
 title: 결정 기록 (기술 스택과 정책)
 type: synthesis
 sources: [../AGENTS.md, architecture/technology-decisions.md, refactoring-backlog.md]
-updated: 2026-10-22
+updated: 2026-10-29
 ---
 
 # 결정 기록
@@ -562,4 +562,5 @@ v1.6 위키가 9차(Antigravity CLI 판정), 10차(소스 재검증), 11차(재�
 | A-185 | 잠긴 계정으로 로그인하면 `logout()`처럼 Referer(없으면 문자열 `null`)로 보낸다. 이전(Migration) 화면의 즐겨찾기 호출 주소(`"…/favoriteProjects/" + that.data("projectId")`)와 아이콘 링크를 v1.6대로 낸다. 정적 자원의 `If-None-Match: *`는 일치로 보지 않는다 | 각각 공식 v1.16.0에서 확인했다(`ldap.sh`의 가입 승인 변형, `cfg` 시험 `migration_on`, `weird.py`) | |
 | A-186 | 사용 현황 집계(X-21)는 v1.6의 스위치 `yona.send-yona-usage`(기본 켜짐)를 그대로 두고 그 안의 태그만 UA(`analytics.js`)에서 GA4(`gtag`)로 바꾼다. 측정 ID는 `yona.analytics.measurement-id`(기본 `G-CKTN17HLPP`, 비우면 태그 없음)이다. `next`의 설치 ID(UUID 파일)는 가져오지 않는다(선생님이 "단순히 GA4로 바꾸는 게 목표"라고 하셨다). 별도의 `yona.analytics.send-usage`는 두지 않는다. 2단 보기 측정은 유지한다(선생님 지시): 페이지뷰에 켜짐 상태와 화면 종류를, 체크박스를 직접 누를 때 `two_column_on/off` 이벤트와 화면 종류를 보내고, 켜진 채 목록 제목(`.title, .twoColumeModeTarget`)을 눌러 오른쪽 창에 열려는 경우 `two_column_open`(화면 종류, `in_frame` 포함)을 보낸다(선생님 지시, iframe 로딩 완료는 알 수 없어 "열기를 시도한 횟수"이다). 화면 분류와 경로 가리기의 예약어는 `next` 라우트가 아니라 v1.6 `conf/routes` 기준으로 고쳤다 | 선생님이 "yona.send-yona-usage를 유지하면서 ga4로 바꾸고 싶다"고 하셨다(2026-10-28). 처음에는 외부 전송이라 기본 꺼짐 별도 스위치로 구현했으나 이 지시로 바꿨다. 기본 켜짐과 번들된 측정 ID는 v1.6의 UA ID가 코드에 있던 것과 같은 자리이다(UA는 2023년에 수집이 중단되었다) | v1.6의 UA 태그가 GA4 태그로 바뀐다. 화면 스크립트 한 단락만 다르다 |
 | A-187 | 새 Git 저장소의 기본 브랜치(`HEAD`)를 `yona.git-default-branch`(기본 `main`)로 고정한다(X-22). 기존 저장소와 가져오기·포크는 그대로다 | 선생님이 "22는 next 기준"이라고 하셨고 `next`는 `yona.git.default-branch:main`으로 저장소 생성 때 `HEAD`를 정한다. JGit 기본값(`master`)은 호스트의 `init.defaultBranch`에 따라 달라지므로 설정으로 고정한다. v1.6의 `master`로 되돌리려면 `master`로 설정한다 | 새 프로젝트의 기본 브랜치가 `main`이다(v1.6과 다른 추가 항목) |
+| A-188 | 풀 리퀘스트를 받아들여 병합하면(`PullRequestWorkflow.accept`) 제목, 본문, 커밋 메시지에서 `close(s/d)`, `fix(es/ed)`, `resolve(s/d)` 뒤에 공백과 `#번호`가 붙은 이슈를 닫는다(X-11). 받는 프로젝트의 열림 이슈만 닫고, 닫힘, 초안, 없는 번호, 다른 프로젝트 번호는 건드리지 않는다. 닫는 사람은 병합한 사용자이며 수동으로 닫을 때와 같이 이슈 타임라인 이벤트와 알림이 남는다. 이슈를 닫다 실패해도 병합은 유지한다 | 선생님이 X-11 진행을 승인하셨다(2026-10-29). 규칙은 `next`의 `PullRequestMergeEventListener`를 따랐으나 그 정규식 `fix[e[s|d]]?`가 문자 집합 표기 실수로 `fixes`, `fixed`를 알아보지 못해 의도한 활용형으로 바로잡았다. `closing #1`, `unfixed #5`처럼 다른 낱말의 일부는 세지 않는다. `next`는 비동기 이벤트로 처리하지만 v2는 `accept`가 이미 같은 요청 안에서 상태, 알림, 타임라인을 처리하므로 같은 자리에서 처리해 순서를 단순하게 했다. 초안은 게시 전이라 닫지 않는다 | 병합한 뒤 가리킨 이슈가 닫힌다(v1.6에 없는 추가 동작) |
 

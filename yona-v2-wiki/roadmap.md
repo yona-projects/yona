@@ -2,7 +2,7 @@
 title: 이식 로드맵과 진행 상태
 type: synthesis
 sources: [../AGENTS.md, ../yona-v1.6-wiki/web/templates/*.md]
-updated: 2026-10-28
+updated: 2026-10-29
 ---
 
 # 이식 로드맵
@@ -111,7 +111,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-8 | Git LFS | `.well-known`, `git-lfs` 라우트 | 대기 | |
 | X-9 | 감사 로그(보안, 관리 이벤트) | `domain/event` | 대기 | |
 | X-10 | 관측성: OpenTelemetry(추적), Actuator와 Prometheus(지표), JSON 로그(logstash) | `build.gradle.kts`의 opentelemetry, actuator, micrometer 스타터 (P3-01) | 대기 | |
-| X-11 | 풀 리퀘스트 병합 시 `close(s/d)`, `fix(es/ed)`, `resolve(s/d) #번호`로 참조된 이슈 자동 닫기 | `domain/event/PullRequestMergeEventListener` | 대기 | v1.6에는 없다. v1.6의 자동 처리는 시작 때 `REJECTED` 풀 리퀘스트를 `CLOSED`로 바꾸는 것뿐이며 이미 이식했다(`PullRequestStartup`) |
+| X-11 | 풀 리퀘스트 병합 시 `close(s/d)`, `fix(es/ed)`, `resolve(s/d) #번호`로 참조된 이슈 자동 닫기 | `domain/event/PullRequestMergeEventListener` | **완료(2026-10-29)** | `PullRequestWorkflow.accept`가 병합한 뒤 `PullRequestIssueCloser`로 처리한다(A-188). `next` 정규식의 `fixes/fixed` 인식 실패를 바로잡았다 |
 | X-12 | 풀 리퀘스트 리뷰 판정(Approve, Request changes, Comment). 같은 리뷰어의 재판정은 이력으로 쌓고 정책 판단에는 리뷰어별 최신 판정만 쓴다 | `domain/pullrequest/PullRequestReview`, `PullRequestServiceImpl` | 대기 | v1.6의 "리뷰 완료/취소"(`review`, `unreview`)와는 별개 개념이다. 새 테이블 `pull_request_review`가 필요하다 |
 | X-13 | 브랜치 보호 규칙(브랜치 패턴, 풀 리퀘스트 필수, 필요한 승인 수, 서명 커밋 필수, push 허용 사용자 제한, force push와 삭제 금지, 매니저 우회). push 훅과 병합 검사에 적용 | `domain/branchprotection`, `web/BranchProtectionController`, `domain/vcs/GitPushHooks` | 대기 | X-4(GPG), X-12(리뷰 판정)가 있어야 해당 규칙이 의미를 갖는다. 새 테이블 필요 |
 | X-14 | 풀 리퀘스트 담당자(assignee)와 라벨 | `PullRequest.assignee`, `PullRequest.labels` | 대기 | v1.6 `pull_request`에는 담당자, 라벨 열이 없다. 연결 테이블 추가 필요 |

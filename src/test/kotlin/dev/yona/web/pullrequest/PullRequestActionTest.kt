@@ -130,6 +130,47 @@ class PullRequestActionTest : AbstractIntegrationTest() {
         assertEquals("open", note.oldValue); assertEquals("merged", note.newValue); assertTrue(note.receivers.any { it.id == mentioned.id })
     }
 
+    private fun issue(project: Project, number: Long, state: State = State.OPEN) =
+        issues.save(Issue(project = project, number = number, title = "이슈$number", state = state, authorLoginId = "x"))
+
+    @Test
+    fun `병합하면 제목 본문 커밋 메시지에서 닫는 말로 가리킨 같은 프로젝트의 이슈가 닫히고 이벤트가 남는다 (X-11)`() {
+        val s = setup(); addChange(s, message = "fixes #3 in a commit")
+        val byTitle = issue(s.origin, 1); val byBody = issue(s.origin, 2); val byCommit = issue(s.origin, 3); val mentionOnly = issue(s.origin, 4)
+        val pr = open(s, title = "closes #1", body = "Resolved #2 and see #4")
+        mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isSeeOther)
+        listOf(byTitle, byBody, byCommit).forEach {
+            assertEquals(State.CLOSED, issues.findById(it.id!!).get().state, "#${it.number}")
+            val event = issueEvents.findByIssueIdOrderByCreatedAscIdAsc(it.id!!).single { e -> e.eventType == EventType.ISSUE_STATE_CHANGED }
+            assertEquals(s.manager.loginId, event.senderLoginId); assertEquals("open", event.oldValue); assertEquals("closed", event.newValue)
+        }
+        assertEquals(State.OPEN, issues.findById(mentionOnly.id!!).get().state)
+    }
+
+    @Test
+    fun `이미 닫힌 이슈와 없는 번호와 다른 프로젝트의 이슈는 건드리지 않고 병합은 성공한다 (X-11)`() {
+        val s = setup(); addChange(s)
+        val closed = issue(s.origin, 1, State.CLOSED); val other = issue(s.fork, 1)
+        val pr = open(s, title = "fixes #1, closes #99")
+        mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isSeeOther)
+        assertEquals(State.MERGED, reload(pr).state)
+        assertEquals(State.CLOSED, issues.findById(closed.id!!).get().state)
+        assertEquals(0, issueEvents.findByIssueIdOrderByCreatedAscIdAsc(closed.id!!).count { it.eventType == EventType.ISSUE_STATE_CHANGED })
+        assertEquals(State.OPEN, issues.findById(other.id!!).get().state)
+    }
+
+    @Test
+    fun `충돌로 병합하지 못하면 이슈를 닫지 않는다 (X-11)`() {
+        val s = setup()
+        GitTestSupport.appendCommits(repositories, s.origin, TestCommit("원본 수정", mapOf("a.txt" to "line1\nORIGIN\nline3\n".toByteArray())))
+        GitTestSupport.appendCommits(repositories, s.fork, TestCommit("포크 수정", mapOf("a.txt" to "line1\nFORK\nline3\n".toByteArray())))
+        val target = issue(s.origin, 1)
+        val pr = open(s, title = "closes #1")
+        mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isSeeOther)
+        assertEquals(State.OPEN, reload(pr).state)
+        assertEquals(State.OPEN, issues.findById(target.id!!).get().state)
+    }
+
     @Test
     fun `리뷰어는 트랜잭션 밖에서도 읽을 수 있도록 요청과 함께 불러온다 (v1_6 accept의 병합은 트랜잭션 밖이다)`() {
         val s = setup(); addChange(s)
