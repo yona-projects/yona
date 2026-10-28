@@ -20,7 +20,7 @@
                 <i th:if="${project.private}" class="yobicon-lock yobicon-small"></i>
                 <th:block th:if="${project.originalOwner != null}">
                     <i class="yobicon-split yobicon-white vmiddle"></i>
-                    <span> <a th:href="@{${'/' + project.originalOwner + '/' + project.originalName}}" th:text="${project.originalOwner} + '/' + ${project.originalName}"></a></span>
+                    <span> <a th:href="@{${#paths.project(project.originalOwner, project.originalName)}}" th:text="${project.originalOwner} + '/' + ${project.originalName}"></a></span>
                 </th:block>
             </div>
             <div class="desc" th:text="${project.overview}"></div>

@@ -7,7 +7,7 @@
   매개변수: pull(UserPullRequestRow)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="pullRequestRow(pull)"
-          th:with="base=${'/' + pull.projectOwner + '/' + pull.projectName}, url=${'/' + pull.projectOwner + '/' + pull.projectName + '/pullRequest/' + pull.number}">
+          th:with="base=${#paths.project(pull.projectOwner, pull.projectName)}, url=${#paths.project(pull.projectOwner, pull.projectName) + '/pullRequest/' + pull.number}">
 <li class="post-item">
     <div class="span10">
         <a th:href="@{${base}}" class="avatar-wrap mlarge">

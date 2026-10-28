@@ -83,9 +83,13 @@ class KoreanNameLinksTest : AbstractIntegrationTest() {
         issues.save(Issue(project = project, milestone = milestone, state = State.OPEN, number = 1, title = "이슈", authorId = user.id, authorLoginId = "kl1", authorName = "kl1"))
         postings.save(Posting(project = project, title = "글", body = "본문", number = 1))
         // MockMvc가 경로를 인코딩하므로 날것의 이름으로 요청한다
+        // 사용자 화면의 포크 원본 링크도 인코딩한다
+        val fork = projects.save(Project(owner = "kl1", name = "fork1", vcs = "GIT", projectScope = ProjectScope.PUBLIC, originalProject = project))
+        menuSettings.save(ProjectMenuSetting(project = fork, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
+        projectUsers.save(ProjectUser(user = user, project = fork, role = roles.findById(RoleType.MANAGER.id).get()))
         val base = "/${project.owner}/${project.name}"
         val pages = listOf(base, "$base/issues", "$base/issue/1", "$base/posts", "$base/post/1", "$base/milestones", "$base/milestone/${milestone.id}", "$base/members", "$base/pullRequests",
-            "$base/code", "$base/changeVCS", "$base/settingform", "$base/issueform", "$base/postform", "$base/transfer", "$base/deleteform", "$base/statistics", "$base/search?keyword=x&searchType=issue", "/projects", "/")
+            "$base/code", "$base/changeVCS", "$base/settingform", "$base/issueform", "$base/postform", "$base/transfer", "$base/deleteform", "$base/statistics", "$base/search?keyword=x&searchType=issue", "/projects", "/", "/kl1")
         val problems = pages.flatMap { page ->
             val response = mockMvc.perform(get(page).session(session)).andReturn().response
             // 화면이 제대로 열렸는지 먼저 본다(오류 화면이면 검사가 의미 없다)
