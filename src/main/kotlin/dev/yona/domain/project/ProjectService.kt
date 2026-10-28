@@ -18,8 +18,8 @@ import java.net.URLDecoder
  * v1.6 `Project`의 정적 메서드(`findByOwnerAndProjectName`, `findByPreviousPlaceOf`, `hasMember`)와
  * 각 모델의 개수 조회(`Issue.countIssues` 등)에 해당한다.
  *
- * v1.6은 프로젝트 조회 결과를 `CacheStore.projectMap`에 캐시했다. v2는 조회마다 DB를 읽는다. 캐시는 성능 문제가
- * 확인되면 추가한다.
+ * v1.6은 프로젝트 조회 결과를 `CacheStore.projectMap`(`소유자:이름` → 프로젝트 번호)에 캐시한다. 이름을 바꿔도 예전 이름의 항목은 지우지 않아
+ * 예전 이름이 계속 같은 프로젝트를 연다(결함 재현, A-07 철회, R-126). 프로젝트를 지울 때만 이름이 사라진 항목을 정리한다.
  */
 @Service
 class ProjectService(
@@ -39,8 +39,36 @@ class ProjectService(
     fun findByOwnerAndProjectName(owner: String, projectName: String): Project? {
         val decodedOwner = decodeUrlString(owner)
         val decodedName = decodeUrlString(projectName)
-        return projects.findByOwnerIgnoreCaseAndNameIgnoreCase(decodedOwner, decodedName)
+        val key = cacheKey(decodedOwner, decodedName)
+        val cachedId = projectMap[key]
+        if (cachedId != null && cachedId != 0L) {
+            // 캐시가 가리키는 프로젝트가 이미 없으면(v1.6는 지울 때 항목도 지운다) 항목을 버리고 다시 찾는다
+            projects.findById(cachedId).orElse(null)?.let { return it }
+            projectMap.remove(key, cachedId)
+        }
+        val found = projects.findByOwnerIgnoreCaseAndNameIgnoreCase(decodedOwner, decodedName)
             ?: findByPreviousPlaceOf(decodedOwner, decodedName)
+        found?.id?.let { projectMap[key] = it }
+        return found
+    }
+
+    /** v1.6 `CacheStore.projectMap`이다. 키는 URL을 푼 소유자와 이름을 `:`로 이은 것이고 대소문자를 구별한다. */
+    private val projectMap = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+    private fun cacheKey(owner: String, name: String) = "$owner:$name"
+
+    /** 새 프로젝트를 만든 뒤 캐시에 넣는다. 같은 이름의 예전 항목이 있으면 덮어쓴다(v1.6 `ProjectApp.newProject`). */
+    fun remember(project: Project) {
+        project.id?.let { projectMap[cacheKey(project.owner.orEmpty(), project.name.orEmpty())] = it }
+    }
+
+    /** 프로젝트를 지울 때 이름이 사라진 항목을 모두 정리하고 이 프로젝트의 항목을 뺀다(v1.6 `Project.delete`의 `refreshProjectMap`). */
+    fun forget(project: Project) {
+        projectMap.keys.toList().forEach { key ->
+            val owner = key.substringBefore(':'); val name = key.substringAfter(':')
+            if (projects.findByOwnerIgnoreCaseAndNameIgnoreCase(owner, name) == null) projectMap.remove(key)
+        }
+        projectMap.remove(cacheKey(project.owner.orEmpty(), project.name.orEmpty()))
     }
 
     /**

@@ -61,6 +61,10 @@ class IssueMassUpdateController(
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
         val ids = indexed(request, "issues", ".id").mapNotNull { it.toLongOrNull() }
         if (ids.isEmpty()) return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body("""{"issues":["This field is required"]}""")
+        // 상태는 열거형 이름(`OPEN`, `CLOSED` 등) 그대로여야 한다. 소문자나 그 밖의 값은 v1.6 폼 바인딩이 `Invalid value`로 거절한다(빈 값은 통과)
+        request.getParameter("state")?.takeIf { it.isNotEmpty() && State.entries.none { e -> e.name == it } }?.let {
+            return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body("""{"state":["Invalid value"]}""")
+        }
         val dueChanged = request.getParameter("isDueDateChanged") == "true"
         var due: Date? = null
         try {
@@ -77,7 +81,8 @@ class IssueMassUpdateController(
         val delete = request.getParameter("delete") == "true"
         val viewer = currentUserProvider.get().user
 
-        val targets = ids.mapNotNull { issues.findById(it).orElse(null) }
+        // v1.6는 폼이 만든 이슈 객체를 `issue.refresh()`하는데 없는 번호이면 예외로 500이다
+        val targets = ids.map { issues.findById(it).orElseThrow { NoSuchElementException("issue $it") } }
         var updated = 0
         var rejected = 0
         for (issue in targets) {

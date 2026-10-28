@@ -25,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class ProjectDeletionService(
     private val attachments: dev.yona.domain.misc.AttachmentService,
-    private val issueService: dev.yona.domain.issue.IssueService
+    private val issueService: dev.yona.domain.issue.IssueService,
+    private val projectService: ProjectService
 ) {
 
     @PersistenceContext
@@ -34,6 +35,7 @@ class ProjectDeletionService(
     /** [project]와 딸린 데이터를 모두 지운다. 저장소 디렉터리는 호출한 쪽이 지운다. */
     fun delete(project: Project) {
         val projectId = requireNotNull(project.id)
+        projectService.forget(project)
 
         // 이 프로젝트와 포크(원본 연결이 이 프로젝트인 프로젝트)의 풀 리퀘스트를 지운다.
         val forkIds = ids("select p.id from Project p where p.originalProject.id = :id", projectId)

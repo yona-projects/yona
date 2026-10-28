@@ -124,11 +124,14 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-117 | 즐겨찾기 이슈 목록 | `GET /-_-api/v1/favoriteIssues`는 즐겨찾기가 하나라도 있으면 `issue.author`가 불러오지 않은 필드라 `NullPointerException`, 500이다(없을 때만 200) | v2는 이슈의 작성자 이름으로 정상 JSON을 돌려준다 | `UserApi.java` `getFoveriteIssues` |
 | R-118 | 토큰 API의 잘못된 입력 | 없는 이슈, 글에 대한 수정, 숫자가 아닌 즐겨찾기 번호, 알 수 없는 `filter`, 로그인 없는 즐겨찾기 토글은 `NullPointerException`, `NumberFormatException`, `IllegalArgumentException`, 외래 키 위반으로 500이다 | v2는 각각 404, 400, 403으로 낸다. 정상 입력의 응답은 같다 | `IssueApi.java`, `BoardApi.java`, `UserApi.java` |
 | R-119 | 인증 헤더 처리 | `Authorization` 헤더의 방식 이름을 보지 않고 앞 여섯 글자를 건너뛰어 읽는다(`basic`, `Bearer`도 같은 자격으로 읽힌다). 여섯 글자보다 짧으면 문자열 범위 오류로 500이다 | 같게 재현한다. 짧은 헤더의 500은 Git에서는 오류 화면, `/svn` 필터에서는 컨테이너의 오류 응답이라 본문 모양이 다르다 | `BasicAuthAction.java` `parseCredentials` |
-| R-120 | 조직 구성원 역할 바꾸기의 잘못된 입력 | `POST /organizations/:name/member/:userId/edit`에서 알 수 없는 역할 번호(예: 99)는 v1.6이 그대로 저장하고 `204`로 답하며, 역할 번호가 없으면 `NullPointerException`으로 `500`이다 | v2는 두 경우 모두 `unknownRole` 안내와 함께 `200`으로 거절한다(R-118과 같은 부류의 정책 차이) |
+| R-120 | 구성원 역할 바꾸기의 입력 | `POST /organizations/:name/member/:id/edit`와 `POST /:user/:project/member/:id/edit`: 역할 번호가 없으면 널 참조로 500, 숫자가 아니면 조직은 `unknownRole` 안내(200)이고 프로젝트는 500, 없는 번호는 204(조직은 아무것도 안 바꾸고 프로젝트는 역할이 `null`이 된다), 존재하는 역할이면 종류를 가리지 않고 받는다 | v1.6대로 재현한다(A-173) |
 | R-121 | 첨부 올리기의 잘못된 요청 | 멀티파트가 아닌 `POST /files`(본문 없음, 폼 인코딩)는 `request().body().asMultipartFormData()`가 `null`이라 `NullPointerException`으로 `500`이다. 로그인하지 않은 요청도 `authorEmail`로 기존 사용자 명의로 올릴 수 있다(권한 검사가 없다) | v2는 멀티파트가 아니면 `400`이다(R-118과 같은 부류). 명의 지정은 v1.6대로 허용한다 |
 | R-122 | 알림 둘 이상일 때의 표시 순서 | 알림이 둘 이상 남아 있을 때 표시 순서가 페이지 종류와 실행마다 다르다(`GET /nope`는 경고, 실패 순이고 403 화면과 라우트 없는 방식의 404 화면은 실패, 경고 순이다). 규칙을 찾지 못했다 | 넣은 순서로 둔다. (이전에 "HEAD 요청 차이"라고 적었던 항목은 잘못이었다. 같은 경로들이 익명 GET에서도 달랐고 아래 R-123과 A-172에서 고쳤다) | 템플릿 `scripts.scala.html` |
 | R-123 | 사이드바 `hash` 누락 | `GET /user/sidebar`는 `hash` 질의가 없으면 `layout_framed`의 `request.getQueryString("hash").get`이 `NoSuchElementException`이라 500이다(`hash=` 빈 값은 정상). 익명의 즐겨찾기 이슈 목록(`GET /-_-api/v1/favoriteIssues`)도 `NullPointerException`으로 500이다. 반면 익명의 프로젝트, 조직 즐겨찾기 목록은 v1.6 안의 공유 객체가 처음 한 번만 500이고 그다음부터 200이다 | v2는 `hash` 누락과 익명 즐겨찾기 이슈 목록을 500으로 재현한다. 프로젝트, 조직 목록은 안정된 상태인 200(빈 목록)으로 둔다 | `Application.sidebar`, `layout_framed.scala.html:22`, `UserApi.getFoveriteIssues` |
 | R-124 | 메일로 받은 글의 결함 | (1) 제목이 빈 메일로 만든 이슈는 제목이 `null`(문자열이 아닌 널)이라 이슈 보기의 제목이 `null`로 나오고, 같은 프로젝트의 이슈 목록 화면은 500이다. (2) 제목이 255자를 넘는 메일은 저장에 실패하지만 이슈 번호를 두 개 쓴다(재시도). (3) 인라인 이미지(`cid:`)가 있는 메일은 이슈를 만들고도 "Unexpected error" 회신 메일을 보낸다. (4) 커밋 주소(`…/commit/해시@도메인`)로 온 답장은 번호로 읽으려다 `NumberFormatException`이다. (5) 한 메일을 두 프로젝트에 보내면 두 번째 이슈의 알림 메일이 나가지 않는다(T-4와 같은 원인). (6) 첨부는 v1.6에서 항상 저장에 실패한다(R-61, D-25) | (1) v2는 빈 제목으로 만들고 목록은 정상이다(재현하면 메일 한 통으로 이슈 목록 전체가 500이 되어 재현하지 않았다. 선생님 확인이 필요하다). (2)(3)(4)(5)는 재현하지 않는다. (6)은 D-25대로 저장한다 | `EmailHandler.java`, `MailboxService.java` |
+| R-125 | 멘션 목록에 권한 검사가 없음 | `GET /:user/:project/mentionList`는 `@AnonymousCheck`뿐이라 익명도 비공개·보호 프로젝트의 멤버와 이슈 후보를 받는다. 없는 프로젝트는 `mentionType`이 `user`나 `issue`이면 널 참조로 500이다 | v1.6대로 재현한다(A-173). 비공개 프로젝트의 멤버 정보가 새므로 리팩터링 후보이다 | `ProjectApp.mentionList` |
+| R-126 | 프로젝트 이름 캐시가 예전 이름을 남김 | `CacheStore.projectMap`은 이름을 바꿔도 예전 이름의 항목을 지우지 않아 한 번 연 이름은 프로젝트의 이름이 바뀐 뒤에도 같은 프로젝트를 연다. 같은 이름의 새 프로젝트를 만들면 `newProject`가 항목을 덮어쓴다. 서버를 다시 띄우면 사라진다 | v1.6대로 재현한다(A-173). 캐시 항목이 가리키는 프로젝트가 없으면 버리고 다시 찾는다 | `Project.java:162-176`, `CacheStore.java` |
+| R-127 | 이슈 일괄 변경의 입력 | `POST /:user/:project/issues`는 `state`가 열거형 이름이 아니면 400 `{"state":["Invalid value"]}`, 빈 값은 통과, 없는 이슈 번호는 `issue.refresh()` 예외로 500이다 | v1.6대로 재현한다(A-173) | `IssueApp.massUpdate`, `IssueMassUpdate` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 
@@ -138,6 +141,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | T-2 | LDAP 인증 | JNDI | Spring LDAP | D-24 |
 | T-3 | 이메일 수신 | Jakarta Mail IMAP 직접 연결 | Spring Integration IMAP 어댑터 | D-24 |
 | T-4 | 메일 수신: 한 메일이 프로젝트 여러 곳에 이슈를 만든다 | `original_email.message_id` 유일 제약 때문에 두 번째부터 원본 메일 기록 실패(v1.6과 같다) | 유일 제약을 (메시지 ID, 리소스)로 바꿔 문서의 의도대로 여러 리소스를 만든다. DB 스키마 변경이 필요하다 | D-25 |
+
 
 
 

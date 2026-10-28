@@ -37,7 +37,8 @@ class ProjectCreateService(
     private val menuSettings: ProjectMenuSettingRepository,
     private val watchService: WatchService,
     private val recentVisits: RecentVisitService,
-    private val repositories: RepositoryService
+    private val repositories: RepositoryService,
+    private val projectService: ProjectService
 ) {
 
     /**
@@ -110,6 +111,7 @@ class ProjectCreateService(
         project.siteurl = "http://localhost:9000/${project.name}"
         project.createdDate = Date()
         projects.save(project)
+        projectService.remember(project)
         assignRole(SITE_MANAGER_ID, project, RoleType.SITEMANAGER)
 
         assignRole(requireNotNull(creator.id), project, RoleType.MANAGER)

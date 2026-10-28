@@ -233,20 +233,36 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
         val member = join(org, newUser(), RoleType.ORG_MEMBER)
         val outsider = newUser()
         val session = login(admin)
-        editMember(org, session, member.id, null).andExpect(jsonPath("$.location").value(locationOf(org))).andExpect(flash().attribute("warning", "organization.member.unknownRole"))
-        editMember(org, session, member.id, "abc").andExpect(flash().attribute("warning", "organization.member.unknownRole"))
-        editMember(org, session, member.id, "99999").andExpect(flash().attribute("warning", "organization.member.unknownRole"))
+        editMember(org, session, member.id, "abc").andExpect(jsonPath("$.location").value(locationOf(org))).andExpect(flash().attribute("warning", "organization.member.unknownRole"))
         editMember(org, session, outsider.id, RoleType.ORG_ADMIN.id.toString()).andExpect(flash().attribute("warning", "organization.member.isNotAMember"))
         editMember(org, login(member), member.id, RoleType.ORG_ADMIN.id.toString()).andExpect(flash().attribute("warning", "organization.member.needManagerRole"))
         assertEquals(RoleType.ORG_MEMBER.id, roleOf(org, member))
     }
 
     @Test
-    fun `조직 구성원이 쓰는 역할이 아닌 번호는 거부한다`() {
+    fun `없는 역할 번호는 아무것도 바꾸지 않고 성공이다 (v1_6 assignRole)`() {
         val org = newOrg()
         val admin = join(org, newUser(), RoleType.ORG_ADMIN)
         val member = join(org, newUser(), RoleType.ORG_MEMBER)
-        editMember(org, login(admin), member.id, RoleType.GUEST.id.toString()).andExpect(flash().attribute("warning", "organization.member.unknownRole"))
+        editMember(org, login(admin), member.id, "99999").andExpect(status().isNoContent)
+        assertEquals(RoleType.ORG_MEMBER.id, roleOf(org, member))
+    }
+
+    @Test
+    fun `존재하는 역할이면 조직 역할이 아니어도 받는다 (v1_6은 종류를 가리지 않는다)`() {
+        val org = newOrg()
+        val admin = join(org, newUser(), RoleType.ORG_ADMIN)
+        val member = join(org, newUser(), RoleType.ORG_MEMBER)
+        editMember(org, login(admin), member.id, RoleType.GUEST.id.toString()).andExpect(status().isNoContent)
+        assertEquals(RoleType.GUEST.id, roleOf(org, member))
+    }
+
+    @Test
+    fun `역할 번호가 없으면 500이다 (v1_6 널 참조)`() {
+        val org = newOrg()
+        val admin = join(org, newUser(), RoleType.ORG_ADMIN)
+        val member = join(org, newUser(), RoleType.ORG_MEMBER)
+        editMember(org, login(admin), member.id, null).andExpect(status().isInternalServerError)
         assertEquals(RoleType.ORG_MEMBER.id, roleOf(org, member))
     }
 

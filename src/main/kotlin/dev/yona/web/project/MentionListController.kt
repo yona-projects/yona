@@ -41,7 +41,6 @@ class MentionListController(
 ) {
 
     @GetMapping("/{user}/{project}/mentionList")
-    @IsAllowed(Operation.READ)
     fun mentionList(
         @PathVariable("user") owner: String,
         @PathVariable("project") name: String,
@@ -50,7 +49,11 @@ class MentionListController(
         @RequestParam(name = "query", defaultValue = "") query: String,
         @RequestParam(name = "mentionType", defaultValue = "") mentionType: String
     ): Any {
-        val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
+        // v1.6 `mentionList`에는 읽기 권한 검사가 없다(`@AnonymousCheck`뿐). 익명도 비공개 프로젝트의 후보를 받고, 없는 프로젝트는 `mentionType`이
+        // 비어 있으면 `{}`(200)이며 `user`나 `issue`이면 `NullPointerException`으로 500이다(공식 v1.16.0으로 확인, R-125).
+        val project = projectService.findByOwnerAndProjectName(owner, name)
+            ?: return if (mentionType.equals("user", ignoreCase = true) || mentionType.equals("issue", ignoreCase = true)) throw NullPointerException("project")
+            else ResponseEntity.ok().header(HttpHeaders.VARY, HttpHeaders.ACCEPT).contentType(MediaType.APPLICATION_JSON).body(linkedMapOf<String, Any>())
         val result = linkedMapOf<String, List<Map<String, String>>>()
 
         if (mentionType.equals("user", ignoreCase = true)) {

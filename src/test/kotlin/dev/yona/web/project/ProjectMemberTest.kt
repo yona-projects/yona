@@ -342,12 +342,29 @@ class ProjectMemberTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `프로젝트 역할이 아닌 번호는 거부한다`() {
+    fun `존재하는 역할이면 프로젝트 역할이 아니어도 받는다 (v1_6은 종류를 가리지 않는다)`() {
         val project = newProject()
         val manager = join(newUser(), project, RoleType.MANAGER)
         val member = join(newUser(), project, RoleType.MEMBER)
-        editMember(project, login(manager), member.id, RoleType.SITEMANAGER.id).andExpect(status().isBadRequest)
-        editMember(project, login(manager), member.id, null).andExpect(status().isBadRequest)
+        editMember(project, login(manager), member.id, RoleType.SITEMANAGER.id).andExpect(status().isNoContent)
+        assertEquals(RoleType.SITEMANAGER.id, roleOf(member, project))
+    }
+
+    @Test
+    fun `없는 역할 번호는 204이고 역할이 비게 된다 (v1_6 ProjectUser)`() {
+        val project = newProject()
+        val manager = join(newUser(), project, RoleType.MANAGER)
+        val member = join(newUser(), project, RoleType.MEMBER)
+        editMember(project, login(manager), member.id, 999999L).andExpect(status().isNoContent)
+        assertNull(roleOf(member, project))
+    }
+
+    @Test
+    fun `역할 번호가 없으면 500이다 (v1_6 널 참조)`() {
+        val project = newProject()
+        val manager = join(newUser(), project, RoleType.MANAGER)
+        val member = join(newUser(), project, RoleType.MEMBER)
+        editMember(project, login(manager), member.id, null).andExpect(status().isInternalServerError)
         assertEquals(RoleType.MEMBER.id, roleOf(member, project))
     }
 

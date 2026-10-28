@@ -91,7 +91,8 @@ class ProjectMemberService(
 
     /** 사용자의 역할을 [roleId]로 정한다. 구성원이 아니면 새로 만든다 (v1.6 `ProjectUser.assignRole`). */
     fun changeRole(project: Project, userId: Long, roleId: Long) {
-        assignRole(userId, project, roles.getReferenceById(roleId))
+        // v1.6 `ProjectUser`는 `Role.findById(roleId)`로 역할을 채우므로 없는 번호이면 역할이 `null`이 된다
+        assignRole(userId, project, roles.findById(roleId).orElse(null))
     }
 
     /** 구성원에서 뺀다. 구성원이 아니면 아무것도 하지 않는다 (v1.6 `ProjectUser.delete`). */
@@ -104,7 +105,7 @@ class ProjectMemberService(
     private fun isMember(user: User, project: Project): Boolean =
         projectUsers.existsByUserIdAndProjectId(requireNotNull(user.id), requireNotNull(project.id))
 
-    private fun assignRole(userId: Long, project: Project, role: Role) {
+    private fun assignRole(userId: Long, project: Project, role: Role?) {
         val existing = projectUsers.findFirstByUserIdAndProjectIdAndRoleIdNot(userId, requireNotNull(project.id), RoleType.SITEMANAGER.id)
         if (existing == null) {
             projectUsers.save(ProjectUser(user = users.getReferenceById(userId), project = project, role = role))

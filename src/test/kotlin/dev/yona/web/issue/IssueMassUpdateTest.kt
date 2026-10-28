@@ -253,6 +253,24 @@ class IssueMassUpdateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `상태가 열거형 이름이 아니면 400 Invalid value이다 (v1_6 폼 바인딩)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        val a = issue(project, 1)
+        for (bad in listOf("closed", "Closed", "1", "nope")) {
+            post(project, login(member), "issues[0].id" to a.id.toString(), "state" to bad).andExpect(status().isBadRequest)
+                .andExpect(content().json("""{"state":["Invalid value"]}""", true))
+        }
+        post(project, login(member), "issues[0].id" to a.id.toString(), "state" to "").andExpect(status().isOk)
+        assertEquals(State.OPEN, reload(a).state)
+    }
+
+    @Test
+    fun `없는 이슈 번호가 있으면 500이다 (v1_6 issue refresh)`() {
+        val project = newProject(); val member = join(newUser(), project)
+        post(project, login(member), "issues[0].id" to "999999", "state" to "CLOSED").andExpect(status().isInternalServerError)
+    }
+
+    @Test
     fun `JSON을 원하지 않으면 보낸 곳으로 되돌린다`() {
         val project = newProject(); val member = join(newUser(), project)
         val a = issue(project, 1)

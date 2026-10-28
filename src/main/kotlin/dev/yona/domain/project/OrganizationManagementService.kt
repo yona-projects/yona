@@ -97,19 +97,23 @@ class OrganizationManagementService(
 
     /**
      * 구성원의 역할을 바꾼다. 검사 순서: 역할 번호, 구성원 여부, 권한, 마지막 관리자.
-     * 조직 구성원이 쓰는 역할(조직 관리자, 조직 멤버)이 아닌 번호는 알 수 없는 역할이다.
+     * 숫자가 아닌 값만 알 수 없는 역할이다. 없는 역할 번호는 아무것도 바꾸지 않고 성공으로 답한다(v1.6, R-120).
      *
      * @return 거부 이유의 메시지 키. 성공이면 `null`
      */
     fun editMember(organization: Organization, actor: User?, userId: Long, roleIdParam: String?): String? {
-        val roleId = roleIdParam?.toLongOrNull()?.takeIf { it == RoleType.ORG_ADMIN.id || it == RoleType.ORG_MEMBER.id }
-            ?: return "organization.member.unknownRole"
+        // 숫자가 아닌 값은 폼 바인딩 오류(unknownRole)이고, 값이 없으면 오류 없이 번호가 `null`이다. 번호가 `null`이면 마지막 검사나 저장에서 널 참조로 500이다
+        val roleId: Long? = if (roleIdParam.isNullOrBlank()) null else roleIdParam.toLongOrNull() ?: return "organization.member.unknownRole"
         val orgId = requireNotNull(organization.id)
         if (!organizationUsers.existsByOrganizationIdAndUserId(orgId, userId)) return "organization.member.isNotAMember"
         if (!accessControl.isAllowed(actor, organization.asResource(), Operation.UPDATE)) return "organization.member.needManagerRole"
-        if (isLastAdmin(orgId, userId) && roleId == RoleType.ORG_MEMBER.id) return "organization.member.atLeastOneAdmin"
-
-        assignRole(orgId, users.getReferenceById(userId), roles.getReferenceById(roleId))
+        if (isLastAdmin(orgId, userId)) {
+            if (roleId == null) throw NullPointerException("role id")
+            if (roleId == RoleType.ORG_MEMBER.id) return "organization.member.atLeastOneAdmin"
+        }
+        if (roleId == null) throw NullPointerException("role id")
+        // v1.6 `OrganizationUser.assignRole`은 없는 역할 번호이면 아무것도 바꾸지 않고 넘어간다(그래도 204). 존재하는 역할이면 종류를 가리지 않고 받는다
+        roles.findById(roleId).orElse(null)?.let { assignRole(orgId, users.getReferenceById(userId), it) }
         return null
     }
 

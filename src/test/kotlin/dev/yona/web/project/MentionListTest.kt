@@ -33,6 +33,7 @@ import org.springframework.mock.web.MockHttpSession
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -254,9 +255,22 @@ class MentionListTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `종류가 없으면 빈 결과이고 없는 프로젝트는 403이다`() {
+    fun `종류가 없으면 빈 결과이다`() {
         val project = newProject()
         mockMvc.perform(get("/${project.owner}/${project.name}/mentionList")).andExpect(status().isOk).andExpect(jsonPath("$.result").doesNotExist())
-        mockMvc.perform(get("/nobody/nothing/mentionList").session(login(newUser()))).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `읽기 권한 검사가 없어 익명도 비공개 프로젝트의 후보를 받는다 (v1_6 mentionList)`() {
+        val project = newProject(ProjectScope.PRIVATE)
+        mockMvc.perform(get("/${project.owner}/${project.name}/mentionList")).andExpect(status().isOk).andExpect(content().json("{}", true))
+        mockMvc.perform(get("/${project.owner}/${project.name}/mentionList").param("mentionType", "user")).andExpect(status().isOk).andExpect(jsonPath("$.result").isArray)
+    }
+
+    @Test
+    fun `없는 프로젝트는 종류가 없으면 빈 객체이고 user나 issue이면 500이다 (v1_6 널 참조)`() {
+        mockMvc.perform(get("/nobody/nothing/mentionList")).andExpect(status().isOk).andExpect(content().json("{}", true))
+        mockMvc.perform(get("/nobody/nothing/mentionList").param("mentionType", "user")).andExpect(status().isInternalServerError)
+        mockMvc.perform(get("/nobody/nothing/mentionList").param("mentionType", "issue")).andExpect(status().isInternalServerError)
     }
 }
