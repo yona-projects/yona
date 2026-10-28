@@ -500,3 +500,4 @@
 
 ## [2026-10-28] ingest | Apache Magpie 연동 분석
 - Magpie 문서(tracker, change-request, pr-management 계약)를 읽고 Yona의 이슈·PR REST와 대조해 `architecture/magpie-integration.md`에 정리했다. D-29에 PR 쪽 현황을 덧붙였다.
+- Magpie 연동을 선생님 지시로 구현 없이 보류했다(로드맵 X-23). 필요한 API가 X-5, X-12, X-15, X-19와 겹친다는 점을 `magpie-integration.md` 4절과 D-29에 덧붙였다.

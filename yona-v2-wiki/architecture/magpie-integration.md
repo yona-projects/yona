@@ -99,3 +99,17 @@ Yona의 PR 경로는 거의 모두 화면용(HTML)이고 `/-_-api/v1` 아래에 
 | 인증 | 이슈 API 토큰 | PR 경로에서도 토큰 인증(또는 PAT) |
 
 핵심은 두 가지이다. Yona에는 "읽을 수 있는 JSON API"가 PR 쪽에 없고, Yona의 "리뷰"는 승인 표시(리뷰어 등록)라서 Magpie의 `post_review`(판정과 본문)와 개념이 다르다. 후자는 v1.6 동작을 바꾸지 않고 새 API로만 풀 수 있다.
+
+## 4. 로드맵(D-28)과의 겹침 (2026-10-28 보강)
+
+`roadmap.md`의 추가 개발 항목이 위 빈칸 대부분을 이미 포함한다. 따라서 Magpie 전용 API를 새로 만들기보다 아래 항목을 먼저 진행한 뒤 남는 부분만 더하는 편이 중복이 적다.
+
+| 필요한 것 | 로드맵 항목 |
+|---|---|
+| PR 경로의 토큰 인증 | X-5 개인용 API 토큰(PAT) |
+| `post_review`(approve, request-changes, 본문) | X-12 PR 리뷰 판정 |
+| PR 목록, 상세와 diff, 리뷰, 타임라인, 병합, 닫기, 댓글 REST | X-15 PR REST API |
+| 이슈 조회와 댓글 REST | X-19 일반 REST API |
+| 위를 채운 뒤에도 남는 것 | 기간·작성자 조건의 이슈 목록, 이슈·PR 활동 조회(`list_filed`, `list_triaged`, `list_commented`, `list_created`, `list_reviews_given`) |
+
+연동 자체는 X-23으로 올려 두었고 **보류(쌓아 둠)** 상태이다.

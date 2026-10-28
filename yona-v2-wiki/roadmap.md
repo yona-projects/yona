@@ -123,6 +123,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-20 | 프런트엔드 현대화: Vue 3 웹 컴포넌트 위젯 17개(대화상자, 토스트, 드롭다운, 자동 완성, 첨부, 리뷰 폼, 라벨 편집기 등), Tom Select, Flatpickr, CodeMirror 6와 EasyMDE 에디터, jQuery 제거(순수 JS), Hotwired Turbo(이슈 2단 목록) | `static/lib/yona-vue-widgets`, `frontend/`, `yona.issue.Turbo.js` (P3-46, P3-70) | 대기 | 화면 동작은 v1.6과 같게 둔다는 조건이 필요하다. `yona-v2-wiki`의 Vue 위젯 소스 위치 메모(components 저장소)와 이어진다 |
 | X-21 | 사용 현황 집계(GA4 gtag 브라우저 태그, 설치 ID 파일) | `config/analytics/AnalyticsSettings` | 대기 | 외부로 사용 정보를 보내므로 **기본값을 끈다**는 결정이 필요하다(`next`는 기본 켜짐) |
 | X-22 | 새 프로젝트의 기본 브랜치를 `main`으로 고정 | P3-11 | 대기 | v1.6 기본값과 달라지므로 착수 전에 결정이 필요하다 |
+| X-23 | Apache Magpie 연동(이슈 계약 `contract:tracker`, PR 계약 `contract:change-request`) | 없음([magpie-integration.md](architecture/magpie-integration.md)) | **보류(쌓아 둠, 2026-10-28 선생님)** | 선행: X-5(PAT), X-12(리뷰 판정), X-15(PR REST), X-19(일반 REST). 이 항목들이 채우지 못하는 것은 기간·작성자 조건의 이슈 목록과 이슈·PR 활동 조회뿐이다. 착수 전에 D-29를 결정한다 |
 | X-23 | yona CLI(Go 단일 바이너리, `gh`와 비슷한 사용법; 이슈, 풀 리퀘스트, 관리, 자동화) | `docs/yona-wiki/plans/p3-02-cli-and-rest-api.md` (P3-02) | 대기 | `next`에서도 **설계만 있고 코드는 없다** |
 | X-24 | CI/Actions(GitHub Actions 방식의 워크플로 YAML, 러너 등록과 폴링)와 프런트엔드 분리(SPA) | P3-05, P3-13 | 대기 | `next`에서도 **미착수 또는 계획서만 있다**. CI/Actions는 자동 진행 대상에서 제외하라는 기존 지시(P3-05)가 있다 |
 
