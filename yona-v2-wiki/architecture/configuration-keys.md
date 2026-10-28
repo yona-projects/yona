@@ -44,7 +44,7 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `smtp.user` / `smtp.domain` | `yona.smtp.user` / `yona.smtp.domain` | 빈 문자열 | 사용 중(보내는 주소). 접속 정보(`smtp.host` 등)는 `spring.mail.*`로 옮겼다 |
 | `application.codeBrowser.viewer.maxFileSize` | `yona.code-browser-max-file-size` | `1048576` | 사용 중(코드 브라우저) |
 | (v2 신규) | `yona.gravatar.check` | `true` | 사용 중. 끄면 기동 시 Gravatar 접속 검사를 건너뛰고 기본 아바타를 쓴다 |
-| (v2 신규) | `yona.analytics.measurement-id`, `yona.analytics.install-id-path` | `G-CKTN17HLPP`, 데이터 디렉터리 아래 `analytics/install-id` | 사용 중(X-21). `yona.send-yona-usage`가 켜져 있고 측정 ID가 있으면 GA4 태그를 낸다 |
+| (v2 신규) | `yona.analytics.measurement-id` | `G-CKTN17HLPP` | 사용 중(X-21). `yona.send-yona-usage`가 켜져 있고 측정 ID가 있으면 GA4 태그를 낸다 |
 | (v2 신규) | `yona.git-default-branch` | `main` | 사용 중(X-22). 새 Git 저장소의 `HEAD` 브랜치이다. v1.6은 `master`였다 |
 
 아직 옮기지 않은 v1.6 키는 해당 기능을 이식할 때 이 표에 추가한다.

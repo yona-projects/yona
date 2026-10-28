@@ -1,8 +1,6 @@
 package dev.yona.config
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
-import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -13,11 +11,8 @@ import kotlin.test.assertTrue
  */
 class AnalyticsSettingsTest {
 
-    @TempDir
-    lateinit var dir: File
-
-    private fun settings(sendYonaUsage: Boolean = true, measurementId: String = "G-TEST", name: String = "a") =
-        AnalyticsSettings(YonaProperties(sendYonaUsage = sendYonaUsage, analytics = YonaProperties.Analytics(measurementId, File(dir, "$name/install-id").path)))
+    private fun settings(sendYonaUsage: Boolean = true, measurementId: String = "G-TEST") =
+        AnalyticsSettings(YonaProperties(sendYonaUsage = sendYonaUsage, analytics = YonaProperties.Analytics(measurementId)))
 
     @Test
     fun `기본값은 v1_6처럼 켜짐이고 측정 ID가 들어 있다`() {
@@ -31,13 +26,5 @@ class AnalyticsSettingsTest {
         assertTrue(settings().clientEnabled)
         assertFalse(settings(sendYonaUsage = false).clientEnabled)
         assertFalse(settings(measurementId = " ").clientEnabled)
-    }
-
-    @Test
-    fun `설치 ID는 처음 한 번 만들어 파일에 저장하고 다시 쓴다`() {
-        val first = settings(name = "persist").installId
-        assertTrue(Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}").matches(first))
-        assertEquals(first, File(dir, "persist/install-id").readText())
-        assertEquals(first, settings(name = "persist").installId)
     }
 }

@@ -35,8 +35,7 @@
       gtag('config', measurementId, {
         send_page_view: false,
         allow_google_signals: false,
-        allow_ad_personalization_signals: false,
-        install_id: [[${@analyticsSettings.installId}]]
+        allow_ad_personalization_signals: false
       });
       // 왼쪽 사이드바 레이아웃(layout_framed)은 오른쪽 iframe 안에서도 같은 태그가 실행되어 페이지뷰가 두 번
       // 잡히므로 in_frame으로 구분한다. 사이드바 "사용"은 최상위 창에서 해당 레이아웃이 열린 경우로 센다.

@@ -60,7 +60,7 @@ import java.time.temporal.ChronoUnit
  * @property allowsAnonymousAccess 익명 사용자의 접근을 허용한다. 끄면 `@AnonymousCheck` 화면이 모두 로그인을 요구한다 (`application.allowsAnonymousAccess`)
  * @property socialLoginOnly 소셜 로그인만 허용한다 (`application.use.social.login.only`)
  * @property maxFileSize 첨부 파일의 최대 크기(바이트) (`application.maxFileSize`)
- * @property analytics 사용 현황 집계(GA4)의 측정 ID와 설치 ID 파일이다. 스위치는 [sendYonaUsage]이다 (X-21, `decisions.md` A-186)
+ * @property analytics 사용 현황 집계(GA4)의 측정 ID이다. 스위치는 [sendYonaUsage]이다 (X-21, `decisions.md` A-186)
  * @property gitDefaultBranch 새 Git 저장소의 기본 브랜치 이름이다. v1.6은 JGit 기본값(`master`)이었으나 `main`으로 고정한다 (X-22, `decisions.md` A-187)
  */
 @ConfigurationProperties(prefix = "yona")
@@ -250,11 +250,9 @@ data class YonaProperties(
      * 브라우저 태그만 쓰고 서버가 직접 보내는 이벤트는 없다.
      *
      * @property measurementId GA4 측정 ID(`G-...`). 비우면 `send-yona-usage`가 켜져 있어도 태그를 내지 않는다. 기본은 Yona 프로젝트의 ID이다(v1.6의 UA ID와 같은 자리)
-     * @property installIdPath 설치 ID를 저장할 파일이다. 비우면 `<데이터 디렉터리>/analytics/install-id`이다
      */
     data class Analytics(
-        val measurementId: String = "G-CKTN17HLPP",
-        val installIdPath: String = ""
+        val measurementId: String = "G-CKTN17HLPP"
     )
 
     /**

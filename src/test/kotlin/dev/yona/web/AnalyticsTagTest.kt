@@ -10,7 +10,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * 기본 설정(`yona.send-yona-usage=true`)에서 UA 태그 대신 GA4 태그(X-21)가 나오고, 측정 ID와 설치 ID가 들어가며 경로를 가려서 보내는지 검증한다.
+ * 기본 설정(`yona.send-yona-usage=true`)에서 UA 태그 대신 GA4 태그(X-21)가 나오고, 측정 ID가 들어가고(설치 ID는 보내지 않는다) 경로를 가려서 보내는지 검증한다.
  */
 @AutoConfigureMockMvc
 class AnalyticsTagTest : AbstractIntegrationTest() {
@@ -26,7 +26,7 @@ class AnalyticsTagTest : AbstractIntegrationTest() {
         assertTrue(html.contains("googletagmanager.com/gtag/js"))
         assertTrue(html.contains("G-CKTN17HLPP"))
         assertTrue(html.contains("maskPath"))
-        assertTrue(html.contains("install_id"))
+        assertFalse(html.contains("install_id"))
         assertFalse(html.contains("google-analytics.com"))
         assertFalse(html.contains("UA-102735758-1"))
     }
