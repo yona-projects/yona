@@ -1,10 +1,12 @@
 package dev.yona.repository
 
+import dev.yona.config.YonaProperties
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.RefUpdate
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.storage.file.WindowCacheConfig
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.File
 
@@ -16,14 +18,23 @@ import java.io.File
  * v1.6의 병합용 저장소(`repo/git-merging/...`)는 만들지 않는다. 병합이 받는 저장소 안에서 일어난다(`PullRequestMerger`).
  */
 @Component
-class GitRepositories(private val dataDirectory: DataDirectory) {
+class GitRepositories @Autowired constructor(private val dataDirectory: DataDirectory, private val properties: YonaProperties) {
+
+    /** 단위 시험용이다. 기본 브랜치는 기본 설정(`main`)을 따른다. */
+    constructor(dataDirectory: DataDirectory) : this(dataDirectory, YonaProperties())
 
     /** 저장소 디렉터리이다. 소유자와 이름은 URL 디코딩이 끝난 값이다. */
     fun directoryOf(owner: String, name: String): File = File(File(dataDirectory.root(), REPO_PREFIX), "$owner/$name.git")
 
-    /** 작업 트리가 없는 bare 저장소를 만든다. 이미 있으면 JGit이 예외를 던진다. */
+    /**
+     * 작업 트리가 없는 bare 저장소를 만든다. 이미 있으면 JGit이 예외를 던진다.
+     * `HEAD`는 설정 `yona.git-default-branch`(기본 `main`)를 가리킨다. v1.6은 JGit 기본값인 `master`였다 (X-22, `decisions.md` A-187).
+     */
     fun create(owner: String, name: String) {
-        RepositoryBuilder().setGitDir(directoryOf(owner, name)).setBare().build().use { it.create(true) }
+        RepositoryBuilder().setGitDir(directoryOf(owner, name)).setBare().build().use {
+            it.create(true)
+            it.updateRef(Constants.HEAD).link(Constants.R_HEADS + properties.gitDefaultBranch)
+        }
     }
 
     /**

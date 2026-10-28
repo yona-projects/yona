@@ -60,6 +60,8 @@ import java.time.temporal.ChronoUnit
  * @property allowsAnonymousAccess 익명 사용자의 접근을 허용한다. 끄면 `@AnonymousCheck` 화면이 모두 로그인을 요구한다 (`application.allowsAnonymousAccess`)
  * @property socialLoginOnly 소셜 로그인만 허용한다 (`application.use.social.login.only`)
  * @property maxFileSize 첨부 파일의 최대 크기(바이트) (`application.maxFileSize`)
+ * @property analytics 사용 현황 집계(GA4) 설정이다. v1.6에 없는 추가 항목이다 (X-21, `decisions.md` A-186)
+ * @property gitDefaultBranch 새 Git 저장소의 기본 브랜치 이름이다. v1.6은 JGit 기본값(`master`)이었으나 `main`으로 고정한다 (X-22, `decisions.md` A-187)
  */
 @ConfigurationProperties(prefix = "yona")
 data class YonaProperties(
@@ -122,7 +124,9 @@ data class YonaProperties(
     val socialLoginOnly: Boolean = false,
     val maxFileSize: Long = 2147483454L,
     val signup: Signup = Signup(),
-    val gravatar: Gravatar = Gravatar()
+    val gravatar: Gravatar = Gravatar(),
+    val analytics: Analytics = Analytics(),
+    val gitDefaultBranch: String = "main"
 ) {
     companion object {
         /** 설치 직후 설정 예시에 들어 있는 사이트 비밀 키이다. 이 값이면 아직 정하지 않은 것이다 (v1.6 `Global.DEFAULT_SECRET`). */
@@ -239,6 +243,19 @@ data class YonaProperties(
         val userInfoUrl: String = "",
         val redirectSecure: Boolean = false,
         val redirectHost: String = ""
+    )
+
+    /**
+     * 사용 현황 집계(GA4 `gtag`) 설정이다 (X-21, `decisions.md` A-186). 브라우저 태그만 쓰고 서버가 직접 보내는 이벤트는 없다.
+     *
+     * @property sendUsage 태그를 낸다. 외부로 정보를 보내므로 기본은 꺼짐이다
+     * @property measurementId GA4 측정 ID(`G-...`). 비어 있으면 켜도 태그를 내지 않는다
+     * @property installIdPath 설치 ID를 저장할 파일이다. 비우면 `<데이터 디렉터리>/analytics/install-id`이다
+     */
+    data class Analytics(
+        val sendUsage: Boolean = false,
+        val measurementId: String = "",
+        val installIdPath: String = ""
     )
 
     /**

@@ -48,7 +48,7 @@ import kotlin.test.assertFailsWith
  * 원본: `app/controllers/GitApp.java`, `playRepository/RepositoryService.gitAdvertise`, `gitRpc`, `playRepository/hooks 패키지`.
  * 서버가 따로 뜨므로 데이터는 커밋하고, 테스트가 끝나면 지운다.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = ["yona.notification-mail-enabled=false", "yona.secret=test-secret", "yona.update.interval=0"])
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = ["yona.notification-mail-enabled=false", "yona.secret=test-secret", "yona.update.interval=0", "yona.git-default-branch=master"])
 @TestPropertySource(properties = ["yona.data-dir=build/tmp/it-git-http"])
 class GitHttpTest {
 
