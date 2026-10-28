@@ -16,7 +16,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta http-equiv="cache-control" content="no-cache">
-        <link rel="shortcut icon" type="image/png" th:href="@{/assets/images/favicon.ico}">
+        <link rel="shortcut icon" type="image/png" th:href="@{/favicon.ico}">
         <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet' type='text/css'>
         <link href='https://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
         <link href='https://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
@@ -138,7 +138,7 @@
                     $(".project-list > .star-project").on("click", function toggleProjectFavorite(e) {
                         e.stopPropagation();
                         var that = $(this);
-                        $.post(/*[[@{/-_-api/v1/favoriteProjects/}]]*/ "" + that.data("projectId"))
+                        $.post("[(@{/-_-api/v1/favoriteProjects/})]" + that.data("projectId"))
                                 .done(function (data) {
                                     if(data.favored){
                                         that.find('i').addClass("starred");
@@ -154,7 +154,7 @@
                     $(".org-list > .star-org").on("click", function toggleOrgFavorite(e) {
                         e.stopPropagation();
                         var that = $(this);
-                        $.post(/*[[@{/-_-api/v1/favoriteOrganizations/}]]*/ "" + that.data("organizationId"))
+                        $.post("[(@{/-_-api/v1/favoriteOrganizations/})]" + that.data("organizationId"))
                                 .done(function (data) {
                                     if(data.favored){
                                         that.find('i').addClass("starred");
@@ -169,7 +169,7 @@
 
                     // This method intended to sync sub tab list of projects
                     function updateStar(){
-                        $.get(/*[[@{/-_-api/v1/favoriteProjects}]]*/ "")
+                        $.get("[(@{/-_-api/v1/favoriteProjects})]")
                                 .done(function(data){
                                     $(".star-project").each(function () {
                                         var $this = $(this);

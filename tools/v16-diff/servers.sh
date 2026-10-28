@@ -70,19 +70,21 @@ imap_flags_v16() { [ -f "$WORK/imap.on" ] && echo "-Dimap.use=true -Dimap.host=1
 imap_flags_v2() { if [ -f "$WORK/imap.on" ]; then echo "--yona.imap.use=true --yona.imap.host=127.0.0.1 --yona.imap.port=19243 --yona.imap.ssl=false --yona.imap.user=yona-in@example.com --yona.imap.password=pw --yona.imap.address=yona-in@example.com --yona.imap.folder=Inbox"; else echo "--yona.imap.use=false --yona.imap.address=your-yona-email-address@gmail.com --yona.imap.user=your-yona-email-address@gmail.com"; fi; }
 start_v16() {
   mkdir -p "$V16RUN"; cd "$V16RUN"
-  JAVA_HOME=$J8 PATH=$J8/bin:$PATH nohup ../yona-1.16.0/bin/yona -Dhttp.port=19200 -Dhttp.address=127.0.0.1 -Dapplication.update.check.use=$(upd_check) -Dapplication.update.repositoryUrl=$(upd_repo) -Dapplication.update.notification.initdelay=1s -J-Xmx768m \
+  JAVA_TOOL_OPTIONS="$(cat "$WORK/cfg.jvm" 2>/dev/null)" JAVA_HOME=$J8 PATH=$J8/bin:$PATH nohup ../yona-1.16.0/bin/yona -Dhttp.port=19200 -Dhttp.address=127.0.0.1 -Dapplication.update.check.use=$(upd_check) -Dapplication.update.repositoryUrl=$(upd_repo) -Dapplication.update.notification.initdelay=1s -J-Xmx768m \
     -Dsmtp.host=127.0.0.1 -Dsmtp.port=19225 -Dsmtp.ssl=false -Dsmtp.tls=false -Dsmtp.mock=false -Dsmtp.user=yona.mail -Dsmtp.password=pw -Dsmtp.domain=example.com \
-    -Dapplication.notification.bymail.initdelay=1s -Dapplication.notification.bymail.interval=2s -Dapplication.notification.bymail.delay=3s $(imap_flags_v16) ${V16_EXTRA:-} > "$V16RUN/run.log" 2>&1 &
+    -Dapplication.notification.bymail.initdelay=1s -Dapplication.notification.bymail.interval=2s -Dapplication.notification.bymail.delay=3s $(imap_flags_v16) ${V16_EXTRA:-} $(cat "$WORK/cfg.v16" 2>/dev/null) > "$V16RUN/run.log" 2>&1 &
   wait_http http://127.0.0.1:19200/ v1.6
 }
+# 같은 `--키=값`이 여러 번 나오면 스프링은 값을 쉼표로 이어 붙이므로, 설정 시험이 기본 옵션을 바꿀 수 있게 마지막 것만 남긴다
+dedupe_args() { tr ' ' '\n' | awk 'NF { split($0, a, "="); k = a[1]; last[k] = NR; line[NR] = $0 } END { for (i = 1; i <= NR; i++) if (line[i] != "") { split(line[i], a, "="); if (last[a[1]] == i) printf "%s ", line[i] } }'; }
 start_v2() {
   mkdir -p "$V2D/data" "$V2D/db"; cd "$V2D"
-  nohup $J21/bin/java -jar "$JAR" --server.port=19300 --yona.data-dir="$V2D/data" \
-    --spring.datasource.url="jdbc:h2:file:$V2D/db/yona;DB_CLOSE_DELAY=-1" \
-    --yona.social.login-support="github, google" --yona.social.github.client-id=id --yona.social.github.client-secret=secret \
+  V2_ARGS=$(echo "--server.port=19300 --yona.data-dir=$V2D/data --spring.datasource.url=jdbc:h2:file:$V2D/db/yona;DB_CLOSE_DELAY=-1 \
+    --yona.social.login-support=github,google --yona.social.github.client-id=id --yona.social.github.client-secret=secret \
     --yona.social.google.client-id=id --yona.social.google.client-secret=secret \
-    --yona.update.check=$(upd_check) --yona.update.repository-url=$(upd_repo) --yona.update.init-delay=1s --yona.update.interval=6h --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --yona.smtp.user=yona.mail --yona.smtp.domain=example.com $(imap_flags_v2) ${V2_EXTRA:-} \
-    --yona.notification-mail-init-delay=1000 --yona.notification-mail-interval=2000 --yona.notification-mail-delay=3000 > "$V2D/boot.log" 2>&1 &
+    --yona.update.check=$(upd_check) --yona.update.repository-url=$(upd_repo) --yona.update.init-delay=1s --yona.update.interval=6h --spring.mail.host=127.0.0.1 --spring.mail.port=19325 --yona.smtp.user=yona.mail --yona.smtp.domain=example.com $(imap_flags_v2) \
+    --yona.notification-mail-init-delay=1000 --yona.notification-mail-interval=2000 --yona.notification-mail-delay=3000 ${V2_EXTRA:-} $(cat "$WORK/cfg.v2" 2>/dev/null)" | dedupe_args)
+  JAVA_TOOL_OPTIONS="$(cat "$WORK/cfg.jvm" 2>/dev/null)" nohup $J21/bin/java -jar "$JAR" $V2_ARGS > "$V2D/boot.log" 2>&1 &
   echo $! > "$V2D/v2.pid"
   wait_http http://127.0.0.1:19300/ v2
 }

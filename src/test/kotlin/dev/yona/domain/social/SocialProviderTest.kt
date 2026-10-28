@@ -145,12 +145,15 @@ class SocialProviderTest {
     }
 
     @Test
-    fun `사용자 정보를 받지 못하거나 id가 없으면 예외이다`() {
+    fun `사용자 정보를 받지 못하거나 id가 없으면 일반 예외이다 (문구 본문이 아니라 오류 화면 500)`() {
+        // error 항목이 있는 응답만 SocialLoginException(문구 본문)이고, 나머지는 v1.6에서 NPE라 일반 예외이다
         userStatus = 401
         userBody = """{"message":"Bad credentials"}"""
-        assertFailsWith<SocialLoginException> { OAuth2SocialProvider.github(config()).identityOf("c", "r") }
+        assertFailsWith<IllegalStateException> { OAuth2SocialProvider.github(config()).identityOf("c", "r") }
         userStatus = 200
         userBody = """{"login":"noid"}"""
+        assertFailsWith<IllegalStateException> { OAuth2SocialProvider.github(config()).identityOf("c", "r") }
+        userBody = """{"error":"bad"}"""
         assertFailsWith<SocialLoginException> { OAuth2SocialProvider.github(config()).identityOf("c", "r") }
     }
 }

@@ -1,0 +1,26 @@
+base
+anon_off	-Dapplication.allowsAnonymousAccess=false	--yona.allows-anonymous-access=false
+hide_listing	-Dapplication.hide.project.listing=true	--yona.hide-project-listing=true
+display_private	-Dapplication.displayPrivateRepositories=true	--yona.display-private-repositories=true
+signup_confirm	-Dsignup.require.admin.confirm=true	--yona.signup.require-admin-confirm=true
+signup_confirm_old	-Dsignup.require.confirm=true	--yona.signup.require-confirm=true
+social_only	-Dapplication.use.social.login.only=true	--yona.social-login-only=true
+no_email	-Dapplication.show.user.email=false	--yona.show-user-email=false
+noreferrer_off	-Dapplication.noreferrer=false	--yona.noreferrer=false
+scope_private	-Dproject.default.scope.when.create=private	--yona.project-default-scope=private
+menus_two	-Dproject.default.menus.when.create=code,issue	--yona.project-default-menus=code,issue
+navbar	-Dapplication.navbar.custom.link.name=Docs -Dapplication.navbar.custom.link.url=http://example.com/docs	--yona.navbar-custom-link-name=Docs --yona.navbar-custom-link-url=http://example.com/docs
+placeholders	-Dapplication.login.page.loginId.placeholder=아이디 -Dapplication.login.page.password.placeholder=비밀	--yona.login-page-login-id-placeholder=아이디 --yona.login-page-password-placeholder=비밀
+sitename	-Dapplication.siteName=MySite	--yona.site-name=MySite
+usage_off	-Dapplication.send.yona.usage=false	--yona.send-yona-usage=false
+langs_ko	-Dapplication.langs=ko-KR	--yona.langs=ko-KR
+langs_ja	-Dapplication.langs=ja-JP,en-US	--yona.langs=ja-JP,en-US
+feedback	-Dapplication.feedback.url=http://example.com/fb	--yona.feedback-url=http://example.com/fb
+migration_on	-Dgithub.allow.migration=true	--yona.github.allow-migration=true
+maxfile_small	-Dapplication.maxFileSize=1000	--yona.max-file-size=1000
+hostname	-Dapplication.hostname=yona.example.com -Dapplication.port=8080 -Dapplication.scheme=https	--yona.hostname=yona.example.com --yona.port=8080 --yona.scheme=https
+social_none	-Dapplication.social.login.support=	--yona.social.login-support=
+server_hdr	-Dapplication.server=Custom/9	--yona.server=Custom/9
+mail_off	-Dnotification.bymail.enabled=false	--yona.notification-mail-enabled=false
+mail_show_addr	-Dapplication.notification.bymail.hideAddress=false	--yona.notification-mail-hide-address=false
+codeview_small	-Dapplication.codeBrowser.viewer.maxFileSize=100	--yona.code-browser-max-file-size=100

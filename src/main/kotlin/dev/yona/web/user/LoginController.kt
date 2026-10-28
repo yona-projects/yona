@@ -105,7 +105,8 @@ class LoginController(
             LoginResult.LockedAfterAuthentication -> {
                 // v1.6: 안내 문구를 남기고 logout()을 호출한다. logout()이 성공 문구를 덧붙이고 Referer로 돌려보낸다.
                 processLogout(request, response)
-                val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "/"
+                // logout()은 `redirect(Referer 머리글)`이라 Referer가 없으면 `Location: null`이다(R-03과 같다)
+                val referer = request.getHeader(HttpHeaders.REFERER)?.takeIf { it.isNotEmpty() } ?: "null"
                 RedirectSupport.see(
                     request, response, referer,
                     mapOf(RedirectSupport.WARNING to "user.locked", RedirectSupport.SUCCESS to "user.logout.success")

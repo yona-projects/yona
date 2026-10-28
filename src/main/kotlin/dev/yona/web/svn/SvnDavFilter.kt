@@ -18,8 +18,12 @@ class SvnDavFilter(private val dav: SvnDavService, private val secret: SiteSecre
 
     override fun getOrder(): Int = 0
 
+    /**
+     * `/svn/…` 주소이거나 WebDAV 메서드이면 가로챈다. v1.6 `Global.onRouteRequest`는 메서드가 WebDAV이면 주소와 상관없이 `SvnApp.service`로 보냈다
+     * (주소 구간이 3개 미만이면 403, 아니면 두 번째 구간을 소유자로 읽어 프로젝트를 찾아 없으면 404).
+     */
     override fun shouldNotFilter(request: HttpServletRequest): Boolean =
-        secret.invalid || !request.requestURI.startsWith(request.contextPath + "/svn/")
+        secret.invalid || !(request.requestURI.startsWith(request.contextPath + "/svn/") || SvnDavService.WEBDAV_METHODS.any { it.equals(request.method, ignoreCase = true) })
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         dav.service(request, response)

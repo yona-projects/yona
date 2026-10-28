@@ -112,8 +112,12 @@ class SocialLoginTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `알 수 없거나 허용되지 않은 제공자는 404이다`() {
+    fun `알 수 없거나 허용되지 않은 제공자는 문구만 담은 404이다`() {
+        // v1.6은 Play의 `notFound("Provider … could not be found!")`라 오류 화면이 아니라 text/plain 본문이고 캐시 금지 머리글이 붙는다
         mockMvc.perform(get("/authenticate/facebook")).andExpect(status().isNotFound)
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("Provider facebook could not be found!"))
+            .andExpect(header().string("Content-Type", org.hamcrest.Matchers.startsWith("text/plain")))
+            .andExpect(header().string("Cache-Control", "no-cache, no-store, must-revalidate"))
         mockMvc.perform(get("/authenticate/GitHub")).andExpect(status().isNotFound)
     }
 
@@ -143,10 +147,12 @@ class SocialLoginTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `state가 없거나 다르면 400이다`() {
+    fun `state가 없거나 다르면 오류 화면 500이다`() {
+        // 공식 v1.16.0: play-authenticate가 state 불일치를 예외로 알려 Global.onError의 500 화면이 나온다
         val session = MockHttpSession()
         begin("github", session)
-        callback("github", session, state = "forged").andExpect(status().isBadRequest)
+        val html = callback("github", session, state = "forged").andExpect(status().isInternalServerError).andReturn().response.contentAsString
+        assertTrue(html.contains("Server error occurred"), html.take(200))
         assertFalse(isLoggedIn(session))
     }
 
@@ -187,6 +193,35 @@ class SocialLoginTest : AbstractIntegrationTest() {
             signIn().andExpect(status().isInternalServerError).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("bad_verification_code"))
         } finally {
             githubTokenBody = """{"access_token":"tok","token_type":"bearer"}"""
+        }
+    }
+
+    @Test
+    fun `사용자 정보를 읽지 못하면 예외라 오류 화면 500이다`() {
+        // error 항목이 있는 JSON만 문구 본문이고, 깨진 본문이나 id가 없는 응답은 v1.6에서 예외(Global.onError의 500 화면)이다
+        val ok = githubUser
+        try {
+            for (body in listOf("garbage{", """{"message":"Bad credentials"}""")) {
+                githubUser = body
+                val html = signIn().andExpect(status().isInternalServerError).andReturn().response.contentAsString
+                assertTrue(html.contains("Server error occurred"), "$body -> ${html.take(120)}")
+            }
+            githubUser = """{"error":"bad_creds"}"""
+            signIn().andExpect(status().isInternalServerError).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("bad_creds"))
+        } finally {
+            githubUser = ok
+        }
+    }
+
+    @Test
+    fun `이메일에 골뱅이가 없으면 로그인 ID를 만들다 예외가 나 500이다`() {
+        // v1.6 createLocalUserWithOAuth는 `email.substring(0, email.indexOf("@"))`를 부른다
+        val ok = githubUser
+        try {
+            githubUser = """{"id":${5000 + ++sequence},"login":"noat$sequence","name":"골뱅이 없음","email":"not-an-email"}"""
+            signIn().andExpect(status().isInternalServerError)
+        } finally {
+            githubUser = ok
         }
     }
 

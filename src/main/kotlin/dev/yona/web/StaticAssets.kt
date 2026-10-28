@@ -37,7 +37,7 @@ class StaticAssets {
 
         val ifNoneMatch = request.getHeader("If-None-Match")
         if (ifNoneMatch != null) {
-            if (ifNoneMatch.split(",").any { it.trim() == etag || it.trim() == "*" }) return cacheHeaders(ResponseEntity.status(HttpStatus.NOT_MODIFIED)).build()
+            if (ifNoneMatch.split(",").any { it.trim() == etag }) return cacheHeaders(ResponseEntity.status(HttpStatus.NOT_MODIFIED)).build()
         } else {
             val since = request.getDateHeader("If-Modified-Since")
             if (since != -1L && lastModifiedMillis / 1000 * 1000 <= since) return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build()

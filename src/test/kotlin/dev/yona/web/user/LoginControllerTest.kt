@@ -133,6 +133,14 @@ class LoginControllerTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `잠긴 계정으로 로그인하면 로그아웃과 같이 Referer로 보내고 없으면 null 문자열로 보낸다`() {
+        // v1.6은 `flash(...)` 뒤 `logout()`을 부르고 logout()은 `redirect(request().getHeader("Referer"))`라 Referer가 없으면 `Location: null`이다
+        newUser("ellen", state = UserState.LOCKED)
+        mockMvc.perform(post("/users/login").param("loginIdOrEmail", "ellen").param("password", "1234")).andExpect(redirectedUrl("null"))
+        mockMvc.perform(post("/users/login").header("Referer", "/projects").param("loginIdOrEmail", "ellen").param("password", "1234")).andExpect(redirectedUrl("/projects"))
+    }
+
+    @Test
     fun `로그인한 사용자의 언어는 요청마다 Accept-Language에 맞춰 바뀐다`() {
         val alice = newUser("langer")
         val session = MockHttpSession()

@@ -5,6 +5,10 @@ yona:
     domain: yona.local
 
 spring:
+  web:
+    error:
+      # 스프링 부트의 오류 화면 주소를 바꾼다. 기본값 `/error`는 v1.6에서 `/:user` 라우트(사용자 `error`)라서 같은 응답이 나와야 한다.
+      path: /-_-error
   application:
     name: yona
   config:

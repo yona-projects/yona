@@ -147,6 +147,8 @@ class SocialAccountService(
             discard(credential)
             return null
         }
+        // v1.6은 `email.substring(0, email.indexOf("@"))`라 골뱅이가 없는 이메일이면 범위 예외로 500이다
+        check(email.contains('@')) { "이메일에 골뱅이가 없어 로그인 ID를 만들 수 없습니다: $email" }
         val created = signup.create(SignupForm(signup.generateLoginId(email.substringBefore('@')), credential.name, email, randomPassword()))
         created.state = UserState.ACTIVE
         users.save(created)

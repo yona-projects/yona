@@ -49,7 +49,7 @@ class Server:
         self.name, self.base = name, base.rstrip("/")
         self.sessions: dict[str, requests.Session] = {}
         # 가입 순서(tester, other, third)로 정해지는 사용자 번호는 서버마다 다르다. v1.6 H2는 33부터, v2는 2부터이다
-        base = 33 if name == "v1.6" else 2
+        base = 33 if (name == "v1.6") != bool(os.environ.get("XPORT_SWAP")) else 2  # XPORT_SWAP: 서로의 내보내기 파일을 가져온 뒤라 번호가 뒤바뀐 상태
         self.vars: dict[str, str] = {"uid_tester": str(base), "uid_other": str(base + 1), "uid_third": str(base + 2),
                                      "sinkport": "19226" if name == "v1.6" else "19326"}
         self.preset = set(self.vars)  # 사용자 번호는 USER_ID_MAP이 따로 맞추므로 `<이름>`으로 바꾸지 않는다
@@ -397,7 +397,7 @@ def run(args):
         for k in sorted(set(ha) | set(hb)):
             if ha.get(k) != hb.get(k):
                 problems.append(f"헤더 {k}: v1.6={ha.get(k)!r} v2={hb.get(k)!r}")
-        problems += diff_bodies(body_view(ra, step, True, a.tokenize), body_view(rb, step, False, b.tokenize))
+        problems += diff_bodies(body_view(ra, step, not os.environ.get("XPORT_SWAP"), a.tokenize), body_view(rb, step, bool(os.environ.get("XPORT_SWAP")), b.tokenize))
         if problems:
             for p_ in problems:
                 if p_.startswith(("-", "+")) and not p_.startswith(("---", "+++")):

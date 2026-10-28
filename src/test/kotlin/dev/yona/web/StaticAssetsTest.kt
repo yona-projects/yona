@@ -66,6 +66,14 @@ class StaticAssetsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `If-None-Match의 별표와 약한 ETag는 일치로 보지 않는다 (v1_6 Assets)`() {
+        val etag = mockMvc.perform(get("/assets/stylesheets/yobi.css")).andReturn().response.getHeader("ETag")!!
+        mockMvc.perform(get("/assets/stylesheets/yobi.css").header("If-None-Match", "*")).andExpect(status().isOk)
+        mockMvc.perform(get("/assets/stylesheets/yobi.css").header("If-None-Match", "W/$etag")).andExpect(status().isOk)
+        mockMvc.perform(get("/assets/stylesheets/yobi.css").header("If-None-Match", "\"x\", $etag")).andExpect(status().isNotModified)
+    }
+
+    @Test
     fun `public 폴더의 compiler jar도 v1_6처럼 내려 준다`() {
         val size = mockMvc.perform(get("/assets/compiler.jar")).andExpect(status().isOk).andReturn().response.contentAsByteArray.size
         assertEquals(6577863, size)

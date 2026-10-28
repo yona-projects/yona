@@ -53,7 +53,7 @@ class SocialLoginController(
         request: HttpServletRequest,
         response: HttpServletResponse
     ): Any {
-        val found = providers.find(provider) ?: return ErrorViews.notFound()
+        val found = providers.find(provider) ?: return providerNotFound(provider, response)
         // v1.6: 거절은 안내 화면으로, 그 밖의 오류는 오류 문구를 본문으로 한 500이다.
         if (error == "access_denied") return RedirectSupport.see(request, response, "/authenticate/$provider/denied")
         if (error != null) return plainError(error)
@@ -66,7 +66,8 @@ class SocialLoginController(
         if (!request.parameterMap.containsKey("code")) return toProvider()
         when (socialSession.checkState(request, provider, state)) {
             SocialSession.StateCheck.MISSING -> return toProvider()
-            SocialSession.StateCheck.MISMATCH -> return ErrorViews.badRequest("error.badrequest")
+            // play-authenticate는 state가 다르면 예외를 던지고 Global.onError가 500 화면을 낸다
+            SocialSession.StateCheck.MISMATCH -> error("state가 보낸 값과 다릅니다")
             SocialSession.StateCheck.MATCH -> Unit
         }
         val identity = try {
@@ -75,6 +76,12 @@ class SocialLoginController(
             return plainError(e.message)
         }
         return finish(identity, request, response)
+    }
+
+    /** v1.6 `Application.oAuth`는 알 수 없는 제공자에 Play의 `notFound("Provider … could not be found!")`를 돌려준다. 캐시 금지 머리글이 붙는다. */
+    private fun providerNotFound(provider: String, response: HttpServletResponse): ResponseEntity<String> {
+        noStore(response)
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType("text", "plain", Charsets.UTF_8)).body("Provider $provider could not be found!")
     }
 
     /** Play의 `internalServerError(message)`처럼 문구만 본문에 담은 500이다. */

@@ -72,8 +72,8 @@ class OAuth2SocialProvider(
         val user = runCatching { mapper.readTree(body.body.orEmpty()) }.getOrNull()
         // v1.6: 응답에 `error`가 있으면 그 문구로 실패한다.
         user?.get("error")?.let { throw SocialLoginException(it.asString()) }
-        if (!body.statusCode.is2xxSuccessful) throw SocialLoginException("$key 사용자 정보를 읽지 못했습니다: ${body.statusCode.value()}")
-        return user?.let(toIdentity)?.copy(expires = token.expires) ?: throw SocialLoginException("$key 사용자 정보에 id가 없습니다")
+        // v1.6은 상태 코드를 보지 않고 JSON의 필드를 읽는다. 깨진 본문이나 id가 없는 응답은 NPE로 오류 화면 500이다(문구 본문이 아니다)
+        return user?.let(toIdentity)?.copy(expires = token.expires) ?: error("$key 사용자 정보를 읽지 못했습니다: ${body.statusCode.value()}")
     }
 
     private fun exchange(code: String, redirectUri: String): Token {
@@ -82,7 +82,9 @@ class OAuth2SocialProvider(
             add("redirect_uri", redirectUri); add("grant_type", "authorization_code")
         }
         val response = RestClient.create().post().uri(config.accessTokenUrl)
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON).body(form)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            // v1.6 play-authenticate: GitHub만 `Accept: application/json`을 보내고 Google은 기본값(`*/*`)이다
+            .accept(if (key == "github") MediaType.APPLICATION_JSON else MediaType.ALL).body(form)
             .retrieve().onStatus({ true }, { _, _ -> }).toEntity(String::class.java)
         val json = if (response.statusCode.is2xxSuccessful) runCatching { mapper.readTree(response.body.orEmpty()) }.getOrNull() else null
         json?.get("error")?.let { throw SocialLoginException(it.asString()) }
