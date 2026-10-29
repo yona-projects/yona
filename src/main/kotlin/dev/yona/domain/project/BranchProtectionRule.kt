@@ -38,6 +38,11 @@ class BranchProtectionRule(
     var createdDate: Date? = null
 ) {
 
+    /** 저장된 규칙이 아니라 프로젝트 설정의 리뷰어 수에서 만든 프로젝트 전체 기본 규칙이면 `true`이다(`decisions.md` D-43). */
+    @jakarta.persistence.Transient
+    var isProjectDefault: Boolean = false
+        internal set
+
     /** 패턴에 `*`가 없으면 `true`이다. 이름이 정확히 같은 규칙이 패턴 규칙보다 우선한다. */
     val isExact: Boolean get() = pattern?.contains('*') != true
 

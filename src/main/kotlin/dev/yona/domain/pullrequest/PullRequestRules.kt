@@ -14,7 +14,7 @@ val PullRequest.merged: Boolean get() = state == State.MERGED
 
 /**
  * 받는 브랜치에 적용되는 보호 규칙이다. 없으면 `null`이다(추가 개발 항목 X-32, `decisions.md` D-42).
- * v1.6은 프로젝트 전체에 리뷰어 수를 강제했지만, 지금은 GitHub처럼 규칙을 만든 브랜치에만 적용한다.
+ * 브랜치 보호 규칙이 먼저이고, 없으면 프로젝트 설정의 리뷰어 수(v1.6 동작)이며, 둘 다 없으면 GitHub처럼 막지 않는다(`Project.protectionFor`).
  */
 val PullRequest.protection: dev.yona.domain.project.BranchProtectionRule? get() = toProject?.protectionFor(toBranch)
 
@@ -41,7 +41,7 @@ val PullRequest.latestReviews: Map<Long?, PullRequestReview>
 val PullRequestReview.effectiveVerdict: dev.yona.domain.enumeration.ReviewVerdict?
     get() = if (dismissedDate != null) dev.yona.domain.enumeration.ReviewVerdict.COMMENTED else verdict
 
-/** 변경 요청이 최신 판정으로 남아 있는 리뷰어의 로그인 ID이다. 표시에는 항상 쓰고 병합은 보호 규칙이 있는 브랜치에서만 막는다. */
+/** 변경 요청이 최신 판정으로 남아 있는 리뷰어의 로그인 ID이다. 표시에는 항상 쓰고 병합은 적용되는 규칙이 있을 때만 막는다. */
 val PullRequest.changesRequestedBy: List<String?>
     get() = latestReviews.values.filter { it.effectiveVerdict == dev.yona.domain.enumeration.ReviewVerdict.CHANGES_REQUESTED }.sortedWith(compareBy({ it.createdDate }, { it.id })).map { it.authorLoginId }
 
@@ -49,7 +49,7 @@ val PullRequest.changesRequestedBy: List<String?>
 fun PullRequest.isReviewedBy(user: User?): Boolean = user != null && reviewers.any { it.id == user.id }
 
 /**
- * 리뷰 조건이 병합을 막고 있으면 `true`이다. 받는 브랜치에 보호 규칙이 있고 승인이 모자라거나 변경 요청이 남아 있을 때이다(추가 개발 항목 X-12, X-32,
+ * 리뷰 조건이 병합을 막고 있으면 `true`이다. 받는 브랜치에 적용되는 규칙이 있고 승인이 모자라거나 변경 요청이 남아 있을 때이다(추가 개발 항목 X-12, X-32,
  * `decisions.md` D-35, D-42). 프로젝트 관리자와 사이트 관리자는 규칙이 "관리자에게도 적용"이 아니면 이 막힘을 우회할 수 있다.
  */
 val PullRequest.reviewBlocked: Boolean get() = protection != null && (!reviewed || changesRequestedBy.isNotEmpty())

@@ -119,16 +119,36 @@ class BranchProtectionWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `설정 화면은 리뷰어 수 강제 입력 대신 브랜치 보호 영역과 규칙 목록을 보인다`() {
+    fun `설정 화면은 프로젝트 전체 리뷰어 수 설정과 브랜치 보호 영역과 규칙 목록을 함께 보인다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
         create(project, session, "pattern" to "release/*", "requiredApprovals" to "2")
         val doc = Jsoup.parse(mockMvc.perform(get(url(project, "/settingform")).session(session).header("Accept-Language", "ko-KR")).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertTrue(doc.select("input[name=isUsingReviewerCount], [name=defaultReviewerCount]").isEmpty(), "리뷰어 수 강제 입력은 없다")
+        assertEquals(2, doc.select("#reviewerCountSettingPanel input[name=isUsingReviewerCount]").size, "프로젝트 전체 기본 리뷰어 수 설정이 있다 (D-43)")
+        assertEquals(1, doc.select("#reviewerCountSettingPanel [data-name=defaultReviewerCount]").size)
         assertEquals(1, doc.select("#reviewerCountSettingPanel input[name=isDismissingStaleApprovals][checked]").size, "승인 해제 설정은 남아 있다")
         val panel = doc.selectFirst("#branchProtectionPanel")!!
         assertTrue(panel.text().contains("release/*") && panel.text().contains("2"), panel.text())
         assertEquals(url(project, "/setting/protections"), panel.selectFirst("form#branchProtectionForm")!!.attr("action"))
         assertEquals(listOf("pattern", "requiredApprovals", "enforceAdmins"), panel.select("form#branchProtectionForm input").map { it.attr("name") }.filter { it.isNotEmpty() })
         assertEquals(1, panel.select("form.protection-delete").size)
+    }
+
+    @Test
+    fun `규칙은 표로 보이고 규칙이 없는 다른 브랜치의 적용 방식이 마지막 줄에 나온다 (D-43)`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        fun panel() = Jsoup.parse(mockMvc.perform(get(url(project, "/settingform")).session(session).header("Accept-Language", "ko-KR")).andReturn().response.contentAsString).selectFirst("#branchProtectionPanel")!!
+
+        assertEquals("제한 없음", panel().selectFirst("tr.protection-others td.protection-others-state")!!.text(), "리뷰어를 쓰지 않으면 제한이 없다")
+        create(project, session, "pattern" to "release/*", "requiredApprovals" to "2", "enforceAdmins" to "true")
+        create(project, session, "pattern" to "master", "requiredApprovals" to "1")
+        val rows = panel().select("tr.protection-rule")
+        assertEquals(listOf("master", "release/*"), rows.map { it.selectFirst("td.protection-pattern code")!!.text() })
+        assertEquals("승인 2개 필요", rows[1].selectFirst("td.protection-approvals")!!.text())
+        assertEquals("우회 불가", rows[1].selectFirst("td.protection-admins")!!.text()); assertEquals("우회 가능", rows[0].selectFirst("td.protection-admins")!!.text())
+        assertEquals("release/*", rows[1].selectFirst("button.protection-edit")!!.attr("data-pattern"))
+        assertEquals("2", rows[1].selectFirst("button.protection-edit")!!.attr("data-approvals")); assertEquals("true", rows[1].selectFirst("button.protection-edit")!!.attr("data-enforce"))
+
+        projects.findById(project.id!!).get().also { it.isUsingReviewerCount = true; it.defaultReviewerCount = 3 }.also { projects.save(it) }
+        assertEquals("프로젝트 기본값: 승인 3개", panel().selectFirst("tr.protection-others td.protection-others-state")!!.text())
     }
 }

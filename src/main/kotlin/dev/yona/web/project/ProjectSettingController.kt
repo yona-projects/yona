@@ -83,6 +83,8 @@ class ProjectSettingController(
         overview = request.getParameter("overview"),
         projectScope = request.getParameter("projectScope"),
         isCodeAccessibleMemberOnly = request.getParameter("isCodeAccessibleMemberOnly"),
+        isUsingReviewerCount = request.getParameter("isUsingReviewerCount"),
+        defaultReviewerCount = request.getParameter("defaultReviewerCount"),
         isDismissingStaleApprovals = request.getParameter("isDismissingStaleApprovals"),
         allowMergeCommit = request.getParameter("allowMergeCommit"),
         allowSquashMerge = request.getParameter("allowSquashMerge"),
@@ -98,6 +100,7 @@ class ProjectSettingController(
         val view = views.of(project)
         val branches = if (project.vcs == RepositoryService.VCS_GIT) repositories.refNames(project) else emptyList()
         val defaultBranch = if (project.vcs == RepositoryService.VCS_GIT) repositories.defaultBranch(project) else "HEAD"
+        val memberCount = homeService.members(project).size
         val locale = LocaleContextHolder.getLocale()
         val oldPlace = if (!project.previousName.isNullOrBlank()) {
             val place = if (project.previousOwnerLoginId == null) "" else "${project.previousOwnerLoginId}/${project.previousName}"
@@ -111,6 +114,7 @@ class ProjectSettingController(
             .addObject("defaultBranchName", itemName(defaultBranch))
             .addObject("branchItemNames", branches.filter { itemType(it) == "branch" }.associateWith { itemName(it) })
             .addObject("oldPlaceHtml", oldPlace)
+            .addObject("maxReviewerCount", if (memberCount > 1) memberCount else 1)
             .addObject("protectionRules", project.branchProtectionRules.sortedBy { it.pattern })
             .also { mav ->
                 if (warning != null) mav.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to warning)) }

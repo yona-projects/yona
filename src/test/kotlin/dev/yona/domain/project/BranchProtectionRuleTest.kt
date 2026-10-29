@@ -86,4 +86,37 @@ class BranchProtectionRuleTest {
     fun `다른 브랜치의 규칙은 영향이 없다`() {
         assertFalse(pullRequest(project(Triple("release/*", 3, false)), approvals = 0).reviewBlocked)
     }
+
+    // --- 프로젝트 전체 기본 규칙 (D-43) ---
+
+    private fun withDefault(using: Boolean?, count: Int?, vararg rules: Triple<String, Int, Boolean>) =
+        project(*rules).also { it.isUsingReviewerCount = using; it.defaultReviewerCount = count }
+
+    @Test
+    fun `규칙이 없고 프로젝트가 리뷰어를 쓰면 설정한 수가 모든 브랜치의 기본 규칙이 된다`() {
+        val p = withDefault(true, 2)
+        val rule = p.protectionFor("refs/heads/master")!!
+        assertEquals(2, rule.requiredApprovals); assertFalse(rule.enforceAdmins == true, "기본 규칙은 관리자가 우회할 수 있다"); assertTrue(rule.isProjectDefault)
+        assertEquals(2, p.protectionFor("refs/heads/feature/x")!!.requiredApprovals)
+        assertTrue(pullRequest(p, approvals = 1).reviewBlocked); assertFalse(pullRequest(p, approvals = 2).reviewBlocked)
+    }
+
+    @Test
+    fun `프로젝트가 리뷰어를 쓰지 않으면 규칙이 없는 브랜치는 막지 않는다`() {
+        assertNull(withDefault(false, 3).protectionFor("refs/heads/master")); assertNull(withDefault(null, 3).protectionFor("refs/heads/master"))
+        assertFalse(pullRequest(withDefault(false, 3), approvals = 0).reviewBlocked)
+    }
+
+    @Test
+    fun `브랜치 보호 규칙이 있으면 프로젝트 기본 규칙보다 우선한다`() {
+        val p = withDefault(true, 3, Triple("master", 1, true))
+        val rule = p.protectionFor("refs/heads/master")!!
+        assertEquals(1, rule.requiredApprovals); assertTrue(rule.enforceAdmins == true); assertFalse(rule.isProjectDefault)
+        assertEquals(3, p.protectionFor("refs/heads/develop")!!.requiredApprovals, "규칙이 없는 브랜치는 기본 규칙을 따른다")
+    }
+
+    @Test
+    fun `기본 규칙의 승인 수가 비었거나 1보다 작으면 1로 본다`() {
+        assertEquals(1, withDefault(true, null).protectionFor("master")!!.requiredApprovals); assertEquals(1, withDefault(true, 0).protectionFor("master")!!.requiredApprovals)
+    }
 }

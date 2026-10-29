@@ -101,13 +101,19 @@ class Project(
     var branchProtectionRules: MutableList<BranchProtectionRule> = mutableListOf()
 
     /**
-     * [branch]로 가는 풀 리퀘스트에 적용할 보호 규칙이다. 없으면 `null`이고 승인 수와 변경 요청으로 막지 않는다.
-     * 이름이 정확히 같은 규칙이 먼저이고, 없으면 `*` 패턴 중 패턴이 가장 긴 것이다.
+     * [branch]로 가는 풀 리퀘스트에 적용할 규칙이다(추가 개발 항목 X-32, `decisions.md` D-42, D-43).
+     * 1. 이름이 정확히 같은 보호 규칙이 먼저이고, 없으면 `*` 패턴 중 패턴이 가장 긴 규칙이다.
+     * 2. 맞는 규칙이 없고 프로젝트 설정에서 리뷰어를 쓰기로 했으면, 설정한 승인 수를 요구하는 프로젝트 전체 기본 규칙이다(v1.6 동작이며 [BranchProtectionRule.isProjectDefault]).
+     * 3. 둘 다 없으면 `null`이고 승인 수와 변경 요청으로 막지 않는다(GitHub 기본 동작).
      */
     fun protectionFor(branch: String?): BranchProtectionRule? {
         val matching = branchProtectionRules.filter { it.matches(branch) }
-        return matching.firstOrNull { it.isExact } ?: matching.maxByOrNull { it.pattern?.length ?: 0 }
+        return matching.firstOrNull { it.isExact } ?: matching.maxByOrNull { it.pattern?.length ?: 0 } ?: projectDefaultRule()
     }
+
+    /** 프로젝트 설정의 리뷰어 수를 규칙으로 옮긴 것이다. 저장하지 않는 임시 객체이며, 리뷰어를 쓰지 않으면 `null`이다. */
+    private fun projectDefaultRule(): BranchProtectionRule? =
+        if (isUsingReviewerCount == true) BranchProtectionRule(project = this, pattern = null, requiredApprovals = maxOf(defaultReviewerCount ?: 1, 1), enforceAdmins = false).also { it.isProjectDefault = true } else null
 
     /** 공개 프로젝트이면 `true`이다. */
     fun isPublic(): Boolean = projectScope == ProjectScope.PUBLIC
