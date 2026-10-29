@@ -12,6 +12,7 @@ import dev.yona.domain.enumeration.PullRequestReviewAction
 import dev.yona.domain.enumeration.ThreadState
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectUserRepository
+import dev.yona.domain.pullrequest.MergeMethod
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.pullrequest.PullRequestChangesService
 import dev.yona.domain.pullrequest.PullRequestCommit
@@ -111,9 +112,9 @@ class PullRequestPageAssembler(
         } else null
 
         val accept = if (canAccept) {
-            if (pullRequest.acceptable) AcceptButton("$base/accept", true, null)
+            if (pullRequest.acceptable) mergeButton(pullRequest, project, "$base/accept", null)
             // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건에 막힌 요청도 병합할 수 있다
-            else if (pullRequest.reviewBlocked && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project)) AcceptButton("$base/accept", true, null, text("pullRequest.review.bypass.note"))
+            else if (pullRequest.reviewBlocked && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project)) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
             else {
                 val (key, args) = pullRequest.disabledAcceptMessage()
                 AcceptButton("$base/accept", false, text(key, *args))
@@ -232,7 +233,7 @@ class PullRequestPageAssembler(
                 if (new == "merged") {
                     val commit = pullRequest.mergedCommitIdTo.orEmpty()
                     val link = "<a class=\"link\" href=\"${siteUrls.path("${UrlPaths.projectPath(to.owner, to.name)}/commit/$commit")}\" title=\"${HtmlUtils.htmlEscape(text("code.showCommit"))}\">${commit.take(SHORT_ID)}</a>"
-                    TimelineEvent(id, new, "pullRequest.event.$new", text("pullRequest.event.message.$new", user, link), ago, agoTitle, null, emptyList())
+                    TimelineEvent(id, new, "pullRequest.event.$new", text("pullRequest.event.message.$new" + (event.oldValue?.takeIf { it == "squash" || it == "rebase" }?.let { ".$it" } ?: ""), user, link), ago, agoTitle, null, emptyList())
                 } else TimelineEvent(id, new.orEmpty(), "pullRequest.event.$new", text("pullRequest.event.message.$new", user), ago, agoTitle, null, emptyList())
             EventType.PULL_REQUEST_MERGED ->
                 TimelineEvent(id, new.orEmpty(), "pullRequest.event.$new", text("pullRequest.event.message.$new", user), ago, agoTitle, null, emptyList())
@@ -333,6 +334,22 @@ class PullRequestPageAssembler(
         return commits.findByPullRequestId(requireNotNull(pullRequest.id)).filter { it.state == PullRequestCommitState.CURRENT }.map {
             CommitChoice(it.commitId.orEmpty(), it.commitShortId.orEmpty(), it.commitMessage.orEmpty().split("\n")[0], siteUrls.path("${UrlPaths.projectPath(to.owner, to.name)}/pullRequest/${pullRequest.number}/changes/${it.commitId}"))
         }
+    }
+
+    /**
+     * 병합 단추와 방식 선택 목록이다(추가 개발 항목 X-28, `decisions.md` D-41). 프로젝트가 허용한 방식만 보이고, 지금 할 수 없는 방식은 이유와 함께 막는다.
+     * 단추는 기본 방식을 쓰되 기본 방식을 할 수 없으면 할 수 있는 첫 방식을 쓰고, 하나도 할 수 없으면 막힌 단추이다.
+     */
+    private fun mergeButton(pullRequest: PullRequest, project: dev.yona.domain.project.Project, url: String, bypassNote: String?): AcceptButton {
+        val options = project.allowedMergeMethods().sortedBy { it.ordinal }.map { method ->
+            val blocked = method == MergeMethod.REBASE && pullRequest.rebaseBlocked != null
+            MergeMethodOption(method.code, text("project.merge.${method.code}"), !blocked, if (blocked) text("pullRequest.merge.rebase.${pullRequest.rebaseBlocked}") else null)
+        }
+        val default = project.defaultMergeMethodOrFirst().code
+        val chosen = options.firstOrNull { it.code == default && it.available } ?: options.firstOrNull { it.available }
+            ?: return AcceptButton(url, false, options.firstNotNullOfOrNull { it.reason }, bypassNote, methods = options, defaultMethod = default)
+        val label = if (chosen.code == MergeMethod.MERGE.code) text("pullRequest.merge") else chosen.label
+        return AcceptButton(if (chosen.code == default) url else "$url?method=${chosen.code}", true, null, bypassNote, label, options, chosen.code)
     }
 
     private fun avatarLink(user: User): String =

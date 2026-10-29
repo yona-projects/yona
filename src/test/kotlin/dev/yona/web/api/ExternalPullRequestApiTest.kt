@@ -253,13 +253,43 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `병합하면 병합됨 상태와 받은 사람을 돌려주고 병합 방식은 merge만 받는다`() {
+    fun `병합하면 병합됨 상태와 받은 사람과 병합 방식을 돌려준다`() {
         val s = setup(); val t = token(s.manager)
-        call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"squash"}"""), t).andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("Unsupported merge method: squash"))
-        call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"rebase"}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"fast-forward"}"""), t).andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("Unsupported merge method: fast-forward"))
         call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"merge"}"""), t).andExpect(status().isOk)
             .andExpect(jsonPath("$.state").value("merged")).andExpect(jsonPath("$.receiver.loginId").value(s.manager.loginId)).andExpect(jsonPath("$.mergedAt").isNotEmpty)
+            .andExpect(jsonPath("$.mergeMethod").value("merge"))
         call(post("${s.api}/${s.pr.number}/merge"), t).andExpect(status().isConflict)
+    }
+
+    @Test
+    fun `스쿼시와 리베이스로 병합하고 제목과 본문을 줄 수 있다 (X-28)`() {
+        val squash = setup(); val t = token(squash.manager)
+        call(json(post("${squash.api}/${squash.pr.number}/merge"), """{"method":"squash","commitTitle":"직접 제목","commitMessage":"직접 본문"}"""), t).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("merged")).andExpect(jsonPath("$.mergeMethod").value("squash"))
+        val rebase = setup()
+        call(json(post("${rebase.api}/${rebase.pr.number}/merge"), """{"method":"rebase"}"""), token(rebase.manager)).andExpect(status().isOk).andExpect(jsonPath("$.mergeMethod").value("rebase"))
+    }
+
+    @Test
+    fun `프로젝트가 허용하지 않은 병합 방식은 400이고 기본 방식을 정하면 방식을 생략해도 그 방식이다 (X-28)`() {
+        val s = setup(); val t = token(s.manager)
+        s.origin.allowSquashMerge = false; em.persist(s.origin); em.flush()
+        call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"squash"}"""), t).andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("Merge method not allowed: squash"))
+        s.origin.defaultMergeMethod = "rebase"; em.persist(s.origin); em.flush()
+        call(post("${s.api}/${s.pr.number}/merge"), t).andExpect(status().isOk).andExpect(jsonPath("$.mergeMethod").value("rebase"))
+    }
+
+    @Test
+    fun `상세는 방식별 허용 여부와 가능 여부와 이유를 담는다 (X-28)`() {
+        val s = setup(); val t = token(s.manager)
+        s.origin.allowSquashMerge = false; em.persist(s.origin)
+        s.pr.rebaseBlocked = "merge-commits"; em.persist(s.pr); em.flush()
+        call(get("${s.api}/${s.pr.number}"), t).andExpect(status().isOk)
+            .andExpect(jsonPath("$.mergeMethods.merge.allowed").value(true)).andExpect(jsonPath("$.mergeMethods.merge.available").value(true)).andExpect(jsonPath("$.mergeMethods.merge.reason").isEmpty)
+            .andExpect(jsonPath("$.mergeMethods.squash.allowed").value(false))
+            .andExpect(jsonPath("$.mergeMethods.rebase.allowed").value(true)).andExpect(jsonPath("$.mergeMethods.rebase.available").value(false)).andExpect(jsonPath("$.mergeMethods.rebase.reason").value("merge-commits"))
+            .andExpect(jsonPath("$.mergeMethod").isEmpty)
     }
 
     @Test

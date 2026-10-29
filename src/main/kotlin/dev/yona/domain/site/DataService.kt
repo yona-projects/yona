@@ -304,6 +304,7 @@ class DataService(
             val position = index + 1
             val found = row.get(column.key)
             if (found == null && column.absentBoolean != null) { ps.setBoolean(position, column.absentBoolean); return@forEachIndexed }
+            if (found == null && column.absentNull) { ps.setNull(position, Types.VARCHAR); return@forEachIndexed }
             if (found == null && column.absentString != null) { ps.setString(position, column.absentString); return@forEachIndexed }
             val node = requireNotNull(found) { "${table.name}의 행에 ${column.key} 값이 없습니다." }
             when (column.type) {

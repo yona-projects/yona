@@ -17,6 +17,9 @@ enum class AcceptResult {
     /** 충돌해서 병합하지 못했다. 요청은 그대로이다. */
     CONFLICT,
 
+    /** 프로젝트가 허용하지 않은 병합 방식이다(추가 개발 항목 X-28). 아무것도 바꾸지 않았다. */
+    METHOD_NOT_ALLOWED,
+
     /** 리뷰어가 모자란다. 요청은 그대로이다. */
     NOT_REVIEWED
 }
@@ -41,7 +44,7 @@ class PullRequestWorkflow(
 ) {
 
     /**
-     * 요청을 받아들여 받는 브랜치에 병합한다. 먼저 병합 중 표시를 켜서 다른 요청을 막고, 리뷰어 수를 쓰는 프로젝트에서 리뷰어가 모자라면 아무것도 하지 않는다.
+     * 요청을 받아들여 받는 브랜치에 병합한다. [method]로 병합 방식을 고르고(추가 항목 X-28, `decisions.md` D-41) 비우면 프로젝트의 기본 방식이다. 먼저 병합 중 표시를 켜서 다른 요청을 막고, 리뷰어 수를 쓰는 프로젝트에서 리뷰어가 모자라면 아무것도 하지 않는다.
      * 충돌하면 병합하지 않고 표시만 끈다. 병합하면 상태를 `MERGED`로 바꾸고 병합 기준 커밋을 저장하며 상태 변경 알림과 타임라인을 남긴 뒤, 같은 브랜치와 관련된
      * 다른 요청의 병합 검사를 다시 시작한다. 병합한 뒤에는 제목, 본문, 커밋 메시지에서 `closes #번호`로 가리킨 이슈를 닫는다([PullRequestIssueCloser], X-11).
      *
@@ -49,14 +52,19 @@ class PullRequestWorkflow(
      * 요청이 계속 병합 중으로 남는다([refactoring-backlog.md] R-76, 선생님 결정 2026-10-26). v1.6 `accept`의 병합은 트랜잭션 밖에서 돌고
      * 저장이 즉시 반영되므로 이 메서드에도 일부러 트랜잭션을 걸지 않는다.
      */
-    fun accept(pullRequest: PullRequest, accepter: User, bypassReview: Boolean = false): AcceptResult {
+    fun accept(
+        pullRequest: PullRequest, accepter: User, bypassReview: Boolean = false, method: MergeMethod? = null, commitTitle: String? = null, commitMessage: String? = null
+    ): AcceptResult {
         val toProject = requireNotNull(pullRequest.toProject)
+        // 추가 항목(X-28, D-41): 방식을 정하지 않으면 프로젝트의 기본 방식이다. 허용하지 않은 방식은 아무것도 바꾸기 전에 거절한다
+        val chosen = method ?: toProject.defaultMergeMethodOrFirst()
+        if (chosen !in toProject.allowedMergeMethods()) return AcceptResult.METHOD_NOT_ALLOWED
         pullRequest.isMerging = true
         pullRequests.save(pullRequest)
         // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰어 수와 변경 요청에 막혀도 병합할 수 있다(`bypassReview`)
         if (toProject.isUsingReviewerCount == true && !bypassReview && (!pullRequest.reviewed || pullRequest.changesRequestedBy.isNotEmpty())) return AcceptResult.NOT_REVIEWED
 
-        val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email))
+        val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email), chosen, commitTitle, commitMessage)
         pullRequest.isMerging = false
         if (result == null) {
             pullRequests.save(pullRequest)
@@ -70,7 +78,7 @@ class PullRequestWorkflow(
         pullRequest.receiver = accepter
         pullRequests.save(pullRequest)
         publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_STATE_CHANGED, State.OPEN.state, State.MERGED.state, accepter))
-        events.addState(accepter, pullRequest, State.MERGED)
+        events.addState(accepter, pullRequest, State.MERGED, chosen)
         issueCloser.closeReferenced(pullRequest, accepter)
         recheckRelated(toProject.id!!, requireNotNull(pullRequest.toBranch), requireNotNull(accepter.id))
         return AcceptResult.MERGED

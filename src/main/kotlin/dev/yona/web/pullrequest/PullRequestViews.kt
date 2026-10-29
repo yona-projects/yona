@@ -10,7 +10,15 @@ data class ReviewerArea(val labelHtml: String, val avatarsHtml: String, val revi
  * 받아들이기 단추이다. 막혀 있으면 [disabledReason]이 이유이다. 프로젝트 관리자와 사이트 관리자가 리뷰 조건에 막힌 요청을 우회해 병합할 수 있으면
  * 단추는 켜져 있고 [bypassNote]에 안내가 있다(D-35 11번).
  */
-data class AcceptButton(val url: String, val enabled: Boolean, val disabledReason: String?, val bypassNote: String? = null)
+data class AcceptButton(
+    val url: String, val enabled: Boolean, val disabledReason: String?, val bypassNote: String? = null,
+    val label: String? = null, val methods: List<MergeMethodOption> = emptyList(), val defaultMethod: String = "merge"
+)
+
+/**
+ * 병합 방식 선택 목록의 한 항목이다(추가 개발 항목 X-28, `decisions.md` D-41). [available]이 아니면 고를 수 없고 [reason]에 이유를 보인다.
+ */
+data class MergeMethodOption(val code: String, val label: String, val available: Boolean, val reason: String?)
 
 /**
  * 개요 오른쪽 열의 리뷰어 한 줄이다. [verdict]는 유효한 최신 판정 이름(`APPROVED`, `CHANGES_REQUESTED`, `COMMENTED`)이고 해제된 리뷰는 `COMMENTED`이다.

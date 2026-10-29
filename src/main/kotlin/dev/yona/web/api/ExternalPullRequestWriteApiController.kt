@@ -9,6 +9,7 @@ import dev.yona.domain.project.ProjectMenuSettingRepository
 import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.pullrequest.AcceptResult
+import dev.yona.domain.pullrequest.MergeMethod
 import dev.yona.domain.pullrequest.PullRequestForm
 import dev.yona.domain.pullrequest.PullRequestMergeProcessor
 import dev.yona.domain.pullrequest.PullRequestService
@@ -206,7 +207,9 @@ class ExternalPullRequestWriteApiController(
     }
 
     /**
-     * 병합한다. 본문 `{"method": "merge"}`는 생략할 수 있고 `merge` 외의 값은 400 `Unsupported merge method`이다(로드맵 X-28에서 연다).
+     * 병합한다. 본문 `{"method": "merge" | "squash" | "rebase", "commitTitle": ..., "commitMessage": ...}`는 모두 생략할 수 있다(로드맵 X-28, `decisions.md` D-41).
+     * 방식을 생략하면 프로젝트의 기본 방식이고, 모르는 값은 400 `Unsupported merge method`, 프로젝트가 허용하지 않은 방식은 400 `Merge method not allowed`이다.
+     * 제목과 본문은 병합 커밋과 스쿼시 커밋에만 쓰고 리베이스는 무시한다. 리베이스는 원래 커밋을 그대로 옮기며, 한 커밋에서라도 충돌하거나 병합 커밋이 섞여 있으면 409이다.
      * 열려 있지 않거나, 병합 중이거나, 충돌하거나, 리뷰 조건을 채우지 못했으면 409이다. 프로젝트 관리자와 사이트 관리자는 화면처럼 리뷰 조건을 건너뛴다.
      * v1.6처럼 병합 중 표시를 먼저 저장하므로 이 메서드에는 트랜잭션을 걸지 않는다(`refactoring-backlog.md` R-76).
      */
@@ -214,15 +217,20 @@ class ExternalPullRequestWriteApiController(
     fun merge(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val target = support.target(owner, projectName, number, request, Operation.ACCEPT)
         target.error?.let { return it }
-        val method = requests.json(request)?.get("method")?.asString()
-        if (method != null && method != "merge") return support.badRequest("Unsupported merge method: $method")
+        val body = requests.json(request)
+        val methodName = body?.get("method")?.takeUnless { it.isNull }?.asString()
+        val method = MergeMethod.of(methodName)
+        if (methodName != null && method == null) return support.badRequest("Unsupported merge method: $methodName")
         val pullRequest = requireNotNull(target.pullRequest)
         if (!pullRequest.open) return support.conflict("pull request is not open")
         if (pullRequest.isMerging == true) return support.conflict("pull request is being merged")
         if (pullRequest.isConflict == true) return support.conflict("pull request has conflicts")
         val user = requireNotNull(target.user)
-        return when (workflow.accept(pullRequest, user, accessControl.canBypassReview(user, requireNotNull(target.project)))) {
+        val title = body?.get("commitTitle")?.takeUnless { it.isNull }?.asString()
+        val message = body?.get("commitMessage")?.takeUnless { it.isNull }?.asString()
+        return when (workflow.accept(pullRequest, user, accessControl.canBypassReview(user, requireNotNull(target.project)), method, title, message)) {
             AcceptResult.MERGED -> support.ok(json.of(pullRequest))
+            AcceptResult.METHOD_NOT_ALLOWED -> support.badRequest("Merge method not allowed: $methodName")
             AcceptResult.CONFLICT -> support.conflict("pull request has conflicts")
             AcceptResult.NOT_REVIEWED -> support.conflict("not enough review approvals")
         }

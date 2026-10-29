@@ -52,8 +52,10 @@ class PullRequestEventService(private val events: PullRequestEventRepository, pr
 
     /** 상태가 바뀐 이벤트를 기록한다 (v1.6 `addStateEvent`). */
     @Transactional
-    fun addState(sender: User, pullRequest: PullRequest, state: State) {
-        events.save(PullRequestEvent(created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_STATE_CHANGED, newValue = state.state))
+    fun addState(sender: User, pullRequest: PullRequest, state: State, mergeMethod: MergeMethod? = null) {
+        // 병합 방식은 이전 값에 이름으로 남긴다(추가 개발 항목 X-28). 병합 커밋은 v1.6과 같은 행이 되도록 비워 둔다
+        val method = mergeMethod?.takeIf { it != MergeMethod.MERGE }?.code
+        events.save(PullRequestEvent(created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_STATE_CHANGED, oldValue = method, newValue = state.state))
     }
 
     /** 담당자가 바뀐 이벤트를 기록한다. 이전 값과 새 값은 담당자의 로그인 ID이고 없으면 `null`이다(로드맵 X-14, `decisions.md` D-34). */

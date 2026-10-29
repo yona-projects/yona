@@ -43,10 +43,11 @@ enum class DataType {
  * @property type 값 종류
  * @property key JSON 키. 기본은 [name]이다(`ATTACHMENT.container_type`만 `content_type`이다)
  * @property nullableLong 가져올 때 JSON `null`을 SQL NULL로 바인딩하는 정수 컬럼이다
+ * @property absentNull 가져오는 파일에 이 키가 없을 때 `null`로 채울지이다. 값이 비어 있을 수 있는 추가 개발 컬럼에 쓴다
  * @property absentString 가져오는 파일에 이 키가 없을 때 쓰는 문자열 값이다(`absentBoolean`의 문자열 판이다).
  * @property absentBoolean 가져오는 파일에 이 키가 없을 때 쓰는 불린 값이다. 추가 개발 항목이 더한 컬럼이 옛(v1.6) 파일에 없어도 가져오게 한다. `null`이면 키가 없는 행은 오류이다
  */
-data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null)
+data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null, val absentNull: Boolean = false)
 
 /**
  * 내보내기와 가져오기의 테이블 하나이다. v1.6 `app/data/exchangers 아래 `DataExchanger` 클래스들`의 `getTable`, `getSelectSql`, `hasSequence`에 해당한다.
@@ -425,6 +426,7 @@ object DataTables {
             DataColumn("merged_commit_id_to", STRING),
             DataColumn("number", LONG),
             DataColumn("is_conflict", BOOLEAN),
+            DataColumn("rebase_blocked", STRING, absentNull = true),
             DataColumn("is_merging", BOOLEAN)
         ),
         // 추가 개발 항목 X-14(D-34)가 더한 연결 테이블이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다.

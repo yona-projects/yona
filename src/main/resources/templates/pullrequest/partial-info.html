@@ -27,7 +27,27 @@
     </th:block>
 
     <th:block th:if="${header.accept != null}">
-        <a th:if="${header.accept.enabled}" id="btnAccept" th:href="${header.accept.url}" data-request-method="post" class="ybtn ybtn-success" th:text="#{pullRequest.merge}"></a>
+        <a th:if="${header.accept.enabled}" id="btnAccept" th:href="${header.accept.url}" data-request-method="post" class="ybtn ybtn-success" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></a>
+        <!--/* 병합 방식 선택과 커밋 제목, 본문 직접 쓰기(추가 항목 X-28, decisions.md D-41). 허용한 방식만 보이고 할 수 없는 방식은 이유와 함께 막는다 */-->
+        <a th:if="${header.accept.enabled}" id="btnMergeOptions" href="#" class="ybtn ybtn-success" style="margin-left:-5px;" th:title="#{pullRequest.merge.options}"
+           onclick="var p=document.getElementById('merge-options'); p.style.display = (p.style.display === 'none' ? 'block' : 'none'); return false;">&#9662;</a>
+        <div th:if="${header.accept.enabled}" id="merge-options" style="display:none; margin-top:8px; padding:10px; border:1px solid #ddd; background:#fff; text-align:left;">
+            <form method="post" th:action="${#strings.substringBefore(header.accept.url, '?')}">
+                <div th:each="option : ${header.accept.methods}">
+                    <label th:title="${option.reason}">
+                        <input type="radio" name="method" th:value="${option.code}" th:checked="${option.code == header.accept.defaultMethod}" th:disabled="${!option.available}">
+                        <span th:text="${option.label}"></span>
+                        <span th:if="${option.reason != null}" class="note" th:text="${option.reason}"></span>
+                    </label>
+                </div>
+                <details class="mt10">
+                    <summary th:text="#{pullRequest.merge.message.edit}"></summary>
+                    <input type="text" name="commitTitle" class="form-control" maxlength="255" th:placeholder="#{pullRequest.merge.message.title}">
+                    <textarea name="commitMessage" rows="4" class="form-control mt5" th:placeholder="#{pullRequest.merge.message.body}"></textarea>
+                </details>
+                <button type="submit" id="btnMergeSubmit" class="ybtn ybtn-success mt10" th:text="#{pullRequest.merge}"></button>
+            </form>
+        </div>
         <span th:if="${header.accept.bypassNote != null}" id="accept-bypass-note" class="help-block" style="display:inline-block; margin-right:5px;" th:text="${header.accept.bypassNote}"></span>
         <button th:if="${!header.accept.enabled}" class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" th:title="${header.accept.disabledReason}" th:text="#{pullRequest.merge}"></button>
     </th:block>

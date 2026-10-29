@@ -49,6 +49,12 @@ class PullRequest(
     @Column(name = "is_conflict")
     @ColumnDefault("false")
     var isConflict: Boolean? = false,
+    /**
+     * 리베이스 병합을 할 수 없는 이유이다(추가 개발 항목 X-28, `decisions.md` D-41 7번). `null`이면 할 수 있고(또는 아직 모르고), `conflict`는 커밋을 다시 적용하다
+     * 충돌한다는 뜻이며, `merge-commits`는 병합 커밋이 섞여 있다는 뜻이다. 병합 검사가 다시 계산한다.
+     */
+    @Column(name = "rebase_blocked", length = 13)
+    var rebaseBlocked: String? = null,
     @Column(name = "is_merging")
     @ColumnDefault("false")
     var isMerging: Boolean? = false,

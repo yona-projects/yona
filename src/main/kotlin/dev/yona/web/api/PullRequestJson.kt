@@ -11,6 +11,7 @@ import dev.yona.domain.pullrequest.PullRequestEvent
 import dev.yona.domain.pullrequest.PullRequestReview
 import dev.yona.domain.pullrequest.countedApprovals
 import dev.yona.domain.pullrequest.merged
+import dev.yona.domain.pullrequest.open
 import dev.yona.domain.pullrequest.requiredReviewerCount
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
@@ -28,7 +29,9 @@ import java.util.TimeZone
  * 사용자는 `{loginId, name}`, 프로젝트는 `{owner, name}`, 시각은 ISO 형식(`yyyy-MM-dd'T'HH:mm:ssZ`), 값이 없는 시각과 사용자는 `null`이다.
  */
 @Component
-class PullRequestJson(private val users: UserRepository, private val siteUrls: SiteUrls, private val clock: java.time.Clock) {
+class PullRequestJson(
+    private val users: UserRepository, private val siteUrls: SiteUrls, private val clock: java.time.Clock, private val events: dev.yona.domain.pullrequest.PullRequestEventRepository
+) {
 
     /** 목록과 상세가 함께 쓰는 풀 리퀘스트 한 건이다. 상세는 담당자, 라벨, 리뷰 요청, 승인 현황을 더 담는다. */
     fun of(pullRequest: PullRequest): Map<String, Any?> {
@@ -51,8 +54,38 @@ class PullRequestJson(private val users: UserRepository, private val siteUrls: S
             "labels" to pullRequest.labels.sortedBy { it.id }.map { linkedMapOf("id" to it.id, "labelName" to it.name, "labelColor" to it.color, "category" to it.category?.name) },
             "requestedReviewers" to pullRequest.reviewRequests.sortedBy { it.id }.map { user(it) },
             "approvals" to linkedMapOf("count" to pullRequest.countedApprovals, "required" to if (to.isUsingReviewerCount == true) pullRequest.requiredReviewerCount else 0, "approvers" to pullRequest.reviewers.sortedBy { it.id }.map { user(it) }),
-            "mergedCommitIdFrom" to pullRequest.mergedCommitIdFrom, "mergedCommitIdTo" to pullRequest.mergedCommitIdTo
+            "mergedCommitIdFrom" to pullRequest.mergedCommitIdFrom, "mergedCommitIdTo" to pullRequest.mergedCommitIdTo,
+            "mergeMethod" to mergeMethodOf(pullRequest), "mergeMethods" to mergeMethods(pullRequest, to)
         )
+    }
+
+    /**
+     * 병합된 풀 리퀘스트가 어떤 방식으로 병합됐는지이다(추가 개발 항목 X-28). 병합되지 않았으면 `null`이다. 병합 이벤트의 이전 값에 `squash`나 `rebase`가
+     * 있으면 그 방식이고, 없으면(v1.6 이벤트 포함) 병합 커밋이다.
+     */
+    private fun mergeMethodOf(pullRequest: PullRequest): String? {
+        if (!pullRequest.merged) return null
+        val event = events.findByPullRequestIdOrderByCreatedAscIdAsc(requireNotNull(pullRequest.id))
+            .lastOrNull { it.eventType == dev.yona.domain.enumeration.EventType.PULL_REQUEST_STATE_CHANGED && it.newValue == "merged" }
+        return dev.yona.domain.pullrequest.MergeMethod.of(event?.oldValue)?.code ?: dev.yona.domain.pullrequest.MergeMethod.MERGE.code
+    }
+
+    /**
+     * 방식마다 프로젝트가 허용했는지(`allowed`), 지금 병합할 수 있는지(`available`), 할 수 없는 이유(`reason`)이다. 병합 커밋과 스쿼시는 충돌 여부를 따르고
+     * 리베이스는 병합 검사가 저장한 `rebaseBlocked`(`conflict`, `merge-commits`)를 따른다. 충돌 이유는 `conflict`이다.
+     */
+    private fun mergeMethods(pullRequest: PullRequest, to: Project): Map<String, Any?> {
+        val allowed = to.allowedMergeMethods()
+        val conflict = pullRequest.isConflict == true
+        return dev.yona.domain.pullrequest.MergeMethod.entries.associate { method ->
+            val reason = when {
+                !pullRequest.open -> "not-open"
+                method == dev.yona.domain.pullrequest.MergeMethod.REBASE -> pullRequest.rebaseBlocked ?: if (conflict) "conflict" else null
+                conflict -> "conflict"
+                else -> null
+            }
+            method.code to linkedMapOf("allowed" to (method in allowed), "available" to (reason == null), "reason" to reason)
+        }
     }
 
     fun commit(commit: PullRequestCommit): Map<String, Any?> = linkedMapOf(

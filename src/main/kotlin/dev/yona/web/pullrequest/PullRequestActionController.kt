@@ -5,6 +5,7 @@ import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.pullrequest.AcceptResult
+import dev.yona.domain.pullrequest.MergeMethod
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.pullrequest.PullRequestForm
 import dev.yona.domain.pullrequest.PullRequestService
@@ -63,9 +64,15 @@ class PullRequestActionController(
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val accepter = requireNotNull(currentUserProvider.get().user)
         // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건을 우회한다
-        if (workflow.accept(pullRequest, accepter, accessControl.canBypassReview(accepter, project)) == AcceptResult.NOT_REVIEWED) {
-            return ErrorViews.badRequest("pullRequest.not.enough.review.point")
-        }
+        // 추가 항목(X-28, D-41): 병합 방식과 선택 입력(커밋 제목, 본문). 방식을 보내지 않으면 프로젝트의 기본 방식이다
+        val methodName = request.getParameter("method")?.takeIf { it.isNotBlank() }
+        val method = MergeMethod.of(methodName)
+        if (methodName != null && method == null) return ErrorViews.badRequest()
+        val result = workflow.accept(
+            pullRequest, accepter, accessControl.canBypassReview(accepter, project), method, request.getParameter("commitTitle"), request.getParameter("commitMessage")
+        )
+        if (result == AcceptResult.NOT_REVIEWED) return ErrorViews.badRequest("pullRequest.not.enough.review.point")
+        if (result == AcceptResult.METHOD_NOT_ALLOWED) return ErrorViews.badRequest()
         return redirect(request, response, project, pullRequest)
     }
 

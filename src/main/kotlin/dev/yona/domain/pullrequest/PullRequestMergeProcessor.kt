@@ -68,6 +68,13 @@ class PullRequestMergeProcessor(
 
         val update = merger.update(pullRequest)
         pullRequest.isConflict = update.attempt.conflict
+        // 추가 항목(X-28, D-41 7번): 리베이스 병합이 가능한지도 이 검사에서 함께 계산해 둔다. 계산에 실패하면 할 수 있는 것으로 둔다
+        pullRequest.rebaseBlocked = try {
+            if (update.attempt.commits.isEmpty()) null else merger.rebaseBlocked(pullRequest)
+        } catch (e: Exception) {
+            log.warn("Failed to check the rebase availability of {}", pullRequest.id, e)
+            null
+        }
         update.mergeCommitId?.let {
             pullRequest.mergedCommitIdFrom = update.attempt.leftParent.name
             pullRequest.mergedCommitIdTo = it.name
