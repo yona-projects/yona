@@ -99,6 +99,8 @@ class SiteUserService(
             entityManager.createQuery("update Issue i set i.assignee = null where i.assignee.id in (select a.id from Assignee a where a.user.id = :id)")
                 .setParameter("id", id).executeUpdate()
             entityManager.createQuery("delete from Assignee a where a.user.id = :id").setParameter("id", id).executeUpdate()
+            // 추가 항목(X-14): 풀 리퀘스트 담당자에서도 뺀다
+            entityManager.createNativeQuery("delete from pull_request_assignee where user_id = :id").setParameter("id", id).executeUpdate()
         }
         users.save(user)
         // v1.6 User.changeState: 새로 읽은 사용자 인스턴스를 서버 캐시에 넣어 기억된 판정이 비워진다

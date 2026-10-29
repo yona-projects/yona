@@ -13,19 +13,19 @@ class DataTablesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var dataSource: DataSource
 
     @Test
-    fun `테이블은 47개이고 이름 순서로 정렬되어 있다`() {
-        assertEquals(47, DataTables.all.size)
+    fun `테이블은 49개이고(v1_6의 47개와 추가한 연결 테이블 2개) 이름 순서로 정렬되어 있다`() {
+        assertEquals(49, DataTables.all.size)
         assertEquals(DataTables.all.map { it.name }.sorted(), DataTables.all.map { it.name })
         assertEquals("ASSIGNEE", DataTables.all.first().name)
         assertEquals("WATCH", DataTables.all.last().name)
     }
 
     @Test
-    fun `조인 테이블 아홉 개만 시퀀스가 없다`() {
+    fun `조인 테이블 열한 개만 시퀀스가 없다`() {
         assertEquals(
             setOf(
                 "COMMENT_THREAD_N4USER", "ISSUE_COMMENT_VOTER", "ISSUE_ISSUE_LABEL", "ISSUE_VOTER", "NOTIFICATION_EVENT_N4USER",
-                "PROJECT_LABEL", "PULL_REQUEST_REVIEWERS", "USER_ENROLLED_ORGANIZATION", "USER_ENROLLED_PROJECT"
+                "PROJECT_LABEL", "PULL_REQUEST_ASSIGNEE", "PULL_REQUEST_ISSUE_LABEL", "PULL_REQUEST_REVIEWERS", "USER_ENROLLED_ORGANIZATION", "USER_ENROLLED_PROJECT"
             ),
             DataTables.all.filter { !it.hasSequence }.map { it.name }.toSet()
         )

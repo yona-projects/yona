@@ -25,7 +25,7 @@ data class DataImportResult(val imported: List<String>, val failed: List<String>
  * DB 전체를 JSON 파일 하나로 내보내고 같은 형식의 파일로 교체한다. v1.6 `DataService`와 `DefaultExchanger`
  * (`app/data/DataService.java`, `DefaultExchanger.java`)에 해당한다.
  *
- * 대상은 [DataTables]의 47개 테이블뿐이고 Git 저장소 디렉터리와 첨부 파일 본문은 다루지 않는다. 파일은 테이블 이름(대문자)마다 행의 배열이고,
+ * 대상은 [DataTables]의 49개 테이블뿐이고 Git 저장소 디렉터리와 첨부 파일 본문은 다루지 않는다. 파일은 테이블 이름(대문자)마다 행의 배열이고,
  * 시퀀스가 있는 테이블은 그 뒤에 `<이름>_SEQ`로 다음 번호가 따른다. 시각은 에폭 밀리초이다.
  *
  * 가져오기는 병합이 아니라 **교체**이다. 파일에 있는 테이블만 비우고 파일의 행을 넣는다. 파일에 없는 테이블은 그대로이다. 외래 키 검사를 끄고
@@ -128,6 +128,7 @@ class DataService(private val dataSource: DataSource, private val properties: de
                 try {
                     connection.autoCommit = false
                     readTables(connection, product, ids, parser, imported, failed)
+                    cleanOrphanLinks(connection)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
                     try { connection.rollback() } catch (e: Exception) { log.warn("Failed to roll back the import", e) }
@@ -138,6 +139,23 @@ class DataService(private val dataSource: DataSource, private val properties: de
         }
         log.info("Imported data in {} ms", System.currentTimeMillis() - started)
         return DataImportResult(imported, failed)
+    }
+
+    /**
+     * 가져온 뒤 없는 풀 리퀘스트, 사용자, 이슈 라벨을 가리키는 담당자와 라벨 연결 행을 지운다(추가 개발 항목 X-14, `decisions.md` D-34).
+     * v1.6 파일에는 이 두 테이블이 없어서 풀 리퀘스트를 바꿔 가져오면 파일에 없는 옛 연결 행이 엉뚱한 번호를 가리킬 수 있다.
+     */
+    private fun cleanOrphanLinks(connection: Connection) {
+        try {
+            connection.createStatement().use { statement ->
+                statement.executeUpdate("delete from pull_request_assignee where pull_request_id not in (select id from pull_request) or user_id not in (select id from n4user)")
+                statement.executeUpdate("delete from pull_request_issue_label where pull_request_id not in (select id from pull_request) or issue_label_id not in (select id from issue_label)")
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean orphan pull request links after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
     }
 
     /** 파일의 필드를 차례로 읽어 테이블과 시퀀스를 처리한다. 파서가 깨지면 그 자리에서 멈춘다. */

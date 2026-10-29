@@ -107,6 +107,20 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `가져온 뒤 없는 풀 리퀘스트나 사용자나 라벨을 가리키는 담당자와 라벨 연결 행은 정리한다 (X-14)`() {
+        // v1.6 파일에는 이 두 테이블이 없어 풀 리퀘스트를 바꿔 가져오면 옛 연결 행이 엉뚱한 번호를 가리킬 수 있다
+        import("""{"PULL_REQUEST_ASSIGNEE": [{"pull_request_id": 999001, "user_id": 999002}], "PULL_REQUEST_ISSUE_LABEL": [{"pull_request_id": 999001, "issue_label_id": 999003}]}""")
+        assertEquals(0, count("pull_request_assignee"))
+        assertEquals(0, count("pull_request_issue_label"))
+    }
+
+    @Test
+    fun `담당자와 라벨 연결 테이블도 내보내고 다시 가져온다 (X-14)`() {
+        val names = exported().propertyNames().toList()
+        assertEquals(true, "PULL_REQUEST_ASSIGNEE" in names && "PULL_REQUEST_ISSUE_LABEL" in names)
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))

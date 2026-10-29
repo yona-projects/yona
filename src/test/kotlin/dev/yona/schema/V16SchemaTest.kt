@@ -34,11 +34,11 @@ class V16SchemaTest : AbstractIntegrationTest() {
     private lateinit var jdbc: JdbcTemplate
 
     @Test
-    fun `v1_6의 테이블 집합과 같다`() {
+    fun `v1_6의 테이블 집합과 같고 의도한 추가 테이블만 더 있다`() {
         val expected = SchemaMetadata.v16Columns().keys
         val actual = SchemaMetadata.actualColumns(dataSource).keys
         assertEquals(emptySet(), expected - actual, "누락된 테이블")
-        assertEquals(emptySet(), actual - expected, "추가된 테이블")
+        assertEquals(SchemaMetadata.INTENDED_ADDITIONS, actual - expected, "추가된 테이블은 의도한 추가 목록과 같아야 한다")
     }
 
     @Test
@@ -73,7 +73,7 @@ class V16SchemaTest : AbstractIntegrationTest() {
         fun Map<String, Map<String, IndexInfo>>.normalized() = if (directional) this else mapValues { (_, v) -> v.mapValues { (_, i) -> i.copy(descending = emptySet()) } }
         val actual = SchemaMetadata.actualIndexes(dataSource).normalized()
         val expected = SchemaMetadata.v16Indexes().normalized()
-        val problems = (expected.keys + actual.keys).sorted().flatMap { table ->
+        val problems = ((expected.keys + actual.keys) - SchemaMetadata.INTENDED_ADDITIONS).sorted().flatMap { table ->
             val e = expected[table].orEmpty()
             val a = actual[table].orEmpty()
             (e.keys - a.keys).map { "$table.$it 누락 ${e[it]}" } +
@@ -88,7 +88,7 @@ class V16SchemaTest : AbstractIntegrationTest() {
     fun `외래 키의 대상과 삭제 규칙이 v1_6과 같다`() {
         val actual = SchemaMetadata.actualForeignKeys(dataSource)
         val expected = SchemaMetadata.v16ForeignKeys()
-        val problems = (expected.keys + actual.keys).sorted().flatMap { table ->
+        val problems = ((expected.keys + actual.keys) - SchemaMetadata.INTENDED_ADDITIONS).sorted().flatMap { table ->
             val e = expected[table].orEmpty()
             val a = actual[table].orEmpty()
             (e.keys - a.keys).map { "$table.$it 누락 ${e[it]}" } +

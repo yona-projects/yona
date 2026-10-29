@@ -5,6 +5,7 @@ import dev.yona.domain.LONG_TEXT
 import dev.yona.domain.enumeration.EventType
 import dev.yona.domain.enumeration.PullRequestCommitState
 import dev.yona.domain.enumeration.State
+import dev.yona.domain.issue.IssueLabel
 import dev.yona.domain.project.Project
 import dev.yona.domain.user.User
 import jakarta.persistence.*
@@ -66,7 +67,26 @@ class PullRequest(
             Index(name = "fk_pull_request_reviewers_n4user_02", columnList = "user_id")
         ]
     )
-    var reviewers: MutableSet<User> = mutableSetOf()
+    var reviewers: MutableSet<User> = mutableSetOf(),
+    /**
+     * 담당자이다. v1.6에 없는 추가 항목이다(로드맵 X-14, `decisions.md` D-34). 연결 테이블 `pull_request_assignee`에 저장하며 서비스 규칙으로 지금은 1명까지만
+     * 받는다([PullRequestAssigneeService.MAX_ASSIGNEES]).
+     */
+    @ManyToMany @JoinTable(
+        name = "pull_request_assignee",
+        joinColumns = [JoinColumn(name = "pull_request_id")],
+        inverseJoinColumns = [JoinColumn(name = "user_id")],
+        indexes = [Index(name = "ix_pull_request_assignee_user", columnList = "user_id")]
+    )
+    var assignees: MutableSet<User> = mutableSetOf(),
+    /** 라벨이다. 받는 프로젝트의 이슈 라벨만 붙는다(D-34). 연결 테이블 `pull_request_issue_label`에 저장한다. */
+    @ManyToMany @JoinTable(
+        name = "pull_request_issue_label",
+        joinColumns = [JoinColumn(name = "pull_request_id")],
+        inverseJoinColumns = [JoinColumn(name = "issue_label_id")],
+        indexes = [Index(name = "ix_pull_request_issue_label_label", columnList = "issue_label_id")]
+    )
+    var labels: MutableSet<IssueLabel> = mutableSetOf()
 )
 
 /** 풀 리퀘스트에 포함된 커밋이다. */

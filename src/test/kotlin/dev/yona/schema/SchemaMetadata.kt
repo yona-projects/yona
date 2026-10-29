@@ -40,6 +40,12 @@ sealed interface ColumnType {
  */
 object SchemaMetadata {
 
+    /**
+     * v1.6 최종 스키마에 없지만 추가 개발 항목(D-28)에서 일부러 더한 테이블이다. 더할 때는 `decisions.md`에 근거를 적고 여기에 올린다.
+     * - X-14 풀 리퀘스트의 담당자와 라벨(D-34): `pull_request_assignee`, `pull_request_issue_label`
+     */
+    val INTENDED_ADDITIONS: Set<String> = setOf("pull_request_assignee", "pull_request_issue_label")
+
     /** v1.6 컬럼 타입 문자열(MariaDB `column_type`)을 [ColumnType]으로 바꾼다. */
     private fun parseV16Type(columnType: String): ColumnType = when {
         columnType.startsWith("bigint") -> ColumnType.BigInt

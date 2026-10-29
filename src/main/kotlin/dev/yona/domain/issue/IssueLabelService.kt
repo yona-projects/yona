@@ -101,6 +101,9 @@ class IssueLabelService(
             .setParameter("id", label.id).resultList.onEach { it.labels.remove(label) }
         entityManager.createQuery("select p from Posting p join p.labels l where l.id = :id", Posting::class.java)
             .setParameter("id", label.id).resultList.forEach { it.labels.remove(label) }
+        // 추가 항목(X-14): 풀 리퀘스트에 붙은 라벨도 뗀다
+        entityManager.createQuery("select pr from PullRequest pr join pr.labels l where l.id = :id", dev.yona.domain.pullrequest.PullRequest::class.java)
+            .setParameter("id", label.id).resultList.forEach { it.labels.remove(label) }
         entityManager.flush()
         return detached
     }
