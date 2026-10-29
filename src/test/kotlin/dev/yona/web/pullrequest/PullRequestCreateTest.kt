@@ -143,6 +143,18 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `보내는 곳과 받는 곳의 브랜치 목록에는 태그와 원격 참조가 없다 (D-30)`() {
+        val s = setup()
+        GitTestSupport.createRef(repositories, s.origin, "refs/tags/v1"); GitTestSupport.createRef(repositories, s.fork, "refs/tags/v1")
+        GitTestSupport.createRef(repositories, s.fork, "refs/remotes/origin/x")
+        val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
+        listOf("#fromBranch", "#toBranch").forEach { select ->
+            val values = doc.select("$select option").map { it.attr("value") }.filter { it.isNotEmpty() }
+            assertTrue(values.isNotEmpty() && values.all { it.startsWith("refs/heads/") }, "$select: $values")
+        }
+    }
+
+    @Test
     fun `쿼리로 브랜치를 고를 수 있다`() {
         val s = setup()
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("기능", mapOf("b.txt" to "b".toByteArray())), branch = "feature")

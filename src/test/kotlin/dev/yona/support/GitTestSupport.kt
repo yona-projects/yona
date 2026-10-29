@@ -45,6 +45,17 @@ object GitTestSupport {
     }
 
     /**
+     * [project] 저장소에 [refName](`refs/tags/v1`, `refs/remotes/origin/x` 등)을 만든다. 기본은 `HEAD`의 커밋을 가리키고,
+     * [toTree]가 참이면 커밋이 아니라 `HEAD`의 트리를 가리킨다(커밋이 아닌 대상을 가리키는 태그를 만들 때 쓴다).
+     */
+    fun createRef(repositories: RepositoryService, project: Project, refName: String, toTree: Boolean = false) {
+        repositories.openRepository(project).use { repository ->
+            val target = requireNotNull(repository.resolve(if (toTree) "HEAD^{tree}" else "HEAD")) { "HEAD를 풀 수 없습니다." }
+            repository.updateRef(refName).apply { setNewObjectId(target); setForceUpdate(true) }.update()
+        }
+    }
+
+    /**
      * 테스트에서 만들 커밋 하나이다.
      *
      * @property files 이 커밋에서 쓰거나 바꾸는 파일(경로는 `dir/name`처럼 하위 폴더를 쓸 수 있다)

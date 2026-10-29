@@ -25,16 +25,25 @@ data class BranchInfo(
 )
 
 /**
- * 브랜치 목록과 삭제를 맡는다. v1.6 `GitRepository.getBranches`, `getHeadBranch`, `deleteBranch`에 해당한다.
+ * 브랜치 목록과 삭제를 맡는다. v1.6 `GitRepository.getBranches`, `getHeadBranch`, `deleteBranch`에 해당한다(목록은 브랜치만, D-30).
  */
 @Service
 class BranchService(private val repositories: RepositoryService, private val pullRequests: PullRequestRepository) {
 
-    /** 브랜치, 태그, 원격 참조를 머리 커밋이 최근인 순서로 모은다. */
-    fun branches(project: Project): List<BranchInfo> = repositories.openRepository(project).use { repository ->
+    /**
+     * `refs/heads/` 아래의 브랜치만 머리 커밋이 최근인 순서로 모은다.
+     *
+     * v1.6 `getBranches`는 태그와 원격 참조(`refs/remotes/` 아래)까지 "브랜치"로 모았다. 태그와 원격 참조는 브랜치 화면과 풀 리퀘스트의
+     * 출발, 도착 목록에서 의미가 없어(`decisions.md` D-30) 이 함수의 결과에서 뺀다. 커밋을 읽기 전에 거르므로 커밋이 아닌 대상을
+     * 가리키는 태그가 있어도 실패하지 않는다. 태그와 원격 참조를 포함한 이름은 [RepositoryService.refNames]를 쓴다.
+     */
+    fun branches(project: Project): List<BranchInfo> = refs(project, listOf(Constants.R_HEADS))
+
+    /** [prefixes]로 시작하는 참조를 머리 커밋이 최근인 순서로 모은다. 커밋을 가리키지 않는 참조는 건너뛴다. */
+    private fun refs(project: Project, prefixes: List<String>): List<BranchInfo> = repositories.openRepository(project).use { repository ->
         RevWalk(repository).use { walk ->
-            repository.refDatabase.refs.filter { ref -> WELL_KNOWN.any { ref.name.startsWith(it) } && ref.objectId != null }
-                .map { info(project, it.name, walk.parseCommit(it.objectId)) }
+            repository.refDatabase.refs.filter { ref -> prefixes.any { ref.name.startsWith(it) } && ref.objectId != null }
+                .mapNotNull { ref -> runCatching { info(project, ref.name, walk.parseCommit(ref.objectId)) }.getOrNull() }
                 .sortedByDescending { it.committerDate }
         }
     }
@@ -62,9 +71,5 @@ class BranchService(private val repositories: RepositoryService, private val pul
     private fun latestPullRequest(project: Project, branch: String): PullRequest? {
         val ids = listOfNotNull(project.id, project.originalProject?.id)
         return pullRequests.findFirstByFromProjectIdAndFromBranchAndToProjectIdInOrderByNumberDesc(requireNotNull(project.id), branch, ids)
-    }
-
-    private companion object {
-        val WELL_KNOWN = listOf(Constants.R_HEADS, Constants.R_TAGS, Constants.R_REMOTES)
     }
 }

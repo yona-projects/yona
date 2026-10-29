@@ -54,6 +54,7 @@ class BranchesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
     @Autowired private lateinit var repositories: RepositoryService
+    @Autowired private lateinit var branchService: dev.yona.repository.BranchService
 
     private var sequence = 0
 
@@ -94,6 +95,18 @@ class BranchesTest : AbstractIntegrationTest() {
         assertEquals("/${p.owner}/${p.name}/code/refs%252Fheads%252Fmaster", rows[0].selectFirst("td.branchName a")!!.attr("href"))
         assertEquals(7, rows[1].selectFirst("a.commitId")!!.text().length)
         assertNotNull(rows[1].selectFirst("td.pullRequest .disabled"))
+    }
+
+    @Test
+    fun `태그와 원격 참조는 브랜치 화면에 나오지 않고 커밋이 아닌 대상을 가리키는 태그가 있어도 500이 아니다 (D-30)`() {
+        val p = twoBranches()
+        GitTestSupport.createRef(repositories, p, "refs/tags/v1")
+        GitTestSupport.createRef(repositories, p, "refs/remotes/origin/feature")
+        GitTestSupport.createRef(repositories, p, "refs/tags/tree-tag", toTree = true)
+        val doc = page("/${p.owner}/${p.name}/branches")
+        assertEquals(listOf("master", "feature"), doc.select("table.branch-list-wrap tbody tr").map { it.selectFirst("td.branchName a")!!.text() })
+        // 서비스는 머리 커밋이 최근인 순서이고(기본 브랜치를 맨 위로 올리는 것은 화면이다) 브랜치만 돌려준다
+        assertEquals(listOf("refs/heads/feature", "refs/heads/master"), branchService.branches(p).map { it.name })
     }
 
     @Test
