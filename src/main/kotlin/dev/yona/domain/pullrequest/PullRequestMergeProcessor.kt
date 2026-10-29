@@ -34,7 +34,8 @@ class PullRequestMergeProcessor(
     private val merger: PullRequestMerger,
     private val events: PullRequestEventService,
     private val users: UserRepository,
-    private val publisher: ApplicationEventPublisher
+    private val publisher: ApplicationEventPublisher,
+    private val reviewService: PullRequestReviewService
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -78,7 +79,12 @@ class PullRequestMergeProcessor(
             if (newCommits.isNotEmpty()) {
                 if (!newPullRequest) publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_COMMIT_CHANGED, null, null, sender))
                 events.addCommits(sender, pullRequest, newCommits, commitEventOldValue(oldMergeCommitId, pullRequest.mergedCommitIdTo))
-                pullRequest.reviewers.clear()
+                // v1.6은 새 커밋이 들어오면 리뷰어를 모두 비운다. 추가 항목(X-12, D-35 5번)으로 프로젝트가 끌 수 있고(`isDismissingStaleApprovals`), 켜져 있으면
+                // 현재 승인들을 사유와 함께 해제 처리한 뒤 보정 전의 옛 승인 집합도 비운다
+                if (pullRequest.toProject?.isDismissingStaleApprovals != false) {
+                    reviewService.dismissStaleApprovals(pullRequest)
+                    pullRequest.reviewers.clear()
+                }
             }
         } else {
             pullRequest.isConflict = false

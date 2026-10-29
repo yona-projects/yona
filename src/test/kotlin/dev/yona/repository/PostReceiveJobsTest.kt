@@ -25,6 +25,8 @@ import dev.yona.domain.pullrequest.ForkService
 import dev.yona.domain.pullrequest.PullRequestCommitRepository
 import dev.yona.domain.pullrequest.PullRequestEventRepository
 import dev.yona.domain.pullrequest.PullRequestForm
+import dev.yona.domain.pullrequest.PullRequestReviewRepository
+import dev.yona.domain.pullrequest.PullRequestReviewService
 import dev.yona.domain.pullrequest.PullRequestMergeProcessor
 import dev.yona.domain.pullrequest.PullRequestRepository
 import dev.yona.domain.pullrequest.PullRequestService
@@ -67,6 +69,8 @@ class PostReceiveJobsTest : AbstractIntegrationTest() {
     @Autowired private lateinit var forks: ForkService
     @Autowired private lateinit var pullRequestService: PullRequestService
     @Autowired private lateinit var processor: PullRequestMergeProcessor
+    @Autowired private lateinit var reviewService: PullRequestReviewService
+    @Autowired private lateinit var reviewRepository: PullRequestReviewRepository
     @Autowired private lateinit var pullRequests: PullRequestRepository
     @Autowired private lateinit var pullRequestCommits: PullRequestCommitRepository
     @Autowired private lateinit var pullRequestEvents: PullRequestEventRepository
@@ -158,6 +162,36 @@ class PostReceiveJobsTest : AbstractIntegrationTest() {
         val changed = pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).filter { it.eventType == EventType.PULL_REQUEST_COMMIT_CHANGED }
         assertEquals(2, changed.size); assertNotNull(changed.last().oldValue)
         assertTrue(notificationEvents.findAll().none { it.eventType == EventType.PULL_REQUEST_COMMIT_CHANGED && it.receivers.isEmpty() })
+    }
+
+    @Test
+    fun `새 커밋이 올라오면 승인을 해제하고 사유를 남기며 변경 요청은 그대로 둔다 (X-12, D-35 5번)`() {
+        val s = setup()
+        push(s, "첫 변경", "b.txt", "b")
+        val pr = openPullRequest(s)
+        val other = users.save(dev.yona.domain.user.User(loginId = "rvx${System.nanoTime()}", name = "다른 리뷰어", email = "rvx${System.nanoTime()}@example.com", state = dev.yona.domain.enumeration.UserState.ACTIVE))
+        reviewService.submit(pr, s.manager, dev.yona.domain.enumeration.ReviewVerdict.APPROVED, null)
+        reviewService.submit(pr, other, dev.yona.domain.enumeration.ReviewVerdict.CHANGES_REQUESTED, "문제")
+        jobs.afterPush(s.fork, s.contributor, listOf(push(s, "추가 변경", "c.txt", "c")))
+        val updated = pullRequests.findById(pr.id!!).get()
+        assertTrue(updated.reviewers.isEmpty())
+        val all = reviewRepository.findByPullRequestIdOrderByCreatedDateAscIdAsc(pr.id!!)
+        val approval = all.first { it.verdict == dev.yona.domain.enumeration.ReviewVerdict.APPROVED }
+        assertNotNull(approval.dismissedDate); assertEquals(PullRequestReviewService.STALE_REASON, approval.dismissedReason); assertNull(approval.dismissedByLoginId)
+        assertNull(all.first { it.verdict == dev.yona.domain.enumeration.ReviewVerdict.CHANGES_REQUESTED }.dismissedDate)
+    }
+
+    @Test
+    fun `프로젝트가 승인 해제를 끄면 새 커밋이 올라와도 승인이 남는다 (X-12, D-35 5번)`() {
+        val s = setup()
+        push(s, "첫 변경", "b.txt", "b")
+        val pr = openPullRequest(s)
+        s.origin.isDismissingStaleApprovals = false; projects.save(s.origin)
+        reviewService.submit(pr, s.manager, dev.yona.domain.enumeration.ReviewVerdict.APPROVED, null)
+        jobs.afterPush(s.fork, s.contributor, listOf(push(s, "추가 변경", "c.txt", "c")))
+        val updated = pullRequests.findById(pr.id!!).get()
+        assertEquals(listOf(s.manager.id), updated.reviewers.map { it.id })
+        assertNull(reviewRepository.findByPullRequestIdOrderByCreatedDateAscIdAsc(pr.id!!).single().dismissedDate)
     }
 
     @Test
