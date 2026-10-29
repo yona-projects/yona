@@ -38,7 +38,8 @@ class DataTablesTest : AbstractIntegrationTest() {
         assertEquals(DataType.DATE, attachment.columns.first { it.name == "created_date" }.type)
         assertEquals(DataType.STRING_LONG, attachment.columns.first { it.name == "container_id" }.type)
         assertEquals(11, DataTables.find("N4USER")!!.columns.size)
-        assertEquals(19, DataTables.find("PULL_REQUEST")!!.columns.size)
+        // v1.6의 19개에 추가 개발 항목 X-28의 `rebase_blocked`가 더해져 20개이다
+        assertEquals(20, DataTables.find("PULL_REQUEST")!!.columns.size)
         assertEquals(28, DataTables.all.sumOf { table -> table.columns.count { it.nullableLong } })
     }
 
