@@ -65,7 +65,8 @@ class ReviewCommentController(
     private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
     private val postAttachments: dev.yona.web.PostAttachments,
     private val siteUrls: dev.yona.util.SiteUrls,
-    private val pendingReader: dev.yona.domain.comment.PendingReviewReader
+    private val pendingReader: dev.yona.domain.comment.PendingReviewReader,
+    private val markdown: dev.yona.markdown.ProjectMarkdownRenderer
 ) {
 
     @PostMapping("/{user}/{project}/commit/{commitId}/comments")
@@ -150,6 +151,30 @@ class ReviewCommentController(
     @PostMapping("/threads/{id}/close")
     @Transactional
     fun close(@PathVariable id: Long): ResponseEntity<Void> = updateState(id, ThreadState.CLOSED)
+
+    /**
+     * 리뷰 댓글의 내용을 고친다(GitHub 기준, `decisions.md` D-38 7번). 본문 `contents`가 필요하고 응답은 `{"id", "edited": true, "bodyHtml"}`이다.
+     * 공개된 댓글은 작성자와 지울 권한이 있는 사람(관리자)이 고치고(`Operation.DELETE`와 같은 권한), 임시 댓글은 작성자만 고치며 남에게는 없는 댓글(404)이다.
+     */
+    @PostMapping("/comments/review_comment/{id}/edit")
+    @AnonymousCheck(requiresLogin = true)
+    @Transactional
+    fun edit(@PathVariable id: Long, request: HttpServletRequest): ResponseEntity<Any> {
+        val user = requireNotNull(currentUserProvider.get().user)
+        val visible = reviewComments.findById(id).orElse(null)
+        val comment = if (visible != null) {
+            if (!accessControl.isAllowed(user, visible.asResource(), Operation.DELETE)) return ResponseEntity.status(403).build()
+            visible
+        } else {
+            pendingReader.comment(id, user) ?: return ResponseEntity.notFound().build()
+        }
+        val contents = request.getParameter("contents")
+        if (contents.isNullOrBlank()) return ResponseEntity.badRequest().build()
+        service.edit(comment, contents)
+        val project = comment.thread?.project
+        return ResponseEntity.ok().contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+            .body(mapOf("id" to id, "edited" to true, "bodyHtml" to markdown.render(contents, requireNotNull(project), null)))
+    }
 
     @DeleteMapping("/comments/{type}/{id}")
     @Transactional

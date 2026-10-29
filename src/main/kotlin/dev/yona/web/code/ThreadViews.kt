@@ -13,7 +13,13 @@ data class ThreadCommentView(
     val id: Long, val loginId: String, val name: String, val avatarUrl: String, val userHref: String, val ago: String, val agoTitle: String,
     val deleteUrl: String?, val bodyHtml: String, val attachments: String, val viaEmail: Boolean = false,
     /** 임시 저장 리뷰(X-26, D-38)에서 아직 제출하지 않은 댓글이면 `true`이다. 본인에게만 보인다 */
-    val pending: Boolean = false
+    val pending: Boolean = false,
+    /** 댓글을 고치는 요청 주소이다. 고칠 수 없으면 `null`이다(D-38 7번) */
+    val editUrl: String? = null,
+    /** 고칠 때 입력란에 채울 마크다운 원문이다 */
+    val rawContents: String = "",
+    /** 고친 적이 있으면 `true`이다("수정됨" 표시) */
+    val edited: Boolean = false
 )
 
 /**

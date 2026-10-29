@@ -177,7 +177,10 @@ class ReviewComment(
     var thread: CommentThread? = null,
     /** 임시 저장 리뷰에서 아직 제출하지 않은 댓글이면 임시로 저장한 시각이다. 공개 스레드에 단 임시 답글도 포함하며 모든 읽기에서 보이지 않는다(D-38). 공개된 댓글은 `null`이다. */
     @Column(name = "pending_date")
-    var pendingDate: Date? = null
+    var pendingDate: Date? = null,
+    /** 작성자나 관리자가 내용을 고친 시각이다(GitHub의 "수정됨" 표시, `decisions.md` D-38 7번). 고친 적이 없으면 `null`이다. v1.6 테이블에 없는 컬럼이다. */
+    @Column(name = "edited_date")
+    var editedDate: Date? = null
 ) {
     /** 임시 저장 중(아직 제출하지 않음)이면 `true`이다. */
     val isPending: Boolean @Transient get() = pendingDate != null

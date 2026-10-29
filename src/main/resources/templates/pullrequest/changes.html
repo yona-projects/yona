@@ -99,7 +99,7 @@
 
                     <div class="board-comment-wrap">
                         <div class="non-ranged-threads-wrap" th:utext="${nonRangedHtml}"></div>
-                        <th:block th:replace="~{common/comment-form :: commentForm(${commentable}, 'REVIEW_COMMENT', ${commentAction})}"></th:block>
+                        <th:block th:replace="~{common/comment-form :: commentFormPending(${commentable}, 'REVIEW_COMMENT', ${commentAction}, ${pendingCount})}"></th:block>
                     </div>
 
                     <th:block th:if="${commentable}">
@@ -181,5 +181,6 @@
         }).css({cursor: 'pointer'});
     });
 </script>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.review.CommentEdit.js}"></script>
 </th:block>
 </html>

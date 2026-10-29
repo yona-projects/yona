@@ -59,6 +59,17 @@ class PendingReviewReader {
             "select * from comment_thread where id = :id and pull_request_id = :pr and author_id = :author and pending_date is not null", CommentThread::class.java
         ).setParameter("id", id).setParameter("pr", pullRequest.id).setParameter("author", author.id).resultList.firstOrNull() as CommentThread?
 
+    /** [author]의 임시 댓글 하나이다. 없거나 남의 것이거나 이미 공개된 댓글이면 `null`이다. */
+    @Transactional(readOnly = true)
+    fun comment(id: Long, author: User): ReviewComment? {
+        // 댓글이 임시 스레드에 속하면 스레드가 숨겨져 있어 댓글을 읽을 때 연관을 찾지 못한다. 스레드를 먼저 읽어 영속성 컨텍스트에 올려 둔다
+        em.createNativeQuery(
+            "select t.* from comment_thread t join review_comment c on c.thread_id = t.id where c.id = :id and c.author_id = :author and c.pending_date is not null", CommentThread::class.java
+        ).setParameter("id", id).setParameter("author", author.id).resultList
+        return em.createNativeQuery("select * from review_comment where id = :id and author_id = :author and pending_date is not null", ReviewComment::class.java)
+            .setParameter("id", id).setParameter("author", author.id).resultList.firstOrNull() as ReviewComment?
+    }
+
     /** [id]가 (누구의 것이든) 아직 제출하지 않은 임시 스레드이면 `true`이다. */
     @Transactional(readOnly = true)
     fun isPendingThread(id: Long): Boolean =

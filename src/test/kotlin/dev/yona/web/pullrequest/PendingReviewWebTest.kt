@@ -244,4 +244,101 @@ class PendingReviewWebTest : AbstractIntegrationTest() {
         val s = setup()
         mockMvc.perform(post("${s.url}/reviews").session(login(s.member)).param("verdict", "COMMENTED")).andExpect(status().isBadRequest)
     }
+
+    // --- 리뷰 댓글 고치기 (GitHub 기준: 작성자가 제출 전후 모두 고치고 "수정됨"으로 표시) ---
+
+    private fun editComment(id: Long, by: User, text: String?) =
+        post("/comments/review_comment/$id/edit").session(login(by)).apply { text?.let { param("contents", it) } }
+
+    private fun publicComment(s: Setup, by: User, text: String): Long {
+        mockMvc.perform(lineComment(s, by, text, pending = false)).andExpect(status().is3xxRedirection)
+        em.flush(); em.clear()
+        return threadRepository.findByPullRequestId(s.pr.id!!).flatMap { it.reviewComments }.first { it.contents == text }.id!!
+    }
+
+    @Test
+    fun `작성자가 공개 댓글을 고치면 JSON으로 새 본문을 돌려주고 수정됨으로 표시된다`() {
+        val s = setup()
+        val id = publicComment(s, s.member, "처음 내용")
+        mockMvc.perform(editComment(id, s.member, "고친 **내용**")).andExpect(status().isOk)
+            .andExpect(jsonPath("$.edited").value(true)).andExpect(jsonPath("$.bodyHtml").value(org.hamcrest.Matchers.containsString("<strong>내용</strong>")))
+        em.flush(); em.clear()
+        val doc = changes(s, s.manager)
+        assertTrue(doc.html().contains("고친"))
+        assertNotNull(doc.selectFirst("#comment-$id .comment-edited"), "다른 사용자에게도 수정됨이 보인다")
+    }
+
+    @Test
+    fun `지울 수 있는 사람(프로젝트 구성원)은 남의 댓글도 고칠 수 있고 구성원이 아닌 사람은 고칠 수 없다`() {
+        val s = setup()
+        val id = publicComment(s, s.manager, "매니저의 댓글")
+        mockMvc.perform(editComment(id, s.member, "구성원이 고침")).andExpect(status().isOk)
+        mockMvc.perform(editComment(id, user(), "외부인")).andExpect(status().isForbidden)
+        mockMvc.perform(post("/comments/review_comment/$id/edit").param("contents", "x")).andExpect(status().is3xxRedirection)
+    }
+
+    @Test
+    fun `빈 내용과 없는 댓글은 거절한다`() {
+        val s = setup()
+        val id = publicComment(s, s.member, "내용")
+        mockMvc.perform(editComment(id, s.member, " ")).andExpect(status().isBadRequest)
+        mockMvc.perform(editComment(id, s.member, null)).andExpect(status().isBadRequest)
+        mockMvc.perform(editComment(9_999_999L, s.member, "x")).andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `임시 댓글은 작성자만 고치고 고쳐도 임시이며 남에게는 찾을 수 없다`() {
+        val s = setup()
+        mockMvc.perform(lineComment(s, s.member, "임시 원문", pending = true))
+        val id = reader.threads(pullRequests.findById(s.pr.id!!).get(), s.member).flatMap { reader.threadComments(it) }.single().id!!
+        em.flush(); em.clear()
+        mockMvc.perform(editComment(id, s.manager, "남의 임시")).andExpect(status().isNotFound)
+        mockMvc.perform(editComment(id, s.member, "고친 임시")).andExpect(status().isOk)
+        em.flush(); em.clear()
+        assertEquals(1L, count(s, s.member))
+        assertTrue(changes(s, s.member).html().contains("고친 임시"))
+        em.flush(); em.clear()
+        assertTrue(!changes(s, s.manager).html().contains("고친 임시"))
+    }
+
+    @Test
+    fun `고치기 단추는 고칠 수 있는 사람에게만 있고 원문을 담고 있다`() {
+        val s = setup()
+        val mine = publicComment(s, s.member, "내 댓글 원문")
+        val theirs = publicComment(s, s.manager, "매니저 댓글")
+        em.flush(); em.clear()
+        val doc = changes(s, s.member)
+        assertEquals("/comments/review_comment/$mine/edit", doc.selectFirst("#comment-$mine button.comment-edit")!!.attr("data-url"))
+        assertEquals("내 댓글 원문", doc.selectFirst("#comment-$mine textarea.comment-raw")!!.text())
+        assertNotNull(doc.selectFirst("#comment-$theirs button.comment-edit"), "프로젝트 구성원은 지울 수 있는 댓글을 고칠 수도 있다")
+        assertNull(changes(s, user()).selectFirst("button.comment-edit"), "구성원이 아닌 로그인 사용자에게는 없다")
+        assertNull(changes(s).selectFirst("button.comment-edit"), "로그인하지 않으면 없다")
+    }
+
+    // --- 파일 단위 댓글도 임시 저장 ---
+
+    @Test
+    fun `풀 리퀘스트 변경 화면 아래의 댓글 입력란에도 리뷰 시작 단추가 있다`() {
+        val s = setup()
+        val box = changes(s, s.member).selectFirst(".board-comment-wrap #comment-form")!!
+        assertEquals("Start a review", box.selectFirst("button[name=pending]")!!.text())
+        assertEquals("Add single comment", box.selectFirst("button[type=submit]:not([name=pending])")!!.text())
+        mockMvc.perform(lineComment(s, s.member, "줄 임시", pending = true))
+        em.flush(); em.clear()
+        assertEquals("Add review comment", changes(s, s.member).selectFirst(".board-comment-wrap #comment-form button[name=pending]")!!.text())
+    }
+
+    @Test
+    fun `파일 단위 임시 댓글은 작성자에게만 보이고 제출하면 공개된다`() {
+        val s = setup()
+        mockMvc.perform(post("${s.base}/pullRequest/${s.pr.id}/comments").session(login(s.member)).param("contents", "파일 단위 임시").param("pending", "true")).andExpect(status().is3xxRedirection)
+        em.flush(); em.clear()
+        assertTrue(changes(s, s.member).selectFirst(".non-ranged-threads-wrap")!!.html().contains("파일 단위 임시"))
+        assertNotNull(changes(s, s.member).selectFirst(".non-ranged-threads-wrap .thread-pending .pending-badge"))
+        em.flush(); em.clear()
+        assertTrue(!changes(s, s.manager).html().contains("파일 단위 임시"))
+        mockMvc.perform(post("${s.url}/reviews").session(login(s.member)).param("verdict", "COMMENTED")).andExpect(status().is3xxRedirection)
+        em.flush(); em.clear()
+        assertTrue(changes(s, s.manager).selectFirst(".non-ranged-threads-wrap")!!.html().contains("파일 단위 임시"))
+    }
 }

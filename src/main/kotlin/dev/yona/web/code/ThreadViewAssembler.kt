@@ -97,7 +97,10 @@ class ThreadViewAssembler(
             bodyHtml = markdown.render(comment.contents.orEmpty(), project, null),
             attachments = attachmentListing.fileListJson(ResourceType.REVIEW_COMMENT, comment.id!!),
             viaEmail = originalEmails.findByResourceTypeAndResourceId(ResourceType.REVIEW_COMMENT, comment.id.toString()).isNotEmpty(),
-            pending = comment.isPending
+            pending = comment.isPending,
+            // 공개 댓글은 작성자와 지울 권한이 있는 사람(관리자)이, 임시 댓글은 작성자만 고친다(GitHub 기준, D-38 7번)
+            editUrl = if (viewer != null && (if (comment.isPending) comment.authorId == viewer.id else accessControl.isAllowed(viewer, resource, Operation.DELETE))) siteUrls.path("/comments/review_comment/${comment.id}/edit") else null,
+            rawContents = comment.contents.orEmpty(), edited = comment.editedDate != null
         )
     }
 

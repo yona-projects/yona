@@ -135,6 +135,20 @@ class ReviewCommentService(
         }
     }
 
+    /**
+     * 리뷰 댓글의 내용을 고치고 수정 시각을 남긴다(GitHub 기준으로 작성한 댓글은 제출 전후 모두 고칠 수 있다, `decisions.md` D-38 7번). 알림은 보내지 않는다.
+     * 권한 확인은 호출하는 쪽이 한다. 임시 댓글은 임시로 남는다.
+     *
+     * @throws IllegalArgumentException 내용이 비어 있을 때
+     */
+    @Transactional
+    fun edit(comment: ReviewComment, contents: String): ReviewComment {
+        require(contents.isNotBlank()) { "내용이 비어 있습니다" }
+        comment.contents = contents
+        comment.editedDate = Date()
+        return reviewComments.save(comment)
+    }
+
     /** 코드 리뷰 댓글을 지운다. 스레드의 마지막 댓글이면 스레드도 지운다 (v1.6 `ReviewComment.delete`). */
     @Transactional
     fun delete(comment: ReviewComment) {
