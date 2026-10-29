@@ -63,6 +63,8 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var forks: ForkService
     @Autowired private lateinit var pullRequests: PullRequestRepository
     @Autowired private lateinit var tokens: ApiTokenService
+    @Autowired private lateinit var attachmentService: dev.yona.domain.misc.AttachmentService
+    @Autowired private lateinit var attachmentRepository: dev.yona.domain.misc.AttachmentRepository
     @Autowired private lateinit var assigneeService: dev.yona.domain.pullrequest.PullRequestAssigneeService
     @Autowired private lateinit var failures: dev.yona.security.TokenFailureLimiter
     @PersistenceContext private lateinit var em: EntityManager
@@ -410,5 +412,92 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
         call(post("${s.api}/${s.pr.number}/threads/$threadId/open"), manager).andExpect(status().isOk).andExpect(jsonPath("$.thread.state").value("open"))
         call(post("${s.api}/${s.pr.number}/threads/$threadId/close"), token(user())).andExpect(status().isForbidden)
         call(post("${s.api}/${s.pr.number}/threads/999999/close"), manager).andExpect(status().isNotFound)
+    }
+
+    // --- 만들기와 고치기 ---
+
+    /** 포크에 새 브랜치 `topic`을 만든다(이미 있는 풀 리퀘스트와 다른 브랜치 쌍이 필요하다). */
+    private fun topicBranch(s: Setup, name: String = "topic") {
+        GitTestSupport.appendCommits(repositories, s.fork, TestCommit("주제 커밋", mapOf("c.txt" to "c\n".toByteArray())), branch = name, baseBranch = "master")
+    }
+
+    private fun createBody(s: Setup, extra: String = "", branch: String = "topic", title: String = "REST로 만든 요청") =
+        """{"title":"$title","body":"본문 **내용**","fromProject":{"owner":"${s.fork.owner}","name":"${s.fork.name}"},"fromBranch":"$branch","toBranch":"master"$extra}"""
+
+    @Test
+    fun `풀 리퀘스트를 만들면 201과 새 번호와 위치를 돌려준다`() {
+        val s = setup(); topicBranch(s)
+        val r = call(json(post(s.api), createBody(s)), token(s.contributor)).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.number").value(s.pr.number!!.toInt() + 1)).andExpect(jsonPath("$.state").value("open")).andExpect(jsonPath("$.title").value("REST로 만든 요청"))
+            .andExpect(jsonPath("$.author.loginId").value(s.contributor.loginId)).andExpect(jsonPath("$.fromBranch").value("refs/heads/topic")).andExpect(jsonPath("$.toBranch").value("refs/heads/master"))
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Location", org.hamcrest.Matchers.endsWith("/pullRequest/${s.pr.number!! + 1}")))
+        assertTrue(r.andReturn().response.contentAsString.contains("fromProject"))
+    }
+
+    @Test
+    fun `같은 브랜치 쌍의 열린 풀 리퀘스트가 있으면 409이고 그 번호를 알려 준다`() {
+        val s = setup()
+        call(json(post(s.api), createBody(s, branch = "master")), token(s.contributor)).andExpect(status().isConflict)
+            .andExpect(jsonPath("$.pullRequest.number").value(s.pr.number!!.toInt())).andExpect(jsonPath("$.message").exists())
+    }
+
+    @Test
+    fun `만들 때 잘못된 입력은 400이고 출발 프로젝트를 쓸 수 없는 사람은 403이다`() {
+        val s = setup(); topicBranch(s); val t = token(s.contributor)
+        call(json(post(s.api), createBody(s, title = "")), t).andExpect(status().isBadRequest)
+        call(json(post(s.api), createBody(s, title = "가".repeat(256))), t).andExpect(status().isBadRequest)
+        call(json(post(s.api), createBody(s, branch = "nope")), t).andExpect(status().isBadRequest)
+        call(json(post(s.api), """{"title":"t","body":"","fromProject":{"owner":"nobody","name":"nothing"},"fromBranch":"topic","toBranch":"master"}"""), t).andExpect(status().isBadRequest)
+        call(json(post(s.api), """{"title":"t","body":"","fromBranch":"topic","toBranch":"master"}"""), token(s.manager)).andExpect(status().isBadRequest) // 출발 프로젝트를 생략하면 받는 프로젝트이고 거기에는 topic이 없다
+        call(json(post(s.api), """{"title":"t","body":"","fromBranch":"topic","toBranch":"master"}"""), t).andExpect(status().isForbidden) // 포크 주인이라도 원본의 구성원이 아니면(게스트) 원본의 브랜치로는 만들 수 없다
+        call(json(post(s.api), createBody(s)), token(user())).andExpect(status().isForbidden)
+        call(json(post(s.api), createBody(s)), null).andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `담당자와 라벨은 받는 프로젝트를 고칠 수 있는 사람만 정하며 만들 때 함께 지정한다`() {
+        val s = setup(); topicBranch(s)
+        val category = IssueLabelCategory(project = s.origin, name = "분류${++sequence}").also { em.persist(it) }
+        val bug = IssueLabel(category = category, color = "#33aa77", name = "bug", project = s.origin).also { em.persist(it) }
+        em.flush()
+        call(json(post(s.api), createBody(s, ""","assignees":["${s.member.loginId}"]""")), token(s.contributor)).andExpect(status().isForbidden)
+        projectUsers.save(ProjectUser(user = s.contributor, project = s.origin, role = roles.findById(RoleType.MEMBER.id).get())); em.flush()
+        call(json(post(s.api), createBody(s, ""","assignees":["${s.member.loginId}"],"labelIds":[${bug.id}]""")), token(s.contributor)).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.assignees[0].loginId").value(s.member.loginId)).andExpect(jsonPath("$.labels[0].labelName").value("bug"))
+    }
+
+    @Test
+    fun `만들 때 임시로 올린 첨부를 붙일 수 있다`() {
+        val s = setup(); topicBranch(s)
+        val file = java.io.File.createTempFile("att", ".png").apply { writeBytes(byteArrayOf(1, 2, 3, 4)) }
+        val temp = attachmentService.store(file, "사진.png", dev.yona.domain.enumeration.ResourceType.USER, s.contributor.id!!, s.contributor.loginId).attachment
+        val created = call(json(post(s.api), createBody(s, ""","temporaryUploadFiles":[${temp.id}]""")), token(s.contributor)).andExpect(status().isCreated).andReturn().response.contentAsString
+        val id = Regex("\"id\":(\\d+)").find(created)!!.groupValues[1].toLong()
+        assertTrue(attachmentRepository.findByContainerTypeAndContainerIdOrderById(dev.yona.domain.enumeration.ResourceType.PULL_REQUEST, id).size == 1)
+    }
+
+    @Test
+    fun `제목과 본문과 브랜치를 고칠 수 있고 입력 오류와 중복은 거절한다`() {
+        val s = setup(); topicBranch(s); topicBranch(s, "other-topic"); val t = token(s.manager)
+        call(json(patch("${s.api}/${s.pr.number}"), """{"title":"고친 제목","body":"고친 본문"}"""), t).andExpect(status().isOk)
+            .andExpect(jsonPath("$.title").value("고친 제목")).andExpect(jsonPath("$.body").value("고친 본문")).andExpect(jsonPath("$.fromBranch").value("refs/heads/master"))
+        call(json(patch("${s.api}/${s.pr.number}"), """{"fromBranch":"topic"}"""), t).andExpect(status().isOk).andExpect(jsonPath("$.fromBranch").value("refs/heads/topic")).andExpect(jsonPath("$.title").value("고친 제목"))
+        call(json(post(s.api), createBody(s, branch = "other-topic")), token(s.contributor)).andExpect(status().isCreated)
+        call(json(patch("${s.api}/${s.pr.number}"), """{"fromBranch":"other-topic"}"""), t).andExpect(status().isConflict)
+        call(json(patch("${s.api}/${s.pr.number}"), """{"title":""}"""), t).andExpect(status().isBadRequest)
+        call(json(patch("${s.api}/${s.pr.number}"), """{"title":"${"가".repeat(256)}"}"""), t).andExpect(status().isBadRequest)
+        call(json(patch("${s.api}/${s.pr.number}"), """{"toBranch":"nope"}"""), t).andExpect(status().isBadRequest)
+        call(json(patch("${s.api}/${s.pr.number}"), """{}"""), t).andExpect(status().isBadRequest)
+        call(json(patch("${s.api}/${s.pr.number}"), """{"title":"외부인"}"""), token(user())).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `줄 댓글에도 임시로 올린 첨부를 붙일 수 있다`() {
+        val s = setup()
+        val file = java.io.File.createTempFile("att", ".png").apply { writeBytes(byteArrayOf(9, 8, 7)) }
+        val temp = attachmentService.store(file, "스크린샷.png", dev.yona.domain.enumeration.ResourceType.USER, s.member.id!!, s.member.loginId).attachment
+        val created = call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("첨부가 있는 댓글", ""","temporaryUploadFiles":[${temp.id}]""")), token(s.member)).andExpect(status().isCreated).andReturn().response.contentAsString
+        val id = Regex("\"comment\":\\{\"id\":(\\d+)").find(created)!!.groupValues[1].toLong()
+        assertTrue(attachmentRepository.findByContainerTypeAndContainerIdOrderById(dev.yona.domain.enumeration.ResourceType.REVIEW_COMMENT, id).size == 1)
     }
 }

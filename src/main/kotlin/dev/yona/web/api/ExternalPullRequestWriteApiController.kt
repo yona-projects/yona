@@ -1,9 +1,20 @@
 package dev.yona.web.api
 
 import dev.yona.access.AccessControl
+import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.issue.IssueLabelRepository
+import dev.yona.domain.project.Project
+import dev.yona.domain.project.ProjectMenuSettingRepository
+import dev.yona.domain.project.ProjectRepository
+import dev.yona.domain.project.ProjectService
 import dev.yona.domain.pullrequest.AcceptResult
+import dev.yona.domain.pullrequest.PullRequestForm
+import dev.yona.domain.pullrequest.PullRequestMergeProcessor
+import dev.yona.domain.pullrequest.PullRequestService
+import dev.yona.domain.enumeration.ResourceType
+import dev.yona.repository.BranchService
+import dev.yona.web.PostAttachments
 import dev.yona.domain.pullrequest.AssignResult
 import dev.yona.domain.pullrequest.LabelResult
 import dev.yona.domain.pullrequest.PullRequestAssigneeService
@@ -17,6 +28,9 @@ import dev.yona.domain.user.UserRepository
 import dev.yona.web.access.AnonymousCheck
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -28,7 +42,7 @@ import tools.jackson.databind.JsonNode
 /**
  * 외부용 풀 리퀘스트 REST API의 쓰기이다(로드맵 X-15, `decisions.md` D-39). 화면과 같은 동작(닫기, 다시 열기, 병합, 출발 브랜치 지우기와 되살리기, 담당자, 라벨, 리뷰 요청)을
  * 같은 서비스와 같은 권한(`AccessControl`)으로 노출하고, 성공하면 바뀐 풀 리퀘스트 전체(`GET .../pullrequests/{number}`의 모양)를 돌려준다.
- * 상태가 맞지 않아 할 수 없는 일은 409, 입력이 잘못되면 400이다. 병합은 `method` 필드를 받지만 지금은 `merge`만 받는다(스쿼시와 리베이스는 로드맵 X-28).
+ * 상태가 맞지 않아 할 수 없는 일은 409, 입력이 잘못되면 400이다. 풀 리퀘스트 만들기와 고치기도 이 컨트롤러가 한다. 병합은 `method` 필드를 받지만 지금은 `merge`만 받는다(스쿼시와 리베이스는 로드맵 X-28).
  */
 @Controller
 @AnonymousCheck
@@ -43,12 +57,130 @@ class ExternalPullRequestWriteApiController(
     private val users: UserRepository,
     private val accessControl: AccessControl,
     private val requests: ApiRequests,
-    private val json: PullRequestJson
+    private val json: PullRequestJson,
+    private val projectService: ProjectService,
+    private val projects: ProjectRepository,
+    private val menuSettings: ProjectMenuSettingRepository,
+    private val pullRequestService: PullRequestService,
+    private val branches: BranchService,
+    private val processor: PullRequestMergeProcessor,
+    private val runner: dev.yona.domain.pullrequest.BackgroundJobRunner,
+    private val attachments: PostAttachments
 ) {
 
     private companion object {
         const val BASE = "/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}"
+        const val MAX_TITLE = 255
     }
+
+    /**
+     * 풀 리퀘스트를 만든다. 경로의 프로젝트가 받는 프로젝트이다. 본문 `{"title", "body", "fromProject": {"owner", "name"}, "fromBranch", "toBranch", "assignees", "labelIds",
+     * "temporaryUploadFiles"}`이고 브랜치는 `master`나 `refs/heads/master`로 적는다. 응답은 201과 풀 리퀘스트(상세 모양)이며 `Location`에 화면 주소가 있다.
+     *
+     * 화면과 같은 규칙이다: 제목은 필수이고 255자까지, 출발 프로젝트를 쓸 수 있어야 하며(게스트는 403) 같은 브랜치 쌍의 열린 풀 리퀘스트가 있으면 409와
+     * `{"pullRequest": {"number", "url"}}`를 돌려준다(화면은 그 요청으로 이동한다). 이 API는 더 엄격하게 출발 프로젝트가 받는 프로젝트 자신이거나 그 포크(또는 원본)여야 하고
+     * 두 브랜치가 실제로 있어야 한다. 담당자와 라벨은 받는 프로젝트를 고칠 수 있는 사람만 정한다(D-34 20번, 아니면 403).
+     */
+    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests")
+    @Transactional
+    fun create(@PathVariable owner: String, @PathVariable projectName: String, request: HttpServletRequest): Any {
+        val target = support.target(owner, projectName, null, request)
+        target.error?.let { return it }
+        val to = requireNotNull(target.project)
+        val viewer = requireNotNull(target.user)
+        val body = requests.json(request) ?: return support.badRequest("Expecting Json data")
+        val title = body.get("title")?.asString()
+        if (title.isNullOrEmpty() || title.length > MAX_TITLE) return support.badRequest("title is required and must be at most $MAX_TITLE characters")
+        val fromNode = body.get("fromProject")
+        val from = if (fromNode == null) to else projectService.findByOwnerAndProjectName(fromNode.get("owner")?.asString().orEmpty(), fromNode.get("name")?.asString().orEmpty()) ?: return support.badRequest("no fromProject by request")
+        if (!isAssociated(from, to)) return support.badRequest("fromProject must be this project or its fork or original")
+        if (!accessControl.isAllowed(viewer, from.asResource(), Operation.READ) || projectService.isGuest(from, viewer) || !accessControl.isProjectResourceCreatable(viewer, from, ResourceType.FORK)) {
+            return requests.message(HttpStatus.FORBIDDEN, "forbidden")
+        }
+        val fromBranch = branchName(body.get("fromBranch")?.asString(), from) ?: return support.badRequest("no fromBranch by request")
+        val toBranch = branchName(body.get("toBranch")?.asString(), to) ?: return support.badRequest("no toBranch by request")
+        val triage = accessControl.isAllowed(viewer, dev.yona.access.ProjectResource("new", ResourceType.PULL_REQUEST, to), Operation.UPDATE)
+        val logins = body.get("assignees")?.toList().orEmpty().mapNotNull { it.asString() }.filter { it.isNotBlank() }
+        val labelIds = body.get("labelIds")?.toList().orEmpty().map { it.asLong(0) }
+        if ((logins.isNotEmpty() || labelIds.isNotEmpty()) && !triage) return requests.message(HttpStatus.FORBIDDEN, "forbidden to set assignees or labels")
+        if (logins.size > PullRequestAssigneeService.MAX_ASSIGNEES) return support.badRequest("too many assignees")
+        val assignee = logins.firstOrNull()?.let { login -> candidate(login, to, viewer) }
+        if (logins.isNotEmpty() && assignee == null) return support.badRequest("not an assignable user: ${logins.first()}")
+        val labels = labelsOf(labelIds, to)
+        if (labels == null) return support.badRequest("no label of this project by the given ids")
+
+        val creation = pullRequestService.create(PullRequestForm(title, body.get("body")?.asString().orEmpty(), from, to, fromBranch, toBranch), viewer)
+        val pullRequest = creation.pullRequest
+        if (!creation.created) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON)
+                .body(linkedMapOf("message" to "a pull request for the same branches is already open", "pullRequest" to linkedMapOf("number" to pullRequest.number, "url" to json.of(pullRequest)["url"])))
+        }
+        attachments.attachIds(viewer, ids(body.get("temporaryUploadFiles")), ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id))
+        if (assignee != null) assignees.set(pullRequest, assignee, viewer)
+        if (labels.isNotEmpty()) labelService.change(pullRequest, labels, emptyList(), viewer)
+        val pullRequestId = requireNotNull(pullRequest.id)
+        val senderId = requireNotNull(viewer.id)
+        runner.run("merging of pull request $pullRequestId", { processor.start(pullRequestId) }, { processor.process(pullRequestId, senderId, true) })
+        val node = json.of(pullRequest)
+        return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).header("Location", node["url"].toString()).body(node)
+    }
+
+    /**
+     * 제목, 본문, 출발 브랜치, 받는 브랜치를 고친다(주어진 것만). 화면과 같은 규칙이다: 제목은 비울 수 없고 255자까지이며, 브랜치 쌍이 바뀌어 같은 쌍의 다른 열린 풀 리퀘스트와
+     * 겹치면 409이다. 브랜치는 실제로 있어야 하고(400) 아무것도 주지 않으면 400이다. 첨부는 `temporaryUploadFiles`로 더한다. 출발 프로젝트는 바꿀 수 없다.
+     */
+    @PatchMapping("$BASE")
+    @Transactional
+    fun update(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val target = support.target(owner, projectName, number, request, Operation.UPDATE)
+        target.error?.let { return it }
+        val pullRequest = requireNotNull(target.pullRequest)
+        val to = requireNotNull(target.project)
+        val from = requireNotNull(pullRequest.fromProject)
+        val body = requests.json(request) ?: return support.badRequest("Expecting Json data")
+        if (listOf("title", "body", "fromBranch", "toBranch", "temporaryUploadFiles").none { body.has(it) }) return support.badRequest("nothing to update")
+        val title = if (body.has("title")) body.get("title").asString() else pullRequest.title
+        if (title.isNullOrEmpty() || title.length > MAX_TITLE) return support.badRequest("title is required and must be at most $MAX_TITLE characters")
+        val fromBranch = if (body.has("fromBranch")) branchName(body.get("fromBranch").asString(), from) ?: return support.badRequest("no fromBranch by request") else requireNotNull(pullRequest.fromBranch)
+        val toBranch = if (body.has("toBranch")) branchName(body.get("toBranch").asString(), to) ?: return support.badRequest("no toBranch by request") else requireNotNull(pullRequest.toBranch)
+        val text = if (body.has("body")) body.get("body").asString().orEmpty() else pullRequest.body.orEmpty()
+        if (fromBranch != pullRequest.fromBranch || toBranch != pullRequest.toBranch) {
+            val duplicate = pullRequestService.findDuplicate(PullRequestForm(title, text, from, to, fromBranch, toBranch))
+            if (duplicate != null && duplicate.id != pullRequest.id) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).contentType(MediaType.APPLICATION_JSON)
+                    .body(linkedMapOf("message" to "a pull request for the same branches is already open", "pullRequest" to linkedMapOf("number" to duplicate.number, "url" to json.of(duplicate)["url"])))
+            }
+        }
+        val user = requireNotNull(target.user)
+        workflow.update(pullRequest, title, text, fromBranch, toBranch)
+        attachments.attachIds(user, ids(body.get("temporaryUploadFiles")), ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id))
+        return support.ok(json.of(pullRequest))
+    }
+
+    /** [login]이 [to]의 담당자 후보이면 그 사용자이고 아니면 `null`이다. */
+    private fun candidate(login: String, to: Project, viewer: dev.yona.domain.user.User): dev.yona.domain.user.User? {
+        val who = users.findByLoginId(login) ?: return null
+        return who.takeIf { assignees.candidates(to, viewer).any { c -> c.id == who.id } }
+    }
+
+    /** [ids]의 라벨이 모두 [to]의 것이면 그 라벨들이고, 하나라도 없거나 다른 프로젝트의 것이면 `null`이다. */
+    private fun labelsOf(ids: List<Long>, to: Project): List<dev.yona.domain.issue.IssueLabel>? {
+        val found = ids.mapNotNull { issueLabels.findById(it).orElse(null) }
+        return found.takeIf { it.size == ids.size && it.all { label -> label.project?.id == to.id } }
+    }
+
+    /** `master`나 `refs/heads/master`를 저장 형식(`refs/heads/...`)으로 바꾼다. 그 프로젝트에 없는 브랜치이면 `null`이다. */
+    private fun branchName(raw: String?, project: Project): String? {
+        if (raw.isNullOrBlank()) return null
+        val full = if (raw.startsWith("refs/")) raw else "refs/heads/$raw"
+        return full.takeIf { name -> branches.branches(project).any { it.name == name } }
+    }
+
+    /** 출발 프로젝트가 받는 프로젝트 자신이거나 그 포크이거나 원본이면 `true`이다 (v1.6 `Project.getAssociationProjects`). */
+    private fun isAssociated(from: Project, to: Project): Boolean =
+        from.id == to.id || from.originalProject?.id == to.id || to.originalProject?.id == from.id
+
+    private fun ids(node: JsonNode?): List<String> = if (node == null || !node.isArray) emptyList() else node.toList().map { it.asString() }.filter { it.isNotBlank() }
 
     /** 풀 리퀘스트를 닫는다. 병합된 것은 409이고 이미 닫힌 것은 그대로 성공이다. */
     @PostMapping("$BASE/close")

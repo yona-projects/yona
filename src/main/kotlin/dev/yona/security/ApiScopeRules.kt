@@ -43,6 +43,8 @@ object ApiScopeRules {
         // 풀 리퀘스트(X-15, D-39): 모두 `repo`(공개 프로젝트는 `public_repo`)
         add("GET", "$PROJECT/pullrequests", ApiRequirement.Repo)
         add("GET", "$PROJECT/pullrequests/{number}", ApiRequirement.Repo)
+        add("POST", "$PROJECT/pullrequests", ApiRequirement.Repo)
+        add("PATCH", "$PROJECT/pullrequests/{number}", ApiRequirement.Repo)
         for (part in listOf("commits", "files", "timeline", "reviews", "comments")) add("GET", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
         for (part in listOf("close", "reopen", "merge", "fromBranch/restore", "assignees", "labels", "requestedreviewers")) add("POST", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/pullrequests/{number}/fromBranch", ApiRequirement.Repo)

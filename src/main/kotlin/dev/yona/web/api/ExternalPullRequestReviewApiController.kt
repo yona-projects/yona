@@ -50,7 +50,8 @@ class ExternalPullRequestReviewApiController(
     private val pendingReview: PendingReviewService,
     private val accessControl: AccessControl,
     private val requests: ApiRequests,
-    private val json: PullRequestJson
+    private val json: PullRequestJson,
+    private val attachments: dev.yona.web.PostAttachments
 ) {
 
     private companion object {
@@ -102,7 +103,7 @@ class ExternalPullRequestReviewApiController(
     }
 
     /**
-     * 줄 댓글을 단다. 본문 `{"body", "path", "startSide", "startLine", "startColumn", "endSide", "endLine", "endColumn", "commitId", "threadId", "pending"}`이다.
+     * 줄 댓글을 단다. 본문 `{"body", "path", "startSide", "startLine", "startColumn", "endSide", "endLine", "endColumn", "commitId", "threadId", "pending", "temporaryUploadFiles"}`이다(첨부는 `/-_-api/v1/files`로 먼저 올린 번호).
      * `threadId`가 있으면 그 스레드에 이어 달고, 없으면 새 스레드를 만든다(줄 범위를 모두 주면 줄 스레드, 아니면 변경 전체 스레드). `pending: true`는 "리뷰 시작/리뷰에 추가"이며
      * 내 임시 스레드의 답글은 항상 임시이다. 응답은 201 `{"comment": {...}, "threadId": 번호}`이다.
      */
@@ -126,6 +127,7 @@ class ExternalPullRequestReviewApiController(
         } catch (e: IllegalArgumentException) {
             return requests.message(HttpStatus.NOT_FOUND, "no thread by request")
         }
+        attachments.attachIds(viewer, body.get("temporaryUploadFiles")?.takeIf { it.isArray }?.toList().orEmpty().map { it.asString() }.filter { it.isNotBlank() }, ResourceType.REVIEW_COMMENT, requireNotNull(comment.id))
         return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(linkedMapOf("comment" to json.comment(comment), "threadId" to comment.thread?.id))
     }
 
