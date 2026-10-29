@@ -58,7 +58,7 @@
                 </div>
 
                 <!--/* 리뷰 판정 폼(추가 항목 X-12, decisions.md D-35). 로그인한 사용자에게만 보이고 선택지는 권한과 요청 상태를 따른다 */-->
-                <form id="review-form" th:if="${reviewArea.formUrl != null}" th:action="${reviewArea.formUrl}" method="post" class="review-form mt20">
+                <form id="review-form" th:if="${reviewArea.formUrl != null}" th:action="${reviewArea.formUrl}" method="post" class="pr-review-form mt20">
                     <h5 th:text="#{pullRequest.review.form.title}"></h5>
                     <textarea name="contents" rows="4" class="textbox span12" th:placeholder="#{pullRequest.review.form.placeholder}"></textarea>
                     <div class="review-verdicts">
