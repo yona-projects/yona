@@ -36,6 +36,7 @@
                     <li><a th:href="${filesTabUrl}" th:text="#{code.files}"></a></li>
                     <li class="active"><a th:href="${commitsTabUrl}" th:text="#{code.commits}"></a></li>
                     <li th:if="${git}"><a th:href="${branchesTabUrl}" th:text="#{title.branches}"></a></li>
+                    <li th:if="${git}"><a th:href="${tagsTabUrl}" th:text="#{title.tags}"></a></li>
                 </ul>
                 </th:block>
 

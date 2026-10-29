@@ -56,6 +56,18 @@ object GitTestSupport {
     }
 
     /**
+     * [project] 저장소의 `HEAD` 커밋에 주석 태그 [name]을 만든다. [message]는 태그 메시지, [taggerName]과 [time]은 태그를 단 사람과 시각이다.
+     */
+    fun createAnnotatedTag(repositories: RepositoryService, project: Project, name: String, message: String, taggerName: String = "릴리서", time: Long = 1_800_000_000_000L) {
+        repositories.openRepository(project).use { repository ->
+            val head = repository.resolve("HEAD")
+            org.eclipse.jgit.api.Git(repository).tag().setName(name).setAnnotated(true).setMessage(message)
+                .setTagger(PersonIdent(taggerName, "tagger@example.com", Date(time), TimeZone.getTimeZone("UTC")))
+                .setObjectId(org.eclipse.jgit.revwalk.RevWalk(repository).use { it.parseAny(head) }).setSigned(false).call()
+        }
+    }
+
+    /**
      * 테스트에서 만들 커밋 하나이다.
      *
      * @property files 이 커밋에서 쓰거나 바꾸는 파일(경로는 `dir/name`처럼 하위 폴더를 쓸 수 있다)

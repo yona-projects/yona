@@ -132,6 +132,7 @@ class CommitViewController(
             .addObject("filesUrl", "$base/code")
             .addObject("commitsUrl", "$base/commits")
             .addObject("branchesUrl", "$base/branches")
+            .addObject("tagsUrl", "$base/tags")
             .addObject("parent", parent != null)
     }
 

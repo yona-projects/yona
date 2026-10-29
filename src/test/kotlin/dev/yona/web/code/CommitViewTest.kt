@@ -109,7 +109,7 @@ class CommitViewTest : AbstractIntegrationTest() {
         val doc = page("/${p.owner}/${p.name}/commit/$second")
         assertEquals("@$second", doc.selectFirst(".commitId")!!.text())
         assertEquals("둘째 커밋", doc.selectFirst(".commitMsg.short")!!.text())
-        assertEquals(listOf("Files", "Commit", "Branches"), doc.select(".code-browse-wrap > ul.nav-tabs li").map { it.text() })
+        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), doc.select(".code-browse-wrap > ul.nav-tabs li").map { it.text() })
         assertTrue(doc.select(".diff-body").first()!!.text().contains("two"))
         assertNotNull(doc.selectFirst("#watch-button"))
         assertTrue(page("/${p.owner}/${p.name}/commit/$first").selectFirst("pre.commitMsg.desc")!!.text().contains("상세 설명"))

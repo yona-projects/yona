@@ -19,6 +19,7 @@
                 <li class="active"><a th:href="${page.filesTabUrl}" th:text="#{code.files}"></a></li>
                 <li><a th:href="${page.commitsTabUrl}" th:text="#{code.commits}"></a></li>
                 <li th:if="${page.branchesTabUrl != null}"><a th:href="${page.branchesTabUrl}" th:text="#{title.branches}"></a></li>
+                <li th:if="${page.tagsTabUrl != null}"><a th:href="${page.tagsTabUrl}" th:text="#{title.tags}"></a></li>
             </ul>
 
             <div class="code-browse-header">

@@ -70,6 +70,9 @@ data class CodePage(
     val rootUrl: String, val projectName: String, val crumbs: List<Crumb>, val downloadUrl: String?, val newFileUrl: String?,
     val items: List<CodeItem>, val initialPath: String, val metaInfoUrl: String, val basePathUrl: String
 ) {
+    /** 태그 화면의 주소이다. 브랜치 탭이 있는 Git 프로젝트에만 있다(D-30). */
+    val tagsTabUrl: String? get() = branchesTabUrl?.removeSuffix("branches")?.plus("tags")
+
     /** 브랜치 선택 상자의 구역이다(D-30). */
     val branchGroups: List<BranchGroup> get() = branches.toGroups()
 

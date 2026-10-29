@@ -190,7 +190,7 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     fun `폴더 화면은 폴더를 앞세운 목록과 탭, 브랜치 선택, 내려받기를 보여 준다`() {
         val p = filled()
         val doc = page("/${p.owner}/${p.name}/code/master")
-        assertEquals(listOf("Files", "Commit", "Branches"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
+        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), doc.select(".code-browse-wrap ul.nav-tabs li a").map { it.text() })
         assertEquals(listOf("refs/heads/master"), doc.select("select#branches option").map { it.text() })
         // v1.6 역방향 라우트는 경로가 비면 끝에 `/` 없는 `/code/:branch`를 만든다
         assertEquals("/${p.owner}/${p.name}/code/master", doc.selectFirst("select#branches option")!!.attr("value"))

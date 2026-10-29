@@ -86,7 +86,7 @@ class CommitHistoryTest : AbstractIntegrationTest() {
         assertTrue(first.selectFirst("td.commit-id a")!!.attr("href").startsWith("/${p.owner}/${p.name}/commit/"))
         assertEquals(7, first.selectFirst("td.commit-id a")!!.text().length)
         assertEquals(40, first.selectFirst(".btn-copy-commitId")!!.attr("data-commitId").length)
-        assertEquals(listOf("Files", "Commit", "Branches"), doc.select(".code-browse-wrap ul.nav-tabs li").map { it.text() })
+        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), doc.select(".code-browse-wrap ul.nav-tabs li").map { it.text() })
         assertEquals("/${p.owner}/${p.name}/commits/refs%252Fheads%252Fmaster/", doc.selectFirst("select#branches option")!!.attr("value"))
         assertNull(doc.selectFirst("#breadcrumbs"))
         assertNull(doc.selectFirst(".actrow a"))

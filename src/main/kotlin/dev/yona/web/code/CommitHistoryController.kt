@@ -107,6 +107,7 @@ class CommitHistoryController(
             .addObject("filesTabUrl", "$base/code/${if (branchSegment != null) branchSegment else "HEAD"}")
             .addObject("commitsTabUrl", if (path != null && branchSegment != null) "$base/commits/$branchSegment/$path" else historyUrl)
             .addObject("branchesTabUrl", "$base/branches")
+            .addObject("tagsTabUrl", "$base/tags")
             .addObject("newerUrl", if (page > 0) pageUrl(historyUrl, path, branchSegment, page - 1) else null)
             .addObject("olderUrl", if (commits.isNotEmpty() && commits.last().parentCount > 0) pageUrl(historyUrl, path, branchSegment, page + 1) else null)
     }

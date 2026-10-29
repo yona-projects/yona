@@ -19,6 +19,7 @@
                     <li><a th:href="${filesTabUrl}" th:text="#{code.files}"></a></li>
                     <li><a th:href="${commitsTabUrl}" th:text="#{code.commits}"></a></li>
                     <li class="active"><a th:href="@{/{owner}/{name}/branches(owner=${project.owner},name=${project.name})}" th:text="#{title.branches}"></a></li>
+                    <li><a th:href="@{/{owner}/{name}/tags(owner=${project.owner},name=${project.name})}" th:text="#{title.tags}"></a></li>
                 </ul>
 
                 <table class="table branch-list-wrap">

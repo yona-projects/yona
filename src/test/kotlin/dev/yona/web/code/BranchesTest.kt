@@ -113,7 +113,7 @@ class BranchesTest : AbstractIntegrationTest() {
     fun `탭은 코드, 커밋, 브랜치이고 브랜치가 활성이다`() {
         val p = twoBranches()
         val tabs = page("/${p.owner}/${p.name}/branches").select(".code-browse-wrap ul.nav-tabs li")
-        assertEquals(listOf("Files", "Commit", "Branches"), tabs.map { it.text() }); assertTrue(tabs[2].hasClass("active"))
+        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), tabs.map { it.text() }); assertTrue(tabs[2].hasClass("active"))
     }
 
     @Test
