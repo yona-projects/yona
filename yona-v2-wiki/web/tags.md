@@ -19,6 +19,7 @@ v1.6의 `GitRepository.getBranches()`는 `refs/heads`, `refs/tags`, `refs/remote
 | 코드 화면과 커밋 이력의 선택 목록 | 참조 전체를 평평하게 나열 | "브랜치", "태그" 구역(`optgroup`)으로 나눈다. 원격 참조는 뺀다. 항목 앞 `branch`, `tag` 배지는 그대로이다 |
 | 코드, 커밋, 브랜치 화면의 탭 | 파일, 커밋, 브랜치 | 파일, 커밋, 브랜치, **태그** |
 | 태그 삭제 | 브랜치 삭제 경로(`DELETE /:user/:project/code/:branch/`)로 지움 | 그 경로는 그대로 두고, 전용 경로 `DELETE /:user/:project/tags/:tag`를 더했다 |
+| 브랜치 삭제 단추 | 확인 없이 바로 삭제 | 같은 방식의 확인창을 둔다(`code.branches.deleteConfirm`, D-31). 요청 경로와 응답은 그대로 |
 
 ## 태그 목록 (`GET /:user/:project/tags`)
 

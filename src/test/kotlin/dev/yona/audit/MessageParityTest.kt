@@ -25,9 +25,11 @@ class MessageParityTest {
      * v1.6에 없고 추가 개발 항목(D-28)에서 일부러 더한 키이다. 키를 더할 때는 `decisions.md`에 근거를 적고 여기에도 올린다.
      * 모든 언어 번들에 이 키들이 있어야 한다(없으면 영어로 대체되는 키가 생긴다).
      * - X-18 Git 태그 화면(D-30): 태그 탭과 태그 화면의 글
+     * - 브랜치 삭제 확인창(D-31): `code.branches.deleteConfirm`
      */
     private val addedKeys = setOf(
-        "title.tags", "code.tags.annotated", "code.tags.lightweight", "code.tags.notCommit", "code.tags.empty", "code.tags.deleteConfirm"
+        "title.tags", "code.tags.annotated", "code.tags.lightweight", "code.tags.notCommit", "code.tags.empty", "code.tags.deleteConfirm",
+        "code.branches.deleteConfirm"
     )
 
     @Test

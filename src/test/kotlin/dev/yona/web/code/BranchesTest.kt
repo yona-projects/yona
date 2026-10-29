@@ -127,6 +127,15 @@ class BranchesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `브랜치 삭제 단추에는 삭제 확인 문구가 붙고 기본 브랜치에는 삭제 단추가 없다 (확인창)`() {
+        val p = twoBranches(); val m = member(p)
+        val rows = page("/${p.owner}/${p.name}/branches", login(m)).select("table.branch-list-wrap tbody tr")
+        val confirm = rows[1].selectFirst("a[data-request-method=delete]")!!.attr("data-confirm")
+        assertTrue(confirm.contains("feature"), confirm)
+        assertNull(rows[0].selectFirst("a[data-request-method=delete]"))
+    }
+
+    @Test
     fun `일반 구성원에게는 기본 브랜치 지정과 삭제 단추가 나오지 않는다`() {
         val p = twoBranches(); val m = member(p, RoleType.MEMBER)
         // v1.6 BranchApp과 branches.scala.html은 project.asResource()(전역 리소스)로 판정한다. 사이트 관리자, 프로젝트 매니저, 조직 관리자만 통과한다.
