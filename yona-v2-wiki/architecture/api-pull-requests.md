@@ -34,7 +34,7 @@ v1.6에 없는 추가 항목이다. 개인용 API 토큰으로 풀 리퀘스트�
 | `GET /pullrequests/{number}/assigneecandidates?query=` | 담당자로 지정할 수 있는 사람(받는 프로젝트의 이슈 담당자 후보 규칙). 같은 모양 |
 | `GET /pullrequests/{number}/comments` | 리뷰 댓글을 스레드별로. 공개 스레드와 **호출한 사용자 본인의 임시 댓글**(`pending: true`). `{threads: [{id, state, pending, commitId, path, startLine, ..., comments: [{id, body, createdAt, editedAt, pending, author}]}]}` |
 
-상세 모양: `number`, `id`, `title`, `body`, `state`(`open`, `closed`, `merged`), `author`, `receiver`, `fromProject`, `toProject`, `fromBranch`, `toBranch`, `createdAt`, `updatedAt`(수정한 적이 없으면 `createdAt`), `mergedAt`, `isConflict`, `isMerging`, `mergeable`(`clean`, `conflicting`, `unknown`), `url`, `assignees`, `labels`(`id`, `labelName`, `labelColor`, `category`), `requestedReviewers`, `approvals`(`count`, `required`, `approvers`), `mergedCommitIdFrom`, `mergedCommitIdTo`, `mergeMethod`(병합된 요청만 `merge`, `squash`, `rebase`, 아니면 `null`), `mergeMethods`(방식 이름을 키로 `allowed`, `available`, `reason`; `reason`은 `conflict`, `merge-commits`, `not-open`, `null`).
+상세 모양: `number`, `id`, `title`, `body`, `state`(`open`, `closed`, `merged`), `author`, `receiver`, `fromProject`, `toProject`, `fromBranch`, `toBranch`, `createdAt`, `updatedAt`(수정한 적이 없으면 `createdAt`), `mergedAt`, `isConflict`, `isMerging`, `mergeable`(`clean`, `conflicting`, `unknown`), `url`, `assignees`, `labels`(`id`, `labelName`, `labelColor`, `category`), `requestedReviewers`, `approvals`(`count`, `required`(받는 브랜치의 보호 규칙이 요구하는 승인 수, 규칙이 없으면 0), `approvers`), `mergedCommitIdFrom`, `mergedCommitIdTo`, `mergeMethod`(병합된 요청만 `merge`, `squash`, `rebase`, 아니면 `null`), `mergeMethods`(방식 이름을 키로 `allowed`, `available`, `reason`; `reason`은 `conflict`, `merge-commits`, `not-open`, `null`).
 
 ## 쓰기
 

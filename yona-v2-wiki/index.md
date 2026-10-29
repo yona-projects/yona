@@ -110,6 +110,7 @@
 - [architecture/v16-remaining-differences.md](architecture/v16-remaining-differences.md): v1.6과 아직 다른 점의 전체 목록. 고칠 수 없는 것, 의도해서 둔 것, v1.6 오류를 v2가 정상 처리하는 것(요청 단위 표), 권한 차이, 메일 수신 차이
 - [개인용 API 토큰 설계](architecture/api-token.md): Classic 범위 토큰, 해시 저장, 옛 토큰 이관, D-20 대체(X-5, D-36, 구현 완료)
 - [일반 REST 1차: 프로젝트 단위 조회](architecture/api-project-reads.md): 프로젝트, 구성원, 담당자 후보, 라벨, 마일스톤, 이슈 목록과 검색(X-19, D-40)
+- [브랜치 보호 규칙](architecture/branch-protection.md): 리뷰어 수 강제를 대체하는 브랜치별 승인 수 규칙(X-32, D-42)
 - [풀 리퀘스트 병합 방식](architecture/pull-request-merge-methods.md): 병합 커밋, 스쿼시, 리베이스, 프로젝트 설정, 병합 전 가능 여부(X-28, D-41)
 - [풀 리퀘스트 REST API](architecture/api-pull-requests.md): 조회와 쓰기, 리뷰와 임시 댓글, 권한과 오류 규칙, 병합 방식 필드 예약(X-15, D-39)
 - [세션 경로와 API 경로의 분리](architecture/api-auth-split.md): 세션, 토큰 둘 다 받던 경로를 세션 전용으로 바꾸고 `/api/v1` 토큰 전용 경로를 만든다, v1.6과의 차이 목록(X-5, D-36, 설계 제안 확인 대기)
