@@ -45,7 +45,8 @@ class ReviewCommentService(
     private val userLookup: UserLookup,
     private val attachments: AttachmentService,
     private val pullRequests: PullRequestRepository,
-    private val publisher: ApplicationEventPublisher
+    private val publisher: ApplicationEventPublisher,
+    private val pendingReader: PendingReviewReader
 ) {
 
     /**
@@ -64,16 +65,31 @@ class ReviewCommentService(
      * 새 스레드는 풀 리퀘스트에 연결한다. 새 코드 리뷰 댓글 알림을 내보낸다.
      */
     @Transactional
-    fun commentOnPullRequest(project: Project, pullRequest: PullRequest, commitId: String?, author: User, contents: String, threadId: Long?, range: CodeRange?): ReviewComment {
+    fun commentOnPullRequest(
+        project: Project, pullRequest: PullRequest, commitId: String?, author: User, contents: String, threadId: Long?, range: CodeRange?, pending: Boolean = false
+    ): ReviewComment {
         val comment = newComment(author, contents)
-        val existing = threadId?.let { threads.findById(it).orElse(null) }
+        // 내 임시 스레드는 엔티티 조회에 보이지 않으므로 따로 찾는다. 남의 임시 스레드에는 달 수 없다
+        val existing = threadId?.let { id ->
+            threads.findById(id).orElse(null) ?: pendingReader.thread(id, pullRequest, author)
+                ?: if (pendingReader.isPendingThread(id)) throw IllegalArgumentException("다른 사람의 임시 스레드입니다") else null
+        }
         comment.thread = existing ?: run {
             val targetCommit = commitId ?: pullRequest.mergedCommitIdTo
             val previous = if (commitId != null) "" else pullRequest.mergedCommitIdFrom
             newThread(project, requireNotNull(targetCommit), previous, range, author, comment.createdDate).also { it.pullRequest = pullRequest }
         }
+        // 임시 스레드의 답글은 공개로 달 수 없다. 임시 저장 리뷰(추가 개발 항목 X-26, `decisions.md` D-38)로 달면 새 스레드도 임시이다
+        val asPending = pending || existing?.isPending == true
+        if (asPending) {
+            comment.pendingDate = comment.createdDate
+            if (existing == null) comment.thread!!.pendingDate = comment.createdDate
+        }
         // 풀 리퀘스트 댓글의 첨부는 호출한 쪽이 폼에 적힌 것만 옮긴다(v1.6 `attachUploadFilesToPost`)
-        return save(comment, author, moveAll = false).also { publisher.publishEvent(ReviewCommentedActivity(it, pullRequest, commitId, author)) }
+        val saved = save(comment, author, moveAll = false)
+        // 임시 댓글은 알림을 보내지 않는다(제출할 때 리뷰 하나로 묶어 알린다)
+        if (!asPending) publisher.publishEvent(ReviewCommentedActivity(saved, pullRequest, commitId, author))
+        return saved
     }
 
     /**
