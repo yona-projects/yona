@@ -18,7 +18,7 @@ updated: 2026-10-29
 | 발급 | `POST /-_-api/v1/users/token`(로그인 정보를 보내면 `access_token`) |
 | 범위 | 없음(전체). 만료 없음 |
 | 권한 | 토큰 경로는 프로젝트 권한을 확인하지 않는다(D-20, **D-36으로 대체 예정**) |
-| 쓰는 곳 | 이슈 조회, 만들기, 수정, 댓글, 라벨, 가져오기, 게시글, 사용자 통계, 관리자 사용자 API(`/-_-api/v1/**`), 이전 화면 |
+| 쓰는 곳 | 외부 API(`/-_-api/v1/**`)를 부르는 외부 스크립트와 도구. 이전(Migration) 화면의 `token`은 GitHub OAuth 토큰이라 Yona 사용자 토큰과 무관하고, 이전 화면이 부르는 이슈, 게시글 가져오기 API는 세션 로그인을 쓴다 |
 
 ## GitHub과의 대응
 
@@ -53,6 +53,56 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 묶음 규칙은 GitHub과 같다. `user`는 `read:user`와 `user:email`을 포함하고, `admin:org`는 `write:org`와 `read:org`를, `repo`는 프로젝트 웹훅 권한을 포함한다(문서가 계층을 명시하지 않은 계열은 `admin`이 `write`, `read`를 포함하는 것으로 둔다). 전체(`*`)는 **레거시 토큰만** 가진다.
 
 **장단점**: GitHub 방식은 단순하지만 이슈 자동화처럼 일부 권한만 필요한 토큰도 `repo`(코드 쓰기 포함)를 받아야 한다. 그 분리는 Fine-grained(X-5b)가 한다. 자원별 분리를 Classic에서 미리 하려면 GitHub에 없는 범위를 만들어야 해서 권장하지 않는다.
+
+### 1-1. 대응표: GitHub 범위를 Yona 안에서 어떻게 해석하는가
+
+**기본 규칙**
+
+- 토큰으로 할 수 있는 일 = **범위가 허용하는 일 ∧ 토큰 주인의 실제 권한**이다(D-36). 범위는 권한을 더하지 못하고 줄이기만 한다.
+- 범위 없는 토큰은 공개 프로젝트와 공개 프로필 읽기만 한다(GitHub의 "범위 없음"과 같다).
+- Yona의 프로젝트 공개 범위는 `PUBLIC`, `PROTECTED`, `PRIVATE` 셋이다(GitHub은 공개와 비공개 둘). `public_repo`는 **`PUBLIC` 프로젝트만**이고 `PROTECTED`와 `PRIVATE`는 `repo`가 필요하다.
+- 연산은 Yona 권한 모델의 `Operation`(`READ`, `UPDATE`, `DELETE`, `ACCEPT`(병합), `REOPEN`, `CLOSE`, `WATCH`, `LEAVE`, `ASSIGN_ISSUE`)과 만들기 권한(`isProjectResourceCreatable`)을 그대로 쓴다. 토큰은 새 연산을 만들지 않는다.
+
+**범위별 허용 범위**
+
+| 범위 | 허용하는 자원(`ResourceType`) | 연산 | 프로젝트 공개 범위 |
+|---|---|---|---|
+| (없음) | 공개 프로젝트와 공개 프로필 | `READ` | `PUBLIC` |
+| `public_repo` | `PROJECT`, `CODE`, `COMMIT`, `ISSUE_*`, `ISSUE_COMMENT`, `ISSUE_LABEL*`, `LABEL`, `MILESTONE`, `BOARD_*`, `NONISSUE_COMMENT`, `PULL_REQUEST`, `REVIEW_COMMENT`, `COMMENT_THREAD`, `COMMIT_COMMENT`, `ATTACHMENT`, `WEBHOOK`, `WIKI_PAGE` | 사용자에게 허용된 모든 연산 | `PUBLIC`만 |
+| `repo` | 위와 같음 | 사용자에게 허용된 모든 연산 | `PUBLIC`, `PROTECTED`, `PRIVATE` |
+| `read:repo_hook` | `WEBHOOK` | `READ` | `repo`나 `public_repo`가 이미 포함하므로 웹훅만 줄 때 |
+| `write:repo_hook` | `WEBHOOK` | `READ`, 만들기, `UPDATE` | 위와 같음 |
+| `admin:repo_hook` | `WEBHOOK` | `READ`, 만들기, `UPDATE`, `DELETE` | 위와 같음 |
+| `read:org` | `ORGANIZATION` | `READ`(정보, 구성원, 조직 프로젝트 목록) | 조직 공개 범위를 따른다 |
+| `write:org` | `ORGANIZATION` | `READ`, 구성원 가입 요청 처리, 조직 프로젝트 만들기 | 위와 같음 |
+| `admin:org` | `ORGANIZATION` | `read:org`, `write:org`에 더해 `UPDATE`(설정), `DELETE` | 위와 같음 |
+| `read:user` | `USER`, `USER_AVATAR` | `READ`(프로필, 통계) | 공개 정보와 본인 정보 |
+| `user:email` | `USER` | 본인 이메일 `READ` | 본인 |
+| `user` | `USER`, `USER_AVATAR` | `read:user`와 `user:email`에 더해 `UPDATE`(프로필) | 본인 |
+| `site_admin` | `SITE_SETTING`, `USER`(관리) | 사이트 관리자 API | 사이트 관리자만 고를 수 있다 |
+| `notifications`, `delete_repo`, `admin:public_key`, `admin:gpg_key`, `workflow` 계열 | (예약) | 해당 기능(알림 REST, 프로젝트 삭제 API, X-3, X-4, X-25)이 생길 때 | |
+
+**GitHub 범위 중 Yona에 대응이 없어 만들지 않는 것**: `repo:status`, `repo_deployment`, `repo:invite`, `security_events`, `admin:org_hook`, `user:follow`, 패키지, 토론, 게시물(gist) 계열(해당 기능이 Yona에 없다).
+
+**지금 있는 외부 API가 요구하는 범위** (모두 토큰 주인의 실제 권한도 확인한다. D-20 대체)
+
+| 엔드포인트 | 인증 | 필요 범위 | 확인하는 권한 |
+|---|---|---|---|
+| `GET /-_-api/v1/hello` | 없음 | 없음 | 없음 |
+| `GET .../issues/{number}` | 토큰 | `public_repo`(공개 프로젝트) 또는 `repo` | `READ` |
+| `POST .../issues` | 토큰이나 세션 | 위와 같음 | 이슈 만들기 권한 |
+| `PUT, PATCH .../issues/{number}` | 토큰 | 위와 같음 | `UPDATE`(상태는 `CLOSE`, `REOPEN`) |
+| `POST .../issues/{number}/comments` | 토큰이나 세션 | 위와 같음 | 댓글 만들기 권한 |
+| `POST .../issuelabel/{number}` | 토큰이나 세션 | 위와 같음 | 이슈 라벨 수정 권한 |
+| `POST .../issues/imports` | 토큰이나 세션 | 위와 같음 | 프로젝트 이슈 만들기 권한 |
+| `POST .../posts`, `.../posts/{number}/comments` | 토큰이나 세션 | 위와 같음 | 게시글, 댓글 만들기 권한 |
+| `GET /-_-api/v1/user/issues` | 토큰 | `repo`(비공개 이슈 포함) 또는 `public_repo`(공개만 걸러 줌) | 이슈별 `READ` |
+| `GET /-_-api/v1/users/{user}/statistics` | 토큰 | `read:user` | 로그인 사용자 |
+| `POST /-_-api/v1/users/token` | 아이디와 비밀번호 | 해당 없음(토큰을 만든다) | 비밀번호 |
+| `POST /-_-api/v1/users` | 세션 | `site_admin` | 사이트 관리자 |
+| `GET /-_-api/v1/admin/users`, `PATCH .../admin/users/{user}` | 세션이나 토큰 | `site_admin` | 사이트 관리자 |
+
+앞으로 생기는 API는 같은 규칙으로 정한다. 풀 리퀘스트(X-15)는 `repo`, `public_repo`, 프로젝트와 마일스톤과 라벨(X-19)도 같고, 조직은 `read:org` 계열, 웹훅은 `repo`나 웹훅 범위, 사용자 상태는 `site_admin`이다. 새 API를 더할 때는 이 표에 한 줄을 더하는 것을 완료 조건에 넣는다.
 
 ### 2. 저장 구조
 
@@ -98,12 +148,25 @@ GitHub 공식 문서([OAuth 앱의 범위](https://docs.github.com/en/apps/oauth
 
 Yona 권장: 선택지는 7, 30, 60, 90일, 사용자 지정 날짜, 없음(경고 표시)이고 **기본은 30일**(GitHub Fine-grained 기본과 같다). 사이트 관리자가 최대 수명을 설정 파일 키로 정할 수 있게 하고(기본은 제한 없음), 사용자당 토큰은 50개까지, 1년 동안 쓰지 않은 토큰은 자동 삭제한다(마지막 사용 시각으로 판단). 만료 알림 메일은 하지 않는다(필요하면 후속).
 
-#### 로그인으로 받는 토큰 (재조사, 2026-10-29)
+#### 로그인으로 받는 토큰 (정확히 재확인, 2026-10-29)
 
-- `POST /-_-api/v1/users/token`(아이디나 이메일과 비밀번호를 보내 `access_token`을 받는다)은 **화면이나 이전(Migration) 화면이 쓰지 않는다**. v1.6 소스와 v2의 템플릿, 스크립트를 찾아도 호출하는 곳이 없고 외부 스크립트와 도구용이다(이전 화면은 세션 로그인으로 `/-_-api/v1`의 다른 경로를 쓴다).
-- v1.6 동작: 호출할 때마다 사용자의 **유일한 토큰을 새 값으로 덮어써** 이전 토큰이 무효가 되고, 세션 로그인도 함께 시작한다.
-- GitHub은 같은 기능이 없다. 비밀번호로 토큰을 받는 방식(Authorizations API와 기본 인증)은 2020년에 없앴고 토큰은 화면에서만 만든다. 이유는 비밀번호로 발급하면 2단계 인증(X-2)을 우회하기 때문이다.
-- 선택지: (a) 유지하되 호출마다 **이름이 같은 토큰 하나를 교체**한다(`API login`. v1.6 의미를 지키고 토큰이 쌓이지 않는다). 범위는 사이트 관리자 범위를 뺀 모든 범위, 만료는 위 기본(30일). (b) GitHub처럼 없앤다(스크립트가 깨진다). (c) 유지하되 X-2(2단계 인증)가 들어오면 2단계 인증 사용자에게는 거절한다. 권장은 (a)이고 (c)를 X-2의 선행 점검 항목으로 남기는 것이다.
+**v1.6 동작** (`UserApi.newToken`, `UserApi.getNewUserToken`; v2 `ExternalUserApiController.newToken`이 같다)
+
+1. 요청 본문 `{"id": "아이디나 이메일", "password": "..."}`로 사용자를 찾고 비밀번호를 확인한다. 잠기거나 지워진 사용자와 맞지 않는 비밀번호는 401이다.
+2. 성공하면 **세션 로그인도 함께 시작**한다(`addUserInfoToSession`). 쿠키를 유지하는 클라이언트는 사이트에도 로그인된다.
+3. 현재 시각 문자열의 SHA-256을 Base64로 만든 값을 **`n4user.token`에 덮어쓴다**. 사용자에게는 토큰 열이 하나뿐이라 이전 토큰은 무효가 된다. 설정 화면의 "토큰 다시 만들기"도 같은 열을 바꾸므로 두 경로는 서로의 토큰을 무효로 만든다.
+4. `{"access_token": 값}`을 돌려준다.
+
+**누가 부르는가**: Yona 코드(v1.6 소스, v2의 템플릿과 스크립트, 이전 화면)에는 호출하는 곳이 **없다**. 외부 스크립트와 도구용이며 실제 사용처는 알 수 없다. (이전 화면의 `token`은 GitHub OAuth 토큰이라 이 경로와 무관하다. 앞서 "이전 화면이 깨진다"고 쓴 것은 틀렸다.)
+
+**GitHub**: 같은 기능이 없다. 비밀번호로 API를 부르는 방식은 2020-11-13부터 받지 않고 토큰 인증만 쓰며(Authorizations API도 같은 날 제거), Git 작업의 비밀번호는 2021-08-13에 막았다. 이미 만든 토큰은 계속 동작했다. 토큰은 웹 화면의 PAT 만들기나 웹, 기기 인증 흐름으로만 받는다([변경 공지](https://github.blog/changelog/2020-11-13-token-authentication-required-for-api-operations)). 없앤 이유(비밀번호 노출, 2단계 인증 우회 등)의 공식 문구는 이번에 확인하지 못했다.
+
+**새 구조에서 생기는 문제**: 토큰이 여러 개가 되므로 호출마다 새 토큰을 만들면 쌓이고, 지금처럼 덮어쓰면 다른 이름의 토큰을 지울 위험이 있다.
+
+**선택지**
+- **(a) 유지하되 호출마다 이름이 `API login`인 토큰 하나를 교체한다(권장)**: 다른 토큰은 건드리지 않고 v1.6의 "마지막 호출이 이긴다" 의미를 지킨다. 범위는 사이트 관리자(`site_admin`)를 뺀 모든 범위이고 만료는 기본 30일이다. 세션 로그인도 그대로 시작한다.
+- **(b) GitHub처럼 없앤다**: 비밀번호로 토큰을 받는 경로가 사라져 보안은 단순해지나 외부 스크립트가 깨진다.
+- **(c) (a)로 두되 2단계 인증(X-2)이 생기면 2단계 인증 사용자에게는 거절한다**: X-2를 구현할 때 점검할 항목으로 남긴다.
 
 ### 7. 삭제와 폐기
 
