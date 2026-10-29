@@ -60,4 +60,15 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
         assertEquals(ColumnType.Boolean, column.type)
         assertEquals(true, SchemaMetadata.actualDefaults(dataSource).getValue("project")["is_dismissing_stale_approvals"]?.lowercase()?.let { it == "true" || it == "1" || it == "b'1'" })
     }
+
+    @Test
+    fun `토큰 테이블의 컬럼과 외래 키와 유일 해시 (X-5, D-36)`() {
+        val columns = SchemaMetadata.actualColumns(dataSource)["api_token"] ?: error("api_token 테이블이 없다")
+        assertEquals(setOf("id", "user_id", "name", "token_hash", "token_prefix", "scopes", "is_legacy", "created_date", "expires_date", "last_used_date"), columns.keys)
+        assertEquals(setOf("n4user"), SchemaMetadata.actualForeignKeys(dataSource)["api_token"].orEmpty().values.map { it.referencedTable }.toSet())
+        assertEquals(setOf("id"), primaryKey("api_token"))
+        assertEquals(setOf("id"), SchemaMetadata.actualAutoIncrement(dataSource)["api_token"])
+        val unique = SchemaMetadata.actualIndexes(dataSource)["api_token"].orEmpty().values.filter { it.unique }.map { it.columns }
+        assertEquals(true, listOf("token_hash") in unique.map { it.toList() }, unique.toString())
+    }
 }

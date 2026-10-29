@@ -171,6 +171,41 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `토큰 테이블도 내보내고 가져오며 시퀀스를 함께 쓴다 (X-5)`() {
+        val names = exported().propertyNames().toList()
+        assertEquals(true, "API_TOKEN" in names && "API_TOKEN_SEQ" in names, names.toString())
+    }
+
+    @Test
+    fun `가져온 뒤 없는 사용자를 가리키는 토큰 행은 정리한다 (X-5)`() {
+        import("""{"API_TOKEN": [{"id": 1, "user_id": 999001, "name": "x", "token_hash": "abc", "token_prefix": "yona", "scopes": "repo", "is_legacy": false, "created_date": 1700000000000, "expires_date": 0, "last_used_date": 0}]}""")
+        assertEquals(0, count("api_token"))
+    }
+
+    @Test
+    fun `사용자는 있고 토큰 테이블이 없는 옛 파일을 가져오면 남아 있던 토큰은 비운다 (X-5)`() {
+        // v1.6의 사용자 내보내기에는 `token` 열이 없으므로(옛 파일로 가져오면 토큰을 잃는 것은 v1.6과 같다) 이관할 값도 없다.
+        // 옛 파일의 사용자 번호가 바뀔 수 있어 남은 토큰이 엉뚱한 사용자에 붙지 않게 비운다
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881201L, "tkold", "옛")
+        jdbc.update("insert into api_token(id, user_id, name, token_hash, token_prefix, scopes, is_legacy, created_date) values (?, ?, ?, ?, ?, ?, ?, current_timestamp)", 1L, 881201L, "남은", "h", "p", "repo", false)
+        val row = DataTables.find("N4USER")!!.columns.joinToString(", ") { c ->
+            val value = when (c.name) {
+                "id" -> "881201"
+                "login_id" -> "\"tkold\""
+                else -> when (c.type) {
+                    DataType.STRING, DataType.CLOB -> "\"v${c.name}\""
+                    DataType.BOOLEAN -> "false"
+                    DataType.STRING_LONG -> "\"1\""
+                    else -> "1"
+                }
+            }
+            "\"${c.key}\": $value"
+        }
+        import("""{"N4USER": [{$row}]}""")
+        assertEquals(0, jdbc.queryForObject("select count(*) from api_token", Int::class.java))
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))

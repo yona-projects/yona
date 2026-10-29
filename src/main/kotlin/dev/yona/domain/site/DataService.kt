@@ -134,6 +134,7 @@ class DataService(
                     readTables(connection, product, ids, parser, imported, failed)
                     cleanOrphanLinks(connection)
                     cleanReviews(connection, imported)
+                    cleanTokens(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
                     try { connection.rollback() } catch (e: Exception) { log.warn("Failed to roll back the import", e) }
@@ -165,6 +166,24 @@ class DataService(
             connection.commit()
         } catch (e: Exception) {
             log.warn("Failed to clean pull request reviews after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
+    }
+
+    /**
+     * 토큰 테이블(추가 개발 항목 X-5, `decisions.md` D-36)을 가져온 뒤 바로잡는다. 파일에 사용자가 있는데 토큰 테이블이 없으면(v1.6 파일) 남아 있던 토큰은
+     * 바뀐 사용자 번호에 엉뚱하게 붙을 수 있으므로 비우고, 없는 사용자를 가리키는 행은 지운다. v1.6의 사용자 내보내기에는 `token` 열이 없어
+     * 옛 파일로 가져오면 토큰을 잃는 것은 v1.6과 같다(이관할 값이 없다).
+     */
+    private fun cleanTokens(connection: Connection, imported: List<String>) {
+        try {
+            connection.createStatement().use { statement ->
+                if ("N4USER" in imported && "API_TOKEN" !in imported) statement.executeUpdate("delete from api_token")
+                statement.executeUpdate("delete from api_token where user_id not in (select id from n4user)")
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean API tokens after the import", e)
             try { connection.rollback() } catch (ignored: Exception) { }
         }
     }
