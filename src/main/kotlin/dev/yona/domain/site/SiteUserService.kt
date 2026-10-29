@@ -101,6 +101,8 @@ class SiteUserService(
             entityManager.createQuery("delete from Assignee a where a.user.id = :id").setParameter("id", id).executeUpdate()
             // 추가 항목(X-14): 풀 리퀘스트 담당자에서도 뺀다
             entityManager.createNativeQuery("delete from pull_request_assignee where user_id = :id").setParameter("id", id).executeUpdate()
+            // 추가 항목(X-27): 대기 중인 리뷰 요청에서도 뺀다
+            entityManager.createNativeQuery("delete from pull_request_review_request where user_id = :id").setParameter("id", id).executeUpdate()
             // 추가 항목(X-5): 삭제 처리한 사용자의 API 토큰은 모두 지운다
             entityManager.createNativeQuery("delete from api_token where user_id = :id").setParameter("id", id).executeUpdate()
         }

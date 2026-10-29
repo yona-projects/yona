@@ -99,6 +99,7 @@ class ProjectDeletionService(
         // 추가 항목(X-14)의 담당자와 라벨 연결
         em.createNativeQuery("delete from pull_request_assignee where pull_request_id in (:ids)").setParameter("ids", prIds).executeUpdate()
         em.createNativeQuery("delete from pull_request_issue_label where pull_request_id in (:ids)").setParameter("ids", prIds).executeUpdate()
+        em.createNativeQuery("delete from pull_request_review_request where pull_request_id in (:ids)").setParameter("ids", prIds).executeUpdate()
         // 추가 항목(X-12)의 리뷰 판정
         em.createNativeQuery("delete from pull_request_review where pull_request_id in (:ids)").setParameter("ids", prIds).executeUpdate()
         em.createQuery("delete from PullRequest pr where pr.id in :ids").setParameter("ids", prIds).executeUpdate()
@@ -168,7 +169,7 @@ class ProjectDeletionService(
             "issue_comment", "issue_comment_voter", "issue_event", "issue_issue_label", "issue_label", "issue_label_category",
             "issue_sharer", "issue_voter", "milestone", "posting", "posting_comment", "posting_issue_label", "project_label",
             "project_menu_setting", "project_pushed_branch", "project_transfer", "project_user", "project_visitation", "pull_request",
-            "pull_request_assignee", "pull_request_commit", "pull_request_event", "pull_request_issue_label", "pull_request_review", "pull_request_reviewers", "recent_issue", "recent_project", "review_comment",
+            "pull_request_assignee", "pull_request_commit", "pull_request_event", "pull_request_issue_label", "pull_request_review", "pull_request_review_request", "pull_request_reviewers", "recent_issue", "recent_project", "review_comment",
             "title_head", "user_enrolled_project", "user_project_notification", "webhook", "webhook_thread"
         )
     }

@@ -115,6 +115,13 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `가져온 뒤 없는 풀 리퀘스트나 사용자를 가리키는 리뷰 요청 행은 정리하고 내보내기에도 들어간다 (X-27)`() {
+        import("""{"PULL_REQUEST_REVIEW_REQUEST": [{"pull_request_id": 999001, "user_id": 999002}]}""")
+        assertEquals(0, count("pull_request_review_request"))
+        assertEquals(true, "PULL_REQUEST_REVIEW_REQUEST" in exported().propertyNames().toList())
+    }
+
+    @Test
     fun `담당자와 라벨 연결 테이블도 내보내고 다시 가져온다 (X-14)`() {
         val names = exported().propertyNames().toList()
         assertEquals(true, "PULL_REQUEST_ASSIGNEE" in names && "PULL_REQUEST_ISSUE_LABEL" in names)

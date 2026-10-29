@@ -90,7 +90,18 @@ class PullRequest(
     var labels: MutableSet<IssueLabel> = mutableSetOf(),
     /** 리뷰 판정 이력이다(추가 개발 항목 X-12, `decisions.md` D-35). 읽는 용도이며 서비스가 저장하면서 함께 채운다. 정책은 리뷰어별 최신 판정만 쓴다. */
     @OneToMany(mappedBy = "pullRequest") @BatchSize(size = 50)
-    var reviewHistory: MutableList<PullRequestReview> = mutableListOf()
+    var reviewHistory: MutableList<PullRequestReview> = mutableListOf(),
+    /**
+     * 리뷰를 요청받고 아직 리뷰하지 않은 사람들이다(**대기 중인 요청만** 둔다). v1.6에 없는 추가 항목이다(로드맵 X-27, `decisions.md` D-37).
+     * 연결 테이블 `pull_request_review_request`에 저장한다. 현재 승인한 사람 집합인 [reviewers]와는 별개이다.
+     */
+    @ManyToMany @BatchSize(size = 50) @JoinTable(
+        name = "pull_request_review_request",
+        joinColumns = [JoinColumn(name = "pull_request_id")],
+        inverseJoinColumns = [JoinColumn(name = "user_id")],
+        indexes = [Index(name = "ix_pull_request_review_request_user", columnList = "user_id")]
+    )
+    var reviewRequests: MutableSet<User> = mutableSetOf()
 )
 
 /** 풀 리퀘스트에 포함된 커밋이다. */

@@ -25,7 +25,7 @@ data class DataImportResult(val imported: List<String>, val failed: List<String>
  * DB 전체를 JSON 파일 하나로 내보내고 같은 형식의 파일로 교체한다. v1.6 `DataService`와 `DefaultExchanger`
  * (`app/data/DataService.java`, `DefaultExchanger.java`)에 해당한다.
  *
- * 대상은 [DataTables]의 49개 테이블뿐이고 Git 저장소 디렉터리와 첨부 파일 본문은 다루지 않는다. 파일은 테이블 이름(대문자)마다 행의 배열이고,
+ * 대상은 [DataTables]의 52개 테이블뿐이고 Git 저장소 디렉터리와 첨부 파일 본문은 다루지 않는다. 파일은 테이블 이름(대문자)마다 행의 배열이고,
  * 시퀀스가 있는 테이블은 그 뒤에 `<이름>_SEQ`로 다음 번호가 따른다. 시각은 에폭 밀리초이다.
  *
  * 가져오기는 병합이 아니라 **교체**이다. 파일에 있는 테이블만 비우고 파일의 행을 넣는다. 파일에 없는 테이블은 그대로이다. 외래 키 검사를 끄고
@@ -192,6 +192,7 @@ class DataService(
         try {
             connection.createStatement().use { statement ->
                 statement.executeUpdate("delete from pull_request_assignee where pull_request_id not in (select id from pull_request) or user_id not in (select id from n4user)")
+                statement.executeUpdate("delete from pull_request_review_request where pull_request_id not in (select id from pull_request) or user_id not in (select id from n4user)")
                 statement.executeUpdate("delete from pull_request_issue_label where pull_request_id not in (select id from pull_request) or issue_label_id not in (select id from issue_label)")
             }
             connection.commit()

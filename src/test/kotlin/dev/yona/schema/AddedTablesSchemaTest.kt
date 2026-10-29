@@ -20,6 +20,9 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
     fun `담당자 연결 테이블의 컬럼과 외래 키와 유일 인덱스`() = check("pull_request_assignee", "user_id", "n4user")
 
     @Test
+    fun `리뷰 요청 연결 테이블의 컬럼과 외래 키와 유일 인덱스 (X-27, D-37)`() = check("pull_request_review_request", "user_id", "n4user")
+
+    @Test
     fun `라벨 연결 테이블의 컬럼과 외래 키와 유일 인덱스`() = check("pull_request_issue_label", "issue_label_id", "issue_label")
 
     /** 테이블의 기본 키 컬럼이다. DB마다 테이블 이름의 대소문자가 달라 찾아서 쓴다. */

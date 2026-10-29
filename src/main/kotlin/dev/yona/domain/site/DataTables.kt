@@ -65,7 +65,7 @@ class DataTable(val name: String, val hasSequence: Boolean, vararg columns: Data
 }
 
 /**
- * 내보내고 가져오는 51개 테이블이다. v1.6 `DataService`의 Exchanger 47개에 추가 개발 항목 X-14(D-34)의 연결 테이블 2개(`PULL_REQUEST_ASSIGNEE`, `PULL_REQUEST_ISSUE_LABEL`)와 X-12(D-35)의 리뷰 테이블 `PULL_REQUEST_REVIEW`, X-5(D-36)의 토큰 테이블 `API_TOKEN`을 더했고 테이블 이름 순서(문자열 비교)로 정렬되어 있다.
+ * 내보내고 가져오는 52개 테이블이다. v1.6 `DataService`의 Exchanger 47개에 추가 개발 항목 X-14(D-34)의 연결 테이블 2개(`PULL_REQUEST_ASSIGNEE`, `PULL_REQUEST_ISSUE_LABEL`)와 X-12(D-35)의 리뷰 테이블 `PULL_REQUEST_REVIEW`, X-5(D-36)의 토큰 테이블 `API_TOKEN`을 더했고 테이블 이름 순서(문자열 비교)로 정렬되어 있다.
  *
  * 엔티티에 있는 컬럼이어도 v1.6 Exchanger가 다루지 않는 것(예: `N4USER.is_guest`, `ISSUE.weight`)은 내보내지 않고 가져올 때 기본값이 된다.
  * 이 목록에 없는 테이블(즐겨찾기, 웹훅, 소셜 로그인 등 14개)은 내보내기와 가져오기에서 빠진다.
@@ -466,6 +466,12 @@ object DataTables {
             DataColumn("dismissed_date", TIMESTAMP),
             DataColumn("dismissed_by_login_id", STRING),
             DataColumn("dismissed_reason", CLOB)
+        ),
+        // 추가 개발 항목 X-27(D-37)이 더한 연결 테이블이다. 대기 중인 리뷰 요청만 담는다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다.
+        DataTable(
+            "PULL_REQUEST_REVIEW_REQUEST", false,
+            DataColumn("pull_request_id", LONG),
+            DataColumn("user_id", LONG)
         ),
         DataTable(
             "PULL_REQUEST_REVIEWERS", false,
