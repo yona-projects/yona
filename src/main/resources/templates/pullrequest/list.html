@@ -17,6 +17,8 @@
     </div>
 </div>
 
+<!--/* 담당자와 라벨 필터가 고른 라벨을 색으로 그린다(추가 항목 X-14) */-->
+<link th:if="${hasLabels}" rel="stylesheet" type="text/css" media="screen" th:href="${#paths.project(projectView.project.owner, projectView.project.name) + '/issue/labels.css'}">
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery.pageslide.js}"></script>

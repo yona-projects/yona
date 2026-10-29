@@ -235,5 +235,6 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         val labels = d.selectFirst("#advanced-search-form select#labelIds[name=labelIds]")!!
         assertEquals(listOf(bug.id.toString()), labels.select("option[selected]").map { it.attr("value") })
         assertNotNull(d.selectFirst("#advanced-search-form select#contributors"), "기존 보낸 사람 필터는 그대로이다")
+        assertEquals("${s.base}/issue/labels.css", d.selectFirst("link[href$=/issue/labels.css]")?.attr("href"), "라벨 색을 그리려면 프로젝트 라벨 스타일시트가 필요하다")
     }
 }
