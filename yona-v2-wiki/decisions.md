@@ -400,14 +400,15 @@ updated: 2026-10-29
 - **확정된 방향**: (1) 옛 토큰의 "권한을 확인하지 않는" 동작은 버그로 보고 **모든 토큰이 사용자 권한도 확인한다**. D-20은 이 결정으로 **대체된다**(선생님 2026-10-29: "기존 동작은 버그니까 (가) 안으로"). (2) 어느 경우든 Classic 토큰(범위 지정)의 설계가 필요하다.
 - **권장 설계**: 상세는 [architecture/api-token.md](architecture/api-token.md).
   1. **Classic을 먼저, Fine-grained는 그 위에 따로**(별도 항목 X-5b). Fine-grained는 프로젝트 선택과 항목별 읽기/쓰기, 필수 만료이며 Yona의 권한 모델을 항목별로 매핑하는 일이 더 크다.
-  2. **범위(scope)**: `read:`와 `write:` 쌍(쓰기는 읽기를 포함)으로 `user`, `project`, `issue`, `pullrequest`, `board`, `code`, `organization`, `webhook`과 사이트 관리자만 줄 수 있는 `admin:site`. 레거시 토큰만 전체(`*`)이다.
+  2. **범위(scope)**: GitHub의 Classic 범위를 그대로 대응시킨다(2026-10-29 재조사로 바꿈. 처음의 자원별 읽기/쓰기 쌍은 GitHub에 없어 접었다): `repo`, `public_repo`, `admin:repo_hook`, `write:repo_hook`, `read:repo_hook`, `admin:org`, `write:org`, `read:org`, `user`, `read:user`, `user:email`, 사이트 관리자만 고를 수 있는 `site_admin`, 그리고 `notifications`, `delete_repo`, 공개키와 GPG 키 계열, `workflow`는 해당 기능이 생길 때까지 예약이다. 항목별 분리는 Fine-grained(X-5b)가 맡는다. 전체(`*`)는 레거시 토큰만 가진다.
   3. **형식과 저장**: `yona_pat_` + 임의 40자. 해시(SHA-256)만 저장하고 만들 때 한 번만 보여 준다. 목록에는 접두사만 보인다.
   4. **권한**: 토큰 범위와 사용자의 실제 권한의 교집합만 가능하다. 세션 요청은 범위를 보지 않는다.
   5. **옛 토큰**: 새 테이블의 레거시 Classic 토큰(범위 `*`)으로 시작 때와 가져온 뒤 멱등 보정으로 옮긴다. 같은 값이 계속 동작하고 `n4user.token`은 보정 뒤 비운다.
-  6. **만료**: Classic은 선택이며 기본 90일을 권한다.
+  6. **만료**(GitHub 문서로 재조사): 7, 30, 60, 90일, 사용자 지정, 없음(경고)이고 기본 30일을 권한다. 최대 수명은 설정 키, 사용자당 50개, 1년 미사용 자동 삭제.
+  7. **로그인 발급 API**: `POST /-_-api/v1/users/token`은 화면이 쓰지 않고 GitHub은 같은 기능을 없앴다(2단계 인증 우회). 권장은 유지하되 호출마다 이름이 같은 토큰 하나를 교체한다.
 - **권장 이유**: 레거시를 즉시 없애면 v1.6 외부 API 클라이언트와 이전(Migration) 화면이 깨진다. 이관해 유지하면 호환을 지키면서 권한 확인과 해시 저장을 얻는다. Classic은 Yona의 현재 API 면적(이슈, 게시글, 사용자)에 충분하고 Fine-grained는 REST(X-15, X-19)가 넓어진 뒤에 의미가 크다.
 - **선생님 확인이 필요한 점**: [architecture/api-token.md](architecture/api-token.md)의 "결정 필요"에 정리했다.
-- **상태**: 방향(모든 토큰이 권한 확인, D-20 대체)은 확정. 나머지는 확인 대기. 구현 전.
+- **상태**: 방향(모든 토큰이 권한 확인, D-20 대체), 레거시 토큰 유지, Fine-grained는 이번에 하지 않음은 확정(선생님 2026-10-29). 범위, 만료, 로그인 발급 API는 GitHub 기준으로 재조사해 권장안을 갱신했고 재확인 대기. 구현 전.
 
 ### 보류 중인 결정 (2026-10-25, 선생님 지시)
 
