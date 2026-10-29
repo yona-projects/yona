@@ -72,17 +72,119 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
     }
 
     /**
-     * 요청을 받아들인다. 보내는 브랜치를 가져와 병합하고, 충돌하지 않으면 병합 커밋을 [sender] 이름으로 만들어 받는 브랜치를 갱신한다.
-     * 충돌하면 아무것도 바꾸지 않고 `null`이다.
+     * 요청을 받아들인다. 보내는 브랜치를 가져와 [method] 방식으로 병합하고 받는 브랜치를 갱신한다. 새 커밋은 [sender] 이름으로 만든다.
+     *
+     * - [MergeMethod.MERGE]: 부모가 둘인 병합 커밋(v1.6)
+     * - [MergeMethod.SQUASH]: 같은 병합 결과 트리에 부모가 받는 브랜치의 머리 하나뿐인 커밋. 작성자는 풀 리퀘스트 작성자이다
+     * - [MergeMethod.REBASE]: 원래 커밋을 받는 브랜치 위에 순서대로 다시 적용한다. 메시지와 작성자는 그대로이고 커밋한 사람만 [sender]이다
+     *
+     * 충돌하거나(리베이스는 한 커밋에서라도), 리베이스인데 병합 커밋이 섞여 있으면 아무것도 바꾸지 않고 `null`이다.
+     *
+     * @param commitTitle 병합 커밋과 스쿼시 커밋의 제목. 비우면 기본 제목이다(리베이스는 쓰지 않는다)
+     * @param commitMessage 병합 커밋과 스쿼시 커밋의 본문. 비우면 기본 본문이다(리베이스는 쓰지 않는다)
      */
-    fun merge(pullRequest: PullRequest, sender: PersonIdent): MergeUpdate? = locked(pullRequest) { repository ->
+    fun merge(
+        pullRequest: PullRequest, sender: PersonIdent, method: MergeMethod = MergeMethod.MERGE, commitTitle: String? = null, commitMessage: String? = null
+    ): MergeUpdate? = locked(pullRequest) { repository ->
         val head = headRef(pullRequest)
         fetch(repository, pullRequest, head)
         val (attempt, treeId) = merge(repository, requireNotNull(pullRequest.toBranch), head)
         if (attempt.conflict) return@locked null
-        val commitId = createCommit(repository, pullRequest, attempt, treeId!!, sender, reuse = false)
-        updateRef(repository, requireNotNull(pullRequest.toBranch), commitId, sender)
+        val toBranch = requireNotNull(pullRequest.toBranch)
+        val commitId = when (method) {
+            MergeMethod.MERGE -> createCommit(repository, pullRequest, attempt, treeId!!, sender, reuse = false, customTitle = commitTitle, customMessage = commitMessage)
+            MergeMethod.SQUASH -> createSquash(repository, pullRequest, attempt, treeId!!, sender, commitTitle, commitMessage)
+            MergeMethod.REBASE -> (replay(repository, attempt, sender) as? Replay.Done)?.tip ?: return@locked null
+        }
+        updateRef(repository, toBranch, commitId, sender)
         MergeUpdate(attempt, commitId)
+    }
+
+    /**
+     * 리베이스 병합을 할 수 없는 이유이다. 할 수 있으면 `null`, 커밋 하나라도 충돌하면 `conflict`, 병합 커밋이 섞여 있으면 `merge-commits`이다.
+     * 받는 저장소의 참조와 작업 트리는 바꾸지 않는다(임시 참조는 지운다). 커밋이 [REBASE_CHECK_LIMIT]개를 넘으면 시험하지 않고 할 수 있는 것으로 본다
+     * (`decisions.md` D-41 7번).
+     */
+    fun rebaseBlocked(pullRequest: PullRequest): String? = locked(pullRequest) { repository ->
+        val temp = "refs/yobi/pull-check/${pullRequest.fromProject?.owner}/${pullRequest.fromProject?.name}/${pullRequest.fromBranch}"
+        fetch(repository, pullRequest, temp)
+        try {
+            val (attempt, _) = merge(repository, requireNotNull(pullRequest.toBranch), temp)
+            if (attempt.commits.size > REBASE_CHECK_LIMIT) return@locked null
+            when (replay(repository, attempt, null)) {
+                is Replay.Done -> null
+                Replay.Conflict -> "conflict"
+                Replay.MergeCommits -> "merge-commits"
+            }
+        } finally {
+            repository.updateRef(temp).apply { isForceUpdate = true }.delete()
+        }
+    }
+
+    /** 리베이스 재적용의 결과이다. */
+    private sealed interface Replay {
+        data class Done(val tip: ObjectId) : Replay
+        data object Conflict : Replay
+        data object MergeCommits : Replay
+    }
+
+    /**
+     * [attempt]의 커밋을 오래된 것부터 받는 브랜치 머리 위에 하나씩 다시 적용한다. [committer]가 있으면 커밋을 만들고 마지막 커밋을 돌려주며, 없으면 트리만 합쳐 가능 여부만 본다.
+     */
+    private fun replay(repository: Repository, attempt: MergeAttempt, committer: PersonIdent?): Replay {
+        RevWalk(repository).use { walk ->
+            val originals = attempt.commits.reversed().map { walk.parseCommit(repository.resolve(it.id)) }
+            if (originals.any { it.parentCount != 1 }) return Replay.MergeCommits
+            var tip: ObjectId = attempt.leftParent
+            var tree: ObjectId = walk.parseCommit(attempt.leftParent).tree.id
+            repository.newObjectInserter().use { inserter ->
+                for (original in originals) {
+                    val merger = V16ResolveMerger(repository)
+                    merger.setBase(walk.parseCommit(original.getParent(0)).tree.id)
+                    if (!merger.merge(tree, original.tree.id)) return Replay.Conflict
+                    tree = merger.resultTreeId
+                    if (committer != null) {
+                        val builder = CommitBuilder()
+                        builder.setTreeId(tree)
+                        builder.setParentId(tip)
+                        builder.author = original.authorIdent
+                        builder.setCommitter(committer)
+                        builder.message = original.fullMessage
+                        tip = inserter.insert(builder)
+                    }
+                }
+                inserter.flush()
+            }
+            return Replay.Done(tip)
+        }
+    }
+
+    private fun createSquash(
+        repository: Repository, pullRequest: PullRequest, attempt: MergeAttempt, treeId: ObjectId, who: PersonIdent, customTitle: String?, customMessage: String?
+    ): ObjectId {
+        val builder = CommitBuilder()
+        builder.setTreeId(treeId)
+        builder.setParentId(attempt.leftParent)
+        val contributor = pullRequest.contributor
+        builder.author = PersonIdent(contributor?.name ?: contributor?.loginId ?: who.name, contributor?.email ?: who.emailAddress)
+        builder.setCommitter(who)
+        val title = customTitle?.takeIf { it.isNotBlank() } ?: "${pullRequest.title} (#${pullRequest.number})"
+        val body = customMessage?.takeIf { it.isNotBlank() } ?: attempt.commits.reversed().joinToString("\n") { "* ${it.shortMessage}" }
+        builder.message = compose(title, body, pullRequest)
+        repository.newObjectInserter().use { inserter ->
+            val id = inserter.insert(builder)
+            inserter.flush()
+            return id
+        }
+    }
+
+    /** 제목, 본문, 리뷰한 사람 순서로 메시지를 만든다. */
+    private fun compose(title: String, body: String, pullRequest: PullRequest): String {
+        val trailer = pullRequest.reviewers.joinToString("") { "Reviewed-by: ${it.name} <${it.email}>\n" }
+        return buildString {
+            append(title.trim()).append("\n\n").append(body.trim()).append("\n")
+            if (trailer.isNotEmpty()) append("\n").append(trailer)
+        }
     }
 
     /** [from]에서 [to]까지의 범위에 있는 커밋을 최근 것이 앞이 되게 돌려준다 (v1.6 `GitRepository.diffCommits`). */
@@ -137,13 +239,19 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
     /**
      * 병합 커밋을 만든다. [reuse]이고 이미 있는 병합 결과 참조가 같은 두 부모를 가지면 그 트리를 다시 쓴다(v1.6 `getMergedTreeIfReusable`).
      */
-    private fun createCommit(repository: Repository, pullRequest: PullRequest, attempt: MergeAttempt, treeId: ObjectId, who: PersonIdent, reuse: Boolean): ObjectId {
+    private fun createCommit(
+        repository: Repository, pullRequest: PullRequest, attempt: MergeAttempt, treeId: ObjectId, who: PersonIdent, reuse: Boolean,
+        customTitle: String? = null, customMessage: String? = null
+    ): ObjectId {
         val builder = CommitBuilder()
         builder.setTreeId(if (reuse) reusableTree(repository, pullRequest, attempt) ?: treeId else treeId)
         builder.setParentIds(attempt.leftParent, attempt.rightParent)
         builder.author = who
         builder.setCommitter(who)
-        builder.message = message(pullRequest, attempt.commits)
+        builder.message = if (customTitle.isNullOrBlank() && customMessage.isNullOrBlank()) message(pullRequest, attempt.commits) else {
+            val default = message(pullRequest, attempt.commits)
+            compose(customTitle?.takeIf { it.isNotBlank() } ?: default.lineSequence().first(), customMessage?.takeIf { it.isNotBlank() } ?: default.substringAfter("\n").trim().substringBefore("\n\nReviewed-by:"), pullRequest)
+        }
         repository.newObjectInserter().use { inserter ->
             val id = inserter.insert(builder)
             inserter.flush()
@@ -198,5 +306,10 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
         builder.append("\n")
         pullRequest.reviewers.forEach { builder.append("Reviewed-by: ${it.name} <${it.email}>\n") }
         return builder.toString()
+    }
+
+    private companion object {
+        /** 리베이스 가능 여부를 시험하는 커밋 수의 상한이다. 넘으면 시험하지 않는다. */
+        const val REBASE_CHECK_LIMIT = 200
     }
 }
