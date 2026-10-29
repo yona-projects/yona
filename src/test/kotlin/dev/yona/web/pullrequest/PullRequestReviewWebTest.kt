@@ -224,6 +224,16 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `타임라인의 승인은 v1_6 리뷰 완료 문구를 쓰고 변경 요청은 새 문구와 본문을 보인다`() {
+        val s = setup(); val pr = open(s)
+        reviewService.submit(pr, s.member, ReviewVerdict.APPROVED, null)
+        reviewService.submit(pr, s.manager, ReviewVerdict.CHANGES_REQUESTED, "문서를 보강해 주세요")
+        val events = page(url(s, pr), login(s.member)).select("#comments li.event").map { it.text() }
+        assertTrue(events.any { it.contains("님이 리뷰를 완료했습니다") || it.contains("completed a pull request review") }, events.toString())
+        assertTrue(events.any { it.contains("문서를 보강해 주세요") }, events.toString())
+    }
+
+    @Test
     fun `판정 폼은 로그인한 사용자에게만 보이고 선택지는 권한과 상태를 따른다`() {
         val s = setup(); val pr = open(s)
         fun options(session: MockHttpSession?) = page(url(s, pr), session).select("#review-form input[name=verdict]").map { it.attr("value") }

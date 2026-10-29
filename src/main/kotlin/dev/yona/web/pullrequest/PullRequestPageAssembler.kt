@@ -245,7 +245,9 @@ class PullRequestPageAssembler(
                 val review = new?.toLongOrNull()?.let { reviewRepository.findById(it).orElse(null) }
                 val verdict = (event.oldValue ?: review?.verdict?.name).orEmpty().lowercase()
                 TimelineEvent(
-                    id, "review-$verdict", "pullRequest.review.state.$verdict", text("pullRequest.event.message.review.$verdict", user), ago, agoTitle, null, emptyList(),
+                    // 승인은 v1.6 리뷰 완료 이벤트와 같은 문구와 상태 이름을 쓴다(선생님 지시 2026-10-29). 다른 판정은 새 문구이다
+                    id, "review-$verdict", if (verdict == "approved") "pullRequest.review" else "pullRequest.review.state.$verdict",
+                    if (verdict == "approved") text("notification.pullrequest.reviewed", user) else text("pullRequest.event.message.review.$verdict", user), ago, agoTitle, null, emptyList(),
                     bodyHtml = review?.contents?.takeIf { it.isNotBlank() }?.let { markdown.render(it, to) }
                 )
             }
