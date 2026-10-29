@@ -28,6 +28,12 @@
 
     <th:block th:if="${header.accept != null}">
         <!--/* 병합 상자(추가 항목 X-28, decisions.md D-41). GitHub, Forgejo처럼 분할 단추와 방식 목록(부트스트랩 드롭다운)으로 방식을 고르고, 단추를 누르면 기록될 커밋 제목과 본문을 미리 채운 확인 칸이 열린다. 할 수 없는 방식은 이유와 함께 막는다 */-->
+        <style th:if="${header.accept.enabled}">
+            #merge-box .btn-group > .ybtn { margin-left: 0; }
+            #merge-box .btn-group > .ybtn + .ybtn { margin-left: -1px; }
+            #merge-box .btn-group > .ybtn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+            #merge-box .btn-group > .dropdown-toggle { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+        </style>
         <div th:if="${header.accept.enabled}" id="merge-box" style="display:inline-block; vertical-align:top; text-align:left; position:relative;">
             <div class="btn-group">
                 <button type="button" id="btnAccept" class="ybtn ybtn-success" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
@@ -76,7 +82,6 @@
                                 var check = other.querySelector('.merge-method-check');
                                 if (check) { check.style.display = other === item ? '' : 'none'; }
                             });
-                            form.style.display = 'block';
                         });
                     });
                 })();
