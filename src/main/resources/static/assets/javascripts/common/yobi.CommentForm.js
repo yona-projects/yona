@@ -33,6 +33,14 @@ $(function(){
      */
     function _attachEvent(){
         elements.commentForm.submit(onSubmitCommentForm);
+        // 임시 저장 리뷰(X-26, decisions.md D-38 9번)의 "리뷰 시작/리뷰에 추가" 단추: 이 스크립트는 폼을 `submit()`으로 다시 보내 눌린 단추의 값이 빠지므로
+        // 단추를 누를 때 숨은 입력(`pending=true`)으로 옮겨 둔다. 다른 제출 단추를 누르면 지운다
+        elements.commentForm.on("click", "button[type=submit]", function(){
+            elements.commentForm.find("input.pending-flag").remove();
+            if(this.name === "pending"){
+                $('<input type="hidden" class="pending-flag" name="pending">').val(this.value).appendTo(elements.commentForm);
+            }
+        });
         $(window).on("keydown",  onKeydownWindow);
         $(window).on("beforeunload", onBeforeUnloadWindow);
         temporarySaveHandler(elements.textarea);
