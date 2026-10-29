@@ -87,7 +87,10 @@ class PullRequest(
         inverseJoinColumns = [JoinColumn(name = "issue_label_id")],
         indexes = [Index(name = "ix_pull_request_issue_label_label", columnList = "issue_label_id")]
     )
-    var labels: MutableSet<IssueLabel> = mutableSetOf()
+    var labels: MutableSet<IssueLabel> = mutableSetOf(),
+    /** 리뷰 판정 이력이다(추가 개발 항목 X-12, `decisions.md` D-35). 읽는 용도이며 서비스가 저장하면서 함께 채운다. 정책은 리뷰어별 최신 판정만 쓴다. */
+    @OneToMany(mappedBy = "pullRequest") @BatchSize(size = 50)
+    var reviewHistory: MutableList<PullRequestReview> = mutableListOf()
 )
 
 /** 풀 리퀘스트에 포함된 커밋이다. */

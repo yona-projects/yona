@@ -71,6 +71,21 @@ class PullRequestEventService(private val events: PullRequestEventRepository, pr
         events.save(PullRequestEvent(created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_LABEL_CHANGED, oldValue = oldValue, newValue = newValue))
     }
 
+    /**
+     * 리뷰 판정을 제출한 이벤트를 기록한다(추가 개발 항목 X-12, `decisions.md` D-35). 이전 값은 판정 이름, 새 값은 리뷰 번호이다.
+     * 본문은 리뷰 행에 있다. 알림은 [PullRequestReviewService]가 따로 내보낸다.
+     */
+    @Transactional
+    fun addReviewSubmitted(sender: User, pullRequest: PullRequest, review: PullRequestReview) {
+        events.save(PullRequestEvent(created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_REVIEW_SUBMITTED, oldValue = review.verdict?.name, newValue = review.id?.toString()))
+    }
+
+    /** 리뷰를 해제한 이벤트를 기록한다. [sender]가 `null`이면 시스템이 해제한 것(새 커밋)이다. 이전 값은 리뷰어 로그인 ID, 새 값은 리뷰 번호이다. */
+    @Transactional
+    fun addReviewDismissed(sender: User?, pullRequest: PullRequest, review: PullRequestReview) {
+        events.save(PullRequestEvent(created = Date(), senderLoginId = sender?.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_REVIEW_DISMISSED, oldValue = review.authorLoginId, newValue = review.id?.toString()))
+    }
+
     /** 병합 상태(충돌, 해결, 병합)가 바뀐 이벤트를 기록한다 (v1.6 `addMergeEvent`). */
     @Transactional
     fun addMerge(sender: User, type: EventType, state: State, pullRequest: PullRequest) {

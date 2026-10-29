@@ -49,11 +49,12 @@ class PullRequestWorkflow(
      * 요청이 계속 병합 중으로 남는다([refactoring-backlog.md] R-76, 선생님 결정 2026-10-26). v1.6 `accept`의 병합은 트랜잭션 밖에서 돌고
      * 저장이 즉시 반영되므로 이 메서드에도 일부러 트랜잭션을 걸지 않는다.
      */
-    fun accept(pullRequest: PullRequest, accepter: User): AcceptResult {
+    fun accept(pullRequest: PullRequest, accepter: User, bypassReview: Boolean = false): AcceptResult {
         val toProject = requireNotNull(pullRequest.toProject)
         pullRequest.isMerging = true
         pullRequests.save(pullRequest)
-        if (toProject.isUsingReviewerCount == true && !pullRequest.reviewed) return AcceptResult.NOT_REVIEWED
+        // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰어 수와 변경 요청에 막혀도 병합할 수 있다(`bypassReview`)
+        if (toProject.isUsingReviewerCount == true && !bypassReview && (!pullRequest.reviewed || pullRequest.changesRequestedBy.isNotEmpty())) return AcceptResult.NOT_REVIEWED
 
         val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email))
         pullRequest.isMerging = false

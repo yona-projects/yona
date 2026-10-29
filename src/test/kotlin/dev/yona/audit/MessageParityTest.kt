@@ -32,7 +32,9 @@ class MessageParityTest {
         "title.tags", "code.tags.annotated", "code.tags.lightweight", "code.tags.notCommit", "code.tags.empty", "code.tags.deleteConfirm",
         "code.branches.deleteConfirm",
         "notification.pullrequest.assigned", "notification.pullrequest.unassigned", "notification.type.pullrequest.assignee.changed",
-        "notification.type.pullrequest.label.changed", "pullRequest.event.assignee", "pullRequest.event.message.assigned", "pullRequest.event.message.unassigned", "pullRequest.assignedToMe"
+        "notification.type.pullrequest.label.changed", "pullRequest.event.assignee", "pullRequest.event.message.assigned", "pullRequest.event.message.unassigned", "pullRequest.assignedToMe",
+        "notification.type.pullrequest.review.submitted", "notification.type.pullrequest.review.dismissed", "notification.type.pullrequest.review.rule.notice",
+        "pullRequest.not.acceptable.because.changes.requested"
     )
 
     @Test
