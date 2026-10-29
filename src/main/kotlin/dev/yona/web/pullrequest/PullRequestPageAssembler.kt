@@ -343,7 +343,10 @@ class PullRequestPageAssembler(
     private fun mergeButton(pullRequest: PullRequest, project: dev.yona.domain.project.Project, url: String, bypassNote: String?): AcceptButton {
         val options = project.allowedMergeMethods().sortedBy { it.ordinal }.map { method ->
             val blocked = method == MergeMethod.REBASE && pullRequest.rebaseBlocked != null
-            MergeMethodOption(method.code, text("project.merge.${method.code}"), !blocked, if (blocked) text("pullRequest.merge.rebase.${pullRequest.rebaseBlocked}") else null)
+            MergeMethodOption(
+                method.code, text("project.merge.${method.code}"), !blocked, if (blocked) text("pullRequest.merge.rebase.${pullRequest.rebaseBlocked}") else null,
+                if (method == MergeMethod.MERGE) text("pullRequest.merge") else text("project.merge.${method.code}"), text("pullRequest.merge.desc.${method.code}")
+            )
         }
         val default = project.defaultMergeMethodOrFirst().code
         val chosen = options.firstOrNull { it.code == default && it.available } ?: options.firstOrNull { it.available }

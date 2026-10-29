@@ -21,7 +21,7 @@ data class AcceptButton(
 /**
  * 병합 방식 선택 목록의 한 항목이다(추가 개발 항목 X-28, `decisions.md` D-41). [available]이 아니면 고를 수 없고 [reason]에 이유를 보인다.
  */
-data class MergeMethodOption(val code: String, val label: String, val available: Boolean, val reason: String?)
+data class MergeMethodOption(val code: String, val label: String, val available: Boolean, val reason: String?, val buttonLabel: String = label, val description: String = "")
 
 /**
  * 개요 오른쪽 열의 리뷰어 한 줄이다. [verdict]는 유효한 최신 판정 이름(`APPROVED`, `CHANGES_REQUESTED`, `COMMENTED`)이고 해제된 리뷰는 `COMMENTED`이다.

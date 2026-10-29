@@ -209,19 +209,22 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
         val pr = open(s)
         reload(pr).also { it.rebaseBlocked = "merge-commits"; pullRequests.save(it) }
         val doc = page(s, pr)
-        assertEquals(listOf("merge", "squash", "rebase"), doc.select("#merge-options input[name=method]").map { it.attr("value") })
-        val rebase = doc.select("#merge-options input[name=method][value=rebase]").single()
-        assertTrue(rebase.hasAttr("disabled")); assertTrue(doc.select("#merge-options").text().contains("병합 커밋"), doc.select("#merge-options").text())
-        assertEquals("merge", doc.select("#merge-options input[name=method][checked]").single().attr("value"))
-        assertEquals(url(s, pr, "/accept"), doc.selectFirst("#btnAccept")!!.attr("href"))
+        assertEquals(listOf("merge", "squash", "rebase"), doc.select("#merge-method-menu li").map { it.attr("data-method") })
+        val rebase = doc.select("#merge-method-menu li[data-method=rebase]").single()
+        assertTrue(rebase.hasClass("disabled")); assertTrue(rebase.text().contains("병합 커밋"), rebase.text())
+        assertEquals("merge", doc.select("#merge-method-menu li.active").single().attr("data-method"))
+        assertEquals("merge", doc.selectFirst("#merge-options input[name=method]")!!.attr("value"))
+        assertEquals(url(s, pr, "/accept"), doc.selectFirst("#btnAccept")!!.attr("data-url"))
         assertTrue(doc.select("#merge-options input[name=commitTitle]").isNotEmpty())
-        assertEquals(url(s, pr, "/accept"), doc.selectFirst("#merge-options form")!!.attr("action"), "선택 폼은 병합 요청 주소로 보낸다")
+        assertEquals(url(s, pr, "/accept"), doc.selectFirst("form#merge-options")!!.attr("action"), "선택 폼은 병합 요청 주소로 보낸다")
     }
 
     @Test
     fun `병합 방식을 병합 커밋만 허용한 프로젝트의 보기 화면은 선택 항목이 하나이다`() {
         val s = setup(); s.origin.allowSquashMerge = false; s.origin.allowRebaseMerge = false; projects.save(s.origin); addChange(s)
         val doc = page(s, open(s))
-        assertEquals(listOf("merge"), doc.select("#merge-options input[name=method]").map { it.attr("value") })
+        assertTrue(doc.select("#merge-method-menu").isEmpty(), "방식이 하나면 선택 목록과 화살표가 없다")
+        assertTrue(doc.select("#btnMergeOptions").isEmpty())
+        assertEquals("merge", doc.selectFirst("#merge-options input[name=method]")!!.attr("value"))
     }
 }

@@ -27,26 +27,61 @@
     </th:block>
 
     <th:block th:if="${header.accept != null}">
-        <a th:if="${header.accept.enabled}" id="btnAccept" th:href="${header.accept.url}" data-request-method="post" class="ybtn ybtn-success" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></a>
-        <!--/* 병합 방식 선택과 커밋 제목, 본문 직접 쓰기(추가 항목 X-28, decisions.md D-41). 허용한 방식만 보이고 할 수 없는 방식은 이유와 함께 막는다 */-->
-        <a th:if="${header.accept.enabled}" id="btnMergeOptions" href="#" class="ybtn ybtn-success" style="margin-left:-5px;" th:title="#{pullRequest.merge.options}"
-           onclick="var p=document.getElementById('merge-options'); p.style.display = (p.style.display === 'none' ? 'block' : 'none'); return false;">&#9662;</a>
-        <div th:if="${header.accept.enabled}" id="merge-options" style="display:none; margin-top:8px; padding:10px; border:1px solid #ddd; background:#fff; text-align:left;">
-            <form method="post" th:action="${header.accept.formAction}">
-                <div th:each="option : ${header.accept.methods}">
-                    <label th:title="${option.reason}">
-                        <input type="radio" name="method" th:value="${option.code}" th:checked="${option.code == header.accept.defaultMethod}" th:disabled="${!option.available}">
-                        <span th:text="${option.label}"></span>
-                        <span th:if="${option.reason != null}" class="note" th:text="${option.reason}"></span>
-                    </label>
-                </div>
-                <details class="mt10">
-                    <summary th:text="#{pullRequest.merge.message.edit}"></summary>
+        <!--/* 병합 상자(추가 항목 X-28, decisions.md D-41). GitHub, Forgejo처럼 분할 단추와 방식 목록으로 방식을 고르고, 단추를 누르면 커밋 제목과 본문을 고쳐 확인하는 칸이 열린다. 할 수 없는 방식은 이유와 함께 막는다 */-->
+        <div th:if="${header.accept.enabled}" id="merge-box" style="display:inline-block; position:relative; vertical-align:top; text-align:left;">
+            <div class="btn-group">
+                <button type="button" id="btnAccept" class="ybtn ybtn-success" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
+                <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="ybtn ybtn-success" style="margin-left:-1px;" th:title="#{pullRequest.merge.options}">&#9662;</button>
+            </div>
+            <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" style="display:none; position:absolute; right:0; z-index:100; min-width:320px; margin:2px 0 0; padding:4px 0; list-style:none; background:#fff; border:1px solid #ddd; border-radius:3px; box-shadow:0 4px 10px rgba(0,0,0,.15);">
+                <li th:each="option : ${header.accept.methods}" class="merge-method-item" th:data-method="${option.code}" th:data-label="${option.buttonLabel}"
+                    th:classappend="${!option.available} ? 'disabled' : (${option.code == header.accept.defaultMethod} ? 'active')" th:title="${option.reason}"
+                    th:style="'padding:8px 14px; ' + (${option.available} ? 'cursor:pointer;' : 'cursor:not-allowed; opacity:.55;')">
+                    <strong th:text="${(option.code == header.accept.defaultMethod ? '&#10003; ' : '') + option.label}"></strong>
+                    <div class="note" th:text="${option.reason ?: option.description}"></div>
+                </li>
+            </ul>
+            <form id="merge-options" method="post" th:action="${header.accept.formAction}" style="display:none; position:absolute; right:0; z-index:100; width:380px; margin-top:6px; padding:12px; border:1px solid #ddd; border-radius:3px; background:#fff; box-shadow:0 4px 10px rgba(0,0,0,.15);">
+                <input type="hidden" name="method" th:value="${header.accept.defaultMethod}">
+                <div id="merge-message-fields">
                     <input type="text" name="commitTitle" class="form-control" maxlength="255" th:placeholder="#{pullRequest.merge.message.title}">
                     <textarea name="commitMessage" rows="4" class="form-control mt5" th:placeholder="#{pullRequest.merge.message.body}"></textarea>
-                </details>
-                <button type="submit" id="btnMergeSubmit" class="ybtn ybtn-success mt10" th:text="#{pullRequest.merge}"></button>
+                </div>
+                <div class="mt10">
+                    <button type="submit" id="btnMergeSubmit" class="ybtn ybtn-success" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
+                    <button type="button" id="btnMergeCancel" class="ybtn ybtn-default" th:text="#{button.cancel}"></button>
+                </div>
             </form>
+            <script>
+                (function () {
+                    var box = document.getElementById('merge-box');
+                    var form = document.getElementById('merge-options');
+                    var menu = document.getElementById('merge-method-menu');
+                    var main = document.getElementById('btnAccept');
+                    var submit = document.getElementById('btnMergeSubmit');
+                    function show(el, on) { if (el) { el.style.display = on ? 'block' : 'none'; } }
+                    main.addEventListener('click', function () { show(menu, false); show(form, form.style.display === 'none'); });
+                    document.getElementById('btnMergeCancel').addEventListener('click', function () { show(form, false); });
+                    var caret = document.getElementById('btnMergeOptions');
+                    if (caret) { caret.addEventListener('click', function () { show(form, false); show(menu, menu.style.display === 'none'); }); }
+                    Array.prototype.forEach.call(box.querySelectorAll('.merge-method-item'), function (item) {
+                        item.addEventListener('click', function () {
+                            if (item.classList.contains('disabled')) { return; }
+                            var method = item.getAttribute('data-method');
+                            form.elements['method'].value = method;
+                            main.textContent = submit.textContent = item.getAttribute('data-label');
+                            document.getElementById('merge-message-fields').style.display = method === 'rebase' ? 'none' : 'block';
+                            Array.prototype.forEach.call(box.querySelectorAll('.merge-method-item'), function (other) {
+                                other.classList.toggle('active', other === item);
+                                var title = other.querySelector('strong');
+                                title.textContent = title.textContent.replace(/^\u2713 /, '');
+                                if (other === item) { title.textContent = '\u2713 ' + title.textContent; }
+                            });
+                            show(menu, false);
+                        });
+                    });
+                })();
+            </script>
         </div>
         <span th:if="${header.accept.bypassNote != null}" id="accept-bypass-note" class="help-block" style="display:inline-block; margin-right:5px;" th:text="${header.accept.bypassNote}"></span>
         <button th:if="${!header.accept.enabled}" class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" th:title="${header.accept.disabledReason}" th:text="#{pullRequest.merge}"></button>
