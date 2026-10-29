@@ -8,6 +8,7 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.user.User
 import jakarta.persistence.*
+import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
 import java.util.Date
@@ -70,6 +71,7 @@ class IssueComment(
 )
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype", length = 10)
+@org.hibernate.annotations.SQLRestriction("pending_date is null")
 abstract class CommentThread(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
@@ -97,8 +99,18 @@ abstract class CommentThread(
             Index(name = "fk_comment_thread_n4user_n4user_02", columnList = "n4user_id")
         ]
     )
-    var codeAuthors: MutableSet<User> = mutableSetOf()
-)
+    var codeAuthors: MutableSet<User> = mutableSetOf(),
+    /**
+     * 임시 저장 리뷰(추가 개발 항목 X-26, `decisions.md` D-38)에서 아직 제출하지 않은 새 스레드이면 임시로 저장한 시각이다. 공개된 스레드는 `null`이다.
+     * 엔티티에 항상 적용되는 조건(`@SQLRestriction`) 때문에 값이 있는 행은 모든 읽기에서 보이지 않는다(임시 댓글은 `PendingReviewReader`만 읽는다).
+     * v1.6 파일에는 없는 컬럼이다. 불리언 대신 시각을 쓰는 것은 숨김 조건을 `is null`로 쓰면 모든 DB에서 같은 SQL이기 때문이다(불리언 상수는 DB마다 다르다).
+     */
+    @Column(name = "pending_date")
+    var pendingDate: Date? = null
+) {
+    /** 임시 저장 중(아직 제출하지 않음)이면 `true`이다. */
+    val isPending: Boolean @Transient get() = pendingDate != null
+}
 
 /** 코드 범위에 달린 리뷰 스레드이다. */
 @Entity
@@ -140,6 +152,7 @@ class NonRangedCodeCommentThread(
 class SimpleCommentThread : CommentThread()
 
 /** 리뷰 스레드에 달린 댓글이다. */
+@org.hibernate.annotations.SQLRestriction("pending_date is null")
 @Entity
 @Table(
     name = "review_comment",
@@ -161,8 +174,14 @@ class ReviewComment(
     @Column(name = "author_name")
     var authorName: String? = null,
     @ManyToOne @JoinColumn(name = "thread_id")
-    var thread: CommentThread? = null
-)
+    var thread: CommentThread? = null,
+    /** 임시 저장 리뷰에서 아직 제출하지 않은 댓글이면 임시로 저장한 시각이다. 공개 스레드에 단 임시 답글도 포함하며 모든 읽기에서 보이지 않는다(D-38). 공개된 댓글은 `null`이다. */
+    @Column(name = "pending_date")
+    var pendingDate: Date? = null
+) {
+    /** 임시 저장 중(아직 제출하지 않음)이면 `true`이다. */
+    val isPending: Boolean @Transient get() = pendingDate != null
+}
 
 /** 커밋의 특정 줄에 단 댓글이다. */
 @Entity

@@ -65,7 +65,9 @@ class DataService(
     }
 
     private fun writeRows(connection: Connection, ids: Identifiers, table: DataTable, writer: java.io.Writer) {
-        val sql = "select " + table.columns.joinToString(", ") { ids.column(table, it.name) } + " from " + ids.table(table)
+        // 임시 저장 리뷰(X-26, D-38)의 임시 스레드와 임시 댓글은 아직 공개되지 않았으므로 내보내지 않는다
+        val where = if (table.name in PENDING_TABLES) " where " + ids.column(table, "pending_date") + " is null" else ""
+        val sql = "select " + table.columns.joinToString(", ") { ids.column(table, it.name) } + " from " + ids.table(table) + where
         connection.createStatement().use { statement ->
             statement.executeQuery(sql).use { rs ->
                 var first = true
@@ -389,6 +391,9 @@ class DataService(
     private fun isMySql(product: String) = product.equals("MySQL", ignoreCase = true) || product.equals("MariaDB", ignoreCase = true)
 
     private companion object {
+        /** 임시 저장 리뷰(X-26, D-38)의 임시 행을 내보내지 않는 테이블이다. */
+        val PENDING_TABLES = setOf("COMMENT_THREAD", "REVIEW_COMMENT")
+
         /** 배치로 묶어 넣는 행 수이다 (v1.6 `data.batch.size` 기본값). */
     }
 }

@@ -122,6 +122,20 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `내보내기는 임시 저장 리뷰의 임시 댓글과 임시 스레드를 담지 않는다 (X-26)`() {
+        fun thread(id: Int, commit: String) = """{"dtype": "ranged", "id": $id, "project_id": 99999, "author_id": null, "author_login_id": null, "author_name": null, "state": "OPEN", "commit_id": "$commit", "path": "x",
+            "start_side": null, "start_line": null, "start_column": null, "end_side": null, "end_line": null, "end_column": null, "pull_request_id": null, "created_date": null, "prev_commit_id": null}"""
+        fun comment(id: Int, text: String, thread: Int) = """{"id": $id, "contents": "$text", "created_date": null, "author_id": null, "author_login_id": null, "author_name": null, "thread_id": $thread}"""
+        val result = import("""{"COMMENT_THREAD": [${thread(9101, "aaa")}, ${thread(9102, "bbb")}], "REVIEW_COMMENT": [${comment(9201, "공개", 9101)}, ${comment(9202, "임시 답글", 9101)}, ${comment(9203, "임시 스레드의 댓글", 9102)}]}""")
+        assertEquals(emptyList<String>(), result.failed, result.toString())
+        jdbc.update("update comment_thread set pending_date = current_timestamp where id = 9102")
+        jdbc.update("update review_comment set pending_date = current_timestamp where id in (9202, 9203)")
+        val node = exported()
+        assertEquals(listOf(9101L), node.path("COMMENT_THREAD").values().map { row -> row.path("id").asLong() }.filter { id -> id in 9100..9199 })
+        assertEquals(listOf(9201L), node.path("REVIEW_COMMENT").values().map { row -> row.path("id").asLong() }.filter { id -> id in 9200..9299 })
+    }
+
+    @Test
     fun `담당자와 라벨 연결 테이블도 내보내고 다시 가져온다 (X-14)`() {
         val names = exported().propertyNames().toList()
         assertEquals(true, "PULL_REQUEST_ASSIGNEE" in names && "PULL_REQUEST_ISSUE_LABEL" in names)

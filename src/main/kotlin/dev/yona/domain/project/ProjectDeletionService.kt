@@ -44,7 +44,8 @@ class ProjectDeletionService(
         issueService.deleteWatchRows(ResourceType.PROJECT, projectId.toString())
         if (forkIds.isNotEmpty()) update("update Project p set p.originalProject = null where p.originalProject.id = :id", projectId)
 
-        deleteThreads(ids("select t.id from CommentThread t where t.project.id = :id", projectId))
+        // 임시 저장 리뷰(X-26, D-38)의 숨겨진 스레드와 댓글도 지워야 하므로 엔티티의 숨김 조건을 타지 않는 SQL로 찾는다
+        deleteThreads(threadIds("project_id = :id", projectId))
         deleteIssues(projectId)
         deletePostings(projectId)
 
@@ -91,8 +92,7 @@ class ProjectDeletionService(
                 .setParameter("value", id.toString()).setParameter("login", loginId).executeUpdate()
         }
 
-        deleteThreads(em.createQuery("select t.id from CommentThread t where t.pullRequest.id in :ids", Long::class.javaObjectType)
-            .setParameter("ids", prIds).resultList)
+        deleteThreads(threadIds("pull_request_id in (:id)", prIds))
         em.createQuery("delete from PullRequestCommit c where c.pullRequest.id in :ids").setParameter("ids", prIds).executeUpdate()
         em.createQuery("delete from PullRequestEvent e where e.pullRequest.id in :ids").setParameter("ids", prIds).executeUpdate()
         em.createNativeQuery("delete from pull_request_reviewers where pull_request_id in (:ids)").setParameter("ids", prIds).executeUpdate()
@@ -109,9 +109,14 @@ class ProjectDeletionService(
     private fun deleteThreads(threadIds: List<Long>) {
         if (threadIds.isEmpty()) return
         em.createNativeQuery("delete from comment_thread_n4user where comment_thread_id in (:ids)").setParameter("ids", threadIds).executeUpdate()
-        em.createQuery("delete from ReviewComment c where c.thread.id in :ids").setParameter("ids", threadIds).executeUpdate()
-        em.createQuery("delete from CommentThread t where t.id in :ids").setParameter("ids", threadIds).executeUpdate()
+        // 엔티티의 숨김 조건(`pending_date is null`)이 붙으면 임시 행이 남으므로 SQL로 지운다
+        em.createNativeQuery("delete from review_comment where thread_id in (:ids)").setParameter("ids", threadIds).executeUpdate()
+        em.createNativeQuery("delete from comment_thread where id in (:ids)").setParameter("ids", threadIds).executeUpdate()
     }
+
+    /** 조건에 맞는 스레드의 번호이다. 임시 저장 리뷰의 임시 스레드도 포함한다(엔티티 질의는 이를 숨긴다). */
+    private fun threadIds(condition: String, value: Any): List<Long> =
+        em.createNativeQuery("select id from comment_thread where $condition").setParameter("id", value).resultList.map { (it as Number).toLong() }
 
     private fun deleteIssues(projectId: Long) {
         val issueIds = ids("select i.id from Issue i where i.project.id = :id", projectId)
