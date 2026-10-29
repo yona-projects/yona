@@ -232,7 +232,8 @@
          */
         function _showReviewCardsTabByState(state){
             if(["open", "closed"].indexOf(state) > -1) {
-                $("a[href=#reviewcards-" + state + "]").tab("show");
+                // v1.6은 따옴표 없는 속성 선택자(`a[href=#reviewcards-...]`)를 써서 번들된 jQuery가 구문 오류를 낸다(R-129). 따옴표를 붙인다
+                $('a[href="#reviewcards-' + state + '"]').tab("show");
             }
         }
 
