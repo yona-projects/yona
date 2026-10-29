@@ -46,6 +46,12 @@ object ApiScopeRules {
         for (part in listOf("commits", "files", "timeline", "reviews", "comments")) add("GET", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
         for (part in listOf("close", "reopen", "merge", "fromBranch/restore", "assignees", "labels", "requestedreviewers")) add("POST", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/pullrequests/{number}/fromBranch", ApiRequirement.Repo)
+        for (part in listOf("reviews", "comments")) add("POST", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
+        add("POST", "$PROJECT/pullrequests/{number}/reviews/{reviewId}/dismissals", ApiRequirement.Repo)
+        add("PATCH", "$PROJECT/pullrequests/{number}/comments/{commentId}", ApiRequirement.Repo)
+        add("DELETE", "$PROJECT/pullrequests/{number}/comments/{commentId}", ApiRequirement.Repo)
+        add("DELETE", "$PROJECT/pullrequests/{number}/pendingreview", ApiRequirement.Repo)
+        for (part in listOf("open", "close")) add("POST", "$PROJECT/pullrequests/{number}/threads/{threadId}/$part", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/pullrequests/{number}/requestedreviewers/{reviewer}", ApiRequirement.Repo)
         // 프로젝트
         add("POST", "/-_-api/v1/owners/{owner}/projects", ApiRequirement.RepoOnly)

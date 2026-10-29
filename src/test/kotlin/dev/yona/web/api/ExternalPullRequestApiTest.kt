@@ -36,6 +36,7 @@ import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -311,5 +312,103 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
         call(json(post("${s.api}/${s.pr.number}/requestedreviewers"), """{"reviewer":"nobody"}"""), t).andExpect(status().isBadRequest)
         call(delete("${s.api}/${s.pr.number}/requestedreviewers/${s.member.loginId}"), t).andExpect(status().isOk).andExpect(jsonPath("$.requestedReviewers.length()").value(0))
         call(delete("${s.api}/${s.pr.number}/requestedreviewers/nobody"), t).andExpect(status().isNotFound)
+    }
+
+    // --- 쓰기: 리뷰 ---
+
+    private fun lineBody(text: String, extra: String = "") = """{"body":"$text","path":"b.txt","startSide":"B","startLine":1,"startColumn":0,"endSide":"B","endLine":1,"endColumn":1$extra}"""
+
+    @Test
+    fun `리뷰를 제출하면 201과 리뷰를 돌려주고 승인 수가 늘며 잘못된 입력은 400이다`() {
+        val s = setup(); val t = token(s.member)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"APPROVED"}"""), t).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.review.verdict").value("APPROVED")).andExpect(jsonPath("$.review.author.loginId").value(s.member.loginId)).andExpect(jsonPath("$.publishedComments").value(0))
+        call(get("${s.api}/${s.pr.number}"), t).andExpect(jsonPath("$.approvals.count").value(1))
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"NOPE"}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"COMMENTED"}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"APPROVED"}"""), token(s.contributor)).andExpect(status().isForbidden)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"COMMENTED","body":"의견입니다"}"""), token(user())).andExpect(status().isCreated)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"APPROVED"}"""), token(user())).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `리뷰를 해제하려면 사유가 필요하고 받아들일 권한이 필요하다`() {
+        val s = setup(); val member = token(s.member); val manager = token(s.manager)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"APPROVED"}"""), member).andExpect(status().isCreated)
+        em.flush(); em.clear()
+        val reviewId = pullRequests.findById(s.pr.id!!).get().reviewHistory.single().id
+        call(json(post("${s.api}/${s.pr.number}/reviews/$reviewId/dismissals"), """{"message":""}"""), manager).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/reviews/$reviewId/dismissals"), """{"message":"잘못 승인"}"""), token(user())).andExpect(status().isForbidden)
+        call(json(post("${s.api}/${s.pr.number}/reviews/999999/dismissals"), """{"message":"x"}"""), manager).andExpect(status().isNotFound)
+        call(json(post("${s.api}/${s.pr.number}/reviews/$reviewId/dismissals"), """{"message":"잘못 승인"}"""), manager).andExpect(status().isOk)
+            .andExpect(jsonPath("$.review.dismissed").value(true)).andExpect(jsonPath("$.review.dismissedReason").value("잘못 승인"))
+        call(json(post("${s.api}/${s.pr.number}/reviews/$reviewId/dismissals"), """{"message":"또"}"""), manager).andExpect(status().isBadRequest)
+    }
+
+    // --- 쓰기: 리뷰 댓글 ---
+
+    @Test
+    fun `줄 댓글을 달면 201과 스레드 번호를 돌려주고 스레드에 이어 달 수 있다`() {
+        val s = setup(); val t = token(s.member)
+        val created = call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("첫 줄 댓글")), t).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.comment.body").value("첫 줄 댓글")).andExpect(jsonPath("$.comment.pending").value(false)).andExpect(jsonPath("$.threadId").exists()).andReturn().response.contentAsString
+        val threadId = Regex("\"threadId\":(\\d+)").find(created)!!.groupValues[1]
+        call(json(post("${s.api}/${s.pr.number}/comments"), """{"body":"이어서","threadId":$threadId}"""), token(s.manager)).andExpect(status().isCreated)
+        call(get("${s.api}/${s.pr.number}/comments"), t).andExpect(jsonPath("$.threads.length()").value(1)).andExpect(jsonPath("$.threads[0].comments.length()").value(2))
+        call(json(post("${s.api}/${s.pr.number}/comments"), """{"body":"없는 스레드","threadId":999999}"""), t).andExpect(status().isNotFound)
+        call(json(post("${s.api}/${s.pr.number}/comments"), """{"body":" "}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("읽기 전용")), null).andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `임시로 단 댓글은 본인의 조회에만 보이고 리뷰를 제출하면 공개된다`() {
+        val s = setup(); val member = token(s.member); val manager = token(s.manager)
+        call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("임시 댓글", ""","pending":true""")), member).andExpect(status().isCreated).andExpect(jsonPath("$.comment.pending").value(true))
+        em.flush(); em.clear()
+        call(get("${s.api}/${s.pr.number}/comments"), member).andExpect(jsonPath("$.threads[0].pending").value(true)).andExpect(jsonPath("$.threads[0].comments[0].body").value("임시 댓글"))
+        call(get("${s.api}/${s.pr.number}/comments"), manager).andExpect(jsonPath("$.threads.length()").value(0))
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"COMMENTED"}"""), member).andExpect(status().isCreated).andExpect(jsonPath("$.publishedComments").value(1))
+        em.flush(); em.clear()
+        call(get("${s.api}/${s.pr.number}/comments"), manager).andExpect(jsonPath("$.threads[0].comments[0].body").value("임시 댓글")).andExpect(jsonPath("$.threads[0].pending").value(false))
+    }
+
+    @Test
+    fun `댓글을 고치면 수정 시각이 남고 임시 댓글은 작성자만 고친다`() {
+        val s = setup(); val member = token(s.member); val manager = token(s.manager)
+        val publicId = Regex("\"comment\":\\{\"id\":(\\d+)").find(call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("원문")), member).andReturn().response.contentAsString)!!.groupValues[1]
+        call(json(patch("${s.api}/${s.pr.number}/comments/$publicId"), """{"body":"고친 내용"}"""), manager).andExpect(status().isOk).andExpect(jsonPath("$.comment.body").value("고친 내용")).andExpect(jsonPath("$.comment.editedAt").isNotEmpty)
+        call(json(patch("${s.api}/${s.pr.number}/comments/$publicId"), """{"body":" "}"""), member).andExpect(status().isBadRequest)
+        call(json(patch("${s.api}/${s.pr.number}/comments/$publicId"), """{"body":"외부인"}"""), token(user())).andExpect(status().isForbidden)
+        em.flush(); em.clear()
+        val pendingId = Regex("\"comment\":\\{\"id\":(\\d+)").find(call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("임시", ""","pending":true""")), member).andReturn().response.contentAsString)!!.groupValues[1]
+        em.flush(); em.clear()
+        call(json(patch("${s.api}/${s.pr.number}/comments/$pendingId"), """{"body":"남의 임시"}"""), manager).andExpect(status().isNotFound)
+        call(json(patch("${s.api}/${s.pr.number}/comments/$pendingId"), """{"body":"내 임시 수정"}"""), member).andExpect(status().isOk).andExpect(jsonPath("$.comment.pending").value(true))
+    }
+
+    @Test
+    fun `댓글을 지우고 임시 리뷰를 버릴 수 있다`() {
+        val s = setup(); val member = token(s.member); val manager = token(s.manager)
+        val publicId = Regex("\"comment\":\\{\"id\":(\\d+)").find(call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("지울 댓글")), member).andReturn().response.contentAsString)!!.groupValues[1]
+        call(delete("${s.api}/${s.pr.number}/comments/$publicId"), token(user())).andExpect(status().isForbidden)
+        call(delete("${s.api}/${s.pr.number}/comments/$publicId"), manager).andExpect(status().isOk)
+        call(delete("${s.api}/${s.pr.number}/comments/$publicId"), manager).andExpect(status().isNotFound)
+        call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("임시 하나", ""","pending":true""")), member).andExpect(status().isCreated)
+        call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("임시 둘", ""","pending":true""")), member).andExpect(status().isCreated)
+        em.flush(); em.clear()
+        call(delete("${s.api}/${s.pr.number}/pendingreview"), manager).andExpect(status().isOk).andExpect(jsonPath("$.discarded").value(0))
+        call(delete("${s.api}/${s.pr.number}/pendingreview"), member).andExpect(status().isOk).andExpect(jsonPath("$.discarded").value(2))
+        call(get("${s.api}/${s.pr.number}/comments"), member).andExpect(jsonPath("$.threads.length()").value(0))
+    }
+
+    @Test
+    fun `스레드를 닫고 다시 열 수 있다`() {
+        val s = setup(); val member = token(s.member); val manager = token(s.manager)
+        val threadId = Regex("\"threadId\":(\\d+)").find(call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("스레드")), member).andReturn().response.contentAsString)!!.groupValues[1]
+        call(post("${s.api}/${s.pr.number}/threads/$threadId/close"), manager).andExpect(status().isOk).andExpect(jsonPath("$.thread.state").value("closed"))
+        call(post("${s.api}/${s.pr.number}/threads/$threadId/open"), manager).andExpect(status().isOk).andExpect(jsonPath("$.thread.state").value("open"))
+        call(post("${s.api}/${s.pr.number}/threads/$threadId/close"), token(user())).andExpect(status().isForbidden)
+        call(post("${s.api}/${s.pr.number}/threads/999999/close"), manager).andExpect(status().isNotFound)
     }
 }
