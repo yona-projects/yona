@@ -275,6 +275,11 @@ class NotificationListener(
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, null, currentCommitsMessage(pullRequest), receivers.forPullRequest(pullRequest, actor)))
             EventType.PULL_REQUEST_ASSIGNEE_CHANGED ->
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestAssigneeChanged(pullRequest, activity.oldValue, actor)))
+            // 추가 항목 X-12(D-35): 리뷰 판정 제출과 해제. 해제는 해제된 리뷰어에게도 알린다
+            EventType.PULL_REQUEST_REVIEW_SUBMITTED ->
+                events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestReview(pullRequest, actor)))
+            EventType.PULL_REQUEST_REVIEW_DISMISSED ->
+                events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestReview(pullRequest, actor, activity.oldValue?.let { users.findByLoginId(it) })))
             EventType.PULL_REQUEST_MERGED -> {
                 val merged = activity.newValue == "merged"
                 events.add(
@@ -286,6 +291,20 @@ class NotificationListener(
             }
             else -> Unit
         }
+    }
+
+    /**
+     * 작성자 승인을 세지 않는 새 규칙 때문에 병합 요건을 잃은 열린 요청을 작성자와 프로젝트 관리자에게 알린다(추가 항목 X-12, `decisions.md` D-35 13번).
+     * 시스템이 보내는 안내라 보낸 사람은 작성자로 두고 받는 사람은 작성자와 관리자이다.
+     */
+    @EventListener
+    fun onReviewRuleNotice(activity: dev.yona.domain.pullrequest.PullRequestReviewRuleNoticeActivity) {
+        val pullRequest = activity.pullRequest
+        val author = pullRequest.contributor ?: return
+        val managers = users.findUsersByProjectRole(requireNotNull(pullRequest.toProject?.id), RoleType.MANAGER.id)
+        events.add(
+            pullRequestNote(author, pullRequest, EventType.PULL_REQUEST_REVIEW_RULE_NOTICE, "Re: " + pullRequestTitle(pullRequest), null, null, (managers + author).distinctBy { it.id })
+        )
     }
 
     @EventListener

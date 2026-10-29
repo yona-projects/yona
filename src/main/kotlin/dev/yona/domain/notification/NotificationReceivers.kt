@@ -133,6 +133,15 @@ class NotificationReceivers(
     }.toSet()
 
     /**
+     * 리뷰 판정을 제출하거나 해제할 때 받을 사용자이다(추가 개발 항목 X-12, `decisions.md` D-35). v1.6 리뷰 완료 알림(`afterReviewed`)과 같이 풀 리퀘스트 구독자에
+     * 작성자를 더하고 행위자 [sender]를 뺀다. 해제되는 리뷰어([extra])는 행위자가 아니면 더한다.
+     */
+    @Transactional(readOnly = true)
+    fun forPullRequestReview(pullRequest: dev.yona.domain.pullrequest.PullRequest, sender: User?, extra: User? = null): Set<User> = Group().also {
+        it.addAll(pullRequestWatchers(pullRequest)); it.add(pullRequest.contributor); it.add(extra); it.remove(sender)
+    }.toSet()
+
+    /**
      * 풀 리퀘스트의 담당자가 바뀔 때 받을 사용자이다(추가 항목 X-14, `decisions.md` D-34). v1.6 이슈 담당자 변경(`getReceiversWhenAssigneeChanged`)에 맞춰,
      * 풀 리퀘스트를 직접 구독한 사용자, 작성자, **새 담당자**, 프로젝트에서 이 종류를 받겠다고 한 사용자에서 구독 해제자, 이 종류를 받지 않겠다고 한 사용자,
      * [actor]를 뺀다. 이전 담당자([oldAssigneeLoginId])는 [actor]가 아니면 더한다.

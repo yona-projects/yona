@@ -24,3 +24,9 @@ data class PullRequestChangedActivity(val pullRequest: PullRequest, val type: Ev
  * @property action 리뷰를 마쳤으면 `DONE`, 취소했으면 `CANCEL`
  */
 data class PullRequestReviewedActivity(val pullRequest: PullRequest, val action: dev.yona.domain.enumeration.PullRequestReviewAction, val actor: User)
+
+/**
+ * 작성자 승인을 세지 않는 새 규칙 때문에 병합 요건을 잃은 열린 풀 리퀘스트를 알리는 애플리케이션 이벤트이다(추가 개발 항목 X-12, `decisions.md` D-35 13번).
+ * 알림 서브시스템이 작성자와 프로젝트 관리자에게 알림을 만든다.
+ */
+data class PullRequestReviewRuleNoticeActivity(val pullRequest: PullRequest)

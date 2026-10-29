@@ -69,7 +69,7 @@ class NotificationItemAssembler(
             if (state == "closed") "merge closed" else if (state == "merged") "merge merged" else "merge"
         EventType.MEMBER_ENROLL_REQUEST -> if (state == "ACCEPT") "addfriend closed" else if (state == "CANCEL") "addfriend rejected" else "addfriend"
         EventType.NEW_COMMIT -> "push"
-        EventType.PULL_REQUEST_REVIEW_STATE_CHANGED -> "preview changed"
+        EventType.PULL_REQUEST_REVIEW_STATE_CHANGED, EventType.PULL_REQUEST_REVIEW_SUBMITTED, EventType.PULL_REQUEST_REVIEW_DISMISSED, EventType.PULL_REQUEST_REVIEW_RULE_NOTICE -> "preview changed"
         EventType.ISSUE_BODY_CHANGED, EventType.COMMENT_UPDATED -> "ellipsis-horizontal"
         else -> "megaphone"
     }

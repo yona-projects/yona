@@ -22,13 +22,16 @@ import java.util.Date
 @Component
 class PullRequestReviewBackfill(
     private val entityManager: EntityManager,
-    private val reviews: PullRequestReviewRepository
+    private val reviews: PullRequestReviewRepository,
+    private val events: PullRequestEventService,
+    private val publisher: org.springframework.context.ApplicationEventPublisher
 ) : ApplicationRunner {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
         backfill()
+        noticeIgnoredAuthorApprovals()
     }
 
     /** 빠진 승인 리뷰를 만들고 만든 건수를 돌려준다. */
@@ -57,6 +60,33 @@ class PullRequestReviewBackfill(
         }
         if (created > 0) log.info("Created {} approval reviews from the existing reviewers", created)
         return created
+    }
+
+    /**
+     * 작성자 승인을 세지 않는 새 규칙 때문에 병합 요건을 잃은 열린 풀 리퀘스트를 찾아 안내한다(`decisions.md` D-35 13번). 프로젝트가 리뷰어 수를 켰고
+     * 이전 규칙(승인 집합 크기)으로는 요건을 채웠으나 새 규칙(작성자 제외)으로는 모자란 열린 요청이 대상이다. 타임라인에 시스템 안내 이벤트를 남기고
+     * 작성자와 프로젝트 관리자에게 알림을 보내며 시작 로그에 건수를 적는다. 이미 안내한 요청은 건너뛰므로 멱등하다. 안내한 건수를 돌려준다.
+     */
+    @Transactional
+    fun noticeIgnoredAuthorApprovals(): Int {
+        val candidates = entityManager.createQuery(
+            "select distinct pr from PullRequest pr join pr.reviewers u where pr.state = :open and pr.toProject.isUsingReviewerCount = true and u.id = pr.contributor.id", PullRequest::class.java
+        ).setParameter("open", dev.yona.domain.enumeration.State.OPEN).resultList
+        var noticed = 0
+        for (pullRequest in candidates) {
+            val required = pullRequest.requiredReviewerCount
+            if (pullRequest.reviewers.size < required || pullRequest.countedApprovals >= required) continue
+            val already = entityManager.createQuery(
+                "select count(e) from PullRequestEvent e where e.pullRequest.id = :pr and e.eventType = :type", java.lang.Long::class.java
+            ).setParameter("pr", pullRequest.id).setParameter("type", EventType.PULL_REQUEST_REVIEW_RULE_NOTICE).singleResult.toLong()
+            if (already > 0) continue
+            events.addReviewRuleNotice(pullRequest)
+            publisher.publishEvent(PullRequestReviewRuleNoticeActivity(pullRequest))
+            noticed++
+            log.info("Pull request #{} of {} no longer counts the author's own approval and needs more approvals", pullRequest.number, pullRequest.toProject?.name)
+        }
+        if (noticed > 0) log.info("Noticed {} open pull requests that lost the review requirement", noticed)
+        return noticed
     }
 
     private fun lastApprovedAt(pullRequestId: Long, loginId: String?): Date? {

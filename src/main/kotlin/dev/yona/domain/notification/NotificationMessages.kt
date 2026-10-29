@@ -89,6 +89,16 @@ class NotificationMessages(
                 val sender = event.senderId?.let { users.findById(it).orElse(null) }?.loginId
                 if (new == "DONE") text("notification.pullrequest.reviewed", sender) else text("notification.pullrequest.unreviewed", sender)
             }
+            // 추가 항목 X-12(D-35): 리뷰 판정 제출과 해제, 규칙 안내
+            EventType.PULL_REQUEST_REVIEW_SUBMITTED -> {
+                val sender = event.senderId?.let { users.findById(it).orElse(null) }?.loginId
+                text("pullRequest.event.message.review.${old.orEmpty().lowercase()}", sender) + (new?.takeIf { it.isNotBlank() }?.let { "\n\n$it" } ?: "")
+            }
+            EventType.PULL_REQUEST_REVIEW_DISMISSED -> {
+                val sender = event.senderId?.let { users.findById(it).orElse(null) }?.loginId
+                text("pullRequest.event.message.review.dismissed", sender, old) + (new?.takeIf { it.isNotBlank() }?.let { "\n\n$it" } ?: "")
+            }
+            EventType.PULL_REQUEST_REVIEW_RULE_NOTICE -> text("pullRequest.review.rule.notice")
             EventType.RESOURCE_DELETED -> new?.let { users.findByLoginId(it) }?.let { text("notification.resource.deleted", UserDisplay.of(it, it.lang)) }
             else -> {
                 log.warn("알 수 없는 알림 이벤트 종류이다: {}. NotificationMessages.message를 확인한다", type)

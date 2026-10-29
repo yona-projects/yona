@@ -259,6 +259,8 @@ class PullRequestPageAssembler(
                     bodyHtml = if (system) null else review?.dismissedReason?.takeIf { it.isNotBlank() }?.let { HtmlUtils.htmlEscape(it) }
                 )
             }
+            EventType.PULL_REQUEST_REVIEW_RULE_NOTICE ->
+                TimelineEvent(id, "review-notice", "pullRequest.review.state.notice", text("pullRequest.review.rule.notice"), ago, agoTitle, null, emptyList())
             else -> null
         }
     }

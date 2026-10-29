@@ -36,7 +36,8 @@ class PullRequestReviewService(
     private val pullRequests: PullRequestRepository,
     private val reviews: PullRequestReviewRepository,
     private val users: UserRepository,
-    private val events: PullRequestEventService
+    private val events: PullRequestEventService,
+    private val publisher: org.springframework.context.ApplicationEventPublisher
 ) {
 
     companion object {
@@ -64,6 +65,8 @@ class PullRequestReviewService(
         pullRequest.reviewHistory.add(review)
         syncApprovers(pullRequest)
         events.addReviewSubmitted(reviewer, pullRequest, review)
+        // 알림과 웹훅은 구독자와 작성자에게 알린다(이전 값은 판정 이름, 새 값은 본문)
+        publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_REVIEW_SUBMITTED, verdict.name, review.contents, reviewer))
         return ReviewResult.SUBMITTED
     }
 
@@ -80,6 +83,8 @@ class PullRequestReviewService(
         reviews.save(review)
         syncApprovers(pullRequest)
         events.addReviewDismissed(actor, pullRequest, review)
+        // 이전 값은 해제된 리뷰어의 로그인 ID, 새 값은 사유이다. 해제된 리뷰어도 알림을 받는다. 새 커밋으로 인한 시스템 해제는 알리지 않는다
+        publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_REVIEW_DISMISSED, review.authorLoginId, message, actor))
         return DismissResult.DISMISSED
     }
 

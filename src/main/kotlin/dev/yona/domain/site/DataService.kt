@@ -143,7 +143,7 @@ class DataService(
             }
         }
         // 추가 항목(X-12, D-35 13번): 이관한 데이터도 승인 집합에서 리뷰를 다시 만들어 서버 시작 때의 보정과 같은 결과가 되게 한다
-        if (imported.isNotEmpty() || failed.isEmpty()) runCatching { reviewBackfill.backfill() }.onFailure { log.warn("Failed to backfill pull request reviews after the import", it) }
+        if (imported.isNotEmpty() || failed.isEmpty()) runCatching { reviewBackfill.backfill(); reviewBackfill.noticeIgnoredAuthorApprovals() }.onFailure { log.warn("Failed to backfill pull request reviews after the import", it) }
         log.info("Imported data in {} ms", System.currentTimeMillis() - started)
         return DataImportResult(imported, failed)
     }

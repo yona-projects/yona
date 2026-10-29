@@ -89,6 +89,10 @@ class WebhookListener(
         if (activity.type == EventType.PULL_REQUEST_ASSIGNEE_CHANGED) {
             service.pullRequest(EventType.PULL_REQUEST_ASSIGNEE_CHANGED, activity.actor, activity.pullRequest)
         }
+        // 추가 항목(X-12): 리뷰 판정 제출과 해제도 웹훅을 보낸다. 새 커밋으로 인한 시스템 해제는 활동이 없어 보내지 않는다.
+        if (activity.type == EventType.PULL_REQUEST_REVIEW_SUBMITTED || activity.type == EventType.PULL_REQUEST_REVIEW_DISMISSED) {
+            service.pullRequest(activity.type, activity.actor, activity.pullRequest)
+        }
     }
 
     @EventListener

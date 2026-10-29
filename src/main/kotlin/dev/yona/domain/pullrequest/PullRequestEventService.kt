@@ -86,6 +86,12 @@ class PullRequestEventService(private val events: PullRequestEventRepository, pr
         events.save(PullRequestEvent(created = Date(), senderLoginId = sender?.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_REVIEW_DISMISSED, oldValue = review.authorLoginId, newValue = review.id?.toString()))
     }
 
+    /** 작성자 승인을 세지 않는 규칙 때문에 병합 요건을 잃었다는 시스템 안내를 기록한다(추가 개발 항목 X-12, `decisions.md` D-35 13번). 보낸 사람은 없다. */
+    @Transactional
+    fun addReviewRuleNotice(pullRequest: PullRequest) {
+        events.save(PullRequestEvent(created = Date(), senderLoginId = null, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_REVIEW_RULE_NOTICE))
+    }
+
     /** 병합 상태(충돌, 해결, 병합)가 바뀐 이벤트를 기록한다 (v1.6 `addMergeEvent`). */
     @Transactional
     fun addMerge(sender: User, type: EventType, state: State, pullRequest: PullRequest) {

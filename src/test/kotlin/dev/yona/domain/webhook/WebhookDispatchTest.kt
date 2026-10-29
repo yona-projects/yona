@@ -60,6 +60,7 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var pullRequests: PullRequestRepository
     @Autowired private lateinit var service: WebhookService
+    @Autowired private lateinit var reviewService: dev.yona.domain.pullrequest.PullRequestReviewService
     @Autowired private lateinit var threads: WebhookThreadRepository
     @Autowired private lateinit var siteAdmins: SiteAdminRepository
 
@@ -234,6 +235,23 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
         val text = json(0).path("text").asString("")
         assertTrue(text.contains("#5: 요청"), text)
         assertTrue(text.contains(sender.name!!), text)
+    }
+
+    @Test
+    fun `리뷰 판정 제출과 해제는 웹훅을 보내고 새 커밋으로 인한 시스템 해제는 보내지 않는다 (X-12)`() {
+        val p = project(); val sender = user(); val reviewer = user()
+        service.create(p, url, null, false, WebhookType.SIMPLE)
+        val pr = pullRequests.save(PullRequest(title = "요청", body = "본문", toProject = p, fromProject = p, toBranch = "refs/heads/master", fromBranch = "refs/heads/dev", contributor = sender, state = State.OPEN, number = 5, created = java.util.Date()))
+        reviewService.submit(pr, reviewer, dev.yona.domain.enumeration.ReviewVerdict.APPROVED, null)
+        assertEquals(1, received.size)
+        val text = json(0).path("text").asString("")
+        assertTrue(text.contains("#5: 요청") && text.contains(reviewer.name!!), text)
+        reviewService.dismiss(pr, pr.reviewHistory.single(), sender, "철회")
+        assertEquals(2, received.size)
+        reviewService.submit(pr, reviewer, dev.yona.domain.enumeration.ReviewVerdict.APPROVED, null)
+        assertEquals(3, received.size)
+        reviewService.dismissStaleApprovals(pr)
+        assertEquals(3, received.size, "시스템 해제는 웹훅을 보내지 않는다")
     }
 
     @Test
