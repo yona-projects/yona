@@ -38,6 +38,8 @@ v1.6에 없는 추가 항목이다. 개인용 API 토큰으로 풀 리퀘스트�
 
 | 요청 | 권한 | 설명 |
 |---|---|---|
+| `POST /pullrequests` `{"title","body","fromProject":{"owner","name"},"fromBranch","toBranch","assignees","labelIds","temporaryUploadFiles"}` | 출발 프로젝트를 쓸 수 있는 사람 | 만들기. 경로의 프로젝트가 받는 프로젝트이고 `fromProject`를 생략하면 같은 프로젝트이다. 브랜치는 `master`나 `refs/heads/master`. 201과 풀 리퀘스트(`Location`은 화면 주소). 제목 필수 255자, 같은 브랜치 쌍의 열린 요청이 있으면 409 `{pullRequest: {number, url}}`, 게스트는 403, 출발 프로젝트가 자신이나 포크·원본이 아니거나 브랜치가 없으면 400. 담당자와 라벨은 받는 프로젝트를 고칠 수 있는 사람만(아니면 403) |
+| `PATCH /{number}` `{"title","body","fromBranch","toBranch","temporaryUploadFiles"}` | 수정 | 주어진 것만 고친다. 제목은 비울 수 없고 255자까지, 브랜치 쌍이 다른 열린 요청과 겹치면 409, 아무것도 안 주면 400 |
 | `POST /{number}/close` | 닫기 | 병합된 것은 409, 이미 닫힌 것은 그대로 성공 |
 | `POST /{number}/reopen` | 다시 열기 | 열려 있거나 병합된 것은 409 |
 | `POST /{number}/merge` `{"method":"merge"}` | 받아들이기 | `method`는 생략할 수 있고 **`merge`만 받는다**(그 밖의 값은 400 `Unsupported merge method: ...`, 스쿼시와 리베이스는 [로드맵 X-28](../roadmap.md)에서 연다). 열려 있지 않거나 병합 중이거나 충돌하거나 리뷰 조건을 채우지 못했으면 409. 프로젝트 관리자와 사이트 관리자는 화면처럼 리뷰 조건을 건너뛴다 |
@@ -60,5 +62,6 @@ v1.6에 없는 추가 항목이다. 개인용 API 토큰으로 풀 리퀘스트�
 - 목록의 `state=all`은 없다(GitHub처럼 `closed`가 병합된 것을 포함한다).
 - 임시 댓글(D-38)은 호출한 사용자의 조회에만 보이고 다른 사용자의 조회와 알림에는 나오지 않는다.
 - 리뷰를 제출하면 알림은 리뷰 하나로 나가고 줄 댓글이 한꺼번에 공개된다.
-- 풀 리퀘스트 만들기와 본문 고치기는 이번 범위가 아니다.
+- 첨부는 이슈 API처럼 `/-_-api/v1/files`로 먼저 올린 번호를 `temporaryUploadFiles`로 만들기, 고치기, 줄 댓글 달기에 붙인다.
+- 만들 때 출발 프로젝트가 받는 프로젝트 자신이거나 그 포크(또는 원본)여야 하고 브랜치가 실제로 있어야 하는 검사는 화면보다 엄격하다(화면은 v1.6처럼 입력을 믿는다).
 - 병합은 v1.6처럼 병합 중 표시를 먼저 저장하므로 트랜잭션을 걸지 않는다([refactoring-backlog.md] R-76).
