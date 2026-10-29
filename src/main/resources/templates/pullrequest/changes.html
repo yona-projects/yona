@@ -99,7 +99,7 @@
 
                     <div class="board-comment-wrap">
                         <div class="non-ranged-threads-wrap" th:utext="${nonRangedHtml}"></div>
-                        <th:block th:replace="~{common/comment-form :: commentFormPending(${commentable}, 'REVIEW_COMMENT', ${commentAction}, ${pendingCount})}"></th:block>
+                        <th:block th:replace="~{common/comment-form :: commentForm(${commentable}, 'REVIEW_COMMENT', ${commentAction})}"></th:block>
                     </div>
 
                     <th:block th:if="${commentable}">

@@ -310,35 +310,9 @@ class PendingReviewWebTest : AbstractIntegrationTest() {
         val doc = changes(s, s.member)
         assertEquals("/comments/review_comment/$mine/edit", doc.selectFirst("#comment-$mine button.comment-edit")!!.attr("data-url"))
         assertEquals("내 댓글 원문", doc.selectFirst("#comment-$mine textarea.comment-raw")!!.text())
+        assertTrue(doc.selectFirst("#comment-$mine textarea.comment-raw")!!.attr("style").contains("display:none"), "원문 입력란은 화면에 보이면 안 된다(hidden 속성은 CSS가 덮어쓴다)")
         assertNotNull(doc.selectFirst("#comment-$theirs button.comment-edit"), "프로젝트 구성원은 지울 수 있는 댓글을 고칠 수도 있다")
         assertNull(changes(s, user()).selectFirst("button.comment-edit"), "구성원이 아닌 로그인 사용자에게는 없다")
         assertNull(changes(s).selectFirst("button.comment-edit"), "로그인하지 않으면 없다")
-    }
-
-    // --- 파일 단위 댓글도 임시 저장 ---
-
-    @Test
-    fun `풀 리퀘스트 변경 화면 아래의 댓글 입력란에도 리뷰 시작 단추가 있다`() {
-        val s = setup()
-        val box = changes(s, s.member).selectFirst(".board-comment-wrap #comment-form")!!
-        assertEquals("Start a review", box.selectFirst("button[name=pending]")!!.text())
-        assertEquals("Add single comment", box.selectFirst("button[type=submit]:not([name=pending])")!!.text())
-        mockMvc.perform(lineComment(s, s.member, "줄 임시", pending = true))
-        em.flush(); em.clear()
-        assertEquals("Add review comment", changes(s, s.member).selectFirst(".board-comment-wrap #comment-form button[name=pending]")!!.text())
-    }
-
-    @Test
-    fun `파일 단위 임시 댓글은 작성자에게만 보이고 제출하면 공개된다`() {
-        val s = setup()
-        mockMvc.perform(post("${s.base}/pullRequest/${s.pr.id}/comments").session(login(s.member)).param("contents", "파일 단위 임시").param("pending", "true")).andExpect(status().is3xxRedirection)
-        em.flush(); em.clear()
-        assertTrue(changes(s, s.member).selectFirst(".non-ranged-threads-wrap")!!.html().contains("파일 단위 임시"))
-        assertNotNull(changes(s, s.member).selectFirst(".non-ranged-threads-wrap .thread-pending .pending-badge"))
-        em.flush(); em.clear()
-        assertTrue(!changes(s, s.manager).html().contains("파일 단위 임시"))
-        mockMvc.perform(post("${s.url}/reviews").session(login(s.member)).param("verdict", "COMMENTED")).andExpect(status().is3xxRedirection)
-        em.flush(); em.clear()
-        assertTrue(changes(s, s.manager).selectFirst(".non-ranged-threads-wrap")!!.html().contains("파일 단위 임시"))
     }
 }

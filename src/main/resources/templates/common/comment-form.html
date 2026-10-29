@@ -6,10 +6,7 @@
   이식 원본: app/views/common/commentForm.scala.html
   매개변수: canCreate(댓글을 쓸 수 있는지), resourceType(리소스 종류 이름), action(등록 주소)
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentForm(canCreate, resourceType, action)"><th:block th:replace="~{::commentFormPending(${canCreate}, ${resourceType}, ${action}, null)}"></th:block></th:block>
-
-<!--/* pendingCount: 풀 리퀘스트 변경 화면에서만 임시 저장 리뷰의 댓글 수를 넘긴다(null이면 임시 저장 단추 없음). 파일 단위 댓글도 리뷰 안에서 임시 저장한다(D-38 9번) */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentFormPending(canCreate, resourceType, action, pendingCount)">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="commentForm(canCreate, resourceType, action)">
 <th:block th:if="${canCreate}">
     <form id="comment-form" th:action="${action}" method="post" enctype="multipart/form-data">
         <div class="write-comment-box">
@@ -22,9 +19,7 @@
             <div class="write-comment-wrap">
                 <div class="right-txt">
                     <button type="button" class="ybtn hidden" id="dynamic-comment-btn"></button>
-                    <button th:if="${pendingCount != null}" type="submit" name="pending" value="true" class="ybtn ybtn-default"
-                            th:text="${pendingCount > 0} ? #{pullRequest.review.pending.add} : #{pullRequest.review.pending.start}"></button>
-                    <button type="submit" class="ybtn ybtn-success" th:text="${pendingCount != null} ? #{pullRequest.review.pending.single} : #{button.comment.new}"></button>
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}"></button>
                 </div>
             </div>
         </div>
