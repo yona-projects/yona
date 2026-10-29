@@ -1,0 +1,166 @@
+package dev.yona.web.api
+
+import dev.yona.access.AccessControl
+import dev.yona.access.asResource
+import dev.yona.domain.comment.CommentThread
+import dev.yona.domain.comment.PendingReviewReader
+import dev.yona.domain.enumeration.Operation
+import dev.yona.domain.enumeration.PullRequestCommitState
+import dev.yona.domain.project.Project
+import dev.yona.domain.project.ProjectService
+import dev.yona.domain.user.User
+import dev.yona.domain.pullrequest.PullRequest
+import dev.yona.domain.pullrequest.PullRequestCategory
+import dev.yona.domain.pullrequest.PullRequestChangesService
+import dev.yona.domain.pullrequest.PullRequestCommitRepository
+import dev.yona.domain.pullrequest.PullRequestEventRepository
+import dev.yona.domain.pullrequest.PullRequestSearchCondition
+import dev.yona.domain.pullrequest.PullRequestSearchService
+import dev.yona.domain.pullrequest.PullRequestService
+import dev.yona.domain.pullrequest.diffable
+import dev.yona.web.access.AnonymousCheck
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Controller
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
+
+/**
+ * 외부용 풀 리퀘스트 REST API이다(로드맵 X-15, `decisions.md` D-39). v1.6에 없는 추가 항목이다. 인증은 개인용 API 토큰뿐이고(`/-_-api` 필터) 범위(`repo`,
+ * 공개 프로젝트는 `public_repo`)에 더해 화면과 같은 사용자 권한(`AccessControl`)을 확인한다. 풀 리퀘스트는 프로젝트 안의 번호(`number`)로 가리킨다.
+ * 없는 프로젝트는 존재를 숨기려고 403(v1.6 `AbstractProjectCheckAction`과 같다), 없는 번호는 404이며 오류는 `{"message": 문장}`이다.
+ *
+ * 이 컨트롤러는 조회이고 쓰기는 [ExternalPullRequestWriteApiController]가 한다.
+ */
+@Controller
+@AnonymousCheck
+@ResponseBody
+class ExternalPullRequestApiController(
+    private val projectService: ProjectService,
+    private val pullRequestService: PullRequestService,
+    private val search: PullRequestSearchService,
+    private val changes: PullRequestChangesService,
+    private val commits: PullRequestCommitRepository,
+    private val events: PullRequestEventRepository,
+    private val pendingReader: PendingReviewReader,
+    private val accessControl: AccessControl,
+    private val requests: ApiRequests,
+    private val json: PullRequestJson
+) {
+
+    /** 이 요청이 가리키는 프로젝트와 풀 리퀘스트, 호출한 사용자이다. 오류이면 [error]가 응답이다. */
+    class Target(val user: User? = null, val project: Project? = null, val pullRequest: PullRequest? = null, val error: ResponseEntity<*>? = null)
+
+    internal fun target(owner: String, projectName: String, number: Long?, request: HttpServletRequest, operation: Operation = Operation.READ): Target {
+        val user = requests.tokenUser(request) ?: return Target(error = requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request"))
+        val project = projectService.findByOwnerAndProjectName(owner, projectName)
+        if (project == null || !accessControl.isAllowed(user, project.asResource(), Operation.READ) || (project.isCodeAccessibleMemberOnly == true && !projectService.hasMember(project, user))) {
+            return Target(error = requests.message(HttpStatus.FORBIDDEN, "forbidden or not found"))
+        }
+        if (number == null) return Target(user, project)
+        val pullRequest = pullRequestService.findOne(project, number) ?: return Target(error = requests.message(HttpStatus.NOT_FOUND, "no pull request by request"))
+        if (!accessControl.isAllowed(user, pullRequest.asResource(), operation)) return Target(error = requests.message(HttpStatus.FORBIDDEN, "forbidden"))
+        return Target(user, project, pullRequest)
+    }
+
+    internal fun ok(body: Any) = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body)
+
+    /**
+     * 풀 리퀘스트 목록이다. `state`는 `open`(기본)과 `closed`(닫힌 것과 병합된 것)이고 `page`는 1부터, `pageSize`는 1~100(기본 15)이다.
+     * 응답은 `{"items": [...], "page", "pageSize", "totalPages", "totalCount"}`이다.
+     */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests")
+    @Transactional(readOnly = true)
+    fun list(
+        @PathVariable owner: String, @PathVariable projectName: String, @RequestParam(defaultValue = "open") state: String, @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(required = false) pageSize: Int?, request: HttpServletRequest
+    ): Any {
+        val target = target(owner, projectName, null, request)
+        target.error?.let { return it }
+        val category = when (state) {
+            "open" -> PullRequestCategory.OPEN
+            "closed" -> PullRequestCategory.CLOSED
+            else -> return requests.message(HttpStatus.BAD_REQUEST, "state must be open or closed")
+        }
+        val size = (pageSize ?: search.itemsPerPage).coerceIn(1, MAX_PAGE_SIZE)
+        val result = search.search(PullRequestSearchCondition(target.project, category, pageNum = page.coerceAtLeast(1)), size)
+        return ok(linkedMapOf("items" to result.items.map { json.of(it) }, "page" to page.coerceAtLeast(1), "pageSize" to size, "totalPages" to result.totalPages, "totalCount" to result.totalCount))
+    }
+
+    /** 풀 리퀘스트 하나이다. */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}")
+    @Transactional(readOnly = true)
+    fun get(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val target = target(owner, projectName, number, request)
+        target.error?.let { return it }
+        return ok(json.of(requireNotNull(target.pullRequest)))
+    }
+
+    /** 현재 커밋 목록이다(오래된 순서). 응답은 `{"commits": [...]}`이다. */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/commits")
+    @Transactional(readOnly = true)
+    fun commits(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val target = target(owner, projectName, number, request)
+        target.error?.let { return it }
+        val pullRequest = requireNotNull(target.pullRequest)
+        val current = commits.findByPullRequestIdAndStateOrderByCreatedDesc(requireNotNull(pullRequest.id), PullRequestCommitState.CURRENT).reversed()
+        return ok(linkedMapOf("commits" to current.map { json.commit(it) }))
+    }
+
+    /** 병합 기준 커밋 사이의 변경 파일이다. 병합할 수 없어 변경을 알 수 없으면 빈 목록이다. 응답은 `{"files": [...]}`이다. */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/files")
+    @Transactional(readOnly = true)
+    fun files(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val target = target(owner, projectName, number, request)
+        target.error?.let { return it }
+        val pullRequest = requireNotNull(target.pullRequest)
+        val diffs = if (pullRequest.diffable) changes.diff(pullRequest, null) else null
+        return ok(linkedMapOf("files" to diffs.orEmpty().map { json.file(it) }))
+    }
+
+    /** 이벤트(상태, 커밋, 담당자, 라벨, 리뷰, 리뷰 요청 등)를 만든 순서로 돌려준다. 응답은 `{"events": [...]}`이다. */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/timeline")
+    @Transactional(readOnly = true)
+    fun timeline(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val target = target(owner, projectName, number, request)
+        target.error?.let { return it }
+        val pullRequest = requireNotNull(target.pullRequest)
+        return ok(linkedMapOf("events" to events.findByPullRequestIdOrderByCreatedAscIdAsc(requireNotNull(pullRequest.id)).map { json.event(it) }))
+    }
+
+    /** 리뷰 판정 이력이다(제출한 순서). 응답은 `{"reviews": [...]}`이다. */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/reviews")
+    @Transactional(readOnly = true)
+    fun reviews(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val target = target(owner, projectName, number, request)
+        target.error?.let { return it }
+        val pullRequest = requireNotNull(target.pullRequest)
+        return ok(linkedMapOf("reviews" to pullRequest.reviewHistory.sortedWith(compareBy({ it.createdDate }, { it.id })).map { json.review(it) }))
+    }
+
+    /**
+     * 리뷰 댓글을 스레드별로 돌려준다. 공개된 스레드에 더해 **호출한 사용자 본인의** 임시 댓글(`pending: true`)이 함께 나온다(`decisions.md` D-38).
+     * 응답은 `{"threads": [...]}`이다.
+     */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/comments")
+    @Transactional(readOnly = true)
+    fun comments(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val target = target(owner, projectName, number, request)
+        target.error?.let { return it }
+        val pullRequest = requireNotNull(target.pullRequest)
+        val viewer = requireNotNull(target.user)
+        val repliesByThread = pendingReader.replies(pullRequest, viewer).groupBy { requireNotNull(requireNotNull(it.thread).id) }
+        val visible = pullRequestService.threads(pullRequest).map { json.thread(it, it.reviewComments + repliesByThread[it.id].orEmpty()) }
+        val own: List<Map<String, Any?>> = pendingReader.threads(pullRequest, viewer).map { thread: CommentThread -> json.thread(thread, pendingReader.threadComments(thread)) }
+        return ok(linkedMapOf("threads" to visible + own))
+    }
+
+    private companion object {
+        const val MAX_PAGE_SIZE = 100
+    }
+}

@@ -40,6 +40,10 @@ object ApiScopeRules {
         add("POST", "$PROJECT/posts", ApiRequirement.Repo)
         add("POST", "$PROJECT/posts/{number}/comments", ApiRequirement.Repo)
         add("GET", "$PROJECT/posts/{number:[0-9]+}/watchers", ApiRequirement.Repo)
+        // 풀 리퀘스트(X-15, D-39): 모두 `repo`(공개 프로젝트는 `public_repo`)
+        add("GET", "$PROJECT/pullrequests", ApiRequirement.Repo)
+        add("GET", "$PROJECT/pullrequests/{number}", ApiRequirement.Repo)
+        for (part in listOf("commits", "files", "timeline", "reviews", "comments")) add("GET", "$PROJECT/pullrequests/{number}/$part", ApiRequirement.Repo)
         // 프로젝트
         add("POST", "/-_-api/v1/owners/{owner}/projects", ApiRequirement.RepoOnly)
         add("POST", "$PROJECT/labels", ApiRequirement.Repo)

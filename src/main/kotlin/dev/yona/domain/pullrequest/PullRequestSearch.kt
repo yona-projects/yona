@@ -74,9 +74,9 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
     val itemsPerPage: Int = 15
 
     @Transactional(readOnly = true)
-    fun search(condition: PullRequestSearchCondition): PullRequestPage {
+    fun search(condition: PullRequestSearchCondition, pageSize: Int = itemsPerPage): PullRequestPage {
         val sort = Sort.by(Sort.Order.desc(condition.category.order).nullsLast(), Sort.Order.desc("id"))
-        val page: Page<PullRequest> = pullRequests.findAll(specification(condition), PageRequest.of((condition.pageNum - 1).coerceAtLeast(0), itemsPerPage, sort))
+        val page: Page<PullRequest> = pullRequests.findAll(specification(condition), PageRequest.of((condition.pageNum - 1).coerceAtLeast(0), pageSize, sort))
         return PullRequestPage(page.content, page.totalPages, page.totalElements)
     }
 
