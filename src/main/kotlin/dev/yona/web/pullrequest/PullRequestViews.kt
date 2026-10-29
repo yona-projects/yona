@@ -8,10 +8,10 @@ data class ReviewerArea(val labelHtml: String, val avatarsHtml: String, val revi
 
 /**
  * 받아들이기 단추이다. 막혀 있으면 [disabledReason]이 이유이다. 프로젝트 관리자와 사이트 관리자가 리뷰 조건에 막힌 요청을 우회해 병합할 수 있으면
- * 단추는 켜져 있다(D-35 11번, 우회를 알리는 안내 문구는 화면에 보이지 않기로 했다).
+ * 단추는 켜져 있고 [bypassNote]에 안내가 있다(D-35 11번).
  */
 data class AcceptButton(
-    val url: String, val enabled: Boolean, val disabledReason: String?,
+    val url: String, val enabled: Boolean, val disabledReason: String?, val bypassNote: String? = null,
     val label: String? = null, val methods: List<MergeMethodOption> = emptyList(), val defaultMethod: String = "merge"
 ) {
     /** 방식 선택 폼이 보낼 주소이다. 단추가 붙인 `?method=` 질의는 뺀다. */
