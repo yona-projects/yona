@@ -61,6 +61,9 @@ data class PullRequestRow(
 data class PushedBranchRow(val label: String, val ago: String, val newPullRequestUrl: String, val deleteUrl: String)
 
 /** 보낸 사람 선택지 하나이다. */
+/** 담당자 필터에서 "담당자 없음"을 뜻하는 `assigneeId` 값이다(GitHub의 `no:assignee`). */
+private const val NO_ASSIGNEE = "none"
+
 data class ContributorOption(val value: String, val label: String, val avatarUrl: String?, val loginId: String?, val selected: Boolean)
 
 /**
@@ -124,7 +127,7 @@ class PullRequestListController(
         val condition = PullRequestSearchCondition(
             project, category, request.getParameter("filter"), request.getParameter("contributorId")?.toLongOrNull(),
             request.getParameter("pageNum")?.toIntOrNull() ?: 1,
-            assigneeId = request.getParameter("assigneeId")?.toLongOrNull(),
+            assigneeId = request.getParameter("assigneeId")?.toLongOrNull(), noAssignee = request.getParameter("assigneeId") == NO_ASSIGNEE,
             labelIds = request.getParameterValues("labelIds").orEmpty().mapNotNull { it.toLongOrNull() }.toSet()
         )
         val projectLabels = labelService.labels(project)
@@ -152,7 +155,7 @@ class PullRequestListController(
             .addObject("forked", project.originalProject != null)
             .addObject("newPullRequestUrl", "$base/newPullRequestForm")
             .addObject("contributors", contributorOptions(project, condition.contributorId, viewer))
-            .addObject("assignees", assigneeOptions(project, condition.assigneeId, viewer))
+            .addObject("assignees", assigneeOptions(project, condition, viewer))
             .addObject("labelGroups", formOptions.labelGroups(projectLabels))
             .addObject("selectedLabelIds", condition.labelIds.toMutableSet())
             .addObject("hasLabels", projectLabels.isNotEmpty())
@@ -186,9 +189,15 @@ class PullRequestListController(
         return options
     }
 
-    /** 담당자 필터의 선택지이다. 담당자 후보(받는 프로젝트의 이슈 담당자 후보 규칙)를 이름순으로 보인다(D-34). */
-    private fun assigneeOptions(project: Project, selectedId: Long?, viewer: User?): List<ContributorOption> {
+    /**
+     * 담당자 필터의 선택지이다(D-34, GitHub 기준). 전체, 로그인했으면 "내게 할당됨"(`sentByMe`처럼 아바타 없는 항목), "담당자 없음"(`none`) 다음에
+     * 담당자 후보(받는 프로젝트의 이슈 담당자 후보 규칙)를 이름순으로 보인다.
+     */
+    private fun assigneeOptions(project: Project, condition: PullRequestSearchCondition, viewer: User?): List<ContributorOption> {
+        val selectedId = condition.assigneeId
         val options = mutableListOf(ContributorOption("", "", null, null, false))
+        if (viewer != null) options += ContributorOption(viewer.id.toString(), "", null, null, selectedId == viewer.id)
+        options += ContributorOption(NO_ASSIGNEE, "", null, null, condition.noAssignee)
         listService.assignableUsers(project, viewer, accessControl.isSiteManager(viewer)).forEach {
             options += ContributorOption(it.id.toString(), it.name.orEmpty(), avatars.avatarUrl(it), it.loginId, selectedId != null && selectedId == it.id)
         }

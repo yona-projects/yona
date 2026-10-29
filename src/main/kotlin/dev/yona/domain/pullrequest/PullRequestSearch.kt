@@ -35,6 +35,7 @@ enum class PullRequestCategory(val code: String, val projectField: String, val o
  * @property pageNum 1부터 시작하는 쪽 번호
  * @property project 프로젝트를 지정하면 분류의 프로젝트 필드가 이 프로젝트인 요청만 찾는다. 조직 목록은 `null`이다
  * @property organizationProjectIds 조직 목록이 쓴다. 받는 쪽과 보내는 쪽 프로젝트가 모두 이 목록에 있어야 한다 (v1.6 `condition.organization`)
+ * @property noAssignee 담당자가 없는 요청만 보인다
  * @property assigneeId 담당자. v1.6에 없는 추가 항목이다(로드맵 X-14, `decisions.md` D-34)
  * @property labelIds 고른 라벨 번호. 모든 라벨을 가진 요청만 찾는다(이슈 목록과 같다, D-34)
  */
@@ -46,6 +47,8 @@ data class PullRequestSearchCondition(
     val pageNum: Int = 1,
     val organizationProjectIds: List<Long>? = null,
     val assigneeId: Long? = null,
+    /** 담당자가 없는 요청만 거른다(GitHub의 `no:assignee`). 값 `assigneeId=none`으로 들어온다 */
+    val noAssignee: Boolean = false,
     val labelIds: Set<Long> = emptySet()
 ) {
     fun withCategory(category: PullRequestCategory) = copy(category = category)
@@ -97,6 +100,7 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
             sub.select(cb.literal(1L)).where(cb.equal(pr.join<PullRequest, dev.yona.domain.user.User>("assignees").get<Long>("id"), assignee))
             predicates += cb.exists(sub)
         }
+        if (condition.noAssignee) predicates += cb.isEmpty(root.get<MutableSet<dev.yona.domain.user.User>>("assignees"))
         condition.labelIds.forEach { label ->
             val sub = query!!.subquery(Long::class.java)
             val pr = sub.correlate(root)

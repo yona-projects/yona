@@ -37,7 +37,9 @@
                         <select id="assignees" name="assigneeId" data-toggle="select2" data-format="user">
                             <th:block th:each="c : ${assignees}">
                                 <option th:if="${c.value == ''}" value="" th:text="#{common.order.all}"></option>
-                                <option th:if="${c.value != ''}" th:value="${c.value}" th:attr="data-avatar-url=${c.avatarUrl}, data-login-id=${c.loginId}" th:selected="${c.selected}" th:text="${c.label}"></option>
+                                <option th:if="${c.value == 'none'}" value="none" th:selected="${c.selected}" th:text="#{issue.noAssignee}"></option>
+                                <option th:if="${c.value != '' and c.value != 'none' and c.avatarUrl == null}" th:value="${c.value}" th:selected="${c.selected}" th:text="#{pullRequest.assignedToMe}"></option>
+                                <option th:if="${c.avatarUrl != null}" th:value="${c.value}" th:attr="data-avatar-url=${c.avatarUrl}, data-login-id=${c.loginId}" th:selected="${c.selected}" th:text="${c.label}"></option>
                             </th:block>
                         </select>
                     </dd>

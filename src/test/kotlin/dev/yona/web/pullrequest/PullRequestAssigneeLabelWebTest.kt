@@ -26,6 +26,7 @@ import dev.yona.support.selectFirst
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.jsoup.Jsoup
+import java.util.Date
 import org.jsoup.nodes.Document
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -267,6 +268,23 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         assertEquals(1, rows("?labelIds=${bug.id}")); assertEquals(0, rows("?labelIds=${doc.id}"))
         assertEquals(0, rows("?labelIds=${bug.id}&labelIds=${doc.id}"), "고른 라벨을 모두 가진 요청만 찾는다")
         assertEquals(1, rows("?assigneeId=${s.member.id}&labelIds=${bug.id}"))
+    }
+
+    @Test
+    fun `담당자 필터에 내게 할당됨과 담당자 없음 선택지가 있고 그 값으로 거른다 (GitHub 기준)`() {
+        val s = setup()
+        val unassigned = pullRequests.save(PullRequest(title = "담당자 없는 요청", body = "본문", toProject = s.origin, fromProject = s.fork, toBranch = "refs/heads/master", fromBranch = "refs/heads/other", contributor = s.contributor, state = dev.yona.domain.enumeration.State.OPEN, number = 99, created = Date(), updated = Date()))
+        mockMvc.perform(assign(s, s.manager, s.manager))
+        val list = "${s.base}/pullRequests"
+        val d = page(list, login(s.manager))
+        val options = d.select("#assignees option").associate { it.attr("value") to it.text() }
+        assertEquals("No assignee", options["none"])
+        assertTrue(d.select("#assignees option").any { it.attr("value") == s.manager.id.toString() && it.text() == "Assigned to me" })
+        fun titles(query: String) = page("$list$query", login(s.manager)).select("li.post-item .title-wrap a.title").map { it.text() }
+        assertEquals(listOf("담당자 없는 요청"), titles("?assigneeId=none"))
+        assertEquals(listOf("요청"), titles("?assigneeId=${s.manager.id}"))
+        assertEquals(unassigned.title, page("$list?assigneeId=none", login(s.manager)).selectFirst("li.post-item .title-wrap a.title")!!.text())
+        assertEquals("none", page("$list?assigneeId=none", login(s.manager)).selectFirst("#assignees option[selected]")!!.attr("value"))
     }
 
     @Test
