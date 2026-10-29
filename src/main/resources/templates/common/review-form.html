@@ -4,9 +4,10 @@
   https://yona.io
 
   이식 원본: app/views/common/reviewForm.scala.html
-  매개변수: resourceType(리소스 종류 이름), action(등록 주소). 코드 블록에 리뷰 댓글을 다는 입력 영역이다.
+  매개변수: resourceType(리소스 종류 이름), action(등록 주소), pendingCount(풀 리퀘스트 변경 화면의 임시 저장 리뷰 댓글 수, 커밋 화면은 null이면 임시 저장 단추 없음).
+  코드 블록에 리뷰 댓글을 다는 입력 영역이다. 추가 항목 X-26(D-38)의 "리뷰 시작/리뷰에 추가" 단추는 이름 pending, 값 true로 보낸다.
 */-->
-<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="reviewForm(resourceType, action)">
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="reviewForm(resourceType, action, pendingCount)">
 <div id="review-form" class="review-form">
     <form th:action="${action}" method="post" enctype="multipart/form-data">
         <div class="author-info-wrap pull-left hide-in-mobile">
@@ -27,7 +28,9 @@
                 </th:block>
 
                 <div class="right-txt">
-                    <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}"></button>
+                    <button th:if="${pendingCount != null}" type="submit" name="pending" value="true" class="ybtn ybtn-default ybtn-small"
+                            th:text="${pendingCount > 0} ? #{pullRequest.review.pending.add} : #{pullRequest.review.pending.start}"></button>
+                    <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="${pendingCount != null} ? #{pullRequest.review.pending.single} : #{button.comment.new}"></button>
                 </div>
             </div>
         </div>

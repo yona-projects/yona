@@ -64,7 +64,8 @@ class ReviewCommentController(
     private val commitCommentService: dev.yona.domain.comment.CommitCommentService,
     private val commitComments: dev.yona.domain.comment.CommitCommentRepository,
     private val postAttachments: dev.yona.web.PostAttachments,
-    private val siteUrls: dev.yona.util.SiteUrls
+    private val siteUrls: dev.yona.util.SiteUrls,
+    private val pendingReader: dev.yona.domain.comment.PendingReviewReader
 ) {
 
     @PostMapping("/{user}/{project}/commit/{commitId}/comments")
@@ -124,12 +125,17 @@ class ReviewCommentController(
         if (contents.isNullOrEmpty()) return ErrorViews.badRequest("error.validation", views.of(project), "PROJECT_HOME")  // v1.6 newComment는 메뉴 종류 없이 render(키, project)를 불러 PROJECT_HOME이 활성화된다
         val pullRequest = pullRequests.findById(pullRequestId).orElse(null) ?: return ErrorViews.notFound("error.notfound", views.of(project), request.requestURI)
 
-        if (!threadBelongs(request, project)) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
+        if (!threadBelongs(request, project, pullRequest)) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
 
         val author = requireNotNull(currentUserProvider.get().user)
         // v1.6는 `commitId`를 쿼리 문자열 인자(`commitId: String ?= null`)로만 받는다. 폼 본문의 같은 이름 값(전체 변경 화면이 숨겨 보낸다)은 쓰지 않는다.
         val commitId = UriComponentsBuilder.newInstance().query(request.queryString).build().queryParams.getFirst("commitId")?.takeIf { it.isNotEmpty() }?.let { UriUtils.decode(it, Charsets.UTF_8) }
-        val comment = service.commentOnPullRequest(project, pullRequest, commitId, author, contents, threadId(request), range(request))
+        // `pending=true`는 "리뷰 시작"과 "리뷰에 추가" 단추이다(추가 개발 항목 X-26, `decisions.md` D-38). 알림은 리뷰를 제출할 때 하나로 나간다
+        val comment = try {
+            service.commentOnPullRequest(project, pullRequest, commitId, author, contents, threadId(request), range(request), pending = request.getParameter("pending") == "true")
+        } catch (e: IllegalArgumentException) {
+            return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
+        }
         val flash = postAttachments.attach(request, author, ResourceType.REVIEW_COMMENT, requireNotNull(comment.id))
         // v1.6 newComment: 쿼리의 commitId가 있을 때만 커밋 하나의 변경 화면(specificChange), 아니면 전체 변경 화면(pullRequestChanges)이다
         val base = "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}/changes"
@@ -169,10 +175,14 @@ class ReviewCommentController(
     }
 
     /** `thread.id`를 주었다면 같은 프로젝트의 스레드여야 한다. 다른 프로젝트의 스레드에 이어 다는 것은 직접 만든 요청에서만 닿는다 ([decisions.md] A-80). */
-    private fun threadBelongs(request: HttpServletRequest, project: dev.yona.domain.project.Project): Boolean {
+    private fun threadBelongs(request: HttpServletRequest, project: dev.yona.domain.project.Project, pullRequest: dev.yona.domain.pullrequest.PullRequest? = null): Boolean {
         val raw = request.getParameter("thread.id") ?: return true
         val id = raw.toLongOrNull() ?: return true
-        return threads.findById(id).orElse(null)?.project?.id == project.id
+        // 내 임시 스레드(X-26, D-38)는 엔티티 조회에 보이지 않으므로 임시 스레드 읽기 경로로도 찾는다
+        val visible = threads.findById(id).orElse(null)?.project?.id == project.id
+        if (visible) return true
+        val viewer = currentUserProvider.get().user ?: return false
+        return pullRequest != null && pendingReader.thread(id, pullRequest, viewer)?.project?.id == project.id
     }
 
     private fun threadId(request: HttpServletRequest): Long? = request.getParameter("thread.id")?.toLongOrNull()

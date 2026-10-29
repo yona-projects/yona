@@ -35,7 +35,9 @@ data class ReviewAreaView(
     /** 리뷰 요청이 대기 중인 사람들(추가 항목 X-27). 같은 사람의 최신 판정 줄은 [rows]에서 빠진다 */
     val pending: List<PendingReviewRow> = emptyList(),
     /** 편집 권한자가 열린 풀 리퀘스트에서 리뷰를 요청할 수 있으면 요청 주소이다. 없으면 선택 상자를 보이지 않는다 */
-    val requestUrl: String? = null, val candidatesUrl: String? = null
+    val requestUrl: String? = null, val candidatesUrl: String? = null,
+    /** 내가 이 풀 리퀘스트에 쌓아 둔 임시 저장 리뷰의 줄 댓글 수이다(추가 항목 X-26, D-38). 0이면 임시 리뷰 칸을 보이지 않는다 */
+    val pendingCount: Long = 0, val discardUrl: String? = null, val changesUrl: String? = null
 )
 
 /** 풀 리퀘스트 보기와 변경 화면 위쪽의 공통 머리 영역이다 (v1.6 `partial_info`). */

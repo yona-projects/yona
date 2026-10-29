@@ -75,7 +75,8 @@ class PullRequestViewController(
     private val currentUserProvider: CurrentUserProvider,
     private val views: ProjectViewFactory,
     private val siteUrls: SiteUrls,
-    private val history: dev.yona.repository.CommitHistoryService
+    private val history: dev.yona.repository.CommitHistoryService,
+    private val pendingReader: dev.yona.domain.comment.PendingReviewReader
 ) {
 
     private val json = JsonMapper.builder().build()
@@ -173,7 +174,18 @@ class PullRequestViewController(
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
         val viewer = currentUserProvider.get().user
         val diffs = if (pullRequest.diffable) changes.diff(pullRequest, commitId) ?: return ErrorViews.notFound("error.notfound.commit", views.of(project), null) else null
-        val codeThreads = if (pullRequest.diffable) changes.codeThreads(pullRequest, commitId) else emptyList()
+        // 내 임시 저장 리뷰(X-26, D-38)의 임시 스레드와 임시 답글을 읽어 변경 화면에 본인에게만 덧붙인다
+        val pendingThreads = viewer?.let { pendingReader.threads(pullRequest, it) }.orEmpty()
+        val pendingReplies = viewer?.let { pendingReader.replies(pullRequest, it) }.orEmpty()
+        request.setAttribute(
+            dev.yona.web.code.PendingOverlay.ATTRIBUTE,
+            dev.yona.web.code.PendingOverlay(
+                pendingReplies.groupBy { requireNotNull(requireNotNull(it.thread).id) }, pendingThreads.associate { requireNotNull(it.id) to pendingReader.threadComments(it) },
+                assembler.baseUrl(pullRequest) + "/pendingReview/comments"
+            )
+        )
+        val pendingCount = viewer?.let { pendingReader.count(pullRequest, it) } ?: 0L
+        val codeThreads = if (pullRequest.diffable) changes.codeThreads(pullRequest, commitId, pendingThreads) else emptyList()
         val allThreads = pullRequestThreads(pullRequest)
         val resource = ProjectResource(requireNotNull(pullRequest.id).toString(), ResourceType.PULL_REQUEST, project, authorId = pullRequest.contributor?.id)
         val current = commits.findByPullRequestIdAndStateOrderByCreatedDesc(requireNotNull(pullRequest.id), dev.yona.domain.enumeration.PullRequestCommitState.CURRENT)
@@ -198,7 +210,10 @@ class PullRequestViewController(
             .addObject("allUrl", "$base/changes")
             .addObject("state", assembler.state(pullRequest, viewer, canDelete, canRestore, request))
             .addObject("diffHtml", diffs?.let { diffHtml.render(it, codeThreads, requireNotNull(pullRequest.toProject), requireNotNull(pullRequest.toProject), threadHtml) }.orEmpty())
-            .addObject("nonRangedHtml", threadHtml.renderAll(changes.nonRangedThreads(pullRequest, commitId), full = true))
+            .addObject("nonRangedHtml", threadHtml.renderAll(changes.nonRangedThreads(pullRequest, commitId, pendingThreads), full = true))
+            .addObject("pendingCount", pendingCount)
+            .addObject("pendingDiscardUrl", "$base/pendingReview/discard")
+            .addObject("overviewUrl", base)
             .addObject("commentable", creatable)
             .addObject("commentAction", siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.id}/comments") + (commitId?.let { "?commitId=$it" } ?: ""))
             .addObject("openCards", assembler.cards(allThreads.filter { it.state == dev.yona.domain.enumeration.ThreadState.OPEN }))

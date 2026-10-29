@@ -11,7 +11,9 @@ package dev.yona.web.code
  */
 data class ThreadCommentView(
     val id: Long, val loginId: String, val name: String, val avatarUrl: String, val userHref: String, val ago: String, val agoTitle: String,
-    val deleteUrl: String?, val bodyHtml: String, val attachments: String, val viaEmail: Boolean = false
+    val deleteUrl: String?, val bodyHtml: String, val attachments: String, val viaEmail: Boolean = false,
+    /** 임시 저장 리뷰(X-26, D-38)에서 아직 제출하지 않은 댓글이면 `true`이다. 본인에게만 보인다 */
+    val pending: Boolean = false
 )
 
 /**
@@ -21,7 +23,10 @@ data class ThreadCommentView(
  * @property threadId 이어서 쓰는 스레드 번호
  * @property resourceType 올리는 첨부의 리소스 종류 이름
  */
-data class ThreadFormView(val action: String, val threadId: Long, val resourceType: String, val avatarUrl: String, val userHref: String, val userName: String, val anonymous: Boolean)
+data class ThreadFormView(val action: String, val threadId: Long, val resourceType: String, val avatarUrl: String, val userHref: String, val userName: String, val anonymous: Boolean,
+    /** 풀 리퀘스트 스레드의 답글 입력란에 "리뷰에 추가"(임시 저장) 단추를 보이면 `true`이다(추가 항목 X-26, D-38) */
+    val pendingButton: Boolean = false
+)
 
 /**
  * 코드 리뷰 스레드 하나의 화면 값이다.
@@ -33,5 +38,7 @@ data class ThreadFormView(val action: String, val threadId: Long, val resourceTy
  */
 data class ThreadView(
     val id: Long, val state: String, val code: Boolean, val fold: Boolean, val range: Map<String, String>?, val comments: List<ThreadCommentView>,
-    val stateUrl: String?, val form: ThreadFormView?
+    val stateUrl: String?, val form: ThreadFormView?,
+    /** 임시 저장 리뷰(X-26, D-38)의 아직 제출하지 않은 스레드이면 `true`이다. 본인에게만 보인다 */
+    val pending: Boolean = false
 )

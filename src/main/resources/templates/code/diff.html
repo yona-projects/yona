@@ -59,7 +59,7 @@
                     </div>
 
                     <th:block th:if="${canComment}">
-                        <th:block th:replace="~{common/review-form :: reviewForm('COMMIT_COMMENT', ${commentAction})}"></th:block>
+                        <th:block th:replace="~{common/review-form :: reviewForm('COMMIT_COMMENT', ${commentAction}, null)}"></th:block>
                     </th:block>
                 </div>
 

@@ -48,6 +48,10 @@ class ThreadViewAssembler(
         val open = thread.state == ThreadState.OPEN
         val canChangeState = accessControl.isAllowed(viewer, threadResource, Operation.UPDATE)
         val code = thread as? CodeCommentThread
+        // 임시 저장 리뷰(X-26, D-38): 내 임시 스레드의 댓글과 공개 스레드에 단 내 임시 답글은 요청 속성의 덧붙임에서 온다
+        val overlay = PendingOverlay.current()
+        val pendingThread = thread.isPending
+        val shown = if (pendingThread) overlay?.commentsByPendingThread?.get(thread.id).orEmpty() else thread.reviewComments + overlay?.repliesByThread?.get(thread.id).orEmpty()
         return ThreadView(
             id = requireNotNull(thread.id), state = (thread.state ?: ThreadState.OPEN).name.lowercase(), code = code != null,
             fold = code != null && thread.state == ThreadState.CLOSED,
@@ -57,9 +61,10 @@ class ThreadViewAssembler(
                     "endSide" to it.endSide?.name.orEmpty(), "endLine" to it.endLine?.toString().orEmpty(), "endColumn" to it.endColumn?.toString().orEmpty()
                 )
             },
-            comments = thread.reviewComments.sortedBy { it.createdDate }.map { comment(it, viewer) },
-            stateUrl = if (canChangeState) siteUrls.path("/threads/${thread.id}/" + if (open) "close" else "open") else null,
-            form = form(thread, project, viewer)
+            comments = shown.sortedBy { it.createdDate }.map { comment(it, viewer, overlay) },
+            stateUrl = if (canChangeState && !pendingThread) siteUrls.path("/threads/${thread.id}/" + if (open) "close" else "open") else null,
+            form = form(thread, project, viewer),
+            pending = pendingThread
         )
     }
 
@@ -74,10 +79,11 @@ class ThreadViewAssembler(
         } else {
             siteUrls.path("${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/commit/$commitId/comments")
         }
-        return ThreadFormView(action, requireNotNull(thread.id), type.name, avatars.avatarUrl(viewer, AVATAR_SIZE), siteUrls.path("/${viewer.loginId}"), viewer.name.orEmpty(), false)
+        // 풀 리퀘스트 스레드에는 "리뷰에 추가"(임시 저장) 단추도 둔다. 임시 스레드의 답글은 서버가 항상 임시로 받으므로 단추가 필요 없다
+        return ThreadFormView(action, requireNotNull(thread.id), type.name, avatars.avatarUrl(viewer, AVATAR_SIZE), siteUrls.path("/${viewer.loginId}"), viewer.name.orEmpty(), false, pendingButton = pullRequest != null && !thread.isPending)
     }
 
-    private fun comment(comment: ReviewComment, viewer: User?): ThreadCommentView {
+    private fun comment(comment: ReviewComment, viewer: User?, overlay: PendingOverlay?): ThreadCommentView {
         val project = requireNotNull(comment.thread?.project)
         val author = comment.authorLoginId?.let { users.findByLoginId(it) }
         val resource = ProjectResource(requireNotNull(comment.id).toString(), ResourceType.REVIEW_COMMENT, project, container = null, authorId = comment.authorId)
@@ -85,10 +91,13 @@ class ThreadViewAssembler(
             id = comment.id!!, loginId = comment.authorLoginId.orEmpty(), name = comment.authorName.orEmpty(),
             avatarUrl = author?.let { avatars.avatarUrl(it, AVATAR_SIZE) }.orEmpty(), userHref = siteUrls.path("/${comment.authorLoginId}"),
             ago = helper.agoOrDateString(comment.createdDate), agoTitle = helper.dateString(comment.createdDate),
-            deleteUrl = if (accessControl.isAllowed(viewer, resource, Operation.DELETE)) siteUrls.path("/comments/${ResourceType.REVIEW_COMMENT.resource}/${comment.id}") else null,
+            // 임시 댓글은 본인만 보고 전용 주소로 지운다(공개 댓글 삭제 경로는 숨겨진 행을 찾지 못한다)
+            deleteUrl = if (comment.isPending) overlay?.let { "${it.deleteBase}/${comment.id}/delete" }
+                else if (accessControl.isAllowed(viewer, resource, Operation.DELETE)) siteUrls.path("/comments/${ResourceType.REVIEW_COMMENT.resource}/${comment.id}") else null,
             bodyHtml = markdown.render(comment.contents.orEmpty(), project, null),
             attachments = attachmentListing.fileListJson(ResourceType.REVIEW_COMMENT, comment.id!!),
-            viaEmail = originalEmails.findByResourceTypeAndResourceId(ResourceType.REVIEW_COMMENT, comment.id.toString()).isNotEmpty()
+            viaEmail = originalEmails.findByResourceTypeAndResourceId(ResourceType.REVIEW_COMMENT, comment.id.toString()).isNotEmpty(),
+            pending = comment.isPending
         )
     }
 

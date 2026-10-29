@@ -70,7 +70,8 @@ class PullRequestPageAssembler(
     private val helper: TemplateHelper,
     private val siteUrls: SiteUrls,
     private val markdown: dev.yona.markdown.ProjectMarkdownRenderer,
-    private val reviewRepository: dev.yona.domain.pullrequest.PullRequestReviewRepository
+    private val reviewRepository: dev.yona.domain.pullrequest.PullRequestReviewRepository,
+    private val pendingReader: dev.yona.domain.comment.PendingReviewReader
 ) {
 
     fun baseUrl(pullRequest: PullRequest): String {
@@ -152,6 +153,7 @@ class PullRequestPageAssembler(
                 rerequestUrl = if (canRequest && review.authorId != pullRequest.contributor?.id) "$base/reviewRequests" else null
             )
         }
+        val pendingComments = if (viewer != null) pendingReader.count(pullRequest, viewer) else 0L
         val author = viewer != null && viewer.id == pullRequest.contributor?.id
         val options = if (viewer == null) emptyList() else buildList {
             add(dev.yona.domain.enumeration.ReviewVerdict.COMMENTED.name)
@@ -161,7 +163,8 @@ class PullRequestPageAssembler(
             rows = rows, formUrl = if (viewer != null) "$base/reviews" else null, verdictOptions = options,
             countText = if (project.isUsingReviewerCount == true) text("pullRequest.review.count", pullRequest.countedApprovals, pullRequest.requiredReviewerCount) else null,
             authorNote = project.isUsingReviewerCount == true && pullRequest.reviewers.any { it.id == pullRequest.contributor?.id },
-            pending = pendingRows, requestUrl = if (canRequest) "$base/reviewRequests" else null, candidatesUrl = if (canRequest) "$base/reviewRequestCandidates" else null
+            pending = pendingRows, requestUrl = if (canRequest) "$base/reviewRequests" else null, candidatesUrl = if (canRequest) "$base/reviewRequestCandidates" else null,
+            pendingCount = pendingComments, discardUrl = if (pendingComments > 0) "$base/pendingReview/discard" else null, changesUrl = "$base/changes"
         )
     }
 

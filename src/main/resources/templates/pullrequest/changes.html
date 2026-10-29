@@ -30,6 +30,15 @@
                 </div>
             </div>
 
+            <!--/* 임시 저장 리뷰(X-26, D-38): 내가 쌓아 둔 줄 댓글이 있으면 본인에게만 안내한다. 제출은 개요의 리뷰 폼이 한다 */-->
+            <div id="pending-review-bar" class="alert alert-info mt10" th:if="${pendingCount > 0}" th:attr="data-count=${pendingCount}">
+                <th:block th:text="#{pullRequest.review.pending.bar(${pendingCount})}"></th:block>
+                <a th:href="${overviewUrl} + '#pending-review'" class="ybtn ybtn-success ybtn-small" th:text="#{pullRequest.review.pending.submit}"></a>
+                <form th:action="${pendingDiscardUrl}" method="post" style="display:inline;" th:attr="onsubmit='return confirm(\'' + #{pullRequest.review.pending.discard.confirm} + '\');'">
+                    <button type="submit" class="ybtn ybtn-small" th:text="#{pullRequest.review.pending.discard}"></button>
+                </form>
+            </div>
+
             <div th:class="'codediff-wrap mt10' + (${hasThreads} ? '' : ' diffs-only')">
                 <button th:if="${hasThreads}" type="button" class="ybtn ybtn-default btn-show-reviewcards">
                     <i class="yobicon-restore"></i>
@@ -94,7 +103,7 @@
                     </div>
 
                     <th:block th:if="${commentable}">
-                        <th:block th:replace="~{common/review-form :: reviewForm('REVIEW_COMMENT', ${commentAction})}"></th:block>
+                        <th:block th:replace="~{common/review-form :: reviewForm('REVIEW_COMMENT', ${commentAction}, ${pendingCount})}"></th:block>
                     </th:block>
                 </div>
                 <div th:if="${hasThreads}" class="review-wrap">

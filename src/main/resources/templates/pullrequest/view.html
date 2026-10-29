@@ -58,6 +58,14 @@
                 </div>
 
                 <!--/* 리뷰 판정 폼(추가 항목 X-12, decisions.md D-35). 로그인한 사용자에게만 보이고 선택지는 권한과 요청 상태를 따른다 */-->
+                <!--/* 임시 저장 리뷰(X-26, D-38): 내가 쌓아 둔 줄 댓글은 이 리뷰를 제출하면 한꺼번에 공개된다. 본문 없이도 제출할 수 있다 */-->
+                <div id="pending-review" class="alert alert-info mt20" th:if="${reviewArea.pendingCount > 0}" th:attr="data-count=${reviewArea.pendingCount}">
+                    <th:block th:text="#{pullRequest.review.pending.bar(${reviewArea.pendingCount})}"></th:block>
+                    <a th:href="${reviewArea.changesUrl}" class="ybtn ybtn-small" th:text="#{pullRequest.review.pending.view}"></a>
+                    <form id="pending-discard" th:action="${reviewArea.discardUrl}" method="post" style="display:inline;" th:attr="onsubmit='return confirm(\'' + #{pullRequest.review.pending.discard.confirm} + '\');'">
+                        <button type="submit" class="ybtn ybtn-small" th:text="#{pullRequest.review.pending.discard}"></button>
+                    </form>
+                </div>
                 <form id="review-form" th:if="${reviewArea.formUrl != null}" th:action="${reviewArea.formUrl}" method="post" class="pr-review-form mt20">
                     <h5 th:text="#{pullRequest.review.form.title}"></h5>
                     <textarea name="contents" rows="4" class="textbox span12" th:placeholder="#{pullRequest.review.form.placeholder}"></textarea>

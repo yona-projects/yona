@@ -49,8 +49,9 @@ class PullRequestChangesService(
      * 병합 기준 커밋 쌍에 달렸거나 그 파일이 그 뒤로 바뀌지 않은(최신이 아닌 것이 확실하지 않은) 것을 고른다.
      */
     @Transactional(readOnly = true)
-    fun codeThreads(pullRequest: PullRequest, commitId: String?): List<CodeCommentThread> {
-        val all = threads.findByPullRequestId(requireNotNull(pullRequest.id)).filterIsInstance<CodeCommentThread>()
+    fun codeThreads(pullRequest: PullRequest, commitId: String?, pendingThreads: List<dev.yona.domain.comment.CommentThread> = emptyList()): List<CodeCommentThread> {
+        // 임시 저장 리뷰(X-26, D-38)의 내 임시 스레드는 엔티티 조회에 보이지 않으므로 호출하는 쪽이 따로 읽어 넘긴다
+        val all = (threads.findByPullRequestId(requireNotNull(pullRequest.id)) + pendingThreads).filterIsInstance<CodeCommentThread>()
         if (commitId != null) return all.filter { it.commitId == commitId }
         val from = pullRequest.mergedCommitIdFrom
         val to = pullRequest.mergedCommitIdTo
@@ -67,8 +68,8 @@ class PullRequestChangesService(
 
     /** 변경 화면 아래에 모아 보이는 파일 단위 스레드이다. [commitId]가 있으면 그 커밋의 것만이다. */
     @Transactional(readOnly = true)
-    fun nonRangedThreads(pullRequest: PullRequest, commitId: String?): List<NonRangedCodeCommentThread> =
-        threads.findByPullRequestId(requireNotNull(pullRequest.id)).filterIsInstance<NonRangedCodeCommentThread>().filter { commitId == null || commitId == it.commitId }
+    fun nonRangedThreads(pullRequest: PullRequest, commitId: String?, pendingThreads: List<dev.yona.domain.comment.CommentThread> = emptyList()): List<NonRangedCodeCommentThread> =
+        (threads.findByPullRequestId(requireNotNull(pullRequest.id)) + pendingThreads).filterIsInstance<NonRangedCodeCommentThread>().filter { commitId == null || commitId == it.commitId }
 
     /**
      * 스레드가 지금 변경 내용과 어긋난(outdated) 것이면 `true`이다 (v1.6 `CodeCommentThread.isOutdated`). 풀 리퀘스트에 달리지 않았거나 병합 기준이 없거나

@@ -7,7 +7,7 @@
   매개변수: thread(ThreadView). 스레드 하나를 그린다. diff 화면이 `DiffHtmlRenderer`를 거쳐 줄 사이에 끼워 넣는다.
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="thread(thread)">
-<div th:id="'thread-' + ${thread.id}" th:class="'comment-thread-wrap ' + ${thread.state} + (${thread.fold} ? ' fold' : '')"
+<div th:id="'thread-' + ${thread.id}" th:class="'comment-thread-wrap ' + ${thread.state} + (${thread.fold} ? ' fold' : '') + (${thread.pending} ? ' thread-pending' : '')"
      th:attr="data-state=${thread.state}, data-toggle=${thread.range != null} ? 'CodeCommentThread', data-range-path=${thread.range?.get('path')},
               data-range-startSide=${thread.range?.get('startSide')}, data-range-startLine=${thread.range?.get('startLine')}, data-range-startColumn=${thread.range?.get('startColumn')},
               data-range-endSide=${thread.range?.get('endSide')}, data-range-endLine=${thread.range?.get('endLine')}, data-range-endColumn=${thread.range?.get('endColumn')}">
@@ -17,11 +17,12 @@
 
     <div class="thread-header">
         <span th:class="'badge state ' + ${thread.state}" th:text="#{'issue.state.' + ${thread.state}}"></span>
+        <span th:if="${thread.pending}" class="label label-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
         <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
     </div>
 
     <ul class="comments">
-        <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" class="comment">
+        <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" th:class="'comment' + (${c.pending} ? ' comment-pending' : '')">
             <div class="comment-avatar">
                 <a th:href="${c.userHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.name}">
                     <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
@@ -33,8 +34,13 @@
                         <a th:href="${c.userHref}" data-toggle="tooltip" data-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
                     </span>
                     <span class="ago"><a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a></span>
-                    <span class="edit pull-right" th:if="${c.deleteUrl != null}">
+                    <span th:if="${c.pending and !thread.pending}" class="label label-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
+                    <span class="edit pull-right" th:if="${c.deleteUrl != null and !c.pending}">
                         <button class="btn-transparent pull-right close" data-toggle="comment-delete" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                    </span>
+                    <!--/* 임시 댓글은 본인만 지우며 POST로 보낸다(공개 댓글의 삭제 경로는 숨겨진 행을 찾지 못한다) */-->
+                    <span class="edit pull-right" th:if="${c.deleteUrl != null and c.pending}">
+                        <button type="button" class="btn-transparent pull-right close" data-request-method="post" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{pullRequest.review.pending.delete}"><i class="yobicon-trash"></i></button>
                     </span>
                 </div>
                 <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}" th:utext="${c.bodyHtml}"></div>
@@ -98,7 +104,8 @@
                     <div class="right-txt">
                         <button th:if="${thread.stateUrl != null}" type="button" data-request-method="post" th:attr="data-request-uri=${thread.stateUrl}" class="ybtn ybtn-default ybtn-small"
                                 th:text="${thread.state == 'open'} ? #{commentThread.close} : #{commentThread.open}"></button>
-                        <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}"></button>
+                        <button th:if="${f.pendingButton}" type="submit" name="pending" value="true" class="ybtn ybtn-default ybtn-small" th:text="#{pullRequest.review.pending.add}"></button>
+                        <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="${f.pendingButton} ? #{pullRequest.review.pending.single} : #{button.comment.new}"></button>
                     </div>
                 </div>
             </div>
