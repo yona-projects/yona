@@ -24,6 +24,7 @@
 - [이전(Migration) 화면](web/migration.md): GitHub로 옮길 프로젝트 데이터 JSON과 토큰 교환(D-23 접근 기준)
 - [Subversion](web/subversion.md): SVNKit 저장소, 코드 브라우저, 이력과 커밋 코멘트, WebDAV(HTTP) 접근
 - [Git 태그 화면](web/tags.md): 태그 목록, 삭제, 브랜치 목록에서 태그 제외, 선택 목록 구역(X-18, D-30)
+- [풀 리퀘스트의 담당자와 라벨](web/pull-request-assignee-label.md): 담당자 1명(여러 명으로 확장 가능), 라벨, 알림과 웹훅, 목록 필터(X-14, D-34)
 - [이메일 수신(IMAP)](web/mailbox.md): 받은 메일로 이슈와 댓글 만들기, IMAP 연결과 UID 기록, 진단
 - [LDAP 인증](web/ldap.md): LDAP 로그인, 로컬 사용자 동기화, Git 기본 인증
 - [소셜 로그인](web/social-login.md): GitHub, Google OAuth 로그인, 계정 연결, 소셜 로그아웃, `/restricted`

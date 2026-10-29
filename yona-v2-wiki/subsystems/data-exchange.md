@@ -1,13 +1,13 @@
 ---
 title: 데이터 내보내기와 가져오기
 type: subsystem
-sources: [app/data/DataService.java, app/data/DefaultExchanger.java, app/data/exchangers 아래 47개 클래스, app/controllers/SiteApp.java:352-382, docs/ko/spec/export-and-import.md]
-updated: 2026-10-25
+sources: [app/data/DataService.java, app/data/DefaultExchanger.java, app/data/exchangers 아래 47개 클래스(v2는 연결 테이블 2개를 더함, D-34), app/controllers/SiteApp.java:352-382, docs/ko/spec/export-and-import.md]
+updated: 2026-10-29
 ---
 
 # 데이터 내보내기와 가져오기
 
-코드: `domain/site/DataTables`(47개 테이블 명세), `DataService`, `web/site/SiteDataController`.
+코드: `domain/site/DataTables`(49개 테이블 명세: v1.6의 47개와 X-14의 연결 테이블 2개), `DataService`, `web/site/SiteDataController`.
 
 ## 파일 모양
 
