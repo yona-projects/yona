@@ -104,6 +104,15 @@
                             </div>
                             <span class="note ml10" th:text="#{project.reviewer.count.description}"></span>
                         </div>
+
+                        <!--/* 새 커밋이 올라오면 오래된 승인을 해제할지(추가 항목 X-12, decisions.md D-35 5번). v1.6은 항상 해제했으므로 기본은 켬이다 */-->
+                        <div class="mt10">
+                            <span class="note" th:text="#{project.reviewer.dismiss.stale}"></span>
+                            <input name="isDismissingStaleApprovals" type="radio" class="radio-btn" id="dismissStaleEnable" value="true" th:checked="${project.isDismissingStaleApprovals != false}">
+                            <label for="dismissStaleEnable" class="bg-radiobtn label-public" th:text="#{project.reviewer.count.enable}"></label>
+                            <input name="isDismissingStaleApprovals" type="radio" class="radio-btn" id="dismissStaleDisable" value="false" th:checked="${project.isDismissingStaleApprovals == false}">
+                            <label for="dismissStaleDisable" class="bg-radiobtn label-private" th:text="#{project.reviewer.count.disable}"></label>
+                        </div>
                     </div>
                 </div>
 

@@ -304,6 +304,27 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `새 커밋의 승인 해제 설정을 저장하고 보내지 않으면 그대로 둔다 (X-12, D-35 5번)`() {
+        val project = newProject()
+        assertEquals(true, reload(project).isDismissingStaleApprovals, "기본은 켬이다")
+        val session = login(manager(project))
+        save(project, session, "name" to project.name!!, "isDismissingStaleApprovals" to "false", *allMenus)
+        assertEquals(false, reload(project).isDismissingStaleApprovals)
+        save(project, session, "name" to project.name!!, *allMenus)
+        assertEquals(false, reload(project).isDismissingStaleApprovals, "보내지 않으면 그대로이다")
+        save(project, session, "name" to project.name!!, "isDismissingStaleApprovals" to "true", *allMenus)
+        assertEquals(true, reload(project).isDismissingStaleApprovals)
+    }
+
+    @Test
+    fun `설정 화면에 승인 해제 항목이 리뷰어 수 영역에 있다 (X-12, D-35 5번)`() {
+        val project = newProject(configure = { isDismissingStaleApprovals = false })
+        val doc = org.jsoup.Jsoup.parse(mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/${project.owner}/${project.name}/settingform").session(login(manager(project)))).andReturn().response.contentAsString)
+        assertEquals("false", doc.select("#reviewerCountSettingPanel input[name=isDismissingStaleApprovals][checked]").single().attr("value"))
+        assertEquals(listOf("true", "false"), doc.select("#reviewerCountSettingPanel input[name=isDismissingStaleApprovals]").map { it.attr("value") })
+    }
+
+    @Test
     fun `보내지 않은 항목은 그대로 둔다`() {
         val project = newProject(configure = { isCodeAccessibleMemberOnly = true; defaultReviewerCount = 3 })
         save(project, login(manager(project)), "name" to project.name!!, *allMenus)

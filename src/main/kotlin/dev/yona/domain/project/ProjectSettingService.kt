@@ -20,6 +20,7 @@ import java.io.InputStream
  * @property projectScope 공개 범위 이름
  * @property isCodeAccessibleMemberOnly 코드를 구성원에게만 보일지 (`true`/`false` 문자열)
  * @property isUsingReviewerCount 리뷰어 수를 쓸지 (`true`/`false` 문자열)
+ * @property isDismissingStaleApprovals 새 커밋이 올라오면 오래된 승인을 해제할지 (`true`/`false` 문자열, 추가 개발 항목 X-12, `decisions.md` D-35 5번)
  * @property defaultReviewerCount 기본 리뷰어 수
  * @property defaultBranch 기본 브랜치 참조 이름 (예: `refs/heads/master`)
  * @property menus 켜기로 한 메뉴 이름 모음. 체크하지 않은 메뉴는 꺼진다
@@ -30,6 +31,7 @@ data class ProjectSettingForm(
     val projectScope: String? = null,
     val isCodeAccessibleMemberOnly: String? = null,
     val isUsingReviewerCount: String? = null,
+    val isDismissingStaleApprovals: String? = null,
     val defaultReviewerCount: String? = null,
     val defaultBranch: String? = null,
     val menus: Set<String> = emptySet()
@@ -86,6 +88,7 @@ class ProjectSettingService(
         if (form.projectScope != null && scopeOf(form.projectScope) == null) errors.reject("projectScope", "error.invalid")
         form.isCodeAccessibleMemberOnly?.let { if (booleanOf(it) == null) errors.reject("isCodeAccessibleMemberOnly", "error.invalid") }
         form.isUsingReviewerCount?.let { if (booleanOf(it) == null) errors.reject("isUsingReviewerCount", "error.invalid") }
+        form.isDismissingStaleApprovals?.let { if (booleanOf(it) == null) errors.reject("isDismissingStaleApprovals", "error.invalid") }
         form.defaultReviewerCount?.let { if (it.toIntOrNull() == null) errors.reject("defaultReviewerCount", "error.invalid") }
 
         // 폼 검증 단계 (validateWhenUpdate)
@@ -148,6 +151,7 @@ class ProjectSettingService(
         scopeOf(form.projectScope)?.let { project.projectScope = it }
         form.isCodeAccessibleMemberOnly?.let { project.isCodeAccessibleMemberOnly = booleanOf(it) }
         form.isUsingReviewerCount?.let { project.isUsingReviewerCount = booleanOf(it) }
+        form.isDismissingStaleApprovals?.let { project.isDismissingStaleApprovals = booleanOf(it) }
         form.defaultReviewerCount?.let { project.defaultReviewerCount = it.toInt() }
         projects.save(project)
 

@@ -84,6 +84,7 @@ class ProjectSettingController(
         projectScope = request.getParameter("projectScope"),
         isCodeAccessibleMemberOnly = request.getParameter("isCodeAccessibleMemberOnly"),
         isUsingReviewerCount = request.getParameter("isUsingReviewerCount"),
+        isDismissingStaleApprovals = request.getParameter("isDismissingStaleApprovals"),
         defaultReviewerCount = request.getParameter("defaultReviewerCount"),
         defaultBranch = request.getParameter("defaultBranch"),
         menus = ProjectForm.MENU_NAMES.filter { request.getParameter(it)?.lowercase() in setOf("true", "on", "yes", "1") }.toSet()
