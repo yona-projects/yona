@@ -28,7 +28,7 @@
 
     <th:block th:if="${header.accept != null}">
         <!--/* 병합 상자(추가 항목 X-28, decisions.md D-41). GitHub, Forgejo처럼 분할 단추와 방식 목록(부트스트랩 드롭다운)으로 방식을 고르고, 단추를 누르면 기록될 커밋 제목과 본문을 미리 채운 확인 칸이 열린다. 할 수 없는 방식은 이유와 함께 막는다 */-->
-        <div th:if="${header.accept.enabled}" id="merge-box" style="display:inline-block; vertical-align:top; text-align:left;">
+        <div th:if="${header.accept.enabled}" id="merge-box" style="display:inline-block; vertical-align:top; text-align:left; position:relative;">
             <div class="btn-group">
                 <button type="button" id="btnAccept" class="ybtn ybtn-success" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
                 <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="ybtn ybtn-success dropdown-toggle" data-toggle="dropdown" th:title="#{pullRequest.merge.options}"></button>
@@ -44,7 +44,7 @@
                     </li>
                 </ul>
             </div>
-            <form id="merge-options" method="post" th:action="${header.accept.formAction}" class="well" style="display:none; width:420px; margin-top:8px; margin-bottom:0;">
+            <form id="merge-options" method="post" th:action="${header.accept.formAction}" class="well" style="display:none; position:absolute; right:0; top:100%; z-index:1000; width:420px; margin:4px 0 0; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.18);">
                 <input type="hidden" name="method" th:value="${header.accept.defaultMethod}">
                 <div id="merge-message-fields">
                     <input type="text" name="commitTitle" class="input-block-level" maxlength="255" th:value="${header.accept.defaultOption?.defaultTitle}">
