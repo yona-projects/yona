@@ -230,6 +230,8 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         val d = page("${s.base}/pullRequests?assigneeId=${s.member.id}&labelIds=${bug.id}")
         val assignee = d.selectFirst("#advanced-search-form select#assignees[name=assigneeId]")!!
         assertEquals(s.member.id.toString(), assignee.selectFirst("option[selected]")!!.attr("value"))
+        assertEquals("select2", assignee.attr("data-toggle"), "보낸 사람 필터처럼 select2로 보여야 한다")
+        assertEquals("user", assignee.attr("data-format"))
         val labels = d.selectFirst("#advanced-search-form select#labelIds[name=labelIds]")!!
         assertEquals(listOf(bug.id.toString()), labels.select("option[selected]").map { it.attr("value") })
         assertNotNull(d.selectFirst("#advanced-search-form select#contributors"), "기존 보낸 사람 필터는 그대로이다")
