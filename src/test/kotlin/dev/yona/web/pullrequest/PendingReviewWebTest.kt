@@ -175,6 +175,16 @@ class PendingReviewWebTest : AbstractIntegrationTest() {
         assertEquals(1, reader.threads(pullRequests.findById(s.pr.id!!).get(), s.member).size)
     }
 
+    @Test
+    fun `내 임시 스레드만 있어도 리뷰 카드 영역이 있는 화면으로 그린다 (화면 스크립트가 없는 탭을 찾지 않게)`() {
+        val s = setup()
+        assertNull(changes(s, s.member).selectFirst(".review-wrap"))
+        mockMvc.perform(lineComment(s, s.member, "임시 하나", pending = true))
+        em.flush(); em.clear()
+        assertNotNull(changes(s, s.member).selectFirst(".review-wrap #reviewcards-open"))
+        assertNull(changes(s, s.manager).selectFirst(".review-wrap"), "남에게는 스레드가 없는 화면이다")
+    }
+
     // --- 단추와 안내 ---
 
     @Test
