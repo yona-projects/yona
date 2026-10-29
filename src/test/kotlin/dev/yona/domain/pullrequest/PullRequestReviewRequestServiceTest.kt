@@ -72,19 +72,24 @@ class PullRequestReviewRequestServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `작성자와 읽을 수 없는 사람과 활성이 아닌 사용자는 요청할 수 없다`() {
+    fun `작성자와 프로젝트에 속하지 않은 사람과 활성이 아닌 사용자는 요청할 수 없다`() {
         val p = project(ProjectScope.PRIVATE); val actor = member(p); val author = member(p); val pr = pullRequest(p, author)
         val outsider = user(); val locked = member(p, user(UserState.LOCKED))
         assertEquals(ReviewRequestResult.NOT_CANDIDATE, service.request(pr, author, actor), "작성자는 요청 대상이 아니다")
-        assertEquals(ReviewRequestResult.NOT_CANDIDATE, service.request(pr, outsider, actor), "비공개 프로젝트를 읽을 수 없다")
+        assertEquals(ReviewRequestResult.NOT_CANDIDATE, service.request(pr, outsider, actor), "프로젝트에 속하지 않았다")
         assertEquals(ReviewRequestResult.NOT_CANDIDATE, service.request(pr, locked, actor), "잠긴 사용자")
         assertTrue(pr.reviewRequests.isEmpty()); assertTrue(events(pr).isEmpty()); assertTrue(notes().isEmpty())
     }
 
     @Test
-    fun `공개 프로젝트는 구성원이 아니어도 읽을 수 있는 사용자를 요청할 수 있다`() {
+    fun `공개 프로젝트여도 구성원이 아니면 요청할 수 없고 소속 조직의 구성원은 요청할 수 있다`() {
         val p = project(ProjectScope.PUBLIC); val actor = member(p); val outsider = user(); val pr = pullRequest(p, member(p))
-        assertEquals(ReviewRequestResult.CHANGED, service.request(pr, outsider, actor))
+        assertEquals(ReviewRequestResult.NOT_CANDIDATE, service.request(pr, outsider, actor))
+        val organization = dev.yona.domain.project.Organization(name = "rrqorg${++sequence}", descr = "").also { em.persist(it) }
+        p.organization = organization
+        val orgMember = user().also { em.persist(dev.yona.domain.project.OrganizationUser(user = it, organization = organization, role = roles.findById(RoleType.ORG_MEMBER.id).get())) }
+        em.flush()
+        assertEquals(ReviewRequestResult.CHANGED, service.request(pr, orgMember, actor))
     }
 
     @Test
@@ -144,15 +149,17 @@ class PullRequestReviewRequestServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `후보는 이름이나 로그인 ID로 찾고 작성자와 이미 요청된 사람을 뺀 읽을 수 있는 활성 사용자 최대 20명이다`() {
+    fun `후보는 이름이나 로그인 ID로 찾고 작성자와 이미 요청된 사람을 뺀 프로젝트에 속한 활성 사용자 최대 20명이다`() {
         val p = project(); val author = member(p); val pr = pullRequest(p, author)
         val named = (1..25).map { member(p, users.save(User(loginId = "zzcand$it", name = "후보 $it", email = "zzcand$it@example.com", state = UserState.ACTIVE))) }
-        val locked = user(UserState.LOCKED).also { it.loginId = "zzcand-locked"; users.save(it) }
+        val locked = member(p, user(UserState.LOCKED).also { it.loginId = "zzcand-locked"; users.save(it) })
+        users.save(User(loginId = "outsider-zz", name = "밖", email = "zz@example.com", state = UserState.ACTIVE))
         val result = service.candidates(pr, "zzcand", author)
         assertEquals(20, result.size)
         assertTrue(result.none { it.id == author.id || it.id == locked.id })
         assertEquals(1, service.candidates(pr, "후보 25", author).size)
         assertTrue(service.candidates(pr, "", author).isEmpty(), "빈 검색어는 목록을 보이지 않는다")
+        assertTrue(service.candidates(pr, "outsider-zz", author).isEmpty(), "프로젝트에 속하지 않은 사람은 나오지 않는다")
         assertTrue(named.isNotEmpty())
     }
 }
