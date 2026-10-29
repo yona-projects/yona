@@ -113,17 +113,11 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit.http.server:7.8.0.202609011348-r")
 	implementation("org.eclipse.jgit:org.eclipse.jgit.archive:7.8.0.202609011348-r")
 
-	// 서버 측 마크다운 렌더링(D-17): CommonMark 구현과 GFM 확장, 결과 정화(OWASP)와 HTML 후처리(jsoup)
+	// 서버 측 마크다운 렌더링: marked.js 실행(아래 Nashorn), 결과 정화(OWASP)와 HTML 후처리(jsoup)
 	// v1.6이 쓰던 marked.js를 그대로 실행하는 JavaScript 엔진(JDK 15에서 빠진 Nashorn의 독립 배포판, 결정 D-17 되돌림 A-151)
 	implementation("org.openjdk.nashorn:nashorn-core:15.4")
 	// v1.6이 변환 실패 때 원문을 감싸는 데 쓴 `StringEscapeUtils.escapeHtml`(commons-lang 2.x)
 	implementation("commons-lang:commons-lang:2.6")
-	implementation("org.commonmark:commonmark:0.31.0")
-	implementation("org.commonmark:commonmark-ext-gfm-tables:0.31.0")
-	implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.31.0")
-	implementation("org.commonmark:commonmark-ext-autolink:0.31.0")
-	implementation("org.commonmark:commonmark-ext-task-list-items:0.31.0")
-	implementation("org.commonmark:commonmark-ext-heading-anchor:0.31.0")
 	implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20190610.1")
 	implementation("org.jsoup:jsoup:1.8.3")
 	// Subversion WebDAV(D-26): DAV 서블릿은 javax 서블릿 API를 쓰므로 Jakarta 서블릿 위에 변환 어댑터를 둔다.
@@ -155,10 +149,6 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
 	// 렌더링된 HTML의 구조를 DOM으로 검증하는 데 쓴다(운영 코드는 쓰지 않는다).
-
-	// v1.6이 쓰던 marked.js를 JVM에서 실행해 commonmark-java의 결과와 비교한다(D-17, 테스트 전용).
-	testImplementation("org.graalvm.polyglot:polyglot:25.4.4.1.1")
-	testRuntimeOnly("org.graalvm.polyglot:js:25.4.4.1.1")
 
 	// v1.6이 패스워드 해시에 쓰던 Shiro와 결과가 같은지 교차 검증하기 위한 참조 구현이다(운영 코드는 쓰지 않는다).
 	testImplementation("org.apache.shiro:shiro-core:1.13.0")

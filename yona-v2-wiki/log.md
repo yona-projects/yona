@@ -532,3 +532,7 @@
 ## [2026-10-29] decision | D-32 회귀 실행 방침과 의도된 차이 장부
 - 선생님이 동등성 대조 도구(`regress.sh`)는 요청할 때만 돌리고, 추가 개발 항목의 차이는 장부로 관리하라고 정하셨다(D-32). 전체 회귀를 시작했다가 첫 시나리오(`anon_basic` 2 -> 36)에서 중단했고 보고서는 보관본으로 복구했다.
 - `architecture/differences-from-v16.md`에 "추가 개발 항목으로 생긴 의도된 차이 (장부)" 표를 만들고 X-21(GA4), X-22(기본 브랜치), X-11(이슈 자동 닫기), X-18(태그 화면), 브랜치 삭제 확인창을 등록했다.
+
+## [2026-10-29] cleanup | D-33 정리 항목 정리
+- 선생님 지시로 마크다운 비교용 잔재(`MarkedReference`, `MarkedReferenceTest`, `MarkdownDifferenceTest`, commonmark와 GraalJS 의존성)를 삭제했다. `FaviconController`는 중복이 아니라 남겼다. `yona-v1.16-release` 폴더는 제외했다.
+- 확인창 방식(브라우저 기본 `confirm()`) 유지(D-31), 로드맵 X-13 후보(밖의 참조 푸시 거부)는 보류(D-30 7번)로 기록했다.

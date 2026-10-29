@@ -2,7 +2,7 @@
 title: 서버 측 마크다운 렌더링
 type: web
 sources: [app/utils/Markdown.java:36-330, public/javascripts/lib/marked.js]
-updated: 2026-10-22
+updated: 2026-10-29
 ---
 
 # 서버 측 마크다운 렌더링
@@ -16,9 +16,8 @@ updated: 2026-10-22
 | `MarkedEngine` | v1.6의 `public/javascripts/lib/marked.js`(소스 기준 판)를 Nashorn 독립 배포판(`org.openjdk.nashorn:nashorn-core:15.4`)에서 같은 옵션(`gfm`, `tables`, `breaks`, `headerIds`, `smartLists`)으로 실행한다. 엔진은 처음 쓸 때 만들고 호출을 직렬화한다. JDK 8 Nashorn의 ES5 `splice(시작)` 동작을 맞춘다 |
 | `MarkdownRenderer` | `MarkedEngine`의 출력을 v1.6과 같은 정책의 OWASP 정화(20190610.1)에 통과시키고 캐시한다 |
 | `HtmlDocuments` | jsoup 1.8.3 기본 출력 설정으로 읽는다(v1.6 `removeJavascriptInHref` 등과 같다) |
-| `MarkedReference`, `MarkdownDifferenceTest` | 테스트 전용 GraalJS 비교. 이제 운영도 같은 파일을 쓰므로 엔진 간 차이만 드러낸다 |
 
-이전의 commonmark-java 구성은 공식 v1.16.0과 160여 개 입력을 비교한 결과 강조 겹침(`***x***`), 줄바꿈, 제목 `id` 문자 처리, 표의 남는 칸이 달라 버렸다.
+이전의 commonmark-java 구성은 공식 v1.16.0과 160여 개 입력을 비교한 결과 강조 겹침(`***x***`), 줄바꿈, 제목 `id` 문자 처리, 표의 남는 칸이 달라 버렸다. 그 시절의 비교용 테스트(`MarkedReference`, `MarkedReferenceTest`, `MarkdownDifferenceTest`)와 빌드의 commonmark, GraalJS 의존성은 2026-10-29에 삭제했다(D-33). 운영이 이미 같은 `marked.js`를 쓰므로 다른 엔진과 비교할 이유가 없다.
 
 ## v1.6 마크업
 
