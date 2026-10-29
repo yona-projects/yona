@@ -230,6 +230,8 @@ Yona 권장: 선택지는 7, 30, 60, 90일, 사용자 지정 날짜, 없음(경�
 3. 화면(목록, 만들기, 한 번만 보임, 삭제)과 발급 API.
 4. 브라우저 검증은 마지막에 한 번.
 
+> **주의(2026-10-29)**: 토큰이 닿는 경로의 구성은 선생님 지시로 [api-auth-split.md](api-auth-split.md)의 "세션 경로와 API 경로의 분리"로 바뀌었다(둘 다 받는 경로를 기존 주소는 세션 전용으로 하고 `/api/v1/**` 토큰 전용 이름 공간을 새로 만든다). 아래 16번의 "토큰 전용으로 바꾼다"는 그 문서가 대체한다.
+
 ## 구현 전 점검 목록 (면밀 검토, 2026-10-29)
 
 결정이 필요한 것과 구현 때 처리할 것을 나누어 적는다. 현재 코드(`YonaAuthenticationFilter`, `AccountService`, `ApiRequests`, `BasicAuthResolver`, `SecurityConfig`)를 확인한 결과이다.
@@ -257,8 +259,8 @@ Yona 권장: 선택지는 7, 30, 60, 90일, 사용자 지정 날짜, 없음(경�
     - `/-_-api/v1/**` 접두사 전체가 외부 API가 아니다. 웹 화면이 세션으로 부르는 AJAX가 같은 접두사 아래에 많다(`titleHeads`, `assignableUsers`, `postlabel`, `upvoteWeight`, `share`, `detectChange`, `commentNotiReceivers`, `favoriteProjects`, `defultLoginPage` 등). 이들은 **세션 전용**이다. 따라서 허용 목록은 접두사가 아니라 **엔드포인트 단위**이다.
     - 지금 둘 다 받는 경로(이슈 만들기, 이슈 댓글, 이슈 라벨 바꾸기, 이슈 가져오기, 게시글과 게시글 댓글)는 **웹 화면이 부르지 않는다**. 이전(Migration) 화면의 스크립트(`yona.Migration.js`)는 Yona 쪽으로 `/migration/**`만 부르고 `/-_-api`의 이 경로들을 부르지 않는다. v1.6이 "세션도 받는다"고 한 이유는 외부 이전 도구가 `POST /-_-api/v1/users/token`으로 받은 **세션 쿠키**를 그대로 쓰게 하려던 것으로 보인다. 그러므로 이 경로들은 **토큰 전용으로 바꾼다**. 쿠키에 기대던 외부 도구는 응답으로 받은 토큰을 헤더에 넣어야 한다(의도된 비호환 변경, 장부에 기록).
     - **토큰 전용 엔드포인트 명단**(허용 목록): 이슈 조회, 만들기, 수정, 상태 변경, 댓글, 라벨 바꾸기, 가져오기, 게시글 만들기, 게시글 댓글, 내 이슈 목록, 사용자 통계, 사용자 만들기와 관리자 사용자 API(`site_admin`), `hello`. 토큰을 만드는 `POST /-_-api/v1/users/token`은 자격(아이디, 비밀번호)이 인증이다. 나머지 `/-_-api/**`와 웹 경로는 모두 세션 전용이다.
-    - **첨부 올리기**(선생님 지시 2026-10-29): 기존 `POST /files`(`AttachmentController`)는 웹 편집기가 세션으로 쓰는 경로라 **세션 전용으로 바꾼다**(지금 받는 `Yona-Token` 지원은 뺀다). 토큰으로 올릴 도구를 위해 **토큰 전용 경로를 새로 만든다**: `POST /-_-api/v1/files`. 요청 형식은 기존과 같고(멀티파트 `filePath`, 선택 `authorEmail`, `authorLoginId`) 필요한 범위는 `repo`나 `public_repo`, 임시 첨부(컨테이너 `USER`)로 저장하는 동작도 같다. 내려받기, 목록, 지우기(`GET /files/{id}`, `GET /files`, `POST /files/{id}`)는 세션 전용으로 둔다. 새 경로는 대응표(1-1절)에 한 줄 더한다.
-    - **첨부와 가져오기 JSON의 연결**(확인): 가져오기 흐름(세션 흐름)의 본문에는 `temporaryUploadFiles`가 있다. 도구가 `POST /files`로 첨부를 먼저 올리고(`authorEmail`로 원작성자 명의) 그 첨부 번호를 이슈, 게시글, 댓글 JSON의 `temporaryUploadFiles`에 넣어 연결한다. 그래서 토큰 전용 업로드 경로(`POST /-_-api/v1/files`)는 이 흐름을 토큰 인증으로 옮기기 위해 필요하다.
+    - **첨부 올리기**(선생님 지시 2026-10-29): 기존 `POST /files`(`AttachmentController`)는 웹 편집기가 세션으로 쓰는 경로라 **세션 전용으로 바꾼다**(지금 받는 `Yona-Token` 지원은 뺀다). 토큰으로 올릴 도구를 위해 **토큰 전용 경로를 새로 만든다**: `POST /api/v1/files`. 요청 형식은 기존과 같고(멀티파트 `filePath`, 선택 `authorEmail`, `authorLoginId`) 필요한 범위는 `repo`나 `public_repo`, 임시 첨부(컨테이너 `USER`)로 저장하는 동작도 같다. 내려받기, 목록, 지우기(`GET /files/{id}`, `GET /files`, `POST /files/{id}`)는 세션 전용으로 둔다. 새 경로는 대응표(1-1절)에 한 줄 더한다.
+    - **첨부와 가져오기 JSON의 연결**(확인): 가져오기 흐름(세션 흐름)의 본문에는 `temporaryUploadFiles`가 있다. 도구가 `POST /files`로 첨부를 먼저 올리고(`authorEmail`로 원작성자 명의) 그 첨부 번호를 이슈, 게시글, 댓글 JSON의 `temporaryUploadFiles`에 넣어 연결한다. 그래서 토큰 전용 업로드 경로(`POST /api/v1/files`)는 이 흐름을 토큰 인증으로 옮기기 위해 필요하다.
     - **이슈 댓글의 두 JSON 모양**: `POST .../issues/{number}/comments`는 v1.6부터 한 경로 안에 흐름이 둘이다(`IssueApi.newIssueComment`). `Authorization` 헤더가 있으면 토큰 흐름(본문 `{"comment": "..."}`), 없으면 세션 흐름(`createCommentByUser`, 본문 `body`, `author`, `createdAt`: 가져오기용)이다. 이는 v2가 v1.6과 달라진 것이 아니라 **v1.6 자체의 구조**이다. **응답 모양도 두 흐름이 다르다**(v1.6 `createCommentUsingToken`, `createCommentByUser`): 토큰 흐름은 `201 {"result": {이슈 정보와 이벤트}}`, 세션 흐름은 `201 {"status": 201, "location": "댓글 주소"}`이다. 모양을 그대로 유지한다. 토큰 전용으로 바꿀 때 **두 JSON 모양을 모두 토큰 인증 아래에서 받고** 인증만 하나로 합친다(모양을 바꾸면 도구가 깨진다). 어느 모양인지는 본문에 `comment`가 있는지로 가린다.
 17. **토큰 헤더가 있으면 세션보다 토큰이 우선한다**: 현재 인증 필터는 세션이 유효하면 토큰을 확인하지 않아(`if (!hasValidSession())`), 세션 쿠키와 토큰 헤더를 함께 보내는 클라이언트는 **토큰의 범위가 무시되고 전체 권한**으로 동작한다. 옛 URL이 토큰과 함께 세션 쿠키도 발급하므로 쿠키를 유지하는 클라이언트가 실제로 이렇게 된다. 새 구조는 토큰 헤더가 있으면 토큰 인증을 먼저 하고 그 범위를 적용한다(세션은 무시한다).
 18. **옛 URL의 세션 발급**: 세션 쿠키에 기대던 용도가 16번으로 없어지므로 이 호출이 세션 로그인을 겸할 이유가 없다. 세션 발급은 **없애고** 토큰만 돌려준다(의도된 비호환 변경). 17번(토큰 헤더 우선)은 다른 경로의 방어로 유지한다.
