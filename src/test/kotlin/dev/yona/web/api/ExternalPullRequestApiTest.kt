@@ -7,6 +7,8 @@ import dev.yona.domain.enumeration.ProjectScope
 import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.enumeration.UserState
+import dev.yona.domain.issue.IssueLabel
+import dev.yona.domain.issue.IssueLabelCategory
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectMenuSetting
 import dev.yona.domain.project.ProjectMenuSettingRepository
@@ -33,6 +35,7 @@ import org.springframework.mock.web.MockHttpSession
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -219,5 +222,94 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
             post("/${s.origin.owner}/${s.origin.name}/pullRequest/${s.pr.id}/comments").session(login(by)).param("contents", text).param("path", "b.txt")
                 .param("startSide", "B").param("startLine", "1").param("startColumn", "0").param("endSide", "B").param("endLine", "1").param("endColumn", "1").apply { if (pending) param("pending", "true") }
         )
+    }
+
+    // --- 쓰기: 상태 ---
+
+    private fun json(builder: MockHttpServletRequestBuilder, body: String? = null) =
+        builder.contentType("application/json").apply { body?.let { content(it) } }
+
+    @Test
+    fun `닫고 다시 열 수 있고 이미 열린 것을 다시 열거나 병합된 것을 닫으면 409이다`() {
+        val s = setup(); val t = token(s.manager)
+        call(post("${s.api}/${s.pr.number}/reopen"), t).andExpect(status().isConflict)
+        call(post("${s.api}/${s.pr.number}/close"), t).andExpect(status().isOk).andExpect(jsonPath("$.state").value("closed")).andExpect(jsonPath("$.receiver.loginId").value(s.manager.loginId))
+        call(post("${s.api}/${s.pr.number}/reopen"), t).andExpect(status().isOk).andExpect(jsonPath("$.state").value("open"))
+        em.flush(); em.clear()
+        val pr = pullRequests.findById(s.pr.id!!).get(); pr.state = State.MERGED; pullRequests.save(pr); em.flush()
+        call(post("${s.api}/${s.pr.number}/close"), t).andExpect(status().isConflict)
+    }
+
+    @Test
+    fun `쓰기 권한이 없으면 403이다`() {
+        val s = setup(); val outsider = user(); val t = token(outsider)
+        call(post("${s.api}/${s.pr.number}/close"), t).andExpect(status().isForbidden)
+        call(post("${s.api}/${s.pr.number}/merge"), t).andExpect(status().isForbidden)
+        call(json(post("${s.api}/${s.pr.number}/assignees"), """{"assignees":[]}"""), t).andExpect(status().isForbidden)
+        call(post("${s.api}/${s.pr.number}/reopen"), token(s.manager, "user")).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `병합하면 병합됨 상태와 받은 사람을 돌려주고 병합 방식은 merge만 받는다`() {
+        val s = setup(); val t = token(s.manager)
+        call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"squash"}"""), t).andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("Unsupported merge method: squash"))
+        call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"rebase"}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"merge"}"""), t).andExpect(status().isOk)
+            .andExpect(jsonPath("$.state").value("merged")).andExpect(jsonPath("$.receiver.loginId").value(s.manager.loginId)).andExpect(jsonPath("$.mergedAt").isNotEmpty)
+        call(post("${s.api}/${s.pr.number}/merge"), t).andExpect(status().isConflict)
+    }
+
+    @Test
+    fun `닫힌 풀 리퀘스트는 병합할 수 없다`() {
+        val s = setup(); val t = token(s.manager)
+        call(post("${s.api}/${s.pr.number}/close"), t).andExpect(status().isOk)
+        call(post("${s.api}/${s.pr.number}/merge"), t).andExpect(status().isConflict)
+    }
+
+    @Test
+    fun `병합한 뒤 출발 브랜치를 지우고 되살릴 수 있다`() {
+        val s = setup(); val t = token(s.manager)
+        call(post("${s.api}/${s.pr.number}/merge"), t).andExpect(status().isOk)
+        call(delete("${s.api}/${s.pr.number}/fromBranch"), t).andExpect(status().isOk)
+        call(post("${s.api}/${s.pr.number}/fromBranch/restore"), t).andExpect(status().isOk)
+    }
+
+    // --- 쓰기: 담당자, 라벨, 리뷰 요청 ---
+
+    @Test
+    fun `담당자를 지정하고 비울 수 있고 후보가 아니면 400이다`() {
+        val s = setup(); val t = token(s.manager)
+        call(json(post("${s.api}/${s.pr.number}/assignees"), """{"assignees":["${s.member.loginId}"]}"""), t).andExpect(status().isOk).andExpect(jsonPath("$.assignees[0].loginId").value(s.member.loginId))
+        call(json(post("${s.api}/${s.pr.number}/assignees"), """{"assignees":[]}"""), t).andExpect(status().isOk).andExpect(jsonPath("$.assignees.length()").value(0))
+        call(json(post("${s.api}/${s.pr.number}/assignees"), """{"assignees":["${user().loginId}"]}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/assignees"), """{"assignees":["nobody"]}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/assignees"), """{"assignees":["a","b"]}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/assignees"), """{}"""), t).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `라벨을 붙이고 떼며 다른 프로젝트의 라벨은 400이다`() {
+        val s = setup(); val t = token(s.manager)
+        val category = IssueLabelCategory(project = s.origin, name = "분류${++sequence}").also { em.persist(it) }
+        val bug = IssueLabel(category = category, color = "#33aa77", name = "bug", project = s.origin).also { em.persist(it) }
+        val stray = IssueLabel(category = IssueLabelCategory(project = s.fork, name = "분류${++sequence}").also { em.persist(it) }, color = "#111111", name = "stray", project = s.fork).also { em.persist(it) }
+        em.flush()
+        call(json(post("${s.api}/${s.pr.number}/labels"), """{"attachingLabelIds":[${bug.id}]}"""), t).andExpect(status().isOk)
+            .andExpect(jsonPath("$.labels[0].labelName").value("bug")).andExpect(jsonPath("$.labels[0].id").value(bug.id!!.toInt()))
+        call(json(post("${s.api}/${s.pr.number}/labels"), """{"attachingLabelIds":[${stray.id}]}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/labels"), """{"attachingLabelIds":[999999]}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/labels"), """{"detachingLabelIds":[${bug.id}]}"""), t).andExpect(status().isOk).andExpect(jsonPath("$.labels.length()").value(0))
+    }
+
+    @Test
+    fun `리뷰를 요청하고 취소할 수 있으며 작성자와 외부인은 요청할 수 없다`() {
+        val s = setup(); val t = token(s.manager)
+        call(json(post("${s.api}/${s.pr.number}/requestedreviewers"), """{"reviewer":"${s.member.loginId}"}"""), t).andExpect(status().isOk)
+            .andExpect(jsonPath("$.requestedReviewers[0].loginId").value(s.member.loginId))
+        call(json(post("${s.api}/${s.pr.number}/requestedreviewers"), """{"reviewer":"${s.contributor.loginId}"}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/requestedreviewers"), """{"reviewer":"${user().loginId}"}"""), t).andExpect(status().isBadRequest)
+        call(json(post("${s.api}/${s.pr.number}/requestedreviewers"), """{"reviewer":"nobody"}"""), t).andExpect(status().isBadRequest)
+        call(delete("${s.api}/${s.pr.number}/requestedreviewers/${s.member.loginId}"), t).andExpect(status().isOk).andExpect(jsonPath("$.requestedReviewers.length()").value(0))
+        call(delete("${s.api}/${s.pr.number}/requestedreviewers/nobody"), t).andExpect(status().isNotFound)
     }
 }

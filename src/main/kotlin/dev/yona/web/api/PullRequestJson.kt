@@ -48,7 +48,7 @@ class PullRequestJson(private val users: UserRepository, private val siteUrls: S
             },
             "url" to siteUrls.path("${UrlPaths.projectPath(to.owner, to.name)}/pullRequest/${pullRequest.number}"),
             "assignees" to pullRequest.assignees.sortedBy { it.id }.map { user(it) },
-            "labels" to pullRequest.labels.sortedBy { it.id }.map { linkedMapOf("labelName" to it.name, "labelColor" to it.color, "category" to it.category?.name) },
+            "labels" to pullRequest.labels.sortedBy { it.id }.map { linkedMapOf("id" to it.id, "labelName" to it.name, "labelColor" to it.color, "category" to it.category?.name) },
             "requestedReviewers" to pullRequest.reviewRequests.sortedBy { it.id }.map { user(it) },
             "approvals" to linkedMapOf("count" to pullRequest.countedApprovals, "required" to if (to.isUsingReviewerCount == true) pullRequest.requiredReviewerCount else 0, "approvers" to pullRequest.reviewers.sortedBy { it.id }.map { user(it) }),
             "mergedCommitIdFrom" to pullRequest.mergedCommitIdFrom, "mergedCommitIdTo" to pullRequest.mergedCommitIdTo
