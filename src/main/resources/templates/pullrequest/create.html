@@ -54,28 +54,32 @@
                 <span id="pullRequestState" th:attr="data-value=${state}"></span>
                 <div id="status" class="alert mt20 mb20" th:text="#{pullRequest.is.merging}"></div>
 
-                <!--/* 담당자와 라벨(추가 항목 X-14, D-34 20번): 받는 프로젝트에 수정 권한이 있을 때만 보인다. 고른 값은 폼과 함께 보낸다 */-->
-                <div id="pr-meta" class="issue-info mb10" data-mode="form" th:if="${assigneeArea != null}" th:attr="data-candidates-url=${assigneeArea.candidatesUrl}">
-                    <dl class="pr-assignee">
-                        <dt th:text="#{issue.assignee}"></dt>
-                        <dd><input type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}" value="" style="width: 100%" title=""></dd>
-                    </dl>
-                    <th:block th:if="${labelArea.hasLabels}">
-                        <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelArea.groups}, ${labelArea.selectedIds}, 'pr-labels', null, ${projectView})}"></th:block>
-                    </th:block>
-                </div>
+                <!--/* v1.6 이슈 작성 폼과 같은 배치: 제목과 본문은 왼쪽(span9), 담당자와 라벨(추가 항목 X-14, D-34 20번)은 오른쪽 열(span3)에 세로로 쌓는다.
+                     오른쪽 열은 받는 프로젝트에 수정 권한이 있을 때만 있고, 없으면 왼쪽이 전체 폭을 쓴다. 고른 값은 폼과 함께 보낸다 */-->
+                <div class="row-fluid">
+                    <div class="span-left-pane" th:classappend="${assigneeArea != null} ? 'span9' : 'span12'">
+                        <input type="text" id="title" name="title" maxlength="255" class="text" th:placeholder="#{title}">
+                        <div style="position: relative;">
+                            <th:block th:replace="~{common/editor :: editor('body', ${body}, '', 'content-body', false)}"></th:block>
+                        </div>
+                        <th:block th:replace="~{common/file-uploader :: fileUploader('PULL_REQUEST', null)}"></th:block>
+                        <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
 
-                <div>
-                    <input type="text" id="title" name="title" maxlength="255" class="text" th:placeholder="#{title}">
-                    <div style="position: relative;">
-                        <th:block th:replace="~{common/editor :: editor('body', ${body}, '', 'content-body', false)}"></th:block>
+                        <div class="actions">
+                            <button type="submit" class="ybtn ybtn-success" th:text="#{pullRequest.send}"></button>
+                            <a href="javascript:history.back();" class="ybtn" th:text="#{button.cancel}"></a>
+                        </div>
                     </div>
-                    <th:block th:replace="~{common/file-uploader :: fileUploader('PULL_REQUEST', null)}"></th:block>
-                    <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
-
-                    <div class="actions">
-                        <button type="submit" class="ybtn ybtn-success" th:text="#{pullRequest.send}"></button>
-                        <a href="javascript:history.back();" class="ybtn" th:text="#{button.cancel}"></a>
+                    <div class="span3 span-hard-wrap right-menu" th:if="${assigneeArea != null}">
+                        <div id="pr-meta" class="issue-info" data-mode="form" th:attr="data-candidates-url=${assigneeArea.candidatesUrl}">
+                            <dl class="issue-option pr-assignee">
+                                <dt th:text="#{issue.assignee}"></dt>
+                                <dd><input type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}" value="" style="width: 100%" title=""></dd>
+                            </dl>
+                            <th:block th:if="${labelArea.hasLabels}">
+                                <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelArea.groups}, ${labelArea.selectedIds}, 'issue-option', false, ${projectView})}"></th:block>
+                            </th:block>
+                        </div>
                     </div>
                 </div>
 
