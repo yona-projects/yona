@@ -135,7 +135,9 @@ class UserPageAssembler(
             contributorName = contributor?.takeIf { !it.name.isNullOrEmpty() }?.let { UserDisplay.of(it, viewer?.lang) },
             createdTitle = helper.dateString(request.created), createdText = helper.agoOrDateString(request.created),
             threadCount = commentThreads.countByPullRequestId(requireNotNull(request.id)),
-            receiverLoginId = receiver?.loginId, receiverName = receiver?.name, receiverAvatarUrl = receiver?.let { avatars.avatarUrl(it) }
+            receiverLoginId = receiver?.loginId, receiverName = receiver?.name, receiverAvatarUrl = receiver?.let { avatars.avatarUrl(it) },
+            labels = dev.yona.web.pullrequest.labelTagsOf(request), assigneeLoginId = request.assignees.firstOrNull()?.loginId, assigneeName = request.assignees.firstOrNull()?.name,
+            assigneeAvatarUrl = request.assignees.firstOrNull()?.let { avatars.avatarUrl(it) }
         )
     }
 

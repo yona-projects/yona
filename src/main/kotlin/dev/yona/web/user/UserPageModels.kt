@@ -36,7 +36,9 @@ data class UserPullRequestRow(
     val number: Long, val title: String, val conflict: Boolean, val stateKey: String, val stateClass: String,
     val contributorLoginId: String, val contributorName: String?,
     val createdTitle: String, val createdText: String, val threadCount: Long,
-    val receiverLoginId: String?, val receiverName: String?, val receiverAvatarUrl: String?
+    val receiverLoginId: String?, val receiverName: String?, val receiverAvatarUrl: String?,
+    /** 붙은 라벨과 담당자(추가 항목 X-14, D-34). 담당자는 받은 사람과 다른 역할이라 따로 보인다 */
+    val labels: List<dev.yona.web.issue.IssueLabelTag> = emptyList(), val assigneeLoginId: String? = null, val assigneeName: String? = null, val assigneeAvatarUrl: String? = null
 )
 
 /**

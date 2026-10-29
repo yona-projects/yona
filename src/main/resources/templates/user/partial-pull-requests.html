@@ -17,6 +17,7 @@
             <a th:href="@{${base}}" class="title project" th:text="${pull.projectName}"></a>
             <span class="post-id" th:text="${pull.number}"></span>
             <a th:href="@{${url}}" class="title" th:classappend="${pull.conflict} ? 'conflict'" th:text="${pull.title}"></a>
+            <a th:each="l : ${pull.labels}" th:href="@{${url}}" class="label issue-label active list-label" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
         </div>
         <div class="infos">
             <a th:if="${pull.contributorName != null}" th:href="@{/{u}(u=${pull.contributorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${pull.contributorLoginId}" th:text="${pull.contributorName}"></a>
@@ -30,10 +31,13 @@
     </div>
     <div class="span2">
         <div class="mt5 pull-right">
+            <a th:if="${pull.assigneeLoginId != null}" th:href="@{/{u}(u=${pull.assigneeLoginId})}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${pull.assigneeName}" th:title="#{issue.assignee} + ': ' + ${pull.assigneeName}">
+                <img th:src="@{${pull.assigneeAvatarUrl}}" width="32" height="32" th:alt="${pull.assigneeName}">
+            </a>
             <a th:if="${pull.receiverLoginId != null}" th:href="@{/{u}(u=${pull.receiverLoginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${pull.receiverName}">
                 <img th:src="@{${pull.receiverAvatarUrl}}" width="32" height="32" th:alt="${pull.receiverName}">
             </a>
-            <div th:unless="${pull.receiverLoginId != null}" class="empty-avatar-wrap">&nbsp;</div>
+            <div th:unless="${pull.receiverLoginId != null or pull.assigneeLoginId != null}" class="empty-avatar-wrap">&nbsp;</div>
         </div>
         <div class="state pull-right" th:classappend="${pull.stateClass}" th:text="#{${pull.stateKey}}"></div>
     </div>

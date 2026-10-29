@@ -40,7 +40,11 @@ data class OrganizationPerson(val loginId: String, val name: String?, val avatar
 data class OrganizationPullRequestRow(
     val number: Long, val href: String, val headerWordsHtml: String, val title: String, val conflict: Boolean,
     val contributor: OrganizationPerson?, val ago: String, val agoTitle: String, val owner: String, val project: String,
-    val progress: Progress?, val receiver: OrganizationPerson?, val stateClass: String, val stateKey: String
+    val progress: Progress?, val receiver: OrganizationPerson?, val stateClass: String, val stateKey: String,
+    /** 담당자(추가 항목 X-14, D-34). 받은 사람과 다른 역할이라 따로 보인다 */
+    val assignee: OrganizationPerson? = null,
+    /** 붙은 라벨(분류 이름, 라벨 이름 순) */
+    val labels: List<dev.yona.web.issue.IssueLabelTag> = emptyList()
 ) {
     data class Progress(val closed: Long, val total: Long, val percent: Int, val href: String)
 }
@@ -87,7 +91,8 @@ class OrganizationListAssembler(
             ago = helper.agoOrDateString(pr.created), agoTitle = helper.dateString(pr.created), owner = to.owner.orEmpty(), project = to.name.orEmpty(),
             progress = if (total > 0) OrganizationPullRequestRow.Progress(closed, total, helper.percent(closed.toDouble(), total.toDouble()), "$base/changes") else null,
             receiver = pr.receiver?.let { OrganizationPerson(it.loginId.orEmpty(), it.name, avatars.avatarUrl(it)) },
-            stateClass = if (conflict) "conflict" else state, stateKey = if (conflict) "pullRequest.state.conflict" else "pullRequest.state.$state"
+            stateClass = if (conflict) "conflict" else state, stateKey = if (conflict) "pullRequest.state.conflict" else "pullRequest.state.$state",
+            assignee = pr.assignees.firstOrNull()?.let { OrganizationPerson(it.loginId.orEmpty(), it.name, avatars.avatarUrl(it)) }, labels = dev.yona.web.pullrequest.labelTagsOf(pr)
         )
     }
 

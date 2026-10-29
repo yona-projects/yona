@@ -98,6 +98,10 @@
                                     </span>
                                 </a>
                                 <a th:href="${pull.href}" th:text="${pull.title}"></a>
+                                <a th:each="l : ${pull.labels}" th:href="${pull.href}" class="label issue-label active list-label" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                                <span th:if="${pull.assigneeLoginId != null}" class="avatar-wrap smaller assignee" data-toggle="tooltip" th:title="#{issue.assignee} + ': ' + ${pull.assigneeName} + ' (@' + ${pull.assigneeLoginId} + ')'">
+                                    <img th:src="${pull.assigneeAvatarUrl}" width="20" height="20">
+                                </span>
                             </div>
                             <div class="span3 num right-txt" style="color:#999;" th:text="${pull.ago}"></div>
                         </div>

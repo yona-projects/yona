@@ -48,6 +48,7 @@
                                         <span class="post-id" th:text="${req.number}"></span>
                                         <th:block th:utext="${req.headerWordsHtml}"></th:block>
                                         <a th:href="@{${req.href}}" class="title" th:classappend="${req.conflict} ? 'conflict'" th:text="${req.title}"></a>
+                                        <a th:each="l : ${req.labels}" th:href="@{${req.href}}" class="label issue-label active list-label" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                                     </div>
                                     <div class="infos">
                                         <a th:if="${req.contributor != null and req.contributor.name != null and !req.contributor.name.isEmpty()}" th:href="@{/{u}(u=${req.contributor.loginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}" th:text="${req.contributor.name}"></a>
@@ -70,10 +71,13 @@
                                 </div>
                                 <div class="span2 hide-in-mobile">
                                     <div class="mt5 pull-right hide-in-mobile">
+                                        <a th:if="${req.assignee != null}" th:href="@{/{u}(u=${req.assignee.loginId})}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${req.assignee.name}" th:title="#{issue.assignee} + ': ' + ${req.assignee.name}">
+                                            <img th:src="${req.assignee.avatarUrl}" width="32" height="32" th:alt="${req.assignee.name}">
+                                        </a>
                                         <a th:if="${req.receiver != null}" th:href="@{/{u}(u=${req.receiver.loginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${req.receiver.name}">
                                             <img th:src="${req.receiver.avatarUrl}" width="32" height="32" th:alt="${req.receiver.name}">
                                         </a>
-                                        <div th:unless="${req.receiver != null}" class="empty-avatar-wrap">&nbsp;</div>
+                                        <div th:unless="${req.receiver != null or req.assignee != null}" class="empty-avatar-wrap">&nbsp;</div>
                                     </div>
                                     <div class="state pull-right" th:classappend="${req.stateClass}" th:text="#{${req.stateKey}}"></div>
                                 </div>

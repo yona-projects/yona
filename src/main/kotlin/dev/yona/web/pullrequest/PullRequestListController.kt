@@ -236,9 +236,7 @@ class PullRequestListController(
             toBranch = toBranch, toDefaultBranch = CodePageAssembler.branchItemName(defaultBranch) == toBranch,
             receiver = pr.receiver?.let { person(it, viewer, false) }, stateClass = if (conflict) "conflict" else state, stateKey = if (conflict) "pullRequest.state.conflict" else "pullRequest.state.$state",
             assignee = pr.assignees.firstOrNull()?.let { person(it, viewer, false) },
-            labels = pr.labels.sortedWith(compareBy({ it.category?.name }, { it.name })).map {
-                dev.yona.web.issue.IssueLabelTag(requireNotNull(it.id), it.category?.id, it.category?.name.orEmpty(), it.category?.isExclusive == true, it.name.orEmpty(), it.color.orEmpty())
-            }
+            labels = labelTagsOf(pr)
         )
     }
 

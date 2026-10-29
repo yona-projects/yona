@@ -23,7 +23,9 @@ data class HistoryRow(val userPageUrl: String, val avatarUrl: String, val header
 /** 대시보드 풀 리퀘스트 영역 한 줄이다. */
 data class DashboardPullRequestRow(
     val href: String, val title: String, val contributorId: Long?, val contributorLoginId: String, val contributorName: String, val avatarUrl: String,
-    val filterHref: String, val ago: String
+    val filterHref: String, val ago: String,
+    /** 붙은 라벨과 담당자(추가 항목 X-14, D-34) */
+    val labels: List<dev.yona.web.issue.IssueLabelTag> = emptyList(), val assigneeLoginId: String? = null, val assigneeName: String? = null, val assigneeAvatarUrl: String? = null
 )
 
 /**
@@ -87,7 +89,9 @@ class ProjectHomeTabsAssembler(
         return DashboardPullRequestRow(
             href = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(to.owner, to.name)}/pullRequest/${pr.number}"), title = pr.title.orEmpty(), contributorId = who?.id, contributorLoginId = who?.loginId.orEmpty(),
             contributorName = who?.name.orEmpty(), avatarUrl = who?.let { avatars.avatarUrl(it, SMALL_AVATAR) }.orEmpty(),
-            filterHref = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(owner, name)}/pullRequests?contributorId=${who?.id}"), ago = helper.agoOrDateString(pr.created)
+            filterHref = siteUrls.path("${dev.yona.util.UrlPaths.projectPath(owner, name)}/pullRequests?contributorId=${who?.id}"), ago = helper.agoOrDateString(pr.created),
+            labels = dev.yona.web.pullrequest.labelTagsOf(pr), assigneeLoginId = pr.assignees.firstOrNull()?.loginId, assigneeName = pr.assignees.firstOrNull()?.name,
+            assigneeAvatarUrl = pr.assignees.firstOrNull()?.let { avatars.avatarUrl(it, SMALL_AVATAR) }
         )
     }
 
