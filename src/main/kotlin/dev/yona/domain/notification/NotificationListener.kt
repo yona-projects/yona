@@ -273,6 +273,8 @@ class NotificationListener(
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequest(pullRequest, actor)))
             EventType.PULL_REQUEST_COMMIT_CHANGED ->
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, null, currentCommitsMessage(pullRequest), receivers.forPullRequest(pullRequest, actor)))
+            EventType.PULL_REQUEST_ASSIGNEE_CHANGED ->
+                events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestAssigneeChanged(pullRequest, activity.oldValue, actor)))
             EventType.PULL_REQUEST_MERGED -> {
                 val merged = activity.newValue == "merged"
                 events.add(

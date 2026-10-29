@@ -82,6 +82,8 @@ class NotificationMessages(
             EventType.PULL_REQUEST_STATE_CHANGED ->
                 if (State.OPEN.state == new) text("notification.pullrequest.reopened") else text("notification.pullrequest.$new")
             EventType.PULL_REQUEST_COMMIT_CHANGED -> new
+            EventType.PULL_REQUEST_ASSIGNEE_CHANGED ->
+                if (new == null) text("notification.pullrequest.unassigned") else text("notification.pullrequest.assigned", new)
             EventType.PULL_REQUEST_MERGED -> text("notification.type.pullrequest.merged.$new") + "\n" + (old ?: "")
             EventType.PULL_REQUEST_REVIEW_STATE_CHANGED -> {
                 val sender = event.senderId?.let { users.findById(it).orElse(null) }?.loginId

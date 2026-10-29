@@ -26,10 +26,13 @@ class MessageParityTest {
      * 모든 언어 번들에 이 키들이 있어야 한다(없으면 영어로 대체되는 키가 생긴다).
      * - X-18 Git 태그 화면(D-30): 태그 탭과 태그 화면의 글
      * - 브랜치 삭제 확인창(D-31): `code.branches.deleteConfirm`
+     * - X-14 풀 리퀘스트 담당자와 라벨(D-34): 알림 문구와 타임라인 문구
      */
     private val addedKeys = setOf(
         "title.tags", "code.tags.annotated", "code.tags.lightweight", "code.tags.notCommit", "code.tags.empty", "code.tags.deleteConfirm",
-        "code.branches.deleteConfirm"
+        "code.branches.deleteConfirm",
+        "notification.pullrequest.assigned", "notification.pullrequest.unassigned", "notification.type.pullrequest.assignee.changed",
+        "notification.type.pullrequest.label.changed", "pullRequest.event.assignee", "pullRequest.event.message.assigned", "pullRequest.event.message.unassigned"
     )
 
     @Test

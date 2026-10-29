@@ -133,6 +133,28 @@ class NotificationReceivers(
     }.toSet()
 
     /**
+     * 풀 리퀘스트의 담당자가 바뀔 때 받을 사용자이다(추가 항목 X-14, `decisions.md` D-34). v1.6 이슈 담당자 변경(`getReceiversWhenAssigneeChanged`)에 맞춰,
+     * 풀 리퀘스트를 직접 구독한 사용자, 작성자, **새 담당자**, 프로젝트에서 이 종류를 받겠다고 한 사용자에서 구독 해제자, 이 종류를 받지 않겠다고 한 사용자,
+     * [actor]를 뺀다. 이전 담당자([oldAssigneeLoginId])는 [actor]가 아니면 더한다.
+     */
+    @Transactional(readOnly = true)
+    fun forPullRequestAssigneeChanged(pullRequest: dev.yona.domain.pullrequest.PullRequest, oldAssigneeLoginId: String?, actor: User?): Set<User> {
+        val id = requireNotNull(pullRequest.id).toString()
+        val projectId = requireNotNull(pullRequest.toProject?.id)
+        val group = Group()
+        group.addAll(watches.findByResourceTypeAndResourceId(ResourceType.PULL_REQUEST, id).mapNotNull { it.user })
+        group.add(pullRequest.contributor)
+        pullRequest.assignees.forEach { group.add(it) }
+        group.addAll(eventUsers(projectId, EventType.PULL_REQUEST_ASSIGNEE_CHANGED, true))
+        group.removeAll(unwatches.findByResourceTypeAndResourceId(ResourceType.PULL_REQUEST, id).mapNotNull { it.user })
+        group.removeAll(eventUsers(projectId, EventType.PULL_REQUEST_ASSIGNEE_CHANGED, false))
+        group.remove(actor)
+        val old = oldAssigneeLoginId?.let { author(it) }
+        if (old != null && old.loginId != actor?.loginId) group.add(old)
+        return group.toSet()
+    }
+
+    /**
      * 새 풀 리퀘스트와 병합을 받을 사용자이다. [forPullRequest]에 병합 대상 코드를 마지막으로 고친 사람들을 더한다. 병합 커밋이 아직 없으면 더하지 않는다.
      * 바뀐 파일이 너무 많으면 프로젝트 구성원 모두를 더하고, 구하지 못하면 구한 만큼만 쓴다 (v1.6 `getReceiversWithRelatedAuthors`).
      */

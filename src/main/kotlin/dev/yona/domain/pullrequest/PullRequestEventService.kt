@@ -56,6 +56,21 @@ class PullRequestEventService(private val events: PullRequestEventRepository, pr
         events.save(PullRequestEvent(created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_STATE_CHANGED, newValue = state.state))
     }
 
+    /** 담당자가 바뀐 이벤트를 기록한다. 이전 값과 새 값은 담당자의 로그인 ID이고 없으면 `null`이다(로드맵 X-14, `decisions.md` D-34). */
+    @Transactional
+    fun addAssignee(sender: User, pullRequest: PullRequest, oldLoginId: String?, newLoginId: String?) {
+        events.save(PullRequestEvent(created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_ASSIGNEE_CHANGED, oldValue = oldLoginId, newValue = newLoginId))
+    }
+
+    /**
+     * 라벨이 붙거나 떨어진 이벤트를 기록한다. 붙었으면 [newValue]만, 떨어졌으면 [oldValue]만 채운다. 값은 이슈 라벨 이벤트와 같은
+     * `분류 - 이름 색` 형태이다(로드맵 X-14, D-34). 알림은 만들지 않는다(v1.6 이슈 라벨 변경과 같다).
+     */
+    @Transactional
+    fun addLabel(sender: User, pullRequest: PullRequest, oldValue: String?, newValue: String?) {
+        events.save(PullRequestEvent(created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest, eventType = EventType.PULL_REQUEST_LABEL_CHANGED, oldValue = oldValue, newValue = newValue))
+    }
+
     /** 병합 상태(충돌, 해결, 병합)가 바뀐 이벤트를 기록한다 (v1.6 `addMergeEvent`). */
     @Transactional
     fun addMerge(sender: User, type: EventType, state: State, pullRequest: PullRequest) {

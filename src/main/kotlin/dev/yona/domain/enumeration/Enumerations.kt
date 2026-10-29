@@ -33,7 +33,9 @@ enum class EventType {
     PULL_REQUEST_REVIEW_STATE_CHANGED, ISSUE_BODY_CHANGED, ISSUE_REFERRED_FROM_PULL_REQUEST,
     REVIEW_THREAD_STATE_CHANGED, ORGANIZATION_MEMBER_ENROLL_REQUEST, COMMENT_UPDATED, ISSUE_MOVED,
     ISSUE_SHARER_CHANGED, ISSUE_LABEL_CHANGED, ISSUE_MILESTONE_CHANGED, POSTING_BODY_CHANGED,
-    RESOURCE_DELETED, MEMBER_ENROLL_ACCEPT, ORGANIZATION_MEMBER_ENROLL_ACCEPT
+    RESOURCE_DELETED, MEMBER_ENROLL_ACCEPT, ORGANIZATION_MEMBER_ENROLL_ACCEPT,
+    // v1.6에 없는 추가 항목(X-14, D-34): 풀 리퀘스트의 담당자와 라벨이 바뀌었다
+    PULL_REQUEST_ASSIGNEE_CHANGED, PULL_REQUEST_LABEL_CHANGED
 }
 
 /**
@@ -68,6 +70,8 @@ val EventType.descrKey: String
         EventType.POSTING_BODY_CHANGED -> "notification.type.posting.body.changed"
         EventType.RESOURCE_DELETED -> "notification.type.resource.deleted"
         EventType.MEMBER_ENROLL_ACCEPT, EventType.ORGANIZATION_MEMBER_ENROLL_ACCEPT -> "notification.member.enroll.accept"
+        EventType.PULL_REQUEST_ASSIGNEE_CHANGED -> "notification.type.pullrequest.assignee.changed"
+        EventType.PULL_REQUEST_LABEL_CHANGED -> "notification.type.pullrequest.label.changed"
     }
 
 /** 리소스 종류이다. 첨부, 관심, 멘션, 알림이 다형 참조에 사용한다. */
@@ -157,6 +161,8 @@ val EventType.order: Int
         EventType.RESOURCE_DELETED -> 26
         EventType.MEMBER_ENROLL_ACCEPT -> 27
         EventType.ORGANIZATION_MEMBER_ENROLL_ACCEPT -> 28
+        EventType.PULL_REQUEST_ASSIGNEE_CHANGED -> 29
+        EventType.PULL_REQUEST_LABEL_CHANGED -> 30
     }
 
 /** 알림 설정 화면에 나열하는 이벤트 종류이다. 모든 종류를 [order] 순서로 놓는다 (v1.6 `EventType.notiTypes`). */

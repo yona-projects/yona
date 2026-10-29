@@ -223,6 +223,20 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `풀 리퀘스트 담당자 변경은 웹훅을 보내고 라벨 변경은 보내지 않는다 (X-14)`() {
+        val p = project(); val sender = user()
+        service.create(p, url, null, false, WebhookType.SIMPLE)
+        val pr = pullRequests.save(PullRequest(title = "요청", body = "본문", toProject = p, fromProject = p, toBranch = "refs/heads/master", fromBranch = "refs/heads/dev", contributor = sender, state = State.OPEN, number = 5))
+        publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_LABEL_CHANGED, null, "분류 - 이름 #ccc", sender))
+        assertEquals(0, received.size, "라벨 변경은 웹훅을 보내지 않는다")
+        publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_ASSIGNEE_CHANGED, null, sender.loginId, sender))
+        assertEquals(1, received.size)
+        val text = json(0).path("text").asString("")
+        assertTrue(text.contains("#5: 요청"), text)
+        assertTrue(text.contains(sender.name!!), text)
+    }
+
+    @Test
     fun `연결할 수 없는 주소여도 요청은 실패하지 않는다`() {
         val p = project()
         service.create(p, "http://127.0.0.1:1/none", null, false, WebhookType.SIMPLE)

@@ -139,6 +139,7 @@ class WebhookPayloads(
             EventType.PULL_REQUEST_STATE_CHANGED -> builder.append(text("notification.type.pullrequest.state.changed"))
             EventType.PULL_REQUEST_MERGED -> builder.append(text("notification.type.pullrequest.merged"))
             EventType.PULL_REQUEST_COMMIT_CHANGED -> builder.append(text("notification.type.pullrequest.commit.changed"))
+            EventType.PULL_REQUEST_ASSIGNEE_CHANGED -> builder.append(text("notification.type.pullrequest.assignee.changed"))
             else -> Unit
         }
         return builder.append(link(type, pullRequestUrl(pullRequest), "#${pullRequest.number}: ${pullRequest.title}")).toString()

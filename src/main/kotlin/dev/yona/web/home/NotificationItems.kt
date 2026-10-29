@@ -63,7 +63,7 @@ class NotificationItemAssembler(
     private fun icon(type: EventType, state: String?): String = when (type) {
         EventType.NEW_COMMENT, EventType.NEW_REVIEW_COMMENT, EventType.REVIEW_THREAD_STATE_CHANGED -> "comment2"
         EventType.NEW_ISSUE, EventType.ISSUE_STATE_CHANGED -> if (state == "closed") "list-alt closed" else "list-alt"
-        EventType.ISSUE_ASSIGNEE_CHANGED -> "friends changed"
+        EventType.ISSUE_ASSIGNEE_CHANGED, EventType.PULL_REQUEST_ASSIGNEE_CHANGED -> "friends changed"
         EventType.NEW_POSTING -> "edit2"
         EventType.NEW_PULL_REQUEST, EventType.PULL_REQUEST_COMMIT_CHANGED, EventType.PULL_REQUEST_STATE_CHANGED ->
             if (state == "closed") "merge closed" else if (state == "merged") "merge merged" else "merge"
