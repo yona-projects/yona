@@ -107,7 +107,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-4 | GPG 커밋 서명 검증 | `domain/gpgkey` | 대기 | |
 | X-5 | 개인용 API 토큰(PAT, 범위 지정) | `domain/apitoken` | 대기 | v1.6의 사용자 토큰(`Authorization: token`)과 공존 |
 | X-6 | MCP 서버(OAuth2로 인증한 AI 에이전트의 이슈, 풀 리퀘스트, 위키 접근) | `mcp` | 대기 | X-1, X-5 이후 |
-| X-7 | Mercurial 저장소(hg4j): 코드 보기, 커밋 이력, bookmark와 named branch, HTTP와 SSH 서빙, zip 내려받기, 브랜치 보호와 push 알림·웹훅, 풀 리퀘스트 병합, GPG 서명 | `domain/vcs`, `config/hg`, `HgController` | 대기 | 저장소 종류 변경(v1.6 `changeVCS`)과 `vcs` 열 값에 영향. hg4j는 `io.github.search5.hg4j` 별도 라이브러리 |
+| X-7 | Mercurial 저장소(hg4j): 코드 보기, 커밋 이력, bookmark와 named branch, HTTP와 SSH 서빙, zip 내려받기, 브랜치 보호와 push 알림·웹훅, 풀 리퀘스트 병합, GPG 서명 | `domain/vcs`, `config/hg`, `HgController` | 대기 | 저장소 종류 변경(v1.6 `changeVCS`)과 `vcs` 열 값에 영향. hg4j는 `io.github.search5.hg4j` 별도 라이브러리 **선행 정리(2026-10-29)**: 착수 전에 `@IsOnlyGitAvailable`(컨트롤러 7곳)과 `VCS_GIT`, `VCS_SUBVERSION` 분기(9개 파일, 39곳)를 "지원하는 VCS를 선언하는 방식"(예: `@SupportedVcs(GIT, MERCURIAL)`)으로 정리한다. 기능마다 Git 전용, Git과 Mercurial, 모든 VCS로 갈리므로 이름만 바꾸는 일이 아니다. 그때까지는 v1.6 이름을 유지한다 |
 | X-8 | Git LFS | `.well-known`, `git-lfs` 라우트 | 대기 | |
 | X-9 | 감사 로그(보안, 관리 이벤트) | `domain/event` | 대기 | |
 | X-10 | 관측성: OpenTelemetry(추적), Actuator와 Prometheus(지표), JSON 로그(logstash) | `build.gradle.kts`의 opentelemetry, actuator, micrometer 스타터 (P3-01) | 대기 | |
@@ -118,7 +118,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-15 | 풀 리퀘스트 REST API(조회, diff, 리뷰, 타임라인, 병합, 닫기, 다시 열기, 댓글, 리뷰어, 라벨, 담당자, 출발 브랜치 삭제) | `/api/projects/{}/pullrequests/**`, `/api/v1/projects/{}/{}/pull-requests/**` | 대기 | v1.6 외부 API(`/-_-api/v1`)에는 풀 리퀘스트 항목이 없다. 인증은 X-5, X-1을 쓴다 |
 | X-16 | 엔터프라이즈 SSO(SAML2, 범용 OIDC) 사이트 관리자 설정과 로그인, 소셜 로그인 계정 병합 | `config/sso`, `domain/sso`, `SsoAdminController`, `OAuth2AccountMergeService` (P3-06) | 대기 | 테이블 `oidc_sso_settings`, `saml2_sso_settings` 필요. v1.6 소셜 로그인은 그대로 둔다 |
 | X-17 | 프로젝트 위키: 페이지 만들기, 고치기, 삭제, 이력, 비교, 검색, 사이드바. 프로젝트마다 bare git 저장소(`<소유자>/<프로젝트>.wiki.git`)에 저장 | `domain/wiki`, `WikiViewController`, `/api/v1/projects/{}/{}/wiki/**` (P3-42) | 대기 | v1.6에는 위키 기능이 없다 |
-| X-18 | Git 태그: 목록 화면, 삭제, API | `TagViewController`, `TagApiController` (P3-16) | 대기 | 주석 태그(annotated)로 커밋 이력을 열 때의 500(P3-40)도 함께 확인한다 |
+| X-18 | Git 태그 전용 화면(주석 메시지와 태거, 종류 배지, 최신순), 삭제 확인, 브랜치 목록과 선택 목록 정리 | `TagViewController`, `TagApiController` (P3-16) | 대기(D-30 결정 완료, 구현 시작 2026-10-29) | 결정은 [decisions.md](decisions.md) D-30을 본다. REST는 X-19로 옮겼다. 주석 태그의 커밋 이력 500(P3-40)은 별도로 확인한다 |
 | X-19 | 일반 REST API(`/api/v1/**`: 이슈, 게시판, 라벨, 마일스톤, 조직, 프로젝트, 검색, 사용자 상태, 웹훅)와 Swagger/OpenAPI UI. 포크를 조직 대상으로 만드는 API 포함 | `*RestApi` 컨트롤러, `GlobalApiController` (P3-09, P3-35) | 대기 | v1.6의 `/-_-api/v1` 외부 API는 그대로 두고 별도 경로로 둔다. 인증은 X-5, X-1을 쓴다 |
 | X-20 | 프런트엔드 현대화: Vue 3 웹 컴포넌트 위젯 17개(대화상자, 토스트, 드롭다운, 자동 완성, 첨부, 리뷰 폼, 라벨 편집기 등), Tom Select, Flatpickr, CodeMirror 6와 EasyMDE 에디터, jQuery 제거(순수 JS), Hotwired Turbo(이슈 2단 목록) | `static/lib/yona-vue-widgets`, `frontend/`, `yona.issue.Turbo.js` (P3-46, P3-70) | 대기 | 화면 동작은 v1.6과 같게 둔다는 조건이 필요하다. `yona-v2-wiki`의 Vue 위젯 소스 위치 메모(components 저장소)와 이어진다 |
 | X-21 | 사용 현황 집계(UA 태그를 GA4 gtag로 교체) | `config/analytics/AnalyticsSettings` | **완료(2026-10-28)** | v1.6의 `yona.send-yona-usage` 스위치를 유지하고 UA 태그를 GA4로 교체했다(A-186). 측정 ID는 `yona.analytics.measurement-id` |
