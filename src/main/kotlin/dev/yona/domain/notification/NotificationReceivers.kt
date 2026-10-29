@@ -142,6 +142,22 @@ class NotificationReceivers(
     }.toSet()
 
     /**
+     * 리뷰를 요청받을 때 받을 사용자이다(추가 항목 X-27, `decisions.md` D-37). GitHub처럼 **요청받은 사람([reviewer])만** 받고, 요청한 [actor]는 뺀다.
+     * 프로젝트에서 이 종류를 받지 않겠다고 한 사용자와 이 풀 리퀘스트의 구독을 해제한 사용자도 뺀다.
+     */
+    @Transactional(readOnly = true)
+    fun forPullRequestReviewRequested(pullRequest: dev.yona.domain.pullrequest.PullRequest, reviewer: User?, actor: User?): Set<User> {
+        val id = requireNotNull(pullRequest.id).toString()
+        val projectId = requireNotNull(pullRequest.toProject?.id)
+        val group = Group()
+        group.add(reviewer)
+        group.removeAll(unwatches.findByResourceTypeAndResourceId(ResourceType.PULL_REQUEST, id).mapNotNull { it.user })
+        group.removeAll(eventUsers(projectId, EventType.PULL_REQUEST_REVIEW_REQUESTED, false))
+        group.remove(actor)
+        return group.toSet()
+    }
+
+    /**
      * 풀 리퀘스트의 담당자가 바뀔 때 받을 사용자이다(추가 항목 X-14, `decisions.md` D-34). v1.6 이슈 담당자 변경(`getReceiversWhenAssigneeChanged`)에 맞춰,
      * 풀 리퀘스트를 직접 구독한 사용자, 작성자, **새 담당자**, 프로젝트에서 이 종류를 받겠다고 한 사용자에서 구독 해제자, 이 종류를 받지 않겠다고 한 사용자,
      * [actor]를 뺀다. 이전 담당자([oldAssigneeLoginId])는 [actor]가 아니면 더한다.

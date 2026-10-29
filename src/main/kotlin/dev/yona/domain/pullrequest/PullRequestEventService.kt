@@ -63,6 +63,21 @@ class PullRequestEventService(private val events: PullRequestEventRepository, pr
     }
 
     /**
+     * 리뷰를 요청했거나 요청을 취소한 이벤트를 기록한다(추가 개발 항목 X-27, `decisions.md` D-37). 요청이면 [reviewerLoginId]를 새 값으로,
+     * 취소이면 이전 값으로 담는다.
+     */
+    @Transactional
+    fun addReviewRequest(sender: User, pullRequest: PullRequest, reviewerLoginId: String, requested: Boolean) {
+        events.save(
+            PullRequestEvent(
+                created = Date(), senderLoginId = sender.loginId, pullRequest = pullRequest,
+                eventType = if (requested) EventType.PULL_REQUEST_REVIEW_REQUESTED else EventType.PULL_REQUEST_REVIEW_UNREQUESTED,
+                oldValue = if (requested) null else reviewerLoginId, newValue = if (requested) reviewerLoginId else null
+            )
+        )
+    }
+
+    /**
      * 라벨이 붙거나 떨어진 이벤트를 기록한다. 붙었으면 [newValue]만, 떨어졌으면 [oldValue]만 채운다. 값은 이슈 라벨 이벤트와 같은
      * `분류 - 이름 색` 형태이다(로드맵 X-14, D-34). 알림은 만들지 않는다(v1.6 이슈 라벨 변경과 같다).
      */

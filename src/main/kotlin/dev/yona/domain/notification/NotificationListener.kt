@@ -274,6 +274,9 @@ class NotificationListener(
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, null, currentCommitsMessage(pullRequest), receivers.forPullRequest(pullRequest, actor)))
             EventType.PULL_REQUEST_ASSIGNEE_CHANGED ->
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestAssigneeChanged(pullRequest, activity.oldValue, actor)))
+            // 추가 항목 X-27(D-37): 리뷰 요청은 요청받은 사람에게만 알린다(취소는 알림이 없다)
+            EventType.PULL_REQUEST_REVIEW_REQUESTED ->
+                events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestReviewRequested(pullRequest, activity.newValue?.let { users.findByLoginId(it) }, actor)))
             // 추가 항목 X-12(D-35): 리뷰 판정 제출과 해제. 해제는 해제된 리뷰어에게도 알린다
             EventType.PULL_REQUEST_REVIEW_SUBMITTED ->
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestReview(pullRequest, actor)))

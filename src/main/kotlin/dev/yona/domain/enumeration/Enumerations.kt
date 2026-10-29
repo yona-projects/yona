@@ -37,7 +37,9 @@ enum class EventType {
     // v1.6에 없는 추가 항목(X-14, D-34): 풀 리퀘스트의 담당자와 라벨이 바뀌었다
     PULL_REQUEST_ASSIGNEE_CHANGED, PULL_REQUEST_LABEL_CHANGED,
     // v1.6에 없는 추가 항목(X-12, D-35): 리뷰 판정을 제출했다, 해제했다, 규칙이 바뀌어 승인이 더 필요하다는 안내이다
-    PULL_REQUEST_REVIEW_SUBMITTED, PULL_REQUEST_REVIEW_DISMISSED, PULL_REQUEST_REVIEW_RULE_NOTICE
+    PULL_REQUEST_REVIEW_SUBMITTED, PULL_REQUEST_REVIEW_DISMISSED, PULL_REQUEST_REVIEW_RULE_NOTICE,
+    // v1.6에 없는 추가 항목(X-27, D-37): 풀 리퀘스트 리뷰를 요청했다, 요청을 취소했다(이름은 열 길이 34자 안에 맞춘다)
+    PULL_REQUEST_REVIEW_REQUESTED, PULL_REQUEST_REVIEW_UNREQUESTED
 }
 
 /**
@@ -77,6 +79,8 @@ val EventType.descrKey: String
         EventType.PULL_REQUEST_REVIEW_SUBMITTED -> "notification.type.pullrequest.review.submitted"
         EventType.PULL_REQUEST_REVIEW_DISMISSED -> "notification.type.pullrequest.review.dismissed"
         EventType.PULL_REQUEST_REVIEW_RULE_NOTICE -> "notification.type.pullrequest.review.rule.notice"
+        EventType.PULL_REQUEST_REVIEW_REQUESTED -> "notification.type.pullrequest.review.requested"
+        EventType.PULL_REQUEST_REVIEW_UNREQUESTED -> "notification.type.pullrequest.review.unrequested"
     }
 
 /** 리소스 종류이다. 첨부, 관심, 멘션, 알림이 다형 참조에 사용한다. */
@@ -171,6 +175,8 @@ val EventType.order: Int
         EventType.PULL_REQUEST_REVIEW_SUBMITTED -> 31
         EventType.PULL_REQUEST_REVIEW_DISMISSED -> 32
         EventType.PULL_REQUEST_REVIEW_RULE_NOTICE -> 33
+        EventType.PULL_REQUEST_REVIEW_REQUESTED -> 34
+        EventType.PULL_REQUEST_REVIEW_UNREQUESTED -> 35
     }
 
 /** 알림 설정 화면에 나열하는 이벤트 종류이다. 모든 종류를 [order] 순서로 놓는다 (v1.6 `EventType.notiTypes`). */

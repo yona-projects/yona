@@ -237,6 +237,18 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `풀 리퀘스트 리뷰 요청은 웹훅을 보내고 요청 취소는 보내지 않는다 (X-27)`() {
+        val p = project(); val sender = user()
+        service.create(p, url, null, false, WebhookType.SIMPLE)
+        val pr = pullRequests.save(PullRequest(title = "요청", body = "본문", toProject = p, fromProject = p, toBranch = "refs/heads/master", fromBranch = "refs/heads/dev", contributor = sender, state = dev.yona.domain.enumeration.State.OPEN, number = 6))
+        publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_REVIEW_UNREQUESTED, sender.loginId, null, sender))
+        assertEquals(0, received.size, "요청 취소는 웹훅을 보내지 않는다")
+        publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_REVIEW_REQUESTED, null, sender.loginId, sender))
+        assertEquals(1, received.size)
+        assertTrue(json(0).path("text").asString("").contains("#6: 요청"))
+    }
+
+    @Test
     fun `리뷰 판정 제출과 해제는 웹훅을 보내고 새 커밋으로 인한 시스템 해제는 보내지 않는다 (X-12)`() {
         val p = project(); val sender = user(); val reviewer = user()
         service.create(p, url, null, false, WebhookType.SIMPLE)

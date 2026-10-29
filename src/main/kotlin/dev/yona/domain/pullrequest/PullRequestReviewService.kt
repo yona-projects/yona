@@ -37,7 +37,8 @@ class PullRequestReviewService(
     private val reviews: PullRequestReviewRepository,
     private val users: UserRepository,
     private val events: PullRequestEventService,
-    private val publisher: org.springframework.context.ApplicationEventPublisher
+    private val publisher: org.springframework.context.ApplicationEventPublisher,
+    private val reviewRequests: PullRequestReviewRequestService
 ) {
 
     companion object {
@@ -63,6 +64,8 @@ class PullRequestReviewService(
             )
         )
         pullRequest.reviewHistory.add(review)
+        // 리뷰를 제출하면 그 사람의 대기 중인 리뷰 요청은 말없이 지운다(추가 개발 항목 X-27, D-37)
+        reviewRequests.fulfil(pullRequest, reviewer)
         syncApprovers(pullRequest)
         events.addReviewSubmitted(reviewer, pullRequest, review)
         // 알림과 웹훅은 구독자와 작성자에게 알린다(이전 값은 판정 이름, 새 값은 본문)
