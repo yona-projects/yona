@@ -56,6 +56,7 @@ class PullRequestPageAssembler(
     private val changes: PullRequestChangesService,
     private val reviewLinks: dev.yona.domain.comment.ReviewLinks,
     private val users: UserRepository,
+    private val labelService: dev.yona.domain.issue.IssueLabelService,
     private val userLookup: UserLookup,
     private val avatars: AvatarService,
     private val repositoryUrls: RepositoryUrls,
@@ -189,8 +190,30 @@ class PullRequestPageAssembler(
                 val compare = event.oldValue?.split(PullRequestEventService.DELIMITER)?.let { siteUrls.path("${UrlPaths.projectPath(to.owner, to.name)}/compare/${it[0]}..${it[1]}") }
                 TimelineEvent(id, "changed", "pullRequest.event.commit", text("pullRequest.event.message.commit", user), ago, agoTitle, compare, commitsOf(pullRequest, event))
             }
+            // 추가 항목 X-14(D-34): 담당자와 라벨 변경
+            EventType.PULL_REQUEST_ASSIGNEE_CHANGED -> {
+                val assigned = event.newValue
+                val target = (assigned ?: event.oldValue)?.let { login -> userHtml(users.findByLoginId(login), login) }.orEmpty()
+                TimelineEvent(id, "changed", "pullRequest.event.assignee", text(if (assigned != null) "pullRequest.event.message.assigned" else "pullRequest.event.message.unassigned", user, target), ago, agoTitle, null, emptyList())
+            }
+            EventType.PULL_REQUEST_LABEL_CHANGED -> {
+                val adding = event.oldValue.isNullOrBlank() && !event.newValue.isNullOrBlank()
+                val box = labelBox(if (adding) event.newValue else event.oldValue, to)
+                TimelineEvent(id, if (adding) "label-added" else "label-deleted", if (adding) "issue.event.label.added.title" else "issue.event.label.deleted.title", text(if (adding) "issue.event.label.added" else "issue.event.label.deleted", user, box), ago, agoTitle, null, emptyList())
+            }
             else -> null
         }
+    }
+
+    /** `분류 - 이름 색` 형태의 값을 색 상자로 바꾼다. 형식이 다르거나 라벨이 지워졌으면 이름(또는 값)만 보인다(이슈 라벨 이벤트와 같다). */
+    private fun labelBox(value: String?, project: dev.yona.domain.project.Project): String {
+        val text = value.orEmpty()
+        val parts = text.split(" - ")
+        if (parts.size != 2) return HtmlUtils.htmlEscape(text)
+        val category = parts[0].trim()
+        val name = parts[1].split(" #")[0].trim()
+        val label = labelService.labels(project).firstOrNull { it.category?.name == category && it.name == name } ?: return HtmlUtils.htmlEscape(name)
+        return "<div class='label issue-label' style='background-color: ${HtmlUtils.htmlEscape(label.color.orEmpty())}'>${HtmlUtils.htmlEscape(name)}</div>"
     }
 
     private fun commitsOf(pullRequest: PullRequest, event: PullRequestEvent): List<TimelineCommit> {

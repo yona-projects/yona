@@ -6,7 +6,7 @@
 
   이식 원본: app/views/git/view.scala.html
   모델: title, projectView, header, contributor, branchInfo, bodyHtml, attachments, state, canWatch, watching, watchUrl, unwatchUrl, stateUrl,
-        canEdit, editUrl, canClose, closeUrl, canReopen, reopenUrl, timeline, commentable, mentionUrl
+        canEdit, assigneeArea, labelArea(담당자와 라벨, X-14), editUrl, canClose, closeUrl, canReopen, reopenUrl, timeline, commentable, mentionUrl
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${#messages.msg(title)}, ${projectView}, 'PULL_REQUEST', ~{::viewPage})}">
@@ -26,6 +26,39 @@
                     <span class="loginid"> <strong>@</strong><th:block th:text="${contributor.loginId}"></th:block></span>
                 </a>
                 <th:block th:replace="~{pullrequest/partial-branch :: branch}"></th:block>
+            </div>
+            <!--/* 담당자와 라벨(추가 항목 X-14, decisions.md D-34). 수정 권한이 있으면 고를 수 있고 없으면 읽기만 한다 */-->
+            <div class="pr-meta clearfix" th:if="${assigneeArea != null}">
+                <dl class="pr-assignee">
+                    <dt th:text="#{issue.assignee}"></dt>
+                    <dd>
+                        <form th:if="${assigneeArea.canEdit}" id="assignee-form" th:action="${assigneeArea.action}" method="post">
+                            <select id="assignee-select" name="assigneeId" data-toggle="select2" data-format="user" class="hide" style="width: 260px;">
+                                <option value="" th:selected="${assigneeArea.current == null}" th:text="#{issue.noAssignee}"></option>
+                                <option th:each="o : ${assigneeArea.options}" th:value="${o.id}" th:selected="${o.selected}"
+                                        th:attr="data-avatar-url=${o.avatarUrl}, data-login-id=${o.loginId}" th:text="${o.displayName}"></option>
+                            </select>
+                        </form>
+                        <th:block th:unless="${assigneeArea.canEdit}">
+                            <a th:if="${assigneeArea.current != null}" th:href="${assigneeArea.current.href}" class="usf-group">
+                                <span class="avatar-wrap smaller"><img th:src="${assigneeArea.current.avatarUrl}" width="20" height="20"></span>
+                                <strong class="name" th:text="${assigneeArea.current.displayName}"></strong>
+                                <span class="loginid"> <strong>@</strong><th:block th:text="${assigneeArea.current.loginId}"></th:block></span>
+                            </a>
+                            <div th:if="${assigneeArea.current == null}" th:text="#{issue.noAssignee}"></div>
+                        </th:block>
+                    </dd>
+                </dl>
+                <form th:if="${labelArea.canEdit and labelArea.hasLabels}" id="labels-form" th:action="${labelArea.action}" method="post">
+                    <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelArea.groups}, ${labelArea.selectedIds}, 'pr-labels', null, ${projectView})}"></th:block>
+                </form>
+                <dl th:if="${!labelArea.canEdit and !#lists.isEmpty(labelArea.tags)}" class="pr-labels">
+                    <dt th:text="#{label}"></dt>
+                    <dd>
+                        <a th:each="l : ${labelArea.tags}" th:href="${labelArea.listUrl} + '?labelIds=' + ${l.id}" class="label issue-label active static"
+                           th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                    </dd>
+                </dl>
             </div>
             <div class="content markdown-wrap" th:utext="${bodyHtml}"></div>
             <div class="attachments" th:attr="data-attachments=${attachments}"></div>
@@ -83,6 +116,16 @@
         <button type="button" class="ybtn ybtn-info ybtn-small" data-dismiss="modal" th:text="#{button.confirm}"></button>
     </div>
 </div>
+<th:block th:if="${assigneeArea != null and (assigneeArea.canEdit or labelArea.canEdit)}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="${#paths.project(project.owner, project.name) + '/issue/labels.css'}">
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript">
+    // 담당자나 라벨을 고르면 바로 보낸다(추가 항목 X-14)
+    $(function () {
+        $("#assignee-select, #labelIds").on("change", function () { $(this).closest("form").submit(); });
+    });
+</script>
+</th:block>
 <link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>

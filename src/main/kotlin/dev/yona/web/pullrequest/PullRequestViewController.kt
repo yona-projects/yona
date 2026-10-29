@@ -64,6 +64,7 @@ class PullRequestViewController(
     private val commits: PullRequestCommitRepository,
     private val receivers: NotificationReceivers,
     private val assembler: PullRequestPageAssembler,
+    private val meta: PullRequestMetaAssembler,
     private val diffHtml: DiffHtmlRenderer,
     private val threadHtml: ThreadHtmlRenderer,
     private val fragments: FragmentRenderer,
@@ -108,6 +109,8 @@ class PullRequestViewController(
             .addObject("unwatchUrl", siteUrls.path("/unwatch?resource.type=${ResourceType.PULL_REQUEST.resource}&resource.id=${pullRequest.id}"))
             .addObject("stateUrl", "$base/state")
             .addObject("canEdit", accessControl.isAllowed(viewer, resource, Operation.UPDATE))
+            .addObject("assigneeArea", meta.assignee(pullRequest, viewer, accessControl.isAllowed(viewer, resource, Operation.UPDATE)))
+            .addObject("labelArea", meta.labels(pullRequest, accessControl.isAllowed(viewer, resource, Operation.UPDATE)))
             .addObject("editUrl", "$base/editform")
             .addObject("canClose", pullRequest.open && accessControl.isAllowed(viewer, resource, Operation.CLOSE))
             .addObject("closeUrl", "$base/close")

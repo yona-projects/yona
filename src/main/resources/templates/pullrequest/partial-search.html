@@ -30,6 +30,19 @@
                         </select>
                     </dd>
                 </dl>
+                <!--/* 담당자와 라벨 필터(추가 항목 X-14, decisions.md D-34): 이슈 목록과 같은 이름의 매개변수(assigneeId, labelIds) */-->
+                <dl class="issue-option">
+                    <dt th:text="#{issue.assignee}"></dt>
+                    <dd>
+                        <select id="assignees" name="assigneeId" data-format="user">
+                            <th:block th:each="c : ${assignees}">
+                                <option th:if="${c.value == ''}" value="" th:text="#{common.order.all}"></option>
+                                <option th:if="${c.value != ''}" th:value="${c.value}" th:attr="data-avatar-url=${c.avatarUrl}, data-login-id=${c.loginId}" th:selected="${c.selected}" th:text="${c.label}"></option>
+                            </th:block>
+                        </select>
+                    </dd>
+                </dl>
+                <th:block th:if="${hasLabels}"><th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelGroups}, ${selectedLabelIds}, 'issue-option', null, ${projectView})}"></th:block></th:block>
             </div>
         </form>
     </div>
@@ -75,6 +88,7 @@
                                     <span class="post-id" th:text="${r.number}"></span>
                                     <th:block th:utext="${r.headerWordsHtml}"></th:block>
                                     <a th:href="${r.href}" th:class="'title' + (${r.conflict} ? ' conflict' : '')" th:text="${r.title}"></a>
+                                    <a th:each="l : ${r.labels}" th:href="${r.href}" class="label issue-label active list-label" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                                 </div>
                                 <div class="infos">
                                     <th:block th:if="${r.contributor != null}">
@@ -104,10 +118,13 @@
                             </div>
                             <div class="span2 hide-in-mobile">
                                 <div class="mt5 pull-right hide-in-mobile">
+                                    <a th:if="${r.assignee != null}" th:href="${r.assignee.href}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${r.assignee.name}" th:title="#{issue.assignee} + ': ' + ${r.assignee.name}">
+                                        <img th:src="${r.assignee.avatarUrl}" width="32" height="32" th:alt="${r.assignee.name}">
+                                    </a>
                                     <a th:if="${r.receiver != null}" th:href="${r.receiver.href}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${r.receiver.name}">
                                         <img th:src="${r.receiver.avatarUrl}" width="32" height="32" th:alt="${r.receiver.name}">
                                     </a>
-                                    <div th:if="${r.receiver == null}" class="empty-avatar-wrap">&nbsp;</div>
+                                    <div th:if="${r.receiver == null and r.assignee == null}" class="empty-avatar-wrap">&nbsp;</div>
                                 </div>
                                 <div th:class="'state ' + ${r.stateClass} + ' pull-right'" th:text="#{${r.stateKey}}"></div>
                             </div>

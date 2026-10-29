@@ -35,6 +35,8 @@ enum class PullRequestCategory(val code: String, val projectField: String, val o
  * @property pageNum 1부터 시작하는 쪽 번호
  * @property project 프로젝트를 지정하면 분류의 프로젝트 필드가 이 프로젝트인 요청만 찾는다. 조직 목록은 `null`이다
  * @property organizationProjectIds 조직 목록이 쓴다. 받는 쪽과 보내는 쪽 프로젝트가 모두 이 목록에 있어야 한다 (v1.6 `condition.organization`)
+ * @property assigneeId 담당자. v1.6에 없는 추가 항목이다(로드맵 X-14, `decisions.md` D-34)
+ * @property labelIds 고른 라벨 번호. 모든 라벨을 가진 요청만 찾는다(이슈 목록과 같다, D-34)
  */
 data class PullRequestSearchCondition(
     val project: Project?,
@@ -42,7 +44,9 @@ data class PullRequestSearchCondition(
     val filter: String? = null,
     val contributorId: Long? = null,
     val pageNum: Int = 1,
-    val organizationProjectIds: List<Long>? = null
+    val organizationProjectIds: List<Long>? = null,
+    val assigneeId: Long? = null,
+    val labelIds: Set<Long> = emptySet()
 ) {
     fun withCategory(category: PullRequestCategory) = copy(category = category)
 }
@@ -87,6 +91,18 @@ class PullRequestSearchService(private val pullRequests: PullRequestRepository) 
         }
         if (condition.category.states.isNotEmpty()) predicates += root.get<State>("state").`in`(condition.category.states.toList())
         condition.contributorId?.let { predicates += cb.equal(root.get<Any>("contributor").get<Long>("id"), it) }
+        condition.assigneeId?.let { assignee ->
+            val sub = query!!.subquery(Long::class.java)
+            val pr = sub.correlate(root)
+            sub.select(cb.literal(1L)).where(cb.equal(pr.join<PullRequest, dev.yona.domain.user.User>("assignees").get<Long>("id"), assignee))
+            predicates += cb.exists(sub)
+        }
+        condition.labelIds.forEach { label ->
+            val sub = query!!.subquery(Long::class.java)
+            val pr = sub.correlate(root)
+            sub.select(cb.literal(1L)).where(cb.equal(pr.join<PullRequest, dev.yona.domain.issue.IssueLabel>("labels").get<Long>("id"), label))
+            predicates += cb.exists(sub)
+        }
 
         val filter = condition.filter
         if (!filter.isNullOrBlank()) {

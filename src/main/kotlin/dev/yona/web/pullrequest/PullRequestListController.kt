@@ -50,7 +50,11 @@ data class PullRequestReviewProgress(val closed: Long, val total: Long, val perc
 data class PullRequestRow(
     val number: Long, val href: String, val headerWordsHtml: String, val title: String, val conflict: Boolean, val contributor: PullRequestPerson?,
     val ago: String, val agoTitle: String, val progress: PullRequestReviewProgress?, val reviewerCount: Int?, val reviewerNames: String, val reviewedByMe: Boolean,
-    val toBranch: String, val toDefaultBranch: Boolean, val receiver: PullRequestPerson?, val stateClass: String, val stateKey: String
+    val toBranch: String, val toDefaultBranch: Boolean, val receiver: PullRequestPerson?, val stateClass: String, val stateKey: String,
+    /** 담당자(추가 항목 X-14, D-34). 받은 사람(`receiver`)과 다른 역할이라 따로 보인다 */
+    val assignee: PullRequestPerson? = null,
+    /** 붙은 라벨(분류 이름, 라벨 이름 순) */
+    val labels: List<dev.yona.web.issue.IssueLabelTag> = emptyList()
 )
 
 /** 최근 푸시한 브랜치 한 줄이다. */
@@ -80,7 +84,10 @@ class PullRequestListController(
     private val views: ProjectViewFactory,
     private val currentUserProvider: CurrentUserProvider,
     private val helper: TemplateHelper,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val listService: dev.yona.domain.issue.IssueListService,
+    private val labelService: dev.yona.domain.issue.IssueLabelService,
+    private val formOptions: dev.yona.web.issue.IssueFormOptions
 ) {
 
     @GetMapping("/{user}/{project}/pullRequests")
@@ -116,8 +123,11 @@ class PullRequestListController(
 
         val condition = PullRequestSearchCondition(
             project, category, request.getParameter("filter"), request.getParameter("contributorId")?.toLongOrNull(),
-            request.getParameter("pageNum")?.toIntOrNull() ?: 1
+            request.getParameter("pageNum")?.toIntOrNull() ?: 1,
+            assigneeId = request.getParameter("assigneeId")?.toLongOrNull(),
+            labelIds = request.getParameterValues("labelIds").orEmpty().mapNotNull { it.toLongOrNull() }.toSet()
         )
+        val projectLabels = labelService.labels(project)
         val page = search.search(condition)
         val base = siteUrls.path(dev.yona.util.UrlPaths.projectPath(project.owner, project.name))
         val defaultBranch = repositories.defaultBranch(project)
@@ -142,6 +152,10 @@ class PullRequestListController(
             .addObject("forked", project.originalProject != null)
             .addObject("newPullRequestUrl", "$base/newPullRequestForm")
             .addObject("contributors", contributorOptions(project, condition.contributorId, viewer))
+            .addObject("assignees", assigneeOptions(project, condition.assigneeId, viewer))
+            .addObject("labelGroups", formOptions.labelGroups(projectLabels))
+            .addObject("selectedLabelIds", condition.labelIds.toMutableSet())
+            .addObject("hasLabels", projectLabels.isNotEmpty())
             .addObject("pushedBranches", pushedBranchRows(project, viewer))
             .addObject("rows", page.items.map { row(it, project, defaultBranch, viewer) })
             .addObject("totalPages", page.totalPages)
@@ -169,6 +183,15 @@ class PullRequestListController(
         val options = mutableListOf(ContributorOption("", "", null, null, false))
         if (viewer != null && contributors.any { it.id == viewer.id }) options += ContributorOption(viewer.id.toString(), "", null, null, false)
         contributors.forEach { options += ContributorOption(it.id.toString(), it.name.orEmpty(), avatars.avatarUrl(it), it.loginId, selectedId != null && selectedId == it.id) }
+        return options
+    }
+
+    /** 담당자 필터의 선택지이다. 담당자 후보(받는 프로젝트의 이슈 담당자 후보 규칙)를 이름순으로 보인다(D-34). */
+    private fun assigneeOptions(project: Project, selectedId: Long?, viewer: User?): List<ContributorOption> {
+        val options = mutableListOf(ContributorOption("", "", null, null, false))
+        listService.assignableUsers(project, viewer, accessControl.isSiteManager(viewer)).forEach {
+            options += ContributorOption(it.id.toString(), it.name.orEmpty(), avatars.avatarUrl(it), it.loginId, selectedId != null && selectedId == it.id)
+        }
         return options
     }
 
@@ -211,7 +234,11 @@ class PullRequestListController(
             reviewerCount = if (project.isUsingReviewerCount == true && pr.reviewers.isNotEmpty()) pr.reviewers.size else null,
             reviewerNames = pr.reviewers.joinToString("<br>") { it.name.orEmpty() }, reviewedByMe = viewer != null && pr.reviewers.any { it.id == viewer.id },
             toBranch = toBranch, toDefaultBranch = CodePageAssembler.branchItemName(defaultBranch) == toBranch,
-            receiver = pr.receiver?.let { person(it, viewer, false) }, stateClass = if (conflict) "conflict" else state, stateKey = if (conflict) "pullRequest.state.conflict" else "pullRequest.state.$state"
+            receiver = pr.receiver?.let { person(it, viewer, false) }, stateClass = if (conflict) "conflict" else state, stateKey = if (conflict) "pullRequest.state.conflict" else "pullRequest.state.$state",
+            assignee = pr.assignees.firstOrNull()?.let { person(it, viewer, false) },
+            labels = pr.labels.sortedWith(compareBy({ it.category?.name }, { it.name })).map {
+                dev.yona.web.issue.IssueLabelTag(requireNotNull(it.id), it.category?.id, it.category?.name.orEmpty(), it.category?.isExclusive == true, it.name.orEmpty(), it.color.orEmpty())
+            }
         )
     }
 
