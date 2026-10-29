@@ -500,4 +500,17 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
         val id = Regex("\"comment\":\\{\"id\":(\\d+)").find(created)!!.groupValues[1].toLong()
         assertTrue(attachmentRepository.findByContainerTypeAndContainerIdOrderById(dev.yona.domain.enumeration.ResourceType.REVIEW_COMMENT, id).size == 1)
     }
+
+    @Test
+    fun `받아들일 권한이 있는 작성자도 자기 풀 리퀘스트를 승인하거나 변경 요청할 수 없고 댓글만 남긴다`() {
+        val s = setup()
+        // 작성자를 원본의 구성원으로 만들어 받아들일 권한(ACCEPT)이 있게 한다. 그래도 작성자 규칙(D-35)이 막아야 한다
+        projectUsers.save(ProjectUser(user = s.contributor, project = s.origin, role = roles.findById(RoleType.MEMBER.id).get())); em.flush()
+        val t = token(s.contributor)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"APPROVED"}"""), t).andExpect(status().isForbidden)
+            .andExpect(jsonPath("$.message").value("the author cannot approve or request changes on their own pull request"))
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"CHANGES_REQUESTED","body":"스스로 변경 요청"}"""), t).andExpect(status().isForbidden)
+        call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"COMMENTED","body":"작성자의 설명"}"""), t).andExpect(status().isCreated)
+        call(get("${s.api}/${s.pr.number}"), t).andExpect(jsonPath("$.approvals.count").value(0))
+    }
 }
