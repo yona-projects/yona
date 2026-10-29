@@ -324,7 +324,7 @@ updated: 2026-10-29
   2. **저장소 보관 참조 삭제**: URL 제거 때 만든 `backup/next2-before-url-strip` 브랜치와 `refs/original/refs/heads/next2`를 지우고 도달할 수 없는 객체를 정리한다(`git reflog expire --expire-unreachable=now --all`, `git gc --prune=now`). `next`와 원격 브랜치는 건드리지 않는다.
 - **삭제 대상이 아니라고 확인한 것**: `FaviconController`는 중복이 아니다. 루트 `/favicon.ico`를 제공하는 유일한 곳이고(`WebConfig`는 `/assets/`만 맡는다) `StaticAssetsTest`가 검증한다. 그래서 남겼다.
 - **제외**: `yona-v1.16-release` 폴더 삭제는 아직 허락하지 않으셨다(비교가 끝난 뒤 별도 확인).
-- **확인하지 못한 것**: 이전 메모의 "도우미 폴더"가 무엇을 가리키는지는 특정하지 못해 삭제하지 않았다. 저장소 루트의 추적되지 않는 폴더(`config/`, `data/`, `e2e/`, `frontend/`, `shots/`, `tmp-docs/`, `.serena/`)와 v1.6 소스(`app/`, `conf/`, `public/` 등)는 손대지 않았다.
+- **확인하지 못한 것**: 이전 메모의 "도우미 폴더"가 무엇을 가리키는지는 특정하지 못해 삭제하지 않았다. 선생님도 어느 폴더인지 모르신다고 하셨고(2026-10-29), 조사하지 말고 기록만 남기라고 하셨다. 보류하며 삭제하지 않는다. 저장소 루트의 추적되지 않는 폴더(`config/`, `data/`, `e2e/`, `frontend/`, `shots/`, `tmp-docs/`, `.serena/`)와 v1.6 소스(`app/`, `conf/`, `public/` 등)는 손대지 않았다.
 - **상태**: 확정, 실행 완료(2026-10-29).
 
 ### 보류 중인 결정 (2026-10-25, 선생님 지시)
