@@ -55,10 +55,11 @@ class GitHttpController(
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return malformed(response)
         // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션 쿠키가 실린다
-        val user = basicAuth.resolve(request, response, credentials)
+        val identity = basicAuth.identify(request, response, credentials)
+        if (identity.blocked) return tooManyAttempts()
         // 서비스를 정하지 않으면 getanyfile 서비스이다. 지원하지 않는다.
         if (service == null) return text(HttpStatus.FORBIDDEN, "Unsupported service: getanyfile")
-        return handle(ownerName, projectName, service, advertise = true, user, request, response)
+        return handle(ownerName, projectName, service, advertise = true, identity, request, response)
     }
 
     /**
@@ -77,16 +78,23 @@ class GitHttpController(
     ): Any? {
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return malformed(response)
-        val user = basicAuth.resolve(request, response, credentials)
-        return handle(ownerName, projectName, service, advertise = false, user, request, response)
+        val identity = basicAuth.identify(request, response, credentials)
+        if (identity.blocked) return tooManyAttempts()
+        return handle(ownerName, projectName, service, advertise = false, identity, request, response)
     }
 
+    /** 같은 주소에서 인증에 연달아 실패해 막았다(추가 개발 항목 X-5, `decisions.md` D-36). */
+    private fun tooManyAttempts(): ResponseEntity<String> = text(HttpStatus.TOO_MANY_REQUESTS, "Too many failed authentication attempts")
+
     private fun handle(
-        ownerName: String, projectName: String, service: String, advertise: Boolean, user: User?, request: HttpServletRequest, response: HttpServletResponse
+        ownerName: String, projectName: String, service: String, advertise: Boolean, identity: dev.yona.web.access.BasicIdentity, request: HttpServletRequest, response: HttpServletResponse
     ): Any? {
+        val user = identity.user
         if (!GitHttpService.isSupported(service)) return text(HttpStatus.FORBIDDEN, "Unsupported service: '$service'")
         val project = projectService.findByOwnerAndProjectName(ownerName, projectName) ?: return ResponseEntity.notFound().build<Void>()
         if (project.vcs != "GIT") return ResponseEntity.notFound().build<Void>()
+        // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
+        if (!basicAuth.allowsRepository(identity, project)) return text(HttpStatus.FORBIDDEN, "The token scope does not allow repository access")
 
         if (!isAllowed(project, user, service)) {
             if (user == null) {

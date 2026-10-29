@@ -74,6 +74,8 @@ class GitHttpTest {
     @Autowired private lateinit var pushedBranches: PushedBranchRepository
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var deletion: ProjectDeletionService
+    @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
+    @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
     @Autowired private lateinit var recentVisits: dev.yona.domain.project.RecentVisitService
     @Autowired private lateinit var recentProjects: dev.yona.domain.project.RecentProjectRepository
 
@@ -107,6 +109,9 @@ class GitHttpTest {
 
     @AfterEach
     fun tearDown() {
+        // 토큰은 사용자를 참조하므로 먼저 지운다. 같은 주소(127.0.0.1)의 실패 기록은 시험끼리 영향을 주지 않게 비운다(X-5)
+        apiTokenRepository.deleteAll()
+        tokenFailures.clear()
         projects.findAll().filter { it.owner == member.loginId }.forEach { deletion.delete(it) }
         users.deleteAll(created)
     }

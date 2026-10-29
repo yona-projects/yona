@@ -59,6 +59,9 @@ class TokenFailureLimiter(
         entries.remove(address)
     }
 
+    /** 모든 실패 기록을 지운다(시험이 같은 주소를 여러 시험에서 쓸 때 서로 영향을 주지 않게 한다). */
+    fun clear() = entries.clear()
+
     /** 추적 중인 주소 수이다(시험과 점검용). */
     fun trackedCount(): Int = entries.size
 

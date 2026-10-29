@@ -77,6 +77,9 @@ class SvnDavTest {
     @Autowired private lateinit var repositories: RepositoryService
     @Autowired private lateinit var svn: SvnRepositories
     @Autowired private lateinit var deletion: ProjectDeletionService
+    @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
+    @Autowired private lateinit var tokenFailures: dev.yona.security.TokenFailureLimiter
+    @Autowired private lateinit var apiTokens: dev.yona.domain.apitoken.ApiTokenService
 
     private lateinit var member: User
     private lateinit var outsider: User
@@ -114,6 +117,9 @@ class SvnDavTest {
 
     @AfterEach
     fun tearDown() {
+        // 토큰은 사용자를 참조하므로 먼저 지운다. 같은 주소(127.0.0.1)의 실패 기록은 시험끼리 영향을 주지 않게 비운다(X-5)
+        apiTokenRepository.deleteAll()
+        tokenFailures.clear()
         createdProjects.forEach { runCatching { deletion.delete(it) } }
         createdProjects.clear()
         users.deleteAll(createdUsers)
@@ -143,6 +149,32 @@ class SvnDavTest {
         val builder = HttpRequest.newBuilder(URI.create("http://localhost:$port$path")).method(method, HttpRequest.BodyPublishers.noBody())
         if (auth != null) builder.header("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("${auth.loginId}:1234".toByteArray()))
         return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString())
+    }
+
+    private fun rawWithPassword(method: String, path: String, loginId: String, password: String): HttpResponse<String> {
+        val builder = HttpRequest.newBuilder(URI.create("http://localhost:$port$path")).method(method, HttpRequest.BodyPublishers.noBody())
+        builder.header("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString("$loginId:$password".toByteArray()))
+        return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString())
+    }
+
+    // --- 개인용 API 토큰 (X-5, D-36) ---
+
+    @Test
+    fun `토큰을 비밀번호 칸에 넣으면 구성원으로 인증하고 사용자 이름이 다르거나 범위가 없으면 거절한다`() {
+        val member = user("svt"); val other = user("svo"); val p = project(member, ProjectScope.PRIVATE); createdProjects += p
+        fun token(owner: User, vararg scopes: String) = (apiTokens.create(owner, "svn", scopes.toSet(), null) as dev.yona.domain.apitoken.TokenCreation.Created).value
+        val path = "/svn/${p.owner}/${p.name}"
+        org.junit.jupiter.api.Assertions.assertEquals(200, rawWithPassword("OPTIONS", path, member.loginId!!, token(member, "repo")).statusCode())
+        org.junit.jupiter.api.Assertions.assertEquals(401, rawWithPassword("OPTIONS", path, other.loginId!!, token(member, "repo")).statusCode(), "사용자 이름이 토큰 주인과 다르다")
+        org.junit.jupiter.api.Assertions.assertEquals(403, rawWithPassword("OPTIONS", path, member.loginId!!, token(member, "user")).statusCode(), "저장소 범위가 없다")
+        org.junit.jupiter.api.Assertions.assertEquals(403, rawWithPassword("OPTIONS", path, member.loginId!!, token(member, "public_repo")).statusCode(), "비공개 프로젝트는 public_repo로 안 된다")
+    }
+
+    @Test
+    fun `공개 프로젝트는 public repo 토큰으로 인증한다`() {
+        val member = user("svp"); val p = project(member, ProjectScope.PUBLIC); createdProjects += p
+        val good = (apiTokens.create(member, "svn", setOf("public_repo"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value
+        org.junit.jupiter.api.Assertions.assertEquals(200, rawWithPassword("OPTIONS", "/svn/${p.owner}/${p.name}", member.loginId!!, good).statusCode())
     }
 
     // --- 읽기 ---

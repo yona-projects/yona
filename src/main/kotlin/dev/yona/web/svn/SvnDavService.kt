@@ -38,7 +38,10 @@ class SvnDavService(
         val credentials = BasicCredentials.parse(request)
         if (credentials === BasicCredentials.MALFORMED) return text(response, 400, null)
         // v1.6은 BasicAuthAction이 가장 바깥이라 이후의 403, 404 응답에도 세션 쿠키가 실린다
-        val user = basicAuth.resolve(request, response, credentials)
+        val identity = basicAuth.identify(request, response, credentials)
+        // 같은 주소에서 인증에 연달아 실패해 막았다(추가 개발 항목 X-5, `decisions.md` D-36)
+        if (identity.blocked) return text(response, 429, "Too many failed authentication attempts")
+        val user = identity.user
 
         // 컨텍스트 경로와 앞의 `/`를 떼고 `svn`, 소유자, 나머지 경로로 가른다.
         val path = java.net.URI(request.requestURI).path.removePrefix(request.contextPath).removePrefix("/")
@@ -52,6 +55,8 @@ class SvnDavService(
 
         val project = projectService.findByOwnerAndProjectName(owner, projectName)
         if (project == null || project.vcs != "Subversion") return text(response, 404, null)
+        // 토큰으로 인증했으면 범위가 이 프로젝트의 저장소를 허용해야 한다(`repo`, 공개 프로젝트는 `public_repo`)
+        if (!basicAuth.allowsRepository(identity, project)) return text(response, 403, "The token scope does not allow repository access")
 
         val operation = if (request.method in READ_METHODS) Operation.READ else Operation.UPDATE
         if (!accessControl.isAllowed(user, ProjectResource(requireNotNull(project.id).toString(), ResourceType.CODE, project), operation)) {
