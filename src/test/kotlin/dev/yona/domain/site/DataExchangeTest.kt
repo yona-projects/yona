@@ -160,6 +160,17 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `가져온 뒤 승인 집합에서 리뷰를 다시 만든다 (X-12, D-35 13번)`() {
+        jdbc.update("insert into n4user(id, login_id, name) values (?, ?, ?)", 881101L, "bfimp", "보정")
+        jdbc.update("insert into pull_request(id, title, number, created) values (?, ?, ?, current_timestamp)", 881102L, "옛", 1L)
+        jdbc.update("insert into pull_request_reviewers(pull_request_id, user_id) values (?, ?)", 881102L, 881101L)
+        import("{}")
+        assertEquals(1, jdbc.queryForObject("select count(*) from pull_request_review where pull_request_id = 881102 and author_id = 881101 and verdict = 'APPROVED'", Int::class.java))
+        import("{}")
+        assertEquals(1, jdbc.queryForObject("select count(*) from pull_request_review where pull_request_id = 881102", Int::class.java), "다시 가져와도 중복이 생기지 않는다")
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))
