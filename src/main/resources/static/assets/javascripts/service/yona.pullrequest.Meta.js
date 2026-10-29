@@ -12,6 +12,8 @@
  * - 담당자: `yona.issue.Assginee.js`와 같은 원격 검색 선택 상자(후보는 프로젝트 단위 API). 지우면 담당자를 해제한다.
  * - 라벨: `yobi.issue.View.js`의 일괄 변경처럼 붙인 라벨과 뗀 라벨의 번호만 보낸다.
  *
+ * 생성 폼(`data-mode="form"`)에서는 아직 풀 리퀘스트가 없으므로 선택 상자만 꾸미고 고른 값은 폼과 함께 보낸다.
+ *
  * 주소는 `#pr-meta`의 데이터 속성(`data-assignees-url`, `data-labels-url`, `data-timeline-url`, `data-candidates-url`)에 있다.
  */
 (function ($) {
@@ -50,6 +52,7 @@
         if (!$meta.length) {
             return;
         }
+        var formMode = $meta.data("mode") === "form";
         var urls = {
             assignees: $meta.data("assignees-url"),
             labels: $meta.data("labels-url"),
@@ -104,6 +107,7 @@
             });
 
             $assignee.on("change", function () {
+                if (formMode) { return; }
                 var loginId = $assignee.val();
                 $.ajax(urls.assignees, {
                     method: "POST",
@@ -121,6 +125,7 @@
 
         // 라벨
         $("#labelIds").on("change", function (evt) {
+            if (formMode) { return; }
             var data = {};
             var added = idsOf(evt.added);
             var removed = idsOf(evt.removed);

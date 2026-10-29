@@ -84,7 +84,11 @@ class PullRequestCreateController(
     private val currentUserProvider: CurrentUserProvider,
     private val views: ProjectViewFactory,
     private val helper: TemplateHelper,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val meta: PullRequestMetaAssembler,
+    private val assigneeService: dev.yona.domain.pullrequest.PullRequestAssigneeService,
+    private val labelService: dev.yona.domain.pullrequest.PullRequestLabelService,
+    private val issueLabels: dev.yona.domain.issue.IssueLabelRepository
 ) {
 
     @GetMapping("/{user}/{project}/newPullRequestForm")
@@ -120,6 +124,8 @@ class PullRequestCreateController(
             .addObject("toBranches", toBranches.map { BranchChoice(it.name, it.name == toBranch) })
             .addObject("state", "OPEN")
             .addObject("body", "")
+            .addObject("assigneeArea", if (canTriage(viewer, to)) meta.formAssignee(to) else null)
+            .addObject("labelArea", if (canTriage(viewer, to)) meta.formLabels(to) else null)
     }
 
     @GetMapping("/{user}/{project}/newPullRequest/mergeResult")
@@ -170,12 +176,26 @@ class PullRequestCreateController(
         if (from == null || to == null) return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
         val body = request.getParameter("body") ?: return ErrorViews.requestTextEntityTooLarge()
 
+        // 담당자와 라벨은 받는 프로젝트에 수정 권한이 있는 사람만 고를 수 있다(추가 항목 X-14, D-34 20번). 권한이 없으면 보낸 값은 무시한다
+        var assignee: User? = null
+        var labels = emptyList<dev.yona.domain.issue.IssueLabel>()
+        if (canTriage(viewer, to)) {
+            assignee = request.getParameter("assigneeLoginId")?.takeIf { it.isNotBlank() }?.let { login ->
+                users.findByLoginId(login)?.takeIf { who -> assigneeService.candidates(to, viewer).any { it.id == who.id } } ?: return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
+            }
+            labels = request.getParameterValues("labelIds").orEmpty().filter { it.isNotBlank() }.map { raw ->
+                raw.toLongOrNull()?.let { issueLabels.findById(it).orElse(null) }?.takeIf { it.project?.id == to.id } ?: return ErrorViews.badRequest("error.validation", views.of(project), "PULL_REQUEST")
+            }
+        }
+
         val creation = pullRequestService.create(PullRequestForm(title, body, from, to, fromBranch, toBranch), viewer)
         val pullRequest = creation.pullRequest
         val location = "${dev.yona.util.UrlPaths.projectPath(pullRequest.toProject?.owner, pullRequest.toProject?.name)}/pullRequest/${pullRequest.number}"
         if (!creation.created) return RedirectSupport.see(request, response, siteUrls.path(location))
 
         val flash = postAttachments.attach(request, viewer, ResourceType.PULL_REQUEST, requireNotNull(pullRequest.id))
+        if (assignee != null) assigneeService.set(pullRequest, assignee, viewer)
+        if (labels.isNotEmpty()) labelService.change(pullRequest, labels, emptyList(), viewer)
         val pullRequestId = requireNotNull(pullRequest.id)
         val senderId = requireNotNull(viewer.id)
         runner.run("merging of pull request $pullRequestId", { processor.start(pullRequestId) }, { processor.process(pullRequestId, senderId, true) })
@@ -183,6 +203,10 @@ class PullRequestCreateController(
     }
 
     // --- 도우미 ---
+
+    /** [viewer]가 받는 프로젝트 [to]에서 풀 리퀘스트의 담당자와 라벨을 정할 수 있는지이다(수정 권한. 아직 요청이 없으므로 작성자는 따지지 않는다). */
+    private fun canTriage(viewer: User, to: Project): Boolean =
+        accessControl.isAllowed(viewer, dev.yona.access.ProjectResource("new", ResourceType.PULL_REQUEST, to), dev.yona.domain.enumeration.Operation.UPDATE)
 
     /** 게스트(구성원이 아닌 로그인 사용자)는 풀 리퀘스트 화면을 쓸 수 없다. 403 오류 화면을 돌려준다 (v1.6 `validateBeforePullRequest`). */
     private fun guestError(project: Project, viewer: User): ModelAndView? =

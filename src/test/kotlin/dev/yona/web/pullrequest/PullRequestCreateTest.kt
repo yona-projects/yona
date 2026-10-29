@@ -8,6 +8,8 @@ import dev.yona.domain.enumeration.RoleType
 import dev.yona.domain.enumeration.State
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.issue.Issue
+import dev.yona.domain.issue.IssueLabel
+import dev.yona.domain.issue.IssueLabelCategory
 import dev.yona.domain.issue.IssueEventRepository
 import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.notification.NotificationEventRepository
@@ -45,6 +47,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -77,6 +81,8 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var issueEvents: IssueEventRepository
     @Autowired private lateinit var pushedBranches: PushedBranchRepository
+
+    @PersistenceContext private lateinit var em: EntityManager
 
     private var sequence = 0
 
@@ -291,5 +297,59 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
     fun `게스트는 만들 수 없다`() {
         val s = setup()
         mockMvc.perform(send(s, login(user()))).andExpect(status().isForbidden)
+    }
+
+    // --- 담당자와 라벨 (추가 항목 X-14, D-34 20번: 받는 프로젝트에 수정 권한이 있는 사람만) ---
+
+    private fun label(p: Project, name: String): IssueLabel {
+        val c = IssueLabelCategory(project = p, name = "분류${++sequence}").also { em.persist(it) }
+        return IssueLabel(category = c, color = "#33aa77", name = name, project = p).also { em.persist(it) }
+    }
+
+    /** 포크 주인이 원본의 구성원이기도 한 상황이다(원본에 수정 권한이 있다). */
+    private fun withMemberOwner(): Setup = setup().also { projectUsers.save(ProjectUser(user = it.owner, project = it.origin, role = roles.findById(RoleType.MEMBER.id).get())) }
+
+    @Test
+    fun `받는 프로젝트에 수정 권한이 있으면 생성 폼에 담당자와 라벨 선택이 보인다`() {
+        val s = withMemberOwner(); label(s.origin, "bug")
+        val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
+        assertNotNull(doc.selectFirst("input#assignee[name=assigneeLoginId]")); assertTrue(doc.select("select#labelIds option").any { it.text() == "bug" })
+        assertEquals("/-_-api/v1/owners/${s.origin.owner}/projects/${s.origin.name}/assignableUsers", doc.selectFirst("#pr-meta")!!.attr("data-candidates-url"))
+    }
+
+    @Test
+    fun `수정 권한이 없으면 생성 폼에 담당자와 라벨 선택이 없다`() {
+        val s = setup(); label(s.origin, "bug")
+        val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
+        assertNull(doc.selectFirst("#pr-meta")); assertNull(doc.selectFirst("#labelIds"))
+    }
+
+    @Test
+    fun `만들 때 고른 담당자와 라벨이 붙고 타임라인 이벤트가 남는다`() {
+        val s = withMemberOwner(); val bug = label(s.origin, "bug")
+        GitTestSupport.appendCommits(repositories, s.fork, TestCommit("새 파일", mapOf("b.txt" to "b".toByteArray())))
+        mockMvc.perform(send(s, login(s.owner)).param("assigneeLoginId", s.owner.loginId!!).param("labelIds", bug.id.toString())).andExpect(status().isSeeOther)
+        val pr = pullRequests.findByToProjectIdAndNumber(s.origin.id!!, 1)!!
+        assertEquals(listOf(s.owner.id), pr.assignees.map { it.id }); assertEquals(listOf(bug.id), pr.labels.map { it.id })
+        val types = pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).map { it.eventType }
+        assertTrue(EventType.PULL_REQUEST_ASSIGNEE_CHANGED in types && EventType.PULL_REQUEST_LABEL_CHANGED in types, types.toString())
+    }
+
+    @Test
+    fun `수정 권한이 없으면 보낸 담당자와 라벨은 무시한다`() {
+        val s = setup(); val bug = label(s.origin, "bug")
+        GitTestSupport.appendCommits(repositories, s.fork, TestCommit("새 파일", mapOf("b.txt" to "b".toByteArray())))
+        mockMvc.perform(send(s, login(s.owner)).param("assigneeLoginId", s.owner.loginId!!).param("labelIds", bug.id.toString())).andExpect(status().isSeeOther)
+        val pr = pullRequests.findByToProjectIdAndNumber(s.origin.id!!, 1)!!
+        assertTrue(pr.assignees.isEmpty()); assertTrue(pr.labels.isEmpty())
+    }
+
+    @Test
+    fun `후보가 아닌 담당자나 다른 프로젝트의 라벨이면 400이고 만들지 않는다`() {
+        val s = withMemberOwner(); val foreign = label(s.fork, "other")
+        GitTestSupport.appendCommits(repositories, s.fork, TestCommit("새 파일", mapOf("b.txt" to "b".toByteArray())))
+        mockMvc.perform(send(s, login(s.owner)).param("assigneeLoginId", user().loginId!!)).andExpect(status().isBadRequest)
+        mockMvc.perform(send(s, login(s.owner)).param("labelIds", foreign.id.toString())).andExpect(status().isBadRequest)
+        assertNull(pullRequests.findByToProjectIdAndNumber(s.origin.id!!, 1))
     }
 }

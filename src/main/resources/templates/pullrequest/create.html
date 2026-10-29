@@ -54,6 +54,17 @@
                 <span id="pullRequestState" th:attr="data-value=${state}"></span>
                 <div id="status" class="alert mt20 mb20" th:text="#{pullRequest.is.merging}"></div>
 
+                <!--/* 담당자와 라벨(추가 항목 X-14, D-34 20번): 받는 프로젝트에 수정 권한이 있을 때만 보인다. 고른 값은 폼과 함께 보낸다 */-->
+                <div id="pr-meta" class="issue-info mb10" data-mode="form" th:if="${assigneeArea != null}" th:attr="data-candidates-url=${assigneeArea.candidatesUrl}">
+                    <dl class="pr-assignee">
+                        <dt th:text="#{issue.assignee}"></dt>
+                        <dd><input type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}" value="" style="width: 100%" title=""></dd>
+                    </dl>
+                    <th:block th:if="${labelArea.hasLabels}">
+                        <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelArea.groups}, ${labelArea.selectedIds}, 'pr-labels', null, ${projectView})}"></th:block>
+                    </th:block>
+                </div>
+
                 <div>
                     <input type="text" id="title" name="title" maxlength="255" class="text" th:placeholder="#{title}">
                     <div style="position: relative;">
@@ -88,6 +99,10 @@
 </div>
 
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:if="${assigneeArea != null}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="${#paths.project(projectView.project.owner, projectView.project.name) + '/issue/labels.css'}">
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.pullrequest.Meta.js}"></script>
+</th:block>
 
 <link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>

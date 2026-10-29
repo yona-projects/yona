@@ -69,6 +69,16 @@ class PullRequestMetaAssembler(
         )
     }
 
+    /** 생성 폼의 담당자 영역이다. 아직 풀 리퀘스트가 없으므로 후보 검색 주소만 있다(고른 값은 폼과 함께 보낸다). */
+    fun formAssignee(project: dev.yona.domain.project.Project): PullRequestAssigneeArea =
+        PullRequestAssigneeArea(true, "", siteUrls.path("/-_-api/v1/owners/${UrlPaths.encode(project.owner.orEmpty())}/projects/${UrlPaths.encode(project.name.orEmpty())}/assignableUsers"), "", null)
+
+    /** 생성 폼의 라벨 영역이다. 받는 프로젝트의 라벨을 고르게 하고 아무것도 골라져 있지 않다. */
+    fun formLabels(project: dev.yona.domain.project.Project): PullRequestLabelArea {
+        val projectLabels = labelService.labels(project)
+        return PullRequestLabelArea(true, "", formOptions.labelGroups(projectLabels), LinkedHashSet(), emptyList(), "", projectLabels.isNotEmpty())
+    }
+
     private fun view(user: User, viewer: User?) = AssigneeView(siteUrls.path("/${user.loginId}"), avatars.avatarUrl(user, AVATAR_SIZE), UserDisplay.of(user, viewer?.lang), user.loginId.orEmpty(), user.name.orEmpty())
 
     private companion object {

@@ -52,6 +52,9 @@ class PullRequestAssigneeService(
 
     /** [viewer]가 이 풀 리퀘스트에 담당자로 고를 수 있는 사람들이다(받는 프로젝트의 이슈 담당자 후보). */
     @Transactional(readOnly = true)
-    fun candidates(pullRequest: PullRequest, viewer: User?): List<User> =
-        listService.assignableUsers(requireNotNull(pullRequest.toProject), viewer, accessControl.isSiteManager(viewer))
+    fun candidates(pullRequest: PullRequest, viewer: User?): List<User> = candidates(requireNotNull(pullRequest.toProject), viewer)
+
+    /** 아직 만들기 전인 풀 리퀘스트의 받는 프로젝트 [project]에서 [viewer]가 담당자로 고를 수 있는 사람들이다(생성 폼). */
+    @Transactional(readOnly = true)
+    fun candidates(project: dev.yona.domain.project.Project, viewer: User?): List<User> = listService.assignableUsers(project, viewer, accessControl.isSiteManager(viewer))
 }
