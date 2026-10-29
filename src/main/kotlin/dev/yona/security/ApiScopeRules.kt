@@ -55,6 +55,11 @@ object ApiScopeRules {
         add("DELETE", "$PROJECT/pullrequests/{number}/pendingreview", ApiRequirement.Repo)
         for (part in listOf("open", "close")) add("POST", "$PROJECT/pullrequests/{number}/threads/{threadId}/$part", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/pullrequests/{number}/requestedreviewers/{reviewer}", ApiRequirement.Repo)
+        // 일반 REST 1차의 조회(X-19, D-40)
+        add("GET", PROJECT, ApiRequirement.Repo)
+        for (part in listOf("members", "assignableusers", "labels", "milestones", "issues")) add("GET", "$PROJECT/$part", ApiRequirement.Repo)
+        add("GET", "/-_-api/v1/user/projects", ApiRequirement.AnyRepo)
+        add("GET", "/-_-api/v1/owners/{owner}/projects", ApiRequirement.AnyRepo)
         // 프로젝트
         add("POST", "/-_-api/v1/owners/{owner}/projects", ApiRequirement.RepoOnly)
         add("POST", "$PROJECT/labels", ApiRequirement.Repo)

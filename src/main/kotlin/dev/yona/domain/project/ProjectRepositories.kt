@@ -20,6 +20,9 @@ interface ProjectRepository : JpaRepository<Project, Long>, JpaSpecificationExec
     fun findByOwnerAndOriginalProjectId(owner: String, originalProjectId: Long): List<Project>
 
     /** 소유자가 만든 프로젝트 중 공개 범위가 [scope]인 것을 만든 날짜 내림차순으로 조회한다 (v1.6 `Project.findProjectsCreatedByUserAndScope`). */
+    /** 소유자(사용자나 조직)의 모든 프로젝트를 최근에 만든 순서로 읽는다. 읽을 수 있는지는 호출하는 쪽이 판단한다. */
+    fun findByOwnerIgnoreCaseOrderByCreatedDateDesc(owner: String): List<Project>
+
     fun findByOwnerIgnoreCaseAndProjectScopeOrderByCreatedDateDesc(owner: String, scope: dev.yona.domain.enumeration.ProjectScope): List<Project>
 
     /** 같은 소유자에 같은 이름의 프로젝트가 있는지 확인한다 (v1.6 `Project.exists`, `ieq` 두 번). */

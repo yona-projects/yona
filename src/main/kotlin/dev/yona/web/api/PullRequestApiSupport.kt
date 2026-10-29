@@ -31,12 +31,13 @@ class PullRequestApiSupport(
 
     /**
      * 대상을 찾는다. 토큰 사용자가 없으면 401, 프로젝트가 없거나 읽을 수 없으면 존재를 숨기려고 403, 풀 리퀘스트 번호가 없으면 404,
-     * [operation]을 할 수 없으면 403이다. [number]가 `null`이면 프로젝트까지만 찾는다.
+     * [operation]을 할 수 없으면 403이다. [number]가 `null`이면 프로젝트까지만 찾는다. 코드 접근을 구성원으로 제한한 프로젝트는 풀 리퀘스트와 코드가 걸린 요청에서만
+     * 비구성원을 막으므로([requireCodeAccess]) 이슈나 라벨 같은 조회는 `false`로 부른다.
      */
-    fun target(owner: String, projectName: String, number: Long?, request: HttpServletRequest, operation: Operation = Operation.READ): Target {
+    fun target(owner: String, projectName: String, number: Long?, request: HttpServletRequest, operation: Operation = Operation.READ, requireCodeAccess: Boolean = true): Target {
         val user = requests.tokenUser(request) ?: return Target(error = requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request"))
         val project = projectService.findByOwnerAndProjectName(owner, projectName)
-        if (project == null || !accessControl.isAllowed(user, project.asResource(), Operation.READ) || (project.isCodeAccessibleMemberOnly == true && !projectService.hasMember(project, user))) {
+        if (project == null || !accessControl.isAllowed(user, project.asResource(), Operation.READ) || (requireCodeAccess && project.isCodeAccessibleMemberOnly == true && !projectService.hasMember(project, user))) {
             return Target(error = requests.message(HttpStatus.FORBIDDEN, "forbidden or not found"))
         }
         if (number == null) return Target(user, project)
