@@ -34,7 +34,7 @@ v1.6에 없는 추가 항목이다. 개인용 API 토큰으로 풀 리퀘스트�
 | `GET /pullrequests/{number}/assigneecandidates?query=` | 담당자로 지정할 수 있는 사람(받는 프로젝트의 이슈 담당자 후보 규칙). 같은 모양 |
 | `GET /pullrequests/{number}/comments` | 리뷰 댓글을 스레드별로. 공개 스레드와 **호출한 사용자 본인의 임시 댓글**(`pending: true`). `{threads: [{id, state, pending, commitId, path, startLine, ..., comments: [{id, body, createdAt, editedAt, pending, author}]}]}` |
 
-상세 모양: `number`, `id`, `title`, `body`, `state`(`open`, `closed`, `merged`), `author`, `receiver`, `fromProject`, `toProject`, `fromBranch`, `toBranch`, `createdAt`, `updatedAt`(수정한 적이 없으면 `createdAt`), `mergedAt`, `isConflict`, `isMerging`, `mergeable`(`clean`, `conflicting`, `unknown`), `url`, `assignees`, `labels`(`id`, `labelName`, `labelColor`, `category`), `requestedReviewers`, `approvals`(`count`, `required`, `approvers`), `mergedCommitIdFrom`, `mergedCommitIdTo`.
+상세 모양: `number`, `id`, `title`, `body`, `state`(`open`, `closed`, `merged`), `author`, `receiver`, `fromProject`, `toProject`, `fromBranch`, `toBranch`, `createdAt`, `updatedAt`(수정한 적이 없으면 `createdAt`), `mergedAt`, `isConflict`, `isMerging`, `mergeable`(`clean`, `conflicting`, `unknown`), `url`, `assignees`, `labels`(`id`, `labelName`, `labelColor`, `category`), `requestedReviewers`, `approvals`(`count`, `required`, `approvers`), `mergedCommitIdFrom`, `mergedCommitIdTo`, `mergeMethod`(병합된 요청만 `merge`, `squash`, `rebase`, 아니면 `null`), `mergeMethods`(방식 이름을 키로 `allowed`, `available`, `reason`; `reason`은 `conflict`, `merge-commits`, `not-open`, `null`).
 
 ## 쓰기
 
@@ -44,7 +44,7 @@ v1.6에 없는 추가 항목이다. 개인용 API 토큰으로 풀 리퀘스트�
 | `PATCH /{number}` `{"title","body","fromBranch","toBranch","temporaryUploadFiles"}` | 수정 | 주어진 것만 고친다. 제목은 비울 수 없고 255자까지, 브랜치 쌍이 다른 열린 요청과 겹치면 409, 아무것도 안 주면 400 |
 | `POST /{number}/close` | 닫기 | 병합된 것은 409, 이미 닫힌 것은 그대로 성공 |
 | `POST /{number}/reopen` | 다시 열기 | 열려 있거나 병합된 것은 409 |
-| `POST /{number}/merge` `{"method":"merge"}` | 받아들이기 | `method`는 생략할 수 있고 **`merge`만 받는다**(그 밖의 값은 400 `Unsupported merge method: ...`, 스쿼시와 리베이스는 [로드맵 X-28](../roadmap.md)에서 연다). 열려 있지 않거나 병합 중이거나 충돌하거나 리뷰 조건을 채우지 못했으면 409. 프로젝트 관리자와 사이트 관리자는 화면처럼 리뷰 조건을 건너뛴다 |
+| `POST /{number}/merge` `{"method":"merge"}` | 받아들이기 | `method`(`merge`, `squash`, `rebase`)와 `commitTitle`, `commitMessage`는 모두 생략할 수 있다. 방식을 생략하면 프로젝트의 기본 방식이고, 모르는 값은 400 `Unsupported merge method: ...`, 프로젝트가 허용하지 않은 방식은 400 `Merge method not allowed: ...`이다. 제목과 본문은 병합 커밋과 스쿼시에만 쓴다. 리베이스는 한 커밋에서라도 충돌하거나 병합 커밋이 섞여 있으면 409이다([병합 방식](pull-request-merge-methods.md), X-28). 열려 있지 않거나 병합 중이거나 충돌하거나 리뷰 조건을 채우지 못했으면 409. 프로젝트 관리자와 사이트 관리자는 화면처럼 리뷰 조건을 건너뛴다 |
 | `DELETE /{number}/fromBranch`, `POST /{number}/fromBranch/restore` | 수정 | 병합된 풀 리퀘스트의 출발 브랜치 지우기와 되살리기 |
 | `POST /{number}/assignees` `{"assignees":["로그인ID"]}` | 수정 | 1명까지, 빈 배열은 해제. 없는 사용자와 후보가 아닌 사람은 400 |
 | `POST /{number}/labels` `{"attachingLabelIds":[...],"detachingLabelIds":[...]}` | 수정 | 받는 프로젝트의 라벨만. 없는 라벨과 다른 프로젝트 라벨은 400 |
