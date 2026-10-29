@@ -24,7 +24,6 @@ import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.pullrequest.PullRequestChangedActivity
 import dev.yona.domain.pullrequest.PullRequestCommitRepository
 import dev.yona.domain.pullrequest.PullRequestCreatedActivity
-import dev.yona.domain.pullrequest.PullRequestReviewedActivity
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import org.springframework.context.event.EventListener
@@ -304,19 +303,6 @@ class NotificationListener(
         val managers = users.findUsersByProjectRole(requireNotNull(pullRequest.toProject?.id), RoleType.MANAGER.id)
         events.add(
             pullRequestNote(author, pullRequest, EventType.PULL_REQUEST_REVIEW_RULE_NOTICE, "Re: " + pullRequestTitle(pullRequest), null, null, (managers + author).distinctBy { it.id })
-        )
-    }
-
-    @EventListener
-    fun onPullRequestReviewed(activity: PullRequestReviewedActivity) {
-        val pullRequest = activity.pullRequest
-        val actor = activity.actor
-        // 구독자에 보낸 사람을 더하고 리뷰한 사람을 뺀다. 본문의 멘션은 받지 않는다 (v1.6 `afterReviewed`).
-        val receivers = receivers.pullRequestWatchers(pullRequest).toMutableSet()
-        pullRequest.contributor?.let { receivers += it }
-        receivers.removeAll { it.id == actor.id }
-        events.add(
-            pullRequestNote(actor, pullRequest, EventType.PULL_REQUEST_REVIEW_STATE_CHANGED, "Re: " + pullRequestTitle(pullRequest), activity.action.opposite.name, activity.action.name, receivers)
         )
     }
 

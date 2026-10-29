@@ -21,7 +21,6 @@ import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.pullrequest.PullRequestChangedActivity
 import dev.yona.domain.pullrequest.PullRequestCreatedActivity
 import dev.yona.domain.pullrequest.PullRequestRepository
-import dev.yona.domain.pullrequest.PullRequestReviewedActivity
 import dev.yona.domain.user.SiteAdmin
 import dev.yona.domain.user.SiteAdminRepository
 import dev.yona.domain.user.User
@@ -218,7 +217,7 @@ class WebhookDispatchTest : AbstractIntegrationTest() {
         publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_COMMIT_CHANGED, null, null, sender))
         assertEquals(1, received.size)
         publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_STATE_CHANGED, "open", "merged", sender))
-        publisher.publishEvent(PullRequestReviewedActivity(pr, PullRequestReviewAction.DONE, sender))
+        publisher.publishEvent(PullRequestChangedActivity(pr, EventType.PULL_REQUEST_REVIEW_SUBMITTED, "APPROVED", null, sender))
         assertEquals(3, received.size)
         assertNotNull(json(2).path("text").asString(""))
     }

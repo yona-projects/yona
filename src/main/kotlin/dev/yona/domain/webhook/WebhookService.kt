@@ -120,11 +120,6 @@ class WebhookService(
     }
 
     @Transactional(readOnly = true)
-    fun pullRequestReview(eventType: EventType, sender: User, pullRequest: PullRequest, action: PullRequestReviewAction) = each(requireNotNull(pullRequest.toProject)) { hook ->
-        pullRequestBody(hook, payloads.pullRequestReviewMessage(hook.webhookType, sender, pullRequest, action), pullRequest, eventType)
-    }
-
-    @Transactional(readOnly = true)
     fun pullRequestComment(eventType: EventType, sender: User, pullRequest: PullRequest, commentUrl: String) = each(requireNotNull(pullRequest.toProject)) { hook ->
         pullRequestBody(hook, payloads.pullRequestCommentMessage(sender, pullRequest, commentUrl), pullRequest, eventType)
     }

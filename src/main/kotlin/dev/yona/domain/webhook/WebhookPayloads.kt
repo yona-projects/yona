@@ -147,13 +147,6 @@ class WebhookPayloads(
         return builder.append(link(type, pullRequestUrl(pullRequest), "#${pullRequest.number}: ${pullRequest.title}")).toString()
     }
 
-    fun pullRequestReviewMessage(type: WebhookType?, sender: User, pullRequest: PullRequest, action: PullRequestReviewAction): String {
-        val project = requireNotNull(pullRequest.toProject)
-        val builder = StringBuilder("[${project.name}] ")
-        builder.append(if (action == PullRequestReviewAction.DONE) text("notification.pullrequest.reviewed", sender.name) else text("notification.pullrequest.unreviewed", sender.name))
-        return builder.append(link(type, pullRequestUrl(pullRequest), "#${pullRequest.number}: ${pullRequest.title}")).toString()
-    }
-
     fun pullRequestCommentMessage(sender: User, pullRequest: PullRequest, commentUrl: String): String {
         val project = requireNotNull(pullRequest.toProject)
         return "[${project.name}] ${sender.name} " + text("notification.type.new.simple.comment") + " <${baseUrl()}$commentUrl|#${pullRequest.number}: ${pullRequest.title}>"

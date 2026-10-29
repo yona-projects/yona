@@ -12,7 +12,6 @@ import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.notification.CommitsPushedActivity
 import dev.yona.domain.pullrequest.PullRequestChangedActivity
 import dev.yona.domain.pullrequest.PullRequestCreatedActivity
-import dev.yona.domain.pullrequest.PullRequestReviewedActivity
 import dev.yona.domain.comment.ReviewLinks
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -93,11 +92,6 @@ class WebhookListener(
         if (activity.type == EventType.PULL_REQUEST_REVIEW_SUBMITTED || activity.type == EventType.PULL_REQUEST_REVIEW_DISMISSED) {
             service.pullRequest(activity.type, activity.actor, activity.pullRequest)
         }
-    }
-
-    @EventListener
-    fun onPullRequestReviewed(activity: PullRequestReviewedActivity) = safely("풀 리퀘스트 리뷰") {
-        service.pullRequestReview(EventType.PULL_REQUEST_REVIEW_STATE_CHANGED, activity.actor, activity.pullRequest, activity.action)
     }
 
     @EventListener
