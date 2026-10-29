@@ -16,7 +16,11 @@ data class PullRequestCreatedActivity(val pullRequest: PullRequest, val actor: U
  * @property type `PULL_REQUEST_STATE_CHANGED`(값은 상태 이름 소문자), `PULL_REQUEST_COMMIT_CHANGED`(값은 쓰지 않는다),
  *   `PULL_REQUEST_MERGED`(새 값은 `conflict`, `resolved`, `merged`)
  */
-data class PullRequestChangedActivity(val pullRequest: PullRequest, val type: EventType, val oldValue: String?, val newValue: String?, val actor: User)
+data class PullRequestChangedActivity(
+    val pullRequest: PullRequest, val type: EventType, val oldValue: String?, val newValue: String?, val actor: User,
+    /** 리뷰 제출(`PULL_REQUEST_REVIEW_SUBMITTED`)로 함께 공개된 임시 줄 댓글의 번호이다(추가 개발 항목 X-26, `decisions.md` D-38). 알림이 이를 요약하고 멘션된 사용자에게도 알린다 */
+    val publishedCommentIds: List<Long> = emptyList()
+)
 
 /**
  * 작성자 승인을 세지 않는 새 규칙 때문에 병합 요건을 잃은 열린 풀 리퀘스트를 알리는 애플리케이션 이벤트이다(추가 개발 항목 X-12, `decisions.md` D-35 13번).

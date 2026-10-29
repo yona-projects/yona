@@ -48,7 +48,8 @@ class NotificationListener(
     private val messages: org.springframework.context.MessageSource,
     private val siteUrls: dev.yona.util.SiteUrls,
     private val history: dev.yona.repository.CommitHistoryService,
-    private val mentionService: MentionService
+    private val mentionService: MentionService,
+    private val reviewCommentRepository: dev.yona.domain.comment.ReviewCommentRepository
 ) {
 
     // --- 이슈 ---
@@ -278,8 +279,14 @@ class NotificationListener(
             EventType.PULL_REQUEST_REVIEW_REQUESTED ->
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestReviewRequested(pullRequest, activity.newValue?.let { users.findByLoginId(it) }, actor)))
             // 추가 항목 X-12(D-35): 리뷰 판정 제출과 해제. 해제는 해제된 리뷰어에게도 알린다
-            EventType.PULL_REQUEST_REVIEW_SUBMITTED ->
-                events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestReview(pullRequest, actor)))
+            EventType.PULL_REQUEST_REVIEW_SUBMITTED -> {
+                // 임시 저장 리뷰(X-26, D-38)의 줄 댓글이 함께 공개되면 줄 댓글마다가 아니라 이 알림 하나로 보낸다. 줄 댓글에서 멘션된 사용자도 받는다
+                val published = if (activity.publishedCommentIds.isEmpty()) emptyList() else reviewCommentRepository.findAllById(activity.publishedCommentIds).sortedBy { it.id }
+                val mentioned = published.flatMap { mentionService.mentionedUsers(it.contents.orEmpty()) }.filter { it.id != actor.id }
+                val summary = published.joinToString("\n") { publishedLine(it) }
+                val body = listOfNotNull(activity.newValue?.takeIf { it.isNotBlank() }, summary.takeIf { it.isNotBlank() }).joinToString("\n\n")
+                events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, body.ifEmpty { null }, receivers.forPullRequestReview(pullRequest, actor).plus(mentioned).distinctBy { it.id }))
+            }
             EventType.PULL_REQUEST_REVIEW_DISMISSED ->
                 events.add(pullRequestNote(actor, pullRequest, activity.type, title, activity.oldValue, activity.newValue, receivers.forPullRequestReview(pullRequest, actor, activity.oldValue?.let { users.findByLoginId(it) })))
             EventType.PULL_REQUEST_MERGED -> {
@@ -316,6 +323,18 @@ class NotificationListener(
             .filter { it.state == dev.yona.domain.enumeration.PullRequestCommitState.CURRENT }.sortedByDescending { it.authorDate }
             .forEach { builder.append(it.commitShortId).append(' ').append(it.commitMessage.orEmpty().substringBefore('\n')).append('\n') }
         return builder.toString()
+    }
+
+    /** 함께 공개된 줄 댓글 한 줄의 요약이다: `[파일:줄] 첫 줄(80자까지)`. */
+    private fun publishedLine(comment: dev.yona.domain.comment.ReviewComment): String {
+        val thread = comment.thread
+        val location = when (thread) {
+            is dev.yona.domain.comment.CodeCommentThread -> thread.path.orEmpty() + (thread.startLine?.let { ":$it" } ?: "")
+            is dev.yona.domain.comment.NonRangedCodeCommentThread -> thread.path.orEmpty()
+            else -> ""
+        }
+        val first = comment.contents.orEmpty().lineSequence().firstOrNull().orEmpty().let { if (it.length > 80) it.take(80) + "..." else it }
+        return if (location.isEmpty()) first else "[$location] $first"
     }
 
     private fun pullRequestNote(sender: User, pullRequest: PullRequest, type: EventType, title: String, old: String?, new: String?, receivers: Collection<User>) =

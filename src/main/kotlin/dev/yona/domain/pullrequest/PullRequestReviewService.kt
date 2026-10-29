@@ -38,7 +38,9 @@ class PullRequestReviewService(
     private val users: UserRepository,
     private val events: PullRequestEventService,
     private val publisher: org.springframework.context.ApplicationEventPublisher,
-    private val reviewRequests: PullRequestReviewRequestService
+    private val reviewRequests: PullRequestReviewRequestService,
+    private val pendingReader: dev.yona.domain.comment.PendingReviewReader,
+    private val pendingReview: dev.yona.domain.comment.PendingReviewService
 ) {
 
     companion object {
@@ -56,7 +58,8 @@ class PullRequestReviewService(
         val author = pullRequest.contributor?.id == reviewer.id
         if (author && verdict != ReviewVerdict.COMMENTED) return ReviewResult.AUTHOR_NOT_ALLOWED
         if (verdict != ReviewVerdict.COMMENTED && pullRequest.state != State.OPEN) return ReviewResult.NOT_OPEN
-        if (verdict != ReviewVerdict.APPROVED && contents.isNullOrBlank()) return ReviewResult.BODY_REQUIRED
+        // 임시 저장 리뷰(X-26, D-38)의 줄 댓글이 하나라도 있으면 요약 본문 없이도 제출할 수 있다
+        if (verdict != ReviewVerdict.APPROVED && contents.isNullOrBlank() && pendingReader.count(pullRequest, reviewer) == 0L) return ReviewResult.BODY_REQUIRED
         val review = reviews.save(
             PullRequestReview(
                 pullRequest = pullRequest, authorId = reviewer.id, authorLoginId = reviewer.loginId, verdict = verdict,
@@ -64,12 +67,14 @@ class PullRequestReviewService(
             )
         )
         pullRequest.reviewHistory.add(review)
+        // 내 임시 줄 댓글을 함께 공개한다. 알림은 줄 댓글마다가 아니라 아래의 리뷰 알림 하나로 묶어 보낸다
+        val publishedComments = pendingReview.publish(pullRequest, reviewer)
         // 리뷰를 제출하면 그 사람의 대기 중인 리뷰 요청은 말없이 지운다(추가 개발 항목 X-27, D-37)
         reviewRequests.fulfil(pullRequest, reviewer)
         syncApprovers(pullRequest)
         events.addReviewSubmitted(reviewer, pullRequest, review)
         // 알림과 웹훅은 구독자와 작성자에게 알린다(이전 값은 판정 이름, 새 값은 본문)
-        publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_REVIEW_SUBMITTED, verdict.name, review.contents, reviewer))
+        publisher.publishEvent(PullRequestChangedActivity(pullRequest, EventType.PULL_REQUEST_REVIEW_SUBMITTED, verdict.name, review.contents, reviewer, publishedComments))
         return ReviewResult.SUBMITTED
     }
 
