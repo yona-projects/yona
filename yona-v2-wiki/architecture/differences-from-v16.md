@@ -2,7 +2,7 @@
 title: v1.6과 달라지는 아키텍처 결정
 type: architecture
 sources: [build.sbt, conf/application.conf]
-updated: 2026-10-25
+updated: 2026-10-29
 ---
 
 # v1.6과 달라지는 아키텍처 결정
@@ -36,13 +36,26 @@ updated: 2026-10-25
 | 소셜 로그인, LDAP, 메일 수신 | play-authenticate, JNDI, JavaMail | `RestClient` 직접 구현, JNDI, Jakarta Mail(D-24) | Play 플러그인 대체. 전환 후보는 [../refactoring-backlog.md](../refactoring-backlog.md) T-1~T-3 |
 | 설정 | `application.conf`(Typesafe Config) | `yona.*` 속성(`YonaProperties`)과 `<데이터 디렉터리>/config/secret.properties`(A-93) | Spring Boot 설정 방식 |
 
+## 추가 개발 항목으로 생긴 의도된 차이 (장부)
+
+D-28의 추가 개발 항목은 v1.6에 없는 동작이므로 v1.6과 달라지는 것이 정의상 의도이다. **이 표가 의도된 차이의 유일한 장부이다.** 항목을 끝낼 때마다 변경한 코드를 근거로 한 줄씩 더한다. 동등성 대조 도구(`tools/v16-diff`)는 선생님이 요청할 때만 돌리며(D-32), 그때 이 표에 있는 차이는 새 불일치로 세지 않는다.
+
+| 항목 | 날짜 | v1.6과 달라지는 점 | 닿는 화면과 요청 | 기록 |
+|---|---|---|---|---|
+| X-21 사용 현황 집계 | 2026-10-28 | 레이아웃(`layout/layout.html`, `layout/layout-framed.html`)의 UA 스크립트(`analytics.js`)를 GA4 `gtag` 조각(`common/analytics`)으로 바꿨다. 스위치는 v1.6의 `yona.send-yona-usage`(기본 켜짐)를 그대로 쓴다. 측정 ID는 `yona.analytics.measurement-id`이고, 경로를 가려(소유자와 프로젝트 이름은 보내지 않는다) 페이지뷰와 2단 보기 이벤트를 보낸다. 선생님이 의도된 동작으로 확인하셨다 | 두 레이아웃을 쓰는 모든 화면의 본문 끝 스크립트 | A-186 |
+| X-22 기본 브랜치 | 2026-10-28 | 새로 만드는 Git 저장소의 `HEAD`가 `master`가 아니라 `yona.git-default-branch`(기본 `main`)이다. 기존 저장소, 가져오기, 포크는 그대로이다 | 프로젝트 생성 직후의 코드 화면, 풀 리퀘스트 기본 브랜치 | A-187 |
+| X-11 병합 시 이슈 자동 닫기 | 2026-10-29 | 풀 리퀘스트를 받아들여 병합하면 제목, 본문, 커밋 메시지에서 `close(s/d)`, `fix(es/ed)`, `resolve(s/d) #번호`로 가리킨 받는 프로젝트의 열림 이슈를 닫고 이슈 타임라인 이벤트와 알림을 남긴다 | `POST /:user/:project/pullRequest/:번호/accept`의 부수 효과(이슈 상태, 이슈 이벤트, 알림, 웹훅) | A-188 |
+| X-18 Git 태그 화면 | 2026-10-29 | (1) 브랜치 목록(브랜치 화면, 풀 리퀘스트 생성과 수정 화면의 출발, 도착 목록)이 `refs/heads`만 돌려준다. 태그와 원격 참조가 빠진다. (2) 코드 화면과 커밋 이력의 선택 목록이 "브랜치", "태그" 구역으로 나뉘고 원격 참조는 빠진다. (3) 코드, 커밋 이력, 커밋 보기, 브랜치 화면의 탭에 "태그"가 더해진다. (4) 전용 화면 `GET /:user/:project/tags`와 삭제 `DELETE /:user/:project/tags/:tag`가 더해진다 | `/:user/:project/branches`, `/newPullRequestForm`, `/newPullRequest/mergeResult`, 풀 리퀘스트 수정 폼, `/code`, `/commits`, `/commit/:id`, `/tags`(신규). 새 메시지 키 `title.tags`, `code.tags.*` | D-30, [../web/tags.md](../web/tags.md) |
+| 브랜치 삭제 확인창 | 2026-10-29 | 브랜치 화면의 삭제 단추가 확인창을 먼저 띄운다. 요청 경로와 응답은 그대로이다. 새 메시지 키 `code.branches.deleteConfirm` | `/:user/:project/branches`의 삭제 단추 | D-31 |
+
+2026-10-29의 부분 회귀 실행(`regress.sh`가 첫 시나리오에서 중단됨)에서 `anon_basic`이 `다름 2`에서 `다름 36`으로 늘었다. 원인을 가르지는 않았으나 X-21의 GA4 스크립트가 모든 화면에 들어간 것이 주된 이유로 추정한다(미검증). 다음 전체 회귀에서는 이 장부를 제외하고 본다.
+
 ## 기존 v1.6 설치 위에서 쓰기 (2026-10-25 실제 점검)
 v1.6의 `conf/evolutions/default/1~32.sql`의 `Ups`를 새 MariaDB 10.11에 적용한 데이터베이스(61개 테이블)에 v2를 붙여 확인했다.
 
 - 기동: 오류 없이 올라오고 초기 데이터(역할 7개, 관리자)는 v1.6 `initial-data.yml`과 같다. 스키마 변화는 [decisions.md](../decisions.md) A-104의 두 가지(중복 인덱스 2개, `webhook_type` 폭)뿐이다.
 - 읽기: v1.6 형태로 넣은 사용자(v1.6 해시 비밀번호로 로그인, 잠긴 사용자 거부), 프로젝트(공개, 비공개), 이슈(상태 정수, 담당자는 `assignee` 테이블을 거친다), 댓글, 라벨, 마일스톤, 게시글, 추천, 이벤트, 첨부, 감시, 즐겨찾기가 화면에 맞게 나온다.
 - 쓰기: v2가 쓴 이슈, 댓글, 마일스톤, 게시글이 v1.6과 같은 형태이다(번호가 이어지고 `last_issue_number`가 늘며 상태는 정수 1=열림, 2=닫힘, 마일스톤 마감은 `23:59:59`).
-- 브랜치와 태그(2026-10-29, D-30): v1.6은 태그와 원격 참조를 "브랜치"로 함께 보여 주었으나 v2는 브랜치 목록(브랜치 화면, 풀 리퀘스트 출발·도착 목록)에 `refs/heads`만 둔다. 코드 화면과 커밋 이력의 선택 목록은 "브랜치", "태그" 구역으로 나누고 원격 참조는 뺀다. 코드, 커밋, 브랜치 화면의 탭에 "태그"를 더하고 전용 태그 화면과 삭제 경로를 추가했다([../web/tags.md](../web/tags.md)). v1.6 대비 의도된 차이이다. 브랜치 화면의 삭제 단추에도 확인창을 둔다(D-31).
 - 디스크: `repo/git/<소유자>/<이름>.git`과 `uploads/<SHA-256>`을 그대로 쓴다. 저장소 HEAD가 가리키는 브랜치가 실제 브랜치와 같아야 코드 화면이 열린다(JGit이 만든 v1.6 저장소는 `master`, v2가 새로 만드는 저장소는 `main`: X-22). v1.6 저장소를 복제하고 푸시할 수 있다.
 - 열거형: `issue.state`, `milestone.state`, `pull_request.state`, `webhook.webhook_type`은 선언 순서(서수)로 저장하므로 순서가 v1.6과 같아야 한다. `EnumOrdinalParityTest`가 지킨다.
 - 이전(Migration) 화면: 내보내기 JSON이 위 데이터에서 v1.6 모양으로 나오고, 화면에서 원본과 대상을 골라 마일스톤, 이슈, 게시글을 옮기면 GitHub로 나가는 요청(마일스톤 생성, `import/issues`)이 서버 내용과 같다. 단 토큰 교환이 폼 형식만 해석하는 v1.6 결함(R-58 1) 때문에 GitHub가 JSON으로 답하면 토큰이 비어 인증이 반복된다.

@@ -8,7 +8,7 @@
 ## 아키텍처 (`architecture/`)
 
 - [설정 키 대응표](architecture/configuration-keys.md): `application.*` -> `yona.*`
-- [v1.6과 달라지는 아키텍처 결정](architecture/differences-from-v16.md): 기술 스택 전환과 그 이유
+- [v1.6과 달라지는 아키텍처 결정](architecture/differences-from-v16.md): 기술 스택 전환과 그 이유 추가 개발 항목의 의도된 차이 장부 포함(D-32)
 - [v1.6 소스 결함 후보 전체 목록](architecture/v16-defect-catalog.md): 5차 검증의 결함 후보 189건과 v2 판정
 - [v1.6 위키 9~11차 갱신분의 v2 대조 결과](architecture/v16-sync-9-11.md): 바뀐 127개 페이지의 대조, 고친 항목, 결정 대기, 판정하지 못한 항목
 - [v1.6 위키 127쪽 전수 줄 대조](architecture/v16-sync-ledger.md): 장부 2,267줄의 판정 집계, 불일치 92줄의 처리, 판정하지 못한 9줄
