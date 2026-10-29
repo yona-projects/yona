@@ -171,6 +171,14 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `라벨과 담당자가 하나도 없어도 편집 권한자의 보기 화면이 열리고 아무것도 선택되어 있지 않다`() {
+        val s = setup(); label(s.origin, "bug")
+        val d = page(s.url, login(s.manager))
+        assertEquals("", d.selectFirst("#assignee-select option[selected]")!!.attr("value"))
+        assertTrue(d.select("#labelIds option[selected]").isEmpty())
+    }
+
+    @Test
     fun `편집 권한이 없으면 담당자와 라벨을 읽기만 한다`() {
         val s = setup(); val bug = label(s.origin, "bug")
         mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(setLabels(s, s.manager, bug))

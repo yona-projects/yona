@@ -68,7 +68,8 @@ class PullRequestMetaAssembler(
         val base = siteUrls.path(UrlPaths.projectPath(project.owner, project.name))
         val projectLabels = if (canEdit) labelService.labels(project) else emptyList()
         return PullRequestLabelArea(
-            canEdit, "$base/pullRequest/${pullRequest.number}/labels", formOptions.labelGroups(projectLabels), pullRequest.labels.mapNotNull { it.id }.toSet(),
+            canEdit, "$base/pullRequest/${pullRequest.number}/labels", formOptions.labelGroups(projectLabels), // 비어 있어도 `kotlin.collections.EmptySet`이 아니라 일반 집합을 넘긴다(Thymeleaf의 `contains` 호출이 EmptySet에서 실패한다)
+            pullRequest.labels.mapNotNullTo(LinkedHashSet()) { it.id },
             pullRequest.labels.sortedWith(compareBy({ it.category?.name }, { it.name })).map {
                 IssueLabelTag(requireNotNull(it.id), it.category?.id, it.category?.name.orEmpty(), it.category?.isExclusive == true, it.name.orEmpty(), it.color.orEmpty())
             },
