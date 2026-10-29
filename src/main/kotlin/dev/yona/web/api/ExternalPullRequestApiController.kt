@@ -40,7 +40,9 @@ class ExternalPullRequestApiController(
     private val pendingReader: PendingReviewReader,
     private val requests: ApiRequests,
     private val json: PullRequestJson,
-    private val support: PullRequestApiSupport
+    private val support: PullRequestApiSupport,
+    private val reviewRequests: dev.yona.domain.pullrequest.PullRequestReviewRequestService,
+    private val assignees: dev.yona.domain.pullrequest.PullRequestAssigneeService
 ) {
 
     /**
@@ -131,6 +133,32 @@ class ExternalPullRequestApiController(
         val visible = pullRequestService.threads(pullRequest).map { json.thread(it, it.reviewComments + repliesByThread[it.id].orEmpty()) }
         val own: List<Map<String, Any?>> = pendingReader.threads(pullRequest, viewer).map { thread: CommentThread -> json.thread(thread, pendingReader.threadComments(thread)) }
         return support.ok(linkedMapOf("threads" to visible + own))
+    }
+
+    /**
+     * 리뷰를 요청할 수 있는 사람을 찾는다(이 풀 리퀘스트의 프로젝트나 소속 조직의 구성원, 작성자와 이미 요청된 사람은 제외). `query`는 이름이나 로그인 ID의 일부이고
+     * 생략하면 후보 전체이다(최대 100명). 풀 리퀘스트를 고칠 수 있는 사람만 조회한다. 응답은 `{"users": [{"loginId", "name"}]}`이다.
+     */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/reviewercandidates")
+    @Transactional(readOnly = true)
+    fun reviewerCandidates(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @RequestParam(required = false, defaultValue = "") query: String, request: HttpServletRequest): Any {
+        val target = support.target(owner, projectName, number, request, dev.yona.domain.enumeration.Operation.UPDATE)
+        target.error?.let { return it }
+        val users = reviewRequests.candidates(requireNotNull(target.pullRequest), query, target.user, listAll = true, limit = MAX_PAGE_SIZE)
+        return support.ok(linkedMapOf("users" to users.map { json.user(it) }))
+    }
+
+    /** 담당자로 지정할 수 있는 사람을 찾는다(받는 프로젝트의 이슈 담당자 후보 규칙). `query`는 이름이나 로그인 ID의 일부이고 생략하면 전체이다. 응답은 `{"users": [...]}`이다. */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/assigneecandidates")
+    @Transactional(readOnly = true)
+    fun assigneeCandidates(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @RequestParam(required = false, defaultValue = "") query: String, request: HttpServletRequest): Any {
+        val target = support.target(owner, projectName, number, request, dev.yona.domain.enumeration.Operation.UPDATE)
+        target.error?.let { return it }
+        val needle = query.trim().lowercase()
+        val users = assignees.candidates(requireNotNull(target.pullRequest), target.user).filter {
+            needle.isEmpty() || it.loginId.orEmpty().lowercase().contains(needle) || it.name.orEmpty().lowercase().contains(needle)
+        }.take(MAX_PAGE_SIZE)
+        return support.ok(linkedMapOf("users" to users.map { json.user(it) }))
     }
 
     private companion object {

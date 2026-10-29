@@ -513,4 +513,34 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
         call(json(post("${s.api}/${s.pr.number}/reviews"), """{"verdict":"COMMENTED","body":"작성자의 설명"}"""), t).andExpect(status().isCreated)
         call(get("${s.api}/${s.pr.number}"), t).andExpect(jsonPath("$.approvals.count").value(0))
     }
+
+    // --- 리뷰어와 담당자 후보 찾기 ---
+
+    @Test
+    fun `리뷰어 후보는 프로젝트와 조직의 구성원 중에서 찾고 작성자와 이미 요청된 사람을 뺀다`() {
+        val s = setup(); val t = token(s.manager)
+        call(get("${s.api}/${s.pr.number}/reviewercandidates"), t).andExpect(status().isOk)
+            .andExpect(jsonPath("$.users.length()").value(2)).andExpect(jsonPath("$.users[?(@.loginId=='${s.manager.loginId}')].name").value(s.manager.name))
+            .andExpect(jsonPath("$.users[?(@.loginId=='${s.member.loginId}')]").isNotEmpty).andExpect(jsonPath("$.users[?(@.loginId=='${s.contributor.loginId}')]").isEmpty)
+        call(get("${s.api}/${s.pr.number}/reviewercandidates").param("query", s.member.loginId!!), t).andExpect(jsonPath("$.users.length()").value(1)).andExpect(jsonPath("$.users[0].loginId").value(s.member.loginId))
+        call(get("${s.api}/${s.pr.number}/reviewercandidates").param("query", "없는사람"), t).andExpect(jsonPath("$.users.length()").value(0))
+        call(json(post("${s.api}/${s.pr.number}/requestedreviewers"), """{"reviewer":"${s.member.loginId}"}"""), t).andExpect(status().isOk)
+        call(get("${s.api}/${s.pr.number}/reviewercandidates"), t).andExpect(jsonPath("$.users.length()").value(1))
+    }
+
+    @Test
+    fun `담당자 후보도 같은 방식으로 찾는다`() {
+        val s = setup(); val t = token(s.manager)
+        call(get("${s.api}/${s.pr.number}/assigneecandidates"), t).andExpect(status().isOk).andExpect(jsonPath("$.users[?(@.loginId=='${s.member.loginId}')]").isNotEmpty)
+        call(get("${s.api}/${s.pr.number}/assigneecandidates").param("query", s.manager.loginId!!), t).andExpect(jsonPath("$.users.length()").value(1))
+    }
+
+    @Test
+    fun `후보 조회는 풀 리퀘스트를 고칠 수 있는 사람만 하고 범위가 모자라면 403이다`() {
+        val s = setup()
+        call(get("${s.api}/${s.pr.number}/reviewercandidates"), token(user())).andExpect(status().isForbidden)
+        call(get("${s.api}/${s.pr.number}/assigneecandidates"), token(user())).andExpect(status().isForbidden)
+        call(get("${s.api}/${s.pr.number}/reviewercandidates"), token(s.manager, "user")).andExpect(status().isForbidden)
+        call(get("${s.api}/${s.pr.number}/reviewercandidates"), null).andExpect(status().isUnauthorized)
+    }
 }

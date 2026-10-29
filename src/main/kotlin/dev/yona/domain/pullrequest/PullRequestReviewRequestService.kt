@@ -84,17 +84,18 @@ class PullRequestReviewRequestService(
     private fun members(pullRequest: PullRequest): List<User> = listService.assignableUsers(requireNotNull(pullRequest.toProject), null, false)
 
     /**
-     * 리뷰를 요청할 수 있는 사람을 이름이나 로그인 ID로 찾는다(최대 [MAX_CANDIDATES]명). 빈 검색어는 목록을 보이지 않는다.
-     * 받는 프로젝트나 소속 조직에 속한 활성 사용자만 나오고 작성자와 이미 대기 중인 사람은 뺀다. 요청하는 본인이 속해 있으면 후보에 들어간다(자기 자신에게도 요청할 수 있고 알림은 가지 않는다).
+     * 리뷰를 요청할 수 있는 사람을 이름이나 로그인 ID로 찾는다(최대 [limit]명, 이름 순서). 화면의 검색 상자는 빈 검색어에 목록을 보이지 않지만([listAll]이 `false`),
+     * REST는 빈 검색어에 후보 전체를 돌려준다([listAll]이 `true`). 받는 프로젝트나 소속 조직에 속한 활성 사용자만 나오고 작성자와 이미 대기 중인 사람은 뺀다.
+     * 요청하는 본인이 속해 있으면 후보에 들어간다(자기 자신에게도 요청할 수 있고 알림은 가지 않는다).
      */
     @Transactional(readOnly = true)
-    fun candidates(pullRequest: PullRequest, query: String, viewer: User?): List<User> {
+    fun candidates(pullRequest: PullRequest, query: String, viewer: User?, listAll: Boolean = false, limit: Int = MAX_CANDIDATES): List<User> {
         val trimmed = query.trim().lowercase()
-        if (trimmed.isEmpty()) return emptyList()
+        if (trimmed.isEmpty() && !listAll) return emptyList()
         val pending = pullRequest.reviewRequests.mapNotNull { it.id }.toSet()
         return members(pullRequest).filter {
             it.state == UserState.ACTIVE && it.id != pullRequest.contributor?.id && it.id !in pending &&
-                (it.loginId.orEmpty().lowercase().contains(trimmed) || it.name.orEmpty().lowercase().contains(trimmed))
-        }.take(MAX_CANDIDATES)
+                (trimmed.isEmpty() || it.loginId.orEmpty().lowercase().contains(trimmed) || it.name.orEmpty().lowercase().contains(trimmed))
+        }.take(limit)
     }
 }

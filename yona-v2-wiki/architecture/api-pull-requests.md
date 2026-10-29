@@ -30,6 +30,8 @@ v1.6에 없는 추가 항목이다. 개인용 API 토큰으로 풀 리퀘스트�
 | `GET /pullrequests/{number}/files` | 병합 기준 커밋 사이의 변경 파일. `{files: [{path, oldPath, status, additions, deletions, binary, patch, truncated}]}`. `patch`는 통합 diff(헝크를 이은 것)이고 이진 파일이거나 너무 크면 `null` |
 | `GET /pullrequests/{number}/timeline` | 이벤트(`type`은 `EventType` 이름)를 만든 순서로. `{events: [{id, type, createdAt, sender, oldValue, newValue}]}` |
 | `GET /pullrequests/{number}/reviews` | 리뷰 판정 이력. `{reviews: [{id, verdict, body, createdAt, author, dismissed, dismissedAt, dismissedBy, dismissedReason}]}` |
+| `GET /pullrequests/{number}/reviewercandidates?query=` | 리뷰를 요청할 수 있는 사람(이 프로젝트와 소속 조직의 구성원, 작성자와 이미 요청된 사람은 제외). `query`는 이름이나 로그인 ID의 일부이고 생략하면 전체(최대 100명). 풀 리퀘스트를 고칠 수 있는 사람만. `{users: [{loginId, name}]}` |
+| `GET /pullrequests/{number}/assigneecandidates?query=` | 담당자로 지정할 수 있는 사람(받는 프로젝트의 이슈 담당자 후보 규칙). 같은 모양 |
 | `GET /pullrequests/{number}/comments` | 리뷰 댓글을 스레드별로. 공개 스레드와 **호출한 사용자 본인의 임시 댓글**(`pending: true`). `{threads: [{id, state, pending, commitId, path, startLine, ..., comments: [{id, body, createdAt, editedAt, pending, author}]}]}` |
 
 상세 모양: `number`, `id`, `title`, `body`, `state`(`open`, `closed`, `merged`), `author`, `receiver`, `fromProject`, `toProject`, `fromBranch`, `toBranch`, `createdAt`, `updatedAt`(수정한 적이 없으면 `createdAt`), `mergedAt`, `isConflict`, `isMerging`, `mergeable`(`clean`, `conflicting`, `unknown`), `url`, `assignees`, `labels`(`id`, `labelName`, `labelColor`, `category`), `requestedReviewers`, `approvals`(`count`, `required`, `approvers`), `mergedCommitIdFrom`, `mergedCommitIdTo`.
