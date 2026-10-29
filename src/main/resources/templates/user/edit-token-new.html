@@ -30,7 +30,7 @@
             <dl class="issue-option">
                 <dt th:text="#{apiToken.create.expiration}"></dt>
                 <dd>
-                    <select id="token-expiration" name="expiration">
+                    <select id="token-expiration" name="expiration" style="width: 240px; display: inline-block;">
                         <option th:each="d : ${ {7, 30, 60, 90} }" th:value="${d}" th:selected="${d == 30}" th:text="#{apiToken.expiration.days(${d})}"></option>
                         <option th:if="${maxDays <= 0}" value="none" th:text="#{apiToken.expiration.none}"></option>
                         <option value="custom" th:text="#{apiToken.expiration.custom}"></option>
@@ -38,7 +38,7 @@
                     <!--/* 사용자 지정을 고르면 달력(Pikaday)으로 만료 날짜를 정한다. 오늘 이후만 고를 수 있다 */-->
                     <div id="token-custom" style="display:none; margin-top:8px;">
                         <label for="token-expires-date" th:text="#{apiToken.create.expiresDate}"></label>
-                        <input type="text" name="expiresDate" id="token-expires-date" class="text" autocomplete="off" placeholder="yyyy-MM-dd">
+                        <input type="text" name="expiresDate" id="token-expires-date" class="text" autocomplete="off" placeholder="yyyy-MM-dd" style="width: 140px;">
                         <div id="token-expires-picker" class="date-picker"></div>
                     </div>
                 </dd>
