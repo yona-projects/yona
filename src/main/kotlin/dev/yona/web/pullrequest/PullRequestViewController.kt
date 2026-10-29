@@ -80,6 +80,18 @@ class PullRequestViewController(
 
     private val json = JsonMapper.builder().build()
 
+    /**
+     * 타임라인의 줄만 그린 조각이다. 담당자나 라벨을 바꾼 뒤 화면이 Ajax로 다시 불러온다(추가 항목 X-14, 이슈 화면의 타임라인 갱신과 같다). 읽기 권한이 필요하다.
+     */
+    @GetMapping("/{user}/{project}/pullRequest/{id}/timeline")
+    @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
+    @Transactional(readOnly = true)
+    @IsOnlyGitAvailable
+    fun timeline(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long): Any {
+        val (_, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
+        return ModelAndView("pullrequest/partial-timeline :: timeline").addObject("timeline", assembler.timeline(pullRequest))
+    }
+
     @GetMapping("/{user}/{project}/pullRequest/{id}")
     @IsAllowed(Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     @Transactional(readOnly = true)

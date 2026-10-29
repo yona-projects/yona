@@ -16,77 +16,79 @@
     <div class="project-page-wrap">
         <th:block th:replace="~{pullrequest/partial-info :: info}"></th:block>
 
-        <div class="board-body">
-            <div class="author-info left-txt" style="margin-top:20px;">
-                <a th:href="${contributor.href}" class="usf-group pull-left">
-                    <span class="avatar-wrap smaller">
-                        <img th:src="${contributor.avatarUrl}" width="32" height="32">
-                    </span>
-                    <strong class="name" th:text="${contributor.name}"></strong>
-                    <span class="loginid"> <strong>@</strong><th:block th:text="${contributor.loginId}"></th:block></span>
-                </a>
-                <th:block th:replace="~{pullrequest/partial-branch :: branch}"></th:block>
-            </div>
-            <!--/* 담당자와 라벨(추가 항목 X-14, decisions.md D-34). 수정 권한이 있으면 고를 수 있고 없으면 읽기만 한다 */-->
-            <div class="pr-meta clearfix" th:if="${assigneeArea != null}">
-                <dl class="pr-assignee">
-                    <dt th:text="#{issue.assignee}"></dt>
-                    <dd>
-                        <form th:if="${assigneeArea.canEdit}" id="assignee-form" th:action="${assigneeArea.action}" method="post">
-                            <select id="assignee-select" name="assigneeId" data-toggle="select2" data-format="user" class="hide" style="width: 260px;">
-                                <option value="" th:selected="${assigneeArea.current == null}" th:text="#{issue.noAssignee}"></option>
-                                <option th:each="o : ${assigneeArea.options}" th:value="${o.id}" th:selected="${o.selected}"
-                                        th:attr="data-avatar-url=${o.avatarUrl}, data-login-id=${o.loginId}" th:text="${o.displayName}"></option>
-                            </select>
-                        </form>
-                        <th:block th:unless="${assigneeArea.canEdit}">
-                            <a th:if="${assigneeArea.current != null}" th:href="${assigneeArea.current.href}" class="usf-group">
-                                <span class="avatar-wrap smaller"><img th:src="${assigneeArea.current.avatarUrl}" width="20" height="20"></span>
-                                <strong class="name" th:text="${assigneeArea.current.displayName}"></strong>
-                                <span class="loginid"> <strong>@</strong><th:block th:text="${assigneeArea.current.loginId}"></th:block></span>
-                            </a>
-                            <div th:if="${assigneeArea.current == null}" th:text="#{issue.noAssignee}"></div>
-                        </th:block>
-                    </dd>
-                </dl>
-                <form th:if="${labelArea.canEdit and labelArea.hasLabels}" id="labels-form" th:action="${labelArea.action}" method="post">
-                    <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelArea.groups}, ${labelArea.selectedIds}, 'pr-labels', null, ${projectView})}"></th:block>
-                </form>
-                <dl th:if="${!labelArea.canEdit and !#lists.isEmpty(labelArea.tags)}" class="pr-labels">
-                    <dt th:text="#{label}"></dt>
-                    <dd>
-                        <a th:each="l : ${labelArea.tags}" th:href="${labelArea.listUrl} + '?labelIds=' + ${l.id}" class="label issue-label active static"
-                           th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
-                    </dd>
-                </dl>
-            </div>
-            <div class="content markdown-wrap" th:utext="${bodyHtml}"></div>
-            <div class="attachments" th:attr="data-attachments=${attachments}"></div>
-        </div>
+        <!--/* 이슈 화면과 같은 2단 구성(추가 항목 X-14, decisions.md D-34 16번): 왼쪽에 본문, 상태, 타임라인, 오른쪽 열에 담당자와 라벨 */-->
+        <div class="board-body row-fluid">
+            <div class="span9 span-left-pane">
+                <div class="author-info left-txt" style="margin-top:20px;">
+                    <a th:href="${contributor.href}" class="usf-group pull-left">
+                        <span class="avatar-wrap smaller">
+                            <img th:src="${contributor.avatarUrl}" width="32" height="32">
+                        </span>
+                        <strong class="name" th:text="${contributor.name}"></strong>
+                        <span class="loginid"> <strong>@</strong><th:block th:text="${contributor.loginId}"></th:block></span>
+                    </a>
+                    <th:block th:replace="~{pullrequest/partial-branch :: branch}"></th:block>
+                </div>
+                <div class="content markdown-wrap" th:utext="${bodyHtml}"></div>
+                <div class="attachments" th:attr="data-attachments=${attachments}"></div>
 
-        <div id="state" class="pullRequest-stateInfo">
-            <th:block th:replace="~{pullrequest/partial-state :: state}"></th:block>
-        </div>
+                <div id="state" class="pullRequest-stateInfo">
+                    <th:block th:replace="~{pullrequest/partial-state :: state}"></th:block>
+                </div>
 
-        <div class="board-footer board-actrow">
-            <div class="pull-left">
-                <button th:if="${canWatch}" id="watch-button" type="button" th:class="'ybtn' + (${watching} ? ' ybtn-watching' : '')" data-toggle="button" th:attr="data-watching=${watching}"
-                        th:text="${watching} ? #{project.unwatch} : #{project.watch}"></button>
+                <div class="board-footer board-actrow">
+                    <div class="pull-left">
+                        <button th:if="${canWatch}" id="watch-button" type="button" th:class="'ybtn' + (${watching} ? ' ybtn-watching' : '')" data-toggle="button" th:attr="data-watching=${watching}"
+                                th:text="${watching} ? #{project.unwatch} : #{project.watch}"></button>
+                    </div>
+
+                    <div class="mr5" style="display:inline-block;">
+                        <a th:if="${canEdit}" th:href="${editUrl}" class="ybtn" th:text="#{button.edit}"></a>
+                        <a th:if="${canClose}" data-request-method="post" th:href="${closeUrl}" class="ybtn" th:text="#{pullRequest.close}"></a>
+                        <a th:if="${canReopen}" data-request-method="post" th:href="${reopenUrl}" class="ybtn" th:text="#{pullRequest.reopen}"></a>
+                    </div>
+                </div>
+
+                <hr class="nm">
+
+                <div class="board-comment-wrap">
+                    <ul class="comments" id="comments" th:if="${!#lists.isEmpty(timeline)}">
+                        <th:block th:replace="~{pullrequest/partial-timeline :: timeline}"></th:block>
+                    </ul>
+                </div>
             </div>
 
-            <div class="mr5" style="display:inline-block;">
-                <a th:if="${canEdit}" th:href="${editUrl}" class="ybtn" th:text="#{button.edit}"></a>
-                <a th:if="${canClose}" data-request-method="post" th:href="${closeUrl}" class="ybtn" th:text="#{pullRequest.close}"></a>
-                <a th:if="${canReopen}" data-request-method="post" th:href="${reopenUrl}" class="ybtn" th:text="#{pullRequest.reopen}"></a>
+            <div class="span3 span-right-pane mb20">
+                <!--/* 담당자와 라벨. 수정 권한이 있으면 고르는 즉시 Ajax로 보내고(yona.pullrequest.Meta.js) 없으면 읽기만 한다 */-->
+                <div id="pr-meta" class="issue-info" th:if="${assigneeArea != null}"
+                     th:attr="data-assignees-url=${assigneeArea.assigneesUrl}, data-labels-url=${labelArea.labelsUrl}, data-timeline-url=${assigneeArea.timelineUrl}, data-candidates-url=${assigneeArea.candidatesUrl}">
+                    <dl class="pr-assignee">
+                        <dt th:text="#{issue.assignee}"></dt>
+                        <dd>
+                            <input th:if="${assigneeArea.canEdit}" type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}"
+                                   th:value="${assigneeArea.current?.loginId}" th:attr="data-name=${assigneeArea.current?.name}, data-avatar-url=${assigneeArea.current?.avatarUrl}" style="width: 100%" title="">
+                            <th:block th:unless="${assigneeArea.canEdit}">
+                                <a th:if="${assigneeArea.current != null}" th:href="${assigneeArea.current.href}" class="usf-group">
+                                    <span class="avatar-wrap smaller"><img th:src="${assigneeArea.current.avatarUrl}" width="20" height="20"></span>
+                                    <strong class="name" th:text="${assigneeArea.current.displayName}"></strong>
+                                    <span class="loginid"> <strong>@</strong><th:block th:text="${assigneeArea.current.loginId}"></th:block></span>
+                                </a>
+                                <div th:if="${assigneeArea.current == null}" th:text="#{issue.noAssignee}"></div>
+                            </th:block>
+                        </dd>
+                    </dl>
+                    <th:block th:if="${labelArea.canEdit and labelArea.hasLabels}">
+                        <th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelArea.groups}, ${labelArea.selectedIds}, 'pr-labels', null, ${projectView})}"></th:block>
+                    </th:block>
+                    <dl th:if="${!labelArea.canEdit and !#lists.isEmpty(labelArea.tags)}" class="pr-labels">
+                        <dt th:text="#{label}"></dt>
+                        <dd>
+                            <a th:each="l : ${labelArea.tags}" th:href="${labelArea.listUrl} + '?labelIds=' + ${l.id}" class="label issue-label active static"
+                               th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                        </dd>
+                    </dl>
+                </div>
             </div>
-        </div>
-
-        <hr class="nm">
-
-        <div class="board-comment-wrap">
-            <ul class="comments" id="comments" th:if="${!#lists.isEmpty(timeline)}">
-                <th:block th:replace="~{pullrequest/partial-timeline :: timeline}"></th:block>
-            </ul>
         </div>
 
         <div class="right-txt">
@@ -119,13 +121,17 @@
 <th:block th:if="${assigneeArea != null and (assigneeArea.canEdit or labelArea.canEdit)}">
 <link rel="stylesheet" type="text/css" media="screen" th:href="${#paths.project(project.owner, project.name) + '/issue/labels.css'}">
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.pullrequest.Meta.js}"></script>
+</th:block>
 <script type="text/javascript">
-    // 담당자나 라벨을 고르면 바로 보낸다(추가 항목 X-14)
+    // 타임라인 라벨 상자의 글자색을 배경색에 맞춘다(이슈 화면과 같다). 밝은 라벨 색에서도 글자가 보이게 한다
     $(function () {
-        $("#assignee-select, #labelIds").on("change", function () { $(this).closest("form").submit(); });
+        $("#comments .event > .label").each(function () {
+            var $label = $(this);
+            $label.removeClass("dimgray white").addClass($yobi.getContrastColor($label.css("background-color")));
+        });
     });
 </script>
-</th:block>
 <link rel="stylesheet" type="text/css" media="screen" th:href="@{/assets/javascripts/lib/atjs/jquery.atwho.css}">
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.caret.min.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/atjs/jquery.atwho.js}"></script>

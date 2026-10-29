@@ -35,7 +35,7 @@ import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
@@ -105,20 +105,26 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
     private fun page(path: String, session: MockHttpSession? = null): Document =
         Jsoup.parse(mockMvc.perform(get(path).apply { session?.let { session(it) } }).andExpect(status().isOk).andReturn().response.contentAsString)
 
+    /** 담당자 지정 요청이다(이슈 화면과 같은 JSON: `{"assignees":["로그인ID"]}`). 비우면 해제한다. */
     private fun assign(s: Setup, who: User?, by: User) =
-        post("${s.url}/assignee").session(login(by)).param("assigneeId", who?.id?.toString() ?: "")
+        post("${s.url}/assignees").session(login(by)).contentType("application/json").content("""{"assignees":[${who?.let { "\"${it.loginId}\"" } ?: ""}]}""")
 
-    private fun setLabels(s: Setup, by: User, vararg labels: IssueLabel) =
-        post("${s.url}/labels").session(login(by)).apply { labels.forEach { param("labelIds", it.id.toString()) } }
+    /** 라벨 요청이다(이슈 화면의 일괄 변경과 같은 `attachingLabelIds`, `detachingLabelIds`). */
+    private fun changeLabels(s: Setup, by: User, attach: List<IssueLabel> = emptyList(), detach: List<IssueLabel> = emptyList()) =
+        post("${s.url}/labels").session(login(by)).apply {
+            attach.forEach { param("attachingLabelIds", it.id.toString()) }
+            detach.forEach { param("detachingLabelIds", it.id.toString()) }
+        }
 
     // --- 지정 요청 ---
 
     @Test
-    fun `매니저가 담당자를 지정하면 풀 리퀘스트 화면으로 돌아가고 저장되며 비울 수 있다`() {
+    fun `매니저가 담당자를 지정하면 JSON으로 담당자를 돌려주고 저장하며 비울 수 있다`() {
         val s = setup()
-        mockMvc.perform(assign(s, s.member, s.manager)).andExpect(status().isSeeOther).andExpect(redirectedUrl(s.url))
+        mockMvc.perform(assign(s, s.member, s.manager)).andExpect(status().isOk)
+            .andExpect(jsonPath("$.assignee.loginId").value(s.member.loginId)).andExpect(jsonPath("$.assignee.name").value(s.member.name))
         assertEquals(setOf(s.member.id), pullRequests.findById(s.pr.id!!).get().assignees.map { it.id }.toSet())
-        mockMvc.perform(assign(s, null, s.manager)).andExpect(status().isSeeOther)
+        mockMvc.perform(assign(s, null, s.manager)).andExpect(status().isOk).andExpect(jsonPath("$.assignee").doesNotExist())
         assertTrue(pullRequests.findById(s.pr.id!!).get().assignees.isEmpty())
     }
 
@@ -127,71 +133,103 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         val s = setup()
         mockMvc.perform(assign(s, s.contributor, s.manager)).andExpect(status().isBadRequest)
         mockMvc.perform(assign(s, s.member, user())).andExpect(status().isForbidden)
-        mockMvc.perform(post("${s.url}/assignee").param("assigneeId", s.member.id.toString())).andExpect(status().is3xxRedirection)
+        mockMvc.perform(post("${s.url}/assignees").contentType("application/json").content("""{"assignees":["${s.member.loginId}"]}""")).andExpect(status().is3xxRedirection)
+        assertTrue(pullRequests.findById(s.pr.id!!).get().assignees.isEmpty())
+    }
+
+    @Test
+    fun `없는 사용자나 한도를 넘는 담당자 수는 400이다`() {
+        val s = setup()
+        mockMvc.perform(post("${s.url}/assignees").session(login(s.manager)).contentType("application/json").content("""{"assignees":["nobody-here"]}""")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("${s.url}/assignees").session(login(s.manager)).contentType("application/json")
+            .content("""{"assignees":["${s.member.loginId}","${s.manager.loginId}"]}""")).andExpect(status().isBadRequest)
         assertTrue(pullRequests.findById(s.pr.id!!).get().assignees.isEmpty())
     }
 
     // --- 라벨 요청 ---
 
     @Test
-    fun `라벨 목록을 보내면 차이만큼 붙이고 떼며 다른 프로젝트의 라벨은 400이다`() {
+    fun `붙일 라벨과 뗄 라벨을 보내면 그만큼 바꾸고 다른 프로젝트의 라벨은 400이며 아무것도 바꾸지 않는다`() {
         val s = setup(); val bug = label(s.origin, "bug"); val doc = label(s.origin, "doc"); val foreign = label(s.fork, "foreign")
-        mockMvc.perform(setLabels(s, s.manager, bug, doc)).andExpect(status().isSeeOther).andExpect(redirectedUrl(s.url))
+        mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug, doc))).andExpect(status().isOk)
         assertEquals(setOf(bug.id, doc.id), pullRequests.findById(s.pr.id!!).get().labels.map { it.id }.toSet())
-        mockMvc.perform(setLabels(s, s.manager, doc)).andExpect(status().isSeeOther)
+        mockMvc.perform(changeLabels(s, s.manager, detach = listOf(bug))).andExpect(status().isOk)
         assertEquals(setOf(doc.id), pullRequests.findById(s.pr.id!!).get().labels.map { it.id }.toSet())
-        mockMvc.perform(setLabels(s, s.manager, doc, foreign)).andExpect(status().isBadRequest)
+        mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug, foreign))).andExpect(status().isBadRequest)
         assertEquals(setOf(doc.id), pullRequests.findById(s.pr.id!!).get().labels.map { it.id }.toSet(), "검사에 걸리면 아무것도 바꾸지 않는다")
-        mockMvc.perform(setLabels(s, s.manager)).andExpect(status().isSeeOther)
+        mockMvc.perform(post("${s.url}/labels").session(login(s.manager)).param("attachingLabelIds", "999999")).andExpect(status().isBadRequest)
+        mockMvc.perform(changeLabels(s, s.manager, detach = listOf(doc))).andExpect(status().isOk)
         assertTrue(pullRequests.findById(s.pr.id!!).get().labels.isEmpty())
     }
 
     @Test
     fun `라벨은 구성원이 아닌 사용자가 바꿀 수 없다`() {
         val s = setup(); val bug = label(s.origin, "bug")
-        mockMvc.perform(setLabels(s, user(), bug)).andExpect(status().isForbidden)
+        mockMvc.perform(changeLabels(s, user(), attach = listOf(bug))).andExpect(status().isForbidden)
         assertTrue(pullRequests.findById(s.pr.id!!).get().labels.isEmpty())
+    }
+
+    // --- 타임라인 조각 ---
+
+    @Test
+    fun `변경 뒤 화면이 다시 불러올 타임라인 조각을 돌려준다`() {
+        val s = setup(); val bug = label(s.origin, "bug")
+        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug)))
+        val html = mockMvc.perform(get("${s.url}/timeline")).andExpect(status().isOk).andReturn().response.contentAsString
+        val d = Jsoup.parse("<ul>$html</ul>")
+        assertEquals(3, d.select("li.event").size, "커밋, 담당자, 라벨 이벤트")
+        assertTrue(d.text().contains("assigned") && d.text().contains("bug"), d.text())
     }
 
     // --- 보기 화면 ---
 
     @Test
-    fun `편집 권한이 있으면 담당자 선택과 라벨 선택을, 후보 목록과 선택 상태와 함께 보여 준다`() {
+    fun `편집 권한이 있으면 오른쪽 열에 담당자와 라벨 선택이 있고 주소는 데이터 속성에 담긴다`() {
         val s = setup(); val bug = label(s.origin, "bug"); val doc = label(s.origin, "doc")
-        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(setLabels(s, s.manager, bug))
+        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug)))
         val d = page(s.url, login(s.manager))
-        val select = d.selectFirst("form#assignee-form select#assignee-select[name=assigneeId]")!!
-        assertEquals("${s.url}/assignee", d.selectFirst("form#assignee-form")!!.attr("action"))
-        assertEquals(listOf("", s.manager.id.toString(), s.member.id.toString()).sorted(), select.select("option").map { it.attr("value") }.sorted())
-        assertEquals(s.member.id.toString(), select.selectFirst("option[selected]")!!.attr("value"))
-        assertEquals("${s.url}/labels", d.selectFirst("form#labels-form")!!.attr("action"))
-        val labelSelect = d.selectFirst("form#labels-form select#labelIds[name=labelIds]")!!
+        val pane = d.selectFirst(".board-body.row-fluid > .span3.span-right-pane #pr-meta")!!
+        assertEquals("${s.url}/assignees", pane.attr("data-assignees-url")); assertEquals("${s.url}/labels", pane.attr("data-labels-url"))
+        assertEquals("${s.url}/timeline", pane.attr("data-timeline-url"))
+        assertEquals("/-_-api/v1/owners/${s.origin.owner}/projects/${s.origin.name}/assignableUsers", pane.attr("data-candidates-url"))
+        val assignee = pane.selectFirst("input#assignee[name=assigneeLoginId]")!!
+        assertEquals(s.member.loginId, assignee.attr("value")); assertEquals(s.member.name, assignee.attr("data-name"))
+        val labelSelect = pane.selectFirst("select#labelIds[name=labelIds]")!!
         assertEquals(setOf(bug.id.toString(), doc.id.toString()), labelSelect.select("option[value]").map { it.attr("value") }.filter { it.isNotEmpty() }.toSet())
         assertEquals(listOf(bug.id.toString()), labelSelect.select("option[selected]").map { it.attr("value") })
+        assertNull(d.selectFirst("form#assignee-form")); assertNull(d.selectFirst("form#labels-form"), "화면을 다시 불러오는 폼은 더 쓰지 않는다")
+    }
+
+    @Test
+    fun `본문과 상태와 타임라인은 왼쪽 열에 있다`() {
+        val s = setup()
+        val d = page(s.url)
+        val left = d.selectFirst(".board-body.row-fluid > .span9.span-left-pane")!!
+        assertNotNull(left.selectFirst(".content.markdown-wrap")); assertNotNull(left.selectFirst("#state")); assertNotNull(left.selectFirst("#comments"))
     }
 
     @Test
     fun `라벨과 담당자가 하나도 없어도 편집 권한자의 보기 화면이 열리고 아무것도 선택되어 있지 않다`() {
         val s = setup(); label(s.origin, "bug")
         val d = page(s.url, login(s.manager))
-        assertEquals("", d.selectFirst("#assignee-select option[selected]")!!.attr("value"))
+        assertEquals("", d.selectFirst("#assignee")!!.attr("value"))
         assertTrue(d.select("#labelIds option[selected]").isEmpty())
     }
 
     @Test
     fun `편집 권한이 없으면 담당자와 라벨을 읽기만 한다`() {
         val s = setup(); val bug = label(s.origin, "bug")
-        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(setLabels(s, s.manager, bug))
+        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug)))
         val d = page(s.url)
-        assertNull(d.selectFirst("form#assignee-form")); assertNull(d.selectFirst("form#labels-form"))
-        assertEquals("/${s.member.loginId}", d.selectFirst(".pr-assignee a.usf-group")!!.attr("href"))
-        assertEquals("bug", d.selectFirst(".pr-labels a.issue-label")!!.text())
+        assertNull(d.selectFirst("#pr-meta input#assignee")); assertNull(d.selectFirst("#pr-meta select#labelIds"))
+        assertEquals("/${s.member.loginId}", d.selectFirst(".span-right-pane .pr-assignee a.usf-group")!!.attr("href"))
+        assertEquals("bug", d.selectFirst(".span-right-pane .pr-labels a.issue-label")!!.text())
     }
 
     @Test
     fun `지정과 라벨 변경이 타임라인에 남는다`() {
         val s = setup(); val bug = label(s.origin, "bug")
-        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(setLabels(s, s.manager, bug))
+        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug)))
         val text = page(s.url).select("#comments").text()
         assertTrue(text.contains(s.member.name!!) && text.contains("assigned"), text)
         assertTrue(text.contains("bug"), text)
@@ -199,12 +237,19 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         assertTrue(page(s.url).select("#comments").text().contains("removed the assignee"))
     }
 
+    @Test
+    fun `밝은 라벨 색의 글자색을 보정하는 스크립트가 있다`() {
+        val s = setup(); label(s.origin, "bug")
+        val html = mockMvc.perform(get(s.url).session(login(s.manager))).andReturn().response.contentAsString
+        assertTrue(html.contains("getContrastColor"), "타임라인 라벨의 글자색을 배경색에 맞춘다(이슈 화면과 같다)")
+    }
+
     // --- 목록 ---
 
     @Test
     fun `목록의 줄은 라벨 칩과 담당자 아바타를 받은 사람 아바타와 따로 보여 준다`() {
         val s = setup(); val bug = label(s.origin, "bug")
-        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(setLabels(s, s.manager, bug))
+        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug)))
         val row = page("${s.base}/pullRequests").selectFirst("li.post-item")!!
         assertEquals("bug", row.selectFirst("a.issue-label")!!.text())
         val assignee = row.selectFirst("a.avatar-wrap.assignee")!!
@@ -215,7 +260,7 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
     @Test
     fun `담당자와 라벨로 목록을 거른다`() {
         val s = setup(); val bug = label(s.origin, "bug"); val doc = label(s.origin, "doc")
-        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(setLabels(s, s.manager, bug))
+        mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug)))
         val list = "${s.base}/pullRequests"
         fun rows(query: String) = page("$list$query").select("li.post-item").size
         assertEquals(1, rows("?assigneeId=${s.member.id}")); assertEquals(0, rows("?assigneeId=${s.manager.id}"))

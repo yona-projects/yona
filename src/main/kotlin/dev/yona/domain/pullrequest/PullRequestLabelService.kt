@@ -48,16 +48,16 @@ class PullRequestLabelService(
     }
 
     /**
-     * 라벨을 [labels]와 같게 맞춘다. 없는 것은 붙이고 목록에 없는 것은 뗀다(선택 상자가 고른 목록 전체를 보낼 때 쓴다). 하나라도 다른 프로젝트의 라벨이면
-     * [LabelResult.WRONG_PROJECT]이고 아무것도 바꾸지 않는다. 한 분류만 고르는 분류에서 둘을 보내면 뒤의 것만 남는다.
+     * 붙일 라벨 [attach]와 뗄 라벨 [detach]를 한꺼번에 바꾼다(이슈 화면의 일괄 변경이 `attachingLabelIds`, `detachingLabelIds`를 보내는 것과 같다).
+     * 붙일 라벨이 하나라도 다른 프로젝트의 것이면 [LabelResult.WRONG_PROJECT]이고 아무것도 바꾸지 않는다. 같은 라벨이 양쪽에 있으면 먼저 떼고 붙인다.
+     * 한 분류만 고르는 분류에서 둘을 붙이면 뒤의 것만 남는다.
      */
     @Transactional
-    fun replace(pullRequest: PullRequest, labels: Collection<IssueLabel>, actor: User): LabelResult {
-        if (labels.any { it.project?.id != pullRequest.toProject?.id }) return LabelResult.WRONG_PROJECT
-        val wanted = labels.mapNotNull { it.id }.toSet()
+    fun change(pullRequest: PullRequest, attach: Collection<IssueLabel>, detach: Collection<IssueLabel>, actor: User): LabelResult {
+        if (attach.any { it.project?.id != pullRequest.toProject?.id }) return LabelResult.WRONG_PROJECT
         var changed = false
-        pullRequest.labels.filter { it.id !in wanted }.forEach { if (remove(pullRequest, it, actor) == LabelResult.CHANGED) changed = true }
-        labels.forEach { if (add(pullRequest, it, actor) == LabelResult.CHANGED) changed = true }
+        detach.forEach { if (remove(pullRequest, it, actor) == LabelResult.CHANGED) changed = true }
+        attach.forEach { if (add(pullRequest, it, actor) == LabelResult.CHANGED) changed = true }
         return if (changed) LabelResult.CHANGED else LabelResult.UNCHANGED
     }
 
