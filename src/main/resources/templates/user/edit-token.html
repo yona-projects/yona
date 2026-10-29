@@ -21,8 +21,6 @@
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
         <p class="help-block" th:text="#{apiToken.description}"></p>
 
-        <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
-
         <!--/* 방금 만든 토큰은 이 응답에서 한 번만 보이고 다시 볼 수 없다 */-->
         <div th:if="${newToken != null}" class="alert alert-success">
             <p th:text="#{apiToken.created.once}"></p>
@@ -64,61 +62,12 @@
         </table>
         <p th:if="${#lists.isEmpty(tokens)}" class="empty" th:text="#{apiToken.list.empty}"></p>
 
-        <h4 th:text="#{apiToken.create}"></h4>
-        <form id="token-create" method="post" th:action="@{/user/token}" class="form-horizontal">
-            <dl class="issue-option">
-                <dt th:text="#{apiToken.create.name}"></dt>
-                <dd><input type="text" name="name" maxlength="100" class="text" style="width: 60%"></dd>
-            </dl>
-            <dl class="issue-option">
-                <dt th:text="#{apiToken.create.expiration}"></dt>
-                <dd>
-                    <select id="token-expiration" name="expiration">
-                        <option th:each="d : ${ {7, 30, 60, 90} }" th:value="${d}" th:selected="${d == 30}" th:text="#{apiToken.expiration.days(${d})}"></option>
-                        <option th:if="${maxDays <= 0}" value="none" th:text="#{apiToken.expiration.none}"></option>
-                        <option value="custom" th:text="#{apiToken.expiration.custom}"></option>
-                    </select>
-                    <!--/* 사용자 지정을 고르면 달력(Pikaday)으로 만료 날짜를 정한다. 오늘 이후만 고를 수 있다 */-->
-                    <div id="token-custom" style="display:none; margin-top:8px;">
-                        <label for="token-expires-date" th:text="#{apiToken.create.expiresDate}"></label>
-                        <input type="text" name="expiresDate" id="token-expires-date" class="text" autocomplete="off" placeholder="yyyy-MM-dd">
-                        <div id="token-expires-picker" class="date-picker"></div>
-                    </div>
-                </dd>
-            </dl>
-            <dl class="issue-option">
-                <dt th:text="#{apiToken.create.scopes}"></dt>
-                <dd>
-                    <label th:each="s : ${scopeOptions}" class="checkbox" style="display:block;">
-                        <input type="checkbox" name="scopes" th:value="${s}">
-                        <code th:text="${s}"></code> <span class="help-inline" th:text="#{'apiToken.scope.' + ${s}}"></span>
-                    </label>
-                </dd>
-            </dl>
-            <button type="submit" class="ybtn ybtn-success" th:text="#{apiToken.create}"></button>
-        </form>
+        <a th:href="@{/user/editform/token/new}" id="token-new" class="ybtn ybtn-success" th:text="#{apiToken.create}"></a>
     </div>
 </div>
-<link rel="stylesheet" type="text/css" th:href="@{/assets/javascripts/lib/pikaday/pikaday.css}" />
-<script type="text/javascript" th:src="@{/assets/javascripts/lib/moment-with-langs.min.js}"></script>
-<script type="text/javascript" th:src="@{/assets/javascripts/lib/pikaday/pikaday.js}"></script>
 <script type="text/javascript">
     $(function(){
         $yobi.loadModule("user.Setting");
-        // 만료의 "사용자 지정"을 고르면 달력으로 날짜를 정한다(마일스톤의 기한 선택과 같은 Pikaday)
-        var $selection = $("#token-expiration"), $custom = $("#token-custom"), $date = $("#token-expires-date");
-        if (typeof Pikaday === "function") {
-            var picker = new Pikaday({
-                format: "YYYY-MM-DD",
-                minDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
-                onSelect: function () { $date.val(this.toString()); }
-            });
-            $("#token-expires-picker").append(picker.el);
-            $date.on("blur", function () { if (this.value) { picker.setDate(this.value); } });
-        }
-        function toggle() { $custom.toggle($selection.val() === "custom"); }
-        $selection.on("change", toggle);
-        toggle();
     });
 </script>
 </th:block>

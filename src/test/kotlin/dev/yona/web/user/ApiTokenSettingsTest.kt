@@ -53,7 +53,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
 
     private fun login(u: User): MockHttpSession = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", u.loginId!!).param("password", "1234")) }
 
-    private fun page(session: MockHttpSession): Document = Jsoup.parse(mockMvc.perform(get("/user/editform/token").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
+    private fun page(session: MockHttpSession, path: String = "/user/editform/token"): Document = Jsoup.parse(mockMvc.perform(get(path).session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
 
     private fun create(session: MockHttpSession, vararg params: Pair<String, String>, scopes: List<String> = emptyList()) =
         post("/user/token").session(session).apply { params.forEach { (k, v) -> param(k, v) }; if (scopes.isNotEmpty()) param("scopes", *scopes.toTypedArray()) }
@@ -63,19 +63,24 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
     @Test
     fun `로그인해야 하고 토큰 목록과 만들기 폼이 보인다`() {
         mockMvc.perform(get("/user/editform/token")).andExpect(status().is3xxRedirection)
-        val u = user(); val doc = page(login(u))
+        val u = user(); val s = login(u)
+        val list = page(s)
+        assertNull(list.selectFirst("form#token-create"), "목록 화면에는 만들기 폼이 없다")
+        assertEquals("/user/editform/token/new", list.selectFirst("a#token-new")!!.attr("href"))
+        mockMvc.perform(get("/user/editform/token/new")).andExpect(status().is3xxRedirection)
+        val doc = page(s, "/user/editform/token/new")
         assertNotNull(doc.selectFirst("form#token-create[action=/user/token][method=post]"))
         assertEquals(listOf("7", "30", "60", "90", "none", "custom"), doc.select("form#token-create select[name=expiration] option").map { it.attr("value") })
         assertEquals("30", doc.selectFirst("form#token-create select[name=expiration] option[selected]")!!.attr("value"), "기본은 30일")
         assertNotNull(doc.selectFirst("form#token-create input[name=expiresDate]"))
         assertNotNull(doc.selectFirst("#token-expires-picker"), "사용자 지정 만료일은 달력으로 고른다")
         assertTrue(doc.select("script").any { it.attr("src").contains("pikaday") }, "달력 라이브러리(Pikaday)를 쓴다")
-        assertEquals(true, doc.select("#token-list tr.token-row").isEmpty())
+        assertEquals(true, list.select("#token-list tr.token-row").isEmpty())
     }
 
     @Test
     fun `범위 체크 상자에는 GitHub 범위가 있고 site admin은 사이트 관리자에게만 보인다`() {
-        val u = user(); val doc = page(login(u))
+        val u = user(); val doc = page(login(u), "/user/editform/token/new")
         val scopes = doc.select("form#token-create input[name=scopes]").map { it.attr("value") }
         assertEquals(ApiScopes.selectable(siteManager = false), scopes)
         assertTrue("site_admin" !in scopes)

@@ -83,6 +83,12 @@ class AccountController(
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     fun editForm(): ModelAndView = profileView(requireNotNull(currentUserProvider.get().user), null)
 
+    /** 토큰 만들기 화면이다. 목록과 따로 둔다(GitHub와 같다). */
+    @GetMapping("/user/editform/token/new")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    @Transactional
+    fun newTokenForm(): ModelAndView = newTokenView(users.findById(requireNotNull(currentUserProvider.get().user?.id)).get(), null)
+
     @RequestMapping("/user/editform/{tabId}", method = [RequestMethod.GET, RequestMethod.POST])
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
@@ -92,7 +98,7 @@ class AccountController(
             "password" -> tabView("user/edit-password", user, "password")
             "emails" -> tabView("user/edit-emails", user, "emails")
                 .addObject("subEmails", account.subEmails(user).map { SubEmail(requireNotNull(it.id), it.email.orEmpty(), it.valid == true, avatars.gravatarUrl(it.email, SUB_EMAIL_AVATAR_SIZE)) })
-            "token" -> tokenView(user, null, null)
+            "token" -> tokenView(user, null)
             "profile" -> profileView(user, null)
             "notifications" -> notificationsView(user)
             else -> throw IllegalArgumentException("Invalid tabId")
@@ -244,16 +250,16 @@ class AccountController(
         val scopes = try {
             request.getParameterValues("scopes").orEmpty().toList().let { dev.yona.domain.apitoken.ApiScopes.parse(it.joinToString(",")) }
         } catch (e: IllegalArgumentException) {
-            return tokenView(user, null, "apiToken.error.scope").also { it.status = HttpStatus.BAD_REQUEST }
+            return newTokenView(user, "apiToken.error.scope").also { it.status = HttpStatus.BAD_REQUEST }
         }
         val expires = try {
             expiresOf(request.getParameter("expiration"), request.getParameter("expiresDate"))
         } catch (e: IllegalArgumentException) {
-            return tokenView(user, null, "apiToken.error.expires").also { it.status = HttpStatus.BAD_REQUEST }
+            return newTokenView(user, "apiToken.error.expires").also { it.status = HttpStatus.BAD_REQUEST }
         }
         return when (val result = apiTokens.create(user, request.getParameter("name").orEmpty(), scopes, expires.value, accessControl.isSiteManager(user), properties.apiTokenMaxDays)) {
-            is dev.yona.domain.apitoken.TokenCreation.Created -> tokenView(user, result.value, null)
-            is dev.yona.domain.apitoken.TokenCreation.Rejected -> tokenView(user, null, result.messageKey).also { it.status = HttpStatus.BAD_REQUEST }
+            is dev.yona.domain.apitoken.TokenCreation.Created -> tokenView(user, result.value)
+            is dev.yona.domain.apitoken.TokenCreation.Rejected -> newTokenView(user, result.messageKey).also { it.status = HttpStatus.BAD_REQUEST }
         }
     }
 
@@ -281,9 +287,8 @@ class AccountController(
         else -> throw IllegalArgumentException("expiration")
     }
 
-    /** 토큰 화면이다. [newToken]이 있으면 방금 만든 값을 한 번만 보인다. [error]는 입력 오류의 메시지 키이다. */
-    private fun tokenView(user: User, newToken: String?, error: String?): ModelAndView {
-        val admin = accessControl.isSiteManager(user)
+    /** 토큰 목록 화면이다. [newToken]이 있으면 방금 만든 값을 한 번만 보인다. */
+    private fun tokenView(user: User, newToken: String?): ModelAndView {
         val now = System.currentTimeMillis()
         val rows = apiTokens.list(user).map {
             TokenRow(
@@ -294,11 +299,15 @@ class AccountController(
         }
         return tabView("user/edit-token", user, "token")
             .addObject("tokens", rows)
-            .addObject("scopeOptions", dev.yona.domain.apitoken.ApiScopes.selectable(admin))
-            .addObject("maxDays", properties.apiTokenMaxDays)
             .addObject("newToken", newToken)
-            .addObject("tokenError", error)
     }
+
+    /** 토큰 만들기 화면이다. [error]는 입력 오류의 메시지 키이다. */
+    private fun newTokenView(user: User, error: String?): ModelAndView = tabView("user/edit-token-new", user, "token")
+        .addObject("scopeOptions", dev.yona.domain.apitoken.ApiScopes.selectable(accessControl.isSiteManager(user)))
+        .addObject("maxDays", properties.apiTokenMaxDays)
+        .addObject("tokenError", error)
+
 
     /** 메시지 키를 보여 줄 문구로 바꾼다. v1.6의 이메일 추가는 중복 안내를 번역한 문구로 flash에 남긴다. */
     private fun messageText(key: String): String = flashTranslator.translate(mapOf(RedirectSupport.WARNING to key)).notices.first()

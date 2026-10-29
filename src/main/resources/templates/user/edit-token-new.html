@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  이식 원본: app/views/user/edit_token.scala.html (v1.6은 토큰 하나를 보이고 다시 만드는 화면이었다)
+  추가 개발 항목 X-5(decisions.md D-36): 개인용 API 토큰 만들기 화면(이름, 만료, 범위). 목록 화면(edit-token.html)과 따로 둔다
+  모델: title, account, scopeOptions, maxDays, tokenError(입력 오류의 메시지 키)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::tokenPage})}">
+<th:block th:fragment="tokenPage">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{apiToken.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
+        <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
+
+        <h4 th:text="#{apiToken.create}"></h4>
+        <form id="token-create" method="post" th:action="@{/user/token}" class="form-horizontal">
+            <dl class="issue-option">
+                <dt th:text="#{apiToken.create.name}"></dt>
+                <dd><input type="text" name="name" maxlength="100" class="text" style="width: 60%"></dd>
+            </dl>
+            <dl class="issue-option">
+                <dt th:text="#{apiToken.create.expiration}"></dt>
+                <dd>
+                    <select id="token-expiration" name="expiration">
+                        <option th:each="d : ${ {7, 30, 60, 90} }" th:value="${d}" th:selected="${d == 30}" th:text="#{apiToken.expiration.days(${d})}"></option>
+                        <option th:if="${maxDays <= 0}" value="none" th:text="#{apiToken.expiration.none}"></option>
+                        <option value="custom" th:text="#{apiToken.expiration.custom}"></option>
+                    </select>
+                    <!--/* 사용자 지정을 고르면 달력(Pikaday)으로 만료 날짜를 정한다. 오늘 이후만 고를 수 있다 */-->
+                    <div id="token-custom" style="display:none; margin-top:8px;">
+                        <label for="token-expires-date" th:text="#{apiToken.create.expiresDate}"></label>
+                        <input type="text" name="expiresDate" id="token-expires-date" class="text" autocomplete="off" placeholder="yyyy-MM-dd">
+                        <div id="token-expires-picker" class="date-picker"></div>
+                    </div>
+                </dd>
+            </dl>
+            <dl class="issue-option">
+                <dt th:text="#{apiToken.create.scopes}"></dt>
+                <dd>
+                    <label th:each="s : ${scopeOptions}" class="checkbox" style="display:block;">
+                        <input type="checkbox" name="scopes" th:value="${s}">
+                        <code th:text="${s}"></code> <span class="help-inline" th:text="#{'apiToken.scope.' + ${s}}"></span>
+                    </label>
+                </dd>
+            </dl>
+            <button type="submit" class="ybtn ybtn-success" th:text="#{apiToken.create}"></button>
+            <a th:href="@{/user/editform/token}" class="ybtn" th:text="#{button.cancel}"></a>
+        </form>
+    </div>
+</div>
+<link rel="stylesheet" type="text/css" th:href="@{/assets/javascripts/lib/pikaday/pikaday.css}" />
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/moment-with-langs.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/pikaday/pikaday.js}"></script>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+        // 만료의 "사용자 지정"을 고르면 달력으로 날짜를 정한다(마일스톤의 기한 선택과 같은 Pikaday)
+        var $selection = $("#token-expiration"), $custom = $("#token-custom"), $date = $("#token-expires-date");
+        if (typeof Pikaday === "function") {
+            var picker = new Pikaday({
+                format: "YYYY-MM-DD",
+                minDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+                onSelect: function () { $date.val(this.toString()); }
+            });
+            $("#token-expires-picker").append(picker.el);
+            $date.on("blur", function () { if (this.value) { picker.setDate(this.value); } });
+        }
+        function toggle() { $custom.toggle($selection.val() === "custom"); }
+        $selection.on("change", toggle);
+        toggle();
+    });
+</script>
+</th:block>
+</html>
