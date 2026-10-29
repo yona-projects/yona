@@ -1,5 +1,6 @@
 package dev.yona.domain.pullrequest
 
+import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.ColumnDefault
 import dev.yona.domain.LONG_TEXT
 import dev.yona.domain.enumeration.EventType
@@ -72,7 +73,7 @@ class PullRequest(
      * 담당자이다. v1.6에 없는 추가 항목이다(로드맵 X-14, `decisions.md` D-34). 연결 테이블 `pull_request_assignee`에 저장하며 서비스 규칙으로 지금은 1명까지만
      * 받는다([PullRequestAssigneeService.MAX_ASSIGNEES]).
      */
-    @ManyToMany @JoinTable(
+    @ManyToMany @BatchSize(size = 50) @JoinTable(
         name = "pull_request_assignee",
         joinColumns = [JoinColumn(name = "pull_request_id")],
         inverseJoinColumns = [JoinColumn(name = "user_id")],
@@ -80,7 +81,7 @@ class PullRequest(
     )
     var assignees: MutableSet<User> = mutableSetOf(),
     /** 라벨이다. 받는 프로젝트의 이슈 라벨만 붙는다(D-34). 연결 테이블 `pull_request_issue_label`에 저장한다. */
-    @ManyToMany @JoinTable(
+    @ManyToMany @BatchSize(size = 50) @JoinTable(
         name = "pull_request_issue_label",
         joinColumns = [JoinColumn(name = "pull_request_id")],
         inverseJoinColumns = [JoinColumn(name = "issue_label_id")],
