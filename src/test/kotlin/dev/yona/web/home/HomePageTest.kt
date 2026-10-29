@@ -245,8 +245,8 @@ class HomePageTest : AbstractIntegrationTest() {
     fun `다른 주소로 들어와도 기본 로그인 페이지가 있으면 그리로 보낸다`() {
         val (session, user) = login("homealias")
         settings.save(UserSetting(user = user, loginDefaultPage = "/notifications"))
-        listOf("/users/login", "/-_-api", "/-_-api/v1/").forEach { path ->
-            mockMvc.perform(get(path).session(session)).andExpect(status().isSeeOther).andExpect(header().string("Location", "/notifications"))
-        }
+        mockMvc.perform(get("/users/login").session(session)).andExpect(status().isSeeOther).andExpect(header().string("Location", "/notifications"))
+        // 홈의 별칭 `/-_-api`, `/-_-api/v1/`은 토큰 전용 이름 공간이라 세션을 보지 않는다(X-5, D-36). 로그인 전의 홈을 그린다
+        listOf("/-_-api", "/-_-api/v1/").forEach { path -> mockMvc.perform(get(path).session(session)).andExpect(status().isOk) }
     }
 }

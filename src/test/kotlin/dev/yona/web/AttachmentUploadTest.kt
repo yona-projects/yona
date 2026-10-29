@@ -195,10 +195,10 @@ class AttachmentUploadTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `사용자 토큰 헤더로도 올릴 수 있다`() {
-        val user = newUser(token = "tok-abc")
-        upload(null, token = "tok-abc").andExpect(status().isCreated)
-        assertEquals(user.id, attachmentRepository.findAll().single().containerId)
+    fun `웹 경로 files는 세션 전용이라 토큰 헤더를 인정하지 않는다 (X-5, D-36)`() {
+        newUser(token = "tok-abc")
+        upload(null, token = "tok-abc").andExpect(status().isForbidden)
+        assertEquals(0, attachmentRepository.findAll().size)
     }
 
     // --- 목록 ---

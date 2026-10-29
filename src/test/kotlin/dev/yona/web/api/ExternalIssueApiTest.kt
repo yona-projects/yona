@@ -86,6 +86,7 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var titleHeads: dev.yona.domain.project.TitleHeadRepository
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
@@ -107,7 +108,9 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     private fun newUser(token: String? = null): User {
         val n = ++sequence
         val salt = LegacyPasswordHasher.generateSalt()
-        return users.save(User(loginId = "ex$n", name = "ex$n", email = "ex$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        val saved = users.save(User(loginId = "ex$n", name = "ex$n", email = "ex$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        token?.let { dev.yona.support.ApiTokenSupport.grant(apiTokenRepository, saved, it) }
+        return saved
     }
 
     private fun member(token: String): Pair<User, Project> {
@@ -331,12 +334,11 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `토큰 없이 쓰는 댓글은 작성자와 시각을 정한다`() {
-        val owner = newUser(); val project = newProject(); val writer = newUser()
+    fun `본문에 comment가 없으면 가져오기 흐름으로 작성자와 시각을 정한다 (v1_6의 세션 흐름, 이제 토큰 인증)`() {
+        val owner = newUser(); val project = newProject(); val writer = newUser("tkwriter")
         issue(project, owner)
-        val session = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", writer.loginId!!).param("password", "1234")) }
         val created = dateFormat.format(Date(1_600_000_000_000L))
-        mockMvc.perform(post(api(project, "issues/1/comments")).session(session).contentType(MediaType.APPLICATION_JSON).content("""{"body":"본문 댓글","createdAt":"$created","author":{"email":"${owner.email}"}}"""))
+        mockMvc.perform(post(api(project, "issues/1/comments")).header("Authorization", "token ${writer.token}").contentType(MediaType.APPLICATION_JSON).content("""{"body":"본문 댓글","createdAt":"$created","author":{"email":"${owner.email}"}}"""))
             .andExpect(status().isCreated).andExpect(jsonPath("$.status").value(201)).andExpect(jsonPath("$.location").value(org.hamcrest.Matchers.startsWith("/${project.owner}/${project.name}/issue/1#comment-")))
         entityManager.flush(); entityManager.clear()
         val saved = comments.findAll().single()
@@ -347,11 +349,11 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     fun `댓글의 오류`() {
         val (user, project) = member("k")
         issue(project, user)
-        mockMvc.perform(post(api(project, "issues/1/comments")).contentType(MediaType.TEXT_PLAIN).content("x")).andExpect(status().isBadRequest)
+        mockMvc.perform(post(api(project, "issues/1/comments")).header("Authorization", "token ${user.token}").contentType(MediaType.TEXT_PLAIN).content("x")).andExpect(status().isBadRequest)
         mockMvc.perform(post(api(project, "issues/1/comments")).header("Authorization", "token nobody").contentType(MediaType.APPLICATION_JSON).content("""{"comment":"x"}""")).andExpect(status().isUnauthorized)
         val secret = newProject(ProjectScope.PRIVATE); issue(secret, user)
-        val session = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", newUser().loginId!!).param("password", "1234")) }
-        mockMvc.perform(post(api(secret, "issues/1/comments")).session(session).contentType(MediaType.APPLICATION_JSON).content("""{"body":"x"}""")).andExpect(status().isForbidden)
+        val outsider = newUser("tkoutsider2")
+        mockMvc.perform(post(api(secret, "issues/1/comments")).header("Authorization", "token ${outsider.token}").contentType(MediaType.APPLICATION_JSON).content("""{"body":"x"}""")).andExpect(status().isForbidden)
     }
 
     // --- 라벨 ---

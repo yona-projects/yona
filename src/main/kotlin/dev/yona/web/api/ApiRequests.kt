@@ -24,14 +24,13 @@ class ApiRequests(private val users: UserRepository) {
     }
 
     /**
-     * `Authorization: token <값>` 헤더의 토큰으로 찾은 사용자이다. 헤더가 없거나 토큰이 없거나 사용자를 못 찾으면 `null`이다.
-     * 세션 로그인은 보지 않는다(v1.6 `isAuthored`가 헤더만 본다).
+     * 이 요청을 **토큰으로 인증한** 사용자이다. 세션 로그인은 보지 않는다(v1.6 `isAuthored`가 헤더만 본다). 외부 API(`/-_-api/v1`)는 인증 필터가 토큰만 인정하고
+     * 범위를 검사하므로 여기서는 필터가 채운 인증 정보에서 사용자를 읽는다(추가 개발 항목 X-5, `decisions.md` D-36). 토큰 인증이 아니면 `null`이다.
      */
     fun tokenUser(request: HttpServletRequest): User? {
-        val header = request.getHeader("Authorization") ?: return null
-        val parts = header.split("token")
-        if (parts.size < 2) return null
-        return users.findByToken(parts[1].replace(Regex("\\s"), ""))
+        val authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().authentication as? dev.yona.security.YonaAuthentication ?: return null
+        if (authentication.scopes == null) return null
+        return users.findById(authentication.principal.userId).orElse(null)
     }
 
     /** `{"message": 문장}` 본문의 응답이다. */

@@ -154,9 +154,9 @@ class ExternalIssueApiController(
     // --- 댓글 ---
 
     /**
-     * 이슈에 댓글을 단다. `Authorization` 헤더가 있으면 토큰으로 `{"comment": 내용}`을 받아 이슈 결과를 `201`로 돌려주고,
-     * 없으면 로그인한 사용자가 `{"body", "createdAt", "author", "temporaryUploadFiles"}`를 보내 `{"status": 201, "location": 주소}`로 답한다.
-     * 가져오기용이라 알림은 보내지 않는다.
+     * 이슈에 댓글을 단다. 인증은 항상 토큰이고(`/-_-api/v1`은 토큰 전용, X-5) 흐름은 본문 모양으로 가린다. 본문에 `comment`가 있으면 `{"comment": 내용}`을 받아
+     * 이슈 결과를 `201`로 돌려주고(토큰 흐름), 없으면 `{"body", "createdAt", "author", "temporaryUploadFiles"}`를 받아 `{"status": 201, "location": 주소}`로 답한다
+     * (가져오기 흐름. 가져오기용이라 알림은 보내지 않는다). 두 흐름의 요청과 응답 모양은 v1.6 그대로이다.
      */
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments")
     @Transactional
@@ -164,7 +164,9 @@ class ExternalIssueApiController(
         val json = requests.json(request) ?: return ResponseEntity.badRequest().contentType(MediaType("text", "plain", Charsets.UTF_8)).body("Expecting Json data")
         val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
         val project = requireNotNull(issue.project)
-        if (request.getHeader("Authorization") != null) {
+        // v1.6은 `Authorization` 헤더의 유무로 두 흐름을 가렸다(헤더가 있으면 토큰 흐름, 없으면 세션 흐름). `/-_-api/v1`이 토큰 전용이 되었으므로(X-5, D-36)
+        // 인증은 항상 토큰이고 흐름은 본문 모양으로 가린다: `comment`가 있으면 토큰 흐름(응답 `{"result": …}`), 없으면 가져오기 흐름(본문 `body`, `author`, `createdAt`, 응답 `{"status", "location"}`)
+        if (json.has("comment")) {
             val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
             val text = json.findValue("comment")?.asString() ?: return requests.message(HttpStatus.BAD_REQUEST, "comment is required")
             service.addComment(issue, user, text, null)

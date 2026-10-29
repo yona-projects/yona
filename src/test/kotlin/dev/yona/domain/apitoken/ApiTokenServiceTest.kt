@@ -132,19 +132,6 @@ class ApiTokenServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `옛 URL용 로그인 토큰은 이름이 같은 토큰 하나를 교체하고 다른 토큰은 건드리지 않는다`() {
-        val u = user(); val other = created(service.create(u, "다른", setOf("repo"), null))
-        val first = service.issueLoginToken(u)
-        val second = service.issueLoginToken(u)
-        assertNull(service.authenticate(first.value), "이전 로그인 토큰은 무효가 된다")
-        assertNotNull(service.authenticate(second.value)); assertNotNull(service.authenticate(other.value))
-        assertEquals(1, service.list(u).count { it.name == ApiTokenService.LOGIN_TOKEN_NAME })
-        val scopes = ApiScopes.parse(second.token.scopes)
-        assertTrue("repo" in scopes && "user" in scopes && "site_admin" !in scopes, scopes.toString())
-        assertNotNull(second.token.expiresDate); assertTrue(second.token.expiresDate!!.time > System.currentTimeMillis() + 29 * 86_400_000L)
-    }
-
-    @Test
     fun `1년 넘게 쓰지 않은 토큰은 지운다`() {
         val u = user()
         val stale = created(service.create(u, "오래됨", emptySet(), null)); stale.token.createdDate = days(-400); stale.token.lastUsedDate = days(-370); tokens.save(stale.token)

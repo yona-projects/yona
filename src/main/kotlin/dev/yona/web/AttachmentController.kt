@@ -35,7 +35,8 @@ import tools.jackson.databind.json.JsonMapper
  * `?action=download`이면 내려받기 형식(`attachment`), 아니면 화면 표시 형식(`inline`)이다.
  *
  * ## 올리기 (`POST /files`)
- * 로그인한 사용자(또는 `Yona-Token` 헤더의 사용자)가 올리면 그 사용자의 임시 첨부(컨테이너 `USER`)로 저장한다. 글이나 프로필을 저장할 때
+ * 로그인한 사용자가 올리면 그 사용자의 임시 첨부(컨테이너 `USER`)로 저장한다. 웹 편집기가 쓰는 `POST /files`는 세션 전용이고, 토큰으로 올리는 도구는 토큰 전용
+ * `POST /-_-api/v1/files`를 쓴다(추가 개발 항목 X-5, `decisions.md` D-36. v1.6은 `/files`가 `Yona-Token` 헤더도 받았다). 글이나 프로필을 저장할 때
  * 실제 컨테이너로 옮긴다. 폼에 `authorEmail`(없거나 못 찾으면 `authorLoginId`)이 있으면 그 사용자의 임시 첨부로 저장한다. 소유자 아이디는
  * 명의가 아니라 요청한 로그인 사용자이다(v1.6 `AttachmentApp.findUploader`).
  *
@@ -93,7 +94,7 @@ class AttachmentController(
         Files.copy(file.toPath(), response.outputStream)
     }
 
-    @PostMapping("/files")
+    @PostMapping("/files", "/-_-api/v1/files")
     @Transactional
     fun upload(
         @RequestParam(name = "filePath", required = false) file: MultipartFile?,

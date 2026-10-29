@@ -42,10 +42,8 @@ class ClosedSiteChainTest : AbstractIntegrationTest() {
     @Test
     fun `API는 익명 접근을 막은 사이트에서도 로그인 폼으로 보내지 않는다`() {
         mockMvc.perform(get("/-_-api/v1/hello")).andExpect(status().isOk)
-        // 토큰 발급은 호출 시점에 항상 익명이다. 본문이 없으면 400이며 303이 아니다
-        val token = mockMvc.perform(post("/-_-api/v1/users/token")).andReturn().response
-        assertTrue(token.status != 303, "토큰 발급이 로그인 폼으로 갔다: ${token.status}")
-        mockMvc.perform(get("/-_-api/v1/admin/users")).andExpect(status().isForbidden)
+        // 외부 API는 토큰이 없으면 로그인 폼 대신 401이다(X-5, D-36. v1.6은 사이트 관리자 전용 API의 403이었다)
+        mockMvc.perform(get("/-_-api/v1/admin/users")).andExpect(status().isUnauthorized)
     }
 
     @Test

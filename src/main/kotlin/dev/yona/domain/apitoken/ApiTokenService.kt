@@ -42,17 +42,11 @@ class ApiTokenService(
 
         const val NAME_MAX = 100
 
-        /** 옛 URL `POST /-_-api/v1/users/token`이 교체해 만드는 토큰의 이름이다. */
-        const val LOGIN_TOKEN_NAME = "API login"
-
         /** v1.6 사용자 토큰을 옮긴 행의 이름이다. */
         const val LEGACY_TOKEN_NAME = "이전 토큰"
 
         /** 마지막 사용 시각을 다시 쓰기까지의 간격(밀리초)이다. */
         private const val TOUCH_INTERVAL_MILLIS = 60_000L
-
-        /** 로그인 토큰의 만료까지 일수이다. */
-        const val LOGIN_TOKEN_DAYS = 30
 
         private const val DAY_MILLIS = 86_400_000L
         private const val RANDOM_LENGTH = 40
@@ -82,19 +76,6 @@ class ApiTokenService(
             )
         )
         return TokenCreation.Created(value, saved)
-    }
-
-    /**
-     * 옛 URL(`POST /-_-api/v1/users/token`)이 돌려줄 토큰을 만든다. 이름이 [LOGIN_TOKEN_NAME]인 이전 토큰 하나를 지우고 새로 만든다(다른 토큰은 건드리지 않는다).
-     * 범위는 사이트 관리자를 뺀 모든 범위, 만료는 [LOGIN_TOKEN_DAYS]일이다.
-     */
-    @Transactional
-    fun issueLoginToken(user: User): TokenCreation.Created {
-        tokens.deleteAll(tokens.findByUserIdAndName(requireNotNull(user.id), LOGIN_TOKEN_NAME))
-        tokens.flush()
-        val expires = Date(System.currentTimeMillis() + LOGIN_TOKEN_DAYS * DAY_MILLIS)
-        return create(user, LOGIN_TOKEN_NAME, ApiScopes.selectable(false).toSet(), expires) as? TokenCreation.Created
-            ?: throw IllegalStateException("로그인 토큰을 만들지 못했다")
     }
 
     /**

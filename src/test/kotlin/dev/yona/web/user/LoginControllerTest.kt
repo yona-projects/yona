@@ -293,15 +293,15 @@ class LoginControllerTest : AbstractIntegrationTest() {
     // --- API 토큰 -------------------------------------------------------------------------
 
     @Test
-    fun `Yona-Token 헤더로 사용자가 식별된다`() {
+    fun `웹 경로는 Yona-Token 헤더도 인정하지 않는다 (X-5, D-36)`() {
         newUser("karl", token = "tok-123")
-        assertEquals("karl", whoAmI(headers = mapOf("Yona-Token" to "tok-123")))
+        assertEquals("anonymous", whoAmI(headers = mapOf("Yona-Token" to "tok-123")))
     }
 
     @Test
-    fun `Authorization token 헤더로 사용자가 식별된다`() {
+    fun `웹 경로는 Authorization token 헤더를 인정하지 않는다 (X-5, D-36, 토큰은 외부 API에서만 쓴다)`() {
         newUser("lena", token = "tok-456")
-        assertEquals("lena", whoAmI(headers = mapOf("Authorization" to "token tok-456")))
+        assertEquals("anonymous", whoAmI(headers = mapOf("Authorization" to "token tok-456")))
     }
 
     @Test

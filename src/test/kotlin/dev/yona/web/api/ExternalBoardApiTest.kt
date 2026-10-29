@@ -47,6 +47,7 @@ class ExternalBoardApiTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
@@ -61,7 +62,9 @@ class ExternalBoardApiTest : AbstractIntegrationTest() {
     private fun newUser(token: String? = null): User {
         val n = ++sequence
         val salt = LegacyPasswordHasher.generateSalt()
-        return users.save(User(loginId = "xb$n", name = "xb$n", email = "xb$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        val saved = users.save(User(loginId = "xb$n", name = "xb$n", email = "xb$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        token?.let { dev.yona.support.ApiTokenSupport.grant(apiTokenRepository, saved, it) }
+        return saved
     }
 
     private fun member(scope: ProjectScope = ProjectScope.PUBLIC): Pair<User, Project> {

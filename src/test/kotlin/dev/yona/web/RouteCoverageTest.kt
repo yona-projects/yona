@@ -91,6 +91,8 @@ class RouteCoverageTest : AbstractIntegrationTest() {
     companion object {
         /** 스프링 핸들러 매핑 밖에서 서블릿 필터가 받는 v1.6 라우트이다. */
         val FILTER_HANDLED: Set<String> = setOf(
+            // X-5(D-36): 비밀번호로 토큰과 세션 쿠키를 발급하던 주소를 삭제했다(토큰은 설정 화면에서 만든다)
+            "POST /-_-api/v1/users/token",
             // 추가 항목 X-5(D-36): `/-_-api/v1`을 토큰 전용 외부 API로 만들면서 웹 화면이 세션으로 부르던 AJAX 24개를 일반 웹 경로 이름으로 옮겼다(의도해서 없앤 v1.6 주소).
             "PATCH /-_-api/v1/owners/:owner/projects/:projectName/posts/:number/content",
             "POST /-_-api/v1/owners/:owner/projects/:projectName/postlabel/:number",

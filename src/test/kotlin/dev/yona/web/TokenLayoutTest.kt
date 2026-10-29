@@ -1,5 +1,7 @@
 package dev.yona.web
 
+import dev.yona.domain.apitoken.ApiTokenService
+import dev.yona.domain.apitoken.TokenCreation
 import dev.yona.domain.enumeration.UserState
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
@@ -12,15 +14,14 @@ import org.springframework.mock.web.MockHttpSession
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
- * 화면에 붙는 "U" 단축키(내 정보로 이동)가 세션에 로그인한 사용자에게만 생기는지 검증한다.
- *
- * v1.6 `common/scripts`는 현재 사용자가 아니라 세션의 `loginId` 값으로 단축키를 만든다. 개인 API 토큰으로만 요청하면 현재 사용자는
- * 토큰의 주인이지만 세션이 없어 단축키가 없다(공식 v1.16.0의 `/-_-api/v1/admin/users` 403 화면으로 확인했다).
+ * 외부 API(`/-_-api/v1`)가 HTML 화면을 그리지 않는지 검증한다(X-5, `decisions.md` D-36). v1.6은 토큰으로 `/-_-api/v1/admin/users`의 403 화면을 그려
+ * 세션 없는 화면에는 "U" 단축키가 없는 차이가 있었다. 외부 API는 이제 토큰 전용 JSON만 돌려주고 세션은 무시하므로 그 화면 자체가 없다.
  */
 @AutoConfigureMockMvc
 @Transactional
@@ -28,35 +29,26 @@ class TokenLayoutTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var tokens: ApiTokenService
 
-    private fun user(token: String): User {
+    private fun user(name: String): User {
         val salt = LegacyPasswordHasher.generateSalt()
-        return users.save(User(loginId = "tl$token", name = "tl$token", email = "tl$token@example.com", state = UserState.ACTIVE, passwordSalt = salt,
-            password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        return users.save(User(loginId = "tl$name", name = "tl$name", email = "tl$name@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt)))
     }
 
     @Test
-    fun `토큰으로만 요청하면 내 정보 단축키가 없다`() {
-        val owner = user("a1")
-        val html = mockMvc.perform(get("/-_-api/v1/admin/users").header("Authorization", "token a1")).andReturn().response.contentAsString
-        assertTrue(html.contains("yobi.ShortcutKey.setKeymapLink"), "화면이 그려졌어야 한다")
-        assertFalse(html.contains("\"U\":"), "세션이 없으면 U 단축키는 없다: ${owner.loginId}")
+    fun `사이트 관리자 범위가 없는 토큰의 거절은 JSON이고 Cache-Control 없이 낸다`() {
+        val u = user("c1"); val t = (tokens.create(u, "t", setOf("repo"), null) as TokenCreation.Created).value
+        mockMvc.perform(get("/-_-api/v1/admin/users").header("Authorization", "token $t"))
+            .andExpect(status().isForbidden).andExpect(header().doesNotExist("Cache-Control"))
     }
 
     @Test
-    fun `사이트 관리자 전용 API의 403은 Cache-Control 없이 낸다 (v1_6 액션 합성이 기본 액션 밖이다)`() {
-        user("c1")
-        mockMvc.perform(get("/-_-api/v1/admin/users").header("Authorization", "token c1"))
-            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden)
-            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().doesNotExist("Cache-Control"))
-    }
-
-    @Test
-    fun `세션에 로그인하면 내 정보 단축키가 있다`() {
-        val owner = user("b1")
+    fun `세션으로 로그인해도 외부 API는 화면을 그리지 않고 401 JSON이다`() {
+        val u = user("b1")
         val session = MockHttpSession()
-        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", owner.loginId!!).param("password", "1234"))
-        val html = mockMvc.perform(get("/-_-api/v1/admin/users").session(session)).andReturn().response.contentAsString
-        assertTrue(html.contains("\"U\": \"\\/${owner.loginId}\""), html.substringAfter("setKeymapLink").take(120))
+        mockMvc.perform(post("/users/login").session(session).param("loginIdOrEmail", u.loginId!!).param("password", "1234"))
+        val response = mockMvc.perform(get("/-_-api/v1/admin/users").session(session)).andExpect(status().isUnauthorized).andReturn().response
+        assertFalse(response.contentAsString.contains("setKeymapLink"), "HTML 화면이 아니다")
     }
 }

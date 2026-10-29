@@ -66,6 +66,7 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
@@ -83,10 +84,15 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
 
     private var sequence = 0
 
+    /** 구독자 목록 API는 토큰 전용이다(X-5, D-36). 시험용 토큰을 만든다. */
+    private fun watchToken(): String = newUser("wt${++sequence}").token!!
+
     private fun newUser(token: String? = null): User {
         val n = ++sequence
         val salt = LegacyPasswordHasher.generateSalt()
-        return users.save(User(loginId = "xp$n", name = "xp$n", email = "xp$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        val saved = users.save(User(loginId = "xp$n", name = "xp$n", email = "xp$n@example.com", state = UserState.ACTIVE, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        token?.let { dev.yona.support.ApiTokenSupport.grant(apiTokenRepository, saved, it) }
+        return saved
     }
 
     private fun admin(): User = newUser("admin-tk-${++sequence}").also { siteAdmins.save(SiteAdmin(admin = it)) }
@@ -267,11 +273,11 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
         val project = newProject(); val author = member(project); val watcher = member(project)
         val issue = issues.save(Issue(project = project, number = 1, title = "t", body = "b", state = State.OPEN, authorId = author.id, authorLoginId = author.loginId, authorName = author.name, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date()))
         watches.save(Watch(user = watcher, resourceType = ResourceType.ISSUE_POST, resourceId = issue.id.toString()))
-        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).param("type", "issues")).andExpect(status().isOk)
+        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).header("Authorization", "token ${watchToken()}").param("type", "issues")).andExpect(status().isOk)
             .andExpect(jsonPath("$.totalWatchers").value(2)).andExpect(jsonPath("$.watchersInList").value(2))
             .andExpect(jsonPath("$.watchers[?(@.name == '${watcher.name}')].url").value("/${watcher.loginId}"))
-        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).param("type", "posts")).andExpect(status().isNotFound)
-        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers"))).andExpect(status().isOk).andExpect(content().string(""))
+        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).header("Authorization", "token ${watchToken()}").param("type", "posts")).andExpect(status().isNotFound)
+        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).header("Authorization", "token ${watchToken()}")).andExpect(status().isOk).andExpect(content().string(""))
     }
 
     @Test
@@ -281,7 +287,7 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
         issues.save(Issue(project = project, number = 1, title = "t", body = "b", state = State.OPEN, authorId = author.id, authorLoginId = author.loginId, authorName = author.name, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date(), assignee = assignee, voters = mutableSetOf(voter)))
         entityManager.flush(); entityManager.clear()
         // v1.6 Issue.getWatchers는 담당자와 추천자를 기본 구독자로 두고 작성자를 더한다.
-        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).param("type", "issues")).andExpect(status().isOk)
+        mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).header("Authorization", "token ${watchToken()}").param("type", "issues")).andExpect(status().isOk)
             .andExpect(jsonPath("$.totalWatchers").value(3))
     }
 
@@ -289,7 +295,7 @@ class ExternalProjectApiTest : AbstractIntegrationTest() {
     fun `비공개 프로젝트의 구독자는 구성원이 아니면 볼 수 없다`() {
         val project = newProject(ProjectScope.PRIVATE); val m = member(project)
         issues.save(Issue(project = project, number = 1, title = "t", body = "b", state = State.OPEN, authorId = m.id, authorLoginId = m.loginId, authorName = m.name, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date()))
-        val denied = mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).param("type", "issues")).andReturn().response.status
+        val denied = mockMvc.perform(get(api("owners/${project.owner}/projects/${project.name}/posts/1/watchers")).header("Authorization", "token ${watchToken()}").param("type", "issues")).andReturn().response.status
         assertTrue(denied in listOf(302, 303, 403), denied.toString())
         assertNotNull(m.id)
     }

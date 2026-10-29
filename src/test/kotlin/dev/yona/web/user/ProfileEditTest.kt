@@ -324,10 +324,11 @@ class ProfileEditTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `토큰으로 API 요청을 인증할 수 있다`() {
+    fun `설정 화면의 토큰은 웹 경로 요청을 인증하지 못한다 (X-5, D-36, 토큰은 외부 API에서만 쓴다)`() {
         val user = newUser()
         val token = page("/user/editform/token", login(user)).selectFirst("input[name=name]")!!.attr("value")
-        mockMvc.perform(get("/user/editform").header("Yona-Token", token)).andExpect(status().isOk)
+        val status = mockMvc.perform(get("/user/editform").header("Yona-Token", token)).andReturn().response.status
+        assertTrue(status in 300..403 && status != 200, "웹 경로는 토큰을 인정하지 않는다: $status")
     }
 
     @Test

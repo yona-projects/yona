@@ -89,6 +89,14 @@ data class YonaProperties(
     val parsersTextMaxLength: Long = 102_400L,
     /** 데이터 가져오기에서 한 번에 넣는 행 수이다 (`data.batch.size`, v1.6 `DefaultExchanger`의 숨은 설정). */
     val dataBatchSize: Int = 100,
+    /** 토큰 인증에 연달아 실패하면 막는 횟수이다. 0 이하이면 제한하지 않는다 (`yona.api-token-failure-limit`, X-5, `decisions.md` D-36). */
+    val apiTokenFailureLimit: Int = 5,
+    /** 토큰 인증 실패 한도를 넘은 주소를 막는 시간(분)이다 (`yona.api-token-block-minutes`). */
+    val apiTokenBlockMinutes: Long = 15,
+    /** 새 토큰의 최대 수명(일)이다. 0이면 제한이 없고 "만료 없음"도 고를 수 있다 (`yona.api-token-max-days`). */
+    val apiTokenMaxDays: Int = 0,
+    /** Git, SVN의 HTTP 접근이 비밀번호도 받는지이다. `false`이면 토큰만 받는다 (`yona.git-http-password-auth`, 기본은 v1.6처럼 받는다). */
+    val gitHttpPasswordAuth: Boolean = true,
     /** 지원하는 화면 언어이다. `Accept-Language`에 가장 알맞은 것을 고르고 맞는 것이 없으면 첫 번째를 쓴다 (`application.langs`). */
     val langs: List<String> = listOf("en-US", "ko-KR", "ja-JP", "ru-RU", "uz-UZ"),
     @DurationUnit(ChronoUnit.MILLIS) val issueEventDraftTime: Duration = Duration.ofSeconds(30),

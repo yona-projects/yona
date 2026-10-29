@@ -74,6 +74,7 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
+    @Autowired private lateinit var apiTokenRepository: dev.yona.domain.apitoken.ApiTokenRepository
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var issues: IssueRepository
     @Autowired private lateinit var assignees: AssigneeRepository
@@ -86,7 +87,9 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
     private fun newUser(state: UserState = UserState.ACTIVE, token: String? = null): User {
         val n = ++sequence
         val salt = LegacyPasswordHasher.generateSalt()
-        return users.save(User(loginId = "eu$n", name = "eu$n", email = "eu$n@example.com", state = state, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        val saved = users.save(User(loginId = "eu$n", name = "eu$n", email = "eu$n@example.com", state = state, passwordSalt = salt, password = LegacyPasswordHasher.hash("1234", salt), token = token))
+        token?.let { dev.yona.support.ApiTokenSupport.grant(apiTokenRepository, saved, it) }
+        return saved
     }
 
     private fun admin(): User = newUser(token = "admin-token-${++sequence}").also { siteAdmins.save(SiteAdmin(admin = it)) }
@@ -128,7 +131,7 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
     @Test
     fun `사용자 만들기의 오류`() {
         val a = admin()
-        json(post("/-_-api/v1/users"), newUser().also { it.token = "plain"; users.save(it) }.token, """{"users":[]}""").andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("User creation with api is allowed by Site admin only."))
+        json(post("/-_-api/v1/users"), newUser(token = "plain-token-${++sequence}").token, """{"users":[]}""").andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("User creation with api is allowed by Site admin only."))
         mockMvc.perform(post("/-_-api/v1/users").header("Authorization", "token ${a.token}").contentType(MediaType.TEXT_PLAIN).content("x")).andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("Expecting Json data"))
         json(post("/-_-api/v1/users"), a.token, """{"nope":1}""").andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("No users key exists or value must be array!"))
     }
@@ -136,33 +139,10 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
     // --- 토큰 ---
 
     @Test
-    fun `토큰을 받으면 같은 응답으로 사이트에도 로그인된다 (v1_6 addUserInfoToSession)`() {
+    fun `비밀번호로 토큰을 받는 옛 URL은 삭제되었다 (X-5, D-36 7번)`() {
         val u = newUser()
-        val result = json(post("/-_-api/v1/users/token"), null, """{"id":"${u.loginId}","password":"1234"}""").andExpect(status().isOk).andReturn()
-        // 세션이 만들어져 사용자가 기록된다. 쿠키를 유지하는 클라이언트는 이후 요청에서 로그인 상태이다
-        assertTrue(result.request.getSession(false) != null, "세션이 없다")
-        val context = result.request.getSession(false)!!.getAttribute(org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY)
-        assertTrue(context != null, "세션에 로그인 정보가 없다")
-    }
-
-    @Test
-    fun `아이디나 이메일과 비밀번호로 토큰을 받는다`() {
-        val u = newUser()
-        val first = json(post("/-_-api/v1/users/token"), null, """{"id":"${u.loginId}","password":"1234"}""").andExpect(status().isOk).andExpect(jsonPath("$.access_token").isString)
-            .andReturn().response.contentAsString
-        entityManager.flush(); entityManager.clear()
-        val saved = users.findById(u.id!!).get().token
-        assertTrue(first.contains(saved!!))
-        json(post("/-_-api/v1/users/token"), null, """{"id":"${u.email}","password":"1234"}""").andExpect(status().isOk)
-    }
-
-    @Test
-    fun `토큰 받기의 오류`() {
-        val u = newUser(); val locked = newUser(UserState.LOCKED)
-        mockMvc.perform(post("/-_-api/v1/users/token").contentType(MediaType.TEXT_PLAIN).content("x")).andExpect(status().isBadRequest).andExpect(jsonPath("$.message").value("Empty request data"))
-        json(post("/-_-api/v1/users/token"), null, """{"id":"nobody","password":"1234"}""").andExpect(status().isUnauthorized).andExpect(jsonPath("$.message").value("No valid user by id"))
-        json(post("/-_-api/v1/users/token"), null, """{"id":"${locked.loginId}","password":"1234"}""").andExpect(status().isUnauthorized).andExpect(jsonPath("$.message").value("No valid user by id"))
-        json(post("/-_-api/v1/users/token"), null, """{"id":"${u.loginId}","password":"bad"}""").andExpect(status().isUnauthorized).andExpect(jsonPath("$.message").value("No user by id and password"))
+        val status = json(post("/-_-api/v1/users/token"), null, """{"id":"${u.loginId}","password":"1234"}""").andReturn().response.status
+        assertTrue(status == 404 || status == 405 || status == 401 || status == 403, "삭제한 주소는 토큰을 발급하지 않는다: $status")
     }
 
     // --- 내 이슈 ---
@@ -212,12 +192,12 @@ class ExternalUserApiTest : AbstractIntegrationTest() {
         val me = newUser(); val s = newUser()
         val project = projects.save(Project(owner = "eso", name = "esp", vcs = "GIT", projectScope = ProjectScope.PUBLIC, lastIssueNumber = 1))
         issues.save(Issue(project = project, number = 1, title = "t", body = "b", state = State.OPEN, authorId = me.id, authorLoginId = me.loginId, authorName = me.name, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date()))
-        val session = MockHttpSession().also { mockMvc.perform(post("/users/login").session(it).param("loginIdOrEmail", s.loginId!!).param("password", "1234")) }
-        mockMvc.perform(get("/-_-api/v1/users/${me.loginId}/statistics").session(session)).andExpect(status().isOk)
+        val statsToken = newUser(token = "stats-token-${++sequence}").token
+        mockMvc.perform(get("/-_-api/v1/users/${me.loginId}/statistics").header("Authorization", "token $statsToken")).andExpect(status().isOk)
             .andExpect(jsonPath("$.issue").value(1)).andExpect(jsonPath("$.posting").value(0)).andExpect(jsonPath("$.assignedIssue").value(0))
             .andExpect(jsonPath("$.issueComment").value(0)).andExpect(jsonPath("$.postingComment").value(0)).andExpect(jsonPath("$.issueVoter").value(0)).andExpect(jsonPath("$.issueCommentVoter").value(0))
-        mockMvc.perform(get("/-_-api/v1/users/nobody/statistics").session(session)).andExpect(status().isOk).andExpect(jsonPath("$.issue").value(0))
-        mockMvc.perform(get("/-_-api/v1/users/${me.loginId}/statistics")).andExpect(status().is3xxRedirection)
+        mockMvc.perform(get("/-_-api/v1/users/nobody/statistics").header("Authorization", "token $statsToken")).andExpect(status().isOk).andExpect(jsonPath("$.issue").value(0))
+        mockMvc.perform(get("/-_-api/v1/users/${me.loginId}/statistics")).andExpect(status().isUnauthorized)
     }
 
     // --- 관리자 ---

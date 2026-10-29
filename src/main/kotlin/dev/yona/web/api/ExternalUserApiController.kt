@@ -70,27 +70,6 @@ class ExternalUserApiController(
     }
 
 
-    // --- 토큰 ---
-
-    /** 아이디나 이메일과 비밀번호로 새 토큰을 만들어 `{"access_token"}`으로 돌려준다. 잠기거나 지워진 사용자는 거절한다. */
-    @PostMapping("/-_-api/v1/users/token")
-    @Transactional
-    fun newToken(request: HttpServletRequest, response: jakarta.servlet.http.HttpServletResponse): Any {
-        val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Empty request data")
-        val id = json.findValue("id")?.asString("").orEmpty()
-        val password = json.findValue("password")?.asString("").orEmpty()
-        val user = users.findByLoginKey(id)
-        if (user == null || user.state == UserState.LOCKED || user.state == UserState.DELETED) return requests.message(HttpStatus.UNAUTHORIZED, "No valid user by id")
-        if (user.password != dev.yona.security.LegacyPasswordHasher.hash(password, user.passwordSalt.orEmpty())) return requests.message(HttpStatus.UNAUTHORIZED, "No user by id and password")
-        // v1.6 `SHA256Util.hashBasedNow()`: 지금 시각 문자열의 SHA-256을 Base64로 쓴다.
-        val token = Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(LocalDateTime.now().toString().toByteArray()))
-        user.token = token
-        users.save(user)
-        // v1.6 UserApi.newToken은 토큰을 만들기 전에 addUserInfoToSession으로 세션 로그인도 한다 (쿠키를 유지하는 클라이언트는 사이트에도 로그인된다)
-        loginSession.start(request, response, user)
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(mapOf("access_token" to token))
-    }
-
     // --- 내 이슈 ---
 
     /**

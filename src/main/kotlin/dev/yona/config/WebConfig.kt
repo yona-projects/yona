@@ -25,6 +25,7 @@ class WebConfig(
     private val accessChainInterceptor: AccessChainInterceptor,
     private val siteSecretInterceptor: SiteSecretInterceptor,
     private val preferredLanguageInterceptor: PreferredLanguageInterceptor,
+    private val apiScopeInterceptor: dev.yona.security.ApiScopeInterceptor,
     private val defaultHeadersInterceptor: dev.yona.web.DefaultHeadersInterceptor,
     private val flashDisplayInterceptor: dev.yona.web.layout.FlashDisplayInterceptor
 ) : WebMvcConfigurer {
@@ -52,6 +53,8 @@ class WebConfig(
         registry.addInterceptor(emptyWildcardInterceptor)
         registry.addInterceptor(pathBindingInterceptor)
         registry.addInterceptor(preferredLanguageInterceptor)
+        // 외부 API(`/-_-api`)의 토큰 범위는 접근 검사보다 먼저 거른다(X-5, D-36)
+        registry.addInterceptor(apiScopeInterceptor).addPathPatterns("/-_-api", "/-_-api/**")
         // 접근 검사 어노테이션은 v1.6의 Play 순서(메서드가 바깥, 클래스가 안쪽)로 한 인터셉터에서 실행한다
         registry.addInterceptor(accessChainInterceptor)
         // 비밀 키 설정 화면은 접근 검사 뒤에 둔다. Play는 애너테이션 액션을 Global.onRequest 액션보다 바깥에서 실행하므로, 익명이 열 수 없는 주소는 검사가

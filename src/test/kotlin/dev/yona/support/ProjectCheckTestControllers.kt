@@ -87,3 +87,9 @@ class ProjectCheckTestControllers {
     @GetMapping("/__t/guest-prohibit-silent")
     fun guestProhibitSilent(): String = "ok"
 }
+
+/** 시험용 외부 API 경로에 범위를 요구하지 않게 한다(대응표에 없는 `/-_-api` 경로는 기본 거부이다). */
+@org.springframework.stereotype.Component
+class TestApiScopeRules : dev.yona.security.ApiScopeRuleProvider {
+    override fun rules() = mapOf(("GET" to "/-_-api/v1/owners/{owner}/projects/{project}/__t/api") to dev.yona.security.ApiRequirement.None)
+}
