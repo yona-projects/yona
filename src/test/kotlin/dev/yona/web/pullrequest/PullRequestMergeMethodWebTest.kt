@@ -215,6 +215,7 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
         assertEquals("merge", doc.select("#merge-options input[name=method][checked]").single().attr("value"))
         assertEquals(url(s, pr, "/accept"), doc.selectFirst("#btnAccept")!!.attr("href"))
         assertTrue(doc.select("#merge-options input[name=commitTitle]").isNotEmpty())
+        assertEquals(url(s, pr, "/accept"), doc.selectFirst("#merge-options form")!!.attr("action"), "선택 폼은 병합 요청 주소로 보낸다")
     }
 
     @Test

@@ -13,7 +13,10 @@ data class ReviewerArea(val labelHtml: String, val avatarsHtml: String, val revi
 data class AcceptButton(
     val url: String, val enabled: Boolean, val disabledReason: String?, val bypassNote: String? = null,
     val label: String? = null, val methods: List<MergeMethodOption> = emptyList(), val defaultMethod: String = "merge"
-)
+) {
+    /** 방식 선택 폼이 보낼 주소이다. 단추가 붙인 `?method=` 질의는 뺀다. */
+    val formAction: String get() = url.substringBefore('?')
+}
 
 /**
  * 병합 방식 선택 목록의 한 항목이다(추가 개발 항목 X-28, `decisions.md` D-41). [available]이 아니면 고를 수 없고 [reason]에 이유를 보인다.

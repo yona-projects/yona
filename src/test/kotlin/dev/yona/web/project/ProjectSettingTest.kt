@@ -364,6 +364,16 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `병합 방식 체크박스는 숨은 false 값보다 앞에 있어 체크하면 true를 먼저 보낸다 (X-28)`() {
+        val project = newProject()
+        val doc = settingForm(project, login(manager(project)))
+        listOf("allowMergeCommit", "allowSquashMerge", "allowRebaseMerge").forEach { name ->
+            val inputs = doc.select("#mergeMethodSettingPanel input[name=$name]")
+            assertEquals(listOf("checkbox", "hidden"), inputs.map { it.attr("type") }, name)
+        }
+    }
+
+    @Test
     fun `보내지 않은 항목은 그대로 둔다`() {
         val project = newProject(configure = { isCodeAccessibleMemberOnly = true; defaultReviewerCount = 3 })
         save(project, login(manager(project)), "name" to project.name!!, *allMenus)
