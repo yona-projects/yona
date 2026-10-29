@@ -7,6 +7,8 @@ import dev.yona.domain.issue.Label
 import dev.yona.domain.user.Role
 import dev.yona.domain.user.User
 import jakarta.persistence.*
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
 import java.util.Date
@@ -90,6 +92,23 @@ class Project(
     )
     var labels: MutableSet<Label> = mutableSetOf()
 ) {
+
+    /**
+     * 이 프로젝트의 브랜치 보호 규칙이다(추가 개발 항목 X-32, `decisions.md` D-42). 트랜잭션 밖(풀 리퀘스트 병합은 트랜잭션을 걸지 않는다)에서도 읽도록 즉시 불러온다.
+     */
+    @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
+    var branchProtectionRules: MutableList<BranchProtectionRule> = mutableListOf()
+
+    /**
+     * [branch]로 가는 풀 리퀘스트에 적용할 보호 규칙이다. 없으면 `null`이고 승인 수와 변경 요청으로 막지 않는다.
+     * 이름이 정확히 같은 규칙이 먼저이고, 없으면 `*` 패턴 중 패턴이 가장 긴 것이다.
+     */
+    fun protectionFor(branch: String?): BranchProtectionRule? {
+        val matching = branchProtectionRules.filter { it.matches(branch) }
+        return matching.firstOrNull { it.isExact } ?: matching.maxByOrNull { it.pattern?.length ?: 0 }
+    }
+
     /** 공개 프로젝트이면 `true`이다. */
     fun isPublic(): Boolean = projectScope == ProjectScope.PUBLIC
 

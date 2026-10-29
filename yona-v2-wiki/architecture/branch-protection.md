@@ -1,0 +1,41 @@
+---
+title: 브랜치 보호 규칙
+type: architecture
+sources:
+  - app/models/Project.java (isUsingReviewerCount, defaultReviewerCount, 60a5ac406)
+  - app/models/PullRequest.java (getRequiredReviewerCount, isReviewed, 60a5ac406)
+updated: 2026-10-29
+---
+
+# 브랜치 보호 규칙 (X-32, D-42)
+
+v1.6은 프로젝트 설정의 "리뷰어 사용/사용 안함"과 "N 명"으로 프로젝트의 모든 풀 리퀘스트에 승인 수를 강제했다. GitHub는 기본으로 강제하지 않고 브랜치 보호 규칙을 만든 브랜치에만 요구한다. 선생님 결정([D-42](../decisions.md))으로 같은 방식으로 바꿨다.
+
+## 규칙
+
+새 테이블 `branch_protection_rule`이다(내보내기와 가져오기 대상, 프로젝트 삭제 때 함께 지운다).
+
+| 컬럼 | 뜻 |
+|---|---|
+| `project_id` | 규칙이 속한 프로젝트 |
+| `pattern` | 브랜치 이름(`master`)이나 별표 패턴(`release/*`). 별표 하나는 `/`를 넘지 않고 별표 두 개는 넘는다 |
+| `required_approvals` | 병합에 필요한 승인 수(1~100). 작성자 본인의 승인은 세지 않는다(D-35 12번) |
+| `enforce_admins` | 켜면 프로젝트 관리자와 사이트 관리자도 우회하지 못한다. 기본은 끔 |
+| `created_date` | 만든 시각 |
+
+프로젝트와 패턴의 조합은 유일하다. 같은 패턴을 다시 저장하면 그 규칙을 고친다.
+
+## 적용
+
+- 풀 리퀘스트의 받는 브랜치에 맞는 규칙을 고른다(`Project.protectionFor`). 이름이 정확히 같은 규칙이 먼저이고, 없으면 패턴이 가장 긴 규칙이다.
+- 규칙이 없으면 승인 수와 변경 요청으로 막지 않는다. 규칙이 있으면 승인이 모자라거나 변경 요청이 남아 있을 때 병합을 막는다(`PullRequest.reviewBlocked`).
+- 프로젝트 관리자와 사이트 관리자는 규칙이 "관리자에게도 적용"이 아니면 우회한다(`AccessControl.canBypassReview`, D-35 11번).
+- 화면의 승인 영역과 목록의 리뷰어 수, REST `approvals.required`도 규칙을 따른다. 규칙이 없으면 `required`는 0이다.
+
+## 화면
+
+프로젝트 설정 아래에 "브랜치 보호" 영역(`#branchProtectionPanel`)이 있고 규칙 목록, 추가(수정), 삭제가 있다. 설정 폼과 별개의 요청(`POST .../setting/protections`, `.../setting/protections/{id}/delete`)이며 프로젝트 관리자만 쓴다. 리뷰어 수 강제 입력은 없어졌고 "새 커밋이 오면 승인 해제"(X-12)만 "리뷰어" 영역에 남았다.
+
+## 기존 데이터
+
+`project.is_using_reviewer_count`, `default_reviewer_count` 컬럼은 v1.6과 같게 남지만 병합 판정에 쓰지 않는다. 리뷰어 수를 켜 두었던 프로젝트도 규칙 없이 시작하므로 업그레이드하면 전에 막히던 병합이 열린다. 필요하면 관리자가 규칙을 만든다.

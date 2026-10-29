@@ -12,8 +12,14 @@ val PullRequest.closed: Boolean get() = state == State.CLOSED
 /** 병합된 요청이면 `true`이다 (v1.6 `PullRequest.isMerged`). */
 val PullRequest.merged: Boolean get() = state == State.MERGED
 
-/** 받는 프로젝트가 요구하는 리뷰어 수이다 (v1.6 `getRequiredReviewerCount`). */
-val PullRequest.requiredReviewerCount: Int get() = toProject?.defaultReviewerCount ?: 0
+/**
+ * 받는 브랜치에 적용되는 보호 규칙이다. 없으면 `null`이다(추가 개발 항목 X-32, `decisions.md` D-42).
+ * v1.6은 프로젝트 전체에 리뷰어 수를 강제했지만, 지금은 GitHub처럼 규칙을 만든 브랜치에만 적용한다.
+ */
+val PullRequest.protection: dev.yona.domain.project.BranchProtectionRule? get() = toProject?.protectionFor(toBranch)
+
+/** 받는 브랜치의 보호 규칙이 요구하는 승인 수이다. 규칙이 없으면 0이다 (v1.6 `getRequiredReviewerCount`를 규칙 단위로 바꿨다). */
+val PullRequest.requiredReviewerCount: Int get() = protection?.requiredApprovals ?: 0
 
 /** 개수에 세는 승인한 사람 수이다. 작성자 본인의 승인은 세지 않는다(추가 개발 항목 X-12, `decisions.md` D-35 12번. v1.6 시절 작성자가 해 둔 승인도 같다). */
 val PullRequest.countedApprovals: Int get() = reviewers.count { it.id != contributor?.id }
@@ -35,7 +41,7 @@ val PullRequest.latestReviews: Map<Long?, PullRequestReview>
 val PullRequestReview.effectiveVerdict: dev.yona.domain.enumeration.ReviewVerdict?
     get() = if (dismissedDate != null) dev.yona.domain.enumeration.ReviewVerdict.COMMENTED else verdict
 
-/** 변경 요청이 최신 판정으로 남아 있는 리뷰어의 로그인 ID이다. 표시에는 항상 쓰고 병합은 프로젝트가 리뷰어 수를 켠 경우에만 막는다. */
+/** 변경 요청이 최신 판정으로 남아 있는 리뷰어의 로그인 ID이다. 표시에는 항상 쓰고 병합은 보호 규칙이 있는 브랜치에서만 막는다. */
 val PullRequest.changesRequestedBy: List<String?>
     get() = latestReviews.values.filter { it.effectiveVerdict == dev.yona.domain.enumeration.ReviewVerdict.CHANGES_REQUESTED }.sortedWith(compareBy({ it.createdDate }, { it.id })).map { it.authorLoginId }
 
@@ -43,10 +49,10 @@ val PullRequest.changesRequestedBy: List<String?>
 fun PullRequest.isReviewedBy(user: User?): Boolean = user != null && reviewers.any { it.id == user.id }
 
 /**
- * 리뷰 조건이 병합을 막고 있으면 `true`이다. 프로젝트가 리뷰어 수를 켰고 승인이 모자라거나 변경 요청이 남아 있을 때이다(추가 개발 항목 X-12, `decisions.md` D-35).
- * 프로젝트 관리자와 사이트 관리자는 이 막힘을 우회할 수 있다.
+ * 리뷰 조건이 병합을 막고 있으면 `true`이다. 받는 브랜치에 보호 규칙이 있고 승인이 모자라거나 변경 요청이 남아 있을 때이다(추가 개발 항목 X-12, X-32,
+ * `decisions.md` D-35, D-42). 프로젝트 관리자와 사이트 관리자는 규칙이 "관리자에게도 적용"이 아니면 이 막힘을 우회할 수 있다.
  */
-val PullRequest.reviewBlocked: Boolean get() = toProject?.isUsingReviewerCount == true && (!reviewed || changesRequestedBy.isNotEmpty())
+val PullRequest.reviewBlocked: Boolean get() = protection != null && (!reviewed || changesRequestedBy.isNotEmpty())
 
 /** 리뷰 조건을 보지 않고 충돌이 아니고, 열려 있고, 병합 검사 중이 아니면 `true`이다. */
 val PullRequest.acceptableIgnoringReview: Boolean get() = isConflict != true && open && isMerging != true

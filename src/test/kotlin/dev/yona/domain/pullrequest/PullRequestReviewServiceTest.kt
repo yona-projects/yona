@@ -12,6 +12,7 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.support.AbstractIntegrationTest
+import dev.yona.support.protectionRule
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.Test
@@ -40,7 +41,7 @@ class PullRequestReviewServiceTest : AbstractIntegrationTest() {
     private fun user() = users.save(User(loginId = "rv${++sequence}", name = "rv$sequence", email = "rv$sequence@example.com", state = UserState.ACTIVE))
 
     private fun pullRequest(usingCount: Boolean = true, required: Int = 1, state: State = State.OPEN): PullRequest {
-        val project = Project(owner = "rvo${++sequence}", name = "rvp$sequence", vcs = "GIT", projectScope = ProjectScope.PUBLIC, isUsingReviewerCount = usingCount, defaultReviewerCount = required).also { em.persist(it) }
+        val project = Project(owner = "rvo${++sequence}", name = "rvp$sequence", vcs = "GIT", projectScope = ProjectScope.PUBLIC).also { em.persist(it); if (usingCount) em.persist(protectionRule(it, approvals = required)) }
         return PullRequest(
             toProject = project, fromProject = project, number = (++sequence).toLong(), title = "요청", contributor = user(), state = state,
             toBranch = "refs/heads/master", fromBranch = "refs/heads/feature"

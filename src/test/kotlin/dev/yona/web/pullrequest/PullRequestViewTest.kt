@@ -23,6 +23,7 @@ import dev.yona.domain.user.UserRepository
 import dev.yona.repository.RepositoryService
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.AbstractIntegrationTest
+import dev.yona.support.protectionRule
 import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
 import org.jsoup.Jsoup
@@ -60,6 +61,7 @@ class PullRequestViewTest : AbstractIntegrationTest() {
     @Autowired private lateinit var reviewComments: dev.yona.domain.comment.ReviewCommentRepository
     @Autowired private lateinit var entityManager: jakarta.persistence.EntityManager
     @Autowired private lateinit var projects: ProjectRepository
+    @Autowired private lateinit var branchProtections: dev.yona.domain.project.BranchProtectionRuleRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
@@ -83,7 +85,8 @@ class PullRequestViewTest : AbstractIntegrationTest() {
 
     private fun setup(usingReviewers: Boolean = false): Setup {
         val n = ++sequence
-        val origin = projects.save(Project(owner = "pvo$n", name = "pvp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC, isUsingReviewerCount = usingReviewers, defaultReviewerCount = 1))
+        val origin = projects.save(Project(owner = "pvo$n", name = "pvp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        if (usingReviewers) branchProtections.save(protectionRule(origin))
         menuSettings.save(ProjectMenuSetting(project = origin, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         repositories.createRepository(origin)
         GitTestSupport.pushCommits(repositories, origin, TestCommit("기반", mapOf("a.txt" to "line1\nline2\nline3\n".toByteArray())))

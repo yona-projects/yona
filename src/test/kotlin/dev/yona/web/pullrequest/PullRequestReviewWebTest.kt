@@ -24,6 +24,7 @@ import dev.yona.domain.user.UserRepository
 import dev.yona.repository.RepositoryService
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.AbstractIntegrationTest
+import dev.yona.support.protectionRule
 import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
 import dev.yona.support.selectFirst
@@ -58,6 +59,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
+    @Autowired private lateinit var branchProtections: dev.yona.domain.project.BranchProtectionRuleRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
@@ -83,7 +85,8 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
 
     private fun setup(usingReviewers: Boolean = false): Setup {
         val n = ++sequence
-        val origin = projects.save(Project(owner = "rwo$n", name = "rwp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC, isUsingReviewerCount = usingReviewers, defaultReviewerCount = 1))
+        val origin = projects.save(Project(owner = "rwo$n", name = "rwp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
+        if (usingReviewers) branchProtections.save(protectionRule(origin))
         menuSettings.save(ProjectMenuSetting(project = origin, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         repositories.createRepository(origin)
         GitTestSupport.pushCommits(repositories, origin, TestCommit("기반", mapOf("a.txt" to "line1\nline2\nline3\n".toByteArray())))
@@ -193,6 +196,24 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
         assertNotNull(manager.selectFirst("#btnAccept")); assertNotNull(manager.selectFirst("#accept-bypass-note"), "요건 미달 안내가 보인다")
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isBadRequest)
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.manager))).andExpect(status().isSeeOther)
+        assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)
+    }
+
+    @Test
+    fun `관리자에게도 적용하는 규칙은 프로젝트 관리자도 우회하지 못한다 (X-32, D-42)`() {
+        val s = setup(usingReviewers = true); val pr = open(s)
+        branchProtections.findByProjectIdAndPattern(s.origin.id!!, "master")!!.also { it.enforceAdmins = true; branchProtections.save(it) }
+        val manager = page(url(s, pr), login(s.manager))
+        assertNull(manager.selectFirst("#btnAccept"), "관리자에게도 막힌 단추이다"); assertNotNull(manager.selectFirst("button.ybtn-disabled"))
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.manager))).andExpect(status().isBadRequest)
+        assertEquals(State.OPEN, pullRequests.findById(pr.id!!).get().state)
+    }
+
+    @Test
+    fun `규칙이 다른 브랜치에만 있으면 받는 브랜치는 승인 없이도 병합할 수 있다 (X-32, D-42)`() {
+        val s = setup(usingReviewers = false); val pr = open(s)
+        branchProtections.save(protectionRule(s.origin, "release/*", approvals = 3))
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isSeeOther)
         assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)
     }
 

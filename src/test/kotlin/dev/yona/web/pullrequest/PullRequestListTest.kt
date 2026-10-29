@@ -28,6 +28,7 @@ import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.AbstractIntegrationTest
+import dev.yona.support.protectionRule
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.jupiter.api.Test
@@ -61,6 +62,7 @@ class PullRequestListTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
+    @Autowired private lateinit var branchProtections: dev.yona.domain.project.BranchProtectionRuleRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
@@ -191,7 +193,7 @@ class PullRequestListTest : AbstractIntegrationTest() {
 
     @Test
     fun `목록 한 줄에는 리뷰 진행, 리뷰어 수, 대상 브랜치, 충돌, 받은 사람이 나온다`() {
-        val p = project(); p.isUsingReviewerCount = true; projects.save(p)
+        val p = project(); branchProtections.save(protectionRule(p, "dev"))
         val receiver = user(); val reviewer = user()
         val r = pr(p, number = 1, title = "[긴급] 충돌 요청", conflict = true, receiver = receiver, toBranch = "refs/heads/dev")
         r.reviewers.add(reviewer); pullRequests.save(r)

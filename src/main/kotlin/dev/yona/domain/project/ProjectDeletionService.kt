@@ -66,7 +66,7 @@ class ProjectDeletionService(
         listOf(
             "project_label", "project_user", "project_menu_setting", "project_pushed_branch", "project_transfer",
             "user_project_notification", "user_enrolled_project", "favorite_project", "recent_project", "project_visitation",
-            "title_head", "commit_comment"
+            "title_head", "commit_comment", "branch_protection_rule"
         ).forEach { native("delete from $it where project_id = :id", projectId) }
 
         native("delete from project where id = :id", projectId)
@@ -170,7 +170,7 @@ class ProjectDeletionService(
          * 테스트가 이를 확인한다. 새 테이블이 프로젝트를 참조하게 되면 목록과 [delete]를 함께 고친다.
          */
         val DELETED_TABLES: Set<String> = setOf(
-            "assignee", "comment_thread", "comment_thread_n4user", "commit_comment", "favorite_issue", "favorite_project", "issue",
+            "assignee", "branch_protection_rule", "comment_thread", "comment_thread_n4user", "commit_comment", "favorite_issue", "favorite_project", "issue",
             "issue_comment", "issue_comment_voter", "issue_event", "issue_issue_label", "issue_label", "issue_label_category",
             "issue_sharer", "issue_voter", "milestone", "posting", "posting_comment", "posting_issue_label", "project_label",
             "project_menu_setting", "project_pushed_branch", "project_transfer", "project_user", "project_visitation", "pull_request",

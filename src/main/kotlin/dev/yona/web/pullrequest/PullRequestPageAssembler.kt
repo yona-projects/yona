@@ -25,6 +25,7 @@ import dev.yona.domain.pullrequest.acceptableIgnoringReview
 import dev.yona.domain.pullrequest.countedApprovals
 import dev.yona.domain.pullrequest.effectiveVerdict
 import dev.yona.domain.pullrequest.latestReviews
+import dev.yona.domain.pullrequest.protection
 import dev.yona.domain.pullrequest.requiredReviewerCount
 import dev.yona.domain.pullrequest.reviewBlocked
 import dev.yona.domain.pullrequest.closed
@@ -103,7 +104,7 @@ class PullRequestPageAssembler(
         val conflict = pullRequest.isConflict == true
         val stateName = (pullRequest.state ?: dev.yona.domain.enumeration.State.OPEN).state
 
-        val reviewers = if (project.isUsingReviewerCount == true && canAccept) {
+        val reviewers = if (pullRequest.protection != null && canAccept) {
             ReviewerArea(
                 labelHtml = text("pullRequest.review.participants", pullRequest.countedApprovals),
                 avatarsHtml = pullRequest.reviewers.filter { it.id != pullRequest.contributor?.id }.joinToString("") { avatarLink(it) },
@@ -115,7 +116,7 @@ class PullRequestPageAssembler(
         val accept = if (canAccept) {
             if (pullRequest.acceptable) mergeButton(pullRequest, project, "$base/accept", null)
             // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건에 막힌 요청도 병합할 수 있다
-            else if (pullRequest.reviewBlocked && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project)) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
+            else if (pullRequest.reviewBlocked && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project, pullRequest.protection)) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
             else {
                 val (key, args) = pullRequest.disabledAcceptMessage()
                 AcceptButton("$base/accept", false, text(key, *args))
@@ -163,8 +164,8 @@ class PullRequestPageAssembler(
         }
         return ReviewAreaView(
             rows = rows, formUrl = if (viewer != null) "$base/reviews" else null, verdictOptions = options,
-            countText = if (project.isUsingReviewerCount == true) text("pullRequest.review.count", pullRequest.countedApprovals, pullRequest.requiredReviewerCount) else null,
-            authorNote = project.isUsingReviewerCount == true && pullRequest.reviewers.any { it.id == pullRequest.contributor?.id },
+            countText = if (pullRequest.protection != null) text("pullRequest.review.count", pullRequest.countedApprovals, pullRequest.requiredReviewerCount) else null,
+            authorNote = pullRequest.protection != null && pullRequest.reviewers.any { it.id == pullRequest.contributor?.id },
             pending = pendingRows, requestUrl = if (canRequest) "$base/reviewRequests" else null, candidatesUrl = if (canRequest) "$base/reviewRequestCandidates" else null,
             pendingCount = pendingComments, discardUrl = if (pendingComments > 0) "$base/pendingReview/discard" else null, changesUrl = "$base/changes"
         )

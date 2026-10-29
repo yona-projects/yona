@@ -10,6 +10,7 @@ import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.pullrequest.AcceptResult
 import dev.yona.domain.pullrequest.MergeMethod
+import dev.yona.domain.pullrequest.protection
 import dev.yona.domain.pullrequest.PullRequestForm
 import dev.yona.domain.pullrequest.PullRequestMergeProcessor
 import dev.yona.domain.pullrequest.PullRequestService
@@ -228,7 +229,7 @@ class ExternalPullRequestWriteApiController(
         val user = requireNotNull(target.user)
         val title = body?.get("commitTitle")?.takeUnless { it.isNull }?.asString()
         val message = body?.get("commitMessage")?.takeUnless { it.isNull }?.asString()
-        return when (workflow.accept(pullRequest, user, accessControl.canBypassReview(user, requireNotNull(target.project)), method, title, message)) {
+        return when (workflow.accept(pullRequest, user, accessControl.canBypassReview(user, requireNotNull(target.project), pullRequest.protection), method, title, message)) {
             AcceptResult.MERGED -> support.ok(json.of(pullRequest))
             AcceptResult.METHOD_NOT_ALLOWED -> support.badRequest("Merge method not allowed: $methodName")
             AcceptResult.CONFLICT -> support.conflict("pull request has conflicts")

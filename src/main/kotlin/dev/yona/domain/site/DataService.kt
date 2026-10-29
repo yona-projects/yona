@@ -137,6 +137,7 @@ class DataService(
                     cleanOrphanLinks(connection)
                     cleanReviews(connection, imported)
                     cleanTokens(connection, imported)
+                    cleanProtectionRules(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
                     try { connection.rollback() } catch (e: Exception) { log.warn("Failed to roll back the import", e) }
@@ -186,6 +187,23 @@ class DataService(
             connection.commit()
         } catch (e: Exception) {
             log.warn("Failed to clean API tokens after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
+    }
+
+    /**
+     * 브랜치 보호 규칙 테이블(추가 개발 항목 X-32, `decisions.md` D-42)을 가져온 뒤 바로잡는다. 파일에 프로젝트가 있는데 이 테이블이 없으면(v1.6 파일) 남아 있던
+     * 규칙은 바뀐 프로젝트 번호에 엉뚱하게 붙을 수 있으므로 비우고, 없는 프로젝트를 가리키는 행은 지운다.
+     */
+    private fun cleanProtectionRules(connection: Connection, imported: List<String>) {
+        try {
+            connection.createStatement().use { statement ->
+                if ("PROJECT" in imported && "BRANCH_PROTECTION_RULE" !in imported) statement.executeUpdate("delete from branch_protection_rule")
+                statement.executeUpdate("delete from branch_protection_rule where project_id not in (select id from project)")
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean branch protection rules after the import", e)
             try { connection.rollback() } catch (ignored: Exception) { }
         }
     }

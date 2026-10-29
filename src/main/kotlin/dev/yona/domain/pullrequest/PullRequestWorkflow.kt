@@ -62,7 +62,8 @@ class PullRequestWorkflow(
         pullRequest.isMerging = true
         pullRequests.save(pullRequest)
         // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰어 수와 변경 요청에 막혀도 병합할 수 있다(`bypassReview`)
-        if (toProject.isUsingReviewerCount == true && !bypassReview && (!pullRequest.reviewed || pullRequest.changesRequestedBy.isNotEmpty())) return AcceptResult.NOT_REVIEWED
+        // 추가 항목(X-32, D-42): 받는 브랜치에 보호 규칙이 있을 때만 승인 수와 변경 요청으로 막는다
+        if (pullRequest.reviewBlocked && !bypassReview) return AcceptResult.NOT_REVIEWED
 
         val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email), chosen, commitTitle, commitMessage)
         pullRequest.isMerging = false

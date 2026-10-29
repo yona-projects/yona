@@ -6,6 +6,7 @@ import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.pullrequest.AcceptResult
 import dev.yona.domain.pullrequest.MergeMethod
+import dev.yona.domain.pullrequest.protection
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.pullrequest.PullRequestForm
 import dev.yona.domain.pullrequest.PullRequestService
@@ -69,7 +70,7 @@ class PullRequestActionController(
         val method = MergeMethod.of(methodName)
         if (methodName != null && method == null) return ErrorViews.badRequest()
         val result = workflow.accept(
-            pullRequest, accepter, accessControl.canBypassReview(accepter, project), method, request.getParameter("commitTitle"), request.getParameter("commitMessage")
+            pullRequest, accepter, accessControl.canBypassReview(accepter, project, pullRequest.protection), method, request.getParameter("commitTitle"), request.getParameter("commitMessage")
         )
         if (result == AcceptResult.NOT_REVIEWED) return ErrorViews.badRequest("pullRequest.not.enough.review.point")
         if (result == AcceptResult.METHOD_NOT_ALLOWED) return ErrorViews.badRequest()
