@@ -18,14 +18,25 @@ data class AcceptButton(val url: String, val enabled: Boolean, val disabledReaso
  */
 data class ReviewerRow(
     val loginId: String, val name: String, val href: String, val avatarUrl: String, val verdict: String, val dismissed: Boolean, val dismissedReason: String?,
-    val systemDismissed: Boolean, val dismissUrl: String?, val ago: String, val agoTitle: String
+    val systemDismissed: Boolean, val dismissUrl: String?, val ago: String, val agoTitle: String,
+    /** 편집 권한자가 이 사람에게 다시 요청하는 주소이다(열린 풀 리퀘스트). 없으면 단추를 보이지 않는다(추가 항목 X-27, D-37) */
+    val rerequestUrl: String? = null
 )
+
+/** 리뷰를 요청받고 아직 리뷰하지 않은 사람 한 줄이다(추가 항목 X-27, `decisions.md` D-37). [cancelUrl]은 편집 권한자에게만 있다. */
+data class PendingReviewRow(val loginId: String, val name: String, val href: String, val avatarUrl: String, val cancelUrl: String?)
 
 /**
  * 개요 화면의 리뷰 영역이다. [formUrl]이 있으면(로그인한 사용자) 판정 폼을 보이며 [verdictOptions]는 고를 수 있는 판정 이름이다.
  * [countText]는 프로젝트가 리뷰어 수를 켰을 때 "승인 n/m"이고 [authorNote]는 작성자의 승인을 세지 않는다는 안내가 필요할 때 켠다.
  */
-data class ReviewAreaView(val rows: List<ReviewerRow>, val formUrl: String?, val verdictOptions: List<String>, val countText: String?, val authorNote: Boolean)
+data class ReviewAreaView(
+    val rows: List<ReviewerRow>, val formUrl: String?, val verdictOptions: List<String>, val countText: String?, val authorNote: Boolean,
+    /** 리뷰 요청이 대기 중인 사람들(추가 항목 X-27). 같은 사람의 최신 판정 줄은 [rows]에서 빠진다 */
+    val pending: List<PendingReviewRow> = emptyList(),
+    /** 편집 권한자가 열린 풀 리퀘스트에서 리뷰를 요청할 수 있으면 요청 주소이다. 없으면 선택 상자를 보이지 않는다 */
+    val requestUrl: String? = null, val candidatesUrl: String? = null
+)
 
 /** 풀 리퀘스트 보기와 변경 화면 위쪽의 공통 머리 영역이다 (v1.6 `partial_info`). */
 data class PullRequestHeader(

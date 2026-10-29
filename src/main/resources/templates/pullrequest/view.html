@@ -78,7 +78,16 @@
                         <dt th:text="#{pullRequest.review.area.title}"></dt>
                         <dd th:if="${reviewArea.countText != null}" class="review-count" th:text="${reviewArea.countText}"></dd>
                         <dd th:if="${reviewArea.authorNote}" class="review-author-note" th:text="#{pullRequest.review.author.not.counted}"></dd>
-                        <dd th:if="${#lists.isEmpty(reviewArea.rows)}" class="empty" th:text="#{pullRequest.review.area.empty}"></dd>
+                        <dd th:if="${#lists.isEmpty(reviewArea.rows) and #lists.isEmpty(reviewArea.pending)}" class="empty" th:text="#{pullRequest.review.area.empty}"></dd>
+                        <!--/* 리뷰 요청이 대기 중인 사람(추가 항목 X-27, decisions.md D-37). 편집 권한자에게는 취소 단추가 있다 */-->
+                        <dd th:each="r : ${reviewArea.pending}" class="reviewer-row pending" th:attr="data-login-id=${r.loginId}">
+                            <a th:href="${r.href}" class="usf-group">
+                                <span class="avatar-wrap smaller"><img th:src="${r.avatarUrl}" width="20" height="20"></span>
+                                <strong class="name" th:text="${r.name}"></strong>
+                            </a>
+                            <span class="verdict verdict-pending" th:text="#{pullRequest.review.state.pending}"></span>
+                            <button th:if="${r.cancelUrl != null}" type="button" class="ybtn ybtn-mini review-cancel" th:attr="data-url=${r.cancelUrl}" th:title="#{pullRequest.review.request.cancel}"><i class="yobicon-removefriend"></i></button>
+                        </dd>
                         <dd th:each="r : ${reviewArea.rows}" class="reviewer-row" th:attr="data-login-id=${r.loginId}, data-verdict=${r.verdict}">
                             <a th:href="${r.href}" class="usf-group">
                                 <span class="avatar-wrap smaller"><img th:src="${r.avatarUrl}" width="20" height="20"></span>
@@ -86,10 +95,16 @@
                             </a>
                             <span th:class="'verdict verdict-' + ${#strings.toLowerCase(r.verdict)}" th:text="#{'pullRequest.review.state.' + ${#strings.toLowerCase(r.verdict)}}" th:title="${r.agoTitle}"></span>
                             <span th:if="${r.dismissed}" class="dismissed" th:title="${r.systemDismissed} ? #{pullRequest.review.dismissed.stale} : ${r.dismissedReason}" th:text="#{pullRequest.review.dismissed.label}"></span>
+                            <button th:if="${r.rerequestUrl != null}" type="button" class="ybtn ybtn-mini review-rerequest" th:attr="data-url=${r.rerequestUrl}, data-reviewer=${r.loginId}" th:title="#{pullRequest.review.request.again}"><i class="yobicon-sync"></i></button>
                             <form th:if="${r.dismissUrl != null}" th:action="${r.dismissUrl}" method="post" class="review-dismiss">
                                 <input type="text" name="message" class="text span12" maxlength="255" th:placeholder="#{pullRequest.review.dismiss.reason}">
                                 <button type="submit" class="ybtn ybtn-mini" th:text="#{pullRequest.review.dismiss}"></button>
                             </form>
+                        </dd>
+                        <!--/* 리뷰 요청 선택 상자: 수정 권한이 있고 열린 풀 리퀘스트일 때만. 고르는 즉시 Ajax로 보낸다(yona.pullrequest.Reviewers.js) */-->
+                        <dd th:if="${reviewArea.requestUrl != null}" class="review-request-box">
+                            <input type="hidden" class="bigdrop" id="review-request" th:placeholder="#{pullRequest.review.request.placeholder}" style="width:100%"
+                                   th:attr="data-request-url=${reviewArea.requestUrl}, data-candidates-url=${reviewArea.candidatesUrl}, data-timeline-url=${assigneeArea != null ? assigneeArea.timelineUrl : ''}">
                         </dd>
                     </dl>
                 </div>
@@ -152,6 +167,10 @@
         <button type="button" class="ybtn ybtn-info ybtn-small" data-dismiss="modal" th:text="#{button.confirm}"></button>
     </div>
 </div>
+<th:block th:if="${reviewArea.requestUrl != null or #lists.size(reviewArea.rows) > 0 or #lists.size(reviewArea.pending) > 0}">
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript" th:src="@{/assets/javascripts/service/yona.pullrequest.Reviewers.js}"></script>
+</th:block>
 <th:block th:if="${assigneeArea != null and (assigneeArea.canEdit or labelArea.canEdit)}">
 <link rel="stylesheet" type="text/css" media="screen" th:href="${#paths.project(project.owner, project.name) + '/issue/labels.css'}">
 <th:block th:replace="~{common/select2 :: select2}"></th:block>

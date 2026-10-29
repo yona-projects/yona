@@ -128,7 +128,8 @@ class PullRequestListController(
             project, category, request.getParameter("filter"), request.getParameter("contributorId")?.toLongOrNull(),
             request.getParameter("pageNum")?.toIntOrNull() ?: 1,
             assigneeId = request.getParameter("assigneeId")?.toLongOrNull(), noAssignee = request.getParameter("assigneeId") == NO_ASSIGNEE,
-            labelIds = request.getParameterValues("labelIds").orEmpty().mapNotNull { it.toLongOrNull() }.toSet()
+            labelIds = request.getParameterValues("labelIds").orEmpty().mapNotNull { it.toLongOrNull() }.toSet(),
+            reviewRequestedId = request.getParameter("reviewRequestedId")?.toLongOrNull()
         )
         val projectLabels = labelService.labels(project)
         val page = search.search(condition)
@@ -156,6 +157,8 @@ class PullRequestListController(
             .addObject("newPullRequestUrl", "$base/newPullRequestForm")
             .addObject("contributors", contributorOptions(project, condition.contributorId, viewer))
             .addObject("assignees", assigneeOptions(project, condition, viewer))
+            // 추가 항목 X-27(D-37): "리뷰 요청" 필터는 로그인했을 때 "나에게 요청됨"만 고른다(GitHub의 `review-requested:@me`)
+            .addObject("reviewRequestedMe", viewer?.let { ContributorOption(it.id.toString(), "", null, null, condition.reviewRequestedId == it.id) })
             .addObject("labelGroups", formOptions.labelGroups(projectLabels))
             .addObject("selectedLabelIds", condition.labelIds.toMutableSet())
             .addObject("hasLabels", projectLabels.isNotEmpty())

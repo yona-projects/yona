@@ -131,10 +131,16 @@ class PullRequestPageAssembler(
      * 개요 화면의 리뷰 영역이다(추가 개발 항목 X-12, `decisions.md` D-35). 리뷰어별 최신 판정 줄과 판정 폼으로 이루어진다.
      * 폼은 로그인한 사용자에게만 보이고, 승인과 변경 요청은 받아들일 권한이 있는 작성자 아닌 사람이 열린 요청에만 고를 수 있다.
      */
-    fun reviewArea(pullRequest: PullRequest, viewer: User?, canAccept: Boolean): ReviewAreaView {
+    fun reviewArea(pullRequest: PullRequest, viewer: User?, canAccept: Boolean, canEdit: Boolean = false): ReviewAreaView {
         val project = requireNotNull(pullRequest.toProject)
         val base = baseUrl(pullRequest)
-        val rows = pullRequest.latestReviews.values.sortedWith(compareBy({ it.createdDate }, { it.id })).map { review ->
+        // 리뷰 요청이 대기 중인 사람은 최신 판정 줄 대신 "대기 중" 줄로 보인다(다시 요청하면 이전 판정이 가려진다, GitHub 방식)
+        val pendingIds = pullRequest.reviewRequests.mapNotNull { it.id }.toSet()
+        val canRequest = canEdit && pullRequest.open
+        val pendingRows = pullRequest.reviewRequests.sortedBy { it.id }.map { user ->
+            PendingReviewRow(user.loginId.orEmpty(), user.name.orEmpty(), siteUrls.path("/${user.loginId}"), avatars.avatarUrl(user), if (canRequest) "$base/reviewRequests/${user.loginId}/delete" else null)
+        }
+        val rows = pullRequest.latestReviews.values.filter { it.authorId !in pendingIds }.sortedWith(compareBy({ it.createdDate }, { it.id })).map { review ->
             val reviewer = review.authorId?.let { id -> users.findById(id).orElse(null) }
             val verdict = review.effectiveVerdict ?: dev.yona.domain.enumeration.ReviewVerdict.COMMENTED
             ReviewerRow(
@@ -142,7 +148,8 @@ class PullRequestPageAssembler(
                 avatarUrl = reviewer?.let { avatars.avatarUrl(it) } ?: dev.yona.security.AvatarService.DEFAULT_AVATAR_URL, verdict = verdict.name, dismissed = review.dismissedDate != null,
                 dismissedReason = review.dismissedReason, systemDismissed = review.dismissedDate != null && review.dismissedByLoginId == null,
                 dismissUrl = if (canAccept && review.dismissedDate == null && review.verdict != dev.yona.domain.enumeration.ReviewVerdict.COMMENTED) "$base/reviews/${review.id}/dismissals" else null,
-                ago = helper.agoOrDateString(review.createdDate), agoTitle = helper.dateString(review.createdDate)
+                ago = helper.agoOrDateString(review.createdDate), agoTitle = helper.dateString(review.createdDate),
+                rerequestUrl = if (canRequest && review.authorId != pullRequest.contributor?.id) "$base/reviewRequests" else null
             )
         }
         val author = viewer != null && viewer.id == pullRequest.contributor?.id
@@ -153,7 +160,8 @@ class PullRequestPageAssembler(
         return ReviewAreaView(
             rows = rows, formUrl = if (viewer != null) "$base/reviews" else null, verdictOptions = options,
             countText = if (project.isUsingReviewerCount == true) text("pullRequest.review.count", pullRequest.countedApprovals, pullRequest.requiredReviewerCount) else null,
-            authorNote = project.isUsingReviewerCount == true && pullRequest.reviewers.any { it.id == pullRequest.contributor?.id }
+            authorNote = project.isUsingReviewerCount == true && pullRequest.reviewers.any { it.id == pullRequest.contributor?.id },
+            pending = pendingRows, requestUrl = if (canRequest) "$base/reviewRequests" else null, candidatesUrl = if (canRequest) "$base/reviewRequestCandidates" else null
         )
     }
 
@@ -239,6 +247,12 @@ class PullRequestPageAssembler(
                 val adding = event.oldValue.isNullOrBlank() && !event.newValue.isNullOrBlank()
                 val box = labelBox(if (adding) event.newValue else event.oldValue, to)
                 TimelineEvent(id, if (adding) "label-added" else "label-deleted", if (adding) "issue.event.label.added.title" else "issue.event.label.deleted.title", text(if (adding) "issue.event.label.added" else "issue.event.label.deleted", user, box), ago, agoTitle, null, emptyList())
+            }
+            // 추가 항목 X-27(D-37): 리뷰를 요청했거나 요청을 취소했다
+            EventType.PULL_REQUEST_REVIEW_REQUESTED, EventType.PULL_REQUEST_REVIEW_UNREQUESTED -> {
+                val requested = event.eventType == EventType.PULL_REQUEST_REVIEW_REQUESTED
+                val target = (if (requested) event.newValue else event.oldValue)?.let { login -> userHtml(users.findByLoginId(login), login) }.orEmpty()
+                TimelineEvent(id, "changed", "pullRequest.event.reviewRequest", text(if (requested) "pullRequest.event.message.reviewRequested" else "pullRequest.event.message.reviewUnrequested", user, target), ago, agoTitle, null, emptyList())
             }
             // 추가 항목 X-12(D-35): 리뷰 판정을 제출했거나 해제했다
             EventType.PULL_REQUEST_REVIEW_SUBMITTED -> {

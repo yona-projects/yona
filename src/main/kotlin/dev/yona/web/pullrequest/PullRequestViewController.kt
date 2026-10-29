@@ -121,7 +121,7 @@ class PullRequestViewController(
             .addObject("unwatchUrl", siteUrls.path("/unwatch?resource.type=${ResourceType.PULL_REQUEST.resource}&resource.id=${pullRequest.id}"))
             .addObject("stateUrl", "$base/state")
             .addObject("canEdit", accessControl.isAllowed(viewer, resource, Operation.UPDATE))
-            .addObject("reviewArea", assembler.reviewArea(pullRequest, viewer, accessControl.isAllowed(viewer, resource, Operation.ACCEPT)))
+            .addObject("reviewArea", assembler.reviewArea(pullRequest, viewer, accessControl.isAllowed(viewer, resource, Operation.ACCEPT), accessControl.isAllowed(viewer, resource, Operation.UPDATE)))
             .addObject("assigneeArea", meta.assignee(pullRequest, viewer, accessControl.isAllowed(viewer, resource, Operation.UPDATE)))
             .addObject("labelArea", meta.labels(pullRequest, accessControl.isAllowed(viewer, resource, Operation.UPDATE)))
             .addObject("editUrl", "$base/editform")

@@ -44,6 +44,16 @@
                         </select>
                     </dd>
                 </dl>
+                <!--/* 리뷰 요청 필터(추가 항목 X-27, decisions.md D-37): 로그인했을 때만 "나에게 요청됨" 선택지가 있다 */-->
+                <dl class="issue-option" th:if="${reviewRequestedMe != null}">
+                    <dt th:text="#{pullRequest.reviewRequestedFilter}"></dt>
+                    <dd>
+                        <select id="reviewRequested" name="reviewRequestedId">
+                            <option value="" th:text="#{common.order.all}"></option>
+                            <option th:value="${reviewRequestedMe.value}" th:selected="${reviewRequestedMe.selected}" th:text="#{pullRequest.reviewRequestedOfMe}"></option>
+                        </select>
+                    </dd>
+                </dl>
                 <th:block th:if="${hasLabels}"><th:block th:replace="~{issue/partial-select-label :: selectLabel(${labelGroups}, ${selectedLabelIds}, 'issue-option', null, ${projectView})}"></th:block></th:block>
             </div>
         </form>
