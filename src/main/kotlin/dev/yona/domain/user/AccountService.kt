@@ -11,7 +11,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
-import java.util.Base64
 
 /**
  * 계정 설정이다. v1.6 `UserApp`의 `editUserInfo`, `resetUserPassword`, `resetUserVisitedList`, 토큰, 보조 이메일 관리에 해당한다.
@@ -74,18 +73,6 @@ class AccountService(
         users.save(user)
     }
 
-    // --- 토큰 ---
-
-    /** 사용자 토큰이 없으면 만든다. [recreate]이면 먼저 지우고 새로 만든다. 토큰은 무작위 32바이트의 Base64(44자)이다. */
-    fun token(user: User, recreate: Boolean): String {
-        if (recreate) user.token = null
-        if (user.token.isNullOrEmpty()) {
-            user.token = Base64.getEncoder().encodeToString(ByteArray(TOKEN_BYTES).also(random::nextBytes))
-            users.save(user)
-        }
-        return requireNotNull(user.token)
-    }
-
     // --- 방문 기록 ---
 
     /** 최근 방문한 프로젝트 기록을 모두 지운다. */
@@ -145,7 +132,6 @@ class AccountService(
     }
 
     private companion object {
-        const val TOKEN_BYTES = 32
         const val VALIDATION_TOKEN_LENGTH = 50
         const val DIGITS = 10
     }

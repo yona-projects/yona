@@ -57,6 +57,7 @@ class ProfileEditTest : AbstractIntegrationTest() {
     @Autowired private lateinit var attachments: AttachmentService
     @Autowired private lateinit var projects: ProjectRepository
     @Autowired private lateinit var recentProjects: RecentProjectRepository
+    @Autowired private lateinit var tokens: dev.yona.domain.apitoken.ApiTokenService
 
     private var sequence = 0
     private val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 1, 2, 3)
@@ -302,31 +303,9 @@ class ProfileEditTest : AbstractIntegrationTest() {
     // --- 토큰 ---
 
     @Test
-    fun `토큰 탭은 토큰이 없으면 만들어 보여 준다`() {
-        val user = newUser()
-        val page = page("/user/editform/token", login(user))
-        val token = page.selectFirst("input[name=name][readonly]")!!.attr("value")
-        assertEquals(44, token.length)
-        users.flush()
-        assertEquals(token, users.findById(user.id!!).get().token)
-        assertEquals("/user/editform/token_reset", page.selectFirst("form#frmBasic")?.attr("action"))
-        assertEquals("Recreate User Token", page.selectFirst("form#frmBasic button")?.text())
-    }
-
-    @Test
-    fun `토큰은 다시 열어도 그대로이고 다시 만들면 바뀐다`() {
-        val user = newUser()
-        val session = login(user)
-        val first = page("/user/editform/token", session).selectFirst("input[name=name]")!!.attr("value")
-        assertEquals(first, page("/user/editform/token", session).selectFirst("input[name=name]")!!.attr("value"))
-        val reset = Jsoup.parse(mockMvc.perform(post("/user/editform/token_reset").session(session)).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertNotEquals(first, reset.selectFirst("input[name=name]")!!.attr("value"))
-    }
-
-    @Test
     fun `설정 화면의 토큰은 웹 경로 요청을 인증하지 못한다 (X-5, D-36, 토큰은 외부 API에서만 쓴다)`() {
         val user = newUser()
-        val token = page("/user/editform/token", login(user)).selectFirst("input[name=name]")!!.attr("value")
+        val token = (tokens.create(user, "web", setOf("user"), null) as dev.yona.domain.apitoken.TokenCreation.Created).value
         val status = mockMvc.perform(get("/user/editform").header("Yona-Token", token)).andReturn().response.status
         assertTrue(status in 300..403 && status != 200, "웹 경로는 토큰을 인정하지 않는다: $status")
     }

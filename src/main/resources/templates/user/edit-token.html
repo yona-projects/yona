@@ -4,36 +4,121 @@
   Copyright Yona & Yobi Authors & NAVER Corp.
   https://yona.io
 
-  이식 원본: app/views/user/edit_token.scala.html
-  모델: title, account(토큰 포함)
+  이식 원본: app/views/user/edit_token.scala.html (v1.6은 토큰 하나를 보이고 다시 만드는 화면이었다)
+  추가 개발 항목 X-5(decisions.md D-36): 개인용 API 토큰의 목록, 만들기(이름, 만료, 범위), 삭제
+  모델: title, account, tokens(TokenRow 목록), scopeOptions, maxDays, newToken(만든 직후 한 번만), tokenError(입력 오류의 메시지 키)
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::tokenPage})}">
 <th:block th:fragment="tokenPage">
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
-        <h3 th:text="#{userinfo.token}"></h3>
+        <h3 th:text="#{apiToken.title}"></h3>
     </div>
 </div>
 <div class="page-wrap-outer">
     <div class="page-wrap">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
-        <div class="token-generate">
-            <form id="frmBasic" method="post" th:action="@{/user/editform/token_reset}" class="pull-left" style="width:100%">
-                <div th:text="#{userinfo.token}"></div>
-                <div>
-                    <input onClick="this.setSelectionRange(0, this.value.length)" size="45" style="width: 90%" type="text" name="name" class="text" th:value="${account.token}" readonly>
-                </div>
-                <div>
-                    <button type="submit" class="ybtn ybtn-success" th:text="#{userinfo.recreateToken}"></button>
-                </div>
-            </form>
+        <p class="help-block" th:text="#{apiToken.description}"></p>
+
+        <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
+
+        <!--/* 방금 만든 토큰은 이 응답에서 한 번만 보이고 다시 볼 수 없다 */-->
+        <div th:if="${newToken != null}" class="alert alert-success">
+            <p th:text="#{apiToken.created.once}"></p>
+            <input id="new-token-value" type="text" readonly class="text" size="60" style="width: 90%"
+                   onClick="this.setSelectionRange(0, this.value.length)" th:value="${newToken}">
+            <span class="hide" th:text="${newToken}"></span>
         </div>
+
+        <table id="token-list" class="table table-striped" th:if="${!#lists.isEmpty(tokens)}">
+            <thead>
+            <tr>
+                <th th:text="#{apiToken.name}"></th><th th:text="#{apiToken.prefix}"></th><th th:text="#{apiToken.scopes}"></th>
+                <th th:text="#{apiToken.createdDate}"></th><th th:text="#{apiToken.lastUsed}"></th><th th:text="#{apiToken.expires}"></th><th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${tokens}" class="token-row" th:attr="data-id=${t.id}">
+                <td>
+                    <span th:text="${t.name}"></span>
+                    <div th:if="${t.legacy}" class="legacy-warning alert alert-warning" style="margin-top:5px;">
+                        <strong th:text="#{apiToken.legacy}"></strong> <span th:text="#{apiToken.legacy.warning}"></span>
+                    </div>
+                </td>
+                <td><code class="token-prefix" th:text="${t.prefix}"></code></td>
+                <td><span th:each="s : ${t.scopes}" class="token-scope label" style="margin-right:3px;" th:text="${s}" th:title="#{'apiToken.scope.' + ${s}}"></span></td>
+                <td th:text="${t.createdText}"></td>
+                <td th:text="${t.lastUsedText != null} ? ${t.lastUsedText} : #{apiToken.neverUsed}"></td>
+                <td>
+                    <span th:if="${t.expiresText == null}" th:text="#{apiToken.noExpiration}"></span>
+                    <span th:if="${t.expiresText != null}"><th:block th:text="${t.expiresText}"></th:block> <em th:if="${t.expired}" th:text="'(' + #{apiToken.expired} + ')'"></em></span>
+                </td>
+                <td>
+                    <form method="post" th:action="@{/user/token/{id}/delete(id=${t.id})}" th:attr="onsubmit='return confirm(\'' + #{apiToken.delete.confirm} + '\');'">
+                        <button type="submit" class="ybtn ybtn-danger ybtn-small" th:text="#{apiToken.delete}"></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p th:if="${#lists.isEmpty(tokens)}" class="empty" th:text="#{apiToken.list.empty}"></p>
+
+        <h4 th:text="#{apiToken.create}"></h4>
+        <form id="token-create" method="post" th:action="@{/user/token}" class="form-horizontal">
+            <dl class="issue-option">
+                <dt th:text="#{apiToken.create.name}"></dt>
+                <dd><input type="text" name="name" maxlength="100" class="text" style="width: 60%"></dd>
+            </dl>
+            <dl class="issue-option">
+                <dt th:text="#{apiToken.create.expiration}"></dt>
+                <dd>
+                    <select id="token-expiration" name="expiration">
+                        <option th:each="d : ${ {7, 30, 60, 90} }" th:value="${d}" th:selected="${d == 30}" th:text="#{apiToken.expiration.days(${d})}"></option>
+                        <option th:if="${maxDays <= 0}" value="none" th:text="#{apiToken.expiration.none}"></option>
+                        <option value="custom" th:text="#{apiToken.expiration.custom}"></option>
+                    </select>
+                    <!--/* 사용자 지정을 고르면 달력(Pikaday)으로 만료 날짜를 정한다. 오늘 이후만 고를 수 있다 */-->
+                    <div id="token-custom" style="display:none; margin-top:8px;">
+                        <label for="token-expires-date" th:text="#{apiToken.create.expiresDate}"></label>
+                        <input type="text" name="expiresDate" id="token-expires-date" class="text" autocomplete="off" placeholder="yyyy-MM-dd">
+                        <div id="token-expires-picker" class="date-picker"></div>
+                    </div>
+                </dd>
+            </dl>
+            <dl class="issue-option">
+                <dt th:text="#{apiToken.create.scopes}"></dt>
+                <dd>
+                    <label th:each="s : ${scopeOptions}" class="checkbox" style="display:block;">
+                        <input type="checkbox" name="scopes" th:value="${s}">
+                        <code th:text="${s}"></code> <span class="help-inline" th:text="#{'apiToken.scope.' + ${s}}"></span>
+                    </label>
+                </dd>
+            </dl>
+            <button type="submit" class="ybtn ybtn-success" th:text="#{apiToken.create}"></button>
+        </form>
     </div>
 </div>
+<link rel="stylesheet" type="text/css" th:href="@{/assets/javascripts/lib/pikaday/pikaday.css}" />
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/moment-with-langs.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/pikaday/pikaday.js}"></script>
 <script type="text/javascript">
     $(function(){
         $yobi.loadModule("user.Setting");
+        // 만료의 "사용자 지정"을 고르면 달력으로 날짜를 정한다(마일스톤의 기한 선택과 같은 Pikaday)
+        var $selection = $("#token-expiration"), $custom = $("#token-custom"), $date = $("#token-expires-date");
+        if (typeof Pikaday === "function") {
+            var picker = new Pikaday({
+                format: "YYYY-MM-DD",
+                minDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+                onSelect: function () { $date.val(this.toString()); }
+            });
+            $("#token-expires-picker").append(picker.el);
+            $date.on("blur", function () { if (this.value) { picker.setDate(this.value); } });
+        }
+        function toggle() { $custom.toggle($selection.val() === "custom"); }
+        $selection.on("change", toggle);
+        toggle();
     });
 </script>
 </th:block>
