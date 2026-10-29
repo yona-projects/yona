@@ -45,6 +45,10 @@ v1.6은 `conf/application.conf`의 `application.*` 키를 `play.Configuration.ro
 | `application.codeBrowser.viewer.maxFileSize` | `yona.code-browser-max-file-size` | `1048576` | 사용 중(코드 브라우저) |
 | (v2 신규) | `yona.gravatar.check` | `true` | 사용 중. 끄면 기동 시 Gravatar 접속 검사를 건너뛰고 기본 아바타를 쓴다 |
 | (v2 신규) | `yona.analytics.measurement-id` | `G-CKTN17HLPP` | 사용 중(X-21). `yona.send-yona-usage`가 켜져 있고 측정 ID가 있으면 GA4 태그를 낸다 |
+| (v2 신규) | `yona.api-token-failure-limit` | `5` | 사용 중(X-5). 같은 주소에서 토큰(Git, SVN 비밀번호 포함) 인증에 연달아 실패하면 막는 횟수이다. 0 이하이면 제한하지 않는다 |
+| (v2 신규) | `yona.api-token-block-minutes` | `15` | 사용 중(X-5). 실패 한도를 넘은 주소를 막는 시간(분)이다 |
+| (v2 신규) | `yona.api-token-max-days` | `0` | 사용 중(X-5). 새 토큰의 최대 수명(일)이다. 0이면 제한이 없고 "만료 없음"도 고를 수 있다 |
+| (v2 신규) | `yona.git-http-password-auth` | `true` | 사용 중(X-5). Git, SVN의 HTTP 접근이 비밀번호도 받는지이다. `false`이면 토큰만 받는다 |
 | (v2 신규) | `yona.git-default-branch` | `main` | 사용 중(X-22). 새 Git 저장소의 `HEAD` 브랜치이다. v1.6은 `master`였다 |
 
 아직 옮기지 않은 v1.6 키는 해당 기능을 이식할 때 이 표에 추가한다.
