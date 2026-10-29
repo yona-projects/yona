@@ -108,3 +108,4 @@
 - [architecture/magpie-integration.md](architecture/magpie-integration.md): Apache Magpie가 요구하는 이슈·PR 계약과 Yona가 제공하는 것의 대조, 빠진 API
 - [architecture/next-vs-next2-source-closeness.md](architecture/next-vs-next2-source-closeness.md): next와 next2를 v1.6 소스와 대조한 라우트, 메시지, 정적 자원, 테이블 일치율
 - [architecture/v16-remaining-differences.md](architecture/v16-remaining-differences.md): v1.6과 아직 다른 점의 전체 목록. 고칠 수 없는 것, 의도해서 둔 것, v1.6 오류를 v2가 정상 처리하는 것(요청 단위 표), 권한 차이, 메일 수신 차이
+- [개인용 API 토큰 설계](architecture/api-token.md): Classic 범위 토큰, 해시 저장, 옛 토큰 이관, D-20 대체(X-5, D-36, 설계 제안 확인 대기)
