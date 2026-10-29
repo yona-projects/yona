@@ -100,9 +100,9 @@ class CommitHistoryController(
             .addObject("hasPath", path != null)
             .addObject("rootUrl", "$base/commits/${UrlPaths.routeSegment(branch.orEmpty())}/")
             .addObject("crumbs", breadcrumbs(base, branch, path))
-            .addObject("branches", repositories.refNames(project).map { ref ->
-                BranchOption("$base/commits/${UrlPaths.routeSegment(ref)}/", ref, branch != null && CodePageAssembler.branchItemName(ref) == CodePageAssembler.branchItemName(branch))
-            })
+            .addObject("branchGroups", CodePageAssembler.selectorRefs(repositories.refNames(project)).map { ref ->
+                BranchOption("$base/commits/${UrlPaths.routeSegment(ref)}/", ref, branch != null && CodePageAssembler.branchItemName(ref) == CodePageAssembler.branchItemName(branch), CodePageAssembler.selectorGroup(ref))
+            }.toGroups())
             // 역방향 라우트는 경로가 비면 끝에 `/`가 없다
             .addObject("filesTabUrl", "$base/code/${if (branchSegment != null) branchSegment else "HEAD"}")
             .addObject("commitsTabUrl", if (path != null && branchSegment != null) "$base/commits/$branchSegment/$path" else historyUrl)

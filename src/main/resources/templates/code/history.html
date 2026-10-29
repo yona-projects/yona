@@ -5,7 +5,7 @@
   https://yona.io
 
   이식 원본: app/views/code/history.scala.html, app/views/common/commitMsg.scala.html
-  모델: title, projectView, git(Git 프로젝트이면 true), rows(HistoryRow 목록), hasPath, rootUrl, crumbs, branches, filesTabUrl, commitsTabUrl, branchesTabUrl, newerUrl, olderUrl
+  모델: title, projectView, git(Git 프로젝트이면 true), rows(HistoryRow 목록), hasPath, rootUrl, crumbs, branchGroups, filesTabUrl, commitsTabUrl, branchesTabUrl, newerUrl, olderUrl
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'CODE', ~{::historyPage})}">
@@ -22,7 +22,14 @@
 
                 <th:block th:unless="${hasPath}">
                 <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="pull-right">
-                    <option th:each="b : ${branches}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
+                    <th:block th:each="g : ${branchGroups}">
+                        <optgroup th:if="${g.titleKey != null}" th:label="#{${g.titleKey}}">
+                            <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
+                        </optgroup>
+                        <th:block th:if="${g.titleKey == null}">
+                            <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
+                        </th:block>
+                    </th:block>
                 </select>
 
                 <ul class="nav nav-tabs" style="margin-bottom:20px;">

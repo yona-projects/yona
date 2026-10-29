@@ -1,7 +1,21 @@
 package dev.yona.web.code
 
-/** 코드 브라우저의 브랜치 선택 상자 항목이다. [url]은 고르면 이동할 주소, [label]은 참조 이름(`refs/heads/master`)이다. */
-data class BranchOption(val url: String, val label: String, val selected: Boolean)
+/**
+ * 코드 브라우저의 브랜치 선택 상자 항목이다. [url]은 고르면 이동할 주소, [label]은 참조 이름(`refs/heads/master`)이다.
+ * [group]은 항목이 속한 구역 제목의 메시지 키(`title.branches`, `title.tags`)이고 구역이 없으면 `null`이다(SVN).
+ */
+data class BranchOption(val url: String, val label: String, val selected: Boolean, val group: String? = null)
+
+/** 선택 상자의 구역 하나이다. [titleKey]가 `null`이면 제목 없이 항목만 나열한다. */
+data class BranchGroup(val titleKey: String?, val options: List<BranchOption>)
+
+/** 선택 상자 항목을 [BranchOption.group]이 이어지는 구간별로 묶는다. 입력 순서를 지킨다. 브랜치가 앞, 태그가 뒤에 오는 이름순 목록을 받는다. */
+fun List<BranchOption>.toGroups(): List<BranchGroup> = fold(mutableListOf<BranchGroup>()) { groups, option ->
+    val last = groups.lastOrNull()
+    if (last != null && last.titleKey == option.group) groups[groups.lastIndex] = last.copy(options = last.options + option)
+    else groups += BranchGroup(option.group, listOf(option))
+    groups
+}
 
 /** 위쪽 이동 경로(breadcrumb)의 한 칸이다. */
 data class Crumb(val href: String, val text: String)
@@ -56,6 +70,9 @@ data class CodePage(
     val rootUrl: String, val projectName: String, val crumbs: List<Crumb>, val downloadUrl: String?, val newFileUrl: String?,
     val items: List<CodeItem>, val initialPath: String, val metaInfoUrl: String, val basePathUrl: String
 ) {
+    /** 브랜치 선택 상자의 구역이다(D-30). */
+    val branchGroups: List<BranchGroup> get() = branches.toGroups()
+
     /** 스크립트 문자열에 그대로 쓰는 프로젝트 이름. v1.6은 Twirl 값을 JS 이스케이프 없이 넣어 HTML 이스케이프로 나온다. */
     val scriptProjectName: String get() = dev.yona.web.TemplateHelper.escapeHtml(projectName)
 

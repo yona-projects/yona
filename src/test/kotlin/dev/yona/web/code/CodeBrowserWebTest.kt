@@ -253,6 +253,17 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `선택 목록은 브랜치와 태그 구역으로 나뉘고 원격 참조는 나오지 않는다 (D-30)`() {
+        val p = filled()
+        GitTestSupport.pushCommits(repositories, p, TestCommit("기능", mapOf("only.txt" to "x".toByteArray())), branch = "feature")
+        GitTestSupport.createRef(repositories, p, "refs/tags/v1"); GitTestSupport.createRef(repositories, p, "refs/remotes/origin/x")
+        val groups = page("/${p.owner}/${p.name}/code/master").select("select#branches optgroup")
+        assertEquals(listOf("Branches", "Tags"), groups.map { it.attr("label") })
+        assertEquals(listOf("refs/heads/feature", "refs/heads/master"), groups[0].select("option").map { it.text() })
+        assertEquals(listOf("refs/tags/v1"), groups[1].select("option").map { it.text() })
+    }
+
+    @Test
     fun `브랜치 이름에 슬래시가 있어도 두 번 인코딩한 주소로 연다`() {
         val p = filled()
         GitTestSupport.pushCommits(repositories, p, TestCommit("기능", mapOf("only.txt" to "x".toByteArray())), branch = "feature/x")

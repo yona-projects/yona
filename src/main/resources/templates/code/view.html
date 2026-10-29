@@ -23,7 +23,14 @@
 
             <div class="code-browse-header">
                 <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="pull-left">
-                    <option th:each="b : ${page.branches}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
+                    <th:block th:each="g : ${page.branchGroups}">
+                        <optgroup th:if="${g.titleKey != null}" th:label="#{${g.titleKey}}">
+                            <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
+                        </optgroup>
+                        <th:block th:if="${g.titleKey == null}">
+                            <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
+                        </th:block>
+                    </th:block>
                 </select>
                 <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 pull-left">
                     <a th:href="${page.rootUrl}" th:text="${page.projectName}"></a><th:block th:each="c : ${page.crumbs}"><a th:href="${c.href}" th:text="${c.text}"></a></th:block>

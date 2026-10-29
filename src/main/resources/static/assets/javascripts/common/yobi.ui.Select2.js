@@ -137,6 +137,11 @@
                 return '<a class="label issue-label active static" data-label-id="' + labelId + '">' + text + '</a>';
             },
             "branch": function(itemObject){
+                // 구역 제목(optgroup, 브랜치/태그)은 종류 배지 없이 글자만 보인다 (decisions.md D-30)
+                if(itemObject.children){
+                    return $('<div/>').text($.trim(itemObject.text)).html();
+                }
+
                 var branchType = "unknown";
                 var branchName = itemObject.text.trim();
                 var branchNameRegex = /refs\/(.[a-z]+)\/(.+)/i;

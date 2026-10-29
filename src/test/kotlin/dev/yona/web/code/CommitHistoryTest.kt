@@ -68,6 +68,16 @@ class CommitHistoryTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `커밋 이력의 선택 목록도 브랜치와 태그 구역으로 나뉜다 (D-30)`() {
+        val p = history(1)
+        GitTestSupport.createRef(repositories, p, "refs/tags/v1"); GitTestSupport.createRef(repositories, p, "refs/remotes/origin/x")
+        val groups = page("/${p.owner}/${p.name}/commits").select("select#branches optgroup")
+        assertEquals(listOf("Branches", "Tags"), groups.map { it.attr("label") })
+        assertEquals(listOf("refs/heads/master"), groups[0].select("option").map { it.text() })
+        assertEquals(listOf("refs/tags/v1"), groups[1].select("option").map { it.text() })
+    }
+
+    @Test
     fun `최근 커밋이 위에 오고 커밋 보기 링크와 탭, 브랜치 선택이 나온다`() {
         val p = history(3)
         val doc = page("/${p.owner}/${p.name}/commits")

@@ -45,8 +45,8 @@ class CodePageAssembler(
         val codeUrl = { segment: String, rest: String -> if (rest.isEmpty()) "$base/code/$segment" else "$base/code/$segment/$rest" }
         val lastType = chain.last()["type"]
         val dir = if (lastType == "folder" && path.isNotEmpty()) "$path/" else path.substringBeforeLast('/', "").let { if (it.isEmpty()) "" else "$it/" }
-        val branches = repositories.refNames(project).map { ref ->
-            BranchOption(codeUrl(UrlPaths.routeSegment(branchItemName(ref)), path), ref, branchItemName(ref) == branchItemName(branch))
+        val branches = selectorRefs(repositories.refNames(project)).map { ref ->
+            BranchOption(codeUrl(UrlPaths.routeSegment(branchItemName(ref)), path), ref, branchItemName(ref) == branchItemName(branch), selectorGroup(ref))
         }
         val basePath = codeUrl(branchSegment, "")
         // v1.6 `makeBreadCrumbs`는 `"".split("/")`가 빈 조각 하나를 돌려줘 경로가 비어도 글자 없는 링크 하나를 낸다
@@ -132,6 +132,16 @@ class CodePageAssembler(
 
     companion object {
         private val MARKDOWN_EXTENSIONS = setOf("markdown", "mdown", "mkdn", "mkd", "md", "mdwn")
+
+        /** 선택 상자에 올릴 참조만 남긴다. 원격 참조(`refs/remotes/` 아래)는 서버 저장소의 개념이 아니라 뺀다(`decisions.md` D-30). */
+        fun selectorRefs(refs: List<String>): List<String> = refs.filterNot { it.startsWith("refs/remotes/") }
+
+        /** 선택 상자에서 참조가 속할 구역 제목의 메시지 키이다. 브랜치도 태그도 아니면(SVN의 `HEAD`) `null`이다. */
+        fun selectorGroup(ref: String): String? = when {
+            ref.startsWith("refs/heads/") -> "title.branches"
+            ref.startsWith("refs/tags/") -> "title.tags"
+            else -> null
+        }
 
         /**
          * 참조 이름에서 브랜치나 태그 이름만 뽑는다. `refs/heads/master`는 `master`, 접두어가 없으면 그대로이다 (v1.6 `Branches.itemName`).
