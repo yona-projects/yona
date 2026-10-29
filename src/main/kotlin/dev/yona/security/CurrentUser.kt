@@ -21,8 +21,8 @@ data class YonaPrincipal(val userId: Long, val loginId: String?, val name: Strin
 /**
  * 로그인한 사용자를 나타내는 Spring Security 인증 객체이다. 권한(role)은 쓰지 않는다.
  *
- * @property viaToken API 토큰 헤더로 인증되었으면 `true`이다. v1.6은 이 경로에서 계정 상태(LOCKED)를
- *   확인하지 않는다([refactoring-backlog.md] R-04).
+ * @property viaToken 개인용 API 토큰으로 인증되었으면 `true`이다. 화면 레이아웃과 세션 기억(`/-_-api` 홈 별칭이 그린다)이 세션 값을 쓰지 않게 가르는 데 쓴다.
+ *   잠기거나 삭제된 사용자의 토큰은 인증 단계에서 거절하므로(`decisions.md` A-206) v1.6처럼 계정 상태를 건너뛰는 예외는 두지 않는다([refactoring-backlog.md] R-04).
  * @property viaCookie 로그인 유지 쿠키로 인증되었으면 `true`이다. v1.6은 요청마다 `Global`이 쿠키 사용자를 요청 캐시(`TOKEN_USER`)에
  *   넣고 `getUserFromContext`가 그 값을 잠금 검사 없이 돌려주므로, 잠기거나 지워진 계정도 쿠키가 유효한 동안 로그인 상태이다.
  *   이런 계정은 세션에는 기록되지 않는다(`addUserInfoToSession`이 건너뛴다).
