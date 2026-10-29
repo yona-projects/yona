@@ -5,6 +5,15 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 
 /**
+ * 설정 폼이 보내는 브랜치 보호 규칙 한 줄이다(`decisions.md` D-44).
+ *
+ * @property pattern 브랜치 이름이나 패턴
+ * @property approvals 필요한 리뷰어 수 문자열(검증 전)
+ * @property enforceAdmins 관리자에게도 적용할지
+ */
+data class ProtectionRuleInput(val pattern: String?, val approvals: String?, val enforceAdmins: Boolean = false)
+
+/**
  * 브랜치 보호 규칙을 만들고 지운다(추가 개발 항목 X-32, `decisions.md` D-42).
  */
 @Service
@@ -37,6 +46,29 @@ class BranchProtectionService(private val rules: BranchProtectionRuleRepository)
         val created = rules.save(BranchProtectionRule(project = project, pattern = name, requiredApprovals = approvals, enforceAdmins = enforceAdmins, createdDate = Date()))
         project.branchProtectionRules.add(created)
         return created
+    }
+
+    /**
+     * 설정 폼이 보낸 규칙 목록으로 [project]의 규칙을 통째로 맞춘다(`decisions.md` D-44). 목록에 없는 규칙은 지우고 같은 패턴은 고치며 새 패턴은 만든다.
+     * 입력은 [violations]가 비어 있어야 한다.
+     */
+    @Transactional
+    fun replaceAll(project: Project, inputs: List<ProtectionRuleInput>) {
+        val wanted = inputs.associateBy { requireNotNull(it.pattern).trim() }
+        project.branchProtectionRules.filter { it.pattern !in wanted.keys }.forEach { rule ->
+            project.branchProtectionRules.removeIf { it.id == rule.id }
+            rules.delete(rule)
+        }
+        wanted.forEach { (pattern, input) -> save(project, pattern, requireNotNull(input.approvals).trim().toInt(), input.enforceAdmins) }
+    }
+
+    /** 규칙 목록의 오류를 설명하는 문구 모음이다. 올바르면 비어 있다. 입력이 올바르지 않거나 같은 패턴이 두 번 나오면 오류이다. */
+    fun violations(inputs: List<ProtectionRuleInput>): List<String> {
+        val errors = mutableListOf<String>()
+        if (inputs.any { !isValid(it.pattern, it.approvals) }) errors += "error.invalid"
+        val patterns = inputs.mapNotNull { it.pattern?.trim() }
+        if (patterns.size != patterns.toSet().size) errors += "error.invalid"
+        return errors
     }
 
     /** [project]의 규칙 [id]를 지운다. 없거나 다른 프로젝트의 규칙이면 `false`이다. */

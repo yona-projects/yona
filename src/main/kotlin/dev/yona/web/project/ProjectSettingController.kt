@@ -7,6 +7,7 @@ import dev.yona.domain.project.ProjectHomeService
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.project.ProjectSettingForm
+import dev.yona.domain.project.ProtectionRuleInput
 import dev.yona.domain.project.ProjectSettingService
 import dev.yona.repository.RepositoryService
 import dev.yona.security.CurrentUserProvider
@@ -91,8 +92,23 @@ class ProjectSettingController(
         allowRebaseMerge = request.getParameter("allowRebaseMerge"),
         defaultMergeMethod = request.getParameter("defaultMergeMethod"),
         defaultBranch = request.getParameter("defaultBranch"),
+        protectionRules = protectionRules(request),
         menus = ProjectForm.MENU_NAMES.filter { request.getParameter(it)?.lowercase() in setOf("true", "on", "yes", "1") }.toSet()
     )
+
+    /**
+     * 규칙 줄들을 묶는다(`decisions.md` D-44). 표시용 숨은 값(`protectionRulesSent`)이 없으면 `null`이라 규칙을 건드리지 않는다.
+     * 패턴이 빈 줄은 새로 추가만 하고 채우지 않은 줄이므로 버린다.
+     */
+    private fun protectionRules(request: HttpServletRequest): List<ProtectionRuleInput>? {
+        if (request.getParameter("protectionRulesSent") == null) return null
+        val patterns = request.getParameterValues("protectionPattern").orEmpty()
+        val approvals = request.getParameterValues("protectionApprovals").orEmpty()
+        val enforce = request.getParameterValues("protectionEnforce").orEmpty()
+        return patterns.indices.filter { patterns[it].isNotBlank() }.map {
+            ProtectionRuleInput(patterns[it], approvals.getOrNull(it), enforce.getOrNull(it)?.lowercase() in setOf("true", "on", "yes", "1"))
+        }
+    }
 
     private fun toUpload(file: MultipartFile) = LogoUpload(file.originalFilename, file.size) { file.inputStream }
 
