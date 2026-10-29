@@ -50,6 +50,23 @@ class Project(
     @Column(name = "is_dismissing_stale_approvals")
     @ColumnDefault("true")
     var isDismissingStaleApprovals: Boolean? = true,
+    /**
+     * 허용하는 풀 리퀘스트 병합 방식이다(추가 개발 항목 X-28, `decisions.md` D-41). 새 프로젝트는 세 가지 모두 허용하고, 이 열이 없던 옛 행은 DB 기본값으로
+     * 병합 커밋만 허용한다(v1.6과 같은 동작). `null`도 같게 본다.
+     */
+    @Column(name = "allow_merge_commit")
+    @ColumnDefault("true")
+    var allowMergeCommit: Boolean? = true,
+    @Column(name = "allow_squash_merge")
+    @ColumnDefault("false")
+    var allowSquashMerge: Boolean? = true,
+    @Column(name = "allow_rebase_merge")
+    @ColumnDefault("false")
+    var allowRebaseMerge: Boolean? = true,
+    /** 병합 화면이 처음 고르는 방식의 이름이다(`merge`, `squash`, `rebase`). 허용한 방식 중 하나여야 한다. */
+    @Column(name = "default_merge_method", length = 10)
+    @ColumnDefault("'merge'")
+    var defaultMergeMethod: String? = "merge",
     @ManyToOne @JoinColumn(name = "organization_id")
     var organization: Organization? = null,
     @Column(name = "project_scope", length = 9)
@@ -78,6 +95,21 @@ class Project(
 
     /** 보호 프로젝트(같은 조직 구성원에게만 공개)이면 `true`이다. */
     fun isProtected(): Boolean = projectScope == ProjectScope.PROTECTED
+
+    /**
+     * 이 프로젝트가 허용하는 병합 방식이다(`decisions.md` D-41). 병합 커밋은 `null`이어도 허용으로, 스쿼시와 리베이스는 `null`이면 불허로 본다(옛 행은 v1.6처럼 병합 커밋만).
+     */
+    fun allowedMergeMethods(): Set<dev.yona.domain.pullrequest.MergeMethod> = buildSet {
+        if (allowMergeCommit != false) add(dev.yona.domain.pullrequest.MergeMethod.MERGE)
+        if (allowSquashMerge == true) add(dev.yona.domain.pullrequest.MergeMethod.SQUASH)
+        if (allowRebaseMerge == true) add(dev.yona.domain.pullrequest.MergeMethod.REBASE)
+    }
+
+    /** 병합 화면이 처음 고르는 방식이다. 설정한 기본 방식이 허용되지 않으면 허용한 방식 중 병합 커밋, 스쿼시, 리베이스 순서로 첫 번째이다. */
+    fun defaultMergeMethodOrFirst(): dev.yona.domain.pullrequest.MergeMethod {
+        val allowed = allowedMergeMethods()
+        return dev.yona.domain.pullrequest.MergeMethod.of(defaultMergeMethod)?.takeIf { it in allowed } ?: allowed.firstOrNull() ?: dev.yona.domain.pullrequest.MergeMethod.MERGE
+    }
 
     /** 비공개 프로젝트이면 `true`이다. */
     fun isPrivate(): Boolean = projectScope == ProjectScope.PRIVATE

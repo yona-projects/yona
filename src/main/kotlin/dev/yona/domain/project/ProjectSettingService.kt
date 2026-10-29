@@ -21,6 +21,10 @@ import java.io.InputStream
  * @property isCodeAccessibleMemberOnly 코드를 구성원에게만 보일지 (`true`/`false` 문자열)
  * @property isUsingReviewerCount 리뷰어 수를 쓸지 (`true`/`false` 문자열)
  * @property isDismissingStaleApprovals 새 커밋이 올라오면 오래된 승인을 해제할지 (`true`/`false` 문자열, 추가 개발 항목 X-12, `decisions.md` D-35 5번)
+ * @property allowMergeCommit 병합 커밋 방식을 허용할지 (`true`/`false` 문자열, 추가 개발 항목 X-28, `decisions.md` D-41)
+ * @property allowSquashMerge 스쿼시 방식을 허용할지
+ * @property allowRebaseMerge 리베이스 방식을 허용할지
+ * @property defaultMergeMethod 기본 병합 방식 이름(`merge`, `squash`, `rebase`). 허용한 방식이어야 한다
  * @property defaultReviewerCount 기본 리뷰어 수
  * @property defaultBranch 기본 브랜치 참조 이름 (예: `refs/heads/master`)
  * @property menus 켜기로 한 메뉴 이름 모음. 체크하지 않은 메뉴는 꺼진다
@@ -32,6 +36,10 @@ data class ProjectSettingForm(
     val isCodeAccessibleMemberOnly: String? = null,
     val isUsingReviewerCount: String? = null,
     val isDismissingStaleApprovals: String? = null,
+    val allowMergeCommit: String? = null,
+    val allowSquashMerge: String? = null,
+    val allowRebaseMerge: String? = null,
+    val defaultMergeMethod: String? = null,
     val defaultReviewerCount: String? = null,
     val defaultBranch: String? = null,
     val menus: Set<String> = emptySet()
@@ -90,6 +98,7 @@ class ProjectSettingService(
         form.isUsingReviewerCount?.let { if (booleanOf(it) == null) errors.reject("isUsingReviewerCount", "error.invalid") }
         form.isDismissingStaleApprovals?.let { if (booleanOf(it) == null) errors.reject("isDismissingStaleApprovals", "error.invalid") }
         form.defaultReviewerCount?.let { if (it.toIntOrNull() == null) errors.reject("defaultReviewerCount", "error.invalid") }
+        validateMergeMethods(project, form, errors)
 
         // 폼 검증 단계 (validateWhenUpdate)
         val name = form.name
@@ -117,6 +126,26 @@ class ProjectSettingService(
             }
         }
         return SettingValidation(errors, warning)
+    }
+
+    /**
+     * 병합 방식 설정을 검사한다(추가 개발 항목 X-28, `decisions.md` D-41). 모르는 값은 거절하고, 보내지 않은 항목은 지금 값으로 채워 본 결과가 허용하는 방식이 하나 이상이고
+     * 기본 방식이 그 안에 있어야 한다. 이 항목을 하나도 보내지 않으면 검사하지 않는다.
+     */
+    private fun validateMergeMethods(project: Project, form: ProjectSettingForm, errors: FormErrors) {
+        val flags = listOf("allowMergeCommit" to form.allowMergeCommit, "allowSquashMerge" to form.allowSquashMerge, "allowRebaseMerge" to form.allowRebaseMerge)
+        flags.forEach { (name, value) -> value?.let { if (booleanOf(it) == null) errors.reject(name, "error.invalid") } }
+        form.defaultMergeMethod?.let { if (dev.yona.domain.pullrequest.MergeMethod.of(it) == null) errors.reject("defaultMergeMethod", "error.invalid") }
+        if (errors.hasErrors() || (flags.all { it.second == null } && form.defaultMergeMethod == null)) return
+        val merge = form.allowMergeCommit?.let { booleanOf(it) } ?: (project.allowMergeCommit != false)
+        val squash = form.allowSquashMerge?.let { booleanOf(it) } ?: (project.allowSquashMerge == true)
+        val rebase = form.allowRebaseMerge?.let { booleanOf(it) } ?: (project.allowRebaseMerge == true)
+        if (!merge && !squash && !rebase) { errors.reject("allowMergeCommit", "error.invalid"); return }
+        val default = dev.yona.domain.pullrequest.MergeMethod.of(form.defaultMergeMethod ?: project.defaultMergeMethod) ?: dev.yona.domain.pullrequest.MergeMethod.MERGE
+        val allowed = setOfNotNull(
+            dev.yona.domain.pullrequest.MergeMethod.MERGE.takeIf { merge }, dev.yona.domain.pullrequest.MergeMethod.SQUASH.takeIf { squash }, dev.yona.domain.pullrequest.MergeMethod.REBASE.takeIf { rebase }
+        )
+        if (default !in allowed) errors.reject("defaultMergeMethod", "error.invalid")
     }
 
     /**
@@ -153,6 +182,10 @@ class ProjectSettingService(
         form.isUsingReviewerCount?.let { project.isUsingReviewerCount = booleanOf(it) }
         form.isDismissingStaleApprovals?.let { project.isDismissingStaleApprovals = booleanOf(it) }
         form.defaultReviewerCount?.let { project.defaultReviewerCount = it.toInt() }
+        form.allowMergeCommit?.let { project.allowMergeCommit = booleanOf(it) }
+        form.allowSquashMerge?.let { project.allowSquashMerge = booleanOf(it) }
+        form.allowRebaseMerge?.let { project.allowRebaseMerge = booleanOf(it) }
+        form.defaultMergeMethod?.let { project.defaultMergeMethod = it }
         projects.save(project)
 
         saveMenuSetting(project, form.menus)

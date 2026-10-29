@@ -166,7 +166,7 @@ class DataExchangeTest : AbstractIntegrationTest() {
     @Test
     fun `v1_6 파일의 프로젝트 행에는 리뷰 해제 설정 키가 없어도 가져오고 켬으로 채운다 (X-12)`() {
         val table = DataTables.find("PROJECT")!!
-        val row = table.columns.filter { it.name != "is_dismissing_stale_approvals" }.joinToString(", ") { c ->
+        val row = table.columns.filter { it.name !in setOf("is_dismissing_stale_approvals", "allow_merge_commit", "allow_squash_merge", "allow_rebase_merge", "default_merge_method") }.joinToString(", ") { c ->
             val value = when (c.type) {
                 DataType.STRING, DataType.CLOB -> "\"v\""
                 DataType.BOOLEAN -> "false"
@@ -178,6 +178,11 @@ class DataExchangeTest : AbstractIntegrationTest() {
         import("""{"PROJECT": [{$row}]}""")
         assertEquals(true, jdbc.queryForObject("select is_dismissing_stale_approvals from project where id = 881001", Boolean::class.java))
         assertEquals(false, jdbc.queryForObject("select is_using_reviewer_count from project where id = 881001", Boolean::class.java), "있는 키는 그대로 가져온다")
+        // 병합 방식 설정(X-28, D-41)이 없는 v1.6 파일은 병합 커밋만 허용으로 읽는다(v1.6 동작)
+        assertEquals(true, jdbc.queryForObject("select allow_merge_commit from project where id = 881001", Boolean::class.java))
+        assertEquals(false, jdbc.queryForObject("select allow_squash_merge from project where id = 881001", Boolean::class.java))
+        assertEquals(false, jdbc.queryForObject("select allow_rebase_merge from project where id = 881001", Boolean::class.java))
+        assertEquals("merge", jdbc.queryForObject("select default_merge_method from project where id = 881001", String::class.java))
     }
 
     @Test

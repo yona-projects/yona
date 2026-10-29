@@ -116,6 +116,29 @@
                     </div>
                 </div>
 
+                <!--/* 풀 리퀘스트 병합 방식(추가 항목 X-28, decisions.md D-41): 허용할 방식과 기본 방식. 체크하지 않은 방식은 `false`로 보낸다 */-->
+                <div class="box-wrap middle" id="mergeMethodSettingPanel">
+                    <div class="cu-label vmiddle" th:text="#{project.merge.title}"></div>
+                    <div class="cu-desc">
+                        <th:block th:each="m : ${ {'allowMergeCommit', 'allowSquashMerge', 'allowRebaseMerge'} }">
+                            <input type="hidden" th:name="${m}" value="false">
+                            <label class="checkbox inline">
+                                <input type="checkbox" th:name="${m}" value="true"
+                                       th:checked="${m == 'allowMergeCommit' ? project.allowMergeCommit != false : (m == 'allowSquashMerge' ? project.allowSquashMerge == true : project.allowRebaseMerge == true)}">
+                                <th:block th:text="#{'project.merge.' + ${m}}"></th:block>
+                            </label>
+                        </th:block>
+                        <div class="mt10">
+                            <span class="note" th:text="#{project.merge.default}"></span>
+                            <th:block th:each="m : ${ {'merge', 'squash', 'rebase'} }">
+                                <input name="defaultMergeMethod" type="radio" class="radio-btn" th:id="'defaultMergeMethod-' + ${m}" th:value="${m}" th:checked="${project.defaultMergeMethodOrFirst().code == m}">
+                                <label th:for="'defaultMergeMethod-' + ${m}" class="bg-radiobtn label-public" th:text="#{'project.merge.' + ${m}}"></label>
+                            </th:block>
+                        </div>
+                        <span class="note" th:text="#{project.merge.description}"></span>
+                    </div>
+                </div>
+
                 <div class="box-wrap middle" id="defaultBranceSettingPanel" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
                     <div class="cu-label vmiddle" th:text="#{code.branches.defaultBranch}"></div>
                     <div class="cu-desc">

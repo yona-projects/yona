@@ -85,6 +85,10 @@ class ProjectSettingController(
         isCodeAccessibleMemberOnly = request.getParameter("isCodeAccessibleMemberOnly"),
         isUsingReviewerCount = request.getParameter("isUsingReviewerCount"),
         isDismissingStaleApprovals = request.getParameter("isDismissingStaleApprovals"),
+        allowMergeCommit = request.getParameter("allowMergeCommit"),
+        allowSquashMerge = request.getParameter("allowSquashMerge"),
+        allowRebaseMerge = request.getParameter("allowRebaseMerge"),
+        defaultMergeMethod = request.getParameter("defaultMergeMethod"),
         defaultReviewerCount = request.getParameter("defaultReviewerCount"),
         defaultBranch = request.getParameter("defaultBranch"),
         menus = ProjectForm.MENU_NAMES.filter { request.getParameter(it)?.lowercase() in setOf("true", "on", "yes", "1") }.toSet()

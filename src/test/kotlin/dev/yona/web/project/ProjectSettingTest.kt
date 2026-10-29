@@ -325,6 +325,45 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `새 프로젝트는 세 병합 방식을 모두 허용하고 기본은 병합 커밋이다 (X-28, D-41)`() {
+        val saved = reload(newProject())
+        assertEquals(true, saved.allowMergeCommit); assertEquals(true, saved.allowSquashMerge); assertEquals(true, saved.allowRebaseMerge)
+        assertEquals("merge", saved.defaultMergeMethod)
+    }
+
+    @Test
+    fun `병합 방식 설정을 저장하고 보내지 않으면 그대로 둔다 (X-28, D-41)`() {
+        val project = newProject(); val session = login(manager(project))
+        save(project, session, "name" to project.name!!, "allowMergeCommit" to "false", "allowSquashMerge" to "true", "allowRebaseMerge" to "false", "defaultMergeMethod" to "squash", *allMenus)
+        val saved = reload(project)
+        assertEquals(false, saved.allowMergeCommit); assertEquals(true, saved.allowSquashMerge); assertEquals(false, saved.allowRebaseMerge); assertEquals("squash", saved.defaultMergeMethod)
+        save(project, session, "name" to project.name!!, *allMenus)
+        val again = reload(project)
+        assertEquals(false, again.allowMergeCommit); assertEquals("squash", again.defaultMergeMethod)
+    }
+
+    @Test
+    fun `허용한 방식이 하나도 없거나 기본 방식이 허용되지 않았거나 모르는 값이면 거절한다 (X-28, D-41)`() {
+        val project = newProject(); val session = login(manager(project))
+        assertEquals(400, save(project, session, "name" to project.name!!, "allowMergeCommit" to "false", "allowSquashMerge" to "false", "allowRebaseMerge" to "false", *allMenus).response.status)
+        assertEquals(400, save(project, session, "name" to project.name!!, "allowMergeCommit" to "false", "defaultMergeMethod" to "merge", *allMenus).response.status, "기본 방식이 허용되지 않았다")
+        assertEquals(400, save(project, session, "name" to project.name!!, "defaultMergeMethod" to "fast-forward", *allMenus).response.status)
+        assertEquals(400, save(project, session, "name" to project.name!!, "allowSquashMerge" to "maybe", *allMenus).response.status)
+        val unchanged = reload(project)
+        assertEquals(true, unchanged.allowMergeCommit); assertEquals("merge", unchanged.defaultMergeMethod)
+    }
+
+    @Test
+    fun `설정 화면에 병합 방식 허용과 기본 방식이 풀 리퀘스트 설정 영역에 있다 (X-28, D-41)`() {
+        val project = newProject(configure = { allowRebaseMerge = false; defaultMergeMethod = "squash" })
+        val doc = settingForm(project, login(manager(project)))
+        assertEquals(listOf("allowMergeCommit", "allowSquashMerge", "allowRebaseMerge"), doc.select("#mergeMethodSettingPanel input[type=checkbox]").map { it.attr("name") })
+        assertEquals(listOf("allowMergeCommit", "allowSquashMerge"), doc.select("#mergeMethodSettingPanel input[type=checkbox][checked]").map { it.attr("name") })
+        assertEquals("squash", doc.select("#mergeMethodSettingPanel input[name=defaultMergeMethod][checked]").single().attr("value"))
+        assertEquals(listOf("merge", "squash", "rebase"), doc.select("#mergeMethodSettingPanel input[name=defaultMergeMethod]").map { it.attr("value") })
+    }
+
+    @Test
     fun `보내지 않은 항목은 그대로 둔다`() {
         val project = newProject(configure = { isCodeAccessibleMemberOnly = true; defaultReviewerCount = 3 })
         save(project, login(manager(project)), "name" to project.name!!, *allMenus)

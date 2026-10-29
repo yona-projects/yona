@@ -43,9 +43,10 @@ enum class DataType {
  * @property type 값 종류
  * @property key JSON 키. 기본은 [name]이다(`ATTACHMENT.container_type`만 `content_type`이다)
  * @property nullableLong 가져올 때 JSON `null`을 SQL NULL로 바인딩하는 정수 컬럼이다
+ * @property absentString 가져오는 파일에 이 키가 없을 때 쓰는 문자열 값이다(`absentBoolean`의 문자열 판이다).
  * @property absentBoolean 가져오는 파일에 이 키가 없을 때 쓰는 불린 값이다. 추가 개발 항목이 더한 컬럼이 옛(v1.6) 파일에 없어도 가져오게 한다. `null`이면 키가 없는 행은 오류이다
  */
-data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null)
+data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null)
 
 /**
  * 내보내기와 가져오기의 테이블 하나이다. v1.6 `app/data/exchangers 아래 `DataExchanger` 클래스들`의 `getTable`, `getSelectSql`, `hasSequence`에 해당한다.
@@ -341,6 +342,11 @@ object DataTables {
             DataColumn("last_pushed_date", TIMESTAMP),
             DataColumn("is_using_reviewer_count", BOOLEAN),
             DataColumn("is_dismissing_stale_approvals", BOOLEAN, absentBoolean = true),
+            // 병합 방식 설정(X-28, D-41): 이 열이 없는 v1.6 파일은 병합 커밋만 허용으로 읽는다
+            DataColumn("allow_merge_commit", BOOLEAN, absentBoolean = true),
+            DataColumn("allow_squash_merge", BOOLEAN, absentBoolean = false),
+            DataColumn("allow_rebase_merge", BOOLEAN, absentBoolean = false),
+            DataColumn("default_merge_method", STRING, absentString = "merge"),
             DataColumn("default_reviewer_count", LONG),
             DataColumn("organization_id", LONG, nullableLong = true),
             DataColumn("project_scope", STRING)

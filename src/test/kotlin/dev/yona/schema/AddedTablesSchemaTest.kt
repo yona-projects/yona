@@ -65,6 +65,20 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `프로젝트의 병합 방식 컬럼은 기존 행을 병합 커밋만 허용으로 채운다 (X-28, D-41)`() {
+        val columns = SchemaMetadata.actualColumns(dataSource).getValue("project")
+        assertEquals(ColumnType.Boolean, columns.getValue("allow_merge_commit").type)
+        assertEquals(ColumnType.Boolean, columns.getValue("allow_squash_merge").type)
+        assertEquals(ColumnType.Boolean, columns.getValue("allow_rebase_merge").type)
+        val defaults = SchemaMetadata.actualDefaults(dataSource).getValue("project")
+        fun truthy(v: String?) = v?.lowercase()?.let { it == "true" || it == "1" || it == "b'1'" }
+        assertEquals(true, truthy(defaults["allow_merge_commit"]))
+        assertEquals(false, truthy(defaults["allow_squash_merge"]))
+        assertEquals(false, truthy(defaults["allow_rebase_merge"]))
+        assertEquals(true, defaults["default_merge_method"]?.contains("merge"), defaults["default_merge_method"])
+    }
+
+    @Test
     fun `토큰 테이블의 컬럼과 외래 키와 유일 해시 (X-5, D-36)`() {
         val columns = SchemaMetadata.actualColumns(dataSource)["api_token"] ?: error("api_token 테이블이 없다")
         assertEquals(setOf("id", "user_id", "name", "token_hash", "token_prefix", "scopes", "is_legacy", "created_date", "expires_date", "last_used_date"), columns.keys)

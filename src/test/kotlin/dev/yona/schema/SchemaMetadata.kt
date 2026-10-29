@@ -52,9 +52,10 @@ object SchemaMetadata {
     /**
      * v1.6 최종 스키마의 기존 테이블에 추가 개발 항목이 일부러 더한 컬럼이다(테이블 이름 -> 컬럼 이름들). 더할 때는 `decisions.md`에 근거를 적고 여기에 올린다.
      * - X-12 풀 리퀘스트 리뷰 판정(D-35 5번): `project.is_dismissing_stale_approvals`
+     * - X-28 병합 방식(D-41): `project.allow_merge_commit`, `allow_squash_merge`, `allow_rebase_merge`, `default_merge_method`
      * - X-26 임시 저장 리뷰(D-38): `comment_thread.pending_date`, `review_comment.pending_date`, `review_comment.edited_date`(리뷰 댓글 고치기, D-38 7번)
      */
-    val INTENDED_ADDED_COLUMNS: Map<String, Set<String>> = mapOf("project" to setOf("is_dismissing_stale_approvals"), "comment_thread" to setOf("pending_date"), "review_comment" to setOf("pending_date", "edited_date"))
+    val INTENDED_ADDED_COLUMNS: Map<String, Set<String>> = mapOf("project" to setOf("is_dismissing_stale_approvals", "allow_merge_commit", "allow_squash_merge", "allow_rebase_merge", "default_merge_method"), "comment_thread" to setOf("pending_date"), "review_comment" to setOf("pending_date", "edited_date"))
 
     /** v1.6 컬럼 타입 문자열(MariaDB `column_type`)을 [ColumnType]으로 바꾼다. */
     private fun parseV16Type(columnType: String): ColumnType = when {
