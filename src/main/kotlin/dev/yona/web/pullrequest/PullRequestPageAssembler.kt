@@ -113,9 +113,9 @@ class PullRequestPageAssembler(
         } else null
 
         val accept = if (canAccept) {
-            if (pullRequest.acceptable) mergeButton(pullRequest, project, "$base/accept", null)
+            if (pullRequest.acceptable) mergeButton(pullRequest, project, "$base/accept")
             // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건에 막힌 요청도 병합할 수 있다
-            else if (pullRequest.reviewBlocked && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project)) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
+            else if (pullRequest.reviewBlocked && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project)) mergeButton(pullRequest, project, "$base/accept")
             else {
                 val (key, args) = pullRequest.disabledAcceptMessage()
                 AcceptButton("$base/accept", false, text(key, *args))
@@ -341,7 +341,7 @@ class PullRequestPageAssembler(
      * 병합 단추와 방식 선택 목록이다(추가 개발 항목 X-28, `decisions.md` D-41). 프로젝트가 허용한 방식만 보이고, 지금 할 수 없는 방식은 이유와 함께 막는다.
      * 단추는 기본 방식을 쓰되 기본 방식을 할 수 없으면 할 수 있는 첫 방식을 쓰고, 하나도 할 수 없으면 막힌 단추이다.
      */
-    private fun mergeButton(pullRequest: PullRequest, project: dev.yona.domain.project.Project, url: String, bypassNote: String?): AcceptButton {
+    private fun mergeButton(pullRequest: PullRequest, project: dev.yona.domain.project.Project, url: String): AcceptButton {
         // 확인 칸에 미리 채울 기본 제목과 본문의 재료이다. 현재 커밋의 첫 줄을 최근 것이 앞이 되게 모은다
         val shorts = commits.findByPullRequestId(requireNotNull(pullRequest.id)).filter { it.state == PullRequestCommitState.CURRENT }
             .sortedByDescending { it.authorDate }.map { it.commitMessage.orEmpty().lineSequence().firstOrNull().orEmpty() }
@@ -355,9 +355,9 @@ class PullRequestPageAssembler(
         }
         val default = project.defaultMergeMethodOrFirst().code
         val chosen = options.firstOrNull { it.code == default && it.available } ?: options.firstOrNull { it.available }
-            ?: return AcceptButton(url, false, options.firstNotNullOfOrNull { it.reason }, bypassNote, methods = options, defaultMethod = default)
+            ?: return AcceptButton(url, false, options.firstNotNullOfOrNull { it.reason }, methods = options, defaultMethod = default)
         val label = if (chosen.code == MergeMethod.MERGE.code) text("pullRequest.merge") else chosen.label
-        return AcceptButton(if (chosen.code == default) url else "$url?method=${chosen.code}", true, null, bypassNote, label, options, chosen.code)
+        return AcceptButton(if (chosen.code == default) url else "$url?method=${chosen.code}", true, null, label, options, chosen.code)
     }
 
     private fun avatarLink(user: User): String =

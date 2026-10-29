@@ -190,7 +190,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
         val member = page(url(s, pr), login(s.member))
         assertNull(member.selectFirst("#btnAccept"), "승인이 모자란 구성원에게 병합 단추는 막혀 있다"); assertNotNull(member.selectFirst("button.ybtn-disabled"))
         val manager = page(url(s, pr), login(s.manager))
-        assertNotNull(manager.selectFirst("#btnAccept")); assertNotNull(manager.selectFirst("#accept-bypass-note"), "요건 미달 안내가 보인다")
+        assertNotNull(manager.selectFirst("#btnAccept")); assertNull(manager.selectFirst("#accept-bypass-note"), "요건 미달 안내 문구는 보이지 않는다")
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isBadRequest)
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.manager))).andExpect(status().isSeeOther)
         assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)

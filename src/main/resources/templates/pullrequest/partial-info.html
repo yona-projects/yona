@@ -87,7 +87,6 @@
                 })();
             </script>
         </div>
-        <span th:if="${header.accept.bypassNote != null}" id="accept-bypass-note" class="help-block" style="display:inline-block; margin-right:5px;" th:text="${header.accept.bypassNote}"></span>
         <button th:if="${!header.accept.enabled}" class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" th:title="${header.accept.disabledReason}" th:text="#{pullRequest.merge}"></button>
     </th:block>
 </div>
