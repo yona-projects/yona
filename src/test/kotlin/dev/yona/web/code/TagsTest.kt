@@ -93,13 +93,13 @@ class TagsTest : AbstractIntegrationTest() {
     fun `태그는 태그 날짜가 최근인 순서이고 커밋이 아닌 대상을 가리키는 태그는 맨 뒤에 있어도 500이 아니다`() {
         val p = tagged()
         // 주석 태그는 태그 단 시각, 경량 태그는 커밋 시각이 기준이다. 같으면 이름순이다
-        assertEquals(listOf("v2.0", "v1.0", "light-0.1", "release/1.0", "tree-tag"), rows(p).map { it.selectFirst("td.tagName a")!!.text() })
+        assertEquals(listOf("v2.0", "v1.0", "light-0.1", "release/1.0", "tree-tag"), rows(p).map { it.selectFirst("td.tagName .tag-name")!!.text() })
     }
 
     @Test
     fun `주석 태그는 메시지와 태그를 단 사람을, 경량 태그는 종류만 보여 주고 커밋이 아닌 태그는 그렇게 표시한다`() {
         val p = tagged()
-        val byName = rows(p).associateBy { it.selectFirst("td.tagName a")!!.text() }
+        val byName = rows(p).associateBy { it.selectFirst("td.tagName .tag-name")!!.text() }
         val annotated = byName.getValue("v1.0")
         assertNotNull(annotated.selectFirst(".tag-type.annotated"))
         assertEquals("첫 릴리스", annotated.selectFirst(".tag-message")!!.text())
@@ -111,12 +111,15 @@ class TagsTest : AbstractIntegrationTest() {
         assertTrue(light.selectFirst("td.commit a.commitId")!!.attr("href").startsWith("/${p.owner}/${p.name}/commit/"))
         val notCommit = byName.getValue("tree-tag")
         assertNotNull(notCommit.selectFirst(".not-commit")); assertNull(notCommit.selectFirst("td.commit a.commitId"))
+        // 열면 404가 되는 링크는 걸지 않는다. 이름은 글자로만 보인다
+        assertEquals("span", notCommit.selectFirst("td.tagName .tag-name")!!.tagName()); assertNull(notCommit.selectFirst("td.tagName a"))
+        assertEquals("a", light.selectFirst("td.tagName .tag-name")!!.tagName())
     }
 
     @Test
     fun `태그 이름에 슬래시가 있어도 두 번 인코딩한 주소로 코드를 연다`() {
         val p = tagged()
-        val link = rows(p).first { it.selectFirst("td.tagName a")!!.text() == "release/1.0" }.selectFirst("td.tagName a")!!
+        val link = rows(p).first { it.selectFirst("td.tagName .tag-name")!!.text() == "release/1.0" }.selectFirst("td.tagName .tag-name")!!
         assertEquals("/${p.owner}/${p.name}/code/refs%252Ftags%252Frelease%252F1.0", link.attr("href"))
         // MockMvc는 실서버(Tomcat)와 달리 퍼센트 인코딩을 한 번 풀어 주지 않으므로, 서버가 한 번 푼 뒤의 형태(`%2F`)로 요청한다
         mockMvc.perform(get("/${p.owner}/${p.name}/code/refs%2Ftags%2Frelease%2F1.0")).andExpect(status().isOk)

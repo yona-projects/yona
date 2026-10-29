@@ -132,6 +132,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-125 | 멘션 목록에 권한 검사가 없음 | `GET /:user/:project/mentionList`는 `@AnonymousCheck`뿐이라 익명도 비공개·보호 프로젝트의 멤버와 이슈 후보를 받는다. 없는 프로젝트는 `mentionType`이 `user`나 `issue`이면 널 참조로 500이다 | v1.6대로 재현한다(A-173). 비공개 프로젝트의 멤버 정보가 새므로 리팩터링 후보이다 | `ProjectApp.mentionList` |
 | R-126 | 프로젝트 이름 캐시가 예전 이름을 남김 | `CacheStore.projectMap`은 이름을 바꿔도 예전 이름의 항목을 지우지 않아 한 번 연 이름은 프로젝트의 이름이 바뀐 뒤에도 같은 프로젝트를 연다. 같은 이름의 새 프로젝트를 만들면 `newProject`가 항목을 덮어쓴다. 서버를 다시 띄우면 사라진다 | v1.6대로 재현한다(A-173). 캐시 항목이 가리키는 프로젝트가 없으면 버리고 다시 찾는다 | `Project.java:162-176`, `CacheStore.java` |
 | R-127 | 이슈 일괄 변경의 입력 | `POST /:user/:project/issues`는 `state`가 열거형 이름이 아니면 400 `{"state":["Invalid value"]}`, 빈 값은 통과, 없는 이슈 번호는 `issue.refresh()` 예외로 500이다 | v1.6대로 재현한다(A-173) | `IssueApp.massUpdate`, `IssueMassUpdate` |
+| R-128 | 커밋이 아닌 대상을 가리키는 태그 | 트리나 블롭을 가리키는 태그(`git tag t <tree>`)가 있으면 그 태그의 커밋 이력(`/commits/<태그>/`)이 500이고, 코드 화면은 v1.6이 500, v2가 404이다. 주석 태그와 태그의 태그는 정상(200)이다 | 같게 재현한다(이력 500). 브랜치 화면은 D-30으로 `refs/heads`만 모으므로 이 태그 때문에 500이 나지 않는다. 신규 태그 화면은 "커밋이 아님"으로 표시한다 | `GitRepository.getBranches`(`parseCommit`), 2026-10-29 실측(rich1: `tree-tag`, `blob-tag`) |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 
