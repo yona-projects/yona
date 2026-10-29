@@ -167,3 +167,12 @@ val EventType.order: Int
 
 /** 알림 설정 화면에 나열하는 이벤트 종류이다. 모든 종류를 [order] 순서로 놓는다 (v1.6 `EventType.notiTypes`). */
 val notiTypes: List<EventType> = EventType.entries.sortedBy { it.order }
+
+/**
+ * 풀 리퀘스트 리뷰의 판정이다(추가 개발 항목 X-12, `decisions.md` D-35). GitHub의 리뷰 상태 가운데 제출할 수 있는 세 가지이며 열거형 이름 그대로 저장한다.
+ *
+ * - [APPROVED]: 승인(Approve). 병합 요건의 승인 수에 든다
+ * - [CHANGES_REQUESTED]: 변경 요청(Request changes). 프로젝트가 리뷰어 수를 켠 경우 병합을 막는다
+ * - [COMMENTED]: 댓글만(Comment)
+ */
+enum class ReviewVerdict { APPROVED, CHANGES_REQUESTED, COMMENTED }

@@ -40,4 +40,24 @@ class AddedTablesSchemaTest : AbstractIntegrationTest() {
         assertEquals(setOf("pull_request", secondTable), foreignKeys)
         assertEquals(setOf("pull_request_id", second), primaryKey(table), "두 컬럼이 기본 키이므로 한 쌍은 한 번만 들어간다")
     }
+
+    @Test
+    fun `리뷰 테이블의 컬럼과 외래 키와 기본 키 (X-12, D-35)`() {
+        val columns = SchemaMetadata.actualColumns(dataSource)["pull_request_review"] ?: error("pull_request_review 테이블이 없다")
+        assertEquals(
+            setOf("id", "pull_request_id", "author_id", "author_login_id", "verdict", "contents", "created_date", "dismissed_date", "dismissed_by_login_id", "dismissed_reason"),
+            columns.keys
+        )
+        assertEquals(false, columns.getValue("id").nullable)
+        assertEquals(setOf("pull_request"), SchemaMetadata.actualForeignKeys(dataSource)["pull_request_review"].orEmpty().values.map { it.referencedTable }.toSet())
+        assertEquals(setOf("id"), primaryKey("pull_request_review"))
+        assertEquals(setOf("id"), SchemaMetadata.actualAutoIncrement(dataSource)["pull_request_review"])
+    }
+
+    @Test
+    fun `프로젝트의 리뷰 해제 설정 컬럼은 기본 켬이다 (X-12, D-35 5번)`() {
+        val column = SchemaMetadata.actualColumns(dataSource).getValue("project").getValue("is_dismissing_stale_approvals")
+        assertEquals(ColumnType.Boolean, column.type)
+        assertEquals(true, SchemaMetadata.actualDefaults(dataSource).getValue("project")["is_dismissing_stale_approvals"]?.lowercase()?.let { it == "true" || it == "1" || it == "b'1'" })
+    }
 }

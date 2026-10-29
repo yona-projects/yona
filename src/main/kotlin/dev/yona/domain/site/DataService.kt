@@ -129,6 +129,7 @@ class DataService(private val dataSource: DataSource, private val properties: de
                     connection.autoCommit = false
                     readTables(connection, product, ids, parser, imported, failed)
                     cleanOrphanLinks(connection)
+                    cleanReviews(connection, imported)
                 } finally {
                     // 자동 커밋으로 바꾸면 진행 중인 트랜잭션이 확정되므로, 남은 변경은 먼저 되돌린다.
                     try { connection.rollback() } catch (e: Exception) { log.warn("Failed to roll back the import", e) }
@@ -145,6 +146,23 @@ class DataService(private val dataSource: DataSource, private val properties: de
      * 가져온 뒤 없는 풀 리퀘스트, 사용자, 이슈 라벨을 가리키는 담당자와 라벨 연결 행을 지운다(추가 개발 항목 X-14, `decisions.md` D-34).
      * v1.6 파일에는 이 두 테이블이 없어서 풀 리퀘스트를 바꿔 가져오면 파일에 없는 옛 연결 행이 엉뚱한 번호를 가리킬 수 있다.
      */
+    /**
+     * 리뷰 판정 테이블(추가 개발 항목 X-12, `decisions.md` D-35)을 가져온 뒤 바로잡는다. 파일에 풀 리퀘스트가 있는데 리뷰 테이블이 없으면(v1.6 파일) 남아 있던
+     * 리뷰는 바뀐 풀 리퀘스트 번호에 엉뚱하게 붙을 수 있으므로 비우고, 없는 풀 리퀘스트를 가리키는 행은 지운다. 리뷰는 승인 집합에서 다시 만든다(서버 시작 때의 보정).
+     */
+    private fun cleanReviews(connection: Connection, imported: List<String>) {
+        try {
+            connection.createStatement().use { statement ->
+                if ("PULL_REQUEST" in imported && "PULL_REQUEST_REVIEW" !in imported) statement.executeUpdate("delete from pull_request_review")
+                statement.executeUpdate("delete from pull_request_review where pull_request_id not in (select id from pull_request)")
+            }
+            connection.commit()
+        } catch (e: Exception) {
+            log.warn("Failed to clean pull request reviews after the import", e)
+            try { connection.rollback() } catch (ignored: Exception) { }
+        }
+    }
+
     private fun cleanOrphanLinks(connection: Connection) {
         try {
             connection.createStatement().use { statement ->
@@ -256,7 +274,9 @@ class DataService(private val dataSource: DataSource, private val properties: de
     private fun bind(ps: PreparedStatement, table: DataTable, row: JsonNode) {
         table.columns.forEachIndexed { index, column ->
             val position = index + 1
-            val node = requireNotNull(row.get(column.key)) { "${table.name}의 행에 ${column.key} 값이 없습니다." }
+            val found = row.get(column.key)
+            if (found == null && column.absentBoolean != null) { ps.setBoolean(position, column.absentBoolean); return@forEachIndexed }
+            val node = requireNotNull(found) { "${table.name}의 행에 ${column.key} 값이 없습니다." }
             when (column.type) {
                 DataType.LONG -> if (node.isNull && column.nullableLong) ps.setNull(position, Types.BIGINT) else ps.setLong(position, if (node.isNumber) node.longValue() else 0L)
                 DataType.INT -> ps.setInt(position, if (node.isNumber) node.intValue() else 0)

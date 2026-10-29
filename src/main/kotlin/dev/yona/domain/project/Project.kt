@@ -43,6 +43,13 @@ class Project(
     @Column(name = "is_using_reviewer_count")
     @ColumnDefault("false")
     var isUsingReviewerCount: Boolean? = false,
+    /**
+     * 새 커밋이 올라오면 오래된 승인을 해제할지이다(추가 개발 항목 X-12, `decisions.md` D-35 5번). v1.6은 항상 비웠으므로 기본은 켬이다.
+     * `null`(열이 없던 옛 행)도 켬으로 본다.
+     */
+    @Column(name = "is_dismissing_stale_approvals")
+    @ColumnDefault("true")
+    var isDismissingStaleApprovals: Boolean? = true,
     @ManyToOne @JoinColumn(name = "organization_id")
     var organization: Organization? = null,
     @Column(name = "project_scope", length = 9)

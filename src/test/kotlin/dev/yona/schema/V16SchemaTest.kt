@@ -43,7 +43,7 @@ class V16SchemaTest : AbstractIntegrationTest() {
 
     @Test
     fun `모든 컬럼의 이름과 NULL 허용 여부가 v1_6과 같다`() {
-        val actual = SchemaMetadata.actualColumns(dataSource)
+        val actual = SchemaMetadata.actualColumns(dataSource).mapValues { (table, columns) -> columns - SchemaMetadata.INTENDED_ADDED_COLUMNS[table].orEmpty() }
         val problems = SchemaMetadata.v16Columns().flatMap { (table, columns) ->
             val actualTable = actual[table] ?: return@flatMap emptyList()
             (columns.keys - actualTable.keys).map { "$table.$it 누락" } +
@@ -129,7 +129,7 @@ class V16SchemaTest : AbstractIntegrationTest() {
 
     @Test
     fun `자동 증가 컬럼이 v1_6과 같다`() {
-        assertEquals(SchemaMetadata.v16AutoIncrement(), SchemaMetadata.actualAutoIncrement(dataSource))
+        assertEquals(SchemaMetadata.v16AutoIncrement(), SchemaMetadata.actualAutoIncrement(dataSource) - SchemaMetadata.INTENDED_ADDITIONS)
     }
 
     @Test

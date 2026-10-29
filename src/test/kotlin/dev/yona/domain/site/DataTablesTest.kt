@@ -13,8 +13,8 @@ class DataTablesTest : AbstractIntegrationTest() {
     @Autowired private lateinit var dataSource: DataSource
 
     @Test
-    fun `테이블은 49개이고(v1_6의 47개와 추가한 연결 테이블 2개) 이름 순서로 정렬되어 있다`() {
-        assertEquals(49, DataTables.all.size)
+    fun `테이블은 50개이고(v1_6의 47개와 추가한 테이블 3개) 이름 순서로 정렬되어 있다`() {
+        assertEquals(50, DataTables.all.size)
         assertEquals(DataTables.all.map { it.name }.sorted(), DataTables.all.map { it.name })
         assertEquals("ASSIGNEE", DataTables.all.first().name)
         assertEquals("WATCH", DataTables.all.last().name)

@@ -43,8 +43,9 @@ enum class DataType {
  * @property type 값 종류
  * @property key JSON 키. 기본은 [name]이다(`ATTACHMENT.container_type`만 `content_type`이다)
  * @property nullableLong 가져올 때 JSON `null`을 SQL NULL로 바인딩하는 정수 컬럼이다
+ * @property absentBoolean 가져오는 파일에 이 키가 없을 때 쓰는 불린 값이다. 추가 개발 항목이 더한 컬럼이 옛(v1.6) 파일에 없어도 가져오게 한다. `null`이면 키가 없는 행은 오류이다
  */
-data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false)
+data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null)
 
 /**
  * 내보내기와 가져오기의 테이블 하나이다. v1.6 `app/data/exchangers 아래 `DataExchanger` 클래스들`의 `getTable`, `getSelectSql`, `hasSequence`에 해당한다.
@@ -64,7 +65,7 @@ class DataTable(val name: String, val hasSequence: Boolean, vararg columns: Data
 }
 
 /**
- * 내보내고 가져오는 49개 테이블이다. v1.6 `DataService`의 Exchanger 47개에 추가 개발 항목 X-14(D-34)의 연결 테이블 2개(`PULL_REQUEST_ASSIGNEE`, `PULL_REQUEST_ISSUE_LABEL`)를 더했고 테이블 이름 순서(문자열 비교)로 정렬되어 있다.
+ * 내보내고 가져오는 50개 테이블이다. v1.6 `DataService`의 Exchanger 47개에 추가 개발 항목 X-14(D-34)의 연결 테이블 2개(`PULL_REQUEST_ASSIGNEE`, `PULL_REQUEST_ISSUE_LABEL`)와 X-12(D-35)의 리뷰 테이블 `PULL_REQUEST_REVIEW`를 더했고 테이블 이름 순서(문자열 비교)로 정렬되어 있다.
  *
  * 엔티티에 있는 컬럼이어도 v1.6 Exchanger가 다루지 않는 것(예: `N4USER.is_guest`, `ISSUE.weight`)은 내보내지 않고 가져올 때 기본값이 된다.
  * 이 목록에 없는 테이블(즐겨찾기, 웹훅, 소셜 로그인 등 14개)은 내보내기와 가져오기에서 빠진다.
@@ -326,6 +327,7 @@ object DataTables {
             DataColumn("original_project_id", LONG, nullableLong = true),
             DataColumn("last_pushed_date", TIMESTAMP),
             DataColumn("is_using_reviewer_count", BOOLEAN),
+            DataColumn("is_dismissing_stale_approvals", BOOLEAN, absentBoolean = true),
             DataColumn("default_reviewer_count", LONG),
             DataColumn("organization_id", LONG, nullableLong = true),
             DataColumn("project_scope", STRING)
@@ -438,6 +440,19 @@ object DataTables {
             "PULL_REQUEST_ISSUE_LABEL", false,
             DataColumn("pull_request_id", LONG),
             DataColumn("issue_label_id", LONG)
+        ),
+        DataTable(
+            "PULL_REQUEST_REVIEW", true,
+            DataColumn("id", LONG),
+            DataColumn("pull_request_id", LONG),
+            DataColumn("author_id", LONG),
+            DataColumn("author_login_id", STRING),
+            DataColumn("verdict", STRING),
+            DataColumn("contents", CLOB),
+            DataColumn("created_date", TIMESTAMP),
+            DataColumn("dismissed_date", TIMESTAMP),
+            DataColumn("dismissed_by_login_id", STRING),
+            DataColumn("dismissed_reason", CLOB)
         ),
         DataTable(
             "PULL_REQUEST_REVIEWERS", false,

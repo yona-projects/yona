@@ -121,6 +121,45 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `리뷰 테이블도 내보내고 가져오며 시퀀스를 함께 쓴다 (X-12)`() {
+        val names = exported().propertyNames().toList()
+        assertEquals(true, "PULL_REQUEST_REVIEW" in names && "PULL_REQUEST_REVIEW_SEQ" in names, names.toString())
+        assertEquals(true, "is_dismissing_stale_approvals" in DataTables.find("PROJECT")!!.columns.map { it.name })
+    }
+
+    @Test
+    fun `가져온 뒤 없는 풀 리퀘스트를 가리키는 리뷰 행은 정리한다 (X-12)`() {
+        import("""{"PULL_REQUEST_REVIEW": [{"id": 1, "pull_request_id": 999001, "author_id": 1, "author_login_id": "x", "verdict": "APPROVED", "contents": null, "created_date": 1700000000000, "dismissed_date": 0, "dismissed_by_login_id": null, "dismissed_reason": null}]}""")
+        assertEquals(0, count("pull_request_review"))
+    }
+
+    @Test
+    fun `풀 리퀘스트는 있고 리뷰 테이블이 없는 옛 파일을 가져오면 남아 있던 리뷰는 비운다 (X-12)`() {
+        // 옛 파일의 풀 리퀘스트 번호는 바뀔 수 있어 남은 리뷰가 엉뚱한 요청에 붙으면 안 된다. 리뷰는 승인 집합에서 다시 만든다(D-35 13번)
+        jdbc.update("insert into pull_request(id, title) values (?, ?)", 777001L, "옛")
+        jdbc.update("insert into pull_request_review(id, pull_request_id, author_id, author_login_id, verdict, created_date) values (?, ?, ?, ?, ?, current_timestamp)", 1L, 777001L, 1L, "x", "APPROVED")
+        import("""{"PULL_REQUEST": [{"id": 777001, "title": "옛"}]}""")
+        assertEquals(0, count("pull_request_review"))
+    }
+
+    @Test
+    fun `v1_6 파일의 프로젝트 행에는 리뷰 해제 설정 키가 없어도 가져오고 켬으로 채운다 (X-12)`() {
+        val table = DataTables.find("PROJECT")!!
+        val row = table.columns.filter { it.name != "is_dismissing_stale_approvals" }.joinToString(", ") { c ->
+            val value = when (c.type) {
+                DataType.STRING, DataType.CLOB -> "\"v\""
+                DataType.BOOLEAN -> "false"
+                DataType.STRING_LONG -> "\"1\""
+                else -> "1"
+            }
+            "\"${c.key}\": " + if (c.name == "id") "881001" else value
+        }
+        import("""{"PROJECT": [{$row}]}""")
+        assertEquals(true, jdbc.queryForObject("select is_dismissing_stale_approvals from project where id = 881001", Boolean::class.java))
+        assertEquals(false, jdbc.queryForObject("select is_using_reviewer_count from project where id = 881001", Boolean::class.java), "있는 키는 그대로 가져온다")
+    }
+
+    @Test
     fun `테이블 이름은 대소문자를 구분하지 않고 찾는다`() {
         import("""{"label": [{"id": 72, "name": "lower", "category": null}]}""")
         assertEquals(listOf("lower"), jdbc.queryForList("select name from label", String::class.java))
