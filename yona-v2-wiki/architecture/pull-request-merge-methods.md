@@ -43,7 +43,7 @@ DB 기본값이 기존 행을 v1.6 동작(병합 커밋만)으로 채우므로 �
 
 ## 4. 화면과 REST
 
-- 보기 화면: GitHub, Forgejo처럼 분할 단추이다. 주 단추(`#btnAccept`)는 선택한 방식의 이름이고, 옆의 `▾`(`#btnMergeOptions`)가 방식 목록(`#merge-method-menu`)을 연다. 목록에는 허용한 방식만 있고 항목마다 설명이 붙으며, 할 수 없는 방식은 이유와 함께 회색으로 막힌다. 허용한 방식이 하나뿐이면 `▾`와 목록이 없다. 주 단추를 누르면 커밋 제목과 본문을 고쳐 확인하는 칸(`form#merge-options`, 리베이스는 입력칸을 감춘다)이 열리고 확인을 눌러야 병합한다.
+- 보기 화면: GitHub, Forgejo처럼 분할 단추이다. 주 단추(`#btnAccept`)는 선택한 방식의 이름이고, 옆의 화살표(`#btnMergeOptions`)가 부트스트랩 드롭다운인 방식 목록(`#merge-method-menu`)을 연다. 목록에는 허용한 방식만 있고 항목마다 설명이 붙으며, 할 수 없는 방식은 이유와 함께 회색으로 막힌다. 허용한 방식이 하나뿐이면 화살표와 목록이 없다. 주 단추를 누르면 실제로 기록될 커밋 제목과 본문을 미리 채운(`PullRequestMerger.defaults`) 확인 칸(`form#merge-options`, 리베이스는 입력칸을 감춘다)이 열리고 확인을 눌러야 병합한다.
 - 웹 요청: `POST .../accept`에 `method`, `commitTitle`, `commitMessage`를 더할 수 있다. 모르는 방식이나 허용하지 않은 방식은 400이다.
 - 타임라인: 병합 이벤트의 이전 값(`old_value`)에 `squash`나 `rebase`를 남기고 "스쿼시로 병합했습니다", "리베이스로 병합했습니다"로 보인다. 병합 커밋은 v1.6 행과 문구 그대로이다.
 - REST: `POST .../merge`의 본문 `method`, `commitTitle`, `commitMessage`. 상세 응답에 `mergeMethod`(병합된 요청만)와 `mergeMethods`(방식마다 `allowed`, `available`, `reason`)가 있다. 자세한 계약은 [api-pull-requests.md](api-pull-requests.md)이다.

@@ -59,6 +59,7 @@ class PullRequestPageAssembler(
     private val projectUsers: ProjectUserRepository,
     private val threads: CommentThreadRepository,
     private val commits: PullRequestCommitRepository,
+    private val merger: dev.yona.domain.pullrequest.PullRequestMerger,
     private val eventRepository: PullRequestEventRepository,
     private val changes: PullRequestChangesService,
     private val reviewLinks: dev.yona.domain.comment.ReviewLinks,
@@ -341,11 +342,15 @@ class PullRequestPageAssembler(
      * 단추는 기본 방식을 쓰되 기본 방식을 할 수 없으면 할 수 있는 첫 방식을 쓰고, 하나도 할 수 없으면 막힌 단추이다.
      */
     private fun mergeButton(pullRequest: PullRequest, project: dev.yona.domain.project.Project, url: String, bypassNote: String?): AcceptButton {
+        // 확인 칸에 미리 채울 기본 제목과 본문의 재료이다. 현재 커밋의 첫 줄을 최근 것이 앞이 되게 모은다
+        val shorts = commits.findByPullRequestId(requireNotNull(pullRequest.id)).filter { it.state == PullRequestCommitState.CURRENT }
+            .sortedByDescending { it.authorDate }.map { it.commitMessage.orEmpty().lineSequence().firstOrNull().orEmpty() }
         val options = project.allowedMergeMethods().sortedBy { it.ordinal }.map { method ->
+            val (defaultTitle, defaultMessage) = merger.defaults(pullRequest, method, shorts)
             val blocked = method == MergeMethod.REBASE && pullRequest.rebaseBlocked != null
             MergeMethodOption(
                 method.code, text("project.merge.${method.code}"), !blocked, if (blocked) text("pullRequest.merge.rebase.${pullRequest.rebaseBlocked}") else null,
-                if (method == MergeMethod.MERGE) text("pullRequest.merge") else text("project.merge.${method.code}"), text("pullRequest.merge.desc.${method.code}")
+                if (method == MergeMethod.MERGE) text("pullRequest.merge") else text("project.merge.${method.code}"), text("pullRequest.merge.desc.${method.code}"), defaultTitle, defaultMessage
             )
         }
         val default = project.defaultMergeMethodOrFirst().code

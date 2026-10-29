@@ -27,57 +27,56 @@
     </th:block>
 
     <th:block th:if="${header.accept != null}">
-        <!--/* 병합 상자(추가 항목 X-28, decisions.md D-41). GitHub, Forgejo처럼 분할 단추와 방식 목록으로 방식을 고르고, 단추를 누르면 커밋 제목과 본문을 고쳐 확인하는 칸이 열린다. 할 수 없는 방식은 이유와 함께 막는다 */-->
-        <div th:if="${header.accept.enabled}" id="merge-box" style="display:inline-block; position:relative; vertical-align:top; text-align:left;">
+        <!--/* 병합 상자(추가 항목 X-28, decisions.md D-41). GitHub, Forgejo처럼 분할 단추와 방식 목록(부트스트랩 드롭다운)으로 방식을 고르고, 단추를 누르면 기록될 커밋 제목과 본문을 미리 채운 확인 칸이 열린다. 할 수 없는 방식은 이유와 함께 막는다 */-->
+        <div th:if="${header.accept.enabled}" id="merge-box" style="display:inline-block; vertical-align:top; text-align:left;">
             <div class="btn-group">
                 <button type="button" id="btnAccept" class="ybtn ybtn-success" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
-                <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="ybtn ybtn-success" style="margin-left:-1px;" th:title="#{pullRequest.merge.options}">&#9662;</button>
+                <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="ybtn ybtn-success dropdown-toggle" data-toggle="dropdown" th:title="#{pullRequest.merge.options}"></button>
+                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu pull-right" style="min-width:320px;">
+                    <li th:each="option : ${header.accept.methods}" class="merge-method-item" th:data-method="${option.code}" th:data-label="${option.buttonLabel}"
+                        th:data-title="${option.defaultTitle}" th:data-message="${option.defaultMessage}"
+                        th:classappend="${!option.available} ? 'disabled'" th:title="${option.reason}">
+                        <a href="#" style="white-space:normal;">
+                            <strong th:text="${option.label}"></strong>
+                            <span class="merge-method-check" th:if="${option.code == header.accept.defaultMethod}">&#10003;</span>
+                            <small class="muted" style="display:block;" th:text="${option.reason ?: option.description}"></small>
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" style="display:none; position:absolute; right:0; z-index:100; min-width:320px; margin:2px 0 0; padding:4px 0; list-style:none; background:#fff; border:1px solid #ddd; border-radius:3px; box-shadow:0 4px 10px rgba(0,0,0,.15);">
-                <li th:each="option : ${header.accept.methods}" class="merge-method-item" th:data-method="${option.code}" th:data-label="${option.buttonLabel}"
-                    th:classappend="${!option.available} ? 'disabled' : (${option.code == header.accept.defaultMethod} ? 'active')" th:title="${option.reason}"
-                    th:style="'padding:8px 14px; ' + (${option.available} ? 'cursor:pointer;' : 'cursor:not-allowed; opacity:.55;')">
-                    <strong th:text="${(option.code == header.accept.defaultMethod ? '&#10003; ' : '') + option.label}"></strong>
-                    <div class="note" th:text="${option.reason ?: option.description}"></div>
-                </li>
-            </ul>
-            <form id="merge-options" method="post" th:action="${header.accept.formAction}" style="display:none; position:absolute; right:0; z-index:100; width:380px; margin-top:6px; padding:12px; border:1px solid #ddd; border-radius:3px; background:#fff; box-shadow:0 4px 10px rgba(0,0,0,.15);">
+            <form id="merge-options" method="post" th:action="${header.accept.formAction}" class="well" style="display:none; width:420px; margin-top:8px; margin-bottom:0;">
                 <input type="hidden" name="method" th:value="${header.accept.defaultMethod}">
                 <div id="merge-message-fields">
-                    <input type="text" name="commitTitle" class="form-control" maxlength="255" th:placeholder="#{pullRequest.merge.message.title}">
-                    <textarea name="commitMessage" rows="4" class="form-control mt5" th:placeholder="#{pullRequest.merge.message.body}"></textarea>
+                    <input type="text" name="commitTitle" class="input-block-level" maxlength="255" th:value="${header.accept.defaultOption?.defaultTitle}">
+                    <textarea name="commitMessage" rows="6" class="input-block-level" style="resize:vertical;" th:text="${header.accept.defaultOption?.defaultMessage}"></textarea>
                 </div>
-                <div class="mt10">
-                    <button type="submit" id="btnMergeSubmit" class="ybtn ybtn-success" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
-                    <button type="button" id="btnMergeCancel" class="ybtn ybtn-default" th:text="#{button.cancel}"></button>
-                </div>
+                <button type="submit" id="btnMergeSubmit" class="ybtn ybtn-success" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
+                <button type="button" id="btnMergeCancel" class="ybtn ybtn-default" th:text="#{button.cancel}"></button>
             </form>
             <script>
                 (function () {
                     var box = document.getElementById('merge-box');
                     var form = document.getElementById('merge-options');
-                    var menu = document.getElementById('merge-method-menu');
                     var main = document.getElementById('btnAccept');
                     var submit = document.getElementById('btnMergeSubmit');
-                    function show(el, on) { if (el) { el.style.display = on ? 'block' : 'none'; } }
-                    main.addEventListener('click', function () { show(menu, false); show(form, form.style.display === 'none'); });
-                    document.getElementById('btnMergeCancel').addEventListener('click', function () { show(form, false); });
-                    var caret = document.getElementById('btnMergeOptions');
-                    if (caret) { caret.addEventListener('click', function () { show(form, false); show(menu, menu.style.display === 'none'); }); }
+                    var fields = document.getElementById('merge-message-fields');
+                    main.addEventListener('click', function () { form.style.display = form.style.display === 'none' ? 'block' : 'none'; });
+                    document.getElementById('btnMergeCancel').addEventListener('click', function () { form.style.display = 'none'; });
                     Array.prototype.forEach.call(box.querySelectorAll('.merge-method-item'), function (item) {
-                        item.addEventListener('click', function () {
-                            if (item.classList.contains('disabled')) { return; }
+                        item.querySelector('a').addEventListener('click', function (e) {
+                            e.preventDefault();
+                            if (item.classList.contains('disabled')) { e.stopPropagation(); return; }
                             var method = item.getAttribute('data-method');
                             form.elements['method'].value = method;
+                            form.elements['commitTitle'].value = item.getAttribute('data-title');
+                            form.elements['commitMessage'].value = item.getAttribute('data-message');
                             main.textContent = submit.textContent = item.getAttribute('data-label');
-                            document.getElementById('merge-message-fields').style.display = method === 'rebase' ? 'none' : 'block';
+                            fields.style.display = method === 'rebase' ? 'none' : 'block';
                             Array.prototype.forEach.call(box.querySelectorAll('.merge-method-item'), function (other) {
-                                other.classList.toggle('active', other === item);
-                                var title = other.querySelector('strong');
-                                title.textContent = title.textContent.replace(/^\u2713 /, '');
-                                if (other === item) { title.textContent = '\u2713 ' + title.textContent; }
+                                var check = other.querySelector('.merge-method-check');
+                                if (check) { check.style.display = other === item ? '' : 'none'; }
                             });
-                            show(menu, false);
+                            form.style.display = 'block';
                         });
                     });
                 })();

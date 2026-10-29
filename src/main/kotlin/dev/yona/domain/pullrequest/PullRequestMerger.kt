@@ -168,14 +168,40 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
         val contributor = pullRequest.contributor
         builder.author = PersonIdent(contributor?.name ?: contributor?.loginId ?: who.name, contributor?.email ?: who.emailAddress)
         builder.setCommitter(who)
-        val title = customTitle?.takeIf { it.isNotBlank() } ?: "${pullRequest.title} (#${pullRequest.number})"
-        val body = customMessage?.takeIf { it.isNotBlank() } ?: attempt.commits.reversed().joinToString("\n") { "* ${it.shortMessage}" }
+        val title = customTitle?.takeIf { it.isNotBlank() } ?: squashTitle(pullRequest)
+        val body = customMessage?.takeIf { it.isNotBlank() } ?: defaults(pullRequest, MergeMethod.SQUASH, attempt.commits.map { it.shortMessage }).second
         builder.message = compose(title, body, pullRequest)
         repository.newObjectInserter().use { inserter ->
             val id = inserter.insert(builder)
             inserter.flush()
             return id
         }
+    }
+
+    private fun mergeTitle(pullRequest: PullRequest): String {
+        val builder = StringBuilder("Merge branch '${Repository.shortenRefName(pullRequest.fromBranch)}'")
+        if (pullRequest.fromProject?.id != pullRequest.toProject?.id) builder.append(" of ${pullRequest.fromProject?.owner}/${pullRequest.fromProject?.name}")
+        if (pullRequest.toBranch != "refs/heads/master") builder.append(" into '${Repository.shortenRefName(pullRequest.toBranch)}'")
+        return builder.toString()
+    }
+
+    /** 병합 커밋의 기본 본문이다. 끝은 줄바꿈이다(v1.6 `makeMergeCommitMessage`). [shortMessages]는 최근 것이 앞이다. */
+    private fun mergeBody(pullRequest: PullRequest, shortMessages: List<String>): String {
+        val builder = StringBuilder("from pull-request ${pullRequest.number}\n\n* ${Repository.shortenRefName(pullRequest.fromBranch)}:\n")
+        shortMessages.forEach { builder.append("  $it\n") }
+        return builder.toString()
+    }
+
+    private fun squashTitle(pullRequest: PullRequest) = "${pullRequest.title} (#${pullRequest.number})"
+
+    /**
+     * 병합 화면이 확인 칸에 미리 채울 기본 제목과 본문이다(추가 개발 항목 X-28). 비우지 않고 보내면 아무것도 보내지 않은 것과 같은 커밋 메시지가 된다.
+     * 리뷰어 꼬리말은 병합할 때 붙으므로 여기에 없다. 리베이스는 메시지를 쓰지 않아 둘 다 비어 있다. [shortMessages]는 최근 것이 앞이다.
+     */
+    fun defaults(pullRequest: PullRequest, method: MergeMethod, shortMessages: List<String>): Pair<String, String> = when (method) {
+        MergeMethod.MERGE -> mergeTitle(pullRequest) to mergeBody(pullRequest, shortMessages)
+        MergeMethod.SQUASH -> squashTitle(pullRequest) to shortMessages.reversed().joinToString("\n") { "* $it" }
+        MergeMethod.REBASE -> "" to ""
     }
 
     /** 제목, 본문, 리뷰한 사람 순서로 메시지를 만든다. */
@@ -249,8 +275,10 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
         builder.author = who
         builder.setCommitter(who)
         builder.message = if (customTitle.isNullOrBlank() && customMessage.isNullOrBlank()) message(pullRequest, attempt.commits) else {
-            val default = message(pullRequest, attempt.commits)
-            compose(customTitle?.takeIf { it.isNotBlank() } ?: default.lineSequence().first(), customMessage?.takeIf { it.isNotBlank() } ?: default.substringAfter("\n").trim().substringBefore("\n\nReviewed-by:"), pullRequest)
+            compose(
+                customTitle?.takeIf { it.isNotBlank() } ?: mergeTitle(pullRequest),
+                customMessage?.takeIf { it.isNotBlank() } ?: mergeBody(pullRequest, attempt.commits.map { it.shortMessage }), pullRequest
+            )
         }
         repository.newObjectInserter().use { inserter ->
             val id = inserter.insert(builder)
@@ -297,13 +325,8 @@ class PullRequestMerger(private val repositories: RepositoryService, private val
      * ```
      */
     fun message(pullRequest: PullRequest, commits: List<CommitInfo>): String {
-        val builder = StringBuilder("Merge branch '${Repository.shortenRefName(pullRequest.fromBranch)}'")
-        if (pullRequest.fromProject?.id != pullRequest.toProject?.id) builder.append(" of ${pullRequest.fromProject?.owner}/${pullRequest.fromProject?.name}")
-        if (pullRequest.toBranch == "refs/heads/master") builder.append("\n\n") else builder.append(" into '${Repository.shortenRefName(pullRequest.toBranch)}'\n\n")
-        builder.append("from pull-request ${pullRequest.number}\n\n")
-        builder.append("* ${Repository.shortenRefName(pullRequest.fromBranch)}:\n")
-        commits.forEach { builder.append("  ${it.shortMessage}\n") }
-        builder.append("\n")
+        val builder = StringBuilder(mergeTitle(pullRequest)).append("\n\n")
+        builder.append(mergeBody(pullRequest, commits.map { it.shortMessage })).append("\n")
         pullRequest.reviewers.forEach { builder.append("Reviewed-by: ${it.name} <${it.email}>\n") }
         return builder.toString()
     }

@@ -176,6 +176,23 @@ class PullRequestMergeMethodsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `병합 화면이 미리 채울 기본 제목과 본문은 실제로 기록될 내용과 같다`() {
+        val (origin, fork) = originAndFork()
+        val pr = pullRequest(origin, fork)
+        // 목록은 최근 것이 앞이다
+        val shorts = listOf("둘째", "첫째")
+        val (mergeTitle, mergeBody) = merger.defaults(pr, MergeMethod.MERGE, shorts)
+        assertTrue(mergeTitle.startsWith("Merge branch 'master' of "), mergeTitle)
+        assertTrue(mergeBody.startsWith("from pull-request 7") && mergeBody.contains("  둘째") && mergeBody.contains("  첫째"), mergeBody)
+        assertEquals("요청 제목 (#7)" to "* 첫째\n* 둘째", merger.defaults(pr, MergeMethod.SQUASH, shorts))
+        assertEquals("" to "", merger.defaults(pr, MergeMethod.REBASE, shorts))
+        // 기본값을 그대로 보내면 아무것도 보내지 않은 것과 같은 메시지가 된다
+        GitTestSupport.appendCommits(repositories, fork, TestCommit("하나", mapOf("b.txt" to "b\n".toByteArray())))
+        val update = merger.merge(pr, merger1, MergeMethod.MERGE, mergeTitle, mergeBody)
+        assertTrue(commit(origin, update!!.mergeCommitId!!.name).fullMessage.startsWith("$mergeTitle\n\n$mergeBody"))
+    }
+
+    @Test
     fun `병합 커밋 방식은 지금까지와 같고 제목과 본문을 직접 줄 수 있다`() {
         val (origin, fork) = originAndFork()
         GitTestSupport.appendCommits(repositories, fork, TestCommit("하나", mapOf("b.txt" to "b\n".toByteArray())))
