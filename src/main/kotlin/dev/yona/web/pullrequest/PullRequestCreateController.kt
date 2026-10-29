@@ -126,6 +126,8 @@ class PullRequestCreateController(
             .addObject("body", "")
             .addObject("assigneeArea", if (canTriage(viewer, to)) meta.formAssignee(to) else null)
             .addObject("labelArea", if (canTriage(viewer, to)) meta.formLabels(to) else null)
+            // 라벨 색 CSS는 받는 프로젝트의 것이어야 한다(라벨은 받는 프로젝트의 것이다)
+            .addObject("labelsCssUrl", "${siteUrls.path(dev.yona.util.UrlPaths.projectPath(to.owner, to.name))}/issue/labels.css")
     }
 
     @GetMapping("/{user}/{project}/newPullRequest/mergeResult")

@@ -76,6 +76,7 @@ class OrganizationListAssembler(
     }
 
     /** 풀 리퀘스트 행을 만든다. */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     fun pullRequestRows(list: List<PullRequest>, viewer: User?): List<OrganizationPullRequestRow> = list.map { pr ->
         val to = requireNotNull(pr.toProject)
         val base = "${dev.yona.util.UrlPaths.projectPath(to.owner, to.name)}/pullRequest/${pr.number}"

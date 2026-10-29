@@ -100,7 +100,7 @@
 
 <th:block th:replace="~{common/select2 :: select2}"></th:block>
 <th:block th:if="${assigneeArea != null}">
-<link rel="stylesheet" type="text/css" media="screen" th:href="${#paths.project(projectView.project.owner, projectView.project.name) + '/issue/labels.css'}">
+<link rel="stylesheet" type="text/css" media="screen" th:href="${labelsCssUrl}">
 <script type="text/javascript" th:src="@{/assets/javascripts/service/yona.pullrequest.Meta.js}"></script>
 </th:block>
 

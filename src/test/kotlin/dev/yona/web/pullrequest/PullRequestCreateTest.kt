@@ -315,6 +315,8 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
         val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
         assertNotNull(doc.selectFirst("input#assignee[name=assigneeLoginId]")); assertTrue(doc.select("select#labelIds option").any { it.text() == "bug" })
         assertEquals("/-_-api/v1/owners/${s.origin.owner}/projects/${s.origin.name}/assignableUsers", doc.selectFirst("#pr-meta")!!.attr("data-candidates-url"))
+        // 라벨 색 CSS는 받는 프로젝트(원본)의 것이다. 보내는 프로젝트(포크)의 것이면 칩 색이 빠진다
+        assertTrue(doc.select("link[href]").any { it.attr("href") == "/${s.origin.owner}/${s.origin.name}/issue/labels.css" }, doc.select("link").toString())
     }
 
     @Test

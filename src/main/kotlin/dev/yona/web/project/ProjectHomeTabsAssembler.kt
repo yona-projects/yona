@@ -69,6 +69,7 @@ class ProjectHomeTabsAssembler(
     }
 
     /** 메뉴 설정에 따라 보일 영역만 채운다. */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     fun dashboard(project: Project, issueMenu: Boolean, pullRequestMenu: Boolean, git: Boolean): DashboardView {
         val owner = project.owner.orEmpty(); val name = project.name.orEmpty()
         val assignee = if (issueMenu) dashboard.byAssignee(project) else null
