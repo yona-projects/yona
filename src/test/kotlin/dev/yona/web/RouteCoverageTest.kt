@@ -91,6 +91,8 @@ class RouteCoverageTest : AbstractIntegrationTest() {
     companion object {
         /** 스프링 핸들러 매핑 밖에서 서블릿 필터가 받는 v1.6 라우트이다. */
         val FILTER_HANDLED: Set<String> = setOf(
+            // 추가 개발 항목 X-12(D-35 14번)가 GitHub 방식의 리뷰 경로로 대체해 의도해서 없앤 v1.6 경로이다(필터가 받는 것은 아니다)
+            "POST /:user/:project/pullRequest/:number/review", "POST /:user/:project/pullRequest/:number/unreview",
             // 매핑이 없는 주소는 `GlobalErrorHandler.notFound`가 끝 슬래시를 떼어 이동하거나 404를 낸다(`TrailingSlashRedirectTest`)
             "GET /*paths",
             // v1.6에서 프로젝트 이름이 빈 문자열이라 404인 가짜 경로이다. v2도 매핑이 없어 404이다(아래 시험)

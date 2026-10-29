@@ -53,10 +53,13 @@ class RouteParityTest : AbstractIntegrationTest() {
          * 의도해서 매핑하지 않는 항목이다.
          * - `/assets/` 아래 모든 경로(GET): `AssetFilter`가 디스패처 앞에서 맡는다.
          * - `/svn/` 아래 모든 경로: 컨트롤러가 아니라 `SvnDavFilter`가 처리한다(WebDAV 메서드를 디스패처가 501로 거부한다, A-98).
+         * - `POST .../pullRequest/:number/review`, `.../unreview`: 추가 개발 항목 X-12(`decisions.md` D-35 14번)가 GitHub 방식의 리뷰 경로
+         *   (`.../reviews`, `.../reviews/:reviewId/dismissals`)로 대체해 의도해서 없앴다.
          */
         private val INTENTIONAL = listOf(
             "GET /assets/{}",
             "GET /svn/{}", "POST /svn/{}", "PUT /svn/{}", "DELETE /svn/{}", "HEAD /svn/{}", "OPTIONS /svn/{}",
+            "POST /{}/{}/pullRequest/{}/review", "POST /{}/{}/pullRequest/{}/unreview",
         )
 
         /** 아직 이식하지 못한 항목. */

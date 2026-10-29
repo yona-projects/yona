@@ -7,7 +7,7 @@ updated: 2026-10-29
 
 # 풀 리퀘스트 리뷰 판정 (X-12, D-35)
 
-**상태: 설계 확정, 구현 전.** 결정과 이유는 [decisions.md D-35](../decisions.md)에 있고 이 문서는 구현할 때 따를 상세이다. v1.6의 "리뷰 완료/취소"를 GitHub의 리뷰(Comment, Approve, Request changes) 하나로 합친다. 동치 점검이 끝났으므로 v1.6 동작을 의도해서 바꾸며 바뀐 점은 [differences-from-v16.md](../architecture/differences-from-v16.md)에 올린다.
+**상태: 구현 완료(2026-10-29).** 결정과 이유는 [decisions.md D-35](../decisions.md)에 있고 이 문서는 구현할 때 따를 상세이다. v1.6의 "리뷰 완료/취소"를 GitHub의 리뷰(Comment, Approve, Request changes) 하나로 합친다. 동치 점검이 끝났으므로 v1.6 동작을 의도해서 바꾸며 바뀐 점은 [differences-from-v16.md](../architecture/differences-from-v16.md)에 올린다.
 
 ## v1.6의 지금 동작 (바뀌는 대상)
 
@@ -23,7 +23,7 @@ updated: 2026-10-29
 ## 바뀌는 점
 
 1. **판정**: Comment, Approve(승인), Request changes(변경 요청) 세 가지. 요약 본문과 함께 제출한다. 본문은 Comment와 Request changes에서 필수, Approve에서 선택(GitHub과 같다). 마크다운으로 그리고 길이 한도는 댓글과 같다. 이번에는 첨부와 임시 저장(PENDING)과 다시 리뷰 요청을 두지 않는다.
-2. **이력과 최신 판정**: 제출한 리뷰는 모두 `pull_request_review`에 쌓는다. 정책(병합 조건, 표시)에는 리뷰어별 **최신 유효 판정**만 쓴다. 해제된 리뷰는 Comment로 취급한다.
+2. **이력과 최신 판정**: 제출한 리뷰는 모두 `pull_request_review`에 쌓는다. 정책(병합 조건, 표시)에는 리뷰어별 **최신 유효 판정**만 쓴다. 해제된 리뷰는 Comment로 취급한다. 댓글 판정도 최신 판정이 될 수 있어 승인 뒤의 댓글 리뷰는 승인을 거둔다(A-195, GitHub 동작이 문서로 확인되지 않아 선생님 확인 대기).
 3. **리뷰 완료는 Approve**: 버튼 이름과 위치는 판정 폼으로 대체한다. "리뷰 취소"는 없애고 다음 판정(Comment)으로 대체한다. 승인한 사람 집합은 v1.6 테이블 `pull_request_reviewers`를 그대로 쓴다(Approve하면 넣고 이후 다른 판정이나 해제가 오면 뺀다). 그래서 `Reviewed-by:`, 목록의 리뷰어 수, 병합 조건은 구조 변경 없이 같은 집합을 읽는다.
 4. **작성자 본인**: Approve와 Request changes를 할 수 없다(서버 403, 폼에서 선택지 숨김). Comment는 가능하다. 승인 개수에도 세지 않는다.
 5. **권한**: 읽기 권한이 있는 로그인 사용자는 Comment, 프로젝트 구성원(쓰기)은 Approve와 Request changes. 판정 제출은 열린 요청에만 Approve와 Request changes가 가능하고 Comment는 상태와 상관없다(v1.6 "리뷰 완료" 버튼도 열린 요청에만 있었다). 승인한 뒤 쓰기 권한을 잃은 사람의 승인은 집합에 남지만 새 판정은 못 한다(권한 변동 시 자동 정리는 하지 않는다).
@@ -105,3 +105,12 @@ v1.6의 `POST .../review`와 `.../unreview`는 **없앤다**(둘 다 화면 버�
 3. **웹 계약**: 판정 제출과 해제 요청의 상태 코드, 폼 표시 조건, 개요 영역과 타임라인.
 4. **알림과 웹훅**: 수신자, 알림 설정 항목, 메시지 5개 언어, 웹훅 페이로드.
 5. **브라우저 검증**: 마지막에 한 번 Playwright로 화면을 캡처한다.
+
+## 구현 결과 (2026-10-29)
+
+- 저장: `PullRequestReview`(테이블 `pull_request_review`), `Project.isDismissingStaleApprovals`, 내보내기와 가져오기(50개 테이블, 옛 파일의 프로젝트 행에 키가 없으면 켬), 프로젝트 삭제 연쇄, 가져온 뒤 정리(`cleanReviews`).
+- 보정: `PullRequestReviewBackfill`(시작 때와 가져온 뒤, 멱등)이 승인 리뷰를 만들고 `noticeIgnoredAuthorApprovals`가 작성자 승인을 세지 않아 요건을 잃은 열린 요청을 한 번만 안내한다.
+- 서비스: `PullRequestReviewService.submit`, `dismiss`, `dismissStaleApprovals`. 규칙은 `PullRequestRules`(`latestReviews`, `changesRequestedBy`, `countedApprovals`, `reviewBlocked`, `acceptable`).
+- 웹: `PullRequestReviewController`(`POST .../reviews`, `.../reviews/:reviewId/dismissals`), 개요의 리뷰어 영역과 판정 폼, 타임라인 이벤트, 병합 우회(`AccessControl.canBypassReview`), 프로젝트 설정의 승인 해제 항목.
+- 알림과 웹훅: 새 이벤트 종류 세 개(번호 31~33), 알림 설정 항목, 다섯 언어 메시지.
+- 구현 중 정한 세부 판단은 `decisions.md` A-195~A-202에 있다.
