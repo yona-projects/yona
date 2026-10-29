@@ -121,6 +121,7 @@ class PullRequestViewController(
             .addObject("unwatchUrl", siteUrls.path("/unwatch?resource.type=${ResourceType.PULL_REQUEST.resource}&resource.id=${pullRequest.id}"))
             .addObject("stateUrl", "$base/state")
             .addObject("canEdit", accessControl.isAllowed(viewer, resource, Operation.UPDATE))
+            .addObject("reviewArea", assembler.reviewArea(pullRequest, viewer, accessControl.isAllowed(viewer, resource, Operation.ACCEPT)))
             .addObject("assigneeArea", meta.assignee(pullRequest, viewer, accessControl.isAllowed(viewer, resource, Operation.UPDATE)))
             .addObject("labelArea", meta.labels(pullRequest, accessControl.isAllowed(viewer, resource, Operation.UPDATE)))
             .addObject("editUrl", "$base/editform")
@@ -167,28 +168,6 @@ class PullRequestViewController(
     fun specificChange(
         @PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, @PathVariable commitId: String, request: HttpServletRequest
     ): Any = changesView(owner, name, id, commitId, request)
-
-    @PostMapping("/{user}/{project}/pullRequest/{id}/review")
-    // v1.6 ReviewApp: 클래스의 @AnonymousCheck(requiresLogin)가 메서드의 @IsAllowed 안쪽이라 권한 검사가 먼저다. 같은 순서로 맞춘다
-    @IsAllowed(Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
-    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    @Transactional
-    fun review(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
-        val (_, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
-        reviews.review(pullRequest, requireNotNull(currentUserProvider.get().user))
-        return RedirectSupport.see(request, response, assembler.baseUrl(pullRequest))
-    }
-
-    @PostMapping("/{user}/{project}/pullRequest/{id}/unreview")
-    // v1.6 ReviewApp: 클래스의 @AnonymousCheck(requiresLogin)가 메서드의 @IsAllowed 안쪽이라 권한 검사가 먼저다. 같은 순서로 맞춘다
-    @IsAllowed(Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
-    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    @Transactional
-    fun unreview(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
-        val (_, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
-        reviews.unreview(pullRequest, requireNotNull(currentUserProvider.get().user))
-        return RedirectSupport.see(request, response, assembler.baseUrl(pullRequest))
-    }
 
     private fun changesView(owner: String, name: String, id: Long, commitId: String?, request: HttpServletRequest): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()

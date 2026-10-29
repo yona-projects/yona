@@ -20,6 +20,12 @@ import dev.yona.domain.pullrequest.PullRequestEvent
 import dev.yona.domain.pullrequest.PullRequestEventRepository
 import dev.yona.domain.pullrequest.PullRequestEventService
 import dev.yona.domain.pullrequest.acceptable
+import dev.yona.domain.pullrequest.acceptableIgnoringReview
+import dev.yona.domain.pullrequest.countedApprovals
+import dev.yona.domain.pullrequest.effectiveVerdict
+import dev.yona.domain.pullrequest.latestReviews
+import dev.yona.domain.pullrequest.requiredReviewerCount
+import dev.yona.domain.pullrequest.reviewBlocked
 import dev.yona.domain.pullrequest.closed
 import dev.yona.domain.pullrequest.disabledAcceptMessage
 import dev.yona.domain.pullrequest.isReviewedBy
@@ -62,7 +68,9 @@ class PullRequestPageAssembler(
     private val repositoryUrls: RepositoryUrls,
     private val messages: MessageSource,
     private val helper: TemplateHelper,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val markdown: dev.yona.markdown.ProjectMarkdownRenderer,
+    private val reviewRepository: dev.yona.domain.pullrequest.PullRequestReviewRepository
 ) {
 
     fun baseUrl(pullRequest: PullRequest): String {
@@ -94,16 +102,17 @@ class PullRequestPageAssembler(
 
         val reviewers = if (project.isUsingReviewerCount == true && canAccept) {
             ReviewerArea(
-                labelHtml = text("pullRequest.review.participants", pullRequest.reviewers.size),
-                avatarsHtml = pullRequest.reviewers.joinToString("") { avatarLink(it) },
-                reviewUrl = if (pullRequest.open && !pullRequest.isReviewedBy(viewer)) "$base/review" else null,
-                unreviewUrl = if (pullRequest.open && pullRequest.isReviewedBy(viewer)) "$base/unreview" else null,
+                labelHtml = text("pullRequest.review.participants", pullRequest.countedApprovals),
+                avatarsHtml = pullRequest.reviewers.filter { it.id != pullRequest.contributor?.id }.joinToString("") { avatarLink(it) },
+                reviewUrl = if (pullRequest.open) "$base#review-form" else null,
                 reviewButtonSuccess = !pullRequest.reviewed
             )
         } else null
 
         val accept = if (canAccept) {
             if (pullRequest.acceptable) AcceptButton("$base/accept", true, null)
+            // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건에 막힌 요청도 병합할 수 있다
+            else if (pullRequest.reviewBlocked && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project)) AcceptButton("$base/accept", true, null, text("pullRequest.review.bypass.note"))
             else {
                 val (key, args) = pullRequest.disabledAcceptMessage()
                 AcceptButton("$base/accept", false, text(key, *args))
@@ -115,6 +124,36 @@ class PullRequestPageAssembler(
             badgeClass = if (conflict) "badge-issue-conflict" else "badge-issue-$stateName", badgeKey = if (conflict) "pullRequest.state.conflict" else "pullRequest.state.$stateName",
             reviewers = reviewers, accept = accept, overviewUrl = base, changesUrl = "$base/changes",
             openThreadCount = threads.countByPullRequestIdAndState(requireNotNull(pullRequest.id), ThreadState.OPEN), activeTab = activeTab
+        )
+    }
+
+    /**
+     * 개요 화면의 리뷰 영역이다(추가 개발 항목 X-12, `decisions.md` D-35). 리뷰어별 최신 판정 줄과 판정 폼으로 이루어진다.
+     * 폼은 로그인한 사용자에게만 보이고, 승인과 변경 요청은 받아들일 권한이 있는 작성자 아닌 사람이 열린 요청에만 고를 수 있다.
+     */
+    fun reviewArea(pullRequest: PullRequest, viewer: User?, canAccept: Boolean): ReviewAreaView {
+        val project = requireNotNull(pullRequest.toProject)
+        val base = baseUrl(pullRequest)
+        val rows = pullRequest.latestReviews.values.sortedWith(compareBy({ it.createdDate }, { it.id })).map { review ->
+            val reviewer = review.authorId?.let { id -> users.findById(id).orElse(null) }
+            val verdict = review.effectiveVerdict ?: dev.yona.domain.enumeration.ReviewVerdict.COMMENTED
+            ReviewerRow(
+                loginId = review.authorLoginId.orEmpty(), name = reviewer?.name ?: review.authorLoginId.orEmpty(), href = siteUrls.path("/${review.authorLoginId}"),
+                avatarUrl = reviewer?.let { avatars.avatarUrl(it) } ?: dev.yona.security.AvatarService.DEFAULT_AVATAR_URL, verdict = verdict.name, dismissed = review.dismissedDate != null,
+                dismissedReason = review.dismissedReason, systemDismissed = review.dismissedDate != null && review.dismissedByLoginId == null,
+                dismissUrl = if (canAccept && review.dismissedDate == null && review.verdict != dev.yona.domain.enumeration.ReviewVerdict.COMMENTED) "$base/reviews/${review.id}/dismissals" else null,
+                ago = helper.agoOrDateString(review.createdDate), agoTitle = helper.dateString(review.createdDate)
+            )
+        }
+        val author = viewer != null && viewer.id == pullRequest.contributor?.id
+        val options = if (viewer == null) emptyList() else buildList {
+            add(dev.yona.domain.enumeration.ReviewVerdict.COMMENTED.name)
+            if (canAccept && !author && pullRequest.open) { add(dev.yona.domain.enumeration.ReviewVerdict.APPROVED.name); add(dev.yona.domain.enumeration.ReviewVerdict.CHANGES_REQUESTED.name) }
+        }
+        return ReviewAreaView(
+            rows = rows, formUrl = if (viewer != null) "$base/reviews" else null, verdictOptions = options,
+            countText = if (project.isUsingReviewerCount == true) text("pullRequest.review.count", pullRequest.countedApprovals, pullRequest.requiredReviewerCount) else null,
+            authorNote = project.isUsingReviewerCount == true && pullRequest.reviewers.any { it.id == pullRequest.contributor?.id }
         )
     }
 
@@ -200,6 +239,25 @@ class PullRequestPageAssembler(
                 val adding = event.oldValue.isNullOrBlank() && !event.newValue.isNullOrBlank()
                 val box = labelBox(if (adding) event.newValue else event.oldValue, to)
                 TimelineEvent(id, if (adding) "label-added" else "label-deleted", if (adding) "issue.event.label.added.title" else "issue.event.label.deleted.title", text(if (adding) "issue.event.label.added" else "issue.event.label.deleted", user, box), ago, agoTitle, null, emptyList())
+            }
+            // 추가 항목 X-12(D-35): 리뷰 판정을 제출했거나 해제했다
+            EventType.PULL_REQUEST_REVIEW_SUBMITTED -> {
+                val review = new?.toLongOrNull()?.let { reviewRepository.findById(it).orElse(null) }
+                val verdict = (event.oldValue ?: review?.verdict?.name).orEmpty().lowercase()
+                TimelineEvent(
+                    id, "review-$verdict", "pullRequest.review.state.$verdict", text("pullRequest.event.message.review.$verdict", user), ago, agoTitle, null, emptyList(),
+                    bodyHtml = review?.contents?.takeIf { it.isNotBlank() }?.let { markdown.render(it, to) }
+                )
+            }
+            EventType.PULL_REQUEST_REVIEW_DISMISSED -> {
+                val review = new?.toLongOrNull()?.let { reviewRepository.findById(it).orElse(null) }
+                val target = event.oldValue?.let { login -> userHtml(users.findByLoginId(login), login) }.orEmpty()
+                val system = event.senderLoginId == null
+                TimelineEvent(
+                    id, "review-dismissed", "pullRequest.review.state.dismissed",
+                    if (system) text("pullRequest.event.message.review.dismissed.stale", target) else text("pullRequest.event.message.review.dismissed", user, target), ago, agoTitle, null, emptyList(),
+                    bodyHtml = if (system) null else review?.dismissedReason?.takeIf { it.isNotBlank() }?.let { HtmlUtils.htmlEscape(it) }
+                )
             }
             else -> null
         }

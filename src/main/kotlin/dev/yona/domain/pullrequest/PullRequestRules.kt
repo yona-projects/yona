@@ -42,9 +42,17 @@ val PullRequest.changesRequestedBy: List<String?>
 /** [user]가 리뷰한 요청이면 `true`이다 (v1.6 `isReviewedBy`). */
 fun PullRequest.isReviewedBy(user: User?): Boolean = user != null && reviewers.any { it.id == user.id }
 
-/** 충돌이 아니고, 열려 있고, 병합 검사 중이 아니며, 리뷰 조건을 채웠으면 받아들일 수 있다 (v1.6 `isAcceptable`). */
-val PullRequest.acceptable: Boolean
-    get() = isConflict != true && open && isMerging != true && (toProject?.isUsingReviewerCount != true || (reviewed && changesRequestedBy.isEmpty()))
+/**
+ * 리뷰 조건이 병합을 막고 있으면 `true`이다. 프로젝트가 리뷰어 수를 켰고 승인이 모자라거나 변경 요청이 남아 있을 때이다(추가 개발 항목 X-12, `decisions.md` D-35).
+ * 프로젝트 관리자와 사이트 관리자는 이 막힘을 우회할 수 있다.
+ */
+val PullRequest.reviewBlocked: Boolean get() = toProject?.isUsingReviewerCount == true && (!reviewed || changesRequestedBy.isNotEmpty())
+
+/** 리뷰 조건을 보지 않고 충돌이 아니고, 열려 있고, 병합 검사 중이 아니면 `true`이다. */
+val PullRequest.acceptableIgnoringReview: Boolean get() = isConflict != true && open && isMerging != true
+
+/** 충돌이 아니고, 열려 있고, 병합 검사 중이 아니며, 리뷰 조건이 막고 있지 않으면 받아들일 수 있다 (v1.6 `isAcceptable`에 변경 요청 규칙을 더했다). */
+val PullRequest.acceptable: Boolean get() = acceptableIgnoringReview && !reviewBlocked
 
 /** 변경 내용을 보여 줄 수 있으면 `true`이다. 충돌하지 않았고 병합 기준 커밋이 있어야 한다 (v1.6 `isDiffable`). */
 val PullRequest.diffable: Boolean get() = isConflict == false && mergedCommitIdFrom != null && mergedCommitIdTo != null

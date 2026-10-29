@@ -49,6 +49,7 @@ class PullRequestActionController(
     private val branches: BranchService,
     private val postAttachments: PostAttachments,
     private val currentUserProvider: CurrentUserProvider,
+    private val accessControl: dev.yona.access.AccessControl,
     private val views: ProjectViewFactory,
     private val siteUrls: SiteUrls
 ) {
@@ -60,7 +61,9 @@ class PullRequestActionController(
     @IsOnlyGitAvailable
     fun accept(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
         val (project, pullRequest) = find(owner, name, id) ?: return ErrorViews.notFound()
-        if (workflow.accept(pullRequest, requireNotNull(currentUserProvider.get().user)) == AcceptResult.NOT_REVIEWED) {
+        val accepter = requireNotNull(currentUserProvider.get().user)
+        // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건을 우회한다
+        if (workflow.accept(pullRequest, accepter, accessControl.canBypassReview(accepter, project)) == AcceptResult.NOT_REVIEWED) {
             return ErrorViews.badRequest("pullRequest.not.enough.review.point")
         }
         return redirect(request, response, project, pullRequest)

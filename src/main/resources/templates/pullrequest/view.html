@@ -56,9 +56,43 @@
                         <th:block th:replace="~{pullrequest/partial-timeline :: timeline}"></th:block>
                     </ul>
                 </div>
+
+                <!--/* 리뷰 판정 폼(추가 항목 X-12, decisions.md D-35). 로그인한 사용자에게만 보이고 선택지는 권한과 요청 상태를 따른다 */-->
+                <form id="review-form" th:if="${reviewArea.formUrl != null}" th:action="${reviewArea.formUrl}" method="post" class="review-form mt20">
+                    <h5 th:text="#{pullRequest.review.form.title}"></h5>
+                    <textarea name="contents" rows="4" class="textbox span12" th:placeholder="#{pullRequest.review.form.placeholder}"></textarea>
+                    <div class="review-verdicts">
+                        <label th:each="v : ${reviewArea.verdictOptions}" class="radio inline">
+                            <input type="radio" name="verdict" th:value="${v}" th:checked="${v == 'COMMENTED'}">
+                            <th:block th:text="#{'pullRequest.review.form.' + ${#strings.toLowerCase(v)}}"></th:block>
+                        </label>
+                    </div>
+                    <button type="submit" class="ybtn ybtn-success mt10" th:text="#{pullRequest.review.form.submit}"></button>
+                </form>
             </div>
 
             <div class="span3 span-right-pane mb20">
+                <!--/* 리뷰어별 최신 판정(추가 항목 X-12, decisions.md D-35) */-->
+                <div id="review-area" class="issue-info mb10">
+                    <dl>
+                        <dt th:text="#{pullRequest.review.area.title}"></dt>
+                        <dd th:if="${reviewArea.countText != null}" class="review-count" th:text="${reviewArea.countText}"></dd>
+                        <dd th:if="${reviewArea.authorNote}" class="review-author-note" th:text="#{pullRequest.review.author.not.counted}"></dd>
+                        <dd th:if="${#lists.isEmpty(reviewArea.rows)}" class="empty" th:text="#{pullRequest.review.area.empty}"></dd>
+                        <dd th:each="r : ${reviewArea.rows}" class="reviewer-row" th:attr="data-login-id=${r.loginId}, data-verdict=${r.verdict}">
+                            <a th:href="${r.href}" class="usf-group">
+                                <span class="avatar-wrap smaller"><img th:src="${r.avatarUrl}" width="20" height="20"></span>
+                                <strong class="name" th:text="${r.name}"></strong>
+                            </a>
+                            <span th:class="'verdict verdict-' + ${#strings.toLowerCase(r.verdict)}" th:text="#{'pullRequest.review.state.' + ${#strings.toLowerCase(r.verdict)}}" th:title="${r.agoTitle}"></span>
+                            <span th:if="${r.dismissed}" class="dismissed" th:title="${r.systemDismissed} ? #{pullRequest.review.dismissed.stale} : ${r.dismissedReason}" th:text="#{pullRequest.review.dismissed.label}"></span>
+                            <form th:if="${r.dismissUrl != null}" th:action="${r.dismissUrl}" method="post" class="review-dismiss">
+                                <input type="text" name="message" class="text span12" maxlength="255" th:placeholder="#{pullRequest.review.dismiss.reason}">
+                                <button type="submit" class="ybtn ybtn-mini" th:text="#{pullRequest.review.dismiss}"></button>
+                            </form>
+                        </dd>
+                    </dl>
+                </div>
                 <!--/* 담당자와 라벨. 수정 권한이 있으면 고르는 즉시 Ajax로 보내고(yona.pullrequest.Meta.js) 없으면 읽기만 한다 */-->
                 <div id="pr-meta" class="issue-info" th:if="${assigneeArea != null}"
                      th:attr="data-assignees-url=${assigneeArea.assigneesUrl}, data-labels-url=${labelArea.labelsUrl}, data-timeline-url=${assigneeArea.timelineUrl}, data-candidates-url=${assigneeArea.candidatesUrl}">

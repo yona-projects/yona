@@ -250,6 +250,9 @@ class AccessControl(
     /** 사용자가 사이트 관리자이면 `true`이다. 현재 세션 사용자는 v1.6 `User.isSiteManager`처럼 처음 계산한 값이 유지된다 ([SessionPermissions]). */
     fun isSiteManager(user: User?): Boolean = permissions.siteManager(user?.id)
 
+    /** 프로젝트 관리자나 사이트 관리자는 풀 리퀘스트의 리뷰 조건(승인 수, 변경 요청)에 막혀도 병합할 수 있다(추가 개발 항목 X-12, `decisions.md` D-35 11번). */
+    fun canBypassReview(user: User?, project: Project): Boolean = user != null && (isSiteManager(user) || isProjectManager(user, project))
+
     /** 프로젝트에 속해 있으면(역할 무관) `true`이다 (v1.6 `User.isMemberOf(Project)`). */
     private fun isProjectMember(user: User?, project: Project): Boolean {
         val userId = user?.id ?: return false

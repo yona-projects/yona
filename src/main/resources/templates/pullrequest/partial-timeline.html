@@ -12,6 +12,7 @@
     <th:block th:utext="${e.messageHtml}"></th:block>
     <span class="date"><a th:href="'#event-' + ${e.id}" th:title="${e.agoTitle}" th:text="${e.ago}"></a></span>
     <a th:if="${e.compareUrl != null}" th:href="${e.compareUrl}" class="ybtn ybtn-mini" th:text="#{pullRequest.additional.changes}"></a>
+    <div th:if="${e.bodyHtml != null}" class="comment-body markdown-wrap review-body" th:utext="${e.bodyHtml}"></div>
     <ul class="commit-list" th:if="${!#lists.isEmpty(e.commits)}">
         <li th:each="c : ${e.commits}" th:class="'comment-body commit-info' + (${c.outdated} ? ' outdated' : '')">
             <a th:href="${c.commitUrl}" class="commit-id" th:text="${c.shortId}"></a>

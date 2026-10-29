@@ -1,12 +1,31 @@
 package dev.yona.web.pullrequest
 
-/** 풀 리퀘스트 머리 영역의 리뷰어 표시와 리뷰 단추이다. */
-data class ReviewerArea(
-    val labelHtml: String, val avatarsHtml: String, val reviewUrl: String?, val unreviewUrl: String?, val reviewButtonSuccess: Boolean
+/**
+ * 풀 리퀘스트 머리 영역의 리뷰어 표시와 리뷰 단추이다. 승인한 사람의 아바타를 보이고 단추는 개요 화면의 리뷰 폼으로 이동한다
+ * (v1.6의 "리뷰 완료/취소" 단추를 GitHub 방식의 리뷰 판정으로 바꿨다, 추가 개발 항목 X-12, `decisions.md` D-35).
+ */
+data class ReviewerArea(val labelHtml: String, val avatarsHtml: String, val reviewUrl: String?, val reviewButtonSuccess: Boolean)
+
+/**
+ * 받아들이기 단추이다. 막혀 있으면 [disabledReason]이 이유이다. 프로젝트 관리자와 사이트 관리자가 리뷰 조건에 막힌 요청을 우회해 병합할 수 있으면
+ * 단추는 켜져 있고 [bypassNote]에 안내가 있다(D-35 11번).
+ */
+data class AcceptButton(val url: String, val enabled: Boolean, val disabledReason: String?, val bypassNote: String? = null)
+
+/**
+ * 개요 오른쪽 열의 리뷰어 한 줄이다. [verdict]는 유효한 최신 판정 이름(`APPROVED`, `CHANGES_REQUESTED`, `COMMENTED`)이고 해제된 리뷰는 `COMMENTED`이다.
+ * [dismissUrl]이 있으면 해제할 수 있는 사람에게 해제 폼을 보인다.
+ */
+data class ReviewerRow(
+    val loginId: String, val name: String, val href: String, val avatarUrl: String, val verdict: String, val dismissed: Boolean, val dismissedReason: String?,
+    val systemDismissed: Boolean, val dismissUrl: String?, val ago: String, val agoTitle: String
 )
 
-/** 받아들이기 단추이다. 막혀 있으면 [disabledReason]이 이유이다. */
-data class AcceptButton(val url: String, val enabled: Boolean, val disabledReason: String?)
+/**
+ * 개요 화면의 리뷰 영역이다. [formUrl]이 있으면(로그인한 사용자) 판정 폼을 보이며 [verdictOptions]는 고를 수 있는 판정 이름이다.
+ * [countText]는 프로젝트가 리뷰어 수를 켰을 때 "승인 n/m"이고 [authorNote]는 작성자의 승인을 세지 않는다는 안내가 필요할 때 켠다.
+ */
+data class ReviewAreaView(val rows: List<ReviewerRow>, val formUrl: String?, val verdictOptions: List<String>, val countText: String?, val authorNote: Boolean)
 
 /** 풀 리퀘스트 보기와 변경 화면 위쪽의 공통 머리 영역이다 (v1.6 `partial_info`). */
 data class PullRequestHeader(
@@ -54,7 +73,9 @@ data class TimelineCommit(
  */
 data class TimelineEvent(
     val id: Long, val stateClass: String, val stateKey: String, val messageHtml: String, val ago: String, val agoTitle: String,
-    val compareUrl: String?, val commits: List<TimelineCommit>
+    val compareUrl: String?, val commits: List<TimelineCommit>,
+    /** 리뷰 판정의 본문이다(마크다운을 그린 HTML). 판정 이벤트에만 있다 */
+    val bodyHtml: String? = null
 )
 
 /** 오른쪽 리뷰 카드 한 장이다 (v1.6 `partial_reviewlist`). */

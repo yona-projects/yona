@@ -44,7 +44,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * 풀 리퀘스트 보기, 상태 조각, 변경 내용, 리뷰를 검증한다.
+ * 풀 리퀘스트 보기, 상태 조각, 변경 내용을 검증한다. 리뷰 판정은 `PullRequestReviewWebTest`가 검증한다(v1.6의 리뷰 완료와 취소는 X-12로 대체되었다).
  *
  * 원본: `app/controllers/PullRequestApp.java`(`pullRequest`, `pullRequestState`, `pullRequestChanges`, `specificChange`), `ReviewApp.java`,
  * `app/views/git/view.scala.html`, `viewChanges.scala.html`, `partial_info.scala.html`, `partial_state.scala.html`, `partial_pull_request_event.scala.html`.
@@ -225,34 +225,6 @@ class PullRequestViewTest : AbstractIntegrationTest() {
         GitTestSupport.appendCommits(repositories, s.fork, TestCommit("포크 수정", mapOf("a.txt" to "line1\nFORK\nline3\n".toByteArray())))
         val pr = open(s)
         assertEquals("", page(url(s, pr, "/changes"), login(s.manager)).selectFirst(".diff-body table")?.text().orEmpty())
-    }
-
-    @Test
-    fun `리뷰하면 리뷰어가 늘고 타임라인과 알림이 남으며 취소하면 줄어든다`() {
-        val s = withCommit(setup(usingReviewers = true)); val pr = open(s)
-        val session = login(s.manager)
-        mockMvc.perform(post(url(s, pr, "/review")).session(session)).andExpect(status().isSeeOther).andExpect(redirectedUrl(url(s, pr)))
-        assertEquals(listOf(s.manager.id), pullRequests.findById(pr.id!!).get().reviewers.map { it.id })
-        val doc = page(url(s, pr), session)
-        assertEquals("1 participants", doc.selectFirst("#reviewers span")!!.text())
-        assertEquals(url(s, pr, "/unreview"), doc.selectFirst("a.ybtn-default[data-request-method=post]")!!.attr("href"))
-        assertTrue(pullRequestEvents.findByPullRequestIdOrderByCreatedAscIdAsc(pr.id!!).any { it.eventType == EventType.PULL_REQUEST_REVIEW_STATE_CHANGED && it.newValue == "DONE" })
-        assertTrue(notificationEvents.findAll().none { it.eventType == EventType.PULL_REQUEST_REVIEW_STATE_CHANGED && it.receivers.isEmpty() })
-        mockMvc.perform(post(url(s, pr, "/unreview")).session(session)).andExpect(status().isSeeOther)
-        assertTrue(pullRequests.findById(pr.id!!).get().reviewers.isEmpty())
-    }
-
-    @Test
-    fun `로그인하지 않은 리뷰와 리뷰 취소는 권한 검사가 먼저라 403이다 (v1_6 ReviewApp은 클래스의 AnonymousCheck가 IsAllowed 안쪽이다)`() {
-        val s = withCommit(setup(usingReviewers = true)); val pr = open(s)
-        mockMvc.perform(post(url(s, pr, "/review"))).andExpect(status().isForbidden)
-        mockMvc.perform(post(url(s, pr, "/unreview"))).andExpect(status().isForbidden)
-    }
-
-    @Test
-    fun `받아들일 권한이 없으면 리뷰할 수 없다`() {
-        val s = withCommit(setup(usingReviewers = true)); val pr = open(s)
-        mockMvc.perform(post(url(s, pr, "/review")).session(login(user()))).andExpect(status().isForbidden)
     }
 
     @Test

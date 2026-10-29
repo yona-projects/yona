@@ -191,13 +191,10 @@ class PullRequestActionTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `리뷰어가 모자라면 400이고 병합 중 표시가 남은 채로 리뷰하면 받아들일 수 있다`() {
+    fun `리뷰어가 모자라도 프로젝트 관리자는 리뷰 조건을 우회해 받아들일 수 있다 (X-12, D-35 11번)`() {
+        // v1.6은 리뷰어가 모자라면 관리자도 400이었다. 일반 구성원이 막히는 경우는 PullRequestReviewWebTest가 검증한다
         val s = setup(usingReviewers = true); addChange(s)
         val pr = open(s)
-        mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isBadRequest)
-        // v1.6 accept는 병합 중 표시를 먼저 켜고 저장한 뒤 400을 돌려 표시가 남는다 (R-76)
-        assertEquals(State.OPEN, reload(pr).state); assertEquals(true, reload(pr).isMerging)
-        mockMvc.perform(post(url(s, pr, "/review")).session(s.managerSession)).andExpect(status().isSeeOther)
         mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isSeeOther)
         assertEquals(State.MERGED, reload(pr).state)
     }
