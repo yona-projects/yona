@@ -69,7 +69,9 @@ class IssueFormApiTest : AbstractIntegrationTest() {
         return user
     }
 
-    private fun api(project: Project, path: String) = "/-_-api/v1/owners/${project.owner}/projects/${project.name}/$path"
+    /** 일반 웹 경로 이름으로 옮긴 AJAX 주소이다(X-5, D-36). 시험이 쓰던 옛 `owners/.../projects/...` 꼬리(`issues/1/...`, `postlabel/1`, `posts/1/content`)를 새 주소로 바꾼다. */
+    private fun api(project: Project, path: String) = "/${project.owner}/${project.name}/" +
+        path.replaceFirst(Regex("^issues/"), "issue/").replace(Regex("^postlabel/(\\d+)"), "post/$1/label").replace(Regex("^posts/(\\d+)/content"), "post/$1/content")
 
     // --- 제목 머리말 ---
 

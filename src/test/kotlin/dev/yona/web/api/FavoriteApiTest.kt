@@ -59,7 +59,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * 프로젝트와 조직 즐겨찾기 API(`/-_-api/v1/favoriteProjects`, `/-_-api/v1/favoriteOrganizations`)를 검증한다.
+ * 프로젝트와 조직 즐겨찾기 API(`/user/favoriteProjects`, `/user/favoriteOrganizations`)를 검증한다.
  *
  * 원본: `app/controllers/api/UserApi.java:60-90, 190-218`, `app/models/User.java:951-1040`.
  */
@@ -96,11 +96,11 @@ class FavoriteApiTest : AbstractIntegrationTest() {
     fun `프로젝트 즐겨찾기를 켜고 끈다`() {
         val user = newUser(); val p = project()
         val session = login(user)
-        mockMvc.perform(post("/-_-api/v1/favoriteProjects/${p.id}").session(session)).andExpect(status().isOk)
+        mockMvc.perform(post("/user/favoriteProjects/${p.id}").session(session)).andExpect(status().isOk)
             .andExpect(jsonPath("$.projectId").value(p.id.toString())).andExpect(jsonPath("$.favored").value(true))
         val saved = favoriteProjects.findAll().single()
         assertEquals(p.owner, saved.owner); assertEquals(p.name, saved.projectName)
-        mockMvc.perform(post("/-_-api/v1/favoriteProjects/${p.id}").session(session)).andExpect(jsonPath("$.favored").value(false))
+        mockMvc.perform(post("/user/favoriteProjects/${p.id}").session(session)).andExpect(jsonPath("$.favored").value(false))
         assertEquals(0, favoriteProjects.count())
     }
 
@@ -109,9 +109,9 @@ class FavoriteApiTest : AbstractIntegrationTest() {
         val user = newUser(); val p = project()
         recentProjects.save(RecentProject(userId = user.id, owner = p.owner, project = p, projectName = p.name))
         val session = login(user)
-        mockMvc.perform(post("/-_-api/v1/favoriteProjects/${p.id}").session(session))
+        mockMvc.perform(post("/user/favoriteProjects/${p.id}").session(session))
         assertEquals(1, recentProjects.count())
-        mockMvc.perform(post("/-_-api/v1/favoriteProjects/${p.id}").session(session))
+        mockMvc.perform(post("/user/favoriteProjects/${p.id}").session(session))
         assertEquals(0, recentProjects.count())
     }
 
@@ -119,8 +119,8 @@ class FavoriteApiTest : AbstractIntegrationTest() {
     fun `프로젝트 즐겨찾기 목록`() {
         val user = newUser(); val a = project(); val b = project()
         val session = login(user)
-        mockMvc.perform(post("/-_-api/v1/favoriteProjects/${a.id}").session(session)); mockMvc.perform(post("/-_-api/v1/favoriteProjects/${b.id}").session(session))
-        mockMvc.perform(get("/-_-api/v1/favoriteProjects").session(session)).andExpect(status().isOk)
+        mockMvc.perform(post("/user/favoriteProjects/${a.id}").session(session)); mockMvc.perform(post("/user/favoriteProjects/${b.id}").session(session))
+        mockMvc.perform(get("/user/favoriteProjects").session(session)).andExpect(status().isOk)
             .andExpect(jsonPath("$.projectIds[0]").value(a.id)).andExpect(jsonPath("$.projectIds[1]").value(b.id))
             .andExpect(jsonPath("$.projects[1].projectName").value(b.name)).andExpect(jsonPath("$.projects[1].owner").value(b.owner)).andExpect(jsonPath("$.projects[0].projectId").value(a.id))
     }
@@ -129,26 +129,26 @@ class FavoriteApiTest : AbstractIntegrationTest() {
     fun `조직 즐겨찾기를 켜고 끄고 목록을 본다`() {
         val user = newUser(); val org = organization()
         val session = login(user)
-        mockMvc.perform(post("/-_-api/v1/favoriteOrganizations/${org.id}").session(session)).andExpect(status().isOk)
+        mockMvc.perform(post("/user/favoriteOrganizations/${org.id}").session(session)).andExpect(status().isOk)
             .andExpect(jsonPath("$.organizationId").value(org.id.toString())).andExpect(jsonPath("$.favored").value(true))
         assertEquals(org.name, favoriteOrganizations.findAll().single().organizationName)
-        mockMvc.perform(get("/-_-api/v1/favoriteOrganizations").session(session)).andExpect(jsonPath("$.organizationIds[0]").value(org.id)).andExpect(jsonPath("$.organizations[0].organizationName").value(org.name))
-        mockMvc.perform(post("/-_-api/v1/favoriteOrganizations/${org.id}").session(session)).andExpect(jsonPath("$.favored").value(false))
+        mockMvc.perform(get("/user/favoriteOrganizations").session(session)).andExpect(jsonPath("$.organizationIds[0]").value(org.id)).andExpect(jsonPath("$.organizations[0].organizationName").value(org.name))
+        mockMvc.perform(post("/user/favoriteOrganizations/${org.id}").session(session)).andExpect(jsonPath("$.favored").value(false))
         assertEquals(0, favoriteOrganizations.count())
     }
 
     @Test
     fun `익명이거나 잘못된 번호는 거절한다`() {
         val p = project()
-        mockMvc.perform(post("/-_-api/v1/favoriteProjects/${p.id}")).andExpect(status().isForbidden)
+        mockMvc.perform(post("/user/favoriteProjects/${p.id}")).andExpect(status().isForbidden)
         // v1.6는 익명의 `currentUser()`가 빈 즐겨찾기 목록을 가진 NullUser라 목록 조회는 200이다(공식 v1.16.0 실행으로 확인). 바꾸기는 오류(500)였다
-        mockMvc.perform(get("/-_-api/v1/favoriteProjects")).andExpect(status().isOk).andExpect(content().json("""{"projectIds":[],"projects":[]}""", true))
-        mockMvc.perform(get("/-_-api/v1/favoriteOrganizations")).andExpect(status().isOk).andExpect(content().json("""{"organizationIds":[],"organizations":[]}""", true))
+        mockMvc.perform(get("/user/favoriteProjects")).andExpect(status().isOk).andExpect(content().json("""{"projectIds":[],"projects":[]}""", true))
+        mockMvc.perform(get("/user/favoriteOrganizations")).andExpect(status().isOk).andExpect(content().json("""{"organizationIds":[],"organizations":[]}""", true))
         // 이슈 목록은 익명이면 NullPointerException으로 500이다(v1.6 익명의 favoriteIssues는 null)
-        mockMvc.perform(get("/-_-api/v1/favoriteIssues")).andExpect(status().isInternalServerError)
+        mockMvc.perform(get("/user/favoriteIssues")).andExpect(status().isInternalServerError)
         val session = login(newUser())
-        mockMvc.perform(post("/-_-api/v1/favoriteProjects/abc").session(session)).andExpect(status().isBadRequest)
-        mockMvc.perform(post("/-_-api/v1/favoriteProjects/999999").session(session)).andExpect(status().isBadRequest)
-        mockMvc.perform(post("/-_-api/v1/favoriteOrganizations/999999").session(session)).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/user/favoriteProjects/abc").session(session)).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/user/favoriteProjects/999999").session(session)).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/user/favoriteOrganizations/999999").session(session)).andExpect(status().isBadRequest)
     }
 }

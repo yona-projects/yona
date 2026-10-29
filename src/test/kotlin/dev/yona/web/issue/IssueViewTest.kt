@@ -229,7 +229,7 @@ class IssueViewTest : AbstractIntegrationTest() {
         assertEquals("false", doc.selectFirst("#issue-body-1 .content")!!.attr("data-allowed-update"))
         assertTrue(doc.select("#issue-body-1 .tasklist").isNotEmpty())
         assertEquals("본문 **굵게**", doc.selectFirst("#issue-1 textarea")!!.wholeText())
-        assertEquals("/-_-api/v1/owners/${project.owner}/projects/${project.name}/issues/1/content", doc.selectFirst("#issue-1 form")!!.attr("action"))
+        assertEquals("/${project.owner}/${project.name}/issue/1/content", doc.selectFirst("#issue-1 form")!!.attr("action"))
         assertTrue(doc.select("#attachments[data-attachments]").isNotEmpty())
         assertEquals(i.id.toString(), doc.selectFirst(".favorite-issue")!!.attr("data-issue-id"))
     }

@@ -53,7 +53,7 @@
                 <div th:if="${post.body.isEmpty()}" class="content empty-content"></div>
                 <th:block th:unless="${post.body.isEmpty()}">
                     <div th:id="'post-' + ${post.number}" class="hide">
-                        <form th:action="${'/-_-api/v1/owners/' + #paths.segment(project.owner) + '/projects/' + #paths.segment(project.name) + '/posts/' + post.number + '/content'}">
+                        <form th:action="${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/post/' + post.number + '/content'}">
                             <textarea th:text="${post.body}"></textarea>
                         </form>
                     </div>
@@ -188,7 +188,7 @@
         });
 
         $('.board-labels select').on('change', function(e){
-            var url = /*[[${'/-_-api/v1/owners/' + #paths.segment(project.owner) + '/projects/' + #paths.segment(project.name) + '/postlabel/' + post.number}]]*/ "";
+            var url = /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/post/' + post.number + '/label'}]]*/ "";
             $.ajax({
                 url: url,
                 method: "POST",
@@ -211,7 +211,7 @@
                 number: /*[[${#strings.toString(post.number)}]]*/ ""
             };
             $.ajax({
-                url: "/-_-api/v1/translation",
+                url: "/translation",
                 data: JSON.stringify(data),
                 type: "POST",
                 dataType: "json",
@@ -230,7 +230,7 @@
                 number: $(this).data("commentId")
             };
             $.ajax({
-                url: "/-_-api/v1/translation",
+                url: "/translation",
                 data: JSON.stringify(payload),
                 type: "POST",
                 dataType: "json",

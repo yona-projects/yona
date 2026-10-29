@@ -40,7 +40,7 @@ class IssueFormApiController(
 ) {
 
     /** 제목 머리말 자동 완성 후보이다. 검색어가 들어 있는 머리말 키워드와 프로젝트의 모든 라벨을 `{"result": [...]}`로 돌려준다. */
-    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/titleHeads")
+    @GetMapping("/{owner}/{projectName}/titleHeads")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun titleHeads(
@@ -66,7 +66,7 @@ class IssueFormApiController(
      * 프로젝트의 담당자 후보이다. 검색어가 없으면 "나에게 할당"과 담당할 수 있는 사용자, 있으면 활성 사용자 검색 결과(최대 10명)이다.
      * 비공개 프로젝트의 검색 결과는 프로젝트(와 조직) 구성원으로 좁힌다.
      */
-    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/assignableUsers")
+    @GetMapping("/{owner}/{projectName}/assignableUsers")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun assignableUsers(

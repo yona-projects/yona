@@ -42,7 +42,7 @@ class TranslationApiController(
 ) {
     private val mapper = JsonMapper.builder().build()
 
-    @PostMapping("/-_-api/v1/translation")
+    @PostMapping("/translation")
     @Transactional(readOnly = true)
     fun translate(request: HttpServletRequest): ResponseEntity<Any> {
         if (!properties.translationApiConfigured) return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body("Precondition Failed")

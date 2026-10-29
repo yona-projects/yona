@@ -76,7 +76,7 @@ class IssueApiController(
      * 이슈의 담당자 후보이다. 검색어가 없으면 "나에게 할당", 작성자, "담당자 없음", 현재 담당자, 담당할 수 있는 사용자 순이고,
      * 있으면 활성 사용자 검색 결과(최대 10명)이다.
      */
-    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignableUsers")
+    @GetMapping("/{owner}/{projectName}/issue/{number}/assignableUsers")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun assignableUsers(
@@ -118,7 +118,7 @@ class IssueApiController(
      * 담당자를 바꾼다. 본문은 `{"assignees": ["로그인아이디"]}`이다. 로그인 아이디가 비었거나 없는 사용자이면 담당자를 비운다.
      * 수정 권한이 없으면 아무것도 바꾸지 않고 이슈 주소만 돌려준다(v1.6과 같다).
      */
-    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignees")
+    @PostMapping("/{owner}/{projectName}/issue/{number}/assignees")
     @Transactional
     fun updateAssignees(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val json = body(request) ?: return message(HttpStatus.BAD_REQUEST, "Expecting Json data")
@@ -142,7 +142,7 @@ class IssueApiController(
     // --- 공유자 ---
 
     /** 로그인 아이디(쉼표로 구분)로 이슈의 공유자를 찾아 추가한 날짜 순으로 돌려준다. */
-    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/findSharer")
+    @GetMapping("/{owner}/{projectName}/issue/{number}/findSharer")
     @Transactional(readOnly = true)
     fun findSharer(
         @PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long,
@@ -157,7 +157,7 @@ class IssueApiController(
     }
 
     /** 공유할 수 있는 사용자(활성 사용자)와 공개 프로젝트를 이름으로 찾는다. 합쳐서 10개를 넘으면 각각 5개까지만 보이고 `Content-Range`를 붙인다. */
-    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/sharableUsers")
+    @GetMapping("/{owner}/{projectName}/issue/{number}/sharableUsers")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)
     fun sharableUsers(
@@ -184,7 +184,7 @@ class IssueApiController(
     }
 
     /** 공유자를 추가하거나 삭제한다. 본문은 `{"sharer": {"loginId", "type": "user|project"}, "action": "add|delete"}`이다. */
-    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/share")
+    @PostMapping("/{owner}/{projectName}/issue/{number}/share")
     @Transactional
     fun updateSharer(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val json = body(request) ?: return message(HttpStatus.BAD_REQUEST, "Expecting Json data")
@@ -210,11 +210,11 @@ class IssueApiController(
 
     // --- 가중치 ---
 
-    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/upvoteWeight")
+    @PostMapping("/{owner}/{projectName}/issue/{number}/upvoteWeight")
     @Transactional
     fun upvoteWeight(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long): Any = weight(owner, projectName, number, 1)
 
-    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/downvoteWeight")
+    @PostMapping("/{owner}/{projectName}/issue/{number}/downvoteWeight")
     @Transactional
     fun downvoteWeight(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long): Any = weight(owner, projectName, number, -1)
 
@@ -228,7 +228,7 @@ class IssueApiController(
     // --- 변경 감지 ---
 
     /** 열려 있는 이슈 화면이 주기적으로 부르는 변경 감지이다. 본문 체크섬과 댓글 수를 비교해 결과를 돌려준다. */
-    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/detectChange")
+    @PostMapping("/{owner}/{projectName}/issue/{number}/detectChange")
     @Transactional(readOnly = true)
     fun detectChange(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val viewer = currentUserProvider.get().user ?: return message(HttpStatus.UNAUTHORIZED, "unauthorized request")
@@ -257,7 +257,7 @@ class IssueApiController(
      * 댓글을 쓰는 중에 알림을 받을 사용자를 미리 보여 준다. 본문: `{"comment", "parentCommentId"}`(한 줄 댓글이면 부모 댓글 번호).
      * 응답: `{"receivers": [사용자 노드]}`. v1.6은 권한을 확인하지 않는다.
      */
-    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/commentNotiReceivers")
+    @PostMapping("/{owner}/{projectName}/issue/{number}/commentNotiReceivers")
     @Transactional(readOnly = true)
     fun commentNotiReceivers(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val json = body(request) ?: return message(HttpStatus.BAD_REQUEST, "Expecting Json data")
@@ -274,7 +274,7 @@ class IssueApiController(
     // --- 본문, 댓글 갱신 ---
 
     /** 체크리스트 갱신으로 이슈 본문을 바꾼다. 본문: `{"content", "original"}`. `original`이 저장된 본문과 다르면 `409`이다. */
-    @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/content")
+    @PatchMapping("/{owner}/{projectName}/issue/{number}/content")
     @Transactional
     fun updateIssueContent(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val viewer = currentUserProvider.get().user ?: return message(HttpStatus.UNAUTHORIZED, "unauthorized request")
@@ -294,7 +294,7 @@ class IssueApiController(
     ): Any = replaceComment(owner, projectName, number, commentId, request)
 
     /** 외부 API용 같은 처리이다. */
-    @PutMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId}")
+    @PutMapping("/{owner}/{projectName}/issue/{number}/comments/{commentId}")
     @Transactional
     fun updateIssueCommentByApi(
         @PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable commentId: Long, request: HttpServletRequest

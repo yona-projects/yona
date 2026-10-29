@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
 
 /**
- * 구성원 추가 입력란의 자동 완성이 쓰는 사용자 검색(`GET /-_-api/v1/users`)을 검증한다.
+ * 구성원 추가 입력란의 자동 완성이 쓰는 사용자 검색(`GET /users`)을 검증한다.
  *
  * 원본: `app/controllers/UserApp.java:86-123`.
  */
@@ -38,7 +38,7 @@ class UserApiTest : AbstractIntegrationTest() {
 
     private fun search(query: String?, referer: String? = "http://localhost/o/p/members", accept: String? = "application/json") =
         mockMvc.perform(
-            get("/-_-api/v1/users").apply { query?.let { param("query", it) } }
+            get("/users").apply { query?.let { param("query", it) } }
                 .apply { referer?.let { header(HttpHeaders.REFERER, it) } }.apply { accept?.let { accept(it) } }
         )
 

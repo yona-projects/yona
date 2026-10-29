@@ -33,7 +33,7 @@ class FavoriteApiController(
     private val messages: MessageSource
 ) {
 
-    @PostMapping("/-_-api/v1/favoriteIssues/{issueId}")
+    @PostMapping("/user/favoriteIssues/{issueId}")
     @ResponseBody
     @Transactional
     fun toggle(@PathVariable issueId: String): ResponseEntity<Any> {
@@ -45,7 +45,7 @@ class FavoriteApiController(
     }
 
     /** 내 즐겨찾기 이슈의 번호, 제목, 작성자 이름을 돌려준다. */
-    @GetMapping("/-_-api/v1/favoriteIssues")
+    @GetMapping("/user/favoriteIssues")
     @ResponseBody
     @Transactional(readOnly = true)
     fun list(): ResponseEntity<Any> {
@@ -60,7 +60,7 @@ class FavoriteApiController(
     }
 
     /** 프로젝트 즐겨찾기를 뒤집고 `{projectId, favored}`를 돌려준다. 끄면 그 프로젝트의 최근 방문 기록도 지운다. */
-    @PostMapping("/-_-api/v1/favoriteProjects/{projectId}")
+    @PostMapping("/user/favoriteProjects/{projectId}")
     @ResponseBody
     @Transactional
     fun toggleProject(@PathVariable projectId: String): ResponseEntity<Any> {
@@ -71,7 +71,7 @@ class FavoriteApiController(
     }
 
     /** 내 즐겨찾기 프로젝트의 번호, 이름, 소유자를 돌려준다. */
-    @GetMapping("/-_-api/v1/favoriteProjects")
+    @GetMapping("/user/favoriteProjects")
     @ResponseBody
     @Transactional(readOnly = true)
     fun projects(): ResponseEntity<Any> {
@@ -83,7 +83,7 @@ class FavoriteApiController(
     }
 
     /** 조직 즐겨찾기를 뒤집고 `{organizationId, favored}`를 돌려준다. */
-    @PostMapping("/-_-api/v1/favoriteOrganizations/{organizationId}")
+    @PostMapping("/user/favoriteOrganizations/{organizationId}")
     @ResponseBody
     @Transactional
     fun toggleOrganization(@PathVariable organizationId: String): ResponseEntity<Any> {
@@ -94,7 +94,7 @@ class FavoriteApiController(
     }
 
     /** 내 즐겨찾기 조직의 번호와 이름을 돌려준다. */
-    @GetMapping("/-_-api/v1/favoriteOrganizations")
+    @GetMapping("/user/favoriteOrganizations")
     @ResponseBody
     @Transactional(readOnly = true)
     fun organizations(): ResponseEntity<Any> {

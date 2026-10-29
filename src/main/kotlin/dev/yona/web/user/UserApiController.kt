@@ -28,7 +28,7 @@ class UserApiController(
      * 구성원 추가 입력란의 자동 완성에 쓰는 검색이다. 구성원 화면(`.../members`)에서 JSON을 받겠다고 부른 요청에만 답한다.
      * 최대 10명이고 더 있으면 `Content-Range: items 10/전체`를 붙인다. 항목은 아바타, 이름, 아이디를 담은 HTML 조각(`info`)과 `loginId`이다.
      */
-    @GetMapping("/-_-api/v1/users")
+    @GetMapping("/users")
     fun search(@RequestParam(name = "query", defaultValue = "") query: String, request: HttpServletRequest): ResponseEntity<*> {
         val referer = request.getHeader(HttpHeaders.REFERER).orEmpty()
         val acceptsJson = request.getHeader(HttpHeaders.ACCEPT)?.let { it.contains("application/json") || it.contains("*/*") || it.contains("application/*") } ?: true

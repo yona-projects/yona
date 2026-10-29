@@ -54,7 +54,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * 구독(`POST /watch`, `/unwatch`)과 즐겨찾기 토글(`POST /-_-api/v1/favoriteIssues/:id`)을 검증한다.
+ * 구독(`POST /watch`, `/unwatch`)과 즐겨찾기 토글(`POST /user/favoriteIssues/:id`)을 검증한다.
  *
  * 원본: `app/controllers/WatchApp.java`, `app/models/Watch.java`, `app/controllers/api/UserApi.java:92-126`, `app/models/User.java:1072-1100`.
  */
@@ -177,10 +177,10 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
     fun `즐겨찾기를 켜고 끈다`() {
         val project = newProject(); val i = issue(project); val user = newUser()
         val session = login(user)
-        mockMvc.perform(post("/-_-api/v1/favoriteIssues/${i.id}").session(session)).andExpect(status().isOk)
+        mockMvc.perform(post("/user/favoriteIssues/${i.id}").session(session)).andExpect(status().isOk)
             .andExpect(jsonPath("$.issueId").value(i.id.toString())).andExpect(jsonPath("$.favored").value(true)).andExpect(jsonPath("$.message").value("Added as a favorite issue. See it on the My Issues page"))
         assertEquals(1, favorites.count())
-        mockMvc.perform(post("/-_-api/v1/favoriteIssues/${i.id}").session(session)).andExpect(jsonPath("$.favored").value(false)).andExpect(jsonPath("$.message").value("Removed from favorite issues"))
+        mockMvc.perform(post("/user/favoriteIssues/${i.id}").session(session)).andExpect(jsonPath("$.favored").value(false)).andExpect(jsonPath("$.message").value("Removed from favorite issues"))
         assertEquals(0, favorites.count())
     }
 
@@ -188,13 +188,13 @@ class WatchAndFavoriteTest : AbstractIntegrationTest() {
     fun `즐겨찾기 목록을 돌려준다`() {
         val project = newProject(); val a = issue(project, "첫 이슈"); val user = newUser()
         val session = login(user)
-        mockMvc.perform(post("/-_-api/v1/favoriteIssues/${a.id}").session(session))
-        mockMvc.perform(get("/-_-api/v1/favoriteIssues").session(session)).andExpect(status().isOk)
+        mockMvc.perform(post("/user/favoriteIssues/${a.id}").session(session))
+        mockMvc.perform(get("/user/favoriteIssues").session(session)).andExpect(status().isOk)
             .andExpect(jsonPath("$.projectIds[0]").value(a.id)).andExpect(jsonPath("$.projects[0].issueTitle").value("첫 이슈")).andExpect(jsonPath("$.projects[0].issueId").value(a.id))
     }
 
     @Test
     fun `숫자가 아닌 번호는 400이다`() {
-        mockMvc.perform(post("/-_-api/v1/favoriteIssues/abc").session(login(newUser()))).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/user/favoriteIssues/abc").session(login(newUser()))).andExpect(status().isBadRequest)
     }
 }

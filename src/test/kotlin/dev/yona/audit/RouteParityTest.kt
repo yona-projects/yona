@@ -53,6 +53,7 @@ class RouteParityTest : AbstractIntegrationTest() {
          * 의도해서 매핑하지 않는 항목이다.
          * - `/assets/` 아래 모든 경로(GET): `AssetFilter`가 디스패처 앞에서 맡는다.
          * - `/svn/` 아래 모든 경로: 컨트롤러가 아니라 `SvnDavFilter`가 처리한다(WebDAV 메서드를 디스패처가 501로 거부한다, A-98).
+         * - `/-_-api/v1` 아래의 웹 화면 AJAX 24개: X-5(D-36)가 일반 웹 경로 이름으로 옮겼다.
          * - `POST .../pullRequest/:number/review`, `.../unreview`: 추가 개발 항목 X-12(`decisions.md` D-35 14번)가 GitHub 방식의 리뷰 경로
          *   (`.../reviews`, `.../reviews/:reviewId/dismissals`)로 대체해 의도해서 없앴다.
          */
@@ -60,6 +61,31 @@ class RouteParityTest : AbstractIntegrationTest() {
             "GET /assets/{}",
             "GET /svn/{}", "POST /svn/{}", "PUT /svn/{}", "DELETE /svn/{}", "HEAD /svn/{}", "OPTIONS /svn/{}",
             "POST /{}/{}/pullRequest/{}/review", "POST /{}/{}/pullRequest/{}/unreview",
+            // X-5(D-36): 웹 화면 AJAX 24개를 `/-_-api/v1`(토큰 전용 외부 API)에서 일반 웹 경로 이름으로 옮겼다
+            "GET /-_-api/v1/favoriteIssues",
+            "GET /-_-api/v1/favoriteOrganizations",
+            "GET /-_-api/v1/favoriteProjects",
+            "GET /-_-api/v1/owners/{}/projects/{}/assignableUsers",
+            "GET /-_-api/v1/owners/{}/projects/{}/issues/{}/assignableUsers",
+            "GET /-_-api/v1/owners/{}/projects/{}/issues/{}/findSharer",
+            "GET /-_-api/v1/owners/{}/projects/{}/issues/{}/sharableUsers",
+            "GET /-_-api/v1/owners/{}/projects/{}/titleHeads",
+            "GET /-_-api/v1/users",
+            "PATCH /-_-api/v1/owners/{}/projects/{}/issues/{}/content",
+            "PATCH /-_-api/v1/owners/{}/projects/{}/posts/{}/content",
+            "POST /-_-api/v1/favoriteIssues/{}",
+            "POST /-_-api/v1/favoriteOrganizations/{}",
+            "POST /-_-api/v1/favoriteProjects/{}",
+            "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/assignees",
+            "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/commentNotiReceivers",
+            "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/detectChange",
+            "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/downvoteWeight",
+            "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/share",
+            "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/upvoteWeight",
+            "POST /-_-api/v1/owners/{}/projects/{}/postlabel/{}",
+            "POST /-_-api/v1/translation",
+            "POST /-_-api/v1/user/defultLoginPage",
+            "PUT /-_-api/v1/owners/{}/projects/{}/issues/{}/comments/{}",
         )
 
         /** 아직 이식하지 못한 항목. */

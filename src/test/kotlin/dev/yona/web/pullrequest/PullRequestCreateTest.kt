@@ -314,7 +314,7 @@ class PullRequestCreateTest : AbstractIntegrationTest() {
         val s = withMemberOwner(); label(s.origin, "bug")
         val doc = page("/${s.fork.owner}/${s.fork.name}/newPullRequestForm", login(s.owner))
         assertNotNull(doc.selectFirst("input#assignee[name=assigneeLoginId]")); assertTrue(doc.select("select#labelIds option").any { it.text() == "bug" })
-        assertEquals("/-_-api/v1/owners/${s.origin.owner}/projects/${s.origin.name}/assignableUsers", doc.selectFirst("#pr-meta")!!.attr("data-candidates-url"))
+        assertEquals("/${s.origin.owner}/${s.origin.name}/assignableUsers", doc.selectFirst("#pr-meta")!!.attr("data-candidates-url"))
         // v1.6 이슈 작성 폼과 같은 배치: 제목, 본문은 왼쪽 span9, 담당자와 라벨은 오른쪽 span3 열(세로로 쌓음)
         assertNotNull(doc.selectFirst(".row-fluid > .span9.span-left-pane #title")); assertNotNull(doc.selectFirst(".row-fluid > .span9.span-left-pane textarea[name=body]"))
         assertNotNull(doc.selectFirst(".row-fluid > .span3.span-hard-wrap.right-menu #pr-meta #assignee")); assertNotNull(doc.selectFirst(".span3.right-menu #labelIds"))

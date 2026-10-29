@@ -222,7 +222,7 @@ class ProjectMemberTest : AbstractIntegrationTest() {
         val project = newProject()
         val manager = join(newUser(), project, RoleType.MANAGER)
         val script = membersPage(project, login(manager)).select("script").map { it.data().replace("\\/", "/") }.first { "project.Member" in it }
-        assertTrue("\"sActionURL\"" in script && "/-_-api/v1/users" in script, script)
+        assertTrue("\"sActionURL\"" in script && "/users" in script, script)
     }
 
     // --- 추가 ---

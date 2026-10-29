@@ -112,7 +112,9 @@ class IssueApiTest : AbstractIntegrationTest() {
         )
     )
 
-    private fun api(project: Project, path: String) = "/-_-api/v1/owners/${project.owner}/projects/${project.name}/$path"
+    /** 일반 웹 경로 이름으로 옮긴 AJAX 주소이다(X-5, D-36). 시험이 쓰던 옛 `owners/.../projects/...` 꼬리(`issues/1/...`, `postlabel/1`, `posts/1/content`)를 새 주소로 바꾼다. */
+    private fun api(project: Project, path: String) = "/${project.owner}/${project.name}/" +
+        path.replaceFirst(Regex("^issues/"), "issue/").replace(Regex("^postlabel/(\\d+)"), "post/$1/label").replace(Regex("^posts/(\\d+)/content"), "post/$1/content")
 
     private fun json(builder: org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder, session: MockHttpSession?, body: String?) =
         mockMvc.perform(builder.apply { session?.let { session(it) } }.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).apply { body?.let { content(it) } })
@@ -173,7 +175,7 @@ class IssueApiTest : AbstractIntegrationTest() {
         project.name = "한글 프로젝트"; projects.save(project)
         val member = join(newUser(), project)
         issue(project, author = member)
-        json(post("/-_-api/v1/owners/{o}/projects/{p}/issues/1/assignees", project.owner, project.name), login(member), """{"assignees":[""]}""").andExpect(status().isOk)
+        json(post("/{o}/{p}/issue/1/assignees", project.owner, project.name), login(member), """{"assignees":[""]}""").andExpect(status().isOk)
             .andExpect(jsonPath("$.issue").value("/${project.owner}/%ED%95%9C%EA%B8%80%20%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8/issue/1"))
     }
 
@@ -343,7 +345,7 @@ class IssueApiTest : AbstractIntegrationTest() {
 
     @Test
     fun `번역 API를 설정하지 않았으면 412이다`() {
-        mockMvc.perform(post("/-_-api/v1/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"a","projectName":"b","type":"issue","number":1}"""))
+        mockMvc.perform(post("/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"a","projectName":"b","type":"issue","number":1}"""))
             .andExpect(status().isPreconditionFailed).andExpect(content().string("Precondition Failed"))
     }
 

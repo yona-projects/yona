@@ -55,7 +55,7 @@ class HomeController(
      *
      * @param path 저장할 경로. 앞의 `/`를 뺀 값이다 (예: `notifications`)
      */
-    @PostMapping("/-_-api/v1/user/defultLoginPage")
+    @PostMapping("/user/defultLoginPage")
     @ResponseBody
     fun setDefaultLoginPage(request: jakarta.servlet.http.HttpServletRequest): Map<String, String?> {
         // v1.6은 `request().getQueryString("path")`라 쿼리 문자열만 본다(폼 본문의 `path`는 무시한다)

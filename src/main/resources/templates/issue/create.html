@@ -126,14 +126,14 @@
         }
 
         yonaAssgineeModule(
-                /*[[${'/-_-api/v1/owners/' + #paths.segment(project.owner) + '/projects/' + #paths.segment(project.name) + '/assignableUsers'}]]*/ "",
+                /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/assignableUsers'}]]*/ "",
                 "",
                 /*[[#{issue.assignee}]]*/ ""
         );
 
         yonaTitleHeadModule({
             "target": 'input[id=title]',
-            "url"   : /*[[${'/-_-api/v1/owners/' + #paths.segment(project.owner) + '/projects/' + #paths.segment(project.name) + '/titleHeads'}]]*/ ""
+            "url"   : /*[[${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/titleHeads'}]]*/ ""
         });
 
         $('#button-save').on('click', function(){

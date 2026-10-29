@@ -65,7 +65,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * 번역 API(`POST /-_-api/v1/translation`)를 검증한다. 번역 서비스 호출은 [TranslationClient]를 대체해 확인한다.
+ * 번역 API(`POST /translation`)를 검증한다. 번역 서비스 호출은 [TranslationClient]를 대체해 확인한다.
  *
  * 원본: `app/controllers/api/IssueApi.java:977-1004`.
  */
@@ -97,7 +97,7 @@ class TranslationApiTest : AbstractIntegrationTest() {
         val project = projects.save(Project(owner = "tro", name = "trp", vcs = "GIT", projectScope = ProjectScope.PUBLIC, lastIssueNumber = 1))
         issues.save(Issue(project = project, number = 1, title = "제목", body = "본문 & 끝", state = State.OPEN, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date()))
         org.mockito.Mockito.doReturn("**Translated**").`when`(client).translateLines(org.mockito.ArgumentMatchers.anyList())
-        mockMvc.perform(post("/-_-api/v1/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro","projectName":"trp","type":"issue","number":1}"""))
+        mockMvc.perform(post("/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro","projectName":"trp","type":"issue","number":1}"""))
             .andExpect(status().isOk).andExpect(jsonPath("$.translated").value(org.hamcrest.Matchers.containsString("<strong>Translated</strong>")))
         // 번역 서비스에는 `&`를 `%26`으로 바꾼 줄 목록이 간다(v1.6과 같다).
         org.mockito.Mockito.verify(client).translateLines(listOf("Title: 제목", "", "본문 %26 끝"))
@@ -108,7 +108,7 @@ class TranslationApiTest : AbstractIntegrationTest() {
         val project = projects.save(Project(owner = "tro2", name = "trp2", vcs = "GIT", projectScope = ProjectScope.PUBLIC, lastIssueNumber = 1))
         issues.save(Issue(project = project, number = 1, title = "제목", body = "본문\r\n\r\n", state = State.OPEN, numOfComments = 0, weight = 0, createdDate = Date(), updatedDate = Date()))
         org.mockito.Mockito.doReturn("x").`when`(client).translateLines(org.mockito.ArgumentMatchers.anyList())
-        mockMvc.perform(post("/-_-api/v1/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":1}"""))
+        mockMvc.perform(post("/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":1}"""))
             .andExpect(status().isOk)
         org.mockito.Mockito.verify(client).translateLines(listOf("Title: 제목", "", "본문"))
     }
@@ -116,9 +116,9 @@ class TranslationApiTest : AbstractIntegrationTest() {
     @Test
     fun `없는 대상은 404이고 로그인하지 않으면 거절한다`() {
         val project = projects.save(Project(owner = "tro2", name = "trp2", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
-        mockMvc.perform(post("/-_-api/v1/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":9}"""))
+        mockMvc.perform(post("/translation").session(login(newUser())).contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":9}"""))
             .andExpect(status().isNotFound)
-        mockMvc.perform(post("/-_-api/v1/translation").contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":9}""")).andExpect(status().is3xxRedirection)
+        mockMvc.perform(post("/translation").contentType(MediaType.APPLICATION_JSON).content("""{"owner":"tro2","projectName":"trp2","type":"issue","number":9}""")).andExpect(status().is3xxRedirection)
         org.junit.jupiter.api.Assertions.assertNotNull(project.id)
     }
 }

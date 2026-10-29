@@ -195,7 +195,7 @@ class HomePageTest : AbstractIntegrationTest() {
     @Test
     fun `기본 로그인 페이지를 저장하면 JSON으로 알려 준다`() {
         val (session, user) = login("home7")
-        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").session(session).queryParam("path", "user/issues"))
+        mockMvc.perform(post("/user/defultLoginPage").session(session).queryParam("path", "user/issues"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.defaultLoginPage").value("user/issues"))
         assertEquals("user/issues", settings.findByUserId(user.id!!)?.loginDefaultPage)
@@ -204,7 +204,7 @@ class HomePageTest : AbstractIntegrationTest() {
     @Test
     fun `폼 본문의 path는 무시한다 (v1_6은 쿼리 문자열만 읽는다)`() {
         val (session, user) = login("home7b")
-        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").session(session).param("path", "user/issues"))
+        mockMvc.perform(post("/user/defultLoginPage").session(session).param("path", "user/issues"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.defaultLoginPage").doesNotExist())
         assertNull(settings.findByUserId(user.id!!)?.loginDefaultPage)
@@ -213,9 +213,9 @@ class HomePageTest : AbstractIntegrationTest() {
     @Test
     fun `로그인하지 않아도 200 JSON으로 알려 주고 저장은 하지 않는다 (공식 v1_16_0 실행 확인)`() {
         val before = settings.findAll().size
-        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").queryParam("path", "issues"))
+        mockMvc.perform(post("/user/defultLoginPage").queryParam("path", "issues"))
             .andExpect(status().isOk).andExpect(jsonPath("$.defaultLoginPage").value("issues"))
-        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage"))
+        mockMvc.perform(post("/user/defultLoginPage"))
             .andExpect(status().isOk).andExpect(jsonPath("$.defaultLoginPage").value(org.hamcrest.Matchers.nullValue()))
         assertEquals(before, settings.findAll().size)
     }
@@ -224,7 +224,7 @@ class HomePageTest : AbstractIntegrationTest() {
     fun `이미 설정이 있으면 값을 갱신한다`() {
         val (session, user) = login("home8")
         settings.save(UserSetting(user = user, loginDefaultPage = "old"))
-        mockMvc.perform(post("/-_-api/v1/user/defultLoginPage").session(session).queryParam("path", "new"))
+        mockMvc.perform(post("/user/defultLoginPage").session(session).queryParam("path", "new"))
         assertEquals("new", settings.findByUserId(user.id!!)?.loginDefaultPage)
         assertEquals(1, settings.findAll().count { it.user?.id == user.id })
     }

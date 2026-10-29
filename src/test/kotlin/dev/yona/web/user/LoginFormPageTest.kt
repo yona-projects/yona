@@ -171,11 +171,11 @@ class LoginFormPageTest : AbstractIntegrationTest() {
     @Test
     fun `사용자 메뉴 스크립트에 필요한 URL 변수가 선언된다`() {
         val html = page().html()
-        assertEquals("/-_-api/v1/favoriteProjects/", scriptVariable(html, "UsermenuToggleFavoriteProjectUrl"))
-        assertEquals("/-_-api/v1/favoriteOrganizations/", scriptVariable(html, "UsermenuToggleFoveriteOrganizationUrl"))
-        assertEquals("/-_-api/v1/favoriteProjects", scriptVariable(html, "UsermenuGetFoveriteProjectsUrl"))
-        assertEquals("/-_-api/v1/favoriteIssues/", scriptVariable(html, "UsermenuToggleFavoriteIssueUrl"))
-        assertEquals("/-_-api/v1/favoriteIssues", scriptVariable(html, "UsermenuGetFoveriteIssuesUrl"))
+        assertEquals("/user/favoriteProjects/", scriptVariable(html, "UsermenuToggleFavoriteProjectUrl"))
+        assertEquals("/user/favoriteOrganizations/", scriptVariable(html, "UsermenuToggleFoveriteOrganizationUrl"))
+        assertEquals("/user/favoriteProjects", scriptVariable(html, "UsermenuGetFoveriteProjectsUrl"))
+        assertEquals("/user/favoriteIssues/", scriptVariable(html, "UsermenuToggleFavoriteIssueUrl"))
+        assertEquals("/user/favoriteIssues", scriptVariable(html, "UsermenuGetFoveriteIssuesUrl"))
         assertEquals("/user/usermenuTabContentList", scriptVariable(html, "UsermenuUrl"))
     }
 

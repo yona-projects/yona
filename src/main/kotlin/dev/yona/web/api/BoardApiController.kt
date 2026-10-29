@@ -52,7 +52,7 @@ class BoardApiController(
      * 글의 라벨을 본문의 번호 배열(`["1","2"]`)로 바꾸고 `{"id": 소유자, "labels": 개수}`를 돌려준다.
      * v1.6은 권한을 확인하지 않았으나 화면은 수정할 수 있는 사용자에게만 선택기를 보이므로 수정 권한을 요구한다([decisions.md] A-24).
      */
-    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/postlabel/{number}")
+    @PostMapping("/{owner}/{projectName}/post/{number}/label")
     @Transactional
     fun updatePostLabel(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val json = body(request) ?: return ResponseEntity.badRequest().body("Expecting Json data")
@@ -68,7 +68,7 @@ class BoardApiController(
     }
 
     /** 체크리스트 갱신으로 글 본문을 바꾼다. 본문: `{"content", "original"}`. `original`이 저장된 본문과 다르면 `409`이다. */
-    @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/content")
+    @PatchMapping("/{owner}/{projectName}/post/{number}/content")
     @Transactional
     fun updatePostingContent(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val viewer = currentUserProvider.get().user ?: return message(HttpStatus.UNAUTHORIZED, "unauthorized request")

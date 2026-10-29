@@ -175,7 +175,7 @@ class BoardViewTest : AbstractIntegrationTest() {
         val project = newProject(); val author = join(newUser(), project)
         post(project, author, body = "- [ ] a")
         val doc = doc(project, session = login(author))
-        assertEquals("/-_-api/v1/owners/${project.owner}/projects/${project.name}/posts/1/content", doc.selectFirst("#post-1 form")!!.attr("action"))
+        assertEquals("/${project.owner}/${project.name}/post/1/content", doc.selectFirst("#post-1 form")!!.attr("action"))
         assertEquals("- [ ] a", doc.selectFirst("#post-1 textarea")!!.text())
         assertEquals("true", doc.selectFirst("#post-body-1 .markdown-wrap")!!.attr("data-allowed-update"))
         assertEquals("false", doc(project, session = login(newUser())).selectFirst("#post-body-1 .markdown-wrap")!!.attr("data-allowed-update"))

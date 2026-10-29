@@ -91,6 +91,31 @@ class RouteCoverageTest : AbstractIntegrationTest() {
     companion object {
         /** 스프링 핸들러 매핑 밖에서 서블릿 필터가 받는 v1.6 라우트이다. */
         val FILTER_HANDLED: Set<String> = setOf(
+            // 추가 항목 X-5(D-36): `/-_-api/v1`을 토큰 전용 외부 API로 만들면서 웹 화면이 세션으로 부르던 AJAX 24개를 일반 웹 경로 이름으로 옮겼다(의도해서 없앤 v1.6 주소).
+            "PATCH /-_-api/v1/owners/:owner/projects/:projectName/posts/:number/content",
+            "POST /-_-api/v1/owners/:owner/projects/:projectName/postlabel/:number",
+            "POST /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/commentNotiReceivers",
+            "PUT /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/comments/:commentId",
+            "GET /-_-api/v1/favoriteProjects",
+            "POST /-_-api/v1/favoriteProjects/:projectId",
+            "GET /-_-api/v1/favoriteOrganizations",
+            "POST /-_-api/v1/favoriteOrganizations/:organizationId",
+            "GET /-_-api/v1/favoriteIssues",
+            "POST /-_-api/v1/favoriteIssues/:issueId",
+            "GET /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/assignableUsers",
+            "GET /-_-api/v1/owners/:owner/projects/:projectName/assignableUsers",
+            "POST /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/assignees",
+            "GET /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/findSharer",
+            "GET /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/sharableUsers",
+            "POST /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/share",
+            "POST /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/upvoteWeight",
+            "POST /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/downvoteWeight",
+            "POST /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/detectChange",
+            "PATCH /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/content",
+            "GET /-_-api/v1/users",
+            "GET /-_-api/v1/owners/:owner/projects/:projectName/titleHeads",
+            "POST /-_-api/v1/user/defultLoginPage",
+            "POST /-_-api/v1/translation",
             // 추가 개발 항목 X-12(D-35 14번)가 GitHub 방식의 리뷰 경로로 대체해 의도해서 없앤 v1.6 경로이다(필터가 받는 것은 아니다)
             "POST /:user/:project/pullRequest/:number/review", "POST /:user/:project/pullRequest/:number/unreview",
             // 매핑이 없는 주소는 `GlobalErrorHandler.notFound`가 끝 슬래시를 떼어 이동하거나 404를 낸다(`TrailingSlashRedirectTest`)

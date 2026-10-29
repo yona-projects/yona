@@ -192,7 +192,7 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         val pane = d.selectFirst(".board-body.row-fluid > .span3.span-right-pane #pr-meta")!!
         assertEquals("${s.url}/assignees", pane.attr("data-assignees-url")); assertEquals("${s.url}/labels", pane.attr("data-labels-url"))
         assertEquals("${s.url}/timeline", pane.attr("data-timeline-url"))
-        assertEquals("/-_-api/v1/owners/${s.origin.owner}/projects/${s.origin.name}/assignableUsers", pane.attr("data-candidates-url"))
+        assertEquals("/${s.origin.owner}/${s.origin.name}/assignableUsers", pane.attr("data-candidates-url"))
         val assignee = pane.selectFirst("input#assignee[name=assigneeLoginId]")!!
         assertEquals(s.member.loginId, assignee.attr("value")); assertEquals(s.member.name, assignee.attr("data-name"))
         val labelSelect = pane.selectFirst("select#labelIds[name=labelIds]")!!

@@ -107,9 +107,9 @@ class MigrationPageTest : AbstractIntegrationTest() {
     fun `즐겨찾기 호출 주소는 v1_6처럼 문자열 뒤에 번호를 이어 붙인다`() {
         val (_, session) = login()
         val html = mockMvc.perform(get("/migration").session(session)).andReturn().response.contentAsString
-        assertTrue(html.contains("""$.post("/-_-api/v1/favoriteProjects/" + that.data("projectId"))"""), "프로젝트 즐겨찾기")
-        assertTrue(html.contains("""$.post("/-_-api/v1/favoriteOrganizations/" + that.data("organizationId"))"""), "조직 즐겨찾기")
-        assertTrue(html.contains("""$.get("/-_-api/v1/favoriteProjects")"""), "즐겨찾기 목록")
+        assertTrue(html.contains("""$.post("/user/favoriteProjects/" + that.data("projectId"))"""), "프로젝트 즐겨찾기")
+        assertTrue(html.contains("""$.post("/user/favoriteOrganizations/" + that.data("organizationId"))"""), "조직 즐겨찾기")
+        assertTrue(html.contains("""$.get("/user/favoriteProjects")"""), "즐겨찾기 목록")
         assertEquals("/favicon.ico", Jsoup.parse(html).selectFirst("link[rel=shortcut icon]")!!.attr("href"))
     }
 }

@@ -53,7 +53,7 @@ class PullRequestMetaAssembler(
     fun assignee(pullRequest: PullRequest, viewer: User?, canEdit: Boolean): PullRequestAssigneeArea {
         val project = requireNotNull(pullRequest.toProject)
         val base = siteUrls.path("${UrlPaths.projectPath(project.owner, project.name)}/pullRequest/${pullRequest.number}")
-        val candidates = siteUrls.path("/-_-api/v1/owners/${UrlPaths.encode(project.owner.orEmpty())}/projects/${UrlPaths.encode(project.name.orEmpty())}/assignableUsers")
+        val candidates = siteUrls.path("/${UrlPaths.encode(project.owner.orEmpty())}/${UrlPaths.encode(project.name.orEmpty())}/assignableUsers")
         return PullRequestAssigneeArea(canEdit, "$base/assignees", candidates, "$base/timeline", pullRequest.assignees.firstOrNull()?.let { view(it, viewer) })
     }
 
@@ -71,7 +71,7 @@ class PullRequestMetaAssembler(
 
     /** 생성 폼의 담당자 영역이다. 아직 풀 리퀘스트가 없으므로 후보 검색 주소만 있다(고른 값은 폼과 함께 보낸다). */
     fun formAssignee(project: dev.yona.domain.project.Project): PullRequestAssigneeArea =
-        PullRequestAssigneeArea(true, "", siteUrls.path("/-_-api/v1/owners/${UrlPaths.encode(project.owner.orEmpty())}/projects/${UrlPaths.encode(project.name.orEmpty())}/assignableUsers"), "", null)
+        PullRequestAssigneeArea(true, "", siteUrls.path("/${UrlPaths.encode(project.owner.orEmpty())}/${UrlPaths.encode(project.name.orEmpty())}/assignableUsers"), "", null)
 
     /** 생성 폼의 라벨 영역이다. 받는 프로젝트의 라벨을 고르게 하고 아무것도 골라져 있지 않다. */
     fun formLabels(project: dev.yona.domain.project.Project): PullRequestLabelArea {
