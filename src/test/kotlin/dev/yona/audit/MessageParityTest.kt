@@ -21,15 +21,24 @@ class MessageParityTest {
     private fun snapshot(tag: String): Set<String> =
         javaClass.getResourceAsStream("/audit/v16-messages-$tag.txt")!!.bufferedReader(Charsets.UTF_8).readLines().filter { it.isNotBlank() }.toSet()
 
+    /**
+     * v1.6에 없고 추가 개발 항목(D-28)에서 일부러 더한 키이다. 키를 더할 때는 `decisions.md`에 근거를 적고 여기에도 올린다.
+     * 모든 언어 번들에 이 키들이 있어야 한다(없으면 영어로 대체되는 키가 생긴다).
+     * - X-18 Git 태그 화면(D-30): 태그 탭과 태그 화면의 글
+     */
+    private val addedKeys = setOf(
+        "title.tags", "code.tags.annotated", "code.tags.lightweight", "code.tags.notCommit", "code.tags.empty", "code.tags.deleteConfirm"
+    )
+
     @Test
-    fun `언어별 번들의 키는 v1_6과 같다`() {
+    fun `언어별 번들의 키는 v1_6과 같고 추가한 키만 더 있다`() {
         mapOf(
             "default" to "messages.properties", "ja_JP" to "messages_ja_JP.properties", "ko_KR" to "messages_ko_KR.properties",
             "ru_RU" to "messages_ru_RU.properties", "uz_UZ" to "messages_uz_UZ.properties"
         ).forEach { (tag, file) ->
             val v16 = snapshot(tag); val v2 = bundleKeys(file)
             assertEquals(emptySet(), v16 - v2, "$file: v1.6에 있고 v2에 없는 키")
-            assertEquals(emptySet(), v2 - v16, "$file: v2에만 있는 키")
+            assertEquals(addedKeys, v2 - v16, "$file: v2에만 있는 키는 의도적으로 더한 키와 같아야 한다")
         }
     }
 
