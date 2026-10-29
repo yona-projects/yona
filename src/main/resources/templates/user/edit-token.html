@@ -11,6 +11,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::tokenPage})}">
 <th:block th:fragment="tokenPage">
+<style th:replace="~{user/partial-token-form :: tokenStyle}"></style>
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
         <h3 th:text="#{apiToken.title}"></h3>
@@ -19,7 +20,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
-        <p class="help-block" th:text="#{apiToken.description}"></p>
+        <p class="token-meta" th:text="#{apiToken.description}"></p>
 
         <!--/* 방금 만든 토큰은 이 응답에서 한 번만 보이고 다시 볼 수 없다 */-->
         <div th:if="${newToken != null}" class="alert alert-success">
@@ -39,7 +40,7 @@
             <tbody>
             <tr th:each="t : ${tokens}" class="token-row" th:attr="data-id=${t.id}">
                 <td>
-                    <span th:text="${t.name}"></span>
+                    <a class="token-edit" th:href="@{/user/editform/token/{id}(id=${t.id})}" th:text="${t.name}"></a>
                     <div th:if="${t.legacy}" class="legacy-warning alert alert-warning" style="margin-top:5px;">
                         <strong th:text="#{apiToken.legacy}"></strong> <span th:text="#{apiToken.legacy.warning}"></span>
                     </div>

@@ -73,7 +73,7 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
         assertEquals(listOf("7", "30", "60", "90", "none", "custom"), doc.select("form#token-create select[name=expiration] option").map { it.attr("value") })
         assertEquals("30", doc.selectFirst("form#token-create select[name=expiration] option[selected]")!!.attr("value"), "기본은 30일")
         assertNotNull(doc.selectFirst("form#token-create input[name=expiresDate]"))
-        assertNotNull(doc.selectFirst("#token-expires-picker"), "사용자 지정 만료일은 달력으로 고른다")
+        assertNotNull(doc.selectFirst("form#token-create .token-expires-picker"), "사용자 지정 만료일은 달력으로 고른다")
         assertTrue(doc.select("script").any { it.attr("src").contains("pikaday") }, "달력 라이브러리(Pikaday)를 쓴다")
         assertEquals(true, list.select("#token-list tr.token-row").isEmpty())
     }
@@ -154,5 +154,41 @@ class ApiTokenSettingsTest : AbstractIntegrationTest() {
         val s = login(user())
         val status = mockMvc.perform(get("/user/editform/token_reset").session(s)).andReturn().response.status
         assertTrue(status >= 400, "토큰 다시 만들기는 새 토큰 만들기로 대체되었다: $status")
+    }
+
+    // --- 편집과 다시 만들기 ---
+
+    @Test
+    fun `목록의 이름은 편집 화면으로 연결되고 편집 화면에는 현재 값이 채워진다`() {
+        val u = user(); val s = login(u); val t = (tokens.create(u, "내 노트북", setOf("repo", "user"), null) as TokenCreation.Created).token
+        assertEquals("/user/editform/token/${t.id}", page(s).selectFirst("tr.token-row[data-id=${t.id}] a.token-edit")!!.attr("href"))
+        val doc = page(s, "/user/editform/token/${t.id}")
+        assertEquals("내 노트북", doc.selectFirst("form#token-edit input[name=name]")!!.attr("value"))
+        assertEquals(setOf("repo", "user"), doc.select("form#token-edit input[name=scopes][checked]").map { it.attr("value") }.toSet())
+        assertEquals("/user/token/${t.id}", doc.selectFirst("form#token-edit")!!.attr("action"))
+        assertNotNull(doc.selectFirst("form#token-regenerate[action=/user/token/${t.id}/regenerate] select[name=expiration]"))
+        assertNotNull(doc.selectFirst("form[action=/user/token/${t.id}/delete]"))
+        mockMvc.perform(get("/user/editform/token/${t.id}").session(login(user()))).andExpect(status().isNotFound)
+        mockMvc.perform(get("/user/editform/token/${t.id}")).andExpect(status().is3xxRedirection)
+    }
+
+    @Test
+    fun `편집을 저장하면 이름과 범위가 바뀌고 목록으로 돌아간다`() {
+        val u = user(); val s = login(u); val t = (tokens.create(u, "처음", setOf("repo"), null) as TokenCreation.Created).token
+        mockMvc.perform(post("/user/token/${t.id}").session(s).param("name", "바꿈").param("scopes", "user", "read:org")).andExpect(status().isSeeOther).andExpect(redirectedUrl("/user/editform/token"))
+        val saved = tokens.list(u).single(); assertEquals("바꿈", saved.name); assertEquals(setOf("user", "read:org"), ApiScopes.parse(saved.scopes))
+        mockMvc.perform(post("/user/token/${t.id}").session(s).param("name", " ")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/user/token/${t.id}").session(login(user())).param("name", "x")).andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `다시 만들기는 새 값을 한 번만 보이고 옛 값은 무효가 된다`() {
+        val u = user(); val s = login(u); val c = tokens.create(u, "a", setOf("repo"), null) as TokenCreation.Created
+        val html = mockMvc.perform(post("/user/token/${c.token.id}/regenerate").session(s).param("expiration", "60")).andExpect(status().isOk).andReturn().response.contentAsString
+        val value = Jsoup.parse(html).selectFirst("#new-token-value")!!.attr("value")
+        assertTrue(Regex("yona_pat_[0-9A-Za-z]{40}").matches(value) && value != c.value)
+        assertNull(tokens.authenticate(c.value)); assertNotNull(tokens.authenticate(value))
+        mockMvc.perform(post("/user/token/${c.token.id}/regenerate").session(s).param("expiration", "9999")).andExpect(status().isBadRequest)
+        mockMvc.perform(post("/user/token/${c.token.id}/regenerate").session(login(user())).param("expiration", "30")).andExpect(status().isNotFound)
     }
 }

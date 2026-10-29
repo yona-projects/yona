@@ -89,6 +89,16 @@ class AccountController(
     @Transactional
     fun newTokenForm(): ModelAndView = newTokenView(users.findById(requireNotNull(currentUserProvider.get().user?.id)).get(), null)
 
+    /** 토큰 편집 화면이다. 이름과 범위를 바꾸고, 만료는 다시 만들기로 바꾼다. 없거나 남의 토큰은 404이다. */
+    @GetMapping("/user/editform/token/{id}")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    @Transactional
+    fun editTokenForm(@PathVariable id: Long): Any {
+        val user = users.findById(requireNotNull(currentUserProvider.get().user?.id)).get()
+        val token = apiTokens.find(user, id) ?: return ErrorViews.notFound()
+        return editTokenView(user, token, null)
+    }
+
     @RequestMapping("/user/editform/{tabId}", method = [RequestMethod.GET, RequestMethod.POST])
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
@@ -263,6 +273,44 @@ class AccountController(
         }
     }
 
+    /** 토큰의 이름과 범위를 저장하고 목록으로 돌아간다. 입력 오류는 편집 화면에 400으로 보인다. */
+    @PostMapping("/user/token/{id}")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    @Transactional
+    fun updateToken(@PathVariable id: Long, request: HttpServletRequest, response: HttpServletResponse): Any {
+        val user = users.findById(requireNotNull(currentUserProvider.get().user?.id)).get()
+        val token = apiTokens.find(user, id) ?: return ErrorViews.notFound()
+        val scopes = try {
+            dev.yona.domain.apitoken.ApiScopes.parse(request.getParameterValues("scopes").orEmpty().joinToString(","))
+        } catch (e: IllegalArgumentException) {
+            return editTokenView(user, token, "apiToken.error.scope").also { it.status = HttpStatus.BAD_REQUEST }
+        }
+        return when (val result = apiTokens.update(user, id, request.getParameter("name").orEmpty(), scopes, accessControl.isSiteManager(user))) {
+            is dev.yona.domain.apitoken.TokenEdit.Done -> RedirectSupport.see(request, response, "/user/editform/token")
+            is dev.yona.domain.apitoken.TokenEdit.Rejected -> editTokenView(user, token, result.messageKey).also { it.status = HttpStatus.BAD_REQUEST }
+            dev.yona.domain.apitoken.TokenEdit.NotFound -> ErrorViews.notFound()
+        }
+    }
+
+    /** 토큰을 다시 만든다. 새 값을 목록 화면에 한 번만 보이고 옛 값은 즉시 무효이다. */
+    @PostMapping("/user/token/{id}/regenerate")
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    @Transactional
+    fun regenerateToken(@PathVariable id: Long, request: HttpServletRequest): Any {
+        val user = users.findById(requireNotNull(currentUserProvider.get().user?.id)).get()
+        val token = apiTokens.find(user, id) ?: return ErrorViews.notFound()
+        val expires = try {
+            expiresOf(request.getParameter("expiration"), request.getParameter("expiresDate"))
+        } catch (e: IllegalArgumentException) {
+            return editTokenView(user, token, "apiToken.error.expires").also { it.status = HttpStatus.BAD_REQUEST }
+        }
+        return when (val result = apiTokens.regenerate(user, id, expires.value, properties.apiTokenMaxDays)) {
+            is dev.yona.domain.apitoken.TokenCreation.Created -> tokenView(user, result.value)
+            is dev.yona.domain.apitoken.TokenCreation.Rejected -> editTokenView(user, token, result.messageKey).also { it.status = HttpStatus.BAD_REQUEST }
+            null -> ErrorViews.notFound()
+        }
+    }
+
     /** 자기 토큰을 지우고 목록으로 돌아간다. 다른 사용자의 토큰이나 없는 토큰은 404이다. */
     @PostMapping("/user/token/{id}/delete")
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
@@ -289,18 +337,25 @@ class AccountController(
 
     /** 토큰 목록 화면이다. [newToken]이 있으면 방금 만든 값을 한 번만 보인다. */
     private fun tokenView(user: User, newToken: String?): ModelAndView {
-        val now = System.currentTimeMillis()
-        val rows = apiTokens.list(user).map {
-            TokenRow(
-                requireNotNull(it.id), it.name.orEmpty(), it.tokenPrefix.orEmpty(), dev.yona.domain.apitoken.ApiScopes.parse(it.scopes).toList(),
-                helper.dateString(it.createdDate), it.lastUsedDate?.let(helper::agoOrDateString), it.expiresDate?.let(helper::dateString),
-                it.expiresDate != null && it.expiresDate!!.time <= now, it.isLegacy == true
-            )
-        }
+        val rows = apiTokens.list(user).map(::rowOf)
         return tabView("user/edit-token", user, "token")
             .addObject("tokens", rows)
             .addObject("newToken", newToken)
     }
+
+    private fun rowOf(it: dev.yona.domain.apitoken.ApiToken) = TokenRow(
+        requireNotNull(it.id), it.name.orEmpty(), it.tokenPrefix.orEmpty(), dev.yona.domain.apitoken.ApiScopes.parse(it.scopes).toList(),
+        helper.dateString(it.createdDate), it.lastUsedDate?.let(helper::agoOrDateString), it.expiresDate?.let(helper::dateString),
+        it.expiresDate != null && it.expiresDate!!.time <= System.currentTimeMillis(), it.isLegacy == true
+    )
+
+    /** 토큰 편집 화면이다. [error]는 입력 오류의 메시지 키이다. */
+    private fun editTokenView(user: User, token: dev.yona.domain.apitoken.ApiToken, error: String?): ModelAndView = tabView("user/edit-token-edit", user, "token")
+        .addObject("token", rowOf(token))
+        .addObject("tokenScopes", dev.yona.domain.apitoken.ApiScopes.parse(token.scopes).toList())
+        .addObject("scopeOptions", (dev.yona.domain.apitoken.ApiScopes.selectable(accessControl.isSiteManager(user)) + dev.yona.domain.apitoken.ApiScopes.parse(token.scopes)).distinct())
+        .addObject("maxDays", properties.apiTokenMaxDays)
+        .addObject("tokenError", error)
 
     /** 토큰 만들기 화면이다. [error]는 입력 오류의 메시지 키이다. */
     private fun newTokenView(user: User, error: String?): ModelAndView = tabView("user/edit-token-new", user, "token")

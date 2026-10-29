@@ -19,6 +19,18 @@ sealed interface TokenCreation {
     data class Rejected(val messageKey: String) : TokenCreation
 }
 
+/** 토큰 편집 결과이다. */
+sealed interface TokenEdit {
+    /** 저장했다. */
+    data class Done(val token: ApiToken) : TokenEdit
+
+    /** 거절했다. [messageKey]는 사용자에게 보일 메시지 키이다. */
+    data class Rejected(val messageKey: String) : TokenEdit
+
+    /** 없거나 다른 사용자의 토큰이다. */
+    data object NotFound : TokenEdit
+}
+
 /**
  * 개인용 API 토큰 서비스이다(추가 개발 항목 X-5, `decisions.md` D-36). 새 토큰은 `yona_pat_` + 임의 40자(`SecureRandom`)이고 해시만 저장한다.
  * v1.6의 사용자 토큰은 [migrateLegacyTokens]가 일반 Classic 형태로 옮긴다.
@@ -63,10 +75,9 @@ class ApiTokenService(
     @Transactional
     fun create(user: User, name: String, scopes: Set<String>, expiresDate: Date?, siteManager: Boolean = false, maxDays: Int = 0, now: Date = Date()): TokenCreation {
         val trimmed = name.trim()
-        if (trimmed.isEmpty() || trimmed.length > NAME_MAX) return TokenCreation.Rejected("apiToken.error.name")
+        invalidName(trimmed)?.let { return TokenCreation.Rejected(it) }
         if (scopes.any { it !in ApiScopes.selectable(siteManager) }) return TokenCreation.Rejected("apiToken.error.scope")
-        if (expiresDate != null && !expiresDate.after(now)) return TokenCreation.Rejected("apiToken.error.expires")
-        if (maxDays > 0 && (expiresDate == null || expiresDate.time > now.time + maxDays * DAY_MILLIS)) return TokenCreation.Rejected("apiToken.error.expires")
+        invalidExpiry(expiresDate, maxDays, now)?.let { return TokenCreation.Rejected(it) }
         if (tokens.countByUserId(requireNotNull(user.id)) >= MAX_TOKENS) return TokenCreation.Rejected("apiToken.error.limit")
         val value = TOKEN_PREFIX + randomString()
         val saved = tokens.save(
@@ -76,6 +87,51 @@ class ApiTokenService(
             )
         )
         return TokenCreation.Created(value, saved)
+    }
+
+    /** 사용자 자신의 토큰 하나를 읽는다. 없거나 다른 사용자의 토큰이면 `null`이다. */
+    @Transactional(readOnly = true)
+    fun find(user: User, id: Long): ApiToken? = tokens.findById(id).orElse(null)?.takeIf { it.user?.id == user.id }
+
+    /**
+     * 토큰의 이름과 범위를 바꾼다(GitHub Classic의 편집과 같다). 값, 만료, 마지막 사용 시각은 그대로이다. 이미 가진 범위는 사용자가 더 고를 수 없는 범위(사이트 관리자 범위 등)여도
+     * 그대로 둘 수 있다. 만료는 값이 새로 나가는 [regenerate]로만 바꾼다. 유출된 토큰의 수명을 값 교체 없이 늘리는 것을 막기 위해서이다.
+     */
+    @Transactional
+    fun update(user: User, id: Long, name: String, scopes: Set<String>, siteManager: Boolean = false): TokenEdit {
+        val token = find(user, id) ?: return TokenEdit.NotFound
+        val trimmed = name.trim()
+        invalidName(trimmed)?.let { return TokenEdit.Rejected(it) }
+        val allowed = ApiScopes.selectable(siteManager) + ApiScopes.parse(token.scopes)
+        if (scopes.any { it !in allowed }) return TokenEdit.Rejected("apiToken.error.scope")
+        token.name = trimmed
+        token.scopes = ApiScopes.format(scopes)
+        return TokenEdit.Done(tokens.save(token))
+    }
+
+    /**
+     * 새 값을 발급하고 만료를 새로 정한다. 옛 값은 즉시 무효이다. 이름과 범위는 그대로이고 마지막 사용 시각은 지운다. 옛 토큰(추측 가능한 값)도 새 값을 받으면 일반 토큰이 된다.
+     * 만료 검사는 [create]와 같다. 없거나 다른 사용자의 토큰이면 `null`이다.
+     */
+    @Transactional
+    fun regenerate(user: User, id: Long, expiresDate: Date?, maxDays: Int = 0, now: Date = Date()): TokenCreation? {
+        val token = find(user, id) ?: return null
+        invalidExpiry(expiresDate, maxDays, now)?.let { return TokenCreation.Rejected(it) }
+        val value = TOKEN_PREFIX + randomString()
+        token.tokenHash = TokenHasher.sha256Hex(value)
+        token.tokenPrefix = value.take(NEW_PREFIX_LENGTH)
+        token.isLegacy = false
+        token.expiresDate = expiresDate
+        token.lastUsedDate = null
+        return TokenCreation.Created(value, tokens.save(token))
+    }
+
+    private fun invalidName(trimmed: String): String? = if (trimmed.isEmpty() || trimmed.length > NAME_MAX) "apiToken.error.name" else null
+
+    private fun invalidExpiry(expiresDate: Date?, maxDays: Int, now: Date): String? = when {
+        expiresDate != null && !expiresDate.after(now) -> "apiToken.error.expires"
+        maxDays > 0 && (expiresDate == null || expiresDate.time > now.time + maxDays * DAY_MILLIS) -> "apiToken.error.expires"
+        else -> null
     }
 
     /**

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-5(decisions.md D-36): 개인용 API 토큰 편집 화면. 이름과 범위를 바꾸고(GitHub Classic처럼 값은 그대로), 만료는 다시 만들기로만 바꾼다
+  모델: title, account, token(TokenRow), tokenScopes(고른 범위), scopeOptions, maxDays, tokenError(입력 오류의 메시지 키)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::tokenPage})}">
+<th:block th:fragment="tokenPage">
+<style th:replace="~{user/partial-token-form :: tokenStyle}"></style>
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{apiToken.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('token')}"></th:block>
+        <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
+        <p class="token-meta">
+            <code th:text="${token.prefix}"></code>
+            <span th:if="${token.legacy}" class="label label-warning" th:text="#{apiToken.legacy}"></span>
+            &middot; <span th:text="#{apiToken.expires}"></span>:
+            <strong th:text="${token.expiresText != null} ? ${token.expiresText} : #{apiToken.noExpiration}"></strong>
+            <em th:if="${token.expired}" th:text="'(' + #{apiToken.expired} + ')'"></em>
+            &middot; <span th:text="#{apiToken.lastUsed}"></span>:
+            <strong th:text="${token.lastUsedText != null} ? ${token.lastUsedText} : #{apiToken.neverUsed}"></strong>
+        </p>
+        <div th:if="${token.legacy}" class="alert alert-warning" th:text="#{apiToken.legacy.warning}"></div>
+
+        <form id="token-edit" method="post" th:action="@{/user/token/{id}(id=${token.id})}">
+            <div class="token-card">
+                <div class="token-card-head" th:text="#{apiToken.edit}"></div>
+                <div class="token-card-body">
+                    <div th:replace="~{user/partial-token-form :: nameField(${token.name})}"></div>
+                    <div th:replace="~{user/partial-token-form :: scopeField(${scopeOptions}, ${tokenScopes})}"></div>
+                    <div class="token-actions">
+                        <button type="submit" class="ybtn ybtn-success" th:text="#{apiToken.save}"></button>
+                        <a th:href="@{/user/editform/token}" class="ybtn" th:text="#{button.cancel}"></a>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <form id="token-regenerate" method="post" th:action="@{/user/token/{id}/regenerate(id=${token.id})}"
+              th:attr="onsubmit='return confirm(\'' + #{apiToken.regenerate.confirm} + '\');'">
+            <div class="token-card">
+                <div class="token-card-head" th:text="#{apiToken.regenerate}"></div>
+                <div class="token-card-body">
+                    <p class="token-help" th:text="#{apiToken.regenerate.description}"></p>
+                    <div th:replace="~{user/partial-token-form :: expiryField(${maxDays})}"></div>
+                    <div class="token-actions">
+                        <button type="submit" class="ybtn" th:text="#{apiToken.regenerate}"></button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <form method="post" th:action="@{/user/token/{id}/delete(id=${token.id})}" th:attr="onsubmit='return confirm(\'' + #{apiToken.delete.confirm} + '\');'">
+            <div class="token-card danger">
+                <div class="token-card-head" th:text="#{apiToken.delete}"></div>
+                <div class="token-card-body">
+                    <p class="token-help" th:text="#{apiToken.delete.description}"></p>
+                    <button type="submit" class="ybtn ybtn-danger" th:text="#{apiToken.delete}"></button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<th:block th:replace="~{user/partial-token-form :: tokenScripts}"></th:block>
+</th:block>
+</html>

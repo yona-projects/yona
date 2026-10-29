@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-5(decisions.md D-36): 개인용 API 토큰 화면이 함께 쓰는 조각이다. 만들기, 편집, 다시 만들기가 같은 입력 모양을 쓴다.
+  - tokenStyle: 카드와 범위 목록의 스타일
+  - nameField(value): 이름 입력
+  - scopeField(options, selected): 범위 체크 목록(`scopes` 여러 값). selected는 이미 고른 범위의 목록이다
+  - expiryField(maxDays): 만료 선택(고정 기간 또는 사용자 지정 달력)과 만료 날짜 안내. 같은 화면에 여러 번 둘 수 있다
+  - tokenScripts: 만료 선택의 동작(달력 포함)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<style th:fragment="tokenStyle">
+    .token-card { border: 1px solid #d0d7de; border-radius: 8px; margin: 0 0 20px; background: #fff; }
+    .token-card > .token-card-head { padding: 12px 16px; background: #f6f8fa; border-bottom: 1px solid #d0d7de; border-radius: 8px 8px 0 0; font-weight: bold; }
+    .token-card > .token-card-body { padding: 16px; }
+    .token-card.danger { border-color: #f1aeb5; }
+    .token-card.danger > .token-card-head { background: #fff5f5; border-bottom-color: #f1aeb5; color: #b02a37; }
+    .token-field { margin-bottom: 18px; }
+    .token-field > label.token-label { display: block; font-weight: bold; margin-bottom: 4px; }
+    .token-field .token-help { color: #656d76; font-size: 12px; margin: 2px 0 6px; }
+    .token-field input.token-text { width: 100%; max-width: 420px; box-sizing: border-box; }
+    .token-expiry select { width: 240px; display: inline-block; }
+    .token-expiry .token-custom { display: none; margin-top: 8px; }
+    .token-expiry .token-custom input { width: 140px; }
+    .token-scopes { border: 1px solid #d0d7de; border-radius: 6px; max-width: 720px; }
+    .token-scopes .token-scope-row { display: block; margin: 0; padding: 8px 12px; border-bottom: 1px solid #eaeef2; cursor: pointer; font-weight: normal; }
+    .token-scopes .token-scope-row:last-child { border-bottom: 0; }
+    .token-scopes .token-scope-row:hover { background: #f6f8fa; }
+    .token-scopes .token-scope-row input { margin: 0 8px 0 0; vertical-align: middle; }
+    .token-scopes .token-scope-row code { margin-right: 6px; }
+    .token-scopes .token-scope-row .token-scope-desc { color: #656d76; }
+    .token-actions { margin-top: 4px; }
+    .token-actions .ybtn { margin-right: 6px; }
+    .token-meta { color: #656d76; margin: 0 0 16px; }
+    .token-meta strong { color: #1f2328; }
+</style>
+
+<div th:fragment="nameField(value)" class="token-field">
+    <label class="token-label" for="token-name" th:text="#{apiToken.create.name}"></label>
+    <div class="token-help" th:text="#{apiToken.name.help}"></div>
+    <input type="text" id="token-name" name="name" maxlength="100" class="text token-text" th:value="${value}" autocomplete="off">
+</div>
+
+<div th:fragment="scopeField(options, selected)" class="token-field">
+    <label class="token-label" th:text="#{apiToken.create.scopes}"></label>
+    <div class="token-help" th:text="#{apiToken.scopes.help}"></div>
+    <div class="token-scopes">
+        <label th:each="s : ${options}" class="token-scope-row">
+            <input type="checkbox" name="scopes" th:value="${s}" th:checked="${selected != null and #lists.contains(selected, s)}">
+            <code th:text="${s}"></code><span class="token-scope-desc" th:text="#{'apiToken.scope.' + ${s}}"></span>
+        </label>
+    </div>
+</div>
+
+<div th:fragment="expiryField(maxDays)" class="token-field token-expiry">
+    <label class="token-label" th:text="#{apiToken.create.expiration}"></label>
+    <select name="expiration" class="token-expiration">
+        <option th:each="d : ${ {7, 30, 60, 90} }" th:value="${d}" th:selected="${d == 30}" th:text="#{apiToken.expiration.days(${d})}"></option>
+        <option th:if="${maxDays <= 0}" value="none" th:text="#{apiToken.expiration.none}"></option>
+        <option value="custom" th:text="#{apiToken.expiration.custom}"></option>
+    </select>
+    <!--/* 사용자 지정을 고르면 달력(Pikaday)으로 만료 날짜를 정한다. 내일 이후만 고를 수 있다 */-->
+    <div class="token-custom">
+        <input type="text" name="expiresDate" class="text token-expires-date" autocomplete="off" placeholder="yyyy-MM-dd" th:attr="aria-label=#{apiToken.create.expiresDate}">
+        <div class="token-expires-picker date-picker"></div>
+    </div>
+</div>
+
+<th:block th:fragment="tokenScripts">
+<link rel="stylesheet" type="text/css" th:href="@{/assets/javascripts/lib/pikaday/pikaday.css}" />
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/moment-with-langs.min.js}"></script>
+<script type="text/javascript" th:src="@{/assets/javascripts/lib/pikaday/pikaday.js}"></script>
+<script type="text/javascript">
+    $(function () {
+        // 같은 화면의 만료 선택마다 따로 동작한다(편집 화면은 다시 만들기에 하나를 둔다)
+        $(".token-expiry").each(function () {
+            var $box = $(this), $selection = $box.find(".token-expiration"), $custom = $box.find(".token-custom"), $date = $box.find(".token-expires-date");
+            if (typeof Pikaday === "function") {
+                var picker = new Pikaday({
+                    format: "YYYY-MM-DD",
+                    minDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+                    onSelect: function () { $date.val(this.toString()); }
+                });
+                $box.find(".token-expires-picker").append(picker.el);
+                $date.on("blur", function () { if (this.value) { picker.setDate(this.value); } });
+            }
+            function toggle() { $custom.toggle($selection.val() === "custom"); }
+            $selection.on("change", toggle);
+            toggle();
+        });
+    });
+</script>
+</th:block>
+</body>
+</html>

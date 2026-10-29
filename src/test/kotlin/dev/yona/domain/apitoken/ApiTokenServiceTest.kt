@@ -155,4 +155,55 @@ class ApiTokenServiceTest : AbstractIntegrationTest() {
         assertNull(service.authenticate(a.value)); assertNotNull(service.authenticate(b.value))
         assertEquals(0L, (em.createNativeQuery("select count(*) from api_token where user_id = ${gone.id}").singleResult as Number).toLong())
     }
+
+    // --- 편집과 다시 만들기 (GitHub Classic 방식: 이름과 범위는 값을 유지한 채 바꾸고, 만료는 다시 만들기로만 바꾼다) ---
+
+    @Test
+    fun `편집은 이름과 범위만 바꾸고 값과 만료와 마지막 사용은 그대로이다`() {
+        val u = user(); val c = created(service.create(u, "처음", setOf("repo"), days(30)))
+        val expires = c.token.expiresDate
+        val done = service.update(u, c.token.id!!, "바꿈", setOf("user", "read:org")) as TokenEdit.Done
+        assertEquals("바꿈", done.token.name); assertEquals(setOf("user", "read:org"), ApiScopes.parse(done.token.scopes))
+        assertEquals(expires, done.token.expiresDate); assertNotNull(service.authenticate(c.value), "값은 그대로 유효하다")
+    }
+
+    @Test
+    fun `편집의 입력 오류와 남의 토큰과 없는 토큰`() {
+        val u = user(); val other = user(); val c = created(service.create(u, "a", setOf("repo"), null))
+        assertEquals("apiToken.error.name", (service.update(u, c.token.id!!, " ", setOf("repo")) as TokenEdit.Rejected).messageKey)
+        assertEquals("apiToken.error.scope", (service.update(u, c.token.id!!, "a", setOf("nothing")) as TokenEdit.Rejected).messageKey)
+        assertEquals("apiToken.error.scope", (service.update(u, c.token.id!!, "a", setOf("site_admin")) as TokenEdit.Rejected).messageKey)
+        assertEquals(TokenEdit.NotFound, service.update(other, c.token.id!!, "a", emptySet()))
+        assertEquals(TokenEdit.NotFound, service.update(u, 999_999L, "a", emptySet()))
+    }
+
+    @Test
+    fun `이미 가진 범위는 편집에서 그대로 둘 수 있다 (이관한 옛 토큰은 모든 범위를 가진다)`() {
+        val u = user(); val legacy = tokens.save(ApiToken(user = u, name = "이전 토큰", tokenHash = "h1", tokenPrefix = "abcd", scopes = ApiScopes.format(ApiScopes.selectable(true)), isLegacy = true, createdDate = Date()))
+        val done = service.update(u, legacy.id!!, "이름 붙임", ApiScopes.selectable(true).toSet()) as TokenEdit.Done
+        assertEquals("이름 붙임", done.token.name)
+    }
+
+    @Test
+    fun `다시 만들기는 새 값을 주고 옛 값은 즉시 무효이며 만료를 새로 정한다`() {
+        val u = user(); val c = created(service.create(u, "a", setOf("repo"), days(5)))
+        val again = service.regenerate(u, c.token.id!!, days(90)) as TokenCreation.Created
+        assertTrue(again.value != c.value); assertEquals(c.token.id, again.token.id); assertNull(again.token.lastUsedDate)
+        em.flush(); em.clear()
+        assertNull(service.authenticate(c.value)); assertNotNull(service.authenticate(again.value))
+        val row = tokens.findById(c.token.id!!).get()
+        assertEquals(again.value.take(13), row.tokenPrefix); assertEquals(setOf("repo"), ApiScopes.parse(row.scopes)); assertEquals("a", row.name)
+        assertTrue(row.expiresDate!!.time > System.currentTimeMillis() + 89 * 86_400_000L)
+    }
+
+    @Test
+    fun `다시 만들기의 만료 검사는 만들기와 같고 옛 토큰은 일반 토큰이 된다`() {
+        val u = user()
+        val legacy = tokens.save(ApiToken(user = u, name = "이전 토큰", tokenHash = "h2", tokenPrefix = "abcd", scopes = "repo", isLegacy = true, createdDate = Date()))
+        assertEquals("apiToken.error.expires", (service.regenerate(u, legacy.id!!, days(-1)) as TokenCreation.Rejected).messageKey)
+        assertEquals("apiToken.error.expires", (service.regenerate(u, legacy.id!!, null, maxDays = 30) as TokenCreation.Rejected).messageKey)
+        val again = service.regenerate(u, legacy.id!!, null) as TokenCreation.Created
+        assertEquals(false, again.token.isLegacy, "다시 만들면 추측 가능한 값이 사라지므로 경고가 필요 없다")
+        assertNull(service.regenerate(user(), legacy.id!!, null), "남의 토큰은 다시 만들 수 없다")
+    }
 }
