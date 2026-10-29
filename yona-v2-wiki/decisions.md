@@ -686,4 +686,5 @@ v1.6 위키가 9차(Antigravity CLI 판정), 10차(소스 재검증), 11차(재�
 | A-200 | 리뷰 판정 폼과 오른쪽 열의 리뷰어 영역은 프로젝트가 리뷰어 수를 켜지 않아도 항상 보인다. 머리 영역의 리뷰어 표시와 "리뷰" 단추는 v1.6처럼 리뷰어 수를 켠 프로젝트에서 받아들일 권한자에게만 보인다 | GitHub은 리뷰를 항상 지원하고 리뷰어 수는 병합 요건일 뿐이다 |
 | A-201 | 작성자의 옛 승인은 승인 집합에 남기되 개수에서 빼고 `Reviewed-by:` 줄은 승인 집합을 그대로 읽으므로 작성자 본인이 줄에 남을 수 있다(보정 뒤 첫 판정 변경에서 정리된다) | 데이터를 지우지 않는 보정 원칙 |
 | A-202 | v1.6 리뷰 완료 알림을 만들던 `PullRequestReviewedActivity`, 그 리스너 둘(`NotificationListener.onPullRequestReviewed`, `WebhookListener.onPullRequestReviewed`), `WebhookService.pullRequestReview`, `WebhookPayloads.pullRequestReviewMessage`를 **삭제했다**(선생님 확인 2026-10-29). 새 리뷰는 `PullRequestChangedActivity`(`PULL_REQUEST_REVIEW_SUBMITTED`, `PULL_REQUEST_REVIEW_DISMISSED`)로 알림과 웹훅을 보내므로 옛 활동은 발행하는 곳이 없었다(시험만 발행). 옛 `PULL_REQUEST_REVIEW_STATE_CHANGED` 이벤트의 표시 코드와 메시지는 기존 데이터를 위해 남겼다 | 정리 항목은 확인 후 삭제한다 |
+| A-203 | 승인 판정의 알림 문구는 v1.6 리뷰 완료 알림 문구(`notification.pullrequest.reviewed`)를 그대로 쓰고 본문이 있으면 덧붙인다. 변경 요청, 댓글, 해제는 옛 문구가 없어 판정별 문구를 쓴다(선생님 지시 2026-10-29). 옛 알림과 타임라인 기록은 그대로 둔다 | 사용자가 보던 문구를 바꾸지 않는다 |
 

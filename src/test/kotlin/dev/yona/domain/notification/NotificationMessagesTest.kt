@@ -66,6 +66,21 @@ class NotificationMessagesTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `리뷰 승인 알림은 v1_6의 리뷰 완료 문구를 쓰고 다른 판정은 판정별 문구와 본문을 쓴다 (X-12)`() {
+        val reviewer = user()
+        val rt = ResourceType.PULL_REQUEST
+        assertEquals(msg("notification.pullrequest.reviewed", reviewer.loginId!!), notificationMessages.message(event(EventType.PULL_REQUEST_REVIEW_SUBMITTED, "APPROVED", null, rt, sender = reviewer.id!!), en))
+        assertEquals(
+            msg("notification.pullrequest.reviewed", reviewer.loginId!!) + "\n\n좋습니다",
+            notificationMessages.message(event(EventType.PULL_REQUEST_REVIEW_SUBMITTED, "APPROVED", "좋습니다", rt, sender = reviewer.id!!), en)
+        )
+        assertEquals(
+            msg("pullRequest.event.message.review.changes_requested", reviewer.loginId!!) + "\n\n고쳐 주세요",
+            notificationMessages.message(event(EventType.PULL_REQUEST_REVIEW_SUBMITTED, "CHANGES_REQUESTED", "고쳐 주세요", rt, sender = reviewer.id!!), en)
+        )
+    }
+
+    @Test
     fun `담당자 변경은 지정과 해제를 구분한다`() {
         assertEquals(msg("notification.issue.assigned", "kim"), notificationMessages.message(event(EventType.ISSUE_ASSIGNEE_CHANGED, null, "kim"), en))
         assertEquals(msg("notification.issue.unassigned"), notificationMessages.message(event(EventType.ISSUE_ASSIGNEE_CHANGED, "kim", null), en))

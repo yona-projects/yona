@@ -92,7 +92,9 @@ class NotificationMessages(
             // 추가 항목 X-12(D-35): 리뷰 판정 제출과 해제, 규칙 안내
             EventType.PULL_REQUEST_REVIEW_SUBMITTED -> {
                 val sender = event.senderId?.let { users.findById(it).orElse(null) }?.loginId
-                text("pullRequest.event.message.review.${old.orEmpty().lowercase()}", sender) + (new?.takeIf { it.isNotBlank() }?.let { "\n\n$it" } ?: "")
+                // 승인은 v1.6 리뷰 완료 알림 문구를 그대로 쓴다(선생님 지시 2026-10-29). 변경 요청과 댓글은 옛 문구가 없어 판정별 문구를 쓴다
+                val head = if (old == "APPROVED") text("notification.pullrequest.reviewed", sender) else text("pullRequest.event.message.review.${old.orEmpty().lowercase()}", sender)
+                head + (new?.takeIf { it.isNotBlank() }?.let { "\n\n$it" } ?: "")
             }
             EventType.PULL_REQUEST_REVIEW_DISMISSED -> {
                 val sender = event.senderId?.let { users.findById(it).orElse(null) }?.loginId
