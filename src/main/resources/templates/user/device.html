@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-37i(decisions.md D-52): 기기 인증(Device Flow) 화면. 한 템플릿이 세 모양을 보인다.
+  모델: title, mode(form: 코드 입력, consent: 요청 확인과 승인, done: 처리 결과)
+  - form: deviceError(오류 메시지 키, 없을 수 있다)
+  - consent: request(userCode, clientName, scopes), account(로그인한 사용자의 로그인 ID)
+  - done: doneMessage(결과 메시지 키)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/site-layout :: siteLayout(${title}, 'USER', ~{::devicePage})}">
+<th:block th:fragment="devicePage">
+<style th:replace="~{user/partial-token-form :: tokenStyle}"></style>
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3 th:text="#{deviceAuth.title}"></h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <div th:if="${deviceError != null}" class="alert alert-danger" th:text="#{${deviceError}}"></div>
+
+        <form th:if="${mode == 'form'}" id="device-code-form" method="get" th:action="@{/users/device}">
+            <div class="token-card">
+                <div class="token-card-head" th:text="#{deviceAuth.title}"></div>
+                <div class="token-card-body">
+                    <div class="token-field">
+                        <label class="token-label" for="device-user-code" th:text="#{deviceAuth.code.label}"></label>
+                        <div class="token-help" th:text="#{deviceAuth.code.help}"></div>
+                        <input type="text" id="device-user-code" name="user_code" maxlength="9" class="text token-text" autocomplete="off" autofocus>
+                    </div>
+                    <div class="token-actions">
+                        <button type="submit" class="ybtn ybtn-success" th:text="#{deviceAuth.code.submit}"></button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div th:if="${mode == 'consent'}" id="device-consent" class="token-card">
+            <div class="token-card-head" th:text="#{deviceAuth.consent.title(${request.clientName})}"></div>
+            <div class="token-card-body">
+                <p class="token-meta" th:text="#{deviceAuth.consent.description(${account})}"></p>
+                <div class="token-scopes">
+                    <ul id="device-scopes" style="list-style: none; margin: 0; padding: 0;">
+                        <li th:each="s : ${request.scopes}" class="token-scope-row">
+                            <code th:text="${s}"></code><span class="token-scope-desc" th:text="#{'apiToken.scope.' + ${s}}"></span>
+                        </li>
+                    </ul>
+                </div>
+                <p class="token-help" style="margin-top: 12px;" th:text="#{deviceAuth.consent.warning(${request.userCode})}"></p>
+                <div class="token-actions">
+                    <form id="device-approve" method="post" th:action="@{/users/device/approve}" style="display: inline;">
+                        <input type="hidden" name="user_code" th:value="${request.userCode}">
+                        <button type="submit" class="ybtn ybtn-success" th:text="#{deviceAuth.approve}"></button>
+                    </form>
+                    <form id="device-deny" method="post" th:action="@{/users/device/deny}" style="display: inline;">
+                        <input type="hidden" name="user_code" th:value="${request.userCode}">
+                        <button type="submit" class="ybtn" th:text="#{deviceAuth.deny}"></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${mode == 'done'}" id="device-done" class="token-card">
+            <div class="token-card-body" th:text="#{${doneMessage}}"></div>
+        </div>
+    </div>
+</div>
+</th:block>

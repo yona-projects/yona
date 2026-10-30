@@ -130,6 +130,9 @@ object ApiScopeRules {
         add("POST", "/-_-api/v1/files", ApiRequirement.AnyRepo)
         // 상태 확인과 v1.6의 홈 별칭
         add("GET", "/-_-api/v1/hello", ApiRequirement.None)
+        // 기기 인증(X-37i, D-52): CLI가 토큰을 받기 전에 부르므로 인증이 없다
+        add("POST", "/-_-api/v1/oauth/device/code", ApiRequirement.None)
+        add("POST", "/-_-api/v1/oauth/token", ApiRequirement.None)
         add("GET", "/-_-api/v1/", ApiRequirement.None)
         add("GET", "/-_-api", ApiRequirement.None)
     }

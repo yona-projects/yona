@@ -145,7 +145,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-37f | 풀 리퀘스트 검색: `GET /search/pullrequests`와 프로젝트 목록 조건 | `ExternalSearchApiController`, `ExternalPullRequestApiController` | **구현 완료(2026-10-30)** | 웹 검색은 그대로 둔다 |
 | X-37g | 사이트 백업 REST: `GET /admin/export`, `POST /admin/import` | `ExternalSiteBackupApiController` | **구현 완료(2026-10-30)** | |
 | X-37h | `pr reviewer` 방법 | | **선생님 결정 대기** | D-52의 선택지 (가)(나)(다) |
-| X-37i | 기기 인증(Device Flow): 서버의 기기 코드 발급, 승인 화면, 토큰 발급 | `domain/deviceauth` | 대기 | 새 테이블. X-1(OAuth2 서버)과 이름이 겹치지 않게 한다 |
+| X-37i | 기기 인증(Device Flow): 서버의 기기 코드 발급, 승인 화면, 토큰 발급 | `domain/deviceauth`, `ExternalDeviceAuthApiController`, `DeviceAuthorizationController` | **구현 완료(2026-10-30)** | 새 테이블 `device_authorization`. X-1(OAuth2 서버)과 별개이다 |
 | X-37j | CLI(`../yona-cli`): 클라이언트를 `/-_-api/v1`에 맞춤, 새 명령, 기기 로그인, Git 자격 증명 도우미 | `../yona-cli` | 대기 | X-24의 본 작업 |
 | X-37k | 문서: 각 단계의 REST를 OpenAPI와 추적표에 올린다 | `web/api/docs` | 단계마다 | 구조 시험이 빠지면 실패한다 |
 | X-25 | CI/Actions(GitHub Actions 방식의 워크플로 YAML, 러너 등록과 폴링)와 프런트엔드 분리(SPA) | P3-05, P3-13 | 대기 | `next`에서도 **미착수 또는 계획서만 있다**. CI/Actions는 자동 진행 대상에서 제외하라는 기존 지시(P3-05)가 있다 |

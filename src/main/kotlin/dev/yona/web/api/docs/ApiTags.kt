@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.tags.Tag
  */
 object ApiTags {
     const val SYSTEM = "상태 확인"
+    const val AUTH = "기기 인증"
     const val USER = "사용자"
     const val ORGANIZATION = "조직"
     const val PROJECT = "프로젝트"
@@ -27,6 +28,7 @@ object ApiTags {
     /** 문서 화면의 태그 순서와 설명이다. */
     val ALL: List<Tag> = listOf(
         Tag().name(SYSTEM).description("서버가 살아 있는지 확인한다."),
+        Tag().name(AUTH).description("CLI 같은 프로그램이 사용자의 웹 승인을 받아 개인용 토큰을 받는다(RFC 8628 기기 인증). 두 동작 모두 토큰 없이 부른다."),
         Tag().name(USER).description("사용자 만들기, 상태 바꾸기, 내 이슈와 활동 통계. 사이트 관리자 전용 동작이 있다."),
         Tag().name(ORGANIZATION).description("조직과 구성원 관리. 범위 `read:org`, `write:org`, `admin:org`."),
         Tag().name(PROJECT).description("프로젝트 조회와 만들기, 구성원, 담당자 후보, 내보내기."),

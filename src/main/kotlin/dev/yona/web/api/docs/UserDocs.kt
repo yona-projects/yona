@@ -94,3 +94,40 @@ class SiteImportResult(
     @get:Schema(description = "가져온 테이블 이름") val imported: List<String>,
     @get:Schema(description = "오류가 나서 되돌린 테이블 이름. 되돌린 테이블은 비어 있다") val failed: List<String>
 )
+
+@Schema(description = "기기 코드 요청(폼 `application/x-www-form-urlencoded`)")
+class DeviceCodeForm(
+    @get:Schema(description = "기기 이름. 승인 화면과 토큰 이름(`Yona CLI: <이름>`)에 쓴다", example = "yona-cli on laptop", nullable = true) val client_name: String?,
+    @get:Schema(description = "요청할 범위(공백이나 쉼표로 구분). 비우면 사이트 관리자 범위를 뺀 모든 일반 범위이다. `site_admin`은 사이트 관리자가 승인할 때만 받는다", example = "repo read:org", nullable = true) val scope: String?
+)
+
+@Schema(description = "기기 코드 응답")
+class DeviceCodeResponse(
+    @get:Schema(description = "CLI만 아는 기기 코드. 토큰 교환 요청에 쓴다") val device_code: String,
+    @get:Schema(description = "사용자가 웹에서 입력할 코드", example = "BCDF-GHJK") val user_code: String,
+    @get:Schema(description = "사용자가 열 승인 화면 주소") val verification_uri: String,
+    @get:Schema(description = "코드가 이미 채워진 승인 화면 주소") val verification_uri_complete: String,
+    @get:Schema(description = "코드의 유효 시간(초)", example = "900") val expires_in: Int,
+    @get:Schema(description = "토큰 교환 요청의 최소 간격(초)", example = "5") val interval: Int
+)
+
+@Schema(description = "토큰 교환 요청(폼 `application/x-www-form-urlencoded`)")
+class DeviceTokenForm(
+    @get:Schema(description = "고정값이다", example = "urn:ietf:params:oauth:grant-type:device_code") val grant_type: String,
+    @get:Schema(description = "기기 코드 응답의 `device_code`") val device_code: String
+)
+
+@Schema(description = "토큰 교환 응답")
+class DeviceTokenResponse(
+    @get:Schema(description = "개인용 API 토큰 원문. 이 응답에서만 보이므로 CLI가 바로 저장한다") val access_token: String,
+    @get:Schema(description = "고정값이다", example = "bearer") val token_type: String,
+    @get:Schema(description = "받은 범위(공백으로 구분)", example = "repo read:org") val scope: String
+)
+
+@Schema(description = "기기 인증 오류(RFC 8628)")
+class DeviceAuthError(
+    @get:Schema(
+        description = "`authorization_pending`(승인을 기다린다), `slow_down`(간격을 늘린다), `access_denied`(거절했거나 토큰을 만들 수 없다), `expired_token`, `invalid_grant`(없거나 이미 쓴 코드), `unsupported_grant_type`, `invalid_request`, `invalid_scope`"
+    ) val error: String,
+    @get:Schema(description = "사람이 읽을 설명") val error_description: String
+)

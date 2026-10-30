@@ -722,3 +722,6 @@ D-51의 대응표에서 서버에 REST가 없던 CLI 명령을 서버에 만들�
 
 ## [2026-10-30] build | X-37g 사이트 백업 REST
 `GET /admin/export`와 `POST /admin/import`를 구현했다. 테스트를 먼저 써 4개 실패를 확인한 뒤 구현했고, 토큰 인증과 비동기 스트림의 충돌을 시험으로 발견해 동기 쓰기로 바꿨다(D-52, A-280).
+
+## [2026-10-30] build | X-37i 기기 인증(Device Flow)
+`device_authorization` 테이블, 코드 발급과 토큰 교환 REST, 웹 승인 화면(`/users/device`)을 구현했다. 시험(REST 9개, 화면 7개)을 먼저 쓰고 컴파일 실패와 404, 403으로 Red를 확인한 뒤 구현했다(D-52, A-281).
