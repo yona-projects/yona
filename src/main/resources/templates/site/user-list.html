@@ -13,7 +13,7 @@
     <div class="title_area">
 
         <h2 class="pull-left" th:text="#{site.sidebar.userList}"></h2>
-        <form class="form-search pull-right" th:action="@{/sites/userList}">
+        <form class="pull-right" th:action="@{/sites/userList}">
             <input type="hidden" name="state" th:value="${userState}" />
             <div class="search-bar">
                 <input class="textbox" name="query" type="text" th:placeholder="#{site.userList.search}" th:value="${query}">
@@ -28,26 +28,26 @@
       <li th:class="${userState == 'GUEST'} ? 'active'"><a th:href="@{/sites/userList(state='GUEST')}" th:text="#{site.userList.guest}"></a></li>
       <li th:class="${userState == 'SITE_ADMIN'} ? 'active'"><a th:href="@{/sites/userList(state='SITE_ADMIN')}"><th:block th:text="#{site.userList.siteAdmin}"></th:block><span class="num-badge" th:text="${siteAdminCount}"></span></a></li>
     </ul>
-    <div class="row-fluid listhead">
-        <div class="span3 listhead-title">
+    <div class="row listhead">
+        <div class="col-md-3 listhead-title">
             <strong th:text="#{user.name}"></strong>
         </div>
-        <div class="span3 listhead-title">
+        <div class="col-md-3 listhead-title">
             <strong th:text="#{user.email}"></strong>
         </div>
-        <div class="span2 listhead-title">
+        <div class="col-md-2 listhead-title">
             <strong th:text="#{userinfo.since}"></strong>
         </div>
-        <div th:if="${userState != 'DELETED'}" class="span4 listhead-title">
+        <div th:if="${userState != 'DELETED'}" class="col-md-4 listhead-title">
             <strong>&nbsp;</strong>
         </div>
-        <div th:if="${userState == 'DELETED'}" class="span4 listhead-title">
+        <div th:if="${userState == 'DELETED'}" class="col-md-4 listhead-title">
             <strong th:text="#{userinfo.leave}"></strong>
         </div>
     </div>
     <ul class="user-list-wrap">
-        <li th:each="row : ${rows}" class="row-fluid listitem">
-            <div class="span3 listitem-col">
+        <li th:each="row : ${rows}" class="row listitem">
+            <div class="col-md-3 listitem-col">
                 <a th:href="@{/{u}(u=${row.loginId})}" class="avatar-wrap list-avatar">
                     <img th:if="${row.defaultAvatar}" th:src="@{${row.avatarUrl}}"/>
                     <img th:unless="${row.defaultAvatar}" th:src="@{${row.avatarUrl}}" th:alt="${row.name}" width="32" height="32"/>
@@ -55,13 +55,13 @@
                 <a th:href="@{/{u}(u=${row.loginId})}" class="user-name" th:text="${row.name}"></a>
                 <a th:href="@{/{u}(u=${row.loginId})}" class="user-id" th:text="'@' + ${row.loginId}"></a>
             </div>
-            <div class="span3 listitem-col">
+            <div class="col-md-3 listitem-col">
                 <span class="email" th:text="${row.email}"></span>
             </div>
-            <div class="span2 listitem-col created-date">
+            <div class="col-md-2 listitem-col created-date">
                 <span th:text="${row.createdText}"></span>
             </div>
-            <div th:if="${userState != 'DELETED'}" class="span5 listitem-col action-buttons">
+            <div th:if="${userState != 'DELETED'}" class="col-md-5 listitem-col action-buttons">
                 <a class="ybtn ybtn-small" th:classappend="${row.guest} ? 'ybtn-success'" data-request-method="post" th:attr="data-request-uri=@{${row.guestUrl}}"
                    th:text="${row.guest} ? #{button.user.make.normal.mode} : #{button.user.make.guest.mode}"></a>
                 <a class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.lockUrl}}"
@@ -71,13 +71,13 @@
                    th:text="${row.siteManager} ? #{button.user.revoke.site.admin.role} : #{button.user.upgrade.to.site.admin}"></a>
                 <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" th:attr="data-href=@{${row.deleteUrl}}, data-user-id=${row.loginId}, data-user-name=${row.name}" th:text="#{button.delete}"></button>
             </div>
-            <div th:if="${userState == 'DELETED'}" class="span4 listitem-col" th:text="${row.lastStateModified}"></div>
+            <div th:if="${userState == 'DELETED'}" class="col-md-4 listitem-col" th:text="${row.lastStateModified}"></div>
         </li>
     </ul>
 
     <div id="pagination"></div>
 
-    <div id="alertDeletionWrap" class="modal fade">
+    <div id="alertDeletionWrap" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">×</button>
             <span id="userInfo"></span>
@@ -90,7 +90,7 @@
             <a id="accountToggleBtn" class="ybtn ybtn-danger" th:text="#{button.yes}"></a>
             <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
         </div>
-    </div>
+    </div></div></div>
 
     <script type="text/javascript" th:inline="javascript">
     $(function(){
@@ -141,7 +141,7 @@
         </div>
     </script>
     <script type="text/x-jquery-tmpl" id="dismissable-alerts-request">
-        <div class="alert alert-fail">
+        <div class="alert alert-fail alert-warning">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
             <h4>sending requestHeader...</h4>
         </div>

@@ -131,7 +131,7 @@ class UserPageTest : AbstractIntegrationTest() {
     fun `사이트 관리자와 잠긴 사용자와 게스트에게 표시가 붙는다`() {
         val admin = newUser(); siteAdmins.save(SiteAdmin(admin = admin))
         assertEquals("SITE ADMIN", page("/${admin.loginId}").selectFirst(".user-status .label-success")!!.text())
-        assertEquals("BLOCKED", page("/${newUser(state = UserState.LOCKED).loginId}").selectFirst(".user-status .label-important")!!.text())
+        assertEquals("BLOCKED", page("/${newUser(state = UserState.LOCKED).loginId}").selectFirst(".user-status .label-danger")!!.text())
         assertEquals("OUR GUEST", page("/${newUser(guest = true).loginId}").selectFirst(".guest-user .left-mark")!!.text())
     }
 

@@ -16,9 +16,9 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="project-page-wrap">
-            <div class="row-fluid">
-                <div class="span2">
-                    <ul class="lst-stacked unstyled search-category-wrap">
+            <div class="row">
+                <div class="col-md-2">
+                    <ul class="lst-stacked list-unstyled search-category-wrap">
                         <li th:class="${current == 'issue' ? 'active' : ''} + ' ' + ${counts.issues == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="issue"><th:block th:text="#{search.menu.issues}"></th:block>
                                 <span class="num-badge pull-right" th:text="${counts.issues}"></span>
@@ -61,11 +61,11 @@
                         </li>
                     </ul>
                 </div>
-                <div class="span10">
+                <div class="col-md-10">
                     <div class="search-box-wrap">
                         <form id="searchInnerForm" method="get" th:action="@{${search.action}}">
                             <input type="hidden" name="searchType" th:value="${current}">
-                            <input type="text" id="searchKeyword" name="keyword" class="span11" th:value="${search.keyword}">
+                            <input type="text" id="searchKeyword" name="keyword" class="col-md-11" th:value="${search.keyword}">
                             <button type="submit" class="ybtn" th:text="#{title.search}"></button>
                         </form>
 

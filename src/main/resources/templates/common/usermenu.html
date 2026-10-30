@@ -8,11 +8,11 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="usermenu">
 <th:block th:if="${currentUser.anonymous}" th:with="remembered=${@socialSession.rememberOriginalUrl()}"></th:block>
 <div id="mySidenav" class="sidenav">
-    <div class="span5 right-menu span-hard-wrap">
-        <div class="row-fluid user-menu-wrap">
+    <div class="col-md-5 right-menu span-hard-wrap">
+        <div class="row user-menu-wrap">
             <span class="user-menu"><a th:href="@{'/' + ${#strings.defaultString(currentUser.loginId, '')}}" th:text="#{userinfo.profile}"></a></span>
             <span class="user-menu"><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}"></a></span>
-            <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout label" th:text="#{title.logout}"></span></a>
+            <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout label label-default" th:text="#{title.logout}"></span></a>
         </div>
         <ul class="nav nav-tabs nm">
             <li class="myOrganizationList active">

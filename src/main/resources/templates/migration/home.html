@@ -23,13 +23,13 @@
             </div>
             <div class="status">
                 <div class="row">
-                    <div class="head-title row-fluid" ng-cloak>
-                        <div class="source-title span5">
+                    <div class="head-title row" ng-cloak>
+                        <div class="source-title col-md-5">
                             <div class="project-name warn" ng-if="!vm.source.owner">Source 프로젝트를 선택해 주세요</div>
                             <div class="project-name" ng-if="vm.source.owner">{{vm.source.owner}}/{{vm.source.projectName}}</div>
                         </div>
-                        <div class="arrow span1"><i class="yobicon-arrow-right-alt"></i></div>
-                        <div class="destination-title span6">
+                        <div class="arrow col-md-1"><i class="yobicon-arrow-right-alt"></i></div>
+                        <div class="destination-title col-md-6">
                             <div class="project-name warn" ng-if="!vm.destination.owner">Destination 프로젝트를 선택해 주세요</div>
                             <div class="project-name" ng-if="vm.destination.owner">{{vm.destination.owner}}/{{vm.destination.projectName}}</div>
                         </div>
@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div class="row source-destination" >
-                <div class="source-project span4">
+                <div class="source-project col-md-4">
                     <div class="header" ng-cloak>Source {{vm.sourceProjects.length}} 개</div>
                     <div class="search left-border"><input tabindex="1" type="text" class="search-query" name="target-filter" ng-model="source.full_name" placeholder="Search.." autofocus></div>
                     <div class="left-project-list">
@@ -50,7 +50,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="destination-project span4" th:attr="ng-init=${#strings.isEmpty(token)} ? null : 'vm.getDestinationProjects();vm.getCurrentGithubUser()'">
+                <div class="destination-project col-md-4" th:attr="ng-init=${#strings.isEmpty(token)} ? null : 'vm.getDestinationProjects();vm.getCurrentGithubUser()'">
                     <div class="header" ng-cloak>Destination {{vm.destinationProjects.length}} 개</div>
                     <div class="search"><input type="text" tabindex="2" class="search-query" name="target-filter" ng-model="destination.full_name" placeholder="Search.."></div>
                     <div class="destination-project-list">
@@ -61,7 +61,7 @@
                                 {{repo.owner.login}} <i class="yobicon-lock yobicon-small" ng-if="repo.private"></i>
                             </div>
                             <div class="warn-no-worker" ng-show="repo.full_name == vm.destination.full_name && vm.showWorkerWarning" ng-cloak>
-                                <div class="label label-important">Admin에 {{vm.CONFIG.DEFAULT_WORKER}} 유저가 없음</div>
+                                <div class="label label-danger">Admin에 {{vm.CONFIG.DEFAULT_WORKER}} 유저가 없음</div>
                                 <div>{{vm.CONFIG.DEFAULT_WORKER}} 유저가 대상 프로젝트/그룹의 admin으로 추가되어 있어야 합니다. 그렇지 않을 경우 {{vm.CONFIG.DEFAULT_WORKER}} 대신 사용자 아이디가 작성자로 표시됩니다.
                                 </div>
                                 <div ng-if="repo.owner.type === 'Organization' && vm.showNotAdminWarning">
@@ -70,7 +70,7 @@
                                 </div>
                             </div>
                             <div class="warn-user-project" ng-show="repo.full_name == vm.destination.full_name && vm.showUserProjectWarning" ng-cloak>
-                                <div class="label label-important">User Project</div>
+                                <div class="label label-danger">User Project</div>
                                 <div>Organization 소속의 프로젝트가 아닌 경우에는 마이그레이션시에 {{vm.CONFIG.DEFAULT_WORKER}} 대신 사용자 계정이 사용됩니다.</div>
                             </div>
                             <div ng-if="repo.owner.type === 'User' && repo.owner.login !== vm.currentGithubUser.login">
@@ -80,9 +80,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="span6 status">
-                    <div class="progress row">
-                        <div class="bar span10" ng-cloak ng-class="vm.importResult.count/vm.expectedImportCount*100<100 ? 'bar-danger' : 'bar-success'" style="width: {{vm.importResult.count/vm.expectedImportCount*100 || 0 }}%">
+                <div class="col-md-6 status">
+                    <div class="progress">
+                        <div class="progress-bar" ng-cloak ng-class="vm.importResult.count/vm.expectedImportCount*100<100 ? 'progress-bar-danger' : 'progress-bar-success'" style="width: {{vm.importResult.count/vm.expectedImportCount*100 || 0 }}%">
                             {{vm.importResult.count}}/{{vm.expectedImportCount}}</div>
                     </div>
                     <table class="table">

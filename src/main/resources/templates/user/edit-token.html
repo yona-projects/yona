@@ -46,7 +46,7 @@
                     </div>
                 </td>
                 <td><code class="token-prefix" th:text="${t.prefix}"></code></td>
-                <td><span th:each="s : ${t.scopes}" class="token-scope label" style="margin-right:3px;" th:text="${s}" th:title="#{'apiToken.scope.' + ${s}}"></span></td>
+                <td><span th:each="s : ${t.scopes}" class="token-scope label label-default" style="margin-right:3px;" th:text="${s}" th:title="#{'apiToken.scope.' + ${s}}"></span></td>
                 <td th:text="${t.createdText}"></td>
                 <td th:text="${t.lastUsedText != null} ? ${t.lastUsedText} : #{apiToken.neverUsed}"></td>
                 <td>

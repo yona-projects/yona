@@ -19,8 +19,8 @@
 </div>
 <div class="page-wrap-outer">
     <div class="site-setting-wrap">
-        <div class="row-fluid">
-            <div class="span2">
+        <div class="row">
+            <div class="col-md-2">
                 <ul class="site-setting-nav">
                     <li th:class="${requestPath == '/sites/userList'} ? 'active'"><a th:href="@{/sites/userList}" th:text="#{site.sidebar.userList}"></a></li>
                     <li th:class="${requestPath == '/sites/postList'} ? 'active'"><a th:href="@{/sites/postList}" th:text="#{site.sidebar.postList}"></a></li>
@@ -36,7 +36,7 @@
                     <li th:class="${requestPath == '/sites/diagnostic'} ? 'active'"><a th:href="@{/sites/diagnostic}" th:text="#{site.sidebar.diagnostics}"></a></li>
                 </ul>
             </div>
-            <div class="span10">
+            <div class="col-md-10">
                 <th:block th:replace="${content}"></th:block>
             </div>
         </div>

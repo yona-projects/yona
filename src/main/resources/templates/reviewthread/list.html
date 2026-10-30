@@ -13,10 +13,10 @@
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_REVIEW', '')}"></th:block>
 
 <div class="project-page-wrap">
-    <div class="row-fluid issue-list-wrap">
-        <div class="span2 search-wrap span-hard-wrap">
+    <div class="row issue-list-wrap">
+        <div class="col-md-2 search-wrap span-hard-wrap">
             <div class="inner advanced">
-                <ul class="lst-stacked unstyled">
+                <ul class="lst-stacked list-unstyled">
                     <li th:class="${cond.participantId == null and cond.authorId == null} ? 'active'">
                         <a href="#" data-toggle="filter"><th:block th:text="#{review.allReview}"></th:block>
                             <span class="num-badge pull-right" th:text="${quick.everyone}"></span>
@@ -47,7 +47,7 @@
                 </form>
             </div>
         </div>
-        <div class="span10 span-hard-wrap">
+        <div class="col-md-10 span-hard-wrap">
             <div class="pull-right filters">
                 <a th:if="${cond.orderBy == 'createdDate'}" href="#" data-field="createdDate" th:attr="data-value=${cond.orderDir == 'asc'} ? 'desc' : 'asc'" class="filter" data-toggle="order">
                     <i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{common.order.date}"></th:block>

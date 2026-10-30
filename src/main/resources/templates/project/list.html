@@ -68,7 +68,7 @@
                 </div>
                 <div class="stats-wrap pull-right">
                     <div class="members" th:if="${project.isPublic()}">
-                        <ul class="unstyled">
+                        <ul class="list-unstyled">
                             <li th:each="member : ${row.members}">
                                 <a th:href="@{/{loginId}(loginId=${member.loginId})}" class="avatar-wrap">
                                     <img th:src="${member.avatarUrl}" th:alt="${member.name}">

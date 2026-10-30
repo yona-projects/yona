@@ -13,49 +13,49 @@
 <div class="title_area">
     <h2 class="pull-left" th:text="#{__${title}__}"></h2>
 </div>
-<div th:if="${errorMessage != null and !errorMessage.isEmpty()}" class="alert alert-error">
+<div th:if="${errorMessage != null and !errorMessage.isEmpty()}" class="alert alert-danger">
     <p th:text="#{site.mail.fail}"></p>
     <p th:utext="#{__${errorMessage}__}"></p>
 </div>
 
 <div th:if="${sended}" class="alert alert-success" th:text="#{site.mail.sended}"></div>
 
-<div th:if="${!notConfiguredItems.isEmpty()}" class="alert alert-error">
+<div th:if="${!notConfiguredItems.isEmpty()}" class="alert alert-danger">
     <p th:utext="#{site.mail.notConfigured('/admin/mailconf')}"></p>
     <ul>
         <li th:each="item : ${notConfiguredItems}" th:text="${item}"></li>
     </ul>
 </div>
 <form id="mailForm" method="post" th:action="@{/sites/mail}" class="form-horizontal">
-    <div class="control-group">
-        <label name="from" class="control-label span3" th:text="#{site.mail.from}"></label>
-        <div class="controls">
-            <input type="text" name="from" th:value="${sender}" required="" th:placeholder="#{site.mail.fromPlaceholder}" class="span4">
+    <div class="form-group">
+        <label name="from" class="control-label col-md-3" th:text="#{site.mail.from}"></label>
+        <div>
+            <input type="text" name="from" th:value="${sender}" required="" th:placeholder="#{site.mail.fromPlaceholder}" class="col-md-4">
         </div>
     </div>
 
-    <div class="control-group">
+    <div class="form-group">
         <label name="to" class="control-label" th:text="#{site.mail.to}"></label>
-        <div class="controls">
-            <input type="text" class="span4" name="to" required="" th:placeholder="#{site.mail.toPlaceholder}">
+        <div>
+            <input type="text" class="col-md-4" name="to" required="" th:placeholder="#{site.mail.toPlaceholder}">
         </div>
     </div>
 
-    <div class="control-group mr10">
+    <div class="form-group mr10">
         <label name="subject" class="control-label" th:text="#{site.mail.subject}"></label>
-        <div class="controls">
-            <input type="text" name="subject" class="span12">
+        <div>
+            <input type="text" name="subject" class="col-md-12">
         </div>
     </div>
 
-    <div class="control-group mr10">
+    <div class="form-group mr10">
         <label name="body" class="control-label" th:text="#{site.mail.body}"></label>
-        <div class="controls">
-            <textarea id="body" name="body" rows="16" class="span12 input-xlarge textbody"></textarea>
+        <div>
+            <textarea id="body" name="body" rows="16" class="col-md-12 textbody"></textarea>
         </div>
     </div>
 
-    <div class="span12 mail-btn-wrap">
+    <div class="col-md-12 mail-btn-wrap">
         <button type="submit" class="ybtn ybtn-primary">
             <strong th:text="#{site.mail.send}"></strong>
         </button>

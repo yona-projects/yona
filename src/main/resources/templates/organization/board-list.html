@@ -18,12 +18,12 @@
             <form id="option_form" method="get" class="pull-left">
                 <input type="hidden" name="orderBy" th:value="${orderBy}">
                 <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
-                <div class="project-selects span7">
+                <div class="project-selects col-md-7">
                     <select id="projects" name="projectNames[]" data-format="projects" multiple th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
                         <option th:each="option : ${projectOptions}" th:value="${option.name}" th:selected="${option.selected}" th:attr="data-avatar-url=${option.logoUrl}" th:text="${option.name}"></option>
                     </select>
                 </div>
-                <div class="search-bar span4">
+                <div class="search-bar col-md-4">
                     <input name="filter" class="textbox group-board" type="text" th:placeholder="#{title.searchByKeyword}" th:value="${cond.filter}">
                     <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
                 </div>

@@ -33,7 +33,7 @@
                 <a th:href="${site.feedbackUrl}" target="_blank" th:text="#{title.yobi.feedback}"></a>
             </li>
             <li>
-                <form th:action="@{${searchLink}}" class="input-prepend gnb-search-form" name="gnb-search-form">
+                <form th:action="@{${searchLink}}" class="gnb-search-form" name="gnb-search-form">
                 <input type="hidden" name="searchType" value="auto">
                     <div class="btn-group" th:if="${project != null or org != null}">
                         <button class="ybtn dropdown-toggle" data-toggle="dropdown" type="button" id="gnb-search-scope-title">

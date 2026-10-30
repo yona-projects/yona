@@ -167,14 +167,14 @@
 
             if(data.numOfCommits > 0){
                 data.message  = data.isConflict ? Messages("pullRequest.is.not.safe") : Messages("pullRequest.is.safe");
-                data.cssClass = data.isConflict ? "alert-error" : "alert-success";
+                data.cssClass = data.isConflict ? "alert-danger" : "alert-success";
             }
 
             return data;
         }
 
         function _showMergeResult(mergeResult){
-            elements.status.removeClass("alert-success alert-error alert-info")
+            elements.status.removeClass("alert-success alert-danger alert-info")
                                .addClass(mergeResult.cssClass)
                                .html(mergeResult.message);
 
@@ -208,7 +208,7 @@
         function _onErrorMergeResult(res){
             _showMergeResult({
                 "message" : Messages("pullRequest.error.newPullRequestForm", res.status, res.statusText),
-                "cssClass": "alert-error"
+                "cssClass": "alert-danger"
             });
             _fillFormTitleBody({"title":"", "body":""});
         }

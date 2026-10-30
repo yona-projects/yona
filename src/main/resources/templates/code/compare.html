@@ -14,7 +14,7 @@
 <div class="project-page-wrap">
     <div class="code-browse-wrap">
         <p class="commitInfo"><strong class="commitId" th:text="'@' + ${range}"></strong></p>
-        <div class="alert" th:if="${empty}" th:text="#{code.noChanges}"></div>
+        <div class="alert alert-warning" th:if="${empty}" th:text="#{code.noChanges}"></div>
         <div class="diff-body discommentable" th:unless="${empty}" th:utext="${diffHtml}"></div>
     </div>
 </div>

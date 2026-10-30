@@ -49,37 +49,37 @@
                 <th:block th:each="item : ${page.items}">
                 <th:block th:if="${item.folder != null}" th:with="folder=${item.folder}">
                 <div class="list-wrap" data-type="folder" th:attr="data-listPath=${folder.listPath != ''} ? ${folder.listPath}">
-                    <div class="row-fluid listhead">
-                        <div class="span6 filename"><strong th:text="#{code.filename}"></strong></div>
-                        <div class="span4 commitMsg"><strong th:text="#{code.commitMsg}"></strong></div>
-                        <div class="span2 commitDate"><strong th:text="#{code.commitDate}"></strong></div>
+                    <div class="row listhead">
+                        <div class="col-md-6 filename"><strong th:text="#{code.filename}"></strong></div>
+                        <div class="col-md-4 commitMsg"><strong th:text="#{code.commitMsg}"></strong></div>
+                        <div class="col-md-2 commitDate"><strong th:text="#{code.commitDate}"></strong></div>
                     </div>
                     <div class="alert alert-warning nm" style="border-top:0; padding-left:23px;" th:if="${#lists.isEmpty(folder.entries)}" th:text="#{code.nofiles}"></div>
-                    <div th:each="e : ${folder.entries}" th:id="${e.id}" class="row-fluid listitem" th:attr="data-path=${e.dataPath}">
-                        <div class="span6 filename">
+                    <div th:each="e : ${folder.entries}" th:id="${e.id}" class="row listitem" th:attr="data-path=${e.dataPath}">
+                        <div class="col-md-6 filename">
                             <a th:href="${e.href}" th:class="${e.fileClass}" th:title="${e.name}" th:attr="data-type=${e.folder} ? 'folder', data-targetPath=${e.dataPath}">
                                 <span class="dynatree-icon vmiddle"></span><th:block th:text="${e.name}"></th:block>
                             </a>
                         </div>
-                        <div class="span5 commitMsg">
+                        <div class="col-md-5 commitMsg">
                             <a th:href="${e.userHref}" class="avatar-wrap smaller"><img th:src="${e.avatarUrl}"></a>
                             <span class="ml5"><a th:href="${e.commitUrl}" th:text="${e.msg}"></a></span>
                         </div>
-                        <div class="span1 commitDate" th:text="${e.ago}"></div>
+                        <div class="col-md-1 commitDate" th:text="${e.ago}"></div>
                     </div>
                 </div>
                 <script id="tplFileListItem" type="text/x-jquery-tmpl">
-<div id="cb-${listPath}${fileName}" class="row-fluid listitem" data-path="${targetPath}">
-    <div class="span6 filename">
+<div id="cb-${listPath}${fileName}" class="row listitem" data-path="${targetPath}">
+    <div class="col-md-6 filename">
         <a href="${path}" class="${fileClass}" title="${fileName}" data-targetPath="${targetPath}" data-type="${type}">
             <span class="dynatree-icon vmiddle"></span>${fileName}
         </a>
     </div>
-    <div class="span5 commitMsg">
+    <div class="col-md-5 commitMsg">
         ${avatarImg}
         <span class="ml5"><a href="${commitUrl}">${commitMsg}</a></span>
     </div>
-    <div class="span1 commitDate">${commitDate}</div>
+    <div class="col-md-1 commitDate">${commitDate}</div>
 </div>
                 </script>
                 </th:block>

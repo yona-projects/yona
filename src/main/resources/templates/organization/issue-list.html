@@ -15,10 +15,10 @@
 <th:block th:replace="~{organization/menu :: menu(${org}, ${requestPath})}"></th:block>
 <div class="page-wrap-outer">
     <div class="page-wrap">
-        <div pjax-container class="row-fluid issue-list-wrap">
-            <div class="left-menu span2 span-hard-wrap">
+        <div pjax-container class="row issue-list-wrap">
+            <div class="left-menu col-md-2 span-hard-wrap">
                 <div class="inner advanced">
-                    <ul class="lst-stacked unstyled" th:with="names=${cond.projectNames.isEmpty() ? '' : cond.projectNames}">
+                    <ul class="lst-stacked list-unstyled" th:with="names=${cond.projectNames.isEmpty() ? '' : cond.projectNames}">
                         <li th:class="${cond.assigneeId == null and cond.authorId == null and cond.mentionId == null} ? 'active'">
                             <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-mention-id="" data-project-names="" data-milestone-id="" th:attrappend="data-project-names=${names}, data-milestone-id=${cond.milestoneId}" th:text="#{issue.list.all}"></a>
                         </li>
@@ -55,7 +55,7 @@
                     </form>
                 </div>
             </div>
-            <div class="span10 span-hard-wrap" id="span10">
+            <div class="col-md-10 span-hard-wrap" id="span10">
                 <ul class="nav nav-tabs nm">
                     <li th:class="${cond.state == 'open'} ? 'active'">
                         <a href="#" state="open"><th:block th:text="#{issue.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
@@ -79,7 +79,7 @@
                     <ul class="post-list-wrap">
                     <th:block th:each="row : ${items}" th:with="issue=${row.item}, base=${#paths.project(row.owner, row.project)}, url=${#paths.project(row.owner, row.project) + '/issue/' + row.item.number}">
                         <li class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{${url}}">
-                            <div class="span10 span-hard-wrap">
+                            <div class="col-md-10 span-hard-wrap">
                                 <a th:if="${issue.authorLoginId != null}" th:href="@{/{u}(u=${issue.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${issue.authorLoginId}">
                                     <img th:if="${helper.isDefaultAvatar(row.authorAvatarUrl)}" th:src="${row.authorAvatarUrl}"/>
                                     <img th:unless="${helper.isDefaultAvatar(row.authorAvatarUrl)}" th:src="${row.authorAvatarUrl}" th:alt="${issue.authorName}" width="32" height="32"/>
@@ -112,10 +112,10 @@
                                     <a th:href="@{${base}}" class="infos-link-item group-project-name" th:text="${row.project}"></a>
                                     <span class="post-id margin-right-5" th:text="'#' + ${issue.number}"></span>
 
-                                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues?state=open&labelIds=' + label.id}}" class="label issue-label list-label" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+                                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues?state=open&labelIds=' + label.id}}" class="label issue-label list-label label-default" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
                                 </div>
                             </div>
-                            <div class="span2 hide-in-mobile">
+                            <div class="col-md-2 hide-in-mobile">
                                 <div class="mt5 pull-right">
                                     <a th:if="${issue.assigneeName != null}" th:href="@{/{u}(u=${issue.assigneeLoginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" th:title="#{issue.assignee} + ': ' + ${issue.assigneeName}">
                                         <img th:src="@{${issue.assigneeAvatarUrl}}" width="32" height="32" th:alt="${issue.assigneeName}">

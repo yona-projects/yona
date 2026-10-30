@@ -23,7 +23,7 @@
                     <div class="setting-box left">
                         <div class="logo-wrap" th:style="'background-image:url(\'' + ${projectView.logoUrl} + '\')'"></div>
                         <div class="logo-desc">
-                            <ul class="unstyled descs">
+                            <ul class="list-unstyled descs">
                                 <li><strong th:text="#{project.logo}"></strong></li>
                                 <li><th:block th:text="#{project.logo.type}"></th:block> <span class="point">bmp, jpg, gif, png</span></li>
                                 <li><th:block th:text="#{project.logo.maxFileSize}"></th:block> <span class="point">5MB</span></li>
@@ -103,7 +103,7 @@
                     <div class="cu-label vmiddle" th:text="#{project.merge.title}"></div>
                     <div class="cu-desc">
                         <th:block th:each="m : ${ {'allowMergeCommit', 'allowSquashMerge', 'allowRebaseMerge'} }">
-                            <label class="checkbox inline">
+                            <label class="checkbox-inline">
                                 <input type="checkbox" th:name="${m}" value="true"
                                        th:checked="${m == 'allowMergeCommit' ? project.allowMergeCommit != false : (m == 'allowSquashMerge' ? project.allowSquashMerge == true : project.allowRebaseMerge == true)}">
                                 <th:block th:text="#{'project.merge.' + ${m}}"></th:block>

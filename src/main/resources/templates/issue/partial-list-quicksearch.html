@@ -7,7 +7,7 @@
   모델: cond(IssueSearchCondition), quick(QuickSearch)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="quicksearch">
-<ul class="lst-stacked unstyled">
+<ul class="lst-stacked list-unstyled">
     <li th:class="${cond.assigneeId == null and cond.authorId == null and cond.commenterId == null} ? 'active'">
         <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-commenter-id="" data-milestone-id="" th:attrappend="data-milestone-id=${cond.milestoneId}">
             <th:block th:text="${cond.state == 'closed'} ? #{issue.list.all.closed} : #{issue.list.all.open}"></th:block>

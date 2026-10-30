@@ -16,7 +16,7 @@
         <p class="commitInfo">
             <strong class="commitId" th:text="'@' + ${commitA} + '..' + ${commitB}"></strong>
         </p>
-        <div class="alert" th:if="${#strings.isEmpty(patch)}" th:text="#{code.noChanges}"></div>
+        <div class="alert alert-warning" th:if="${#strings.isEmpty(patch)}" th:text="#{code.noChanges}"></div>
         <div class="diff-wrap" th:unless="${#strings.isEmpty(patch)}">
             <div id="commit" data-commit-origin="true" class="diff-body hide" th:text="${patch}"></div>
         </div>

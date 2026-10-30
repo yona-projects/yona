@@ -48,14 +48,14 @@
                 <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
             </div>
             <div class="page on-fold-intro">
-                <div class="row-fluid content-container">
-                    <div class="span8 main-stream">
+                <div class="row content-container">
+                    <div class="col-md-8 main-stream">
                         <th:block th:replace="~{common/my-series-menu-tab :: mySeriesMenuTab(${menuTab})}"></th:block>
-                        <ul class="activity-streams notification-wrap unstyled">
+                        <ul class="activity-streams notification-wrap list-unstyled">
                             <th:block th:replace="~{index/partial-notifications :: list(${notifications}, 0, 20)}"></th:block>
                         </ul>
         	        </div>
-                    <div class="span4 index-menu right-menu span-hard-wrap">
+                    <div class="col-md-4 index-menu right-menu span-hard-wrap">
         	       </div>
                 </div>
             </div>

@@ -98,7 +98,7 @@
             if(htVar.bUseJCrop){
                 htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
                 htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
-                htElement.welAvatarCropWrap.on("hidden", _clearJcrop);
+                htElement.welAvatarCropWrap.on("hidden.bs.modal", _clearJcrop);
 
                 yobi.Files.attach({
                    "successUpload": _onAvatarCroppedImageUploaded,

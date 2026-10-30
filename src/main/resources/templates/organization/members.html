@@ -26,8 +26,8 @@
             </form>
         </div>
 
-        <ul class="members project row-fluid">
-            <li th:each="member : ${rows}" class="member span6 span-hard-wrap">
+        <ul class="members project row">
+            <li th:each="member : ${rows}" class="member col-md-6 span-hard-wrap">
                 <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge pull-left mr10">
                     <img th:src="${member.avatarUrl}" width="64" height="64">
                 </a>
@@ -48,7 +48,7 @@
             </li>
         </ul>
         <!--/* Confirm to delete member */-->
-        <div id="alertDeletion" class="modal hide">
+        <div id="alertDeletion" class="modal"><div class="modal-dialog"><div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">×</button>
                 <h3 th:text="#{organization.member.delete}"></h3>
@@ -60,14 +60,14 @@
                 <button type="button" class="ybtn ybtn-info ybtn-mini" id="deleteBtn" th:text="#{button.yes}"></button>
                 <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}"></button>
             </div>
-        </div>
+        </div></div></div>
         <!--/* Enrolled Users */-->
         <th:block th:if="${!applicants.isEmpty()}">
         <legend>
             <h3><th:block th:text="#{project.member.enrollment.request}"></th:block> (<th:block th:text="${applicants.size()}"></th:block>)</h3>
         </legend>
-        <div class="row-fluid">
-            <div th:each="user : ${applicants}" class="span2">
+        <div class="row">
+            <div th:each="user : ${applicants}" class="col-md-2">
                 <div class="pull-left mr10">
                     <a th:href="@{/{user}(user=${user.loginId})}">
                         <img th:src="${user.avatarUrl}" height="65" width="65" class="img-circle"/>

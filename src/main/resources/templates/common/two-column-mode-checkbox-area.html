@@ -7,10 +7,10 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="twoColumnModeCheckboxArea">
 <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:attr="data-content=#{common.two.column.mode.desc}">
-    <label class="checkbox">
+    <div class="checkbox"><label>
         <div class="two-column-icon-border">
             <input id="two-column-mode" type="checkbox"><span class="two-column-mode-text" th:text="#{common.two.column.view}"></span>
         </div>
-    </label>
+    </label></div>
 </div>
 </th:block>

@@ -126,8 +126,8 @@ class SiteUserManagementTest : AbstractIntegrationTest() {
         assertTrue(names(userList(session, "state" to "GUEST")).contains("@${guest.loginId}"))
         assertTrue(names(userList(session, "state" to "DELETED")).contains("@${deleted.loginId}"))
         assertTrue(names(userList(session, "state" to "SITE_ADMIN")).contains("@${me.loginId}"))
-        assertEquals("LOCKED", userList(session, "state" to "LOCKED").selectFirst("form.form-search input[name=state]")!!.attr("value"))
-        assertEquals(listOf("ACTIVE", "LOCKED", "DELETED", "GUEST", "SITE_ADMIN").size, userList(session).select(".span10 > ul.nav-tabs > li").size)
+        assertEquals("LOCKED", userList(session, "state" to "LOCKED").selectFirst("form.pull-right input[name=state]")!!.attr("value"))
+        assertEquals(listOf("ACTIVE", "LOCKED", "DELETED", "GUEST", "SITE_ADMIN").size, userList(session).select(".col-md-10 > ul.nav-tabs > li").size)
     }
 
     @Test

@@ -199,7 +199,7 @@ $(function () {
 
     function closeSidebar($sidebar) {
         $sidebar.width("0").css("border", "none");
-        $(".main-stream").removeClass("span8").addClass("span12");
+        $(".main-stream").removeClass("col-md-8").addClass("col-md-12");
     }
 
     function openSidebar($sidebar) {
@@ -210,7 +210,7 @@ $(function () {
         } else {
             $sidebar.width("100vw").css("border", "1px solid #ccc");
         }
-        $(".main-stream").removeClass("span12").addClass("span8");
+        $(".main-stream").removeClass("col-md-12").addClass("col-md-8");
     }
 
     // This method intended to sync sub tab list of projects

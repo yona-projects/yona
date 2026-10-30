@@ -45,7 +45,7 @@
                         <a href="#" style="white-space:normal;">
                             <strong th:text="${option.label}"></strong>
                             <span class="merge-method-check" th:if="${option.code == header.accept.defaultMethod}">&#10003;</span>
-                            <small class="muted" style="display:block;" th:text="${option.reason ?: option.description}"></small>
+                            <small class="text-muted" style="display:block;" th:text="${option.reason ?: option.description}"></small>
                         </a>
                     </li>
                 </ul>
@@ -53,8 +53,8 @@
             <form id="merge-options" method="post" th:action="${header.accept.formAction}" class="well" style="display:none; position:absolute; right:0; top:100%; z-index:1000; width:420px; margin:4px 0 0; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.18);">
                 <input type="hidden" name="method" th:value="${header.accept.defaultMethod}">
                 <div id="merge-message-fields">
-                    <input type="text" name="commitTitle" class="input-block-level" maxlength="255" th:value="${header.accept.defaultOption?.defaultTitle}">
-                    <textarea name="commitMessage" rows="6" class="input-block-level" style="resize:vertical;" th:text="${header.accept.defaultOption?.defaultMessage}"></textarea>
+                    <input type="text" name="commitTitle" class="form-control" maxlength="255" th:value="${header.accept.defaultOption?.defaultTitle}">
+                    <textarea name="commitMessage" rows="6" class="form-control" style="resize:vertical;" th:text="${header.accept.defaultOption?.defaultMessage}"></textarea>
                 </div>
                 <button type="submit" id="btnMergeSubmit" class="ybtn ybtn-success" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
                 <button type="button" id="btnMergeCancel" class="ybtn ybtn-default" th:text="#{button.cancel}"></button>

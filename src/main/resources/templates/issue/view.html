@@ -35,8 +35,8 @@
         </div>
         <!--/* Content body */-->
         <!--board-body-->
-        <div class="board-body row-fluid">
-            <div class="span9 span-left-pane">
+        <div class="board-body row">
+            <div class="col-md-9 span-left-pane">
                 <div class="author-info">
                     <a th:if="${issue.author != null}" th:href="'/' + ${issue.author.loginId}" class="usf-group">
                         <span class="avatar-wrap smaller">
@@ -150,7 +150,7 @@
                 </div>
             </div>
 
-            <div class="span3 span-right-pane mb20">
+            <div class="col-md-3 span-right-pane mb20">
                 <div class="issue-info">
                     <form id="issueUpdateForm" th:action="${base + '/issues'}" method="post">
                         <input type="hidden" name="issues[0].id" th:value="${issue.id}" />
@@ -266,7 +266,7 @@
     </script>
 
     <!--/* Confirm to delete post */-->
-    <div id="deleteConfirm" class="modal hide fade">
+    <div id="deleteConfirm" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">×</button>
             <h3 th:text="#{issue.delete}"></h3>
@@ -278,7 +278,7 @@
             <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=${base + '/issue/' + issue.number + '/delete'}" th:text="#{button.yes}"></button>
             <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
         </div>
-    </div>
+    </div></div></div>
 </div>
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>
 <th:block th:replace="~{common/comment-delete-modal :: commentDeleteModal('#comments')}"></th:block>

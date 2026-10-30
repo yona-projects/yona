@@ -55,7 +55,7 @@
             </th:block>
         </div>
 
-        <div class="row-fluid">
+        <div class="row">
             <div>
                 <ul class="milestones">
                     <li th:each="row : ${rows}" class="milestone" th:with="status=${row.status}">
@@ -100,8 +100,8 @@
                             </div>
 
                             <div class="progress-wrap">
-                                <div class="progress progress-success">
-                                    <div class="bar" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
                                 </div>
                             </div>
                         </div>
@@ -115,7 +115,7 @@
                                             <span class="number" th:text="'#' + ${issue.number}"></span>
                                             <th:block th:text="${issue.title}"></th:block>
                                             <th:block th:if="${issue.assigneeName != null}"> - <th:block th:text="${issue.assigneeName}"></th:block></th:block>
-                                            <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                                            <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active label-default" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
                                         </span>
                                     </div>
                                 </a>
@@ -131,7 +131,7 @@
                                             <span class="number" th:text="'#' + ${issue.number}"></span>
                                             <th:block th:text="${issue.title}"></th:block>
                                             <th:block th:if="${issue.assigneeName != null}"> - <th:block th:text="${issue.assigneeName}"></th:block></th:block>
-                                            <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                                            <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active label-default" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
                                         </span>
                                     </div>
                                 </a>

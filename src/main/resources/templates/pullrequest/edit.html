@@ -57,7 +57,7 @@
                 </div>
 
                 <span id="pullRequestState" th:attr="data-value=${state}"></span>
-                <div th:if="${open}" id="status" class="alert mt20 mb20" th:text="#{pullRequest.is.merging}"></div>
+                <div th:if="${open}" id="status" class="alert mt20 mb20 alert-warning" th:text="#{pullRequest.is.merging}"></div>
 
                 <div>
                     <input type="text" id="title" name="title" maxlength="255" class="text" th:value="${prTitle}" th:placeholder="#{title}" data-is-user-has-typed="true">

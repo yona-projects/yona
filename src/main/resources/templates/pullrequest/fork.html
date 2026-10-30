@@ -21,10 +21,10 @@
                         <h4 style="padding-top:10px;"><th:block th:text="${original}"></th:block> <th:block th:text="#{fork}"></th:block></h4>
                     </legend>
                     <div id="helpMessage" class="well">
-                        <div class="row-fluid">
+                        <div class="row">
                         <th:block th:if="${#lists.isEmpty(existing)}">
                             <div class="pull-left">
-                                <img class="img-polaroid" th:src="@{/assets/images/fork-pull/fork.jpg}"><br>
+                                <img class="img-thumbnail" th:src="@{/assets/images/fork-pull/fork.jpg}"><br>
                             </div>
                             <div class="pull-left help-messages">
                                 <p class="lead" th:text="#{fork.help.title}"></p>
@@ -45,25 +45,25 @@
                         </th:block>
                         </div>
                     </div>
-                    <div class="control-group">
+                    <div class="form-group">
                         <label class="control-label" for="inputOwner" th:text="#{project.owner}"></label>
-                        <div class="controls">
+                        <div>
                             <select id="project-owner" name="owner">
                                 <option th:each="o : ${owners}" th:attr="data-url=${o.url}" th:value="${o.value}" th:selected="${o.selected}" th:text="${o.value}"></option>
                             </select>
                         </div>
                     </div>
-                    <div class="control-group">
+                    <div class="form-group">
                         <label class="control-label" for="inputName" th:text="#{project.name}"></label>
-                        <div class="controls">
+                        <div>
                             <input type="text" id="inputName" name="name" th:value="${forkName}" />
                             <span class="help-inline" th:text="#{project.name.alert}"></span>
                         </div>
                     </div>
 
-                    <div class="control-group">
+                    <div class="form-group">
                         <label class="control-label" th:text="#{project.shareOption}"></label>
-                        <div class="controls">
+                        <div>
                             <input name="projectScope" type="radio" id="public" value="PUBLIC" class="radio-btn" checked="checked">
                             <label for="public" class="bg-radiobtn label-public" th:text="#{project.public}"></label>
                             <th:block th:if="${protectedAllowed}">
@@ -74,8 +74,8 @@
                             <label for="private" class="bg-radiobtn label-private" th:text="#{project.private}"></label>
                         </div>
                     </div>
-                    <div class="control-group">
-                        <div class="controls">
+                    <div class="form-group">
+                        <div>
                             <button type="submit" class="ybtn ybtn-info" th:text="#{fork}"></button>
                             <a th:href="${cancelUrl}" class="ybtn" th:text="#{button.cancel}"></a>
                         </div>

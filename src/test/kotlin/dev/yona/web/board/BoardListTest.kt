@@ -209,7 +209,7 @@ class BoardListTest : AbstractIntegrationTest() {
         post(project, "README", 2, readme = true)
         val doc = doc(project)
         val rows = doc.select("ul.post-list-wrap:not(.notice-wrap) li.post-item")
-        assertEquals("README", rows[0].selectFirst(".label-important")!!.text())
+        assertEquals("README", rows[0].selectFirst(".label-danger")!!.text())
         assertTrue(rows[0].select(".post-id").isEmpty())
         val row = rows[1]
         assertEquals(author.name, row.selectFirst(".infos a.infos-link-item")!!.text())

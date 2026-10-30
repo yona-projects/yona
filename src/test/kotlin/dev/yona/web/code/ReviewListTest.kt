@@ -147,8 +147,8 @@ class ReviewListTest : AbstractIntegrationTest() {
         thread(p, "열림1"); thread(p, "열림2"); thread(p, "닫힘", state = ThreadState.CLOSED)
         val doc = page(url(p, "?state=CLOSED"), login(me))
         assertEquals(listOf("닫힘"), contents(doc))
-        assertEquals(listOf("2", "1"), doc.select(".span10 > ul.nav-tabs li .num-badge").map { it.text() })
-        assertEquals("CLOSED", doc.selectFirst(".span10 > ul.nav-tabs li.active a")!!.attr("data-value"))
+        assertEquals(listOf("2", "1"), doc.select(".col-md-10 > ul.nav-tabs li .num-badge").map { it.text() })
+        assertEquals("CLOSED", doc.selectFirst(".col-md-10 > ul.nav-tabs li.active a")!!.attr("data-value"))
     }
 
     @Test

@@ -7,13 +7,13 @@
   매개변수: id(대화상자 id), voters(PersonView 목록)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="voterList(id, voters)">
-<div th:id="${id}" class="modal hide voters-dialog">
+<div th:id="${id}" class="modal voters-dialog"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h5 class="nm" th:text="#{issue.voters}"></h5>
     </div>
     <div class="modal-body">
-        <ul class="unstyled">
+        <ul class="list-unstyled">
             <li th:each="voter : ${voters}">
                 <a th:href="'/' + ${voter.loginId}" class="usf-group" target="_blank">
                     <span class="avatar-wrap mlarge">
@@ -30,5 +30,5 @@
                 th:attr="data-clipboard-text=${#strings.listJoin(voters.![name + ' <' + email + '>;'], '')}" th:text="#{button.copy.email}"></button>
         <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true" th:text="#{button.close}"></button>
     </div>
-</div>
+</div></div></div>
 </th:block>

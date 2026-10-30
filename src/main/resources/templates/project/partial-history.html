@@ -9,7 +9,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="history(history)">
 <div class="content-container nm">
   <div class="main-stream" style="width:100%;">
-    <ul class="activity-streams unstyled">
+    <ul class="activity-streams list-unstyled">
       <li th:each="item : ${history}" class="activity-stream">
         <a th:href="${item.userPageUrl}" class="avatar-wrap pull-left mr10">
           <img th:src="${item.avatarUrl}" width="32" height="32">

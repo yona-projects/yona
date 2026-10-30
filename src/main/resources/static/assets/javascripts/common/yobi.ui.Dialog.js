@@ -67,8 +67,8 @@
         }
 
         function _attachEvent(){
-            htElement.welContainer.on("shown", _onShownDialog);
-            htElement.welContainer.on("hidden", _onHiddenDialog);
+            htElement.welContainer.on("shown.bs.modal", _onShownDialog);
+            htElement.welContainer.on("hidden.bs.modal", _onHiddenDialog);
             htElement.welContainer.on("click", "button.ybtn", _onClickButton);
         }
 

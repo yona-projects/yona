@@ -9,8 +9,8 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="dashboard(d)" th:with="base=${#paths.project(d.owner, d.name)}">
 <div class="content-container nm">
-    <div class="project-overview-home row-fluid">
-        <div class="span6">
+    <div class="project-overview-home row">
+        <div class="col-md-6">
             <th:block th:if="${d.issueMenu}">
                 <h5 th:text="#{project.dashboard.openIssuesByAssignee}"></h5>
                 <div class="overview-assignee">
@@ -19,8 +19,8 @@
                         <a th:href="@{${base + '/issueform'}}" target="_blank" class="ybtn ybtn-small" th:text="#{issue.menu.new}"></a>
                     </div>
                     <th:block th:unless="${d.assignee.empty}">
-                        <div th:each="row : ${d.assignee.rows}" class="row-fluid">
-                            <div class="span6">
+                        <div th:each="row : ${d.assignee.rows}" class="row">
+                            <div class="col-md-6">
                                 <a th:href="${d.issueBase + '&assigneeId=' + row.user.id}" class="usf-group" th:title="${row.user.name + ' (@' + row.user.loginId + ')'}">
                                     <span class="avatar-wrap smaller">
                                         <img th:src="${d.assigneeAvatars[row.user.id]}" width="20" height="20">
@@ -29,24 +29,24 @@
                                     <span class="loginid"> <strong>@</strong><th:block th:text="${row.user.loginId}"></th:block></span>
                                 </a>
                             </div>
-                            <div class="span3 num"><strong th:text="${row.count}"></strong></div>
-                            <div class="span3 nm">
-                                <div class="progress progress-warning" th:classappend="${row.percent == 0} ? 'empty'" data-toggle="tooltip" th:title="${row.percent + '%'}">
-                                    <div class="bar" th:style="'width: ' + ${row.percent} + '%;'"></div>
+                            <div class="col-md-3 num"><strong th:text="${row.count}"></strong></div>
+                            <div class="col-md-3 nm">
+                                <div class="progress" th:classappend="${row.percent == 0} ? 'empty'" data-toggle="tooltip" th:title="${row.percent + '%'}">
+                                    <div class="progress-bar progress-bar-warning" th:style="'width: ' + ${row.percent} + '%;'"></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="row-fluid">
-                            <div class="span6">
+                        <div class="row">
+                            <div class="col-md-6">
                                 <a th:href="${d.issueBase + '&assigneeId=-1'}" class="usf-group">
                                     <span class="avatar-wrap smaller"><i class="yobicon-blankstare"></i></span>
                                     <span class="name" th:text="#{issue.noAssignee}"></span>
                                 </a>
                             </div>
-                            <div class="span3 num"><strong th:text="${d.assignee.noAssigneeCount}"></strong></div>
-                            <div class="span3 nm">
-                                <div class="progress progress-warning" th:classappend="${d.assignee.noAssigneePercent == 0} ? 'empty'" data-toggle="tooltip" th:title="${d.assignee.noAssigneePercent + '%'}">
-                                    <div class="bar" th:style="'width: ' + ${d.assignee.noAssigneePercent} + '%;'"></div>
+                            <div class="col-md-3 num"><strong th:text="${d.assignee.noAssigneeCount}"></strong></div>
+                            <div class="col-md-3 nm">
+                                <div class="progress" th:classappend="${d.assignee.noAssigneePercent == 0} ? 'empty'" data-toggle="tooltip" th:title="${d.assignee.noAssigneePercent + '%'}">
+                                    <div class="progress-bar progress-bar-warning" th:style="'width: ' + ${d.assignee.noAssigneePercent} + '%;'"></div>
                                 </div>
                             </div>
                         </div>
@@ -62,23 +62,23 @@
                         <a th:href="@{${base + '/newMilestoneForm'}}" target="_blank" class="ybtn ybtn-small" th:text="#{milestone.menu.new}"></a>
                     </div>
                     <th:block th:unless="${d.milestone.empty}">
-                        <div th:each="row : ${d.milestone.rows}" class="row-fluid">
-                            <div class="span6">
+                        <div th:each="row : ${d.milestone.rows}" class="row">
+                            <div class="col-md-6">
                                 <a th:href="${d.issueBase + '&milestoneId=' + row.milestoneId}" th:text="${row.title}"></a>
                             </div>
-                            <div class="span3 num"><strong th:text="${row.count}"></strong></div>
-                            <div class="span3 nm">
-                                <div class="progress progress-success" data-toggle="tooltip" th:title="${row.completionRate + '%'}">
-                                    <div class="bar bar-success" th:style="'width:' + ${row.completionRate} + '%'"></div>
+                            <div class="col-md-3 num"><strong th:text="${row.count}"></strong></div>
+                            <div class="col-md-3 nm">
+                                <div class="progress" data-toggle="tooltip" th:title="${row.completionRate + '%'}">
+                                    <div class="progress-bar progress-bar-success" th:style="'width:' + ${row.completionRate} + '%'"></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="row-fluid">
-                            <div class="span6">
+                        <div class="row">
+                            <div class="col-md-6">
                                 <a th:href="${d.issueBase + '&milestoneId=-1'}" th:text="#{issue.noMilestone}"></a>
                             </div>
-                            <div class="span3 num"><strong th:text="${d.milestone.noMilestoneCount}"></strong></div>
-                            <div class="span3 nm"></div>
+                            <div class="col-md-3 num"><strong th:text="${d.milestone.noMilestoneCount}"></strong></div>
+                            <div class="col-md-3 nm"></div>
                         </div>
                     </th:block>
                 </div>
@@ -90,20 +90,20 @@
                 <h5 th:text="#{project.dashboard.pullRequests}"></h5>
                 <div class="overview-pullrequest">
                     <th:block th:if="${!d.pullRequests.isEmpty()}">
-                        <div th:each="pull : ${d.pullRequests}" class="row-fluid">
-                            <div class="span9 title">
+                        <div th:each="pull : ${d.pullRequests}" class="row">
+                            <div class="col-md-9 title">
                                 <a th:href="${pull.filterHref}" class="usf-group">
                                     <span class="avatar-wrap smaller" data-toggle="tooltip" th:title="${pull.contributorName + ' (@' + pull.contributorLoginId + ')'}">
                                         <img th:src="${pull.avatarUrl}" width="20" height="20">
                                     </span>
                                 </a>
                                 <a th:href="${pull.href}" th:text="${pull.title}"></a>
-                                <a th:each="l : ${pull.labels}" th:href="${pull.href}" class="label issue-label active list-label" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                                <a th:each="l : ${pull.labels}" th:href="${pull.href}" class="label issue-label active list-label label-default" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                                 <span th:if="${pull.assigneeLoginId != null}" class="avatar-wrap smaller assignee" data-toggle="tooltip" th:title="#{issue.assignee} + ': ' + ${pull.assigneeName} + ' (@' + ${pull.assigneeLoginId} + ')'">
                                     <img th:src="${pull.assigneeAvatarUrl}" width="20" height="20">
                                 </span>
                             </div>
-                            <div class="span3 num right-txt" style="color:#999;" th:text="${pull.ago}"></div>
+                            <div class="col-md-3 num right-txt" style="color:#999;" th:text="${pull.ago}"></div>
                         </div>
                         <div class="right-txt mt5" style="margin-right:17px;">
                             <a th:href="@{${base + '/pullRequests'}}" th:utext="#{project.dashboard.more(${d.pullRequestOpenCount})}"></a>
@@ -117,19 +117,19 @@
             </th:block>
         </div>
 
-        <div th:if="${d.issueMenu}" class="span6">
+        <div th:if="${d.issueMenu}" class="col-md-6">
             <h5 th:text="#{project.dashboard.openIssuesByLabel}"></h5>
             <link rel="stylesheet" th:href="@{${base + '/issue/labels.css'}}" type="text/css" />
             <dl th:each="group : ${d.labels}" class="dl-horizontal overview-label">
                 <dt th:text="${group.category}"></dt>
                 <dd>
-                    <div th:each="label : ${group.labels}" class="row-fluid">
-                        <div class="span10">
+                    <div th:each="label : ${group.labels}" class="row">
+                        <div class="col-md-10">
                             <a th:href="${d.issueBase + '&labelIds=' + label.labelId}">
                                 <span class="issue-label list-label active" th:attr="data-label-id=${label.labelId}" th:text="${label.name}"></span>
                             </a>
                         </div>
-                        <div class="span2 num"><strong th:text="${label.count}"></strong></div>
+                        <div class="col-md-2 num"><strong th:text="${label.count}"></strong></div>
                     </div>
                 </dd>
             </dl>

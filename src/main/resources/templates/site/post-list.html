@@ -14,7 +14,7 @@
         <h2 class="pull-left" th:text="#{site.sidebar.postList}"></h2>
     </div>
     <ul class="post-list-wrap">
-        <li th:each="row : ${rows}" class="row-fluid listitem">
+        <li th:each="row : ${rows}" class="row listitem">
             <a th:href="@{/{o}/{n}(o=${row.projectOwner},n=${row.projectName})}" class="avatar-wrap list-avatar">
                 <img th:src="@{${row.logoUrl}}" th:alt="${row.projectName}"/>
             </a>

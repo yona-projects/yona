@@ -8,8 +8,8 @@
         newPullRequestUrl, contributors(ContributorOption), pushedBranches(PushedBranchRow), rows(PullRequestRow), totalPages
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search">
-<div pjax-container class="row-fluid cb">
-    <div class="left-menu span2 search-wrap hide-in-mobile" style="padding-top:0;">
+<div pjax-container class="row cb">
+    <div class="left-menu col-md-2 search-wrap hide-in-mobile" style="padding-top:0;">
         <form id="search" name="search" th:action="${searchAction}" method="get">
             <div class="search">
                 <div class="search-bar">
@@ -58,7 +58,7 @@
             </div>
         </form>
     </div>
-    <div class="span10 span-hard-wrap" id="span10">
+    <div class="col-md-10 span-hard-wrap" id="span10">
         <th:block th:if="${!#lists.isEmpty(pushedBranches)}">
             <h5 th:text="#{pullRequest.pushed.branches.title}"></h5>
             <div class="alert alert-info">
@@ -87,11 +87,11 @@
             <li><th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block></li>
         </ul>
         <div class="tab-content" style="clear:both;padding-top:15px;">
-            <div id="list" class="row-fluid tab-pane active">
+            <div id="list" class="row tab-pane active">
                 <ul class="post-list-wrap">
                     <th:block th:if="${!#lists.isEmpty(rows)}">
                         <li th:each="r : ${rows}" class="post-item title" th:attr="href=${r.href}">
-                            <div class="span10 span-hard-wrap">
+                            <div class="col-md-10 span-hard-wrap">
                                 <a th:if="${r.contributor != null}" th:href="${r.contributor.href}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${r.contributor.loginId}">
                                     <img th:if="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}"/>
                                     <img th:unless="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}" th:alt="${r.contributor.name}" width="32" height="32"/>
@@ -100,7 +100,7 @@
                                     <span class="post-id" th:text="${r.number}"></span>
                                     <th:block th:utext="${r.headerWordsHtml}"></th:block>
                                     <a th:href="${r.href}" th:class="'title' + (${r.conflict} ? ' conflict' : '')" th:text="${r.title}"></a>
-                                    <a th:each="l : ${r.labels}" th:href="${r.href}" class="label issue-label active list-label" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                                    <a th:each="l : ${r.labels}" th:href="${r.href}" class="label issue-label active list-label label-default" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                                 </div>
                                 <div class="infos">
                                     <th:block th:if="${r.contributor != null}">
@@ -128,7 +128,7 @@
                                     <span th:class="${r.toDefaultBranch} ? 'to-default-branch' : 'to-branch'" th:text="${r.toBranch}"></span>
                                 </div>
                             </div>
-                            <div class="span2 hide-in-mobile">
+                            <div class="col-md-2 hide-in-mobile">
                                 <div class="mt5 pull-right hide-in-mobile">
                                     <a th:if="${r.assignee != null}" th:href="${r.assignee.href}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${r.assignee.name}" th:title="#{issue.assignee} + ': ' + ${r.assignee.name}">
                                         <img th:src="${r.assignee.avatarUrl}" width="32" height="32" th:alt="${r.assignee.name}">

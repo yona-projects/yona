@@ -20,7 +20,7 @@
     <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('notifications')}"></th:block>
 
     <div>
-      <ul id="notification-projects" class="unstyled lst-stacked span3 mr20">
+      <ul id="notification-projects" class="list-unstyled lst-stacked col-md-3 mr20">
         <li th:each="project, stat : ${notificationProjects}" th:class="${stat.first} ? 'active'">
           <a th:href="'#' + ${project.id}" data-toggle="tab"><th:block th:text="${project.owner}"></th:block> / <th:block th:text="${project.name}"></th:block></a>
         </li>

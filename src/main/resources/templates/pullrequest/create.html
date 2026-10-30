@@ -52,12 +52,12 @@
                 </div>
 
                 <span id="pullRequestState" th:attr="data-value=${state}"></span>
-                <div id="status" class="alert mt20 mb20" th:text="#{pullRequest.is.merging}"></div>
+                <div id="status" class="alert mt20 mb20 alert-warning" th:text="#{pullRequest.is.merging}"></div>
 
-                <!--/* v1.6 이슈 작성 폼과 같은 배치: 제목과 본문은 왼쪽(span9), 담당자와 라벨(추가 항목 X-14, D-34 20번)은 오른쪽 열(span3)에 세로로 쌓는다.
+                <!--/* v1.6 이슈 작성 폼과 같은 배치: 제목과 본문은 왼쪽(col-md-9), 담당자와 라벨(추가 항목 X-14, D-34 20번)은 오른쪽 열(col-md-3)에 세로로 쌓는다.
                      오른쪽 열은 받는 프로젝트에 수정 권한이 있을 때만 있고, 없으면 왼쪽이 전체 폭을 쓴다. 고른 값은 폼과 함께 보낸다 */-->
-                <div class="row-fluid">
-                    <div class="span-left-pane" th:classappend="${assigneeArea != null} ? 'span9' : 'span12'">
+                <div class="row">
+                    <div class="span-left-pane" th:classappend="${assigneeArea != null} ? 'col-md-9' : 'col-md-12'">
                         <input type="text" id="title" name="title" maxlength="255" class="text" th:placeholder="#{title}">
                         <div style="position: relative;">
                             <th:block th:replace="~{common/editor :: editor('body', ${body}, '', 'content-body', false)}"></th:block>
@@ -70,7 +70,7 @@
                             <a href="javascript:history.back();" class="ybtn" th:text="#{button.cancel}"></a>
                         </div>
                     </div>
-                    <div class="span3 span-hard-wrap right-menu" th:if="${assigneeArea != null}">
+                    <div class="col-md-3 span-hard-wrap right-menu" th:if="${assigneeArea != null}">
                         <div id="pr-meta" class="issue-info" data-mode="form" th:attr="data-candidates-url=${assigneeArea.candidatesUrl}">
                             <dl class="issue-option pr-assignee">
                                 <dt th:text="#{issue.assignee}"></dt>

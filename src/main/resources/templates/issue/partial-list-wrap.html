@@ -7,12 +7,12 @@
   모델: projectView, cond, items, drafts, pageIndex, totalPageCount, openCount, closedCount, quick, excelUrl, search, canMassUpdate, massUpdate
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="listWrap" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
-<div pjax-container class="row-fluid issue-list-wrap">
-    <div class=" left-menu span2 span-hard-wrap">
+<div pjax-container class="row issue-list-wrap">
+    <div class=" left-menu col-md-2 span-hard-wrap">
         <th:block th:replace="~{issue/partial-list-quicksearch :: quicksearch}"></th:block>
         <th:block th:replace="~{issue/partial-searchform :: searchform}"></th:block>
     </div>
-    <div class="span10 span-hard-wrap" id="span10">
+    <div class="col-md-10 span-hard-wrap" id="span10">
         <div class="pull-right">
             <a th:href="${base + '/issueform'}" class="ybtn ybtn-success" th:text="#{issue.menu.new}"></a>
         </div>

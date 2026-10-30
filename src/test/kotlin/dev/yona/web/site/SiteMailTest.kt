@@ -88,7 +88,7 @@ class SiteMailTest : AbstractIntegrationTest() {
     @Test
     fun `메일 서버가 설정되지 않았으면 빠진 항목을 알린다`() {
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/mail").session(admin())).andReturn().response.contentAsString)
-        val items = doc.select(".alert-error ul li").map { it.text().trim() }
+        val items = doc.select(".alert-danger ul li").map { it.text().trim() }
         assertEquals(listOf("spring.mail.host", "spring.mail.username", "spring.mail.password"), items)
     }
 
@@ -96,7 +96,7 @@ class SiteMailTest : AbstractIntegrationTest() {
     fun `errorMessage와 sended 쿼리는 안내로 보인다`() {
         val session = admin()
         val failed = Jsoup.parse(mockMvc.perform(get("/sites/mail").session(session).param("errorMessage", "site.mail.fail")).andReturn().response.contentAsString)
-        assertTrue(failed.select(".alert-error").first()!!.text().isNotEmpty())
+        assertTrue(failed.select(".alert-danger").first()!!.text().isNotEmpty())
         val sent = Jsoup.parse(mockMvc.perform(get("/sites/mail").session(session).param("sended", "true")).andReturn().response.contentAsString)
         assertTrue(sent.select(".alert-success").isNotEmpty())
     }

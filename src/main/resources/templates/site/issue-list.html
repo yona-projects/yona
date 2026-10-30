@@ -18,7 +18,7 @@
         <li th:class="${currentState == 'closed'} ? 'active'"><a th:href="@{/sites/issueList(state='closed')}" th:text="#{issue.state.closed}"></a></li>
     </ul>
     <ul class="post-list-wrap">
-        <li th:each="row : ${rows}" class="row-fluid listitem">
+        <li th:each="row : ${rows}" class="row listitem">
             <a th:href="@{/{o}/{n}(o=${row.projectOwner},n=${row.projectName})}" class="avatar-wrap list-avatar">
                 <img th:src="@{${row.logoUrl}}" th:alt="${row.projectName}"/>
             </a>

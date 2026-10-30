@@ -80,7 +80,7 @@ class PullRequestListsDisplayTest : AbstractIntegrationTest() {
     @Test
     fun `프로젝트 홈 대시보드의 풀 리퀘스트 줄은 작은 라벨 칩과 담당자 아바타를 보여 준다`() {
         val f = fixture(inOrganization = false)
-        val row = page("/${f.project.owner}/${f.project.name}?tabId=dashboard").selectFirst(".overview-pullrequest .row-fluid")!!
+        val row = page("/${f.project.owner}/${f.project.name}?tabId=dashboard").selectFirst(".overview-pullrequest .row")!!
         assertEquals("bug", row.selectFirst("a.issue-label")!!.text())
         val avatar = row.selectFirst(".avatar-wrap.assignee")!!
         assertTrue(avatar.attr("title").contains(f.assignee.name!!), avatar.outerHtml())

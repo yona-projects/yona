@@ -24,7 +24,7 @@
                         <input th:id="'upload-' + ${comment.id}" class="file-upload__input" type="file" name="filePath" multiple>
                     </span>
                     <span th:if="${comment.own}" class="send-notification-check" data-toggle='popover' data-trigger="hover" data-placement="top" th:attr="data-content=#{notification.send.mail.warning}">
-                        <label class="checkbox inline">
+                        <label class="checkbox-inline">
                             <input type="checkbox" name="notificationMail" value="yes" checked>
                             <strong th:text="#{notification.send.mail}"></strong>
                         </label>

@@ -266,7 +266,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         assertEquals(listOf("규칙 묶음 이름", "적용 상태", "바이패스", "대상 브랜치", "규칙"), card.select(".box-wrap .cu-label").map { it.text() })
         assertEquals(1, card.select(".box-wrap.bottom button#saveRuleset").size, "저장 단추는 카드 아래 칸에 있다")
         assertEquals(2, card.select("input[type=radio][name=enforcement]").size)
-        assertTrue(card.select("label.checkbox").size >= 6, "부트스트랩 checkbox 라벨")
+        assertTrue(card.select(".checkbox label").size >= 6, "부트스트랩 checkbox 라벨")
         assertTrue(card.select(".help-block").isNotEmpty(), "부트스트랩 help-block")
         assertTrue(card.select("[style]").none { it.attr("style").contains("background") || it.attr("style").contains("margin") && it.id() != "rulesetPullRequestOptions" }, "꾸밈은 클래스로 하고 인라인 스타일은 쓰지 않는다")
     }

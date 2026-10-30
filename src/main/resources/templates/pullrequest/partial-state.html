@@ -11,7 +11,7 @@
     <i class="yobicon-check-circle-alt mr5"></i>
     <span th:text="#{pullRequest.is.safe}"></span>
 </div>
-<div th:if="${state.kind == 'conflict'}" class="alert alert-error">
+<div th:if="${state.kind == 'conflict'}" class="alert alert-danger">
     <i class="yobicon-error mr5"></i>
     <span th:text="#{pullRequest.is.not.safe}"></span>
 
@@ -33,7 +33,7 @@
         </div>
     </div>
 </div>
-<div th:if="${state.kind == 'merging'}" class="alert alert-warnning">
+<div th:if="${state.kind == 'merging'}" class="alert alert-warnning alert-warning">
     <i class="yobicon-supportrequest mr5"></i>
     <span th:text="#{pullRequest.is.merging}"></span>
 </div>

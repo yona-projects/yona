@@ -8,11 +8,12 @@ export const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const JAVA = process.env.YONA_JAVA || '/usr/lib/jvm/java-25-openjdk-amd64/bin/java';
 export const ADMIN = { loginId: 'admin', password: 'pass1234', name: 'Admin', email: 'admin@example.com' };
 
-function jarPath() {
+function jarPath(jar) {
+  if (jar) return jar;
   const dir = resolve(ROOT, '..', 'build', 'libs');
-  const jar = readdirSync(dir).find((f) => f.endsWith('.jar') && !f.endsWith('-plain.jar'));
-  if (!jar) throw new Error('부트 jar가 없다. ./gradlew bootJar를 먼저 실행한다');
-  return join(dir, jar);
+  const found = readdirSync(dir).find((f) => f.endsWith('.jar') && !f.endsWith('-plain.jar'));
+  if (!found) throw new Error('부트 jar가 없다. ./gradlew bootJar를 먼저 실행한다');
+  return join(dir, found);
 }
 
 async function waitReady(base, timeoutMs = 180000) {
@@ -24,10 +25,10 @@ async function waitReady(base, timeoutMs = 180000) {
   throw new Error('서버가 제때 뜨지 않았다: ' + base);
 }
 
-function spawnServer(port, dataDir) {
+function spawnServer(port, dataDir, jar) {
   mkdirSync(dataDir, { recursive: true });
   const log = openSync(join(dataDir, 'server.log'), 'a');
-  const child = spawn(JAVA, ['-Xmx1g', '-jar', jarPath(), `--server.port=${port}`, `--yona.data-dir=${dataDir}`, '--yona.git-default-branch=master',
+  const child = spawn(JAVA, ['-Xmx1g', '-jar', jarPath(jar), `--server.port=${port}`, `--yona.data-dir=${dataDir}`, '--yona.git-default-branch=master', '--yona.update.interval=0',
     `--spring.datasource.url=jdbc:h2:file:${join(dataDir, 'db')};DB_CLOSE_DELAY=-1`], { stdio: ['ignore', log, log], detached: false });
   return child;
 }
@@ -36,16 +37,16 @@ function spawnServer(port, dataDir) {
  * 서버를 시작한다. 데이터 폴더가 처음이면 사이트 비밀 키를 정하고 한 번 다시 시작한다.
  * 돌려주는 `stop()`은 서버를 내린다. `base`는 서버 주소이다.
  */
-export async function startServer({ port = 19191, dataDir = join(ROOT, '.state', 'server') } = {}) {
+export async function startServer({ port = 19191, dataDir = join(ROOT, '.state', 'server'), jar = null } = {}) {
   const base = `http://localhost:${port}`;
   const first = !existsSync(join(dataDir, 'config', 'secret.properties'));
-  let child = spawnServer(port, dataDir);
+  let child = spawnServer(port, dataDir, jar);
   await waitReady(base);
   if (first) {
     const body = new URLSearchParams({ loginId: ADMIN.loginId, name: ADMIN.name, email: ADMIN.email, password: ADMIN.password, retypedPassword: ADMIN.password });
     await fetch(base + '/', { method: 'POST', body, redirect: 'manual' });
     child.kill(); await new Promise((r) => child.once('exit', r));
-    child = spawnServer(port, dataDir);
+    child = spawnServer(port, dataDir, jar);
     await waitReady(base);
   }
   return { base, dataDir, first, stop: async () => { child.kill(); await new Promise((r) => child.once('exit', r)); } };

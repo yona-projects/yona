@@ -84,8 +84,8 @@ class SiteDataTest : AbstractIntegrationTest() {
     fun `데이터 화면에는 경고 세 줄과 내보내기 링크와 올리기 폼이 있다`() {
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/data").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString)
         assertEquals(3, doc.select(".cu-desc li.notice").size)
-        assertEquals("/sites/export", doc.select(".span10 a.ybtn-primary").attr("href"))
-        val form = doc.selectFirst(".span10 form")!!
+        assertEquals("/sites/export", doc.select(".col-md-10 a.ybtn-primary").attr("href"))
+        val form = doc.selectFirst(".col-md-10 form")!!
         assertEquals("/sites/import", form.attr("action"))
         assertEquals("multipart/form-data", form.attr("enctype"))
         assertEquals("post", form.attr("method"))

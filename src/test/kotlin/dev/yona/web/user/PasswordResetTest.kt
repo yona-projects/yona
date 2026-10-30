@@ -102,7 +102,7 @@ class PasswordResetTest : AbstractIntegrationTest() {
         val page = Jsoup.parse(request(user.loginId, user.email))
         assertEquals("Mail has been sent.", page.selectFirst(".alert-success h4")?.text())
         assertNotNull(page.selectFirst(".alert-success"))
-        assertNull(page.selectFirst(".alert-error"))
+        assertNull(page.selectFirst(".alert-danger"))
         val event = events.stream(PasswordResetRequestedEvent::class.java).toList().single()
         assertEquals(user.id, event.user.id)
         assertEquals(40, event.token.length)
@@ -117,7 +117,7 @@ class PasswordResetTest : AbstractIntegrationTest() {
         val page = Jsoup.parse(request(user.loginId, user.email))
         // v1.6 sendPasswordResetMail은 EmailException이면 false를 돌려주고 errorMessage는 null이다.
         assertNull(page.selectFirst(".alert-success"))
-        assertNull(page.selectFirst(".alert-error"))
+        assertNull(page.selectFirst(".alert-danger"))
         assertNotNull(page.selectFirst("input#emailAddress"))
     }
 
@@ -126,7 +126,7 @@ class PasswordResetTest : AbstractIntegrationTest() {
         val user = newUser()
         listOf(user.loginId to "other@example.com", "nobody-here" to user.email, user.loginId to user.email!!.uppercase(), null to null).forEach { (id, email) ->
             val page = Jsoup.parse(request(id, email))
-            assertEquals("Invalid password reset request", page.selectFirst(".alert-error")?.ownText()?.trim())
+            assertEquals("Invalid password reset request", page.selectFirst(".alert-danger")?.ownText()?.trim())
             assertNull(page.selectFirst(".alert-success"))
         }
         assertEquals(0, events.stream(PasswordResetRequestedEvent::class.java).count())

@@ -26,8 +26,8 @@
                 </small>
             </h4>
 
-            <div class="progress progress-success">
-                <div class="bar" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
+            <div class="progress">
+                <div class="progress-bar progress-bar-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
             </div>
             <div th:if="${contentsHtml == null}" class="content empty-content"></div>
             <div th:unless="${contentsHtml == null}" class="milestone-desc">
@@ -35,7 +35,7 @@
                 <div class="attachments" th:attr="data-attachments=${attachmentsJson}"></div>
             </div>
 
-            <div class="actrow right-txt row-fluid" style="padding: 15px 0; clear:both;">
+            <div class="actrow right-txt row" style="padding: 15px 0; clear:both;">
                 <a th:href="${base + '/milestones'}" class="ybtn pull-left" th:text="#{button.list}"></a>
 
                 <a th:if="${canDelete}" href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger" th:text="#{button.delete}"></a>
@@ -74,7 +74,7 @@
 </div>
 
 <!--/* Confirm to delete milestone */-->
-<div id="deleteConfirm" class="modal hide fade">
+<div id="deleteConfirm" class="modal fade"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">×</button>
         <h3 th:text="#{milestone.delete}"></h3>
@@ -86,7 +86,7 @@
         <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=${base + '/milestone/' + milestone.id + '/delete'}" th:text="#{button.yes}"></button>
         <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
     </div>
-</div>
+</div></div></div>
 
 <th:block th:replace="~{common/markdown :: markdown(${projectView.project})}"></th:block>
 <link rel="stylesheet" th:href="${base + '/issue/labels.css'}" type="text/css" />

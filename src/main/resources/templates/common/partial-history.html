@@ -7,7 +7,7 @@
   매개변수: historyHtml(정화된 변경 이력 HTML)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="history(historyHtml)">
-<div id="-yona-posting-history" class="modal hide">
+<div id="-yona-posting-history" class="modal"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h5 class="nm" th:text="#{change.history}"></h5>
@@ -18,5 +18,5 @@
     <div class="modal-footer">
         <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true" th:text="#{button.confirm}"></button>
     </div>
-</div>
+</div></div></div>
 </th:block>

@@ -13,8 +13,8 @@
 <th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'CODE', 'main-menu-only')}"></th:block>
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <div class="row-fluid">
-            <div class="span12">
+        <div class="row">
+            <div class="col-md-12">
                 <th:block th:utext="#{code.nohead}"></th:block>
                 <th:block th:if="${canUpdate}">
                 <h5 th:text="#{code.nohead.clone(${siteName})}"></h5>

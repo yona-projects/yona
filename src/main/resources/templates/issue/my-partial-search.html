@@ -7,10 +7,10 @@
   모델: cond(IssueSearchCondition), items(UserIssueRow 목록), pageIndex, totalPageCount, openCount, closedCount, meId, quickCounts
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="mySearch">
-<div pjax-container class="row-fluid issue-list-wrap">
-    <div class="left-menu span2 span-hard-wrap">
+<div pjax-container class="row issue-list-wrap">
+    <div class="left-menu col-md-2 span-hard-wrap">
         <div class="inner advanced">
-            <ul class="lst-stacked unstyled">
+            <ul class="lst-stacked list-unstyled">
                 <li th:class="${meId == cond.assigneeId} ? 'active'">
                     <a pjax-filter href="#" data-author-id="" data-assignee-id="" data-milestone-id="" th:attrappend="data-assignee-id=${meId}, data-milestone-id=${cond.milestoneId}" data-commenter-id="" data-mention-id="" data-sharer-id="" data-favorite-id="">
                         <span class="assigned-to-me"><i class="yobicon-user"></i> <th:block th:text="#{issue.list.assignedToMe}"></th:block></span>
@@ -65,7 +65,7 @@
             </form>
         </div>
     </div>
-    <div class="span10 span-hard-wrap" id="span10">
+    <div class="col-md-10 span-hard-wrap" id="span10">
         <ul class="nav nav-tabs nm">
             <li th:class="${cond.state == 'open'} ? 'active'" data-pjax>
                 <a href="#" state="open"><th:block th:text="#{issue.state.open}"></th:block>

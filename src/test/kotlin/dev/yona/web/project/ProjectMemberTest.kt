@@ -191,7 +191,7 @@ class ProjectMemberTest : AbstractIntegrationTest() {
         users.save(applicant)
         val page = membersPage(project, login(manager))
         assertEquals("Sign-up request (1)", page.selectFirst("legend h3")?.text())
-        assertEquals("신청자", page.selectFirst(".span2 strong")?.text())
+        assertEquals("신청자", page.selectFirst(".col-md-2 strong")?.text())
         assertEquals(applicant.loginId, page.selectFirst("button.enrollAcceptBtn")?.attr("data-loginId"))
     }
 

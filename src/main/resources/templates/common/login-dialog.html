@@ -2,7 +2,7 @@
   이식 원본: app/views/common/loginDialog.scala.html
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="loginDialog">
-<div id="loginDialog" class="modal hide loginDialog" tabindex="-1" role="dialog">
+<div id="loginDialog" class="modal loginDialog" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content">
   <div class="modal-body">
     <div class="pull-right">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -52,7 +52,7 @@
       </div>
       </form>
   </div>
-</div>
+</div></div></div>
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.LoginDialog.js}"></script>
 </th:block>

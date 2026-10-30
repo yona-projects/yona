@@ -11,9 +11,9 @@
 <div class="pull-left" style="padding:10px 0; margin-left: 55px;">
     <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini" th:text="#{title.keymap}"></a>
 
-    <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
-        <div class="row-fluid">
-            <div class="span3">
+    <div id="helpKeys" class="modal fade keymap-help" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content">
+        <div class="row">
+            <div class="col-md-3">
                 <h5 th:text="#{project.projects}"></h5>
 
                 <span class="ybtn ybtn-small">H</span>
@@ -42,9 +42,9 @@
                 </th:block>
             </div>
 
-            <div class="span9">
-                <div class="row-fluid">
-                    <div class="span5">
+            <div class="col-md-9">
+                <div class="row">
+                    <div class="col-md-5">
                         <h5 th:text="#{'title.' + ${section}}"></h5>
 
                         <th:block th:if="${#strings.contains(section, 'board')}">
@@ -79,7 +79,7 @@
                         </th:block>
                     </div>
 
-                    <div class="span7">
+                    <div class="col-md-7">
                         <h5 th:text="#{site}"></h5>
 
                         <span class="ybtn ybtn-small">A</span>
@@ -99,8 +99,8 @@
                         <span class="help-inline" th:text="#{button.submitForm}"></span><br>
                     </div>
                 </div>
-                <div class="row-fluid mt20">
-                    <div class="span12">
+                <div class="row mt20">
+                    <div class="col-md-12">
                         <th:block th:if="${#strings.contains(section, 'issue') and #strings.contains(section, 'Detail')}">
                             <h5 th:text="#{search.menu.issue.comments}"></h5>
                             <span class="ybtn ybtn-small">SHIFT</span> +
@@ -116,6 +116,6 @@
         <p class="actrow">
             <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}"></button>
         </p>
-    </div>
+    </div></div></div>
 </div>
 </th:block>

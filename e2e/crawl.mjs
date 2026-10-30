@@ -2,7 +2,7 @@
 // 사용: node crawl.mjs --label <이름> [--only <id 일부>] [--base http://localhost:19191]
 // 서버가 없으면 띄운다(고정 데이터가 없으면 먼저 심는다). 결과: shots/<이름>/<id>.<역할>.png, report.json, index.html(모음 이미지).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { ADMIN, ROOT, startServer } from './lib/server.mjs';
 import { Session } from './lib/http.mjs';
@@ -19,7 +19,8 @@ const out = join(ROOT, 'shots', label);
 mkdirSync(out, { recursive: true });
 
 const fx = await seed({ port: PORT });
-const server = await startServer({ port: PORT });
+const jarArg = arg('jar', null); const dataArg = arg('data', null);
+const server = await startServer({ port: PORT, jar: jarArg, ...(dataArg ? { dataDir: resolve(dataArg) } : {}) });
 const base = server.base;
 const results = [];
 try {

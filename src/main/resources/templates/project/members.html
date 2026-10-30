@@ -25,8 +25,8 @@
             </form>
         </div>
 
-        <ul class="members project row-fluid">
-            <li th:each="member : ${memberItems}" class="member span6 span-hard-wrap">
+        <ul class="members project row">
+            <li th:each="member : ${memberItems}" class="member col-md-6 span-hard-wrap">
                 <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge pull-left mr10">
                     <img th:src="${member.avatarUrl}" width="64" height="64">
                 </a>
@@ -45,7 +45,7 @@
                         <th:block th:text="#{button.delete}"></th:block>
                     </a>
                 </th:block>
-                <span th:if="${member.owner}" class="label owner" th:text="#{user.role.owner}"></span>
+                <span th:if="${member.owner}" class="label owner label-default" th:text="#{user.role.owner}"></span>
                 </div>
             </li>
         </ul>
@@ -55,8 +55,8 @@
         <legend>
             <h3><th:block th:text="#{project.member.enrollment.request}"></th:block> (<th:block th:text="${enrolled.size()}"></th:block>)</h3>
         </legend>
-        <div class="row-fluid">
-            <div th:each="user : ${enrolled}" class="span2">
+        <div class="row">
+            <div th:each="user : ${enrolled}" class="col-md-2">
                 <div class="pull-left mr10">
                     <a th:href="@{/{user}(user=${user.loginId})}">
                         <img th:src="${user.avatarUrl}" height="65" width="65" class="img-circle"/>

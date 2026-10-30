@@ -63,7 +63,7 @@
                 <button type="submit" class="ybtn" th:text="#{userinfo.reset.visited.project.list}"></button>
             </form>
         </div>
-        <div id="avatarCropWrap" class="modal hide" role="dialog" data-backdrop="static">
+        <div id="avatarCropWrap" class="modal" role="dialog" data-backdrop="static"><div class="modal-dialog"><div class="modal-content">
           <div class="modal-header center-txt">
             <div class="avatar-wrap xlarge">
               <img style="width:128px; max-width:none;"/>
@@ -77,7 +77,7 @@
             <button type="button" class="ybtn ybtn-default" data-dismiss="modal" th:text="#{button.cancel}"></button>
             <button type="button" class="ybtn ybtn-success btnSubmitCrop" th:text="#{button.save}"></button>
           </div>
-        </div>
+        </div></div></div>
 
         <link rel="stylesheet" type="text/css" th:href="@{/assets/stylesheets/jcrop/jquery.Jcrop.css}" />
         <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery.Jcrop.min.js}"></script>

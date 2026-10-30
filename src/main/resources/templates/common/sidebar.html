@@ -8,7 +8,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
 <th:block th:if="${currentUser.anonymous}" th:with="remembered=${@socialSession.rememberOriginalUrl()}"></th:block>
-<div class="row-fluid user-menu-wrap">
+<div class="row user-menu-wrap">
     <span class="user-menu"><a th:href="'/' + ${currentUser.loginId}" target="mainFrame">
         <span class="avatar-wrap smaller">
             <img th:src="${currentUser.avatarUrl(32)}" />
@@ -16,7 +16,7 @@
         <span class="caret-text hide-in-mobile" th:text="${currentUser.pureName}"></span>
     </a></span>
     <span class="user-menu"><a th:href="@{/user/editform}" target="mainFrame" th:text="#{userinfo.accountSetting}"></a></span>
-    <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout label" th:text="#{title.logout}"></span></a>
+    <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout label label-default" th:text="#{title.logout}"></span></a>
     <div class="pin-in-sidebar" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i></div>
 </div>
 <ul class="nav nav-tabs nm">

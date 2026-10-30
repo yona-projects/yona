@@ -162,7 +162,7 @@ class MilestoneTest : AbstractIntegrationTest() {
         val item = page("${base(project)}/milestones").selectFirst("li.milestone")!!
         assertEquals("1 / 3", item.selectFirst(".issue-item")!!.text())
         assertEquals("33 %", item.selectFirst(".completion-rate")!!.text().replace(Regex("\\s+"), " ").trim())
-        assertTrue(item.selectFirst(".bar")!!.attr("style").contains("width: 33%"))
+        assertTrue(item.selectFirst(".progress-bar")!!.attr("style").contains("width: 33%"))
         assertEquals(SimpleDateFormat("yyyy-MM-dd").format(m.dueDate!!), item.selectFirst(".due-date strong")!!.text())
         assertTrue(item.selectFirst(".due-date .date")!!.text().contains("days left"))
         assertEquals(listOf("#2", "#3"), item.select(".state-label.open ~ .item-name .number").map { it.text() }.sorted())
@@ -432,7 +432,7 @@ class MilestoneTest : AbstractIntegrationTest() {
         assertTrue(doc.selectFirst("h4 .due-date strong")!!.text().isNotBlank())
         assertEquals("Open", doc.selectFirst("h4 .badge.badge-issue-open")!!.text())
         assertEquals("<strong>굵게</strong>", doc.selectFirst(".milestone-desc .markdown-wrap p")!!.html())
-        assertTrue(doc.select(".progress .bar").isNotEmpty())
+        assertTrue(doc.select(".progress .progress-bar").isNotEmpty())
     }
 
     @Test

@@ -25,32 +25,32 @@ class LegacyBootstrapLintTest {
 
     private val patterns = listOf(
         // --- 3 단계(2→3)에서 사라진다: 그리드와 BS2 전용 클래스 ---
-        Legacy("grid.span", Regex("""\bspan(?:1[0-2]|[1-9])\b"""), Scope.TEMPLATE_CLASS, 3, "span1~12를 col-*로"),
-        Legacy("grid.offset", Regex("""\boffset(?:1[0-2]|[1-9])\b"""), Scope.TEMPLATE_CLASS, 3, "offset1~12를 col-*-offset-*로"),
-        Legacy("grid.row-fluid", Regex("""\brow-fluid\b"""), Scope.TEMPLATE_CLASS, 3, "row-fluid를 row로"),
-        Legacy("btn.size", Regex("""\bbtn-(?:mini|small|large)\b"""), Scope.TEMPLATE_CLASS, 3, "btn-mini/small/large를 btn-xs/sm/lg로"),
-        Legacy("form.append", Regex("""\binput-(?:append|prepend)\b|\badd-on\b"""), Scope.TEMPLATE_CLASS, 3, "input-group으로"),
-        Legacy("form.horizontal", Regex("""\bcontrol-group\b|\bcontrols\b"""), Scope.TEMPLATE_CLASS, 3, "form-group으로"),
-        Legacy("visibility", Regex("""\b(?:hidden|visible)-(?:phone|tablet|desktop)\b"""), Scope.TEMPLATE_CLASS, 3, "hidden-xs 등으로"),
-        Legacy("icon.i", Regex("""\bicon-[a-z]+(?:-[a-z]+)*\b"""), Scope.TEMPLATE_CLASS, 3, "BS2 아이콘(glyph)"),
-        Legacy("nav.legacy", Regex("""\bnav-list\b|\bnavbar-inner\b|\bimg-polaroid\b|\bhero-unit\b|\bthumbnails\b|\btabbable\b"""), Scope.TEMPLATE_CLASS, 3, "BS2에만 있는 컴포넌트"),
+        Legacy("grid.span", Regex("""(?<![\w-])span(?:1[0-2]|[1-9])(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "span1~12를 col-*로"),
+        Legacy("grid.offset", Regex("""(?<![\w-])offset(?:1[0-2]|[1-9])(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "offset1~12를 col-*-offset-*로"),
+        Legacy("grid.row-fluid", Regex("""(?<![\w-])row-fluid(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "row-fluid를 row로"),
+        Legacy("btn.size", Regex("""(?<![\w-])btn-(?:mini|small|large)(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "btn-mini/small/large를 btn-xs/sm/lg로"),
+        Legacy("form.append", Regex("""(?<![\w-])input-(?:append|prepend)(?![\w-])|(?<![\w-])add-on(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "input-group으로"),
+        Legacy("form.horizontal", Regex("""(?<![\w-])control-group(?![\w-])|(?<![\w-])controls(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "form-group으로"),
+        Legacy("visibility", Regex("""(?<![\w-])(?:hidden|visible)-(?:phone|tablet|desktop)(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "hidden-xs 등으로"),
+        Legacy("icon.i", Regex("""(?<![\w-])icon-[a-z]+(?:-[a-z]+)*(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "BS2 아이콘(glyph)"),
+        Legacy("nav.legacy", Regex("""(?<![\w-])nav-list(?![\w-])|(?<![\w-])navbar-inner(?![\w-])|(?<![\w-])img-polaroid(?![\w-])|(?<![\w-])hero-unit(?![\w-])|(?<![\w-])thumbnails(?![\w-])|(?<![\w-])tabbable(?![\w-])"""), Scope.TEMPLATE_CLASS, 3, "BS2에만 있는 컴포넌트"),
         // --- 4 단계(3→4)에서 사라진다: 패널과 float 도구 ---
-        Legacy("panel", Regex("""\bpanel(?:-[a-z]+)?\b"""), Scope.TEMPLATE_CLASS, 4, "panel을 card로"),
-        Legacy("well", Regex("""\bwell(?:-[a-z]+)?\b"""), Scope.TEMPLATE_CLASS, 4, "well을 card로"),
-        Legacy("glyphicon", Regex("""\bglyphicon(?:-[a-z-]+)?\b"""), Scope.TEMPLATE_CLASS, 4, "Glyphicons 대체"),
-        Legacy("pull", Regex("""\bpull-(?:left|right)\b"""), Scope.TEMPLATE_CLASS, 4, "float-left/right 또는 flex 도구로"),
-        Legacy("col.xs", Regex("""\bcol-xs-\d+\b|\bhidden-(?:xs|sm|md|lg)\b|\bimg-responsive\b"""), Scope.TEMPLATE_CLASS, 4, "BS3 그리드와 가시성 도구"),
-        Legacy("btn.default", Regex("""\bbtn-default\b"""), Scope.TEMPLATE_CLASS, 4, "btn-secondary로"),
+        Legacy("panel", Regex("""(?<![\w-])panel(?:-[a-z]+)?(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "panel을 card로"),
+        Legacy("well", Regex("""(?<![\w-])well(?:-[a-z]+)?(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "well을 card로"),
+        Legacy("glyphicon", Regex("""(?<![\w-])glyphicon(?:-[a-z-]+)?(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "Glyphicons 대체"),
+        Legacy("pull", Regex("""(?<![\w-])pull-(?:left|right)(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "float-left/right 또는 flex 도구로"),
+        Legacy("col.xs", Regex("""(?<![\w-])col-xs-\d+(?![\w-])|(?<![\w-])hidden-(?:xs|sm|md|lg)(?![\w-])|(?<![\w-])img-responsive(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "BS3 그리드와 가시성 도구"),
+        Legacy("btn.default", Regex("""(?<![\w-])btn-default(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "btn-secondary로"),
         // --- 5 단계(4→5)에서 사라진다: 속성과 jQuery 플러그인 호출 ---
         Legacy("attr.data-toggle", Regex("""\bdata-toggle="(?:tooltip|tab|dropdown|modal|popover|collapse|pill|button|buttons)"""), Scope.TEMPLATE_ATTR, 5, "data-bs-toggle로"),
         Legacy("attr.data-target", Regex("""\bdata-(?:target|dismiss|placement|slide|parent|backdrop|keyboard)="""), Scope.TEMPLATE_ATTR, 5, "data-bs-*로"),
         Legacy("js.plugin", Regex("""\.(?:modal|alert|popover|tooltip|tab|collapse|dropdown|scrollspy|affix|carousel|typeahead|button)\("""), Scope.JS, 5, "BS5 JS API로"),
-        Legacy("util.margin", Regex("""\b(?:ml|mr|pl|pr)-(?:[0-5]|auto)\b|\bfloat-(?:left|right)\b|\btext-(?:left|right)\b|\bbadge-pill\b|\bsr-only\b"""), Scope.TEMPLATE_CLASS, 5, "ms/me/ps/pe, float-start/end 등으로"),
-        Legacy("form.group", Regex("""\bform-group\b|\bform-row\b|\bcustom-(?:control|select|file|range|checkbox|radio)\b"""), Scope.TEMPLATE_CLASS, 5, "BS5 폼 구조로")
+        Legacy("util.margin", Regex("""(?<![\w-])(?:ml|mr|pl|pr)-(?:[0-5]|auto)(?![\w-])|(?<![\w-])float-(?:left|right)(?![\w-])|(?<![\w-])text-(?:left|right)(?![\w-])|(?<![\w-])badge-pill(?![\w-])|(?<![\w-])sr-only(?![\w-])"""), Scope.TEMPLATE_CLASS, 5, "ms/me/ps/pe, float-start/end 등으로"),
+        Legacy("form.group", Regex("""(?<![\w-])form-group(?![\w-])|(?<![\w-])form-row(?![\w-])|(?<![\w-])custom-(?:control|select|file|range|checkbox|radio)(?![\w-])"""), Scope.TEMPLATE_CLASS, 5, "BS5 폼 구조로")
     )
 
     /** 끝났다고 선언한 단계이다. 선언한 단계 이하의 패턴은 0이어야 한다. 단계를 마칠 때 이 값을 올린다. */
-    private val DONE_STAGES = 2
+    private val DONE_STAGES = 3
 
     private val mapper = JsonMapper.builder().build()
     private val baselineFile = File("src/test/resources/bs/legacy-baseline.json")

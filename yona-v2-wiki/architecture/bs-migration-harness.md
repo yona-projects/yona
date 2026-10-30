@@ -24,6 +24,16 @@ updated: 2026-10-30
 | 상호작용 점검 | `e2e/lib/interact.mjs` (`--interact`) | 화면의 모달, 드롭다운, 탭, 팝오버, 툴팁, 접기 트리거를 눌러 열리는지 본다. `data-toggle`과 `data-bs-toggle`를 모두 찾고, 열림은 클래스 이름이 아니라 **대상이 실제로 보이는지**로 판정한다 |
 | 비교 | `e2e/compare.mjs` | 두 결과를 나란히 놓고 새 문제, 고친 문제, 상태 변화, 사라진 화면을 앞에 모은다. 모양이 의도적으로 바뀌므로 픽셀 차이는 합격 기준이 아니다 |
 
+## 원인 추적 도구 (X-38b에서 더함)
+
+| 도구 | 하는 일 |
+|---|---|
+| `e2e/style-diff.mjs` | 기준 빌드(`.state/baseline/yona-pre-bs5.jar`, `pre-bs5` 태그에서 만든 jar)와 현재 빌드를 나란히 띄워 같은 화면의 요소마다 계산된 스타일을 대조하고, (요소, 속성, 이전 값 → 현재 값)별로 몇 개 요소가 바뀌었는지 센다. "어디가 다른가"를 보여 주는 캡처 비교와 달리 "왜 다른가"의 후보를 준다. `--role`, `--only`, `--moved` |
+| `e2e/explain.mjs <화면 id> "<선택자>" <속성>` | 한 요소의 한 속성이 어느 규칙에서 왔는지 두 빌드에서 나란히 보인다(CDP) |
+| `e2e/ids-diff.mjs <화면 id>` | id와 주요 클래스가 있는 요소의 위치와 크기를 두 빌드에서 대조한다. 요소 순서가 달라져 `style-diff`가 짝을 못 찾는 화면에 쓴다 |
+
+기준 jar를 만들려면 `git worktree add <폴더> pre-bs5` 후 그 폴더에서 `./gradlew bootJar`를 하고 `e2e/.state/baseline/yona-pre-bs5.jar`로 복사한다. 기준 데이터는 고정 데이터를 심은 `.state/server`를 `.state/server-base`로 복사해 쓴다. 두 빌드의 서버는 새 버전 알림이 달라지지 않게 `--yona.update.check=false`로 띄운다(A-286).
+
 ## 쓰는 법
 
 ```

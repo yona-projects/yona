@@ -208,7 +208,7 @@ class ProjectHomeTabsTest : AbstractIntegrationTest() {
 
     // --- 대시보드 탭 ---
 
-    private fun rows(doc: Document, selector: String) = doc.select("$selector .row-fluid")
+    private fun rows(doc: Document, selector: String) = doc.select("$selector .row")
 
     @Test
     fun `담당자별 열린 이슈는 하위 이슈를 포함해 세고 분모는 하위 이슈를 뺀 열린 이슈 수이다`() {
@@ -269,7 +269,7 @@ class ProjectHomeTabsTest : AbstractIntegrationTest() {
         issue(p, "버그1", labels = setOf(bug)); issue(p, "버그2", labels = setOf(bug)); issue(p, "닫힌 버그", labels = setOf(bug), state = State.CLOSED); issue(p, "기능1", labels = setOf(feature))
         val dl = home(p, "dashboard").selectFirst("dl.overview-label")!!
         assertEquals("종류", dl.selectFirst("dt")!!.text())
-        val rows = dl.select("dd .row-fluid")
+        val rows = dl.select("dd .row")
         assertEquals(listOf("기능", "버그"), rows.map { it.selectFirst("a span")!!.text().trim() })
         assertEquals(listOf("1", "2"), rows.map { it.selectFirst("div.num strong")!!.text() })
         assertEquals("/${p.owner}/${p.name}/issues?state=open&labelIds=${bug.id}", rows[1].selectFirst("a")!!.attr("href"))

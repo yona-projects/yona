@@ -15,13 +15,13 @@
 
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <div class="project-home-header row-fluid">
-            <div class="span9 span-hard-wrap">
+        <div class="project-home-header row">
+            <div class="col-md-9 span-hard-wrap">
                 <div class="project-overview">
                     <h3><span id="project-description" th:text="${org.descr}"></span></h3>
                 </div>
-                <div class="project-search-wrap row-fluid mt10">
-                    <div class="span7">
+                <div class="project-search-wrap row mt10">
+                    <div class="col-md-7">
                         <div class="search-bar">
                             <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="project-item" th:placeholder="#{title.type.name}">
                             <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
@@ -64,7 +64,7 @@
                         </div>
                         <div class="stats-wrap pull-right">
                             <div class="members">
-                                <ul class="unstyled">
+                                <ul class="list-unstyled">
                                     <th:block th:each="member : ${row.members}">
                                     <li th:if="${member.loginId != project.owner}">
                                         <a th:href="@{/{loginId}(loginId=${member.loginId})}" class="avatar-wrap">
@@ -84,7 +84,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="span3 span-hard-wrap">
+            <div class="col-md-3 span-hard-wrap">
             <th:block th:if="${org.canSeeMembers}">
                 <div class="bubble-wrap gray project-home">
                     <div class="inner member-info">
@@ -112,7 +112,7 @@
                             <button th:if="${!org.leaveBlocked and org.member}" type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
                         </header>
                         <div class="member-wrap">
-                            <ul class="unstyled project-members">
+                            <ul class="list-unstyled project-members">
                                 <li th:each="member : ${org.members}" class="member">
                                     <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${member.loginId}">
                                         <img th:src="${member.avatarUrl}" height="45" width="45" />
@@ -129,7 +129,7 @@
     </div>
 </div>
 <!--/* Confirm to leave the project */-->
-<div id="alertLeave" class="modal hide">
+<div id="alertLeave" class="modal"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">×</button>
         <h3 th:text="#{organization.member.leave}"></h3>
@@ -141,7 +141,7 @@
         <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn" th:text="#{button.yes}"></button>
         <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}"></button>
     </div>
-</div>
+</div></div></div>
 <script type="text/javascript">
     $(document).ready(function() {
         $yobi.loadModule("organization.View");

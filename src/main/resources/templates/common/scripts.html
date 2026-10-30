@@ -7,7 +7,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="scripts">
 <!-- yobi.ui.Dialog -->
-<div id="yobiDialog" class="modal hide yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="yobiDialog" class="modal yobiDialog" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
     <div class="message">
         <div class="center-text">
@@ -18,7 +18,7 @@
             <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}"></button>
         </div>
     </div>
-</div>
+</div></div></div>
 <!-- //yobi.ui.Dialog -->
 
 <!-- yobi.ui.Toast -->

@@ -34,7 +34,7 @@
                 </div>
 
                 <div class="user-status"><span th:if="${profile.siteManager}" class="badge label-success">SITE ADMIN</span></div>
-                <div class="user-status"><span th:if="${profile.locked}" class="badge label-important">BLOCKED</span></div>
+                <div class="user-status"><span th:if="${profile.locked}" class="badge label-danger">BLOCKED</span></div>
                 <div class="user-since">
                     <strong th:text="#{userinfo.since}"></strong>
                     <span class="since" th:text="${profile.since}"></span>
@@ -96,7 +96,7 @@
                                 <div th:if="${activity.issues.isEmpty()}" class="error-wrap">
                                     <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
                                 </div>
-                                <ul class="post-list-wrap my-issues row-fluid">
+                                <ul class="post-list-wrap my-issues row">
                                     <th:block th:each="row : ${activity.issues}" th:if="${row.open}">
                                         <th:block th:replace="~{user/partial-issues :: issueRow(${row})}"></th:block>
                                     </th:block>
@@ -106,7 +106,7 @@
                                 <div th:if="${activity.issues.isEmpty()}" class="error-wrap">
                                     <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
                                 </div>
-                                <ul class="post-list-wrap my-issues row-fluid">
+                                <ul class="post-list-wrap my-issues row">
                                     <th:block th:each="row : ${activity.issues}" th:if="${row.closed}">
                                         <th:block th:replace="~{user/partial-issues :: issueRow(${row})}"></th:block>
                                     </th:block>
@@ -118,7 +118,7 @@
                         <div th:if="${activity.pullRequests.isEmpty()}" class="error-wrap">
                             <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{pullRequest.is.empty}"></th:block></p>
                         </div>
-                        <ul class="post-list-wrap  row-fluid">
+                        <ul class="post-list-wrap  row">
                             <th:block th:each="pull : ${activity.pullRequests}">
                                 <th:block th:replace="~{user/partial-pull-requests :: pullRequestRow(${pull})}"></th:block>
                             </th:block>

@@ -16,7 +16,7 @@
     </a>
     <div class="title-wrap">
         <th:block th:if="${post.notice}"><span class="label label-notice" th:text="#{post.notice}"></span>&nbsp;</th:block>
-        <th:block th:if="${post.readme}"><span class="label label-important">README</span>&nbsp;</th:block>
+        <th:block th:if="${post.readme}"><span class="label label-danger">README</span>&nbsp;</th:block>
         <span th:unless="${post.readme}" class="post-id" th:text="${post.number}"></span>
         <th:block th:utext="${post.titleHeadersHtml}"></th:block>
         <a th:href="${base + '/post/' + post.number}" class="title" th:text="${post.titleWithoutHeaders}"></a>
@@ -30,7 +30,7 @@
         <span th:if="${post.commentCount > 0}" class="infos-item item-count-groups">
             <th:block th:replace="~{common/comment-count :: commentCount(${base + '/post/' + post.number + '#comments'}, ${post.commentCount}, true)}"></th:block>
         </span>
-        <a th:each="label : ${post.labels}" href="#" class="label issue-label list-label active" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+        <a th:each="label : ${post.labels}" href="#" class="label issue-label list-label active label-default" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
     </div>
 </li>
 </th:block>

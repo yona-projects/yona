@@ -37,19 +37,19 @@
             <input id="url" type="text" name="url" class="text" th:placeholder="#{project.git.url.alert}" th:value="${form.url}">
           </dd>
           <dd>
-            <label class="checkbox">
+            <div class="checkbox"><label>
               <input type="checkbox" id="useRepoAuth" th:attr="checked=${repoAuthChecked} ? 'checked'"> <th:block th:text="#{project.import.auth.required}"></th:block>
-            </label>
+            </label></div>
 
             <div id="repoAuth" class="repo-auth-wrap" th:style="${repoAuthChecked} ? 'display:block;'">
-              <div class="row-fluid">
-              <dl class="span6">
+              <div class="row">
+              <dl class="col-md-6">
                 <dt th:text="#{project.import.auth.userid}"></dt>
                 <dd>
                   <input type="text" name="authId" class="text" th:value="${form.authId}" th:placeholder="#{project.import.auth.userid.desc}">
                 </dd>
               </dl>
-              <dl class="span6">
+              <dl class="col-md-6">
                 <dt th:text="#{project.import.auth.userpw}"></dt>
                 <dd>
                   <input type="password" name="authPw" class="text">
@@ -103,18 +103,18 @@
             <label for="description" th:text="#{project.description}"></label>
           </dt>
           <dd>
-            <textarea id="description" name="overview" class="text textarea.span4" th:text="${form.overview}"></textarea>
+            <textarea id="description" name="overview" class="text" th:text="${form.overview}"></textarea>
           </dd>
           <!-- // -->
         </dl>
 
         <div class="advanced-options">
           <!-- Access Scope -->
-          <div class="row-fluid">
-            <div class="span2 right-txt mt10" th:text="#{project.shareOption}">
+          <div class="row">
+            <div class="col-md-2 right-txt mt10" th:text="#{project.shareOption}">
             </div>
-            <div class="span10">
-              <ul class="unstyled project-scopes mt10">
+            <div class="col-md-10">
+              <ul class="list-unstyled project-scopes mt10">
                 <li>
                   <input type="radio" id="public" name="projectScope" value="PUBLIC" class="radio-btn pull-left" th:attr="checked=${form.projectScope == 'PUBLIC' or form.projectScope == null} ? 'checked'">
                   <label for="public">
@@ -147,12 +147,12 @@
           <!-- // -->
           <hr>
           <!-- VCS -->
-          <div class="row-fluid">
-            <div class="span2 right-txt mt10">
+          <div class="row">
+            <div class="col-md-2 right-txt mt10">
               <label for="vcs" th:text="#{project.vcs}">
               </label>
             </div>
-            <div class="span10 cu-desc">
+            <div class="col-md-10 cu-desc">
               <select data-toggle="select2" class="mb10 mt5" disabled>
                 <option selected th:text="#{project.new.vcsType.git}"></option>
               </select>
@@ -161,10 +161,10 @@
           </div>
           <hr>
           <!-- Menu Setting -->
-          <div class="row-fluid">
-            <div class="span2 right-txt" th:text="#{project.menu.setting}">
+          <div class="row">
+            <div class="col-md-2 right-txt" th:text="#{project.menu.setting}">
             </div>
-            <div class="span10 cu-desc">
+            <div class="col-md-10 cu-desc">
                 <label for="menuSettingCode" class="bg-radiobtn label-public inline-list">
                   <input type="checkbox" class="radio-btn" id="menuSettingCode" name="code" value="true" checked="checked">
                   <th:block th:text="#{menu.code}"></th:block>

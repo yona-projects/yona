@@ -299,7 +299,7 @@ class ProjectHomeTest : AbstractIntegrationTest() {
         val info = home(project).selectFirst(".milestone-info")!!
         assertEquals("첫 마일스톤", info.selectFirst("a.title")?.text())
         assertEquals("/${project.owner}/${project.name}/milestone/${milestone.id}", info.selectFirst("a.title")?.attr("href"))
-        assertEquals("width: 50%;", info.selectFirst(".bar")?.attr("style"))
+        assertEquals("width: 50%;", info.selectFirst(".progress-bar")?.attr("style"))
         assertEquals("1 / 2", info.selectFirst(".progress-info strong")?.text())
     }
 

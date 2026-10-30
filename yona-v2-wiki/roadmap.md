@@ -149,7 +149,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-37j | CLI(`../yona-cli`): 클라이언트를 `/-_-api/v1`에 맞춤, 새 명령, 기기 로그인, Git 자격 증명 도우미 | `../yona-cli` | **구현 완료(2026-10-30)** | 위키 명령만 서버 위키(X-17) 이후 |
 | X-37k | 문서: 각 단계의 REST를 OpenAPI와 추적표에 올린다 | `web/api/docs` | 단계마다 | 구조 시험이 빠지면 실패한다 |
 | X-38a | Bootstrap 전환 0단계: 전 화면 확인 도구(구조 검사 시험, 고정 데이터, 화면 목록 121개, 순회 캡처, 상호작용 점검, 전후 비교) | `e2e/`, `LegacyBootstrapLintTest` | **구현 완료(2026-10-30)** | 기준 순회 `pre-bs5`: 121/121 통과(알려진 v1.6 JS 오류 1건 `compare`). 문서는 `architecture/bs-migration-harness.md` |
-| X-38b | Bootstrap 2→3(**공식 이전 안내서 "Migrating from v2.x to v3.0"를 기준으로 항목별 대응**, 선생님 지시): 모바일 우선 그리드(`span*`, `row-fluid`를 `col-*`와 `row`로), 클래스 이름 변경, 버튼, 폼, 내비게이션, 모달, 드롭다운, 알림, 자체 LESS 조정 | 템플릿 192개, `app/assets/stylesheets`, 자체 JS | 대기 | X-38a 이후. 가장 큰 구간. 끝나면 태그 `bs3` |
+| X-38b | Bootstrap 2→3(**공식 이전 안내서 "Migrating from v2.x to v3.0"를 기준으로 항목별로 대응**, 선생님 지시): 마크업을 안내서대로 바꾸고 BS3 CSS와 JS(3.4.1)를 들이고 호환 층으로 v1.6 모양을 유지 | 템플릿 192개, `app/assets/stylesheets/less/_bs3-compat.less`, JS 번들, `build-tools/minify-js.sh` | **구현 완료(2026-10-30)** | 전 화면 순회 121/121 통과, 상호작용 점검이 기준과 같음, 캡처 평균 차이 0.7%(중앙값 0.1%). 점검표 `architecture/bs3-migration-checklist.md`, 결정 A-284~286. 태그 `bs3` |
 | X-38c | Bootstrap 3→4: flexbox 그리드, `panel`, `label`, `well`을 `card`, `badge`로, Glyphicons 대체, **자체 LESS를 SCSS로 재작성**(기계 변환이 아니라 다시 쓴다, 선생님 결정)과 빌드 도구 변경 | 템플릿, `app/assets/stylesheets`, 스타일 빌드 | 대기 | X-38b 이후. 끝나면 태그 `bs4` |
 | X-38d | Bootstrap 4→5: jQuery 의존 제거, `data-toggle`을 `data-bs-toggle`로, `affix`와 `typeahead` 대체, 유틸리티 클래스, 폼 변경 | 템플릿, 자체 JS | 대기 | X-38c 이후 |
 | X-38e | 자체 JS의 BS 플러그인 호출을 BS5 JS API로 다시 쓰기(`modal` 23, `alert` 26, `popover` 19, `tab`, `collapse`) | 자체 JS 82개 | 대기 | X-38d와 함께. 전환 중에는 jQuery를 유지한다 |
