@@ -41,6 +41,10 @@ object ApiScopeRules {
         add("POST", "$PROJECT/issues/{number}/labels", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/issues/{number}/labels/{labelId}", ApiRequirement.Repo)
         for (m in listOf("POST", "DELETE")) add(m, "$PROJECT/issues/{number}/assignees", ApiRequirement.Repo)
+        // 이슈의 Yona 고유 쓰기 REST d단계(X-29d, D-47)
+        add("GET", "$PROJECT/issues/{number}/sharers", ApiRequirement.Repo)
+        for (m in listOf("POST", "DELETE")) { add(m, "$PROJECT/issues/{number}/sharers", ApiRequirement.Repo); add(m, "$PROJECT/issues/{number}/watchers", ApiRequirement.Repo) }
+        add("POST", "$PROJECT/issues/{number}/weight", ApiRequirement.Repo)
         add("POST", "$PROJECT/issuelabel/{number}", ApiRequirement.Repo)
         add("POST", "$PROJECT/issues/imports", ApiRequirement.Repo)
         // 게시글

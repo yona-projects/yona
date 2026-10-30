@@ -76,13 +76,15 @@ D-36 4번("모든 토큰이 범위와 사용자의 실제 권한의 교집합만
 
 ### d단계: 이슈의 Yona 고유 쓰기 기능 (X-29d)
 
-웹 화면에만 있던 것(`/{o}/{p}/issue/{n}/…`, 세션 전용)의 토큰 버전이다. GitHub에 없는 기능이라 Yona 방식으로 만든다.
+웹 화면에만 있던 것(`/{o}/{p}/issue/{n}/…`, 세션 전용)의 토큰 버전이다. GitHub에 없는 기능이라 Yona 방식으로 만든다. 구현은 `ExternalIssueExtrasApiController`이다.
 
 | 메서드와 경로 | 설명 | 상태 |
 |---|---|---|
-| `GET issues/{number}/sharers`, `POST issues/{number}/sharers`, `DELETE issues/{number}/sharers` | 공유자 조회, 더하기, 빼기 | 대기 |
-| `POST issues/{number}/weight` | 중요도(가중치) 올리기와 내리기(`{"delta": 1}`) | 대기 |
-| `POST issues/{number}/watchers`, `DELETE issues/{number}/watchers` | 지켜보기와 해제 | 대기 |
+| `GET issues/{number}/sharers` | 공유자 조회(읽기 권한). `{"result": [{"loginId", "name"}]}` | **완료**(2026-10-30) |
+| `POST issues/{number}/sharers` | 공유자 더하기. 본문 `{"sharers": [로그인 ID], "projects": [프로젝트 번호]}`. 프로젝트를 주면 그 구성원이 모두 공유자가 된다. 틀린 항목이 있으면 아무것도 바꾸지 않고 400(수정 권한) | **완료**(2026-10-30) |
+| `DELETE issues/{number}/sharers` | 공유자 빼기. 본문은 더하기와 같다(수정 권한) | **완료**(2026-10-30) |
+| `POST issues/{number}/weight` | 중요도(가중치) 올리기와 내리기. `{"delta": 1}` 또는 `{"delta": -1}`만 받는다(수정 권한) | **완료**(2026-10-30) |
+| `POST issues/{number}/watchers`, `DELETE issues/{number}/watchers` | 지켜보기와 해제. 되풀이해도 그대로 성공한다(읽기 권한). `{"result": {"watching": 불리언}}` | **완료**(2026-10-30) |
 
 ## 다루지 않는 것(이유)
 
