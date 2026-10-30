@@ -69,7 +69,7 @@ CLI는 이전 구현(`yuna`)의 `/api/v1/projects/{owner}/{name}/...`를 부르�
 
 | CLI 명령 | 서버 REST | 상태 | 메모 |
 |---|---|---|---|
-| `org list` | `GET /user/organizations` | ⚠ | 서버는 **내가 속한** 조직만 준다. CLI는 사이트 전체 조직 목록(`filter`, `page`)을 기대한다. 웹의 `/orgs` 목록에 대응하는 REST가 없다 |
+| `org list` | `GET /user/organizations` | ⚠ | 서버는 **내가 속한** 조직만 준다. CLI는 사이트 전체 조직 목록(`filter`, `page`)을 기대한다. 웹의 `/orgs` 목록에 대응하는 REST가 없다. **결정(2026-10-30): 만들지 않고 내가 속한 조직만 보인다(A-283)** |
 | `org view` | `GET /orgs/{org}` + `GET /owners/{org}/projects` | ✅ | CLI가 기대하는 `projects` 배열은 프로젝트 목록 REST로 채운다 |
 
 ## 검색
