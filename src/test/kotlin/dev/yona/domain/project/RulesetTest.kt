@@ -173,4 +173,30 @@ class RulesetTest {
         assertEquals("pull-request", rule.pushViolation(Type.UPDATE)); assertEquals("pull-request", rule.pushViolation(Type.UPDATE_NONFASTFORWARD))
         assertNull(rule.pushViolation(Type.CREATE)); assertNull(rule.pushViolation(Type.DELETE))
     }
+
+    // --- 갱신 제한 (Restrict updates) ---
+
+    @Test
+    fun `갱신 제한은 빨리 감기와 강제 갱신을 막고 생성과 삭제는 각자 규칙을 따른다`() {
+        val rule = Ruleset(pattern = "master", restrictUpdates = true, restrictDeletions = false, blockForcePushes = false)
+        assertEquals("update", rule.pushViolation(Type.UPDATE)); assertEquals("update", rule.pushViolation(Type.UPDATE_NONFASTFORWARD))
+        assertNull(rule.pushViolation(Type.CREATE)); assertNull(rule.pushViolation(Type.DELETE))
+    }
+
+    @Test
+    fun `강제 푸시 차단이 켜져 있으면 강제 푸시는 그 이유로 거절한다`() {
+        assertEquals("force", Ruleset(pattern = "master", restrictUpdates = true, blockForcePushes = true).pushViolation(Type.UPDATE_NONFASTFORWARD))
+    }
+
+    @Test
+    fun `갱신 제한은 승인이 충분해도 풀 리퀘스트 병합을 막는다`() {
+        val p = projectOf(rule("master", approvals = 1, name = "locked") { restrictUpdates = true; requirePullRequest = true })
+        val pr = pullRequest(p, approvals = 3)
+        assertEquals(listOf("locked"), pr.blockingRulesets().map { it.name }); assertTrue(pr.reviewBlocked()); assertFalse(pr.acceptable())
+    }
+
+    @Test
+    fun `갱신 제한이 없으면 병합을 막지 않는다`() {
+        assertFalse(pullRequest(projectOf(rule("master") { requirePullRequest = true })).reviewBlocked())
+    }
 }

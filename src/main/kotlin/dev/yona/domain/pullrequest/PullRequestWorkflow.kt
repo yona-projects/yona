@@ -20,6 +20,9 @@ enum class AcceptResult {
     /** 프로젝트가 허용하지 않은 병합 방식이다(추가 개발 항목 X-28). 아무것도 바꾸지 않았다. */
     METHOD_NOT_ALLOWED,
 
+    /** 갱신 제한이 켜진 규칙 묶음이 병합을 막는다(추가 개발 항목 X-34, A-259). 요청은 그대로이다. */
+    UPDATES_RESTRICTED,
+
     /** 리뷰어가 모자란다. 요청은 그대로이다. */
     NOT_REVIEWED
 }
@@ -68,7 +71,7 @@ class PullRequestWorkflow(
         // 추가 항목(X-34, D-46): 규칙 묶음이 켠 조건(승인 수, 변경 요청, 열린 대화)이 남아 있으면 막는다. 막고 있는 규칙 묶음을 모두 우회할 수 있는 사용자만 통과한다
         val openConversations = threads.countByPullRequestIdAndState(requireNotNull(pullRequest.id), dev.yona.domain.enumeration.ThreadState.OPEN).toInt()
         val blocking = pullRequest.blockingRulesets(openConversations)
-        if (blocking.isNotEmpty() && !canBypass(blocking)) return AcceptResult.NOT_REVIEWED
+        if (blocking.isNotEmpty() && !canBypass(blocking)) return if (blocking.any { it.restrictUpdates == true }) AcceptResult.UPDATES_RESTRICTED else AcceptResult.NOT_REVIEWED
 
         val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email), chosen, commitTitle, commitMessage)
         pullRequest.isMerging = false

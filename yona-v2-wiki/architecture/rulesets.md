@@ -23,6 +23,7 @@ v1.6은 프로젝트 설정의 "리뷰어 사용/사용 안함"과 "N 명"으로
 | `enforcement` | 적용 상태: `active`, `disabled` | Enforcement status(평가 모드는 없다, X-35) |
 | `pattern` | 대상 브랜치 이름이나 별표 패턴(`release/*`). 별표 하나는 `/`를 넘지 않고 둘(`**`)은 넘는다 | Target branches(◐ 패턴 하나) |
 | `bypass_admins` | 켜면 프로젝트 관리자와 사이트 관리자가 이 규칙 묶음을 우회한다. 기본은 끔 | Bypass list(◐) |
+| `restrict_updates` | 갱신 제한. 켜면 바이패스 대상이 아닌 사용자는 직접 푸시도 풀 리퀘스트 병합도 못 한다. 기본 끔 | Restrict updates |
 | `restrict_deletions` | 삭제 제한. 기본 켬 | Restrict deletions |
 | `block_force_pushes` | 강제 푸시 차단. 기본 켬 | Block force pushes |
 | `require_pull_request` | 직접 푸시 차단, 풀 리퀘스트로만 반영 | Require a pull request before merging |
@@ -36,9 +37,9 @@ v1.6은 프로젝트 설정의 "리뷰어 사용/사용 안함"과 "N 명"으로
 ## 적용 (합산)
 
 - 풀 리퀘스트와 푸시는 받는 브랜치에 맞는 **활성 규칙 묶음 전부**를 적용한다(`Project.rulesetsFor`). GitHub처럼 우선순위가 없고 합산한다. 승인 수는 가장 큰 값이고, 제한은 합집합이다. 비활성 규칙 묶음과 대상이 아닌 규칙 묶음은 아무것도 막지 않는다.
-- **병합**(`PullRequest.blockingRulesets`, `PullRequestWorkflow.accept`): 규칙 묶음마다 승인 수가 모자라거나, 변경 요청 조건을 켰는데 남아 있거나, 대화 해결 조건을 켰는데 열린 스레드가 있으면 그 규칙 묶음이 막는 것이다. 선형 이력을 요구하는 규칙 묶음이 하나라도 있으면 병합 커밋을 쓸 수 있는 방식에서 뺀다(`PullRequest.allowedMergeMethods`).
+- **병합**(`PullRequest.blockingRulesets`, `PullRequestWorkflow.accept`): 규칙 묶음마다 갱신 제한이 켜져 있거나(병합도 갱신이다), 승인 수가 모자라거나, 변경 요청 조건을 켰는데 남아 있거나, 대화 해결 조건을 켰는데 열린 스레드가 있으면 그 규칙 묶음이 막는 것이다. 선형 이력을 요구하는 규칙 묶음이 하나라도 있으면 병합 커밋을 쓸 수 있는 방식에서 뺀다(`PullRequest.allowedMergeMethods`).
 - **바이패스는 규칙 묶음마다 판정한다**(`AccessControl.canBypass`): 막고 있는 규칙 묶음이 모두 바이패스를 허용할 때만 프로젝트 관리자와 사이트 관리자가 우회한다.
-- **푸시**(`GitHooks.preReceive`, `Ruleset.pushViolation`): `refs/heads/` 아래 ref만 보며, 삭제, 강제 푸시, 풀 리퀘스트를 요구하는 브랜치의 직접 푸시를 거부한다. 우회하지 못하는 규칙 묶음이 막으면 거부하고 메시지에 규칙 묶음 이름을 적는다. 브랜치를 새로 만드는 푸시는 막지 않는다. 풀 리퀘스트 병합처럼 서버가 직접 브랜치를 갱신하는 경로는 검사하지 않는다. SSH 푸시는 없다.
+- **푸시**(`GitHooks.preReceive`, `Ruleset.pushViolation`): `refs/heads/` 아래 ref만 보며, 삭제, 강제 푸시, 갱신 제한이 켜진 브랜치의 갱신, 풀 리퀘스트를 요구하는 브랜치의 직접 푸시를 거부한다. 우회하지 못하는 규칙 묶음이 막으면 거부하고 메시지에 규칙 묶음 이름을 적는다. 브랜치를 새로 만드는 푸시는 막지 않는다. 풀 리퀘스트 병합처럼 서버가 직접 브랜치를 갱신하는 경로는 검사하지 않는다. SSH 푸시는 없다.
 - **삭제**: 브랜치 목록의 삭제는 같은 기준이고, 풀 리퀘스트의 "보내는 브랜치 삭제"는 삭제를 막는 규칙 묶음이 있으면 지우지 않는다(관리자 우회 없음).
 - 화면의 승인 영역과 목록의 리뷰어 수, REST `approvals.required`도 규칙 묶음을 따른다. 규칙 묶음이 없으면 `required`는 0이다.
 

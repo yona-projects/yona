@@ -114,6 +114,7 @@ object DataTables {
             DataColumn("enforcement", STRING, absentString = "active"),
             DataColumn("pattern", STRING),
             DataColumn("bypass_admins", BOOLEAN, absentBoolean = false),
+            DataColumn("restrict_updates", BOOLEAN, absentBoolean = false),
             DataColumn("restrict_deletions", BOOLEAN, absentBoolean = true),
             DataColumn("block_force_pushes", BOOLEAN, absentBoolean = true),
             DataColumn("require_pull_request", BOOLEAN, absentBoolean = false),

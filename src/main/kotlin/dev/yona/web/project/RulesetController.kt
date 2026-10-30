@@ -107,7 +107,7 @@ class RulesetController(private val projectService: ProjectService, private val 
         fun on(field: String) = request.getParameter(field)?.lowercase() in setOf("true", "on", "yes", "1")
         return RulesetInput(
             name = request.getParameter("name"), enforcement = request.getParameter("enforcement") ?: Ruleset.ACTIVE, pattern = request.getParameter("pattern"),
-            approvals = request.getParameter("approvals"), bypassAdmins = on("bypassAdmins"), restrictDeletions = on("restrictDeletions"), blockForcePushes = on("blockForcePushes"),
+            approvals = request.getParameter("approvals"), bypassAdmins = on("bypassAdmins"), restrictUpdates = on("restrictUpdates"), restrictDeletions = on("restrictDeletions"), blockForcePushes = on("blockForcePushes"),
             requirePullRequest = on("requirePullRequest"), requireLinearHistory = on("requireLinearHistory"), requireNoChangesRequested = on("requireNoChangesRequested"),
             requireConversationResolution = on("requireConversationResolution")
         )
@@ -116,7 +116,7 @@ class RulesetController(private val projectService: ProjectService, private val 
     /** 잘못된 입력을 편집 화면에 다시 채우기 위한 저장하지 않는 규칙 묶음이다. */
     private fun draft(id: Long?, input: RulesetInput) = Ruleset(
         id = id, name = input.name, enforcement = input.enforcement, pattern = input.pattern, requiredApprovals = input.approvals?.trim()?.toIntOrNull() ?: 0,
-        bypassAdmins = input.bypassAdmins, restrictDeletions = input.restrictDeletions, blockForcePushes = input.blockForcePushes, requirePullRequest = input.requirePullRequest,
+        bypassAdmins = input.bypassAdmins, restrictUpdates = input.restrictUpdates, restrictDeletions = input.restrictDeletions, blockForcePushes = input.blockForcePushes, requirePullRequest = input.requirePullRequest,
         requireLinearHistory = input.requireLinearHistory, requireNoChangesRequested = input.requireNoChangesRequested, requireConversationResolution = input.requireConversationResolution
     )
 

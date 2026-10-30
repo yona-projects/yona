@@ -48,11 +48,12 @@ val PullRequest.changesRequestedBy: List<String?>
 fun PullRequest.isReviewedBy(user: User?): Boolean = user != null && reviewers.any { it.id == user.id }
 
 /**
- * 병합을 막고 있는 규칙 묶음 목록이다. 받는 브랜치에 맞는 활성 규칙 묶음마다 자신이 켠 조건을 따진다. 필요한 승인 수가 모자라거나, 변경 요청 해결을 요구했는데 남아 있거나,
+ * 병합을 막고 있는 규칙 묶음 목록이다. 받는 브랜치에 맞는 활성 규칙 묶음마다 자신이 켠 조건을 따진다. 갱신 제한을 켰으면 병합도 갱신이므로 막고(A-259), 필요한 승인 수가 모자라거나, 변경 요청 해결을 요구했는데 남아 있거나,
  * 대화 해결을 요구했는데 열린 스레드가 [openConversations]개 있으면 그 규칙 묶음이 막는 것이다(추가 개발 항목 X-12, X-32, X-33, X-34, `decisions.md` D-35, D-46).
  */
 fun PullRequest.blockingRulesets(openConversations: Int = 0): List<dev.yona.domain.project.Ruleset> = rulesets.filter { rule ->
-    countedApprovals < (rule.requiredApprovals ?: 0) ||
+    rule.restrictUpdates == true ||
+        countedApprovals < (rule.requiredApprovals ?: 0) ||
         (rule.requireNoChangesRequested == true && changesRequestedBy.isNotEmpty()) ||
         (rule.requireConversationResolution == true && openConversations > 0)
 }
@@ -93,6 +94,7 @@ fun PullRequest.disabledAcceptMessage(): Pair<String, Array<Any>> = when {
     isMerging == true -> "pullRequest.not.acceptable.because.is.merging" to emptyArray()
     isConflict == true -> "pullRequest.not.acceptable.because.is.conflict" to emptyArray()
     !open -> "pullRequest.not.acceptable.because.is.not.open" to emptyArray()
+    rulesets.any { it.restrictUpdates == true } -> "pullRequest.not.acceptable.because.updates.restricted" to emptyArray()
     !reviewed -> "pullRequest.not.acceptable.because.is.not.enough.review.point" to arrayOf<Any>(lackingReviewerCount)
     rulesets.any { it.requireNoChangesRequested == true } && changesRequestedBy.isNotEmpty() -> "pullRequest.not.acceptable.because.changes.requested" to emptyArray()
     else -> "pullRequest.not.acceptable.because.open.conversations" to emptyArray()

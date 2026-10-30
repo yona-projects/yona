@@ -15,6 +15,7 @@ data class RulesetInput(
     val pattern: String?,
     val approvals: String? = "0",
     val bypassAdmins: Boolean = false,
+    val restrictUpdates: Boolean = false,
     val restrictDeletions: Boolean = true,
     val blockForcePushes: Boolean = true,
     val requirePullRequest: Boolean = false,
@@ -88,6 +89,7 @@ class RulesetService(private val rulesets: RulesetRepository) {
         it.pattern = requireNotNull(input.pattern).trim()
         it.requiredApprovals = if (input.approvals.isNullOrBlank()) 0 else input.approvals.trim().toInt()
         it.bypassAdmins = input.bypassAdmins
+        it.restrictUpdates = input.restrictUpdates
         it.restrictDeletions = input.restrictDeletions
         it.blockForcePushes = input.blockForcePushes
         it.requirePullRequest = input.requirePullRequest

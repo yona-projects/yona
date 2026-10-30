@@ -16,6 +16,7 @@ import java.util.Date
  * @property enforcement 적용 상태이다. [ACTIVE]는 적용하고 [DISABLED]는 지우지 않고 적용만 끈다. 비어 있으면 적용으로 본다
  * @property pattern 대상 브랜치 이름(`master`)이나 별표(`*`)를 쓴 패턴(예: release 뒤에 슬래시와 별표). 별표 하나는 슬래시를 넘지 않고 별표 두 개는 넘는다
  * @property bypassAdmins 켜면 프로젝트 관리자와 사이트 관리자가 이 규칙 묶음을 우회한다. 기본은 끔이다(GitHub의 빈 바이패스 목록)
+ * @property restrictUpdates 켜면 바이패스 대상이 아닌 사용자는 이 브랜치를 갱신하지 못한다(GitHub의 Restrict updates). 직접 푸시와 풀 리퀘스트 병합이 모두 막히고, 바이패스가 비어 있으면 아무도 갱신하지 못한다. 기본은 끔이다
  * @property restrictDeletions 켜면 이 브랜치를 지우는 것을 막는다. 기본은 켬이다(GitHub 기본)
  * @property blockForcePushes 켜면 이 브랜치에 강제 푸시를 막는다. 기본은 켬이다(GitHub 기본)
  * @property requirePullRequest 켜면 이 브랜치에 직접 푸시하지 못하고 풀 리퀘스트로만 반영한다
@@ -46,6 +47,9 @@ class Ruleset(
     @Column(name = "bypass_admins")
     @ColumnDefault("false")
     var bypassAdmins: Boolean? = false,
+    @Column(name = "restrict_updates")
+    @ColumnDefault("false")
+    var restrictUpdates: Boolean? = false,
     @Column(name = "restrict_deletions")
     @ColumnDefault("true")
     var restrictDeletions: Boolean? = true,
@@ -76,13 +80,21 @@ class Ruleset(
 
     /**
      * 푸시 명령 [type]이 이 규칙 묶음에 어긋나면 그 이유를 돌려주고, 어긋나지 않으면 `null`이다(푸시 검사, `decisions.md` D-45, D-46). 이유는 `deletion`(삭제),
-     * `force`(강제 푸시), `pull-request`(풀 리퀘스트를 요구하는데 직접 푸시)이다. 브랜치를 새로 만드는 푸시는 막지 않는다.
+     * `force`(강제 푸시), `update`(갱신 제한), `pull-request`(풀 리퀘스트를 요구하는데 직접 푸시)이다. 브랜치를 새로 만드는 푸시는 막지 않는다.
      */
     fun pushViolation(type: org.eclipse.jgit.transport.ReceiveCommand.Type): String? = when (type) {
         org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE -> if (restrictDeletions == true) "deletion" else null
-        org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE_NONFASTFORWARD ->
-            if (blockForcePushes == true) "force" else if (requirePullRequest == true) "pull-request" else null
-        org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE -> if (requirePullRequest == true) "pull-request" else null
+        org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE_NONFASTFORWARD -> when {
+            blockForcePushes == true -> "force"
+            restrictUpdates == true -> "update"
+            requirePullRequest == true -> "pull-request"
+            else -> null
+        }
+        org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE -> when {
+            restrictUpdates == true -> "update"
+            requirePullRequest == true -> "pull-request"
+            else -> null
+        }
         else -> null
     }
 

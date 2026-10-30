@@ -72,6 +72,10 @@
                 <div class="box-wrap middle" id="rulesetRules">
                     <div class="cu-label" th:text="#{project.ruleset.rules}"></div>
                     <div class="cu-desc">
+                        <label class="checkbox"><input type="checkbox" name="restrictUpdates" value="true" th:checked="${ruleset.restrictUpdates == true}">
+                            <strong th:text="#{project.ruleset.rule.updates}"></strong></label>
+                        <span class="help-block" th:text="#{project.ruleset.rule.updates.desc}"></span>
+
                         <label class="checkbox"><input type="checkbox" name="restrictDeletions" value="true" th:checked="${ruleset.restrictDeletions == true}">
                             <strong th:text="#{project.ruleset.rule.deletions}"></strong></label>
                         <span class="help-block" th:text="#{project.ruleset.rule.deletions.desc}"></span>

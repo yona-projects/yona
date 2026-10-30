@@ -71,6 +71,7 @@ class PullRequestActionController(
         val bypass: (List<dev.yona.domain.project.Ruleset>) -> Boolean = { blocking -> accessControl.canBypass(accepter, project, blocking) }
         val result = workflow.accept(pullRequest, accepter, bypass, method, request.getParameter("commitTitle"), request.getParameter("commitMessage"))
         if (result == AcceptResult.NOT_REVIEWED) return ErrorViews.badRequest("pullRequest.not.enough.review.point")
+        if (result == AcceptResult.UPDATES_RESTRICTED) return ErrorViews.badRequest("pullRequest.not.acceptable.because.updates.restricted")
         if (result == AcceptResult.METHOD_NOT_ALLOWED) return ErrorViews.badRequest()
         return redirect(request, response, project, pullRequest)
     }

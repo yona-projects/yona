@@ -422,4 +422,21 @@ class GitHttpTest {
         protect("**") { requirePullRequest = true }
         push(project, plain, branch = "v1", ref = "refs/tags/v1")
     }
+
+    @Test
+    fun `갱신 제한은 일반 구성원의 직접 푸시를 막고 바이패스를 허용한 룰셋은 프로젝트 관리자가 우회한다`() {
+        push(project, member); protect { restrictUpdates = true; blockForcePushes = false; restrictDeletions = false }
+        val plain = plainMember()
+        assertRejected(pushMore(plain), "protected branch", "updates")
+        assertRejected(pushMore(member), "protected branch")
+        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.bypassAdmins = true; protectionRules.save(it) }
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(member).status)
+        assertRejected(pushMore(plain), "protected branch")
+    }
+
+    @Test
+    fun `갱신 제한은 브랜치를 새로 만드는 푸시는 막지 않는다`() {
+        push(project, member); protect("master") { restrictUpdates = true }
+        push(project, plainMember(), branch = "feature")
+    }
 }

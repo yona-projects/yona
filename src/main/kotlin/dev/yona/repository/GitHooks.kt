@@ -75,6 +75,7 @@ class GitHooks(
             val branch = ref.removePrefix(Constants.R_HEADS)
             val message = when (reason) {
                 "deletion" -> "protected branch: deleting '$branch' is not allowed (ruleset '${rule.name}')"
+                "update" -> "protected branch: updates to '$branch' are restricted (ruleset '${rule.name}')"
                 "force" -> "protected branch: force pushes to '$branch' are not allowed (ruleset '${rule.name}')"
                 else -> "protected branch: direct pushes to '$branch' are not allowed, open a pull request instead (ruleset '${rule.name}')"
             }

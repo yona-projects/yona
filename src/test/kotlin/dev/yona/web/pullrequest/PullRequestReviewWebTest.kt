@@ -278,6 +278,28 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
         assertEquals(listOf(ReviewVerdict.APPROVED), reviewsOf(pr).map { it.verdict })
     }
 
+    @Test
+    fun `갱신 제한은 승인이 충분해도 일반 구성원의 병합을 막고 바이패스를 허용하면 프로젝트 관리자는 병합한다 (X-34, A-259)`() {
+        val s = setup(); val pr = open(s)
+        branchProtections.save(ruleset(s.origin, approvals = 0, noChangesRequested = false).also { it.restrictUpdates = true; it.bypassAdmins = true })
+        val member = page(url(s, pr), login(s.member))
+        assertNull(member.selectFirst("#btnAccept"), "갱신이 제한된 브랜치는 구성원에게 병합 단추가 막혀 있다"); assertNotNull(member.selectFirst("button.ybtn-disabled"))
+        val manager = page(url(s, pr), login(s.manager))
+        assertNotNull(manager.selectFirst("#btnAccept")); assertNotNull(manager.selectFirst("#accept-bypass-note"))
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isBadRequest)
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.manager))).andExpect(status().isSeeOther)
+        assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)
+    }
+
+    @Test
+    fun `갱신 제한이 있고 바이패스가 비어 있으면 프로젝트 관리자도 병합하지 못한다 (X-34, A-259)`() {
+        val s = setup(); val pr = open(s)
+        branchProtections.save(ruleset(s.origin, approvals = 0, noChangesRequested = false, bypassAdmins = false).also { it.restrictUpdates = true })
+        assertNull(page(url(s, pr), login(s.manager)).selectFirst("#btnAccept"))
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.manager))).andExpect(status().isBadRequest)
+        assertEquals(State.OPEN, pullRequests.findById(pr.id!!).get().state)
+    }
+
     // --- 화면 ---
 
     @Test

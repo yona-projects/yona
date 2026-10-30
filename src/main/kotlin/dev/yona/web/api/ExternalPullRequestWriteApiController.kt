@@ -236,6 +236,7 @@ class ExternalPullRequestWriteApiController(
             AcceptResult.METHOD_NOT_ALLOWED -> support.badRequest("Merge method not allowed: $methodName")
             AcceptResult.CONFLICT -> support.conflict("pull request has conflicts")
             AcceptResult.NOT_REVIEWED -> support.conflict("not enough review approvals")
+            AcceptResult.UPDATES_RESTRICTED -> support.conflict("updates to the target branch are restricted by a ruleset")
         }
     }
 

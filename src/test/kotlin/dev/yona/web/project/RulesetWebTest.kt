@@ -81,7 +81,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         Jsoup.parse(mockMvc.perform(get(url(project, tail)).session(session).header("Accept-Language", "ko-KR")).andExpect(status().isOk).andReturn().response.contentAsString)
 
     private val all = arrayOf(
-        "restrictDeletions" to "true", "blockForcePushes" to "true", "requirePullRequest" to "true", "requireLinearHistory" to "true",
+        "restrictUpdates" to "true", "restrictDeletions" to "true", "blockForcePushes" to "true", "requirePullRequest" to "true", "requireLinearHistory" to "true",
         "requireNoChangesRequested" to "true", "requireConversationResolution" to "true", "bypassAdmins" to "true"
     )
 
@@ -93,11 +93,11 @@ class RulesetWebTest : AbstractIntegrationTest() {
         send(project, session, "", "name" to "main protect", "enforcement" to "active", "pattern" to "master", "approvals" to "2", *all).andExpect(status().isSeeOther)
         val saved = rulesets.findByProjectIdAndName(project.id!!, "main protect")!!
         assertEquals("master", saved.pattern); assertEquals(2, saved.requiredApprovals); assertTrue(saved.isActive); assertNotNull(saved.createdDate)
-        assertEquals(List(7) { true }, listOf(saved.restrictDeletions, saved.blockForcePushes, saved.requirePullRequest, saved.requireLinearHistory, saved.requireNoChangesRequested, saved.requireConversationResolution, saved.bypassAdmins))
+        assertEquals(List(8) { true }, listOf(saved.restrictUpdates, saved.restrictDeletions, saved.blockForcePushes, saved.requirePullRequest, saved.requireLinearHistory, saved.requireNoChangesRequested, saved.requireConversationResolution, saved.bypassAdmins))
         send(project, session, "/${saved.id}", "name" to "main protect", "enforcement" to "disabled", "pattern" to "main", "approvals" to "0").andExpect(status().isSeeOther)
         val updated = rulesets.findById(saved.id!!).get()
         assertEquals("main", updated.pattern); assertFalse(updated.isActive); assertEquals(0, updated.requiredApprovals)
-        assertEquals(List(7) { false }, listOf(updated.restrictDeletions, updated.blockForcePushes, updated.requirePullRequest, updated.requireLinearHistory, updated.requireNoChangesRequested, updated.requireConversationResolution, updated.bypassAdmins), "체크하지 않은 조건은 꺼진다")
+        assertEquals(List(8) { false }, listOf(updated.restrictUpdates, updated.restrictDeletions, updated.blockForcePushes, updated.requirePullRequest, updated.requireLinearHistory, updated.requireNoChangesRequested, updated.requireConversationResolution, updated.bypassAdmins), "체크하지 않은 조건은 꺼진다")
         assertEquals(1, projects.findById(project.id!!).get().rulesets.size)
         send(project, session, "/${saved.id}/delete").andExpect(status().isSeeOther)
         assertNull(rulesets.findById(saved.id!!).orElse(null)); assertEquals(0, projects.findById(project.id!!).get().rulesets.size)
@@ -201,7 +201,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         assertEquals(url(project), doc.selectFirst("form#rulesetForm")!!.attr("action"))
         val checked = doc.select("form#rulesetForm input[type=checkbox][checked]").map { it.attr("name") }.toSet()
         assertEquals(setOf("restrictDeletions", "blockForcePushes"), checked)
-        assertEquals(setOf("bypassAdmins", "restrictDeletions", "requireLinearHistory", "requirePullRequest", "requireNoChangesRequested", "requireConversationResolution", "blockForcePushes"),
+        assertEquals(setOf("bypassAdmins", "restrictUpdates", "restrictDeletions", "requireLinearHistory", "requirePullRequest", "requireNoChangesRequested", "requireConversationResolution", "blockForcePushes"),
             doc.select("form#rulesetForm input[type=checkbox]").map { it.attr("name") }.toSet())
         assertEquals("active", doc.selectFirst("input[name=enforcement][checked]")!!.attr("value"))
         assertTrue(doc.select("form#rulesetDeleteForm").isEmpty(), "새 규칙 묶음에는 삭제가 없다")
@@ -278,5 +278,13 @@ class RulesetWebTest : AbstractIntegrationTest() {
         val table = page(project, session).selectFirst("table#rulesetList")!!
         assertTrue(table.hasClass("table") && table.hasClass("table-striped") && table.hasClass("table-hover"), table.className())
         assertTrue(table.select("[style]").isEmpty(), "인라인 스타일은 쓰지 않는다")
+    }
+
+    @Test
+    fun `갱신 제한은 기본 꺼짐이고 목록 요약에 라벨이 나온다`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        assertEquals(0, page(project, session, "/new").select("input[name=restrictUpdates][checked]").size)
+        send(project, session, "", "name" to "locked", "enforcement" to "active", "pattern" to "master", "restrictUpdates" to "true")
+        assertTrue(page(project, session).selectFirst("tr.ruleset-row td.ruleset-rules")!!.text().contains("갱신 제한"))
     }
 }
