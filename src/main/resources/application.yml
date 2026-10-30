@@ -4,11 +4,25 @@ yona:
     user: yona
     domain: yona.local
 
+# OpenAPI 문서(X-31, D-50). 외부 API 이름 공간(`/-_-api`) 안에 두어 사용자 이름 예약어를 더하지 않는다.
+springdoc:
+  paths-to-match: /-_-api/**
+  api-docs:
+    path: /-_-api/docs/openapi
+  swagger-ui:
+    path: /-_-api/docs
+
 spring:
   web:
     error:
       # 스프링 부트의 오류 화면 주소를 바꾼다. 기본값 `/error`는 v1.6에서 `/:user` 라우트(사용자 `error`)라서 같은 응답이 나와야 한다.
       path: /-_-error
+  thymeleaf:
+    servlet:
+      # 템플릿을 끝까지 그린 뒤 한꺼번에 내보낸다(Play 템플릿과 같다). 기본값(`true`)은 그리는 대로 응답 작성기에 쓰는데, springdoc이 Jackson 2를 클래스패스에
+      # 끌어오면 타임리프가 `th:inline="javascript"`를 Jackson으로 직렬화하며 작성기를 비워(`flush`) 응답이 커밋되고, 이어지는 사용자 메뉴가 세션을 만들려다
+      # "Cannot create a session after the response has been committed"로 실패해 화면이 3KB쯤에서 끊겼다(X-31, A-273).
+      produce-partial-output-while-processing: false
   application:
     name: yona
   config:

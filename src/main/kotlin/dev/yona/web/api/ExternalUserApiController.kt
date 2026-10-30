@@ -28,6 +28,13 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.util.Base64
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 외부용 사용자 API이다. v1.6 `UserApi`(`app/controllers/api/UserApi.java`)의 사용자 만들기, 토큰 받기, 내 이슈, 통계, 관리자용 목록과 상태 바꾸기에 해당한다.
@@ -56,6 +63,10 @@ class ExternalUserApiController(
      * 사용자 여러 명을 만든다(사이트 관리자만). 본문 `{"users": [{"loginId", "name", "email"}]}`. 응답은 사용자마다 `{status, reason, user}`이고
      * 허용하지 않는 메일 도메인은 `403`, 이미 있는 이메일(이나 아이디)은 `409`로 알린다. 비밀번호는 무작위이다.
      */
+    @ApiOperation(operationId = "createUsers", tags = [ApiTags.USER], summary = "사용자 여러 명 만들기(사이트 관리자)", description = "사용자를 한 번에 여러 명 만든다. 비밀번호는 무작위이다. 항목마다 결과를 모아 `201`로 답한다: 허용하지 않는 메일 도메인은 `status` 403, 이미 있는 이메일이나 아이디는 409이다.")
+    @BodyDoc(description = "만들 사용자", required = true, content = [Content(schema = Schema(implementation = UsersCreateRequest::class))])
+    @ApiResponse(responseCode = "201", description = "항목마다 결과", content = [Content(array = ArraySchema(schema = Schema(implementation = UserCreatedItem::class)))])
+    @ApiResponse(responseCode = "400", description = "사이트 관리자가 아니거나 `users`가 배열이 아니다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("/-_-api/v1/users")
     @Transactional
     fun newUser(request: HttpServletRequest): Any {
@@ -76,6 +87,12 @@ class ExternalUserApiController(
      * 토큰 사용자의 이슈를 필터(`assigned`, `created`, `mentioned`, `favorite`, `all`)별로 최근 수정 순서로 돌려준다.
      * `page`는 1부터, `pageNum`은 한 쪽의 개수(기본 10)이다. 모르는 필터는 `400`이다.
      */
+    @ApiOperation(operationId = "listMyIssues", tags = [ApiTags.USER], summary = "내 이슈", description = "토큰 주인의 이슈를 필터별로 최근 수정 순서로 돌려준다.")
+    @io.swagger.v3.oas.annotations.Parameter(name = "filter", description = "어떤 이슈를 볼지", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "assigned", schema = Schema(allowableValues = ["assigned", "created", "mentioned", "favorite", "all"]))
+    @io.swagger.v3.oas.annotations.Parameter(name = "page", description = "쪽 번호(1부터)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "1")
+    @io.swagger.v3.oas.annotations.Parameter(name = "pageNum", description = "한 쪽의 개수(기본 10)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "10")
+    @ApiResponse(responseCode = "200", description = "이슈 목록", content = [Content(schema = Schema(implementation = MyIssueList::class))])
+    @ApiResponse(responseCode = "400", description = "모르는 필터이다.")
     @GetMapping("/-_-api/v1/user/issues")
     @Transactional(readOnly = true)
     fun issuesByUser(
@@ -116,6 +133,8 @@ class ExternalUserApiController(
     // --- 통계 ---
 
     /** 사용자의 글, 댓글, 담당, 추천 개수이다. 없는 사용자는 모두 0이다. 로그인해야 한다. */
+    @ApiOperation(operationId = "getUserStatistics", tags = [ApiTags.USER], summary = "사용자 활동 통계", description = "사용자가 쓴 이슈, 글, 댓글, 담당 이슈, 추천 개수이다. 없는 사용자는 모두 0이다.")
+    @ApiResponse(responseCode = "200", description = "활동 개수", content = [Content(schema = Schema(implementation = UserStatistics::class))])
     @GetMapping("/-_-api/v1/users/{user}/statistics")
     @AnonymousCheck(requiresLogin = true)
     @Transactional(readOnly = true)
@@ -135,6 +154,8 @@ class ExternalUserApiController(
     // --- 관리자 ---
 
     /** 활성 사용자 목록이다(사이트 관리자만). */
+    @ApiOperation(operationId = "listActiveUsers", tags = [ApiTags.USER], summary = "활성 사용자 목록(사이트 관리자)", description = "활성 상태인 모든 사용자를 번호 순서로 돌려준다.")
+    @ApiResponse(responseCode = "200", description = "사용자 목록", content = [Content(array = ArraySchema(schema = Schema(implementation = AdminUser::class)))])
     @GetMapping("/-_-api/v1/admin/users")
     @dev.yona.web.access.SiteManagerOnly
     @Transactional(readOnly = true)
@@ -146,6 +167,11 @@ class ExternalUserApiController(
     }
 
     /** 사용자의 상태를 바꾼다(사이트 관리자만). 본문 `{"state": "locked"}`. `SITE_ADMIN`으로는 바꿀 수 없다(`403`). */
+    @ApiOperation(operationId = "updateUserState", tags = [ApiTags.USER], summary = "사용자 상태 바꾸기(사이트 관리자)", description = "사용자의 상태를 바꾼다(잠금 등). `SITE_ADMIN`으로는 바꿀 수 없다(403). 없는 사용자는 401이다(v1.6 호환).")
+    @BodyDoc(description = "새 상태", required = true, content = [Content(schema = Schema(implementation = UserStateRequest::class))])
+    @ApiResponse(responseCode = "200", description = "바뀐 사용자", content = [Content(schema = Schema(implementation = UserStateChanged::class))])
+    @ApiResponse(responseCode = "400", description = "상태를 읽을 수 없다.")
+    @ApiResponse(responseCode = "401", description = "없는 사용자이다(v1.6 호환).")
     @PatchMapping("/-_-api/v1/admin/users/{user}")
     @dev.yona.web.access.SiteManagerOnly
     @Transactional

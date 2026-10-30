@@ -29,6 +29,13 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 외부 도구(마이그레이션)가 쓰는 게시판 REST API이다. v1.6 `BoardApi.newPostings`, `newPostingComment`(`app/controllers/api/BoardApi.java:70-190`)에 해당한다.
@@ -54,6 +61,11 @@ class ExternalBoardApiController(
      * 게시글 여러 개를 만든다. 본문: `{"posts": [{"title", "body", "author", "createdAt", "updatedAt", "number", "temporaryUploadFiles"}]}`.
      * 항목마다 `{"status": 201, "location": 주소}`를 모아 `201`로 답한다.
      */
+    @ApiOperation(operationId = "createPosts", tags = [ApiTags.BOARD], summary = "게시글 여러 개 만들기(가져오기용)", description = "게시글을 한 번에 여러 개 만든다. `number`를 주면 그 번호로 만들고, `author`는 이메일로 찾으며 없으면 익명 사용자(번호 -1)로 기록한다. 가져오기용이라 알림은 보내지 않는다. 항목마다 만든 글의 주소를 모아 `201`로 답한다. 글을 만들 수 있어야 한다.")
+    @BodyDoc(description = "만들 글", required = true, content = [Content(schema = Schema(implementation = PostsCreateRequest::class))])
+    @ApiResponse(responseCode = "201", description = "항목마다 만든 글의 주소", content = [Content(array = ArraySchema(schema = Schema(implementation = CreatedLocation::class)))])
+    @ApiResponse(responseCode = "400", description = "`posts`가 배열이 아니거나 `title`이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/posts")
     @IsCreatable(ResourceType.BOARD_POST)
     @Transactional
@@ -79,6 +91,10 @@ class ExternalBoardApiController(
     /**
      * 게시글에 댓글을 단다. 본문: `{"body", "createdAt", "author", "temporaryUploadFiles"}`. `{"status": 201, "location": 주소}`를 `201`로 돌려준다.
      */
+    @ApiOperation(operationId = "createPostComment", tags = [ApiTags.BOARD_COMMENT], summary = "게시글 댓글 달기(가져오기용)", description = "게시글에 댓글을 단다. `body`, `createdAt`, `author`, `temporaryUploadFiles`를 받고 만든 댓글의 주소를 `201`로 돌려준다. 알림은 보내지 않는다. 댓글을 만들 수 있어야 한다.")
+    @BodyDoc(description = "댓글 내용", required = true, content = [Content(schema = Schema(implementation = PostCommentCreateRequest::class))])
+    @ApiResponse(responseCode = "201", description = "만든 댓글의 주소", content = [Content(schema = Schema(implementation = CreatedLocation::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number}/comments")
     @IsCreatable(ResourceType.NONISSUE_COMMENT)
     @Transactional

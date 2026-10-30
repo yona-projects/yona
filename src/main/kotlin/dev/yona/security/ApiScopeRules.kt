@@ -116,8 +116,22 @@ object ApiScopeRules {
         add("GET", "/-_-api", ApiRequirement.None)
     }
 
+    /** 명세의 경로(정규식을 뗀 `{number}` 형식)와 메서드에 해당하는 대응표의 요구이다. OpenAPI 문서가 범위를 채울 때 쓴다(X-31). 표에 없으면 `null`이다. */
+    fun requirementByPlainPath(method: String, plainPath: String): ApiRequirement? =
+        TABLE.entries.firstOrNull { (key, _) -> key.first.equals(method, ignoreCase = true) && key.second.replace(Regex("\\{(\\w+):[^}]*\\}"), "{$1}") == plainPath }?.value
+
+    /** 대응표에 올라 있는 모든 (메서드, 경로 패턴)이다. OpenAPI 명세와 일치하는지 시험이 비교한다(X-31). */
+    fun operations(): Set<Pair<String, String>> = TABLE.keys
+
     /** [method]와 스프링이 고른 경로 패턴 [pattern]이 요구하는 범위이다. 표에 없으면 `null`이다. */
-    fun requirement(method: String, pattern: String): ApiRequirement? = TABLE[method.uppercase() to pattern]
+    fun requirement(method: String, pattern: String): ApiRequirement? =
+        TABLE[method.uppercase() to pattern] ?: if (method.equals("GET", ignoreCase = true) && DOC_PREFIXES.any { pattern.startsWith(it) }) ApiRequirement.None else null
+
+    /**
+     * OpenAPI 문서의 화면과 명세와 정적 자원 경로이다(X-31, D-50). 누구나 읽으므로 범위가 필요 없다. springdoc이 자원 경로를 여럿 만들어
+     * (`/-_-api/swagger-ui` 아래의 모든 자원 등) 하나씩 표에 올리지 않고 접두사로 허용한다. 문서 경로는 읽기(`GET`)만 있다.
+     */
+    private val DOC_PREFIXES = listOf("/-_-api/docs", "/-_-api/swagger-ui")
 
     /**
      * [scopes]를 가진 토큰이 [requirement]를 채우는지 판정한다. [projectPublic]은 요청이 가리키는 프로젝트가 공개(`PUBLIC`)인지이며

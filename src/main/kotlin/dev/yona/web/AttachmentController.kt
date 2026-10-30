@@ -24,6 +24,13 @@ import org.springframework.http.ResponseEntity
 import java.nio.file.Files
 import java.text.Normalizer
 import tools.jackson.databind.json.JsonMapper
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 첨부 파일 올리기, 목록, 내려받기, 지우기이다. v1.6 `AttachmentApp`(`app/controllers/AttachmentApp.java`)에 해당한다.
@@ -94,8 +101,15 @@ class AttachmentController(
         Files.copy(file.toPath(), response.outputStream)
     }
 
+    @ApiOperation(operationId = "uploadFile", tags = [ApiTags.ATTACHMENT], summary = "첨부 파일 올리기", description = "파일을 먼저 올리고 돌려받은 `id`를 이슈, 글, 댓글을 만들 때 `temporaryUploadFiles`에 담는다. 같은 내용을 이미 올렸으면 `200`으로 기존 파일을 알리고 새로 올렸으면 `201`이다. 멀티파트 폼의 `filePath` 항목에 파일을 담는다. 이 경로는 토큰 전용이다(웹 화면은 세션을 쓰는 `/files`).")
+    @BodyDoc(description = "올릴 파일", required = true, content = [Content(mediaType = "multipart/form-data", schema = Schema(implementation = FileUploadRequest::class))])
+    @ApiResponse(responseCode = "201", description = "새로 올렸다.", content = [Content(schema = Schema(implementation = AttachmentUploaded::class))])
+    @ApiResponse(responseCode = "200", description = "같은 파일이 이미 있다.", content = [Content(schema = Schema(implementation = AttachmentUploaded::class))])
+    @ApiResponse(responseCode = "400", description = "파일이 없다.")
+    @ApiResponse(responseCode = "403", description = "올린 사람을 정할 수 없다.")
     @PostMapping("/files", "/-_-api/v1/files")
     @Transactional
+    @org.springframework.web.bind.annotation.ResponseBody
     fun upload(
         @RequestParam(name = "filePath", required = false) file: MultipartFile?,
         request: HttpServletRequest,

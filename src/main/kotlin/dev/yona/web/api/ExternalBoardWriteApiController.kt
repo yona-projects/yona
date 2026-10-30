@@ -30,6 +30,13 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 게시판의 조회, 수정, 삭제, 댓글, 라벨 REST이다(로드맵 X-29b, `decisions.md` D-47). 경로는 v1.6의 `/-_-api/v1/owners/{owner}/projects/{projectName}` 접두사에
@@ -64,6 +71,16 @@ class ExternalBoardWriteApiController(
      * `numOfComments`), `order`(`desc` 기본, `asc`), `page`(1부터), `pageSize`(1~100, 기본 15). 응답은 `{"items": [...], "page", "pageSize", "totalPages", "totalCount"}`이다.
      * 프로젝트를 읽을 수 있어야 한다.
      */
+    @ApiOperation(operationId = "listPosts", tags = [ApiTags.BOARD], summary = "게시글 목록", description = "게시글을 쪽으로 나누어 돌려준다. 공지도 함께 나오며 `notice`로 가린다. 본문과 댓글은 `GET posts/{number}`로 읽는다. 프로젝트를 읽을 수 있어야 한다.")
+    @io.swagger.v3.oas.annotations.Parameter(name = "q", description = "제목이나 본문에서 찾을 검색어", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "labelIds", description = "라벨 번호(쉼표로 구분하거나 반복). 하나라도 붙은 글을 찾는다", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "sort", description = "정렬 기준", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "createdDate", schema = Schema(allowableValues = ["createdDate", "updatedDate", "number", "title", "numOfComments"]))
+    @io.swagger.v3.oas.annotations.Parameter(name = "order", description = "정렬 방향", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "desc", schema = Schema(allowableValues = ["asc", "desc"]))
+    @io.swagger.v3.oas.annotations.Parameter(name = "page", description = "쪽 번호(1부터)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "1")
+    @io.swagger.v3.oas.annotations.Parameter(name = "pageSize", description = "한 쪽의 개수(1에서 100)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "15")
+    @ApiResponse(responseCode = "200", description = "글 목록", content = [Content(schema = Schema(implementation = PostListResponse::class))])
+    @ApiResponse(responseCode = "400", description = "`sort`나 `order`가 틀렸다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("$PROJECT/posts")
     @Transactional(readOnly = true)
     fun list(
@@ -84,6 +101,9 @@ class ExternalBoardWriteApiController(
     }
 
     /** 게시글 한 건이다. 본문, 라벨, 첨부, 댓글을 담는다. 읽을 수 있어야 한다. 결과: `{"result": {...}}`. */
+    @ApiOperation(operationId = "getPost", tags = [ApiTags.BOARD], summary = "게시글 한 건 조회", description = "게시글의 본문, 라벨, 공지 여부, 첨부, 댓글(한 줄 댓글 포함)을 돌려준다. 읽을 수 있어야 한다.")
+    @ApiResponse(responseCode = "200", description = "게시글", content = [Content(schema = Schema(implementation = PostResult::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("$PROJECT/posts/{number:[0-9]+}")
     @Transactional(readOnly = true)
     fun get(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -99,6 +119,11 @@ class ExternalBoardWriteApiController(
      * 게시글을 부분 수정한다. 본문의 `title`, `body` 중 보낸 항목만 바꾼다. 공지와 README 표시는 그대로 둔다. 제목이 비면 400이다. 본문이 바뀌면 변경 이력이 쌓인다.
      * 게시글을 고칠 수 있어야 한다(구성원은 남의 글도 고친다, D-48). 결과: `{"result": {...}}`.
      */
+    @ApiOperation(operationId = "patchPost", tags = [ApiTags.BOARD], summary = "게시글 부분 수정", description = "`title`, `body` 중 보낸 항목만 바꾼다. 공지와 README 표시는 그대로 두고 본문이 바뀌면 변경 이력이 쌓인다. 제목이 비면 400이다. 구성원은 남의 글도 고친다.")
+    @BodyDoc(description = "바꿀 항목", required = true, content = [Content(schema = Schema(implementation = PostPatchRequest::class))])
+    @ApiResponse(responseCode = "200", description = "고친 게시글", content = [Content(schema = Schema(implementation = PostResult::class))])
+    @ApiResponse(responseCode = "400", description = "보낸 항목이 없거나 제목이 비었다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PatchMapping("$PROJECT/posts/{number:[0-9]+}")
     @Transactional
     fun patch(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -114,6 +139,9 @@ class ExternalBoardWriteApiController(
     }
 
     /** 게시글을 지운다. 작성자와 프로젝트 관리자만 지운다(D-48). 댓글과 첨부도 함께 지워진다. 성공하면 204이다. */
+    @ApiOperation(operationId = "deletePost", tags = [ApiTags.BOARD], summary = "게시글 삭제", description = "게시글을 지운다. 댓글과 첨부도 함께 지운다. 작성자와 프로젝트 관리자만 지운다.")
+    @ApiResponse(responseCode = "204", description = "지웠다.")
+    @ApiResponse(responseCode = "404", description = "프로젝트나 글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @DeleteMapping("$PROJECT/posts/{number:[0-9]+}")
     @Transactional
     fun delete(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -127,6 +155,9 @@ class ExternalBoardWriteApiController(
     // --- 댓글 ---
 
     /** 게시글의 댓글 목록이다. 오래된 순서이고 한 줄 댓글은 `childComments`로 묶인다. 읽을 수 있어야 한다. 결과: `{"result": [...]}`. */
+    @ApiOperation(operationId = "listPostComments", tags = [ApiTags.BOARD_COMMENT], summary = "게시글 댓글 목록", description = "게시글의 댓글을 오래된 순서로 돌려준다. 한 줄 댓글은 `childComments`로 묶인다. 읽을 수 있어야 한다.")
+    @ApiResponse(responseCode = "200", description = "댓글 목록", content = [Content(schema = Schema(implementation = CommentListResult::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("$PROJECT/posts/{number:[0-9]+}/comments")
     @Transactional(readOnly = true)
     fun listComments(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -137,6 +168,11 @@ class ExternalBoardWriteApiController(
     }
 
     /** 댓글을 고친다. 본문 `{"body": 내용}`이다. 구성원은 남의 댓글도 고치고(D-48) 내용이 비면 400이다. 결과: `{"result": {"id", "body", ...}}`. */
+    @ApiOperation(operationId = "editPostComment", tags = [ApiTags.BOARD_COMMENT], summary = "게시글 댓글 고치기", description = "댓글 내용을 바꾼다. 구성원은 남의 댓글도 고친다. 내용이 비면 400이다.")
+    @BodyDoc(description = "새 내용", required = true, content = [Content(schema = Schema(implementation = CommentBodyRequest::class))])
+    @ApiResponse(responseCode = "200", description = "고친 댓글", content = [Content(schema = Schema(implementation = CommentEditedResult::class))])
+    @ApiResponse(responseCode = "400", description = "내용이 비었다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트, 글, 댓글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PatchMapping("$PROJECT/posts/{number:[0-9]+}/comments/{commentId}")
     @Transactional
     fun editComment(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable commentId: Long, request: HttpServletRequest): Any {
@@ -155,6 +191,9 @@ class ExternalBoardWriteApiController(
     }
 
     /** 댓글을 지운다. 작성자와 프로젝트 관리자만 지우고(D-48) 글의 댓글 수가 줄어든다. 성공하면 204이다. */
+    @ApiOperation(operationId = "deletePostComment", tags = [ApiTags.BOARD_COMMENT], summary = "게시글 댓글 삭제", description = "댓글을 지운다. 글의 댓글 수가 줄어든다. 작성자와 프로젝트 관리자만 지운다.")
+    @ApiResponse(responseCode = "204", description = "지웠다.")
+    @ApiResponse(responseCode = "404", description = "프로젝트, 글, 댓글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @DeleteMapping("$PROJECT/posts/{number:[0-9]+}/comments/{commentId}")
     @Transactional
     fun deleteComment(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable commentId: Long, request: HttpServletRequest): Any {
@@ -172,6 +211,11 @@ class ExternalBoardWriteApiController(
      * 게시글에 라벨을 더한다. 본문 `{"labels": [라벨 번호]}`이다. 이미 붙은 라벨은 그대로 두고, 이 프로젝트의 것이 아니거나 같은 분류(배타)의 라벨이 겹치면 400이다.
      * 게시글을 고칠 수 있어야 한다. 결과: `{"result": {...}}`.
      */
+    @ApiOperation(operationId = "addPostLabels", tags = [ApiTags.BOARD], summary = "게시글에 라벨 더하기", description = "본문의 라벨 번호를 이미 붙은 라벨에 더한다. 이 프로젝트의 라벨이 아니거나 같은 배타 분류의 라벨이 겹치면 400이다. 글을 고칠 수 있어야 한다.")
+    @BodyDoc(description = "더할 라벨 번호", required = true, content = [Content(schema = Schema(implementation = LabelIdsRequest::class))])
+    @ApiResponse(responseCode = "200", description = "라벨이 붙은 글", content = [Content(schema = Schema(implementation = PostResult::class))])
+    @ApiResponse(responseCode = "400", description = "라벨 번호가 틀렸다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("$PROJECT/posts/{number:[0-9]+}/labels")
     @Transactional
     fun addLabels(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -192,6 +236,9 @@ class ExternalBoardWriteApiController(
     }
 
     /** 게시글에서 라벨 하나를 뗀다. 붙어 있지 않아도 그대로 성공한다. 게시글을 고칠 수 있어야 한다. 결과: `{"result": {...}}`. */
+    @ApiOperation(operationId = "removePostLabel", tags = [ApiTags.BOARD], summary = "게시글에서 라벨 떼기", description = "라벨 하나를 뗀다. 붙어 있지 않아도 성공한다. 글을 고칠 수 있어야 한다.")
+    @ApiResponse(responseCode = "200", description = "라벨을 뗀 글", content = [Content(schema = Schema(implementation = PostResult::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @DeleteMapping("$PROJECT/posts/{number:[0-9]+}/labels/{labelId}")
     @Transactional
     fun removeLabel(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable labelId: Long, request: HttpServletRequest): Any {

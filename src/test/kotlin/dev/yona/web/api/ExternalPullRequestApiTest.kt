@@ -412,6 +412,9 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
         call(json(patch("${s.api}/${s.pr.number}/comments/$publicId"), """{"body":"고친 내용"}"""), manager).andExpect(status().isOk).andExpect(jsonPath("$.comment.body").value("고친 내용")).andExpect(jsonPath("$.comment.editedAt").isNotEmpty)
         call(json(patch("${s.api}/${s.pr.number}/comments/$publicId"), """{"body":" "}"""), member).andExpect(status().isBadRequest)
         call(json(patch("${s.api}/${s.pr.number}/comments/$publicId"), """{"body":"외부인"}"""), token(user())).andExpect(status().isForbidden)
+        // 수정은 GitHub처럼 다른 구성원에게도 열려 있다(지우기만 작성자와 관리자, D-48 확장)
+        val peer = user().also { projectUsers.save(ProjectUser(user = it, project = s.origin, role = roles.findById(RoleType.MEMBER.id).get())) }
+        call(json(patch("${s.api}/${s.pr.number}/comments/$publicId"), """{"body":"다른 구성원이 고침"}"""), token(peer)).andExpect(status().isOk)
         em.flush(); em.clear()
         val pendingId = Regex("\"comment\":\\{\"id\":(\\d+)").find(call(json(post("${s.api}/${s.pr.number}/comments"), lineBody("임시", ""","pending":true""")), member).andReturn().response.contentAsString)!!.groupValues[1]
         em.flush(); em.clear()

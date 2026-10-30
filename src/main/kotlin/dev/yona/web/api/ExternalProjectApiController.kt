@@ -53,6 +53,13 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 외부 도구가 쓰는 프로젝트 REST API이다. v1.6 `ProjectApi`의 `newProject`, `newLabel`, `exports`, `MilestoneApi.newMilestone`, `WatcherApi.getWatchers`,
@@ -91,6 +98,8 @@ class ExternalProjectApiController(
     private fun ok(body: Any) = ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body)
 
     /** 서버가 살아 있는지 확인한다. */
+    @ApiOperation(operationId = "hello", tags = [ApiTags.SYSTEM], summary = "서버 상태 확인", description = "서버가 살아 있으면 `{\"message\": \"I'm alive!\", \"ok\": true}`를 돌려준다. 토큰이 필요 없다.")
+    @ApiResponse(responseCode = "200", description = "서버가 살아 있다.", content = [Content(schema = Schema(implementation = HelloResponse::class))])
     @GetMapping("/-_-api/v1/hello")
     fun hello(): Any = ok(linkedMapOf("message" to "I'm alive!", "ok" to true))
 
@@ -100,6 +109,10 @@ class ExternalProjectApiController(
      * 프로젝트를 만든다. 사이트 관리자만 쓸 수 있다. 본문: `{"projectName", "projectDescription", "projectVcs", "projectScope", "members": [{"email", "role"}]}`.
      * 같은 이름이 있으면 `400`과 `{"status": 409}`, 소유자가 조직이면 조직 관리자여야 한다.
      */
+    @ApiOperation(operationId = "createProject", tags = [ApiTags.PROJECT], summary = "프로젝트 만들기(사이트 관리자)", description = "프로젝트를 만든다. 사이트 관리자만 쓸 수 있다. 소유자가 조직이면 조직 관리자여야 한다. 같은 이름이 있으면 400과 `{\"status\": 409}`를 돌려준다. `members`에는 이메일로 구성원을 넣는다.")
+    @BodyDoc(description = "만들 프로젝트", required = true, content = [Content(schema = Schema(implementation = ProjectCreateRequest::class))])
+    @ApiResponse(responseCode = "201", description = "만든 프로젝트", content = [Content(schema = Schema(implementation = ProjectCreated::class))])
+    @ApiResponse(responseCode = "400", description = "필수 항목이 빠졌거나 사이트 관리자가 아니거나 같은 이름이 있다(그때는 `status` 409와 이미 있는 프로젝트).", content = [Content(schema = Schema(implementation = ProjectCreateError::class))])
     @PostMapping("/-_-api/v1/owners/{owner}/projects")
     @Transactional
     fun newProject(@PathVariable owner: String, request: HttpServletRequest): Any {
@@ -139,6 +152,11 @@ class ExternalProjectApiController(
      * 라벨 여러 개를 만든다. 본문: `{"labels": [{"labelName", "labelColor", "category"}]}`. 분류가 없으면 만든다(항상 단일 선택이 아닌 분류이다).
      * 항목마다 `{"status": 201, ...}`, 이미 있으면 `{"status": 409, ...}`를 모아 `201`로 답한다.
      */
+    @ApiOperation(operationId = "createLabels", tags = [ApiTags.LABEL], summary = "라벨 여러 개 만들기", description = "라벨을 한 번에 여러 개 만든다. 분류가 없으면 만든다(단일 선택이 아닌 분류이다). 항목마다 만들었으면 `status` 201, 이미 있으면 409를 모아 `201`로 답한다. 라벨을 만들 수 있어야 한다.")
+    @BodyDoc(description = "만들 라벨", required = true, content = [Content(schema = Schema(implementation = LabelsCreateRequest::class))])
+    @ApiResponse(responseCode = "201", description = "항목마다 결과", content = [Content(array = ArraySchema(schema = Schema(implementation = LabelCreatedItem::class)))])
+    @ApiResponse(responseCode = "400", description = "`labels`가 배열이 아니거나 항목에 필수 값이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/labels")
     @IsCreatable(ResourceType.ISSUE_LABEL)
     @Transactional
@@ -167,6 +185,11 @@ class ExternalProjectApiController(
      * 마일스톤 여러 개를 만든다. 본문: `{"milestones": [{"title", "description", "due_on", "state"}]}`. 같은 제목이 있으면 만들지 않고
      * `{"milestone": 입력, "message": 안내}`를 넣는다. `due_on`은 그날의 마지막 초로 맞춘다. 모두 `201`로 답한다.
      */
+    @ApiOperation(operationId = "createMilestones", tags = [ApiTags.MILESTONE], summary = "마일스톤 여러 개 만들기", description = "마일스톤을 한 번에 여러 개 만든다. 같은 제목이 있으면 만들지 않고 안내를 담는다. `due_on`은 그날의 마지막 초로 맞춘다. 모두 `201`로 답한다.")
+    @BodyDoc(description = "만들 마일스톤", required = true, content = [Content(schema = Schema(implementation = MilestonesCreateRequest::class))])
+    @ApiResponse(responseCode = "201", description = "항목마다 만든 마일스톤이나 안내", content = [Content(array = ArraySchema(schema = Schema(implementation = MilestoneCreatedItem::class)))])
+    @ApiResponse(responseCode = "400", description = "`milestones`가 배열이 아니다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/milestones")
     @IsCreatable(ResourceType.MILESTONE)
     @Transactional
@@ -197,6 +220,9 @@ class ExternalProjectApiController(
     // --- 내보내기 ---
 
     /** 프로젝트의 구성원, 라벨, 이슈, 글, 마일스톤을 모두 내보낸다. 프로젝트를 지울 수 있는 사용자만 쓸 수 있다. */
+    @ApiOperation(operationId = "exportProject", tags = [ApiTags.PROJECT], summary = "프로젝트 내보내기", description = "프로젝트의 구성원, 라벨, 이슈(본문과 댓글 포함), 글, 마일스톤을 모두 내보낸다. 이슈 이전 도구가 쓴다. 프로젝트를 지울 수 있는 사용자만 쓸 수 있다.")
+    @ApiResponse(responseCode = "200", description = "프로젝트 전체", content = [Content(schema = Schema(implementation = ProjectExport::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/exports")
     @IsAllowed(Operation.DELETE)
     @Transactional(readOnly = true)
@@ -244,6 +270,10 @@ class ExternalProjectApiController(
      * 이슈나 글의 구독자를 보여 준다(`type=issues` 또는 `posts`). 최대 100명까지 `{"name", "url"}`로 담고 전체 수를 함께 준다.
      * `type`이 없거나 다르면 빈 `200`이다.
      */
+    @ApiOperation(operationId = "listWatchers", tags = [ApiTags.BOARD], summary = "구독자 목록", description = "이슈나 글을 지켜보는 사람을 최대 100명까지 돌려준다. `type`이 `issues`나 `posts`가 아니면 본문 없는 빈 `200`이다. 경로의 `number`는 `type`에 따라 이슈 번호나 글 번호이다.")
+    @io.swagger.v3.oas.annotations.Parameter(name = "type", description = "구독자를 볼 대상", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "posts", schema = Schema(allowableValues = ["issues", "posts"]))
+    @ApiResponse(responseCode = "200", description = "구독자 목록", content = [Content(schema = Schema(implementation = WatchersResponse::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 이슈나 글이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/posts/{number:[0-9]+}/watchers")
     @IsAllowed(Operation.READ)
     @Transactional(readOnly = true)

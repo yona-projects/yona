@@ -27,6 +27,13 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import tools.jackson.databind.JsonNode
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 이슈의 Yona 고유 쓰기 기능을 토큰으로 쓰는 REST이다(로드맵 X-29d, `decisions.md` D-47): 공유자, 가중치, 지켜보기. 웹 화면에만 있던
@@ -55,6 +62,9 @@ class ExternalIssueExtrasApiController(
     // --- 공유자 ---
 
     /** 이슈의 공유자 목록이다. 추가한 순서이고 `{"loginId", "name"}`을 담는다. 읽을 수 있어야 한다. 결과: `{"result": [...]}`. */
+    @ApiOperation(operationId = "listIssueSharers", tags = [ApiTags.ISSUE], summary = "이슈 공유자 목록", description = "이슈를 공유받은 사용자를 추가한 순서로 돌려준다. 읽을 수 있어야 한다.")
+    @ApiResponse(responseCode = "200", description = "공유자 목록", content = [Content(schema = Schema(implementation = SharerListResult::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 이슈가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("$PROJECT/issues/{number}/sharers")
     @Transactional(readOnly = true)
     fun listSharers(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -69,11 +79,21 @@ class ExternalIssueExtrasApiController(
      * "프로젝트로 공유"와 같다). 없는 사용자나 읽을 수 없는 프로젝트가 하나라도 있으면 아무것도 바꾸지 않고 400이다. 이슈를 고칠 수 있어야 한다.
      * 결과는 바뀐 뒤의 공유자 목록이다.
      */
+    @ApiOperation(operationId = "addIssueSharers", tags = [ApiTags.ISSUE], summary = "이슈 공유자 더하기", description = "사용자(`sharers`)나 프로젝트(`projects`, 그 구성원이 모두)를 공유자로 더한다. 없는 사용자나 읽을 수 없는 프로젝트가 하나라도 있으면 아무것도 바꾸지 않고 400이다. 이슈를 고칠 수 있어야 한다.")
+    @BodyDoc(description = "공유자", required = true, content = [Content(schema = Schema(implementation = SharersRequest::class))])
+    @ApiResponse(responseCode = "200", description = "바뀐 뒤의 공유자 목록", content = [Content(schema = Schema(implementation = SharerListResult::class))])
+    @ApiResponse(responseCode = "400", description = "`sharers`와 `projects`가 모두 없거나 없는 사용자와 프로젝트가 있다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 이슈가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("$PROJECT/issues/{number}/sharers")
     @Transactional
     fun addSharers(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any = changeSharers(owner, projectName, number, request, true)
 
     /** 공유자를 뺀다. 본문은 [addSharers]와 같다. 공유자가 아니어도 그대로 성공한다. */
+    @ApiOperation(operationId = "removeIssueSharers", tags = [ApiTags.ISSUE], summary = "이슈 공유자 빼기", description = "공유자를 뺀다. 본문은 더하기와 같다. 공유자가 아니어도 성공한다. 이슈를 고칠 수 있어야 한다.")
+    @BodyDoc(description = "뺄 공유자", required = true, content = [Content(schema = Schema(implementation = SharersRequest::class))])
+    @ApiResponse(responseCode = "200", description = "바뀐 뒤의 공유자 목록", content = [Content(schema = Schema(implementation = SharerListResult::class))])
+    @ApiResponse(responseCode = "400", description = "`sharers`와 `projects`가 모두 없거나 없는 사용자와 프로젝트가 있다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 이슈가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @DeleteMapping("$PROJECT/issues/{number}/sharers")
     @Transactional
     fun removeSharers(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any = changeSharers(owner, projectName, number, request, false)
@@ -109,6 +129,11 @@ class ExternalIssueExtrasApiController(
     // --- 가중치 ---
 
     /** 이슈의 가중치(중요도)를 올리거나 내린다. 본문 `{"delta": 1}` 또는 `{"delta": -1}`만 받는다(웹의 위, 아래 단추와 같다). 이슈를 고칠 수 있어야 한다. 결과: `{"result": {"weight": 새 값}}`. */
+    @ApiOperation(operationId = "adjustIssueWeight", tags = [ApiTags.ISSUE], summary = "이슈 가중치 올리고 내리기", description = "중요도(가중치)를 1 올리거나 내린다. 웹 화면의 위, 아래 단추와 같다. 이슈를 고칠 수 있어야 한다.")
+    @BodyDoc(description = "올릴지 내릴지", required = true, content = [Content(schema = Schema(implementation = WeightRequest::class))])
+    @ApiResponse(responseCode = "200", description = "새 가중치", content = [Content(schema = Schema(implementation = WeightResult::class))])
+    @ApiResponse(responseCode = "400", description = "`delta`가 1이나 -1이 아니다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 이슈가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("$PROJECT/issues/{number}/weight")
     @Transactional
     fun weight(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -123,6 +148,9 @@ class ExternalIssueExtrasApiController(
     // --- 지켜보기 ---
 
     /** 이슈를 지켜본다. 이미 지켜보고 있어도 그대로 성공한다. 읽을 수 있어야 한다. 결과: `{"result": {"watching": true}}`. */
+    @ApiOperation(operationId = "watchIssue", tags = [ApiTags.ISSUE], summary = "이슈 지켜보기", description = "토큰 주인이 이슈를 지켜본다. 이미 지켜보고 있어도 성공한다. 읽을 수 있어야 한다.")
+    @ApiResponse(responseCode = "200", description = "지켜보는 상태", content = [Content(schema = Schema(implementation = WatchingResult::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 이슈가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("$PROJECT/issues/{number}/watchers")
     @Transactional
     fun watch(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -134,6 +162,9 @@ class ExternalIssueExtrasApiController(
     }
 
     /** 이슈 지켜보기를 그만둔다. 이미 그만둔 상태여도 그대로 성공한다. 읽을 수 있어야 한다. 결과: `{"result": {"watching": false}}`. */
+    @ApiOperation(operationId = "unwatchIssue", tags = [ApiTags.ISSUE], summary = "이슈 지켜보기 그만두기", description = "지켜보기를 그만둔다. 이미 그만둔 상태여도 성공한다. 읽을 수 있어야 한다.")
+    @ApiResponse(responseCode = "200", description = "지켜보는 상태", content = [Content(schema = Schema(implementation = WatchingResult::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 이슈가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @DeleteMapping("$PROJECT/issues/{number}/watchers")
     @Transactional
     fun unwatch(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {

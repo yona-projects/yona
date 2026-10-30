@@ -20,6 +20,13 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 외부용 풀 리퀘스트 REST API이다(로드맵 X-15, `decisions.md` D-39). v1.6에 없는 추가 항목이다. 인증은 개인용 API 토큰뿐이고(`/-_-api` 필터) 범위(`repo`,
@@ -49,6 +56,12 @@ class ExternalPullRequestApiController(
      * 풀 리퀘스트 목록이다. `state`는 `open`(기본)과 `closed`(닫힌 것과 병합된 것)이고 `page`는 1부터, `pageSize`는 1~100(기본 15)이다.
      * 응답은 `{"items": [...], "page", "pageSize", "totalPages", "totalCount"}`이다.
      */
+    @ApiOperation(operationId = "listPullRequests", tags = [ApiTags.PULL_REQUEST], summary = "풀 리퀘스트 목록", description = "받는 프로젝트가 이 프로젝트인 풀 리퀘스트를 쪽으로 나누어 돌려준다. 코드 접근을 구성원으로 제한한 프로젝트는 구성원만 읽는다.")
+    @io.swagger.v3.oas.annotations.Parameter(name = "state", description = "목록의 상태. `closed`는 닫힌 것과 병합된 것", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "open", schema = Schema(allowableValues = ["open", "closed"]))
+    @io.swagger.v3.oas.annotations.Parameter(name = "page", description = "쪽 번호(1부터)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "1")
+    @io.swagger.v3.oas.annotations.Parameter(name = "pageSize", description = "한 쪽의 개수(1에서 100, 기본 15)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @ApiResponse(responseCode = "200", description = "풀 리퀘스트 목록", content = [Content(schema = Schema(implementation = PullRequestListResponse::class))])
+    @ApiResponse(responseCode = "400", description = "`state`가 틀렸다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests")
     @Transactional(readOnly = true)
     fun list(
@@ -68,6 +81,9 @@ class ExternalPullRequestApiController(
     }
 
     /** 풀 리퀘스트 하나이다. */
+    @ApiOperation(operationId = "getPullRequest", tags = [ApiTags.PULL_REQUEST], summary = "풀 리퀘스트 한 건 조회", description = "담당자, 라벨, 리뷰 요청, 승인 현황, 병합 가능 여부, 방식별 병합 가능 여부를 담은 풀 리퀘스트를 돌려준다.")
+    @ApiResponse(responseCode = "200", description = "풀 리퀘스트", content = [Content(schema = Schema(implementation = PullRequestDetail::class))])
+    @ApiResponse(responseCode = "404", description = "풀 리퀘스트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}")
     @Transactional(readOnly = true)
     fun get(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -77,6 +93,9 @@ class ExternalPullRequestApiController(
     }
 
     /** 현재 커밋 목록이다(오래된 순서). 응답은 `{"commits": [...]}`이다. */
+    @ApiOperation(operationId = "listPullRequestCommits", tags = [ApiTags.PULL_REQUEST], summary = "풀 리퀘스트 커밋 목록", description = "현재 커밋을 오래된 순서로 돌려준다.")
+    @ApiResponse(responseCode = "200", description = "커밋 목록", content = [Content(schema = Schema(implementation = PullRequestCommitList::class))])
+    @ApiResponse(responseCode = "404", description = "풀 리퀘스트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/commits")
     @Transactional(readOnly = true)
     fun commits(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -88,6 +107,9 @@ class ExternalPullRequestApiController(
     }
 
     /** 병합 기준 커밋 사이의 변경 파일이다. 병합할 수 없어 변경을 알 수 없으면 빈 목록이다. 응답은 `{"files": [...]}`이다. */
+    @ApiOperation(operationId = "listPullRequestFiles", tags = [ApiTags.PULL_REQUEST], summary = "풀 리퀘스트 변경 파일", description = "병합 기준 커밋 사이에서 바뀐 파일과 통합 diff(`patch`)이다. 병합할 수 없어 변경을 알 수 없으면 빈 목록이다.")
+    @ApiResponse(responseCode = "200", description = "변경 파일 목록", content = [Content(schema = Schema(implementation = PullRequestFileList::class))])
+    @ApiResponse(responseCode = "404", description = "풀 리퀘스트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/files")
     @Transactional(readOnly = true)
     fun files(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -99,6 +121,9 @@ class ExternalPullRequestApiController(
     }
 
     /** 이벤트(상태, 커밋, 담당자, 라벨, 리뷰, 리뷰 요청 등)를 만든 순서로 돌려준다. 응답은 `{"events": [...]}`이다. */
+    @ApiOperation(operationId = "getPullRequestTimeline", tags = [ApiTags.PULL_REQUEST], summary = "풀 리퀘스트 타임라인", description = "상태, 커밋, 담당자, 라벨, 리뷰, 리뷰 요청 등의 이벤트를 만든 순서로 돌려준다.")
+    @ApiResponse(responseCode = "200", description = "이벤트 목록", content = [Content(schema = Schema(implementation = PullRequestTimeline::class))])
+    @ApiResponse(responseCode = "404", description = "풀 리퀘스트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/timeline")
     @Transactional(readOnly = true)
     fun timeline(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -109,6 +134,9 @@ class ExternalPullRequestApiController(
     }
 
     /** 리뷰 판정 이력이다(제출한 순서). 응답은 `{"reviews": [...]}`이다. */
+    @ApiOperation(operationId = "listPullRequestReviews", tags = [ApiTags.PULL_REQUEST_REVIEW], summary = "리뷰 판정 이력", description = "제출한 리뷰 판정(승인, 변경 요청, 댓글)을 제출한 순서로 돌려준다. 해제된 리뷰도 `dismissed`로 표시되어 나온다.")
+    @ApiResponse(responseCode = "200", description = "리뷰 목록", content = [Content(schema = Schema(implementation = ReviewList::class))])
+    @ApiResponse(responseCode = "404", description = "풀 리퀘스트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/reviews")
     @Transactional(readOnly = true)
     fun reviews(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -122,6 +150,9 @@ class ExternalPullRequestApiController(
      * 리뷰 댓글을 스레드별로 돌려준다. 공개된 스레드에 더해 **호출한 사용자 본인의** 임시 댓글(`pending: true`)이 함께 나온다(`decisions.md` D-38).
      * 응답은 `{"threads": [...]}`이다.
      */
+    @ApiOperation(operationId = "listPullRequestComments", tags = [ApiTags.PULL_REQUEST_REVIEW], summary = "코드 리뷰 댓글(스레드별)", description = "스레드별로 댓글을 돌려준다. 공개된 스레드에 더해 호출한 사용자 본인의 임시 댓글(`pending: true`)이 함께 나온다.")
+    @ApiResponse(responseCode = "200", description = "스레드 목록", content = [Content(schema = Schema(implementation = ThreadList::class))])
+    @ApiResponse(responseCode = "404", description = "풀 리퀘스트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/comments")
     @Transactional(readOnly = true)
     fun comments(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
@@ -139,6 +170,10 @@ class ExternalPullRequestApiController(
      * 리뷰를 요청할 수 있는 사람을 찾는다(이 풀 리퀘스트의 프로젝트나 소속 조직의 구성원, 작성자와 이미 요청된 사람은 제외). `query`는 이름이나 로그인 ID의 일부이고
      * 생략하면 후보 전체이다(최대 100명). 풀 리퀘스트를 고칠 수 있는 사람만 조회한다. 응답은 `{"users": [{"loginId", "name"}]}`이다.
      */
+    @ApiOperation(operationId = "listReviewerCandidates", tags = [ApiTags.PULL_REQUEST], summary = "리뷰어 후보", description = "리뷰를 요청할 수 있는 사람이다(프로젝트나 소속 조직의 구성원, 작성자와 이미 요청된 사람은 제외). 풀 리퀘스트를 고칠 수 있는 사람만 조회한다. 최대 100명이다.")
+    @io.swagger.v3.oas.annotations.Parameter(name = "query", description = "이름이나 로그인 ID의 일부. 생략하면 후보 전체", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @ApiResponse(responseCode = "200", description = "후보 목록", content = [Content(schema = Schema(implementation = AssignableUserList::class))])
+    @ApiResponse(responseCode = "404", description = "풀 리퀘스트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/reviewercandidates")
     @Transactional(readOnly = true)
     fun reviewerCandidates(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @RequestParam(required = false, defaultValue = "") query: String, request: HttpServletRequest): Any {
@@ -149,6 +184,10 @@ class ExternalPullRequestApiController(
     }
 
     /** 담당자로 지정할 수 있는 사람을 찾는다(받는 프로젝트의 이슈 담당자 후보 규칙). `query`는 이름이나 로그인 ID의 일부이고 생략하면 전체이다. 응답은 `{"users": [...]}`이다. */
+    @ApiOperation(operationId = "listPullRequestAssigneeCandidates", tags = [ApiTags.PULL_REQUEST], summary = "담당자 후보", description = "담당자로 지정할 수 있는 사람이다(받는 프로젝트의 이슈 담당자 후보 규칙). 풀 리퀘스트를 고칠 수 있는 사람만 조회한다. 최대 100명이다.")
+    @io.swagger.v3.oas.annotations.Parameter(name = "query", description = "이름이나 로그인 ID의 일부. 생략하면 전체", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @ApiResponse(responseCode = "200", description = "후보 목록", content = [Content(schema = Schema(implementation = AssignableUserList::class))])
+    @ApiResponse(responseCode = "404", description = "풀 리퀘스트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}/assigneecandidates")
     @Transactional(readOnly = true)
     fun assigneeCandidates(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @RequestParam(required = false, defaultValue = "") query: String, request: HttpServletRequest): Any {

@@ -116,3 +116,4 @@
 - [세션 경로와 API 경로의 분리](architecture/api-auth-split.md): 세션, 토큰 둘 다 받던 경로를 세션 전용으로 바꾸고 `/api/v1` 토큰 전용 경로를 만든다, v1.6과의 차이 목록(X-5, D-36, 설계 제안 확인 대기)
 - [이슈와 게시판 쓰기 REST 추적표](architecture/api-issue-board-write.md): X-29 단계와 엔드포인트별 상태(D-47)
 - [조직, 웹훅, 검색, 포크 REST 추적표](architecture/api-org-search-webhook.md): X-30 단계와 엔드포인트별 상태, 범위 대응(D-49)
+- [OpenAPI 문서(Swagger UI)](architecture/openapi-docs.md): `/-_-api/docs`, 구성, 모델 규칙, 구조 시험과 계약 시험(D-50)

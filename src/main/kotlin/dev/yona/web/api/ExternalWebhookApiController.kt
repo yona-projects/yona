@@ -21,6 +21,13 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.ResponseBody
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 프로젝트 웹훅 REST이다(로드맵 X-30b, `decisions.md` D-49). 웹 화면의 [dev.yona.web.project.WebhookController]에 있는 목록, 만들기, 삭제만 있고
@@ -41,6 +48,9 @@ class ExternalWebhookApiController(
 ) {
 
     /** 프로젝트의 웹훅 목록이다. 만든 순서이다. 결과: `{"result": [{"id", "payloadUrl", "webhookType", "gitPush", "hasSecret", "createdAt"}]}`. */
+    @ApiOperation(operationId = "listHooks", tags = [ApiTags.WEBHOOK], summary = "웹훅 목록", description = "프로젝트의 웹훅을 만든 순서로 돌려준다. 비밀 값은 돌려주지 않고 `hasSecret`만 알린다. 프로젝트를 고칠 수 있는 사용자(프로젝트 관리자, 조직 관리자, 사이트 관리자)만 쓴다.")
+    @ApiResponse(responseCode = "200", description = "웹훅 목록", content = [Content(schema = Schema(implementation = HookListResult::class))])
+    @ApiResponse(responseCode = "404", description = "프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("$PROJECT/hooks")
     @Transactional(readOnly = true)
     fun list(@PathVariable owner: String, @PathVariable projectName: String, request: HttpServletRequest): Any {
@@ -53,6 +63,11 @@ class ExternalWebhookApiController(
      * `webhookType`은 `SIMPLE`(기본), `DETAIL_SLACK`, `DETAIL_HANGOUT_CHAT`, `JSON`, `gitPush`는 불리언이고 없으면 `JSON` 형식만 켠다(웹 화면이 `JSON`일 때
      * 켜 두는 것과 같다). 틀린 값은 400이다. 성공하면 201과 만든 웹훅이다.
      */
+    @ApiOperation(operationId = "createHook", tags = [ApiTags.WEBHOOK], summary = "웹훅 만들기", description = "웹훅을 만든다. `payloadUrl`만 필수이다. 틀린 값은 400이다. 프로젝트를 고칠 수 있는 사용자만 쓴다.")
+    @BodyDoc(description = "만들 웹훅", required = true, content = [Content(schema = Schema(implementation = HookCreateRequest::class))])
+    @ApiResponse(responseCode = "201", description = "만든 웹훅", content = [Content(schema = Schema(implementation = HookResult::class))])
+    @ApiResponse(responseCode = "400", description = "주소가 없거나 길이, 형식, 불리언이 틀렸다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PostMapping("$PROJECT/hooks")
     @Transactional
     fun create(@PathVariable owner: String, @PathVariable projectName: String, request: HttpServletRequest): Any {
@@ -70,6 +85,9 @@ class ExternalWebhookApiController(
     }
 
     /** 웹훅을 지운다. 이 프로젝트의 웹훅이 아니면 404이다. 성공하면 204이다. */
+    @ApiOperation(operationId = "deleteHook", tags = [ApiTags.WEBHOOK], summary = "웹훅 지우기", description = "웹훅을 지운다. 이 프로젝트의 웹훅이 아니면 404이다. 프로젝트를 고칠 수 있는 사용자만 쓴다.")
+    @ApiResponse(responseCode = "204", description = "지웠다.")
+    @ApiResponse(responseCode = "404", description = "프로젝트나 웹훅이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @DeleteMapping("$PROJECT/hooks/{hookId}")
     @Transactional
     fun delete(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable hookId: Long, request: HttpServletRequest): Any {

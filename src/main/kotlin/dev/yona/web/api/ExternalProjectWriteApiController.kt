@@ -25,6 +25,13 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.ResponseBody
+import dev.yona.web.api.docs.*
+import io.swagger.v3.oas.annotations.Operation as ApiOperation
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.parameters.RequestBody as BodyDoc
 
 /**
  * 라벨과 마일스톤을 고치고 지우는 REST이다(로드맵 X-29c, `decisions.md` D-47). 만들기는 v1.6에서 옮긴 [ExternalProjectApiController]에 이미 있다.
@@ -54,6 +61,12 @@ class ExternalProjectWriteApiController(
      * 라벨을 고친다. 본문의 `labelName`, `labelColor`, `category`(분류 이름) 중 보낸 항목만 바꾼다. 분류가 없으면 단일 선택이 아닌 분류로 새로 만든다.
      * 값이 비면 400, 이름이 255자를 넘으면 400, 같은 분류에 같은 이름의 다른 라벨이 있으면 409이다. 결과: `{"result": {...}}`.
      */
+    @ApiOperation(operationId = "patchLabel", tags = [ApiTags.LABEL], summary = "라벨 고치기", description = "`labelName`, `labelColor`, `category` 중 보낸 항목만 바꾼다. 분류가 없으면 단일 선택이 아닌 분류로 새로 만든다. 값이 비면 400이고 같은 분류에 같은 이름의 다른 라벨이 있으면 409이다. 구성원이 고친다.")
+    @BodyDoc(description = "바꿀 항목", required = true, content = [Content(schema = Schema(implementation = LabelPatchRequest::class))])
+    @ApiResponse(responseCode = "200", description = "고친 라벨", content = [Content(schema = Schema(implementation = LabelResult::class))])
+    @ApiResponse(responseCode = "400", description = "보낸 항목이 없거나 값이 틀렸다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 라벨이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "409", description = "같은 분류에 같은 이름이 있다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PatchMapping("$PROJECT/labels/{labelId}")
     @Transactional
     fun patchLabel(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable labelId: Long, request: HttpServletRequest): Any {
@@ -78,6 +91,9 @@ class ExternalProjectWriteApiController(
     }
 
     /** 라벨을 지운다. 이슈와 게시글과 풀 리퀘스트에 붙은 것도 함께 떼고, 남은 라벨이 없는 분류도 지운다. 성공하면 204이다. */
+    @ApiOperation(operationId = "deleteLabel", tags = [ApiTags.LABEL], summary = "라벨 지우기", description = "라벨을 지운다. 이슈와 게시글과 풀 리퀘스트에 붙은 것도 함께 떼고, 남은 라벨이 없는 분류도 지운다.")
+    @ApiResponse(responseCode = "204", description = "지웠다.")
+    @ApiResponse(responseCode = "404", description = "프로젝트나 라벨이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @DeleteMapping("$PROJECT/labels/{labelId}")
     @Transactional
     fun deleteLabel(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable labelId: Long, request: HttpServletRequest): Any {
@@ -94,6 +110,12 @@ class ExternalProjectWriteApiController(
      * 마일스톤을 고친다. 본문의 `title`, `description`, `due_on`(`null`이면 지움), `state`(`open`/`closed`) 중 보낸 항목만 바꾼다. 마감일은 그날의 마지막 초로 맞춘다.
      * 제목이 비거나, 상태나 마감일을 읽을 수 없으면 400, 바꾼 제목이 다른 마일스톤과 같으면 409이다. 결과: `{"result": {...}}`.
      */
+    @ApiOperation(operationId = "patchMilestone", tags = [ApiTags.MILESTONE], summary = "마일스톤 고치기", description = "`title`, `description`, `due_on`(`null`이면 지움), `state` 중 보낸 항목만 바꾼다. 마감일은 그날의 마지막 초로 맞춘다. 제목이 비거나 상태와 마감일을 읽을 수 없으면 400, 바꾼 제목이 다른 마일스톤과 같으면 409이다.")
+    @BodyDoc(description = "바꿀 항목", required = true, content = [Content(schema = Schema(implementation = MilestonePatchRequest::class))])
+    @ApiResponse(responseCode = "200", description = "고친 마일스톤", content = [Content(schema = Schema(implementation = MilestoneResult::class))])
+    @ApiResponse(responseCode = "400", description = "보낸 항목이 없거나 값이 틀렸다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "프로젝트나 마일스톤이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "409", description = "같은 제목의 마일스톤이 있다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @PatchMapping("$PROJECT/milestones/{milestoneId}")
     @Transactional
     fun patchMilestone(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable milestoneId: Long, request: HttpServletRequest): Any {
@@ -119,6 +141,9 @@ class ExternalProjectWriteApiController(
     }
 
     /** 마일스톤을 지운다. 속한 이슈의 마일스톤은 비워진다. 성공하면 204이다. */
+    @ApiOperation(operationId = "deleteMilestone", tags = [ApiTags.MILESTONE], summary = "마일스톤 지우기", description = "마일스톤을 지운다. 속한 이슈의 마일스톤은 비워진다.")
+    @ApiResponse(responseCode = "204", description = "지웠다.")
+    @ApiResponse(responseCode = "404", description = "프로젝트나 마일스톤이 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @DeleteMapping("$PROJECT/milestones/{milestoneId}")
     @Transactional
     fun deleteMilestone(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable milestoneId: Long, request: HttpServletRequest): Any {

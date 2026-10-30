@@ -102,6 +102,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
+	// OpenAPI 문서와 Swagger UI(X-31, D-50). Spring Boot 4.1.2 기준 버전이라 4.1.1과 호환한다
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 	// 받은 메일 수신(IMAP IDLE, UID 조회)에 쓰는 IMAP 전용 클래스. 스타터는 실행 시점에만 포함한다
