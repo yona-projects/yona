@@ -134,6 +134,7 @@ v1.6을 그대로 따른다는 원칙에 따라 결함도 같게 재현하고, �
 | R-127 | 이슈 일괄 변경의 입력 | `POST /:user/:project/issues`는 `state`가 열거형 이름이 아니면 400 `{"state":["Invalid value"]}`, 빈 값은 통과, 없는 이슈 번호는 `issue.refresh()` 예외로 500이다 | v1.6대로 재현한다(A-173) | `IssueApp.massUpdate`, `IssueMassUpdate` |
 | R-128 | 커밋이 아닌 대상을 가리키는 태그 | 트리나 블롭을 가리키는 태그(`git tag t <tree>`)가 있으면 그 태그의 커밋 이력(`/commits/<태그>/`)이 500이고, 코드 화면은 v1.6이 500, v2가 404이다. 주석 태그와 태그의 태그는 정상(200)이다 | 같게 재현한다(이력 500). 브랜치 화면은 D-30으로 `refs/heads`만 모으므로 이 태그 때문에 500이 나지 않는다. 신규 태그 화면은 "커밋이 아님"으로 표시한다 | `GitRepository.getBranches`(`parseCommit`), 2026-10-29 실측(rich1: `tree-tag`, `blob-tag`) |
 | R-129 | 줄 댓글을 단 뒤 `#comment-번호`로 이동할 때 | 풀 리퀘스트 변경 화면의 `yobi.code.Diff.js`가 `$("a[href=#reviewcards-" + state + "]")`처럼 따옴표 없는 속성 선택자를 써서, 번들된 jQuery가 `Syntax error, unrecognized expression`을 낸다. 공개 댓글과 임시 댓글 모두 등록 뒤 이동에서 콘솔 오류가 나지만 댓글 등록과 화면 동작에는 영향이 없다 | 선생님 지시(2026-10-29)로 선택자에 따옴표를 붙여 고쳤다(차이 장부 기록) | `yobi.code.Diff.js` `_showReviewCardsTabByState` |
+| R-130 | 사이트 데이터 가져오기에서 이슈 댓글 테이블이 항상 실패 | v1.6 `IssueCommentDataExchanger`의 열 목록(7개)에 `project_id`가 없고, 이후 진화 9가 `issue_comment.project_id`를 `NOT NULL`로 만들었다. 내려받은 파일을 그대로 올려도 `ISSUE_COMMENT`는 `NULL not allowed for column PROJECT_ID`로 되돌려져 비어 있게 된다(`ISSUE_COMMENT_VOTER` 등 이어진 테이블은 가져온다). 실서버에서 CLI로 내보내기와 가져오기를 돌려 확인했다 | v1.6과 같게 재현했다. 개선은 선생님 승인 후: 열 목록에 `project_id`를 더하거나 가져올 때 이슈에서 채운다 | `DataTables`의 `ISSUE_COMMENT`, v1.6 `IssueCommentDataExchanger` |
 
 ## 전환 후보 (기능은 v1.6과 같고 구현 방식만 바꾸는 후보)
 

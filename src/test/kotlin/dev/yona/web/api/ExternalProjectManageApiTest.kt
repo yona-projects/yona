@@ -231,4 +231,13 @@ class ExternalProjectManageApiTest : AbstractIntegrationTest() {
             json(builder, tokenOf(user), body).andExpect(status().isNotFound).andExpect(jsonPath("$.message").isString)
         }
     }
+
+    @Test
+    fun `없는 조직과 프로젝트의 조직 검색과 포크와 웹훅 삭제도 JSON 404이다`() {
+        val user = newUser(); val token = tokenOf(user); val base = "/-_-api/v1"
+        json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("$base/orgs/none-$stamp"), token, null).andExpect(status().isNotFound).andExpect(jsonPath("$.message").isString)
+        json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("$base/orgs/none-$stamp/members"), token, null).andExpect(status().isNotFound).andExpect(jsonPath("$.message").isString)
+        json(post("$base/owners/nobody-$stamp/projects/none/forks"), token, "{}").andExpect(status().isNotFound).andExpect(jsonPath("$.message").isString)
+        json(delete("$base/owners/nobody-$stamp/projects/none/hooks/1"), token, null).andExpect(status().isNotFound).andExpect(jsonPath("$.message").isString)
+    }
 }

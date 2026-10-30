@@ -7,7 +7,6 @@ import dev.yona.domain.project.ProjectNameRules
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.pullrequest.ForkService
 import dev.yona.web.access.AnonymousCheck
-import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -60,7 +59,7 @@ class ExternalForkApiController(
     @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/forks")
     fun fork(@PathVariable owner: String, @PathVariable projectName: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val original = projectService.findByOwnerAndProjectName(owner, projectName) ?: return ErrorViews.notFound()
+        val original = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isProjectResourceCreatable(user, original, ResourceType.FORK)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         if (original.vcs != "GIT") return requests.message(HttpStatus.BAD_REQUEST, "only Git projects can be forked")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")

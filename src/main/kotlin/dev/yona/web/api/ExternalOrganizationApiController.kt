@@ -13,7 +13,6 @@ import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.domain.user.LoginIdRules
 import dev.yona.web.access.AnonymousCheck
-import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -80,7 +79,7 @@ class ExternalOrganizationApiController(
     @Transactional(readOnly = true)
     fun get(@PathVariable org: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         return ok(linkedMapOf("result" to organizationNode(organization, user)))
     }
 
@@ -92,7 +91,7 @@ class ExternalOrganizationApiController(
     @Transactional(readOnly = true)
     fun members(@PathVariable org: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, organization.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         return ok(linkedMapOf("result" to management.members(organization).mapNotNull { memberNode(it) }))
     }
@@ -114,7 +113,7 @@ class ExternalOrganizationApiController(
     fun addMember(@PathVariable org: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         val loginId = json.get("loginId")?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "loginId is required")
         val roleType = if (json.has("role")) roleOf(json.get("role")) ?: return requests.message(HttpStatus.BAD_REQUEST, "role must be admin or member") else RoleType.ORG_MEMBER
         // 권한과 대상 사용자는 서비스의 검사 순서(사용자, 게스트, 조직, 권한, 이미 구성원)를 따른다
@@ -136,7 +135,7 @@ class ExternalOrganizationApiController(
     fun editMember(@PathVariable org: String, @PathVariable loginId: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         val target = users.findByLoginId(loginId) ?: return requests.message(HttpStatus.NOT_FOUND, "no user by request")
         val roleType = roleOf(json.get("role")) ?: return requests.message(HttpStatus.BAD_REQUEST, "role must be admin or member")
         denial(management.editMember(organization, user, requireNotNull(target.id), roleType.id.toString()))?.let { return it }
@@ -152,7 +151,7 @@ class ExternalOrganizationApiController(
     @Transactional
     fun removeMember(@PathVariable org: String, @PathVariable loginId: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         val target = users.findByLoginId(loginId) ?: return requests.message(HttpStatus.NOT_FOUND, "no user by request")
         denial(management.removeMember(organization, user, requireNotNull(target.id)))?.let { return it }
         return ResponseEntity.noContent().build<Void>()
@@ -199,7 +198,7 @@ class ExternalOrganizationApiController(
     fun update(@PathVariable org: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, organization.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         if (!json.has("name") && !json.has("description")) return requests.message(HttpStatus.BAD_REQUEST, "no updatable field: name, description")
         val name = if (json.has("name")) json.get("name").asString("").takeIf { it.isNotEmpty() && LoginIdRules.isValidFormat(it) && !LoginIdRules.isReserved(it) }
@@ -219,7 +218,7 @@ class ExternalOrganizationApiController(
     @Transactional
     fun delete(@PathVariable org: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         management.checkDeletable(organization, user)?.let {
             return if (it == OrganizationManagementService.DeleteDenied.HAS_PROJECTS) requests.message(HttpStatus.CONFLICT, "the organization still has projects") else requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         }

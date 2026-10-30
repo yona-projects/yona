@@ -9,7 +9,6 @@ import dev.yona.domain.project.ProjectService
 import dev.yona.domain.project.Webhook
 import dev.yona.domain.webhook.WebhookService
 import dev.yona.web.access.AnonymousCheck
-import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -92,14 +91,14 @@ class ExternalWebhookApiController(
     @Transactional
     fun delete(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable hookId: Long, request: HttpServletRequest): Any {
         val project = authorized(owner, projectName, request) { return it }
-        if (!webhooks.delete(project, hookId)) return ErrorViews.notFound()
+        if (!webhooks.delete(project, hookId)) return requests.message(HttpStatus.NOT_FOUND, "not found")
         return ResponseEntity.noContent().build<Void>()
     }
 
     /** 토큰 사용자를 확인하고 프로젝트를 고칠 수 있는지 본다. 안 되면 [reject]로 응답을 돌려준다(없는 프로젝트는 404, 권한이 없으면 403, 토큰이 없으면 401). */
     private inline fun authorized(owner: String, projectName: String, request: HttpServletRequest, reject: (ResponseEntity<*>) -> Nothing): Project {
         val user = requests.tokenUser(request) ?: reject(requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request"))
-        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: reject(ResponseEntity.status(HttpStatus.NOT_FOUND).build<Void>())
+        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: reject(requests.message(HttpStatus.NOT_FOUND, "not found"))
         if (!accessControl.isAllowed(user, project.asResource(), Operation.UPDATE)) reject(requests.message(HttpStatus.FORBIDDEN, "Forbidden request"))
         return project
     }

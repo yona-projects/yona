@@ -17,7 +17,6 @@ import dev.yona.domain.search.SearchType
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.util.SiteUrls
 import dev.yona.web.access.AnonymousCheck
-import dev.yona.web.error.ErrorViews
 import dev.yona.web.search.SearchItemRow
 import dev.yona.web.search.SearchMilestoneRow
 import dev.yona.web.search.SearchProjectRow
@@ -92,7 +91,7 @@ class ExternalSearchApiController(
     @Transactional(readOnly = true)
     fun searchInOrganization(@PathVariable org: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         val member = organizationUsers.existsByOrganizationIdAndUserId(requireNotNull(organization.id), requireNotNull(user.id)) || accessControl.isAllowed(user, organization.asResource(), Operation.UPDATE)
         if (properties.hideProjectListing && !member) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         return run(SearchScope(organization = organization), null, user, request)
@@ -110,7 +109,7 @@ class ExternalSearchApiController(
     @Transactional(readOnly = true)
     fun searchInProject(@PathVariable owner: String, @PathVariable projectName: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return ErrorViews.notFound()
+        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, project.asResource(), Operation.READ)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         return run(SearchScope(project = project), project, user, request)
     }
