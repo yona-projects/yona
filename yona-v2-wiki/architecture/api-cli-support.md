@@ -92,6 +92,7 @@ GitHub의 `gh auth login`과 같은 Device Flow(RFC 8628)이다. CLI는 토큰 �
 | `POST /oauth/device/code` | 기기 코드와 사용자 코드(`BCDF-GHJK`), 확인 주소, 유효 시간(900초), 간격(5초). 인증 없음 | **완료**(2026-10-30) |
 | `POST /oauth/token` | `grant_type=urn:ietf:params:oauth:grant-type:device_code`와 `device_code`로 토큰 교환. 오류는 400의 `error`(`authorization_pending`, `slow_down`, `access_denied`, `expired_token`, `invalid_grant`, `unsupported_grant_type`, `invalid_request`). 인증 없음 | **완료**(2026-10-30) |
 | `GET /users/device`, `POST /users/device/approve`, `POST /users/device/deny` | 로그인한 사용자가 코드를 입력하고 기기와 범위를 확인해 승인하거나 거절하는 웹 화면 | **완료**(2026-10-30) |
+| `GET /user` | 토큰 주인의 로그인 ID, 이름, 이메일, 사이트 관리자 여부, 토큰 범위. 범위 불필요(A-282) | **완료**(2026-10-30) |
 | 테이블 `device_authorization` | 기기 코드 해시, 사용자 코드, 기기 이름, 범위, 상태, 승인한 사용자, 만료, 간격, 마지막 교환 시각 | **완료**(2026-10-30) |
 
 구현은 `domain/deviceauth`(`DeviceAuthorization`, `DeviceAuthorizationService`), `ExternalDeviceAuthApiController`, `DeviceAuthorizationController`와 `templates/user/device.html`이다. 토큰은 설정 화면과 같은 `ApiTokenService.create`로 만든다.

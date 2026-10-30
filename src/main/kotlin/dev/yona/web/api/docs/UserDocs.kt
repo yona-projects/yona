@@ -131,3 +131,11 @@ class DeviceAuthError(
     ) val error: String,
     @get:Schema(description = "사람이 읽을 설명") val error_description: String
 )
+
+@Schema(description = "토큰 주인")
+class CurrentUserResponse(
+    val loginId: String, val name: String,
+    @get:Schema(description = "이메일") val email: String?,
+    @get:Schema(description = "사이트 관리자인지") val siteAdmin: Boolean,
+    @get:Schema(description = "이 토큰이 가진 범위", example = "[\"repo\", \"read:org\"]") val scopes: List<String>
+)

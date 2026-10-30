@@ -53,6 +53,23 @@ class ExternalUserStatusApiController(
 ) {
 
     /**
+     * 토큰 주인이 누구인지 알려 준다(GitHub의 `GET /user`, 로드맵 X-37i, `decisions.md` D-52, A-282). 범위가 필요 없고 유효한 토큰만 있으면 된다. CLI가 로그인 직후 로그인 ID를 알아
+     * Git 자격 증명(사용자 이름은 토큰 주인의 로그인 ID와 같아야 한다)에 쓴다. 결과: `{"loginId", "name", "email", "siteAdmin", "scopes": [토큰의 범위]}`.
+     */
+    @ApiOperation(operationId = "getCurrentUser", tags = [ApiTags.USER], summary = "토큰 주인 조회", description = "토큰 주인의 로그인 ID, 이름, 이메일, 사이트 관리자 여부와 토큰이 가진 범위를 돌려준다(GitHub의 `GET /user`). 범위는 필요 없고 유효한 토큰만 있으면 된다. CLI가 로그인 직후 Git 자격 증명에 쓸 로그인 ID를 알아내는 데 쓴다.")
+    @ApiResponse(responseCode = "200", description = "토큰 주인", content = [Content(schema = Schema(implementation = CurrentUserResponse::class))])
+    @ApiResponse(responseCode = "401", description = "토큰이 없거나 올바르지 않다.")
+    @GetMapping("/-_-api/v1/user")
+    @Transactional(readOnly = true)
+    fun currentUser(request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val scopes = (org.springframework.security.core.context.SecurityContextHolder.getContext().authentication as? dev.yona.security.YonaAuthentication)?.scopes.orEmpty()
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(
+            linkedMapOf("loginId" to user.loginId, "name" to user.name, "email" to user.email, "siteAdmin" to accessControl.isSiteManager(user), "scopes" to scopes.toList())
+        )
+    }
+
+    /**
      * 토큰 주인의 현황이다. 쿼리 `limit`(1에서 100, 기본 10)은 구역마다 보여 줄 항목 수이다. 틀리면 400이다.
      * 결과: `{"assignedIssues", "assignedPullRequests", "reviewRequests", "mentionedIssues": {"openCount", "closedCount", "items"}, "notifications": [...]}`.
      */
