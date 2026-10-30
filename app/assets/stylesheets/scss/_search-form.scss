@@ -1,0 +1,48 @@
+// 이어 붙은 검색 입력 묶음: 상단 검색 상자(`.gnb-search-form`)와 첫 설정 폼(`.secret-form`).
+// v1.6은 Bootstrap 2의 `.input-prepend`/`.input-append` 규칙을 이 두 클래스에 그대로 썼다(A-285).
+// 호환 층(`_bs3-compat.scss`)에 있던 규칙 가운데 이 두 폼의 마크업이 쓰지 않는 선택자(`.add-on`, `.btn`, `span*`, `.row-fluid`,
+// `.form-horizontal`, `.navbar`)는 이관하면서 지웠다(D-54).
+
+.secret-form,
+.gnb-search-form {
+  display: inline-block;
+  margin-bottom: 10px;
+  font-size: 0;
+  white-space: nowrap;
+  vertical-align: middle;
+
+  input,
+  select {
+    position: relative;
+    margin-bottom: 0;
+    font-size: 14px;
+    vertical-align: top;
+    border-radius: 0 4px 4px 0;
+
+    &:focus {
+      z-index: 2;
+    }
+  }
+
+  .dropdown-menu,
+  .popover {
+    font-size: 14px;
+  }
+
+  .btn-group > .dropdown-toggle {
+    vertical-align: top;
+    border-radius: 0;
+  }
+
+  .active {
+    background-color: #a9dba9;
+    border-color: #46a546;
+  }
+}
+
+.secret-form {
+  input,
+  select {
+    border-radius: 4px 0 0 4px;
+  }
+}

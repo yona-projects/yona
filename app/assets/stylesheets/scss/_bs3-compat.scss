@@ -958,75 +958,8 @@ button.btn::-moz-focus-inner {
 .btn-group > .btn, .btn-group > .btn-group { position: relative; }
 blockquote { font-size: inherit; }
 
-// 검색 상자와 첫 설정 폼은 v1.6에서 BS2의 `.input-prepend`/`.input-append`를 클래스로 썼다. BS3에 없으므로 자체 클래스에 같은 규칙을 준다.
 table { -webkit-box-sizing: border-box; box-sizing: border-box; }
 
-// --- BS2 `.input-prepend`/`.input-append` 규칙을 자체 클래스(.gnb-search-form, .secret-form)에 옮긴다(A-285) ---
-.secret-form input[class*="span"], .gnb-search-form input[class*="span"], .row-fluid .gnb-search-form [class*="span"], .row-fluid .secret-form [class*="span"] {
-  display: inline-block;
-}
-.secret-form, .gnb-search-form {
-  display: inline-block;
-  margin-bottom: 10px;
-  font-size: 0;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-.secret-form input, .gnb-search-form input, .secret-form select, .gnb-search-form select, .secret-form .dropdown-menu, .gnb-search-form .dropdown-menu, .secret-form .popover, .gnb-search-form .popover {
-  font-size: 14px;
-}
-.secret-form input, .gnb-search-form input, .secret-form select, .gnb-search-form select {
-  position: relative;
-  margin-bottom: 0;
-  vertical-align: top;
-  -webkit-border-radius: 0 4px 4px 0;
-  border-radius: 0 4px 4px 0;
-}
-.secret-form input:focus, .gnb-search-form input:focus, .secret-form select:focus, .gnb-search-form select:focus {
-  z-index: 2;
-}
-.secret-form .add-on, .gnb-search-form .add-on, .secret-form .btn, .gnb-search-form .btn, .secret-form .btn-group > .dropdown-toggle, .gnb-search-form .btn-group > .dropdown-toggle {
-  vertical-align: top;
-  -webkit-border-radius: 0;
-  border-radius: 0;
-}
-.secret-form .active, .gnb-search-form .active {
-  background-color: #a9dba9;
-  border-color: #46a546;
-}
-.gnb-search-form .add-on, .gnb-search-form .btn {
-  margin-right: -1px;
-}
-.gnb-search-form .add-on:first-child, .gnb-search-form .btn:first-child {
-  -webkit-border-radius: 4px 0 0 4px;
-  border-radius: 4px 0 0 4px;
-}
-.secret-form input, .secret-form select {
-  -webkit-border-radius: 4px 0 0 4px;
-  border-radius: 4px 0 0 4px;
-}
-.secret-form input + .btn-group .btn:last-child, .secret-form select + .btn-group .btn:last-child {
-  -webkit-border-radius: 0 4px 4px 0;
-  border-radius: 0 4px 4px 0;
-}
-.secret-form .add-on, .secret-form .btn, .secret-form .btn-group {
-  margin-left: -1px;
-}
-.secret-form .add-on:last-child, .secret-form .btn:last-child, .secret-form .btn-group:last-child > .dropdown-toggle {
-  -webkit-border-radius: 0 4px 4px 0;
-  border-radius: 0 4px 4px 0;
-}
-.form-horizontal .gnb-search-form, .form-horizontal .secret-form {
-  display: inline-block;
-  margin-bottom: 0;
-  vertical-align: middle;
-}
-.form-horizontal .gnb-search-form + .help-block, .form-horizontal .secret-form + .form-text {
-  margin-top: 10px;
-}
-.navbar .gnb-search-form .btn, .navbar .secret-form .btn, .navbar .gnb-search-form .btn-group, .navbar .secret-form .btn-group {
-  margin-top: 0;
-}
 .badge { text-align: inherit; }
 
 // BS2 고정 그리드의 `.container`(반응형 CSS 없이 940px). BS3은 화면 폭에 따라 750/970/1170px에 거터 패딩을 둔다.
