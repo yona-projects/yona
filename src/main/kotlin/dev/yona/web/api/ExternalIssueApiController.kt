@@ -283,7 +283,7 @@ class ExternalIssueApiController(
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(linkedMapOf("result" to issueJson.commentsOf(issue)))
     }
 
-    /** 댓글을 고친다. 본문 `{"body": 내용}`이다. 작성자나 프로젝트 관리자만 고치고, 내용이 비면 400이다. 결과: `{"result": {"id", "body", ...}}`. */
+    /** 댓글을 고친다. 본문 `{"body": 내용}`이다. 구성원은 남의 댓글도 고치고(D-48), 내용이 비면 400이다. 결과: `{"result": {"id", "body", ...}}`. */
     @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId}")
     @Transactional
     fun editComment(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable commentId: Long, request: HttpServletRequest): Any {
@@ -301,7 +301,7 @@ class ExternalIssueApiController(
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(linkedMapOf("result" to node))
     }
 
-    /** 댓글을 지운다. 작성자나 프로젝트 관리자만 지운다. 성공하면 204이다. */
+    /** 댓글을 지운다. 작성자와 프로젝트 관리자만 지운다(D-48). 성공하면 204이다. */
     @DeleteMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId}")
     @Transactional
     fun deleteComment(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable commentId: Long, request: HttpServletRequest): Any {

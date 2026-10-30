@@ -112,6 +112,17 @@ class PostingService(
     }
 
     /**
+     * 글의 라벨을 [newLabels]로 바꾸기만 한다(외부 REST, X-29b). 웹 화면이 쓰는 [replaceLabels]는 v1.6처럼 `save()`로 제목 머리말 개수를 한 번 더 늘리는데
+     * ([refactoring-backlog.md] R-29), 새 REST가 그 결함을 되풀이할 이유가 없어 라벨만 바꾼다.
+     */
+    @Transactional
+    fun setLabels(posting: Posting, newLabels: Set<dev.yona.domain.issue.IssueLabel>) {
+        posting.labels.clear()
+        posting.labels.addAll(newLabels)
+        postings.save(posting)
+    }
+
+    /**
      * README 글의 표시를 푼다 (v1.6 `ProjectApp.changeVCS`의 `posting.readme = false; posting.save()`). 글을 `save()`로 저장하므로 댓글 수를 다시 세고,
      * 제목 머리말 개수를 늘리고, 멘션 기록을 맞춘다.
      */

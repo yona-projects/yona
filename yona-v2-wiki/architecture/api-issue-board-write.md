@@ -45,8 +45,8 @@ D-36 4번("모든 토큰이 범위와 사용자의 실제 권한의 교집합만
 | `PATCH issues/{number}` | 부분 수정: `title`, `body`, `state`, `milestone`(번호 또는 `null`), `assignees`(로그인 ID 목록), `labels`(번호 목록). 보낸 항목만 바꾼다. 상태만 보내는 v1.6 호출은 그대로 동작한다 | **완료**(2026-10-30) |
 | `DELETE issues/{number}` | 이슈 삭제(삭제 권한) | **완료**(2026-10-30) |
 | `GET issues/{number}/comments` | 이슈 댓글 목록 | **완료**(2026-10-30) |
-| `PATCH issues/{number}/comments/{commentId}` | 댓글 수정(작성자나 관리자) | **완료**(2026-10-30) |
-| `DELETE issues/{number}/comments/{commentId}` | 댓글 삭제(작성자나 관리자) | **완료**(2026-10-30) |
+| `PATCH issues/{number}/comments/{commentId}` | 댓글 수정(구성원도 가능, D-48) | **완료**(2026-10-30) |
+| `DELETE issues/{number}/comments/{commentId}` | 댓글 삭제(작성자와 관리자만, D-48) | **완료**(2026-10-30) |
 | `POST issues/{number}/labels`, `DELETE issues/{number}/labels/{labelId}` | 라벨 하나를 붙이거나 뗌 | **완료**(2026-10-30) |
 | `POST issues/{number}/assignees`, `DELETE issues/{number}/assignees` | 담당자를 더하거나 뺌(`{"assignees": [로그인 ID]}`) | **완료**(2026-10-30) |
 
@@ -54,11 +54,14 @@ D-36 4번("모든 토큰이 범위와 사용자의 실제 권한의 교집합만
 
 | 메서드와 경로 | 설명 | 상태 |
 |---|---|---|
-| `GET posts`, `GET posts/{number}` | 게시글 목록과 한 건 | 대기 |
-| `PATCH posts/{number}` | 제목, 본문 부분 수정 | 대기 |
-| `DELETE posts/{number}` | 게시글 삭제 | 대기 |
-| `GET posts/{number}/comments`, `PATCH posts/{number}/comments/{commentId}`, `DELETE posts/{number}/comments/{commentId}` | 댓글 목록, 수정, 삭제 | 대기 |
-| `POST posts/{number}/labels`, `DELETE posts/{number}/labels/{labelId}` | 게시글 라벨 | 대기 |
+| `GET posts` | 게시글 목록. 공지도 함께 나온다. `q`, `labelIds`, `sort`, `order`, `page`, `pageSize` | **완료**(2026-10-30) |
+| `GET posts/{number}` | 게시글 한 건(본문, 라벨, 공지 여부, 첨부, 댓글) | **완료**(2026-10-30) |
+| `PATCH posts/{number}` | 제목, 본문 부분 수정(구성원도 가능). 공지와 README 표시는 그대로 둔다 | **완료**(2026-10-30) |
+| `DELETE posts/{number}` | 게시글 삭제(작성자와 관리자만, D-48) | **완료**(2026-10-30) |
+| `GET posts/{number}/comments`, `PATCH posts/{number}/comments/{commentId}`, `DELETE posts/{number}/comments/{commentId}` | 댓글 목록, 수정(구성원도 가능), 삭제(작성자와 관리자만) | **완료**(2026-10-30) |
+| `POST posts/{number}/labels`, `DELETE posts/{number}/labels/{labelId}` | 게시글 라벨 더하기와 떼기(배타 분류 중복과 다른 프로젝트 라벨은 400) | **완료**(2026-10-30) |
+
+권한은 읽기 `READ`, 수정과 라벨 `UPDATE`, 삭제 `DELETE`이다. 기존 게시판 외부 API(`POST posts`, `POST posts/{n}/comments`, `GET posts/{n}/watchers`)는 이미 만들기 권한과 읽기 권한을 확인하고 있어 보정할 것이 없었다. 구현은 `ExternalBoardWriteApiController`이다.
 
 ### c단계: 라벨과 마일스톤 관리 (X-29c)
 

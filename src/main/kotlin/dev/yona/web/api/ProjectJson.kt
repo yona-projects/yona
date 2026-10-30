@@ -1,5 +1,6 @@
 package dev.yona.web.api
 
+import dev.yona.domain.board.Posting
 import dev.yona.domain.issue.Issue
 import dev.yona.domain.issue.IssueLabel
 import dev.yona.domain.issue.Milestone
@@ -48,6 +49,18 @@ class ProjectJson(private val menuSettings: ProjectMenuSettingRepository, privat
             "milestone" to issue.milestone?.let { linkedMapOf("id" to it.id, "title" to it.title) },
             "createdAt" to pullRequestJson.iso(issue.createdDate), "updatedAt" to pullRequestJson.iso(issue.updatedDate ?: issue.createdDate), "dueDate" to pullRequestJson.iso(issue.dueDate),
             "numOfComments" to (issue.numOfComments ?: 0), "url" to siteUrls.path("${UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}")
+        )
+    }
+
+    /** 게시글 목록의 한 항목이다. 본문과 댓글은 담지 않는다(`GET .../posts/{number}`가 담는다). 공지는 `notice`로 가린다(X-29b). */
+    fun postingSummary(posting: Posting, author: User?): Map<String, Any?> {
+        val project = requireNotNull(posting.project)
+        return linkedMapOf(
+            "number" to posting.number, "id" to posting.id, "title" to posting.title, "notice" to (posting.notice == true),
+            "author" to (author?.let { pullRequestJson.user(it) } ?: linkedMapOf("loginId" to posting.authorLoginId, "name" to posting.authorName)),
+            "labels" to posting.labels.sortedBy { it.id }.map { label(it) },
+            "createdAt" to pullRequestJson.iso(posting.createdDate), "updatedAt" to pullRequestJson.iso(posting.updatedDate ?: posting.createdDate),
+            "numOfComments" to (posting.numOfComments ?: 0), "url" to siteUrls.path("${UrlPaths.projectPath(project.owner, project.name)}/post/${posting.number}")
         )
     }
 }

@@ -38,10 +38,10 @@ data class PostingPage(val items: List<Posting>, val pageIndex: Int, val pageSiz
 @Service
 class PostingSearchService(private val entityManager: EntityManager) {
 
-    /** [project]의 공지가 아닌 글 한 쪽을 찾는다. */
+    /** [project]의 공지가 아닌 글 한 쪽을 찾는다. [withNotices]가 켜져 있으면 공지도 함께 찾는다(외부 REST의 목록, X-29b). */
     @Transactional(readOnly = true)
-    fun search(project: Project, condition: PostingSearchCondition, pageSize: Int): PostingPage {
-        val where = StringBuilder("where p.project.id = :project and p.notice = false")
+    fun search(project: Project, condition: PostingSearchCondition, pageSize: Int, withNotices: Boolean = false): PostingPage {
+        val where = StringBuilder(if (withNotices) "where p.project.id = :project" else "where p.project.id = :project and p.notice = false")
         val params = linkedMapOf<String, Any>("project" to requireNotNull(project.id))
         if (condition.filter.isNotEmpty()) {
             where.append(" and (lower(p.title) like :filter escape '\\' or lower(cast(p.body as string)) like :filter escape '\\')")

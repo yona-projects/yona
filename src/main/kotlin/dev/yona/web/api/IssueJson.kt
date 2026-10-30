@@ -71,6 +71,18 @@ class IssueJson(
         return node
     }
 
+    /** 외부 REST의 게시글 상세이다: [ofPosting]에 공지 여부와 라벨을 더한다(X-29b). */
+    fun postingDetail(posting: Posting): Map<String, Any?> {
+        val node = LinkedHashMap(ofPosting(posting))
+        node["notice"] = posting.notice == true
+        node["labels"] = posting.labels.sortedBy { it.id }.map { linkedMapOf("id" to it.id, "labelName" to it.name, "labelColor" to it.color, "category" to it.category?.name) }
+        return node
+    }
+
+    /** 게시글의 댓글 목록이다. 부모 댓글에 한 줄 댓글을 `childComments`로 묶고 오래된 순서이다. 외부 REST의 댓글 목록(X-29b)이 쓴다. */
+    fun commentsOf(posting: Posting): List<Map<String, Any?>> =
+        plainComments(postingComments.findByPostingIdOrderByCreatedDateAscIdAsc(requireNotNull(posting.id)).map { Row(it.id, it.authorId, it.createdDate, it.contents, it.parentComment?.id, ResourceType.NONISSUE_COMMENT) })
+
     /** 이슈 댓글과 게시글 댓글을 같은 모양으로 다루기 위한 값이다. */
     private data class Row(val id: Long?, val authorId: Long?, val created: Date?, val contents: String?, val parentId: Long?, val type: ResourceType)
 
