@@ -269,10 +269,11 @@ class PendingReviewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `지울 수 있는 사람(프로젝트 구성원)은 남의 댓글도 고칠 수 있고 구성원이 아닌 사람은 고칠 수 없다`() {
+    fun `프로젝트 구성원은 남의 댓글도 고칠 수 있고(GitHub 방식) 구성원이 아닌 사람은 고칠 수 없다`() {
         val s = setup()
-        val id = publicComment(s, s.manager, "매니저의 댓글")
+        val id = publicComment(s, s.manager, "매니저의 댓글"); val memberComment = publicComment(s, s.member, "구성원의 댓글")
         mockMvc.perform(editComment(id, s.member, "구성원이 고침")).andExpect(status().isOk)
+        mockMvc.perform(editComment(memberComment, s.manager, "관리자가 고침")).andExpect(status().isOk)
         mockMvc.perform(editComment(id, user(), "외부인")).andExpect(status().isForbidden)
         mockMvc.perform(post("/comments/review_comment/$id/edit").param("contents", "x")).andExpect(status().is3xxRedirection)
     }
@@ -311,7 +312,8 @@ class PendingReviewWebTest : AbstractIntegrationTest() {
         assertEquals("/comments/review_comment/$mine/edit", doc.selectFirst("#comment-$mine button.comment-edit")!!.attr("data-url"))
         assertEquals("내 댓글 원문", doc.selectFirst("#comment-$mine textarea.comment-raw")!!.text())
         assertTrue(doc.selectFirst("#comment-$mine textarea.comment-raw")!!.attr("style").contains("display:none"), "원문 입력란은 화면에 보이면 안 된다(hidden 속성은 CSS가 덮어쓴다)")
-        assertNotNull(doc.selectFirst("#comment-$theirs button.comment-edit"), "프로젝트 구성원은 지울 수 있는 댓글을 고칠 수도 있다")
+        assertNotNull(doc.selectFirst("#comment-$theirs button.comment-edit"), "프로젝트 구성원은 남의 댓글도 고칠 수 있다(수정은 구성원에게 열려 있다. D-48)")
+        assertNull(doc.selectFirst("#comment-$theirs button[data-toggle=comment-delete]"), "그러나 남의 댓글을 지우는 단추는 없다")
         assertNull(changes(s, user()).selectFirst("button.comment-edit"), "구성원이 아닌 로그인 사용자에게는 없다")
         assertNull(changes(s).selectFirst("button.comment-edit"), "로그인하지 않으면 없다")
     }

@@ -556,11 +556,14 @@ class AccessControlTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `코드 리뷰 댓글과 커밋 댓글은 지금 규칙을 유지한다`() {
-        val owner = user(); val project = project(ProjectScope.PRIVATE, owner); val author = user("a"); val member = user("m")
-        join(author, project, RoleType.MEMBER); join(member, project, RoleType.MEMBER)
+    fun `코드 리뷰 댓글과 풀 리퀘스트 댓글과 커밋 댓글도 삭제는 작성자와 관리자만 하고 수정은 구성원에게 허용한다 (D-48 확장)`() {
+        val owner = user(); val project = project(ProjectScope.PRIVATE, owner); val author = user("a"); val member = user("m"); val manager = user("g")
+        join(author, project, RoleType.MEMBER); join(member, project, RoleType.MEMBER); join(manager, project, RoleType.MANAGER)
         listOf(ResourceType.COMMIT_COMMENT, ResourceType.REVIEW_COMMENT, ResourceType.COMMENT_THREAD).forEach {
-            assertTrue(allowed(member, projectResource(project, it, "1", authorId = author.id), Operation.DELETE), "$it")
+            val resource = projectResource(project, it, "1", authorId = author.id)
+            assertTrue(allowed(author, resource, Operation.DELETE), "$it 작성자 삭제"); assertTrue(allowed(manager, resource, Operation.DELETE), "$it 관리자 삭제")
+            assertFalse(allowed(member, resource, Operation.DELETE), "$it 남의 것 삭제")
+            assertTrue(allowed(member, resource, Operation.UPDATE), "$it 수정(스레드 열고 닫기 포함)은 구성원에게 열려 있다")
         }
     }
 }

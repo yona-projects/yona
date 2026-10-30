@@ -303,8 +303,14 @@ class AccessControl(
             ResourceType.COMMIT_COMMENT, ResourceType.COMMENT_THREAD, ResourceType.REVIEW_COMMENT
         )
 
-        /** 삭제를 작성자와 관리자만 하는 리소스 종류이다(D-48, GitHub 방식): 이슈, 게시글, 이슈 댓글, 게시판 댓글. */
-        val CONTENT_TYPES = setOf(ResourceType.ISSUE_POST, ResourceType.BOARD_POST, ResourceType.ISSUE_COMMENT, ResourceType.NONISSUE_COMMENT)
+        /**
+         * 삭제를 작성자와 관리자만 하는 리소스 종류이다(D-48, GitHub 방식): 이슈, 게시글, 이슈 댓글, 게시판 댓글, 그리고 코드 리뷰 댓글, 풀 리퀘스트 댓글(스레드), 커밋 댓글.
+         * 스레드 열기와 닫기 같은 수정(`UPDATE`)은 구성원에게 그대로 열려 있다.
+         */
+        val CONTENT_TYPES = setOf(
+            ResourceType.ISSUE_POST, ResourceType.BOARD_POST, ResourceType.ISSUE_COMMENT, ResourceType.NONISSUE_COMMENT,
+            ResourceType.REVIEW_COMMENT, ResourceType.COMMENT_THREAD, ResourceType.COMMIT_COMMENT
+        )
 
         /** 권한이 컨테이너를 따르는 리소스 종류이다. */
         val CONTAINER_DEPENDENT_TYPES = setOf(

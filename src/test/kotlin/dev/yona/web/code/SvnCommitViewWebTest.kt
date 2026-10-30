@@ -154,7 +154,7 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
     fun `코멘트는 작성자와 본문과 위치를 담고 삭제 단추는 지울 수 있는 사용자에게만 보인다`() {
         val p = project()
         val writer = member(p, loginId = "scwriter")
-        // 프로젝트 구성원은 남의 코멘트도 지울 수 있다. 구성원이 아닌 사용자만 지울 수 없다.
+        // 삭제는 작성자와 관리자만 한다(D-48 확장). 구성원이 아닌 사용자는 물론 다른 구성원도 지울 수 없다.
         val reader = user()
         commit(p, "dev", "msg", mapOf("a.txt" to "x\n"))
         comment(p, "1", writer, "**굵게** 코멘트", "/a.txt", 3)
@@ -253,6 +253,17 @@ class SvnCommitViewWebTest : AbstractIntegrationTest() {
         mockMvc.perform(delete("/${p.owner}/${p.name}/commit/1/comments/${saved.id}/delete").session(login(writer)))
             .andExpect(status().isSeeOther).andExpect(header().string("Location", "/${p.owner}/${p.name}/commit/1"))
         assertTrue(commitComments.findById(saved.id!!).isEmpty)
+    }
+
+    @Test
+    fun `남의 코멘트는 다른 구성원에게 삭제 단추가 없고 지울 수도 없다 (D-48 확장, GitHub 방식)`() {
+        val p = project()
+        val writer = member(p, loginId = "scwriter2"); val peer = member(p, loginId = "scpeer")
+        commit(p, "dev", "msg", mapOf("a.txt" to "x\n"))
+        val saved = comment(p, "1", writer, "남이 지우면 안 되는 코멘트")
+        assertNull(page("/${p.owner}/${p.name}/commit/1", login(peer)).selectFirst("button[data-toggle=comment-delete]"))
+        mockMvc.perform(delete("/${p.owner}/${p.name}/commit/1/comments/${saved.id}/delete").session(login(peer))).andExpect(status().isForbidden)
+        assertTrue(commitComments.findById(saved.id!!).isPresent)
     }
 
     @Test

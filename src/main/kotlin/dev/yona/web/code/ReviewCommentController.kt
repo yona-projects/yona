@@ -154,7 +154,7 @@ class ReviewCommentController(
 
     /**
      * 리뷰 댓글의 내용을 고친다(GitHub 기준, `decisions.md` D-38 7번). 본문 `contents`가 필요하고 응답은 `{"id", "edited": true, "bodyHtml"}`이다.
-     * 공개된 댓글은 작성자와 지울 권한이 있는 사람(관리자)이 고치고(`Operation.DELETE`와 같은 권한), 임시 댓글은 작성자만 고치며 남에게는 없는 댓글(404)이다.
+     * 공개된 댓글은 프로젝트 구성원이면 남의 것도 고칠 수 있고(`Operation.UPDATE`, GitHub 방식인 D-48. 지우기만 작성자와 관리자로 제한한다), 임시 댓글은 작성자만 고치며 남에게는 없는 댓글(404)이다.
      */
     @PostMapping("/comments/review_comment/{id}/edit")
     @AnonymousCheck(requiresLogin = true)
@@ -163,7 +163,7 @@ class ReviewCommentController(
         val user = requireNotNull(currentUserProvider.get().user)
         val visible = reviewComments.findById(id).orElse(null)
         val comment = if (visible != null) {
-            if (!accessControl.isAllowed(user, visible.asResource(), Operation.DELETE)) return ResponseEntity.status(403).build()
+            if (!accessControl.isAllowed(user, visible.asResource(), Operation.UPDATE)) return ResponseEntity.status(403).build()
             visible
         } else {
             pendingReader.comment(id, user) ?: return ResponseEntity.notFound().build()
