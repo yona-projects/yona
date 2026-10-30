@@ -75,9 +75,11 @@ updated: 2026-10-30
 
 ## d단계: 포크 (X-30d)
 
+구현은 `ExternalForkApiController`이다. 웹의 포크(`ForkController`)와 같은 서비스(`ForkService`)와 규칙을 쓴다.
+
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `POST .../projects/{projectName}/forks` | 포크 만들기(`owner`는 사용자나 조직, `name`, `projectScope`). 이름 중복이면 거절 | `repo` | 대기 |
+| `POST .../projects/{projectName}/forks` | 포크 만들기. 본문은 모두 선택이다: `owner`(내 로그인 ID 기본이나 내가 관리하는 조직, 그 밖은 403), `name`(규칙 위반 400, 같은 이름 409, 없으면 비어 있는 이름), `projectScope`(없으면 원본을 따름, `PROTECTED`는 조직만). Git 프로젝트만(400), 포크할 권한이 있어야 한다(403) | `repo`나 공개 프로젝트의 `public_repo` | **완료**(2026-10-30) |
 
 ## 다루지 않는 것
 

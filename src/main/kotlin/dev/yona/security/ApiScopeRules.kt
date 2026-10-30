@@ -100,6 +100,8 @@ object ApiScopeRules {
         add("GET", "/-_-api/v1/search", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/orgs/{org}/search", ApiRequirement.RepoOnly)
         add("GET", "$PROJECT/search", ApiRequirement.Repo)
+        // 포크(X-30d, D-49): `repo`나 공개 프로젝트의 `public_repo`
+        add("POST", "$PROJECT/forks", ApiRequirement.Repo)
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))
