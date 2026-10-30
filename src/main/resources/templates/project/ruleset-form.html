@@ -63,7 +63,9 @@
                     <strong th:text="#{project.ruleset.rule.linear}"></strong><span class="help-block" th:text="#{project.ruleset.rule.linear.desc}"></span></label>
                 <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requirePullRequest" value="true" th:checked="${ruleset.requirePullRequest == true}">
                     <strong th:text="#{project.ruleset.rule.pr}"></strong><span class="help-block" th:text="#{project.ruleset.rule.pr.desc}"></span></label>
-                <div id="rulesetPullRequestOptions" style="margin: 0 0 10px 22px;">
+                <!--/* GitHub처럼 "풀 리퀘스트 필요"를 켰을 때만 하위 항목을 펼친다. 승인 수나 병합 조건이 이미 켜져 있으면(v1.6에서 옮긴 값 등) 적용 중인 값이 숨지 않게 펼쳐 둔다 */-->
+                <div id="rulesetPullRequestOptions"
+                     th:style="'margin: 0 0 10px 22px;' + (${ruleset.requirePullRequest == true or ruleset.requiredApprovals > 0 or ruleset.requireNoChangesRequested == true or ruleset.requireConversationResolution == true} ? '' : ' display:none;')">
                     <label for="rulesetApprovals" th:text="#{project.ruleset.rule.approvals}"></label>
                     <input type="number" id="rulesetApprovals" name="approvals" min="0" max="100" style="width:70px;" th:value="${ruleset.requiredApprovals}" th:classappend="${#lists.contains(errors, 'approvals')} ? 'error'">
                     <span class="help-block" th:text="#{project.ruleset.rule.approvals.desc}"></span>
@@ -87,5 +89,22 @@
         </form>
     </div>
 </div>
+
+<script type="text/javascript">
+    (function () {
+        var toggle = document.querySelector("#rulesetForm input[name=requirePullRequest]");
+        var options = document.getElementById("rulesetPullRequestOptions");
+        if (!toggle || !options) { return; }
+        // 풀 리퀘스트 필요를 켜면 하위 항목을 펼치고, 끄면 하위 항목이 모두 기본값일 때만 접는다(켜진 값이 숨지 않게)
+        function untouched() {
+            var approvals = document.getElementById("rulesetApprovals");
+            return (!approvals || parseInt(approvals.value || "0", 10) === 0) &&
+                !options.querySelector("input[type=checkbox]:checked");
+        }
+        toggle.addEventListener("change", function () {
+            options.style.display = (toggle.checked || !untouched()) ? "" : "none";
+        });
+    })();
+</script>
 </th:block>
 </html>

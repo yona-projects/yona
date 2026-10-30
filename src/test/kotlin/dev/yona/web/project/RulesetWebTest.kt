@@ -227,4 +227,34 @@ class RulesetWebTest : AbstractIntegrationTest() {
         assertTrue(doc.select("input[name=isUsingReviewerCount], [name=defaultReviewerCount], input[name=protectionRulesSent], #protectionRules").isEmpty())
         assertEquals(1, doc.select("#reviewerCountSettingPanel input[name=isDismissingStaleApprovals][checked]").size)
     }
+
+    private fun optionsHidden(doc: org.jsoup.nodes.Document) = doc.selectFirst("#rulesetPullRequestOptions")!!.attr("style").replace(" ", "").contains("display:none")
+
+    @Test
+    fun `풀 리퀘스트 필요를 끄고 승인 수와 병합 조건이 기본값이면 하위 항목을 접어 둔다 (GitHub 방식)`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        assertTrue(optionsHidden(page(project, session, "/new")), "새 규칙 묶음은 접혀 있다")
+        send(project, session, "", "name" to "plain", "enforcement" to "active", "pattern" to "master")
+        assertTrue(optionsHidden(page(project, session, "/${rulesets.findByProjectIdAndName(project.id!!, "plain")!!.id}")))
+    }
+
+    @Test
+    fun `풀 리퀘스트 필요를 켰거나 하위 항목이 켜져 있으면 펼쳐 보인다 (v1_6에서 옮긴 값이 숨지 않게)`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        listOf(
+            "pr" to arrayOf("requirePullRequest" to "true"), "approvals" to arrayOf("approvals" to "2"),
+            "changes" to arrayOf("requireNoChangesRequested" to "true"), "conversation" to arrayOf("requireConversationResolution" to "true")
+        ).forEach { (name, params) ->
+            send(project, session, "", "name" to name, "enforcement" to "active", "pattern" to "master", *params)
+            val id = rulesets.findByProjectIdAndName(project.id!!, name)!!.id
+            assertFalse(optionsHidden(page(project, session, "/$id")), name)
+        }
+    }
+
+    @Test
+    fun `편집 화면에는 하위 항목을 펼치고 접는 스크립트가 있다`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        val html = mockMvc.perform(get(url(project, "/new")).session(session)).andReturn().response.contentAsString
+        assertTrue(html.contains("rulesetPullRequestOptions") && html.contains("addEventListener"), "펼침 스크립트")
+    }
 }
