@@ -148,7 +148,7 @@ class ReviewListTest : AbstractIntegrationTest() {
         val doc = page(url(p, "?state=CLOSED"), login(me))
         assertEquals(listOf("닫힘"), contents(doc))
         assertEquals(listOf("2", "1"), doc.select(".col-lg-10 > ul.nav-tabs li .num-badge").map { it.text() })
-        assertEquals("CLOSED", doc.selectFirst(".col-lg-10 > ul.nav-tabs li.active a")!!.attr("data-value"))
+        assertEquals("CLOSED", doc.selectFirst(".col-lg-10 > ul.nav-tabs a.nav-link.active")!!.attr("data-value"))
     }
 
     @Test

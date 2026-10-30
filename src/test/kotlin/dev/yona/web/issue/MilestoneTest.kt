@@ -116,7 +116,7 @@ class MilestoneTest : AbstractIntegrationTest() {
         val doc = page("${base(project)}/milestones")
         assertEquals("${project.name} - milestone - ${project.owner}/${project.name}", doc.title())
         assertEquals(listOf("Open", "Closed", "All"), doc.select("ul.nav-tabs li a").filter { "state=" in it.attr("href") }.map { it.text() })
-        assertEquals("active", doc.selectFirst(".tab-wrap ul.nav-tabs li.active")?.className()?.trim())
+        assertNotNull(doc.selectFirst(".tab-wrap ul.nav-tabs a.nav-link.active"))
         assertEquals("No milestone entered.", doc.selectFirst(".error-wrap p")?.text())
     }
 
@@ -485,7 +485,7 @@ class MilestoneTest : AbstractIntegrationTest() {
         val tabs = doc.select("#issues ul.nav-tabs li")
         assertEquals(listOf("Open1", "Closed1", "All2"), tabs.map { it.text().replace(" ", "") })
         assertEquals("${base(project)}/milestone/${m.id}?state=open#issues", tabs[0].selectFirst("a")!!.attr("href"))
-        assertEquals("active", tabs[0].className().trim())
+        assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
         // 목록은 마일스톤의 열린 이슈를 번호 내림차순으로 모두 보인다(하위 이슈 포함).
         assertEquals(listOf("#3", "#1"), doc.select("#issues li.post-item .post-id").map { it.text() })
         assertEquals(listOf("#2"), page("${base(project)}/milestone/${m.id}?state=closed").select("#issues li.post-item .post-id").map { it.text() })

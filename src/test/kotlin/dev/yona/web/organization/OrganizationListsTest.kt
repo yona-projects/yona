@@ -152,7 +152,7 @@ class OrganizationListsTest : AbstractIntegrationTest() {
         val doc = page("/organizations/${org.name}/issues?state=closed")
         assertEquals(listOf("닫힘"), issueTitles(doc))
         assertEquals(listOf("2", "1"), doc.select("#span10 > ul.nav-tabs li .num-badge").map { it.text() })
-        assertEquals("closed", doc.selectFirst("#span10 > ul.nav-tabs li.active a")!!.attr("state"))
+        assertEquals("closed", doc.selectFirst("#span10 > ul.nav-tabs a.nav-link.active")!!.attr("state"))
     }
 
     @Test
@@ -303,7 +303,7 @@ class OrganizationListsTest : AbstractIntegrationTest() {
         assertEquals(listOf("병합", "닫음"), prTitles(page("/organizations/${org.name}/closedPullrequests")))
         assertEquals(listOf("병합", "닫음"), prTitles(page("/organizations/${org.name}/pullrequests?category=closed")))
         val closed = page("/organizations/${org.name}/closedPullrequests")
-        assertEquals("/organizations/${org.name}/closedPullrequests", closed.selectFirst(".pullrequeset-tab-menu li.active a")!!.attr("data-url"))
+        assertEquals("/organizations/${org.name}/closedPullrequests", closed.selectFirst(".pullrequeset-tab-menu a.nav-link.active")!!.attr("data-url"))
         assertEquals("/organizations/${org.name}/closedPullrequests", closed.selectFirst("#search")!!.attr("action"))
     }
 

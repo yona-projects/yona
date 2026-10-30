@@ -291,7 +291,7 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         val page = page("/orgs", login(newUser()))
         assertEquals("Project list", page.title())
         assertEquals(listOf("PUBLIC Project list", "Group List"), page.select(".site-breadcrumb-inner li").map { it.text().trim() })
-        assertTrue(page.selectFirst(".site-breadcrumb-inner li.active a")!!.attr("href") == "/orgs")
+        assertTrue(page.selectFirst(".site-breadcrumb-inner a.nav-link.active")!!.attr("href") == "/orgs")
         assertEquals(listOf(second.name, first.name), page.select("ul.all-projects li.project .header a.black").map { it.text() })
         assertEquals("둘째", page.selectFirst("ul.all-projects li.project .desc")?.text())
     }

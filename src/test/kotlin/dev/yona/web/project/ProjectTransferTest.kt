@@ -142,7 +142,7 @@ class ProjectTransferTest : AbstractIntegrationTest() {
         assertEquals("I agree with the transfer of this project.", page.selectFirst("label[for=accept]")?.text())
         assertEquals("Transfer this project", page.selectFirst("a#btnTransfer")?.text()?.trim())
         assertEquals("Yes", page.selectFirst("#alertTransfer #btnTransferExec")?.text())
-        assertTrue(page.selectFirst("#subMenuProjectTransfer")!!.hasClass("active"))
+        assertTrue(page.selectFirst("#subMenuProjectTransfer")!!.selectFirst("a")!!.hasClass("active"))
         val script = page.select("script").map { it.data().replace("\\/", "/") }.first { "project.Transfer" in it }
         assertTrue("/${project.owner}/${project.name}/transfer" in script, script)
     }

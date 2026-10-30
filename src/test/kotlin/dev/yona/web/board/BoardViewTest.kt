@@ -287,7 +287,7 @@ class BoardViewTest : AbstractIntegrationTest() {
         assertTrue(editor.selectFirst(".board-labels select#labelIds option[value=${x.id}]")!!.hasAttr("selected"))
         val viewer = doc(project, session = login(newUser()))
         assertTrue(viewer.select(".board-labels select#labelIds").isEmpty())
-        assertEquals("x", viewer.selectFirst(".board-labels .label")!!.text())
+        assertEquals("x", viewer.selectFirst(".board-labels .badge")!!.text())
         val none = newProject(); post(none, null)
         assertTrue(doc(none).select(".board-labels select, .board-labels .issue-label").isEmpty())
     }

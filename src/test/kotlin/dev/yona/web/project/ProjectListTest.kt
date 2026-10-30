@@ -105,7 +105,7 @@ class ProjectListTest : AbstractIntegrationTest() {
         val tabs = doc.select(".title_area ul.nav-tabs li a")
         assertEquals(listOf("/projects", "/orgs"), tabs.map { it.attr("href") })
         assertEquals(listOf("PUBLIC Project list", "Group List"), tabs.map { it.text() })
-        assertTrue(doc.selectFirst(".title_area ul.nav-tabs li")!!.hasClass("active"))
+        assertTrue(doc.selectFirst(".title_area ul.nav-tabs li a")!!.hasClass("active"))
         assertTrue(doc.select("header.gnb-nav li.active, .gnb-nav li.active").isNotEmpty(), "상단 메뉴의 목록이 활성이다")
     }
 

@@ -54,7 +54,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     @include border-radius(2px);
     @include box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
 }
-.popover-content {
+.popover-body {
     padding:9px 10px;
     line-height:120%;
 }
@@ -1180,7 +1180,8 @@ span.issue-label {
     }
 }
 
-.open {
+// 드롭다운이 열린 상태. Bootstrap 2/3의 `.open`을 Bootstrap 4는 `.show`로 표시한다.
+.show {
     > .flat {
         @include opacity(100);
         visibility:visible;
@@ -1422,7 +1423,7 @@ span.issue-label {
     }
 }
 
-.control-label{
+.col-form-label{
     font-weight: bold;
     display: block;
     padding: 4px 4px 0px 4px;

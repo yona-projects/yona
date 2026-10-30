@@ -1,5 +1,5 @@
 /** override bootstrap.css **/
-.modal-backdrop, .modal-backdrop.fade.in {
+.modal-backdrop, .modal-backdrop.fade.show {
     @include opacity(50); /** default backdrop opacity is 80% **/
 }
 
@@ -363,7 +363,7 @@ li.select2-result-with-children:first-of-type {
   font-size: 12px;
 }
 
-.tooltip.in {
+.tooltip.show {
   font-size: 12px;
   opacity: 1;
   filter: alpha(opacity=100);

@@ -215,7 +215,7 @@ class ProjectHomeTest : AbstractIntegrationTest() {
         val project = newProject()
         val tabs = home(project).select(".span-left-pane ul.nav-tabs li")
         assertEquals(listOf("README", "History", "Dashboard"), tabs.map { it.text() })
-        assertEquals(listOf("active", "", ""), tabs.map { it.className().trim() })
+        assertEquals(listOf("active", "", ""), tabs.map { if (it.selectFirst("a")!!.hasClass("active")) "active" else "" })
         assertEquals(
             listOf("/${project.owner}/${project.name}", "/${project.owner}/${project.name}?tabId=history", "/${project.owner}/${project.name}?tabId=dashboard"),
             tabs.map { it.selectFirst("a")!!.attr("href") }

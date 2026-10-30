@@ -78,7 +78,7 @@ class EmailSettingsTest : AbstractIntegrationTest() {
         val verified = sub(user, "verified@example.com", true)
         val pending = sub(user, "pending@example.com", false)
         val page = page(login(user))
-        assertTrue(page.select(".page-wrap > ul.nav-tabs li")[3].hasClass("active"))
+        assertTrue(page.select(".page-wrap > ul.nav-tabs li")[3].selectFirst("a")!!.hasClass("active"))
         val form = page.selectFirst("form[action=/user/email]")!!
         assertEquals("post", form.attr("method").lowercase())
         assertEquals("New E-mail address", form.selectFirst("input[name=email]")?.attr("placeholder"))

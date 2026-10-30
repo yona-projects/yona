@@ -17,14 +17,14 @@
     <div class="project-page-wrap" id="rulesetFormPage">
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
 
-        <ul class="breadcrumb mt10">
-            <li><a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}"></a> <span class="divider">/</span></li>
-            <li class="active">
+        <nav aria-label="breadcrumb" class="mt10"><ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}"></a></li>
+            <li class="breadcrumb-item active" aria-current="page">
                 <th:block th:text="${isNew} ? #{project.ruleset.new} : ${ruleset.name}"></th:block>
                 <span class="badge ml10 badge-secondary" th:if="${!isNew}" th:classappend="${ruleset.active} ? 'badge-success'"
                       th:text="${ruleset.active} ? #{project.ruleset.enforcement.active} : #{project.ruleset.enforcement.disabled}"></span>
             </li>
-        </ul>
+        </ol></nav>
 
         <div class="alert alert-danger" id="rulesetErrors" th:if="${!#lists.isEmpty(errors)}" th:text="#{project.ruleset.error}"></div>
 
@@ -35,7 +35,7 @@
                     <div class="cu-label vmiddle"><label for="rulesetName" th:text="#{project.ruleset.name}"></label></div>
                     <div class="cu-desc">
                         <input type="text" id="rulesetName" name="name" maxlength="255" class="input-xlarge" th:value="${ruleset.name}">
-                        <span class="help-inline text-danger" th:if="${#lists.contains(errors, 'name')}" th:text="#{project.ruleset.error.name}"></span>
+                        <span class="d-inline-block align-middle pl-1 text-muted text-danger" th:if="${#lists.contains(errors, 'name')}" th:text="#{project.ruleset.error.name}"></span>
                     </div>
                 </div>
 
@@ -64,7 +64,7 @@
                     <div class="cu-label vmiddle"><label for="rulesetPattern" th:text="#{project.ruleset.target}"></label></div>
                     <div class="cu-desc">
                         <input type="text" id="rulesetPattern" name="pattern" maxlength="255" class="input-large" th:value="${ruleset.pattern}">
-                        <span class="help-inline text-danger" th:if="${#lists.contains(errors, 'pattern')}" th:text="#{project.ruleset.error.pattern}"></span>
+                        <span class="d-inline-block align-middle pl-1 text-muted text-danger" th:if="${#lists.contains(errors, 'pattern')}" th:text="#{project.ruleset.error.pattern}"></span>
                         <span class="form-text" th:text="#{project.ruleset.target.description}"></span>
                     </div>
                 </div>
@@ -92,7 +92,7 @@
                              th:style="${ruleset.requirePullRequest == true or ruleset.requiredApprovals > 0 or ruleset.requireNoChangesRequested == true or ruleset.requireConversationResolution == true} ? '' : 'display:none;'">
                             <label for="rulesetApprovals" th:text="#{project.ruleset.rule.approvals}"></label>
                             <input type="number" id="rulesetApprovals" name="approvals" min="0" max="100" class="input-mini" th:value="${ruleset.requiredApprovals}">
-                            <span class="help-inline text-danger" th:if="${#lists.contains(errors, 'approvals')}" th:text="#{project.ruleset.error}"></span>
+                            <span class="d-inline-block align-middle pl-1 text-muted text-danger" th:if="${#lists.contains(errors, 'approvals')}" th:text="#{project.ruleset.error}"></span>
                             <span class="form-text" th:text="#{project.ruleset.rule.approvals.desc}"></span>
                             <div class="form-check"><label class="form-check-label"><input type="checkbox" name="requireNoChangesRequested" value="true" th:checked="${ruleset.requireNoChangesRequested == true}" class="form-check-input">
                                 <th:block th:text="#{project.ruleset.rule.changes}"></th:block></label></div>

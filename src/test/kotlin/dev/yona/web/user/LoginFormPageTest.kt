@@ -65,7 +65,7 @@ class LoginFormPageTest : AbstractIntegrationTest() {
         val styles = doc.select("head link[rel=stylesheet]").map { it.attr("href") }
         assertEquals(
             listOf(
-                "/assets/bootstrap/css/bootstrap.css", "/assets/stylesheets/yobicon/style.css",
+                "/assets/stylesheets/bootstrap.css", "/assets/stylesheets/yobicon/style.css",
                 "/assets/javascripts/lib/select2/select2.css", "/assets/javascripts/lib/pikaday/pikaday.css",
                 "/assets/stylesheets/usermenu.css", "/assets/stylesheets/yobi.css",
                 "/assets/javascripts/lib/nprogress/nprogress.css", "/assets/javascripts/lib/viewerjs/viewer.css"

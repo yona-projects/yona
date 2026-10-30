@@ -53,7 +53,7 @@
 
                                     <i th:if="${project.isPrivate()}" class="yobicon-lock yobicon-small"></i>
                                     <span th:if="${project.isProtected()}" class="project-protected" title="Group Project">G</span>
-                                    <a th:each="label : ${row.labels}" class="project-label" th:classappend="${#strings.toLowerCase(badge.category)}" th:href="@{/projects(labelIds=${label.id})}" th:text="${label.name}"></a>
+                                    <a th:each="label : ${row.labels}" class="project-label" th:classappend="${#strings.toLowerCase(label.category)}" th:href="@{/projects(labelIds=${label.id})}" th:text="${label.name}"></a>
                                 </div>
                                 <div class="desc" th:text="${project.overview}">
                                 </div>

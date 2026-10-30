@@ -178,7 +178,7 @@ class SiteContentListsTest : AbstractIntegrationTest() {
         assertEquals(listOf("열림"), titles(page(session, "/sites/issueList")))
         assertEquals(listOf("닫힘"), titles(page(session, "/sites/issueList", "state" to "closed")))
         assertEquals(listOf("open", "closed"), page(session, "/sites/issueList").select(".col-lg-10 > ul.nav-tabs > li a").map { it.attr("href").substringAfter("state=") })
-        assertEquals("open", page(session, "/sites/issueList").selectFirst(".col-lg-10 > ul.nav-tabs > li.active a")!!.attr("href").substringAfter("state="))
+        assertEquals("open", page(session, "/sites/issueList").selectFirst(".col-lg-10 > ul.nav-tabs a.nav-link.active")!!.attr("href").substringAfter("state="))
     }
 
     @Test

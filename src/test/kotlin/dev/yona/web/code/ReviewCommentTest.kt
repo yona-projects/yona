@@ -330,7 +330,7 @@ class ReviewCommentTest : AbstractIntegrationTest() {
         val s = pullSetup()
         val html = mockMvc.perform(send("/${s.origin.owner}/${s.origin.name}/pullRequest/${s.pr.id}/comments", s.session, "")).andExpect(status().isBadRequest)
             .andReturn().response.contentAsString
-        val active = org.jsoup.Jsoup.parse(html).select("ul.project-menu-nav > li.active a").attr("href")
+        val active = org.jsoup.Jsoup.parse(html).select("ul.project-menu-nav > li.active > a").attr("href")
         assertEquals("/${s.origin.owner}/${s.origin.name}", active)
     }
 

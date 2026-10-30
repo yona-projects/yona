@@ -72,13 +72,16 @@ updated: 2026-10-31
 | 체크박스·라디오 | **마크업 전환**(`form-check`), 호환 규칙 없음. 자체 `.form-check` 규칙(`_page.scss`) | A-292 |
 | 진행 막대 | **마크업 전환**(`bg-*`), 모양은 `scss/_progress.scss` | A-292 |
 | 배지(`label`→`badge`) | 마크업 전환. 색은 호환 층의 `.badge-*`가 BS2 값으로 입힌다 | 변수화 대기 |
+| 브레드크럼 | **마크업 전환**(`breadcrumb-item`), BS4 + 변수(`$breadcrumb-*`), 호환 규칙 삭제 | 완료 |
+| 페이지네이션 | 이 사이트는 자체 마크업(`page-navigation-wrap`)이라 BS 규칙은 호환 층에서 삭제 | 완료 |
+| `hide` | 안내서에 대응 없음, `d-none`은 JS `show()`와 맞지 않아 자체 도우미로 `_common.scss`에 둠 | A-294 |
+| `.nav` 밖의 탭 | 자체 `yona.Tabs.js` | A-294 |
 | `affix` | 자체 JS `yona.Affix.js`로 대체 | A-291 |
 | 단추 그룹(`.btn-group*`, `.btn-*`) | 호환 층에 남음(56개 규칙). 사이트 단추는 자체 `ybtn`이고 BS 단추는 일부 | 대기 |
 | 그리드(`.row`, `col-lg-*`) | 호환 층에 남음(44개 규칙). BS4 flex 열을 끄고 BS2 유동 폭을 쓴다 | A-289, BS5에서 결정 |
 | 표(`.table*`) | BS3 단계 보정은 삭제. BS2 값은 호환 층에 남음(43개 규칙) | 변수화 대기 |
 | 페이지네이션·페이저·브레드크럼 | 호환 층에 남음 | 대기 |
-| `form-horizontal`, `control-group`, `help-inline` | 호환 층에 남음(2개 템플릿, `help-inline` 24곳) | 마크업 전환 대기 |
-| `.hide`(62곳 + JS 19곳) | 마크업 전환 대기(`d-none`) | 대기 |
+| `form-horizontal`, `control-group`, `help-inline` | **마크업 전환**(`col-form-label`, 유틸리티). 가로 폼 모양은 자체 `_page.scss`로 옮김 | 완료 |
 | 요소 선택자 기본값(`body`, `a`, `h1`…, 입력 요소) | 호환 층에 남음 | BS5에서 결정 |
 
-호환 층 크기: BS4 도입 직후 2,199줄, 현재 1,746줄.
+호환 층 크기: BS4 도입 직후 2,199줄, 현재 1,129줄.

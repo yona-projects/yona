@@ -203,7 +203,7 @@ class ProjectHomeTabsTest : AbstractIntegrationTest() {
         val p = project()
         val doc = home(p, "history")
         assertTrue(doc.select("li.activity-stream").isEmpty())
-        assertEquals("History", doc.selectFirst(".project-page-wrap .nav-tabs li.active a")!!.text().trim())
+        assertEquals("History", doc.selectFirst(".project-page-wrap .nav-tabs a.nav-link.active")!!.text().trim())
     }
 
     // --- 대시보드 탭 ---
@@ -311,7 +311,7 @@ class ProjectHomeTabsTest : AbstractIntegrationTest() {
     @Test
     fun `대시보드 탭이 활성이고 README 내용은 나오지 않는다`() {
         val doc = home(project(), "dashboard")
-        assertEquals("Dashboard", doc.selectFirst(".project-page-wrap .nav-tabs li.active a")!!.text().trim())
+        assertEquals("Dashboard", doc.selectFirst(".project-page-wrap .nav-tabs a.nav-link.active")!!.text().trim())
         assertEquals(1, doc.select(".project-overview-home").size)
     }
 }

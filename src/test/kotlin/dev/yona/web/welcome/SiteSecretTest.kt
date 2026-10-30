@@ -115,7 +115,7 @@ class SiteSecretTest : AbstractIntegrationTest() {
 
     @Test
     fun `정적 자원은 그대로 보낸다`() {
-        mockMvc.perform(get("/assets/bootstrap/css/bootstrap.css")).andExpect(status().isOk)
+        mockMvc.perform(get("/assets/stylesheets/bootstrap.css")).andExpect(status().isOk)
     }
 
     // --- 검증 ---
@@ -124,7 +124,7 @@ class SiteSecretTest : AbstractIntegrationTest() {
     fun `ID가 admin이 아니거나 비어 있으면 오류이다`() {
         listOf("other", "").forEach {
             val doc = Jsoup.parse(submit(*with("loginId", it)).andExpect(status().isBadRequest).andReturn().response.contentAsString)
-            assertTrue(doc.select("label[for=loginId] ~ span.label-danger, dt:has(label[for=loginId]) span.label-danger").isNotEmpty())
+            assertTrue(doc.select("label[for=loginId] ~ span.badge-danger, dt:has(label[for=loginId]) span.badge-danger").isNotEmpty())
         }
     }
 
@@ -142,7 +142,7 @@ class SiteSecretTest : AbstractIntegrationTest() {
             "ADMIN" to listOf(valid)
         ).forEach { (value, expected) ->
             val doc = Jsoup.parse(submit(*with("loginId", value)).andExpect(status().isBadRequest).andReturn().response.contentAsString)
-            assertEquals(expected, doc.select("dt:has(label[for=loginId]) span.label-danger").map { it.text() }, "loginId='$value'")
+            assertEquals(expected, doc.select("dt:has(label[for=loginId]) span.badge-danger").map { it.text() }, "loginId='$value'")
         }
     }
 
@@ -159,22 +159,22 @@ class SiteSecretTest : AbstractIntegrationTest() {
     @Test
     fun `비밀번호가 없거나 다르면 오류이다`() {
         val empty = Jsoup.parse(submit(*with("password", "")).andExpect(status().isBadRequest).andReturn().response.contentAsString)
-        assertTrue(empty.select("dt:has(label[for=password]) span.label-danger").isNotEmpty())
+        assertTrue(empty.select("dt:has(label[for=password]) span.badge-danger").isNotEmpty())
         val mismatch = Jsoup.parse(submit(*with("retypedPassword", "different")).andExpect(status().isBadRequest).andReturn().response.contentAsString)
-        assertTrue(mismatch.select("dt:has(label[for=retypedPassword]) span.label-danger").isNotEmpty())
+        assertTrue(mismatch.select("dt:has(label[for=retypedPassword]) span.badge-danger").isNotEmpty())
     }
 
     @Test
     fun `이메일이 없거나 이미 쓰는 이메일이면 오류이다`() {
         assertEquals(400, submit(*with("email", "")).andReturn().response.status)
         val duplicate = Jsoup.parse(submit(*with("email", "project.yona@gmail.com")).andExpect(status().isBadRequest).andReturn().response.contentAsString)
-        assertTrue(duplicate.select("dt:has(label[for=email]) span.label-danger").isNotEmpty())
+        assertTrue(duplicate.select("dt:has(label[for=email]) span.badge-danger").isNotEmpty())
     }
 
     @Test
     fun `이메일 형식이 틀리면 오류이다 (v1_6 폼 바인딩의 Constraints_Email)`() {
         val bad = Jsoup.parse(submit(*with("email", "+bad@example.com")).andExpect(status().isBadRequest).andReturn().response.contentAsString)
-        assertTrue(bad.select("dt:has(label[for=email]) span.label-danger").isNotEmpty(), bad.select("form").html())
+        assertTrue(bad.select("dt:has(label[for=email]) span.badge-danger").isNotEmpty(), bad.select("form").html())
         assertEquals(400, submit(*with("email", "no-at-sign")).andReturn().response.status)
     }
 

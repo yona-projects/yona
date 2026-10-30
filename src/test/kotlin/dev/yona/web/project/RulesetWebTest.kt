@@ -177,7 +177,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         val summary = rows[0].selectFirst("td.ruleset-rules")!!.text()
         assertTrue(summary.contains("승인 2명") && summary.contains("풀 리퀘스트 필요") && summary.contains("대화 해결") && summary.contains("강제 푸시 차단"), summary)
         assertEquals(url(project, "/new"), doc.selectFirst("a#newRuleset")!!.attr("href"))
-        assertEquals(url(project), doc.selectFirst("#subMenuRuleset a")!!.attr("href")); assertNotNull(doc.selectFirst("#subMenuRuleset.active"))
+        assertEquals(url(project), doc.selectFirst("#subMenuRuleset a")!!.attr("href")); assertNotNull(doc.selectFirst("#subMenuRuleset a.active"))
         assertTrue(doc.select("#rulesetMigrated").isEmpty())
     }
 
@@ -266,8 +266,8 @@ class RulesetWebTest : AbstractIntegrationTest() {
         assertEquals(listOf("규칙 묶음 이름", "적용 상태", "바이패스", "대상 브랜치", "규칙"), card.select(".box-wrap .cu-label").map { it.text() })
         assertEquals(1, card.select(".box-wrap.bottom button#saveRuleset").size, "저장 단추는 카드 아래 칸에 있다")
         assertEquals(2, card.select("input[type=radio][name=enforcement]").size)
-        assertTrue(card.select(".checkbox label").size >= 6, "부트스트랩 checkbox 라벨")
-        assertTrue(card.select(".help-block").isNotEmpty(), "부트스트랩 help-block")
+        assertTrue(card.select(".form-check label").size >= 6, "부트스트랩 checkbox 라벨")
+        assertTrue(card.select(".form-text").isNotEmpty(), "부트스트랩 form-text")
         assertTrue(card.select("[style]").none { it.attr("style").contains("background") || it.attr("style").contains("margin") && it.id() != "rulesetPullRequestOptions" }, "꾸밈은 클래스로 하고 인라인 스타일은 쓰지 않는다")
     }
 

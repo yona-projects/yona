@@ -124,8 +124,8 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
     fun `삭제 화면은 설정 하위 메뉴에서 삭제를 활성으로 보여 준다`() {
         val project = newProject()
         val page = deleteForm(project, login(manager(project)))
-        assertTrue(page.selectFirst("#subMenuProjectDelete")!!.hasClass("active"))
-        assertFalse(page.selectFirst("#subMenuProjectSetting")!!.hasClass("active"))
+        assertTrue(page.selectFirst("#subMenuProjectDelete")!!.selectFirst("a")!!.hasClass("active"))
+        assertFalse(page.selectFirst("#subMenuProjectSetting")!!.selectFirst("a")!!.hasClass("active"))
     }
 
     @Test

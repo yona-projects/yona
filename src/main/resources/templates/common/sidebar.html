@@ -50,10 +50,10 @@
      $(function(){
          var activeMenu = localStorage.getItem('sidebarActiveMenu')
          if (activeMenu == null) {
-            $('.myOrganizationList').addClass('active');
+            $('.myOrganizationList > a').addClass('active');
              $('#myOrganizationList').addClass('active');
          } else {
-             $('.'+activeMenu).addClass('active');
+             $('.'+activeMenu+' > a').addClass('active');
              $('#'+activeMenu).addClass('active');
          }
 

@@ -124,7 +124,7 @@ class IssueListTest : AbstractIntegrationTest() {
         assertEquals("${project.name} - Issue - ${project.owner}/${project.name}", doc.title())
         val tabs = doc.select(".issue-list-wrap ul.nav-tabs li[data-pjax]")
         assertEquals(listOf("Open2", "Closed1"), tabs.map { it.text().replace(" ", "") })
-        assertEquals("active", tabs[0].className().substringBefore(" ").trim())
+        assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
         assertEquals("closed", tabs[1].selectFirst("a")!!.attr("state"))
         assertEquals("${base(project)}/issueform", doc.selectFirst("#span10 .float-right a.ybtn-success")!!.attr("href"))
     }
@@ -135,7 +135,7 @@ class IssueListTest : AbstractIntegrationTest() {
         issue(project, 1); issue(project, 2, state = State.CLOSED)
         val doc = page(project, "?state=closed")
         assertEquals(listOf("#2"), doc.select("li.post-item .post-id").map { it.text() })
-        assertEquals("active", doc.select(".issue-list-wrap ul.nav-tabs li[data-pjax]")[1].className().substringBefore(" ").trim())
+        assertTrue(doc.select(".issue-list-wrap ul.nav-tabs li[data-pjax]")[1].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test

@@ -40,6 +40,11 @@ class LegacyBootstrapLintTest {
         Legacy("glyphicon", Regex("""(?<![\w-])glyphicon(?:-[a-z-]+)?(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "Glyphicons 대체"),
         Legacy("pull", Regex("""(?<![\w-])pull-(?:left|right)(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "float-left/right 또는 flex 도구로"),
         Legacy("col.xs", Regex("""(?<![\w-])col-xs-\d+(?![\w-])|(?<![\w-])hidden-(?:xs|sm|md|lg)(?![\w-])|(?<![\w-])img-responsive(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "BS3 그리드와 가시성 도구"),
+        Legacy("label", Regex("""(?<![\w-])label(?:-(?:default|primary|success|info|warning|danger|important|inverse))?(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "label을 badge로"),
+        Legacy("grid.md", Regex("""(?<![\w-])col-md-\d+(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "구간이 한 단계 올라가 col-md를 col-lg로"),
+        Legacy("form.help", Regex("""(?<![\w-])help-block(?![\w-])|(?<![\w-])help-inline(?![\w-])|(?<![\w-])control-label(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "form-text, 유틸리티, col-form-label로"),
+        Legacy("form.check", Regex("""(?<![\w-])(?:checkbox-inline|radio-inline|radio)(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "form-check로"),
+        Legacy("progress", Regex("""(?<![\w-])progress-bar-(?:success|info|warning|danger)(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "bg-*로"),
         Legacy("btn.default", Regex("""(?<![\w-])btn-default(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "btn-secondary로"),
         // --- 5 단계(4→5)에서 사라진다: 속성과 jQuery 플러그인 호출 ---
         Legacy("attr.data-toggle", Regex("""\bdata-toggle="(?:tooltip|tab|dropdown|modal|popover|collapse|pill|button|buttons)"""), Scope.TEMPLATE_ATTR, 5, "data-bs-toggle로"),
@@ -50,7 +55,7 @@ class LegacyBootstrapLintTest {
     )
 
     /** 끝났다고 선언한 단계이다. 선언한 단계 이하의 패턴은 0이어야 한다. 단계를 마칠 때 이 값을 올린다. */
-    private val DONE_STAGES = 3
+    private val DONE_STAGES = 4
 
     private val mapper = JsonMapper.builder().build()
     private val baselineFile = File("src/test/resources/bs/legacy-baseline.json")
@@ -64,9 +69,9 @@ class LegacyBootstrapLintTest {
     }
     private val lessFiles by lazy { files("app/assets/stylesheets", ".scss") }
 
-    /** 템플릿의 `class="..."` 값만 모은다(본문 글에 들어 있는 낱말을 세지 않는다). 타임리프의 `th:class`, `th:classappend`도 포함한다. */
+    /** 템플릿의 `class="..."` 값만 모은다(본문 글에 들어 있는 낱말을 세지 않는다). 타임리프의 `th:class`, `th:classappend`도 포함하되 표현식(`${...}`)은 뺀다(변수 이름을 클래스로 세지 않는다). */
     private fun classValues(text: String): List<String> =
-        Regex("""\b(?:th:)?class(?:append)?\s*=\s*"([^"]*)"""").findAll(text).map { it.groupValues[1] }.toList()
+        Regex("""\b(?:th:)?class(?:append)?\s*=\s*"([^"]*)"""").findAll(text).map { it.groupValues[1].replace(Regex("""[$#@~*]\{[^}]*\}"""), "") }.toList()
 
     /** 템플릿 주석(`<!--/* ... */-->`와 `<!-- ... -->`)은 세지 않는다. */
     private fun withoutComments(text: String): String = text.replace(Regex("""<!--.*?-->""", RegexOption.DOT_MATCHES_ALL), "")

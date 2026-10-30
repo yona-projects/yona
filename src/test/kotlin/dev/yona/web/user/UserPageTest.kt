@@ -130,8 +130,8 @@ class UserPageTest : AbstractIntegrationTest() {
     @Test
     fun `사이트 관리자와 잠긴 사용자와 게스트에게 표시가 붙는다`() {
         val admin = newUser(); siteAdmins.save(SiteAdmin(admin = admin))
-        assertEquals("SITE ADMIN", page("/${admin.loginId}").selectFirst(".user-status .label-success")!!.text())
-        assertEquals("BLOCKED", page("/${newUser(state = UserState.LOCKED).loginId}").selectFirst(".user-status .label-danger")!!.text())
+        assertEquals("SITE ADMIN", page("/${admin.loginId}").selectFirst(".user-status .badge-success")!!.text())
+        assertEquals("BLOCKED", page("/${newUser(state = UserState.LOCKED).loginId}").selectFirst(".user-status .badge-danger")!!.text())
         assertEquals("OUR GUEST", page("/${newUser(guest = true).loginId}").selectFirst(".guest-user .left-mark")!!.text())
     }
 
@@ -181,7 +181,7 @@ class UserPageTest : AbstractIntegrationTest() {
     @Test
     fun `selected로 활성 탭을 고르고 기본은 issues이다`() {
         val u = newUser()
-        fun active(doc: Document) = doc.select(".user-stream-box > ul.nav-tabs > li.active a").map { it.attr("href") }
+        fun active(doc: Document) = doc.select(".user-stream-box > ul.nav-tabs a.nav-link.active").map { it.attr("href") }
         assertEquals(listOf("#issues"), active(page("/${u.loginId}")))
         assertEquals(listOf("#projects"), active(page("/${u.loginId}", null, "selected" to "projects")))
         assertTrue(page("/${u.loginId}", null, "selected" to "projects").selectFirst("#projects")!!.hasClass("active"))

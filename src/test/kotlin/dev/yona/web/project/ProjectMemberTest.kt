@@ -177,7 +177,7 @@ class ProjectMemberTest : AbstractIntegrationTest() {
         val project = newProject(owner = owner.loginId!!)
         join(owner, project, RoleType.MANAGER)
         val row = membersPage(project, login(owner)).selectFirst("ul.members li.member")!!
-        assertEquals("Project owner", row.selectFirst("span.label.owner")?.text())
+        assertEquals("Project owner", row.selectFirst("span.badge.owner")?.text())
         assertNull(row.selectFirst(".btn-group"))
         assertNull(row.selectFirst("a[data-action=delete]"))
     }

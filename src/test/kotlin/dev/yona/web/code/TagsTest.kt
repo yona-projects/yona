@@ -129,7 +129,7 @@ class TagsTest : AbstractIntegrationTest() {
     fun `탭은 파일, 커밋, 브랜치, 태그이고 태그가 활성이다`() {
         val p = tagged()
         val tabs = page("/${p.owner}/${p.name}/tags").select(".code-browse-wrap ul.nav-tabs li")
-        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), tabs.map { it.text() }); assertTrue(tabs[3].hasClass("active"))
+        assertEquals(listOf("Files", "Commit", "Branches", "Tags"), tabs.map { it.text() }); assertTrue(tabs[3].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test

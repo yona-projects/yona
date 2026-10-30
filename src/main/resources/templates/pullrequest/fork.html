@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="control-label" for="inputOwner" th:text="#{project.owner}"></label>
+                        <label class="col-form-label" for="inputOwner" th:text="#{project.owner}"></label>
                         <div>
                             <select id="project-owner" name="owner">
                                 <option th:each="o : ${owners}" th:attr="data-url=${o.url}" th:value="${o.value}" th:selected="${o.selected}" th:text="${o.value}"></option>
@@ -54,15 +54,15 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="control-label" for="inputName" th:text="#{project.name}"></label>
+                        <label class="col-form-label" for="inputName" th:text="#{project.name}"></label>
                         <div>
                             <input type="text" id="inputName" name="name" th:value="${forkName}" />
-                            <span class="help-inline" th:text="#{project.name.alert}"></span>
+                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{project.name.alert}"></span>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="control-label" th:text="#{project.shareOption}"></label>
+                        <label class="col-form-label" th:text="#{project.shareOption}"></label>
                         <div>
                             <input name="projectScope" type="radio" id="public" value="PUBLIC" class="radio-btn" checked="checked">
                             <label for="public" class="bg-radiobtn label-public" th:text="#{project.public}"></label>

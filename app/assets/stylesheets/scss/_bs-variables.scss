@@ -56,3 +56,19 @@ $dropdown-link-active-bg: #0081c2;
 $dropdown-link-disabled-color: #999;
 $dropdown-item-padding-y: .1875rem; // 3px
 $dropdown-item-padding-x: 1.25rem;  // 20px
+
+// 보조 글자색(`.text-muted`)과 간격 유틸리티: BS2의 `.help-inline`(색 #595959, 왼쪽 5px)을 안내서대로 유틸리티 클래스로 바꾸며 값을 맞춘다.
+$text-muted: #595959;
+$spacers: (1: .3125rem);
+
+// 표의 글자색은 부모에서 물려받는다(v1.6). Bootstrap 4는 `.table`에 본문 색을 직접 준다.
+$table-color: inherit;
+
+// 브레드크럼(`.breadcrumb`): BS2의 치수와 색이다(구분자 `/`의 좌우 간격 5px, 배경 #f5f5f5).
+$breadcrumb-padding-y: .5rem;
+$breadcrumb-padding-x: .9375rem;
+$breadcrumb-item-padding: .3125rem;
+$breadcrumb-margin-bottom: 1.25rem;
+$breadcrumb-bg: #f5f5f5;
+$breadcrumb-divider-color: #ccc;
+$breadcrumb-active-color: #999;

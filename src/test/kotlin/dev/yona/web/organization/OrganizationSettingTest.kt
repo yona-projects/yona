@@ -151,7 +151,7 @@ class OrganizationSettingTest : AbstractIntegrationTest() {
         val tabs = page(org, login(admin(org))).select(".project-page-wrap > ul.nav-tabs li")
         assertEquals(listOf("Setting", "Group member", "Group Delete"), tabs.map { it.text() })
         assertEquals(listOf("/organizations/${org.name}/settingform", "/organizations/${org.name}/members", "/organizations/${org.name}/deleteForm"), tabs.map { it.selectFirst("a")!!.attr("href") })
-        assertTrue(tabs[0].hasClass("active"))
+        assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
     }
 
     // --- 저장 ---

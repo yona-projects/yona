@@ -144,8 +144,8 @@ class HomePageTest : AbstractIntegrationTest() {
         val tabs = page("/", session).select(".main-stream ul.nav-tabs > li")
         assertEquals(listOf("/notifications", "/user/issues", "/user/files"), tabs.take(3).map { it.selectFirst("a")!!.attr("href") })
         assertEquals(listOf("Notification", "My Issues", "My Files"), tabs.take(3).map { it.text() })
-        assertTrue(tabs[0].hasClass("active"))
-        assertFalse(tabs[1].hasClass("active"))
+        assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
+        assertFalse(tabs[1].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test

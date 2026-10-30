@@ -112,7 +112,7 @@ class ProjectChangeVcsTest : AbstractIntegrationTest() {
         assertNotNull(page.selectFirst("a#btnChangeVCS"))
         assertEquals("Do you want to change the repository to Subversion?", page.selectFirst("#alertChangeVCS h3")?.text())
         assertEquals("Yes", page.selectFirst("#btnChangeVCSExec")?.text())
-        assertTrue(page.selectFirst("#subMenuProjectChangeVCS")!!.hasClass("active"))
+        assertTrue(page.selectFirst("#subMenuProjectChangeVCS")!!.selectFirst("a")!!.hasClass("active"))
         val script = page.select("script").map { it.data().replace("\\/", "/") }.first { "project.ChangeVCS" in it }
         assertTrue("/${project.owner}/${project.name}/changeVCS" in script, script)
     }

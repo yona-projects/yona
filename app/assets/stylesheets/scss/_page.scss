@@ -2344,7 +2344,7 @@ label.inline-list {
                     float: left;
                     margin: 0 5px 5px 0;
 
-                    .img-rounded {
+                    .avatar-wrap.rounded {
                         width:34px; height:34px;
                         display:block;
                     }
@@ -4115,7 +4115,7 @@ label.issue-item-row {
         }
 
         &.alert-success { color:$yobi-green-dark; }
-        &.alert-error   { color:$yobi-red-dark;   }
+        &.alert-danger { color:$yobi-red-dark;   }
         &.alert-warning { color:$yobi-yello-dark; }
         &.alert-info    { color:$yobi-cyan-dark;  }
     }
@@ -7870,8 +7870,62 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .span-hard-wrap {
   float: left;
 }
+// 같은 선택자는 문맥에 따라 다른 값도 주었다. 고정 그리드 밖의 `review-wrap`은 왼쪽 여백 20px를,
+// 유동 열(`search-wrap`) 안의 `search-bar`는 열의 폭과 간격(2.1277%)을 받았다.
+.review-wrap.span-hard-wrap {
+  margin-left: 20px;
+}
+.search-wrap .search-bar.span-hard-wrap {
+  display: block;
+  width: 100%;
+  min-height: 30px;
+  margin-left: 2.127659574468085%;
+  box-sizing: border-box;
+}
 
 // 고정 그리드(`.row` + 열) 머리글은 열의 최소 높이가 없었다. 가변 그리드 호환 규칙(30px)을 받지 않도록 되돌린다.
 .attachment-files-header [class*="col-lg-"] {
   min-height: 1px;
+}
+
+// 가로 폼. v1.6의 `.form-horizontal`은 Bootstrap 2의 모양이다: 라벨은 왼쪽에 160px 폭으로 오른쪽 정렬하고, 입력 영역은 180px 들여 쓴다. Bootstrap 4에서 `.form-horizontal`이 없어졌으므로
+// 이 사이트의 자체 클래스로 두고, 라벨은 안내서대로 `col-form-label`을 쓴다.
+.form-horizontal {
+    .form-group {
+        margin-bottom: 20px;
+
+        &::before, &::after {
+            display: table;
+            line-height: 0;
+            content: "";
+        }
+        &::after { clear: both; }
+
+        > div { margin-left: 180px; }
+    }
+
+    .col-form-label {
+        float: left;
+        width: 160px;
+        max-width: none;
+        padding-top: 5px;
+        padding-bottom: 0;
+        margin-bottom: 5px;
+        line-height: 20px;
+        text-align: right;
+    }
+
+    .form-text { margin-bottom: 0; }
+
+    input, textarea, select {
+        display: inline-block;
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+}
+
+// 첫 화면 소개 배경은 Bootstrap 2의 고정 그리드 `.row`(왼쪽 여백 -20px로 화면보다 20px 넓다)를 썼다. 호환 층의 `.row`는 유동 그리드 값이라 이 영역만 되돌린다.
+.siteintro-bg.row {
+  width: auto;
+  margin-left: -20px;
 }

@@ -58,7 +58,7 @@ try {
         for (const a of ea) {
           const b = mb.get(a.path); if (!b || a.label !== b.label) continue; matched++;
           if (Math.abs(a.x - b.x) > 1 || Math.abs(a.y - b.y) > 1 || Math.abs(a.w - b.w) > 1 || Math.abs(a.h - b.h) > 1) moved++;
-          const norm = (p, v) => (p === 'textAlign' && v === 'start' ? 'left' : v);
+          const norm = (p, v) => (p === 'textAlign' ? ({ start: 'left', '-webkit-center': 'center', '-webkit-right': 'right', '-webkit-left': 'left' }[v] || v) : v);
           for (const p of PROPS) if (norm(p, a.style[p]) !== norm(p, b.style[p])) { const k = `${a.label} | ${p} | ${a.style[p]} → ${b.style[p]}`; const v = counts.get(k) || { n: 0, screens: new Set() }; v.n++; v.screens.add(sc.id); counts.set(k, v); }
         }
         perScreen.push({ id: sc.id, role, total: ea.length, matched, moved });

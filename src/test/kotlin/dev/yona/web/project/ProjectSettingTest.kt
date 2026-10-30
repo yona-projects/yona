@@ -248,8 +248,8 @@ class ProjectSettingTest : AbstractIntegrationTest() {
             tabs.map { it.id() }
         )
         assertEquals(listOf("Settings", "Member", "Rulesets", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.text() }, "규칙 묶음 탭은 추가 개발 항목 X-34이다")
-        assertEquals(listOf("active"), tabs.filter { it.hasClass("active") }.map { "active" }, tabs.outerHtml())
-        assertTrue(tabs[0].hasClass("active"))
+        assertEquals(listOf("active"), tabs.filter { it.selectFirst("a")!!.hasClass("active") }.map { "active" }, tabs.outerHtml())
+        assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
         assertEquals("/${project.owner}/${project.name}/members", tabs[1].selectFirst("a")?.attr("href"))
         assertEquals("/${project.owner}/${project.name}/setting/rulesets", tabs[2].selectFirst("a")?.attr("href"))
         assertEquals("/${project.owner}/${project.name}/issue/labelsform", tabs[3].selectFirst("a")?.attr("href"))

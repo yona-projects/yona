@@ -362,7 +362,7 @@ class OrganizationMemberTest : AbstractIntegrationTest() {
         assertEquals("Delete This Group", page.selectFirst("a#btnDelete")?.text()?.trim())
         assertEquals("Do you want to delete this group?", page.selectFirst("#alertDeletion h3")?.text())
         assertEquals("Are you sure you want to delete this group?", page.selectFirst("#alertDeletion .modal-body p")?.text())
-        assertTrue(page.select(".project-page-wrap > ul.nav-tabs li")[2].hasClass("active"))
+        assertTrue(page.select(".project-page-wrap > ul.nav-tabs li")[2].selectFirst("a")!!.hasClass("active"))
         assertTrue(page.select("script").any { "/organizations/${org.name}" in it.data().replace("\\/", "/") })
     }
 

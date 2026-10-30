@@ -28,7 +28,7 @@ class StaticAssetsTest : AbstractIntegrationTest() {
     @Test
     fun `레이아웃이 참조하는 스타일시트가 assets 경로로 제공된다`() {
         listOf(
-            "bootstrap/css/bootstrap.css", "stylesheets/yobi.css", "stylesheets/usermenu.css",
+            "stylesheets/bootstrap.css", "stylesheets/yobi.css", "stylesheets/usermenu.css",
             "stylesheets/yobicon/style.css", "javascripts/lib/select2/select2.css"
         ).forEach { path ->
             mockMvc.perform(get("/assets/$path")).andExpect(status().isOk)

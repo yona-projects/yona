@@ -142,7 +142,7 @@ class IssueCommentTest : AbstractIntegrationTest() {
         issue(project)
         val html = post(project, login(member), "comments", "contents" to "").andExpect(status().isBadRequest).andExpect(content().string(org.hamcrest.Matchers.containsString("Comment should not be empty."))).andReturn().response.contentAsString
         // v1.6 BadRequest.render(키, project)는 프로젝트 홈 메뉴를 활성으로 그린다 (이슈 메뉴가 아니다)
-        val active = org.jsoup.Jsoup.parse(html).select(".project-menu-nav.project-menu-gruop > li.active a").map { it.attr("href") }
+        val active = org.jsoup.Jsoup.parse(html).select(".project-menu-nav.project-menu-gruop > li.active > a").map { it.attr("href") }
         assertTrue(active.none { it.contains("/issues") }, active.toString())
         assertEquals(0, comments.findAll().size)
     }

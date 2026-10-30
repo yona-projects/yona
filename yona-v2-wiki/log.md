@@ -754,4 +754,16 @@ D-51의 대응표에서 서버에 REST가 없던 CLI 명령을 서버에 만들�
 
 ## [2026-10-31] build | X-38c 2~3구간: Bootstrap 4 도입과 안내서 대응 (진행 중)
 BS4.6.2 SCSS를 들이고(`vendor/bootstrap`) 변수로 BS2 값을 맞췄다(`_bs-variables.scss`). 안내서대로 라벨→배지, 탭→`nav-item`/`nav-link`, 드롭다운→`dropdown-item`, `help-block`→`form-text`, `well`→`card`, `.checkbox`/`.radio`→`form-check`, 진행 막대→`bg-*`, `col-md`→`col-lg`, `pull-*`→`float-*`로 템플릿과 JS를 바꿨다. `affix`는 자체 `yona.Affix.js`로 대체했다(A-291). 두 빌드의 계산된 스타일을 대조해 이동 요소를 1,901개에서 150개로 줄였다.
-중간에 호환 층에 규칙을 더해 수치만 맞추고 있다는 선생님 지적을 받아(A-293), 탭과 드롭다운의 BS2 규칙 72개를 지우고 BS4 변수와 자체 SCSS로 되돌렸다(A-290). 호환 층은 2,199줄에서 1,746줄이 되었다. 전체 H2 시험 3027개 통과. 남은 일: 폼 가로 배치(`form-horizontal`), `help-inline`, `hide`, 단추 그룹, 표, 그리드 호환 규칙의 마크업 전환, 상호작용 순회와 태그 `bs4`.
+중간에 호환 층에 규칙을 더해 수치만 맞추고 있다는 선생님 지적을 받아(A-293), 탭과 드롭다운의 BS2 규칙 72개를 지우고 BS4 변수와 자체 SCSS로 되돌렸다(A-290). 호환 층은 2,199줄에서 1,746줄이 되었다. (정정: 이 줄에 적었던 "전체 시험 통과"는 시험을 실제로 다시 돌린 결과가 아니었다. 결과 요약 도구가 4시간 전의 결과 파일을 합산했다. 다시 돌린 실제 결과는 3027개 중 51개 실패였고, 아래 "시험과 순회 점검" 항목에서 다룬다.) 남은 일: 폼 가로 배치(`form-horizontal`), `help-inline`, `hide`, 단추 그룹, 표, 그리드 호환 규칙의 마크업 전환, 상호작용 순회와 태그 `bs4`.
+
+## [2026-10-31] test | X-38c 점검에서 찾은 문제와 고친 것
+시험을 다시 돌려 51개 실패를 얻었고(3027개 중), 순회 점검으로 드롭다운 100건이 열리지 않는 문제를 찾았다.
+- **실제 버그**: 라벨→배지 변환 스크립트가 `th:class`의 타임리프 표현식 안 변수 이름(`label.category`)까지 바꿔서 프로젝트 목록과 조직 화면이 오류로 그려지지 않았다(2개 템플릿). 표현식 부분을 변환 전 커밋과 대조하는 확인으로 다른 곳에 없음을 확인했다.
+- 자체 SCSS가 옛 이름에 기대어 조용히 죽은 규칙: `.open > .flat`(드롭다운 열림), `.alert-error`, `.control-label`, `.img-rounded`, `.popover-content`/`.popover-title`, `.tooltip.in`, `.modal-backdrop.fade.in`. 새 이름(`.show`, `.alert-danger`, `.col-form-label`, `.avatar-wrap.rounded`, `.popover-body`/`.popover-header`)으로 고쳤다.
+- BS4 탭은 `.nav` 밖의 목록에서 활성 표시를 옮기지 못한다. 자체 `yona.Tabs.js`로 `ul.nav-subtab`과 `ul.lst-stacked`의 `li`에 `active`를 옮긴다. 사이드바 스크립트는 `li`가 아니라 링크에 `active`를 준다. `typeahead` 메뉴 항목에는 `dropdown-item`을 붙였다.
+- 시험은 새 마크업 기준으로 고쳤다(`li.active a`→`a.nav-link.active` 등). `LegacyBootstrapLintTest`에 BS4 단계 패턴(`label`, `col-md`, `help-block`/`help-inline`/`control-label`, `radio`/`checkbox-inline`, `progress-bar-*`)을 더하고 완료 단계를 4로 올렸으며, 표현식(`${...}`) 안의 낱말은 세지 않게 했다.
+
+## [2026-10-31] build | X-38c 완료: Bootstrap 4 (태그 bs4)
+Bootstrap 4.6.2로 전환을 마쳤다. 안내서대로 마크업을 바꾼 항목: 라벨→배지, 탭→`nav-item`/`nav-link`, 드롭다운→`dropdown-item`, `help-block`→`form-text`, `help-inline`→유틸리티, `well`→`card`, 체크박스·라디오→`form-check`, 진행 막대→`bg-*`, 브레드크럼→`breadcrumb-item`, `control-label`→`col-form-label`, `col-md`→`col-lg`, `pull-*`→`float-*`, `.in`→`.show`. `affix`는 자체 `yona.Affix.js`로, `.nav` 밖의 탭 목록은 `yona.Tabs.js`로 대체했다. 탭과 드롭다운과 브레드크럼은 BS4 CSS와 변수(`_bs-variables.scss`)를 쓴다.
+확인: 상호작용 순회 121/121(모달, 탭, 드롭다운, 툴팁, 팝오버), 기준(`pre-bs5`) 대비 새 문제 0, 캡처 평균 차이 0.3%, 계산된 스타일로 본 이동 요소 1,901개에서 29개로(남은 것은 flex 표기와 1px 폭). 전체 시험 3027개 통과(결과 파일 316개가 모두 이 실행에서 만들어진 것임을 시각으로 확인했다).
+호환 층은 2,199줄에서 1,129줄로 줄었다. 남은 규칙: 단추 그룹, 표, 알림, 그리드(BS4 flex 열을 끄고 BS2 유동 폭을 쓴다), 요소 기본값. 이 부분은 의존 장부에 이유와 함께 적었고 BS5에서 정한다.

@@ -122,7 +122,7 @@ class ProfileEditTest : AbstractIntegrationTest() {
         val tabs = page.select(".page-wrap > ul.nav-tabs li")
         assertEquals(listOf("Edit profile", "Change password", "Notification settings", "Email settings", "User Token"), tabs.map { it.text().trim() })
         assertEquals(listOf("/user/editform", "/user/editform/password", "/user/editform/notifications", "/user/editform/emails", "/user/editform/token"), tabs.map { it.selectFirst("a")!!.attr("href") })
-        assertTrue(tabs[0].hasClass("active"))
+        assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
     }
 
     // --- 프로필 저장 ---
@@ -268,7 +268,7 @@ class ProfileEditTest : AbstractIntegrationTest() {
         assertEquals("/user/resetPassword", form.attr("action"))
         assertEquals(listOf("loginId", "oldPassword", "password", "retypedPassword"), form.select("input").map { it.attr("name") })
         assertEquals("/lostPassword", page.selectFirst("a.ybtn-fail")?.attr("href"))
-        assertTrue(page.select(".page-wrap > ul.nav-tabs li")[1].hasClass("active"))
+        assertTrue(page.select(".page-wrap > ul.nav-tabs li")[1].selectFirst("a")!!.hasClass("active"))
     }
 
     @Test

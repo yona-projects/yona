@@ -137,7 +137,8 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 /** images **/
-.img-rounded {
+// v1.6의 `.img-rounded`(사이트 자체 규칙). Bootstrap 4의 `.rounded`와 같은 이름이지만 다른 플러그인(엘리베이터)도 `rounded` 클래스를 쓰므로 아바타로 좁힌다.
+.avatar-wrap.rounded {
     -webkit-border-radius: 3px !important;
     -moz-border-radius: 3px !important;
     border-radius: 3px !important;
@@ -313,4 +314,15 @@ input.white:-ms-input-placeholder        { color:#fff; opacity:0.8; }
 .vertical-align {
     display: flex;
     align-items: center;
+}
+
+// 보이기와 감추기 도우미. v1.6은 Bootstrap 2의 `.hide`를 썼고 안내서에는 대응 항목이 없다. `d-none`은 `!important`라 JS의 `.show()`, `.toggle()`로 보일 수 없어 쓰지 않고,
+// 이 사이트의 자체 클래스로 둔다. `.invisible`은 Bootstrap 4에도 있다.
+.hide {
+    display: none;
+}
+
+// select2는 원본 `<select class="hide">`의 클래스를 컨테이너에도 복사한다. 컨테이너는 보여야 하므로 명시한다.
+.select2-container.hide {
+    display: inline-block;
 }
