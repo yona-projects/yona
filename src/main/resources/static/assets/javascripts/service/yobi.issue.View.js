@@ -28,7 +28,6 @@
             _initCommentAndCloseButton();
 
             //_setTimelineUpdateTimer();
-            _affixIssueInfoWrap();
         }
 
         /**
@@ -510,9 +509,6 @@
             }
         }
 
-        function _affixIssueInfoWrap(){
-            yona.affix(elements.issueInfoWrap, elements.issueInfoWrap.offset().top - 10);
-        }
 
         // initialize
         _init(options || {});

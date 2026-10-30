@@ -41,7 +41,7 @@
     </head>
 
     <body th:class="''">
-        <div th:if="${siteAdminLoggedIn}" class="admin-logged-in-affix" data-affix-top="30"><th:block th:text="#{user.siteAdminLoggedInAffix}"></th:block> <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}"></span></div>
+        <div th:if="${siteAdminLoggedIn}" class="admin-logged-in-affix"><th:block th:text="#{user.siteAdminLoggedInAffix}"></th:block> <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}"></span></div>
         <p th:if="${updateNotice != null}" class="center-txt">
             <a th:href="${updateNotice.url}" th:text="#{site.update.notification(${updateNotice.version})}"></a>
             <button type="button" data-request-method="post" th:attr="data-request-uri=@{/sites/unwatchUpdate}" class="ybtn ybtn-small" th:text="#{site.update.notification.hide(${updateNotice.version})}"></button>

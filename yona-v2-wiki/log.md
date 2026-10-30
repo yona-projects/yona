@@ -774,3 +774,7 @@ Bootstrap 5.3.8로 전환했다(A-295). 안내서 항목을 마크업과 JS에 �
 순회에서 찾은 것: BS5의 jQuery 플러그인은 `DOMContentLoaded`에서 등록되어 사이트의 `$(function(){...})`가 먼저 실행되면 `.popover()`가 없다(초기화는 `bootstrap.*`를 직접 부른다), 드롭다운 열림 표시가 부모가 아니라 메뉴와 토글의 `.show`다, 서버가 만드는 마크다운과 이벤트 HTML에 옛 속성이 남아 있었다.
 남은 일(X-38f): 호환 층(약 1090줄)을 걷어낼지 정하는 일과 옛 BS 자원 정리. 선생님 확인 후 진행한다.
 
+## [2026-10-31] build | X-38f 1차: 옛 자원 정리와 affix 일부 sticky 전환
+선생님 확인을 받아 `bootstrap/fonts`, `bootstrap/images`, `less-1.3.0.min.js`를 지웠다(참조 없음 확인). `bootstrap-switch.js`와 `bootstrap-better-typeahead.js`는 알림 설정 화면과 자동완성에서 쓰여 남겼다. 이슈·게시글 우측 정보창과 관리자 막대는 `position: sticky`로 옮겼다(A-296). 스크롤 위치별 측정(`e2e/scrollcmp.mjs`)에서 위치와 크기가 기준과 같았고 정보창 고정 폭 9px 차이만 있다. 일괄 수정 막대와 코드 리뷰 상자는 `yona.affix`를 유지했다.
+확인: 순회 121/121, 기준 대비 새 문제 0, 캡처 최대 차이 1.7%(가장 큰 곳 `project-fork-new`), 전체 시험 3031개 통과(결과 파일 317개 모두 이번 실행에서 생성). 호환 층 단계 이관은 D-54로 결정했다.
+

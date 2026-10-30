@@ -3573,14 +3573,12 @@ div.markdown-preview {
 
 .issue-info {
     padding:15px 0 0 52px;
-    &.affix {
-        top: 0;
-        max-height: 97vh;
-        overflow-y: scroll;
-        overflow-x: hidden;
-        right: 0;
-        width: 23%;
-    }
+    // 스크롤하면 화면 위쪽에 붙어 따라온다(v1.6의 affix 대체, A-291)
+    position: sticky;
+    top: 0;
+    max-height: 97vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 
     .project-btn-item {
         a {
@@ -6756,6 +6754,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .admin-logged-in-affix {
+  // 스크롤해도 화면 위쪽에 남는다(v1.6의 affix 대체, A-291)
+  position: sticky;
+  top: 0;
   z-index: 1000;
   padding: 10px 10px;
   width:100%;

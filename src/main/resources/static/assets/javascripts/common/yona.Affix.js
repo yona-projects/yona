@@ -13,6 +13,9 @@
  * 고정된 모양(`position: fixed`)은 스타일시트의 `.affix`가 정한다.
  *
  * 사용: `yona.affix(요소, 기준위치)`. 기준위치는 문서 맨 위에서 떨어진 거리(px)이다.
+ *
+ * 위치만 붙잡으면 되는 요소(이슈 정보창, 관리자 막대)는 CSS `position: sticky`로 옮겼고,
+ * 고정된 동안 모양이 바뀌거나(일괄 수정 막대) 고정 여부를 스크립트가 읽는(리뷰 상자) 요소만 이 함수를 쓴다.
  */
 (function (window, $) {
     "use strict";
@@ -45,11 +48,4 @@
         check();
         return $target;
     };
-
-    // 관리자 로그인 막대처럼 `data-affix-top`으로 기준 위치를 적은 요소는 페이지가 열릴 때 자동으로 고정 대상이 된다.
-    $(function () {
-        $("[data-affix-top]").each(function () {
-            yona.affix(this, Number($(this).attr("data-affix-top")));
-        });
-    });
 })(window, jQuery);

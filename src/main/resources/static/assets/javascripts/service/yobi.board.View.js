@@ -37,7 +37,6 @@
 
             _initFileUploader();
             _initFileDownloader();
-            _affixIssueInfoWrap();
         }
 
         /**
@@ -111,9 +110,6 @@
             });
         }
 
-        function _affixIssueInfoWrap(){
-            yona.affix(htElement.issueInfoWrap, htElement.issueInfoWrap.offset().top - 10);
-        }
 
         _init(htOptions);
     };
