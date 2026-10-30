@@ -2,7 +2,7 @@
 title: 이식 로드맵과 진행 상태
 type: synthesis
 sources: [../AGENTS.md, ../yona-v1.6-wiki/web/templates/*.md]
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 
 # 이식 로드맵
@@ -113,24 +113,24 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-10 | 관측성: OpenTelemetry(추적), Actuator와 Prometheus(지표), JSON 로그(logstash) | `build.gradle.kts`의 opentelemetry, actuator, micrometer 스타터 (P3-01) | 대기 | |
 | X-11 | 풀 리퀘스트 병합 시 `close(s/d)`, `fix(es/ed)`, `resolve(s/d) #번호`로 참조된 이슈 자동 닫기 | `domain/event/PullRequestMergeEventListener` | **완료(2026-10-29)** | `PullRequestWorkflow.accept`가 병합한 뒤 `PullRequestIssueCloser`로 처리한다(A-188). `next` 정규식의 `fixes/fixed` 인식 실패를 바로잡았다 |
 | X-12 | 풀 리퀘스트 리뷰 판정(Approve, Request changes, Comment). 같은 리뷰어의 재판정은 이력으로 쌓고 정책 판단에는 리뷰어별 최신 판정만 쓴다 | `domain/pullrequest/PullRequestReview`, `PullRequestServiceImpl` | **구현 완료(2026-10-29)** | D-35: v1.6의 "리뷰 완료/취소"를 GitHub 리뷰 모델에 흡수한다(별개가 아니다). 새 테이블 `pull_request_review`, 상세는 [web/pull-request-review.md](web/pull-request-review.md) |
-| X-13 | 브랜치 보호 규칙(브랜치 패턴, 풀 리퀘스트 필수, 필요한 승인 수, 서명 커밋 필수, push 허용 사용자 제한, force push와 삭제 금지, 매니저 우회). push 훅과 병합 검사에 적용 | `domain/branchprotection`, `web/BranchProtectionController`, `domain/vcs/GitPushHooks` | 대기 | X-4(GPG), X-12(리뷰 판정)가 있어야 해당 규칙이 의미를 갖는다. 새 테이블 필요 **후보(2026-10-29, 보류)**: `refs/heads`, `refs/tags` 밖의 참조(`refs/remotes/*` 등) 푸시를 거부하는 정책. 푸시로 만들 수 있음을 v2와 v1.6에서 확인했다(D-30 7번). 선생님이 나중에 다루기로 하셨다 |
+| X-13 | 브랜치 보호 규칙(브랜치 패턴, 풀 리퀘스트 필수, 필요한 승인 수, 서명 커밋 필수, push 허용 사용자 제한, force push와 삭제 금지, 매니저 우회). push 훅과 병합 검사에 적용 | `domain/branchprotection`, `web/BranchProtectionController`, `domain/vcs/GitPushHooks` | **대부분 구현(2026-10-30): X-32부터 X-34의 규칙 묶음이 대체했다.** 남은 것: 서명 커밋 필수(X-4 선행), push 허용 사용자 지정(X-35의 바이패스 목록) | 브랜치 패턴, 풀 리퀘스트 필수, 필요한 승인 수, force push와 삭제 금지, 관리자 우회는 규칙 묶음(`Ruleset`)에 있다. 아래 설명은 처음 계획이며 클래스 이름은 구현과 다르다. X-4(GPG), X-12(리뷰 판정)가 있어야 해당 규칙이 의미를 갖는다. 새 테이블 필요 **후보(2026-10-29, 보류)**: `refs/heads`, `refs/tags` 밖의 참조(`refs/remotes/*` 등) 푸시를 거부하는 정책. 푸시로 만들 수 있음을 v2와 v1.6에서 확인했다(D-30 7번). 선생님이 나중에 다루기로 하셨다 |
 | X-14 | 풀 리퀘스트 담당자(assignee)와 라벨 | `PullRequest.assignee`, `PullRequest.labels` | **구현 완료(2026-10-29), 후속(Ajax, 2단 화면, 모든 목록 표시, 담당자 필터 선택지, 생성 폼 지정)도 구현 완료** | v1.6 `pull_request`에는 담당자, 라벨 열이 없다. 연결 테이블 추가 필요 **설계 결정(2026-10-29)**: [decisions.md](decisions.md) D-34를 본다. 연결 테이블 2개(`pull_request_assignee`, `pull_request_issue_label`)로 구현하고 담당자는 1명까지이며 나중에 여러 명으로 키울 수 있게 한다. 담당자 변경은 타임라인과 알림, 목록에 담당자와 라벨 필터를 넣는다 후속(D-34 14~16): 이슈와 같은 Ajax 방식, 모든 풀 리퀘스트 목록에 표시, 모양 다듬기 |
 | X-15 | 풀 리퀘스트 REST API(조회, diff, 리뷰, 타임라인, 병합, 닫기, 다시 열기, 댓글, 리뷰어, 라벨, 담당자, 출발 브랜치 삭제) | `/api/projects/{}/pullrequests/**`, `/api/v1/projects/{}/{}/pull-requests/**` | **구현 완료(2026-10-29), 결정은 D-39** | 계약은 [architecture/api-pull-requests.md](architecture/api-pull-requests.md)이다. 병합 방식(`method`)은 필드만 예약했고 X-28에서 연다. 풀 리퀘스트 만들기와 고치기(`POST`, `PATCH`)와 첨부(`temporaryUploadFiles`)도 포함한다. 라벨 목록 API는 X-19에서 만든다
 | X-16 | 엔터프라이즈 SSO(SAML2, 범용 OIDC) 사이트 관리자 설정과 로그인, 소셜 로그인 계정 병합 | `config/sso`, `domain/sso`, `SsoAdminController`, `OAuth2AccountMergeService` (P3-06) | 대기 | 테이블 `oidc_sso_settings`, `saml2_sso_settings` 필요. v1.6 소셜 로그인은 그대로 둔다 |
 | X-17 | 프로젝트 위키: 페이지 만들기, 고치기, 삭제, 이력, 비교, 검색, 사이드바. 프로젝트마다 bare git 저장소(`<소유자>/<프로젝트>.wiki.git`)에 저장 | `domain/wiki`, `WikiViewController`, `/api/v1/projects/{}/{}/wiki/**` (P3-42) | 대기 | v1.6에는 위키 기능이 없다 |
 | X-18 | Git 태그 전용 화면(주석 메시지와 태거, 종류 배지, 최신순), 삭제 확인, 브랜치 목록과 선택 목록 정리 | `TagViewController`, `TagApiController` (P3-16) | **완료(2026-10-29)** | 결정은 [decisions.md](decisions.md) D-30을 본다. REST는 X-19로 옮겼다. 주석 태그의 커밋 이력 500(P3-40)은 별도로 확인한다 |
 | X-19 | 일반 REST 1차: 라벨 목록, 이슈 목록과 검색, 마일스톤 목록, 프로젝트 조회(정보, 내가 속한 프로젝트, 소유자의 프로젝트), 프로젝트 구성원 목록과 담당자 후보 | `*RestApi` 컨트롤러 (P3-09, P3-35) | **구현 완료(2026-10-29), 결정은 D-40** | 계약은 [architecture/api-project-reads.md](architecture/api-project-reads.md)이다. v1.6의 `/-_-api/v1` 외부 API는 그대로 두고 같은 경로에 읽기 API를 더했다. 이슈 댓글은 `GET .../issues/{number}`가 이미 담고 있다 |
-| X-29 | 일반 REST 2차(상위 항목): 이슈 쓰기와 게시판 REST를 네 단계(X-29a~d)로 나눠 만든다 | 이슈와 게시판 REST | **구현 완료(2026-10-30), 결정은 D-47** | 추적표는 [api-issue-board-write.md](architecture/api-issue-board-write.md). 네 단계(a~d)가 모두 끝났다. X-30과 X-31이 다음이다 |
+| X-29 | 일반 REST 2차(상위 항목): 이슈 쓰기와 게시판 REST를 네 단계(X-29a~d)로 나눠 만든다 | 이슈와 게시판 REST | **구현 완료(2026-10-30), 결정은 D-47** | 추적표는 [api-issue-board-write.md](architecture/api-issue-board-write.md). 네 단계(a~d)가 모두 끝났다. X-30은 2026-10-30에 끝났고 X-31(OpenAPI)이 다음이다 |
 | X-29a | 이슈 수정과 이슈에 붙은 것: `PATCH issues/{n}` 부분 수정, `DELETE issues/{n}`, 댓글 목록과 수정과 삭제, 라벨 하나씩 붙이고 떼기, 담당자 더하고 빼기 | `ExternalIssueApiController` 확장 | **구현 완료(2026-10-30)** | v1.6 계약은 유지하고 필드와 경로만 더했다. 외부 이슈 API의 권한 확인 누락(D-36 4번)도 함께 보정했다 |
 | X-29b | 게시판 REST: 글 목록과 한 건, 수정, 삭제, 댓글 목록과 수정과 삭제, 라벨 | `ExternalBoardWriteApiController`(새 파일) | **구현 완료(2026-10-30)** | a단계 패턴을 그대로 썼고 D-48(수정은 구성원, 삭제는 작성자와 관리자)을 따른다 |
 | X-29c | 라벨과 마일스톤 관리 REST: 고치기와 지우기 | `ExternalProjectWriteApiController`(새 파일) | **구현 완료(2026-10-30)** | 만들기는 이미 있었다. 웹 화면과 같은 권한을 따른다 |
 | X-29d | 이슈의 Yona 고유 쓰기 REST: 공유자, 가중치, 지켜보기 | `ExternalIssueExtrasApiController`(새 파일) | **구현 완료(2026-10-30)** | 웹 화면에만 있던 기능의 토큰 버전 |
-| X-30 | 일반 REST 3차(상위 항목): 조직, 웹훅, 검색, 포크를 네 단계(X-30a~d)로 나눠 만든다. 쓰기까지 열고 GitHub 전용 범위를 쓴다. 사용자 상태는 이미 있어 뺀다 | 조직, 웹훅, 검색, 포크 REST | **구현 완료(2026-10-30), 결정은 D-49** | 추적표는 [api-org-search-webhook.md](architecture/api-org-search-webhook.md). 네 단계(a~d)가 모두 끝났다. X-31(OpenAPI)이 다음이다 |
+| X-30 | 일반 REST 3차(상위 항목): 조직, 웹훅, 검색, 포크를 네 단계(X-30a~d)로 나눠 만든다. 쓰기까지 열고 GitHub 전용 범위를 쓴다. 사용자 상태는 이미 있어 뺀다 | 조직, 웹훅, 검색, 포크 REST | **구현 완료(2026-10-30), 결정은 D-49** | 추적표는 [api-org-search-webhook.md](architecture/api-org-search-webhook.md). 네 단계(a~d)가 모두 끝났다. 검증: H2 전체 2964개 통과, PostgreSQL의 X-30 테스트 24개 통과(2026-10-30). X-31(OpenAPI)이 다음이다 |
 | X-30a | 조직 REST: 내 조직과 한 건 조회, 구성원 목록과 더하기와 역할 변경과 빼기(나가기 포함), 만들기, 설정 변경, 삭제 | `ExternalOrganizationApiController`(새 파일) | **구현 완료(2026-10-30)** | 범위 `read:org`, `write:org`, `admin:org` |
 | X-30b | 웹훅 REST: 목록, 만들기, 삭제 | `ExternalWebhookApiController`(새 파일) | **구현 완료(2026-10-30)** | 범위 `read:repo_hook`, `write:repo_hook`, `admin:repo_hook` |
 | X-30c | 검색 REST: 전체, 조직, 프로젝트 | `ExternalSearchApiController`(새 파일) | **구현 완료(2026-10-30)** | 웹 검색과 같은 판정 |
 | X-30d | 포크 REST: 사용자나 조직을 대상으로 포크 만들기 | `ExternalForkApiController`(새 파일) | **구현 완료(2026-10-30)** | 웹의 포크 규칙(이름 중복, 조직 관리자만)과 같다 |
-| X-31 | OpenAPI 문서(Swagger UI): `/-_-api/v1` 전체 계약(풀 리퀘스트, 일반 REST 1~3차)을 한 번에 문서화 | OpenAPI 설정, `*RestApi` | **대기(2026-10-29, 선생님: 한 번에 만들어도 됨)** | 모든 REST 영역이 끝난 뒤 한 번에 만든다 |
+| X-31 | OpenAPI 문서(Swagger UI): `/-_-api/v1` 전체 계약(풀 리퀘스트, 일반 REST 1~3차)을 한 번에 문서화 | OpenAPI 설정, `*RestApi` | **착수 가능(2026-10-30, 선생님: 한 번에 만들어도 됨)** | 선행 REST 영역(X-15, X-19, X-29, X-30)이 모두 끝났다. 영역마다 만들지 않고 한 번에 만든다 |
 | X-20 | 프런트엔드 현대화: Vue 3 웹 컴포넌트 위젯 17개(대화상자, 토스트, 드롭다운, 자동 완성, 첨부, 리뷰 폼, 라벨 편집기 등), Tom Select, Flatpickr, CodeMirror 6와 EasyMDE 에디터, jQuery 제거(순수 JS), Hotwired Turbo(이슈 2단 목록) | `static/lib/yona-vue-widgets`, `frontend/`, `yona.issue.Turbo.js` (P3-46, P3-70) | 대기 | 화면 동작은 v1.6과 같게 둔다는 조건이 필요하다. `yona-v2-wiki`의 Vue 위젯 소스 위치 메모(components 저장소)와 이어진다 |
 | X-21 | 사용 현황 집계(UA 태그를 GA4 gtag로 교체) | `config/analytics/AnalyticsSettings` | **완료(2026-10-28)** | v1.6의 `yona.send-yona-usage` 스위치를 유지하고 UA 태그를 GA4로 교체했다(A-186). 측정 ID는 `yona.analytics.measurement-id` |
 | X-22 | 새 프로젝트의 기본 브랜치를 `main`으로 고정 | P3-11 | **완료(2026-10-28)** | `next` 기준으로 `yona.git-default-branch`(기본 `main`)를 `HEAD`로 고정한다(A-187) |
