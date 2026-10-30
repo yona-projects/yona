@@ -35,7 +35,7 @@ class OpenApiDocumentTest : AbstractIntegrationTest() {
     }
 
     /** 대응표의 경로 패턴에서 정규식을 뗀다(`{number:[0-9]+}`는 명세에서 `{number}`). */
-    private fun plain(pattern: String) = pattern.replace(Regex("\\{(\\w+):[^}]*\\}"), "{$1}")
+    private fun plain(pattern: String) = ApiScopeRules.plain(pattern)
 
     @Test
     fun `명세와 화면이 누구나 열린다`() {

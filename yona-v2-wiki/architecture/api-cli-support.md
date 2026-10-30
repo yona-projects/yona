@@ -36,11 +36,13 @@ updated: 2026-10-30
 
 ## c단계: Git 태그 (X-37c)
 
+구현은 `ExternalTagApiController`이고 `TagService`에 만들기를 더했다. Git 프로젝트만 된다.
+
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `GET $P/tags` | 태그 목록 | | 대기 |
-| `POST $P/tags` | 태그 만들기 | | 대기 |
-| `DELETE $P/tags/{name}` | 태그 지우기 | | 대기 |
+| `GET $P/tags` | 태그 목록(최근 순서) | `repo`나 공개의 `public_repo` | **완료**(2026-10-30) |
+| `POST $P/tags` | 태그 만들기(`name`, `target`, `message`). `message`가 있으면 주석 태그. 코드를 고칠 수 있는 구성원 | 같다 | **완료**(2026-10-30) |
+| `DELETE $P/tags/{name}` | 태그 지우기(슬래시 이름 가능). 프로젝트 관리자 | 같다 | **완료**(2026-10-30) |
 
 ## d단계: 이슈 옮기기 (X-37d)
 

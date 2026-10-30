@@ -264,3 +264,31 @@ class ProjectMemberRoleRequest(@get:Schema(description = "새 역할", allowable
 
 @Schema(description = "프로젝트 구성원 한 명 응답")
 class ProjectMemberResult(val result: ProjectMember)
+
+@Schema(description = "태그를 단 사람과 시각(주석 태그)")
+class TagTagger(val name: String?, val date: String?)
+
+@Schema(description = "태그가 가리키는 커밋(주석 태그를 모두 벗긴 끝의 커밋)")
+class TagCommit(@get:Schema(description = "커밋 번호") val id: String, val date: String?)
+
+@Schema(description = "Git 태그 한 개. 경량 태그는 `message`와 `tagger`가 없고, 커밋이 아닌 대상을 가리키면 `commit`이 없다")
+class TagNode(
+    @get:Schema(description = "태그 이름(`refs/tags/` 없이). 슬래시가 있을 수 있다", example = "release/1.0") val name: String,
+    @get:Schema(description = "주석 태그인지") val annotated: Boolean,
+    @get:Schema(description = "주석 태그의 메시지") val message: String? = null,
+    @get:Schema(description = "태그를 단 사람과 시각") val tagger: TagTagger? = null,
+    @get:Schema(description = "가리키는 커밋") val commit: TagCommit? = null
+)
+
+@Schema(description = "태그 목록 응답")
+class TagList(@get:Schema(description = "태그 시각이 최근인 순서") val tags: List<TagNode>)
+
+@Schema(description = "태그 한 개 응답")
+class TagResult(val result: TagNode)
+
+@Schema(description = "태그 만들기 요청")
+class TagCreateRequest(
+    @get:Schema(description = "태그 이름. Git 참조 이름 규칙을 지켜야 한다(공백, `..` 불가). 같은 이름이 있으면 409", requiredMode = Schema.RequiredMode.REQUIRED) val name: String,
+    @get:Schema(description = "대상. 브랜치, 태그, 커밋 번호(앞부분만 가능). 없으면 기본 브랜치의 끝", example = "master") val target: String? = null,
+    @get:Schema(description = "메시지. 있으면 주석 태그(태그를 단 사람과 시각이 남는다), 없으면 경량 태그") val message: String? = null
+)

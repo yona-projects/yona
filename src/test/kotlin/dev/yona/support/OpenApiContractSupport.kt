@@ -38,7 +38,7 @@ class OpenApiContractSupport(private val resource: OpenApiWebMvcResource) : Mock
             if (response.contentType?.contains("json", ignoreCase = true) != true) return@ResultHandler
             val body = response.contentAsString.takeIf { it.isNotBlank() } ?: return@ResultHandler
             val method = request.method?.lowercase() ?: return@ResultHandler
-            val operation = spec.get("paths")?.get(pattern.replace(Regex("\\{(\\w+):[^}]*\\}"), "{$1}"))?.get(method) ?: return@ResultHandler
+            val operation = spec.get("paths")?.get(dev.yona.security.ApiScopeRules.plain(pattern))?.get(method) ?: return@ResultHandler
             val schema = operation.get("responses")?.get(response.status.toString())?.get("content")?.get("application/json")?.get("schema") ?: return@ResultHandler
             val actual = try { mapper.readTree(body) } catch (e: Exception) { return@ResultHandler }
             val problems = mutableListOf<String>()

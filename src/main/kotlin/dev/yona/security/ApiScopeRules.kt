@@ -110,6 +110,9 @@ object ApiScopeRules {
         // 프로젝트 구성원 더하기, 역할 바꾸기, 빼기(X-37b, D-52)
         add("POST", "$PROJECT/members", ApiRequirement.Repo)
         for (m in listOf("PATCH", "DELETE")) add(m, "$PROJECT/members/{loginId}", ApiRequirement.Repo)
+        // Git 태그(X-37c, D-52)
+        for (m in listOf("GET", "POST")) add(m, "$PROJECT/tags", ApiRequirement.Repo)
+        add("DELETE", "$PROJECT/tags/{*name}", ApiRequirement.Repo)
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))
@@ -126,7 +129,10 @@ object ApiScopeRules {
 
     /** 명세의 경로(정규식을 뗀 `{number}` 형식)와 메서드에 해당하는 대응표의 요구이다. OpenAPI 문서가 범위를 채울 때 쓴다(X-31). 표에 없으면 `null`이다. */
     fun requirementByPlainPath(method: String, plainPath: String): ApiRequirement? =
-        TABLE.entries.firstOrNull { (key, _) -> key.first.equals(method, ignoreCase = true) && key.second.replace(Regex("\\{(\\w+):[^}]*\\}"), "{$1}") == plainPath }?.value
+        TABLE.entries.firstOrNull { (key, _) -> key.first.equals(method, ignoreCase = true) && plain(key.second) == plainPath }?.value
+
+    /** 스프링 경로 패턴에서 정규식(`{number:[0-9]+}`)과 나머지 전부 잡기(`{*name}`)를 떼어 명세의 경로 형식(`{number}`, `{name}`)으로 만든다. */
+    fun plain(pattern: String): String = pattern.replace(Regex("\\{(\\w+):[^}]*\\}"), "{$1}").replace(Regex("\\{\\*(\\w+)\\}"), "{$1}")
 
     /** 대응표에 올라 있는 모든 (메서드, 경로 패턴)이다. OpenAPI 명세와 일치하는지 시험이 비교한다(X-31). */
     fun operations(): Set<Pair<String, String>> = TABLE.keys
