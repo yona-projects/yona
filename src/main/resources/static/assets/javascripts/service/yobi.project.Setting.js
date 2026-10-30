@@ -53,10 +53,8 @@
             htElement.welInputLogo = $("#logoPath");
             htElement.welInputName = $("input#project-name");
             htElement.welBtnSave   = $("#save");
-            htElement.welReviewerCount = $("#welReviewerCount");
             htElement.welMenuSettingCode = $("#menuSettingCode");
             htElement.welMenuSettingPullRequest = $("#menuSettingPullRequest");
-            htElement.welReviewerCountDisable = $('#reviewerCountDisable')
             htElement.welMenuSettingReview = $("#menuSettingReview");
             htElement.welReviewerCountSettingPanel = $("#reviewerCountSettingPanel");
             htElement.welDefaultBranceSettingPanel = $("#defaultBranceSettingPanel");
@@ -75,16 +73,6 @@
             htElement.welMenuSettingPullRequest.on('click', _onClickMenuSettingPullRequest);
             htElement.welMenuSettingReview.on('click', _onClickMenuSettingReview);
 
-            if(htElement.welReviewerCount.data("value") === true) {
-                htElement.welReviewerCount.show();
-            }
-
-            $(".reviewer-count-wrap").on("click", '[data-toggle="reviewer-count"]', _toggleReviewerCount);
-        }
-
-        function _toggleReviewerCount(){
-            var sAction = $(this).data("action");
-            htElement.welReviewerCount[sAction]();
         }
 
         function _onChangeLogoPath(){
@@ -120,7 +108,6 @@
                 htElement.welMenuSettingCode.prop("checked", false);
                 htElement.welMenuSettingPullRequest.prop("checked", false);
                 htElement.welMenuSettingReview.prop("checked", false);
-                htElement.welReviewerCountDisable.trigger('click');
                 
                 htElement.welReviewerCountSettingPanel.hide();
                 htElement.welDefaultBranceSettingPanel.hide();
@@ -136,7 +123,6 @@
                 htElement.welReviewerCountSettingPanel.show();    
             } else {
                 htElement.welReviewerCountSettingPanel.hide();    
-                htElement.welReviewerCountDisable.trigger('click');
             }   
         }
 
