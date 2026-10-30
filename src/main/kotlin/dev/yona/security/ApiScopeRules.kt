@@ -92,6 +92,10 @@ object ApiScopeRules {
         for (m in listOf("PATCH", "DELETE")) add(m, "/-_-api/v1/orgs/{org}/members/{loginId}", ApiRequirement.Scope("write:org"))
         add("POST", "/-_-api/v1/orgs", ApiRequirement.Scope("admin:org"))
         for (m in listOf("PATCH", "DELETE")) add(m, "/-_-api/v1/orgs/{org}", ApiRequirement.Scope("admin:org"))
+        // 웹훅(X-30b, D-49): 읽기 `read:repo_hook`, 만들기 `write:repo_hook`, 삭제 `admin:repo_hook`(`repo`가 셋을 포함한다)
+        add("GET", "$PROJECT/hooks", ApiRequirement.Scope("read:repo_hook"))
+        add("POST", "$PROJECT/hooks", ApiRequirement.Scope("write:repo_hook"))
+        add("DELETE", "$PROJECT/hooks/{hookId}", ApiRequirement.Scope("admin:repo_hook"))
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))

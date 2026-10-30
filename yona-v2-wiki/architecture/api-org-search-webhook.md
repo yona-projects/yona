@@ -55,13 +55,13 @@ updated: 2026-10-30
 
 ## b단계: 웹훅 (X-30b)
 
-웹 화면(`/{o}/{p}/webhooks`)에 있는 목록, 만들기, 삭제만 만든다. 수정은 v1.6에 없다.
+웹 화면(`/{o}/{p}/webhooks`)에 있는 목록, 만들기, 삭제만 만든다. 수정은 v1.6에 없다. 구현은 `ExternalWebhookApiController`이다. 세 요청 모두 웹 화면처럼 프로젝트를 고칠 수 있는 사용자(프로젝트 관리자, 조직 관리자, 사이트 관리자)만 쓴다.
 
 | 메서드와 경로(`.../projects/{projectName}` 뒤) | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `GET hooks` | 웹훅 목록(비밀 값은 돌려주지 않는다) | `read:repo_hook` | 대기 |
-| `POST hooks` | 웹훅 만들기(`payloadUrl`, `secret`, `webhookType`, `gitPush`) | `write:repo_hook` | 대기 |
-| `DELETE hooks/{hookId}` | 웹훅 지우기 | `admin:repo_hook` | 대기 |
+| `GET hooks` | 웹훅 목록(`id`, `payloadUrl`, `webhookType`, `gitPush`, `hasSecret`, `createdAt`). 비밀 값은 돌려주지 않는다 | `read:repo_hook` | **완료**(2026-10-30) |
+| `POST hooks` | 웹훅 만들기. `payloadUrl`(필수, 2000자까지), `secret`(250자까지), `webhookType`(`SIMPLE` 기본, `DETAIL_SLACK`, `DETAIL_HANGOUT_CHAT`, `JSON`), `gitPush`(없으면 `JSON`일 때만 켠다) | `write:repo_hook` | **완료**(2026-10-30) |
+| `DELETE hooks/{hookId}` | 웹훅 지우기. 다른 프로젝트의 웹훅은 404 | `admin:repo_hook` | **완료**(2026-10-30) |
 
 ## c단계: 검색 (X-30c)
 
