@@ -96,6 +96,10 @@ object ApiScopeRules {
         add("GET", "$PROJECT/hooks", ApiRequirement.Scope("read:repo_hook"))
         add("POST", "$PROJECT/hooks", ApiRequirement.Scope("write:repo_hook"))
         add("DELETE", "$PROJECT/hooks/{hookId}", ApiRequirement.Scope("admin:repo_hook"))
+        // 검색(X-30c, D-49): 전체와 조직은 비공개 항목도 찾으므로 `repo`, 프로젝트는 `repo`나 공개 프로젝트의 `public_repo`
+        add("GET", "/-_-api/v1/search", ApiRequirement.RepoOnly)
+        add("GET", "/-_-api/v1/orgs/{org}/search", ApiRequirement.RepoOnly)
+        add("GET", "$PROJECT/search", ApiRequirement.Repo)
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))

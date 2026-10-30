@@ -128,7 +128,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-30 | 일반 REST 3차(상위 항목): 조직, 웹훅, 검색, 포크를 네 단계(X-30a~d)로 나눠 만든다. 쓰기까지 열고 GitHub 전용 범위를 쓴다. 사용자 상태는 이미 있어 뺀다 | 조직, 웹훅, 검색, 포크 REST | **진행 중(2026-10-30), 결정은 D-49** | 추적표는 [api-org-search-webhook.md](architecture/api-org-search-webhook.md). 네 단계가 모두 끝나야 완료이다. X-31은 이 뒤이다 |
 | X-30a | 조직 REST: 내 조직과 한 건 조회, 구성원 목록과 더하기와 역할 변경과 빼기(나가기 포함), 만들기, 설정 변경, 삭제 | `ExternalOrganizationApiController`(새 파일) | **구현 완료(2026-10-30)** | 범위 `read:org`, `write:org`, `admin:org` |
 | X-30b | 웹훅 REST: 목록, 만들기, 삭제 | `ExternalWebhookApiController`(새 파일) | **구현 완료(2026-10-30)** | 범위 `read:repo_hook`, `write:repo_hook`, `admin:repo_hook` |
-| X-30c | 검색 REST: 전체, 조직, 프로젝트 | `ExternalSearchApiController`(새 파일) | 대기 | 웹 검색과 같은 판정 |
+| X-30c | 검색 REST: 전체, 조직, 프로젝트 | `ExternalSearchApiController`(새 파일) | **구현 완료(2026-10-30)** | 웹 검색과 같은 판정 |
 | X-30d | 포크 REST: 사용자나 조직을 대상으로 포크 만들기 | `ExternalForkApiController`(새 파일) | 대기 | 웹의 포크 규칙(이름 중복, 조직 관리자만)과 같다 |
 | X-31 | OpenAPI 문서(Swagger UI): `/-_-api/v1` 전체 계약(풀 리퀘스트, 일반 REST 1~3차)을 한 번에 문서화 | OpenAPI 설정, `*RestApi` | **대기(2026-10-29, 선생님: 한 번에 만들어도 됨)** | 모든 REST 영역이 끝난 뒤 한 번에 만든다 |
 | X-20 | 프런트엔드 현대화: Vue 3 웹 컴포넌트 위젯 17개(대화상자, 토스트, 드롭다운, 자동 완성, 첨부, 리뷰 폼, 라벨 편집기 등), Tom Select, Flatpickr, CodeMirror 6와 EasyMDE 에디터, jQuery 제거(순수 JS), Hotwired Turbo(이슈 2단 목록) | `static/lib/yona-vue-widgets`, `frontend/`, `yona.issue.Turbo.js` (P3-46, P3-70) | 대기 | 화면 동작은 v1.6과 같게 둔다는 조건이 필요하다. `yona-v2-wiki`의 Vue 위젯 소스 위치 메모(components 저장소)와 이어진다 |

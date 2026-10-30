@@ -35,7 +35,7 @@ updated: 2026-10-30
 | `read:repo_hook` | 웹훅 목록 |
 | `write:repo_hook` | 웹훅 만들기 (삭제 제외) |
 | `admin:repo_hook` | 웹훅 삭제 (`write:repo_hook`와 `read:repo_hook`를 포함) |
-| `repo` | 웹훅 세 범위를 포함하고, 검색과 포크에는 `repo`나 `public_repo`를 쓴다 |
+| `repo` | 웹훅 세 범위를 포함하고, 검색(전체와 조직)과 포크에도 쓴다. 프로젝트 검색은 공개 프로젝트에 한해 `public_repo`도 받는다 |
 
 ## a단계: 조직 (X-30a)
 
@@ -65,11 +65,13 @@ updated: 2026-10-30
 
 ## c단계: 검색 (X-30c)
 
+구현은 `ExternalSearchApiController`이다. 웹 검색(`SearchController`)과 같은 서비스(`SearchService`)와 가시성 규칙을 쓰고, 화면 행(`SearchRowAssembler`)을 JSON 항목으로 바꾼다. 쿼리는 `keyword`(필수), `searchType`(`auto` 기본, `issue`, `post`, `milestone`, `issue_comment`, `post_comment`, `review`, `user`, `project`), `pageNum`(1부터)이다. 응답은 `{"keyword", "searchType", "counts", "items", "page", "totalPages"}`이고 한 쪽은 20개이다.
+
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `GET /-_-api/v1/search` | 사이트 전체 검색(`keyword`, `searchType`, `pageNum`) | `repo`나 `public_repo` | 대기 |
-| `GET /-_-api/v1/orgs/{org}/search` | 조직 안 검색 | `repo`나 `public_repo` | 대기 |
-| `GET .../projects/{projectName}/search` | 프로젝트 안 검색 | `repo`나 `public_repo` | 대기 |
+| `GET /-_-api/v1/search` | 사이트 전체 검색 | `repo` | **완료**(2026-10-30) |
+| `GET /-_-api/v1/orgs/{org}/search` | 조직 안 검색. 사이트가 프로젝트 목록을 숨기면 조직 구성원만 | `repo` | **완료**(2026-10-30) |
+| `GET .../projects/{projectName}/search` | 프로젝트 안 검색. 읽을 수 있어야 하고 `searchType=project`는 400 | `repo`나 공개 프로젝트의 `public_repo` | **완료**(2026-10-30) |
 
 ## d단계: 포크 (X-30d)
 
