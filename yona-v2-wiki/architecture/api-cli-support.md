@@ -26,11 +26,13 @@ updated: 2026-10-30
 
 ## b단계: 프로젝트 구성원 (X-37b)
 
+구현은 `ExternalProjectMemberApiController`이다. 웹의 `ProjectMemberService`를 쓴다. 역할 이름은 `manager`, `member`이다.
+
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `POST $P/members` | 구성원 더하기(`loginId`, `role`) | 미정 | 대기 |
-| `PATCH $P/members/{loginId}` | 역할 바꾸기 | | 대기 |
-| `DELETE $P/members/{loginId}` | 구성원 빼기(본인이면 나가기) | | 대기 |
+| `POST $P/members` | 구성원 더하기(`loginId`, `role`). 없는 사용자 404, 이미 구성원 409 | `repo`나 공개의 `public_repo` | **완료**(2026-10-30) |
+| `PATCH $P/members/{loginId}` | 역할 바꾸기. 소유자를 내리면 400, 구성원이 아니면 404 | 같다 | **완료**(2026-10-30) |
+| `DELETE $P/members/{loginId}` | 구성원 빼기. 본인이면 나가기. 소유자는 403 | 같다 | **완료**(2026-10-30) |
 
 ## c단계: Git 태그 (X-37c)
 

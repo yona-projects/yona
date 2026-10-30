@@ -107,6 +107,9 @@ object ApiScopeRules {
         add("POST", "/-_-api/v1/orgs/{org}/projects", ApiRequirement.RepoOnly)
         add("PATCH", PROJECT, ApiRequirement.Repo)
         add("DELETE", PROJECT, ApiRequirement.RepoOnly)
+        // 프로젝트 구성원 더하기, 역할 바꾸기, 빼기(X-37b, D-52)
+        add("POST", "$PROJECT/members", ApiRequirement.Repo)
+        for (m in listOf("PATCH", "DELETE")) add(m, "$PROJECT/members/{loginId}", ApiRequirement.Repo)
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))

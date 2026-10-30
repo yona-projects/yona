@@ -138,7 +138,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-24 | yona CLI(Go 단일 바이너리, `gh`와 비슷한 사용법). **`../yona-cli`에 이미 약 9,300줄이 있다**(이슈, 풀 리퀘스트, 프로젝트, 라벨, 태그, 조직, 검색, 위키, 상태, 별칭, 설정, 관리자). 이전 구현(`yuna`)의 `/api/v1/...`을 부르도록 만들어져 있어, 이 서버의 `/-_-api/v1` 계약에 맞추는 일이 남았다 | `../yona-cli`의 `internal/api`, `cmd` | **진행 중(2026-10-30), 결정은 D-51** | 방침: CLI의 클라이언트(`internal/api`)를 `/-_-api/v1` 경로와 응답 모양으로 바꾸고 서버는 바꾸지 않는다. 서버에 대응 REST가 없는 명령은 목록을 만들어 따로 정한다([architecture/cli-api-gap.md](architecture/cli-api-gap.md)) |
 | X-37 | CLI를 위한 서버 보강(상위 항목): 대응 REST가 없던 명령의 서버 기능과 기기 인증을 열 단계(X-37a~k)로 만든다 | 외부 REST, 기기 인증 | **진행 중(2026-10-30), 결정은 D-52** | 근거는 [architecture/cli-api-gap.md](architecture/cli-api-gap.md). 위키는 X-17 이후 |
 | X-37a | 프로젝트 REST: 만들기(`POST /user/projects`, `POST /orgs/{org}/projects`), 설정 바꾸기(`PATCH $P`), 지우기(`DELETE $P`) | `ExternalProjectManageApiController` | **구현 완료(2026-10-30)** | 일반 사용자도 토큰으로 프로젝트를 만든다. 추적표는 [architecture/api-cli-support.md](architecture/api-cli-support.md) |
-| X-37b | 프로젝트 구성원 REST: 더하기, 역할 바꾸기, 빼기 | | 대기 | 조회(`GET $P/members`)는 있다 |
+| X-37b | 프로젝트 구성원 REST: 더하기, 역할 바꾸기, 빼기 | `ExternalProjectMemberApiController` | **구현 완료(2026-10-30)** | 조회(`GET $P/members`)는 있다 |
 | X-37c | Git 태그 REST: 목록, 만들기, 지우기 | | 대기 | |
 | X-37d | 이슈 옮기기 REST: `POST $P/issues/{n}/transfer` | | 대기 | |
 | X-37e | 사용자 현황 REST: `GET /user/status`, 내 이슈의 `commented`, `shared` 필터 | | 대기 | |

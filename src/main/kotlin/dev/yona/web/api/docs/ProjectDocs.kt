@@ -252,3 +252,15 @@ class ProjectUpdateRequest(
     @get:Schema(description = "기본 브랜치(`master`나 `refs/heads/master`). Git이고 있는 브랜치여야 한다") val defaultBranch: String? = null,
     @get:Schema(description = "메뉴 켜기와 끄기. 보낸 메뉴만 바꾼다") val menus: ProjectMenuChanges? = null
 )
+
+@Schema(description = "프로젝트 구성원 더하기 요청")
+class ProjectMemberAddRequest(
+    @get:Schema(description = "더할 사용자의 로그인 ID", requiredMode = Schema.RequiredMode.REQUIRED) val loginId: String,
+    @get:Schema(description = "역할. 기본 `member`", allowableValues = ["manager", "member"]) val role: String? = null
+)
+
+@Schema(description = "프로젝트 구성원 역할 바꾸기 요청")
+class ProjectMemberRoleRequest(@get:Schema(description = "새 역할", allowableValues = ["manager", "member"], requiredMode = Schema.RequiredMode.REQUIRED) val role: String)
+
+@Schema(description = "프로젝트 구성원 한 명 응답")
+class ProjectMemberResult(val result: ProjectMember)
