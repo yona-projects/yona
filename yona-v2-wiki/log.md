@@ -725,3 +725,7 @@ D-51의 대응표에서 서버에 REST가 없던 CLI 명령을 서버에 만들�
 
 ## [2026-10-30] build | X-37i 기기 인증(Device Flow)
 `device_authorization` 테이블, 코드 발급과 토큰 교환 REST, 웹 승인 화면(`/users/device`)을 구현했다. 시험(REST 9개, 화면 7개)을 먼저 쓰고 컴파일 실패와 404, 403으로 Red를 확인한 뒤 구현했다(D-52, A-281).
+
+## [2026-10-30] verify | X-37 서버 단계와 기기 인증의 종단 검증
+- 전체 H2 시험 3019개 중 스키마 시험 4개가 새 테이블 `device_authorization`을 의도한 추가 목록에 올리지 않아 실패했고, 목록과 컬럼 시험을 더해 고쳤다. X-37a~i의 시험 69개는 PostgreSQL에서도 통과했다.
+- 실제 서버(부트 jar, H2 파일 DB, 격리한 포트)에서 종단 시험을 했다: CLI `auth login`(기기 인증) → Playwright로 승인 화면에서 승인 → 토큰이 `~/.config`에 로그인 ID와 함께 저장 → Git 전역 설정에 자격 증명 도우미 등록 → `POST /user/projects`로 비공개 저장소 만들기 → 토큰만으로 `git clone`과 `git push` 성공(익명 접근은 401). 승인 화면의 캡처(코드 입력, 확인)를 확인했다.
