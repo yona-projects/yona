@@ -6,7 +6,6 @@ import dev.yona.domain.project.ProjectForm
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.project.ProjectSettingForm
-import dev.yona.domain.project.ProtectionRuleInput
 import dev.yona.domain.project.ProjectSettingService
 import dev.yona.repository.RepositoryService
 import dev.yona.security.CurrentUserProvider
@@ -88,26 +87,8 @@ class ProjectSettingController(
         allowRebaseMerge = request.getParameter("allowRebaseMerge"),
         defaultMergeMethod = request.getParameter("defaultMergeMethod"),
         defaultBranch = request.getParameter("defaultBranch"),
-        protectionRules = protectionRules(request),
         menus = ProjectForm.MENU_NAMES.filter { request.getParameter(it)?.lowercase() in setOf("true", "on", "yes", "1") }.toSet()
     )
-
-    /**
-     * 규칙 줄들을 묶는다(`decisions.md` D-44, D-45). 줄마다 `protectionKey`가 있고 항목 이름은 `protection.<키>.<항목>`이다. 체크하지 않은 조건은 값이 오지 않으므로 꺼진 것이다.
-     * 표시용 숨은 값(`protectionRulesSent`)이 없으면 `null`이라 규칙을 건드리지 않는다. 패턴이 빈 줄은 추가만 하고 채우지 않은 줄이므로 버린다.
-     */
-    private fun protectionRules(request: HttpServletRequest): List<ProtectionRuleInput>? {
-        if (request.getParameter("protectionRulesSent") == null) return null
-        fun on(key: String, field: String) = request.getParameter("protection.$key.$field")?.lowercase() in setOf("true", "on", "yes", "1")
-        return request.getParameterValues("protectionKey").orEmpty().filter { !request.getParameter("protection.$it.pattern").isNullOrBlank() }.map { key ->
-            ProtectionRuleInput(
-                pattern = request.getParameter("protection.$key.pattern"), approvals = request.getParameter("protection.$key.approvals"),
-                requirePullRequest = on(key, "requirePullRequest"), requireNoChangesRequested = on(key, "requireNoChangesRequested"),
-                requireConversationResolution = on(key, "requireConversationResolution"), requireLinearHistory = on(key, "requireLinearHistory"),
-                allowForcePushes = on(key, "allowForcePushes"), allowDeletions = on(key, "allowDeletions"), enforceAdmins = on(key, "enforceAdmins")
-            )
-        }
-    }
 
     private fun toUpload(file: MultipartFile) = LogoUpload(file.originalFilename, file.size) { file.inputStream }
 
@@ -128,7 +109,6 @@ class ProjectSettingController(
             .addObject("defaultBranchName", itemName(defaultBranch))
             .addObject("branchItemNames", branches.filter { itemType(it) == "branch" }.associateWith { itemName(it) })
             .addObject("oldPlaceHtml", oldPlace)
-            .addObject("protectionRules", project.branchProtectionRules.sortedBy { it.pattern })
             .also { mav ->
                 if (warning != null) mav.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to warning)) }
             }

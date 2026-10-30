@@ -160,16 +160,16 @@ class BranchesTest : AbstractIntegrationTest() {
         assertEquals(listOf("refs/heads/master"), repositories.refNames(p))
     }
 
-    @Autowired private lateinit var protectionRules: dev.yona.domain.project.BranchProtectionRuleRepository
+    @Autowired private lateinit var protectionRules: dev.yona.domain.project.RulesetRepository
 
-    private fun protect(p: Project, pattern: String, enforceAdmins: Boolean = false, allowDeletions: Boolean = false) {
-        protectionRules.save(dev.yona.domain.project.BranchProtectionRule(project = p, pattern = pattern, enforceAdmins = enforceAdmins, allowDeletions = allowDeletions, createdDate = java.util.Date()))
-        p.branchProtectionRules.add(protectionRules.findByProjectIdAndPattern(p.id!!, pattern)!!)
+    private fun protect(p: Project, pattern: String, bypassAdmins: Boolean = false, restrictDeletions: Boolean = true) {
+        val saved = protectionRules.save(dev.yona.domain.project.Ruleset(project = p, name = pattern, pattern = pattern, bypassAdmins = bypassAdmins, restrictDeletions = restrictDeletions, createdDate = java.util.Date()))
+        p.rulesets.add(saved)
     }
 
     @Test
-    fun `관리자에게도 적용하는 보호 브랜치는 삭제 단추가 없고 지울 수 없다 (X-33, D-45)`() {
-        val p = twoBranches(); val m = member(p); protect(p, "feature", enforceAdmins = true)
+    fun `우회를 허용하지 않는 룰셋의 브랜치는 삭제 단추가 없고 지울 수 없다 (X-34, D-46)`() {
+        val p = twoBranches(); val m = member(p); protect(p, "feature", bypassAdmins = false)
         val rows = page("/${p.owner}/${p.name}/branches", login(m)).select("table.branch-list-wrap tbody tr")
         assertNull(rows[1].selectFirst("a[data-request-method=delete]"), "보호된 브랜치에는 삭제 단추가 없다")
         mockMvc.perform(delete("/${p.owner}/${p.name}/code/refs%2Fheads%2Ffeature/").session(login(m))).andExpect(status().isForbidden)
@@ -177,16 +177,16 @@ class BranchesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `관리자에게도 적용하지 않는 보호 브랜치는 프로젝트 관리자가 지울 수 있다 (X-33, D-45)`() {
-        val p = twoBranches(); val m = member(p); protect(p, "feature")
+    fun `우회를 허용한 룰셋의 브랜치는 프로젝트 관리자가 지울 수 있다 (X-34, D-46)`() {
+        val p = twoBranches(); val m = member(p); protect(p, "feature", bypassAdmins = true)
         assertNotNull(page("/${p.owner}/${p.name}/branches", login(m)).select("table.branch-list-wrap tbody tr")[1].selectFirst("a[data-request-method=delete]"))
         mockMvc.perform(delete("/${p.owner}/${p.name}/code/refs%2Fheads%2Ffeature/").session(login(m))).andExpect(status().is3xxRedirection)
         assertEquals(listOf("refs/heads/master"), repositories.refNames(p))
     }
 
     @Test
-    fun `삭제를 허용한 보호 브랜치는 관리자에게도 적용해도 지울 수 있다 (X-33, D-45)`() {
-        val p = twoBranches(); val m = member(p); protect(p, "feature", enforceAdmins = true, allowDeletions = true)
+    fun `삭제 제한을 끈 룰셋의 브랜치는 우회를 허용하지 않아도 지울 수 있다 (X-34, D-46)`() {
+        val p = twoBranches(); val m = member(p); protect(p, "feature", bypassAdmins = false, restrictDeletions = false)
         mockMvc.perform(delete("/${p.owner}/${p.name}/code/refs%2Fheads%2Ffeature/").session(login(m))).andExpect(status().is3xxRedirection)
         assertEquals(listOf("refs/heads/master"), repositories.refNames(p))
     }

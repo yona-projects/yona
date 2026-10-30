@@ -9,6 +9,8 @@
         <a th:href="${base + '/settingform'}" th:text="#{project.setting}"></a></li>
     <li id="subMenuProjectMember" th:class="${requestPath == base + '/members'} ? 'active'">
         <a th:href="${base + '/members'}"><th:block th:text="#{project.member}"></th:block><span th:if="${view.enrolledUserCount > 0}" class="num-badge" th:text="${view.enrolledUserCount}"></span></a></li>
+    <li th:if="${view.git}" id="subMenuRuleset" th:class="${#strings.startsWith(requestPath, base + '/setting/rulesets')} ? 'active'">
+        <a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}"></a></li>
     <li id="subMenuIssueLabel" th:class="${requestPath == base + '/issue/labelsform'} ? 'active'">
         <a th:href="${base + '/issue/labelsform'}" th:text="#{issue.label}"></a></li>
     <li id="subMenuWebhook" th:class="${requestPath == base + '/webhooks'} ? 'active'">

@@ -10,14 +10,14 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 
 /**
- * v1.6의 프로젝트 전체 리뷰어 설정(`project.is_using_reviewer_count`, `default_reviewer_count`)을 브랜치 보호 규칙으로 옮긴다(추가 개발 항목 X-33,
- * `decisions.md` D-45 4번). 서버를 시작할 때와 데이터를 가져온 뒤에 돈다.
+ * v1.6의 프로젝트 전체 리뷰어 설정(`project.is_using_reviewer_count`, `default_reviewer_count`)을 룰셋으로 옮긴다(추가 개발 항목 X-33, X-34, `decisions.md` D-45 4번, D-46).
+ * 서버를 시작할 때와 데이터를 가져온 뒤에 돈다.
  *
- * 리뷰어 사용이 켜진 프로젝트마다 모든 브랜치(`**`)에 리뷰어 수만큼의 승인과 변경 요청 해결을 요구하는 규칙을 하나 만든다. v1.6 동작을 그대로 보존하려고
- * "관리자에게도 적용"은 켜고(v1.6에는 관리자 우회가 없었다), 직접 푸시 차단은 끄고, 강제 푸시와 삭제는 허용한다. 옮긴 뒤 `is_using_reviewer_count`를 꺼서
+ * 리뷰어 사용이 켜진 프로젝트마다 [MIGRATED_NAME] 룰셋을 하나 만든다. 대상은 모든 브랜치(`**`)이고 리뷰어 수만큼의 승인과 변경 요청 해결을 요구한다. v1.6 동작을 그대로
+ * 보존하려고 바이패스는 비우고(v1.6에는 관리자 우회가 없었다), 직접 푸시 차단은 끄고, 삭제 제한과 강제 푸시 차단도 끈다. 옮긴 뒤 `is_using_reviewer_count`를 꺼서
  * 이전한 표시로 쓰고 `default_reviewer_count`는 기록으로 남긴다. 두 컬럼은 이 버전에서 읽지도 쓰지도 않으며 차기 버전에서 제거한다.
  *
- * 멱등하다. 이전한 프로젝트는 사용 여부가 꺼지므로 다시 돌려도 건너뛴다. 이미 `**` 규칙이 있는 프로젝트는 그 규칙을 건드리지 않고 사용 여부만 끈다.
+ * 멱등하다. 이전한 프로젝트는 사용 여부가 꺼지므로 다시 돌려도 건너뛴다. 같은 이름의 룰셋이 이미 있는 프로젝트는 그 룰셋을 건드리지 않고 사용 여부만 끈다.
  */
 @Component
 @Order(10)
@@ -30,30 +30,32 @@ class ReviewerSettingMigration(private val entityManager: EntityManager, private
         transactions.executeWithoutResult { migrate() }
     }
 
-    /** 옮긴 프로젝트 수를 돌려준다. 이미 모든 브랜치 규칙이 있어 사용 여부만 끈 프로젝트는 세지 않는다. */
+    /** 옮긴 프로젝트 수를 돌려준다. 이미 같은 이름의 룰셋이 있어 사용 여부만 끈 프로젝트는 세지 않는다. */
     @Transactional
     fun migrate(): Int {
         val projects = entityManager.createQuery("select p from Project p where p.isUsingReviewerCount = true", Project::class.java).resultList
         var migrated = 0
         for (project in projects) {
-            val hasAll = entityManager.createQuery("select count(r) from BranchProtectionRule r where r.project.id = :id and r.pattern = :pattern", java.lang.Long::class.java)
-                .setParameter("id", project.id).setParameter("pattern", ALL_BRANCHES).singleResult.toLong() > 0
-            if (!hasAll) {
+            val exists = entityManager.createQuery("select count(r) from Ruleset r where r.project.id = :id and r.name = :name", java.lang.Long::class.java)
+                .setParameter("id", project.id).setParameter("name", MIGRATED_NAME).singleResult.toLong() > 0
+            if (!exists) {
                 entityManager.persist(
-                    BranchProtectionRule(
-                        project = project, pattern = ALL_BRANCHES, requiredApprovals = maxOf(project.defaultReviewerCount ?: 1, 1), requireNoChangesRequested = true,
-                        allowForcePushes = true, allowDeletions = true, enforceAdmins = true, createdDate = Date()
+                    Ruleset(
+                        project = project, name = MIGRATED_NAME, pattern = ALL_BRANCHES, requiredApprovals = maxOf(project.defaultReviewerCount ?: 1, 1), requireNoChangesRequested = true,
+                        restrictDeletions = false, blockForcePushes = false, bypassAdmins = false, createdDate = Date()
                     )
                 )
                 migrated++
             }
             project.isUsingReviewerCount = false
         }
-        if (migrated > 0) log.info("Moved the reviewer settings of {} projects to branch protection rules (every branch)", migrated)
+        if (migrated > 0) log.info("Moved the reviewer settings of {} projects to rulesets (every branch)", migrated)
         return migrated
     }
 
-    private companion object {
-        const val ALL_BRANCHES = "**"
+    companion object {
+        /** 이전한 룰셋의 이름이다. 설정 화면이 이전했다는 안내를 보일 때도 이 이름으로 찾는다. */
+        const val MIGRATED_NAME = "이전된 리뷰어 설정"
+        private const val ALL_BRANCHES = "**"
     }
 }

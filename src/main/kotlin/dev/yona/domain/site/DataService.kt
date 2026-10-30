@@ -199,12 +199,12 @@ class DataService(
     private fun cleanProtectionRules(connection: Connection, imported: List<String>) {
         try {
             connection.createStatement().use { statement ->
-                if ("PROJECT" in imported && "BRANCH_PROTECTION_RULE" !in imported) statement.executeUpdate("delete from branch_protection_rule")
-                statement.executeUpdate("delete from branch_protection_rule where project_id not in (select id from project)")
+                if ("PROJECT" in imported && "RULESET" !in imported) statement.executeUpdate("delete from ruleset")
+                statement.executeUpdate("delete from ruleset where project_id not in (select id from project)")
             }
             connection.commit()
         } catch (e: Exception) {
-            log.warn("Failed to clean branch protection rules after the import", e)
+            log.warn("Failed to clean rulesets after the import", e)
             try { connection.rollback() } catch (ignored: Exception) { }
         }
     }

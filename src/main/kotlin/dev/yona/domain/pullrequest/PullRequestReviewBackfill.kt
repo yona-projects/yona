@@ -63,18 +63,18 @@ class PullRequestReviewBackfill(
     }
 
     /**
-     * 작성자 승인을 세지 않는 새 규칙 때문에 병합 요건을 잃은 열린 풀 리퀘스트를 찾아 안내한다(`decisions.md` D-35 13번). 받는 브랜치에 승인을 요구하는 규칙이 있고(X-32, X-33, D-45)
+     * 작성자 승인을 세지 않는 새 규칙 때문에 병합 요건을 잃은 열린 풀 리퀘스트를 찾아 안내한다(`decisions.md` D-35 13번). 받는 브랜치에 승인을 요구하는 룰셋이 있고(X-34, D-46)
      * 이전 규칙(승인 집합 크기)으로는 요건을 채웠으나 새 규칙(작성자 제외)으로는 모자란 열린 요청이 대상이다. 타임라인에 시스템 안내 이벤트를 남기고
      * 작성자와 프로젝트 관리자에게 알림을 보내며 시작 로그에 건수를 적는다. 이미 안내한 요청은 건너뛰므로 멱등하다. 안내한 건수를 돌려준다.
      */
     @Transactional
     fun noticeIgnoredAuthorApprovals(): Int {
         val candidates = entityManager.createQuery(
-            "select distinct pr from PullRequest pr join pr.reviewers u where pr.state = :open and exists (select r.id from BranchProtectionRule r where r.project = pr.toProject and r.requiredApprovals > 0) and u.id = pr.contributor.id", PullRequest::class.java
+            "select distinct pr from PullRequest pr join pr.reviewers u where pr.state = :open and exists (select r.id from Ruleset r where r.project = pr.toProject and r.requiredApprovals > 0 and r.enforcement <> 'disabled') and u.id = pr.contributor.id", PullRequest::class.java
         ).setParameter("open", dev.yona.domain.enumeration.State.OPEN).resultList
         var noticed = 0
         for (pullRequest in candidates) {
-            if (pullRequest.protection == null) continue
+            if (pullRequest.rulesets.isEmpty()) continue
             val required = pullRequest.requiredReviewerCount
             if (pullRequest.reviewers.size < required || pullRequest.countedApprovals >= required) continue
             val already = entityManager.createQuery(

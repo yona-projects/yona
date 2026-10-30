@@ -25,7 +25,6 @@ import java.io.InputStream
  * @property allowRebaseMerge 리베이스 방식을 허용할지
  * @property defaultMergeMethod 기본 병합 방식 이름(`merge`, `squash`, `rebase`). 허용한 방식이어야 한다
  * @property defaultBranch 기본 브랜치 참조 이름 (예: `refs/heads/master`)
- * @property protectionRules 브랜치 보호 규칙 목록(`decisions.md` D-44). `null`이면 규칙을 건드리지 않고, 목록이면 그 목록으로 규칙을 맞춘다(빈 목록은 전부 지운다)
  * @property menus 켜기로 한 메뉴 이름 모음. 체크하지 않은 메뉴는 꺼진다
  */
 data class ProjectSettingForm(
@@ -39,7 +38,6 @@ data class ProjectSettingForm(
     val allowRebaseMerge: String? = null,
     val defaultMergeMethod: String? = null,
     val defaultBranch: String? = null,
-    val protectionRules: List<ProtectionRuleInput>? = null,
     val menus: Set<String> = emptySet()
 )
 
@@ -75,8 +73,7 @@ class ProjectSettingService(
     private val menuSettings: ProjectMenuSettingRepository,
     private val favorites: FavoriteProjectRepository,
     private val attachments: AttachmentService,
-    private val repositories: RepositoryService,
-    private val protections: BranchProtectionService
+    private val repositories: RepositoryService
 ) {
 
     /**
@@ -96,7 +93,6 @@ class ProjectSettingService(
         form.isCodeAccessibleMemberOnly?.let { if (booleanOf(it) == null) errors.reject("isCodeAccessibleMemberOnly", "error.invalid") }
         form.isDismissingStaleApprovals?.let { if (booleanOf(it) == null) errors.reject("isDismissingStaleApprovals", "error.invalid") }
         validateMergeMethods(project, form, errors)
-        form.protectionRules?.let { rules -> protections.violations(rules).forEach { errors.reject("protectionRules", it) } }
 
         // 폼 검증 단계 (validateWhenUpdate)
         val name = form.name
@@ -183,7 +179,6 @@ class ProjectSettingService(
         form.allowRebaseMerge?.let { project.allowRebaseMerge = booleanOf(it) }
         form.defaultMergeMethod?.let { project.defaultMergeMethod = it }
         projects.save(project)
-        form.protectionRules?.let { protections.replaceAll(project, it) }
 
         saveMenuSetting(project, form.menus)
         updateFavorites(project)

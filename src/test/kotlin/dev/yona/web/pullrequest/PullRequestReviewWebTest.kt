@@ -24,7 +24,7 @@ import dev.yona.domain.user.UserRepository
 import dev.yona.repository.RepositoryService
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.AbstractIntegrationTest
-import dev.yona.support.protectionRule
+import dev.yona.support.ruleset
 import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
 import dev.yona.support.selectFirst
@@ -59,7 +59,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
-    @Autowired private lateinit var branchProtections: dev.yona.domain.project.BranchProtectionRuleRepository
+    @Autowired private lateinit var branchProtections: dev.yona.domain.project.RulesetRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
@@ -87,7 +87,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     private fun setup(usingReviewers: Boolean = false): Setup {
         val n = ++sequence
         val origin = projects.save(Project(owner = "rwo$n", name = "rwp$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
-        if (usingReviewers) branchProtections.save(protectionRule(origin))
+        if (usingReviewers) branchProtections.save(ruleset(origin))
         menuSettings.save(ProjectMenuSetting(project = origin, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         repositories.createRepository(origin)
         GitTestSupport.pushCommits(repositories, origin, TestCommit("기반", mapOf("a.txt" to "line1\nline2\nline3\n".toByteArray())))
@@ -201,9 +201,9 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `관리자에게도 적용하는 규칙은 프로젝트 관리자도 우회하지 못한다 (X-32, D-42)`() {
+    fun `우회를 허용하지 않는 룰셋은 프로젝트 관리자도 우회하지 못한다 (X-34, D-46)`() {
         val s = setup(usingReviewers = true); val pr = open(s)
-        branchProtections.findByProjectIdAndPattern(s.origin.id!!, "master")!!.also { it.enforceAdmins = true; branchProtections.save(it) }
+        branchProtections.findByProjectIdAndName(s.origin.id!!, "master")!!.also { it.bypassAdmins = false; branchProtections.save(it) }
         val manager = page(url(s, pr), login(s.manager))
         assertNull(manager.selectFirst("#btnAccept"), "관리자에게도 막힌 단추이다"); assertNotNull(manager.selectFirst("button.ybtn-disabled"))
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.manager))).andExpect(status().isBadRequest)
@@ -213,7 +213,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     @Test
     fun `규칙이 다른 브랜치에만 있으면 받는 브랜치는 승인 없이도 병합할 수 있다 (X-32, D-42)`() {
         val s = setup(usingReviewers = false); val pr = open(s)
-        branchProtections.save(protectionRule(s.origin, "release/*", approvals = 3))
+        branchProtections.save(ruleset(s.origin, "release/*", approvals = 3))
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isSeeOther)
         assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)
     }
@@ -233,7 +233,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     @Test
     fun `대화 해결을 요구하는 규칙은 열린 스레드가 남아 있으면 병합을 막고 닫으면 푼다 (X-33, D-45)`() {
         val s = setup(); val pr = open(s)
-        branchProtections.save(protectionRule(s.origin, approvals = 0, noChangesRequested = false, conversationResolution = true))
+        branchProtections.save(ruleset(s.origin, approvals = 0, noChangesRequested = false, conversationResolution = true))
         val thread = commentThreads.save(dev.yona.domain.comment.NonRangedCodeCommentThread(commitId = "abc").also {
             it.project = s.origin; it.pullRequest = pr; it.state = dev.yona.domain.enumeration.ThreadState.OPEN; it.createdDate = java.util.Date()
         })
@@ -250,7 +250,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     @Test
     fun `대화 해결을 요구하지 않는 규칙은 열린 스레드가 있어도 막지 않는다 (X-33, D-45)`() {
         val s = setup(); val pr = open(s)
-        branchProtections.save(protectionRule(s.origin, approvals = 0, noChangesRequested = false))
+        branchProtections.save(ruleset(s.origin, approvals = 0, noChangesRequested = false))
         commentThreads.save(dev.yona.domain.comment.NonRangedCodeCommentThread(commitId = "abc").also {
             it.project = s.origin; it.pullRequest = pr; it.state = dev.yona.domain.enumeration.ThreadState.OPEN; it.createdDate = java.util.Date()
         })
@@ -260,7 +260,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     @Test
     fun `선형 이력을 요구하는 규칙은 병합 커밋 방식을 막고 스쿼시로는 병합한다 (X-33, D-45)`() {
         val s = setup(); val pr = open(s)
-        branchProtections.save(protectionRule(s.origin, approvals = 0, noChangesRequested = false, linearHistory = true))
+        branchProtections.save(ruleset(s.origin, approvals = 0, noChangesRequested = false, linearHistory = true))
         val member = page(url(s, pr), login(s.member))
         assertEquals(listOf("squash", "rebase"), member.select("#merge-method-menu li").map { it.attr("data-method") }, "병합 커밋은 선택지에 없다")
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member)).param("method", "merge")).andExpect(status().isBadRequest)

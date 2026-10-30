@@ -15,17 +15,17 @@ class ReviewerSettingMigrationRunnerTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var migration: ReviewerSettingMigration
     @Autowired private lateinit var projects: ProjectRepository
-    @Autowired private lateinit var rules: BranchProtectionRuleRepository
+    @Autowired private lateinit var rules: RulesetRepository
 
     @Test
     fun `시작할 때 도는 이전은 트랜잭션 없이 호출해도 규칙을 저장하고 사용 여부를 끈다`() {
         val project = projects.save(Project(owner = "mr${System.nanoTime()}", name = "mrp", vcs = "GIT", projectScope = ProjectScope.PUBLIC).also { it.isUsingReviewerCount = true; it.defaultReviewerCount = 2 })
         try {
             migration.run(DefaultApplicationArguments())
-            assertEquals(2, rules.findByProjectIdOrderByPatternAsc(project.id!!).single().requiredApprovals)
+            assertEquals(2, rules.findByProjectIdOrderByNameAsc(project.id!!).single().requiredApprovals)
             assertEquals(false, projects.findById(project.id!!).get().isUsingReviewerCount)
         } finally {
-            rules.deleteAll(rules.findByProjectIdOrderByPatternAsc(project.id!!)); projects.deleteById(project.id!!)
+            rules.deleteAll(rules.findByProjectIdOrderByNameAsc(project.id!!)); projects.deleteById(project.id!!)
         }
     }
 }

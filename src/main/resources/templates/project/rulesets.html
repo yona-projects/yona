@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--/*
+  Yona, 21st Century Project Hosting SW
+  Copyright Yona & Yobi Authors & NAVER Corp.
+  https://yona.io
+
+  추가 개발 항목 X-34(decisions.md D-46)의 룰셋 목록이다. GitHub의 Rules > Rulesets 목록에 해당한다.
+  모델: title, projectView, rulesets(Ruleset 목록, 이름순), migrated(v1.6 리뷰어 설정을 옮긴 룰셋이 있는지)
+*/-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::rulesetsPage})}">
+<th:block th:fragment="rulesetsPage" th:with="project=${projectView.project}, base=${#paths.project(projectView.project.owner, projectView.project.name)}">
+<th:block th:replace="~{project/menu :: projectMenu(${projectView}, 'PROJECT_SETTING', '')}"></th:block>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap" id="rulesetPage">
+        <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
+
+        <div class="clearfix" style="margin: 15px 0 10px;">
+            <a id="newRuleset" class="ybtn ybtn-success pull-right" th:href="${base + '/setting/rulesets/new'}" th:text="#{project.ruleset.new}"></a>
+            <p class="note" style="margin:6px 0 0;" th:text="#{project.ruleset.description}"></p>
+        </div>
+        <p id="rulesetMigrated" class="note" th:if="${migrated}" th:text="#{project.ruleset.legacy}"></p>
+
+        <table class="table table-bordered table-condensed" id="rulesetList" style="background:#fff;">
+            <thead>
+            <tr>
+                <th th:text="#{project.ruleset.name}"></th>
+                <th th:text="#{project.ruleset.col.target}"></th>
+                <th style="width:90px;" th:text="#{project.ruleset.enforcement}"></th>
+                <th th:text="#{project.ruleset.col.rules}"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(rulesets)}" class="ruleset-empty">
+                <td colspan="4" class="note" th:text="#{project.ruleset.empty}"></td>
+            </tr>
+            <tr th:each="r : ${rulesets}" class="ruleset-row">
+                <td class="ruleset-name"><a th:href="${base + '/setting/rulesets/' + r.id}" th:text="${r.name}"></a></td>
+                <td class="ruleset-target"><code th:text="${r.pattern}"></code></td>
+                <td class="ruleset-enforcement">
+                    <span class="label" th:classappend="${r.active} ? 'label-success'"
+                          th:text="${r.active} ? #{project.ruleset.enforcement.active} : #{project.ruleset.enforcement.disabled}"></span>
+                </td>
+                <td class="ruleset-rules">
+                    <span class="label label-info" th:if="${r.requiredApprovals > 0}" th:text="#{project.ruleset.summary.approvals(${r.requiredApprovals})}"></span>
+                    <span class="label" th:if="${r.requirePullRequest == true}" th:text="#{project.ruleset.rule.pr.short}"></span>
+                    <span class="label" th:if="${r.requireNoChangesRequested == true}" th:text="#{project.ruleset.rule.changes.short}"></span>
+                    <span class="label" th:if="${r.requireConversationResolution == true}" th:text="#{project.ruleset.rule.conversation.short}"></span>
+                    <span class="label" th:if="${r.requireLinearHistory == true}" th:text="#{project.ruleset.rule.linear.short}"></span>
+                    <span class="label" th:if="${r.restrictDeletions == true}" th:text="#{project.ruleset.rule.deletions.short}"></span>
+                    <span class="label" th:if="${r.blockForcePushes == true}" th:text="#{project.ruleset.rule.force.short}"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</th:block>
+</html>

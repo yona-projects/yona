@@ -27,7 +27,7 @@ import dev.yona.domain.pullrequest.acceptableIgnoringReview
 import dev.yona.domain.pullrequest.countedApprovals
 import dev.yona.domain.pullrequest.effectiveVerdict
 import dev.yona.domain.pullrequest.latestReviews
-import dev.yona.domain.pullrequest.protection
+import dev.yona.domain.pullrequest.blockingRulesets
 import dev.yona.domain.pullrequest.requiredReviewerCount
 import dev.yona.domain.pullrequest.reviewBlocked
 import dev.yona.domain.pullrequest.closed
@@ -120,7 +120,7 @@ class PullRequestPageAssembler(
         val accept = if (canAccept) {
             if (pullRequest.acceptable(openConversations)) mergeButton(pullRequest, project, "$base/accept", null)
             // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건에 막힌 요청도 병합할 수 있다
-            else if (pullRequest.reviewBlocked(openConversations) && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project, pullRequest.protection)) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
+            else if (pullRequest.reviewBlocked(openConversations) && pullRequest.acceptableIgnoringReview && accessControl.canBypass(viewer, project, pullRequest.blockingRulesets(openConversations))) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
             else {
                 val (key, args) = pullRequest.disabledAcceptMessage()
                 AcceptButton("$base/accept", false, text(key, *args))

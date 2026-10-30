@@ -13,7 +13,7 @@ import dev.yona.domain.user.RoleRepository
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.support.AbstractIntegrationTest
-import dev.yona.support.protectionRule
+import dev.yona.support.ruleset
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.Test
@@ -43,7 +43,7 @@ class PullRequestReviewNotificationTest : AbstractIntegrationTest() {
     private fun user() = users.save(User(loginId = "rn${++sequence}", name = "rn$sequence", email = "rn$sequence@example.com", state = UserState.ACTIVE))
 
     private fun project(usingCount: Boolean = true) =
-        Project(owner = "rno${++sequence}", name = "rnp$sequence", vcs = "GIT", projectScope = ProjectScope.PUBLIC).also { em.persist(it); if (usingCount) em.persist(protectionRule(it)) }
+        Project(owner = "rno${++sequence}", name = "rnp$sequence", vcs = "GIT", projectScope = ProjectScope.PUBLIC).also { em.persist(it); if (usingCount) em.persist(ruleset(it)) }
 
     private fun manager(project: Project) = user().also { em.persist(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MANAGER.id).get())) }
 

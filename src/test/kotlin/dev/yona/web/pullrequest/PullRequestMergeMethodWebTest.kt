@@ -26,7 +26,7 @@ import dev.yona.domain.user.UserRepository
 import dev.yona.repository.RepositoryService
 import dev.yona.security.LegacyPasswordHasher
 import dev.yona.support.AbstractIntegrationTest
-import dev.yona.support.protectionRule
+import dev.yona.support.ruleset
 import dev.yona.support.GitTestSupport
 import dev.yona.support.GitTestSupport.TestCommit
 import org.junit.jupiter.api.Test
@@ -59,7 +59,7 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var users: UserRepository
     @Autowired private lateinit var projects: ProjectRepository
-    @Autowired private lateinit var branchProtections: dev.yona.domain.project.BranchProtectionRuleRepository
+    @Autowired private lateinit var branchProtections: dev.yona.domain.project.RulesetRepository
     @Autowired private lateinit var projectUsers: ProjectUserRepository
     @Autowired private lateinit var menuSettings: ProjectMenuSettingRepository
     @Autowired private lateinit var roles: RoleRepository
@@ -89,7 +89,7 @@ class PullRequestMergeMethodWebTest : AbstractIntegrationTest() {
     private fun setup(usingReviewers: Boolean = false): Setup {
         val n = ++sequence
         val origin = projects.save(Project(owner = "pao$n", name = "pap$n", vcs = "GIT", projectScope = ProjectScope.PUBLIC))
-        if (usingReviewers) branchProtections.save(protectionRule(origin))
+        if (usingReviewers) branchProtections.save(ruleset(origin))
         menuSettings.save(ProjectMenuSetting(project = origin, code = true, issue = true, pullRequest = true, review = true, milestone = true, board = true))
         repositories.createRepository(origin)
         GitTestSupport.pushCommits(repositories, origin, TestCommit("기반", mapOf("a.txt" to "line1\nline2\nline3\n".toByteArray())))

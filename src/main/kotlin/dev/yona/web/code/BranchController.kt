@@ -99,12 +99,13 @@ class BranchController(
     }
 
     /**
-     * 현재 사용자가 [branch]를 지울 수 있으면 `true`이다. 브랜치 보호 규칙이 삭제를 막는 브랜치는, 규칙이 "관리자에게도 적용"이 아니고 사용자가
-     * 프로젝트 관리자나 사이트 관리자일 때만 지운다(`decisions.md` D-45). 규칙이 없는 브랜치는 제한이 없다.
+     * 현재 사용자가 [branch]를 지울 수 있으면 `true`이다. 삭제를 막는 룰셋(`decisions.md` D-46)이 있으면, 막는 룰셋이 모두 바이패스를 허용하고 사용자가
+     * 프로젝트 관리자나 사이트 관리자일 때만 지운다. 룰셋이 없는 브랜치는 제한이 없다.
      */
     private fun deletable(project: Project, branch: String): Boolean {
-        val rule = project.protectionFor(branch) ?: return true
-        return rule.pushViolation(org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE) == null || accessControl.canBypassReview(currentUserProvider.get().user, project, rule)
+        val user = currentUserProvider.get().user
+        return project.rulesetsFor(branch).filter { it.pushViolation(org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE) != null }
+            .all { accessControl.canBypass(user, project, listOf(it)) }
     }
 
     /** 브랜치를 지우고 목록으로 돌아간다. 보호 규칙이 삭제를 막으면 403이다. */

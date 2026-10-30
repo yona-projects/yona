@@ -349,12 +349,12 @@ class GitHttpTest {
 
     // --- 브랜치 보호 푸시 검사 (X-33 2단계, D-45) ---
 
-    @Autowired private lateinit var protectionRules: dev.yona.domain.project.BranchProtectionRuleRepository
+    @Autowired private lateinit var protectionRules: dev.yona.domain.project.RulesetRepository
 
     private fun plainMember(): User = user("gp").also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MEMBER.id).get())) }
 
-    private fun protect(pattern: String = "master", configure: dev.yona.domain.project.BranchProtectionRule.() -> Unit = {}) {
-        protectionRules.save(dev.yona.domain.project.BranchProtectionRule(project = project, pattern = pattern, createdDate = java.util.Date()).apply(configure))
+    private fun protect(pattern: String = "master", configure: dev.yona.domain.project.Ruleset.() -> Unit = {}) {
+        protectionRules.save(dev.yona.domain.project.Ruleset(project = project, name = pattern, pattern = pattern, createdDate = java.util.Date()).apply(configure))
     }
 
     /** 복제해서 커밋을 하나 더 얹어([force]이면 이력을 다시 써서) [branch]로 밀어 넣고 원격 갱신 결과를 돌려준다. */
@@ -380,16 +380,16 @@ class GitHttpTest {
 
     @Test
     fun `풀 리퀘스트를 요구하는 규칙은 일반 구성원의 직접 푸시를 막는다`() {
-        push(project, member); protect { requirePullRequest = true }
+        push(project, member); protect { requirePullRequest = true; blockForcePushes = false }
         val plain = plainMember()
         assertRejected(pushMore(plain), "protected branch", "pull request")
     }
 
     @Test
-    fun `프로젝트 관리자는 관리자에게도 적용하지 않는 규칙을 우회하고 적용하면 막힌다`() {
-        push(project, member); protect { requirePullRequest = true }
+    fun `프로젝트 관리자는 바이패스를 허용한 룰셋을 우회하고 허용하지 않으면 막힌다`() {
+        push(project, member); protect { requirePullRequest = true; blockForcePushes = false; bypassAdmins = true }
         assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(member).status)
-        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.enforceAdmins = true; protectionRules.save(it) }
+        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.bypassAdmins = false; protectionRules.save(it) }
         assertRejected(pushMore(member), "protected branch")
     }
 
@@ -398,7 +398,7 @@ class GitHttpTest {
         push(project, member); protect()
         val plain = plainMember()
         assertRejected(pushMore(plain, force = true), "protected branch", "force")
-        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.allowForcePushes = true; protectionRules.save(it) }
+        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.blockForcePushes = false; protectionRules.save(it) }
         assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(plain, force = true).status)
     }
 
@@ -408,7 +408,7 @@ class GitHttpTest {
         protect("release")
         val plain = plainMember()
         assertRejected(pushMore(plain, branch = "release", delete = true), "protected branch", "delet")
-        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.allowDeletions = true; protectionRules.save(it) }
+        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.restrictDeletions = false; protectionRules.save(it) }
         assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(plain, branch = "release", delete = true).status)
     }
 

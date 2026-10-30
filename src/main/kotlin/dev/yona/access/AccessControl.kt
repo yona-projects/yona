@@ -251,11 +251,11 @@ class AccessControl(
     fun isSiteManager(user: User?): Boolean = permissions.siteManager(user?.id)
 
     /**
-     * 프로젝트 관리자나 사이트 관리자는 풀 리퀘스트의 리뷰 조건(승인 수, 변경 요청)에 막혀도 병합할 수 있다(추가 개발 항목 X-12, `decisions.md` D-35 11번).
-     * 적용되는 보호 규칙이 "관리자에게도 적용"이면 우회하지 못한다(X-32, D-42).
+     * 프로젝트 관리자나 사이트 관리자는 [rulesets]를 우회할 수 있다(추가 개발 항목 X-12, X-34, `decisions.md` D-35 11번, D-46). 막고 있는 룰셋이 모두 바이패스를 허용해야 하고
+     * 바이패스를 허용하지 않은 룰셋이 하나라도 있으면 우회하지 못한다. 룰셋 목록이 비어 있으면 관리자 여부만 본다.
      */
-    fun canBypassReview(user: User?, project: Project, rule: dev.yona.domain.project.BranchProtectionRule? = null): Boolean =
-        user != null && rule?.enforceAdmins != true && (isSiteManager(user) || isProjectManager(user, project))
+    fun canBypass(user: User?, project: Project, rulesets: List<dev.yona.domain.project.Ruleset> = emptyList()): Boolean =
+        user != null && rulesets.all { it.bypassAdmins == true } && (isSiteManager(user) || isProjectManager(user, project))
 
     /** 프로젝트에 속해 있으면(역할 무관) `true`이다 (v1.6 `User.isMemberOf(Project)`). */
     private fun isProjectMember(user: User?, project: Project): Boolean {

@@ -94,21 +94,17 @@ class Project(
 ) {
 
     /**
-     * 이 프로젝트의 브랜치 보호 규칙이다(추가 개발 항목 X-32, `decisions.md` D-42). 트랜잭션 밖(풀 리퀘스트 병합은 트랜잭션을 걸지 않는다)에서도 읽도록 즉시 불러온다.
+     * 이 프로젝트의 룰셋이다(추가 개발 항목 X-34, `decisions.md` D-46). 트랜잭션 밖(풀 리퀘스트 병합은 트랜잭션을 걸지 않는다)에서도 읽도록 즉시 불러온다.
      */
     @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
-    var branchProtectionRules: MutableList<BranchProtectionRule> = mutableListOf()
+    var rulesets: MutableList<Ruleset> = mutableListOf()
 
     /**
-     * [branch]로 가는 풀 리퀘스트와 푸시에 적용할 보호 규칙이다(추가 개발 항목 X-32, X-33, `decisions.md` D-42, D-45). 이름이 정확히 같은 규칙이 먼저이고,
-     * 없으면 `*` 패턴 중 패턴이 가장 긴 규칙이다. 맞는 규칙이 없으면 `null`이고 아무것도 제한하지 않는다(GitHub 기본 동작).
+     * [branch]에 적용되는 룰셋 전부이다. 대상이 맞는 활성 룰셋을 모두 돌려주며(GitHub처럼 우선순위 없이 합산한다) 맞는 것이 없으면 빈 목록이고 아무것도 제한하지 않는다.
      * v1.6의 프로젝트 전체 리뷰어 설정(`is_using_reviewer_count`, `default_reviewer_count`)은 더는 보지 않는다.
      */
-    fun protectionFor(branch: String?): BranchProtectionRule? {
-        val matching = branchProtectionRules.filter { it.matches(branch) }
-        return matching.firstOrNull { it.isExact } ?: matching.maxByOrNull { it.pattern?.length ?: 0 }
-    }
+    fun rulesetsFor(branch: String?): List<Ruleset> = rulesets.filter { it.isActive && it.matches(branch) }
 
     /** 공개 프로젝트이면 `true`이다. */
     fun isPublic(): Boolean = projectScope == ProjectScope.PUBLIC

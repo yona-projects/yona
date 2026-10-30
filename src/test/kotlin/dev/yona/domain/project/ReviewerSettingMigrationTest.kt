@@ -20,7 +20,7 @@ import kotlin.test.assertTrue
 class ReviewerSettingMigrationTest : AbstractIntegrationTest() {
 
     @Autowired private lateinit var migration: ReviewerSettingMigration
-    @Autowired private lateinit var rules: BranchProtectionRuleRepository
+    @Autowired private lateinit var rules: RulesetRepository
     @PersistenceContext private lateinit var em: EntityManager
 
     private var sequence = 0
@@ -32,12 +32,12 @@ class ReviewerSettingMigrationTest : AbstractIntegrationTest() {
     fun `리뷰어를 쓰던 프로젝트는 모든 브랜치에 같은 승인 수를 요구하는 규칙으로 옮기고 v1_6 동작을 보존한다`() {
         val project = project(true, 3); em.flush()
         assertEquals(1, migration.migrate())
-        val rule = rules.findByProjectIdOrderByPatternAsc(project.id!!).single()
-        assertEquals("**", rule.pattern); assertEquals(3, rule.requiredApprovals)
+        val rule = rules.findByProjectIdOrderByNameAsc(project.id!!).single()
+        assertEquals(ReviewerSettingMigration.MIGRATED_NAME, rule.name); assertEquals("**", rule.pattern); assertEquals(3, rule.requiredApprovals)
         assertTrue(rule.requireNoChangesRequested == true, "v1.6은 변경 요청도 막는다")
-        assertTrue(rule.enforceAdmins == true, "v1.6에는 관리자 우회가 없었다")
+        assertFalse(rule.bypassAdmins == true, "v1.6에는 관리자 우회가 없었다")
         assertFalse(rule.requirePullRequest == true, "직접 푸시는 v1.6처럼 막지 않는다")
-        assertTrue(rule.allowForcePushes == true && rule.allowDeletions == true, "강제 푸시와 삭제도 v1.6처럼 허용한다")
+        assertFalse(rule.blockForcePushes == true || rule.restrictDeletions == true, "강제 푸시와 삭제도 v1.6처럼 막지 않는다")
         assertTrue(rule.matches("refs/heads/feature/a/b"), "슬래시가 있는 브랜치까지 모든 브랜치")
         assertNotNull(rule.createdDate)
         em.flush(); em.refresh(project)
@@ -49,19 +49,19 @@ class ReviewerSettingMigrationTest : AbstractIntegrationTest() {
     fun `리뷰어를 쓰지 않던 프로젝트는 규칙을 만들지 않고 몇 번을 돌려도 한 번만 옮긴다`() {
         val off = project(false, 2); val unset = project(null, 1); val on = project(true, null); em.flush()
         assertEquals(1, migration.migrate())
-        assertEquals(0, rules.findByProjectIdOrderByPatternAsc(off.id!!).size); assertEquals(0, rules.findByProjectIdOrderByPatternAsc(unset.id!!).size)
-        assertEquals(1, rules.findByProjectIdOrderByPatternAsc(on.id!!).single().requiredApprovals, "승인 수가 비었으면 1이다")
+        assertEquals(0, rules.findByProjectIdOrderByNameAsc(off.id!!).size); assertEquals(0, rules.findByProjectIdOrderByNameAsc(unset.id!!).size)
+        assertEquals(1, rules.findByProjectIdOrderByNameAsc(on.id!!).single().requiredApprovals, "승인 수가 비었으면 1이다")
         assertEquals(0, migration.migrate(), "다시 돌려도 새로 옮길 것이 없다")
-        assertEquals(1, rules.findByProjectIdOrderByPatternAsc(on.id!!).size)
+        assertEquals(1, rules.findByProjectIdOrderByNameAsc(on.id!!).size)
     }
 
     @Test
-    fun `이미 모든 브랜치 규칙이 있으면 건드리지 않고 사용 여부만 끈다`() {
+    fun `이미 같은 이름의 룰셋이 있으면 건드리지 않고 사용 여부만 끈다`() {
         val project = project(true, 2)
-        rules.save(BranchProtectionRule(project = project, pattern = "**", requiredApprovals = 5))
+        rules.save(Ruleset(project = project, name = ReviewerSettingMigration.MIGRATED_NAME, pattern = "**", requiredApprovals = 5))
         em.flush()
         migration.migrate()
-        assertEquals(5, rules.findByProjectIdOrderByPatternAsc(project.id!!).single().requiredApprovals)
+        assertEquals(5, rules.findByProjectIdOrderByNameAsc(project.id!!).single().requiredApprovals)
         em.flush(); em.refresh(project); assertEquals(false, project.isUsingReviewerCount)
     }
 }

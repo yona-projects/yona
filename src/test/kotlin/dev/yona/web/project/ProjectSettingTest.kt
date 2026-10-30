@@ -244,14 +244,15 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         val page = settingForm(project, login(manager(project)))
         val tabs = page.select(".project-page-wrap ul.nav-tabs li")
         assertEquals(
-            listOf("subMenuProjectSetting", "subMenuProjectMember", "subMenuIssueLabel", "subMenuWebhook", "subMenuProjectTransfer", "subMenuProjectDelete", "subMenuProjectChangeVCS"),
+            listOf("subMenuProjectSetting", "subMenuProjectMember", "subMenuRuleset", "subMenuIssueLabel", "subMenuWebhook", "subMenuProjectTransfer", "subMenuProjectDelete", "subMenuProjectChangeVCS"),
             tabs.map { it.id() }
         )
-        assertEquals(listOf("Settings", "Member", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.text() })
+        assertEquals(listOf("Settings", "Member", "Rulesets", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.text() }, "룰셋 탭은 추가 개발 항목 X-34이다")
         assertEquals(listOf("active"), tabs.filter { it.hasClass("active") }.map { "active" }, tabs.outerHtml())
         assertTrue(tabs[0].hasClass("active"))
         assertEquals("/${project.owner}/${project.name}/members", tabs[1].selectFirst("a")?.attr("href"))
-        assertEquals("/${project.owner}/${project.name}/issue/labelsform", tabs[2].selectFirst("a")?.attr("href"))
+        assertEquals("/${project.owner}/${project.name}/setting/rulesets", tabs[2].selectFirst("a")?.attr("href"))
+        assertEquals("/${project.owner}/${project.name}/issue/labelsform", tabs[3].selectFirst("a")?.attr("href"))
     }
 
     @Test

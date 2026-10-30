@@ -22,8 +22,8 @@ class PullRequestBranchService(private val repositories: RepositoryService) {
         val branch = pullRequest.fromBranch
         val head = from.findRef(branch)?.takeIf { it.name.startsWith(Constants.R_HEADS) }?.objectId ?: return false
         if (branch == current) return false
-        // 보호 규칙이 삭제를 막는 브랜치는 지우지 않는다(`decisions.md` D-45, A-251). 이 경로는 관리자 우회를 두지 않는다
-        if (pullRequest.fromProject?.protectionFor(branch)?.pushViolation(org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE) != null) return false
+        // 삭제를 막는 룰셋이 있는 브랜치는 지우지 않는다(`decisions.md` D-46, A-251). 이 경로는 관리자 우회를 두지 않는다
+        if (pullRequest.fromProject?.rulesetsFor(branch)?.any { it.pushViolation(org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE) != null } == true) return false
         val commitName = RevWalk(from).use { it.parseCommit(head).name }
         repositories.openRepository(requireNotNull(pullRequest.toProject)).use { it.resolve(commitName) != null }
     }
