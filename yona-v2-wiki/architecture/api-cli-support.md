@@ -46,9 +46,11 @@ updated: 2026-10-30
 
 ## d단계: 이슈 옮기기 (X-37d)
 
+`ExternalIssueExtrasApiController`에 더했다. 웹의 이슈 수정(`targetProjectId`)과 같은 `IssueService.update`를 쓴다.
+
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `POST $P/issues/{n}/transfer` | 이슈를 다른 프로젝트로 옮긴다 | | 대기 |
+| `POST $P/issues/{n}/transfer` | 이슈를 다른 프로젝트로 옮긴다(`targetOwner`, `targetProject`). 새 번호, 마일스톤 지움, 라벨 이동, 이동 이벤트 | `repo`나 공개의 `public_repo` | **완료**(2026-10-30) |
 
 ## e단계: 사용자 현황 (X-37e)
 

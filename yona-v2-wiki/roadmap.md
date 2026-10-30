@@ -140,7 +140,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-37a | 프로젝트 REST: 만들기(`POST /user/projects`, `POST /orgs/{org}/projects`), 설정 바꾸기(`PATCH $P`), 지우기(`DELETE $P`) | `ExternalProjectManageApiController` | **구현 완료(2026-10-30)** | 일반 사용자도 토큰으로 프로젝트를 만든다. 추적표는 [architecture/api-cli-support.md](architecture/api-cli-support.md) |
 | X-37b | 프로젝트 구성원 REST: 더하기, 역할 바꾸기, 빼기 | `ExternalProjectMemberApiController` | **구현 완료(2026-10-30)** | 조회(`GET $P/members`)는 있다 |
 | X-37c | Git 태그 REST: 목록, 만들기, 지우기 | `ExternalTagApiController` | **구현 완료(2026-10-30)** | |
-| X-37d | 이슈 옮기기 REST: `POST $P/issues/{n}/transfer` | | 대기 | |
+| X-37d | 이슈 옮기기 REST: `POST $P/issues/{n}/transfer` | `ExternalIssueExtrasApiController` | **구현 완료(2026-10-30)** | |
 | X-37e | 사용자 현황 REST: `GET /user/status`, 내 이슈의 `commented`, `shared` 필터 | | 대기 | |
 | X-37f | 풀 리퀘스트 검색: 검색 종류 `pullrequest`와 목록 조건 | | 대기 | 웹 검색은 그대로 둔다 |
 | X-37g | 사이트 내보내기와 가져오기 REST(`site_admin`) | | 대기 | |

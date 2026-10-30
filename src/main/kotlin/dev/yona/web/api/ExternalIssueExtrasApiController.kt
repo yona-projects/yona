@@ -5,6 +5,7 @@ import dev.yona.access.asResource
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.enumeration.ResourceType
 import dev.yona.domain.issue.Issue
+import dev.yona.domain.issue.IssueEdit
 import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.issue.IssueService
 import dev.yona.domain.issue.IssueSharerRepository
@@ -55,6 +56,7 @@ class ExternalIssueExtrasApiController(
     private val sharerService: IssueSharerService,
     private val watchService: WatchService,
     private val users: UserRepository,
+    private val issueJson: IssueJson,
     private val requests: ApiRequests,
     private val accessControl: AccessControl
 ) {
@@ -173,6 +175,39 @@ class ExternalIssueExtrasApiController(
         if (!accessControl.isAllowed(user, issue.asResource(), Operation.READ)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         watchService.unwatch(user, ResourceType.ISSUE_POST, requireNotNull(issue.id).toString())
         return ok(linkedMapOf("result" to linkedMapOf("watching" to false)))
+    }
+
+    // --- 옮기기 ---
+
+    /**
+     * 이슈를 다른 프로젝트로 옮긴다(로드맵 X-37d, `decisions.md` D-52). 본문 `{"targetOwner", "targetProject"}`이다. 웹의 이슈 수정(`targetProjectId`)과 같은 서비스를 쓴다: 이슈와
+     * 하위 이슈가 대상 프로젝트의 다음 번호를 받고, 마일스톤은 지워지고, 댓글이 따라가며, 라벨은 옮기는 사람이 대상 프로젝트의 구성원이면 같은 분류와 이름으로 옮겨지고(없으면
+     * 만든다) 아니면 지워지며, 이동 이벤트(`ISSUE_MOVED`)가 남는다. 이슈를 고칠 수 있어야 하고 대상 프로젝트에 이슈를 만들 수 있어야 한다(403). 같은 프로젝트는 400, 없는 프로젝트는
+     * 404이다. 결과: `{"result": {...}}`(옮긴 뒤의 이슈).
+     */
+    @ApiOperation(operationId = "transferIssue", tags = [ApiTags.ISSUE], summary = "이슈를 다른 프로젝트로 옮기기", description = "이슈와 하위 이슈가 대상 프로젝트의 다음 번호를 받고, 마일스톤은 지워지고, 댓글이 따라가며, 라벨은 옮기는 사람이 대상 프로젝트의 구성원이면 같은 분류와 이름으로 옮겨지고 아니면 지워진다. 이동 이벤트가 남는다. 이슈를 고칠 수 있어야 하고 대상 프로젝트에 이슈를 만들 수 있어야 한다. 웹의 이슈 수정에서 대상 프로젝트를 고르는 것과 같다.")
+    @BodyDoc(description = "옮길 프로젝트", required = true, content = [Content(schema = Schema(implementation = IssueTransferRequest::class))])
+    @ApiResponse(responseCode = "200", description = "옮긴 뒤의 이슈(새 번호, 새 프로젝트)", content = [Content(schema = Schema(implementation = IssueResult::class))])
+    @ApiResponse(responseCode = "400", description = "대상이 없거나 같은 프로젝트이다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @ApiResponse(responseCode = "404", description = "이슈나 대상 프로젝트가 없다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @PostMapping("$PROJECT/issues/{number}/transfer")
+    @Transactional
+    fun transfer(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        val targetOwner = json.get("targetOwner")?.takeIf { it.isString }?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "targetOwner is required")
+        val targetName = json.get("targetProject")?.takeIf { it.isString }?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "targetProject is required")
+        val target = projectService.findByOwnerAndProjectName(targetOwner, targetName) ?: return requests.message(HttpStatus.NOT_FOUND, "no project by request")
+        if (target.id == issue.project?.id) return requests.message(HttpStatus.BAD_REQUEST, "the issue is already in the project")
+        if (!accessControl.isProjectResourceCreatable(user, target, ResourceType.ISSUE_POST)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        val edit = IssueEdit(
+            title = issue.title.orEmpty(), body = issue.body.orEmpty(), dueDate = issue.dueDate, state = issue.state, draft = issue.isDraft == true, publish = false, notifyMail = false,
+            parentIssueId = issue.parent?.id, changeParent = false, assigneeLoginId = issue.assignee?.user?.loginId, milestoneId = issue.milestone?.id, labelIds = issue.labels.mapNotNull { it.id }.toSet()
+        )
+        val moved = issueService.update(issue, user, edit, target)
+        return ok(linkedMapOf("result" to issueJson.of(moved, request)))
     }
 
     private fun find(owner: String, projectName: String, number: Long): Issue? {

@@ -28,6 +28,12 @@ class WatchingValue(@get:Schema(description = "지켜보고 있는지") val watc
 @Schema(description = "지켜보기 응답")
 class WatchingResult(val result: WatchingValue)
 
+@Schema(description = "이슈 옮기기 요청")
+class IssueTransferRequest(
+    @get:Schema(description = "옮길 프로젝트의 소유자", requiredMode = Schema.RequiredMode.REQUIRED) val targetOwner: String,
+    @get:Schema(description = "옮길 프로젝트의 이름", requiredMode = Schema.RequiredMode.REQUIRED) val targetProject: String
+)
+
 // --- 웹훅 ---
 
 @Schema(description = "프로젝트 웹훅. 비밀 값은 돌려주지 않고 있는지만 알린다")

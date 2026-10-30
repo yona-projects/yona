@@ -45,6 +45,7 @@ object ApiScopeRules {
         add("GET", "$PROJECT/issues/{number}/sharers", ApiRequirement.Repo)
         for (m in listOf("POST", "DELETE")) { add(m, "$PROJECT/issues/{number}/sharers", ApiRequirement.Repo); add(m, "$PROJECT/issues/{number}/watchers", ApiRequirement.Repo) }
         add("POST", "$PROJECT/issues/{number}/weight", ApiRequirement.Repo)
+        add("POST", "$PROJECT/issues/{number}/transfer", ApiRequirement.Repo)
         add("POST", "$PROJECT/issuelabel/{number}", ApiRequirement.Repo)
         add("POST", "$PROJECT/issues/imports", ApiRequirement.Repo)
         // 게시글
