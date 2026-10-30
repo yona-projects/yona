@@ -701,3 +701,6 @@ X-30(조직, 웹훅, 검색, 포크 REST) 완료와 검증(H2 2964개, PostgreSQ
 
 ## [2026-10-30] query | CLI를 위한 서버 보강 계획
 D-51의 대응표에서 서버에 REST가 없던 CLI 명령을 서버에 만들고, 기기 인증(Device Flow)과 Git 자격 증명 연동을 더하기로 했다. 단계를 X-37a~k로 나눴다(D-52).
+
+## [2026-10-30] build | X-37a 프로젝트 만들기, 설정, 삭제 REST
+일반 사용자가 토큰으로 프로젝트를 만들고(`POST /user/projects`, `POST /orgs/{org}/projects`), 관리자가 설정을 바꾸고(`PATCH`) 지우는(`DELETE`) REST를 구현했다. 테스트를 먼저 써 9개 실패를 확인한 뒤 구현했다(D-52, A-274).

@@ -20,7 +20,7 @@ class ProjectDetail(
     @get:Schema(description = "소유자(사용자 로그인 ID나 조직 이름)", example = "alice") val owner: String,
     @get:Schema(description = "프로젝트 이름", example = "demo") val name: String,
     @get:Schema(description = "설명") val overview: String?,
-    @get:Schema(description = "저장소 종류", allowableValues = ["GIT", "SVN"], example = "GIT") val vcs: String?,
+    @get:Schema(description = "저장소 종류", allowableValues = ["GIT", "Subversion"], example = "GIT") val vcs: String?,
     @get:Schema(description = "공개 범위", allowableValues = ["PUBLIC", "PROTECTED", "PRIVATE"], example = "PUBLIC") val scope: String?,
     @get:Schema(description = "만든 시각", example = "2026-10-30T10:15:30+0900") val createdAt: String?,
     @get:Schema(description = "웹 화면의 주소") val url: String,
@@ -112,7 +112,7 @@ class IssueListResponse(
 class ProjectCreateRequest(
     @get:Schema(description = "프로젝트 이름", requiredMode = Schema.RequiredMode.REQUIRED) val projectName: String,
     @get:Schema(description = "설명") val projectDescription: String? = null,
-    @get:Schema(description = "저장소 종류. 기본 `GIT`", allowableValues = ["GIT", "SVN"]) val projectVcs: String? = null,
+    @get:Schema(description = "저장소 종류. 기본 `GIT`", allowableValues = ["GIT", "Subversion"]) val projectVcs: String? = null,
     @get:Schema(description = "공개 범위. 기본 `PRIVATE`", allowableValues = ["PUBLIC", "PROTECTED", "PRIVATE"]) val projectScope: String? = null,
     @get:Schema(description = "구성원. 이메일로 찾고 못 찾으면 건너뛴다") val members: List<ProjectMemberRequest>? = null
 )
@@ -222,4 +222,33 @@ class ExportMilestone(val id: Long, val title: String, val state: String?, val d
 class HelloResponse(
     @get:Schema(example = "I'm alive!") val message: String,
     @get:Schema(example = "true") val ok: Boolean
+)
+
+@Schema(description = "메뉴 켜기와 끄기. 보낸 메뉴만 바꾼다. 키는 `code`, `issue`, `pullRequest`, `review`, `milestone`, `board`이다")
+class ProjectMenuChanges(
+    val code: Boolean? = null, val issue: Boolean? = null, val pullRequest: Boolean? = null, val review: Boolean? = null, val milestone: Boolean? = null, val board: Boolean? = null
+)
+
+@Schema(description = "프로젝트 만들기 요청(내 계정이나 조직). `name`만 필수이다")
+class ProjectManageCreateRequest(
+    @get:Schema(description = "프로젝트 이름. 영문, 숫자, `-`, `_`, `.`, 한글만 쓰고 `.`, `..`, `.git`은 쓸 수 없다. 같은 소유자에게 같은 이름(대소문자 무시)이 있으면 409", requiredMode = Schema.RequiredMode.REQUIRED) val name: String,
+    @get:Schema(description = "설명") val description: String? = null,
+    @get:Schema(description = "공개 범위. 없으면 사이트 설정의 기본값", allowableValues = ["PUBLIC", "PROTECTED", "PRIVATE"]) val scope: String? = null,
+    @get:Schema(description = "저장소 종류. 기본 `GIT`", allowableValues = ["GIT", "Subversion"]) val vcs: String? = null,
+    @get:Schema(description = "켜 둘 메뉴. 보낸 메뉴만 기본 메뉴에서 바꾼다") val menus: ProjectMenuChanges? = null
+)
+
+@Schema(description = "프로젝트 설정 바꾸기 요청. 보낸 항목만 바꾼다")
+class ProjectUpdateRequest(
+    @get:Schema(description = "새 이름. 바꾸면 저장소 디렉터리도 옮긴다") val name: String? = null,
+    @get:Schema(description = "설명. `null`이면 비운다") val description: String? = null,
+    @get:Schema(description = "공개 범위", allowableValues = ["PUBLIC", "PROTECTED", "PRIVATE"]) val scope: String? = null,
+    @get:Schema(description = "코드 접근을 구성원으로 제한할지") val isCodeAccessibleMemberOnly: Boolean? = null,
+    @get:Schema(description = "새 커밋이 오면 오래된 승인을 해제할지") val isDismissingStaleApprovals: Boolean? = null,
+    @get:Schema(description = "병합 커밋 방식을 허용할지") val allowMergeCommit: Boolean? = null,
+    @get:Schema(description = "스쿼시 방식을 허용할지") val allowSquashMerge: Boolean? = null,
+    @get:Schema(description = "리베이스 방식을 허용할지") val allowRebaseMerge: Boolean? = null,
+    @get:Schema(description = "기본 병합 방식. 허용한 방식이어야 하고 허용한 방식이 하나는 있어야 한다", allowableValues = ["merge", "squash", "rebase"]) val defaultMergeMethod: String? = null,
+    @get:Schema(description = "기본 브랜치(`master`나 `refs/heads/master`). Git이고 있는 브랜치여야 한다") val defaultBranch: String? = null,
+    @get:Schema(description = "메뉴 켜기와 끄기. 보낸 메뉴만 바꾼다") val menus: ProjectMenuChanges? = null
 )

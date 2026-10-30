@@ -102,6 +102,11 @@ object ApiScopeRules {
         add("GET", "$PROJECT/search", ApiRequirement.Repo)
         // 포크(X-30d, D-49): `repo`나 공개 프로젝트의 `public_repo`
         add("POST", "$PROJECT/forks", ApiRequirement.Repo)
+        // 프로젝트 만들기, 설정 바꾸기, 지우기(X-37a, D-52): 만들기와 지우기는 `repo`, 설정은 `repo`나 공개 프로젝트의 `public_repo`
+        add("POST", "/-_-api/v1/user/projects", ApiRequirement.RepoOnly)
+        add("POST", "/-_-api/v1/orgs/{org}/projects", ApiRequirement.RepoOnly)
+        add("PATCH", PROJECT, ApiRequirement.Repo)
+        add("DELETE", PROJECT, ApiRequirement.RepoOnly)
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))
