@@ -767,3 +767,10 @@ BS4.6.2 SCSS를 들이고(`vendor/bootstrap`) 변수로 BS2 값을 맞췄다(`_b
 Bootstrap 4.6.2로 전환을 마쳤다. 안내서대로 마크업을 바꾼 항목: 라벨→배지, 탭→`nav-item`/`nav-link`, 드롭다운→`dropdown-item`, `help-block`→`form-text`, `help-inline`→유틸리티, `well`→`card`, 체크박스·라디오→`form-check`, 진행 막대→`bg-*`, 브레드크럼→`breadcrumb-item`, `control-label`→`col-form-label`, `col-md`→`col-lg`, `pull-*`→`float-*`, `.in`→`.show`. `affix`는 자체 `yona.Affix.js`로, `.nav` 밖의 탭 목록은 `yona.Tabs.js`로 대체했다. 탭과 드롭다운과 브레드크럼은 BS4 CSS와 변수(`_bs-variables.scss`)를 쓴다.
 확인: 상호작용 순회 121/121(모달, 탭, 드롭다운, 툴팁, 팝오버), 기준(`pre-bs5`) 대비 새 문제 0, 캡처 평균 차이 0.3%, 계산된 스타일로 본 이동 요소 1,901개에서 29개로(남은 것은 flex 표기와 1px 폭). 전체 시험 3027개 통과(결과 파일 316개가 모두 이 실행에서 만들어진 것임을 시각으로 확인했다).
 호환 층은 2,199줄에서 1,129줄로 줄었다. 남은 규칙: 단추 그룹, 표, 알림, 그리드(BS4 flex 열을 끄고 BS2 유동 폭을 쓴다), 요소 기본값. 이 부분은 의존 장부에 이유와 함께 적었고 BS5에서 정한다.
+
+## [2026-10-31] build | X-38d, X-38e 완료: Bootstrap 5 (태그 bs5)
+Bootstrap 5.3.8로 전환했다(A-295). 안내서 항목을 마크업과 JS에 적용했다: `data-toggle`→`data-bs-toggle` 등(BS 위젯에 한정, 서버가 만드는 HTML 문자열 포함), `float-*`→`float-start/end`, `pl-*`→`ps-*`, `badge-*`→`bg-*`, `badge-pill`→`rounded-pill`, `text-muted`→`text-body-secondary`, `close`→`btn-close`, `form-group` 폐지(자체 `form-field`), 위젯 호출(`modal`, `popover`, `tab`, `tooltip`)을 `bootstrap.*` API로, 반복되는 팝오버와 탭은 `$yobi.showPopover`, `hidePopover`, `showTab`로 모았다. BS5의 새 기본 모양(모든 `.row` 자식의 폭 100%, 직접 그리는 체크박스, 표 칸 배경과 아래 선, 단추 그룹 겹침, `hr` 투명도, `legend` 떠다님, `.form-text` 크기)은 변수와 자체 규칙으로 BS2 모양에 맞췄다.
+확인: 상호작용 순회 121/121(기준 대비 새 문제 0), 캡처 평균 차이 0.1%(최대 1.7%), 계산된 스타일로 본 이동 요소 24개, 전체 시험 3027개 통과(결과 파일 316개가 모두 이 실행에서 만들어진 것임을 시각으로 확인). `LegacyBootstrapLintTest`는 5단계 패턴이 모두 0이고 완료 단계를 5로 올렸다.
+순회에서 찾은 것: BS5의 jQuery 플러그인은 `DOMContentLoaded`에서 등록되어 사이트의 `$(function(){...})`가 먼저 실행되면 `.popover()`가 없다(초기화는 `bootstrap.*`를 직접 부른다), 드롭다운 열림 표시가 부모가 아니라 메뉴와 토글의 `.show`다, 서버가 만드는 마크다운과 이벤트 HTML에 옛 속성이 남아 있었다.
+남은 일(X-38f): 호환 층(약 1090줄)을 걷어낼지 정하는 일과 옛 BS 자원 정리. 선생님 확인 후 진행한다.
+
