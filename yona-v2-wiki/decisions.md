@@ -602,6 +602,20 @@ updated: 2026-10-29
   3. 작업 전에 이 목록을 선생님께 먼저 보여 드린다.
 - **상태**: 확정(선생님, 2026-10-30). 조사 완료, 명령별 처리 결정 대기.
 
+### D-52. CLI가 쓰는 서버 REST를 보강하고(X-37) CLI 인증은 기기 인증(Device Flow)으로 한다 (2026-10-30, 선생님 지시와 권장안)
+
+- **배경**: D-51의 대응표에서 서버에 대응 REST가 없는 CLI 명령이 드러났다. 선생님이 "서버에 만들어 줘"라고 하셨다(위키 제외). 또 "repo 생성, 삭제, HTTP 인증에 대비해 토큰을 발행해 로컬에 저장하고 git 명령에서 쓰게" 하고 "CLI 인증은 GitHub처럼 device token(기기 인증)으로 해서 개인이 쓸 수 있는 모든 기능을 쓰게" 하라고 지시하셨다. D-51의 "서버 변경 없음"은 이 지시로 예외가 된다.
+- **결정(선생님 지시)**
+  1. **서버에 REST를 만든다**: `issue transfer`, `status`(사용자 현황), `project edit`, `project delete`, `tag list/create/delete`, `search prs`, `admin permission add/update-role/remove`(프로젝트 구성원), `admin backup export/import`. 위키(`wiki *`)는 X-17이 선행이라 그때로 미룬다.
+  2. **프로젝트를 만들고 지우는 일도 토큰으로 된다**. 지금 `POST /owners/{owner}/projects`는 사이트 관리자 전용(v1.6 계약)이라 일반 사용자가 못 쓴다. v1.6 계약은 그대로 두고 GitHub처럼 `POST /user/projects`(내 계정), `POST /orgs/{org}/projects`(조직 관리자)를 새로 더한다.
+  3. **기기 인증**: GitHub의 `gh auth login`처럼 CLI가 기기 코드를 받아 사용자가 웹에서 승인하면 토큰을 받는다(RFC 8628). 받은 토큰은 로컬(`~/.config`, 권한 0600)에 저장하고, **Git 자격 증명 도우미**(`git credential`)로 연결해 `git clone`, `push`가 HTTP로 인증되게 한다(Git HTTP는 이미 토큰을 비밀번호로 받는다, X-5). CLI가 요청하는 범위는 사용자가 고를 수 있는 모든 일반 범위이다(사이트 관리자는 `site_admin`까지).
+  4. **`pr reviewer add/remove`는 기능을 남긴다**. 방법은 아래 선택지 중 선생님이 정하신다.
+- **`pr reviewer`의 선택지(제안)**: v1.6의 "리뷰어로 등록"은 승인(리뷰 완료)이었고 이 서버는 D-35에서 그것을 리뷰 판정 `APPROVED`로 흡수했다. 이 서버에는 "자기 등록"이라는 별개 개념이 없고, 다른 사람에게 요청하는 `requestedreviewers`가 있다.
+  - (가) **CLI 매핑만 바꾼다(서버 변경 없음, 권장)**: `pr reviewer add` = 승인 판정(`POST .../reviews {"verdict":"APPROVED"}`), `pr reviewer remove` = 내 승인을 거두는 댓글 판정(`{"verdict":"COMMENTED"}`, 최신 판정이 댓글이 되면 승인이 거두어진다, A-195). 의미가 v1.6과 같고 새 개념이 없다.
+  - (나) **서버에 `POST/DELETE .../reviewers`를 더한다**: 본인을 리뷰어로 등록하고 취소한다. 등록은 승인과 같게, 취소는 내 최신 승인을 지운다. CLI 호환이 가장 좋지만 승인과 같은 일을 하는 두 번째 경로가 생긴다.
+  - (다) **자기 리뷰 요청**: 본인에게 `requestedreviewers`를 만든다. GitHub에서는 허용되지 않는 동작이고 승인과 무관해 CLI의 의미(승인 등록)와 다르다.
+- **상태**: 지시 확정(선생님, 2026-10-30). `pr reviewer` 방법은 선생님 결정 대기. 단계는 로드맵 X-37a~k이다. 세부 판단은 A-274부터 기록한다.
+
 ## 정책 결정
 
 ### P-01. v1.6을 그대로 따른다 (AGENTS.md)

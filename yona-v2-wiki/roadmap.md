@@ -136,6 +136,18 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-22 | 새 프로젝트의 기본 브랜치를 `main`으로 고정 | P3-11 | **완료(2026-10-28)** | `next` 기준으로 `yona.git-default-branch`(기본 `main`)를 `HEAD`로 고정한다(A-187) |
 | X-23 | Apache Magpie 연동(이슈 계약 `contract:tracker`, PR 계약 `contract:change-request`) | 없음([magpie-integration.md](architecture/magpie-integration.md)) | **보류(쌓아 둠, 2026-10-28 선생님)** | 선행: X-5(PAT), X-12(리뷰 판정), X-15(PR REST), X-19(일반 REST). 이 항목들이 채우지 못하는 것은 기간·작성자 조건의 이슈 목록과 이슈·PR 활동 조회뿐이다. 착수 전에 D-29를 결정한다 |
 | X-24 | yona CLI(Go 단일 바이너리, `gh`와 비슷한 사용법). **`../yona-cli`에 이미 약 9,300줄이 있다**(이슈, 풀 리퀘스트, 프로젝트, 라벨, 태그, 조직, 검색, 위키, 상태, 별칭, 설정, 관리자). 이전 구현(`yuna`)의 `/api/v1/...`을 부르도록 만들어져 있어, 이 서버의 `/-_-api/v1` 계약에 맞추는 일이 남았다 | `../yona-cli`의 `internal/api`, `cmd` | **진행 중(2026-10-30), 결정은 D-51** | 방침: CLI의 클라이언트(`internal/api`)를 `/-_-api/v1` 경로와 응답 모양으로 바꾸고 서버는 바꾸지 않는다. 서버에 대응 REST가 없는 명령은 목록을 만들어 따로 정한다([architecture/cli-api-gap.md](architecture/cli-api-gap.md)) |
+| X-37 | CLI를 위한 서버 보강(상위 항목): 대응 REST가 없던 명령의 서버 기능과 기기 인증을 열 단계(X-37a~k)로 만든다 | 외부 REST, 기기 인증 | **진행 중(2026-10-30), 결정은 D-52** | 근거는 [architecture/cli-api-gap.md](architecture/cli-api-gap.md). 위키는 X-17 이후 |
+| X-37a | 프로젝트 REST: 만들기(`POST /user/projects`, `POST /orgs/{org}/projects`), 설정 바꾸기(`PATCH $P`), 지우기(`DELETE $P`) | `ExternalProjectManageApiController` | 대기 | 일반 사용자도 토큰으로 프로젝트를 만든다 |
+| X-37b | 프로젝트 구성원 REST: 더하기, 역할 바꾸기, 빼기 | | 대기 | 조회(`GET $P/members`)는 있다 |
+| X-37c | Git 태그 REST: 목록, 만들기, 지우기 | | 대기 | |
+| X-37d | 이슈 옮기기 REST: `POST $P/issues/{n}/transfer` | | 대기 | |
+| X-37e | 사용자 현황 REST: `GET /user/status`, 내 이슈의 `commented`, `shared` 필터 | | 대기 | |
+| X-37f | 풀 리퀘스트 검색: 검색 종류 `pullrequest`와 목록 조건 | | 대기 | 웹 검색은 그대로 둔다 |
+| X-37g | 사이트 내보내기와 가져오기 REST(`site_admin`) | | 대기 | |
+| X-37h | `pr reviewer` 방법 | | **선생님 결정 대기** | D-52의 선택지 (가)(나)(다) |
+| X-37i | 기기 인증(Device Flow): 서버의 기기 코드 발급, 승인 화면, 토큰 발급 | `domain/deviceauth` | 대기 | 새 테이블. X-1(OAuth2 서버)과 이름이 겹치지 않게 한다 |
+| X-37j | CLI(`../yona-cli`): 클라이언트를 `/-_-api/v1`에 맞춤, 새 명령, 기기 로그인, Git 자격 증명 도우미 | `../yona-cli` | 대기 | X-24의 본 작업 |
+| X-37k | 문서: 각 단계의 REST를 OpenAPI와 추적표에 올린다 | `web/api/docs` | 단계마다 | 구조 시험이 빠지면 실패한다 |
 | X-25 | CI/Actions(GitHub Actions 방식의 워크플로 YAML, 러너 등록과 폴링)와 프런트엔드 분리(SPA) | P3-05, P3-13 | 대기 | `next`에서도 **미착수 또는 계획서만 있다**. CI/Actions는 자동 진행 대상에서 제외하라는 기존 지시(P3-05)가 있다 |
 | X-26 | 풀 리퀘스트 리뷰에 줄 단위 댓글 묶기와 임시 저장 리뷰(PENDING): 코드 줄에 단 댓글을 "리뷰 시작"으로 임시 저장했다가 판정과 함께 한꺼번에 제출, 임시 리뷰 버리기 | `domain/pullrequest/PullRequestReview`, `domain/comment/CommentThread` | **구현 완료(2026-10-29), 결정은 D-38** | X-12(D-35)를 먼저 했다. Yona의 줄 댓글(`CommentThread`)은 지금도 즉시 올라가고 판정과 무관하다. 묶으려면 줄 댓글의 저장, 알림 구조를 바꿔야 한다. GitHub은 임시 저장된 줄 댓글을 본인만 보며 제출 전까지 고칠 수 있다(공식 문서). 임시 저장 리뷰는 이 묶음이 있어야 의미가 있다 |
 | X-27 | 풀 리퀘스트 리뷰 요청과 다시 요청: 쓰기 권한자가 특정 사람에게 리뷰를 요청하고 요청받은 사람 목록, 알림, 다시 요청을 둔다 | `domain/pullrequest/PullRequestReviewRequest` | **구현 완료(2026-10-29), 결정은 D-37** | X-12(D-35)를 먼저 했다. GitHub은 리뷰 요청에 쓰기 권한이 필요하다(공식 문서). Yona에는 요청 대상 지정 개념이 없어 새 테이블과 화면이 필요하다. 새 테이블은 내보내기, 가져오기에 포함한다 |
