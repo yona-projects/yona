@@ -130,7 +130,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-30b | 웹훅 REST: 목록, 만들기, 삭제 | `ExternalWebhookApiController`(새 파일) | **구현 완료(2026-10-30)** | 범위 `read:repo_hook`, `write:repo_hook`, `admin:repo_hook` |
 | X-30c | 검색 REST: 전체, 조직, 프로젝트 | `ExternalSearchApiController`(새 파일) | **구현 완료(2026-10-30)** | 웹 검색과 같은 판정 |
 | X-30d | 포크 REST: 사용자나 조직을 대상으로 포크 만들기 | `ExternalForkApiController`(새 파일) | **구현 완료(2026-10-30)** | 웹의 포크 규칙(이름 중복, 조직 관리자만)과 같다 |
-| X-31 | OpenAPI 문서(Swagger UI): `/-_-api/v1` 전체 계약(풀 리퀘스트, 일반 REST 1~3차)을 한 번에 문서화 | OpenAPI 설정, `*RestApi` | **착수 가능(2026-10-30, 선생님: 한 번에 만들어도 됨)** | 선행 REST 영역(X-15, X-19, X-29, X-30)이 모두 끝났다. 영역마다 만들지 않고 한 번에 만든다 |
+| X-31 | OpenAPI 문서(Swagger UI): `/-_-api/v1` 전체 계약(풀 리퀘스트, 일반 REST 1~3차)을 한 번에 문서화. springdoc 어노테이션으로 코드에서 만들고 누구나 열람하며 한국어로 쓴다 | OpenAPI 설정, 컨트롤러 어노테이션, 문서용 모델 | **진행 중(2026-10-30), 결정은 D-50** | 선행 REST 영역(X-15, X-19, X-29, X-30)이 모두 끝났다. 영역마다 만들지 않고 한 번에 만든다. 범위는 `ApiScopeRules`에서 읽어 자동으로 붙인다 |
 | X-20 | 프런트엔드 현대화: Vue 3 웹 컴포넌트 위젯 17개(대화상자, 토스트, 드롭다운, 자동 완성, 첨부, 리뷰 폼, 라벨 편집기 등), Tom Select, Flatpickr, CodeMirror 6와 EasyMDE 에디터, jQuery 제거(순수 JS), Hotwired Turbo(이슈 2단 목록) | `static/lib/yona-vue-widgets`, `frontend/`, `yona.issue.Turbo.js` (P3-46, P3-70) | 대기 | 화면 동작은 v1.6과 같게 둔다는 조건이 필요하다. `yona-v2-wiki`의 Vue 위젯 소스 위치 메모(components 저장소)와 이어진다 |
 | X-21 | 사용 현황 집계(UA 태그를 GA4 gtag로 교체) | `config/analytics/AnalyticsSettings` | **완료(2026-10-28)** | v1.6의 `yona.send-yona-usage` 스위치를 유지하고 UA 태그를 GA4로 교체했다(A-186). 측정 ID는 `yona.analytics.measurement-id` |
 | X-22 | 새 프로젝트의 기본 브랜치를 `main`으로 고정 | P3-11 | **완료(2026-10-28)** | `next` 기준으로 `yona.git-default-branch`(기본 `main`)를 `HEAD`로 고정한다(A-187) |
