@@ -43,7 +43,7 @@ class RulesetController(private val projectService: ProjectService, private val 
             .addObject("title", "project.ruleset")
             .addObject("projectView", views.of(project))
             .addObject("rulesets", rulesets)
-            .addObject("migrated", rulesets.any { it.name == ReviewerSettingMigration.MIGRATED_NAME })
+            .addObject("migrated", rulesets.any { it.name?.startsWith(ReviewerSettingMigration.MIGRATED_NAME) == true })
     }
 
     /** 새 규칙 묶음 화면이다. */

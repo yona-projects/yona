@@ -190,7 +190,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
     @Test
     fun `이전한 리뷰어 설정 규칙 묶음이 있으면 안내를 보인다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
-        send(project, session, "", "name" to dev.yona.domain.project.ReviewerSettingMigration.MIGRATED_NAME, "enforcement" to "active", "pattern" to "**", "approvals" to "2")
+        send(project, session, "", "name" to "${dev.yona.domain.project.ReviewerSettingMigration.MIGRATED_NAME} (master)", "enforcement" to "active", "pattern" to "master", "approvals" to "2")
         assertTrue(page(project, session).selectFirst("#rulesetMigrated")!!.text().contains("이전된 리뷰어 설정"))
     }
 
