@@ -222,4 +222,13 @@ class ExternalProjectManageApiTest : AbstractIntegrationTest() {
         json(delete(api(project)), tokenOf(manager), null).andExpect(status().isForbidden)
         json(delete(api(project)), tokenOf(repoOnly), null).andExpect(status().isNoContent)
     }
+
+    // 문서는 404를 `{"message"}` JSON으로 약속한다. 웹의 오류 화면(HTML)이 나가면 CLI가 HTML을 오류로 보여 준다(실서버 종단 시험에서 발견했다).
+    @Test
+    fun `없는 프로젝트의 수정과 삭제와 구성원과 이슈 옮기기는 JSON 404이다`() {
+        val user = newUser(); val gone = "/-_-api/v1/owners/nobody-$stamp/projects/none"
+        listOf(patch(gone) to "{}", delete(gone) to null, post("$gone/members") to """{"loginId":"x"}""", delete("$gone/members/x") to null).forEach { (builder, body) ->
+            json(builder, tokenOf(user), body).andExpect(status().isNotFound).andExpect(jsonPath("$.message").isString)
+        }
+    }
 }

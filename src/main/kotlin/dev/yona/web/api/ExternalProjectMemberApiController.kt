@@ -11,7 +11,6 @@ import dev.yona.domain.project.ProjectUserRepository
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
 import dev.yona.web.access.AnonymousCheck
-import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -65,7 +64,7 @@ class ExternalProjectMemberApiController(
     fun add(@PathVariable owner: String, @PathVariable projectName: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return ErrorViews.notFound()
+        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, project.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val loginId = json.get("loginId")?.takeIf { it.isString }?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "loginId is required")
         val role = if (json.has("role")) roleOf(json.get("role")) ?: return requests.message(HttpStatus.BAD_REQUEST, "role must be manager or member") else RoleType.MEMBER
@@ -93,7 +92,7 @@ class ExternalProjectMemberApiController(
     fun changeRole(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable loginId: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return ErrorViews.notFound()
+        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, project.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val target = memberOf(project, loginId) ?: return requests.message(HttpStatus.NOT_FOUND, "no member by request")
         val role = roleOf(json.get("role")) ?: return requests.message(HttpStatus.BAD_REQUEST, "role must be manager or member")
@@ -110,7 +109,7 @@ class ExternalProjectMemberApiController(
     @Transactional
     fun remove(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable loginId: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return ErrorViews.notFound()
+        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         val target = memberOf(project, loginId) ?: return requests.message(HttpStatus.NOT_FOUND, "no member by request")
         if (user.id != target.id && !accessControl.isAllowed(user, project.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         if (project.isOwner(target)) return requests.message(HttpStatus.FORBIDDEN, "the owner cannot leave the project")

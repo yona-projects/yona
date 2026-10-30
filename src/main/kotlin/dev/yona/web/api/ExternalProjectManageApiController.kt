@@ -19,7 +19,6 @@ import dev.yona.domain.project.ProjectSettingService
 import dev.yona.domain.user.User
 import dev.yona.repository.RepositoryService
 import dev.yona.web.access.AnonymousCheck
-import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -97,7 +96,7 @@ class ExternalProjectManageApiController(
     @Transactional
     fun createForOrganization(@PathVariable org: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val organization = organizationService.findByName(org) ?: return ErrorViews.notFound()
+        val organization = organizationService.findByName(org) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         return create(user, requireNotNull(organization.name), request)
     }
 
@@ -138,7 +137,7 @@ class ExternalProjectManageApiController(
     fun update(@PathVariable owner: String, @PathVariable projectName: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return ErrorViews.notFound()
+        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, project.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         if (FIELDS.none { json.has(it) }) return requests.message(HttpStatus.BAD_REQUEST, "no updatable field: ${FIELDS.joinToString(", ")}")
 
@@ -182,7 +181,7 @@ class ExternalProjectManageApiController(
     @Transactional
     fun delete(@PathVariable owner: String, @PathVariable projectName: String, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return ErrorViews.notFound()
+        val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, project.asResource(), Operation.DELETE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val projectId = requireNotNull(project.id)
         // 지우는 사용자의 즐겨찾기를 먼저 정리한다 (웹의 `ProjectDeleteController`와 같다)

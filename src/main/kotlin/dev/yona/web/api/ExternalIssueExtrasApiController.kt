@@ -15,7 +15,6 @@ import dev.yona.domain.project.ProjectRepository
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.user.UserRepository
 import dev.yona.web.access.AnonymousCheck
-import dev.yona.web.error.ErrorViews
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -71,7 +70,7 @@ class ExternalIssueExtrasApiController(
     @Transactional(readOnly = true)
     fun listSharers(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val issue = find(owner, projectName, number) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, issue.asResource(), Operation.READ)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         return ok(linkedMapOf("result" to sharersOf(issue)))
     }
@@ -103,7 +102,7 @@ class ExternalIssueExtrasApiController(
     private fun changeSharers(owner: String, projectName: String, number: Long, request: HttpServletRequest, add: Boolean): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val issue = find(owner, projectName, number) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val loginIds = list(json, "sharers") { it.asString("").takeIf { text -> text.isNotBlank() } } ?: return requests.message(HttpStatus.BAD_REQUEST, "sharers must be a list of login ids")
         val projectIds = list(json, "projects") { if (it.isNumber) it.asLong() else null } ?: return requests.message(HttpStatus.BAD_REQUEST, "projects must be a list of project numbers")
@@ -141,7 +140,7 @@ class ExternalIssueExtrasApiController(
     fun weight(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val issue = find(owner, projectName, number) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val delta = json.get("delta")?.takeIf { it.isNumber }?.asInt()?.takeIf { it == 1 || it == -1 } ?: return requests.message(HttpStatus.BAD_REQUEST, "delta must be 1 or -1")
         return ok(linkedMapOf("result" to linkedMapOf("weight" to issueService.adjustWeight(issue, delta))))
@@ -157,7 +156,7 @@ class ExternalIssueExtrasApiController(
     @Transactional
     fun watch(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val issue = find(owner, projectName, number) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, issue.asResource(), Operation.READ)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         watchService.watch(user, ResourceType.ISSUE_POST, requireNotNull(issue.id).toString())
         return ok(linkedMapOf("result" to linkedMapOf("watching" to true)))
@@ -171,7 +170,7 @@ class ExternalIssueExtrasApiController(
     @Transactional
     fun unwatch(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
-        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val issue = find(owner, projectName, number) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, issue.asResource(), Operation.READ)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         watchService.unwatch(user, ResourceType.ISSUE_POST, requireNotNull(issue.id).toString())
         return ok(linkedMapOf("result" to linkedMapOf("watching" to false)))
@@ -195,7 +194,7 @@ class ExternalIssueExtrasApiController(
     fun transfer(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
-        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val issue = find(owner, projectName, number) ?: return requests.message(HttpStatus.NOT_FOUND, "not found")
         if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val targetOwner = json.get("targetOwner")?.takeIf { it.isString }?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "targetOwner is required")
         val targetName = json.get("targetProject")?.takeIf { it.isString }?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "targetProject is required")
