@@ -4,20 +4,20 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="tabmenu(tabId)">
 <ul class="nav nav-tabs mt20">
-  <li th:class="${tabId == 'profile'} ? 'active'">
-    <a th:href="@{/user/editform}" th:text="#{userinfo.editProfile}"></a>
+  <li class="nav-item">
+    <a th:href="@{/user/editform}" th:text="#{userinfo.editProfile}" class="nav-link" th:classappend="${tabId == 'profile'} ? 'active'"></a>
   </li>
-  <li th:class="${tabId == 'password'} ? 'active'">
-    <a th:href="@{/user/editform/password}" th:text="#{userinfo.changePassword}"></a>
+  <li class="nav-item">
+    <a th:href="@{/user/editform/password}" th:text="#{userinfo.changePassword}" class="nav-link" th:classappend="${tabId == 'password'} ? 'active'"></a>
   </li>
-  <li th:class="${tabId == 'notifications'} ? 'active'">
-    <a th:href="@{/user/editform/notifications}" th:text="#{userinfo.changeNotifications}"></a>
+  <li class="nav-item">
+    <a th:href="@{/user/editform/notifications}" th:text="#{userinfo.changeNotifications}" class="nav-link" th:classappend="${tabId == 'notifications'} ? 'active'"></a>
   </li>
-  <li th:class="${tabId == 'emails'} ? 'active'">
-    <a th:href="@{/user/editform/emails}" th:text="#{userinfo.changeEmails}"></a>
+  <li class="nav-item">
+    <a th:href="@{/user/editform/emails}" th:text="#{userinfo.changeEmails}" class="nav-link" th:classappend="${tabId == 'emails'} ? 'active'"></a>
   </li>
-  <li th:class="${tabId == 'token'} ? 'active'">
-    <a th:href="@{/user/editform/token}" th:text="#{userinfo.token}"></a>
+  <li class="nav-item">
+    <a th:href="@{/user/editform/token}" th:text="#{userinfo.token}" class="nav-link" th:classappend="${tabId == 'token'} ? 'active'"></a>
   </li>
 </ul>
 </th:block>

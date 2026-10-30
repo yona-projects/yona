@@ -751,3 +751,7 @@ D-51의 대응표에서 서버에 REST가 없던 CLI 명령을 서버에 만들�
 
 ## [2026-10-30] build | X-38c 1구간: 자체 스타일 LESS에서 SCSS로
 변환 스크립트로 LESS 21개 파일(약 1만 6천 줄)을 SCSS로 옮기고, LESS 컴파일 결과와 SCSS 컴파일 결과를 규칙 단위로 대조해 같음을 확인했다(A-287). 빌드는 dart-sass로 바꾸고 `build-tools/less`를 지웠다(쓰이지 않는 LESS 도구, 이력에 남아 있다). 스타일 소스 주소는 `scss/font`로 바뀌었다(A-288). 전 화면 순회 121/121, BS3 빌드와 픽셀 차이 0. 체크포인트 태그 `scss`.
+
+## [2026-10-31] build | X-38c 2~3구간: Bootstrap 4 도입과 안내서 대응 (진행 중)
+BS4.6.2 SCSS를 들이고(`vendor/bootstrap`) 변수로 BS2 값을 맞췄다(`_bs-variables.scss`). 안내서대로 라벨→배지, 탭→`nav-item`/`nav-link`, 드롭다운→`dropdown-item`, `help-block`→`form-text`, `well`→`card`, `.checkbox`/`.radio`→`form-check`, 진행 막대→`bg-*`, `col-md`→`col-lg`, `pull-*`→`float-*`로 템플릿과 JS를 바꿨다. `affix`는 자체 `yona.Affix.js`로 대체했다(A-291). 두 빌드의 계산된 스타일을 대조해 이동 요소를 1,901개에서 150개로 줄였다.
+중간에 호환 층에 규칙을 더해 수치만 맞추고 있다는 선생님 지적을 받아(A-293), 탭과 드롭다운의 BS2 규칙 72개를 지우고 BS4 변수와 자체 SCSS로 되돌렸다(A-290). 호환 층은 2,199줄에서 1,746줄이 되었다. 전체 H2 시험 3027개 통과. 남은 일: 폼 가로 배치(`form-horizontal`), `help-inline`, `hide`, 단추 그룹, 표, 그리드 호환 규칙의 마크업 전환, 상호작용 순회와 태그 `bs4`.

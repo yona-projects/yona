@@ -14,22 +14,22 @@
 
 <div class="project-page-wrap">
     <div class="row issue-list-wrap">
-        <div class="col-md-2 search-wrap span-hard-wrap">
+        <div class="col-lg-2 search-wrap span-hard-wrap">
             <div class="inner advanced">
                 <ul class="lst-stacked list-unstyled">
                     <li th:class="${cond.participantId == null and cond.authorId == null} ? 'active'">
                         <a href="#" data-toggle="filter"><th:block th:text="#{review.allReview}"></th:block>
-                            <span class="num-badge pull-right" th:text="${quick.everyone}"></span>
+                            <span class="num-badge float-right" th:text="${quick.everyone}"></span>
                         </a>
                     </li>
                     <li th:class="${cond.participantId == meId} ? 'active'">
                         <a href="#" data-toggle="filter" data-type="participantId" th:attr="data-value=${meId}"><th:block th:text="#{review.involvingYou}"></th:block>
-                            <span class="num-badge pull-right" th:text="${quick.participant}"></span>
+                            <span class="num-badge float-right" th:text="${quick.participant}"></span>
                         </a>
                     </li>
                     <li th:class="${cond.authorId == meId} ? 'active'">
                         <a href="#" data-toggle="filter" data-type="authorId" th:attr="data-value=${meId}"><th:block th:text="#{review.createdByYou}"></th:block>
-                            <span class="num-badge pull-right" th:text="${quick.author}"></span>
+                            <span class="num-badge float-right" th:text="${quick.author}"></span>
                         </a>
                     </li>
                 </ul>
@@ -47,8 +47,8 @@
                 </form>
             </div>
         </div>
-        <div class="col-md-10 span-hard-wrap">
-            <div class="pull-right filters">
+        <div class="col-lg-10 span-hard-wrap">
+            <div class="float-right filters">
                 <a th:if="${cond.orderBy == 'createdDate'}" href="#" data-field="createdDate" th:attr="data-value=${cond.orderDir == 'asc'} ? 'desc' : 'asc'" class="filter" data-toggle="order">
                     <i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{common.order.date}"></th:block>
                 </a>
@@ -57,13 +57,13 @@
                 </a>
             </div>
             <ul class="nav nav-tabs nm">
-                <li th:class="${cond.state == 'OPEN'} ? 'active'">
-                    <a href="#" data-type="state" data-value="OPEN" data-toggle="filter"><th:block th:text="#{issue.state.open}"></th:block>
+                <li class="nav-item">
+                    <a href="#" data-type="state" data-value="OPEN" data-toggle="filter" class="nav-link" th:classappend="${cond.state == 'OPEN'} ? 'active'"><th:block th:text="#{issue.state.open}"></th:block>
                         <span class="num-badge" th:text="${openCount}"></span>
                     </a>
                 </li>
-                <li th:class="${cond.state == 'CLOSED'} ? 'active'">
-                    <a href="#" data-type="state" data-value="CLOSED" data-toggle="filter"><th:block th:text="#{issue.state.closed}"></th:block>
+                <li class="nav-item">
+                    <a href="#" data-type="state" data-value="CLOSED" data-toggle="filter" class="nav-link" th:classappend="${cond.state == 'CLOSED'} ? 'active'"><th:block th:text="#{issue.state.closed}"></th:block>
                         <span class="num-badge" th:text="${closedCount}"></span>
                     </a>
                 </li>
@@ -95,7 +95,7 @@
                     <p th:text="#{review.is.empty}"></p>
                 </div>
             </div>
-            <div class="pull-left" style="padding:10px;">
+            <div class="float-left" style="padding:10px;">
                 <a th:href="${excelUrl}" class="ybtn small">
                     <i class="yobicon-file-excel"></i> <th:block th:text="#{issue.downloadAsExcel}"></th:block>
                 </a>

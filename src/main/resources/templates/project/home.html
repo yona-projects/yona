@@ -22,7 +22,7 @@
             </span>
         </div>
         <div class="project-home-header row">
-            <div class="project-overview col-md-9 span-hard-wrap">
+            <div class="project-overview col-lg-9 span-hard-wrap">
                 <div class="project-description" data-toggle="project-description-tab">
                 <h3><span id="project-description" class="markdown-wrap"><th:block th:if="${overviewHtml == null}" th:text="#{project.description.placeholder}"></th:block><th:block th:if="${overviewHtml != null}" th:utext="${overviewHtml}"></th:block></span>
                     <button th:if="${projectView.canUpdate}" type="button" class="ybtn ybtn-minimum" data-toggle="description-edit"><i class="yobicon-edit"></i></button>
@@ -30,29 +30,29 @@
                 </div>
                 <div class="project-description-edit hidden" data-toggle="project-description-tab">
                     <form th:action="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name})}" onsubmit="return false">
-                    <input type="text" id="project-description-input" class="col-md-6" th:placeholder="#{project.description.placeholder}" th:value="${projectView.project.overview}"/>
+                    <input type="text" id="project-description-input" class="col-lg-6" th:placeholder="#{project.description.placeholder}" th:value="${projectView.project.overview}"/>
                     <button type="button" class="ybtn ybtn-success" id="descriptionSaveBtn" th:text="#{button.save}"></button> <button type="button" class="ybtn" data-toggle="description-cancel" th:text="#{button.cancel}"></button>
                     </form>
                 </div>
             </div>
-            <div th:if="${projectView.menuSetting.code}" class="project-clone-wrap col-md-3 hide-in-mobile">
+            <div th:if="${projectView.menuSetting.code}" class="project-clone-wrap col-lg-3 hide-in-mobile">
                 <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" th:value="${projectView.cloneUrl}">
                 <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}"></button>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-9 span-left-pane">
+            <div class="col-lg-9 span-left-pane">
                  <ul class="nav nav-tabs">
-                    <li th:class="${tabId == 'readme'} ? 'active'">
-                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name})}">README</a>
+                    <li class="nav-item">
+                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name})}" class="nav-link" th:classappend="${tabId == 'readme'} ? 'active'">README</a>
                     </li>
 
-                    <li th:class="${tabId == 'history'} ? 'active'">
-                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name},tabId='history')}" th:text="#{project.history.recent}"></a>
+                    <li class="nav-item">
+                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name},tabId='history')}" th:text="#{project.history.recent}" class="nav-link" th:classappend="${tabId == 'history'} ? 'active'"></a>
                     </li>
 
-                    <li th:class="${tabId == 'dashboard'} ? 'active'">
-                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name},tabId='dashboard')}" th:text="#{project.dashboard}"></a>
+                    <li class="nav-item">
+                        <a th:href="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name},tabId='dashboard')}" th:text="#{project.dashboard}" class="nav-link" th:classappend="${tabId == 'dashboard'} ? 'active'"></a>
                     </li>
                 </ul>
 
@@ -71,7 +71,7 @@
                 </div>
             </div>
 
-            <div class="col-md-3 span-right-pane">
+            <div class="col-lg-3 span-right-pane">
                 <div class="bubble-wrap gray project-home">
                     <div class="project-btn-wrap">
                         <span th:if="${projectView.menuSetting.issue}" class="project-btn-item">
@@ -94,7 +94,7 @@
                         <div class="member-wrap">
                             <ul class="project-members">
                                 <li th:each="member : ${members}" class="member">
-                                    <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap img-rounded pull-left small">
+                                    <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap rounded float-left small">
                                         <img th:src="${member.avatarUrl}" th:alt="${member.loginId}" width="24" height="24">
                                     </a>
                                     <a th:href="@{/{user}(user=${member.loginId})}" class="name">
@@ -104,7 +104,7 @@
                             </ul>
                         </div>
                     </div>
-                    <button th:if="${projectView.canLeave}" type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="projectLeaveBtn" th:data-href="${projectView.leaveUrl}" th:text="#{project.member.leave}"></button>
+                    <button th:if="${projectView.canLeave}" type="button" class="ybtn ybtn-minimum ybtn-danger float-right" id="projectLeaveBtn" th:data-href="${projectView.leaveUrl}" th:text="#{project.member.leave}"></button>
                 </div>
             </div>
         </div>

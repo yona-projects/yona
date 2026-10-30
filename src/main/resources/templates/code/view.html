@@ -16,14 +16,14 @@
     <div class="project-page-wrap">
         <div class="code-browse-wrap">
             <ul class="nav nav-tabs" th:if="${page.showTabs}">
-                <li class="active"><a th:href="${page.filesTabUrl}" th:text="#{code.files}"></a></li>
-                <li><a th:href="${page.commitsTabUrl}" th:text="#{code.commits}"></a></li>
-                <li th:if="${page.branchesTabUrl != null}"><a th:href="${page.branchesTabUrl}" th:text="#{title.branches}"></a></li>
-                <li th:if="${page.tagsTabUrl != null}"><a th:href="${page.tagsTabUrl}" th:text="#{title.tags}"></a></li>
+                <li class="nav-item"><a th:href="${page.filesTabUrl}" th:text="#{code.files}" class="nav-link active"></a></li>
+                <li class="nav-item"><a th:href="${page.commitsTabUrl}" th:text="#{code.commits}" class="nav-link"></a></li>
+                <li th:if="${page.branchesTabUrl != null}" class="nav-item"><a th:href="${page.branchesTabUrl}" th:text="#{title.branches}" class="nav-link"></a></li>
+                <li th:if="${page.tagsTabUrl != null}" class="nav-item"><a th:href="${page.tagsTabUrl}" th:text="#{title.tags}" class="nav-link"></a></li>
             </ul>
 
             <div class="code-browse-header">
-                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="pull-left">
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-left">
                     <th:block th:each="g : ${page.branchGroups}">
                         <optgroup th:if="${g.titleKey != null}" th:label="#{${g.titleKey}}">
                             <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
@@ -33,13 +33,13 @@
                         </th:block>
                     </th:block>
                 </select>
-                <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 pull-left">
+                <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 float-left">
                     <a th:href="${page.rootUrl}" th:text="${page.projectName}"></a><th:block th:each="c : ${page.crumbs}"><a th:href="${c.href}" th:text="${c.text}"></a></th:block>
                 </div>
-                <div class="pull-right" th:if="${page.downloadUrl != null}">
+                <div class="float-right" th:if="${page.downloadUrl != null}">
                     <a th:href="${page.downloadUrl}" class="ybtn" th:text="#{code.download}"></a>
                 </div>
-                <div class="pull-right" th:if="${page.newFileUrl != null}">
+                <div class="float-right" th:if="${page.newFileUrl != null}">
                     <a id="new-file-link" th:href="${page.newFileUrl}" class="ybtn" th:text="#{code.new.file}"></a>
                 </div>
             </div>
@@ -50,36 +50,36 @@
                 <th:block th:if="${item.folder != null}" th:with="folder=${item.folder}">
                 <div class="list-wrap" data-type="folder" th:attr="data-listPath=${folder.listPath != ''} ? ${folder.listPath}">
                     <div class="row listhead">
-                        <div class="col-md-6 filename"><strong th:text="#{code.filename}"></strong></div>
-                        <div class="col-md-4 commitMsg"><strong th:text="#{code.commitMsg}"></strong></div>
-                        <div class="col-md-2 commitDate"><strong th:text="#{code.commitDate}"></strong></div>
+                        <div class="col-lg-6 filename"><strong th:text="#{code.filename}"></strong></div>
+                        <div class="col-lg-4 commitMsg"><strong th:text="#{code.commitMsg}"></strong></div>
+                        <div class="col-lg-2 commitDate"><strong th:text="#{code.commitDate}"></strong></div>
                     </div>
                     <div class="alert alert-warning nm" style="border-top:0; padding-left:23px;" th:if="${#lists.isEmpty(folder.entries)}" th:text="#{code.nofiles}"></div>
                     <div th:each="e : ${folder.entries}" th:id="${e.id}" class="row listitem" th:attr="data-path=${e.dataPath}">
-                        <div class="col-md-6 filename">
+                        <div class="col-lg-6 filename">
                             <a th:href="${e.href}" th:class="${e.fileClass}" th:title="${e.name}" th:attr="data-type=${e.folder} ? 'folder', data-targetPath=${e.dataPath}">
                                 <span class="dynatree-icon vmiddle"></span><th:block th:text="${e.name}"></th:block>
                             </a>
                         </div>
-                        <div class="col-md-5 commitMsg">
+                        <div class="col-lg-5 commitMsg">
                             <a th:href="${e.userHref}" class="avatar-wrap smaller"><img th:src="${e.avatarUrl}"></a>
                             <span class="ml5"><a th:href="${e.commitUrl}" th:text="${e.msg}"></a></span>
                         </div>
-                        <div class="col-md-1 commitDate" th:text="${e.ago}"></div>
+                        <div class="col-lg-1 commitDate" th:text="${e.ago}"></div>
                     </div>
                 </div>
                 <script id="tplFileListItem" type="text/x-jquery-tmpl">
 <div id="cb-${listPath}${fileName}" class="row listitem" data-path="${targetPath}">
-    <div class="col-md-6 filename">
+    <div class="col-lg-6 filename">
         <a href="${path}" class="${fileClass}" title="${fileName}" data-targetPath="${targetPath}" data-type="${type}">
             <span class="dynatree-icon vmiddle"></span>${fileName}
         </a>
     </div>
-    <div class="col-md-5 commitMsg">
+    <div class="col-lg-5 commitMsg">
         ${avatarImg}
         <span class="ml5"><a href="${commitUrl}">${commitMsg}</a></span>
     </div>
-    <div class="col-md-1 commitDate">${commitDate}</div>
+    <div class="col-lg-1 commitDate">${commitDate}</div>
 </div>
                 </script>
                 </th:block>
@@ -103,7 +103,7 @@
                             <span id="commitMessage" class="commitMsg" th:text="${f.commitMessage}"></span>
                             <span th:text="${f.lineEnding}"></span>
                         </div>
-                        <div class="pull-right">
+                        <div class="float-right">
                             <th:block th:unless="${f.binary}">
                             <a th:href="${f.rawUrl}" class="ybtn" target="_blank"><i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw</a>
                             <a th:if="${f.editUrl != null}" th:href="${f.editUrl}" class="ybtn">Edit</a>

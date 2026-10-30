@@ -87,7 +87,7 @@
             if (sMailingType == 'all') {
                 aProjects = {'all': 'true'}
             } else {
-                waProjectSpan = $('#selected-projects > .label');
+                waProjectSpan = $('#selected-projects > .badge');
                 aProjects = [];
                 for (var i = 0; i < waProjectSpan.length; i++) {
                     aProjects.push(waProjectSpan[i].childNodes[0].nodeValue.trim());
@@ -152,7 +152,7 @@
                 welProject.remove();
             };
 
-            var welProject = $('<span class="label label-info">' + sName + " </span>")
+            var welProject = $('<span class="badge badge-info">' + sName + " </span>")
                 .css('margin-right','5px')
                 .append($('<a href="javascript:void(0)">x</a>')
                 .click(fOnClickUnselect));

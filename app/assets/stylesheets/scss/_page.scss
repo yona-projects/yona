@@ -40,12 +40,10 @@
             }
         }
 
-        .active {
-            a {
-                color: #f36c22;
-                background-color: black;
-                border: none;
-            }
+        li a.active {
+            color: #f36c22;
+            background-color: black;
+            border: none;
         }
     }
 
@@ -832,10 +830,22 @@
     label { cursor:pointer; @include inline-block; }
 }
 
-.checkbox {
+.checkbox, .form-check {
     @include inline-block;
     vertical-align:top;
     margin:2px !important;
+    // v1.6에서는 `<label class="checkbox">`가 Bootstrap 2의 `label { line-height: 20px }`를 받았다. `div.form-check`는 부모의 줄 높이를 물려받으므로 명시한다.
+    line-height:20px;
+}
+
+// v1.6의 `label.radio`는 자체 규칙 `.checkbox`의 여백을 받지 않았다. 라디오 래퍼(`form-check-radio`)는 BS4 기본 여백만 둔다.
+.form-check.form-check-radio {
+    margin:0 !important;
+}
+
+// v1.6의 `.checkbox.inline`(Bootstrap 2)은 위쪽 안쪽 여백 5px를 가졌다.
+.form-check-inline {
+    padding-top:5px;
 }
 
 .forked-from {
@@ -2425,7 +2435,7 @@ label.inline-list {
         }
     }
 }
-.label.milestone-state {
+.badge.milestone-state {
     margin:0; padding:2px 0px; margin-right:3px;
     width:40px; text-align:center; font-size:11px;
 
@@ -2645,7 +2655,7 @@ label.inline-list {
                         border-bottom: 0 none;
                     }
                     .label-list {
-                        span:not(.label) {
+                        span:not(.badge) {
                             &:not(:last-child):after {
                                 content: ", ";
                             }
@@ -2876,10 +2886,10 @@ label.inline-list {
         margin-right:20px;
         color: #999;
     }
-    .badge { color:#fff; }
+    .badge-pill { color:#fff; }
 }
 
-.badge {
+.badge-pill {
     margin-right:25px;
     font-weight:bold;
     color:#FFF;
@@ -4610,7 +4620,7 @@ label.issue-item-row {
     }
 
     /** list **/
-    .row-fluid   { line-height:40px; }
+    .row   { line-height:40px; }
     .currentPath { font-weight:bold; background:#f7f7f7; }
     .listhead {
         background:#f7f7f7;
@@ -5220,7 +5230,7 @@ label.issue-item-row {
             line-height:30px;
         }
 
-        .form-search{
+        form {
             margin:0;
         }
     }
@@ -5465,7 +5475,7 @@ label.issue-item-row {
                 display:inline-block;
                 vertical-align:top;
                 input { font-size:14px; }
-                .help-block { color:#999; }
+                .form-text { color:#999; }
             }
         }
 
@@ -5640,7 +5650,7 @@ label.issue-item-row {
             padding:5px 7px;
             line-height: 20px;
 
-            .label {
+            .badge {
                 background-color: #C7C9C9;
                 text-shadow:none;
             }
@@ -5981,7 +5991,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     .thread-header{
         padding: 5px 10px 10px 10px;
 
-        .badge {
+        .badge-pill {
             margin:0; padding:2px 10px;
         }
         .thread-info {
@@ -6586,6 +6596,18 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             position:relative;
             display:inline-block;
             vertical-align:top;
+            // v1.6 화면은 이 영역에 Bootstrap 2의 `form-actions`를 붙여 회색 바탕과 윗줄, 안쪽 여백을 받았다. Bootstrap 3부터 그 클래스가 없어 자체 스타일로 둔다.
+            padding:19px 20px 20px;
+            margin:20px 0;
+            background-color:#f5f5f5;
+            border-top:1px solid #e5e5e5;
+
+            &::before, &::after {
+                display:table;
+                line-height:0;
+                content:"";
+            }
+            &::after { clear:both; }
         }
         .input-webhook-payload {
             width:355px;
@@ -6707,6 +6729,11 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         font-size:15px;
         text-align:center;
     }
+}
+
+// 스크롤로 화면에 고정된 요소(yona.Affix.js)
+.affix {
+  position: fixed;
 }
 
 .admin-logged-in-affix {
@@ -6868,7 +6895,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     strong {
         margin-right: 5px;
     }
-    .checkbox.inline {
+    .form-check-inline {
         padding-top: 0px;
     }
 }
@@ -7838,3 +7865,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .draft-save-btn {}
+
+// v1.6에서는 Bootstrap 2의 `[class*="span"]` 선택자가 이름에 `span`이 들어간 이 클래스에도 `float: left`를 우연히 주었다. 그 선택자가 없어진 뒤에도 같은 배치가 되도록 명시한다(X-38c).
+.span-hard-wrap {
+  float: left;
+}
+
+// 고정 그리드(`.row` + 열) 머리글은 열의 최소 높이가 없었다. 가변 그리드 호환 규칙(30px)을 받지 않도록 되돌린다.
+.attachment-files-header [class*="col-lg-"] {
+  min-height: 1px;
+}

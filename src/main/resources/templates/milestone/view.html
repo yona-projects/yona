@@ -22,12 +22,12 @@
                         <span class="due-date"><th:block th:text="#{label.dueDate}"></th:block> <strong th:text="${status.dueDateString}"></strong></span>
                         <span th:if="${milestone.state.name() != 'CLOSED'}" class="date">(<th:block th:text="${status.until}"></th:block>)</span>
                     </th:block>
-                    <span class="badge margin-left-5" th:classappend="'badge-issue-' + ${milestone.state.state.toLowerCase()}" th:text="#{'milestone.state.' + ${milestone.state.state}}"></span>
+                    <span class="badge badge-pill margin-left-5" th:classappend="'badge-issue-' + ${milestone.state.state.toLowerCase()}" th:text="#{'milestone.state.' + ${milestone.state.state}}"></span>
                 </small>
             </h4>
 
             <div class="progress">
-                <div class="progress-bar progress-bar-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
+                <div class="progress-bar bg-success" th:style="'width: ' + ${status.completionRate} + '%;'"></div>
             </div>
             <div th:if="${contentsHtml == null}" class="content empty-content"></div>
             <div th:unless="${contentsHtml == null}" class="milestone-desc">
@@ -36,7 +36,7 @@
             </div>
 
             <div class="actrow right-txt row" style="padding: 15px 0; clear:both;">
-                <a th:href="${base + '/milestones'}" class="ybtn pull-left" th:text="#{button.list}"></a>
+                <a th:href="${base + '/milestones'}" class="ybtn float-left" th:text="#{button.list}"></a>
 
                 <a th:if="${canDelete}" href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger" th:text="#{button.delete}"></a>
 
@@ -50,8 +50,8 @@
 
             <div id="issues">
                 <ul class="nav nav-tabs">
-                    <li th:each="tab : ${ {'open', 'closed', 'all'} }" th:class="${issueState.state == tab} ? 'active'">
-                        <a th:href="${base + '/milestone/' + milestone.id + '?state=' + tab + '#issues'}">
+                    <li th:each="tab : ${ {'open', 'closed', 'all'} }" class="nav-item">
+                        <a th:href="${base + '/milestone/' + milestone.id + '?state=' + tab + '#issues'}" class="nav-link" th:classappend="${issueState.state == tab} ? 'active'">
                             <th:block th:text="#{'issue.state.' + ${tab}}"></th:block>
                             <span class="num-badge" th:text="${issueCounts.get(tab)}"></span>
                         </a>
@@ -61,7 +61,7 @@
                 <div class="issues">
                     <div class="filter-wrap">
                         <th:block th:replace="~{issue/partial-massupdate :: massupdate}"></th:block>
-                        <div class="pull-right search search-bar">
+                        <div class="float-right search search-bar">
                             <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="" data-toggle="item-search" data-items="issue-item">
                             <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
                         </div>

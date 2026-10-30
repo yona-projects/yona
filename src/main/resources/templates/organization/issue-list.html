@@ -16,7 +16,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap">
         <div pjax-container class="row issue-list-wrap">
-            <div class="left-menu col-md-2 span-hard-wrap">
+            <div class="left-menu col-lg-2 span-hard-wrap">
                 <div class="inner advanced">
                     <ul class="lst-stacked list-unstyled" th:with="names=${cond.projectNames.isEmpty() ? '' : cond.projectNames}">
                         <li th:class="${cond.assigneeId == null and cond.authorId == null and cond.mentionId == null} ? 'active'">
@@ -55,19 +55,19 @@
                     </form>
                 </div>
             </div>
-            <div class="col-md-10 span-hard-wrap" id="span10">
+            <div class="col-lg-10 span-hard-wrap" id="span10">
                 <ul class="nav nav-tabs nm">
-                    <li th:class="${cond.state == 'open'} ? 'active'">
-                        <a href="#" state="open"><th:block th:text="#{issue.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
+                    <li class="nav-item">
+                        <a href="#" state="open" class="nav-link" th:classappend="${cond.state == 'open'} ? 'active'"><th:block th:text="#{issue.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
                     </li>
-                    <li th:class="${cond.state == 'closed'} ? 'active'">
-                        <a href="#" state="closed"><th:block th:text="#{issue.state.closed}"></th:block> <span class="num-badge" th:text="${closedCount}"></span></a>
+                    <li class="nav-item">
+                        <a href="#" state="closed" class="nav-link" th:classappend="${cond.state == 'closed'} ? 'active'"><th:block th:text="#{issue.state.closed}"></th:block> <span class="num-badge" th:text="${closedCount}"></span></a>
                     </li>
                     <li><th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block></li>
                 </ul>
                 <th:block th:if="${!items.isEmpty()}">
                     <div class="filter-wrap small-heights">
-                        <div th:if="${items.size() > 1}" class="filters pull-right">
+                        <div th:if="${items.size() > 1}" class="filters float-right">
                             <th:block th:each="field : ${ {'dueDate', 'updatedDate', 'createdDate', 'numOfComments'} }"
                                       th:with="label=${field == 'dueDate' ? 'common.order.dueDate' : (field == 'updatedDate' ? 'common.order.updatedDate' : (field == 'createdDate' ? 'common.order.date' : 'common.order.comments'))}">
                                 <a th:if="${cond.orderBy == field}" href="#" th:attr="orderBy=${cond.orderBy}, orderDir=${cond.orderDir == 'desc'} ? 'asc' : 'desc'" class="filter active"><i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{${label}}"></th:block></a>
@@ -79,7 +79,7 @@
                     <ul class="post-list-wrap">
                     <th:block th:each="row : ${items}" th:with="issue=${row.item}, base=${#paths.project(row.owner, row.project)}, url=${#paths.project(row.owner, row.project) + '/issue/' + row.item.number}">
                         <li class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{${url}}">
-                            <div class="col-md-10 span-hard-wrap">
+                            <div class="col-lg-10 span-hard-wrap">
                                 <a th:if="${issue.authorLoginId != null}" th:href="@{/{u}(u=${issue.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${issue.authorLoginId}">
                                     <img th:if="${helper.isDefaultAvatar(row.authorAvatarUrl)}" th:src="${row.authorAvatarUrl}"/>
                                     <img th:unless="${helper.isDefaultAvatar(row.authorAvatarUrl)}" th:src="${row.authorAvatarUrl}" th:alt="${issue.authorName}" width="32" height="32"/>
@@ -112,17 +112,17 @@
                                     <a th:href="@{${base}}" class="infos-link-item group-project-name" th:text="${row.project}"></a>
                                     <span class="post-id margin-right-5" th:text="'#' + ${issue.number}"></span>
 
-                                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues?state=open&labelIds=' + label.id}}" class="label issue-label list-label label-default" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+                                    <a th:each="label : ${issue.labels}" th:href="@{${base + '/issues?state=open&labelIds=' + label.id}}" class="badge issue-label list-label badge-secondary" th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
                                 </div>
                             </div>
-                            <div class="col-md-2 hide-in-mobile">
-                                <div class="mt5 pull-right">
+                            <div class="col-lg-2 hide-in-mobile">
+                                <div class="mt5 float-right">
                                     <a th:if="${issue.assigneeName != null}" th:href="@{/{u}(u=${issue.assigneeLoginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" th:title="#{issue.assignee} + ': ' + ${issue.assigneeName}">
                                         <img th:src="@{${issue.assigneeAvatarUrl}}" width="32" height="32" th:alt="${issue.assigneeName}">
                                     </a>
                                     <div th:unless="${issue.assigneeName != null}" class="empty-avatar-wrap">&nbsp;</div>
                                 </div>
-                                <div th:if="${issue.due != null}" class="mr20 mt10 pull-right" th:classappend="${row.overdue} ? 'overdue'" data-toggle="tooltip" data-placement="top" th:title="${row.dueDateString}">
+                                <div th:if="${issue.due != null}" class="mr20 mt10 float-right" th:classappend="${row.overdue} ? 'overdue'" data-toggle="tooltip" data-placement="top" th:title="${row.dueDateString}">
                                     <i class="yobicon-clock2"></i>
                                     <th:block th:text="${issue.due.text}"></th:block>
                                 </div>

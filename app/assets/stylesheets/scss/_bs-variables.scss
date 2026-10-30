@@ -1,0 +1,58 @@
+// Bootstrap 4 변수 재정의(로드맵 X-38c, decisions.md D-53). `bootstrap.scss`가 Bootstrap 4의 변수보다 먼저 가져온다(Bootstrap의 변수는 `!default`).
+// 목표는 v1.6(Bootstrap 2.3.1) 화면과 같은 모양이다. 요소 선택자의 기본 규칙은 `_bs3-compat.scss`(4구간에서 정리)가 다시 입히므로, 여기서는 컴포넌트가 쓰는 값을 BS2에 맞춘다.
+$font-family-sans-serif: "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-size-base: .875rem;      // 14px
+$line-height-base: 1.4285714286; // 20px
+$body-color: #333;
+$link-color: #08c;
+$link-hover-color: #005580;
+$link-hover-decoration: underline;
+$headings-font-weight: bold;
+$headings-margin-bottom: 10px;
+$border-radius: 4px;
+$border-radius-lg: 6px;
+$border-radius-sm: 3px;
+$enable-shadows: false;
+$enable-gradients: false;
+$enable-transitions: true;
+$enable-print-styles: true;
+// 그리드: 이 사이트는 반응형 CSS를 쓰지 않아 열 폭을 `_bs3-compat.scss`의 고정 규칙이 정한다(BS2 940px 고정 그리드와 유동 그리드).
+$grid-gutter-width: 20px;
+$container-max-widths: (sm: 940px, md: 940px, lg: 940px, xl: 940px);
+$table-accent-bg: #f9f9f9;
+
+// 탭과 내비게이션(`.nav`, `.nav-tabs`): BS2의 치수와 색이다. BS2 규칙을 덮어쓰지 않고 BS4의 변수로 같은 모양을 만든다(X-38c, A-290).
+$nav-link-padding-y: .5rem;       // 8px
+$nav-link-padding-x: .75rem;      // 12px
+$nav-tabs-border-color: #ddd;
+$nav-tabs-border-width: 1px;
+$nav-tabs-border-radius: 4px;
+$nav-tabs-link-hover-border-color: #eee #eee #ddd;
+$nav-tabs-link-active-color: #555;
+$nav-tabs-link-active-bg: #fff;
+$nav-tabs-link-active-border-color: #ddd #ddd #fff;
+$nav-pills-border-radius: 5px;
+$nav-pills-link-active-color: #fff;
+$nav-pills-link-active-bg: #08c;
+$nav-link-disabled-color: #999;
+// 드롭다운(`.dropdown-menu`): BS2의 치수와 색이다.
+$dropdown-min-width: 10rem;      // 160px
+$dropdown-padding-y: .3125rem;  // 5px
+$dropdown-spacer: .0625rem;    // 1px
+$dropdown-font-size: .875rem;   // 14px
+$dropdown-color: #333;
+$dropdown-bg: #fff;
+$dropdown-border-color: rgba(0, 0, 0, 0.2);
+$dropdown-border-radius: 6px;
+$dropdown-border-width: 1px;
+$dropdown-divider-bg: #e5e5e5;
+$dropdown-divider-margin-y: .5625rem; // 9px
+$dropdown-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+$dropdown-link-color: #333;
+$dropdown-link-hover-color: #fff;
+$dropdown-link-hover-bg: #0081c2;
+$dropdown-link-active-color: #fff;
+$dropdown-link-active-bg: #0081c2;
+$dropdown-link-disabled-color: #999;
+$dropdown-item-padding-y: .1875rem; // 3px
+$dropdown-item-padding-x: 1.25rem;  // 20px

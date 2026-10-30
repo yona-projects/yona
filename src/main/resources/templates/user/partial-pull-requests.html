@@ -9,7 +9,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="pullRequestRow(pull)"
           th:with="base=${#paths.project(pull.projectOwner, pull.projectName)}, url=${#paths.project(pull.projectOwner, pull.projectName) + '/pullRequest/' + pull.number}">
 <li class="post-item">
-    <div class="col-md-10">
+    <div class="col-lg-10">
         <a th:href="@{${base}}" class="avatar-wrap mlarge">
             <img th:src="@{${pull.projectLogoUrl}}" th:alt="${pull.projectOwner} + ' / ' + ${pull.projectName}">
         </a>
@@ -17,7 +17,7 @@
             <a th:href="@{${base}}" class="title project" th:text="${pull.projectName}"></a>
             <span class="post-id" th:text="${pull.number}"></span>
             <a th:href="@{${url}}" class="title" th:classappend="${pull.conflict} ? 'conflict'" th:text="${pull.title}"></a>
-            <a th:each="l : ${pull.labels}" th:href="@{${url}}" class="label issue-label active list-label label-default" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+            <a th:each="l : ${pull.labels}" th:href="@{${url}}" class="badge issue-label active list-label badge-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
         </div>
         <div class="infos">
             <a th:if="${pull.contributorName != null}" th:href="@{/{u}(u=${pull.contributorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${pull.contributorLoginId}" th:text="${pull.contributorName}"></a>
@@ -29,8 +29,8 @@
             </a>
         </div>
     </div>
-    <div class="col-md-2">
-        <div class="mt5 pull-right">
+    <div class="col-lg-2">
+        <div class="mt5 float-right">
             <a th:if="${pull.assigneeLoginId != null}" th:href="@{/{u}(u=${pull.assigneeLoginId})}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${pull.assigneeName}" th:title="#{issue.assignee} + ': ' + ${pull.assigneeName}">
                 <img th:src="@{${pull.assigneeAvatarUrl}}" width="32" height="32" th:alt="${pull.assigneeName}">
             </a>
@@ -39,7 +39,7 @@
             </a>
             <div th:unless="${pull.receiverLoginId != null or pull.assigneeLoginId != null}" class="empty-avatar-wrap">&nbsp;</div>
         </div>
-        <div class="state pull-right" th:classappend="${pull.stateClass}" th:text="#{${pull.stateKey}}"></div>
+        <div class="state float-right" th:classappend="${pull.stateClass}" th:text="#{${pull.stateKey}}"></div>
     </div>
 </li>
 </th:block>

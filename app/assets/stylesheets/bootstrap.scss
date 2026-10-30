@@ -1,0 +1,33 @@
+// Bootstrap 4.6.2 빌드(로드맵 X-38c, decisions.md D-53). 소스는 `vendor/bootstrap/`(npm `bootstrap@4.6.2`의 scss, SHA-256 2cf88a607ca6e0fa48e02e4d922308e5a871f9064e0f81577b2f68e46a6495cb)이고
+// 변수는 `scss/bs-variables`로 v1.6 모양에 맞춘다. 이 사이트가 쓰지 않는 구성 요소(내비바, 사용자 정의 폼, 점보트론, 미디어, 토스트, 스피너, 캐러셀)만 넣지 않는다.
+@import "scss/bs-variables";
+@import "vendor/bootstrap/functions";
+@import "vendor/bootstrap/variables";
+@import "vendor/bootstrap/mixins";
+@import "vendor/bootstrap/root";
+@import "vendor/bootstrap/reboot";
+@import "vendor/bootstrap/type";
+@import "vendor/bootstrap/images";
+@import "vendor/bootstrap/code";
+@import "vendor/bootstrap/grid";
+@import "vendor/bootstrap/tables";
+@import "vendor/bootstrap/forms";
+@import "vendor/bootstrap/buttons";
+@import "vendor/bootstrap/transitions";
+@import "vendor/bootstrap/dropdown";
+@import "vendor/bootstrap/button-group";
+@import "vendor/bootstrap/input-group";
+@import "vendor/bootstrap/nav";
+@import "vendor/bootstrap/card";
+@import "vendor/bootstrap/breadcrumb";
+@import "vendor/bootstrap/pagination";
+@import "vendor/bootstrap/badge";
+@import "vendor/bootstrap/alert";
+@import "vendor/bootstrap/progress";
+@import "vendor/bootstrap/list-group";
+@import "vendor/bootstrap/close";
+@import "vendor/bootstrap/modal";
+@import "vendor/bootstrap/tooltip";
+@import "vendor/bootstrap/popover";
+@import "vendor/bootstrap/utilities";
+@import "vendor/bootstrap/print";

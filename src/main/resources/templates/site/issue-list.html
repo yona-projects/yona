@@ -11,11 +11,11 @@
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::listPage})}">
 <th:block th:fragment="listPage">
     <div class="title_area">
-        <h2 class="pull-left" th:text="#{site.sidebar.issueList}"></h2>
+        <h2 class="float-left" th:text="#{site.sidebar.issueList}"></h2>
     </div>
     <ul class="nav nav-tabs">
-        <li th:class="${currentState == 'open'} ? 'active'"><a th:href="@{/sites/issueList(state='open')}" th:text="#{issue.state.open}"></a></li>
-        <li th:class="${currentState == 'closed'} ? 'active'"><a th:href="@{/sites/issueList(state='closed')}" th:text="#{issue.state.closed}"></a></li>
+        <li class="nav-item"><a th:href="@{/sites/issueList(state='open')}" th:text="#{issue.state.open}" class="nav-link" th:classappend="${currentState == 'open'} ? 'active'"></a></li>
+        <li class="nav-item"><a th:href="@{/sites/issueList(state='closed')}" th:text="#{issue.state.closed}" class="nav-link" th:classappend="${currentState == 'closed'} ? 'active'"></a></li>
     </ul>
     <ul class="post-list-wrap">
         <li th:each="row : ${rows}" class="row listitem">

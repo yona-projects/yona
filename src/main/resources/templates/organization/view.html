@@ -16,18 +16,18 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="project-home-header row">
-            <div class="col-md-9 span-hard-wrap">
+            <div class="col-lg-9 span-hard-wrap">
                 <div class="project-overview">
                     <h3><span id="project-description" th:text="${org.descr}"></span></h3>
                 </div>
                 <div class="project-search-wrap row mt10">
-                    <div class="col-md-7">
+                    <div class="col-lg-7">
                         <div class="search-bar">
                             <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="project-item" th:placeholder="#{title.type.name}">
                             <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
                         </div>
                     </div>
-                    <div th:if="${org.canManage}" class="pull-right">
+                    <div th:if="${org.canManage}" class="float-right">
                         <a th:href="@{'/projectform?owner=' + ${org.name}}" class="ybtn ybtn-primary" th:text="#{button.newProject}"></a>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
 
                                     <i th:if="${project.isPrivate()}" class="yobicon-lock yobicon-small"></i>
                                     <span th:if="${project.isProtected()}" class="project-protected" title="Group Project">G</span>
-                                    <a th:each="label : ${row.labels}" class="project-label" th:classappend="${#strings.toLowerCase(label.category)}" th:href="@{/projects(labelIds=${label.id})}" th:text="${label.name}"></a>
+                                    <a th:each="label : ${row.labels}" class="project-label" th:classappend="${#strings.toLowerCase(badge.category)}" th:href="@{/projects(labelIds=${label.id})}" th:text="${label.name}"></a>
                                 </div>
                                 <div class="desc" th:text="${project.overview}">
                                 </div>
@@ -62,7 +62,7 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="stats-wrap pull-right">
+                        <div class="stats-wrap float-right">
                             <div class="members">
                                 <ul class="list-unstyled">
                                     <th:block th:each="member : ${row.members}">
@@ -84,13 +84,13 @@
                     </li>
                 </ul>
             </div>
-            <div class="col-md-3 span-hard-wrap">
+            <div class="col-lg-3 span-hard-wrap">
             <th:block th:if="${org.canSeeMembers}">
                 <div class="bubble-wrap gray project-home">
                     <div class="inner member-info">
                         <header>
                             <h3 th:text="#{user.role.org_admin}"></h3>
-                            <button th:if="${!org.leaveBlocked and org.admin}" type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
+                            <button th:if="${!org.leaveBlocked and org.admin}" type="button" class="ybtn ybtn-minimum ybtn-danger float-right" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
                         </header>
                         <div class="member-wrap ">
                             <ul class="project-members">
@@ -109,7 +109,7 @@
                     <div class="inner member-info">
                         <header>
                             <h3 th:text="#{user.role.org_member}"></h3>
-                            <button th:if="${!org.leaveBlocked and org.member}" type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
+                            <button th:if="${!org.leaveBlocked and org.member}" type="button" class="ybtn ybtn-minimum ybtn-danger float-right" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
                         </header>
                         <div class="member-wrap">
                             <ul class="list-unstyled project-members">

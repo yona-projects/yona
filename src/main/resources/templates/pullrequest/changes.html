@@ -19,7 +19,7 @@
 
             <div class="board-body mb20">
                 <div class="author-info right-txt" style="margin-top:20px;">
-                    <a th:href="${contributor.href}" class="usf-group pull-left">
+                    <a th:href="${contributor.href}" class="usf-group float-left">
                         <span class="avatar-wrap smaller">
                             <img th:src="${contributor.avatarUrl}" width="32" height="32">
                         </span>
@@ -64,11 +64,11 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li data-value="All">
-                                <a th:href="${allUrl}" th:text="#{pullRequest.changes.all}"></a>
+                                <a th:href="${allUrl}" th:text="#{pullRequest.changes.all}" class="dropdown-item"></a>
                             </li>
-                            <li class="divider"></li>
+                            <li class="divider dropdown-divider"></li>
                             <li th:each="c : ${choices}" th:attr="data-value=${c.commitId}">
-                                <a th:href="${c.url}">
+                                <a th:href="${c.url}" class="dropdown-item">
                                     <strong class="blue-txt mr10 commit-hash" th:text="${c.shortId}"></strong>
                                     <span th:text="${c.shortMessage}"></span>
                                 </a>
@@ -113,8 +113,8 @@
                         </button>
 
                         <ul class="nav nav-tabs" style="margin-bottom:10px;">
-                            <li class="active"><a href="#reviewcards-open" data-toggle="tab"><th:block th:text="#{issue.state.open}"></th:block> <th:block th:text="${openCount}"></th:block></a></li>
-                            <li><a href="#reviewcards-closed" data-toggle="tab"><th:block th:text="#{issue.state.closed}"></th:block> <th:block th:text="${closedCount}"></th:block></a></li>
+                            <li class="nav-item"><a href="#reviewcards-open" data-toggle="tab" class="nav-link active"><th:block th:text="#{issue.state.open}"></th:block> <th:block th:text="${openCount}"></th:block></a></li>
+                            <li class="nav-item"><a href="#reviewcards-closed" data-toggle="tab" class="nav-link"><th:block th:text="#{issue.state.closed}"></th:block> <th:block th:text="${closedCount}"></th:block></a></li>
                         </ul>
 
                         <div class="tab-content review-list">
@@ -122,7 +122,7 @@
                                 <a th:each="c : ${openCards}" th:href="${c.href}" th:class="'review-card ' + ${c.state} + (${c.outdated} ? ' outdated' : '')">
                                     <p class="content" th:text="${c.content}"></p>
                                     <p class="info">
-                                        <span class="comments pull-left" th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></span>
+                                        <span class="comments float-left" th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></span>
                                         <span class="outdated-label" th:text="#{review.outdated}"></span>
                                         <span class="date" th:title="${c.agoTitle}" th:text="${c.ago}"></span>
                                         <span class="avatar-wrap smaller ml5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}" /></span>
@@ -133,7 +133,7 @@
                                 <a th:each="c : ${closedCards}" th:href="${c.href}" th:class="'review-card ' + ${c.state} + (${c.outdated} ? ' outdated' : '')">
                                     <p class="content" th:text="${c.content}"></p>
                                     <p class="info">
-                                        <span class="comments pull-left" th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></span>
+                                        <span class="comments float-left" th:if="${c.commentCount > 0}"><i class="yobicon-comments"></i> <th:block th:text="${c.commentCount}"></th:block></span>
                                         <span class="outdated-label" th:text="#{review.outdated}"></span>
                                         <span class="date" th:title="${c.agoTitle}" th:text="${c.ago}"></span>
                                         <span class="avatar-wrap smaller ml5"><img th:src="${c.avatarUrl}" th:alt="${c.authorName}" /></span>

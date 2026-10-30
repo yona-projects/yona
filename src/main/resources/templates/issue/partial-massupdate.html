@@ -24,7 +24,7 @@
 </script>
 
 <div class="mass-update-wrap hide-in-mobile">
-    <form id="mass-update-form" class="mass-update-form pull-left" th:action="${base + '/issues'}" method="post">
+    <form id="mass-update-form" class="mass-update-form float-left" th:action="${base + '/issues'}" method="post">
         <div class="btn-group check-all">
             <label for="check-all">
                 <input type="checkbox" id="check-all" data-target="checked-issue"/>
@@ -36,8 +36,8 @@
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu mass-update-list">
-                <li data-value="OPEN"><a th:text="#{issue.state.open}"></a></li>
-                <li data-value="CLOSED"><a th:text="#{issue.state.closed}"></a></li>
+                <li data-value="OPEN"><a th:text="#{issue.state.open}" class="dropdown-item"></a></li>
+                <li data-value="CLOSED"><a th:text="#{issue.state.closed}" class="dropdown-item"></a></li>
             </ul>
         </div>
 
@@ -47,11 +47,11 @@
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu mass-update-list">
-                <li data-value="-1"><a th:text="#{issue.noAssignee}"></a></li>
-                <li th:if="${projectView.projectMember}" th:attr="data-value=${currentUser.id}"><a th:text="#{issue.assignToMe}"></a></li>
-                <li class="divider"></li>
+                <li data-value="-1"><a th:text="#{issue.noAssignee}" class="dropdown-item"></a></li>
+                <li th:if="${projectView.projectMember}" th:attr="data-value=${currentUser.id}"><a th:text="#{issue.assignToMe}" class="dropdown-item"></a></li>
+                <li class="divider dropdown-divider"></li>
                 <li th:each="user : ${massUpdate.assignable}" th:attr="data-value=${user.id}">
-                    <a class="usf-group">
+                    <a class="dropdown-item usf-group">
                         <span class="avatar-wrap smaller">
                             <img th:src="${user.avatarUrl}" width="20" height="20">
                         </span>
@@ -69,9 +69,9 @@
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu mass-update-list">
-                <li data-value="-1"><a th:text="#{issue.noMilestone}"></a></li>
-                <li class="divider"></li>
-                <li th:each="milestone : ${massUpdate.openMilestones}" th:attr="data-value=${milestone.id}"><a th:text="${milestone.title}"></a></li>
+                <li data-value="-1"><a th:text="#{issue.noMilestone}" class="dropdown-item"></a></li>
+                <li class="divider dropdown-divider"></li>
+                <li th:each="milestone : ${massUpdate.openMilestones}" th:attr="data-value=${milestone.id}"><a th:text="${milestone.title}" class="dropdown-item"></a></li>
             </ul>
         </div>
         </th:block>

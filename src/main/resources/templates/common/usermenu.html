@@ -8,23 +8,23 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="usermenu">
 <th:block th:if="${currentUser.anonymous}" th:with="remembered=${@socialSession.rememberOriginalUrl()}"></th:block>
 <div id="mySidenav" class="sidenav">
-    <div class="col-md-5 right-menu span-hard-wrap">
+    <div class="col-lg-5 right-menu span-hard-wrap">
         <div class="row user-menu-wrap">
             <span class="user-menu"><a th:href="@{'/' + ${#strings.defaultString(currentUser.loginId, '')}}" th:text="#{userinfo.profile}"></a></span>
             <span class="user-menu"><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}"></a></span>
-            <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout label label-default" th:text="#{title.logout}"></span></a>
+            <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout badge badge-secondary" th:text="#{title.logout}"></span></a>
         </div>
         <ul class="nav nav-tabs nm">
-            <li class="myOrganizationList active">
-                <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}">
+            <li class="nav-item myOrganizationList">
+                <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}" class="nav-link active">
                 </a>
             </li>
-            <li class="myProjectList">
-                <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}">
+            <li class="nav-item myProjectList">
+                <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}" class="nav-link">
                 </a>
             </li>
-            <li class="myRecentIssueList">
-                <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}">
+            <li class="nav-item myRecentIssueList">
+                <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}" class="nav-link">
                 </a>
             </li>
         </ul>
@@ -68,22 +68,22 @@
           </a>
           <ul class="dropdown-menu flat right">
               <li>
-                  <a th:href="@{/user/issues/new}" th:text="#{issue.menu.new}">
+                  <a th:href="@{/user/issues/new}" th:text="#{issue.menu.new}" class="dropdown-item">
                   </a>
               </li>
               <li>
-                  <a th:href="@{/user/issues/new/mine}" th:text="#{issue.menu.new.mine}">
+                  <a th:href="@{/user/issues/new/mine}" th:text="#{issue.menu.new.mine}" class="dropdown-item">
                   </a>
               </li>
               <li>
                   <hr class="no-margin"/>
               </li>
               <li>
-                  <a th:href="@{/projectform}" th:text="#{button.newProject}">
+                  <a th:href="@{/projectform}" th:text="#{button.newProject}" class="dropdown-item">
                   </a>
               </li>
               <li th:if="${!currentUser.guest}">
-                  <a th:href="@{/organizations/new}" th:text="#{title.newOrganization}">
+                  <a th:href="@{/organizations/new}" th:text="#{title.newOrganization}" class="dropdown-item">
                   </a>
               </li>
           </ul>

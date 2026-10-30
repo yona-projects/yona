@@ -8,7 +8,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="mySearch">
 <div pjax-container class="row issue-list-wrap">
-    <div class="left-menu col-md-2 span-hard-wrap">
+    <div class="left-menu col-lg-2 span-hard-wrap">
         <div class="inner advanced">
             <ul class="lst-stacked list-unstyled">
                 <li th:class="${meId == cond.assigneeId} ? 'active'">
@@ -65,15 +65,15 @@
             </form>
         </div>
     </div>
-    <div class="col-md-10 span-hard-wrap" id="span10">
+    <div class="col-lg-10 span-hard-wrap" id="span10">
         <ul class="nav nav-tabs nm">
-            <li th:class="${cond.state == 'open'} ? 'active'" data-pjax>
-                <a href="#" state="open"><th:block th:text="#{issue.state.open}"></th:block>
+            <li data-pjax class="nav-item">
+                <a href="#" state="open" class="nav-link" th:classappend="${cond.state == 'open'} ? 'active'"><th:block th:text="#{issue.state.open}"></th:block>
                     <span class="num-badge" th:text="${openCount}"></span>
                 </a>
             </li>
-            <li th:class="${cond.state == 'closed'} ? 'active'" data-pjax>
-                <a href="#" state="closed"><th:block th:text="#{issue.state.closed}"></th:block>
+            <li data-pjax class="nav-item">
+                <a href="#" state="closed" class="nav-link" th:classappend="${cond.state == 'closed'} ? 'active'"><th:block th:text="#{issue.state.closed}"></th:block>
                     <span class="num-badge" th:text="${closedCount}"></span>
                 </a>
             </li>
@@ -82,7 +82,7 @@
         </ul>
         <th:block th:if="${!items.isEmpty()}">
             <div class="filter-wrap small-heights">
-                <div th:if="${items.size() > 1}" class="filters pull-right">
+                <div th:if="${items.size() > 1}" class="filters float-right">
                     <th:block th:each="field : ${ {'dueDate', 'updatedDate', 'createdDate', 'numOfComments'} }"
                               th:with="label=${field == 'dueDate' ? 'common.order.dueDate' : (field == 'updatedDate' ? 'common.order.updatedDate' : (field == 'createdDate' ? 'common.order.date' : 'common.order.comments'))}">
                         <a th:if="${cond.orderBy == field}" href="#" th:attr="orderBy=${cond.orderBy}, orderDir=${cond.orderDir == 'desc'} ? 'asc' : 'desc'" class="filter active"><i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{${label}}"></th:block></a>

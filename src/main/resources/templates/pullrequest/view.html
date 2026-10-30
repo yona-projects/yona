@@ -18,9 +18,9 @@
 
         <!--/* 이슈 화면과 같은 2단 구성(추가 항목 X-14, decisions.md D-34 16번): 왼쪽에 본문, 상태, 타임라인, 오른쪽 열에 담당자와 라벨 */-->
         <div class="board-body row">
-            <div class="col-md-9 span-left-pane">
+            <div class="col-lg-9 span-left-pane">
                 <div class="author-info left-txt" style="margin-top:20px;">
-                    <a th:href="${contributor.href}" class="usf-group pull-left">
+                    <a th:href="${contributor.href}" class="usf-group float-left">
                         <span class="avatar-wrap smaller">
                             <img th:src="${contributor.avatarUrl}" width="32" height="32">
                         </span>
@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="board-footer board-actrow">
-                    <div class="pull-left">
+                    <div class="float-left">
                         <button th:if="${canWatch}" id="watch-button" type="button" th:class="'ybtn' + (${watching} ? ' ybtn-watching' : '')" data-toggle="button" th:attr="data-watching=${watching}"
                                 th:text="${watching} ? #{project.unwatch} : #{project.watch}"></button>
                     </div>
@@ -68,18 +68,18 @@
                 </div>
                 <form id="review-form" th:if="${reviewArea.formUrl != null}" th:action="${reviewArea.formUrl}" method="post" class="pr-review-form mt20">
                     <h5 th:text="#{pullRequest.review.form.title}"></h5>
-                    <textarea name="contents" rows="4" class="textbox col-md-12" th:placeholder="#{pullRequest.review.form.placeholder}"></textarea>
+                    <textarea name="contents" rows="4" class="textbox col-lg-12" th:placeholder="#{pullRequest.review.form.placeholder}"></textarea>
                     <div class="review-verdicts">
-                        <label th:each="v : ${reviewArea.verdictOptions}" class="radio inline">
-                            <input type="radio" name="verdict" th:value="${v}" th:checked="${v == 'COMMENTED'}">
+                        <div th:each="v : ${reviewArea.verdictOptions}" class="form-check form-check-radio form-check-inline"><label class="form-check-label">
+                            <input type="radio" name="verdict" th:value="${v}" th:checked="${v == 'COMMENTED'}" class="form-check-input">
                             <th:block th:text="#{'pullRequest.review.form.' + ${#strings.toLowerCase(v)}}"></th:block>
-                        </label>
+                        </label></div>
                     </div>
                     <button type="submit" class="ybtn ybtn-success mt10" th:text="#{pullRequest.review.form.submit}"></button>
                 </form>
             </div>
 
-            <div class="col-md-3 span-right-pane mb20">
+            <div class="col-lg-3 span-right-pane mb20">
                 <!--/* 리뷰어별 최신 판정(추가 항목 X-12, decisions.md D-35) */-->
                 <div id="review-area" class="issue-info mb10">
                     <dl>
@@ -105,7 +105,7 @@
                             <span th:if="${r.dismissed}" class="dismissed" th:title="${r.systemDismissed} ? #{pullRequest.review.dismissed.stale} : ${r.dismissedReason}" th:text="#{pullRequest.review.dismissed.label}"></span>
                             <button th:if="${r.rerequestUrl != null}" type="button" class="ybtn ybtn-mini review-rerequest" th:attr="data-url=${r.rerequestUrl}, data-reviewer=${r.loginId}" th:title="#{pullRequest.review.request.again}"><i class="yobicon-sync"></i></button>
                             <form th:if="${r.dismissUrl != null}" th:action="${r.dismissUrl}" method="post" class="review-dismiss">
-                                <input type="text" name="message" class="text col-md-12" maxlength="255" th:placeholder="#{pullRequest.review.dismiss.reason}">
+                                <input type="text" name="message" class="text col-lg-12" maxlength="255" th:placeholder="#{pullRequest.review.dismiss.reason}">
                                 <button type="submit" class="ybtn ybtn-mini" th:text="#{pullRequest.review.dismiss}"></button>
                             </form>
                         </dd>
@@ -140,7 +140,7 @@
                     <dl th:if="${!labelArea.canEdit and !#lists.isEmpty(labelArea.tags)}" class="pr-labels">
                         <dt th:text="#{label}"></dt>
                         <dd>
-                            <a th:each="l : ${labelArea.tags}" th:href="${labelArea.listUrl} + '?labelIds=' + ${l.id}" class="label issue-label active static label-default"
+                            <a th:each="l : ${labelArea.tags}" th:href="${labelArea.listUrl} + '?labelIds=' + ${l.id}" class="badge issue-label active static badge-secondary"
                                th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                         </dd>
                     </dl>
@@ -161,10 +161,10 @@
     </div>
     <div class="modal-body">
         <div class="row">
-            <div class="pull-left">
+            <div class="float-left">
                 <img class="img-thumbnail" th:src="@{/assets/images/fork-pull/merge.jpg}"><br>
             </div>
-            <div class="pull-left help-messages mt10">
+            <div class="float-left help-messages mt10">
                 <p th:text="#{pullRequest.merge.help.2}"></p>
                 <p th:text="#{pullRequest.merge.help.3}"></p>
                 <p th:text="#{pullRequest.merge.help.4}"></p>

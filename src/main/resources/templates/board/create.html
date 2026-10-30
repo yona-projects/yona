@@ -46,20 +46,20 @@
         <!--/* end of fileUploader */-->
 
         <div class="right-txt mt10 mb10">
-          <label th:if="${allowedToNotice and !hasIssueTemplate and !hasPath}" class="checkbox">
-            <input type="checkbox" id="notice" name="notice">
+          <div th:if="${allowedToNotice and !hasIssueTemplate and !hasPath}" class="form-check"><label class="form-check-label">
+            <input type="checkbox" id="notice" name="notice" class="form-check-input">
             <th:block th:text="#{post.notice.label}"></th:block>
-          </label>
+          </label></div>
 
           <input type="hidden" id="issueTemplate" name="issueTemplate" th:value="${issueTemplate}">
           <input type="hidden" id="branch" name="branch" th:value="${branch}">
           <input type="hidden" id="path" name="path" th:value="${path}">
           <input type="hidden" id="lineEnding" name="lineEnding" th:value="${lineEnding}">
           <th:block th:if="${canCommit}">
-            <label th:if="${isGit and readmeRequested}" class="checkbox">
-              <input type="checkbox" id="readme" name="readme" th:checked="${readmeRequested}">
+            <div th:if="${isGit and readmeRequested}" class="form-check"><label class="form-check-label">
+              <input type="checkbox" id="readme" name="readme" th:checked="${readmeRequested}" class="form-check-input">
               <th:block th:text="#{post.readmefy}"></th:block>
-            </label>
+            </label></div>
           </th:block>
         </div>
 

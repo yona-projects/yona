@@ -21,7 +21,7 @@
                 </div>
 
                 <th:block th:unless="${hasPath}">
-                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="pull-right">
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-right">
                     <th:block th:each="g : ${branchGroups}">
                         <optgroup th:if="${g.titleKey != null}" th:label="#{${g.titleKey}}">
                             <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
@@ -33,10 +33,10 @@
                 </select>
 
                 <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                    <li><a th:href="${filesTabUrl}" th:text="#{code.files}"></a></li>
-                    <li class="active"><a th:href="${commitsTabUrl}" th:text="#{code.commits}"></a></li>
-                    <li th:if="${git}"><a th:href="${branchesTabUrl}" th:text="#{title.branches}"></a></li>
-                    <li th:if="${git}"><a th:href="${tagsTabUrl}" th:text="#{title.tags}"></a></li>
+                    <li class="nav-item"><a th:href="${filesTabUrl}" th:text="#{code.files}" class="nav-link"></a></li>
+                    <li class="nav-item"><a th:href="${commitsTabUrl}" th:text="#{code.commits}" class="nav-link active"></a></li>
+                    <li th:if="${git}" class="nav-item"><a th:href="${branchesTabUrl}" th:text="#{title.branches}" class="nav-link"></a></li>
+                    <li th:if="${git}" class="nav-item"><a th:href="${tagsTabUrl}" th:text="#{title.tags}" class="nav-link"></a></li>
                 </ul>
                 </th:block>
 
@@ -88,8 +88,8 @@
             </div>
 
             <div class="actrow margin-top-20">
-                <a th:if="${newerUrl != null}" th:href="${newerUrl}" class="ybtn pull-left" th:text="#{code.newer}"></a>
-                <a th:if="${olderUrl != null}" th:href="${olderUrl}" class="ybtn pull-left" th:text="#{code.older}"></a>
+                <a th:if="${newerUrl != null}" th:href="${newerUrl}" class="ybtn float-left" th:text="#{code.newer}"></a>
+                <a th:if="${olderUrl != null}" th:href="${olderUrl}" class="ybtn float-left" th:text="#{code.older}"></a>
             </div>
         </div>
     </div>

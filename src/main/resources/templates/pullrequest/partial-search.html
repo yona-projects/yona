@@ -9,7 +9,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="search">
 <div pjax-container class="row cb">
-    <div class="left-menu col-md-2 search-wrap hide-in-mobile" style="padding-top:0;">
+    <div class="left-menu col-lg-2 search-wrap hide-in-mobile" style="padding-top:0;">
         <form id="search" name="search" th:action="${searchAction}" method="get">
             <div class="search">
                 <div class="search-bar">
@@ -58,7 +58,7 @@
             </div>
         </form>
     </div>
-    <div class="col-md-10 span-hard-wrap" id="span10">
+    <div class="col-lg-10 span-hard-wrap" id="span10">
         <th:block th:if="${!#lists.isEmpty(pushedBranches)}">
             <h5 th:text="#{pullRequest.pushed.branches.title}"></h5>
             <div class="alert alert-info">
@@ -71,18 +71,18 @@
                 </div>
             </div>
         </th:block>
-        <div class="pull-right">
+        <div class="float-right">
             <a th:href="${newPullRequestUrl}" class="ybtn ybtn-success" th:text="#{pullRequest.new}"></a>
         </div>
         <ul class="nav nav-tabs nm pullrequeset-tab-menu">
-            <li th:class="${categoryCode == 'open'} ? 'active'">
-                <a href="#" th:attr="data-url=${openAction}" data-type="state"><th:block th:text="#{pullRequest.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
+            <li class="nav-item">
+                <a href="#" th:attr="data-url=${openAction}" data-type="state" class="nav-link" th:classappend="${categoryCode == 'open'} ? 'active'"><th:block th:text="#{pullRequest.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
             </li>
-            <li th:class="${categoryCode == 'closed'} ? 'active'">
-                <a href="#" th:attr="data-url=${closedAction}" data-type="state"><th:block th:text="#{pullRequest.state.closed}"></th:block> <span class="num-badge" th:text="${closedCount}"></span></a>
+            <li class="nav-item">
+                <a href="#" th:attr="data-url=${closedAction}" data-type="state" class="nav-link" th:classappend="${categoryCode == 'closed'} ? 'active'"><th:block th:text="#{pullRequest.state.closed}"></th:block> <span class="num-badge" th:text="${closedCount}"></span></a>
             </li>
-            <li th:if="${forked}" th:class="${categoryCode == 'sent'} ? 'active'">
-                <a href="#" th:attr="data-url=${sentAction}" data-type="state"><th:block th:text="#{pullRequest.sent}"></th:block> <span class="num-badge" th:text="${sentLabel}"></span></a>
+            <li th:if="${forked}" class="nav-item">
+                <a href="#" th:attr="data-url=${sentAction}" data-type="state" class="nav-link" th:classappend="${categoryCode == 'sent'} ? 'active'"><th:block th:text="#{pullRequest.sent}"></th:block> <span class="num-badge" th:text="${sentLabel}"></span></a>
             </li>
             <li><th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block></li>
         </ul>
@@ -91,7 +91,7 @@
                 <ul class="post-list-wrap">
                     <th:block th:if="${!#lists.isEmpty(rows)}">
                         <li th:each="r : ${rows}" class="post-item title" th:attr="href=${r.href}">
-                            <div class="col-md-10 span-hard-wrap">
+                            <div class="col-lg-10 span-hard-wrap">
                                 <a th:if="${r.contributor != null}" th:href="${r.contributor.href}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${r.contributor.loginId}">
                                     <img th:if="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}"/>
                                     <img th:unless="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}" th:alt="${r.contributor.name}" width="32" height="32"/>
@@ -100,7 +100,7 @@
                                     <span class="post-id" th:text="${r.number}"></span>
                                     <th:block th:utext="${r.headerWordsHtml}"></th:block>
                                     <a th:href="${r.href}" th:class="'title' + (${r.conflict} ? ' conflict' : '')" th:text="${r.title}"></a>
-                                    <a th:each="l : ${r.labels}" th:href="${r.href}" class="label issue-label active list-label label-default" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                                    <a th:each="l : ${r.labels}" th:href="${r.href}" class="badge issue-label active list-label badge-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                                 </div>
                                 <div class="infos">
                                     <th:block th:if="${r.contributor != null}">
@@ -128,8 +128,8 @@
                                     <span th:class="${r.toDefaultBranch} ? 'to-default-branch' : 'to-branch'" th:text="${r.toBranch}"></span>
                                 </div>
                             </div>
-                            <div class="col-md-2 hide-in-mobile">
-                                <div class="mt5 pull-right hide-in-mobile">
+                            <div class="col-lg-2 hide-in-mobile">
+                                <div class="mt5 float-right hide-in-mobile">
                                     <a th:if="${r.assignee != null}" th:href="${r.assignee.href}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${r.assignee.name}" th:title="#{issue.assignee} + ': ' + ${r.assignee.name}">
                                         <img th:src="${r.assignee.avatarUrl}" width="32" height="32" th:alt="${r.assignee.name}">
                                     </a>
@@ -138,7 +138,7 @@
                                     </a>
                                     <div th:if="${r.receiver == null and r.assignee == null}" class="empty-avatar-wrap">&nbsp;</div>
                                 </div>
-                                <div th:class="'state ' + ${r.stateClass} + ' pull-right'" th:text="#{${r.stateKey}}"></div>
+                                <div th:class="'state ' + ${r.stateClass} + ' float-right'" th:text="#{${r.stateKey}}"></div>
                             </div>
                         </li>
                         <div id="pagination"></div>

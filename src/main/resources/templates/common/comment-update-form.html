@@ -24,10 +24,10 @@
                         <input th:id="'upload-' + ${comment.id}" class="file-upload__input" type="file" name="filePath" multiple>
                     </span>
                     <span th:if="${comment.own}" class="send-notification-check" data-toggle='popover' data-trigger="hover" data-placement="top" th:attr="data-content=#{notification.send.mail.warning}">
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="notificationMail" value="yes" checked>
+                        <div class="form-check form-check-inline"><label class="form-check-label">
+                            <input type="checkbox" name="notificationMail" value="yes" checked class="form-check-input">
                             <strong th:text="#{notification.send.mail}"></strong>
-                        </label>
+                        </label></div>
                     </span>
                     <button type="button" class="ybtn ybtn-cancel" th:attr="data-comment-id=${comment.id}" th:text="#{button.cancel}"></button>
                     <button th:if="${isAllowedUpdate}" type="submit" class="ybtn ybtn-info" th:text="#{button.save}"></button>

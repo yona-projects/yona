@@ -11,26 +11,26 @@
     <li th:class="${cond.assigneeId == null and cond.authorId == null and cond.commenterId == null} ? 'active'">
         <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-commenter-id="" data-milestone-id="" th:attrappend="data-milestone-id=${cond.milestoneId}">
             <th:block th:text="${cond.state == 'closed'} ? #{issue.list.all.closed} : #{issue.list.all.open}"></th:block>
-            <span class="num-badge pull-right" th:text="${quick.everyone}"></span>
+            <span class="num-badge float-right" th:text="${quick.everyone}"></span>
         </a>
     </li>
     <th:block th:if="${quick.meId != null}">
     <li th:class="${cond.assigneeId == quick.meId} ? 'active'">
         <a pjax-filter href="#" data-assignee-id="" data-milestone-id="" th:attrappend="data-assignee-id=${quick.meId}, data-milestone-id=${cond.milestoneId}" data-author-id="" data-commenter-id="">
             <th:block th:text="#{issue.list.assignedToMe}"></th:block>
-            <span class="num-badge pull-right" th:text="${quick.assignedToMe}"></span>
+            <span class="num-badge float-right" th:text="${quick.assignedToMe}"></span>
         </a>
     </li>
     <li th:class="${cond.authorId == quick.meId} ? 'active'">
         <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-milestone-id="" th:attrappend="data-author-id=${quick.meId}, data-milestone-id=${cond.milestoneId}" data-commenter-id="">
             <th:block th:text="#{issue.list.authoredByMe}"></th:block>
-            <span class="num-badge pull-right" th:text="${quick.authoredByMe}"></span>
+            <span class="num-badge float-right" th:text="${quick.authoredByMe}"></span>
         </a>
     </li>
     <li th:class="${cond.commenterId == quick.meId} ? 'active'">
         <a pjax-filter href="#" data-assignee-id="" data-author-id="" data-commenter-id="" data-milestone-id="" th:attrappend="data-commenter-id=${quick.meId}, data-milestone-id=${cond.milestoneId}">
             <th:block th:text="#{issue.list.commentedByMe}"></th:block>
-            <span class="num-badge pull-right" th:text="${quick.commentedByMe}"></span>
+            <span class="num-badge float-right" th:text="${quick.commentedByMe}"></span>
         </a>
     </li>
     </th:block>

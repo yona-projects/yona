@@ -511,11 +511,7 @@
         }
 
         function _affixIssueInfoWrap(){
-            elements.issueInfoWrap.affix({
-                "offset": {
-                    "top": elements.issueInfoWrap.offset().top - 10
-                }
-            });
+            yona.affix(elements.issueInfoWrap, elements.issueInfoWrap.offset().top - 10);
         }
 
         // initialize

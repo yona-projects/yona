@@ -28,7 +28,7 @@
                 <a th:href="'#comment-' + ${c.id}" class="ago" th:title="${c.createdTitle}" th:text="${c.createdAgo}"></a>
                 <a th:href="'#comment-' + ${c.id}" class="share-link" style="display: none">[Link]</a>
             </span>
-            <span class="act-row pull-right">
+            <span class="act-row float-right">
                 <span class="new-issue-by">
                     <a th:href="'/user/issues/new?commentId=' + ${c.id}" th:text="#{issue.menu.new.by}"></a>
                 </span>
@@ -73,7 +73,7 @@
         <div th:id="'comment-body-' + ${c.id}">
             <th:block th:replace="~{common/tasklist-bar :: tasklistBar}"></th:block>
             <div class="comment-body markdown-wrap" th:attr="data-allowed-update=${c.canUpdate}, data-via-email=${c.viaEmail}" th:utext="${c.contentsHtml}"></div>
-            <div class="attachments pull-left" th:attr="data-attachments=${c.attachmentsJson}"></div>
+            <div class="attachments float-left" th:attr="data-attachments=${c.attachmentsJson}"></div>
         </div>
     </div>
     <th:block th:replace="~{common/child-comments :: childComments(${c}, ${base}, ${issue.number}, 'issue')}"></th:block>

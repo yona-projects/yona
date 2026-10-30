@@ -245,14 +245,14 @@ class OrganizationViewTest : AbstractIntegrationTest() {
         val member = join(org, newUser("멤버"), RoleType.ORG_MEMBER)
         val outsider = newUser()
         val full = page("/organizations/${org.name}", login(admin))
-        val boxes = full.select(".col-md-3 .bubble-wrap")
+        val boxes = full.select(".col-lg-3 .bubble-wrap")
         assertEquals(2, boxes.size)
         assertEquals("Group Manager", boxes[0].selectFirst("h3")?.text())
         assertEquals(listOf("관리자"), boxes[0].select(".project-members li.member a:not(.avatar-wrap)").map { it.text() })
         assertEquals("Group Member", boxes[1].selectFirst("h3")?.text())
         assertEquals(listOf("멤버"), boxes[1].select(".project-members li.member a:not(.avatar-wrap)").map { it.text() })
-        assertNull(page("/organizations/${org.name}", login(outsider)).selectFirst(".col-md-3 .bubble-wrap"))
-        assertNull(page("/organizations/${org.name}").selectFirst(".col-md-3 .bubble-wrap"))
+        assertNull(page("/organizations/${org.name}", login(outsider)).selectFirst(".col-lg-3 .bubble-wrap"))
+        assertNull(page("/organizations/${org.name}").selectFirst(".col-lg-3 .bubble-wrap"))
         assertNotNull(member.id)
     }
 

@@ -132,7 +132,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         padding:3px 0 !important;
     }
 }
-.btn-group.open .btn.dropdown-toggle {
+.btn-group.open .btn.dropdown-toggle, .btn-group.show .btn.dropdown-toggle {
     background:darken($white, 5%);
 
     &.blue   { background:darken($blue2, 5%); }
@@ -459,7 +459,39 @@ span.issue-label {
 }
 
 /** tab UI **/
+// v1.6 화면은 탭 줄 아래에 20px 여백을 두었다(Bootstrap 2의 `.nav`). Bootstrap 4의 `.nav`는 여백이 없다.
+.nav {
+    margin-bottom: 20px;
+    // 플로트로 늘어서던 탭 항목이 각자의 높이를 가지도록 한다(flex의 기본값은 가장 큰 항목에 맞춰 늘린다).
+    align-items: flex-start;
+}
+
+// 드롭다운 단추의 삼각형. Bootstrap 4는 `.dropdown-toggle::after`로 그리고 `.caret` 클래스가 없다. 이 사이트의 단추는 `<span class="caret">`을 직접 쓰므로 BS4의 것은 끄고 v1.6 모양을 둔다.
+.dropdown-toggle::after {
+    content: none;
+}
+.caret {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    vertical-align: top;
+    border-top: 4px solid #000;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+    content: "";
+}
+
 .nav-tabs {
+    // v1.6는 겹침(-1px)을 `li`에 주었다(Bootstrap 2). Bootstrap 4는 `.nav-link`에 주므로 `li`의 높이가 1px 작아진다. 옮겨서 같게 한다.
+    > li {
+        margin-bottom: -1px;
+    }
+    .nav-link {
+        margin-bottom: 0;
+        // v1.6의 탭 링크는 오른쪽에 2px 간격이 있었다(Bootstrap 2의 `.nav-tabs > li > a`).
+        margin-right: 2px;
+    }
+
     li {
         a {
             padding-left:30px; padding-right:30px;
@@ -471,7 +503,7 @@ span.issue-label {
             }
         }
 
-        &.active a {
+        a.active {
             font-weight:bold;
         }
     }

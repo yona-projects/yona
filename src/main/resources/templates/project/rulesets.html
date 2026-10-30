@@ -16,8 +16,8 @@
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
 
         <div class="clearfix mt10 mb10">
-            <a id="newRuleset" class="ybtn ybtn-success pull-right" th:href="${base + '/setting/rulesets/new'}" th:text="#{project.ruleset.new}"></a>
-            <p class="help-block" th:text="#{project.ruleset.description}"></p>
+            <a id="newRuleset" class="ybtn ybtn-success float-right" th:href="${base + '/setting/rulesets/new'}" th:text="#{project.ruleset.new}"></a>
+            <p class="form-text" th:text="#{project.ruleset.description}"></p>
         </div>
         <div id="rulesetMigrated" class="alert alert-info" th:if="${migrated}" th:text="#{project.ruleset.legacy}"></div>
 
@@ -38,18 +38,18 @@
                 <td class="ruleset-name"><a th:href="${base + '/setting/rulesets/' + r.id}" th:text="${r.name}"></a></td>
                 <td class="ruleset-target"><code th:text="${r.pattern}"></code></td>
                 <td class="ruleset-enforcement">
-                    <span class="label label-default" th:classappend="${r.active} ? 'label-success'"
+                    <span class="badge badge-secondary" th:classappend="${r.active} ? 'badge-success'"
                           th:text="${r.active} ? #{project.ruleset.enforcement.active} : #{project.ruleset.enforcement.disabled}"></span>
                 </td>
                 <td class="ruleset-rules">
-                    <span class="label label-info" th:if="${r.requiredApprovals > 0}" th:text="#{project.ruleset.summary.approvals(${r.requiredApprovals})}"></span>
-                    <span class="label label-default" th:if="${r.requirePullRequest == true}" th:text="#{project.ruleset.rule.pr.short}"></span>
-                    <span class="label label-default" th:if="${r.requireNoChangesRequested == true}" th:text="#{project.ruleset.rule.changes.short}"></span>
-                    <span class="label label-default" th:if="${r.requireConversationResolution == true}" th:text="#{project.ruleset.rule.conversation.short}"></span>
-                    <span class="label label-default" th:if="${r.requireLinearHistory == true}" th:text="#{project.ruleset.rule.linear.short}"></span>
-                    <span class="label label-warning" th:if="${r.restrictUpdates == true}" th:text="#{project.ruleset.rule.updates.short}"></span>
-                    <span class="label label-default" th:if="${r.restrictDeletions == true}" th:text="#{project.ruleset.rule.deletions.short}"></span>
-                    <span class="label label-default" th:if="${r.blockForcePushes == true}" th:text="#{project.ruleset.rule.force.short}"></span>
+                    <span class="badge badge-info" th:if="${r.requiredApprovals > 0}" th:text="#{project.ruleset.summary.approvals(${r.requiredApprovals})}"></span>
+                    <span class="badge badge-secondary" th:if="${r.requirePullRequest == true}" th:text="#{project.ruleset.rule.pr.short}"></span>
+                    <span class="badge badge-secondary" th:if="${r.requireNoChangesRequested == true}" th:text="#{project.ruleset.rule.changes.short}"></span>
+                    <span class="badge badge-secondary" th:if="${r.requireConversationResolution == true}" th:text="#{project.ruleset.rule.conversation.short}"></span>
+                    <span class="badge badge-secondary" th:if="${r.requireLinearHistory == true}" th:text="#{project.ruleset.rule.linear.short}"></span>
+                    <span class="badge badge-warning" th:if="${r.restrictUpdates == true}" th:text="#{project.ruleset.rule.updates.short}"></span>
+                    <span class="badge badge-secondary" th:if="${r.restrictDeletions == true}" th:text="#{project.ruleset.rule.deletions.short}"></span>
+                    <span class="badge badge-secondary" th:if="${r.blockForcePushes == true}" th:text="#{project.ruleset.rule.force.short}"></span>
                 </td>
             </tr>
             </tbody>

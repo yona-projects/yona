@@ -18,7 +18,7 @@
         <div class="content-wrap frm-wrap">
             <form th:action="${base + '/milestone/' + milestone.id + '/edit'}" method="post" id="milestone-form">
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-lg-12">
                         <dl>
                             <dd>
                                 <input type="text" id="title" name="title" th:value="${titleValue}" class="zen-mode text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" th:placeholder="#{title.text}">
@@ -30,7 +30,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-9 span-left-pane">
+                        <div class="col-lg-9 span-left-pane">
                             <dl>
                                 <dd style="position: relative;">
                                     <th:block th:replace="~{common/editor :: editor('contents', ${contentsValue}, 'tabindex=2', 'content-body', false)}"></th:block>
@@ -46,7 +46,7 @@
                             --><a th:href="${base + '/milestones'}" class="ybtn" th:text="#{button.cancel}"></a>
                             </div>
                         </div>
-                        <div class="col-md-3 span-hard-wrap">
+                        <div class="col-lg-3 span-hard-wrap">
                             <dl class="issue-option">
                                 <dt th:text="#{milestone.form.state}"></dt>
                                 <dd>

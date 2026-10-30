@@ -17,10 +17,10 @@
         <div class="bubble-wrap dark-gray repo-wrap">
             <div class="code-browse-wrap">
                 <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                    <li><a th:href="${filesTabUrl}" th:text="#{code.files}"></a></li>
-                    <li><a th:href="${commitsTabUrl}" th:text="#{code.commits}"></a></li>
-                    <li class="active"><a th:href="@{/{owner}/{name}/branches(owner=${project.owner},name=${project.name})}" th:text="#{title.branches}"></a></li>
-                    <li><a th:href="@{/{owner}/{name}/tags(owner=${project.owner},name=${project.name})}" th:text="#{title.tags}"></a></li>
+                    <li class="nav-item"><a th:href="${filesTabUrl}" th:text="#{code.files}" class="nav-link"></a></li>
+                    <li class="nav-item"><a th:href="${commitsTabUrl}" th:text="#{code.commits}" class="nav-link"></a></li>
+                    <li class="nav-item"><a th:href="@{/{owner}/{name}/branches(owner=${project.owner},name=${project.name})}" th:text="#{title.branches}" class="nav-link active"></a></li>
+                    <li class="nav-item"><a th:href="@{/{owner}/{name}/tags(owner=${project.owner},name=${project.name})}" th:text="#{title.tags}" class="nav-link"></a></li>
                 </ul>
 
                 <table class="table branch-list-wrap">

@@ -68,7 +68,7 @@
                     $comments = $('<ul class="comments" id="comments"></ul>').appendTo(".board-comment-wrap");
                 }
                 $comments.html(html);
-                $comments.find(".event > .label").each(function () {
+                $comments.find(".event > .badge").each(function () {
                     var $label = $(this);
                     $label.removeClass("dimgray white").addClass($yobi.getContrastColor($label.css("background-color")));
                 });

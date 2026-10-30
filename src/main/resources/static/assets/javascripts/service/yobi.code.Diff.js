@@ -279,9 +279,7 @@
                 return;
             }
 
-            htElement.welReviewContainer.affix({
-                offset : {top : htElement.welReviewContainer.offset().top-10}
-            });
+            yona.affix(htElement.welReviewContainer, htElement.welReviewContainer.offset().top - 10);
         }
 
         /**

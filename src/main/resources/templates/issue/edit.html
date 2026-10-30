@@ -22,18 +22,18 @@
             <input type="hidden" id="isDraft" name="isDraft" value="false">
             <input type="hidden" id="isPublish" name="isPublish" value="false">
             <div class="row">
-            <div class="col-md-12">
+            <div class="col-lg-12">
                 <dl>
                     <dt>
                         <span th:if="${draft}" class="draft" th:text="#{issue.state.draft}"></span>
                         <label th:unless="${draft}" for="title"><strong class="secondary-txt" th:text="'#' + ${issueNumber}"></strong></label>
                     </dt>
                     <dd>
-                        <div class="col-md-12">
-                            <div class="col-md-11">
+                        <div class="col-lg-12">
+                            <div class="col-lg-11">
                                 <input type="text" id="title" name="title" th:value="${titleValue}" class="text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" th:placeholder="#{title}" autocomplete="off">
                             </div>
-                            <div class="col-md-1 subtask-message" th:text="#{issue.option}"></div>
+                            <div class="col-lg-1 subtask-message" th:text="#{issue.option}"></div>
                         </div>
                         <div th:if="${errors['title'] != null}" class="message">
                             <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
@@ -43,7 +43,7 @@
                 </dl>
             </div>
             <div class="row">
-                <div class="col-md-9 span-left-pane">
+                <div class="col-lg-9 span-left-pane">
                     <dl>
                         <dd style="position: relative;">
                             <th:block th:replace="~{common/editor :: editor('body', ${bodyValue}, 'tabindex=2', 'content-body', false)}"></th:block>
@@ -56,10 +56,10 @@
 
                     <div class=" actrow right-txt">
                         <span th:if="${!draft and authoredByViewer}" class="send-notification-check">
-                            <label class="checkbox-inline">
-                                <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked>
+                            <div class="form-check form-check-inline"><label class="form-check-label">
+                                <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked class="form-check-input">
                                 <strong th:text="#{notification.send.mail}"></strong>
-                            </label>
+                            </label></div>
                         </span>
                         <th:block th:if="${canUpdate and draft}">
                             <button type="submit" id="button-draft-publish" class="ybtn ybtn-info" th:text="#{button.draft.publish}"></button>
@@ -70,7 +70,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 span-hard-wrap right-menu">
+                <div class="col-lg-3 span-hard-wrap right-menu">
                     <dl th:if="${canUpdateState}" class="issue-option">
                         <dt th:text="#{issue.state}"></dt>
                         <dd>
@@ -80,8 +80,8 @@
                                     <span class="d-caret"><span class="caret"></span></span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li data-value="OPEN" th:attr="data-selected=${stateName == 'OPEN'} ? 'true'" th:classappend="${stateName == 'OPEN'} ? 'active'"><a th:text="#{issue.state.open}"></a></li>
-                                    <li data-value="CLOSED" th:attr="data-selected=${stateName == 'CLOSED'} ? 'true'" th:classappend="${stateName == 'CLOSED'} ? 'active'"><a th:text="#{issue.state.closed}"></a></li>
+                                    <li data-value="OPEN" th:attr="data-selected=${stateName == 'OPEN'} ? 'true'" th:classappend="${stateName == 'OPEN'} ? 'active'"><a th:text="#{issue.state.open}" class="dropdown-item"></a></li>
+                                    <li data-value="CLOSED" th:attr="data-selected=${stateName == 'CLOSED'} ? 'true'" th:classappend="${stateName == 'CLOSED'} ? 'active'"><a th:text="#{issue.state.closed}" class="dropdown-item"></a></li>
                                 </ul>
                             </div>
                         </dd>

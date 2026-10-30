@@ -28,7 +28,7 @@
 <meta name="twitter:url" th:content="${requestPath}" />
 <meta name="twitter:description" th:content="${titleArray[titleArray.length - 1]}" />
 <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}">
-<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/bootstrap/css/bootstrap.css}">
+<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/bootstrap.css}">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/yobicon/style.css}">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/javascripts/lib/select2/select2.css}"/>
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/javascripts/lib/pikaday/pikaday.css}" />
@@ -54,7 +54,7 @@
 
 <body th:class="${theme}" id="html-body">
     <div id="main" class="main">
-    <div th:if="${siteAdminLoggedIn}" class="admin-logged-in-affix" data-spy="affix" data-offset-top="30"><th:block th:text="#{user.siteAdminLoggedInAffix}"></th:block> <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}"></span></div>
+    <div th:if="${siteAdminLoggedIn}" class="admin-logged-in-affix" data-affix-top="30"><th:block th:text="#{user.siteAdminLoggedInAffix}"></th:block> <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}"></span></div>
 <p th:if="${updateNotice != null}" class="center-txt">
 <a th:href="${updateNotice.url}" th:text="#{site.update.notification(${updateNotice.version})}"></a>
 <button type="button" data-request-method="post" th:attr="data-request-uri=@{/sites/unwatchUpdate}" class="ybtn ybtn-small" th:text="#{site.update.notification.hide(${updateNotice.version})}"></button>

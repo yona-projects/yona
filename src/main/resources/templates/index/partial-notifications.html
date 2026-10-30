@@ -32,7 +32,7 @@
                         <img th:src="@{/assets/images/default-avatar-64.png}" width="42" height="42">
                     </div>
                     <th:block th:if="${noti.sender != null}"><a th:href="@{'/' + ${noti.sender.loginId}}" class="author" th:text="${noti.senderName}"></a>@<th:block th:text="${noti.sender.loginId}"></th:block></th:block>
-                    <span class="ago pull-right" th:title="${helper.dateString(noti.created)}" th:text="${helper.agoOrDateString(noti.created)}"></span>
+                    <span class="ago float-right" th:title="${helper.dateString(noti.created)}" th:text="${helper.agoOrDateString(noti.created)}"></span>
                 </div>
             </div>
         </div>

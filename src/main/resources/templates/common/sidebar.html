@@ -16,18 +16,18 @@
         <span class="caret-text hide-in-mobile" th:text="${currentUser.pureName}"></span>
     </a></span>
     <span class="user-menu"><a th:href="@{/user/editform}" target="mainFrame" th:text="#{userinfo.accountSetting}"></a></span>
-    <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout label label-default" th:text="#{title.logout}"></span></a>
+    <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout badge badge-secondary" th:text="#{title.logout}"></span></a>
     <div class="pin-in-sidebar" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i></div>
 </div>
 <ul class="nav nav-tabs nm">
-    <li class="myOrganizationList">
-        <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}"></a>
+    <li class="nav-item myOrganizationList">
+        <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}" class="nav-link"></a>
     </li>
-    <li class="myProjectList">
-        <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}"></a>
+    <li class="nav-item myProjectList">
+        <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}" class="nav-link"></a>
     </li>
-    <li class="myRecentIssueList">
-        <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}"></a>
+    <li class="nav-item myRecentIssueList">
+        <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}" class="nav-link"></a>
     </li>
     <li>
         <div class=""><i class="yobicon-refresh refresh-button"></i></div>

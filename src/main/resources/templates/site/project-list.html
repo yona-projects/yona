@@ -11,8 +11,8 @@
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::projectListPage})}">
 <th:block th:fragment="projectListPage">
     <div class="title_area">
-        <h2 class="pull-left" th:text="#{site.sidebar.projectList}"></h2>
-        <form class="pull-right" th:action="@{/sites/projectList}">
+        <h2 class="float-left" th:text="#{site.sidebar.projectList}"></h2>
+        <form class="float-right" th:action="@{/sites/projectList}">
             <div class="search-bar">
                 <input type="text" class="textbox" name="filter" th:placeholder="#{site.project.filter}" th:value="${filter}">
                 <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
@@ -20,22 +20,22 @@
         </form>
     </div>
     <div class="row listhead">
-        <div class="col-md-5 listhead-title"><strong th:text="#{project.name}"></strong></div>
-        <div class="col-md-4 listhead-title"><strong th:text="#{project.description}"></strong></div>
-        <div class="col-md-2 listhead-title"><strong th:text="#{project.created}"></strong></div>
-        <div class="col-md-1 listhead-title"><strong>&nbsp;</strong></div>
+        <div class="col-lg-5 listhead-title"><strong th:text="#{project.name}"></strong></div>
+        <div class="col-lg-4 listhead-title"><strong th:text="#{project.description}"></strong></div>
+        <div class="col-lg-2 listhead-title"><strong th:text="#{project.created}"></strong></div>
+        <div class="col-lg-1 listhead-title"><strong>&nbsp;</strong></div>
     </div>
     <ul class="project-list-wrap">
         <li th:each="row : ${rows}" class="row listitem">
-            <div class="col-md-5 listitem-col">
+            <div class="col-lg-5 listitem-col">
                 <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="avatar-wrap list-avatar">
                     <img th:src="@{${row.logoUrl}}" th:alt="${row.name}"/> <th:block th:text="${row.owner} + '/' + ${row.name}"></th:block>
                 </a>
                 <a th:href="@{/{o}/{n}(o=${row.owner},n=${row.name})}" class="project-name" th:text="${row.owner} + '/' + ${row.name}"></a>
             </div>
-            <div class="col-md-4 listitem-col" th:text="${row.overview}"></div>
-            <div class="col-md-2 listitem-col" th:text="${row.createdText}"></div>
-            <div class="col-md-1 listitem-col">
+            <div class="col-lg-4 listitem-col" th:text="${row.overview}"></div>
+            <div class="col-lg-2 listitem-col" th:text="${row.createdText}"></div>
+            <div class="col-lg-1 listitem-col">
                 <button class="ybtn ybtn-danger" th:attr="data-project-name=${row.owner} + '/' + ${row.name}, data-href=@{/sites/project/delete/{id}(id=${row.id})}" data-toggle="delete-project" th:text="#{button.delete}"></button>
             </div>
         </li>

@@ -15,21 +15,21 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div id="code-browse-wrap" class="code-browse-wrap">
-            <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
+            <div id="branches" class="btn-group branches float-right" data-name="branch" data-activate="manual">
                 <button class="btn dropdown-toggle large" data-toggle="dropdown">
                     <span class="d-label" th:text="${#lists.isEmpty(branches)} ? 'HEAD' : 'HEAD'"></span>
                     <span class="d-caret"><span class="caret"></span></span>
                 </button>
                 <ul class="dropdown-menu">
                     <li th:each="b : ${branches}" th:attr="data-value=${b.label}, data-selected=${b.selected} ? 'true' : null">
-                        <a th:href="${b.url}" th:text="${b.label}"></a>
+                        <a th:href="${b.url}" th:text="${b.label}" class="dropdown-item"></a>
                     </li>
                 </ul>
             </div>
 
             <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                <li><a th:href="${filesUrl}" th:text="#{code.files}"></a></li>
-                <li class="active"><a th:href="${commitsUrl}" th:text="#{code.commits}"></a></li>
+                <li class="nav-item"><a th:href="${filesUrl}" th:text="#{code.files}" class="nav-link"></a></li>
+                <li class="nav-item"><a th:href="${commitsUrl}" th:text="#{code.commits}" class="nav-link active"></a></li>
             </ul>
 
             <p class="commitInfo">
@@ -42,8 +42,8 @@
                     <strong th:if="${commit.authorName == null}" th:text="#{user.notExists.name}"></strong>
                 </th:block>
                 <span class="ago" th:title="${commit.agoTitle}" th:text="${commit.ago}"></span>
-                <strong class="commitId pull-right" th:text="'@' + ${commit.id}"></strong>
-                <span class="pull-right mt5 mr10" th:if="${!#lists.isEmpty(comments)}">
+                <strong class="commitId float-right" th:text="'@' + ${commit.id}"></strong>
+                <span class="float-right mt5 mr10" th:if="${!#lists.isEmpty(comments)}">
                     <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox">
                     <label for="toggle-comments" class="form-label" th:text="#{code.showcomments}"></label>
                 </span>
@@ -63,7 +63,7 @@
                         </div>
                         <div class="media-body">
                             <div class="meta-info">
-                                <span class="comment_author pull-left">
+                                <span class="comment_author float-left">
                                     <a th:href="${c.authorHref}" data-toggle="tooltip" data-placement="top" th:title="${c.authorName}">
                                         <strong th:text="${c.authorLoginId} + ' '"></strong>
                                     </a>
@@ -71,8 +71,8 @@
                                 <span class="ago">
                                     <a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a>
                                 </span>
-                                <span class="edit pull-right" th:if="${c.deletable}">
-                                    <button class="btn-transparent pull-right close" data-toggle="comment-delete" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                                <span class="edit float-right" th:if="${c.deletable}">
+                                    <button class="btn-transparent float-right close" data-toggle="comment-delete" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
                                 </span>
                             </div>
                             <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}" th:utext="${c.bodyHtml}"></div>
@@ -85,7 +85,7 @@
         </div>
 
         <button id="watch-button" type="button" th:class="'ybtn' + (${watching} ? ' active' : '')" data-toggle="button" th:text="#{notification.watch}"></button>
-        <a th:href="${listUrl}" class="ybtn pull-right" th:text="#{button.list}"></a>
+        <a th:href="${listUrl}" class="ybtn float-right" th:text="#{button.list}"></a>
 
         <div id="minimap" class="minimap-outer">
             <div class="minimap-wrap">

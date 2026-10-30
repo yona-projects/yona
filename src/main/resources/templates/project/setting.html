@@ -103,11 +103,11 @@
                     <div class="cu-label vmiddle" th:text="#{project.merge.title}"></div>
                     <div class="cu-desc">
                         <th:block th:each="m : ${ {'allowMergeCommit', 'allowSquashMerge', 'allowRebaseMerge'} }">
-                            <label class="checkbox-inline">
+                            <div class="form-check form-check-inline"><label class="form-check-label">
                                 <input type="checkbox" th:name="${m}" value="true"
-                                       th:checked="${m == 'allowMergeCommit' ? project.allowMergeCommit != false : (m == 'allowSquashMerge' ? project.allowSquashMerge == true : project.allowRebaseMerge == true)}">
+                                       th:checked="${m == 'allowMergeCommit' ? project.allowMergeCommit != false : (m == 'allowSquashMerge' ? project.allowSquashMerge == true : project.allowRebaseMerge == true)}" class="form-check-input">
                                 <th:block th:text="#{'project.merge.' + ${m}}"></th:block>
-                            </label>
+                            </label></div>
                             <!--/* 요청 파라미터는 첫 값을 읽으므로 체크하면 `true`가 앞서도록 숨은 값은 체크박스 뒤에 둔다 */-->
                             <input type="hidden" th:name="${m}" value="false">
                         </th:block>

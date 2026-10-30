@@ -266,7 +266,7 @@ class BoardListTest : AbstractIntegrationTest() {
     fun `쓰기 단추와 검색 폼이 있다`() {
         val project = newProject()
         val doc = doc(project)
-        assertEquals("/${project.owner}/${project.name}/postform", doc.selectFirst(".search-wrap .pull-right a.ybtn-success")!!.attr("href"))
+        assertEquals("/${project.owner}/${project.name}/postform", doc.selectFirst(".search-wrap .float-right a.ybtn-success")!!.attr("href"))
         assertEquals("/${project.owner}/${project.name}/posts", doc.selectFirst("form#option_form")!!.attr("action"))
         assertEquals("createdDate", doc.selectFirst("form#option_form input[name=orderBy]")!!.attr("value"))
         assertEquals("desc", doc.selectFirst("form#option_form input[name=orderDir]")!!.attr("value"))

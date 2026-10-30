@@ -81,7 +81,7 @@
         </dl>
 
         <div class="labels-wrap">
-            <a th:if="${search.canManageLabels}" th:href="${base + '/issue/labelsform'}" class="ybtn ybtn-default ybtn-mini pull-right">
+            <a th:if="${search.canManageLabels}" th:href="${base + '/issue/labelsform'}" class="ybtn ybtn-default ybtn-mini float-right">
                 <i class="yobicon-cog vmiddle"></i>
                 <span th:if="${!search.hasLabels}" class="vmiddle" style="margin-left:2px;" th:text="#{label.manage}"></span>
             </a>

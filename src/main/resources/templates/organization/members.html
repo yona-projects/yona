@@ -27,8 +27,8 @@
         </div>
 
         <ul class="members project row">
-            <li th:each="member : ${rows}" class="member col-md-6 span-hard-wrap">
-                <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge pull-left mr10">
+            <li th:each="member : ${rows}" class="member col-lg-6 span-hard-wrap">
+                <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge float-left mr10">
                     <img th:src="${member.avatarUrl}" width="64" height="64">
                 </a>
                 <div class="member-name" th:text="${member.displayName}"></div>
@@ -39,7 +39,7 @@
                             <span class="d-label" th:text="#{'user.role.' + ${member.roleName}}"></span>
                             <span class="d-caret"><span class="caret"></span></span>
                         </button>
-                        <ul class="dropdown-menu"><th:block th:each="role : ${roles}"><li th:attr="data-value=${role.id}" th:classappend="${role.name == member.roleName} ? 'active'" th:data-selected="${role.name == member.roleName} ? 'true'"><a href="javascript:void(0)" data-action="apply" th:data-href="${#paths.organization(org.name)} + '/member/' + ${member.userId} + '/edit'" th:data-loginId="${member.loginId}" th:text="#{'user.role.' + ${role.name}}"></a></li></th:block></ul>
+                        <ul class="dropdown-menu"><th:block th:each="role : ${roles}"><li th:attr="data-value=${role.id}" th:classappend="${role.name == member.roleName} ? 'active'" th:data-selected="${role.name == member.roleName} ? 'true'"><a href="javascript:void(0)" data-action="apply" th:data-href="${#paths.organization(org.name)} + '/member/' + ${member.userId} + '/edit'" th:data-loginId="${member.loginId}" th:text="#{'user.role.' + ${role.name}}" class="dropdown-item"></a></li></th:block></ul>
                     </div>
                     <a href="javascript:void(0)" data-action="delete" th:data-href="${#paths.organization(org.name)} + '/member/' + ${member.userId} + '/delete'" class="ybtn ybtn-danger ybtn-small">
                         <th:block th:text="#{button.delete}"></th:block>
@@ -67,13 +67,13 @@
             <h3><th:block th:text="#{project.member.enrollment.request}"></th:block> (<th:block th:text="${applicants.size()}"></th:block>)</h3>
         </legend>
         <div class="row">
-            <div th:each="user : ${applicants}" class="col-md-2">
-                <div class="pull-left mr10">
+            <div th:each="user : ${applicants}" class="col-lg-2">
+                <div class="float-left mr10">
                     <a th:href="@{/{user}(user=${user.loginId})}">
-                        <img th:src="${user.avatarUrl}" height="65" width="65" class="img-circle"/>
+                        <img th:src="${user.avatarUrl}" height="65" width="65" class="rounded-circle"/>
                     </a>
                 </div>
-                <div class="pull-left" style="width: 60px;">
+                <div class="float-left" style="width: 60px;">
                     <span><a th:href="@{/{user}(user=${user.loginId})}"><strong th:text="${user.displayName}"></strong></a></span>
                     <span>(<th:block th:text="${user.loginId}"></th:block>)</span>
                     <button type="button" class="ybtn ybtn-info ybtn-mini blue enrollAcceptBtn" th:attr="data-loginId=${user.loginId}"><i class="yobicon-addfriend"></i><th:block th:text="#{button.add}"></th:block></button>

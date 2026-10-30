@@ -16,8 +16,8 @@
         <h4><strong th:text="#{project.watcher.title}"></strong></h4>
         <p th:text="#{project.watcher.description}"></p>
         <ul class="members project row">
-            <li th:each="member : ${watchers}" class="member col-md-6 span-hard-wrap">
-                <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge pull-left mr10">
+            <li th:each="member : ${watchers}" class="member col-lg-6 span-hard-wrap">
+                <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge float-left mr10">
                     <img th:src="${member.avatarUrl}" width="64" height="64">
                 </a>
                 <div class="member-name" th:text="${member.displayName}"></div>

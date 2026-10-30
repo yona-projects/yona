@@ -43,24 +43,24 @@
                         <ul class="dropdown-menu flat right">
                             <th:block th:if="${project != null}">
                             <li>
-                                <a href="#" data-toggle="search-scope" th:data-action="@{${projectBase} + '/search'}" th:text="#{search.scope.project}">
+                                <a href="#" data-toggle="search-scope" th:data-action="@{${projectBase} + '/search'}" th:text="#{search.scope.project}" class="dropdown-item">
                                 </a>
                             </li>
                             <li th:if="${project.hasGroup()}">
-                                <a href="#" data-toggle="search-scope" th:data-action="@{${projectGroupBase} + '/search'}" th:text="#{search.scope.group}">
+                                <a href="#" data-toggle="search-scope" th:data-action="@{${projectGroupBase} + '/search'}" th:text="#{search.scope.group}" class="dropdown-item">
                                 </a>
                             </li>
                             </th:block>
                             <th:block th:if="${org != null}">
                                 <th:block th:if="${site.hideProjectListing or currentUser.guest}">
                                     <li th:if="${currentUser.memberOf(org) or currentUser.adminOf(org)}">
-                                        <a href="#" data-toggle="search-scope" th:data-action="@{${orgBase} + '/search'}" th:text="#{search.scope.group}">
+                                        <a href="#" data-toggle="search-scope" th:data-action="@{${orgBase} + '/search'}" th:text="#{search.scope.group}" class="dropdown-item">
                                         </a>
                                     </li>
                                 </th:block>
                             </th:block>
                             <li th:if="${(!site.hideProjectListing and !currentUser.guest) or currentUser.siteManager}">
-                                <a href="#" data-toggle="search-scope" th:data-action="@{/search}" th:text="#{search.scope.all}">
+                                <a href="#" data-toggle="search-scope" th:data-action="@{/search}" th:text="#{search.scope.all}" class="dropdown-item">
                                 </a>
                             </li>
                         </ul>

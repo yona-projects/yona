@@ -24,22 +24,22 @@
                     <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{project.webhook.add}"></button>
                 </div>
                 <div>
-                    <label class="radio-inline">
-                        <input type="radio" name="webhookType" value="SIMPLE" checked> Messenger (Only text)
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="webhookType" value="DETAIL_SLACK"> Slack (Meta)
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="webhookType" value="DETAIL_HANGOUT_CHAT"> Google Chat (Thread)
-                    </label>
-                    <label class="radio-inline">
-                        <input type="radio" name="webhookType" value="JSON"> Continuous Integration tool (Only push event)
-                    </label>
-                    <label class="radio-inline"> | </label><label class="radio-inline"></label>
-                    <label class="checkbox inline" for="gitPush">
+                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
+                        <input type="radio" name="webhookType" value="SIMPLE" checked class="form-check-input"> Messenger (Only text)
+                    </label></div>
+                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
+                        <input type="radio" name="webhookType" value="DETAIL_SLACK" class="form-check-input"> Slack (Meta)
+                    </label></div>
+                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
+                        <input type="radio" name="webhookType" value="DETAIL_HANGOUT_CHAT" class="form-check-input"> Google Chat (Thread)
+                    </label></div>
+                    <div class="form-check form-check-radio form-check-inline"><label class="form-check-label">
+                        <input type="radio" name="webhookType" value="JSON" class="form-check-input"> Continuous Integration tool (Only push event)
+                    </label></div>
+                    <div class="form-check form-check-inline"><label class="form-check-label"> | </label></div><div class="form-check form-check-inline"><label class="form-check-label"></label></div>
+                    <div class="form-check form-check-inline"><label for="gitPush" class="form-check-label">
                         <input type="checkbox" id="gitPush" name="gitPush" class="form-check-input"> <th:block th:text="#{project.webhook.includeGitPush}"></th:block>
-                    </label>
+                    </label></div>
                 </div>
             </div>
             <div th:utext="#{project.webhook.help}"></div>
@@ -51,18 +51,18 @@
             </div>
             <th:block th:if="${!#lists.isEmpty(webhooks)}">
                 <div class="row list-head">
-                    <div class="col-md-5 payload-url"><strong th:text="#{project.webhook.payloadUrl}"></strong></div>
-                    <div class="col-md-2 secret text-center"><strong th:text="#{project.webhook.secret}"></strong></div>
-                    <div class="col-md-2 secret text-center"><strong>Type of message</strong></div>
-                    <div class="col-md-2 secret text-center"><strong>Include git push events</strong></div>
-                    <div class="col-md-1 secret text-center"></div>
+                    <div class="col-lg-5 payload-url"><strong th:text="#{project.webhook.payloadUrl}"></strong></div>
+                    <div class="col-lg-2 secret text-center"><strong th:text="#{project.webhook.secret}"></strong></div>
+                    <div class="col-lg-2 secret text-center"><strong>Type of message</strong></div>
+                    <div class="col-lg-2 secret text-center"><strong>Include git push events</strong></div>
+                    <div class="col-lg-1 secret text-center"></div>
                 </div>
                 <div th:each="w : ${webhooks}" class="row list-item vertical-align" th:attr="data-webhook-id=${w.id}">
-                    <div class="col-md-5"><h6 class="mr20 truncate" th:text="${w.payloadUrl}"></h6></div>
-                    <div class="col-md-2 text-center"><h6 th:text="${#strings.isEmpty(w.secret)} ? 'NONE' : ${w.secret}"></h6></div>
-                    <div class="col-md-2 text-center"><h6 th:text="${w.type}"></h6></div>
-                    <div class="col-md-2 text-center"><input type="checkbox" th:checked="${w.gitPush}" onclick="return false;" /></div>
-                    <div class="col-md-1 text-center">
+                    <div class="col-lg-5"><h6 class="mr20 truncate" th:text="${w.payloadUrl}"></h6></div>
+                    <div class="col-lg-2 text-center"><h6 th:text="${#strings.isEmpty(w.secret)} ? 'NONE' : ${w.secret}"></h6></div>
+                    <div class="col-lg-2 text-center"><h6 th:text="${w.type}"></h6></div>
+                    <div class="col-lg-2 text-center"><input type="checkbox" th:checked="${w.gitPush}" onclick="return false;" /></div>
+                    <div class="col-lg-1 text-center">
                         <button type="button" class="ybtn ybtn-danger ybtn-small" data-request-method="delete" th:attr="data-request-uri=${w.deleteUrl}" th:text="#{button.delete}"></button>
                     </div>
                 </div>

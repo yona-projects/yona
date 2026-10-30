@@ -5,14 +5,14 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="settingmenu(view, requestPath)"
           th:with="base=${#paths.organization(view.name)}">
 <ul class="nav nav-tabs">
-    <li th:class="${requestPath == base + '/settingform'} ? 'active'">
-        <a th:href="${base + '/settingform'}" th:text="#{organization.settingFrom}"></a>
+    <li class="nav-item">
+        <a th:href="${base + '/settingform'}" th:text="#{organization.settingFrom}" class="nav-link" th:classappend="${requestPath == base + '/settingform'} ? 'active'"></a>
     </li>
-    <li th:class="${requestPath == base + '/members'} ? 'active'">
-        <a th:href="${base + '/members'}" th:text="#{organization.member}"></a>
+    <li class="nav-item">
+        <a th:href="${base + '/members'}" th:text="#{organization.member}" class="nav-link" th:classappend="${requestPath == base + '/members'} ? 'active'"></a>
     </li>
-    <li th:class="${requestPath == base + '/deleteForm'} ? 'active'">
-        <a th:href="${base + '/deleteForm'}" th:text="#{organization.delete}"></a>
+    <li class="nav-item">
+        <a th:href="${base + '/deleteForm'}" th:text="#{organization.delete}" class="nav-link" th:classappend="${requestPath == base + '/deleteForm'} ? 'active'"></a>
     </li>
 </ul>
 </th:block>

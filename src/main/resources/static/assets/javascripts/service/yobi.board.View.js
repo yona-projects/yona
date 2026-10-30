@@ -112,11 +112,7 @@
         }
 
         function _affixIssueInfoWrap(){
-            htElement.issueInfoWrap.affix({
-                "offset": {
-                    "top": htElement.issueInfoWrap.offset().top - 10
-                }
-            });
+            yona.affix(htElement.issueInfoWrap, htElement.issueInfoWrap.offset().top - 10);
         }
 
         _init(htOptions);

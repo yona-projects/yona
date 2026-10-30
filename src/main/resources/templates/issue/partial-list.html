@@ -12,7 +12,7 @@
         <th:block th:each="issue : ${list}">
         <li class="post-item title" th:id="'issue-item-' + ${issue.id}" data-item="issue-item"
             th:attr="data-value=${issue.authorLoginId} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="${base + '/issue/' + issue.number}">
-            <div class="col-md-9 span-hard-wrap">
+            <div class="col-lg-9 span-hard-wrap">
                 <label th:if="${projectView.projectMember}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
                     <input th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
                 </label>
@@ -52,7 +52,7 @@
                             <th:block th:if="${issue.sharerCount > 0}"><th:block th:replace="~{common/sharer-count :: sharerCount(${issue.sharerCount}, true)}"></th:block></th:block>
                         </span>
 
-                        <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active label-default" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                        <a th:each="label : ${issue.labels}" href="#" class="badge issue-label list-label active badge-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
                         <div class="child-issue-list hide">
                             <div th:if="${!issue.children.isEmpty()}" class="child-issues">
                                 <th:block th:each="child : ${issue.children}">
@@ -71,7 +71,7 @@
                                             <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount(${base + '/issue/' + child.number + '#vote'}, ${child.voterCount}, true)}"></th:block></th:block>
                                         </span>
                                     </span>
-                                    <a th:each="label : ${child.labels}" th:href="${base + '/issues?state=open&labelIds=' + label.id}" class="label issue-label list-label active twoColumeModeTarget label-default" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+                                    <a th:each="label : ${child.labels}" th:href="${base + '/issues?state=open&labelIds=' + label.id}" class="badge issue-label list-label active twoColumeModeTarget badge-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
                                     <span class="child-issue-date" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></span>
                                 </div>
                                 </th:block>
@@ -80,14 +80,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 hide-in-mobile">
-                <div class="mt5 pull-right">
+            <div class="col-lg-3 hide-in-mobile">
+                <div class="mt5 float-right">
                     <a th:if="${issue.assigneeName != null}" th:href="'/' + ${issue.assigneeLoginId}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" th:title="#{issue.assignee} + ': ' + ${issue.assigneeName}">
                         <img th:src="${issue.assigneeAvatarUrl}" width="32" height="32" th:alt="${issue.assigneeName}">
                     </a>
                     <div th:unless="${issue.assigneeName != null}" class="empty-avatar-wrap">&nbsp;</div>
                 </div>
-                <div th:if="${issue.due != null}" class="mr20 mt10 pull-right" th:classappend="${issue.due.cssClass}"
+                <div th:if="${issue.due != null}" class="mr20 mt10 float-right" th:classappend="${issue.due.cssClass}"
                      th:attr="data-toggle=${issue.due.tooltip != null} ? 'tooltip', data-placement=${issue.due.tooltip != null} ? 'top', title=${issue.due.tooltip}">
                     <i class="yobicon-clock2 mr3 vmiddle"></i>
                     <span class="vmiddle" th:text="${issue.due.text}"></span>
@@ -103,7 +103,7 @@
         <th:block th:each="issue : ${list}">
         <li class="post-item title" th:id="'issue-item-' + ${issue.id}" data-item="issue-item"
             th:attr="data-value=${issue.authorLoginId} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="${base + '/issue/' + issue.number}">
-            <div class="col-md-9 span-hard-wrap">
+            <div class="col-lg-9 span-hard-wrap">
                 <label th:if="${projectView.projectMember}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
                     <input th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
                 </label>
@@ -143,7 +143,7 @@
                             <th:block th:if="${issue.sharerCount > 0}"><th:block th:replace="~{common/sharer-count :: sharerCount(${issue.sharerCount}, true)}"></th:block></th:block>
                         </span>
 
-                        <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label active label-default" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                        <a th:each="label : ${issue.labels}" href="#" class="badge issue-label list-label active badge-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
                         <div class="child-issue-list hide">
                             <div th:if="${!issue.children.isEmpty()}" class="child-issues">
                                 <th:block th:each="child : ${issue.children}">
@@ -162,7 +162,7 @@
                                             <th:block th:if="${child.voterCount > 0}"><th:block th:replace="~{common/vote-count :: voteCount(${base + '/issue/' + child.number + '#vote'}, ${child.voterCount}, true)}"></th:block></th:block>
                                         </span>
                                     </span>
-                                    <a th:each="label : ${child.labels}" th:href="${base + '/issues?state=open&labelIds=' + label.id}" class="label issue-label list-label active twoColumeModeTarget label-default" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
+                                    <a th:each="label : ${child.labels}" th:href="${base + '/issues?state=open&labelIds=' + label.id}" class="badge issue-label list-label active twoColumeModeTarget badge-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
                                     <span class="child-issue-date" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></span>
                                 </div>
                                 </th:block>
@@ -171,14 +171,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 hide-in-mobile">
-                <div class="mt5 pull-right">
+            <div class="col-lg-3 hide-in-mobile">
+                <div class="mt5 float-right">
                     <a th:if="${issue.assigneeName != null}" th:href="'/' + ${issue.assigneeLoginId}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" th:title="#{issue.assignee} + ': ' + ${issue.assigneeName}">
                         <img th:src="${issue.assigneeAvatarUrl}" width="32" height="32" th:alt="${issue.assigneeName}">
                     </a>
                     <div th:unless="${issue.assigneeName != null}" class="empty-avatar-wrap">&nbsp;</div>
                 </div>
-                <div th:if="${issue.due != null}" class="mr20 mt10 pull-right" th:classappend="${issue.due.cssClass}"
+                <div th:if="${issue.due != null}" class="mr20 mt10 float-right" th:classappend="${issue.due.cssClass}"
                      th:attr="data-toggle=${issue.due.tooltip != null} ? 'tooltip', data-placement=${issue.due.tooltip != null} ? 'top', title=${issue.due.tooltip}">
                     <i class="yobicon-clock2 mr3 vmiddle"></i>
                     <span class="vmiddle" th:text="${issue.due.text}"></span>

@@ -15,7 +15,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div pjax-container class="row cb">
-            <div class="left-menu col-md-2 search-wrap hide-in-mobile" style="padding-top:0;">
+            <div class="left-menu col-lg-2 search-wrap hide-in-mobile" style="padding-top:0;">
                 <form id="search" name="search" th:action="${searchAction}" method="get">
                     <div class="search">
                         <div class="search-bar">
@@ -25,13 +25,13 @@
                     </div>
                 </form>
             </div>
-            <div class="col-md-10 span-hard-wrap" id="span10">
+            <div class="col-lg-10 span-hard-wrap" id="span10">
                 <ul class="nav nav-tabs nm pullrequeset-tab-menu">
-                    <li th:class="${open} ? 'active'">
-                        <a href="#" th:attr="data-url=${openAction}" data-type="state"><th:block th:text="#{pullRequest.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
+                    <li class="nav-item">
+                        <a href="#" th:attr="data-url=${openAction}" data-type="state" class="nav-link" th:classappend="${open} ? 'active'"><th:block th:text="#{pullRequest.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
                     </li>
-                    <li th:class="${!open} ? 'active'">
-                        <a href="#" th:attr="data-url=${closedAction}" data-type="state"><th:block th:text="#{pullRequest.state.closed}"></th:block> <span class="num-badge" th:text="${closedCount}"></span></a>
+                    <li class="nav-item">
+                        <a href="#" th:attr="data-url=${closedAction}" data-type="state" class="nav-link" th:classappend="${!open} ? 'active'"><th:block th:text="#{pullRequest.state.closed}"></th:block> <span class="num-badge" th:text="${closedCount}"></span></a>
                     </li>
                 </ul>
                 <div class="tab-content" style="clear:both;padding-top:15px;">
@@ -39,7 +39,7 @@
                         <ul class="post-list-wrap">
                         <th:block th:if="${!rows.isEmpty()}">
                             <li th:each="req : ${rows}" class="post-item title" th:href="@{${req.href}}">
-                                <div class="col-md-10 span-hard-wrap">
+                                <div class="col-lg-10 span-hard-wrap">
                                     <a th:if="${req.contributor != null}" th:href="@{/{u}(u=${req.contributor.loginId})}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}">
                                         <img th:if="${helper.isDefaultAvatar(req.contributor.avatarUrl)}" th:src="${req.contributor.avatarUrl}"/>
                                         <img th:unless="${helper.isDefaultAvatar(req.contributor.avatarUrl)}" th:src="${req.contributor.avatarUrl}" th:alt="${req.contributor.name}" width="32" height="32"/>
@@ -48,7 +48,7 @@
                                         <span class="post-id" th:text="${req.number}"></span>
                                         <th:block th:utext="${req.headerWordsHtml}"></th:block>
                                         <a th:href="@{${req.href}}" class="title" th:classappend="${req.conflict} ? 'conflict'" th:text="${req.title}"></a>
-                                        <a th:each="l : ${req.labels}" th:href="@{${req.href}}" class="label issue-label active list-label label-default" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                                        <a th:each="l : ${req.labels}" th:href="@{${req.href}}" class="badge issue-label active list-label badge-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                                     </div>
                                     <div class="infos">
                                         <a th:if="${req.contributor != null and req.contributor.name != null and !req.contributor.name.isEmpty()}" th:href="@{/{u}(u=${req.contributor.loginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}" th:text="${req.contributor.name}"></a>
@@ -69,8 +69,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-2 hide-in-mobile">
-                                    <div class="mt5 pull-right hide-in-mobile">
+                                <div class="col-lg-2 hide-in-mobile">
+                                    <div class="mt5 float-right hide-in-mobile">
                                         <a th:if="${req.assignee != null}" th:href="@{/{u}(u=${req.assignee.loginId})}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${req.assignee.name}" th:title="#{issue.assignee} + ': ' + ${req.assignee.name}">
                                             <img th:src="${req.assignee.avatarUrl}" width="32" height="32" th:alt="${req.assignee.name}">
                                         </a>
@@ -79,7 +79,7 @@
                                         </a>
                                         <div th:unless="${req.receiver != null or req.assignee != null}" class="empty-avatar-wrap">&nbsp;</div>
                                     </div>
-                                    <div class="state pull-right" th:classappend="${req.stateClass}" th:text="#{${req.stateKey}}"></div>
+                                    <div class="state float-right" th:classappend="${req.stateClass}" th:text="#{${req.stateKey}}"></div>
                                 </div>
                             </li>
                             <div id="pagination"></div>

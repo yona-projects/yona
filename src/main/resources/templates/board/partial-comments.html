@@ -32,7 +32,7 @@
                     <a th:href="'#comment-' + ${c.id}" class="ago" th:title="${c.createdTitle}" th:text="${c.createdAgo}"></a>
                     <a th:href="'#comment-' + ${c.id}" class="share-link" style="display: none">[Link]</a>
                 </span>
-                <span class="act-row pull-right">
+                <span class="act-row float-right">
                     <button th:if="${site.translationApiConfigured}" type="button" class="icon btn-transparent ml10 comment-translate" data-toggle="tooltip" th:attr="data-comment-id=${c.id}" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
 
                     <button th:if="${c.canRead}" type="button" class="btn-transparent ml10" data-toggle="comment-edit" th:attr="data-comment-id=${c.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>

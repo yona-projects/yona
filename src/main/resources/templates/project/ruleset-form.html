@@ -21,7 +21,7 @@
             <li><a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}"></a> <span class="divider">/</span></li>
             <li class="active">
                 <th:block th:text="${isNew} ? #{project.ruleset.new} : ${ruleset.name}"></th:block>
-                <span class="label ml10 label-default" th:if="${!isNew}" th:classappend="${ruleset.active} ? 'label-success'"
+                <span class="badge ml10 badge-secondary" th:if="${!isNew}" th:classappend="${ruleset.active} ? 'badge-success'"
                       th:text="${ruleset.active} ? #{project.ruleset.enforcement.active} : #{project.ruleset.enforcement.disabled}"></span>
             </li>
         </ul>
@@ -52,11 +52,11 @@
                 <div class="box-wrap middle" id="rulesetBypass">
                     <div class="cu-label" th:text="#{project.ruleset.bypass}"></div>
                     <div class="cu-desc">
-                        <div class="checkbox"><label>
-                            <input type="checkbox" name="bypassAdmins" value="true" th:checked="${ruleset.bypassAdmins == true}">
+                        <div class="form-check"><label class="form-check-label">
+                            <input type="checkbox" name="bypassAdmins" value="true" th:checked="${ruleset.bypassAdmins == true}" class="form-check-input">
                             <th:block th:text="#{project.ruleset.bypass.admins}"></th:block>
                         </label></div>
-                        <span class="help-block" th:text="#{project.ruleset.bypass.description}"></span>
+                        <span class="form-text" th:text="#{project.ruleset.bypass.description}"></span>
                     </div>
                 </div>
 
@@ -65,44 +65,44 @@
                     <div class="cu-desc">
                         <input type="text" id="rulesetPattern" name="pattern" maxlength="255" class="input-large" th:value="${ruleset.pattern}">
                         <span class="help-inline text-danger" th:if="${#lists.contains(errors, 'pattern')}" th:text="#{project.ruleset.error.pattern}"></span>
-                        <span class="help-block" th:text="#{project.ruleset.target.description}"></span>
+                        <span class="form-text" th:text="#{project.ruleset.target.description}"></span>
                     </div>
                 </div>
 
                 <div class="box-wrap middle" id="rulesetRules">
                     <div class="cu-label" th:text="#{project.ruleset.rules}"></div>
                     <div class="cu-desc">
-                        <div class="checkbox"><label><input type="checkbox" name="restrictUpdates" value="true" th:checked="${ruleset.restrictUpdates == true}">
+                        <div class="form-check"><label class="form-check-label"><input type="checkbox" name="restrictUpdates" value="true" th:checked="${ruleset.restrictUpdates == true}" class="form-check-input">
                             <strong th:text="#{project.ruleset.rule.updates}"></strong></label></div>
-                        <span class="help-block" th:text="#{project.ruleset.rule.updates.desc}"></span>
+                        <span class="form-text" th:text="#{project.ruleset.rule.updates.desc}"></span>
 
-                        <div class="checkbox"><label><input type="checkbox" name="restrictDeletions" value="true" th:checked="${ruleset.restrictDeletions == true}">
+                        <div class="form-check"><label class="form-check-label"><input type="checkbox" name="restrictDeletions" value="true" th:checked="${ruleset.restrictDeletions == true}" class="form-check-input">
                             <strong th:text="#{project.ruleset.rule.deletions}"></strong></label></div>
-                        <span class="help-block" th:text="#{project.ruleset.rule.deletions.desc}"></span>
+                        <span class="form-text" th:text="#{project.ruleset.rule.deletions.desc}"></span>
 
-                        <div class="checkbox"><label><input type="checkbox" name="requireLinearHistory" value="true" th:checked="${ruleset.requireLinearHistory == true}">
+                        <div class="form-check"><label class="form-check-label"><input type="checkbox" name="requireLinearHistory" value="true" th:checked="${ruleset.requireLinearHistory == true}" class="form-check-input">
                             <strong th:text="#{project.ruleset.rule.linear}"></strong></label></div>
-                        <span class="help-block" th:text="#{project.ruleset.rule.linear.desc}"></span>
+                        <span class="form-text" th:text="#{project.ruleset.rule.linear.desc}"></span>
 
-                        <div class="checkbox"><label><input type="checkbox" name="requirePullRequest" value="true" th:checked="${ruleset.requirePullRequest == true}">
+                        <div class="form-check"><label class="form-check-label"><input type="checkbox" name="requirePullRequest" value="true" th:checked="${ruleset.requirePullRequest == true}" class="form-check-input">
                             <strong th:text="#{project.ruleset.rule.pr}"></strong></label></div>
-                        <span class="help-block" th:text="#{project.ruleset.rule.pr.desc}"></span>
+                        <span class="form-text" th:text="#{project.ruleset.rule.pr.desc}"></span>
                         <!--/* GitHub처럼 "풀 리퀘스트 필요"를 켰을 때만 하위 항목을 펼친다. 승인 수나 병합 조건이 이미 켜져 있으면(v1.6에서 옮긴 값 등) 적용 중인 값이 숨지 않게 펼쳐 둔다 */-->
-                        <div id="rulesetPullRequestOptions" class="well well-small ml10"
+                        <div id="rulesetPullRequestOptions" class="card card-body card-body-small ml10"
                              th:style="${ruleset.requirePullRequest == true or ruleset.requiredApprovals > 0 or ruleset.requireNoChangesRequested == true or ruleset.requireConversationResolution == true} ? '' : 'display:none;'">
                             <label for="rulesetApprovals" th:text="#{project.ruleset.rule.approvals}"></label>
                             <input type="number" id="rulesetApprovals" name="approvals" min="0" max="100" class="input-mini" th:value="${ruleset.requiredApprovals}">
                             <span class="help-inline text-danger" th:if="${#lists.contains(errors, 'approvals')}" th:text="#{project.ruleset.error}"></span>
-                            <span class="help-block" th:text="#{project.ruleset.rule.approvals.desc}"></span>
-                            <div class="checkbox"><label><input type="checkbox" name="requireNoChangesRequested" value="true" th:checked="${ruleset.requireNoChangesRequested == true}">
+                            <span class="form-text" th:text="#{project.ruleset.rule.approvals.desc}"></span>
+                            <div class="form-check"><label class="form-check-label"><input type="checkbox" name="requireNoChangesRequested" value="true" th:checked="${ruleset.requireNoChangesRequested == true}" class="form-check-input">
                                 <th:block th:text="#{project.ruleset.rule.changes}"></th:block></label></div>
-                            <div class="checkbox"><label><input type="checkbox" name="requireConversationResolution" value="true" th:checked="${ruleset.requireConversationResolution == true}">
+                            <div class="form-check"><label class="form-check-label"><input type="checkbox" name="requireConversationResolution" value="true" th:checked="${ruleset.requireConversationResolution == true}" class="form-check-input">
                                 <th:block th:text="#{project.ruleset.rule.conversation}"></th:block></label></div>
                         </div>
 
-                        <div class="checkbox"><label><input type="checkbox" name="blockForcePushes" value="true" th:checked="${ruleset.blockForcePushes == true}">
+                        <div class="form-check"><label class="form-check-label"><input type="checkbox" name="blockForcePushes" value="true" th:checked="${ruleset.blockForcePushes == true}" class="form-check-input">
                             <strong th:text="#{project.ruleset.rule.force}"></strong></label></div>
-                        <span class="help-block" th:text="#{project.ruleset.rule.force.desc}"></span>
+                        <span class="form-text" th:text="#{project.ruleset.rule.force.desc}"></span>
                     </div>
                 </div>
 

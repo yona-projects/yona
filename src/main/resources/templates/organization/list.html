@@ -14,8 +14,8 @@
     <div class="site-breadcrumb-inner">
         <div class="title_area">
             <ul class="nav nav-tabs">
-                <li><a th:href="@{/projects}"><th:block th:text="#{project.public}"></th:block> <th:block th:text="#{title.projectList}"></th:block></a></li>
-                <li class='active'><a th:href="@{/orgs}" th:text="#{title.organization.list}"></a></li>
+                <li class="nav-item"><a th:href="@{/projects}" class="nav-link"><th:block th:text="#{project.public}"></th:block> <th:block th:text="#{title.projectList}"></th:block></a></li>
+                <li class="nav-item"><a th:href="@{/orgs}" th:text="#{title.organization.list}" class="nav-link active"></a></li>
             </ul>
         </div>
     </div>
@@ -23,7 +23,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
     	<div class="search-wrap">
-    		<div id="search" class="pull-left">
+    		<div id="search" class="float-left">
     			<form th:action="@{/orgs}" method="get">
     				<div class="search-bar">
                         <input name="filter" class="textbox" type="text" th:placeholder="#{site.organization.filter}" th:value="${filter}" autofocus>

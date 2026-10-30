@@ -15,16 +15,16 @@
 </div>
 <th:block th:unless="${groups.isEmpty()}">
   <div class="row list-head">
-    <div class="col-md-3 category">
+    <div class="col-lg-3 category">
       <strong th:text="#{label.category}"></strong>
     </div>
-    <div class="col-md-9 name">
+    <div class="col-lg-9 name">
       <strong th:text="#{label.name}"></strong>
     </div>
   </div>
 
   <div th:each="group : ${groups}" class="row list-item category-wrap" th:attr="data-category=${group.category.id}, data-category-name=${group.category.name}">
-    <div class="col-md-3">
+    <div class="col-lg-3">
       <h5 class="right-txt mr20">
         <span class="category-name" th:text="${group.category.name}"></span>
 
@@ -42,7 +42,7 @@
         </p>
       </h5>
     </div>
-    <div class="col-md-9">
+    <div class="col-lg-9">
       <table class="table nm">
         <tr th:each="label : ${group.labels}" th:attr="data-label-id=${label.id}">
           <td>

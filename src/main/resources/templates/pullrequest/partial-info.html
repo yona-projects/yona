@@ -8,16 +8,16 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="info">
 <div class="board-header issue">
-    <div class="pull-right mr10 mt10">
+    <div class="float-right mr10 mt10">
         <div class="date" th:title="${header.agoTitle}" th:text="${header.ago}"></div>
-        <span th:class="'badge nm ' + ${header.badgeClass}" th:text="#{${header.badgeKey}}"></span>
+        <span th:class="'badge badge-pill nm ' + ${header.badgeClass}" th:text="#{${header.badgeKey}}"></span>
     </div>
     <div class="title">
         <strong class="board-id" th:text="'#' + ${header.number}"></strong> <th:block th:text="${header.title}"></th:block>
     </div>
 </div>
 
-<div class="pull-right">
+<div class="float-right">
     <th:block th:if="${header.reviewers != null}">
         <div id="reviewers" style="display:inline-block; margin-right:5px;">
             <span style="font-size: 13px; vertical-align: middle; margin: 0 10px;" th:utext="${header.reviewers.labelHtml}"></span>
@@ -38,7 +38,7 @@
             <div class="btn-group">
                 <button type="button" id="btnAccept" class="ybtn ybtn-success" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
                 <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="ybtn ybtn-success dropdown-toggle" data-toggle="dropdown" th:title="#{pullRequest.merge.options}"></button>
-                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu pull-right" style="min-width:320px;">
+                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu float-right" style="min-width:320px;">
                     <li th:each="option : ${header.accept.methods}" class="merge-method-item" th:data-method="${option.code}" th:data-label="${option.buttonLabel}"
                         th:data-title="${option.defaultTitle}" th:data-message="${option.defaultMessage}"
                         th:classappend="${!option.available} ? 'disabled'" th:title="${option.reason}">
@@ -50,7 +50,7 @@
                     </li>
                 </ul>
             </div>
-            <form id="merge-options" method="post" th:action="${header.accept.formAction}" class="well" style="display:none; position:absolute; right:0; top:100%; z-index:1000; width:420px; margin:4px 0 0; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.18);">
+            <form id="merge-options" method="post" th:action="${header.accept.formAction}" class="card card-body" style="display:none; position:absolute; right:0; top:100%; z-index:1000; width:420px; margin:4px 0 0; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.18);">
                 <input type="hidden" name="method" th:value="${header.accept.defaultMethod}">
                 <div id="merge-message-fields">
                     <input type="text" name="commitTitle" class="form-control" maxlength="255" th:value="${header.accept.defaultOption?.defaultTitle}">
@@ -87,17 +87,17 @@
                 })();
             </script>
         </div>
-        <span th:if="${header.accept.bypassNote != null}" id="accept-bypass-note" class="help-block" style="display:inline-block; margin-right:5px;" th:text="${header.accept.bypassNote}"></span>
+        <span th:if="${header.accept.bypassNote != null}" id="accept-bypass-note" class="form-text" style="display:inline-block; margin-right:5px;" th:text="${header.accept.bypassNote}"></span>
         <button th:if="${!header.accept.enabled}" class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" th:title="${header.accept.disabledReason}" th:text="#{pullRequest.merge}"></button>
     </th:block>
 </div>
 
 <ul class="nav nav-tabs nm">
-    <li th:class="${header.activeTab == 'overview'} ? 'active'">
-        <a th:href="${header.overviewUrl}" th:text="#{pullRequest.menu.overview}"></a>
+    <li class="nav-item">
+        <a th:href="${header.overviewUrl}" th:text="#{pullRequest.menu.overview}" class="nav-link" th:classappend="${header.activeTab == 'overview'} ? 'active'"></a>
     </li>
-    <li th:class="${header.activeTab == 'changes'} ? 'active'">
-        <a th:href="${header.changesUrl}"><th:block th:text="#{pullRequest.menu.changes}"></th:block>
+    <li class="nav-item">
+        <a th:href="${header.changesUrl}" class="nav-link" th:classappend="${header.activeTab == 'changes'} ? 'active'"><th:block th:text="#{pullRequest.menu.changes}"></th:block>
             <span class="num-badge" th:if="${header.openThreadCount > 0}" th:text="${header.openThreadCount}"></span>
         </a>
     </li>

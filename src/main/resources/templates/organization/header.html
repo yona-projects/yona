@@ -24,7 +24,7 @@
                         <div class="pop-content" th:text="${view.enrolled} ? #{organization.member.enrollment.help.after} : #{organization.member.enrollment.help.before}">
                         </div>
                         <div class="pop-content btn-wrap">
-                            <a class="ybtn enrollBtn" th:classappend="${!view.enrolled} ? 'ybtn-info'"
+                            <a class="dropdown-item ybtn enrollBtn" th:classappend="${!view.enrolled} ? 'ybtn-info'"
                                th:href="${view.enrolled} ? @{/organizations/{name}/cancel/enroll(name=${view.name})} : @{/organizations/{name}/enroll(name=${view.name})}" id="enrollBtn">
                                 <i th:class="${view.enrolled} ? 'yobicon-removefriend' : 'yobicon-addfriend'"></i>
                                 <th:block th:text="${view.enrolled} ? #{button.cancel.enrollment} : #{button.new.enrollment}"></th:block>

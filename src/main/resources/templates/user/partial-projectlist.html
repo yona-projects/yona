@@ -9,12 +9,12 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="projectRow(project)" th:with="base=${#paths.project(project.owner, project.name)}">
 <li class="project">
     <div class="info-wrap">
-        <div class="pull-left">
+        <div class="float-left">
             <a th:href="@{${base}}" class="avatar-wrap small">
                 <img th:src="@{${project.logoUrl}}">
             </a>
         </div>
-        <div class="pull-left" style="margin-left: 10px;">
+        <div class="float-left" style="margin-left: 10px;">
             <div class="header">
                 <a th:href="@{${base}}" class="project-name" th:text="${project.name}"></a>
                 <i th:if="${project.private}" class="yobicon-lock yobicon-small"></i>
@@ -30,7 +30,7 @@
             </div>
         </div>
     </div>
-    <div class="stats-wrap pull-right">
+    <div class="stats-wrap float-right">
         <div class="stats">
             <th:block th:if="${project.showWatchButton}">
                 <a th:if="${project.watching}" th:href="@{${base + '/unwatch'}}" class="ybtn watchBtn">

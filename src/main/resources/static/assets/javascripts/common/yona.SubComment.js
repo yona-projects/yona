@@ -1,6 +1,6 @@
 $(function(){
     // timeline label text color adjusting
-    $(".event > .label").each(function() {
+    $(".event > .badge").each(function() {
         var $this = $(this);
         $this.removeClass("dimgray white")
             .addClass($yobi.getContrastColor($this.css('background-color')))

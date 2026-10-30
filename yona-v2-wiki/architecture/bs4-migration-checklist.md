@@ -4,7 +4,7 @@ type: architecture
 sources:
   - https://getbootstrap.com/docs/4.6/migration/
   - decisions.md
-updated: 2026-10-30
+updated: 2026-10-31
 ---
 
 # Bootstrap 3 → 4 이전 점검표 (X-38c)
@@ -60,3 +60,25 @@ updated: 2026-10-30
 ## 안내서 밖의 변경
 
 작업하면서 채운다.
+
+## 호환 층 의존 장부 (2026-10-31)
+
+호환 층 `app/assets/stylesheets/scss/_bs3-compat.scss`는 BS2 규칙을 SCSS로 옮겨 놓은 것이다. 선생님 지적("BS2/3 CSS에 우연히 기대는 규칙은 걷어낼 때 더 문제")에 따라, 마크업을 안내서대로 바꾼 뒤 대응하는 규칙을 지우고 남는 것만 이유와 함께 적는다([A-293](../decisions.md)).
+
+| 영역 | 상태 | 비고 |
+|---|---|---|
+| 탭·내비게이션(`.nav*`) | **호환 층에서 삭제**, BS4 + 변수(`$nav-*`) + `_yobiUI.scss` | A-290 |
+| 드롭다운(`.dropdown*`, `.caret`, `.open`) | **삭제**, BS4 + 변수(`$dropdown-*`) + 자체 `.caret` | A-290 |
+| 체크박스·라디오 | **마크업 전환**(`form-check`), 호환 규칙 없음. 자체 `.form-check` 규칙(`_page.scss`) | A-292 |
+| 진행 막대 | **마크업 전환**(`bg-*`), 모양은 `scss/_progress.scss` | A-292 |
+| 배지(`label`→`badge`) | 마크업 전환. 색은 호환 층의 `.badge-*`가 BS2 값으로 입힌다 | 변수화 대기 |
+| `affix` | 자체 JS `yona.Affix.js`로 대체 | A-291 |
+| 단추 그룹(`.btn-group*`, `.btn-*`) | 호환 층에 남음(56개 규칙). 사이트 단추는 자체 `ybtn`이고 BS 단추는 일부 | 대기 |
+| 그리드(`.row`, `col-lg-*`) | 호환 층에 남음(44개 규칙). BS4 flex 열을 끄고 BS2 유동 폭을 쓴다 | A-289, BS5에서 결정 |
+| 표(`.table*`) | BS3 단계 보정은 삭제. BS2 값은 호환 층에 남음(43개 규칙) | 변수화 대기 |
+| 페이지네이션·페이저·브레드크럼 | 호환 층에 남음 | 대기 |
+| `form-horizontal`, `control-group`, `help-inline` | 호환 층에 남음(2개 템플릿, `help-inline` 24곳) | 마크업 전환 대기 |
+| `.hide`(62곳 + JS 19곳) | 마크업 전환 대기(`d-none`) | 대기 |
+| 요소 선택자 기본값(`body`, `a`, `h1`…, 입력 요소) | 호환 층에 남음 | BS5에서 결정 |
+
+호환 층 크기: BS4 도입 직후 2,199줄, 현재 1,746줄.

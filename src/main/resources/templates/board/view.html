@@ -15,12 +15,12 @@
     <div class="project-page-wrap board-view">
         <!--/* Post Info */-->
         <div class="board-header issue">
-            <div class="pull-right mr10 mt10 hide-in-mobile">
+            <div class="float-right mr10 mt10 hide-in-mobile">
                 <div class="date" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></div>
             </div>
             <div class="title">
                 <strong class="board-id" th:text="'#' + ${post.number}"></strong> <th:block th:text="${post.title}"></th:block>
-                <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
+                <div class="float-right hide show-in-mobile" style="font-size: 0.7em">
                     <span class="date" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></span>
                 </div>
             </div>
@@ -28,7 +28,7 @@
 
         <!--/* Content body */-->
         <div class="board-body row">
-            <div class="col-md-9 span-left-pane">
+            <div class="col-lg-9 span-left-pane">
                 <div class="author-info">
                     <a th:href="'/' + ${post.authorLoginId}" class="usf-group">
                         <span class="avatar-wrap smaller">
@@ -64,7 +64,7 @@
                 </th:block>
                 <div class="attachments" id="attachments" th:attr="data-attachments=${post.attachmentsJson}"></div>
                 <div class="board-actrow right-txt">
-                    <div class="pull-left">
+                    <div class="float-left">
                         <div>
                             <button th:if="${post.canWatch}" id="watch-button" type="button" class="ybtn" th:classappend="${post.watching} ? 'ybtn-watching'"
                                     data-toggle="tooltip" data-placement="top" th:title="#{issue.watch.description}" th:attr="data-watching=${post.watching}"
@@ -95,7 +95,7 @@
                 <!--/* // Comment */-->
             </div>
 
-            <div class="col-md-3 span-right-pane mb20">
+            <div class="col-lg-3 span-right-pane mb20">
                 <div class="issue-info board-labels">
                     <dl>
                         <dd th:if="${projectView.menuSetting.board}" class="project-btn-item">

@@ -12,12 +12,12 @@
 <title>Yobi UI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="shortcut icon" type="image/png" th:href="@{/favicon.ico}">
-<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/bootstrap/css/bootstrap.css}">
+<link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/bootstrap.css}">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/yobicon/style.css}">
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/javascripts/lib/select2/select2.css}"/>
 <link rel="stylesheet" type="text/css" media="all" th:href="@{/assets/stylesheets/yobi.css}">
 <script type="text/javascript" th:src="@{/assets/javascripts/lib/jquery/jquery-3.3.1.js}"></script>
-<script type="text/javascript" th:src="@{/assets/bootstrap/js/bootstrap.js}"></script>
+<script type="text/javascript" th:src="@{/assets/bootstrap/js/bootstrap.bundle.js}"></script>
 <script type="text/javascript" th:src="@{/assets/bootstrap/js/bootstrap-switch.js}"></script>
 <script type="text/javascript" th:src="@{/assets/javascripts/common/yobi.Common.js}"></script>
 <style type="text/css">
@@ -94,8 +94,8 @@ dd { margin-left:0; }
     							<span class="d-caret"><span class="caret"></span></span>
     						</button>
     						<ul class="dropdown-menu">
-    							<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-    							<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+    							<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)" class="dropdown-item">전체</a></li>
+    							<li data-value="0"><a href="javascript:void(0)" class="dropdown-item">담당자 없음</a></li>
     						</ul>
     					</div>
     				</dd>
@@ -114,8 +114,8 @@ dd { margin-left:0; }
                                 <span class="d-caret"><span class="caret"></span></span>
                             </button>
                             <ul class="dropdown-menu">
-                                <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-                                <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+                                <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)" class="dropdown-item">전체</a></li>
+                                <li data-value="0"><a href="javascript:void(0)" class="dropdown-item">담당자 없음</a></li>
                             </ul>
                         </div>
                     </dd>
@@ -134,8 +134,8 @@ dd { margin-left:0; }
                                 <span class="d-caret"><span class="caret"></span></span>
                             </button>
                             <ul class="dropdown-menu">
-                                <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-                                <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+                                <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)" class="dropdown-item">전체</a></li>
+                                <li data-value="0"><a href="javascript:void(0)" class="dropdown-item">담당자 없음</a></li>
                             </ul>
                         </div>
                     </dd>
@@ -147,8 +147,8 @@ dd { margin-left:0; }
     	    <span class="d-caret"><span class="caret"></span></span>
     	</button>
     	<ul class="dropdown-menu">
-    	    <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-    	    <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+    	    <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)" class="dropdown-item">전체</a></li>
+    	    <li data-value="0"><a href="javascript:void(0)" class="dropdown-item">담당자 없음</a></li>
     	</ul>
     </div>
     </xmp>
@@ -293,11 +293,11 @@ dd { margin-left:0; }
     		<pre>.nav .nav-tabs</pre>
     		<div>
     			<ul class="nav nav-tabs">
-    				<li class="active">
-    					<a href="#">파일</a>
+    				<li class="nav-item">
+    					<a href="#" class="nav-link active">파일</a>
     				</li>
-    				<li>
-    					<a href="#">커밋</a>
+    				<li class="nav-item">
+    					<a href="#" class="nav-link">커밋</a>
     				</li>
     			</ul>
     		</div>

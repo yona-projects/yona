@@ -196,7 +196,7 @@ val sassSourceDir = layout.projectDirectory.dir("app/assets/stylesheets")
 val sassOutputDir = layout.buildDirectory.dir("generated/sass")
 
 /** `_`로 시작하지 않는 최상위 SCSS 파일이 CSS 하나로 컴파일된다(v1.6 `build.sbt`의 includeFilter/excludeFilter와 같다). */
-val sassEntries = listOf("yobi", "usermenu", "filetype")
+val sassEntries = listOf("bootstrap", "yobi", "usermenu", "filetype")
 
 /** 하위 폴더의 SCSS도 따로 CSS로 컴파일해 내려 준다(`/assets/stylesheets/scss/font/icons.css` 등, v1.6의 `less/font`에 해당). */
 val sassNestedEntries = listOf("scss/font/colours", "scss/font/fonts", "scss/font/icons")

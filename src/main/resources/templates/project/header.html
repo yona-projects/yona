@@ -43,7 +43,7 @@
                             <div class="pop-content" th:text="#{project.member.enrollment.help}">
                             </div>
                             <div class="pop-content btn-wrap">
-                                <a class="ybtn enrollBtn" th:href="@{/{owner}/{name}/cancel/enroll(owner=${view.project.owner},name=${view.project.name})}" id="enrollBtn">
+                                <a class="dropdown-item ybtn enrollBtn" th:href="@{/{owner}/{name}/cancel/enroll(owner=${view.project.owner},name=${view.project.name})}" id="enrollBtn">
                                     <i class="yobicon-removefriend"></i>
                                     <th:block th:text="#{button.cancel.enrollment}"></th:block>
                                 </a>
@@ -59,7 +59,7 @@
                             <div class="pop-content" th:text="#{project.member.enrollment.will.help}">
                             </div>
                             <div class="pop-content btn-wrap">
-                                <a class="ybtn ybtn-info enrollBtn" th:href="@{/{owner}/{name}/enroll(owner=${view.project.owner},name=${view.project.name})}" id="enrollBtn">
+                                <a class="dropdown-item ybtn ybtn-info enrollBtn" th:href="@{/{owner}/{name}/enroll(owner=${view.project.owner},name=${view.project.name})}" id="enrollBtn">
                                     <i class="yobicon-addfriend"></i>
                                     <th:block th:text="#{button.new.enrollment}"></th:block>
                                 </a>
@@ -82,15 +82,15 @@
                                     </ul>
                                 </div>
                                 <div class="pop-content btn-wrap">
-                                    <a class="ybtn" th:href="@{/user/editform/notifications} + '#' + ${view.project.id}">
+                                    <a class="dropdown-item ybtn" th:href="@{/user/editform/notifications} + '#' + ${view.project.id}">
                                         <i class="yobicon-alert2"></i>
                                         <th:block th:text="#{userinfo.changeNotifications}"></th:block>
                                     </a>
-                                    <a th:if="${view.watching}" class="ybtn ybtn-watching watchBtn" th:href="@{/{owner}/{name}/unwatch(owner=${view.project.owner},name=${view.project.name})}">
+                                    <a th:if="${view.watching}" class="dropdown-item ybtn ybtn-watching watchBtn" th:href="@{/{owner}/{name}/unwatch(owner=${view.project.owner},name=${view.project.name})}">
                                         <i class="yobicon-eye-off"></i>
                                         <th:block th:text="#{project.unwatch}"></th:block>
                                     </a>
-                                    <a th:unless="${view.watching}" class="ybtn ybtn-watching watchBtn" th:href="@{/{owner}/{name}/watch(owner=${view.project.owner},name=${view.project.name})}">
+                                    <a th:unless="${view.watching}" class="dropdown-item ybtn ybtn-watching watchBtn" th:href="@{/{owner}/{name}/watch(owner=${view.project.owner},name=${view.project.name})}">
                                         <i class="yobicon-eye"></i>
                                         <th:block th:text="#{project.watch}"></th:block>
                                     </a>

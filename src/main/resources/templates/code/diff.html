@@ -17,10 +17,10 @@
     <div class="project-page-wrap">
         <div id="code-browse-wrap" class="code-browse-wrap">
             <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                <li><a th:href="${filesUrl}" th:text="#{code.files}"></a></li>
-                <li class="active"><a th:href="${commitsUrl}" th:text="#{code.commits}"></a></li>
-                <li><a th:href="${branchesUrl}" th:text="#{title.branches}"></a></li>
-                <li><a th:href="${tagsUrl}" th:text="#{title.tags}"></a></li>
+                <li class="nav-item"><a th:href="${filesUrl}" th:text="#{code.files}" class="nav-link"></a></li>
+                <li class="nav-item"><a th:href="${commitsUrl}" th:text="#{code.commits}" class="nav-link active"></a></li>
+                <li class="nav-item"><a th:href="${branchesUrl}" th:text="#{title.branches}" class="nav-link"></a></li>
+                <li class="nav-item"><a th:href="${tagsUrl}" th:text="#{title.tags}" class="nav-link"></a></li>
             </ul>
 
             <div class="codediff-wrap">
@@ -67,8 +67,8 @@
                     <div class="review-container">
                         <button type="button" class="ybtn ybtn-default btn-hide-reviewcards"><i class="yobicon-maximize"></i></button>
                         <ul class="nav nav-tabs" style="margin-bottom:10px;">
-                            <li class="active"><a href="#reviewcards-open" data-toggle="tab"><th:block th:text="#{issue.state.open}"></th:block> <th:block th:text="${openCount}"></th:block></a></li>
-                            <li><a href="#reviewcards-closed" data-toggle="tab"><th:block th:text="#{issue.state.closed}"></th:block> <th:block th:text="${closedCount}"></th:block></a></li>
+                            <li class="nav-item"><a href="#reviewcards-open" data-toggle="tab" class="nav-link active"><th:block th:text="#{issue.state.open}"></th:block> <th:block th:text="${openCount}"></th:block></a></li>
+                            <li class="nav-item"><a href="#reviewcards-closed" data-toggle="tab" class="nav-link"><th:block th:text="#{issue.state.closed}"></th:block> <th:block th:text="${closedCount}"></th:block></a></li>
                         </ul>
                         <div class="tab-content review-list">
                             <div id="reviewcards-open" class="tab-pane active">
@@ -97,8 +97,8 @@
             </div>
         </div>
 
-        <button id="watch-button" type="button" th:class="'pull-left ybtn' + (${watching} ? ' active ybtn-watching' : '')" data-toggle="button" th:text="#{notification.watch}"></button>
-        <a th:href="${listUrl}" class="ybtn pull-right" th:text="#{button.list}"></a>
+        <button id="watch-button" type="button" th:class="'float-left ybtn' + (${watching} ? ' active ybtn-watching' : '')" data-toggle="button" th:text="#{notification.watch}"></button>
+        <a th:href="${listUrl}" class="ybtn float-right" th:text="#{button.list}"></a>
     </div>
 </div>
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>

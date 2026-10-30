@@ -189,7 +189,7 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
         val s = setup(); val bug = label(s.origin, "bug"); val doc = label(s.origin, "doc")
         mockMvc.perform(assign(s, s.member, s.manager)); mockMvc.perform(changeLabels(s, s.manager, attach = listOf(bug)))
         val d = page(s.url, login(s.manager))
-        val pane = d.selectFirst(".board-body.row > .col-md-3.span-right-pane #pr-meta")!!
+        val pane = d.selectFirst(".board-body.row > .col-lg-3.span-right-pane #pr-meta")!!
         assertEquals("${s.url}/assignees", pane.attr("data-assignees-url")); assertEquals("${s.url}/labels", pane.attr("data-labels-url"))
         assertEquals("${s.url}/timeline", pane.attr("data-timeline-url"))
         assertEquals("/${s.origin.owner}/${s.origin.name}/assignableUsers", pane.attr("data-candidates-url"))
@@ -205,7 +205,7 @@ class PullRequestAssigneeLabelWebTest : AbstractIntegrationTest() {
     fun `본문과 상태와 타임라인은 왼쪽 열에 있다`() {
         val s = setup()
         val d = page(s.url)
-        val left = d.selectFirst(".board-body.row > .col-md-9.span-left-pane")!!
+        val left = d.selectFirst(".board-body.row > .col-lg-9.span-left-pane")!!
         assertNotNull(left.selectFirst(".content.markdown-wrap")); assertNotNull(left.selectFirst("#state")); assertNotNull(left.selectFirst("#comments"))
     }
 

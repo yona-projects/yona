@@ -77,9 +77,9 @@ class SiteUpdateAndDiagnosticTest : AbstractIntegrationTest() {
     fun `새 버전이 있으면 알려 주고 내려받기 링크를 준다`() {
         tags("v1.16.0", "v99.0.0")
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/update").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertTrue(doc.select(".col-md-10 p").first()!!.text().contains("99.0.0"))
-        assertEquals("https://github.com/yona-projects/yona/releases/tag/v99.0.0", doc.selectFirst(".col-md-10 a.ybtn-success")!!.attr("href"))
-        assertTrue(doc.select(".col-md-10 p").any { it.text().contains(updates.currentVersion) })
+        assertTrue(doc.select(".col-lg-10 p").first()!!.text().contains("99.0.0"))
+        assertEquals("https://github.com/yona-projects/yona/releases/tag/v99.0.0", doc.selectFirst(".col-lg-10 a.ybtn-success")!!.attr("href"))
+        assertTrue(doc.select(".col-lg-10 p").any { it.text().contains(updates.currentVersion) })
         assertEquals("/sites/update", doc.selectFirst("ul.site-setting-nav li.active a")!!.attr("href"))
         assertTrue(doc.select("ul.site-setting-nav li.active .notification-badge").isNotEmpty())
     }
@@ -88,17 +88,17 @@ class SiteUpdateAndDiagnosticTest : AbstractIntegrationTest() {
     fun `새 버전이 없으면 필요 없다고 알린다`() {
         tags("v0.0.1")
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/update").session(admin())).andReturn().response.contentAsString)
-        assertTrue(doc.select(".col-md-10 a.ybtn-success").isEmpty())
-        assertTrue(doc.select(".col-md-10 p").any { it.text().contains(updates.currentVersion) })
-        assertTrue(doc.select(".col-md-10 pre").isEmpty())
+        assertTrue(doc.select(".col-lg-10 a.ybtn-success").isEmpty())
+        assertTrue(doc.select(".col-lg-10 p").any { it.text().contains(updates.currentVersion) })
+        assertTrue(doc.select(".col-lg-10 pre").isEmpty())
     }
 
     @Test
     fun `저장소를 읽지 못하면 오류와 스택 트레이스를 보인다`() {
         Mockito.`when`(remoteTags.list(Mockito.anyString())).thenThrow(IllegalStateException("network-down-marker"))
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/update").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertTrue(doc.selectFirst(".col-md-10 pre")!!.text().contains("network-down-marker"))
-        assertTrue(doc.select(".col-md-10 a.ybtn-success").isEmpty())
+        assertTrue(doc.selectFirst(".col-lg-10 pre")!!.text().contains("network-down-marker"))
+        assertTrue(doc.select(".col-lg-10 a.ybtn-success").isEmpty())
     }
 
     @Test
@@ -138,7 +138,7 @@ class SiteUpdateAndDiagnosticTest : AbstractIntegrationTest() {
     @Test
     fun `점검에서 문제가 없으면 없다고 알린다`() {
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/diagnostic").session(admin())).andExpect(status().isOk).andReturn().response.contentAsString)
-        assertTrue(doc.select(".col-md-10 ul li pre").isEmpty())
+        assertTrue(doc.select(".col-lg-10 ul li pre").isEmpty())
         assertEquals("/sites/diagnostic", doc.selectFirst("ul.site-setting-nav li.active a")!!.attr("href"))
     }
 
@@ -147,7 +147,7 @@ class SiteUpdateAndDiagnosticTest : AbstractIntegrationTest() {
         properties.save(Property(name = PropertyName.MAILBOX_LAST_SEEN_UID, value = "10"))
         properties.save(Property(name = PropertyName.MAILBOX_LAST_SEEN_UID, value = "11"))
         val doc = Jsoup.parse(mockMvc.perform(get("/sites/diagnostic").session(admin())).andReturn().response.contentAsString)
-        val errors = doc.select(".col-md-10 ul li pre").map { it.text() }
+        val errors = doc.select(".col-lg-10 ul li pre").map { it.text() }
         assertEquals(1, errors.size)
         assertTrue(errors[0].startsWith("Property 'MAILBOX_LAST_SEEN_UID' has duplicated values: "))
     }

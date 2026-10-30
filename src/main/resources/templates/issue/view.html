@@ -15,9 +15,9 @@
     <div class="project-page-wrap board-view">
         <!--/* Post Info */-->
         <div class="board-header issue">
-            <div class="pull-right mr10 mt10 hide-in-mobile">
+            <div class="float-right mr10 mt10 hide-in-mobile">
                 <div class="date" th:title="${issue.createdTitle}" th:text="${issue.createdAgo}"></div>
-                <span class="badge" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
+                <span class="badge badge-pill" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
             </div>
             <div class="title">
                 <span th:if="${issue.hasParent}" class="subtask-mark">subtask</span>
@@ -26,9 +26,9 @@
                 <span class="favorite-issue" th:attr="data-issue-id=${issue.id}">
                     <i class="star material-icons va-text-top" th:classappend="${issue.favorite} ? 'starred'">star</i>
                 </span>
-                <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
+                <div class="float-right hide show-in-mobile" style="font-size: 0.7em">
                     <span class="date" th:title="${issue.createdTitle}" th:text="${issue.createdAgo}"></span>
-                    <span class="badge badge-small" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
+                    <span class="badge badge-pill badge-small" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
                 </div>
             </div>
             <div th:if="${issue.draft}" class="draft" th:text="#{issue.draft.description}"></div>
@@ -36,7 +36,7 @@
         <!--/* Content body */-->
         <!--board-body-->
         <div class="board-body row">
-            <div class="col-md-9 span-left-pane">
+            <div class="col-lg-9 span-left-pane">
                 <div class="author-info">
                     <a th:if="${issue.author != null}" th:href="'/' + ${issue.author.loginId}" class="usf-group">
                         <span class="avatar-wrap smaller">
@@ -78,7 +78,7 @@
                 </th:block>
                 <div class="attachments" id="attachments" th:attr="data-attachments=${issue.attachmentsJson}"></div>
                 <div class="board-actrow right-txt">
-                    <div class="pull-left">
+                    <div class="float-left">
                         <div>
                             <button th:if="${issue.watchable}" id="watch-button" type="button" class="ybtn" th:classappend="${issue.watching} ? 'ybtn-watching'"
                                     data-toggle="tooltip" data-placement="top" th:title="#{issue.watch.description}" th:attr="data-watching=${issue.watching}"
@@ -150,7 +150,7 @@
                 </div>
             </div>
 
-            <div class="col-md-3 span-right-pane mb20">
+            <div class="col-lg-3 span-right-pane mb20">
                 <div class="issue-info">
                     <form id="issueUpdateForm" th:action="${base + '/issues'}" method="post">
                         <input type="hidden" name="issues[0].id" th:value="${issue.id}" />

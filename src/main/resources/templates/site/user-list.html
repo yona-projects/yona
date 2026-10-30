@@ -12,8 +12,8 @@
 <th:block th:fragment="userListPage">
     <div class="title_area">
 
-        <h2 class="pull-left" th:text="#{site.sidebar.userList}"></h2>
-        <form class="pull-right" th:action="@{/sites/userList}">
+        <h2 class="float-left" th:text="#{site.sidebar.userList}"></h2>
+        <form class="float-right" th:action="@{/sites/userList}">
             <input type="hidden" name="state" th:value="${userState}" />
             <div class="search-bar">
                 <input class="textbox" name="query" type="text" th:placeholder="#{site.userList.search}" th:value="${query}">
@@ -22,32 +22,32 @@
         </form>
     </div>
     <ul class="nav nav-tabs">
-      <li th:class="${userState == 'ACTIVE'} ? 'active'"><a th:href="@{/sites/userList(state='ACTIVE')}" th:text="#{site.userList.unlocked}"></a></li>
-      <li th:class="${userState == 'LOCKED'} ? 'active'"><a th:href="@{/sites/userList(state='LOCKED')}" th:text="#{site.userList.locked}"></a></li>
-      <li th:class="${userState == 'DELETED'} ? 'active'"><a th:href="@{/sites/userList(state='DELETED')}" th:text="#{site.userList.deleted}"></a></li>
-      <li th:class="${userState == 'GUEST'} ? 'active'"><a th:href="@{/sites/userList(state='GUEST')}" th:text="#{site.userList.guest}"></a></li>
-      <li th:class="${userState == 'SITE_ADMIN'} ? 'active'"><a th:href="@{/sites/userList(state='SITE_ADMIN')}"><th:block th:text="#{site.userList.siteAdmin}"></th:block><span class="num-badge" th:text="${siteAdminCount}"></span></a></li>
+      <li class="nav-item"><a th:href="@{/sites/userList(state='ACTIVE')}" th:text="#{site.userList.unlocked}" class="nav-link" th:classappend="${userState == 'ACTIVE'} ? 'active'"></a></li>
+      <li class="nav-item"><a th:href="@{/sites/userList(state='LOCKED')}" th:text="#{site.userList.locked}" class="nav-link" th:classappend="${userState == 'LOCKED'} ? 'active'"></a></li>
+      <li class="nav-item"><a th:href="@{/sites/userList(state='DELETED')}" th:text="#{site.userList.deleted}" class="nav-link" th:classappend="${userState == 'DELETED'} ? 'active'"></a></li>
+      <li class="nav-item"><a th:href="@{/sites/userList(state='GUEST')}" th:text="#{site.userList.guest}" class="nav-link" th:classappend="${userState == 'GUEST'} ? 'active'"></a></li>
+      <li class="nav-item"><a th:href="@{/sites/userList(state='SITE_ADMIN')}" class="nav-link" th:classappend="${userState == 'SITE_ADMIN'} ? 'active'"><th:block th:text="#{site.userList.siteAdmin}"></th:block><span class="num-badge" th:text="${siteAdminCount}"></span></a></li>
     </ul>
     <div class="row listhead">
-        <div class="col-md-3 listhead-title">
+        <div class="col-lg-3 listhead-title">
             <strong th:text="#{user.name}"></strong>
         </div>
-        <div class="col-md-3 listhead-title">
+        <div class="col-lg-3 listhead-title">
             <strong th:text="#{user.email}"></strong>
         </div>
-        <div class="col-md-2 listhead-title">
+        <div class="col-lg-2 listhead-title">
             <strong th:text="#{userinfo.since}"></strong>
         </div>
-        <div th:if="${userState != 'DELETED'}" class="col-md-4 listhead-title">
+        <div th:if="${userState != 'DELETED'}" class="col-lg-4 listhead-title">
             <strong>&nbsp;</strong>
         </div>
-        <div th:if="${userState == 'DELETED'}" class="col-md-4 listhead-title">
+        <div th:if="${userState == 'DELETED'}" class="col-lg-4 listhead-title">
             <strong th:text="#{userinfo.leave}"></strong>
         </div>
     </div>
     <ul class="user-list-wrap">
         <li th:each="row : ${rows}" class="row listitem">
-            <div class="col-md-3 listitem-col">
+            <div class="col-lg-3 listitem-col">
                 <a th:href="@{/{u}(u=${row.loginId})}" class="avatar-wrap list-avatar">
                     <img th:if="${row.defaultAvatar}" th:src="@{${row.avatarUrl}}"/>
                     <img th:unless="${row.defaultAvatar}" th:src="@{${row.avatarUrl}}" th:alt="${row.name}" width="32" height="32"/>
@@ -55,23 +55,23 @@
                 <a th:href="@{/{u}(u=${row.loginId})}" class="user-name" th:text="${row.name}"></a>
                 <a th:href="@{/{u}(u=${row.loginId})}" class="user-id" th:text="'@' + ${row.loginId}"></a>
             </div>
-            <div class="col-md-3 listitem-col">
+            <div class="col-lg-3 listitem-col">
                 <span class="email" th:text="${row.email}"></span>
             </div>
-            <div class="col-md-2 listitem-col created-date">
+            <div class="col-lg-2 listitem-col created-date">
                 <span th:text="${row.createdText}"></span>
             </div>
-            <div th:if="${userState != 'DELETED'}" class="col-md-5 listitem-col action-buttons">
+            <div th:if="${userState != 'DELETED'}" class="col-lg-5 listitem-col action-buttons">
                 <a class="ybtn ybtn-small" th:classappend="${row.guest} ? 'ybtn-success'" data-request-method="post" th:attr="data-request-uri=@{${row.guestUrl}}"
                    th:text="${row.guest} ? #{button.user.make.normal.mode} : #{button.user.make.guest.mode}"></a>
                 <a class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.lockUrl}}"
                    th:text="#{'button.user.makeAccountUnlock.' + ${row.state == 'LOCKED'}}"></a>
                 <button th:id="${row.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:attr="data-href=@{${row.resetPasswordUrl}}"> <th:block th:text="#{title.resetPassword}"></th:block></button>
-                <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info' : 'label-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
+                <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info' : 'badge-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
                    th:text="${row.siteManager} ? #{button.user.revoke.site.admin.role} : #{button.user.upgrade.to.site.admin}"></a>
                 <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" th:attr="data-href=@{${row.deleteUrl}}, data-user-id=${row.loginId}, data-user-name=${row.name}" th:text="#{button.delete}"></button>
             </div>
-            <div th:if="${userState == 'DELETED'}" class="col-md-4 listitem-col" th:text="${row.lastStateModified}"></div>
+            <div th:if="${userState == 'DELETED'}" class="col-lg-4 listitem-col" th:text="${row.lastStateModified}"></div>
         </li>
     </ul>
 

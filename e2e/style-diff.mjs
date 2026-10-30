@@ -62,7 +62,7 @@ try {
           for (const p of PROPS) if (norm(p, a.style[p]) !== norm(p, b.style[p])) { const k = `${a.label} | ${p} | ${a.style[p]} → ${b.style[p]}`; const v = counts.get(k) || { n: 0, screens: new Set() }; v.n++; v.screens.add(sc.id); counts.set(k, v); }
         }
         perScreen.push({ id: sc.id, role, total: ea.length, matched, moved });
-        if (process.argv.includes('--moved')) { const first = ea.filter((a) => { const b = mb.get(a.path); return b && a.label === b.label && Math.abs(a.y - b.y) > 1; }).slice(0, 12); console.log(`[${sc.id}.${role}] 처음 위치가 바뀐 요소:`); for (const a of first) { const b = mb.get(a.path); console.log(`   ${a.path.slice(0, 70)} ${a.label} y ${a.y}→${b.y} h ${a.h}→${b.h}`); } }
+        if (process.argv.includes('--moved')) { const first = ea.filter((a) => { const b = mb.get(a.path); return b && a.label === b.label && Math.abs(a.y - b.y) > 1; }).slice(0, 12); const hs = ea.filter((a) => { const b = mb.get(a.path); return b && a.label === b.label && Math.abs(a.h - b.h) > 1; }).slice(0, 22); console.log(`[${sc.id}.${role}] 높이가 바뀐 요소(앞쪽 22개):`); for (const a of hs) { const b = mb.get(a.path); console.log(`   ${a.path.slice(0, 70)} ${a.label} h ${a.h}→${b.h}`); } console.log(`[${sc.id}.${role}] 처음 위치가 바뀐 요소:`); for (const a of first) { const b = mb.get(a.path); console.log(`   ${a.path.slice(0, 70)} ${a.label} y ${a.y}→${b.y} h ${a.h}→${b.h}`); } }
       } catch (e) { perScreen.push({ id: sc.id, role, error: String(e.message).slice(0, 120) }); }
       await pa.close(); await pb.close();
     }
@@ -70,6 +70,6 @@ try {
   await browser.close();
 } finally { await A.stop(); await B.stop(); }
 const top = [...counts.entries()].sort((x, y) => y[1].n - x[1].n);
-writeFileSync(join(ROOT, 'shots', 'style-diff.json'), JSON.stringify({ perScreen, top: top.slice(0, 400).map(([k, v]) => ({ k, n: v.n, screens: v.screens.size })) }, null, 2));
+writeFileSync(join(ROOT, 'shots', 'style-diff.json'), JSON.stringify({ perScreen, top: top.slice(0, 400).map(([k, v]) => ({ k, n: v.n, screens: v.screens.size, ids: [...v.screens].slice(0, 8) })) }, null, 2));
 console.log('화면', perScreen.length, '위치나 크기가 바뀐 요소 합계', perScreen.reduce((s, r) => s + (r.moved || 0), 0), '/', perScreen.reduce((s, r) => s + (r.matched || 0), 0));
 for (const [k, v] of top.slice(0, 60)) console.log(String(v.n).padStart(5), `${v.screens.size}화면`.padStart(6), k.slice(0, 150));

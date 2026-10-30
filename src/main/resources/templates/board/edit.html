@@ -37,23 +37,23 @@
         <!--/* end of fileUploader */-->
 
         <div class="right-txt mt10 mb10">
-          <label th:if="${allowedToNotice}" class="checkbox">
-            <input type="checkbox" id="notice" name="notice" th:checked="${notice}"/>
+          <div th:if="${allowedToNotice}" class="form-check"><label class="form-check-label">
+            <input type="checkbox" id="notice" name="notice" th:checked="${notice}" class="form-check-input">
             <th:block th:text="#{post.notice.label}"></th:block>
-          </label>
+          </label></div>
 
-          <label th:if="${isGit and canCommit}" class="checkbox">
-            <input type="checkbox" id="readme" name="readme" th:checked="${readme}"/>
+          <div th:if="${isGit and canCommit}" class="form-check"><label class="form-check-label">
+            <input type="checkbox" id="readme" name="readme" th:checked="${readme}" class="form-check-input">
             <th:block th:text="#{post.readmefy}"></th:block>
-          </label>
+          </label></div>
         </div>
 
         <div class="actions">
           <span th:if="${authoredByViewer and !readme}" class="send-notification-check">
-            <label class="checkbox-inline">
-              <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked>
+            <div class="form-check form-check-inline"><label class="form-check-label">
+              <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked class="form-check-input">
               <strong th:text="#{notification.send.mail}"></strong>
-            </label>
+            </label></div>
           </span>
           <button th:if="${canUpdate}" class="ybtn ybtn-info" tabindex="3" th:text="#{button.save}"></button><!--
          --><a href="javascript:history.back();" class="ybtn" tabindex="4" th:text="#{button.cancel}"></a>

@@ -112,6 +112,8 @@
          */
         function _setItemSelected(welTarget){
             htElement.welSelectedLabel.html(welTarget.html());
+            // 메뉴 항목의 `dropdown-item`(Bootstrap 4)은 메뉴 안의 모양이므로 단추 라벨에는 남기지 않는다.
+            htElement.welSelectedLabel.find(".dropdown-item").removeClass("dropdown-item");
             htElement.waItems.removeClass("active");
             welTarget.addClass("active");
         }

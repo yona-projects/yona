@@ -325,9 +325,7 @@
         }
 
         function _setMassUpdateFormAffixed(){
-            $('.mass-update-wrap').affix({
-                offset: {top:$('.mass-update-wrap').offset().top - 15}
-            });
+            yona.affix('.mass-update-wrap', $('.mass-update-wrap').offset().top - 15);
          }
 
         function _onChangeAttachingLabelField(sLabelId){

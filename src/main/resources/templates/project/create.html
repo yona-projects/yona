@@ -78,12 +78,12 @@
         <div class="advanced-options">
           <!-- Access Scope -->
           <div class="row">
-            <div class="col-md-2 right-txt mt10" th:text="#{project.shareOption}">
+            <div class="col-lg-2 right-txt mt10" th:text="#{project.shareOption}">
             </div>
-            <div class="col-md-10">
+            <div class="col-lg-10">
               <ul class="list-unstyled project-scopes mt10">
                 <li>
-                  <input type="radio" id="public" name="projectScope" value="PUBLIC" class="radio-btn pull-left" th:attr="checked=${form.projectScope == 'PUBLIC' or form.projectScope == null} ? 'checked'">
+                  <input type="radio" id="public" name="projectScope" value="PUBLIC" class="radio-btn float-left" th:attr="checked=${form.projectScope == 'PUBLIC' or form.projectScope == null} ? 'checked'">
                   <label for="public">
                     <strong class="ml5" th:text="#{project.public}"></strong>
                     <p class="note" th:utext="#{project.public.notice}">
@@ -92,7 +92,7 @@
                 </li>
 
                 <li id="opt-protected" class="mt10" th:style="${ownerIsOrganization} ? '' : 'display:none;'">
-                  <input type="radio" id="protected" name="projectScope" value="PROTECTED" class="radio-btn pull-left" th:attr="checked=${form.projectScope == 'PROTECTED'} ? 'checked'">
+                  <input type="radio" id="protected" name="projectScope" value="PROTECTED" class="radio-btn float-left" th:attr="checked=${form.projectScope == 'PROTECTED'} ? 'checked'">
                   <label for="protected">
                     <strong class="ml5" th:text="#{project.protected}"></strong>
                     <p class="note" th:utext="#{project.protected.notice}">
@@ -101,7 +101,7 @@
                 </li>
 
                 <li class="mt10">
-                  <input type="radio" id="private" name="projectScope" value="PRIVATE" class="radio-btn pull-left" th:attr="checked=${form.projectScope == 'PRIVATE' or privateIsDefault} ? 'checked'">
+                  <input type="radio" id="private" name="projectScope" value="PRIVATE" class="radio-btn float-left" th:attr="checked=${form.projectScope == 'PRIVATE' or privateIsDefault} ? 'checked'">
                   <label for="private">
                     <strong class="ml5" th:text="#{project.private}"></strong>
                     <p class="note" th:utext="#{project.private.notice}">
@@ -115,11 +115,11 @@
           <hr>
           <!-- VCS -->
           <div class="row">
-            <div class="col-md-2 right-txt mt10">
+            <div class="col-lg-2 right-txt mt10">
               <label for="vcs" th:text="#{project.vcs}">
               </label>
             </div>
-            <div class="col-md-10 cu-desc">
+            <div class="col-lg-10 cu-desc">
               <select id="vcs" name="vcs" data-toggle="select2" data-dropdown-css-class="select2-without-searchbox" class="mb10 mt5" style="min-width: 220px;">
                 <option th:each="vcsType : ${vcsTypes}" th:value="${vcsType.value}"
                         th:selected="${(form.vcs == null and vcsType.value == 'GIT') or form.vcs == vcsType.value}"
@@ -136,9 +136,9 @@
           <hr>
           <!-- Menu Setting -->
           <div class="row">
-            <div class="col-md-2 right-txt" th:text="#{project.menu.setting}">
+            <div class="col-lg-2 right-txt" th:text="#{project.menu.setting}">
             </div>
-            <div class="col-md-10">
+            <div class="col-lg-10">
                 <label for="menuSettingCode" class="bg-radiobtn label-public inline-list">
                   <input type="checkbox" class="radio-btn" id="menuSettingCode" name="code" th:attr="value=${defaultMenus.contains('code')} ? 'true', checked=${defaultMenus.contains('code')} ? 'checked'" >
                   <th:block th:text="#{menu.code}"></th:block>
