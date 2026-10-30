@@ -203,7 +203,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         assertEquals(setOf("restrictDeletions", "blockForcePushes"), checked)
         assertEquals(setOf("bypassAdmins", "restrictDeletions", "requireLinearHistory", "requirePullRequest", "requireNoChangesRequested", "requireConversationResolution", "blockForcePushes"),
             doc.select("form#rulesetForm input[type=checkbox]").map { it.attr("name") }.toSet())
-        assertEquals("active", doc.selectFirst("#rulesetEnforcement option[selected]")!!.attr("value"))
+        assertEquals("active", doc.selectFirst("input[name=enforcement][checked]")!!.attr("value"))
         assertTrue(doc.select("form#rulesetDeleteForm").isEmpty(), "새 규칙 묶음에는 삭제가 없다")
     }
 
@@ -215,7 +215,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         val doc = page(project, session, "/${saved.id}")
         assertEquals(url(project, "/${saved.id}"), doc.selectFirst("form#rulesetForm")!!.attr("action"))
         assertEquals("main protect", doc.selectFirst("#rulesetName")!!.attr("value")); assertEquals("release/*", doc.selectFirst("#rulesetPattern")!!.attr("value"))
-        assertEquals("3", doc.selectFirst("#rulesetApprovals")!!.attr("value")); assertEquals("disabled", doc.selectFirst("#rulesetEnforcement option[selected]")!!.attr("value"))
+        assertEquals("3", doc.selectFirst("#rulesetApprovals")!!.attr("value")); assertEquals("disabled", doc.selectFirst("input[name=enforcement][checked]")!!.attr("value"))
         assertEquals(setOf("requireLinearHistory", "bypassAdmins"), doc.select("form#rulesetForm input[type=checkbox][checked]").map { it.attr("name") }.toSet())
         assertEquals(url(project, "/${saved.id}/delete"), doc.selectFirst("form#rulesetDeleteForm")!!.attr("action"))
     }
@@ -256,5 +256,27 @@ class RulesetWebTest : AbstractIntegrationTest() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
         val html = mockMvc.perform(get(url(project, "/new")).session(session)).andReturn().response.contentAsString
         assertTrue(html.contains("rulesetPullRequestOptions") && html.contains("addEventListener"), "펼침 스크립트")
+    }
+
+    @Test
+    fun `편집 화면은 다른 설정 화면과 같은 카드 구조와 부트스트랩 요소를 쓴다`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        val doc = page(project, session, "/new")
+        val card = doc.selectFirst("form#rulesetForm .bubble-wrap.gray")!!
+        assertEquals(listOf("규칙 묶음 이름", "적용 상태", "바이패스", "대상 브랜치", "규칙"), card.select(".box-wrap .cu-label").map { it.text() })
+        assertEquals(1, card.select(".box-wrap.bottom button#saveRuleset").size, "저장 단추는 카드 아래 칸에 있다")
+        assertEquals(2, card.select("input[type=radio][name=enforcement]").size)
+        assertTrue(card.select("label.checkbox").size >= 6, "부트스트랩 checkbox 라벨")
+        assertTrue(card.select(".help-block").isNotEmpty(), "부트스트랩 help-block")
+        assertTrue(card.select("[style]").none { it.attr("style").contains("background") || it.attr("style").contains("margin") && it.id() != "rulesetPullRequestOptions" }, "꾸밈은 클래스로 하고 인라인 스타일은 쓰지 않는다")
+    }
+
+    @Test
+    fun `목록은 부트스트랩 표를 쓴다`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        send(project, session, "", "name" to "a", "enforcement" to "active", "pattern" to "master")
+        val table = page(project, session).selectFirst("table#rulesetList")!!
+        assertTrue(table.hasClass("table") && table.hasClass("table-striped") && table.hasClass("table-hover"), table.className())
+        assertTrue(table.select("[style]").isEmpty(), "인라인 스타일은 쓰지 않는다")
     }
 }

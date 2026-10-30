@@ -15,24 +15,24 @@
     <div class="project-page-wrap" id="rulesetPage">
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
 
-        <div class="clearfix" style="margin: 15px 0 10px;">
+        <div class="clearfix mt10 mb10">
             <a id="newRuleset" class="ybtn ybtn-success pull-right" th:href="${base + '/setting/rulesets/new'}" th:text="#{project.ruleset.new}"></a>
-            <p class="note" style="margin:6px 0 0;" th:text="#{project.ruleset.description}"></p>
+            <p class="help-block" th:text="#{project.ruleset.description}"></p>
         </div>
-        <p id="rulesetMigrated" class="note" th:if="${migrated}" th:text="#{project.ruleset.legacy}"></p>
+        <div id="rulesetMigrated" class="alert alert-info" th:if="${migrated}" th:text="#{project.ruleset.legacy}"></div>
 
-        <table class="table table-bordered table-condensed" id="rulesetList" style="background:#fff;">
+        <table class="table table-striped table-hover" id="rulesetList">
             <thead>
             <tr>
                 <th th:text="#{project.ruleset.name}"></th>
                 <th th:text="#{project.ruleset.col.target}"></th>
-                <th style="width:90px;" th:text="#{project.ruleset.enforcement}"></th>
+                <th th:text="#{project.ruleset.enforcement}"></th>
                 <th th:text="#{project.ruleset.col.rules}"></th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${#lists.isEmpty(rulesets)}" class="ruleset-empty">
-                <td colspan="4" class="note" th:text="#{project.ruleset.empty}"></td>
+                <td colspan="4" class="muted" th:text="#{project.ruleset.empty}"></td>
             </tr>
             <tr th:each="r : ${rulesets}" class="ruleset-row">
                 <td class="ruleset-name"><a th:href="${base + '/setting/rulesets/' + r.id}" th:text="${r.name}"></a></td>

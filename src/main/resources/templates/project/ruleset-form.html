@@ -4,7 +4,8 @@
   Copyright Yona & Yobi Authors & NAVER Corp.
   https://yona.io
 
-  추가 개발 항목 X-34(decisions.md D-46)의 규칙 묶음 편집 화면이다. GitHub의 규칙 묶음 편집 화면(이름, 적용 상태, 바이패스 목록, 대상 브랜치, 규칙)에 해당한다.
+  추가 개발 항목 X-34(decisions.md D-46)의 규칙 묶음 편집 화면이다. GitHub의 룰셋 편집 화면(이름, 적용 상태, 바이패스 목록, 대상 브랜치, 규칙)에 해당한다.
+  다른 설정 화면(setting.html)과 같은 카드 구조(bubble-wrap, box-wrap, cu-label, cu-desc)에 부트스트랩 폼 요소(checkbox, help-block, input-*)를 쓴다.
   지금은 바이패스(프로젝트 관리자와 사이트 관리자)와 대상(패턴 하나)이 현재 수준이다(◐, 완성은 X-35).
   모델: title, projectView, ruleset(편집할 규칙 묶음. 새로 만들 때는 id가 없고, 입력 오류면 입력값을 담은 저장하지 않는 규칙 묶음), errors(오류 항목 이름 목록)
 */-->
@@ -16,75 +17,99 @@
     <div class="project-page-wrap" id="rulesetFormPage">
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
 
-        <h3 style="margin: 15px 0;">
-            <a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}"></a> /
-            <span th:text="${isNew} ? #{project.ruleset.new} : ${ruleset.name}"></span>
-            <span class="label" th:if="${!isNew}" th:classappend="${ruleset.active} ? 'label-success'"
-                  th:text="${ruleset.active} ? #{project.ruleset.enforcement.active} : #{project.ruleset.enforcement.disabled}"></span>
-        </h3>
+        <ul class="breadcrumb mt10">
+            <li><a th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset}"></a> <span class="divider">/</span></li>
+            <li class="active">
+                <th:block th:text="${isNew} ? #{project.ruleset.new} : ${ruleset.name}"></th:block>
+                <span class="label ml10" th:if="${!isNew}" th:classappend="${ruleset.active} ? 'label-success'"
+                      th:text="${ruleset.active} ? #{project.ruleset.enforcement.active} : #{project.ruleset.enforcement.disabled}"></span>
+            </li>
+        </ul>
 
         <div class="alert alert-error" id="rulesetErrors" th:if="${!#lists.isEmpty(errors)}" th:text="#{project.ruleset.error}"></div>
 
         <form id="rulesetForm" method="post" class="nm"
               th:action="${isNew} ? ${base + '/setting/rulesets'} : ${base + '/setting/rulesets/' + ruleset.id}">
-            <div class="well" style="background:#fff;">
-                <label for="rulesetName"><strong th:text="#{project.ruleset.name}"></strong> *</label>
-                <input type="text" id="rulesetName" name="name" maxlength="255" class="input-xlarge" th:value="${ruleset.name}" th:classappend="${#lists.contains(errors, 'name')} ? 'error'">
-                <span class="help-block" th:if="${#lists.contains(errors, 'name')}" th:text="#{project.ruleset.error.name}"></span>
-
-                <label for="rulesetEnforcement" style="margin-top:10px;"><strong th:text="#{project.ruleset.enforcement}"></strong></label>
-                <select id="rulesetEnforcement" name="enforcement">
-                    <option value="active" th:selected="${ruleset.active}" th:text="#{project.ruleset.enforcement.active}"></option>
-                    <option value="disabled" th:selected="${!ruleset.active}" th:text="#{project.ruleset.enforcement.disabled}"></option>
-                </select>
-            </div>
-
-            <h4 th:text="#{project.ruleset.bypass}"></h4>
-            <div class="well" style="background:#fff;" id="rulesetBypass">
-                <p class="note" th:text="#{project.ruleset.bypass.description}"></p>
-                <label class="checkbox">
-                    <input type="checkbox" name="bypassAdmins" value="true" th:checked="${ruleset.bypassAdmins == true}">
-                    <th:block th:text="#{project.ruleset.bypass.admins}"></th:block>
-                </label>
-            </div>
-
-            <h4 th:text="#{project.ruleset.target}"></h4>
-            <div class="well" style="background:#fff;" id="rulesetTarget">
-                <p class="note" th:text="#{project.ruleset.target.description}"></p>
-                <input type="text" id="rulesetPattern" name="pattern" maxlength="255" class="input-xlarge" th:value="${ruleset.pattern}" th:classappend="${#lists.contains(errors, 'pattern')} ? 'error'">
-                <span class="help-block" th:if="${#lists.contains(errors, 'pattern')}" th:text="#{project.ruleset.error.pattern}"></span>
-            </div>
-
-            <h4 th:text="#{project.ruleset.rules}"></h4>
-            <div class="well" style="background:#fff;" id="rulesetRules">
-                <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="restrictDeletions" value="true" th:checked="${ruleset.restrictDeletions == true}">
-                    <strong th:text="#{project.ruleset.rule.deletions}"></strong><span class="help-block" th:text="#{project.ruleset.rule.deletions.desc}"></span></label>
-                <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requireLinearHistory" value="true" th:checked="${ruleset.requireLinearHistory == true}">
-                    <strong th:text="#{project.ruleset.rule.linear}"></strong><span class="help-block" th:text="#{project.ruleset.rule.linear.desc}"></span></label>
-                <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requirePullRequest" value="true" th:checked="${ruleset.requirePullRequest == true}">
-                    <strong th:text="#{project.ruleset.rule.pr}"></strong><span class="help-block" th:text="#{project.ruleset.rule.pr.desc}"></span></label>
-                <!--/* GitHub처럼 "풀 리퀘스트 필요"를 켰을 때만 하위 항목을 펼친다. 승인 수나 병합 조건이 이미 켜져 있으면(v1.6에서 옮긴 값 등) 적용 중인 값이 숨지 않게 펼쳐 둔다 */-->
-                <div id="rulesetPullRequestOptions"
-                     th:style="'margin: 0 0 10px 22px;' + (${ruleset.requirePullRequest == true or ruleset.requiredApprovals > 0 or ruleset.requireNoChangesRequested == true or ruleset.requireConversationResolution == true} ? '' : ' display:none;')">
-                    <label for="rulesetApprovals" th:text="#{project.ruleset.rule.approvals}"></label>
-                    <input type="number" id="rulesetApprovals" name="approvals" min="0" max="100" style="width:70px;" th:value="${ruleset.requiredApprovals}" th:classappend="${#lists.contains(errors, 'approvals')} ? 'error'">
-                    <span class="help-block" th:text="#{project.ruleset.rule.approvals.desc}"></span>
-                    <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requireNoChangesRequested" value="true" th:checked="${ruleset.requireNoChangesRequested == true}">
-                        <th:block th:text="#{project.ruleset.rule.changes}"></th:block></label>
-                    <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requireConversationResolution" value="true" th:checked="${ruleset.requireConversationResolution == true}">
-                        <th:block th:text="#{project.ruleset.rule.conversation}"></th:block></label>
+            <div class="bubble-wrap gray" style="overflow: visible">
+                <div class="box-wrap top">
+                    <div class="cu-label vmiddle"><label for="rulesetName" th:text="#{project.ruleset.name}"></label></div>
+                    <div class="cu-desc">
+                        <input type="text" id="rulesetName" name="name" maxlength="255" class="input-xlarge" th:value="${ruleset.name}">
+                        <span class="help-inline text-error" th:if="${#lists.contains(errors, 'name')}" th:text="#{project.ruleset.error.name}"></span>
+                    </div>
                 </div>
-                <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="blockForcePushes" value="true" th:checked="${ruleset.blockForcePushes == true}">
-                    <strong th:text="#{project.ruleset.rule.force}"></strong><span class="help-block" th:text="#{project.ruleset.rule.force.desc}"></span></label>
-            </div>
 
-            <div class="clearfix">
-                <button id="saveRuleset" type="submit" class="ybtn ybtn-success" th:text="#{project.ruleset.save}"></button>
-                <a class="ybtn" th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset.cancel}"></a>
+                <div class="box-wrap middle">
+                    <div class="cu-label vmiddle" th:text="#{project.ruleset.enforcement}"></div>
+                    <div class="cu-desc">
+                        <input name="enforcement" type="radio" class="radio-btn" id="enforcementActive" value="active" th:checked="${ruleset.active}">
+                        <label for="enforcementActive" class="bg-radiobtn label-public" th:text="#{project.ruleset.enforcement.active}"></label>
+                        <input name="enforcement" type="radio" class="radio-btn" id="enforcementDisabled" value="disabled" th:checked="${!ruleset.active}">
+                        <label for="enforcementDisabled" class="bg-radiobtn label-private" th:text="#{project.ruleset.enforcement.disabled}"></label>
+                    </div>
+                </div>
+
+                <div class="box-wrap middle" id="rulesetBypass">
+                    <div class="cu-label" th:text="#{project.ruleset.bypass}"></div>
+                    <div class="cu-desc">
+                        <label class="checkbox">
+                            <input type="checkbox" name="bypassAdmins" value="true" th:checked="${ruleset.bypassAdmins == true}">
+                            <th:block th:text="#{project.ruleset.bypass.admins}"></th:block>
+                        </label>
+                        <span class="help-block" th:text="#{project.ruleset.bypass.description}"></span>
+                    </div>
+                </div>
+
+                <div class="box-wrap middle" id="rulesetTarget">
+                    <div class="cu-label vmiddle"><label for="rulesetPattern" th:text="#{project.ruleset.target}"></label></div>
+                    <div class="cu-desc">
+                        <input type="text" id="rulesetPattern" name="pattern" maxlength="255" class="input-large" th:value="${ruleset.pattern}">
+                        <span class="help-inline text-error" th:if="${#lists.contains(errors, 'pattern')}" th:text="#{project.ruleset.error.pattern}"></span>
+                        <span class="help-block" th:text="#{project.ruleset.target.description}"></span>
+                    </div>
+                </div>
+
+                <div class="box-wrap middle" id="rulesetRules">
+                    <div class="cu-label" th:text="#{project.ruleset.rules}"></div>
+                    <div class="cu-desc">
+                        <label class="checkbox"><input type="checkbox" name="restrictDeletions" value="true" th:checked="${ruleset.restrictDeletions == true}">
+                            <strong th:text="#{project.ruleset.rule.deletions}"></strong></label>
+                        <span class="help-block" th:text="#{project.ruleset.rule.deletions.desc}"></span>
+
+                        <label class="checkbox"><input type="checkbox" name="requireLinearHistory" value="true" th:checked="${ruleset.requireLinearHistory == true}">
+                            <strong th:text="#{project.ruleset.rule.linear}"></strong></label>
+                        <span class="help-block" th:text="#{project.ruleset.rule.linear.desc}"></span>
+
+                        <label class="checkbox"><input type="checkbox" name="requirePullRequest" value="true" th:checked="${ruleset.requirePullRequest == true}">
+                            <strong th:text="#{project.ruleset.rule.pr}"></strong></label>
+                        <span class="help-block" th:text="#{project.ruleset.rule.pr.desc}"></span>
+                        <!--/* GitHub처럼 "풀 리퀘스트 필요"를 켰을 때만 하위 항목을 펼친다. 승인 수나 병합 조건이 이미 켜져 있으면(v1.6에서 옮긴 값 등) 적용 중인 값이 숨지 않게 펼쳐 둔다 */-->
+                        <div id="rulesetPullRequestOptions" class="well well-small ml10"
+                             th:style="${ruleset.requirePullRequest == true or ruleset.requiredApprovals > 0 or ruleset.requireNoChangesRequested == true or ruleset.requireConversationResolution == true} ? '' : 'display:none;'">
+                            <label for="rulesetApprovals" th:text="#{project.ruleset.rule.approvals}"></label>
+                            <input type="number" id="rulesetApprovals" name="approvals" min="0" max="100" class="input-mini" th:value="${ruleset.requiredApprovals}">
+                            <span class="help-inline text-error" th:if="${#lists.contains(errors, 'approvals')}" th:text="#{project.ruleset.error}"></span>
+                            <span class="help-block" th:text="#{project.ruleset.rule.approvals.desc}"></span>
+                            <label class="checkbox"><input type="checkbox" name="requireNoChangesRequested" value="true" th:checked="${ruleset.requireNoChangesRequested == true}">
+                                <th:block th:text="#{project.ruleset.rule.changes}"></th:block></label>
+                            <label class="checkbox"><input type="checkbox" name="requireConversationResolution" value="true" th:checked="${ruleset.requireConversationResolution == true}">
+                                <th:block th:text="#{project.ruleset.rule.conversation}"></th:block></label>
+                        </div>
+
+                        <label class="checkbox"><input type="checkbox" name="blockForcePushes" value="true" th:checked="${ruleset.blockForcePushes == true}">
+                            <strong th:text="#{project.ruleset.rule.force}"></strong></label>
+                        <span class="help-block" th:text="#{project.ruleset.rule.force.desc}"></span>
+                    </div>
+                </div>
+
+                <div class="box-wrap bottom">
+                    <button id="saveRuleset" type="submit" class="ybtn ybtn-success" th:text="#{project.ruleset.save}"></button>
+                    <a class="ybtn" th:href="${base + '/setting/rulesets'}" th:text="#{project.ruleset.cancel}"></a>
+                </div>
             </div>
         </form>
 
-        <form th:if="${!isNew}" id="rulesetDeleteForm" method="post" style="margin-top:20px;" th:action="${base + '/setting/rulesets/' + ruleset.id + '/delete'}">
+        <form th:if="${!isNew}" id="rulesetDeleteForm" method="post" class="mt10" th:action="${base + '/setting/rulesets/' + ruleset.id + '/delete'}">
             <button type="submit" class="ybtn ybtn-danger" th:text="#{project.ruleset.delete}"></button>
         </form>
     </div>
