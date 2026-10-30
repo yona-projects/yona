@@ -88,3 +88,9 @@ class UserStatusResponse(
     @get:Schema(description = "나를 멘션한 이슈(본문이나 댓글)") val mentionedIssues: StatusIssueSection,
     @get:Schema(description = "최근 알림 10건") val notifications: List<StatusNotification>
 )
+
+@Schema(description = "사이트 데이터 가져오기 결과")
+class SiteImportResult(
+    @get:Schema(description = "가져온 테이블 이름") val imported: List<String>,
+    @get:Schema(description = "오류가 나서 되돌린 테이블 이름. 되돌린 테이블은 비어 있다") val failed: List<String>
+)

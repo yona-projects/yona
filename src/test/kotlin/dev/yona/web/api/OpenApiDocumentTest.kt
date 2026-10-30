@@ -81,7 +81,7 @@ class OpenApiDocumentTest : AbstractIntegrationTest() {
             val label = "$method $path"
             op.get("responses").properties().filter { it.key.startsWith("2") && it.key != "204" }.forEach { (code, response) ->
                 val schema = response.get("content")?.properties()?.firstOrNull()?.value?.get("schema")
-                val shaped = schema != null && (schema.has("\$ref") || schema.has("properties") || schema.has("items") || schema.has("oneOf") || schema.has("additionalProperties"))
+                val shaped = schema != null && (schema.has("\$ref") || schema.has("properties") || schema.has("items") || schema.has("oneOf") || schema.has("additionalProperties") || schema.get("format")?.asString() == "binary")
                 if (!shaped) problems += "$label: $code 응답의 모양이 밝혀져 있지 않다"
             }
             op.get("requestBody")?.let { body ->

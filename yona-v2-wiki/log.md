@@ -719,3 +719,6 @@ D-51의 대응표에서 서버에 REST가 없던 CLI 명령을 서버에 만들�
 
 ## [2026-10-30] build | X-37f 풀 리퀘스트 검색 REST
 사이트 전체 풀 리퀘스트 검색(`GET /search/pullrequests`)과 프로젝트 목록 조건(`q`, `author`, `assignee`, `reviewRequested`, `labelIds`)을 구현했다. 테스트를 먼저 써 3개 실패를 확인한 뒤 구현했다(D-52, A-279).
+
+## [2026-10-30] build | X-37g 사이트 백업 REST
+`GET /admin/export`와 `POST /admin/import`를 구현했다. 테스트를 먼저 써 4개 실패를 확인한 뒤 구현했고, 토큰 인증과 비동기 스트림의 충돌을 시험으로 발견해 동기 쓰기로 바꿨다(D-52, A-280).

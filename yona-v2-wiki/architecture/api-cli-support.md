@@ -70,12 +70,14 @@ updated: 2026-10-30
 
 웹 통합 검색(`/search`)은 그대로이다(풀 리퀘스트 종류가 없다).
 
-## g단계: 사이트 내보내기와 가져오기 (X-37g)
+## g단계: 사이트 백업 (X-37g)
 
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `GET /admin/export` | 사이트 전체 내보내기 | `site_admin` | 대기 |
-| `POST /admin/import` | 사이트 전체 가져오기 | `site_admin` | 대기 |
+| `GET /admin/export` | DB 전체를 `yobi-data-<yyyyMMddHHmm>.json`으로 내려준다 | `site_admin` + 사이트 관리자 | **완료**(2026-10-30) |
+| `POST /admin/import` | `data` 파트(multipart)로 DB를 교체하고 `{"imported","failed"}`를 준다. 파트가 없거나 JSON이 아니면 400 | `site_admin` + 사이트 관리자 | **완료**(2026-10-30) |
+
+구현은 `ExternalSiteBackupApiController`이고 웹 `SiteDataController`와 같은 `DataService`를 쓴다. 웹은 올리기 뒤 처음 화면으로 이동하지만 REST는 결과 JSON을 준다.
 
 ## h단계: 리뷰어 자기 등록 (X-37h)
 
