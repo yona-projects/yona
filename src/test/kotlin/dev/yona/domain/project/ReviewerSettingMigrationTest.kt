@@ -49,7 +49,8 @@ class ReviewerSettingMigrationTest : AbstractIntegrationTest() {
         assertEquals(setOf("master", "feature/a"), created.map { it.pattern }.toSet(), "와일드카드 없이 브랜치 이름 그대로")
         assertEquals(setOf("이전된 리뷰어 설정 (master)", "이전된 리뷰어 설정 (feature/a)"), created.map { it.name }.toSet())
         created.forEach { rule ->
-            assertEquals(3, rule.requiredApprovals); assertTrue(rule.requireNoChangesRequested == true, "v1.6은 변경 요청도 막는다")
+            assertEquals(3, rule.requiredApprovals); assertFalse(rule.requireNoChangesRequested == true, "v1.6에는 변경 요청이 없어 승인 수만 병합을 막았다")
+            assertFalse(rule.requireConversationResolution == true)
             assertFalse(rule.bypassAdmins == true, "v1.6에는 관리자 우회가 없었다"); assertFalse(rule.requirePullRequest == true, "직접 푸시는 v1.6처럼 막지 않는다")
             assertFalse(rule.blockForcePushes == true || rule.restrictDeletions == true, "강제 푸시와 삭제도 v1.6처럼 막지 않는다"); assertTrue(rule.isActive); assertNotNull(rule.createdDate)
         }

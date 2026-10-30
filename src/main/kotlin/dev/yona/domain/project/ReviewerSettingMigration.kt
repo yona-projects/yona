@@ -14,8 +14,8 @@ import java.util.Date
  * 서버를 시작할 때와 데이터를 가져온 뒤에 돈다.
  *
  * 리뷰어 사용이 켜진 Git 프로젝트마다 **지금 있는 브랜치 하나당 규칙 묶음 하나**를 명시적으로 만든다. 이름은 [MIGRATED_NAME] 뒤에 괄호로 브랜치 이름을 붙이고
- * (`이전된 리뷰어 설정 (master)`), 대상은 그 브랜치 이름 그대로이다(와일드카드를 쓰지 않는다). 리뷰어 수만큼의 승인과 변경 요청 해결을 요구한다. v1.6 동작을 그대로
- * 보존하려고 바이패스는 비우고(v1.6에는 관리자 우회가 없었다), 직접 푸시 차단은 끄고, 삭제 제한과 강제 푸시 차단도 끈다. 저장소를 읽을 수 없거나 브랜치가 없으면
+ * (`이전된 리뷰어 설정 (master)`), 대상은 그 브랜치 이름 그대로이다(와일드카드를 쓰지 않는다). 리뷰어 수만큼의 승인만 요구한다. v1.6에는 변경 요청이라는 개념이 없어 승인 수만 병합을 막았으므로 변경 요청 해결과 대화 해결은 켜지 않는다(리뷰어가 변경을 요청해도
+ * 승인 수를 채우면 병합된다). v1.6 동작을 그대로 보존하려고 바이패스는 비우고(v1.6에는 관리자 우회가 없었다), 직접 푸시 차단은 끄고, 삭제 제한과 강제 푸시 차단도 끈다. 저장소를 읽을 수 없거나 브랜치가 없으면
  * 기본 브랜치 이름([YonaProperties.gitDefaultBranch]) 하나를 만든다. 옮긴 뒤 `is_using_reviewer_count`를 꺼서 이전한 표시로 쓰고 `default_reviewer_count`는 기록으로
  * 남긴다. 두 컬럼은 이 버전에서 읽지도 쓰지도 않으며 차기 버전에서 제거한다. Git이 아닌 프로젝트는 규칙 묶음 없이 사용 여부만 끈다.
  *
@@ -54,7 +54,7 @@ class ReviewerSettingMigration(
                     if (exists) continue
                     entityManager.persist(
                         Ruleset(
-                            project = project, name = name, pattern = branch, requiredApprovals = approvals, requireNoChangesRequested = true,
+                            project = project, name = name, pattern = branch, requiredApprovals = approvals, requireNoChangesRequested = false,
                             restrictDeletions = false, blockForcePushes = false, bypassAdmins = false, createdDate = Date()
                         )
                     )
