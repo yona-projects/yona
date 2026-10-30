@@ -610,11 +610,8 @@ updated: 2026-10-29
   2. **프로젝트를 만들고 지우는 일도 토큰으로 된다**. 지금 `POST /owners/{owner}/projects`는 사이트 관리자 전용(v1.6 계약)이라 일반 사용자가 못 쓴다. v1.6 계약은 그대로 두고 GitHub처럼 `POST /user/projects`(내 계정), `POST /orgs/{org}/projects`(조직 관리자)를 새로 더한다.
   3. **기기 인증**: GitHub의 `gh auth login`처럼 CLI가 기기 코드를 받아 사용자가 웹에서 승인하면 토큰을 받는다(RFC 8628). 받은 토큰은 로컬(`~/.config`, 권한 0600)에 저장하고, **Git 자격 증명 도우미**(`git credential`)로 연결해 `git clone`, `push`가 HTTP로 인증되게 한다(Git HTTP는 이미 토큰을 비밀번호로 받는다, X-5). CLI가 요청하는 범위는 사용자가 고를 수 있는 모든 일반 범위이다(사이트 관리자는 `site_admin`까지).
   4. **`pr reviewer add/remove`는 기능을 남긴다**. 방법은 아래 선택지 중 선생님이 정하신다.
-- **`pr reviewer`의 선택지(제안)**: v1.6의 "리뷰어로 등록"은 승인(리뷰 완료)이었고 이 서버는 D-35에서 그것을 리뷰 판정 `APPROVED`로 흡수했다. 이 서버에는 "자기 등록"이라는 별개 개념이 없고, 다른 사람에게 요청하는 `requestedreviewers`가 있다.
-  - (가) **CLI 매핑만 바꾼다(서버 변경 없음, 권장)**: `pr reviewer add` = 승인 판정(`POST .../reviews {"verdict":"APPROVED"}`), `pr reviewer remove` = 내 승인을 거두는 댓글 판정(`{"verdict":"COMMENTED"}`, 최신 판정이 댓글이 되면 승인이 거두어진다, A-195). 의미가 v1.6과 같고 새 개념이 없다.
-  - (나) **서버에 `POST/DELETE .../reviewers`를 더한다**: 본인을 리뷰어로 등록하고 취소한다. 등록은 승인과 같게, 취소는 내 최신 승인을 지운다. CLI 호환이 가장 좋지만 승인과 같은 일을 하는 두 번째 경로가 생긴다.
-  - (다) **자기 리뷰 요청**: 본인에게 `requestedreviewers`를 만든다. GitHub에서는 허용되지 않는 동작이고 승인과 무관해 CLI의 의미(승인 등록)와 다르다.
-- **상태**: 지시 확정(선생님, 2026-10-30). `pr reviewer` 방법은 선생님 결정 대기. 단계는 로드맵 X-37a~k이다. 세부 판단은 A-274부터 기록한다.
+- **`pr reviewer` 결정(선생님, 2026-10-30)**: 처음에는 CLI 옛 구현의 주석("본인을 리뷰어로 자기 등록", v1.6 방식)을 따라 (가) 승인 판정에 매핑, (나) 서버에 자기 등록 경로 추가, (다) 본인에게 리뷰 요청의 세 안을 제안했다. 권장은 (가)였으나 선생님이 "PR에 리뷰어를 추가하고 삭제하는 일"이라고 바로잡으셨고, CLI는 GitHub CLI를 따라 만든 것이므로 GitHub 방식으로 바꾸라고 하셨다. GitHub CLI에는 `pr reviewer` 명령이 없고 `gh pr edit --add-reviewer/--remove-reviewer`로 **다른 사람에게 리뷰를 요청하거나 취소**한다. 서버에는 X-27의 `requestedreviewers`(POST, DELETE)가 이미 있어 **서버 변경 없이** CLI만 `yona pr edit --add-reviewer/--remove-reviewer`로 맞춘다. 옛 `pr reviewer add/remove`(자기 등록, `POST/DELETE .../reviewers`)는 제거한다(별칭 없음). 제안 때 권장안이 틀린 이유: 이 서버의 승인 판정은 별개이고(`pr review --approve`), 옛 주석이 GitHub 방식이 아니라 v1.6 방식이었다는 점을 확인하지 않고 의미를 추정했다.
+- **상태**: 지시 확정(선생님, 2026-10-30). `pr reviewer`는 위와 같이 결정되었다. 단계는 로드맵 X-37a~k이다. 세부 판단은 A-274부터 기록한다.
 
 ## 정책 결정
 

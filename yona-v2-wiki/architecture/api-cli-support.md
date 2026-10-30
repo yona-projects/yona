@@ -79,9 +79,9 @@ updated: 2026-10-30
 
 구현은 `ExternalSiteBackupApiController`이고 웹 `SiteDataController`와 같은 `DataService`를 쓴다. 웹은 올리기 뒤 처음 화면으로 이동하지만 REST는 결과 JSON을 준다.
 
-## h단계: 리뷰어 자기 등록 (X-37h)
+## h단계: 리뷰어 추가와 삭제 (X-37h)
 
-선생님 결정 대기. 선택지는 [D-52](../decisions.md)의 (가) 승인 판정 매핑, (나) 서버에 `POST/DELETE .../reviewers`, (다) 자기 리뷰 요청이다.
+서버 변경 없음(결정 2026-10-30, [D-52](../decisions.md)). GitHub CLI처럼 `yona pr edit --add-reviewer/--remove-reviewer`가 기존 `POST .../requestedreviewers`와 `DELETE .../requestedreviewers/{reviewer}`를 부른다. 옛 `pr reviewer add/remove`(본인 자기 등록)는 제거한다.
 
 ## i단계: 기기 인증 (X-37i)
 
