@@ -32,6 +32,21 @@ data class ExternalIssue(
 )
 
 /**
+ * 이슈 부분 수정이 바꿀 값이다(로드맵 X-29a, `decisions.md` D-47). `null`이거나 `...Set`이 거짓인 항목은 바꾸지 않는다. 마일스톤, 담당자, 라벨은 "값 없음으로 바꾼다"와
+ * "바꾸지 않는다"를 구분해야 하므로 `...Set` 표시를 따로 둔다.
+ *
+ * @property milestoneId [milestoneSet]이 참일 때 새 마일스톤 번호이다. `null`이면 마일스톤을 지운다
+ * @property assigneeLoginId [assigneeSet]이 참일 때 새 담당자의 로그인 ID이다. `null`이면 담당자를 지운다
+ * @property labelIds [labelsSet]이 참일 때 이슈에 붙일 라벨 번호 전체이다. 빈 집합이면 라벨을 모두 뗀다
+ */
+data class IssuePatch(
+    val title: String? = null, val body: String? = null, val state: State? = null,
+    val milestoneSet: Boolean = false, val milestoneId: Long? = null,
+    val assigneeSet: Boolean = false, val assigneeLoginId: String? = null,
+    val labelsSet: Boolean = false, val labelIds: Set<Long> = emptySet()
+)
+
+/**
  * 외부 REST API가 쓰는 이슈 도메인 동작이다. v1.6 `IssueApi`의 `createIssuesNode`, `updateIssueNode`, `updateIssueState`, `createComment`, `imports`
  * (`app/controllers/api/IssueApi.java`)에 해당한다. 권한 확인은 호출하는 쪽이 한다.
  */
@@ -92,6 +107,30 @@ class ExternalIssueService(
         val old = issue.assignee?.user
         if (old?.loginId.orEmpty() != assignee?.loginId.orEmpty()) event(issue, actor, EventType.ISSUE_ASSIGNEE_CHANGED, old?.loginId, assignee?.loginId)
         issue.assignee = assignee?.let { issueService.findOrCreateAssignee(project, it.loginId) }
+        return saveLikeV16(issue)
+    }
+
+    /**
+     * 이슈를 부분 수정한다(`PATCH`, 로드맵 X-29a). [patch]가 정한 항목만 바꾸고, 상태와 담당자가 바뀌면 [update]처럼 이벤트를 남긴다. 값의 올바름(마일스톤과 라벨이 이
+     * 프로젝트의 것인지 등)은 호출하는 쪽이 먼저 확인한다. 저장할 때는 v1.6 `save()`의 부수 효과(댓글 수, 제목 머리말 개수, 멘션)를 [update]와 같게 낸다.
+     */
+    @Transactional
+    fun patch(issue: Issue, actor: User, patch: IssuePatch): Issue {
+        val project = requireNotNull(issue.project)
+        patch.title?.let { issue.title = it }
+        patch.body?.let { issue.body = it }
+        if (patch.milestoneSet) issue.milestone = patch.milestoneId?.let { milestones.findById(it).orElse(null) }
+        issue.updatedDate = Date()
+        patch.state?.let { changeState(issue, actor, it) }
+        if (patch.assigneeSet) {
+            val old = issue.assignee?.user
+            if (old?.loginId.orEmpty() != patch.assigneeLoginId.orEmpty()) event(issue, actor, EventType.ISSUE_ASSIGNEE_CHANGED, old?.loginId, patch.assigneeLoginId)
+            issue.assignee = patch.assigneeLoginId?.let { issueService.findOrCreateAssignee(project, it) }
+        }
+        if (patch.labelsSet) {
+            issue.labels.clear()
+            issue.labels.addAll(labelService.findByIds(project, patch.labelIds))
+        }
         return saveLikeV16(issue)
     }
 

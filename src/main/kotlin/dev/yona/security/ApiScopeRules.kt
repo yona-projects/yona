@@ -34,6 +34,13 @@ object ApiScopeRules {
         for (m in listOf("GET", "PUT", "PATCH")) add(m, "$PROJECT/issues/{number}", ApiRequirement.Repo)
         add("POST", "$PROJECT/issues", ApiRequirement.Repo)
         add("POST", "$PROJECT/issues/{number}/comments", ApiRequirement.Repo)
+        // 이슈 쓰기 REST a단계(X-29a, D-47)
+        add("DELETE", "$PROJECT/issues/{number}", ApiRequirement.Repo)
+        add("GET", "$PROJECT/issues/{number}/comments", ApiRequirement.Repo)
+        for (m in listOf("PATCH", "DELETE")) add(m, "$PROJECT/issues/{number}/comments/{commentId}", ApiRequirement.Repo)
+        add("POST", "$PROJECT/issues/{number}/labels", ApiRequirement.Repo)
+        add("DELETE", "$PROJECT/issues/{number}/labels/{labelId}", ApiRequirement.Repo)
+        for (m in listOf("POST", "DELETE")) add(m, "$PROJECT/issues/{number}/assignees", ApiRequirement.Repo)
         add("POST", "$PROJECT/issuelabel/{number}", ApiRequirement.Repo)
         add("POST", "$PROJECT/issues/imports", ApiRequirement.Repo)
         // 게시글

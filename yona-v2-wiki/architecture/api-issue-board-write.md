@@ -22,7 +22,7 @@ updated: 2026-10-30
 | `GET issues/{number}` | 이슈 한 건 | 완료 |
 | `POST issues` | 이슈 만들기 | 완료 |
 | `PUT issues/{number}` | 제목, 본문, 마일스톤 제목, 상태, 담당자(이메일)를 한꺼번에 바꿈 | 완료 |
-| `PATCH issues/{number}` | 상태만 바꿈(`state`) | 완료(a단계가 부분 수정으로 확장) |
+| `PATCH issues/{number}` | 상태만 바꿈(`state`) | 완료, a단계가 부분 수정으로 확장함(2026-10-30) |
 | `POST issues/{number}/comments` | 댓글 달기(토큰 흐름과 가져오기 흐름) | 완료 |
 | `POST issuelabel/{number}` | 라벨 붙이기와 떼기 | 완료 |
 | `POST issues/imports` | 이슈 가져오기 | 완료 |
@@ -30,19 +30,25 @@ updated: 2026-10-30
 | `POST labels`, `POST milestones` | 라벨과 마일스톤 만들기 | 완료 |
 | `GET issues`, `GET labels`, `GET milestones`, `GET members`, `GET assignableusers` | 조회(X-19 1차) | 완료 |
 
+## 권한 보정(X-29a, 2026-10-30)
+
+D-36 4번("모든 토큰이 범위와 사용자의 실제 권한의 교집합만 할 수 있다")은 문서에는 있었으나 외부 이슈 API의 조회, `PUT`, `PATCH`, 토큰 댓글에는 적용되지 않은 채였다(옛 시험이 v1.6 동작인 "구성원이 아니어도 읽고 고칠 수 있다"를 확인하고 있었다). a단계에서 이 경로들에 사용자의 실제 권한 확인을 더하고 그 옛 시험 두 개를 고쳤다. 읽기는 `READ`, 수정은 `UPDATE`, 삭제는 `DELETE`, 댓글은 댓글 만들기 권한을 따른다. **게시판과 프로젝트 쪽 외부 API(`POST posts`, `POST labels` 등)에 같은 누락이 있는지는 b단계와 c단계에서 하나씩 확인한다.**
+
+Yona의 권한 모델에서는 프로젝트 구성원이면 이슈와 댓글을 고치고 지울 수 있다(작성자 제한이 없다). 구성원이 아닌 토큰은 거절된다.
+
 ## 이번에 더하는 것
 
 ### a단계: 이슈 수정과 이슈에 붙은 것 (X-29a)
 
 | 메서드와 경로 | 설명 | 상태 |
 |---|---|---|
-| `PATCH issues/{number}` | 부분 수정: `title`, `body`, `state`, `milestone`(번호 또는 `null`), `assignees`(로그인 ID 목록), `labels`(번호 목록). 보낸 항목만 바꾼다. 상태만 보내는 v1.6 호출은 그대로 동작한다 | 대기 |
-| `DELETE issues/{number}` | 이슈 삭제(삭제 권한) | 대기 |
-| `GET issues/{number}/comments` | 이슈 댓글 목록 | 대기 |
-| `PATCH issues/{number}/comments/{commentId}` | 댓글 수정(작성자나 관리자) | 대기 |
-| `DELETE issues/{number}/comments/{commentId}` | 댓글 삭제(작성자나 관리자) | 대기 |
-| `POST issues/{number}/labels`, `DELETE issues/{number}/labels/{labelId}` | 라벨 하나를 붙이거나 뗌 | 대기 |
-| `POST issues/{number}/assignees`, `DELETE issues/{number}/assignees` | 담당자를 더하거나 뺌(`{"assignees": [로그인 ID]}`) | 대기 |
+| `PATCH issues/{number}` | 부분 수정: `title`, `body`, `state`, `milestone`(번호 또는 `null`), `assignees`(로그인 ID 목록), `labels`(번호 목록). 보낸 항목만 바꾼다. 상태만 보내는 v1.6 호출은 그대로 동작한다 | **완료**(2026-10-30) |
+| `DELETE issues/{number}` | 이슈 삭제(삭제 권한) | **완료**(2026-10-30) |
+| `GET issues/{number}/comments` | 이슈 댓글 목록 | **완료**(2026-10-30) |
+| `PATCH issues/{number}/comments/{commentId}` | 댓글 수정(작성자나 관리자) | **완료**(2026-10-30) |
+| `DELETE issues/{number}/comments/{commentId}` | 댓글 삭제(작성자나 관리자) | **완료**(2026-10-30) |
+| `POST issues/{number}/labels`, `DELETE issues/{number}/labels/{labelId}` | 라벨 하나를 붙이거나 뗌 | **완료**(2026-10-30) |
+| `POST issues/{number}/assignees`, `DELETE issues/{number}/assignees` | 담당자를 더하거나 뺌(`{"assignees": [로그인 ID]}`) | **완료**(2026-10-30) |
 
 ### b단계: 게시판 (X-29b)
 

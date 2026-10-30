@@ -11,8 +11,13 @@ import dev.yona.domain.enumeration.descrKey
 import dev.yona.domain.issue.ExternalIssue
 import dev.yona.domain.issue.ExternalIssueService
 import dev.yona.domain.issue.Issue
+import dev.yona.domain.issue.IssueCommentService
 import dev.yona.domain.issue.IssueEventRepository
 import dev.yona.domain.issue.IssueLabelRepository
+import dev.yona.domain.issue.IssueLabelService
+import dev.yona.domain.issue.IssuePatch
+import dev.yona.domain.issue.IssueService
+import dev.yona.domain.issue.MilestoneRepository
 import dev.yona.domain.issue.IssueRepository
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
@@ -32,6 +37,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -64,6 +70,10 @@ class ExternalIssueApiController(
     private val postings: PostingRepository,
     private val comments: IssueCommentRepository,
     private val labels: IssueLabelRepository,
+    private val labelService: IssueLabelService,
+    private val issueService: IssueService,
+    private val milestones: MilestoneRepository,
+    private val commentService: IssueCommentService,
     private val service: ExternalIssueService,
     private val issueJson: IssueJson,
     private val apiUsers: ApiUsers,
@@ -85,6 +95,8 @@ class ExternalIssueApiController(
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return requests.message(HttpStatus.BAD_REQUEST, "no project by request")
         val issue = issues.findByProjectIdAndNumber(requireNotNull(project.id), number) ?: return requests.message(HttpStatus.BAD_REQUEST, "no issue by request")
+        // 토큰은 범위와 사용자의 실제 권한의 교집합만 할 수 있다(X-29a a0, `decisions.md` D-36 4번). v1.6은 권한을 보지 않았다(D-20, 대체)
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.READ)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         return result(HttpStatus.OK, issue, user, request)
     }
 
@@ -132,6 +144,7 @@ class ExternalIssueApiController(
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
         val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
         val title = json.findValue("title")?.asString()
         val body = json.findValue("body")?.asString()
         val assignees = json.findValue("assignees")
@@ -140,15 +153,77 @@ class ExternalIssueApiController(
         return result(HttpStatus.OK, issue, user, request)
     }
 
-    /** 이슈의 상태만 바꾼다. `state`가 `OPEN`(대소문자 무시)이 아니면 닫힘이다. 바뀌면 이벤트를 남긴다. 토큰이 필요하다. */
+    /**
+     * 이슈를 부분 수정한다. 본문의 `title`, `body`, `state`(`open`/`closed`), `milestone`(번호, `null`이면 지움), `assignees`(로그인 ID 목록, 담당자는 한 명까지이고 빈 목록이면 지움),
+     * `labels`(라벨 번호 목록, 빈 목록이면 모두 뗌) 중 보낸 항목만 바꾼다(로드맵 X-29a, `decisions.md` D-47). `state`만 보내는 v1.6 호출은 그대로 동작한다(`state`가 `OPEN`이 아니면
+     * 닫힘). 항목 하나라도 틀리면 아무것도 바꾸지 않고 400이다. 이슈를 고칠 수 있어야 한다. 토큰이 필요하다.
+     */
     @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}")
     @Transactional
-    fun updateIssueState(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+    fun patchIssue(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
         val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
         val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
         val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
-        service.updateState(issue, user, state(json))
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        val keys = PATCH_FIELDS.filter { json.has(it) }
+        if (keys.isEmpty()) return requests.message(HttpStatus.BAD_REQUEST, "no updatable field: title, body, state, milestone, assignees, labels")
+        if (keys == listOf("state")) {
+            service.updateState(issue, user, state(json))
+            return result(HttpStatus.OK, issue, user, request)
+        }
+        val patch = when (val parsed = parsePatch(json, requireNotNull(issue.project))) {
+            is PatchParse.Bad -> return requests.message(HttpStatus.BAD_REQUEST, parsed.message)
+            is PatchParse.Ok -> parsed.patch
+        }
+        service.patch(issue, user, patch)
         return result(HttpStatus.OK, issue, user, request)
+    }
+
+    /** 부분 수정의 본문을 검사해 [IssuePatch]로 만든다. 틀린 항목이 하나라도 있으면 그 이유를 돌려준다. */
+    private fun parsePatch(json: JsonNode, project: Project): PatchParse {
+        val title = if (json.has("title")) json.get("title").asString("").takeIf { it.isNotBlank() } ?: return PatchParse.Bad("title must not be empty") else null
+        val body = if (json.has("body")) json.get("body").let { if (it.isNull) "" else it.asString("") } else null
+        val state = if (json.has("state")) when (json.get("state").asString("").lowercase()) {
+            "open" -> State.OPEN
+            "closed" -> State.CLOSED
+            else -> return PatchParse.Bad("state must be open or closed")
+        } else null
+        var milestoneId: Long? = null
+        if (json.has("milestone")) {
+            val node = json.get("milestone")
+            if (!node.isNull) {
+                milestoneId = if (node.isNumber) node.asLong() else return PatchParse.Bad("milestone must be a number or null")
+                if (milestones.findById(milestoneId).orElse(null)?.project?.id != project.id) return PatchParse.Bad("no milestone by request")
+            }
+        }
+        var assignee: String? = null
+        if (json.has("assignees")) {
+            val node = json.get("assignees")
+            if (!node.isArray || node.size() > 1) return PatchParse.Bad("assignees must be a list with at most one login id")
+            if (node.size() == 1) {
+                assignee = node.get(0).asString("").takeIf { it.isNotBlank() } ?: return PatchParse.Bad("assignees must contain a login id")
+                if (users.findByLoginId(assignee) == null) return PatchParse.Bad("no user by request: $assignee")
+            }
+        }
+        var labelIds: Set<Long> = emptySet()
+        if (json.has("labels")) {
+            val node = json.get("labels")
+            if (!node.isArray || node.toList().any { !it.isNumber }) return PatchParse.Bad("labels must be a list of label numbers")
+            labelIds = node.toList().map { it.asLong() }.toSet()
+            if (labelService.findByIds(project, labelIds).size != labelIds.size) return PatchParse.Bad("no label by request")
+            if (issueService.violatesExclusiveCategory(labelIds)) return PatchParse.Bad("labels of an exclusive category cannot be combined")
+        }
+        return PatchParse.Ok(
+            IssuePatch(
+                title = title, body = body, state = state, milestoneSet = json.has("milestone"), milestoneId = milestoneId,
+                assigneeSet = json.has("assignees"), assigneeLoginId = assignee, labelsSet = json.has("labels"), labelIds = labelIds
+            )
+        )
+    }
+
+    private sealed interface PatchParse {
+        data class Ok(val patch: IssuePatch) : PatchParse
+        data class Bad(val message: String) : PatchParse
     }
 
     // --- 댓글 ---
@@ -169,6 +244,7 @@ class ExternalIssueApiController(
         if (json.has("comment")) {
             val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
             val text = json.findValue("comment")?.asString() ?: return requests.message(HttpStatus.BAD_REQUEST, "comment is required")
+            if (!accessControl.isResourceCreatable(user, issue.asResource(), ResourceType.ISSUE_COMMENT)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
             service.addComment(issue, user, text, null)
             return result(HttpStatus.CREATED, issue, user, request)
         }
@@ -179,6 +255,125 @@ class ExternalIssueApiController(
         attachments.attachIds(viewer, ids(json.findValue("temporaryUploadFiles")), ResourceType.ISSUE_COMMENT, requireNotNull(comment.id))
         return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON)
             .body(linkedMapOf("status" to 201, "location" to dev.yona.util.UrlPaths.withContext(request.contextPath, "${dev.yona.util.UrlPaths.projectPath(project.owner, project.name)}/issue/${issue.number}#comment-${comment.id}")))
+    }
+
+    // --- 삭제와 댓글, 라벨, 담당자 (X-29a, D-47) ---
+
+    /**
+     * 이슈를 지운다. 이슈를 지울 수 있는 사용자(작성자나 프로젝트 관리자)여야 하고, 다른 사람이 쓴 댓글이 있으면 지울 수 없어 409이다(v1.6 `canBeDeleted`). 성공하면 204이다.
+     */
+    @DeleteMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}")
+    @Transactional
+    fun deleteIssue(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.DELETE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        if (!issueService.canBeDeleted(issue)) return requests.message(HttpStatus.CONFLICT, "the issue has comments written by others")
+        issueService.delete(issue, user)
+        return ResponseEntity.noContent().build<Void>()
+    }
+
+    /** 이슈의 댓글 목록이다. 오래된 순서이고 한 줄 댓글은 `childComments`로 묶인다. 이슈를 읽을 수 있어야 한다. 결과: `{"result": [...]}`. */
+    @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments")
+    @Transactional(readOnly = true)
+    fun listComments(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.READ)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(linkedMapOf("result" to issueJson.commentsOf(issue)))
+    }
+
+    /** 댓글을 고친다. 본문 `{"body": 내용}`이다. 작성자나 프로젝트 관리자만 고치고, 내용이 비면 400이다. 결과: `{"result": {"id", "body", ...}}`. */
+    @PatchMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId}")
+    @Transactional
+    fun editComment(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable commentId: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val comment = comments.findById(commentId).orElse(null)?.takeIf { it.issue?.id == issue.id } ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, comment.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        val text = json.get("body")?.asString("")?.takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "body is required")
+        commentService.update(comment, user, text, false, false)
+        val node = linkedMapOf<String, Any?>(
+            "id" to comment.id, "body" to comment.contents, "createdAt" to issueJson.iso(comment.createdDate),
+            "author" to linkedMapOf("loginId" to comment.authorLoginId, "name" to comment.authorName)
+        )
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(linkedMapOf("result" to node))
+    }
+
+    /** 댓글을 지운다. 작성자나 프로젝트 관리자만 지운다. 성공하면 204이다. */
+    @DeleteMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/comments/{commentId}")
+    @Transactional
+    fun deleteComment(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable commentId: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        val comment = comments.findById(commentId).orElse(null)?.takeIf { it.issue?.id == issue.id } ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, comment.asResource(), Operation.DELETE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        commentService.delete(comment)
+        return ResponseEntity.noContent().build<Void>()
+    }
+
+    /**
+     * 이슈에 라벨을 더한다. 본문 `{"labels": [라벨 번호]}`이다. 이미 붙은 라벨은 그대로 두고, 이 프로젝트의 것이 아니거나 같은 분류(배타)의 라벨이 겹치면 400이다.
+     * 이슈를 고칠 수 있어야 한다. 결과는 이슈 JSON이다.
+     */
+    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/labels")
+    @Transactional
+    fun addLabels(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        val node = json.get("labels")
+        if (node == null || !node.isArray || node.size() == 0 || node.toList().any { !it.isNumber }) return requests.message(HttpStatus.BAD_REQUEST, "labels must be a non-empty list of label numbers")
+        val added = node.toList().map { it.asLong() }.toSet()
+        val project = requireNotNull(issue.project)
+        if (labelService.findByIds(project, added).size != added.size) return requests.message(HttpStatus.BAD_REQUEST, "no label by request")
+        val union = issue.labels.mapNotNull { it.id }.toSet() + added
+        if (issueService.violatesExclusiveCategory(union)) return requests.message(HttpStatus.BAD_REQUEST, "labels of an exclusive category cannot be combined")
+        service.patch(issue, user, IssuePatch(labelsSet = true, labelIds = union))
+        return result(HttpStatus.OK, issue, user, request)
+    }
+
+    /** 이슈에서 라벨 하나를 뗀다. 붙어 있지 않아도 그대로 성공한다. 이슈를 고칠 수 있어야 한다. 결과는 이슈 JSON이다. */
+    @DeleteMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/labels/{labelId}")
+    @Transactional
+    fun removeLabel(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, @PathVariable labelId: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        service.patch(issue, user, IssuePatch(labelsSet = true, labelIds = issue.labels.mapNotNull { it.id }.toSet() - labelId))
+        return result(HttpStatus.OK, issue, user, request)
+    }
+
+    /**
+     * 담당자를 정한다. 본문 `{"assignees": [로그인 ID]}`이다. Yona의 이슈는 담당자가 한 명이라 정확히 한 명을 받고(아니면 400), 이미 담당자가 있으면 바꾼다. 없는 사용자는 400이다.
+     * 바뀌면 변경 이벤트를 남긴다. 이슈를 고칠 수 있어야 한다. 결과는 이슈 JSON이다.
+     */
+    @PostMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignees")
+    @Transactional
+    fun setAssignee(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val json = requests.json(request) ?: return requests.message(HttpStatus.BAD_REQUEST, "Expecting Json data")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        val node = json.get("assignees")
+        if (node == null || !node.isArray || node.size() != 1) return requests.message(HttpStatus.BAD_REQUEST, "assignees must be a list with exactly one login id")
+        val loginId = node.get(0).asString("").takeIf { it.isNotBlank() } ?: return requests.message(HttpStatus.BAD_REQUEST, "assignees must contain a login id")
+        if (users.findByLoginId(loginId) == null) return requests.message(HttpStatus.BAD_REQUEST, "no user by request: $loginId")
+        service.patch(issue, user, IssuePatch(assigneeSet = true, assigneeLoginId = loginId))
+        return result(HttpStatus.OK, issue, user, request)
+    }
+
+    /** 담당자를 뺀다. 담당자가 없어도 성공한다. 이슈를 고칠 수 있어야 한다. 결과는 이슈 JSON이다. */
+    @DeleteMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignees")
+    @Transactional
+    fun clearAssignee(@PathVariable owner: String, @PathVariable projectName: String, @PathVariable number: Long, request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val issue = find(owner, projectName, number) ?: return ErrorViews.notFound()
+        if (!accessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) return requests.message(HttpStatus.FORBIDDEN, "Forbidden request")
+        service.patch(issue, user, IssuePatch(assigneeSet = true, assigneeLoginId = null))
+        return result(HttpStatus.OK, issue, user, request)
     }
 
     // --- 라벨 ---
@@ -217,6 +412,11 @@ class ExternalIssueApiController(
     }
 
     // --- 도우미 ---
+
+    private companion object {
+        /** 부분 수정이 받는 항목 이름이다. */
+        val PATCH_FIELDS = listOf("title", "body", "state", "milestone", "assignees", "labels")
+    }
 
     private fun find(owner: String, projectName: String, number: Long): Issue? {
         val project = projectService.findByOwnerAndProjectName(owner, projectName) ?: return null

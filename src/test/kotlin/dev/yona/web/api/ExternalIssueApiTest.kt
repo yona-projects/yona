@@ -178,10 +178,10 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `유효한 토큰이면 구성원이 아니어도 비공개 프로젝트의 이슈를 읽는다(v1_6과 같다)`() {
+    fun `구성원이 아닌 토큰은 비공개 프로젝트의 이슈를 읽지 못한다(v1_6과 다르다, D-36 4번)`() {
         val (user, _) = member("pv")
         val secret = newProject(ProjectScope.PRIVATE); issue(secret, newUser())
-        json(get(api(secret, "issues/1")), user.token, null).andExpect(status().isOk).andExpect(jsonPath("$.result.number").value(1))
+        json(get(api(secret, "issues/1")), user.token, null).andExpect(status().isForbidden)
     }
 
     // --- 등록 ---
@@ -290,7 +290,7 @@ class ExternalIssueApiTest : AbstractIntegrationTest() {
         issue(project, user)
         val body = """{"title":"t","body":"b","state":"OPEN","assignees":[]}"""
         json(put(api(project, "issues/1")), null, body).andExpect(status().isUnauthorized)
-        json(put(api(project, "issues/1")), newUser("tkoutsider").token, body).andExpect(status().isOk)
+        json(put(api(project, "issues/1")), newUser("tkoutsider").token, body).andExpect(status().isForbidden)
         mockMvc.perform(put(api(project, "issues/1")).header("Authorization", "token ${user.token}").contentType(MediaType.TEXT_PLAIN).content("x")).andExpect(status().isBadRequest)
     }
 

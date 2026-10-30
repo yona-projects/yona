@@ -21,6 +21,9 @@ class IssueLabelService(
     fun labels(project: Project): List<IssueLabel> = labels.findByProjectIdOrderByCategoryNameAscNameAsc(requireNotNull(project.id))
 
     /** 프로젝트의 라벨을 번호순으로 돌려준다. v1.6 `project.issueLabels`(정렬 없는 일대다)가 DB 순서 그대로 돌려주는 곳에 쓴다. */
+    /** [project]의 라벨 중 번호가 [ids]에 있는 것이다. 다른 프로젝트의 라벨이나 없는 번호는 빠진다(외부 REST의 라벨 지정 검증에 쓴다, X-29a). */
+    fun findByIds(project: Project, ids: Set<Long>): List<IssueLabel> = labels.findAllById(ids).filter { it.project?.id == project.id }
+
     fun labelsById(project: Project): List<IssueLabel> = labels.findByProjectIdOrderByCategoryNameAscNameAsc(requireNotNull(project.id)).sortedBy { it.id }
 
     /** 프로젝트의 분류를 이름순으로 돌려준다. */

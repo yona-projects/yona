@@ -78,7 +78,6 @@ class RouteParityTest : AbstractIntegrationTest() {
             "POST /-_-api/v1/favoriteIssues/{}",
             "POST /-_-api/v1/favoriteOrganizations/{}",
             "POST /-_-api/v1/favoriteProjects/{}",
-            "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/assignees",
             "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/commentNotiReceivers",
             "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/detectChange",
             "POST /-_-api/v1/owners/{}/projects/{}/issues/{}/downvoteWeight",

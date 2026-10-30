@@ -121,7 +121,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-18 | Git 태그 전용 화면(주석 메시지와 태거, 종류 배지, 최신순), 삭제 확인, 브랜치 목록과 선택 목록 정리 | `TagViewController`, `TagApiController` (P3-16) | **완료(2026-10-29)** | 결정은 [decisions.md](decisions.md) D-30을 본다. REST는 X-19로 옮겼다. 주석 태그의 커밋 이력 500(P3-40)은 별도로 확인한다 |
 | X-19 | 일반 REST 1차: 라벨 목록, 이슈 목록과 검색, 마일스톤 목록, 프로젝트 조회(정보, 내가 속한 프로젝트, 소유자의 프로젝트), 프로젝트 구성원 목록과 담당자 후보 | `*RestApi` 컨트롤러 (P3-09, P3-35) | **구현 완료(2026-10-29), 결정은 D-40** | 계약은 [architecture/api-project-reads.md](architecture/api-project-reads.md)이다. v1.6의 `/-_-api/v1` 외부 API는 그대로 두고 같은 경로에 읽기 API를 더했다. 이슈 댓글은 `GET .../issues/{number}`가 이미 담고 있다 |
 | X-29 | 일반 REST 2차(상위 항목): 이슈 쓰기와 게시판 REST를 네 단계(X-29a~d)로 나눠 만든다 | 이슈와 게시판 REST | **진행 중(2026-10-30), 결정은 D-47** | 추적표는 [api-issue-board-write.md](architecture/api-issue-board-write.md). 네 단계가 모두 끝나야 완료이다. X-30과 X-31은 이 뒤이다 |
-| X-29a | 이슈 수정과 이슈에 붙은 것: `PATCH issues/{n}` 부분 수정, `DELETE issues/{n}`, 댓글 목록과 수정과 삭제, 라벨 하나씩 붙이고 떼기, 담당자 더하고 빼기 | `ExternalIssueApiController` 확장 | **구현 중(2026-10-30)** | v1.6 계약은 유지하고 필드와 경로만 더한다 |
+| X-29a | 이슈 수정과 이슈에 붙은 것: `PATCH issues/{n}` 부분 수정, `DELETE issues/{n}`, 댓글 목록과 수정과 삭제, 라벨 하나씩 붙이고 떼기, 담당자 더하고 빼기 | `ExternalIssueApiController` 확장 | **구현 완료(2026-10-30)** | v1.6 계약은 유지하고 필드와 경로만 더했다. 외부 이슈 API의 권한 확인 누락(D-36 4번)도 함께 보정했다 |
 | X-29b | 게시판 REST: 글 목록과 한 건, 수정, 삭제, 댓글 목록과 수정과 삭제, 라벨 | `ExternalBoardApiController` 확장 | 대기 | a단계 패턴을 그대로 쓴다 |
 | X-29c | 라벨과 마일스톤 관리 REST: 고치기와 지우기 | `ExternalProjectApiController` 확장 | 대기 | 만들기는 이미 있다 |
 | X-29d | 이슈의 Yona 고유 쓰기 REST: 공유자, 가중치, 지켜보기 | `ExternalIssueApiController` 확장 | 대기 | 웹 화면에만 있던 기능의 토큰 버전 |

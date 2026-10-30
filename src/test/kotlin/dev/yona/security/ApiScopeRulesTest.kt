@@ -73,7 +73,7 @@ class ApiScopeRulesTest {
 
     @Test
     fun `대응표에 없는 경로와 메서드는 없는 것으로 본다`() {
-        assertNull(ApiScopeRules.requirement("DELETE", "/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}"))
+        assertNull(ApiScopeRules.requirement("PUT", "/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/labels"))
         assertNull(ApiScopeRules.requirement("GET", "/-_-api/v1/nothing"))
         assertNotNull(ApiScopeRules.requirement("GET", "/-_-api/v1/hello"))
     }

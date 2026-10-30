@@ -74,6 +74,9 @@ class IssueJson(
     /** 이슈 댓글과 게시글 댓글을 같은 모양으로 다루기 위한 값이다. */
     private data class Row(val id: Long?, val authorId: Long?, val created: Date?, val contents: String?, val parentId: Long?, val type: ResourceType)
 
+    /** 이슈의 댓글 목록이다. 부모 댓글에 한 줄 댓글을 `childComments`로 묶고 오래된 순서이다(이슈 JSON의 `comments`와 같다). 외부 REST의 댓글 목록(X-29a)이 쓴다. */
+    fun commentsOf(issue: Issue): List<Map<String, Any?>> = plainComments(requireNotNull(issue.id))
+
     private fun plainComments(issueId: Long): List<Map<String, Any?>> =
         plainComments(comments.findByIssueIdOrderByCreatedDateAscIdAsc(issueId).map { Row(it.id, it.authorId, it.createdDate, it.contents, it.parentComment?.id, ResourceType.ISSUE_COMMENT) })
 
