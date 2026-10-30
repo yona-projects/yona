@@ -69,7 +69,8 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
     @Autowired private lateinit var failures: dev.yona.security.TokenFailureLimiter
     @PersistenceContext private lateinit var em: EntityManager
 
-    private var sequence = 0
+    // 병합 응답 시험이 데이터를 확정하므로 다른 시험과 이름이 겹치지 않게 순번을 시험마다 다른 값에서 시작한다
+    private var sequence = (System.nanoTime() % 1_000_000_000L).toInt()
 
     private fun user(): User {
         val n = ++sequence
@@ -250,6 +251,16 @@ class ExternalPullRequestApiTest : AbstractIntegrationTest() {
         call(post("${s.api}/${s.pr.number}/merge"), t).andExpect(status().isForbidden)
         call(json(post("${s.api}/${s.pr.number}/assignees"), """{"assignees":[]}"""), t).andExpect(status().isForbidden)
         call(post("${s.api}/${s.pr.number}/reopen"), token(s.manager, "user")).andExpect(status().isForbidden)
+    }
+
+    // 병합 메서드는 트랜잭션을 걸지 않으므로(R-76) 응답을 만들 때 지연 로딩 컬렉션이 세션 밖에서 읽히면 500이 난다. 클래스의 시험 트랜잭션이
+    // 이를 가리므로, 준비한 데이터를 확정하고 트랜잭션 없이 호출해 운영과 같은 조건을 만든다(실서버 종단 시험에서 발견했다).
+    @Test
+    fun `병합 응답은 트랜잭션 밖에서도 담당자와 라벨 같은 지연 컬렉션을 읽는다`() {
+        val s = setup(); val t = token(s.manager)
+        org.springframework.test.context.transaction.TestTransaction.flagForCommit()
+        org.springframework.test.context.transaction.TestTransaction.end()
+        call(json(post("${s.api}/${s.pr.number}/merge"), """{"method":"merge"}"""), t).andExpect(status().isOk).andExpect(jsonPath("$.state").value("merged")).andExpect(jsonPath("$.assignees").isArray)
     }
 
     @Test

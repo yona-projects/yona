@@ -73,8 +73,13 @@ class ExternalPullRequestWriteApiController(
     private val branches: BranchService,
     private val processor: PullRequestMergeProcessor,
     private val runner: dev.yona.domain.pullrequest.BackgroundJobRunner,
-    private val attachments: PostAttachments
+    private val attachments: PostAttachments,
+    private val pullRequests: dev.yona.domain.pullrequest.PullRequestRepository,
+    transactions: org.springframework.transaction.PlatformTransactionManager
 ) {
+
+    /** 트랜잭션이 없는 메서드(병합)가 응답을 조립할 때 쓰는 읽기 전용 트랜잭션이다. */
+    private val readOnly = org.springframework.transaction.support.TransactionTemplate(transactions).also { it.isReadOnly = true }
 
     private companion object {
         const val BASE = "/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests/{number}"
@@ -264,7 +269,8 @@ class ExternalPullRequestWriteApiController(
         val bypass: (List<dev.yona.domain.project.Ruleset>) -> Boolean = { blocking -> accessControl.canBypass(user, targetProject, blocking) }
         val result = workflow.accept(pullRequest, user, bypass, method, title, message)
         return when (result) {
-            AcceptResult.MERGED -> support.ok(json.of(pullRequest))
+            // 이 메서드에는 트랜잭션이 없어 지연 컬렉션을 읽는 응답 조립은 읽기 전용 트랜잭션에서 한다
+            AcceptResult.MERGED -> support.ok(readOnly.execute { json.of(requireNotNull(pullRequests.findById(requireNotNull(pullRequest.id)).orElse(null))) })
             AcceptResult.METHOD_NOT_ALLOWED -> support.badRequest("Merge method not allowed: $methodName")
             AcceptResult.CONFLICT -> support.conflict("pull request has conflicts")
             AcceptResult.NOT_REVIEWED -> support.conflict("not enough review approvals")
