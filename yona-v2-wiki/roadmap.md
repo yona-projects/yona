@@ -148,6 +148,12 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-37i | 기기 인증(Device Flow): 서버의 기기 코드 발급, 승인 화면, 토큰 발급 | `domain/deviceauth`, `ExternalDeviceAuthApiController`, `DeviceAuthorizationController` | **구현 완료(2026-10-30)** | 새 테이블 `device_authorization`. X-1(OAuth2 서버)과 별개이다 |
 | X-37j | CLI(`../yona-cli`): 클라이언트를 `/-_-api/v1`에 맞춤, 새 명령, 기기 로그인, Git 자격 증명 도우미 | `../yona-cli` | **구현 완료(2026-10-30)** | 위키 명령만 서버 위키(X-17) 이후 |
 | X-37k | 문서: 각 단계의 REST를 OpenAPI와 추적표에 올린다 | `web/api/docs` | 단계마다 | 구조 시험이 빠지면 실패한다 |
+| X-38a | Bootstrap 전환 0단계: 전 화면 확인 도구. 화면 목록 전수화(템플릿 192개, 경로, 상태별), Playwright 전 화면 순회 캡처(콘솔 오류, 깨진 자원 기록, 기준 캡처), 구조 검사 시험(낡은 표기 찾기), 상호작용 시나리오(모달, 드롭다운, 팝오버, 탭) | `e2e/`, 구조 검사 시험 | 대기 | **D-53 결정**: 모든 단계의 선행 조건. 시작 전에 화면 목록을 선생님께 보여 드린다. 기준 태그 `pre-bs5` |
+| X-38b | Bootstrap 2→3: 모바일 우선 그리드(`span*`, `row-fluid`를 `col-*`와 `row`로), 클래스 이름 변경, 버튼, 폼, 내비게이션, 모달, 드롭다운, 알림, 자체 LESS 조정 | 템플릿 192개, `app/assets/stylesheets`, 자체 JS | 대기 | X-38a 이후. 가장 큰 구간. 끝나면 태그 `bs3` |
+| X-38c | Bootstrap 3→4: flexbox 그리드, `panel`, `label`, `well`을 `card`, `badge`로, Glyphicons 대체, **LESS를 SCSS로 이전**(빌드 도구 변경 포함) | 템플릿, 스타일 빌드 | 대기 | X-38b 이후. 끝나면 태그 `bs4` |
+| X-38d | Bootstrap 4→5: jQuery 의존 제거, `data-toggle`을 `data-bs-toggle`로, `affix`와 `typeahead` 대체, 유틸리티 클래스, 폼 변경 | 템플릿, 자체 JS | 대기 | X-38c 이후 |
+| X-38e | 자체 JS의 BS 플러그인 호출을 BS5 JS API로 다시 쓰기(`modal` 23, `alert` 26, `popover` 19, `tab`, `collapse`) | 자체 JS 82개 | 대기 | X-38d와 함께. 전환 중에는 jQuery를 유지한다 |
+| X-38f | 정리: 호환 스타일 제거, 옛 BS 자원과 LESS 도구 제거, 문서와 위키 갱신 | 정적 자원, 위키 | 대기 | 제거는 선생님 확인 후. 끝나면 태그 `bs5` |
 | X-25 | CI/Actions(GitHub Actions 방식의 워크플로 YAML, 러너 등록과 폴링)와 프런트엔드 분리(SPA) | P3-05, P3-13 | 대기 | `next`에서도 **미착수 또는 계획서만 있다**. CI/Actions는 자동 진행 대상에서 제외하라는 기존 지시(P3-05)가 있다 |
 | X-26 | 풀 리퀘스트 리뷰에 줄 단위 댓글 묶기와 임시 저장 리뷰(PENDING): 코드 줄에 단 댓글을 "리뷰 시작"으로 임시 저장했다가 판정과 함께 한꺼번에 제출, 임시 리뷰 버리기 | `domain/pullrequest/PullRequestReview`, `domain/comment/CommentThread` | **구현 완료(2026-10-29), 결정은 D-38** | X-12(D-35)를 먼저 했다. Yona의 줄 댓글(`CommentThread`)은 지금도 즉시 올라가고 판정과 무관하다. 묶으려면 줄 댓글의 저장, 알림 구조를 바꿔야 한다. GitHub은 임시 저장된 줄 댓글을 본인만 보며 제출 전까지 고칠 수 있다(공식 문서). 임시 저장 리뷰는 이 묶음이 있어야 의미가 있다 |
 | X-27 | 풀 리퀘스트 리뷰 요청과 다시 요청: 쓰기 권한자가 특정 사람에게 리뷰를 요청하고 요청받은 사람 목록, 알림, 다시 요청을 둔다 | `domain/pullrequest/PullRequestReviewRequest` | **구현 완료(2026-10-29), 결정은 D-37** | X-12(D-35)를 먼저 했다. GitHub은 리뷰 요청에 쓰기 권한이 필요하다(공식 문서). Yona에는 요청 대상 지정 개념이 없어 새 테이블과 화면이 필요하다. 새 테이블은 내보내기, 가져오기에 포함한다 |
