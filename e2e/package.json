@@ -1,0 +1,14 @@
+{
+  "name": "yona-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Yona v2 전 화면 확인 도구(로드맵 X-38a, decisions.md D-53): 서버 기동, 고정 데이터 심기, 전 화면 순회 캡처, 전후 비교",
+  "scripts": {
+    "seed": "node seed.mjs",
+    "crawl": "node crawl.mjs",
+    "compare": "node compare.mjs"
+  },
+  "devDependencies": {
+    "playwright": "*"
+  }
+}

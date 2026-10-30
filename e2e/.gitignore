@@ -1,0 +1,8 @@
+node_modules/
+.state/
+shots/
+report/
+test-results/
+playwright-report/
+.auth/
+.seed/
