@@ -21,12 +21,13 @@ import java.util.Date
  */
 @Component
 @Order(10)
-class ReviewerSettingMigration(private val entityManager: EntityManager) : ApplicationRunner {
+class ReviewerSettingMigration(private val entityManager: EntityManager, private val transactions: org.springframework.transaction.support.TransactionTemplate) : ApplicationRunner {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    /** 서버를 시작할 때 도는 경로이다. 자기 자신을 부르면 트랜잭션이 걸리지 않으므로 직접 트랜잭션 안에서 돌린다. */
     override fun run(args: ApplicationArguments) {
-        migrate()
+        transactions.executeWithoutResult { migrate() }
     }
 
     /** 옮긴 프로젝트 수를 돌려준다. 이미 모든 브랜치 규칙이 있어 사용 여부만 끈 프로젝트는 세지 않는다. */
