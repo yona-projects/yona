@@ -57,22 +57,22 @@
 
             <h4 th:text="#{project.ruleset.rules}"></h4>
             <div class="well" style="background:#fff;" id="rulesetRules">
-                <label class="checkbox"><input type="checkbox" name="restrictDeletions" value="true" th:checked="${ruleset.restrictDeletions == true}">
+                <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="restrictDeletions" value="true" th:checked="${ruleset.restrictDeletions == true}">
                     <strong th:text="#{project.ruleset.rule.deletions}"></strong><span class="help-block" th:text="#{project.ruleset.rule.deletions.desc}"></span></label>
-                <label class="checkbox"><input type="checkbox" name="requireLinearHistory" value="true" th:checked="${ruleset.requireLinearHistory == true}">
+                <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requireLinearHistory" value="true" th:checked="${ruleset.requireLinearHistory == true}">
                     <strong th:text="#{project.ruleset.rule.linear}"></strong><span class="help-block" th:text="#{project.ruleset.rule.linear.desc}"></span></label>
-                <label class="checkbox"><input type="checkbox" name="requirePullRequest" value="true" th:checked="${ruleset.requirePullRequest == true}">
+                <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requirePullRequest" value="true" th:checked="${ruleset.requirePullRequest == true}">
                     <strong th:text="#{project.ruleset.rule.pr}"></strong><span class="help-block" th:text="#{project.ruleset.rule.pr.desc}"></span></label>
                 <div id="rulesetPullRequestOptions" style="margin: 0 0 10px 22px;">
                     <label for="rulesetApprovals" th:text="#{project.ruleset.rule.approvals}"></label>
                     <input type="number" id="rulesetApprovals" name="approvals" min="0" max="100" style="width:70px;" th:value="${ruleset.requiredApprovals}" th:classappend="${#lists.contains(errors, 'approvals')} ? 'error'">
                     <span class="help-block" th:text="#{project.ruleset.rule.approvals.desc}"></span>
-                    <label class="checkbox"><input type="checkbox" name="requireNoChangesRequested" value="true" th:checked="${ruleset.requireNoChangesRequested == true}">
+                    <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requireNoChangesRequested" value="true" th:checked="${ruleset.requireNoChangesRequested == true}">
                         <th:block th:text="#{project.ruleset.rule.changes}"></th:block></label>
-                    <label class="checkbox"><input type="checkbox" name="requireConversationResolution" value="true" th:checked="${ruleset.requireConversationResolution == true}">
+                    <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="requireConversationResolution" value="true" th:checked="${ruleset.requireConversationResolution == true}">
                         <th:block th:text="#{project.ruleset.rule.conversation}"></th:block></label>
                 </div>
-                <label class="checkbox"><input type="checkbox" name="blockForcePushes" value="true" th:checked="${ruleset.blockForcePushes == true}">
+                <label class="checkbox" style="display:block; margin-bottom:10px; padding-left:20px;"><input type="checkbox" name="blockForcePushes" value="true" th:checked="${ruleset.blockForcePushes == true}">
                     <strong th:text="#{project.ruleset.rule.force}"></strong><span class="help-block" th:text="#{project.ruleset.rule.force.desc}"></span></label>
             </div>
 
