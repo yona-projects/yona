@@ -85,6 +85,13 @@ object ApiScopeRules {
         // 라벨과 마일스톤 관리 REST(X-29c, D-47)
         for (m in listOf("PATCH", "DELETE")) { add(m, "$PROJECT/labels/{labelId}", ApiRequirement.Repo); add(m, "$PROJECT/milestones/{milestoneId}", ApiRequirement.Repo) }
         add("GET", "$PROJECT/exports", ApiRequirement.Repo)
+        // 조직(X-30a, D-49): 읽기 `read:org`, 구성원 변경 `write:org`, 만들기와 설정과 삭제 `admin:org`
+        add("GET", "/-_-api/v1/user/organizations", ApiRequirement.Scope("read:org"))
+        for (pattern in listOf("/-_-api/v1/orgs/{org}", "/-_-api/v1/orgs/{org}/members")) add("GET", pattern, ApiRequirement.Scope("read:org"))
+        add("POST", "/-_-api/v1/orgs/{org}/members", ApiRequirement.Scope("write:org"))
+        for (m in listOf("PATCH", "DELETE")) add(m, "/-_-api/v1/orgs/{org}/members/{loginId}", ApiRequirement.Scope("write:org"))
+        add("POST", "/-_-api/v1/orgs", ApiRequirement.Scope("admin:org"))
+        for (m in listOf("PATCH", "DELETE")) add(m, "/-_-api/v1/orgs/{org}", ApiRequirement.Scope("admin:org"))
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))

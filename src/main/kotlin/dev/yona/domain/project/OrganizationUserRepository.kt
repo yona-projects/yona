@@ -21,6 +21,10 @@ interface OrganizationUserRepository : JpaRepository<OrganizationUser, Long> {
     @org.springframework.data.jpa.repository.Query("select ou from OrganizationUser ou join fetch ou.user join fetch ou.role where ou.organization.id = :organizationId order by ou.id")
     fun findMembers(organizationId: Long): List<OrganizationUser>
 
+    /** 사용자가 속한 조직의 구성원 행을 조직과 역할과 함께 조회한다. 조직 번호 순이다(외부 REST의 내 조직 목록, X-30a). */
+    @org.springframework.data.jpa.repository.Query("select ou from OrganizationUser ou join fetch ou.organization join fetch ou.role where ou.user.id = :userId order by ou.organization.id")
+    fun findByUserId(userId: Long): List<OrganizationUser>
+
     /** 조직에서 지정한 역할을 가진 구성원 수이다. */
     fun countByOrganizationIdAndRoleId(organizationId: Long, roleId: Long): Long
 }

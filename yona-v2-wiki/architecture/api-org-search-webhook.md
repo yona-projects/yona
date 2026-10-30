@@ -39,17 +39,19 @@ updated: 2026-10-30
 
 ## a단계: 조직 (X-30a)
 
+구현은 `ExternalOrganizationApiController`이다. 웹 화면과 같은 서비스(`OrganizationManagementService`, `OrganizationService`)와 판정을 쓴다. 역할 이름은 GitHub처럼 `admin`과 `member`이다.
+
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `GET /-_-api/v1/user/organizations` | 내가 속한 조직 | `read:org` | 대기 |
-| `GET /-_-api/v1/orgs/{org}` | 조직 한 건(이름, 설명, 구성원 수, 프로젝트 수) | `read:org` | 대기 |
-| `GET /-_-api/v1/orgs/{org}/members` | 구성원과 역할 | `read:org` | 대기 |
-| `POST /-_-api/v1/orgs/{org}/members` | 구성원 더하기(`loginId`, 역할) | `write:org` | 대기 |
-| `PATCH /-_-api/v1/orgs/{org}/members/{loginId}` | 역할 바꾸기 | `write:org` | 대기 |
-| `DELETE /-_-api/v1/orgs/{org}/members/{loginId}` | 구성원 빼기. 자신이면 나가기 | `write:org` | 대기 |
-| `POST /-_-api/v1/orgs` | 조직 만들기 | `admin:org` | 대기 |
-| `PATCH /-_-api/v1/orgs/{org}` | 이름과 설명 바꾸기(로고는 웹 화면에서만) | `admin:org` | 대기 |
-| `DELETE /-_-api/v1/orgs/{org}` | 조직 지우기 | `admin:org` | 대기 |
+| `GET /-_-api/v1/user/organizations` | 내가 속한 조직(`name`, `description`, `createdAt`, `projectCount`, `role`) | `read:org` | **완료**(2026-10-30) |
+| `GET /-_-api/v1/orgs/{org}` | 조직 한 건. 누구나 읽고 `role`은 구성원일 때만 있다 | `read:org` | **완료**(2026-10-30) |
+| `GET /-_-api/v1/orgs/{org}/members` | 구성원과 역할. 조직 관리자만 본다(웹과 같다) | `read:org` | **완료**(2026-10-30) |
+| `POST /-_-api/v1/orgs/{org}/members` | 구성원 더하기(`loginId`, `role`은 `member` 기본이나 `admin`). 이미 구성원 409, 없는 사용자 404, 게스트 403 | `write:org` | **완료**(2026-10-30) |
+| `PATCH /-_-api/v1/orgs/{org}/members/{loginId}` | 역할 바꾸기(`role`). 마지막 관리자를 내리면 409 | `write:org` | **완료**(2026-10-30) |
+| `DELETE /-_-api/v1/orgs/{org}/members/{loginId}` | 구성원 빼기. 자신이면 나가기. 마지막 관리자는 409 | `write:org` | **완료**(2026-10-30) |
+| `POST /-_-api/v1/orgs` | 조직 만들기(`name`, `description`). 만든 사람이 관리자. 형식과 예약어 400, 중복 409, 게스트 403 | `admin:org` | **완료**(2026-10-30) |
+| `PATCH /-_-api/v1/orgs/{org}` | 이름과 설명 바꾸기(보낸 항목만). 이름이 바뀌면 프로젝트 소유자와 저장소도 옮겨진다 | `admin:org` | **완료**(2026-10-30) |
+| `DELETE /-_-api/v1/orgs/{org}` | 조직 지우기. 프로젝트가 남아 있으면 409, 관리자가 아니면 403 | `admin:org` | **완료**(2026-10-30) |
 
 ## b단계: 웹훅 (X-30b)
 
