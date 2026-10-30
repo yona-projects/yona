@@ -367,7 +367,7 @@ class PullRequestPageAssembler(
     }
 
     private fun avatarLink(user: User): String =
-        "<a href=\"${siteUrls.path("/${user.loginId}")}\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"${HtmlUtils.htmlEscape(user.name.orEmpty())}\">" +
+        "<a href=\"${siteUrls.path("/${user.loginId}")}\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"${HtmlUtils.htmlEscape(user.name.orEmpty())}\">" +
             "<img src=\"${avatars.avatarUrl(user)}\" class=\"avatar-wrap small\"></a>"
 
     private fun userHtml(user: User?, loginId: String?): String {
@@ -375,8 +375,8 @@ class PullRequestPageAssembler(
         val id = HtmlUtils.htmlEscape(loginId.orEmpty())
         val href = siteUrls.path("/$loginId")
         val name = HtmlUtils.htmlEscape(UserDisplay.of(user, LocaleContextHolder.getLocale().toLanguageTag()))
-        return "<a href=\"$href\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"$id\"><img src=\"${avatars.avatarUrl(user)}\" class=\"avatar-wrap small\"></a>" +
-            "\n        <a href=\"$href\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"$id\">\n            <strong>$name</strong>\n        </a>"
+        return "<a href=\"$href\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"$id\"><img src=\"${avatars.avatarUrl(user)}\" class=\"avatar-wrap small\"></a>" +
+            "\n        <a href=\"$href\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"$id\">\n            <strong>$name</strong>\n        </a>"
     }
 
     private fun text(key: String, vararg args: Any?): String = messages.getMessage(key, args.map { it ?: "null" }.toTypedArray(), key, LocaleContextHolder.getLocale()).orEmpty()

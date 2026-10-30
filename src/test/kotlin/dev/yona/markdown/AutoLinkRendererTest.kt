@@ -181,7 +181,7 @@ class AutoLinkRendererTest : AbstractIntegrationTest() {
         assertTrue(html.contains("href='/dave'") || html.contains("href=\"/dave\""), html)
         assertTrue(html.contains("no-text-decoration user-link"), html)
         assertTrue(html.contains(">@데이브</span>"), html)
-        assertTrue(html.contains("data-toggle=\"popover\"") || html.contains("data-toggle='popover'"), html)
+        assertTrue(html.contains("data-bs-toggle=\"popover\"") || html.contains("data-bs-toggle='popover'"), html)
     }
 
     @Test

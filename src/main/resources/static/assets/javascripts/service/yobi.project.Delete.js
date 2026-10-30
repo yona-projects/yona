@@ -52,7 +52,7 @@
                 "sMethod" : "delete",
                 "sHref"   : htOptions.sDeleteURL,
                 "fOnError": function(){
-                    $("#alertDeletion").modal("hide");
+                    bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertDeletion")).hide();
                     $yobi.alert(Messages("project.delete.error"));
                     return false;
                 }

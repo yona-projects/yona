@@ -21,42 +21,42 @@
                     <ul class="lst-stacked list-unstyled search-category-wrap">
                         <li th:class="${current == 'issue' ? 'active' : ''} + ' ' + ${counts.issues == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="issue"><th:block th:text="#{search.menu.issues}"></th:block>
-                                <span class="num-badge float-right" th:text="${counts.issues}"></span>
+                                <span class="num-badge float-end" th:text="${counts.issues}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'user' ? 'active' : ''} + ' ' + ${counts.users == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="user"><th:block th:text="#{search.menu.users}"></th:block>
-                                <span class="num-badge float-right" th:text="${counts.users}"></span>
+                                <span class="num-badge float-end" th:text="${counts.users}"></span>
                             </a>
                         </li>
                         <li th:unless="${search.projectScoped}" th:class="${current == 'project' ? 'active' : ''} + ' ' + ${counts.projects == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="project"><th:block th:text="#{search.menu.projects}"></th:block>
-                                <span class="num-badge float-right" th:text="${counts.projects}"></span>
+                                <span class="num-badge float-end" th:text="${counts.projects}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'post' ? 'active' : ''} + ' ' + ${counts.posts == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="post"><th:block th:text="#{search.menu.boards}"></th:block>
-                                <span class="num-badge float-right" th:text="${counts.posts}"></span>
+                                <span class="num-badge float-end" th:text="${counts.posts}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'milestone' ? 'active' : ''} + ' ' + ${counts.milestones == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="milestone"><th:block th:text="#{search.menu.milestones}"></th:block>
-                                <span class="num-badge float-right" th:text="${counts.milestones}"></span>
+                                <span class="num-badge float-end" th:text="${counts.milestones}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'issue_comment' ? 'active' : ''} + ' ' + ${counts.issueComments == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="issue_comment"><th:block th:text="#{search.menu.issue.comments}"></th:block>
-                                <span class="num-badge float-right" th:text="${counts.issueComments}"></span>
+                                <span class="num-badge float-end" th:text="${counts.issueComments}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'post_comment' ? 'active' : ''} + ' ' + ${counts.postComments == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="post_comment"><th:block th:text="#{search.menu.board.comments}"></th:block>
-                                <span class="num-badge float-right" th:text="${counts.postComments}"></span>
+                                <span class="num-badge float-end" th:text="${counts.postComments}"></span>
                             </a>
                         </li>
                         <li th:class="${current == 'review' ? 'active' : ''} + ' ' + ${counts.reviews == 0 ? 'empty' : ''}">
                             <a href="#" data-toggle="search-category" data-type="review"><th:block th:text="#{search.menu.reviews}"></th:block>
-                                <span class="num-badge float-right" th:text="${counts.reviews}"></span>
+                                <span class="num-badge float-end" th:text="${counts.reviews}"></span>
                             </a>
                         </li>
                     </ul>

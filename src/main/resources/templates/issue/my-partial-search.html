@@ -82,7 +82,7 @@
         </ul>
         <th:block th:if="${!items.isEmpty()}">
             <div class="filter-wrap small-heights">
-                <div th:if="${items.size() > 1}" class="filters float-right">
+                <div th:if="${items.size() > 1}" class="filters float-end">
                     <th:block th:each="field : ${ {'dueDate', 'updatedDate', 'createdDate', 'numOfComments'} }"
                               th:with="label=${field == 'dueDate' ? 'common.order.dueDate' : (field == 'updatedDate' ? 'common.order.updatedDate' : (field == 'createdDate' ? 'common.order.date' : 'common.order.comments'))}">
                         <a th:if="${cond.orderBy == field}" href="#" th:attr="orderBy=${cond.orderBy}, orderDir=${cond.orderDir == 'desc'} ? 'asc' : 'desc'" class="filter active"><i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{${label}}"></th:block></a>

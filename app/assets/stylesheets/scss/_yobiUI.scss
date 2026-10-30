@@ -132,7 +132,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         padding:3px 0 !important;
     }
 }
-.btn-group.open .btn.dropdown-toggle, .btn-group.show .btn.dropdown-toggle {
+.btn-group.open .btn.dropdown-toggle, .btn-group .btn.dropdown-toggle.show {
     background:darken($white, 5%);
 
     &.blue   { background:darken($blue2, 5%); }
@@ -1180,13 +1180,11 @@ span.issue-label {
     }
 }
 
-// 드롭다운이 열린 상태. Bootstrap 2/3의 `.open`을 Bootstrap 4는 `.show`로 표시한다.
-.show {
-    > .flat {
-        @include opacity(100);
-        visibility:visible;
-        margin-top:12px;
-    }
+// 드롭다운이 열린 상태. Bootstrap 2/3의 `.open`(부모)을 Bootstrap 5는 메뉴와 토글 단추의 `.show`로 표시한다.
+.dropdown-menu.flat.show {
+    @include opacity(100);
+    visibility:visible;
+    margin-top:12px;
 }
 
 

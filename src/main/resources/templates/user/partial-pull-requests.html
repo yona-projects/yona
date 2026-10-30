@@ -17,10 +17,10 @@
             <a th:href="@{${base}}" class="title project" th:text="${pull.projectName}"></a>
             <span class="post-id" th:text="${pull.number}"></span>
             <a th:href="@{${url}}" class="title" th:classappend="${pull.conflict} ? 'conflict'" th:text="${pull.title}"></a>
-            <a th:each="l : ${pull.labels}" th:href="@{${url}}" class="badge issue-label active list-label badge-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+            <a th:each="l : ${pull.labels}" th:href="@{${url}}" class="badge issue-label active list-label bg-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
         </div>
         <div class="infos">
-            <a th:if="${pull.contributorName != null}" th:href="@{/{u}(u=${pull.contributorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${pull.contributorLoginId}" th:text="${pull.contributorName}"></a>
+            <a th:if="${pull.contributorName != null}" th:href="@{/{u}(u=${pull.contributorLoginId})}" class="infos-item infos-link-item" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${pull.contributorLoginId}" th:text="${pull.contributorName}"></a>
             <span th:unless="${pull.contributorName != null}" class="infos-item" th:text="#{issue.noAuthor}"></span>
             <span class="infos-item" th:title="${pull.createdTitle}" th:text="${pull.createdText}"></span>
             <a th:if="${pull.threadCount > 0}" th:href="@{${url + '#comments'}}" class="infos-item infos-icon-link">
@@ -30,16 +30,16 @@
         </div>
     </div>
     <div class="col-lg-2">
-        <div class="mt5 float-right">
-            <a th:if="${pull.assigneeLoginId != null}" th:href="@{/{u}(u=${pull.assigneeLoginId})}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${pull.assigneeName}" th:title="#{issue.assignee} + ': ' + ${pull.assigneeName}">
+        <div class="mt5 float-end">
+            <a th:if="${pull.assigneeLoginId != null}" th:href="@{/{u}(u=${pull.assigneeLoginId})}" class="avatar-wrap assignee" data-bs-toggle="tooltip" data-bs-placement="top" th:attr="data-bs-original-title=#{issue.assignee} + ': ' + ${pull.assigneeName}" th:title="#{issue.assignee} + ': ' + ${pull.assigneeName}">
                 <img th:src="@{${pull.assigneeAvatarUrl}}" width="32" height="32" th:alt="${pull.assigneeName}">
             </a>
-            <a th:if="${pull.receiverLoginId != null}" th:href="@{/{u}(u=${pull.receiverLoginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${pull.receiverName}">
+            <a th:if="${pull.receiverLoginId != null}" th:href="@{/{u}(u=${pull.receiverLoginId})}" class="avatar-wrap assinee" data-bs-toggle="tooltip" data-bs-placement="top" title="" th:attr="data-bs-original-title=${pull.receiverName}">
                 <img th:src="@{${pull.receiverAvatarUrl}}" width="32" height="32" th:alt="${pull.receiverName}">
             </a>
             <div th:unless="${pull.receiverLoginId != null or pull.assigneeLoginId != null}" class="empty-avatar-wrap">&nbsp;</div>
         </div>
-        <div class="state float-right" th:classappend="${pull.stateClass}" th:text="#{${pull.stateKey}}"></div>
+        <div class="state float-end" th:classappend="${pull.stateClass}" th:text="#{${pull.stateKey}}"></div>
     </div>
 </li>
 </th:block>

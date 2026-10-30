@@ -164,7 +164,7 @@ class AutoLinkRenderer(
         val content = escapeHtml(avatarImage + user.name + " " + user.loginId)
         return Link(
             "/${segment(user.loginId)}", "no-text-decoration user-link",
-            "<span data-toggle='popover' data-placement='top' data-trigger='hover' data-html='true' data-content=\"$content\">@$userName</span>"
+            "<span data-bs-toggle='popover' data-bs-placement='top' data-bs-trigger='hover' data-bs-html='true' data-bs-content=\"$content\">@$userName</span>"
         )
     }
 

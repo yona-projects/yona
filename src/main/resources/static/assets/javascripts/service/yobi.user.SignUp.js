@@ -192,19 +192,14 @@
         }
 
         function showErrorMessage(welInput, sMessage){
-            welInput.popover({
-                "trigger": "manual",
+            $yobi.showPopover(welInput, {
                 "placement": "left",
                 "content": sMessage
-            }).popover("show");
+            });
         }
 
         function hideErrorMessage(welInput){
-            welInput.popover("hide");
-
-            try{
-                welInput.popover("destroy");
-            } catch(e){} // to avoid bootstrap bug
+            $yobi.hidePopover(welInput);
         }
 
         _init(htOptions || {});

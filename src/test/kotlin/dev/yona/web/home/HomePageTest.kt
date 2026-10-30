@@ -181,7 +181,7 @@ class HomePageTest : AbstractIntegrationTest() {
         assertNotNull(button)
         assertEquals("notifications", button.attr("data-url"))
         assertEquals("Set to default page", button.text())
-        assertEquals("Make current page the index page when logged in", button.attr("data-content"))
+        assertEquals("Make current page the index page when logged in", button.attr("data-bs-content"))
     }
 
     @Test

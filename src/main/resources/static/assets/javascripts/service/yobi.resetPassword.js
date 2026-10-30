@@ -93,11 +93,10 @@
         }
 
         function showErrorMessage(welInput, sMessage){
-            welInput.popover({
-                "trigger": "manual",
+            $yobi.showPopover(welInput, {
                 "placement": "left",
                 "content": sMessage
-            }).popover("show");
+            });
         }
 
         _init();

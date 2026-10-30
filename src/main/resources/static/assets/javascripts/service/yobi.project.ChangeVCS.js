@@ -73,7 +73,7 @@
                     }
                 },
                 "error": function(){
-                    $("#alertChangeVCS").modal("hide");
+                    bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertChangeVCS")).hide();
                     $yobi.alert(Messages("project.changeVCS.error"));
                 }
             });

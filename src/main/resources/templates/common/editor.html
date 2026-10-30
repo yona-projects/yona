@@ -19,10 +19,10 @@
 <div data-toggle="markdown-editor" class="mt10">
     <ul class="nav nav-tabs nm small">
         <li class="nav-item">
-            <a th:href="'#edit-' + ${wrapId}" data-toggle="tab" data-mode="edit" th:text="#{common.editor.edit}" class="nav-link active"></a>
+            <a th:href="'#edit-' + ${wrapId}" data-bs-toggle="tab" data-mode="edit" th:text="#{common.editor.edit}" class="nav-link active"></a>
         </li>
         <li class="nav-item">
-            <a th:href="'#preview-' + ${wrapId}" data-toggle="tab" data-mode="preview" th:text="#{common.editor.preview}" class="nav-link"></a>
+            <a th:href="'#preview-' + ${wrapId}" data-bs-toggle="tab" data-mode="preview" th:text="#{common.editor.preview}" class="nav-link"></a>
         </li>
         <li>
             <div class="task-list-button"><button type="button" class="add-task-list-button ybtn ybtn-small ybtn-danger-no-outline"><i class="yobicon-list task-list-icon"></i> <th:block th:text="#{button.add.checklist}"></th:block></button></div>

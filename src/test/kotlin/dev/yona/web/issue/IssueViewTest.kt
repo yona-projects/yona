@@ -255,7 +255,7 @@ class IssueViewTest : AbstractIntegrationTest() {
         val member = join(newUser(), project)
         issue(project, history = "<b>이력</b>")
         val anonymous = view(project)
-        assertTrue(anonymous.select(".posting-history a[data-toggle=modal][href*=login]").isNotEmpty() || anonymous.select(".posting-history a[href*=redirectUrl]").isNotEmpty())
+        assertTrue(anonymous.select(".posting-history a[data-bs-toggle=modal][href*=login]").isNotEmpty() || anonymous.select(".posting-history a[href*=redirectUrl]").isNotEmpty())
         assertTrue(anonymous.select("#-yona-posting-history").isEmpty())
         val logged = view(project, session = login(member))
         assertTrue(logged.select(".posting-history a[href=#-yona-posting-history]").isNotEmpty())
@@ -302,7 +302,7 @@ class IssueViewTest : AbstractIntegrationTest() {
         comment(i, other)
         val doc = view(project, session = login(author))
         assertTrue(doc.select(".act-row a[href=#deleteConfirm]").isEmpty())
-        assertTrue(doc.select(".act-row button.disabled[data-content]").isNotEmpty())
+        assertTrue(doc.select(".act-row button.disabled[data-bs-content]").isNotEmpty())
     }
 
     @Test
@@ -335,8 +335,8 @@ class IssueViewTest : AbstractIntegrationTest() {
         i.voters.addAll(voters); issues.save(i); entityManager.flush()
         val doc = view(project, session = login(me))
         assertTrue(doc.select("#vote.voter-exists").isNotEmpty())
-        assertEquals(3, doc.select(".voter-list li").size - doc.select(".voter-list li[data-toggle=tooltip]").size)
-        assertEquals("and 2 others", doc.selectFirst(".voter-list li[data-toggle=tooltip] a")!!.text().trim())
+        assertEquals(3, doc.select(".voter-list li").size - doc.select(".voter-list li[data-bs-toggle=tooltip]").size)
+        assertEquals("and 2 others", doc.selectFirst(".voter-list li[data-bs-toggle=tooltip] a")!!.text().trim())
         assertEquals(5, doc.select("#voters .modal-body li").size)
     }
 

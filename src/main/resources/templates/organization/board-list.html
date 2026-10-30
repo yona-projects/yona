@@ -15,7 +15,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="search-wrap underline">
-            <form id="option_form" method="get" class="float-left">
+            <form id="option_form" method="get" class="float-start">
                 <input type="hidden" name="orderBy" th:value="${orderBy}">
                 <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
                 <div class="project-selects col-lg-7">
@@ -45,7 +45,7 @@
 
             <ul class="post-list-wrap">
                 <li th:each="post : ${items}" th:with="postBase=${#paths.project(post.owner, post.projectName)}" class="post-item title" th:href="${#paths.project(post.owner, post.projectName) + '/post/' + post.number}">
-                    <a th:href="'/' + ${post.authorLoginId}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${post.authorLoginId}">
+                    <a th:href="'/' + ${post.authorLoginId}" class="avatar-wrap mlarge hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${post.authorLoginId}">
                         <img th:if="${helper.isDefaultAvatar(post.authorAvatarUrl)}" th:src="${post.authorAvatarUrl}"/>
                         <img th:unless="${helper.isDefaultAvatar(post.authorAvatarUrl)}" th:src="${post.authorAvatarUrl}" th:alt="${post.authorName}" width="32" height="32"/>
                     </a>
@@ -53,7 +53,7 @@
                         <a th:href="${#paths.project(post.owner, post.projectName) + '/post/' + post.number}" class="title" th:text="${post.title}"></a>
                     </div>
                     <div class="infos">
-                        <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="'/' + ${post.authorLoginId}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${post.authorLoginId}" th:text="${post.authorDisplayName}"></a>
+                        <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="'/' + ${post.authorLoginId}" class="infos-item infos-link-item" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${post.authorLoginId}" th:text="${post.authorDisplayName}"></a>
                         <span th:unless="${post.authorName != null and !post.authorName.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}"></span>
 
                         <a th:href="${#paths.project(post.owner, post.projectName)}" class="infos-link-item group-project-name" th:text="${post.projectName}"></a>

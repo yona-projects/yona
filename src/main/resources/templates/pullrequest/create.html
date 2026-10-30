@@ -17,7 +17,7 @@
             <form th:action="${action}" method="post" enctype="multipart/form-data" class="nm">
                 <div class="pull-request-wrap">
                     <!-- from -->
-                    <div class="float-left">
+                    <div class="float-start">
                         <label for="fromProjectId" class="field-title" th:text="#{pullRequest.from}"></label>
                         <select id="fromProjectId" name="fromProjectId" data-toggle="select2" class="mr5">
                             <option></option>
@@ -36,7 +36,7 @@
                     </div>
 
                     <!-- to -->
-                    <div class="float-right">
+                    <div class="float-end">
                         <label for="toProjectId" class="field-title" th:text="#{pullRequest.to}"></label>
                         <select id="toProjectId" name="toProjectId" data-toggle="select2" class="mr5">
                             <option></option>
@@ -85,7 +85,7 @@
 
                 <ul class="nav nav-tabs mt20">
                     <li class="nav-item">
-                        <a href="#__commits" data-toggle="tab" class="nav-link active">
+                        <a href="#__commits" data-bs-toggle="tab" class="nav-link active">
                             <span class="vmiddle-inline" th:text="#{pullRequest.menu.commit}"></span>
                             <span id="numOfCommits" class="num-badge vmiddle-inline"></span>
                         </a>

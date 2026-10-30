@@ -63,7 +63,7 @@
          */
         function _initElement(){
             htElement.welDaysAgo = $('#daysAgoBtn');
-            htElement.waTabs = $('a[data-toggle="tab"]');
+            htElement.waTabs = $('a[data-bs-toggle="tab"]');
             htElement.waLeaveProject = $("a.leaveProject");
             htElement.waBtnWatch   = $(".watchBtn");
         }

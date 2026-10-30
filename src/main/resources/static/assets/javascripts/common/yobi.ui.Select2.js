@@ -129,7 +129,7 @@
                         "css"  : isCategoryExclusive ? 'yobicon-tag  category-exclusive single'
                                                      : 'yobicon-tags category-exclusive multiple'
                     };
-                    var tpl = '<i class="${css}" data-toggle="tooltip" data-html="true" data-placement="right" title="${title}"></i><span>${text}</span>';
+                    var tpl = '<i class="${css}" data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="right" title="${title}"></i><span>${text}</span>';
 
                     return $.tmpl(tpl, data);
                 }

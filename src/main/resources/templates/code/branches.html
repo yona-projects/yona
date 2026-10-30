@@ -40,11 +40,11 @@
                             </td>
                             <td class="commit">
                                 <a th:href="${b.historyUrl}" class="commitId" th:title="${b.commitId}" th:text="${b.commitShortId}"></a>
-                                <span class="date" data-toggle="tooltip" data-placement="top" th:title="${b.dateTitle}" th:text="${b.date}"></span>
+                                <span class="date" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${b.dateTitle}" th:text="${b.date}"></span>
                             </td>
                             <td class="pullRequest">
                                 <a th:if="${b.pullRequestUrl != null}" th:href="${b.pullRequestUrl}" th:class="'blue-txt pullrequest-state ' + ${b.pullRequestState}"
-                                   data-toggle="tooltip" data-placement="top" th:title="#{'pullRequest.state.' + ${b.pullRequestState}}" th:text="${b.pullRequestLabel}"></a>
+                                   data-bs-toggle="tooltip" data-bs-placement="top" th:title="#{'pullRequest.state.' + ${b.pullRequestState}}" th:text="${b.pullRequestLabel}"></a>
                                 <span th:if="${b.pullRequestUrl == null}" class="disabled" th:text="#{code.branches.noPullRequest}"></span>
                             </td>
                             <td class="actions" th:if="${showActions}">

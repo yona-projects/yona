@@ -44,7 +44,7 @@
                             <td class="commit">
                                 <th:block th:if="${t.commitUrl != null}">
                                     <a th:href="${t.commitUrl}" class="commitId" th:title="${t.commitId}" th:text="${t.commitShortId}"></a>
-                                    <span class="date" data-toggle="tooltip" data-placement="top" th:title="${t.dateTitle}" th:text="${t.date}"></span>
+                                    <span class="date" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${t.dateTitle}" th:text="${t.date}"></span>
                                 </th:block>
                                 <span th:if="${t.commitUrl == null}" class="not-commit disabled" th:text="#{code.tags.notCommit}"></span>
                             </td>

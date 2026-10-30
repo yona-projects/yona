@@ -60,7 +60,7 @@ $(function(){
         htElement.welInputPw.val("");
         htElement.welInputId.val("");
 
-        htElement.welDialog.modal("show");
+        bootstrap.Modal.getOrCreateInstance(htElement.welDialog[0]).show();
         htElement.welInputId.focus();
 
         weEvt.preventDefault();

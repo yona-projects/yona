@@ -27,7 +27,7 @@
                             <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
                         </div>
                     </div>
-                    <div th:if="${org.canManage}" class="float-right">
+                    <div th:if="${org.canManage}" class="float-end">
                         <a th:href="@{'/projectform?owner=' + ${org.name}}" class="ybtn ybtn-primary" th:text="#{button.newProject}"></a>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="stats-wrap float-right">
+                        <div class="stats-wrap float-end">
                             <div class="members">
                                 <ul class="list-unstyled">
                                     <th:block th:each="member : ${row.members}">
@@ -76,8 +76,8 @@
                                 <p>
                                     <th:block th:utext="#{project.onmember(${#lists.size(row.members)})}"></th:block>
                                 <i class="yobicon-eye"></i> <th:block th:utext="#{project.onwatching(${row.view.watchingCount})}"></th:block>
-                                    <i th:if="${row.view.watching}" class="yobicon-lightbulb ramp-on" data-toggle="tooltip" th:title="#{project.default.group.watching}"></i>
-                                    <i th:unless="${row.view.watching}" class="yobicon-lightbulb ramp-off" data-toggle="tooltip" th:title="#{project.you.are.not.watching('')}"></i>
+                                    <i th:if="${row.view.watching}" class="yobicon-lightbulb ramp-on" data-bs-toggle="tooltip" th:title="#{project.default.group.watching}"></i>
+                                    <i th:unless="${row.view.watching}" class="yobicon-lightbulb ramp-off" data-bs-toggle="tooltip" th:title="#{project.you.are.not.watching('')}"></i>
                                 </p>
                             </div>
                         </div>
@@ -90,15 +90,15 @@
                     <div class="inner member-info">
                         <header>
                             <h3 th:text="#{user.role.org_admin}"></h3>
-                            <button th:if="${!org.leaveBlocked and org.admin}" type="button" class="ybtn ybtn-minimum ybtn-danger float-right" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
+                            <button th:if="${!org.leaveBlocked and org.admin}" type="button" class="ybtn ybtn-minimum ybtn-danger float-end" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
                         </header>
                         <div class="member-wrap ">
                             <ul class="project-members">
                                 <li th:each="member : ${org.admins}" class="member">
-                                    <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${member.loginId}">
+                                    <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${member.loginId}">
                                         <img th:src="${member.avatarUrl}" height="45" width="45" />
                                     </a>
-                                    <a th:href="@{/{user}(user=${member.loginId})}" data-toggle="tooltip" data-placement="top" th:title="${member.loginId}" th:text="${member.displayName}"></a>
+                                    <a th:href="@{/{user}(user=${member.loginId})}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${member.loginId}" th:text="${member.displayName}"></a>
                                 </li>
                             </ul>
                         </div>
@@ -109,15 +109,15 @@
                     <div class="inner member-info">
                         <header>
                             <h3 th:text="#{user.role.org_member}"></h3>
-                            <button th:if="${!org.leaveBlocked and org.member}" type="button" class="ybtn ybtn-minimum ybtn-danger float-right" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
+                            <button th:if="${!org.leaveBlocked and org.member}" type="button" class="ybtn ybtn-minimum ybtn-danger float-end" id="groupLeaveBtn" th:data-href="@{/organizations/{name}/member/leave(name=${org.name})}" th:text="#{organization.member.leave}"></button>
                         </header>
                         <div class="member-wrap">
                             <ul class="list-unstyled project-members">
                                 <li th:each="member : ${org.members}" class="member">
-                                    <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${member.loginId}">
+                                    <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${member.loginId}">
                                         <img th:src="${member.avatarUrl}" height="45" width="45" />
                                     </a>
-                                    <a th:href="@{/{user}(user=${member.loginId})}" data-toggle="tooltip" data-placement="top" th:title="${member.loginId}" th:text="${member.displayName}"></a>
+                                    <a th:href="@{/{user}(user=${member.loginId})}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${member.loginId}" th:text="${member.displayName}"></a>
                                 </li>
                             </ul>
                         </div>
@@ -131,7 +131,7 @@
 <!--/* Confirm to leave the project */-->
 <div id="alertLeave" class="modal"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         <h3 th:text="#{organization.member.leave}"></h3>
     </div>
     <div class="modal-body">
@@ -139,7 +139,7 @@
     </div>
     <div class="modal-footer">
         <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn" th:text="#{button.yes}"></button>
-        <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}"></button>
+        <button type="button" class="ybtn ybtn-mini" data-bs-dismiss="modal" th:text="#{button.no}"></button>
     </div>
 </div></div></div>
 <script type="text/javascript">

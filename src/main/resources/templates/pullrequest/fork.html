@@ -23,10 +23,10 @@
                     <div id="helpMessage" class="card card-body">
                         <div class="row">
                         <th:block th:if="${#lists.isEmpty(existing)}">
-                            <div class="float-left">
+                            <div class="float-start">
                                 <img class="img-thumbnail" th:src="@{/assets/images/fork-pull/fork.jpg}"><br>
                             </div>
-                            <div class="float-left help-messages">
+                            <div class="float-start help-messages">
                                 <p class="lead" th:text="#{fork.help.title}"></p>
                                 <p th:text="#{fork.help.message.1}"></p>
                                 <p th:text="#{fork.help.message.2}"></p>
@@ -45,7 +45,7 @@
                         </th:block>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-field">
                         <label class="col-form-label" for="inputOwner" th:text="#{project.owner}"></label>
                         <div>
                             <select id="project-owner" name="owner">
@@ -53,15 +53,15 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-field">
                         <label class="col-form-label" for="inputName" th:text="#{project.name}"></label>
                         <div>
                             <input type="text" id="inputName" name="name" th:value="${forkName}" />
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{project.name.alert}"></span>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{project.name.alert}"></span>
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-field">
                         <label class="col-form-label" th:text="#{project.shareOption}"></label>
                         <div>
                             <input name="projectScope" type="radio" id="public" value="PUBLIC" class="radio-btn" checked="checked">
@@ -74,7 +74,7 @@
                             <label for="private" class="bg-radiobtn label-private" th:text="#{project.private}"></label>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-field">
                         <div>
                             <button type="submit" class="ybtn ybtn-info" th:text="#{fork}"></button>
                             <a th:href="${cancelUrl}" class="ybtn" th:text="#{button.cancel}"></a>

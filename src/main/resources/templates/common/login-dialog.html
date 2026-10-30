@@ -4,8 +4,8 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="loginDialog">
 <div id="loginDialog" class="modal loginDialog" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content">
   <div class="modal-body">
-    <div class="float-right">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <div class="float-end">
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <form th:action="@{/users/login}" method="post" class="frm-wrap login-form-wrap">
       <div th:if="${site.socialLoginOnly}" class="btns-row nm" th:text="#{app.warn.support.social.login.only}">
@@ -41,7 +41,7 @@
         </th:block>
       </div>
       <div class="act-row right-txt mt20" th:unless="${site.socialLoginOnly}">
-        <div class="float-left">
+        <div class="float-start">
           <input id="remember-meD" type="checkbox" name="rememberMe" class="checkbox" checked>
           <label for="remember-meD" class="bg-checkbox" th:text="#{title.rememberMe}"></label>
         </div>

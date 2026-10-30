@@ -33,8 +33,8 @@
                     </div>
                 </div>
 
-                <div class="user-status"><span th:if="${profile.siteManager}" class="badge badge-pill badge-success">SITE ADMIN</span></div>
-                <div class="user-status"><span th:if="${profile.locked}" class="badge badge-pill badge-danger">BLOCKED</span></div>
+                <div class="user-status"><span th:if="${profile.siteManager}" class="badge rounded-pill bg-success">SITE ADMIN</span></div>
+                <div class="user-status"><span th:if="${profile.locked}" class="badge rounded-pill bg-danger">BLOCKED</span></div>
                 <div class="user-since">
                     <strong th:text="#{userinfo.since}"></strong>
                     <span class="since" th:text="${profile.since}"></span>
@@ -51,23 +51,23 @@
 
             <div class="user-stream-box">
                 <th:block th:if="${showStream}">
-                <div class="float-right">
+                <div class="float-end">
                     <th:block th:text="#{userinfo.daysAgo.prefix}"></th:block><input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" th:value="${daysAgo}" style="margin:0px 5px; vertical-align:bottom;"><th:block th:text="#{userinfo.daysAgo.suffix}"></th:block>
                 </div>
 
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a href="#issues" data-toggle="tab" class="nav-link" th:classappend="${selected == 'issues'} ? 'active'">
+                        <a href="#issues" data-bs-toggle="tab" class="nav-link" th:classappend="${selected == 'issues'} ? 'active'">
                             <th:block th:text="#{menu.issue}"></th:block> <span th:if="${!activity.issues.isEmpty()}" class="num-badge" th:text="${activity.issues.size()}"></span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#pullRequests" data-toggle="tab" class="nav-link" th:classappend="${selected == 'pullRequests'} ? 'active'">
+                        <a href="#pullRequests" data-bs-toggle="tab" class="nav-link" th:classappend="${selected == 'pullRequests'} ? 'active'">
                             <th:block th:text="#{menu.pullRequest}"></th:block> <span th:if="${!activity.pullRequests.isEmpty()}" class="num-badge" th:text="${activity.pullRequests.size()}"></span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#projects" data-toggle="tab" class="nav-link" th:classappend="${selected == 'projects'} ? 'active'">
+                        <a href="#projects" data-bs-toggle="tab" class="nav-link" th:classappend="${selected == 'projects'} ? 'active'">
                             <th:block th:text="#{project.projects}"></th:block> <span th:if="${!activity.projects.isEmpty()}" class="num-badge" th:text="${activity.projects.size()}"></span>
                         </a>
                     </li>
@@ -78,13 +78,13 @@
                     <div id="issues" class="tab-pane" th:classappend="${selected == 'issues'} ? 'active'">
                         <ul class="nav nav-tabs nm">
                             <li class="nav-item">
-                                <a href="#openIssues" data-toggle="tab" class="nav-link active">
+                                <a href="#openIssues" data-bs-toggle="tab" class="nav-link active">
                                     <th:block th:text="#{issue.state.open}"></th:block>
                                 <span class="num-badge" th:text="${openIssueCount}"></span>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#closedIssues" data-toggle="tab" class="nav-link">
+                                <a href="#closedIssues" data-bs-toggle="tab" class="nav-link">
                                     <th:block th:text="#{issue.state.closed}"></th:block>
                                     <span class="num-badge" th:text="${closedIssueCount}"></span>
                                 </a>

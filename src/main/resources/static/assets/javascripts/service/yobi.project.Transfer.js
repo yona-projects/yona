@@ -62,7 +62,7 @@
                         }
                     },
                     "error": function(){
-                        $("#alertTransfer").modal("hide");
+                        bootstrap.Modal.getOrCreateInstance(document.querySelector("#alertTransfer")).hide();
                         $yobi.alert(Messages("project.transfer.error"));
                         return false;
                     }

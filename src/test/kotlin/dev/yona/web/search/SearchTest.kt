@@ -322,7 +322,7 @@ class SearchTest : AbstractIntegrationTest() {
     fun `작성자 행이 없으면 NullUser의 이름 링크를 그린다 (v1_6 User_findByLoginId)`() {
         val owner = newUser(); val p = project(owner, "nulluser"); val one = issue(p, "원 이슈", owner)
         issueComments.save(IssueComment(contents = "ghostneedle 내용", authorId = -1, authorLoginId = "", authorName = "", issue = one, projectId = p.id!!, createdDate = Date()))
-        val meta = all(null, "issue_comment", "ghostneedle").selectFirst("li.search-list-item .search-meta-info a.meta-item[data-toggle=tooltip]")!!
+        val meta = all(null, "issue_comment", "ghostneedle").selectFirst("li.search-list-item .search-meta-info a.meta-item[data-bs-toggle=tooltip]")!!
         // NullUser: 이름은 user.notExists.name, 로그인 ID는 빈 문자열이라 링크는 "/"이다
         assertEquals("/", meta.attr("href"))
         assertEquals(java.util.ResourceBundle.getBundle("messages", java.util.Locale.getDefault()).getString("user.notExists.name"), meta.text().trim())

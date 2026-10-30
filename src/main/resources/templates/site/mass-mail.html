@@ -11,7 +11,7 @@
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::massMailPage})}">
 <th:block th:fragment="massMailPage">
 <div class="title_area">
-    <h2 class="float-left" th:text="#{__${title}__}"></h2>
+    <h2 class="float-start" th:text="#{__${title}__}"></h2>
 </div>
 <div class="mess-mail-wrap">
     <div class="form-check form-check-radio"><label for="mailtoAll" class="form-check-label">
@@ -22,7 +22,7 @@
         <input type="radio" name="mailingType" id="mailtoPrj" value="projects" data-toggle="mail-type" data-action="show" class="form-check-input">
         <th:block th:text="#{site.massMail.toProjects}"></th:block>
     </label></div>
-    <div class="form-group hide" id="project-list-wrap">
+    <div class="form-field hide" id="project-list-wrap">
         <div>
             <input id="input-project" type="text" class="col-lg-3" data-provider="typeahead" autocomplete="off" th:placeholder="#{project.name}" />
             <button id="select-project" type="submit" class="ybtn" th:attr="data-loading-text=#{site.massMail.loading}">

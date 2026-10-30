@@ -129,7 +129,7 @@ class UserMenuTest : AbstractIntegrationTest() {
         assertEquals("/${me.loginId}/alpha/go", items[0].attr("data-location"))
         assertTrue(items[0].select(".yobicon-lock").isNotEmpty()); assertTrue(items[1].select(".yobicon-lock").isEmpty())
         assertTrue(items.all { it.hasClass("hide") })
-        assertEquals("beta 개요", items[1].selectFirst("[data-toggle=popover]")!!.attr("data-content"))
+        assertEquals("beta 개요", items[1].selectFirst("[data-bs-toggle=popover]")!!.attr("data-bs-content"))
         assertEquals(a.id.toString(), items[1].selectFirst(".star-project")!!.attr("data-project-id"))
         assertNotNull(b.id)
     }
@@ -247,8 +247,8 @@ class UserMenuTest : AbstractIntegrationTest() {
         val items = fragment(login(me)).select("#myRecentIssueList #recentlyVisitedIssues li.user-li")
         assertEquals(listOf("둘째", "첫째"), items.map { it.selectFirst(".issue-title")!!.text() })
         assertEquals("/o/p/post/4", items[0].attr("data-location"))
-        assertEquals("p #4", items[0].selectFirst("[data-toggle=popover]")!!.attr("data-content"))
-        assertEquals("p #3", items[1].selectFirst("[data-toggle=popover]")!!.attr("data-content"))
+        assertEquals("p #4", items[0].selectFirst("[data-bs-toggle=popover]")!!.attr("data-bs-content"))
+        assertEquals("p #3", items[1].selectFirst("[data-bs-toggle=popover]")!!.attr("data-bs-content"))
     }
 
     @Test

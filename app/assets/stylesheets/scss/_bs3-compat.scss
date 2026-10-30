@@ -169,6 +169,8 @@ dd {
 }
 hr {
   margin: 20px 0;
+  color: gray;
+  opacity: 1;
   border: 0;
   border-top: 1px solid #eeeeee;
   border-bottom: 1px solid #ffffff;
@@ -614,28 +616,6 @@ ul.inline > li, ol.inline > li {
   -webkit-border-radius: 3px;
   border-radius: 3px;
 }
-.close {
-  float: right;
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 20px;
-  color: #000000;
-  text-shadow: 0 1px 0 #ffffff;
-  opacity: 0.2;
-}
-.close:hover, .close:focus {
-  color: #000000;
-  text-decoration: none;
-  cursor: pointer;
-  opacity: 0.4;
-}
-button.close {
-  padding: 0;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  -webkit-appearance: none;
-}
 .btn-group {
   position: relative;
   display: inline-block;
@@ -791,12 +771,6 @@ button.close {
   -webkit-border-radius: 3px;
   border-radius: 3px;
 }
-.badge-pill {
-  padding-right: 9px;
-  padding-left: 9px;
-  -webkit-border-radius: 9px;
-  border-radius: 9px;
-}
 .badge:empty {
   display: none;
 }
@@ -804,33 +778,6 @@ a.badge:hover, a.badge:focus {
   color: #ffffff;
   text-decoration: none;
   cursor: pointer;
-}
-.badge-danger {
-  background-color: #b94a48;
-}
-a.badge-danger {
-  background-color: #953b39;
-}
-.badge-warning {
-  background-color: #f89406;
-}
-.badge-warning[href] {
-  background-color: #c67605;
-}
-.badge-success {
-  background-color: #468847;
-}
-.badge-success[href] {
-  background-color: #356635;
-}
-.badge-info {
-  background-color: #3a87ad;
-}
-.badge-info[href] {
-  background-color: #2d6987;
-}
-.badge-dark[href] {
-  background-color: #1a1a1a;
 }
 
 
@@ -1094,24 +1041,27 @@ ul.list-unstyled, ol.list-unstyled { margin-left: 0; list-style: none; }
 }
 .table-bordered > thead:first-child > tr:first-child > th, .table-bordered > thead:first-child > tr:first-child > td, .table-bordered > tbody:first-child > tr:first-child > th, .table-bordered > tbody:first-child > tr:first-child > td { border-top: 0; }
 .table-bordered { border-collapse: separate; border-left: 0; }
+// Bootstrap 5의 `.table-bordered`는 행(`tr`)에도 선을 긋는다. BS2는 칸에만 그었다.
+.table-bordered > :not(caption) > * { border-width: 0; }
 .table-bordered > thead > tr > th, .table-bordered > thead > tr > td { border-bottom-width: 0; }
 
 // --- Bootstrap 4의 flexbox를 끈다(X-38c): 이 사이트의 열과 내비게이션은 BS2의 float 기하를 그대로 쓴다. flex 그리드로의 전환은 BS5 이후에 정한다(A-289) ---
-.row { display: block; flex-wrap: nowrap; }
+.row { display: block; flex-wrap: nowrap; --bs-gutter-x: 0; --bs-gutter-y: 0; }
+// Bootstrap 5의 `.row > *`는 열이 아닌 자식에게도 폭 100%와 안쪽 여백을 준다. 이 사이트의 `.row`는 일반 래퍼로도 쓰였으므로 열이 아닌 자식은 BS2처럼 건드리지 않는다.
+.row > :where(:not([class*="col-lg-"])) { flex-shrink: 1; width: auto; max-width: none; margin-top: 0; padding-left: 0; padding-right: 0; }
 [class*="col-lg-"], [class*="col-lg-"] { flex: none; max-width: none; }
 .btn-group, .btn-group-vertical { display: inline-block; }
 .btn-group > .btn { flex: none; }
+// Bootstrap 5는 단추 그룹의 이웃 단추를 -1px로 겹친다. BS2는 겹치지 않았다.
+.btn-group > :not(.btn-check:first-child) + .btn, .btn-group > .btn-group:not(:first-child) { margin-left: 0; }
 .small { font-size: inherit; font-weight: inherit; }
 th[align="right"] { text-align: right; }
 th[align="left"] { text-align: left; }
 th[align="center"] { text-align: center; }
 .btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) { margin-left: 0; }
 
-.badge-secondary { background-color: #999999; }
 
-// BS4의 드롭다운 JS는 열림 상태를 `.open`이 아니라 `.show`(부모와 메뉴)로 표시한다. BS2의 `.open` 규칙과 같은 모양을 `.show`에도 준다.
-.show > .dropdown-menu, .dropdown-menu.show { display: block; }
-.btn-group.show .btn.dropdown-toggle { -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05); }
+.btn-group .btn.dropdown-toggle.show { -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05); }
 
 
 
@@ -1127,3 +1077,13 @@ input[class*="col-lg-"], select[class*="col-lg-"], textarea[class*="col-lg-"],
   display: inline-block;
 }
 
+
+// --- Bootstrap 5가 새로 입히는 기본 모양 중 BS2와 다른 것을 되돌린다(X-38d) ---
+// 비활성 단추의 테두리: BS5는 변종 단추(`.btn-primary` 등)에만 비활성 색 변수를 정의해서, 기본 `.btn`은 글자색으로 테두리가 그려진다.
+.btn:disabled, .btn.disabled, fieldset:disabled .btn { border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25); }
+.btn.dropdown-toggle:disabled, .btn.dropdown-toggle.disabled { border-color: rgba(0, 0, 0, 0.15); }
+// `legend`는 BS5에서 떠다니며(`float: left`) 다음 요소가 아래로 밀리지 않는다.
+legend { float: none; }
+legend + * { clear: none; }
+// 플러그인(jquery.elevator)이 쓰는 `align-bottom`이 BS5의 유틸리티(`vertical-align: bottom !important`)와 겹친다.
+.jq-elevator.align-bottom { vertical-align: baseline !important; }

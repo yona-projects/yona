@@ -48,7 +48,7 @@
          * @private
          */
         function _initVar(htOptions){
-            htVar.sDefaultButton = '<button type="button" class="ybtn ybtn-info" data-dismiss="modal">' + Messages("button.confirm") + '</button>';
+            htVar.sDefaultButton = '<button type="button" class="ybtn ybtn-info" data-bs-dismiss="modal">' + Messages("button.confirm") + '</button>';
             htVar.sTplCustomButton = '<button type="button" class="ybtn ${class}">${text}</button>';
             htVar.bAutoFocusOnLastButton = (typeof htOptions.bAutoFocusOnLastButton !== "undefined") ? htOptions.bAutoFocusOnLastButton : true;
         }
@@ -61,9 +61,7 @@
             htElement.welMessage = htElement.welContainer.find(".msg");
             htElement.welDescription = htElement.welContainer.find(".desc");
             htElement.welButtons = htElement.welContainer.find(".buttons");
-            htElement.welContainer.modal({
-                "show": false
-            });
+            new bootstrap.Modal(htElement.welContainer[0]);
         }
 
         function _attachEvent(){
@@ -87,7 +85,7 @@
             htElement.welButtons.html(sButtonHTML);
             htElement.welMessage.html($yobi.nl2br(sMessage));
             htElement.welDescription.html($yobi.nl2br(sDescription || ""));
-            htElement.welContainer.modal("show");
+            bootstrap.Modal.getOrCreateInstance(htElement.welContainer[0]).show();
         }
 
         /**
@@ -130,7 +128,7 @@
         }
 
         function hideDialog(){
-            htElement.welContainer.modal("hide");
+            bootstrap.Modal.getOrCreateInstance(htElement.welContainer[0]).hide();
         }
 
         function _onShownDialog(){

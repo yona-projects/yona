@@ -16,7 +16,7 @@
     <ul class="commit-list" th:if="${!#lists.isEmpty(e.commits)}">
         <li th:each="c : ${e.commits}" th:class="'comment-body commit-info' + (${c.outdated} ? ' outdated' : '')">
             <a th:href="${c.commitUrl}" class="commit-id" th:text="${c.shortId}"></a>
-            <a th:if="${c.authorHref != null}" th:href="${c.authorHref}" class="avatar-wrap small hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${c.authorName}">
+            <a th:if="${c.authorHref != null}" th:href="${c.authorHref}" class="avatar-wrap small hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.authorName}">
                 <img th:src="${c.avatarUrl}" th:alt="${c.authorName}"> <th:block th:text="${c.authorEmail}"></th:block>
             </a>
             <img th:if="${c.authorHref == null}" th:src="${c.avatarUrl}" class="avatar-wrap small hide-in-mobile">

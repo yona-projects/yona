@@ -19,7 +19,7 @@
     <div class="page-wrap">
         <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('profile')}"></th:block>
 
-        <form id="frmBasic" method="post" th:action="@{/user/edit}" class="float-left">
+        <form id="frmBasic" method="post" th:action="@{/user/edit}" class="float-start">
         <dl>
             <dt th:text="#{user.loginId}"></dt>
             <dd class="mt10">
@@ -39,7 +39,7 @@
         </dl>
         </form>
 
-        <form id="frmAvatar" method="post" th:action="@{/user/edit}" class="float-left" style="margin-left:50px; padding-left:50px; border-left:1px solid #ddd;">
+        <form id="frmAvatar" method="post" th:action="@{/user/edit}" class="float-start" style="margin-left:50px; padding-left:50px; border-left:1px solid #ddd;">
           <input type="hidden" name="name" th:value="${account.rawName}">
           <input type="hidden" name="email" th:value="${account.email}">
 
@@ -63,7 +63,7 @@
                 <button type="submit" class="ybtn" th:text="#{userinfo.reset.visited.project.list}"></button>
             </form>
         </div>
-        <div id="avatarCropWrap" class="modal" role="dialog" data-backdrop="static"><div class="modal-dialog"><div class="modal-content">
+        <div id="avatarCropWrap" class="modal" role="dialog" data-bs-backdrop="static"><div class="modal-dialog"><div class="modal-content">
           <div class="modal-header center-txt">
             <div class="avatar-wrap xlarge">
               <img style="width:128px; max-width:none;"/>
@@ -74,7 +74,7 @@
             <canvas width="128" height="128" class="hide"></canvas>
           </div>
           <div class="modal-footer">
-            <button type="button" class="ybtn ybtn-default" data-dismiss="modal" th:text="#{button.cancel}"></button>
+            <button type="button" class="ybtn ybtn-default" data-bs-dismiss="modal" th:text="#{button.cancel}"></button>
             <button type="button" class="ybtn ybtn-success btnSubmitCrop" th:text="#{button.save}"></button>
           </div>
         </div></div></div>

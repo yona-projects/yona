@@ -23,7 +23,7 @@ function _initTwoColumnMode(){
         $(".user-info-box").hide(0);
     }
 
-    $('#two-column-mode-checkbox').popover({trigger: "hover", placement: "top", delay: { show: 100, hide: 100 }});
+    $('#two-column-mode-checkbox').each(function(){ new bootstrap.Popover(this, {trigger: "hover", placement: "top", delay: { show: 100, hide: 100 }}); });
 
     // when to check box click
     $('.mass-update-check').on('click', function (e) {

@@ -10,7 +10,7 @@
 <dl th:if="${!labels.isEmpty()}">
     <dt th:text="#{label}"></dt>
     <dd>
-        <a th:each="label : ${labels}" th:href="${listLink} + '&labelIds=' + ${label.id}" class="badge issue-label active static badge-secondary"
+        <a th:each="label : ${labels}" th:href="${listLink} + '&labelIds=' + ${label.id}" class="badge issue-label active static bg-secondary"
            th:attr="data-label-id=${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}"></a>
     </dd>
 </dl>

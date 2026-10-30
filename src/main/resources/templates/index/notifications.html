@@ -118,7 +118,7 @@
             }
 
             var $setDefaultLoginPage = $("#setDefaultLoginPage");
-            $setDefaultLoginPage.popover();
+            $setDefaultLoginPage.each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
             $setDefaultLoginPage.on('click', function(){
                 $.post([[@{/user/defultLoginPage}]] + "?path=" + $setDefaultLoginPage.data("url"))
                         .done(function (data) {

@@ -21,7 +21,7 @@
                 </div>
 
                 <th:block th:unless="${hasPath}">
-                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-right">
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-end">
                     <th:block th:each="g : ${branchGroups}">
                         <optgroup th:if="${g.titleKey != null}" th:label="#{${g.titleKey}}">
                             <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
@@ -71,11 +71,11 @@
                                 </td>
                                 <td class="date" th:text="${r.date}"></td>
                                 <td class="author">
-                                    <a th:if="${r.authorHref != null}" th:href="${r.authorHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${r.authorLoginId}">
+                                    <a th:if="${r.authorHref != null}" th:href="${r.authorHref}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${r.authorLoginId}">
                                         <img th:if="${helper.isDefaultAvatar(r.avatarUrl)}" th:src="${r.avatarUrl}"/>
                                         <img th:unless="${helper.isDefaultAvatar(r.avatarUrl)}" th:src="${r.avatarUrl}" th:alt="${r.authorName}" width="32" height="32"/>
                                     </a>
-                                    <span th:if="${r.authorHref == null and r.authorEmail != null}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${r.authorEmail}">
+                                    <span th:if="${r.authorHref == null and r.authorEmail != null}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${r.authorEmail}">
                                         <img th:src="${r.avatarUrl}">
                                     </span>
                                     <span th:if="${r.authorHref == null and r.authorEmail == null and r.authorName != null}" th:text="${r.authorName}"></span>
@@ -88,8 +88,8 @@
             </div>
 
             <div class="actrow margin-top-20">
-                <a th:if="${newerUrl != null}" th:href="${newerUrl}" class="ybtn float-left" th:text="#{code.newer}"></a>
-                <a th:if="${olderUrl != null}" th:href="${olderUrl}" class="ybtn float-left" th:text="#{code.older}"></a>
+                <a th:if="${newerUrl != null}" th:href="${newerUrl}" class="ybtn float-start" th:text="#{code.newer}"></a>
+                <a th:if="${olderUrl != null}" th:href="${olderUrl}" class="ybtn float-start" th:text="#{code.older}"></a>
             </div>
         </div>
     </div>

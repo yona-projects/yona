@@ -13,7 +13,7 @@
         <th:block th:replace="~{issue/partial-searchform :: searchform}"></th:block>
     </div>
     <div class="col-lg-10 span-hard-wrap" id="span10">
-        <div class="float-right">
+        <div class="float-end">
             <a th:href="${base + '/issueform'}" class="ybtn ybtn-success" th:text="#{issue.menu.new}"></a>
         </div>
         <ul class="nav nav-tabs nm">
@@ -45,7 +45,7 @@
                     <th:block th:replace="~{issue/partial-massupdate :: massupdate}"></th:block>
                 </th:block>
 
-                <div th:if="${items.size() > 1}" class="filters float-right">
+                <div th:if="${items.size() > 1}" class="filters float-end">
                     <th:block th:each="field : ${ {'dueDate', 'updatedDate', 'createdDate', 'numOfComments'} }"
                               th:with="label=${field == 'dueDate' ? 'common.order.dueDate' : (field == 'updatedDate' ? 'common.order.updatedDate' : (field == 'createdDate' ? 'common.order.date' : 'common.order.comments'))}">
                         <a th:if="${cond.orderBy == field}" href="#" th:attr="orderBy=${cond.orderBy}, orderDir=${cond.orderDir == 'desc'} ? 'asc' : 'desc'" class="filter active"><i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? ' down'"></i><th:block th:text="#{${label}}"></th:block></a>
@@ -59,7 +59,7 @@
             </th:block>
             <th:block th:replace="~{issue/partial-list :: list(${items})}"></th:block>
 
-            <div class="float-left" style="padding:10px;">
+            <div class="float-start" style="padding:10px;">
                 <a th:href="${excelUrl}" class="ybtn small">
                     <i class="yobicon-file-excel"></i> <th:block th:text="#{issue.downloadAsExcel}"></th:block>
                 </a>

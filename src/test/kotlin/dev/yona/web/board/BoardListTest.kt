@@ -209,7 +209,7 @@ class BoardListTest : AbstractIntegrationTest() {
         post(project, "README", 2, readme = true)
         val doc = doc(project)
         val rows = doc.select("ul.post-list-wrap:not(.notice-wrap) li.post-item")
-        assertEquals("README", rows[0].selectFirst(".badge-danger")!!.text())
+        assertEquals("README", rows[0].selectFirst(".bg-danger")!!.text())
         assertTrue(rows[0].select(".post-id").isEmpty())
         val row = rows[1]
         assertEquals(author.name, row.selectFirst(".infos a.infos-link-item")!!.text())
@@ -266,7 +266,7 @@ class BoardListTest : AbstractIntegrationTest() {
     fun `쓰기 단추와 검색 폼이 있다`() {
         val project = newProject()
         val doc = doc(project)
-        assertEquals("/${project.owner}/${project.name}/postform", doc.selectFirst(".search-wrap .float-right a.ybtn-success")!!.attr("href"))
+        assertEquals("/${project.owner}/${project.name}/postform", doc.selectFirst(".search-wrap .float-end a.ybtn-success")!!.attr("href"))
         assertEquals("/${project.owner}/${project.name}/posts", doc.selectFirst("form#option_form")!!.attr("action"))
         assertEquals("createdDate", doc.selectFirst("form#option_form input[name=orderBy]")!!.attr("value"))
         assertEquals("desc", doc.selectFirst("form#option_form input[name=orderDir]")!!.attr("value"))

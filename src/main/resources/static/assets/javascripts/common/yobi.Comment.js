@@ -45,7 +45,7 @@ yobi.Comment = (function(){
 
         $('#comment-editform-' + commentId).toggle();
         $('#comment-body-' + commentId).toggle();
-        $("[data-toggle='popover']").popover();
+        $("[data-bs-toggle='popover']").each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
         $(".add-a-comment").hide();
         autosize.update($('textarea'));
     }
@@ -58,7 +58,7 @@ yobi.Comment = (function(){
             .data('requestUri', $(this).data('requestUri'))
             .data('requestMethod', 'delete')
             .requestAs();
-        htElement.welDeleteModal.modal();
+        bootstrap.Modal.getOrCreateInstance(htElement.welDeleteModal[0]).show();
     }
 
     return {

@@ -15,12 +15,12 @@
     <div class="project-page-wrap board-view">
         <!--/* Post Info */-->
         <div class="board-header issue">
-            <div class="float-right mr10 mt10 hide-in-mobile">
+            <div class="float-end mr10 mt10 hide-in-mobile">
                 <div class="date" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></div>
             </div>
             <div class="title">
                 <strong class="board-id" th:text="'#' + ${post.number}"></strong> <th:block th:text="${post.title}"></th:block>
-                <div class="float-right hide show-in-mobile" style="font-size: 0.7em">
+                <div class="float-end hide show-in-mobile" style="font-size: 0.7em">
                     <span class="date" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></span>
                 </div>
             </div>
@@ -42,10 +42,10 @@
                     </a>
                     <th:block th:if="${post.historyHtml != null}">
                         <div th:if="${post.viewerAnonymous}" class="posting-history">
-                            <a th:href="'/users/loginform?redirectUrl=' + ${base + '/post/' + post.number}" data-toggle="modal" th:text="#{change.history}"></a>
+                            <a th:href="'/users/loginform?redirectUrl=' + ${base + '/post/' + post.number}" data-bs-toggle="modal" th:text="#{change.history}"></a>
                         </div>
                         <div th:unless="${post.viewerAnonymous}" class="posting-history">
-                            <a href="#-yona-posting-history" data-toggle="modal" th:text="#{change.history}"></a>
+                            <a href="#-yona-posting-history" data-bs-toggle="modal" th:text="#{change.history}"></a>
                             <th:block th:replace="~{common/partial-history :: history(${post.historyHtml})}"></th:block>
                         </div>
                     </th:block>
@@ -64,22 +64,22 @@
                 </th:block>
                 <div class="attachments" id="attachments" th:attr="data-attachments=${post.attachmentsJson}"></div>
                 <div class="board-actrow right-txt">
-                    <div class="float-left">
+                    <div class="float-start">
                         <div>
                             <button th:if="${post.canWatch}" id="watch-button" type="button" class="ybtn" th:classappend="${post.watching} ? 'ybtn-watching'"
-                                    data-toggle="tooltip" data-placement="top" th:title="#{issue.watch.description}" th:attr="data-watching=${post.watching}"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" th:title="#{issue.watch.description}" th:attr="data-watching=${post.watching}"
                                     th:text="${post.watching} ? #{post.unwatch} : #{post.watch}"></button>
                         </div>
                     </div>
 
-                    <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+                    <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-bs-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
                     <span class="">
-                        <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"
+                        <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
                                 th:attr="onclick=|window.location = '${base}/post/${post.number}/editform'|"><i class="yobicon-edit-2"></i></button>
-                        <a th:unless="${post.canUpdate}" th:href="${base + '/post/' + post.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                        <a th:unless="${post.canUpdate}" th:href="${base + '/post/' + post.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
 
-                        <a th:if="${post.canDelete}" href="#deleteConfirm" data-toggle="modal">
-                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
+                        <a th:if="${post.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
+                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
                     </span>
                 </div>
                 <div class="watcher-list"></div>
@@ -112,12 +112,12 @@
                         </th:block>
                     </th:block>
                     <div class="right-menu-icons">
-                        <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"
+                        <button th:if="${post.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
                                 th:attr="onclick=|window.location='${base}/post/${post.number}/editform'|"><i class="yobicon-edit-2"></i></button>
-                        <a th:unless="${post.canUpdate}" th:href="${base + '/post/' + post.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                        <a th:unless="${post.canUpdate}" th:href="${base + '/post/' + post.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
 
-                        <a th:if="${post.canDelete}" href="#deleteConfirm" data-toggle="modal">
-                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
+                        <a th:if="${post.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
+                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
                     </div>
                 </div>
             </div>
@@ -138,7 +138,7 @@
     <!--/* Confirm to delete post */-->
     <div id="deleteConfirm" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">×</button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <h3 th:text="#{issue.delete}"></h3>
         </div>
         <div class="modal-body">
@@ -146,7 +146,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=${base + '/post/' + post.number + '/delete'}" th:text="#{button.yes}"></button>
-            <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+            <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
         </div>
     </div></div></div>
 </div>

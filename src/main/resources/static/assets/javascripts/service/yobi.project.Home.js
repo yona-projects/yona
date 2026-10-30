@@ -122,7 +122,7 @@
                 });
             });
             $('#projectLeaveBtn').on('click',function(){
-                htElement.welAlertLeave.modal();
+                bootstrap.Modal.getOrCreateInstance(htElement.welAlertLeave[0]).show();
 
                 var sURL = $(this).attr("data-href");
 

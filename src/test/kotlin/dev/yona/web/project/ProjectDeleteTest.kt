@@ -112,7 +112,7 @@ class ProjectDeleteTest : AbstractIntegrationTest() {
         assertEquals("I agree to delete this project.", page.selectFirst("label[for=accept]")?.text())
         val button = page.selectFirst("a#btnDelete")!!
         assertEquals("#alertDeletion", button.attr("href"))
-        assertEquals("modal", button.attr("data-toggle"))
+        assertEquals("modal", button.attr("data-bs-toggle"))
         assertEquals("Delete this project", button.text().trim())
         val dialog = page.selectFirst("#alertDeletion")!!
         assertEquals("Do you want to delete this project?", dialog.selectFirst(".modal-header h3")?.text())

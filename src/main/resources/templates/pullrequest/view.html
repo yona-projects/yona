@@ -20,7 +20,7 @@
         <div class="board-body row">
             <div class="col-lg-9 span-left-pane">
                 <div class="author-info left-txt" style="margin-top:20px;">
-                    <a th:href="${contributor.href}" class="usf-group float-left">
+                    <a th:href="${contributor.href}" class="usf-group float-start">
                         <span class="avatar-wrap smaller">
                             <img th:src="${contributor.avatarUrl}" width="32" height="32">
                         </span>
@@ -37,8 +37,8 @@
                 </div>
 
                 <div class="board-footer board-actrow">
-                    <div class="float-left">
-                        <button th:if="${canWatch}" id="watch-button" type="button" th:class="'ybtn' + (${watching} ? ' ybtn-watching' : '')" data-toggle="button" th:attr="data-watching=${watching}"
+                    <div class="float-start">
+                        <button th:if="${canWatch}" id="watch-button" type="button" th:class="'ybtn' + (${watching} ? ' ybtn-watching' : '')" data-bs-toggle="button" th:attr="data-watching=${watching}"
                                 th:text="${watching} ? #{project.unwatch} : #{project.watch}"></button>
                     </div>
 
@@ -140,7 +140,7 @@
                     <dl th:if="${!labelArea.canEdit and !#lists.isEmpty(labelArea.tags)}" class="pr-labels">
                         <dt th:text="#{label}"></dt>
                         <dd>
-                            <a th:each="l : ${labelArea.tags}" th:href="${labelArea.listUrl} + '?labelIds=' + ${l.id}" class="badge issue-label active static badge-secondary"
+                            <a th:each="l : ${labelArea.tags}" th:href="${labelArea.listUrl} + '?labelIds=' + ${l.id}" class="badge issue-label active static bg-secondary"
                                th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                         </dd>
                     </dl>
@@ -149,7 +149,7 @@
         </div>
 
         <div class="right-txt">
-            <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" data-toggle="modal" th:text="#{title.help}"></a>
+            <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" data-bs-toggle="modal" th:text="#{title.help}"></a>
         </div>
     </div>
 </div>
@@ -161,10 +161,10 @@
     </div>
     <div class="modal-body">
         <div class="row">
-            <div class="float-left">
+            <div class="float-start">
                 <img class="img-thumbnail" th:src="@{/assets/images/fork-pull/merge.jpg}"><br>
             </div>
-            <div class="float-left help-messages mt10">
+            <div class="float-start help-messages mt10">
                 <p th:text="#{pullRequest.merge.help.2}"></p>
                 <p th:text="#{pullRequest.merge.help.3}"></p>
                 <p th:text="#{pullRequest.merge.help.4}"></p>
@@ -172,7 +172,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button type="button" class="ybtn ybtn-info ybtn-small" data-dismiss="modal" th:text="#{button.confirm}"></button>
+        <button type="button" class="ybtn ybtn-info ybtn-small" data-bs-dismiss="modal" th:text="#{button.confirm}"></button>
     </div>
 </div></div></div>
 <th:block th:if="${reviewArea.requestUrl != null or #lists.size(reviewArea.rows) > 0 or #lists.size(reviewArea.pending) > 0}">

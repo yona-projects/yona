@@ -67,8 +67,8 @@
                     <div class="review-container">
                         <button type="button" class="ybtn ybtn-default btn-hide-reviewcards"><i class="yobicon-maximize"></i></button>
                         <ul class="nav nav-tabs" style="margin-bottom:10px;">
-                            <li class="nav-item"><a href="#reviewcards-open" data-toggle="tab" class="nav-link active"><th:block th:text="#{issue.state.open}"></th:block> <th:block th:text="${openCount}"></th:block></a></li>
-                            <li class="nav-item"><a href="#reviewcards-closed" data-toggle="tab" class="nav-link"><th:block th:text="#{issue.state.closed}"></th:block> <th:block th:text="${closedCount}"></th:block></a></li>
+                            <li class="nav-item"><a href="#reviewcards-open" data-bs-toggle="tab" class="nav-link active"><th:block th:text="#{issue.state.open}"></th:block> <th:block th:text="${openCount}"></th:block></a></li>
+                            <li class="nav-item"><a href="#reviewcards-closed" data-bs-toggle="tab" class="nav-link"><th:block th:text="#{issue.state.closed}"></th:block> <th:block th:text="${closedCount}"></th:block></a></li>
                         </ul>
                         <div class="tab-content review-list">
                             <div id="reviewcards-open" class="tab-pane active">
@@ -97,8 +97,8 @@
             </div>
         </div>
 
-        <button id="watch-button" type="button" th:class="'float-left ybtn' + (${watching} ? ' active ybtn-watching' : '')" data-toggle="button" th:text="#{notification.watch}"></button>
-        <a th:href="${listUrl}" class="ybtn float-right" th:text="#{button.list}"></a>
+        <button id="watch-button" type="button" th:class="'float-start ybtn' + (${watching} ? ' active ybtn-watching' : '')" data-bs-toggle="button" th:text="#{notification.watch}"></button>
+        <a th:href="${listUrl}" class="ybtn float-end" th:text="#{button.list}"></a>
     </div>
 </div>
 <th:block th:replace="~{common/markdown :: markdown(${project})}"></th:block>

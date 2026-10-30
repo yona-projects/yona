@@ -23,7 +23,7 @@
             </ul>
 
             <div class="code-browse-header">
-                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-left">
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-start">
                     <th:block th:each="g : ${page.branchGroups}">
                         <optgroup th:if="${g.titleKey != null}" th:label="#{${g.titleKey}}">
                             <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>
@@ -33,13 +33,13 @@
                         </th:block>
                     </th:block>
                 </select>
-                <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 float-left">
+                <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 float-start">
                     <a th:href="${page.rootUrl}" th:text="${page.projectName}"></a><th:block th:each="c : ${page.crumbs}"><a th:href="${c.href}" th:text="${c.text}"></a></th:block>
                 </div>
-                <div class="float-right" th:if="${page.downloadUrl != null}">
+                <div class="float-end" th:if="${page.downloadUrl != null}">
                     <a th:href="${page.downloadUrl}" class="ybtn" th:text="#{code.download}"></a>
                 </div>
-                <div class="float-right" th:if="${page.newFileUrl != null}">
+                <div class="float-end" th:if="${page.newFileUrl != null}">
                     <a id="new-file-link" th:href="${page.newFileUrl}" class="ybtn" th:text="#{code.new.file}"></a>
                 </div>
             </div>
@@ -103,12 +103,12 @@
                             <span id="commitMessage" class="commitMsg" th:text="${f.commitMessage}"></span>
                             <span th:text="${f.lineEnding}"></span>
                         </div>
-                        <div class="float-right">
+                        <div class="float-end">
                             <th:block th:unless="${f.binary}">
                             <a th:href="${f.rawUrl}" class="ybtn" target="_blank"><i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw</a>
                             <a th:if="${f.editUrl != null}" th:href="${f.editUrl}" class="ybtn">Edit</a>
                             </th:block>
-                            <a id="open-in-browser" th:href="${f.openUrl}" class="ybtn" target="_blank" th:attr="data-content=#{code.open.desc}">
+                            <a id="open-in-browser" th:href="${f.openUrl}" class="ybtn" target="_blank" th:attr="data-bs-content=#{code.open.desc}">
                                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> <th:block th:text="#{code.open}"></th:block>
                             </a>
                             <a th:href="${f.historyUrl}" class="ybtn" th:text="#{code.history}"></a>
@@ -154,7 +154,7 @@
         });
 
         // help popover at open with browser button
-        $("#open-in-browser").popover({trigger: "hover", placement: "top"});
+        $("#open-in-browser").each(function(){ new bootstrap.Popover(this, {trigger: "hover", placement: "top"}); });
 
         $yobi.loadModule("code.Browser", {
             "sProjectName": "[(${page.scriptProjectName})]",

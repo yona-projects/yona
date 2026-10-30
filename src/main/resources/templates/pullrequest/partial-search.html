@@ -67,11 +67,11 @@
                     <span style="margin-left:5px;font-weight:bold;"><th:block th:text="${b.label}"></th:block> ( <th:block th:text="${b.ago}"></th:block> )</span>
                     &nbsp;-&nbsp;
                     <a th:href="${b.newPullRequestUrl}" th:text="#{pullRequest}"></a>
-                    <a href="#" class="close" data-dismiss="alert" aria-hidden="true" data-request-method="delete" th:attr="data-request-uri=${b.deleteUrl}">&times;</a>
+                    <a href="#" class="btn-close" data-bs-dismiss="alert" data-request-method="delete" th:attr="data-request-uri=${b.deleteUrl}" aria-label="Close"></a>
                 </div>
             </div>
         </th:block>
-        <div class="float-right">
+        <div class="float-end">
             <a th:href="${newPullRequestUrl}" class="ybtn ybtn-success" th:text="#{pullRequest.new}"></a>
         </div>
         <ul class="nav nav-tabs nm pullrequeset-tab-menu">
@@ -92,7 +92,7 @@
                     <th:block th:if="${!#lists.isEmpty(rows)}">
                         <li th:each="r : ${rows}" class="post-item title" th:attr="href=${r.href}">
                             <div class="col-lg-10 span-hard-wrap">
-                                <a th:if="${r.contributor != null}" th:href="${r.contributor.href}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${r.contributor.loginId}">
+                                <a th:if="${r.contributor != null}" th:href="${r.contributor.href}" class="avatar-wrap mlarge" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${r.contributor.loginId}">
                                     <img th:if="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}"/>
                                     <img th:unless="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}" th:alt="${r.contributor.name}" width="32" height="32"/>
                                 </a>
@@ -100,11 +100,11 @@
                                     <span class="post-id" th:text="${r.number}"></span>
                                     <th:block th:utext="${r.headerWordsHtml}"></th:block>
                                     <a th:href="${r.href}" th:class="'title' + (${r.conflict} ? ' conflict' : '')" th:text="${r.title}"></a>
-                                    <a th:each="l : ${r.labels}" th:href="${r.href}" class="badge issue-label active list-label badge-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                                    <a th:each="l : ${r.labels}" th:href="${r.href}" class="badge issue-label active list-label bg-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
                                 </div>
                                 <div class="infos">
                                     <th:block th:if="${r.contributor != null}">
-                                        <a th:if="${!#strings.isEmpty(r.contributor.name)}" th:href="${r.contributor.href}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${r.contributor.loginId}" th:text="${r.contributor.displayName}"></a>
+                                        <a th:if="${!#strings.isEmpty(r.contributor.name)}" th:href="${r.contributor.href}" class="infos-item infos-link-item" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${r.contributor.loginId}" th:text="${r.contributor.displayName}"></a>
                                         <span th:if="${#strings.isEmpty(r.contributor.name)}" class="infos-item" th:text="#{issue.noAuthor}"></span>
                                     </th:block>
                                     <span class="infos-item" th:title="${r.agoTitle}" th:text="${r.ago}"></span>
@@ -113,7 +113,7 @@
                                         <div class="upload-progress">
                                             <div class="bar orange" th:style="'width: ' + ${r.progress.percent} + '%;'"></div>
                                         </div>
-                                        <a th:href="${r.progress.href}" data-toggle="tooltip" th:title="#{pullRequest.review.closed} + ' / ' + #{pullRequest.review.total}">
+                                        <a th:href="${r.progress.href}" data-bs-toggle="tooltip" th:title="#{pullRequest.review.closed} + ' / ' + #{pullRequest.review.total}">
                                             <span th:text="${r.progress.closed}"></span>
                                             <span class="gray-txt">/</span>
                                             <span class="size total" th:text="${r.progress.total}"></span>
@@ -121,7 +121,7 @@
                                     </div>
                                     <div th:if="${r.reviewerCount != null}" th:class="'infos-item' + (${r.reviewedByMe} ? ' over' : '')" style="margin-top:-1px;">
                                         <i class="infos-icon yobicon-preview vmiddle"></i>
-                                        <a th:href="${r.href + '#reviewers'}" data-toggle="tooltip" data-html="true" th:attr="data-title=${r.reviewerNames}">
+                                        <a th:href="${r.href + '#reviewers'}" data-bs-toggle="tooltip" data-bs-html="true" th:attr="data-title=${r.reviewerNames}">
                                             <span class="vmiddle" th:text="${r.reviewerCount}"></span>
                                         </a>
                                     </div>
@@ -129,16 +129,16 @@
                                 </div>
                             </div>
                             <div class="col-lg-2 hide-in-mobile">
-                                <div class="mt5 float-right hide-in-mobile">
-                                    <a th:if="${r.assignee != null}" th:href="${r.assignee.href}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:attr="data-original-title=#{issue.assignee} + ': ' + ${r.assignee.name}" th:title="#{issue.assignee} + ': ' + ${r.assignee.name}">
+                                <div class="mt5 float-end hide-in-mobile">
+                                    <a th:if="${r.assignee != null}" th:href="${r.assignee.href}" class="avatar-wrap assignee" data-bs-toggle="tooltip" data-bs-placement="top" th:attr="data-bs-original-title=#{issue.assignee} + ': ' + ${r.assignee.name}" th:title="#{issue.assignee} + ': ' + ${r.assignee.name}">
                                         <img th:src="${r.assignee.avatarUrl}" width="32" height="32" th:alt="${r.assignee.name}">
                                     </a>
-                                    <a th:if="${r.receiver != null}" th:href="${r.receiver.href}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${r.receiver.name}">
+                                    <a th:if="${r.receiver != null}" th:href="${r.receiver.href}" class="avatar-wrap assinee" data-bs-toggle="tooltip" data-bs-placement="top" title="" th:attr="data-bs-original-title=${r.receiver.name}">
                                         <img th:src="${r.receiver.avatarUrl}" width="32" height="32" th:alt="${r.receiver.name}">
                                     </a>
                                     <div th:if="${r.receiver == null and r.assignee == null}" class="empty-avatar-wrap">&nbsp;</div>
                                 </div>
-                                <div th:class="'state ' + ${r.stateClass} + ' float-right'" th:text="#{${r.stateKey}}"></div>
+                                <div th:class="'state ' + ${r.stateClass} + ' float-end'" th:text="#{${r.stateKey}}"></div>
                             </div>
                         </li>
                         <div id="pagination"></div>

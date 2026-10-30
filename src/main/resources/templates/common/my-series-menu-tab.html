@@ -12,7 +12,7 @@
     <li class="nav-item"><a th:href="@{/user/files}" th:text="#{user.files}" class="nav-link" th:classappend="${viewType == 'TAB_MY_FILES'} ? 'active'"></a></li>
     <li><th:block th:if="${viewType == 'TAB_NOTI' or viewType == 'TAB_MY_ISSUES'}">
         <th:block th:if="${requestPath != '/' and requestPath.substring(1) != currentUser.loginDefaultPage}">
-            <button id="setDefaultLoginPage" type="button" class="ybtn hide-in-mobile" th:data-url="${requestPath.substring(1)}" th:title="#{button.setDefaultLoginPage}" data-trigger="hover" data-placement="bottom" data-toggle="popover" th:data-content="#{button.setDefaultLoginPage.desc}" th:text="#{button.setDefaultLoginPage}"></button>
+            <button id="setDefaultLoginPage" type="button" class="ybtn hide-in-mobile" th:data-url="${requestPath.substring(1)}" th:title="#{button.setDefaultLoginPage}" data-bs-trigger="hover" data-bs-placement="bottom" data-bs-toggle="popover" th:data-bs-content="#{button.setDefaultLoginPage.desc}" th:text="#{button.setDefaultLoginPage}"></button>
         </th:block>
     </th:block></li>
 </ul>

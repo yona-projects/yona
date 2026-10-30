@@ -23,7 +23,7 @@
                         <label th:for="'upload-' + ${comment.id}" class="file-upload__label ybtn" th:text="#{button.upload}"></label>
                         <input th:id="'upload-' + ${comment.id}" class="file-upload__input" type="file" name="filePath" multiple>
                     </span>
-                    <span th:if="${comment.own}" class="send-notification-check" data-toggle='popover' data-trigger="hover" data-placement="top" th:attr="data-content=#{notification.send.mail.warning}">
+                    <span th:if="${comment.own}" class="send-notification-check" data-bs-toggle='popover' data-bs-trigger="hover" data-bs-placement="top" th:attr="data-bs-content=#{notification.send.mail.warning}">
                         <div class="form-check form-check-inline"><label class="form-check-label">
                             <input type="checkbox" name="notificationMail" value="yes" checked class="form-check-input">
                             <strong th:text="#{notification.send.mail}"></strong>

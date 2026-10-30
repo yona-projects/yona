@@ -96,7 +96,7 @@
 
             // Send a request contains project names to get email addresses and
             // launch user's mail client with them using mailto scheme.
-            htElement.welBtnWriteEmail.button('loading');
+            _setLoading(htElement.welBtnWriteEmail, true);
 
             $yobi.sendForm({
                 "sURL"      : htVar.sURLMailList,
@@ -114,9 +114,28 @@
                     form.attr('action', mailto);
                     form.attr('enctype', 'text/plain');
                     form.submit();
-                    htElement.welBtnWriteEmail.button('reset');
+                    _setLoading(htElement.welBtnWriteEmail, false);
                 }
             });
+        }
+
+        /**
+         * 단추를 "처리 중" 상태로 바꾸거나 되돌린다.
+         * Bootstrap 4에서 상태 단추(`button('loading')` 호출)가 없어져서 같은 동작을 직접 한다(X-38d): 원래 글을 보관하고
+         * `data-loading-text`로 바꾸며 비활성으로 만든다.
+         *
+         * @param {Wrapped Element} welButton 대상 단추
+         * @param {Boolean} bLoading true이면 처리 중, false이면 원래대로
+         */
+        function _setLoading(welButton, bLoading){
+            if(bLoading){
+                welButton.data("resetText", welButton.html());
+                welButton.html(welButton.attr("data-loading-text"));
+                welButton.addClass("disabled").attr("disabled", "disabled");
+            } else {
+                welButton.html(welButton.data("resetText"));
+                welButton.removeClass("disabled").removeAttr("disabled");
+            }
         }
 
         /**
@@ -152,7 +171,7 @@
                 welProject.remove();
             };
 
-            var welProject = $('<span class="badge badge-info">' + sName + " </span>")
+            var welProject = $('<span class="badge bg-info">' + sName + " </span>")
                 .css('margin-right','5px')
                 .append($('<a href="javascript:void(0)">x</a>')
                 .click(fOnClickUnselect));

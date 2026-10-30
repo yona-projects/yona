@@ -45,12 +45,12 @@
         </th:block>
       </div>
       <div class="act-row mt5" th:unless="${site.socialLoginOnly}">
-        <div class="remember-me-wrap float-left">
+        <div class="remember-me-wrap float-start">
           <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" checked>
           <label for="remember-me" class="bg-checkbox" th:text="#{title.rememberMe}"></label>
         </div>
 
-        <div class="links-wrap float-right">
+        <div class="links-wrap float-end">
           <a th:href="@{/lostPassword}" th:text="#{title.forgotpassword}"></a>
         </div>
       </div>

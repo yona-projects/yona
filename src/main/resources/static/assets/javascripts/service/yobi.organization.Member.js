@@ -201,14 +201,14 @@
             }
 
             $yobi.alert(sErrorMsg);
-            htElement.welAlertDelete.modal("hide");
+            bootstrap.Modal.getOrCreateInstance(htElement.welAlertDelete[0]).hide();
         }
 
         /**
          * @param {String} sURL
          */
         function _showConfirmDeleteMember(sURL){
-            htElement.welAlertDelete.modal();
+            bootstrap.Modal.getOrCreateInstance(htElement.welAlertDelete[0]).show();
         }
 
         /**

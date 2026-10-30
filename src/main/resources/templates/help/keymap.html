@@ -8,8 +8,8 @@
   모델: isMac
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="keymap(section, view)" th:with="ctrl=${isMac ? '⌘' : 'CTRL'}">
-<div class="float-left" style="padding:10px 0; margin-left: 55px;">
-    <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini" th:text="#{title.keymap}"></a>
+<div class="float-start" style="padding:10px 0; margin-left: 55px;">
+    <a href="#helpKeys" data-bs-toggle="modal" class="ybtn ybtn-inverse ybtn-mini" th:text="#{title.keymap}"></a>
 
     <div id="helpKeys" class="modal fade keymap-help" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content">
         <div class="row">
@@ -17,28 +17,28 @@
                 <h5 th:text="#{project.projects}"></h5>
 
                 <span class="ybtn ybtn-small">H</span>
-                <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{menu.home}"></span><br>
+                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.home}"></span><br>
 
                 <span class="ybtn ybtn-small">B</span>
-                <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{menu.board}"></span><br>
+                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.board}"></span><br>
 
                 <span class="ybtn ybtn-small">I</span>
-                <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{menu.issue}"></span><br>
+                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.issue}"></span><br>
 
                 <span class="ybtn ybtn-small">C</span>
-                <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{menu.code}"></span><br>
+                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.code}"></span><br>
 
                 <span class="ybtn ybtn-small">M</span>
-                <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{milestone}"></span><br>
+                <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{milestone}"></span><br>
 
                 <th:block th:if="${view != null and view.git}">
                     <span class="ybtn ybtn-small">P</span>
-                    <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{menu.pullRequest}"></span><br>
+                    <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{menu.pullRequest}"></span><br>
                 </th:block>
 
                 <th:block th:if="${view != null and view.manager}">
                     <span class="ybtn ybtn-small">Q</span>
-                    <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{project.setting}"></span><br>
+                    <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{project.setting}"></span><br>
                 </th:block>
             </div>
 
@@ -49,33 +49,33 @@
 
                         <th:block th:if="${#strings.contains(section, 'board')}">
                             <span class="ybtn ybtn-small">N</span>
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{post.write}"></span><br>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{post.write}"></span><br>
                         </th:block>
 
                         <th:block th:if="${#strings.contains(section, 'issue')}">
                             <span class="ybtn ybtn-small">N</span>
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{issue.menu.new}"></span><br>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{issue.menu.new}"></span><br>
                         </th:block>
 
                         <th:block th:if="${#strings.contains(section, 'Detail')}">
                             <span class="ybtn ybtn-small">L</span>
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{button.list}"></span><br>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{button.list}"></span><br>
 
                             <span class="ybtn ybtn-small">E</span>
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{button.edit}"></span><br>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{button.edit}"></span><br>
                         </th:block>
 
                         <th:block th:if="${#strings.contains(section, 'List')}">
                             <span class="ybtn ybtn-small">←</span>
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{button.prevPage}"></span><br>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{button.prevPage}"></span><br>
 
                             <span class="ybtn ybtn-small">→</span>
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{button.nextPage}"></span><br>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{button.nextPage}"></span><br>
                         </th:block>
 
                         <th:block th:if="${section == 'issueList'}">
                             <span class="ybtn ybtn-small" th:text="${ctrl}"></span>+ <span class="ybtn ybtn-small">A</span>
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{button.selectAll}"></span><br>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{button.selectAll}"></span><br>
                         </th:block>
                     </div>
 
@@ -83,20 +83,20 @@
                         <h5 th:text="#{site}"></h5>
 
                         <span class="ybtn ybtn-small">A</span>
-                        <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{issue.myIssue}"></span><br>
+                        <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{issue.myIssue}"></span><br>
 
                         <span class="ybtn ybtn-small">U</span>
-                        <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{userinfo.profile}"></span><br>
+                        <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{userinfo.profile}"></span><br>
 
                         <span class="ybtn ybtn-small">F</span>
-                        <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{user.menu}"></span><br>
+                        <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{user.menu}"></span><br>
 
                         <th:block th:if="${isMac}"><span class="ybtn ybtn-small">CTRL</span> +</th:block>
                         <span class="ybtn ybtn-small">ALT</span> + <span class="ybtn ybtn-small">S</span>
-                        <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{site.search}"></span><br>
+                        <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{site.search}"></span><br>
 
                         <span class="ybtn ybtn-small" th:text="${ctrl}"></span> + <span class="ybtn ybtn-small">ENTER</span>
-                        <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{button.submitForm}"></span><br>
+                        <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{button.submitForm}"></span><br>
                     </div>
                 </div>
                 <div class="row mt20">
@@ -106,7 +106,7 @@
                             <span class="ybtn ybtn-small">SHIFT</span> +
                             <span class="ybtn ybtn-small" th:text="${ctrl}"></span> +
                             <span class="ybtn ybtn-small">ENTER</span>
-                            <span class="d-inline-block align-middle pl-1 text-muted" th:text="#{button.commentAndNextState.closed}"></span><br>
+                            <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{button.commentAndNextState.closed}"></span><br>
                         </th:block>
                     </div>
                 </div>
@@ -114,7 +114,7 @@
         </div>
 
         <p class="actrow">
-            <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}"></button>
+            <button type="button" class="ybtn ybtn-info" data-bs-dismiss="modal" th:text="#{button.confirm}"></button>
         </p>
     </div></div></div>
 </div>

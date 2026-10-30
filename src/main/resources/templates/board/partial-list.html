@@ -8,29 +8,29 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="item(post, base)">
 <li class="post-item title" th:href="${base + '/post/' + post.number}">
-    <a th:if="${post.authorLoginId != null}" th:href="'/' + ${post.authorLoginId}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="bottom" th:title="${post.authorLoginId}">
+    <a th:if="${post.authorLoginId != null}" th:href="'/' + ${post.authorLoginId}" class="avatar-wrap mlarge hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="${post.authorLoginId}">
         <img th:src="${post.authorAvatarUrl}" th:alt="${post.authorName}" width="32" height="32"/>
     </a>
-    <a th:unless="${post.authorLoginId != null}" href="/" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="bottom">
+    <a th:unless="${post.authorLoginId != null}" href="/" class="avatar-wrap mlarge hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="bottom">
         <img th:src="${post.authorAvatarUrl}" width="32" height="32"/>
     </a>
     <div class="title-wrap">
         <th:block th:if="${post.notice}"><span class="badge label-notice" th:text="#{post.notice}"></span>&nbsp;</th:block>
-        <th:block th:if="${post.readme}"><span class="badge badge-danger">README</span>&nbsp;</th:block>
+        <th:block th:if="${post.readme}"><span class="badge bg-danger">README</span>&nbsp;</th:block>
         <span th:unless="${post.readme}" class="post-id" th:text="${post.number}"></span>
         <th:block th:utext="${post.titleHeadersHtml}"></th:block>
         <a th:href="${base + '/post/' + post.number}" class="title" th:text="${post.titleWithoutHeaders}"></a>
     </div>
     <div class="infos">
-        <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="'/' + ${post.authorLoginId}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" th:title="${post.authorLoginId}" th:text="${post.authorDisplayName}"></a>
+        <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="'/' + ${post.authorLoginId}" class="infos-item infos-link-item" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="${post.authorLoginId}" th:text="${post.authorDisplayName}"></a>
         <span th:unless="${post.authorName != null and !post.authorName.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}"></span>
 
-        <span class="infos-item" data-toggle="tooltip" data-placement="bottom" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></span>
+        <span class="infos-item" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="${post.createdTitle}" th:text="${post.createdAgo}"></span>
 
         <span th:if="${post.commentCount > 0}" class="infos-item item-count-groups">
             <th:block th:replace="~{common/comment-count :: commentCount(${base + '/post/' + post.number + '#comments'}, ${post.commentCount}, true)}"></th:block>
         </span>
-        <a th:each="label : ${post.labels}" href="#" class="badge issue-label list-label active badge-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+        <a th:each="label : ${post.labels}" href="#" class="badge issue-label list-label active bg-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
     </div>
 </li>
 </th:block>

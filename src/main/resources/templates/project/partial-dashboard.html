@@ -31,7 +31,7 @@
                             </div>
                             <div class="col-lg-3 num"><strong th:text="${row.count}"></strong></div>
                             <div class="col-lg-3 nm">
-                                <div class="progress" th:classappend="${row.percent == 0} ? 'empty'" data-toggle="tooltip" th:title="${row.percent + '%'}">
+                                <div class="progress" th:classappend="${row.percent == 0} ? 'empty'" data-bs-toggle="tooltip" th:title="${row.percent + '%'}">
                                     <div class="progress-bar bg-warning" th:style="'width: ' + ${row.percent} + '%;'"></div>
                                 </div>
                             </div>
@@ -45,7 +45,7 @@
                             </div>
                             <div class="col-lg-3 num"><strong th:text="${d.assignee.noAssigneeCount}"></strong></div>
                             <div class="col-lg-3 nm">
-                                <div class="progress" th:classappend="${d.assignee.noAssigneePercent == 0} ? 'empty'" data-toggle="tooltip" th:title="${d.assignee.noAssigneePercent + '%'}">
+                                <div class="progress" th:classappend="${d.assignee.noAssigneePercent == 0} ? 'empty'" data-bs-toggle="tooltip" th:title="${d.assignee.noAssigneePercent + '%'}">
                                     <div class="progress-bar bg-warning" th:style="'width: ' + ${d.assignee.noAssigneePercent} + '%;'"></div>
                                 </div>
                             </div>
@@ -68,7 +68,7 @@
                             </div>
                             <div class="col-lg-3 num"><strong th:text="${row.count}"></strong></div>
                             <div class="col-lg-3 nm">
-                                <div class="progress" data-toggle="tooltip" th:title="${row.completionRate + '%'}">
+                                <div class="progress" data-bs-toggle="tooltip" th:title="${row.completionRate + '%'}">
                                     <div class="progress-bar bg-success" th:style="'width:' + ${row.completionRate} + '%'"></div>
                                 </div>
                             </div>
@@ -93,13 +93,13 @@
                         <div th:each="pull : ${d.pullRequests}" class="row">
                             <div class="col-lg-9 title">
                                 <a th:href="${pull.filterHref}" class="usf-group">
-                                    <span class="avatar-wrap smaller" data-toggle="tooltip" th:title="${pull.contributorName + ' (@' + pull.contributorLoginId + ')'}">
+                                    <span class="avatar-wrap smaller" data-bs-toggle="tooltip" th:title="${pull.contributorName + ' (@' + pull.contributorLoginId + ')'}">
                                         <img th:src="${pull.avatarUrl}" width="20" height="20">
                                     </span>
                                 </a>
                                 <a th:href="${pull.href}" th:text="${pull.title}"></a>
-                                <a th:each="l : ${pull.labels}" th:href="${pull.href}" class="badge issue-label active list-label badge-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
-                                <span th:if="${pull.assigneeLoginId != null}" class="avatar-wrap smaller assignee" data-toggle="tooltip" th:title="#{issue.assignee} + ': ' + ${pull.assigneeName} + ' (@' + ${pull.assigneeLoginId} + ')'">
+                                <a th:each="l : ${pull.labels}" th:href="${pull.href}" class="badge issue-label active list-label bg-secondary" th:attr="data-label-id=${l.id}" th:style="'background:' + ${l.color}" th:text="${l.name}"></a>
+                                <span th:if="${pull.assigneeLoginId != null}" class="avatar-wrap smaller assignee" data-bs-toggle="tooltip" th:title="#{issue.assignee} + ': ' + ${pull.assigneeName} + ' (@' + ${pull.assigneeLoginId} + ')'">
                                     <img th:src="${pull.assigneeAvatarUrl}" width="20" height="20">
                                 </span>
                             </div>

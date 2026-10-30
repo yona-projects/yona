@@ -8,16 +8,16 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="info">
 <div class="board-header issue">
-    <div class="float-right mr10 mt10">
+    <div class="float-end mr10 mt10">
         <div class="date" th:title="${header.agoTitle}" th:text="${header.ago}"></div>
-        <span th:class="'badge badge-pill nm ' + ${header.badgeClass}" th:text="#{${header.badgeKey}}"></span>
+        <span th:class="'badge rounded-pill nm ' + ${header.badgeClass}" th:text="#{${header.badgeKey}}"></span>
     </div>
     <div class="title">
         <strong class="board-id" th:text="'#' + ${header.number}"></strong> <th:block th:text="${header.title}"></th:block>
     </div>
 </div>
 
-<div class="float-right">
+<div class="float-end">
     <th:block th:if="${header.reviewers != null}">
         <div id="reviewers" style="display:inline-block; margin-right:5px;">
             <span style="font-size: 13px; vertical-align: middle; margin: 0 10px;" th:utext="${header.reviewers.labelHtml}"></span>
@@ -37,15 +37,15 @@
         <div th:if="${header.accept.enabled}" id="merge-box" style="display:inline-block; vertical-align:top; text-align:left; position:relative;">
             <div class="btn-group">
                 <button type="button" id="btnAccept" class="ybtn ybtn-success" th:data-url="${header.accept.formAction}" th:text="${header.accept.label ?: #messages.msg('pullRequest.merge')}"></button>
-                <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="ybtn ybtn-success dropdown-toggle" data-toggle="dropdown" th:title="#{pullRequest.merge.options}"></button>
-                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu float-right" style="min-width:320px;">
+                <button type="button" id="btnMergeOptions" th:if="${#lists.size(header.accept.methods) > 1}" class="ybtn ybtn-success dropdown-toggle" data-bs-toggle="dropdown" th:title="#{pullRequest.merge.options}"></button>
+                <ul id="merge-method-menu" th:if="${#lists.size(header.accept.methods) > 1}" class="dropdown-menu float-end" style="min-width:320px;">
                     <li th:each="option : ${header.accept.methods}" class="merge-method-item" th:data-method="${option.code}" th:data-label="${option.buttonLabel}"
                         th:data-title="${option.defaultTitle}" th:data-message="${option.defaultMessage}"
                         th:classappend="${!option.available} ? 'disabled'" th:title="${option.reason}">
                         <a href="#" style="white-space:normal;">
                             <strong th:text="${option.label}"></strong>
                             <span class="merge-method-check" th:if="${option.code == header.accept.defaultMethod}">&#10003;</span>
-                            <small class="text-muted" style="display:block;" th:text="${option.reason ?: option.description}"></small>
+                            <small class="text-body-secondary" style="display:block;" th:text="${option.reason ?: option.description}"></small>
                         </a>
                     </li>
                 </ul>
@@ -88,7 +88,7 @@
             </script>
         </div>
         <span th:if="${header.accept.bypassNote != null}" id="accept-bypass-note" class="form-text" style="display:inline-block; margin-right:5px;" th:text="${header.accept.bypassNote}"></span>
-        <button th:if="${!header.accept.enabled}" class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" th:title="${header.accept.disabledReason}" th:text="#{pullRequest.merge}"></button>
+        <button th:if="${!header.accept.enabled}" class="ybtn ybtn-disabled" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${header.accept.disabledReason}" th:text="#{pullRequest.merge}"></button>
     </th:block>
 </div>
 

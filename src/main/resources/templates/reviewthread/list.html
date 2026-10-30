@@ -19,17 +19,17 @@
                 <ul class="lst-stacked list-unstyled">
                     <li th:class="${cond.participantId == null and cond.authorId == null} ? 'active'">
                         <a href="#" data-toggle="filter"><th:block th:text="#{review.allReview}"></th:block>
-                            <span class="num-badge float-right" th:text="${quick.everyone}"></span>
+                            <span class="num-badge float-end" th:text="${quick.everyone}"></span>
                         </a>
                     </li>
                     <li th:class="${cond.participantId == meId} ? 'active'">
                         <a href="#" data-toggle="filter" data-type="participantId" th:attr="data-value=${meId}"><th:block th:text="#{review.involvingYou}"></th:block>
-                            <span class="num-badge float-right" th:text="${quick.participant}"></span>
+                            <span class="num-badge float-end" th:text="${quick.participant}"></span>
                         </a>
                     </li>
                     <li th:class="${cond.authorId == meId} ? 'active'">
                         <a href="#" data-toggle="filter" data-type="authorId" th:attr="data-value=${meId}"><th:block th:text="#{review.createdByYou}"></th:block>
-                            <span class="num-badge float-right" th:text="${quick.author}"></span>
+                            <span class="num-badge float-end" th:text="${quick.author}"></span>
                         </a>
                     </li>
                 </ul>
@@ -48,7 +48,7 @@
             </div>
         </div>
         <div class="col-lg-10 span-hard-wrap">
-            <div class="float-right filters">
+            <div class="float-end filters">
                 <a th:if="${cond.orderBy == 'createdDate'}" href="#" data-field="createdDate" th:attr="data-value=${cond.orderDir == 'asc'} ? 'desc' : 'asc'" class="filter" data-toggle="order">
                     <i class="ico btn-gray-arrow" th:classappend="${cond.orderDir == 'desc'} ? 'down'"></i><th:block th:text="#{common.order.date}"></th:block>
                 </a>
@@ -71,7 +71,7 @@
             <div class="review-list-wrap">
                 <ul th:if="${!rows.isEmpty()}" class="post-list-wrap">
                     <li th:each="thread : ${rows}" class="post-item">
-                        <a th:if="${thread.authorLoginId != null}" th:href="@{/{u}(u=${thread.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${thread.authorLoginId}">
+                        <a th:if="${thread.authorLoginId != null}" th:href="@{/{u}(u=${thread.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${thread.authorLoginId}">
                             <img th:if="${helper.isDefaultAvatar(thread.authorAvatarUrl)}" th:src="${thread.authorAvatarUrl}"/>
                             <img th:unless="${helper.isDefaultAvatar(thread.authorAvatarUrl)}" th:src="${thread.authorAvatarUrl}" th:alt="${thread.authorName}" width="32" height="32"/>
                         </a>
@@ -81,7 +81,7 @@
                         </div>
 
                         <div class="infos">
-                            <a th:if="${thread.authorName != null and !thread.authorName.isEmpty()}" th:href="@{/{u}(u=${thread.authorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${thread.authorLoginId}" th:text="${thread.authorDisplayName}"></a>
+                            <a th:if="${thread.authorName != null and !thread.authorName.isEmpty()}" th:href="@{/{u}(u=${thread.authorLoginId})}" class="infos-item infos-link-item" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${thread.authorLoginId}" th:text="${thread.authorDisplayName}"></a>
                             <span th:unless="${thread.authorName != null and !thread.authorName.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}"></span>
                             <span class="infos-item" th:title="${thread.createdTitle}" th:text="${thread.createdAgo}"></span>
                             <span th:if="${thread.commentCount > 0}" class="infos-item item-count-groups">
@@ -95,7 +95,7 @@
                     <p th:text="#{review.is.empty}"></p>
                 </div>
             </div>
-            <div class="float-left" style="padding:10px;">
+            <div class="float-start" style="padding:10px;">
                 <a th:href="${excelUrl}" class="ybtn small">
                     <i class="yobicon-file-excel"></i> <th:block th:text="#{issue.downloadAsExcel}"></th:block>
                 </a>

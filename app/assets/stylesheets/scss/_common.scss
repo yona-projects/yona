@@ -326,3 +326,27 @@ input.white:-ms-input-placeholder        { color:#fff; opacity:0.8; }
 .select2-container.hide {
     display: inline-block;
 }
+
+// 코드 댓글 등의 아이콘 단추. v1.6은 Bootstrap 2의 `.close`(오른쪽 정렬, 20px 굵은 글자, 투명도 0.2)를 가져다 썼다. 닫기 단추 `.close`가 Bootstrap 5에서 `.btn-close`로 바뀌어서 이 단추들은 자체 클래스로 둔다.
+.btn-icon-close {
+  float: right;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 20px;
+  color: #000000;
+  text-shadow: 0 1px 0 #ffffff;
+  opacity: 0.2;
+}
+.btn-icon-close:hover, .btn-icon-close:focus {
+  color: #000000;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.4;
+}
+button.btn-icon-close {
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  -webkit-appearance: none;
+}

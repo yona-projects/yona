@@ -231,7 +231,7 @@ class PullRequestListTest : AbstractIntegrationTest() {
         assertEquals(1, alert.children().size)
         assertTrue(alert.text().contains("${fork.owner}/${fork.name}:topic"))
         assertEquals("/${fork.owner}/${fork.name}/newPullRequestForm?fromBranch=refs/heads/topic&toBranch=refs/heads/master", alert.selectFirst("a:not(.close)")!!.attr("href"))
-        assertEquals("/${fork.owner}/${fork.name}/pushedBranch/${recent.id}/delete", alert.selectFirst("a.close")!!.attr("data-request-uri"))
+        assertEquals("/${fork.owner}/${fork.name}/pushedBranch/${recent.id}/delete", alert.selectFirst("a.btn-close")!!.attr("data-request-uri"))
         mockMvc.perform(delete("/${fork.owner}/${fork.name}/pushedBranch/${recent.id}/delete").session(login(me))).andExpect(status().isOk)
         assertNull(pushedBranches.findById(recent.id!!).orElse(null))
     }

@@ -35,7 +35,7 @@
                 <ul class="project-util">
                     <li th:if="${view.guest}">
                         <th:block th:if="${view.enrolled}">
-                        <button class="ybtn ybtn-small ybtn-info dropdown-toggle" type="button" data-toggle="dropdown">
+                        <button class="ybtn ybtn-small ybtn-info dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="yobicon-addfriend"></i>
                         </button>
                         <div class="dropdown-menu flat right title">
@@ -51,7 +51,7 @@
                         </div>
                         </th:block>
                         <th:block th:unless="${view.enrolled}">
-                        <button class="ybtn ybtn-small dropdown-toggle" type="button" data-toggle="dropdown">
+                        <button class="ybtn ybtn-small dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="yobicon-addfriend"></i><th:block th:text="#{organization.member.enrollment.title}"></th:block>
                         </button>
                         <div class="dropdown-menu flat right title">
@@ -69,7 +69,7 @@
                     </li>
                     <li th:if="${view.canWatch}">
                         <div class="btn-group dropdown watch-btn">
-                            <a class="btn watcher-count no-border" th:classappend="${view.watching} ? 'watch-on'" data-toggle="tooltip" th:title="#{project.watcher.number}" th:href="@{/{owner}/{name}/watchers(owner=${view.project.owner},name=${view.project.name})}" th:text="${view.watchingCount}"></a>
+                            <a class="btn watcher-count no-border" th:classappend="${view.watching} ? 'watch-on'" data-bs-toggle="tooltip" th:title="#{project.watcher.number}" th:href="@{/{owner}/{name}/watchers(owner=${view.project.owner},name=${view.project.name})}" th:text="${view.watchingCount}"></a>
                             <div class="dropdown-menu flat right title">
                                 <div class="pop-title" th:text="${view.watching} ? #{project.you.are.watching(${view.project.name})} : #{project.you.are.not.watching(${view.project.name})}"></div>
                                 <div class="pop-content">
@@ -96,7 +96,7 @@
                                     </a>
                                 </div>
                             </div>
-                            <button class="btn nofocus no-border down-arrow" type="button" data-toggle="dropdown" th:text="${view.watching} ? #{project.unwatch} : #{project.watch}">
+                            <button class="btn nofocus no-border down-arrow" type="button" data-bs-toggle="dropdown" th:text="${view.watching} ? #{project.unwatch} : #{project.watch}">
                             </button>
                         </div>
                     </li>

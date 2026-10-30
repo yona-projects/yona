@@ -28,14 +28,14 @@
 
         <ul class="members project row">
             <li th:each="member : ${rows}" class="member col-lg-6 span-hard-wrap">
-                <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge float-left mr10">
+                <a th:href="@{/{user}(user=${member.loginId})}" class="avatar-wrap mlarge float-start mr10">
                     <img th:src="${member.avatarUrl}" width="64" height="64">
                 </a>
                 <div class="member-name" th:text="${member.displayName}"></div>
                 <div class="member-id" th:text="'@' + ${member.loginId}"></div>
                 <div class="member-setting">
                     <div class="btn-group" th:attr="data-name='roleof-' + ${member.loginId}">
-                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                        <button class="btn dropdown-toggle large" data-bs-toggle="dropdown">
                             <span class="d-label" th:text="#{'user.role.' + ${member.roleName}}"></span>
                             <span class="d-caret"><span class="caret"></span></span>
                         </button>
@@ -50,7 +50,7 @@
         <!--/* Confirm to delete member */-->
         <div id="alertDeletion" class="modal"><div class="modal-dialog"><div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <h3 th:text="#{organization.member.delete}"></h3>
             </div>
             <div class="modal-body">
@@ -58,7 +58,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="ybtn ybtn-info ybtn-mini" id="deleteBtn" th:text="#{button.yes}"></button>
-                <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}"></button>
+                <button type="button" class="ybtn ybtn-mini" data-bs-dismiss="modal" th:text="#{button.no}"></button>
             </div>
         </div></div></div>
         <!--/* Enrolled Users */-->
@@ -68,12 +68,12 @@
         </legend>
         <div class="row">
             <div th:each="user : ${applicants}" class="col-lg-2">
-                <div class="float-left mr10">
+                <div class="float-start mr10">
                     <a th:href="@{/{user}(user=${user.loginId})}">
                         <img th:src="${user.avatarUrl}" height="65" width="65" class="rounded-circle"/>
                     </a>
                 </div>
-                <div class="float-left" style="width: 60px;">
+                <div class="float-start" style="width: 60px;">
                     <span><a th:href="@{/{user}(user=${user.loginId})}"><strong th:text="${user.displayName}"></strong></a></span>
                     <span>(<th:block th:text="${user.loginId}"></th:block>)</span>
                     <button type="button" class="ybtn ybtn-info ybtn-mini blue enrollAcceptBtn" th:attr="data-loginId=${user.loginId}"><i class="yobicon-addfriend"></i><th:block th:text="#{button.add}"></th:block></button>

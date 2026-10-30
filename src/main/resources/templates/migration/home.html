@@ -13,7 +13,7 @@
 <th:block th:fragment="migrationPage">
     <div ng-app="yona.migration" ng-controller="MigrationController as vm" class="yobi-migration" th:attr="ng-init=|vm.setUserToken('${token}');vm.yobiUser = '${loginId}';vm.yobiUserEmail = '${email}'|">
         <div class="header-pannel" th:attr="ng-if=|'${token}'|">
-            <div class="comeback-text float-right">Yona to Github<span class="midium-font"></span></div>
+            <div class="comeback-text float-end">Yona to Github<span class="midium-font"></span></div>
             <div class="row title-text-bg">
                 <div id="system-msg" class="card card-body board" ng-cloak>
                     <div class="messages" ng-repeat="msg in vm.systemMessages track by $index">
@@ -61,20 +61,20 @@
                                 {{repo.owner.login}} <i class="yobicon-lock yobicon-small" ng-if="repo.private"></i>
                             </div>
                             <div class="warn-no-worker" ng-show="repo.full_name == vm.destination.full_name && vm.showWorkerWarning" ng-cloak>
-                                <div class="badge badge-danger">Admin에 {{vm.CONFIG.DEFAULT_WORKER}} 유저가 없음</div>
+                                <div class="badge bg-danger">Admin에 {{vm.CONFIG.DEFAULT_WORKER}} 유저가 없음</div>
                                 <div>{{vm.CONFIG.DEFAULT_WORKER}} 유저가 대상 프로젝트/그룹의 admin으로 추가되어 있어야 합니다. 그렇지 않을 경우 {{vm.CONFIG.DEFAULT_WORKER}} 대신 사용자 아이디가 작성자로 표시됩니다.
                                 </div>
                                 <div ng-if="repo.owner.type === 'Organization' && vm.showNotAdminWarning">
-                                    <div class="badge badge-warning">사용자가 Admin인 프로젝트가 아닙니다.</div>
+                                    <div class="badge bg-warning">사용자가 Admin인 프로젝트가 아닙니다.</div>
                                     <div>{{vm.CONFIG.DEFAULT_WORKER}}, {{vm.currentGithubUser.login}} 둘 다 Admin이 아닌 프로젝트로는 마이그레이션을 진행할 수 없습니다!</div>
                                 </div>
                             </div>
                             <div class="warn-user-project" ng-show="repo.full_name == vm.destination.full_name && vm.showUserProjectWarning" ng-cloak>
-                                <div class="badge badge-danger">User Project</div>
+                                <div class="badge bg-danger">User Project</div>
                                 <div>Organization 소속의 프로젝트가 아닌 경우에는 마이그레이션시에 {{vm.CONFIG.DEFAULT_WORKER}} 대신 사용자 계정이 사용됩니다.</div>
                             </div>
                             <div ng-if="repo.owner.type === 'User' && repo.owner.login !== vm.currentGithubUser.login">
-                                <div class="badge badge-warning">사용자가 Admin인 프로젝트가 아닙니다.</div>
+                                <div class="badge bg-warning">사용자가 Admin인 프로젝트가 아닙니다.</div>
                                 <div>Admin이 아닌 프로젝트로는 마이그레이션을 진행할 수 없습니다!</div>
                             </div>
                         </div>

@@ -24,14 +24,14 @@
 </script>
 
 <div class="mass-update-wrap hide-in-mobile">
-    <form id="mass-update-form" class="mass-update-form float-left" th:action="${base + '/issues'}" method="post">
+    <form id="mass-update-form" class="mass-update-form float-start" th:action="${base + '/issues'}" method="post">
         <div class="btn-group check-all">
             <label for="check-all">
                 <input type="checkbox" id="check-all" data-target="checked-issue"/>
             </label>
         </div>
         <div id="state" class="btn-group" data-name="state">
-            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+            <button class="btn dropdown-toggle medium" data-bs-toggle="dropdown" disabled="disabled">
                 <span class="d-label" th:text="#{issue.update.state}"></span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
@@ -42,7 +42,7 @@
         </div>
 
         <div id="assignee" class="btn-group" data-name="assignee.id">
-            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+            <button class="btn dropdown-toggle medium" data-bs-toggle="dropdown" disabled="disabled">
                 <span class="d-label" th:text="#{issue.update.assignee.id}"></span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
@@ -64,7 +64,7 @@
 
         <th:block th:if="${projectView.menuSetting.milestone and !massUpdate.openMilestones.isEmpty()}">
         <div id="milestone" class="btn-group" data-name="milestone.id">
-            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+            <button class="btn dropdown-toggle medium" data-bs-toggle="dropdown" disabled="disabled">
                 <span class="d-label" th:text="#{issue.update.milestone.id}"></span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
@@ -78,7 +78,7 @@
 
         <th:block th:if="${massUpdate.hasLabels}">
         <div id="attaching-label" class="btn-group" data-name="attachingLabelIds">
-            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+            <button class="btn dropdown-toggle medium" data-bs-toggle="dropdown" disabled="disabled">
                 <span class="d-label" th:text="#{issue.update.attachLabel}"></span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
@@ -88,7 +88,7 @@
         </div>
 
         <div id="detaching-label" class="btn-group" data-name="detachingLabelIds">
-            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+            <button class="btn dropdown-toggle medium" data-bs-toggle="dropdown" disabled="disabled">
                 <span class="d-label" th:text="#{issue.update.detachLabel}"></span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>

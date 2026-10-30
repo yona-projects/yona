@@ -9,7 +9,7 @@
 <!--/* 조직 묶음 안의 프로젝트 줄: 즐겨찾기한 것은 항상 보이고 나머지는 숨겨 둔다(검색하면 나타난다). */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="allProject(project, last)">
 <li class="user-li" th:classappend="(${last} ? 'favored ' : '') + (${project.favored} ? 'show-always' : 'hide')" th:data-location="${#paths.project(project.owner, project.name) + '/go'}">
-    <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" data-content="" th:attrappend="data-content=${project.overview}">
+    <div class="project-list project-flex-container" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="right" data-bs-content="" th:attrappend="data-bs-content=${project.overview}">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo all-project-names">
                 <i class="project-avatar"><img th:if="${project.logoUrl != null}" class="logo" th:src="${project.logoUrl}"><span th:unless="${project.logoUrl != null}" class="dummy-25px"> </span></i>

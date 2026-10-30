@@ -593,7 +593,7 @@
             elements.editCategoryForm.data(target.data());
             elements.editCategoryName.val(target.data("categoryName"));
             elements.editCategoryForm.find("[name=isExclusive]").data("select2").val(target.data("categoryIsExclusive") + "");
-            elements.editCategoryForm.modal("show");
+            bootstrap.Modal.getOrCreateInstance(elements.editCategoryForm[0]).show();
         }
 
         /**
@@ -620,7 +620,7 @@
             }).fail(function(res){
                 _showError(res, "label.category.edit");
             }).always(function(){
-                elements.editCategoryForm.modal("hide");
+                bootstrap.Modal.getOrCreateInstance(elements.editCategoryForm[0]).hide();
                 NProgress.done();
             });
         }
@@ -639,7 +639,7 @@
             elements.editLabelName.val(target.data("labelName"));
             elements.editLabelColor.val(target.data("labelColor"));
             elements.editLabelCategory.data("select2").val(target.data("categoryId"));
-            elements.editLabelForm.modal("show");
+            bootstrap.Modal.getOrCreateInstance(elements.editLabelForm[0]).show();
 
             _updateInputBySelectedColor(elements.editLabelName,
                                         elements.editLabelColor,
@@ -685,7 +685,7 @@
             }).fail(function(res){
                 _showError(res, "label.edit");
             }).always(function(){
-                elements.editLabelForm.modal("hide");
+                bootstrap.Modal.getOrCreateInstance(elements.editLabelForm[0]).hide();
                 NProgress.done();
             });
         }
@@ -760,11 +760,10 @@
          * @private
          */
         function _popoverMessageOn(message, element){
-            element.popover("destroy");
-            element.popover({
+            $yobi.showPopover(element, {
                 "placement": "bottom",
                 "content"  : message
-            }).popover("show");
+            });
         }
 
         _init(options || {});

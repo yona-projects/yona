@@ -12,19 +12,19 @@
         <div class="row user-menu-wrap">
             <span class="user-menu"><a th:href="@{'/' + ${#strings.defaultString(currentUser.loginId, '')}}" th:text="#{userinfo.profile}"></a></span>
             <span class="user-menu"><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}"></a></span>
-            <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout badge badge-secondary" th:text="#{title.logout}"></span></a>
+            <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout badge bg-secondary" th:text="#{title.logout}"></span></a>
         </div>
         <ul class="nav nav-tabs nm">
             <li class="nav-item myOrganizationList">
-                <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}" class="nav-link active">
+                <a href="#myOrganizationList" data-bs-toggle="tab" th:text="#{title.favorite}" class="nav-link active">
                 </a>
             </li>
             <li class="nav-item myProjectList">
-                <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}" class="nav-link">
+                <a href="#myProjectList" data-bs-toggle="tab" th:text="#{title.project}" class="nav-link">
                 </a>
             </li>
             <li class="nav-item myRecentIssueList">
-                <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}" class="nav-link">
+                <a href="#myRecentIssueList" data-bs-toggle="tab" th:text="#{title.recently.visited.issue}" class="nav-link">
                 </a>
             </li>
         </ul>
@@ -41,20 +41,20 @@
         <li class="gnb-usermenu-item" th:if="${!#strings.isEmpty(site.navbarCustomLinkName)}">
             <a th:href="${site.navbarCustomLinkUrl}" class="user-item-btn loggged-in" th:text="${site.navbarCustomLinkName}"></a>
         </li>
-       <li class="gnb-usermenu-item" data-toggle="tooltip" data-placement="bottom" th:title="#{title.shortcut} + ' (A)'">
+       <li class="gnb-usermenu-item" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="#{title.shortcut} + ' (A)'">
            <a th:href="@{/user/issues}" class="user-item-btn loggged-in"><th:block th:text="#{issue.myIssue}"></th:block><span th:if="${currentUser.openIssueCount > 0}" class="counter-badge" th:text="${currentUser.openIssueCount}"></span></a>
         </li>
         <li class="divider"></li>
         <th:block th:if="${currentUser.siteManager}">
         <li class="gnb-usermenu-item">
-            <a th:href="@{/sites/userList}" data-toggle="tooltip" th:title="#{menu.siteAdmin}" data-placement="bottom" class="usermenu-icon-button show-progress-bar">
+            <a th:href="@{/sites/userList}" data-bs-toggle="tooltip" th:title="#{menu.siteAdmin}" data-bs-placement="bottom" class="usermenu-icon-button show-progress-bar">
                 <i class="yobicon-wrench"></i>
             </a>
         </li>
         <li class="divider"></li>
         </th:block>
         <li class="gnb-usermenu-dropdown sidebar-open-btn" id="sidebar-open-btn">
-            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="tooltip" data-placement="bottom" th:title="#{user.menu} + ', ' + #{title.shortcut} + ' (F)'">
+            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="#{user.menu} + ', ' + #{title.shortcut} + ' (F)'">
                 <span class="avatar-wrap smaller">
                     <img th:src="${currentUser.avatarUrl(32)}" />
                 </span>
@@ -62,7 +62,7 @@
             </a>
         </li>
       <li class="gnb-usermenu-dropdown">
-          <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
+          <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-bs-toggle="dropdown">
               <i class="yobicon-plus"></i>
               <span class="caret"></span>
           </a>

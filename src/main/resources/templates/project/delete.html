@@ -26,14 +26,14 @@
             </div>
         </div>
         <div class="box-wrap bottom">
-            <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" ><!--
+            <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-bs-toggle="modal" ><!--
              --><i class="yobicon-database-remove"></i> <th:block th:text="#{project.delete.this}"></th:block></a>
         </div>
 
         <!--/* Confirm to delete project */-->
         <div id="alertDeletion" class="modal"><div class="modal-dialog"><div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <h3 th:text="#{project.delete.requestion}"></h3>
             </div>
             <div class="modal-body">
@@ -42,7 +42,7 @@
             </div>
             <div class="modal-footer">
                 <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
-                <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+                <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
             </div>
         </div></div></div>
         <!--/* // -- // */-->

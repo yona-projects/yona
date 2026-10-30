@@ -16,36 +16,36 @@
     </div>
 
     <div class="thread-header">
-        <span th:class="'badge badge-pill state ' + ${thread.state}" th:text="#{'issue.state.' + ${thread.state}}"></span>
-        <span th:if="${thread.pending}" class="badge badge-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
+        <span th:class="'badge rounded-pill state ' + ${thread.state}" th:text="#{'issue.state.' + ${thread.state}}"></span>
+        <span th:if="${thread.pending}" class="badge bg-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
         <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
     </div>
 
     <ul class="comments">
         <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" th:class="'comment' + (${c.pending} ? ' comment-pending' : '')">
             <div class="comment-avatar">
-                <a th:href="${c.userHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.name}">
+                <a th:href="${c.userHref}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.name}">
                     <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
                 </a>
             </div>
             <div class="media-body">
                 <div class="meta-info">
-                    <span class="comment_author float-left">
-                        <a th:href="${c.userHref}" data-toggle="tooltip" data-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
+                    <span class="comment_author float-start">
+                        <a th:href="${c.userHref}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
                     </span>
                     <span class="ago"><a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a></span>
                     <span th:if="${c.edited}" class="comment-edited ago" th:text="'(' + #{reviewComment.edited} + ')'"></span>
-                    <span th:if="${c.pending and !thread.pending}" class="badge badge-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
+                    <span th:if="${c.pending and !thread.pending}" class="badge bg-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
                     <!--/* 댓글 고치기(GitHub 기준, D-38 7번): 작성자와 수정 권한자에게만 보인다. 원문은 숨긴 입력란에 있고 yona.review.CommentEdit.js가 그 자리에서 고친다 */-->
-                    <span class="edit float-right" th:if="${c.editUrl != null}">
-                        <button type="button" class="btn-transparent float-right close comment-edit" th:attr="data-url=${c.editUrl}" th:title="#{common.comment.edit}"><i class="yobicon-edit"></i></button>
+                    <span class="edit float-end" th:if="${c.editUrl != null}">
+                        <button type="button" class="btn-transparent float-end btn-icon-close comment-edit" th:attr="data-url=${c.editUrl}" th:title="#{common.comment.edit}"><i class="yobicon-edit"></i></button>
                     </span>
-                    <span class="edit float-right" th:if="${c.deleteUrl != null and !c.pending}">
-                        <button class="btn-transparent float-right close" data-toggle="comment-delete" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                    <span class="edit float-end" th:if="${c.deleteUrl != null and !c.pending}">
+                        <button class="btn-transparent float-end btn-icon-close" data-toggle="comment-delete" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
                     </span>
                     <!--/* 임시 댓글은 본인만 지우며 POST로 보낸다(공개 댓글의 삭제 경로는 숨겨진 행을 찾지 못한다) */-->
-                    <span class="edit float-right" th:if="${c.deleteUrl != null and c.pending}">
-                        <button type="button" class="btn-transparent float-right close" data-request-method="post" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{pullRequest.review.pending.delete}"><i class="yobicon-trash"></i></button>
+                    <span class="edit float-end" th:if="${c.deleteUrl != null and c.pending}">
+                        <button type="button" class="btn-transparent float-end btn-icon-close" data-request-method="post" th:attr="data-request-uri=${c.deleteUrl}" th:title="#{pullRequest.review.pending.delete}"><i class="yobicon-trash"></i></button>
                     </span>
                 </div>
                 <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}" th:utext="${c.bodyHtml}"></div>
@@ -67,18 +67,18 @@
     <ul class="comments">
         <li th:each="c : ${thread.comments}" th:id="'comment-' + ${c.id}" class="comment">
             <div class="comment-avatar">
-                <a th:href="${c.userHref}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.name}">
+                <a th:href="${c.userHref}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.name}">
                     <img th:src="${c.avatarUrl}" width="32" height="32" th:alt="${c.loginId}">
                 </a>
             </div>
             <div class="media-body">
                 <div class="meta-info">
-                    <span class="comment_author float-left">
-                        <a th:href="${c.userHref}" data-toggle="tooltip" data-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
+                    <span class="comment_author float-start">
+                        <a th:href="${c.userHref}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.name}"><strong th:text="${c.loginId} + ' '"></strong></a>
                     </span>
                     <span class="ago"><a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a></span>
-                    <span class="edit float-right" th:if="${c.deleteUrl != null}">
-                        <button class="btn-transparent float-right close" data-request-method="delete" th:attr="data-request-uri=${c.deleteUrl}"><i class="yobicon-trash"></i></button>
+                    <span class="edit float-end" th:if="${c.deleteUrl != null}">
+                        <button class="btn-transparent float-end btn-icon-close" data-request-method="delete" th:attr="data-request-uri=${c.deleteUrl}"><i class="yobicon-trash"></i></button>
                     </span>
                 </div>
                 <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}" th:utext="${c.bodyHtml}"></div>
@@ -96,9 +96,9 @@
     <div class="write-comment-form">
         <form th:action="${f.action}" method="post" enctype="multipart/form-data" class="review-form" style="display:block;">
             <input type="hidden" name="thread.id" th:value="${f.threadId}">
-            <div class="author-info-wrap float-left hide-in-mobile">
+            <div class="author-info-wrap float-start hide-in-mobile">
                 <div class="author-info">
-                    <a th:href="${f.userHref}" class="avatar-wrap medium" th:title="${f.userName}" data-toggle="tooltip" data-placement="top"><img th:src="${f.avatarUrl}" width="32" height="32"></a>
+                    <a th:href="${f.userHref}" class="avatar-wrap medium" th:title="${f.userName}" data-bs-toggle="tooltip" data-bs-placement="top"><img th:src="${f.avatarUrl}" width="32" height="32"></a>
                 </div>
             </div>
             <div class="write-comment-box">

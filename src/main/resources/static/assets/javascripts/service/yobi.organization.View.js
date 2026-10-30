@@ -51,7 +51,7 @@
         }
 
         function _onGroupClickLeaveBtn(){
-            htElement.welAlertLeave.modal("show");
+            bootstrap.Modal.getOrCreateInstance(htElement.welAlertLeave[0]).show();
         }
 
         function _onClickLeaveBtn(){
@@ -83,7 +83,7 @@
                 sErrorMsg = Messages("organization.member.leave.unknownerror");
             }
 
-            htElement.welAlertLeave.modal("hide");
+            bootstrap.Modal.getOrCreateInstance(htElement.welAlertLeave[0]).hide();
             $yobi.notify(sErrorMsg, 3000);
         }
 

@@ -15,7 +15,7 @@
 <div class="page-wrap-outer">
     <div class="post-list project-page-wrap">
         <div class="search-wrap underline">
-            <form id="option_form" th:action="${base + '/posts'}" method="get" class="float-left">
+            <form id="option_form" th:action="${base + '/posts'}" method="get" class="float-start">
                 <input type="hidden" name="orderBy" th:value="${orderBy}">
                 <input type="hidden" name="orderDir" th:value="${cond.orderDir}">
                 <div class="search-bar">
@@ -27,7 +27,7 @@
                 </div>
                 <th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block>
             </form>
-            <div class="float-right">
+            <div class="float-end">
                 <a th:href="${base + '/postform'}" class="ybtn ybtn-success" th:text="#{post.write}"></a>
             </div>
         </div>

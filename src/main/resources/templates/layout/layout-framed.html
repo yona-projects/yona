@@ -61,7 +61,7 @@
         $(function() {
             NProgress.configure({minimum: 0.7});
 
-            $('[data-toggle="popover"]').popover();
+            $('[data-bs-toggle="popover"]').each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
         });
     </script>
     <script type="text/javascript" th:inline="javascript">

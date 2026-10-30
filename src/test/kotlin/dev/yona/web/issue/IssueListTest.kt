@@ -126,7 +126,7 @@ class IssueListTest : AbstractIntegrationTest() {
         assertEquals(listOf("Open2", "Closed1"), tabs.map { it.text().replace(" ", "") })
         assertTrue(tabs[0].selectFirst("a")!!.hasClass("active"))
         assertEquals("closed", tabs[1].selectFirst("a")!!.attr("state"))
-        assertEquals("${base(project)}/issueform", doc.selectFirst("#span10 .float-right a.ybtn-success")!!.attr("href"))
+        assertEquals("${base(project)}/issueform", doc.selectFirst("#span10 .float-end a.ybtn-success")!!.attr("href"))
     }
 
     @Test

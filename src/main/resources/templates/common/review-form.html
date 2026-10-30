@@ -10,16 +10,16 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="reviewForm(resourceType, action, pendingCount)">
 <div id="review-form" class="review-form">
     <form th:action="${action}" method="post" enctype="multipart/form-data">
-        <div class="author-info-wrap float-left hide-in-mobile">
+        <div class="author-info-wrap float-start hide-in-mobile">
             <div class="author-info">
-                <a th:href="@{/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap medium" data-toggle="tooltip" data-placement="top" title="" th:attr="data-original-title=${currentUser.name}">
+                <a th:href="@{/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap medium" data-bs-toggle="tooltip" data-bs-placement="top" title="" th:attr="data-bs-original-title=${currentUser.name}">
                     <img th:src="${currentUser.avatarUrl(64)}" width="32" height="32">
                 </a>
             </div>
         </div>
         <div class="write-comment-box">
             <div class="write-comment-wrap">
-                <div class="float-right"><button type="button" class="ybtn ybtn-default ybtn-small" data-toggle="close">&times;</button></div>
+                <div class="float-end"><button type="button" class="ybtn ybtn-default ybtn-small" data-toggle="close">&times;</button></div>
 
                 <th:block th:replace="~{common/editor :: editor('contents', '', '', 'code-review-body', false)}"></th:block>
 

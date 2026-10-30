@@ -23,7 +23,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
     	<div class="search-wrap">
-    		<div id="search" class="float-left">
+    		<div id="search" class="float-start">
     			<form th:action="@{/projects}" method="get">
     				<div class="search-bar">
                         <input name="filter" class="textbox" type="text" th:placeholder="#{site.project.filter}" th:value="${filter}" autofocus>
@@ -66,7 +66,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="stats-wrap float-right">
+                <div class="stats-wrap float-end">
                     <div class="members" th:if="${project.isPublic()}">
                         <ul class="list-unstyled">
                             <li th:each="member : ${row.members}">

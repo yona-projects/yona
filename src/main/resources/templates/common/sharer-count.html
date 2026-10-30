@@ -7,7 +7,7 @@
   매개변수: countNumber, showColorAlways
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sharerCount(countNumber, showColorAlways)">
-<a th:class="${showColorAlways} ? 'sharer-color'" data-toggle="tooltip" data-placement="bottom" th:title="#{issue.sharer}">
+<a th:class="${showColorAlways} ? 'sharer-color'" data-bs-toggle="tooltip" data-bs-placement="bottom" th:title="#{issue.sharer}">
     <span class="count-groups item-icon">
         <i class="yobicon-friends"></i>
     </span><span class="count-groups item-count strong" th:text="${countNumber}"></span></a>

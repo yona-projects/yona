@@ -14,7 +14,7 @@
     <li th:each="c : ${post.comments}" class="comment" th:classappend="${c.own} ? 'author'" th:id="'comment-' + ${c.id}">
         <th:block th:each="anchor : ${c.childAnchorIds}"><div th:id="'comment-' + ${anchor}"></div></th:block>
         <div class="comment-avatar">
-            <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.author.name}">
+            <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.name}">
                 <img th:src="${c.author.avatarUrl}" width="32" height="32" th:alt="${c.author.loginId}">
             </a>
         </div>
@@ -22,18 +22,18 @@
             <div class="meta-info">
                 <span class="comment_author">
                     <span class="resp-comment-avatar">
-                        <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${c.author.name}">
+                        <a th:href="'/' + ${c.author.loginId}" class="avatar-wrap" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.name}">
                             <img th:src="${c.author.avatarUrl}" width="32" height="32" th:alt="${c.author.name}">
                         </a>
                     </span>
-                    <a th:href="'/' + ${c.author.loginId}" data-toggle="tooltip" data-placement="top" th:title="${c.author.loginId}"><strong th:text="${c.author.name}"></strong></a>
+                    <a th:href="'/' + ${c.author.loginId}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.author.loginId}"><strong th:text="${c.author.name}"></strong></a>
                 </span>
                 <span class="ago-date">
                     <a th:href="'#comment-' + ${c.id}" class="ago" th:title="${c.createdTitle}" th:text="${c.createdAgo}"></a>
                     <a th:href="'#comment-' + ${c.id}" class="share-link" style="display: none">[Link]</a>
                 </span>
-                <span class="act-row float-right">
-                    <button th:if="${site.translationApiConfigured}" type="button" class="icon btn-transparent ml10 comment-translate" data-toggle="tooltip" th:attr="data-comment-id=${c.id}" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+                <span class="act-row float-end">
+                    <button th:if="${site.translationApiConfigured}" type="button" class="icon btn-transparent ml10 comment-translate" data-bs-toggle="tooltip" th:attr="data-comment-id=${c.id}" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
 
                     <button th:if="${c.canRead}" type="button" class="btn-transparent ml10" data-toggle="comment-edit" th:attr="data-comment-id=${c.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
                     <button th:if="${c.canDelete}" type="button" class="btn-transparent ml6" data-toggle="comment-delete"

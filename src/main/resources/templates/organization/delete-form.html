@@ -17,14 +17,14 @@
         <th:block th:replace="~{organization/partial-settingmenu :: settingmenu(${org}, ${requestPath})}"></th:block>
 
         <div class="box-wrap bottom">
-            <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" ><!--
+            <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-bs-toggle="modal" ><!--
          --><th:block th:text="#{organization.delete.this}"></th:block></a>
         </div>
 
         <!--/* Confirm to delete organization */-->
         <div id="alertDeletion" class="modal"><div class="modal-dialog"><div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <h3 th:text="#{organization.delete.requestion}"></h3>
             </div>
             <div class="modal-body">
@@ -32,7 +32,7 @@
             </div>
             <div class="modal-footer">
                 <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}"></button>
-                <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+                <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
             </div>
         </div></div></div>
         <!--/* // -- // */-->
@@ -47,7 +47,7 @@
                 location.href = "/";
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                $("#alertDeletion").modal("hide");
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("alertDeletion")).hide();
                 var sErrorMsg;
                 try{
                     sErrorMsg = Messages($.parseJSON(jqXHR.responseText).errorMsg);

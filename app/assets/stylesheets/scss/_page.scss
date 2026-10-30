@@ -834,6 +834,7 @@
     @include inline-block;
     vertical-align:top;
     margin:2px !important;
+    min-height:20px; // Bootstrap 2의 `.checkbox`가 주던 최소 높이
     // v1.6에서는 `<label class="checkbox">`가 Bootstrap 2의 `label { line-height: 20px }`를 받았다. `div.form-check`는 부모의 줄 높이를 물려받으므로 명시한다.
     line-height:20px;
 }
@@ -841,6 +842,24 @@
 // v1.6의 `label.radio`는 자체 규칙 `.checkbox`의 여백을 받지 않았다. 라디오 래퍼(`form-check-radio`)는 BS4 기본 여백만 둔다.
 .form-check.form-check-radio {
     margin:0 !important;
+}
+
+// Bootstrap 5는 체크박스와 라디오를 직접 그린다(`appearance: none`과 배경 그림). v1.6 화면은 브라우저 기본 모양이었으므로 되돌린다.
+.form-check .form-check-input {
+    appearance: auto;
+    width: auto;
+    height: auto;
+    margin-top: 4px;
+    margin-left: -20px;
+    background-color: transparent;
+    border: 0;
+    border-radius: 0;
+    float: none;
+    position: absolute;
+}
+
+.form-check .form-check-label {
+    margin-bottom: 0;
 }
 
 // v1.6의 `.checkbox.inline`(Bootstrap 2)은 위쪽 안쪽 여백 5px를 가졌다.
@@ -2886,10 +2905,10 @@ label.inline-list {
         margin-right:20px;
         color: #999;
     }
-    .badge-pill { color:#fff; }
+    .rounded-pill { color:#fff; }
 }
 
-.badge-pill {
+.rounded-pill {
     margin-right:25px;
     font-weight:bold;
     color:#FFF;
@@ -4334,7 +4353,7 @@ label.issue-item-row {
     margin-left:-170px;
     text-align:left;
 
-    .close { margin-top:-2px; }
+    .btn-icon-close { margin-top:-2px; }
 
     li {
         margin-bottom:10px;
@@ -5991,7 +6010,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     .thread-header{
         padding: 5px 10px 10px 10px;
 
-        .badge-pill {
+        .rounded-pill {
             margin:0; padding:2px 10px;
         }
         .thread-info {
@@ -7888,11 +7907,15 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   min-height: 1px;
 }
 
+// 폼의 한 줄. v1.6은 Bootstrap 2의 `control-group`(아래 여백 20px)이었고 BS5에는 `form-group`이 없어 이 사이트의 자체 클래스로 둔다.
+.form-field {
+    margin-bottom: 20px;
+}
+
 // 가로 폼. v1.6의 `.form-horizontal`은 Bootstrap 2의 모양이다: 라벨은 왼쪽에 160px 폭으로 오른쪽 정렬하고, 입력 영역은 180px 들여 쓴다. Bootstrap 4에서 `.form-horizontal`이 없어졌으므로
 // 이 사이트의 자체 클래스로 두고, 라벨은 안내서대로 `col-form-label`을 쓴다.
 .form-horizontal {
-    .form-group {
-        margin-bottom: 20px;
+    .form-field {
 
         &::before, &::after {
             display: table;

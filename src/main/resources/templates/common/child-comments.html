@@ -8,14 +8,14 @@
   대댓글 등록 주소는 v1.6 라우트를 따른다: 이슈는 `/issue/N/comments`, 게시글은 `/post/N/comment`(단수)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="childComments(comment, baseUrl, number, commentsPath)">
-<div class="add-a-comment float-right" th:text="#{comment.oneline.comment.placeholder}"></div>
+<div class="add-a-comment float-end" th:text="#{comment.oneline.comment.placeholder}"></div>
 <div class="subcomment-media-body">
     <div class="child-comments">
         <div th:each="child : ${comment.children}" class="one-line-comment">
             <div class="contents">
                 <th:block th:utext="${child.contentsHtml}"></th:block>
                 <span class="subcomment-author hide">
-                    - <a th:href="'/' + ${child.authorLoginId}" class="usf-group" data-toggle="tooltip" data-placement="top" th:title="${child.authorLoginId}"><strong th:text="${child.authorPureName}"></strong></a>
+                    - <a th:href="'/' + ${child.authorLoginId}" class="usf-group" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${child.authorLoginId}"><strong th:text="${child.authorPureName}"></strong></a>
                     <a th:href="'#comment-' + ${child.id}" class="ago" th:title="${child.createdTitle}" th:text="${child.createdAgo}"></a>
                     <a th:if="${child.canDelete}" href="javascript:void(0)" type="button" class="btn-transparent deleteButtonX" data-toggle="comment-delete"
                        th:attr="data-request-uri=${baseUrl + '/' + commentsPath + '/' + number + '/comment/' + child.id + '/delete'}" th:title="#{common.comment.delete}">x</a></span>

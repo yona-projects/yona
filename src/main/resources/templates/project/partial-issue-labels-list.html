@@ -30,10 +30,10 @@
 
         <p class="mt5">
           <i th:if="${group.category.exclusive}" class="category-exclusive yobicon-tag single"
-             data-toggle="tooltip" data-html="true"
+             data-bs-toggle="tooltip" data-bs-html="true"
              th:title="#{label.category.option} + '&lt;br&gt;' + #{label.category.option.single}"></i>
           <i th:unless="${group.category.exclusive}" class="category-exclusive yobicon-tags multiple"
-             data-toggle="tooltip" data-html="true"
+             data-bs-toggle="tooltip" data-bs-html="true"
              th:title="#{label.category.option} + '&lt;br&gt;' + #{label.category.option.multiple}"></i>
           <button th:if="${group.canUpdate}" type="button" class="ybtn ybtn-mini"
                   th:attr="data-project-id=${project.id}, data-category-id=${group.category.id}, data-category-name=${group.category.name},

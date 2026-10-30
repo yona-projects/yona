@@ -19,7 +19,7 @@
             <div class="index-comment-author">
                 <span th:if="${c.childCount > 0}" class="comment-exists"><i class="yobicon-comment2"></i><th:block th:if="${c.childCount > 1}" th:text="${c.childCount}"></th:block></span>
                 <span class="comment_author">
-                    <a th:href="'/' + ${c.authorLoginId}" data-toggle="tooltip" data-placement="top" th:title="${c.authorLoginId}"><strong th:text="${c.authorPureName}"></strong></a>
+                    <a th:href="'/' + ${c.authorLoginId}" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${c.authorLoginId}"><strong th:text="${c.authorPureName}"></strong></a>
                 </span>
                 <span class="ago-date">
                     <a th:href="'#comment-' + ${c.id}" class="ago" th:title="${c.createdTitle}" th:text="${c.createdAgo}"></a>

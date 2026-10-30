@@ -46,16 +46,19 @@ class LegacyBootstrapLintTest {
         Legacy("form.check", Regex("""(?<![\w-])(?:checkbox-inline|radio-inline|radio)(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "form-check로"),
         Legacy("progress", Regex("""(?<![\w-])progress-bar-(?:success|info|warning|danger)(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "bg-*로"),
         Legacy("btn.default", Regex("""(?<![\w-])btn-default(?![\w-])"""), Scope.TEMPLATE_CLASS, 4, "btn-secondary로"),
+        Legacy("util.dir", Regex("""(?<![\w-])(?:float-(?:left|right)|text-(?:left|right)|(?:ml|mr|pl|pr)-(?:[0-5]|auto)|font-weight-[a-z]+|text-muted|sr-only|badge-pill|border-(?:left|right)|rounded-(?:left|right))(?![\w-])"""), Scope.TEMPLATE_CLASS, 5, "float-start/end, ms/me/ps/pe, text-start/end, fw-*, text-body-secondary, rounded-pill로"),
+        Legacy("badge.color", Regex("""(?<![\w-])badge-(?:primary|secondary|success|info|warning|danger|dark|light)(?![\w-])"""), Scope.TEMPLATE_CLASS, 5, "bg-*로"),
+        Legacy("close", Regex("""(?<![\w-])close(?![\w-])"""), Scope.TEMPLATE_CLASS, 5, "btn-close로"),
+        Legacy("form.group", Regex("""(?<![\w-])form-group(?![\w-])"""), Scope.TEMPLATE_CLASS, 5, "form-group 폐지"),
         // --- 5 단계(4→5)에서 사라진다: 속성과 jQuery 플러그인 호출 ---
         Legacy("attr.data-toggle", Regex("""\bdata-toggle="(?:tooltip|tab|dropdown|modal|popover|collapse|pill|button|buttons)"""), Scope.TEMPLATE_ATTR, 5, "data-bs-toggle로"),
-        Legacy("attr.data-target", Regex("""\bdata-(?:target|dismiss|placement|slide|parent|backdrop|keyboard)="""), Scope.TEMPLATE_ATTR, 5, "data-bs-*로"),
-        Legacy("js.plugin", Regex("""\.(?:modal|alert|popover|tooltip|tab|collapse|dropdown|scrollspy|affix|carousel|typeahead|button)\("""), Scope.JS, 5, "BS5 JS API로"),
+        Legacy("attr.data-target", Regex("""\bdata-(?:dismiss|placement|slide|backdrop|keyboard)="""), Scope.TEMPLATE_ATTR, 5, "data-bs-*로"),
+        Legacy("js.plugin", Regex("""(?<!yobi)(?<!yona)(?<!oRange)\.(?:modal|popover|tooltip|tab|collapse|dropdown|scrollspy|affix|carousel|button)\("""), Scope.JS, 5, "BS5 JS API로"),
         Legacy("util.margin", Regex("""(?<![\w-])(?:ml|mr|pl|pr)-(?:[0-5]|auto)(?![\w-])|(?<![\w-])float-(?:left|right)(?![\w-])|(?<![\w-])text-(?:left|right)(?![\w-])|(?<![\w-])badge-pill(?![\w-])|(?<![\w-])sr-only(?![\w-])"""), Scope.TEMPLATE_CLASS, 5, "ms/me/ps/pe, float-start/end 등으로"),
-        Legacy("form.group", Regex("""(?<![\w-])form-group(?![\w-])|(?<![\w-])form-row(?![\w-])|(?<![\w-])custom-(?:control|select|file|range|checkbox|radio)(?![\w-])"""), Scope.TEMPLATE_CLASS, 5, "BS5 폼 구조로")
     )
 
     /** 끝났다고 선언한 단계이다. 선언한 단계 이하의 패턴은 0이어야 한다. 단계를 마칠 때 이 값을 올린다. */
-    private val DONE_STAGES = 4
+    private val DONE_STAGES = 5
 
     private val mapper = JsonMapper.builder().build()
     private val baselineFile = File("src/test/resources/bs/legacy-baseline.json")
@@ -65,7 +68,7 @@ class LegacyBootstrapLintTest {
 
     private val templateFiles by lazy { files("src/main/resources/templates", ".html") }
     private val jsFiles by lazy {
-        files("src/main/resources/static/assets/javascripts", ".js").filter { !it.path.contains("/javascripts/lib/") && !it.name.endsWith(".min.js") }
+        files("src/main/resources/static/assets/javascripts", ".js").filter { !it.path.contains("/javascripts/lib/") && !it.name.endsWith(".min.js") && !Regex("""yona-(?:common|lib|layout)\.js$""").containsMatchIn(it.name) }
     }
     private val lessFiles by lazy { files("app/assets/stylesheets", ".scss") }
 

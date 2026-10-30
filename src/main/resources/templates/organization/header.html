@@ -16,7 +16,7 @@
             </div>
             <div th:if="${view.guest}" class="project-util-wrap">
                 <ul class="project-util">
-                    <button class="ybtn ybtn-small dropdown-toggle" th:classappend="${view.enrolled} ? 'ybtn-info'" type="button" data-toggle="dropdown">
+                    <button class="ybtn ybtn-small dropdown-toggle" th:classappend="${view.enrolled} ? 'ybtn-info'" type="button" data-bs-toggle="dropdown">
                         <i class="yobicon-addfriend"></i> <th:block th:text="#{organization.member.enrollment.title}"></th:block>
                     </button>
                     <div class="dropdown-menu flat right title">

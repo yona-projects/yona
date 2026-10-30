@@ -15,7 +15,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="tab-wrap">
-            <div th:if="${canCreate}" class="float-right btns">
+            <div th:if="${canCreate}" class="float-end btns">
                 <a th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-success" th:text="#{milestone.menu.new}"></a>
             </div>
 
@@ -48,7 +48,7 @@
                        th:href="${urlToList + '?orderBy=' + field + '&orderDir=asc&state=' + state}"><i class="ico btn-gray-arrow"></i><th:block th:text="#{${field == 'dueDate' ? 'common.order.dueDate' : 'common.order.completionRate'}}"></th:block></a>
                 </th:block>
             </div>
-            <div class="float-left search search-bar">
+            <div class="float-start search search-bar">
                 <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" value="">
                 <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
             </div>
@@ -94,7 +94,7 @@
                                         </span>
                                     </th:block>
                                 </th:block>
-                                <div class="float-right">
+                                <div class="float-end">
                                     <span class="number completion-rate"><th:block th:if="${status.openCount + status.closedCount > 0}"> <th:block th:text="${status.completionRate}"></th:block> % </th:block></span>
                                 </div>
                             </div>
@@ -115,7 +115,7 @@
                                             <span class="number" th:text="'#' + ${issue.number}"></span>
                                             <th:block th:text="${issue.title}"></th:block>
                                             <th:block th:if="${issue.assigneeName != null}"> - <th:block th:text="${issue.assigneeName}"></th:block></th:block>
-                                            <a th:each="label : ${issue.labels}" href="#" class="badge issue-label list-label active badge-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                                            <a th:each="label : ${issue.labels}" href="#" class="badge issue-label list-label active bg-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
                                         </span>
                                     </div>
                                 </a>
@@ -131,7 +131,7 @@
                                             <span class="number" th:text="'#' + ${issue.number}"></span>
                                             <th:block th:text="${issue.title}"></th:block>
                                             <th:block th:if="${issue.assigneeName != null}"> - <th:block th:text="${issue.assigneeName}"></th:block></th:block>
-                                            <a th:each="label : ${issue.labels}" href="#" class="badge issue-label list-label active badge-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
+                                            <a th:each="label : ${issue.labels}" href="#" class="badge issue-label list-label active bg-secondary" th:attr="data-category-id=${label.categoryId}, data-label-id=${label.id}" th:text="${label.name}"></a>
                                         </span>
                                     </div>
                                 </a>

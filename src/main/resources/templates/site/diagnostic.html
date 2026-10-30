@@ -11,7 +11,7 @@
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::diagnosticPage})}">
 <th:block th:fragment="diagnosticPage">
     <div class="title_area">
-        <h2 class="float-left" th:text="#{site.sidebar.diagnostics}"></h2>
+        <h2 class="float-start" th:text="#{site.sidebar.diagnostics}"></h2>
     </div>
 
     <p th:if="${errors.isEmpty()}" th:text="#{site.diagnostic.errorNotFound}"></p>

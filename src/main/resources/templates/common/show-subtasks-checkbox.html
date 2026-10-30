@@ -6,7 +6,7 @@
   이식 원본: app/views/common/showSubtasksCheckbox.scala.html
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="showSubtasksCheckbox">
-<div class="show-subtasks mr10" id="two-column-mode-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" th:title="#{common.show.subtasks}" th:attr="data-content=#{common.show.subtasks.desc}">
+<div class="show-subtasks mr10" id="two-column-mode-checkbox" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top" th:title="#{common.show.subtasks}" th:attr="data-bs-content=#{common.show.subtasks.desc}">
     <div class="form-check"><label class="form-check-label">
         <div class="show-subtasks-button-border">
             <input id="toggle-show-subtasks" type="checkbox" class="form-check-input"><span class="show-subtasks-text" th:text="#{common.show.subtasks}"></span>

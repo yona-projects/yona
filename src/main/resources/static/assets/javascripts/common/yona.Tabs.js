@@ -16,7 +16,7 @@
 (function ($) {
     "use strict";
 
-    $(document).on("shown.bs.tab", 'ul.nav-subtab a[data-toggle="tab"], ul.lst-stacked a[data-toggle="tab"]', function () {
+    $(document).on("shown.bs.tab", 'ul.nav-subtab a[data-bs-toggle="tab"], ul.lst-stacked a[data-bs-toggle="tab"]', function () {
         $(this).parent("li").addClass("active").siblings("li").removeClass("active");
     });
 })(jQuery);

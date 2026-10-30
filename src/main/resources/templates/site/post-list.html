@@ -11,7 +11,7 @@
       th:replace="~{layout/site-mng-layout :: siteMngLayout(#{__${title}__}, ~{::listPage})}">
 <th:block th:fragment="listPage">
     <div class="title_area">
-        <h2 class="float-left" th:text="#{site.sidebar.postList}"></h2>
+        <h2 class="float-start" th:text="#{site.sidebar.postList}"></h2>
     </div>
     <ul class="post-list-wrap">
         <li th:each="row : ${rows}" class="row listitem">

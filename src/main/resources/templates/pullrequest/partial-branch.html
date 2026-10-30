@@ -10,7 +10,7 @@
 <div class="pullRequest-branchInfo">
     <i class="yobicon-branch ml0"></i>
 
-    <code class="from" data-toggle="tooltip" th:attr="data-original-title=#{pullRequest.from}">
+    <code class="from" data-bs-toggle="tooltip" th:attr="data-bs-original-title=#{pullRequest.from}">
         <a th:href="${branchInfo.fromOwnerUrl}" th:text="${branchInfo.fromOwner}"></a><span>/</span><!--
      --><a th:href="${branchInfo.fromProjectUrl}" th:text="${branchInfo.fromName}"></a>:
         <a th:href="${branchInfo.fromBranchUrl}" class="branchName" th:text="${branchInfo.fromBranch}"></a>
@@ -18,7 +18,7 @@
 
     <i class="yobicon-right-2 ml10"></i>
 
-    <code class="to" data-toggle="tooltip" th:attr="data-original-title=#{pullRequest.to}">
+    <code class="to" data-bs-toggle="tooltip" th:attr="data-bs-original-title=#{pullRequest.to}">
         <a th:href="${branchInfo.toOwnerUrl}" th:text="${branchInfo.toOwner}"></a><span>/</span><!--
      --><a th:href="${branchInfo.toProjectUrl}" th:text="${branchInfo.toName}"></a>:
         <a th:href="${branchInfo.toBranchUrl}" class="branchName" th:text="${branchInfo.toBranch}"></a>

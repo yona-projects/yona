@@ -23,7 +23,7 @@
         </div>
         <div class="search-meta-info">
             <a th:if="${row.projectLabel != null}" th:href="@{${row.projectUrl}}" class="project-link meta-item" th:text="${row.projectLabel}"></a>
-            <a th:if="${row.authorName != null}" th:href="@{/{u}(u=${row.authorLoginId})}" class="meta-item" data-toggle="tooltip" data-placement="top" th:title="${row.authorLoginId}" th:text="${row.authorName}"></a>
+            <a th:if="${row.authorName != null}" th:href="@{/{u}(u=${row.authorLoginId})}" class="meta-item" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${row.authorLoginId}" th:text="${row.authorName}"></a>
             <span th:unless="${row.authorName != null}" class="meta-item" th:text="${row.noAuthorText}"></span>
             <span class="meta-item" th:title="${row.createdTitle}" th:text="${row.createdText}"></span>
         </div>

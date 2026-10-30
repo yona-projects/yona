@@ -16,7 +16,7 @@
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${base + '/setting/rulesets'})}"></th:block>
 
         <div class="clearfix mt10 mb10">
-            <a id="newRuleset" class="ybtn ybtn-success float-right" th:href="${base + '/setting/rulesets/new'}" th:text="#{project.ruleset.new}"></a>
+            <a id="newRuleset" class="ybtn ybtn-success float-end" th:href="${base + '/setting/rulesets/new'}" th:text="#{project.ruleset.new}"></a>
             <p class="form-text" th:text="#{project.ruleset.description}"></p>
         </div>
         <div id="rulesetMigrated" class="alert alert-info" th:if="${migrated}" th:text="#{project.ruleset.legacy}"></div>
@@ -32,24 +32,24 @@
             </thead>
             <tbody>
             <tr th:if="${#lists.isEmpty(rulesets)}" class="ruleset-empty">
-                <td colspan="4" class="text-muted" th:text="#{project.ruleset.empty}"></td>
+                <td colspan="4" class="text-body-secondary" th:text="#{project.ruleset.empty}"></td>
             </tr>
             <tr th:each="r : ${rulesets}" class="ruleset-row">
                 <td class="ruleset-name"><a th:href="${base + '/setting/rulesets/' + r.id}" th:text="${r.name}"></a></td>
                 <td class="ruleset-target"><code th:text="${r.pattern}"></code></td>
                 <td class="ruleset-enforcement">
-                    <span class="badge badge-secondary" th:classappend="${r.active} ? 'badge-success'"
+                    <span class="badge bg-secondary" th:classappend="${r.active} ? 'bg-success'"
                           th:text="${r.active} ? #{project.ruleset.enforcement.active} : #{project.ruleset.enforcement.disabled}"></span>
                 </td>
                 <td class="ruleset-rules">
-                    <span class="badge badge-info" th:if="${r.requiredApprovals > 0}" th:text="#{project.ruleset.summary.approvals(${r.requiredApprovals})}"></span>
-                    <span class="badge badge-secondary" th:if="${r.requirePullRequest == true}" th:text="#{project.ruleset.rule.pr.short}"></span>
-                    <span class="badge badge-secondary" th:if="${r.requireNoChangesRequested == true}" th:text="#{project.ruleset.rule.changes.short}"></span>
-                    <span class="badge badge-secondary" th:if="${r.requireConversationResolution == true}" th:text="#{project.ruleset.rule.conversation.short}"></span>
-                    <span class="badge badge-secondary" th:if="${r.requireLinearHistory == true}" th:text="#{project.ruleset.rule.linear.short}"></span>
-                    <span class="badge badge-warning" th:if="${r.restrictUpdates == true}" th:text="#{project.ruleset.rule.updates.short}"></span>
-                    <span class="badge badge-secondary" th:if="${r.restrictDeletions == true}" th:text="#{project.ruleset.rule.deletions.short}"></span>
-                    <span class="badge badge-secondary" th:if="${r.blockForcePushes == true}" th:text="#{project.ruleset.rule.force.short}"></span>
+                    <span class="badge bg-info" th:if="${r.requiredApprovals > 0}" th:text="#{project.ruleset.summary.approvals(${r.requiredApprovals})}"></span>
+                    <span class="badge bg-secondary" th:if="${r.requirePullRequest == true}" th:text="#{project.ruleset.rule.pr.short}"></span>
+                    <span class="badge bg-secondary" th:if="${r.requireNoChangesRequested == true}" th:text="#{project.ruleset.rule.changes.short}"></span>
+                    <span class="badge bg-secondary" th:if="${r.requireConversationResolution == true}" th:text="#{project.ruleset.rule.conversation.short}"></span>
+                    <span class="badge bg-secondary" th:if="${r.requireLinearHistory == true}" th:text="#{project.ruleset.rule.linear.short}"></span>
+                    <span class="badge bg-warning" th:if="${r.restrictUpdates == true}" th:text="#{project.ruleset.rule.updates.short}"></span>
+                    <span class="badge bg-secondary" th:if="${r.restrictDeletions == true}" th:text="#{project.ruleset.rule.deletions.short}"></span>
+                    <span class="badge bg-secondary" th:if="${r.blockForcePushes == true}" th:text="#{project.ruleset.rule.force.short}"></span>
                 </td>
             </tr>
             </tbody>

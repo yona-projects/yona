@@ -12,8 +12,8 @@
 <th:block th:fragment="userListPage">
     <div class="title_area">
 
-        <h2 class="float-left" th:text="#{site.sidebar.userList}"></h2>
-        <form class="float-right" th:action="@{/sites/userList}">
+        <h2 class="float-start" th:text="#{site.sidebar.userList}"></h2>
+        <form class="float-end" th:action="@{/sites/userList}">
             <input type="hidden" name="state" th:value="${userState}" />
             <div class="search-bar">
                 <input class="textbox" name="query" type="text" th:placeholder="#{site.userList.search}" th:value="${query}">
@@ -67,7 +67,7 @@
                 <a class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.lockUrl}}"
                    th:text="#{'button.user.makeAccountUnlock.' + ${row.state == 'LOCKED'}}"></a>
                 <button th:id="${row.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:attr="data-href=@{${row.resetPasswordUrl}}"> <th:block th:text="#{title.resetPassword}"></th:block></button>
-                <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info' : 'badge-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
+                <a class="ybtn ybtn-small" th:classappend="${row.siteManager} ? 'ybtn-info' : 'bg-info'" data-request-method="post" th:attr="data-request-uri=@{${row.siteAdminUrl}}"
                    th:text="${row.siteManager} ? #{button.user.revoke.site.admin.role} : #{button.user.upgrade.to.site.admin}"></a>
                 <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" th:attr="data-href=@{${row.deleteUrl}}, data-user-id=${row.loginId}, data-user-name=${row.name}" th:text="#{button.delete}"></button>
             </div>
@@ -79,7 +79,7 @@
 
     <div id="alertDeletionWrap" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">×</button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <span id="userInfo"></span>
             <span th:text="#{site.user.delete}"></span>
         </div>
@@ -88,7 +88,7 @@
         </div>
         <div class="modal-footer">
             <a id="accountToggleBtn" class="ybtn ybtn-danger" th:text="#{button.yes}"></a>
-            <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+            <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
         </div>
     </div></div></div>
 
@@ -111,7 +111,7 @@
                         }
                     });
             $('#userInfo').html($(this).data('userName')+'('+$(this).data('userId')+')');
-            $('#alertDeletionWrap').modal('show');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('alertDeletionWrap')).show();
         })
         .on('click','[data-toggle="reset-password"]',function(){
             var that = $(this);
@@ -136,13 +136,13 @@
     </script>
     <script type="text/x-jquery-tmpl" id="dismissable-alerts">
         <div class="alert alert-success">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             <h4>[[#{user.newPassword}]]: ${newPassword}</h4>
         </div>
     </script>
     <script type="text/x-jquery-tmpl" id="dismissable-alerts-request">
         <div class="alert alert-fail alert-warning">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             <h4>sending requestHeader...</h4>
         </div>
     </script>

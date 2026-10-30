@@ -18,7 +18,7 @@
 </div>
 <header class="gnb-outer" th:classappend="${project != null or org != null} ? 'project-header'">
     <div class="gnb-inner">
-        <div class="pin" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i><i class="yobicon-arrow-right"></i></div>
+        <div class="pin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i><i class="yobicon-arrow-right"></i></div>
         <ul class="gnb-nav">
             <li>
                 <a th:href="@{/}" class="logo logo-letter">Y</a>
@@ -36,7 +36,7 @@
                 <form th:action="@{${searchLink}}" class="gnb-search-form" name="gnb-search-form">
                 <input type="hidden" name="searchType" value="auto">
                     <div class="btn-group" th:if="${project != null or org != null}">
-                        <button class="ybtn dropdown-toggle" data-toggle="dropdown" type="button" id="gnb-search-scope-title">
+                        <button class="ybtn dropdown-toggle" data-bs-toggle="dropdown" type="button" id="gnb-search-scope-title">
                             <th:block th:if="${project != null}" th:text="#{search.scope.project}"></th:block>
                             <th:block th:if="${project == null}" th:text="#{search.scope.group}"></th:block>
                         </button>

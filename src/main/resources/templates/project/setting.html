@@ -43,7 +43,7 @@
                             <label for="project-name" th:text="#{project.name.placeholder}"></label>
                         </dt>
                         <dd>
-                            <input id="project-name" type="text" name="name" data-trigger="popover" th:attr="data-content=#{project.transfer.description6}" data-placement="left" maxlength="250" th:value="${project.name}">
+                            <input id="project-name" type="text" name="name" data-bs-trigger="popover" th:attr="data-bs-content=#{project.transfer.description6}" data-bs-placement="left" maxlength="250" th:value="${project.name}">
                             <th:block th:if="${oldPlaceHtml != null}" th:utext="${oldPlaceHtml}"></th:block><br/>
                         </dd>
                         <dt>
@@ -181,7 +181,7 @@
     $(document).ready(function(){
         $yobi.loadModule("project.Setting");
 
-        $("#project-name").popover();
+        $("#project-name").each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
 
     });
 </script>

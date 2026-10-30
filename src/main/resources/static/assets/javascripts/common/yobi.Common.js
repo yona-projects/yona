@@ -113,7 +113,7 @@ $yobi = yobi.Common = (function(){
             oModule = oModule[sDepth];
         }
 
-        $("[data-toggle=popover]").popover();
+        $("[data-bs-toggle=popover]").each(function(){ bootstrap.Popover.getOrCreateInstance(this); });
 
         // temporary code for compatibility with nForge
         var oInstance;
@@ -414,6 +414,49 @@ $yobi = yobi.Common = (function(){
         return null;
     }
 
+    /**
+     * 요소에 팝오버를 띄운다. 이미 있던 팝오버는 없애고 새로 만든다.
+     * Bootstrap 5의 팝오버 API(`new bootstrap.Popover`)를 쓰며 jQuery 플러그인 호출(팝오버 만들기와 보이기)을 대신한다(X-38e).
+     *
+     * @param {Wrapped Element|Element} target 팝오버를 붙일 요소
+     * @param {Hash Table} htOptions 팝오버 옵션(placement, content, ...). `trigger`는 기본이 "manual"이다.
+     */
+    function showPopover(target, htOptions){
+        $(target).each(function(){
+            var oOld = bootstrap.Popover.getInstance(this);
+            if(oOld){
+                oOld.dispose();
+            }
+            new bootstrap.Popover(this, $.extend({"trigger": "manual"}, htOptions)).show();
+        });
+    }
+
+    /**
+     * 요소의 팝오버를 닫고 없앤다. 팝오버가 없으면 아무것도 하지 않는다.
+     *
+     * @param {Wrapped Element|Element} target 팝오버가 붙은 요소
+     */
+    function hidePopover(target){
+        $(target).each(function(){
+            var oPopover = bootstrap.Popover.getInstance(this);
+            if(oPopover){
+                oPopover.dispose();
+            }
+        });
+    }
+
+    /**
+     * 탭을 보인다(Bootstrap 5의 `bootstrap.Tab`). 대상이 없으면 아무것도 하지 않는다.
+     *
+     * @param {Wrapped Element|Element} target 탭의 링크
+     */
+    function showTab(target){
+        var elTab = $(target).get(0);
+        if(elTab){
+            bootstrap.Tab.getOrCreateInstance(elTab).show();
+        }
+    }
+
     function xssClean(str) {
       var filter = new Filter();
 
@@ -439,7 +482,10 @@ $yobi = yobi.Common = (function(){
         "tmpl"      : processTpl,
         "htmlspecialchars": htmlspecialchars,
         "isImageFile": isImageFile,
-        "xssClean" : xssClean
+        "xssClean" : xssClean,
+        "showPopover": showPopover,
+        "hidePopover": hidePopover,
+        "showTab": showTab
     };
 })();
 

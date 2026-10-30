@@ -171,7 +171,7 @@
 
             htElement.welAvatarCropImg.attr("src", oRes.url);
             htElement.welAvatarCropPreviewImg.attr("src", oRes.url);
-            htElement.welAvatarCropWrap.modal("show");
+            bootstrap.Modal.getOrCreateInstance(htElement.welAvatarCropWrap[0]).show();
         }
 
         /**
@@ -367,22 +367,11 @@
          * @param {String} sMessage
          */
         function _showPopover(welInput, sMessage){
-            welInput.popover({"trigger": "manual", "placement": "right"});
-
-            var oPopover = welInput.data('popover');
-            oPopover.options.placement = 'right';
-            oPopover.options.trigger   = 'manual';
-            oPopover.options.content   = sMessage;
-
-            welInput.popover('show');
+            $yobi.showPopover(welInput, {"placement": "right", "content": sMessage});
         }
 
         function _clearPopovers(){
-            try {
-                htElement.welFormPswd.find("input").each(function(i, v){
-                    $(v).popover("destroy");
-                });
-            } catch(e){} // to avoid bootstrap bug
+            $yobi.hidePopover(htElement.welFormPswd.find("input"));
         }
 
         function _onChangeNotiSwitch(){
@@ -405,7 +394,7 @@
         }
 
         function _showNotificationTab(){
-            $('#notification-projects a[href="' + location.hash + '"]').tab("show");
+            $yobi.showTab($('#notification-projects a[href="' + location.hash + '"]'));
         }
 
         _init(htOptions || {});

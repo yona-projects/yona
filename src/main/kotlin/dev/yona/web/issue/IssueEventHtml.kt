@@ -134,7 +134,7 @@ class IssueEventHtml(
         return if (milestone == null || milestone.id == NO_MILESTONE) {
             "<span class=\"bold\">${message("common.none")}</span>"
         } else {
-            "<span class=\"bold font-blue\"><a href=\"/${esc(project.owner)}/${esc(project.name)}/milestone/${milestone.id}\" data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"${message("milestone")}\">${esc(milestone.title)}</a></span>"
+            "<span class=\"bold font-blue\"><a href=\"/${esc(project.owner)}/${esc(project.name)}/milestone/${milestone.id}\" data-bs-toggle=\"tooltip\" data-bs-placement=\"bottom\" title=\"${message("milestone")}\">${esc(milestone.title)}</a></span>"
         }
     }
 
@@ -143,9 +143,9 @@ class IssueEventHtml(
         if (loginId == null) return "Anonymous"
         val user = users.findByLoginIdIgnoreCase(loginId)
         val avatar = if (showAvatar) {
-            "<a href=\"/${esc(loginId)}\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"${esc(name)}\"><img src=\"${esc(user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: "")}\" class=\"avatar-wrap small\"></a>\n"
+            "<a href=\"/${esc(loginId)}\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"${esc(name)}\"><img src=\"${esc(user?.let { avatars.avatarUrl(it, AVATAR_SIZE) } ?: "")}\" class=\"avatar-wrap small\"></a>\n"
         } else ""
-        return avatar + "<a href=\"/${esc(loginId)}\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"${esc(loginId)}\">\n<strong>${esc(name)}</strong></a>"
+        return avatar + "<a href=\"/${esc(loginId)}\" class=\"usf-group\" data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"${esc(loginId)}\">\n<strong>${esc(name)}</strong></a>"
     }
 
     private fun unknownName(): String = message("user.notExists.name")

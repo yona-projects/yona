@@ -49,11 +49,11 @@
     <th:block th:if="${state.branchActions != null}">
         <th:block th:if="${state.branchActions.deleteUrl != null}">
             <code th:text="${state.branchActions.fromBranchFull}"></code> <th:block th:text="#{pullRequest.delete.frombranch.message}"></th:block>
-            <button class="ybtn ybtn-danger ybtn-mini float-right" data-request-method="delete" th:attr="data-request-uri=${state.branchActions.deleteUrl}" th:text="#{pullRequest.delete.branch}"></button>
+            <button class="ybtn ybtn-danger ybtn-mini float-end" data-request-method="delete" th:attr="data-request-uri=${state.branchActions.deleteUrl}" th:text="#{pullRequest.delete.branch}"></button>
         </th:block>
         <th:block th:if="${state.branchActions.restoreUrl != null}">
             <code th:text="${state.branchActions.fromBranchFull}"></code> <th:block th:text="#{pullRequest.restore.frombranch.message}"></th:block>
-            <a th:href="${state.branchActions.restoreUrl}" class="ybtn ybtn-info ybtn-mini float-right" data-request-method="post" th:text="#{pullRequest.restore.branch}"></a>
+            <a th:href="${state.branchActions.restoreUrl}" class="ybtn ybtn-info ybtn-mini float-end" data-request-method="post" th:text="#{pullRequest.restore.branch}"></a>
         </th:block>
     </th:block>
 </div>

@@ -15,9 +15,9 @@
     <div class="project-page-wrap board-view">
         <!--/* Post Info */-->
         <div class="board-header issue">
-            <div class="float-right mr10 mt10 hide-in-mobile">
+            <div class="float-end mr10 mt10 hide-in-mobile">
                 <div class="date" th:title="${issue.createdTitle}" th:text="${issue.createdAgo}"></div>
-                <span class="badge badge-pill" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
+                <span class="badge rounded-pill" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
             </div>
             <div class="title">
                 <span th:if="${issue.hasParent}" class="subtask-mark">subtask</span>
@@ -26,9 +26,9 @@
                 <span class="favorite-issue" th:attr="data-issue-id=${issue.id}">
                     <i class="star material-icons va-text-top" th:classappend="${issue.favorite} ? 'starred'">star</i>
                 </span>
-                <div class="float-right hide show-in-mobile" style="font-size: 0.7em">
+                <div class="float-end hide show-in-mobile" style="font-size: 0.7em">
                     <span class="date" th:title="${issue.createdTitle}" th:text="${issue.createdAgo}"></span>
-                    <span class="badge badge-pill badge-small" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
+                    <span class="badge rounded-pill badge-small" th:classappend="'badge-issue-' + ${issue.state.toLowerCase()}" th:text="#{${issue.stateKey}}"></span>
                 </div>
             </div>
             <div th:if="${issue.draft}" class="draft" th:text="#{issue.draft.description}"></div>
@@ -50,10 +50,10 @@
                     </a>
                     <th:block th:if="${issue.historyHtml != null}">
                         <div th:if="${currentUser.anonymous}" class="posting-history">
-                            <a th:href="'/login?redirectUrl=' + ${base + '/issue/' + issue.number}" data-toggle="modal" th:text="#{change.history}"></a>
+                            <a th:href="'/login?redirectUrl=' + ${base + '/issue/' + issue.number}" data-bs-toggle="modal" th:text="#{change.history}"></a>
                         </div>
                         <div th:unless="${currentUser.anonymous}" class="posting-history">
-                            <a href="#-yona-posting-history" data-toggle="modal">
+                            <a href="#-yona-posting-history" data-bs-toggle="modal">
                                 <span th:if="${issue.updatedByName != null}" class="lastUpdatedBy">
                                     <span th:text="${issue.updatedByName}"></span>
                                     <span th:text="${issue.updatedAgo}"></span>
@@ -78,25 +78,25 @@
                 </th:block>
                 <div class="attachments" id="attachments" th:attr="data-attachments=${issue.attachmentsJson}"></div>
                 <div class="board-actrow right-txt">
-                    <div class="float-left">
+                    <div class="float-start">
                         <div>
                             <button th:if="${issue.watchable}" id="watch-button" type="button" class="ybtn" th:classappend="${issue.watching} ? 'ybtn-watching'"
-                                    data-toggle="tooltip" data-placement="top" th:title="#{issue.watch.description}" th:attr="data-watching=${issue.watching}"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" th:title="#{issue.watch.description}" th:attr="data-watching=${issue.watching}"
                                     th:text="${issue.watching} ? #{issue.unwatch} : #{issue.watch}"></button>
-                            <button th:if="${issue.canUpdate}" id="issue-share-button" type="button" class="ybtn" data-toggle="popover" data-trigger="hover" data-placement="top"
-                                    th:attr="data-content=#{issue.sharer.description}" th:text="#{button.share.issue}"></button>
+                            <button th:if="${issue.canUpdate}" id="issue-share-button" type="button" class="ybtn" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top"
+                                    th:attr="data-bs-content=#{issue.sharer.description}" th:text="#{button.share.issue}"></button>
                             <span class="project-btn-item hide show-in-mobile-inline ml4">
                                 <a th:href="${base + '/issueform?parentIssueId=' + issue.parentIssueId}" class="ybtn ybtn-success" th:text="#{button.newSubtask}"></a>
                             </span>
-                            <span class="issue-weight"><span class="divider">|</span><button id="upvote-issue-weight" class="ybtn ybtn-small" data-toggle="tooltip" th:attr="title=#{issue.weight} + ': Upvote'"><i class="yobicon-arrow-up-alt"></i></button><button class="ybtn ybtn-small" id="down-vote-issue-weight" data-toggle="tooltip" th:attr="title=#{issue.weight} + ': Down vote'"><i class="yobicon-arrow-down-alt"></i></button><span class="weight-number" data-toggle="popover" data-trigger="hover" data-placement="top" th:attr="data-content=#{issue.weight.description}" th:text="${issue.weight}"></span></span>
+                            <span class="issue-weight"><span class="divider">|</span><button id="upvote-issue-weight" class="ybtn ybtn-small" data-bs-toggle="tooltip" th:attr="title=#{issue.weight} + ': Upvote'"><i class="yobicon-arrow-up-alt"></i></button><button class="ybtn ybtn-small" id="down-vote-issue-weight" data-bs-toggle="tooltip" th:attr="title=#{issue.weight} + ': Down vote'"><i class="yobicon-arrow-down-alt"></i></button><span class="weight-number" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top" th:attr="data-bs-content=#{issue.weight.description}" th:text="${issue.weight}"></span></span>
                         </div>
                     </div>
                     <div id="vote" class="vote-wrap" th:classappend="${!issue.voters.isEmpty()} ? 'voter-exists'">
                         <a th:if="${issue.canVoteOrComment}" th:href="${base + '/issue/' + issue.number + '/' + (issue.votedByMe ? 'unvote' : 'vote')}" th:classappend="${issue.votedByMe} ? 'ybtn-watching'"
-                           th:title="${issue.votedByMe} ? #{issue.unvote.description} : #{issue.vote.description}" data-request-method="post" data-toggle="tooltip">
+                           th:title="${issue.votedByMe} ? #{issue.unvote.description} : #{issue.vote.description}" data-request-method="post" data-bs-toggle="tooltip">
                             <span class="heart"><i class="yobicon-hearts"></i></span>
                         </a>
-                        <span th:unless="${issue.canVoteOrComment}" class="ybtn-disabled" style="color: #777;" data-toggle="tooltip" th:title="#{user.login.alert}" data-login="required">
+                        <span th:unless="${issue.canVoteOrComment}" class="ybtn-disabled" style="color: #777;" data-bs-toggle="tooltip" th:title="#{user.login.alert}" data-login="required">
                             <span class="heart"><i class="yobicon-hearts"></i></span>
                         </span>
 
@@ -106,18 +106,18 @@
                     <!--/* v1.6은 추천자 표시를 그린 뒤 같은 집합에서 현재 사용자를 뺀 채로 대화상자를 그린다([refactoring-backlog.md] R-25). */-->
                     <th:block th:if="${!issue.votersExceptMe.isEmpty()}"><th:block th:replace="~{issue/partial-voter-list :: voterList('voters', ${issue.votersExceptMe})}"></th:block></th:block>
 
-                    <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+                    <button th:if="${site.translationApiConfigured}" type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-bs-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
 
                     <span class="act-row">
-                        <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"
+                        <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
                                 th:attr="onclick='window.location=\'' + ${base + '/issue/' + issue.number + '/editform'} + '\''"><i class="yobicon-edit-2"></i></button>
-                        <a th:unless="${issue.canUpdate}" th:href="${base + '/issue/' + issue.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                        <a th:unless="${issue.canUpdate}" th:href="${base + '/issue/' + issue.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
                         <th:block th:if="${issue.deletable}">
-                            <a th:if="${issue.canDelete}" href="#deleteConfirm" data-toggle="modal">
-                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
+                            <a th:if="${issue.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
                         </th:block>
-                        <button th:unless="${issue.deletable}" type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-toggle='popover' data-trigger="hover" data-placement="top"
-                                th:attr="data-content=#{issue.can.not.be.deleted}"><i class="yobicon-trash"></i></button>
+                        <button th:unless="${issue.deletable}" type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle='popover' data-bs-trigger="hover" data-bs-placement="top"
+                                th:attr="data-bs-content=#{issue.can.not.be.deleted}"><i class="yobicon-trash"></i></button>
                     </span>
                 </div>
                 <dl class="sharer-list" th:classappend="${issue.sharers.isEmpty()} ? 'hideFromDisplayOnly'">
@@ -227,15 +227,15 @@
                             <th:block th:unless="${issue.canUpdate}"><th:block th:replace="~{issue/partial-show-selected-label :: showSelectedLabel(${issue.labels}, ${base + '/issues?state=' + issue.state})}"></th:block></th:block>
                         </th:block>
                         <div class="act-row right-menu-icons">
-                            <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"
+                            <button th:if="${issue.canUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.edit}"
                                     th:attr="onclick='window.location=\'' + ${base + '/issue/' + issue.number + '/editform'} + '\''"><i class="yobicon-edit-2"></i></button>
-                            <a th:unless="${issue.canUpdate}" th:href="${base + '/issue/' + issue.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
+                            <a th:unless="${issue.canUpdate}" th:href="${base + '/issue/' + issue.number + '/editform'}"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-bs-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button></a>
                             <th:block th:if="${issue.deletable}">
-                                <a th:if="${issue.canDelete}" href="#deleteConfirm" data-toggle="modal">
-                                    <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
+                                <a th:if="${issue.canDelete}" href="#deleteConfirm" data-bs-toggle="modal">
+                                    <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle='tooltip' th:title="#{button.delete}"><i class="yobicon-trash"></i></button></a>
                             </th:block>
-                            <button th:unless="${issue.deletable}" type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-toggle='popover' data-trigger="hover" data-placement="top"
-                                    th:attr="data-content=#{issue.can.not.be.deleted}"><i class="yobicon-trash"></i></button>
+                            <button th:unless="${issue.deletable}" type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-bs-toggle='popover' data-bs-trigger="hover" data-bs-placement="top"
+                                    th:attr="data-bs-content=#{issue.can.not.be.deleted}"><i class="yobicon-trash"></i></button>
                         </div>
                     </form>
                     <div id="comments" class="board-comment-wrap">
@@ -268,7 +268,7 @@
     <!--/* Confirm to delete post */-->
     <div id="deleteConfirm" class="modal fade"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">×</button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <h3 th:text="#{issue.delete}"></h3>
         </div>
         <div class="modal-body">
@@ -276,7 +276,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:attr="data-request-uri=${base + '/issue/' + issue.number + '/delete'}" th:text="#{button.yes}"></button>
-            <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}"></button>
+            <button type="button" class="ybtn" data-bs-dismiss="modal" th:text="#{button.no}"></button>
         </div>
     </div></div></div>
 </div>

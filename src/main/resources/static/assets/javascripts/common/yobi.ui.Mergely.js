@@ -77,7 +77,7 @@
             htElement.welMergelyPathTitle.text((sPathA != sPathB) ? (sPathA + " -> " + sPathB) : sPathB);
             htElement.welMergelyCommitA.text(sCommitA);
             htElement.welMergelyCommitB.text(sCommitB);
-            htElement.welMergelyWrap.modal();
+            bootstrap.Modal.getOrCreateInstance(htElement.welMergelyWrap[0]).show();
 
             _resizeMergely();
             _updateMergely(sRawA, sRawB);

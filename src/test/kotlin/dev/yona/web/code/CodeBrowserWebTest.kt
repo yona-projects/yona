@@ -227,7 +227,7 @@ class CodeBrowserWebTest : AbstractIntegrationTest() {
         // v1.6 템플릿은 JSON 노드를 그대로 찍어 값에 따옴표가 들어간다
         assertEquals("\"text/plain\"", code.selectFirst("pre#showCode")!!.attr("data-mimeType"))
         assertEquals("UNIX", code.selectFirst("#fileInfo > span:last-child")!!.text())
-        assertEquals("/${p.owner}/${p.name}/rawcode/${rev(code)}/src/App.kt", code.select(".file-header .float-right a").first()!!.attr("href"))
+        assertEquals("/${p.owner}/${p.name}/rawcode/${rev(code)}/src/App.kt", code.select(".file-header .float-end a").first()!!.attr("href"))
         val md = page("/${p.owner}/${p.name}/code/master/README.md")
         assertTrue(md.selectFirst("#codeVal.markdown-wrap h1")!!.text().startsWith("제목"))
     }
