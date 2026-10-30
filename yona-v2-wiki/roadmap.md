@@ -142,7 +142,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-37c | Git 태그 REST: 목록, 만들기, 지우기 | `ExternalTagApiController` | **구현 완료(2026-10-30)** | |
 | X-37d | 이슈 옮기기 REST: `POST $P/issues/{n}/transfer` | `ExternalIssueExtrasApiController` | **구현 완료(2026-10-30)** | |
 | X-37e | 사용자 현황 REST: `GET /user/status`, 내 이슈의 `commented`, `shared` 필터 | `ExternalUserStatusApiController` | **구현 완료(2026-10-30)** | |
-| X-37f | 풀 리퀘스트 검색: 검색 종류 `pullrequest`와 목록 조건 | | 대기 | 웹 검색은 그대로 둔다 |
+| X-37f | 풀 리퀘스트 검색: `GET /search/pullrequests`와 프로젝트 목록 조건 | `ExternalSearchApiController`, `ExternalPullRequestApiController` | **구현 완료(2026-10-30)** | 웹 검색은 그대로 둔다 |
 | X-37g | 사이트 내보내기와 가져오기 REST(`site_admin`) | | 대기 | |
 | X-37h | `pr reviewer` 방법 | | **선생님 결정 대기** | D-52의 선택지 (가)(나)(다) |
 | X-37i | 기기 인증(Device Flow): 서버의 기기 코드 발급, 승인 화면, 토큰 발급 | `domain/deviceauth` | 대기 | 새 테이블. X-1(OAuth2 서버)과 이름이 겹치지 않게 한다 |

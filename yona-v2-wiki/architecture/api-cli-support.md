@@ -65,8 +65,10 @@ updated: 2026-10-30
 
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `GET /search?searchType=pullrequest` | 풀 리퀘스트 검색(웹 검색은 그대로) | | 대기 |
-| `GET $P/pullrequests`의 조건 | 작성자, 담당자, 라벨, 키워드 | | 대기 |
+| `GET /search/pullrequests` | 사이트 전체 풀 리퀘스트 검색(`keyword`, `state`, `pageNum`). 읽을 수 있는 프로젝트의 것만. 한 쪽 20개 | `repo` | **완료**(2026-10-30) |
+| `GET $P/pullrequests`의 `q`, `author`, `assignee`, `reviewRequested`, `labelIds` | 프로젝트의 풀 리퀘스트 목록 조건(기존 목록에 더함) | 기존과 같다 | **완료**(2026-10-30) |
+
+웹 통합 검색(`/search`)은 그대로이다(풀 리퀘스트 종류가 없다).
 
 ## g단계: 사이트 내보내기와 가져오기 (X-37g)
 

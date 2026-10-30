@@ -215,3 +215,11 @@ class ReviewCommentDeleted(val deleted: Boolean)
 
 @Schema(description = "임시 리뷰를 버린 응답")
 class PendingReviewDiscarded(@get:Schema(description = "지운 댓글 수") val discarded: Int)
+
+@Schema(description = "풀 리퀘스트 검색 응답")
+class PullRequestSearchResponse(
+    @get:Schema(description = "찾은 낱말") val keyword: String,
+    @get:Schema(description = "요청한 상태", allowableValues = ["all", "open", "closed"]) val state: String,
+    @get:Schema(description = "최근에 만든 순서의 풀 리퀘스트(한 쪽 20개)") val items: List<PullRequestDetail>,
+    page: Int, pageSize: Int, totalPages: Int, totalCount: Long
+) : PageInfo(page, pageSize, totalPages, totalCount)

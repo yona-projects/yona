@@ -49,17 +49,23 @@ class ExternalPullRequestApiController(
     private val json: PullRequestJson,
     private val support: PullRequestApiSupport,
     private val reviewRequests: dev.yona.domain.pullrequest.PullRequestReviewRequestService,
-    private val assignees: dev.yona.domain.pullrequest.PullRequestAssigneeService
+    private val assignees: dev.yona.domain.pullrequest.PullRequestAssigneeService,
+    private val users: dev.yona.domain.user.UserRepository
 ) {
 
     /**
-     * 풀 리퀘스트 목록이다. `state`는 `open`(기본)과 `closed`(닫힌 것과 병합된 것)이고 `page`는 1부터, `pageSize`는 1~100(기본 15)이다.
+     * 풀 리퀘스트 목록이다. `state`는 `open`(기본)과 `closed`(닫힌 것과 병합된 것)이고 `page`는 1부터, `pageSize`는 1~100(기본 15)이다. 조건: `q`(낱말), `author`, `assignee`, `reviewRequested`(로그인 ID), `labelIds`(모두 가진 것).
      * 응답은 `{"items": [...], "page", "pageSize", "totalPages", "totalCount"}`이다.
      */
     @ApiOperation(operationId = "listPullRequests", tags = [ApiTags.PULL_REQUEST], summary = "풀 리퀘스트 목록", description = "받는 프로젝트가 이 프로젝트인 풀 리퀘스트를 쪽으로 나누어 돌려준다. 코드 접근을 구성원으로 제한한 프로젝트는 구성원만 읽는다.")
     @io.swagger.v3.oas.annotations.Parameter(name = "state", description = "목록의 상태. `closed`는 닫힌 것과 병합된 것", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "open", schema = Schema(allowableValues = ["open", "closed"]))
     @io.swagger.v3.oas.annotations.Parameter(name = "page", description = "쪽 번호(1부터)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "1")
     @io.swagger.v3.oas.annotations.Parameter(name = "pageSize", description = "한 쪽의 개수(1에서 100, 기본 15)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "q", description = "제목, 본문, 커밋 메시지, 리뷰 댓글에서 찾을 낱말", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "author", description = "보낸 사람의 로그인 ID. 없는 사용자는 400", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "assignee", description = "담당자의 로그인 ID. 없는 사용자는 400", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "reviewRequested", description = "리뷰를 요청받은 사람의 로그인 ID. 없는 사용자는 400", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
+    @io.swagger.v3.oas.annotations.Parameter(name = "labelIds", description = "라벨 번호(쉼표로 구분하거나 반복). 모두 가진 풀 리퀘스트만 찾는다", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY)
     @ApiResponse(responseCode = "200", description = "풀 리퀘스트 목록", content = [Content(schema = Schema(implementation = PullRequestListResponse::class))])
     @ApiResponse(responseCode = "400", description = "`state`가 틀렸다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
     @GetMapping("/-_-api/v1/owners/{owner}/projects/{projectName}/pullrequests")
@@ -76,7 +82,18 @@ class ExternalPullRequestApiController(
             else -> return requests.message(HttpStatus.BAD_REQUEST, "state must be open or closed")
         }
         val size = (pageSize ?: search.itemsPerPage).coerceIn(1, MAX_PAGE_SIZE)
-        val result = search.search(PullRequestSearchCondition(target.project, category, pageNum = page.coerceAtLeast(1)), size)
+        // 조건(X-37f, D-52): 낱말, 보낸 사람, 담당자, 리뷰 요청을 받은 사람(로그인 ID), 라벨 번호(모두 가진 것). 없는 사용자는 400이다
+        fun userId(name: String): Long? = request.getParameter(name)?.takeIf { it.isNotBlank() }?.let { login -> users.findByLoginId(login)?.id }
+        for (name in listOf("author", "assignee", "reviewRequested")) {
+            if (!request.getParameter(name).isNullOrBlank() && userId(name) == null) return requests.message(HttpStatus.BAD_REQUEST, "no user by $name")
+        }
+        val labelIds = request.getParameterValues("labelIds").orEmpty().flatMap { it.split(",") }.mapNotNull { it.trim().toLongOrNull() }.toSet()
+        val result = search.search(
+            PullRequestSearchCondition(
+                target.project, category, filter = request.getParameter("q")?.takeIf { it.isNotBlank() }, contributorId = userId("author"), pageNum = page.coerceAtLeast(1),
+                assigneeId = userId("assignee"), labelIds = labelIds, reviewRequestedId = userId("reviewRequested")
+            ), size
+        )
         return support.ok(linkedMapOf("items" to result.items.map { json.of(it) }, "page" to page.coerceAtLeast(1), "pageSize" to size, "totalPages" to result.totalPages, "totalCount" to result.totalCount))
     }
 

@@ -6,12 +6,15 @@ import dev.yona.config.YonaProperties
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.project.OrganizationService
 import dev.yona.domain.project.OrganizationUserRepository
+import dev.yona.domain.enumeration.ProjectScope
+import dev.yona.domain.enumeration.State
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.search.SearchCounts
 import dev.yona.domain.search.SearchScope
 import dev.yona.domain.search.SearchService
 import dev.yona.domain.search.SearchType
+import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.util.SiteUrls
 import dev.yona.web.access.AnonymousCheck
 import dev.yona.web.error.ErrorViews
@@ -58,7 +61,9 @@ class ExternalSearchApiController(
     private val properties: YonaProperties,
     private val requests: ApiRequests,
     private val accessControl: AccessControl,
-    private val siteUrls: SiteUrls
+    private val siteUrls: SiteUrls,
+    private val entityManager: jakarta.persistence.EntityManager,
+    private val pullRequestJson: PullRequestJson
 ) {
 
     /** 사이트 전체에서 찾는다. 토큰 사용자가 볼 수 있는 항목만 나온다. */
@@ -110,6 +115,59 @@ class ExternalSearchApiController(
         return run(SearchScope(project = project), project, user, request)
     }
 
+    /**
+     * 풀 리퀘스트를 낱말로 찾는다(로드맵 X-37f, `decisions.md` D-52). 쿼리: `keyword`(필수, 제목이나 본문), `state`(`all` 기본, `open`, `closed`(닫힘과 병합)), `pageNum`(1부터).
+     * 토큰 주인이 읽을 수 있는 프로젝트(받는 쪽)의 풀 리퀘스트만 나오고 한 쪽은 20개이다. 응답은 `{"keyword", "state", "items": [풀 리퀘스트], "page", "pageSize", "totalPages",
+     * "totalCount"}`이다. 웹 검색에는 풀 리퀘스트 종류가 없어 이 경로에만 있다. 비공개 프로젝트까지 찾으므로 `repo` 범위가 필요하다.
+     */
+    @ApiOperation(operationId = "searchPullRequests", tags = [ApiTags.SEARCH], summary = "풀 리퀘스트 검색", description = "제목이나 본문에 낱말이 들어 있는 풀 리퀘스트를 찾는다. 토큰 주인이 읽을 수 있는 프로젝트(받는 쪽)의 것만 나온다. 웹 통합 검색에는 풀 리퀘스트 종류가 없어 이 경로로만 찾는다. 한 프로젝트 안에서 조건으로 거르려면 `GET .../pullrequests`의 `q`, `author`, `assignee`를 쓴다. 비공개 프로젝트까지 찾으므로 `repo` 범위가 필요하다.")
+    @io.swagger.v3.oas.annotations.Parameter(name = "keyword", description = "찾을 낱말. 대소문자를 구분하지 않는다", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, required = true)
+    @io.swagger.v3.oas.annotations.Parameter(name = "state", description = "풀 리퀘스트 상태. `closed`는 닫힌 것과 병합된 것", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "all", schema = Schema(allowableValues = ["all", "open", "closed"]))
+    @io.swagger.v3.oas.annotations.Parameter(name = "pageNum", description = "쪽 번호(1부터). 한 쪽은 20개", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "1")
+    @ApiResponse(responseCode = "200", description = "검색 결과", content = [Content(schema = Schema(implementation = PullRequestSearchResponse::class))])
+    @ApiResponse(responseCode = "400", description = "`keyword`가 없거나 `state`, `pageNum`이 틀렸다.", content = [Content(schema = Schema(ref = "#/components/schemas/ErrorResponse"))])
+    @GetMapping("/-_-api/v1/search/pullrequests")
+    @Transactional(readOnly = true)
+    fun searchPullRequests(request: HttpServletRequest): Any {
+        val user = requests.tokenUser(request) ?: return requests.message(HttpStatus.UNAUTHORIZED, "unauthorized request")
+        val keyword = request.getParameter("keyword")?.takeIf { it.isNotEmpty() } ?: return requests.message(HttpStatus.BAD_REQUEST, "keyword is required")
+        val state = request.getParameter("state") ?: "all"
+        val states = when (state) { "all" -> emptyList(); "open" -> listOf(State.OPEN); "closed" -> listOf(State.CLOSED, State.MERGED); else -> return requests.message(HttpStatus.BAD_REQUEST, "state must be open, closed or all") }
+        val page = request.getParameter("pageNum")?.let { it.toIntOrNull()?.takeIf { n -> n >= 1 } ?: return requests.message(HttpStatus.BAD_REQUEST, "pageNum must be 1 or more") } ?: 1
+
+        val visibleProjects = if (accessControl.isSiteManager(user)) null else visibleProjectIds(user)
+        val where = StringBuilder("where (lower(pr.title) like :kw escape '\\' or lower(cast(pr.body as string)) like :kw escape '\\')")
+        if (states.isNotEmpty()) where.append(" and pr.state in :states")
+        if (visibleProjects != null) where.append(" and pr.toProject.id in :projects")
+        fun <T> query(jpql: String, type: Class<T>) = entityManager.createQuery(jpql, type).also { q ->
+            q.setParameter("kw", "%" + keyword.lowercase().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%")
+            if (states.isNotEmpty()) q.setParameter("states", states)
+            if (visibleProjects != null) q.setParameter("projects", visibleProjects.ifEmpty { listOf(-1L) })
+        }
+        val total = query("select count(pr) from PullRequest pr $where", java.lang.Long::class.java).singleResult.toLong()
+        val items = query("select pr from PullRequest pr $where order by pr.created desc, pr.id desc", PullRequest::class.java).setFirstResult((page - 1) * PULL_REQUEST_PAGE_SIZE).setMaxResults(PULL_REQUEST_PAGE_SIZE).resultList
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(
+            linkedMapOf(
+                "keyword" to keyword, "state" to state, "items" to items.map { pullRequestJson.of(it) }, "page" to page, "pageSize" to PULL_REQUEST_PAGE_SIZE,
+                "totalPages" to Math.ceil(total.toDouble() / PULL_REQUEST_PAGE_SIZE).toInt(), "totalCount" to total
+            )
+        )
+    }
+
+    /** 토큰 주인이 읽을 수 있는 프로젝트 번호이다: 공개 프로젝트(게스트는 뺀다), 구성원인 프로젝트, 내 조직의 비공개가 아닌 프로젝트. */
+    private fun visibleProjectIds(user: dev.yona.domain.user.User): List<Long> {
+        val me = requireNotNull(user.id)
+        val organizations = organizationUsers.findByUserId(me).mapNotNull { it.organization?.id }
+        val jpql = StringBuilder("select p.id from Project p where exists (select 1 from ProjectUser pu where pu.project.id = p.id and pu.user.id = :me)")
+        if (user.isGuest != true) jpql.append(" or p.projectScope = :public")
+        if (organizations.isNotEmpty()) jpql.append(" or (p.organization.id in :orgs and p.projectScope <> :private)")
+        return entityManager.createQuery(jpql.toString(), java.lang.Long::class.java).also { q ->
+            q.setParameter("me", me)
+            if (user.isGuest != true) q.setParameter("public", ProjectScope.PUBLIC)
+            if (organizations.isNotEmpty()) { q.setParameter("orgs", organizations); q.setParameter("private", ProjectScope.PRIVATE) }
+        }.resultList.map { it.toLong() }
+    }
+
     private fun run(scope: SearchScope, project: Project?, user: dev.yona.domain.user.User, request: HttpServletRequest): Any {
         val keyword = request.getParameter("keyword")?.takeIf { it.isNotEmpty() } ?: return requests.message(HttpStatus.BAD_REQUEST, "keyword is required")
         val requested = SearchType.of(request.getParameter("searchType") ?: SearchType.AUTO.type)
@@ -146,5 +204,10 @@ class ExternalSearchApiController(
             "originalProject" to row.originalOwner?.let { linkedMapOf("owner" to it, "name" to row.originalName) }
         )
         else -> throw IllegalArgumentException("지원하지 않는 검색 결과입니다: ${row.javaClass}")
+    }
+
+    private companion object {
+        /** 풀 리퀘스트 검색의 한 쪽 개수이다(통합 검색의 한 쪽과 같다). */
+        const val PULL_REQUEST_PAGE_SIZE = 20
     }
 }

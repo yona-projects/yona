@@ -716,3 +716,6 @@ D-51의 대응표에서 서버에 REST가 없던 CLI 명령을 서버에 만들�
 
 ## [2026-10-30] build | X-37e 사용자 현황 REST
 `GET /user/status`(담당 이슈와 풀 리퀘스트, 리뷰 요청, 멘션, 최근 알림)와 내 이슈의 `commented`, `shared` 필터를 구현했다. 테스트를 먼저 써 3개 실패를 확인한 뒤 구현했다(D-52, A-278).
+
+## [2026-10-30] build | X-37f 풀 리퀘스트 검색 REST
+사이트 전체 풀 리퀘스트 검색(`GET /search/pullrequests`)과 프로젝트 목록 조건(`q`, `author`, `assignee`, `reviewRequested`, `labelIds`)을 구현했다. 테스트를 먼저 써 3개 실패를 확인한 뒤 구현했다(D-52, A-279).
