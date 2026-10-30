@@ -125,7 +125,11 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-29b | 게시판 REST: 글 목록과 한 건, 수정, 삭제, 댓글 목록과 수정과 삭제, 라벨 | `ExternalBoardWriteApiController`(새 파일) | **구현 완료(2026-10-30)** | a단계 패턴을 그대로 썼고 D-48(수정은 구성원, 삭제는 작성자와 관리자)을 따른다 |
 | X-29c | 라벨과 마일스톤 관리 REST: 고치기와 지우기 | `ExternalProjectWriteApiController`(새 파일) | **구현 완료(2026-10-30)** | 만들기는 이미 있었다. 웹 화면과 같은 권한을 따른다 |
 | X-29d | 이슈의 Yona 고유 쓰기 REST: 공유자, 가중치, 지켜보기 | `ExternalIssueExtrasApiController`(새 파일) | **구현 완료(2026-10-30)** | 웹 화면에만 있던 기능의 토큰 버전 |
-| X-30 | 일반 REST 3차: 조직(구성원, 프로젝트), 검색, 사용자 상태, 웹훅, 포크를 조직 대상으로 만드는 API | 조직, 검색, 웹훅 REST | **대기(2026-10-29)** | X-19 1차와 X-29 뒤 |
+| X-30 | 일반 REST 3차(상위 항목): 조직, 웹훅, 검색, 포크를 네 단계(X-30a~d)로 나눠 만든다. 쓰기까지 열고 GitHub 전용 범위를 쓴다. 사용자 상태는 이미 있어 뺀다 | 조직, 웹훅, 검색, 포크 REST | **진행 중(2026-10-30), 결정은 D-49** | 추적표는 [api-org-search-webhook.md](architecture/api-org-search-webhook.md). 네 단계가 모두 끝나야 완료이다. X-31은 이 뒤이다 |
+| X-30a | 조직 REST: 내 조직과 한 건 조회, 구성원 목록과 더하기와 역할 변경과 빼기(나가기 포함), 만들기, 설정 변경, 삭제 | `ExternalOrganizationApiController`(새 파일) | 대기 | 범위 `read:org`, `write:org`, `admin:org` |
+| X-30b | 웹훅 REST: 목록, 만들기, 삭제 | `ExternalWebhookApiController`(새 파일) | 대기 | 범위 `read:repo_hook`, `write:repo_hook`, `admin:repo_hook` |
+| X-30c | 검색 REST: 전체, 조직, 프로젝트 | `ExternalSearchApiController`(새 파일) | 대기 | 웹 검색과 같은 판정 |
+| X-30d | 포크 REST: 사용자나 조직을 대상으로 포크 만들기 | `ExternalForkApiController`(새 파일) | 대기 | 웹의 포크 규칙(이름 중복, 조직 관리자만)과 같다 |
 | X-31 | OpenAPI 문서(Swagger UI): `/-_-api/v1` 전체 계약(풀 리퀘스트, 일반 REST 1~3차)을 한 번에 문서화 | OpenAPI 설정, `*RestApi` | **대기(2026-10-29, 선생님: 한 번에 만들어도 됨)** | 모든 REST 영역이 끝난 뒤 한 번에 만든다 |
 | X-20 | 프런트엔드 현대화: Vue 3 웹 컴포넌트 위젯 17개(대화상자, 토스트, 드롭다운, 자동 완성, 첨부, 리뷰 폼, 라벨 편집기 등), Tom Select, Flatpickr, CodeMirror 6와 EasyMDE 에디터, jQuery 제거(순수 JS), Hotwired Turbo(이슈 2단 목록) | `static/lib/yona-vue-widgets`, `frontend/`, `yona.issue.Turbo.js` (P3-46, P3-70) | 대기 | 화면 동작은 v1.6과 같게 둔다는 조건이 필요하다. `yona-v2-wiki`의 Vue 위젯 소스 위치 메모(components 저장소)와 이어진다 |
 | X-21 | 사용 현황 집계(UA 태그를 GA4 gtag로 교체) | `config/analytics/AnalyticsSettings` | **완료(2026-10-28)** | v1.6의 `yona.send-yona-usage` 스위치를 유지하고 UA 태그를 GA4로 교체했다(A-186). 측정 ID는 `yona.analytics.measurement-id` |
