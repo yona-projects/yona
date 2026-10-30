@@ -94,14 +94,14 @@ class Project(
 ) {
 
     /**
-     * 이 프로젝트의 룰셋이다(추가 개발 항목 X-34, `decisions.md` D-46). 트랜잭션 밖(풀 리퀘스트 병합은 트랜잭션을 걸지 않는다)에서도 읽도록 즉시 불러온다.
+     * 이 프로젝트의 규칙 묶음이다(추가 개발 항목 X-34, `decisions.md` D-46). 트랜잭션 밖(풀 리퀘스트 병합은 트랜잭션을 걸지 않는다)에서도 읽도록 즉시 불러온다.
      */
     @OneToMany(mappedBy = "project", fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
     var rulesets: MutableList<Ruleset> = mutableListOf()
 
     /**
-     * [branch]에 적용되는 룰셋 전부이다. 대상이 맞는 활성 룰셋을 모두 돌려주며(GitHub처럼 우선순위 없이 합산한다) 맞는 것이 없으면 빈 목록이고 아무것도 제한하지 않는다.
+     * [branch]에 적용되는 규칙 묶음 전부이다. 대상이 맞는 활성 규칙 묶음을 모두 돌려주며(GitHub처럼 우선순위 없이 합산한다) 맞는 것이 없으면 빈 목록이고 아무것도 제한하지 않는다.
      * v1.6의 프로젝트 전체 리뷰어 설정(`is_using_reviewer_count`, `default_reviewer_count`)은 더는 보지 않는다.
      */
     fun rulesetsFor(branch: String?): List<Ruleset> = rulesets.filter { it.isActive && it.matches(branch) }

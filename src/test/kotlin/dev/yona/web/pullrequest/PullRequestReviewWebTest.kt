@@ -201,7 +201,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `우회를 허용하지 않는 룰셋은 프로젝트 관리자도 우회하지 못한다 (X-34, D-46)`() {
+    fun `우회를 허용하지 않는 규칙 묶음은 프로젝트 관리자도 우회하지 못한다 (X-34, D-46)`() {
         val s = setup(usingReviewers = true); val pr = open(s)
         branchProtections.findByProjectIdAndName(s.origin.id!!, "master")!!.also { it.bypassAdmins = false; branchProtections.save(it) }
         val manager = page(url(s, pr), login(s.manager))

@@ -247,7 +247,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
             listOf("subMenuProjectSetting", "subMenuProjectMember", "subMenuRuleset", "subMenuIssueLabel", "subMenuWebhook", "subMenuProjectTransfer", "subMenuProjectDelete", "subMenuProjectChangeVCS"),
             tabs.map { it.id() }
         )
-        assertEquals(listOf("Settings", "Member", "Rulesets", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.text() }, "룰셋 탭은 추가 개발 항목 X-34이다")
+        assertEquals(listOf("Settings", "Member", "Rulesets", "Issue Label", "Webhooks", "Transfer", "Delete project", "Repository Type Change"), tabs.map { it.text() }, "규칙 묶음 탭은 추가 개발 항목 X-34이다")
         assertEquals(listOf("active"), tabs.filter { it.hasClass("active") }.map { "active" }, tabs.outerHtml())
         assertTrue(tabs[0].hasClass("active"))
         assertEquals("/${project.owner}/${project.name}/members", tabs[1].selectFirst("a")?.attr("href"))

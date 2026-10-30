@@ -56,7 +56,7 @@ class ReviewerSettingMigrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `이미 같은 이름의 룰셋이 있으면 건드리지 않고 사용 여부만 끈다`() {
+    fun `이미 같은 이름의 규칙 묶음이 있으면 건드리지 않고 사용 여부만 끈다`() {
         val project = project(true, 2)
         rules.save(Ruleset(project = project, name = ReviewerSettingMigration.MIGRATED_NAME, pattern = "**", requiredApprovals = 5))
         em.flush()

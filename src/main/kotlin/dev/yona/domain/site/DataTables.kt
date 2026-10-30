@@ -105,7 +105,7 @@ object DataTables {
             DataColumn("container_id", STRING_LONG),
             DataColumn("created_date", DATE)
         ),
-        // 추가 개발 항목 X-34(D-46)의 룰셋이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다.
+        // 추가 개발 항목 X-34(D-46)의 규칙 묶음이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다.
         DataTable(
             "RULESET", true,
             DataColumn("id", LONG),

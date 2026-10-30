@@ -4,9 +4,9 @@
   Copyright Yona & Yobi Authors & NAVER Corp.
   https://yona.io
 
-  추가 개발 항목 X-34(decisions.md D-46)의 룰셋 편집 화면이다. GitHub의 룰셋 편집 화면(이름, 적용 상태, 바이패스 목록, 대상 브랜치, 규칙)에 해당한다.
+  추가 개발 항목 X-34(decisions.md D-46)의 규칙 묶음 편집 화면이다. GitHub의 규칙 묶음 편집 화면(이름, 적용 상태, 바이패스 목록, 대상 브랜치, 규칙)에 해당한다.
   지금은 바이패스(프로젝트 관리자와 사이트 관리자)와 대상(패턴 하나)이 현재 수준이다(◐, 완성은 X-35).
-  모델: title, projectView, ruleset(편집할 룰셋. 새로 만들 때는 id가 없고, 입력 오류면 입력값을 담은 저장하지 않는 룰셋), errors(오류 항목 이름 목록)
+  모델: title, projectView, ruleset(편집할 규칙 묶음. 새로 만들 때는 id가 없고, 입력 오류면 입력값을 담은 저장하지 않는 규칙 묶음), errors(오류 항목 이름 목록)
 */-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/project-layout :: projectLayout(${title}, ${projectView}, 'PROJECT_SETTING', ~{::rulesetFormPage})}">

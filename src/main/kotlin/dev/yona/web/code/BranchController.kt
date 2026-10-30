@@ -99,8 +99,8 @@ class BranchController(
     }
 
     /**
-     * 현재 사용자가 [branch]를 지울 수 있으면 `true`이다. 삭제를 막는 룰셋(`decisions.md` D-46)이 있으면, 막는 룰셋이 모두 바이패스를 허용하고 사용자가
-     * 프로젝트 관리자나 사이트 관리자일 때만 지운다. 룰셋이 없는 브랜치는 제한이 없다.
+     * 현재 사용자가 [branch]를 지울 수 있으면 `true`이다. 삭제를 막는 규칙 묶음(`decisions.md` D-46)이 있으면, 막는 규칙 묶음이 모두 바이패스를 허용하고 사용자가
+     * 프로젝트 관리자나 사이트 관리자일 때만 지운다. 규칙 묶음이 없는 브랜치는 제한이 없다.
      */
     private fun deletable(project: Project, branch: String): Boolean {
         val user = currentUserProvider.get().user

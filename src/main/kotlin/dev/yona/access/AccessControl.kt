@@ -251,8 +251,8 @@ class AccessControl(
     fun isSiteManager(user: User?): Boolean = permissions.siteManager(user?.id)
 
     /**
-     * 프로젝트 관리자나 사이트 관리자는 [rulesets]를 우회할 수 있다(추가 개발 항목 X-12, X-34, `decisions.md` D-35 11번, D-46). 막고 있는 룰셋이 모두 바이패스를 허용해야 하고
-     * 바이패스를 허용하지 않은 룰셋이 하나라도 있으면 우회하지 못한다. 룰셋 목록이 비어 있으면 관리자 여부만 본다.
+     * 프로젝트 관리자나 사이트 관리자는 [rulesets]를 우회할 수 있다(추가 개발 항목 X-12, X-34, `decisions.md` D-35 11번, D-46). 막고 있는 규칙 묶음이 모두 바이패스를 허용해야 하고
+     * 바이패스를 허용하지 않은 규칙 묶음이 하나라도 있으면 우회하지 못한다. 규칙 묶음 목록이 비어 있으면 관리자 여부만 본다.
      */
     fun canBypass(user: User?, project: Project, rulesets: List<dev.yona.domain.project.Ruleset> = emptyList()): Boolean =
         user != null && rulesets.all { it.bypassAdmins == true } && (isSiteManager(user) || isProjectManager(user, project))

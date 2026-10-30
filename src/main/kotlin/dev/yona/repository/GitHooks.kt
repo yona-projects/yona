@@ -38,7 +38,7 @@ object ReceiveCommands {
  * 푸시 전후에 도는 훅을 만든다. v1.6 `RepositoryService.createPreReceiveHook`, `createPostReceiveHook`
  * (`app/playRepository/RepositoryService.java:253-270`)에 해당한다.
  *
- * 푸시 전: 내부용으로 예약된 `refs/yobi` 아래 ref에는 밀어 넣지 못하게 거부하고, 룰셋이 막는 푸시를 거부한다.
+ * 푸시 전: 내부용으로 예약된 `refs/yobi` 아래 ref에는 밀어 넣지 못하게 거부하고, 규칙 묶음이 막는 푸시를 거부한다.
  * 푸시 뒤(순서대로): 프로젝트의 마지막 푸시 시각을 갱신하고, 최근 푸시한 브랜치를 기록하고, 이슈 언급 이벤트, 풀 리퀘스트 확인, 새 커밋 알림을
  * 요청과 별개로 시작한다([PostReceiveJobs]).
  */
@@ -53,8 +53,8 @@ class GitHooks(
 ) {
 
     /**
-     * 푸시 전 훅이다. 내부용 `refs/yobi` 아래에는 밀어 넣지 못하게 하고, [project]의 룰셋(`decisions.md` D-45, D-46)이 막는 푸시(삭제, 강제 푸시,
-     * 풀 리퀘스트를 요구하는 브랜치에 직접 푸시)를 거부한다. 룰셋이 바이패스를 허용하면 프로젝트 관리자와 사이트 관리자인 [sender]는 그 룰셋을 우회한다.
+     * 푸시 전 훅이다. 내부용 `refs/yobi` 아래에는 밀어 넣지 못하게 하고, [project]의 규칙 묶음(`decisions.md` D-45, D-46)이 막는 푸시(삭제, 강제 푸시,
+     * 풀 리퀘스트를 요구하는 브랜치에 직접 푸시)를 거부한다. 규칙 묶음이 바이패스를 허용하면 프로젝트 관리자와 사이트 관리자인 [sender]는 그 규칙 묶음을 우회한다.
      * 풀 리퀘스트 병합처럼 서버가 직접 브랜치를 갱신하는 것은 이 검사를 거치지 않는다.
      */
     fun preReceive(project: Project, sender: User?): PreReceiveHook = PreReceiveHook { _, commands ->
@@ -65,7 +65,7 @@ class GitHooks(
                 continue
             }
             if (!ref.startsWith(Constants.R_HEADS)) continue
-            // 맞는 활성 룰셋마다 따지고, 우회하지 못하는 룰셋이 막으면 거부한다. 우회는 룰셋마다 판정한다(바이패스를 허용한 룰셋만 우회)
+            // 맞는 활성 규칙 묶음마다 따지고, 우회하지 못하는 규칙 묶음이 막으면 거부한다. 우회는 규칙 묶음마다 판정한다(바이패스를 허용한 규칙 묶음만 우회)
             val violated = project.rulesetsFor(ref).mapNotNull { rule -> rule.pushViolation(command.type)?.let { rule to it } }
                 .filterNot { (rule, _) -> accessControl.canBypass(sender, project, listOf(rule)) }
             val first = violated.firstOrNull()

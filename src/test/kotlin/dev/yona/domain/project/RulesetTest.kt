@@ -22,7 +22,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * 룰셋의 대상 맞춤, 합산, 병합 조건, 푸시 검사를 검증한다(로드맵 X-34, `decisions.md` D-46).
+ * 규칙 묶음의 대상 맞춤, 합산, 병합 조건, 푸시 검사를 검증한다(로드맵 X-34, `decisions.md` D-46).
  */
 class RulesetTest {
 
@@ -49,10 +49,10 @@ class RulesetTest {
         assertTrue(rule("v1.*").matches("refs/heads/v1.2")); assertFalse(rule("v1.*").matches("refs/heads/v1x2"), "점은 글자 그대로이다")
     }
 
-    // --- 적용되는 룰셋 ---
+    // --- 적용되는 규칙 묶음 ---
 
     @Test
-    fun `대상이 맞는 활성 룰셋을 모두 돌려주고 비활성이나 다른 브랜치의 룰셋은 뺀다`() {
+    fun `대상이 맞는 활성 규칙 묶음을 모두 돌려주고 비활성이나 다른 브랜치의 규칙 묶음은 뺀다`() {
         val p = projectOf(rule("master"), rule("*", name = "all"), rule("release/*"), rule("master", name = "off") { enforcement = Ruleset.DISABLED })
         assertEquals(setOf("master", "all"), p.rulesetsFor("refs/heads/master").map { it.name }.toSet())
         assertEquals(listOf("release/*"), p.rulesetsFor("refs/heads/release/1.0").map { it.name })
@@ -75,13 +75,13 @@ class RulesetTest {
     }
 
     @Test
-    fun `룰셋이 없는 브랜치는 승인이 없어도 변경 요청이 남아 있어도 열린 대화가 있어도 막지 않는다`() {
+    fun `규칙 묶음이 없는 브랜치는 승인이 없어도 변경 요청이 남아 있어도 열린 대화가 있어도 막지 않는다`() {
         val pr = pullRequest(Project(), approvals = 0, changesRequested = true)
         assertEquals(0, pr.requiredReviewerCount); assertTrue(pr.reviewed); assertFalse(pr.reviewBlocked(openConversations = 3)); assertTrue(pr.acceptable(3))
     }
 
     @Test
-    fun `승인 수를 요구하는 룰셋은 모자랄 때 막고 채우면 연다`() {
+    fun `승인 수를 요구하는 규칙 묶음은 모자랄 때 막고 채우면 연다`() {
         val p = projectOf(rule("master", approvals = 2))
         assertTrue(pullRequest(p, approvals = 1).reviewBlocked()); assertEquals(2, pullRequest(p).requiredReviewerCount)
         assertFalse(pullRequest(p, approvals = 2).reviewBlocked()); assertTrue(pullRequest(p, approvals = 2).acceptable())
@@ -93,20 +93,20 @@ class RulesetTest {
     }
 
     @Test
-    fun `변경 요청은 그 조건을 켠 룰셋에서만 병합을 막는다`() {
+    fun `변경 요청은 그 조건을 켠 규칙 묶음에서만 병합을 막는다`() {
         assertFalse(pullRequest(projectOf(rule("master", approvals = 1)), approvals = 1, changesRequested = true).reviewBlocked())
         assertTrue(pullRequest(projectOf(rule("master", approvals = 1) { requireNoChangesRequested = true }), approvals = 1, changesRequested = true).reviewBlocked())
     }
 
     @Test
-    fun `열린 대화는 그 조건을 켠 룰셋에서만 병합을 막는다`() {
+    fun `열린 대화는 그 조건을 켠 규칙 묶음에서만 병합을 막는다`() {
         assertFalse(pullRequest(projectOf(rule("master"))).reviewBlocked(openConversations = 2))
         val strict = projectOf(rule("master") { requireConversationResolution = true })
         assertTrue(pullRequest(strict).reviewBlocked(openConversations = 1)); assertFalse(pullRequest(strict).reviewBlocked(openConversations = 0))
     }
 
     @Test
-    fun `비활성 룰셋과 다른 브랜치의 룰셋은 병합을 막지 않는다`() {
+    fun `비활성 규칙 묶음과 다른 브랜치의 규칙 묶음은 병합을 막지 않는다`() {
         assertFalse(pullRequest(projectOf(rule("release/*", approvals = 3))).reviewBlocked())
         assertFalse(pullRequest(projectOf(rule("master", approvals = 3) { enforcement = Ruleset.DISABLED })).reviewBlocked())
     }
@@ -120,10 +120,10 @@ class RulesetTest {
     // --- 합산 ---
 
     @Test
-    fun `룰셋이 겹치면 필요한 승인 수는 가장 큰 값이고 막는 룰셋만 골라낸다`() {
+    fun `규칙 묶음이 겹치면 필요한 승인 수는 가장 큰 값이고 막는 규칙 묶음만 골라낸다`() {
         val p = projectOf(rule("master", approvals = 1, name = "a"), rule("*", approvals = 3, name = "b"), rule("master", approvals = 0, name = "c") { requireConversationResolution = true })
         assertEquals(3, pullRequest(p).requiredReviewerCount)
-        assertEquals(listOf("b"), pullRequest(p, approvals = 1).blockingRulesets(openConversations = 0).map { it.name }, "승인 1명이면 3명을 요구하는 룰셋만 막는다")
+        assertEquals(listOf("b"), pullRequest(p, approvals = 1).blockingRulesets(openConversations = 0).map { it.name }, "승인 1명이면 3명을 요구하는 규칙 묶음만 막는다")
         assertEquals(setOf("b", "c"), pullRequest(p, approvals = 1).blockingRulesets(openConversations = 1).map { it.name }.toSet())
         assertTrue(pullRequest(p, approvals = 3).blockingRulesets(openConversations = 0).isEmpty())
     }
@@ -141,7 +141,7 @@ class RulesetTest {
     }
 
     @Test
-    fun `겹친 룰셋 중 하나라도 선형 이력을 요구하면 병합 커밋을 뺀다`() {
+    fun `겹친 규칙 묶음 중 하나라도 선형 이력을 요구하면 병합 커밋을 뺀다`() {
         val p = projectOf(rule("master"), rule("*", name = "linear") { requireLinearHistory = true }).also { it.allowMergeCommit = true; it.allowSquashMerge = true; it.allowRebaseMerge = false }
         assertEquals(setOf(MergeMethod.SQUASH), pullRequest(p).allowedMergeMethods())
     }
@@ -155,7 +155,7 @@ class RulesetTest {
     // --- 푸시 검사 ---
 
     @Test
-    fun `기본 룰셋은 삭제와 강제 푸시를 막고 생성과 빨리 감기 푸시는 막지 않는다`() {
+    fun `기본 규칙 묶음은 삭제와 강제 푸시를 막고 생성과 빨리 감기 푸시는 막지 않는다`() {
         val rule = Ruleset(pattern = "master")
         assertEquals("deletion", rule.pushViolation(Type.DELETE)); assertEquals("force", rule.pushViolation(Type.UPDATE_NONFASTFORWARD))
         assertNull(rule.pushViolation(Type.UPDATE)); assertNull(rule.pushViolation(Type.CREATE))

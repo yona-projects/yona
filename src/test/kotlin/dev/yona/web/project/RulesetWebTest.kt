@@ -36,7 +36,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * 프로젝트 설정의 룰셋 목록과 편집 화면, 저장을 검증한다(로드맵 X-34, `decisions.md` D-46).
+ * 프로젝트 설정의 규칙 묶음 목록과 편집 화면, 저장을 검증한다(로드맵 X-34, `decisions.md` D-46).
  */
 @AutoConfigureMockMvc
 @Transactional
@@ -88,7 +88,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
     // --- 저장 ---
 
     @Test
-    fun `룰셋을 만들고 고치고 지운다`() {
+    fun `규칙 묶음을 만들고 고치고 지운다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
         send(project, session, "", "name" to "main protect", "enforcement" to "active", "pattern" to "master", "approvals" to "2", *all).andExpect(status().isSeeOther)
         val saved = rulesets.findByProjectIdAndName(project.id!!, "main protect")!!
@@ -137,7 +137,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `다른 프로젝트의 룰셋은 보거나 고치거나 지울 수 없다`() {
+    fun `다른 프로젝트의 규칙 묶음은 보거나 고치거나 지울 수 없다`() {
         val project = newProject(); val other = newProject(); val session = login(member(project, RoleType.MANAGER))
         send(other, login(member(other, RoleType.MANAGER)), "", "name" to "theirs", "enforcement" to "active", "pattern" to "master")
         val theirs = rulesets.findByProjectIdAndName(other.id!!, "theirs")!!
@@ -157,7 +157,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `Git이 아닌 프로젝트에는 룰셋 화면이 없다`() {
+    fun `Git이 아닌 프로젝트에는 규칙 묶음 화면이 없다`() {
         val project = newProject("SVN"); val session = login(member(project, RoleType.MANAGER))
         mockMvc.perform(get(url(project)).session(session)).andExpect(status().isBadRequest)
     }
@@ -165,7 +165,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
     // --- 화면 ---
 
     @Test
-    fun `목록은 이름순으로 룰셋과 대상과 상태와 규칙 요약을 보이고 설정 메뉴에 룰셋 탭이 있다`() {
+    fun `목록은 이름순으로 규칙 묶음과 대상과 상태와 규칙 요약을 보이고 설정 메뉴에 규칙 묶음 탭이 있다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
         send(project, session, "", "name" to "b release", "enforcement" to "disabled", "pattern" to "release/*", "approvals" to "1")
         send(project, session, "", "name" to "a main", "enforcement" to "active", "pattern" to "master", "approvals" to "2", "requirePullRequest" to "true", "requireConversationResolution" to "true", "blockForcePushes" to "true")
@@ -182,20 +182,20 @@ class RulesetWebTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `룰셋이 없으면 비어 있다는 안내를 보인다`() {
+    fun `규칙 묶음이 없으면 비어 있다는 안내를 보인다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
-        assertEquals("만든 룰셋이 없습니다.", page(project, session).selectFirst("tr.ruleset-empty")!!.text())
+        assertEquals("만든 규칙 묶음이 없습니다.", page(project, session).selectFirst("tr.ruleset-empty")!!.text())
     }
 
     @Test
-    fun `이전한 리뷰어 설정 룰셋이 있으면 안내를 보인다`() {
+    fun `이전한 리뷰어 설정 규칙 묶음이 있으면 안내를 보인다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
         send(project, session, "", "name" to dev.yona.domain.project.ReviewerSettingMigration.MIGRATED_NAME, "enforcement" to "active", "pattern" to "**", "approvals" to "2")
         assertTrue(page(project, session).selectFirst("#rulesetMigrated")!!.text().contains("이전된 리뷰어 설정"))
     }
 
     @Test
-    fun `새 룰셋 화면은 GitHub 기본처럼 삭제 제한과 강제 푸시 차단만 켠 상태이다`() {
+    fun `새 규칙 묶음 화면은 GitHub 기본처럼 삭제 제한과 강제 푸시 차단만 켠 상태이다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
         val doc = page(project, session, "/new")
         assertEquals(url(project), doc.selectFirst("form#rulesetForm")!!.attr("action"))
@@ -204,7 +204,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         assertEquals(setOf("bypassAdmins", "restrictDeletions", "requireLinearHistory", "requirePullRequest", "requireNoChangesRequested", "requireConversationResolution", "blockForcePushes"),
             doc.select("form#rulesetForm input[type=checkbox]").map { it.attr("name") }.toSet())
         assertEquals("active", doc.selectFirst("#rulesetEnforcement option[selected]")!!.attr("value"))
-        assertTrue(doc.select("form#rulesetDeleteForm").isEmpty(), "새 룰셋에는 삭제가 없다")
+        assertTrue(doc.select("form#rulesetDeleteForm").isEmpty(), "새 규칙 묶음에는 삭제가 없다")
     }
 
     @Test

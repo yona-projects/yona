@@ -65,7 +65,7 @@ class PullRequestWorkflow(
         pullRequests.save(pullRequest)
         // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰어 수와 변경 요청에 막혀도 병합할 수 있다(`canBypass`)
         // 추가 항목(X-32, D-42): 받는 브랜치에 보호 규칙이 있을 때만 승인 수와 변경 요청으로 막는다
-        // 추가 항목(X-34, D-46): 룰셋이 켠 조건(승인 수, 변경 요청, 열린 대화)이 남아 있으면 막는다. 막고 있는 룰셋을 모두 우회할 수 있는 사용자만 통과한다
+        // 추가 항목(X-34, D-46): 규칙 묶음이 켠 조건(승인 수, 변경 요청, 열린 대화)이 남아 있으면 막는다. 막고 있는 규칙 묶음을 모두 우회할 수 있는 사용자만 통과한다
         val openConversations = threads.countByPullRequestIdAndState(requireNotNull(pullRequest.id), dev.yona.domain.enumeration.ThreadState.OPEN).toInt()
         val blocking = pullRequest.blockingRulesets(openConversations)
         if (blocking.isNotEmpty() && !canBypass(blocking)) return AcceptResult.NOT_REVIEWED

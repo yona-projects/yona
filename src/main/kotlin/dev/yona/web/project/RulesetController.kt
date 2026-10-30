@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.servlet.ModelAndView
 
 /**
- * 프로젝트 설정의 룰셋 목록과 편집 화면이다(추가 개발 항목 X-34, `decisions.md` D-46). GitHub의 "Rules > Rulesets"처럼 목록 화면에서 룰셋을 고르고, 편집 화면에서
+ * 프로젝트 설정의 규칙 묶음 목록과 편집 화면이다(추가 개발 항목 X-34, `decisions.md` D-46). GitHub의 "Rules > Rulesets"처럼 목록 화면에서 규칙 묶음을 고르고, 편집 화면에서
  * 이름, 적용 상태, 바이패스, 대상 브랜치, 규칙을 정해 저장한다. 설정을 고칠 수 있는 사용자(프로젝트 관리자)만 쓰며 Git 프로젝트에서만 동작한다.
  */
 @Controller
@@ -32,7 +32,7 @@ import org.springframework.web.servlet.ModelAndView
 @AnonymousCheck
 class RulesetController(private val projectService: ProjectService, private val service: RulesetService, private val views: ProjectViewFactory) {
 
-    /** 룰셋 목록이다. */
+    /** 규칙 묶음 목록이다. */
     @GetMapping("/{user}/{project}/setting/rulesets")
     @IsAllowed(Operation.UPDATE)
     @Transactional(readOnly = true)
@@ -46,7 +46,7 @@ class RulesetController(private val projectService: ProjectService, private val 
             .addObject("migrated", rulesets.any { it.name == ReviewerSettingMigration.MIGRATED_NAME })
     }
 
-    /** 새 룰셋 화면이다. */
+    /** 새 규칙 묶음 화면이다. */
     @GetMapping("/{user}/{project}/setting/rulesets/new")
     @IsAllowed(Operation.UPDATE)
     @Transactional(readOnly = true)
@@ -55,7 +55,7 @@ class RulesetController(private val projectService: ProjectService, private val 
         return formView(project, Ruleset(enforcement = Ruleset.ACTIVE), emptyList())
     }
 
-    /** 룰셋을 만든다. 입력이 잘못되면 400으로 편집 화면을 다시 보인다. */
+    /** 규칙 묶음을 만든다. 입력이 잘못되면 400으로 편집 화면을 다시 보인다. */
     @PostMapping("/{user}/{project}/setting/rulesets")
     @IsAllowed(Operation.UPDATE)
     @Transactional
@@ -68,7 +68,7 @@ class RulesetController(private val projectService: ProjectService, private val 
         return RedirectSupport.see(request, response, listUrl(project))
     }
 
-    /** 룰셋 편집 화면이다. 이 프로젝트의 룰셋이 아니면 404이다. */
+    /** 규칙 묶음 편집 화면이다. 이 프로젝트의 규칙 묶음이 아니면 404이다. */
     @GetMapping("/{user}/{project}/setting/rulesets/{id}")
     @IsAllowed(Operation.UPDATE)
     @Transactional(readOnly = true)
@@ -78,7 +78,7 @@ class RulesetController(private val projectService: ProjectService, private val 
         return formView(project, ruleset, emptyList())
     }
 
-    /** 룰셋을 고친다. 입력이 잘못되면 400으로 편집 화면을 다시 보이고, 이 프로젝트의 룰셋이 아니면 404이다. */
+    /** 규칙 묶음을 고친다. 입력이 잘못되면 400으로 편집 화면을 다시 보이고, 이 프로젝트의 규칙 묶음이 아니면 404이다. */
     @PostMapping("/{user}/{project}/setting/rulesets/{id}")
     @IsAllowed(Operation.UPDATE)
     @Transactional
@@ -92,7 +92,7 @@ class RulesetController(private val projectService: ProjectService, private val 
         return RedirectSupport.see(request, response, listUrl(project))
     }
 
-    /** 룰셋을 지운다. 이 프로젝트의 룰셋이 아니면 404이다. */
+    /** 규칙 묶음을 지운다. 이 프로젝트의 규칙 묶음이 아니면 404이다. */
     @PostMapping("/{user}/{project}/setting/rulesets/{id}/delete")
     @IsAllowed(Operation.UPDATE)
     @Transactional
@@ -113,7 +113,7 @@ class RulesetController(private val projectService: ProjectService, private val 
         )
     }
 
-    /** 잘못된 입력을 편집 화면에 다시 채우기 위한 저장하지 않는 룰셋이다. */
+    /** 잘못된 입력을 편집 화면에 다시 채우기 위한 저장하지 않는 규칙 묶음이다. */
     private fun draft(id: Long?, input: RulesetInput) = Ruleset(
         id = id, name = input.name, enforcement = input.enforcement, pattern = input.pattern, requiredApprovals = input.approvals?.trim()?.toIntOrNull() ?: 0,
         bypassAdmins = input.bypassAdmins, restrictDeletions = input.restrictDeletions, blockForcePushes = input.blockForcePushes, requirePullRequest = input.requirePullRequest,

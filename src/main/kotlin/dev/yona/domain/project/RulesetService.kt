@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 
 /**
- * 룰셋 편집 화면이 보내는 입력이다(`decisions.md` D-46). 조건은 GitHub 기본에 맞춰 삭제 제한과 강제 푸시 차단만 켠 것이 기본이다.
+ * 규칙 묶음 편집 화면이 보내는 입력이다(`decisions.md` D-46). 조건은 GitHub 기본에 맞춰 삭제 제한과 강제 푸시 차단만 켠 것이 기본이다.
  *
  * @property approvals 필요한 승인 수 문자열(검증 전). 비우면 0으로 본다
  */
@@ -24,7 +24,7 @@ data class RulesetInput(
 )
 
 /**
- * 룰셋을 만들고 고치고 지운다(추가 개발 항목 X-34, `decisions.md` D-46). 프로젝트가 들고 있는 룰셋 목록도 함께 갱신해 같은 트랜잭션 안의 판정이 바로 따른다.
+ * 규칙 묶음을 만들고 고치고 지운다(추가 개발 항목 X-34, `decisions.md` D-46). 프로젝트가 들고 있는 규칙 묶음 목록도 함께 갱신해 같은 트랜잭션 안의 판정이 바로 따른다.
  */
 @Service
 class RulesetService(private val rulesets: RulesetRepository) {
@@ -55,7 +55,7 @@ class RulesetService(private val rulesets: RulesetRepository) {
         return count in 0..MAX_APPROVALS
     }
 
-    /** 룰셋을 만든다. 입력은 [violations]가 비어 있어야 한다. */
+    /** 규칙 묶음을 만든다. 입력은 [violations]가 비어 있어야 한다. */
     @Transactional
     fun create(project: Project, input: RulesetInput): Ruleset {
         val created = rulesets.save(apply(Ruleset(project = project, createdDate = Date()), input))
@@ -63,14 +63,14 @@ class RulesetService(private val rulesets: RulesetRepository) {
         return created
     }
 
-    /** [project]의 룰셋 [id]를 고친다. 없거나 다른 프로젝트의 룰셋이면 `null`이다. 입력은 [violations]가 비어 있어야 한다. */
+    /** [project]의 규칙 묶음 [id]를 고친다. 없거나 다른 프로젝트의 규칙 묶음이면 `null`이다. 입력은 [violations]가 비어 있어야 한다. */
     @Transactional
     fun update(project: Project, id: Long, input: RulesetInput): Ruleset? {
         val ruleset = find(project, id) ?: return null
         return rulesets.save(apply(ruleset, input))
     }
 
-    /** [project]의 룰셋 [id]를 지운다. 없거나 다른 프로젝트의 룰셋이면 `false`이다. */
+    /** [project]의 규칙 묶음 [id]를 지운다. 없거나 다른 프로젝트의 규칙 묶음이면 `false`이다. */
     @Transactional
     fun delete(project: Project, id: Long): Boolean {
         val ruleset = find(project, id) ?: return false
@@ -79,7 +79,7 @@ class RulesetService(private val rulesets: RulesetRepository) {
         return true
     }
 
-    /** [project]의 룰셋 [id]이다. 없거나 다른 프로젝트의 것이면 `null`이다. */
+    /** [project]의 규칙 묶음 [id]이다. 없거나 다른 프로젝트의 것이면 `null`이다. */
     fun find(project: Project, id: Long): Ruleset? = rulesets.findById(id).orElse(null)?.takeIf { it.project?.id == project.id }
 
     private fun apply(ruleset: Ruleset, input: RulesetInput): Ruleset = ruleset.also {

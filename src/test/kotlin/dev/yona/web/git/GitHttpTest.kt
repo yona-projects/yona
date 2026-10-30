@@ -386,7 +386,7 @@ class GitHttpTest {
     }
 
     @Test
-    fun `프로젝트 관리자는 바이패스를 허용한 룰셋을 우회하고 허용하지 않으면 막힌다`() {
+    fun `프로젝트 관리자는 바이패스를 허용한 규칙 묶음을 우회하고 허용하지 않으면 막힌다`() {
         push(project, member); protect { requirePullRequest = true; blockForcePushes = false; bypassAdmins = true }
         assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(member).status)
         protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.bypassAdmins = false; protectionRules.save(it) }

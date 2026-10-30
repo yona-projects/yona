@@ -13,11 +13,11 @@ val PullRequest.closed: Boolean get() = state == State.CLOSED
 val PullRequest.merged: Boolean get() = state == State.MERGED
 
 /**
- * 받는 브랜치에 적용되는 룰셋 전부이다(추가 개발 항목 X-34, `decisions.md` D-46). 대상이 맞는 활성 룰셋을 모두 돌려주며 없으면 빈 목록이다. 룰셋이 없으면 GitHub처럼 아무것도 막지 않는다.
+ * 받는 브랜치에 적용되는 규칙 묶음 전부이다(추가 개발 항목 X-34, `decisions.md` D-46). 대상이 맞는 활성 규칙 묶음을 모두 돌려주며 없으면 빈 목록이다. 규칙 묶음이 없으면 GitHub처럼 아무것도 막지 않는다.
  */
 val PullRequest.rulesets: List<dev.yona.domain.project.Ruleset> get() = toProject?.rulesetsFor(toBranch).orEmpty()
 
-/** 받는 브랜치의 룰셋들이 요구하는 승인 수이다. 룰셋마다 다르면 가장 큰 값이고, 룰셋이 없으면 0이다 (v1.6 `getRequiredReviewerCount`를 룰셋 단위로 바꿨다). */
+/** 받는 브랜치의 규칙 묶음들이 요구하는 승인 수이다. 규칙 묶음마다 다르면 가장 큰 값이고, 규칙 묶음이 없으면 0이다 (v1.6 `getRequiredReviewerCount`를 규칙 묶음 단위로 바꿨다). */
 val PullRequest.requiredReviewerCount: Int get() = rulesets.maxOfOrNull { it.requiredApprovals ?: 0 } ?: 0
 
 /** 개수에 세는 승인한 사람 수이다. 작성자 본인의 승인은 세지 않는다(추가 개발 항목 X-12, `decisions.md` D-35 12번. v1.6 시절 작성자가 해 둔 승인도 같다). */
@@ -48,8 +48,8 @@ val PullRequest.changesRequestedBy: List<String?>
 fun PullRequest.isReviewedBy(user: User?): Boolean = user != null && reviewers.any { it.id == user.id }
 
 /**
- * 병합을 막고 있는 룰셋 목록이다. 받는 브랜치에 맞는 활성 룰셋마다 자신이 켠 조건을 따진다. 필요한 승인 수가 모자라거나, 변경 요청 해결을 요구했는데 남아 있거나,
- * 대화 해결을 요구했는데 열린 스레드가 [openConversations]개 있으면 그 룰셋이 막는 것이다(추가 개발 항목 X-12, X-32, X-33, X-34, `decisions.md` D-35, D-46).
+ * 병합을 막고 있는 규칙 묶음 목록이다. 받는 브랜치에 맞는 활성 규칙 묶음마다 자신이 켠 조건을 따진다. 필요한 승인 수가 모자라거나, 변경 요청 해결을 요구했는데 남아 있거나,
+ * 대화 해결을 요구했는데 열린 스레드가 [openConversations]개 있으면 그 규칙 묶음이 막는 것이다(추가 개발 항목 X-12, X-32, X-33, X-34, `decisions.md` D-35, D-46).
  */
 fun PullRequest.blockingRulesets(openConversations: Int = 0): List<dev.yona.domain.project.Ruleset> = rulesets.filter { rule ->
     countedApprovals < (rule.requiredApprovals ?: 0) ||
@@ -58,7 +58,7 @@ fun PullRequest.blockingRulesets(openConversations: Int = 0): List<dev.yona.doma
 }
 
 /**
- * 병합 조건이 병합을 막고 있으면 `true`이다([blockingRulesets]가 비어 있지 않을 때). 프로젝트 관리자와 사이트 관리자는 막고 있는 모든 룰셋이 바이패스를 허용하면 우회할 수 있다.
+ * 병합 조건이 병합을 막고 있으면 `true`이다([blockingRulesets]가 비어 있지 않을 때). 프로젝트 관리자와 사이트 관리자는 막고 있는 모든 규칙 묶음이 바이패스를 허용하면 우회할 수 있다.
  */
 fun PullRequest.reviewBlocked(openConversations: Int = 0): Boolean = blockingRulesets(openConversations).isNotEmpty()
 
@@ -69,7 +69,7 @@ val PullRequest.acceptableIgnoringReview: Boolean get() = isConflict != true && 
 fun PullRequest.acceptable(openConversations: Int = 0): Boolean = acceptableIgnoringReview && !reviewBlocked(openConversations)
 
 /**
- * 이 풀 리퀘스트에 쓸 수 있는 병합 방식이다. 프로젝트가 허용한 방식에서, 받는 브랜치에 맞는 룰셋 중 하나라도 선형 이력을 요구하면 병합 커밋을 뺀다(X-34, D-46).
+ * 이 풀 리퀘스트에 쓸 수 있는 병합 방식이다. 프로젝트가 허용한 방식에서, 받는 브랜치에 맞는 규칙 묶음 중 하나라도 선형 이력을 요구하면 병합 커밋을 뺀다(X-34, D-46).
  */
 fun PullRequest.allowedMergeMethods(): Set<MergeMethod> {
     val allowed = toProject?.allowedMergeMethods().orEmpty()
