@@ -38,7 +38,7 @@ object ReceiveCommands {
  * 푸시 전후에 도는 훅을 만든다. v1.6 `RepositoryService.createPreReceiveHook`, `createPostReceiveHook`
  * (`app/playRepository/RepositoryService.java:253-270`)에 해당한다.
  *
- * 푸시 전: 내부용으로 예약된 `refs/yobi` 아래 ref에는 밀어 넣지 못하게 거부한다.
+ * 푸시 전: 내부용으로 예약된 `refs/yobi` 아래 ref에는 밀어 넣지 못하게 거부하고, 브랜치 보호 규칙이 막는 푸시를 거부한다.
  * 푸시 뒤(순서대로): 프로젝트의 마지막 푸시 시각을 갱신하고, 최근 푸시한 브랜치를 기록하고, 이슈 언급 이벤트, 풀 리퀘스트 확인, 새 커밋 알림을
  * 요청과 별개로 시작한다([PostReceiveJobs]).
  */
@@ -48,16 +48,33 @@ class GitHooks(
     private val pushedBranches: PushedBranchRepository,
     private val pullRequests: PullRequestRepository,
     private val transactions: TransactionTemplate,
-    private val postReceiveJobs: PostReceiveJobs
+    private val postReceiveJobs: PostReceiveJobs,
+    private val accessControl: dev.yona.access.AccessControl
 ) {
 
-    /** 푸시 전 훅이다. */
-    fun preReceive(): PreReceiveHook = PreReceiveHook { _, commands ->
+    /**
+     * 푸시 전 훅이다. 내부용 `refs/yobi` 아래에는 밀어 넣지 못하게 하고, [project]의 브랜치 보호 규칙(`decisions.md` D-45)이 막는 푸시(삭제, 강제 푸시,
+     * 풀 리퀘스트를 요구하는 브랜치에 직접 푸시)를 거부한다. 규칙이 "관리자에게도 적용"이 아니면 프로젝트 관리자와 사이트 관리자인 [sender]는 규칙을 우회한다.
+     * 풀 리퀘스트 병합처럼 서버가 직접 브랜치를 갱신하는 것은 이 검사를 거치지 않는다.
+     */
+    fun preReceive(project: Project, sender: User?): PreReceiveHook = PreReceiveHook { _, commands ->
         for (command in commands) {
             val ref = command.refName
             if (ref == "refs/yobi" || ref.startsWith("refs/yobi/")) {
                 command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, "refs/yobi/* is reserved for internal use")
+                continue
             }
+            if (!ref.startsWith(Constants.R_HEADS)) continue
+            val rule = project.protectionFor(ref) ?: continue
+            val reason = rule.pushViolation(command.type) ?: continue
+            if (accessControl.canBypassReview(sender, project, rule)) continue
+            val branch = ref.removePrefix(Constants.R_HEADS)
+            val message = when (reason) {
+                "deletion" -> "protected branch: deleting '$branch' is not allowed"
+                "force" -> "protected branch: force pushes to '$branch' are not allowed"
+                else -> "protected branch: direct pushes to '$branch' are not allowed, open a pull request instead"
+            }
+            command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, message)
         }
     }
 

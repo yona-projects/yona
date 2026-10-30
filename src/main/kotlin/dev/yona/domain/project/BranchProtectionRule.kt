@@ -62,6 +62,18 @@ class BranchProtectionRule(
     var createdDate: Date? = null
 ) {
 
+    /**
+     * 푸시 명령 [type]이 이 규칙에 어긋나면 그 이유를 돌려주고, 어긋나지 않으면 `null`이다(푸시 검사, `decisions.md` D-45 2단계). 이유는 `deletion`(삭제),
+     * `force`(강제 푸시), `pull-request`(풀 리퀘스트를 요구하는데 직접 푸시)이다. 브랜치를 새로 만드는 푸시는 막지 않는다.
+     */
+    fun pushViolation(type: org.eclipse.jgit.transport.ReceiveCommand.Type): String? = when (type) {
+        org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE -> if (allowDeletions != true) "deletion" else null
+        org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE_NONFASTFORWARD ->
+            if (allowForcePushes != true) "force" else if (requirePullRequest == true) "pull-request" else null
+        org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE -> if (requirePullRequest == true) "pull-request" else null
+        else -> null
+    }
+
     /** 패턴에 `*`가 없으면 `true`이다. 이름이 정확히 같은 규칙이 패턴 규칙보다 우선한다. */
     val isExact: Boolean get() = pattern?.contains('*') != true
 

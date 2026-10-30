@@ -346,4 +346,80 @@ class GitHttpTest {
         val old = raw("/${secret.owner}/${secret.name}/info/refs?service=git-upload-pack", headers = arrayOf(auth, "User-Agent" to "git/2.0.0", "Accept-Language" to "ko-KR"))
         assertEquals("text/plain", old.headers().firstValue("Content-Type").get())
     }
+
+    // --- 브랜치 보호 푸시 검사 (X-33 2단계, D-45) ---
+
+    @Autowired private lateinit var protectionRules: dev.yona.domain.project.BranchProtectionRuleRepository
+
+    private fun plainMember(): User = user("gp").also { projectUsers.save(ProjectUser(user = it, project = project, role = roles.findById(RoleType.MEMBER.id).get())) }
+
+    private fun protect(pattern: String = "master", configure: dev.yona.domain.project.BranchProtectionRule.() -> Unit = {}) {
+        protectionRules.save(dev.yona.domain.project.BranchProtectionRule(project = project, pattern = pattern, createdDate = java.util.Date()).apply(configure))
+    }
+
+    /** 복제해서 커밋을 하나 더 얹어([force]이면 이력을 다시 써서) [branch]로 밀어 넣고 원격 갱신 결과를 돌려준다. */
+    private fun pushMore(user: User, branch: String = "master", force: Boolean = false, delete: Boolean = false): org.eclipse.jgit.transport.RemoteRefUpdate {
+        val dir = clone(project, user)
+        Git.open(dir).use { git ->
+            val spec = if (delete) RefSpec(":refs/heads/$branch") else {
+                if (git.repository.branch != branch) git.checkout().setCreateBranch(true).setName(branch).setStartPoint("origin/$branch").call()
+                File(dir, "more-${counter.incrementAndGet()}.txt").writeText("more")
+                git.add().addFilepattern(".").call()
+                if (force) git.commit().setAmend(true).setMessage("rewritten").setAuthor("t", "t@example.com").setCommitter("t", "t@example.com").call()
+                else git.commit().setMessage("more").setAuthor("t", "t@example.com").setCommitter("t", "t@example.com").call()
+                RefSpec("refs/heads/$branch:refs/heads/$branch")
+            }
+            return git.push().setRemote(url(project)).setCredentialsProvider(credentials(user)).setForce(force).setRefSpecs(spec).call().flatMap { it.remoteUpdates }.single()
+        }
+    }
+
+    private fun assertRejected(update: org.eclipse.jgit.transport.RemoteRefUpdate, vararg words: String) {
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_OTHER_REASON, update.status, update.message)
+        words.forEach { assertTrue(update.message.orEmpty().contains(it), update.message) }
+    }
+
+    @Test
+    fun `풀 리퀘스트를 요구하는 규칙은 일반 구성원의 직접 푸시를 막는다`() {
+        push(project, member); protect { requirePullRequest = true }
+        val plain = plainMember()
+        assertRejected(pushMore(plain), "protected branch", "pull request")
+    }
+
+    @Test
+    fun `프로젝트 관리자는 관리자에게도 적용하지 않는 규칙을 우회하고 적용하면 막힌다`() {
+        push(project, member); protect { requirePullRequest = true }
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(member).status)
+        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.enforceAdmins = true; protectionRules.save(it) }
+        assertRejected(pushMore(member), "protected branch")
+    }
+
+    @Test
+    fun `규칙이 있는 브랜치의 강제 푸시는 막고 허용하면 받는다`() {
+        push(project, member); protect()
+        val plain = plainMember()
+        assertRejected(pushMore(plain, force = true), "protected branch", "force")
+        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.allowForcePushes = true; protectionRules.save(it) }
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(plain, force = true).status)
+    }
+
+    @Test
+    fun `규칙이 있는 브랜치의 삭제는 막고 허용하면 지운다`() {
+        push(project, member, branch = "master"); push(project, member, branch = "release")
+        protect("release")
+        val plain = plainMember()
+        assertRejected(pushMore(plain, branch = "release", delete = true), "protected branch", "delet")
+        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.allowDeletions = true; protectionRules.save(it) }
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(plain, branch = "release", delete = true).status)
+    }
+
+    @Test
+    fun `규칙이 없는 브랜치와 태그는 영향이 없다`() {
+        push(project, member, branch = "master"); push(project, member, branch = "feature")
+        protect("master") { requirePullRequest = true }
+        val plain = plainMember()
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(plain, branch = "feature").status)
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushMore(plain, branch = "feature", force = true).status)
+        protect("**") { requirePullRequest = true }
+        push(project, plain, branch = "v1", ref = "refs/tags/v1")
+    }
 }

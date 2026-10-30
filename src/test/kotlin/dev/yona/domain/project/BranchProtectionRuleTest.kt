@@ -130,4 +130,30 @@ class BranchProtectionRuleTest {
         val p = projectOf(BranchProtectionRule(pattern = "master", requireLinearHistory = true)).also { it.allowMergeCommit = true; it.allowSquashMerge = false; it.allowRebaseMerge = false }
         assertTrue(pullRequest(p).allowedMergeMethods().isEmpty())
     }
+
+    // --- 푸시 검사 (D-45 2단계) ---
+
+    private fun violation(rule: BranchProtectionRule, type: org.eclipse.jgit.transport.ReceiveCommand.Type) = rule.pushViolation(type)
+
+    @Test
+    fun `규칙이 있으면 강제 푸시와 삭제는 기본으로 막고 생성과 빨리 감기 푸시는 막지 않는다`() {
+        val rule = BranchProtectionRule(pattern = "master")
+        assertEquals("force", violation(rule, org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE_NONFASTFORWARD))
+        assertEquals("deletion", violation(rule, org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE))
+        assertNull(violation(rule, org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE)); assertNull(violation(rule, org.eclipse.jgit.transport.ReceiveCommand.Type.CREATE))
+    }
+
+    @Test
+    fun `강제 푸시와 삭제를 허용하면 막지 않는다`() {
+        val rule = BranchProtectionRule(pattern = "master", allowForcePushes = true, allowDeletions = true)
+        org.eclipse.jgit.transport.ReceiveCommand.Type.entries.forEach { assertNull(violation(rule, it), it.name) }
+    }
+
+    @Test
+    fun `풀 리퀘스트를 요구하면 직접 갱신을 막지만 생성은 막지 않고 삭제는 삭제 허용을 따른다`() {
+        val rule = BranchProtectionRule(pattern = "master", requirePullRequest = true, allowForcePushes = true, allowDeletions = true)
+        assertEquals("pull-request", violation(rule, org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE))
+        assertEquals("pull-request", violation(rule, org.eclipse.jgit.transport.ReceiveCommand.Type.UPDATE_NONFASTFORWARD))
+        assertNull(violation(rule, org.eclipse.jgit.transport.ReceiveCommand.Type.CREATE)); assertNull(violation(rule, org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE))
+    }
 }

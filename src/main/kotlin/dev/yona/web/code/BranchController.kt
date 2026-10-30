@@ -94,17 +94,28 @@ class BranchController(
             pullRequestUrl = pr?.let { siteUrls.path("${UrlPaths.projectPath(it.toProject?.owner, it.toProject?.name)}/pullRequest/${it.number}") },
             pullRequestLabel = pr?.let { "pullRequest-${it.number}" }, pullRequestState = pr?.state?.name?.lowercase(),
             setDefaultUrl = if (canUpdate && b.name != defaultName) "$base/code/$segment/setAsDefault" else null,
-            deleteUrl = if (canDelete && !isHead) "$base/code/$segment/" else null
+            deleteUrl = if (canDelete && !isHead && deletable(project, b.name)) "$base/code/$segment/" else null
         )
     }
 
-    /** 브랜치를 지우고 목록으로 돌아간다. */
+    /**
+     * 현재 사용자가 [branch]를 지울 수 있으면 `true`이다. 브랜치 보호 규칙이 삭제를 막는 브랜치는, 규칙이 "관리자에게도 적용"이 아니고 사용자가
+     * 프로젝트 관리자나 사이트 관리자일 때만 지운다(`decisions.md` D-45). 규칙이 없는 브랜치는 제한이 없다.
+     */
+    private fun deletable(project: Project, branch: String): Boolean {
+        val rule = project.protectionFor(branch) ?: return true
+        return rule.pushViolation(org.eclipse.jgit.transport.ReceiveCommand.Type.DELETE) == null || accessControl.canBypassReview(currentUserProvider.get().user, project, rule)
+    }
+
+    /** 브랜치를 지우고 목록으로 돌아간다. 보호 규칙이 삭제를 막으면 403이다. */
     @DeleteMapping("/{user}/{project}/code/{branch}/")
     @IsAllowed(Operation.DELETE)
     @Transactional
     fun deleteBranch(@PathVariable("user") owner: String, @PathVariable("project") name: String, @PathVariable branch: String): Any {
         val project = projectService.findByOwnerAndProjectName(owner, name) ?: return ErrorViews.notFound()
-        branchService.delete(project, UrlPaths.decodeSegmentOrSelf(branch))
+        val branchName = UrlPaths.decodeSegmentOrSelf(branch)
+        if (!deletable(project, branchName)) return ErrorViews.forbidden()
+        branchService.delete(project, branchName)
         return RedirectView(siteUrls.path("${UrlPaths.projectPath(owner, name)}/branches"), false, true, false).also { it.setStatusCode(org.springframework.http.HttpStatus.SEE_OTHER) }
     }
 

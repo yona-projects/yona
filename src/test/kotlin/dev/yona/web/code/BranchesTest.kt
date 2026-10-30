@@ -160,6 +160,37 @@ class BranchesTest : AbstractIntegrationTest() {
         assertEquals(listOf("refs/heads/master"), repositories.refNames(p))
     }
 
+    @Autowired private lateinit var protectionRules: dev.yona.domain.project.BranchProtectionRuleRepository
+
+    private fun protect(p: Project, pattern: String, enforceAdmins: Boolean = false, allowDeletions: Boolean = false) {
+        protectionRules.save(dev.yona.domain.project.BranchProtectionRule(project = p, pattern = pattern, enforceAdmins = enforceAdmins, allowDeletions = allowDeletions, createdDate = java.util.Date()))
+        p.branchProtectionRules.add(protectionRules.findByProjectIdAndPattern(p.id!!, pattern)!!)
+    }
+
+    @Test
+    fun `관리자에게도 적용하는 보호 브랜치는 삭제 단추가 없고 지울 수 없다 (X-33, D-45)`() {
+        val p = twoBranches(); val m = member(p); protect(p, "feature", enforceAdmins = true)
+        val rows = page("/${p.owner}/${p.name}/branches", login(m)).select("table.branch-list-wrap tbody tr")
+        assertNull(rows[1].selectFirst("a[data-request-method=delete]"), "보호된 브랜치에는 삭제 단추가 없다")
+        mockMvc.perform(delete("/${p.owner}/${p.name}/code/refs%2Fheads%2Ffeature/").session(login(m))).andExpect(status().isForbidden)
+        assertEquals(setOf("refs/heads/master", "refs/heads/feature"), repositories.refNames(p).toSet())
+    }
+
+    @Test
+    fun `관리자에게도 적용하지 않는 보호 브랜치는 프로젝트 관리자가 지울 수 있다 (X-33, D-45)`() {
+        val p = twoBranches(); val m = member(p); protect(p, "feature")
+        assertNotNull(page("/${p.owner}/${p.name}/branches", login(m)).select("table.branch-list-wrap tbody tr")[1].selectFirst("a[data-request-method=delete]"))
+        mockMvc.perform(delete("/${p.owner}/${p.name}/code/refs%2Fheads%2Ffeature/").session(login(m))).andExpect(status().is3xxRedirection)
+        assertEquals(listOf("refs/heads/master"), repositories.refNames(p))
+    }
+
+    @Test
+    fun `삭제를 허용한 보호 브랜치는 관리자에게도 적용해도 지울 수 있다 (X-33, D-45)`() {
+        val p = twoBranches(); val m = member(p); protect(p, "feature", enforceAdmins = true, allowDeletions = true)
+        mockMvc.perform(delete("/${p.owner}/${p.name}/code/refs%2Fheads%2Ffeature/").session(login(m))).andExpect(status().is3xxRedirection)
+        assertEquals(listOf("refs/heads/master"), repositories.refNames(p))
+    }
+
     @Test
     fun `구성원이 아니면 바꾸거나 지울 수 없다`() {
         val p = twoBranches(); val outsider = user()

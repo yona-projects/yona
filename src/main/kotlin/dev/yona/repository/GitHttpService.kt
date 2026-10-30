@@ -62,7 +62,7 @@ class GitHttpService(private val repositories: RepositoryService, private val ho
                         UPLOAD_PACK -> UploadPack(repository).apply { isBiDirectionalPipe = false }.upload(input, out, null)
                         RECEIVE_PACK -> ReceivePack(repository).apply {
                             isBiDirectionalPipe = false
-                            preReceiveHook = hooks.preReceive()
+                            preReceiveHook = hooks.preReceive(project, sender)
                             postReceiveHook = hooks.postReceive(project, sender)
                         }.receive(input, out, null)
                     }

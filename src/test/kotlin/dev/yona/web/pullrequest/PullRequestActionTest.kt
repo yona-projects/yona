@@ -133,6 +133,30 @@ class PullRequestActionTest : AbstractIntegrationTest() {
         assertEquals("open", note.oldValue); assertEquals("merged", note.newValue); assertTrue(note.receivers.any { it.id == mentioned.id })
     }
 
+    private fun mergedFromFeature(s: Setup): PullRequest {
+        addChange(s, branch = "feature")
+        val pr = open(s, fromBranch = "refs/heads/feature")
+        mockMvc.perform(post(url(s, pr, "/accept")).session(s.managerSession)).andExpect(status().isSeeOther)
+        return pr
+    }
+
+    private fun forkBranches(s: Setup) = repositories.refNames(s.fork).toSet()
+
+    @Test
+    fun `병합한 뒤 보내는 브랜치를 지울 수 있다`() {
+        val s = setup(); val pr = mergedFromFeature(s)
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(url(s, pr, "/deletefrombranch")).session(s.managerSession)).andExpect(status().isSeeOther)
+        assertTrue("refs/heads/feature" !in forkBranches(s))
+    }
+
+    @Test
+    fun `보호 규칙이 삭제를 막는 보내는 브랜치는 지우지 않는다 (X-33, D-45)`() {
+        val s = setup(); val pr = mergedFromFeature(s)
+        branchProtections.save(protectionRule(s.fork, "feature", approvals = 0, noChangesRequested = false))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(url(s, pr, "/deletefrombranch")).session(s.managerSession)).andExpect(status().isSeeOther)
+        assertTrue("refs/heads/feature" in forkBranches(s), "보호된 브랜치는 그대로이다")
+    }
+
     private fun issue(project: Project, number: Long, state: State = State.OPEN) =
         issues.save(Issue(project = project, number = number, title = "이슈$number", state = state, authorLoginId = "x"))
 
