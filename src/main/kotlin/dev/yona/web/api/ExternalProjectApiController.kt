@@ -49,13 +49,9 @@ import org.springframework.web.bind.annotation.ResponseBody
 import tools.jackson.databind.JsonNode
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import java.util.Date
 import java.util.Locale
 
 /**
@@ -185,24 +181,11 @@ class ExternalProjectApiController(
                 linkedMapOf("milestone" to node, "message" to messages.getMessage("milestone.title.duplicated", null, LocaleContextHolder.getLocale()))
             } else {
                 val state = if (node.findValue("state")?.asString().equals("closed", ignoreCase = true)) State.CLOSED else State.OPEN
-                val milestone = milestoneService.create(project, title, node.findValue("description")?.asString().orEmpty(), state, node.findValue("due_on")?.asString()?.let { parseDueOn(it) })
+                val milestone = milestoneService.create(project, title, node.findValue("description")?.asString().orEmpty(), state, node.findValue("due_on")?.asString()?.let { ApiDueDates.parse(it) })
                 milestoneNode(milestone)
             }
         }
         return created(result)
-    }
-
-    /**
-     * `due_on`을 읽는다 (v1.6 `MilestoneApi`: Joda `new DateTime(text)`). 그날의 마지막 초로 맞추는 일은 [MilestoneService.create]가 한다.
-     * `2030-01-02`(시스템 시간대의 자정), `2030-01-02T12:00:00`(시스템 시간대), `2030-01-02T12:00:00Z`, `2030-01-02T12:00:00+09:00`을 받는다.
-     * 읽을 수 없으면 `null`이다. v1.6은 이 경우 `IllegalArgumentException`으로 `500`이 나므로 오류 없이 처리하는 쪽을 유지한다.
-     */
-    private fun parseDueOn(text: String): Date? {
-        val zone = ZoneId.systemDefault()
-        return try {
-            if (text.length <= 10) Date.from(LocalDate.parse(text).atStartOfDay(zone).toInstant())
-            else try { Date.from(OffsetDateTime.parse(text).toInstant()) } catch (e: DateTimeParseException) { Date.from(LocalDateTime.parse(text).atZone(zone).toInstant()) }
-        } catch (e: DateTimeParseException) { null }
     }
 
     private fun milestoneNode(m: dev.yona.domain.issue.Milestone): Map<String, Any?> {

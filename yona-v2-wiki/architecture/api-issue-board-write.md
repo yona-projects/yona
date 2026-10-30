@@ -67,8 +67,12 @@ D-36 4번("모든 토큰이 범위와 사용자의 실제 권한의 교집합만
 
 | 메서드와 경로 | 설명 | 상태 |
 |---|---|---|
-| `PATCH labels/{labelId}`, `DELETE labels/{labelId}` | 라벨 고치기, 지우기 | 대기 |
-| `PATCH milestones/{number}`, `DELETE milestones/{number}` | 마일스톤 고치기(제목, 설명, 마감일, 상태), 지우기 | 대기 |
+| `PATCH labels/{labelId}` | 라벨 고치기: `labelName`, `labelColor`, `category`(분류 이름, 없으면 단일 선택이 아닌 분류로 만든다) 중 보낸 항목만. 같은 분류의 같은 이름은 409 | **완료**(2026-10-30) |
+| `DELETE labels/{labelId}` | 라벨 지우기. 이슈, 게시글, 풀 리퀘스트에서 떼고 남은 라벨이 없는 분류도 지운다 | **완료**(2026-10-30) |
+| `PATCH milestones/{milestoneId}` | 마일스톤 고치기: `title`, `description`, `due_on`(`null`이면 지움), `state` 중 보낸 항목만. 제목이 바뀌어 겹치면 409 | **완료**(2026-10-30) |
+| `DELETE milestones/{milestoneId}` | 마일스톤 지우기. 속한 이슈의 마일스톤은 비워진다 | **완료**(2026-10-30) |
+
+경로의 마일스톤 값은 GitHub의 `number`가 아니라 Yona의 마일스톤 번호(`id`)이다. Yona의 마일스톤은 프로젝트별 번호가 없고 이슈 `PATCH`의 `milestone`도 같은 번호를 쓰기 때문이다. 권한은 웹 화면과 같아 프로젝트 구성원이 고치고 지운다(D-48의 삭제 제한 대상이 아니다). 구현은 `ExternalProjectWriteApiController`이다.
 
 ### d단계: 이슈의 Yona 고유 쓰기 기능 (X-29d)
 

@@ -78,6 +78,8 @@ object ApiScopeRules {
         add("POST", "/-_-api/v1/owners/{owner}/projects", ApiRequirement.RepoOnly)
         add("POST", "$PROJECT/labels", ApiRequirement.Repo)
         add("POST", "$PROJECT/milestones", ApiRequirement.Repo)
+        // 라벨과 마일스톤 관리 REST(X-29c, D-47)
+        for (m in listOf("PATCH", "DELETE")) { add(m, "$PROJECT/labels/{labelId}", ApiRequirement.Repo); add(m, "$PROJECT/milestones/{milestoneId}", ApiRequirement.Repo) }
         add("GET", "$PROJECT/exports", ApiRequirement.Repo)
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
