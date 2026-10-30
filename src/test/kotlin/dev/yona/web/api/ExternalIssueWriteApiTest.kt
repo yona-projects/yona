@@ -260,10 +260,11 @@ class ExternalIssueWriteApiTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `댓글은 프로젝트 구성원이 지우고 구성원이 아닌 토큰은 지우지 못하며 이슈의 댓글 수가 줄어든다`() {
-        val project = newProject(); val (author, authorToken) = joined(project); val outsiderToken = tokenOf(newUser("x")); val (_, managerToken) = joined(project, RoleType.MANAGER)
+    fun `댓글은 작성자와 프로젝트 관리자만 지우고 다른 구성원과 구성원이 아닌 토큰은 지우지 못하며 이슈의 댓글 수가 줄어든다 (D-48)`() {
+        val project = newProject(); val (author, authorToken) = joined(project); val (_, memberToken) = joined(project); val outsiderToken = tokenOf(newUser("x")); val (_, managerToken) = joined(project, RoleType.MANAGER)
         val i = issue(project, author); val a = comment(i, author); val b = comment(i, author)
         json(delete(api(project, "issues/1/comments/${a.id}")), outsiderToken, null).andExpect(status().isForbidden)
+        json(delete(api(project, "issues/1/comments/${a.id}")), memberToken, null).andExpect(status().isForbidden)
         json(delete(api(project, "issues/1/comments/${a.id}")), authorToken, null).andExpect(status().isNoContent)
         json(delete(api(project, "issues/1/comments/${b.id}")), managerToken, null).andExpect(status().isNoContent)
         entityManager.flush(); entityManager.clear()
@@ -274,10 +275,11 @@ class ExternalIssueWriteApiTest : AbstractIntegrationTest() {
     // --- a3: 이슈 삭제, 라벨, 담당자 ---
 
     @Test
-    fun `이슈는 프로젝트 구성원이 지우고 구성원이 아닌 토큰은 지우지 못하며 다른 사람의 댓글이 있으면 지우지 못한다`() {
-        val project = newProject(); val (author, authorToken) = joined(project); val outsiderToken = tokenOf(newUser("x")); val (other2, _) = joined(project); val (_, managerToken) = joined(project, RoleType.MANAGER)
+    fun `이슈는 작성자와 프로젝트 관리자만 지우고 다른 구성원과 구성원이 아닌 토큰은 지우지 못하며 다른 사람의 댓글이 있으면 지우지 못한다 (D-48)`() {
+        val project = newProject(); val (author, authorToken) = joined(project); val outsiderToken = tokenOf(newUser("x")); val (other2, memberToken) = joined(project); val (_, managerToken) = joined(project, RoleType.MANAGER)
         val own = issue(project, author, 1); val managed = issue(project, author, 2); val discussed = issue(project, author, 3); comment(discussed, other2)
         json(delete(api(project, "issues/1")), outsiderToken, null).andExpect(status().isForbidden)
+        json(delete(api(project, "issues/1")), memberToken, null).andExpect(status().isForbidden)
         json(delete(api(project, "issues/1")), authorToken, null).andExpect(status().isNoContent)
         json(delete(api(project, "issues/2")), managerToken, null).andExpect(status().isNoContent)
         json(delete(api(project, "issues/3")), authorToken, null).andExpect(status().isConflict)

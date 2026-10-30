@@ -308,12 +308,14 @@ class IssueCommentTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `남의 댓글은 지울 수 없지만 구성원은 지울 수 있다`() {
+    fun `남의 댓글은 구성원도 지울 수 없고 작성자와 프로젝트 관리자만 지운다 (X-36, D-48)`() {
         val project = newProject()
-        val author = join(newUser(), project); val member = join(newUser(), project); val outsider = newUser()
-        val c = comment(issue(project), author)
+        val author = join(newUser(), project); val member = join(newUser(), project); val outsider = newUser(); val manager = join(newUser(), project, RoleType.MANAGER)
+        val i = issue(project); val c = comment(i, author); val d = comment(i, author)
         mockMvc.perform(delete("${base(project)}/issue/1/comment/${c.id}/delete").session(login(outsider))).andExpect(status().isForbidden)
-        mockMvc.perform(delete("${base(project)}/issue/1/comment/${c.id}/delete").session(login(member))).andExpect(status().isSeeOther)
+        mockMvc.perform(delete("${base(project)}/issue/1/comment/${c.id}/delete").session(login(member))).andExpect(status().isForbidden)
+        mockMvc.perform(delete("${base(project)}/issue/1/comment/${c.id}/delete").session(login(author))).andExpect(status().isSeeOther)
+        mockMvc.perform(delete("${base(project)}/issue/1/comment/${d.id}/delete").session(login(manager))).andExpect(status().isSeeOther)
     }
 
     @Test

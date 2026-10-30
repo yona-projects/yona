@@ -474,6 +474,16 @@ class BoardWriteTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `남의 게시글은 구성원도 지울 수 없고 작성자만 지운다 (X-36, D-48)`() {
+        val project = newProject(); val author = join(newUser(), project); val member = join(newUser(), project)
+        post(project, author)
+        mockMvc.perform(delete("${base(project)}/post/1/delete").session(login(member))).andExpect(status().isForbidden)
+        assertEquals(1, postings.findAll().size)
+        mockMvc.perform(delete("${base(project)}/post/1/delete").session(login(author))).andExpect(status().is3xxRedirection)
+        assertEquals(0, postings.findAll().size)
+    }
+
+    @Test
     fun `삭제 권한이 없으면 403이다`() {
         val project = newProject(); val author = join(newUser(), project)
         post(project, author)

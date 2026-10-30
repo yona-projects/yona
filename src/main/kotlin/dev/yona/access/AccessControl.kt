@@ -182,7 +182,11 @@ class AccessControl(
 
         if (isOrganizationAdmin(project.organization, user)) return true
 
-        if (isProjectManager(user, project) || isAllowedIfAuthor(user, resource) || isAllowedIfAssignee(user, resource)) {
+        // 이슈, 게시글, 댓글의 삭제는 작성자와 관리자만 한다(추가 개발 항목 X-36, `decisions.md` D-48). 담당자나 일반 구성원은 지우지 못한다. 수정(`UPDATE`)은
+        // GitHub처럼 구성원에게 그대로 열어 둔다(이슈 본문 변경 이력이 남는다).
+        val privileged = isProjectManager(user, project) || isAllowedIfAuthor(user, resource)
+        if (resource.type in CONTENT_TYPES && operation == Operation.DELETE) return privileged
+        if (privileged || isAllowedIfAssignee(user, resource)) {
             return true
         }
 
@@ -298,6 +302,9 @@ class AccessControl(
             ResourceType.ISSUE_POST, ResourceType.ISSUE_COMMENT, ResourceType.NONISSUE_COMMENT, ResourceType.BOARD_POST,
             ResourceType.COMMIT_COMMENT, ResourceType.COMMENT_THREAD, ResourceType.REVIEW_COMMENT
         )
+
+        /** 삭제를 작성자와 관리자만 하는 리소스 종류이다(D-48, GitHub 방식): 이슈, 게시글, 이슈 댓글, 게시판 댓글. */
+        val CONTENT_TYPES = setOf(ResourceType.ISSUE_POST, ResourceType.BOARD_POST, ResourceType.ISSUE_COMMENT, ResourceType.NONISSUE_COMMENT)
 
         /** 권한이 컨테이너를 따르는 리소스 종류이다. */
         val CONTAINER_DEPENDENT_TYPES = setOf(

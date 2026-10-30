@@ -235,7 +235,8 @@ class BoardViewTest : AbstractIntegrationTest() {
         assertEquals("한 줄", doc.selectFirst(".one-line-comment .contents")!!.text().substringBefore(" - ").trim())
         assertEquals(1, doc.select("ul.comments > li.comment").size)
         assertTrue(doc.select("button[data-toggle=comment-edit]").isNotEmpty())
-        assertEquals("${base(project)}/post/1/comment/${parent.id}/delete", doc.selectFirst("button[data-toggle=comment-delete]")!!.attr("data-request-uri"))
+        assertTrue(doc.select("#comment-${parent.id} button[data-toggle=comment-delete]").isEmpty(), "남의 댓글에는 구성원에게도 삭제 단추가 없다 (X-36, D-48)")
+        assertEquals("${base(project)}/post/1/comment/${parent.id}/delete", doc(project, session = login(other)).selectFirst("#comment-${parent.id} button[data-toggle=comment-delete]")!!.attr("data-request-uri"))
     }
 
     @Test

@@ -421,7 +421,8 @@ class IssueViewTest : AbstractIntegrationTest() {
         assertTrue(doc.select("#comment-${mine.id} button[data-toggle=comment-delete]").isNotEmpty())
         assertEquals("${base(project)}/issue/1/comment/${mine.id}/delete", doc.selectFirst("#comment-${mine.id} button[data-toggle=comment-delete]")!!.attr("data-request-uri"))
         assertTrue(doc.select("#comment-${mine.id} button[data-toggle=comment-edit]").isNotEmpty())
-        assertTrue(doc.select("#comment-${theirs.id} button[data-toggle=comment-delete]").isNotEmpty())
+        assertTrue(doc.select("#comment-${theirs.id} button[data-toggle=comment-delete]").isEmpty(), "남의 댓글에는 구성원에게도 삭제 단추가 없다 (X-36, D-48)")
+        assertTrue(doc.select("#comment-${theirs.id} button[data-toggle=comment-edit]").isNotEmpty(), "수정은 GitHub처럼 구성원에게 열려 있다")
         assertTrue(view(project).select("button[data-toggle=comment-delete]").isEmpty())
     }
 

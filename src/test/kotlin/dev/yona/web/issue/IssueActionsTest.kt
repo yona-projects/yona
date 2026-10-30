@@ -147,6 +147,20 @@ class IssueActionsTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `남의 이슈는 구성원도 지울 수 없고 작성자와 프로젝트 관리자만 지운다 (X-36, D-48)`() {
+        val project = newProject()
+        val author = join(newUser(), project); val member = join(newUser(), project); val manager = join(newUser(), project, RoleType.MANAGER)
+        val own = issue(project, number = 1, author = author); val managed = issue(project, number = 2, author = author)
+        mockMvc.perform(delete("${base(project)}/issue/1/delete").session(login(member))).andExpect(status().isForbidden)
+        mockMvc.perform(delete("${base(project)}/issue/1/delete").session(login(newUser()))).andExpect(status().isForbidden)
+        assertEquals(true, issues.findById(own.id!!).isPresent)
+        mockMvc.perform(delete("${base(project)}/issue/1/delete").session(login(author))).andExpect(status().isSeeOther)
+        mockMvc.perform(delete("${base(project)}/issue/2/delete").session(login(manager))).andExpect(status().isSeeOther)
+        entityManager.flush(); entityManager.clear()
+        assertNull(issues.findById(own.id!!).orElse(null)); assertNull(issues.findById(managed.id!!).orElse(null))
+    }
+
+    @Test
     fun `Ajax로 지우면 204와 목록 주소를 알린다`() {
         val project = newProject()
         val member = join(newUser(), project)

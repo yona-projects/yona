@@ -402,12 +402,14 @@ class AccessControlTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `삭제 규칙 - 멤버만, 코드는 불가`() {
+    fun `삭제 규칙 - 멤버만(이슈와 게시글과 댓글은 작성자와 관리자만), 코드는 불가`() {
         val project = project(ProjectScope.PUBLIC, user())
         val member = user().also { join(it, project, ProjectRole.MEMBER) }
-        assertTrue(allowed(member, projectResource(project, ResourceType.BOARD_POST), Operation.DELETE))
-        assertFalse(allowed(user(), projectResource(project, ResourceType.BOARD_POST), Operation.DELETE))
+        assertTrue(allowed(member, projectResource(project, ResourceType.MILESTONE), Operation.DELETE))
+        assertFalse(allowed(user(), projectResource(project, ResourceType.MILESTONE), Operation.DELETE))
         assertFalse(allowed(member, projectResource(project, ResourceType.CODE), Operation.DELETE))
+        // 이슈, 게시글, 댓글은 구성원이어도 남의 것을 지우지 못한다(X-36, D-48). 작성자와 관리자만 지운다
+        assertFalse(allowed(member, projectResource(project, ResourceType.BOARD_POST), Operation.DELETE))
     }
 
     @Test
@@ -498,6 +500,67 @@ class AccessControlTest : AbstractIntegrationTest() {
         val container = GlobalResource("1", ResourceType.USER)
         assertFailsWith<UnsupportedOperationException> {
             accessControl.isResourceCreatable(user(), container, ResourceType.ATTACHMENT)
+        }
+    }
+
+    // --- 이슈, 게시글, 댓글의 삭제는 작성자와 관리자만, 수정은 GitHub처럼 구성원에게 허용 (X-36, D-48) ---
+
+    private fun contentFixture(): Triple<Project, Resource, Map<String, User>> {
+        val owner = user(); val project = project(ProjectScope.PRIVATE, owner)
+        val author = user("author"); val member = user("member"); val manager = user("manager"); val assigneeUser = user("assignee"); val outsider = user("outsider")
+        join(author, project, RoleType.MEMBER); join(member, project, RoleType.MEMBER); join(manager, project, RoleType.MANAGER); join(assigneeUser, project, RoleType.MEMBER)
+        val assignee = assignees.save(Assignee(user = assigneeUser, project = project))
+        val issue = issues.save(Issue(project = project, number = 1, state = State.OPEN, assignee = assignee))
+        val resource = projectResource(project, ResourceType.ISSUE_POST, issue.id.toString(), authorId = author.id)
+        return Triple(project, resource, mapOf("author" to author, "member" to member, "manager" to manager, "assignee" to assigneeUser, "outsider" to outsider))
+    }
+
+    @Test
+    fun `이슈 삭제는 작성자와 관리자만 하고 다른 구성원과 담당자는 하지 못한다`() {
+        val (project, issue, who) = contentFixture()
+        assertTrue(allowed(who.getValue("author"), issue, Operation.DELETE)); assertTrue(allowed(who.getValue("manager"), issue, Operation.DELETE))
+        assertFalse(allowed(who.getValue("member"), issue, Operation.DELETE), "남의 이슈를 지우지 못한다"); assertFalse(allowed(who.getValue("assignee"), issue, Operation.DELETE), "담당자도 지우지 못한다")
+        assertFalse(allowed(who.getValue("outsider"), issue, Operation.DELETE))
+        val admin = user("siteadmin"); siteAdmins.save(SiteAdmin(admin = admin)); assertTrue(allowed(admin, issue, Operation.DELETE))
+        assertEquals(project, project)
+    }
+
+    @Test
+    fun `이슈의 속성 변경은 구성원과 담당자에게 계속 허용한다`() {
+        val (_, issue, who) = contentFixture()
+        listOf("author", "member", "manager", "assignee").forEach { assertTrue(allowed(who.getValue(it), issue, Operation.UPDATE), it) }
+        assertFalse(allowed(who.getValue("outsider"), issue, Operation.UPDATE))
+    }
+
+    @Test
+    fun `이슈 본문과 댓글의 수정은 GitHub처럼 구성원에게 계속 허용한다`() {
+        val (project, issue, who) = contentFixture()
+        listOf("author", "member", "manager", "assignee").forEach { assertTrue(allowed(who.getValue(it), issue, Operation.UPDATE), it) }
+        val comment = projectResource(project, ResourceType.ISSUE_COMMENT, "1", authorId = who.getValue("author").id)
+        listOf("author", "member", "manager").forEach { assertTrue(allowed(who.getValue(it), comment, Operation.UPDATE), "댓글 수정 $it") }
+        assertFalse(allowed(who.getValue("outsider"), comment, Operation.UPDATE))
+    }
+
+    @Test
+    fun `댓글과 게시글과 게시판 댓글도 같은 규칙이다`() {
+        val owner = user(); val project = project(ProjectScope.PRIVATE, owner); val author = user("a"); val member = user("m"); val manager = user("g")
+        join(author, project, RoleType.MEMBER); join(member, project, RoleType.MEMBER); join(manager, project, RoleType.MANAGER)
+        listOf(ResourceType.ISSUE_COMMENT, ResourceType.NONISSUE_COMMENT).forEach { type ->
+            val comment = projectResource(project, type, "1", authorId = author.id)
+            assertTrue(allowed(author, comment, Operation.UPDATE), "$type"); assertTrue(allowed(author, comment, Operation.DELETE), "$type")
+            assertTrue(allowed(manager, comment, Operation.UPDATE), "$type"); assertTrue(allowed(manager, comment, Operation.DELETE), "$type")
+            assertTrue(allowed(member, comment, Operation.UPDATE), "$type 남의 댓글 수정은 구성원도 한다"); assertFalse(allowed(member, comment, Operation.DELETE), "$type 남의 댓글 삭제")
+        }
+        val post = projectResource(project, ResourceType.BOARD_POST, "1", authorId = author.id)
+        assertTrue(allowed(member, post, Operation.UPDATE), "게시글 수정은 구성원도 한다"); assertFalse(allowed(member, post, Operation.DELETE)); assertTrue(allowed(author, post, Operation.DELETE)); assertTrue(allowed(manager, post, Operation.DELETE))
+    }
+
+    @Test
+    fun `코드 리뷰 댓글과 커밋 댓글은 지금 규칙을 유지한다`() {
+        val owner = user(); val project = project(ProjectScope.PRIVATE, owner); val author = user("a"); val member = user("m")
+        join(author, project, RoleType.MEMBER); join(member, project, RoleType.MEMBER)
+        listOf(ResourceType.COMMIT_COMMENT, ResourceType.REVIEW_COMMENT, ResourceType.COMMENT_THREAD).forEach {
+            assertTrue(allowed(member, projectResource(project, it, "1", authorId = author.id), Operation.DELETE), "$it")
         }
     }
 }
