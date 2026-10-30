@@ -13,8 +13,7 @@ val PullRequest.closed: Boolean get() = state == State.CLOSED
 val PullRequest.merged: Boolean get() = state == State.MERGED
 
 /**
- * 받는 브랜치에 적용되는 보호 규칙이다. 없으면 `null`이다(추가 개발 항목 X-32, `decisions.md` D-42).
- * 브랜치 보호 규칙이 먼저이고, 없으면 프로젝트 설정의 리뷰어 수(v1.6 동작)이며, 둘 다 없으면 GitHub처럼 막지 않는다(`Project.protectionFor`).
+ * 받는 브랜치에 적용되는 보호 규칙이다. 없으면 `null`이다(추가 개발 항목 X-32, X-33, `decisions.md` D-42, D-45). 규칙이 없으면 GitHub처럼 아무것도 막지 않는다.
  */
 val PullRequest.protection: dev.yona.domain.project.BranchProtectionRule? get() = toProject?.protectionFor(toBranch)
 
@@ -49,16 +48,34 @@ val PullRequest.changesRequestedBy: List<String?>
 fun PullRequest.isReviewedBy(user: User?): Boolean = user != null && reviewers.any { it.id == user.id }
 
 /**
- * 리뷰 조건이 병합을 막고 있으면 `true`이다. 받는 브랜치에 적용되는 규칙이 있고 승인이 모자라거나 변경 요청이 남아 있을 때이다(추가 개발 항목 X-12, X-32,
- * `decisions.md` D-35, D-42). 프로젝트 관리자와 사이트 관리자는 규칙이 "관리자에게도 적용"이 아니면 이 막힘을 우회할 수 있다.
+ * 병합 조건이 병합을 막고 있으면 `true`이다. 받는 브랜치에 규칙이 있을 때만 따지며 규칙이 켠 조건만 본다(추가 개발 항목 X-12, X-32, X-33, `decisions.md` D-35, D-45).
+ * 필요한 승인 수가 모자라거나, 변경 요청 해결을 요구했는데 남아 있거나, 대화 해결을 요구했는데 열린 스레드가 [openConversations]개 있을 때이다.
+ * 프로젝트 관리자와 사이트 관리자는 규칙이 "관리자에게도 적용"이 아니면 이 막힘을 우회할 수 있다.
  */
-val PullRequest.reviewBlocked: Boolean get() = protection != null && (!reviewed || changesRequestedBy.isNotEmpty())
+fun PullRequest.reviewBlocked(openConversations: Int = 0): Boolean {
+    val rule = protection ?: return false
+    return !reviewed || (rule.requireNoChangesRequested == true && changesRequestedBy.isNotEmpty()) || (rule.requireConversationResolution == true && openConversations > 0)
+}
 
-/** 리뷰 조건을 보지 않고 충돌이 아니고, 열려 있고, 병합 검사 중이 아니면 `true`이다. */
+/** 병합 조건을 보지 않고 충돌이 아니고, 열려 있고, 병합 검사 중이 아니면 `true`이다. */
 val PullRequest.acceptableIgnoringReview: Boolean get() = isConflict != true && open && isMerging != true
 
-/** 충돌이 아니고, 열려 있고, 병합 검사 중이 아니며, 리뷰 조건이 막고 있지 않으면 받아들일 수 있다 (v1.6 `isAcceptable`에 변경 요청 규칙을 더했다). */
-val PullRequest.acceptable: Boolean get() = acceptableIgnoringReview && !reviewBlocked
+/** 충돌이 아니고, 열려 있고, 병합 검사 중이 아니며, 병합 조건이 막고 있지 않으면 받아들일 수 있다 (v1.6 `isAcceptable`에 보호 규칙을 더했다). */
+fun PullRequest.acceptable(openConversations: Int = 0): Boolean = acceptableIgnoringReview && !reviewBlocked(openConversations)
+
+/**
+ * 이 풀 리퀘스트에 쓸 수 있는 병합 방식이다. 프로젝트가 허용한 방식에서, 받는 브랜치의 규칙이 선형 이력을 요구하면 병합 커밋을 뺀다(X-33, D-45).
+ */
+fun PullRequest.allowedMergeMethods(): Set<MergeMethod> {
+    val allowed = toProject?.allowedMergeMethods().orEmpty()
+    return if (protection?.requireLinearHistory == true) allowed - MergeMethod.MERGE else allowed
+}
+
+/** 병합 화면이 처음 고르는 방식이다. 프로젝트의 기본 방식이 쓸 수 있으면 그것이고, 아니면 쓸 수 있는 방식 중 병합 커밋, 스쿼시, 리베이스 순서로 첫 번째이다. 쓸 방식이 없으면 병합 커밋이다. */
+fun PullRequest.defaultMergeMethodOrFirst(): MergeMethod {
+    val allowed = allowedMergeMethods()
+    return MergeMethod.of(toProject?.defaultMergeMethod)?.takeIf { it in allowed } ?: allowed.firstOrNull() ?: MergeMethod.MERGE
+}
 
 /** 변경 내용을 보여 줄 수 있으면 `true`이다. 충돌하지 않았고 병합 기준 커밋이 있어야 한다 (v1.6 `isDiffable`). */
 val PullRequest.diffable: Boolean get() = isConflict == false && mergedCommitIdFrom != null && mergedCommitIdTo != null
@@ -72,5 +89,6 @@ fun PullRequest.disabledAcceptMessage(): Pair<String, Array<Any>> = when {
     isConflict == true -> "pullRequest.not.acceptable.because.is.conflict" to emptyArray()
     !open -> "pullRequest.not.acceptable.because.is.not.open" to emptyArray()
     !reviewed -> "pullRequest.not.acceptable.because.is.not.enough.review.point" to arrayOf<Any>(lackingReviewerCount)
-    else -> "pullRequest.not.acceptable.because.changes.requested" to emptyArray()
+    protection?.requireNoChangesRequested == true && changesRequestedBy.isNotEmpty() -> "pullRequest.not.acceptable.because.changes.requested" to emptyArray()
+    else -> "pullRequest.not.acceptable.because.open.conversations" to emptyArray()
 }

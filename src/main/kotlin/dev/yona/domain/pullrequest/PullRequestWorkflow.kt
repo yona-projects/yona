@@ -40,7 +40,8 @@ class PullRequestWorkflow(
     private val branches: PullRequestBranchService,
     private val publisher: ApplicationEventPublisher,
     private val pushedBranches: dev.yona.domain.project.PushedBranchRepository,
-    private val issueCloser: PullRequestIssueCloser
+    private val issueCloser: PullRequestIssueCloser,
+    private val threads: dev.yona.domain.comment.CommentThreadRepository
 ) {
 
     /**
@@ -57,13 +58,16 @@ class PullRequestWorkflow(
     ): AcceptResult {
         val toProject = requireNotNull(pullRequest.toProject)
         // 추가 항목(X-28, D-41): 방식을 정하지 않으면 프로젝트의 기본 방식이다. 허용하지 않은 방식은 아무것도 바꾸기 전에 거절한다
-        val chosen = method ?: toProject.defaultMergeMethodOrFirst()
-        if (chosen !in toProject.allowedMergeMethods()) return AcceptResult.METHOD_NOT_ALLOWED
+        // 받는 브랜치의 규칙이 선형 이력을 요구하면 병합 커밋은 빠진다(X-33, D-45)
+        val chosen = method ?: pullRequest.defaultMergeMethodOrFirst()
+        if (chosen !in pullRequest.allowedMergeMethods()) return AcceptResult.METHOD_NOT_ALLOWED
         pullRequest.isMerging = true
         pullRequests.save(pullRequest)
         // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰어 수와 변경 요청에 막혀도 병합할 수 있다(`bypassReview`)
         // 추가 항목(X-32, D-42): 받는 브랜치에 보호 규칙이 있을 때만 승인 수와 변경 요청으로 막는다
-        if (pullRequest.reviewBlocked && !bypassReview) return AcceptResult.NOT_REVIEWED
+        // 추가 항목(X-33, D-45): 규칙이 켠 조건(승인 수, 변경 요청, 열린 대화)이 남아 있으면 막는다
+        val openConversations = threads.countByPullRequestIdAndState(requireNotNull(pullRequest.id), dev.yona.domain.enumeration.ThreadState.OPEN).toInt()
+        if (pullRequest.reviewBlocked(openConversations) && !bypassReview) return AcceptResult.NOT_REVIEWED
 
         val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email), chosen, commitTitle, commitMessage)
         pullRequest.isMerging = false

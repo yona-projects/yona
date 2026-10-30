@@ -105,13 +105,19 @@ object DataTables {
             DataColumn("container_id", STRING_LONG),
             DataColumn("created_date", DATE)
         ),
-        // 추가 개발 항목 X-32(D-42)의 브랜치 보호 규칙이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다.
+        // 추가 개발 항목 X-32, X-33(D-42, D-45)의 브랜치 보호 규칙이다. v1.6 파일에는 없고, 없는 파일을 가져와도 된다.
         DataTable(
             "BRANCH_PROTECTION_RULE", true,
             DataColumn("id", LONG),
             DataColumn("project_id", LONG),
             DataColumn("pattern", STRING),
             DataColumn("required_approvals", INT),
+            DataColumn("require_pull_request", BOOLEAN, absentBoolean = false),
+            DataColumn("require_no_changes_requested", BOOLEAN, absentBoolean = false),
+            DataColumn("require_conversation_resolution", BOOLEAN, absentBoolean = false),
+            DataColumn("require_linear_history", BOOLEAN, absentBoolean = false),
+            DataColumn("allow_force_pushes", BOOLEAN, absentBoolean = false),
+            DataColumn("allow_deletions", BOOLEAN, absentBoolean = false),
             DataColumn("enforce_admins", BOOLEAN),
             DataColumn("created_date", TIMESTAMP)
         ),

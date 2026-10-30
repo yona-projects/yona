@@ -3,7 +3,6 @@ package dev.yona.web.project
 import dev.yona.domain.enumeration.Operation
 import dev.yona.domain.project.LogoUpload
 import dev.yona.domain.project.ProjectForm
-import dev.yona.domain.project.ProjectHomeService
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.ProjectService
 import dev.yona.domain.project.ProjectSettingForm
@@ -39,7 +38,6 @@ import org.springframework.web.servlet.ModelAndView
 class ProjectSettingController(
     private val projectService: ProjectService,
     private val settingService: ProjectSettingService,
-    private val homeService: ProjectHomeService,
     private val repositories: RepositoryService,
     private val views: ProjectViewFactory,
     private val currentUserProvider: CurrentUserProvider,
@@ -84,8 +82,6 @@ class ProjectSettingController(
         overview = request.getParameter("overview"),
         projectScope = request.getParameter("projectScope"),
         isCodeAccessibleMemberOnly = request.getParameter("isCodeAccessibleMemberOnly"),
-        isUsingReviewerCount = request.getParameter("isUsingReviewerCount"),
-        defaultReviewerCount = request.getParameter("defaultReviewerCount"),
         isDismissingStaleApprovals = request.getParameter("isDismissingStaleApprovals"),
         allowMergeCommit = request.getParameter("allowMergeCommit"),
         allowSquashMerge = request.getParameter("allowSquashMerge"),
@@ -97,16 +93,19 @@ class ProjectSettingController(
     )
 
     /**
-     * 규칙 줄들을 묶는다(`decisions.md` D-44). 표시용 숨은 값(`protectionRulesSent`)이 없으면 `null`이라 규칙을 건드리지 않는다.
-     * 패턴이 빈 줄은 새로 추가만 하고 채우지 않은 줄이므로 버린다.
+     * 규칙 줄들을 묶는다(`decisions.md` D-44, D-45). 줄마다 `protectionKey`가 있고 항목 이름은 `protection.<키>.<항목>`이다. 체크하지 않은 조건은 값이 오지 않으므로 꺼진 것이다.
+     * 표시용 숨은 값(`protectionRulesSent`)이 없으면 `null`이라 규칙을 건드리지 않는다. 패턴이 빈 줄은 추가만 하고 채우지 않은 줄이므로 버린다.
      */
     private fun protectionRules(request: HttpServletRequest): List<ProtectionRuleInput>? {
         if (request.getParameter("protectionRulesSent") == null) return null
-        val patterns = request.getParameterValues("protectionPattern").orEmpty()
-        val approvals = request.getParameterValues("protectionApprovals").orEmpty()
-        val enforce = request.getParameterValues("protectionEnforce").orEmpty()
-        return patterns.indices.filter { patterns[it].isNotBlank() }.map {
-            ProtectionRuleInput(patterns[it], approvals.getOrNull(it), enforce.getOrNull(it)?.lowercase() in setOf("true", "on", "yes", "1"))
+        fun on(key: String, field: String) = request.getParameter("protection.$key.$field")?.lowercase() in setOf("true", "on", "yes", "1")
+        return request.getParameterValues("protectionKey").orEmpty().filter { !request.getParameter("protection.$it.pattern").isNullOrBlank() }.map { key ->
+            ProtectionRuleInput(
+                pattern = request.getParameter("protection.$key.pattern"), approvals = request.getParameter("protection.$key.approvals"),
+                requirePullRequest = on(key, "requirePullRequest"), requireNoChangesRequested = on(key, "requireNoChangesRequested"),
+                requireConversationResolution = on(key, "requireConversationResolution"), requireLinearHistory = on(key, "requireLinearHistory"),
+                allowForcePushes = on(key, "allowForcePushes"), allowDeletions = on(key, "allowDeletions"), enforceAdmins = on(key, "enforceAdmins")
+            )
         }
     }
 
@@ -116,7 +115,6 @@ class ProjectSettingController(
         val view = views.of(project)
         val branches = if (project.vcs == RepositoryService.VCS_GIT) repositories.refNames(project) else emptyList()
         val defaultBranch = if (project.vcs == RepositoryService.VCS_GIT) repositories.defaultBranch(project) else "HEAD"
-        val memberCount = homeService.members(project).size
         val locale = LocaleContextHolder.getLocale()
         val oldPlace = if (!project.previousName.isNullOrBlank()) {
             val place = if (project.previousOwnerLoginId == null) "" else "${project.previousOwnerLoginId}/${project.previousName}"
@@ -130,7 +128,6 @@ class ProjectSettingController(
             .addObject("defaultBranchName", itemName(defaultBranch))
             .addObject("branchItemNames", branches.filter { itemType(it) == "branch" }.associateWith { itemName(it) })
             .addObject("oldPlaceHtml", oldPlace)
-            .addObject("maxReviewerCount", if (memberCount > 1) memberCount else 1)
             .addObject("protectionRules", project.branchProtectionRules.sortedBy { it.pattern })
             .also { mav ->
                 if (warning != null) mav.also { dev.yona.web.RedirectSupport.flashNow(mapOf(RedirectSupport.WARNING to warning)) }

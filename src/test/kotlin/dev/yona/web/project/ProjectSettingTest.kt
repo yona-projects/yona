@@ -292,7 +292,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `코드 접근 제한과 프로젝트 전체 기본 리뷰어 수를 저장한다 (D-43)`() {
+    fun `코드 접근 제한을 저장하고 보내 온 리뷰어 설정은 더 이상 받지 않는다 (D-45)`() {
         val project = newProject()
         save(
             project, login(manager(project)), "name" to project.name!!, "isCodeAccessibleMemberOnly" to "true",
@@ -300,7 +300,7 @@ class ProjectSettingTest : AbstractIntegrationTest() {
         )
         val saved = reload(project)
         assertEquals(true, saved.isCodeAccessibleMemberOnly)
-        assertEquals(true, saved.isUsingReviewerCount); assertEquals(2, saved.defaultReviewerCount)
+        assertEquals(false, saved.isUsingReviewerCount, "리뷰어 설정은 무력화되어 저장하지 않는다"); assertEquals(1, saved.defaultReviewerCount)
     }
 
     @Test
@@ -375,11 +375,10 @@ class ProjectSettingTest : AbstractIntegrationTest() {
 
     @Test
     fun `보내지 않은 항목은 그대로 둔다`() {
-        val project = newProject(configure = { isCodeAccessibleMemberOnly = true; defaultReviewerCount = 3 })
+        val project = newProject(configure = { isCodeAccessibleMemberOnly = true })
         save(project, login(manager(project)), "name" to project.name!!, *allMenus)
         val saved = reload(project)
         assertEquals(true, saved.isCodeAccessibleMemberOnly)
-        assertEquals(3, saved.defaultReviewerCount)
         assertEquals(project.overview, saved.overview)
     }
 

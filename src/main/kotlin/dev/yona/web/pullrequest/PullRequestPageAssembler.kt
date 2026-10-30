@@ -21,6 +21,8 @@ import dev.yona.domain.pullrequest.PullRequestEvent
 import dev.yona.domain.pullrequest.PullRequestEventRepository
 import dev.yona.domain.pullrequest.PullRequestEventService
 import dev.yona.domain.pullrequest.acceptable
+import dev.yona.domain.pullrequest.allowedMergeMethods
+import dev.yona.domain.pullrequest.defaultMergeMethodOrFirst
 import dev.yona.domain.pullrequest.acceptableIgnoringReview
 import dev.yona.domain.pullrequest.countedApprovals
 import dev.yona.domain.pullrequest.effectiveVerdict
@@ -104,7 +106,9 @@ class PullRequestPageAssembler(
         val conflict = pullRequest.isConflict == true
         val stateName = (pullRequest.state ?: dev.yona.domain.enumeration.State.OPEN).state
 
-        val reviewers = if (pullRequest.protection != null && canAccept) {
+        // 추가 항목(X-33, D-45): 승인은 GitHub처럼 항상 할 수 있고, 규칙이 켠 병합 조건만 병합을 막는다
+        val openConversations = threads.countByPullRequestIdAndState(requireNotNull(pullRequest.id), ThreadState.OPEN).toInt()
+        val reviewers = if (canAccept) {
             ReviewerArea(
                 labelHtml = text("pullRequest.review.participants", pullRequest.countedApprovals),
                 avatarsHtml = pullRequest.reviewers.filter { it.id != pullRequest.contributor?.id }.joinToString("") { avatarLink(it) },
@@ -114,9 +118,9 @@ class PullRequestPageAssembler(
         } else null
 
         val accept = if (canAccept) {
-            if (pullRequest.acceptable) mergeButton(pullRequest, project, "$base/accept", null)
+            if (pullRequest.acceptable(openConversations)) mergeButton(pullRequest, project, "$base/accept", null)
             // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건에 막힌 요청도 병합할 수 있다
-            else if (pullRequest.reviewBlocked && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project, pullRequest.protection)) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
+            else if (pullRequest.reviewBlocked(openConversations) && pullRequest.acceptableIgnoringReview && accessControl.canBypassReview(viewer, project, pullRequest.protection)) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
             else {
                 val (key, args) = pullRequest.disabledAcceptMessage()
                 AcceptButton("$base/accept", false, text(key, *args))
@@ -164,8 +168,8 @@ class PullRequestPageAssembler(
         }
         return ReviewAreaView(
             rows = rows, formUrl = if (viewer != null) "$base/reviews" else null, verdictOptions = options,
-            countText = if (pullRequest.protection != null) text("pullRequest.review.count", pullRequest.countedApprovals, pullRequest.requiredReviewerCount) else null,
-            authorNote = pullRequest.protection != null && pullRequest.reviewers.any { it.id == pullRequest.contributor?.id },
+            countText = if (pullRequest.requiredReviewerCount > 0) text("pullRequest.review.count", pullRequest.countedApprovals, pullRequest.requiredReviewerCount) else null,
+            authorNote = pullRequest.requiredReviewerCount > 0 && pullRequest.reviewers.any { it.id == pullRequest.contributor?.id },
             pending = pendingRows, requestUrl = if (canRequest) "$base/reviewRequests" else null, candidatesUrl = if (canRequest) "$base/reviewRequestCandidates" else null,
             pendingCount = pendingComments, discardUrl = if (pendingComments > 0) "$base/pendingReview/discard" else null, changesUrl = "$base/changes"
         )
@@ -346,7 +350,7 @@ class PullRequestPageAssembler(
         // 확인 칸에 미리 채울 기본 제목과 본문의 재료이다. 현재 커밋의 첫 줄을 최근 것이 앞이 되게 모은다
         val shorts = commits.findByPullRequestId(requireNotNull(pullRequest.id)).filter { it.state == PullRequestCommitState.CURRENT }
             .sortedByDescending { it.authorDate }.map { it.commitMessage.orEmpty().lineSequence().firstOrNull().orEmpty() }
-        val options = project.allowedMergeMethods().sortedBy { it.ordinal }.map { method ->
+        val options = pullRequest.allowedMergeMethods().sortedBy { it.ordinal }.map { method ->
             val (defaultTitle, defaultMessage) = merger.defaults(pullRequest, method, shorts)
             val blocked = method == MergeMethod.REBASE && pullRequest.rebaseBlocked != null
             MergeMethodOption(
@@ -354,7 +358,8 @@ class PullRequestPageAssembler(
                 if (method == MergeMethod.MERGE) text("pullRequest.merge") else text("project.merge.${method.code}"), text("pullRequest.merge.desc.${method.code}"), defaultTitle, defaultMessage
             )
         }
-        val default = project.defaultMergeMethodOrFirst().code
+        val default = pullRequest.defaultMergeMethodOrFirst().code
+        if (options.isEmpty()) return AcceptButton(url, false, text("pullRequest.not.acceptable.because.no.merge.method"), bypassNote)
         val chosen = options.firstOrNull { it.code == default && it.available } ?: options.firstOrNull { it.available }
             ?: return AcceptButton(url, false, options.firstNotNullOfOrNull { it.reason }, bypassNote, methods = options, defaultMethod = default)
         val label = if (chosen.code == MergeMethod.MERGE.code) text("pullRequest.merge") else chosen.label

@@ -69,6 +69,7 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
     @Autowired private lateinit var reviews: PullRequestReviewRepository
     @Autowired private lateinit var reviewService: PullRequestReviewService
     @Autowired private lateinit var pullRequestEvents: PullRequestEventRepository
+    @Autowired private lateinit var commentThreads: dev.yona.domain.comment.CommentThreadRepository
 
     private var sequence = 0
 
@@ -227,6 +228,54 @@ class PullRequestReviewWebTest : AbstractIntegrationTest() {
         reviewService.dismiss(pr, reviewsOf(pr).last(), s.manager, "해결됨")
         mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isSeeOther)
         assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)
+    }
+
+    @Test
+    fun `대화 해결을 요구하는 규칙은 열린 스레드가 남아 있으면 병합을 막고 닫으면 푼다 (X-33, D-45)`() {
+        val s = setup(); val pr = open(s)
+        branchProtections.save(protectionRule(s.origin, approvals = 0, noChangesRequested = false, conversationResolution = true))
+        val thread = commentThreads.save(dev.yona.domain.comment.NonRangedCodeCommentThread(commitId = "abc").also {
+            it.project = s.origin; it.pullRequest = pr; it.state = dev.yona.domain.enumeration.ThreadState.OPEN; it.createdDate = java.util.Date()
+        })
+        val member = page(url(s, pr), login(s.member))
+        assertNull(member.selectFirst("#btnAccept"), "열린 대화가 있으면 병합 단추가 막힌다"); assertNotNull(member.selectFirst("button.ybtn-disabled"))
+        assertNotNull(page(url(s, pr), login(s.manager)).selectFirst("#accept-bypass-note"), "프로젝트 관리자는 우회할 수 있다")
+        // v1.6 accept는 병합 중 표시를 먼저 켜고 저장한 뒤 400을 돌려 표시가 남으므로(R-76) 화면을 먼저 확인했다
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isBadRequest)
+        thread.state = dev.yona.domain.enumeration.ThreadState.CLOSED; commentThreads.save(thread)
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isSeeOther)
+        assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)
+    }
+
+    @Test
+    fun `대화 해결을 요구하지 않는 규칙은 열린 스레드가 있어도 막지 않는다 (X-33, D-45)`() {
+        val s = setup(); val pr = open(s)
+        branchProtections.save(protectionRule(s.origin, approvals = 0, noChangesRequested = false))
+        commentThreads.save(dev.yona.domain.comment.NonRangedCodeCommentThread(commitId = "abc").also {
+            it.project = s.origin; it.pullRequest = pr; it.state = dev.yona.domain.enumeration.ThreadState.OPEN; it.createdDate = java.util.Date()
+        })
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member))).andExpect(status().isSeeOther)
+    }
+
+    @Test
+    fun `선형 이력을 요구하는 규칙은 병합 커밋 방식을 막고 스쿼시로는 병합한다 (X-33, D-45)`() {
+        val s = setup(); val pr = open(s)
+        branchProtections.save(protectionRule(s.origin, approvals = 0, noChangesRequested = false, linearHistory = true))
+        val member = page(url(s, pr), login(s.member))
+        assertEquals(listOf("squash", "rebase"), member.select("#merge-method-menu li").map { it.attr("data-method") }, "병합 커밋은 선택지에 없다")
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member)).param("method", "merge")).andExpect(status().isBadRequest)
+        assertEquals(State.OPEN, pullRequests.findById(pr.id!!).get().state)
+        mockMvc.perform(post(url(s, pr, "/accept")).session(login(s.member)).param("method", "squash")).andExpect(status().isSeeOther)
+        assertEquals(State.MERGED, pullRequests.findById(pr.id!!).get().state)
+    }
+
+    @Test
+    fun `규칙이 없어도 승인 영역이 보이고 승인할 수 있다 (D-45)`() {
+        val s = setup(); val pr = open(s)
+        val member = page(url(s, pr), login(s.member))
+        assertNotNull(member.selectFirst("#review-form, .review-form, [data-review-form]") ?: member.selectFirst("a[href\$=review-form]"), "승인 영역이 있다")
+        mockMvc.perform(submit(s, pr, login(s.member), "APPROVED")).andExpect(status().isSeeOther)
+        assertEquals(listOf(ReviewVerdict.APPROVED), reviewsOf(pr).map { it.verdict })
     }
 
     // --- 화면 ---

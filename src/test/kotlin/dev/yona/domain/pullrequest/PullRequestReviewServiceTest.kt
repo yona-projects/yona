@@ -169,19 +169,19 @@ class PullRequestReviewServiceTest : AbstractIntegrationTest() {
     fun `리뷰어 수를 켠 프로젝트는 변경 요청이 남아 있으면 병합할 수 없다`() {
         val pr = pullRequest(usingCount = true, required = 1); val a = user(); val b = user()
         service.submit(pr, a, APPROVED, null)
-        assertTrue(pr.acceptable)
+        assertTrue(pr.acceptable())
         service.submit(pr, b, CHANGES_REQUESTED, "문제")
-        assertEquals(false, pr.acceptable)
+        assertEquals(false, pr.acceptable())
         assertEquals("pullRequest.not.acceptable.because.changes.requested", pr.disabledAcceptMessage().first)
         service.submit(pr, b, APPROVED, null)
-        assertTrue(pr.acceptable)
+        assertTrue(pr.acceptable())
     }
 
     @Test
     fun `리뷰어 수를 켜지 않은 프로젝트는 변경 요청이 있어도 표시일 뿐이다`() {
         val pr = pullRequest(usingCount = false); service.submit(pr, user(), CHANGES_REQUESTED, "문제")
         assertEquals(listOf(pr.reviewHistoryLoginIdOf(CHANGES_REQUESTED)), pr.changesRequestedBy)
-        assertTrue(pr.acceptable)
+        assertTrue(pr.acceptable())
     }
 
     private fun PullRequest.reviewHistoryLoginIdOf(verdict: ReviewVerdict) = reviewHistory.first { it.verdict == verdict }.authorLoginId

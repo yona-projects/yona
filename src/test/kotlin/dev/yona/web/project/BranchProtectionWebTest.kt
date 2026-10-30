@@ -92,7 +92,7 @@ class BranchProtectionWebTest : AbstractIntegrationTest() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
         listOf(
             arrayOf("pattern" to "", "requiredApprovals" to "1"), arrayOf("pattern" to "a b", "requiredApprovals" to "1"), arrayOf("pattern" to "refs/heads/x", "requiredApprovals" to "1"),
-            arrayOf("pattern" to "x".repeat(256), "requiredApprovals" to "1"), arrayOf("pattern" to "master", "requiredApprovals" to "0"),
+            arrayOf("pattern" to "x".repeat(256), "requiredApprovals" to "1"), arrayOf("pattern" to "master", "requiredApprovals" to "-1"),
             arrayOf("pattern" to "master", "requiredApprovals" to "abc"), arrayOf("pattern" to "master", "requiredApprovals" to "101")
         ).forEach { params -> create(project, session, *params).andExpect(status().isBadRequest) }
         assertEquals(0, rules.findByProjectIdOrderByPatternAsc(project.id!!).size)
@@ -119,16 +119,22 @@ class BranchProtectionWebTest : AbstractIntegrationTest() {
         assertEquals(0, rules.findByProjectIdOrderByPatternAsc(project.id!!).size)
     }
 
-    // --- 설정 폼 한 번의 저장으로 규칙을 맞춘다 (D-44) ---
+    // --- 설정 폼 한 번의 저장으로 규칙을 맞춘다 (D-44, D-45) ---
 
-    private fun saveSetting(project: Project, session: MockHttpSession, rows: List<Triple<String, String, String>>?, vararg extra: Pair<String, String>) =
+    /** 규칙 한 줄이다. 조건 이름(`requirePullRequest` 등)의 집합으로 켠 조건을 정한다. */
+    private data class Row(val key: String, val pattern: String, val approvals: String = "0", val on: Set<String> = emptySet())
+
+    private fun saveSetting(project: Project, session: MockHttpSession, rows: List<Row>?, vararg extra: Pair<String, String>) =
         mockMvc.perform(multipart("/${project.owner}/${project.name}/setting").session(session).also { r ->
             r.param("id", project.id.toString()); r.param("name", project.name!!)
             listOf("code", "issue", "pullRequest", "review", "milestone", "board").forEach { r.param(it, "true") }
             extra.forEach { (k, v) -> r.param(k, v) }
             if (rows != null) {
                 r.param("protectionRulesSent", "true")
-                rows.forEach { (pattern, approvals, enforce) -> r.param("protectionPattern", pattern); r.param("protectionApprovals", approvals); r.param("protectionEnforce", enforce) }
+                rows.forEach { row ->
+                    r.param("protectionKey", row.key); r.param("protection.${row.key}.pattern", row.pattern); r.param("protection.${row.key}.approvals", row.approvals)
+                    row.on.forEach { r.param("protection.${row.key}.$it", "true") }
+                }
             }
         })
 
@@ -137,13 +143,19 @@ class BranchProtectionWebTest : AbstractIntegrationTest() {
     @Test
     fun `설정 저장 한 번으로 규칙을 만들고 고치고 지운다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
-        saveSetting(project, session, listOf(Triple("master", "2", "true"), Triple("release/*", "1", "false"))).andExpect(status().isSeeOther)
-        assertEquals(listOf("master" to 2, "release/*" to 1), savedRules(project).map { it.pattern to it.requiredApprovals })
-        assertEquals(listOf(true, false), savedRules(project).map { it.enforceAdmins })
-        val masterId = savedRules(project).first().id
-        saveSetting(project, session, listOf(Triple("master", "3", "false"))).andExpect(status().isSeeOther)
+        saveSetting(project, session, listOf(
+            Row("a", "master", "2", setOf("enforceAdmins", "requireNoChangesRequested", "requireConversationResolution", "requireLinearHistory", "requirePullRequest", "allowForcePushes", "allowDeletions")),
+            Row("b", "release/*", "0")
+        )).andExpect(status().isSeeOther)
+        val (master, release) = savedRules(project)
+        assertEquals(2, master.requiredApprovals)
+        assertEquals(listOf(true, true, true, true, true, true, true), listOf(master.enforceAdmins, master.requireNoChangesRequested, master.requireConversationResolution, master.requireLinearHistory, master.requirePullRequest, master.allowForcePushes, master.allowDeletions))
+        assertEquals(0, release.requiredApprovals); assertEquals(listOf<Boolean?>(false, false, false, false, false, false, false), listOf(release.enforceAdmins, release.requireNoChangesRequested, release.requireConversationResolution, release.requireLinearHistory, release.requirePullRequest, release.allowForcePushes, release.allowDeletions))
+        val masterId = master.id
+        saveSetting(project, session, listOf(Row("a", "master", "3", setOf("requireLinearHistory")))).andExpect(status().isSeeOther)
         val left = savedRules(project).single()
-        assertEquals(masterId, left.id, "같은 패턴은 새로 만들지 않고 고친다"); assertEquals(3, left.requiredApprovals); assertEquals(false, left.enforceAdmins)
+        assertEquals(masterId, left.id, "같은 패턴은 새로 만들지 않고 고친다"); assertEquals(3, left.requiredApprovals)
+        assertEquals(true, left.requireLinearHistory); assertEquals(false, left.enforceAdmins, "체크하지 않은 조건은 꺼진다")
         assertEquals(1, projects.findById(project.id!!).get().branchProtectionRules.size, "프로젝트가 들고 있는 목록도 맞는다")
         saveSetting(project, session, emptyList()).andExpect(status().isSeeOther)
         assertEquals(0, savedRules(project).size, "규칙 줄을 모두 지우고 저장하면 전부 지운다")
@@ -152,48 +164,67 @@ class BranchProtectionWebTest : AbstractIntegrationTest() {
     @Test
     fun `규칙 항목을 보내지 않으면 규칙을 건드리지 않고 빈 줄은 무시한다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
-        saveSetting(project, session, listOf(Triple("master", "2", "false")))
+        saveSetting(project, session, listOf(Row("a", "master", "2")))
         saveSetting(project, session, null).andExpect(status().isSeeOther)
         assertEquals(1, savedRules(project).size)
-        saveSetting(project, session, listOf(Triple("master", "2", "false"), Triple("", "1", "false"), Triple("  ", "", "false"))).andExpect(status().isSeeOther)
+        saveSetting(project, session, listOf(Row("a", "master", "2"), Row("b", ""), Row("c", "  ", ""))).andExpect(status().isSeeOther)
         assertEquals(listOf("master"), savedRules(project).map { it.pattern })
     }
 
     @Test
     fun `잘못된 규칙이 하나라도 있으면 400이고 아무것도 바꾸지 않는다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
-        saveSetting(project, session, listOf(Triple("master", "2", "false")))
+        saveSetting(project, session, listOf(Row("a", "master", "2")))
         listOf(
-            listOf(Triple("a", "1", "false"), Triple("a", "2", "false")), listOf(Triple("a b", "1", "false")), listOf(Triple("refs/heads/x", "1", "false")),
-            listOf(Triple("x", "0", "false")), listOf(Triple("x", "101", "false")), listOf(Triple("x", "abc", "false")), listOf(Triple("x", "", "false"))
+            listOf(Row("a", "x"), Row("b", "x", "2")), listOf(Row("a", "a b")), listOf(Row("a", "refs/heads/x")),
+            listOf(Row("a", "x", "-1")), listOf(Row("a", "x", "101")), listOf(Row("a", "x", "abc"))
         ).forEach { saveSetting(project, session, it).andExpect(status().isBadRequest) }
         assertEquals(listOf("master" to 2), savedRules(project).map { it.pattern to it.requiredApprovals })
     }
 
     @Test
+    fun `승인 수를 비우면 0이다`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        saveSetting(project, session, listOf(Row("a", "master", ""))).andExpect(status().isSeeOther)
+        assertEquals(0, savedRules(project).single().requiredApprovals)
+    }
+
+    @Test
     fun `관리자가 아니면 설정 저장으로 규칙을 바꿀 수 없다`() {
         val project = newProject(); val plain = login(member(project, RoleType.MEMBER))
-        saveSetting(project, plain, listOf(Triple("master", "1", "false"))).andExpect(status().isForbidden)
+        saveSetting(project, plain, listOf(Row("a", "master", "1"))).andExpect(status().isForbidden)
         assertEquals(0, savedRules(project).size)
     }
 
     @Test
-    fun `설정 화면은 리뷰어 영역 안에 설정 폼의 입력칸으로 규칙을 보인다`() {
+    fun `설정 화면은 리뷰어 사용과 리뷰어 수 입력 없이 브랜치 보호 규칙을 설정 폼의 입력칸으로 보인다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
-        saveSetting(project, session, listOf(Triple("release/*", "2", "true"), Triple("master", "1", "false")))
+        saveSetting(project, session, listOf(Row("a", "release/*", "2", setOf("enforceAdmins", "requireLinearHistory")), Row("b", "master", "1", setOf("requireConversationResolution"))))
         val doc = Jsoup.parse(mockMvc.perform(get(url(project, "/settingform")).session(session).header("Accept-Language", "ko-KR")).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertTrue(doc.select("input[name=isUsingReviewerCount], [name=defaultReviewerCount], #reviewerCountEnable, [data-name=defaultReviewerCount]").isEmpty(), "리뷰어 사용과 인원 수 입력은 없다")
         assertTrue(doc.select("#branchProtectionForm, #branchProtectionCard").isEmpty(), "별도의 카드와 폼은 없다")
         val panel = doc.selectFirst("form#saveSetting #reviewerCountSettingPanel")!!
         assertEquals(1, panel.select("input[name=protectionRulesSent]").size)
-        val rows = panel.select("#protectionRules .protection-row")
-        assertEquals(listOf("master", "release/*"), rows.map { it.selectFirst("input[name=protectionPattern]")!!.attr("value") })
-        assertEquals(listOf("1", "2"), rows.map { it.selectFirst("input[name=protectionApprovals]")!!.attr("value") })
-        assertEquals(listOf("false", "true"), rows.map { it.selectFirst("input[name=protectionEnforce]")!!.attr("value") })
-        assertEquals(1, rows[1].select("input.protection-enforce-box[checked]").size); assertEquals(0, rows[0].select("input.protection-enforce-box[checked]").size)
-        assertEquals(2, rows.count { it.selectFirst("button.protection-remove") != null })
-        assertNotNull(panel.selectFirst("template#protectionRowTemplate .protection-row"), "새 줄의 본보기")
+        val cards = panel.select("#protectionRules .protection-rule")
+        assertEquals(listOf("master", "release/*"), cards.map { it.selectFirst("input.protection-pattern-input")!!.attr("value") })
+        val release = cards[1]; val key = release.selectFirst("input[name=protectionKey]")!!.attr("value")
+        assertEquals("2", release.selectFirst("input[name=protection.$key.approvals]")!!.attr("value"))
+        val checked = release.select("input[type=checkbox][checked]").map { it.attr("name").substringAfterLast('.') }.toSet()
+        assertEquals(setOf("enforceAdmins", "requireLinearHistory"), checked)
+        assertEquals(setOf("requirePullRequest", "requireNoChangesRequested", "requireConversationResolution", "requireLinearHistory", "allowForcePushes", "allowDeletions", "enforceAdmins"),
+            release.select("input[type=checkbox]").map { it.attr("name").substringAfterLast('.') }.toSet())
+        assertEquals(2, cards.count { it.selectFirst("button.protection-remove") != null })
+        assertNotNull(panel.selectFirst("template#protectionRowTemplate .protection-rule input[name=protection.__KEY__.pattern]"), "새 줄의 본보기")
         assertNotNull(panel.selectFirst("button#protectionAdd"))
-        assertEquals(2, panel.select("input[name=isUsingReviewerCount]").size); assertEquals(1, panel.select("[data-name=defaultReviewerCount]").size)
         assertEquals(1, panel.select("input[name=isDismissingStaleApprovals][checked]").size, "승인 해제 설정은 같은 영역에 남아 있다")
+        assertTrue(panel.select("p.note").none { it.text().contains("옮겼습니다") }, "모든 브랜치 규칙이 없으면 이전 안내는 없다")
+    }
+
+    @Test
+    fun `모든 브랜치 규칙이 있으면 이전했다는 안내를 보인다`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        saveSetting(project, session, listOf(Row("a", "**", "2")))
+        val doc = Jsoup.parse(mockMvc.perform(get(url(project, "/settingform")).session(session).header("Accept-Language", "ko-KR")).andExpect(status().isOk).andReturn().response.contentAsString)
+        assertTrue(doc.select("#reviewerCountSettingPanel p.note").any { it.text().contains("옮겼습니다") })
     }
 }

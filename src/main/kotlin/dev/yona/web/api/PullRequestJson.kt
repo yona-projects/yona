@@ -12,6 +12,7 @@ import dev.yona.domain.pullrequest.PullRequestReview
 import dev.yona.domain.pullrequest.countedApprovals
 import dev.yona.domain.pullrequest.merged
 import dev.yona.domain.pullrequest.open
+import dev.yona.domain.pullrequest.allowedMergeMethods
 import dev.yona.domain.pullrequest.requiredReviewerCount
 import dev.yona.domain.user.User
 import dev.yona.domain.user.UserRepository
@@ -75,7 +76,7 @@ class PullRequestJson(
      * 리베이스는 병합 검사가 저장한 `rebaseBlocked`(`conflict`, `merge-commits`)를 따른다. 충돌 이유는 `conflict`이다.
      */
     private fun mergeMethods(pullRequest: PullRequest, to: Project): Map<String, Any?> {
-        val allowed = to.allowedMergeMethods()
+        val allowed = pullRequest.allowedMergeMethods()
         val conflict = pullRequest.isConflict == true
         return dev.yona.domain.pullrequest.MergeMethod.entries.associate { method ->
             val reason = when {

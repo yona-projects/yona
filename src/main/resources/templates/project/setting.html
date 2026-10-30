@@ -85,56 +85,65 @@
 
                 <th:block th:if="${git}">
                 <div class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
-                    <div class="cu-label vmiddle" th:text="#{project.reviewer.count}"></div>
+                    <div class="cu-label vmiddle" th:text="#{project.protection.title}"></div>
                     <div class="cu-desc">
-                        <span class="note" th:text="#{project.protection.required}"></span>
-                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="show" type="radio" class="radio-btn" id="reviewerCountEnable" value="true" th:checked="${project.isUsingReviewerCount == true}">
-                        <label for="reviewerCountEnable" class="bg-radiobtn label-public" th:text="#{project.reviewer.count.enable}"></label>
-                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="hide" type="radio" class="radio-btn" id="reviewerCountDisable" value="false" th:checked="${project.isUsingReviewerCount != true}">
-                        <label for="reviewerCountDisable" class="bg-radiobtn label-private" th:text="#{project.reviewer.count.disable}"></label>
-
-                        <div id="welReviewerCount" th:data-value="${project.isUsingReviewerCount == true}" class="hide">
-                            <div class="btn-group branches" data-id="project-reviewer-count" data-name="defaultReviewerCount">
-                                <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                                    <span class="d-label" th:text="${project.defaultReviewerCount}"></span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li th:each="point : ${#numbers.sequence(1, maxReviewerCount)}" th:data-value="${point}"><a th:text="${point}"></a></li>
-                                </ul>
-                            </div>
-                            <span class="note ml10" th:text="#{project.reviewer.count.description}"></span>
-                            <!--/* 프로젝트 전체 기본 리뷰어 수(decisions.md D-43): 보호 규칙이 없는 브랜치에만 적용한다 */-->
-                            <p class="note mt10" th:text="#{project.reviewer.count.scope}"></p>
+                        <!--/* 브랜치 보호 규칙(추가 항목 X-32, X-33, decisions.md D-42, D-44, D-45). 규칙은 설정 폼의 입력칸이라 저장 단추 한 번으로 함께 저장한다 */-->
+                        <input type="hidden" name="protectionRulesSent" value="true">
+                        <p class="note" th:text="#{project.protection.description}"></p>
+                        <p class="note" th:if="${#lists.contains(protectionRules.![pattern], '**')}" th:text="#{project.protection.legacy}"></p>
+                        <div id="protectionRules">
+                                <div class="protection-rule well well-small" style="margin-bottom:10px;" th:each="rule, ruleStat : ${protectionRules}">
+                                    <input type="hidden" name="protectionKey" th:value="'r' + ${ruleStat.index}">
+                                    <div class="clearfix" style="margin-bottom:8px;">
+                                        <input type="text" th:name="'protection.r' + ${ruleStat.index} + '.pattern'" maxlength="255" class="protection-pattern-input" style="width:260px; margin-bottom:0;" th:placeholder="#{project.protection.pattern}" th:value="${rule.pattern}">
+                                        <button type="button" class="ybtn ybtn-small protection-remove pull-right" th:text="#{project.protection.delete}"></button>
+                                    </div>
+                                    <div class="note" th:text="#{project.protection.section.merge}"></div>
+                                    <div class="mt5">
+                                        <span th:text="#{project.protection.approvals}"></span>
+                                        <input type="number" th:name="'protection.r' + ${ruleStat.index} + '.approvals'" min="0" max="100" style="width:60px; margin-bottom:0;" th:value="${rule.requiredApprovals}">
+                                        <span class="note" th:text="#{project.protection.approvals.hint}"></span>
+                                    </div>
+                                    <label class="checkbox"><input type="checkbox" th:name="'protection.r' + ${ruleStat.index} + '.requireNoChangesRequested'" value="true" th:checked="${rule.requireNoChangesRequested == true}"> <th:block th:text="#{project.protection.changes}"></th:block></label>
+                                    <label class="checkbox"><input type="checkbox" th:name="'protection.r' + ${ruleStat.index} + '.requireConversationResolution'" value="true" th:checked="${rule.requireConversationResolution == true}"> <th:block th:text="#{project.protection.conversation}"></th:block></label>
+                                    <label class="checkbox"><input type="checkbox" th:name="'protection.r' + ${ruleStat.index} + '.requireLinearHistory'" value="true" th:checked="${rule.requireLinearHistory == true}"> <th:block th:text="#{project.protection.linear}"></th:block></label>
+                                    
+                                    <div class="note mt5" th:text="#{project.protection.section.push}"></div>
+                                    <label class="checkbox"><input type="checkbox" th:name="'protection.r' + ${ruleStat.index} + '.requirePullRequest'" value="true" th:checked="${rule.requirePullRequest == true}"> <th:block th:text="#{project.protection.pr.require}"></th:block></label>
+                                    <label class="checkbox"><input type="checkbox" th:name="'protection.r' + ${ruleStat.index} + '.allowForcePushes'" value="true" th:checked="${rule.allowForcePushes == true}"> <th:block th:text="#{project.protection.force}"></th:block></label>
+                                    <label class="checkbox"><input type="checkbox" th:name="'protection.r' + ${ruleStat.index} + '.allowDeletions'" value="true" th:checked="${rule.allowDeletions == true}"> <th:block th:text="#{project.protection.deletion}"></th:block></label>
+                                    
+                                    <div class="note mt5" th:text="#{project.protection.section.admins}"></div>
+                                    <label class="checkbox"><input type="checkbox" th:name="'protection.r' + ${ruleStat.index} + '.enforceAdmins'" value="true" th:checked="${rule.enforceAdmins == true}"> <th:block th:text="#{project.protection.enforce.admins}"></th:block></label>
+                                </div>
                         </div>
-
-                        <!--/* 브랜치별 규칙(추가 항목 X-32, decisions.md D-42, D-44). 줄은 설정 폼의 입력칸이라 저장 단추 한 번으로 함께 저장한다. 위의 기본값보다 우선한다 */-->
-                        <div class="mt10" th:if="${git}" id="branchProtectionPanel">
-                            <span class="note" th:text="#{project.protection.title}"></span>
-                            <input type="hidden" name="protectionRulesSent" value="true">
-                            <p class="note" th:text="#{project.protection.description}"></p>
-                            <div id="protectionRules">
-                            <div class="protection-row" style="margin-bottom:6px;" th:each="rule : ${protectionRules}">
-                                <input type="text" name="protectionPattern" maxlength="255" style="width:200px; margin-bottom:0;" th:placeholder="#{project.protection.pattern}" th:value="${rule.pattern}">
-                                <input type="number" name="protectionApprovals" min="1" max="100" style="width:60px; margin-bottom:0;" th:title="#{project.protection.approvals}" th:value="${rule.requiredApprovals}">
-                                <span class="note" th:text="#{project.protection.unit}"></span>
-                                <label class="checkbox inline"><input type="checkbox" class="protection-enforce-box" th:checked="${rule.enforceAdmins == true}"> <th:block th:text="#{project.protection.enforce.admins}"></th:block></label>
-                                <input type="hidden" name="protectionEnforce" th:value="${rule.enforceAdmins == true}">
-                                <button type="button" class="ybtn ybtn-small protection-remove" th:text="#{project.protection.delete}"></button>
-                            </div>
-                            </div>
-                            <button type="button" id="protectionAdd" class="ybtn ybtn-small" th:text="#{project.protection.add}"></button>
-                            <template id="protectionRowTemplate">
-                            <div class="protection-row" style="margin-bottom:6px;">
-                                <input type="text" name="protectionPattern" maxlength="255" style="width:200px; margin-bottom:0;" th:placeholder="#{project.protection.pattern}" value="">
-                                <input type="number" name="protectionApprovals" min="1" max="100" style="width:60px; margin-bottom:0;" th:title="#{project.protection.approvals}" value="1">
-                                <span class="note" th:text="#{project.protection.unit}"></span>
-                                <label class="checkbox inline"><input type="checkbox" class="protection-enforce-box" > <th:block th:text="#{project.protection.enforce.admins}"></th:block></label>
-                                <input type="hidden" name="protectionEnforce" value="false">
-                                <button type="button" class="ybtn ybtn-small protection-remove" th:text="#{project.protection.delete}"></button>
-                            </div>
-                            </template>
-                        </div>
+                        <button type="button" id="protectionAdd" class="ybtn ybtn-small" th:text="#{project.protection.add}"></button>
+                        <template id="protectionRowTemplate">
+                                <div class="protection-rule well well-small" style="margin-bottom:10px;">
+                                    <input type="hidden" name="protectionKey" value="__KEY__">
+                                    <div class="clearfix" style="margin-bottom:8px;">
+                                        <input type="text" name="protection.__KEY__.pattern" maxlength="255" class="protection-pattern-input" style="width:260px; margin-bottom:0;" th:placeholder="#{project.protection.pattern}" value="">
+                                        <button type="button" class="ybtn ybtn-small protection-remove pull-right" th:text="#{project.protection.delete}"></button>
+                                    </div>
+                                    <div class="note" th:text="#{project.protection.section.merge}"></div>
+                                    <div class="mt5">
+                                        <span th:text="#{project.protection.approvals}"></span>
+                                        <input type="number" name="protection.__KEY__.approvals" min="0" max="100" style="width:60px; margin-bottom:0;" value="0">
+                                        <span class="note" th:text="#{project.protection.approvals.hint}"></span>
+                                    </div>
+                                    <label class="checkbox"><input type="checkbox" name="protection.__KEY__.requireNoChangesRequested" value="true"> <th:block th:text="#{project.protection.changes}"></th:block></label>
+                                    <label class="checkbox"><input type="checkbox" name="protection.__KEY__.requireConversationResolution" value="true"> <th:block th:text="#{project.protection.conversation}"></th:block></label>
+                                    <label class="checkbox"><input type="checkbox" name="protection.__KEY__.requireLinearHistory" value="true"> <th:block th:text="#{project.protection.linear}"></th:block></label>
+                                    
+                                    <div class="note mt5" th:text="#{project.protection.section.push}"></div>
+                                    <label class="checkbox"><input type="checkbox" name="protection.__KEY__.requirePullRequest" value="true"> <th:block th:text="#{project.protection.pr.require}"></th:block></label>
+                                    <label class="checkbox"><input type="checkbox" name="protection.__KEY__.allowForcePushes" value="true"> <th:block th:text="#{project.protection.force}"></th:block></label>
+                                    <label class="checkbox"><input type="checkbox" name="protection.__KEY__.allowDeletions" value="true"> <th:block th:text="#{project.protection.deletion}"></th:block></label>
+                                    
+                                    <div class="note mt5" th:text="#{project.protection.section.admins}"></div>
+                                    <label class="checkbox"><input type="checkbox" name="protection.__KEY__.enforceAdmins" value="true"> <th:block th:text="#{project.protection.enforce.admins}"></th:block></label>
+                                </div>
+                        </template>
 
                         <!--/* 새 커밋이 올라오면 오래된 승인을 해제할지(추가 항목 X-12, decisions.md D-35 5번). v1.6은 항상 해제했으므로 기본은 켬이다 */-->
                         <div class="mt10">
@@ -233,18 +242,17 @@
         $("#project-name").popover();
 
 
-        // 브랜치별 규칙 줄(decisions.md D-44): 줄 추가와 삭제는 화면에서만 바꾸고 설정 폼의 저장 단추로 함께 저장한다
-        var $rules = $("#protectionRules");
+        // 브랜치 보호 규칙 줄(decisions.md D-44, D-45): 줄 추가와 삭제는 화면에서만 바꾸고 설정 폼의 저장 단추로 함께 저장한다
+        var $rules = $("#protectionRules"), ruleSeq = 0;
         $("#protectionAdd").on("click", function () {
-            var $row = $($.trim($("#protectionRowTemplate").html()));
+            var html = $.trim($("#protectionRowTemplate").html()).replace(/__KEY__/g, "n" + (ruleSeq++));
+            var $row = $(html);
+            $row.find("[name=protectionKey]").val("n" + (ruleSeq - 1));
             $rules.append($row);
-            $row.find("[name=protectionPattern]").focus();
+            $row.find(".protection-pattern-input").focus();
         });
         $rules.on("click", ".protection-remove", function () {
-            $(this).closest(".protection-row").remove();
-        });
-        $rules.on("change", ".protection-enforce-box", function () {
-            $(this).closest(".protection-row").find("[name=protectionEnforce]").val(this.checked ? "true" : "false");
+            $(this).closest(".protection-rule").remove();
         });
     });
 </script>

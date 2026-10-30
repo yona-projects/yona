@@ -19,8 +19,6 @@ import java.io.InputStream
  * @property overview 설명
  * @property projectScope 공개 범위 이름
  * @property isCodeAccessibleMemberOnly 코드를 구성원에게만 보일지 (`true`/`false` 문자열)
- * @property isUsingReviewerCount 프로젝트 전체 기본 리뷰어 수를 쓸지 (`true`/`false` 문자열, `decisions.md` D-43). 켜면 보호 규칙이 없는 브랜치에 적용된다
- * @property defaultReviewerCount 프로젝트 전체 기본 리뷰어 수
  * @property isDismissingStaleApprovals 새 커밋이 올라오면 오래된 승인을 해제할지 (`true`/`false` 문자열, 추가 개발 항목 X-12, `decisions.md` D-35 5번)
  * @property allowMergeCommit 병합 커밋 방식을 허용할지 (`true`/`false` 문자열, 추가 개발 항목 X-28, `decisions.md` D-41)
  * @property allowSquashMerge 스쿼시 방식을 허용할지
@@ -35,8 +33,6 @@ data class ProjectSettingForm(
     val overview: String? = null,
     val projectScope: String? = null,
     val isCodeAccessibleMemberOnly: String? = null,
-    val isUsingReviewerCount: String? = null,
-    val defaultReviewerCount: String? = null,
     val isDismissingStaleApprovals: String? = null,
     val allowMergeCommit: String? = null,
     val allowSquashMerge: String? = null,
@@ -98,9 +94,7 @@ class ProjectSettingService(
         ProjectNameRules.violations(form.name).forEach { errors.reject("name", it) }
         if (form.projectScope != null && scopeOf(form.projectScope) == null) errors.reject("projectScope", "error.invalid")
         form.isCodeAccessibleMemberOnly?.let { if (booleanOf(it) == null) errors.reject("isCodeAccessibleMemberOnly", "error.invalid") }
-        form.isUsingReviewerCount?.let { if (booleanOf(it) == null) errors.reject("isUsingReviewerCount", "error.invalid") }
         form.isDismissingStaleApprovals?.let { if (booleanOf(it) == null) errors.reject("isDismissingStaleApprovals", "error.invalid") }
-        form.defaultReviewerCount?.let { if (it.toIntOrNull() == null) errors.reject("defaultReviewerCount", "error.invalid") }
         validateMergeMethods(project, form, errors)
         form.protectionRules?.let { rules -> protections.violations(rules).forEach { errors.reject("protectionRules", it) } }
 
@@ -183,9 +177,7 @@ class ProjectSettingService(
         form.overview?.let { project.overview = it }
         scopeOf(form.projectScope)?.let { project.projectScope = it }
         form.isCodeAccessibleMemberOnly?.let { project.isCodeAccessibleMemberOnly = booleanOf(it) }
-        form.isUsingReviewerCount?.let { project.isUsingReviewerCount = booleanOf(it) }
         form.isDismissingStaleApprovals?.let { project.isDismissingStaleApprovals = booleanOf(it) }
-        form.defaultReviewerCount?.let { project.defaultReviewerCount = it.toInt() }
         form.allowMergeCommit?.let { project.allowMergeCommit = booleanOf(it) }
         form.allowSquashMerge?.let { project.allowSquashMerge = booleanOf(it) }
         form.allowRebaseMerge?.let { project.allowRebaseMerge = booleanOf(it) }

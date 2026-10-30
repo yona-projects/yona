@@ -9,7 +9,6 @@ import dev.yona.domain.enumeration.ThreadState
 import dev.yona.domain.project.Project
 import dev.yona.domain.project.PushedBranchRepository
 import dev.yona.domain.pullrequest.PullRequest
-import dev.yona.domain.pullrequest.protection
 import dev.yona.domain.pullrequest.PullRequestCategory
 import dev.yona.domain.pullrequest.PullRequestSearchCondition
 import dev.yona.domain.pullrequest.PullRequestSearchService
@@ -244,7 +243,7 @@ class PullRequestListController(
             number = requireNotNull(pr.number), href = base, headerWordsHtml = helper.headerWordsHtml(pr.title), title = helper.removeHeaderWords(pr.title), conflict = conflict,
             contributor = pr.contributor?.let { person(it, viewer, true) }, ago = helper.agoOrDateString(pr.created), agoTitle = helper.dateString(pr.created),
             progress = if (total > 0) PullRequestReviewProgress(closed, total, helper.percent(closed.toDouble(), total.toDouble()), "$base/changes") else null,
-            reviewerCount = if (pr.protection != null && pr.reviewers.isNotEmpty()) pr.reviewers.size else null,
+            reviewerCount = if (pr.reviewers.isNotEmpty()) pr.reviewers.size else null,
             reviewerNames = pr.reviewers.joinToString("<br>") { it.name.orEmpty() }, reviewedByMe = viewer != null && pr.reviewers.any { it.id == viewer.id },
             toBranch = toBranch, toDefaultBranch = CodePageAssembler.branchItemName(defaultBranch) == toBranch,
             receiver = pr.receiver?.let { person(it, viewer, false) }, stateClass = if (conflict) "conflict" else state, stateKey = if (conflict) "pullRequest.state.conflict" else "pullRequest.state.$state",

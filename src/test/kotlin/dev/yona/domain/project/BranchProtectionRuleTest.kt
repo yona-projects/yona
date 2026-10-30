@@ -2,9 +2,12 @@ package dev.yona.domain.project
 
 import dev.yona.domain.enumeration.ReviewVerdict
 import dev.yona.domain.enumeration.State
+import dev.yona.domain.pullrequest.MergeMethod
 import dev.yona.domain.pullrequest.PullRequest
 import dev.yona.domain.pullrequest.PullRequestReview
 import dev.yona.domain.pullrequest.acceptable
+import dev.yona.domain.pullrequest.allowedMergeMethods
+import dev.yona.domain.pullrequest.defaultMergeMethodOrFirst
 import dev.yona.domain.pullrequest.requiredReviewerCount
 import dev.yona.domain.pullrequest.reviewBlocked
 import dev.yona.domain.pullrequest.reviewed
@@ -24,6 +27,8 @@ class BranchProtectionRuleTest {
     private fun project(vararg rules: Triple<String, Int, Boolean>) = Project().also { p ->
         rules.forEach { (pattern, approvals, admins) -> p.branchProtectionRules.add(BranchProtectionRule(project = p, pattern = pattern, requiredApprovals = approvals, enforceAdmins = admins)) }
     }
+
+    private fun projectOf(vararg rules: BranchProtectionRule) = Project().also { p -> rules.forEach { it.project = p; p.branchProtectionRules.add(it) } }
 
     private fun rule(pattern: String) = BranchProtectionRule(pattern = pattern)
 
@@ -54,7 +59,7 @@ class BranchProtectionRuleTest {
         assertNull(project(Triple("release/*", 1, false)).protectionFor("refs/heads/master"))
     }
 
-    // --- 병합 조건 ---
+    // --- 병합 조건 (D-45) ---
 
     private fun pullRequest(p: Project, approvals: Int = 0, changesRequested: Boolean = false): PullRequest {
         val author = User(id = 1)
@@ -65,58 +70,64 @@ class BranchProtectionRuleTest {
     }
 
     @Test
-    fun `규칙이 없는 브랜치는 승인이 없어도 변경 요청이 남아 있어도 막지 않는다`() {
+    fun `규칙이 없는 브랜치는 승인이 없어도 변경 요청이 남아 있어도 열린 대화가 있어도 막지 않는다`() {
         val pr = pullRequest(project(), approvals = 0, changesRequested = true)
-        assertEquals(0, pr.requiredReviewerCount); assertTrue(pr.reviewed); assertFalse(pr.reviewBlocked); assertTrue(pr.acceptable)
+        assertEquals(0, pr.requiredReviewerCount); assertTrue(pr.reviewed); assertFalse(pr.reviewBlocked(openConversations = 3)); assertTrue(pr.acceptable(3))
     }
 
     @Test
-    fun `규칙이 있으면 승인이 모자랄 때 막고 채우면 연다`() {
+    fun `승인 수를 요구하는 규칙은 모자랄 때 막고 채우면 연다`() {
         val p = project(Triple("master", 2, false))
-        assertTrue(pullRequest(p, approvals = 1).reviewBlocked); assertEquals(2, pullRequest(p).requiredReviewerCount)
-        assertFalse(pullRequest(p, approvals = 2).reviewBlocked); assertTrue(pullRequest(p, approvals = 2).acceptable)
+        assertTrue(pullRequest(p, approvals = 1).reviewBlocked()); assertEquals(2, pullRequest(p).requiredReviewerCount)
+        assertFalse(pullRequest(p, approvals = 2).reviewBlocked()); assertTrue(pullRequest(p, approvals = 2).acceptable())
     }
 
     @Test
-    fun `규칙이 있으면 승인을 채워도 변경 요청이 남아 있으면 막는다`() {
-        assertTrue(pullRequest(project(Triple("master", 1, false)), approvals = 1, changesRequested = true).reviewBlocked)
+    fun `승인 수가 0이면 승인으로는 막지 않는다`() {
+        val p = projectOf(BranchProtectionRule(pattern = "master", requiredApprovals = 0))
+        assertFalse(pullRequest(p, approvals = 0).reviewBlocked())
+    }
+
+    @Test
+    fun `변경 요청은 그 조건을 켠 규칙에서만 병합을 막는다`() {
+        assertFalse(pullRequest(projectOf(BranchProtectionRule(pattern = "master", requiredApprovals = 1)), approvals = 1, changesRequested = true).reviewBlocked())
+        assertTrue(pullRequest(projectOf(BranchProtectionRule(pattern = "master", requiredApprovals = 1, requireNoChangesRequested = true)), approvals = 1, changesRequested = true).reviewBlocked())
+    }
+
+    @Test
+    fun `열린 대화는 그 조건을 켠 규칙에서만 병합을 막는다`() {
+        val plain = projectOf(BranchProtectionRule(pattern = "master", requiredApprovals = 0))
+        assertFalse(pullRequest(plain).reviewBlocked(openConversations = 2))
+        val strict = projectOf(BranchProtectionRule(pattern = "master", requiredApprovals = 0, requireConversationResolution = true))
+        assertTrue(pullRequest(strict).reviewBlocked(openConversations = 1)); assertFalse(pullRequest(strict).reviewBlocked(openConversations = 0))
     }
 
     @Test
     fun `다른 브랜치의 규칙은 영향이 없다`() {
-        assertFalse(pullRequest(project(Triple("release/*", 3, false)), approvals = 0).reviewBlocked)
-    }
-
-    // --- 프로젝트 전체 기본 규칙 (D-43) ---
-
-    private fun withDefault(using: Boolean?, count: Int?, vararg rules: Triple<String, Int, Boolean>) =
-        project(*rules).also { it.isUsingReviewerCount = using; it.defaultReviewerCount = count }
-
-    @Test
-    fun `규칙이 없고 프로젝트가 리뷰어를 쓰면 설정한 수가 모든 브랜치의 기본 규칙이 된다`() {
-        val p = withDefault(true, 2)
-        val rule = p.protectionFor("refs/heads/master")!!
-        assertEquals(2, rule.requiredApprovals); assertFalse(rule.enforceAdmins == true, "기본 규칙은 관리자가 우회할 수 있다"); assertTrue(rule.isProjectDefault)
-        assertEquals(2, p.protectionFor("refs/heads/feature/x")!!.requiredApprovals)
-        assertTrue(pullRequest(p, approvals = 1).reviewBlocked); assertFalse(pullRequest(p, approvals = 2).reviewBlocked)
+        assertFalse(pullRequest(project(Triple("release/*", 3, false)), approvals = 0).reviewBlocked())
     }
 
     @Test
-    fun `프로젝트가 리뷰어를 쓰지 않으면 규칙이 없는 브랜치는 막지 않는다`() {
-        assertNull(withDefault(false, 3).protectionFor("refs/heads/master")); assertNull(withDefault(null, 3).protectionFor("refs/heads/master"))
-        assertFalse(pullRequest(withDefault(false, 3), approvals = 0).reviewBlocked)
+    fun `리뷰어 설정 컬럼은 더 이상 규칙에 영향을 주지 않는다`() {
+        val p = project().also { it.isUsingReviewerCount = true; it.defaultReviewerCount = 3 }
+        assertNull(p.protectionFor("refs/heads/master")); assertFalse(pullRequest(p).reviewBlocked())
+    }
+
+    // --- 선형 이력 ---
+
+    @Test
+    fun `선형 이력을 요구하면 병합 커밋 방식을 허용하지 않는다`() {
+        val p = projectOf(BranchProtectionRule(pattern = "master", requireLinearHistory = true)).also { it.allowMergeCommit = true; it.allowSquashMerge = true; it.allowRebaseMerge = true }
+        val pr = pullRequest(p)
+        assertEquals(setOf(MergeMethod.SQUASH, MergeMethod.REBASE), pr.allowedMergeMethods())
+        assertEquals(MergeMethod.SQUASH, pr.defaultMergeMethodOrFirst())
+        val loose = pullRequest(projectOf(BranchProtectionRule(pattern = "master")).also { it.allowMergeCommit = true; it.allowSquashMerge = true; it.allowRebaseMerge = false })
+        assertEquals(setOf(MergeMethod.MERGE, MergeMethod.SQUASH), loose.allowedMergeMethods())
     }
 
     @Test
-    fun `브랜치 보호 규칙이 있으면 프로젝트 기본 규칙보다 우선한다`() {
-        val p = withDefault(true, 3, Triple("master", 1, true))
-        val rule = p.protectionFor("refs/heads/master")!!
-        assertEquals(1, rule.requiredApprovals); assertTrue(rule.enforceAdmins == true); assertFalse(rule.isProjectDefault)
-        assertEquals(3, p.protectionFor("refs/heads/develop")!!.requiredApprovals, "규칙이 없는 브랜치는 기본 규칙을 따른다")
-    }
-
-    @Test
-    fun `기본 규칙의 승인 수가 비었거나 1보다 작으면 1로 본다`() {
-        assertEquals(1, withDefault(true, null).protectionFor("master")!!.requiredApprovals); assertEquals(1, withDefault(true, 0).protectionFor("master")!!.requiredApprovals)
+    fun `선형 이력을 요구하는데 허용한 방식이 병합 커밋뿐이면 쓸 방식이 없다`() {
+        val p = projectOf(BranchProtectionRule(pattern = "master", requireLinearHistory = true)).also { it.allowMergeCommit = true; it.allowSquashMerge = false; it.allowRebaseMerge = false }
+        assertTrue(pullRequest(p).allowedMergeMethods().isEmpty())
     }
 }
