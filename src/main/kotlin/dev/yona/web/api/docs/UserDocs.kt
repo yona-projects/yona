@@ -58,3 +58,33 @@ class UserStateRequest(
 
 @Schema(description = "상태를 바꾼 사용자")
 class UserStateChanged(val id: Long, val login_id: String, @get:Schema(example = "LOCKED") val state: String)
+
+@Schema(description = "현황의 이슈 구역")
+class StatusIssueSection(
+    @get:Schema(description = "열린 이슈 수(읽을 수 있는 것만)") val openCount: Int,
+    @get:Schema(description = "닫힌 이슈 수") val closedCount: Int,
+    @get:Schema(description = "열린 이슈 중 최근 수정 순서의 항목(`limit`개까지)") val items: List<IssueSummary>
+)
+
+@Schema(description = "현황의 풀 리퀘스트 구역")
+class StatusPullRequestSection(
+    @get:Schema(description = "열린 풀 리퀘스트 수(읽을 수 있는 것만)") val openCount: Int,
+    @get:Schema(description = "닫히거나 병합된 풀 리퀘스트 수") val closedCount: Int,
+    @get:Schema(description = "열린 풀 리퀘스트 중 최근 수정 순서의 항목(`limit`개까지)") val items: List<PullRequestDetail>
+)
+
+@Schema(description = "최근 알림 한 건")
+class StatusNotification(
+    val id: Long, @get:Schema(description = "알림 종류", example = "NEW_COMMENT") val type: String?, val title: String?,
+    @get:Schema(description = "이동할 웹 주소. 없으면 `null`", nullable = true) val url: String?, val createdAt: String?,
+    @get:Schema(description = "보낸 사람. 없으면 `null`", nullable = true) val sender: UserSummary?
+)
+
+@Schema(description = "사용자 현황(`gh status`)")
+class UserStatusResponse(
+    @get:Schema(description = "내가 담당자인 이슈") val assignedIssues: StatusIssueSection,
+    @get:Schema(description = "내가 담당자인 풀 리퀘스트") val assignedPullRequests: StatusPullRequestSection,
+    @get:Schema(description = "내가 리뷰를 요청받은 풀 리퀘스트") val reviewRequests: StatusPullRequestSection,
+    @get:Schema(description = "나를 멘션한 이슈(본문이나 댓글)") val mentionedIssues: StatusIssueSection,
+    @get:Schema(description = "최근 알림 10건") val notifications: List<StatusNotification>
+)

@@ -56,8 +56,10 @@ updated: 2026-10-30
 
 | 메서드와 경로 | 설명 | 범위 | 상태 |
 |---|---|---|---|
-| `GET /user/status` | 담당 이슈, 담당 풀 리퀘스트, 리뷰 요청, 멘션을 한 번에 | | 대기 |
-| `GET /user/issues`의 `commented`, `shared` 필터 | 내가 댓글 단 이슈, 나에게 공유된 이슈 | | 대기 |
+| `GET /user/status` | 담당 이슈, 담당 풀 리퀘스트, 리뷰 요청, 멘션된 이슈(구역마다 열림과 닫힘 수와 열린 항목), 최근 알림 10건. 쿼리 `limit`(1~100, 기본 10) | `repo` | **완료**(2026-10-30) |
+| `GET /user/issues?filter=commented`, `shared` | 내가 댓글 단 이슈, 나에게 공유된 이슈(기존 필터에 더함) | `repo` | **완료**(2026-10-30) |
+
+구현은 `ExternalUserStatusApiController`(현황)와 `ExternalUserApiController`(필터)이다.
 
 ## f단계: 풀 리퀘스트 검색 (X-37f)
 

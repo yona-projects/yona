@@ -84,11 +84,11 @@ class ExternalUserApiController(
     // --- 내 이슈 ---
 
     /**
-     * 토큰 사용자의 이슈를 필터(`assigned`, `created`, `mentioned`, `favorite`, `all`)별로 최근 수정 순서로 돌려준다.
+     * 토큰 사용자의 이슈를 필터(`assigned`, `created`, `mentioned`, `favorite`, `commented`, `shared`, `all`)별로 최근 수정 순서로 돌려준다.
      * `page`는 1부터, `pageNum`은 한 쪽의 개수(기본 10)이다. 모르는 필터는 `400`이다.
      */
     @ApiOperation(operationId = "listMyIssues", tags = [ApiTags.USER], summary = "내 이슈", description = "토큰 주인의 이슈를 필터별로 최근 수정 순서로 돌려준다.")
-    @io.swagger.v3.oas.annotations.Parameter(name = "filter", description = "어떤 이슈를 볼지", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "assigned", schema = Schema(allowableValues = ["assigned", "created", "mentioned", "favorite", "all"]))
+    @io.swagger.v3.oas.annotations.Parameter(name = "filter", description = "어떤 이슈를 볼지. `commented`는 내가 댓글을 단 이슈, `shared`는 나에게 공유된 이슈, `all`은 담당, 작성, 멘션, 즐겨찾기를 합친 것이다", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "assigned", schema = Schema(allowableValues = ["assigned", "created", "mentioned", "favorite", "commented", "shared", "all"]))
     @io.swagger.v3.oas.annotations.Parameter(name = "page", description = "쪽 번호(1부터)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "1")
     @io.swagger.v3.oas.annotations.Parameter(name = "pageNum", description = "한 쪽의 개수(기본 10)", `in` = io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY, example = "10")
     @ApiResponse(responseCode = "200", description = "이슈 목록", content = [Content(schema = Schema(implementation = MyIssueList::class))])
@@ -109,6 +109,9 @@ class ExternalUserApiController(
             "created" -> "i.authorId = :user" to mapOf("user" to userId)
             "mentioned" -> "i.id in :mentioned" to mapOf("mentioned" to mentioned())
             "favorite" -> "i.id in ($favorite)" to mapOf("user" to userId)
+            // 댓글을 단 이슈와 공유받은 이슈이다(X-37e, D-52). `all`의 범위는 v1.6 그대로 둔다
+            "commented" -> "i.id in (select c.issue.id from IssueComment c where c.authorId = :user)" to mapOf("user" to userId)
+            "shared" -> "i.id in (select s.issue.id from IssueSharer s where s.user.id = :user)" to mapOf("user" to userId)
             "all" -> "(i.authorId = :user or a.user.id = :user or i.id in :mentioned or i.id in ($favorite))" to mapOf("user" to userId, "mentioned" to mentioned())
             else -> return ResponseEntity.badRequest().build<Void>()
         }

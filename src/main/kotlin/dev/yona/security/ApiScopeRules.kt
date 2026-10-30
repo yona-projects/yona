@@ -114,6 +114,8 @@ object ApiScopeRules {
         // Git 태그(X-37c, D-52)
         for (m in listOf("GET", "POST")) add(m, "$PROJECT/tags", ApiRequirement.Repo)
         add("DELETE", "$PROJECT/tags/{*name}", ApiRequirement.Repo)
+        // 사용자 현황(X-37e, D-52): 비공개 프로젝트까지 걸리므로 `repo`
+        add("GET", "/-_-api/v1/user/status", ApiRequirement.RepoOnly)
         // 사용자
         add("GET", "/-_-api/v1/user/issues", ApiRequirement.RepoOnly)
         add("GET", "/-_-api/v1/users/{user}/statistics", ApiRequirement.Scope("read:user"))
