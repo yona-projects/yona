@@ -1,7 +1,7 @@
 .ico {
-    .inline-block;
+    @include inline-block;
     background-repeat: no-repeat;
-    background-image: url('@{base-image-path}/sprite.png');
+    background-image: url('#{$base-image-path}/sprite.png');
     vertical-align:middle;
 }
 
@@ -476,14 +476,8 @@
     background-position: -131px -117px;
 }
 
-.ico-qa-plus {
-    width:14px; height:14px;
-    background-position:-3px -144px;
-}
-.ico-qa-minus {
-    width:14px; height:14px;
-    background-position:-20px -144px;
-}
+.ico-qa-plus { @include ico-qa-plus; }
+.ico-qa-minus { @include ico-qa-minus; }
 
 .ico-err1 {
     width: 62px;

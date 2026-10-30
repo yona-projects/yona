@@ -55,13 +55,13 @@ class StaticAssetsTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `하위 폴더의 LESS도 CSS와 소스 맵으로 컴파일해 제공한다`() {
-        // v1.6 sbt-less는 less/font 아래 파일도 따로 컴파일했다(filetype.less가 가져다 쓰는 파일이다)
+    fun `하위 폴더의 SCSS도 CSS와 소스 맵으로 컴파일해 제공한다`() {
+        // v1.6 sbt-less는 less/font 아래 파일도 따로 컴파일했다(filetype이 가져다 쓰는 파일이다). SCSS로 다시 쓰며 폴더 이름이 scss/font로 바뀌었다(A-288)
         listOf("colours", "fonts", "icons").forEach { name ->
-            mockMvc.perform(get("/assets/stylesheets/less/font/$name.css"))
-                .andExpect(status().isOk).andExpect(content().string(org.hamcrest.Matchers.endsWith("/*# sourceMappingURL=$name.css.map */")))
-            mockMvc.perform(get("/assets/stylesheets/less/font/$name.css.map"))
-                .andExpect(status().isOk).andExpect(content().string(org.hamcrest.Matchers.startsWith("{\"version\":3,\"file\":\"$name.css\",\"sources\":[\"$name.less\"]")))
+            mockMvc.perform(get("/assets/stylesheets/scss/font/$name.css"))
+                .andExpect(status().isOk).andExpect(content().string(org.hamcrest.Matchers.endsWith("/*# sourceMappingURL=$name.css.map */\n")))
+            mockMvc.perform(get("/assets/stylesheets/scss/font/$name.css.map"))
+                .andExpect(status().isOk).andExpect(content().string(org.hamcrest.Matchers.allOf(org.hamcrest.Matchers.startsWith("{\"version\":3,"), org.hamcrest.Matchers.containsString("$name.scss"), org.hamcrest.Matchers.endsWith("\"file\":\"$name.css\"}"))))
         }
     }
 
@@ -116,7 +116,7 @@ class StaticAssetsTest : AbstractIntegrationTest() {
     @Test
     fun `내용 형식은 v1_6 Assets의 확장자 표를 따른다`() {
         val expected = mapOf(
-            "stylesheets/yobi.css" to "text/css; charset=utf-8", "stylesheets/yobi.css.map" to "application/x-navimap", "stylesheets/yobi.less" to "application/octet-stream",
+            "stylesheets/yobi.css" to "text/css; charset=utf-8", "stylesheets/yobi.css.map" to "application/x-navimap", "stylesheets/yobi.scss" to "application/octet-stream",
             "javascripts/yona-layout.js" to "application/javascript; charset=utf-8", "images/favicon.ico" to "image/x-icon"
         )
         expected.forEach { (path, type) -> assertEquals(type, mockMvc.perform(get("/assets/$path")).andReturn().response.getHeader("Content-Type"), path) }

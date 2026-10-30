@@ -38,4 +38,4 @@ conf/social-login.conf
 .gradle/
 build/
 .kotlin/
-build-tools/less/node_modules/
+build-tools/sass/node_modules/

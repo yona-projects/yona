@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Bootstrap 전환(로드맵 X-38, `decisions.md` D-53)의 구조 검사이다. 템플릿, 자체 JS, 자체 LESS에서 **단계마다 사라져야 할 낡은 표기**를 세어 둔 기준
+ * Bootstrap 전환(로드맵 X-38, `decisions.md` D-53)의 구조 검사이다. 템플릿, 자체 JS, 자체 SCSS에서 **단계마다 사라져야 할 낡은 표기**를 세어 둔 기준
  * (`src/test/resources/bs/legacy-baseline.json`)과 대조한다.
  *
  * - 기준보다 **늘면** 실패한다: 전환 중에 낡은 표기가 새로 들어오는 것을 막는다.
@@ -62,7 +62,7 @@ class LegacyBootstrapLintTest {
     private val jsFiles by lazy {
         files("src/main/resources/static/assets/javascripts", ".js").filter { !it.path.contains("/javascripts/lib/") && !it.name.endsWith(".min.js") }
     }
-    private val lessFiles by lazy { files("app/assets/stylesheets", ".less") }
+    private val lessFiles by lazy { files("app/assets/stylesheets", ".scss") }
 
     /** 템플릿의 `class="..."` 값만 모은다(본문 글에 들어 있는 낱말을 세지 않는다). 타임리프의 `th:class`, `th:classappend`도 포함한다. */
     private fun classValues(text: String): List<String> =

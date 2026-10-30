@@ -28,11 +28,11 @@
 
 
 // Package-specific font for custom icon additions
-@custom-font-path: "filetype/file-icons.woff2";
+$custom-font-path: "filetype/file-icons.woff2";
 
 @font-face {
 	font-family: file-icons;
-	src: url(@custom-font-path);
+	src: url($custom-font-path);
 	font-weight: normal;
 	font-style: normal;
 }

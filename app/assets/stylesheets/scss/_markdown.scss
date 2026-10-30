@@ -7,7 +7,7 @@ code {
   font-size: 1.1em;
   clear: both;
   overflow: auto;
-  font-family: @base-font-family;
+  font-family: $base-font-family;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   -webkit-font-feature-settings: "kern" 1;
@@ -71,7 +71,7 @@ code {
     text-decoration: none;
   }
 
-  .anchor() {
+  @mixin anchor() {
     .head-anchor {
       margin-left: 3px;
       opacity: 0;
@@ -94,7 +94,7 @@ code {
     font-size: 2.0em;
     padding-bottom: 0.3em;
     border-bottom: 1px solid #eee;
-    .anchor();
+    @include anchor();
     width: 95%;
     font-weight: 600;
   }
@@ -105,27 +105,27 @@ code {
     width: 95%;
     padding: 0 0 0.3em 0;
     border-bottom: 1px solid #eaecef;
-    .anchor();
+    @include anchor();
   }
 
   h3 {
     margin: 1em 0 5px;
     font-size: 1.25em;
     padding: 0;
-    .anchor();
+    @include anchor();
   }
 
   h4 {
     font-size: 1.25em;
     margin-top: 1.2em;
     padding: 0;
-    .anchor();
+    @include anchor();
   }
 
   h5 {
     font-size: 1em;
     margin-top: 20px;
-    .anchor();
+    @include anchor();
   }
 
   hr {
@@ -152,7 +152,7 @@ code {
     padding: 5px 5px 2px 5px;
     border: 1px solid #ddd;
     border-radius: 3px;
-    font-family: @fixed-font-family;
+    font-family: $fixed-font-family;
     font-size: 13px;
 
     .title {
@@ -183,7 +183,7 @@ code {
     margin: 10px 0;
     padding: 5px;
     border: 1px solid rgba(0, 0, 0, 0.1);
-    .box-sizing(border-box);
+    @include box-sizing(border-box);
     max-height: 600px;
   }
 

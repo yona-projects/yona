@@ -1,0 +1,8 @@
+{
+  "name": "yona-sass-tool",
+  "private": true,
+  "description": "SCSS 컴파일러(dart-sass). LESS 때와 같은 방식으로 Gradle이 npm ci로 설치해 쓴다(X-38c, decisions.md A-287)",
+  "dependencies": {
+    "sass": "1.69.7"
+  }
+}

@@ -4,14 +4,14 @@ body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,form,fieldset,p,button{
 }
 
 body {
-    background-color: @yobi-background;
-    font-family: @base-font-family;
+    background-color: $yobi-background;
+    font-family: $base-font-family;
     text-rendering: auto !important;
     overflow-y: scroll;
 }
 
-textarea { font-family: @fixed-font-family !important; }
-button, select { font-family: @base-font-family !important; }
+textarea { font-family: $fixed-font-family !important; }
+button, select { font-family: $base-font-family !important; }
 h1,h2,h3,h4,h5,h6 { text-rendering:auto !important; }
 
 a {
@@ -28,7 +28,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .btn-transparent { border: 0; padding: 0; background: transparent; }
-.d-link { color: @blue; }
+.d-link { color: $blue; }
 .nm { margin: 0 !important; }
 .hidden {
     display: none !important;
@@ -59,16 +59,16 @@ input[type=number]::-webkit-outer-spin-button {
         padding: 0;
         list-style: none;
         font-size: 0;
-        .inline-block;
+        @include inline-block;
 
         .page-num {
-            .inline-block;
+            @include inline-block;
             padding: 0 10px;
             font-size: 12px;
             color: #8e9094;
 
             .current {
-                color: @orange; /*#4489A4;*/
+                color: $orange; /*#4489A4;*/
                 font-weight: bold;
             }
             .input-mini {
@@ -77,8 +77,8 @@ input[type=number]::-webkit-outer-spin-button {
                 border:1px solid #eee;
                 &:hover, &:focus {
                     /*background:#f5f5f5;*/
-                    .box-shadow(inset -1px -1px 2px rgba(0,0,0,0.1));
-                    color:@primary; border-color:@primary;
+                    @include box-shadow(inset -1px -1px 2px rgba(0,0,0,0.1));
+                    color:$primary; border-color:$primary;
                 }
             }
             &.ikon {
@@ -91,7 +91,7 @@ input[type=number]::-webkit-outer-spin-button {
                 padding: 0 5px;
                 span {
                     font-size: 11px;
-                    color: @orange; /*#4489A4;*/
+                    color: $orange; /*#4489A4;*/
                     &.off {
                         color: #8E9094;
                     }
@@ -111,34 +111,36 @@ input[type=number]::-webkit-outer-spin-button {
     filter:none;
 
     &.done-outline {
-        border: 1px solid @light-green;
+        border: 1px solid $light-green;
     }
     &.red-outline {
-        border: 1px solid @yona-red;
+        border: 1px solid $yona-red;
     }
-    .box-shadow(inset 0px 1px 1px rgba(0,0,0,0.25));
+    @include box-shadow(inset 0px 1px 1px rgba(0,0,0,0.25));
     .bar {
         height:100%;
         filter:none;
-        &.orange { background:@orange; .box-shadow(none); } // #f28149
-        &.blue   { background:@blue;   .box-shadow(none); }
-        &.grey   { background:@gray-9e;   .box-shadow(none); }
-        &.red    { background:@yona-red;   .box-shadow(none); }
-        &.done   { background:@light-green;   .box-shadow(none); }
-        &.open   { background:@state-open; .box-shadow(none); }
-        &.closed { background:@state-closed; .box-shadow(none); }
+        &.orange { background:$orange; @include box-shadow(none); } // #f28149
+        &.blue   { background:$blue;   @include box-shadow(none); }
+        &.grey   { background:$gray-9e;   @include box-shadow(none); }
+        &.red    { background:$yona-red;   @include box-shadow(none); }
+        &.done   { background:$light-green;   @include box-shadow(none); }
+        &.open   { background:$state-open; @include box-shadow(none); }
+        &.closed { background:$state-closed; @include box-shadow(none); }
     }
 
     &.avatar {
         height:5px;
         overflow: hidden;
-        .border-radius(5px);
+        @include border-radius(5px);
     }
 }
 
 /** images **/
 .img-rounded {
-    .border-radius(3px) !important;
+    -webkit-border-radius: 3px !important;
+    -moz-border-radius: 3px !important;
+    border-radius: 3px !important;
     border: 1px solid #ccc;
 }
 .avatar-wrap {
@@ -154,21 +156,21 @@ input[type=number]::-webkit-outer-spin-button {
 
 /** text style **/
 .bold { font-weight:bold; }
-.gray-txt      { color:@gray-cc !important; }
-.darkgray-txt  { color:@gray-99 !important; }
-.orange-txt    { color:@orange !important; }
-.primary-txt   { color:@primary !important; }
-.secondary-txt { color:@secondary !important; }
+.gray-txt      { color:$gray-cc !important; }
+.darkgray-txt  { color:$gray-99 !important; }
+.orange-txt    { color:$orange !important; }
+.primary-txt   { color:$primary !important; }
+.secondary-txt { color:$secondary !important; }
 .center-txt    { text-align:center; }
 .right-txt     { text-align:right; }
 .left-txt      { text-align:left;  }
-.blue-txt      { color:@blue;}
+.blue-txt      { color:$blue;}
 
 /** background **/
 .bgblack  { background:#000; }
 .bgwhite  { background:#fff; }
-.bgblue   { background:@blue; /*#56B5D9;*/ }
-.bgorange { background:@orange; }
+.bgblue { @include bgblue; }
+.bgorange { background:$orange; }
 .bggray   { background:#f5f5f5; }
 .vmiddle  { vertical-align:middle !important; }
 .vertical-top  { vertical-align:top !important; }
@@ -253,9 +255,9 @@ input[type=number]::-webkit-outer-spin-button {
     border:2px solid #FFF;
     line-height:20px;
     padding:0 5px;
-    background-color:@yobi-primary;
+    background-color:$yobi-primary;
     color:#ECF0F1;
-    .border-radius(10px);
+    @include border-radius(10px);
 
     -webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
     -moz-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);

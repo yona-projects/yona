@@ -50,3 +50,11 @@ v2도 같은 방식이다. 선생님께서 "Gradle 빌드에서 lessc 실행"을
 
 - Play의 언어 결정 규칙(쿠키, `Accept-Language`, 사용자 `lang`)은 아직 옮기지 않았다.
 - 메시지 키가 v1.6 소스의 모든 템플릿 참조와 일치하는지 전수 검사는 템플릿 이식 단계에서 한다.
+
+## 스타일 빌드 변경: LESS에서 SCSS로 (X-38c, A-287, A-288)
+
+Bootstrap 4 전환(D-53)과 함께 자체 스타일을 SCSS로 다시 썼다. 위의 LESS 설명(`build-tools/less`, `installLess`, `compileLess`, Less 1.7.5)은 이 시점부터 아래로 바뀐다.
+
+- `build-tools/sass/package.json`이 dart-sass 1.69.7을 고정하고 `installSass`(`npm ci`), `compileSass`가 `build/generated/sass/static/assets/stylesheets/`에 CSS와 소스 맵을 만든다.
+- 소스는 `app/assets/stylesheets/{yobi,usermenu,filetype}.scss`와 `scss/*.scss`(부분 파일), `scss/font/*.scss`이다. 원본 `.scss`도 `/assets/stylesheets/`에서 내려 주고 소스 맵이 가리킨다.
+- LESS와 SCSS의 CSS를 규칙 단위로 대조해 같음을 확인했다(`e2e`가 아니라 일회성 대조, 결과는 A-287).

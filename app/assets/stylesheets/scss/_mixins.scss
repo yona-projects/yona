@@ -1,0 +1,336 @@
+
+
+// LESS에서 규칙 집합을 믹스인처럼 호출하던 것을 믹스인으로 옮겼다(원래 자리에는 같은 이름의 클래스가 남아 있다)
+@mixin bgblue { background:$blue; /*#56B5D9;*/ }
+@mixin user-select-none {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+@mixin my-list-item {
+  img {
+    width: 20px;
+    height: 20px;
+    @include border-radius(3px);
+    border: 1px solid #ececec;
+    margin-right: 3px;
+  }
+  .dummy-25px {
+    width: 25px;
+    display: inline-block;
+  }
+}
+@mixin repo-info {
+    padding:0px;
+    /*text-align:left;/*center;*/
+   text-align:right; padding-right:4px;
+
+    .clone-label {
+        color: #4D4D4D;
+        margin-right: 10px;
+        font-weight:bold;
+
+        strong {
+            color:#fff; @include border-radius(2px);
+            font-size: 11px; padding: 4px;
+            text-shadow: -1px -1px rgba(0,0,0,0.3);
+            margin-right: 5px;
+            @include bgblue;
+
+            &.Subversion { @include bgblue; padding: 8px; }
+            &.GIT { @include bgblue; /*.bgorange;*/ padding: 8px 27px; }
+        }
+    }
+    .repo-url {
+        cursor: text;
+        margin: 0;
+        /*width: 520px;*/
+        width:60%;
+        font-family:Consolas,Tahoma,Verdana !important;
+        background:#f5f5f5;
+
+        @include box-shadow(none);
+        @include border-radius(2px 0 0 2px);
+        &:focus {
+            @include box-shadow(none);
+            border: 1px solid #CCC;
+        }
+    }
+    .copy-btn {
+        padding: 0 19px;
+        margin-right: 10px;
+        margin-top:1px;
+        line-height: 28px;
+        border: 1px solid #CCC;
+        border-left: 0 none;
+        vertical-align: top;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: bold;
+        @include inline-block;
+        @include border-radius(0 2px 2px 0);
+
+        &:hover {
+            color: $orange;
+        }
+    }
+    .btn-group {
+        margin-top:1px;
+        .d-label {
+            width: 115px; /*155px;*/
+        }
+    }
+
+}
+@mixin btn-wrap-new-project {
+    margin-top: 0px;
+    margin-bottom:20px;
+    text-align: center;
+
+    a {
+        font-size:15px; /*font-family:"Myriad Pro";*/
+        width:180px; height:35px;
+        background-color:$orange;
+        color:#fff; line-height:35px;
+        border-bottom:1px solid #ae5f54;
+        @include border-radius(5px);
+        @include inline-block;
+
+        i { vertical-align:middle; margin-bottom:4px; }
+    }
+}
+@mixin simple-issue-list {
+    .state-label {
+        font-size: 13px;
+        padding: 5px 0 3px;
+        display: inline-block;
+        min-width: 13px;
+        color: white;
+        border-radius: 5px;
+        text-align: center;
+        line-height: 14px;
+        margin-right: 3px;
+
+        &.open {
+            color: white;
+        }
+        &.closed {
+            color: #fd6956;
+        }
+    }
+
+    .issue-item {
+        font-size: 14px;
+        padding: 3px;
+        .item-name {
+            vertical-align: middle;
+        }
+        .number {
+            font-family: menlo, Consolas, monospace, sans-serif;
+            font-size: 12px;
+            color: gray;
+            min-width: 35px;
+            padding-right: 5px;
+            display: inline-block;
+            text-align: right;
+            margin-right: 3px;
+        }
+    }
+}
+@mixin btn-search {
+    width  : 88px;
+    margin : 5px 0 0;
+    padding: 4px 0;
+    border : 1px solid #a9a9a9;
+    color  : $black;
+    text-align : center;
+    font-weight: bold;
+    font-size  : 11px;
+    @include border-radius(0 2px 2px 0);
+
+    &:hover { color:$link-hover-color; }
+}
+@mixin ico-qa-minus {
+    width:14px; height:14px;
+    background-position:-20px -144px;
+}
+@mixin ico-qa-plus {
+    width:14px; height:14px;
+    background-position:-3px -144px;
+}
+
+// CSS3 PROPERTIES
+// --------------------------------------------------
+
+// Border Radius
+@mixin border-radius($radius: 5px) {
+    -webkit-border-radius: $radius;
+    -moz-border-radius: $radius;
+    border-radius: $radius;
+}
+@mixin border-radius-bottom($radius: 5px) {
+    -webkit-border-bottom-left-radius:$radius;
+    -moz-border-bottom-left-radius:$radius;
+    border-bottom-left-radius:$radius;
+
+    -webkit-border-bottom-right-radius:$radius;
+    -moz-border-bottom-right-radius:$radius;
+    border-bottom-right-radius:$radius;
+}
+
+// Drop shadows
+@mixin box-shadow($shadow: 0 1px 2px rgba(0, 0, 0, .25)) {
+    -webkit-box-shadow: $shadow;
+    -moz-box-shadow: $shadow;
+    box-shadow: $shadow;
+}
+
+// Transitions
+@mixin transition($transition) {
+    -webkit-transition: $transition;
+    -moz-transition: $transition;
+    -ms-transition: $transition;
+    -o-transition: $transition;
+    transition: $transition;
+}
+
+// Transformations
+@mixin rotate($degrees) {
+    -webkit-transform: rotate($degrees);
+    -moz-transform: rotate($degrees);
+    -ms-transform: rotate($degrees);
+    -o-transform: rotate($degrees);
+    transform: rotate($degrees);
+}
+
+@mixin scale($ratio) {
+    -webkit-transform: scale($ratio);
+    -moz-transform: scale($ratio);
+    -ms-transform: scale($ratio);
+    -o-transform: scale($ratio);
+    transform: scale($ratio);
+}
+
+@mixin translate($x: 0, $y: 0) {
+    -webkit-transform: translate($x, $y);
+    -moz-transform: translate($x, $y);
+    -ms-transform: translate($x, $y);
+    -o-transform: translate($x, $y);
+    transform: translate($x, $y);
+}
+
+@mixin skew($x: 0, $y: 0) {
+    -webkit-transform: skew($x, $y);
+    -moz-transform: skew($x, $y);
+    -ms-transform: skew($x, $y);
+    -o-transform: skew($x, $y);
+    transform: skew($x, $y);
+}
+
+@mixin translate3d($x: 0, $y: 0, $z: 0) {
+    -webkit-transform: translate($x, $y, $z);
+    -moz-transform: translate($x, $y, $z);
+    -ms-transform: translate($x, $y, $z);
+    -o-transform: translate($x, $y, $z);
+    transform: translate($x, $y, $z);
+}
+
+// Opacity
+@mixin opacity($opacity: 100) {
+    opacity: $opacity / 100;
+}
+
+// Gradient
+@mixin linear-gradient($startColor:'#f9fcf7', $endColor:'#f5f9f0') {
+    background: $startColor; /* Old browsers */
+    background: -moz-linear-gradient(top, $startColor 0%, $endColor 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,$startColor), color-stop(100%,$endColor)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, $startColor 0%, $endColor 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, $startColor 0%, $endColor 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, $startColor 0%, $endColor 100%); /* IE10+ */
+    background: linear-gradient(to bottom, $startColor 0%, $endColor 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#{$startColor}', endColorstr='#{$endColor}',GradientType=0 ); /* IE6-9 */
+}
+
+// BackgroundSize
+@mixin background-size($param:cover) {
+  -webkit-background-size: $param;
+  -moz-background-size: $param;
+  -o-background-size: $param;
+  background-size: $param;
+}
+
+// Text overflow
+// -------------------------
+// Requires inline-block or block for proper styling
+@mixin text-overflow() {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// UTILITY MIXINS
+// --------------------------------------------------
+
+// Clearfix
+// --------
+// For clearing floats like a boss h5bp.com/q
+.clearfix {
+    *zoom: 1;
+    &:before,
+    &:after {
+        display: table;
+        content: "";
+    }
+    &:after {
+        clear: both;
+    }
+}
+.user-select-none { @include user-select-none; }
+// Center-align a block level element
+// ----------------------------------
+@mixin center-block() {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@mixin inline-block($important: "") {
+    display: unquote("inline-block #{$important}");
+}
+
+.dotum {
+    font-family: '돋움',dotum;
+}
+
+.gulim {
+    font-family: '굴림',Gulim;
+}
+
+.thoma {
+    font-family: Tahoma;
+}
+
+.helvetic-light {
+    font-family: "HelveticaNeueLight", "HelveticaNeue-Light", "Helvetica Neue Light", "HelveticaNeue", "Helvetica Neue", "Helvetica";
+    font-weight:200;
+    font-stretch:normal;
+}
+
+// user-select
+@mixin user-select($param:none) {
+    -webkit-user-select:$param;
+    -moz-user-select:$param;
+    -ms-user-select:$param;
+    -o-user-select:$param;
+    user-select: $param;
+}
+
+@mixin box-sizing($param:border-box) {
+    -webkit-box-sizing:$param;
+    -moz-box-sizing:$param;
+    -ms-sbox-izing:$param;
+    -o-box-sizing:$param;
+    box-sizing: $param;
+}

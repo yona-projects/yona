@@ -39,20 +39,20 @@ textarea, input[type="text"], input[type="password"], input[type="datetime"],
 input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"],
 input[type="week"], input[type="number"], input[type="email"], input[type="url"],
 input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
-    .box-shadow(none);
-    .border-radius(2px);
+    @include box-shadow(none);
+    @include border-radius(2px);
 
     &:focus {
-        .box-shadow(none);
-        border-color:@primary !important;
+        @include box-shadow(none);
+        border-color:$primary !important;
     }
 }
 
 /** popover **/
 .popover {
     line-height:1;
-    .border-radius(2px);
-    .box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
+    @include border-radius(2px);
+    @include box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
 }
 .popover-content {
     padding:9px 10px;
@@ -70,15 +70,17 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     vertical-align: middle;
     white-space   : nowrap;
     color: #333;
-    background : @yobi-btn-default;
+    background : $yobi-btn-default;
     text-shadow: none;
     line-height: 20px;
     font-size: 14px;
     outline:0 none;
     border: 1px solid rgba(0,0,0,.15);
-    .border-radius(3px)  !important;
-    .box-shadow(0 1px 0 rgba(0,0,0,.05));
-    .transition(all 0.3s ease);
+    -webkit-border-radius: 3px !important;
+    -moz-border-radius: 3px !important;
+    border-radius: 3px !important;
+    @include box-shadow(0 1px 0 rgba(0,0,0,.05));
+    @include transition(all 0.3s ease);
 
     &.small  .d-label { width: 29px;  }
     &.medium .d-label { width: 58px;  }
@@ -89,7 +91,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         .d-label {
             width: 100%;
             display:block;
-            .text-overflow;
+            @include text-overflow;
         }
         .d-caret {
             position:absolute;
@@ -104,7 +106,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         float:left; margin:0;
         padding:4px 0; padding-right:9px;
         width:116px; overflow:hidden;
-        .inline-block;
+        @include inline-block;
     }
     .d-caret {
         float:right; margin:0;
@@ -117,11 +119,11 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     }
 
     &.blue {
-        background:@blue2; border-bottom:1px solid rgba(0,0,0,0.25);
+        background:$blue2; border-bottom:1px solid rgba(0,0,0,0.25);
         .d-caret .caret { border-top-color:#fff; }
     }
     &.orange {
-        background:@orange; border-bottom:1px solid rgba(0,0,0,0.25);
+        background:$orange; border-bottom:1px solid rgba(0,0,0,0.25);
         .d-caret .caret { border-top-color:#fff; }
     }
 }
@@ -131,16 +133,16 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     }
 }
 .btn-group.open .btn.dropdown-toggle {
-    background:darken(@white, 5%);
+    background:darken($white, 5%);
 
-    &.blue   { background:darken(@blue2, 5%); }
-    &.orange { background:darken(@orange, 5%); }
+    &.blue   { background:darken($blue2, 5%); }
+    &.orange { background:darken($orange, 5%); }
 }
 .dropdown-menu {
     padding:0; width:inherit; overflow:hidden;
     border:1px solid rgba(0,0,0,0.2);
-    .box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
-    .border-radius(2px);
+    @include box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
+    @include border-radius(2px);
 }
 .dropdown-menu li {
     margin-bottom:1px;
@@ -151,19 +153,19 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 .dropdown-menu li>a:hover,.dropdown-menu li>a:focus,.dropdown-submenu:hover>a {
     color:#fff;
     cursor:pointer;
-    background:@secondary !important;
+    background:$secondary !important;
     filter:none; /* for IE */
-    /*.linear-gradient(@darkgray, darken(@darkgray, 10%));*/
+    /*.linear-gradient($darkgray, darken($darkgray, 10%));*/
 }
 .dropdown-menu .active > a, .dropdown-menu .active > a:hover {
     color:#fff;
-    background:@secondary !important;
+    background:$secondary !important;
     filter:none; /* for IE */
-    /*.linear-gradient(@darkgray, darken(@darkgray, 10%));*/
+    /*.linear-gradient($darkgray, darken($darkgray, 10%));*/
 }
 .dropdown-menu .disabled span {
     padding-left:10px;
-    font-weight:bold; color:@darkgray;
+    font-weight:bold; color:$darkgray;
 }
 .dropdown-menu li:last-of-type.divider { display:none; }
 .btn-group.auto {
@@ -198,13 +200,13 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     border:0; padding:0;
     margin-right:5px;
     white-space:nowrap;
-    color: @white;
+    color: $white;
     background-color: #707070;
     text-shadow:none;
-    .box-shadow(inset 0px -1px 1px rgba(0,0,0,0.3));
+    @include box-shadow(inset 0px -1px 1px rgba(0,0,0,0.3));
 
-    .border-radius(2px);
-    .inline-block;
+    @include border-radius(2px);
+    @include inline-block;
     > i.ico { margin-right: 5px; }
 
     &:hover {
@@ -213,28 +215,28 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     }
     &.last  { margin-right:0; }
     &.active {
-        .box-shadow(inset 1px 1px 4px rgba(0, 0, 0, 0.25));
+        @include box-shadow(inset 1px 1px 4px rgba(0, 0, 0, 0.25));
     }
 
     &.blue {
-        background-color: @blue2; /*#56B5D9*/
-        &:hover { background-color: darken(@blue2, 10%); color: #00ddff; }
-        .num-badge { background-color:#fff; color:@blue2; }
+        background-color: $blue2; /*#56B5D9*/
+        &:hover { background-color: darken($blue2, 10%); color: #00ddff; }
+        .num-badge { background-color:#fff; color:$blue2; }
     }
 
     &.orange {
-        background-color: @orange;
-        &:hover { background-color: darken(@orange, 10%); color: #f7ffe2; }
+        background-color: $orange;
+        &:hover { background-color: darken($orange, 10%); color: #f7ffe2; }
     }
 
     &.purple {
-      background-color: @purple;
-      &:hover { background-color: darken(@purple, 10%); }
+      background-color: $purple;
+      &:hover { background-color: darken($purple, 10%); }
     }
 
     &.green {
-      background-color: @green;
-      &:hover { background-color: darken(@green, 10%); color: #00ddff; }
+      background-color: $green;
+      &:hover { background-color: darken($green, 10%); color: #00ddff; }
     }
 
     &.red {
@@ -254,8 +256,8 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 
     &.white {
         color: #222;
-        background-color: @white;
-        &:hover { background-color: darken(@white, 10%); color:@primary; }
+        background-color: $white;
+        &:hover { background-color: darken($white, 10%); color:$primary; }
     }
 }
 a.nbtn, div.nbtn, span.nbtn, p.nbtn {
@@ -278,7 +280,7 @@ button.nbtn {
 }
 .nbtn-group {
     .nbtn {
-        .border-radius(0px);
+        @include border-radius(0px);
         margin:0;
     }
     &:first-child {
@@ -295,14 +297,14 @@ button.nbtn {
     position: relative; display:block; clear:both;
     overflow: hidden; cursor:pointer;
     &:hover {
-        background:darken(@white, 10%);
+        background:darken($white, 10%);
     }
 
     .file {
         position: absolute; z-index:2; cursor:pointer;
         top:0; left: 5px; /*-15px;*/
         min-width:100px; width:100%;
-        .opacity(0);
+        @include opacity(0);
     }
 }
 
@@ -331,16 +333,16 @@ button.nbtn {
     }
 
     &.active {
-        .border-radius(1px);
+        @include border-radius(1px);
         &.active-white   { color:#fff; }
         &.active-dimgray { color:#696969; }
     }
 
     &:hover {
-        .opacity(70);
+        @include opacity(70);
     }
     &.static.active { border-left:initial !important; }
-    &.static:hover  { .opacity(100); }
+    &.static:hover  { @include opacity(100); }
 }
 span.issue-label {
     display: inline-block;
@@ -350,11 +352,11 @@ span.issue-label {
     padding: 2px 6px;
     &:hover {
       background: #DFDFDF;
-      .opacity(100);
+      @include opacity(100);
     }
 }
 
-.dropdown-menu .issue-label:hover { .opacity(100); }
+.dropdown-menu .issue-label:hover { @include opacity(100); }
 
 /** project label */
 .project-label {
@@ -363,7 +365,7 @@ span.issue-label {
     color:#fff; white-space:nowrap; vertical-align:middle;
     background:#aaa;/*d9d9d9;*/
 
-    .border-radius(2px);
+    @include border-radius(2px);
     /*.box-shadow(inset 0px -2px 2px rgba(255,255,255,0.4));*/
 
     /*&.language { background:#ffc48c; }
@@ -373,19 +375,7 @@ span.issue-label {
 
 /** input **/
 /* 검색버튼 스타일 */
-.btn-search {
-    width  : 88px;
-    margin : 5px 0 0;
-    padding: 4px 0;
-    border : 1px solid #a9a9a9;
-    color  : @black;
-    text-align : center;
-    font-weight: bold;
-    font-size  : 11px;
-    .border-radius(0 2px 2px 0);
-
-    &:hover { color:@link-hover-color; }
-}
+.btn-search { @include btn-search; }
 /** 화면 중앙의 프로젝트 내 검색 폼 **/
 .form-search {
     .text {
@@ -394,13 +384,13 @@ span.issue-label {
         background-color: #fff;
         border: 1px solid #ccc;
         border-right: 0 none;
-        .box-shadow(none);
-        .border-radius(2px 0 0 2px);
-        &:focus { .box-shadow(none); }
+        @include box-shadow(none);
+        @include border-radius(2px 0 0 2px);
+        &:focus { @include box-shadow(none); }
     }
 
     .btn {
-        .btn-search;
+        @include btn-search;
     }
 }
 
@@ -408,10 +398,10 @@ span.issue-label {
 .form-searchbar {
     width: 146px; height: 29px;
     margin: 0; padding: 0 6px;
-    background-color: @search-bar-bg-color;
-    border:1px solid @search-bar-border-color;
+    background-color: $search-bar-bg-color;
+    border:1px solid $search-bar-border-color;
 
-    .border-radius(2px);
+    @include border-radius(2px);
     /*.box-shadow(inset 0px 2px 3px rgba(0,0,0,0.12));*/
 
     .text {
@@ -421,11 +411,11 @@ span.issue-label {
         border: 0 none;
 
         font-size: 14px; /* 11px */
-        color: @search-input-color;
+        color: $search-input-color;
         background-color: transparent;
 
-       .box-shadow(none);
-       &:focus { .box-shadow(none); }
+       @include box-shadow(none);
+       &:focus { @include box-shadow(none); }
     }
 
     .ico-search {
@@ -443,7 +433,9 @@ span.issue-label {
     vertical-align:middle;
     overflow:hidden;
     background:#ddd;
-    .border-radius(3px) !important;
+    -webkit-border-radius: 3px !important;
+    -moz-border-radius: 3px !important;
+    border-radius: 3px !important;
 
     &.mini    { width:12px; height:12px; }
     &.smaller { width:20px; height:20px; }
@@ -475,7 +467,7 @@ span.issue-label {
             font-weight: bold;
             &:hover {
                 text-decoration: none;
-                background-color: @yobi-white-dark;
+                background-color: $yobi-white-dark;
             }
         }
 
@@ -492,9 +484,9 @@ span.issue-label {
             padding:4px 15px;
 
             .unsaved {
-                border: 1px solid @state-rejected;
+                border: 1px solid $state-rejected;
                 border-radius: 3px;
-                color: @state-rejected;
+                color: $state-rejected;
                 padding: 2px 4px;
             }
 
@@ -510,7 +502,7 @@ span.issue-label {
 
 .tab-box {
     border-top:none;
-    .border-radius(0 0 4px 4px);
+    @include border-radius(0 0 4px 4px);
 }
 
 .tab-box-content {
@@ -544,16 +536,16 @@ span.issue-label {
 
             &:hover {
                 text-decoration: none;
-                border-bottom: 1px solid @primary;
+                border-bottom: 1px solid $primary;
             }
         }
 
         &.active {
             a {
                 text-decoration: none;
-                background-color: @primary;
+                background-color: $primary;
                 color: #fcfcfc !important;
-                border-bottom: 1px solid @primary;
+                border-bottom: 1px solid $primary;
             }
         }
     }
@@ -570,7 +562,7 @@ span.issue-label {
 
 /** alert **/
 .yobiDialog {
-    .border-radius(none);
+    @include border-radius(none);
     border:10px solid #bebebe;
     padding:16px 20px; width:500px;
 
@@ -624,8 +616,8 @@ span.issue-label {
         -webkit-transition-duration: 0.3s;
         box-shadow: 1px 1px 3px black;
 
-        .opacity(90);
-        .border-radius(2px);
+        @include opacity(90);
+        @include border-radius(2px);
 
         .btn-dismiss {
             position: absolute;
@@ -672,7 +664,7 @@ span.issue-label {
 .num-badge {
     font-weight: bold;
     vertical-align: top;
-    font-family: @base-font-family;/*Tahoma;*/
+    font-family: $base-font-family;/*Tahoma;*/
     text-shadow: none;
     border-radius: 2px;
     margin-left: 3px;
@@ -682,19 +674,19 @@ span.issue-label {
 
 .num-noti {
     display: inline-block;
-    background: @primary;
+    background: $primary;
     color:#fff;
     font-weight:bold;
     border:1px solid #eee;
     padding: 0px 5px;
     margin-left: 5px;
     vertical-align: middle;
-    font-family: @base-font-family;/*Tahoma;*/
+    font-family: $base-font-family;/*Tahoma;*/
     text-shadow: none;
-    .border-radius(2px);
+    @include border-radius(2px);
 }
 .label-exp {
-    background:@secondary;
+    background:$secondary;
     text-shadow: none;
     i { font-size:10px; }
 }
@@ -703,7 +695,7 @@ span.issue-label {
     position: relative;
     padding: 2px 3px;
     font-size: 11px;
-    color: @blue2;
+    color: $blue2;
 }
 
 
@@ -711,22 +703,24 @@ span.issue-label {
     text-align :center;
     white-space:nowrap;
     color: #333;
-    background-color: @yobi-btn-default;
+    background-color: $yobi-btn-default;
     text-shadow:none;
-    .border-radius(3px)  !important;
+    -webkit-border-radius: 3px !important;
+    -moz-border-radius: 3px !important;
+    border-radius: 3px !important;
     display:inline-block;
     padding: 4px 12px !important;
     vertical-align: middle;
     cursor: pointer;
     line-height: 20px;
     font-size: 14px;
-    .transition(all 0.3s ease);
+    @include transition(all 0.3s ease);
     outline:0 none;
     position:relative;
     margin-bottom: 0;
     margin-left: .3em;
     border: 1px solid rgba(0,0,0,.15);
-    .box-shadow(0 1px 0 rgba(0,0,0,.05));
+    @include box-shadow(0 1px 0 rgba(0,0,0,.05));
     z-index: 2;
 
     i { line-height:20px;}
@@ -792,58 +786,58 @@ span.issue-label {
 
 
     &.ybtn-primary, &.ybtn-success,&.ybtn-info, &.ybtn-danger,&.ybtn-inverse, &.ybtn-disabled, &ybtn-warning, &.ybtn-transparent, &.ybtn-watching  {
-        color:@yobi-white;
+        color:$yobi-white;
     }
 
     &.ybtn-gray {
-        backgroun-color: @yobi-white-dark;
+        backgroun-color: $yobi-white-dark;
 
         &:hover, &:focus, &:active, &:focus {
-            background-color: @yobi-white !important;
+            background-color: $yobi-white !important;
         }
     }
 
     &.ybtn-primary {
-        background-color : @yobi-btn-primary !important;
-        border:1px solid @yobi-btn-primary-hover;
+        background-color : $yobi-btn-primary !important;
+        border:1px solid $yobi-btn-primary-hover;
         &:hover, &:focus, &:active, &:focus {
-            background-color: @yobi-btn-primary-hover !important;
+            background-color: $yobi-btn-primary-hover !important;
         }
     }
 
     &.ybtn-success {
-        background-color : @yobi-btn-primary !important;
-        border:1px solid @yobi-btn-primary-hover;
+        background-color : $yobi-btn-primary !important;
+        border:1px solid $yobi-btn-primary-hover;
 
         &:hover, &:focus, &:active, &:focus {
-            background-color: @yobi-btn-primary-hover !important;
+            background-color: $yobi-btn-primary-hover !important;
         }
     }
 
      &.ybtn-warning {
-        background-color : @yobi-btn-warning !important;
-        border:1px solid @yobi-btn-warning-hover;
+        background-color : $yobi-btn-warning !important;
+        border:1px solid $yobi-btn-warning-hover;
 
         &:hover, &:focus {
-            background-color: @yobi-btn-warning-hover !important;
+            background-color: $yobi-btn-warning-hover !important;
         }
     }
 
     &.ybtn-info {
-        background-color : @yobi-btn-info !important;
-        border:1px solid @yobi-btn-info-hover;
+        background-color : $yobi-btn-info !important;
+        border:1px solid $yobi-btn-info-hover;
 
         &:hover, &:focus {
-            background-color: @yobi-btn-info-hover !important;
+            background-color: $yobi-btn-info-hover !important;
         }
     }
 
     &.ybtn-danger {
-        background-color : @yobi-btn-danger !important;
-        border:1px solid @yobi-btn-danger-hover;
+        background-color : $yobi-btn-danger !important;
+        border:1px solid $yobi-btn-danger-hover;
 
         &:hover, &:focus {
-            background-color: @yobi-btn-danger-hover !important;
+            background-color: $yobi-btn-danger-hover !important;
         }
     }
 
@@ -856,18 +850,18 @@ span.issue-label {
         background-color: #eee;
 
         &:hover, &:focus {
-            color: @yobi-btn-danger;
+            color: $yobi-btn-danger;
             background-color: #fbe9e7;
             border: 1px solid #EF9A9A;
         }
     }
 
     &.ybtn-inverse {
-        background-color : @yobi-btn-inverse !important;
-        border:1px solid @yobi-btn-inverse-hover;
+        background-color : $yobi-btn-inverse !important;
+        border:1px solid $yobi-btn-inverse-hover;
 
         &:hover, &:focus {
-            background-color: @yobi-btn-inverse-hover !important;
+            background-color: $yobi-btn-inverse-hover !important;
         }
     }
 
@@ -880,13 +874,13 @@ span.issue-label {
     }
 
     &.ybtn-disabled, &[disabled] {
-        background-color : @yobi-btn-disabled !important;
+        background-color : $yobi-btn-disabled !important;
         border:none;
         color:#dedede;
         text-shadow:1px 1px rgba(255,255,255,0.5);
 
         &:hover, &:focus {
-            background-color: @yobi-btn-disabled !important;
+            background-color: $yobi-btn-disabled !important;
         }
     }
 
@@ -901,7 +895,7 @@ span.issue-label {
     }
 
     &.ybtn-unwatching {
-        background-color : @yobi-btn-disabled !important;
+        background-color : $yobi-btn-disabled !important;
         border:none;
 
         &:hover, &:focus {
@@ -916,10 +910,10 @@ span.issue-label {
             display: inline-block;
             vertical-align: middle !important;
             width: 0;
-            .transition(all 0.3s ease);
+            @include transition(all 0.3s ease);
             height: 0;
             vertical-align: top;
-            border-top: 4px solid @yobi-inverse;
+            border-top: 4px solid $yobi-inverse;
             border-right: 4px solid transparent;
             border-left: 4px solid transparent;
             content: "";
@@ -933,12 +927,12 @@ span.issue-label {
 
         &.ybtn-success,&.ybtn-primary, &.ybtn-info, &.ybtn-danger,&.ybtn-inverse, &.ybtn-disabled  {
            &:after {
-                border-top: 4px solid @yobi-white !important;
+                border-top: 4px solid $yobi-white !important;
             }
 
             &:hover, &:focus  {
                  &:after {
-                    border-top: 4px solid @yobi-white !important;
+                    border-top: 4px solid $yobi-white !important;
                     text-decoration:none;
                 }
             }
@@ -947,11 +941,11 @@ span.issue-label {
     }
 
     &.round-left {
-        .border-radius(6px 0 0 6px);
+        @include border-radius(6px 0 0 6px);
     }
 
     &.round-right {
-        .border-radius(0 6px 6px 0);
+        @include border-radius(0 6px 6px 0);
     }
 }
 
@@ -962,21 +956,21 @@ span.issue-label {
         display: block;
         position:absolute;
         background-clip: padding-box;
-        .border-radius(6px);
-        .box-shadow(none);
+        @include border-radius(6px);
+        @include box-shadow(none);
         font-size:12px;
-        background-color:@yobi-white;
+        background-color:$yobi-white;
         overflow:visible;
-        .opacity(0);
-        .transition(all 0.25s ease);
+        @include opacity(0);
+        @include transition(all 0.25s ease);
         visibility: hidden;
         -webkit-backface-visibility: hidden;
         margin-top:-10px;
-        .box-shadow(0 2px 10px rgba(0,0,0,.2));
+        @include box-shadow(0 2px 10px rgba(0,0,0,.2));
         border: 1px solid #ccc;
         border-color: rgba(0,0,0,.2);
 
-        color: @yobi-white;
+        color: $yobi-white;
         padding: 4px 0 6px;
 
         &:before {
@@ -999,7 +993,7 @@ span.issue-label {
         &:after {
             content: " ";
             border-color: transparent;
-            border-bottom-color: @yobi-white;
+            border-bottom-color: $yobi-white;
             border-style: dashed dashed solid;
             border-width: 0 8px 8px;
             position: absolute;
@@ -1012,8 +1006,8 @@ span.issue-label {
         }
 
         .pop-title {
-            .border-radius(3px);
-            background: @yobi-cyan-light;
+            @include border-radius(3px);
+            background: $yobi-cyan-light;
             padding:3px 0;
             padding: 3px 11px 5px;
             margin:5px 3px;
@@ -1035,7 +1029,7 @@ span.issue-label {
             text-align:left;
             color:#292929;
 
-            background-color:@yobi-white;
+            background-color:$yobi-white;
 
             p {
                 line-height:20px;
@@ -1054,7 +1048,7 @@ span.issue-label {
             margin: 0 5px 2px !important;
             white-space:nowrap;
             float:none !important;
-            background-color:@yobi-white;
+            background-color:$yobi-white;
             color:#292929;
 
             &:first-child, &:last-child {
@@ -1091,8 +1085,8 @@ span.issue-label {
             }
 
             &.title {
-                .border-radius(3px);
-                background:@yobi-cyan-light;
+                @include border-radius(3px);
+                background:$yobi-cyan-light;
                 padding:3px 0;
                 padding: 3px 11px 5px;
                 margin:5px 3px;
@@ -1104,15 +1098,17 @@ span.issue-label {
             }
 
             > a {
-                .border-radius(3px);
+                @include border-radius(3px);
                 color:#292929;
                 padding: 3px 5px 5px 15px;
                 background-color:transparent !important;
-                .transition(all 0.2s ease);
+                @include transition(all 0.2s ease);
 
 
                 &:hover, &:active, &:focus {
-                    .border-radius(3px) !important;
+                    -webkit-border-radius: 3px !important;
+                    -moz-border-radius: 3px !important;
+                    border-radius: 3px !important;
                     background-color: rgba(0,0,0,0.15) !important;
                 }
 
@@ -1154,7 +1150,7 @@ span.issue-label {
 
 .open {
     > .flat {
-        .opacity(100);
+        @include opacity(100);
         visibility:visible;
         margin-top:12px;
     }
@@ -1186,9 +1182,9 @@ span.issue-label {
     border:2px solid #FFF;
     line-height:15px;
     padding:0 5px;
-    background-color:@yobi-primary;
+    background-color:$yobi-primary;
     color:#ECF0F1;
-    .border-radius(10px);
+    @include border-radius(10px);
 
     -webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
     -moz-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
@@ -1197,7 +1193,7 @@ span.issue-label {
 }
 
 /* ============================================================
- * bootstrapSwitch v1.3 by Larentis Mattia @spiritualGuru
+ * bootstrapSwitch v1.3 by Larentis Mattia $spiritualGuru
  * http://www.larentis.eu/switch/
  * ============================================================
  * Licensed under the Apache License, Version 2.0
@@ -1219,8 +1215,8 @@ span.issue-label {
     position: relative;
     text-align: left;
     width: 80px;
-    -webkit-mask: url('@{base-image-path}/switch-mask.png') 0 0 no-repeat;
-    mask: url('@{base-image-path}/switch-mask.png') 0 0 no-repeat;
+    -webkit-mask: url('#{$base-image-path}/switch-mask.png') 0 0 no-repeat;
+    mask: url('#{$base-image-path}/switch-mask.png') 0 0 no-repeat;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -1253,7 +1249,7 @@ span.issue-label {
 }
 .has-switch > div.switch-off label {
     background-color: #FFF;
-    border-color: @state-closed;
+    border-color: $state-closed;
     -webkit-box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
     -moz-box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
     box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
@@ -1292,24 +1288,24 @@ span.issue-label {
 }
 .has-switch span.switch-left {
     border-radius: 30px 0 0 30px;
-    background-color: @state-open;
+    background-color: $state-open;
     color: #fff;
     border-left: 1px solid transparent;
     &:hover {
-        background-color:darken(@state-open, 10%);
+        background-color:darken($state-open, 10%);
     }
 }
 .has-switch span.switch-right {
     border-radius: 0 30px 30px 0;
-    background-color: @state-closed;
+    background-color: $state-closed;
     color: #FFF;/*#ffffff;*/
     text-indent: 5px;
     &:hover {
-        background-color:darken(@state-closed, 10%);
+        background-color:darken($state-closed, 10%);
     }
 }
 .has-switch label {
-    border: 4px solid @state-open;
+    border: 4px solid $state-open;
     border-radius: 50%;
     float: left;
     height: 21px;
@@ -1327,8 +1323,8 @@ span.issue-label {
 }
 .switch-square {
     border-radius: 6px;
-    -webkit-mask: url('@{base-image-path}/switch-mask.png') 0 0 no-repeat;
-    mask: url('@{base-image-path}/switch-mask.png') 0 0 no-repeat;
+    -webkit-mask: url('#{$base-image-path}/switch-mask.png') 0 0 no-repeat;
+    mask: url('#{$base-image-path}/switch-mask.png') 0 0 no-repeat;
 }
 .switch-square > div.switch-off label {
     border-color: #7f8c9a;
@@ -1342,12 +1338,12 @@ span.issue-label {
 }
 .switch-square label {
     border-radius: 0 6px 6px 0;
-    border-color: @secondary;
+    border-color: $secondary;
 }
 
 .search-bar {
     border:1px solid #ccc;
-    .border-radius(3px);
+    @include border-radius(3px);
     line-height:20px;
     padding:4px 25px 4px 5px;
     position: relative;
@@ -1360,7 +1356,7 @@ span.issue-label {
         width:350px;
         margin: 0 -5px;
         padding:0 5px;
-        .transition(width .15s);
+        @include transition(width .15s);
 
         &.small {
             width:150px;
@@ -1407,9 +1403,9 @@ span.issue-label {
     display: inline-block;
     vertical-align: middle !important;
     width: 0;
-    .transition(all 0.3s ease);
+    @include transition(all 0.3s ease);
     height: 0;
-    border-top: 4px solid @yobi-inverse;
+    border-top: 4px solid $yobi-inverse;
     border-right: 4px solid transparent;
     border-left: 4px solid transparent;
     content: "";

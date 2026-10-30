@@ -1,17 +1,17 @@
 @charset "UTF-8";
 
-@adjust-tone: 15%;
+$adjust-tone: 15%;
 
-@red:     #ac4142;
-@green:   #90a959;
-@yellow:  #f4bf75;
-@blue:    #6a9fb5;
-@maroon:  #8f5536;
-@purple:  #aa759f;
-@orange:  #d28445;
-@cyan:    #75b5aa;
-@pink:    #ff00cc;
-@violet:  #9c27b0;
+$red:     #ac4142;
+$green:   #90a959;
+$yellow:  #f4bf75;
+$blue:    #6a9fb5;
+$maroon:  #8f5536;
+$purple:  #aa759f;
+$orange:  #d28445;
+$cyan:    #75b5aa;
+$pink:    #ff00cc;
+$violet:  #9c27b0;
 
 /* fallback */
 @font-face {
@@ -47,7 +47,7 @@
   color: white !important;
 
   &:hover {
-    background-color: @violet;
+    background-color: $violet;
   }
 
   a:hover {
@@ -774,7 +774,7 @@
     background-color: #ECECEC;
   }
 
-  @violet: mediumvioletred;
+  $violet: mediumvioletred;
 
   .loading {
     list-style: none;
@@ -826,7 +826,7 @@
     }
     50%   {
       transform: scale(1);
-      background: @violet;
+      background: $violet;
     }
     100% {
       transform: scale(0.5);

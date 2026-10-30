@@ -187,70 +187,64 @@ tasks.withType<Test> {
 }
 
 // ---------------------------------------------------------------------------------------------
-// LESS 컴파일: v1.6은 sbt-less가 빌드 시점에 `app/assets/stylesheets/*.less`로 CSS를 만들었다.
-// 같은 방식으로 Less 1.7.5(`build-tools/less`)를 실행해 `/assets/stylesheets/*.css`로 제공한다.
+// SCSS 컴파일(로드맵 X-38c, decisions.md D-53, A-287): v1.6은 sbt-less가 빌드 시점에 `app/assets/stylesheets/*.less`로 CSS를 만들었다.
+// Bootstrap 4로 옮기며 자체 스타일을 SCSS로 다시 썼고, 같은 방식으로 dart-sass(`build-tools/sass`, npm)를 실행해 `/assets/stylesheets/*.css`로 제공한다.
 // ---------------------------------------------------------------------------------------------
 
-val lessToolDir = layout.projectDirectory.dir("build-tools/less")
-val lessSourceDir = layout.projectDirectory.dir("app/assets/stylesheets")
-val lessOutputDir = layout.buildDirectory.dir("generated/less")
+val sassToolDir = layout.projectDirectory.dir("build-tools/sass")
+val sassSourceDir = layout.projectDirectory.dir("app/assets/stylesheets")
+val sassOutputDir = layout.buildDirectory.dir("generated/sass")
 
-/** v1.6에서 `_`로 시작하지 않는 최상위 LESS 파일이 CSS 하나로 컴파일된다(`build.sbt`의 includeFilter/excludeFilter). */
-val lessEntries = listOf("yobi", "usermenu", "filetype")
+/** `_`로 시작하지 않는 최상위 SCSS 파일이 CSS 하나로 컴파일된다(v1.6 `build.sbt`의 includeFilter/excludeFilter와 같다). */
+val sassEntries = listOf("yobi", "usermenu", "filetype")
 
-/** 하위 폴더의 LESS도 sbt-less가 따로 CSS로 컴파일해 내려 준다(`/assets/stylesheets/less/font/icons.css` 등). 소스 맵의 `sources`는 그 파일이 있는 폴더 기준이다. */
-val lessNestedEntries = listOf("less/font/colours", "less/font/fonts", "less/font/icons")
+/** 하위 폴더의 SCSS도 따로 CSS로 컴파일해 내려 준다(`/assets/stylesheets/scss/font/icons.css` 등, v1.6의 `less/font`에 해당). */
+val sassNestedEntries = listOf("scss/font/colours", "scss/font/fonts", "scss/font/icons")
 
-val installLess by tasks.registering(Exec::class) {
-	description = "LESS 컴파일러(npm less)를 설치한다."
-	workingDir = lessToolDir.asFile
+val installSass by tasks.registering(Exec::class) {
+	description = "SCSS 컴파일러(npm sass)를 설치한다."
+	workingDir = sassToolDir.asFile
 	commandLine("npm", "ci", "--no-audit", "--no-fund")
-	inputs.files(lessToolDir.file("package.json"), lessToolDir.file("package-lock.json"))
-	outputs.dir(lessToolDir.dir("node_modules"))
+	inputs.files(sassToolDir.file("package.json"), sassToolDir.file("package-lock.json"))
+	outputs.dir(sassToolDir.dir("node_modules"))
 }
 
-val compileLess by tasks.registering {
-	description = "LESS 소스를 /assets/stylesheets 아래의 CSS로 컴파일한다."
-	dependsOn(installLess)
-	inputs.dir(lessSourceDir)
-	outputs.dir(lessOutputDir)
+val compileSass by tasks.registering {
+	description = "SCSS 소스를 /assets/stylesheets 아래의 CSS로 컴파일한다."
+	dependsOn(installSass)
+	inputs.dir(sassSourceDir)
+	outputs.dir(sassOutputDir)
 	doLast {
-		val outDir = lessOutputDir.get().dir("static/assets/stylesheets").asFile
+		val outDir = sassOutputDir.get().dir("static/assets/stylesheets").asFile
 		outDir.mkdirs()
-		val lessc = lessToolDir.file("node_modules/.bin/lessc").asFile
-		(lessEntries + lessNestedEntries).forEach { entry ->
+		val sass = sassToolDir.file("node_modules/.bin/sass").asFile
+		// v1.6는 LESS 원본도 `/assets/stylesheets/` 아래에서 그대로 내려 주었다(소스 맵이 가리킨다). SCSS 원본도 같게 내려 주며,
+		// 소스 맵의 `sources`가 제공되는 주소를 가리키도록 복사한 원본으로 컴파일한다.
+		sassSourceDir.asFile.walkTopDown().filter { it.isFile && it.extension == "scss" }.forEach {
+			val target = File(outDir, it.relativeTo(sassSourceDir.asFile).path)
+			target.parentFile.mkdirs()
+			it.copyTo(target, overwrite = true)
+		}
+		(sassEntries + sassNestedEntries).forEach { entry ->
 			val name = entry.substringAfterLast('/')
-			val sourceDir = File(lessSourceDir.asFile, entry.substringBeforeLast('/', ""))
 			val entryOut = File(outDir, entry.substringBeforeLast('/', "")).also { it.mkdirs() }
-			// v1.6 sbt-less는 소스 맵(`name.css.map`)을 함께 만들고 CSS 끝에 `/*# sourceMappingURL=name.css.map */`를 붙인다
+			val source = File(outDir, "$entry.scss")
+			// 소스 맵(`name.css.map`)을 함께 만들고 CSS 끝에 `/*# sourceMappingURL=name.css.map */`를 붙인다(v1.6 sbt-less와 같다).
+			// 가져오기(`@import`)의 기준 폴더는 스타일 폴더이다.
 			val result = ProcessBuilder(
-				lessc.absolutePath, "--source-map=${File(entryOut, "$name.css.map").absolutePath}", "--source-map-url=$name.css.map",
-				"$name.less", File(entryOut, "$name.css").absolutePath
+				sass.absolutePath, "--quiet", "--load-path=${outDir.absolutePath}", "--source-map", "--source-map-urls=relative",
+				source.absolutePath, File(entryOut, "$name.css").absolutePath
 			)
-				.directory(sourceDir)
 				.redirectErrorStream(true)
 				.start()
 			val output = result.inputStream.bufferedReader().readText()
-			check(result.waitFor() == 0) { "$name.less 컴파일 실패:\n$output" }
-			// v1.6의 소스 맵은 `file`이 출력 파일 이름이고 `version` 바로 뒤에 온다(lessc는 절대 경로를 맨 끝에 쓴다)
-			val map = File(entryOut, "$name.css.map")
-			val raw = map.readText()
-			val fileKey = Regex(",\"file\":\"[^\"]*\"\\}$").find(raw)
-			if (fileKey != null) {
-				map.writeText(raw.removeRange(fileKey.range.first, fileKey.range.last).replaceFirst("{\"version\":3,", "{\"version\":3,\"file\":\"$name.css\","))
-			}
-		}
-		// v1.6는 LESS 원본도 `/assets/stylesheets/` 아래에서 그대로 내려 준다(소스 맵이 가리킨다)
-		lessSourceDir.asFile.walkTopDown().filter { it.isFile && it.extension == "less" }.forEach {
-			val target = File(outDir, it.relativeTo(lessSourceDir.asFile).path)
-			target.parentFile.mkdirs()
-			it.copyTo(target, overwrite = true)
+			check(result.waitFor() == 0) { "$name.scss 컴파일 실패:\n$output" }
 		}
 	}
 }
 
 tasks.named<ProcessResources>("processResources") {
-	from(compileLess)
+	from(compileSass)
 }
 
 // 실행 중인 버전을 알 수 있게 빌드 정보(`META-INF/build-info.properties`)를 만든다. 업데이트 확인이 현재 버전으로 쓴다.

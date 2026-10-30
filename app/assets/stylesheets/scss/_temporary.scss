@@ -15,13 +15,13 @@
         padding:5px 20px; margin-right:0;
         border:1px solid #ccc; border-right:none;
         border-color:rgba(0,0,0,0.1) rgba(0,0,0,0.1) rgba(0,0,0,0.25);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0,0.05);
-        -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0,0.05);
-        .border-radius(2px 0 0 2px);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 1px 2px rgba(0, 0, 0, 0);
+        -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 1px 2px rgba(0, 0, 0, 0);
+        @include border-radius(2px 0 0 2px);
     }
     button.dropdown-toggle {
         padding:0; margin:0; border-left:none;
-        .border-radius(0 2px 2px 0);
+        @include border-radius(0 2px 2px 0);
 
         &.pl {
             .d-label { width:auto; padding:4px 0px 4px 5px; }
@@ -39,10 +39,10 @@
 
         &.active {
             color: #fff;
-            background: @secondary;
+            background: $secondary;
             font-weight:bold;
             overflow: auto;
-            .border-radius (6px);
+            @include border-radius(6px);
 
             .num-badge { color:#fff; }
 
@@ -59,13 +59,13 @@
         width: 0;
         height: 0;
         vertical-align: top;
-        border-top: 4px solid @blue;
+        border-top: 4px solid $blue;
         border-right: 4px solid transparent;
         border-left: 4px solid transparent;
         content: "";
         margin-top:9px;
 
-        &.up { border-top:0; border-bottom-width:4px solid @blue; }
-        &.down { border-top:4px solid @blue; border-bottom:0; }
+        &.up { border-top:0; border-bottom-width:4px solid $blue; }
+        &.down { border-top:4px solid $blue; border-bottom:0; }
     }
 }
