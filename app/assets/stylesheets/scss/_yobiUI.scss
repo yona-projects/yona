@@ -52,7 +52,6 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 .popover {
     line-height:1;
     @include border-radius(2px);
-    @include box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
 }
 .popover-body {
     padding:9px 10px;
@@ -822,7 +821,6 @@ span.issue-label {
         background-color : $yobi-btn-disabled !important;
         border:none;
         color:#dedede;
-        text-shadow:1px 1px rgba(255,255,255,0.5);
 
         &:hover, &:focus {
             background-color: $yobi-btn-disabled !important;
@@ -1129,11 +1127,6 @@ span.issue-label {
     background-color:$yobi-primary;
     color:#ECF0F1;
     @include border-radius(10px);
-
-    -webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
-    -moz-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
-    -o-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
-    box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
 }
 
 /* ============================================================

@@ -44,4 +44,17 @@ class ComponentModernizationTest {
         val bare = templates.filter { f -> Regex("""<(?:ul|div|nav)\b[^>]*\bclass="[^"]*\bnav-tabs\b[^"]*"[^>]*>""").findAll(f.readText()).any { m -> !m.value.contains("mb-") && !m.value.contains("margin-bottom") && !m.value.contains("mb10") } }
         assertTrue(bare.isEmpty(), "아래 여백(mb-*)이 없는 nav-tabs: ${bare.map { it.name }}")
     }
+
+    @Test
+    fun `BS2식 글자 그림자와 안쪽 그림자와 진행 막대 그라데이션이 없다`() {
+        assertFalse(File("app/assets/stylesheets/scss/_progress.scss").exists(), "_progress.scss(BS2 진행 막대)는 지워져야 한다")
+        assertFalse(text("app/assets/stylesheets/yobi.scss").contains("scss/progress"))
+        val scss = File("app/assets/stylesheets/scss").walkTopDown().filter { it.extension == "scss" }.joinToString("\n") { it.readText() }
+        val shadows = Regex("""text-shadow:[ \t]*(?!none|0 0 0|[ \t])[^;]+;""").findAll(scss).map { it.value }.toList()
+        // 이미지 위에 겹치는 프로젝트 로고의 수정 글자(`.logo .edit`)만 읽기 쉽도록 그림자를 둔다.
+        assertTrue(shadows.size <= 1, "글자 그림자가 남아 있다: $shadows")
+        assertFalse(variables.contains("\$dropdown-box-shadow"), "BS2 드롭다운 그림자 변수가 남아 있다")
+        assertFalse(Regex("""\.popover \{[^}]*box-shadow""").containsMatchIn(text("app/assets/stylesheets/scss/_yobiUI.scss")), ".popover 그림자 덧입히기가 남아 있다")
+        assertFalse(scss.contains("inset 0 1px 1px rgba(0,0,0,0.1)"), "배지의 BS2 안쪽 그림자가 남아 있다")
+    }
 }

@@ -259,11 +259,6 @@ input[type=number]::-webkit-outer-spin-button {
     background-color:$yobi-primary;
     color:#ECF0F1;
     @include border-radius(10px);
-
-    -webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
-    -moz-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
-    -o-box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
-    box-shadow: 0 1px 1px rgba(0,0,0,0.2), inset 0 1px 1px rgba(0,0,0,0.1);
 }
 
 .vmiddle-inline {
@@ -334,7 +329,6 @@ input.white:-ms-input-placeholder        { color:#fff; opacity:0.8; }
   font-weight: bold;
   line-height: 1.25rem;
   color: #000000;
-  text-shadow: 0 1px 0 #ffffff;
   opacity: 0.2;
 }
 .btn-icon-close:hover, .btn-icon-close:focus {

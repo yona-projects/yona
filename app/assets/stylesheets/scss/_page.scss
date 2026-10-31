@@ -4959,7 +4959,6 @@ label.issue-item-row {
 
         .nbtn {
             margin-top:20px; margin-left:3px;
-            text-shadow:1px 1px rgba(0,0,0,0.2);
             i { vertical-align:top; }
         }
     }
@@ -5777,7 +5776,7 @@ label.issue-item-row {
 .diff-body {
     font-family: "monospace", Consolas, Tahoma;
 
-    .isBinary { color:#bbb; text-shadow:-1px -1px #fff; padding:5px 10px; }
+    .isBinary { color:#bbb; padding:5px 10px; }
     .btnPop { position:absolute; display:none; }
 
     .diff-partial-outer {
