@@ -1,12 +1,22 @@
-// Bootstrap 3 전환(로드맵 X-38b, decisions.md D-53, A-285)의 호환 층이다. Bootstrap 2.3.1이 요소(태그) 선택자에 준 기본 스타일을 Bootstrap 3 뒤에 다시 적어
-// 화면이 v1.6과 같게 보이게 한다. 대상은 클래스나 아이디가 없는 요소 규칙(본문, 링크, 제목, 목록, 표, 폼 기본, 코드)뿐이고, 컴포넌트(.btn, .modal 등)는 Bootstrap 3의 것을 쓴다.
-// Bootstrap 4로 옮기며 자체 스타일을 SCSS로 다시 쓸 때(X-38c) 변수로 정리하고 이 파일은 없앤다.
-// 원본: Bootstrap 2.3.1 css/bootstrap.css의 Reset, Scaffolding, Type, Code, Tables, Forms 구역 중 요소 선택자 규칙(IE 핵과 벤더 접두사 제외).
-// --- 박스 모델: Bootstrap 3은 모든 요소를 border-box로 두지만 v1.6 화면은 Bootstrap 2의 content-box 기준으로 만들어졌다(자체 CSS 8천 줄이 폭에 여백을 더해 계산한다) ---
-// 모든 요소를 content-box로 되돌리고, border-box를 전제로 만든 Bootstrap 3 컴포넌트만 다시 border-box로 둔다.
-*, *:before, *:after { -webkit-box-sizing: content-box; box-sizing: content-box; }
-.container, .container-fluid, .form-control, .input-group, .input-group-addon, .input-group-btn, .modal-dialog, .modal-content, .progress, .progress-bar,
-.navbar, .navbar-header, .navbar-collapse, .btn-block, .embed-responsive, .carousel-inner > .item { -webkit-box-sizing: border-box; box-sizing: border-box; }
+// 사이트의 요소(태그) 기본 스타일이다. v1.6 화면은 Bootstrap 2.3.1의 Scaffolding, Type, Code, Forms 구역이 요소 선택자에 준 기본값(content-box, 줄 높이 20px,
+// 제목 크기, 목록 여백, 폼 입력 모양)을 전제로 만들어졌고 자체 CSS 8천 줄이 그 위에서 폭과 여백을 계산한다. BS5의 reboot은 이 기본값과 달라서(border-box, 비율 줄 높이)
+// BS5 변수(`_bs-variables.scss`)로 표현되는 것은 변수로 옮기고, 변수로 되지 않는 것만 여기에 둔다. 호환 층(`_bs3-compat.scss`)에서 이관했다(D-54).
+// 이 구역의 규칙을 걷어내려면 자체 CSS의 폭 계산(content-box 전제)을 함께 고쳐야 한다.
+
+// 폼 입력 중 글자를 입력하는 종류. BS2는 이 종류에만 테두리, 그림자, 안쪽 여백을 주었다.
+$text-input-types: text, password, datetime, datetime-local, date, month, time, week, number, email, url, search, tel, color;
+
+@function text-inputs($suffix: "") {
+  $list: ();
+  @each $type in $text-input-types {
+    $list: append($list, unquote('input[type="#{$type}"]#{$suffix}'), comma);
+  }
+  @return $list;
+}
+
+// 박스 모델: 모든 요소를 content-box로 되돌리고, border-box를 전제로 만든 BS 컴포넌트만 다시 border-box로 둔다.
+*, *:before, *:after { box-sizing: content-box; }
+.container, .container-fluid, .form-control, .input-group, .modal-dialog, .modal-content, .progress, .progress-bar { box-sizing: border-box; }
 
 a:focus {
   outline: thin dotted #333;
@@ -34,9 +44,7 @@ label, select, button, input[type="button"], input[type="reset"], input[type="su
   cursor: pointer;
 }
 input[type="search"] {
-  -webkit-box-sizing: content-box;
   box-sizing: content-box;
-  -webkit-appearance: textfield;
 }
 textarea {
   overflow: auto;
@@ -123,7 +131,6 @@ code, pre {
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
   font-size: 12px;
   color: #333333;
-  -webkit-border-radius: 3px;
   border-radius: 3px;
 }
 code {
@@ -141,18 +148,15 @@ pre {
   line-height: 20px;
   word-break: break-all;
   word-wrap: break-word;
-  white-space: pre;
   white-space: pre-wrap;
   background-color: #f5f5f5;
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.15);
-  -webkit-border-radius: 4px;
   border-radius: 4px;
 }
 pre code {
   padding: 0;
   color: inherit;
-  white-space: pre;
   white-space: pre-wrap;
   background-color: transparent;
   border: 0;
@@ -192,7 +196,7 @@ label {
   display: block;
   margin-bottom: 5px;
 }
-select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
+select, textarea, #{text-inputs()} {
   display: inline-block;
   height: 20px;
   padding: 4px 6px;
@@ -201,7 +205,6 @@ select, textarea, input[type="text"], input[type="password"], input[type="dateti
   line-height: 20px;
   color: #555555;
   vertical-align: middle;
-  -webkit-border-radius: 4px;
   border-radius: 4px;
 }
 input, textarea {
@@ -210,19 +213,15 @@ input, textarea {
 textarea {
   height: auto;
 }
-textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
+textarea, #{text-inputs()} {
   background-color: #ffffff;
   border: 1px solid #cccccc;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-  -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
-  -o-transition: border linear 0.2s, box-shadow linear 0.2s;
   transition: border linear 0.2s, box-shadow linear 0.2s;
 }
-textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="datetime"]:focus, input[type="datetime-local"]:focus, input[type="date"]:focus, input[type="month"]:focus, input[type="time"]:focus, input[type="week"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="url"]:focus, input[type="search"]:focus, input[type="tel"]:focus, input[type="color"]:focus {
+textarea:focus, #{text-inputs(":focus")} {
   border-color: rgba(82, 168, 236, 0.8);
   outline: 0;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
 }
 input[type="radio"], input[type="checkbox"] {
@@ -265,12 +264,11 @@ input:focus:invalid, textarea:focus:invalid, select:focus:invalid {
 }
 input:focus:invalid:focus, textarea:focus:invalid:focus, select:focus:invalid:focus {
   border-color: #e9322d;
-  -webkit-box-shadow: 0 0 6px #f8b9b7;
   box-shadow: 0 0 6px #f8b9b7;
 }
 
 // UA 기본이 border-box인 컨트롤은 전역 content-box 복원에서 제외한다(Bootstrap 2에서도 브라우저 기본 그대로였다).
-button, select, input[type="button"], input[type="submit"], input[type="reset"], input[type="color"], input[type="image"], input[type="checkbox"], input[type="radio"], meter, progress { -webkit-box-sizing: border-box; box-sizing: border-box; }
+button, select, input[type="button"], input[type="submit"], input[type="reset"], input[type="color"], input[type="image"], input[type="checkbox"], input[type="radio"], meter, progress { box-sizing: border-box; }
 
 
 
