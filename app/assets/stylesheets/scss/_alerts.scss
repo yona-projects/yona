@@ -1,0 +1,51 @@
+// 알림과 배지에서 BS5 변수(`_bs-variables.scss`)로 표현되지 않는 이 사이트의 모양이다.
+// 호환 층(`_bs3-compat.scss`)에 있던 BS2 규칙 가운데 색, 여백, 글자 크기는 변수로 옮기고 여기에는 나머지를 둔다(D-54).
+
+// 닫기 단추가 없는 알림도 BS2는 오른쪽에 35px 여백을 두었다.
+.alert {
+  padding-right: 35px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+
+  h4 {
+    margin: 0;
+  }
+}
+
+// v1.6의 자체 알림 색(오타 그대로의 이름이다). BS5 알림은 색을 `--bs-alert-*` 변수로 받는다.
+.alert-warnning {
+  --bs-alert-color: #ad913a;
+  --bs-alert-bg: #f7f1d9;
+  --bs-alert-border-color: #f0e7bb;
+}
+
+.alert-block {
+  padding-top: 14px;
+  padding-bottom: 14px;
+
+  > p,
+  > ul {
+    margin-bottom: 0;
+  }
+
+  p + p {
+    margin-top: 5px;
+  }
+}
+
+.badge {
+  line-height: 14px;
+  text-align: inherit;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+a.badge:hover,
+a.badge:focus {
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn .badge {
+  position: relative;
+  top: -1px;
+}

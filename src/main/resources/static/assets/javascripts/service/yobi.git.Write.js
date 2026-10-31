@@ -174,7 +174,7 @@
         }
 
         function _showMergeResult(mergeResult){
-            elements.status.removeClass("alert-success alert-danger alert-info")
+            elements.status.removeClass("alert-success alert-danger alert-info alert-warning")
                                .addClass(mergeResult.cssClass)
                                .html(mergeResult.message);
 

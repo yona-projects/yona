@@ -26,6 +26,33 @@ $warning: #f89406;
 $danger: #b94a48;
 $dark: #333;
 
+// 알림(`.alert-*`): BS2의 색과 여백이다. BS5.3은 알림 색을 테마 색의 강조/배경/테두리 값에서 얻는다.
+$success-text-emphasis: #468847;
+$success-bg-subtle: #dff0d8;
+$success-border-subtle: #d6e9c6;
+$danger-text-emphasis: #b94a48;
+$danger-bg-subtle: #f2dede;
+$danger-border-subtle: #eed3d7;
+$info-text-emphasis: #3a87ad;
+$info-bg-subtle: #d9edf7;
+$info-border-subtle: #bce8f1;
+$warning-text-emphasis: #c09853;
+$warning-bg-subtle: #fcf8e3;
+$warning-border-subtle: #fbeed5;
+$alert-padding-y: 8px;
+$alert-padding-x: 14px;
+$alert-margin-bottom: 20px;
+$alert-border-radius: 4px;
+$alert-dismissible-padding-r: 35px;
+
+// 배지(`.badge`): BS2의 글자 크기와 여백이다.
+$badge-font-size: 11.844px;
+$badge-font-weight: bold;
+$badge-padding-y: 2px;
+$badge-padding-x: 4px;
+$badge-border-radius: 3px;
+$badge-color: #fff;
+
 // 옵션: v1.6 화면과 같게 크기가 화면 폭에 따라 바뀌는 기능(RFS)과 그림자, 그라데이션, 다크 모드를 끈다.
 $enable-rfs: false;
 $enable-shadows: false;

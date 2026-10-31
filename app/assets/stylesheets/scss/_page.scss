@@ -3573,12 +3573,13 @@ div.markdown-preview {
 
 .issue-info {
     padding:15px 0 0 52px;
-    // 스크롤하면 화면 위쪽에 붙어 따라온다(v1.6의 affix 대체, A-291)
-    position: sticky;
-    top: 0;
-    max-height: 97vh;
-    overflow-y: auto;
-    overflow-x: hidden;
+    // 스크롤하면 화면 위쪽에 붙어 따라온다(v1.6의 affix 대체, A-291). 마크업에 `sticky-top`을 둔 정보창만 해당한다.
+    &.sticky-top {
+        z-index: auto;
+        max-height: 97vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
 
     .project-btn-item {
         a {

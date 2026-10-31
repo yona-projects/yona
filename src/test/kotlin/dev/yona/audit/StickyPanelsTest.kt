@@ -18,8 +18,10 @@ class StickyPanelsTest {
     @Test
     fun `이슈 정보창은 sticky로 고정되고 스크립트가 affix를 부르지 않는다`() {
         val scss = text("app/assets/stylesheets/scss/_page.scss")
-        val block = Regex("""\.issue-info \{[^}]*?position:\s*sticky""", RegexOption.DOT_MATCHES_ALL)
-        assertTrue(block.containsMatchIn(scss), ".issue-info에 position: sticky가 있어야 한다")
+        assertTrue(Regex("""\.issue-info \{[^}]*?&\.sticky-top""", RegexOption.DOT_MATCHES_ALL).containsMatchIn(scss), ".issue-info.sticky-top 규칙이 있어야 한다")
+        listOf("issue/view.html", "board/view.html").forEach {
+            assertTrue(Regex("""class="issue-info[^"]*\bsticky-top\b""").containsMatchIn(text("src/main/resources/templates/$it")), "$it 의 정보창에 sticky-top이 있어야 한다")
+        }
         listOf("yobi.issue.View.js", "yobi.board.View.js").forEach {
             assertFalse(text("src/main/resources/static/assets/javascripts/service/$it").contains("yona.affix"), "$it 는 affix를 부르면 안 된다")
         }
