@@ -96,7 +96,7 @@
                                 <div th:if="${activity.issues.isEmpty()}" class="error-wrap">
                                     <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
                                 </div>
-                                <ul class="post-list-wrap my-issues row">
+                                <ul class="post-list-wrap my-issues">
                                     <th:block th:each="row : ${activity.issues}" th:if="${row.open}">
                                         <th:block th:replace="~{user/partial-issues :: issueRow(${row})}"></th:block>
                                     </th:block>
@@ -106,7 +106,7 @@
                                 <div th:if="${activity.issues.isEmpty()}" class="error-wrap">
                                     <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{issue.is.empty}"></th:block></p>
                                 </div>
-                                <ul class="post-list-wrap my-issues row">
+                                <ul class="post-list-wrap my-issues">
                                     <th:block th:each="row : ${activity.issues}" th:if="${row.closed}">
                                         <th:block th:replace="~{user/partial-issues :: issueRow(${row})}"></th:block>
                                     </th:block>
@@ -118,7 +118,7 @@
                         <div th:if="${activity.pullRequests.isEmpty()}" class="error-wrap">
                             <p><th:block th:text="#{userinfo.daysAgo.prefix}"></th:block> <th:block th:text="#{pullRequest.is.empty}"></th:block></p>
                         </div>
-                        <ul class="post-list-wrap  row">
+                        <ul class="post-list-wrap">
                             <th:block th:each="pull : ${activity.pullRequests}">
                                 <th:block th:replace="~{user/partial-pull-requests :: pullRequestRow(${pull})}"></th:block>
                             </th:block>

@@ -23,19 +23,19 @@
         <div class="attachment-files">
             <div class="attachment-files-header row">
                 <div class="col-lg-1 header-preview">Preview</div>
-                <div class="col-lg-5 header-file-name">Filename</div>
+                <div class="col-lg-4 header-file-name">Filename</div>
                 <div class="col-lg-1 header-size">Size</div>
                 <div class="col-lg-1">Download</div>
                 <div class="col-lg-2 file-date">Date</div>
-                <div class="col-lg-4 header-location">Location</div>
+                <div class="col-lg-3 header-location">Location</div>
             </div>
             <div class="attachment-file-detail row" th:each="row : ${rows}">
                 <div class="file-preview col-lg-1"><a th:href="@{/files/{id}(id=${row.id})}" target="_blank"><img th:if="${row.image}" th:src="@{/files/{id}(id=${row.id})}"></a></div>
-                <div class="col-lg-5 file-name"><a th:href="@{/files/{id}(id=${row.id})}" target="_blank"><i class="icon text-icon"></i><th:block th:text="${row.name}"></th:block></a></div>
+                <div class="col-lg-4 file-name"><a th:href="@{/files/{id}(id=${row.id})}" target="_blank"><i class="icon text-icon"></i><th:block th:text="${row.name}"></th:block></a></div>
                 <div class="col-lg-1 file-size" th:text="${helper.humanReadableByteCount(row.size, true)}"></div>
                 <div class="col-lg-1 file-download"><a th:href="@{/files/{id}(id=${row.id},action='download')}"><button type="button" class="ybtn"><i class="yobicon-cloud-download"></i></button> </a></div>
                 <div class="col-lg-2 file-date" th:text="${helper.dateString(row.createdDate, 'yyyy-MM-dd h:mm a')}"></div>
-                <div class="col-lg-4 file-location"><a th:if="${row.location != null}" th:href="@{${row.location}}" target="_blank" th:text="@{${row.location}}"></a></div>
+                <div class="col-lg-3 file-location"><a th:if="${row.location != null}" th:href="@{${row.location}}" target="_blank" th:text="@{${row.location}}"></a></div>
             </div>
         </div>
     </div>

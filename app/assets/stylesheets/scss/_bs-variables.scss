@@ -53,9 +53,8 @@ $enable-smooth-scroll: false;
 $enable-dark-mode: false;
 $enable-deprecation-messages: false;
 
-// 그리드: 이 사이트는 반응형 CSS를 쓰지 않아 열 폭을 `_grid.scss`의 규칙이 정한다(BS2 940px 고정 그리드와 유동 그리드).
+// 그리드: BS5의 반응형 12열 그리드를 그대로 쓴다(D-57). 열 사이 간격만 BS2의 20px로 둔다.
 $grid-gutter-width: 20px;
-$container-max-widths: (sm: 940px, md: 940px, lg: 940px, xl: 940px, xxl: 940px);
 
 // 간격 유틸리티(`.ps-1` 등): Bootstrap 5는 맵을 합치지 않으므로 전체를 적는다. 1단계는 BS2의 5px이다.
 $spacer: 1rem;

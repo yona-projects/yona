@@ -19,13 +19,13 @@
   <div class="page-wrap">
     <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('notifications')}"></th:block>
 
-    <div class="d-flex flex-wrap align-items-start">
+    <div class="row align-items-start">
       <ul id="notification-projects" role="tablist" class="list-unstyled lst-stacked col-lg-3 mr20">
         <li th:each="project, stat : ${notificationProjects}" th:class="${stat.first} ? 'active'">
           <a th:href="'#' + ${project.id}" data-bs-toggle="tab"><th:block th:text="${project.owner}"></th:block> / <th:block th:text="${project.name}"></th:block></a>
         </li>
       </ul>
-      <div class="tab-content flex-grow-1">
+      <div class="tab-content col">
         <div th:each="project, stat : ${notificationProjects}" th:id="${project.id}" th:class="'tab-pane ' + (${stat.first} ? 'active' : '')">
           <table class="table table-striped table-bordered">
             <tr th:each="row : ${project.rows}">

@@ -46,7 +46,7 @@
         </div>
     </div>
     <ul class="user-list-wrap">
-        <li th:each="row : ${rows}" class="row row-float listitem">
+        <li th:each="row : ${rows}" class="row listitem">
             <div class="col-lg-3 listitem-col">
                 <a th:href="@{/{u}(u=${row.loginId})}" class="avatar-wrap list-avatar">
                     <img th:if="${row.defaultAvatar}" th:src="@{${row.avatarUrl}}"/>
@@ -61,7 +61,7 @@
             <div class="col-lg-2 listitem-col created-date">
                 <span th:text="${row.createdText}"></span>
             </div>
-            <div th:if="${userState != 'DELETED'}" class="col-lg-5 listitem-col action-buttons">
+            <div th:if="${userState != 'DELETED'}" class="col-lg-4 listitem-col action-buttons">
                 <a class="ybtn ybtn-small" th:classappend="${row.guest} ? 'ybtn-success'" data-request-method="post" th:attr="data-request-uri=@{${row.guestUrl}}"
                    th:text="${row.guest} ? #{button.user.make.normal.mode} : #{button.user.make.guest.mode}"></a>
                 <a class="ybtn ybtn-small" data-request-method="post" th:attr="data-request-uri=@{${row.lockUrl}}"

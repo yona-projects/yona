@@ -28,8 +28,8 @@
                         <span th:if="${draft}" class="draft" th:text="#{issue.state.draft}"></span>
                         <label th:unless="${draft}" for="title"><strong class="secondary-txt" th:text="'#' + ${issueNumber}"></strong></label>
                     </dt>
-                    <dd class="d-flex flex-wrap align-items-start">
-                        <div class="col-lg-12 d-flex flex-wrap align-items-start">
+                    <dd class="row align-items-start">
+                        <div class="col-lg-12 row align-items-start">
                             <div class="col-lg-11">
                                 <input type="text" id="title" name="title" th:value="${titleValue}" class="text title form-control" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" th:placeholder="#{title}" autocomplete="off">
                             </div>

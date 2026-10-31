@@ -30,7 +30,7 @@
                 </div>
                 <div class="project-description-edit hidden" data-toggle="project-description-tab">
                     <form class="d-flex flex-wrap align-items-start" th:action="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name})}" onsubmit="return false">
-                    <input type="text" id="project-description-input" class="col-lg-6 form-control" th:placeholder="#{project.description.placeholder}" th:value="${projectView.project.overview}"/>
+                    <input type="text" id="project-description-input" class="w-50 form-control" th:placeholder="#{project.description.placeholder}" th:value="${projectView.project.overview}"/>
                     <button type="button" class="ybtn ybtn-success" id="descriptionSaveBtn" th:text="#{button.save}"></button> <button type="button" class="ybtn" data-toggle="description-cancel" th:text="#{button.cancel}"></button>
                     </form>
                 </div>

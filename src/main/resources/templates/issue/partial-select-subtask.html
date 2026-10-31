@@ -9,7 +9,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="selectSubtask(showOption, hasChildIssue)" th:with="project=${projectView.project}">
 <div class="subtask-wrap w-100" th:classappend="${showOption} ? 'show'">
-  <div class="d-flex flex-wrap align-items-start">
+  <div class="row align-items-start">
     <div class="col-lg-3">
         <select class="form-select" id="targetProjectId" name="targetProjectId" data-format="projects" th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize" th:disabled="${!showOption}">
             <option th:value="${project.id}" th:attr="data-avatar-url=${logoUrl}" th:text="${project.name}"></option>

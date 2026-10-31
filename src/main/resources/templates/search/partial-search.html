@@ -65,7 +65,7 @@
                     <div class="search-box-wrap">
                         <form class="d-flex flex-wrap align-items-start" id="searchInnerForm" method="get" th:action="@{${search.action}}">
                             <input type="hidden" name="searchType" th:value="${current}">
-                            <input type="text" id="searchKeyword" name="keyword" class="col-lg-11 form-control" th:value="${search.keyword}">
+                            <input type="text" id="searchKeyword" name="keyword" class="w-100 form-control" th:value="${search.keyword}">
                             <button type="submit" class="ybtn" th:text="#{title.search}"></button>
                         </form>
 

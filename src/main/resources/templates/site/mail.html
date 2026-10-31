@@ -27,35 +27,35 @@
     </ul>
 </div>
 <form id="mailForm" method="post" th:action="@{/sites/mail}" class="form-horizontal d-flex flex-wrap align-items-start">
-    <div class="form-field d-flex flex-wrap align-items-start w-100">
+    <div class="form-field row align-items-start w-100">
         <label name="from" class="col-form-label col-lg-3" th:text="#{site.mail.from}"></label>
         <div class="d-flex flex-wrap align-items-start flex-grow-1">
-            <input type="text" name="from" th:value="${sender}" required="" th:placeholder="#{site.mail.fromPlaceholder}" class="col-lg-4 form-control">
+            <input type="text" name="from" th:value="${sender}" required="" th:placeholder="#{site.mail.fromPlaceholder}" class="w-50 form-control">
         </div>
     </div>
 
     <div class="form-field w-100">
         <label name="to" class="col-form-label" th:text="#{site.mail.to}"></label>
         <div class="d-flex flex-wrap align-items-start">
-            <input type="text" class="col-lg-4 form-control" name="to" required="" th:placeholder="#{site.mail.toPlaceholder}">
+            <input type="text" class="w-50 form-control" name="to" required="" th:placeholder="#{site.mail.toPlaceholder}">
         </div>
     </div>
 
     <div class="form-field mr10 w-100">
         <label name="subject" class="col-form-label" th:text="#{site.mail.subject}"></label>
         <div class="d-flex flex-wrap align-items-start">
-            <input type="text" name="subject" class="col-lg-12 form-control">
+            <input type="text" name="subject" class="w-100 form-control">
         </div>
     </div>
 
     <div class="form-field mr10 w-100">
         <label name="body" class="col-form-label" th:text="#{site.mail.body}"></label>
         <div class="d-flex flex-wrap align-items-start">
-            <textarea id="body" name="body" rows="16" class="col-lg-12 textbody form-control"></textarea>
+            <textarea id="body" name="body" rows="16" class="w-100 textbody form-control"></textarea>
         </div>
     </div>
 
-    <div class="col-lg-12 mail-btn-wrap">
+    <div class="w-100 mail-btn-wrap">
         <button type="submit" class="ybtn ybtn-primary">
             <strong th:text="#{site.mail.send}"></strong>
         </button>

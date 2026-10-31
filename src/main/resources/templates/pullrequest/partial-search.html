@@ -87,10 +87,10 @@
             <li><th:block th:replace="~{common/two-column-mode-checkbox-area :: twoColumnModeCheckboxArea}"></th:block></li>
         </ul>
         <div class="tab-content" style="clear:both;padding-top:15px;">
-            <div id="list" class="row tab-pane active">
+            <div id="list" class="tab-pane active">
                 <ul class="post-list-wrap">
                     <th:block th:if="${!#lists.isEmpty(rows)}">
-                        <li th:each="r : ${rows}" class="post-item title d-flex flex-wrap align-items-start" th:attr="href=${r.href}">
+                        <li th:each="r : ${rows}" class="post-item title row align-items-start" th:attr="href=${r.href}">
                             <div class="col-lg-10 span-hard-wrap">
                                 <a th:if="${r.contributor != null}" th:href="${r.contributor.href}" class="avatar-wrap mlarge" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${r.contributor.loginId}">
                                     <img th:if="${helper.isDefaultAvatar(r.contributor.avatarUrl)}" th:src="${r.contributor.avatarUrl}"/>

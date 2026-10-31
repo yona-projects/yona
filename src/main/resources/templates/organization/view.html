@@ -27,7 +27,7 @@
                             <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
                         </div>
                     </div>
-                    <div th:if="${org.canManage}" class="float-end">
+                    <div th:if="${org.canManage}" class="col-auto ms-auto">
                         <a th:href="@{'/projectform?owner=' + ${org.name}}" class="ybtn ybtn-primary" th:text="#{button.newProject}"></a>
                     </div>
                 </div>

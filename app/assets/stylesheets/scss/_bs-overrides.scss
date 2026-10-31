@@ -1,13 +1,6 @@
 // Bootstrap 5의 기본값 가운데 이 사이트가 BS2 모양으로 되돌려 쓰는 것이다. 색, 여백, 글자 크기처럼 변수로 표현되는 것은 `_bs-variables.scss`에 있고
 // 여기에는 변수로 되지 않는 규칙만 둔다. `_bs3-compat.scss`에서 이관했다(D-54).
 
-// 고정 폭 컨테이너: 이 사이트는 반응형 CSS 없이 940px로 고정한다(BS5는 화면 폭에 따라 최대 폭과 좌우 여백이 바뀐다).
-.container {
-  width: 940px;
-  padding-right: 0;
-  padding-left: 0;
-}
-
 // BS2의 `ul.unstyled`는 왼쪽 여백도 지웠다.
 ul.list-unstyled,
 ol.list-unstyled {

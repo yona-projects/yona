@@ -8,7 +8,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="sidebar">
 <th:block th:if="${currentUser.anonymous}" th:with="remembered=${@socialSession.rememberOriginalUrl()}"></th:block>
-<div class="row user-menu-wrap">
+<div class="user-menu-wrap">
     <span class="user-menu"><a th:href="'/' + ${currentUser.loginId}" target="mainFrame">
         <span class="avatar-wrap smaller">
             <img th:src="${currentUser.avatarUrl(32)}" />

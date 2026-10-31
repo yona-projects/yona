@@ -2189,7 +2189,6 @@ label.inline-list {
         padding: 10px 5px;
         display:block;
         position: relative;
-        margin-left: 5px;
 
         .member-name {
             margin-top:2px;
@@ -2429,10 +2428,7 @@ label.inline-list {
 
 .milesion-wrap {
     .progress {
-        background-color: $state-open;
-
-        &.empty { background-color: #B1B1B1; }
-
+        // 바탕은 BS5 진행 막대의 기본 색이다. v1.6은 BS2의 회색 그라데이션 배경이 이 지정 색을 가려 회색으로 보였다.
         .progress-bar {
             background-color: $state-closed;
             height: inherit;
@@ -3849,7 +3845,6 @@ label.issue-item-row {
 .post-item {
     padding:10px;
     border-bottom:1px solid #ddd;
-    display:block;
     overflow: auto;
     clear: both;
 
@@ -6996,10 +6991,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         background-color: #f1f1f1;
         border-radius: 5px;
         margin-bottom: 10px;
-        margin-left: auto !important;
-        .header-preview {
-            margin-left: auto;
-        }
         .header-file-name {
             text-align: center;
         }
@@ -7016,11 +7007,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         line-height: 1.875rem;
         border: 1px solid #fff;
         border-bottom: 1px solid #eee;
-        margin-left: auto !important;
         .file-preview {
             max-height: 40px;
             overflow: hidden;
-            margin-left: auto;
             img {
                 max-width: 40px;
                 box-sizing: border-box;
@@ -7070,10 +7059,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     color: $blue2
 }
 
+// 오른쪽 열의 폭은 `col-lg-*`가 정한다(D-57). v1.6의 고정 350px 폭과 왼쪽 여백은 BS5 그리드에서 줄을 넘기므로 뺐다.
 .right-menu{
     margin-top: 10px;
-    margin-left: 10px;
-    width: 350px;
 }
 
 .auth-provider-logo {
@@ -7870,11 +7858,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   box-sizing: border-box;
 }
 
-// 고정 그리드(`.row` + 열) 머리글은 열의 최소 높이가 없었다. 가변 그리드 호환 규칙(30px)을 받지 않도록 되돌린다.
-.attachment-files-header [class*="col-lg-"] {
-  min-height: 1px;
-}
-
 // 폼의 한 줄. v1.6은 Bootstrap 2의 `control-group`(아래 여백 20px)이었고 BS5에는 `form-group`이 없어 이 사이트의 자체 클래스로 둔다.
 .form-field {
     margin-bottom: 20px;
@@ -7915,8 +7898,3 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
-// 첫 화면 소개 배경은 Bootstrap 2의 고정 그리드 `.row`(왼쪽 여백 -20px로 화면보다 20px 넓다)를 썼다. 호환 층의 `.row`는 유동 그리드 값이라 이 영역만 되돌린다.
-.siteintro-bg.row {
-  width: auto;
-  margin-left: -20px;
-}
