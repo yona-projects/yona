@@ -45,21 +45,22 @@ textarea {
 cite {
   font-style: normal;
 }
-// BS2는 줄 높이를 비율이 아니라 20px 고정값으로 상속했다(BS5의 `$line-height-base`는 비율이어야 내부 계산이 맞는다).
-body {
-  line-height: 20px;
+// BS2는 줄 높이를 비율이 아니라 20px 고정값으로 상속했다. BS5의 `$line-height-base`는 `* 1em` 계산에 쓰이는 비율이어야 하므로 변수는 비율로 두고
+// 본문이 쓰는 CSS 변수만 20px로 덮는다.
+:root {
+  --bs-body-line-height: 20px;
 }
 h1, h2, h3, h4, h5, h6 {
   margin-top: 10px;
   text-rendering: optimizelegibility;
 }
+h1, h2, h3 {
+  line-height: 40px;
+}
 h1 small, h2 small, h3 small, h4 small, h5 small, h6 small {
   font-weight: normal;
   line-height: 1;
   color: #999999;
-}
-h1, h2, h3 {
-  line-height: 40px;
 }
 h1 small {
   font-size: 24.5px;
@@ -116,15 +117,6 @@ blockquote small {
   display: block;
   line-height: 20px;
   color: #999999;
-}
-q:before, q:after, blockquote:before, blockquote:after {
-  content: "";
-}
-address {
-  display: block;
-  margin-bottom: 20px;
-  font-style: normal;
-  line-height: 20px;
 }
 code, pre {
   padding: 0 3px 2px;
@@ -256,12 +248,6 @@ select:focus, input[type="file"]:focus, input[type="radio"]:focus, input[type="c
   outline: thin dotted #333;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
-}
-input:-moz-placeholder, textarea:-moz-placeholder {
-  color: #999999;
-}
-input:-ms-input-placeholder, textarea:-ms-input-placeholder {
-  color: #999999;
 }
 input, textarea {
   margin-left: 0;
