@@ -48,7 +48,7 @@
                     <div class="form-field">
                         <label class="col-form-label" for="inputOwner" th:text="#{project.owner}"></label>
                         <div>
-                            <select class="form-select" id="project-owner" name="owner">
+                            <select class="w-50 form-select" id="project-owner" name="owner">
                                 <option th:each="o : ${owners}" th:attr="data-url=${o.url}" th:value="${o.value}" th:selected="${o.selected}" th:text="${o.value}"></option>
                             </select>
                         </div>
@@ -56,7 +56,7 @@
                     <div class="form-field">
                         <label class="col-form-label" for="inputName" th:text="#{project.name}"></label>
                         <div>
-                            <input class="form-control" type="text" id="inputName" name="name" th:value="${forkName}" />
+                            <input class="w-50 form-control" type="text" id="inputName" name="name" th:value="${forkName}" />
                             <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{project.name.alert}"></span>
                         </div>
                     </div>

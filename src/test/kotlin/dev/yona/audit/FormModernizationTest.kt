@@ -53,4 +53,19 @@ class FormModernizationTest {
         assertFalse(Regex("""input, textarea \{\s*width""").containsMatchIn(base), "input, textarea 고정 폭 규칙이 남아 있다")
         assertFalse(Regex("""box-shadow: inset 0 1px 1px""").containsMatchIn(base), "BS2 입력창 안쪽 그림자가 남아 있다")
     }
+
+    /**
+     * v1.6의 짧은 한 줄 입력창(BS2 기본 206px)이 BS5 `.form-control`로 부모 폭을 채우게 되어 지나치게 넓어진 화면은 마크업에서 BS5 폭 클래스로 줄인다.
+     * 비밀번호는 `w-25`, 포크의 소유자와 이름은 `w-50`이다(D-59).
+     */
+    @Test
+    fun `짧은 한 줄 입력창이 지나치게 넓어진 화면은 BS5 폭 클래스를 단다`() {
+        fun doc(path: String) = Jsoup.parse(File("src/main/resources/templates/$path").readText())
+        listOf("oldPassword", "password", "retypedPassword").forEach { id ->
+            assertTrue(doc("user/edit-password.html").getElementById(id)!!.hasClass("w-25"), "비밀번호 입력창 #$id 는 w-25 여야 한다")
+        }
+        listOf("project-owner", "inputName").forEach { id ->
+            assertTrue(doc("pullrequest/fork.html").getElementById(id)!!.hasClass("w-50"), "포크 입력창 #$id 는 w-50 여야 한다")
+        }
+    }
 }
