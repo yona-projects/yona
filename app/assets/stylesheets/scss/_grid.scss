@@ -1,0 +1,99 @@
+// 그리드: 이 사이트는 Bootstrap 2의 반응형 CSS를 쓰지 않아 열(`col-lg-*`)이 화면 폭과 상관없이 BS2의 두 그리드와 같은 폭을 갖는다.
+// BS5의 flex 그리드(`.row`의 `display: flex`, 열 폭 변수)는 쓰지 않고 float 기하를 그대로 둔다(A-289). `_bs3-compat.scss`에서 이관했고,
+// 열 폭은 손으로 적은 24개 규칙 대신 아래 변수와 반복문으로 계산한다(D-54). 쓰이지 않는 `col-lg-offset-*`는 옮기지 않았다.
+
+$fixed-column: 60px;           // 고정 그리드(`.row` 밖의 열): 940px에 12열
+$fixed-gutter: 20px;
+$fluid-column: 6.382978723404255%;  // 유동 그리드(`.row` 안의 열)
+$fluid-gutter: 2.127659574468085%;
+
+// `.row` 밖의 열: 고정 폭 열이다.
+[class*="col-lg-"] {
+  position: static;
+  float: left;
+  flex: none;
+  min-height: 1px;
+  max-width: none;
+  margin-left: $fixed-gutter;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+@for $i from 1 through 12 {
+  .col-lg-#{$i} {
+    width: $fixed-column * $i + $fixed-gutter * ($i - 1);
+  }
+}
+
+// BS5의 `.row`는 flex 컨테이너이고 `.row > *`는 열이 아닌 자식에게도 폭 100%와 안쪽 여백을 준다.
+// 이 사이트의 `.row`는 일반 래퍼로도 쓰였으므로 float 컨테이너로 두고, 열이 아닌 자식은 BS2처럼 건드리지 않는다.
+.row {
+  display: block;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin-right: 0;
+  margin-left: 0;
+  --bs-gutter-x: 0;
+  --bs-gutter-y: 0;
+
+  &:before,
+  &:after {
+    display: table;
+    content: "";
+    line-height: 0;
+  }
+
+  &:after {
+    clear: both;
+  }
+
+  > :where(:not([class*="col-lg-"])) {
+    flex-shrink: 1;
+    width: auto;
+    max-width: none;
+    margin-top: 0;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  // `.row` 안의 열: 비율 폭과 2.1277% 간격의 유동 열이다.
+  [class*="col-lg-"] {
+    position: static;
+    box-sizing: border-box;
+    display: block;
+    float: left;
+    width: 100%;
+    min-height: 30px;
+    margin-left: $fluid-gutter;
+    padding-right: 0;
+    padding-left: 0;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+
+  @for $i from 1 through 12 {
+    .col-lg-#{$i} {
+      width: $fluid-column * $i + $fluid-gutter * ($i - 1);
+    }
+  }
+}
+
+// BS2의 `input[class*="span"]`: 폼 요소에 붙인 열 이름은 떠다니지 않고 왼쪽 여백도 없으며, 그리드 안에서는 한 줄에 늘어서도록 `inline-block`이다.
+input[class*="col-lg-"],
+select[class*="col-lg-"],
+textarea[class*="col-lg-"] {
+  float: none;
+  margin-left: 0;
+}
+
+.row {
+  input[class*="col-lg-"],
+  select[class*="col-lg-"],
+  textarea[class*="col-lg-"] {
+    display: inline-block;
+    float: none;
+    margin-left: 0;
+  }
+}

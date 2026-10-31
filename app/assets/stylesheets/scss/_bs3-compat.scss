@@ -360,77 +360,6 @@ input:focus:invalid:focus, textarea:focus:invalid:focus, select:focus:invalid:fo
   box-shadow: 0 0 6px #f8b9b7;
 }
 
-// --- 고정 그리드 호환: `.row` 밖에 놓인 열은 BS2 고정 그리드(940px, 열 사이 20px)이다 ---
-[class*="col-lg-"] { float: left; min-height: 1px; margin-left: 20px; padding-left: 0; padding-right: 0; position: static; }
-.col-lg-12 { width: 940px; }
-.col-lg-11 { width: 860px; }
-.col-lg-10 { width: 780px; }
-.col-lg-9 { width: 700px; }
-.col-lg-8 { width: 620px; }
-.col-lg-7 { width: 540px; }
-.col-lg-6 { width: 460px; }
-.col-lg-5 { width: 380px; }
-.col-lg-4 { width: 300px; }
-.col-lg-3 { width: 220px; }
-.col-lg-2 { width: 140px; }
-.col-lg-1 { width: 60px; }
-.col-lg-offset-12 { margin-left: 980px; }
-.col-lg-offset-11 { margin-left: 900px; }
-.col-lg-offset-10 { margin-left: 820px; }
-.col-lg-offset-9 { margin-left: 740px; }
-.col-lg-offset-8 { margin-left: 660px; }
-.col-lg-offset-7 { margin-left: 580px; }
-.col-lg-offset-6 { margin-left: 500px; }
-.col-lg-offset-5 { margin-left: 420px; }
-.col-lg-offset-4 { margin-left: 340px; }
-.col-lg-offset-3 { margin-left: 260px; }
-.col-lg-offset-2 { margin-left: 180px; }
-.col-lg-offset-1 { margin-left: 100px; }
-
-// --- 유동 그리드 호환(BS2 .row-fluid의 기하를 BS3 마크업 `.row`/`.col-lg-*`에 입힌다) ---
-// 이 사이트는 Bootstrap 2의 반응형 CSS를 쓰지 않아 열이 좁은 화면에서도 쌓이지 않았다. 그래서 `col-lg-*`를 화면 폭과 상관없이 BS2 유동 열과 같은 폭과 간격(2.1277%)으로 둔다.
-.row { margin-left: 0; margin-right: 0; width: 100%; }
-.row:before, .row:after { display: table; content: ""; line-height: 0; }
-.row:after { clear: both; }
-.row [class*="col-lg-"] { float: left; display: block; width: 100%; min-height: 30px; margin-left: 2.127659574468085%; padding-left: 0; padding-right: 0; position: static; box-sizing: border-box; }
-.row [class*="col-lg-"]:first-child { margin-left: 0; }
-.row .col-lg-12 { width: 100%; }
-.row .col-lg-11 { width: 91.48936170212765%; }
-.row .col-lg-10 { width: 82.97872340425532%; }
-.row .col-lg-9 { width: 74.46808510638297%; }
-.row .col-lg-8 { width: 65.95744680851064%; }
-.row .col-lg-7 { width: 57.44680851063829%; }
-.row .col-lg-6 { width: 48.93617021276595%; }
-.row .col-lg-5 { width: 40.42553191489362%; }
-.row .col-lg-4 { width: 31.914893617021278%; }
-.row .col-lg-3 { width: 23.404255319148934%; }
-.row .col-lg-2 { width: 14.893617021276595%; }
-.row .col-lg-1 { width: 6.382978723404255%; }
-.row .col-lg-offset-12 { margin-left: 104.25531914893617%; }
-.row .col-lg-offset-11 { margin-left: 95.74468085106382%; }
-.row .col-lg-offset-10 { margin-left: 87.23404255319149%; }
-.row .col-lg-offset-9 { margin-left: 78.72340425531914%; }
-.row .col-lg-offset-8 { margin-left: 70.2127659574468%; }
-.row .col-lg-offset-7 { margin-left: 61.70212765957446%; }
-.row .col-lg-offset-6 { margin-left: 53.191489361702125%; }
-.row .col-lg-offset-5 { margin-left: 44.68085106382979%; }
-.row .col-lg-offset-4 { margin-left: 36.170212765957444%; }
-.row .col-lg-offset-3 { margin-left: 27.659574468085104%; }
-.row .col-lg-offset-2 { margin-left: 19.148936170212764%; }
-.row .col-lg-offset-1 { margin-left: 10.638297872340425%; }
-.row .col-lg-offset-12:first-child { margin-left: 102.12765957446808%; }
-.row .col-lg-offset-11:first-child { margin-left: 93.61702127659574%; }
-.row .col-lg-offset-10:first-child { margin-left: 85.1063829787234%; }
-.row .col-lg-offset-9:first-child { margin-left: 76.59574468085106%; }
-.row .col-lg-offset-8:first-child { margin-left: 68.08510638297872%; }
-.row .col-lg-offset-7:first-child { margin-left: 59.574468085106375%; }
-.row .col-lg-offset-6:first-child { margin-left: 51.063829787234035%; }
-.row .col-lg-offset-5:first-child { margin-left: 42.5531914893617%; }
-.row .col-lg-offset-4:first-child { margin-left: 34.04255319148936%; }
-.row .col-lg-offset-3:first-child { margin-left: 25.53191489361702%; }
-.row .col-lg-offset-2:first-child { margin-left: 17.02127659574468%; }
-.row .col-lg-offset-1:first-child { margin-left: 8.51063829787234%; }
-
 // --- Bootstrap 2 컴포넌트 복원: 마크업이 Bootstrap 3과 같아 그대로 동작하는 컴포넌트의 BS2 규칙(내비게이션, 탭, 드롭다운, 라벨, 알림, 표, 페이지 번호 등) ---
 // Bootstrap 3의 같은 이름 규칙은 여백, 줄 높이, 색이 달라 v1.6 화면과 어긋난다(`style-diff` 도구로 확인). 마크업과 JS(.active, .open)는 Bootstrap 3 플러그인이 그대로 다룬다.
 .clearfix:before, .clearfix:after {
@@ -525,28 +454,11 @@ blockquote { font-size: inherit; }
 ul.list-unstyled, ol.list-unstyled { margin-left: 0; list-style: none; }
 
 
-// --- Bootstrap 4의 flexbox를 끈다(X-38c): 이 사이트의 열과 내비게이션은 BS2의 float 기하를 그대로 쓴다. flex 그리드로의 전환은 BS5 이후에 정한다(A-289) ---
-.row { display: block; flex-wrap: nowrap; --bs-gutter-x: 0; --bs-gutter-y: 0; }
-// Bootstrap 5의 `.row > *`는 열이 아닌 자식에게도 폭 100%와 안쪽 여백을 준다. 이 사이트의 `.row`는 일반 래퍼로도 쓰였으므로 열이 아닌 자식은 BS2처럼 건드리지 않는다.
-.row > :where(:not([class*="col-lg-"])) { flex-shrink: 1; width: auto; max-width: none; margin-top: 0; padding-left: 0; padding-right: 0; }
-[class*="col-lg-"], [class*="col-lg-"] { flex: none; max-width: none; }
 .small { font-size: inherit; font-weight: inherit; }
 
 
 
 
-
-
-// BS2의 `input[class*="span"]`: 폼 요소에 붙인 `span*`은 떠다니지 않고 왼쪽 여백도 없다. 그리드 안에서는 한 줄에 늘어서도록 `inline-block`이다. 이름은 `col-lg-*`로 바뀌었다.
-input[class*="col-lg-"], select[class*="col-lg-"], textarea[class*="col-lg-"],
-.row input[class*="col-lg-"], .row select[class*="col-lg-"], .row textarea[class*="col-lg-"] {
-  float: none;
-  margin-left: 0;
-}
-.input-append input[class*="col-lg-"], .input-prepend input[class*="col-lg-"],
-.row input[class*="col-lg-"], .row select[class*="col-lg-"], .row textarea[class*="col-lg-"] {
-  display: inline-block;
-}
 
 
 // --- Bootstrap 5가 새로 입히는 기본 모양 중 BS2와 다른 것을 되돌린다(X-38d) ---
