@@ -454,9 +454,10 @@
     input {
         outline:0 none;
         border:0;
-        line-height: 1.875rem;
-        padding:5px 10px;
-        margin-bottom:3px;
+        height: 30px;
+        padding:0 10px;
+        margin:0;
+        background: transparent;
         width: 50px;
         @include transition(width .3s ease);
 
@@ -1581,7 +1582,6 @@
 
     .text {
         width: 386px;
-        height: 27px;
         font-size: 0.75rem;
         font-weight: bold;
         margin-bottom: 10px;

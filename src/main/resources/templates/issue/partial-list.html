@@ -14,7 +14,7 @@
             th:attr="data-value=${issue.authorLoginId} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="${base + '/issue/' + issue.number}">
             <div class="col-lg-9 span-hard-wrap">
                 <label th:if="${projectView.projectMember}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
-                    <input th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
+                    <input class="form-check-input" th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
                 </label>
                 <div th:attr="for='issue-' + ${issue.id}" class="issue-item-row">
                     <div class="title-wrap">
@@ -105,7 +105,7 @@
             th:attr="data-value=${issue.authorLoginId} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="${base + '/issue/' + issue.number}">
             <div class="col-lg-9 span-hard-wrap">
                 <label th:if="${projectView.projectMember}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
-                    <input th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
+                    <input class="form-check-input" th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:attr="data-issue-id=${issue.id}" data-issue-labels="" th:attrappend="data-issue-labels=${issue.labelsData}">
                 </label>
                 <div th:attr="for='issue-' + ${issue.id}" class="issue-item-row">
                     <div class="title-wrap">

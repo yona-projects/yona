@@ -20,7 +20,7 @@
     <th:block th:replace="~{user/partial-edit-tabmenu :: tabmenu('emails')}"></th:block>
 
     <form th:action="@{/user/email}" method="post" class="form-inline inner-bubble">
-      <input type="text" th:placeholder="#{user.email.new}" name="email" class="text uname">
+      <input type="text" th:placeholder="#{user.email.new}" name="email" class="text uname form-control">
       <button type="submit" class="ybtn ybtn-success" th:text="#{button.add}"></button>
     </form>
 

@@ -4,6 +4,8 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="select2">
 <script th:src="@{/assets/javascripts/lib/select2/select2.js}"></script>
+<!--/* select2 3.x는 원본 요소의 클래스를 컨테이너에 복사한다. BS5 `form-select`가 복사되면 컨테이너에 화살표 배경이 겹쳐 그려지므로 복사에서 뺀다(X-38i, D-56). */-->
+<script>$.fn.select2.defaults.adaptContainerCssClass = function (c) { return (c === "form-select" || c === "form-control") ? null : c; };</script>
 <script th:src="@{/assets/javascripts/common/yobi.ui.Select2.js}"></script>
 <script th:if="${#locale.language == 'ko'}" th:src="@{/assets/javascripts/lib/select2/select2_locale_ko.js}"></script>
 <script th:if="${#locale.language == 'ja'}" th:src="@{/assets/javascripts/lib/select2/select2_locale_ja.js}"></script>

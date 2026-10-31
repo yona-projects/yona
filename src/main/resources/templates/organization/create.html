@@ -27,14 +27,14 @@
                         <label for="name" th:text="#{organization.name.placeholder}"></label>
                     </dt>
                     <dd>
-                        <input id="name" type="text" name="name" class="text" placeholder="" maxlength="250" th:value="${name}" />
+                        <input id="name" type="text" name="name" class="text form-control" placeholder="" maxlength="250" th:value="${name}" />
                     </dd>
 
                     <dt>
                         <label for="descr" th:text="#{organization.description.placeholder}"></label>
                     </dt>
                     <dd>
-                        <textarea id="descr" name="descr" class="text" style="resize: vertical;" th:text="${descr}"></textarea>
+                        <textarea id="descr" name="descr" class="text form-control" style="resize: vertical;" th:text="${descr}"></textarea>
                     </dd>
                 </dl>
                 <div class="actions">

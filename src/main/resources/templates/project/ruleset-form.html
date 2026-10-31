@@ -34,7 +34,7 @@
                 <div class="box-wrap top">
                     <div class="cu-label vmiddle"><label for="rulesetName" th:text="#{project.ruleset.name}"></label></div>
                     <div class="cu-desc">
-                        <input type="text" id="rulesetName" name="name" maxlength="255" class="input-xlarge" th:value="${ruleset.name}">
+                        <input type="text" id="rulesetName" name="name" maxlength="255" class="input-xlarge form-control" th:value="${ruleset.name}">
                         <span class="d-inline-block align-middle ps-1 text-body-secondary text-danger" th:if="${#lists.contains(errors, 'name')}" th:text="#{project.ruleset.error.name}"></span>
                     </div>
                 </div>
@@ -42,9 +42,9 @@
                 <div class="box-wrap middle">
                     <div class="cu-label vmiddle" th:text="#{project.ruleset.enforcement}"></div>
                     <div class="cu-desc">
-                        <input name="enforcement" type="radio" class="radio-btn" id="enforcementActive" value="active" th:checked="${ruleset.active}">
+                        <input name="enforcement" type="radio" class="radio-btn form-check-input" id="enforcementActive" value="active" th:checked="${ruleset.active}">
                         <label for="enforcementActive" class="bg-radiobtn label-public" th:text="#{project.ruleset.enforcement.active}"></label>
-                        <input name="enforcement" type="radio" class="radio-btn" id="enforcementDisabled" value="disabled" th:checked="${!ruleset.active}">
+                        <input name="enforcement" type="radio" class="radio-btn form-check-input" id="enforcementDisabled" value="disabled" th:checked="${!ruleset.active}">
                         <label for="enforcementDisabled" class="bg-radiobtn label-private" th:text="#{project.ruleset.enforcement.disabled}"></label>
                     </div>
                 </div>
@@ -63,7 +63,7 @@
                 <div class="box-wrap middle" id="rulesetTarget">
                     <div class="cu-label vmiddle"><label for="rulesetPattern" th:text="#{project.ruleset.target}"></label></div>
                     <div class="cu-desc">
-                        <input type="text" id="rulesetPattern" name="pattern" maxlength="255" class="input-large" th:value="${ruleset.pattern}">
+                        <input type="text" id="rulesetPattern" name="pattern" maxlength="255" class="input-large form-control" th:value="${ruleset.pattern}">
                         <span class="d-inline-block align-middle ps-1 text-body-secondary text-danger" th:if="${#lists.contains(errors, 'pattern')}" th:text="#{project.ruleset.error.pattern}"></span>
                         <span class="form-text" th:text="#{project.ruleset.target.description}"></span>
                     </div>
@@ -91,7 +91,7 @@
                         <div id="rulesetPullRequestOptions" class="card card-body card-body-small ml10"
                              th:style="${ruleset.requirePullRequest == true or ruleset.requiredApprovals > 0 or ruleset.requireNoChangesRequested == true or ruleset.requireConversationResolution == true} ? '' : 'display:none;'">
                             <label for="rulesetApprovals" th:text="#{project.ruleset.rule.approvals}"></label>
-                            <input type="number" id="rulesetApprovals" name="approvals" min="0" max="100" class="input-mini" th:value="${ruleset.requiredApprovals}">
+                            <input type="number" id="rulesetApprovals" name="approvals" min="0" max="100" class="input-mini form-control" th:value="${ruleset.requiredApprovals}">
                             <span class="d-inline-block align-middle ps-1 text-body-secondary text-danger" th:if="${#lists.contains(errors, 'approvals')}" th:text="#{project.ruleset.error}"></span>
                             <span class="form-text" th:text="#{project.ruleset.rule.approvals.desc}"></span>
                             <div class="form-check"><label class="form-check-label"><input type="checkbox" name="requireNoChangesRequested" value="true" th:checked="${ruleset.requireNoChangesRequested == true}" class="form-check-input">

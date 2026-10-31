@@ -15,7 +15,7 @@
     <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
             data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
             data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
-            th:attr="data-placeholder=#{label.select}, data-close-on-select=${closeOnSelect == false ? 'false' : null}" class="hide">
+            th:attr="data-placeholder=#{label.select}, data-close-on-select=${closeOnSelect == false ? 'false' : null}" class="hide form-select">
       <option></option>
       <optgroup th:each="group : ${groups}" th:label="${group.name}"
                 th:attr="data-category-id=${group.id}, data-category-is-exclusive=${group.exclusive}">

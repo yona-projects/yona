@@ -34,7 +34,7 @@
                     </ul>
 
                     <form id="search" name="search" th:action="@{/organizations/{name}/issues(name=${org.name})}" method="get">
-                        <select id="projects" name="projectNames[]" multiple th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
+                        <select class="form-select" id="projects" name="projectNames[]" multiple th:attr="data-placeholder=#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
                             <option th:each="option : ${projectOptions}" th:value="${option.name}" th:selected="${option.selected}" th:attr="data-avatar-url=${option.logoUrl}" th:text="${option.name}"></option>
                         </select>
                         <hr>

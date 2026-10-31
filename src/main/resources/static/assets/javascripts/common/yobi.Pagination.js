@@ -163,7 +163,7 @@ yobi.Pagination = (function(window, document) {
      * @private
      */
     function _getPageInputBox(htData){
-        var welPageInput = $('<input type="number" pattern="[0-9]*" class="input-mini nospinner">');
+        var welPageInput = $('<input type="number" pattern="[0-9]*" class="form-control input-mini nospinner">');
 
         welPageInput.prop({
             "name" : htData.paramNameForPage,

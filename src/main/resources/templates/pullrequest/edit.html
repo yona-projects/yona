@@ -20,10 +20,10 @@
                     <!-- from -->
                     <div class="float-start">
                         <label for="fromProjectId" class="field-title" th:text="#{pullRequest.from}"></label>
-                        <select id="fromProjectId" name="fromProjectId" data-toggle="select2" class="mr5" disabled>
+                        <select id="fromProjectId" name="fromProjectId" data-toggle="select2" class="mr5 form-select" disabled>
                             <option th:value="${fromProjectId}" selected th:text="${fromLabel}"></option>
                         </select>
-                        <select id="fromBranch" name="fromBranch" data-toggle="select2" data-format="branch" disabled
+                        <select class="form-select" id="fromBranch" name="fromBranch" data-toggle="select2" data-format="branch" disabled
                                 data-dropdown-css-class="branches" th:attr="data-placeholder=#{pullRequest.select.branch}">
                             <option></option>
                             <option th:each="b : ${fromBranches}" th:value="${b.name}" th:selected="${b.selected}" th:text="${b.name}"></option>
@@ -41,10 +41,10 @@
                     <!-- to -->
                     <div class="float-end">
                         <label for="toProjectId" class="field-title" th:text="#{pullRequest.to}"></label>
-                        <select id="toProjectId" name="toProjectId" data-toggle="select2" class="mr5" disabled>
+                        <select id="toProjectId" name="toProjectId" data-toggle="select2" class="mr5 form-select" disabled>
                             <option th:value="${toProjectId}" selected th:text="${toLabel}"></option>
                         </select>
-                        <select id="toBranch" name="toBranch" data-toggle="select2" data-format="branch" disabled
+                        <select class="form-select" id="toBranch" name="toBranch" data-toggle="select2" data-format="branch" disabled
                                 data-dropdown-css-class="branches" th:attr="data-placeholder=#{pullRequest.select.branch}">
                             <option></option>
                             <option th:each="b : ${toBranches}" th:value="${b.name}" th:selected="${b.selected}" th:text="${b.name}"></option>
@@ -60,7 +60,7 @@
                 <div th:if="${open}" id="status" class="alert mt20 mb20 alert-warning" th:text="#{pullRequest.is.merging}"></div>
 
                 <div>
-                    <input type="text" id="title" name="title" maxlength="255" class="text" th:value="${prTitle}" th:placeholder="#{title}" data-is-user-has-typed="true">
+                    <input type="text" id="title" name="title" maxlength="255" class="text form-control" th:value="${prTitle}" th:placeholder="#{title}" data-is-user-has-typed="true">
                     <div style="position: relative;">
                         <th:block th:replace="~{common/editor :: editor('body', ${body}, 'data-is-user-has-typed=true', 'content-body', false)}"></th:block>
                     </div>

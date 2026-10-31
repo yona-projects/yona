@@ -23,15 +23,15 @@
         <dl>
             <dt th:text="#{user.loginId}"></dt>
             <dd class="mt10">
-                <input type="text" class="text" th:value="${account.loginId}" readonly>
+                <input type="text" class="text form-control" th:value="${account.loginId}" readonly>
             </dd>
           <dt th:text="#{user.name}"></dt>
           <dd class="mt10">
-            <input type="text" name="name" class="text" th:value="${account.name}">
+            <input type="text" name="name" class="text form-control" th:value="${account.name}">
           </dd>
           <dt th:text="#{user.email}"></dt>
           <dd class="mt10">
-            <input type="email" name="email" class="text" th:value="${account.email}">
+            <input type="email" name="email" class="text form-control" th:value="${account.email}">
           </dd>
           <dd>
             <button type="submit" class="ybtn ybtn-success" th:text="#{userinfo.editProfile}"></button>
@@ -51,7 +51,7 @@
             <div class="btn-wrap mt10 center-txt">
               <div class="ybtn ybtn-small fake-file-wrap btnUploadAvatar">
                 <th:block th:text="#{userinfo.changeAvatar}"></th:block><!--
-                --><input id="avatarFile" type="file" class="file" name="filePath" accept="image/*">
+                --><input id="avatarFile" type="file" class="file form-control" name="filePath" accept="image/*">
               </div>
             </div>
           </div>

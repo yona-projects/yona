@@ -21,7 +21,7 @@
                     <div class="col-lg-12">
                         <dl>
                             <dd>
-                                <input type="text" id="title" name="title" th:value="${titleValue}" class="zen-mode text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" th:placeholder="#{title.text}">
+                                <input type="text" id="title" name="title" th:value="${titleValue}" class="zen-mode text title form-control" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" th:placeholder="#{title.text}">
                                 <div th:if="${errors['title'] != null}" class="message">
                                     <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
                                 </div>
@@ -51,8 +51,8 @@
                                 <dt th:text="#{milestone.form.state}"></dt>
                                 <dd>
                                     <div>
-                                        <input type="radio" name="state" value="OPEN" id="milestone-open" class="radio-btn" th:attr="checked=${input.state == 'OPEN'} ? 'checked'"><label for="milestone-open" class="bold" th:text="#{milestone.state.open}"></label>&nbsp;
-                                        <input type="radio" name="state" value="CLOSED" id="milestone-close" class="radio-btn" th:attr="checked=${input.state == 'CLOSED'} ? 'checked'"><label for="milestone-close" class="bold" th:text="#{milestone.state.closed}"></label>
+                                        <input type="radio" name="state" value="OPEN" id="milestone-open" class="radio-btn form-check-input" th:attr="checked=${input.state == 'OPEN'} ? 'checked'"><label for="milestone-open" class="bold" th:text="#{milestone.state.open}"></label>&nbsp;
+                                        <input type="radio" name="state" value="CLOSED" id="milestone-close" class="radio-btn form-check-input" th:attr="checked=${input.state == 'CLOSED'} ? 'checked'"><label for="milestone-close" class="bold" th:text="#{milestone.state.closed}"></label>
                                     </div>
                                 </dd>
                             </dl>
@@ -61,7 +61,7 @@
                                 <dd>
                                     <div>
                                         <label for="dueDate">
-                                            <input type="text" name="dueDate" id="dueDate" class="validate due-date" th:value="${input.dueDate}">
+                                            <input type="text" name="dueDate" id="dueDate" class="validate due-date form-control" th:value="${input.dueDate}">
                                         </label>
                                         <div id="datepicker" class="date-picker"></div>
                                     </div>

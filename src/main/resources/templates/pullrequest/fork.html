@@ -48,7 +48,7 @@
                     <div class="form-field">
                         <label class="col-form-label" for="inputOwner" th:text="#{project.owner}"></label>
                         <div>
-                            <select id="project-owner" name="owner">
+                            <select class="form-select" id="project-owner" name="owner">
                                 <option th:each="o : ${owners}" th:attr="data-url=${o.url}" th:value="${o.value}" th:selected="${o.selected}" th:text="${o.value}"></option>
                             </select>
                         </div>
@@ -56,7 +56,7 @@
                     <div class="form-field">
                         <label class="col-form-label" for="inputName" th:text="#{project.name}"></label>
                         <div>
-                            <input type="text" id="inputName" name="name" th:value="${forkName}" />
+                            <input class="form-control" type="text" id="inputName" name="name" th:value="${forkName}" />
                             <span class="d-inline-block align-middle ps-1 text-body-secondary" th:text="#{project.name.alert}"></span>
                         </div>
                     </div>
@@ -64,13 +64,13 @@
                     <div class="form-field">
                         <label class="col-form-label" th:text="#{project.shareOption}"></label>
                         <div>
-                            <input name="projectScope" type="radio" id="public" value="PUBLIC" class="radio-btn" checked="checked">
+                            <input name="projectScope" type="radio" id="public" value="PUBLIC" class="radio-btn form-check-input" checked="checked">
                             <label for="public" class="bg-radiobtn label-public" th:text="#{project.public}"></label>
                             <th:block th:if="${protectedAllowed}">
-                                <input name="projectScope" type="radio" id="protected" value="PROTECTED" class="radio-btn">
+                                <input name="projectScope" type="radio" id="protected" value="PROTECTED" class="radio-btn form-check-input">
                                 <label for="protected" class="bg-radiobtn label-protected" th:text="#{project.protected}"></label>
                             </th:block>
-                            <input name="projectScope" type="radio" id="private" value="PRIVATE" class="radio-btn">
+                            <input name="projectScope" type="radio" id="private" value="PRIVATE" class="radio-btn form-check-input">
                             <label for="private" class="bg-radiobtn label-private" th:text="#{project.private}"></label>
                         </div>
                     </div>

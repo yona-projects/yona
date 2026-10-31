@@ -3,21 +3,10 @@
 // BS5 변수(`_bs-variables.scss`)로 표현되는 것은 변수로 옮기고, 변수로 되지 않는 것만 여기에 둔다. 호환 층(`_bs3-compat.scss`)에서 이관했다(D-54).
 // 이 구역의 규칙을 걷어내려면 자체 CSS의 폭 계산(content-box 전제)을 함께 고쳐야 한다.
 
-// 폼 입력 중 글자를 입력하는 종류. BS2는 이 종류에만 테두리, 그림자, 안쪽 여백을 주었다.
-$text-input-types: text, password, datetime, datetime-local, date, month, time, week, number, email, url, search, tel, color;
-
-@function text-inputs($suffix: "") {
-  $list: ();
-  @each $type in $text-input-types {
-    $list: append($list, unquote('input[type="#{$type}"]#{$suffix}'), comma);
-  }
-  @return $list;
-}
-
 // 박스 모델: 모든 요소는 BS5처럼 border-box이다(X-38h, D-55). v1.6은 Bootstrap 2의 content-box를 전제로 `width`와 `height`에 안쪽 여백과 테두리를 더해 계산했으므로,
 // 그 계산이 남아 있는 곳은 두 가지로 처리했다: (1) 요소의 안쪽 여백이 일정한 선언은 `calc(원래 값 + 여백)`으로 바꾸고, (2) 요소마다 여백이 달라 값을 하나로 정할 수 없는
-// 규칙(글자 입력창, 고정 그리드 열, `.row`, 일부 본문 영역)과 content-box를 전제로 쓰인 외부 위젯은 그 규칙에만 `box-sizing: content-box`를 둔다.
-// (2)는 X-38i(디자인 현대화) 때 border-box 기준으로 다시 쓴다.
+// 규칙(고정 그리드 열, `.row`, 일부 본문 영역)과 content-box를 전제로 쓰인 외부 위젯은 그 규칙에만 `box-sizing: content-box`를 둔다.
+// (2)는 X-38i(디자인 현대화) 때 border-box 기준으로 다시 쓴다. 글자 입력창은 BS5 `.form-control`로 옮겨 예외가 없다.
 *, *:before, *:after { box-sizing: border-box; }
 
 // 외부 위젯(select2, pikaday, jquery.elevator)의 CSS는 content-box를 전제로 쓰였다. 위젯 루트 아래는 content-box로 두고, `:where`로 특이도를 0으로 낮춰 위젯 자신의 `box-sizing` 선언이 이기게 한다.
@@ -38,23 +27,8 @@ img {
   vertical-align: middle;
   border: 0;
 }
-button, input, select, textarea {
-  margin: 0;
-  font-size: 100%;
-  vertical-align: middle;
-}
-button, input {
-  line-height: normal;
-}
 label, select, button, input[type="button"], input[type="reset"], input[type="submit"], input[type="radio"], input[type="checkbox"] {
   cursor: pointer;
-}
-input[type="search"] {
-  box-sizing: content-box;
-}
-textarea {
-  overflow: auto;
-  vertical-align: top;
 }
 cite {
   font-style: normal;
@@ -190,97 +164,15 @@ legend small {
   font-size: 0.9375rem;
   color: #999999;
 }
-label, input, button, select, textarea {
+// 폼 컨트롤(입력창, 글상자, 선택 상자, 체크박스, 라디오)은 Bootstrap 5의 `.form-control`, `.form-select`, `.form-check-input` 기본 모양을 쓴다(X-38i, D-56).
+// BS2의 요소 기본값(높이 20px, 안쪽 여백 4px 6px, 안쪽 그림자, 파란 포커스 빛, 고정 폭 206px/220px)은 지웠다.
+label {
   font-size: 0.875rem;
   font-weight: normal;
   line-height: 1.25rem;
-}
-input, button, select, textarea {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
-label {
   display: block;
   margin-bottom: 5px;
 }
-select, textarea, #{text-inputs()} {
-  display: inline-block;
-  height: 20px;
-  padding: 4px 6px;
-  margin-bottom: 10px;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: #555555;
-  vertical-align: middle;
-  border-radius: 4px;
-}
-// 글자 입력창은 BS2의 content-box 기준(높이 20px에 안쪽 여백과 테두리가 더해진다)을 그대로 둔다. 요소마다 안쪽 여백을 따로 정하는 곳이 많아 border-box로 옮기면 크기가 맞지 않는다(X-38h).
-textarea, #{text-inputs()}, option {
-  box-sizing: content-box;
-}
-input, textarea {
-  width: 206px;
-}
-textarea {
-  height: auto;
-}
-textarea, #{text-inputs()} {
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-  transition: border linear 0.2s, box-shadow linear 0.2s;
-}
-textarea:focus, #{text-inputs(":focus")} {
-  border-color: rgba(82, 168, 236, 0.8);
-  outline: 0;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
-}
-input[type="file"], input[type="image"], input[type="submit"], input[type="reset"], input[type="button"] {
-  width: auto;
-}
-// BS5 `.form-check-input`을 단 체크박스와 라디오는 BS5 크기와 여백을 쓴다. 그것을 달지 않은 것만 BS2 기본값을 받으며, 마크업을 옮기면 이 규칙도 지운다(X-38i).
-input[type="radio"]:not(.form-check-input), input[type="checkbox"]:not(.form-check-input) {
-  width: auto;
-  margin: 4px 0 0;
-  line-height: normal;
-}
-select, input[type="file"] {
-  height: 30px;
-  line-height: 1.875rem;
-}
-select {
-  width: 220px;
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
-}
-select[multiple], select[size] {
-  height: auto;
-}
-select:focus, input[type="file"]:focus, input[type="radio"]:focus, input[type="checkbox"]:focus {
-  outline: thin dotted #333;
-  outline: 5px auto -webkit-focus-ring-color;
-  outline-offset: -2px;
-}
-input, textarea {
-  margin-left: 0;
-}
-input[disabled], select[disabled], textarea[disabled], input[readonly], select[readonly], textarea[readonly] {
-  cursor: not-allowed;
-  background-color: #eeeeee;
-}
-input[type="radio"][disabled], input[type="checkbox"][disabled], input[type="radio"][readonly], input[type="checkbox"][readonly] {
-  background-color: transparent;
-}
-input:focus:invalid, textarea:focus:invalid, select:focus:invalid {
-  color: #b94a48;
-  border-color: #ee5f5b;
-}
-input:focus:invalid:focus, textarea:focus:invalid:focus, select:focus:invalid:focus {
-  border-color: #e9322d;
-  box-shadow: 0 0 6px #f8b9b7;
-}
-
-// UA 기본이 border-box인 컨트롤은 전역 content-box 복원에서 제외한다(Bootstrap 2에서도 브라우저 기본 그대로였다).
-button, select, input[type="button"], input[type="submit"], input[type="reset"], input[type="color"], input[type="image"], input[type="checkbox"], input[type="radio"], meter, progress { box-sizing: border-box; }
 
 
 

@@ -18,9 +18,9 @@
         <form th:if="${creatable}" id="formNewWebhook" th:action="${action}" method="post" class="new-webhook-wrap">
             <strong class="form-legend" th:text="#{project.webhook.new}"></strong>
             <div class="form-wrap">
-                <div>
-                    <input type="text" name="payloadUrl" class="input-webhook-payload" maxlength="2000" autocomplete="off" th:placeholder="#{project.webhook.payloadUrl}">
-                    <input type="text" name="secret" class="input-webhook-secret" maxlength="250" autocomplete="off" th:placeholder="#{project.webhook.secret}">
+                <div class="d-flex flex-wrap gap-2 align-items-start">
+                    <input type="text" name="payloadUrl" class="input-webhook-payload form-control" maxlength="2000" autocomplete="off" th:placeholder="#{project.webhook.payloadUrl}">
+                    <input type="text" name="secret" class="input-webhook-secret form-control" maxlength="250" autocomplete="off" th:placeholder="#{project.webhook.secret}">
                     <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{project.webhook.add}"></button>
                 </div>
                 <div>
@@ -61,7 +61,7 @@
                     <div class="col-lg-5"><h6 class="mr20 truncate" th:text="${w.payloadUrl}"></h6></div>
                     <div class="col-lg-2 text-center"><h6 th:text="${#strings.isEmpty(w.secret)} ? 'NONE' : ${w.secret}"></h6></div>
                     <div class="col-lg-2 text-center"><h6 th:text="${w.type}"></h6></div>
-                    <div class="col-lg-2 text-center"><input type="checkbox" th:checked="${w.gitPush}" onclick="return false;" /></div>
+                    <div class="col-lg-2 text-center"><input class="form-check-input" type="checkbox" th:checked="${w.gitPush}" onclick="return false;" /></div>
                     <div class="col-lg-1 text-center">
                         <button type="button" class="ybtn ybtn-danger ybtn-small" data-request-method="delete" th:attr="data-request-uri=${w.deleteUrl}" th:text="#{button.delete}"></button>
                     </div>

@@ -21,7 +21,7 @@
                 </div>
 
                 <th:block th:unless="${hasPath}">
-                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-end">
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="float-end form-select">
                     <th:block th:each="g : ${branchGroups}">
                         <optgroup th:if="${g.titleKey != null}" th:label="#{${g.titleKey}}">
                             <option th:each="b : ${g.options}" th:value="${b.url}" th:selected="${b.selected}" th:text="${b.label}"></option>

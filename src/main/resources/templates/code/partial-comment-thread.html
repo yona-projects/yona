@@ -49,7 +49,7 @@
                     </span>
                 </div>
                 <div class="comment-body markdown-wrap" th:attr="data-via-email=${c.viaEmail}" th:utext="${c.bodyHtml}"></div>
-                <textarea th:if="${c.editUrl != null}" class="comment-raw" style="display:none;" th:text="${c.rawContents}"></textarea>
+                <textarea th:if="${c.editUrl != null}" class="comment-raw form-control" style="display:none;" th:text="${c.rawContents}"></textarea>
                 <div class="attachments" th:attr="data-attachments=${c.attachments}"></div>
             </div>
         </li>

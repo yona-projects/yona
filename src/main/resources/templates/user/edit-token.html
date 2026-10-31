@@ -25,7 +25,7 @@
         <!--/* 방금 만든 토큰은 이 응답에서 한 번만 보이고 다시 볼 수 없다 */-->
         <div th:if="${newToken != null}" class="alert alert-success">
             <p th:text="#{apiToken.created.once}"></p>
-            <input id="new-token-value" type="text" readonly class="text" size="60" style="width: 90%"
+            <input id="new-token-value" type="text" readonly class="text form-control" size="60" style="width: 90%"
                    onClick="this.setSelectionRange(0, this.value.length)" th:value="${newToken}">
             <span class="hide" th:text="${newToken}"></span>
         </div>

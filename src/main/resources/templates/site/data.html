@@ -33,7 +33,7 @@
     <p th:text="#{site.data.import.info}"></p>
 
     <form th:action="@{/sites/import}" method="post" enctype="multipart/form-data">
-        <input type="file" name="data">
+        <input class="form-control" type="file" name="data">
         <p>
             <input type="submit">
         </p>

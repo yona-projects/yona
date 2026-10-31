@@ -21,7 +21,7 @@
                 <dl class="issue-option">
                     <dt th:text="#{pullRequest.sender}"></dt>
                     <dd>
-                        <select id="contributors" name="contributorId" data-format="user">
+                        <select class="form-select" id="contributors" name="contributorId" data-format="user">
                             <th:block th:each="c, st : ${contributors}">
                                 <option th:if="${c.value == ''}" value="" th:text="#{common.order.all}"></option>
                                 <option th:if="${c.value != '' and c.avatarUrl == null}" th:value="${c.value}" th:text="#{pullRequest.sentByMe}"></option>
@@ -34,7 +34,7 @@
                 <dl class="issue-option">
                     <dt th:text="#{issue.assignee}"></dt>
                     <dd>
-                        <select id="assignees" name="assigneeId" data-toggle="select2" data-format="user">
+                        <select class="form-select" id="assignees" name="assigneeId" data-toggle="select2" data-format="user">
                             <th:block th:each="c : ${assignees}">
                                 <option th:if="${c.value == ''}" value="" th:text="#{common.order.all}"></option>
                                 <option th:if="${c.value == 'none'}" value="none" th:selected="${c.selected}" th:text="#{issue.noAssignee}"></option>
@@ -48,7 +48,7 @@
                 <dl class="issue-option" th:if="${reviewRequestedMe != null}">
                     <dt th:text="#{pullRequest.reviewRequestedFilter}"></dt>
                     <dd>
-                        <select id="reviewRequested" name="reviewRequestedId">
+                        <select class="form-select" id="reviewRequested" name="reviewRequestedId">
                             <option value="" th:text="#{common.order.all}"></option>
                             <option th:value="${reviewRequestedMe.value}" th:selected="${reviewRequestedMe.selected}" th:text="#{pullRequest.reviewRequestedOfMe}"></option>
                         </select>

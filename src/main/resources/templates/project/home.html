@@ -30,13 +30,13 @@
                 </div>
                 <div class="project-description-edit hidden" data-toggle="project-description-tab">
                     <form class="d-flex flex-wrap align-items-start" th:action="@{/{owner}/{name}(owner=${projectView.project.owner},name=${projectView.project.name})}" onsubmit="return false">
-                    <input type="text" id="project-description-input" class="col-lg-6" th:placeholder="#{project.description.placeholder}" th:value="${projectView.project.overview}"/>
+                    <input type="text" id="project-description-input" class="col-lg-6 form-control" th:placeholder="#{project.description.placeholder}" th:value="${projectView.project.overview}"/>
                     <button type="button" class="ybtn ybtn-success" id="descriptionSaveBtn" th:text="#{button.save}"></button> <button type="button" class="ybtn" data-toggle="description-cancel" th:text="#{button.cancel}"></button>
                     </form>
                 </div>
             </div>
             <div th:if="${projectView.menuSetting.code}" class="project-clone-wrap col-lg-3 hide-in-mobile">
-                <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" th:value="${projectView.cloneUrl}">
+                <input type="text" class="project-clone-url form-control" id="cloneURL" readonly="readonly" th:value="${projectView.cloneUrl}">
                 <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}"></button>
             </div>
         </div>

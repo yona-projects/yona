@@ -42,7 +42,7 @@
 
         <div th:id="'edit-' + ${wrapId}" class="tab-pane active">
             <div class="textarea-box">
-                <textarea th:name="${textareaName}" class="editorSeries content comment nm" th:attr="data-editor-mode=${editorMode}" markdown="true" th:id="'editor-' + ${textareaName} + '-' + ${wrapId}"
+                <textarea th:name="${textareaName}" class="editorSeries content comment nm form-control" th:attr="data-editor-mode=${editorMode}" markdown="true" th:id="'editor-' + ${textareaName} + '-' + ${wrapId}"
                     th:tabindex="${additionalAttr != null and #strings.startsWith(additionalAttr, 'tabindex=')} ? ${#strings.substringAfter(additionalAttr, 'tabindex=')}"
                     th:style="${additionalAttr != null and #strings.startsWith(additionalAttr, 'style=')} ? ${#strings.substringAfter(additionalAttr, 'style=')}"
                     th:data-is-user-has-typed="${additionalAttr != null and #strings.startsWith(additionalAttr, 'data-is-user-has-typed=')} ? ${#strings.substringAfter(additionalAttr, 'data-is-user-has-typed=')}"

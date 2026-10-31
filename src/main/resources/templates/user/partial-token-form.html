@@ -42,7 +42,7 @@
 <div th:fragment="nameField(value)" class="token-field">
     <label class="token-label" for="token-name" th:text="#{apiToken.create.name}"></label>
     <div class="token-help" th:text="#{apiToken.name.help}"></div>
-    <input type="text" id="token-name" name="name" maxlength="100" class="text token-text" th:value="${value}" autocomplete="off">
+    <input type="text" id="token-name" name="name" maxlength="100" class="text token-text form-control" th:value="${value}" autocomplete="off">
 </div>
 
 <div th:fragment="scopeField(options, selected)" class="token-field">
@@ -50,7 +50,7 @@
     <div class="token-help" th:text="#{apiToken.scopes.help}"></div>
     <div class="token-scopes">
         <label th:each="s : ${options}" class="token-scope-row">
-            <input type="checkbox" name="scopes" th:value="${s}" th:checked="${selected != null and #lists.contains(selected, s)}">
+            <input class="form-check-input" type="checkbox" name="scopes" th:value="${s}" th:checked="${selected != null and #lists.contains(selected, s)}">
             <code th:text="${s}"></code><span class="token-scope-desc" th:text="#{'apiToken.scope.' + ${s}}"></span>
         </label>
     </div>
@@ -58,14 +58,14 @@
 
 <div th:fragment="expiryField(maxDays)" class="token-field token-expiry">
     <label class="token-label" th:text="#{apiToken.create.expiration}"></label>
-    <select name="expiration" class="token-expiration">
+    <select name="expiration" class="token-expiration form-select">
         <option th:each="d : ${ {7, 30, 60, 90} }" th:value="${d}" th:selected="${d == 30}" th:text="#{apiToken.expiration.days(${d})}"></option>
         <option th:if="${maxDays <= 0}" value="none" th:text="#{apiToken.expiration.none}"></option>
         <option value="custom" th:text="#{apiToken.expiration.custom}"></option>
     </select>
     <!--/* 사용자 지정을 고르면 달력(Pikaday)으로 만료 날짜를 정한다. 내일 이후만 고를 수 있다 */-->
     <div class="token-custom">
-        <input type="text" name="expiresDate" class="text token-expires-date" autocomplete="off" placeholder="yyyy-MM-dd" th:attr="aria-label=#{apiToken.create.expiresDate}">
+        <input type="text" name="expiresDate" class="text token-expires-date form-control" autocomplete="off" placeholder="yyyy-MM-dd" th:attr="aria-label=#{apiToken.create.expiresDate}">
         <div class="token-expires-picker date-picker"></div>
     </div>
 </div>

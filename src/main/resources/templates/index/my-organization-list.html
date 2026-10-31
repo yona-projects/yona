@@ -9,7 +9,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="myOrganizationList">
 <div class="search-result">
     <div class="group">
-        <input class="search-input org-search" type="text" autocomplete="off" th:placeholder="#{title.type.name}">
+        <input class="search-input org-search form-control" type="text" autocomplete="off" th:placeholder="#{title.type.name}">
         <span class="bar"></span>
     </div>
     <div th:if="${menu.noOrganizations}" id="organizations" class="no-result tab-pane user-ul" th:text="#{title.no.results}"></div>

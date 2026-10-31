@@ -43,7 +43,7 @@
                 <span class="ago" th:title="${commit.agoTitle}" th:text="${commit.ago}"></span>
                 <strong class="commitId float-end" th:text="'@' + ${commit.id}"></strong>
                 <span class="float-end mt5 mr10" th:if="${!#lists.isEmpty(comments)}">
-                    <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox">
+                    <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox form-check-input">
                     <label for="toggle-comments" class="form-label" th:text="#{code.showcomments}"></label>
                 </span>
             </p>

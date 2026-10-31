@@ -156,6 +156,7 @@ $form-check-padding-start: 1.25rem;
 $form-check-min-height: 1.25rem;
 $form-check-margin-bottom: 0;
 $form-check-input-width: 1em;
+$form-check-input-border: 1px solid rgba(0, 0, 0, 0.4); // 회색 바탕 위에서도 체크박스 테두리가 보이도록 BS5 기본(0.25)보다 진하게
 
 // 폼 안내 글(`.form-text`, BS2의 `.help-block`): 글자 크기는 본문과 같고 색은 보조 글자색이다.
 $form-text-font-size: 1em;

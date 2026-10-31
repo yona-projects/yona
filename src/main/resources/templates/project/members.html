@@ -16,8 +16,8 @@
         <th:block th:replace="~{project/partial-settingmenu :: settingmenu(${projectView}, ${requestPath})}"></th:block>
 
         <div class="inner-bubble">
-            <form class="nm" th:action="@{/{owner}/{name}/members(owner=${project.owner},name=${project.name})}" method="post" id="addNewMember">
-                <input type="text" class="text uname" id="loginId" name="loginId" required="required"
+            <form class="nm d-flex gap-2 align-items-start" th:action="@{/{owner}/{name}/members(owner=${project.owner},name=${project.name})}" method="post" id="addNewMember">
+                <input type="text" class="text uname form-control" id="loginId" name="loginId" required="required"
                        data-provider="typeahead" autocomplete="off"
                        th:placeholder="#{project.members.addMember}"
                        pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" th:title="#{user.wrongloginId.alert}" /><!--

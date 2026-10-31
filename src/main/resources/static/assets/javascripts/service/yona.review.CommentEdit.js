@@ -25,7 +25,7 @@
             return;
         }
         var $body = $comment.find(".comment-body");
-        var $form = $('<div class="comment-edit-form mt10"><textarea class="comment-edit-text" rows="6" style="width:100%; box-sizing:border-box;"></textarea>' +
+        var $form = $('<div class="comment-edit-form mt10"><textarea class="comment-edit-text form-control" rows="6" style="width:100%; box-sizing:border-box;"></textarea>' +
             '<div class="right-txt mt5"><button type="button" class="ybtn ybtn-small comment-edit-cancel"></button> ' +
             '<button type="button" class="ybtn ybtn-success ybtn-small comment-edit-save"></button></div></div>');
         $form.find(".comment-edit-text").val($comment.find("textarea.comment-raw").val());

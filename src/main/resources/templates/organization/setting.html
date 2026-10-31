@@ -30,7 +30,7 @@
                                 <li>
                                     <div class="btn-wrap">
                                         <div class="nbtn medium white fake-file-wrap">
-                                            <i class="yobicon-upload"></i> <th:block th:text="#{button.upload}"></th:block><input id="logoPath" type="file" class="file" name="logoPath" accept="image/*">
+                                            <i class="yobicon-upload"></i> <th:block th:text="#{button.upload}"></th:block><input id="logoPath" type="file" class="file form-control" name="logoPath" accept="image/*">
                                         </div>
                                     </div>
                                 </li>
@@ -42,7 +42,7 @@
                             <label for="project-name" th:text="#{organization.name.placeholder}"></label>
                         </dt>
                         <dd>
-                            <input id="project-name" type="text" name="name" maxlength="250" th:value="${org.name}">
+                            <input class="form-control" id="project-name" type="text" name="name" maxlength="250" th:value="${org.name}">
                             <div class="orange-txt">
                                 <span th:if="${nameWarning != null}" class="warning" th:text="${nameWarning}"></span>
                                 <span class="msg wrongName" style="display: none;"></span>
@@ -52,7 +52,7 @@
                             <label for="project-desc" th:text="#{organization.description.placeholder}"></label>
                         </dt>
                         <dd>
-                            <textarea id="project-desc" name="descr" maxlength="250" class="textarea" th:text="${org.descr}"></textarea>
+                            <textarea id="project-desc" name="descr" maxlength="250" class="textarea form-control" th:text="${org.descr}"></textarea>
                         </dd>
                     </dl>
                 </div>

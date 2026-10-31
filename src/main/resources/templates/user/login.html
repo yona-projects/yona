@@ -26,10 +26,10 @@
       <th:block th:unless="${site.socialLoginOnly}">
       <dl>
         <dd>
-          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" th:placeholder="${loginIdPlaceHolder}">
+          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email form-control" autocomplete="off" th:placeholder="${loginIdPlaceHolder}">
         </dd>
         <dd>
-          <input id="password" name="password" type="password" class="text password" autocomplete="off" th:placeholder="${passwordPlaceHolder}">
+          <input id="password" name="password" type="password" class="text password form-control" autocomplete="off" th:placeholder="${passwordPlaceHolder}">
         </dd>
       </dl>
 
@@ -46,7 +46,7 @@
       </div>
       <div class="act-row mt5" th:unless="${site.socialLoginOnly}">
         <div class="remember-me-wrap float-start">
-          <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" checked>
+          <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox form-check-input" checked>
           <label for="remember-me" class="bg-checkbox" th:text="#{title.rememberMe}"></label>
         </div>
 

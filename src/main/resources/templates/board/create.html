@@ -19,7 +19,7 @@
       <div class="content-wrap frm-wrap">
         <dl>
           <dd>
-            <input type="text" id="title" autocomplete="off" name="title" class="zen-mode text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1"
+            <input type="text" id="title" autocomplete="off" name="title" class="zen-mode text title form-control" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1"
                    th:value="${titleValue}" th:placeholder="${hasPath} ? #{code.commitMsg} : #{title}"/>
             <div th:if="${errors['title'] != null}" class="message">
               <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
@@ -30,7 +30,7 @@
               <span class="help help-droppable" th:text="#{issue.template.no.attachment.allow}"></span>
             </div>
             <div th:if="${hasPath}" class="file-path-wrap">
-              <span class="help file-path"><th:block th:text="${branch} + ': /' + ${path}"></th:block> <input th:unless="${isEdit}" type="text" name="new-file-name" class="new-file-name" value="" placeholder="filename.." tabindex="2"></span>
+              <span class="help file-path"><th:block th:text="${branch} + ': /' + ${path}"></th:block> <input th:unless="${isEdit}" type="text" name="new-file-name" class="new-file-name form-control" value="" placeholder="filename.." tabindex="2"></span>
             </div>
           </dd>
           <dd style="position: relative;">

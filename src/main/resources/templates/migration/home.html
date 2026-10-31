@@ -39,7 +39,7 @@
             <div class="row source-destination" >
                 <div class="source-project col-lg-4">
                     <div class="header" ng-cloak>Source {{vm.sourceProjects.length}} 개</div>
-                    <div class="search left-border"><input tabindex="1" type="text" class="search-query" name="target-filter" ng-model="source.full_name" placeholder="Search.." autofocus></div>
+                    <div class="search left-border"><input tabindex="1" type="text" class="search-query form-control" name="target-filter" ng-model="source.full_name" placeholder="Search.." autofocus></div>
                     <div class="left-project-list">
                         <div class="project-list" ng-repeat="repo in vm.sourceProjects | filter:source:strict" ng-click="vm.getSourceProject(repo.owner, repo.projectName);vm.selectSourceProject(repo.full_name)" ng-class="{'selected': repo.full_name == vm.selectedSourceName }" ng-cloak>
                             <div class="owner" ng-if="vm.isNewOwner(repo)">{{repo.owner}}</div>
@@ -52,7 +52,7 @@
                 </div>
                 <div class="destination-project col-lg-4" th:attr="ng-init=${#strings.isEmpty(token)} ? null : 'vm.getDestinationProjects();vm.getCurrentGithubUser()'">
                     <div class="header" ng-cloak>Destination {{vm.destinationProjects.length}} 개</div>
-                    <div class="search"><input type="text" tabindex="2" class="search-query" name="target-filter" ng-model="destination.full_name" placeholder="Search.."></div>
+                    <div class="search"><input type="text" tabindex="2" class="search-query form-control" name="target-filter" ng-model="destination.full_name" placeholder="Search.."></div>
                     <div class="destination-project-list">
                         <div class="project-list" ng-repeat="repo in vm.destinationProjects | filter:destination:strict" ng-click="vm.setDestination(repo);vm.selectDestinationProject(repo.full_name)" ng-class="{'selected': repo.full_name == vm.selectedDestinationName }" ng-cloak>
                             <div class="owner" ng-if="vm.isNewOwner(repo)">{{::repo.owner.login}}</div>
@@ -144,7 +144,7 @@
                             <tr ng-repeat="assignee in vm.source.assignees" class="assignee">
                                 <td>{{assignee.name}}<br/>@{{assignee.login}}</td>
                                 <td>
-                                    <input ng-keyup="vm.userExistAtDestinationProject(vm.destination, assignee.login)" type="text" placeholder="지정되지 않음" ng-model="vm.destination.assignees[assignee.login].login" ng-init="vm.getAssigneeFromLocal(assignee.login)"><i class="yobicon-check-circle" ng-if="vm.destination.assignees[assignee.login].login && vm.destination.assignees[assignee.login].confirmed"></i><i class="yobicon-delete-circle-alt" ng-if="vm.destination.assignees[assignee.login].login && vm.destination.assignees[assignee.login].confirmed === false"></i></td>
+                                    <input class="form-control" ng-keyup="vm.userExistAtDestinationProject(vm.destination, assignee.login)" type="text" placeholder="지정되지 않음" ng-model="vm.destination.assignees[assignee.login].login" ng-init="vm.getAssigneeFromLocal(assignee.login)"><i class="yobicon-check-circle" ng-if="vm.destination.assignees[assignee.login].login && vm.destination.assignees[assignee.login].confirmed"></i><i class="yobicon-delete-circle-alt" ng-if="vm.destination.assignees[assignee.login].login && vm.destination.assignees[assignee.login].confirmed === false"></i></td>
                             </tr>
                         </table>
                     </div>

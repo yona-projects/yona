@@ -31,7 +31,7 @@
                                     <div class="btn-wrap">
                                         <div class="nbtn medium white fake-file-wrap">
                                             <i class="yobicon-upload"></i> <th:block th:text="#{button.upload}"></th:block><!--
-                                        --> <input id="logoPath" type="file" class="file" name="logoPath" accept="image/*">
+                                        --> <input id="logoPath" type="file" class="file form-control" name="logoPath" accept="image/*">
                                         </div>
                                     </div>
                                 </li>
@@ -43,14 +43,14 @@
                             <label for="project-name" th:text="#{project.name.placeholder}"></label>
                         </dt>
                         <dd>
-                            <input id="project-name" type="text" name="name" data-bs-trigger="popover" th:attr="data-bs-content=#{project.transfer.description6}" data-bs-placement="left" maxlength="250" th:value="${project.name}">
+                            <input class="form-control" id="project-name" type="text" name="name" data-bs-trigger="popover" th:attr="data-bs-content=#{project.transfer.description6}" data-bs-placement="left" maxlength="250" th:value="${project.name}">
                             <th:block th:if="${oldPlaceHtml != null}" th:utext="${oldPlaceHtml}"></th:block><br/>
                         </dd>
                         <dt>
                             <label for="project-desc" th:text="#{project.description.placeholder}"></label>
                         </dt>
                         <dd>
-                            <textarea id="project-desc" name="overview" maxlength="250" class="textarea" th:text="${project.overview}"></textarea>
+                            <textarea id="project-desc" name="overview" maxlength="250" class="textarea form-control" th:text="${project.overview}"></textarea>
                         </dd>
                     </dl>
                 </div>
@@ -58,11 +58,11 @@
                 <div class="box-wrap middle">
                     <div class="cu-label" th:text="#{project.shareOption}"></div>
                     <div class="cu-desc">
-                        <input name="projectScope" type="radio" class="radio-btn" id="public" value="PUBLIC" th:checked="${project.isPublic()}"><label for="public" class="bg-radiobtn label-public" th:text="#{project.public}"></label>
+                        <input name="projectScope" type="radio" class="radio-btn form-check-input" id="public" value="PUBLIC" th:checked="${project.isPublic()}"><label for="public" class="bg-radiobtn label-public" th:text="#{project.public}"></label>
                         <th:block th:if="${project.hasGroup()}">
-                        <input name="projectScope" type="radio" class="radio-btn" id="protected" value="PROTECTED" th:checked="${project.isProtected()}"><label for="protected" class="bg-radiobtn label-protected" th:text="#{project.protected}"></label>
+                        <input name="projectScope" type="radio" class="radio-btn form-check-input" id="protected" value="PROTECTED" th:checked="${project.isProtected()}"><label for="protected" class="bg-radiobtn label-protected" th:text="#{project.protected}"></label>
                         </th:block>
-                        <input name="projectScope" type="radio" class="radio-btn" id="private" value="PRIVATE" th:checked="${project.isPrivate()}"><label for="private" class="bg-radiobtn label-private" th:text="#{project.private}"></label>
+                        <input name="projectScope" type="radio" class="radio-btn form-check-input" id="private" value="PRIVATE" th:checked="${project.isPrivate()}"><label for="private" class="bg-radiobtn label-private" th:text="#{project.private}"></label>
                         <span class="note" th:text="#{project.private.notice}"></span>
                     </div>
                 </div>
@@ -77,8 +77,8 @@
                 <div class="box-wrap middle">
                     <div class="cu-label" th:text="#{project.codeAccessible}"></div>
                     <div class="cu-desc">
-                        <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleMemberOnly" class="radio-btn" value="true" th:checked="${project.isCodeAccessibleMemberOnly == true}"><label for="codeAccessibleMemberOnly" class="bg-radiobtn label-public" th:text="#{button.yes}"></label>
-                        <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleAnyone" class="radio-btn" value="false" th:checked="${project.isCodeAccessibleMemberOnly != true}"><label for="codeAccessibleAnyone" class="bg-radiobtn label-private" th:text="#{button.no}"></label>
+                        <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleMemberOnly" class="radio-btn form-check-input" value="true" th:checked="${project.isCodeAccessibleMemberOnly == true}"><label for="codeAccessibleMemberOnly" class="bg-radiobtn label-public" th:text="#{button.yes}"></label>
+                        <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleAnyone" class="radio-btn form-check-input" value="false" th:checked="${project.isCodeAccessibleMemberOnly != true}"><label for="codeAccessibleAnyone" class="bg-radiobtn label-private" th:text="#{button.no}"></label>
                         <span class="note"></span>
                     </div>
                 </div>
@@ -90,9 +90,9 @@
                         <!--/* 새 커밋이 올라오면 오래된 승인을 해제할지(추가 항목 X-12, decisions.md D-35 5번). v1.6은 항상 해제했으므로 기본은 켬이다 */-->
                         <div class="mt10">
                             <span class="note" th:text="#{project.reviewer.dismiss.stale}"></span>
-                            <input name="isDismissingStaleApprovals" type="radio" class="radio-btn" id="dismissStaleEnable" value="true" th:checked="${project.isDismissingStaleApprovals != false}">
+                            <input name="isDismissingStaleApprovals" type="radio" class="radio-btn form-check-input" id="dismissStaleEnable" value="true" th:checked="${project.isDismissingStaleApprovals != false}">
                             <label for="dismissStaleEnable" class="bg-radiobtn label-public" th:text="#{project.reviewer.count.enable}"></label>
-                            <input name="isDismissingStaleApprovals" type="radio" class="radio-btn" id="dismissStaleDisable" value="false" th:checked="${project.isDismissingStaleApprovals == false}">
+                            <input name="isDismissingStaleApprovals" type="radio" class="radio-btn form-check-input" id="dismissStaleDisable" value="false" th:checked="${project.isDismissingStaleApprovals == false}">
                             <label for="dismissStaleDisable" class="bg-radiobtn label-private" th:text="#{project.reviewer.count.disable}"></label>
                         </div>
                     </div>
@@ -114,7 +114,7 @@
                         <div class="mt10">
                             <span class="note" th:text="#{project.merge.default}"></span>
                             <th:block th:each="m : ${ {'merge', 'squash', 'rebase'} }">
-                                <input name="defaultMergeMethod" type="radio" class="radio-btn" th:id="'defaultMergeMethod-' + ${m}" th:value="${m}" th:checked="${project.defaultMergeMethodOrFirst().code == m}">
+                                <input name="defaultMergeMethod" type="radio" class="radio-btn form-check-input" th:id="'defaultMergeMethod-' + ${m}" th:value="${m}" th:checked="${project.defaultMergeMethodOrFirst().code == m}">
                                 <label th:for="'defaultMergeMethod-' + ${m}" class="bg-radiobtn label-public" th:text="#{'project.merge.' + ${m}}"></label>
                             </th:block>
                         </div>
@@ -125,7 +125,7 @@
                 <div class="box-wrap middle" id="defaultBranceSettingPanel" style="" th:styleappend="${projectView.menuSetting.code != true} ? 'display:none;'">
                     <div class="cu-label vmiddle" th:text="#{code.branches.defaultBranch}"></div>
                     <div class="cu-desc">
-                        <select id="project-default-branch" name="defaultBranch"
+                        <select class="form-select" id="project-default-branch" name="defaultBranch"
                                 data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" style="min-width: 220px;">
                             <option th:each="branchName : ${branches}" th:value="${branchName}"
                                     th:selected="${branchItemNames.get(branchName) == defaultBranchName}"
@@ -140,27 +140,27 @@
                     <div class="cu-label vmiddle" th:text="#{project.menu.setting}"></div>
                     <div class="cu-desc">
                         <label for="menuSettingCode" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn" id="menuSettingCode" name="code" value="true" th:checked="${projectView.menuSetting.code == true}">
+                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingCode" name="code" value="true" th:checked="${projectView.menuSetting.code == true}">
                             <th:block th:text="#{menu.code}"></th:block>
                         </label>
                         <label for="menuSettingIssue" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn" id="menuSettingIssue" name="issue" value="true" th:checked="${projectView.menuSetting.issue == true}">
+                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingIssue" name="issue" value="true" th:checked="${projectView.menuSetting.issue == true}">
                             <th:block th:text="#{menu.issue}"></th:block>
                         </label>
                         <label th:if="${git}" for="menuSettingPullRequest" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn" id="menuSettingPullRequest" name="pullRequest" value="true" th:checked="${projectView.menuSetting.pullRequest == true}">
+                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingPullRequest" name="pullRequest" value="true" th:checked="${projectView.menuSetting.pullRequest == true}">
                             <th:block th:text="#{menu.pullRequest}"></th:block>
                         </label>
                         <label for="menuSettingReview" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn" id="menuSettingReview" name="review" value="true" th:checked="${projectView.menuSetting.review == true}">
+                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingReview" name="review" value="true" th:checked="${projectView.menuSetting.review == true}">
                             <th:block th:text="#{menu.review}"></th:block>
                         </label>
                         <label for="menuSettingMilestone" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn" id="menuSettingMilestone" name="milestone" value="true" th:checked="${projectView.menuSetting.milestone == true}">
+                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingMilestone" name="milestone" value="true" th:checked="${projectView.menuSetting.milestone == true}">
                             <th:block th:text="#{milestone}"></th:block>
                         </label>
                         <label for="menuSettingBoard" class="bg-radiobtn label-public inline-list">
-                            <input type="checkbox" class="radio-btn" id="menuSettingBoard" name="board" value="true" th:checked="${projectView.menuSetting.board == true}">
+                            <input type="checkbox" class="radio-btn form-check-input" id="menuSettingBoard" name="board" value="true" th:checked="${projectView.menuSetting.board == true}">
                             <th:block th:text="#{menu.board}"></th:block>
                         </label>
                     </div>

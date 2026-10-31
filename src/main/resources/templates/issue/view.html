@@ -68,7 +68,7 @@
                 <th:block th:unless="${issue.bodyHtml == null}">
                     <div th:id="'issue-' + ${issue.number}" class="hide">
                         <form th:action="${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/issue/' + issue.number + '/content'}">
-                            <textarea th:text="${issue.body}"></textarea>
+                            <textarea class="form-control" th:text="${issue.body}"></textarea>
                         </form>
                     </div>
                     <div th:id="'issue-body-' + ${issue.number}">
@@ -185,7 +185,7 @@
                             <dd>
                                 <a th:if="${!issue.hasMilestones}" th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-small ybtn-fullsize" target="_blank" th:text="#{milestone.menu.new}"></a>
                                 <th:block th:if="${issue.hasMilestones}">
-                                    <select th:if="${issue.canUpdate}" id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                    <select class="form-select" th:if="${issue.canUpdate}" id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
                                         <option value="-1" th:selected="${issue.milestoneId == null}" th:text="#{issue.noMilestone}"></option>
                                         <optgroup th:label="#{milestone.state.open}">
                                             <option th:each="m : ${issue.openMilestones}" th:value="${m.id}" th:attr="data-state=${m.state}" th:selected="${issue.milestoneId != null and issue.milestoneId == m.id}" th:text="${m.title}"></option>

@@ -650,7 +650,8 @@
          * 붙으면 상자의 화면상 위치가 `top` 값(10px)에 머문다.
          */
         function _isReviewContainerStuck() {
-            return htElement.welReviewContainer[0].getBoundingClientRect().top <= 10;
+            var container = htElement.welReviewContainer[0];
+            return !!container && container.getBoundingClientRect().top <= 10;
         }
 
         function _setReviewListHeight() {

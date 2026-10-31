@@ -54,7 +54,7 @@
                 <th:block th:unless="${post.body.isEmpty()}">
                     <div th:id="'post-' + ${post.number}" class="hide">
                         <form th:action="${'/' + #paths.segment(project.owner) + '/' + #paths.segment(project.name) + '/post/' + post.number + '/content'}">
-                            <textarea th:text="${post.body}"></textarea>
+                            <textarea class="form-control" th:text="${post.body}"></textarea>
                         </form>
                     </div>
                     <div th:id="'post-body-' + ${post.number}">
