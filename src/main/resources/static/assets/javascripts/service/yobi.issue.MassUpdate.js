@@ -33,6 +33,23 @@
             _initVar(htOptions || {});
             _initElement(htOptions || {});
             _attachEvent();
+            _markStuckWhileScrolling();
+        }
+
+        /**
+         * 막대 줄이 `position: sticky`로 화면 위쪽에 붙어 있는 동안 `stuck` 클래스를 켠다.
+         * CSS는 붙었는지를 알 수 없어, 줄이 화면 맨 위에 닿았는지를 스크롤마다 확인한다(A-301).
+         */
+        function _markStuckWhileScrolling(){
+            var $row = $('.filter-wrap.mass-update-sticky');
+            if($row.length === 0){
+                return;
+            }
+            var update = function(){
+                $row.toggleClass('stuck', $row[0].getBoundingClientRect().top <= 0);
+            };
+            $(window).on('scroll resize', update);
+            update();
         }
 
         /**

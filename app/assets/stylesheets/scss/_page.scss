@@ -5445,6 +5445,15 @@ label.issue-item-row {
     display: flow-root;
     background: #fff;
     z-index: 900;
+
+    // 붙은 동안의 모양(v1.6 affix 값). 붙었는지는 yobi.issue.MassUpdate.js가 알려 준다.
+    &.stuck {
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        // 줄 높이(30px)에 여백과 선이 더해져도 아래 목록이 밀리지 않게, 늘어난 31px만큼 아래 여백으로 상쇄한다.
+        box-sizing: content-box;
+        margin-bottom: -31px;
+    }
 }
 
 .mass-update-form {

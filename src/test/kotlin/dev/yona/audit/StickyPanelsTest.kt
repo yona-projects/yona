@@ -73,4 +73,14 @@ class StickyPanelsTest {
         assertFalse(File("src/main/resources/static/assets/javascripts/common/yona.Affix.js").exists())
         assertFalse(text("src/main/resources/templates/common/scripts.html").contains("yona.Affix.js"))
     }
+
+    @Test
+    fun `일괄 수정 막대 줄은 붙은 동안 v1_6처럼 위아래 여백과 아래 선을 가진다`() {
+        val scss = text("app/assets/stylesheets/scss/_page.scss")
+        val rule = Regex("""\.mass-update-sticky \{.*?&\.stuck \{([^}]*)\}""", RegexOption.DOT_MATCHES_ALL).find(scss)?.groupValues?.get(1)
+        assertTrue(rule != null, ".mass-update-sticky.stuck 규칙이 있어야 한다")
+        assertTrue(rule!!.contains("padding: 15px 0") && rule.contains("border-bottom: 1px solid rgba(0, 0, 0, 0.1)"), "v1.6 affix 값(여백 15px 0, 아래 선)이어야 한다")
+        val js = text("src/main/resources/static/assets/javascripts/service/yobi.issue.MassUpdate.js")
+        assertTrue(js.contains("toggleClass('stuck'") || js.contains("toggleClass(\"stuck\""), "스크립트가 붙은 상태를 stuck 클래스로 표시해야 한다")
+    }
 }
