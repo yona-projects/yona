@@ -14,8 +14,7 @@ body {
 label, input, button, select, textarea { font-size:0.75rem; }
 select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"],
 input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"],
-input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"],
-.uneditable-input { font-size:0.75rem; }
+input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] { font-size:0.75rem; }
 .btn-group > .btn,
 .btn-group > .dropdown-menu,
 .btn-group > .popover {
@@ -38,7 +37,7 @@ form { margin:0 0 2px; }
 textarea, input[type="text"], input[type="password"], input[type="datetime"],
 input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"],
 input[type="week"], input[type="number"], input[type="email"], input[type="url"],
-input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
+input[type="search"], input[type="tel"], input[type="color"] {
     @include box-shadow(none);
     @include border-radius(2px);
 
@@ -98,7 +97,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         .usf-group .loginid { color:#fff; }
     }
 }
-.dropdown-menu li>a:hover,.dropdown-menu li>a:focus,.dropdown-submenu:hover>a {
+.dropdown-menu li>a:hover,.dropdown-menu li>a:focus {
     color:#fff;
     cursor:pointer;
     background:$secondary !important;
@@ -221,20 +220,6 @@ button.nbtn {
     &.medium { padding:4px 20px; height:30px; line-height:1; }
     &.large  { padding:8px 30px; height:36px; line-height:1; font-size:0.9375rem; }
 }
-.nbtn-group {
-    .nbtn {
-        @include border-radius(0px);
-        margin:0;
-    }
-    &:first-child {
-        border-top-left-radius: 2px;
-        border-bottom-left-radius: 2px;
-    }
-    &:last-child {
-        border-top-right-radius: 2px;
-        border-bottom-right-radius:2px;
-    }
-}
 /* fileUpload button **/
 .fake-file-wrap {
     position: relative; display:block; clear:both;
@@ -337,38 +322,6 @@ span.issue-label {
     }
 }
 
-/** 화면 상단의 전체 검색 폼 **/
-.form-searchbar {
-    width: 146px; height: 29px;
-    margin: 0; padding: 0 6px;
-    background-color: $search-bar-bg-color;
-    border:1px solid $search-bar-border-color;
-
-    @include border-radius(2px);
-    /*.box-shadow(inset 0px 2px 3px rgba(0,0,0,0.12));*/
-
-    .text {
-        width: 128px; /*height: 13px;*/
-        margin: 0; margin-right:3px;
-        padding:4px 0px;
-        border: 0 none;
-
-        font-size: 0.875rem; /* 11px */
-        color: $search-input-color;
-        background-color: transparent;
-
-       @include box-shadow(none);
-       &:focus { @include box-shadow(none); }
-    }
-
-    .ico-search {
-        border:0; padding:0;
-        background-color:transparent;
-        /*margin-bottom:2px;*/
-        margin-top:2px;
-    }
-}
-
 /** Avatar Wraps **/
 .avatar-wrap {
     width:32px; height:32px; /* default size: medium */
@@ -447,18 +400,6 @@ span.issue-label {
 .tab-box {
     border-top:none;
     @include border-radius(0 0 4px 4px);
-}
-
-.tab-box-content {
-    display:none;
-
-    &.active {
-        display:block;
-    }
-}
-
-.tab-searchbox {
-    padding:5px 15px;
 }
 
 .subtab-wrap {

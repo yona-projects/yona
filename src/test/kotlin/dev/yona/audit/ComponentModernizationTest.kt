@@ -57,4 +57,19 @@ class ComponentModernizationTest {
         assertFalse(Regex("""\.popover \{[^}]*box-shadow""").containsMatchIn(text("app/assets/stylesheets/scss/_yobiUI.scss")), ".popover 그림자 덧입히기가 남아 있다")
         assertFalse(scss.contains("inset 0 1px 1px rgba(0,0,0,0.1)"), "배지의 BS2 안쪽 그림자가 남아 있다")
     }
+
+    @Test
+    fun `템플릿과 스크립트 어디에도 없는 BS2 잔재 클래스가 SCSS에 남아 있지 않다`() {
+        val scss = File("app/assets/stylesheets/scss").walkTopDown().filter { it.extension == "scss" }.joinToString("\n") { it.readText() }
+        listOf(".form-searchbar", ".dropdown-submenu", ".uneditable-input", ".tab-box-content", ".tab-searchbox", ".nbtn-group", ".dbtn-group").forEach {
+            assertFalse(Regex("""\Q$it\E(?![\w-])""").containsMatchIn(scss), "쓰이지 않는 $it 규칙이 남아 있다")
+        }
+    }
+
+    @Test
+    fun `제목 입력창에 v1_6의 퍼센트 폭 보정이 없다`() {
+        val page = text("app/assets/stylesheets/scss/_page.scss")
+        assertFalse(Regex("""\.content-wrap \{\s*\.text \{\s*width:""").containsMatchIn(page), ".content-wrap .text 폭 보정이 남아 있다")
+        assertFalse(Regex("""\.content-wrap \.text \{\s*width:""").containsMatchIn(text("app/assets/stylesheets/scss/_responsive.scss")), "반응형의 .content-wrap .text 폭 보정이 남아 있다")
+    }
 }

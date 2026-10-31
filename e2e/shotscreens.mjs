@@ -13,7 +13,7 @@ try {
   const browser = await chromium.launch();
   for (const id of args) {
     const sc = screens(fx).find((s) => s.id === id);
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const ctx = await browser.newContext({ viewport: { width: Number(process.env.W || 1280), height: 800 } });
     if (!process.env.ANON) { const s = new Session(B.base); await s.login(ADMIN.loginId); await ctx.addCookies(s.playwrightCookies()); }
     await ctx.route((u) => u.origin !== B.base, (r) => r.abort());
     const page = await ctx.newPage(); await page.goto(B.base + sc.path, { waitUntil: 'load' });
