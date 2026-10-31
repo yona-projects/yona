@@ -104,6 +104,14 @@ $state-warning: #fcc666;
 $state-changed: #65c9df;
 $state-merged: #65c9df;
 
+// Bootstrap 5 테마 색(`_bs-variables.scss`가 정의). 아래 자체 `$primary`, `$secondary`, `$link-color`가 같은 이름을 덮어쓰기 전에 다른 이름으로 받아 둔다.
+$theme-link      : $link-color;
+$theme-link-hover: $link-hover-color;
+$theme-success   : $success;
+$theme-info      : $info;
+$theme-warning   : $warning;
+$theme-danger    : $danger;
+
 $primary         : $orange;
 $secondary       : $blue2;
 $link-color      : $primary;

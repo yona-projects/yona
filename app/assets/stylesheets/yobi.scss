@@ -1,3 +1,5 @@
+// 테마 색은 Bootstrap 쪽 변수(`scss/bs-variables`) 한 곳에서 정하고, 아래 `scss/variables`가 `$theme-*` 이름으로 받아 쓴다(D-58). 자체 `$primary`, `$secondary`, `$link-color`는 사이트 고유 색이라 BS5 값을 덮어쓴다.
+@import "scss/bs-variables";
 @import "scss/base";
 @import "scss/search-form";
 @import "scss/bs-overrides";

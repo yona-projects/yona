@@ -7,8 +7,8 @@ $font-size-base: .875rem;        // 14px
 $line-height-base: 1.4285714286; // 14px 기준 20px
 $body-color: #333;
 $body-secondary-color: #595959;  // `.text-body-secondary`(BS2의 `.muted`, `.help-inline` 색)
-$link-color: #08c;
-$link-hover-color: #005580;
+$link-color: #0d6efd;
+$link-hover-color: #0a58ca;
 $link-decoration: none;
 $link-hover-decoration: underline;
 $headings-font-weight: bold;
@@ -27,14 +27,14 @@ $border-radius: 4px;
 $border-radius-lg: 6px;
 $border-radius-sm: 3px;
 
-// 테마 색: BS2의 배지, 알림, 진행 막대 색이다(`.bg-*`, `.badge`, `.btn-*`).
-$primary: #08c;
-$secondary: #999;
-$success: #468847;
-$info: #3a87ad;
-$warning: #f89406;
-$danger: #b94a48;
-$dark: #333;
+// 테마 색: Bootstrap 5 기본 팔레트이다(D-58). 자체 SCSS는 같은 색을 직접 쓰지 않고 이 변수를 쓴다.
+$primary: #0d6efd;
+$secondary: #6c757d;
+$success: #198754;
+$info: #0dcaf0;
+$warning: #ffc107;
+$danger: #dc3545;
+$dark: #212529;
 
 // 회색 상자(BS2의 `.well`, `.card.card-body`)
 $card-spacer-y: 19px;

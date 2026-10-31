@@ -22,7 +22,7 @@
         <div th:if="${tokenError != null}" class="alert alert-danger" th:text="#{${tokenError}}"></div>
         <p class="token-meta">
             <code th:text="${token.prefix}"></code>
-            <span th:if="${token.legacy}" class="badge bg-warning" th:text="#{apiToken.legacy}"></span>
+            <span th:if="${token.legacy}" class="badge text-bg-warning" th:text="#{apiToken.legacy}"></span>
             &middot; <span th:text="#{apiToken.expires}"></span>:
             <strong th:text="${token.expiresText != null} ? ${token.expiresText} : #{apiToken.noExpiration}"></strong>
             <em th:if="${token.expired}" th:text="'(' + #{apiToken.expired} + ')'"></em>

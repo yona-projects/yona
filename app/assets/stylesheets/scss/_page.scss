@@ -1320,7 +1320,7 @@
                             .author {
                                 color:#666;
                                 font-weight:bold;
-                                &:hover {color:$link-hover-color;}
+                                &:hover {color:$theme-link-hover;}
                             }
                         }
 
@@ -3301,7 +3301,7 @@ label.inline-list {
                 &.changed { background-color : $state-changed;}
                 &.rejected {background: #F39C12;}
                 &.conflict {background: #C0392B;}
-                &.resolved {background: #468847;}
+                &.resolved {background: $theme-success;}
                 &.sharer-added {
                     background-color: #B2EBF2;
                     color: #0097A7;
@@ -3319,7 +3319,7 @@ label.inline-list {
                     color: #F4511E;
                 }
                 &.milestone-changed {
-                    background-color: #0088cc;
+                    background-color: $theme-link;
                 }
              }
 
@@ -3916,10 +3916,10 @@ label.issue-item-row {
             }
 
             &.conflict {
-                color: #b94a48;
+                color: $theme-danger;
 
                 &:hover {
-                    color: #b94a48;
+                    color: $theme-danger;
                 }
             }
 
@@ -4478,7 +4478,7 @@ label.issue-item-row {
 
                 a {
                     color:$secondary;
-                    &:hover { color:$link-hover-color; text-decoration:underline; }
+                    &:hover { color:$theme-link-hover; text-decoration:underline; }
                 }
 
                 .btn-copy-commitId {
@@ -5292,7 +5292,7 @@ label.issue-item-row {
             display:block;
             margin-left:5px;
             font-size:0.875rem;
-            color:#0088cc;
+            color:$theme-link;
             margin-top:8px;
             line-height: 1.25rem;
             font-weight: bold;
@@ -5324,7 +5324,7 @@ label.issue-item-row {
                 font-weight: bold;
                 display:inline-block;
                 line-height: 1.25rem;
-                color:#0088cc;
+                color:$theme-link;
 
             }
 
@@ -6190,7 +6190,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 .commit-id {
     color:$secondary; padding:2px;
-    &:hover { color:$link-hover-color; text-decoration:underline; }
+    &:hover { color:$theme-link-hover; text-decoration:underline; }
 }
 
 .commit-hash { font-family: $fixed-font-family !important;}
@@ -6228,7 +6228,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         a { color:$blue;font-family:$fixed-font-family; }
 
         .headBranch {
-            color: #0088cc;
+            color: $theme-link;
             background-color: #fff;
             border: 1px solid rgba(0, 0, 0, 0.1);
             padding:3px 5px;
@@ -6495,7 +6495,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .label-head {
-    color: #0088cc;
+    color: $theme-link;
     background-color: #fff;
     border: 1px solid rgba(0, 0, 0, 0.1);
     padding: 3px 5px;

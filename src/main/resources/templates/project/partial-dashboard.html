@@ -32,7 +32,7 @@
                             <div class="col-lg-3 num"><strong th:text="${row.count}"></strong></div>
                             <div class="col-lg-3 nm">
                                 <div class="progress" th:classappend="${row.percent == 0} ? 'empty'" data-bs-toggle="tooltip" th:title="${row.percent + '%'}">
-                                    <div class="progress-bar bg-warning" th:style="'width: ' + ${row.percent} + '%;'"></div>
+                                    <div class="progress-bar text-bg-warning" th:style="'width: ' + ${row.percent} + '%;'"></div>
                                 </div>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
                             <div class="col-lg-3 num"><strong th:text="${d.assignee.noAssigneeCount}"></strong></div>
                             <div class="col-lg-3 nm">
                                 <div class="progress" th:classappend="${d.assignee.noAssigneePercent == 0} ? 'empty'" data-bs-toggle="tooltip" th:title="${d.assignee.noAssigneePercent + '%'}">
-                                    <div class="progress-bar bg-warning" th:style="'width: ' + ${d.assignee.noAssigneePercent} + '%;'"></div>
+                                    <div class="progress-bar text-bg-warning" th:style="'width: ' + ${d.assignee.noAssigneePercent} + '%;'"></div>
                                 </div>
                             </div>
                         </div>

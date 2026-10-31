@@ -17,7 +17,7 @@
 
     <div class="thread-header">
         <span th:class="'badge rounded-pill state ' + ${thread.state}" th:text="#{'issue.state.' + ${thread.state}}"></span>
-        <span th:if="${thread.pending}" class="badge bg-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
+        <span th:if="${thread.pending}" class="badge text-bg-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
         <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
     </div>
 
@@ -35,7 +35,7 @@
                     </span>
                     <span class="ago"><a th:href="'#comment-' + ${c.id}" th:title="${c.agoTitle}" th:text="${c.ago}"></a></span>
                     <span th:if="${c.edited}" class="comment-edited ago" th:text="'(' + #{reviewComment.edited} + ')'"></span>
-                    <span th:if="${c.pending and !thread.pending}" class="badge bg-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
+                    <span th:if="${c.pending and !thread.pending}" class="badge text-bg-warning pending-badge" th:text="#{pullRequest.review.pending.badge}"></span>
                     <!--/* 댓글 고치기(GitHub 기준, D-38 7번): 작성자와 수정 권한자에게만 보인다. 원문은 숨긴 입력란에 있고 yona.review.CommentEdit.js가 그 자리에서 고친다 */-->
                     <span class="edit float-end" th:if="${c.editUrl != null}">
                         <button type="button" class="btn-transparent float-end btn-icon-close comment-edit" th:attr="data-url=${c.editUrl}" th:title="#{common.comment.edit}"><i class="yobicon-edit"></i></button>
