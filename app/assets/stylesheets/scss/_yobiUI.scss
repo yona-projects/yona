@@ -59,8 +59,8 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     line-height:120%;
 }
 
-/** yobi.ui.Dropdown **/
-.dropdown-toggle {
+/** 사이트 고유 단추(ybtn)에 붙은 드롭다운 토글 모양. BS2 `.btn` 드롭다운 단추는 Bootstrap 5 기본 모양을 쓴다(X-38i, D-56). **/
+:where(.ybtn).dropdown-toggle {
     display:inline-block;
     position:relative;
     margin-bottom: 0;
@@ -81,62 +81,11 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     border-radius: 3px !important;
     @include box-shadow(0 1px 0 rgba(0,0,0,.05));
     @include transition(all 0.3s ease);
-
-    &.small  .d-label { width: calc(29px + 9px);  }
-    &.medium .d-label { width: calc(58px + 9px);  }
-    &.large  .d-label { width: calc(116px + 9px); }
-    &.auto   {
-        width:100%;
-        padding-right:28px;
-        .d-label {
-            width: calc(100% + 9px);
-            display:block;
-            @include text-overflow;
-        }
-        .d-caret {
-            position:absolute;
-            top:0;
-            right:0;
-            bottom:0;
-            background:inherit;
-        }
-    }
-
-    .d-label {
-        float:left; margin:0;
-        padding:4px 0; padding-right:9px;
-        width:116px; overflow:hidden;
-        @include inline-block;
-    }
-    .d-caret {
-        float:right; margin:0;
-        padding:4px 9px;
-
-        .caret {
-            border-top-color:#4f4f4f;
-        }
-        &.nlb { border-left:none; }
-    }
-
-    &.blue {
-        background:$blue2; border-bottom:1px solid rgba(0,0,0,0.25);
-        .d-caret .caret { border-top-color:#fff; }
-    }
-    &.orange {
-        background:$orange; border-bottom:1px solid rgba(0,0,0,0.25);
-        .d-caret .caret { border-top-color:#fff; }
-    }
 }
 @-moz-document url-prefix() {
-    *>.dropdown-toggle {
+    *>:where(.ybtn).dropdown-toggle {
         padding:3px 0 !important;
     }
-}
-.btn-group.open .btn.dropdown-toggle, .btn-group .btn.dropdown-toggle.show {
-    background:darken($white, 5%);
-
-    &.blue   { background:darken($blue2, 5%); }
-    &.orange { background:darken($orange, 5%); }
 }
 .dropdown-menu {
     padding:0; width:inherit; overflow:hidden;
@@ -180,11 +129,6 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 /** buttons **/
 .icon-refresh {
   cursor: pointer;
-}
-.btn.disabled, .btn[disabled] {
-    opacity:0.35;
-    filter:alpha(opacity=35);
-    .caret { border-top-color:#aaa; }
 }
 .nbtn:disabled{
     background-color: #dadada !important;
@@ -467,7 +411,8 @@ span.issue-label {
 }
 
 // 드롭다운 단추의 삼각형. Bootstrap 4는 `.dropdown-toggle::after`로 그리고 `.caret` 클래스가 없다. 이 사이트의 단추는 `<span class="caret">`을 직접 쓰므로 BS4의 것은 끄고 v1.6 모양을 둔다.
-.dropdown-toggle::after {
+// BS5 `.btn.dropdown-toggle`은 BS5 기본 삼각형을 쓰고(X-38i, D-56), `.btn`이 아닌 토글(ybtn, 상단 메뉴)만 끈다.
+.dropdown-toggle:not(.btn)::after {
     content: none;
 }
 .caret {
@@ -1428,20 +1373,6 @@ span.issue-label {
     color: 666;
 }
 
-.down-arrow{
-  &:after {
-    margin-left: 5px;
-    display: inline-block;
-    vertical-align: middle !important;
-    width: 0;
-    @include transition(all 0.3s ease);
-    height: 0;
-    border-top: 4px solid $yobi-inverse;
-    border-right: 4px solid transparent;
-    border-left: 4px solid transparent;
-    content: "";
-  }
-}
 
 del {
     color: #aaa;

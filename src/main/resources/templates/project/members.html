@@ -35,9 +35,8 @@
                 <div class="member-setting">
                 <th:block th:if="${!member.owner}">
                      <div class="btn-group" th:attr="data-name='roleof-' + ${member.loginId}">
-                        <button class="btn dropdown-toggle large" data-bs-toggle="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                             <span class="d-label" th:text="#{'user.role.' + ${member.roleName}}"></span>
-                            <span class="d-caret"><span class="caret"></span></span>
                         </button>
                         <ul class="dropdown-menu"><th:block th:each="role : ${roles}"><li th:attr="data-value=${role.id}" th:classappend="${role.name == member.roleName} ? 'active'" th:data-selected="${role.name == member.roleName} ? 'true'"><a href="javascript:void(0)" data-action="apply" th:data-href="${projectBase} + '/member/' + ${member.userId} + '/edit'" th:data-loginId="${member.loginId}" th:text="#{'user.role.' + ${role.name}}" class="dropdown-item"></a></li></th:block></ul>
                     </div>

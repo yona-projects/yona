@@ -286,7 +286,7 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
         val count = doc.selectFirst(".watch-btn a.watcher-count")
         assertEquals("1", count?.text()?.trim())
         assertEquals("/${project.owner}/${project.name}/watchers", count?.attr("href"))
-        assertFalse(count!!.hasClass("watch-on"))
+        assertFalse(count!!.hasClass("btn-success"))
         val action = doc.selectFirst(".watch-btn a.watchBtn")
         assertEquals("/${project.owner}/${project.name}/watch", action?.attr("href"))
         assertEquals("Watch", action?.text()?.trim())
@@ -294,12 +294,12 @@ class ProjectLayoutTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `구독 중이면 구독 해제 버튼이 나오고 개수에 watch-on이 붙는다`() {
+    fun `구독 중이면 구독 해제 버튼이 나오고 개수가 btn-success로 바뀐다`() {
         val project = newProject()
         val user = newUser()
         watches.save(Watch(user = user, resourceType = ResourceType.PROJECT, resourceId = project.id.toString()))
         val doc = page(project, login(user))
-        assertTrue(doc.selectFirst(".watch-btn a.watcher-count")!!.hasClass("watch-on"))
+        assertTrue(doc.selectFirst(".watch-btn a.watcher-count")!!.hasClass("btn-success"))
         val action = doc.selectFirst(".watch-btn a.watchBtn")
         assertEquals("/${project.owner}/${project.name}/unwatch", action?.attr("href"))
         assertEquals("Unwatch", action?.text()?.trim())
