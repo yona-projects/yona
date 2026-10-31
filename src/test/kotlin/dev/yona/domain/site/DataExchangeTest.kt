@@ -197,6 +197,24 @@ class DataExchangeTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `이슈 댓글은 v1_6 파일처럼 project_id 키가 없어도 이슈의 프로젝트로 채워 가져온다 (R-130)`() {
+        val issue = """{"id": 880001, "title": "t", "body": "b", "created_date": 1700000000000, "num_of_comments": 1, "milestone_id": null, "author_id": 1, "author_login_id": "a", "author_name": "A",
+            "state": 1, "project_id": 880002, "assignee_id": null, "number": 1, "updated_date": 1700000000000, "due_date": null}"""
+        val comment = """{"id": 880003, "created_date": 1700000000000, "author_id": 1, "author_login_id": "a", "author_name": "A", "issue_id": 880001, "contents": "hello"}"""
+        val result = import("""{"ISSUE": [$issue], "ISSUE_COMMENT": [$comment]}""")
+        assertEquals(listOf("ISSUE", "ISSUE_COMMENT"), result.imported.filter { it.startsWith("ISSUE") })
+        assertTrue(result.failed.none { it == "ISSUE_COMMENT" }, result.failed.toString())
+        assertEquals(880002L, jdbc.queryForObject("select project_id from issue_comment where id = 880003", Long::class.java))
+    }
+
+    @Test
+    fun `내보내기는 v1_6과 같이 이슈 댓글에 project_id 키를 쓰지 않는다 (R-130)`() {
+        val first = exported()["ISSUE_COMMENT"].firstOrNull()
+        if (first != null) assertFalse(first.propertyNames().toList().contains("project_id"), first.propertyNames().toList().toString())
+        assertEquals(listOf("id", "created_date", "author_id", "author_login_id", "author_name", "issue_id", "contents"), DataTables.find("ISSUE_COMMENT")!!.columns.filter { it.derivedFrom == null }.map { it.name })
+    }
+
+    @Test
     fun `토큰 테이블도 내보내고 가져오며 시퀀스를 함께 쓴다 (X-5)`() {
         val names = exported().propertyNames().toList()
         assertEquals(true, "API_TOKEN" in names && "API_TOKEN_SEQ" in names, names.toString())

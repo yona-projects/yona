@@ -68,14 +68,15 @@ class DataService(
     private fun writeRows(connection: Connection, ids: Identifiers, table: DataTable, writer: java.io.Writer) {
         // 임시 저장 리뷰(X-26, D-38)의 임시 스레드와 임시 댓글은 아직 공개되지 않았으므로 내보내지 않는다
         val where = if (table.name in PENDING_TABLES) " where " + ids.column(table, "pending_date") + " is null" else ""
-        val sql = "select " + table.columns.joinToString(", ") { ids.column(table, it.name) } + " from " + ids.table(table) + where
+        val columns = table.columns.filter { it.derivedFrom == null }
+        val sql = "select " + columns.joinToString(", ") { ids.column(table, it.name) } + " from " + ids.table(table) + where
         connection.createStatement().use { statement ->
             statement.executeQuery(sql).use { rs ->
                 var first = true
                 while (rs.next()) {
                     writer.write(if (first) "\n    {" else ",\n    {")
                     first = false
-                    table.columns.forEachIndexed { index, column ->
+                    columns.forEachIndexed { index, column ->
                         if (index > 0) writer.write(", ")
                         writer.write("\"${column.key}\": ")
                         writer.write(jsonValue(rs, index + 1, column.type))
@@ -275,7 +276,7 @@ class DataService(
         try {
             if (!truncate(connection, ids, table)) throw IllegalStateException("${table.name}을 비우지 못했습니다.")
             statement = connection.prepareStatement(
-                "insert into ${ids.table(table)} (" + table.columns.joinToString(", ") { ids.column(table, it.name) } + ") values (" + table.columns.joinToString(", ") { "?" } + ")"
+                "insert into ${ids.table(table)} (" + table.columns.joinToString(", ") { ids.column(table, it.name) } + ") values (" + table.columns.joinToString(", ") { placeholder(ids, it) } + ")"
             )
         } catch (e: Exception) {
             failure = e
@@ -318,9 +319,21 @@ class DataService(
         }
     }
 
+    /** 가져오기 SQL의 값 자리이다. 다른 테이블에서 채우는 컬럼은 그 값을 읽는 부속 질의이고, 그 자리에는 [DerivedColumn.via] 값을 바인딩한다. */
+    private fun placeholder(ids: Identifiers, column: DataColumn): String {
+        val derived = column.derivedFrom ?: return "?"
+        val source = requireNotNull(DataTables.find(derived.table))
+        return "(select ${ids.column(source, derived.column)} from ${ids.table(source)} where ${ids.column(source, "id")} = ?)"
+    }
+
     private fun bind(ps: PreparedStatement, table: DataTable, row: JsonNode) {
         table.columns.forEachIndexed { index, column ->
             val position = index + 1
+            column.derivedFrom?.let { derived ->
+                val node = requireNotNull(row.get(derived.via)) { "${table.name}의 행에 ${derived.via} 값이 없습니다." }
+                ps.setLong(position, if (node.isNumber) node.longValue() else 0L)
+                return@forEachIndexed
+            }
             val found = row.get(column.key)
             if (found == null && column.absentBoolean != null) { ps.setBoolean(position, column.absentBoolean); return@forEachIndexed }
             if (found == null && column.absentNull) { ps.setNull(position, Types.VARCHAR); return@forEachIndexed }

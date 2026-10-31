@@ -37,6 +37,15 @@ enum class DataType {
 }
 
 /**
+ * 가져올 때 다른 테이블의 값으로 채우는 컬럼의 출처이다. v1.6 파일에는 없고 이후 진화가 더한 `NOT NULL` 컬럼에 쓴다(R-130).
+ *
+ * @property table 값을 읽어 올 테이블 이름(대문자)
+ * @property column 그 테이블에서 읽을 컬럼 이름
+ * @property via 가져오는 행에서 그 테이블의 `id`를 가리키는 컬럼 이름
+ */
+data class DerivedColumn(val table: String, val column: String, val via: String)
+
+/**
  * 테이블의 컬럼 하나이다.
  *
  * @property name DB 컬럼 이름(소문자)
@@ -45,9 +54,10 @@ enum class DataType {
  * @property nullableLong 가져올 때 JSON `null`을 SQL NULL로 바인딩하는 정수 컬럼이다
  * @property absentNull 가져오는 파일에 이 키가 없을 때 `null`로 채울지이다. 값이 비어 있을 수 있는 추가 개발 컬럼에 쓴다
  * @property absentString 가져오는 파일에 이 키가 없을 때 쓰는 문자열 값이다(`absentBoolean`의 문자열 판이다).
+ * @property derivedFrom 이 컬럼은 내보내지 않고, 가져올 때 [DerivedColumn]이 가리키는 테이블에서 채운다. 파일에 이 키가 있어도 쓰지 않는다
  * @property absentBoolean 가져오는 파일에 이 키가 없을 때 쓰는 불린 값이다. 추가 개발 항목이 더한 컬럼이 옛(v1.6) 파일에 없어도 가져오게 한다. `null`이면 키가 없는 행은 오류이다
  */
-data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null, val absentNull: Boolean = false)
+data class DataColumn(val name: String, val type: DataType, val key: String = name, val nullableLong: Boolean = false, val absentBoolean: Boolean? = null, val absentString: String? = null, val absentNull: Boolean = false, val derivedFrom: DerivedColumn? = null)
 
 /**
  * 내보내기와 가져오기의 테이블 하나이다. v1.6 `app/data/exchangers 아래 `DataExchanger` 클래스들`의 `getTable`, `getSelectSql`, `hasSequence`에 해당한다.
@@ -198,7 +208,9 @@ object DataTables {
             DataColumn("author_login_id", STRING),
             DataColumn("author_name", STRING),
             DataColumn("issue_id", LONG),
-            DataColumn("contents", CLOB)
+            DataColumn("contents", CLOB),
+            // v1.6 파일에는 없고 이후 진화 9가 `NOT NULL`로 더한 컬럼이다. 내보내지 않고 가져올 때 이슈의 프로젝트로 채운다(R-130).
+            DataColumn("project_id", LONG, derivedFrom = DerivedColumn("ISSUE", "project_id", "issue_id"))
         ),
         DataTable(
             "ISSUE_COMMENT_VOTER", false,
