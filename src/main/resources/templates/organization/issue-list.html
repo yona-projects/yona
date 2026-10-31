@@ -78,7 +78,7 @@
 
                     <ul class="post-list-wrap">
                     <th:block th:each="row : ${items}" th:with="issue=${row.item}, base=${#paths.project(row.owner, row.project)}, url=${#paths.project(row.owner, row.project) + '/issue/' + row.item.number}">
-                        <li class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{${url}}">
+                        <li class="post-item title d-flex flex-wrap align-items-start" th:id="'issue-item-' + ${issue.id}" th:href="@{${url}}">
                             <div class="col-lg-10 span-hard-wrap">
                                 <a th:if="${issue.authorLoginId != null}" th:href="@{/{u}(u=${issue.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-bs-toggle="tooltip" data-bs-placement="top" th:title="${issue.authorLoginId}">
                                     <img th:if="${helper.isDefaultAvatar(row.authorAvatarUrl)}" th:src="${row.authorAvatarUrl}"/>

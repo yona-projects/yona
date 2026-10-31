@@ -19,14 +19,14 @@
         <div class="row">
             <div class="col-lg-12">
                 <dl>
-                    <dd>
-                        <div class="col-lg-12">
+                    <dd class="d-flex flex-wrap align-items-start">
+                        <div class="col-lg-12 d-flex flex-wrap align-items-start">
                             <div class="col-lg-11">
                                 <input type="text" id="title" name="title" value="" class="text title" th:classappend="${errors['title'] != null} ? 'error'" maxlength="250" tabindex="1" th:placeholder="#{title}" autocomplete="off" th:title="#{title.help.key}">
                             </div>
                             <div class="col-lg-1 subtask-message" th:text="#{issue.option}"></div>
                         </div>
-                        <div th:if="${errors['title'] != null}" class="message">
+                        <div th:if="${errors['title'] != null}" class="message w-100">
                             <div th:each="error : ${errors['title']}" th:text="#{${error}}"></div>
                         </div>
                         <th:block th:replace="~{issue/partial-select-subtask :: selectSubtask(${showSubtask}, false)}"></th:block>

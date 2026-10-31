@@ -23,7 +23,7 @@
         <th:block th:text="#{site.massMail.toProjects}"></th:block>
     </label></div>
     <div class="form-field hide" id="project-list-wrap">
-        <div>
+        <div class="d-flex flex-wrap align-items-start">
             <input id="input-project" type="text" class="col-lg-3" data-provider="typeahead" autocomplete="off" th:placeholder="#{project.name}" />
             <button id="select-project" type="submit" class="ybtn" th:attr="data-loading-text=#{site.massMail.loading}">
                 <strong th:text="#{button.add}"></strong>

@@ -46,7 +46,7 @@
         </div>
     </div>
     <ul class="user-list-wrap">
-        <li th:each="row : ${rows}" class="row listitem">
+        <li th:each="row : ${rows}" class="row row-float listitem">
             <div class="col-lg-3 listitem-col">
                 <a th:href="@{/{u}(u=${row.loginId})}" class="avatar-wrap list-avatar">
                     <img th:if="${row.defaultAvatar}" th:src="@{${row.avatarUrl}}"/>

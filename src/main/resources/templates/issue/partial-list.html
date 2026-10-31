@@ -10,7 +10,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="list(list)" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
     <ul class="post-list-wrap row">
         <th:block th:each="issue : ${list}">
-        <li class="post-item title" th:id="'issue-item-' + ${issue.id}" data-item="issue-item"
+        <li class="post-item title d-flex flex-wrap align-items-start" th:id="'issue-item-' + ${issue.id}" data-item="issue-item"
             th:attr="data-value=${issue.authorLoginId} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="${base + '/issue/' + issue.number}">
             <div class="col-lg-9 span-hard-wrap">
                 <label th:if="${projectView.projectMember}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
@@ -101,7 +101,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="draftList(list)" th:with="base=${#paths.project(projectView.project.owner, projectView.project.name)}">
     <ul class="post-list-wrap row">
         <th:block th:each="issue : ${list}">
-        <li class="post-item title" th:id="'issue-item-' + ${issue.id}" data-item="issue-item"
+        <li class="post-item title d-flex flex-wrap align-items-start" th:id="'issue-item-' + ${issue.id}" data-item="issue-item"
             th:attr="data-value=${issue.authorLoginId} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="${base + '/issue/' + issue.number}">
             <div class="col-lg-9 span-hard-wrap">
                 <label th:if="${projectView.projectMember}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">

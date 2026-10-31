@@ -7,7 +7,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="usermenu">
 <th:block th:if="${currentUser.anonymous}" th:with="remembered=${@socialSession.rememberOriginalUrl()}"></th:block>
-<div id="mySidenav" class="sidenav">
+<div id="mySidenav" class="sidenav d-flex flex-wrap align-items-start">
     <div class="col-lg-5 right-menu span-hard-wrap">
         <div class="row user-menu-wrap">
             <span class="user-menu"><a th:href="@{'/' + ${#strings.defaultString(currentUser.loginId, '')}}" th:text="#{userinfo.profile}"></a></span>

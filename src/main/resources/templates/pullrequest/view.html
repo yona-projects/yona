@@ -66,10 +66,10 @@
                         <button type="submit" class="ybtn ybtn-small" th:text="#{pullRequest.review.pending.discard}"></button>
                     </form>
                 </div>
-                <form id="review-form" th:if="${reviewArea.formUrl != null}" th:action="${reviewArea.formUrl}" method="post" class="pr-review-form mt20">
-                    <h5 th:text="#{pullRequest.review.form.title}"></h5>
+                <form id="review-form" th:if="${reviewArea.formUrl != null}" th:action="${reviewArea.formUrl}" method="post" class="pr-review-form mt20 d-flex flex-wrap align-items-start">
+                    <h5 class="w-100 mt-0" th:text="#{pullRequest.review.form.title}"></h5>
                     <textarea name="contents" rows="4" class="textbox col-lg-12" th:placeholder="#{pullRequest.review.form.placeholder}"></textarea>
-                    <div class="review-verdicts">
+                    <div class="review-verdicts w-100">
                         <div th:each="v : ${reviewArea.verdictOptions}" class="form-check form-check-radio form-check-inline"><label class="form-check-label">
                             <input type="radio" name="verdict" th:value="${v}" th:checked="${v == 'COMMENTED'}" class="form-check-input">
                             <th:block th:text="#{'pullRequest.review.form.' + ${#strings.toLowerCase(v)}}"></th:block>
@@ -104,7 +104,7 @@
                             <span th:class="'verdict verdict-' + ${#strings.toLowerCase(r.verdict)}" th:text="#{'pullRequest.review.state.' + ${#strings.toLowerCase(r.verdict)}}" th:title="${r.agoTitle}"></span>
                             <span th:if="${r.dismissed}" class="dismissed" th:title="${r.systemDismissed} ? #{pullRequest.review.dismissed.stale} : ${r.dismissedReason}" th:text="#{pullRequest.review.dismissed.label}"></span>
                             <button th:if="${r.rerequestUrl != null}" type="button" class="ybtn ybtn-mini review-rerequest" th:attr="data-url=${r.rerequestUrl}, data-reviewer=${r.loginId}" th:title="#{pullRequest.review.request.again}"><i class="yobicon-sync"></i></button>
-                            <form th:if="${r.dismissUrl != null}" th:action="${r.dismissUrl}" method="post" class="review-dismiss">
+                            <form th:if="${r.dismissUrl != null}" th:action="${r.dismissUrl}" method="post" class="review-dismiss d-flex flex-wrap align-items-start">
                                 <input type="text" name="message" class="text col-lg-12" maxlength="255" th:placeholder="#{pullRequest.review.dismiss.reason}">
                                 <button type="submit" class="ybtn ybtn-mini" th:text="#{pullRequest.review.dismiss}"></button>
                             </form>

@@ -8,7 +8,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="pullRequestRow(pull)"
           th:with="base=${#paths.project(pull.projectOwner, pull.projectName)}, url=${#paths.project(pull.projectOwner, pull.projectName) + '/pullRequest/' + pull.number}">
-<li class="post-item">
+<li class="post-item d-flex flex-wrap align-items-start">
     <div class="col-lg-10">
         <a th:href="@{${base}}" class="avatar-wrap mlarge">
             <img th:src="@{${pull.projectLogoUrl}}" th:alt="${pull.projectOwner} + ' / ' + ${pull.projectName}">

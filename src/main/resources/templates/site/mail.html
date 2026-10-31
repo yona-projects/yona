@@ -26,31 +26,31 @@
         <li th:each="item : ${notConfiguredItems}" th:text="${item}"></li>
     </ul>
 </div>
-<form id="mailForm" method="post" th:action="@{/sites/mail}" class="form-horizontal">
-    <div class="form-field">
+<form id="mailForm" method="post" th:action="@{/sites/mail}" class="form-horizontal d-flex flex-wrap align-items-start">
+    <div class="form-field d-flex flex-wrap align-items-start w-100">
         <label name="from" class="col-form-label col-lg-3" th:text="#{site.mail.from}"></label>
-        <div>
+        <div class="d-flex flex-wrap align-items-start">
             <input type="text" name="from" th:value="${sender}" required="" th:placeholder="#{site.mail.fromPlaceholder}" class="col-lg-4">
         </div>
     </div>
 
-    <div class="form-field">
+    <div class="form-field w-100">
         <label name="to" class="col-form-label" th:text="#{site.mail.to}"></label>
-        <div>
+        <div class="d-flex flex-wrap align-items-start">
             <input type="text" class="col-lg-4" name="to" required="" th:placeholder="#{site.mail.toPlaceholder}">
         </div>
     </div>
 
-    <div class="form-field mr10">
+    <div class="form-field mr10 w-100">
         <label name="subject" class="col-form-label" th:text="#{site.mail.subject}"></label>
-        <div>
+        <div class="d-flex flex-wrap align-items-start">
             <input type="text" name="subject" class="col-lg-12">
         </div>
     </div>
 
-    <div class="form-field mr10">
+    <div class="form-field mr10 w-100">
         <label name="body" class="col-form-label" th:text="#{site.mail.body}"></label>
-        <div>
+        <div class="d-flex flex-wrap align-items-start">
             <textarea id="body" name="body" rows="16" class="col-lg-12 textbody"></textarea>
         </div>
     </div>
