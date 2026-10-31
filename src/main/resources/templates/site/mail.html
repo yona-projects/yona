@@ -22,7 +22,7 @@
 
 <div th:if="${!notConfiguredItems.isEmpty()}" class="alert alert-danger">
     <p th:utext="#{site.mail.notConfigured('/admin/mailconf')}"></p>
-    <ul>
+    <ul class="ps-4 mb-0">
         <li th:each="item : ${notConfiguredItems}" th:text="${item}"></li>
     </ul>
 </div>

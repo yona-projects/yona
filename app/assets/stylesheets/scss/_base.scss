@@ -173,6 +173,11 @@ label {
   display: block;
   margin-bottom: 5px;
 }
+// 폼 컨트롤 아래 간격: v1.6은 모든 입력창과 선택 상자 아래에 10px를 두었다. 간격을 잃으면 입력창과 다음 라벨이 붙어 보이므로 같은 값을 준다.
+// 클래스 하나의 특이도라 reboot의 `input { margin: 0 }`은 이기고, 이 파일보다 뒤에 있는 영역별 margin 규칙이 다시 이긴다.
+.form-control, .form-select {
+  margin-bottom: 0.625rem;
+}
 
 
 
