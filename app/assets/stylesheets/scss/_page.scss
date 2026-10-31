@@ -4162,16 +4162,13 @@ label.issue-item-row {
         display:block;
         width:260px;
         min-height:30px;
-        top:0; right:0;
+        top:0; right:0; bottom:0;
 
+        // 스크롤하면 화면 위에서 10px 떨어진 곳에 붙어 따라온다(v1.6의 affix 대체, A-301)
         .review-container {
             width:260px;
-            position:relative;
-
-            &.affix {
-                position: fixed;
-                top:10px;
-            }
+            position:sticky;
+            top:10px;
 
             .review-list {
                 overflow:auto;
@@ -5440,15 +5437,14 @@ label.issue-item-row {
     }
 }
 
-.mass-update-wrap {
-    &.affix {
-        top:0;
-        padding:15px 0;
-        border-bottom:1px solid rgba(0, 0, 0, 0.1);
-        width:100%;
-        background: #fff;
-        z-index: 900;
-    }
+// 일괄 수정 막대와 정렬 링크가 든 줄이 스크롤하면 화면 위쪽에 붙어 따라온다(v1.6의 affix 대체, A-301).
+// 막대(`.mass-update-wrap`)는 높이가 0인 float 묶음이라 단독으로는 붙지 못하므로, 둘을 감싼 `.filter-wrap`이 붙는다.
+.filter-wrap.mass-update-sticky {
+    position: sticky;
+    top: 0;
+    display: flow-root;
+    background: #fff;
+    z-index: 900;
 }
 
 .mass-update-form {
@@ -6748,11 +6744,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         font-size:0.9375rem;
         text-align:center;
     }
-}
-
-// 스크롤로 화면에 고정된 요소(yona.Affix.js)
-.affix {
-  position: fixed;
 }
 
 .admin-logged-in-affix {

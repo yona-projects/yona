@@ -40,7 +40,7 @@
             <th:block th:replace="~{help/keymap :: keymap('issueList', ${projectView})}"></th:block>
         </th:block>
         <th:block th:unless="${items.isEmpty()}">
-            <div class="filter-wrap board">
+            <div class="filter-wrap board" th:classappend="${canMassUpdate} ? ' mass-update-sticky'">
                 <th:block th:if="${canMassUpdate}">
                     <th:block th:replace="~{issue/partial-massupdate :: massupdate}"></th:block>
                 </th:block>

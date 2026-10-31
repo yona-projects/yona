@@ -51,4 +51,26 @@ class StickyPanelsTest {
             "src/main/resources/static/assets/javascripts/lib/less-1.3.0.min.js"
         ).forEach { assertFalse(File(it).exists(), "$it 는 지워져야 한다") }
     }
+
+    @Test
+    fun `일괄 수정 막대와 리뷰 상자는 sticky이고 affix 스크립트와 클래스를 쓰지 않는다`() {
+        val scss = text("app/assets/stylesheets/scss/_page.scss")
+        assertTrue(Regex("""\.mass-update-sticky \{[^}]*?position:\s*sticky""", RegexOption.DOT_MATCHES_ALL).containsMatchIn(scss), ".filter-wrap.mass-update-sticky는 sticky여야 한다")
+        listOf("issue/partial-list-wrap.html", "milestone/view.html").forEach {
+            assertTrue(text("src/main/resources/templates/$it").contains("mass-update-sticky"), "$it 의 막대 줄에 mass-update-sticky가 있어야 한다")
+        }
+        assertTrue(Regex("""\.review-container \{[^}]*?position:\s*sticky""", RegexOption.DOT_MATCHES_ALL).containsMatchIn(scss), ".review-container는 sticky여야 한다")
+        assertFalse(Regex("""&\.affix|^\.affix""", RegexOption.MULTILINE).containsMatchIn(scss), "SCSS에 .affix 규칙이 남아 있다")
+        listOf("yobi.issue.MassUpdate.js", "yobi.code.Diff.js").forEach {
+            val js = text("src/main/resources/static/assets/javascripts/service/$it")
+            assertFalse(js.contains("yona.affix"), "$it 는 yona.affix를 부르면 안 된다")
+            assertFalse(js.contains("'affix") || js.contains("\"affix"), "$it 에 affix 클래스 참조가 남아 있다")
+        }
+    }
+
+    @Test
+    fun `yona Affix 스크립트는 저장소와 스크립트 목록에 없다`() {
+        assertFalse(File("src/main/resources/static/assets/javascripts/common/yona.Affix.js").exists())
+        assertFalse(text("src/main/resources/templates/common/scripts.html").contains("yona.Affix.js"))
+    }
 }

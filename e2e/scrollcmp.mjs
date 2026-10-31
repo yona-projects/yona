@@ -24,7 +24,7 @@ try {
     const page = await ctx.newPage(); await page.goto(server.base + sc.path, { waitUntil: 'load' }); await page.waitForLoadState('networkidle', { timeout: 6000 }).catch(() => {});
     const max = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
     const out = [];
-    for (const y of [0, 20, 60, 150, 400, 900, 2000, 5000]) {
+    for (const y of [0, 20, 60, 150, 300, 400, 900, 2000, 5000]) {
       if (y > max && y !== 0) { out.push({ y, skipped: `문서 높이 한계 ${max}` }); break; }
       await page.evaluate((v) => scrollTo(0, v), y); await page.waitForTimeout(150);
       out.push({ y, ...(await page.evaluate((sel) => {

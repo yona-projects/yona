@@ -111,13 +111,6 @@
             htElement.waBtnToggleReviewWrap.on("click", function(){
                 htElement.welContainer.toggleClass("diffs-only");
 
-                var positionTop =  10;
-                if(htElement.welReviewContainer.offset().top - positionTop < $(document).scrollTop()){
-                    htElement.welReviewContainer
-                        .addClass('affix-top')
-                        .removeClass('affix');
-                }
-
             });
 
             // 리뷰카드 링크 클릭시
@@ -141,7 +134,6 @@
                 });
             }
 
-            _setReviewWrapAffixed();
 
             $(window).on('resize scroll', _setReviewListHeight);
 
@@ -271,16 +263,6 @@
             });
         }
 
-        /**
-         * @private
-         */
-        function _setReviewWrapAffixed(){
-            if(htElement.welReviewContainer.length === 0){
-                return;
-            }
-
-            yona.affix(htElement.welReviewContainer, htElement.welReviewContainer.offset().top - 10);
-        }
 
         /**
          * initialize fileUploader
@@ -663,10 +645,18 @@
             }
         }
 
+        /**
+         * 리뷰 상자가 `position: sticky`로 화면 위쪽에 붙어 있는지 확인한다.
+         * 붙으면 상자의 화면상 위치가 `top` 값(10px)에 머문다.
+         */
+        function _isReviewContainerStuck() {
+            return htElement.welReviewContainer[0].getBoundingClientRect().top <= 10;
+        }
+
         function _setReviewListHeight() {
             var nMaxHeight;
             
-            if(htElement.welReviewContainer.hasClass('affix')) {
+            if(_isReviewContainerStuck()) {
                 var nCodeDiffWrapOffsetBottom = htElement.welContainer.position().top + htElement.welContainer.height();
                 var nReviewListOffsetBottom = htElement.welReviewList.offset().top + htElement.welReviewList.height();
                 var nReviewListDefaultMarginBottom = 15;

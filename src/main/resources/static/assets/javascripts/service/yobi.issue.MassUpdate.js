@@ -33,7 +33,6 @@
             _initVar(htOptions || {});
             _initElement(htOptions || {});
             _attachEvent();
-            _setMassUpdateFormAffixed();
         }
 
         /**
@@ -324,9 +323,6 @@
             return sItemId;
         }
 
-        function _setMassUpdateFormAffixed(){
-            yona.affix('.mass-update-wrap', $('.mass-update-wrap').offset().top - 15);
-         }
 
         function _onChangeAttachingLabelField(sLabelId){
             var aDetachLabels = htVar.htExclusiveLabels[htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').data('category')] || [];

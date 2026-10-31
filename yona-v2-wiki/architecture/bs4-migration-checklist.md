@@ -76,7 +76,7 @@ updated: 2026-10-31
 | 페이지네이션 | 이 사이트는 자체 마크업(`page-navigation-wrap`)이라 BS 규칙은 호환 층에서 삭제 | 완료 |
 | `hide` | 안내서에 대응 없음, `d-none`은 JS `show()`와 맞지 않아 자체 도우미로 `_common.scss`에 둠 | A-294 |
 | `.nav` 밖의 탭 | 자체 `yona.Tabs.js` | A-294 |
-| `affix` | 자체 JS `yona.Affix.js`로 대체 | A-291 |
+| `affix` | CSS `position: sticky`로 대체(`yona.Affix.js`는 A-301에서 삭제) | A-291, A-301 |
 | 단추 그룹(`.btn-group*`, `.btn-*`) | 호환 층에 남음(56개 규칙). 사이트 단추는 자체 `ybtn`이고 BS 단추는 일부 | 대기 |
 | 그리드(`.row`, `col-lg-*`) | 호환 층에 남음(44개 규칙). BS4 flex 열을 끄고 BS2 유동 폭을 쓴다 | A-289, BS5에서 결정 |
 | 표(`.table*`) | BS3 단계 보정은 삭제. BS2 값은 호환 층에 남음(43개 규칙) | 변수화 대기 |
