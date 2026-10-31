@@ -499,76 +499,6 @@ ul.inline > li, ol.inline > li {
   -webkit-border-radius: 3px;
   border-radius: 3px;
 }
-.btn-group {
-  position: relative;
-  display: inline-block;
-  font-size: 0;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-.btn-group + .btn-group {
-  margin-left: 5px;
-}
-.btn-group > .btn {
-  position: relative;
-  -webkit-border-radius: 0;
-  border-radius: 0;
-}
-.btn-group > .btn + .btn {
-  margin-left: -1px;
-}
-.btn-group > .btn, .btn-group > .dropdown-menu, .btn-group > .popover {
-  font-size: 14px;
-}
-.btn-group > .btn:first-child {
-  margin-left: 0;
-  -webkit-border-bottom-left-radius: 4px;
-  border-bottom-left-radius: 4px;
-  -webkit-border-top-left-radius: 4px;
-  border-top-left-radius: 4px;
-}
-.btn-group > .btn:last-child, .btn-group > .dropdown-toggle {
-  -webkit-border-top-right-radius: 4px;
-  border-top-right-radius: 4px;
-  -webkit-border-bottom-right-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
-.btn-group > .btn.large:first-child {
-  margin-left: 0;
-  -webkit-border-bottom-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-  -webkit-border-top-left-radius: 6px;
-  border-top-left-radius: 6px;
-}
-.btn-group > .btn.large:last-child, .btn-group > .large.dropdown-toggle {
-  -webkit-border-top-right-radius: 6px;
-  border-top-right-radius: 6px;
-  -webkit-border-bottom-right-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
-.btn-group > .btn:hover, .btn-group > .btn:focus, .btn-group > .btn:active, .btn-group > .btn.active {
-  z-index: 2;
-}
-.btn-group .dropdown-toggle:active, .btn-group.open .dropdown-toggle {
-  outline: 0;
-}
-.btn-group > .btn + .dropdown-toggle {
-  padding-right: 8px;
-  padding-left: 8px;
-  -webkit-box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.125), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.125), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-.btn-group.open .dropdown-toggle {
-  background-image: none;
-  -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-.btn-group.open .btn.dropdown-toggle {
-  background-color: #e6e6e6;
-}
-.btn-group.open .btn-danger.dropdown-toggle {
-  background-color: #bd362f;
-}
 .tab-content {
   overflow: hidden;
 }
@@ -581,171 +511,9 @@ ul.inline > li, ol.inline > li {
 // UA 기본이 border-box인 컨트롤은 전역 content-box 복원에서 제외한다(Bootstrap 2에서도 브라우저 기본 그대로였다).
 button, select, input[type="button"], input[type="submit"], input[type="reset"], input[type="color"], input[type="image"], input[type="checkbox"], input[type="radio"], meter, progress { -webkit-box-sizing: border-box; box-sizing: border-box; }
 
-// --- Bootstrap 2 단추 복원: 이 사이트의 `.btn`(예: 지켜보기 단추)은 BS2 모양이다 ---
-.btn {
-  display: inline-block;
-  padding: 4px 12px;
-  margin-bottom: 0;
-  font-size: 14px;
-  line-height: 20px;
-  color: #333333;
-  text-align: center;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
-  vertical-align: middle;
-  cursor: pointer;
-  background-color: #f5f5f5;
-  background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
-  background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
-  background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
-  background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
-  background-repeat: repeat-x;
-  border: 1px solid #cccccc;
-  border-color: #e6e6e6 #e6e6e6 #bfbfbf;
-  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  border-bottom-color: #b3b3b3;
-  -webkit-border-radius: 4px;
-  border-radius: 4px;
-  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-.btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled] {
-  color: #333333;
-  background-color: #e6e6e6;
-}
-.btn:hover, .btn:focus {
-  color: #333333;
-  text-decoration: none;
-  background-position: 0 -15px;
-  -webkit-transition: background-position 0.1s linear;
-  -o-transition: background-position 0.1s linear;
-  transition: background-position 0.1s linear;
-}
-.btn:focus {
-  outline: thin dotted #333;
-  outline: 5px auto -webkit-focus-ring-color;
-  outline-offset: -2px;
-}
-.btn.active, .btn:active {
-  background-image: none;
-  outline: 0;
-  -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-.btn.disabled, .btn[disabled] {
-  cursor: default;
-  background-image: none;
-  opacity: 0.65;
-  -webkit-box-shadow: none;
-  box-shadow: none;
-}
-.btn-primary.active, .btn-warning.active, .btn-danger.active, .btn-success.active, .btn-info.active, .btn-inverse.active {
-  color: rgba(255, 255, 255, 0.75);
-}
-.btn-danger {
-  color: #ffffff;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  background-color: #da4f49;
-  background-image: -moz-linear-gradient(top, #ee5f5b, #bd362f);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ee5f5b), to(#bd362f));
-  background-image: -webkit-linear-gradient(top, #ee5f5b, #bd362f);
-  background-image: -o-linear-gradient(top, #ee5f5b, #bd362f);
-  background-image: linear-gradient(to bottom, #ee5f5b, #bd362f);
-  background-repeat: repeat-x;
-  border-color: #bd362f #bd362f #802420;
-  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-}
-.btn-danger:hover, .btn-danger:focus, .btn-danger:active, .btn-danger.active, .btn-danger.disabled, .btn-danger[disabled] {
-  color: #ffffff;
-  background-color: #bd362f;
-}
-button.btn::-moz-focus-inner {
-  padding: 0;
-  border: 0;
-}
-.btn-group {
-  position: relative;
-  display: inline-block;
-  font-size: 0;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-.btn-group + .btn-group {
-  margin-left: 5px;
-}
-.btn-group > .btn {
-  position: relative;
-  -webkit-border-radius: 0;
-  border-radius: 0;
-}
-.btn-group > .btn + .btn {
-  margin-left: -1px;
-}
-.btn-group > .btn, .btn-group > .dropdown-menu, .btn-group > .popover {
-  font-size: 14px;
-}
-.btn-group > .btn:first-child {
-  margin-left: 0;
-  -webkit-border-bottom-left-radius: 4px;
-  border-bottom-left-radius: 4px;
-  -webkit-border-top-left-radius: 4px;
-  border-top-left-radius: 4px;
-}
-.btn-group > .btn:last-child, .btn-group > .dropdown-toggle {
-  -webkit-border-top-right-radius: 4px;
-  border-top-right-radius: 4px;
-  -webkit-border-bottom-right-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
-.btn-group > .btn.large:first-child {
-  margin-left: 0;
-  -webkit-border-bottom-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-  -webkit-border-top-left-radius: 6px;
-  border-top-left-radius: 6px;
-}
-.btn-group > .btn.large:last-child, .btn-group > .large.dropdown-toggle {
-  -webkit-border-top-right-radius: 6px;
-  border-top-right-radius: 6px;
-  -webkit-border-bottom-right-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
-.btn-group > .btn:hover, .btn-group > .btn:focus, .btn-group > .btn:active, .btn-group > .btn.active {
-  z-index: 2;
-}
-.btn-group .dropdown-toggle:active, .btn-group.open .dropdown-toggle {
-  outline: 0;
-}
-.btn-group > .btn + .dropdown-toggle {
-  padding-right: 8px;
-  padding-left: 8px;
-  -webkit-box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.125), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.125), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-.btn-group.open .dropdown-toggle {
-  background-image: none;
-  -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-.btn-group.open .btn.dropdown-toggle {
-  background-color: #e6e6e6;
-}
-.btn-group.open .btn-danger.dropdown-toggle {
-  background-color: #bd362f;
-}
-.btn .caret {
-  margin-top: 8px;
-  margin-left: 0;
-}
-.btn-primary .caret, .btn-warning .caret, .btn-danger .caret, .btn-info .caret, .btn-success .caret, .btn-inverse .caret {
-  border-top-color: #ffffff;
-  border-bottom-color: #ffffff;
-}
 .nav-tabs > li, .nav-pills > li { display: list-item; }
 
 // --- Bootstrap 3 규칙 중 BS2에 없던 속성을 지운다(위의 BS2 규칙이 같은 속성을 다루지 않는 곳) ---
-.btn-group > .btn { float: none; }
-.btn-group > .btn, .btn-group > .btn-group { position: relative; }
 blockquote { font-size: inherit; }
 
 
@@ -762,15 +530,9 @@ ul.list-unstyled, ol.list-unstyled { margin-left: 0; list-style: none; }
 // Bootstrap 5의 `.row > *`는 열이 아닌 자식에게도 폭 100%와 안쪽 여백을 준다. 이 사이트의 `.row`는 일반 래퍼로도 쓰였으므로 열이 아닌 자식은 BS2처럼 건드리지 않는다.
 .row > :where(:not([class*="col-lg-"])) { flex-shrink: 1; width: auto; max-width: none; margin-top: 0; padding-left: 0; padding-right: 0; }
 [class*="col-lg-"], [class*="col-lg-"] { flex: none; max-width: none; }
-.btn-group, .btn-group-vertical { display: inline-block; }
-.btn-group > .btn { flex: none; }
-// Bootstrap 5는 단추 그룹의 이웃 단추를 -1px로 겹친다. BS2는 겹치지 않았다.
-.btn-group > :not(.btn-check:first-child) + .btn, .btn-group > .btn-group:not(:first-child) { margin-left: 0; }
 .small { font-size: inherit; font-weight: inherit; }
-.btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) { margin-left: 0; }
 
 
-.btn-group .btn.dropdown-toggle.show { -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05); }
 
 
 
@@ -788,9 +550,6 @@ input[class*="col-lg-"], select[class*="col-lg-"], textarea[class*="col-lg-"],
 
 
 // --- Bootstrap 5가 새로 입히는 기본 모양 중 BS2와 다른 것을 되돌린다(X-38d) ---
-// 비활성 단추의 테두리: BS5는 변종 단추(`.btn-primary` 등)에만 비활성 색 변수를 정의해서, 기본 `.btn`은 글자색으로 테두리가 그려진다.
-.btn:disabled, .btn.disabled, fieldset:disabled .btn { border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25); }
-.btn.dropdown-toggle:disabled, .btn.dropdown-toggle.disabled { border-color: rgba(0, 0, 0, 0.15); }
 // `legend`는 BS5에서 떠다니며(`float: left`) 다음 요소가 아래로 밀리지 않는다.
 legend { float: none; }
 legend + * { clear: none; }
