@@ -34,7 +34,7 @@
 
   .board-actrow {
     padding: 2px;
-    line-height: 40px;
+    line-height: 2.5rem;
   }
 
   .board-comment-wrap {
@@ -54,7 +54,7 @@
     p,
     ul,
     ol {
-      font-size: 16px !important;
+      font-size: 1rem !important;
     }
 
     li > img {
@@ -79,10 +79,10 @@
       padding: 10px 0 !important;
 
       .title {
-        font-size: 16px;
+        font-size: 1rem;
 
         &.project {
-          font-size: 12px;
+          font-size: 0.75rem;
         }
       }
     }
@@ -168,7 +168,7 @@
   input[type="number"],
   input[type="password"],
   textarea {
-    font-size: 16px !important;
+    font-size: 1rem !important;
   }
 
   //
@@ -490,7 +490,7 @@
     width: inherit;
 
     .site-heading {
-      font-size: 22px;
+      font-size: 1.375rem;
       padding-left: 20px;
     }
   }
@@ -510,7 +510,7 @@
   }
 
   .attachment-files {
-    font-size: 12px;
+    font-size: 0.75rem;
 
     .attachment-files-header {
       display: none;
@@ -539,7 +539,7 @@
       }
 
       .file-location {
-        font-size: 12px;
+        font-size: 0.75rem;
         display: block;
       }
     }
@@ -552,7 +552,7 @@
 
 @media all {
   .attachment-files {
-    font-size: 12px;
+    font-size: 0.75rem;
 
     .attachment-files-header {
       .header-file-name {
@@ -568,13 +568,13 @@
     .attachment-file-detail {
       .file-name {
         max-width: 200px;
-        font-size: 14px;
+        font-size: 0.875rem;
         word-break: break-all;
       }
 
       .file-size {
         max-width: 80px;
-        font-size: 12px;
+        font-size: 0.75rem;
       }
 
       .file-date {
@@ -582,7 +582,7 @@
       }
 
       .file-location {
-        font-size: 12px;
+        font-size: 0.75rem;
         display: block;
       }
     }

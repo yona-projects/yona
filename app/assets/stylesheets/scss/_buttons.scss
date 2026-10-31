@@ -6,8 +6,8 @@
   display: inline-block;
   padding: 4px 12px;
   margin-bottom: 0;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   color: #333;
   text-align: center;
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
@@ -132,7 +132,7 @@ fieldset:disabled .btn {
     float: none;
     flex: none;
     border-radius: 0;
-    font-size: 14px;
+    font-size: 0.875rem;
   }
 
   > .btn-group {
@@ -141,7 +141,7 @@ fieldset:disabled .btn {
 
   > .dropdown-menu,
   > .popover {
-    font-size: 14px;
+    font-size: 0.875rem;
   }
 
   > .btn:first-child {

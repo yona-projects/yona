@@ -360,11 +360,11 @@ li.select2-result-with-children:first-of-type {
 }
 
 .tooltip {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .tooltip.show {
-  font-size: 12px;
+  font-size: 0.75rem;
   opacity: 1;
   filter: alpha(opacity=100);
 }
@@ -372,7 +372,7 @@ li.select2-result-with-children:first-of-type {
 .welcome-table {
     td {
         border-top: none;
-        font-size: 14px;
+        font-size: 0.875rem;
         vertical-align: middle;
     }
     a {
@@ -400,7 +400,7 @@ input:-webkit-autofill {
     }
     ul {
         li {
-            font-size: 16px;
+            font-size: 1rem;
             font-weight: normal;
         }
     }

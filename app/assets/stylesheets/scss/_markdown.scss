@@ -86,7 +86,7 @@ code {
   h1,
   h2,
   h3 {
-    line-height: 40px;
+    line-height: 2.5rem;
     margin-bottom: 16px;
   }
 
@@ -153,7 +153,7 @@ code {
     border: 1px solid #ddd;
     border-radius: 3px;
     font-family: $fixed-font-family;
-    font-size: 13px;
+    font-size: 0.8125rem;
 
     .title {
       font-size: inherit;
@@ -188,7 +188,7 @@ code {
   }
 
   > ul {
-    line-height: 20px;
+    line-height: 1.25rem;
     list-style: disc;
     margin-bottom: 16px;
   }
@@ -251,7 +251,7 @@ code {
     max-width: 400px;
   }
   .popover-header {
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: bold;
   }
 }

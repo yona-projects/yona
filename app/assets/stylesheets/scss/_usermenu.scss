@@ -29,7 +29,7 @@ $violet:  #9c27b0;
   font-family: 'Material Icons';
   font-weight: normal;
   font-style: normal;
-  font-size: 24px;
+  font-size: 1.5rem;
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
@@ -147,7 +147,7 @@ $violet:  #9c27b0;
       min-width: 200px;
       background-color: rgb(3, 169, 244);
       color: white;
-      font-size: 13px;
+      font-size: 0.8125rem;
 
       .arrow {
         &::after {
@@ -185,7 +185,7 @@ $violet:  #9c27b0;
     border-radius: 2px;
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0;
@@ -195,7 +195,7 @@ $violet:  #9c27b0;
     cursor: pointer;
     text-decoration: none;
     text-align: center;
-    line-height: 36px;
+    line-height: 2.25rem;
     vertical-align: middle;
     position: relative;
     height: 36px;
@@ -223,7 +223,7 @@ $violet:  #9c27b0;
   }
 
   .search-input {
-    font-size:14px;
+    font-size:0.875rem;
     display:block;
     border:none;
     width: 99%;
@@ -239,7 +239,7 @@ $violet:  #9c27b0;
 
   .search-label {
     color:#999;
-    font-size:18px;
+    font-size:1.125rem;
     font-weight:normal;
     position:absolute;
     pointer-events:none;
@@ -289,7 +289,7 @@ $violet:  #9c27b0;
   }
 
   .user-avatar {
-    font-size: 22px !important;
+    font-size: 1.375rem !important;
     background-color: transparent !important;
   }
 
@@ -314,14 +314,14 @@ $violet:  #9c27b0;
   }
 
   .user-detail {
-    font-size: 12px !important;
+    font-size: 0.75rem !important;
     color: grey;
     padding-top: 3px;
   }
 
   .no-result {
     color: mediumvioletred;
-    font-size: 16px;
+    font-size: 1rem;
     text-align: center;
     margin-top: 10px;
     margin-bottom: 25px;
@@ -342,7 +342,7 @@ $violet:  #9c27b0;
 
   .is-exist-icon {
     color: whitesmoke;
-    font-size: 10px !important;
+    font-size: 0.625rem !important;
     background-color: #343434;
     border-radius: 2px;
     padding: 2px 4px;
@@ -357,7 +357,7 @@ $violet:  #9c27b0;
   }
 
   .setting-icon {
-    font-size: 20px !important;
+    font-size: 1.25rem !important;
     color: #9E9E9E;
     text-decoration: none;
     margin-bottom: -20px;
@@ -366,7 +366,7 @@ $violet:  #9c27b0;
   .star {
     vertical-align: bottom;
     height: 15px;
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   .starred {
@@ -513,7 +513,7 @@ $violet:  #9c27b0;
   }
 
   .project-item {
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 400;
     overflow: hidden;
 
@@ -532,7 +532,7 @@ $violet:  #9c27b0;
 
       &.org-name {
         max-width: 140px;
-        font-size: 14px;
+        font-size: 0.875rem;
         color: #00bcd4;
       }
 
@@ -558,7 +558,7 @@ $violet:  #9c27b0;
     .project-owner {
       color: grey;
       padding-right: 10px;
-      font-size: 12px;
+      font-size: 0.75rem;
       text-align: right;
       flex-shrink: 3;
       text-overflow: ellipsis;
@@ -588,7 +588,7 @@ $violet:  #9c27b0;
 
   .issue-title {
     display: inline-block;
-    font-size: 13px;
+    font-size: 0.8125rem;
     white-space: break-spaces;
     word-break: break-all;
     max-width: 240px;
@@ -597,7 +597,7 @@ $violet:  #9c27b0;
   .issue-path {
     color: grey;
     padding-right: 11px;
-    font-size: 11px;
+    font-size: 0.6875rem;
     text-align: right;
     flex-shrink: 3;
     text-overflow: ellipsis;
@@ -625,11 +625,11 @@ $violet:  #9c27b0;
     width: 330px;
     overflow: hidden;
     .page-title {
-      font-size: 13px;
+      font-size: 0.8125rem;
       padding-left: 10px;
     }
     .page-author {
-      font-size: 12px;
+      font-size: 0.75rem;
       color: grey;
       display: block;
       text-align: right;
@@ -664,7 +664,7 @@ $violet:  #9c27b0;
     background-color: #303030;
     color: white;
     z-index: 9999;
-    font-size: 13px;
+    font-size: 0.8125rem;
     .tip {
       width: 320px;
     }
@@ -705,7 +705,7 @@ $violet:  #9c27b0;
   .title-text {
     color: inherit;
     display: block;
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 300;
     line-height: normal;
     overflow: hidden;
@@ -716,39 +716,39 @@ $violet:  #9c27b0;
 
   .option-content {
     color: rgba(0,0,0, 0.54);
-    line-height: 18px;
+    line-height: 1.125rem;
     font-size: 1.1em;
     overflow: hidden;
     width: 90%;
     .shortcut-key {
-      font-size: 14px;
+      font-size: 0.875rem;
       td {
         border-bottom: 1px solid #dadada;
         padding: 5px 5px 5px 0;
       }
     }
     &.more-help-text {
-      font-size: 16px;
-      line-height: 20px;
+      font-size: 1rem;
+      line-height: 1.25rem;
     }
   }
 
   .more-help {
     .sub-title {
       margin-top: -17px;
-      font-size: 14px;
+      font-size: 0.875rem;
       color: rebeccapurple;
       margin-bottom: 10px;
       padding-left: 2px;
     }
     table {
-      font-size: 14px;
+      font-size: 0.875rem;
     }
     .text-left {
       text-align: right;
       padding-right: 10px;
       width: 50px;
-      line-height: 20px;
+      line-height: 1.25rem;
     }
   }
 
@@ -884,7 +884,7 @@ $violet:  #9c27b0;
     margin-right: 5px;
     padding: 3px;
     color: black;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
 }
 
@@ -907,7 +907,7 @@ $violet:  #9c27b0;
   position: absolute;
   top: 0;
   right: 25px;
-  font-size: 36px;
+  font-size: 2.25rem;
   margin-left: 50px;
 }
 

@@ -56,14 +56,14 @@ cite {
 // BS2는 줄 높이를 비율이 아니라 20px 고정값으로 상속했다. BS5의 `$line-height-base`는 `* 1em` 계산에 쓰이는 비율이어야 하므로 변수는 비율로 두고
 // 본문이 쓰는 CSS 변수만 20px로 덮는다.
 :root {
-  --bs-body-line-height: 20px;
+  --bs-body-line-height: 1.25rem;
 }
 h1, h2, h3, h4, h5, h6 {
   margin-top: 10px;
   text-rendering: optimizelegibility;
 }
 h1, h2, h3 {
-  line-height: 40px;
+  line-height: 2.5rem;
 }
 h1 small, h2 small, h3 small, h4 small, h5 small, h6 small {
   font-weight: normal;
@@ -71,16 +71,16 @@ h1 small, h2 small, h3 small, h4 small, h5 small, h6 small {
   color: #999999;
 }
 h1 small {
-  font-size: 24.5px;
+  font-size: 1.53125rem;
 }
 h2 small {
-  font-size: 17.5px;
+  font-size: 1.09375rem;
 }
 h3 small {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 h4 small {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 ul, ol {
   padding: 0;
@@ -90,7 +90,7 @@ ul ul, ul ol, ol ol, ol ul {
   margin-bottom: 0;
 }
 li {
-  line-height: 20px;
+  line-height: 1.25rem;
 }
 dl {
   margin-bottom: 20px;
@@ -117,19 +117,19 @@ blockquote {
 }
 blockquote p {
   margin-bottom: 0;
-  font-size: 17.5px;
+  font-size: 1.09375rem;
   font-weight: 300;
   line-height: 1.25;
 }
 blockquote small {
   display: block;
-  line-height: 20px;
+  line-height: 1.25rem;
   color: #999999;
 }
 code, pre {
   padding: 0 3px 2px;
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #333333;
   border-radius: 3px;
 }
@@ -144,8 +144,8 @@ pre {
   display: block;
   padding: 9.5px;
   margin: 0 0 10px;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   word-break: break-all;
   word-wrap: break-word;
   white-space: pre-wrap;
@@ -174,20 +174,20 @@ legend {
   width: 100%;
   padding: 0;
   margin-bottom: 20px;
-  font-size: 21px;
-  line-height: 40px;
+  font-size: 1.3125rem;
+  line-height: 2.5rem;
   color: #333333;
   border: 0;
   border-bottom: 1px solid #e5e5e5;
 }
 legend small {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: #999999;
 }
 label, input, button, select, textarea {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: normal;
-  line-height: 20px;
+  line-height: 1.25rem;
 }
 input, button, select, textarea {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -201,8 +201,8 @@ select, textarea, #{text-inputs()} {
   height: 20px;
   padding: 4px 6px;
   margin-bottom: 10px;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   color: #555555;
   vertical-align: middle;
   border-radius: 4px;
@@ -233,7 +233,7 @@ input[type="file"], input[type="image"], input[type="submit"], input[type="reset
 }
 select, input[type="file"] {
   height: 30px;
-  line-height: 30px;
+  line-height: 1.875rem;
 }
 select {
   width: 220px;

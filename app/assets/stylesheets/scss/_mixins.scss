@@ -33,7 +33,7 @@
 
         strong {
             color:#fff; @include border-radius(2px);
-            font-size: 11px; padding: 4px;
+            font-size: 0.6875rem; padding: 4px;
             text-shadow: -1px -1px rgba(0,0,0,0.3);
             margin-right: 5px;
             @include bgblue;
@@ -61,12 +61,12 @@
         padding: 0 19px;
         margin-right: 10px;
         margin-top:1px;
-        line-height: 28px;
+        line-height: 1.75rem;
         border: 1px solid #CCC;
         border-left: 0 none;
         vertical-align: top;
         text-decoration: none;
-        font-size: 11px;
+        font-size: 0.6875rem;
         font-weight: bold;
         @include inline-block;
         @include border-radius(0 2px 2px 0);
@@ -89,10 +89,10 @@
     text-align: center;
 
     a {
-        font-size:15px; /*font-family:"Myriad Pro";*/
+        font-size:0.9375rem; /*font-family:"Myriad Pro";*/
         width:180px; height:35px;
         background-color:$orange;
-        color:#fff; line-height:35px;
+        color:#fff; line-height:2.1875rem;
         border-bottom:1px solid #ae5f54;
         @include border-radius(5px);
         @include inline-block;
@@ -102,14 +102,14 @@
 }
 @mixin simple-issue-list {
     .state-label {
-        font-size: 13px;
+        font-size: 0.8125rem;
         padding: 5px 0 3px;
         display: inline-block;
         min-width: 13px;
         color: white;
         border-radius: 5px;
         text-align: center;
-        line-height: 14px;
+        line-height: 0.875rem;
         margin-right: 3px;
 
         &.open {
@@ -121,14 +121,14 @@
     }
 
     .issue-item {
-        font-size: 14px;
+        font-size: 0.875rem;
         padding: 3px;
         .item-name {
             vertical-align: middle;
         }
         .number {
             font-family: menlo, Consolas, monospace, sans-serif;
-            font-size: 12px;
+            font-size: 0.75rem;
             color: gray;
             min-width: 35px;
             padding-right: 5px;
@@ -146,7 +146,7 @@
     color  : $black;
     text-align : center;
     font-weight: bold;
-    font-size  : 11px;
+    font-size  : 0.6875rem;
     @include border-radius(0 2px 2px 0);
 
     &:hover { color:$link-hover-color; }

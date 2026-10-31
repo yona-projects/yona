@@ -7,19 +7,19 @@
  *  bootstrap 2.2.1 : 12px)
  */
 body {
-    font-size:13px;
+    font-size:0.8125rem;
     display: flex;
     min-height: 100vh;
 }
-label, input, button, select, textarea { font-size:12px; }
+label, input, button, select, textarea { font-size:0.75rem; }
 select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"],
 input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"],
 input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"],
-.uneditable-input { font-size:12px; }
+.uneditable-input { font-size:0.75rem; }
 .btn-group > .btn,
 .btn-group > .dropdown-menu,
 .btn-group > .popover {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .blind {
@@ -72,8 +72,8 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     color: #333;
     background : $yobi-btn-default;
     text-shadow: none;
-    line-height: 20px;
-    font-size: 14px;
+    line-height: 1.25rem;
+    font-size: 0.875rem;
     outline:0 none;
     border: 1px solid rgba(0,0,0,.15);
     -webkit-border-radius: 3px !important;
@@ -195,8 +195,8 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 .nbtn {
     text-align :center;
     font-weight:bold;
-    font-size: 11px;
-    line-height: 18px;
+    font-size: 0.6875rem;
+    line-height: 1.125rem;
     border:0; padding:0;
     margin-right:5px;
     white-space:nowrap;
@@ -264,7 +264,7 @@ a.nbtn, div.nbtn, span.nbtn, p.nbtn {
     vertical-align:middle;
     &.small  { padding: 3px 10px; }
     &.medium { padding: 6px 20px; }
-    &.large  { padding: 9px 30px; font-size:15px; }
+    &.large  { padding: 9px 30px; font-size:0.9375rem; }
 }
 button.nbtn {
     &.square {
@@ -276,7 +276,7 @@ button.nbtn {
     }
     &.small  { padding:1px 10px; height:24px; line-height:1; }
     &.medium { padding:4px 20px; height:30px; line-height:1; }
-    &.large  { padding:8px 30px; height:36px; line-height:1; font-size:15px; }
+    &.large  { padding:8px 30px; height:36px; line-height:1; font-size:0.9375rem; }
 }
 .nbtn-group {
     .nbtn {
@@ -311,9 +311,9 @@ button.nbtn {
 /** issue label **/
 .issue-label {
     background:#f9f9f9;
-    font-size:11px;
+    font-size:0.6875rem;
     text-shadow:none;
-    line-height: 12px;
+    line-height: 0.75rem;
     -webkit-transition-duration:0.25s;
 
     &:last-of-type { margin:0; }
@@ -321,7 +321,7 @@ button.nbtn {
     .delete {
         display:inline;/*none;*/
         margin-left:8px; padding:8px 4px;
-        font-size:20px; vertical-align:middle;
+        font-size:1.25rem; vertical-align:middle;
         -webkit-transition-duration:inherit;
         &:hover { background:rgba(0,0,0,.2); }
     }
@@ -347,7 +347,7 @@ button.nbtn {
 span.issue-label {
     display: inline-block;
     overflow: hidden;
-    line-height: 20px;
+    line-height: 1.25rem;
     margin-right: 5px;
     padding: 2px 6px;
     &:hover {
@@ -361,7 +361,7 @@ span.issue-label {
 /** project label */
 .project-label {
     border:none; padding:1px 5px; display:inline-block;
-    font-size:11px; font-weight:bold;
+    font-size:0.6875rem; font-weight:bold;
     color:#fff; white-space:nowrap; vertical-align:middle;
     background:#aaa;/*d9d9d9;*/
 
@@ -410,7 +410,7 @@ span.issue-label {
         padding:4px 0px;
         border: 0 none;
 
-        font-size: 14px; /* 11px */
+        font-size: 0.875rem; /* 11px */
         color: $search-input-color;
         background-color: transparent;
 
@@ -587,7 +587,7 @@ span.issue-label {
     li {
         padding:5px 15px;
         border-top : 1px solid #ececec;
-        font-size: 14px;
+        font-size: 0.875rem;
     }
 }
 
@@ -603,7 +603,7 @@ span.issue-label {
         display:block; clear:both;
 
         button {
-            font-size:24px; font-weight:bold; color:#898989;
+            font-size:1.5rem; font-weight:bold; color:#898989;
             border:none; background:transparent;
         }
     }
@@ -611,13 +611,13 @@ span.issue-label {
     .message {
         .msg {
             text-align:center;
-            font-weight:bold; font-size:18px;
+            font-weight:bold; font-size:1.125rem;
             margin-bottom:20px; line-height:1.5em;
         }
 
         .desc {
             text-align:center;
-            font-weight: normal; font-size: 14px;
+            font-weight: normal; font-size: 0.875rem;
             margin: 20px 0 25px; line-height: 150%;
             color: #555;
         }
@@ -657,7 +657,7 @@ span.issue-label {
             left: 420px;
             button {
                 color: black;
-                font-size:25px;
+                font-size:1.5625rem;
                 font-weight:bold;
             }
         }
@@ -670,7 +670,7 @@ span.issue-label {
         }
         .msg {
             width: 90%;
-            font-size:15px;
+            font-size:0.9375rem;
             display:inline-block;
             word-wrap: break-word;
             word-break:break-all;
@@ -700,7 +700,7 @@ span.issue-label {
     text-shadow: none;
     border-radius: 2px;
     margin-left: 3px;
-    font-size: 13px;
+    font-size: 0.8125rem;
     padding: 2px 4px;
 }
 
@@ -720,13 +720,13 @@ span.issue-label {
 .label-exp {
     background:$secondary;
     text-shadow: none;
-    i { font-size:10px; }
+    i { font-size:0.625rem; }
 }
 .counter {
     left: 2px;
     position: relative;
     padding: 2px 3px;
-    font-size: 11px;
+    font-size: 0.6875rem;
     color: $blue2;
 }
 
@@ -744,8 +744,8 @@ span.issue-label {
     padding: 4px 12px !important;
     vertical-align: middle;
     cursor: pointer;
-    line-height: 20px;
-    font-size: 14px;
+    line-height: 1.25rem;
+    font-size: 0.875rem;
     @include transition(all 0.3s ease);
     outline:0 none;
     position:relative;
@@ -755,7 +755,7 @@ span.issue-label {
     @include box-shadow(0 1px 0 rgba(0,0,0,.05));
     z-index: 2;
 
-    i { line-height:20px;}
+    i { line-height:1.25rem;}
 
     &.ybtn-medium {
         padding:4px 12px;
@@ -774,35 +774,35 @@ span.issue-label {
 
     &.ybtn-small {
         padding: 3px 10px !important;
-        font-size: 13px !important;
+        font-size: 0.8125rem !important;
     }
 
     &.ybtn-large {
         padding: 10px 15px !important;
-        font-size: 16px !important;
+        font-size: 1rem !important;
     }
 
     &.ybtn-middle {
         padding: 7px 15px !important;
-        font-size: 14px !important;
+        font-size: 0.875rem !important;
     }
 
     &.ybtn-mini {
         padding: 0 6px !important;
-        font-size: 10.5px !important;
+        font-size: 0.65625rem !important;
     }
 
     &.ybtn-minimum {
         padding: 0 4px !important;
-        font-size: 10px !important;
-        line-height: 16px !important;
+        font-size: 0.625rem !important;
+        line-height: 1rem !important;
 
-         i { line-height:16px;}
+         i { line-height:1rem;}
     }
 
     &.ybtn-maximum {
         padding: 20px 30px !important;
-        font-size: 26px !important;
+        font-size: 1.625rem !important;
     }
 
     &.ybtn-fullsize {
@@ -813,7 +813,7 @@ span.issue-label {
 
     &.ybtn-padding {
         padding:13px 30px !important;
-        font-size: 20px !important;
+        font-size: 1.25rem !important;
     }
 
 
@@ -990,7 +990,7 @@ span.issue-label {
         background-clip: padding-box;
         @include border-radius(6px);
         @include box-shadow(none);
-        font-size:12px;
+        font-size:0.75rem;
         background-color:$yobi-white;
         overflow:visible;
         @include opacity(0);
@@ -1045,7 +1045,7 @@ span.issue-label {
             margin:5px 3px;
             font-weight:bold;
             color:#333;
-            font-size:14px;
+            font-size:0.875rem;
             white-space:nowrap;
 
             &:first-child {
@@ -1055,7 +1055,7 @@ span.issue-label {
         }
 
         .pop-content {
-            font-size:12px;
+            font-size:0.75rem;
             padding:10px 15px;
             white-space:nowrap;
             text-align:left;
@@ -1064,7 +1064,7 @@ span.issue-label {
             background-color:$yobi-white;
 
             p {
-                line-height:20px;
+                line-height:1.25rem;
                 margin:0;
                 padding:0;
             }
@@ -1209,9 +1209,9 @@ span.issue-label {
 .numberic {
     display:inline-block;
     margin-left:5px;
-    font-size:10px;
+    font-size:0.625rem;
     border:2px solid #FFF;
-    line-height:15px;
+    line-height:0.9375rem;
     padding:0 5px;
     background-color:$yobi-primary;
     color:#ECF0F1;
@@ -1296,11 +1296,11 @@ span.issue-label {
 }
 .has-switch span {
     cursor: pointer;
-    font-size: 13px;/*14.994px;*/
+    font-size: 0.8125rem;/*14.994px;*/
     font-weight: 700;
     float: left;
     height: 29px;
-    line-height: 19px;
+    line-height: 1.1875rem;
     margin: 0;
     padding-bottom: 6px;
     padding-top: 5px;
@@ -1375,7 +1375,7 @@ span.issue-label {
 .search-bar {
     border:1px solid #ccc;
     @include border-radius(3px);
-    line-height:20px;
+    line-height:1.25rem;
     padding:4px 25px 4px 5px;
     position: relative;
     height: 20px;
