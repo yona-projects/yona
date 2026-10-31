@@ -130,7 +130,7 @@
             font-family: menlo, Consolas, monospace, sans-serif;
             font-size: 0.75rem;
             color: gray;
-            min-width: 35px;
+            min-width: calc(35px + 5px);
             padding-right: 5px;
             display: inline-block;
             text-align: right;

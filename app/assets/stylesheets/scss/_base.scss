@@ -14,9 +14,15 @@ $text-input-types: text, password, datetime, datetime-local, date, month, time, 
   @return $list;
 }
 
-// 박스 모델: 모든 요소를 content-box로 되돌리고, border-box를 전제로 만든 BS 컴포넌트만 다시 border-box로 둔다.
-*, *:before, *:after { box-sizing: content-box; }
-.container, .container-fluid, .form-control, .input-group, .modal-dialog, .modal-content, .progress, .progress-bar { box-sizing: border-box; }
+// 박스 모델: 모든 요소는 BS5처럼 border-box이다(X-38h, D-55). v1.6은 Bootstrap 2의 content-box를 전제로 `width`와 `height`에 안쪽 여백과 테두리를 더해 계산했으므로,
+// 그 계산이 남아 있는 곳은 두 가지로 처리했다: (1) 요소의 안쪽 여백이 일정한 선언은 `calc(원래 값 + 여백)`으로 바꾸고, (2) 요소마다 여백이 달라 값을 하나로 정할 수 없는
+// 규칙(글자 입력창, 고정 그리드 열, `.row`, 일부 본문 영역)과 content-box를 전제로 쓰인 외부 위젯은 그 규칙에만 `box-sizing: content-box`를 둔다.
+// (2)는 X-38i(디자인 현대화) 때 border-box 기준으로 다시 쓴다.
+*, *:before, *:after { box-sizing: border-box; }
+
+// 외부 위젯(select2, pikaday, jquery.elevator)의 CSS는 content-box를 전제로 쓰였다. 위젯 루트 아래는 content-box로 두고, `:where`로 특이도를 0으로 낮춰 위젯 자신의 `box-sizing` 선언이 이기게 한다.
+// 위젯을 border-box를 아는 버전으로 올리면 이 규칙을 지운다.
+:where(.select2-container, .select2-drop, .select2-drop-mask, .pika-single, .jq-elevator), :where(.select2-container, .select2-drop, .pika-single, .jq-elevator) * { box-sizing: content-box; }
 
 a:focus {
   outline: thin dotted #333;
@@ -206,6 +212,10 @@ select, textarea, #{text-inputs()} {
   color: #555555;
   vertical-align: middle;
   border-radius: 4px;
+}
+// 글자 입력창은 BS2의 content-box 기준(높이 20px에 안쪽 여백과 테두리가 더해진다)을 그대로 둔다. 요소마다 안쪽 여백을 따로 정하는 곳이 많아 border-box로 옮기면 크기가 맞지 않는다(X-38h).
+textarea, #{text-inputs()}, option {
+  box-sizing: content-box;
 }
 input, textarea {
   width: 206px;

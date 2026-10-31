@@ -234,12 +234,14 @@ code {
       border: 1px solid #dcddde;
       background-color: #f7f7f7;
       min-width: 45px;
+      box-sizing: content-box; // 테두리가 겹치는 표(border-collapse)는 content-box와 border-box의 칸 폭이 다르다(X-38h)
     }
 
     td {
       padding: 5px;
       border: 1px solid #dcddde;
       word-break: break-all;
+      box-sizing: content-box;
     }
 
   }

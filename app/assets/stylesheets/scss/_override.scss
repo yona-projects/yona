@@ -376,7 +376,7 @@ li.select2-result-with-children:first-of-type {
         vertical-align: middle;
     }
     a {
-        width: 85%;
+        width: calc(85% + 26px); // content-box의 85%에 안쪽 여백 24px과 테두리 2px(X-38h)
     }
     border-bottom: 1px solid #eee;
     margin-bottom: -1px;

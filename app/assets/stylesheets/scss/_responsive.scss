@@ -634,7 +634,7 @@
     .project-clone-wrap {
       .project-clone-url {
         width: 100px;
-        max-width: 125px;
+        max-width: calc(125px + 13px);
       }
 
       &:hover {

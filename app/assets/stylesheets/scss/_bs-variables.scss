@@ -120,7 +120,7 @@ $nav-pills-link-active-bg: #08c;
 $nav-link-disabled-color: #999;
 
 // 드롭다운(`.dropdown-menu`): BS2의 치수와 색이다.
-$dropdown-min-width: 10rem;       // 160px
+$dropdown-min-width: 162px;      // BS2의 min-width 160px(content-box)에 좌우 테두리 2px을 더한 값
 $dropdown-padding-y: .3125rem;    // 5px
 $dropdown-spacer: .0625rem;       // 1px
 $dropdown-font-size: .875rem;     // 14px

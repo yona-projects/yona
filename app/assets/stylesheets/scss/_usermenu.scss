@@ -564,8 +564,8 @@ $violet:  #9c27b0;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-      max-width: 50px;
-      min-width: 40px;
+      max-width: calc(50px + 10px);
+      min-width: calc(40px + 10px);
       a {
         &:hover {
           text-decoration: underline;

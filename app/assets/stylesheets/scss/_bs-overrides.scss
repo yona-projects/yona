@@ -51,7 +51,7 @@ legend {
 
 // BS2의 `.well`: BS5의 `.card.card-body`로 옮긴 마크업에 BS2의 회색 상자 모양을 입힌다.
 .card {
-  min-height: 20px;
+  min-height: calc(20px + 40px);
   margin-bottom: 20px;
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
 

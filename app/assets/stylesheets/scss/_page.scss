@@ -340,7 +340,7 @@
                     .counter-badge {
                         display: inline-block;
                         font-size: 0.75rem;
-                        min-width: 12px;
+                        min-width: calc(12px + 4px);
                         padding: 2px 2px 0 2px;
                         text-align: center;
                         color: black;
@@ -380,9 +380,9 @@
                         vertical-align: middle;
                         display: inline-block;
                         vertical-align: middle !important;
-                        width: 0;
+                        width: calc(0px + 8px);
                         @include transition(all 0.15s ease);
-                        height: 0;
+                        height: calc(0px + 4px);
                         vertical-align: top;
                         border-top: 4px solid $low-white;
                         border-right: 4px solid transparent;
@@ -496,8 +496,8 @@
                 bottom:-30px;
                 left:0px;
                 position:absolute;
-                width: 80px;
-                height: 80px;
+                width: calc(80px + 10px);
+                height: calc(80px + 10px);
                 border:5px solid #f9f9f9;
                 border-radius: 3px !important;
                 background: #fff;
@@ -624,7 +624,7 @@
 
 .project-menu-outer {
     background-color:#ececec;
-    height:39px;
+    height:calc(39px + 1px);
     border-bottom: 1px solid #ddd;
 
     .project-menu-inner {
@@ -705,7 +705,7 @@
     font-size: 0.625rem;
     line-height: 1.125rem;
     font-weight: normal;
-    min-width: 8px;
+    min-width: calc(8px + 12px);
     padding: 0 6px;
     background-color: $yobi-primary;
     color: #ECF0F1;
@@ -1007,7 +1007,7 @@
     text-align:center;
     border-bottom:1px solid #e8e8e8;
     position:relative;
-    max-width: 1200px;
+    max-width: calc(1200px + 40px);
 
 
     h2 {
@@ -1220,7 +1220,7 @@
 
 #notification-more {
     margin-top: 20px;
-    width: 95%;
+    width: calc(95% + 26px);
 }
 
 .content-container {
@@ -1309,7 +1309,7 @@
                 .stream-desc {
                     padding:4px 7px 7px 7px;
                     display:inline-block;
-                    width: 90%;
+                    width: calc(90% + 14px);
 
                     .stream-info {
                         .avatar-wrap {
@@ -1836,7 +1836,7 @@
 .search-wrap {
     clear:both;
     padding:10px 0;
-    height: 30px;
+    height: calc(30px + 21px);
 
     &.underline {
         border-bottom: 1px solid #ddd;
@@ -1979,7 +1979,7 @@
             display: table;
             padding: 0 15px; /*10px;*/
             margin-bottom: 14px;
-            width:100%;
+            width:calc(100% + 30px);
 
             .icor {
                 margin:17px !important;
@@ -2093,7 +2093,7 @@
     /* 프로젝트 설정 */
     .setting-box {
         float: left;
-        width: 399px;
+        width: calc(399px + 21px);
 
         &.left {
             padding-right: 20px;
@@ -2142,7 +2142,7 @@
     }
 }
 .cu-label {
-    width: 160px;
+    width: calc(160px + 45px);
     padding-right: 45px;
     @include inline-block;
     vertical-align: top;
@@ -2939,6 +2939,7 @@ label.inline-list {
         padding:0 20px;
         margin-bottom: 20px;
         min-height: 150px;
+        box-sizing: content-box; // 안쪽 여백이 요소마다 달라 content-box 기준의 min-height를 그대로 둔다(X-38h)
 
         &.empty-content {
             text-align: center;
@@ -3161,7 +3162,7 @@ label.inline-list {
                   box-shadow: 2px 2px 1px 0 rgb(220, 220, 220)
                 }
                 .meta-info {
-                    height:22px;
+                    height:calc(22px + 10px);
                     padding:5px 15px;
 
                     margin-bottom: 0;
@@ -3364,7 +3365,7 @@ label.inline-list {
                         color: $yobi-link;
                         font-family: $fixed-font-family;
                         font-size: 0.75rem;
-                        width: 70px;
+                        width: calc(70px + 4px);
                         text-align: center;
                     }
 
@@ -3576,14 +3577,14 @@ div.markdown-preview {
     // 스크롤하면 화면 위쪽에 붙어 따라온다(v1.6의 affix 대체, A-291). 마크업에 `sticky-top`을 둔 정보창만 해당한다.
     &.sticky-top {
         z-index: auto;
-        max-height: 97vh;
+        max-height: calc(97vh + 15px);
         overflow-y: auto;
         overflow-x: hidden;
     }
 
     .project-btn-item {
         a {
-            width: 90%;
+            width: calc(90% + 26px);
             margin-bottom: 15px;
         }
     }
@@ -4499,7 +4500,7 @@ label.issue-item-row {
                 padding:12px 3px;
                 font-family:$fixed-font-family;
                 font-size:0.75rem;
-                width: 70px;
+                width: calc(70px + 6px);
 
                 a {
                     color:$secondary;
@@ -4521,18 +4522,18 @@ label.issue-item-row {
             }
             .messages { vertical-align:top;}
             .author {
-                width: 40px;
+                width: calc(40px + 20px);
                 text-align: right;
                 line-height:1 !important;
                 vertical-align: top;
             }
             .date {
-                width: 100px;
+                width: calc(100px + 20px);
                 font-size:0.75rem;
                 vertical-align: top;
             }
             .browse {
-                width:70px;
+                width:calc(70px + 20px);
                 text-align:center;
                 vertical-align: top;
             }
@@ -4782,12 +4783,12 @@ label.issue-item-row {
         }
 
         .author {
-            width: 40px;
+            width: calc(40px + 20px);
             text-align: right;
             line-height:1 !important;
         }
         .date {
-            width: 100px;
+            width: calc(100px + 20px);
             font-size:0.75rem;
         }
     }
@@ -5797,7 +5798,7 @@ label.issue-item-row {
             .diff-partial-meta {
                 background-color: #eee;
                 border-bottom: 1px solid #bbb;
-                height: 30px;
+                height: calc(30px + 1px);
                 position:relative;
 
                 .diff-partial-commit {
@@ -5808,7 +5809,7 @@ label.issue-item-row {
                         padding:5px 2px;
                         font-weight: bold;
                         border-right:1px solid #bbb;
-                        width:52px;
+                        width:calc(52px + 5px);
                         text-align: center;
                     }
                 }
@@ -5862,7 +5863,7 @@ label.issue-item-row {
                                 color: rgba(0, 0, 0, 0.3);
                                 white-space: nowrap;
                                 border-right: 1px solid #e5e5e5;
-                                width:50px;
+                                width:calc(50px + 7px);
                                 padding:0 3px;
                                 @include user-select(none);
                                 cursor: pointer;
@@ -6003,7 +6004,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     padding:5px;
     padding-bottom:0;
     background-color:#fefefe;
-    max-width:876px;
+    max-width:calc(876px + 12px);
     position:relative;
 
     .thread-header{
@@ -6240,7 +6241,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .branchName {
-        min-width:180px;
+        min-width:calc(180px + 16px);
         padding-top:13px;
 
         a { color:$blue;font-family:$fixed-font-family; }
@@ -6256,13 +6257,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .commit {
-        width:155px; padding-top:13px;
+        width:calc(155px + 16px); padding-top:13px;
         .commitId { font-family:$fixed-font-family; }
         .date { font-size:0.6875rem; color:#777; margin-left:10px; }
     }
 
     .pullRequest {
-        width:170px; padding-top:13px;
+        width:calc(170px + 16px); padding-top:13px;
         .disabled  { color:#cdcdcd; }
         .pullrequest-state {
             &.open:before {
@@ -6287,7 +6288,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .actions {
-        width:220px; min-width:220px;
+        width:calc(220px + 16px); min-width:calc(220px + 16px);
         text-align:right !important;
     }
 }
@@ -6357,8 +6358,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
     .avatar-wrap {
         border:1px solid #ececec;
-        width:40px;
-        height:40px;
+        width:calc(40px + 2px);
+        height:calc(40px + 2px);
         float:left;
         margin-left:-55px;
 
@@ -6576,7 +6577,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             .table {
                 .issue-label {
                     display: block;
-                    max-width: 90%;
+                    max-width: calc(90% + 12px);
                     font-size: 0.75rem;
                 }
                 tr {
@@ -6592,7 +6593,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
                         text-align: right;
                     }
                     &.actions {
-                        width: 150px;
+                        width: calc(150px + 9px);
                         text-align: right;
                         padding-right: 1px;
                     }
@@ -6954,7 +6955,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   .search-wrap {
     & form {
       .search-bar {
-        height: 22px;
+        height: calc(22px + 10px);
         display: inline-block;
         margin-right: 10px;
 
@@ -7931,7 +7932,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
     .col-form-label {
         float: left;
-        width: 160px;
+        width: calc(160px + 8px);
         max-width: none;
         padding-top: 5px;
         padding-bottom: 0;

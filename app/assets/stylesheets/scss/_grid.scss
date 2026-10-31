@@ -9,6 +9,7 @@ $fluid-gutter: 2.127659574468085%;
 
 // `.row` 밖의 열: 고정 폭 열이다.
 [class*="col-lg-"] {
+  box-sizing: content-box; // 고정 그리드의 열은 BS2처럼 안쪽 여백이 폭에 더해진다(X-38h)
   position: static;
   float: left;
   flex: none;
@@ -30,6 +31,7 @@ $fluid-gutter: 2.127659574468085%;
 .row {
   display: block;
   flex-wrap: nowrap;
+  box-sizing: content-box; // `width: 100%`에 안쪽 여백이 더해지는 BS2 동작을 그대로 둔다(X-38h)
   width: 100%;
   margin-right: 0;
   margin-left: 0;
