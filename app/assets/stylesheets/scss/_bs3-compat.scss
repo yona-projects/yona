@@ -8,19 +8,6 @@
 .container, .container-fluid, .form-control, .input-group, .input-group-addon, .input-group-btn, .modal-dialog, .modal-content, .progress, .progress-bar,
 .navbar, .navbar-header, .navbar-collapse, .btn-block, .embed-responsive, .carousel-inner > .item { -webkit-box-sizing: border-box; box-sizing: border-box; }
 
-article, aside, details, figcaption, figure, footer, header, hgroup, nav, section {
-  display: block;
-}
-audio, canvas, video {
-  display: inline-block;
-}
-audio:not([controls]) {
-  display: none;
-}
-html {
-  font-size: 100%;
-  -webkit-text-size-adjust: 100%;
-}
 a:focus {
   outline: thin dotted #333;
   outline: 5px auto -webkit-focus-ring-color;
@@ -28,18 +15,6 @@ a:focus {
 }
 a:hover, a:active {
   outline: 0;
-}
-sub, sup {
-  position: relative;
-  font-size: 75%;
-  line-height: 0;
-  vertical-align: baseline;
-}
-sup {
-  top: -0.5em;
-}
-sub {
-  bottom: -0.25em;
 }
 img {
   height: auto;
@@ -67,43 +42,15 @@ textarea {
   overflow: auto;
   vertical-align: top;
 }
-body {
-  margin: 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 20px;
-  color: #333333;
-  background-color: #ffffff;
-}
-a {
-  color: #0088cc;
-  text-decoration: none;
-}
-a:hover, a:focus {
-  color: #005580;
-  text-decoration: underline;
-}
-p {
-  margin: 0 0 10px;
-}
-small {
-  font-size: 85%;
-}
-strong {
-  font-weight: bold;
-}
-em {
-  font-style: italic;
-}
 cite {
   font-style: normal;
 }
-h1, h2, h3, h4, h5, h6 {
-  margin: 10px 0;
-  font-family: inherit;
-  font-weight: bold;
+// BS2는 줄 높이를 비율이 아니라 20px 고정값으로 상속했다(BS5의 `$line-height-base`는 비율이어야 내부 계산이 맞는다).
+body {
   line-height: 20px;
-  color: inherit;
+}
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 10px;
   text-rendering: optimizelegibility;
 }
 h1 small, h2 small, h3 small, h4 small, h5 small, h6 small {
@@ -113,24 +60,6 @@ h1 small, h2 small, h3 small, h4 small, h5 small, h6 small {
 }
 h1, h2, h3 {
   line-height: 40px;
-}
-h1 {
-  font-size: 38.5px;
-}
-h2 {
-  font-size: 31.5px;
-}
-h3 {
-  font-size: 24.5px;
-}
-h4 {
-  font-size: 17.5px;
-}
-h5 {
-  font-size: 14px;
-}
-h6 {
-  font-size: 11.9px;
 }
 h1 small {
   font-size: 24.5px;
@@ -156,12 +85,6 @@ li {
 }
 dl {
   margin-bottom: 20px;
-}
-dt, dd {
-  line-height: 20px;
-}
-dt {
-  font-weight: bold;
 }
 dd {
   margin-left: 10px;
