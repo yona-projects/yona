@@ -85,3 +85,20 @@ updated: 2026-10-31
 | 요소 선택자 기본값(`body`, `a`, `h1`…, 입력 요소) | 호환 층에 남음 | BS5에서 결정 |
 
 호환 층 크기: BS4 도입 직후 2,199줄, 현재 1,129줄.
+
+### 호환 층 이관 결과 (2026-10-31, D-54, X-38f)
+
+`_bs3-compat.scss`(BS5 도입 직후 2,199줄, 이관 직전 1,090줄)는 영역별로 이관해 **지웠다**. 영역마다 직전 커밋과 `style-diff`(전 화면 121개, 계산된 스타일)를 비교해 차이가 없음을 확인한 뒤 커밋했다.
+
+| 영역 | 이관 위치 | 방법 |
+|---|---|---|
+| 상단 검색 상자, 첫 설정 폼 | `_search-form.scss` | 쓰이지 않는 선택자(`.add-on`, `span*` 등) 제거 후 이동 |
+| 알림, 배지 | `_bs-variables.scss`(`$*-text-emphasis`, `$alert-*`, `$badge-*`) + `_alerts.scss` | BS5 변수로 색과 여백을 맞추고 고유 규칙만 남김. 닫기 단추가 있는 알림 4곳은 `alert-dismissible` |
+| 표 | `_tables.scss` | 이동(칸 위쪽 선, 모서리). `span10`, 표 행 상태 색은 미사용이라 삭제 |
+| 단추, 단추 묶음 | `_buttons.scss` | 중복 `.btn-group` 블록 병합, BS2 `.open` 규칙은 `.show`로 대체, `.btn-primary` 계열 삭제 |
+| 그리드 | `_grid.scss` | 열 폭 48개 규칙을 변수와 `@for`로 계산. `col-lg-offset-*`(미사용) 삭제 |
+| 본문, 링크, 문단, 제목 | `_bs-variables.scss` | `$h1-font-size` 등 변수. 본문 줄 높이는 `:root { --bs-body-line-height: 20px }` |
+| 박스 모델, 목록, 코드, 폼 입력 | `_base.scss` | 변수로 되지 않는 요소 기본값. 글자 입력 종류는 `text-inputs()` 함수로 묶음 |
+| 컨테이너, `.small`, `legend`, 회색 상자, `.form-text` | `_bs-overrides.scss` + 변수 | 회색 상자는 `$card-*` 변수 |
+
+남는 BS2 의존(걷어내려면 자체 CSS 변경이 필요한 것): (1) 전역 `content-box`: 자체 CSS 8천 줄이 폭에 여백을 더해 계산한다. (2) 본문 줄 높이 20px 고정 상속: 비율로 바꾸면 14px이 아닌 글자의 줄 높이가 달라진다. (3) 폼 입력의 BS2 모양: 마크업이 `.form-control`을 쓰지 않는 맨 `input`이다.
