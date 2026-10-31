@@ -8,7 +8,6 @@
 .container, .container-fluid, .form-control, .input-group, .input-group-addon, .input-group-btn, .modal-dialog, .modal-content, .progress, .progress-bar,
 .navbar, .navbar-header, .navbar-collapse, .btn-block, .embed-responsive, .carousel-inner > .item { -webkit-box-sizing: border-box; box-sizing: border-box; }
 
-th { text-align: center; }
 article, aside, details, figcaption, figure, footer, header, hgroup, nav, section {
   display: block;
 }
@@ -360,12 +359,6 @@ input:focus:invalid:focus, textarea:focus:invalid:focus, select:focus:invalid:fo
   -webkit-box-shadow: 0 0 6px #f8b9b7;
   box-shadow: 0 0 6px #f8b9b7;
 }
-table {
-  max-width: 100%;
-  background-color: transparent;
-  border-collapse: collapse;
-  border-spacing: 0;
-}
 
 // --- 고정 그리드 호환: `.row` 밖에 놓인 열은 BS2 고정 그리드(940px, 열 사이 20px)이다 ---
 [class*="col-lg-"] { float: left; min-height: 1px; margin-left: 20px; padding-left: 0; padding-right: 0; position: static; }
@@ -485,116 +478,6 @@ ul.inline > li, ol.inline > li {
   display: block;
   margin-top: 0;
   margin-bottom: 10px;
-}
-.table {
-  width: 100%;
-  margin-bottom: 20px;
-}
-.table th, .table td {
-  padding: 8px;
-  line-height: 20px;
-  text-align: left;
-  vertical-align: top;
-  border-top: 1px solid #dddddd;
-}
-.table th {
-  font-weight: bold;
-}
-.table thead th {
-  vertical-align: bottom;
-}
-.table caption + thead tr:first-child th, .table caption + thead tr:first-child td, .table colgroup + thead tr:first-child th, .table colgroup + thead tr:first-child td, .table thead:first-child tr:first-child th, .table thead:first-child tr:first-child td {
-  border-top: 0;
-}
-.table tbody + tbody {
-  border-top: 2px solid #dddddd;
-}
-.table .table {
-  background-color: #ffffff;
-}
-.table-bordered {
-  border: 1px solid #dddddd;
-  border-collapse: separate;
-  border-left: 0;
-  -webkit-border-radius: 4px;
-  border-radius: 4px;
-}
-.table-bordered th, .table-bordered td {
-  border-left: 1px solid #dddddd;
-}
-.table-bordered caption + thead tr:first-child th, .table-bordered caption + tbody tr:first-child th, .table-bordered caption + tbody tr:first-child td, .table-bordered colgroup + thead tr:first-child th, .table-bordered colgroup + tbody tr:first-child th, .table-bordered colgroup + tbody tr:first-child td, .table-bordered thead:first-child tr:first-child th, .table-bordered tbody:first-child tr:first-child th, .table-bordered tbody:first-child tr:first-child td {
-  border-top: 0;
-}
-.table-bordered thead:first-child tr:first-child > th:first-child, .table-bordered tbody:first-child tr:first-child > td:first-child, .table-bordered tbody:first-child tr:first-child > th:first-child {
-  -webkit-border-top-left-radius: 4px;
-  border-top-left-radius: 4px;
-}
-.table-bordered thead:first-child tr:first-child > th:last-child, .table-bordered tbody:first-child tr:first-child > td:last-child, .table-bordered tbody:first-child tr:first-child > th:last-child {
-  -webkit-border-top-right-radius: 4px;
-  border-top-right-radius: 4px;
-}
-.table-bordered thead:last-child tr:last-child > th:first-child, .table-bordered tbody:last-child tr:last-child > td:first-child, .table-bordered tbody:last-child tr:last-child > th:first-child, .table-bordered tfoot:last-child tr:last-child > td:first-child, .table-bordered tfoot:last-child tr:last-child > th:first-child {
-  -webkit-border-bottom-left-radius: 4px;
-  border-bottom-left-radius: 4px;
-}
-.table-bordered thead:last-child tr:last-child > th:last-child, .table-bordered tbody:last-child tr:last-child > td:last-child, .table-bordered tbody:last-child tr:last-child > th:last-child, .table-bordered tfoot:last-child tr:last-child > td:last-child, .table-bordered tfoot:last-child tr:last-child > th:last-child {
-  -webkit-border-bottom-right-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
-.table-bordered tfoot + tbody:last-child tr:last-child td:first-child {
-  -webkit-border-bottom-left-radius: 0;
-  border-bottom-left-radius: 0;
-}
-.table-bordered tfoot + tbody:last-child tr:last-child td:last-child {
-  -webkit-border-bottom-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-.table-bordered caption + thead tr:first-child th:first-child, .table-bordered caption + tbody tr:first-child td:first-child, .table-bordered colgroup + thead tr:first-child th:first-child, .table-bordered colgroup + tbody tr:first-child td:first-child {
-  -webkit-border-top-left-radius: 4px;
-  border-top-left-radius: 4px;
-}
-.table-bordered caption + thead tr:first-child th:last-child, .table-bordered caption + tbody tr:first-child td:last-child, .table-bordered colgroup + thead tr:first-child th:last-child, .table-bordered colgroup + tbody tr:first-child td:last-child {
-  -webkit-border-top-right-radius: 4px;
-  border-top-right-radius: 4px;
-}
-.table-striped tbody > tr:nth-child(odd) > td, .table-striped tbody > tr:nth-child(odd) > th {
-  background-color: #f9f9f9;
-}
-.table-hover tbody tr:hover > td, .table-hover tbody tr:hover > th {
-  background-color: #f5f5f5;
-}
-.table td.span10, .table th.span10 {
-  float: none;
-  width: 764px;
-  margin-left: 0;
-}
-.table tbody tr.success > td {
-  background-color: #dff0d8;
-}
-.table tbody tr.error > td {
-  background-color: #f2dede;
-}
-.table tbody tr.warning > td {
-  background-color: #fcf8e3;
-}
-.table tbody tr.info > td {
-  background-color: #d9edf7;
-}
-.table-hover tbody tr.success:hover > td {
-  background-color: #d0e9c6;
-}
-.table-hover tbody tr.error:hover > td {
-  background-color: #ebcccc;
-}
-.table-hover tbody tr.warning:hover > td {
-  background-color: #faf2cc;
-}
-.table-hover tbody tr.info:hover > td {
-  background-color: #c4e3f3;
-}
-.float-right > .dropdown-menu {
-  right: 0;
-  left: auto;
 }
 .card-body {
   min-height: 20px;
@@ -865,7 +748,6 @@ button.btn::-moz-focus-inner {
 .btn-group > .btn, .btn-group > .btn-group { position: relative; }
 blockquote { font-size: inherit; }
 
-table { -webkit-box-sizing: border-box; box-sizing: border-box; }
 
 
 // BS2 고정 그리드의 `.container`(반응형 CSS 없이 940px). BS3은 화면 폭에 따라 750/970/1170px에 거터 패딩을 둔다.
@@ -874,15 +756,6 @@ table { -webkit-box-sizing: border-box; box-sizing: border-box; }
 // BS2 `ul.unstyled`(→ `.list-unstyled`)는 왼쪽 여백도 지웠다. BS3의 `.list-unstyled`는 지우지 않는다.
 ul.list-unstyled, ol.list-unstyled { margin-left: 0; list-style: none; }
 
-// BS2의 `.table-bordered`는 칸의 왼쪽과 위쪽에만 선을 긋고 표를 `border-collapse: separate`로 두었다. BS3은 모든 칸에 네 변의 선을 긋는다.
-.table-bordered > thead > tr > th, .table-bordered > thead > tr > td, .table-bordered > tbody > tr > th, .table-bordered > tbody > tr > td, .table-bordered > tfoot > tr > th, .table-bordered > tfoot > tr > td {
-  border: 0; border-top: 1px solid #dddddd; border-left: 1px solid #dddddd;
-}
-.table-bordered > thead:first-child > tr:first-child > th, .table-bordered > thead:first-child > tr:first-child > td, .table-bordered > tbody:first-child > tr:first-child > th, .table-bordered > tbody:first-child > tr:first-child > td { border-top: 0; }
-.table-bordered { border-collapse: separate; border-left: 0; }
-// Bootstrap 5의 `.table-bordered`는 행(`tr`)에도 선을 긋는다. BS2는 칸에만 그었다.
-.table-bordered > :not(caption) > * { border-width: 0; }
-.table-bordered > thead > tr > th, .table-bordered > thead > tr > td { border-bottom-width: 0; }
 
 // --- Bootstrap 4의 flexbox를 끈다(X-38c): 이 사이트의 열과 내비게이션은 BS2의 float 기하를 그대로 쓴다. flex 그리드로의 전환은 BS5 이후에 정한다(A-289) ---
 .row { display: block; flex-wrap: nowrap; --bs-gutter-x: 0; --bs-gutter-y: 0; }
@@ -894,9 +767,6 @@ ul.list-unstyled, ol.list-unstyled { margin-left: 0; list-style: none; }
 // Bootstrap 5는 단추 그룹의 이웃 단추를 -1px로 겹친다. BS2는 겹치지 않았다.
 .btn-group > :not(.btn-check:first-child) + .btn, .btn-group > .btn-group:not(:first-child) { margin-left: 0; }
 .small { font-size: inherit; font-weight: inherit; }
-th[align="right"] { text-align: right; }
-th[align="left"] { text-align: left; }
-th[align="center"] { text-align: center; }
 .btn-group > .btn:not(:first-child), .btn-group > .btn-group:not(:first-child) { margin-left: 0; }
 
 
