@@ -360,110 +360,19 @@ input:focus:invalid:focus, textarea:focus:invalid:focus, select:focus:invalid:fo
   box-shadow: 0 0 6px #f8b9b7;
 }
 
-// --- Bootstrap 2 컴포넌트 복원: 마크업이 Bootstrap 3과 같아 그대로 동작하는 컴포넌트의 BS2 규칙(내비게이션, 탭, 드롭다운, 라벨, 알림, 표, 페이지 번호 등) ---
-// Bootstrap 3의 같은 이름 규칙은 여백, 줄 높이, 색이 달라 v1.6 화면과 어긋난다(`style-diff` 도구로 확인). 마크업과 JS(.active, .open)는 Bootstrap 3 플러그인이 그대로 다룬다.
-.clearfix:before, .clearfix:after {
-  display: table;
-  line-height: 0;
-  content: "";
-}
-.clearfix:after {
-  clear: both;
-}
-.rounded {
-  -webkit-border-radius: 6px;
-  border-radius: 6px;
-}
-.rounded-circle {
-  -webkit-border-radius: 500px;
-  border-radius: 500px;
-}
-.text-left {
-  text-align: left;
-}
-.text-right {
-  text-align: right;
-}
-.text-center {
-  text-align: center;
-}
-ul.unstyled, ol.unstyled {
-  margin-left: 0;
-  list-style: none;
-}
-ul.inline, ol.inline {
-  margin-left: 0;
-  list-style: none;
-}
-ul.inline > li, ol.inline > li {
-  display: inline-block;
-  padding-right: 5px;
-  padding-left: 5px;
-}
-.form-text {
-  color: #595959;
-}
-.form-text {
-  display: block;
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-.card-body {
-  min-height: 20px;
-  padding: 19px;
-  margin-bottom: 20px;
-  background-color: #f5f5f5;
-  border: 1px solid #e3e3e3;
-  -webkit-border-radius: 4px;
-  border-radius: 4px;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
-}
-.card-body blockquote {
-  border-color: #ddd;
-  border-color: rgba(0, 0, 0, 0.15);
-}
-.card-body-small {
-  padding: 9px;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-}
-.tab-content {
-  overflow: hidden;
-}
-.tab-content > .tab-pane {
-  display: none;
-}
-.tab-content > .active {
-  display: block;
-}
 // UA 기본이 border-box인 컨트롤은 전역 content-box 복원에서 제외한다(Bootstrap 2에서도 브라우저 기본 그대로였다).
 button, select, input[type="button"], input[type="submit"], input[type="reset"], input[type="color"], input[type="image"], input[type="checkbox"], input[type="radio"], meter, progress { -webkit-box-sizing: border-box; box-sizing: border-box; }
 
-.nav-tabs > li, .nav-pills > li { display: list-item; }
-
-// --- Bootstrap 3 규칙 중 BS2에 없던 속성을 지운다(위의 BS2 규칙이 같은 속성을 다루지 않는 곳) ---
-blockquote { font-size: inherit; }
-
-
-
-// BS2 고정 그리드의 `.container`(반응형 CSS 없이 940px). BS3은 화면 폭에 따라 750/970/1170px에 거터 패딩을 둔다.
-.container { width: 940px; padding-left: 0; padding-right: 0; }
-
-// BS2 `ul.unstyled`(→ `.list-unstyled`)는 왼쪽 여백도 지웠다. BS3의 `.list-unstyled`는 지우지 않는다.
-ul.list-unstyled, ol.list-unstyled { margin-left: 0; list-style: none; }
-
-
-.small { font-size: inherit; font-weight: inherit; }
 
 
 
 
 
 
-// --- Bootstrap 5가 새로 입히는 기본 모양 중 BS2와 다른 것을 되돌린다(X-38d) ---
-// `legend`는 BS5에서 떠다니며(`float: left`) 다음 요소가 아래로 밀리지 않는다.
-legend { float: none; }
-legend + * { clear: none; }
-// 플러그인(jquery.elevator)이 쓰는 `align-bottom`이 BS5의 유틸리티(`vertical-align: bottom !important`)와 겹친다.
-.jq-elevator.align-bottom { vertical-align: baseline !important; }
+
+
+
+
+
+
+

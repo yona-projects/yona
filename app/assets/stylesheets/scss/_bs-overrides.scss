@@ -1,0 +1,71 @@
+// Bootstrap 5의 기본값 가운데 이 사이트가 BS2 모양으로 되돌려 쓰는 것이다. 색, 여백, 글자 크기처럼 변수로 표현되는 것은 `_bs-variables.scss`에 있고
+// 여기에는 변수로 되지 않는 규칙만 둔다. `_bs3-compat.scss`에서 이관했다(D-54).
+
+// 고정 폭 컨테이너: 이 사이트는 반응형 CSS 없이 940px로 고정한다(BS5는 화면 폭에 따라 최대 폭과 좌우 여백이 바뀐다).
+.container {
+  width: 940px;
+  padding-right: 0;
+  padding-left: 0;
+}
+
+// BS2의 `ul.unstyled`는 왼쪽 여백도 지웠다.
+ul.list-unstyled,
+ol.list-unstyled {
+  margin-left: 0;
+  list-style: none;
+}
+
+blockquote {
+  font-size: inherit;
+}
+
+// BS5의 `.small`은 글자를 줄이지만 이 사이트의 `.small`은 상위 글자를 그대로 쓴다.
+.small {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+// `legend`는 BS5에서 떠다니며(`float: left`) 다음 요소가 아래로 밀리지 않는다.
+legend {
+  float: none;
+
+  + * {
+    clear: none;
+  }
+}
+
+.nav-tabs > li,
+.nav-pills > li {
+  display: list-item;
+}
+
+.tab-content {
+  overflow: hidden;
+}
+
+// BS2의 `.help-block`에 해당하는 폼 안내문: 글자 색은 `$form-text-color`이고 아래 여백만 더한다.
+.form-text {
+  display: block;
+  margin-bottom: 10px;
+}
+
+// BS2의 `.well`: BS5의 `.card.card-body`로 옮긴 마크업에 BS2의 회색 상자 모양을 입힌다.
+.card {
+  min-height: 20px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+
+  blockquote {
+    border-color: rgba(0, 0, 0, 0.15);
+  }
+}
+
+.card-body-small {
+  padding: 9px;
+  border-radius: 3px;
+}
+
+// 플러그인(jquery.elevator)이 쓰는 `align-bottom`이 BS5의 유틸리티(`vertical-align: bottom !important`)와 겹친다.
+.jq-elevator.align-bottom {
+  vertical-align: baseline !important;
+}

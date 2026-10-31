@@ -26,6 +26,15 @@ $warning: #f89406;
 $danger: #b94a48;
 $dark: #333;
 
+// 회색 상자(BS2의 `.well`, `.card.card-body`)
+$card-spacer-y: 19px;
+$card-spacer-x: 19px;
+$card-bg: #f5f5f5;
+$card-border-color: #e3e3e3;
+$card-border-radius: 4px;
+$card-border-width: 1px;
+$form-text-color: #595959;
+
 // 알림(`.alert-*`): BS2의 색과 여백이다. BS5.3은 알림 색을 테마 색의 강조/배경/테두리 값에서 얻는다.
 $success-text-emphasis: #468847;
 $success-bg-subtle: #dff0d8;
