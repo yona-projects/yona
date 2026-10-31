@@ -6,7 +6,7 @@
   이식 원본: app/views/common/mySeriesMenuTab.scala.html
   매개변수: viewType(MenuType 이름: TAB_NOTI, TAB_MY_ISSUES, TAB_MY_FILES)
 */-->
-<ul xmlns:th="http://www.thymeleaf.org" th:fragment="mySeriesMenuTab(viewType)" class="nav nav-tabs">
+<ul xmlns:th="http://www.thymeleaf.org" th:fragment="mySeriesMenuTab(viewType)" class="nav nav-tabs mb-3">
     <li class="nav-item"><a th:href="@{/notifications}" th:text="#{notification}" class="nav-link" th:classappend="${viewType == 'TAB_NOTI'} ? 'active'"></a></li>
     <li class="nav-item"><a th:href="@{/user/issues}" th:text="#{issue.myIssue}" class="nav-link" th:classappend="${viewType == 'TAB_MY_ISSUES'} ? 'active'"></a></li>
     <li class="nav-item"><a th:href="@{/user/files}" th:text="#{user.files}" class="nav-link" th:classappend="${viewType == 'TAB_MY_FILES'} ? 'active'"></a></li>

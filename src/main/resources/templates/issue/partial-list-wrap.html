@@ -16,7 +16,7 @@
         <div class="float-end">
             <a th:href="${base + '/issueform'}" class="ybtn ybtn-success" th:text="#{issue.menu.new}"></a>
         </div>
-        <ul class="nav nav-tabs nm">
+        <ul class="nav nav-tabs nm mb-3">
             <li data-pjax class="nav-item">
                 <a href="#" state="open" class="nav-link" th:classappend="${cond.state == 'open'} ? 'active'"><th:block th:text="#{issue.state.open}"></th:block>
                     <span class="num-badge" th:text="${openCount}"></span>

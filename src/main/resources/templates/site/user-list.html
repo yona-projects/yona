@@ -21,7 +21,7 @@
             </div>
         </form>
     </div>
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs mb-3">
       <li class="nav-item"><a th:href="@{/sites/userList(state='ACTIVE')}" th:text="#{site.userList.unlocked}" class="nav-link" th:classappend="${userState == 'ACTIVE'} ? 'active'"></a></li>
       <li class="nav-item"><a th:href="@{/sites/userList(state='LOCKED')}" th:text="#{site.userList.locked}" class="nav-link" th:classappend="${userState == 'LOCKED'} ? 'active'"></a></li>
       <li class="nav-item"><a th:href="@{/sites/userList(state='DELETED')}" th:text="#{site.userList.deleted}" class="nav-link" th:classappend="${userState == 'DELETED'} ? 'active'"></a></li>

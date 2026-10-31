@@ -13,7 +13,7 @@
     <div class="title_area">
         <h2 class="float-start" th:text="#{site.sidebar.issueList}"></h2>
     </div>
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs mb-3">
         <li class="nav-item"><a th:href="@{/sites/issueList(state='open')}" th:text="#{issue.state.open}" class="nav-link" th:classappend="${currentState == 'open'} ? 'active'"></a></li>
         <li class="nav-item"><a th:href="@{/sites/issueList(state='closed')}" th:text="#{issue.state.closed}" class="nav-link" th:classappend="${currentState == 'closed'} ? 'active'"></a></li>
     </ul>

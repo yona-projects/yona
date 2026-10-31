@@ -55,7 +55,7 @@
                     <th:block th:text="#{userinfo.daysAgo.prefix}"></th:block><input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min form-control" th:value="${daysAgo}" style="margin:0px 5px; vertical-align:bottom;"><th:block th:text="#{userinfo.daysAgo.suffix}"></th:block>
                 </div>
 
-                <ul class="nav nav-tabs">
+                <ul class="nav nav-tabs mb-3">
                     <li class="nav-item">
                         <a href="#issues" data-bs-toggle="tab" class="nav-link" th:classappend="${selected == 'issues'} ? 'active'">
                             <th:block th:text="#{menu.issue}"></th:block> <span th:if="${!activity.issues.isEmpty()}" class="num-badge" th:text="${activity.issues.size()}"></span>
@@ -76,7 +76,7 @@
 
                 <div class="tab-content">
                     <div id="issues" class="tab-pane" th:classappend="${selected == 'issues'} ? 'active'">
-                        <ul class="nav nav-tabs nm">
+                        <ul class="nav nav-tabs nm mb-3">
                             <li class="nav-item">
                                 <a href="#openIssues" data-bs-toggle="tab" class="nav-link active">
                                     <th:block th:text="#{issue.state.open}"></th:block>

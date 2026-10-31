@@ -45,33 +45,6 @@ $card-border-radius: 4px;
 $card-border-width: 1px;
 $form-text-color: #595959;
 
-// 알림(`.alert-*`): BS2의 색과 여백이다. BS5.3은 알림 색을 테마 색의 강조/배경/테두리 값에서 얻는다.
-$success-text-emphasis: #468847;
-$success-bg-subtle: #dff0d8;
-$success-border-subtle: #d6e9c6;
-$danger-text-emphasis: #b94a48;
-$danger-bg-subtle: #f2dede;
-$danger-border-subtle: #eed3d7;
-$info-text-emphasis: #3a87ad;
-$info-bg-subtle: #d9edf7;
-$info-border-subtle: #bce8f1;
-$warning-text-emphasis: #c09853;
-$warning-bg-subtle: #fcf8e3;
-$warning-border-subtle: #fbeed5;
-$alert-padding-y: 8px;
-$alert-padding-x: 14px;
-$alert-margin-bottom: 20px;
-$alert-border-radius: 4px;
-$alert-dismissible-padding-r: 35px;
-
-// 배지(`.badge`): BS2의 글자 크기와 여백이다.
-$badge-font-size: 0.74025rem;   // 11.844px
-$badge-font-weight: bold;
-$badge-padding-y: 2px;
-$badge-padding-x: 4px;
-$badge-border-radius: 3px;
-$badge-color: #fff;
-
 // 옵션: v1.6 화면과 같게 크기가 화면 폭에 따라 바뀌는 기능(RFS)과 그림자, 그라데이션, 다크 모드를 끈다.
 $enable-rfs: false;
 $enable-shadows: false;
@@ -94,30 +67,6 @@ $spacers: (
   4: $spacer * 1.5,
   5: $spacer * 3,
 );
-
-// 표: 글자색은 부모에서 물려받고 줄무늬는 BS2의 #f9f9f9이다.
-$table-color: inherit;
-$table-bg: transparent;
-$table-border-width: 0;     // BS2는 칸의 위쪽 선만 `_tables.scss`가 긋는다
-$table-border-color: #ddd;
-$table-striped-bg: #f9f9f9;
-$table-cell-padding-y: .5rem;
-$table-cell-padding-x: .5rem;
-
-// 탭과 내비게이션(`.nav`, `.nav-tabs`): BS2의 치수와 색이다. BS2 규칙을 덮어쓰지 않고 BS의 변수로 같은 모양을 만든다(X-38c, A-290).
-$nav-link-padding-y: .5rem;       // 8px
-$nav-link-padding-x: .75rem;      // 12px
-$nav-tabs-border-color: #ddd;
-$nav-tabs-border-width: 1px;
-$nav-tabs-border-radius: 4px;
-$nav-tabs-link-hover-border-color: #eee #eee #ddd;
-$nav-tabs-link-active-color: #555;
-$nav-tabs-link-active-bg: #fff;
-$nav-tabs-link-active-border-color: #ddd #ddd #fff;
-$nav-pills-border-radius: 5px;
-$nav-pills-link-active-color: #fff;
-$nav-pills-link-active-bg: #08c;
-$nav-link-disabled-color: #999;
 
 // 드롭다운(`.dropdown-menu`): BS2의 치수와 색이다.
 $dropdown-min-width: 162px;      // BS2의 min-width 160px(content-box)에 좌우 테두리 2px을 더한 값

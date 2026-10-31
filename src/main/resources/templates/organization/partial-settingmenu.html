@@ -4,7 +4,7 @@
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="settingmenu(view, requestPath)"
           th:with="base=${#paths.organization(view.name)}">
-<ul class="nav nav-tabs">
+<ul class="nav nav-tabs mb-3">
     <li class="nav-item">
         <a th:href="${base + '/settingform'}" th:text="#{organization.settingFrom}" class="nav-link" th:classappend="${requestPath == base + '/settingform'} ? 'active'"></a>
     </li>

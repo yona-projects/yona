@@ -19,7 +19,7 @@
                 <a th:href="${base + '/newMilestoneForm'}" class="ybtn ybtn-success" th:text="#{milestone.menu.new}"></a>
             </div>
 
-            <ul class="nav nav-tabs">
+            <ul class="nav nav-tabs mb-3">
                 <li class="nav-item">
                     <a th:href="${urlToList + '?state=open'}" th:text="#{milestone.state.open}" class="nav-link" th:classappend="${state == 'open'} ? 'active'"></a>
                 </li>

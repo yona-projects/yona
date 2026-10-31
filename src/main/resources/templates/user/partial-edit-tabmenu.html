@@ -3,7 +3,7 @@
   매개변수: tabId(현재 탭: profile, password, notifications, emails, token)
 */-->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="tabmenu(tabId)">
-<ul class="nav nav-tabs mt20">
+<ul class="nav nav-tabs mt20 mb-3">
   <li class="nav-item">
     <a th:href="@{/user/editform}" th:text="#{userinfo.editProfile}" class="nav-link" th:classappend="${tabId == 'profile'} ? 'active'"></a>
   </li>

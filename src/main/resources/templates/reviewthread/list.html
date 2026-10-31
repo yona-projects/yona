@@ -56,7 +56,7 @@
                     <i class="ico btn-gray-arrow down"></i><th:block th:text="#{common.order.date}"></th:block>
                 </a>
             </div>
-            <ul class="nav nav-tabs nm">
+            <ul class="nav nav-tabs nm mb-3">
                 <li class="nav-item">
                     <a href="#" data-type="state" data-value="OPEN" data-toggle="filter" class="nav-link" th:classappend="${cond.state == 'OPEN'} ? 'active'"><th:block th:text="#{issue.state.open}"></th:block>
                         <span class="num-badge" th:text="${openCount}"></span>

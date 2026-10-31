@@ -14,7 +14,7 @@
             <span class="user-menu"><a th:href="@{/user/editform}" th:text="#{userinfo.accountSetting}"></a></span>
             <a th:href="${socialLoggedIn} ? @{/logout} : @{/users/logout}"><span class="user-menu logout badge bg-secondary" th:text="#{title.logout}"></span></a>
         </div>
-        <ul class="nav nav-tabs nm">
+        <ul class="nav nav-tabs nm mb-3">
             <li class="nav-item myOrganizationList">
                 <a href="#myOrganizationList" data-bs-toggle="tab" th:text="#{title.favorite}" class="nav-link active">
                 </a>

@@ -15,7 +15,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="code-browse-wrap">
-            <ul class="nav nav-tabs" th:if="${page.showTabs}">
+            <ul class="nav nav-tabs mb-3" th:if="${page.showTabs}">
                 <li class="nav-item"><a th:href="${page.filesTabUrl}" th:text="#{code.files}" class="nav-link active"></a></li>
                 <li class="nav-item"><a th:href="${page.commitsTabUrl}" th:text="#{code.commits}" class="nav-link"></a></li>
                 <li th:if="${page.branchesTabUrl != null}" class="nav-item"><a th:href="${page.branchesTabUrl}" th:text="#{title.branches}" class="nav-link"></a></li>

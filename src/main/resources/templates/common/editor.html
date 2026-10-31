@@ -17,7 +17,7 @@
                    wrapId=${#arrays.length(nameParts) > 1 ? nameParts[1] : T(dev.yona.web.TemplateHelper).randomAlphabetic(8)},
                    textareaName=${nameParts[0]}">
 <div data-toggle="markdown-editor" class="mt10">
-    <ul class="nav nav-tabs nm small">
+    <ul class="nav nav-tabs nm small mb-3">
         <li class="nav-item">
             <a th:href="'#edit-' + ${wrapId}" data-bs-toggle="tab" data-mode="edit" th:text="#{common.editor.edit}" class="nav-link active"></a>
         </li>

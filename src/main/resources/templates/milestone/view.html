@@ -49,7 +49,7 @@
             </div>
 
             <div id="issues">
-                <ul class="nav nav-tabs">
+                <ul class="nav nav-tabs mb-3">
                     <li th:each="tab : ${ {'open', 'closed', 'all'} }" class="nav-item">
                         <a th:href="${base + '/milestone/' + milestone.id + '?state=' + tab + '#issues'}" class="nav-link" th:classappend="${issueState.state == tab} ? 'active'">
                             <th:block th:text="#{'issue.state.' + ${tab}}"></th:block>

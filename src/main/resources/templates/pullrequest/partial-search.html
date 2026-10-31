@@ -74,7 +74,7 @@
         <div class="float-end">
             <a th:href="${newPullRequestUrl}" class="ybtn ybtn-success" th:text="#{pullRequest.new}"></a>
         </div>
-        <ul class="nav nav-tabs nm pullrequeset-tab-menu">
+        <ul class="nav nav-tabs nm pullrequeset-tab-menu mb-3">
             <li class="nav-item">
                 <a href="#" th:attr="data-url=${openAction}" data-type="state" class="nav-link" th:classappend="${categoryCode == 'open'} ? 'active'"><th:block th:text="#{pullRequest.state.open}"></th:block> <span class="num-badge" th:text="${openCount}"></span></a>
             </li>
