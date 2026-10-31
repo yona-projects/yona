@@ -234,12 +234,14 @@ textarea:focus, #{text-inputs(":focus")} {
   outline: 0;
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
 }
-input[type="radio"], input[type="checkbox"] {
+input[type="file"], input[type="image"], input[type="submit"], input[type="reset"], input[type="button"] {
+  width: auto;
+}
+// BS5 `.form-check-input`을 단 체크박스와 라디오는 BS5 크기와 여백을 쓴다. 그것을 달지 않은 것만 BS2 기본값을 받으며, 마크업을 옮기면 이 규칙도 지운다(X-38i).
+input[type="radio"]:not(.form-check-input), input[type="checkbox"]:not(.form-check-input) {
+  width: auto;
   margin: 4px 0 0;
   line-height: normal;
-}
-input[type="file"], input[type="image"], input[type="submit"], input[type="reset"], input[type="button"], input[type="radio"], input[type="checkbox"] {
-  width: auto;
 }
 select, input[type="file"] {
   height: 30px;

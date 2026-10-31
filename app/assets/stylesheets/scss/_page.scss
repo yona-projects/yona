@@ -844,20 +844,6 @@
     margin:0 !important;
 }
 
-// Bootstrap 5는 체크박스와 라디오를 직접 그린다(`appearance: none`과 배경 그림). v1.6 화면은 브라우저 기본 모양이었으므로 되돌린다.
-.form-check .form-check-input {
-    appearance: auto;
-    width: auto;
-    height: auto;
-    margin-top: 4px;
-    margin-left: -20px;
-    background-color: transparent;
-    border: 0;
-    border-radius: 0;
-    float: none;
-    position: absolute;
-}
-
 .form-check .form-check-label {
     margin-bottom: 0;
 }
