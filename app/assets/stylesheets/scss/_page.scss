@@ -4424,6 +4424,9 @@ label.issue-item-row {
 .code-browse-wrap {
     position:relative;
 
+    /* 브랜치 선택 상자: select2가 폭을 숨은 select에서 읽어 좁게 잡으면 이름이 잘리므로 고정 폭을 준다 */
+    > .select2-container.float-end, > .select2-container.float-start { width:220px !important; }
+
     .code-browse-header {
       margin-top:10px;
       margin-bottom:10px;
