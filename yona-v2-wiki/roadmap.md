@@ -104,7 +104,7 @@ v1.6 이식과 동등성 점검이 끝난 뒤 진행한다. `next` 브랜치(`co
 | X-1 | OAuth2 Authorization Server(동적 클라이언트 등록 포함) | `domain/oauth2server`, `config/oauth2server` | 대기 | X-6 MCP 서버의 인증 기반 |
 | X-2 | 2단계 인증(TOTP, WebAuthn/패스키, 백업 코드, 알려진 기기) | `domain/twofactor` | 대기 | 로그인 흐름이 바뀌므로 v1.6 로그인 계약과 충돌하지 않게 선택 사용으로 둔다. `next`는 로그인 브루트포스 방지, 알려진 기기 인식(`user_known_device`), 사이트 관리자의 2단계 인증 해제도 함께 둔다 |
 | X-3 | SSH 공개키 등록, SSH 접근, 저장소별 Deploy Key | `domain/sshkey`, `config/ssh` | 대기 | |
-| X-4 | GPG 커밋 서명 검증 | `domain/gpgkey` | 대기 | |
+| X-4 | GPG 커밋 서명 검증(키 등록, 커밋과 태그의 Verified 표시, REST, 서명 커밋 필수 규칙) | `domain/gpgkey` | **계획 확정(2026-11-02), 결정은 D-65** | 일곱 단계(검증 핵심, 키 저장, 설정 화면, 표시, REST, 감사와 위키, 규칙). BouncyCastle 의존성 추가. 만료와 폐기 키는 지금 기준으로 Unverified |
 | X-5 | 개인용 API 토큰(PAT, 범위 지정) | `domain/apitoken` | **구현 완료(2026-10-29)** | D-36: Classic 토큰을 먼저 도입하고 v1.6 사용자 토큰은 레거시 Classic 토큰으로 이관한다(공존이 아니라 이관). 모든 토큰이 사용자 권한을 확인한다(D-20 대체). Fine-grained는 X-5b로 나눈다. 상세는 [architecture/api-token.md](architecture/api-token.md) |
 | X-6 | MCP 서버(OAuth2로 인증한 AI 에이전트의 이슈, 풀 리퀘스트, 위키 접근) | `mcp` | 대기 | X-1, X-5 이후 |
 | X-7 | Mercurial 저장소(hg4j): 코드 보기, 커밋 이력, bookmark와 named branch, HTTP와 SSH 서빙, zip 내려받기, 브랜치 보호와 push 알림·웹훅, 풀 리퀘스트 병합, GPG 서명 | `domain/vcs`, `config/hg`, `HgController` | 대기 | 저장소 종류 변경(v1.6 `changeVCS`)과 `vcs` 열 값에 영향. hg4j는 `io.github.search5.hg4j` 별도 라이브러리 **선행 정리(2026-10-29)**: 착수 전에 `@IsOnlyGitAvailable`(컨트롤러 7곳)과 `VCS_GIT`, `VCS_SUBVERSION` 분기(9개 파일, 39곳)를 "지원하는 VCS를 선언하는 방식"(예: `@SupportedVcs(GIT, MERCURIAL)`)으로 정리한다. 기능마다 Git 전용, Git과 Mercurial, 모든 VCS로 갈리므로 이름만 바꾸는 일이 아니다. 그때까지는 v1.6 이름을 유지한다 |
