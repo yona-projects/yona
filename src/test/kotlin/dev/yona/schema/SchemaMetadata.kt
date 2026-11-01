@@ -48,7 +48,7 @@ object SchemaMetadata {
      * - X-5 개인용 API 토큰(D-36): `api_token`
      * - X-37i 기기 인증(D-52, A-281): `device_authorization`
      */
-    val INTENDED_ADDITIONS: Set<String> = setOf("pull_request_assignee", "pull_request_issue_label", "pull_request_review", "api_token", "pull_request_review_request", "ruleset", "device_authorization", "audit_log", "audit_chain_head")
+    val INTENDED_ADDITIONS: Set<String> = setOf("pull_request_assignee", "pull_request_issue_label", "pull_request_review", "api_token", "pull_request_review_request", "ruleset", "device_authorization", "audit_log", "audit_chain_head", "audit_stream_cursor")
 
     /**
      * v1.6 최종 스키마의 기존 테이블에 추가 개발 항목이 일부러 더한 컬럼이다(테이블 이름 -> 컬럼 이름들). 더할 때는 `decisions.md`에 근거를 적고 여기에 올린다.
