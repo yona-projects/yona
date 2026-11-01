@@ -193,3 +193,65 @@ class WebhookAuditTarget(private val properties: YonaProperties) : AuditStreamTa
         const val REQUEST_TIMEOUT = 15L
     }
 }
+
+/**
+ * syslog로 보낸다(RFC 5424). 메시지는 `<우선순위>1 시각 호스트 yona - 기록번호 [audit@32473 action outcome actor ip] {내보내기 JSON}`이다.
+ * 우선순위는 시설 13(log audit)과 심각도(성공 6 정보, 그 밖의 결과 4 경고)이다. 구조화 데이터의 이름 `audit@32473`은 문서용 사설 기업 번호를 쓴 것이다.
+ * UDP는 기록마다 데이터그램 하나이고 TCP와 TLS는 옥텟 세기 틀(`길이 메시지`, RFC 6587)로 묶음을 한 연결에 보낸다.
+ */
+@Component
+class SyslogAuditTarget(private val properties: YonaProperties) : AuditStreamTarget {
+
+    override val name = "syslog"
+
+    override fun configured(): Boolean = !properties.auditStreamSyslogHost.isNullOrBlank() && properties.auditStreamSyslogProtocol.lowercase() in PROTOCOLS
+
+    override fun send(events: List<AuditLog>) {
+        val host = properties.auditStreamSyslogHost!!.trim()
+        val port = properties.auditStreamSyslogPort
+        val hostname = properties.auditStreamSyslogHostname?.takeIf { it.isNotBlank() } ?: localHostname()
+        val messages = events.map { format(it, hostname).toByteArray(Charsets.UTF_8) }
+        when (properties.auditStreamSyslogProtocol.lowercase()) {
+            "udp" -> java.net.DatagramSocket().use { socket ->
+                val address = java.net.InetAddress.getByName(host)
+                messages.forEach { socket.send(java.net.DatagramPacket(it, it.size, address, port)) }
+            }
+            else -> {
+                val socket = if (properties.auditStreamSyslogProtocol.equals("tls", ignoreCase = true)) javax.net.ssl.SSLSocketFactory.getDefault().createSocket() else java.net.Socket()
+                socket.use {
+                    it.connect(java.net.InetSocketAddress(host, port), CONNECT_TIMEOUT_MILLIS)
+                    it.soTimeout = WRITE_TIMEOUT_MILLIS
+                    val out = it.getOutputStream()
+                    messages.forEach { m -> out.write("${m.size} ".toByteArray(Charsets.US_ASCII)); out.write(m) }
+                    out.flush()
+                }
+            }
+        }
+    }
+
+    private fun localHostname(): String = try { java.net.InetAddress.getLocalHost().hostName } catch (e: Exception) { "-" }
+
+    companion object {
+        private val PROTOCOLS = setOf("udp", "tcp", "tls")
+        private const val FACILITY_AUDIT = 13
+        private const val CONNECT_TIMEOUT_MILLIS = 5000
+        private const val WRITE_TIMEOUT_MILLIS = 15000
+        private val mapper = JsonMapper.builder().build()
+
+        /** 기록 한 건의 syslog 메시지(틀 없이)이다. */
+        fun format(entry: AuditLog, hostname: String): String {
+            val severity = if (entry.outcome == AuditOutcome.SUCCESS) 6 else 4
+            val data = buildString {
+                append("[audit@32473 action=\"").append(escape(entry.action)).append("\" outcome=\"").append(entry.outcome.name).append('"')
+                entry.actorLogin?.let { append(" actor=\"").append(escape(it)).append('"') }
+                entry.ip?.let { append(" ip=\"").append(escape(it)).append('"') }
+                append(']')
+            }
+            val time = java.time.Instant.ofEpochMilli(entry.createdMillis)
+            return "<${FACILITY_AUDIT * 8 + severity}>1 $time ${hostname.replace(' ', '_')} yona - ${entry.id} $data ${mapper.writeValueAsString(AuditExport.fields(entry))}"
+        }
+
+        /** 구조화 데이터 값에서 `"`, `\`, `]`를 이스케이프한다(RFC 5424 6.3.3). */
+        private fun escape(value: String): String = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("]", "\\]")
+    }
+}
