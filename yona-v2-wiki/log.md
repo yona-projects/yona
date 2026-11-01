@@ -842,3 +842,6 @@ X-38h-1: 전역 `border-box`만 바꾸면 요소 24,411개 중 11,489개(47%)가
 
 ## [2026-11-01] X-17 W4 위키 화면
 `WikiViewController`와 템플릿 6장(`wiki/shell`, `view`, `empty`, `edit`, `history`, `compare`), 프로젝트 메뉴의 `Wiki` 탭, 메시지 31개(5개 언어), `_wiki.scss`, 확인 도구의 위키 화면과 고정 데이터를 시험 먼저 만들었다. 시험: `WikiViewTest` 20건, 메뉴 시험 3건 갱신, 전체 3,136건 통과. Playwright로 홈, 편집, 이력, 비교 화면을 확인했다(선생님께 캡처 전달). 문서는 [architecture/project-wiki.md](architecture/project-wiki.md). 다음은 W5(CLI).
+
+## [2026-11-01] X-17 W5 위키 CLI
+`../yona-cli`의 위키 명령 8개를 서버 위키 REST에 맞췄다(경로, 응답 모양, `PATCH`, `--revision`, 하위 경로 제거). 시험은 CLI 저장소에서 먼저 새 계약으로 고쳐 쓰고 구현했다(`go test ./...` 통과, `gofmt`와 `vet` 깨끗). README 갱신. 다음은 W6(검증과 문서)와 W7(git clone과 push).

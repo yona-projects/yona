@@ -84,7 +84,7 @@ CLI는 이전 구현(`yuna`)의 `/api/v1/projects/{owner}/{name}/...`를 부르�
 
 | CLI 명령 | 서버 REST | 상태 | 메모 |
 |---|---|---|---|
-| `wiki list`, `view`, `create`, `edit`, `delete`, `history`, `diff`, `compare` | 없음 | ❌ | 서버에 위키 기능 자체가 없다(X-17 대기). 전부 위키가 만들어진 뒤에 가능하다 |
+| `wiki list`, `view`, `create`, `edit`, `delete`, `history`, `diff`, `compare` | `wiki/pages...`(X-17 W3) | ✅ | 서버에 위키 REST를 만들었고(2026-11-01, D-60) CLI를 그 계약에 맞췄다. 하위 경로(슬래시)는 지원하지 않는다 |
 
 ## 관리자
 

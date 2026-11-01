@@ -70,6 +70,10 @@ GitHub 위키 모양이다. 읽기는 프로젝트를 읽을 수 있으면 되�
 - 시험은 `WikiViewTest`. 확인 도구(`e2e`)에는 `wiki-*` 화면 8개와 위키 고정 데이터(`seedWiki`)를 올렸다.
 - 제외한 것: 위키 링크 문법(`[[Page]]`), 첨부 파일 올리기, 전체 페이지 목록 화면(Forgejo의 `_pages`), 이름 바꾸기를 따라가는 이력.
 
+## CLI (`../yona-cli`, W5)
+
+`yona wiki list`, `view`, `create`, `edit`, `delete`, `history`, `diff`, `compare`를 위 REST 계약(`/-_-api/v1/.../wiki/pages...`)에 맞췄다. 옛 계약(`/api/v1/.../wiki`, `PUT`과 `newTitle`, 슬래시 하위 경로)을 없앴다. `edit`은 `--new-title`만 주면 이름만 바뀌고(`PATCH`), `view`는 `--revision`을 받는다. 시험은 CLI 저장소의 `cmd/wiki_test.go` 20건이다(서버 응답 모양을 흉내 낸다).
+
 ## 단계
 
-W1 저장소 계층(완료), W2 서비스(완료), W3 REST(완료), W4 화면(완료), W5 CLI, W6 검증과 문서, W7 git clone과 push.
+W1 저장소 계층(완료), W2 서비스(완료), W3 REST(완료), W4 화면(완료), W5 CLI(완료), W6 검증과 문서, W7 git clone과 push.
