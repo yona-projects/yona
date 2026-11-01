@@ -109,7 +109,7 @@ class RulesetController(private val projectService: ProjectService, private val 
             name = request.getParameter("name"), enforcement = request.getParameter("enforcement") ?: Ruleset.ACTIVE, pattern = request.getParameter("pattern"),
             approvals = request.getParameter("approvals"), bypassAdmins = on("bypassAdmins"), restrictUpdates = on("restrictUpdates"), restrictDeletions = on("restrictDeletions"), blockForcePushes = on("blockForcePushes"),
             requirePullRequest = on("requirePullRequest"), requireLinearHistory = on("requireLinearHistory"), requireNoChangesRequested = on("requireNoChangesRequested"),
-            requireConversationResolution = on("requireConversationResolution")
+            requireConversationResolution = on("requireConversationResolution"), requireSignedCommits = on("requireSignedCommits")
         )
     }
 
@@ -117,7 +117,8 @@ class RulesetController(private val projectService: ProjectService, private val 
     private fun draft(id: Long?, input: RulesetInput) = Ruleset(
         id = id, name = input.name, enforcement = input.enforcement, pattern = input.pattern, requiredApprovals = input.approvals?.trim()?.toIntOrNull() ?: 0,
         bypassAdmins = input.bypassAdmins, restrictUpdates = input.restrictUpdates, restrictDeletions = input.restrictDeletions, blockForcePushes = input.blockForcePushes, requirePullRequest = input.requirePullRequest,
-        requireLinearHistory = input.requireLinearHistory, requireNoChangesRequested = input.requireNoChangesRequested, requireConversationResolution = input.requireConversationResolution
+        requireLinearHistory = input.requireLinearHistory, requireNoChangesRequested = input.requireNoChangesRequested, requireConversationResolution = input.requireConversationResolution,
+        requireSignedCommits = input.requireSignedCommits
     )
 
     private fun formView(project: Project, ruleset: Ruleset, errors: List<String>): ModelAndView =

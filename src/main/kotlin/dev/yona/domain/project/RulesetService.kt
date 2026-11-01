@@ -21,7 +21,8 @@ data class RulesetInput(
     val requirePullRequest: Boolean = false,
     val requireLinearHistory: Boolean = false,
     val requireNoChangesRequested: Boolean = false,
-    val requireConversationResolution: Boolean = false
+    val requireConversationResolution: Boolean = false,
+    val requireSignedCommits: Boolean = false
 )
 
 /**
@@ -93,7 +94,7 @@ class RulesetService(private val rulesets: RulesetRepository, private val audit:
     private fun snapshot(r: Ruleset): Map<String, Any?> = linkedMapOf(
         "name" to r.name, "enforcement" to r.enforcement, "pattern" to r.pattern, "approvals" to r.requiredApprovals, "bypassAdmins" to r.bypassAdmins,
         "restrictUpdates" to r.restrictUpdates, "restrictDeletions" to r.restrictDeletions, "blockForcePushes" to r.blockForcePushes, "requirePullRequest" to r.requirePullRequest,
-        "requireLinearHistory" to r.requireLinearHistory, "requireNoChangesRequested" to r.requireNoChangesRequested, "requireConversationResolution" to r.requireConversationResolution
+        "requireLinearHistory" to r.requireLinearHistory, "requireNoChangesRequested" to r.requireNoChangesRequested, "requireConversationResolution" to r.requireConversationResolution, "requireSignedCommits" to r.requireSignedCommits
     )
 
     private fun rulesetEvent(action: String, project: Project, ruleset: Ruleset, details: Map<String, Any?>) =
@@ -112,6 +113,7 @@ class RulesetService(private val rulesets: RulesetRepository, private val audit:
         it.requireLinearHistory = input.requireLinearHistory
         it.requireNoChangesRequested = input.requireNoChangesRequested
         it.requireConversationResolution = input.requireConversationResolution
+        it.requireSignedCommits = input.requireSignedCommits
     }
 
     companion object {

@@ -9,6 +9,7 @@ import dev.yona.domain.pullrequest.acceptable
 import dev.yona.domain.pullrequest.allowedMergeMethods
 import dev.yona.domain.pullrequest.blockingRulesets
 import dev.yona.domain.pullrequest.defaultMergeMethodOrFirst
+import dev.yona.domain.pullrequest.disabledAcceptMessage
 import dev.yona.domain.pullrequest.requiredReviewerCount
 import dev.yona.domain.pullrequest.reviewBlocked
 import dev.yona.domain.pullrequest.reviewed
@@ -150,6 +151,37 @@ class RulesetTest {
     fun `선형 이력을 요구하는데 허용한 방식이 병합 커밋뿐이면 쓸 방식이 없다`() {
         val p = projectOf(rule("master") { requireLinearHistory = true }).also { it.allowMergeCommit = true; it.allowSquashMerge = false; it.allowRebaseMerge = false }
         assertTrue(pullRequest(p).allowedMergeMethods().isEmpty())
+    }
+
+    // --- 서명 커밋 필수 (X-4, D-65) ---
+
+    @Test
+    fun `서명 커밋을 요구하는 규칙 묶음은 Verified가 아닌 커밋이 있을 때만 병합을 막는다`() {
+        val p = projectOf(rule("master") { requireSignedCommits = true })
+        val pr = pullRequest(p)
+        assertTrue(pr.blockingRulesets(0, 0).isEmpty())
+        assertEquals(listOf("master"), pr.blockingRulesets(0, 2).map { it.name })
+        assertTrue(pr.reviewBlocked(0, 1) && pr.acceptable(0, 0) == pr.acceptable())
+    }
+
+    @Test
+    fun `서명 커밋을 요구하지 않는 규칙 묶음은 서명이 없는 커밋이 있어도 막지 않는다`() {
+        val pr = pullRequest(projectOf(rule("master")))
+        assertTrue(pr.blockingRulesets(0, 5).isEmpty())
+        assertFalse(pr.reviewBlocked(0, 5))
+    }
+
+    @Test
+    fun `서명 커밋 때문에 막히면 안내 메시지에 개수를 담는다`() {
+        val pr = pullRequest(projectOf(rule("master") { requireSignedCommits = true }))
+        val (key, args) = pr.disabledAcceptMessage(3)
+        assertEquals("pullRequest.not.acceptable.because.unverified.commits", key)
+        assertEquals(listOf<Any>(3), args.toList())
+    }
+
+    @Test
+    fun `새 규칙 묶음은 서명 커밋을 요구하지 않는다`() {
+        assertFalse(Ruleset(pattern = "master").requireSignedCommits == true)
     }
 
     // --- 푸시 검사 ---

@@ -72,6 +72,7 @@ server:
 | `account.profile_changed` | 이름이나 이메일이 바뀜 | 바뀐 항목의 전후(`name`, `email`) |
 | `account.email_added`, `email_confirmed`, `email_deleted`, `email_main_changed` | 보조 이메일 관리 | 이메일(대상 이름), 대표 변경은 전후 |
 | `token.created`, `token.updated`, `token.regenerated`, `token.deleted` | API 토큰 | 이름, 범위, 만료, 토큰 주인(`owner`). 기기 인증이 만든 토큰은 인증 없이 CLI가 받아 가므로 행위자를 토큰 주인(승인한 사용자)으로 남기고 `via: device`를 둔다 |
+| `gpg_key.added`, `gpg_key.deleted` | GPG 키 등록과 삭제(X-4, D-65). 같은 트랜잭션에서 기록하며 거절된 등록과 남의 키 삭제는 남기지 않는다 | 이름(대상), 지문, 키 ID, 하위 키 수(등록은 이메일 수도). **공개키 본문은 남기지 않는다** |
 | `token.device_approved`, `token.device_denied` | 기기 인증 승인과 거절 | 기기 이름(대상), 범위 |
 
 시험: `AuditAccountTest` 14건.

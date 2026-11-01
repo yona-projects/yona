@@ -19,7 +19,7 @@ sealed interface GpgKeyAddition {
  * 키는 사용자가 추가하고 삭제만 할 수 있다(편집 없음, D-65 8번).
  */
 @Service
-class GpgKeyService(private val keys: GpgKeyRepository) {
+class GpgKeyService(private val keys: GpgKeyRepository, private val audit: dev.yona.domain.audit.AuditRecorder) {
 
     companion object {
         /** 사용자당 키 최대 개수이다(주 키 기준). */
@@ -55,6 +55,7 @@ class GpgKeyService(private val keys: GpgKeyRepository) {
         parsed.subkeys.forEach {
             keys.save(GpgKey(user = user, parent = saved, fingerprint = it.fingerprint, keyId = it.keyId, canSign = it.canSign, createdDate = now, expiresDate = it.expiresAt?.let { at -> Date.from(at) }))
         }
+        audit.record(keyEvent("gpg_key.added", saved, mapOf("subkeys" to parsed.subkeys.size, "emails" to primary.emails.size)))
         return GpgKeyAddition.Added(saved)
     }
 
@@ -74,10 +75,17 @@ class GpgKeyService(private val keys: GpgKeyRepository) {
     @Transactional
     fun delete(user: User, id: Long): Boolean {
         val key = find(user, id) ?: return false
+        val subkeys = keys.findByParentIdOrderById(requireNotNull(key.id)).size
         keys.deleteByParentId(requireNotNull(key.id))
         keys.delete(key)
+        audit.record(keyEvent("gpg_key.deleted", key, mapOf("subkeys" to subkeys)))
         return true
     }
+
+    /** 키 이벤트이다. 지문, 키 ID, 하위 키 수만 남기고 공개키 본문은 넣지 않는다. */
+    private fun keyEvent(action: String, key: GpgKey, details: Map<String, Any?>) = dev.yona.domain.audit.AuditEvent(
+        action, targetType = "gpg_key", targetId = key.id?.toString(), targetLabel = key.name, details = linkedMapOf<String, Any?>("fingerprint" to key.fingerprint, "keyId" to key.keyId) + details
+    )
 
     /**
      * 키 ID(주 키 또는 하위 키)로 등록된 키 행을 찾는다. 서명의 발행 키 ID로 소유자를 알아낼 때 쓴다. 8자리 짧은 ID는 충돌하므로 16자리만 받는다.

@@ -54,7 +54,8 @@ class GitHooks(
     private val postReceiveJobs: PostReceiveJobs,
     private val accessControl: dev.yona.access.AccessControl,
     private val audit: dev.yona.domain.audit.AuditRecorder,
-    private val metrics: dev.yona.observability.VcsMetrics
+    private val metrics: dev.yona.observability.VcsMetrics,
+    private val gpgVerification: dev.yona.domain.gpgkey.GpgVerificationService
 ) {
 
     /**
@@ -62,7 +63,7 @@ class GitHooks(
      * 풀 리퀘스트를 요구하는 브랜치에 직접 푸시)를 거부한다. 규칙 묶음이 바이패스를 허용하면 프로젝트 관리자와 사이트 관리자인 [sender]는 그 규칙 묶음을 우회한다.
      * 풀 리퀘스트 병합처럼 서버가 직접 브랜치를 갱신하는 것은 이 검사를 거치지 않는다.
      */
-    fun preReceive(project: Project, sender: User?): PreReceiveHook = PreReceiveHook { _, commands ->
+    fun preReceive(project: Project, sender: User?): PreReceiveHook = PreReceiveHook { receivePack, commands ->
         for (command in commands) {
             val ref = command.refName
             if (ref == "refs/yobi" || ref.startsWith("refs/yobi/")) {
@@ -75,7 +76,10 @@ class GitHooks(
             val violated = project.rulesetsFor(ref).mapNotNull { rule -> rule.pushViolation(command.type)?.let { rule to it } }
                 .filterNot { (rule, _) -> accessControl.canBypass(sender, project, listOf(rule)) }
             val first = violated.firstOrNull()
-            if (first == null) continue
+            if (first == null) {
+                rejectUnverified(project, sender, receivePack, command)
+                continue
+            }
             val rule = first.first
             val reason = first.second
             val branch = ref.removePrefix(Constants.R_HEADS)
@@ -90,6 +94,43 @@ class GitHooks(
             recordRejected(project, ref, message, if (reason in setOf("deletion", "update", "force")) "ruleset_$reason" else "ruleset_pull_request")
         }
     }
+
+    /**
+     * 서명 커밋을 요구하는 규칙 묶음이 있는 브랜치로 푸시하는 새 커밋이 모두 Verified 서명인지 확인하고, 아니면 명령을 거부한다(추가 개발 항목 X-4, `decisions.md` D-65).
+     * 새 커밋은 새 팁에서 거슬러 오르되 옛 팁과 저장소의 다른 참조가 이미 가진 커밋은 뺀 것이다(그래서 브랜치를 새로 만들 때 기존 이력은 다시 검사하지 않는다).
+     * 바이패스를 허용한 규칙 묶음은 프로젝트 관리자와 사이트 관리자가 우회한다. 삭제는 커밋이 없으므로 검사하지 않는다.
+     */
+    private fun rejectUnverified(project: Project, sender: User?, receivePack: ReceivePack, command: ReceiveCommand) {
+        if (command.type == ReceiveCommand.Type.DELETE) return
+        val rule = project.rulesetsFor(command.refName).filter { it.requireSignedCommits == true }.firstOrNull { !accessControl.canBypass(sender, project, listOf(it)) } ?: return
+        val bad = try {
+            unverifiedCommits(receivePack.repository, command)
+        } catch (e: Exception) {
+            org.slf4j.LoggerFactory.getLogger(javaClass).warn("서명 검사 중 오류가 나 푸시를 거부한다: {}", project.name, e)
+            listOf("?" to "error")
+        }
+        if (bad.isEmpty()) return
+        val shown = bad.take(MAX_LISTED_UNVERIFIED).joinToString(", ") { (id, reason) -> "$id ($reason)" } + if (bad.size > MAX_LISTED_UNVERIFIED) ", ..." else ""
+        val message = "protected branch: commits to '${command.refName.removePrefix(Constants.R_HEADS)}' must have verified signatures (ruleset '${rule.name}'): $shown"
+        command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, message)
+        recordRejected(project, command.refName, message, "ruleset_signed_commits")
+    }
+
+    /** 이번 푸시가 더하는 커밋 가운데 Verified 서명이 아닌 것의 (짧은 번호, 이유 코드) 목록이다. */
+    private fun unverifiedCommits(repository: org.eclipse.jgit.lib.Repository, command: ReceiveCommand): List<Pair<String, String>> =
+        org.eclipse.jgit.revwalk.RevWalk(repository).use { walk ->
+            walk.markStart(walk.parseCommit(command.newId))
+            if (command.oldId != org.eclipse.jgit.lib.ObjectId.zeroId()) runCatching { walk.markUninteresting(walk.parseCommit(command.oldId)) }
+            repository.refDatabase.refs.forEach { ref ->
+                val id = ref.objectId
+                if (id != null && ref.name != command.refName && !ref.name.startsWith("refs/yobi")) runCatching { walk.markUninteresting(walk.parseCommit(id)) }
+            }
+            walk.mapNotNull { commit ->
+                val signed = if (commit.rawGpgSignature != null) dev.yona.domain.gpgkey.GitSignatures.ofCommit(commit.rawBuffer) else null
+                val result = gpgVerification.verifyCommit(signed, commit.committerIdent.emailAddress)
+                if (result.verified) null else commit.abbreviate(SHORT_ID).name() to result.reason.code
+            }
+        }
 
     /** 푸시 뒤 훅이다. 훅 하나가 실패해도 푸시는 이미 반영됐으므로 로그만 남기고 다음 훅을 계속 돌린다. */
     fun postReceive(project: Project, sender: User?): PostReceiveHook = PostReceiveHook { _: ReceivePack, commands ->
@@ -164,5 +205,11 @@ class GitHooks(
     private companion object {
         /** 푸시한 브랜치를 "최근"으로 보는 시간이다. 한 시간이다 (v1.6 `Project.DRAFT_TIME_IN_MILLIS`). */
         const val DRAFT_TIME_IN_MILLIS = 1000L * 60 * 60
+
+        /** 서명 검사에서 거부 메시지에 늘어놓을 커밋 수의 상한이다. */
+        const val MAX_LISTED_UNVERIFIED = 5
+
+        /** 거부 메시지에 쓰는 짧은 커밋 번호의 길이이다. */
+        const val SHORT_ID = 7
     }
 }

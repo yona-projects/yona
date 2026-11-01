@@ -82,7 +82,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
 
     private val all = arrayOf(
         "restrictUpdates" to "true", "restrictDeletions" to "true", "blockForcePushes" to "true", "requirePullRequest" to "true", "requireLinearHistory" to "true",
-        "requireNoChangesRequested" to "true", "requireConversationResolution" to "true", "bypassAdmins" to "true"
+        "requireNoChangesRequested" to "true", "requireConversationResolution" to "true", "requireSignedCommits" to "true", "bypassAdmins" to "true"
     )
 
     // --- 저장 ---
@@ -93,11 +93,11 @@ class RulesetWebTest : AbstractIntegrationTest() {
         send(project, session, "", "name" to "main protect", "enforcement" to "active", "pattern" to "master", "approvals" to "2", *all).andExpect(status().isSeeOther)
         val saved = rulesets.findByProjectIdAndName(project.id!!, "main protect")!!
         assertEquals("master", saved.pattern); assertEquals(2, saved.requiredApprovals); assertTrue(saved.isActive); assertNotNull(saved.createdDate)
-        assertEquals(List(8) { true }, listOf(saved.restrictUpdates, saved.restrictDeletions, saved.blockForcePushes, saved.requirePullRequest, saved.requireLinearHistory, saved.requireNoChangesRequested, saved.requireConversationResolution, saved.bypassAdmins))
+        assertEquals(List(9) { true }, listOf(saved.requireSignedCommits, saved.restrictUpdates, saved.restrictDeletions, saved.blockForcePushes, saved.requirePullRequest, saved.requireLinearHistory, saved.requireNoChangesRequested, saved.requireConversationResolution, saved.bypassAdmins))
         send(project, session, "/${saved.id}", "name" to "main protect", "enforcement" to "disabled", "pattern" to "main", "approvals" to "0").andExpect(status().isSeeOther)
         val updated = rulesets.findById(saved.id!!).get()
         assertEquals("main", updated.pattern); assertFalse(updated.isActive); assertEquals(0, updated.requiredApprovals)
-        assertEquals(List(8) { false }, listOf(updated.restrictUpdates, updated.restrictDeletions, updated.blockForcePushes, updated.requirePullRequest, updated.requireLinearHistory, updated.requireNoChangesRequested, updated.requireConversationResolution, updated.bypassAdmins), "체크하지 않은 조건은 꺼진다")
+        assertEquals(List(9) { false }, listOf(updated.requireSignedCommits, updated.restrictUpdates, updated.restrictDeletions, updated.blockForcePushes, updated.requirePullRequest, updated.requireLinearHistory, updated.requireNoChangesRequested, updated.requireConversationResolution, updated.bypassAdmins), "체크하지 않은 조건은 꺼진다")
         assertEquals(1, projects.findById(project.id!!).get().rulesets.size)
         send(project, session, "/${saved.id}/delete").andExpect(status().isSeeOther)
         assertNull(rulesets.findById(saved.id!!).orElse(null)); assertEquals(0, projects.findById(project.id!!).get().rulesets.size)
@@ -182,6 +182,17 @@ class RulesetWebTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `서명 커밋 필수는 폼에 체크 상자가 있고 켜면 목록 요약에 보인다`() {
+        val project = newProject(); val session = login(member(project, RoleType.MANAGER))
+        assertNotNull(page(project, session, "/new").selectFirst("input[name=requireSignedCommits]"))
+        send(project, session, "", "name" to "signed", "enforcement" to "active", "pattern" to "master", "approvals" to "0", "requireSignedCommits" to "true")
+        send(project, session, "", "name" to "plain", "enforcement" to "active", "pattern" to "release", "approvals" to "0")
+        val rows = page(project, session).select("#rulesetList tr.ruleset-row").associateBy { it.selectFirst("td.ruleset-name a")!!.text() }
+        assertTrue(rows.getValue("signed").selectFirst("td.ruleset-rules")!!.text().contains("Signed commits") || rows.getValue("signed").selectFirst("td.ruleset-rules")!!.text().contains("서명"), rows.getValue("signed").text())
+        assertFalse(rows.getValue("plain").selectFirst("td.ruleset-rules")!!.text().contains("Signed commits"))
+    }
+
+    @Test
     fun `규칙 묶음이 없으면 비어 있다는 안내를 보인다`() {
         val project = newProject(); val session = login(member(project, RoleType.MANAGER))
         assertEquals("만든 규칙 묶음이 없습니다.", page(project, session).selectFirst("tr.ruleset-empty")!!.text())
@@ -201,7 +212,7 @@ class RulesetWebTest : AbstractIntegrationTest() {
         assertEquals(url(project), doc.selectFirst("form#rulesetForm")!!.attr("action"))
         val checked = doc.select("form#rulesetForm input[type=checkbox][checked]").map { it.attr("name") }.toSet()
         assertEquals(setOf("restrictDeletions", "blockForcePushes"), checked)
-        assertEquals(setOf("bypassAdmins", "restrictUpdates", "restrictDeletions", "requireLinearHistory", "requirePullRequest", "requireNoChangesRequested", "requireConversationResolution", "blockForcePushes"),
+        assertEquals(setOf("bypassAdmins", "restrictUpdates", "restrictDeletions", "requireLinearHistory", "requireSignedCommits", "requirePullRequest", "requireNoChangesRequested", "requireConversationResolution", "blockForcePushes"),
             doc.select("form#rulesetForm input[type=checkbox]").map { it.attr("name") }.toSet())
         assertEquals("active", doc.selectFirst("input[name=enforcement][checked]")!!.attr("value"))
         assertTrue(doc.select("form#rulesetDeleteForm").isEmpty(), "새 규칙 묶음에는 삭제가 없다")

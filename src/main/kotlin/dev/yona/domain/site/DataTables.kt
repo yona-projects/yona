@@ -132,6 +132,7 @@ object DataTables {
             DataColumn("required_approvals", INT),
             DataColumn("require_no_changes_requested", BOOLEAN, absentBoolean = false),
             DataColumn("require_conversation_resolution", BOOLEAN, absentBoolean = false),
+            DataColumn("require_signed_commits", BOOLEAN, absentBoolean = false),
             DataColumn("created_date", TIMESTAMP)
         ),
         DataTable(

@@ -77,7 +77,8 @@ class PullRequestPageAssembler(
     private val markdown: dev.yona.markdown.ProjectMarkdownRenderer,
     private val reviewRepository: dev.yona.domain.pullrequest.PullRequestReviewRepository,
     private val pendingReader: dev.yona.domain.comment.PendingReviewReader,
-    private val signatureBadges: dev.yona.web.code.SignatureBadges
+    private val signatureBadges: dev.yona.web.code.SignatureBadges,
+    private val signatureCheck: dev.yona.domain.pullrequest.PullRequestSignatureCheck
 ) {
 
     fun baseUrl(pullRequest: PullRequest): String {
@@ -110,6 +111,7 @@ class PullRequestPageAssembler(
 
         // 추가 항목(X-33, D-45): 승인은 GitHub처럼 항상 할 수 있고, 규칙이 켠 병합 조건만 병합을 막는다
         val openConversations = threads.countByPullRequestIdAndState(requireNotNull(pullRequest.id), ThreadState.OPEN).toInt()
+        val unverified = signatureCheck.unverifiedCount(pullRequest)
         val reviewers = if (canAccept) {
             ReviewerArea(
                 labelHtml = text("pullRequest.review.participants", pullRequest.countedApprovals),
@@ -120,11 +122,11 @@ class PullRequestPageAssembler(
         } else null
 
         val accept = if (canAccept) {
-            if (pullRequest.acceptable(openConversations)) mergeButton(pullRequest, project, "$base/accept", null)
+            if (pullRequest.acceptable(openConversations, unverified)) mergeButton(pullRequest, project, "$base/accept", null)
             // 추가 항목(X-12, D-35 11번): 프로젝트 관리자와 사이트 관리자는 리뷰 조건에 막힌 요청도 병합할 수 있다
-            else if (pullRequest.reviewBlocked(openConversations) && pullRequest.acceptableIgnoringReview && accessControl.canBypass(viewer, project, pullRequest.blockingRulesets(openConversations))) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
+            else if (pullRequest.reviewBlocked(openConversations, unverified) && pullRequest.acceptableIgnoringReview && accessControl.canBypass(viewer, project, pullRequest.blockingRulesets(openConversations, unverified))) mergeButton(pullRequest, project, "$base/accept", text("pullRequest.review.bypass.note"))
             else {
-                val (key, args) = pullRequest.disabledAcceptMessage()
+                val (key, args) = pullRequest.disabledAcceptMessage(unverified)
                 AcceptButton("$base/accept", false, text(key, *args))
             }
         } else null

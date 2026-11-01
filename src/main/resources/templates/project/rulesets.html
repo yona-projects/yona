@@ -47,6 +47,7 @@
                     <span class="badge bg-secondary" th:if="${r.requireNoChangesRequested == true}" th:text="#{project.ruleset.rule.changes.short}"></span>
                     <span class="badge bg-secondary" th:if="${r.requireConversationResolution == true}" th:text="#{project.ruleset.rule.conversation.short}"></span>
                     <span class="badge bg-secondary" th:if="${r.requireLinearHistory == true}" th:text="#{project.ruleset.rule.linear.short}"></span>
+                    <span class="badge bg-secondary" th:if="${r.requireSignedCommits == true}" th:text="#{project.ruleset.rule.signed.short}"></span>
                     <span class="badge text-bg-warning" th:if="${r.restrictUpdates == true}" th:text="#{project.ruleset.rule.updates.short}"></span>
                     <span class="badge bg-secondary" th:if="${r.restrictDeletions == true}" th:text="#{project.ruleset.rule.deletions.short}"></span>
                     <span class="badge bg-secondary" th:if="${r.blockForcePushes == true}" th:text="#{project.ruleset.rule.force.short}"></span>

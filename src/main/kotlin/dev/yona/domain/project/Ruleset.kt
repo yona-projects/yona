@@ -24,6 +24,7 @@ import java.util.Date
  * @property requiredApprovals 병합에 필요한 승인 수. 0이면 승인으로는 막지 않는다. 작성자 본인의 승인은 세지 않는다
  * @property requireNoChangesRequested 켜면 변경 요청이 남아 있는 풀 리퀘스트는 병합하지 못한다
  * @property requireConversationResolution 켜면 열려 있는 리뷰 스레드가 있는 풀 리퀘스트는 병합하지 못한다
+ * @property requireSignedCommits 켜면 이 브랜치로 푸시하는 커밋과 이 브랜치로 병합하는 풀 리퀘스트의 커밋이 모두 Verified 서명이어야 한다(X-4, `decisions.md` D-65). 서버가 직접 만드는 병합 커밋은 서명하지 못하므로 검사하지 않는다
  * @property createdDate 만든 시각
  */
 @Entity
@@ -71,6 +72,9 @@ class Ruleset(
     @Column(name = "require_conversation_resolution")
     @ColumnDefault("false")
     var requireConversationResolution: Boolean? = false,
+    @Column(name = "require_signed_commits")
+    @ColumnDefault("false")
+    var requireSignedCommits: Boolean? = false,
     @Column(name = "created_date")
     var createdDate: Date? = null
 ) {

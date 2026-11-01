@@ -45,7 +45,8 @@ class PullRequestWorkflow(
     private val pushedBranches: dev.yona.domain.project.PushedBranchRepository,
     private val issueCloser: PullRequestIssueCloser,
     private val threads: dev.yona.domain.comment.CommentThreadRepository,
-    private val metrics: dev.yona.observability.CollaborationMetrics
+    private val metrics: dev.yona.observability.CollaborationMetrics,
+    private val signatureCheck: PullRequestSignatureCheck
 ) {
 
     /**
@@ -75,7 +76,7 @@ class PullRequestWorkflow(
         // 추가 항목(X-32, D-42): 받는 브랜치에 보호 규칙이 있을 때만 승인 수와 변경 요청으로 막는다
         // 추가 항목(X-34, D-46): 규칙 묶음이 켠 조건(승인 수, 변경 요청, 열린 대화)이 남아 있으면 막는다. 막고 있는 규칙 묶음을 모두 우회할 수 있는 사용자만 통과한다
         val openConversations = threads.countByPullRequestIdAndState(requireNotNull(pullRequest.id), dev.yona.domain.enumeration.ThreadState.OPEN).toInt()
-        val blocking = pullRequest.blockingRulesets(openConversations)
+        val blocking = pullRequest.blockingRulesets(openConversations, signatureCheck.unverifiedCount(pullRequest))
         if (blocking.isNotEmpty() && !canBypass(blocking)) return if (blocking.any { it.restrictUpdates == true }) AcceptResult.UPDATES_RESTRICTED else AcceptResult.NOT_REVIEWED
 
         val result = merger.merge(pullRequest, PersonIdent(accepter.name, accepter.email), chosen, commitTitle, commitMessage)

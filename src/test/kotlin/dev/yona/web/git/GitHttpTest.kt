@@ -85,6 +85,8 @@ class GitHttpTest {
     @Autowired private lateinit var branchService: dev.yona.repository.BranchService
     @Autowired private lateinit var tagService: dev.yona.repository.TagService
     @Autowired private lateinit var diffService: dev.yona.repository.diff.DiffService
+    @Autowired private lateinit var gpgKeyService: dev.yona.domain.gpgkey.GpgKeyService
+    @Autowired private lateinit var gpgKeyRepository: dev.yona.domain.gpgkey.GpgKeyRepository
 
     @TempDir lateinit var work: File
 
@@ -118,6 +120,9 @@ class GitHttpTest {
     fun tearDown() {
         // 토큰은 사용자를 참조하므로 먼저 지운다. 같은 주소(127.0.0.1)의 실패 기록은 시험끼리 영향을 주지 않게 비운다(X-5)
         apiTokenRepository.deleteAll()
+        // GPG 키도 사용자를 참조한다(하위 키 행이 주 키 행을 가리키므로 하위 키부터 지운다, X-4)
+        gpgKeyRepository.findAll().filter { it.parent != null }.forEach { gpgKeyRepository.delete(it) }
+        gpgKeyRepository.flush(); gpgKeyRepository.deleteAll()
         auditLogs.deleteAllInBatch()
         tokenFailures.clear()
         projects.findAll().filter { it.owner == member.loginId }.forEach { deletion.delete(it) }
@@ -501,6 +506,87 @@ class GitHttpTest {
             }
             return git.push().setRemote(url(project)).setCredentialsProvider(credentials(user)).setForce(force).setRefSpecs(spec).call().flatMap { it.remoteUpdates }.single()
         }
+    }
+
+    /**
+     * 복제해서 커밋을 하나 더 얹되 [key]로 서명해([key]가 `null`이면 서명 없이) [branch]로 밀어 넣는다. 커밋터 이메일은 [committerEmail]이다.
+     * 서명은 실제 `gpg` 없이 BouncyCastle로 만든다(X-4).
+     */
+    private fun pushSigned(user: User, key: dev.yona.domain.gpgkey.TestGpgKey?, committerEmail: String, branch: String = "master", startPoint: String? = "origin/master"): org.eclipse.jgit.transport.RemoteRefUpdate {
+        val dir = clone(project, user)
+        Git.open(dir).use { git ->
+            val repository = git.repository
+            val inserter = repository.newObjectInserter()
+            val head = repository.resolve(startPoint ?: "HEAD")
+            val tree = org.eclipse.jgit.lib.TreeFormatter().apply { append("signed-${counter.incrementAndGet()}.txt", org.eclipse.jgit.lib.FileMode.REGULAR_FILE, inserter.insert(org.eclipse.jgit.lib.Constants.OBJ_BLOB, "x".toByteArray())) }
+            val ident = org.eclipse.jgit.lib.PersonIdent("Signer", committerEmail)
+            val builder = org.eclipse.jgit.lib.CommitBuilder().apply { setTreeId(inserter.insert(tree)); author = ident; committer = ident; message = "signed push"; head?.let { setParentId(it) } }
+            if (key != null) builder.setGpgSignature(org.eclipse.jgit.lib.GpgSignature(key.sign(builder.build()).toByteArray()))
+            val id = inserter.insert(builder)
+            inserter.flush()
+            repository.updateRef("refs/heads/$branch").apply { setNewObjectId(id); setForceUpdate(true) }.update()
+            return git.push().setRemote(url(project)).setCredentialsProvider(credentials(user)).setRefSpecs(RefSpec("refs/heads/$branch:refs/heads/$branch")).call().flatMap { it.remoteUpdates }.single()
+        }
+    }
+
+    /** [owner]에게 이메일 [email]을 사용자 ID로 가진 새 GPG 키를 등록하고 돌려준다. [owner]의 대표 이메일을 [email]로 맞춘다. */
+    private fun registeredKey(owner: User, email: String): dev.yona.domain.gpgkey.TestGpgKey {
+        owner.email = email; users.save(owner)
+        return dev.yona.domain.gpgkey.TestGpgKey.generate(userId = "Signer <$email>").also { gpgKeyService.add(owner, "k", it.publicArmored) }
+    }
+
+    @Test
+    fun `서명 커밋을 요구하는 규칙은 서명 없는 커밋과 등록되지 않은 키의 커밋을 막는다 (X-4)`() {
+        push(project, member); protect { requireSignedCommits = true; blockForcePushes = false }
+        val plain = plainMember()
+        assertRejected(pushSigned(plain, null, plain.email!!), "protected branch", "signatures", "unsigned")
+        val stranger = dev.yona.domain.gpgkey.TestGpgKey.generate(userId = "S <${plain.email}>")
+        assertRejected(pushSigned(plain, stranger, plain.email!!), "protected branch", "unknown_key")
+    }
+
+    @Test
+    fun `서명 커밋을 요구하는 규칙은 등록한 키로 서명한 Verified 커밋을 받는다 (X-4)`() {
+        push(project, member); protect { requireSignedCommits = true }
+        val plain = plainMember()
+        val key = registeredKey(plain, "signer-${counter.incrementAndGet()}@example.com")
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushSigned(plain, key, plain.email!!).status)
+    }
+
+    @Test
+    fun `커밋터 이메일이 키와 다르면 서명이 맞아도 막는다 (X-4)`() {
+        push(project, member); protect { requireSignedCommits = true }
+        val plain = plainMember()
+        val key = registeredKey(plain, "signer-${counter.incrementAndGet()}@example.com")
+        assertRejected(pushSigned(plain, key, "someone-else@example.com"), "protected branch", "bad_email")
+    }
+
+    @Test
+    fun `바이패스를 허용한 규칙 묶음은 프로젝트 관리자가 서명 없이 푸시해도 우회한다 (X-4)`() {
+        push(project, member); protect { requireSignedCommits = true; bypassAdmins = true }
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushSigned(member, null, member.email!!).status)
+        protectionRules.findAll().filter { it.project?.id == project.id }.forEach { it.bypassAdmins = false; protectionRules.save(it) }
+        assertRejected(pushSigned(member, null, member.email!!), "protected branch", "signatures")
+    }
+
+    @Test
+    fun `규칙 이전의 서명 없는 이력은 다시 검사하지 않고 브랜치를 새로 만들 때도 새 커밋만 본다 (X-4)`() {
+        push(project, member); protect("**") { requireSignedCommits = true }
+        val plain = plainMember()
+        val key = registeredKey(plain, "signer-${counter.incrementAndGet()}@example.com")
+        // 이미 있는 서명 없는 master 위에 서명한 커밋 하나를 올린다: 새 커밋만 검사하므로 통과한다
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushSigned(plain, key, plain.email!!).status)
+        // 새 브랜치를 master에서 갈라 서명 없는 커밋을 올리면 막고 서명한 커밋이면 받는다
+        assertRejected(pushSigned(plain, null, plain.email!!, branch = "feature", startPoint = "origin/master"), "signatures")
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushSigned(plain, key, plain.email!!, branch = "feature2", startPoint = "origin/master").status)
+    }
+
+    @Test
+    fun `서명 커밋 규칙은 대상이 아닌 브랜치와 삭제와 태그에는 영향이 없다 (X-4)`() {
+        push(project, member); push(project, member, branch = "feature")
+        protect("master") { requireSignedCommits = true }
+        val plain = plainMember()
+        assertEquals(org.eclipse.jgit.transport.RemoteRefUpdate.Status.OK, pushSigned(plain, null, plain.email!!, branch = "feature", startPoint = "origin/feature").status)
+        push(project, plain, branch = "v1", ref = "refs/tags/v1")
     }
 
     private fun assertRejected(update: org.eclipse.jgit.transport.RemoteRefUpdate, vararg words: String) {

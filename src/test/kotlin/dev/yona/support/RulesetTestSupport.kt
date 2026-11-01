@@ -10,10 +10,10 @@ import java.util.Date
  */
 fun ruleset(
     project: Project, pattern: String = "master", approvals: Int = 1, bypassAdmins: Boolean = true, noChangesRequested: Boolean = true,
-    conversationResolution: Boolean = false, linearHistory: Boolean = false, restrictDeletions: Boolean = true, blockForcePushes: Boolean = true, requirePullRequest: Boolean = false
+    conversationResolution: Boolean = false, linearHistory: Boolean = false, restrictDeletions: Boolean = true, blockForcePushes: Boolean = true, requirePullRequest: Boolean = false, signedCommits: Boolean = false
 ): Ruleset =
     Ruleset(
         project = project, name = pattern, pattern = pattern, requiredApprovals = approvals, bypassAdmins = bypassAdmins, requireNoChangesRequested = noChangesRequested,
         requireConversationResolution = conversationResolution, requireLinearHistory = linearHistory, restrictDeletions = restrictDeletions, blockForcePushes = blockForcePushes,
-        requirePullRequest = requirePullRequest, createdDate = Date()
+        requirePullRequest = requirePullRequest, requireSignedCommits = signedCommits, createdDate = Date()
     ).also { project.rulesets.add(it) }

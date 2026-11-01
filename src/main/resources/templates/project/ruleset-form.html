@@ -84,6 +84,10 @@
                             <strong th:text="#{project.ruleset.rule.linear}"></strong></label></div>
                         <span class="form-text" th:text="#{project.ruleset.rule.linear.desc}"></span>
 
+                        <div class="form-check"><label class="form-check-label"><input type="checkbox" name="requireSignedCommits" value="true" th:checked="${ruleset.requireSignedCommits == true}" class="form-check-input">
+                            <strong th:text="#{project.ruleset.rule.signed}"></strong></label></div>
+                        <span class="form-text" th:text="#{project.ruleset.rule.signed.desc}"></span>
+
                         <div class="form-check"><label class="form-check-label"><input type="checkbox" name="requirePullRequest" value="true" th:checked="${ruleset.requirePullRequest == true}" class="form-check-input">
                             <strong th:text="#{project.ruleset.rule.pr}"></strong></label></div>
                         <span class="form-text" th:text="#{project.ruleset.rule.pr.desc}"></span>
