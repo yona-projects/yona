@@ -10,6 +10,23 @@ title: 감사 로그 (X-9)
 
 A1 결정과 설계(이 문서), A2 핵심(기록기, 해시 사슬), A3 경계 이벤트(인증, 인가 거부), A4 계정과 토큰, A5 도메인 변경과 사이트 관리, A6 조회와 내보내기, A7 보존, A8 구조 시험과 마무리.
 
+## 운영 주의: 리버스 프록시 뒤의 IP
+
+감사 기록의 IP(`ip`)는 `request.remoteAddr`이다. **리버스 프록시(nginx, 로드 밸런서 등) 뒤에서는 이 값이 모든 요청에서 프록시의 주소가 되므로**, 올바른 접속 IP를 남기려면 서버가 `X-Forwarded-For`를 해석하도록 설정해야 한다.
+
+```yaml
+server:
+  forward-headers-strategy: native   # Tomcat의 RemoteIpValve가 remoteAddr를 원래 클라이언트로 바꾼다
+  tomcat:
+    remoteip:
+      internal-proxies: 10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+   # 믿을 프록시의 주소(정규식)
+```
+
+- `native`는 Tomcat이, `framework`는 스프링이 처리한다. 둘 다 `none`(기본)이 아니어야 한다. 설정 키는 Spring Boot의 `server.forward-headers-strategy`이다.
+- **믿을 프록시만 등록한다.** `X-Forwarded-For`는 누구나 위조해 보낼 수 있으므로 프록시가 클라이언트가 보낸 값을 지우고 직접 넣게 하고(nginx의 `proxy_set_header X-Forwarded-For $remote_addr` 또는 `$proxy_add_x_forwarded_for`와 `real_ip` 설정), 서버는 그 프록시의 주소에서 온 요청의 헤더만 믿어야 한다. 믿을 범위를 넓게 열면 공격자가 IP를 위조해 감사 기록을 속일 수 있다.
+- 같은 `remoteAddr`를 **로그인 실패 제한**(`TokenFailureLimiter`, 5회 실패하면 15분 차단)도 쓴다. 프록시 뒤에서 설정하지 않으면 모든 사용자가 한 주소로 보여 한 사람의 실패가 모두를 막을 수 있다. 감사 로그와 같은 이유로 이 설정이 필요하다.
+- 확인 방법: 프록시를 거쳐 로그인한 뒤 사이트 관리자의 감사 로그 화면에서 `auth.login_success`의 IP가 클라이언트 주소인지 본다.
+
 ## 설계 개요
 
 - **테이블**: `audit_log`(기록, 추가 전용)와 `audit_chain_head`(사슬의 끝, 한 행). 기록 한 건은 시각(UTC), 행위자 유형(사용자, 토큰, 시스템, 익명)과 번호와 로그인, 조치(`범주.조치`), 결과(성공, 실패, 거부), 대상 유형과 번호와 이름, 소속 조직과 프로젝트, IP, 사용자 에이전트, 요청 번호, 토큰 번호와 범위, 상세(JSON 글), 이전 해시와 해시를 담는다.

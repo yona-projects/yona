@@ -20,19 +20,19 @@
     <div class="col-lg-3"><input type="date" name="from" class="form-control form-control-sm" th:value="${filter.from}" th:title="#{audit.filter.from}"></div>
     <div class="col-lg-3"><input type="date" name="to" class="form-control form-control-sm" th:value="${filter.to}" th:title="#{audit.filter.to}"></div>
     <div class="col-lg-3 d-flex gap-2">
-        <button type="submit" class="ybtn ybtn-small" th:text="#{audit.filter.apply}">Apply</button>
-        <a th:href="${base}" class="ybtn ybtn-small" th:text="#{audit.filter.reset}">Reset</a>
+        <button type="submit" class="btn btn-sm btn-primary" th:text="#{audit.filter.apply}">Apply</button>
+        <a th:href="${base}" class="btn btn-sm btn-outline-secondary" th:text="#{audit.filter.reset}">Reset</a>
     </div>
 </form>
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
     <span class="audit-total text-body-secondary small" th:text="#{audit.pager.info(${total}, ${page}, ${pages})}"></span>
     <span class="ms-auto d-flex gap-2" th:if="${exportable}">
-        <a th:href="${exportCsv}" class="audit-export-csv ybtn ybtn-small" th:text="#{audit.export.csv}">CSV</a>
-        <a th:href="${exportJsonl}" class="audit-export-jsonl ybtn ybtn-small" th:text="#{audit.export.jsonl}">JSON Lines</a>
-        <a th:href="${exportJson}" class="audit-export-json ybtn ybtn-small" th:text="#{audit.export.json}">JSON</a>
+        <a th:href="${exportCsv}" class="audit-export-csv btn btn-sm btn-outline-secondary" th:text="#{audit.export.csv}">CSV</a>
+        <a th:href="${exportJsonl}" class="audit-export-jsonl btn btn-sm btn-outline-secondary" th:text="#{audit.export.jsonl}">JSON Lines</a>
+        <a th:href="${exportJson}" class="audit-export-json btn btn-sm btn-outline-secondary" th:text="#{audit.export.json}">JSON</a>
     </span>
-    <button type="button" th:if="${verifiable}" class="audit-verify ybtn ybtn-small" th:text="#{audit.verify}">Verify integrity</button>
+    <button type="button" th:if="${verifiable}" class="audit-verify btn btn-sm btn-outline-secondary" th:text="#{audit.verify}">Verify integrity</button>
 </div>
 <div th:if="${verifiable}" class="audit-verify-result small mb-2"
      th:attr="data-ok=#{audit.verify.ok('{0}')},data-broken=#{audit.verify.broken('{0}', '{1}')}"></div>
