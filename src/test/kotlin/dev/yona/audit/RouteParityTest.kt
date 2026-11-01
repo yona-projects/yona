@@ -3,6 +3,7 @@ package dev.yona.audit
 import dev.yona.support.AbstractIntegrationTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 import kotlin.test.assertEquals
 
@@ -18,6 +19,7 @@ import kotlin.test.assertEquals
 class RouteParityTest : AbstractIntegrationTest() {
 
     @Autowired
+    @Qualifier("requestMappingHandlerMapping")
     lateinit var mapping: RequestMappingHandlerMapping
 
     private fun normalize16(path: String) = path

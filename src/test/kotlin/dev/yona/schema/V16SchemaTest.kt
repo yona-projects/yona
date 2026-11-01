@@ -107,12 +107,19 @@ class V16SchemaTest : AbstractIntegrationTest() {
     @Test
     fun `enum 컬럼은 정의되지 않은 값도 저장할 수 있다`() {
         val quote = dataSource.connection.use { it.metaData.identifierQuoteString.trim() }
-        jdbc.update("insert into property (name, ${quote}value$quote) values (?, ?)", "FUTURE_KEY", "x")
-        jdbc.update("insert into issue (state) values (?)", 99)
-        jdbc.update("insert into webhook (webhook_type) values (?)", 99)
-        assertEquals(1, jdbc.queryForObject("select count(*) from property where name = 'FUTURE_KEY'", Int::class.java))
-        assertEquals(1, jdbc.queryForObject("select count(*) from issue where state = 99", Int::class.java))
-        assertEquals(1, jdbc.queryForObject("select count(*) from webhook where webhook_type = 99", Int::class.java))
+        // 이 시험은 커밋하므로 정의되지 않은 값(서수 99)의 행이 남으면 같은 DB를 읽는 다른 시험이 enum 변환에서 실패한다. 끝나면 지운다
+        try {
+            jdbc.update("insert into property (name, ${quote}value$quote) values (?, ?)", "FUTURE_KEY", "x")
+            jdbc.update("insert into issue (state) values (?)", 99)
+            jdbc.update("insert into webhook (webhook_type) values (?)", 99)
+            assertEquals(1, jdbc.queryForObject("select count(*) from property where name = 'FUTURE_KEY'", Int::class.java))
+            assertEquals(1, jdbc.queryForObject("select count(*) from issue where state = 99", Int::class.java))
+            assertEquals(1, jdbc.queryForObject("select count(*) from webhook where webhook_type = 99", Int::class.java))
+        } finally {
+            jdbc.update("delete from property where name = 'FUTURE_KEY'")
+            jdbc.update("delete from issue where state = 99")
+            jdbc.update("delete from webhook where webhook_type = 99")
+        }
     }
 
     @Test

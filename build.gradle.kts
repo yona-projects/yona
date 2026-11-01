@@ -106,6 +106,9 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
+	// 관측성(X-10, D-64): 상태 확인(Actuator)과 OTLP로 보내는 지표, 추적, 로그(OpenTelemetry). 수집기 주소가 없으면 내보내지 않는다
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
 	// 받은 메일 수신(IMAP IDLE, UID 조회)에 쓰는 IMAP 전용 클래스. 스타터는 실행 시점에만 포함한다
 	implementation("org.eclipse.angus:angus-mail")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")

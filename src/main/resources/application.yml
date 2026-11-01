@@ -61,6 +61,35 @@ spring:
       # 조인 표가 늘어 MariaDB의 61개 한도를 넘는 문제를 막는다. 깊이를 넘는 연관은 별도 조회로 읽으므로 결과는 같다.
       hibernate.max_fetch_depth: 2
 
+# 관측성(X-10, D-64). 상태 확인만 열고 상세를 숨긴다. 기본 경로 `/actuator`는 v1.6의 `/:user` 라우트(사용자 이름 actuator)와 겹치므로
+# 오류 경로(`/-_-error`)처럼 `-_-` 이름 공간에 둔다. 지표, 추적, 로그의 OTLP 내보내기는 꺼 두고, 수집기 주소(`OTEL_EXPORTER_OTLP_ENDPOINT`)를
+# 설정하면 `ObservabilityActivation`이 켠다.
+management:
+  endpoints:
+    web:
+      base-path: /-_-actuator
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+      probes:
+        enabled: true
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          enabled: false
+  logging:
+    export:
+      otlp:
+        enabled: false
+
 ---
 # PostgreSQL 프로파일: docker-compose.yml로 띄운 컨테이너에 연결한다.
 spring:
